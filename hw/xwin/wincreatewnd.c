@@ -240,24 +240,6 @@ winCreateBoundingWindowWindowed (ScreenPtr pScreen)
 		+ GetSystemMetrics (SM_CYCAPTION);
 	    }
 	}
-      else
-	{
-	  /*
-	   * User gave a width and height but also said no decoration.
-	   * In this case we have to ignore the requested width and height
-	   * and instead use the largest possible window that we can.
-	   */
-	  if (pScreenInfo->fMultipleMonitors)
-	    {
-	      iWidth = GetSystemMetrics (SM_CXVIRTUALSCREEN);
-	      iHeight = GetSystemMetrics (SM_CYVIRTUALSCREEN);
-	    }
-	  else
-	    {
-	      iWidth = GetSystemMetrics (SM_CXSCREEN);
-	      iHeight = GetSystemMetrics (SM_CYSCREEN);
-	    }
-	}
     }
   else
     {

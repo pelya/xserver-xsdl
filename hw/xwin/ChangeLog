@@ -1,3 +1,9 @@
+2004-09-16  Alexander Gottwald <ago at freedesktop dot org>
+
+	* wincreatewnd.c (winCreateBoundingWindowWindowed):
+	Remove code which prevented the use from specifying the window
+	size in nodecoration mode. 	
+
 2004-08-26  Chris B  <news at sempermax dot com>
 
 	* win.h, winmessages.h:
@@ -18,18 +24,18 @@
 	fUseUnicode, because it don't mean wheather Windows support
 	Unicode or not.
 	
-2004-07-31  Alexander Gottwald  <ago@freedesktop.org>
+2004-07-31  Alexander Gottwald  <ago at freedesktop dot org>
 
 	* win.h:
 	adjust prototype for winInitCmapPrivates to match Egberts change.	
 
-2004-07-30  Egbert Eich  <eich@freedesktop.org>
+2004-07-30  Egbert Eich  <eich at freedesktop dot org>
 
 	* winallpriv.c: (winInitCmapPrivates):
 	test if colormap with index really exists in the list of
 	installed maps before using it.
 
-2004-07-09  Alexander Gottwald  <ago@freedesktop.org>
+2004-07-09  Alexander Gottwald  <ago at freedesktop dot org>
 
 	* winconfig.c: Add entry for irish layout (ie)
 	* InitOutput.c, winerror.c, winglobals.c: rename g_fUseMsg to 
@@ -38,38 +44,38 @@
 	-silent-dup-error to allow silent termination if another instance of
 	XWin was found running
 
-2004-06-27  Alexander Gottwald  <ago@freedesktop.org>
+2004-06-27  Alexander Gottwald  <ago at freedesktop dot org>
 
 	* winconfig.c: Add entry for us layout. This changes not much but 
 	removes a strange error message about the unknown us layout. 
 
-2004-06-24  Alexander Gottwald  <ago@freedesktop.org>
+2004-06-24  Alexander Gottwald  <ago at freedesktop dot org>
 
 	* InitOutput.c: Check for textmode mounted /tmp and print a warning
 
-2004-06-15  Harold Hunt  <huntharo@msu.edu>
+2004-06-15  Harold Hunt  <huntharo at msu dot edu>
 
 	* windialogs.c: Fix path to locally installed changelog for the About 
 	dialog box.
 
-2004-05-27  Alexander Gottwald  <ago@freedesktop.org>
+2004-05-27  Alexander Gottwald  <ago at freedesktop dot org>
 
 	* winpriv.c: Create win32 window if not already created
 	* winmultiwindowwindow.c: Export winCreateWindowWindow
 
-2004-05-27  Alexander Gottwald  <ago@freedesktop.org>
+2004-05-27  Alexander Gottwald  <ago at freedesktop dot org>
 
 	* win.h: Allow CYGDEBUG to defined in the Makefile
 	* winwindow.h: Allow CYGWINDOWING_DEBUG to defined in the Makefile
 
-2004-05-19  Alexander Gottwald  <ago@freedesktop.org>
+2004-05-19  Alexander Gottwald  <ago at freedesktop dot org>
 	
 	* winmultiwindowicons.c (winInitGlobalIcons): Load the small default
 	icon too
 	* winprefs.h, winprefs.c (winOverrideDefaultIcon): Takes the iconsize
 	as parameter
 
-2004-05-19  Alexander Gottwald  <ago@freedesktop.org>
+2004-05-19  Alexander Gottwald  <ago at freedesktop dot org>
 
 	* win.h, winmultiwindowicons.c (winXIconToHICON): Takes iconsize
 	as parameter 
@@ -94,14 +100,14 @@
 	  winwin32rootless.c (winMWExtWMDestroyFrame): Use winDestroyIcon
 	to free the icon without destroying the global icon.  
 	  
-2004-05-17  Alexander Gottwald  <ago@freedesktop.org>
+2004-05-17  Alexander Gottwald  <ago at freedesktop dot org>
 
 	* windialogs.c (winExitDlgProc, winAboutDlgProc),
 	  winmultiwindowwndproc.c (winTopLevelWindowProc),
 	  winwndproc.c (winWindowProc): Check if g_fSoftwareCursor is set 
 	before calling ShowCursor.  
 
-2004-05-09  Dan Wilks  <Dan_Wilks@intuit.com>
+2004-05-09  Dan Wilks  <Dan_Wilks at intuit dot com>
     
 	* winclipboard.h: Add extern prototypes for winDebug, winErrorFVerb
 	copied from winmsg.h.
