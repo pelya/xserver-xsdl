@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/hw/xfree86/loader/elfloader.c,v 1.2 2004/04/23 19:54:06 eich Exp $ */
+/* $XdotOrg: xc/programs/Xserver/hw/xfree86/loader/elfloader.c,v 1.3 2004/10/30 20:33:43 alanc Exp $ */
 /* $XFree86: xc/programs/Xserver/hw/xfree86/loader/elfloader.c,v 1.61tsi Exp $ */
 
 /*
@@ -1609,6 +1609,20 @@ Elf_RelocateEntry(ELFModulePtr elffile, Elf_Word secn, Elf_Rel_t *rel,
 	    break;
 	}
 
+ 	case R_ALPHA_SREL32:
+ 	    {
+ 		dest32 = (unsigned int *)(secp + rel->r_offset);
+ 		symval += rel->r_addend;
+ 		symval -= (unsigned long) dest32;
+ 		if ((long)symval >= 0x80000000
+ 		    || (long)symval < -(long)0x80000000)
+ 		    FatalError("R_ALPHA_SREL32 overflow for %s: %lx\n",
+ 			       ElfGetSymbolName(elffile, ELF_R_SYM(rel->r_info)),
+ 			       symval);
+ 		*dest32 = symval;
+ 		break;
+ 	    }
+ 
 #endif /* alpha */
 #if defined(__mc68000__)
     case R_68K_32:
