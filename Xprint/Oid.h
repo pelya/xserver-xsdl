@@ -30,7 +30,6 @@ not be used in advertising or otherwise to promote the sale, use or other
 dealings in this Software without prior written authorization from said
 copyright holders.
 */
-/* $XFree86: xc/programs/Xserver/Xprint/Oid.h,v 1.3 1999/12/16 02:26:24 robin Exp $ */
 
 #ifndef _Xp_Oid_h
 #define _Xp_Oid_h
@@ -206,7 +205,7 @@ char* XpOidListString(const XpOidList*);
 /*
  * XpOidLinkedList public methods
  */
-XpOidLinkedList* XpOidLinkedListNew(void);
+XpOidLinkedList* XpOidLinkedListNew();
 void XpOidLinkedListDelete(XpOidLinkedList*);
 #define XpOidLinkedListCount(l) ((l) ? (l)->count : 0)
 XpOid XpOidLinkedListGetOid(XpOidLinkedList* list, int i);

@@ -1,28 +1,15 @@
-# $Xorg: model-config,v 1.3 2000/08/17 19:48:04 cpqbld Exp $
+# $Xprint.org: HPLJ4family model-config,v 1.4 2002/11/07 19:48:04 gisburn Exp $
 # This is the configuration file for the HP LaserJet 4 Printers.
 #
 # Though not a deliverable for the CDEnext SI, the XP-PCL-MONO
 # driver should be able to support the LaserJet 4 printers.
 #
-# Attribute IDs must be qualified using either the printer-model
-# identifier or an asterisk ('*').  For example, if "HPLJ4family" is the
-# printer-model, then to initialize the 'plexes-supported' attribute
-# to 'simplex', use: "HPLJ4family.plexes-supported: simplex". For the
-# asterisk, use: "*.plexes-supported: simplex". If the same attribute
-# is specified using each method, the printer-model qualified entry
-# takes precedence.
-
-HPLJ4family.printer-model: "Hewlett-Packard LaserJet 4 Series"
-HPLJ4family.printer-resolutions-supported: 300 600
-HPLJ4family.content-orientations-supported: portrait landscape
-HPLJ4family.document-formats-supported: {PCL 5} {PostScript 2}
-HPLJ4family.plexes-supported: simplex duplex
-HPLJ4family.xp-ddx-identifier: XP-PCL-MONO
-HPLJ4family.xp-embedded-formats-supported: { PCL 5 } { PostScript 2 }
-HPLJ4family.xp-setup-proviso: setup-optional
-
+*content-orientations-supported: portrait landscape
+*descriptor: Hewlett-Packard LaserJet 4 Series
+*document-formats-supported: {PCL 5} {PostScript 2}
+*input-trays-supported:
 # 1/4" unprintable margins
-HPLJ4family.medium-source-sizes-supported:\
+*medium-source-sizes-supported:\
 { '' \
     {na-letter			FALSE {6.35 209.55 6.35 273.05}}\
     {executive			FALSE {6.35 177.75 6.35 260.35}}\
@@ -41,4 +28,12 @@ HPLJ4family.medium-source-sizes-supported:\
     {hp-japanese-postcard	FALSE {6     94	   6	142   }}\
     {hp-japanese-doublepostcard FALSE {6    142	   6	194   }}\
 }
-
+*plexes-supported: simplex duplex
+*printer-model: "Hewlett-Packard LaserJet 4 Series"
+*printer-resolutions-supported: 300 600
+*xp-ddx-identifier: XP-PCL-MONO
+*xp-listfonts-modes-supported: xp-list-internal-printer-fonts xp-list-glyph-fonts
+*xp-embedded-formats-supported: { PCL 5 } { PostScript 2 }
+*xp-raw-formats-supported: { PCL 5 }
+*xp-setup-proviso: setup-optional
+# EOF.

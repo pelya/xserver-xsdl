@@ -228,7 +228,7 @@ error:
   return;
 }
 
-static void
+void
 PsPutScaledImageIM(DrawablePtr pDrawable, GCPtr pGC, int depth, int x, int y,
            int w, int h, int leftPad, int format, int imageRes, char *pImage)
 {
@@ -269,9 +269,9 @@ PsPutScaledImageIM(DrawablePtr pDrawable, GCPtr pGC, int depth, int x, int y,
     ColormapPtr  cMap;
     int          pageRes, sw, sh;
 #ifdef BM_CACHE
-    long   cache_id = 0;
+    long	 cache_id = 0;
 #endif
-    
+
     if( PsUpdateDrawableGC(pGC, pDrawable, &psOut, &cMap)==FALSE ) return;
     if (!imageRes) {
         sw = w;
@@ -296,100 +296,100 @@ PsPutScaledImageIM(DrawablePtr pDrawable, GCPtr pGC, int depth, int x, int y,
 
       PsOut_BeginImageCache(psOut, cache_id);
 #endif
-    if( depth==24 )
-    {
-      PsOut_BeginImageIM(psOut, 0, 0, x, y, w, h, sw, sh, 3);
-      if( format==XYPixmap )
+      if( depth==24 )
       {
-        int   rowsiz = PixmapBytePad(w, depth);
-        char *planes[3];
-        planes[0] = pImage;
-        planes[1] = &pImage[rowsiz*h];
-        planes[2] = &pImage[rowsiz*h*2];
-        for( r=0 ; r<h ; r++ )
+        PsOut_BeginImageIM(psOut, 0, 0, x, y, w, h, sw, sh, 3);
+        if( format==XYPixmap )
         {
-          char *pt[3];
-          for( i=0 ; i<3 ;  i++ ) pt[i] = &planes[i][rowsiz*r];
-          for( c=0 ; c<w ; c++ )
+          int   rowsiz = PixmapBytePad(w, depth);
+          char *planes[3];
+          planes[0] = pImage;
+          planes[1] = &pImage[rowsiz*h];
+          planes[2] = &pImage[rowsiz*h*2];
+          for( r=0 ; r<h ; r++ )
           {
-            for( i=0 ; i<3 ; i++ )
-              { PsOut_OutImageBytes(psOut, 1, &pt[i][c]); pt[i]++; }
+            char *pt[3];
+            for( i=0 ; i<3 ;  i++ ) pt[i] = &planes[i][rowsiz*r];
+            for( c=0 ; c<w ; c++ )
+            {
+              for( i=0 ; i<3 ; i++ )
+                { PsOut_OutImageBytes(psOut, 1, &pt[i][c]); pt[i]++; }
+            }
           }
         }
+        else if( format==ZPixmap )
+        {
+          int  rowsiz = PixmapBytePad(w, depth);
+          for( r=0 ; r<h ; r++ )
+          {
+            char *pt = &pImage[rowsiz*r];
+            for( c=0 ; c<w ; c++,pt+=4 )
+            {
+              if( swap )
+              {
+                char tmp[4];
+                tmp[0] = pt[3]; tmp[1] = pt[2]; tmp[2] = pt[1]; tmp[3] = pt[0];
+                PsOut_OutImageBytes(psOut, 3, &tmp[1]);
+              }
+              else
+                PsOut_OutImageBytes(psOut, 3, &pt[1]);
+            }
+          }
+        }
+        else goto error;
+        PsOut_EndImage(psOut);
       }
-      else if( format==ZPixmap )
+      else if( depth==8 )
       {
         int  rowsiz = PixmapBytePad(w, depth);
+        PsOut_BeginImageIM(psOut, 0, 0, x, y, w, h, sw, sh, 3);
         for( r=0 ; r<h ; r++ )
         {
           char *pt = &pImage[rowsiz*r];
-          for( c=0 ; c<w ; c++,pt+=4 )
+          for( c=0 ; c<w ; c++,pt++ )
           {
+            int   val = PsGetPixelColor(cMap, (int)(*pt)&0xFF);
+            char *ipt = (char *)&val;
             if( swap )
             {
               char tmp[4];
-              tmp[0] = pt[3]; tmp[1] = pt[2]; tmp[2] = pt[1]; tmp[3] = pt[0];
+              tmp[0] = ipt[3]; tmp[1] = ipt[2]; tmp[2] = ipt[1]; tmp[3] = ipt[0];
               PsOut_OutImageBytes(psOut, 3, &tmp[1]);
             }
             else
-              PsOut_OutImageBytes(psOut, 3, &pt[1]);
-          }
-        }
-      }
-      else goto error;
-      PsOut_EndImage(psOut);
-    }
-    else if( depth==8 )
-    {
-      int  rowsiz = PixmapBytePad(w, depth);
-      PsOut_BeginImageIM(psOut, 0, 0, x, y, w, h, sw, sh, 3);
-      for( r=0 ; r<h ; r++ )
-      {
-        char *pt = &pImage[rowsiz*r];
-        for( c=0 ; c<w ; c++,pt++ )
-        {
-          int   val = PsGetPixelColor(cMap, (int)(*pt)&0xFF);
-          char *ipt = (char *)&val;
-          if( swap )
-          {
-            char tmp[4];
-            tmp[0] = ipt[3]; tmp[1] = ipt[2]; tmp[2] = ipt[1]; tmp[3] = ipt[0];
-            PsOut_OutImageBytes(psOut, 3, &tmp[1]);
-          }
-          else
-            PsOut_OutImageBytes(psOut, 3, &ipt[1]);
-        }
-      }
-      PsOut_EndImage(psOut);
-    }
-    else if( depth==1 )
-    {
-      {
-        int  rowsiz = BitmapBytePad(w);
-        int  psrsiz = (w+7)/8;
-        PsOut_BeginImageIM(psOut, PsGetPixelColor(cMap, pGC->bgPixel),
-                         PsGetPixelColor(cMap, pGC->fgPixel),
-                         x, y, w, h, sw, sh, 1);
-        for( r=0 ; r<h ; r++ )
-        {
-          char *pt = &pImage[rowsiz*r];
-          for( i=0 ; i<psrsiz ; i++ )
-          {
-            int  iv_, iv = (int)pt[i]&0xFF;
-            char c;
-            if( swap )
-              { for( j=0,iv_=0 ; j<8 ; j++ ) iv_ |= (((iv>>j)&1)<<(7-j)); }
-            else
-              iv_ = iv;
-            c = iv_;
-            PsOut_OutImageBytes(psOut, 1, &c);
+              PsOut_OutImageBytes(psOut, 3, &ipt[1]);
           }
         }
         PsOut_EndImage(psOut);
       }
-    }
+      else if( depth==1 )
+      {
+        {
+          int  rowsiz = BitmapBytePad(w);
+          int  psrsiz = (w+7)/8;
+          PsOut_BeginImageIM(psOut, PsGetPixelColor(cMap, pGC->bgPixel),
+                           PsGetPixelColor(cMap, pGC->fgPixel),
+                           x, y, w, h, sw, sh, 1);
+          for( r=0 ; r<h ; r++ )
+          {
+            char *pt = &pImage[rowsiz*r];
+            for( i=0 ; i<psrsiz ; i++ )
+            {
+              int  iv_, iv = (int)pt[i]&0xFF;
+              char c;
+              if( swap )
+                { for( j=0,iv_=0 ; j<8 ; j++ ) iv_ |= (((iv>>j)&1)<<(7-j)); }
+              else
+                iv_ = iv;
+              c = iv_;
+              PsOut_OutImageBytes(psOut, 1, &c);
+            }
+          }
+          PsOut_EndImage(psOut);
+        }
+      }
 #ifdef BM_CACHE
-    PsOut_EndImageCache(psOut);
+      PsOut_EndImageCache(psOut);
     }
     PsOut_ImageCache(psOut, x, y, cache_id, PsGetPixelColor(cMap, pGC->bgPixel),
                            PsGetPixelColor(cMap, pGC->fgPixel));

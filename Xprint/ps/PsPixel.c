@@ -73,7 +73,6 @@ in this Software without prior written authorization from The Open Group.
 **    *********************************************************
 ** 
 ********************************************************************/
-/* $XFree86: xc/programs/Xserver/Xprint/ps/PsPixel.c,v 1.5 2001/01/17 22:36:32 dawes Exp $ */
 
 #include <stdio.h>
 

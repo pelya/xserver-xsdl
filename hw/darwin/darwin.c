@@ -29,7 +29,7 @@
  * holders shall not be used in advertising or otherwise to promote the sale,
  * use or other dealings in this Software without prior written authorization.
  */
-/* $XdotOrg$ */
+/* $XdotOrg: xc/programs/Xserver/hw/darwin/darwin.c,v 1.1.4.2.4.1.6.3 2004/04/20 03:27:08 gisburn Exp $ */
 /* $XFree86: xc/programs/Xserver/hw/darwin/darwin.c,v 1.55 2003/11/15 00:07:09 torrey Exp $ */
 
 #include "X.h"
@@ -448,9 +448,11 @@ static int DarwinKeybdProc( DeviceIntPtr pDev, int onoff )
 }
 
 /*
+===========================================================================
 
  Utility routines
 
+===========================================================================
 */
 
 /*
@@ -538,9 +540,11 @@ static int DarwinParseModifierList(
 }
 
 /*
+===========================================================================
 
  Functions needed to link against device independent X
 
+===========================================================================
 */
 
 /*
@@ -693,6 +697,10 @@ void OsVendorInit(void)
     }
 }
 
+/* ddxInitGlobals - called by |InitGlobals| from os/util.c */
+void ddxInitGlobals(void)
+{
+}
 
 /*
  * ddxProcessArgument --

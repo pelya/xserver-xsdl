@@ -71,9 +71,8 @@ in this Software without prior written authorization from The Open Group.
 **    *  Copyright:	Copyright 1996 The Open Group, Inc.
 **    *
 **    *********************************************************
-**
+** 
 ********************************************************************/
-/* $XFree86: xc/programs/Xserver/Xprint/ps/PsInit.c,v 1.13tsi Exp $ */
 
 #include <stdio.h>
 #include <string.h>
@@ -109,8 +108,12 @@ InitializePsDriver(ndx, pScreen, argc, argv)
   char      **argv;
 {
 #if 0
+  int               maxXres, maxYres, maxWidth, maxHeight;
+  int               maxRes, maxDim, numBytes;
   PsScreenPrivPtr   pPriv;
 #endif
+  char            **printerNames;
+  int               numPrinters;
   int               nVisuals;
   int               nDepths;
   VisualPtr         visuals;
@@ -188,7 +191,7 @@ InitializePsDriver(ndx, pScreen, argc, argv)
 
   visuals[1].vid             = FakeClientID(0);
   visuals[1].class           = PseudoColor;
-  visuals[1].bitsPerRGBValue = 0;
+  visuals[1].bitsPerRGBValue = 8;
   visuals[1].ColormapEntries = 256;
   visuals[1].nplanes         = 8;
   visuals[1].redMask         = 0x0;
@@ -209,7 +212,7 @@ InitializePsDriver(ndx, pScreen, argc, argv)
 /*  THE FOLLOWING CAUSES SERVER DEFAULT VISUAL TO BE 24 BIT  */
 /*  miScreenInit(pScreen, (pointer)0,
 	       pScreen->width, pScreen->height,
-	       pScreen->width / (pScreen->mmWidth / 25.40),
+	       pScreen->width / (pScreen->mmWidth / 25.40), 
 	       pScreen->height / (pScreen->mmHeight / 25.40),
 	       0, 24, nDepths,
                depths, visuals[1].vid, nVisuals, visuals); */
@@ -217,7 +220,7 @@ InitializePsDriver(ndx, pScreen, argc, argv)
 /*  THE FOLLOWING CAUSES SERVER DEFAULT VISUAL TO BE 8 BIT  */
   miScreenInit(pScreen, (pointer)0,
 	       pScreen->width, pScreen->height,
-	       (int) (pScreen->width / (pScreen->mmWidth / 25.40)),
+	       (int) (pScreen->width / (pScreen->mmWidth / 25.40)), 
 	       (int) (pScreen->height / (pScreen->mmHeight / 25.40)),
 	       0, 8, nDepths,
                depths, visuals[1].vid, nVisuals, visuals);
@@ -243,7 +246,7 @@ AllocatePsPrivates(ScreenPtr pScreen)
                           sizeof(PsWindowPrivRec));
 
     PsContextPrivateIndex = XpAllocateContextPrivateIndex();
-    XpAllocateContextPrivate(PsContextPrivateIndex,
+    XpAllocateContextPrivate(PsContextPrivateIndex, 
                              sizeof(PsContextPrivRec));
 
     PsPixmapPrivateIndex = AllocatePixmapPrivateIndex();
@@ -278,7 +281,7 @@ PsInitContext(pCon)
   XpDriverFuncsPtr pFuncs;
   PsContextPrivPtr pConPriv;
   char *server, *attrStr;
-
+    
   /*
    * Initialize the attribute store for this printer.
    */
@@ -304,18 +307,23 @@ PsInitContext(pCon)
   pFuncs->GetMediumDimensions = PsGetMediumDimensions;
   pFuncs->GetReproducibleArea = PsGetReproducibleArea;
   pFuncs->SetImageResolution = PsSetImageResolution;
-
+    
   /*
    * Set up the context privates
    */
   pConPriv =
       (PsContextPrivPtr)pCon->devPrivates[PsContextPrivateIndex].ptr;
 
-  pConPriv->jobFileName  = (char *)NULL;
-  pConPriv->pJobFile     = (FILE *)NULL;
-
-  pConPriv->getDocClient = (ClientPtr)NULL;
-  pConPriv->getDocBufSize = 0;
+  memset(pConPriv, 0, sizeof(PsContextPrivRec));
+  pConPriv->jobFileName         = (char *)NULL;
+  pConPriv->pJobFile            = (FILE *)NULL;
+  pConPriv->dash                = (unsigned char *)NULL;
+  pConPriv->validGC             = 0;
+  pConPriv->getDocClient        = (ClientPtr)NULL;
+  pConPriv->getDocBufSize       = 0;
+  pConPriv->pPsOut              = NULL;
+  pConPriv->fontInfoRecords     = NULL;
+  pConPriv->fontTypeInfoRecords = NULL;
 
   /*
    * document-attributes-supported
@@ -323,15 +331,15 @@ PsInitContext(pCon)
   server = XpGetOneAttribute( pCon, XPServerAttr, DOC_ATT_SUPP );
   if ((attrStr = (char *) xalloc(strlen(server) +
 				strlen(DOC_ATT_SUPP) + strlen(DOC_ATT_VAL)
-				+ strlen(PAGE_ATT_VAL) + 6)) == NULL)
+				+ strlen(PAGE_ATT_VAL) + 6)) == NULL) 
   {
       return BadAlloc;
   }
-  sprintf(attrStr, "*%s:\t%s %s %s",
+  sprintf(attrStr, "*%s:\t%s %s %s", 
 	  DOC_ATT_SUPP, server, DOC_ATT_VAL, PAGE_ATT_VAL);
   XpAugmentAttributes( pCon, XPPrinterAttr, attrStr);
   xfree(attrStr);
-
+    
   /*
    * job-attributes-supported
    */
@@ -344,7 +352,7 @@ PsInitContext(pCon)
   sprintf(attrStr, "*%s:\t%s %s", JOB_ATT_SUPP, server, JOB_ATT_VAL);
   XpAugmentAttributes(pCon, XPPrinterAttr, attrStr);
   xfree(attrStr);
-
+    
   /*
    * xp-page-attributes-supported
    */
@@ -375,7 +383,7 @@ PsDestroyContext(pCon)
 {
   PsContextPrivPtr pConPriv =
       (PsContextPrivPtr)pCon->devPrivates[PsContextPrivateIndex].ptr;
-
+    
   if( pConPriv->pJobFile!=(FILE *)NULL )
   {
     fclose(pConPriv->pJobFile);
@@ -387,6 +395,11 @@ PsDestroyContext(pCon)
     xfree(pConPriv->jobFileName);
     pConPriv->jobFileName = (char *)NULL;
   }
+
+  PsFreeFontInfoRecords(pConPriv);
+
+  /* Reset context to make sure we do not use any stale/invalid/obsolete data */
+  memset(pConPriv, 0, sizeof(PsContextPrivRec));
 
 /*### free up visuals/depths ###*/
 

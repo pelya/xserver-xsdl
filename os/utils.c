@@ -1,4 +1,4 @@
-/* $XdotOrg$ */
+/* $XdotOrg: xc/programs/Xserver/os/utils.c,v 1.1.4.6.2.4.6.3 2004/04/20 03:27:09 gisburn Exp $ */
 /* $Xorg: utils.c,v 1.5 2001/02/09 02:05:24 xorgcvs Exp $ */
 /*
 
@@ -574,6 +574,17 @@ VerifyDisplayName(const char *d)
     if ( strchr(d, '/') != (char *)0 ) return( 0 );  /*  very important!!!  */
     return( 1 );
 }
+
+/*
+ * This function is responsible for doing initalisation of any global
+ * variables at an very early point of server startup (even before
+ * |ProcessCommandLine()|. 
+ */
+void InitGlobals(void)
+{
+    ddxInitGlobals();
+}
+
 
 /*
  * This function parses the command line. Handles device-independent fields

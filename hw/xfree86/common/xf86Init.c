@@ -1641,6 +1641,11 @@ ddxProcessArgument(int argc, char **argv, int i)
   return xf86ProcessArgument(argc, argv, i);
 }
 
+/* ddxInitGlobals - called by |InitGlobals| from os/util.c */
+void ddxInitGlobals(void)
+{
+}
+
 /*
  * ddxUseMsg --
  *	Print out correct use of device dependent commandline options.

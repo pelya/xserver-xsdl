@@ -79,21 +79,21 @@ in this Software without prior written authorization from The Open Group.
 #include "fntfil.h"
 #include "fntfilst.h"
 
-#define  GET  0
-#define  RESET    1
+#define  GET	0
+#define  RESET	1
 
 struct bm_cache_list {
-  struct bm_cache_list *next;
-  struct bm_cache_list *prev;
+	struct bm_cache_list *next;
+	struct bm_cache_list *prev;
         int                   height;
-  long                  id;
+	long	              id;
         char                 *pBuffer;
 };
 
 struct bm_cache_head {
-  struct bm_cache_list *head;
-  int           width;
-  struct bm_cache_head *next;
+	struct bm_cache_list *head;
+	int		      width;
+	struct bm_cache_head *next;
         struct bm_cache_head *prev;
 };
 
@@ -106,14 +106,14 @@ PsBmUniqueId(int func)
 
     if(func == RESET)
     {
-  unique_id = 0;
-  return 0;
+	unique_id = 0;
+	return 0;
     }
     else
-  return ++unique_id;
+	return ++unique_id;
 }
 
-int
+int 
 PsBmIsImageCached(
     int gWidth,
     int gHeight,
@@ -126,28 +126,28 @@ PsBmIsImageCached(
     {
         if(pList->width == gWidth)
         {
-      struct bm_cache_list *pItem = pList->head;
+	    struct bm_cache_list *pItem = pList->head;
 
-      while(pItem != NULL)
-      {
-          if(pItem->height == gHeight)
-          {
-          int length = 4*(gWidth/32+(gWidth%32!=0))*gHeight;
+	    while(pItem != NULL)
+	    {
+	        if(pItem->height == gHeight)
+	        {
+		    int length = 4*(gWidth/32+(gWidth%32!=0))*gHeight;
 
-              if(!memcmp(pItem->pBuffer, pBuffer, sizeof(char)*length))
-              {
-              return_val = pItem->id;
-              break;
-              }
-          }
-      else if(pItem->height > gHeight)
-          break;
+	            if(!memcmp(pItem->pBuffer, pBuffer, sizeof(char)*length))
+	            {
+		        return_val = pItem->id;
+		        break;
+	            }
+	        }
+		else if(pItem->height > gHeight)
+		    break;
 
-          pItem = pItem->next;
-      }
+	        pItem = pItem->next;
+	    }
         }
-  else if(pList->width > gWidth)
-      break;
+	else if(pList->width > gWidth)
+	    break;
 
         pList = pList->next;
     }
@@ -180,39 +180,39 @@ PsBmPutImageInCache(
     while(pList != NULL)
     {
         if(pList->width == gWidth)
-  {
-      struct bm_cache_list *pItem = pList->head;
+	{
+	    struct bm_cache_list *pItem = pList->head;
 
-      while(pItem != NULL)
-      {
-      if(pItem->height >= gHeight)
-      {
-          pNew->next = pItem;
-          pNew->prev = pItem->prev;
-          if(pItem->prev != NULL)
-             pItem->prev->next = pNew;
+	    while(pItem != NULL)
+	    {
+		if(pItem->height >= gHeight)
+		{
+		    pNew->next = pItem;
+		    pNew->prev = pItem->prev;
+		    if(pItem->prev != NULL)
+		       pItem->prev->next = pNew;
                     else
-             pList->head = pNew;
+		       pList->head = pNew;
                     pItem->prev = pNew;
 
-          return_val = pNew->id;
+		    return_val = pNew->id;
 
-          break;
-      }
-      else if(pItem->next == NULL)
-      {
-          pNew->prev = pItem;
-          pItem->next = pNew;
+		    break;
+		}
+		else if(pItem->next == NULL)
+		{
+		    pNew->prev = pItem;
+		    pItem->next = pNew;
 
-          return_val = pNew->id;
+		    return_val = pNew->id;
 
-          break;
-      }
+		    break;
+		}
 
-      pItem = pItem->next;
-      }
+		pItem = pItem->next;
+	    }
 
-      break;
+	    break;
         }
 
         pList = pList->next;
@@ -223,50 +223,50 @@ PsBmPutImageInCache(
         struct bm_cache_head *pNewList;
 
         pNewList = (struct bm_cache_head *)malloc(sizeof(struct bm_cache_head));
-
+ 
         pNewList->next  = NULL;
         pNewList->prev  = NULL;
         pNewList->width = gWidth;
         pNewList->head  = pNew;
-
+ 
         if(bm_cache == NULL)
         {
-      bm_cache = pNewList;
-      return_val = pNew->id;
+	    bm_cache = pNewList;
+	    return_val = pNew->id;
         }
         else
         {
-      pList = bm_cache;
+ 	    pList = bm_cache;
 
-      while(pList != NULL)
-      {
-          if(pList->width > gWidth)
-      {
-          pNewList->next  = pList;
-          pNewList->prev  = pList->prev;
+	    while(pList != NULL)
+	    {
+	        if(pList->width > gWidth)
+		{
+		    pNewList->next  = pList;
+		    pNewList->prev  = pList->prev;
 
-          if(pList->prev != NULL)
-             pList->prev->next = pNewList;
+		    if(pList->prev != NULL)
+		       pList->prev->next = pNewList;
                     else
-             bm_cache = pNewList;
-          pList->prev = pNewList;
+		       bm_cache = pNewList;
+		    pList->prev = pNewList;
 
-          return_val = pNew->id;
+		    return_val = pNew->id;
 
-          break;
-      }
-      else if(pList->next == NULL)
+		    break;
+		}
+		else if(pList->next == NULL)
                 {
-          pNewList->prev  = pList;
-          pList->next = pNewList;
+		    pNewList->prev  = pList;
+		    pList->next = pNewList;
 
-          return_val = pNew->id;
+		    return_val = pNew->id;
 
-          break;
-      }
+		    break;
+		}
 
-      pList = pList->next;
-      }
+		pList = pList->next;
+	    }
         }
     }
 
@@ -280,35 +280,35 @@ PsBmClearImageCacheItem(
 {
     if(pItem != NULL)
     {
-  if(pItem->pBuffer != NULL)
-     free(pItem->pBuffer);
+	if(pItem->pBuffer != NULL)
+	   free(pItem->pBuffer);
         pItem->pBuffer = NULL;
 
-  if(pItem->next)
-     PsBmClearImageCacheItem(pItem->next);
+	if(pItem->next)
+	   PsBmClearImageCacheItem(pItem->next);
         pItem->next = NULL;
 
-  free(pItem);
-  pItem = NULL;
+	free(pItem);
+	pItem = NULL;
     }
 }
 
-static void
+static void 
 PsBmClearImageCacheList(
     struct bm_cache_head *pList)
 {
     if(pList != NULL)
     {
-  if(pList->head)
-      PsBmClearImageCacheItem(pList->head);
+	if(pList->head)
+	    PsBmClearImageCacheItem(pList->head);
         pList->head = NULL;
 
-  if(pList->next)
-      PsBmClearImageCacheList(pList->next);
+	if(pList->next)
+	    PsBmClearImageCacheList(pList->next);
         pList->next = NULL;
 
-  free(pList);
-  pList = NULL;
+	free(pList);
+	pList = NULL;
     }
 }
 

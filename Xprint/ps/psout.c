@@ -73,79 +73,17 @@ in this Software without prior written authorization from The Open Group.
 **    *********************************************************
 **
 ********************************************************************/
-/* $XFree86: xc/programs/Xserver/Xprint/ps/psout.c,v 1.11 2001/12/19 21:55:59 dawes Exp $ */
-
-/*      
- * For XFree86 3.3.3:  
- *      
- * As a *quick* way of preventing some buffers overflowing onto the stack,
- * they have been made static.  There are potential problems with
- * PsOutRec.Buf overflowing too which should be investigated as part of a
- * review of this code, but that is at least always allocated with malloc
- * and shouldn't pose an immediate stack trashing problem.
- *
- */
 
 #include <stdlib.h>
+#include <stdio.h>
 #include "os.h"
-#include "Ps.h"
+#define USE_PSOUT_PRIVATE 1
 #include "psout.h"
+/* For VENDOR_STRING and VENDOR_RELEASE */
+#include "site.h"
 
-typedef void *voidPtr;
-
-typedef struct PsPatRec_
-{
-  PsFillEnum type;
-  voidPtr    tag;
-} PsPatRec;
-
-typedef PsPatRec *PsPatPtr;
-
-typedef struct PsOutRec_
-{
-  FILE       *Fp;
-  char        Buf[256];
-  int         CurColor;
-  int         LineWidth;
-  PsCapEnum   LineCap;
-  PsJoinEnum  LineJoin;
-  int         NDashes;
-  int        *Dashes;
-  int         DashOffset;
-  int         LineBClr;
-  PsRuleEnum  FillRule;
-  char       *FontName;
-  int         FontSize;
-  float       FontMtx[4];
-  int         ImageFormat;
-  int         RevImage;
-  int         NPatterns;
-  int         MxPatterns;
-  PsPatPtr    Patterns;
-  int         ClipType;
-  PsClipRec   Clip;
-  int         InFrame;
-  int         XOff;
-  int         YOff;
-
-  PsFillEnum  InTile;
-  int         ImgSkip;
-  int         ImgBClr;
-  int         ImgFClr;
-  int         ImgX;
-  int         ImgY;
-  int         ImgW;
-  int         ImgH;
-  int         SclW;
-  int         SclH;
-
-  int         NDownloads;
-  int         MxDownloads;
-  char      **Downloads;
-  Bool        isRaw;
-
-  int         start_image;
-} PsOutRec;
+extern PsElmPtr PsCloneFillElementList(int nElms, PsElmPtr elms);
+extern void PsDestroyFillElementList(int nElms, PsElmPtr elms);
 
 /*
  *  Standard definitions
@@ -174,6 +112,7 @@ static char *S_StandardDefs = "\
 /ie{ifelse}bd\
 /len{length}bd\
 /m{moveto}bd\
+/rm{rmoveto}bd\
 /l{lineto}bd\
 /rl{rlineto}bd\
 /a{arc}bd\
@@ -236,7 +175,11 @@ static char *S_StandardDefs = "\
 /mp{makepattern}bd\
 /spt{setpattern}bd\
 /spd{setpagedevice}bd\
-";
+"
+#ifdef XP_USE_FREETYPE
+"/trmoveto{currentfont /FontMatrix get transform rm}d"
+#endif /* XP_USE_FREETYPE */
+;
 
 /*
  *  Composite definitions
@@ -341,7 +284,6 @@ static char *S_CompositeDefs = "\
 /mtx{scl t [3 i 0 0 5 i 0 0]}bd \
 ";
 
-int  pagenum = 0;
 char *pg_orient[] = {"Portrait","Landscape","Reverse Portrait","Reverse Landscape"};
 /*
  *  Setup definitions
@@ -360,7 +302,7 @@ static char *S_SetupDefs = "\
  *                       PRIVATE FUNCTIONS                         *
  *******************************************************************/
 
-static void
+void
 S_Flush(PsOutPtr self)
 {
   if( self->Buf[0] )
@@ -388,7 +330,7 @@ S_OutDefs(PsOutPtr self, char *defs)
 {
   int  i, k=0;
   S_Flush(self);
-  memset(self->Buf, 0, 256);
+  memset(self->Buf, 0, sizeof(self->Buf));
   for( i=0 ; defs[i]!='\0' ;)
   {
     if( k>70 && (i==0 || (i && defs[i-1]!='/')) &&
@@ -396,7 +338,7 @@ S_OutDefs(PsOutPtr self, char *defs)
     {
       S_Flush(self);
       k = 0;
-      memset(self->Buf, 0, 256);
+      memset(self->Buf, 0, sizeof(self->Buf));
     }
     if( k && self->Buf[k-1]==' ' && defs[i]==' ' ) { i++; continue; }
     self->Buf[k] = defs[i];
@@ -405,11 +347,11 @@ S_OutDefs(PsOutPtr self, char *defs)
   S_Flush(self);
 }
 
-static void
+void
 S_OutNum(PsOutPtr self, float num)
 {
   int  i;
-  static char buf[64];
+  char buf[64];
   sprintf(buf, "%.3f", num);
   for( i=strlen(buf)-1 ; buf[i]=='0' ; i-- ); buf[i+1] = '\0';
   if( buf[strlen(buf)-1]=='.' ) buf[strlen(buf)-1] = '\0';
@@ -422,7 +364,7 @@ static void
 S_OutStr(PsOutPtr self, char *txt, int txtl)
 {
   int  i, k;
-  static char buf[512];
+  char buf[1024];
   for( i=0,k=0 ; i<txtl ; i++ )
   {
     if( (txt[i]>=' ' && txt[i]<='~') &&
@@ -430,7 +372,9 @@ S_OutStr(PsOutPtr self, char *txt, int txtl)
       { buf[k] = txt[i]; k++; continue; }
     buf[k] = '\\'; k++;
     sprintf(&buf[k], "%03o", txt[i]&0xFF);
-    k += 3;
+    /* Skip to the end of the buffer */
+    while( buf[k] != '\0' )
+      k++;
   }
   strcat(self->Buf, "(");
   i = strlen(self->Buf);
@@ -440,7 +384,32 @@ S_OutStr(PsOutPtr self, char *txt, int txtl)
   if( strlen(self->Buf)>70 ) S_Flush(self);
 }
 
+/* Same as S_OutStr() but takes |short *| instead of |char *| */
 static void
+S_OutStr16(PsOutPtr self, unsigned short *txt, int txtl)
+{
+  int  i, k;
+  char buf[2048];
+  for( i=0,k=0 ; i<txtl ; i++ )
+  {
+    if( (txt[i]>=' ' && txt[i]<='~') &&
+        txt[i]!='(' && txt[i]!=')' && txt[i]!='\\' )
+      { buf[k] = txt[i]; k++; continue; }
+    buf[k] = '\\'; k++;
+    sprintf(&buf[k], "%03o", txt[i]&0xFFFF);
+    /* Skip to the end of the buffer */
+    while( buf[k] != '\0' )
+      k++;
+  }
+  strcat(self->Buf, "(");
+  i = strlen(self->Buf);
+  memcpy(&self->Buf[i], buf, k);
+  self->Buf[i+k] = '\0';
+  strcat(self->Buf, ")");
+  if( strlen(self->Buf)>70 ) S_Flush(self);
+}
+
+void
 S_OutTok(PsOutPtr self, char *tok, int cr)
 {
   if( self->Buf[0] ) strcat(self->Buf, " ");
@@ -470,6 +439,27 @@ S_SetPageDevice(PsOutPtr self, int orient, int count, int plex, int res,
 {
     float fwd = ((float)wd/(float)res)*72.;
     float fht = ((float)ht/(float)res)*72.;
+
+#define USE_WORKAROUND_COPY_COUNT_BUG 1
+
+#ifdef USE_WORKAROUND_COPY_COUNT_BUG
+    /* Workaround (see http://xprint.mozdev.org/bugs/show_bug.cgi?id=1861 -
+     * 'Need workaround for bug 1378 ...') to avoid that we print n^2 copies
+     * instead of n copies.
+     * The problem is that we use both /NumCopies here but pass the
+     * %copy-count% to the spooler, too.
+     * But we only have to use _one_ way...
+     *
+     * The final fix for bug 1378 (http://xprint.mozdev.org/bugs/show_bug.cgi?id=1378 -
+     * "PS DDX creates n^2 copies of a job instead of n copies") will back this
+     * workaround out and replace it with a better solution.
+     * (see mozilla.org bug 140030
+     * (http://bugzilla.mozilla.org/show_bug.cgi?id=140030 - "Setting number
+     * of copies causes too many copies to print") for the initial report for
+     * this issue...)
+     */
+    count = 1;
+#endif /* USE_WORKAROUND_COPY_COUNT_BUG */
 
     S_OutTok(self, "/pWd", 0);
     S_OutNum(self, fwd);
@@ -577,10 +567,11 @@ PsOut_ChangeFile(PsOutPtr self, FILE *fp)
 }
 
 PsOutPtr
-PsOut_BeginFile(FILE *fp, int orient, int count, int plex, int res,
+PsOut_BeginFile(FILE *fp, char *title, int orient, int count, int plex, int res,
                 int wd, int ht, Bool raw)
 {
   int  i;
+  char buffer[256+32]; /* enougth space for a title with 256 chars... */
 /*
  *  Get ready to output PostScript header
  */
@@ -589,15 +580,25 @@ PsOut_BeginFile(FILE *fp, int orient, int count, int plex, int res,
   memset(psout, 0, sizeof(PsOutRec));
   psout->Fp = fp;
   psout->isRaw = raw;
-  pagenum = 0;
+  psout->pagenum = 0;
 
   if (!raw) {
 /*
  *  Output PostScript header
  */
-      S_Comment(psout, "%!PS-Adobe-3.0 EPSF-3.0");
-      S_Comment(psout, "%%Creator: The Open Group PostScript Print Server");
-      /*### BoundingBox ###*/
+      /* GhostScript will rant about the missing BoundingBox if we use
+       * "%!PS-Adobe-3.0 EPSF-3.0" here... */
+      S_Comment(psout, "%!PS-Adobe-3.0");
+      sprintf(buffer, 
+              "%%%%Creator: The X Print Server's PostScript DDX (%s, release %d)",
+              VENDOR_STRING, VENDOR_RELEASE);
+      S_Comment(psout, buffer);
+
+      if (title)
+      {
+        sprintf(buffer, "%%%%Title: %.256s", title);
+        S_Comment(psout, buffer);
+      }
       S_Comment(psout, "%%EndComments");
       S_Comment(psout, "%%BeginProlog");
       S_Comment(psout, "%%BeginProcSet: XServer_PS_Functions");
@@ -634,10 +635,13 @@ PsOut_EndFile(PsOutPtr self, int closeFile)
 {
   char coms[50];
   int  i;
+  
+  if (!self)
+    return;
 
   if (!self->isRaw) {
       S_Comment(self,"%%Trailer");
-      sprintf(coms,"%%%%Pages: %d",pagenum);
+      sprintf(coms,"%%%%Pages: %d", self->pagenum);
       S_Comment(self, coms);
       S_Comment(self, "%%EOF");
   }
@@ -646,9 +650,6 @@ PsOut_EndFile(PsOutPtr self, int closeFile)
   if( self->Patterns ) xfree(self->Patterns);
   if( self->Clip.rects ) xfree(self->Clip.rects);
   if( closeFile ) fclose(self->Fp);
-  for( i=0 ; i<self->NDownloads ; i++ ) xfree(self->Downloads[i]);
-  if( self->Downloads ) xfree(self->Downloads);
-  pagenum = 0; /* reset page num back to 0 */
   xfree(self);
 }
 
@@ -661,8 +662,8 @@ PsOut_BeginPage(PsOutPtr self, int orient, int count, int plex, int res,
 /*** comment for pagenumbers *****/
 
   S_Comment(self,"%%PageHeader");
-  pagenum++;
-  sprintf(coms,"%%%%Page: %d %d",pagenum,pagenum);
+  self->pagenum++;
+  sprintf(coms,"%%%%Page: %d %d", self->pagenum, self->pagenum);
   S_Comment(self, coms);
   sprintf(coms,"%%%%PageOrientation: %s",pg_orient[orient]);
   S_Comment(self, coms);
@@ -959,7 +960,7 @@ void
 PsOut_TextAttrs(PsOutPtr self, char *fnam, int siz, int iso)
 {
   int       i;
-  static char      buf[256];
+  char      buf[256];
   if( self->FontName && strcmp(fnam, self->FontName)==0 &&
       siz==self->FontSize ) return;
   if( self->FontName ) xfree(self->FontName);
@@ -979,7 +980,7 @@ void
 PsOut_TextAttrsMtx(PsOutPtr self, char *fnam, float *mtx, int iso)
 {
   int       i;
-  static char      buf[256];
+  char      buf[256];
   if( self->FontName && strcmp(fnam, self->FontName)==0 &&
       mtx[0]==self->FontMtx[0] && mtx[1]==self->FontMtx[1] &&
       mtx[2]==self->FontMtx[2] && mtx[3]==self->FontMtx[3] ) return;
@@ -1171,6 +1172,30 @@ PsOut_Text(PsOutPtr self, int x, int y, char *text, int textl, int bclr)
   }
 }
 
+void
+PsOut_Text16(PsOutPtr self, int x, int y, unsigned short *text, int textl, int bclr)
+{
+  int  xo = self->XOff;
+  int  yo = self->YOff;
+
+  if( self->InFrame || self->InTile ) xo = yo = 0;
+  x += xo; y += yo;
+  S_OutStr16(self, text, textl);
+  S_OutNum(self, (float)x);
+  S_OutNum(self, (float)y);
+  if( bclr<0 ) S_OutTok(self, "T", 1);
+  else
+  {
+    int ir = bclr>>16;
+    int ig = (bclr>>8)&0xFF;
+    int ib = bclr&0xFF;
+    S_OutNum(self, (float)ir/255.);
+    S_OutNum(self, (float)ig/255.);
+    S_OutNum(self, (float)ib/255.);
+    S_OutTok(self, "Tb", 1);
+  }
+}
+
 #ifdef BM_CACHE
 void  /* new */
 PsOut_ImageCache(PsOutPtr self, int x, int y, long cache_id, int bclr, int fclr)
@@ -1181,7 +1206,7 @@ PsOut_ImageCache(PsOutPtr self, int x, int y, long cache_id, int bclr, int fclr)
 
   if( self->InFrame || self->InTile ) xo = yo = 0;
   x += xo; y += yo;
-  sprintf(cacheID, "c%ldi", cache_id);
+  sprintf(cacheID, "c%di", cache_id);
 
   S_OutNum(self, (float)x);
   S_OutNum(self, (float)y);
@@ -1214,7 +1239,7 @@ PsOut_BeginImageCache(PsOutPtr self, long cache_id)
 {
   char cacheID[10];
 
-  sprintf(cacheID, "/c%ldi {", cache_id);
+  sprintf(cacheID, "/c%di {", cache_id);
 
   S_OutTok(self, cacheID, 0);
 }     /* new */
@@ -1225,7 +1250,7 @@ PsOut_EndImageCache(PsOutPtr self)
   S_OutTok(self, "}bd", 1);
 }     /* new */
 #endif
-              
+
 void
 PsOut_BeginImage(PsOutPtr self, int bclr, int fclr, int x, int y,
                  int w, int h, int sw, int sh, int format)
@@ -1488,13 +1513,11 @@ PsOut_BeginPattern(PsOutPtr self, void *tag, int w, int h, PsFillEnum type,
   }
   self->Patterns[self->NPatterns].tag  = tag;
   self->Patterns[self->NPatterns].type = type;
-  sprintf(key, "/ %ld", (long)tag);
+  sprintf(key, "/ %d", (int)tag);
   switch(type) {
     case PsTile:   key[1] = 't'; break;
     case PsStip:   key[1] = 's'; break;
-    case PsOpStip: key[1] = 'o'; break;
-    default: break;
-  }
+    case PsOpStip: key[1] = 'o'; break; }
   S_OutTok(self, key, 0);
   S_OutTok(self, "db/PatternType 1 d/PaintType 1 d", 0);
   S_OutTok(self, "/TilingType 1 d/BBox[0 0", 0);
@@ -1535,13 +1558,11 @@ PsOut_SetPattern(PsOutPtr self, void *tag, PsFillEnum type)
   for( i=0 ; i<self->NPatterns ; i++ )
     { if( tag==self->Patterns[i].tag && type==self->Patterns[i].type ) break; }
   if( i>=self->NPatterns ) return;
-  sprintf(key, " %ld", (long)tag);
+  sprintf(key, " %d", (int)tag);
   switch(type) {
     case PsTile:   key[0] = 't'; break;
     case PsStip:   key[0] = 's'; break;
-    case PsOpStip: key[0] = 'o'; break;
-    default: break;
-  }
+    case PsOpStip: key[0] = 'o'; break; }
   S_OutTok(self, key, 0);
   S_OutTok(self, "spt", 1);
   self->CurColor = 0xFFFFFFFF;
@@ -1556,83 +1577,141 @@ PsOut_RawData(PsOutPtr self, char *data, int len)
     }
 }
 
-void
-PsOut_DownloadType1(PsOutPtr self, char *name, char *fname)
+typedef enum PsDownfontFontType_  
+{ 
+  PsDFT_Type1PFA=0,
+  PsDFT_Type1PFB,
+  PsDFT_TrueType /* not implemented yet */
+} PsDownfontFontType;
+
+/* Download a PS Type1 font */
+int
+PsOut_DownloadType1(PsOutPtr self, const char *auditmsg, const char *name, const char *fname)
 {
   int     i;
   int     stt;
-  static char    buf[256];
+  char    buf[256];
   FILE   *fp;
+  PsDownfontFontType type;
 
-  for( i=0 ; i<self->NDownloads ; i++ )
-    { if( strcmp(name, self->Downloads[i])==0 ) break; }
-  if( i<self->NDownloads ) return;
+  fp = fopen(fname, "r");
+  if( !fp )
+    return 0;
 
-  if( (self->NDownloads+1)>self->MxDownloads )
+#ifdef DEBUG_gisburn
+  /* This should be log-able! */
+  fprintf(stderr, "PsOut_DownloadType1: %s: Downloading '%s' from '%s'\n", auditmsg, name, fname);
+#endif /* DEBUG_gisburn */
+
+  fread(buf, 32, 1, fp);
+  fseek(fp, (long)0, 0);
+
+  /* Is this a Adobe PostScript Type 1 binary font (PFB) ? */
+  if( (buf[0]&0xFF)==0x80 && (buf[1]&0xFF)==0x01 )
   {
-    if( self->NDownloads )
-    {
-      self->MxDownloads *= 2;
-      self->Downloads = (char **)xrealloc(self->Downloads,
-                                self->MxDownloads*sizeof(char *));
-    }
-    else
-    {
-      self->MxDownloads = 32;
-      self->Downloads = (char **)xalloc(self->MxDownloads*sizeof(char *));
-    }
+    type = PsDFT_Type1PFB;
+  }  
+  /* Is this a Adobe PostScript ASCII font (PFA) ? */
+  else if (!strncmp(buf, "%!PS-AdobeFont", 14))
+  {
+    type = PsDFT_Type1PFA;
   }
-
-  self->Downloads[self->NDownloads] = (char *)xalloc(strlen(name)+1);
-  strcpy(self->Downloads[self->NDownloads], name);
-  self->NDownloads += 1;
+  else
+  {
+    /* This should be log-able! */
+    fprintf(stderr, "PsOut_DownloadType1: Unknown font type for '%s'\n", fname);
+    return 0;
+  }      
 
   S_Flush(self);
   sprintf(buf, "%%%%BeginFont: %s", name);
   S_Comment(self, buf);
-  fp = fopen(fname, "r");
-  if( !fp ) return;
-  fread(buf, 1, 1, fp);
-  fseek(fp, (long)0, 0);
-  if( (buf[0]&0xFF)==0x80 )
-  {
-    int  len;
 
-    for(;;)
+  if( type == PsDFT_Type1PFB )
+  {
+    char *buf, 
+         *pt;
+    int   len, 
+          ch,
+          stype;
+
+    ch = fgetc(fp);  
+    /* Strip out the binary headers and de-binary it */
+    while( (ch&0xFF) == 0x80 ) 
     {
-      stt = fread(buf, 1, 2, fp);
-      if( stt!=2 || (buf[0]&0xFF)!=0x80 ) break;
-      if( (int)buf[1]<1 || (int)buf[1]>2 ) break;
-      stt = fread(buf, 1, 4, fp);
-      if( stt!=4 ) break;
-      len = ((buf[3]&0xFF)<<24)|((buf[2]&0xFF)<<16)|
-            ((buf[1]&0xFF)<<8)|(buf[0]&0xFF);
-      for(; len ;)
+      stype = fgetc(fp);
+      if( stype==3 ) /* eof mark */
+        break;
+      len = fgetc(fp);
+      len |= fgetc(fp)<<8;
+      len |= fgetc(fp)<<16;
+      len |= fgetc(fp)<<24;
+      buf = (char *)xalloc(len+1);
+      if( stype==1 ) 
       {
-        i = len<256 ? len : 256;
-        stt = fread(buf, 1, i, fp);
-        if( stt<=0 ) break;
-        if (!ferror(self->Fp)) {
-	    (void) fwrite(buf, 1, stt, self->Fp);
-	}
-        if( stt<i ) break;
-        len -= i;
+        /* Process ASCII section */
+        len = fread(buf, 1, len, fp);
+        /* convert any lone CRs (ie Mac eol) to LFs */
+        for( pt = buf ; (pt = memchr(pt, '\r', len-(pt-buf))) != NULL ; pt++ ) 
+        {
+          if ( pt[1]!='\n' ) 
+            *pt = '\n';
+        }
+        fwrite(buf, 1, len, self->Fp);
+      } 
+      else if( stype==2 ) 
+      {
+        int i;
+        
+        /* Process binary section */
+        len = fread(buf, 1, len, fp);
+        for( i=0 ; i<len ; i++ ) 
+        {
+          ch = buf[i];
+          if( ((ch>>4)&0xf) <= 9 )
+            fputc('0'+((ch>>4)&0xf), self->Fp);
+          else
+            fputc('A'-10+((ch>>4)&0xf), self->Fp);
+          
+          if( (ch&0xf) <= 9 )
+            fputc('0'+(ch&0xf), self->Fp);
+          else
+            fputc('A'-10+(ch&0xf), self->Fp);
+          
+          if( (i&0x1f)==0x1f )
+              fputc('\n', self->Fp);
+        }
       }
+      xfree(buf);
+      
+      /* Next block... */
+      ch = fgetc(fp);
     }
   }
-  else
+  /* Is this a Adobe PostScript ASCII font (PFA) ? */
+  else if (type == PsDFT_Type1PFA)
   {
     for(;;)
     {
       stt = fread(buf, 1, 256, fp);
       if( stt<=0 ) break;
       if (!ferror(self->Fp)) {
-	  (void) fwrite(buf, 1, stt, self->Fp);
+        (void) fwrite(buf, 1, stt, self->Fp);
       }
-      if( stt<256 ) break;
+      if( stt<256 )
+        break;
     }
   }
   fclose(fp);
   S_Flush(self);
   S_Comment(self, "%%EndFont");
+  
+  /* Success... */
+  return 1;
 }
+
+
+
+
+
+

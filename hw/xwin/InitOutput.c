@@ -394,6 +394,11 @@ ddxUseMsg (void)
 /* Compare the current option with the string. */ 
 #define IS_OPTION(name) (strcmp (argv[i], name) == 0)
 
+/* ddxInitGlobals - called by |InitGlobals| from os/util.c */
+void ddxInitGlobals(void)
+{
+}
+
 int
 ddxProcessArgument (int argc, char *argv[], int i)
 {

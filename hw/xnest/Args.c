@@ -47,6 +47,11 @@ int xnestNumScreens = 0;
 Bool xnestDoDirectColormaps = False;
 Window xnestParentWindow = 0;
 
+/* ddxInitGlobals - called by |InitGlobals| from os/util.c */
+void ddxInitGlobals(void)
+{
+}
+
 int
 ddxProcessArgument (int argc, char *argv[], int i)
 {

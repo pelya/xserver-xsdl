@@ -273,6 +273,11 @@ ddxUseMsg()
 #endif
 }
 
+/* ddxInitGlobals - called by |InitGlobals| from os/util.c */
+void ddxInitGlobals(void)
+{
+}
+
 int
 ddxProcessArgument(int argc, char *argv[], int i)
 {

@@ -29,6 +29,13 @@
 #Augment_Printer_List %none%
 
 ########################################################################
+# Preconfigured entry for the PSspooldir model
+# (which sends jobs to /tmp/Xprintjobs instead to a physical printer)
+########################################################################
+#Printer xp_pdf_spooldir_tmp_Xprintjobs
+Printer xp_ps_spooldir_tmp_Xprintjobs
+
+########################################################################
 # Add individual printers to the list of printers managed by the
 # server.  These are aliases, determined by driver name.
 ########################################################################
@@ -40,4 +47,3 @@
 # Printer xppclpr
 # Printer xppclmonopr
 # Printer xprasterpr
-

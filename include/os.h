@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/include/os.h,v 3.53 2003/10/29 04:17:22 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/include/os.h,v 3.54 2003/10/30 21:21:06 herrb Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -231,6 +231,8 @@ extern SIGVAL GiveUp(int /*sig*/);
 
 extern void UseMsg(void);
 
+extern void InitGlobals(void);
+
 extern void ProcessCommandLine(int /*argc*/, char* /*argv*/[]);
 
 extern int set_font_authorizations(
@@ -411,6 +413,8 @@ extern XID GenerateAuthorization(
 #ifdef COMMANDLINE_CHALLENGED_OPERATING_SYSTEMS
 extern void ExpandCommandLine(int * /*pargc*/, char *** /*pargv*/);
 #endif
+
+extern void ddxInitGlobals(void);
 
 extern int ddxProcessArgument(int /*argc*/, char * /*argv*/ [], int /*i*/);
 
