@@ -1,17 +1,30 @@
-INCLUDES =					\
-	@XGL_INCS@				\
-	@XSERVER_CFLAGS@
+SUBDIRS = . $(XGLX_DIRS)
 
-bin_PROGRAMS = Xgl
+INCLUDES =		   \
+	@XGL_INCS@	   \
+	@XSERVER_CFLAGS@   \
+	@XGLSERVER_CFLAGS@
 
-Xgl_SOURCES = 					\
-	xglgc.c					\
-	xglinit.c				\
-	xglinput.c				\
-	xgloutput.c				\
-	xglpixmap.c				\
-	xglspans.c
+noinst_LIBRARIES = libxgl.a
 
-Xgl_LDADD = 					\
-	@XGL_LIBS@				\
-	@XSERVER_LIBS@
+libxgl_a_SOURCES =     \
+	xglinput.c     \
+	xgloutput.c    \
+	xglcmap.c      \
+	xglparse.c     \
+	xglscreen.c    \
+	xgloffscreen.c \
+	xglgeometry.c  \
+	xglpixmap.c    \
+	xglsync.c      \
+	xglsolid.c     \
+	xgltile.c      \
+	xglpixel.c     \
+	xglcopy.c      \
+	xglfill.c      \
+	xglwindow.c    \
+	xglbstore.c    \
+	xglget.c       \
+	xglgc.c	       \
+	xglcomp.c      \
+	xglpict.c

@@ -25,41 +25,46 @@
 
 #include "xgl.h"
 
-typedef struct _xglDepth {
-    CARD8 depth;
-    CARD8 bpp;
-} xglDepthRec, *xglDepthPtr;
-
-static xglDepthRec xglDepths[] = {
-    {  1,  1 },
-    {  4,  4 },
-    {  8,  8 },
-    { 15, 16 },
-    { 16, 16 },
-    { 24, 32 },
-    { 32, 32 }
-};
-
-#define NUM_XGL_DEPTHS (sizeof (xglDepths) / sizeof (xglDepths[0]))
-
-void
-xglSetPixmapFormats (ScreenInfo *pScreenInfo)
+Bool
+xglSolid (DrawablePtr	   pDrawable,
+	  glitz_operator_t op,
+	  glitz_color_t	   *color,
+	  xglGeometryPtr   pGeometry,
+	  BoxPtr	   pBox,
+	  int		   nBox)
 {
-    int i;
+    glitz_surface_t *surface;
+    int		    xOff, yOff;
     
-    pScreenInfo->imageByteOrder	    = IMAGE_BYTE_ORDER;
-    pScreenInfo->bitmapScanlineUnit = BITMAP_SCANLINE_UNIT;
-    pScreenInfo->bitmapScanlinePad  = BITMAP_SCANLINE_PAD;
-    pScreenInfo->bitmapBitOrder	    = BITMAP_BIT_ORDER;
-    pScreenInfo->numPixmapFormats   = 0;
+    XGL_SCREEN_PRIV (pDrawable->pScreen);
 
-    for (i = 0; i < NUM_XGL_DEPTHS; i++) {
-	PixmapFormatRec *format;
+    if (!xglPrepareTarget (pDrawable))
+	return FALSE;
+    
+    XGL_GET_DRAWABLE (pDrawable, surface, xOff, yOff);
 
-	format = &pScreenInfo->formats[pScreenInfo->numPixmapFormats++];
-	
-	format->depth	     = xglDepths[i].depth;
-	format->bitsPerPixel = xglDepths[i].bpp;
-	format->scanlinePad  = BITMAP_SCANLINE_PAD;
+    glitz_set_rectangle (pScreenPriv->solid, color, 0, 0, 1, 1);
+
+    GEOMETRY_TRANSLATE (pGeometry, xOff, yOff);
+    
+    if (!GEOMETRY_ENABLE_ALL_VERTICES (pGeometry, surface))
+	return FALSE;
+    
+    while (nBox--)
+    {
+	glitz_composite (op,
+			 pScreenPriv->solid, NULL, surface,
+			 0, 0,
+			 0, 0,
+			 pBox->x1 + xOff,
+			 pBox->y1 + yOff,
+			 pBox->x2 - pBox->x1, pBox->y2 - pBox->y1);
+
+	pBox++;
     }
+
+    if (glitz_surface_get_status (surface))
+	return FALSE;
+
+    return TRUE;
 }

@@ -1,90 +1,89 @@
 /*
- * $Id$
+ * Copyright © 2004 David Reveman
+ * 
+ * Permission to use, copy, modify, distribute, and sell this software
+ * and its documentation for any purpose is hereby granted without
+ * fee, provided that the above copyright notice appear in all copies
+ * and that both that copyright notice and this permission notice
+ * appear in supporting documentation, and that the names of
+ * David Reveman not be used in advertising or publicity pertaining to
+ * distribution of the software without specific, written prior permission.
+ * David Reveman makes no representations about the suitability of this
+ * software for any purpose. It is provided "as is" without express or
+ * implied warranty.
  *
- * Copyright Â© 2004 Keith Packard
+ * DAVID REVEMAN DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE, 
+ * INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN
+ * NO EVENT SHALL DAVID REVEMAN BE LIABLE FOR ANY SPECIAL, INDIRECT OR
+ * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
+ * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, 
+ * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
+ * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *
- * Permission to use, copy, modify, distribute, and sell this software and its
- * documentation for any purpose is hereby granted without fee, provided that
- * the above copyright notice appear in all copies and that both that
- * copyright notice and this permission notice appear in supporting
- * documentation, and that the name of Keith Packard not be used in
- * advertising or publicity pertaining to distribution of the software without
- * specific, written prior permission.  Keith Packard makes no
- * representations about the suitability of this software for any purpose.  It
- * is provided "as is" without express or implied warranty.
- *
- * KEITH PACKARD DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
- * INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO
- * EVENT SHALL KEITH PACKARD BE LIABLE FOR ANY SPECIAL, INDIRECT OR
- * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE,
- * DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
- * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
- * PERFORMANCE OF THIS SOFTWARE.
+ * Author: David Reveman <davidr@freedesktop.org>
  */
 
 #include "xgl.h"
+#include "inputstr.h"
+#include "mipointer.h"
+
 #define XK_PUBLISHING
 #include <X11/keysym.h>
 #if HAVE_X11_XF86KEYSYM_H
 #include <X11/XF86keysym.h>
 #endif
 
-Bool
-LegalModifier(unsigned int key, DevicePtr pDev)
-{
-    return TRUE;
-}
-
-void
-ProcessInputEvents ()
-{
-}
-
 #define NUM_BUTTONS 5
 
-static int
-xglMouseProc (DeviceIntPtr pDevice, int onoff)
+int
+xglMouseProc (DeviceIntPtr pDevice,
+	      int	   onoff)
 {
-    BYTE	map[NUM_BUTTONS + 1];
-    DevicePtr	pDev = (DevicePtr) pDevice;
-    int		i;
+    BYTE      map[NUM_BUTTONS + 1];
+    DevicePtr pDev = (DevicePtr) pDevice;
+    int       i;
 
     switch (onoff) {
     case DEVICE_INIT:
 	for (i = 1; i <= NUM_BUTTONS; i++)
 	    map[i] = i;
-	InitPointerDeviceStruct(pDev, map, NUM_BUTTONS,
-	    miPointerGetMotionEvents,
-	    (PtrCtrlProcPtr)NoopDDA,
-	    miPointerGetMotionBufferSize());
+	
+	InitPointerDeviceStruct (pDev,
+				 map,
+				 NUM_BUTTONS,
+				 miPointerGetMotionEvents,
+				 (PtrCtrlProcPtr) NoopDDA,
+				 miPointerGetMotionBufferSize ());
 	break;
     case DEVICE_ON:
 	pDev->on = TRUE;
 	break;
     case DEVICE_OFF:
     case DEVICE_CLOSE:
-	if (pDev->on)
-	{
-	    pDev->on = FALSE;
-	}
+	pDev->on = FALSE;
 	break;
     }
+    
     return Success;
 }
 
-static void
-xglBell (int volume, DeviceIntPtr pDev, pointer ctrl, int something)
+void
+xglBell (int	      volume,
+	 DeviceIntPtr pDev,
+	 pointer      ctrl,
+	 int	      something)
 {
 }
 
-static void
-xglKbdCtrl (DeviceIntPtr pDevice, KeybdCtrl *ctrl)
+void
+xglKbdCtrl (DeviceIntPtr pDevice,
+	    KeybdCtrl	 *ctrl)
 {
 }
 
 #define XGL_KEYMAP_WIDTH    2
 
-KeySym		xglKeymap[] = {
+KeySym xglKeymap[] = {
 /*      1     8 */	 XK_Escape, NoSymbol,
 /*      2     9 */	 XK_1,	XK_exclam,
 /*      3    10 */	 XK_2,	XK_at,
@@ -204,35 +203,35 @@ KeySym		xglKeymap[] = {
 /*    116   123 */	 NoSymbol,	NoSymbol,   /* tiny button */
 };
 
-CARD8		xglModMap[MAP_LENGTH];
+CARD8 xglModMap[MAP_LENGTH];
 
-KeySymsRec	xglKeySyms = {
+KeySymsRec xglKeySyms = {
     xglKeymap,
     8,
     8 + (sizeof (xglKeymap) / sizeof (xglKeymap[0]) / XGL_KEYMAP_WIDTH) - 1,
     XGL_KEYMAP_WIDTH
 };
 
-static int
-xglKeybdProc(DeviceIntPtr pDevice, int onoff)
+int
+xglKeybdProc (DeviceIntPtr pDevice,
+	      int	   onoff)
 {
-    Bool        ret;
-    DevicePtr   pDev = (DevicePtr)pDevice;
+    Bool      ret;
+    DevicePtr pDev = (DevicePtr) pDevice;
 
     if (!pDev)
 	return BadImplementation;
 
-    switch (onoff)
-    {
+    switch (onoff) {
     case DEVICE_INIT:
-	if (pDev != LookupKeyboardDevice())
-	{
+	if (pDev != LookupKeyboardDevice ())
 	    return !Success;
-	}
-	ret = InitKeyboardDeviceStruct(pDev,
-				       &xglKeySyms,
-				       xglModMap,
-				       xglBell, xglKbdCtrl);
+	
+	ret = InitKeyboardDeviceStruct (pDev,
+					&xglKeySyms,
+					xglModMap,
+					xglBell,
+					xglKbdCtrl);
 	if (!ret)
 	    return BadImplementation;
 	break;
@@ -241,24 +240,24 @@ xglKeybdProc(DeviceIntPtr pDevice, int onoff)
 	break;
     case DEVICE_OFF:
     case DEVICE_CLOSE:
-	if (pDev->on)
-	{
-	    pDev->on = FALSE;
-	}
+	pDev->on = FALSE;
 	break;
     }
+    
     return Success;
 }
 
 void
-InitInput (int argc, char **argv)
+xglInitInput (int argc, char **argv)
 {
-    DeviceIntPtr	pKeyboard, pPointer;
+    DeviceIntPtr pKeyboard, pPointer;
     
-    pPointer  = AddInputDevice(xglMouseProc, TRUE);
-    pKeyboard = AddInputDevice(xglKeybdProc, TRUE);
-    RegisterPointerDevice(pPointer);
-    RegisterKeyboardDevice(pKeyboard);
-    miRegisterPointerDevice(screenInfo.screens[0], pPointer);
-    mieqInit(&pKeyboard->public, &pPointer->public);
+    pPointer  = AddInputDevice (xglMouseProc, TRUE);
+    pKeyboard = AddInputDevice (xglKeybdProc, TRUE);
+    
+    RegisterPointerDevice (pPointer);
+    RegisterKeyboardDevice (pKeyboard);
+    
+    miRegisterPointerDevice (screenInfo.screens[0], pPointer);
+    mieqInit (&pKeyboard->public, &pPointer->public);
 }
