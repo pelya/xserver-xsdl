@@ -1,5 +1,5 @@
-.\" $XFree86: xc/programs/Xserver/hw/kdrive/vesa/Xvesa.man,v 1.4 2000/12/01 00:01:32 keithp Exp $
-.TH Xvesa 1
+.\" $XFree86: xc/programs/Xserver/hw/kdrive/vesa/Xvesa.man,v 1.5 2001/01/24 00:06:10 dawes Exp $
+.TH Xvesa 1 __vendorversion__
 .SH NAME
 Xvesa \- VESA Bios Extensions tiny X server
 .SH SYNOPSIS
