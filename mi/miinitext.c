@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/mi/miinitext.c,v 1.9 2004/07/31 09:14:06 kem Exp $ */
+/* $XdotOrg: xc/programs/Xserver/mi/miinitext.c,v 1.10 2004/07/31 09:41:27 kem Exp $ */
 /* $XFree86: xc/programs/Xserver/mi/miinitext.c,v 3.67 2003/01/12 02:44:27 dawes Exp $ */
 /***********************************************************
 
@@ -489,11 +489,12 @@ InitExtensions(argc, argv)
 #ifdef XEVIE
     if (!noXevieExtension) XevieExtensionInit();
 #endif
-#ifdef DAMAGE
-    DamageExtensionInit();
-#endif
 #ifdef COMPOSITE
     if (!noCompositeExtension) CompositeExtensionInit();
+#endif
+#ifdef DAMAGE
+    /* Must be after Composite to layer with composite wrapper properly */
+    DamageExtensionInit();
 #endif
 }
 
@@ -621,11 +622,12 @@ static ExtensionModule staticExtensions[] = {
 #ifdef RANDR
     { RRExtensionInit, "RANDR", NULL, NULL, NULL },
 #endif
-#ifdef DAMAGE
-    { DamageExtensionInit, "DAMAGE", NULL, NULL },
-#endif
 #ifdef COMPOSITE
     { CompositeExtensionInit, "COMPOSITE", &noCompositeExtension, NULL },
+#endif
+#ifdef DAMAGE
+    /* Must be after Composite to layer with composite wrapper properly */
+    { DamageExtensionInit, "DAMAGE", NULL, NULL },
 #endif
 #ifdef XEVIE
     { XevieExtensionInit, "XEVIE", &noXevieExtension, NULL },
