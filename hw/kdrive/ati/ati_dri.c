@@ -422,7 +422,7 @@ R128DRIKernelInit(ScreenPtr pScreen)
 
 	drmInfo.func                = DRM_R128_INIT_CCE;
 	drmInfo.sarea_priv_offset   = sizeof(XF86DRISAREARec);
-	drmInfo.is_pci              = !atic->is_agp;
+	drmInfo.is_pci              = !atis->using_agp;
 	drmInfo.cce_mode            = R128_PM4_64BM_64VCBM_64INDBM;
 	drmInfo.cce_secure          = TRUE;
 	drmInfo.ring_size           = atis->ringSize * 1024 * 1024;
@@ -471,7 +471,7 @@ RadeonDRIKernelInit(ScreenPtr pScreen)
 	    drmInfo.func             = DRM_RADEON_INIT_CP;
 
 	drmInfo.sarea_priv_offset   = sizeof(XF86DRISAREARec);
-	drmInfo.is_pci              = !atic->is_agp;
+	drmInfo.is_pci              = !atis->using_agp;
 	drmInfo.cp_mode             = RADEON_CSQ_PRIBM_INDBM;
 	drmInfo.gart_size           = atis->gartSize * 1024 * 1024;
 	drmInfo.ring_size           = atis->ringSize * 1024 * 1024;
@@ -515,7 +515,7 @@ ATIDRIBufInit(ScreenPtr pScreen)
 	else
 		size = R128_BUFFER_SIZE;
 
-	if (atic->is_agp)
+	if (atis->using_agp)
 		type = DRM_AGP_BUFFER;
 	else
 		type = DRM_SG_BUFFER;
@@ -727,14 +727,15 @@ ATIDRIScreenInit(ScreenPtr pScreen)
 	    &scratch_int, &scratch_int, &scratch_ptr);
 
 	/* Initialize AGP */
+	atis->using_agp = atic->is_agp;
 	if (atic->is_agp && !ATIDRIAgpInit(pScreen)) {
-		atic->is_agp = FALSE;
+		atis->using_agp = FALSE;
 		ErrorF("[agp] AGP failed to initialize; falling back to PCI mode.\n");
 		ErrorF("[agp] Make sure your kernel's AGP support is loaded and functioning.\n");
 	}
 
 	/* Initialize PCIGART */
-	if (!atic->is_agp && !ATIDRIPciInit(pScreen)) {
+	if (!atis->using_agp && !ATIDRIPciInit(pScreen)) {
 		ATIDRICloseScreen(pScreen);
 		return FALSE;
 	}
@@ -759,7 +760,6 @@ static Bool
 R128DRIFinishScreenInit(ScreenPtr pScreen)
 {
 	KdScreenPriv(pScreen);
-	ATICardInfo(pScreenPriv);
 	ATIScreenInfo(pScreenPriv);
 	R128SAREAPrivPtr pSAREAPriv;
 	R128DRIPtr       pR128DRI;
@@ -791,7 +791,7 @@ R128DRIFinishScreenInit(ScreenPtr pScreen)
 	pR128DRI->depth             = pScreenPriv->screen->fb[0].depth;
 	pR128DRI->bpp               = pScreenPriv->screen->fb[0].bitsPerPixel;
 
-	pR128DRI->IsPCI             = !atic->is_agp;
+	pR128DRI->IsPCI             = !atis->using_agp;
 	pR128DRI->AGPMode           = atis->agpMode;
 
 	pR128DRI->frontOffset       = atis->frontOffset;
@@ -867,7 +867,7 @@ RadeonDRIFinishScreenInit(ScreenPtr pScreen)
 	pRADEONDRI->depth             = pScreenPriv->screen->fb[0].depth;
 	pRADEONDRI->bpp               = pScreenPriv->screen->fb[0].bitsPerPixel;
 
-	pRADEONDRI->IsPCI             = !atic->is_agp;
+	pRADEONDRI->IsPCI             = !atis->using_agp;
 	pRADEONDRI->AGPMode           = atis->agpMode;
 
 	pRADEONDRI->frontOffset       = atis->frontOffset;
