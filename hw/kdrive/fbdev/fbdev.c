@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/fbdev/fbdev.c,v 1.6 2000/09/15 07:25:12 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/fbdev/fbdev.c,v 1.7 2000/09/22 06:25:08 keithp Exp $ */
 
 #include "fbdev.h"
 
@@ -382,7 +382,11 @@ fbdevDPMS (ScreenPtr pScreen, int mode)
     FbdevPriv	*priv = pScreenPriv->card->driver;
 
 #ifdef FBIOPUT_POWERMODE
-    if (!ioctl (priv->fd, FBIOPUT_POWERMODE, &mode))
+    if (ioctl (priv->fd, FBIOPUT_POWERMODE, &mode) >= 0)
+	return TRUE;
+#endif
+#ifdef FBIOBLANK
+    if (ioctl (priv->fd, FBIOBLANK, mode ? mode + 1 : 0) >= 0)
 	return TRUE;
 #endif
     return FALSE;

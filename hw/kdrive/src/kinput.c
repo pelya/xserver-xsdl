@@ -26,7 +26,9 @@
 #include "kdrive.h"
 #include "inputstr.h"
 
+#define XK_PUBLISHING
 #include <X11/keysym.h>
+#include <X11/XF86keysym.h>
 #include "kkeymap.h"
 #include <signal.h>
 #include <stdio.h>
@@ -47,6 +49,11 @@ static KdMouseMatrix	kdMouseMatrix = {
     1, 0, 0,
     0, 1, 0
 };
+
+#ifdef TOUCHSCREEN
+static KdTsFuncs	*kdTsFuncs;
+static int		kdTsFd = -1;
+#endif
 
 int		kdMinScanCode;
 int		kdMaxScanCode;
@@ -72,6 +79,10 @@ CARD8		kdKeyState[KD_KEY_COUNT/8];
 void
 KdSigio (int sig)
 {
+#ifdef TOUCHSCREEN    
+    if (kdTsFd >= 0)
+ 	(*kdTsFuncs->Read) (kdTsFd);
+#endif
     if (kdMouseFd >= 0)
 	(*kdMouseFuncs->Read) (kdMouseFd);
     if (kdKeyboardFd >= 0)
@@ -173,6 +184,10 @@ KdRemoveFd (int fd)
 void
 KdDisableInput (void)
 {
+#ifdef TOUCHSCREEN
+    if (kdTsFd >= 0)
+    	KdRemoveFd (kdTsFd);
+#endif
     if (kdMouseFd >= 0)
 	KdRemoveFd (kdMouseFd);
     if (kdKeyboardFd >= 0)
@@ -186,6 +201,10 @@ KdEnableInput (void)
     xEvent	xE;
     
     kdInputEnabled = TRUE;
+#ifdef TOUCHSCREEN
+    if (kdTsFd >= 0)
+    	KdAddFd (kdTsFd);
+#endif
     if (kdMouseFd >= 0)
 	KdAddFd (kdMouseFd);
     if (kdKeyboardFd >= 0)
@@ -225,6 +244,14 @@ KdMouseProc(DeviceIntPtr pDevice, int onoff)
 	    if (kdMouseFd >= 0 && kdInputEnabled)
 		KdAddFd (kdMouseFd);
 	}
+#ifdef TOUCHSCREEN
+	if (kdTsFuncs)
+	{
+	    kdTsFd = (*kdTsFuncs->Init) ();
+	    if (kdTsFd >= 0 && kdInputEnabled)
+		KdAddFd (kdTsFd);
+	}
+#endif
 	break;
     case DEVICE_OFF:
     case DEVICE_CLOSE:
@@ -239,6 +266,15 @@ KdMouseProc(DeviceIntPtr pDevice, int onoff)
 		(*kdMouseFuncs->Fini) (kdMouseFd);
 		kdMouseFd = -1;
 	    }
+#ifdef TOUCHSCREEN
+	    if (kdTsFd >= 0)
+	    {
+		if (kdInputEnabled)
+		    KdRemoveFd (kdTsFd);
+		(*kdTsFuncs->Fini) (kdTsFd);
+		kdTsFd = -1;
+	    }
+#endif
 	}
 	break;
     }
@@ -364,6 +400,35 @@ KdInitAutoRepeats (void)
     }
 }
 
+const KdKeySymModsRec kdKeySymMods[] = {
+  XK_Control_L,	ControlMask,
+  XK_Control_R, ControlMask,
+  XK_Shift_L,	ShiftMask,
+  XK_Shift_R,	ShiftMask,
+  XK_Caps_Lock,	LockMask,
+  XK_Shift_Lock, LockMask,
+  XK_Alt_L,	Mod1Mask,
+  XK_Alt_R,	Mod1Mask,
+  XK_Meta_L,	Mod1Mask,
+  XK_Meta_R,	Mod1Mask,
+  XK_Num_Lock,	Mod2Mask,
+  XK_Super_L,	Mod3Mask,
+  XK_Super_R,	Mod3Mask,
+  XK_Hyper_L,	Mod3Mask,
+  XK_Hyper_R,	Mod3Mask,
+  XK_Mode_switch, Mod4Mask,
+#ifdef TOUCHSCREEN
+  /* iPAQ specific hacks */
+  XF86XK_Start, ControlMask,
+  XK_Menu, ShiftMask,
+  XF86XK_Calendar, LockMask,
+  XK_telephone, Mod1Mask,
+  XF86XK_AudioRecord, Mod2Mask,
+#endif
+};
+
+#define NUM_SYM_MODS (sizeof(kdKeySymMods) / sizeof(kdKeySymMods[0]))
+
 static void
 KdInitModMap (void)
 {
@@ -371,6 +436,7 @@ KdInitModMap (void)
     int	    row;
     int	    width;
     KeySym  *syms;
+    int	    i;
 
     width = kdKeySyms.mapWidth;
     for (key_code = kdMinKeyCode; key_code <= kdMaxKeyCode; key_code++)
@@ -379,37 +445,10 @@ KdInitModMap (void)
 	syms = kdKeymap + (key_code - kdMinKeyCode) * width;
 	for (row = 0; row < width; row++, syms++)
 	{
-	    switch (*syms) {
-	    case XK_Control_L:
-	    case XK_Control_R:
-		kdModMap[key_code] |= ControlMask;
-		break;
-	    case XK_Shift_L:
-	    case XK_Shift_R:
-		kdModMap[key_code] |= ShiftMask;
-		break;
-	    case XK_Caps_Lock:
-	    case XK_Shift_Lock:
-		kdModMap[key_code] |= LockMask;
-		break;
-	    case XK_Alt_L:
-	    case XK_Alt_R:
-	    case XK_Meta_L:
-	    case XK_Meta_R:
-		kdModMap[key_code] |= Mod1Mask;
-		break;
-	    case XK_Num_Lock:
-		kdModMap[key_code] |= Mod2Mask;
-		break;
-	    case XK_Super_L:
-	    case XK_Super_R:
-	    case XK_Hyper_L:
-	    case XK_Hyper_R:
-		kdModMap[key_code] |= Mod3Mask;
-		break;
-	    case XK_Mode_switch:
-		kdModMap[key_code] |= Mod4Mask;
-		break;
+	    for (i = 0; i < NUM_SYM_MODS; i++) 
+	    {
+		if (*syms == kdKeySymMods[i].modsym) 
+		    kdModMap[key_code] |= kdKeySymMods[i].modbit;
 	    }
 	}
     }
@@ -453,6 +492,14 @@ KdInitInput(KdMouseFuncs    *pMouseFuncs,
     }
 #endif
 }
+
+#ifdef TOUCHSCREEN
+void
+KdInitTouchScreen(KdTsFuncs *pTsFuncs)
+{
+    kdTsFuncs = pTsFuncs;
+}
+#endif
 
 /*
  * Middle button emulation state machine
@@ -1287,6 +1334,14 @@ KdWakeupHandler (int		screen,
 	(*kdMouseFuncs->Read) (kdMouseFd);
 	KdUnblockSigio ();
     }
+#ifdef TOUCHSCREEN
+    if (kdTsFd >= 0 && FD_ISSET (kdTsFd, pReadmask))
+    {
+	KdBlockSigio ();
+	(*kdTsFuncs->Read) (kdTsFd);
+	KdUnblockSigio ();
+    }
+#endif
     if (kdKeyboardFd >= 0 && FD_ISSET (kdKeyboardFd, pReadmask))
     {
 	KdBlockSigio ();

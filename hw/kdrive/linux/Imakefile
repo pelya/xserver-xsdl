@@ -1,11 +1,16 @@
 XCOMM $XConsortium: Imakefile /main/10 1996/12/02 10:20:33 lehors $
-XCOMM $XFree86: $
+XCOMM $XFree86: xc/programs/Xserver/hw/kdrive/linux/Imakefile,v 1.3 2000/09/22 06:25:09 keithp Exp $
 KDRIVE=..
 #include "../Kdrive.tmpl"
 
-SRCS = keyboard.c linux.c ps2.c bus.c
+#if TouchScreen
+TSSRCS = ts.c
+TSOBJS = ts.o
+#endif
 
-OBJS = keyboard.o linux.o ps2.o bus.o
+SRCS = keyboard.c linux.c ps2.c bus.c $(TSSRCS)
+
+OBJS = keyboard.o linux.o ps2.o bus.o $(TSOBJS)
 
 INCLUDES = -I. $(KDINCS)
 

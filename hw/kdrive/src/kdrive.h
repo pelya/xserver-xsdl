@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/kdrive.h,v 1.6 2000/08/26 00:24:38 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/kdrive.h,v 1.8 2000/09/22 06:25:29 keithp Exp $ */
 
 #include <stdio.h>
 #include "X.h"
@@ -166,6 +166,14 @@ typedef struct _KdMouseFuncs {
     void	    (*Read) (int);
     void	    (*Fini) (int);
 } KdMouseFuncs;
+
+#ifdef TOUCHSCREEN
+typedef struct _KdTsFuncs {
+    int		    (*Init) (void);
+    void	    (*Read) (int);
+    void	    (*Fini) (int);
+} KdTsFuncs;
+#endif
 
 typedef struct _KdKeyboardFuncs {
     void	    (*Load) (void);
@@ -491,6 +499,11 @@ KdScreenInfoDispose (KdScreenInfo *si);
 void
 KdInitInput(KdMouseFuncs *, KdKeyboardFuncs *);
 
+#ifdef TOUCHSCREEN
+void
+KdInitTouchScreen(KdTsFuncs *pTsFuncs);
+#endif
+
 void
 KdEnqueueKeyboardEvent(unsigned char	scan_code,
 		       unsigned char	is_up);
@@ -538,6 +551,9 @@ ProcessInputEvents ();
 
 extern KdMouseFuncs	Ps2MouseFuncs;
 extern KdMouseFuncs	BusMouseFuncs;
+#ifdef TOUCHSCREEN
+extern KdTsFuncs	TsFuncs;
+#endif
 extern KdKeyboardFuncs	LinuxKeyboardFuncs;
 extern KdOsFuncs	LinuxFuncs;
 

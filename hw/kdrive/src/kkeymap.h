@@ -27,8 +27,8 @@
  *  live in this header file.
  */
 
-#ifndef _KDKEYMP_H
-#define _KDKEYMP_H
+#ifndef _KKEYMAP_H
+#define _KKEYMAP_H
 
 /* Offset of MIN_SCANCODE to 8 (X minimum scancode value) */
 #define KD_KEY_OFFSET	(8 - kdMinScanCode)
@@ -50,4 +50,9 @@ extern CARD8		kdModMap[MAP_LENGTH];
     
 extern KeySymsRec	kdKeySyms;
 
-#endif /* _WINKEYMP_H */
+typedef struct {
+    KeySym  modsym;
+    int	    modbit;
+} KdKeySymModsRec;
+
+#endif /* _KKEYMAP_H */
