@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/fbdev/fbdev.c,v 1.16 2001/05/29 21:55:41 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/fbdev/fbdev.c,v 1.17 2001/06/03 21:52:45 keithp Exp $ */
 
 #include "fbdev.h"
 
@@ -542,15 +542,18 @@ fbdevRandRSetConfig (ScreenPtr		pScreen,
     return TRUE;
 }
 
-void
+Bool
 fbdevRandRInit (ScreenPtr pScreen)
 {
-    rrScrPriv(pScreen);
+    rrScrPrivPtr    pScrPriv;
+    
+    if (!RRScreenInit (pScreen))
+	return FALSE;
 
-    if (!pScrPriv)
-	return;
+    pScrPriv = rrGetScrPriv(pScreen);
     pScrPriv->rrGetInfo = fbdevRandRGetInfo;
     pScrPriv->rrSetConfig = fbdevRandRSetConfig;
+    return TRUE;
 }
 #endif
 
@@ -579,7 +582,8 @@ fbdevInitScreen (ScreenPtr pScreen)
     if (!scrpriv->pLayer)
 	return FALSE;
 #ifdef RANDR
-    fbdevRandRInit (pScreen);
+    if (!fbdevRandRInit (pScreen))
+	return FALSE;
 #endif
     return TRUE;
 }
