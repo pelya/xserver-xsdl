@@ -753,12 +753,12 @@ ATIDrawEnable(ScreenPtr pScreen)
 
 	/* We can't dispatch 3d commands in PIO mode. */
 	if (!atis->using_pio) {
-		if (0 && !atic->is_radeon) { /* XXX */
+		if (!atic->is_radeon) {
 			atis->kaa.CheckComposite = R128CheckComposite;
 			atis->kaa.PrepareComposite = R128PrepareComposite;
 			atis->kaa.Composite = R128Composite;
 			atis->kaa.DoneComposite = R128DoneComposite;
-		} else if (0 && atic->is_r100) { /* XXX */
+		} else if (atic->is_r100) {
 			atis->kaa.CheckComposite = R100CheckComposite;
 			atis->kaa.PrepareComposite = R100PrepareComposite;
 			atis->kaa.Composite = RadeonComposite;

@@ -336,13 +336,12 @@ kaaGetOffscreenPixmap (DrawablePtr pDrawable, int *xp, int *yp)
 	x = 0;
 	y = 0;
     }
+    *xp = x;
+    *yp = y;
     if (kaaPixmapIsOffscreen (pPixmap))
-    {
-	*xp = x;
-	*yp = y;
 	return pPixmap;
-    }
-    return NULL;
+    else
+	return NULL;
 }
 
 Bool

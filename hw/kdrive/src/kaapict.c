@@ -277,8 +277,7 @@ kaaTryDriverSolidFill(PicturePtr	pSrc,
     kaaGetPixelFromRGBA(&pixel, red, green, blue, alpha,
 			pDst->format);
 
-    if (!(*pKaaScr->info->PrepareSolid) (pDstPix, GXcopy, 0xffffff,
-					 pixel))
+    if (!(*pKaaScr->info->PrepareSolid) (pDstPix, GXcopy, 0xffffffff, pixel))
     {
 	REGION_UNINIT(pDst->pDrawable->pScreen, &region);
 	return -1;
@@ -451,12 +450,20 @@ kaaTryDriverComposite(CARD8		op,
     }
 
     if (!pSrcPix && (!pMask || pMaskPix) && pKaaScr->info->UploadToScratch) {
-	if ((*pKaaScr->info->UploadToScratch) ((PixmapPtr) pSrc->pDrawable,
-					       &scratch))
+	if (pSrc->pDrawable->type == DRAWABLE_WINDOW)
+	    pSrcPix = (*pSrc->pDrawable->pScreen->GetWindowPixmap) (
+		(WindowPtr) pSrc->pDrawable);
+	else
+	    pSrcPix = (PixmapPtr) pSrc->pDrawable;
+	if ((*pKaaScr->info->UploadToScratch) (pSrcPix, &scratch))
 	    pSrcPix = &scratch;
     } else if (pSrcPix && pMask && !pMaskPix && pKaaScr->info->UploadToScratch) {
-	if ((*pKaaScr->info->UploadToScratch) ((PixmapPtr) pMask->pDrawable,
-					       &scratch))
+	if (pMask->pDrawable->type == DRAWABLE_WINDOW)
+	    pMaskPix = (*pMask->pDrawable->pScreen->GetWindowPixmap) (
+		(WindowPtr) pMask->pDrawable);
+	else
+	    pMaskPix = (PixmapPtr) pMask->pDrawable;
+	if ((*pKaaScr->info->UploadToScratch) (pMaskPix, &scratch))
 	    pMaskPix = &scratch;
     }
 
