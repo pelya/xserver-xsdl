@@ -71,18 +71,18 @@ ATIDRIInitGARTValues(ScreenPtr pScreen)
 	int s, l;
 
 	atis->gartOffset = 0;
-	
+
 	/* Initialize the ring buffer data */
 	atis->ringStart       = atis->gartOffset;
 	atis->ringMapSize     = atis->ringSize*1024*1024 + DRM_PAGE_SIZE;
-	
+
 	atis->ringReadOffset  = atis->ringStart + atis->ringMapSize;
 	atis->ringReadMapSize = DRM_PAGE_SIZE;
-	
+
 	/* Reserve space for vertex/indirect buffers */
 	atis->bufStart        = atis->ringReadOffset + atis->ringReadMapSize;
 	atis->bufMapSize      = atis->bufSize*1024*1024;
-	
+
 	/* Reserve the rest for GART textures */
 	atis->gartTexStart     = atis->bufStart + atis->bufMapSize;
 	s = (atis->gartSize*1024*1024 - atis->gartTexStart);
@@ -98,9 +98,9 @@ ATIDRIAddAndMap(int fd, drmHandle offset, drmSize size,
     drmAddressPtr address, char *desc)
 {
 	char *name;
-	
+
 	name = (type == DRM_AGP) ? "agp" : "pci";
-	
+
 	if (drmAddMap(fd, offset, size, type, flags, handle) < 0) {
 		ErrorF("[%s] Could not add %s mapping\n", name, desc);
 		return FALSE;
@@ -230,7 +230,7 @@ ATIDRIAgpInit(ScreenPtr pScreen)
 		MMIO_OUT32(mmio, R128_REG_PCI_GART_PAGE, 1);
 	}
 
-    return TRUE;
+	return TRUE;
 }
 
 static Bool
@@ -253,7 +253,6 @@ ATIDRIPciInit(ScreenPtr pScreen)
 	}
 	ErrorF("[pci] %d kB allocated with handle 0x%08lx\n",
 	    atis->gartSize*1024, (long)atis->pciMemHandle);
-
 
 	if (!ATIDRIAddAndMap(atic->drmFd, atis->ringStart, atis->ringMapSize,
 	    DRM_SCATTER_GATHER, DRM_READ_ONLY | DRM_LOCKED | DRM_KERNEL,
@@ -392,7 +391,7 @@ ATIDRIBufInit(ScreenPtr pScreen)
 	ATIScreenInfo(pScreenPriv);
 	ATICardInfo(pScreenPriv);
 	int type, size;
-	
+
 	if (atic->is_radeon)
 		size = RADEON_BUFFER_SIZE;
 	else
@@ -479,7 +478,7 @@ ATIDRIScreenInit(ScreenPtr pScreen)
 	DRIInfoPtr pDRIInfo;
 	int devSareaSize;
 	drmSetVersion sv;
-	
+
 	/* XXX: Disable DRI clients for unsupported depths */
 
 	if (atic->is_radeon) {
@@ -606,8 +605,8 @@ ATIDRIScreenInit(ScreenPtr pScreen)
 	}
 
 	/* Add a map for the MMIO registers that will be accessed by any
-	* DRI-based clients.
-	*/
+	 * DRI-based clients.
+	 */
 	atis->registerSize = RADEON_REG_SIZE(atic);
 	if (drmAddMap(atic->drmFd, RADEON_REG_BASE(pScreenPriv->screen->card),
 	    atis->registerSize, DRM_REGISTERS, DRM_READ_ONLY,
@@ -745,7 +744,7 @@ RadeonDRIFinishScreenInit(ScreenPtr pScreen)
 	drmHeap.region = RADEON_MEM_REGION_GART;
 	drmHeap.start  = 0;
 	drmHeap.size   = atis->gartTexMapSize;
-    
+
 	if (drmCommandWrite(atic->drmFd, DRM_RADEON_INIT_HEAP, &drmHeap,
 	    sizeof(drmHeap))) {
 		ErrorF("[drm] Failed to initialize GART heap manager\n");
@@ -767,7 +766,7 @@ RadeonDRIFinishScreenInit(ScreenPtr pScreen)
 
 	pRADEONDRI->IsPCI             = !atis->IsAGP;
 	pRADEONDRI->AGPMode           = atis->agpMode;
-	
+
 	pRADEONDRI->frontOffset       = atis->frontOffset;
 	pRADEONDRI->frontPitch        = atis->frontPitch;
 	pRADEONDRI->backOffset        = atis->backOffset;
@@ -777,18 +776,18 @@ RadeonDRIFinishScreenInit(ScreenPtr pScreen)
 	pRADEONDRI->textureOffset     = atis->textureOffset;
 	pRADEONDRI->textureSize       = atis->textureSize;
 	pRADEONDRI->log2TexGran       = atis->log2TexGran;
-	
+
 	pRADEONDRI->registerHandle    = atis->registerHandle;
 	pRADEONDRI->registerSize      = atis->registerSize;
-	
+
 	pRADEONDRI->statusHandle      = atis->ringReadPtrHandle;
 	pRADEONDRI->statusSize        = atis->ringReadMapSize;
-	
+
 	pRADEONDRI->gartTexHandle     = atis->gartTexHandle;
 	pRADEONDRI->gartTexMapSize    = atis->gartTexMapSize;
 	pRADEONDRI->log2GARTTexGran   = atis->log2GARTTexGran;
 	pRADEONDRI->gartTexOffset     = atis->gartTexStart;
-	
+
 	pRADEONDRI->sarea_priv_offset = sizeof(XF86DRISAREARec);
 
 	return TRUE;
