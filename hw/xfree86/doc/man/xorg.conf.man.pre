@@ -1,4 +1,4 @@
-.\" $XdotOrg$
+.\" $XdotOrg: xc/programs/Xserver/hw/xfree86/xorg.conf.man,v 1.2 2004/04/23 19:20:02 eich Exp $
 .\" shorthand for double quote that works everywhere.
 .ds q \N'34'
 .TH __xconfigfile__ __filemansuffix__ __vendorversion__
@@ -149,7 +149,7 @@ output devices that will be used in a session.  The input devices
 are described in the
 .B InputDevice
 sections.  Output devices usually consist of multiple independent
-components (e.g., and graphics board and a monitor).  These multiple
+components (e.g., a graphics board and a monitor).  These multiple
 components are bound together in the
 .B Screen
 sections, and it is these that are referenced by the
