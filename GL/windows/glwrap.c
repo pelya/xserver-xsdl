@@ -324,38 +324,32 @@ GLAPI void GLAPIENTRY glCopyTexSubImage3D( GLenum target, GLint level,
  */
 GLAPI void GLAPIENTRY glGenTexturesEXT( GLsizei n, GLuint *textures )
 {
-    RESOLVE(PFNGLGENTEXTURESEXTPROC, "glGenTexturesEXT");
-    proc(n, textures);
+    glGenTextures(n, textures);
 }
 
 GLAPI void GLAPIENTRY glDeleteTexturesEXT( GLsizei n, const GLuint *textures)
 {
-    RESOLVE(PFNGLDELETETEXTURESEXTPROC, "glDeleteTexturesEXT");
-    proc(n, textures);
+    glDeleteTextures(n, textures);
 }
 
 GLAPI void GLAPIENTRY glBindTextureEXT( GLenum target, GLuint texture )
 {
-    RESOLVE(PFNGLBINDTEXTUREEXTPROC, "glBindTextureEXT");
-    proc(target, target);
+    glBindTexture(target, target);
 }
 
 GLAPI void GLAPIENTRY glPrioritizeTexturesEXT( GLsizei n, const GLuint *textures, const GLclampf *priorities )
 {
-    RESOLVE(PFNGLPRIORITIZETEXTURESEXTPROC, "glPrioritizeTexturesEXT");
-    proc(n, textures, priorities);
+    glPrioritizeTextures(n, textures, priorities);
 }
 
 GLAPI GLboolean GLAPIENTRY glAreTexturesResidentEXT( GLsizei n, const GLuint *textures, GLboolean *residences )
 {
-    RESOLVE_RET(PFNGLARETEXTURESRESIDENTEXTPROC, "glAreTexturesResidentEXT", FALSE);
-    return proc(n, textures, residences);
+    return glAreTexturesResident(n, textures, residences);
 }
 
 GLAPI GLboolean GLAPIENTRY glIsTextureEXT( GLuint texture )
 {
-    RESOLVE_RET(PFNGLISTEXTUREEXTPROC, "glIsTextureEXT", FALSE);
-    return proc(texture); 
+    return glIsTexture(texture); 
 }
 
 /*

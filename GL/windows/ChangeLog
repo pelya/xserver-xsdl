@@ -1,7 +1,13 @@
+2005-01-27  Alexander Gottwald  <ago at freedesktop dot org>
+
+	* glwrap.c:
+	Functions like glGenTextures and glBindTexture are in OpenGL 1.1
+	and can be resolved at linktime.
+
 2004-11-15  Alexander Gottwald  <ago at freedesktop dot org>
 
 	* indirect.c:
-	Bufzilla #1802, http://freedesktop.org/bugzilla/show_bug.cgi?id=1802
+	Bugzilla #1802, http://freedesktop.org/bugzilla/show_bug.cgi?id=1802
 	Added mingw (Win32) port     
 
 2004-08-13  Alexander Gottwald  <ago@freedesktop.org>
