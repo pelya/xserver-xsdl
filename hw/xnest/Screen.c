@@ -249,6 +249,16 @@ xnestOpenScreen(int index, ScreenPtr pScreen, int argc, char *argv[])
     xnestHeight = gattributes.height;
   }
 
+  /* myNum */
+  /* id */
+  miScreenInit(pScreen, NULL, xnestWidth, xnestHeight, 1, 1, xnestWidth,
+	       rootDepth,
+	       numDepths, depths,
+	       defaultVisual, /* root visual */
+	       numVisuals, visuals);
+
+/*  miInitializeBackingStore(pScreen); */
+
   pScreen->defColormap = (Colormap) FakeClientID(0);
   pScreen->minInstalledCmaps = MINCMAPS;
   pScreen->maxInstalledCmaps = MAXCMAPS;
@@ -332,15 +342,6 @@ xnestOpenScreen(int index, ScreenPtr pScreen, int argc, char *argv[])
   pScreen->WakeupHandler = (ScreenWakeupHandlerProcPtr)NoopDDA;
   pScreen->blockData = NULL;
   pScreen->wakeupData = NULL;
-  /* myNum */
-  /* id */
-  miScreenInit(pScreen, NULL, xnestWidth, xnestHeight, 1, 1, xnestWidth,
-	       rootDepth,
-	       numDepths, depths,
-	       defaultVisual, /* root visual */
-	       numVisuals, visuals);
-
-/*  miInitializeBackingStore(pScreen); */
 
   miPointerInitialize (pScreen, &xnestPointerSpriteFuncs, 
 		       &xnestPointerCursorFuncs, True);
