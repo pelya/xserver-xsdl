@@ -156,13 +156,19 @@ PsGetDrawablePrivateStuff(
       if( pCon==NULL ) return FALSE;
       else
       {
+        Colormap    c;
+        ColormapPtr cmap;
+
+        c = wColormap((WindowPtr)pDrawable);
+        cmap = (ColormapPtr)LookupIDByType(c, RT_COLORMAP);
+
         cPriv = pCon->devPrivates[PsContextPrivateIndex].ptr;
         sPriv = (PsScreenPrivPtr)
                 pDrawable->pScreen->devPrivates[PsScreenPrivateIndex].ptr;
         *gc     = cPriv->lastGC;
         *valid  = cPriv->validGC;
         *psOut  = cPriv->pPsOut;
-        *cMap   = sPriv->CMap;
+        *cMap   = cmap;
         return TRUE;
       }
     default:

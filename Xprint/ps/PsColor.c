@@ -120,9 +120,6 @@ PsDestroyColormap(ColormapPtr pColor)
 void
 PsInstallColormap(ColormapPtr pColor)
 {
-  PsScreenPrivPtr pPriv =
-    (PsScreenPrivPtr)pColor->pScreen->devPrivates[PsScreenPrivateIndex].ptr;
-  pPriv->CMap = pColor;
 }
 
 void

@@ -246,7 +246,6 @@ typedef DisplayListRec *DisplayListPtr;
 typedef struct
 {
   XrmDatabase   resDB;
-  ColormapPtr   CMap;
   Bool        (*DestroyWindow)(WindowPtr);
 } PsScreenPrivRec, *PsScreenPrivPtr;
 
