@@ -1,3 +1,8 @@
+2004-11-24  Alexander Gottwald  <ago at freedesktop dot org>
+
+	* winmultiwindowwm.c:
+	Finally the multiwindow mode defines a default cursor
+
 2004-11-22  Alexander Gottwald  <ago at freedesktop dot org>
 
 	* winmultiwindowwm.c: 

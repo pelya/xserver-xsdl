@@ -45,6 +45,7 @@
 #include <X11/Xlocale.h>
 #include <X11/Xproto.h>
 #include <X11/Xutil.h>
+#include <X11/cursorfont.h>
 
 /* Windows headers */
 #include <Xwindows.h>
@@ -186,7 +187,6 @@ static jmp_buf			g_jmpXMsgProcEntry;
 static Bool			g_shutdown = FALSE;
 static Bool			redirectError = FALSE;
 static Bool			g_fAnotherWMRunnig = FALSE;
-
 
 /*
  * PushMessage - Push a message onto the queue
@@ -1227,6 +1227,16 @@ winInitMultiWindowWM (WMInfoPtr pWMInfo, WMProcArgPtr pProcArg)
   pWMInfo->atmPrivMap  = XInternAtom (pWMInfo->pDisplay,
 				      WINDOWSWM_NATIVE_HWND,
 				      False);
+
+
+  if (1) {
+    Cursor cursor = XCreateFontCursor (pWMInfo->pDisplay, XC_left_ptr);
+    if (cursor)
+    {
+      XDefineCursor (pWMInfo->pDisplay, DefaultRootWindow(pWMInfo->pDisplay), cursor);
+      XFreeCursor (pWMInfo->pDisplay, cursor);
+    }
+  }
 }
 
 
