@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/kmap.c,v 1.6 2000/12/13 18:06:54 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/kmap.c,v 1.7 2001/03/30 02:15:20 keithp Exp $ */
 
 #include "kdrive.h"
 
@@ -67,7 +67,11 @@ KdMapDevice (CARD32 addr, CARD32 size)
     void    *a;
     int	    fd;
 
+#ifdef __arm__
+    fd = open ("/dev/mem", O_RDWR|O_SYNC);
+#else
     fd = open ("/dev/mem", O_RDWR);
+#endif
     if (fd < 0)
 	FatalError ("KdMapDevice: failed to open /dev/mem (%s)\n",
 		    strerror (errno));

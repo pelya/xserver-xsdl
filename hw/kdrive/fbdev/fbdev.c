@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/fbdev/fbdev.c,v 1.10 2000/10/03 17:22:14 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/fbdev/fbdev.c,v 1.11 2001/03/30 02:15:20 keithp Exp $ */
 
 #include "fbdev.h"
 
@@ -295,6 +295,8 @@ fbdevUpdateFake24 (ScreenPtr pScreen,
 }
 #endif /* FAKE24_ON_16 */
 
+int TsFbdev = -1;
+
 Bool
 fbdevInitScreen (ScreenPtr pScreen)
 {
@@ -303,6 +305,8 @@ fbdevInitScreen (ScreenPtr pScreen)
     FbdevScrPriv	*scrpriv = pScreenPriv->screen->driver;
     ShadowUpdateProc	update;
     ShadowWindowProc	window;
+
+    TsFbdev = pScreen->myNum;
 
     if (scrpriv->shadow)
     {

@@ -1,5 +1,5 @@
 /*
- * $XFree86$
+ * $XFree86: xc/programs/Xserver/hw/kdrive/linux/ts.c,v 1.2 2000/09/26 15:57:04 tsi Exp $
  *
  * Derived from ps2.c by Jim Gettys
  *
@@ -35,6 +35,10 @@
 #include <sys/ioctl.h>
 #include <linux/h3600_ts.h>	/* touch screen events */
 
+static long lastx = 0, lasty = 0;
+int TsScreen;
+extern int TsFbdev;
+
 void
 TsRead (int tsPort)
 {
@@ -52,19 +56,38 @@ TsRead (int tsPort)
     {
 	if (event.pressure) 
 	{
-	    flags = KD_BUTTON_1;
-	    x = event.x;
-	    y = event.y;
-	}
-	else {
+	    /* 
+	     * HACK ATTACK.  (static global variables used !)
+	     * Here we test for the touch screen driver actually being on the
+	     * touch screen, if it is we send absolute coordinates. If not,
+	     * then we send delta's so that we can track the entire vga screen.
+	     */
+	    if (TsScreen == TsFbdev) {
+	    	flags = KD_BUTTON_1;
+	    	x = event.x;
+	    	y = event.y;
+	    } else {
+	    	flags = /* KD_BUTTON_1 |*/ KD_MOUSE_DELTA;
+	    	if ((lastx == 0) || (lasty == 0)) {
+	    	    x = 0;
+	    	    y = 0;
+	    	} else {
+	    	    x = event.x - lastx;
+	    	    y = event.y - lasty;
+	    	}
+	    	lastx = event.x;
+	    	lasty = event.y;
+	    }
+	} else {
 	    flags = KD_MOUSE_DELTA;
 	    x = 0;
 	    y = 0;
+	    lastx = 0;
+	    lasty = 0;
 	}
 	KdEnqueueMouseEvent (flags, x, y);
     }
 }
-
 
 char	*TsNames[] = {
   "/dev/ts",	

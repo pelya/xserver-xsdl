@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/kinput.c,v 1.12 2001/01/23 06:25:05 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/kinput.c,v 1.13 2001/03/30 02:15:20 keithp Exp $ */
 
 #include "kdrive.h"
 #include "inputstr.h"
@@ -992,7 +992,7 @@ extern int nClients;
 void
 KdCheckSpecialKeys(xEvent *xE)
 {
-    KeySym	sym;
+    KeySym	sym = KEYCOL1(xE->u.u.detail);
     
     if (!pKdKeyboard) return;
 
@@ -1001,7 +1001,25 @@ KdCheckSpecialKeys(xEvent *xE)
      */
     
     if (xE->u.u.type == KeyRelease) return;
-    
+
+#ifdef XIPAQ
+    /* 
+     * Check for buttons 1, 2 and 3 on the iPAQ
+     */
+    if (sym == XK_Pointer_Button1) {
+	KdEnqueueMouseEvent(KD_MOUSE_DELTA | KD_BUTTON_1, 0, 0);
+	return;
+    }
+    if (sym == XK_Pointer_Button2) {
+	KdEnqueueMouseEvent(KD_MOUSE_DELTA | KD_BUTTON_2, 0, 0);
+	return;
+    }
+    if (sym == XK_Pointer_Button3) {
+	KdEnqueueMouseEvent(KD_MOUSE_DELTA | KD_BUTTON_3, 0, 0);
+	return;
+    }
+#endif
+
     /*
      * Check for control/alt pressed
      */
@@ -1009,7 +1027,6 @@ KdCheckSpecialKeys(xEvent *xE)
 	(ControlMask|Mod1Mask))
 	return;
     
-    sym = KEYCOL1(xE->u.u.detail);
     
     /*
      * Let OS function see keysym first
@@ -1428,16 +1445,22 @@ KdCursorOffScreen(ScreenPtr *ppScreen, int *x, int *y)
 static void
 KdCrossScreen(ScreenPtr pScreen, Bool entering)
 {
+#ifndef XIPAQ
     if (entering)
 	KdEnableScreen (pScreen);
     else
 	KdDisableScreen (pScreen);
+#endif
 }
+
+/* HACK! */
+extern int TsScreen;
 
 static void
 KdWarpCursor (ScreenPtr pScreen, int x, int y)
 {
     KdBlockSigio ();
+    TsScreen = pScreen->myNum;
     miPointerWarpCursor (pScreen, x, y);
     KdUnblockSigio ();
 }
