@@ -4,12 +4,12 @@ INCLUDES = 					\
 	-I$(top_srcdir)/mi			\
 	-I$(top_srcdir)/miext/shadow		\
 	-I$(top_srcdir)/randr			\
-	-I$(top_srcdir)/render			
+	-I$(top_srcdir)/render			\
+	$(XSERVER_CFLAGS)
 
+noinst_LIBRARIES = libkdrive.a
 
-noinst_LTLIBRARIES = libkdrive.la
-
-libkdrive_la_SOURCES =	\
+libkdrive_a_SOURCES =	\
 	kaa.c		\
 	kasync.c	\
 	kcmap.c		\

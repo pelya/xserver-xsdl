@@ -1,5 +1,4 @@
 INCLUDES = 					\
-	$(X_CFLAGS)				\
 	-I$(top_srcdir)/hw/kdrive/src		\
 	-I$(top_srcdir)/include			\
 	-I$(top_srcdir)/mi			\
@@ -7,12 +6,13 @@ INCLUDES = 					\
 	-I$(top_srcdir)/miext/layer		\
 	-I$(top_srcdir)/miext/shadow		\
 	-I$(top_srcdir)/randr			\
-	-I$(top_srcdir)/render
+	-I$(top_srcdir)/render			\
+	$(XSERVER_CFLAGS)
 
 
-noinst_LTLIBRARIES = liblinux.la
+noinst_LIBRARIES = liblinux.a
 
-liblinux_la_SOURCES = 	\
+liblinux_a_SOURCES = 	\
 	agp.c		\
 	bus.c		\
 	keyboard.c	\
