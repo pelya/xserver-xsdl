@@ -19,7 +19,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/vesa/vesa.h,v 1.5 2000/09/15 07:25:13 keithp Exp $ */
 
 #ifndef _VESA_H_
 #define _VESA_H_
@@ -51,6 +51,7 @@ typedef struct _VesaScreenPriv {
     Bool	shadow;
     Bool	rotate;
     int		mapping;
+    int		origDepth;
     void *fb;
 } VesaScreenPrivRec, *VesaScreenPrivPtr;
 

@@ -19,7 +19,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/vesa/vesa.c,v 1.5 2000/09/15 07:25:13 keithp Exp $ */
 
 #include "vesa.h"
 
@@ -327,6 +327,7 @@ vesaScreenInitialize (KdScreenInfo *screen, VesaScreenPrivPtr pscr)
 	return FALSE;
 
     pscr->shadow = vesa_shadow;
+    pscr->origDepth = screen->fb[0].depth;
     if (vesa_linear_fb)
 	pscr->mapping = VESA_LINEAR;
     else
@@ -334,7 +335,7 @@ vesaScreenInitialize (KdScreenInfo *screen, VesaScreenPrivPtr pscr)
     
     vmib = &pscr->mode->vmib;
 
-    depth = vesaDepth (vmib);;
+    depth = vesaDepth (vmib);
     bpp = vmib->BitsPerPixel;
     
     switch (vmib->MemoryModel) {
@@ -793,6 +794,8 @@ vesaScreenFini(KdScreenInfo *screen)
     
     if (pscr->fb)
 	VbeUnmapFramebuffer(priv->vi, &pscr->mode->vmib, pscr->fb);
+    
+    screen->fb[0].depth = pscr->origDepth;
     return;
 }
 
