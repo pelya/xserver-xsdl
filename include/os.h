@@ -256,6 +256,10 @@ extern void OsInitAllocator(void);
 
 extern char *Xstrdup(const char *s);
 extern char *XNFstrdup(const char *s);
+extern char *Xprintf(const char *fmt, ...);
+extern char *Xvprintf(const char *fmt, va_list va);
+extern char *XNFprintf(const char *fmt, ...);
+extern char *XNFvprintf(const char *fmt, va_list va);
 
 typedef SIGVAL (*OsSigHandlerPtr)(int /* sig */);
 
