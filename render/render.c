@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/render/render.c,v 1.2 2004/04/23 19:54:29 eich Exp $ */
+/* $XdotOrg: xc/programs/Xserver/render/render.c,v 1.3 2004/06/30 20:06:56 kem Exp $ */
 /*
  * $XFree86: xc/programs/Xserver/render/render.c,v 1.27tsi Exp $
  *
@@ -1510,7 +1510,7 @@ ProcRenderCreateCursor (ClientPtr client)
 	}
 	pPicture = CreatePicture (0, &pPixmap->drawable, pFormat, 0, 0, 
 				  client, &error);
-	if (!pPicture);
+	if (!pPicture)
 	{
 	    xfree (argbbits);
 	    xfree (srcbits);
