@@ -77,11 +77,22 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 static const char* 
 Win32TempDir()
 {
-	if (getenv("TEMP") != NULL)
+    static char buffer[MAX_PATH];
+    int len;
+    if (GetTempPath(sizeof(buffer), buffer))
+    {
+        buffer[sizeof(buffer)-1] = 0;
+        len = strlen(buffer);
+        if (len > 0)
+            if (buffer[len-1] == '\\')
+                buffer[len-1] = 0;
+        return buffer;
+    }
+    if (getenv("TEMP") != NULL)
         return getenv("TEMP");
-	else if (getenv("TMP") != NULL)
+    else if (getenv("TMP") != NULL)
         return getenv("TEMP");
-	else
+    else
         return "/tmp";
 }
 
