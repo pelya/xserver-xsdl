@@ -136,7 +136,7 @@ typedef struct _DisplayModeRec {
     int				type;
     
     /* These are the values that the user sees/provides */
-    int				Clock;		/* pixel clock freq */
+    int				Clock;		/* pixel clock freq (kHz) */
     int				HDisplay;	/* horizontal timing */
     int				HSyncStart;
     int				HSyncEnd;
@@ -152,7 +152,7 @@ typedef struct _DisplayModeRec {
   /* These are the values the hardware uses */
     int				ClockIndex;
     int				SynthClock;	/* Actual clock freq to
-					  	 * be programmed */
+					  	 * be programmed  (kHz) */
     int				CrtcHDisplay;
     int				CrtcHBlankStart;
     int				CrtcHSyncStart;
@@ -211,8 +211,8 @@ typedef struct {
 /* the list of clock ranges */
 typedef struct x_ClockRange {
     struct x_ClockRange *next;
-    int			minClock;
-    int			maxClock;
+    int			minClock;	/* (kHz) */
+    int			maxClock;	/* (kHz) */
     int			clockIndex;	/* -1 for programmable clocks */
     Bool		interlaceAllowed;
     Bool		doubleScanAllowed;
