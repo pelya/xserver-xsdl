@@ -85,7 +85,6 @@ ATIDrawSetup(ScreenPtr pScreen)
 	KdScreenPriv(pScreen);
 	ATIScreenInfo(pScreenPriv);
 	ATICardInfo(pScreenPriv);
-	char *mmio = atic->reg_base;
 	RING_LOCALS;
 
 	/* XXX: this shouldn't be necessary, but fixes some R128 composite
@@ -605,7 +604,9 @@ ATIUploadToScratch(PixmapPtr pSrc, PixmapPtr pDst)
 	 * KAA flag we check for (and supported in kaa.c in general) since many
 	 * older bits of hardware are going to want POT pitches.
 	 */
-	w = 1 << (ATILog2(pSrc->drawable.width - 1) + 1);
+	w = pSrc->drawable.width;
+	if (atis->kaa.flags & KAA_OFFSCREEN_ALIGN_POT)
+		w = 1 << (ATILog2(w - 1) + 1);
 	dst_pitch = (w * pSrc->drawable.bitsPerPixel / 8 +
 	    atis->kaa.offscreenPitch - 1) & ~(atis->kaa.offscreenPitch - 1);
 
@@ -614,6 +615,9 @@ ATIUploadToScratch(PixmapPtr pSrc, PixmapPtr pDst)
 		ATI_FALLBACK(("Pixmap too large for scratch (%d,%d)\n",
 		    pSrc->drawable.width, pSrc->drawable.height));
 
+	atis->scratch_next = (atis->scratch_next +
+	    atis->kaa.offscreenByteAlign - 1) &
+	    ~(atis->kaa.offscreenByteAlign - 1);
 	if (atis->scratch_next + size > atis->scratch_offset +
 	    atis->scratch_size) {
 		/* Only sync when we've used all of the scratch area. */
@@ -673,6 +677,7 @@ ATIDrawInit(ScreenPtr pScreen)
 	KdScreenPriv(pScreen);
 	ATIScreenInfo(pScreenPriv);
 	ATICardInfo(pScreenPriv);
+	int align_scratch;
 
 	ErrorF("Screen: %d/%d depth/bpp\n", pScreenPriv->screen->fb[0].depth,
 	    pScreenPriv->screen->fb[0].bitsPerPixel);
@@ -705,6 +710,13 @@ ATIDrawInit(ScreenPtr pScreen)
 		 */
 		atis->kaa.offscreenPitch = 32;
 	}
+
+	/* Align the scratch area to what offscreenByteAlign requires. */
+	align_scratch = (atis->scratch_offset +
+	    atis->kaa.offscreenByteAlign - 1) &
+	    ~(atis->kaa.offscreenByteAlign - 1);
+	atis->scratch_size -= align_scratch - atis->scratch_offset;
+	atis->scratch_offset = align_scratch;
 
 	if (!kaaDrawInit(pScreen, &atis->kaa))
 		return FALSE;
