@@ -882,16 +882,22 @@ vfbScreenInit(int index, ScreenPtr pScreen, int argc, char **argv)
 				  8, PseudoColor, 0x07, 0x38, 0xc0);
 	break;
     case 15:
-	miSetVisualTypesAndMasks (15, (1 << TrueColor), 8, TrueColor,
-				  0x7c00, 0x03e0, 0x001f);
+	miSetVisualTypesAndMasks (15,
+				  ((1 << TrueColor) |
+				   (1 << DirectColor)),
+				  8, TrueColor, 0x7c00, 0x03e0, 0x001f);
 	break;
     case 16:
-	miSetVisualTypesAndMasks (16, (1 << TrueColor), 8, TrueColor,
-				  0xf800, 0x07e0, 0x001f);
+	miSetVisualTypesAndMasks (16,
+				  ((1 << TrueColor) |
+				   (1 << DirectColor)),
+				  8, TrueColor, 0xf800, 0x07e0, 0x001f);
 	break;
     case 24:
-	miSetVisualTypesAndMasks (24, (1 << TrueColor), 8, TrueColor,
-				  0xff0000, 0x00ff00, 0x0000ff);
+	miSetVisualTypesAndMasks (24,
+				  ((1 << TrueColor) |
+				   (1 << DirectColor)),
+				  8, TrueColor, 0xff0000, 0x00ff00, 0x0000ff);
 	break;
     }
 	
