@@ -21,6 +21,7 @@
 #ifdef HAS_XVMCSHM
 #ifndef Lynx
 #include <sys/ipc.h>
+#include <sys/types.h>
 #include <sys/shm.h>
 #else
 #include <ipc.h>
