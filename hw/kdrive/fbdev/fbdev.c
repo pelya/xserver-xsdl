@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/fbdev/fbdev.c,v 1.19 2001/06/05 17:17:39 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/fbdev/fbdev.c,v 1.20 2001/06/13 19:18:44 keithp Exp $ */
 
 #include "fbdev.h"
 
@@ -330,7 +330,7 @@ fbdevLayerCreate (ScreenPtr pScreen)
 	pScreen->width = screen->height;
 	pScreen->height = screen->width;
 	scrpriv->shadow = TRUE;
-	m.matrix[0][0] = 0; m.matrix[0][1] = -1; m.matrix[0][2] = screen->width - 1;
+	m.matrix[0][0] = 0; m.matrix[0][1] = -1; m.matrix[0][2] = screen->height - 1;
 	m.matrix[1][0] = 1; m.matrix[1][1] = 0; m.matrix[1][2] = 0;
 	break;
     case 180:
@@ -345,7 +345,7 @@ fbdevLayerCreate (ScreenPtr pScreen)
 	pScreen->height = screen->width;
 	scrpriv->shadow = TRUE;
 	m.matrix[0][0] = 0; m.matrix[0][1] = 1; m.matrix[0][2] = 0;
-	m.matrix[1][0] = -1; m.matrix[1][1] = 0; m.matrix[1][2] = screen->height - 1;
+	m.matrix[1][0] = -1; m.matrix[1][1] = 0; m.matrix[1][2] = screen->width - 1;
 	break;
     }
     KdSetMouseMatrix (&m);
