@@ -145,7 +145,7 @@ kaaPixmapAllocArea (PixmapPtr pPixmap)
     return TRUE;
 }
 
-static void
+void
 kaaMoveInPixmap (PixmapPtr pPixmap)
 {
     ScreenPtr	pScreen = pPixmap->drawable.pScreen;

@@ -65,6 +65,9 @@ PixmapPtr
 kaaGetOffscreenPixmap (DrawablePtr pDrawable, int *xp, int *yp);
 
 void
+kaaMoveInPixmap (PixmapPtr pPixmap);
+
+void
 kaaCopyNtoN (DrawablePtr    pSrcDrawable,
 	     DrawablePtr    pDstDrawable,
 	     GCPtr	    pGC,
