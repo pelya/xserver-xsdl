@@ -1,4 +1,4 @@
-.\" $XdotOrg: Xvfb.man,v 1.4 2001/02/09 02:04:45 xorgcvs Exp $
+.\" $XdotOrg: xc/programs/Xserver/hw/vfb/Xvfb.man,v 1.2 2004/04/23 19:19:32 eich Exp $
 .\" $Xorg: Xvfb.man,v 1.4 2001/02/09 02:04:45 xorgcvs Exp $
 .\" Copyright 1993, 1998  The Open Group
 .\" 
@@ -62,7 +62,7 @@ manual page, \fIXvfb\fP accepts the following command line switches:
 .B "\-screen \fIscreennum\fP \fIWxHxD\fP"
 This option creates screen \fIscreennum\fP and sets its width, height,
 and depth to W, H, and D respectively.  By default, only screen 0 exists
-and has the dimensions 1280x1024x8.
+and has the dimensions 1280x1024x12.
 .TP 4
 .B "\-pixdepths \fIlist-of-depths\fP"
 This option specifies a list of pixmap depths that the server should
@@ -113,12 +113,12 @@ will be depth 32 1600x1200.
 .TP 8
 Xvfb :1 -screen 1 1600x1200x16
 The server will listen for connections as server number 1, will have the
-default screen configuration (one screen, 1280x1024x8), and screen 1
+default screen configuration (one screen, 1280x1024x12), and screen 1
 will be depth 16 1600x1200.
 .TP 8
 Xvfb -pixdepths 3 27 -fbdir /usr/tmp
 The server will listen for connections as server number 0, will have the
-default screen configuration (one screen, 1280x1024x8),
+default screen configuration (one screen, 1280x1024x12),
 will also support pixmap
 depths of 3 and 27, 
 and will use memory mapped files in /usr/tmp for the framebuffer.

@@ -66,13 +66,13 @@ from The Open Group.
 #include "dix.h"
 #include "miline.h"
 
-#define VFB_DEFAULT_WIDTH  1280
-#define VFB_DEFAULT_HEIGHT 1024
-#define VFB_DEFAULT_DEPTH  8
-#define VFB_DEFAULT_WHITEPIXEL 1
-#define VFB_DEFAULT_BLACKPIXEL 0
-#define VFB_DEFAULT_LINEBIAS 0
-#define XWD_WINDOW_NAME_LEN 60
+#define VFB_DEFAULT_WIDTH      1280
+#define VFB_DEFAULT_HEIGHT     1024
+#define VFB_DEFAULT_DEPTH        12
+#define VFB_DEFAULT_WHITEPIXEL    1
+#define VFB_DEFAULT_BLACKPIXEL    0
+#define VFB_DEFAULT_LINEBIAS      0
+#define XWD_WINDOW_NAME_LEN      60
 
 typedef struct
 {
@@ -694,11 +694,12 @@ vfbAllocateFramebufferMemory(vfbScreenInfoPtr pvfb)
 
     /* Calculate how many entries in colormap.  This is rather bogus, because
      * the visuals haven't even been set up yet, but we need to know because we
-     * have to allocate space in the file for the colormap.  The number 10
-     * below comes from the MAX_PSEUDO_DEPTH define in cfbcmap.c.
+     * have to allocate space in the file for the colormap.  The number 15
+     * below comes from the detail that the size of a colormap is limited to
+     * 15bits.
      */
 
-    if (pvfb->depth <= 10)
+    if (pvfb->depth <= 15)
     { /* single index colormaps */
 	pvfb->ncolors = 1 << pvfb->depth;
     }
@@ -885,11 +886,25 @@ vfbScreenInit(int index, ScreenPtr pScreen, int argc, char **argv)
 				   (1 << PseudoColor) |
 				   (1 << TrueColor) |
 				   (1 << DirectColor)),
-				  8, PseudoColor, 0x07, 0x38, 0xc0);
+				  8, PseudoColor, 0, 0, 0);
+	break;
+    /* 12bit PseudoColor with 12bit color resolution
+     * (to simulate SGI hardware and the 12bit PseudoColor emulation layer) */
+    case 12:
+	miSetVisualTypesAndMasks (12,
+				  ((1 << StaticGray) |
+				   (1 << GrayScale) |
+				   (1 << StaticColor) |
+				   (1 << PseudoColor) |
+				   (1 << TrueColor) |
+				   (1 << DirectColor)),
+				  12, PseudoColor, 0, 0, 0);
 	break;
     case 15:
 	miSetVisualTypesAndMasks (15,
-				  ((1 << TrueColor) |
+				  ((1 << GrayScale) |
+                                   (1 << PseudoColor) |
+                                   (1 << TrueColor) |
 				   (1 << DirectColor)),
 				  8, TrueColor, 0x7c00, 0x03e0, 0x001f);
 	break;
@@ -904,6 +919,14 @@ vfbScreenInit(int index, ScreenPtr pScreen, int argc, char **argv)
 				  ((1 << TrueColor) |
 				   (1 << DirectColor)),
 				  8, TrueColor, 0xff0000, 0x00ff00, 0x0000ff);
+	break;
+    /* 30bit TrueColor (to simulate Sun's XVR-1000/-4000 high quality
+     * framebuffer series) */
+    case 30:
+	miSetVisualTypesAndMasks (30,
+				  ((1 << TrueColor) |
+				   (1 << DirectColor)),
+				  10, TrueColor, 0x3ff00000, 0x000ffc00, 0x000003ff);
 	break;
     }
 	
@@ -968,9 +991,11 @@ InitOutput(ScreenInfo *screenInfo, int argc, char **argv)
 	vfbPixmapDepths[1] = TRUE;
 	vfbPixmapDepths[4] = TRUE;
 	vfbPixmapDepths[8] = TRUE;
+	vfbPixmapDepths[12] = TRUE;
 /*	vfbPixmapDepths[15] = TRUE; */
 	vfbPixmapDepths[16] = TRUE;
 	vfbPixmapDepths[24] = TRUE;
+	vfbPixmapDepths[30] = TRUE;
 	vfbPixmapDepths[32] = TRUE;
     }
 
