@@ -6,7 +6,9 @@ SRCS = 	trident.c tridentdraw.c tridentcurs.c tridentstub.c
 
 OBJS = 	trident.o tridentdraw.o tridentcurs.o tridentstub.o
 
-INCLUDES = -I.. -I../fbdev -I. -I$(XBUILDINCDIR) -I$(FONTINCSRC) \
+DEFINES = -DVESA
+
+INCLUDES = -I.. -I../fbdev -I../vesa -I. -I$(XBUILDINCDIR) -I$(FONTINCSRC) \
 	   -I../../../fb -I../../../mi -I../../../include -I../../../os  \
            -I$(EXTINCSRC) -I$(XINCLUDESRC)
 

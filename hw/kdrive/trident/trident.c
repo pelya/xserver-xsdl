@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/trident/trident.c,v 1.3 2000/01/21 01:12:02 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/trident/trident.c,v 1.6 2000/08/26 00:17:50 keithp Exp $ */
 
 #include "trident.h"
 #define extern
@@ -41,7 +41,11 @@ tridentCardInit (KdCardInfo *card)
     if (!tridentc)
 	return FALSE;
     
+#ifdef VESA
+    if (!vesaInitialize (card, &tridentc->vesa))
+#else
     if (!fbdevInitialize (card, &tridentc->fb))
+#endif
     {
 	xfree (tridentc);
 	return FALSE;
@@ -67,19 +71,26 @@ tridentScreenInit (KdScreenInfo *screen)
     if (!tridents)
 	return FALSE;
     memset (tridents, '\0', sizeof (TridentScreenInfo));
+#ifdef VESA
+    if (!vesaScreenInit (screen))
+#else
     if (!fbdevScreenInit (screen))
+#endif
     {
 	xfree (tridents);
 	return FALSE;
     }
     if (!tridentc->cop)
 	screen->dumb = TRUE;
+#ifdef VESA
+    tridentc->screen = tridentc->vesa.fb;
+#else
+    tridentc->screen = tridentc->fb.fb;
+#endif
     screen_size = screen->fb[0].byteStride * screen->height;
     memory = (2048 + 512) * 1024;
     if (memory >= screen_size + 2048)
-    {
-	tridents->cursor_base = tridentc->fb.fb + memory - 2048;
-    }
+	tridents->cursor_base = tridentc->screen + memory - 2048;
     else
 	tridents->cursor_base = 0;
     screen->driver = tridents;
@@ -124,7 +135,11 @@ tridentPreserve (KdCardInfo *card)
 {
     TridentCardInfo	*tridentc = card->driver;
 
+#ifdef VESA
+    vesaPreserve(card);
+#else
     fbdevPreserve (card);
+#endif
     tridentPause ();
     tridentc->save.reg_3c4_0e = tridentReadIndex (tridentc, 0x3c4, 0x0e);
     tridentc->save.reg_3d4_36 = tridentReadIndex (tridentc, 0x3d4, 0x36);
@@ -206,14 +221,22 @@ tridentEnable (ScreenPtr pScreen)
     KdScreenPriv(pScreen);
     TridentCardInfo	*tridentc = pScreenPriv->card->driver;
 
+#ifdef VESA
+    vesaEnable (pScreen);
+#else
     fbdevEnable (pScreen);
+#endif
     tridentSetMMIO (tridentc);
 }
 
 void
 tridentDisable (ScreenPtr pScreen)
 {
+#ifdef VESA
+    vesaDisable (pScreen);
+#else
     fbdevDisable (pScreen);
+#endif
 }
 
 const CARD8	tridentDPMSModes[4] = {
@@ -242,7 +265,11 @@ tridentRestore (KdCardInfo *card)
     TridentCardInfo	*tridentc = card->driver;
 
     tridentResetMMIO (tridentc);
+#ifdef VESA
+    vesaRestore (card);
+#else
     fbdevRestore (card);
+#endif
 }
 
 void
@@ -261,7 +288,11 @@ tridentCardFini (KdCardInfo *card)
 
     if (tridentc->cop_base)
 	KdUnmapDevice ((void *) tridentc->cop_base, TRIDENT_COP_SIZE);
+#ifdef VESA
+    vesaCardFini (card);
+#else
     fbdevCardFini (card);
+#endif
 }
 
 KdCardFuncs	tridentFuncs = {
@@ -288,6 +319,11 @@ KdCardFuncs	tridentFuncs = {
     tridentDrawDisable,     /* disableAccel */
     tridentDrawFini,        /* finiAccel */
     
+#ifdef VESA
+    vesaGetColors,    	    /* getColors */
+    vesaPutColors,	    /* putColors */
+#else
     fbdevGetColors,    	    /* getColors */
     fbdevPutColors,	    /* putColors */
+#endif
 };

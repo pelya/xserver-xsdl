@@ -25,7 +25,11 @@
 
 #ifndef _TRIDENT_H_
 #define _TRIDENT_H_
+#ifdef VESA
+#include <vesa.h>
+#else
 #include <fbdev.h>
+#endif
 
 /*
  * offset from ioport beginning 
@@ -146,7 +150,12 @@ typedef struct _tridentSave {
 } TridentSave;
 
 typedef struct _tridentCardInfo {
+#ifdef VESA
+    VesaPrivRec		vesa;
+#else
     FbdevPriv		fb;
+#endif
+    CARD8		*screen;
     CARD8		*cop_base;
     Cop			*cop;
     CARD32		cop_depth;

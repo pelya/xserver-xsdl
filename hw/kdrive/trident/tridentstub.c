@@ -50,5 +50,11 @@ InitInput (int argc, char **argv)
 int
 ddxProcessArgument (int argc, char **argv, int i)
 {
-    return KdProcessArgument (argc, argv, i);
+    int	ret;
+    
+#ifdef VESA
+    if (!(ret = vesaProcessArgument (argc, argv, i)))
+#endif
+	ret = KdProcessArgument(argc, argv, i);
+    return ret;
 }
