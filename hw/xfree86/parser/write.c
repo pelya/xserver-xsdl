@@ -130,6 +130,8 @@ doWriteConfigFile (const char *filename, XF86ConfigPtr cptr)
 
 	xf86printDRISection (cf, cptr->conf_dri);
 
+	xf86printExtensionsSection (cf, cptr->conf_extensions);
+
 	fclose(cf);
 	return 1;
 }

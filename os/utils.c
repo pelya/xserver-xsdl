@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/os/utils.c,v 1.3 2004/06/19 21:56:01 gisburn Exp $ */
+/* $XdotOrg: xc/programs/Xserver/os/utils.c,v 1.4 2004/07/31 04:23:21 kem Exp $ */
 /* $Xorg: utils.c,v 1.5 2001/02/09 02:05:24 xorgcvs Exp $ */
 /*
 
@@ -142,6 +142,10 @@ Bool PanoramiXOneExposeRequest = FALSE;
 Bool noXevieExtension = TRUE;
 #endif
 
+#ifdef COMPOSITE
+Bool noCompositeExtension = TRUE;
+#endif
+
 int auditTrailLevel = 1;
 
 Bool Must_have_memory = FALSE;
@@ -177,6 +181,7 @@ extern char dispatchExceptionAtReset;
 
 /* Extension enable/disable in miinitext.c */
 extern Bool EnableDisableExtension(char *name, Bool enable);
+extern void EnableDisableExtensionError(char *name, Bool enable);
 
 OsSigHandlerPtr
 OsSignal(sig, handler)
@@ -1011,12 +1016,22 @@ ProcessCommandLine(int argc, char *argv[])
 #endif
 	else if ( strcmp( argv[i], "+extension") == 0)
 	{
-	    if (++i >= argc || !EnableDisableExtension(argv[i], TRUE))
+	    if (++i < argc)
+	    {
+		if (!EnableDisableExtension(argv[i], TRUE))
+		    EnableDisableExtensionError(argv[i], TRUE);
+	    }
+	    else
 		UseMsg();
 	}
 	else if ( strcmp( argv[i], "-extension") == 0)
 	{
-	    if (++i >= argc || !EnableDisableExtension(argv[i], FALSE))
+	    if (++i < argc)
+	    {
+		if (!EnableDisableExtension(argv[i], FALSE))
+		    EnableDisableExtensionError(argv[i], FALSE);
+	    }
+	    else
 		UseMsg();
 	}
  	else

@@ -191,6 +191,12 @@ xf86readConfigFile (void)
 				val.str = NULL;
 				HANDLE_RETURN (conf_dri, xf86parseDRISection ());
 			}
+			else if (xf86nameCompare (val.str, "extensions") == 0)
+			{
+				xf86conffree(val.str);
+				val.str = NULL;
+				HANDLE_RETURN (conf_extensions, xf86parseExtensionsSection ());
+			}
 			else
 			{
 				Error (INVALID_SECTION_MSG, xf86tokenString ());
@@ -304,6 +310,7 @@ xf86freeConfig (XF86ConfigPtr p)
 	xf86freeInputList (p->conf_input_lst);
 	xf86freeVendorList (p->conf_vendor_lst);
 	xf86freeDRI (p->conf_dri);
+	xf86freeExtensions (p->conf_extensions);
 	TestFree(p->conf_comment);
 
 	xf86conffree (p);

@@ -1,4 +1,4 @@
-/* $XdotOrg$ */
+/* $XdotOrg: xc/programs/Xserver/hw/xfree86/common/xf86Config.c,v 1.2 2004/04/23 19:20:32 eich Exp $ */
 /* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86Config.c,v 3.276 2003/10/08 14:58:26 dawes Exp $ */
 
 
@@ -128,6 +128,7 @@ static Bool addDefaultModes(MonPtr monitorp);
 #ifdef XF86DRI
 static Bool configDRI(XF86ConfDRIPtr drip);
 #endif
+static Bool configExtensions(XF86ConfExtensionsPtr conf_ext);
 
 /*
  * xf86GetPathElem --
@@ -2396,6 +2397,46 @@ configDRI(XF86ConfDRIPtr drip)
 #endif
 
 static Bool
+configExtensions(XF86ConfExtensionsPtr conf_ext)
+{
+    XF86OptionPtr o;
+
+    /* Extension enable/disable in miinitext.c */
+    extern Bool EnableDisableExtension(char *name, Bool enable);
+
+    if (conf_ext && conf_ext->ext_option_lst) {
+	for (o = conf_ext->ext_option_lst; o; o = xf86NextOption(o)) {
+	    char *name = xf86OptionName(o);
+	    char *val  = xf86OptionValue(o);
+	    if (xf86NameCmp(val, "enable") == 0) {
+		if (EnableDisableExtension(name, TRUE)) {
+		    xf86Msg(X_CONFIG, "Extension \"%s\" is enabled\n", name);
+		} else {
+		    xf86Msg(X_ERROR,
+			    "Extension \"%s\" is unrecognized\n", name);
+		    return FALSE;
+		}
+	    } else if (xf86NameCmp(val, "disable") == 0) {
+		if (EnableDisableExtension(name, FALSE)) {
+		    xf86Msg(X_CONFIG, "Extension \"%s\" is disabled\n", name);
+		} else {
+		    xf86Msg(X_ERROR,
+			    "Extension \"%s\" is unrecognized\n", name);
+		    return FALSE;
+		}
+	    } else {
+		xf86Msg(X_ERROR,
+			"%s is not a valid value for the Extension option\n",
+			val);
+		return FALSE;
+	    }
+	}
+    }
+
+    return TRUE;
+}
+
+static Bool
 configInput(IDevPtr inputp, XF86ConfInputPtr conf_input, MessageType from)
 {
     xf86Msg(from, "|-->Input Device \"%s\"\n", conf_input->inp_identifier);
@@ -2551,7 +2592,8 @@ xf86HandleConfigFile(Bool autoconfig)
 
     if (!configFiles(xf86configptr->conf_files) ||
         !configServerFlags(xf86configptr->conf_flags,
-			   xf86ConfigLayout.options)
+			   xf86ConfigLayout.options) ||
+	!configExtensions(xf86configptr->conf_extensions)
 #ifdef XF86DRI
 	|| !configDRI(xf86configptr->conf_dri)
 #endif

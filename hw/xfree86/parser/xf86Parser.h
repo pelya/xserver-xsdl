@@ -416,6 +416,13 @@ XF86ConfDRIRec, *XF86ConfDRIPtr;
 
 typedef struct
 {
+	XF86OptionPtr ext_option_lst;
+	char *extensions_comment;
+}
+XF86ConfExtensionsRec, *XF86ConfExtensionsPtr;
+
+typedef struct
+{
 	XF86ConfFilesPtr conf_files;
 	XF86ConfModulePtr conf_modules;
 	XF86ConfFlagsPtr conf_flags;
@@ -428,6 +435,7 @@ typedef struct
 	XF86ConfLayoutPtr conf_layout_lst;
 	XF86ConfVendorPtr conf_vendor_lst;
 	XF86ConfDRIPtr conf_dri;
+	XF86ConfExtensionsPtr conf_extensions;
 	char *conf_comment;
 }
 XF86ConfigRec, *XF86ConfigPtr;

@@ -116,6 +116,10 @@ void xf86freeBuffersList (XF86ConfBuffersPtr ptr);
 XF86ConfDRIPtr xf86parseDRISection (void);
 void xf86printDRISection (FILE * cf, XF86ConfDRIPtr ptr);
 void xf86freeDRI (XF86ConfDRIPtr ptr);
+/* Extensions.c */
+XF86ConfExtensionsPtr xf86parseExtensionsSection (void);
+void xf86printExtensionsSection (FILE * cf, XF86ConfExtensionsPtr ptr);
+void xf86freeExtensions (XF86ConfExtensionsPtr ptr);
 
 #ifndef IN_XSERVER
 /* Externally provided functions */

@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/mi/miinitext.c,v 1.7 2004/07/31 04:23:21 kem Exp $ */
+/* $XdotOrg: xc/programs/Xserver/mi/miinitext.c,v 1.8 2004/07/31 08:24:14 anholt Exp $ */
 /* $XFree86: xc/programs/Xserver/mi/miinitext.c,v 3.67 2003/01/12 02:44:27 dawes Exp $ */
 /***********************************************************
 
@@ -100,6 +100,9 @@ extern Bool noRenderExtension;
 #endif
 #ifdef XEVIE
 extern Bool noXevieExtension;
+#endif
+#ifdef COMPOSITE
+extern Bool noCompositeExtension;
 #endif
 
 #ifndef XFree86LOADER
@@ -309,6 +312,9 @@ static ExtensionToggle ExtensionToggleList[] =
 #ifdef XEVIE
     { "XEVIE", &noXevieExtension },
 #endif
+#ifdef COMPOSITE
+    { "COMPOSITE", &noCompositeExtension },
+#endif
     { NULL, NULL }
 };
 
@@ -323,13 +329,18 @@ Bool EnableDisableExtension(char *name, Bool enable)
 	}
     }
 
+    return FALSE;
+}
+
+void EnableDisableExtensionError(char *name, Bool enable)
+{
+    ExtensionToggle *ext = &ExtensionToggleList[0];
+
     ErrorF("Extension \"%s\" is not recognized\n", name);
     ErrorF("Only the following extensions can be run-time %s:\n",
 	   enable ? "enabled" : "disabled");
     for (ext = &ExtensionToggleList[0]; ext->name != NULL; ext++)
 	ErrorF("    %s\n", ext->name);
-
-    return FALSE;
 }
 
 #ifndef XFree86LOADER
@@ -482,7 +493,7 @@ InitExtensions(argc, argv)
     DamageExtensionInit();
 #endif
 #ifdef COMPOSITE
-    CompositeExtensionInit ();
+    if (!noCompositeExtension) CompositeExtensionInit();
 #endif
 }
 
@@ -614,7 +625,7 @@ static ExtensionModule staticExtensions[] = {
     { DamageExtensionInit, "DAMAGE", NULL, NULL },
 #endif
 #ifdef COMPOSITE
-    { CompositeExtensionInit, "COMPOSITE", NULL, NULL },
+    { CompositeExtensionInit, "COMPOSITE", &noCompositeExtension, NULL },
 #endif
 #ifdef XEVIE
     { XevieExtensionInit, "XEVIE", &noXevieExtension, NULL },
