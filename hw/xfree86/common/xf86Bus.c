@@ -2988,7 +2988,7 @@ static void
 CheckGenericGA()
 {
 /* This needs to be changed for multiple domains */
-#if !defined(__sparc__) && !defined(__powerpc__) && !defined(__mips__) && !defined ( __ia64__)
+#if !defined(__sparc__) && !defined(__powerpc__) && !defined(__mips__) && !defined(__ia64__)
     IOADDRESS GenericIOBase = VGAHW_GET_IOBASE();
     CARD8 CurrentValue, TestValue;
 
