@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/kdrive.h,v 1.11 2000/11/29 08:42:25 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/kdrive.h,v 1.12 2000/12/08 22:59:37 keithp Exp $ */
 
 #include <stdio.h>
 #include "X.h"
@@ -67,6 +67,7 @@ typedef struct _KdCardAttr {
     CARD32  io;
     CARD32  address[KD_MAX_CARD_ADDRESS];
     int	    naddr;
+    int     bus;
 } KdCardAttr;
 
 typedef struct _KdCardInfo {
@@ -612,3 +613,6 @@ KdFrameBufferValid (CARD8 *base, int size);
 int
 KdFrameBufferSize (CARD8 *base, int max);
 
+/* function prototypes to be imlpemented by the drivers */
+void
+InitCard (char *name);

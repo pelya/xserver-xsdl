@@ -115,6 +115,7 @@ Ps2Init (void)
 	if (ps2Port >= 0)
 	    return ps2Port;
     }
+    return -1;
 }
 
 void

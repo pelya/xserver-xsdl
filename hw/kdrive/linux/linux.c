@@ -28,6 +28,7 @@
 #include <linux/vt.h>
 #include <linux/kd.h>
 #include <sys/stat.h>
+#include <sys/ioctl.h>
 #include <keysym.h>
 
 static int  vtno;
@@ -174,11 +175,43 @@ LinuxFindPci (CARD16 vendor, CARD16 device, CARD32 count, KdCardAttr *attr)
 	    n--;
 	}
 	attr->naddr = n;
+        attr->bus = bus;
 	ret = TRUE;
 	break;
     }
     fclose (f);
     return ret;
+}
+
+unsigned char *
+LinuxGetPciCfg(KdCardAttr *attr) {
+    char filename[256];
+    FILE *f;
+    unsigned char *cfg;
+    int r;
+
+    snprintf(filename, 255, "/proc/bus/pci/%02x/%02x.%x",
+             attr->bus >> 8, (attr->bus & 0xff) >> 3, attr->bus & 7);
+/*     fprintf(stderr,"Find card on path %s\n",filename); */
+
+    if (!(f=fopen(filename,"r"))) 
+        return NULL;
+
+    if (!(cfg=xalloc(256))) 
+    {
+        fclose(f);
+        return NULL;
+    }
+
+    if (256 != (r=fread(cfg, 1, 256, f)))
+    {
+        fprintf(stderr,"LinuxGetPciCfg: read %d, expected 256\n",r);
+        free(cfg);
+        cfg=NULL;
+    }
+    fclose(f);
+/*     fprintf(stderr,"LinuxGetPciCfg: success, returning %p\n",cfg); */
+    return cfg;
 }
 
 void

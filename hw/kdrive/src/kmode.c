@@ -1,5 +1,5 @@
 /*
- * $XFree86$
+ * $XFree86: xc/programs/Xserver/hw/kdrive/kmode.c,v 1.5 2000/05/24 23:57:56 keithp Exp $
  *
  * Copyright 1999 SuSE, Inc.
  *
@@ -40,6 +40,14 @@ const KdMonitorTiming  kdMonitorTimings[] = {
     {	720,	400,	85,	35500,			    /* VESA */
 		    36,	    108,    216,    KdSyncNegative, /* 37.927 */
 		    1,	    42,	    46,	    KdSyncPositive, /* 85.039 */
+    },
+
+
+    /* Modeline "720x576"     29.000 720  736  800  880   576  577  580  625 */
+    {
+        720,    576,    52,     32954,                      /* PAL Video */
+        16,     80,  160, KdSyncPositive, /* 32.954 */
+        1,      45,   49, KdSyncPositive, /* 52.727 */
     },
     
     /* 640x480 modes */

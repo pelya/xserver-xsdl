@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/kinput.c,v 1.11 2000/12/08 21:40:02 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/kinput.c,v 1.12 2001/01/23 06:25:05 keithp Exp $ */
 
 #include "kdrive.h"
 #include "inputstr.h"
@@ -48,8 +48,8 @@ static Bool		kdInputEnabled;
 static Bool		kdOffScreen;
 static unsigned long	kdOffScreenTime;
 static KdMouseMatrix	kdMouseMatrix = {
-    1, 0, 0,
-    0, 1, 0
+   { { 1, 0, 0 },
+     { 0, 1, 0 } }
 };
 
 #ifdef TOUCHSCREEN
@@ -403,29 +403,29 @@ KdInitAutoRepeats (void)
 }
 
 const KdKeySymModsRec kdKeySymMods[] = {
-  XK_Control_L,	ControlMask,
-  XK_Control_R, ControlMask,
-  XK_Shift_L,	ShiftMask,
-  XK_Shift_R,	ShiftMask,
-  XK_Caps_Lock,	LockMask,
-  XK_Shift_Lock, LockMask,
-  XK_Alt_L,	Mod1Mask,
-  XK_Alt_R,	Mod1Mask,
-  XK_Meta_L,	Mod1Mask,
-  XK_Meta_R,	Mod1Mask,
-  XK_Num_Lock,	Mod2Mask,
-  XK_Super_L,	Mod3Mask,
-  XK_Super_R,	Mod3Mask,
-  XK_Hyper_L,	Mod3Mask,
-  XK_Hyper_R,	Mod3Mask,
-  XK_Mode_switch, Mod4Mask,
+  {  XK_Control_L,	ControlMask },
+  {  XK_Control_R, ControlMask },
+  {  XK_Shift_L,	ShiftMask },
+  {  XK_Shift_R,	ShiftMask },
+  {  XK_Caps_Lock,	LockMask },
+  {  XK_Shift_Lock, LockMask },
+  {  XK_Alt_L,	Mod1Mask },
+  {  XK_Alt_R,	Mod1Mask },
+  {  XK_Meta_L,	Mod1Mask },
+  {  XK_Meta_R,	Mod1Mask },
+  {  XK_Num_Lock,	Mod2Mask },
+  {  XK_Super_L,	Mod3Mask },
+  {  XK_Super_R,	Mod3Mask },
+  {  XK_Hyper_L,	Mod3Mask },
+  {  XK_Hyper_R,	Mod3Mask },
+  {  XK_Mode_switch, Mod4Mask },
 #ifdef TOUCHSCREEN
   /* PDA specific hacks */
-  XF86XK_Start, ControlMask,
-  XK_Menu, ShiftMask,
-  XK_telephone, Mod1Mask,
-  XF86XK_AudioRecord, Mod2Mask,
-  XF86XK_Calendar, Mod3Mask,
+  {  XF86XK_Start, ControlMask },
+  {  XK_Menu, ShiftMask },
+  {  XK_telephone, Mod1Mask },
+  {  XF86XK_AudioRecord, Mod2Mask },
+  {  XF86XK_Calendar, Mod3Mask }
 #endif
 };
 
@@ -787,6 +787,7 @@ int		kdEmulationDx, kdEmulationDy;
 #define EventX(e)   ((e)->u.keyButtonPointer.rootX)
 #define EventY(e)   ((e)->u.keyButtonPointer.rootY)
 
+int
 KdInsideEmulationWindow (xEvent *ev)
 {
     if (ev->u.keyButtonPointer.pad1)
@@ -829,6 +830,7 @@ KdClassifyInput (xEvent *ev)
     default:
 	return keyboard;
     }
+    return keyboard;
 }
 
 #ifndef NDEBUG

@@ -8,9 +8,9 @@ TSSRCS = ts.c
 TSOBJS = ts.o
 #endif
 
-SRCS = keyboard.c linux.c ps2.c bus.c $(TSSRCS)
+SRCS = keyboard.c linux.c ps2.c bus.c agp.c  $(TSSRCS)
 
-OBJS = keyboard.o linux.o ps2.o bus.o $(TSOBJS)
+OBJS = keyboard.o linux.o ps2.o bus.o agp.o  $(TSOBJS)
 
 INCLUDES = -I. $(KDINCS)
 

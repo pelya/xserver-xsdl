@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/kdrive.c,v 1.10 2000/09/27 20:47:36 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/kdrive.c,v 1.11 2000/12/08 22:59:37 keithp Exp $ */
 
 #include "kdrive.h"
 #ifdef PSEUDO8
@@ -29,6 +29,10 @@
 #endif
 #include <mivalidate.h>
 #include <dixstruct.h>
+
+#ifdef XV
+#include "kxv.h"
+#endif
 
 CARD8	kdBpp[] = { 1, 4, 8, 16, 24, 32 };
 
@@ -243,6 +247,7 @@ KdEnableScreen (ScreenPtr pScreen)
     KdSetRootClip (pScreen, TRUE);
     if (pScreenPriv->card->cfuncs->dpms)
 	(*pScreenPriv->card->cfuncs->dpms) (pScreen, pScreenPriv->dpmsState);
+    return TRUE;
 }
 
 void
@@ -755,6 +760,8 @@ KdScreenInit(int index, ScreenPtr pScreen, int argc, char **argv)
     miInitializeBackingStore (pScreen);
 #endif
 #endif
+
+
     /* 
      * Wrap CloseScreen, the order now is:
      *	KdCloseScreen
@@ -811,7 +818,6 @@ KdInitScreen (ScreenInfo    *pScreenInfo,
 	      char	    **argv)
 {
     KdCardInfo	*card = screen->card;
-    int		i;
     
     (*card->cfuncs->scrinit) (screen);
     
@@ -927,6 +933,8 @@ KdAddScreen (ScreenInfo	    *pScreenInfo,
     AddScreen (KdScreenInit, argc, argv);
 }
 
+#if 0 /* This function is not used currently */
+
 int
 KdDepthToFb (ScreenPtr	pScreen, int depth)
 {
@@ -938,12 +946,13 @@ KdDepthToFb (ScreenPtr	pScreen, int depth)
 	    return fb;
 }
 
+#endif
+
 void
 KdInitOutput (ScreenInfo    *pScreenInfo,
 	      int	    argc,
 	      char	    **argv)
 {
-    int		    i;
     KdCardInfo	    *card;
     KdScreenInfo    *screen;
     
