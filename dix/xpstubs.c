@@ -29,6 +29,7 @@ from The Open Group.
 
 #include "misc.h"
 #include "font.h"
+#include "DiPrint.h"
 
 Bool
 XpClientIsBitmapClient(
@@ -45,10 +46,25 @@ XpClientIsPrintClient(
     return FALSE;
 }
 int
-XprintOptions(
+PrinterOptions(
     int argc,
     char **argv,
     int i)
 {
     return i;
 }
+void
+PrinterInitOutput(
+     ScreenInfo *pScreenInfo,
+     int argc,
+     char **argv)
+{
+}
+void PrinterUseMsg(void)
+{
+}
+void PrinterInitGlobals(void)
+{
+}
+
+

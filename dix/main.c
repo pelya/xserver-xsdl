@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/dix/main.c,v 1.4 2004/09/18 23:18:35 gisburn Exp $ */
+/* $XdotOrg: xc/programs/Xserver/dix/main.c,v 1.5 2005/03/07 23:02:58 gisburn Exp $ */
 /* $XFree86: xc/programs/Xserver/dix/main.c,v 3.43 2003/10/30 21:21:02 herrb Exp $ */
 /***********************************************************
 
@@ -100,6 +100,7 @@ Equipment Corporation.
 #include "site.h"
 #include "dixfont.h"
 #include "extnsionst.h"
+#include "DiPrint.h"
 #ifdef PANORAMIX
 #include "panoramiXsrv.h"
 #else
@@ -248,6 +249,7 @@ main(int argc, char *argv[], char *envp[])
     display = "0";
 
     InitGlobals();
+    PrinterInitGlobals();
 
     /* Quartz support on Mac OS X requires that the Cocoa event loop be in
      * the main thread. This allows the X server main to be called again
@@ -359,13 +361,12 @@ main(int argc, char *argv[], char *envp[])
 	InitCallbackManager();
 	InitVisualWrap();
 	InitOutput(&screenInfo, argc, argv);
+	PrinterInitOutput(&screenInfo, argc, argv);
+
 	if (screenInfo.numScreens < 1)
 	    FatalError("no screens found");
 	if (screenInfo.numVideoScreens < 0)
 	    screenInfo.numVideoScreens = screenInfo.numScreens;
-#ifdef XPRINT
-	PrinterInitOutput(&screenInfo, argc, argv);
-#endif
 	InitExtensions(argc, argv);
 	if (!InitClientPrivates(serverClient))
 	    FatalError("failed to allocate serverClient devprivates");

@@ -62,7 +62,11 @@ extern char * XpDiGetDriverName(int index, char *printerName);
 
 extern WindowPtr XpDiValidatePrinter(char *printerName, int printerNameLen);
 
-extern int XprintOptions(int argc, char **argv, int i);
+extern int PrinterOptions(int argc, char **argv, int i);
+
+extern void PrinterUseMsg(void);
+
+extern void PrinterInitGlobals(void);
 
 extern void PrinterInitOutput(ScreenInfo *pScreenInfo, int argc, char **argv);
 

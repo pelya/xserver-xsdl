@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/os/utils.c,v 1.10 2004/11/15 15:06:50 ago Exp $ */
+/* $XdotOrg: xc/programs/Xserver/os/utils.c,v 1.11 2004/11/25 12:48:21 ago Exp $ */
 /* $Xorg: utils.c,v 1.5 2001/02/09 02:05:24 xorgcvs Exp $ */
 /*
 
@@ -122,6 +122,8 @@ OR PERFORMANCE OF THIS SOFTWARE.
 #ifdef RENDER
 #include "picture.h"
 #endif
+
+#include "DiPrint.h"
 
 Bool noTestExtensions;
 #ifdef BEZIER
@@ -653,6 +655,7 @@ void UseMsg(void)
 #ifdef XCSECURITY
     ErrorF("-sp file               security policy file\n");
 #endif
+    PrinterUseMsg();
     ErrorF("-su                    disable any save under support\n");
     ErrorF("-t #                   mouse threshold (pixels)\n");
     ErrorF("-terminate             terminate at server reset\n");
@@ -1059,7 +1062,7 @@ ProcessCommandLine(int argc, char *argv[])
 	}
 #endif
 #ifdef XPRINT
-	else if ((skip = XprintOptions(argc, argv, i)) != i)
+	else if ((skip = PrinterOptions(argc, argv, i)) != i)
 	{
 	    i = skip - 1;
 	}

@@ -81,9 +81,6 @@ InitOutput(
 
     pScreenInfo->numPixmapFormats = 0; /* get them in PrinterInitOutput */
     screenInfo.numVideoScreens = 0;
-#ifdef PRINT_ONLY_SERVER
-    PrinterInitOutput(pScreenInfo, argc, argv);
-#endif
 }
 
 static void
@@ -253,7 +250,7 @@ GetTimeInMillis(void)
 /* ddxInitGlobals - called by |InitGlobals| from os/util.c */
 void ddxInitGlobals(void)
 {
-    XprintInitGlobals();
+    PrinterInitGlobals();
 }
 
 /****************************************
@@ -265,11 +262,6 @@ void ddxInitGlobals(void)
 
 void ddxUseMsg(void)
 {
-/* Enable |XprintUseMsg()| only if |XprintOptions()| is called
- * by |ddxProcessArgument|, too (see below...) */
-#ifdef PRINT_ONLY_SERVER
-    XprintUseMsg();
-#endif /* PRINT_ONLY_SERVER */
 }
 
 void AbortDDX (void)
@@ -286,11 +278,7 @@ ddxProcessArgument (
     char *argv[],
     int i)
 {
-#ifdef PRINT_ONLY_SERVER
-    return XprintOptions(argc, argv, i) - i;
-#else
     return(0);
-#endif
 }
 
 #ifdef XINPUT

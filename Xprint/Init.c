@@ -296,11 +296,23 @@ static Bool xprintInitGlobalsCalled = FALSE;
  * variables at an very early point of server startup (even before
  * |ProcessCommandLine()|. 
  */
-void XprintInitGlobals(void)
+void PrinterInitGlobals(void)
 {
     extern char dispatchExceptionAtReset; /* defined in Xserver/dix/dispatch.c */
 
     xprintInitGlobalsCalled = TRUE;
+
+#ifdef DAMAGE
+    /* Disable DAMAGE extension for now as it does not work with
+     * the Postscript DDX yet (see
+     * https://bugs.freedesktop.org/show_bug.cgi?id=1660) ...
+     * (you can enable the DAMAGE extension explicitly via
+     * % X +extension DAMAGE ... #) ;-( */
+    {
+      extern Bool noDamageExtension;
+      noDamageExtension = TRUE;
+    }
+#endif /* DAMAGE */
 
 #ifdef SMART_SCHEDULE
     /* Somehow the XF86 "smart scheduler" completely kills the Xprint DDX 
@@ -327,9 +339,9 @@ void XprintInitGlobals(void)
 }
 
 /*
- * XprintUseMsg() prints usage for the Xprint-specific options
+ * PrinterUseMsg() prints usage for the Xprint-specific options
  */
-void XprintUseMsg()
+void PrinterUseMsg(void)
 {
     XpSpoolerTypePtr curr = xpstm;
 
@@ -354,12 +366,12 @@ void XprintUseMsg()
 }
 
 /*
- * XprintOptions checks argv[i] to see if it is our command line
+ * PrinterOptions checks argv[i] to see if it is our command line
  * option specifying a configuration file name.  It returns the index
  * of the next option to process.
  */
 int
-XprintOptions(
+PrinterOptions(
     int argc,
     char **argv,
     int i)
@@ -1387,10 +1399,10 @@ PrinterInitOutput(
     /* This should NEVER happen, but... */
     if( !xprintInitGlobalsCalled )
     {
-      FatalError("Internal error: XprintInitGlobals() not called.");
+      FatalError("Internal error: PrinterInitGlobals() not called.");
     }
 #ifdef SMART_SCHEDULE
-    /* |XprintInitGlobals| should have set |SmartScheduleDisable| to
+    /* |PrinterInitGlobals| should have set |SmartScheduleDisable| to
      * |TRUE| - if not we will trigger this safeguard. */
     if( SmartScheduleDisable != TRUE )
     {
@@ -1400,7 +1412,7 @@ PrinterInitOutput(
     /* Safeguard for
      * http://pdx.freedesktop.org/cgi-bin/bugzilla/show_bug.cgi?id=567 ("Xorg
      * Xprt starts to consume 100% CPU when being idle for some time")
-     * |XprintInitGlobals| should have set |defaultScreenSaverTime| to
+     * |PrinterInitGlobals| should have set |defaultScreenSaverTime| to
      * |0| - if not we will trigger this trap. */
     if( defaultScreenSaverTime != 0 )
     {
