@@ -229,7 +229,10 @@ hostx_init(void)
 
       hostx_errors_trap();
 
-      result = XGetWindowAttributes(HostX.dpy, HostX.win, &prewin_attr);
+      result = XGetWindowAttributes(HostX.dpy, 
+				    HostX.win_pre_existing, 
+				    &prewin_attr);
+
 
       if (hostx_errors_untrap() || !result)
 	{
@@ -240,7 +243,15 @@ hostx_init(void)
       HostX.win_width  = prewin_attr.width;
       HostX.win_height = prewin_attr.height;
 
-      XSelectInput(HostX.dpy, HostX.win, attr.event_mask);
+      HostX.win = XCreateWindow(HostX.dpy,
+				HostX.win_pre_existing,
+				0,0,HostX.win_width,HostX.win_height,
+				0,
+				CopyFromParent,
+				CopyFromParent,
+				CopyFromParent,
+				CWEventMask,
+				&attr);
     }
   else
     {

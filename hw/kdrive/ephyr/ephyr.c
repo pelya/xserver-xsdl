@@ -339,7 +339,7 @@ ephyrRandRGetInfo (ScreenPtr pScreen, Rotation *rotations)
 	{ 1400, 1050 },
 	{ 1280, 960  },
 	{ 1280, 1024 },
-	{ 1152, 768 },
+	{ 1152, 864 },
 	{ 1024, 768 },
 	{ 832, 624 },
 	{ 800, 600 },
