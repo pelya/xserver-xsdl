@@ -487,11 +487,15 @@ xf86PreScanZX1(void)
     if (!(pZX1mio = xf86MapVidMem(-1, VIDMEM_MMIO, MIO_BASE, mapSize)))
 	return;
 
-    /* Look for ZX1's SBA and IOC */	/* XXX What about Dino? */
-    if ((MIO_LONG(MIO_FUNCTION0 + PCI_ID_REG) !=
-	 DEVID(VENDOR_HP, CHIP_ZX1_SBA)) ||
-	(MIO_LONG(MIO_FUNCTION1 + PCI_ID_REG) !=
-	 DEVID(VENDOR_HP, CHIP_ZX1_IOC))) {
+    /* Look for ZX1's SBA and IOC */
+    if (((MIO_LONG(MIO_FUNCTION0 + PCI_ID_REG) !=
+	  DEVID(VENDOR_HP, CHIP_ZX1_SBA)) ||
+	 (MIO_LONG(MIO_FUNCTION1 + PCI_ID_REG) !=
+	  DEVID(VENDOR_HP, CHIP_ZX1_IOC))) &&
+	 ((MIO_LONG(MIO_FUNCTION0 + PCI_ID_REG) !=
+	   DEVID(VENDOR_HP, CHIP_ZX2_SBA)) ||
+	  (MIO_LONG(MIO_FUNCTION1 + PCI_ID_REG) !=
+	   DEVID(VENDOR_HP, CHIP_ZX2_IOC)))) {
 	xf86UnMapVidMem(-1, pZX1mio, mapSize);
 	pZX1mio = NULL;
 	return;
@@ -536,10 +540,22 @@ xf86PreScanZX1(void)
     if (tmp & ROPE_Q4)
 	zx1_ropemap[5] = zx1_ropemap[6] = zx1_ropemap[7] = 4;
 
-    tmp = MIO_QUAD(ROPE_PAGE_CONTROL);
-    for (i = 0;  i < 8;  i++, tmp >>= 8)
-	if (!(CARD8)tmp)
-	    zx1_ropemap[i] = -1;
+    /*
+     * zx2 should allow better probing support via hard-fails, so no need to
+     * use the ROPE_PAGE_CONTROL register.  Also, zx2 always has ropes 3 & 7
+     * active regardless of bundling.
+     */
+    if (MIO_LONG(MIO_FUNCTION0 + PCI_ID_REG) !=
+        DEVID(VENDOR_HP, CHIP_ZX2_SBA)) {
+
+	tmp = MIO_QUAD(ROPE_PAGE_CONTROL);
+	for (i = 0;  i < 8;  i++, tmp >>= 8)
+	    if (!(CARD8)tmp)
+		zx1_ropemap[i] = -1;
+    } else {
+	zx1_ropemap[3] = 3;
+	zx1_ropemap[7] = 7;
+    }
 
     for (i = 0;  i < 8;  ) {
 	if (zx1_ropemap[i] == i) {
@@ -557,6 +573,7 @@ xf86PreScanZX1(void)
 	    case DEVID(VENDOR_HP, CHIP_ELROY):
 	    case DEVID(VENDOR_HP, CHIP_ZX1_LBA):	/* Mercury */
 	    case DEVID(VENDOR_HP, CHIP_ZX1_AGP8):	/* QuickSilver */
+	    case DEVID(VENDOR_HP, CHIP_ZX2_LBA):
 		/* Expected vendor/device IDs */
 		zx1_busno[i] =
 		    (unsigned int)IOA_BYTE(i, IOA_SECONDARY_BUS);
@@ -951,6 +968,9 @@ xf86PostScanZX1(void)
 	case DEVID(VENDOR_HP, CHIP_ZX1_IOC):	/* Pluto function 1 */
 	case DEVID(VENDOR_HP, CHIP_ZX1_LBA):	/* Mercury */
 	case DEVID(VENDOR_HP, CHIP_ZX1_AGP8):	/* QuickSilver */
+	case DEVID(VENDOR_HP, CHIP_ZX2_SBA):
+	case DEVID(VENDOR_HP, CHIP_ZX2_IOC):
+	case DEVID(VENDOR_HP, CHIP_ZX2_LBA):
 	    xfree(pPCI);		/* Remove it */
 	    continue;
 

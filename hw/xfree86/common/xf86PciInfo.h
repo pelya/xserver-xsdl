@@ -503,6 +503,9 @@
 #define PCI_CHIP_ZX1_IOC		0x122A
 #define PCI_CHIP_ZX1_LBA		0x122E	/* a.k.a. Mercury */
 #define PCI_CHIP_ZX1_AGP8		0x12B4	/* a.k.a. QuickSilver */
+#define PCI_CHIP_ZX2_LBA		0x12EE
+#define PCI_CHIP_ZX2_SBA		0x4030
+#define PCI_CHIP_ZX2_IOC		0x4031
 
 /* SGS */
 #define PCI_CHIP_STG2000		0x0008
