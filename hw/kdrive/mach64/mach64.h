@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/mach64/mach64.h,v 1.3 2001/06/16 05:48:48 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/mach64/mach64.h,v 1.4 2001/06/19 09:31:47 keithp Exp $ */
 
 #ifndef _MACH64_H_
 #define _MACH64_H_
@@ -332,6 +332,32 @@ typedef struct _Reg {
 #define HOST_BYTE_ALIGN		(1 << 28)
 #define HOST_BIG_ENDIAN_EN	(1 << 29)
 
+/* BUS_CNTL bits */
+#define BUS_DBL_RESYNC		(1 << 0)
+#define BUS_MSTR_RESET		(1 << 1)
+#define BUS_FLUSH_BUF		(1 << 2)
+#define BUS_STOP_REQ_DIS	(1 << 3)
+#define BUS_APER_REG_DIS	(1 << 4)
+#define BUS_EXTRA_PIPE_DIS	(1 << 5)
+#define BUS_MASTER_DIS		(1 << 6)
+#define ROM_WRT_EN		(1 << 7)
+#define CHIP_HIDDEN_REV		(3 << 8)
+#define BUS_PCI_READ_RETRY_EN	(1 << 13)
+#define BUS_PCI_WRT_RETRY_EN	(1 << 15)
+#define BUS_RETRY_WS		(0xf << 16)
+#define BUS_MSTR_RD_MULT	(1 << 20)
+#define BUS_MSTR_RD_LINE	(1 << 21)
+#define BUS_SUSPEND		(1 << 22)
+#define LAT16X			(1 << 23)
+#define BUS_RD_DISCARD_EN	(1 << 24)
+#define BUS_RD_ABORT_EN		(1 << 25)
+#define BUS_MSTR_WS		(1 << 26)
+#define BUS_EXT_REG_EN		(1 << 27)
+#define BUS_MSTR_DISCONNECT_EN	(1 << 28)
+#define BUS_WRT_BURST		(1 << 29)
+#define BUS_READ_BURST		(1 << 30)
+#define BUS_RDY_READ_DLY	(1 << 31)
+
 #define SCALE_PIX_EXPAND    (1 << 0)
 #define SCALE_Y2R_TEMP	    (1 << 1)
 #define SCALE_HORZ_MODE	    (1 << 2)
@@ -359,8 +385,21 @@ typedef struct _Reg {
 #define SCALER_IN_VYUY422   (0xb << 16)
 #define SCALER_IN_YVYU422   (0xc << 16)
 
+#define CAP_INPUT_MODE	    (1 << 0)
+#define CAP_BUF_MODE	    (1 << 2)
+#define CAP_START_BUF	    (1 << 3)
+#define CAP_BUF_TYPE_FIELD  (0 << 4)
+#define CAP_BUF_TYPE_ALTERNATING  (1 << 4)
+#define CAP_BUF_TYPE_FRAME  (2 << 4)
+
 #define OVL_BUF_MODE	    (1 << 28)
 #define OVL_BUF_NEXT	    (1 << 29)
+
+#define CAP_TRIGGER	    (3 << 0)
+#define OVL_CUR_BUF	    (1 << 5)
+#define OVL_BUF_STATUS	    (1 << 6)
+#define CAP_BUF_STATUS	    (1 << 7)
+#define CAPTURE_EN	    (1 << 31)
 
 typedef struct _MediaReg {
     VOL32	OVERLAY_Y_X_START;	/* 0x100 */
@@ -498,12 +537,8 @@ typedef struct _mach64Cursor {
  */
 typedef struct _mach64PortPriv {
     CARD32      YBuf0Offset;
-    CARD32      UBuf0Offset;
-    CARD32      VBuf0Offset;
 
     CARD32      YBuf1Offset;
-    CARD32      UBuf1Offset;
-    CARD32      VBuf1Offset;
 
     CARD8	currentBuf;
 

@@ -19,7 +19,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/mach64/mach64.c,v 1.3 2001/06/16 05:48:48 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/mach64/mach64.c,v 1.4 2001/06/19 09:31:47 keithp Exp $ */
 
 #include "mach64.h"
 #include <sys/io.h>
@@ -93,7 +93,6 @@ mach64ScreenInit (KdScreenInfo *screen)
 	mach64s->colorKey = 1;
 	break;
     }
-    mach64s->colorKey = 1;
     memory = mach64s->vesa.fb_size;
     screen_size = screen->fb[0].byteStride * screen->height;
     if (mach64s->screen && memory >= screen_size + 2048)
@@ -195,7 +194,9 @@ mach64Preserve (KdCardInfo *card)
 
     vesaPreserve(card);
     if (reg)
+    {
 	mach64c->save.LCD_GEN_CTRL = mach64ReadLCD (reg, 1);
+    }
 }
 
 void
@@ -344,7 +345,9 @@ mach64Restore (KdCardInfo *card)
     Reg			*reg = mach64c->reg;
 
     if (reg)
+    {
 	mach64WriteLCD (reg, 1, mach64c->save.LCD_GEN_CTRL);
+    }
     mach64ResetMMIO (mach64c);
     vesaRestore (card);
 }

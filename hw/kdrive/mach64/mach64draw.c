@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/mach64/mach64draw.c,v 1.3 2001/06/16 05:48:49 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/mach64/mach64draw.c,v 1.4 2001/06/19 09:31:47 keithp Exp $ */
 
 #include "mach64.h"
 #include "mach64draw.h"
@@ -97,7 +97,6 @@ mach64Setup (ScreenPtr	pScreen, CARD32 combo, int wait)
     reg = mach64c->reg;
     triple = mach64s->bpp24;
     
-    avail = 0;
     mach64WaitAvail(reg, wait + 3);
     reg->DP_PIX_WIDTH = mach64s->DP_PIX_WIDTH;
     reg->USR1_DST_OFF_PITCH = mach64s->USR1_DST_OFF_PITCH;
