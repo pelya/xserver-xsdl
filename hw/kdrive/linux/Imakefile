@@ -1,5 +1,5 @@
 XCOMM $XConsortium: Imakefile /main/10 1996/12/02 10:20:33 lehors $
-XCOMM $XFree86: xc/programs/Xserver/hw/kdrive/linux/Imakefile,v 1.5 2001/03/30 02:15:20 keithp Exp $
+XCOMM $XFree86: xc/programs/Xserver/hw/kdrive/linux/Imakefile,v 1.6 2001/08/09 20:45:15 dawes Exp $
 KDRIVE=..
 #include "../Kdrive.tmpl"
 
@@ -8,9 +8,9 @@ TSSRCS = ts.c
 TSOBJS = ts.o
 #endif
 
-SRCS = keyboard.c linux.c ps2.c ms.c bus.c agp.c  $(TSSRCS)
+SRCS = keyboard.c linux.c ps2.c ms.c bus.c agp.c $(TSSRCS)
 
-OBJS = keyboard.o linux.o ps2.o ms.o bus.o agp.o  $(TSOBJS)
+OBJS = keyboard.o linux.o ps2.o ms.o bus.o agp.o $(TSOBJS)
 
 INCLUDES = -I. $(KDINCS)
 

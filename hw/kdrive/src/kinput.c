@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/kinput.c,v 1.19 2001/07/20 19:35:29 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/kinput.c,v 1.20 2001/08/09 09:06:08 keithp Exp $ */
 
 #include "kdrive.h"
 #include "inputstr.h"
@@ -81,6 +81,8 @@ typedef struct _kdInputFd {
     int	    type;
     int	    fd;
     void    (*read) (int fd, void *closure);
+    void    (*enable) (int fd, void *closure);
+    void    (*disable) (int fd, void *closure);
     void    *closure;
 } KdInputFd;
 
@@ -203,6 +205,8 @@ KdRegisterFd (int type, int fd, void (*read) (int fd, void *closure), void *clos
     kdInputFds[kdNumInputFds].type = type;
     kdInputFds[kdNumInputFds].fd = fd;
     kdInputFds[kdNumInputFds].read = read;
+    kdInputFds[kdNumInputFds].enable = 0;
+    kdInputFds[kdNumInputFds].disable = 0;
     kdInputFds[kdNumInputFds].closure = closure;
     ++kdNumInputFds;
     if (kdInputEnabled)
@@ -210,6 +214,22 @@ KdRegisterFd (int type, int fd, void (*read) (int fd, void *closure), void *clos
     return TRUE;
 }
 
+void
+KdRegisterFdEnableDisable (int fd, 
+			   void (*enable) (int fd, void *closure),
+			   void (*disable) (int fd, void *closure))
+{
+    int	i;
+    
+    for (i = 0; i < kdNumInputFds; i++)
+	if (kdInputFds[i].fd == fd)
+	{
+	    kdInputFds[i].enable = enable;
+	    kdInputFds[i].disable = disable;
+	    break;
+	}
+}
+			   
 void
 KdUnregisterFds (int type, Bool do_close)
 {
@@ -238,7 +258,11 @@ KdDisableInput (void)
     int	i;
 
     for (i = 0; i < kdNumInputFds; i++)
+    {
 	KdRemoveFd (kdInputFds[i].fd);
+	if (kdInputFds[i].disable)
+	    (*kdInputFds[i].disable) (kdInputFds[i].fd, kdInputFds[i].closure);
+    }
     kdInputEnabled = FALSE;
 }
 
@@ -250,7 +274,11 @@ KdEnableInput (void)
     
     kdInputEnabled = TRUE;
     for (i = 0; i < kdNumInputFds; i++)
+    {
 	KdAddFd (kdInputFds[i].fd);
+	if (kdInputFds[i].enable)
+	    (*kdInputFds[i].enable) (kdInputFds[i].fd, kdInputFds[i].closure);
+    }
     
     /* reset screen saver */
     xE.u.keyButtonPointer.time = GetTimeInMillis ();

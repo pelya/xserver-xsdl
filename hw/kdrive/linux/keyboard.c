@@ -1,5 +1,5 @@
 /*
- * $XFree86: xc/programs/Xserver/hw/kdrive/linux/keyboard.c,v 1.6 2001/03/30 02:15:20 keithp Exp $
+ * $XFree86: xc/programs/Xserver/hw/kdrive/linux/keyboard.c,v 1.7 2001/06/29 14:00:41 keithp Exp $
  *
  * Copyright © 1999 Keith Packard
  *
@@ -397,18 +397,17 @@ static int		LinuxKbdTrans;
 static struct termios	LinuxTermios;
 static int		LinuxKbdType;
 
-int
-LinuxKeyboardInit (void)
+void
+LinuxKeyboardEnable (int fd, void *closure)
 {
     struct termios nTty;
+    unsigned char   buf[256];
+    int		    n;
 
-    if (!LinuxKbdType)
-	LinuxKbdType = KdAllocInputType ();
-
-    ioctl (LinuxConsoleFd, KDGKBMODE, &LinuxKbdTrans);
-    tcgetattr (LinuxConsoleFd, &LinuxTermios);
+    ioctl (fd, KDGKBMODE, &LinuxKbdTrans);
+    tcgetattr (fd, &LinuxTermios);
     
-    ioctl(LinuxConsoleFd, KDSKBMODE, K_MEDIUMRAW);
+    ioctl(fd, KDSKBMODE, K_MEDIUMRAW);
     nTty = LinuxTermios;
     nTty.c_iflag = (IGNPAR | IGNBRK) & (~PARMRK) & (~ISTRIP);
     nTty.c_oflag = 0;
@@ -418,16 +417,39 @@ LinuxKeyboardInit (void)
     nTty.c_cc[VMIN]=1;
     cfsetispeed(&nTty, 9600);
     cfsetospeed(&nTty, 9600);
-    tcsetattr(LinuxConsoleFd, TCSANOW, &nTty);
+    tcsetattr(fd, TCSANOW, &nTty);
+    /*
+     * Flush any pending keystrokes
+     */
+    while ((n = read (fd, buf, sizeof (buf))) > 0)
+	;
+}
+
+void
+LinuxKeyboardDisable (int fd, void *closure)
+{
+    ioctl(LinuxConsoleFd, KDSKBMODE, LinuxKbdTrans);
+    tcsetattr(LinuxConsoleFd, TCSANOW, &LinuxTermios);
+}
+
+int
+LinuxKeyboardInit (void)
+{
+    if (!LinuxKbdType)
+	LinuxKbdType = KdAllocInputType ();
+
+    LinuxKeyboardEnable (LinuxConsoleFd, 0);
     KdRegisterFd (LinuxKbdType, LinuxConsoleFd, LinuxKeyboardRead, 0);
+    KdRegisterFdEnableDisable (LinuxConsoleFd, 
+			       LinuxKeyboardEnable,
+			       LinuxKeyboardDisable);
     return 1;
 }
 
 void
 LinuxKeyboardFini (void)
 {
-    ioctl(LinuxConsoleFd, KDSKBMODE, LinuxKbdTrans);
-    tcsetattr(LinuxConsoleFd, TCSANOW, &LinuxTermios);
+    LinuxKeyboardDisable (LinuxConsoleFd, 0);
     KdUnregisterFds (LinuxKbdType, FALSE);
 }
 

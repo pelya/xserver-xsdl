@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/kdrive.c,v 1.18 2001/07/20 19:35:29 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/kdrive.c,v 1.19 2001/07/24 21:26:17 keithp Exp $ */
 
 #include "kdrive.h"
 #ifdef PSEUDO8
@@ -212,28 +212,6 @@ KdDisableScreen (ScreenPtr pScreen)
 }
 
 void
-KdDisableScreens (void)
-{
-    KdCardInfo	    *card;
-    KdScreenInfo    *screen;
-
-    if (kdEnabled)
-    {
-	kdEnabled = FALSE;
-	for (card = kdCardInfo; card; card = card->next)
-	{
-	    for (screen = card->screenList; screen; screen = screen->next)
-		if (screen->mynum == card->selected && screen->pScreen)
-		    KdDisableScreen (screen->pScreen);
-	    if (card->driver)
-		(*card->cfuncs->restore) (card);
-	}
-	(*kdOsFuncs->Disable) ();
-	KdDisableInput ();
-    }
-}
-
-void
 KdSuspend (void)
 {
     KdCardInfo	    *card;
@@ -254,21 +232,13 @@ KdSuspend (void)
 }
 
 void
-KdResume (void)
+KdDisableScreens (void)
 {
-    KdCardInfo	    *card;
-    KdScreenInfo    *screen;
-
+    KdSuspend ();
     if (kdEnabled)
     {
-	for (card = kdCardInfo; card; card = card->next)
-	{
-	    (*card->cfuncs->preserve) (card);
-	    for (screen = card->screenList; screen; screen = screen->next)
-		if (screen->mynum == card->selected && screen->pScreen)
-		    KdEnableScreen (screen->pScreen);
-	}
-	KdEnableInput ();
+	(*kdOsFuncs->Disable) ();
+	kdEnabled = FALSE;
     }
 }
 
@@ -295,6 +265,26 @@ KdEnableScreen (ScreenPtr pScreen)
 }
 
 void
+KdResume (void)
+{
+    KdCardInfo	    *card;
+    KdScreenInfo    *screen;
+
+    if (kdEnabled)
+    {
+	for (card = kdCardInfo; card; card = card->next)
+	{
+	    (*card->cfuncs->preserve) (card);
+	    for (screen = card->screenList; screen; screen = screen->next)
+		if (screen->mynum == card->selected && screen->pScreen)
+		    KdEnableScreen (screen->pScreen);
+	}
+	KdEnableInput ();
+	KdReleaseAllKeys ();
+    }
+}
+
+void
 KdEnableScreens (void)
 {
     KdCardInfo	    *card;
@@ -304,15 +294,8 @@ KdEnableScreens (void)
     {
 	kdEnabled = TRUE;
 	(*kdOsFuncs->Enable) ();
-	for (card = kdCardInfo; card; card = card->next)
-	{
-	    (*card->cfuncs->preserve) (card);
-	    for (screen = card->screenList; screen; screen = screen->next)
-		if (screen->mynum == card->selected && screen->pScreen)
-		    KdEnableScreen (screen->pScreen);
-	}
-	KdEnableInput ();
     }
+    KdResume ();
 }
 
 void
@@ -322,7 +305,6 @@ KdProcessSwitch (void)
 	KdDisableScreens ();
     else
     {
-	KdReleaseAllKeys ();
 	KdEnableScreens ();
     }
 }
