@@ -235,6 +235,12 @@ extern unsigned long ldl_brx(volatile unsigned char *, int);
 extern unsigned short ldw_brx(volatile unsigned char *, int);
 #endif
 
+#ifdef __SSP__
+/* Propolice! */
+extern long __guard[];
+extern void __stack_smash_handler(char [], int);
+#endif
+
 /* XFree86 things */
 
 LOOKUP xfree86LookupTab[] = {
@@ -1095,6 +1101,12 @@ LOOKUP xfree86LookupTab[] = {
     SYMFUNC(_Qp_uitoq)
     SYMFUNC(_Qp_dtoq)
 #endif
+#endif
+
+#ifdef __SSP__
+    /* propolice */
+    SYMFUNC(__stack_smash_handler)
+    SYMVAR(__guard)
 #endif
 
     /* Some variables. */
