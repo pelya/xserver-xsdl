@@ -52,7 +52,6 @@ struct NeoChipInfo neoChips[] = {
 static Bool
 neoCardInit(KdCardInfo *card)
 {
-    ENTER();
     NeoCardInfo    *neoc;
     struct NeoChipInfo *chip;
 
@@ -79,14 +78,12 @@ neoCardInit(KdCardInfo *card)
 
     card->driver = neoc;
 
-    LEAVE();
     return TRUE;
 }
 
 static Bool
 neoScreenInit(KdScreenInfo *screen)
 {
-    ENTER();
     NeoScreenInfo *neos;
     neoCardInfo(screen);
     int screen_size, memory;
@@ -122,7 +119,6 @@ neoScreenInit(KdScreenInfo *screen)
 
     screen->driver = neos;
 
-    LEAVE();
     return TRUE;
 }
 
@@ -185,7 +181,6 @@ static void neoUnlock(NeoCardInfo *neoc){
 Bool
 neoMapReg(KdCardInfo *card, NeoCardInfo *neoc)
 {
-    ENTER();
     neoc->reg_base = card->attr.address[1] & 0xFFF80000;
     if(!neoc->reg_base) {
         return FALSE;
@@ -198,18 +193,12 @@ neoMapReg(KdCardInfo *card, NeoCardInfo *neoc)
 
     KdSetMappedMode(neoc->reg_base, NEO_REG_SIZE(card), KD_MAPPED_MODE_REGISTERS);
 
-    // if you see the cursor sprite them MMIO is working
-
-    *(((CARD32 *)neoc->mmio)+0x400) =(CARD32)8;
-    //neoSetIndex(neoc, 0x3ce, 0x82,8);
-    LEAVE();
     return TRUE;
 }
 
 void
 neoUnmapReg(KdCardInfo *card, NeoCardInfo *neoc)
 {
-    ENTER();
     if(neoc->reg_base)
     {
         neoSetIndex(neoc, 0x3ce, 0x82,0);
@@ -217,7 +206,6 @@ neoUnmapReg(KdCardInfo *card, NeoCardInfo *neoc)
         KdUnmapDevice((void *)neoc->mmio, NEO_REG_SIZE(card));
         neoc->reg_base = 0;
     }
-    LEAVE();
 }
 
 static void
@@ -247,7 +235,6 @@ neoEnable(ScreenPtr pScreen)
     }
 
     neoSetMMIO(pScreenPriv->card, neoc);
-
     return TRUE;
 }
 

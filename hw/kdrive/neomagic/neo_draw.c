@@ -47,12 +47,8 @@ CARD32        fgColor;
 static  void neoWaitIdle(NeoCardInfo *neoc)
 {
     // if MMIO is not working it may halt the machine
-	DBGOUT("Waiting for idle...\n");
-	DBGOUT("blStat %lx=%lx\n", &mmio->bltStat, mmio->bltStat);
     unsigned int i = 0;
     while ((mmio->bltStat & 1) && ++i<100000);
-    if (i>=100000) DBGOUT("Wait Idle timeout\n");
-	else DBGOUT("*** Wait Idle ok\n");
 }
 
 static  void neoWaitFifo(NeoCardInfo *neoc, int requested_fifo_space)
@@ -71,19 +67,12 @@ static Bool neoPrepareSolid(PixmapPtr pPixmap,
         return FALSE;
     } else {
         fgColor = fg;
-        /* set blt control */
-/*            NEO_BC0_SRC_IS_FG    |
-            NEO_BC3_SRC_XY_ADDR |
-            NEO_BC3_DST_XY_ADDR | 
-            NEO_BC3_SKIP_MAPPING |  0x0c0000; */
-
         return TRUE;
     }
 }
 
 static void neoSolid (int x1, int y1, int x2, int y2)
 {
-    DBGOUT("Solid (%i, %i) - (%i, %i).  \n", x1, y1, x2, y2);
     int x, y, w, h;
     x = x1;
     y = y1;
@@ -97,12 +86,6 @@ static void neoSolid (int x1, int y1, int x2, int y2)
         y = y2;
         h = -h;
     }
-
-	int pitch = 16;
-	
-	neoWaitIdle(card);
-	mmio->bltStat = NEO_MODE1_DEPTH16 << 16;
- 	mmio->pitch = (pitch << 16) | (pitch & 0xffff);
 	
 	neoWaitIdle(card);
 	mmio->fgColor = fgColor;
@@ -110,11 +93,9 @@ static void neoSolid (int x1, int y1, int x2, int y2)
 			NEO_BC3_FIFO_EN      |
 			NEO_BC0_SRC_IS_FG    |
 			NEO_BC3_SKIP_MAPPING | 0x0c0000;		
-    mmio->dstStart = (y <<16) | (x & 0xffff);
+    mmio->dstStart = y * screen->pitch + x * screen->depth;
 
-    mmio->xyExt    = (h << 16) | (w & 0xffff);
-    DBGOUT("Solid (%i, %i) - (%i, %i).  Color %li\n", x, y, w, h, fgColor);
-    // DBGOUT("Offset %lx. Extent %lx\n",mmio->dstStart, mmio->xyExt);
+    mmio->xyExt    = (unsigned long)(h << 16) | (w & 0xffff);
 }
 
 
@@ -169,10 +150,9 @@ void neoDrawEnable (ScreenPtr pScreen)
     screen = neos;
     card = neoc;
     mmio = neoc->mmio;
-    DBGOUT("NEO AA MMIO=%p\n", mmio);
-//    screen->depth = screen->vesa.mode.BitsPerPixel/8;
-//    screen->pitch = screen->vesa.mode.BytesPerScanLine;
-//    DBGOUT("NEO depth=%x, pitch=%x\n", screen->depth, screen->pitch);
+    screen->depth = screen->backendScreen.mode.BitsPerPixel/8;
+    screen->pitch = screen->backendScreen.mode.BytesPerScanLine;
+    DBGOUT("NEO depth=%x, pitch=%x\n", screen->depth, screen->pitch);
     LEAVE();
 }
 
