@@ -604,6 +604,7 @@ ProcXF86MiscPassMessage(client)
     rep.mesglen = (retstr? strlen(retstr): 0);
     rep.length = (SIZEOF(xXF86MiscPassMessageReply) - SIZEOF(xGenericReply) +
 		  ((rep.mesglen + 3) & ~3)) >> 2;
+    rep.status = 0;
     
     if (client->swapped) {
     	swaps(&rep.sequenceNumber, n);
