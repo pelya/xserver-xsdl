@@ -1,3 +1,9 @@
+2005-02-07  Alexander Gottwald  <ago at freedesktop dot org>
+
+	* winlayouts.h:
+	* winconfig.c:
+	Moved keyboard layout table to external file.
+
 2005-02-02  Alexander Gottwald  <ago at freedesktop dot org>
 
 	* wincreatewnd.c:

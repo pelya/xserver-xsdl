@@ -219,48 +219,10 @@ winReadConfigfile ()
 }
 #endif
 
+/* load layout definitions */
+#include "winlayouts.h"
 
 /* Set the keyboard configuration */
-
-typedef struct {
-    unsigned int winlayout;
-    int winkbtype;
-    char *xkbmodel;
-    char *xkblayout;
-    char *xkbvariant;
-    char *xkboptions;
-    char *layoutname;
-} WinKBLayoutRec, *WinKBLayoutPtr;
-
-WinKBLayoutRec winKBLayouts[] = {
-    {  0x405, -1, "pc105", "cz",      NULL, NULL, "Czech"},
-    {  0x406, -1, "pc105", "dk",      NULL, NULL, "Danish"},
-    {  0x407, -1, "pc105", "de",      NULL, NULL, "German (Germany)"},
-    {0x10407, -1, "pc105", "de",      NULL, NULL, "German (Germany, IBM)"},
-    {  0x807, -1, "pc105", "de_CH",   NULL, NULL, "German (Switzerland)"},
-    {  0x409, -1, "pc105", "us",      NULL, NULL, "English (USA)"},
-    {0x10409, -1, "pc105", "dvorak",  NULL, NULL, "English (USA, Dvorak)"}, 
-    {0x20409, -1, "pc105", "us_intl", NULL, NULL, "English (USA, International)"}, 
-    {  0x809, -1, "pc105", "gb",      NULL, NULL, "English (United Kingdom)"},
-    { 0x1809, -1, "pc105", "ie",      NULL, NULL, "Irish"},
-    {  0x40a, -1, "pc105", "es",      NULL, NULL, "Spanish (Spain, Traditional Sort)"},
-    {  0x40b, -1, "pc105", "fi",      NULL, NULL, "Finnish"},
-    {  0x40c, -1, "pc105", "fr",      NULL, NULL, "French (Standard)"},
-    {  0x80c, -1, "pc105", "be",      NULL, NULL, "French (Belgian)"},
-    { 0x100c, -1, "pc105", "fr_CH",   NULL, NULL, "French (Switzerland)"},
-    {  0x40e, -1, "pc105", "hu",      NULL, NULL, "Hungarian"},
-    {  0x410, -1, "pc105", "it",      NULL, NULL, "Italian"},
-    {  0x411,  7, "jp106", "jp",      NULL, NULL, "Japanese"},
-    {  0x813, -1, "pc105", "be",      NULL, NULL, "Dutch (Belgian)"},  
-    {  0x414, -1, "pc105", "no",      NULL, NULL, "Norwegian"},
-    {  0x416, -1, "pc105", "br",      NULL, NULL, "Portuguese (Brazil, ABNT)"},
-    {0x10416, -1, "abnt2", "br",      NULL, NULL, "Portuguese (Brazil, ABNT2)"},
-    {  0x816, -1, "pc105", "pt",      NULL, NULL, "Portuguese (Portugal)"},
-    {  0x41d, -1, "pc105", "se",      NULL, NULL, "Swedish (Sweden)"},
-    {     -1, -1, NULL,    NULL,      NULL, NULL, NULL}
-};
-
-
 Bool
 winConfigKeyboard (DeviceIntPtr pDevice)
 {
