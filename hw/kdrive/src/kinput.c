@@ -596,7 +596,9 @@ KdInitInput(KdMouseFuncs    *pMouseFuncs,
     {
 	static long zero1, zero2;
 
-	SetExtInputCheck (&zero1, &zero2);
+	//SetExtInputCheck (&zero1, &zero2);
+	ErrorF("Extended Input Devices not yet supported. Impelement it at line %d in %s",
+	       __LINE__, __FILE__);
     }
 #endif
 }
