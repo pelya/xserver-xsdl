@@ -1764,7 +1764,7 @@ xf86PrintBanner()
     "repository hosted at http://www.freedesktop.org/Software/xorg/");
 #endif
 #if XORG_VERSION_SNAP > 0
-  ErrorF(".%d", XF86_VERSION_SNAP);
+  ErrorF(".%d", XORG_VERSION_SNAP);
 #endif
 
 #if XORG_VERSION_SNAP >= 900
@@ -1773,9 +1773,12 @@ xf86PrintBanner()
 #endif
 
 #ifdef XORG_CUSTOM_VERSION
-  ErrorF(" (%s)", XF86_CUSTOM_VERSION);
+  ErrorF(" (%s)", XORG_CUSTOM_VERSION);
 #endif
-  ErrorF("\nRelease Date: %s\n", XF86_DATE);
+#ifndef XORG_DATE
+#define XORG_DATE XF86_DATE
+#endif
+  ErrorF("\nRelease Date: %s\n", XORG_DATE);
   ErrorF("X Protocol Version %d, Revision %d, %s\n",
          X_PROTOCOL, X_PROTOCOL_REVISION, XORG_RELEASE );
   ErrorF("Build Operating System:%s%s\n", OSNAME, OSVENDOR);
