@@ -1,5 +1,5 @@
 /*
- * $XFree86: xc/programs/Xserver/hw/kdrive/linux/linux.c,v 1.5 2001/03/30 02:15:20 keithp Exp $
+ * $XFree86: xc/programs/Xserver/hw/kdrive/linux/linux.c,v 1.6 2001/07/24 21:26:17 keithp Exp $
  *
  * Copyright © 1999 Keith Packard
  *
@@ -329,7 +329,7 @@ LinuxEnable (void)
     /*
      * Open the APM driver
      */
-    LinuxApmFd = open ("/dev/apm_bios", 0);
+    LinuxApmFd = open ("/dev/apm_bios", 2);
     if (LinuxApmFd >= 0)
     {
 	LinuxApmRunning = TRUE;
