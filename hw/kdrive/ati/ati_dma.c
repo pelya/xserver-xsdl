@@ -752,6 +752,9 @@ ATIPseudoDMAInit(ScreenPtr pScreen)
 	ATICardInfo(pScreenPriv);
 	char *mmio = atic->reg_base;
 
+	if (atic->is_r200 || atic->is_r300)
+		return FALSE;
+
 	ATIUploadMicrocode(atis);
 	ATIEngineReset(atis);
 
