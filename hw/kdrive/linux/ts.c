@@ -1,5 +1,5 @@
 /*
- * $XFree86: xc/programs/Xserver/hw/kdrive/linux/ts.c,v 1.2 2000/09/26 15:57:04 tsi Exp $
+ * $XFree86: xc/programs/Xserver/hw/kdrive/linux/ts.c,v 1.3 2001/05/23 08:56:08 alanh Exp $
  *
  * Derived from ps2.c by Jim Gettys
  *
@@ -97,31 +97,36 @@ char	*TsNames[] = {
 
 #define NUM_TS_NAMES	(sizeof (TsNames) / sizeof (TsNames[0]))
 
+int TsInputType;
+
 int
 TsInit (void)
 {
     int	    i;
     int	    TsPort;
 
+    if (!TsInputType)
+	TsInputType = KdAllocInputType ();
     for (i = 0; i < NUM_TS_NAMES; i++)    
     {
 	TsPort = open (TsNames[i], 0);
 	if (TsPort >= 0) 
-	    return TsPort;
+	{
+	    if (KdRegisterFd (TsInputType, TsPort, TsRead))
+		return 1;
+	}
     }
     perror("Touch screen not found.\n");
     exit (1);
 }
 
 void
-TsFini (int tsPort)
+TsFini (void)
 {
-    if (tsPort >= 0)
-	close (tsPort);
+    KdUnregisterFds (TsInputType, TRUE);
 }
 
 KdTsFuncs TsFuncs = {
     TsInit,
-    TsRead,
     TsFini
 };

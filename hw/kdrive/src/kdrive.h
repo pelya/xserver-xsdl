@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/kdrive.h,v 1.14 2001/05/29 04:54:10 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/kdrive.h,v 1.15 2001/06/04 09:45:41 keithp Exp $ */
 
 #include <stdio.h>
 #include "X.h"
@@ -168,25 +168,15 @@ typedef struct {
 
 typedef struct _KdMouseFuncs {
     int		    (*Init) (void);
-    void	    (*Read) (int);
-    void	    (*Fini) (int);
+    void	    (*Fini) (void);
 } KdMouseFuncs;
-
-#ifdef TOUCHSCREEN
-typedef struct _KdTsFuncs {
-    int		    (*Init) (void);
-    void	    (*Read) (int);
-    void	    (*Fini) (int);
-} KdTsFuncs;
-#endif
 
 typedef struct _KdKeyboardFuncs {
     void	    (*Load) (void);
     int		    (*Init) (void);
-    void	    (*Read) (int);
     void	    (*Leds) (int);
     void	    (*Bell) (int, int, int);
-    void	    (*Fini) (int);
+    void	    (*Fini) (void);
     int		    LockLed;
 } KdKeyboardFuncs;
 
@@ -541,6 +531,15 @@ KdScreenInfoDispose (KdScreenInfo *si);
 /* kinput.c */
 void
 KdInitInput(KdMouseFuncs *, KdKeyboardFuncs *);
+
+int
+KdAllocInputType (void);
+
+Bool
+KdRegisterFd (int type, int fd, void (*read) (int fd, void *closure), void *closure);
+
+void
+KdUnregisterFds (int type, Bool do_close);
 
 #ifdef TOUCHSCREEN
 void

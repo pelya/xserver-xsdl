@@ -33,7 +33,7 @@
 /* /dev/adbmouse is a busmouse */
 
 void
-BusRead (int adbPort)
+BusRead (int adbPort, void *closure)
 {
     unsigned char   buf[3];
     unsigned char   *b;
@@ -64,29 +64,36 @@ char	*BusNames[] = {
 
 #define NUM_BUS_NAMES	(sizeof (BusNames) / sizeof (BusNames[0]))
 
+int	BusInputType;
+
 int
 BusInit (void)
 {
     int	    i;
     int	    busPort;
+    int	    n = 0;
 
+    if (!BusInputType)
+	BusInputType = KdAllocInputType ();
+    
     for (i = 0; i < NUM_BUS_NAMES; i++)
     {
 	busPort = open (BusNames[i], 0);
-	if (busPort >= 0)
-	    return busPort;
+	{
+	    KdRegisterFd (BusInputType, busPort, BusRead, 0);
+	    n++;
+	}
     }
+    return n;
 }
 
 void
-BusFini (int busPort)
+BusFini (void)
 {
-    if (busPort >= 0)
-	close (busPort);
+    KdUnregisterFds (BusInputType, TRUE);
 }
 
 KdMouseFuncs BusMouseFuncs = {
     BusInit,
-    BusRead,
     BusFini
 };

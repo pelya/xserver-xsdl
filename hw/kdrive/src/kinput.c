@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/kinput.c,v 1.15 2001/05/25 07:44:29 alanh Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/kinput.c,v 1.16 2001/05/25 18:40:59 dawes Exp $ */
 
 #include "kdrive.h"
 #include "inputstr.h"
@@ -37,8 +37,6 @@ static DeviceIntPtr	pKdKeyboard, pKdPointer;
 
 static KdMouseFuncs	*kdMouseFuncs;
 static KdKeyboardFuncs	*kdKeyboardFuncs;
-static int		kdMouseFd = -1;
-static int		kdKeyboardFd = -1;
 static unsigned long	kdEmulationTimeout;
 static Bool		kdTimeoutPending;
 static int		kdBellPitch;
@@ -54,7 +52,6 @@ static KdMouseMatrix	kdMouseMatrix = {
 
 #ifdef TOUCHSCREEN
 static KdTsFuncs	*kdTsFuncs;
-static int		kdTsFd = -1;
 #endif
 
 int		kdMinScanCode;
@@ -78,17 +75,26 @@ CARD8		kdKeyState[KD_KEY_COUNT/8];
 
 #define IsKeyDown(key) ((kdKeyState[(key) >> 3] >> ((key) & 7)) & 1)
 
+#define KD_MAX_INPUT_FDS    8
+
+typedef struct _kdInputFd {
+    int	    type;
+    int	    fd;
+    void    (*read) (int fd, void *closure);
+    void    *closure;
+} KdInputFd;
+
+KdInputFd    	kdInputFds[KD_MAX_INPUT_FDS];
+int		kdNumInputFds;
+int		kdInputTypeSequence;
+
 void
 KdSigio (int sig)
 {
-#ifdef TOUCHSCREEN    
-    if (kdTsFd >= 0)
- 	(*kdTsFuncs->Read) (kdTsFd);
-#endif
-    if (kdMouseFd >= 0)
-	(*kdMouseFuncs->Read) (kdMouseFd);
-    if (kdKeyboardFd >= 0)
-	(*kdKeyboardFuncs->Read) (kdKeyboardFd);
+    int	i;
+
+    for (i = 0; i < kdNumInputFds; i++)
+	(*kdInputFds[i].read) (kdInputFds[i].fd, kdInputFds[i].closure);
 }
 
 void
@@ -183,17 +189,56 @@ KdRemoveFd (int fd)
     }
 }
 
+int
+KdAllocInputType (void)
+{
+    return ++kdInputTypeSequence;
+}
+
+Bool
+KdRegisterFd (int type, int fd, void (*read) (int fd, void *closure), void *closure)
+{
+    if (kdNumInputFds == KD_MAX_INPUT_FDS)
+	return FALSE;
+    kdInputFds[kdNumInputFds].type = type;
+    kdInputFds[kdNumInputFds].fd = fd;
+    kdInputFds[kdNumInputFds].read = read;
+    kdInputFds[kdNumInputFds].closure = closure;
+    ++kdNumInputFds;
+    if (kdInputEnabled)
+	KdAddFd (fd);
+    return TRUE;
+}
+
+void
+KdUnregisterFds (int type, Bool do_close)
+{
+    int	i;
+
+    for (i = 0; i < kdNumInputFds;)
+    {
+	if (kdInputFds[i].type == type)
+	{
+	    if (kdInputEnabled)
+		KdRemoveFd (kdInputFds[i].fd);
+	    if (do_close)
+		close (kdInputFds[i].fd);
+	    --kdNumInputFds;
+	    for (; i < kdNumInputFds; i++)
+		kdInputFds[i] = kdInputFds[i+1];
+	}
+	else
+	    i++;
+    }
+}
+
 void
 KdDisableInput (void)
 {
-#ifdef TOUCHSCREEN
-    if (kdTsFd >= 0)
-    	KdRemoveFd (kdTsFd);
-#endif
-    if (kdMouseFd >= 0)
-	KdRemoveFd (kdMouseFd);
-    if (kdKeyboardFd >= 0)
-	KdRemoveFd (kdKeyboardFd);
+    int	i;
+
+    for (i = 0; i < kdNumInputFds; i++)
+	KdRemoveFd (kdInputFds[i].fd);
     kdInputEnabled = FALSE;
 }
 
@@ -201,16 +246,12 @@ void
 KdEnableInput (void)
 {
     xEvent	xE;
+    int	i;
     
     kdInputEnabled = TRUE;
-#ifdef TOUCHSCREEN
-    if (kdTsFd >= 0)
-    	KdAddFd (kdTsFd);
-#endif
-    if (kdMouseFd >= 0)
-	KdAddFd (kdMouseFd);
-    if (kdKeyboardFd >= 0)
-	KdAddFd (kdKeyboardFd);
+    for (i = 0; i < kdNumInputFds; i++)
+	KdAddFd (kdInputFds[i].fd);
+    
     /* reset screen saver */
     xE.u.keyButtonPointer.time = GetTimeInMillis ();
     NoticeEventTime (&xE);
@@ -241,18 +282,10 @@ KdMouseProc(DeviceIntPtr pDevice, int onoff)
 	pDev->on = TRUE;
 	pKdPointer = pDevice;
 	if (kdMouseFuncs)
-	{
-	    kdMouseFd = (*kdMouseFuncs->Init) ();
-	    if (kdMouseFd >= 0 && kdInputEnabled)
-		KdAddFd (kdMouseFd);
-	}
+	    (*kdMouseFuncs->Init) ();
 #ifdef TOUCHSCREEN
 	if (kdTsFuncs)
-	{
-	    kdTsFd = (*kdTsFuncs->Init) ();
-	    if (kdTsFd >= 0 && kdInputEnabled)
-		KdAddFd (kdTsFd);
-	}
+	    (*kdTsFuncs->Init) ();
 #endif
 	break;
     case DEVICE_OFF:
@@ -261,21 +294,11 @@ KdMouseProc(DeviceIntPtr pDevice, int onoff)
 	{
 	    pDev->on = FALSE;
 	    pKdPointer = 0;
-	    if (kdMouseFd >= 0)
-	    {
-		if (kdInputEnabled)
-		    KdRemoveFd (kdMouseFd);
-		(*kdMouseFuncs->Fini) (kdMouseFd);
-		kdMouseFd = -1;
-	    }
+	    if (kdMouseFuncs)
+		(*kdMouseFuncs->Fini) ();
 #ifdef TOUCHSCREEN
-	    if (kdTsFd >= 0)
-	    {
-		if (kdInputEnabled)
-		    KdRemoveFd (kdTsFd);
-		(*kdTsFuncs->Fini) (kdTsFd);
-		kdTsFd = -1;
-	    }
+	    if (kdTsFuncs >= 0)
+		(*kdTsFuncs->Fini) ();
 #endif
 	}
 	break;
@@ -354,11 +377,7 @@ KdKeybdProc(DeviceIntPtr pDevice, int onoff)
 	pDev->on = TRUE;
 	pKdKeyboard = pDevice;
 	if (kdKeyboardFuncs)
-	{
-	    kdKeyboardFd = (*kdKeyboardFuncs->Init) ();
-	    if (kdKeyboardFd >= 0 && kdInputEnabled)
-		KdAddFd (kdKeyboardFd);
-	}
+	    (*kdKeyboardFuncs->Init) ();
 	break;
     case DEVICE_OFF:
     case DEVICE_CLOSE:
@@ -366,13 +385,8 @@ KdKeybdProc(DeviceIntPtr pDevice, int onoff)
 	if (pDev->on)
 	{
 	    pDev->on = FALSE;
-	    if (kdKeyboardFd >= 0)
-	    {
-		if (kdInputEnabled)
-		    KdRemoveFd (kdKeyboardFd);
-		(*kdKeyboardFuncs->Fini) (kdKeyboardFd);
-		kdKeyboardFd = -1;
-	    }
+	    if (kdKeyboardFuncs)
+		(*kdKeyboardFuncs->Fini) ();
 	}
 	break;
     }
@@ -1354,29 +1368,17 @@ KdWakeupHandler (int		screen,
 {
     int	    result = (int) lresult;
     fd_set  *pReadmask = (fd_set *) readmask;
+    int	    i;
     
     if (kdInputEnabled && result > 0)
     {
-	if (kdMouseFd >= 0 && FD_ISSET (kdMouseFd, pReadmask))
-	{
-	    KdBlockSigio ();
-	    (*kdMouseFuncs->Read) (kdMouseFd);
-	    KdUnblockSigio ();
-	}
-#ifdef TOUCHSCREEN
-	if (kdTsFd >= 0 && FD_ISSET (kdTsFd, pReadmask))
-	{
-	    KdBlockSigio ();
-	    (*kdTsFuncs->Read) (kdTsFd);
-	    KdUnblockSigio ();
-	}
-#endif
-	if (kdKeyboardFd >= 0 && FD_ISSET (kdKeyboardFd, pReadmask))
-	{
-	    KdBlockSigio ();
-	    (*kdKeyboardFuncs->Read) (kdKeyboardFd);
-	    KdUnblockSigio ();
-	}
+	for (i = 0; i < kdNumInputFds; i++)
+	    if (FD_ISSET (kdInputFds[i].fd, pReadmask))
+	    {
+		KdBlockSigio ();
+		(*kdInputFds[i].read) (kdInputFds[i].fd, kdInputFds[i].closure);
+		KdUnblockSigio ();
+	    }
     }
     if (kdTimeoutPending)
     {

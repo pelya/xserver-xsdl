@@ -1,5 +1,5 @@
 /*
- * $XFree86: xc/programs/Xserver/hw/kdrive/linux/keyboard.c,v 1.5 2000/12/08 23:04:57 keithp Exp $
+ * $XFree86: xc/programs/Xserver/hw/kdrive/linux/keyboard.c,v 1.6 2001/03/30 02:15:20 keithp Exp $
  *
  * Copyright © 1999 Keith Packard
  *
@@ -376,13 +376,34 @@ LinuxKeyboardLoad (void)
     readKernelMapping ();
 }
 
+void
+LinuxKeyboardRead (int fd, void *closure)
+{
+    unsigned char   buf[256], *b;
+    int		    n;
+
+    while ((n = read (fd, buf, sizeof (buf))) > 0)
+    {
+	b = buf;
+	while (n--)
+	{
+	    KdEnqueueKeyboardEvent (b[0] & 0x7f, b[0] & 0x80);
+	    b++;
+	}
+    }
+}
+
 static int		LinuxKbdTrans;
 static struct termios	LinuxTermios;
+static int		LinuxKbdType;
 
 int
 LinuxKeyboardInit (void)
 {
     struct termios nTty;
+
+    if (!LinuxKbdType)
+	LinuxKbdType = KdAllocInputType ();
 
     ioctl (LinuxConsoleFd, KDGKBMODE, &LinuxKbdTrans);
     tcgetattr (LinuxConsoleFd, &LinuxTermios);
@@ -398,31 +419,16 @@ LinuxKeyboardInit (void)
     cfsetispeed(&nTty, 9600);
     cfsetospeed(&nTty, 9600);
     tcsetattr(LinuxConsoleFd, TCSANOW, &nTty);
-    return LinuxConsoleFd;
+    KdRegisterFd (LinuxKbdType, LinuxConsoleFd, LinuxKeyboardRead, 0);
+    return 1;
 }
 
 void
-LinuxKeyboardFini (int fd)
+LinuxKeyboardFini (void)
 {
     ioctl(LinuxConsoleFd, KDSKBMODE, LinuxKbdTrans);
     tcsetattr(LinuxConsoleFd, TCSANOW, &LinuxTermios);
-}
-
-void
-LinuxKeyboardRead (int fd)
-{
-    unsigned char   buf[256], *b;
-    int		    n;
-
-    while ((n = read (fd, buf, sizeof (buf))) > 0)
-    {
-	b = buf;
-	while (n--)
-	{
-	    KdEnqueueKeyboardEvent (b[0] & 0x7f, b[0] & 0x80);
-	    b++;
-	}
-    }
+    KdUnregisterFds (LinuxKbdType, FALSE);
 }
 
 void
@@ -447,7 +453,6 @@ LinuxKeyboardBell (int volume, int pitch, int duration)
 KdKeyboardFuncs	LinuxKeyboardFuncs = {
     LinuxKeyboardLoad,
     LinuxKeyboardInit,
-    LinuxKeyboardRead,
     LinuxKeyboardLeds,
     LinuxKeyboardBell,
     LinuxKeyboardFini,

@@ -1,5 +1,5 @@
 /*
- * $XFree86$
+ * $XFree86: xc/programs/Xserver/hw/kdrive/linux/ps2.c,v 1.4 2001/04/01 14:00:04 tsi Exp $
  *
  * Copyright © 1999 Keith Packard
  *
@@ -60,15 +60,34 @@ Ps2ReadBytes (int fd, char *buf, int len, int min)
     return tot;
 }
 
+char	*Ps2Names[] = {
+    "/dev/psaux",
+    "/dev/mouse",
+    "/dev/input/mice",
+};
+
+#define NUM_PS2_NAMES	(sizeof (Ps2Names) / sizeof (Ps2Names[0]))
+
 void
-Ps2Read (int ps2Port)
+Ps2Read (int ps2Port, void *closure)
 {
     unsigned char   buf[3 * 200];
     unsigned char   *b;
     int		    n;
     int		    dx, dy;
     unsigned long   flags;
+    int		    id = (int) closure;
+    unsigned long   left_button = KD_BUTTON_1;
+    unsigned long   right_button = KD_BUTTON_3;
 
+#undef SWAP_USB
+#ifdef SWAP_USB
+    if (id == 2)
+    {
+	left_button = KD_BUTTON_3;
+	right_button = KD_BUTTON_1;
+    }
+#endif
     while ((n = Ps2ReadBytes (ps2Port, buf, sizeof (buf), 3)) > 0)
     {
 	b = buf;
@@ -78,10 +97,10 @@ Ps2Read (int ps2Port)
 	    if (b[0] & 4)
 		flags |= KD_BUTTON_2;
 	    if (b[0] & 2)
-		flags |= KD_BUTTON_3;
+		flags |= right_button;
 	    if (b[0] & 1)
-		flags |= KD_BUTTON_1;
-	    
+		flags |= left_button;
+		
 	    dx = b[1];
 	    if (b[0] & 0x10)
 		dx -= 256;
@@ -96,37 +115,37 @@ Ps2Read (int ps2Port)
     }
 }
 
-char	*Ps2Names[] = {
-    "/dev/psaux",
-    "/dev/mouse",
-};
-
-#define NUM_PS2_NAMES	(sizeof (Ps2Names) / sizeof (Ps2Names[0]))
+int Ps2InputType;
 
 int
 Ps2Init (void)
 {
     int	    i;
     int	    ps2Port;
+    int	    n;
 
+    if (!Ps2InputType)
+	Ps2InputType = KdAllocInputType ();
+    n = 0;
     for (i = 0; i < NUM_PS2_NAMES; i++)
     {
 	ps2Port = open (Ps2Names[i], 0);
 	if (ps2Port >= 0)
-	    return ps2Port;
+	{
+	    if (KdRegisterFd (Ps2InputType, ps2Port, Ps2Read, (void *) i))
+		n++;
+	}
     }
-    return -1;
+    return n;
 }
 
 void
-Ps2Fini (int ps2Port)
+Ps2Fini (void)
 {
-    if (ps2Port >= 0)
-	close (ps2Port);
+    KdUnregisterFds (Ps2InputType, TRUE);
 }
 
 KdMouseFuncs Ps2MouseFuncs = {
     Ps2Init,
-    Ps2Read,
     Ps2Fini
 };
