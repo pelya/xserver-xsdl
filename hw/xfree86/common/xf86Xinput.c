@@ -932,10 +932,15 @@ xf86PostMotionEvent(DeviceIntPtr	device,
 		    /* modeled from xf86Events.c */
 		    if (device->ptrfeed->ctrl.threshold) {
 			if ((abs(dx) + abs(dy)) >= device->ptrfeed->ctrl.threshold) {
-			    valuator[0] = (dx * device->ptrfeed->ctrl.num) /
-					    device->ptrfeed->ctrl.den;
-			    valuator[1] = (dy * device->ptrfeed->ctrl.num) /
-					    device->ptrfeed->ctrl.den;
+			    local->dxremaind = ((float)dx * (float)(device->ptrfeed->ctrl.num)) /
+			        (float)(device->ptrfeed->ctrl.den) + local->dxremaind;
+			    valuator[0] = (int)local->dxremaind;
+			    local->dxremaind = local->dxremaind - (float)valuator[0];
+			    
+			    local->dyremaind = ((float)dy * (float)(device->ptrfeed->ctrl.num)) /
+			        (float)(device->ptrfeed->ctrl.den) + local->dyremaind;
+			    valuator[1] = (int)local->dyremaind;
+			    local->dyremaind = local->dyremaind - (float)valuator[1];
 			}
 		    }
 		    else if (dx || dy) {
