@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/hw/xfree86/loader/dixsym.c,v 1.3 2004/08/09 02:08:35 kem Exp $ */
+/* $XdotOrg: xc/programs/Xserver/hw/xfree86/loader/dixsym.c,v 1.4 2004/08/09 03:40:50 krh Exp $ */
 /* $XFree86: xc/programs/Xserver/hw/xfree86/loader/dixsym.c,v 1.63 2003/12/03
  * 17:11:29 tsi Exp $ */
 
@@ -325,6 +325,16 @@ LOOKUP dixLookupTab[] = {
     SYMFUNC(AdjustWaitForDelay)
     SYMVAR(noTestExtensions)
     SYMFUNC(GiveUp)
+#ifdef COMPOSITE
+    SYMVAR(noCompositeExtension)
+#endif
+#ifdef RENDER
+    SYMVAR(noRenderExtension)
+#endif
+#ifdef XEVIE
+    SYMVAR(noXevieExtension)
+#endif
+
     /* log.c */
     SYMFUNC(LogVWrite)
     SYMFUNC(LogWrite)
