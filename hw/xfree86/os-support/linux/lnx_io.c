@@ -90,10 +90,9 @@ KDKBDREP_ioctl_ok(int rate, int delay) {
    /* don't change, just test */
    kbdrep_s.rate = -1;
    kbdrep_s.delay = -1;
-   if (ioctl( 0, KDKBDREP, &kbdrep_s )) {
+   if (ioctl( xf86Info.consoleFd, KDKBDREP, &kbdrep_s )) {
        return 0;
    }
-
    /* do the change */
    if (rate == 0)				/* switch repeat off */
      kbdrep_s.rate = 0;
@@ -105,7 +104,7 @@ KDKBDREP_ioctl_ok(int rate, int delay) {
    if (kbdrep_s.delay < 1)
      kbdrep_s.delay = 1;
    
-   if (ioctl( 0, KDKBDREP, &kbdrep_s )) {
+   if (ioctl( xf86Info.consoleFd, KDKBDREP, &kbdrep_s )) {
      return 0;
    }
 
@@ -114,6 +113,8 @@ KDKBDREP_ioctl_ok(int rate, int delay) {
    return 0;
 #endif /* KDKBDREP */
 }
+
+#undef rate
 
 static int
 KIOCSRATE_ioctl_ok(int rate, int delay) {
@@ -130,8 +131,9 @@ KIOCSRATE_ioctl_ok(int rate, int delay) {
    if (kbdrate_s.rate > 50)
      kbdrate_s.rate = 50;
 
-   if (ioctl( fd, KIOCSRATE, &kbdrate_s ))
-     return 0;
+   if (ioctl( fd, KIOCSRATE, &kbdrate_s )) {
+       return 0;
+   }
 
    close( fd );
 
@@ -141,14 +143,7 @@ KIOCSRATE_ioctl_ok(int rate, int delay) {
 #endif /* KIOCSRATE */
 }
 
-#undef rate
-
-#if NeedFunctionPrototypes
 void xf86SetKbdRepeat(char rad)
-#else
-void xf86SetKbdRepeat(rad)
-char rad;
-#endif
 {
 #ifdef __sparc__
   int         rate  = 500;     /* Default rate */
@@ -177,7 +172,6 @@ char rad;
     rate = xf86Info.kbdRate * 10;
   if (xf86Info.kbdDelay >= 0)
     delay = xf86Info.kbdDelay;
-
 
   if(KDKBDREP_ioctl_ok(rate, delay)) 	/* m68k? */
     return;
