@@ -158,13 +158,6 @@ typedef    void (* RestackWindowProcPtr)(
 	WindowPtr /*pWindow*/,
 	WindowPtr /*pOldNextSib*/);
 
-typedef    void (* RestackWindowProcPtr)(
-#if NeedNestedPrototypes
-	WindowPtr /*pWindow*/,
-	WindowPtr /*pOldNextSib*/
-#endif
-);
-
 typedef    int  (* ValidateTreeProcPtr)(
 	WindowPtr /*pParent*/,
 	WindowPtr /*pChild*/,
@@ -492,31 +485,6 @@ typedef    PixmapPtr (* GetScreenPixmapProcPtr)(
 
 typedef    void (* SetScreenPixmapProcPtr)(
 	PixmapPtr /*pPix*/);
-
-typedef    PixmapPtr (* GetWindowPixmapProcPtr)(
-#if NeedNestedPrototypes
-	WindowPtr /*pWin*/
-#endif
-);
-
-typedef    void (* SetWindowPixmapProcPtr)(
-#if NeedNestedPrototypes
-	WindowPtr /*pWin*/,
-	PixmapPtr /*pPix*/
-#endif
-);
-
-typedef    PixmapPtr (* GetScreenPixmapProcPtr)(
-#if NeedNestedPrototypes
-	ScreenPtr /*pScreen*/
-#endif
-);
-
-typedef    void (* SetScreenPixmapProcPtr)(
-#if NeedNestedPrototypes
-	PixmapPtr /*pPix*/
-#endif
-);
 
 typedef    void (* MarkWindowProcPtr)(
 	WindowPtr /*pWin*/);

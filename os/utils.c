@@ -136,10 +136,6 @@ Bool PanoramiXWindowExposureSent = FALSE;
 Bool PanoramiXOneExposeRequest = FALSE;
 #endif
 
-#ifdef DDXOSVERRORF
-void (*OsVendorVErrorFProc)(const char *, va_list args) = NULL;
-#endif
-
 int auditTrailLevel = 1;
 
 Bool Must_have_memory = FALSE;
@@ -1263,24 +1259,6 @@ XNFcalloc(unsigned long amount)
 }
 
 /*****************
- * XNFcalloc
- *****************/
-
-void *
-XNFcalloc (amount)
-    unsigned long   amount;
-{
-    unsigned long   *ret;
-
-    ret = Xalloc (amount);
-    if (ret)
-	bzero ((char *) ret, (int) amount);
-    else if ((long)amount > 0)
-        FatalError("Out of memory");
-    return ret;
-}
-
-/*****************
  * Xrealloc
  *****************/
 
@@ -1812,9 +1790,6 @@ Fclose(pointer iop)
 #ifndef REMOVE_ENV_LD
 #define REMOVE_ENV_LD 1
 #endif
-    AbortServer();
-    /*NOTREACHED*/
-}
 
 /* Remove long environment variables? */
 #ifndef REMOVE_LONG_ENV

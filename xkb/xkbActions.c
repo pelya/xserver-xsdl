@@ -920,71 +920,8 @@ unsigned	mods,mask,oldCoreState = 0,oldCorePrevState = 0;
 	filter->keycode= 0;
 	filter->active= 0;
     }
-    return 1;
+    return 0;
 }
-
-static int
-#if NeedFunctionPrototypes
-_XkbFilterSwitchScreen(	XkbSrvInfoPtr	xkbi,
-			XkbFilterPtr	filter,
-			unsigned	keycode,
-			XkbAction *	pAction)
-#else
-_XkbFilterSwitchScreen(xkbi,filter,keycode,pAction)
-    XkbSrvInfoPtr	xkbi;
-    XkbFilterPtr	filter;
-    unsigned		keycode;
-    XkbAction *		pAction;
-#endif
-{
-    if (filter->keycode==0) {		/* initial press */
-        DeviceIntPtr	dev = xkbi->device;
-	filter->keycode = keycode;
-	filter->active = 1;
-	filter->filterOthers = 0;
-	filter->filter = _XkbFilterSwitchScreen;
-	AccessXCancelRepeatKey(xkbi, keycode);
-	XkbDDXSwitchScreen(dev,keycode,pAction);
-        return 0; 
-    }
-    else if (filter->keycode==keycode) {
-	filter->active= 0;
-        return 0; 
-    }
-    return 1;
-}
-
-#ifdef XFree86Server
-static int
-#if NeedFunctionPrototypes
-_XkbFilterXF86Private(	XkbSrvInfoPtr	xkbi,
-			XkbFilterPtr	filter,
-			unsigned	keycode,
-			XkbAction *	pAction)
-#else
-_XkbFilterXF86Private(xkbi,filter,keycode,pAction)
-    XkbSrvInfoPtr	xkbi;
-    XkbFilterPtr	filter;
-    unsigned		keycode;
-    XkbAction *		pAction;
-#endif
-{
-    if (filter->keycode==0) {		/* initial press */
-        DeviceIntPtr	dev = xkbi->device;
-	filter->keycode = keycode;
-	filter->active = 1;
-	filter->filterOthers = 0;
-	filter->filter = _XkbFilterXF86Private;
-	XkbDDXPrivate(dev,keycode,pAction);
-        return 0; 
-    }
-    else if (filter->keycode==keycode) {
-	filter->active= 0;
-        return 0; 
-    }
-    return 1;
-}
-#endif
 
 static int
 _XkbFilterSwitchScreen(	XkbSrvInfoPtr	xkbi,

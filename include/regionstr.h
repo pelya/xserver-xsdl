@@ -284,9 +284,6 @@ extern volatile ScreenPtr currentRegionScreen;
 #define REGION_BROKEN(_pScreen, _pReg) \
     (REGION_SCREEN(_pScreen), REGION_NAR(_pReg))
 
-#define REGION_BROKEN(_pScreen, _pReg) \
-    REGION_NAR(_pReg)
-
 #define REGION_EMPTY(_pScreen, _pReg) \
 { \
     REGION_UNINIT(_pScreen, _pReg); \

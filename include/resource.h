@@ -142,23 +142,6 @@ typedef Bool (*FindComplexResType)(
     XID /*id*/,
     pointer /*cdata*/);
 
-typedef void (*FindAllRes)(
-#if NeedNestedPrototypes
-    pointer /*value*/,
-    XID /*id*/,
-    RESTYPE /*type*/,
-    pointer /*cdata*/
-#endif
-);
-
-typedef Bool (*FindComplexResType)(
-#if NeedNestedPrototypes
-    pointer /*value*/,
-    XID /*id*/,
-    pointer /*cdata*/
-#endif
-);
-
 extern RESTYPE CreateNewResourceType(
     DeleteType /*deleteFunc*/);
 

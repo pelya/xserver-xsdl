@@ -91,12 +91,6 @@ cfbSetScanline(y, xOrigin, xStart, xEnd, psrc, alu, pdstBase, widthDst, planemas
 #else
     int			dstBit;		/* offset in bits from beginning of
 					 * word */
-    int			offSrc;
-    int			nl;
-#if PSZ == 24
-    register char *psrcb, *pdstb;
-    register int	xIndex;
-#else
     register int	nstart; 	/* number of bits from first partial */
 #if PSZ != 32 || PPW != 1
     register int	nend; 		/* " " last partial word */

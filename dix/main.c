@@ -480,8 +480,6 @@ main(int argc, char *argv[], char *envp[])
 
 	if (dispatchException & DE_TERMINATE)
 	{
-	    CloseWellKnownConnections();
-	    OsCleanup();
 	    ddxGiveUp();
 	    break;
 	}
