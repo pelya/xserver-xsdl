@@ -222,12 +222,13 @@ KdOffscreenSwapOut (ScreenPtr pScreen)
 	KdOffscreenValidate (pScreen);
     }    
     KdOffscreenValidate (pScreen);
+    KdOffscreenFini (pScreen);
 }
 
 void
 KdOffscreenSwapIn (ScreenPtr pScreen)
 {
-    /* nothing to do here; page in on usage */
+    KdOffscreenInit (pScreen);
 }
 
 /* merge the next free area into this one */
@@ -248,7 +249,6 @@ KdOffscreenMerge (KdOffscreenArea *area)
 void
 KdOffscreenFree (KdOffscreenArea *area)
 {
-    ScreenPtr		pScreen = area->screen;
     RealOffscreenArea	*real_area = (RealOffscreenArea *) area;
     RealOffscreenArea	*next = real_area->next;
     RealOffscreenArea	*prev = real_area->prev;

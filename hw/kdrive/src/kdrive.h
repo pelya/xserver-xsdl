@@ -121,7 +121,7 @@ typedef struct _KdScreenInfo {
     CARD8	*memory_base;
     int         off_screen_base;
     int         off_screen_size;
-    pointer     off_screen_areas;
+    struct _RealOffscreenArea	*off_screen_areas;
 } KdScreenInfo;
 
 typedef struct _KdCardFuncs {
