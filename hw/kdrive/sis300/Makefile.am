@@ -1,0 +1,42 @@
+if KDRIVEFBDEV
+FBDEV_INCLUDES =-I$(top_srcdir)/hw/kdrive/fbdev
+FBDEV_LIBS = $(top_builddir)/hw/kdrive/fbdev/libfbdev.a
+endif
+
+if KDRIVEVESA
+VESA_INCLUDES = -I$(top_srcdir)/hw/kdrive/vesa
+VESA_LIBS = $(top_builddir)/hw/kdrive/vesa/libvesa.a
+endif
+
+INCLUDES = 					\
+	@KDRIVE_INCS@				\
+	$(DRI_INCLUDES)				\
+	$(FBDEV_INCLUDES)			\
+	$(VESA_INCLUDES)			\
+	@XSERVER_CFLAGS@
+
+bin_PROGRAMS = Xsis
+
+if TSLIB
+TSLIB_FLAG = -lts
+endif
+
+noinst_LIBRARIES = libsis.a
+
+libsis_a_SOURCES = 	\
+	sis.c		\
+	sis.h		\
+	sis_draw.c	\
+	sis_reg.h
+
+Xsis_SOURCES = \
+	sis_stub.c
+
+Xsis_LDADD = \
+	libsis.a 				\
+	$(FBDEV_LIBS)				\
+	$(VESA_LIBS)				\
+	@KDRIVE_LIBS@				\
+	@XSERVER_LIBS@                          \
+	$(TSLIB_FLAG)
+
