@@ -295,7 +295,7 @@ Bool SpecialKey(InputInfoPtr pInfo, int key, Bool down, int modifiers)
 
   if ((ModifierSet(ControlMask | AltMask)) ||
       (ModifierSet(ControlMask | AltLangMask))) {
-      if (VTSwitchEnabled && !xf86Info.vtSysreq) {
+      if (VTSwitchEnabled && !xf86Info.vtSysreq && !xf86Info.dontVTSwitch) {
          switch (key) {
              case KEY_F1:
              case KEY_F2:
@@ -321,7 +321,7 @@ Bool SpecialKey(InputInfoPtr pInfo, int key, Bool down, int modifiers)
       }
     }
 #ifdef USE_VT_SYSREQ
-    if (VTSwitchEnabled && xf86Info.vtSysreq) {
+    if (VTSwitchEnabled && xf86Info.vtSysreq && !xf86Info.dontVTSwitch) {
         switch (key) {
             case KEY_F1:
             case KEY_F2:
