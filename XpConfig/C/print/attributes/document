@@ -34,6 +34,7 @@ PS2PDFspooldir-GS.default-printer-resolution: 600
 HPLJ4050-PS.default-printer-resolution: 600
 SPSPARC2.default-printer-resolution: 300
 CANONBJ10E-GS.default-printer-resolution: 360
+CANONC3200-PS.default-printer-resolution: 600
 
 # EXAMPLES
 #
