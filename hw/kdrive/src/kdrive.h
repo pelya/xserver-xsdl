@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/kdrive.h,v 1.25 2002/10/08 21:28:05 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/kdrive.h,v 1.26 2002/10/14 18:01:40 keithp Exp $ */
 
 #include <stdio.h>
 #include "X.h"
@@ -709,10 +709,11 @@ KdTuneMode (KdScreenInfo    *screen,
 #ifdef RANDR
 Bool
 KdRandRGetInfo (ScreenPtr pScreen, 
+		int randr,
 		Bool (*supported) (ScreenPtr pScreen, 
 				   const KdMonitorTiming *));
 
-KdMonitorTiming *
+const KdMonitorTiming *
 KdRandRGetTiming (ScreenPtr	    pScreen,
 		  Bool		    (*supported) (ScreenPtr pScreen, 
 						  const KdMonitorTiming *),

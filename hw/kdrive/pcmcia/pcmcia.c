@@ -27,7 +27,7 @@
  *
  * Tested running under a Compaq IPAQ Pocket PC running Linux
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/pcmcia/pcmcia.c,v 1.4 2001/06/21 00:58:51 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/pcmcia/pcmcia.c,v 1.6 2002/10/14 18:01:41 keithp Exp $ */
 
 #include "pcmcia.h"
 #define extern
@@ -387,11 +387,12 @@ Bool
 pcmciaRandRGetInfo (ScreenPtr pScreen, Rotation *rotations)
 {
     KdScreenPriv(pScreen);
+    pcmciaScreenInfo	*pcmcias = (pcmciaScreenInfo *) pScreenPriv->screen->driver;
     
     *rotations = (RR_Rotate_0|RR_Rotate_90|RR_Rotate_180|RR_Rotate_270|
 		  RR_Reflect_X|RR_Reflect_Y);
     
-    return KdRandRGetInfo (pScreen, pcmciaRandRSupported);
+    return KdRandRGetInfo (pScreen, pcmcias->randr, pcmciaRandRSupported);
 }
  
 int
@@ -423,16 +424,16 @@ pcmciaRandRSetConfig (ScreenPtr		pScreen,
 		      RRScreenSizePtr	pSize)
 {
     KdScreenPriv(pScreen);
-    KdScreenInfo	*screen = pScreenPriv->screen;
-    FbdevPriv		*priv = pScreenPriv->card->driver;
-    pcmciaScreenInfo	*pcmcias = (pcmciaScreenInfo *) pScreenPriv->screen->driver;
-    Bool		wasEnabled = pScreenPriv->enabled;
-    int			newwidth, newheight;
-    LayerPtr		pNewLayer;
-    int			kind;
-    int			oldrandr = pcmcias->randr;
-    PixmapPtr		pPixmap;
-    KdMonitorTiming	*t;
+    KdScreenInfo	    *screen = pScreenPriv->screen;
+    FbdevPriv		    *priv = pScreenPriv->card->driver;
+    pcmciaScreenInfo	    *pcmcias = (pcmciaScreenInfo *) pScreenPriv->screen->driver;
+    Bool		    wasEnabled = pScreenPriv->enabled;
+    int			    newwidth, newheight;
+    LayerPtr		    pNewLayer;
+    int			    kind;
+    int			    oldrandr = pcmcias->randr;
+    PixmapPtr		    pPixmap;
+    const KdMonitorTiming   *t;
     
     randr = KdAddRotation (screen->randr, randr);
     

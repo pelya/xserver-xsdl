@@ -1,5 +1,5 @@
 /*
- * $XFree86: xc/programs/Xserver/hw/kdrive/kmode.c,v 1.5 2000/05/24 23:57:56 keithp Exp $
+ * $XFree86: xc/programs/Xserver/hw/kdrive/kmode.c,v 1.7 2002/10/14 18:01:40 keithp Exp $
  *
  * Copyright 1999 SuSE, Inc.
  *
@@ -324,7 +324,8 @@ KdTuneMode (KdScreenInfo    *screen,
 
 #ifdef RANDR
 Bool
-KdRandRGetInfo (ScreenPtr pScreen, 
+KdRandRGetInfo (ScreenPtr pScreen,
+		int randr,
 		Bool (*supported) (ScreenPtr pScreen, 
 				   const KdMonitorTiming *))
 {
@@ -335,7 +336,7 @@ KdRandRGetInfo (ScreenPtr pScreen,
     
     for (i = 0, t = kdMonitorTimings; i < NUM_MONITOR_TIMINGS; i++, t++)
     {
-	if ((*supported) (screen, t))
+	if ((*supported) (pScreen, t))
 	{
 	    RRScreenSizePtr pSize;
 
@@ -358,7 +359,7 @@ KdRandRGetInfo (ScreenPtr pScreen,
     return TRUE;
 }
 
-KdMonitorTiming *
+const KdMonitorTiming *
 KdRandRGetTiming (ScreenPtr	    pScreen,
 		  Bool		    (*supported) (ScreenPtr pScreen, 
 						  const KdMonitorTiming *),
