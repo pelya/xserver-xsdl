@@ -1206,13 +1206,13 @@ CopyPicture (PicturePtr	pSrc,
 	    pDst->alphaMap = pSrc->alphaMap;
 	    break;
 	case CPAlphaXOrigin:
-	    pDst->alphaOrigin.x = pSrc->alphaOrigin.y;
+	    pDst->alphaOrigin.x = pSrc->alphaOrigin.x;
 	    break;
 	case CPAlphaYOrigin:
 	    pDst->alphaOrigin.y = pSrc->alphaOrigin.y;
 	    break;
 	case CPClipXOrigin:
-	    pDst->clipOrigin.x = pSrc->clipOrigin.y;
+	    pDst->clipOrigin.x = pSrc->clipOrigin.x;
 	    break;
 	case CPClipYOrigin:
 	    pDst->clipOrigin.y = pSrc->clipOrigin.y;
