@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/trident/tridentdraw.c,v 1.9 2001/05/30 15:36:25 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/trident/tridentdraw.c,v 1.10 2001/06/03 18:48:19 keithp Exp $ */
 
 #include "trident.h"
 #include "tridentdraw.h"
@@ -80,9 +80,8 @@ tridentPrepareSolid (DrawablePtr    pDrawable,
 		     Pixel	    pm,
 		     Pixel	    fg)
 {
-    FbBits  depthMask;
+    FbBits  depthMask = FbFullMask(pDrawable->depth);
     
-    depthMask = FbFullMask(pDrawable->depth);
     if ((pm & depthMask) != depthMask)
 	return FALSE;
     else
@@ -117,7 +116,7 @@ tridentPrepareCopy (DrawablePtr	pSrcDrawable,
 		    int		alu,
 		    Pixel	pm)
 {
-    FbBits	    depthMask;
+    FbBits  depthMask = FbFullMask(pDstDrawable->depth);
     
     if ((pm & depthMask) == depthMask)
     {
