@@ -816,7 +816,7 @@ AppendEntry(
     char *s, c;
 
     if (*type != XrmQString)
-	return;
+	return False;
 
     for (firstNameSeen = False; *quarks; bindings++, quarks++) {
         if (*bindings == XrmBindLoosely) {
