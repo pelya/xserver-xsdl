@@ -2,7 +2,7 @@
    Copyright (c) 2002  XFree86 Inc
 */
 /* $XFree86: xc/programs/Xserver/Xext/xres.c,v 1.7tsi Exp $ */
-/* $XdotOrg$ */
+/* $XdotOrg: xc/programs/Xserver/Xext/xres.c,v 1.2 2004/04/23 18:44:42 eich Exp $ */
 
 #define NEED_EVENTS
 #define NEED_REPLIES
@@ -160,7 +160,7 @@ ProcXResQueryClientResources (ClientPtr client)
 
             if(!ResourceNames[i + 1]) {
                 char buf[40];
-                sprintf(buf, "Unregistered resource %i", i + 1);
+                snprintf(buf, sizeof(buf), "Unregistered resource %i", i + 1);
                 RegisterResourceName(i + 1, buf);
             }
 
