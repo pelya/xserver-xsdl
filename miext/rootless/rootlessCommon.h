@@ -3,7 +3,7 @@
  */
 /*
  * Copyright (c) 2001 Greg Parker. All Rights Reserved.
- * Copyright (c) 2002-2003 Torrey T. Lyons. All Rights Reserved.
+ * Copyright (c) 2002-2004 Torrey T. Lyons. All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -27,7 +27,7 @@
  * holders shall not be used in advertising or otherwise to promote the sale,
  * use or other dealings in this Software without prior written authorization.
  */
-/* $XFree86: xc/programs/Xserver/miext/rootless/rootlessCommon.h,v 1.3 2003/06/30 01:45:13 torrey Exp $ */
+/* $XFree86: xc/programs/Xserver/miext/rootless/rootlessCommon.h,v 1.5 2004/07/02 01:30:33 torrey Exp $ */
 
 #ifndef _ROOTLESSCOMMON_H
 #define _ROOTLESSCOMMON_H
@@ -139,10 +139,10 @@ typedef struct _RootlessScreenRec {
 
 // Call a rootless implementation function.
 // Many rootless implementation functions are allowed to be NULL.
-#define CallFrameProc(pScreen, proc, params) \
-    if (SCREENREC(pScreen)->frameProcs.proc) { \
-        RL_DEBUG_MSG("calling frame proc " #proc " "); \
-        SCREENREC(pScreen)->frameProcs.proc params; \
+#define CallFrameProc(pScreen, proc, params)            \
+    if (SCREENREC(pScreen)->frameProcs.proc) {          \
+        RL_DEBUG_MSG("calling frame proc " #proc " ");  \
+        SCREENREC(pScreen)->frameProcs.proc params;     \
     }
 
 
@@ -217,19 +217,19 @@ extern RegionRec rootlessHugeRoot;
  *  Can't access the bits before the first word of the drawable's data in
  *  rootless mode, so make sure our base address is always 32-bit aligned.
  */
-#define SetPixmapBaseToScreen(pix, _x, _y) {				\
-    PixmapPtr   _pPix = (PixmapPtr) (pix);				\
-    _pPix->devPrivate.ptr = (char *) (_pPix->devPrivate.ptr) -		\
-                            ((int)(_x) * _pPix->drawable.bitsPerPixel/8 + \
-                             (int)(_y) * _pPix->devKind);		\
-    if (_pPix->drawable.bitsPerPixel != FB_UNIT) {			\
-        unsigned _diff = ((unsigned) _pPix->devPrivate.ptr) & 		\
-                         (FB_UNIT / CHAR_BIT - 1);			\
-	_pPix->devPrivate.ptr = (char *) (_pPix->devPrivate.ptr) - 	\
-                                _diff;					\
-        _pPix->drawable.x = _diff /					\
-                            (_pPix->drawable.bitsPerPixel / CHAR_BIT);	\
-    }									\
+#define SetPixmapBaseToScreen(pix, _x, _y) {                                \
+    PixmapPtr   _pPix = (PixmapPtr) (pix);                                  \
+    _pPix->devPrivate.ptr = (char *) (_pPix->devPrivate.ptr) -              \
+                            ((int)(_x) * _pPix->drawable.bitsPerPixel/8 +   \
+                             (int)(_y) * _pPix->devKind);                   \
+    if (_pPix->drawable.bitsPerPixel != FB_UNIT) {                          \
+        unsigned _diff = ((unsigned) _pPix->devPrivate.ptr) &               \
+                         (FB_UNIT / CHAR_BIT - 1);                          \
+        _pPix->devPrivate.ptr = (char *) (_pPix->devPrivate.ptr) -          \
+                                _diff;                                      \
+        _pPix->drawable.x = _diff /                                         \
+                            (_pPix->drawable.bitsPerPixel / CHAR_BIT);      \
+    }                                                                       \
 }
 
 
@@ -246,9 +246,12 @@ void RootlessDamageBox(WindowPtr pWindow, BoxPtr pBox);
 void RootlessRedisplay(WindowPtr pWindow);
 void RootlessRedisplayScreen(ScreenPtr pScreen);
 
-void RootlessQueueRedisplay (ScreenPtr pScreen);
+void RootlessQueueRedisplay(ScreenPtr pScreen);
+
+// Move a window to its proper location on the screen.
+void RootlessRepositionWindow(WindowPtr pWin);
 
 // Move the window to it's correct place in the physical stacking order.
-void RootlessReorderWindow (WindowPtr pWin);
+void RootlessReorderWindow(WindowPtr pWin);
 
 #endif /* _ROOTLESSCOMMON_H */

@@ -25,7 +25,7 @@
  * holders shall not be used in advertising or otherwise to promote the sale,
  * use or other dealings in this Software without prior written authorization.
  */
-/* $XdotOrg: xc/programs/Xserver/hw/darwin/quartz/fullscreen/fullscreen.c,v 1.1.4.1 2003/12/06 13:24:23 kaleb Exp $ */
+/* $XdotOrg: xc/programs/Xserver/hw/darwin/quartz/fullscreen/fullscreen.c,v 1.2 2004/04/23 19:16:21 eich Exp $ */
 /* $XFree86: xc/programs/Xserver/hw/darwin/quartz/fullscreen/fullscreen.c,v 1.3 2003/11/27 01:59:53 torrey Exp $ */
 
 #include "quartzCommon.h"
@@ -261,7 +261,7 @@ static void FSSuspendScreen(
  */
 static void FSResumeScreen(
     ScreenPtr pScreen,
-    int x,			// cursor location
+    int x,              // cursor location
     int y )
 {
     QuartzResumeXCursor(pScreen, x, y);
@@ -537,18 +537,21 @@ static QuartzModeProcsRec fsModeProcs = {
     FSDisplayInit,
     FSAddScreen,
     FSSetupScreen,
-    NULL,		// Not needed
+    NULL,                   // Not needed
     QuartzInitCursor,
     QuartzReallySetCursor,
     FSSuspendScreen,
     FSResumeScreen,
     FSCapture,
     FSRelease,
-    NULL,		// No rootless code in fullscreen
+    NULL,                   // No dynamic screen change support
+    NULL,
+    NULL,
+    NULL,                   // No rootless code in fullscreen
     NULL,
     NULL,
     NULL,
-    NULL,		// No support for DRI surfaces
+    NULL,                   // No support for DRI surfaces
     NULL
 };
 
@@ -561,6 +564,6 @@ Bool
 QuartzModeBundleInit(void)
 {
     quartzProcs = &fsModeProcs;
-    quartzOpenGLBundle = NULL;	// Only Mesa support for now
+    quartzOpenGLBundle = NULL;  // Only Mesa support for now
     return TRUE;
 }

@@ -27,7 +27,7 @@
  * holders shall not be used in advertising or otherwise to promote the sale,
  * use or other dealings in this Software without prior written authorization.
  */
-/* $XFree86: xc/programs/Xserver/miext/rootless/rootless.h,v 1.5 2003/10/18 00:00:34 torrey Exp $ */
+/* $XFree86: xc/programs/Xserver/miext/rootless/rootless.h,v 1.7 2004/07/02 01:30:33 torrey Exp $ */
 
 #ifndef _ROOTLESS_H
 #define _ROOTLESS_H
@@ -395,5 +395,16 @@ void RootlessStartDrawing(WindowPtr pWindow);
  */
 void RootlessStopDrawing(WindowPtr pWindow, Bool flush);
 
+/*
+ * Alocate a new screen pixmap.
+ *  miCreateScreenResources does not do this properly with a null
+ *  framebuffer pointer.
+ */
+void RootlessUpdateScreenPixmap(ScreenPtr pScreen);
+
+/*
+ * Reposition all windows on a screen to their correct positions.
+ */
+void RootlessRepositionWindows(ScreenPtr pScreen);
 
 #endif /* _ROOTLESS_H */

@@ -34,7 +34,7 @@
  * sale, use or other dealings in this Software without prior written
  * authorization.
  */
-/* $XdotOrg: xc/programs/Xserver/hw/darwin/quartz/XServer.m,v 1.20 2003/11/27 01:59:53 torrey Exp $ */
+/* $XdotOrg: xc/programs/Xserver/hw/darwin/quartz/XServer.m,v 1.2 2004/04/23 19:15:17 eich Exp $ */
 /* $XFree86: xc/programs/Xserver/hw/darwin/quartz/XServer.m,v 1.19 2003/11/24 05:39:01 torrey Exp $ */
 
 #include "quartzCommon.h"
@@ -83,11 +83,11 @@ typedef struct {
 } shellList_t;
 
 static shellList_t const shellList[] = {
-    { "csh",    shell_C },		// standard C shell
-    { "tcsh",   shell_C },		// ... needs no introduction
-    { "sh",     shell_Bourne },		// standard Bourne shell
-    { "zsh",    shell_Bourne },		// Z shell
-    { "bash",   shell_Bourne },		// GNU Bourne again shell
+    { "csh",    shell_C },          // standard C shell
+    { "tcsh",   shell_C },          // ... needs no introduction
+    { "sh",     shell_Bourne },     // standard Bourne shell
+    { "zsh",    shell_Bourne },     // Z shell
+    { "bash",   shell_Bourne },     // GNU Bourne again shell
     { NULL,     shell_Unknown }
 };
 
@@ -267,6 +267,7 @@ static io_connect_t root_port;
             xe.u.u.type = ButtonRelease;
             xe.u.u.detail = 1;
             break;
+
         case NSLeftMouseDown:
             [self getMousePosition:&xe fromEvent:anEvent];
             if (quartzRootless) {
@@ -286,6 +287,7 @@ static io_connect_t root_port;
             xe.u.u.type = ButtonPress;
             xe.u.u.detail = 1;
             break;
+
         case NSMouseMoved:
         case NSLeftMouseDragged:
         case NSRightMouseDragged:
@@ -293,6 +295,7 @@ static io_connect_t root_port;
             [self getMousePosition:&xe fromEvent:anEvent];
             xe.u.u.type = MotionNotify;
             break;
+
         case NSSystemDefined:
         {
             long hwButtons = [anEvent data2];
@@ -309,36 +312,56 @@ static io_connect_t root_port;
             xe.u.clientMessage.u.l.longs1 =[anEvent data2];
             break;
         }
+
         case NSScrollWheel:
             [self getMousePosition:&xe fromEvent:anEvent];
             xe.u.u.type = kXDarwinScrollWheel;
-            xe.u.clientMessage.u.s.shorts0 = [anEvent deltaY];
+            xe.u.clientMessage.u.s.shorts0 = [anEvent deltaX] +
+                                             [anEvent deltaY];
             break;
+
         case NSKeyDown:
         case NSKeyUp:
-            if (!x11Active)
+            if (!x11Active) {
+                swallowedKey = 0;
                 return NO;
-            // If the mouse is not on the valid X display area,
-            // we don't send the X server key events.
-            if (![self getMousePosition:&xe fromEvent:nil])
-                return NO;
-            if (type == NSKeyDown)
-                xe.u.u.type = KeyPress;
-            else
-                xe.u.u.type = KeyRelease;
+            }
+
+            if (type == NSKeyDown) {
+                // If the mouse is not on the valid X display area,
+                // don't send the X server key events.
+                if (![self getMousePosition:&xe fromEvent:nil]) {
+                    swallowedKey = [anEvent keyCode];
+                    return NO;
+                }
+
+                // See if there are any global shortcuts for this key combo.
+                if (quartzEnableKeyEquivalents
+                    && [[NSApp mainMenu] performKeyEquivalent:anEvent])
+                {
+                    swallowedKey = [anEvent keyCode];
+                    return YES;
+                }
+            } else {
+                // If the down key event was a valid key combo,
+                // don't pass the up event to X11.
+                if (swallowedKey != 0 && [anEvent keyCode] == swallowedKey) {
+                    swallowedKey = 0;
+                    return NO;
+                }
+            }
+
+            xe.u.u.type = (type == NSKeyDown) ? KeyPress : KeyRelease;
             xe.u.u.detail = [anEvent keyCode];
             break;
+
         case NSFlagsChanged:
             if (!x11Active)
                 return NO;
-            [self getMousePosition:&xe fromEvent:nil];
             xe.u.u.type = kXDarwinUpdateModifiers;
             xe.u.clientMessage.u.l.longs0 = flags;
             break;
-        case NSOtherMouseDown:          // undocumented MouseDown
-        case NSOtherMouseUp:            // undocumented MouseUp
-            // Hide these from AppKit to avoid its log messages
-            return YES;
+
         default:
             return NO;
     }
@@ -395,13 +418,32 @@ static io_connect_t root_port;
     }
 }
 
-// Append a string to the given enviroment variable
-+ (void)append:(NSString*)value toEnv:(NSString*)name
+
+// Make a safe path
+//
+// Return the path in single quotes in case there are problematic characters in it.
+// We still have to worry about there being single quotes in the path. So, replace
+// all instances of the ' character in the path with '\''.
+- (NSString *)makeSafePath:(NSString *)path
 {
-    setenv([name cString],
-        [[[NSString stringWithCString:getenv([name cString])]
-            stringByAppendingString:value] cString],1);
+    NSMutableString *safePath = [NSMutableString stringWithString:path];
+    NSRange aRange = NSMakeRange(0, [safePath length]);
+
+    while (aRange.length) {
+        aRange = [safePath rangeOfString:@"'" options:0 range:aRange];
+        if (!aRange.length)
+            break;
+        [safePath replaceCharactersInRange:aRange
+                        withString:@"\'\\'\'"];
+        aRange.location += 4;
+        aRange.length = [safePath length] - aRange.location;
+    }
+
+    safePath = [NSMutableString stringWithFormat:@"'%@'", safePath];
+
+    return safePath;
 }
+
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification
 {
@@ -488,12 +530,20 @@ static io_connect_t root_port;
     if (![self loadDisplayBundle])
         [NSApp terminate:nil];
 
-    // In rootless mode register to receive notification of key window changes
     if (quartzRootless) {
+        // We need to track whether the key window is an X11 window
         [[NSNotificationCenter defaultCenter]
                 addObserver:self
                 selector:@selector(windowBecameKey:)
                 name:NSWindowDidBecomeKeyNotification
+                object:nil];
+
+        // Request notification of screen layout changes even when this
+        // is not the active application
+        [[NSDistributedNotificationCenter defaultCenter]
+                addObserver:self
+                selector:@selector(applicationDidChangeScreenParameters:)
+                name:NSApplicationDidChangeScreenParametersNotification
                 object:nil];
     }
 
@@ -581,8 +631,7 @@ static io_connect_t root_port;
 {
     struct passwd *passwdUser;
     NSString *shellPath, *dashShellName, *commandStr, *startXPath;
-    NSMutableString *safeStartXPath;
-    NSRange aRange;
+    NSString *safeStartXPath;
     NSBundle *thisBundle;
     const char *shellPathStr, *newargv[3], *shellNameStr;
     int fd[2], outFD, length, shellType, i;
@@ -645,11 +694,11 @@ static io_connect_t root_port;
 
         // Inside the new process:
         if (fd[0] != STDIN_FILENO) {
-            dup2(fd[0], STDIN_FILENO);	// Take stdin from pipe
+            dup2(fd[0], STDIN_FILENO);      // Take stdin from pipe
             close(fd[0]);
         }
-        close(fd[1]);			// Close write end of pipe
-        if (outFD == STDOUT_FILENO) {	// Setup stdout and stderr
+        close(fd[1]);                       // Close write end of pipe
+        if (outFD == STDOUT_FILENO) {       // Setup stdout and stderr
             dup2(outFD, STDERR_FILENO);
         } else if (outFD == STDERR_FILENO) {
             dup2(outFD, STDOUT_FILENO);
@@ -685,28 +734,14 @@ static io_connect_t root_port;
         return NO;
     }
 
-    // We will run the startXClients script with the path in single quotes
-    // in case there are problematic characters in the path. We still have
-    // to worry about there being single quotes in the path. So, replace
-    // all instances of the ' character in startXPath with '\''.
-    safeStartXPath = [NSMutableString stringWithString:startXPath];
-    aRange = NSMakeRange(0, [safeStartXPath length]);
-    while (aRange.length) {
-        aRange = [safeStartXPath rangeOfString:@"'" options:0 range:aRange];
-        if (!aRange.length)
-            break;
-        [safeStartXPath replaceCharactersInRange:aRange
-                        withString:@"\'\\'\'"];
-        aRange.location += 4;
-        aRange.length = [safeStartXPath length] - aRange.location;
-    }
+    safeStartXPath = [self makeSafePath:startXPath];
 
     if ([Preferences addToPath]) {
-        commandStr = [NSString stringWithFormat:@"'%@' :%d %@\n",
+        commandStr = [NSString stringWithFormat:@"%@ :%d %@\n",
                         safeStartXPath, [Preferences display],
                         [Preferences addToPathString]];
     } else {
-        commandStr = [NSString stringWithFormat:@"'%@' :%d\n",
+        commandStr = [NSString stringWithFormat:@"%@ :%d\n",
                         safeStartXPath, [Preferences display]];
     }
 
@@ -726,7 +761,7 @@ static io_connect_t root_port;
 // FIXME: This should be unified with startXClients
 - (void)runClient:(NSString *)filename
 {
-    const char *command = [filename UTF8String];
+    const char *command = [[self makeSafePath:filename] UTF8String];
     const char *shell;
     const char *argv[5];
     int child1, child2 = 0;
@@ -1177,10 +1212,10 @@ static io_connect_t root_port;
 - (void)activateX11:(BOOL)state
 {
     if (state) {
-	QuartzMessageServerThread(kXDarwinActivate, 0);
+        QuartzMessageServerThread(kXDarwinActivate, 0);
     }
     else {
-	QuartzMessageServerThread(kXDarwinDeactivate, 0);
+        QuartzMessageServerThread(kXDarwinDeactivate, 0);
     }
 
     x11Active = state;
@@ -1310,6 +1345,12 @@ static io_connect_t root_port;
 /*
  * Application Delegate Methods
  */
+
+- (void)applicationDidChangeScreenParameters:(NSNotification *)aNotification
+{
+    if (quartzProcs->ScreenChanged)
+        quartzProcs->ScreenChanged();
+}
 
 - (void)applicationDidHide:(NSNotification *)aNotification
 {

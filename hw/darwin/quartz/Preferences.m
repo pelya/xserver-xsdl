@@ -4,7 +4,7 @@
 //  This class keeps track of the user preferences.
 //
 /*
- * Copyright (c) 2002-2003 Torrey T. Lyons. All Rights Reserved.
+ * Copyright (c) 2002-2004 Torrey T. Lyons. All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
@@ -30,7 +30,7 @@
  * sale, use or other dealings in this Software without prior written
  * authorization.
  */
-/* $XFree86: xc/programs/Xserver/hw/darwin/quartz/Preferences.m,v 1.3 2003/05/14 05:27:56 torrey Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/darwin/quartz/Preferences.m,v 1.5 2004/06/08 22:58:10 torrey Exp $ */
 
 #import "quartzCommon.h"
 
@@ -48,6 +48,9 @@
 #endif
 #define STR(s) #s
 #define XSTRPATH(s) STR(s)
+
+// Keys for user defaults dictionary
+static NSString *X11EnableKeyEquivalentsKey = @"EnableKeyEquivalents";
 
 
 @implementation Preferences
@@ -70,6 +73,7 @@
         [NSNumber numberWithInt:0], @"SwitchKeyCode",
         [NSNumber numberWithInt:(NSCommandKeyMask | NSAlternateKeyMask)],
         @"SwitchModifiers", @"NO", @"UseSystemBeep",
+        @"YES", X11EnableKeyEquivalentsKey,
         @"YES", @"DockSwitch",
         @"NO", @"AllowMouseAccelChange",
         [NSNumber numberWithInt:qdCursor_Not8Bit], @"UseQDCursor",
@@ -391,6 +395,14 @@
     quartzUseSysBeep = newSystemBeep;
 }
 
++ (void)setEnableKeyEquivalents:(BOOL)newKeyEquivs
+{
+    [[NSUserDefaults standardUserDefaults] setBool:newKeyEquivs
+            forKey:X11EnableKeyEquivalentsKey];
+    // Update the setting used by the X server thread
+    quartzEnableKeyEquivalents = newKeyEquivs;
+}
+
 + (void)setXinerama:(BOOL)newXinerama
 {
     [[NSUserDefaults standardUserDefaults] setBool:newXinerama
@@ -535,6 +547,11 @@
 + (BOOL)systemBeep
 {
     return [[NSUserDefaults standardUserDefaults] boolForKey:@"UseSystemBeep"];
+}
+
++ (BOOL)enableKeyEquivalents
+{
+    return [[NSUserDefaults standardUserDefaults] boolForKey:X11EnableKeyEquivalentsKey];
 }
 
 + (BOOL)xinerama

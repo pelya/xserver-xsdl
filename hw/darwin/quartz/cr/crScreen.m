@@ -1,10 +1,10 @@
-/* $XdotOrg$ */
+/* $XdotOrg: xc/programs/Xserver/hw/darwin/quartz/cr/crScreen.m,v 1.2 2004/04/23 19:15:51 eich Exp $ */
 /*
  * Cocoa rootless implementation initialization
  */
 /*
  * Copyright (c) 2001 Greg Parker. All Rights Reserved.
- * Copyright (c) 2002-2003 Torrey T. Lyons. All Rights Reserved.
+ * Copyright (c) 2002-2004 Torrey T. Lyons. All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -79,6 +79,79 @@ CRDisplayInit(void)
 
 
 /*
+ * CRAddPseudoramiXScreens
+ *  Add a single virtual screen encompassing all the physical screens
+ *  with PseudoramiX.
+ */
+static void
+CRAddPseudoramiXScreens(int *x, int *y, int *width, int *height)
+{
+    int i;
+    NSRect unionRect = NSMakeRect(0, 0, 0, 0);
+    NSArray *screens = [NSScreen screens];
+
+    // Get the union of all screens (minus the menu bar on main screen)
+    for (i = 0; i < [screens count]; i++) {
+        NSScreen *screen = [screens objectAtIndex:i];
+        NSRect frame = [screen frame];
+        frame.origin.y = [[NSScreen mainScreen] frame].size.height -
+                         frame.size.height - frame.origin.y;
+        if (NSEqualRects([screen frame], [[NSScreen mainScreen] frame])) {
+            frame.origin.y    += aquaMenuBarHeight;
+            frame.size.height -= aquaMenuBarHeight;
+        }
+        unionRect = NSUnionRect(unionRect, frame);
+    }
+
+    // Use unionRect as the screen size for the X server.
+    *x = unionRect.origin.x;
+    *y = unionRect.origin.y;
+    *width = unionRect.size.width;
+    *height = unionRect.size.height;
+
+    // Tell PseudoramiX about the real screens.
+    // InitOutput() will move the big screen to (0,0),
+    // so compensate for that here.
+    for (i = 0; i < [screens count]; i++) {
+        NSScreen *screen = [screens objectAtIndex:i];
+        NSRect frame = [screen frame];
+        int j;
+
+        // Skip this screen if it's a mirrored copy of an earlier screen.
+        for (j = 0; j < i; j++) {
+            if (NSEqualRects(frame, [[screens objectAtIndex:j] frame])) {
+                ErrorF("PseudoramiX screen %d is a mirror of screen %d.\n",
+                       i, j);
+                break;
+            }
+        }
+        if (j < i) continue; // this screen is a mirrored copy
+
+        frame.origin.y = [[NSScreen mainScreen] frame].size.height -
+                         frame.size.height - frame.origin.y;
+
+        if (NSEqualRects([screen frame], [[NSScreen mainScreen] frame])) {
+            frame.origin.y    += aquaMenuBarHeight;
+            frame.size.height -= aquaMenuBarHeight;
+        }
+
+        ErrorF("PseudoramiX screen %d added: %dx%d @ (%d,%d).\n", i,
+               (int)frame.size.width, (int)frame.size.height,
+               (int)frame.origin.x, (int)frame.origin.y);
+
+        frame.origin.x -= unionRect.origin.x;
+        frame.origin.y -= unionRect.origin.y;
+
+        ErrorF("PseudoramiX screen %d placed at X11 coordinate (%d,%d).\n",
+               i, (int)frame.origin.x, (int)frame.origin.y);
+
+        PseudoramiXAddScreen(frame.origin.x, frame.origin.y,
+                             frame.size.width, frame.size.height);
+    }
+}
+
+
+/*
  * CRScreenParams
  *  Set the basic screen parameters.
  */
@@ -100,7 +173,6 @@ CRScreenParams(int index, DarwinFramebufferPtr dfb)
 
         dfb->width =  NSWidth(frame);
         dfb->height = NSHeight(frame);
-        dfb->pitch = (dfb->width) * (dfb->bitsPerPixel) / 8;
 
         // Shift the usable part of main screen down to avoid the menu bar.
         if (NSEqualRects(frame, [[NSScreen mainScreen] frame])) {
@@ -109,69 +181,7 @@ CRScreenParams(int index, DarwinFramebufferPtr dfb)
         }
 
     } else {
-        int i;
-        NSRect unionRect = NSMakeRect(0, 0, 0, 0);
-        NSArray *screens = [NSScreen screens];
-
-        // Get the union of all screens (minus the menu bar on main screen)
-        for (i = 0; i < [screens count]; i++) {
-            NSScreen *screen = [screens objectAtIndex:i];
-            NSRect frame = [screen frame];
-            frame.origin.y = [[NSScreen mainScreen] frame].size.height -
-                             frame.size.height - frame.origin.y;
-            if (NSEqualRects([screen frame], [[NSScreen mainScreen] frame])) {
-                frame.origin.y    += aquaMenuBarHeight;
-                frame.size.height -= aquaMenuBarHeight;
-            }
-            unionRect = NSUnionRect(unionRect, frame);
-        }
-
-        // Use unionRect as the screen size for the X server.
-        dfb->x = unionRect.origin.x;
-        dfb->y = unionRect.origin.y;
-        dfb->width = unionRect.size.width;
-        dfb->height = unionRect.size.height;
-        dfb->pitch = (dfb->width) * (dfb->bitsPerPixel) / 8;
-
-        // Tell PseudoramiX about the real screens.
-        // InitOutput() will move the big screen to (0,0),
-        // so compensate for that here.
-        for (i = 0; i < [screens count]; i++) {
-            NSScreen *screen = [screens objectAtIndex:i];
-            NSRect frame = [screen frame];
-            int j;
-
-            // Skip this screen if it's a mirrored copy of an earlier screen.
-            for (j = 0; j < i; j++) {
-                if (NSEqualRects(frame, [[screens objectAtIndex:j] frame])) {
-                    ErrorF("PseudoramiX screen %d is a mirror of screen %d.\n",
-                           i, j);
-                    break;
-                }
-            }
-            if (j < i) continue; // this screen is a mirrored copy
-
-            frame.origin.y = [[NSScreen mainScreen] frame].size.height -
-                             frame.size.height - frame.origin.y;
-
-            if (NSEqualRects([screen frame], [[NSScreen mainScreen] frame])) {
-                frame.origin.y    += aquaMenuBarHeight;
-                frame.size.height -= aquaMenuBarHeight;
-            }
-
-            ErrorF("PseudoramiX screen %d added: %dx%d @ (%d,%d).\n", i,
-                   (int)frame.size.width, (int)frame.size.height,
-                   (int)frame.origin.x, (int)frame.origin.y);
-
-            frame.origin.x -= unionRect.origin.x;
-            frame.origin.y -= unionRect.origin.y;
-
-            ErrorF("PseudoramiX screen %d placed at X11 coordinate (%d,%d).\n",
-                   i, (int)frame.origin.x, (int)frame.origin.y);
-
-            PseudoramiXAddScreen(frame.origin.x, frame.origin.y,
-                                 frame.size.width, frame.size.height);
-        }
+        CRAddPseudoramiXScreens(&dfb->x, &dfb->y, &dfb->width, &dfb->height);
     }
 }
 
@@ -195,8 +205,11 @@ CRAddScreen(int index, ScreenPtr pScreen)
 
     dfb->colorType = TrueColor;
 
-    // No frame buffer - it's all in window pixmaps.
-    dfb->framebuffer = NULL; // malloc(dfb.pitch * dfb.height);
+    /* Passing zero width (pitch) makes miCreateScreenResources set the
+       screen pixmap to the framebuffer pointer, i.e. NULL. The generic
+       rootless code takes care of making this work. */
+    dfb->pitch = 0;
+    dfb->framebuffer = NULL;
 
     // Get all CoreGraphics displays covered by this X11 display.
     cgRect = CGRectMake(dfb->x, dfb->y, dfb->width, dfb->height);
@@ -251,6 +264,34 @@ CRSetupScreen(int index, ScreenPtr pScreen)
 
 
 /*
+ * CRScreenChanged
+ *  Configuration of displays has changed.
+ */
+static void
+CRScreenChanged(void)
+{
+    QuartzMessageServerThread(kXDarwinDisplayChanged, 0);
+}
+
+
+/*
+ * CRUpdateScreen
+ *  Update screen after configuation change.
+ */
+static void
+CRUpdateScreen(ScreenPtr pScreen)
+{
+    rootlessGlobalOffsetX = darwinMainScreenX;
+    rootlessGlobalOffsetY = darwinMainScreenY;
+
+    AppleWMSetScreenOrigin(WindowTable[pScreen->myNum]);
+
+    RootlessRepositionWindows(pScreen);
+    RootlessUpdateScreenPixmap(pScreen);
+}
+
+
+/*
  * CRInitInput
  *  Finalize CR specific setup.
  */
@@ -300,11 +341,14 @@ static QuartzModeProcsRec crModeProcs = {
     QuartzResumeXCursor,
     NULL,               // No capture or release in rootless mode
     NULL,
+    CRScreenChanged,
+    CRAddPseudoramiXScreens,
+    CRUpdateScreen,
     CRIsX11Window,
     NULL,               // Cocoa NSWindows hide themselves
     RootlessFrameForWindow,
     TopLevelParent,
-    NULL,		// No support for DRI surfaces
+    NULL,               // No support for DRI surfaces
     NULL
 };
 

@@ -84,6 +84,7 @@
 + (void)setModeWindow:(BOOL)newModeWindow;
 + (void)setStartupHelp:(BOOL)newStartupHelp;
 + (void)setSystemBeep:(BOOL)newSystemBeep;
++ (void)setEnableKeyEquivalents:(BOOL)newKeyEquivs;
 + (void)setXinerama:(BOOL)newXinerama;
 + (void)setAddToPath:(BOOL)newAddToPath;
 + (void)setAddToPathString:(NSString *)newAddToPathString;
@@ -110,6 +111,7 @@
 + (BOOL)modeWindow;
 + (BOOL)startupHelp;
 + (BOOL)systemBeep;
++ (BOOL)enableKeyEquivalents;
 + (BOOL)xinerama;
 + (BOOL)addToPath;
 + (NSString *)addToPathString;

@@ -1,11 +1,11 @@
-/* $XdotOrg$ */
+/* $XdotOrg: xc/programs/Xserver/hw/darwin/quartz/quartz.c,v 1.2 2004/04/23 19:15:17 eich Exp $ */
 /**************************************************************
  *
  * Quartz-specific support for the Darwin X Server
  *
  **************************************************************/
 /*
- * Copyright (c) 2001-2003 Greg Parker and Torrey T. Lyons.
+ * Copyright (c) 2001-2004 Greg Parker and Torrey T. Lyons.
  *                 All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
@@ -30,7 +30,7 @@
  * holders shall not be used in advertising or otherwise to promote the sale,
  * use or other dealings in this Software without prior written authorization.
  */
-/* $XFree86: xc/programs/Xserver/hw/darwin/quartz/quartz.c,v 1.13 2003/11/12 20:21:51 torrey Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/darwin/quartz/quartz.c,v 1.16 2004/07/02 01:30:33 torrey Exp $ */
 
 #include "quartzCommon.h"
 #include "quartz.h"
@@ -43,7 +43,9 @@
 
 // X headers
 #include "scrnintstr.h"
+#include "windowstr.h"
 #include "colormapst.h"
+#include "globals.h"
 
 // System headers
 #include <sys/types.h>
@@ -57,6 +59,7 @@ int                     quartzStartClients = 1;
 int                     quartzRootless = -1;
 int                     quartzUseSysBeep = 0;
 int                     quartzUseAGL = 1;
+int                     quartzEnableKeyEquivalents = 1;
 int                     quartzServerVisible = TRUE;
 int                     quartzServerQuitting = FALSE;
 int                     quartzScreenIndex = 0;
@@ -166,13 +169,78 @@ void DarwinModeInitInput(
 
 
 /*
+ * QuartzUpdateScreens
+ *  Adjust for screen arrangement changes.
+ */
+static void QuartzUpdateScreens(void)
+{
+    ScreenPtr pScreen;
+    WindowPtr pRoot;
+    int x, y, width, height, sx, sy;
+    xEvent e;
+
+    if (noPseudoramiXExtension || screenInfo.numScreens != 1)
+    {
+        /* FIXME: if not using Xinerama, we have multiple screens, and
+           to do this properly may need to add or remove screens. Which
+           isn't possible. So don't do anything. Another reason why
+           we default to running with Xinerama. */
+
+        return;
+    }
+
+    pScreen = screenInfo.screens[0];
+
+    PseudoramiXResetScreens();
+    quartzProcs->AddPseudoramiXScreens(&x, &y, &width, &height);
+
+    dixScreenOrigins[pScreen->myNum].x = x;
+    dixScreenOrigins[pScreen->myNum].y = y;
+    pScreen->mmWidth = pScreen->mmWidth * ((double) width / pScreen->width);
+    pScreen->mmHeight = pScreen->mmHeight * ((double) height / pScreen->height);
+    pScreen->width = width;
+    pScreen->height = height;
+
+    /* FIXME: should probably do something with RandR here. */
+
+    DarwinAdjustScreenOrigins(&screenInfo);
+    quartzProcs->UpdateScreen(pScreen);
+
+    sx = dixScreenOrigins[pScreen->myNum].x + darwinMainScreenX;
+    sy = dixScreenOrigins[pScreen->myNum].y + darwinMainScreenY;
+
+    /* Adjust the root window. */
+    pRoot = WindowTable[pScreen->myNum];
+    AppleWMSetScreenOrigin(pRoot);
+    pScreen->ResizeWindow(pRoot, x - sx, y - sy, width, height, NULL);
+    pScreen->PaintWindowBackground(pRoot, &pRoot->borderClip,  PW_BACKGROUND);
+//    QuartzIgnoreNextWarpCursor();
+    DefineInitialRootWindow(pRoot);
+
+    /* Send an event for the root reconfigure */
+    e.u.u.type = ConfigureNotify;
+    e.u.configureNotify.window = pRoot->drawable.id;
+    e.u.configureNotify.aboveSibling = None;
+    e.u.configureNotify.x = x - sx;
+    e.u.configureNotify.y = y - sy;
+    e.u.configureNotify.width = width;
+    e.u.configureNotify.height = height;
+    e.u.configureNotify.borderWidth = wBorderWidth(pRoot);
+    e.u.configureNotify.override = pRoot->overrideRedirect;
+    DeliverEvents(pRoot, &e, 1, NullWindow);
+
+    /* FIXME: Should we use RREditConnectionInfo(pScreen)? */
+}
+
+
+/*
  * QuartzShow
  *  Show the X server on screen. Does nothing if already shown.
  *  Calls mode specific screen resume to restore the X clip regions
  *  (if needed) and the X server cursor state.
  */
 static void QuartzShow(
-    int x,	// cursor location
+    int x,      // cursor location
     int y )
 {
     int i;
@@ -252,10 +320,10 @@ QuartzMessageServerThread(
     max_args = 4;
 
     if (argc > 0 && argc <= max_args) {
-	va_start (args, argc);
-	for (i = 0; i < argc; i++)
-	    argv[i] = (int) va_arg (args, int);
-	va_end (args);
+        va_start (args, argc);
+        for (i = 0; i < argc; i++)
+            argv[i] = (int) va_arg (args, int);
+        va_end (args);
     }
 
     DarwinEQEnqueue(&xe);
@@ -308,8 +376,8 @@ void DarwinModeProcessEvent(
         case kXDarwinControllerNotify:
             AppleWMSendEvent(AppleWMControllerNotify,
                              AppleWMControllerNotifyMask,
-			     xe->u.clientMessage.u.l.longs0,
-			     xe->u.clientMessage.u.l.longs1);
+                             xe->u.clientMessage.u.l.longs0,
+                             xe->u.clientMessage.u.l.longs1);
             break;
 
         case kXDarwinPasteboardNotify:
@@ -320,6 +388,9 @@ void DarwinModeProcessEvent(
             break;
 
         case kXDarwinDisplayChanged:
+            QuartzUpdateScreens();
+            break;
+
         case kXDarwinWindowState:
         case kXDarwinWindowMoved:
             // FIXME: Not implemented yet

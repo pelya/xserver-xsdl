@@ -1,10 +1,10 @@
-/* $XdotOrg$ */
+/* $XdotOrg: xc/programs/Xserver/hw/darwin/quartz/xpr/xprScreen.c,v 1.2 2004/04/23 19:16:52 eich Exp $ */
 /*
  * Xplugin rootless implementation screen functions
  */
 /*
  * Copyright (c) 2002 Apple Computer, Inc. All Rights Reserved.
- * Copyright (c) 2003 Torrey T. Lyons. All Rights Reserved.
+ * Copyright (c) 2004 Torrey T. Lyons. All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -28,7 +28,7 @@
  * holders shall not be used in advertising or otherwise to promote the sale,
  * use or other dealings in this Software without prior written authorization.
  */
-/* $XFree86: xc/programs/Xserver/hw/darwin/quartz/xpr/xprScreen.c,v 1.8 2003/11/12 20:21:52 torrey Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/darwin/quartz/xpr/xprScreen.c,v 1.11 2004/07/15 18:53:25 torrey Exp $ */
 
 #include "quartzCommon.h"
 #include "quartz.h"
@@ -57,41 +57,42 @@ eventHandler(unsigned int type, const void *arg,
     switch (type)
     {
     case XP_EVENT_DISPLAY_CHANGED:
-	QuartzMessageServerThread(kXDarwinDisplayChanged, 0);
-	break;
+        QuartzMessageServerThread(kXDarwinDisplayChanged, 0);
+        break;
 
     case XP_EVENT_WINDOW_STATE_CHANGED:
-	if (arg_size >= sizeof(xp_window_state_event))
+        if (arg_size >= sizeof(xp_window_state_event))
         {
-	    const xp_window_state_event *ws_arg = arg;
-	    QuartzMessageServerThread(kXDarwinWindowState, 2,
+            const xp_window_state_event *ws_arg = arg;
+
+            QuartzMessageServerThread(kXDarwinWindowState, 2,
                                       ws_arg->id, ws_arg->state);
-	}
-	break;
+        }
+        break;
 
     case XP_EVENT_WINDOW_MOVED:
-	if (arg_size == sizeof(xp_window_id))
-	{
-	    xp_window_id id = * (xp_window_id *) arg;
+        if (arg_size == sizeof(xp_window_id))
+        {
+            xp_window_id id = * (xp_window_id *) arg;
 
-	    QuartzMessageServerThread(kXDarwinWindowMoved, 1, id);
-	}
-	break;
+            QuartzMessageServerThread(kXDarwinWindowMoved, 1, id);
+        }
+        break;
 
     case XP_EVENT_SURFACE_DESTROYED:
     case XP_EVENT_SURFACE_CHANGED:
-	if (arg_size == sizeof(xp_surface_id))
-	{
-	    int kind;
+        if (arg_size == sizeof(xp_surface_id))
+        {
+            int kind;
 
-	    if (type == XP_EVENT_SURFACE_DESTROYED)
-		kind = AppleDRISurfaceNotifyDestroyed;
-	    else
-		kind = AppleDRISurfaceNotifyChanged;
+            if (type == XP_EVENT_SURFACE_DESTROYED)
+                kind = AppleDRISurfaceNotifyDestroyed;
+            else
+                kind = AppleDRISurfaceNotifyChanged;
 
-	    DRISurfaceNotify(*(xp_surface_id *) arg, kind);
-	}
-	break;
+            DRISurfaceNotify(*(xp_surface_id *) arg, kind);
+        }
+        break;
     }
 }
 
@@ -139,11 +140,12 @@ displayScreenBounds(CGDirectDisplayID id)
 
 
 /*
- * addPseudoramiXScreens
- *  Add a physical screen with PseudoramiX.
+ * xprAddPseudoramiXScreens
+ *  Add a single virtual screen encompassing all the physical screens
+ *  with PseudoramiX.
  */
 static void
-addPseudoramiXScreens(int *x, int *y, int *width, int *height)
+xprAddPseudoramiXScreens(int *x, int *y, int *width, int *height)
 {
     CGDisplayCount i, displayCount;
     CGDirectDisplayID *displayList = NULL;
@@ -286,7 +288,7 @@ xprAddScreen(int index, ScreenPtr pScreen)
     }
     else
     {
-        addPseudoramiXScreens(&dfb->x, &dfb->y, &dfb->width, &dfb->height);
+        xprAddPseudoramiXScreens(&dfb->x, &dfb->y, &dfb->width, &dfb->height);
     }
 
     /* Passing zero width (pitch) makes miCreateScreenResources set the
@@ -328,6 +330,23 @@ xprSetupScreen(int index, ScreenPtr pScreen)
 
 
 /*
+ * xprUpdateScreen
+ *  Update screen after configuation change.
+ */
+static void
+xprUpdateScreen(ScreenPtr pScreen)
+{
+    rootlessGlobalOffsetX = darwinMainScreenX;
+    rootlessGlobalOffsetY = darwinMainScreenY;
+
+    AppleWMSetScreenOrigin(WindowTable[pScreen->myNum]);
+
+    RootlessRepositionWindows(pScreen);
+    RootlessUpdateScreenPixmap(pScreen);
+}
+
+
+/*
  * xprInitInput
  *  Finalize xpr specific setup.
  */
@@ -358,6 +377,9 @@ static QuartzModeProcsRec xprModeProcs = {
     QuartzResumeXCursor,
     NULL,               // No capture or release in rootless mode
     NULL,
+    NULL,               // Xplugin sends screen change events directly
+    xprAddPseudoramiXScreens,
+    xprUpdateScreen,
     xprIsX11Window,
     xprHideWindows,
     RootlessFrameForWindow,

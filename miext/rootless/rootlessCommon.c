@@ -28,7 +28,7 @@
  * holders shall not be used in advertising or otherwise to promote the sale,
  * use or other dealings in this Software without prior written authorization.
  */
-/* $XFree86: xc/programs/Xserver/miext/rootless/rootlessCommon.c,v 1.4tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/miext/rootless/rootlessCommon.c,v 1.6 2004/07/02 01:30:33 torrey Exp $ */
 
 #include "rootlessCommon.h"
 
@@ -166,8 +166,8 @@ void RootlessStopDrawing(WindowPtr pWindow, Bool flush)
     }
 
     if (flush && winRec->is_reorder_pending) {
-	winRec->is_reorder_pending = FALSE;
-	RootlessReorderWindow(pWindow);
+        winRec->is_reorder_pending = FALSE;
+        RootlessReorderWindow(pWindow);
     }
 }
 
@@ -190,11 +190,11 @@ RootlessDamageRegion(WindowPtr pWindow, RegionPtr pRegion)
 
     pTop = TopLevelParent(pWindow);
     if (pTop == NULL)
-	return;
+        return;
 
     winRec = WINREC(pTop);
     if (winRec == NULL)
-	return;
+        return;
 
     /* We need to intersect the drawn region with the clip of the window
        to avoid marking places we didn't actually draw (which can cause
@@ -208,43 +208,43 @@ RootlessDamageRegion(WindowPtr pWindow, RegionPtr pRegion)
     b2 = REGION_EXTENTS(pScreen, pRegion);
 
     if (EXTENTCHECK(b1, b2)) {
-	/* Regions may overlap. */
+        /* Regions may overlap. */
 
-	if (REGION_NUM_RECTS(pRegion) == 1) {
-	    int in;
+        if (REGION_NUM_RECTS(pRegion) == 1) {
+            int in;
 
-	    /* Damaged region only has a single rect, so we can
-	       just compare that against the region */
+            /* Damaged region only has a single rect, so we can
+               just compare that against the region */
 
-	    in = RECT_IN_REGION(pScreen, &pWindow->borderClip,
+            in = RECT_IN_REGION(pScreen, &pWindow->borderClip,
                                 REGION_RECTS (pRegion));
-	    if (in == rgnIN) {
-		/* clip totally contains pRegion */
+            if (in == rgnIN) {
+            /* clip totally contains pRegion */
 
 #ifdef ROOTLESS_TRACK_DAMAGE
                 REGION_UNION(pScreen, &winRec->damage,
-                             &winRec->damage, (pRegion));
+                                 &winRec->damage, (pRegion));
 #else
-		SCREENREC(pScreen)->imp->DamageRects(winRec->wid,
+                SCREENREC(pScreen)->imp->DamageRects(winRec->wid,
                                 REGION_NUM_RECTS(pRegion),
-				REGION_RECTS(pRegion),
-				-winRec->x, -winRec->y);
+                                REGION_RECTS(pRegion),
+                                -winRec->x, -winRec->y);
 #endif
 
-		RootlessQueueRedisplay(pTop->drawable.pScreen);
-		goto out;
-	    }
-	    else if (in == rgnOUT) {
-		/* clip doesn't contain pRegion */
+                RootlessQueueRedisplay(pTop->drawable.pScreen);
+                goto out;
+            }
+            else if (in == rgnOUT) {
+                /* clip doesn't contain pRegion */
 
-		goto out;
-	    }
-	}
+                goto out;
+            }
+        }
 
-	/* clip overlaps pRegion, need to intersect */
+        /* clip overlaps pRegion, need to intersect */
 
-	REGION_NULL(pScreen, &clipped);
-	REGION_INTERSECT(pScreen, &clipped, &pWindow->borderClip, pRegion);
+        REGION_NULL(pScreen, &clipped);
+        REGION_INTERSECT(pScreen, &clipped, &pWindow->borderClip, pRegion);
 
 #ifdef ROOTLESS_TRACK_DAMAGE
         REGION_UNION(pScreen, &winRec->damage,
@@ -256,9 +256,9 @@ RootlessDamageRegion(WindowPtr pWindow, RegionPtr pRegion)
                         -winRec->x, -winRec->y);
 #endif
 
-	REGION_UNINIT(pScreen, &clipped);
+        REGION_UNINIT(pScreen, &clipped);
 
-	RootlessQueueRedisplay(pTop->drawable.pScreen);
+        RootlessQueueRedisplay(pTop->drawable.pScreen);
     }
 
 out:
@@ -291,7 +291,7 @@ RootlessDamageBox(WindowPtr pWindow, BoxPtr pBox)
 
     RootlessDamageRegion(pWindow, &region);
 
-    REGION_UNINIT(pWindow->drawable.pScreen, &region);	/* no-op */
+    REGION_UNINIT(pWindow->drawable.pScreen, &region);  /* no-op */
 }
 
 
@@ -318,7 +318,7 @@ RootlessDamageRect(WindowPtr pWindow, int x, int y, int w, int h)
 
     RootlessDamageRegion(pWindow, &region);
 
-    REGION_UNINIT(pWindow->drawable.pScreen, &region);	/* no-op */
+    REGION_UNINIT(pWindow->drawable.pScreen, &region);  /* no-op */
 }
 
 
@@ -350,11 +350,32 @@ RootlessRedisplay(WindowPtr pWindow)
         REGION_EMPTY(pScreen, &winRec->damage);
     }
 
-#else	/* !ROOTLESS_TRACK_DAMAGE */
+#else   /* !ROOTLESS_TRACK_DAMAGE */
 
     RootlessStopDrawing(pWindow, TRUE);
 
 #endif
+}
+
+
+/*
+ * RootlessRepositionWindows
+ *  Reposition all windows on a screen to their correct positions.
+ */
+void
+RootlessRepositionWindows(ScreenPtr pScreen)
+{
+    WindowPtr root = WindowTable[pScreen->myNum];
+    WindowPtr win;
+
+    if (root != NULL) {
+        RootlessRepositionWindow(root);
+
+        for (win = root->firstChild; win; win = win->nextSib) {
+            if (WINREC(win) != NULL)
+                RootlessRepositionWindow(win);
+        }
+    }
 }
 
 

@@ -1,10 +1,10 @@
-/* $XdotOrg$ */
+/* $XdotOrg: xc/programs/Xserver/miext/rootless/rootlessWindow.c,v 1.2 2004/04/23 19:54:27 eich Exp $ */
 /*
  * Rootless window management
  */
 /*
  * Copyright (c) 2001 Greg Parker. All Rights Reserved.
- * Copyright (c) 2002-2003 Torrey T. Lyons. All Rights Reserved.
+ * Copyright (c) 2002-2004 Torrey T. Lyons. All Rights Reserved.
  * Copyright (c) 2002 Apple Computer, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
@@ -29,7 +29,7 @@
  * holders shall not be used in advertising or otherwise to promote the sale,
  * use or other dealings in this Software without prior written authorization.
  */
-/* $XFree86: xc/programs/Xserver/miext/rootless/rootlessWindow.c,v 1.10 2003/11/13 20:26:31 torrey Exp $ */
+/* $XFree86: xc/programs/Xserver/miext/rootless/rootlessWindow.c,v 1.12 2004/07/02 01:30:33 torrey Exp $ */
 
 #include "rootlessCommon.h"
 #include "rootlessWindow.h"
@@ -1219,6 +1219,31 @@ RootlessResizeWindow(WindowPtr pWin, int x, int y,
 
 
 /*
+ * RootlessRepositionWindow
+ *  Called by the implementation when a window needs to be repositioned to
+ *  its correct location on the screen. This routine is typically needed
+ *  due to changes in the underlying window system, such as a screen layout
+ *  change.
+ */
+void
+RootlessRepositionWindow(WindowPtr pWin)
+{
+    RootlessWindowRec *winRec = WINREC(pWin);
+    ScreenPtr pScreen = pWin->drawable.pScreen;
+
+    if (winRec == NULL)
+        return;
+
+    RootlessStopDrawing(pWin, FALSE);
+    SCREENREC(pScreen)->imp->MoveFrame(winRec->wid, pScreen,
+                                       winRec->x + SCREEN_TO_GLOBAL_X,
+                                       winRec->y + SCREEN_TO_GLOBAL_Y);
+
+    RootlessReorderWindow(pWin);
+}
+
+
+/*
  * RootlessReparentWindow
  *  Called after a window has been reparented. Generally windows are not
  *  framed until they are mapped. However, a window may be framed early by the
@@ -1236,9 +1261,9 @@ RootlessReparentWindow(WindowPtr pWin, WindowPtr pPriorParent)
 
     /* Check that window is not top-level now, but used to be. */
     if (IsRoot(pWin) || IsRoot(pWin->parent)
-	|| IsTopLevel(pWin) || winRec == NULL)
+        || IsTopLevel(pWin) || winRec == NULL)
     {
-	goto out;
+        goto out;
     }
 
     /* If the formerly top-level window has a frame, we want to give the
@@ -1249,20 +1274,20 @@ RootlessReparentWindow(WindowPtr pWin, WindowPtr pPriorParent)
     assert(pTopWin != pWin);
 
     if (WINREC(pTopWin) != NULL) {
-	/* We're screwed. */
-	RootlessDestroyFrame(pWin, winRec);
+        /* We're screwed. */
+        RootlessDestroyFrame(pWin, winRec);
     } else {
-	if (!pTopWin->realized && pWin->realized) {
+        if (!pTopWin->realized && pWin->realized) {
             SCREENREC(pScreen)->imp->UnmapFrame(winRec->wid);
-	}
+        }
 
-	/* Switch the frame record from one to the other. */
+        /* Switch the frame record from one to the other. */
 
-	WINREC(pWin) = NULL;
-	WINREC(pTopWin) = winRec;
+        WINREC(pWin) = NULL;
+        WINREC(pTopWin) = winRec;
 
-	RootlessInitializeFrame(pTopWin, winRec);
-	RootlessReshapeFrame(pTopWin);
+        RootlessInitializeFrame(pTopWin, winRec);
+        RootlessReshapeFrame(pTopWin);
 
         SCREENREC(pScreen)->imp->ResizeFrame(winRec->wid, pScreen,
                                              winRec->x + SCREEN_TO_GLOBAL_X,
@@ -1274,8 +1299,8 @@ RootlessReparentWindow(WindowPtr pWin, WindowPtr pPriorParent)
             SCREENREC(pScreen)->imp->SwitchWindow(winRec, pWin);
         }
 
-	if (pTopWin->realized && !pWin->realized)
-	    winRec->is_reorder_pending = TRUE;
+        if (pTopWin->realized && !pWin->realized)
+            winRec->is_reorder_pending = TRUE;
     }
 
 out:
