@@ -30,6 +30,7 @@
 #include "fb.h"
 #ifdef MITSHM
 #include "shmint.h"
+static ShmFuncs shmFuncs = { NULL, xglShmPutImage };
 #endif
 #ifdef RENDER
 #include "glyphstr.h"
@@ -201,7 +202,7 @@ xglScreenInit (ScreenPtr        pScreen,
 	return FALSE;
 
 #ifdef MITSHM
-    ShmRegisterFuncs (pScreen, NULL);
+    ShmRegisterFuncs (pScreen, &shmFuncs);
 #endif
 
 #ifdef RENDER

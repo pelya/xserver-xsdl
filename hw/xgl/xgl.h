@@ -1206,6 +1206,28 @@ xglPushPixels (GCPtr	   pGC,
 	       int	   y);
 
 
+#ifdef MITSHM
+
+/* xglshm.c */
+
+void
+xglShmPutImage (DrawablePtr  pDrawable,
+		GCPtr	     pGC,
+		int	     depth,
+		unsigned int format,
+		int	     w,
+		int	     h,
+		int	     sx,
+		int	     sy,
+		int	     sw,
+		int	     sh,
+		int	     dx,
+		int	     dy,
+		char	     *data);
+
+#endif
+
+
 #ifdef RENDER
 
 /* xglcomp.c */

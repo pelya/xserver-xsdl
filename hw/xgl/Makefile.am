@@ -26,6 +26,7 @@ libxgl_a_SOURCES =     \
 	xglbstore.c    \
 	xglget.c       \
 	xglgc.c	       \
+	xglshm.c       \
 	xglcomp.c      \
 	xglpict.c      \
 	xglglyph.c     \
