@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright Â© 2003 Anders Carlsson
+ * Copyright © 2003-2004 Anders Carlsson
  *
  * Permission to use, copy, modify, distribute, and sell this software and its
  * documentation for any purpose is hereby granted without fee, provided that
@@ -59,6 +59,8 @@
 #define MGA_REG_SRCORG 		(0x2cb4)
 #define MGA_REG_DSTORG 		(0x2cb8)
 
+#define MGA_G4XX_DEVICE_ID	(0x0525)
+
 #define MGA_PW8 	(0)
 #define MGA_PW16 	(1)
 #define MGA_PW24 	(2)
@@ -66,6 +68,7 @@
 
 /* Drawing opcodes */
 #define MGA_OPCOD_TRAP	 (4)
+#define MGA_OPCOD_TEXTURE_TRAP	 (6)
 #define MGA_OPCOD_BITBLT (8)
 
 #define MGA_DWGCTL_SOLID	(1 << 11)
@@ -105,6 +108,10 @@ typedef struct _mgaScreenInfo {
 #define getMgaScreenInfo(kd) ((MgaScreenInfo *) ((kd)->screen->driver))
 #define mgaScreenInfo(kd)    MgaScreenInfo *mgas = getMgaScreenInfo(kd)
 
+
+VOL8 *mmio;
+
+
 Bool
 mgaMapReg (KdCardInfo *card, MgaCardInfo *mgac);
 
@@ -136,5 +143,26 @@ void
 mgaDrawFini (ScreenPtr pScreen);
 
 extern KdCardFuncs  mgaFuncs;
+
+
+void
+mgaWaitAvail (int n);
+
+void
+mgaWaitIdle (void);
+
+Bool
+mgaSetup (ScreenPtr pScreen, int dest_bpp, int wait);
+
+
+#if 0
+#define MGA_FALLBACK(x)		\
+do {				\
+	ErrorF x;		\
+	return FALSE;		\
+} while (0);
+#else
+#define MGA_FALLBACK(x) return FALSE;
+#endif
 
 #endif /* _MGA_H_ */

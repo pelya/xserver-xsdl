@@ -11,9 +11,10 @@ if TSLIB
 TSLIB_FLAG = -lts
 endif
 
-libmga_a_SOURCES = 	\
-	mgadraw.c	\
-	mga.c		\
+libmga_a_SOURCES = 		\
+	mgadraw.c		\
+	g400_composite.c	\
+	mga.c			\
 	mga.h	
 
 Xmga_SOURCES = \

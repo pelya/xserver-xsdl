@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright Â© 2003 Anders Carlsson
+ * Copyright © 2003-2004 Anders Carlsson
  *
  * Permission to use, copy, modify, distribute, and sell this software and its
  * documentation for any purpose is hereby granted without fee, provided that
@@ -26,6 +26,8 @@
 #include <config.h>
 #endif
 #include "mga.h"
+#include "g400_common.h"
+#include <unistd.h>
 
 CARD32 mgaRop[16] = {
     /* GXclear        */  MGA_ATYPE_RPL  | 0x00000000,	/* 0 */
@@ -46,12 +48,12 @@ CARD32 mgaRop[16] = {
     /* GXset          */  MGA_ATYPE_RPL  | 0x000f0000	/* 1 */
 };
 
-static VOL8 *mmio;
+VOL8 *mmio;
 int fifo_size;
 int pitch, src_pitch;
 int dir;
 
-static void
+void
 mgaWaitAvail (int n)
 {
     if (fifo_size < n) {
@@ -62,14 +64,14 @@ mgaWaitAvail (int n)
     fifo_size -= n;
 }
 
-static void
+void
 mgaWaitIdle (void)
 {
     while (MGA_IN32 (mmio, MGA_REG_STATUS) & 0x10000);
 }
 
-static Bool
-mgaSetup (ScreenPtr pScreen, int wait)
+Bool
+mgaSetup (ScreenPtr pScreen, int dest_bpp, int wait)
 {
   KdScreenPriv (pScreen);
   mgaScreenInfo (pScreenPriv);
@@ -83,7 +85,19 @@ mgaSetup (ScreenPtr pScreen, int wait)
     return FALSE;
 
   mgaWaitAvail (wait + 4);
-  MGA_OUT32 (mmio, MGA_REG_MACCESS, mgas->pw);
+  // Set the format of the destination pixmap
+  switch (dest_bpp) {
+  case 8:
+    MGA_OUT32 (mmio, MGA_REG_MACCESS, MGA_PW8);
+    break;
+  case 16:
+    MGA_OUT32 (mmio, MGA_REG_MACCESS, MGA_PW16);
+    break;
+  case 24:
+  case 32:
+    MGA_OUT32 (mmio, MGA_REG_MACCESS, MGA_PW24);
+    break;
+  }
   MGA_OUT32 (mmio, MGA_REG_CXBNDRY, 0xffff0000);
   MGA_OUT32 (mmio, MGA_REG_YTOP, 0x00000000);
   MGA_OUT32 (mmio, MGA_REG_YBOT, 0x007fffff);
@@ -94,38 +108,49 @@ mgaSetup (ScreenPtr pScreen, int wait)
 static Bool
 mgaPrepareSolid (PixmapPtr pPixmap, int alu, Pixel pm, Pixel fg)
 {
+
     KdScreenPriv(pPixmap->drawable.pScreen);
     int cmd;
     int dst_org;
-
+    // We must pad pm and fg depending on the format of the destination pixmap
+    switch (pPixmap->drawable.bitsPerPixel) {
+    case 16:
+        fg |= fg << 16;
+        pm |= pm << 16;
+        break;
+    case 8:
+        fg |= (fg << 8) | (fg << 16) | (fg << 24);
+        pm |= (pm << 8) | (pm << 16) | (pm << 24);
+        break;    
+    }
+    
     cmd = MGA_OPCOD_TRAP | MGA_DWGCTL_SOLID | MGA_DWGCTL_ARZERO | MGA_DWGCTL_SGNZERO |
 	MGA_DWGCTL_SHIFTZERO | mgaRop[alu];
 
     dst_org = (int)pPixmap->devPrivate.ptr - (int)pScreenPriv->screen->memory_base;
     
-    mgaSetup (pPixmap->drawable.pScreen, 5);
-
+    mgaSetup (pPixmap->drawable.pScreen, pPixmap->drawable.bitsPerPixel, 5);
     MGA_OUT32 (mmio, MGA_REG_DSTORG, dst_org);
     MGA_OUT32 (mmio, MGA_REG_PITCH, pPixmap->devKind / (pPixmap->drawable.bitsPerPixel >> 3));
     MGA_OUT32 (mmio, MGA_REG_DWGCTL, cmd);
     MGA_OUT32 (mmio, MGA_REG_FCOL, fg);
     MGA_OUT32 (mmio, MGA_REG_PLNWT, pm);
-    
+
     return TRUE;
 }
 
 static void
 mgaSolid (int x1, int y1, int x2, int y2)
 {
-    mgaWaitAvail (2);
-
-    MGA_OUT32 (mmio, MGA_REG_FXBNDRY, (x2 << 16) | (x1 & 0xffff));
-    MGA_OUT32 (mmio, MGA_REG_YDSTLEN | MGA_REG_EXEC, (y1 << 16) | (y2 - y1));
+  mgaWaitAvail (2);
+  MGA_OUT32 (mmio, MGA_REG_FXBNDRY, (x2 << 16) | (x1 & 0xffff));
+  MGA_OUT32 (mmio, MGA_REG_YDSTLEN | MGA_REG_EXEC, (y1 << 16) | (y2 - y1));
 }
 
 static void
 mgaDoneSolid (void)
 {
+  mgaWaitIdle();
 }
 
 #define BLIT_LEFT	1
@@ -135,7 +160,7 @@ static Bool
 mgaPrepareCopy (PixmapPtr pSrcPixmap, PixmapPtr pDstPixmap,
 		int dx, int dy, int alu, Pixel pm)
 {
-    KdScreenPriv(pSrcPixmap->drawable.pScreen);
+  KdScreenPriv(pSrcPixmap->drawable.pScreen);
 
     int cmd;
 
@@ -148,11 +173,15 @@ mgaPrepareCopy (PixmapPtr pSrcPixmap, PixmapPtr pDstPixmap,
     if (dx < 0)
 	dir |= BLIT_LEFT;
 
-    mgaSetup (pSrcPixmap->drawable.pScreen, 7);
+    mgaSetup (pSrcPixmap->drawable.pScreen,
+	      pDstPixmap->drawable.bitsPerPixel, 7);
 
-    MGA_OUT32 (mmio, MGA_REG_SRCORG, ((int)pSrcPixmap->devPrivate.ptr - (int)pScreenPriv->screen->memory_base));
-    MGA_OUT32 (mmio, MGA_REG_DSTORG, ((int)pDstPixmap->devPrivate.ptr - (int)pScreenPriv->screen->memory_base));
-    MGA_OUT32 (mmio, MGA_REG_PITCH, pDstPixmap->devKind / (pDstPixmap->drawable.bitsPerPixel >> 3));
+    MGA_OUT32 (mmio, MGA_REG_SRCORG, ((int)pSrcPixmap->devPrivate.ptr -
+				      (int)pScreenPriv->screen->memory_base));
+    MGA_OUT32 (mmio, MGA_REG_DSTORG, ((int)pDstPixmap->devPrivate.ptr -
+				      (int)pScreenPriv->screen->memory_base));
+    MGA_OUT32 (mmio, MGA_REG_PITCH, (pDstPixmap->devKind /
+				     (pDstPixmap->drawable.bitsPerPixel >> 3)));
     src_pitch = pSrcPixmap->devKind / (pSrcPixmap->drawable.bitsPerPixel >> 3);
 	
     MGA_OUT32 (mmio, MGA_REG_DWGCTL, cmd);
@@ -167,7 +196,7 @@ static void
 mgaCopy (int srcX, int srcY, int dstX, int dstY, int w, int h)
 {
     int start, end;
-    
+
     if (dir & BLIT_UP)
     {
 	srcY += h - 1;
@@ -192,6 +221,13 @@ mgaCopy (int srcX, int srcY, int dstX, int dstY, int w, int h)
 static void
 mgaDoneCopy (void)
 {
+  mgaWaitIdle();
+}
+
+static Bool
+mgaUploadToScreen(PixmapPtr pDst, char *src, int src_pitch) {
+  //fprintf(stderr,"Upload to Screen %p [%d]\n",src,src_pitch);
+  return TRUE;
 }
 
 KaaScreenInfoRec mgaKaa = {
@@ -203,14 +239,28 @@ KaaScreenInfoRec mgaKaa = {
     mgaCopy,
     mgaDoneCopy,
 
-    192, /* Offscreen byte alignment */
-    64, /* Offset pitch */
-    KAA_OFFSCREEN_PIXMAPS, /* Flags */
+    192, /* 192 Offscreen byte alignment */
+    128, /* Pitch alignment is in sets of 32 pixels, and we need to
+	    cover 32bpp, so 128 bytes */
+    KAA_OFFSCREEN_PIXMAPS /* Flags */
 };
 
 Bool
 mgaDrawInit (ScreenPtr pScreen)
 {
+    KdScreenPriv(pScreen);
+    KdCardInfo *card = pScreenPriv->card;
+        
+    if (card->attr.deviceID == MGA_G4XX_DEVICE_ID) {
+        mgaKaa.PrepareBlend=mgaPrepareBlend;
+	mgaKaa.Blend=mgaBlend;
+	mgaKaa.DoneBlend=mgaDoneBlend;
+	mgaKaa.PrepareComposite=mgaPrepareComposite;
+	mgaKaa.Composite=mgaComposite;
+	mgaKaa.DoneComposite=mgaDoneComposite;
+    }
+    //mgaKaa.UploadToScreen=mgaUploadToScreen;
+        
     if (!kaaDrawInit (pScreen, &mgaKaa))
 	return FALSE;
 
@@ -233,10 +283,8 @@ mgaDrawEnable (ScreenPtr pScreen)
       mgas->pw = MGA_PW16;
       break;
     case 24:
-      mgas->pw = MGA_PW24;
-      break;
     case 32:
-      mgas->pw = MGA_PW32;
+      mgas->pw = MGA_PW24;
       break;
     default:
       FatalError ("unsupported pixel format");
