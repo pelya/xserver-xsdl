@@ -6,8 +6,12 @@ XCOMM $XFree86$
 RENDERINCS=-I$(KDRIVE)/../../render -I$(EXTINCSRC)
 #endif
 
+#if BuildRandR
+RANDRINCS=-I$(KDRIVE)/../../randr -I$(EXTINCSRC)
+#endif
+
 KDINCS = -I$(KDRIVE) -I$(XBUILDINCDIR) -I$(FONTINCSRC) \
 	 -I$(KDRIVE)/../../fb -I$(KDRIVE)/../../mi \
 	 -I$(KDRIVE)/../../miext/shadow \
 	 -I$(KDRIVE)/../../include -I$(KDRIVE)/../../os \
-         -I$(EXTINCSRC) -I$(XINCLUDESRC) $(RENDERINCS)
+         -I$(EXTINCSRC) -I$(XINCLUDESRC) $(RENDERINCS) $(RANDRINCS)

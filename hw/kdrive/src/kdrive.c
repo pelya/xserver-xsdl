@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/kdrive.c,v 1.12 2001/03/30 02:15:20 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/kdrive.c,v 1.13 2001/05/23 03:29:44 keithp Exp $ */
 
 #include "kdrive.h"
 #ifdef PSEUDO8
@@ -105,6 +105,10 @@ KdSetRootClip (ScreenPtr pScreen, BOOL enable)
 	box.y1 = 0;
 	box.x2 = pScreen->width;
 	box.y2 = pScreen->height;
+	pWin->drawable.width = pScreen->width;
+	pWin->drawable.height = pScreen->height;
+	REGION_INIT (pScreen, &pWin->winSize, &box, 1);
+	REGION_INIT (pScreen, &pWin->borderSize, &box, 1);
 	REGION_RESET(pScreen, &pWin->borderClip, &box);
 	REGION_BREAK (pWin->drawable.pScreen, &pWin->clipList);
     }
