@@ -27,10 +27,98 @@
 #define _MGA_H_
 #include <vesa.h>
 
+#define MGA_REG_BASE(c)	    ((c)->attr.address[1])
+#define MGA_REG_SIZE(c)	    (0x4000)
+
+#define MGA_OUT32(mmio, a, v) (*(VOL32 *) ((mmio) + (a)) = (v))
+#define MGA_IN32(mmio, a) (*(VOL32 *) ((mmio) + (a)))
+
+#define MGA_REG_EXEC		(0x0100)
+#define MGA_REG_DWGCTL		(0x1c00)
+#define MGA_REG_PLNWT		(0x1c1c)
+#define MGA_REG_FCOL		(0x1c24)
+#define MGA_REG_MACCESS 	(0x1c04)
+#define MGA_REG_CXBNDRY		(0x1c80)
+#define MGA_REG_FXBNDRY		(0x1c84)
+#define MGA_REG_YDSTLEN		(0x1c88)
+#define MGA_REG_PITCH 		(0x1c8c)
+#define MGA_REG_YTOP		(0x1c98)
+#define MGA_REG_YBOT		(0x1c9c)
+#define MGA_REG_FIFOSTATUS 	(0x1e10)
+#define MGA_REG_STATUS	 	(0x1e14)
+#define MGA_REG_DSTORG 		(0x2cb8)
+
+#define MGA_PW8 	(0)
+#define MGA_PW16 	(1)
+#define MGA_PW24 	(2)
+#define MGA_PW32 	(3)
+
+/* Drawing opcodes */
+#define MGA_OPCOD_TRAP	(4)
+
+#define MGA_DWGCTL_SOLID	(1 << 11)
+#define MGA_DWGCTL_ARZERO	(1 << 12)
+#define MGA_DWGCTL_SGNZERO	(1 << 13)
+#define MGA_DWGCTL_SHIFTZERO	(1 << 14)
+
+
+typedef volatile CARD8	VOL8;
+typedef volatile CARD16	VOL16;
+typedef volatile CARD32	VOL32;
+			 
 typedef struct _mgaCardInfo {
     VesaCardPrivRec vesa;
+    CARD8 *reg_base;
+    int fifo_size;
 } MgaCardInfo;
+
+#define getMgaCardInfo(kd) ((MgaCardInfo *) ((kd)->card->driver))
+#define mgaCardInfo(kd)	MgaCardInfo *mgac = getMgaCardInfo(kd)
 
 typedef struct _mgaScreenInfo {
     VesaScreenPrivRec vesa;
+    CARD8 *screen;
+    CARD8 *off_screen;
+    int off_screen_size;
+
+    int pitch;
+    int pw;
+    
 } MgaScreenInfo;
+
+#define getMgaScreenInfo(kd) ((MgaScreenInfo *) ((kd)->screen->driver))
+#define mgaScreenInfo(kd)    MgaScreenInfo *mgas = getMgaScreenInfo(kd)
+
+Bool
+mgaMapReg (KdCardInfo *card, MgaCardInfo *mgac);
+
+void
+mgaUnmapReg (KdCardInfo *card, MgaCardInfo *mgac);
+
+void
+mgaSetMMIO (KdCardInfo *card, MgaCardInfo *mgac);
+
+void
+mgaResetMMIO (KdCardInfo *card, MgaCardInfo *mgac);
+
+Bool
+mgaDrawSetup (ScreenPtr pScreen);
+
+Bool
+mgaDrawInit (ScreenPtr pScreen);
+
+void
+mgaDrawEnable (ScreenPtr pScreen);
+
+void
+mgaDrawSync (ScreenPtr pScreen);
+
+void
+mgaDrawDisable (ScreenPtr pScreen);
+
+void
+mgaDrawFini (ScreenPtr pScreen);
+
+extern KdCardFuncs  mgaFuncs;
+
+#endif /* _MGA_H_ */
