@@ -475,12 +475,13 @@ ATIDrawInit(ScreenPtr pScreen)
 			atis->kaa.Blend = R128BlendDMA;
 			atis->kaa.DoneBlend = R128DoneBlendDMA;
 		} else if (!atic->is_r200) {
-			atis->kaa.PrepareBlend = RadeonPrepareBlend;
+			/* XXX: This code is broken so far. */
+			/*atis->kaa.PrepareBlend = RadeonPrepareBlend;
 			atis->kaa.Blend = RadeonBlend;
 			atis->kaa.DoneBlend = RadeonDoneBlend;
 			atis->kaa.PrepareComposite = RadeonPrepareComposite;
 			atis->kaa.Composite = RadeonComposite;
-			atis->kaa.DoneComposite = RadeonDoneComposite;
+			atis->kaa.DoneComposite = RadeonDoneComposite;*/
 		}
 	} else {
 #else
@@ -501,7 +502,7 @@ ATIDrawInit(ScreenPtr pScreen)
 	atis->kaa.flags = KAA_OFFSCREEN_PIXMAPS;
 	if (atic->is_radeon) {
 		atis->kaa.offscreenByteAlign = 1024;
-		atis->kaa.offscreenPitch = 1024;
+		atis->kaa.offscreenPitch = 64;
 	} else {
 		atis->kaa.offscreenByteAlign = 32;
 		/* Pitch alignment is in sets of 8 pixels, and we need to cover

@@ -69,6 +69,14 @@ static CARD32 RadeonBlendOp[] = {
 	RADEON_SRC_BLEND_GL_ONE_MINUS_DST_ALPHA	| RADEON_DST_BLEND_GL_ONE_MINUS_SRC_ALPHA,
 	/* Add */
 	RADEON_SRC_BLEND_GL_ONE			| RADEON_DST_BLEND_GL_ONE,
+	/* Saturate */
+	RADEON_SRC_BLEND_GL_SRC_ALPHA_SATURATE	| RADEON_DST_BLEND_GL_ONE,
+	/* DisjointClear */
+	RADEON_SRC_BLEND_GL_ZERO		| RADEON_DST_BLEND_GL_ZERO,
+	/* DisjointSrc */
+	RADEON_SRC_BLEND_GL_ONE			| RADEON_DST_BLEND_GL_ZERO,
+	/* DisjointDst */
+	RADEON_SRC_BLEND_GL_ZERO		| RADEON_DST_BLEND_GL_ONE,
 };
 
 /* Compute log base 2 of val. */
@@ -130,9 +138,9 @@ RadeonTextureSetup(PicturePtr pPict, PixmapPtr pPix, int unit)
 	txoffset = ((CARD8 *)pPix->devPrivate.ptr -
 	    pScreenPriv->screen->memory_base);
 
-	if ((txoffset & 0x3f) != 0)
+	if ((txoffset & 0x1f) != 0)
 		ATI_FALLBACK(("Bad texture offset 0x%x\n", txoffset));
-	if ((txpitch & 0x3f) != 0)
+	if ((txpitch & 0x1f) != 0)
 		ATI_FALLBACK(("Bad texture pitch 0x%x\n", txpitch));
 
 	/* RADEON_REG_PP_TXFILTER_0, RADEON_REG_PP_TXFORMAT_0,
@@ -173,6 +181,10 @@ RadeonPrepareComposite(int op, PicturePtr pSrcPicture, PicturePtr pMaskPicture,
 	/* Check for unsupported compositing operations. */
 	if (op >= sizeof(RadeonBlendOp) / sizeof(RadeonBlendOp[0]))
 		ATI_FALLBACK(("Unsupported Composite op 0x%x\n", op));
+	if (pSrcPicture->transform)
+		ATI_FALLBACK(("Source transform unsupported.\n"));
+	if (pMaskPicture && pMaskPicture->transform)
+		ATI_FALLBACK(("Mask transform unsupported.\n"));
 
 	accel_atis = atis;
 
