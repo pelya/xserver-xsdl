@@ -156,6 +156,7 @@ static void
 TslibDisable (int fd, void *closure)
 {
   ts_close(tsDev);
+  tsDev = NULL;
 }
 
 static int
@@ -237,7 +238,10 @@ TslibFini (void)
     {
 	if (mi->inputType == TsInputType)
 	{
-	    if(mi->driver) ts_close(tsDev);
+	    if(mi->driver) {
+		ts_close(tsDev);
+		tsDev = NULL;
+	    }
 	    mi->driver = 0;
 	    mi->inputType = 0;
 	}
