@@ -1033,11 +1033,9 @@ ATIDRICloseScreen(ScreenPtr pScreen)
 }
 
 void
-ATIDRIDMAStart(ScreenPtr pScreen)
+ATIDRIDMAStart(ATIScreenInfo *atis)
 {
-	KdScreenPriv(pScreen);
-	ATICardInfo(pScreenPriv);
-	ATIScreenInfo(pScreenPriv);
+	ATICardInfo *atic = atis->atic;
 	int ret;
 
 	if (atic->is_radeon)
@@ -1055,11 +1053,9 @@ ATIDRIDMAStart(ScreenPtr pScreen)
  * same for both R128 and Radeon, so we can just use the name of one of them.
  */
 void
-ATIDRIDMAStop(ScreenPtr pScreen)
+ATIDRIDMAStop(ATIScreenInfo *atis)
 {
-	KdScreenPriv(pScreen);
-	ATICardInfo(pScreenPriv);
-	ATIScreenInfo(pScreenPriv);
+	ATICardInfo *atic = atis->atic;
 	drmRadeonCPStop stop;
 	int ret;
 
@@ -1075,6 +1071,21 @@ ATIDRIDMAStop(ScreenPtr pScreen)
 		ret = drmCommandWrite(atic->drmFd, DRM_RADEON_CP_STOP, &stop,
 		    sizeof(drmRadeonCPStop));
 	}
+	atis->dma_started = FALSE;
+}
+
+void
+ATIDRIDMAReset(ATIScreenInfo *atis)
+{
+	ATICardInfo *atic = atis->atic;
+	int ret;
+
+	ret = drmCommandNone(atic->drmFd, atic->is_radeon ?
+	    DRM_RADEON_CP_RESET : DRM_R128_CCE_RESET);
+
+	if (ret != 0)
+		FatalError("Failed to reset CCE/CP\n");
+
 	atis->dma_started = FALSE;
 }
 

@@ -222,6 +222,12 @@ ATIEngineReset(ATIScreenInfo *atis)
 		OUTPLL(mmio, R128_REG_MCLK_CNTL, mclkcntl);
 		MMIO_OUT32(mmio, ATI_REG_CLOCK_CNTL_INDEX, clockcntlindex);
 	}
+#ifdef USE_DRI
+	if (atis->using_dri) {
+		ATIDRIDMAReset(atis);
+		ATIDRIDMAStart(atis);
+	}
+#endif
 }
 
 static void
@@ -937,7 +943,7 @@ ATIDMASetup(ScreenPtr pScreen)
 
 #ifdef USE_DRI
 	if (atis->using_dri)
-		ATIDRIDMAStart(pScreen);
+		ATIDRIDMAStart(atis);
 #endif /* USE_DRI */
 
 	if (!atis->using_dri) {
@@ -981,7 +987,7 @@ ATIDMATeardown(ScreenPtr pScreen)
 
 #ifdef USE_DRI
 	if (atis->using_dri)
-		ATIDRIDMAStop(pScreen);
+		ATIDRIDMAStop(atis);
 #endif /* USE_DRI */
 
 	if (atis->using_dma)

@@ -371,10 +371,13 @@ void
 ATIDRICloseScreen(ScreenPtr pScreen);
 
 void
-ATIDRIDMAStart(ScreenPtr pScreen);
+ATIDRIDMAStart(ATIScreenInfo *atis);
 
 void
-ATIDRIDMAStop(ScreenPtr pScreen);
+ATIDRIDMAStop(ATIScreenInfo *atis);
+
+void
+ATIDRIDMAReset(ATIScreenInfo *atis);
 
 void
 ATIDRIDispatchIndirect(ATIScreenInfo *atis, Bool discard);
