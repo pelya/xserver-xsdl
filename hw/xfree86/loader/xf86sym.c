@@ -1055,26 +1055,38 @@ LOOKUP xfree86LookupTab[] = {
 # endif
 #endif
 #if defined(__GNUC__)
-#ifndef __UNIXOS2__
+#if !defined(__UNIXOS2__) && !defined(Lynx)
     SYMFUNC(__div64)
 #endif
+#if !defined(Lynx)	/* FIXME: test on others than x86 and !3.1.0a/x86 */
     SYMFUNC(__divdf3)
+#endif
     SYMFUNC(__divdi3)
+#if !defined(Lynx)
     SYMFUNC(__divsf3)
     SYMFUNC(__divsi3)
+#endif
     SYMFUNC(__moddi3)
+#if !defined(Lynx)
     SYMFUNC(__modsi3)
-#ifndef __UNIXOS2__
+#endif
+#if !defined(__UNIXOS2__) && !defined(Lynx)
     SYMFUNC(__mul64)
 #endif
+#if !defined(Lynx)
     SYMFUNC(__muldf3)
+#endif
     SYMFUNC(__muldi3)
+#if !defined(Lynx)
     SYMFUNC(__mulsf3)
     SYMFUNC(__mulsi3)
     SYMFUNC(__udivdi3)
     SYMFUNC(__udivsi3)
+#endif
     SYMFUNC(__umoddi3)
+#if !defined(Lynx)
     SYMFUNC(__umodsi3)
+#endif
 #endif
 #if defined(__ia64__)
     SYMFUNC(_outw)
