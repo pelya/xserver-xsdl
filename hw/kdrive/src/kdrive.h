@@ -547,9 +547,6 @@ KdCheckOverlayCopyWindow  (WindowPtr pWin, DDXPointRec ptOldOrg, RegionPtr prgnS
 
 void
 KdScreenInitAsync (ScreenPtr pScreen);
-
-void
-KdCheckPaintWindow (WindowPtr pWin, RegionPtr pRegion, int what);
     
 extern const GCOps	kdAsyncPixmapGCOps;
 
@@ -672,12 +669,6 @@ void
 KdInitOutput (ScreenInfo    *pScreenInfo,
 	      int	    argc,
 	      char	    **argv);
-
-
-    
-void
-KdInitOutput (ScreenInfo *pScreenInfo,
-	      int argc, char **argv);
  
 void
 KdSetSubpixelOrder (ScreenPtr pScreen, Rotation randr);
