@@ -35,8 +35,8 @@
 #include <assert.h>
 
 struct x_hash_table_struct {
-    int bucket_index;
-    int total_keys;
+    unsigned int bucket_index;
+    unsigned int total_keys;
     x_list **buckets;
 
     x_hash_fun *hash_key;
@@ -72,28 +72,28 @@ static inline void
 hash_table_destroy_item (x_hash_table *h, void *k, void *v)
 {
     if (h->destroy_key != 0)
-	(*h->destroy_key) (k);
+        (*h->destroy_key) (k);
 
     if (h->destroy_value != 0)
-	(*h->destroy_value) (v);
+        (*h->destroy_value) (v);
 }
 
 static inline unsigned int
 hash_table_hash_key (x_hash_table *h, void *k)
 {
     if (h->hash_key != 0)
-	return (*h->hash_key) (k);
+        return (*h->hash_key) (k);
     else
-	return (unsigned int) k;
+        return (unsigned int) k;
 }
 
 static inline int
 hash_table_compare_keys (x_hash_table *h, void *k1, void *k2)
 {
     if (h->compare_keys == 0)
-	return k1 == k2;
+        return k1 == k2;
     else
-	return (*h->compare_keys) (k1, k2) == 0;
+        return (*h->compare_keys) (k1, k2) == 0;
 }
 
 static void
@@ -106,7 +106,7 @@ hash_table_split (x_hash_table *h)
     int i;
 
     if (h->bucket_index == N_BUCKET_SIZES - 1)
-	return;
+        return;
 
     old_size = hash_table_total_buckets (h);
     old = h->buckets;
@@ -118,22 +118,22 @@ hash_table_split (x_hash_table *h)
 
     if (new == 0)
     {
-	h->bucket_index--;
-	return;
+        h->bucket_index--;
+        return;
     }
 
     for (i = 0; i < old_size; i++)
     {
-	for (node = old[i]; node != 0; node = next)
-	{
-	    next = node->next;
-	    item = node->data;
+        for (node = old[i]; node != 0; node = next)
+        {
+            next = node->next;
+            item = node->data;
 
-	    b = hash_table_hash_key (h, ITEM_KEY (item)) % new_size;
+            b = hash_table_hash_key (h, ITEM_KEY (item)) % new_size;
 
-	    node->next = new[b];
-	    new[b] = node;
-	}
+            node->next = new[b];
+            new[b] = node;
+        }
     }
 
     h->buckets = new;
@@ -142,23 +142,23 @@ hash_table_split (x_hash_table *h)
 
 X_EXTERN x_hash_table *
 X_PFX (hash_table_new) (x_hash_fun *hash,
-			x_compare_fun *compare,
-			x_destroy_fun *key_destroy,
-			x_destroy_fun *value_destroy)
+                        x_compare_fun *compare,
+                        x_destroy_fun *key_destroy,
+                        x_destroy_fun *value_destroy)
 {
     x_hash_table *h;
 
     h = calloc (1, sizeof (x_hash_table));
     if (h == 0)
-	return 0;
+        return 0;
 
     h->bucket_index = 0;
     h->buckets = calloc (hash_table_total_buckets (h), sizeof (x_list *));
 
     if (h->buckets == 0)
     {
-	free (h);
-	return 0;
+        free (h);
+        return 0;
     }
     
     h->hash_key = hash;
@@ -181,13 +181,13 @@ X_PFX (hash_table_free) (x_hash_table *h)
 
     for (i = 0; i < n; i++)
     {
-	for (node = h->buckets[i]; node != 0; node = node->next)
-	{
-	    item = node->data;
-	    hash_table_destroy_item (h, ITEM_KEY (item), ITEM_VALUE (item));
-	    ITEM_FREE (item);
-	}
-	X_PFX (list_free) (h->buckets[i]);
+        for (node = h->buckets[i]; node != 0; node = node->next)
+        {
+            item = node->data;
+            hash_table_destroy_item (h, ITEM_KEY (item), ITEM_VALUE (item));
+            ITEM_FREE (item);
+        }
+        X_PFX (list_free) (h->buckets[i]);
     }
 
     free (h->buckets);
@@ -213,39 +213,39 @@ hash_table_modify (x_hash_table *h, void *k, void *v, int replace)
     hash_value = hash_table_hash_key (h, k);
 
     for (node = h->buckets[hash_value % hash_table_total_buckets (h)];
-	 node != 0; node = node->next)
+         node != 0; node = node->next)
     {
-	item = node->data;
+        item = node->data;
 
-	if (hash_table_compare_keys (h, ITEM_KEY (item), k))
-	{
-	    if (replace)
-	    {
-		hash_table_destroy_item (h, ITEM_KEY (item),
-					 ITEM_VALUE (item));
-		ITEM_KEY (item) = k;
-		ITEM_VALUE (item) = v;
-	    }
-	    else
-	    {
-		hash_table_destroy_item (h, k, ITEM_VALUE (item));
-		ITEM_VALUE (item) = v;
-	    }
-	    return;
-	}
+        if (hash_table_compare_keys (h, ITEM_KEY (item), k))
+        {
+            if (replace)
+            {
+                hash_table_destroy_item (h, ITEM_KEY (item),
+                                         ITEM_VALUE (item));
+                ITEM_KEY (item) = k;
+                ITEM_VALUE (item) = v;
+            }
+            else
+            {
+                hash_table_destroy_item (h, k, ITEM_VALUE (item));
+                ITEM_VALUE (item) = v;
+            }
+            return;
+        }
     }
 
     /* Key isn't already in the table. Insert it. */
 
     if (h->total_keys + 1
-	> hash_table_total_buckets (h) * SPLIT_THRESHOLD_FACTOR)
+        > hash_table_total_buckets (h) * SPLIT_THRESHOLD_FACTOR)
     {
-	hash_table_split (h);
+        hash_table_split (h);
     }
 
     hash_value = hash_value % hash_table_total_buckets (h);
     h->buckets[hash_value] = X_PFX (list_prepend) (h->buckets[hash_value],
-						   ITEM_NEW (k, v));
+                                                   ITEM_NEW (k, v));
     h->total_keys++;
 }
 
@@ -272,20 +272,20 @@ X_PFX (hash_table_remove) (x_hash_table *h, void *k)
     hash_value = hash_table_hash_key (h, k);
 
     for (ptr = &h->buckets[hash_value % hash_table_total_buckets (h)];
-	 *ptr != 0; ptr = &((*ptr)->next))
+         *ptr != 0; ptr = &((*ptr)->next))
     {
-	item = (*ptr)->data;
+        item = (*ptr)->data;
 
-	if (hash_table_compare_keys (h, ITEM_KEY (item), k))
-	{
-	    hash_table_destroy_item (h, ITEM_KEY (item), ITEM_VALUE (item));
-	    ITEM_FREE (item);
-	    item = *ptr;
-	    *ptr = item->next;
-	    X_PFX (list_free_1) (item);
-	    h->total_keys--;
-	    return;
-	}
+        if (hash_table_compare_keys (h, ITEM_KEY (item), k))
+        {
+            hash_table_destroy_item (h, ITEM_KEY (item), ITEM_VALUE (item));
+            ITEM_FREE (item);
+            item = *ptr;
+            *ptr = item->next;
+            X_PFX (list_free_1) (item);
+            h->total_keys--;
+            return;
+        }
     }
 }
 
@@ -300,28 +300,28 @@ X_PFX (hash_table_lookup) (x_hash_table *h, void *k, void **k_ret)
     hash_value = hash_table_hash_key (h, k);
 
     for (node = h->buckets[hash_value % hash_table_total_buckets (h)];
-	 node != 0; node = node->next)
+         node != 0; node = node->next)
     {
-	item = node->data;
+        item = node->data;
 
-	if (hash_table_compare_keys (h, ITEM_KEY (item), k))
-	{
-	    if (k_ret != 0)
-		*k_ret = ITEM_KEY (item);
+        if (hash_table_compare_keys (h, ITEM_KEY (item), k))
+        {
+            if (k_ret != 0)
+            *k_ret = ITEM_KEY (item);
 
-	    return ITEM_VALUE (item);
-	}
+            return ITEM_VALUE (item);
+        }
     }
 
     if (k_ret != 0)
-	*k_ret = 0;
+        *k_ret = 0;
 
     return 0;
 }
 
 X_EXTERN void
 X_PFX (hash_table_foreach) (x_hash_table *h,
-			    x_hash_foreach_fun *fun, void *data)
+                            x_hash_foreach_fun *fun, void *data)
 {
     int i, n;
     x_list *node, *item;
@@ -332,10 +332,10 @@ X_PFX (hash_table_foreach) (x_hash_table *h,
 
     for (i = 0; i < n; i++)
     {
-	for (node = h->buckets[i]; node != 0; node = node->next)
-	{
-	    item = node->data;
-	    (*fun) (ITEM_KEY (item), ITEM_VALUE (item), data);
-	}
+        for (node = h->buckets[i]; node != 0; node = node->next)
+        {
+            item = node->data;
+            (*fun) (ITEM_KEY (item), ITEM_VALUE (item), data);
+        }
     }
 }

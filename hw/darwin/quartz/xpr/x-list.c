@@ -75,8 +75,8 @@ X_PFX (list_free) (x_list *lst)
 
     for (; lst != NULL; lst = next)
     {
-	next = lst->next;
-	list_free_1 (lst);
+        next = lst->next;
+        list_free_1 (lst);
     }
 
     pthread_mutex_unlock (&freelist_lock);
@@ -91,16 +91,16 @@ X_PFX (list_prepend) (x_list *lst, void *data)
 
     if (freelist == NULL)
     {
-	x_list_block *b;
-	int i;
+        x_list_block *b;
+        int i;
 
-	b = malloc (sizeof (x_list_block));
+        b = malloc (sizeof (x_list_block));
 
-	for (i = 0; i < NODES_PER_BLOCK - 1; i++)
-	    b->l[i].next = &(b->l[i+1]);
-	b->l[i].next = NULL;
+        for (i = 0; i < NODES_PER_BLOCK - 1; i++)
+            b->l[i].next = &(b->l[i+1]);
+        b->l[i].next = NULL;
 
-	freelist = b->l;
+        freelist = b->l;
     }
 
     node = freelist;
@@ -120,10 +120,10 @@ X_PFX (list_append) (x_list *lst, void *data)
     x_list *head = lst;
 
     if (lst == NULL)
-	return X_PFX (list_prepend) (NULL, data);
+        return X_PFX (list_prepend) (NULL, data);
 
     while (lst->next != NULL)
-	lst = lst->next;
+        lst = lst->next;
 
     lst->next = X_PFX (list_prepend) (NULL, data);
 
@@ -137,10 +137,10 @@ X_PFX (list_reverse) (x_list *lst)
     
     while (lst != NULL)
     {
-	next = lst->next;
-	lst->next = head;
-	head = lst;
-	lst = next;
+        next = lst->next;
+        lst->next = head;
+        head = lst;
+        lst = next;
     }
 
     return head;
@@ -151,8 +151,8 @@ X_PFX (list_find) (x_list *lst, void *data)
 {
     for (; lst != NULL; lst = lst->next)
     {
-	if (lst->data == data)
-	    return lst;
+        if (lst->data == data)
+            return lst;
     }
 
     return NULL;
@@ -162,21 +162,40 @@ X_EXTERN x_list *
 X_PFX (list_nth) (x_list *lst, int n)
 {
     while (n-- > 0 && lst != NULL)
-	lst = lst->next;
+        lst = lst->next;
+
+    return lst;
+}
+
+X_EXTERN x_list *
+X_PFX (list_pop) (x_list *lst, void **data_ret)
+{
+    void *data = NULL;
+
+    if (lst != NULL)
+    {
+        x_list *tem = lst;
+        data = lst->data;
+        lst = lst->next;
+        X_PFX (list_free_1) (tem);
+    }
+
+    if (data_ret != NULL)
+        *data_ret = data;
 
     return lst;
 }
 
 X_EXTERN x_list *
 X_PFX (list_filter) (x_list *lst,
-		     int (*pred) (void *item, void *data), void *data)
+                     int (*pred) (void *item, void *data), void *data)
 {
     x_list *ret = NULL, *node;
 
     for (node = lst; node != NULL; node = node->next)
     {
-	if ((*pred) (node->data, data))
-	    ret = X_PFX (list_prepend) (ret, node->data);
+        if ((*pred) (node->data, data))
+            ret = X_PFX (list_prepend) (ret, node->data);
     }
 
     return X_PFX (list_reverse) (ret);
@@ -184,13 +203,13 @@ X_PFX (list_filter) (x_list *lst,
 
 X_EXTERN x_list *
 X_PFX (list_map) (x_list *lst,
-		  void *(*fun) (void *item, void *data), void *data)
+                  void *(*fun) (void *item, void *data), void *data)
 {
     x_list *ret = NULL, *node;
 
     for (node = lst; node != NULL; node = node->next)
     {
-	X_PFX (list_prepend) (ret, fun (node->data, data));
+        X_PFX (list_prepend) (ret, fun (node->data, data));
     }
 
     return X_PFX (list_reverse) (ret);
@@ -203,7 +222,7 @@ X_PFX (list_copy) (x_list *lst)
 
     for (; lst != NULL; lst = lst->next)
     {
-	copy = X_PFX (list_prepend) (copy, lst->data);
+        copy = X_PFX (list_prepend) (copy, lst->data);
     }
 
     return X_PFX (list_reverse) (copy);
@@ -216,15 +235,15 @@ X_PFX (list_remove) (x_list *lst, void *data)
 
     for (ptr = &lst; *ptr != NULL;)
     {
-	node = *ptr;
+        node = *ptr;
 
-	if (node->data == data)
-	{
-	    *ptr = node->next;
-	    X_PFX (list_free_1) (node);
-	}
-	else
-	    ptr = &((*ptr)->next);
+        if (node->data == data)
+        {
+            *ptr = node->next;
+            X_PFX (list_free_1) (node);
+        }
+        else
+            ptr = &((*ptr)->next);
     }
 
     return lst;
@@ -237,25 +256,25 @@ X_PFX (list_length) (x_list *lst)
 
     n = 0;
     for (; lst != NULL; lst = lst->next)
-	n++;
+        n++;
 
     return n;
 }
 
 X_EXTERN void
 X_PFX (list_foreach) (x_list *lst,
-		      void (*fun) (void *data, void *user_data),
-		      void *user_data)
+                      void (*fun) (void *data, void *user_data),
+                      void *user_data)
 {
     for (; lst != NULL; lst = lst->next)
     {
-	(*fun) (lst->data, user_data);
+        (*fun) (lst->data, user_data);
     }
 }
 
 static x_list *
 list_sort_1 (x_list *lst, int length,
-	     int (*less) (const void *, const void *))
+             int (*less) (const void *, const void *))
 {
     x_list *mid, *ptr;
     x_list *out_head, *out;
@@ -264,7 +283,7 @@ list_sort_1 (x_list *lst, int length,
     /* This is a standard (stable) list merge sort */
 
     if (length < 2)
-	return lst;
+        return lst;
 
     /* Calculate the halfway point. Split the list into two sub-lists. */
 
@@ -285,16 +304,16 @@ list_sort_1 (x_list *lst, int length,
     assert (lst != NULL && mid != NULL);
 
     if ((*less) (mid->data, lst->data))
-	out = out_head = mid, mid = mid->next;
+        out = out_head = mid, mid = mid->next;
     else
-	out = out_head = lst, lst = lst->next;
+        out = out_head = lst, lst = lst->next;
 
     while (lst != NULL && mid != NULL)
     {
         if ((*less) (mid->data, lst->data))
-	    out = out->next = mid, mid = mid->next;
+            out = out->next = mid, mid = mid->next;
         else
-	    out = out->next = lst, lst = lst->next;
+            out = out->next = lst, lst = lst->next;
     }
 
     if (lst != NULL)
