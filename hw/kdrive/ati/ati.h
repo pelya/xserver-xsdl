@@ -81,10 +81,6 @@ typedef volatile CARD8	VOL8;
 typedef volatile CARD16	VOL16;
 typedef volatile CARD32	VOL32;
 
-#define CAP_RADEON	0x1	/* Whether it's a Radeon vs R128 */
-#define CAP_R200	0x2	/* If CAP_RADEON, whether it's an R200 */
-#define CAP_NODRM	0x4	/* Set if no initialization for the DRM yet. */
-
 struct pci_id_entry {
 	CARD16 vendor;
 	CARD16 device;
@@ -121,7 +117,9 @@ typedef struct _ATICardInfo {
 	struct pci_id_entry *pci_id;
 	CARD8 *reg_base;
 	Bool is_radeon;
+	Bool is_r100;
 	Bool is_r200;
+	Bool is_r300;
 	char *busid;
 #ifdef USE_DRI
 	int drmFd;

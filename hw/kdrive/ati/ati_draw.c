@@ -504,7 +504,7 @@ ATIDrawInit(ScreenPtr pScreen)
 	if (atis->using_dri)
 		ATIDMAStart(pScreen);
 	else {
-		if (ATIDRIScreenInit(pScreen))
+		if (!atic->is_r300 && ATIDRIScreenInit(pScreen))
 			atis->using_dri = TRUE;
 	}
 #endif /* USE_DRI */

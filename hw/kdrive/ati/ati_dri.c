@@ -539,7 +539,7 @@ ATIDRIScreenInit(ScreenPtr pScreen)
 	pDRIInfo->busIdString = atic->busid;
 	if (atic->is_radeon) {
 		pDRIInfo->drmDriverName = "radeon";
-		if (atic->is_r200)
+		if (atic->is_r100)
 			pDRIInfo->clientDriverName = "radeon";
 		else
 			pDRIInfo->clientDriverName = "r200";
@@ -562,7 +562,7 @@ ATIDRIScreenInit(ScreenPtr pScreen)
 	 */
 	pDRIInfo->SAREASize = SAREA_MAX;
 
-	if (atic->is_radeon) {
+	if (!atic->is_radeon) {
 		pDRIInfo->devPrivateSize = sizeof(R128DRIRec);
 		devSareaSize = sizeof(R128SAREAPriv);
 	} else {
@@ -862,7 +862,7 @@ ATIDRICloseScreen(ScreenPtr pScreen)
 	}
 
 	/* De-allocate all kernel resources */
-	if (atic->is_radeon) {
+	if (!atic->is_radeon) {
 		memset(&drmR128Info, 0, sizeof(drmR128Init));
 		drmR128Info.func = DRM_R128_CLEANUP_CCE;
 		drmCommandWrite(atic->drmFd, DRM_R128_INIT, &drmR128Info,

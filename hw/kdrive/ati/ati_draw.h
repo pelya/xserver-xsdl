@@ -84,7 +84,7 @@ void RadeonSwitchTo3D(void);
 void
 ATIWaitIdle(void);
 
-#if 0
+#if 1
 #define ATI_FALLBACK(x)		\
 do {				\
 	ErrorF x;		\
