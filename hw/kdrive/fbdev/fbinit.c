@@ -76,7 +76,7 @@ InitInput (int argc, char **argv)
     KdInitInput (&Ps2MouseFuncs, &LinuxKeyboardFuncs);
 #endif
 #ifdef TOUCHSCREEN
-    kdInitTouchScreen (&TsFuncs);
+    KdInitTouchScreen (&TsFuncs);
 #endif
 }
 
