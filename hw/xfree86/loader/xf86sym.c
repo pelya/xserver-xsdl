@@ -608,6 +608,9 @@ LOOKUP xfree86LookupTab[] = {
 
     /* xf86cmap.c */
     SYMFUNC(xf86HandleColormaps)
+    SYMFUNC(xf86GetGammaRampSize)
+    SYMFUNC(xf86GetGammaRamp)
+    SYMFUNC(xf86ChangeGammaRamp)
 
     /* xf86xv.c */
     SYMFUNC(xf86XVScreenInit)
