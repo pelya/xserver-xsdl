@@ -94,7 +94,7 @@
  *  Chisato Yamauchi(cyamauch@phyas.aichi-edu.ac.jp)
  */
 /* $XConsortium: xf86config.c /main/21 1996/10/28 05:43:57 kaleb $ */
-/* $XdotOrg: xc/programs/Xserver/hw/xfree86/xf86config/xorgconfig.c,v 1.5 2004/08/11 20:25:13 krh Exp $ */
+/* $XdotOrg: xc/programs/Xserver/hw/xfree86/xf86config/xorgconfig.c,v 1.6 2004/08/13 23:57:38 alanc Exp $ */
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -241,7 +241,7 @@ char *temp_dir = "";
 int card_selected;	/* Card selected from database. */
 
 
-static void write_XF86Config(char *filename);
+static int write_XF86Config(char *filename);
 
 
 /*
@@ -1370,7 +1370,7 @@ static int exists_dir(char *name) {
 	return S_ISDIR(sbuf.st_mode) ? 1 : 0;
 }
 
-static void 
+static int 
 screen_configuration(void) {
 	int i, c/*, np*/;
 	char s[80];
@@ -1533,8 +1533,8 @@ screen_configuration(void) {
 		config_virtualy8bpp = 400;
 	}
 	else {
-		printf("Fatal error: Invalid amount of video memory.\n");
-		exit(-1);
+		printf("Invalid amount of video memory. Please try again\n");
+		return(1);
 	}
 
 #if 0
@@ -1821,6 +1821,7 @@ skipclockprobing:
 		if (answerisyes(s))
 			config_virtual = 1;
 	}
+	return(0);
 }
 
 static char *defaultdepthtext = 
@@ -2523,7 +2524,7 @@ write_fontpath_section(FILE *f)
 	}
 }
 
-static void 
+static int 
 write_XF86Config(char *filename)
 {
 	FILE *f;
@@ -2539,7 +2540,7 @@ write_XF86Config(char *filename)
 		if (getuid() != 0)
 			printf("Maybe you need to be root to write to the specified directory?\n");
 #endif
-		exit(-1);
+		return(1);
 	}
 
 	fprintf(f, "%s", XF86Config_firstchunk_text);
@@ -2732,6 +2733,7 @@ write_XF86Config(char *filename)
 	fprintf(f, serverlayout_section_text2);
 
         fclose(f);
+	return(0);
 }
 
 static char *
@@ -2952,7 +2954,7 @@ main(int argc, char *argv[]) {
 
 	emptylines();
 
- 	screen_configuration();
+ 	while(screen_configuration()){};
 
 	emptylines();
 
@@ -2960,7 +2962,7 @@ main(int argc, char *argv[]) {
 
 	emptylines();
 
-	write_XF86Config(ask_XF86Config_location());
+	while(write_XF86Config(ask_XF86Config_location())){};
 
 	printf("%s", finalcomment_text);
 
