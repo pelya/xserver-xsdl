@@ -419,6 +419,7 @@ LOOKUP xfree86LookupTab[] = {
     SYMFUNC(xf86AddEnabledDevice)
     SYMFUNC(xf86RemoveEnabledDevice)
     SYMFUNC(xf86InterceptSignals)
+    SYMFUNC(xf86InterceptSigIll)
     SYMFUNC(xf86EnableVTSwitch)
 
     /* xf86Helper.c */
