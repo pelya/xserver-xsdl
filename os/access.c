@@ -1,5 +1,5 @@
 /* $Xorg: access.c,v 1.5 2001/02/09 02:05:23 xorgcvs Exp $ */
-/* $XdotOrg$ */
+/* $XdotOrg: xc/programs/Xserver/os/access.c,v 1.1.4.3.2.3 2004/03/22 11:57:11 ago Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -88,6 +88,9 @@ SOFTWARE.
 #include <netdnet/dnetdb.h>
 #endif
 
+#ifdef HAS_GETPEERUCRED
+# include <ucred.h>
+#endif
 
 #if defined(DGUX)
 #include <sys/ioctl.h>
@@ -1365,12 +1368,14 @@ Bool LocalClient(ClientPtr client)
 int
 LocalClientCred(ClientPtr client, int *pUid, int *pGid)
 {
-#if defined(HAS_GETPEEREID) || defined(SO_PEERCRED)
+#if defined(HAS_GETPEEREID) || defined(HAS_GETPEERUCRED) || defined(SO_PEERCRED)
     int fd;
     XtransConnInfo ci;
 #ifdef HAS_GETPEEREID
     uid_t uid;
     gid_t gid;
+#elif defined(HAS_GETPEERUCRED)
+    ucred_t *peercred = NULL;
 #elif defined(SO_PEERCRED)
     struct ucred peercred;
     socklen_t so_len = sizeof(peercred);
@@ -1379,10 +1384,15 @@ LocalClientCred(ClientPtr client, int *pUid, int *pGid)
     if (client == NULL)
 	return -1;
     ci = ((OsCommPtr)client->osPrivate)->trans_conn;
-    /* We can only determine peer credentials for Unix domain sockets */
+#if !(defined(sun) && defined(HAS_GETPEERUCRED))
+    /* Most implementations can only determine peer credentials for Unix 
+     * domain sockets - Solaris getpeerucred can work with a bit more, so 
+     * we just let it tell us if the connection type is supported or not
+     */
     if (!_XSERVTransIsLocal(ci)) {
 	return -1;
     }
+#endif
     fd = _XSERVTransGetConnectionNumber(ci);
 #ifdef HAS_GETPEEREID
     if (getpeereid(fd, &uid, &gid) == -1) 
@@ -1391,6 +1401,15 @@ LocalClientCred(ClientPtr client, int *pUid, int *pGid)
 	    *pUid = uid;
     if (pGid != NULL)
 	    *pGid = gid;
+    return 0;
+#elif defined(HAS_GETPEERUCRED)
+    if (getpeerucred(fd, &peercred) < 0)
+    	return -1;
+    if (pUid != NULL)
+	*pUid = ucred_geteuid(peercred);
+    if (pGid != NULL)
+	*pGid = ucred_getegid(peercred);
+    ucred_free(peercred);
     return 0;
 #elif defined(SO_PEERCRED)
     if (getsockopt(fd, SOL_SOCKET, SO_PEERCRED, &peercred, &so_len) == -1) 
