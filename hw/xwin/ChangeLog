@@ -1,3 +1,10 @@
+2004-12-08  Alexander Gottwald  <ago at freedesktop dot org>
+
+	* InitOutput.c:
+	* winprocarg.c:
+	Added support for placing the main window with the @<monitor#>.
+	Patch by Mark Fisher, small changes by Alexander Gottwald
+	
 2004-12-06  Alexander Gottwald  <ago at freedesktop dot org>
 
 	* XWin.rc:
@@ -43,6 +50,15 @@
 	* winconfig.c:
 	Fix warning about undefined macro max
 	
+2004-12-04  Earle Philhower
+
+	* InitOutput.c:
+	* win.h:
+	* wincreatewnd.c:
+	* winprocarg.c:
+	Optional position -screen parameter (-screen n WxH+X+Y or 
+	-screen n W H X Y)
+
 2004-12-03  Alexander Gottwald  <ago at freedesktop dot org>
 
 	* windialogs.c:
@@ -129,6 +145,11 @@
 	* winwndproc.c: (winWindowProc):
 	Bufzilla #1802, http://freedesktop.org/bugzilla/show_bug.cgi?id=1802
 	Added mingw (Win32) port     
+
+2004-11-11  Alexander Gottwald  <ago at freedesktop dot org>
+
+	* winconfig.c:
+	added keyboard layout "French (Switzerland)"
 
 2004-11-06  Alexander Gottwald  <ago at freedesktop dot org>
 

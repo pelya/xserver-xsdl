@@ -142,6 +142,8 @@ winCreateBoundingWindowWindowed (ScreenPtr pScreen)
   winScreenInfo		*pScreenInfo = pScreenPriv->pScreenInfo;
   int			iWidth = pScreenInfo->dwUserWidth;
   int			iHeight = pScreenInfo->dwUserHeight;
+  int                   iPosX;
+  int                   iPosY;
   HWND			*phwnd = &pScreenPriv->hwndScreen;
   WNDCLASS		wc;
   RECT			rcClient, rcWorkArea;
@@ -192,6 +194,18 @@ winCreateBoundingWindowWindowed (ScreenPtr pScreen)
 
   /* Adjust for auto-hide taskbars */
   winAdjustForAutoHide (&rcWorkArea);
+
+  /* Did the user specify a position? */
+  if (pScreenInfo->fUserGavePosition)
+    {
+      iPosX = pScreenInfo->dwInitialX;
+      iPosY = pScreenInfo->dwInitialY;
+    }
+  else
+    {
+      iPosX = rcWorkArea.left;
+      iPosY = rcWorkArea.top;
+    }
 
   /* Did the user specify a height and width? */
   if (pScreenInfo->fUserGaveHeightAndWidth)
@@ -314,8 +328,8 @@ winCreateBoundingWindowWindowed (ScreenPtr pScreen)
 			    WINDOW_CLASS,	/* Class name */
 			    szTitle,		/* Window name */
 			    dwWindowStyle,
-			    rcWorkArea.left,	/* Horizontal position */
-			    rcWorkArea.top,	/* Vertical position */
+			    iPosX,	        /* Horizontal position */
+			    iPosY,	        /* Vertical position */
 			    iWidth,		/* Right edge */
 			    iHeight,		/* Bottom edge */
 			    (HWND) NULL,	/* No parent or owner window */

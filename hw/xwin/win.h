@@ -391,6 +391,11 @@ typedef struct
   DWORD			dwHeight_mm;
   DWORD			dwPaddedWidth;
 
+  /* Did the user specify a screen position? */
+  Bool			fUserGavePosition;
+  DWORD                 dwInitialX;
+  DWORD                 dwInitialY;
+
   /*
    * dwStride is the number of whole pixels that occupy a scanline,
    * including those pixels that are not displayed.  This is basically

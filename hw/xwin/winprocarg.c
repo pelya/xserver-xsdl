@@ -55,6 +55,17 @@ extern Bool			g_fNoHelpMessageBox;
 extern Bool			g_fSoftwareCursor;
 extern Bool			g_fSilentDupError;
 
+/* globals required by callback function for monitor information */
+struct GetMonitorInfoData {
+    int  requestedMonitor;
+    int  monitorNum;
+    Bool bUserSpecifiedMonitor;
+    Bool bMonitorSpecifiedExists;
+    int  monitorOffsetX;
+    int  monitorOffsetY;
+    int  monitorHeight;
+    int  monitorWidth;
+};
 
 /*
  * Function prototypes
@@ -73,6 +84,7 @@ void OsVendorVErrorF (const char *pszFormat, va_list va_args);
 void
 winInitializeDefaultScreens (void);
 
+wBOOL CALLBACK getMonitorInfo(HMONITOR hMonitor, HDC hdc, LPRECT rect, LPARAM data);
 
 /*
  * Process arguments on the command line
@@ -115,6 +127,7 @@ winInitializeDefaultScreens (void)
       g_ScreenInfo[i].dwUserHeight = dwHeight;
       g_ScreenInfo[i].fUserGaveHeightAndWidth
 	=  WIN_DEFAULT_USER_GAVE_HEIGHT_AND_WIDTH;
+      g_ScreenInfo[i].fUserGavePosition = FALSE;
       g_ScreenInfo[i].dwBPP = WIN_DEFAULT_BPP;
       g_ScreenInfo[i].dwClipUpdatesNBoxes = WIN_DEFAULT_CLIP_UPDATES_NBOXES;
 #ifdef XWIN_EMULATEPSEUDO
@@ -254,7 +267,8 @@ ddxProcessArgument (int argc, char *argv[], int i)
     {
       int		iArgsProcessed = 1;
       int		nScreenNum;
-      int		iWidth, iHeight;
+      int		iWidth, iHeight, iX, iY;
+      int		iMonitor;
 
 #if CYGDEBUG
       winDebug ("ddxProcessArgument - screen - argc: %d i: %d\n",
@@ -279,8 +293,40 @@ ddxProcessArgument (int argc, char *argv[], int i)
 	  return 0;
         }
 
+	  /* look for @m where m is monitor number */
+	  if (i + 2 < argc
+		  && 1 == sscanf(argv[i + 2], "@%d", (int *) &iMonitor)) 
+      {
+        struct GetMonitorInfoData data;
+        memset(&data, 0, sizeof(data));
+        data.requestedMonitor = iMonitor;
+		EnumDisplayMonitors(NULL, NULL, getMonitorInfo, (LPARAM) &data);
+		if (data.bMonitorSpecifiedExists == TRUE) 
+        {
+		  winErrorFVerb(2, "ddxProcessArgument - screen - Found Valid ``@Monitor'' = %d arg\n", iMonitor);
+		  iArgsProcessed = 3;
+		  g_ScreenInfo[nScreenNum].fUserGaveHeightAndWidth = FALSE;
+		  g_ScreenInfo[nScreenNum].fUserGavePosition = TRUE;
+		  g_ScreenInfo[nScreenNum].dwWidth = data.monitorWidth;
+		  g_ScreenInfo[nScreenNum].dwHeight = data.monitorHeight;
+		  g_ScreenInfo[nScreenNum].dwUserWidth = data.monitorWidth;
+		  g_ScreenInfo[nScreenNum].dwUserHeight = data.monitorHeight;
+		  g_ScreenInfo[nScreenNum].dwInitialX = data.monitorOffsetX;
+		  g_ScreenInfo[nScreenNum].dwInitialY = data.monitorOffsetY;
+		}
+		else 
+        {
+		  /* monitor does not exist, error out */
+		  ErrorF ("ddxProcessArgument - screen - Invalid monitor number %d\n",
+				  iMonitor);
+		  UseMsg ();
+		  exit (0);
+		  return 0;
+		}
+	  }
+
       /* Look for 'WxD' or 'W D' */
-      if (i + 2 < argc
+      else if (i + 2 < argc
 	  && 2 == sscanf (argv[i + 2], "%dx%d",
 			  (int *) &iWidth,
 			  (int *) &iHeight))
@@ -292,6 +338,68 @@ ddxProcessArgument (int argc, char *argv[], int i)
 	  g_ScreenInfo[nScreenNum].dwHeight = iHeight;
 	  g_ScreenInfo[nScreenNum].dwUserWidth = iWidth;
 	  g_ScreenInfo[nScreenNum].dwUserHeight = iHeight;
+	  /* Look for WxD+X+Y */
+	  if (2 == sscanf (argv[i + 2], "%*dx%*d+%d+%d",
+			   (int *) &iX,
+			   (int *) &iY))
+	  {
+	    winErrorFVerb (2, "ddxProcessArgument - screen - Found ``X+Y'' arg\n");
+	    g_ScreenInfo[nScreenNum].fUserGavePosition = TRUE;
+	    g_ScreenInfo[nScreenNum].dwInitialX = iX;
+	    g_ScreenInfo[nScreenNum].dwInitialY = iY;
+
+		/* look for WxD+X+Y@m where m is monitor number. take X,Y to be offsets from monitor's root position */
+		if (1 == sscanf (argv[i + 2], "%*dx%*d+%*d+%*d@%d",
+						 (int *) &iMonitor)) 
+        {
+          struct GetMonitorInfoData data;
+          memset(&data, 0, sizeof(data));
+          data.requestedMonitor = iMonitor;
+		  EnumDisplayMonitors(NULL, NULL, getMonitorInfo, (LPARAM) &data);
+		  if (data.bMonitorSpecifiedExists == TRUE) 
+          {
+			g_ScreenInfo[nScreenNum].dwInitialX += data.monitorOffsetX;
+			g_ScreenInfo[nScreenNum].dwInitialY += data.monitorOffsetY;
+		  }
+		  else 
+          {
+			/* monitor does not exist, error out */
+			ErrorF ("ddxProcessArgument - screen - Invalid monitor number %d\n",
+					iMonitor);
+			UseMsg ();
+			exit (0);
+			return 0;
+		  }
+
+		}
+	  }
+
+	  /* look for WxD@m where m is monitor number */
+	  else if (1 == sscanf(argv[i + 2], "%*dx%*d@%d",
+						   (int *) &iMonitor)) 
+      {
+        struct GetMonitorInfoData data;
+        memset(&data, 0, sizeof(data));
+        data.requestedMonitor = iMonitor;
+		EnumDisplayMonitors(NULL, NULL, getMonitorInfo, (LPARAM) &data);
+		if (data.bMonitorSpecifiedExists == TRUE) 
+        {
+		  winErrorFVerb (2, "ddxProcessArgument - screen - Found Valid ``@Monitor'' = %d arg\n", iMonitor);
+		  g_ScreenInfo[nScreenNum].fUserGavePosition = TRUE;
+		  g_ScreenInfo[nScreenNum].dwInitialX = data.monitorOffsetX;
+		  g_ScreenInfo[nScreenNum].dwInitialY = data.monitorOffsetY;
+		}
+		else 
+        {
+		  /* monitor does not exist, error out */
+		  ErrorF ("ddxProcessArgument - screen - Invalid monitor number %d\n",
+				  iMonitor);
+		  UseMsg ();
+		  exit (0);
+		  return 0;
+		}
+
+	  }
 	}
       else if (i + 3 < argc
 	       && 1 == sscanf (argv[i + 2], "%d",
@@ -306,6 +414,18 @@ ddxProcessArgument (int argc, char *argv[], int i)
 	  g_ScreenInfo[nScreenNum].dwHeight = iHeight;
 	  g_ScreenInfo[nScreenNum].dwUserWidth = iWidth;
 	  g_ScreenInfo[nScreenNum].dwUserHeight = iHeight;
+	  if (i + 5 < argc
+	      && 1 == sscanf (argv[i + 4], "%d",
+			      (int *) &iX)
+	      && 1 == sscanf (argv[i + 5], "%d",
+			      (int *) &iY))
+	  {
+	    winErrorFVerb (2, "ddxProcessArgument - screen - Found ``X Y'' arg\n");
+	    iArgsProcessed = 6;
+	    g_ScreenInfo[nScreenNum].fUserGavePosition = TRUE;
+	    g_ScreenInfo[nScreenNum].dwInitialX = iX;
+	    g_ScreenInfo[nScreenNum].dwInitialY = iY;
+	  }
 	}
       else
 	{
@@ -1370,4 +1490,25 @@ winLogVersionInfo (void)
   ErrorF ("Vendor: %s\n", VENDOR_STRING);
   ErrorF ("Release: %s\n\n", VERSION_STRING);
   ErrorF ("Contact: %s\n\n", VENDOR_CONTACT);
+}
+
+/*
+ * getMonitorInfo - callback function used to return information from the enumeration of monitors attached
+ */
+
+wBOOL CALLBACK getMonitorInfo(HMONITOR hMonitor, HDC hdc, LPRECT rect, LPARAM _data) 
+{
+  struct GetMonitorInfoData* data = (struct GetMonitorInfoData*)_data;
+  // only get data for monitor number specified in <data>
+  data->monitorNum++;
+  if (data->monitorNum == data->requestedMonitor) 
+  {
+	data->bMonitorSpecifiedExists = TRUE;
+	data->monitorOffsetX = rect->left;
+	data->monitorOffsetY = rect->top;
+	data->monitorHeight  = rect->bottom - rect->top;
+	data->monitorWidth   = rect->right  - rect->left;
+    return FALSE;
+  }
+  return TRUE;
 }

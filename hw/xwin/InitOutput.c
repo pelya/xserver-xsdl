@@ -747,9 +747,15 @@ winUseMsg (void)
 	  "\tSpecify an optional refresh rate to use in fullscreen mode\n"
 	  "\twith a DirectDraw engine.\n");
 
-  ErrorF ("-screen scr_num [width height]\n"
+  ErrorF ("-screen scr_num [width height [x y] | [[WxH[+X+Y]][@m]] ]\n"
 	  "\tEnable screen scr_num and optionally specify a width and\n"
-	  "\theight for that screen.\n");
+	  "\theight and initial position for that screen. Additionally\n"
+	  "\ta monitor number can be specified to start the server on,\n"
+	  "\tat which point, all coordinates become relative to that\n"
+      "\tmonitor. Examples:\n"
+      "\t -screen 0 800x600+100+100@2 ; 2nd monitor offset 100,100 size 800x600\n"
+      "\t -screen 0 1024x768@3        ; 3rd monitor size 1024x768\n"
+      "\t -screen 0 @1 ; on 1st monitor using its full resolution (the default)\n");
 
   ErrorF ("-lesspointer\n"
 	  "\tHide the windows mouse pointer when it is over an inactive\n"
