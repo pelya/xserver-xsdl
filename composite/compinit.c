@@ -253,9 +253,6 @@ compAddAlternateVisuals (ScreenPtr pScreen, CompScreenPtr cs)
 	visual->offsetRed   = pPictFormat->direct.red;
 	visual->offsetGreen = pPictFormat->direct.green;
 	visual->offsetBlue  = pPictFormat->direct.blue;
-	visual->alphaMask = (((unsigned long) pPictFormat->direct.alphaMask) << 
-			     pPictFormat->direct.alpha);
-	visual->offsetAlpha = pPictFormat->direct.alpha;
 	/*
 	 * follow GLX and set nplanes to just the bits
 	 * used for the RGB value, not A

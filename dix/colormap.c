@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/dix/colormap.c,v 1.2.2.1 2004/07/30 06:54:41 anholt Exp $ */
+/* $XdotOrg: xc/programs/Xserver/dix/colormap.c,v 1.3 2004/07/31 08:24:13 anholt Exp $ */
 /* $XFree86: xc/programs/Xserver/dix/colormap.c,v 3.11 2003/11/03 05:10:59 tsi Exp $ */
 /***********************************************************
 
@@ -190,9 +190,9 @@ static void FindColorInRootCmap (
 #define NUMRED(vis) ((vis->redMask >> vis->offsetRed) + 1)
 #define NUMGREEN(vis) ((vis->greenMask >> vis->offsetGreen) + 1)
 #define NUMBLUE(vis) ((vis->blueMask >> vis->offsetBlue) + 1)
-#ifdef COMPOSITE
-#define NUMALPHA(vis)	((vis->alphaMask >> vis->offsetAlpha) + 1)
-#define ALPHAMASK(vis)	(vis->alphaMask)
+#if 0
+#define NUMALPHA(vis)	XXX cant store in visual because of ABI concerns
+#define ALPHAMASK(vis)	XXX cant store in visual because of ABI concerns
 #else
 #define NUMALPHA(vis)	0
 #define ALPHAMASK(vis)	0
@@ -874,9 +874,9 @@ AllocColor (pmap, pred, pgreen, pblue, pPix, client)
 	*pPix = (pixR << pVisual->offsetRed) |
 		(pixG << pVisual->offsetGreen) |
 		(pixB << pVisual->offsetBlue);
-#ifdef COMPOSITE
-	*pPix |= pVisual->alphaMask;
-#endif
+	
+	*pPix |= ALPHAMASK(pVisual);
+	
 	*pred = pmap->red[pixR].co.local.red;
 	*pgreen = pmap->green[pixG].co.local.green;
 	*pblue = pmap->blue[pixB].co.local.blue;
@@ -967,9 +967,9 @@ AllocColor (pmap, pred, pgreen, pblue, pPix, client)
 	    return (BadAlloc);
 	}
 	*pPix = pixR | pixG | pixB;
-#ifdef COMPOSITE
-	*pPix |= pVisual->alphaMask;
-#endif
+
+	*pPix |= ALPHAMASK(pVisual);
+
 	break;
     }
 
@@ -1942,10 +1942,10 @@ AllocDirect (client, pmap, c, r, g, b, contig, pixels, prmask, pgmask, pbmask)
     }
     pmap->numPixelsBlue[client] += npixB;
     pmap->freeBlue -= npixB;
-#ifdef COMPOSITE
+
+
     for (pDst = pixels; pDst < pixels + c; pDst++)
-	*pDst |= pmap->pVisual->alphaMask;
-#endif
+	*pDst |= ALPHAMASK(pmap->pVisual);
 
     DEALLOCATE_LOCAL(ppixBlue);
     DEALLOCATE_LOCAL(ppixGreen);
