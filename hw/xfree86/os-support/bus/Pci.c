@@ -956,6 +956,11 @@ xf86scanpci(int flags)
     PCITAG       tag;
     static Bool  done = FALSE;
 
+    /*
+     * if we haven't found PCI devices checking for pci_devp may
+     * result in an endless recursion if platform/OS specific PCI
+     * bus probing code calls this function from with in it.
+     */
     if (done || pci_devp[0])
 	return pci_devp;
 
