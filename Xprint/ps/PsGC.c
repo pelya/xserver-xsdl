@@ -380,6 +380,16 @@ PsCreateAndCopyGC(DrawablePtr pDrawable, GCPtr pSrc)
 {
     GCPtr pDst;
     
+    if (pSrc == NULL) {
+        /* https://freedesktop.org/bugzilla/show_bug.cgi?id=1416 ("'x11perf
+         * -copypixpix500' crashes Xprt's PostScript DDX [PsCreateAndCopyGC"):
+         * I have no clue whether this is the real fix or just wallpapering
+         * over the crash (that's why we warn here loudly when this
+         * happens) ... */
+        fprintf(stderr, "PsCreateAndCopyGC: pSrc == NULL\n");
+        return NULL;
+    }
+    
     if ((pDst =
 	 CreateScratchGC(pDrawable->pScreen, pDrawable->depth)) == NULL) 
     {

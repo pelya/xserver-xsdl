@@ -92,7 +92,7 @@ PsCreatePixmap(
 {
   PixmapPtr pPixmap;
 
-  pPixmap = (PixmapPtr)xalloc(sizeof(PixmapRec));
+  pPixmap = (PixmapPtr)xcalloc(1, sizeof(PixmapRec));
   if( !pPixmap)  return NullPixmap;
   pPixmap->drawable.type         = DRAWABLE_PIXMAP;
   pPixmap->drawable.class        = 0;
@@ -108,10 +108,9 @@ PsCreatePixmap(
   pPixmap->devKind               = 0;
   pPixmap->refcnt                = 1;
 
-  pPixmap->devPrivate.ptr = (PsPixmapPrivPtr)xalloc(sizeof(PsPixmapPrivRec));
+  pPixmap->devPrivate.ptr = (PsPixmapPrivPtr)xcalloc(1, sizeof(PsPixmapPrivRec));
   if( !pPixmap->devPrivate.ptr )
     { xfree(pPixmap); return NullPixmap; }
-  memset(pPixmap->devPrivate.ptr, 0, sizeof(PsPixmapPrivRec));
   return pPixmap;
 }
 
@@ -192,11 +191,11 @@ PsGetFreeDisplayBlock(PsPixmapPrivPtr priv)
   {
     if( disp->nelms>=DPY_BLOCKSIZE && disp->next ) continue;
     if( disp->nelms<DPY_BLOCKSIZE ) return(disp);
-    disp->next = (DisplayListPtr)xalloc(sizeof(DisplayListRec));
+    disp->next = (DisplayListPtr)xcalloc(1, sizeof(DisplayListRec));
     disp->next->next  = (DisplayListPtr)0;
     disp->next->nelms = 0;
   }
-  disp = (DisplayListPtr)xalloc(sizeof(DisplayListRec));
+  disp = (DisplayListPtr)xcalloc(1, sizeof(DisplayListRec));
   disp->next     = (DisplayListPtr)0;
   disp->nelms    = 0;
   priv->dispList = disp;
@@ -480,6 +479,7 @@ PsCreateFillElementList(PixmapPtr pix, int *nElms)
 
     for( i=0 ; i<disp->nelms ; i++,elm++ )
     {
+      if( !elm->gc ) continue; /* workaround for https://freedesktop.org/bugzilla/show_bug.cgi?id=1416 */
       if( !elm->gc->fgPixel ) continue;
       switch(elm->type)
       {
@@ -498,7 +498,7 @@ PsCreateFillElementList(PixmapPtr pix, int *nElms)
 
   if( (*nElms) )
   {
-    elms = (PsElmPtr)xalloc((*nElms)*sizeof(PsElmRec));
+    elms = (PsElmPtr)xcalloc(1, (*nElms)*sizeof(PsElmRec));
     if( elms )
     {
       disp = priv->dispList;
@@ -568,7 +568,7 @@ PsCloneFillElementList(int nElms, PsElmPtr elms)
   int      i;
   PsElmPtr newElms;
 
-  newElms = (PsElmPtr)xalloc(nElms*sizeof(PsElmRec));
+  newElms = (PsElmPtr)xcalloc(1, nElms*sizeof(PsElmRec));
   if( !newElms ) return(newElms);
   for( i=0 ; i<nElms ; i++ )
   {
