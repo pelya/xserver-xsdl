@@ -231,7 +231,7 @@ CARD32 vgaHWVBlankKGA(DisplayModePtr mode, vgaRegPtr regp, int nBits,
 	       unsigned int Flags);
 Bool vgaHWAllocDefaultRegs(vgaRegPtr regp);
 
-DDC1SetSpeedProc *vgaHWddc1SetSpeedWeak(void);
+DDC1SetSpeedProc vgaHWddc1SetSpeedWeak(void);
 SaveScreenProcPtr vgaHWSaveScreenWeak(void);
 
 #endif /* _VGAHW_H */

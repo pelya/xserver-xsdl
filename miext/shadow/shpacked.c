@@ -107,4 +107,4 @@ shadowUpdatePacked (ScreenPtr	    pScreen,
     }
 }
 
-shadowUpdateProc *shadowUpdatePackedWeak(void) { return shadowUpdatePacked; }
+shadowUpdateProc shadowUpdatePackedWeak(void) { return shadowUpdatePacked; }

@@ -305,6 +305,6 @@ shadowUpdateRotatePacked (ScreenPtr	pScreen,
     }
 }
 
-shadowUpdateProc *shadowUpdateRotatePackedWeak(void) {
+shadowUpdateProc shadowUpdateRotatePackedWeak(void) {
     return shadowUpdateRotatePacked;
 }
