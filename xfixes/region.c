@@ -34,11 +34,6 @@ extern int RenderErrBase;
 #include <regionstr.h>
 #include <gcstruct.h>
 #include <window.h>
-#ifdef SKK
-#ifdef SHAPE
-#include <shapeint.h>
-#endif
-#endif 
 
 RESTYPE	    RegionResType;
 
@@ -154,7 +149,6 @@ SProcXFixesCreateRegionFromBitmap (ClientPtr client)
     swapl(&stuff->bitmap, n);
     return (*ProcXFixesVector[stuff->xfixesReqType]) (client);
 }
-
 
 int
 ProcXFixesCreateRegionFromWindow (ClientPtr client)
@@ -794,3 +788,63 @@ SProcXFixesSetPictureClipRegion (ClientPtr client)
     swaps (&stuff->yOrigin, n);
     return (*ProcXFixesVector[stuff->xfixesReqType]) (client);
 }
+
+int
+ProcXFixesExpandRegion (ClientPtr client)
+{
+    RegionPtr	pSource, pDestination;
+    int		ret = Success;
+    REQUEST (xXFixesExpandRegionReq);
+    BoxPtr	pTmp;
+    BoxPtr	pSrc;
+    int		nBoxes;
+    int		i;
+
+    REQUEST_SIZE_MATCH (xXFixesExpandRegionReq);
+    VERIFY_REGION(pSource, stuff->source, client, SecurityReadAccess);
+    VERIFY_REGION(pDestination, stuff->destination, client, SecurityWriteAccess);
+    
+    nBoxes = REGION_NUM_RECTS(pSource);
+    pSrc = REGION_RECTS(pSource);
+    if (nBoxes)
+    {
+	pTmp = xalloc (nBoxes * sizeof (BoxRec));
+	if (!pTmp)
+	    return BadAlloc;
+	for (i = 0; i < nBoxes; i++)
+	{
+	    pTmp[i].x1 = pSrc[i].x1 - stuff->left;
+	    pTmp[i].x2 = pSrc[i].x2 + stuff->right;
+	    pTmp[i].y1 = pSrc[i].y1 - stuff->top;
+	    pTmp[i].y2 = pSrc[i].y2 + stuff->bottom;
+	}
+	REGION_EMPTY (pScreen, pDestination);
+	for (i = 0; i < nBoxes; i++)
+	{
+	    RegionRec	r;
+	    REGION_INIT (pScreen, &r, &pTmp[i], 0);
+	    REGION_UNION (pScreen, pDestination, pDestination, &r);
+	}
+    }
+    if (ret == Success) 
+	ret = client->noClientException;
+    return ret;
+}
+
+int
+SProcXFixesExpandRegion (ClientPtr client)
+{
+    int n;
+    REQUEST (xXFixesExpandRegionReq);
+
+    swaps (&stuff->length, n);
+    REQUEST_SIZE_MATCH (xXFixesExpandRegionReq);
+    swapl (&stuff->source, n);
+    swapl (&stuff->destination, n);
+    swaps (&stuff->left, n);
+    swaps (&stuff->right, n);
+    swaps (&stuff->top, n);
+    swaps (&stuff->bottom, n);
+    return (*ProcXFixesVector[stuff->xfixesReqType]) (client);
+}
+

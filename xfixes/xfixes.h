@@ -44,7 +44,7 @@ extern int	XFixesErrorBase;
 }
 
 RegionPtr
-XFixesRegionCopy (RegionPtr pRegion); 
+XFixesRegionCopy (RegionPtr pRegion);
 
 
 #endif /* _XFIXES_H_ */

@@ -230,4 +230,10 @@ ProcXFixesSetPictureClipRegion (ClientPtr client);
 int
 SProcXFixesSetPictureClipRegion (ClientPtr client);
 
+int
+ProcXFixesExpandRegion (ClientPtr client);
+
+int
+SProcXFixesExpandRegion (ClientPtr client);
+
 #endif /* _XFIXESINT_H_ */
