@@ -863,6 +863,15 @@ fbComposite (CARD8      op,
     if (!pSrc->transform && !(pMask && pMask->transform))
     if (!maskAlphaMap && !srcAlphaMap && !dstAlphaMap)
     switch (op) {
+    case PictOpSrc:
+#ifdef USE_MMX
+	if (!pMask && pSrc->format == pDst->format &&
+	    pSrc->pDrawable != pDst->pDrawable)
+	{
+	    func = fbCompositeCopyAreammx;
+	}
+#endif
+	break;
     case PictOpOver:
 	if (pMask)
 	{
@@ -970,6 +979,7 @@ fbComposite (CARD8      op,
 		    xSrc == xMask && ySrc == yMask &&
 		    !pMask->componentAlpha)
 		{
+		    /* source == mask: non-premultiplied data */
 		    switch (pSrc->format) {
 		    case PICT_x8b8g8r8:
 			switch (pMask->format) {
@@ -1017,6 +1027,24 @@ fbComposite (CARD8      op,
 			break;
 		    }
 		    break;
+		}
+		else 
+		{
+		    /* non-repeating source, repeating mask => translucent window */
+		    if (maskRepeat &&
+			pMask->pDrawable->width == 1 &&
+			pMask->pDrawable->height == 1)
+		    {
+			if (pSrc->format == PICT_x8r8g8b8 &&
+			    pDst->format == PICT_x8r8g8b8 &&
+			    pMask->format == PICT_a8)
+			{
+#ifdef USE_MMX
+			    if (fbHaveMMX())
+				func = fbCompositeSrc_8888x8x8888mmx;
+#endif			    
+			}
+		    }
 		}
 	    }
 	}

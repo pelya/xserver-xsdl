@@ -27,6 +27,7 @@
 #ifdef IN_MODULE
 #include "xf86_ansic.h"
 #endif
+#include "fbmmx.h"
 
 void
 fbCopyNtoN (DrawablePtr	pSrcDrawable,
@@ -54,28 +55,51 @@ fbCopyNtoN (DrawablePtr	pSrcDrawable,
     
     fbGetDrawable (pSrcDrawable, src, srcStride, srcBpp, srcXoff, srcYoff);
     fbGetDrawable (pDstDrawable, dst, dstStride, dstBpp, dstXoff, dstYoff);
-    
+
     while (nbox--)
     {
+#ifdef USE_MMX
+	if (!reverse && !upsidedown && fbHaveMMX())
+	{
+	    if (!fbCopyAreammx (pSrcDrawable,
+				pDstDrawable,
+				
+				(pbox->x1 + dx + srcXoff),
+				(pbox->y1 + dy + srcYoff),
+				
+				(pbox->x1 + dstXoff),
+				(pbox->y1 + dstYoff),
+				
+				(pbox->x2 - pbox->x1),
+				(pbox->y2 - pbox->y1)))
+		goto fallback;
+	    else
+		goto next;
+	}
+    fallback:
+#endif
 	fbBlt (src + (pbox->y1 + dy + srcYoff) * srcStride,
 	       srcStride,
 	       (pbox->x1 + dx + srcXoff) * srcBpp,
-    
+	       
 	       dst + (pbox->y1 + dstYoff) * dstStride,
 	       dstStride,
 	       (pbox->x1 + dstXoff) * dstBpp,
-    
+	       
 	       (pbox->x2 - pbox->x1) * dstBpp,
 	       (pbox->y2 - pbox->y1),
-    
+	       
 	       alu,
 	       pm,
 	       dstBpp,
-    
+	       
 	       reverse,
 	       upsidedown);
+#ifdef USE_MMX
+    next:
+#endif
 	pbox++;
-    }
+    }    
 }
 
 void
@@ -594,7 +618,7 @@ fbCopyArea (DrawablePtr	pSrcDrawable,
 	    int		yOut)
 {
     fbCopyProc	copy;
-    
+
 #ifdef FB_24_32BIT
     if (pSrcDrawable->bitsPerPixel != pDstDrawable->bitsPerPixel)
 	copy = fb24_32CopyMtoN;

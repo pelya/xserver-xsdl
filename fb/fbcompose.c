@@ -2693,7 +2693,6 @@ fbSet_transform (FbCompositeOperand *op, int x, int y)
     op->u.transform.y = y - op->u.transform.top_y;
 }
 
-
 Bool
 fbBuildCompositeOperand (PicturePtr	    pPict,
 			 FbCompositeOperand op[4],
@@ -2710,7 +2709,6 @@ fbBuildCompositeOperand (PicturePtr	    pPict,
 	
 	op->u.transform.top_y = pPict->pDrawable->y;
 	op->u.transform.left_x = pPict->pDrawable->x;
-	
 	op->u.transform.start_x = x - op->u.transform.left_x;
 	op->u.transform.x = op->u.transform.start_x;
 	op->u.transform.y = y - op->u.transform.top_y;
@@ -2822,6 +2820,21 @@ fbCompositeGeneral (CARD8	op,
     FbCombineFunc	f;
     int			w;
 
+#if 0
+    ErrorF ("op:		%d\n"
+	    "src format:	%lx\n"
+	    "msk format		%lx\n"
+	    "dst format		%lx\n"
+	    "width:		%d\n"
+	    "height		%d\n",
+	    op,
+	    pSrc? pSrc->format : 0,
+	    pMask? pMask->format : 0,
+	    pDst? pDst->format : 0,
+	    width, height);
+    ErrorF ("PICT_x8r8g8b8: %lx\n", PICT_x8r8g8b8);
+#endif
+    
     if (!fbBuildCompositeOperand (pSrc, src, xSrc, ySrc, TRUE, TRUE))
 	return;
     if (!fbBuildCompositeOperand (pDst, dst, xDst, yDst, FALSE, TRUE))
