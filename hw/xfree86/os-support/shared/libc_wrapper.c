@@ -2123,6 +2123,12 @@ xf86setjmp1(xf86jmp_buf env, int arg2)
     FatalError("setjmp: type 1 called instead of type %d", xf86getjmptype());
 }
 
+int 
+xf86setjmp0(xf86jmp_buf env)
+{
+  return setjmp((void *)env);
+}
+
 #endif  /* HAS_GLIBC_SIGSETJMP */
 
 int
