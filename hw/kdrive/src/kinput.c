@@ -31,7 +31,9 @@
 
 #define XK_PUBLISHING
 #include <X11/keysym.h>
+#if HAVE_X11_XF86KEYSYM_H
 #include <X11/XF86keysym.h>
+#endif
 #include "kkeymap.h"
 #include <signal.h>
 #include <stdio.h>
@@ -513,11 +515,17 @@ const KdKeySymModsRec kdKeySymMods[] = {
   {  XK_Mode_switch, Mod4Mask },
 #ifdef TOUCHSCREEN
   /* PDA specific hacks */
+#ifdef XF86XK_Start
   {  XF86XK_Start, ControlMask },
+#endif
   {  XK_Menu, ShiftMask },
   {  XK_telephone, Mod1Mask },
+#ifdef XF86XK_AudioRecord
   {  XF86XK_AudioRecord, Mod2Mask },
+#endif
+#ifdef XF86XK_Calendar
   {  XF86XK_Calendar, Mod3Mask }
+#endif
 #endif
 };
 
