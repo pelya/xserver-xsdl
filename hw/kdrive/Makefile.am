@@ -16,4 +16,5 @@ SUBDIRS =			\
 	$(XSDL_SUBDIRS)		\
 	$(FBDEV_SUBDIRS)	\
 	$(VESA_SUBDIRS)		\
-	ati
+	ati			\
+	fake
