@@ -544,9 +544,4 @@ extern int snprintf(char *str, size_t size, const char *format, ...)
 extern int vsnprintf(char *str, size_t size, const char *format, va_list ap);
 #endif
 
-#ifdef printf_defined
-#define printf xf86printf
-#undef printf_defined
-#endif
-
 #endif /* OS_H */

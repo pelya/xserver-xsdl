@@ -131,9 +131,6 @@ extern RootWinPropPtr *xf86RegisteredPropertiesTable;
 /* Function Prototypes */
 #ifndef _NO_XF86_PROTOTYPES
 
-/* xf86Beta.c */
-extern void xf86CheckBeta(int extraDays, char *key);
-
 /* xf86Bus.c */
 
 void xf86BusProbe(void);

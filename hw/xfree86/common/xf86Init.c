@@ -106,11 +106,6 @@ static void xf86PrintBanner(void);
 static void xf86PrintMarkers(void);
 static void xf86RunVtInit(void);
 
-#ifdef DO_CHECK_BETA
-static int extraDays = 0;
-static char *expKey = NULL;
-#endif
-
 #ifdef __UNIXOS2__
 extern void os2ServerVideoAccess();
 #endif
@@ -306,10 +301,6 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
       xf86ServerName++;
     else
       xf86ServerName = argv[0];
-
-#ifdef DO_CHECK_BETA
-    xf86CheckBeta(extraDays, expKey);
-#endif
 
     xf86PrintBanner();
     xf86PrintMarkers();
@@ -1437,14 +1428,6 @@ ddxProcessArgument(int argc, char **argv, int i)
 #endif
     return 1;
   }
-#ifdef DO_CHECK_BETA
-  if (!strcmp(argv[i],"-extendExpiry"))
-  {
-    extraDays = atoi(argv[i + 1]);
-    expKey = argv[i + 2];
-    return 3;
-  }
-#endif
   if (!strcmp(argv[i],"-verbose"))
   {
     if (++i < argc && argv[i])

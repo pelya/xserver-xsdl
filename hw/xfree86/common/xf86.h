@@ -364,11 +364,6 @@ void xf86AddModuleInfo(ModuleInfoPtr info, pointer module);
 void xf86DeleteModuleInfo(int idx);
 #endif
 
-#ifdef printf_defined
-#define printf xf86printf
-#undef printf_defined
-#endif
-
 /* xf86Debug.c */
 #ifdef BUILDDEBUG
  void xf86Break1(void);
