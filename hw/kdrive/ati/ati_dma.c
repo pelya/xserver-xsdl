@@ -271,8 +271,12 @@ ATIGetAvailPrimary(ATIScreenInfo *atis)
 		int csq_stat, diff;
 	
 		csq_stat = MMIO_IN32(mmio, RADEON_REG_CP_CSQ_STAT);
-		diff = ((csq_stat & RADEON_CSQ_WPTR_PRIMARY_MASK) >> 8) - 
-		    (csq_stat & RADEON_CSQ_RPTR_PRIMARY_MASK);
+		if (atic->is_r200)
+			diff = ((csq_stat & R200_CSQ_WPTR_PRIMARY_MASK) >> 9) - 
+			    (csq_stat & R200_CSQ_RPTR_PRIMARY_MASK);
+		else
+			diff = ((csq_stat & RADEON_CSQ_WPTR_PRIMARY_MASK) >> 8) - 
+			    (csq_stat & RADEON_CSQ_RPTR_PRIMARY_MASK);
 	
 		if (diff < 0)
 			return -diff;
@@ -762,13 +766,19 @@ ATIPseudoDMAInit(ScreenPtr pScreen)
 	ATICardInfo(pScreenPriv);
 	char *mmio = atic->reg_base;
 
-	if (atic->is_r200 || atic->is_r300)
+	if (atic->is_r300)
 		return FALSE;
 
 	ATIUploadMicrocode(atis);
 	ATIEngineReset(atis);
 
-	if (atic->is_radeon) {
+	if (atic->is_r200) {
+		MMIO_OUT32(mmio, RADEON_REG_CP_CSQ_CNTL,
+		    RADEON_CSQ_PRIPIO_INDDIS);
+		atis->cce_pri_size = MMIO_IN32(mmio, RADEON_REG_CP_CSQ_CNTL) &
+		    R200_CSQ_CNT_PRIMARY_MASK;
+		MMIO_OUT32(mmio, RADEON_REG_ME_CNTL, RADEON_ME_MODE_FREE_RUN);
+	} if (atic->is_radeon) {
 		MMIO_OUT32(mmio, RADEON_REG_CP_CSQ_CNTL,
 		    RADEON_CSQ_PRIPIO_INDDIS);
 		atis->cce_pri_size = MMIO_IN32(mmio, RADEON_REG_CP_CSQ_CNTL) &
@@ -863,7 +873,13 @@ ATIDMAInit(ScreenPtr pScreen, Bool use_agp)
 	MMIO_OUT32(mmio, ATI_REG_CCE_RPTR, atis->ring_read);
 	MMIO_OUT32(mmio, ATI_REG_CCE_RPTR_ADDR, 0 /* XXX? */);
 
-	if (atic->is_radeon) {
+	if (atic->is_r200) {
+		MMIO_OUT32(mmio, RADEON_REG_CP_CSQ_CNTL,
+		    RADEON_CSQ_PRIBM_INDBM);
+		atis->cce_pri_size = MMIO_IN32(mmio, RADEON_REG_CP_CSQ_CNTL) &
+		    R200_CSQ_CNT_PRIMARY_MASK;
+		MMIO_OUT32(mmio, RADEON_REG_ME_CNTL, RADEON_ME_MODE_FREE_RUN);
+	} else if (atic->is_radeon) {
 		MMIO_OUT32(mmio, RADEON_REG_CP_CSQ_CNTL,
 		    RADEON_CSQ_PRIBM_INDBM);
 		atis->cce_pri_size = MMIO_IN32(mmio, RADEON_REG_CP_CSQ_CNTL) &
