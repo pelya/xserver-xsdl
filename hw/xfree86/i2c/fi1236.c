@@ -111,6 +111,7 @@ I2C_WriteRead(&(f->d), (I2CByte *)data, 4, NULL, 0);
 usleep(15000);
 }
 
+static void MT2032_dump_status(FI1236Ptr f);
 
 static void MT2032_init(FI1236Ptr f)
 {
@@ -511,7 +512,9 @@ void TUNER_set_frequency(FI1236Ptr f, CARD32 frequency)
 
 int FI1236_AFC(FI1236Ptr f)
 {
+    #if 0
     xf86DrvMsg(f->d.pI2CBus->scrnIndex, X_INFO, "AFC: f=%p f->count=%d f->original_frequency=%d f->afc_delta=%d\n", f, f->afc_count, f->original_frequency, f->afc_delta);
+    #endif
     f->afc_count++;
     if(f->type==TUNER_TYPE_MT2032){
     	f->last_afc_hint=MT2032_get_afc_hint(f);
