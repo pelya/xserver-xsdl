@@ -49,6 +49,7 @@ unsigned long       kdVideoTestTime;
 Bool		    kdEmulateMiddleButton;
 Bool		    kdDisableZaphod;
 Bool		    kdEnabled;
+int		    kdSubpixelOrder;
 Bool		    kdSwitchPending;
 DDXPointRec	    kdOrigin;
 
@@ -583,6 +584,23 @@ KdParseMouse (char *arg)
     }
 }
 
+void
+KdParseRgba (char *rgba)
+{
+    if (!strcmp (rgba, "rgb"))
+	kdSubpixelOrder = SubPixelHorizontalRGB;
+    else if (!strcmp (rgba, "bgr"))
+	kdSubpixelOrder = SubPixelHorizontalBGR;
+    else if (!strcmp (rgba, "vrgb"))
+	kdSubpixelOrder = SubPixelVerticalRGB;
+    else if (!strcmp (rgba, "vbgr"))
+	kdSubpixelOrder = SubPixelVerticalBGR;
+    else if (!strcmp (rgba, "none"))
+	kdSubpixelOrder = SubPixelNone;
+    else
+	kdSubpixelOrder = SubPixelUnknown;
+}
+
 int
 KdProcessArgument (int argc, char **argv, int i)
 {
@@ -670,6 +688,14 @@ KdProcessArgument (int argc, char **argv, int i)
     {
 	if ((i+1) < argc)
 	    KdParseMouse (argv[i+1]);
+	else
+	    UseMsg ();
+	return 2;
+    }
+    if (!strcmp (argv[i], "-rgba"))
+    {
+	if ((i+1) < argc)
+	    KdParseRgba (argv[i+1]);
 	else
 	    UseMsg ();
 	return 2;
@@ -998,6 +1024,8 @@ KdScreenInit(int index, ScreenPtr pScreen, int argc, char **argv)
     {
 	return FALSE;
     }
+
+    PictureSetSubpixelOrder (pScreen, kdSubpixelOrder);
 
     /*
      * Enable the hardware
