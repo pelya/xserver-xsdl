@@ -146,7 +146,8 @@ TslibEnable (int not_needed_fd, void *closure)
     return -1; 			/* XXX Not sure what to return here */
   }
   
-  ts_config(tsDev); 
+  if (ts_config(tsDev))
+    return -1;
   fd=ts_fd(tsDev);
 
   return fd;
@@ -188,7 +189,7 @@ TslibInit (void)
 	      /* XXX Should check for  */
 
 		if(!(tsDev = ts_open(TsNames[i],0))) continue;
-	        ts_config(tsDev); 
+	        if (ts_config(tsDev)) continue;
 	        fd=ts_fd(tsDev);
 		if (fd >= 0) 
 		{
@@ -200,7 +201,7 @@ TslibInit (void)
 
 	  if(!(tsDev = ts_open(mi->name,0))) 
 	    continue;
-	  ts_config(tsDev); 
+	  if (ts_config(tsDev)) continue; 
 	  fd=ts_fd(tsDev);
 
 	}
