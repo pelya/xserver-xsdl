@@ -28,6 +28,9 @@
 #endif
 #include "ati.h"
 #include "ati_reg.h"
+#if defined(USE_DRI) && defined(GLXEXT)
+#include "ati_sarea.h"
+#endif
 
 #define CAP_R128	0x1	/* If it's a Rage 128 */
 #define CAP_R100	0x2	/* If it's an r100 series radeon. */
@@ -270,7 +273,11 @@ ATIScreenInit(KdScreenInfo *screen)
 {
 	ATIScreenInfo *atis;
 	ATICardInfo(screen);
-	int success = FALSE;
+	Bool success = FALSE;
+	int screen_size = 0;
+#if defined(USE_DRI) && defined(GLXEXT)
+	int l;
+#endif
 
 	atis = xcalloc(sizeof(ATIScreenInfo), 1);
 	if (atis == NULL)
@@ -285,8 +292,7 @@ ATIScreenInit(KdScreenInfo *screen)
 		success = fbdevScreenInitialize(screen,
 						&atis->backend_priv.fbdev);
 		screen->memory_size = atic->backend_priv.fbdev.fix.smem_len;
-		screen->off_screen_base =
-		    atic->backend_priv.fbdev.var.yres_virtual *
+		screen_size = atic->backend_priv.fbdev.var.yres_virtual *
 		    screen->fb[0].byteStride;
 	}
 #endif
@@ -296,6 +302,7 @@ ATIScreenInit(KdScreenInfo *screen)
 			screen->fb[0].depth = 16;
 		success = vesaScreenInitialize(screen,
 		    &atis->backend_priv.vesa);
+		screen_size = screen->off_screen_base;
 	}
 #endif
 
@@ -305,16 +312,66 @@ ATIScreenInit(KdScreenInfo *screen)
 		return FALSE;
 	}
 
+	screen->off_screen_base = screen_size;
+#if defined(USE_DRI) && defined(GLXEXT)
+	/* Reserve a static area for the back buffer the same size as the
+	 * visible screen.  XXX: This would be better initialized in ati_dri.c
+	 * when GLX is set up, but I'm not sure when the offscreen memory
+	 * manager gets set up.
+	 */
+	atis->frontOffset = 0;
+	atis->frontPitch = screen->fb[0].byteStride;
+
+	if (screen->off_screen_base + screen_size <= screen->memory_size) {
+		atis->backOffset = screen->off_screen_base;
+		atis->backPitch = screen->fb[0].byteStride;
+		screen->off_screen_base += screen_size;
+	}
+
+	/* Reserve the depth span for Rage 128 */
+	if (!atic->is_radeon && screen->off_screen_base +
+	    screen->fb[0].byteStride <= screen->memory_size) {
+		atis->spanOffset = screen->off_screen_base;
+		screen->off_screen_base += screen->fb[0].byteStride;
+	}
+
+	/* Reserve the static depth buffer, which happens to be the same
+	 * bitsPerPixel as the screen.
+	 */
+	if (screen->off_screen_base + screen_size <= screen->memory_size) {
+		atis->depthOffset = screen->off_screen_base;
+		atis->depthPitch = screen->fb[0].byteStride;
+		screen->off_screen_base += screen_size;
+	}
+
+	/* Reserve approx. half of remaining offscreen memory for local
+	 * textures.  Round down to a whole number of texture regions.
+	 */
+	atis->textureSize = (screen->memory_size - screen->off_screen_base) / 2;
+	l = ATILog2(atis->textureSize / ATI_NR_TEX_REGIONS);
+	if (l < ATI_LOG_TEX_GRANULARITY)
+		l = ATI_LOG_TEX_GRANULARITY;
+	atis->textureSize = (atis->textureSize >> l) << l;
+	if (atis->textureSize >= 512 * 1024) {
+		atis->textureOffset = screen->off_screen_base;
+		screen->off_screen_base += atis->textureSize;
+	} else {
+		/* Minimum texture size is for 2 256x256x32bpp textures */
+		atis->textureSize = 0;
+	}
+#endif /* USE_DRI && GLXEXT */
+
 	/* Reserve a scratch area.  It'll be used for storing glyph data during
 	 * Composite operations, because glyphs aren't in real pixmaps and thus
 	 * can't be migrated.
 	 */
 	atis->scratch_size = 65536;	/* big enough for 128x128@32bpp */
-	if (screen->off_screen_base + atis->scratch_size > screen->memory_size)
-		atis->scratch_size = 0;
-	else {
+	if (screen->off_screen_base + atis->scratch_size <= screen->memory_size)
+	{
 		atis->scratch_offset = screen->off_screen_base;
 		screen->off_screen_base += atis->scratch_size;
+	} else {
+		atis->scratch_size = 0;
 	}
 
 	return TRUE;
@@ -456,6 +513,19 @@ ATIPutColors(ScreenPtr pScreen, int fb, int n, xColorItem *pdefs)
 	ATICardInfo(pScreenPriv);
 
 	atic->backend_funcs.putColors(pScreen, fb, n, pdefs);
+}
+
+/* Compute log base 2 of val. */
+int
+ATILog2(int val)
+{
+	int bits;
+
+	if (!val)
+		return 1;
+	for (bits = 0; val != 0; val >>= 1, ++bits)
+		;
+	return bits;
 }
 
 KdCardFuncs ATIFuncs = {

@@ -79,19 +79,6 @@ static CARD32 RadeonBlendOp[] = {
 	RADEON_SRC_BLEND_GL_ZERO		| RADEON_DST_BLEND_GL_ONE,
 };
 
-/* Compute log base 2 of val. */
-static int
-ATILog2(int val)
-{
-	int bits;
-
-	if (!val)
-		return 1;
-	for (bits = 0; val != 0; val >>= 1, ++bits)
-		;
-	return bits;
-}
-
 static Bool
 RadeonTextureSetup(PicturePtr pPict, PixmapPtr pPix, int unit)
 {

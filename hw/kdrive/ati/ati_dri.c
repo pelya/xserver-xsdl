@@ -48,19 +48,169 @@
 
 void XFree86DRIExtensionInit(void);
 
-static Bool ATIDRIFinishScreenInit(ScreenPtr pScreen);
-
-/* Compute log base 2 of val. */
-static int
-ATILog2(int val)
+/* Initialize the visual configs that are supported by the hardware.
+ * These are combined with the visual configs that the indirect
+ * rendering core supports, and the intersection is exported to the
+ * client.
+ */
+static Bool ATIInitVisualConfigs(ScreenPtr pScreen)
 {
-	int bits;
+	KdScreenPriv(pScreen);
+	ATIScreenInfo(pScreenPriv);
+	int numConfigs = 0;
+	__GLXvisualConfig *pConfigs = NULL;
+	ATIConfigPrivPtr pATIConfigs = NULL;
+	ATIConfigPrivPtr *pATIConfigPtrs = NULL;
+	int i, accum, stencil, db, use_db;
+	int depth = pScreenPriv->screen->fb[0].depth;
+	int bpp = pScreenPriv->screen->fb[0].bitsPerPixel;
 
-	if (!val)
-		return 1;
-	for (bits = 0; val != 0; val >>= 1, ++bits)
-		;
-	return bits;
+	if (depth != 16 && (depth != 24 || bpp != 32))
+		ErrorF("DRI GLX unsupported at %d/%d depth/bpp\n", depth, bpp);
+
+	/* Same number of configs for 16 and 24bpp, so I factored this part out.
+	 */
+	if (atis->depthOffset != 0)
+		use_db = 1;
+	else
+		use_db = 0;
+
+	numConfigs = 4;
+	if (use_db)
+		numConfigs *= 2;
+
+	pConfigs = xcalloc(sizeof(__GLXvisualConfig), numConfigs);
+	pATIConfigs = xcalloc(sizeof(ATIConfigPrivRec), numConfigs);
+	pATIConfigPtrs = xcalloc(sizeof(ATIConfigPrivPtr), numConfigs);
+	if (pConfigs == NULL || pATIConfigs == NULL || pATIConfigPtrs == NULL) {
+		xfree(pConfigs);
+		xfree(pATIConfigs);
+		xfree(pATIConfigPtrs);
+		return FALSE;
+	}
+
+	i = 0;
+	if (depth == 16) {
+		for (db = 0; db <= use_db; db++) {
+		  for (accum = 0; accum <= 1; accum++) {
+		    for (stencil = 0; stencil <= 1; stencil++) {
+			pATIConfigPtrs[i] = &pATIConfigs[i];
+	
+			pConfigs[i].vid                = (VisualID)(-1);
+			pConfigs[i].class              = -1;
+			pConfigs[i].rgba               = TRUE;
+			pConfigs[i].redSize            = 5;
+			pConfigs[i].greenSize          = 6;
+			pConfigs[i].blueSize           = 5;
+			pConfigs[i].alphaSize          = 0;
+			pConfigs[i].redMask            = 0x0000F800;
+			pConfigs[i].greenMask          = 0x000007E0;
+			pConfigs[i].blueMask           = 0x0000001F;
+			pConfigs[i].alphaMask          = 0x00000000;
+			if (accum) { /* Simulated in software */
+			    pConfigs[i].accumRedSize   = 16;
+			    pConfigs[i].accumGreenSize = 16;
+			    pConfigs[i].accumBlueSize  = 16;
+			    pConfigs[i].accumAlphaSize = 0;
+			} else {
+			    pConfigs[i].accumRedSize   = 0;
+			    pConfigs[i].accumGreenSize = 0;
+			    pConfigs[i].accumBlueSize  = 0;
+			    pConfigs[i].accumAlphaSize = 0;
+			}
+			if (db)
+			    pConfigs[i].doubleBuffer   = TRUE;
+			else
+			    pConfigs[i].doubleBuffer   = FALSE;
+			pConfigs[i].stereo             = FALSE;
+			pConfigs[i].bufferSize         = 16;
+			pConfigs[i].depthSize          = 16;
+			if (stencil)
+			    pConfigs[i].stencilSize    = 8;
+			else
+			    pConfigs[i].stencilSize    = 0;
+			pConfigs[i].auxBuffers         = 0;
+			pConfigs[i].level              = 0;
+			if (accum) {
+			   pConfigs[i].visualRating    = GLX_SLOW_CONFIG;
+			} else {
+			   pConfigs[i].visualRating    = GLX_NONE;
+			}
+			pConfigs[i].transparentPixel   = GLX_NONE;
+			pConfigs[i].transparentRed     = 0;
+			pConfigs[i].transparentGreen   = 0;
+			pConfigs[i].transparentBlue    = 0;
+			pConfigs[i].transparentAlpha   = 0;
+			pConfigs[i].transparentIndex   = 0;
+			i++;
+		    }
+		  }
+		}
+	} else {
+		for (db = 0; db <= use_db; db++) {
+		  for (accum = 0; accum <= 1; accum++) {
+		    for (stencil = 0; stencil <= 1; stencil++) {
+			pATIConfigPtrs[i] = &pATIConfigs[i];
+	
+			pConfigs[i].vid                = (VisualID)(-1);
+			pConfigs[i].class              = -1;
+			pConfigs[i].rgba               = TRUE;
+			pConfigs[i].redSize            = 8;
+			pConfigs[i].greenSize          = 8;
+			pConfigs[i].blueSize           = 8;
+			pConfigs[i].alphaSize          = 8;
+			pConfigs[i].redMask            = 0x00FF0000;
+			pConfigs[i].greenMask          = 0x0000FF00;
+			pConfigs[i].blueMask           = 0x000000FF;
+			pConfigs[i].alphaMask          = 0xFF000000;
+			if (accum) { /* Simulated in software */
+			    pConfigs[i].accumRedSize   = 16;
+			    pConfigs[i].accumGreenSize = 16;
+			    pConfigs[i].accumBlueSize  = 16;
+			    pConfigs[i].accumAlphaSize = 16;
+			} else {
+			    pConfigs[i].accumRedSize   = 0;
+			    pConfigs[i].accumGreenSize = 0;
+			    pConfigs[i].accumBlueSize  = 0;
+			    pConfigs[i].accumAlphaSize = 0;
+			}
+			if (db)
+			    pConfigs[i].doubleBuffer   = TRUE;
+			else
+			    pConfigs[i].doubleBuffer   = FALSE;
+			pConfigs[i].stereo             = FALSE;
+			pConfigs[i].bufferSize         = 32;
+			if (stencil) {
+			    pConfigs[i].depthSize      = 24;
+			    pConfigs[i].stencilSize    = 8;
+			} else {
+			    pConfigs[i].depthSize      = 24;
+			    pConfigs[i].stencilSize    = 0;
+			}
+			pConfigs[i].auxBuffers         = 0;
+			pConfigs[i].level              = 0;
+			if (accum) {
+			   pConfigs[i].visualRating    = GLX_SLOW_CONFIG;
+			} else {
+			   pConfigs[i].visualRating    = GLX_NONE;
+			}
+			pConfigs[i].transparentPixel   = GLX_NONE;
+			pConfigs[i].transparentRed     = 0;
+			pConfigs[i].transparentGreen   = 0;
+			pConfigs[i].transparentBlue    = 0;
+			pConfigs[i].transparentAlpha   = 0;
+			pConfigs[i].transparentIndex   = 0;
+			i++;
+		    }
+		  }
+		}
+	}
+
+	atis->numVisualConfigs = numConfigs;
+	atis->pVisualConfigs = pConfigs;
+	atis->pVisualConfigsPriv = pATIConfigs;
+	GlxSetVisualConfigs(numConfigs, pConfigs, (void**)pATIConfigPtrs);
+	return TRUE;
 }
 
 static void
@@ -225,7 +375,7 @@ ATIDRIAgpInit(ScreenPtr pScreen)
 		R128_BM_PM4_RD_FORCE_TO_PCI |
 		R128_BM_GLOBAL_FORCE_TO_PCI);
 		MMIO_OUT32(mmio, R128_REG_BM_CHUNK_0_VAL, chunk);
-		
+
 		/* Ensure AGP GART is used (for now) */
 		MMIO_OUT32(mmio, R128_REG_PCI_GART_PAGE, 1);
 	}
@@ -307,8 +457,8 @@ R128DRIKernelInit(ScreenPtr pScreen)
 	drmInfo.ring_size           = atis->ringSize*1024*1024;
 	drmInfo.usec_timeout        = atis->DMAusecTimeout;
 
-	drmInfo.fb_bpp              = pScreenPriv->screen->fb[0].depth;
-	drmInfo.depth_bpp           = pScreenPriv->screen->fb[0].depth;
+	drmInfo.fb_bpp              = pScreenPriv->screen->fb[0].bitsPerPixel;
+	drmInfo.depth_bpp           = pScreenPriv->screen->fb[0].bitsPerPixel;
 
 	/* XXX: pitches are in pixels on r128. */
 	drmInfo.front_offset        = atis->frontOffset;
@@ -358,8 +508,8 @@ RadeonDRIKernelInit(ScreenPtr pScreen)
 	drmInfo.ring_size           = atis->ringSize*1024*1024;
 	drmInfo.usec_timeout        = atis->DMAusecTimeout;
 
-	drmInfo.fb_bpp              = pScreenPriv->screen->fb[0].depth;
-	drmInfo.depth_bpp           = pScreenPriv->screen->fb[0].depth;
+	drmInfo.fb_bpp              = pScreenPriv->screen->fb[0].bitsPerPixel;
+	drmInfo.depth_bpp           = pScreenPriv->screen->fb[0].bitsPerPixel;
 
 	drmInfo.front_offset        = atis->frontOffset;
 	drmInfo.front_pitch         = atis->frontPitch;
@@ -452,8 +602,7 @@ static void ATIDRISwapContext(ScreenPtr pScreen, DRISyncType syncType,
 	if ((syncType==DRI_3D_SYNC) && (oldContextType==DRI_2D_CONTEXT) &&
 	    (newContextType==DRI_2D_CONTEXT)) {
 		/* Entering from Wakeup */
-		/* XXX: XFree86 sets NeedToSync */
-		
+		KdMarkSync(pScreen);
 	}
 	if ((syncType==DRI_2D_SYNC) && (oldContextType==DRI_NO_CONTEXT) &&
 	    (newContextType==DRI_2D_CONTEXT)) {
@@ -462,6 +611,8 @@ static void ATIDRISwapContext(ScreenPtr pScreen, DRISyncType syncType,
 			ATIDMAFlushIndirect(1);
 	}
 }
+
+static Bool ATIDRIFinishScreenInit(ScreenPtr pScreen);
 
 /* Initialize the screen-specific data structures for the DRI and the
    Rage 128.  This is the main entry point to the device-specific
@@ -496,14 +647,6 @@ ATIDRIScreenInit(ScreenPtr pScreen)
 	atis->bufSize = 2;
 	atis->gartTexSize = 1;
 	atis->DMAusecTimeout = 10000;
-
-	atis->frontOffset = 0;
-	atis->frontPitch = pScreenPriv->screen->fb[0].byteStride;
-	atis->backOffset = 0; /* XXX */
-	atis->backPitch = pScreenPriv->screen->fb[0].byteStride;
-	atis->depthOffset = 0; /* XXX */
-	atis->depthPitch = 0; /* XXX */
-	atis->spanOffset = 0; /* XXX */
 
 	if (atic->drmFd < 0)
 		return FALSE;
@@ -549,6 +692,7 @@ ATIDRIScreenInit(ScreenPtr pScreen)
 	pDRIInfo->ddxDriverMajorVersion = 4;
 	pDRIInfo->ddxDriverMinorVersion = 0;
 	pDRIInfo->ddxDriverPatchVersion = 0;
+	/* XXX: RADEON_FB_BASE(pScreenPriv->card); */
 	pDRIInfo->frameBufferPhysicalAddress =
 	    (unsigned long)pScreenPriv->screen->memory_base;
 	pDRIInfo->frameBufferSize = pScreenPriv->screen->memory_size;
@@ -634,7 +778,7 @@ ATIDRIScreenInit(ScreenPtr pScreen)
 	}
 
 #ifdef GLXEXT
-	if (!R128InitVisualConfigs(pScreen)) {
+	if (!ATIInitVisualConfigs(pScreen)) {
 		ATIDRICloseScreen(pScreen);
 		return FALSE;
 	}
@@ -823,8 +967,6 @@ ATIDRIFinishScreenInit(ScreenPtr pScreen)
 			return FALSE;
 		}
 	}
-
-	XFree86DRIExtensionInit();
 
 	atis->using_dri = TRUE;
 

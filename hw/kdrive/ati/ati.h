@@ -39,6 +39,11 @@
 #define USE_DRI
 #include "libdrm.h"
 #include "dri.h"
+#ifdef GLXEXT
+#include "GL/glxint.h"
+#include "GL/glxtokens.h"
+#include "ati_dripriv.h"
+#endif
 #endif
 
 #define RADEON_REG_BASE(c)		((c)->attr.address[1])
@@ -224,6 +229,11 @@ typedef struct _ATIScreenInfo {
 	int		serverContext;
 
 	DRIInfoPtr	pDRIInfo;
+#ifdef GLXEXT
+	int		numVisualConfigs;
+	__GLXvisualConfig *pVisualConfigs;
+	ATIConfigPrivPtr pVisualConfigsPriv;
+#endif /* GLXEXT */
 #endif /* USE_DRI */
 } ATIScreenInfo;
 
@@ -261,6 +271,9 @@ ATIDRIScreenInit(ScreenPtr pScreen);
 void
 ATIDRICloseScreen(ScreenPtr pScreen);
 #endif /* USE_DRI */
+
+int
+ATILog2(int val);
 
 extern KdCardFuncs ATIFuncs;
 
