@@ -127,12 +127,6 @@ extern __const__ int _nfiles;
 # include <arpa/inet.h>
 #endif
 
-#ifdef AMTCPCONN
-#include <server/ip/types.h>
-#include <server/ip/gen/in.h>
-#include <server/ip/gen/inet.h>
-#endif
-
 #if !defined(__UNIXOS2__)
 #ifndef Lynx
 #include <sys/uio.h>
@@ -517,16 +511,6 @@ AuthAudit (ClientPtr client, Bool letin,
 		    dnet_ntoa(&((struct sockaddr_dn *) saddr)->sdn_add));
 	    break;
 #endif
-#ifdef AMRPCCONN
-	case FamilyAmoeba:
-	    sprintf(addr, "AM %s", saddr);
-	    break;
-#endif
-#if defined(AMTCPCONN) && !(defined(TCPCONN) || defined(STREAMSCONN))
-	case AF_INET:
-	    sprintf(addr, "AMIP %s", inet_ntoa(*((ipaddr_t *) saddr)));
-	    break;
-#endif
 	default:
 	    strcpy(out, "unknown address");
 	}
@@ -650,13 +634,6 @@ ClientAuthorized(ClientPtr client,
 	    _XSERVTransGetPeerAddr (trans_conn,
 	        &family, &fromlen, &from) != -1)
 	{
-#ifdef AMRPCCONN
-	    /* Amoeba RPC connections are already checked by the capability. */
-	    if (family == FamilyAmoeba) {
-		auth_id = (XID) 0;
-	    }
-	    else
-#endif
 	    if (
 #ifdef LBX
 		!trans_conn ||

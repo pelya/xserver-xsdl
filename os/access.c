@@ -1,5 +1,5 @@
 /* $Xorg: access.c,v 1.5 2001/02/09 02:05:23 xorgcvs Exp $ */
-/* $XdotOrg: xc/programs/Xserver/os/access.c,v 1.4 2004/06/30 20:06:56 kem Exp $ */
+/* $XdotOrg: xc/programs/Xserver/os/access.c,v 1.5 2004/07/17 01:13:31 alanc Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -1739,7 +1739,7 @@ CheckAddr (
 
     switch (family)
     {
-#if defined(TCPCONN) || defined(STREAMSCONN) || defined(AMTCPCONN) || defined(MNX_TCPCONN)
+#if defined(TCPCONN) || defined(STREAMSCONN) || defined(MNX_TCPCONN)
       case FamilyInternet:
 	if (length == sizeof (struct in_addr))
 	    len = length;
