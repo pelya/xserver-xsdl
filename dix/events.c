@@ -138,9 +138,8 @@ of the copyright holder.
 extern Bool XkbFilterEvents(ClientPtr, int, xEvent *);
 #endif
 
-#ifdef XCSECURITY
-#define _SECURITY_SERVER
-#include <X11/extensions/security.h>
+#ifdef XACE
+#include "xace.h"
 #endif
 
 #ifdef XEVIE
@@ -2541,8 +2540,8 @@ CheckPassiveGrabsOnWindow(
 	     (grab->confineTo->realized && 
 				BorderSizeNotEmpty(grab->confineTo))))
 	{
-#ifdef XCSECURITY
-	    if (!SecurityCheckDeviceAccess(wClient(pWin), device, FALSE))
+#ifdef XACE
+	    if (!XaceHook(XACE_DEVICE_ACCESS, wClient(pWin), device, FALSE))
 		return FALSE;
 #endif
 #ifdef XKB
@@ -3350,10 +3349,10 @@ EnterLeaveEvent(
     {
 	xKeymapEvent ke;
 
-#ifdef XCSECURITY
+#ifdef XACE
 	ClientPtr client = grab ? rClient(grab)
 				: clients[CLIENT_ID(pWin->drawable.id)];
-	if (!SecurityCheckDeviceAccess(client, keybd, FALSE))
+	if (!XaceHook(XACE_DEVICE_ACCESS, client, keybd, FALSE))
 	{
 	    bzero((char *)&ke.map[0], 31);
 	}
@@ -3445,9 +3444,9 @@ FocusEvent(DeviceIntPtr dev, int type, int mode, int detail, register WindowPtr 
 	((pWin->eventMask | wOtherEventMasks(pWin)) & KeymapStateMask))
     {
 	xKeymapEvent ke;
-#ifdef XCSECURITY
+#ifdef XACE
 	ClientPtr client = clients[CLIENT_ID(pWin->drawable.id)];
-	if (!SecurityCheckDeviceAccess(client, dev, FALSE))
+	if (!XaceHook(XACE_DEVICE_ACCESS, client, dev, FALSE))
 	{
 	    bzero((char *)&ke.map[0], 31);
 	}
@@ -3716,8 +3715,8 @@ ProcSetInputFocus(client)
     REQUEST(xSetInputFocusReq);
 
     REQUEST_SIZE_MATCH(xSetInputFocusReq);
-#ifdef XCSECURITY
-    if (!SecurityCheckDeviceAccess(client, inputInfo.keyboard, TRUE))
+#ifdef XACE
+    if (!XaceHook(XACE_DEVICE_ACCESS, client, inputInfo.keyboard, TRUE))
 	return Success;
 #endif
     return SetInputFocus(client, inputInfo.keyboard, stuff->focus,
@@ -3981,8 +3980,8 @@ ProcGrabKeyboard(ClientPtr client)
     int result;
 
     REQUEST_SIZE_MATCH(xGrabKeyboardReq);
-#ifdef XCSECURITY
-    if (!SecurityCheckDeviceAccess(client, inputInfo.keyboard, TRUE))
+#ifdef XACE
+    if (!XaceHook(XACE_DEVICE_ACCESS, client, inputInfo.keyboard, TRUE))
     {
 	result = Success;
 	rep.status = AlreadyGrabbed;

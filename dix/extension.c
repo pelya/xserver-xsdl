@@ -61,9 +61,8 @@ SOFTWARE.
 #include "gcstruct.h"
 #include "scrnintstr.h"
 #include "dispatch.h"
-#ifdef XCSECURITY
-#define _SECURITY_SERVER
-#include <X11/extensions/security.h>
+#ifdef XACE
+#include "xace.h"
 #endif
 
 #define EXTENSION_BASE  128
@@ -147,8 +146,8 @@ AddExtension(char *name, int NumEvents, int NumErrors,
         ext->errorBase = 0;
         ext->errorLast = 0;
     }
-#ifdef XCSECURITY
-    ext->secure = FALSE;
+#ifdef XACE
+    XACE_STATE_INIT(ext->securityState);
 #endif
 
     return(ext);
@@ -210,26 +209,27 @@ CheckExtension(const char *extname)
 	return NULL;
 }
 
+/*
+ * Added as part of Xace.
+ */
+ExtensionEntry *
+GetExtensionEntry(int major)
+{    
+    if (major < EXTENSION_BASE)
+	return NULL;
+    major -= EXTENSION_BASE;
+    if (major >= NumExtensions)
+	return NULL;
+    return extensions[major];
+}
+
 _X_EXPORT void
 DeclareExtensionSecurity(char *extname, Bool secure)
 {
-#ifdef XCSECURITY
+#ifdef XACE
     int i = FindExtension(extname, strlen(extname));
     if (i >= 0)
-    {
-	int majorop = extensions[i]->base;
-	extensions[i]->secure = secure;
-	if (secure)
-	{
-	    UntrustedProcVector[majorop] = ProcVector[majorop];
-	    SwappedUntrustedProcVector[majorop] = SwappedProcVector[majorop];
-	}
-	else
-	{
-	    UntrustedProcVector[majorop]	= ProcBadRequest;
-	    SwappedUntrustedProcVector[majorop] = ProcBadRequest;
-	}
-    }
+	XaceHook(XACE_DECLARE_EXT_SECURE, extensions[i], secure);
 #endif
 }
 
@@ -307,10 +307,9 @@ ProcQueryExtension(ClientPtr client)
     {
 	i = FindExtension((char *)&stuff[1], stuff->nbytes);
         if (i < 0
-#ifdef XCSECURITY
-	    /* don't show insecure extensions to untrusted clients */
-	    || (client->trustLevel == XSecurityClientUntrusted &&
-		!extensions[i]->secure)
+#ifdef XACE
+	    /* call callbacks to find out whether to show extension */
+	    || !XaceHook(XACE_EXT_ACCESS, client, extensions[i])
 #endif
 	    )
             reply.present = xFalse;
@@ -347,10 +346,9 @@ ProcListExtensions(ClientPtr client)
 
         for (i=0;  i<NumExtensions; i++)
 	{
-#ifdef XCSECURITY
-	    /* don't show insecure extensions to untrusted clients */
-	    if (client->trustLevel == XSecurityClientUntrusted &&
-		!extensions[i]->secure)
+#ifdef XACE
+	    /* call callbacks to find out whether to show extension */
+	    if (!XaceHook(XACE_EXT_ACCESS, client, extensions[i]))
 		continue;
 #endif
 	    total_length += strlen(extensions[i]->name) + 1;
@@ -365,9 +363,8 @@ ProcListExtensions(ClientPtr client)
         for (i=0;  i<NumExtensions; i++)
         {
 	    int len;
-#ifdef XCSECURITY
-	    if (client->trustLevel == XSecurityClientUntrusted &&
-		!extensions[i]->secure)
+#ifdef XACE
+	    if (!XaceHook(XACE_EXT_ACCESS, client, extensions[i]))
 		continue;
 #endif
             *bufptr++ = len = strlen(extensions[i]->name);

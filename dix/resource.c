@@ -123,6 +123,9 @@ Equipment Corporation.
 #include "panoramiX.h"
 #include "panoramiXsrv.h"
 #endif
+#ifdef XACE
+#include "xace.h"
+#endif
 #include <assert.h>
 
 static void RebuildTable(
@@ -821,7 +824,7 @@ LegalNewID(XID id, register ClientPtr client)
 	     !LookupIDByClass(id, RC_ANY)));
 }
 
-#ifdef XCSECURITY
+#ifdef XACE
 
 /* SecurityLookupIDByType and SecurityLookupIDByClass:
  * These are the heart of the resource ID security system.  They take
@@ -854,8 +857,9 @@ SecurityLookupIDByType(ClientPtr client, XID id, RESTYPE rtype, Mask mode)
 		break;
 	    }
     }
-    if (retval && client && client->CheckAccess)
-	retval = (* client->CheckAccess)(client, id, rtype, mode, retval);
+    if (retval && client && 
+	!XaceHook(XACE_RESOURCE_ACCESS, client, id, rtype, mode, retval))
+	retval = NULL;
     return retval;
 }
 
@@ -883,8 +887,9 @@ SecurityLookupIDByClass(ClientPtr client, XID id, RESTYPE classes, Mask mode)
 		break;
 	    }
     }
-    if (retval && client && client->CheckAccess)
-	retval = (* client->CheckAccess)(client, id, res->type, mode, retval);
+    if (retval && client &&
+	!XaceHook(XACE_RESOURCE_ACCESS, client, id, res->type, mode, retval))
+	retval = NULL;
     return retval;
 }
 
@@ -906,7 +911,7 @@ LookupIDByClass(XID id, RESTYPE classes)
 				   SecurityUnknownAccess);
 }
 
-#else /* not XCSECURITY */
+#else /* not XACE */
 
 /*
  *  LookupIDByType returns the object with the given id and type, else NULL.
@@ -951,4 +956,4 @@ LookupIDByClass(XID id, RESTYPE classes)
     return (pointer)NULL;
 }
 
-#endif /* XCSECURITY */
+#endif /* XACE */

@@ -150,6 +150,9 @@ extern __const__ int _nfiles;
 #ifdef XAPPGROUP
 #include <X11/extensions/Xagsrv.h>
 #endif
+#ifdef XACE
+#include "xace.h"
+#endif
 #ifdef XCSECURITY
 #define _SECURITY_SERVER
 #include <X11/extensions/security.h>
@@ -693,9 +696,8 @@ ClientAuthorized(ClientPtr client,
     /* indicate to Xdmcp protocol that we've opened new client */
     XdmcpOpenDisplay(priv->fd);
 #endif /* XDMCP */
-#ifdef XAPPGROUP
-    if (ClientStateCallback)
-        XagCallClientStateChange (client);
+#ifdef XACE
+    XaceHook(XACE_AUTH_AVAIL, client, auth_id);
 #endif
     /* At this point, if the client is authorized to change the access control
      * list, we should getpeername() information, and add the client to

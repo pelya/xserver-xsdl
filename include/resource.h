@@ -227,7 +227,7 @@ extern pointer LookupClientResourceComplex(
 #define SecurityWriteAccess	(1<<1)	/* changing the object */
 #define SecurityDestroyAccess	(1<<2)	/* destroying the object */
 
-#ifdef XCSECURITY
+#ifdef XACE
 
 extern pointer SecurityLookupIDByType(
     ClientPtr /*client*/,
@@ -241,7 +241,7 @@ extern pointer SecurityLookupIDByClass(
     RESTYPE /*classes*/,
     Mask /*access_mode*/);
 
-#else /* not XCSECURITY */
+#else /* not XACE */
 
 #define SecurityLookupIDByType(client, id, rtype, access_mode) \
         LookupIDByType(id, rtype)
@@ -249,7 +249,7 @@ extern pointer SecurityLookupIDByClass(
 #define SecurityLookupIDByClass(client, id, classes, access_mode) \
         LookupIDByClass(id, classes)
 
-#endif /* XCSECURITY */
+#endif /* XACE */
 
 extern void GetXIDRange(
     int /*client*/,

@@ -202,9 +202,8 @@ SOFTWARE.
 #include "dixstruct.h"
 #include "osdep.h"
 
-#ifdef XCSECURITY
-#define _SECURITY_SERVER
-#include <X11/extensions/security.h>
+#ifdef XACE
+#include "xace.h"
 #endif
 
 #ifndef PATH_MAX
@@ -1383,15 +1382,6 @@ _X_EXPORT Bool LocalClient(ClientPtr client)
     pointer		addr;
     register HOST	*host;
 
-#ifdef XCSECURITY
-    /* untrusted clients can't change host access */
-    if (client->trustLevel != XSecurityClientTrusted)
-    {
-	SecurityAudit("client %d attempted to change host access\n",
-		      client->index);
-	return FALSE;
-    }
-#endif
     if (!_XSERVTransGetPeerAddr (((OsCommPtr)client->osPrivate)->trans_conn,
 	&notused, &alen, &from))
     {
@@ -1534,6 +1524,11 @@ AuthorizedClient(ClientPtr client)
 {
     if (!client || defeatAccessControl)
 	return TRUE;
+#ifdef XACE
+    /* untrusted clients can't change host access */
+    if (!XaceHook(XACE_HOSTLIST_ACCESS, client, SecurityWriteAccess))
+	return FALSE;
+#endif
     return LocalClient(client);
 }
 
