@@ -141,30 +141,6 @@ ReplaceFileString(
     return string;
 }
 
-/*
- * ExecCommand takes two character pointers - the command to execute,
- * and the "argv" style NULL-terminated vector of arguments for the command.
- * We wait for the command to terminate before continuing to ensure that
- * we don't delete the job file before the spooler has made a copy.
- */
-void
-ExecCommand(
-    char *pCommand,
-    char **argVector)
-{
-    pid_t childPid;
-    int status;
-
-    if((childPid = fork()) == 0)
-    {
-	execv(pCommand, argVector);
-    }
-    else
-    {
-	(void) waitpid(childPid, &status, 0);
-    }
-    return;
-}
 
 /*
  * TransferBytes reads numBytes of data from pSrcFile and writes them

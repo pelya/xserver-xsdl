@@ -350,7 +350,6 @@ typedef struct
 
 extern Bool InitializePsDriver(int ndx, ScreenPtr pScreen, int argc,
     char **argv);
-static Bool         PsDestroyContext(XpContextPtr pCon);
 extern XpContextPtr PsGetContextFromWindow(WindowPtr win);
 
 /*
@@ -374,9 +373,6 @@ extern int PsGetDocumentData(XpContextPtr pCon, ClientPtr client,
  */
 
 extern Bool PsCreateGC(GCPtr pGC);
-static int  PsGetDrawablePrivateStuff(DrawablePtr pDrawable, GC *gc,
-                                      unsigned long *valid, PsOutPtr *psOut,
-                                      ColormapPtr *cMap);
 extern PsContextPrivPtr PsGetPsContextPriv( DrawablePtr pDrawable );
 extern int  PsUpdateDrawableGC(GCPtr pGC, DrawablePtr pDrawable,
                                PsOutPtr *psOut, ColormapPtr *cMap);

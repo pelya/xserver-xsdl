@@ -109,8 +109,6 @@ char *ReplaceAnyString(char *string,
 char *ReplaceFileString(char *string,
                         char *inFileName,
                         char *outFileName);
-void ExecCommand(char *pCommand,
-                char **argVector);
 int TransferBytes(FILE *pSrcFile,
                  FILE *pDstFile,
                  int numBytes);
