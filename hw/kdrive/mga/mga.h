@@ -1,5 +1,5 @@
 /*
- * Id: mach64.h,v 1.2 1999/11/02 08:17:24 keithp Exp $
+ * $Id$
  *
  * Copyright © 2003 Anders Carlsson
  *
@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $RCSId: xc/programs/Xserver/hw/kdrive/mach64/mach64.h,v 1.5 2001/06/23 03:41:24 keithp Exp $ */
+/* $Header$ */
 
 #ifndef _MGA_H_
 #define _MGA_H_
