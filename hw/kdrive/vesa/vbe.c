@@ -58,7 +58,6 @@ VbeGetVmib (Vm86InfoPtr vi, int mode, VbeModeInfoBlock *vmib)
 {
     int			code;
     int			mark;
-    int			vib_base;
     int			vmib_base;
     VbeModeInfoBlock	*vmib_low;
     
@@ -79,6 +78,101 @@ VbeGetVmib (Vm86InfoPtr vi, int mode, VbeModeInfoBlock *vmib)
     return code;
 }
 
+static int 
+VbeReportVib(Vm86InfoPtr vi, VbeInfoBlock *vib)
+{
+    U32 i, p;
+    unsigned char c;
+    int error = 0;
+    
+    ErrorF("VBE version %c.%c (", 
+           ((vib->VbeVersion >> 8) & 0xFF) + '0',
+           (vib->VbeVersion & 0xFF)+'0');
+    p = vib->OemStringPtr;
+    for(i = 0; 1; i++) {
+        c = Vm86Memory(vi, MAKE_POINTER_1(p+i));
+        if(!c) break;
+	if (c >= ' ')
+	    ErrorF("%c", c);
+        if (i > 32000) {
+            error = 1;
+            break;
+        }
+    }
+    ErrorF(")\n");
+    ErrorF("DAC is %s, controller is %sVGA compatible%s\n",
+           (vib->Capabilities[0]&1)?"fixed":"switchable",
+           (vib->Capabilities[0]&2)?"not ":"",
+           (vib->Capabilities[0]&3)?", RAMDAC causes snow":"");
+    ErrorF("Total memory: %lu kilobytes\n", 64L*vib->TotalMemory);
+    if(error)
+        return -1;
+    return 0;
+}
+
+#if 0
+static int 
+VbeReportModeInfo(Vm86InfoPtr vi, U16 mode, VbeModeInfoBlock *vmib)
+{
+    int supported = (vmib->ModeAttributes&0x1)?1:0;
+    int colour = (vmib->ModeAttributes&0x8)?1:0;
+    int graphics = (vmib->ModeAttributes&0x10)?1:0;
+    int vga_compatible = !((vmib->ModeAttributes&0x20)?1:0);
+    int linear_fb = (vmib->ModeAttributes&0x80)?1:0;
+
+    ErrorF("0x%04X: %dx%dx%d%s",
+           (unsigned)mode, 
+           (int)vmib->XResolution, (int)vmib->YResolution,
+           (int)vmib->BitsPerPixel,
+           colour?"":" (monochrome)",
+	   graphics?"":" (graphics)",
+	   vga_compatible?"":" (vga compatible)",
+	   linear_fb?"":" (linear frame buffer)");
+    switch(vmib->MemoryModel) {
+    case 0:
+        ErrorF(" text mode (%dx%d)",
+               (int)vmib->XCharSize, (int)vmib->YCharSize);
+        break;
+    case 1:
+        ErrorF(" CGA graphics");
+        break;
+    case 2:
+        ErrorF(" Hercules graphics");
+        break;
+    case 3:
+        ErrorF(" Planar (%d planes)", vmib->NumberOfPlanes);
+        break;
+    case 4:
+        ErrorF(" PseudoColor");
+        break;
+    case 5:
+        ErrorF(" Non-chain 4, 256 colour");
+        break;
+    case 6:
+        if(vmib->DirectColorModeInfo & 1)
+            ErrorF(" DirectColor");
+        else
+            ErrorF(" TrueColor");
+        ErrorF(" [%d:%d:%d:%d]",
+               vmib->RedMaskSize, vmib->GreenMaskSize, vmib->BlueMaskSize,
+               vmib->RsvdMaskSize);
+        if(vmib->DirectColorModeInfo & 2)
+            ErrorF(" (reserved bits are reserved)");
+        break;
+    case 7: ErrorF("YUV");
+        break;
+    default:
+        ErrorF("unknown MemoryModel 0x%X ", vmib->MemoryModel);
+    }
+    if(!supported)
+        ErrorF(" (unsupported)");
+    else if(!linear_fb)
+        ErrorF(" (no linear framebuffer)");
+    ErrorF("\n");
+    return 0;
+}
+#endif
+
 void
 VbeReportInfo (Vm86InfoPtr vi)
 {
@@ -95,7 +189,6 @@ VbeGetNmode (Vm86InfoPtr vi)
 {
     VbeInfoBlock    vib;
     int		    code;
-    int		    ret = 0;
     unsigned int    p;
     int		    n;
     int		    mode;
@@ -121,7 +214,6 @@ VbeGetModes (Vm86InfoPtr vi, VesaModePtr modes, int nmode)
 {
     VbeInfoBlock	vib;
     int			code;
-    int			ret = 0;
     unsigned int	p;
     int			n;
     int			mode;
@@ -262,7 +354,6 @@ VbeMapFramebuffer(Vm86InfoPtr vi, VbeInfoPtr vbe, int mode, int *ret_size, CARD3
     int			size;
     int			pagesize = getpagesize();
     int			before, after;
-    int			devmem;
 
     if (VbeGetVib (vi, &vib) < 0)
 	return 0;
@@ -329,7 +420,7 @@ VbeSetPalette(Vm86InfoPtr vi, VbeInfoPtr vbe, int first, int number, U8 *entries
     U8	    *palette_scratch;
     int	    mark;
     int	    palette_base;
-    int	    i, j, code;
+    int	    i, code;
 
     if(number == 0)
         return 0;
@@ -374,7 +465,7 @@ VbeGetPalette(Vm86InfoPtr vi, VbeInfoPtr vbe, int first, int number, U8 *entries
     U8	    *palette_scratch;
     int	    mark;
     int	    palette_base;
-    int	    i, j, code;
+    int	    i, code;
 
     if(number == 0)
         return 0;
@@ -513,10 +604,15 @@ static const int VbeDPMSModes[4] = {
 };
 
 Bool
-VbeDPMS(Vm86InfoPtr vi, VbeInfoBlock *vib, int mode)
+VbeDPMS(Vm86InfoPtr vi, VbeInfoPtr vbe, int mode)
 {
-    int	code;
+    int		    code;
+    VbeInfoBlock    vib;
     
+    code = VbeGetVib (vi, &vib);
+    if (code < 0)
+	return FALSE;
+
     /*
      * Check which modes are supported
      */
@@ -546,95 +642,6 @@ VbeDPMS(Vm86InfoPtr vi, VbeInfoBlock *vib, int mode)
     
     return TRUE;
 }
-
-int 
-VbeReportVib(Vm86InfoPtr vi, VbeInfoBlock *vib)
-{
-    U32 i, p;
-    unsigned char c;
-    int error;
-    ErrorF("VBE version %c.%c (", 
-           ((vib->VbeVersion >> 8) & 0xFF) + '0',
-           (vib->VbeVersion & 0xFF)+'0');
-    p = vib->OemStringPtr;
-    for(i = 0; 1; i++) {
-        c = Vm86Memory(vi, MAKE_POINTER_1(p+i));
-        if(!c) break;
-	if (c >= ' ')
-	    ErrorF("%c", c);
-        if (i > 32000) {
-            error = 1;
-            break;
-        }
-    }
-    ErrorF(")\n");
-    ErrorF("DAC is %s, controller is %sVGA compatible%s\n",
-           (vib->Capabilities[0]&1)?"fixed":"switchable",
-           (vib->Capabilities[0]&2)?"not ":"",
-           (vib->Capabilities[0]&3)?", RAMDAC causes snow":"");
-    ErrorF("Total memory: %lu kilobytes\n", 64L*vib->TotalMemory);
-    if(error)
-        return -1;
-    return 0;
-}
-
-int 
-VbeReportModeInfo(Vm86InfoPtr vi, U16 mode, VbeModeInfoBlock *vmib)
-{
-    int supported = (vmib->ModeAttributes&0x1)?1:0;
-    int colour = (vmib->ModeAttributes&0x8)?1:0;
-    int graphics = (vmib->ModeAttributes&0x10)?1:0;
-    int vga_compatible = !((vmib->ModeAttributes&0x20)?1:0);
-    int linear_fb = (vmib->ModeAttributes&0x80)?1:0;
-
-    ErrorF("0x%04X: %dx%dx%d%s",
-           (unsigned)mode, 
-           (int)vmib->XResolution, (int)vmib->YResolution,
-           (int)vmib->BitsPerPixel,
-           colour?"":" (monochrome)");
-    switch(vmib->MemoryModel) {
-    case 0:
-        ErrorF(" text mode (%dx%d)",
-               (int)vmib->XCharSize, (int)vmib->YCharSize);
-        break;
-    case 1:
-        ErrorF(" CGA graphics");
-        break;
-    case 2:
-        ErrorF(" Hercules graphics");
-        break;
-    case 3:
-        ErrorF(" Planar (%d planes)", vmib->NumberOfPlanes);
-        break;
-    case 4:
-        ErrorF(" PseudoColor");
-        break;
-    case 5:
-        ErrorF(" Non-chain 4, 256 colour");
-        break;
-    case 6:
-        if(vmib->DirectColorModeInfo & 1)
-            ErrorF(" DirectColor");
-        else
-            ErrorF(" TrueColor");
-        ErrorF(" [%d:%d:%d:%d]",
-               vmib->RedMaskSize, vmib->GreenMaskSize, vmib->BlueMaskSize,
-               vmib->RsvdMaskSize);
-        if(vmib->DirectColorModeInfo & 2)
-            ErrorF(" (reserved bits are reserved)");
-        break;
-    case 7: ErrorF("YUV");
-        break;
-    default:
-        ErrorF("unknown MemoryModel 0x%X ", vmib->MemoryModel);
-    }
-    if(!supported)
-        ErrorF(" (unsupported)");
-    else if(!linear_fb)
-        ErrorF(" (no linear framebuffer)");
-    ErrorF("\n");
-    return 0;
-}       
 
 int
 VbeDoInterrupt10(Vm86InfoPtr vi)

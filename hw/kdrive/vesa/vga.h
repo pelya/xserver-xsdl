@@ -37,10 +37,10 @@ VgaSetMode(Vm86InfoPtr vi, int mode);
 int
 VgaGetMode (Vm86InfoPtr vi, int *mode);
 
-int
+void
 VgaSetWritePlaneMask(Vm86InfoPtr vi, int mask);
 
-int
+void
 VgaSetReadPlaneMap(Vm86InfoPtr vi, int map);
 
 int 

@@ -121,11 +121,11 @@ VbeGetNmode (Vm86InfoPtr vi);
 int
 VbeGetModes (Vm86InfoPtr vi, VesaModePtr modes, int nmode);
 
-int
-VbeGetModeInfo(Vm86InfoPtr vi, int m, VesaModePtr mode);
-
 VbeInfoPtr
 VbeInit (Vm86InfoPtr vi);
+
+void
+VbeCleanup (Vm86InfoPtr vi, VbeInfoPtr vbe);
 
 int
 VbeSetMode (Vm86InfoPtr vi, VbeInfoPtr vbe, int mode, int linear, int direct);
@@ -134,30 +134,27 @@ int
 VbeGetMode(Vm86InfoPtr vi, int *mode);
 
 void *
-VbeMapFramebuffer(Vm86InfoPtr vi, VbeInfoPtr vbe, int mode, int *size, CARD32 *phys);
+VbeMapFramebuffer(Vm86InfoPtr vi, VbeInfoPtr vbe, int mode, int *ret_size, CARD32 *ret_phys);
 
 void
 VbeUnmapFramebuffer(Vm86InfoPtr vi, VbeInfoPtr vbe, int mode, void *fb);
 
 int 
 VbeSetPalette(Vm86InfoPtr vi, VbeInfoPtr vbe, int first, int number, U8 *entries);
-        
+
 int 
 VbeGetPalette(Vm86InfoPtr vi, VbeInfoPtr vbe, int first, int number, U8 *entries);
-        
+
 int 
 VbeSetPaletteOptions(Vm86InfoPtr vi, VbeInfoPtr vbe, U8 bits, int wait);
 
 void *
 VbeSetWindow(Vm86InfoPtr vi, VbeInfoPtr vbe, int offset, int purpose, int *size_return);
 
-int 
-VbeReportVib(Vm86InfoPtr vi, VbeInfoBlock *vib);
-
-int 
-VbeReportModeInfo(Vm86InfoPtr vi, U16 mode, VbeModeInfoBlock *vmib);
-
+Bool
+VbeDPMS(Vm86InfoPtr vi, VbeInfoPtr vbe, int mode);
+    
 int
 VbeDoInterrupt10(Vm86InfoPtr vi);
-    
+
 #endif

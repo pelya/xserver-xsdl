@@ -117,6 +117,25 @@ vesaInitialize(KdCardInfo *card, VesaCardPrivPtr priv);
 Bool
 vesaCardInit(KdCardInfo *card);
 
+int
+vesaDepth (VesaModePtr mode);
+
+Bool
+vesaModeGood (KdScreenInfo  *screen,
+	      VesaModePtr   a);
+
+int
+vesaSizeError (KdScreenInfo *screen,
+	       VesaModePtr  a);
+
+Bool
+vesaModeBetter (KdScreenInfo	*screen,
+		VesaModePtr	a,
+		VesaModePtr	b);
+
+VesaModePtr
+vesaSelectMode (KdScreenInfo *screen);
+
 Bool
 vesaInitialize (KdCardInfo *card, VesaCardPrivPtr priv);
 
@@ -130,10 +149,17 @@ LayerPtr
 vesaLayerCreate (ScreenPtr pScreen);
 
 Bool
+vesaMapFramebuffer (KdScreenInfo    *screen);
+
+Bool
 vesaInitScreen(ScreenPtr pScreen);
 
 Bool
 vesaFinishInitScreen(ScreenPtr pScreen);
+
+Bool
+vesaSetMode (ScreenPtr	    pScreen,
+	     VesaModePtr    mode);
 
 Bool
 vesaEnable(ScreenPtr pScreen);
@@ -164,5 +190,13 @@ vesaGetColors (ScreenPtr pScreen, int fb, int n, xColorItem *pdefs);
 
 int
 vesaProcessArgument (int argc, char **argv, int i);
+
+#ifdef RANDR
+Bool
+vesaRandRSetConfig (ScreenPtr		pScreen,
+		    Rotation		randr,
+		    int			rate,
+		    RRScreenSizePtr	pSize);
+#endif
 
 #endif /* _VESA_H_ */

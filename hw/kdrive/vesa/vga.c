@@ -115,14 +115,14 @@ VgaGetMode (Vm86InfoPtr vi, int *mode)
     return 0;
 }
 
-int
+void
 VgaSetWritePlaneMask(Vm86InfoPtr vi, int mask)
 {
     asm volatile ("outb %b0,%w1" : : "a" (2), "d" (0x3c4));
     asm volatile ("outb %b0,%w1" : : "a" (mask), "d" (0x3c5));
 }
 
-int
+void
 VgaSetReadPlaneMap(Vm86InfoPtr vi, int map)
 {
     asm volatile ("outb %b0,%w1" : : "a" (4), "d" (0x3ce));

@@ -25,6 +25,8 @@ THE SOFTWARE.
 #include <config.h>
 #endif
 #include "vesa.h"
+#include "vga.h"
+#include "vbe.h"
 #ifdef RANDR
 #include <randrstr.h>
 #endif
@@ -93,11 +95,14 @@ vesaReportMode (VesaModePtr mode)
     int vga_compatible = !((mode->ModeAttributes&MODE_VGA)?1:0);
     int linear_fb = (mode->ModeAttributes&MODE_LINEAR)?1:0;
 
-    ErrorF("0x%04X: %dx%dx%d%s",
+    ErrorF("0x%04X: %dx%dx%d%s%s",
            (unsigned)mode->mode, 
            (int)mode->XResolution, (int)mode->YResolution,
 	   vesaDepth (mode),
-           colour?"":" (monochrome)");
+           colour?"":" (monochrome)",
+	   graphics?"":" (graphics)",
+	   vga_compatible?"":" (vga compatible)",
+	   linear_fb?"":" (linear frame buffer)");
     switch(mode->MemoryModel) {
     case MEMORY_TEXT:
         ErrorF(" text mode");
@@ -201,8 +206,6 @@ vesaGetModes (Vm86InfoPtr vi, int *ret_nmode)
 Bool
 vesaInitialize (KdCardInfo *card, VesaCardPrivPtr priv)
 {
-    int code;
-
     priv->vi = Vm86Setup(vesa_map_holes);
     if(!priv->vi)
 	goto fail;
@@ -349,6 +352,7 @@ vesaModeGood (KdScreenInfo  *screen,
     {
 	return TRUE;
     }
+    return FALSE;
 }
 
 #define vabs(a)	((a) >= 0 ? (a) : -(a))
@@ -424,9 +428,7 @@ vesaSelectMode (KdScreenInfo *screen)
 Bool
 vesaScreenInitialize (KdScreenInfo *screen, VesaScreenPrivPtr pscr)
 {
-    VesaCardPrivPtr	priv = screen->card->driver;
     VesaModePtr		mode;
-    Pixel		allbits;
 
     screen->driver = pscr;
     
@@ -568,7 +570,6 @@ vesaSetWindowLinear (ScreenPtr	pScreen,
 		     CARD32	*size)
 {
     KdScreenPriv(pScreen);
-    VesaCardPrivPtr	priv = pScreenPriv->card->driver;
     VesaScreenPrivPtr	pscr = pScreenPriv->screen->driver;
 
     *size = pscr->mode.BytesPerScanLine;
@@ -668,7 +669,6 @@ vesaWindowCga (ScreenPtr    pScreen,
 	       void	    *closure)
 {
     KdScreenPriv(pScreen);
-    VesaCardPrivPtr	priv = pScreenPriv->card->driver;
     VesaScreenPrivPtr	pscr = pScreenPriv->screen->driver;
     int			line;
     
@@ -685,21 +685,18 @@ vesaUpdateMono (ScreenPtr	pScreen,
 {
     RegionPtr	damage = &pBuf->damage;
     PixmapPtr	pShadow = pBuf->pPixmap;
-    shadowScrPriv(pScreen);
     int		nbox = REGION_NUM_RECTS (damage);
     BoxPtr	pbox = REGION_RECTS (damage);
     FbBits	*shaBase, *shaLine, *sha;
-    FbBits	s;
     FbStride	shaStride;
     int		scrBase, scrLine, scr;
     int		shaBpp;
     int		shaXoff, shaYoff;   /* XXX assumed to be zero */
     int		x, y, w, h, width;
     int         i;
-    FbBits	*winBase, *winLine, *win;
+    FbBits	*winBase = 0, *win;
     CARD32      winSize;
     FbBits	bits;
-    int		plane;
 
     fbGetDrawable (&pShadow->drawable, shaBase, shaStride, shaBpp, shaXoff, shaYoff);
     while (nbox--)
@@ -798,7 +795,6 @@ vesaConfigureScreen (ScreenPtr pScreen)
 {
     KdScreenPriv(pScreen);
     KdScreenInfo	*screen = pScreenPriv->screen;
-    VesaCardPrivPtr	priv = pScreenPriv->card->driver;
     VesaScreenPrivPtr	pscr = pScreenPriv->screen->driver;
 
     KdMouseMatrix	m;
@@ -840,11 +836,9 @@ vesaLayerCreate (ScreenPtr pScreen)
 {
     KdScreenPriv(pScreen);
     KdScreenInfo	*screen = pScreenPriv->screen;
-    VesaCardPrivPtr	priv = pScreenPriv->card->driver;
     VesaScreenPrivPtr	pscr = pScreenPriv->screen->driver;
-    LayerPtr		pLayer;
     ShadowUpdateProc	update;
-    ShadowWindowProc	window;
+    ShadowWindowProc	window = 0;
     PixmapPtr		pPixmap;
     int			kind;
 
@@ -1144,7 +1138,7 @@ vesaRandRSetConfig (ScreenPtr		pScreen,
 		    RRScreenSizePtr	pSize)
 {
     KdScreenPriv(pScreen);
-    VesaModePtr		mode;
+    VesaModePtr		mode = 0;
     KdScreenInfo	*screen = pScreenPriv->screen;
     VesaCardPrivPtr	priv = pScreenPriv->card->driver;
     VesaScreenPrivPtr	pscr = pScreenPriv->screen->driver;
@@ -1346,9 +1340,6 @@ vesaRandRInit (ScreenPtr pScreen)
 Bool
 vesaInitScreen(ScreenPtr pScreen)
 {
-    KdScreenPriv(pScreen);
-    VesaScreenPrivPtr	pscr = pScreenPriv->screen->driver;
-    
     if (!LayerStartInit (pScreen))
 	return FALSE;
     
@@ -1417,7 +1408,6 @@ vesaEnable(ScreenPtr pScreen)
     VesaCardPrivPtr	priv = pScreenPriv->card->driver;
     VesaScreenPrivPtr	pscr = pScreenPriv->screen->driver;
     KdScreenInfo	*screen = pScreenPriv->screen;
-    int			code;
     int			i;
     CARD32		size;
     char		*p;
@@ -1615,7 +1605,6 @@ void
 vesaPreserve(KdCardInfo *card)
 {
     VesaCardPrivPtr priv = card->driver;
-    int code;
 
     /* The framebuffer might not be valid at this point, so we cannot
        save the VGA fonts now; we do it in vesaEnable. */
@@ -1678,7 +1667,6 @@ void
 vesaScreenFini(KdScreenInfo *screen)
 {
     VesaScreenPrivPtr	pscr = screen->driver;
-    VesaCardPrivPtr	priv = screen->card->driver;
     
     vesaUnmapFramebuffer (screen);
     screen->fb[0].depth = pscr->origDepth;
@@ -1779,7 +1767,7 @@ vesaGetColors (ScreenPtr pScreen, int fb, int n, xColorItem *pdefs)
     KdScreenPriv(pScreen);
     VesaScreenPrivPtr	pscr = pScreenPriv->screen->driver;
     VesaCardPrivPtr priv = pScreenPriv->card->driver;
-    int first, i, j, k;
+    int i;
     int	red, green, blue;
     int min, max;
     int p;

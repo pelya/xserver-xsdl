@@ -328,8 +328,8 @@ vm86_outl(U16 port, U32 value)
 #define SEG_FS 6
 #define REP 1
 #define REPNZ 2
-#define SET_8(_x, _y) (_x) = (_x & ~0xFF) | (_y & 0xFF);
-#define SET_16(_x, _y) (_x) = (_x & ~0xFFFF) | (_y & 0xFFFF);
+#define SET_8(_x, _y) (_x) = ((_x) & ~0xFF) | ((_y) & 0xFF);
+#define SET_16(_x, _y) (_x) = ((_x) & ~0xFFFF) | ((_y) & 0xFFFF);
 #define INC_IP(_i) SET_16(regs->eip, (regs->eip + _i))
 #define AGAIN INC_IP(1); goto again;
 
@@ -340,8 +340,6 @@ vm86_emulate(Vm86InfoPtr vi)
     U8 opcode;
     int size;
     int pref_seg = 0, pref_rep = 0, pref_66 = 0, pref_67 = 0;
-    U32 count;
-    int code;
 
   again:
     if(!Vm86IsMemory(vi, MAKE_POINTER(regs->cs, regs->eip))) {
@@ -412,7 +410,7 @@ vm86_emulate(Vm86InfoPtr vi)
                     goto again;
             } else {
                 SET_16(regs->ecx, regs->ecx - 1);
-                if(regs->ecx & 0xFFFF != 0)
+                if((regs->ecx & 0xFFFF) != 0)
                     goto again;
             }
         }
@@ -470,7 +468,7 @@ vm86_emulate(Vm86InfoPtr vi)
                     goto again;
             } else {
                 SET_16(regs->ecx, regs->ecx - 1);
-                if(regs->ecx & 0xFFFF != 0)
+                if((regs->ecx & 0xFFFF) != 0)
                     goto again;
             }
         }
@@ -571,6 +569,7 @@ Vm86Memory(Vm86InfoPtr vi, U32 i)
         return HM(vi, i);
     else {
         ErrorF("Reading unmapped memory at 0x%08X\n", i);
+	return 0;
     }
 }
 
