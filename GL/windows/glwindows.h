@@ -1,3 +1,4 @@
+#include <Xwindows.h>
 #include <GL/gl.h>
 #include <GL/glext.h>
 
@@ -18,9 +19,6 @@
 #include <glxscreens.h>
 #include <GL/internal/glcore.h>
 #include <stdlib.h>
-
-#define WINDOWS_LEAN_AND_CLEAN
-#include <windows.h>
 
 
 typedef struct {

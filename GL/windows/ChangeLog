@@ -1,3 +1,12 @@
+2005-02-02  Alexander Gottwald  <ago at freedesktop dot org>
+
+	* glwrap.c:
+	* glwindows.h:
+	Bugzilla #1866 (https://bugs.freedesktop.org/show_bug.cgi?id=1866)
+	attachment #1818 (https://bugs.freedesktop.org/attachment.cgi?id=1818):
+	Include Xwindows.h before GL/gl.h to prevent loading windows.h which
+	pollutes our namespace with some symbols.    
+
 2005-01-27  Alexander Gottwald  <ago at freedesktop dot org>
 
 	* glwrap.c:

@@ -5,14 +5,11 @@
  * Authors: Alexander Gottwald
  */
 
+#include <Xwindows.h>
 #include <GL/gl.h>
 #include <GL/glext.h>
 #include <glxserver.h>
 #include <glxext.h>
-
-#define WINDOWS_LEAN_AND_CLEAN
-#include <windows.h>
-
 
 #define RESOLVE_RET(procname, symbol, retval) \
     static Bool init = TRUE; \
