@@ -1,5 +1,5 @@
 /*
- * $XFree86: xc/programs/Xserver/hw/kdrive/linux/mouse.c,v 1.2 2001/11/08 09:35:08 keithp Exp $
+ * $XFree86: xc/programs/Xserver/hw/kdrive/linux/mouse.c,v 1.4 2001/12/07 02:18:19 keithp Exp $
  *
  * Copyright © 2001 Keith Packard, member of The XFree86 Project, Inc.
  *
@@ -499,8 +499,8 @@ static Bool busParse (KdMouseInfo *mi, unsigned char *ev, int ne)
     unsigned long   flags;
     
     flags = KD_MOUSE_DELTA;
-    dx = (char) ev[1];
-    dy = -(char) ev[2];
+    dx = (signed char) ev[1];
+    dy = -(signed char) ev[2];
     if ((ev[0] & 4) == 0)
 	flags |= KD_BUTTON_1;
     if ((ev[0] & 2) == 0)
@@ -538,8 +538,8 @@ static Bool msParse (KdMouseInfo *mi, unsigned char *ev, int ne)
     if (ev[0] & 0x10)
 	flags |= KD_BUTTON_3;
 
-    dx = (char)(((ev[0] & 0x03) << 6) | (ev[1] & 0x3F));
-    dy = (char)(((ev[0] & 0x0C) << 4) | (ev[2] & 0x3F));
+    dx = (signed char)(((ev[0] & 0x03) << 6) | (ev[1] & 0x3F));
+    dy = (signed char)(((ev[0] & 0x0C) << 4) | (ev[2] & 0x3F));
     if (!MouseReasonable (mi, flags, dx, dy))
 	return FALSE;
     if (km->stage == MouseWorking)
@@ -612,8 +612,8 @@ static Bool logiParse (KdMouseInfo *mi, unsigned char *ev, int ne)
 	if (ev[0] & 0x10)
 	    flags |= KD_BUTTON_3;
     
-	dx = (char)(((ev[0] & 0x03) << 6) | (ev[1] & 0x3F));
-	dy = (char)(((ev[0] & 0x0C) << 4) | (ev[2] & 0x3F));
+	dx = (signed char)(((ev[0] & 0x03) << 6) | (ev[1] & 0x3F));
+	dy = (signed char)(((ev[0] & 0x0C) << 4) | (ev[2] & 0x3F));
 	flags |= km->state & KD_BUTTON_2;
     }
     else
@@ -661,8 +661,8 @@ static Bool mscParse (KdMouseInfo *mi, unsigned char *ev, int ne)
 	flags |= KD_BUTTON_2;
     if (!(ev[0] & 0x1))
 	flags |= KD_BUTTON_3;
-    dx =    (char)(ev[1]) + (char)(ev[3]);
-    dy = - ((char)(ev[2]) + (char)(ev[4]));
+    dx =    (signed char)(ev[1]) + (signed char)(ev[3]);
+    dy = - ((signed char)(ev[2]) + (signed char)(ev[4]));
 
     if (!MouseReasonable (mi, flags, dx, dy))
 	return FALSE;
