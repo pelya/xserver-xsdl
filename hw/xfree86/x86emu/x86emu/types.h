@@ -36,12 +36,11 @@
 *
 ****************************************************************************/
 
-/* $XFree86: xc/extras/x86emu/include/x86emu/types.h,v 1.6 2003/06/12 14:12:26 eich Exp $ */
 
 #ifndef __X86EMU_TYPES_H
 #define __X86EMU_TYPES_H
 
-#ifndef IN_MODULE
+#ifndef NO_SYS_HEADERS
 #include <sys/types.h>
 #endif
 

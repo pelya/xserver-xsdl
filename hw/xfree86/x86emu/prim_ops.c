@@ -102,8 +102,6 @@
 
 /*------------------------- Global Variables ------------------------------*/
 
-#ifndef	__HAVE_INLINE_ASSEMBLER__
-
 static u32 x86emu_parity_tab[8] =
 {
 	0x96696996,
@@ -116,14 +114,10 @@ static u32 x86emu_parity_tab[8] =
 	0x69969669,
 };
 
-#endif
-
 #define PARITY(x)   (((x86emu_parity_tab[(x) / 32] >> ((x) % 32)) & 1) == 0)
 #define XOR2(x) 	(((x) ^ ((x)>>1)) & 0x1)
 
 /*----------------------------- Implementation ----------------------------*/
-
-#ifndef	__HAVE_INLINE_ASSEMBLER__
 
 /****************************************************************************
 REMARKS:
@@ -2454,8 +2448,6 @@ void div_long(u32 s)
 	M.x86.R_EDX = (u32)mod;
 }
 
-#endif	/* __HAVE_INLINE_ASSEMBLER__ */
-
 /****************************************************************************
 REMARKS:
 Implements the IN string instruction and side effects.
@@ -2660,255 +2652,3 @@ DB(	if (CHECK_SP_ACCESS())
     return res;
 }
 
-#ifdef	__HAVE_INLINE_ASSEMBLER__
-
-u16 aaa_word (u16 d)
-{ return aaa_word_asm(&M.x86.R_EFLG,d); }
-
-u16 aas_word (u16 d)
-{ return aas_word_asm(&M.x86.R_EFLG,d); }
-
-u16 aad_word (u16 d)
-{ return aad_word_asm(&M.x86.R_EFLG,d); }
-
-u16 aam_word (u8 d)
-{ return aam_word_asm(&M.x86.R_EFLG,d); }
-
-u8 adc_byte (u8 d, u8 s)
-{ return adc_byte_asm(&M.x86.R_EFLG,d,s); }
-
-u16 adc_word (u16 d, u16 s)
-{ return adc_word_asm(&M.x86.R_EFLG,d,s); }
-
-u32 adc_long (u32 d, u32 s)
-{ return adc_long_asm(&M.x86.R_EFLG,d,s); }
-
-u8 add_byte (u8 d, u8 s)
-{ return add_byte_asm(&M.x86.R_EFLG,d,s); }
-
-u16 add_word (u16 d, u16 s)
-{ return add_word_asm(&M.x86.R_EFLG,d,s); }
-
-u32 add_long (u32 d, u32 s)
-{ return add_long_asm(&M.x86.R_EFLG,d,s); }
-
-u8 and_byte (u8 d, u8 s)
-{ return and_byte_asm(&M.x86.R_EFLG,d,s); }
-
-u16 and_word (u16 d, u16 s)
-{ return and_word_asm(&M.x86.R_EFLG,d,s); }
-
-u32 and_long (u32 d, u32 s)
-{ return and_long_asm(&M.x86.R_EFLG,d,s); }
-
-u8 cmp_byte (u8 d, u8 s)
-{ return cmp_byte_asm(&M.x86.R_EFLG,d,s); }
-
-u16 cmp_word (u16 d, u16 s)
-{ return cmp_word_asm(&M.x86.R_EFLG,d,s); }
-
-u32 cmp_long (u32 d, u32 s)
-{ return cmp_long_asm(&M.x86.R_EFLG,d,s); }
-
-u8 daa_byte (u8 d)
-{ return daa_byte_asm(&M.x86.R_EFLG,d); }
-
-u8 das_byte (u8 d)
-{ return das_byte_asm(&M.x86.R_EFLG,d); }
-
-u8 dec_byte (u8 d)
-{ return dec_byte_asm(&M.x86.R_EFLG,d); }
-
-u16 dec_word (u16 d)
-{ return dec_word_asm(&M.x86.R_EFLG,d); }
-
-u32 dec_long (u32 d)
-{ return dec_long_asm(&M.x86.R_EFLG,d); }
-
-u8 inc_byte (u8 d)
-{ return inc_byte_asm(&M.x86.R_EFLG,d); }
-
-u16 inc_word (u16 d)
-{ return inc_word_asm(&M.x86.R_EFLG,d); }
-
-u32 inc_long (u32 d)
-{ return inc_long_asm(&M.x86.R_EFLG,d); }
-
-u8 or_byte (u8 d, u8 s)
-{ return or_byte_asm(&M.x86.R_EFLG,d,s); }
-
-u16 or_word (u16 d, u16 s)
-{ return or_word_asm(&M.x86.R_EFLG,d,s); }
-
-u32 or_long (u32 d, u32 s)
-{ return or_long_asm(&M.x86.R_EFLG,d,s); }
-
-u8 neg_byte (u8 s)
-{ return neg_byte_asm(&M.x86.R_EFLG,s); }
-
-u16 neg_word (u16 s)
-{ return neg_word_asm(&M.x86.R_EFLG,s); }
-
-u32 neg_long (u32 s)
-{ return neg_long_asm(&M.x86.R_EFLG,s); }
-
-u8 not_byte (u8 s)
-{ return not_byte_asm(&M.x86.R_EFLG,s); }
-
-u16 not_word (u16 s)
-{ return not_word_asm(&M.x86.R_EFLG,s); }
-
-u32 not_long (u32 s)
-{ return not_long_asm(&M.x86.R_EFLG,s); }
-
-u8 rcl_byte (u8 d, u8 s)
-{ return rcl_byte_asm(&M.x86.R_EFLG,d,s); }
-
-u16 rcl_word (u16 d, u8 s)
-{ return rcl_word_asm(&M.x86.R_EFLG,d,s); }
-
-u32 rcl_long (u32 d, u8 s)
-{ return rcl_long_asm(&M.x86.R_EFLG,d,s); }
-
-u8 rcr_byte (u8 d, u8 s)
-{ return rcr_byte_asm(&M.x86.R_EFLG,d,s); }
-
-u16 rcr_word (u16 d, u8 s)
-{ return rcr_word_asm(&M.x86.R_EFLG,d,s); }
-
-u32 rcr_long (u32 d, u8 s)
-{ return rcr_long_asm(&M.x86.R_EFLG,d,s); }
-
-u8 rol_byte (u8 d, u8 s)
-{ return rol_byte_asm(&M.x86.R_EFLG,d,s); }
-
-u16 rol_word (u16 d, u8 s)
-{ return rol_word_asm(&M.x86.R_EFLG,d,s); }
-
-u32 rol_long (u32 d, u8 s)
-{ return rol_long_asm(&M.x86.R_EFLG,d,s); }
-
-u8 ror_byte (u8 d, u8 s)
-{ return ror_byte_asm(&M.x86.R_EFLG,d,s); }
-
-u16 ror_word (u16 d, u8 s)
-{ return ror_word_asm(&M.x86.R_EFLG,d,s); }
-
-u32 ror_long (u32 d, u8 s)
-{ return ror_long_asm(&M.x86.R_EFLG,d,s); }
-
-u8 shl_byte (u8 d, u8 s)
-{ return shl_byte_asm(&M.x86.R_EFLG,d,s); }
-
-u16 shl_word (u16 d, u8 s)
-{ return shl_word_asm(&M.x86.R_EFLG,d,s); }
-
-u32 shl_long (u32 d, u8 s)
-{ return shl_long_asm(&M.x86.R_EFLG,d,s); }
-
-u8 shr_byte (u8 d, u8 s)
-{ return shr_byte_asm(&M.x86.R_EFLG,d,s); }
-
-u16 shr_word (u16 d, u8 s)
-{ return shr_word_asm(&M.x86.R_EFLG,d,s); }
-
-u32 shr_long (u32 d, u8 s)
-{ return shr_long_asm(&M.x86.R_EFLG,d,s); }
-
-u8 sar_byte (u8 d, u8 s)
-{ return sar_byte_asm(&M.x86.R_EFLG,d,s); }
-
-u16 sar_word (u16 d, u8 s)
-{ return sar_word_asm(&M.x86.R_EFLG,d,s); }
-
-u32 sar_long (u32 d, u8 s)
-{ return sar_long_asm(&M.x86.R_EFLG,d,s); }
-
-u16 shld_word (u16 d, u16 fill, u8 s)
-{ return shld_word_asm(&M.x86.R_EFLG,d,fill,s); }
-
-u32 shld_long (u32 d, u32 fill, u8 s)
-{ return shld_long_asm(&M.x86.R_EFLG,d,fill,s); }
-
-u16 shrd_word (u16 d, u16 fill, u8 s)
-{ return shrd_word_asm(&M.x86.R_EFLG,d,fill,s); }
-
-u32 shrd_long (u32 d, u32 fill, u8 s)
-{ return shrd_long_asm(&M.x86.R_EFLG,d,fill,s); }
-
-u8 sbb_byte (u8 d, u8 s)
-{ return sbb_byte_asm(&M.x86.R_EFLG,d,s); }
-
-u16 sbb_word (u16 d, u16 s)
-{ return sbb_word_asm(&M.x86.R_EFLG,d,s); }
-
-u32 sbb_long (u32 d, u32 s)
-{ return sbb_long_asm(&M.x86.R_EFLG,d,s); }
-
-u8 sub_byte (u8 d, u8 s)
-{ return sub_byte_asm(&M.x86.R_EFLG,d,s); }
-
-u16 sub_word (u16 d, u16 s)
-{ return sub_word_asm(&M.x86.R_EFLG,d,s); }
-
-u32 sub_long (u32 d, u32 s)
-{ return sub_long_asm(&M.x86.R_EFLG,d,s); }
-
-void test_byte (u8 d, u8 s)
-{ test_byte_asm(&M.x86.R_EFLG,d,s); }
-
-void test_word (u16 d, u16 s)
-{ test_word_asm(&M.x86.R_EFLG,d,s); }
-
-void test_long (u32 d, u32 s)
-{ test_long_asm(&M.x86.R_EFLG,d,s); }
-
-u8 xor_byte (u8 d, u8 s)
-{ return xor_byte_asm(&M.x86.R_EFLG,d,s); }
-
-u16 xor_word (u16 d, u16 s)
-{ return xor_word_asm(&M.x86.R_EFLG,d,s); }
-
-u32 xor_long (u32 d, u32 s)
-{ return xor_long_asm(&M.x86.R_EFLG,d,s); }
-
-void imul_byte (u8 s)
-{ imul_byte_asm(&M.x86.R_EFLG,&M.x86.R_AX,M.x86.R_AL,s); }
-
-void imul_word (u16 s)
-{ imul_word_asm(&M.x86.R_EFLG,&M.x86.R_AX,&M.x86.R_DX,M.x86.R_AX,s); }
-
-void imul_long (u32 s)
-{ imul_long_asm(&M.x86.R_EFLG,&M.x86.R_EAX,&M.x86.R_EDX,M.x86.R_EAX,s); }
-
-void imul_long_direct(u32 *res_lo, u32* res_hi,u32 d, u32 s)
-{ imul_long_asm(&M.x86.R_EFLG,res_lo,res_hi,d,s); }
-
-void mul_byte (u8 s)
-{ mul_byte_asm(&M.x86.R_EFLG,&M.x86.R_AX,M.x86.R_AL,s); }
-
-void mul_word (u16 s)
-{ mul_word_asm(&M.x86.R_EFLG,&M.x86.R_AX,&M.x86.R_DX,M.x86.R_AX,s); }
-
-void mul_long (u32 s)
-{ mul_long_asm(&M.x86.R_EFLG,&M.x86.R_EAX,&M.x86.R_EDX,M.x86.R_EAX,s); }
-
-void idiv_byte (u8 s)
-{ idiv_byte_asm(&M.x86.R_EFLG,&M.x86.R_AL,&M.x86.R_AH,M.x86.R_AX,s); }
-
-void idiv_word (u16 s)
-{ idiv_word_asm(&M.x86.R_EFLG,&M.x86.R_AX,&M.x86.R_DX,M.x86.R_AX,M.x86.R_DX,s); }
-
-void idiv_long (u32 s)
-{ idiv_long_asm(&M.x86.R_EFLG,&M.x86.R_EAX,&M.x86.R_EDX,M.x86.R_EAX,M.x86.R_EDX,s); }
-
-void div_byte (u8 s)
-{ div_byte_asm(&M.x86.R_EFLG,&M.x86.R_AL,&M.x86.R_AH,M.x86.R_AX,s); }
-
-void div_word (u16 s)
-{ div_word_asm(&M.x86.R_EFLG,&M.x86.R_AX,&M.x86.R_DX,M.x86.R_AX,M.x86.R_DX,s); }
-
-void div_long (u32 s)
-{ div_long_asm(&M.x86.R_EFLG,&M.x86.R_EAX,&M.x86.R_EDX,M.x86.R_EAX,M.x86.R_EDX,s); }
-
-#endif

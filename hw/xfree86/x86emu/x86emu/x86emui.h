@@ -38,7 +38,6 @@
 *
 ****************************************************************************/
 
-/* $XFree86: xc/extras/x86emu/src/x86emu/x86emu/x86emui.h,v 1.3 2000/04/17 16:29:47 eich Exp $ */
 
 #ifndef __X86EMU_X86EMUI_H
 #define __X86EMU_X86EMUI_H
@@ -71,9 +70,7 @@
 #include "x86emu/fpu.h"
 #include "x86emu/fpu_regs.h"
 
-#ifdef IN_MODULE
-#include <xf86_ansic.h>
-#else
+#ifndef NO_SYS_HEADERS
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

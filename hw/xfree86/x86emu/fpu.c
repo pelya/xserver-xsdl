@@ -36,7 +36,6 @@
 *               emulation of the FPU instructions.
 *
 ****************************************************************************/
-/* $XFree86$ */
 
 #include "x86emu/x86emui.h"
 

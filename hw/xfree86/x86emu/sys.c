@@ -39,16 +39,13 @@
 *				user library.
 *
 ****************************************************************************/
-/* $XFree86: xc/extras/x86emu/src/x86emu/sys.c,v 1.6 2002/09/16 18:05:18 eich Exp $ */
 
 #include "x86emu.h"
 #include "x86emu/x86emui.h"
 #include "x86emu/regs.h"
 #include "x86emu/debug.h"
 #include "x86emu/prim_ops.h"
-#ifdef IN_MODULE
-#include "xf86_ansic.h"
-#else
+#ifndef NO_SYS_HEADERS
 #include <string.h>
 #endif                                                                                           
 /*------------------------- Global Variables ------------------------------*/
@@ -60,6 +57,7 @@ X86EMU_intrFuncs	_X86EMU_intrTab[256];
 #if defined(__alpha__) || defined(__alpha)
 /* to cope with broken egcs-1.1.2 :-(((( */
 
+#define ALPHA_UALOADS
 /*
  * inline functions to do unaligned accesses
  * from linux/include/asm-alpha/unaligned.h
@@ -211,6 +209,60 @@ static __inline__ void stw_u(unsigned long r5, unsigned short * r11)
 		:"r" (r5), "r" (r11));
 #endif
 }
+
+#elif defined(__GNUC__) && ((__GNUC__ < 3)) && \
+             (defined (__ia64__) || defined (ia64__))
+#define IA64_UALOADS
+/*
+ * EGCS 1.1 knows about arbitrary unaligned loads.  Define some
+ * packed structures to talk about such things with.
+ */
+struct __una_u64 { unsigned long  x __attribute__((packed)); };
+struct __una_u32 { unsigned int   x __attribute__((packed)); };
+struct __una_u16 { unsigned short x __attribute__((packed)); };
+
+static __inline__ unsigned long
+__uldq (const unsigned long * r11)
+{
+    const struct __una_u64 *ptr = (const struct __una_u64 *) r11;
+    return ptr->x;
+}
+
+static __inline__ unsigned long
+uldl (const unsigned int * r11)
+{
+    const struct __una_u32 *ptr = (const struct __una_u32 *) r11;
+    return ptr->x;
+}
+
+static __inline__ unsigned long
+uldw (const unsigned short * r11)
+{
+    const struct __una_u16 *ptr = (const struct __una_u16 *) r11;
+    return ptr->x;
+}
+
+static __inline__ void
+ustq (unsigned long r5, unsigned long * r11)
+{
+    struct __una_u64 *ptr = (struct __una_u64 *) r11;
+    ptr->x = r5;
+}
+
+static __inline__ void
+ustl (unsigned long r5, unsigned int * r11)
+{
+    struct __una_u32 *ptr = (struct __una_u32 *) r11;
+    ptr->x = r5;
+}
+
+static __inline__ void
+ustw (unsigned long r5, unsigned short * r11)
+{
+    struct __una_u16 *ptr = (struct __una_u16 *) r11;
+    ptr->x = r5;
+}
+
 #endif
 
 /****************************************************************************
@@ -264,8 +316,10 @@ u16 X86API rdw(
 		}
 	else
 #endif
-#if defined(__alpha__) || defined(__alpha)
+#if defined(ALPHA_UALOADS)
 		val = ldw_u((u16*)(M.mem_base + addr));
+#elif  defined(IA64_UALOADS)
+      val = uldw((u16*)(M.mem_base + addr));
 #else
 		val = *(u16*)(M.mem_base + addr);
 #endif
@@ -301,8 +355,10 @@ u32 X86API rdl(
 		}
 	else
 #endif
-#if defined(__alpha__) || defined(__alpha)
+#if defined(ALPHA_UALOADS)
 		val = ldl_u((u32*)(M.mem_base + addr));
+#elif  defined(IA64_UALOADS)
+        val = uldl((u32*)(M.mem_base + addr));
 #else
 		val = *(u32*)(M.mem_base + addr);
 #endif
@@ -357,8 +413,10 @@ DB(	if (DEBUG_MEM_TRACE())
 		}
 	else
 #endif
-#if defined(__alpha__) || defined(__alpha)
+#if defined(ALPHA_UALOADS)
 	 stw_u(val,(u16*)(M.mem_base + addr));
+#elif defined(IA64_UALOADS)
+     ustw(val,(u16*)(M.mem_base + addr));
 #else
 	 *(u16*)(M.mem_base + addr) = val;
 #endif
@@ -391,8 +449,10 @@ DB(	if (DEBUG_MEM_TRACE())
 		}
 	else
 #endif
-#if defined(__alpha__) || defined(__alpha)
+#if defined(ALPHA_UALOADS)
 	 stl_u(val,(u32*)(M.mem_base + addr));
+#elif defined(IA64_UALOADS)
+     ustl(val,(u32*)(M.mem_base + addr));
 #else
 	 *(u32*)(M.mem_base + addr) = val;
 #endif

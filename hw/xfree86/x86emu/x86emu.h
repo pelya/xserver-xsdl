@@ -37,7 +37,6 @@
 *               include this header
 *
 ****************************************************************************/
-/* $XFree86$ */
 
 #ifndef __X86EMU_X86EMU_H
 #define __X86EMU_X86EMU_H
@@ -56,7 +55,9 @@ typedef int X86EMU_pioAddr;
 
 /*---------------------- Macros and type definitions ----------------------*/
 
-/*  #pragma	pack(1) */  /* Don't pack structs with function pointers! */
+#ifdef PACK
+# pragma	PACK   /* Don't pack structs with function pointers! */
+#endif
 
 /****************************************************************************
 REMARKS:
@@ -129,8 +130,10 @@ extern u32 X86API rdl(u32 addr);
 extern void X86API wrb(u32 addr, u8 val);
 extern void X86API wrw(u32 addr, u16 val);
 extern void X86API wrl(u32 addr, u32 val);
- 
-/*  #pragma	pack() */
+
+#ifdef END_PACK
+# pragma	END_PACK
+#endif
 
 /*--------------------- type definitions -----------------------------------*/
 
@@ -169,6 +172,7 @@ void 	X86EMU_halt_sys(void);
 #define DEBUG_DISASSEMBLE_F     0x000008
 #define DEBUG_BREAK_F           0x000010
 #define DEBUG_SVC_F             0x000020
+#define DEBUG_SAVE_IP_CS_F      0x000040
 #define DEBUG_FS_F              0x000080
 #define DEBUG_PROC_F            0x000100
 #define DEBUG_SYSINT_F          0x000200 /* bios system interrupts. */
@@ -178,7 +182,7 @@ void 	X86EMU_halt_sys(void);
 #define DEBUG_IO_TRACE_F        0x002000 
 #define DEBUG_TRACECALL_REGS_F  0x004000
 #define DEBUG_DECODE_NOPRINT_F  0x008000 
-#define DEBUG_SAVE_IP_CS_F      0x010000
+#define DEBUG_EXIT              0x010000
 #define DEBUG_SYS_F             (DEBUG_SVC_F|DEBUG_FS_F|DEBUG_PROC_F)
 
 void 	X86EMU_trace_regs(void);

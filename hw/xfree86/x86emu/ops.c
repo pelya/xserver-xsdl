@@ -70,8 +70,6 @@
 *
 ****************************************************************************/
 
-/* $XFree86: xc/extras/x86emu/src/x86emu/ops.c,v 1.8tsi Exp $ */
-
 #include "x86emu/x86emui.h"
 
 /*----------------------------- Implementation ----------------------------*/
@@ -87,11 +85,22 @@ static void x86emuOp_illegal_op(
     u8 op1)
 {
     START_OF_INSTR();
+    if (M.x86.R_SP != 0) {
     DECODE_PRINTF("ILLEGAL X86 OPCODE\n");
     TRACE_REGS();
-    printk("%04x:%04x: %02X ILLEGAL X86 OPCODE!\n",
-        M.x86.R_CS, M.x86.R_IP-1,op1);
+    DB( printk("%04x:%04x: %02X ILLEGAL X86 OPCODE!\n",
+        M.x86.R_CS, M.x86.R_IP-1,op1));
     HALT_SYS();
+        }
+    else {
+        /* If we get here, it means the stack pointer is back to zero
+         * so we are just returning from an emulator service call
+         * so therte is no need to display an error message. We trap
+         * the emulator with an 0xF1 opcode to finish the service
+         * call.
+         */
+        X86EMU_halt_sys();
+        }
     END_OF_INSTR();
 }
 
@@ -9404,6 +9413,8 @@ static void x86emuOp_aam(u8 X86EMU_UNUSED(op1))
     DECODE_PRINTF("AAM\n");
     a = fetch_byte_imm();      /* this is a stupid encoding. */
     if (a != 10) {
+	/* fix: add base decoding
+	   aam_word(u8 val, int base a) */
         DECODE_PRINTF("ERROR DECODING AAM\n");
         TRACE_REGS();
         HALT_SYS();
@@ -9421,9 +9432,18 @@ Handles opcode 0xd5
 ****************************************************************************/
 static void x86emuOp_aad(u8 X86EMU_UNUSED(op1))
 {
+    u8 a;
+
     START_OF_INSTR();
     DECODE_PRINTF("AAD\n");
-    (void) fetch_byte_imm();
+    a = fetch_byte_imm();
+    if (a != 10) {
+	/* fix: add base decoding
+	   aad_word(u16 val, int base a) */
+        DECODE_PRINTF("ERROR DECODING AAM\n");
+        TRACE_REGS();
+        HALT_SYS();
+    }
     TRACE_AND_STEP();
     M.x86.R_AX = aad_word(M.x86.R_AX);
     DECODE_CLEAR_SEGOVR();
