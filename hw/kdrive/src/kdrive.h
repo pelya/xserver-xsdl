@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/kdrive.h,v 1.4 2000/02/23 20:29:53 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/kdrive.h,v 1.6 2000/08/26 00:24:38 keithp Exp $ */
 
 #include <stdio.h>
 #include "X.h"
@@ -41,6 +41,7 @@
 #include "dix.h"
 #include "fb.h"
 #include "fboverlay.h"
+#include "shadow.h"
 
 extern WindowPtr    *WindowTable;
 
@@ -115,7 +116,7 @@ typedef struct _KdCardFuncs {
     Bool	(*scrinit) (KdScreenInfo *);/* initialize screen information */
     Bool	(*initScreen) (ScreenPtr);  /* initialize ScreenRec */
     void	(*preserve) (KdCardInfo *); /* save graphics card state */
-    void        (*enable) (ScreenPtr);      /* set up for rendering */
+    Bool        (*enable) (ScreenPtr);      /* set up for rendering */
     Bool	(*dpms) (ScreenPtr, int);   /* set DPMS screen saver */
     void        (*disable) (ScreenPtr);     /* turn off rendering */
     void	(*restore) (KdCardInfo *);  /* restore graphics card state */
@@ -209,6 +210,10 @@ typedef struct _KdMonitorTiming {
 
 extern const KdMonitorTiming	kdMonitorTimings[];
 extern const int		kdNumMonitorTimings;
+
+typedef struct _KdMouseMatrix {
+    int	    matrix[2][3];
+} KdMouseMatrix;
 
 /*
  * This is the only completely portable way to
@@ -397,7 +402,7 @@ KdDisableScreen (ScreenPtr pScreen);
 void
 KdDisableScreens (void);
 
-void
+Bool
 KdEnableScreen (ScreenPtr pScreen);
 
 void
@@ -493,6 +498,9 @@ void
 KdSetLed (int led, Bool on);
 
 void
+KdSetMouseMatrix (KdMouseMatrix *matrix);
+
+void
 KdBlockHandler (int		screen,
 		pointer		blockData,
 		pointer		timeout,
@@ -539,6 +547,17 @@ KdTuneMode (KdScreenInfo    *screen,
 	    Bool	    (*usable) (KdScreenInfo *),
 	    Bool	    (*supported) (KdScreenInfo *,
 					  const KdMonitorTiming *));
+
+/* kpict.c */
+void
+KdPictureInitAsync (ScreenPtr pScreen);
+
+/* kshadow.c */
+Bool
+KdShadowScreenInit (KdScreenInfo *screen);
+
+Bool
+KdShadowInitScreen (ScreenPtr pScreen, ShadowUpdateProc update, ShadowWindowProc window);
 
 /* ktest.c */
 Bool

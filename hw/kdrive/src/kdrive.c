@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/kdrive.c,v 1.4 2000/05/06 22:17:39 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/kdrive.c,v 1.6 2000/08/26 00:24:37 keithp Exp $ */
 
 #include "kdrive.h"
 #ifdef PSEUDO8
@@ -224,14 +224,15 @@ KdDisableScreens (void)
     }
 }
 
-void
+Bool
 KdEnableScreen (ScreenPtr pScreen)
 {
     KdScreenPriv (pScreen);
 
     if (pScreenPriv->enabled)
-	return;
-    (*pScreenPriv->card->cfuncs->enable) (pScreen);
+	return TRUE;
+    if (!(*pScreenPriv->card->cfuncs->enable) (pScreen))
+	return FALSE;
     pScreenPriv->enabled = TRUE;
     pScreenPriv->card->selected = pScreenPriv->screen->mynum;
     if (!pScreenPriv->screen->softCursor)
@@ -632,6 +633,11 @@ KdScreenInit(int index, ScreenPtr pScreen, int argc, char **argv)
     pScreen->SaveScreen		= KdSaveScreen;
     pScreen->CreateWindow	= KdCreateWindow;
 
+#ifdef RENDER
+    if (!fbPictureInit (pScreen, 0, 0))
+	return FALSE;
+#endif
+    
 #ifdef FB_OLD_SCREEN
     pScreenPriv->BackingStoreFuncs.SaveAreas = fbSaveAreas;
     pScreenPriv->BackingStoreFuncs.RestoreAreas = fbSaveAreas;
@@ -719,8 +725,6 @@ KdScreenInit(int index, ScreenPtr pScreen, int argc, char **argv)
 	miDCInitialize(pScreen, &kdPointerScreenFuncs);
     }
 
-    if (!KdPictureInit (pScreen, 0, 0))
-	return FALSE;
     
     if (!fbCreateDefColormap (pScreen))
     {
@@ -739,7 +743,8 @@ KdScreenInit(int index, ScreenPtr pScreen, int argc, char **argv)
     if (screen->mynum == card->selected)
     {
 	(*card->cfuncs->preserve) (card);
-	(*card->cfuncs->enable) (pScreen);
+	if (!(*card->cfuncs->enable) (pScreen))
+	    return FALSE;
 	pScreenPriv->enabled = TRUE;
 	if (!screen->softCursor)
 	    (*card->cfuncs->enableCursor) (pScreen);

@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/kasync.c,v 1.3 2000/01/21 18:41:49 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/kasync.c,v 1.5 2000/08/26 00:24:37 keithp Exp $ */
 
 #include "kdrive.h"
 
@@ -251,6 +251,9 @@ KdScreenInitAsync (ScreenPtr pScreen)
 #else
     pScreenPriv->BackingStoreFuncs.SaveAreas = KdCheckSaveAreas;
     pScreenPriv->BackingStoreFuncs.RestoreAreas = KdCheckRestoreAreas;
+#endif
+#ifdef RENDER
+    KdPictureInitAsync (pScreen);
 #endif
 }
 

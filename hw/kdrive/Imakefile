@@ -1,16 +1,20 @@
 XCOMM $XConsortium: Imakefile /main/10 1996/12/02 10:20:33 lehors $
-XCOMM $XFree86: xc/programs/Xserver/hw/kdrive/Imakefile,v 1.1 1999/11/19 13:53:47 hohndel Exp $
-#include <Server.tmpl>
+XCOMM $XFree86: xc/programs/Xserver/hw/kdrive/Imakefile,v 1.3 2000/08/26 00:24:37 keithp Exp $
+KDRIVE=.
+#include "Kdrive.tmpl"
+
+#if BuildRender
+RENDERSRCS=kpict.c
+RENDEROBJS=kpict.o
+#endif
 
 SRCS = kcmap.c kcolor.c kdrive.c kinfo.c kinput.c kmap.c knoop.c ktest.c \
-	vga.c kasync.c kmode.c kcurscol.c kpict.c
+	vga.c kasync.c kmode.c kcurscol.c kshadow.c $(RENDERSRCS)
 
 OBJS = kcmap.o kcolor.o kdrive.o kinfo.o kinput.o kmap.o knoop.o ktest.o \
-	vga.o kasync.o kmode.o kcurscol.o kpict.o
+	vga.o kasync.o kmode.o kcurscol.o kshadow.o $(RENDEROBJS)
 
-INCLUDES = -I. -I$(XBUILDINCDIR) -I$(FONTINCSRC) \
-	   -I../../fb -I../../mi -I../../render -I../../include -I../../os  \
-           -I$(EXTINCSRC) -I$(XINCLUDESRC)
+INCLUDES = $(KDINCS)
 
 NormalLibraryObjectRule()
 NormalLibraryTarget(kdrive,$(OBJS))

@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/kinput.c,v 1.3 2000/02/23 20:29:54 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/kinput.c,v 1.5 2000/08/26 00:24:38 keithp Exp $ */
 
 #include "kdrive.h"
 #include "inputstr.h"
@@ -43,6 +43,10 @@ static int		kdBellPitch;
 static int		kdBellDuration;
 static int		kdLeds;
 static Bool		kdInputEnabled;
+static KdMouseMatrix	kdMouseMatrix = {
+    1, 0, 0,
+    0, 1, 0
+};
 
 int		kdMinScanCode;
 int		kdMaxScanCode;
@@ -268,6 +272,12 @@ KdSetLed (int led, Bool on)
     NoteLedState (pKdKeyboard, led, on);
     kdLeds = pKdKeyboard->kbdfeed->ctrl.leds;
     KdSetLeds ();
+}
+
+void
+KdSetMouseMatrix (KdMouseMatrix *matrix)
+{
+    kdMouseMatrix = *matrix;
 }
 
 static void
@@ -1142,11 +1152,13 @@ KdMouseAccelerate (DeviceIntPtr	device, int delta)
 }
 
 void
-KdEnqueueMouseEvent(unsigned long flags, int x, int y)
+KdEnqueueMouseEvent(unsigned long flags, int rx, int ry)
 {
     CARD32  ms;
     xEvent  xE;
     unsigned char	buttons;
+    int	    x, y;
+    int	    (*matrix)[3] = kdMouseMatrix.matrix;
 
     if (!pKdPointer)
 	return;
@@ -1155,12 +1167,18 @@ KdEnqueueMouseEvent(unsigned long flags, int x, int y)
     
     if (flags & KD_MOUSE_DELTA)
     {
+	x = matrix[0][0] * rx + matrix[0][1] * ry;
+	y = matrix[1][0] * rx + matrix[1][1] * ry;
 	x = KdMouseAccelerate (pKdPointer, x);
 	y = KdMouseAccelerate (pKdPointer, y);
 	xE.u.keyButtonPointer.pad1 = 1;
     }
     else
+    {
+	x = matrix[0][0] * rx + matrix[0][1] * ry + matrix[0][2];
+	y = matrix[1][0] * rx + matrix[1][1] * ry + matrix[1][2];
 	xE.u.keyButtonPointer.pad1 = 0;
+    }
     xE.u.keyButtonPointer.time = ms;
     xE.u.keyButtonPointer.rootX = x;
     xE.u.keyButtonPointer.rootY = y;

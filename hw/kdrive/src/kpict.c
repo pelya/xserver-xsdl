@@ -54,13 +54,11 @@ KdCheckComposite (CARD8      op,
 		 height);
 }
 
-KdPictureInit (ScreenPtr pScreen, PictFormatPtr formats, int nformats)
+void
+KdPictureInitAsync (ScreenPtr pScreen)
 {
     PictureScreenPtr    ps;
 
-    if (!fbPictureInit (pScreen, formats, nformats))
-	return FALSE;
     ps = GetPictureScreen(pScreen);
     ps->Composite = KdCheckComposite;
-    return TRUE;
 }
