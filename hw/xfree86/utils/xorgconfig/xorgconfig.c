@@ -94,7 +94,7 @@
  *  Chisato Yamauchi(cyamauch@phyas.aichi-edu.ac.jp)
  */
 /* $XConsortium: xf86config.c /main/21 1996/10/28 05:43:57 kaleb $ */
-/* $XdotOrg: xc/programs/Xserver/hw/xfree86/xf86config/xorgconfig.c,v 1.3 2004/05/16 00:03:54 alanc Exp $ */
+/* $XdotOrg: xc/programs/Xserver/hw/xfree86/xf86config/xorgconfig.c,v 1.4 2004/07/28 03:57:19 alanc Exp $ */
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -2043,7 +2043,11 @@ static char *XF86Config_fontpathchunk_text =
 "Section \"InputDevice\"\n"
 "\n"
 "    Identifier	\"Keyboard1\"\n"
+#ifdef USE_DEPRECATED_KEYBOARD_DRIVER
 "    Driver	\"Keyboard\"\n"
+#else
+"    Driver	\"kbd\"\n"
+#endif
 "\n"
 "# For most OSs the protocol can be omitted (it defaults to \"Standard\").\n"
 "# When using XQUEUE (only for SVR3 and SVR4, but not Solaris),\n"
