@@ -218,22 +218,14 @@ cwValidateGC(GCPtr pGC, unsigned long stateChanges, DrawablePtr pDrawable)
 
     pPriv->stateChanges |= stateChanges;
 
-    if (pPriv->stateChanges) {
-	CopyGC(pGC, pBackingGC, pPriv->stateChanges);
-	pPriv->stateChanges = 0;
-    }
-
-    if ((pGC->patOrg.x + x_off) != pBackingGC->patOrg.x ||
-	(pGC->patOrg.y + y_off) != pBackingGC->patOrg.y)
+    /*
+     * Copy the composite clip into the backing GC if either
+     * the drawable clip list has changed or the client has changed
+     * the client clip data
+     */
+    if (pDrawable->serialNumber != pPriv->serialNumber ||
+	(pPriv->stateChanges & (GCClipXOrigin|GCClipYOrigin|GCClipMask)))
     {
-	XID vals[2];
-	vals[0] = pGC->patOrg.x + x_off;
-	vals[1] = pGC->patOrg.y + y_off;
-	dixChangeGC(NullClient, pBackingGC,
-		    (GCTileStipXOrigin | GCTileStipYOrigin), vals, NULL);
-    }
-
-    if (pDrawable->serialNumber != pPriv->serialNumber) {
 	XID vals[2];
 	RegionPtr   pCompositeClip;
 
@@ -254,6 +246,26 @@ cwValidateGC(GCPtr pGC, unsigned long stateChanges, DrawablePtr pDrawable)
 		    (GCClipXOrigin | GCClipYOrigin), vals, NULL);
 
 	pPriv->serialNumber = pDrawable->serialNumber;
+	/*
+	 * Mask off any client clip changes to make sure
+	 * the clip list set above remains in effect
+	 */
+	pPriv->stateChanges &= ~(GCClipXOrigin|GCClipYOrigin|GCClipMask);
+    }
+
+    if (pPriv->stateChanges) {
+	CopyGC(pGC, pBackingGC, pPriv->stateChanges);
+	pPriv->stateChanges = 0;
+    }
+
+    if ((pGC->patOrg.x + x_off) != pBackingGC->patOrg.x ||
+	(pGC->patOrg.y + y_off) != pBackingGC->patOrg.y)
+    {
+	XID vals[2];
+	vals[0] = pGC->patOrg.x + x_off;
+	vals[1] = pGC->patOrg.y + y_off;
+	dixChangeGC(NullClient, pBackingGC,
+		    (GCTileStipXOrigin | GCTileStipYOrigin), vals, NULL);
     }
 
     ValidateGC(pBackingDrawable, pBackingGC);

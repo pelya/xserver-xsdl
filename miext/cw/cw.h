@@ -44,6 +44,20 @@ extern int cwGCIndex;
 #define getCwGC(pGC)	((cwGCPtr)(pGC)->devPrivates[cwGCIndex].ptr)
 #define setCwGC(pGC,p)	((pGC)->devPrivates[cwGCIndex].ptr = (pointer) (p))
 
+/*
+ * One of these structures is allocated per Picture that gets used with a
+ * window with a backing pixmap
+ */
+
+typedef struct {
+    PicturePtr	    pBackingPicture;
+    unsigned long   serialNumber;
+    unsigned long   stateChanges;
+} cwPictureRec, *cwPicturePtr;
+
+#define getCwPicture(pPicture)	((cwPicturePtr)(pPicture)->devPrivates[cwPictureIndex].ptr)
+#define setCwPicture(pPicture,p) ((pPicture)->devPrivates[cwPictureIndex].ptr = (pointer) (p))
+
 extern int  cwPictureIndex;
 
 #define cwDrawableIsRedirWindow(pDraw)					\

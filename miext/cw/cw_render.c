@@ -31,9 +31,8 @@
     PictureScreenPtr	ps = GetPictureScreen (pScreen);	\
     cwScreenPtr		pCwScreen = getCwScreen (pScreen)
 
-#define cwPictureDecl						\
-    PicturePtr	    pBackingPicture =				\
-	((pPicture)->devPrivates[cwPictureIndex].ptr)
+#define cwPicturePrivate					\
+    cwPicturePtr    pPicturePrivate = getCwPicture(pPicture)
 
 #define cwSrcPictureDecl							\
     int		    src_picture_x_off, src_picture_y_off;			\
@@ -63,45 +62,60 @@
     ps->elt = func;		\
 }
 
-static PicturePtr
-cwCreateBackingPicture (PicturePtr pPicture)
+static cwPicturePtr
+cwCreatePicturePrivate (PicturePtr pPicture)
 {
     ScreenPtr	    pScreen = pPicture->pDrawable->pScreen;
     WindowPtr	    pWindow = (WindowPtr) pPicture->pDrawable;
     PixmapPtr	    pPixmap = (*pScreen->GetWindowPixmap) (pWindow);
     int		    error;
-    PicturePtr	    pBackingPicture;
+    cwPicturePtr    pPicturePrivate;
 
-    pBackingPicture = CreatePicture (0, &pPixmap->drawable, pPicture->pFormat,
-				     0, 0, serverClient, &error);
-    if (!pBackingPicture)
+    pPicturePrivate = xalloc (sizeof (cwPictureRec));
+    if (!pPicturePrivate)
 	return NULL;
+    
+    pPicturePrivate->pBackingPicture = CreatePicture (0, &pPixmap->drawable, 
+						      pPicture->pFormat,
+						      0, 0, serverClient,
+						      &error);
+    if (!pPicturePrivate->pBackingPicture)
+    {
+	xfree (pPicturePrivate);
+	return NULL;
+    }
 
-    pPicture->devPrivates[cwPictureIndex].ptr = pBackingPicture;
+    /*
+     * Ensure that this serial number does not match the window's
+     */
+    pPicturePrivate->serialNumber = pPixmap->drawable.serialNumber;
+    pPicturePrivate->stateChanges = (1 << (CPLastBit + 1)) - 1;
+    
+    setCwPicture(pPicture, pPicturePrivate);
 
-    CopyPicture(pPicture, (1 << (CPLastBit + 1)) - 1, pBackingPicture);
-
-    return pBackingPicture;
+    return pPicturePrivate;
 }
 
 static void
-cwDestroyBackingPicture (PicturePtr pPicture)
+cwDestroyPicturePrivate (PicturePtr pPicture)
 {
-    cwPictureDecl;
+    cwPicturePrivate;
 
-    if (pBackingPicture)
+    if (pPicturePrivate)
     {
-	FreePicture (pBackingPicture, 0);
-	pPicture->devPrivates[cwPictureIndex].ptr = NULL;
+	if (pPicturePrivate->pBackingPicture)
+	    FreePicture (pPicturePrivate->pBackingPicture, 0);
+	xfree (pPicturePrivate);
+	setCwPicture(pPicture, NULL);
     }
 }
 
 static PicturePtr
 cwGetBackingPicture (PicturePtr pPicture, int *x_off, int *y_off)
 {
-    cwPictureDecl;
+    cwPicturePrivate;
 
-    if (pBackingPicture)
+    if (pPicturePrivate)
     {
 	DrawablePtr pDrawable = pPicture->pDrawable;
 	ScreenPtr   pScreen = pDrawable->pScreen;
@@ -111,7 +125,7 @@ cwGetBackingPicture (PicturePtr pPicture, int *x_off, int *y_off)
 	*x_off = pWin->drawable.x - pPixmap->screen_x;
 	*y_off = pWin->drawable.y - pPixmap->screen_y;
 
-	return pBackingPicture;
+	return pPicturePrivate->pBackingPicture;
     }
     else
     {
@@ -127,33 +141,22 @@ cwDestroyPicture (PicturePtr pPicture)
     cwPsDecl(pScreen);
     
     cwPsUnwrap(DestroyPicture);
-    cwDestroyBackingPicture (pPicture);
+    cwDestroyPicturePrivate (pPicture);
     (*ps->DestroyPicture) (pPicture);
     cwPsWrap(DestroyPicture, cwDestroyPicture);
-    /* The ChangePicture and ValidatePictures on the window haven't been passed
-     * down the stack, so report all state being changed.
-     */
-    pPicture->stateChanges |= (1 << (CPLastBit + 1)) - 1;
-    (*ps->ChangePicture) (pPicture, (1 << (CPLastBit + 1)) - 1);
 }
 
 static void
-cwChangePicture (PicturePtr pPicture,
-		 Mask	mask)
+cwChangePicture (PicturePtr pPicture, Mask mask)
 {
     ScreenPtr		pScreen = pPicture->pDrawable->pScreen;
     cwPsDecl(pScreen);
-    cwPictureDecl;
+    cwPicturePtr	pPicturePrivate = getCwPicture(pPicture);
     
     cwPsUnwrap(ChangePicture);
-    if (pBackingPicture)
-    {
-	(*ps->ChangePicture) (pBackingPicture, mask);
-    }
-    else
-    {
-	(*ps->ChangePicture) (pPicture, mask);
-    }
+    (*ps->ChangePicture) (pPicture, mask);
+    if (pPicturePrivate)
+	pPicturePrivate->stateChanges |= mask;
     cwPsWrap(ChangePicture, cwChangePicture);
 }
 
@@ -165,7 +168,7 @@ cwValidatePicture (PicturePtr pPicture,
     DrawablePtr		pDrawable = pPicture->pDrawable;
     ScreenPtr		pScreen = pDrawable->pScreen;
     cwPsDecl(pScreen);
-    cwPictureDecl;
+    cwPicturePrivate;
     
     cwPsUnwrap(ValidatePicture);
 
@@ -176,44 +179,54 @@ cwValidatePicture (PicturePtr pPicture,
     
     if (!cwDrawableIsRedirWindow (pDrawable))
     {
-	if (pBackingPicture)
-	    cwDestroyBackingPicture (pPicture);
+	if (pPicturePrivate)
+	    cwDestroyPicturePrivate (pPicture);
     }
     else
     {
+	PicturePtr  pBackingPicture;
 	DrawablePtr pBackingDrawable;
 	int	    x_off, y_off;
 	
-	pBackingDrawable = cwGetBackingDrawable(pDrawable, &x_off,
-						&y_off);
+	pBackingDrawable = cwGetBackingDrawable(pDrawable, &x_off, &y_off);
 
-	if (pBackingPicture && pBackingPicture->pDrawable != pBackingDrawable)
+	if (pPicturePrivate && 
+	    pPicturePrivate->pBackingPicture->pDrawable != pBackingDrawable)
 	{
-	    cwDestroyBackingPicture (pPicture);
-	    pBackingPicture = 0;
+	    cwDestroyPicturePrivate (pPicture);
+	    pPicturePrivate = 0;
 	}
 
-	if (!pBackingPicture)
+	if (!pPicturePrivate)
 	{
-	    pBackingPicture = cwCreateBackingPicture (pPicture);
-	    if (!pBackingPicture)
+	    pPicturePrivate = cwCreatePicturePrivate (pPicture);
+	    if (!pPicturePrivate)
 	    {
 		cwPsWrap(ValidatePicture, cwValidatePicture);
 		return;
 	    }
 	}
 
+	pBackingPicture = pPicturePrivate->pBackingPicture;
+
 	SetPictureTransform(pBackingPicture, pPicture->transform);
 	/* XXX Set filters */
 
-        mask &= ~(CPClipXOrigin | CPClipYOrigin);
+	pPicturePrivate->stateChanges |= mask;
 
-	CopyPicture(pPicture, mask, pBackingPicture);
+	if (pPicturePrivate->serialNumber != pDrawable->serialNumber ||
+	    (pPicturePrivate->stateChanges & (CPClipXOrigin|CPClipYOrigin|CPClipMask)))
+	{
+	    SetPictureClipRegion (pBackingPicture, 
+				  x_off - pDrawable->x,
+				  y_off - pDrawable->y,
+				  pPicture->pCompositeClip);
+    
+	    pPicturePrivate->serialNumber = pDrawable->serialNumber;
+	    pPicturePrivate->stateChanges &= ~(CPClipXOrigin | CPClipYOrigin | CPClipMask);
+	}
 
-	SetPictureClipRegion (pBackingPicture, 
-			      x_off - pDrawable->x,
-			      y_off - pDrawable->y,
-			      pPicture->pCompositeClip);
+	CopyPicture(pPicture, pPicturePrivate->stateChanges, pBackingPicture);
 
 	ValidatePicture (pBackingPicture);
     }
