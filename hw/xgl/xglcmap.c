@@ -288,11 +288,6 @@ xglInitPixmapFormats (ScreenPtr pScreen)
 						0, NULL, k++);
 		    if (format && format->type == GLITZ_FORMAT_TYPE_COLOR)
 		    {
-			/* formats must have an alpha channel, otherwise
-			   filtering wont match the render spec. */
-			if (!format->color.alpha_size)
-			    continue;
-
 			/* find best matching sufficient format */
 			if (format->color.red_size   >= rs &&
 			    format->color.green_size >= gs &&

@@ -120,19 +120,6 @@ xglCopyWindow (WindowPtr   pWin,
     REGION_INTERSECT (pWin->drawable.pScreen,
 		      &rgnDst, &pWin->borderClip, prgnSrc);
 
-#ifdef COMPOSITE
-    if (pPixmap->screen_x || pPixmap->screen_y)
-    {
-	REGION_TRANSLATE (pWin->drawable.pScreen, &rgnDst,
-			  -pPixmap->screen_x, -pPixmap->screen_y);
-
-	box.x1 -= pPixmap->screen_x;
-	box.y1 -= pPixmap->screen_y;
-	box.x2 -= pPixmap->screen_x;
-	box.y2 -= pPixmap->screen_y;
-    }
-#endif
-    
     fbCopyRegion (&pWin->drawable, &pWin->drawable,
 		  0, &rgnDst, dx, dy, xglCopyProc, 0, (void *) &box);
     

@@ -137,9 +137,15 @@ xglGlyphCompareScore (xglAreaPtr pArea,
 {
     xglGlyphCachePtr pCache = (xglGlyphCachePtr) pArea->pRoot->closure;
     GlyphPtr	     pGlyph = (GlyphPtr) closure2;
+    xglGlyphAreaPtr  pAreaPriv;
 
     XGL_GLYPH_PRIV (pCache->pScreen, pGlyph);
-    GLYPH_AREA_PRIV (pGlyphPriv->pArea);
+
+    /* this shouldn't be needed, seems like a bug in xglarea.c */
+    if (!pGlyphPriv->pArea)
+	return 1;
+
+    pAreaPriv = GLYPH_GET_AREA_PRIV (pGlyphPriv->pArea);
 
     if (pAreaPriv->serial != glyphSerialNumber)
 	return 1;

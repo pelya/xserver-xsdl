@@ -170,9 +170,7 @@ xglComp (CARD8		 op,
 	    if (pSrc->repeat)
 	    {
 		/* tile */
-		if (!pSrcPriv->acceleratedTile &&
-		    (pSrc->pDrawable->width > 1 ||
-		     pSrc->pDrawable->height > 1))
+		if (!pSrcPriv->acceleratedTile)
 		{
 		    pGeometry =
 			xglTiledBoxGeometry ((PixmapPtr) pSrc->pDrawable,

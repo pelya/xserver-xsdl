@@ -97,11 +97,17 @@ xglPixmapSurfaceInit (PixmapPtr	    pPixmap,
 	
 	if (width && height)
 	{
-	    if (features & GLITZ_FEATURE_TEXTURE_BORDER_CLAMP_MASK)
+	    if (width == 1 && height == 1)
+	    {
+		pPixmapPriv->acceleratedTile = TRUE;
+	    }
+	    else if (features & GLITZ_FEATURE_TEXTURE_BORDER_CLAMP_MASK)
+	    {
 		if ((features & GLITZ_FEATURE_TEXTURE_NON_POWER_OF_TWO_MASK) ||
 		    (POWER_OF_TWO (width) && POWER_OF_TWO (height)))
 		    pPixmapPriv->acceleratedTile = TRUE;
-	
+	    }
+	    
 	    pPixmapPriv->target = xglPixmapTargetOut;
 	    
 	    /*
