@@ -26,7 +26,9 @@
 #define _DAMAGESTR_H_
 
 #include "damage.h"
-#include "picturestr.h"
+#ifdef RENDER
+# include "picturestr.h"
+#endif
 
 typedef struct _damage {
     DamagePtr		pNext;
