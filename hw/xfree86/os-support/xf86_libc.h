@@ -1,4 +1,5 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/xf86_libc.h,v 3.57 2003/08/24 17:37:03 dawes Exp $ */
+/* $XdotOrg: xc/programs/Xserver/hw/xfree86/os-support/xf86_libc.h,v 1.2 2004/04/23 19:54:07 eich Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/xf86_libc.h,v 3.63 2003/12/08 21:46:55 alanh Exp $ */
 /*
  * Copyright (c) 1997-2003 by The XFree86 Project, Inc.
  *
@@ -96,7 +97,11 @@ struct xf86stat {
 typedef int xf86key_t;
 
 /* setjmp/longjmp */
+#if defined(__ia64__)
+typedef int xf86jmp_buf[1024] __attribute__ ((aligned (16))); /* guarantees 128-bit alignment! */
+#else
 typedef int xf86jmp_buf[1024];
+#endif
 
 /* for setvbuf */
 #define XF86_IONBF    1
@@ -373,6 +378,10 @@ typedef int xf86jmp_buf[1024];
 #define strcspn(ccp1,ccp2)	xf86strcspn(ccp1,ccp2)
 #undef strerror
 #define strerror(i)		xf86strerror(i)
+#undef strlcat
+#define strlcat(cp,ccp,I)	xf86strlcat(cp,ccp,I)
+#undef strlcpy
+#define strlcpy(cp,ccp,I)	xf86strlcpy(cp,ccp,I)
 #undef strlen
 #define strlen(ccp)		xf86strlen(ccp)
 #undef strncmp
@@ -410,11 +419,11 @@ typedef int xf86jmp_buf[1024];
 #undef ungetc
 #define ungetc(i,FP)		xf86ungetc(i,FP)
 #undef vfprinf
-#define vfprintf		xf86vfprintf
+#define vfprintf(p,f,a)		xf86vfprintf(p,f,a)
 #undef vsnprintf
-#define vsnprintf		xf86vsnprintf
+#define vsnprintf(s,n,f,a)	xf86vsnprintf(s,n,f,a)
 #undef vsprintf
-#define vsprintf		xf86vsprintf
+#define vsprintf(s,f,a)		xf86vsprintf(s,f,a)
 /* XXX Disable assert as if NDEBUG was defined */
 /* Some X headers defined this away too */
 #undef assert
@@ -560,7 +569,9 @@ typedef int xf86jmp_buf[1024];
 #define open			xf86open
 #define close(a)		xf86close(a)
 #define lseek(a,b,c)		xf86lseek(a,b,c)
+#if !defined(__DragonFly__)
 #define ioctl(a,b,c)		xf86ioctl(a,b,c)
+#endif
 #define read(a,b,c)		xf86read(a,b,c)
 #define write(a,b,c)		xf86write(a,b,c)
 #define mmap(a,b,c,d,e,f)	xf86mmap(a,b,c,d,e,f)

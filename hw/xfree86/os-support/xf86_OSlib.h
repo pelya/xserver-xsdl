@@ -67,7 +67,7 @@
  */
 
 /* $XConsortium: xf86_OSlib.h /main/22 1996/10/27 11:06:31 kaleb $ */
-/* $XdotOrg: $ */
+/* $XdotOrg: xc/programs/Xserver/hw/xfree86/os-support/xf86_OSlib.h,v 1.4 2004/07/28 03:57:19 alanc Exp $ */
 
 /*
  * This is private, and should not be included by any drivers.  Drivers
@@ -440,7 +440,7 @@ extern int errno;
 #   endif
 #   ifdef SYSCONS_SUPPORT
 #    define COMPAT_SYSCONS
-#    if defined(__NetBSD__) || defined(__OpenBSD__)
+#    if defined(__NetBSD__) || defined(__OpenBSD__) || defined(__DragonFly__)
 #     include <machine/console.h>
 #    else
 #     if defined(__FreeBSD__)
@@ -459,7 +459,7 @@ extern int errno;
 #   if defined(PCVT_SUPPORT)
 #    if !defined(SYSCONS_SUPPORT)
       /* no syscons, so include pcvt specific header file */
-#     if defined(__FreeBSD__)
+#     if defined(__FreeBSD__) || defined(__DragonFly__)
 #      include <machine/pcvt_ioctl.h>
 #     else
 #      if defined(__NetBSD__) || defined(__OpenBSD__)
