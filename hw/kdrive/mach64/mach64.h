@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/mach64/mach64.h,v 1.4 2001/06/19 09:31:47 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/mach64/mach64.h,v 1.5 2001/06/23 03:41:24 keithp Exp $ */
 
 #ifndef _MACH64_H_
 #define _MACH64_H_
@@ -581,6 +581,27 @@ mach64ReadLCD (Reg *reg, int id);
 void
 mach64WriteLCD (Reg *reg, int id, CARD32 data);
     
+void
+mach64Preserve (KdCardInfo *card);
+
+Bool
+mach64MapReg (KdCardInfo *card, Mach64CardInfo *mach64c);
+
+void
+mach64UnmapReg (KdCardInfo *card, Mach64CardInfo *mach64c);
+
+void
+mach64SetMMIO (KdCardInfo *card, Mach64CardInfo *mach64c);
+
+void
+mach64ResetMMIO (KdCardInfo *card, Mach64CardInfo *mach64c);
+
+Bool
+mach64Enable (ScreenPtr pScreen);
+
+void
+mach64Disable (ScreenPtr pScreen);
+
 void
 mach64WaitAvail(Reg *reg, int n);
 

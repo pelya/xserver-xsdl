@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/fbdev/fbdev.c,v 1.26 2001/07/19 08:46:30 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/fbdev/fbdev.c,v 1.27 2001/07/20 19:35:29 keithp Exp $ */
 
 #include "fbdev.h"
 
@@ -122,8 +122,8 @@ fbdevScreenInitialize (KdScreenInfo *screen, FbdevScrPriv *scrpriv)
     case FB_VISUAL_PSEUDOCOLOR:
 	if (gray)
 	{
-	    screen->fb[0].visuals = ((1 << StaticGray) |
-				     (1 << GrayScale));
+	    screen->fb[0].visuals = (1 << StaticGray);
+	    /* could also support GrayScale, but what's the point? */
 	}
 	else
 	{

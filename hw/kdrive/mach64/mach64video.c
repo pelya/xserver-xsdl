@@ -19,7 +19,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/mach64/mach64video.c,v 1.4 2001/06/21 21:44:09 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/mach64/mach64video.c,v 1.5 2001/06/23 03:41:24 keithp Exp $ */
 #include "mach64.h"
 
 #include "Xv.h"
@@ -45,6 +45,9 @@ mach64StopVideo(KdScreenInfo *screen, pointer data, Bool exit)
     MediaReg		*media = mach64c->media_reg;
 
     REGION_EMPTY(screen->pScreen, &pPortPriv->clip);   
+
+    if (!media)
+	return;
 
     if(pPortPriv->videoOn)
     {
@@ -556,6 +559,9 @@ mach64PutImage(KdScreenInfo	    *screen,
     if((x1 >= x2) || (y1 >= y2))
 	return Success;
 
+    if (!media)
+	return BadAlloc;
+
     switch(id) {
     case FOURCC_YV12:
     case FOURCC_I420:
@@ -835,6 +841,12 @@ Bool mach64InitVideo(ScreenPtr pScreen)
     KdVideoAdaptorPtr	*adaptors, *newAdaptors = NULL;
     KdVideoAdaptorPtr	newAdaptor = NULL;
     int			num_adaptors;
+    KdCardInfo		*card = pScreenPriv->card;
+    Mach64ScreenInfo	*mach64s = (Mach64ScreenInfo *) screen->driver;
+    Mach64CardInfo	*mach64c = (Mach64CardInfo *) card->driver;
+    
+    if (!mach64c->media_reg)
+	return FALSE;
 
     newAdaptor = mach64SetupImageVideo(pScreen);
 

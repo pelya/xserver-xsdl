@@ -19,7 +19,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/mach64/mach64.c,v 1.5 2001/06/23 03:41:24 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/mach64/mach64.c,v 1.6 2001/07/20 19:35:30 keithp Exp $ */
 
 #include "mach64.h"
 #include <sys/io.h>
@@ -33,17 +33,7 @@ mach64CardInit (KdCardInfo *card)
     if (!mach64c)
 	return FALSE;
     
-    mach64c->reg_base = (CARD8 *) KdMapDevice (MACH64_REG_BASE(card),
-					       MACH64_REG_SIZE(card));
-    
-    if (mach64c->reg_base)
-    {
-	KdSetMappedMode (MACH64_REG_BASE(card),
-			 MACH64_REG_SIZE(card),
-			 KD_MAPPED_MODE_REGISTERS);
-    }
-    mach64c->reg = (Reg *) (mach64c->reg_base + MACH64_REG_OFF(card));
-    mach64c->media_reg = (MediaReg *) (mach64c->reg_base + MACH64_MEDIA_REG_OFF(card));
+    (void) mach64MapReg (card, mach64c);
     mach64c->lcdEnabled = FALSE;
     
     if (!vesaInitialize (card, &mach64c->vesa))
@@ -199,16 +189,58 @@ mach64Preserve (KdCardInfo *card)
     }
 }
 
-void
-mach64SetMMIO (Mach64CardInfo *mach64c)
+Bool
+mach64MapReg (KdCardInfo *card, Mach64CardInfo *mach64c)
 {
-    if (mach64c->reg->GUI_STAT == 0xffffffff)
-	FatalError ("Mach64 REG not visible\n");
+    mach64c->reg_base = (CARD8 *) KdMapDevice (MACH64_REG_BASE(card),
+					       MACH64_REG_SIZE(card));
+    
+    if (!mach64c->reg_base)
+    {
+	mach64c->reg = 0;
+	mach64c->media_reg = 0;
+	return FALSE;
+    }
+    
+    KdSetMappedMode (MACH64_REG_BASE(card),
+		     MACH64_REG_SIZE(card),
+		     KD_MAPPED_MODE_REGISTERS);
+    mach64c->reg = (Reg *) (mach64c->reg_base + MACH64_REG_OFF(card));
+    mach64c->media_reg = (MediaReg *) (mach64c->reg_base + MACH64_MEDIA_REG_OFF(card));
+    return TRUE;
 }
 
 void
-mach64ResetMMIO (Mach64CardInfo *mach64c)
+mach64UnmapReg (KdCardInfo *card, Mach64CardInfo *mach64c)
 {
+    if (mach64c->reg_base)
+    {
+	KdUnmapDevice ((void *) mach64c->reg_base, MACH64_REG_SIZE(card));
+	KdResetMappedMode (MACH64_REG_BASE(card),
+			   MACH64_REG_SIZE(card),
+			   KD_MAPPED_MODE_REGISTERS);
+	mach64c->reg_base = 0;
+	mach64c->reg = 0;
+	mach64c->media_reg = 0;
+    }
+}
+
+void
+mach64SetMMIO (KdCardInfo *card, Mach64CardInfo *mach64c)
+{
+    if (!mach64c->reg_base)
+	mach64MapReg (card, mach64c);
+    if (mach64c->reg)
+    {
+	if (mach64c->reg->GUI_STAT == 0xffffffff)
+	    FatalError ("Mach64 REG not visible\n");
+    }
+}
+
+void
+mach64ResetMMIO (KdCardInfo *card, Mach64CardInfo *mach64c)
+{
+    mach64UnmapReg (card, mach64c);
 }
 
 Bool
@@ -220,7 +252,7 @@ mach64Enable (ScreenPtr pScreen)
     if (!vesaEnable (pScreen))
 	return FALSE;
     
-    mach64SetMMIO (mach64c);
+    mach64SetMMIO (pScreenPriv->card, mach64c);
     mach64DPMS (pScreen, KD_DPMS_NORMAL);
 #ifdef XV
     KdXVEnable (pScreen);
@@ -231,9 +263,13 @@ mach64Enable (ScreenPtr pScreen)
 void
 mach64Disable (ScreenPtr pScreen)
 {
+    KdScreenPriv(pScreen);
+    Mach64CardInfo	*mach64c = pScreenPriv->card->driver;
+
 #ifdef XV
     KdXVDisable (pScreen);
 #endif
+    mach64ResetMMIO (pScreenPriv->card, mach64c);
     vesaDisable (pScreen);
 }
 
@@ -354,7 +390,7 @@ mach64Restore (KdCardInfo *card)
     {
 	mach64WriteLCD (reg, 1, mach64c->save.LCD_GEN_CTRL);
     }
-    mach64ResetMMIO (mach64c);
+    mach64ResetMMIO (card, mach64c);
     vesaRestore (card);
 }
 
@@ -373,13 +409,7 @@ mach64CardFini (KdCardInfo *card)
 {
     Mach64CardInfo	*mach64c = card->driver;
 
-    if (mach64c->reg_base)
-    {
-	KdUnmapDevice ((void *) mach64c->reg_base, MACH64_REG_SIZE(card));
-	KdResetMappedMode (MACH64_REG_BASE(card),
-			   MACH64_REG_SIZE(card),
-			   KD_MAPPED_MODE_REGISTERS);
-    }
+    mach64UnmapReg (card, mach64c);
     vesaCardFini (card);
 }
 

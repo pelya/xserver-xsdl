@@ -19,7 +19,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/vesa/vesa.c,v 1.14 2001/06/11 01:38:54 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/vesa/vesa.c,v 1.15 2001/07/20 19:35:30 keithp Exp $ */
 
 #include "vesa.h"
 #ifdef RANDR
@@ -990,6 +990,7 @@ vesaUnmapFramebuffer (KdScreenInfo  *screen)
 	    VbeUnmapFramebuffer(priv->vi, priv->vbeInfo, pscr->mode.mode, pscr->fb);
 	else
 	    VgaUnmapFramebuffer (priv->vi);
+	pscr->fb = 0;
     }
 }
 
@@ -1429,6 +1430,7 @@ vesaEnable(ScreenPtr pScreen)
     KdScreenPriv(pScreen);
     VesaCardPrivPtr	priv = pScreenPriv->card->driver;
     VesaScreenPrivPtr	pscr = pScreenPriv->screen->driver;
+    KdScreenInfo	*screen = pScreenPriv->screen;
     int			code;
     int			i;
     CARD32		size;
@@ -1441,6 +1443,36 @@ vesaEnable(ScreenPtr pScreen)
     case VESA_MONO:
 	VgaSetWritePlaneMask (priv->vi, 0x1);
     case VESA_LINEAR:
+	/*
+	 * Remap the frame buffer if necessary
+	 */
+	if (!pscr->fb)
+	{
+	    if (pscr->mode.vbe)
+		pscr->fb = VbeMapFramebuffer(priv->vi, priv->vbeInfo, 
+					     pscr->mode.mode,
+					     &pscr->fb_size);
+	    else
+		pscr->fb = VgaMapFramebuffer (priv->vi, 
+					      pscr->mode.mode,
+					      &pscr->fb_size);
+	    if (!pscr->fb)
+		return FALSE;
+	    screen->fb[0].frameBuffer = (CARD8 *)(pscr->fb);
+	    /*
+	     * Set frame buffer mapping
+	     */
+	    if (!pscr->shadow)
+	    {
+		(*pScreen->ModifyPixmapHeader) (fbGetScreenPixmap (pScreen),
+						pScreen->width,
+						pScreen->height,
+						screen->fb[0].depth,
+						screen->fb[0].bitsPerPixel,
+						screen->fb[0].byteStride,
+						screen->fb[0].frameBuffer);
+	    }
+	}
 	memcpy (priv->text, pscr->fb, VESA_TEXT_SAVE);
 	break;
     case VESA_WINDOWED:
@@ -1473,8 +1505,9 @@ void
 vesaDisable(ScreenPtr pScreen)
 {
     KdScreenPriv(pScreen);
+    KdScreenInfo	*screen = pScreenPriv->screen;
     VesaCardPrivPtr	priv = pScreenPriv->card->driver;
-    VesaScreenPrivPtr	pscr = pScreenPriv->screen->driver;
+    VesaScreenPrivPtr	pscr = screen->driver;
     int			i=0;
     CARD32		size;
     char		*p;
@@ -1507,6 +1540,7 @@ vesaDisable(ScreenPtr pScreen)
 	}
 	break;
     }
+    vesaUnmapFramebuffer (screen);
 }
 
 void
