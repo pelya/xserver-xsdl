@@ -78,14 +78,28 @@ winTranslateKey (WPARAM wParam, LPARAM lParam, int *piScanCode)
 {
   int		iKeyFixup = g_iKeyMap[wParam * WIN_KEYMAP_COLS + 1];
   int		iKeyFixupEx = g_iKeyMap[wParam * WIN_KEYMAP_COLS + 2];
+  int		iParamScanCode = LOBYTE (HIWORD (lParam));
 
   /* Branch on special extended, special non-extended, or normal key */
   if ((HIWORD (lParam) & KF_EXTENDED) && iKeyFixupEx)
     *piScanCode = iKeyFixupEx;
   else if (iKeyFixup)
     *piScanCode = iKeyFixup;
+  else if (wParam == 0 && iParamScanCode == 0x70)
+    *piScanCode = KEY_HKTG;
   else
-    *piScanCode = LOBYTE (HIWORD (lParam));
+    switch (iParamScanCode)
+    {
+      case 0x70:
+        *piScanCode = KEY_HKTG;
+        break;
+      case 0x73:
+        *piScanCode = KEY_BSlash2;
+        break;
+      default: 
+        *piScanCode = iParamScanCode;
+        break;
+    }
 }
 
 
