@@ -99,8 +99,15 @@ retired or cut their work for the Cygwin/X project due to conflicts with
 job, study and family. 
 
 The X11R6.8 release now includes major improvements from the xserver project.
-This includes the XFixes, the Damage and XEVIE extension which is a major
-step towards allowing Cygwin/X to have real transparency. 
+This includes the XFixes, Damage, Composite and XEVIE extension which is a 
+major step towards allowing Cygwin/X to have real transparency. 
+
+But at the current state Composite is not working with Cygwin/X. Not all code
+in the Cygwin/X Server has been updated to support the Composite feature and
+using it will even crash the xserver. But as a second problem nearly all
+functions required for compositing are lacking acceleration in Cygwin/X so
+the feature would not be very useful if it would work. So it is disabled by
+default. 
 
 OpenGL with Cygwin/X
 ====================
