@@ -1,12 +1,15 @@
 2004-04-11 Franco Catrin L. <fcatrin@tuxpan.com>
+
         * Basic bitblt implementation
-	* Fixed width and height calculation in solids
+        * Fixed width and height calculation in solids
         * Added ROP (not tested)
 
 2004-04-10 Franco Catrin L. <fcatrin@tuxpan.com>
+
         * MMIO enabled after switching to new VT
-	* First acceleration function implemented (DrawSolid)
+        * First acceleration function implemented (DrawSolid)
 
 2004-04-06 Franco Catrin L. <fcatrin@tuxpan.com>
+
         * Returned to a working state.  Brent will
-	  continue working on a backend in a separate CVS branch
+        continue working on a backend in a separate CVS branch
