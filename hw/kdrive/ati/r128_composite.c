@@ -238,10 +238,6 @@ R128CheckComposite(int op, PicturePtr pSrcPicture, PicturePtr pMaskPicture,
 
 	if (op >= sizeof(R128BlendOp)/sizeof(R128BlendOp[0]))
 		ATI_FALLBACK(("Unsupported op 0x%x\n", op));
-	if (op == PictOpIn || op == PictOpOut || op == PictOpAtopReverse ||
-	    op == PictOpXor)
-	if (op != PictOpOver)
-		ATI_FALLBACK(("Something's wacky with these ops\n"));
 	if (pSrcPicture->transform)
 		ATI_FALLBACK(("Source transform unsupported.\n"));
 	if (pMaskPicture && pMaskPicture->transform)
@@ -288,27 +284,23 @@ R128TextureSetup(PicturePtr pPict, PixmapPtr pPix, int unit, CARD32 *txsize,
 		 * as necessary using the combiners.
 		 */
 		*tex_cntl_c = R128_DATATYPE_RGB8 << R128_TEX_DATATYPE_SHIFT;
-		bytepp = 1;
 		break;
 	case PICT_a1r5g5b5:
 		*tex_cntl_c = R128_DATATYPE_ARGB1555 << R128_TEX_DATATYPE_SHIFT;
-		bytepp = 2;
 		break;
 	case PICT_a4r4g4b4:
 		*tex_cntl_c = R128_DATATYPE_ARGB4444 << R128_TEX_DATATYPE_SHIFT;
-		bytepp = 2;
 		break;
 	case PICT_r5g6b5:
 		*tex_cntl_c = R128_DATATYPE_RGB565 << R128_TEX_DATATYPE_SHIFT;
-		bytepp = 2;
 		break;
 	case PICT_a8r8g8b8:
 		*tex_cntl_c = R128_DATATYPE_ARGB8888 << R128_TEX_DATATYPE_SHIFT;
-		bytepp = 4;
 		break;
 	default:
 		return FALSE;
 	}
+	bytepp = PICT_FORMAT_BPP(pPict->format) / 8;
 
 	*tex_cntl_c |= R128_MIP_MAP_DISABLE;
 
@@ -319,14 +311,9 @@ R128TextureSetup(PicturePtr pPict, PixmapPtr pPix, int unit, CARD32 *txsize,
 		*tex_cntl_c |= R128_SEC_SELECT_SEC_ST;
 	}
 
-	if (w == 1)
-		l2w = 0;
-	else
-		l2w = ATILog2(w - 1) + 1;
-	if (h == 1)
-		l2h = 0;
-	else
-		l2h = ATILog2(h - 1) + 1;
+	/* ATILog2 returns -1 for value of 0 */
+	l2w = ATILog2(w - 1) + 1;
+	l2h = ATILog2(h - 1) + 1;
 	l2p = ATILog2(pPix->devKind / bytepp);
 
 	if (pPict->repeat && w == 1 && h == 1)
@@ -351,7 +338,7 @@ R128PrepareComposite(int op, PicturePtr pSrcPicture, PicturePtr pMaskPicture,
 	KdScreenPriv(pDst->drawable.pScreen);
 	ATIScreenInfo(pScreenPriv);
 	CARD32 txsize = 0, prim_tex_cntl_c, sec_tex_cntl_c = 0, dstDatatype;
-	CARD32 dst_pitch_offset, color_factor, in_color_factor;
+	CARD32 dst_pitch_offset, color_factor, in_color_factor, alpha_comb;
 	int i;
 	RING_LOCALS;
 
@@ -429,12 +416,17 @@ R128PrepareComposite(int op, PicturePtr pSrcPicture, PicturePtr pMaskPicture,
 	else
 		color_factor = R128_COLOR_FACTOR_TEX;
 
+	if (PICT_FORMAT_A(pSrcPicture->format) == 0)
+		alpha_comb = R128_COMB_ALPHA_COPY_INP;
+	else
+		alpha_comb = R128_COMB_ALPHA_DIS;
+
 	OUT_RING(R128_COMB_COPY |
 	    color_factor |
 	    R128_INPUT_FACTOR_INT_COLOR |
-	    R128_COMB_ALPHA_DIS |
+	    alpha_comb |
 	    R128_ALPHA_FACTOR_TEX_ALPHA |
-	    R128_INP_FACTOR_A_INT_ALPHA);
+	    R128_INP_FACTOR_A_CONST_ALPHA);
 	OUT_RING(txsize);
 	/* We could save some output by only writing the offset register that
 	 * will actually be used.  On the other hand, this is easy.
@@ -453,10 +445,6 @@ R128PrepareComposite(int op, PicturePtr pSrcPicture, PicturePtr pMaskPicture,
 		OUT_RING(DMA_PACKET0(R128_REG_SEC_TEX_CNTL_C, 13));
 		OUT_RING(sec_tex_cntl_c);
 
-		/* XXX: Need to check with keithp to see if component alpha a8
-		 * masks should act as non-CA, or if they should expand the RGB
-		 * channels as 0.
-		 */
 		if (pDstPicture->format == PICT_a8) {
 			color_factor = R128_COLOR_FACTOR_ALPHA;
 			in_color_factor = R128_INPUT_FACTOR_PREV_ALPHA;
