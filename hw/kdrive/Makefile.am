@@ -6,5 +6,6 @@ SUBDIRS =	\
 	src	\
 	linux	\
 	fbdev	\
-	smi	\
-	$(VESA_SUBDIRS)
+	$(VESA_SUBDIRS) \
+	smi
+
