@@ -44,7 +44,7 @@ fbFill (DrawablePtr pDrawable,
 
     switch (pGC->fillStyle) {
     case FillSolid:
-#ifdef USE_GCC34_MMX
+#ifdef USE_MMX
 	if (!pPriv->and && fbHaveMMX())
 	    if (fbSolidFillmmx (pDrawable, x, y, width, height, pPriv->xor))
 		return;

@@ -877,7 +877,7 @@ fbComposite (CARD8      op,
 			switch (pDst->format) {
 			case PICT_r5g6b5:
 			case PICT_b5g6r5:
-#ifdef USE_GCC34_MMX
+#ifdef USE_MMX
 			    if (fbHaveMMX())
 				func = fbCompositeSolidMask_nx8x0565mmx;
 			    else
@@ -892,7 +892,7 @@ fbComposite (CARD8      op,
 			case PICT_x8r8g8b8:
 			case PICT_a8b8g8r8:
 			case PICT_x8b8g8r8:
-#ifdef USE_GCC34_MMX
+#ifdef USE_MMX
 			    if (fbHaveMMX())
 				func = fbCompositeSolidMask_nx8x8888mmx;
 			    else
@@ -906,7 +906,7 @@ fbComposite (CARD8      op,
 			    switch (pDst->format) {
 			    case PICT_a8r8g8b8:
 			    case PICT_x8r8g8b8:
-#ifdef USE_GCC34_MMX
+#ifdef USE_MMX
 				if (fbHaveMMX())
 				    func = fbCompositeSolidMask_nx8888x8888Cmmx;
 				else
@@ -914,7 +914,7 @@ fbComposite (CARD8      op,
 				    func = fbCompositeSolidMask_nx8888x8888C;
 				break;
 			    case PICT_r5g6b5:
-#ifdef USE_GCC34_MMX
+#ifdef USE_MMX
 				if (fbHaveMMX())
 				    func = fbCompositeSolidMask_nx8888x0565Cmmx;
 				else
@@ -929,7 +929,7 @@ fbComposite (CARD8      op,
 			    switch (pDst->format) {
 			    case PICT_a8b8g8r8:
 			    case PICT_x8b8g8r8:
-#ifdef USE_GCC34_MMX
+#ifdef USE_MMX
 				if (fbHaveMMX())
 				    func = fbCompositeSolidMask_nx8888x8888Cmmx;
 				else
@@ -937,7 +937,7 @@ fbComposite (CARD8      op,
 				    func = fbCompositeSolidMask_nx8888x8888C;
 				break;
 			    case PICT_b5g6r5:
-#ifdef USE_GCC34_MMX
+#ifdef USE_MMX
 				if (fbHaveMMX())
 				    func = fbCompositeSolidMask_nx8888x0565Cmmx;
 				else
@@ -978,13 +978,13 @@ fbComposite (CARD8      op,
 			    switch (pDst->format) {
 			    case PICT_a8r8g8b8:
 			    case PICT_x8r8g8b8:
-#ifdef USE_GCC34_MMX
+#ifdef USE_MMX
 				if (fbHaveMMX())
 				    func = fbCompositeSrc_8888RevNPx8888mmx;
 #endif
 				break;
 			    case PICT_r5g6b5:
-#ifdef USE_GCC34_MMX
+#ifdef USE_MMX
 				if (fbHaveMMX())
 				    func = fbCompositeSrc_8888RevNPx0565mmx;
 #endif
@@ -1000,13 +1000,13 @@ fbComposite (CARD8      op,
 			    switch (pDst->format) {
 			    case PICT_a8b8g8r8:
 			    case PICT_x8b8g8r8:
-#ifdef USE_GCC34_MMX
+#ifdef USE_MMX
 				if (fbHaveMMX())
 				    func = fbCompositeSrc_8888RevNPx8888mmx;
 #endif
 				break;
 			    case PICT_r5g6b5:
-#ifdef USE_GCC34_MMX
+#ifdef USE_MMX
 				if (fbHaveMMX())
 				    func = fbCompositeSrc_8888RevNPx0565mmx;
 #endif
@@ -1032,7 +1032,7 @@ fbComposite (CARD8      op,
 		    switch (pDst->format) {
 		    case PICT_a8r8g8b8:
 		    case PICT_x8r8g8b8:
-#ifdef USE_GCC34_MMX
+#ifdef USE_MMX
 			if (fbHaveMMX())
 			{
 			    srcRepeat = FALSE;
@@ -1041,7 +1041,7 @@ fbComposite (CARD8      op,
 #endif
 			break;
 		    case PICT_r5g6b5:
-#ifdef USE_GCC34_MMX
+#ifdef USE_MMX
 			if (fbHaveMMX())
 			{
 			    srcRepeat = FALSE;
@@ -1109,7 +1109,7 @@ fbComposite (CARD8      op,
 	    case PICT_a8r8g8b8:
 		switch (pDst->format) {
 		case PICT_a8r8g8b8:
-#ifdef USE_GCC34_MMX
+#ifdef USE_MMX
 		    if (fbHaveMMX())
 			func = fbCompositeSrcAdd_8888x8888mmx;
 		    else
@@ -1121,7 +1121,7 @@ fbComposite (CARD8      op,
 	    case PICT_a8b8g8r8:
 		switch (pDst->format) {
 		case PICT_a8b8g8r8:
-#ifdef USE_GCC34_MMX
+#ifdef USE_MMX
 		    if (fbHaveMMX())
 			func = fbCompositeSrcAdd_8888x8888mmx;
 		    else
@@ -1133,7 +1133,7 @@ fbComposite (CARD8      op,
 	    case PICT_a8:
 		switch (pDst->format) {
 		case PICT_a8:
-#ifdef USE_GCC34_MMX
+#ifdef USE_MMX
 		    if (fbHaveMMX())
 			func = fbCompositeSrcAdd_8000x8000mmx;
 		    else

@@ -22,13 +22,19 @@
  * 
  * Based on work by Owen Taylor
  */
-#ifdef USE_GCC34_MMX
+#ifdef USE_MMX
+
+#ifndef __amd64__
 Bool fbHaveMMX(void);
 #else
-#define fbHaveMMX FALSE
+#define fbHaveMMX() TRUE
 #endif
 
-#ifdef USE_GCC34_MMX
+#else
+#define fbHaveMMX() FALSE
+#endif
+
+#ifdef USE_MMX
 
 void fbCompositeSolidMask_nx8888x0565Cmmx (CARD8      op,
 					   PicturePtr pSrc,
@@ -157,4 +163,4 @@ Bool fbSolidFillmmx (DrawablePtr	pDraw,
 		     int		height,
 		     FbBits		xor);
 
-#endif /* USE_GCC34_MMX */
+#endif /* USE_MMX */
