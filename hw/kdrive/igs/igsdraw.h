@@ -1,5 +1,5 @@
 /*
- * $XFree86$
+ * $XFree86: xc/programs/Xserver/hw/kdrive/igs/igsdraw.h,v 1.1 2000/05/06 22:17:43 keithp Exp $
  *
  * Copyright © 2000 Keith Packard
  *
@@ -46,9 +46,13 @@ extern CARD8	igsPatRop[];
 					  IGS_CONTROL_MALLWBEPTZ), \
 					 0)
 
+#if 1
 #define _igsWaitFull(cop)   _igsWaitLoop(cop, \
 					 IGS_CONTROL_CMDFF, \
 					 0)
+#else
+#define _igsWaitFull(cop)   _igsWaitDone(cop)
+#endif
 
 #define _igsWaitIdleEmpty(cop)	_igsWaitDone(cop)
 #define _igsWaitHostBltAck(cop)	_igsWaitLoop(cop, \
@@ -76,17 +80,80 @@ extern CARD8	igsPatRop[];
     v = ((v & 0x0f) << 4) | ((v >> 4) & 0x0f); \
 }
 
-#define IgsAdjustBits32(b)  IgsInvertBits32(b)
+#define IgsByteSwap32(x)    	((x) = (((x) >> 24) | \
+					(((x) >> 8) & 0xff00) | \
+					(((x) << 8) & 0xff0000) | \
+					((x) << 24)))
+
+#define IgsByteSwap16(x)    	((x) = ((x) << 8) | ((x) >> 8))
+
+#define igsPatternDimOk(d)  ((d) <= IGS_PATTERN_WIDTH && (((d) & ((d) - 1)) == 0))
+
+#if BITMAP_BIT_ORDER == LSBFirst
+#define IgsAdjustBits32(b)	IgsInvertBits32(b)
+#define IgsAdjustBits16(x)	IgsInvertBits16(x)
+#else
+#define IgsAdjustBits32(x)	IgsByteSwap32(x)
+#define IgsAdjustBits16(x)	IgsByteSwap16(x)
+#endif
 
 #define _igsSetSolidRect(cop,alu,pm,pix,cmd) {\
     _igsWaitFull(cop); \
     (cop)->mix = IGS_MAKE_MIX(alu,alu); \
     (cop)->fg = (pix); \
-    (cop)->planemask = (pm); \
     (cmd) = (IGS_DRAW_T_B | \
 	     IGS_DRAW_L_R | \
 	     IGS_DRAW_ALL | \
 	     IGS_PIXEL_FG | \
+	     IGS_HBLT_DISABLE | \
+	     IGS_SRC2_NORMAL | \
+	     IGS_STEP_PXBLT | \
+	     IGS_FGS_FG | \
+	     IGS_BGS_BG); \
+}
+
+#define _igsSetTiledRect(cop,alu,pm,base,cmd) {\
+    _igsWaitFull(cop); \
+    (cop)->mix = IGS_MAKE_MIX(alu,alu); \
+    (cop)->src1_stride = IGS_PATTERN_WIDTH - 1; \
+    (cop)->src1_start = (base); \
+    (cmd) = (IGS_DRAW_T_B | \
+	     IGS_DRAW_L_R | \
+	     IGS_DRAW_ALL | \
+	     IGS_PIXEL_TILE | \
+	     IGS_HBLT_DISABLE | \
+	     IGS_SRC2_NORMAL | \
+	     IGS_STEP_PXBLT | \
+	     IGS_FGS_SRC | \
+	     IGS_BGS_BG); \
+}
+
+#define _igsSetStippledRect(cop,alu,pm,pix,base,cmd) {\
+    _igsWaitFull(cop); \
+    (cop)->mix = IGS_MAKE_MIX(alu,alu); \
+    (cop)->src1_start = (base); \
+    (cop)->fg = (pix); \
+    (cmd) = (IGS_DRAW_T_B | \
+	     IGS_DRAW_L_R | \
+	     IGS_DRAW_ALL | \
+	     IGS_PIXEL_STIP_TRANS | \
+	     IGS_HBLT_DISABLE | \
+	     IGS_SRC2_NORMAL | \
+	     IGS_STEP_PXBLT | \
+	     IGS_FGS_FG | \
+	     IGS_BGS_BG); \
+}
+
+#define _igsSetOpaqueStippledRect(cop,alu,pm,_fg,_bg,base,cmd) {\
+    _igsWaitFull(cop); \
+    (cop)->mix = IGS_MAKE_MIX(alu,alu); \
+    (cop)->src1_start = (base); \
+    (cop)->fg = (_fg); \
+    (cop)->bg = (_bg); \
+    (cmd) = (IGS_DRAW_T_B | \
+	     IGS_DRAW_L_R | \
+	     IGS_DRAW_ALL | \
+	     IGS_PIXEL_STIP_OPAQUE | \
 	     IGS_HBLT_DISABLE | \
 	     IGS_SRC2_NORMAL | \
 	     IGS_STEP_PXBLT | \
@@ -101,10 +168,17 @@ extern CARD8	igsPatRop[];
     (cop)->operation = (cmd); \
 }
 
+#define _igsPatRect(cop,x,y,w,h,cmd) { \
+    _igsWaitFull(cop); \
+    (cop)->dst_start = (x) + (y) * (cop_stride); \
+    (cop)->rotate = IGS_MAKE_ROTATE(x&7,y&7); \
+    (cop)->dim = IGS_MAKE_DIM(w-1,h-1); \
+    (cop)->operation = (cmd); \
+}
+
 #define _igsSetBlt(cop,alu,pm,backwards,upsidedown,cmd) { \
     _igsWaitFull(cop); \
-    (cop)->mix = IGS_MAKE_MIX(alu,GXnoop); \
-    (cop)->planemask = (pm); \
+    (cop)->mix = IGS_MAKE_MIX(alu,alu); \
     (cop)->src1_stride = cop_stride - 1; \
     (cmd) = (IGS_DRAW_ALL | \
 	     IGS_PIXEL_FG | \
@@ -134,9 +208,8 @@ extern CARD8	igsPatRop[];
 #define _igsSetTransparentPlaneBlt(cop,alu,pm,fg_pix,cmd) { \
     _igsWaitIdleEmpty(cop); \
     _igsPreparePlaneBlt(cop); \
-    (cop)->mix = IGS_MAKE_MIX(igsPatRop[alu],igsPatRop[GXnoop]); \
+    (cop)->mix = IGS_MAKE_MIX(igsPatRop[alu],igsPatRop[alu]); \
     (cop)->fg = (fg_pix); \
-    (cop)->planemask = (pm); \
     (cmd) = (IGS_DRAW_T_B | \
 	     IGS_DRAW_L_R | \
 	     IGS_DRAW_ALL | \
@@ -152,7 +225,6 @@ extern CARD8	igsPatRop[];
     _igsWaitIdleEmpty(cop); \
     _igsPreparePlaneBlt(cop); \
     (cop)->mix = IGS_MAKE_MIX(igsPatRop[alu],igsPatRop[alu]); \
-    (cop)->planemask = (pm); \
     (cop)->fg = (fg_pix); \
     (cop)->bg = (bg_pix); \
     (cmd) = (IGS_DRAW_T_B | \

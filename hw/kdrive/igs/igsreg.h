@@ -1,5 +1,5 @@
 /*
- * $XFree86: xc/programs/Xserver/hw/kdrive/igs/igsstub.c,v 1.1 2000/05/06 22:17:44 keithp Exp $
+ * $XFree86$
  *
  * Copyright © 2000 Keith Packard
  *
@@ -22,42 +22,49 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-#include "igs.h"
+#ifndef _IGSREG_H_
+#define _IGSREG_H_
+
+#include "vga.h"
+
+#define IGS_SR	    0
+#define IGS_NSR	    5
+#define IGS_GR	    (IGS_SR+IGS_NSR)
+#define IGS_NGR	    0xC0
+#define IGS_GREX    (IGS_GR+IGS_NGR)
+#define IGS_GREXBASE	0x3c
+#define IGS_NGREX   1
+#define IGS_AR	    (IGS_GREX+IGS_NGREX)
+#define IGS_NAR	    0x15
+#define IGS_CR	    (IGS_AR+IGS_NAR)
+#define IGS_NCR	    0x48
+#define IGS_DAC	    (IGS_CR+IGS_NCR)
+#define IGS_NDAC    4
+#define IGS_DACEX   (IGS_DAC+IGS_NDAC)
+#define IGS_NDACEX  4
+#define IGS_MISC_OUT	    (IGS_DACEX + IGS_NDACEX)
+#define IGS_INPUT_STATUS_1  (IGS_MISC_OUT+1)
+#define IGS_NREG	    (IGS_INPUT_STATUS_1+1)
+
+#include "igsregs.t"
+
+#define igsGet(sv,r)	    VgaGet(&(sv)->card, (r))
+#define igsGetImm(sv,r)	    VgaGetImm(&(sv)->card, (r))
+#define igsSet(sv,r,v)	    VgaSet(&(sv)->card, (r), (v))
+#define igsSetImm(sv,r,v)    VgaSetImm(&(sv)->card, (r), (v))
+
+typedef struct _igsVga {
+    VgaCard	card;
+    VgaValue	values[IGS_NREG];
+} IgsVga;
 
 void
-InitCard (char *name)
-{
-    KdCardAttr	attr;
-    CARD32	count;
-
-    count = 0;
-#ifdef EMBED
-    attr.address[0] = 0x10000000;  /* Adomo Wing video base address  */
-    attr.io = 0;
-    attr.naddr = 1;
-#else
-    while (LinuxFindPci (0x10ea, 0x5000, count, &attr))
-#endif
-    {
-	KdCardInfoAdd (&igsFuncs, &attr, 0);
-	count++;
-    }
-}
+igsRegInit (IgsVga *igsvga, VGAVOL8 *mmio);
 
 void
-InitOutput (ScreenInfo *pScreenInfo, int argc, char **argv)
-{
-    KdInitOutput (pScreenInfo, argc, argv);
-}
+igsSave (IgsVga *igsvga);
 
 void
-InitInput (int argc, char **argv)
-{
-    KdInitInput (&Ps2MouseFuncs, &LinuxKeyboardFuncs);
-}
+igsReset (IgsVga *igsvga);
 
-int
-ddxProcessArgument (int argc, char **argv, int i)
-{
-    return KdProcessArgument (argc, argv, i);
-}
+#endif /* _IGSREG_H_ */

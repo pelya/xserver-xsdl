@@ -1,9 +1,9 @@
-XCOMM $XFree86$
+XCOMM $XFree86: xc/programs/Xserver/hw/kdrive/igs/Imakefile,v 1.1 2000/05/06 22:17:42 keithp Exp $
 #include <Server.tmpl>
 
-SRCS = 	igs.c igsdraw.c igsstub.c
+SRCS = 	igs.c igscmap.c igscurs.c igsdraw.c igsreg.c igsstub.c
 
-OBJS = 	igs.o igsdraw.o igsstub.o
+OBJS = 	igs.o igscmap.o igscurs.o igsdraw.o igsreg.o igsstub.o
 
 INCLUDES = -I.. -I. -I$(XBUILDINCDIR) -I$(FONTINCSRC) \
 	   -I../../../fb -I../../../mi -I../../../include -I../../../os  \

@@ -1,5 +1,5 @@
 /*
- * $XFree86: xc/programs/Xserver/hw/kdrive/igs/igsstub.c,v 1.1 2000/05/06 22:17:44 keithp Exp $
+ * $XFree86$
  *
  * Copyright © 2000 Keith Packard
  *
@@ -24,40 +24,38 @@
 
 #include "igs.h"
 
+#define IGS_DAC_SHIFT	8
 void
-InitCard (char *name)
+igsGetColors (ScreenPtr pScreen, int fb, int ndef, xColorItem *pdefs)
 {
-    KdCardAttr	attr;
-    CARD32	count;
+    KdScreenPriv(pScreen);
+    igsCardInfo(pScreenPriv);
+    IgsVga   *igsvga = &igsc->igsvga;
 
-    count = 0;
-#ifdef EMBED
-    attr.address[0] = 0x10000000;  /* Adomo Wing video base address  */
-    attr.io = 0;
-    attr.naddr = 1;
-#else
-    while (LinuxFindPci (0x10ea, 0x5000, count, &attr))
-#endif
+    while (ndef--)
     {
-	KdCardInfoAdd (&igsFuncs, &attr, 0);
-	count++;
+	igsSetImm (igsvga, igs_dac_read_index, pdefs->pixel);
+	pdefs->red = igsGetImm (igsvga, igs_dac_data) << IGS_DAC_SHIFT;
+	pdefs->green = igsGetImm (igsvga, igs_dac_data) << IGS_DAC_SHIFT;
+	pdefs->blue = igsGetImm (igsvga, igs_dac_data) << IGS_DAC_SHIFT;
+	pdefs++;
     }
 }
 
 void
-InitOutput (ScreenInfo *pScreenInfo, int argc, char **argv)
+igsPutColors (ScreenPtr pScreen, int fb, int ndef, xColorItem *pdefs)
 {
-    KdInitOutput (pScreenInfo, argc, argv);
+    KdScreenPriv(pScreen);
+    igsCardInfo(pScreenPriv);
+    IgsVga   *igsvga = &igsc->igsvga;
+
+    while (ndef--)
+    {
+	igsSetImm (igsvga, igs_dac_write_index, pdefs->pixel);
+	igsSetImm (igsvga, igs_dac_data, pdefs->red >> IGS_DAC_SHIFT);
+	igsSetImm (igsvga, igs_dac_data, pdefs->green >> IGS_DAC_SHIFT);
+	igsSetImm (igsvga, igs_dac_data, pdefs->blue >> IGS_DAC_SHIFT);
+	pdefs++;
+    }
 }
 
-void
-InitInput (int argc, char **argv)
-{
-    KdInitInput (&Ps2MouseFuncs, &LinuxKeyboardFuncs);
-}
-
-int
-ddxProcessArgument (int argc, char **argv, int i)
-{
-    return KdProcessArgument (argc, argv, i);
-}

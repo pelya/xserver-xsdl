@@ -1,5 +1,5 @@
 /*
- * $XFree86$
+ * $XFree86: xc/programs/Xserver/hw/kdrive/igs/igsdraw.c,v 1.1 2000/05/06 22:17:43 keithp Exp $
  *
  * Copyright © 2000 Keith Packard
  *
@@ -72,6 +72,105 @@ CARD8 igsPatRop[16] = {
 #define PixTransStore(t)	*pix_trans = (t)
 #endif
 
+static IgsPattern *
+igsSetPattern (ScreenPtr    pScreen,
+	       PixmapPtr    pPixmap,
+	       CARD8	    fillStyle,
+	       INT32	    xrot,
+	       INT32	    yrot)
+{
+    KdScreenPriv(pScreen);
+    igsCardInfo(pScreenPriv);
+    igsScreenInfo(pScreenPriv);
+    int		i;
+    IgsPatternCache *c;
+    IgsPattern	*p;
+
+    if (fillStyle == FillTiled)
+	c = &igss->tile;
+    else
+	c = &igss->stipple;
+    for (i = 0; i < IGS_NUM_PATTERN; i++)
+    {
+	p = &c->pattern[i];
+	if (p->serial_number == pPixmap->drawable.serialNumber &&
+	    p->xrot == xrot &&
+	    p->yrot == yrot)
+	{
+	    return p;
+	}
+    }
+    p = &c->pattern[c->next];
+    if (++c->next == IGS_NUM_PATTERN)
+	c->next = 0;
+    p->serial_number = pPixmap->drawable.serialNumber;
+    p->xrot = xrot;
+    p->yrot = yrot;
+
+    if (fillStyle != FillTiled)
+    {
+	FbStip	    *pix;
+	FbStride    pixStride;
+	int	    pixBpp;
+	CARD8	    tmp[8];
+	CARD32	    *pat;
+	int	    stipX, stipY;
+	int	    y;
+	FbStip	    bits;
+
+	modulus (-yrot, pPixmap->drawable.height, stipY);
+	modulus (-xrot, FB_UNIT, stipX);
+
+	pat = (CARD32 *) p->base;
+
+	fbGetStipDrawable (&pPixmap->drawable, pix, pixStride, pixBpp);
+	
+	for (y = 0; y < 8; y++)
+	{
+	    bits = pix[stipY * pixStride];
+	    FbRotLeft (bits, stipX);
+	    tmp[y] = (CARD8) bits;
+	    stipY++;
+	    if (stipY == pPixmap->drawable.height)
+		stipY = 0;
+	}
+	for (i = 0; i < 2; i++)
+	{
+	    bits = (tmp[i*4+0] | 
+		      (tmp[i*4+1] << 8) | 
+		      (tmp[i*4+2] << 16) |
+		      (tmp[i*4+3] << 24));
+	    IgsAdjustBits32 (bits);
+	    *pat++ = bits;
+	}
+    }
+    else
+    {
+	FbBits	    *pix;
+	FbStride    pixStride;
+	int	    pixBpp;
+	FbBits	    *pat;
+	FbStride    patStride;
+	int	    patBpp;
+	
+	fbGetDrawable (&pPixmap->drawable, pix, pixStride, pixBpp);
+
+	pat = (FbBits *) p->base;
+	patBpp = pixBpp;
+	patStride = (patBpp * IGS_PATTERN_WIDTH) / (8 * sizeof (FbBits));
+
+	fbTile (pat, patStride, 0,
+		patBpp * IGS_PATTERN_WIDTH, IGS_PATTERN_HEIGHT,
+
+		pix, pixStride, 
+		pPixmap->drawable.width * pixBpp,
+		pPixmap->drawable.height,
+		GXcopy, FB_ALLONES, pixBpp,
+		xrot * pixBpp, yrot);
+    }
+    return p;
+}
+
 void
 igsFillBoxSolid (DrawablePtr pDrawable, int nBox, BoxPtr pBox, 
 		 unsigned long pixel, int alu, unsigned long planemask)
@@ -88,6 +187,122 @@ igsFillBoxSolid (DrawablePtr pDrawable, int nBox, BoxPtr pBox,
     KdMarkSync (pDrawable->pScreen);
 }
 
+void
+igsFillBoxTiled (DrawablePtr pDrawable, int nBox, BoxPtr pBox,
+		 PixmapPtr pPixmap, int xrot, int yrot, int alu)
+{
+    SetupIgs(pDrawable->pScreen);
+    CARD32      cmd;
+    IgsPattern	*p = igsSetPattern (pDrawable->pScreen,
+				    pPixmap,
+				    FillTiled,
+				    xrot, yrot);
+    
+    _igsSetTiledRect(cop,alu,planemask,p->offset,cmd);
+    while (nBox--) 
+    {
+	_igsPatRect(cop,pBox->x1,pBox->y1,pBox->x2-pBox->x1,pBox->y2-pBox->y1,cmd);
+	pBox++;
+    }
+    KdMarkSync (pDrawable->pScreen);
+}
+
+void
+igsFillBoxStippled (DrawablePtr pDrawable, GCPtr pGC,
+		    int nBox, BoxPtr pBox)
+{
+    SetupIgs(pDrawable->pScreen);
+    CARD32      cmd;
+    int		xrot = pGC->patOrg.x + pDrawable->x;
+    int		yrot = pGC->patOrg.y + pDrawable->y;
+    IgsPattern	*p = igsSetPattern (pDrawable->pScreen,
+				    pGC->stipple,
+				    pGC->fillStyle,
+				    xrot, yrot);
+    if (pGC->fillStyle == FillStippled)
+    {
+	_igsSetStippledRect (cop,pGC->alu,planemask,pGC->fgPixel,p->offset,cmd);
+    }
+    else
+    {
+	_igsSetOpaqueStippledRect (cop,pGC->alu,planemask,
+				   pGC->fgPixel,pGC->bgPixel,p->offset,cmd);
+    }
+    while (nBox--) 
+    {
+	_igsPatRect(cop,pBox->x1,pBox->y1,pBox->x2-pBox->x1,pBox->y2-pBox->y1,cmd);
+	pBox++;
+    }
+    KdMarkSync (pDrawable->pScreen);
+}
+
+
+void
+igsStipple (ScreenPtr	pScreen,
+	    CARD32	cmd,
+	    FbStip	*psrcBase,
+	    FbStride	widthSrc,
+	    int		srcx,
+	    int		srcy,
+	    int		dstx,
+	    int		dsty,
+	    int		width,
+	    int		height)
+{
+    SetupIgs(pScreen);
+    FbStip	*psrcLine, *psrc;
+    FbStride	widthRest;
+    FbStip	bits, tmp, lastTmp;
+    int		leftShift, rightShift;
+    int		nl, nlMiddle;
+    int		r;
+    PixTransDeclare;
+    
+    /* Compute blt address and parameters */
+    psrc = psrcBase + srcy * widthSrc + (srcx >> 5);
+    nlMiddle = (width + 31) >> 5;
+    leftShift = srcx & 0x1f;
+    rightShift = 32 - leftShift;
+    widthRest = widthSrc - nlMiddle;
+    
+    _igsPlaneBlt(cop,dstx,dsty,width,height,cmd);
+    
+    if (leftShift == 0)
+    {
+	while (height--)
+	{
+	    nl = nlMiddle;
+	    PixTransStart(nl);
+	    while (nl--)
+	    {
+		tmp = *psrc++;
+		IgsAdjustBits32 (tmp);
+		PixTransStore (tmp);
+	    }
+	    psrc += widthRest;
+	}
+    }
+    else
+    {
+	widthRest--;
+	while (height--)
+	{
+	    bits = *psrc++;
+	    nl = nlMiddle;
+	    PixTransStart(nl);
+	    while (nl--)
+	    {
+		tmp = FbStipLeft(bits, leftShift);
+		bits = *psrc++;
+		tmp |= FbStipRight(bits, rightShift);
+		IgsAdjustBits32(tmp);
+		PixTransStore (tmp);
+	    }
+	    psrc += widthRest;
+	}
+    }
+}
+	    
 void
 igsCopyNtoN (DrawablePtr	pSrcDrawable,
 	    DrawablePtr	pDstDrawable,
@@ -164,6 +379,134 @@ igsCopyArea(DrawablePtr pSrcDrawable, DrawablePtr pDstDrawable, GCPtr pGC,
 		       srcx, srcy, width, height, dstx, dsty);
 }
 
+typedef struct _igs1toNargs {
+    unsigned long	copyPlaneFG, copyPlaneBG;
+    Bool		opaque;
+} igs1toNargs;
+
+void
+igsCopy1toN (DrawablePtr    pSrcDrawable,
+	     DrawablePtr    pDstDrawable,
+	     GCPtr	    pGC,
+	     BoxPtr	    pbox,
+	     int	    nbox,
+	     int	    dx,
+	     int	    dy,
+	     Bool	    reverse,
+	     Bool	    upsidedown,
+	     Pixel	    bitplane,
+	     void	    *closure)
+{
+    SetupIgs(pDstDrawable->pScreen);
+    
+    igs1toNargs		*args = closure;
+    int			dstx, dsty;
+    FbStip		*psrcBase;
+    FbStride		widthSrc;
+    int			srcBpp;
+    CARD32		cmd;
+
+    if (args->opaque && sourceInvarient (pGC->alu))
+    {
+	igsFillBoxSolid (pDstDrawable, nbox, pbox,
+			 pGC->bgPixel, pGC->alu, pGC->planemask);
+	return;
+    }
+    
+    fbGetStipDrawable (pSrcDrawable, psrcBase, widthSrc, srcBpp);
+    
+    if (args->opaque)
+    {
+	_igsSetOpaquePlaneBlt (cop, pGC->alu, pGC->planemask, args->copyPlaneFG,
+			       args->copyPlaneBG, cmd);
+    }
+    else
+    {
+	_igsSetTransparentPlaneBlt (cop, pGC->alu, pGC->planemask,
+				    args->copyPlaneFG, cmd);
+    }
+    
+    while (nbox--)
+    {
+	dstx = pbox->x1;
+	dsty = pbox->y1;
+	
+	igsStipple (pDstDrawable->pScreen, cmd,
+		    psrcBase, widthSrc, 
+		    dstx + dx, dsty + dy,
+		    dstx, dsty, 
+		    pbox->x2 - dstx, pbox->y2 - dsty);
+	pbox++;
+    }
+    KdMarkSync (pDstDrawable->pScreen);
+}
+
+RegionPtr
+igsCopyPlane (DrawablePtr   pSrcDrawable,
+	      DrawablePtr   pDstDrawable,
+	      GCPtr	    pGC,
+	      int	    srcx,
+	      int	    srcy,
+	      int	    width,
+	      int	    height, 
+	      int	    dstx,
+	      int	    dsty,
+	      unsigned long bitPlane)
+{
+    RegionPtr	    ret;
+    igs1toNargs	    args;
+    FbBits	    depthMask;
+
+    depthMask = FbFullMask (pDstDrawable->depth);
+    if ((pGC->planemask & depthMask) == depthMask &&
+	pDstDrawable->type == DRAWABLE_WINDOW &&
+	pSrcDrawable->depth == 1)
+    {
+	args.copyPlaneFG = pGC->fgPixel;
+	args.copyPlaneBG = pGC->bgPixel;
+	args.opaque = TRUE;
+	return fbDoCopy (pSrcDrawable, pDstDrawable, pGC, 
+			 srcx, srcy, width, height, 
+			 dstx, dsty, igsCopy1toN, bitPlane, &args);
+    }
+    return KdCheckCopyPlane(pSrcDrawable, pDstDrawable, pGC, 
+			    srcx, srcy, width, height, 
+			    dstx, dsty, bitPlane);
+}
+
+#if 0
+/* would you believe this is slower than fb? */
+void
+igsPushPixels (GCPtr	    pGC,
+	       PixmapPtr    pBitmap,
+	       DrawablePtr  pDrawable,
+	       int	    w,
+	       int	    h,
+	       int	    x,
+	       int	    y)
+{
+    igs1toNargs		args;
+    FbBits	    depthMask;
+
+    depthMask = FbFullMask (pDstDrawable->depth);
+    if ((pGC->planemask & depthMask) == depthMask &&
+	pDrawable->type == DRAWABLE_WINDOW && 
+	pGC->fillStyle == FillSolid)
+    {
+	args.opaque = FALSE;
+	args.copyPlaneFG = pGC->fgPixel;
+	(void) fbDoCopy ((DrawablePtr) pBitmap, pDrawable, pGC,
+			  0, 0, w, h, x, y, igsCopy1toN, 1, &args);
+    }
+    else
+    {
+	KdCheckPushPixels (pGC, pBitmap, pDrawable, w, h, x, y);
+    }
+}
+#else
+#define igsPushPixels KdCheckPushPixels
+#endif
+
 BOOL
 igsFillOk (GCPtr pGC)
 {
@@ -175,7 +518,6 @@ igsFillOk (GCPtr pGC)
     switch (pGC->fillStyle) {
     case FillSolid:
 	return TRUE;
-#if 0
     case FillTiled:
 	return (igsPatternDimOk (pGC->tile.pixmap->drawable.width) &&
 		igsPatternDimOk (pGC->tile.pixmap->drawable.height));
@@ -183,7 +525,6 @@ igsFillOk (GCPtr pGC)
     case FillOpaqueStippled:
 	return (igsPatternDimOk (pGC->stipple->drawable.width) &&
 		igsPatternDimOk (pGC->stipple->drawable.height));
-#endif
     }
     return FALSE;
 }
@@ -200,6 +541,7 @@ igsFillSpans (DrawablePtr pDrawable, GCPtr pGC, int n,
     int		    nTmp;
     INT16	    x, y;
     int		    width;
+    IgsPattern	    *p;
     
     if (!igsFillOk (pGC))
     {
@@ -224,17 +566,31 @@ igsFillSpans (DrawablePtr pDrawable, GCPtr pGC, int n,
     case FillSolid:
 	_igsSetSolidRect(cop,pGC->alu,pGC->planemask,pGC->fgPixel,cmd);
 	break;
-#if 0
     case FillTiled:
-	cmd = igsTilePrepare (pGC->tile.pixmap,
-			      pGC->patOrg.x + pDrawable->x,
-			      pGC->patOrg.y + pDrawable->y,
-			      pGC->alu);
+	p = igsSetPattern (pDrawable->pScreen,
+			   pGC->tile.pixmap,
+			   FillTiled,
+			   pGC->patOrg.x + pDrawable->x,
+			   pGC->patOrg.y + pDrawable->y);
+	_igsSetTiledRect (cop,pGC->alu,pGC->planemask,p->offset,cmd);
 	break;
     default:
-	cmd = igsStipplePrepare (pDrawable, pGC);
+	p = igsSetPattern (pDrawable->pScreen,
+			   pGC->stipple,
+			   pGC->fillStyle,
+			   pGC->patOrg.x + pDrawable->x,
+			   pGC->patOrg.y + pDrawable->y);
+	if (pGC->fillStyle == FillStippled)
+	{
+	    _igsSetStippledRect (cop,pGC->alu,pGC->planemask,
+				 pGC->fgPixel,p->offset,cmd);
+	}
+	else
+	{
+	    _igsSetOpaqueStippledRect (cop,pGC->alu,pGC->planemask,
+				       pGC->fgPixel,pGC->bgPixel,p->offset,cmd);
+	}
 	break;
-#endif
     }
     while (n--)
     {
@@ -244,7 +600,7 @@ igsFillSpans (DrawablePtr pDrawable, GCPtr pGC, int n,
 	width = *pwidth++;
 	if (width)
 	{
-	    _igsRect(cop,x,y,width,1,cmd);
+	    _igsPatRect(cop,x,y,width,1,cmd);
 	}
     }
     DEALLOCATE_LOCAL(pptFree);
@@ -407,7 +763,6 @@ igsPolyFillRect (DrawablePtr pDrawable, GCPtr pGC,
 			   pboxClipped-pboxClippedBase, pboxClippedBase,
 			   pGC->fgPixel, pGC->alu, pGC->planemask);
 	    break;
-#if 0
 	case FillTiled:
 	    igsFillBoxTiled(pDrawable,
 			    pboxClipped-pboxClippedBase, pboxClippedBase,
@@ -418,10 +773,9 @@ igsPolyFillRect (DrawablePtr pDrawable, GCPtr pGC,
 	    break;
 	case FillStippled:
 	case FillOpaqueStippled:
-	    igsFillBoxStipple (pDrawable, pGC,
-			       pboxClipped-pboxClippedBase, pboxClippedBase);
+	    igsFillBoxStippled (pDrawable, pGC,
+				pboxClipped-pboxClippedBase, pboxClippedBase);
 	    break;
-#endif
 	}
     }
     if (pboxClippedBase != stackRects)
@@ -834,6 +1188,12 @@ igsPolyGlyphBlt (DrawablePtr	pDrawable,
 		 CharInfoPtr	*ppci, 
 		 pointer	pglyphBase)
 {
+    if (pGC->fillStyle != FillSolid ||
+	fbGetGCPrivate(pGC)->pm != FB_ALLONES)
+    {
+	KdCheckPolyGlyphBlt (pDrawable, pGC, x, y, nglyph, ppci, pglyphBase);
+	return;
+    }
     x += pDrawable->x;
     y += pDrawable->y;
 
@@ -860,6 +1220,11 @@ igsImageGlyphBlt (DrawablePtr pDrawable,
 		CharInfoPtr *ppci, 
 		pointer pglyphBase)
 {
+    if (fbGetGCPrivate(pGC)->pm != FB_ALLONES)
+    {
+	KdCheckImageGlyphBlt (pDrawable, pGC, x, y, nglyph, ppci, pglyphBase);
+	return;
+    }
     x += pDrawable->x;
     y += pDrawable->y;
 
@@ -878,12 +1243,48 @@ igsImageGlyphBlt (DrawablePtr pDrawable,
     }
 }
 
+static void
+igsInvalidatePattern (IgsPatternCache	*c,
+		      PixmapPtr		pPixmap)
+{
+    int i;
+
+    if (c->base)
+    {
+	for (i = 0; i < IGS_NUM_PATTERN; i++)
+	{
+	    if (c->pattern[i].serial_number == pPixmap->drawable.serialNumber)
+		c->pattern[i].serial_number = ~0;
+	}
+    }    
+}
+
+static void
+igsInitPattern (IgsPatternCache *c, int bsize, int psize)
+{
+    int	    i;
+    int	    boffset;
+    int	    poffset;
+
+    for (i = 0; i < IGS_NUM_PATTERN; i++)
+    {
+	boffset = i * bsize;
+	poffset = i * psize;
+	c->pattern[i].xrot = -1;
+	c->pattern[i].yrot = -1;
+	c->pattern[i].serial_number = ~0;
+	c->pattern[i].offset = c->offset + poffset;
+	c->pattern[i].base = c->base + boffset;
+    }
+    c->next = 0;
+}
+	
 static const GCOps	igsOps = {
     igsFillSpans,
     KdCheckSetSpans,
     KdCheckPutImage,
     igsCopyArea,
-    KdCheckCopyPlane,
+    igsCopyPlane,
     KdCheckPolyPoint,
     KdCheckPolylines,
     KdCheckPolySegment,
@@ -898,7 +1299,7 @@ static const GCOps	igsOps = {
     miImageText16,
     igsImageGlyphBlt,
     igsPolyGlyphBlt,
-    KdCheckPushPixels,
+    igsPushPixels,
 #ifdef NEED_LINEHELPER
     ,NULL
 #endif
@@ -985,7 +1386,6 @@ igsPaintWindow(WindowPtr pWin, RegionPtr pRegion, int what)
 	    (*pWin->drawable.pScreen->PaintWindowBackground)(pWin, pRegion,
 							     what);
 	    return;
-#if 0
 	case BackgroundPixmap:
 	    pTile = pWin->background.pixmap;
 	    if (igsPatternDimOk (pTile->drawable.width) &&
@@ -999,7 +1399,6 @@ igsPaintWindow(WindowPtr pWin, RegionPtr pRegion, int what)
 		return;
 	    }
 	    break;
-#endif
 	case BackgroundPixel:
 	    igsFillBoxSolid((DrawablePtr)pWin,
 			     (int)REGION_NUM_RECTS(pRegion),
@@ -1017,7 +1416,6 @@ igsPaintWindow(WindowPtr pWin, RegionPtr pRegion, int what)
 			     pWin->border.pixel, GXcopy, ~0);
 	    return;
 	}
-#if 0
 	else
 	{
 	    pTile = pWin->border.pixmap;
@@ -1032,7 +1430,6 @@ igsPaintWindow(WindowPtr pWin, RegionPtr pRegion, int what)
 		return;
 	    }
 	}
-#endif
 	break;
     }
     KdCheckPaintWindow (pWin, pRegion, what);
@@ -1041,6 +1438,15 @@ igsPaintWindow(WindowPtr pWin, RegionPtr pRegion, int what)
 Bool
 igsDrawInit (ScreenPtr pScreen)
 {
+    KdScreenPriv(pScreen);
+    igsCardInfo(pScreenPriv);
+    igsScreenInfo(pScreenPriv);
+    int i;
+    int pattern_size;
+    int boffset, poffset;
+    
+    KdScreenInitAsync (pScreen);
+    
     /*
      * Replace various fb screen functions
      */
@@ -1049,8 +1455,20 @@ igsDrawInit (ScreenPtr pScreen)
     pScreen->PaintWindowBackground = igsPaintWindow;
     pScreen->PaintWindowBorder = igsPaintWindow;
     
-    KdScreenInitAsync (pScreen);
-    
+    /*
+     * Initialize patterns
+     */
+    if (igss->tile.base)
+    {
+	pattern_size = IgsTileSize(pScreenPriv->screen->fb[0].bitsPerPixel);
+	igsInitPattern (&igss->tile,
+			pattern_size,
+			pattern_size * 8 / pScreenPriv->screen->fb[0].bitsPerPixel);
+	pattern_size = IgsStippleSize(pScreenPriv->screen->fb[0].bitsPerPixel);
+	igsInitPattern (&igss->stipple,
+			pattern_size,
+			pattern_size * 8 / pScreenPriv->screen->fb[0].bitsPerPixel);
+    }
     return TRUE;
 }
 

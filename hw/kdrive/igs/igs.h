@@ -1,5 +1,5 @@
 /*
- * $XFree86$
+ * $XFree86: xc/programs/Xserver/hw/kdrive/igs/igs.h,v 1.1 2000/05/06 22:17:43 keithp Exp $
  *
  * Copyright © 1999 SuSE, Inc.
  *
@@ -27,6 +27,7 @@
 #define _IGS_H_
 
 #include "kdrive.h"
+#include "igsreg.h"
 
 extern KdCardFuncs  igsFuncs;
 
@@ -37,28 +38,50 @@ extern KdCardFuncs  igsFuncs;
  * Coprocessor	0x008bf000
  */
 
+#if BITMAP_BIT_ORDER == MSBFirst
+#define IGS_FB		    0x00400000
+#else
+#define IGS_FB		    0x00000000
+#endif
+#define IGS_VGA		    0x00800000
 #define IGS_COP_DATA	    0x008a0000
 #define IGS_COP_DATA_LEN    0x00010000
 #define IGS_COP_OFFSET	    0x008bf000
+/* give audio 1/2 meg at end */
+#if 1
+#define IGS_MEM		    ((4096-512)*1024)
+#else
+#define IGS_MEM		    ((4096)*1024)
+#endif
+
+#define IGS_CLOCK_REF	24576	/* KHz */
+
+#define IGS_SCALE(p)	((p) ? (2 * (p)) : 1)
+
+#define IGS_CLOCK(m,n,p)	((IGS_CLOCK_REF * ((m) + 1)) / (((n) + 1) * IGS_SCALE(p)))
+
+#define IGS_MAX_CLOCK	260000
+
+#define IGS_MIN_VCO	115000
 
 typedef volatile CARD8	VOL8;
 typedef volatile CARD16	VOL16;
 typedef volatile CARD32	VOL32;
 
 typedef struct _Cop5xxx {
-    VOL8	pad000[0x11];		    /* 0x000 */
+    VOL8	pad000[0x10];		    /* 0x000 */
     
-    VOL8	control;		    /* 0x011 */
-#define IGS_CONTROL_HBLTW_RDYZ	    0x01
-#define IGS_CONTROL_MALLWBEPTZ	    0x02
-#define IGS_CONTROL_CMDFF	    0x04
-#define IGS_CONTROL_SOP		    0x08
-#define IGS_CONTROL_OPS		    0x10
-#define IGS_CONTROL_TER		    0x20
-#define IGS_CONTROL_HBACKZ	    0x40
-#define IGS_CONTROL_BUSY	    0x80
+    VOL32	control;		    /* 0x010 */
+#define IGS_CONTROL_HBLTW_RDYZ	    0x0100
+#define IGS_CONTROL_MALLWBEPTZ	    0x0200
+#define IGS_CONTROL_CMDFF	    0x0400
+#define IGS_CONTROL_SOP		    0x0800
+#define IGS_CONTROL_OPS		    0x1000
+#define IGS_CONTROL_TER		    0x2000
+#define IGS_CONTROL_HBACKZ	    0x4000
+#define IGS_CONTROL_BUSY	    0x8000
     
-    VOL8	pad012[0x06];		    /* 0x012 */
+    VOL8	pad014[0x04];		    /* 0x014 */
     
     VOL32	src1_stride;		    /* 0x018 */
     
@@ -110,8 +133,8 @@ typedef struct _Cop5xxx {
     VOL32	src1_base_address;	    /* 0x070 */
     VOL8	pad074[0x04];		    /* 0x074 */
     
-    VOL16	dst_x_rotate;		    /* 0x078 */
-    VOL16	pat_y_rotate;		    /* 0x07a */
+    VOL32	rotate;			    /* 0x078 */
+#define IGS_MAKE_ROTATE(x,y)	((x) | ((y) << 16))
     VOL32	operation;		    /* 0x07c */
 
 /* OCT[2:0] */
@@ -146,6 +169,7 @@ typedef struct _Cop5xxx {
 #define IGS_PIXEL_LINE_TRANS	0x00007000
 #define IGS_PIXEL_FG		0x00008000
 #define IGS_PIXEL_TILE		0x00009000
+#define IGS_PIXEL_TILE_OPAQUE	0x0000d000
     
 /* HostBltEnable[1:0] */
 #define IGS_HBLT_DISABLE	0x00000000
@@ -173,11 +197,10 @@ typedef struct _Cop5xxx {
 /* BGS */
 #define IGS_BGS_BG		0x00000000
 #define IGS_BGS_SRC		0x80000000
-    VOL8	pad080[0x91];		    /* 0x080 */
+    VOL8	pad080[0x90];		    /* 0x080 */
     
-    VOL8	debug_control_1;	    /* 0x111 */
-    VOL8	debug_control_2;	    /* 0x112 */
-    VOL8	pad113[0x05];		    /* 0x113 */
+    VOL32	debug_control;		    /* 0x110 */
+    VOL8	pad114[0x04];		    /* 0x114 */
     
     VOL32	src2_stride;		    /* 0x118 */
     VOL8	pad11c[0x14];		    /* 0x11c */
@@ -194,36 +217,81 @@ typedef struct _Cop5xxx {
 #define IGS_WRMRSTZ	    0x100
 #define IGS_TEST_MTST	    0x200
 
-    VOL8	style_line_roll_over;	    /* 0x134 */
-    VOL8	style_line_inc;		    /* 0x135 */
-    VOL8	style_line_pattern;	    /* 0x136 */
-    VOL8	style_line_accumulator;	    /* 0x137 */
-    VOL8	style_line_pattern_index;   /* 0x138 */
-    VOL8	pad139[0x3];		    /* 0x139 */
+    VOL32	style_line;		    /* 0x134 */
+#define IGS_MAKE_STILE_LINE(roll_over,inc,pattern,accumulator) \
+    ((roll_over) | \
+     ((style_line_inc) << 8) | \
+     ((style_line_patern) << 16) | \
+     ((style_line_accumullator) << 24))
+    VOL32	style_line_pattern_index;   /* 0x138 */
 
-    VOL16	mono_burst_total;	    /* 0x13c */
-    VOL8	pad13e[0x12];		    /* 0x13e */
+    VOL32	mono_burst_total;	    /* 0x13c */
+    VOL8	pad140[0x10];		    /* 0x140 */
     
-    VOL8	pat_x_rotate;		    /* 0x150 */
-    VOL8	pad151[0x1f];		    /* 0x151 */
+    VOL32	pat_x_rotate;		    /* 0x150 */
+    VOL8	pad154[0x1c];		    /* 0x154 */
 
     VOL32	src1_start;		    /* 0x170 */
     VOL32	src2_start;		    /* 0x174 */
     VOL32	dst_start;		    /* 0x178 */
     VOL8	pad17c[0x9c];		    /* 0x17c */
     
-    VOL16	dst_stride;		    /* 0x218 */
+    VOL32	dst_stride;		    /* 0x218 */
 } Cop5xxx;
 
 typedef struct _igsCardInfo {
     Cop5xxx	*cop;
+    VOL8	*vga;
     VOL32	*copData;
-    Bool	need_sync;
     CARD8	*frameBuffer;
+    IgsVga	igsvga;
 } IgsCardInfo;
     
 #define getIgsCardInfo(kd)  ((IgsCardInfo *) ((kd)->card->driver))
 #define igsCardInfo(kd)	    IgsCardInfo	*igsc = getIgsCardInfo(kd)
+
+typedef struct _igsCursor {
+    int		width, height;
+    int		xhot, yhot;
+    Bool	has_cursor;
+    CursorPtr	pCursor;
+    Pixel	source, mask;
+} IgsCursor;
+
+#define IGS_CURSOR_WIDTH	64
+#define IGS_CURSOR_HEIGHT	64
+
+typedef struct _igsPattern {
+    INT32	xrot, yrot;
+    CARD32	serial_number;
+    CARD8	*base;
+    CARD32	offset;
+} IgsPattern;
+
+#define IGS_NUM_PATTERN		8
+#define IGS_PATTERN_WIDTH	8
+#define IGS_PATTERN_HEIGHT	8
+
+typedef struct _igsPatternCache {
+    CARD8	*base;
+    CARD32	offset;
+    IgsPattern	pattern[IGS_NUM_PATTERN];
+    int		next;
+} IgsPatternCache;
+
+typedef struct _igsScreenInfo {
+    CARD8	    *cursor_base;
+    CARD32	    cursor_offset;
+    IgsCursor	    cursor;
+    IgsPatternCache tile;
+    IgsPatternCache stipple;
+} IgsScreenInfo;
+
+#define IgsTileSize(bpp)	(IGS_PATTERN_WIDTH*(bpp)/8*IGS_PATTERN_HEIGHT)
+#define IgsStippleSize(bpp)	(IGS_PATTERN_WIDTH/8*IGS_PATTERN_HEIGHT)
+
+#define getIgsScreenInfo(kd) ((IgsScreenInfo *) ((kd)->screen->driver))
+#define igsScreenInfo(kd)    IgsScreenInfo *igss = getIgsScreenInfo(kd)
 
 Bool
 igsDrawInit (ScreenPtr pScreen);
@@ -240,5 +308,22 @@ igsDrawSync (ScreenPtr pScreen);
 void
 igsDrawFini (ScreenPtr pScreen);
 
-    
+void
+igsGetColors (ScreenPtr pScreen, int fb, int ndef, xColorItem *pdefs);
+
+void
+igsPutColors (ScreenPtr pScreen, int fb, int ndef, xColorItem *pdefs);
+
+Bool
+igsCursorInit (ScreenPtr pScreen);
+
+void
+igsCursorEnable (ScreenPtr pScreen);
+
+void
+igsCursorDisable (ScreenPtr pScreen);
+
+void
+igsCursorFini (ScreenPtr pScreen);
+
 #endif /* _IGS_H_ */
