@@ -1838,7 +1838,7 @@ xf86GetPciBridgeInfo(void)
 				primary, secondary);
 		    break;
 		}
-
+		
 		*pnPciBus = PciBus = xnfcalloc(1, sizeof(PciBusRec));
 		pnPciBus = &PciBus->next;
 
@@ -2123,42 +2123,38 @@ xf86GetPciBridgeInfo(void)
 	    case PCI_SUBCLASS_BRIDGE_HOST:
 		/* Is this the correct bridge?  If not, ignore bus info */
 		pBusInfo = pcrp->businfo;
-		if (pBusInfo == HOST_NO_BUS)
+
+		if (!pBusInfo || pBusInfo == HOST_NO_BUS)
 		    break;
 
 		secondary = 0;
-		if (pBusInfo) {
-		    /* Find "secondary" bus segment */
-		    while (pBusInfo != pciBusInfo[secondary])
+		/* Find "secondary" bus segment */
+		while (pBusInfo != pciBusInfo[secondary])
 			secondary++;
-		    if (pcrp != pBusInfo->bridge) {
-			xf86MsgVerb(X_WARNING, 3, "Host bridge mismatch for"
-				    " bus %x: %x:%x:%x and %x:%x:%x\n",
-				    pBusInfo->primary_bus,
-				    pcrp->busnum, pcrp->devnum, pcrp->funcnum,
-				    pBusInfo->bridge->busnum,
-				    pBusInfo->bridge->devnum,
-				    pBusInfo->bridge->funcnum);
-			pBusInfo = NULL;
-		    }
+		if (pcrp != pBusInfo->bridge) {
+		    xf86MsgVerb(X_WARNING, 3, "Host bridge mismatch for"
+				" bus %x: %x:%x:%x and %x:%x:%x\n",
+				pBusInfo->primary_bus,
+				pcrp->busnum, pcrp->devnum, pcrp->funcnum,
+				pBusInfo->bridge->busnum,
+				pBusInfo->bridge->devnum,
+				pBusInfo->bridge->funcnum);
+		    pBusInfo = NULL;
 		}
 
 		*pnPciBus = PciBus = xnfcalloc(1, sizeof(PciBusRec));
 		pnPciBus = &PciBus->next;
 
-		PciBus->primary = -1;
-		PciBus->secondary = -1; /* to be set below */
+
+		PciBus->primary = PciBus->secondary = secondary;
 		PciBus->subordinate = pciNumBuses - 1;
 
-		if (pBusInfo) {
-		    PciBus->primary = PciBus->secondary = secondary;
-		    if (pBusInfo->funcs->pciGetBridgeBuses)
-			(*pBusInfo->funcs->pciGetBridgeBuses)
-			    (secondary,
-			     &PciBus->primary,
-			     &PciBus->secondary,
-			     &PciBus->subordinate);
-		}
+		if (pBusInfo->funcs->pciGetBridgeBuses)
+		    (*pBusInfo->funcs->pciGetBridgeBuses)
+		        (secondary,
+			   &PciBus->primary,
+			   &PciBus->secondary,
+			   &PciBus->subordinate);
 
 		PciBus->brbus = pcrp->busnum;
 		PciBus->brdev = pcrp->devnum;
