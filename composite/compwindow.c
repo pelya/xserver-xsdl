@@ -648,7 +648,6 @@ compWindowUpdateAutomatic (WindowPtr pWin)
     ScreenPtr	    pScreen = pWin->drawable.pScreen;
     WindowPtr	    pParent = pWin->parent;
     PixmapPtr	    pSrcPixmap = (*pScreen->GetWindowPixmap) (pWin);
-    PixmapPtr	    pDstPixmap = (*pScreen->GetWindowPixmap) (pParent);
     PictFormatPtr   pSrcFormat = compWindowFormat (pWin);
     PictFormatPtr   pDstFormat = compWindowFormat (pWin->parent);
     int		    error;
@@ -658,9 +657,11 @@ compWindowUpdateAutomatic (WindowPtr pWin)
 						 0, 0,
 						 serverClient,
 						 &error);
-    PicturePtr	    pDstPicture = CreatePicture (0, &pDstPixmap->drawable,
+    XID		    subwindowMode = IncludeInferiors;
+    PicturePtr	    pDstPicture = CreatePicture (0, &pParent->drawable,
 						 pDstFormat,
-						 0, 0,
+						 CPSubwindowMode, 
+						 &subwindowMode,
 						 serverClient,
 						 &error);
 
@@ -679,8 +680,8 @@ compWindowUpdateAutomatic (WindowPtr pWin)
 		      0,
 		      0,
 		      0, 0,
-		      pSrcPixmap->screen_x - pDstPixmap->screen_x,
-		      pSrcPixmap->screen_y - pDstPixmap->screen_y,
+		      pSrcPixmap->screen_x - pParent->drawable.x,
+		      pSrcPixmap->screen_y - pParent->drawable.y,
 		      pSrcPixmap->drawable.width,
 		      pSrcPixmap->drawable.height);
     FreePicture (pSrcPicture, 0);
