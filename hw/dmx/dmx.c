@@ -308,6 +308,7 @@ static int ProcDMXForceWindowCreation(ClientPtr client)
         swapl(&rep.length, n);
         swapl(&rep.status, n);
     }
+    WriteToClient(client, sizeof(xDMXForceWindowCreationReply), (char *)&rep);
     return Success;
 }
 
