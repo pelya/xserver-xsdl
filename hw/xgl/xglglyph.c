@@ -135,19 +135,9 @@ xglGlyphCompareScore (xglAreaPtr pArea,
 		      pointer	 closure1,
 		      pointer	 closure2)
 {
-    xglGlyphCachePtr pCache = (xglGlyphCachePtr) pArea->pRoot->closure;
-    GlyphPtr	     pGlyph = (GlyphPtr) closure2;
-    xglGlyphAreaPtr  pAreaPriv;
+    GLYPH_AREA_PRIV (pArea);
 
-    XGL_GLYPH_PRIV (pCache->pScreen, pGlyph);
-
-    /* this shouldn't be needed, seems like a bug in xglarea.c */
-    if (!pGlyphPriv->pArea)
-	return 1;
-
-    pAreaPriv = GLYPH_GET_AREA_PRIV (pGlyphPriv->pArea);
-
-    if (pAreaPriv->serial != glyphSerialNumber)
+    if (pAreaPriv->serial == glyphSerialNumber)
 	return 1;
 
     return -1;
@@ -388,6 +378,7 @@ xglCacheGlyph (xglGlyphCachePtr pCache,
 		
 		GLYPH_AREA_PRIV (pGlyphPriv->pArea);
 
+		pAreaPriv->serial = glyphSerialNumber;
 		pAreaPriv->u.range.first = pGlyphPriv->pArea->x * 4;
 		pAreaPriv->u.range.count = nBox * 4;
 
@@ -454,6 +445,7 @@ xglCacheGlyph (xglGlyphCachePtr pCache,
 		glitz_surface_translate_point (pTexture->mask, &p1, &p1);
 		glitz_surface_translate_point (pTexture->mask, &p2, &p2);
 		
+		pAreaPriv->serial = glyphSerialNumber;
 		if (pTexture->geometryDataType)
 		{
 		    pAreaPriv->u.box.fBox.x1 = FIXED_TO_FLOAT (p1.x);
@@ -499,7 +491,15 @@ xglUncachedGlyphs (CARD8	 op,
     XGL_SCREEN_PRIV (pScreen);
 
     pCache = &pScreenPriv->glyphCache[depth];
-
+    if (usingCache)
+    {
+	if (!pCache->pScreen)
+	{
+	    if (!xglInitGlyphCache (pCache, pScreen, pOp->pLists->format))
+		usingCache = FALSE;
+	}
+    }
+    
     while (pOp->nGlyphs)
     {
 	glyph = *pOp->ppGlyphs;
@@ -518,22 +518,14 @@ xglUncachedGlyphs (CARD8	 op,
 	if (usingCache)
 	{
 	    pGlyphPriv = XGL_GET_GLYPH_PRIV (pScreen, glyph);
+	    pArea = pGlyphPriv->pArea;
 	    if (pSrc)
 	    {
-		pArea = pGlyphPriv->pArea;
+		if (!pArea)
+		    pArea = xglCacheGlyph (pCache, glyph);
+	    
 		if (pArea)
 		    break;
-
-		if (pCache->pScreen ||
-		    xglInitGlyphCache (pCache, pScreen, pOp->pLists->format))
-		{
-		    if (xglCacheGlyph (pCache, glyph))
-			break;
-		}
-	    }
-	    else
-	    {
-		pArea = pGlyphPriv->pArea;
 	    }
 	} else
 	    pArea = NULL;
@@ -556,8 +548,7 @@ xglUncachedGlyphs (CARD8	 op,
 	    pPixmap = GetScratchPixmapHeader (pScreen,
 					      glyph->info.width,
 					      glyph->info.height, 
-					      pOp->pLists->format->depth,
-					      pOp->pLists->format->depth,
+					      depth, depth,
 					      0, (pointer) (glyph + 1));
 	    if (!pPixmap)
 		return;
@@ -631,7 +622,8 @@ xglCachedGlyphs (CARD8	       op,
     BoxRec		  extents;
     INT16		  xOff, yOff, x1, x2, y1, y2;
     int			  depth = pOp->pLists->format->depth;
-    int			  n, count = 0, remaining = pOp->nGlyphs;
+    int			  i, remaining = pOp->nGlyphs;
+    int			  nGlyph = 0;
     glitz_surface_t	  *mask = NULL;
 
     XGL_SCREEN_PRIV (pScreen);
@@ -640,40 +632,76 @@ xglCachedGlyphs (CARD8	       op,
     if (!pCache->pScreen)
     {
 	if (!xglInitGlyphCache (pCache, pScreen, pOp->pLists->format))
+	{
+	    pOp->noCache = TRUE;
 	    return 1;
+	}
     }
 
-    if (depth == 1)
+    /* update serial number for all glyphs already in cache so that
+       we don't accidentally replace one. */
+    for (i = 0; i < pOp->nGlyphs; i++)
     {
-	glitz_multi_array_t *multiArray;
-
-	pGeometry = &pCache->u.geometry;
-	pGeometry->xOff = pGeometry->yOff = 0;
-	
-	multiArray = glitz_multi_array_create (pOp->nGlyphs);
-	if (!multiArray)
-	    return 1;
-
-	GEOMETRY_SET_MULTI_ARRAY (pGeometry, multiArray);
-	glitz_multi_array_destroy (multiArray);
-
-	vData.array.lastX = 0;
-	vData.array.lastY = 0;
+	pGlyphPriv = XGL_GET_GLYPH_PRIV (pScreen, pOp->ppGlyphs[i]);
+	pArea = pGlyphPriv->pArea;
+	if (pArea && pArea->width)
+	    GLYPH_GET_AREA_PRIV (pArea)->serial = glyphSerialNumber;
     }
-    else
+
+    for (i = 0; i < pOp->nGlyphs; i++)
     {
-	n = pCache->u.texture.format.vertex.bytes_per_vertex;
-	pGeometry = xglGetScratchGeometryWithSize (pScreen, 4 * n * remaining);
-	
-	pGeometry->f = pCache->u.texture.format;
-	pGeometry->type	= GLITZ_GEOMETRY_TYPE_VERTEX;
-	mask = pCache->u.texture.mask;
-	
-	vData.list.s = glitz_buffer_map (pGeometry->buffer,
-					 GLITZ_BUFFER_ACCESS_WRITE_ONLY);
-    }
+	pGlyphPriv = XGL_GET_GLYPH_PRIV (pScreen, pOp->ppGlyphs[i]);
+	pArea = pGlyphPriv->pArea;
+	if (!pArea)
+	    pArea = xglCacheGlyph (pCache, pOp->ppGlyphs[i]);
 
-    NEXT_GLYPH_SERIAL_NUMBER;
+	if (pArea)
+	{
+	    if (pArea->width)
+		nGlyph++;
+	}
+	else if (pSrc)
+	    break;
+    }
+    
+    if (nGlyph)
+    {
+	if (depth == 1)
+	{
+	    glitz_multi_array_t *multiArray;
+	    
+	    pGeometry = &pCache->u.geometry;
+	    pGeometry->xOff = pGeometry->yOff = 0;
+	    
+	    multiArray = glitz_multi_array_create (nGlyph);
+	    if (!multiArray)
+		return 1;
+	    
+	    GEOMETRY_SET_MULTI_ARRAY (pGeometry, multiArray);
+	    glitz_multi_array_destroy (multiArray);
+	    
+	    vData.array.lastX = 0;
+	    vData.array.lastY = 0;
+	}
+	else
+	{
+	    i = 4 * pCache->u.texture.format.vertex.bytes_per_vertex * nGlyph;
+	    pGeometry = xglGetScratchGeometryWithSize (pScreen, i);
+	    
+	    pGeometry->f = pCache->u.texture.format;
+	    pGeometry->type = GLITZ_GEOMETRY_TYPE_VERTEX;
+	    mask = pCache->u.texture.mask;
+	    
+	    vData.list.s = glitz_buffer_map (pGeometry->buffer,
+					     GLITZ_BUFFER_ACCESS_WRITE_ONLY);
+	}
+    } else
+	pGeometry = NULL;
+
+    extents.x1 = MAXSHORT;
+    extents.y1 = MAXSHORT;
+    extents.x2 = MINSHORT;
+    extents.y2 = MINSHORT;
 
     while (pOp->nGlyphs)
     {
@@ -692,21 +720,8 @@ xglCachedGlyphs (CARD8	       op,
 
 	pGlyphPriv = XGL_GET_GLYPH_PRIV (pScreen, glyph);
 	pArea = pGlyphPriv->pArea;
-	if (!pArea)
-	{
-	    n = pOp->nGlyphs;
-	    while (n--)
-	    {
-		pGlyphPriv = XGL_GET_GLYPH_PRIV (pScreen, pOp->ppGlyphs[n]);
-		pArea = pGlyphPriv->pArea;
-		if (pArea && pArea->width)
-		    GLYPH_GET_AREA_PRIV (pArea)->serial = glyphSerialNumber;
-	    }
-	    
-	    pArea = xglCacheGlyph (pCache, glyph);
-	    if (!pArea && pSrc)
-		break;
-	}
+	if (!pArea && pSrc)
+	    break;
 
 	pOp->listLen--;
 	pOp->nGlyphs--;
@@ -758,19 +773,20 @@ xglCachedGlyphs (CARD8	       op,
 			       pGlyphArea->u.box.sBox);
 		}
 	    }
-	    count++;
 	}
 	remaining--;
     }
 
-    if (depth != 1)
-    {
-	glitz_buffer_unmap (pGeometry->buffer);
-	pGeometry->count = count * 4;
-    }
+    NEXT_GLYPH_SERIAL_NUMBER;
 
-    if (count)
+    if (nGlyph)
     {
+	if (depth != 1)
+	{
+	    glitz_buffer_unmap (pGeometry->buffer);
+	    pGeometry->count = nGlyph * 4;
+	}
+	
 	xSrc += extents.x1;
 	ySrc += extents.y1;
 
@@ -780,7 +796,7 @@ xglCachedGlyphs (CARD8	       op,
 	    pSrc = pScreenPriv->pSolidAlpha;
 	    
 	    if (remaining)
-		*pOp = opSave;
+	    	*pOp = opSave;
 	}
 
 	GEOMETRY_TRANSLATE (pGeometry,
@@ -805,15 +821,15 @@ xglCachedGlyphs (CARD8	       op,
 	}
 
 	remaining = ~0;
-	pOp->noCache = TRUE;
 	*pOp = opSave;
+	pOp->noCache = TRUE;
     }
     else
     {
 	if (remaining)
 	{
-	    pOp->noCache = TRUE;
 	    *pOp = opSave;
+	    pOp->noCache = TRUE;
 	}
     }
 
