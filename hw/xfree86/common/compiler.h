@@ -1732,7 +1732,7 @@ static __inline__ void ppc_flush_icache(char *addr)
 		: : "r"(addr) : "memory");
 }
 
-# elif defined(__sparc__)
+# elif defined(__sparc__) || defined(sparc)
  /*
   * Like powerpc, we provide byteswapping and no byteswapping functions
   * here with byteswapping as default, drivers that don't need byteswapping

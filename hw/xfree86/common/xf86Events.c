@@ -49,7 +49,7 @@
  */
 
 /* $XConsortium: xf86Events.c /main/46 1996/10/25 11:36:30 kaleb $ */
-/* $XdotOrg: xf86Events.c /main/46 1996/10/25 11:36:30 kaleb $ */
+/* $XdotOrg: xc/programs/Xserver/hw/xfree86/common/xf86Events.c,v 1.1.4.3 2003/12/06 13:24:24 kaleb Exp $ */
 
 /* [JCH-96/01/21] Extended std reverse map to four buttons. */
 
@@ -403,7 +403,7 @@ xf86ProcessActionEvent(ActionEvent action, void *arg)
 	    /*                                                        */
 	    /* otherwise fallback to sending a key event message to   */
 	    /* the current screen's driver:                           */
-	    if (*pScr->HandleMessage) {
+	    if (*pScr->HandleMessage != NULL) {
 		(void) (*pScr->HandleMessage)(pScr->scrnIndex,
 			"KeyEventMessage", message, &retstr);
 	    }
