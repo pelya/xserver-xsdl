@@ -1154,12 +1154,14 @@ winWindowProc (HWND hwnd, UINT message,
       /* Call engine specific screen activation/deactivation function */
       (*s_pScreenPriv->pwinActivateApp) (s_pScreen);
 
+#ifdef XWIN_MULTIWINDOWEXTWM
       if (s_pScreenPriv->fActive)
 	{
 	  /* Restack all window unless using built-in wm. */
 	  if (s_pScreenInfo->fInternalWM && s_pScreenInfo->fAnotherWMRunning)
 	    winMWExtWMRestackWindows (s_pScreen);
 	}
+#endif
 
       return 0;
 
@@ -1219,6 +1221,7 @@ winWindowProc (HWND hwnd, UINT message,
 	}
       break;
 
+#ifdef XWIN_MULTIWINDOWEXTWM
     case WM_MANAGE:
       ErrorF ("winWindowProc - WM_MANAGE\n");
       s_pScreenInfo->fAnotherWMRunning = FALSE;
@@ -1240,6 +1243,7 @@ winWindowProc (HWND hwnd, UINT message,
 	  winMWExtWMRestackWindows (s_pScreen);
 	}
       break;
+#endif
 
     default:
       if(message == s_uTaskbarRestart)

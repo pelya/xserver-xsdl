@@ -585,24 +585,32 @@ winFinishScreenInitFB (int index,
   pScreenPriv->fRestacking = FALSE;
 #endif
 
+#if defined(XWIN_MULTIWINDOW) || defined(XWIN_MULTIWINDOWEXTWM)
+  if (FALSE
 #ifdef XWIN_MULTIWINDOW
+      || pScreenInfo->fMultiWindow
+#endif
+#ifdef XWIN_MULTIWINDOWEXTWM
+      || pScreenInfo->fInternalWM
+#endif
+      )
+    { 
 #if CYGDEBUG || YES
-  if (pScreenInfo->fMultiWindow)
-    winDebug ("winFinishScreenInitFB - Calling winInitWM.\n");
+      winDebug ("winFinishScreenInitFB - Calling winInitWM.\n");
 #endif
 
-  /* Initialize multi window mode */
-  if ((pScreenInfo->fMultiWindow || pScreenInfo->fInternalWM)
-      && !winInitWM (&pScreenPriv->pWMInfo,
-		     &pScreenPriv->ptWMProc,
-		     &pScreenPriv->ptXMsgProc,
-		     &pScreenPriv->pmServerStarted,
-		     pScreenInfo->dwScreen,
-		     (HWND)&pScreenPriv->hwndScreen))
-    {
-      ErrorF ("winFinishScreenInitFB - winInitWM () failed.\n");
-      return FALSE;
-    }
+      /* Initialize multi window mode */
+      if (!winInitWM (&pScreenPriv->pWMInfo,
+		      &pScreenPriv->ptWMProc,
+		      &pScreenPriv->ptXMsgProc,
+		      &pScreenPriv->pmServerStarted,
+		      pScreenInfo->dwScreen,
+		      (HWND)&pScreenPriv->hwndScreen))
+        {
+          ErrorF ("winFinishScreenInitFB - winInitWM () failed.\n");
+          return FALSE;
+        }
+    }      
 #endif
 
   /* Tell the server that we are enabled */

@@ -119,8 +119,10 @@ winHandleIconMessage (HWND hwnd, UINT message,
       /* Restack and bring all windows to top */
       SetForegroundWindow (hwnd);
 
+#ifdef XWIN_MULTIWINDOWEXTWM
       if (pScreenInfo->fMWExtWM)
 	winMWExtWMRestackWindows (pScreenInfo->pScreen);
+#endif
       break;
 
     case WM_LBUTTONDBLCLK:
