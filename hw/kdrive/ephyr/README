@@ -47,6 +47,8 @@ Caveats
 =======
 
  - Depth is limited to being the same as the host. 
+   *Update* As of 8/11/2004. Xephyr can now do 8bpp & 16bpp 
+            on 24bpp host.
 
  - Rotated displays are currently updated via full blits. This
    is slower than a normal oprientated display. Debug mode will

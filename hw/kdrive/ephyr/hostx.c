@@ -682,34 +682,37 @@ hostx_get_event(EphyrHostXEvent *ev)
 		  XUngrabPointer (HostX.dpy, CurrentTime);
 		  grabbed = False;
 		  hostx_set_win_title("( ctrl+shift grabs mouse and keyboard )");
-
 		} 
 	      else 
 		{
+		  /* Attempt grab */
 		  if (XGrabKeyboard (HostX.dpy, HostX.win, True, 
 				     GrabModeAsync, 
 				     GrabModeAsync, 
-				     CurrentTime)) 
-		    break;
-
-		  if (XGrabPointer (HostX.dpy, HostX.win, True, 
-				    NoEventMask, 
-				    GrabModeAsync, 
-				    GrabModeAsync, 
-				    HostX.win, None, CurrentTime)) 
-		    break;
-		  
-		  grabbed = True;
-		  hostx_set_win_title("( ctrl+shift releases mouse and keyboard )");
-
+				     CurrentTime) == 0)
+		    {
+		      if (XGrabPointer (HostX.dpy, HostX.win, True, 
+					NoEventMask, 
+					GrabModeAsync, 
+					GrabModeAsync, 
+					HostX.win, None, CurrentTime) == 0)
+			{
+			  grabbed = True;
+			  hostx_set_win_title("( ctrl+shift releases mouse and keyboard )");
+			}
+		      else 	/* Failed pointer grabm  ungrab keyboard */
+			XUngrabKeyboard (HostX.dpy, CurrentTime);
+		    }
 		}
-	    } 
-	  else 
-	    {
-	      ev->type = EPHYR_EV_KEY_RELEASE;
-	      ev->data.key_up.scancode = xev.xkey.keycode;
-	      return 1;
 	    }
+
+	  /* Still send the release event even if above has happened
+           * server will get confused with just an up event. 
+           * Maybe it would be better to just block shift+ctrls getting to
+           * kdrive all togeather. 
+ 	   */
+	  ev->type = EPHYR_EV_KEY_RELEASE;
+	  ev->data.key_up.scancode = xev.xkey.keycode;
 	  return 1;
 
 	default:
