@@ -954,9 +954,12 @@ xf86scanpci(int flags)
     pciBusInfo_t *busp;
     int          idx = 0, i;
     PCITAG       tag;
+    static Bool  done = FALSE;
 
-    if (pci_devp[0])
+    if (done || pci_devp[0])
 	return pci_devp;
+
+    done = TRUE;
 
     pciInit();
 
