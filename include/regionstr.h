@@ -45,7 +45,7 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ******************************************************************/
-/* $XFree86: xc/programs/Xserver/include/regionstr.h,v 1.12 2003/11/29 02:29:43 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/include/regionstr.h,v 1.13 2003/12/03 17:11:29 tsi Exp $ */
 
 #ifndef REGIONSTRUCT_H
 #define REGIONSTRUCT_H
@@ -167,18 +167,8 @@ extern RegDataRec miBrokenData;
 
 #else /* !NEED_SCREEN_REGIONS */
 
-/* Reference _pScreen macro argument and possibly check its type */
-#undef REGION_SCREEN
-extern volatile ScreenPtr currentRegionScreen;
-#if defined(NDEBUG) && !defined(DEBUG) && !defined(BUILDDEBUG)
-
-# define REGION_SCREEN(_pScreen_) (void)(_pScreen_)
-
-#else
-
-# define REGION_SCREEN(_pScreen_) (void)(currentRegionScreen = (_pScreen_))
-
-#endif
+/* Reference _pScreen macro argument and check its type */
+#define REGION_SCREEN(_pScreen_) (void)((_pScreen_)->myNum)
 
 #define REGION_CREATE(_pScreen, _rect, _size) \
     (REGION_SCREEN(_pScreen), miRegionCreate(_rect, _size))
@@ -256,8 +246,8 @@ extern volatile ScreenPtr currentRegionScreen;
 #define REGION_INIT(_pScreen, _pReg, _rect, _size) \
 { \
     REGION_SCREEN(_pScreen); \
-	(_pReg)->extents = *(_rect); \
-	(_pReg)->data = (RegDataPtr)NULL; \
+    (_pReg)->extents = *(_rect); \
+    (_pReg)->data = (RegDataPtr)NULL; \
 }
 
 #define REGION_UNINIT(_pScreen, _pReg) \

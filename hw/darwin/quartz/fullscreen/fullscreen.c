@@ -25,7 +25,7 @@
  * holders shall not be used in advertising or otherwise to promote the sale,
  * use or other dealings in this Software without prior written authorization.
  */
-/* $XFree86: xc/programs/Xserver/hw/darwin/quartz/fullscreen/fullscreen.c,v 1.3 2003/11/27 01:59:53 torrey Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/darwin/quartz/fullscreen/fullscreen.c,v 1.4 2003/12/09 04:41:27 torrey Exp $ */
 
 #include "quartzCommon.h"
 #include "darwin.h"
@@ -461,8 +461,6 @@ static void FSShadowUpdate(
     int pitch = dfb->pitch;
     int bpp = dfb->bitsPerPixel/8;
 
-ErrorF("FSShadowUpdate: %i\n", quartzServerVisible);
-
     // Don't update if the X server is not visible
     if (!quartzServerVisible)
         return;
@@ -502,7 +500,6 @@ static Bool FSSetupScreen(
     FSScreenPtr fsDisplayInfo = FULLSCREEN_PRIV(pScreen);
     CGDirectDisplayID cgID = fsDisplayInfo->displayID;
 
-ErrorF("FSSetupScreen\n");
     // Initialize shadow framebuffer support
     if (! shadowInit(pScreen, FSShadowUpdate, NULL)) {
         ErrorF("Failed to initalize shadow framebuffer for screen %i.\n",

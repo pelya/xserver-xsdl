@@ -1,5 +1,5 @@
 /*
- * $XFree86: xc/programs/Xserver/fb/fbglyph.c,v 1.12 2001/09/07 15:16:00 keithp Exp $
+ * $XFree86: xc/programs/Xserver/fb/fbglyph.c,v 1.13 2003/12/04 17:15:12 tsi Exp $
  *
  * Copyright © 1998 Keith Packard
  *
@@ -25,6 +25,8 @@
 #include "fb.h"
 #include	"fontstruct.h"
 #include	"dixfontstr.h"
+
+#define dummyScreen screenInfo.screens[0]
       
 Bool
 fbGlyphIn (RegionPtr	pRegion,
@@ -34,7 +36,7 @@ fbGlyphIn (RegionPtr	pRegion,
 	   int		height)
 {
     BoxRec  box;
-    BoxPtr  pExtents = REGION_EXTENTS (0, pRegion);
+    BoxPtr  pExtents = REGION_EXTENTS (dummyScreen, pRegion);
 
     /*
      * Check extents by hand to avoid 16 bit overflows
@@ -51,7 +53,7 @@ fbGlyphIn (RegionPtr	pRegion,
     box.x2 = x + width;
     box.y1 = y;
     box.y2 = y + height;
-    return RECT_IN_REGION (0, pRegion, &box) == rgnIN;
+    return RECT_IN_REGION (dummyScreen, pRegion, &box) == rgnIN;
 }
 
 #ifdef FB_24BIT

@@ -44,7 +44,7 @@ copyright holders.
 **    *********************************************************
 ** 
 ********************************************************************/
-/* $XFree86: xc/programs/Xserver/Xprint/attributes.c,v 1.20 2003/10/29 22:11:54 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/Xprint/attributes.c,v 1.21 2003/12/19 02:05:38 dawes Exp $ */
 
 #include <X11/Xproto.h>
 #include <string.h>
@@ -52,7 +52,7 @@ copyright holders.
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <pwd.h>
-#if defined(sun) && defined(SVR4)
+#if (defined(sun) && defined(SVR4)) || (defined(SCO))
 #include <wchar.h>
 #endif
 

@@ -37,7 +37,7 @@
 *
 ****************************************************************************/
 
-/* $XFree86: xc/extras/x86emu/src/x86emu/decode.c,v 1.11 2002/07/23 20:20:43 tsi Exp $ */
+/* $XFree86: xc/extras/x86emu/src/x86emu/decode.c,v 1.12 2003/12/05 19:23:23 dawes Exp $ */
 
 #include "x86emu/x86emui.h"
 
@@ -699,7 +699,11 @@ u16* decode_rm_seg_register(
 		DECODE_PRINTF("DS");
 		return &M.x86.R_DS;
 	  case 4:
+		DECODE_PRINTF("FS");
+		return &M.x86.R_FS;
 	  case 5:
+		DECODE_PRINTF("GS");
+		return &M.x86.R_GS;
 	  case 6:
 	  case 7:
 		DECODE_PRINTF("ILLEGAL SEGREG");

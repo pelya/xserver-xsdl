@@ -1,5 +1,70 @@
-XFree86 4.3.99.902 (xx December 2003)
+XFree86 4.3.99.903 (xx December 2003)
 
+XFree86 4.3.99.902 (18 December 2003)
+ 672. Fixes for xterm (Thomas Dickey):
+      - Add a limit-check in selection to fix a bug in triple-clicking
+        (Bugzilla #981)
+      - add -v/-version/-h/-help options to uxterm (Debian #223926)
+ 671. Updates for SCO support (Bugzilla #994, Kean Johnston).
+ 670. Don't build the Aiptek driver unless HasLinuxInput is set
+      (Bugzilla #972, Andrew Aitchison).
+ 669. A new fixed version of the zh_CN.UTF-8 locale file (Bugzilla #991,
+      James Su).
+ 668. Fix locale.dir/locale.alias bugs that break the zh_CN.GB2312 locale
+      (Bugzilla #990, James Su).
+ 667. Fixes and updates for XKB keyboard maps:
+      - Add to 'us' keymap backslash key that can be rewritten in other layouts
+        (Bugzilla #976, Børre Gaup).
+      - Fix some keys in Georgian latin keymap (Bugzilla #985, Vano Beridze).
+      - Add Korean keymap (Jungshik Shin).
+      - Add French variant of 'dvorak' keymap (Josselin Mouette).
+      - Fix wrong key type in the 'keymap without special keys' (Ivan Pascal).
+ 666. Via driver updates:
+       - Fix pixmap caches and Xv. The blitter has a 2048 pixel limit so we
+         must constrain the pixmap cache.
+       - Rip out all the memory allocator garbage and put it in one place.
+       - Allow optional use of AlanH's new linear allocator (not yet heavily
+         tested).
+       - Fix allocation bugs that this clean up made visible.
+       - Add missing I2C symbols.
+       - Some small formatting/other cleanups.
+      (Alan Cox).
+ 665. Fix a problem with distinguishing unassigned characters in the FreeType
+      backend (Bugzilla #975, Roland Mainz, Chisato Yamauchi).
+ 664. Update Japanese localization of XDarwin GUI (Toshimitsu Tanaka).
+ 663. Fix setjmp-related build issues on Solaris 2.5.1/x86 (Lindsay Haigh).
+ 662. Xdm, xf86cfg, mkfontscale and fonttosfnt fixes for platforms without
+      snprintf() (Lindsay Haigh).
+ 661. Update Brazilian keyboard map (Ricardo Y. Igarashi).
+ 660. Fix a bug in the fbgc.c code that caused the even stipple code path to
+      be used instead of the odd stipple path. Basically causing glitches in
+      rendering or no rendering at all. (Alan Hourihane).
+ 659. Fix XDarwin crash in IOKit mode for certain screen resolutions
+      (Torrey T. Lyons).
+ 658. DRI update - update the SiS DRI driver from DRI trunk (Eric Anholt).
+ 657. Fix mouse wheel code again for PowerPC (#5990, Rene Rebe).
+ 656. Fix sparc asm glapi initialisation in libGL when using indirect rendering
+      (GLX) (Bugzilla #923, Ferris McCormick).
+ 655. Disable the OPTGX1SubsequentHorVertLine() function in the NSC Geode
+      GX1 driver to due problems falling back to the FillRectSolid function.
+      (Alan Hourihane, See Bugzilla #841 for reasons).
+ 654. Add sun.unicode.india-0.enc (Bugzilla #939, JungShik Shin, Roland Mainz).
+ 653. Fix an x86emu crash for a BIOS that references the FS (or GS) register
+      (Sergey Babkin).
+ 652. Install the DRM kernel module source under ProjectRoot/src (David Dawes).
+ 651. Update XKB registry file rules/xfree86.xml (Sergey Oudaltsov).
+ 650. Fix '-nolisten tcp' when building with IPv6 disabled (Bugzilla #651,
+      Andrew Bevitt).
+ 649. Add some missing dead-key compose sequences for Vietnamese (#5981,
+      Le Hong Boi).
+ 648. Fix a problem with the v4l driver not seeing all the tv-norms
+      available under the bttv driver with the Linux 2.6.0-test11 kernel
+      (#5976, Marco Antonio Alvarez).
+ 647. Build fix after recent REGION_* changes (Part of #5983, Oswald
+      Buddenhagen, and #5984, Alexander Stohr).
+ 646. Fix for XKB map 'altwin' to avoid one keysym to more than one modifier
+      mapping (Ivan Pascal).
+ 
 XFree86 4.3.99.901 ( 2 December 2003)
  645. Update xterm's checking of modifiers to match change 635, and handle
       the case of keys like Meta_L being in more than one modifier.  This
@@ -18326,7 +18391,7 @@ XFree86 3.0a (28 April 1994)
 XFree86 3.0 (26 April 1994)
 
 
-$XFree86: xc/programs/Xserver/hw/xfree86/CHANGELOG,v 3.3014 2003/12/03 05:05:57 dawes Exp $
+$XFree86: xc/programs/Xserver/hw/xfree86/CHANGELOG,v 3.3043 2003/12/19 04:52:08 dawes Exp $
 
 
 

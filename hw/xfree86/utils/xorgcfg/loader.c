@@ -26,7 +26,7 @@
  *
  * Author: Paulo César Pereira de Andrade <pcpa@conectiva.com.br>
  *
- * $XFree86: xc/programs/Xserver/hw/xfree86/xf86cfg/loader.c,v 1.19 2002/06/06 21:03:32 paulo Exp $
+ * $XFree86: xc/programs/Xserver/hw/xfree86/xf86cfg/loader.c,v 1.20 2003/12/17 17:45:33 dawes Exp $
  */
 
 #include "config.h"
@@ -35,12 +35,19 @@
 #include "loader.h"
 #include "stubs.h"
 #include <X11/Xresource.h>
+#include <X11/Xos.h>
 
 #ifdef USE_MODULES
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#if defined(X_POSIX_C_SOURCE)
+#define _POSIX_C_SOURCE X_POSIX_C_SOURCE
 #include <setjmp.h>
+#undef _POSIX_C_SOURCE
+#else
+#include <setjmp.h>
+#endif
 #include <signal.h>
 #include <ctype.h>
 

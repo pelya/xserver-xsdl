@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/loader/dixsym.c,v 1.62 2003/11/25 05:26:38 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/loader/dixsym.c,v 1.63 2003/12/03 17:11:29 tsi Exp $ */
 
 /*
  * Copyright 1995-1998 by Metro Link, Inc.
@@ -205,7 +205,6 @@ LOOKUP dixLookupTab[] = {
     SYMVAR(DPMSEnabledSwitch)
     SYMVAR(DPMSDisabledSwitch)
     SYMVAR(defaultDPMSEnabled)
-    SYMVAR(currentRegionScreen)
     /* bigreq */
     SYMVAR(maxBigRequestSize)
 #ifdef XV
