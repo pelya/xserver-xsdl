@@ -1349,7 +1349,7 @@ damagePolyText8(DrawablePtr pDrawable,
     DAMAGE_GC_OP_PROLOGUE(pGC, pDrawable);
 
     if (checkGCDamage (pDrawable, pGC))
-	damageText (pDrawable, pGC, x, y, (unsigned long) count, chars,
+	x = damageText (pDrawable, pGC, x, y, (unsigned long) count, chars,
 		    Linear8Bit, TT_POLY8);
     else
 	x = (*pGC->ops->PolyText8)(pDrawable, pGC, x, y, count, chars);
@@ -1368,7 +1368,7 @@ damagePolyText16(DrawablePtr	pDrawable,
     DAMAGE_GC_OP_PROLOGUE(pGC, pDrawable);
 
     if (checkGCDamage (pDrawable, pGC))
-	damageText (pDrawable, pGC, x, y, (unsigned long) count, (char *) chars,
+	x = damageText (pDrawable, pGC, x, y, (unsigned long) count, (char *) chars,
 		    FONTLASTROW(pGC->font) == 0 ? Linear16Bit : TwoD16Bit,
 		    TT_POLY16);
     else
