@@ -1,3 +1,14 @@
+2005-03-07  Alexander Gottwald  <ago at freedesktop dot org>
+
+	* winmultiwindowwndproc.c:
+	* winmultiwindowwindow.c:
+	Prevent winRaiseWindow from calling ConfigureWindow if the message
+	was sent from within winDestroyWindowsWindow
+
+	DestroyWindow send a WM_WINDOWPOSCHANGED to another window causing
+	a restacking of all windows, even of the window which is just about
+	to destroyed and whose structures may not be intact anymore.
+
 2005-02-24  Alexander Gottwald  <ago at freedesktop dot org>
 
 	* winmultiwindowwndproc.c:

@@ -265,13 +265,17 @@ ValidateSizing (HWND hwnd, WindowPtr pWin,
   return TRUE;
 }
 
+extern Bool winInDestroyWindowsWindow;
 static void winRaiseWindow(WindowPtr pWin)
 {
+  if (!winInDestroyWindowsWindow)
+  {
     /* Call configure window directly to make sure it gets processed 
      * in time
      */
-    XID vlist[1] = { 0 }; 
+    XID vlist[1] = { 0 };
     ConfigureWindow(pWin, CWStackMode, vlist, NULL); 
+  }
 }
 
 

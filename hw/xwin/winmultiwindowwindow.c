@@ -611,6 +611,7 @@ winCreateWindowsWindow (WindowPtr pWin)
 }
 
 
+Bool winInDestroyWindowsWindow = FALSE;
 /*
  * winDestroyWindowsWindow - Destroy a Windows window associated
  * with an X window
@@ -625,6 +626,7 @@ winDestroyWindowsWindow (WindowPtr pWin)
   HMODULE		hInstance;
   int			iReturn;
   char			pszClass[512];
+  BOOL			oldstate = winInDestroyWindowsWindow;
   
 #if CYGMULTIWINDOW_DEBUG
   ErrorF ("winDestroyWindowsWindow\n");
@@ -633,6 +635,8 @@ winDestroyWindowsWindow (WindowPtr pWin)
   /* Bail out if the Windows window handle is invalid */
   if (pWinPriv->hWnd == NULL)
     return;
+
+  winInDestroyWindowsWindow = TRUE;
 
   /* Store the info we need to destroy after this window is gone */
   hInstance = (HINSTANCE) GetClassLong (pWinPriv->hWnd, GCL_HMODULE);
@@ -646,7 +650,7 @@ winDestroyWindowsWindow (WindowPtr pWin)
 
   /* Null our handle to the Window so referencing it will cause an error */
   pWinPriv->hWnd = NULL;
-  
+
   /* Process all messages on our queue */
   while (PeekMessage (&msg, NULL, 0, 0, PM_REMOVE))
     {
@@ -671,6 +675,8 @@ winDestroyWindowsWindow (WindowPtr pWin)
       winDestroyIcon(hiconClass);
       winDestroyIcon(hiconSmClass);
     }
+
+  winInDestroyWindowsWindow = oldstate;
 
 #if CYGMULTIWINDOW_DEBUG
   ErrorF ("-winDestroyWindowsWindow\n");
