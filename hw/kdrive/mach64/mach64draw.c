@@ -224,7 +224,7 @@ mach64DoneCopy (void)
 {
 }
 
-KaaScreenPrivRec    mach64Kaa = {
+KaaScreenInfoRec    mach64Kaa = {
     mach64PrepareSolid,
     mach64Solid,
     mach64DoneSolid,

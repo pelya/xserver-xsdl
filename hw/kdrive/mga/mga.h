@@ -96,8 +96,6 @@ typedef struct _mgaCardInfo {
 typedef struct _mgaScreenInfo {
     VesaScreenPrivRec vesa;
     CARD8 *screen;
-    CARD8 *off_screen;
-    int off_screen_size;
 
     int pitch;
     int pw;

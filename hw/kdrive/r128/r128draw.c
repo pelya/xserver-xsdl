@@ -212,7 +212,7 @@ r128DoneCopy (void)
 {
 }
 
-KaaScreenPrivRec r128Kaa = {
+KaaScreenInfoRec r128Kaa = {
     r128PrepareSolid,
     r128Solid,
     r128DoneSolid,

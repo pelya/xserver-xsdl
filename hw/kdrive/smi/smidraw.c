@@ -233,7 +233,7 @@ smiDoneCopy (void)
 {
 }
 
-KaaScreenPrivRec    smiKaa = {
+KaaScreenInfoRec    smiKaa = {
     smiPrepareSolid,
     smiSolid,
     smiDoneSolid,

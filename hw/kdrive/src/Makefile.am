@@ -19,6 +19,7 @@ libkdrive_a_SOURCES =	\
 	kmap.c		\
 	kmode.c		\
 	knoop.c		\
+	koffscreen.c	\
 	kpict.c		\
 	kshadow.c	\
 	ktest.c		\

@@ -54,7 +54,6 @@ mgaCardInit (KdCardInfo *card)
 Bool
 mgaScreenInit (KdScreenInfo *screen)
 {
-    MgaCardInfo *mgac = screen->card->driver;
     MgaScreenInfo *mgas;
     int screen_size, memory;
 
@@ -84,13 +83,13 @@ mgaScreenInit (KdScreenInfo *screen)
     memory -= screen_size;
     if (memory > screen->fb[0].byteStride)
     {
-	mgas->off_screen = mgas->screen + screen_size;
-	mgas->off_screen_size = memory;
+	screen->off_screen_base = screen_size;
+	screen->off_screen_size = memory;
     }
     else
     {
-	mgas->off_screen = 0;
-	mgas->off_screen_size = 0;
+	screen->off_screen_base = 0;
+	screen->off_screen_size = 0;
     }
     screen->driver = mgas;
     return TRUE;
@@ -115,8 +114,6 @@ mgaFinishInitScreen (ScreenPtr pScreen)
 void
 mgaPreserve (KdCardInfo *card)
 {
-    MgaCardInfo *mgac = card->driver;
-
     vesaPreserve (card);
 }
 
@@ -166,6 +163,13 @@ mgaResetMMIO (KdCardInfo *card, MgaCardInfo *mgac)
 }
 
 Bool
+mgaDPMS (ScreenPtr pScreen, int mode)
+{
+    /* XXX */
+    return TRUE;
+}
+
+Bool
 mgaEnable (ScreenPtr pScreen)
 {
     KdScreenPriv (pScreen);
@@ -187,14 +191,8 @@ mgaDisable (ScreenPtr pScreen)
     MgaCardInfo *mgac = pScreenPriv->card->driver;
 
     mgaResetMMIO (pScreenPriv->card, mgac);
-    vesaDisable (pScreen);
-}
 
-Bool
-mgaDPMS (ScreenPtr pScreen, int mode)
-{
-    /* XXX */
-    return TRUE;
+    vesaDisable (pScreen);
 }
 
 void

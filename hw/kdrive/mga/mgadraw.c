@@ -48,14 +48,12 @@ CARD32 mgaRop[16] = {
 
 static VOL8 *mmio;
 int fifo_size;
-int pitch;
+int pitch, src_pitch;
 int dir;
 
 void
 mgaWaitAvail (int n)
 {
-    int i;
-
     if (fifo_size < n) {
       while ((fifo_size = MGA_IN32 (mmio, MGA_REG_FIFOSTATUS) & 0xff) < n)
 	;
@@ -84,25 +82,43 @@ mgaSetup (ScreenPtr pScreen, int wait)
   if (!mmio)
     return FALSE;
 
-  mgaWaitAvail (wait + 7);
-  MGA_OUT32 (mmio, MGA_REG_PITCH, mgas->pitch);
-  MGA_OUT32 (mmio, MGA_REG_SRCORG, 0);
-  MGA_OUT32 (mmio, MGA_REG_DSTORG, 0);
+  mgaWaitAvail (wait + 4);
   MGA_OUT32 (mmio, MGA_REG_MACCESS, mgas->pw);
   MGA_OUT32 (mmio, MGA_REG_CXBNDRY, 0xffff0000);
   MGA_OUT32 (mmio, MGA_REG_YTOP, 0x00000000);
   MGA_OUT32 (mmio, MGA_REG_YBOT, 0x007fffff);
+
+  return TRUE;
 }
 
 Bool
 mgaPrepareSolid (DrawablePtr pDrawable, int alu, Pixel pm, Pixel fg)
 {
+    KdScreenPriv(pDrawable->pScreen);
+    mgaScreenInfo (pScreenPriv);
     int cmd;
 
     cmd = MGA_OPCOD_TRAP | MGA_DWGCTL_SOLID | MGA_DWGCTL_ARZERO | MGA_DWGCTL_SGNZERO |
 	MGA_DWGCTL_SHIFTZERO | mgaRop[alu];
 
-    mgaSetup (pDrawable->pScreen, 3);
+    mgaSetup (pDrawable->pScreen, 5);
+
+    if (pDrawable->type == DRAWABLE_WINDOW)
+    {
+	MGA_OUT32 (mmio, MGA_REG_DSTORG, 0);
+	MGA_OUT32 (mmio, MGA_REG_PITCH, pitch);
+    }
+    else
+    {
+	PixmapPtr pPixmap = (PixmapPtr)pDrawable;
+	int dst_org;
+
+	dst_org = (int)pPixmap->devPrivate.ptr - (int)mgas->screen;
+
+	MGA_OUT32 (mmio, MGA_REG_DSTORG, dst_org);
+	MGA_OUT32 (mmio, MGA_REG_PITCH, pPixmap->devKind / (pPixmap->drawable.bitsPerPixel >> 3));
+    }
+
     MGA_OUT32 (mmio, MGA_REG_DWGCTL, cmd);
     MGA_OUT32 (mmio, MGA_REG_FCOL, fg);
     MGA_OUT32 (mmio, MGA_REG_PLNWT, pm);
@@ -114,7 +130,8 @@ void
 mgaSolid (int x1, int y1, int x2, int y2)
 {
     mgaWaitAvail (2);
-    MGA_OUT32 (mmio, MGA_REG_FXBNDRY, (x2 << 16) | x1 & 0xffff);
+
+    MGA_OUT32 (mmio, MGA_REG_FXBNDRY, (x2 << 16) | (x1 & 0xffff));
     MGA_OUT32 (mmio, MGA_REG_YDSTLEN | MGA_REG_EXEC, (y1 << 16) | (y2 - y1));
 }
 
@@ -139,13 +156,44 @@ mgaPrepareCopy (DrawablePtr pSrcDrawable, DrawablePtr pDstDrawable, int	dx, int 
 	dir |= BLIT_UP;
     if (dx < 0)
 	dir |= BLIT_LEFT;
+
+    mgaSetup (pDstDrawable->pScreen, 6);
+
+    if (pSrcDrawable->type == DRAWABLE_WINDOW)
+    {
+	MGA_OUT32 (mmio, MGA_REG_SRCORG, 0);
+
+	src_pitch = pitch;
+    }
+    else
+    {
+	KdScreenPriv(pSrcDrawable->pScreen);
+	mgaScreenInfo (pScreenPriv);
+	PixmapPtr pPixmap = (PixmapPtr)pSrcDrawable;
+
+	MGA_OUT32 (mmio, MGA_REG_SRCORG, ((int)pPixmap->devPrivate.ptr - (int)mgas->screen));
+	src_pitch = pPixmap->devKind / (pPixmap->drawable.bitsPerPixel >> 3);
+    }
     
-    mgaSetup (pDstDrawable->pScreen, 4);
+    if (pDstDrawable->type == DRAWABLE_WINDOW)
+    {
+	MGA_OUT32 (mmio, MGA_REG_DSTORG, 0);
+	MGA_OUT32 (mmio, MGA_REG_PITCH, pitch);
+    }
+    else
+    {
+	KdScreenPriv(pDstDrawable->pScreen);
+	mgaScreenInfo (pScreenPriv);
+	PixmapPtr pPixmap = (PixmapPtr)pDstDrawable;
+
+	MGA_OUT32 (mmio, MGA_REG_DSTORG, ((int)pPixmap->devPrivate.ptr - (int)mgas->screen));
+	MGA_OUT32 (mmio, MGA_REG_PITCH, pPixmap->devKind / (pPixmap->drawable.bitsPerPixel >> 3));
+    }
 
     MGA_OUT32 (mmio, MGA_REG_DWGCTL, cmd);
     MGA_OUT32 (mmio, MGA_REG_SGN, dir);
     MGA_OUT32 (mmio, MGA_REG_PLNWT, pm);
-    MGA_OUT32 (mmio, MGA_REG_AR5, pitch * (dy < 0 ? -1 : 1) );
+    MGA_OUT32 (mmio, MGA_REG_AR5, src_pitch * (dy < 0 ? -1 : 1) );
 
     return TRUE;
 }
@@ -162,7 +210,7 @@ mgaCopy (int srcX, int srcY, int dstX, int dstY, int w, int h)
     }
 
     w--;
-    start = end = srcY * pitch + srcX;
+    start = end = srcY * src_pitch + srcX;
 
     if (dir & BLIT_LEFT)
 	start += w;
@@ -173,7 +221,6 @@ mgaCopy (int srcX, int srcY, int dstX, int dstY, int w, int h)
     MGA_OUT32 (mmio, MGA_REG_AR0, end);
     MGA_OUT32 (mmio, MGA_REG_AR3, start);
     MGA_OUT32 (mmio, MGA_REG_FXBNDRY, ((dstX + w) << 16) | (dstX & 0xffff));
-
     MGA_OUT32 (mmio, MGA_REG_YDSTLEN | MGA_REG_EXEC, (dstY << 16) | h);
 }
 
@@ -182,7 +229,7 @@ mgaDoneCopy (void)
 {
 }
 
-KaaScreenPrivRec    mgaKaa = {
+KaaScreenInfoRec mgaKaa = {
     mgaPrepareSolid,
     mgaSolid,
     mgaDoneSolid,
@@ -190,13 +237,17 @@ KaaScreenPrivRec    mgaKaa = {
     mgaPrepareCopy,
     mgaCopy,
     mgaDoneCopy,
+
+    192, /* Offscreen byte alignment */
+    64, /* Offset pitch */ 
 };
 
 Bool
 mgaDrawInit (ScreenPtr pScreen)
 {
     KdScreenPriv(pScreen);
-
+    mgaScreenInfo (pScreenPriv);
+    
     if (!kaaDrawInit (pScreen, &mgaKaa))
 	return FALSE;
 

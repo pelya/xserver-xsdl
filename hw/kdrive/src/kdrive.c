@@ -214,6 +214,7 @@ KdDisableScreen (ScreenPtr pScreen)
     if (!pScreenPriv->closed)
 	KdSetRootClip (pScreen, FALSE);
     KdDisableColormap (pScreen);
+    KdOffscreenSwapOut (pScreen);
     if (!pScreenPriv->screen->dumb)
 	(*pScreenPriv->card->cfuncs->disableAccel) (pScreen);
     if (!pScreenPriv->screen->softCursor)
@@ -290,6 +291,7 @@ KdEnableScreen (ScreenPtr pScreen)
 	(*pScreenPriv->card->cfuncs->enableCursor) (pScreen);
     if (!pScreenPriv->screen->dumb)
 	(*pScreenPriv->card->cfuncs->enableAccel) (pScreen);
+    KdOffscreenSwapIn (pScreen);    
     KdEnableColormap (pScreen);
     KdSetRootClip (pScreen, TRUE);
     if (pScreenPriv->card->cfuncs->dpms)
@@ -1129,6 +1131,9 @@ KdScreenInit(int index, ScreenPtr pScreen, int argc, char **argv)
 	if (!(*card->cfuncs->initAccel) (pScreen))
 	    screen->dumb = TRUE;
 
+    if (screen->off_screen_size > 0)
+	KdOffscreenInit (pScreen);
+    
 #ifdef PSEUDO8
     (void) p8Init (pScreen, PSEUDO8_USE_DEFAULT);
 #endif
@@ -1216,7 +1221,6 @@ KdInitScreen (ScreenInfo    *pScreenInfo,
 	screen->dumb = TRUE;
     if (!card->cfuncs->initCursor)
 	screen->softCursor = TRUE;
-	
 }
 
 Bool

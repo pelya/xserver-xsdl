@@ -3,6 +3,8 @@
  *
  * Copyright © 2001 Keith Packard
  *
+ * Partly based on code that is Copyright © The XFree86 Project Inc.
+ *
  * Permission to use, copy, modify, distribute, and sell this software and its
  * documentation for any purpose is hereby granted without fee, provided that
  * the above copyright notice appear in all copies and that both that
@@ -29,10 +31,44 @@
 #include	"fontstruct.h"
 #include	"dixfontstr.h"
 
-int	kaaGeneration;
-int	kaaScreenPrivateIndex;
+int kaaGeneration;
+int kaaScreenPrivateIndex;
+int kaaPixmapPrivateIndex;
 
-#define KaaScreenPriv(s)	KaaScreenPrivPtr    pKaaScr = (KaaScreenPrivPtr) (s)->devPrivates[kaaScreenPrivateIndex].ptr
+typedef struct _PixmapLink {
+    PixmapPtr pPixmap;
+    
+    struct _PixmapLink *next;
+} PixmapLink;
+
+typedef struct {
+    KaaScreenInfoPtr info;
+    
+    int offscreenSize;
+    int offscreenBase;
+    PixmapLink *offscreenPixmaps;
+    
+    CreatePixmapProcPtr CreatePixmap;
+    DestroyPixmapProcPtr DestroyPixmap;
+} KaaScreenPrivRec, *KaaScreenPrivPtr;
+
+typedef struct {
+    KdOffscreenArea *offscreenArea;
+    Bool swappedOut;
+} KaaPixmapPrivRec, *KaaPixmapPrivPtr;
+
+
+#define KaaGetScreenPriv(s)	((KaaScreenPrivPtr)(s)->devPrivates[kaaScreenPrivateIndex].ptr)
+#define KaaScreenPriv(s)	KaaScreenPrivPtr    pKaaScr = KaaGetScreenPriv(s)
+
+#define KAA_SCREEN_PROLOGUE(pScreen, field) ((pScreen)->field = \
+   ((KaaScreenPrivPtr) (pScreen)->devPrivates[kaaScreenPrivateIndex].ptr)->field)
+
+#define KAA_SCREEN_EPILOGUE(pScreen, field, wrapper)\
+    ((pScreen)->field = wrapper)
+
+#define MIN_OFFPIX_SIZE		(320*200)
+
 
 void
 kaaFillSpans(DrawablePtr pDrawable, GCPtr pGC, int n, 
@@ -50,10 +86,10 @@ kaaFillSpans(DrawablePtr pDrawable, GCPtr pGC, int n,
     
     if (!pScreenPriv->enabled ||
 	pGC->fillStyle != FillSolid ||
-	!(*pKaaScr->PrepareSolid) (pDrawable,
-				   pGC->alu,
-				   pGC->planemask,
-				   pGC->fgPixel))
+	!(*pKaaScr->info->PrepareSolid) (pDrawable,
+					 pGC->alu,
+					 pGC->planemask,
+					 pGC->fgPixel))
     {
 	KdCheckFillSpans (pDrawable, pGC, n, ppt, pwidth, fSorted);
 	return;
@@ -87,7 +123,7 @@ kaaFillSpans(DrawablePtr pDrawable, GCPtr pGC, int n,
 	nbox = REGION_NUM_RECTS (pClip);
 	if (nbox == 1)
 	{
-	    (*pKaaScr->Solid) (fullX1, fullY1, fullX2, fullY1 + 1);
+	    (*pKaaScr->info->Solid) (fullX1, fullY1, fullX2, fullY1 + 1);
 	}
 	else
 	{
@@ -103,13 +139,13 @@ kaaFillSpans(DrawablePtr pDrawable, GCPtr pGC, int n,
 		    if (partX2 > fullX2)
 			partX2 = fullX2;
 		    if (partX2 > partX1)
-			(*pKaaScr->Solid) (partX1, fullY1, partX2, fullY1 + 1);
+			(*pKaaScr->info->Solid) (partX1, fullY1, partX2, fullY1 + 1);
 		}
 		pbox++;
 	    }
 	}
     }
-    (*pKaaScr->DoneSolid) ();
+    (*pKaaScr->info->DoneSolid) ();
     KdMarkSync(pDrawable->pScreen);
 }
 
@@ -133,29 +169,31 @@ kaaCopyNtoN (DrawablePtr    pSrcDrawable,
     CARD32  flags;
     CARD32  cmd;
     CARD8   alu;
-    
+
     if (pScreenPriv->enabled &&
 	pSrcDrawable->type == DRAWABLE_WINDOW &&
-	(*pKaaScr->PrepareCopy) (pSrcDrawable,
-				 pDstDrawable,
-				 dx,
-				 dy,
-				 pGC ? pGC->alu : GXcopy,
-				 pGC ? pGC->planemask : FB_ALLONES))
+	(*pKaaScr->info->PrepareCopy) (pSrcDrawable,
+				       pDstDrawable,
+				       dx,
+				       dy,
+				       pGC ? pGC->alu : GXcopy,
+				       pGC ? pGC->planemask : FB_ALLONES))
     {
 	while (nbox--)
 	{
-	    (*pKaaScr->Copy) (pbox->x1 + dx, pbox->y1 + dy,
-			      pbox->x1, pbox->y1,
-			      pbox->x2 - pbox->x1,
-			      pbox->y2 - pbox->y1);
+	    (*pKaaScr->info->Copy) (pbox->x1 + dx, pbox->y1 + dy,
+				    pbox->x1, pbox->y1,
+				    pbox->x2 - pbox->x1,
+				    pbox->y2 - pbox->y1);
 	    pbox++;
 	}
-	(*pKaaScr->DoneCopy) ();
+	(*pKaaScr->info->DoneCopy) ();
 	KdMarkSync(pDstDrawable->pScreen);
     }
     else
     {
+	KdScreenPriv (pDstDrawable->pScreen);
+
 	KdCheckSync (pDstDrawable->pScreen);
 	fbCopyNtoN (pSrcDrawable, pDstDrawable, pGC, 
 		    pbox, nbox, dx, dy, reverse, upsidedown, 
@@ -191,10 +229,10 @@ kaaPolyFillRect(DrawablePtr pDrawable,
 
     if (!pScreenPriv->enabled ||
 	pGC->fillStyle != FillSolid ||
-	!(*pKaaScr->PrepareSolid) (pDrawable,
-				   pGC->alu,
-				   pGC->planemask,
-				   pGC->fgPixel))
+	!(*pKaaScr->info->PrepareSolid) (pDrawable,
+					 pGC->alu,
+					 pGC->planemask,
+					 pGC->fgPixel))
     {
 	KdCheckPolyFillRect (pDrawable, pGC, nrect, prect);
 	return;
@@ -233,7 +271,7 @@ kaaPolyFillRect(DrawablePtr pDrawable,
 	n = REGION_NUM_RECTS (pClip);
 	if (n == 1)
 	{
-	    (*pKaaScr->Solid) (fullX1, fullY1, fullX2, fullY2);
+	    (*pKaaScr->info->Solid) (fullX1, fullY1, fullX2, fullY2);
 	}
 	else
 	{
@@ -260,12 +298,12 @@ kaaPolyFillRect(DrawablePtr pDrawable,
 		pbox++;
 		
 		if (partX1 < partX2 && partY1 < partY2)
-		    (*pKaaScr->Solid) (partX1, partY1,
-				       partX2, partY2);
+		    (*pKaaScr->info->Solid) (partX1, partY1,
+					     partX2, partY2);
 	    }
 	}
     }
-    (*pKaaScr->DoneSolid) ();
+    (*pKaaScr->info->DoneSolid) ();
     KdMarkSync(pDrawable->pScreen);
 }
     
@@ -287,7 +325,7 @@ kaaSolidBoxClipped (DrawablePtr	pDrawable,
     CARD32	cmd;
 
     if (!pScreenPriv->enabled ||
-	!(*pKaaScr->PrepareSolid) (pDrawable, GXcopy, pm, fg))
+	!(*pKaaScr->info->PrepareSolid) (pDrawable, GXcopy, pm, fg))
     {
 	KdCheckSync (pDrawable->pScreen);
 	fg = fbReplicatePixel (fg, pDrawable->bitsPerPixel);
@@ -322,9 +360,9 @@ kaaSolidBoxClipped (DrawablePtr	pDrawable,
 	if (partY2 <= partY1)
 	    continue;
 	
-	(*pKaaScr->Solid) (partX1, partY1, partX2, partY2);
+	(*pKaaScr->info->Solid) (partX1, partY1, partX2, partY2);
     }
-    (*pKaaScr->DoneSolid) ();
+    (*pKaaScr->info->DoneSolid) ();
     KdMarkSync(pDrawable->pScreen);
 }
 
@@ -520,6 +558,7 @@ kaaCreateGC (GCPtr pGC)
     return TRUE;
 }
 
+
 void
 kaaCopyWindow(WindowPtr pWin, DDXPointRec ptOldOrg, RegionPtr prgnSrc)
 {
@@ -555,17 +594,17 @@ kaaFillRegionSolid (DrawablePtr	pDrawable,
     KaaScreenPriv(pDrawable->pScreen);
 
     if (pScreenPriv->enabled &&
-	(*pKaaScr->PrepareSolid) (pDrawable, GXcopy, FB_ALLONES, pixel))
+	(*pKaaScr->info->PrepareSolid) (pDrawable, GXcopy, FB_ALLONES, pixel))
     {
 	int	nbox = REGION_NUM_RECTS (pRegion);
 	BoxPtr	pBox = REGION_RECTS (pRegion);
 	
 	while (nbox--)
 	{
-	    (*pKaaScr->Solid) (pBox->x1, pBox->y1, pBox->x2, pBox->y2);
+	    (*pKaaScr->info->Solid) (pBox->x1, pBox->y1, pBox->x2, pBox->y2);
 	    pBox++;
 	}
-	(*pKaaScr->DoneSolid) ();
+	(*pKaaScr->info->DoneSolid) ();
 	KdMarkSync(pDrawable->pScreen);
     }
     else
@@ -613,14 +652,30 @@ kaaPaintWindow(WindowPtr pWin, RegionPtr pRegion, int what)
 
 Bool
 kaaDrawInit (ScreenPtr		pScreen,
-	     KaaScreenPrivPtr	pScreenPriv)
+	     KaaScreenInfoPtr	pScreenInfo)
 {
+    KaaScreenPrivPtr pKaaScr;
+    KdScreenInfo *screen = KdGetScreenPriv (pScreen)->screen;
+    
     if (kaaGeneration != serverGeneration)
     {
 	kaaScreenPrivateIndex = AllocateScreenPrivateIndex();
+	kaaPixmapPrivateIndex = AllocatePixmapPrivateIndex();
 	kaaGeneration = serverGeneration;
     }
-    pScreen->devPrivates[kaaScreenPrivateIndex].ptr = (pointer) pScreenPriv;
+
+    if (!AllocatePixmapPrivate(pScreen, kaaPixmapPrivateIndex, sizeof(KaaPixmapPrivRec)))
+	return FALSE;
+
+    pKaaScr = xalloc (sizeof (KaaScreenPrivRec));
+
+    if (!pKaaScr)
+	return FALSE;
+    
+    pKaaScr->info = pScreenInfo;
+    pKaaScr->offscreenPixmaps = NULL;
+    
+    pScreen->devPrivates[kaaScreenPrivateIndex].ptr = (pointer) pKaaScr;
     
     /*
      * Hook up asynchronous drawing
@@ -634,6 +689,18 @@ kaaDrawInit (ScreenPtr		pScreen,
     pScreen->PaintWindowBackground = kaaPaintWindow;
     pScreen->PaintWindowBorder = kaaPaintWindow;
 
+#if 0
+    /*
+     * Hookup offscreen pixmaps
+     */
+    if (screen->off_screen_size > 0)
+    {
+	pKaaScr->CreatePixmap = pScreen->CreatePixmap;
+	pScreen->CreatePixmap = kaaCreatePixmap;
+	pKaaScr->DestroyPixmap = pScreen->DestroyPixmap;
+	pScreen->DestroyPixmap = kaaDestroyPixmap;
+    }
+#endif
     return TRUE;
 }
 

@@ -118,6 +118,9 @@ typedef struct _KdScreenInfo {
     int		mynum;
     DDXPointRec	origin;
     KdFrameBuffer   fb[KD_MAX_FB];
+    int         off_screen_base;
+    int         off_screen_size;
+    pointer     off_screen_areas;
 } KdScreenInfo;
 
 typedef struct _KdCardFuncs {
@@ -259,6 +262,14 @@ typedef struct _KdMonitorTiming {
     KdSyncPolarity  vpol;   /* polarity */
 } KdMonitorTiming;
 
+typedef struct _KdOffscreenArea {
+    ScreenPtr 	screen;
+    int 	offset;
+    int		size;
+    pointer	privData;
+    Bool    	swappedOut;
+} KdOffscreenArea;
+
 extern const KdMonitorTiming	kdMonitorTimings[];
 extern const int		kdNumMonitorTimings;
 
@@ -266,7 +277,7 @@ typedef struct _KdMouseMatrix {
     int	    matrix[2][3];
 } KdMouseMatrix;
 
-typedef struct _KaaScreenPriv {
+typedef struct _KaaScreenInfo {
     Bool	(*PrepareSolid) (DrawablePtr	pDrawable,
 				 int		alu,
 				 Pixel		planemask,
@@ -287,11 +298,11 @@ typedef struct _KaaScreenPriv {
 			 int	width,
 			 int	height);
     void	(*DoneCopy) (void);
-} KaaScreenPrivRec, *KaaScreenPrivPtr;
 
-Bool
-KaaInit (ScreenPtr	    pScreen,
-	 KaaScreenPrivPtr   pScreenPriv);
+    int	        offscreenByteAlign;
+    int         offscreenPitch;
+} KaaScreenInfoRec, *KaaScreenInfoPtr;
+
 
 /*
  * This is the only completely portable way to
@@ -335,8 +346,8 @@ extern KdOsFuncs	*kdOsFuncs;
 
 /* kaa.c */
 Bool
-kaaDrawInit (ScreenPtr		pScreen,
-	     KaaScreenPrivPtr	pScreenPriv);
+kaaDrawInit (ScreenPtr	        pScreen,
+	     KaaScreenInfoPtr   pScreenInfo);
 
 void
 kaaWrapGC (GCPtr pGC);
@@ -751,6 +762,28 @@ KdFrameBufferValid (CARD8 *base, int size);
 int
 KdFrameBufferSize (CARD8 *base, int max);
 
-/* function prototypes to be imlpemented by the drivers */
+/* koffscreen.c */
+typedef void (*KdOffscreenMoveDataProc) (KdOffscreenArea *area);
+
+Bool
+KdOffscreenInit (ScreenPtr pScreen);
+
+KdOffscreenArea *
+KdOffscreenAlloc (ScreenPtr pScreen, int size, int align,
+		  Bool locked,
+		  KdOffscreenMoveDataProc moveIn,
+		  KdOffscreenMoveDataProc moveOut,
+		  pointer privData);
+
+void
+KdOffscreenFree (KdOffscreenArea *area);
+
+void
+KdOffscreenSwapOut (ScreenPtr pScreen);
+
+void
+KdOffscreenSwapIn (ScreenPtr pScreen);
+
+/* function prototypes to be implemented by the drivers */
 void
 InitCard (char *name);

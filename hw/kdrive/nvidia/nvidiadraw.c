@@ -156,7 +156,7 @@ nvidiaDoneCopy (void)
 {
 }
 
-KaaScreenPrivRec    nvidiaKaa = {
+KaaScreenInfoRec    nvidiaKaa = {
     nvidiaPrepareSolid,
     nvidiaSolid,
     nvidiaDoneSolid,
