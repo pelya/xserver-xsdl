@@ -423,8 +423,8 @@ ATISolid(int x1, int y1, int x2, int y2)
 #else
 	BEGIN_DMA(3);
 	OUT_RING(DMA_PACKET0(ATI_REG_DST_Y_X, 2));
-	OUT_RING((y1 << 16) | x1);
-	OUT_RING(((y2 - y1) << 16) | (x2 - x1));
+	OUT_RING_REG(ATI_REG_DST_Y_X, (y1 << 16) | x1);
+	OUT_RING_REG(ATI_REG_DST_HEIGHT_WIDTH, ((y2 - y1) << 16) | (x2 - x1));
 	END_DMA();
 #endif
 	LEAVE_DRAW(0);
@@ -542,9 +542,9 @@ ATICopy(int srcX, int srcY, int dstX, int dstY, int w, int h)
 #else
 	BEGIN_DMA(4);
 	OUT_RING(DMA_PACKET0(ATI_REG_SRC_Y_X, 3));
-	OUT_RING((srcY << 16) | srcX);
-	OUT_RING((dstY << 16) | dstX);
-	OUT_RING((h << 16) | w);
+	OUT_RING_REG(ATI_REG_SRC_Y_X, (srcY << 16) | srcX);
+	OUT_RING_REG(ATI_REG_DST_Y_X, (dstY << 16) | dstX);
+	OUT_RING_REG(ATI_REG_DST_HEIGHT_WIDTH, (h << 16) | w);
 	END_DMA();
 #endif
 }

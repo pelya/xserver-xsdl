@@ -308,13 +308,8 @@ R128PrepareComposite(int op, PicturePtr pSrcPicture, PicturePtr pMaskPicture,
 	 * in the mask, depending on componentAlpha.
 	 */
 	BEGIN_DMA(15);
-	/* R128_REG_PRIM_TEX_CNTL_C,
-	 * R128_REG_PRIM_TEXTURE_COMBINE_CNTL_C,
-	 * R128_REG_TEX_SIZE_PITCH_C,
-	 * R128_REG_PRIM_TEX_0_OFFSET_C - R128_REG_PRIM_TEX_10_OFFSET_C
-	 */
 	OUT_RING(DMA_PACKET0(R128_REG_PRIM_TEX_CNTL_C, 14));
-	OUT_RING(prim_tex_cntl_c);
+	OUT_RING_REG(R128_REG_PRIM_TEX_CNTL_C, prim_tex_cntl_c);
 
 	/* If this is the only stage and the dest is a8, route the alpha result 
 	 * to the color (red channel, in particular), too.  Otherwise, be sure
@@ -332,29 +327,28 @@ R128PrepareComposite(int op, PicturePtr pSrcPicture, PicturePtr pMaskPicture,
 	else
 		alpha_comb = R128_COMB_ALPHA_DIS;
 
-	OUT_RING(R128_COMB_COPY |
+	OUT_RING_REG(R128_REG_PRIM_TEXTURE_COMBINE_CNTL_C,
+	    R128_COMB_COPY |
 	    color_factor |
 	    R128_INPUT_FACTOR_INT_COLOR |
 	    alpha_comb |
 	    R128_ALPHA_FACTOR_TEX_ALPHA |
 	    R128_INP_FACTOR_A_CONST_ALPHA);
-	OUT_RING(txsize);
+	OUT_RING_REG(R128_REG_TEX_SIZE_PITCH_C, txsize);
 	/* We could save some output by only writing the offset register that
 	 * will actually be used.  On the other hand, this is easy.
 	 */
-	for (i = 0; i <= 10; i++)
-		OUT_RING(((CARD8 *)pSrc->devPrivate.ptr -
+	for (i = 0; i <= 10; i++) {
+		OUT_RING_REG(R128_REG_PRIM_TEX_0_OFFSET_C + 4 * i,
+		    ((CARD8 *)pSrc->devPrivate.ptr -
 		    pScreenPriv->screen->memory_base));
+	}
 	END_DMA();
 
 	if (pMask != NULL) {
 		BEGIN_DMA(14);
-		/* R128_REG_SEC_TEX_CNTL_C,
-		 * R128_REG_SEC_TEXTURE_COMBINE_CNTL_C,
-		 * R128_REG_SEC_TEX_0_OFFSET_C - R128_REG_SEC_TEX_10_OFFSET_C
-		 */
 		OUT_RING(DMA_PACKET0(R128_REG_SEC_TEX_CNTL_C, 13));
-		OUT_RING(sec_tex_cntl_c);
+		OUT_RING_REG(R128_REG_SEC_TEX_CNTL_C, sec_tex_cntl_c);
 
 		if (pDstPicture->format == PICT_a8) {
 			color_factor = R128_COLOR_FACTOR_ALPHA;
@@ -367,15 +361,18 @@ R128PrepareComposite(int op, PicturePtr pSrcPicture, PicturePtr pMaskPicture,
 			in_color_factor = R128_INPUT_FACTOR_PREV_COLOR;
 		}
 
-		OUT_RING(R128_COMB_MODULATE |
+		OUT_RING_REG(R128_REG_SEC_TEXTURE_COMBINE_CNTL_C,
+		    R128_COMB_MODULATE |
 		    color_factor |
 		    in_color_factor |
 		    R128_COMB_ALPHA_MODULATE |
 		    R128_ALPHA_FACTOR_TEX_ALPHA |
 		    R128_INP_FACTOR_A_PREV_ALPHA);
-		for (i = 0; i <= 10; i++)
-			OUT_RING(((CARD8 *)pMask->devPrivate.ptr -
+		for (i = 0; i <= 10; i++) {
+			OUT_RING_REG(R128_REG_SEC_TEX_0_OFFSET_C + 4 * i,
+			    ((CARD8 *)pMask->devPrivate.ptr -
 			    pScreenPriv->screen->memory_base));
+		}
 		END_DMA();
 	}
 
@@ -502,18 +499,12 @@ R128PrepareTrapezoids(PicturePtr pDstPicture, PixmapPtr pDst)
 	    R128_ALPHA_ENABLE);
 	OUT_REG(R128_REG_PC_GUI_CTLSTAT, R128_PC_FLUSH_GUI);
 
-	/* R128_REG_AUX_SC_CNTL,
-	 * R128_REG_AUX1_SC_LEFT
-	 * R128_REG_AUX1_SC_RIGHT
-	 * R128_REG_AUX1_SC_TOP
-	 * R128_REG_AUX1_SC_BOTTOM
-	 */
 	OUT_RING(DMA_PACKET0(R128_REG_AUX_SC_CNTL, 5));
-	OUT_RING(R128_AUX1_SC_ENB);
-	OUT_RING(0);
-	OUT_RING(pDst->drawable.width);
-	OUT_RING(0);
-	OUT_RING(pDst->drawable.height);
+	OUT_RING_REG(R128_REG_AUX_SC_CNTL, R128_AUX1_SC_ENB);
+	OUT_RING_REG(R128_REG_AUX1_SC_LEFT, 0);
+	OUT_RING_REG(R128_REG_AUX1_SC_RIGHT, pDst->drawable.width);
+	OUT_RING_REG(R128_REG_AUX1_SC_TOP, 0);
+	OUT_RING_REG(R128_REG_AUX1_SC_BOTTOM, pDst->drawable.height);
 	END_DMA();
 
 	return TRUE;

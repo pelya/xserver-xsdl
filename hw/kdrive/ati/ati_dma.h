@@ -24,15 +24,23 @@
 #ifndef _ATI_DMA_H_
 #define _ATI_DMA_H_
 
+#define CCE_DEBUG 1
+
+#if !CCE_DEBUG
 #define DMA_PACKET0(reg, count)						\
 	(ATI_CCE_PACKET0 | (((count) - 1) << 16) | ((reg) >> 2))
+#else
+#define DMA_PACKET0(reg, count)						\
+	(__packet0count = (count), __reg = (reg),			\
+	ATI_CCE_PACKET0 | (((count) - 1) << 16) | ((reg) >> 2))
+#endif
 #define DMA_PACKET1(reg1, reg2)						\
 	(ATI_CCE_PACKET1 |						\
 	(((reg2) >> 2) << ATI_CCE_PACKET1_REG_2_SHIFT) |  ((reg1) >> 2))
 #define DMA_PACKET3(type, count)					\
 	((type) | (((count) - 1) << 16))
 
-#if 0	/* CCE non-debug */
+#if !CCE_DEBUG
 
 #define RING_LOCALS	CARD32 *__head; int __count
 #define BEGIN_DMA(n)							\
@@ -51,7 +59,8 @@ do {									\
 
 #else
 
-#define RING_LOCALS	CARD32 *__head; int __count; int __total
+#define RING_LOCALS	\
+	CARD32 *__head; int __count, __total, __reg, __packet0count
 #define BEGIN_DMA(n)							\
 do {									\
 	if ((atis->indirectBuffer->used + 4*(n)) >			\
@@ -62,6 +71,8 @@ do {									\
 	    atis->indirectBuffer->used);				\
 	__count = 0;							\
 	__total = n;							\
+	__reg = 0;								\
+	__packet0count = 0;								\
 } while (0)
 #define END_DMA() do {							\
 	if (__count != __total)						\
@@ -72,8 +83,19 @@ do {									\
 
 #endif
 
-#define OUT_RING(x) do {						\
-	__head[__count++] = (x);					\
+#define OUT_RING(val) do {						\
+	__head[__count++] = (val);					\
+} while (0)
+
+#define OUT_RING_REG(reg, val) do {					\
+	if (__reg != reg)						\
+		FatalError("unexpected reg (0x%x vs 0x%x) at %s:%d\n",	\
+		    reg, __reg, __FILE__, __LINE__);			\
+	if (__packet0count-- <= 0)					\
+		FatalError("overrun of packet0 at %s:%d\n",		\
+		    __FILE__, __LINE__);				\
+	__head[__count++] = (val);					\
+	__reg += 4;							\
 } while (0)
 
 #define OUT_RING_F(x) OUT_RING(GET_FLOAT_BITS(x))

@@ -1312,6 +1312,11 @@
 # define R200_BORDER_MODE_D3D			(1  << 31)
 
 #define R200_REG_PP_TXFORMAT_0			0x2c04
+#define R200_REG_PP_TXFORMAT_1			0x2c24
+#define R200_REG_PP_TXFORMAT_2			0x2c44
+#define R200_REG_PP_TXFORMAT_3			0x2c64
+#define R200_REG_PP_TXFORMAT_4			0x2c84
+#define R200_REG_PP_TXFORMAT_5			0x2ca4
 # define R200_TXFORMAT_I8			(0 << 0)
 # define R200_TXFORMAT_AI88			(1 << 0)
 # define R200_TXFORMAT_RGB332			(2 << 0)
@@ -1352,6 +1357,11 @@
 # define R200_TXFORMAT_CUBIC_MAP_ENABLE		(1 << 30)
 
 #define R200_REG_PP_TXFORMAT_X_0		0x2c08
+#define R200_REG_PP_TXFORMAT_X_1		0x2c28
+#define R200_REG_PP_TXFORMAT_X_2		0x2c48
+#define R200_REG_PP_TXFORMAT_X_3		0x2c68
+#define R200_REG_PP_TXFORMAT_X_4		0x2c88
+#define R200_REG_PP_TXFORMAT_X_5		0x2ca8
 # define R200_DEPTH_LOG2_MASK			(0xf << 0)
 # define R200_DEPTH_LOG2_SHIFT			0
 # define R200_VOLUME_FILTER_SHIFT		4
@@ -1383,7 +1393,19 @@
 # define R200_LOD_BIAS_SHIFT			19
 
 #define R200_REG_PP_TXSIZE_0			0x2c0c /* NPOT only */
+#define R200_REG_PP_TXSIZE_1			0x2c2c /* NPOT only */
+#define R200_REG_PP_TXSIZE_2			0x2c4c /* NPOT only */
+#define R200_REG_PP_TXSIZE_3			0x2c6c /* NPOT only */
+#define R200_REG_PP_TXSIZE_4			0x2c8c /* NPOT only */
+#define R200_REG_PP_TXSIZE_5			0x2cac /* NPOT only */
+
 #define R200_REG_PP_TXPITCH_0			0x2c10 /* NPOT only */
+#define R200_REG_PP_TXPITCH_1			0x2c30 /* NPOT only */
+#define R200_REG_PP_TXPITCH_2			0x2c50 /* NPOT only */
+#define R200_REG_PP_TXPITCH_3			0x2c70 /* NPOT only */
+#define R200_REG_PP_TXPITCH_4			0x2c90 /* NPOT only */
+#define R200_REG_PP_TXPITCH_5			0x2cb0 /* NPOT only */
+
 #define R200_REG_PP_BORDER_COLOR_0		0x2c14
 #define R200_REG_PP_TXMULTI_CTL_0		0x2c1c
 
