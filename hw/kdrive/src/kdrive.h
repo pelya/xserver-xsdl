@@ -52,7 +52,7 @@ extern WindowPtr    *WindowTable;
 #define KD_DPMS_MAX	    KD_DPMS_POWERDOWN
 
 #ifndef KD_MAX_FB
-#define KD_MAX_FB   2
+#define KD_MAX_FB   FB_OVERLAY_MAX
 #endif
 
 #ifndef KD_MAX_CARD_ADDRESS
@@ -350,6 +350,21 @@ KdCheckRestoreAreas (PixmapPtr	pPixmap,
 		     WindowPtr	pWin);
 
 void
+KdCheckPaintWindow (WindowPtr pWin, RegionPtr pRegion, int what);
+
+void
+KdCheckCopyWindow (WindowPtr pWin, DDXPointRec ptOldOrg, RegionPtr prgnSrc);
+
+void
+KdCheckPaintKey(DrawablePtr  pDrawable,
+		RegionPtr    pRegion,
+		CARD32       pixel,
+		int          layer);
+
+void
+KdCheckOverlayCopyWindow  (WindowPtr pWin, DDXPointRec ptOldOrg, RegionPtr prgnSrc);
+
+void
 KdScreenInitAsync (ScreenPtr pScreen);
 
 void
@@ -522,6 +537,7 @@ void
 ProcessInputEvents ();
 
 extern KdMouseFuncs	Ps2MouseFuncs;
+extern KdMouseFuncs	BusMouseFuncs;
 extern KdKeyboardFuncs	LinuxKeyboardFuncs;
 extern KdOsFuncs	LinuxFuncs;
 

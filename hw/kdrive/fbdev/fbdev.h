@@ -39,6 +39,7 @@ typedef struct _fbdevPriv {
     __u16			blue[256];
     int				fd;
     char			*fb;
+    char			*fb_base;
     Bool			rotate;
 } FbdevPriv;
     

@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/kcmap.c,v 1.3 2000/05/06 22:17:39 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/kcmap.c,v 1.4 2000/05/24 23:57:56 keithp Exp $ */
 
 #include "kdrive.h"
 
@@ -189,14 +189,15 @@ KdInstallColormap (ColormapPtr pCmap)
 
     KdSetColormap (pCmap->pScreen, fb);
     
-    /* Tell X clients of the new colorscreen-> */
+    /* Tell X clients of the new colormap */
     WalkTree(pCmap->pScreen, TellGainedMap, (pointer) &(pCmap->mid));
 }
 
 /*
  * KdUninstallColormap
  *
- * This function uninstalls a colormap by installing the default X colorscreen->
+ * This function uninstalls a colormap by either installing 
+ * the default X colormap or erasing the installed colormap pointer.
  * The default X colormap itself cannot be uninstalled.
  */
 void
@@ -204,18 +205,28 @@ KdUninstallColormap (ColormapPtr pCmap)
 {
     KdScreenPriv(pCmap->pScreen);
     int		fb = KdColormapFb (pCmap);
+    Colormap	defMapID;
+    ColormapPtr defMap;
 
-    if (pCmap == pScreenPriv->pInstalledmap[0]) 
+    /* ignore if not installed */
+    if (pCmap != pScreenPriv->pInstalledmap[fb])
+	return;
+
+    /* ignore attempts to uninstall default colormap */
+    defMapID = pCmap->pScreen->defColormap;
+    if ((Colormap) pCmap->mid == defMapID)
+	return;
+
+    /* install default if on same fb */
+    defMap = (ColormapPtr) LookupIDByType(defMapID, RT_COLORMAP);
+    if (defMap && KdColormapFb (defMap) == fb)
+	(*pCmap->pScreen->InstallColormap)(defMap);
+    else
     {
-	Colormap defMapID = pCmap->pScreen->defColormap;
-
-	if ((Colormap) pCmap->mid != defMapID) 
-	{
-	    ColormapPtr defMap = (ColormapPtr) LookupIDByType(defMapID,
-							      RT_COLORMAP);
-	    if (defMap)
-		(*pCmap->pScreen->InstallColormap)(defMap);
-	}
+	/* uninstall and clear colormap pointer */
+	WalkTree(pCmap->pScreen, TellLostMap,
+		 (pointer) &(pCmap->mid));
+	pScreenPriv->pInstalledmap[fb] = 0;
     }
 }
 

@@ -70,7 +70,11 @@ InitOutput (ScreenInfo *pScreenInfo, int argc, char **argv)
 void
 InitInput (int argc, char **argv)
 {
+#ifdef __powerpc__
+    KdInitInput (&BusMouseFuncs, &LinuxKeyboardFuncs);
+#else
     KdInitInput (&Ps2MouseFuncs, &LinuxKeyboardFuncs);
+#endif
 }
 
 int

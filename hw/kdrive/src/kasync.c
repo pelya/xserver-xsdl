@@ -235,6 +235,25 @@ KdCheckCopyWindow (WindowPtr pWin, DDXPointRec ptOldOrg, RegionPtr prgnSrc)
     fbCopyWindow (pWin, ptOldOrg, prgnSrc);
 }
 
+#if KD_MAX_FB > 1
+void
+KdCheckPaintKey(DrawablePtr  pDrawable,
+		RegionPtr    pRegion,
+		CARD32       pixel,
+		int          layer)
+{
+    KdCheckSync (pDrawable->pScreen);
+    fbOverlayPaintKey (pDrawable,  pRegion, pixel, layer);
+}
+
+void
+KdCheckOverlayCopyWindow  (WindowPtr pWin, DDXPointRec ptOldOrg, RegionPtr prgnSrc)
+{
+    KdCheckSync (pWin->drawable.pScreen);
+    fbOverlayCopyWindow (pWin, ptOldOrg, prgnSrc);
+}
+#endif
+
 void
 KdScreenInitAsync (ScreenPtr pScreen)
 {

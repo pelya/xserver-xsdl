@@ -3,9 +3,9 @@ XCOMM $XFree86: $
 KDRIVE=..
 #include "../Kdrive.tmpl"
 
-SRCS = keyboard.c linux.c ps2.c
+SRCS = keyboard.c linux.c ps2.c bus.c
 
-OBJS = keyboard.o linux.o ps2.o
+OBJS = keyboard.o linux.o ps2.o bus.o
 
 INCLUDES = -I. $(KDINCS)
 

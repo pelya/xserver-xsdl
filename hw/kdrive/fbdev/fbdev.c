@@ -21,14 +21,18 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/fbdev/fbdev.c,v 1.5 2000/09/03 05:11:17 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/fbdev/fbdev.c,v 1.6 2000/09/15 07:25:12 keithp Exp $ */
 
 #include "fbdev.h"
+
+/* this code was used to debug MSB 24bpp code on a 16bpp frame buffer */
+#undef FAKE24_ON_16
 
 Bool
 fbdevInitialize (KdCardInfo *card, FbdevPriv *priv)
 {
-    int	    k;
+    int		    k;
+    unsigned long   off;
     if ((priv->fd = open("/dev/fb0", O_RDWR)) < 0) {
 	perror("Error opening /dev/fb0\n");
 	return FALSE;
@@ -44,18 +48,21 @@ fbdevInitialize (KdCardInfo *card, FbdevPriv *priv)
 	return FALSE;
     }
 
-    priv->fb = (unsigned char *) mmap ((caddr_t) NULL,
-				       priv->fix.smem_len,
-				       PROT_READ|PROT_WRITE,
-				       MAP_SHARED,
-				       priv->fd, 0);
+    priv->fb_base = (unsigned char *) mmap ((caddr_t) NULL,
+					    priv->fix.smem_len,
+					    PROT_READ|PROT_WRITE,
+					    MAP_SHARED,
+					    priv->fd, 0);
     
-    if (priv->fb == (char *)-1) 
+    if (priv->fb_base == (char *)-1) 
     {
         perror("ERROR: mmap framebuffer fails!");
 	close (priv->fd);
 	return FALSE;
     }
+    off = (unsigned long) priv->fix.smem_start % (unsigned long) getpagesize();
+    priv->fb = priv->fb_base + off;
+    return TRUE;
 }
 
 Bool
@@ -87,7 +94,12 @@ fbdevScreenInitialize (KdScreenInfo *screen, FbdevScrPriv *scrpriv)
     int		depth;
     Bool	rotate;
     Bool	shadow;
+#ifdef FAKE24_ON_16
+    Bool	fake24;
+#endif
 
+    depth = priv->var.bits_per_pixel;
+    
     switch (priv->fix.visual) {
     case FB_VISUAL_PSEUDOCOLOR:
 	screen->fb[0].visuals = ((1 << StaticGray) |
@@ -101,15 +113,16 @@ fbdevScreenInitialize (KdScreenInfo *screen, FbdevScrPriv *scrpriv)
 	screen->fb[0].redMask   = 0x00;
 	break;
     case FB_VISUAL_TRUECOLOR:
+    case FB_VISUAL_DIRECTCOLOR:
 	screen->fb[0].visuals = (1 << TrueColor);
-	screen->fb[0].redMask = FbStipMask (priv->var.red.offset, priv->var.red.length);
-	screen->fb[0].greenMask = FbStipMask (priv->var.green.offset, priv->var.green.length);
-	screen->fb[0].blueMask = FbStipMask (priv->var.blue.offset, priv->var.blue.length);
+#define Mask(o,l)   (((1 << l) - 1) << o)
+	screen->fb[0].redMask = Mask (priv->var.red.offset, priv->var.red.length);
+	screen->fb[0].greenMask = Mask (priv->var.green.offset, priv->var.green.length);
+	screen->fb[0].blueMask = Mask (priv->var.blue.offset, priv->var.blue.length);
 	allbits = screen->fb[0].redMask | screen->fb[0].greenMask | screen->fb[0].blueMask;
 	depth = 32;
 	while (depth && !(allbits & (1 << (depth - 1))))
 	    depth--;
-	screen->fb[0].depth = depth;
 	break;
     default:
 	return FALSE;
@@ -118,24 +131,41 @@ fbdevScreenInitialize (KdScreenInfo *screen, FbdevScrPriv *scrpriv)
     screen->rate = 72;
     scrpriv->rotate = ((priv->var.xres < priv->var.yres) != 
 		       (screen->width < screen->height));
-    screen->fb[0].depth = priv->var.bits_per_pixel;
-    screen->fb[0].bitsPerPixel = priv->var.bits_per_pixel;
-    if (!scrpriv->rotate)
+#ifdef FAKE24_ON_16
+    if (screen->fb[0].depth == 24 && screen->fb[0].bitsPerPixel == 24 &&
+	priv->var.bits_per_pixel == 16)
     {
+	fake24 = TRUE;
+	screen->fb[0].redMask = 0xff0000;
+	screen->fb[0].greenMask = 0x00ff00;
+	screen->fb[0].blueMask = 0x0000ff;
 	screen->width = priv->var.xres;
 	screen->height = priv->var.yres;
-	screen->fb[0].byteStride = priv->fix.line_length;
-	screen->fb[0].pixelStride = (priv->fix.line_length * 8 / 
-				     priv->var.bits_per_pixel);
-	screen->fb[0].frameBuffer = (CARD8 *) (priv->fb);
-	return TRUE;
-    }
-    else
-    {
-	screen->width = priv->var.yres;
-	screen->height = priv->var.xres;
 	screen->softCursor = TRUE;
 	return KdShadowScreenInit (screen);
+    }
+    else
+#endif
+    {
+	screen->fb[0].depth = depth;
+	screen->fb[0].bitsPerPixel = priv->var.bits_per_pixel;
+	if (!scrpriv->rotate)
+	{
+	    screen->width = priv->var.xres;
+	    screen->height = priv->var.yres;
+	    screen->fb[0].byteStride = priv->fix.line_length;
+	    screen->fb[0].pixelStride = (priv->fix.line_length * 8 / 
+					 priv->var.bits_per_pixel);
+	    screen->fb[0].frameBuffer = (CARD8 *) (priv->fb);
+	    return TRUE;
+	}
+	else
+	{
+	    screen->width = priv->var.yres;
+	    screen->height = priv->var.xres;
+	    screen->softCursor = TRUE;
+	    return KdShadowScreenInit (screen);
+	}
     }
 }
 
@@ -172,6 +202,88 @@ fbdevWindowLinear (ScreenPtr	pScreen,
     return (CARD8 *) priv->fb + row * priv->fix.line_length + offset;
 }
 
+#ifdef FAKE24_ON_16
+void
+fbdevUpdateFake24 (ScreenPtr pScreen,
+		   PixmapPtr pShadow,
+		   RegionPtr damage)
+{
+    shadowScrPriv(pScreen);
+    int		nbox = REGION_NUM_RECTS (damage);
+    BoxPtr	pbox = REGION_RECTS (damage);
+    FbBits	*shaBits;
+    CARD8	*shaBase, *shaLine, *sha;
+    CARD16	s;
+    FbStride	shaStride;
+    int		scrBase, scrLine, scr;
+    int		shaBpp;
+    int		x, y, w, h, width;
+    int         i;
+    CARD16	*winBase, *winLine, *win;
+    CARD32      winSize;
+
+    fbGetDrawable (&pShadow->drawable, shaBits, shaStride, shaBpp);
+    shaStride = shaStride * sizeof (FbBits) / sizeof (CARD8);
+    shaBase = (CARD8 *) shaBits;
+    while (nbox--)
+    {
+	x = pbox->x1;
+	y = pbox->y1;
+	w = (pbox->x2 - pbox->x1);
+	h = pbox->y2 - pbox->y1;
+
+	shaLine = shaBase + y * shaStride + x * 3;
+				   
+	while (h--)
+	{
+	    winSize = 0;
+	    scrBase = 0;
+	    width = w;
+	    scr = x;
+	    sha = shaLine;
+	    while (width) {
+		/* how much remains in this window */
+		i = scrBase + winSize - scr;
+		if (i <= 0 || scr < scrBase)
+		{
+		    winBase = (CARD16 *) (*pScrPriv->window) (pScreen,
+							      y,
+							      scr * sizeof (CARD16),
+							      SHADOW_WINDOW_WRITE,
+							      &winSize);
+		    if(!winBase)
+			return;
+		    scrBase = scr;
+		    winSize /= sizeof (CARD16);
+		    i = winSize;
+		}
+		win = winBase + (scr - scrBase);
+		if (i > width)
+		    i = width;
+		width -= i;
+		scr += i;
+		while (i--)
+		{
+#if IMAGE_BYTE_ORDER == MSBFirst
+		    *win++ = ((sha[2] >> 3) | 
+			      ((sha[1] & 0xf8) << 2) |
+			      ((sha[0] & 0xf8) << 7));
+#else
+		    *win++ = ((sha[0] >> 3) | 
+			      ((sha[1] & 0xfc) << 3) |
+			      ((sha[2] & 0xf8) << 8));
+#endif
+		    sha += 3;
+		}
+	    }
+	    shaLine += shaStride;
+	    y++;
+	}
+	pbox++;
+    }
+}
+#endif /* FAKE24_ON_16 */
+
 Bool
 fbdevInitScreen (ScreenPtr pScreen)
 {
@@ -181,6 +293,13 @@ fbdevInitScreen (ScreenPtr pScreen)
     ShadowUpdateProc	update;
     ShadowWindowProc	window;
 
+#ifdef FAKE24_ON_16
+    if (pScreenPriv->screen->fb[0].bitsPerPixel == 24 && priv->var.bits_per_pixel == 16)
+    {
+	return KdShadowInitScreen (pScreen, fbdevUpdateFake24, fbdevWindowLinear);
+    }
+    else
+#endif /* FAKE24_ON_16 */
     if (scrpriv->rotate)
     {
 	window = fbdevWindowLinear;
@@ -230,6 +349,28 @@ fbdevEnable (ScreenPtr pScreen)
 	m.matrix[0][0] = 1; m.matrix[0][1] = 0; m.matrix[0][2] = 0;
 	m.matrix[1][0] = 0; m.matrix[1][1] = 1; m.matrix[1][2] = 0;
     }
+    if (priv->fix.visual == FB_VISUAL_DIRECTCOLOR)
+    {
+	struct fb_cmap	cmap;
+	int		i;
+
+	for (i = 0; 
+	     i < (1 << priv->var.red.length) ||
+	     i < (1 << priv->var.green.length) ||
+	     i < (1 << priv->var.blue.length); i++)
+	{
+	    priv->red[i] = i * 65535 / ((1 << priv->var.red.length) - 1);
+	    priv->green[i] = i * 65535 / ((1 << priv->var.green.length) - 1);
+	    priv->blue[i] = i * 65535 / ((1 << priv->var.blue.length) - 1);
+	}
+	cmap.start = 0;
+	cmap.len = i;
+	cmap.red = &priv->red[0];
+	cmap.green = &priv->green[0];
+	cmap.blue = &priv->blue[0];
+	cmap.transp = 0;
+	ioctl (priv->fd, FBIOPUTCMAP, &cmap);
+    }
     KdSetMouseMatrix (&m);
     return TRUE;
 }
@@ -268,7 +409,7 @@ fbdevCardFini (KdCardInfo *card)
     int	k;
     FbdevPriv	*priv = card->driver;
     
-    munmap (priv->fb, priv->fix.smem_len);
+    munmap (priv->fb_base, priv->fix.smem_len);
     close (priv->fd);
     xfree (priv);
 }

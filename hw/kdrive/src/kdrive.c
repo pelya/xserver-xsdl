@@ -646,6 +646,7 @@ KdScreenInit(int index, ScreenPtr pScreen, int argc, char **argv)
     pScreenPriv->BackingStoreFuncs.GetSpansPixmap = 0;
 #endif
 
+#if KD_MAX_FB > 1
     if (screen->fb[1].depth)
     {
 	if (!fbOverlayFinishScreenInit (pScreen, 
@@ -664,6 +665,7 @@ KdScreenInit(int index, ScreenPtr pScreen, int argc, char **argv)
 	}
     }
     else
+#endif
     {
 	if (!fbFinishScreenInit (pScreen, 
 				 screen->fb[0].frameBuffer, 
