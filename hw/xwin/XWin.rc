@@ -28,6 +28,7 @@
  * Authors:	Harold L Hunt II
  */
 
+#include "windows.h"
 #include "winresource.h"
 
 
@@ -37,7 +38,7 @@
 
 /* About */
 ABOUT_BOX DIALOG DISCARDABLE  32, 32, 240, 105
-STYLE WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_VISIBLE | WS_TABSTOP | DS_CENTERMOUSE
+STYLE WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_VISIBLE | WS_TABSTOP  | DS_CENTERMOUSE
 CAPTION "About Cygwin/X"
 FONT 8, "MS Sans Serif"
 BEGIN

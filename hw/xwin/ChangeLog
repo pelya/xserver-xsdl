@@ -1,3 +1,8 @@
+2004-12-06  Alexander Gottwald  <ago at freedesktop dot org>
+
+	* XWin.rc:
+	include windows.h
+
 2004-12-05  Alexander Gottwald  <ago at freedesktop dot org>
 
 	* ddraw.h:
