@@ -40,6 +40,8 @@
 
 static long lastx = 0, lasty = 0;
 
+int KdTsPhyScreen = 0;
+
 int
 TsReadBytes (int fd, char *buf, int len, int min)
 {
@@ -98,7 +100,9 @@ TsRead (int tsPort, void *closure)
 	    	flags = KD_BUTTON_1;
 	    	x = event.x;
 	    	y = event.y;
-	    } else {
+	    }
+	    else
+	      {
 	    	flags = /* KD_BUTTON_1 |*/ KD_MOUSE_DELTA;
 	    	if ((lastx == 0) || (lasty == 0)) {
 	    	    x = 0;
@@ -109,7 +113,7 @@ TsRead (int tsPort, void *closure)
 	    	}
 	    	lastx = event.x;
 	    	lasty = event.y;
-	    }
+	      }
 	} else {
 	    flags = KD_MOUSE_DELTA;
 	    x = 0;

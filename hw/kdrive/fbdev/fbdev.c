@@ -31,6 +31,8 @@
 /* this code was used to debug MSB 24bpp code on a 16bpp frame buffer */
 #undef FAKE24_ON_16
 
+extern int KdTsPhyScreen;
+
 Bool
 fbdevInitialize (KdCardInfo *card, FbdevPriv *priv)
 {
