@@ -284,6 +284,7 @@ ATIScreenInit(KdScreenInfo *screen)
 	ATICardInfo(screen);
 	Bool success = FALSE;
 	int screen_size = 0;
+	int cursor_size;
 #if defined(USE_DRI) && defined(GLXEXT)
 	int l;
 #endif
@@ -323,11 +324,14 @@ ATIScreenInit(KdScreenInfo *screen)
 
 	screen->off_screen_base = screen_size;
 
-	/* Reserve the area for the monochrome cursor. */
-	if (screen->off_screen_base +
-	    ATI_CURSOR_HEIGHT * ATI_CURSOR_PITCH * 3 <= screen->memory_size) {
+	if (atic->is_radeon)
+		cursor_size = ATI_CURSOR_HEIGHT * ATI_CURSOR_WIDTH * 4;
+	else
+		cursor_size = ATI_CURSOR_HEIGHT * ATI_CURSOR_PITCH * 2;
+	/* Reserve the area for the cursor. */
+	if (screen->off_screen_base + cursor_size <= screen->memory_size) {
 		atis->cursor.offset = screen->off_screen_base;
-		screen->off_screen_base += ATI_CURSOR_HEIGHT * ATI_CURSOR_PITCH * 2;
+		screen->off_screen_base += cursor_size;
 	}
 
 #if defined(USE_DRI) && defined(GLXEXT)

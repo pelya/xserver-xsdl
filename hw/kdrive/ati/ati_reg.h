@@ -49,6 +49,7 @@
 # define ATI_CRTC_CUR_EN			(1 << 16)
 # define ATI_CRTC_CUR_MODE_MASK			(7 << 17)
 # define ATI_CRTC_ICON_EN			(1 << 20)
+# define ATI_CRTC_ARGB_EN			(2 << 20)
 # define ATI_CRTC_EXT_DISP_EN			(1 << 24)
 # define ATI_CRTC_EN				(1 << 25)
 # define ATI_CRTC_DISP_REQ_EN_B			(1 << 26)

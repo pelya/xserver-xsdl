@@ -38,6 +38,7 @@ ATIMoveCursor(ScreenPtr pScreen, int x, int y)
 	ATICursor *pCurPriv = &atis->cursor;
 	CARD16 xoff, yoff;
 	CARD8 *mmio = atic->reg_base;
+	int stride = atic->is_radeon ? 256 : 16;
 
 	if (!pCurPriv->has_cursor)
 		return;
@@ -62,11 +63,11 @@ ATIMoveCursor(ScreenPtr pScreen, int x, int y)
 	    (xoff << 16) | yoff);
 	MMIO_OUT32(mmio, ATI_REG_CUR_HORZ_VERT_POSN, ATI_CUR_LOCK |
 	    (x << 16) | y);
-	MMIO_OUT32(mmio, ATI_REG_CUR_OFFSET, (pCurPriv->offset + yoff * 16));
+	MMIO_OUT32(mmio, ATI_REG_CUR_OFFSET, (pCurPriv->offset + yoff * stride));
 }
 
 static void
-ATIAllocCursorColors(ScreenPtr pScreen)
+ClassicAllocCursorColors(ScreenPtr pScreen)
 {
 	KdScreenPriv(pScreen);
 	ATIScreenInfo(pScreenPriv);
@@ -91,7 +92,7 @@ ATIAllocCursorColors(ScreenPtr pScreen)
 }
 
 static void
-ATISetCursorColors(ScreenPtr pScreen)
+ClassicSetCursorColors(ScreenPtr pScreen)
 {
 	KdScreenPriv(pScreen);
 	ATICardInfo(pScreenPriv);
@@ -103,8 +104,8 @@ ATISetCursorColors(ScreenPtr pScreen)
 	MMIO_OUT32(mmio, ATI_REG_CUR_CLR1, pCurPriv->source);
 }
 
-void
-ATIRecolorCursor(ScreenPtr pScreen, int ndef, xColorItem *pdef)
+static void
+ClassicRecolorCursor(ScreenPtr pScreen, int ndef, xColorItem *pdef)
 {
 	KdScreenPriv(pScreen);
 	ATIScreenInfo(pScreenPriv);
@@ -128,8 +129,8 @@ ATIRecolorCursor(ScreenPtr pScreen, int ndef, xColorItem *pdef)
 		if (ndef == 0)
 			return;
 	}
-	ATIAllocCursorColors(pScreen);
-	ATISetCursorColors(pScreen);
+	ClassicAllocCursorColors(pScreen);
+	ClassicSetCursorColors(pScreen);
 }
 
 #define InvertBits32(v) do { \
@@ -139,7 +140,7 @@ ATIRecolorCursor(ScreenPtr pScreen, int ndef, xColorItem *pdef)
 } while (0)
 
 static void
-ATILoadCursor(ScreenPtr pScreen, int x, int y)
+ClassicLoadCursor(ScreenPtr pScreen)
 {
 	KdScreenPriv(pScreen);
 	ATICardInfo(pScreenPriv);
@@ -154,7 +155,7 @@ ATILoadCursor(ScreenPtr pScreen, int x, int y)
 	CARD32 tmp;
 	CARD8 *mmio = atic->reg_base;
 
-	ATIAllocCursorColors(pScreen);
+	ClassicAllocCursorColors(pScreen);
 
 	pCurPriv->pCursor = pCursor;
 	pCurPriv->xhot = pCursor->bits->xhot;
@@ -223,10 +224,120 @@ ATILoadCursor(ScreenPtr pScreen, int x, int y)
 	MMIO_OUT32(mmio, ATI_REG_GEN_CNTL, tmp | ATI_CRTC_CUR_EN);
 
 	/* Set new color */
-	ATISetCursorColors(pScreen);
+	ClassicSetCursorColors(pScreen);
 
-	/* Move to new position */
-	ATIMoveCursor(pScreen, x, y);
+}
+
+static void
+RadeonLoadCursor(ScreenPtr pScreen)
+{
+	KdScreenPriv(pScreen);
+	ATICardInfo(pScreenPriv);
+	ATIScreenInfo(pScreenPriv);
+	ATICursor *pCurPriv = &atis->cursor;
+	CursorPtr pCursor = pCurPriv->pCursor;
+	CursorBitsPtr bits = pCursor->bits;
+	int h, w;
+	int x, y;
+	CARD32 *ram, *msk, *mskLine, *src, *srcLine;
+	int lwsrc;
+	CARD32 tmp;
+	CARD8 *mmio = atic->reg_base;
+
+	pCurPriv->pCursor = pCursor;
+	pCurPriv->xhot = pCursor->bits->xhot;
+	pCurPriv->yhot = pCursor->bits->yhot;
+
+	w = bits->width;
+	if (w > ATI_CURSOR_WIDTH)
+		w = ATI_CURSOR_WIDTH;
+
+	h = bits->height;
+	if (h > ATI_CURSOR_HEIGHT)
+		h = ATI_CURSOR_HEIGHT;
+
+	tmp = MMIO_IN32(mmio, ATI_REG_GEN_CNTL);
+	MMIO_OUT32(mmio, ATI_REG_GEN_CNTL, tmp & ~ATI_CRTC_CUR_EN);
+
+	/* Stick new image into cursor memory */
+	ram = (CARD32 *)(pScreenPriv->screen->memory_base +
+	    pCurPriv->offset);
+	if (pCursor->bits->argb)
+	{
+		srcLine = pCursor->bits->argb;
+		for (y = 0; y < h; y++)
+		{
+			src = srcLine;
+			srcLine += pCursor->bits->width;
+			for (x = 0; x < w; x++)
+				*ram++ = *src++;
+			for (; x < ATI_CURSOR_WIDTH; x++)
+				*ram++ = 0;
+		}
+		for (; y < ATI_CURSOR_HEIGHT; y++)
+			for (x = 0; x < ATI_CURSOR_WIDTH; x++)
+				*ram++ = 0;
+	}
+	else
+	{
+		CARD32	colors[4];
+		
+		colors[0] = 0;
+		colors[1] = 0;
+		colors[2] = (((pCursor->backRed   >> 8) << 16) |
+			     ((pCursor->backGreen >> 8) <<  8) |
+			     ((pCursor->backBlue  >> 8) <<  0) |
+			     0xff000000);
+		colors[3] = (((pCursor->foreRed   >> 8) << 16) |
+			     ((pCursor->foreGreen >> 8) <<  8) |
+			     ((pCursor->foreBlue  >> 8) <<  0) |
+			     0xff000000);
+		
+		mskLine = (CARD32 *)bits->mask;
+		srcLine = (CARD32 *)bits->source;
+
+		/* words per line */
+		lwsrc = BitmapBytePad(bits->width) / 4;
+
+		for (y = 0; y < ATI_CURSOR_HEIGHT; y++) 
+		{
+			CARD32 m, s;
+
+			msk = mskLine;
+			src = srcLine;
+			mskLine += lwsrc;
+			srcLine += lwsrc;
+
+			for (x = 0; x < ATI_CURSOR_WIDTH / 32; x++)
+			{
+				int k;
+				if (y < h && x < lwsrc) 
+				{
+					m = *msk++;
+					s = *src++;
+				}
+				else 
+				{
+					m = 0x0;
+					s = 0x0;
+				}
+
+				for (k = 0; k < 32; k++)
+				{
+					CARD32 bits = (s & 1) | ((m & 1) << 1);
+					*ram++ = colors[bits];
+					s >>= 1;
+					m >>= 1;
+				}
+			}
+		}
+	}
+
+	/* Enable the cursor */
+	tmp &= ~(ATI_CRTC_ICON_EN);
+	tmp |= (ATI_CRTC_ARGB_EN);
+	tmp |= ATI_CRTC_CUR_EN;
+	MMIO_OUT32(mmio, ATI_REG_GEN_CNTL, tmp);
 }
 
 static void
@@ -245,6 +356,7 @@ static Bool
 ATIRealizeCursor(ScreenPtr pScreen, CursorPtr pCursor)
 {
 	KdScreenPriv(pScreen);
+	ATICardInfo(pScreenPriv);
 	ATIScreenInfo(pScreenPriv);
 	ATICursor *pCurPriv = &atis->cursor;
 
@@ -257,7 +369,12 @@ ATIRealizeCursor(ScreenPtr pScreen, CursorPtr pCursor)
 		int x, y;
 
 		miPointerPosition(&x, &y);
-		ATILoadCursor(pScreen, x, y);
+		if (atic->is_radeon)
+			RadeonLoadCursor (pScreen);
+		else
+			ClassicLoadCursor(pScreen);
+		/* Move to new position */
+		ATIMoveCursor(pScreen, x, y);
 	}
 
 	return TRUE;
@@ -273,6 +390,7 @@ static void
 ATISetCursor(ScreenPtr pScreen, CursorPtr pCursor, int x, int y)
 {
 	KdScreenPriv(pScreen);
+	ATICardInfo(pScreenPriv);
 	ATIScreenInfo(pScreenPriv);
 	ATICursor *pCurPriv = &atis->cursor;
 
@@ -282,7 +400,14 @@ ATISetCursor(ScreenPtr pScreen, CursorPtr pCursor, int x, int y)
 		return;
 
 	if (pCursor)
-		ATILoadCursor(pScreen, x, y);
+	{
+		if (atic->is_radeon)
+			RadeonLoadCursor (pScreen);
+		else
+			ClassicLoadCursor(pScreen);
+		/* Move to new position */
+		ATIMoveCursor(pScreen, x, y);
+	}
 	else
 		ATIUnloadCursor(pScreen);
 }
@@ -324,6 +449,7 @@ void
 ATICursorEnable(ScreenPtr pScreen)
 {
 	KdScreenPriv(pScreen);
+	ATICardInfo(pScreenPriv);
 	ATIScreenInfo(pScreenPriv);
 	ATICursor *pCurPriv = &atis->cursor;
 
@@ -334,7 +460,12 @@ ATICursorEnable(ScreenPtr pScreen)
 		int x, y;
 
 		miPointerPosition(&x, &y);
-		ATILoadCursor(pScreen, x, y);
+		if (atic->is_radeon)
+			RadeonLoadCursor(pScreen);
+		else
+			ClassicLoadCursor(pScreen);
+		/* Move to new position */
+		ATIMoveCursor(pScreen, x, y);
 	}
 	else
 		ATIUnloadCursor(pScreen);
@@ -380,6 +511,16 @@ ATICursorInit(ScreenPtr pScreen)
 	return TRUE;
 }
 
+void
+ATIRecolorCursor (ScreenPtr pScreen, int ndef, xColorItem *pdef)
+{
+	KdScreenPriv(pScreen);
+	ATICardInfo(pScreenPriv);
+
+	if (!atic->is_radeon)
+		ClassicRecolorCursor (pScreen, ndef, pdef);
+}
+	
 void  
 ATICursorFini(ScreenPtr pScreen)
 {

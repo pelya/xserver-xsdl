@@ -795,9 +795,8 @@ void
 ATIDrawFini(ScreenPtr pScreen)
 {
 	KdScreenPriv(pScreen);
-	ATIScreenInfo(pScreenPriv);
-
 #ifdef USE_DRI
+	ATIScreenInfo(pScreenPriv);
 	if (atis->using_dri) {
 		ATIDRICloseScreen(pScreen);
 		atis->using_dri = FALSE;
