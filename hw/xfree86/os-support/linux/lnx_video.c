@@ -178,6 +178,7 @@ struct mtrr_wc_region {
 	struct mtrr_wc_region *	next;
 };
 
+
 static struct mtrr_wc_region *
 mtrr_cull_wc_region(int screenNum, unsigned long base, unsigned long size,
 		      MessageType from)
@@ -187,8 +188,8 @@ mtrr_cull_wc_region(int screenNum, unsigned long base, unsigned long size,
 	   it. */
 
 	struct mtrr_gentry gent;
-	char buf[20];
 	struct mtrr_wc_region *wcreturn = NULL, *wcr;
+	int count, ret=0;
 
 	/* Linux 2.0 users should not get a warning without -verbose */
 	if (!mtrr_open(2))
@@ -212,23 +213,24 @@ mtrr_cull_wc_region(int screenNum, unsigned long base, unsigned long size,
 		wcr->sentry.type = MTRR_TYPE_WRCOMB;
 		wcr->added = FALSE;
 		
-		/* There is now a nicer ioctl-based way to do this,
-		   but it isn't in current kernels. */
-		snprintf(buf, sizeof(buf), "disable=%u\n", gent.regnum);
-
-		if (write(mtrr_fd, buf, strlen(buf)) >= 0) {
+		count = 3;
+		while (count-- && 
+		       (ret = ioctl(mtrr_fd, MTRRIOC_KILL_ENTRY, &(wcr->sentry))) < 0);
+		
+		if (ret >= 0) {
 			xf86DrvMsg(screenNum, from,
 				   "Removed MMIO write-combining range "
 				   "(0x%lx,0x%lx)\n",
-				   gent.base, gent.size);
+				   (unsigned long) gent.base, (unsigned long) gent.size);
 			wcr->next = wcreturn;
 			wcreturn = wcr;
+			gent.regnum--;
 		} else {
 			xfree(wcr);
 			xf86DrvMsgVerb(screenNum, X_WARNING, 0,
 				   "Failed to remove MMIO "
 				   "write-combining range (0x%lx,0x%lx)\n",
-				   gent.base, gent.size);
+				       gent.base, (unsigned long) gent.size);
 		}
 	}
 	return wcreturn;
@@ -236,25 +238,64 @@ mtrr_cull_wc_region(int screenNum, unsigned long base, unsigned long size,
 
 
 static struct mtrr_wc_region *
+mtrr_remove_offending(int screenNum, unsigned long base, unsigned long size,
+		      MessageType from)
+{
+    struct mtrr_gentry gent;
+    struct mtrr_wc_region *wcreturn = NULL, **wcr;
+
+    if (!mtrr_open(2))
+	return NULL;
+
+    wcr = &wcreturn;
+    for (gent.regnum = 0; 
+	 ioctl(mtrr_fd, MTRRIOC_GET_ENTRY, &gent) >= 0;) {
+	if (gent.type == MTRR_TYPE_WRCOMB
+	    && ((gent.base >= base && gent.base + gent.size < base + size) || 
+		(gent.base >  base && gent.base + gent.size <= base + size))) {
+	    *wcr = mtrr_cull_wc_region(screenNum, gent.base, gent.size, from);
+	    while(*wcr) {
+		wcr = &((*wcr)->next);
+	    }
+	} else {
+	    gent.regnum++;
+	}
+    }
+    return wcreturn;
+}
+
+
+static struct mtrr_wc_region *
 mtrr_add_wc_region(int screenNum, unsigned long base, unsigned long size,
 		   MessageType from)
 {
-	struct mtrr_wc_region *wcr;
+        struct mtrr_wc_region **wcr, *wcreturn, *curwcr;
+
+       /*
+        * There can be only one....
+        */
+
+	wcreturn = mtrr_remove_offending(screenNum, base, size, from);
+	wcr = &wcreturn;
+	while (*wcr) {
+	    wcr = &((*wcr)->next);
+	} 
 
 	/* Linux 2.0 should not warn, unless the user explicitly asks for
 	   WC. */
+
 	if (!mtrr_open(from == X_CONFIG ? 0 : 2))
-		return NULL;
+		return wcreturn;
 
-	wcr = xalloc(sizeof(*wcr));
-	if (!wcr)
-		return NULL;
+	*wcr = curwcr = xalloc(sizeof(**wcr));
+	if (!curwcr)
+	    return wcreturn;
 
-	wcr->sentry.base = base;
-	wcr->sentry.size = size;
-	wcr->sentry.type = MTRR_TYPE_WRCOMB;
-	wcr->added = TRUE;
-	wcr->next = NULL;
+	curwcr->sentry.base = base;
+	curwcr->sentry.size = size;
+	curwcr->sentry.type = MTRR_TYPE_WRCOMB;
+	curwcr->added = TRUE;
+	curwcr->next = NULL;
 
 #if SPLIT_WC_REGIONS
 	/*
@@ -279,25 +320,26 @@ mtrr_add_wc_region(int screenNum, unsigned long base, unsigned long size,
 	    if (n_size) {
 		xf86DrvMsgVerb(screenNum,X_INFO,3,"Splitting WC range: "
 			       "base: 0x%lx, size: 0x%lx\n",base,size);
-		wcr->next = mtrr_add_wc_region(screenNum, n_base, n_size,from);
+		curwcr->next = mtrr_add_wc_region(screenNum, n_base, n_size,from);
 	    }
-	    wcr->sentry.size = d_size;
+	    curwcr->sentry.size = d_size;
 	} 
 	
 	/*****************************************************************/
 #endif /* SPLIT_WC_REGIONS */
 
-	if (ioctl(mtrr_fd, MTRRIOC_ADD_ENTRY, &wcr->sentry) >= 0) {
+	if (ioctl(mtrr_fd, MTRRIOC_ADD_ENTRY, &curwcr->sentry) >= 0) {
 		/* Avoid printing on every VT switch */
 		if (xf86ServerIsInitialising()) {
 			xf86DrvMsg(screenNum, from,
 				   "Write-combining range (0x%lx,0x%lx)\n",
 				   base, size);
 		}
-		return wcr;
+		return wcreturn;
 	}
 	else {
-		xfree(wcr);
+	        *wcr = curwcr->next;
+		xfree(curwcr);
 		
 		/* Don't complain about the VGA region: MTRR fixed
 		   regions aren't currently supported, but might be in
@@ -307,7 +349,7 @@ mtrr_add_wc_region(int screenNum, unsigned long base, unsigned long size,
 				"Failed to set up write-combining range "
 				"(0x%lx,0x%lx)\n", base, size);
 		}
-		return NULL;
+		return wcreturn;
 	}
 }
 
