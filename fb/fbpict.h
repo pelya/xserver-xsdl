@@ -1029,19 +1029,6 @@ fbCompositeSolidMask_nx1xn (CARD8      op,
 			    INT16      yDst,
 			    CARD16     width,
 			    CARD16     height);
-void
-fbCompositeSrc_8888x8888mmx (CARD8	op,
-			     PicturePtr pSrc,
-			     PicturePtr pMask,
-			     PicturePtr pDst,
-			     INT16	xSrc,
-			     INT16	ySrc,
-			     INT16      xMask,
-			     INT16      yMask,
-			     INT16      xDst,
-			     INT16      yDst,
-			     CARD16     width,
-			     CARD16     height);
 
 void
 fbComposite (CARD8      op,
