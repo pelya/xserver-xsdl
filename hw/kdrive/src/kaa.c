@@ -967,6 +967,15 @@ kaaComposite(CARD8	op,
 	{
 	    RegionRec	region;
 	    
+	    xDst += pDst->pDrawable->x;
+	    yDst += pDst->pDrawable->y;
+	    xSrc += pSrc->pDrawable->x;
+	    ySrc += pSrc->pDrawable->y;
+	    if (pMask)
+	    {
+		xMask += pMask->pDrawable->x;
+		yMask += pMask->pDrawable->y;
+	    }
 	    if (!miComputeCompositeRegion (&region, pSrc, pMask, pDst,
 					   xSrc, ySrc, xMask, yMask, xDst, yDst,
 					   width, height))
