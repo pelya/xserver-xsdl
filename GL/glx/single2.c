@@ -42,7 +42,7 @@
 #include "g_disptab.h"
 #include "GL/glx_ansic.h"
 
-#ifdef __CYGWIN__ /* should be XFree86Server */
+#if defined(__CYGWIN__) || defined(__DARWIN__) /* should be XFree86Server */
 #define xf86atof atof
 #endif
 
