@@ -196,9 +196,8 @@ xglCopyArea (DrawablePtr pSrc,
 	     int	 dstX,
 	     int	 dstY)
 {
-    unsigned long flags;
-    RegionPtr	  pRegion;
-    BoxRec	  box;
+    RegionPtr pRegion;
+    BoxRec    box;
     
     XGL_GC_PRIV (pGC);
 
@@ -207,12 +206,7 @@ xglCopyArea (DrawablePtr pSrc,
     box.x2 = box.x1 + w;
     box.y2 = box.y1 + h;
 
-    flags = pGCPriv->flags;
-
-    if (XGL_GET_DRAWABLE_PIXMAP_PRIV (pSrc)->target == xglPixmapTargetIn)
-	flags &= ~xglGCReadOnlyDrawableFlag;
-    
-    if (flags)
+    if (pGCPriv->flags &= ~xglGCReadOnlyDrawableFlag)
     {
 	if (!xglSyncBits (pSrc, &box))
 	    FatalError (XGL_SW_FAILURE_STRING);
