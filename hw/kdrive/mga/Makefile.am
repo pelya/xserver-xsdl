@@ -14,6 +14,7 @@ endif
 libmga_a_SOURCES = 		\
 	mgadraw.c		\
 	g400_composite.c	\
+	g400_common.h		\
 	mga.c			\
 	mga.h	
 
