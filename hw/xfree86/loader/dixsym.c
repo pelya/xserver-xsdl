@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/hw/xfree86/loader/dixsym.c,v 1.6 2004/09/14 00:51:24 gisburn Exp $ */
+/* $XdotOrg: xc/programs/Xserver/hw/xfree86/loader/dixsym.c,v 1.7 2004/09/14 23:21:22 gisburn Exp $ */
 /* $XFree86: xc/programs/Xserver/hw/xfree86/loader/dixsym.c,v 1.63 2003/12/03
  * 17:11:29 tsi Exp $ */
 
@@ -168,6 +168,9 @@ LOOKUP dixLookupTab[] = {
     SYMFUNC(PointerConfinedToScreen)
     SYMFUNC(TryClientEvents)
     SYMFUNC(WriteEventsToClient)
+    SYMFUNC(GetSpritePosition)
+    SYMFUNC(GetSpriteWindow)
+    SYMFUNC(GetSpriteCursor)
     SYMVAR(DeviceEventCallback)
     SYMVAR(EventCallback)
     SYMVAR(inputInfo)
@@ -225,6 +228,7 @@ LOOKUP dixLookupTab[] = {
     SYMVAR(currentMaxClients)
     SYMVAR(currentTime)
     SYMVAR(defaultColorVisualClass)
+    SYMVAR(display)
     SYMVAR(globalSerialNumber)
     SYMVAR(lastDeviceEventTime)
     SYMVAR(monitorResolution)
