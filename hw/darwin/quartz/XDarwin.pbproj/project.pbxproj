@@ -1,0 +1,1683 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 38;
+	objects = {
+		01279092000747AA0A000002 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			path = XServer.m;
+			refType = 4;
+		};
+		0127909600074AF60A000002 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			path = XApplication.m;
+			refType = 4;
+		};
+		0127909800074B1A0A000002 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			path = XApplication.h;
+			refType = 4;
+		};
+		014C68ED00ED6A9D7F000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			path = XView.h;
+			refType = 4;
+		};
+		014C68EE00ED6A9D7F000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			path = XView.m;
+			refType = 4;
+		};
+		014C68F200ED7AD67F000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			path = fakeBoxRec.h;
+			refType = 4;
+		};
+		014C68F300EE5AB97F000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			path = rootlessCommon.c;
+			refType = 4;
+		};
+		014C68F400EE5AB97F000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			path = rootlessCommon.h;
+			refType = 4;
+		};
+		014C68F700EE678F7F000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			path = rootlessWindow.c;
+			refType = 4;
+		};
+		014C68F800EE678F7F000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			path = rootlessWindow.h;
+			refType = 4;
+		};
+		015698ED003DF345CE6F79C2 = {
+			isa = PBXFileReference;
+			path = XDarwin.icns;
+			refType = 4;
+		};
+		0157A37D002CF6D7CE6F79C2 = {
+			children = (
+				F533214601A4B45401000001,
+				0157A37E002CF6D7CE6F79C2,
+				F58D65DF018F79B101000001,
+				F533213D0193CBE001000001,
+				43B962E200617B93416877C2,
+				F5ACD263C5BE031F01000001,
+				F51BF62E02026E3501000001,
+				F5ACD25CC5B5E96601000001,
+				F587E16401924C6901000001,
+			);
+			isa = PBXVariantGroup;
+			name = Credits.rtf;
+			path = "";
+			refType = 4;
+		};
+		0157A37E002CF6D7CE6F79C2 = {
+			isa = PBXFileReference;
+			name = English;
+			path = English.lproj/Credits.rtf;
+			refType = 4;
+		};
+		015EDCEA004203A8CE6F79C2 = {
+			isa = PBXFrameworkReference;
+			name = IOKit.framework;
+			path = /System/Library/Frameworks/IOKit.framework;
+			refType = 0;
+		};
+		017D6F4400E861FB7F000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			path = rootlessGC.c;
+			refType = 4;
+		};
+		017D6F4500E861FB7F000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			path = rootlessScreen.c;
+			refType = 4;
+		};
+		018F40F2003E1902CE6F79C2 = {
+			children = (
+				018F40F3003E1916CE6F79C2,
+				021D6BA9003E1BACCE6F79C2,
+				3E74E03600863F047F000001,
+				F5A94EF10314BAC70100011B,
+				018F40F6003E1974CE6F79C2,
+			);
+			isa = PBXGroup;
+			name = "X Server";
+			path = ..;
+			refType = 4;
+		};
+		018F40F3003E1916CE6F79C2 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			path = darwin.c;
+			refType = 4;
+		};
+		018F40F6003E1974CE6F79C2 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			path = darwinKeyboard.c;
+			refType = 4;
+		};
+		018F40F8003E1979CE6F79C2 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			path = quartz.c;
+			refType = 4;
+		};
+		018F40FA003E197ECE6F79C2 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			path = quartz.h;
+			refType = 4;
+		};
+		018F40FC003E1983CE6F79C2 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			path = xfIOKit.c;
+			refType = 4;
+		};
+		018F40FE003E1988CE6F79C2 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			path = xfIOKit.h;
+			refType = 4;
+		};
+		018F4100003E19E4CE6F79C2 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			path = xfIOKitCursor.c;
+			refType = 4;
+		};
+//010
+//011
+//012
+//013
+//014
+//020
+//021
+//022
+//023
+//024
+		021D6BA9003E1BACCE6F79C2 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			path = darwin.h;
+			refType = 4;
+		};
+		02A1FEA6006D34BE416877C2 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			path = xfIOKitStartup.c;
+			refType = 4;
+		};
+		02A1FEA8006D38F0416877C2 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			path = quartzStartup.c;
+			refType = 4;
+		};
+		02E03CA000348209CE6F79C2 = {
+			children = (
+				F533214701A4B48301000001,
+				02E03CA100348209CE6F79C2,
+				F58D65E0018F79C001000001,
+				F533213E0193CBF401000001,
+				43B962E300617B93416877C2,
+				F5ACD268C5BE046401000001,
+				F51BF62F02026E5C01000001,
+				F5ACD261C5B5EA2001000001,
+				F587E16501924C7401000001,
+			);
+			isa = PBXVariantGroup;
+			name = XDarwinHelp.html;
+			path = "";
+			refType = 4;
+		};
+		02E03CA100348209CE6F79C2 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			name = English;
+			path = English.lproj/XDarwinHelp.html;
+			refType = 4;
+		};
+//020
+//021
+//022
+//023
+//024
+//030
+//031
+//032
+//033
+//034
+		0338412F0083BFE57F000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			path = quartzCursor.h;
+			refType = 4;
+		};
+//030
+//031
+//032
+//033
+//034
+//040
+//041
+//042
+//043
+//044
+		04329610000763920A000002 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			path = Preferences.m;
+			refType = 4;
+		};
+		04329611000763920A000002 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			path = Preferences.h;
+			refType = 4;
+		};
+//040
+//041
+//042
+//043
+//044
+//060
+//061
+//062
+//063
+//064
+		06EB6C3B004099E7CE6F79C2 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			path = quartzShared.h;
+			refType = 4;
+		};
+//060
+//061
+//062
+//063
+//064
+//080
+//081
+//082
+//083
+//084
+		080E96DDFE201D6D7F000001 = {
+			children = (
+				04329610000763920A000002,
+				04329611000763920A000002,
+				0127909600074AF60A000002,
+				0127909800074B1A0A000002,
+				01279092000747AA0A000002,
+				1C4A3109004D8F24CE6F79C2,
+				014C68EE00ED6A9D7F000001,
+				014C68ED00ED6A9D7F000001,
+			);
+			isa = PBXGroup;
+			name = Classes;
+			refType = 4;
+		};
+		089C165CFE840E0CC02AAC07 = {
+			children = (
+				F533214301A4B3F001000001,
+				089C165DFE840E0CC02AAC07,
+				F58D65DD018F798F01000001,
+				F533213A0193CBA201000001,
+				43B962E100617B49416877C2,
+				F5ACD269C5BE049301000001,
+				F51BF62B02026DDA01000001,
+				F5ACD262C5B5EA4D01000001,
+				F587E16101924C2F01000001,
+			);
+			isa = PBXVariantGroup;
+			name = InfoPlist.strings;
+			refType = 4;
+		};
+		089C165DFE840E0CC02AAC07 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			name = English;
+			path = English.lproj/InfoPlist.strings;
+			refType = 4;
+		};
+//080
+//081
+//082
+//083
+//084
+//0A0
+//0A1
+//0A2
+//0A3
+//0A4
+		0A79E19E004499A1CE6F79C2 = {
+			isa = PBXApplicationReference;
+			path = XDarwin.app;
+			refType = 3;
+		};
+		0A79E19F004499A1CE6F79C2 = {
+			buildPhases = (
+				0A79E1A0004499A1CE6F79C2,
+				0A79E1A1004499A1CE6F79C2,
+				0A79E1A2004499A1CE6F79C2,
+				0A79E1A3004499A1CE6F79C2,
+				0A79E1A4004499A1CE6F79C2,
+			);
+			buildSettings = {
+				INSTALL_PATH = /;
+				OTHER_CFLAGS = "";
+				OTHER_LDFLAGS = "";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = XDarwin;
+				SECTORDER_FLAGS = "";
+				WARNING_CFLAGS = "-Wmost -Wno-four-char-constants -Wno-unknown-pragmas";
+				WRAPPER_EXTENSION = app;
+			};
+			dependencies = (
+				6EF065C903D4F0CA006877C2,
+				6EF065C703D4EE19006877C2,
+			);
+			isa = PBXApplicationTarget;
+			name = XDarwin;
+			productInstallPath = /;
+			productName = XDarwin;
+			productReference = 0A79E19E004499A1CE6F79C2;
+			productSettingsXML = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
+<!DOCTYPE plist PUBLIC \"-//Apple Computer//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">
+<plist version=\"1.0\">
+<dict>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>English</string>
+	<key>CFBundleExecutable</key>
+	<string>XDarwin</string>
+	<key>CFBundleGetInfoString</key>
+	<string>XDarwin 1.2.0, ©2001-2003 XFree86 Project, Inc.</string>
+	<key>CFBundleIconFile</key>
+	<string>XDarwin.icns</string>
+	<key>CFBundleIdentifier</key>
+	<string>org.xfree86.XDarwin</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>XDarwin</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>XDarwin 1.2.0</string>
+	<key>CFBundleSignature</key>
+	<string>????</string>
+	<key>CFBundleVersion</key>
+	<string></string>
+	<key>NSHelpFile</key>
+	<string>XDarwinHelp.html</string>
+	<key>NSMainNibFile</key>
+	<string>MainMenu</string>
+	<key>NSPrincipalClass</key>
+	<string>XApplication</string>
+</dict>
+</plist>
+";
+		};
+		0A79E1A0004499A1CE6F79C2 = {
+			buildActionMask = 2147483647;
+			files = (
+			);
+			isa = PBXHeadersBuildPhase;
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		0A79E1A1004499A1CE6F79C2 = {
+			buildActionMask = 2147483647;
+			files = (
+				0A79E1A600449EB2CE6F79C2,
+				0A79E1A700449EB2CE6F79C2,
+				0A79E1A800449EB2CE6F79C2,
+				0A79E1A900449EB2CE6F79C2,
+				0A79E1AA00449EB2CE6F79C2,
+				1220774500712D2D416877C2,
+				F54BF6ED017D506E01000001,
+			);
+			isa = PBXResourcesBuildPhase;
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		0A79E1A2004499A1CE6F79C2 = {
+			buildActionMask = 2147483647;
+			files = (
+			);
+			isa = PBXSourcesBuildPhase;
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		0A79E1A3004499A1CE6F79C2 = {
+			buildActionMask = 2147483647;
+			files = (
+			);
+			isa = PBXFrameworksBuildPhase;
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		0A79E1A4004499A1CE6F79C2 = {
+			buildActionMask = 2147483647;
+			files = (
+			);
+			isa = PBXRezBuildPhase;
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		0A79E1A600449EB2CE6F79C2 = {
+			fileRef = 29B97318FDCFA39411CA2CEA;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		0A79E1A700449EB2CE6F79C2 = {
+			fileRef = 089C165CFE840E0CC02AAC07;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		0A79E1A800449EB2CE6F79C2 = {
+			fileRef = 0157A37D002CF6D7CE6F79C2;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		0A79E1A900449EB2CE6F79C2 = {
+			fileRef = 02E03CA000348209CE6F79C2;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		0A79E1AA00449EB2CE6F79C2 = {
+			fileRef = 015698ED003DF345CE6F79C2;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+//0A0
+//0A1
+//0A2
+//0A3
+//0A4
+//100
+//101
+//102
+//103
+//104
+		1058C7A0FEA54F0111CA2CBB = {
+			children = (
+				F53321400193CCF001000001,
+				1BE4F84D0006C9890A000002,
+				1058C7A1FEA54F0111CA2CBB,
+				F53321410193CCF001000001,
+				015EDCEA004203A8CE6F79C2,
+			);
+			isa = PBXGroup;
+			name = "Linked Frameworks";
+			refType = 4;
+		};
+		1058C7A1FEA54F0111CA2CBB = {
+			isa = PBXFrameworkReference;
+			name = Cocoa.framework;
+			path = /System/Library/Frameworks/Cocoa.framework;
+			refType = 0;
+		};
+		1058C7A2FEA54F0111CA2CBB = {
+			children = (
+				29B97325FDCFA39411CA2CEA,
+				29B97324FDCFA39411CA2CEA,
+			);
+			isa = PBXGroup;
+			name = "Other Frameworks";
+			refType = 4;
+		};
+//100
+//101
+//102
+//103
+//104
+//120
+//121
+//122
+//123
+//124
+		1220774300712D2D416877C2 = {
+			children = (
+				F533214501A4B42501000001,
+				1220774400712D2D416877C2,
+				F58D65DE018F79A001000001,
+				F533213C0193CBC901000001,
+				1220774600712D75416877C2,
+				F5ACD266C5BE03C501000001,
+				F51BF62D02026E1C01000001,
+				F5ACD25FC5B5E9AA01000001,
+				F587E16301924C5E01000001,
+			);
+			isa = PBXVariantGroup;
+			name = Localizable.strings;
+			path = "";
+			refType = 4;
+		};
+		1220774400712D2D416877C2 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			name = English;
+			path = English.lproj/Localizable.strings;
+			refType = 4;
+		};
+		1220774500712D2D416877C2 = {
+			fileRef = 1220774300712D2D416877C2;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		1220774600712D75416877C2 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			name = Japanese;
+			path = Japanese.lproj/Localizable.strings;
+			refType = 4;
+		};
+//120
+//121
+//122
+//123
+//124
+//170
+//171
+//172
+//173
+//174
+		170DFAFF00729A35416877C2 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			path = XDarwinStartup.c;
+			refType = 4;
+		};
+		170DFB0000729C86416877C2 = {
+			children = (
+				018F40FC003E1983CE6F79C2,
+				018F40FE003E1988CE6F79C2,
+				018F4100003E19E4CE6F79C2,
+				02A1FEA6006D34BE416877C2,
+			);
+			isa = PBXGroup;
+			name = IOKit;
+			path = ..;
+			refType = 4;
+		};
+//170
+//171
+//172
+//173
+//174
+//190
+//191
+//192
+//193
+//194
+		19C28FACFE9D520D11CA2CBB = {
+			children = (
+				0A79E19E004499A1CE6F79C2,
+				6EF7C58703D3BC6D00000104,
+				6EF065C603D4EE19006877C2,
+			);
+			isa = PBXGroup;
+			name = Products;
+			refType = 4;
+		};
+//190
+//191
+//192
+//193
+//194
+//1B0
+//1B1
+//1B2
+//1B3
+//1B4
+		1BD8DE4200B8A3567F000001 = {
+			children = (
+				F533214401A4B40F01000001,
+				1BD8DE4300B8A3567F000001,
+				F58D65DC018F794D01000001,
+				F533213B0193CBB401000001,
+				1BD8DE4700B8A3C77F000001,
+				F5ACD264C5BE035B01000001,
+				F51BF62C02026E0601000001,
+				F5ACD25DC5B5E97701000001,
+				F587E16201924C5301000001,
+			);
+			isa = PBXVariantGroup;
+			name = InfoPlist.strings.cpp;
+			path = "";
+			refType = 4;
+		};
+		1BD8DE4300B8A3567F000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			name = English;
+			path = English.lproj/InfoPlist.strings.cpp;
+			refType = 4;
+		};
+		1BD8DE4400B8A38E7F000001 = {
+			children = (
+				F533214801A4B4D701000001,
+				1BD8DE4500B8A38E7F000001,
+				F58D65E1018F79E001000001,
+				F533213F0193CC2501000001,
+				1BD8DE4800B8A4167F000001,
+				F5ACD267C5BE03FC01000001,
+				F51BF63002026E8D01000001,
+				F5ACD260C5B5E9DF01000001,
+				F587E16601924C9D01000001,
+			);
+			isa = PBXVariantGroup;
+			name = XDarwinHelp.html.cpp;
+			path = "";
+			refType = 4;
+		};
+		1BD8DE4500B8A38E7F000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			name = English;
+			path = English.lproj/XDarwinHelp.html.cpp;
+			refType = 4;
+		};
+		1BD8DE4700B8A3C77F000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			name = Japanese;
+			path = Japanese.lproj/InfoPlist.strings.cpp;
+			refType = 4;
+		};
+		1BD8DE4800B8A4167F000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			name = Japanese;
+			path = Japanese.lproj/XDarwinHelp.html.cpp;
+			refType = 4;
+		};
+		1BE4F84D0006C9890A000002 = {
+			isa = PBXFrameworkReference;
+			name = Carbon.framework;
+			path = /System/Library/Frameworks/Carbon.framework;
+			refType = 0;
+		};
+//1B0
+//1B1
+//1B2
+//1B3
+//1B4
+//1C0
+//1C1
+//1C2
+//1C3
+//1C4
+		1C4A3109004D8F24CE6F79C2 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			path = XServer.h;
+			refType = 4;
+		};
+//1C0
+//1C1
+//1C2
+//1C3
+//1C4
+//230
+//231
+//232
+//233
+//234
+		237A34C10076E37E7F000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			path = quartzAudio.c;
+			refType = 4;
+		};
+		237A34C20076E37E7F000001 = {
+			buildRules = (
+			);
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+				OPTIMIZATION_CFLAGS = "-O0";
+			};
+			isa = PBXBuildStyle;
+			name = Development;
+		};
+		237A34C30076E37E7F000001 = {
+			buildRules = (
+			);
+			buildSettings = {
+				COPY_PHASE_STRIP = YES;
+			};
+			isa = PBXBuildStyle;
+			name = Deployment;
+		};
+		237A34C40076F4F07F000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			path = quartzAudio.h;
+			refType = 4;
+		};
+//230
+//231
+//232
+//233
+//234
+//290
+//291
+//292
+//293
+//294
+		29B97313FDCFA39411CA2CEA = {
+			buildStyles = (
+				237A34C20076E37E7F000001,
+				237A34C30076E37E7F000001,
+			);
+			hasScannedForEncodings = 1;
+			isa = PBXProject;
+			knownRegions = (
+				English,
+				Japanese,
+				French,
+				German,
+				Swedish,
+				Dutch,
+				Spanish,
+				ko,
+				Portuguese,
+			);
+			mainGroup = 29B97314FDCFA39411CA2CEA;
+			projectDirPath = "";
+			targets = (
+				0A79E19F004499A1CE6F79C2,
+				6EF7C58603D3BC6D00000104,
+				6EF065C503D4EE19006877C2,
+			);
+		};
+		29B97314FDCFA39411CA2CEA = {
+			children = (
+				080E96DDFE201D6D7F000001,
+				018F40F2003E1902CE6F79C2,
+				170DFB0000729C86416877C2,
+				43B962CE00617089416877C2,
+				F5614B3D025112D901000114,
+				32FEE13C00E07C3E7F000001,
+				29B97315FDCFA39411CA2CEA,
+				29B97317FDCFA39411CA2CEA,
+				29B97323FDCFA39411CA2CEA,
+				19C28FACFE9D520D11CA2CBB,
+			);
+			isa = PBXGroup;
+			name = "Xmaster-Cocoa";
+			path = "";
+			refType = 4;
+		};
+		29B97315FDCFA39411CA2CEA = {
+			children = (
+				170DFAFF00729A35416877C2,
+			);
+			isa = PBXGroup;
+			name = "Other Sources";
+			path = "";
+			refType = 2;
+		};
+		29B97317FDCFA39411CA2CEA = {
+			children = (
+				29B97318FDCFA39411CA2CEA,
+				089C165CFE840E0CC02AAC07,
+				1BD8DE4200B8A3567F000001,
+				1220774300712D2D416877C2,
+				0157A37D002CF6D7CE6F79C2,
+				02E03CA000348209CE6F79C2,
+				1BD8DE4400B8A38E7F000001,
+				015698ED003DF345CE6F79C2,
+				F54BF6EA017D500901000001,
+				F54BF6EC017D506E01000001,
+			);
+			isa = PBXGroup;
+			name = Resources;
+			path = ../bundle;
+			refType = 4;
+		};
+		29B97318FDCFA39411CA2CEA = {
+			children = (
+				F533214201A4B3CE01000001,
+				29B97319FDCFA39411CA2CEA,
+				F58D65DB018F793801000001,
+				F53321390193CB6A01000001,
+				43B962E000617B49416877C2,
+				F5ACD265C5BE038601000001,
+				F51BF62A02026DAF01000001,
+				F5ACD25EC5B5E98D01000001,
+				F587E16001924C1D01000001,
+			);
+			isa = PBXVariantGroup;
+			name = MainMenu.nib;
+			path = "";
+			refType = 4;
+		};
+		29B97319FDCFA39411CA2CEA = {
+			isa = PBXFileReference;
+			name = English;
+			path = English.lproj/MainMenu.nib;
+			refType = 4;
+		};
+		29B97323FDCFA39411CA2CEA = {
+			children = (
+				1058C7A0FEA54F0111CA2CBB,
+				1058C7A2FEA54F0111CA2CBB,
+			);
+			isa = PBXGroup;
+			name = Frameworks;
+			path = "";
+			refType = 4;
+		};
+		29B97324FDCFA39411CA2CEA = {
+			isa = PBXFrameworkReference;
+			name = AppKit.framework;
+			path = /System/Library/Frameworks/AppKit.framework;
+			refType = 0;
+		};
+		29B97325FDCFA39411CA2CEA = {
+			isa = PBXFrameworkReference;
+			name = Foundation.framework;
+			path = /System/Library/Frameworks/Foundation.framework;
+			refType = 0;
+		};
+//290
+//291
+//292
+//293
+//294
+//320
+//321
+//322
+//323
+//324
+		32FEE13C00E07C3E7F000001 = {
+			children = (
+				F56CBD0D02EB84A801129B8A,
+				F56CBD0E02EB84A801129B8A,
+				F56CBD0F02EBDCFC01129B8A,
+				014C68F200ED7AD67F000001,
+				F5269C2D01D5BC3501000001,
+				F5269C2E01D5BC3501000001,
+				32FEE13E00E07CBE7F000001,
+				32FEE13F00E07CBE7F000001,
+				32FEE14000E07CBE7F000001,
+				32FEE14100E07CBE7F000001,
+				32FEE14200E07CBE7F000001,
+				014C68F300EE5AB97F000001,
+				014C68F400EE5AB97F000001,
+				017D6F4400E861FB7F000001,
+				017D6F4500E861FB7F000001,
+				014C68F700EE678F7F000001,
+				014C68F800EE678F7F000001,
+				32FEE14900E07D317F000001,
+			);
+			isa = PBXGroup;
+			name = Rootless;
+			path = "";
+			refType = 4;
+		};
+		32FEE13E00E07CBE7F000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			path = rootless.h;
+			refType = 4;
+		};
+		32FEE13F00E07CBE7F000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			path = rootlessAqua.h;
+			refType = 4;
+		};
+		32FEE14000E07CBE7F000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			path = rootlessAquaGlue.c;
+			refType = 4;
+		};
+		32FEE14100E07CBE7F000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			path = rootlessAquaImp.h;
+			refType = 4;
+		};
+		32FEE14200E07CBE7F000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			path = rootlessAquaImp.m;
+			refType = 4;
+		};
+		32FEE14900E07D317F000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			path = rootlessValTree.c;
+			refType = 4;
+		};
+//320
+//321
+//322
+//323
+//324
+//350
+//351
+//352
+//353
+//354
+		3576829A0077B8F17F000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			path = quartzCursor.c;
+			refType = 4;
+		};
+//350
+//351
+//352
+//353
+//354
+//3E0
+//3E1
+//3E2
+//3E3
+//3E4
+		3E74E03600863F047F000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			path = darwinClut8.h;
+			refType = 4;
+		};
+//3E0
+//3E1
+//3E2
+//3E3
+//3E4
+//430
+//431
+//432
+//433
+//434
+		43B962CE00617089416877C2 = {
+			children = (
+				018F40F8003E1979CE6F79C2,
+				018F40FA003E197ECE6F79C2,
+				237A34C10076E37E7F000001,
+				237A34C40076F4F07F000001,
+				3576829A0077B8F17F000001,
+				0338412F0083BFE57F000001,
+				43B962D000617089416877C2,
+				43B962D100617089416877C2,
+				43B962CF00617089416877C2,
+				F5582948015DAD3B01000001,
+				06EB6C3B004099E7CE6F79C2,
+				02A1FEA8006D38F0416877C2,
+			);
+			isa = PBXGroup;
+			name = Quartz;
+			path = "";
+			refType = 4;
+		};
+		43B962CF00617089416877C2 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			path = quartzCocoa.m;
+			refType = 4;
+		};
+		43B962D000617089416877C2 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			path = quartzPasteboard.c;
+			refType = 4;
+		};
+		43B962D100617089416877C2 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			path = quartzPasteboard.h;
+			refType = 4;
+		};
+		43B962E000617B49416877C2 = {
+			isa = PBXFileReference;
+			name = Japanese;
+			path = Japanese.lproj/MainMenu.nib;
+			refType = 4;
+		};
+		43B962E100617B49416877C2 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			name = Japanese;
+			path = Japanese.lproj/InfoPlist.strings;
+			refType = 4;
+		};
+		43B962E200617B93416877C2 = {
+			isa = PBXFileReference;
+			name = Japanese;
+			path = Japanese.lproj/Credits.rtf;
+			refType = 4;
+		};
+		43B962E300617B93416877C2 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			name = Japanese;
+			path = Japanese.lproj/XDarwinHelp.html;
+			refType = 4;
+		};
+//430
+//431
+//432
+//433
+//434
+//6E0
+//6E1
+//6E2
+//6E3
+//6E4
+		6EF065C003D4EE19006877C2 = {
+			buildActionMask = 2147483647;
+			files = (
+			);
+			isa = PBXHeadersBuildPhase;
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		6EF065C103D4EE19006877C2 = {
+			buildActionMask = 2147483647;
+			files = (
+			);
+			isa = PBXResourcesBuildPhase;
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		6EF065C203D4EE19006877C2 = {
+			buildActionMask = 2147483647;
+			files = (
+			);
+			isa = PBXSourcesBuildPhase;
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		6EF065C303D4EE19006877C2 = {
+			buildActionMask = 2147483647;
+			files = (
+			);
+			isa = PBXFrameworksBuildPhase;
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		6EF065C403D4EE19006877C2 = {
+			buildActionMask = 2147483647;
+			files = (
+			);
+			isa = PBXRezBuildPhase;
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		6EF065C503D4EE19006877C2 = {
+			buildPhases = (
+				6EF065C003D4EE19006877C2,
+				6EF065C103D4EE19006877C2,
+				6EF065C203D4EE19006877C2,
+				6EF065C303D4EE19006877C2,
+				6EF065C403D4EE19006877C2,
+			);
+			buildSettings = {
+				OTHER_CFLAGS = "";
+				OTHER_LDFLAGS = "";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = glxMesa;
+				SECTORDER_FLAGS = "";
+				WARNING_CFLAGS = "-Wmost -Wno-four-char-constants -Wno-unknown-pragmas";
+				WRAPPER_EXTENSION = bundle;
+			};
+			dependencies = (
+			);
+			isa = PBXBundleTarget;
+			name = glxMesa;
+			productInstallPath = "$(USER_LIBRARY_DIR)/Bundles";
+			productName = glxMesa;
+			productReference = 6EF065C603D4EE19006877C2;
+			productSettingsXML = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
+<!DOCTYPE plist PUBLIC \"-//Apple Computer//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">
+<plist version=\"1.0\">
+<dict>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>English</string>
+	<key>CFBundleExecutable</key>
+	<string>glxMesa</string>
+	<key>CFBundleGetInfoString</key>
+	<string></string>
+	<key>CFBundleIconFile</key>
+	<string></string>
+	<key>CFBundleIdentifier</key>
+	<string></string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>GLX bundle with Mesa</string>
+	<key>CFBundlePackageType</key>
+	<string>BNDL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>0.1</string>
+	<key>CFBundleSignature</key>
+	<string>????</string>
+	<key>CFBundleVersion</key>
+	<string>0.1</string>
+</dict>
+</plist>
+";
+		};
+		6EF065C603D4EE19006877C2 = {
+			isa = PBXBundleReference;
+			path = glxMesa.bundle;
+			refType = 3;
+		};
+		6EF065C703D4EE19006877C2 = {
+			isa = PBXTargetDependency;
+			target = 6EF065C503D4EE19006877C2;
+		};
+		6EF065C903D4F0CA006877C2 = {
+			isa = PBXTargetDependency;
+			target = 6EF7C58603D3BC6D00000104;
+		};
+		6EF7C58103D3BC6D00000104 = {
+			buildActionMask = 2147483647;
+			files = (
+			);
+			isa = PBXHeadersBuildPhase;
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		6EF7C58203D3BC6D00000104 = {
+			buildActionMask = 2147483647;
+			files = (
+			);
+			isa = PBXResourcesBuildPhase;
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		6EF7C58303D3BC6D00000104 = {
+			buildActionMask = 2147483647;
+			files = (
+			);
+			isa = PBXSourcesBuildPhase;
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		6EF7C58403D3BC6D00000104 = {
+			buildActionMask = 2147483647;
+			files = (
+			);
+			isa = PBXFrameworksBuildPhase;
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		6EF7C58503D3BC6D00000104 = {
+			buildActionMask = 2147483647;
+			files = (
+			);
+			isa = PBXRezBuildPhase;
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		6EF7C58603D3BC6D00000104 = {
+			buildPhases = (
+				6EF7C58103D3BC6D00000104,
+				6EF7C58203D3BC6D00000104,
+				6EF7C58303D3BC6D00000104,
+				6EF7C58403D3BC6D00000104,
+				6EF7C58503D3BC6D00000104,
+			);
+			buildSettings = {
+				OTHER_CFLAGS = "";
+				OTHER_LDFLAGS = "";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = glxAGL;
+				SECTORDER_FLAGS = "";
+				WARNING_CFLAGS = "-Wmost -Wno-four-char-constants -Wno-unknown-pragmas";
+				WRAPPER_EXTENSION = bundle;
+			};
+			dependencies = (
+			);
+			isa = PBXBundleTarget;
+			name = glxAGL;
+			productName = glxAqua;
+			productReference = 6EF7C58703D3BC6D00000104;
+			productSettingsXML = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
+<!DOCTYPE plist PUBLIC \"-//Apple Computer//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">
+<plist version=\"1.0\">
+<dict>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>English</string>
+	<key>CFBundleExecutable</key>
+	<string>glxAGL</string>
+	<key>CFBundleGetInfoString</key>
+	<string></string>
+	<key>CFBundleIconFile</key>
+	<string></string>
+	<key>CFBundleIdentifier</key>
+	<string></string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>GLX bundle with AGL</string>
+	<key>CFBundlePackageType</key>
+	<string>BNDL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>0.1</string>
+	<key>CFBundleSignature</key>
+	<string>????</string>
+	<key>CFBundleVersion</key>
+	<string>0.1</string>
+</dict>
+</plist>
+";
+		};
+		6EF7C58703D3BC6D00000104 = {
+			isa = PBXBundleReference;
+			path = glxAGL.bundle;
+			refType = 3;
+		};
+//6E0
+//6E1
+//6E2
+//6E3
+//6E4
+//F50
+//F51
+//F52
+//F53
+//F54
+		F51BF62A02026DAF01000001 = {
+			isa = PBXFileReference;
+			name = Portuguese;
+			path = Portuguese.lproj/MainMenu.nib;
+			refType = 4;
+		};
+		F51BF62B02026DDA01000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			name = Portuguese;
+			path = Portuguese.lproj/InfoPlist.strings;
+			refType = 4;
+		};
+		F51BF62C02026E0601000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			name = Portuguese;
+			path = Portuguese.lproj/InfoPlist.strings.cpp;
+			refType = 4;
+		};
+		F51BF62D02026E1C01000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			name = Portuguese;
+			path = Portuguese.lproj/Localizable.strings;
+			refType = 4;
+		};
+		F51BF62E02026E3501000001 = {
+			isa = PBXFileReference;
+			name = Portuguese;
+			path = Portuguese.lproj/Credits.rtf;
+			refType = 4;
+		};
+		F51BF62F02026E5C01000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			name = Portuguese;
+			path = Portuguese.lproj/XDarwinHelp.html;
+			refType = 4;
+		};
+		F51BF63002026E8D01000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			name = Portuguese;
+			path = Portuguese.lproj/XDarwinHelp.html.cpp;
+			refType = 4;
+		};
+		F5269C2D01D5BC3501000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			path = pseudoramiX.c;
+			refType = 4;
+		};
+		F5269C2E01D5BC3501000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			path = pseudoramiX.h;
+			refType = 4;
+		};
+		F53321390193CB6A01000001 = {
+			isa = PBXFileReference;
+			name = German;
+			path = German.lproj/MainMenu.nib;
+			refType = 4;
+		};
+		F533213A0193CBA201000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			name = German;
+			path = German.lproj/InfoPlist.strings;
+			refType = 4;
+		};
+		F533213B0193CBB401000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			name = German;
+			path = German.lproj/InfoPlist.strings.cpp;
+			refType = 4;
+		};
+		F533213C0193CBC901000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			name = German;
+			path = German.lproj/Localizable.strings;
+			refType = 4;
+		};
+		F533213D0193CBE001000001 = {
+			isa = PBXFileReference;
+			name = German;
+			path = German.lproj/Credits.rtf;
+			refType = 4;
+		};
+		F533213E0193CBF401000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			name = German;
+			path = German.lproj/XDarwinHelp.html;
+			refType = 4;
+		};
+		F533213F0193CC2501000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			name = German;
+			path = German.lproj/XDarwinHelp.html.cpp;
+			refType = 4;
+		};
+		F53321400193CCF001000001 = {
+			isa = PBXFrameworkReference;
+			name = ApplicationServices.framework;
+			path = /System/Library/Frameworks/ApplicationServices.framework;
+			refType = 0;
+		};
+		F53321410193CCF001000001 = {
+			isa = PBXFrameworkReference;
+			name = CoreAudio.framework;
+			path = /System/Library/Frameworks/CoreAudio.framework;
+			refType = 0;
+		};
+		F533214201A4B3CE01000001 = {
+			isa = PBXFileReference;
+			name = Dutch;
+			path = Dutch.lproj/MainMenu.nib;
+			refType = 4;
+		};
+		F533214301A4B3F001000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			name = Dutch;
+			path = Dutch.lproj/InfoPlist.strings;
+			refType = 4;
+		};
+		F533214401A4B40F01000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			name = Dutch;
+			path = Dutch.lproj/InfoPlist.strings.cpp;
+			refType = 4;
+		};
+		F533214501A4B42501000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			name = Dutch;
+			path = Dutch.lproj/Localizable.strings;
+			refType = 4;
+		};
+		F533214601A4B45401000001 = {
+			isa = PBXFileReference;
+			name = Dutch;
+			path = Dutch.lproj/Credits.rtf;
+			refType = 4;
+		};
+		F533214701A4B48301000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			name = Dutch;
+			path = Dutch.lproj/XDarwinHelp.html;
+			refType = 4;
+		};
+		F533214801A4B4D701000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			name = Dutch;
+			path = Dutch.lproj/XDarwinHelp.html.cpp;
+			refType = 4;
+		};
+		F54BF6EA017D500901000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			path = startXClients.cpp;
+			refType = 4;
+		};
+		F54BF6EC017D506E01000001 = {
+			isa = PBXFileReference;
+			path = startXClients;
+			refType = 4;
+		};
+		F54BF6ED017D506E01000001 = {
+			fileRef = F54BF6EC017D506E01000001;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		F5582948015DAD3B01000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			path = quartzCommon.h;
+			refType = 4;
+		};
+		F5614B3B0251124C01000114 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			path = fullscreen.c;
+			refType = 4;
+		};
+		F5614B3C0251124C01000114 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			path = fullscreen.h;
+			refType = 4;
+		};
+		F5614B3D025112D901000114 = {
+			children = (
+				F5614B3B0251124C01000114,
+				F5614B3C0251124C01000114,
+			);
+			isa = PBXGroup;
+			name = "Full Screen";
+			path = "";
+			refType = 4;
+		};
+		F56CBD0D02EB84A801129B8A = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			path = aqua.h;
+			refType = 4;
+		};
+		F56CBD0E02EB84A801129B8A = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			path = aquaPicture.c;
+			refType = 4;
+		};
+		F56CBD0F02EBDCFC01129B8A = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			path = aquaWindow.c;
+			refType = 4;
+		};
+		F587E16001924C1D01000001 = {
+			isa = PBXFileReference;
+			name = Swedish;
+			path = Swedish.lproj/MainMenu.nib;
+			refType = 4;
+		};
+		F587E16101924C2F01000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			name = Swedish;
+			path = Swedish.lproj/InfoPlist.strings;
+			refType = 4;
+		};
+		F587E16201924C5301000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			name = Swedish;
+			path = Swedish.lproj/InfoPlist.strings.cpp;
+			refType = 4;
+		};
+		F587E16301924C5E01000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			name = Swedish;
+			path = Swedish.lproj/Localizable.strings;
+			refType = 4;
+		};
+		F587E16401924C6901000001 = {
+			isa = PBXFileReference;
+			name = Swedish;
+			path = Swedish.lproj/Credits.rtf;
+			refType = 4;
+		};
+		F587E16501924C7401000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			name = Swedish;
+			path = Swedish.lproj/XDarwinHelp.html;
+			refType = 4;
+		};
+		F587E16601924C9D01000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			name = Swedish;
+			path = Swedish.lproj/XDarwinHelp.html.cpp;
+			refType = 4;
+		};
+		F58D65DB018F793801000001 = {
+			isa = PBXFileReference;
+			name = French;
+			path = French.lproj/MainMenu.nib;
+			refType = 4;
+		};
+		F58D65DC018F794D01000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			name = French;
+			path = French.lproj/InfoPlist.strings.cpp;
+			refType = 4;
+		};
+		F58D65DD018F798F01000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			name = French;
+			path = French.lproj/InfoPlist.strings;
+			refType = 4;
+		};
+		F58D65DE018F79A001000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			name = French;
+			path = French.lproj/Localizable.strings;
+			refType = 4;
+		};
+		F58D65DF018F79B101000001 = {
+			isa = PBXFileReference;
+			name = French;
+			path = French.lproj/Credits.rtf;
+			refType = 4;
+		};
+		F58D65E0018F79C001000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			name = French;
+			path = French.lproj/XDarwinHelp.html;
+			refType = 4;
+		};
+		F58D65E1018F79E001000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			name = French;
+			path = French.lproj/XDarwinHelp.html.cpp;
+			refType = 4;
+		};
+		F5A94EF10314BAC70100011B = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			path = darwinEvents.c;
+			refType = 4;
+		};
+		F5ACD25CC5B5E96601000001 = {
+			isa = PBXFileReference;
+			name = Spanish;
+			path = Spanish.lproj/Credits.rtf;
+			refType = 4;
+		};
+		F5ACD25DC5B5E97701000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			name = Spanish;
+			path = Spanish.lproj/InfoPlist.strings.cpp;
+			refType = 4;
+		};
+		F5ACD25EC5B5E98D01000001 = {
+			isa = PBXFileReference;
+			name = Spanish;
+			path = Spanish.lproj/MainMenu.nib;
+			refType = 4;
+		};
+		F5ACD25FC5B5E9AA01000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			name = Spanish;
+			path = Spanish.lproj/Localizable.strings;
+			refType = 4;
+		};
+		F5ACD260C5B5E9DF01000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			name = Spanish;
+			path = Spanish.lproj/XDarwinHelp.html.cpp;
+			refType = 4;
+		};
+		F5ACD261C5B5EA2001000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			name = Spanish;
+			path = Spanish.lproj/XDarwinHelp.html;
+			refType = 4;
+		};
+		F5ACD262C5B5EA4D01000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			name = Spanish;
+			path = Spanish.lproj/InfoPlist.strings;
+			refType = 4;
+		};
+		F5ACD263C5BE031F01000001 = {
+			isa = PBXFileReference;
+			name = ko;
+			path = ko.lproj/Credits.rtf;
+			refType = 4;
+		};
+		F5ACD264C5BE035B01000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			name = ko;
+			path = ko.lproj/InfoPlist.strings.cpp;
+			refType = 4;
+		};
+		F5ACD265C5BE038601000001 = {
+			isa = PBXFileReference;
+			name = ko;
+			path = ko.lproj/MainMenu.nib;
+			refType = 4;
+		};
+		F5ACD266C5BE03C501000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			name = ko;
+			path = ko.lproj/Localizable.strings;
+			refType = 4;
+		};
+		F5ACD267C5BE03FC01000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			name = ko;
+			path = ko.lproj/XDarwinHelp.html.cpp;
+			refType = 4;
+		};
+		F5ACD268C5BE046401000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			name = ko;
+			path = ko.lproj/XDarwinHelp.html;
+			refType = 4;
+		};
+		F5ACD269C5BE049301000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			name = ko;
+			path = ko.lproj/InfoPlist.strings;
+			refType = 4;
+		};
+	};
+	rootObject = 29B97313FDCFA39411CA2CEA;
+}

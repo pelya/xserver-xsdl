@@ -1,0 +1,17 @@
+
+   ilbm -- Interleaved bitplanes for Amiga
+           © Copyright 1995 by Geert Uytterhoeven and Others (read the sources)
+
+All stuff in this directory is based on Xdaniver, which is based on mfb (read
+../afb/Xdaniver.doc).
+
+I made changes to support the interleaved mode of the Linux/68k Amiga Color
+Frame Buffer Device, which uses interleaved bitplanes instead of normal
+bitplanes.
+
+Note: there are still some annoying bugs left in ilbmimage.
+
+--
+Geert Uytterhoeven                     Geert.Uytterhoeven@cs.kuleuven.ac.be
+Wavelets, Linux/m68k on Amiga          http://www.cs.kuleuven.ac.be/~geert/
+Department of Computer Science -- Katholieke Universiteit Leuven -- Belgium

@@ -1,0 +1,64 @@
+{
+    IBClasses = (
+        {
+            ACTIONS = {showHelp = id; }; 
+            CLASS = FirstResponder; 
+            LANGUAGE = ObjC; 
+            SUPERCLASS = NSObject; 
+        }, 
+        {
+            ACTIONS = {close = id; pickFile = id; saveChanges = id; setKey = id; }; 
+            CLASS = Preferences; 
+            LANGUAGE = ObjC; 
+            OUTLETS = {
+                addToPathButton = id; 
+                addToPathField = id; 
+                button2ModifiersMatrix = id; 
+                button3ModifiersMatrix = id; 
+                depthButton = id; 
+                displayField = id; 
+                dockSwitchButton = id; 
+                fakeButton = id; 
+                keymapFileField = id; 
+                modeMatrix = id; 
+                modeWindowButton = id; 
+                mouseAccelChangeButton = id; 
+                startupHelpButton = id; 
+                switchKeyButton = id; 
+                systemBeepButton = id; 
+                useDefaultShellMatrix = id; 
+                useOtherShellField = id; 
+                useXineramaButton = id; 
+                window = id; 
+            }; 
+            SUPERCLASS = NSObject; 
+        }, 
+        {
+            CLASS = XApplication; 
+            LANGUAGE = ObjC; 
+            OUTLETS = {preferences = id; xserver = id; }; 
+            SUPERCLASS = NSApplication; 
+        }, 
+        {
+            ACTIONS = {
+                closeHelpAndShow = id; 
+                showAction = id; 
+                startFullScreen = id; 
+                startRootless = id; 
+            }; 
+            CLASS = XServer; 
+            LANGUAGE = ObjC; 
+            OUTLETS = {
+                helpWindow = NSWindow; 
+                modeWindow = NSWindow; 
+                startFullScreenButton = NSButton; 
+                startRootlessButton = NSButton; 
+                startupHelpButton = NSButton; 
+                startupModeButton = NSButton; 
+                switchWindow = NSPanel; 
+            }; 
+            SUPERCLASS = NSObject; 
+        }
+    ); 
+    IBVersion = 1; 
+}

@@ -1,0 +1,75 @@
+.\" $XFree86: xc/programs/Xserver/hw/darwin/quartz/XDarwinStartup.man,v 1.1 2002/03/28 02:21:18 torrey Exp $
+.TH XDarwinStartup 1
+.SH NAME
+XDarwinStartup - Startup program for the XDarwin X window server
+.SH SYNOPSIS
+.B XDarwinStartup
+[\fI-iokit\fP]
+[\fI-fullscreen\fP]
+[\fI-rootless\fP]
+[\fI-quartz\fP]
+[\fI-idle\fP]
+[\fIoptions\fP]
+.SH DESCRIPTION
+The \fIXDarwin(1)\fP X window server can be run in a variety of different
+modes and is actually two different executables. The IOKit X server,
+XDarwin, is used when running from the console. It is most commonly
+located in __XBinDir__. The Quartz X server, for running in parallel with
+Aqua, is a full-fledged Mac OS X application that can be started from
+the Finder. Its application bundle is XDarwin.app, which is typically
+located in /Applications.
+.I XDarwinStartup
+allows easy switching between these X servers and auto-detection of the
+appropriate one to use when launching from the command line.
+When run without any arguments,
+.I XDarwinStartup
+will start the Quartz X server if the Core Graphics window server
+is currently running. Otherwise it will start the IOKit X server.
+.PP
+To locate the Quartz X server,
+.I XDarwinStartup
+will try to read the soft link at __XBinDir__/XDarwinQuartz.
+This is typically a soft link to the executable of the XDarwin.app
+application. If this fails,
+.I XDarwinStartup
+will call Launch Services to locate XDarwin.app.
+.PP
+To start the IOKit X server,
+.I XDarwinStartup
+will run the XDarwin execuatable, which should be present in the
+user's path.
+.SH OPTIONS
+.I XDarwinStartup
+accepts and passes on all options to the X server it
+launches. In addition the following options have specific effects:
+.TP 8
+.B \-iokit
+Launch the IOKit X server.
+.TP 8
+.B \-fullscreen
+Launch the Quartz X server to run in full screen mode.
+.TP 8
+.B \-rootless
+Launch the Quartz X server to run in rootless mode.
+.TP 8
+.B \-quartz
+Launch the Quartz X server.
+.TP 8
+.B \-idle
+Pause and do nothing. This option is used by XDarwin.app when it is
+started from the Finder.
+.SH FILES
+.TP 30
+__XBinDir__/XDarwin
+IOKit mode X server
+.TP 30
+/Applications/XDarwin.app
+Quartz mode X server
+.TP 30
+__XBinDir__/XDarwinQuartz
+Soft link to Quartz mode X server executable
+.SH SEE ALSO 
+XDarwin(1)
+.SH BUGS
+The path to XDarwinQuartz should not be hard coded. 
+

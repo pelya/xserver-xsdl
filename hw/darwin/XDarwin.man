@@ -1,0 +1,205 @@
+.\" $XFree86: xc/programs/Xserver/hw/darwin/XDarwin.man,v 1.4 2002/01/09 18:01:58 torrey Exp $
+.\"
+.TH XDARWIN 1 __vendorversion__
+.SH NAME
+XDarwin \- X window system server for Darwin operating system
+.SH SYNOPSIS
+.B XDarwin
+[ options ] ...
+.SH DESCRIPTION
+#ifdef DARWIN_WITH_QUARTZ
+.I XDarwin
+is the X window server for Mac OS X and the Darwin operating system
+provided by the XFree86 Project.
+.I XDarwin
+can run in three different modes. On Mac OS X,
+.I XDarwin
+runs in parallel with Aqua in full screen or rootless modes. These modes
+are called Quartz modes, named after the Quartz 2D compositing engine used
+by Aqua. XDarwin can also be run from the Darwin text console in IOKit mode.
+.PP
+When running from the console,
+.I XDarwin
+acts as the window server and uses IOKit services to access the display
+framebuffer, mouse and keyboard and to provide a layer of hardware
+abstraction. In console mode,
+.I XDarwin
+will normally be started by the \fIxdm(1)\fP display manager or by a script
+that runs the program \fIxinit(1)\fP.
+.PP
+When running with the Mac OS X Aqua GUI,
+.I XDarwin
+will normally be started by launching from the Finder, but it may also be
+started from the command line with the \fB\-quartz\fP, \fB\-fullscreen\fP, or
+\fB\-rootless\fP options. Note that the defaults for various command line
+options are set by the
+.I XDarwin
+application preferences in the Quartz modes.
+.PP
+In full screen Quartz mode, when the X Window System is active, it takes over
+the entire screen. CoreGraphics is used to capture and draw to the screen. The
+.I XDarwin
+application allows easy switching between the Mac OS X and X window
+desktops. More information is available in the Help menu of the
+.I XDarwin
+application.
+.PP
+In rootless mode, the X window system and Aqua share your display.  The root
+window of the X11 display is the size of the screen and contains all the
+other windows. The X11 root window is not displayed in rootless mode as Aqua
+handles the desktop background.
+#else
+.I XDarwin
+is the X window server for Mac OS X and the Darwin operating system
+provided by the XFree86 Project. This version of
+.I XDarwin
+can only be started from the Darwin text console. The Mac OS X Aqua GUI, if
+present, must be shut down.
+.I XDarwin
+uses IOKit services to access the display
+framebuffer, mouse and keyboard and to provide a layer of hardware
+abstraction.
+.I XDarwin
+will normally be started by the \fIxdm(1)\fP display manager or by a script
+that runs the program \fIxinit(1)\fP.
+#endif
+.SH OPTIONS
+.PP
+In addition to the normal server options described in the \fIXserver(1)\fP
+manual page, \fIXDarwin\fP accepts the following command line switches:
+.TP 8
+.B \-fakebuttons
+Emulates a 3 button mouse using modifier keys. By default, the Command modifier
+is used to emulate button 2 and Option is used for button 3. Thus, clicking the
+first mouse button while holding down Command will act like clicking
+button 2. Holding down Option will simulate button 3.
+.TP 8
+.B \-nofakebuttons
+Do not emulate a 3 button mouse. This is the default.
+.TP 8
+.B "\-fakemouse2 \fImodifiers\fP"
+Change the modifier keys used to emulate the second mouse button. By default,
+Command is used to emulate the second button. Any combination of the following
+modifier names may be used: Shift, Option, Control, Command, Fn. For example,
+.B \-fakemouse2 """Option,Shift""
+will set holding Option, Shift and clicking on button one as equivalent to
+clicking the second mouse button.
+.TP 8
+.B "\-fakemouse3 \fImodifiers\fP"
+Change the modifier keys used to emulate the third mouse button. By default,
+Option is used to emulate the third button. Any combination of the following
+modifier names may be used: Shift, Option, Control, Command, Fn. For example,
+.B \-fakemouse3 """Control,Shift""
+will set holding Control, Shift and clicking on button one as equivalent to
+clicking the third mouse button.
+.TP 8
+.B "\-keymap \fIfile\fP"
+On startup \fIXDarwin\fP translates a Darwin keymapping into an X keymap.
+The default is to read this keymapping from USA.keymapping. With this option
+the keymapping will be read from \fIfile\fP instead. If the file's path is
+not specified, it will be searched for in Library/Keyboards/ underneath the
+following directories (in order): ~, /, /Network, /System.
+.TP 8
+.B \-nokeymap
+On startup \fIXDarwin\fP translates a Darwin keymapping into an X keymap.
+With this option XDarwin queries the kernel for the current keymapping
+instead of reading it from a file. This will often fail on newer kernels.
+#ifdef DARWIN_WITH_QUARTZ
+.TP 8
+.B "\-size \fIwidth\fP \fIheight\fP"
+Sets the screen resolution for the X server to use.
+Ignored in rootless mode.
+.TP 8
+.B "\-depth \fIdepth\fP"
+Specifies the color bit depth to use. Currently only 8, 15, and 24 color bits
+per pixel are supported.
+Ignored in rootless mode.
+.TP 8
+.B "\-refresh \fIrate\fP"
+Gives the refresh rate to use in Hz. For LCD displays this should be 0.
+Ignored in rootless mode.
+.TP 8
+.B \-fullscreen
+Run full screen in parallel with Mac OS X Aqua GUI.
+.TP 8
+.B \-rootless
+Run rootless inside Mac OS X Aqua GUI.
+.TP 8
+.B \-quartz
+Run in parallel with the Mac OS X Aqua GUI using the default mode.
+#else
+.TP 8
+.B "\-size \fIwidth\fP \fIheight\fP"
+Sets the screen resolution for the X server to use.
+.TP 8
+.B "\-depth \fIdepth\fP"
+Specifies the color bit depth to use. Currently only 8, 15, and 24 color bits
+per pixel are supported.
+.TP 8
+.B "\-refresh \fIrate\fP"
+Gives the refresh rate to use in Hz. For LCD displays this should be 0.
+#endif
+.TP 8
+.B \-showconfig
+Print out the server version and patchlevel.
+.TP 8
+.B \-version
+Same as \fB\-showconfig\fP.
+.SH "SEE ALSO"
+.PP
+X(__miscmansuffix__), XFree86(1), Xserver(1), xdm(1), xinit(1)
+.SH BUGS
+.I XDarwin
+and this man page still have many limitations. Some of the more obvious
+ones are:
+.br
+- The display mode cannot be changed once the X server has started.
+.br
+- A screen saver is not supported.
+.PP
+.SH AUTHORS
+XFree86 was originally ported to Mac OS X Server by John Carmack. Dave
+Zarzycki used this as the basis of his port of XFree86 4.0 to Darwin 1.0.
+Torrey T. Lyons improved and integrated this code into the XFree86
+Project's mainline for the 4.0.2 release.
+.PP
+The following members of the XonX Team contributed to the following
+releases (in alphabetical order):
+.TP 4
+XFree86 4.1.0:
+.br
+Rob Braun - Darwin x86 support
+.br
+Torrey T. Lyons - Project Lead
+.br
+Andreas Monitzer - Cocoa version of XDarwin front end
+.br
+Gregory Robert Parker - Original Quartz implementation
+.br
+Christoph Pfisterer - Dynamic shared X libraries
+.br
+Toshimitsu Tanaka - Japanese localization
+.TP 4
+XFree86 4.2.0:
+.br
+Rob Braun - Darwin x86 support
+.br
+Pablo Di Noto - Spanish localization
+.br
+Paul Edens - Dutch localization
+.br
+Kyunghwan Kim - Korean localization
+.br
+Mario Klebsch - Non-US keyboard support
+.br
+Torrey T. Lyons - Project Lead
+.br
+Andreas Monitzer - German localization
+.br
+Patrik Montgomery - Swedish localization
+.br
+Greg Parker - Rootless support
+.br
+Toshimitsu Tanaka - Japanese localization
+.br
+Olivier Verdier - French localization

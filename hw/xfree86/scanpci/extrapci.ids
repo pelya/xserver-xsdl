@@ -1,0 +1,45 @@
+#
+#	Modifications and additions to the standard list of PCI IDs in
+#	pci.ids.
+#
+#	To modify an entry, simply add the modified version here.
+#	To leave part of an entry unchanged, use '"' for the name
+#	(e.g., leave the vendor name unchanged while adding/modifying
+#	a device).  To delete an entry, set the name to '-'.
+#
+#	One syntax extension is allowing a 16-bit class value to be
+#	specified for a device (see the syntax description below).
+#
+#	Don't make gratuitous changes, and please send back
+#	changes/additions that aren't XFree86-specific to the pciids
+#	project (http://pciids.sf.net/).
+#
+#	$XFree86: xc/programs/Xserver/hw/xfree86/etc/extrapci.ids,v 1.7 2003/02/06 04:18:09 dawes Exp $
+#
+
+# Vendors, devices and subsystems. Please keep sorted.
+
+# Syntax:
+# vendor  vendor_name
+#	device  device_name				<-- single tab
+#		C  class				<-- two tabs
+#		subvendor subdevice  subsystem_name	<-- two tabs
+#
+# Use lower-case hex digits for all numeric values.
+
+# Example: Add a new chipset for vendor who's ID is xyzw
+#
+# xyzw	"
+#	20ce	New Chipset Description
+
+1102	"
+	0002	"
+		C  0401
+
+# Intel(R) 852GM/855GM, 865G
+8086	"
+	3580	852GM/852GME/855GM/855GME Chipset Host-Hub Bridge
+	3582	852GM/852GME/855GM/855GME Chipset Graphics Controller
+	2570	865G Chipset Host-Hub Bridge
+	2572	865G Chipset Graphics Controller
+

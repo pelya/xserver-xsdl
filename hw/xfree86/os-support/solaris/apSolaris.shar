@@ -1,0 +1,768 @@
+#!/bin/sh
+# $XFree86: xc/programs/Xserver/hw/xfree86/etc/apSolaris.shar,v 1.3 2002/10/04 19:45:33 tsi Exp $
+# This is a shell archive (produced by GNU sharutils 4.2c).
+# To extract the files from this archive, save it to some FILE, remove
+# everything before the `!/bin/sh' line above, then type `sh FILE'.
+#
+# Made on 2002-10-04 13:41 MDT by <root@abcyxhiz>.
+# Source directory was `/archives'.
+#
+# Existing files will *not* be overwritten unless `-c' is specified.
+# This format requires very little intelligence at unshar time.
+# "if test", "echo", "mkdir", and "sed" may be needed.
+#
+# This shar contains:
+# length mode       name
+# ------ ---------- ------------------------------------------
+#   1521 -rw-r--r-- aperture/Makefile
+#   1659 -rw-r--r-- aperture/README
+#   7557 -rw-r--r-- aperture/aperture.c
+#    450 -rw-r--r-- aperture/aperture.conf
+#     87 -rw-r--r-- aperture/devlink.tab
+#   1062 -rw-r--r-- aperture/Makefile.sun4u
+#
+echo=echo
+shar_tty= shar_n= shar_c='
+'
+mkdir _sh09806 || ( echo 'failed to create locking directory' '_sh09806'; exit 1 )
+# ============= aperture/Makefile ==============
+if test ! -d 'aperture'; then
+  $echo $echo_n 'x -' 'aperture: '$echo_c
+  if mkdir 'aperture'; then $echo 'created'; else $echo 'failed to create'; fi
+fi
+if test -f 'aperture/Makefile' && test "$first_param" != -c; then
+  $echo 'x -' SKIPPING 'aperture/Makefile' '(file already exists)'
+else
+  $echo 'x -' extracting 'aperture/Makefile' '(text)'
+  sed 's/^X//' << 'SHAR_EOF' > 'aperture/Makefile' &&
+X#
+X#   File: makefile for aperture Framebuffer Driver
+X# Author: Doug Anson (danson@lgc.com)
+X#   Date: 2/15/94
+X# Modified: David Holland (davidh@use.com)
+X#   Date: 2/23/94
+X#   - Changed name, and debugging structure
+X# Modified: Marc Aurele La France (tsi@xfree86.org)
+X#   Date: 2001.06.08
+X#   - SPARC support, cleanup and turf aptest.
+X#
+X# >>NOTE<< Have a look at Makefile.sun4u for sun4u specifics.
+X#
+X# GNU gcc compiler
+XCC=gcc
+XCFLGS=-fno-builtin -Wall -O3
+X
+X#
+X# Proworks compiler
+X#CC=/opt/SUNWspro/bin/cc
+X#CFLGS=-Xa -xnolib -xO3
+X
+X#
+X# Debug error reporting
+X#DEBUG_FLG=
+X#DEBUG_FLG=-DAPERTURE_DEBUG
+X
+X#
+X# Files and object declarations
+XKERNEL_FLGS=-D_KERNEL -DSUNDDI
+XCFLAGS= $(CFLGS) $(KERNEL_FLGS) $(DEBUG_FLG)
+XCFILES= aperture.c
+XOBJS= aperture.o
+XDRIVER= aperture
+X
+X#
+X# Make rules
+Xall: $(DRIVER)
+X
+X$(DRIVER): $(OBJS)
+X	@if [ -f "Makefile.`uname -m`" ]; then \
+X		make -f Makefile.`uname -m` $(DRIVER); \
+X	else \
+X		rm -f $(DRIVER); \
+X		ld -r -o $(DRIVER) $(OBJS); \
+X	fi
+X
+Xinstall: $(DRIVER)
+X	@if [ -f "Makefile.`uname -m`" ]; then \
+X		make -f Makefile.`uname -m` install; \
+X	else \
+X		cp aperture.conf /kernel/drv; \
+X		cp $(DRIVER) /kernel/drv; \
+X	fi
+X
+Xadd_drv:
+X	@if [ -f "Makefile.`uname -m`" ]; then \
+X		make -f Makefile.`uname -m` add_drv; \
+X	else \
+X		add_drv /kernel/drv/aperture; \
+X	fi
+X
+Xclean:
+X	rm -f *% *.BAK $(OBJS) $(DRIVER) core
+X
+X.SUFFIXES: .i
+X
+X.c.i:
+X	$(CC) -E $(CFLAGS) $*.c > $@
+X
+X.c.o:
+X	@if [ -f "Makefile.`uname -m`" ]; then \
+X		make -f Makefile.`uname -m` $@; \
+X	else \
+X		rm -f $@; \
+X		$(CC) -c $(CFLAGS) $*.c -o $@; \
+X	fi
+SHAR_EOF
+  : || $echo 'restore of' 'aperture/Makefile' 'failed'
+fi
+# ============= aperture/README ==============
+if test -f 'aperture/README' && test "$first_param" != -c; then
+  $echo 'x -' SKIPPING 'aperture/README' '(file already exists)'
+else
+  $echo 'x -' extracting 'aperture/README' '(text)'
+  sed 's/^X//' << 'SHAR_EOF' > 'aperture/README' &&
+XFramebuffer apperture driver.
+X
+XThis driver was written to provide a device that, unlike /dev/mem, allows
+Xmmap()'ing of ranges beyond installed memory.
+X
+XThe original x86-based version of this driver was the corroborative work of
+XDoug Anson (danson@lgc.com), and David Holland (davidh@use.com).  It has since
+Xbeen rewritten to also work on sun4u machines.
+X
+X
+XInstallation instructions:
+X
+X1) Check the Makefile, for appropriate CC, and CFLAGS definitions.  Compiling
+X   with APERTURE_DEBUG defined means the driver will generate reams of
+X   debugging output.  You'll probably want to leave this off...
+X
+X2) type 'make'.  The driver and test program should compile with out any
+X   problems.  There also should not be any warning messages.
+X
+X3) Become 'root'.
+X
+X4) type 'make install' and 'make add_drv'.  The screen should look something
+X   like this:
+X
+X	# make install
+X	cp aperture aperture.conf /kernel/drv
+X	# make add_drv
+X	add_drv /kernel/drv/aperture
+X
+X   On a sun4u machine this will mention the /kernel/drv/sparcv9 directory
+X   instead of /kernel/drv.
+X
+X   This installs the driver in the system.
+X
+X5) While as root modify the file /etc/devlink.tab, adding these lines:
+X
+X# The following entry is for the framebuffer driver
+Xtype=ddi_pseudo;name=aperture	fbs/\M0
+X
+X   Add that line exactly as shown. You may also simply add the
+X   contents of the devlink.tab file supplied to /etc/devlink.tab.
+X   It contains the lines as well.  (Yes, that is a tab between
+X   aperture, and fbs, not spaces - very important)
+X
+X6) Perform a reconfiguration boot of the system.
+X
+X	# touch /reconfigure
+X	# init 6
+X
+XBug reports, questions, suggestions, etc can be sent to xfree86@xfree86.org.
+SHAR_EOF
+  : || $echo 'restore of' 'aperture/README' 'failed'
+fi
+# ============= aperture/aperture.c ==============
+if test -f 'aperture/aperture.c' && test "$first_param" != -c; then
+  $echo 'x -' SKIPPING 'aperture/aperture.c' '(file already exists)'
+else
+  $echo 'x -' extracting 'aperture/aperture.c' '(text)'
+  sed 's/^X//' << 'SHAR_EOF' > 'aperture/aperture.c' &&
+X/*
+X * Copyright (C) 2001 The XFree86 Project, Inc.  All Rights Reserved.
+X *
+X * Permission is hereby granted, free of charge, to any person obtaining a copy
+X * of this software and associated documentation files (the "Software"), to
+X * deal in the Software without restriction, including without limitation the
+X * rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+X * sell copies of the Software, and to permit persons to whom the Software is
+X * furnished to do so, subject to the following conditions:
+X *
+X * The above copyright notice and this permission notice shall be included in
+X * all copies or substantial portions of the Software.
+X *
+X * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+X * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+X * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+X * XFREE86 PROJECT BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+X * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+X * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+X *
+X * Except as contained in this notice, the name of the XFree86 Project shall
+X * not be used in advertising or otherwise to promote the sale, use or other
+X * dealings in this Software without prior written authorization from the
+X * XFree86 Project.
+X */
+X
+X/*
+X * Aperture driver for Solaris.
+X */
+X
+X#include <sys/conf.h>
+X#include <sys/ddi.h>
+X#include <sys/modctl.h>
+X#include <sys/open.h>
+X#include <sys/stat.h>
+X#include <sys/sunddi.h>
+X
+X#define DEV_IDENT  "aperture"
+X#define DEV_BANNER "XFree86 aperture driver"
+X
+X#ifndef D_64BIT
+X#define D_64BIT 0
+X#endif
+X
+X#ifndef NULL
+X#define NULL ((void *)0)
+X#endif
+X
+X/*
+X * open(9E)
+X */
+X/*ARGSUSED*/
+Xstatic int
+Xaperture_open
+X(
+X#ifdef __STDC__
+X	dev_t *devp,
+X	int flag,
+X	int typ,
+X	struct cred *cred
+X#endif
+X)
+X#ifndef __STDC__
+X	dev_t *devp;
+X	int flag;
+X	int typ;
+X	struct cred *cred;
+X#endif
+X{
+X	int error;
+X
+X#ifdef APERTURE_DEBUG
+X
+X	cmn_err(CE_CONT, DEV_IDENT ":  entering open()\n");
+X
+X#endif
+X
+X	if ((typ != OTYP_CHR) || (getminor(*devp)))
+X		error = EINVAL;
+X	else
+X		error = 0;
+X
+X#ifdef APERTURE_DEBUG
+X
+X	cmn_err(CE_CONT, DEV_IDENT ":  leaving open() = %d\n", error);
+X
+X#endif
+X
+X	return error;
+X}
+X
+X/*
+X * mmap(9E)
+X */
+X/*ARGSUSED*/
+Xstatic int
+Xaperture_mmap
+X(
+X#ifdef __STDC__
+X	dev_t dev,
+X	off_t off,
+X	int prot
+X#endif
+X)
+X#ifndef __STDC__
+X	dev_t dev;
+X	off_t off;
+X	int prot;
+X#endif
+X{
+X	pfn_t pf;
+X	int error;
+X
+X#ifdef APERTURE_DEBUG
+X
+X	cmn_err(CE_CONT, DEV_IDENT ":  entering mmap(0x%016lx)\n", off);
+X
+X#endif
+X
+X	pf = btop((unsigned long)off);
+X
+X	/* Deal with mmap(9E) interface limits */
+X	error = (int)pf;
+X	if ((error < 0) || (pf != (pfn_t)error))
+X		error = -1;
+X
+X#ifdef APERTURE_DEBUG
+X
+X	cmn_err(CE_CONT, DEV_IDENT ":  leaving mmap() = 0x%08lx", error);
+X
+X#endif
+X
+X	return error;
+X}
+X
+Xstatic struct cb_ops aperture_cb_ops =
+X{
+X	aperture_open,		/* open */
+X	nulldev,		/* close */
+X	nodev,			/* strategy */
+X	nodev,			/* print */
+X	nodev,			/* dump */
+X	nodev,			/* read */
+X	nodev,			/* write */
+X	nodev,			/* ioctl */
+X	nodev,			/* devmap */
+X	aperture_mmap,		/* mmap */
+X	ddi_segmap,		/* segmap */
+X	nochpoll,		/* poll */
+X	ddi_prop_op,		/* cb_prop_op */
+X	0,			/* streamtab  */
+X	D_NEW | D_MP | D_64BIT	/* Driver compatibility flag */
+X};
+X
+X
+Xstatic dev_info_t *aperture_dip;	/* private copy of devinfo pointer */
+X
+X/*
+X * getinfo(9E)
+X */
+X/*ARGSUSED*/
+Xstatic int
+Xaperture_getinfo
+X(
+X#ifdef __STDC__
+X	dev_info_t *dip,
+X	ddi_info_cmd_t infocmd,
+X	void *arg,
+X	void **result
+X#endif
+X)
+X#ifndef __STDC__
+X	dev_info_t *dip;
+X	ddi_info_cmd_t infocmd;
+X	void *arg;
+X	void **result;
+X#endif
+X{
+X	int error;
+X
+X#ifdef APERTURE_DEBUG
+X
+X	cmn_err(CE_CONT, DEV_IDENT ":  entering getinfo()\n");
+X
+X#endif
+X
+X	switch (infocmd) {
+X	case DDI_INFO_DEVT2DEVINFO:
+X		*result = aperture_dip;
+X		error = DDI_SUCCESS;
+X		break;
+X	case DDI_INFO_DEVT2INSTANCE:
+X		*result = NULL;
+X		error = DDI_SUCCESS;
+X		break;
+X	default:
+X		error = DDI_FAILURE;
+X	}
+X
+X#ifdef APERTURE_DEBUG
+X
+X	cmn_err(CE_CONT, DEV_IDENT ":  leaving getinfo() = %d\n", error);
+X
+X#endif
+X
+X	return error;
+X}
+X
+X/*
+X * identify(9E)
+X */
+X/*ARGSUSED*/
+Xstatic int
+Xaperture_identify
+X(
+X#ifdef __STDC__
+X	dev_info_t *dip
+X#endif
+X)
+X#ifndef __STDC__
+X	dev_info_t *dip;
+X#endif
+X{
+X	int error;
+X
+X#ifdef APERTURE_DEBUG
+X
+X	cmn_err(CE_CONT, DEV_IDENT ":  entering identify()\n");
+X
+X#endif
+X
+X	if (strcmp(ddi_get_name(dip), DEV_IDENT))
+X		error = DDI_NOT_IDENTIFIED;
+X	else
+X		error = DDI_IDENTIFIED;
+X
+X#ifdef APERTURE_DEBUG
+X
+X	cmn_err(CE_CONT, DEV_IDENT ":  leaving identify() = %d\n", error);
+X
+X#endif
+X
+X	return error;
+X}
+X
+X/*
+X * attach(9E)
+X */
+X/*ARGSUSED*/
+Xstatic int
+Xaperture_attach
+X(
+X#ifdef __STDC__
+X	dev_info_t *dip,
+X	ddi_attach_cmd_t cmd
+X#endif
+X)
+X#ifndef __STDC__
+X	dev_info_t *dip;
+X	ddi_attach_cmd_t cmd;
+X#endif
+X{
+X	int error;
+X
+X#ifdef APERTURE_DEBUG
+X
+X	cmn_err(CE_CONT, DEV_IDENT ":  entering attach()\n");
+X
+X#endif
+X
+X	if (cmd != DDI_ATTACH)
+X	{
+X
+X#ifdef APERTURE_DEBUG
+X
+X		cmn_err(CE_CONT, DEV_IDENT ":  not attach(, DDI_ATTACH)\n");
+X
+X#endif
+X
+X		error = DDI_FAILURE;
+X	}
+X	else
+X	{
+X		error = ddi_create_minor_node(dip, ddi_get_name(dip), S_IFCHR,
+X					      (minor_t)ddi_get_instance(dip),
+X					      NULL, NODESPECIFIC_DEV);
+X
+X		if (error == DDI_SUCCESS)
+X		{
+X			aperture_dip = dip;
+X			ddi_report_dev(dip);
+X		}
+X	}
+X
+X#ifdef APERTURE_DEBUG
+X
+X	cmn_err(CE_CONT, DEV_IDENT ":  leaving attach() = %d\n", error);
+X
+X#endif
+X
+X	return error;
+X}
+X
+X/*
+X * detach(9E)
+X */
+Xstatic int
+Xaperture_detach
+X(
+X#ifdef __STDC__
+X	dev_info_t *dip,
+X	ddi_detach_cmd_t cmd
+X#endif
+X)
+X#ifndef __STDC__
+X	dev_info_t *dip;
+X	ddi_detach_cmd_t cmd;
+X#endif
+X{
+X	int error;
+X
+X#ifdef APERTURE_DEBUG
+X
+X	cmn_err(CE_CONT, DEV_IDENT ":  entering detach()\n");
+X
+X#endif
+X
+X	if (cmd != DDI_DETACH)
+X	{
+X		error = DDI_FAILURE;
+X	}
+X	else
+X	{
+X		ddi_remove_minor_node(dip, NULL);
+X		aperture_dip = NULL;
+X		error = DDI_SUCCESS;
+X	}
+X
+X#if APERTURE_DEBUG
+X
+X	cmn_err(CE_CONT, DEV_IDENT ":  leaving detach() = %d\n", error);
+X
+X#endif
+X
+X	return error;
+X}
+X
+X
+Xstatic struct dev_ops aperture_ops =
+X{
+X	DEVO_REV,		/* revision */
+X	0,			/* refcnt  */
+X	aperture_getinfo,	/* getinfo */
+X	aperture_identify,	/* identify */
+X	nulldev,		/* probe */
+X	aperture_attach,	/* attach */
+X	aperture_detach,	/* detach */
+X	nodev,			/* reset */
+X	&aperture_cb_ops,	/* driver operations */
+X	NULL			/* bus operations */
+X};
+X
+X
+Xstatic struct modldrv modldrv =
+X{
+X	&mod_driverops,		/* mod_ops structure pointer */
+X	DEV_BANNER,		/* driver banner string */
+X	&aperture_ops,		/* dev_ops structure pointer */
+X};
+X
+X
+Xstatic struct modlinkage modlinkage =
+X{
+X	MODREV_1,		/* module API revision */
+X	{
+X		&modldrv,	/* module driver structure pointer */
+X		NULL		/* list termination */
+X	}
+X};
+X
+X
+X/*
+X * _init(9E)
+X */
+Xint
+X_init
+X(
+X#ifdef __STDC__
+X	void
+X#endif
+X)
+X{
+X	int error;
+X
+X#ifdef APERTURE_DEBUG
+X
+X	cmn_err(CE_CONT, DEV_IDENT ":  entering _init()\n");
+X
+X#endif
+X
+X	error = mod_install(&modlinkage);
+X
+X#ifdef APERTURE_DEBUG
+X
+X	cmn_err(CE_CONT, DEV_IDENT ":  leaving _init() = %d\n", error);
+X
+X#endif
+X
+X	return error;
+X}
+X
+X/*
+X * _info(9E)
+X */
+Xint
+X_info
+X(
+X#ifdef __STDC__
+X	struct modinfo *modinfop
+X#endif
+X)
+X#ifndef __STDC__
+X	struct modinfo *modinfop;
+X#endif
+X{
+X	int error;
+X
+X#ifdef APERTURE_DEBUG
+X
+X	cmn_err(CE_CONT, DEV_IDENT ":  entering _info()\n");
+X
+X#endif
+X
+X	error = mod_info(&modlinkage, modinfop);
+X
+X#ifdef APERTURE_DEBUG
+X
+X	cmn_err(CE_CONT, DEV_IDENT ":  leaving _info() = %d\n", error);
+X
+X#endif
+X
+X	return error;
+X}
+X
+X/*
+X * _fini(9E)
+X */
+Xint
+X_fini
+X(
+X#ifdef __STDC__
+X	void
+X#endif
+X)
+X{
+X	int error;
+X
+X#ifdef APERTURE_DEBUG
+X
+X	cmn_err(CE_CONT, DEV_IDENT ":  entering _fini()\n");
+X
+X#endif
+X
+X	error = mod_remove(&modlinkage);
+X
+X#ifdef APERTURE_DEBUG
+X
+X	cmn_err(CE_CONT, DEV_IDENT ":  leaving _fini() = %d\n", error);
+X
+X#endif
+X
+X	return error;
+X}
+SHAR_EOF
+  : || $echo 'restore of' 'aperture/aperture.c' 'failed'
+fi
+# ============= aperture/aperture.conf ==============
+if test -f 'aperture/aperture.conf' && test "$first_param" != -c; then
+  $echo 'x -' SKIPPING 'aperture/aperture.conf' '(file already exists)'
+else
+  $echo 'x -' extracting 'aperture/aperture.conf' '(text)'
+  sed 's/^X//' << 'SHAR_EOF' > 'aperture/aperture.conf' &&
+X#
+X# Copyright 1994 Doug Anson, danson@lgc.com & David Holland, davidh@use.com
+X#
+X# File:   aperture.conf
+X# Author: Doug Anson (danson@lgc.com)
+X# 
+X# Modified: David Holland (davidh@use.com)
+X# Log:	    Change comments		02/23/94
+X#	    Change defaults/comments	09/25/94
+X#
+X# Modified: Marc Aurele La France (tsi@xfree86.org)
+X# Log:      SPARC changes		2001.09
+X#
+X# Purpose:  This conf file is used by the aperture driver.
+X#
+Xname="aperture" parent="pseudo";
+SHAR_EOF
+  : || $echo 'restore of' 'aperture/aperture.conf' 'failed'
+fi
+# ============= aperture/devlink.tab ==============
+if test -f 'aperture/devlink.tab' && test "$first_param" != -c; then
+  $echo 'x -' SKIPPING 'aperture/devlink.tab' '(file already exists)'
+else
+  $echo 'x -' extracting 'aperture/devlink.tab' '(text)'
+  sed 's/^X//' << 'SHAR_EOF' > 'aperture/devlink.tab' &&
+X# The following entry is for the aperture driver
+Xtype=ddi_pseudo;name=aperture	fbs/\M0
+SHAR_EOF
+  : || $echo 'restore of' 'aperture/devlink.tab' 'failed'
+fi
+# ============= aperture/Makefile.sun4u ==============
+if test -f 'aperture/Makefile.sun4u' && test "$first_param" != -c; then
+  $echo 'x -' SKIPPING 'aperture/Makefile.sun4u' '(file already exists)'
+else
+  $echo 'x -' extracting 'aperture/Makefile.sun4u' '(text)'
+  sed 's/^X//' << 'SHAR_EOF' > 'aperture/Makefile.sun4u' &&
+X#
+X#   File: makefile for aperture Framebuffer Driver
+X# Author: Doug Anson (danson@lgc.com)
+X#   Date: 2/15/94
+X# Modified: David Holland (davidh@use.com)
+X#   Date: 2/23/94
+X#   - Changed name, and debugging structure
+X# Modified: Marc Aurele La France (tsi@xfree86.org)
+X#   Date: 2001.06.08
+X#   - SPARC support, cleanup and turf aptest.
+X#
+X
+X#
+X# GNU gcc compiler, version 3.2 or later
+X#
+XCC=gcc
+XCFLGS=-fno-builtin -Wall -O3 -m64
+X
+X#
+X# Proworks compiler
+X#CC=/opt/SUNWspro/bin/cc
+X#CFLGS=-Xa -xarch=v9 -xnolib -xO3
+X
+X#
+X# Debug error reporting
+X#DEBUG_FLG=
+X#DEBUG_FLG=-DAPERTURE_DEBUG
+X
+X#
+X# Files and object declarations
+XKERNEL_FLGS=-D_KERNEL -DSUNDDI
+XCFLAGS= $(CFLGS) $(KERNEL_FLGS) $(DEBUG_FLG)
+XCFILES= aperture.c
+XOBJS= aperture.o
+XDRIVER= aperture
+X
+X#
+X# Make rules
+Xall: $(DRIVER)
+X
+X$(DRIVER): $(OBJS)
+X	rm -f $(DRIVER)
+X	ld -r -o $(DRIVER) $(OBJS)
+X
+Xinstall: $(DRIVER)
+X	cp aperture.conf /kernel/drv
+X	cp $(DRIVER) /kernel/drv/sparcv9
+X
+Xadd_drv:
+X	add_drv /kernel/drv/sparcv9/aperture
+X
+Xclean:
+X	rm -f *% *.BAK $(OBJS) $(DRIVER) core
+X
+X.SUFFIXES: .i
+X
+X.c.i:
+X	$(CC) -E $(CFLAGS) $*.c > $@
+SHAR_EOF
+  : || $echo 'restore of' 'aperture/Makefile.sun4u' 'failed'
+fi
+$echo $shar_n 'x -' 'lock directory' "\`_sh09806': " $shar_c
+if rm -fr _sh09806; then
+  $echo 'removed'
+else
+  $echo 'failed to remove'
+fi
+exit 0

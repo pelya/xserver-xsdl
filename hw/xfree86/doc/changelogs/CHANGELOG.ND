@@ -1,0 +1,418 @@
+XFree86 3.9jw (31 July 1998)
+1327. Fix a crash in the chips driver when the chipset is specified in the
+      config file (#1846, Taketoshi Sano).
+1326. Add more Pm2 acceleration and add DPMS support for all glint chips
+      (#1844, Alan Hourihane).
+1325. Add 8x8 pattern trapezium fills, screen to screen colour expansion
+      to the MGA driver, and fix a clipping bug with colour expansion
+      (#1843, Mark Vojkovich).
+1324. Add Screen->Screen colour expansion to XAA (#1841, Mark Vojkovich).
+1323. Fix negative widths and heights in XAA's wide line code (#1840,
+      Alan Hourihane).
+1322. Fix an XAA tiled rect alignment problem (#1839, David Bateman).
+1321. Fix XAA 8x8 mono for 24bpp.
+
+XFree86 3.9jv (24 July 1998)
+1320. Fix the BitsPerPixel() macro in cfb.h for 24bpp.
+1319. Update XAA docs (#1838, Mark Vojkovich).
+1318. Add colour expansion stipples to XAA (#1837, Mark Vojkovich).
+1317. Add a stipple replacement for the MGA driver that takes into account
+      the 256K blit maximum per operation (#1836, Mark Vojkovich).
+1316. Fix C&T memory clock messages (#1834, David Bateman).
+1315. Add some new colour expansion code for older tseng chips (W32/W32i)
+      (#1832, Koen Gadeyne).
+1314. Preliminary tseng XAA support (#1832, Koen Gadeyne).
+1313. Resync the tseng driver with the main branch version (#1832,
+      Koen Gadeyne).
+1312. Some C&T updates (#1833, David Bateman).
+1311. Speed up GXcopy for XAAFillCacheBltRects (#1831, David Bateman).
+1310. Remove some code duplication in the C&T driver (#1830, David Bateman).
+1309. Add 8x8 colour and mono fills for 8bpp and 16bpp for all C&T chips
+      and 8x8 mono fills at 24bpp for HiQV chips (#1830, David Bateman).
+1308. Fix problems with XAA 8x8 patterns (#1830, David Bateman).
+1307. Get 4bpp working with C&T chipsets, and add the ShowCache option to
+      the C&T driver (#1829, David Bateman).
+
+XFree86 3.9ju (19 July 1998)
+1306. Calculate DPI from the DisplaySize entry in the Monitor section
+      if present.
+1305. Implement "tri-state" options.
+1304. Move most of cfbcmap.c to mi.
+1303. Update the C&T driver for recent XAA ImageWrite changes, and fix
+      some bugs in CHIPSHiQVWritePixmap (#1824, Nozomi Ytow).
+1302. Optimised horizontal and vertical lines for MGA (#1823, Mark Vojkovich).
+1301. Fix some XAA bugs (#1822, Mark Vojkovich).
+1300. Major updates to the XAA documentation (#1821, Mark Vojkovich).
+1299. Update XAA for the EnterVT type change (#1821, Mark Vojkovich).
+1298. Add scanline ImageWrites to XAA (#1821, Mark Vojkovich).
+1297. Make XAA Alpha friendly (#1821, Mark Vojkovich).
+1296. Set pScrn->vtSema to FALSE in ChipCloseScreen() after restoring the
+      video hardware state.
+1295. Move xf86SetDpi() calls into PreInit().
+1294. Don't show module version info on subsequent loads.
+
+XFree86 3.9jt (18 July 1998)
+1293. Add IBM 528A to the ramdac module (#1820, Alan Hourihane).
+1292. Make it a fatal error when any AddScreen() call in XFree86's InitOutput()
+      fails.
+1291. Change the type of EnterVT() from void to Bool, and make it a fatal
+      error for this to fail.
+1290. Add a helper xf86SetBlackWhitePixels() to set the values according
+      to the presence of the -flipPixels command line option.
+1289. Add xDpi and yDpi fields to the ScrnInfoRec, and a helper xf86SetDpi()
+      to set them.
+1288. Allow a bus type prefix for BusID strings.
+1287. Remove the global xf86VTSema (David Bateman, David Dawes).
+1286. Complete the XAA 8x8 pattern caching (#1817, Mark Vojkovich).
+1285. Add a missing Millennium accel flag (#1816, Mark Vojkovich).
+1284. Make the CRTC blanking setting exact rather than allowing some unblanked
+      overscan area (#1813, Koen Gadeyne).
+1283. Prelminary TGA (AXP only) driver (#1811, 1818, Alan Hourihane).
+1282. Prelminary Bt485 ramdac support for the ramdac module (#1809, 1815,
+      Alan Hourihane).
+1281. OS-support and config updates for AXP (#1808, Alan Hourihane).
+1280. Add code to the ramdac module for initialising gamma correction
+      (1807, Alan Hourihane).
+1279. Fix C&T HiQV PCI bus support (#1802, David Bateman and Nozomi Ytow).
+1278. Add HW cursor support for the Permedia2v (#1812, Alan Hourihane).
+1277. Remove most vgahw dependencies from the glint driver (#1810,
+      Alan Hourihane).
+1276. Add preliminary support for the Permedia2v to the glint driver
+      (#1800, 1810, Alan Hourihane).
+1275. Some C&T updates (#1791, 1796, Nozomi Ytow, David Bateman).
+1274. Reintegrate Harm's XAA SolidArc code (#1814, David Bateman).
+1273. Make sure assembler usage is set correctly for x86 when MakeDllModules
+      is true  (#1806, David Bateman).
+1272. Fix too little data being sent by the XAA BitmapScanline when the
+      number of dwords sent was divisible by four (#1806, David Bateman).
+1275. Fix for the swapping of fg and bg in the XAA WriteBitmap primitives
+      (#1806, David Bateman).
+1274. Add TRIPLE_BITS_24BPP code for the XAA WriteBitmap function (#1806,
+      David Bateman).
+1273. Attempts at optimised 6 and 8 pixel drawTETextScanline functions
+      in assembler (#1789, 1806, David Bateman).
+1272. Remove some redundant extern declarations (xf86Procs.h & xnest)
+      (#1790, Marc La France).
+1271. xf4bpp now loads xf1bpp (#1790, Marc La France).
+1270. Make vgahw module load cfb (re: cfbExpandDirectColors()) (#1790,
+      Marc La France).
+1269. Fix vgahw's saving/restoring of text modes, overscan handling
+      and memory leaks (#1790, Marc La France).
+1268. Fix compilation warnings in libc wrapper (Marc La France).
+1267. Rewrite VGA generic driver (Marc La France).
+1266. Fix bug that nullified the driver's mode list when deleting the
+      second-to-last mode (#1790, Marc La France).
+1265. Reduce verbosity level of the message that gets printed when
+      a driver's ValidMode() rejects a mode (#1790, Marc La France).
+1264. Allow drivers to supply a default mode (#1790, Marc La France).
+1263. Allow for more than 4 (== MAXSCREENS) drivers to probe a system
+      (1790, Marc La France).
+1262. Fix xf4bpp integration (#1790, Marc La France).
+1261. Implement -dpi flag and -flippixels flags (#1790, Marc La France).
+1260. Fix CLKDIV2 support (#1790, Marc La France).
+1259. Implement multiscanned modes (#1790, Marc La France).
+1258. Fix some depth/bitsPerPixel confusion (#1790, 1799, Marc La France).
+1257. Fix memory leaks in the MITSHM and dix pixmap code (#1790,
+      Marc La France).
+1256. Fix a minor header problem in the Type1 code (#1790, Marc La France).
+
+XFree86 3.9js (12 July 1998)
+1255. Make sure DPMSEnabled gets set correctly.
+1254. Use a BlankScreen function with xf86GetClocks() that takes more
+      appropriate arguments than SaveScreen.
+1253. Fix SEGV in TsengProbe() when there are no Tseng cards present.
+1252. Add caching of 8x8 patterns to XAA (#1787, Mark Vojkovich).
+1251. XAA updates, including TRIPPLE_BITS_24BPP, check QWORD padding in
+      the font rendering, and an attempt at Pentium optimised assembler
+      for 6 pixel wide TE font (#1785, David Bateman).
+1250. Fix an omission in xf86MatchPciInstances() (#1786, Kevin Martin).
+1249. Numerous C&T driver fixes and HW cursor support added (#1781-1783,
+      David Bateman).
+1248. Add support for 1, 8, 16, 32 and 64 bit interleaves to the XAA
+      hardware cursor code (#1780, David Bateman).
+1247. Fix a segfault in xf86DPMSInit() (#1780, David Bateman).
+1246. Some updates to the ramdac module (#1777, 1778, Alan Hourihane).
+1245. Add 500TX support to the glint driver (#1777, Alan Hourihane).
+1244. Fix parsing of ModeLine keyword (#1779, Keldon Jones).
+
+XFree86 3.9jr (5 July 1998)
+1243. Avoid mishandling 64-bit PCI base addresses, and "safely" avoid them.
+1242. Fix font modules so that clients can use the font libraries
+      (#1774, Alan Hourihane, David Dawes).
+1241. Fix for XAA GC problems that show up when backing store is enabled
+      (#1775, Mark Vojkovich).
+1240. Fix for xf86MatchPciInstances() (#1773, Alan Hourihane).
+1239. Unload drivers in InitOutput that end up not being used.
+1238. Make the ScrnInfoRec.privates persistent rather than per-generation
+      data.
+1237. Remove the "requiredModules" field from the ScrnInfoRec and have the
+      drivers load the modules they need explicitly.  The loader and parts
+      of the design have been updated to take this into account.
+1236. Remove refcount code added in change 1175, and fix problem with the
+      preexisting refcount code not incrementing the count when modules
+      are loaded second and subsequent times.
+1235. Add more info for LoaderPrint{Symbol,Address} functions (1772,
+      Stuart Anderson).
+1234. Fix some Linux/Alpha loader problem (#1772, Stuart Anderson).
+
+XFree86 3.9jq (3 July 1998)
+1233. Loadable font modules (#1767, Alan Hourihane).
+1232. Add Option "ShowCache" to allow scrolling down to see part of the
+      pixmap cache (#1770, Mark Vojkovich).
+1231. Fix MGA loss of sync problem when scrolling the desktop (#1770,
+      Mark Vojkovich).
+1230. Add XAA cursor support to the MGA driver (#1770, Mark Vojkovich).
+1229. Have XAA wrap the EnterVT and LeaveVT functions so that it can
+      invalidate the pixmap cache.  Also further progress towards
+      getting 8x8 patterns cached (#1769, Mark Vojkovich).
+1228. XAA cursor support.  Only the TVP3026's style cursor data packing
+      (ie. source and mask not interleaved) is supported at the moment
+      (#1768, 1771, Mark Vojkovich).
+1227. Implement correct CRTC blanking timings (Koen Gadeyne).
+1226. Lots up updates to the Tseng driver (Koen Gadeyne).
+1225. Chips & Technologies driver converted to ND (#1761, David Bateman).
+1224. Ramdac/colourmap module.  Support for IBM ramdac so far (#1759, 1760,
+      Alan Hourihane).
+1223. Set the Crtc[HV]Adjusted flags more appropriately in
+      xf86SetCrtcForModes() (#1757, David Bateman).
+1222. Change xf86MatchPciInstances() to work with drivers supporting chips
+      from more than one vendor (#1753, 1754, Alan Hourihane).
+
+XFree86 3.9jp (27 June 1998)
+1221. Preliminary tseng driver (Koen Gadeyne).
+1220. Add the Xv extension (from the R5 contrib) (#1749, Mark Vojkovich).
+1219. Fix a rendering error in cfb's bit expansion code that can show
+      up with a very complex clip mask (#1747, Jens Owen).
+1218. Allow XAA's pixmap cache to use smaller slots when the larger ones
+      are not available (#1751, Mark Vojkovich).
+1217. Document the offscreen memory manager (#1747, Mark Vojkovich).
+1216. Fixes and temporary workarounds for mibank problems detected by xf4bpp
+      (#1743, Marc La France).
+1215. Fix a XF68_FBDev typo (#1743, Marc La France).
+1214. Fix up cfb and mfb header files (#1743, Marc La France).
+1213. Fix up xf1bpp's integration into the new design (#1743, Marc La France).
+1212. Introduce xf4bpp, a port of vga16 to the new design (#1743,
+      Marc La France).
+1211. Allow for zero to be a valid setting for chipID and chipRev.  These
+      are now initialised to -1 to indicate when they have not been set.
+
+XFree86 3.9jo (22 June 1998)
+1210. Add accelerated solid trapezoid fills to the MGA driver (#1740,
+      Mark Vojkovich).
+1209. Add accelerated polygons and wide lines to XAA, and fix some pixmap
+      cache problems (#1739, Mark Vojkovich).
+1208. Move the offscreen memory manager from XAA to xfree86/common
+      (#1739, 1741, Mark Vojkovich).
+1207. Fix a typo in the glint driver (#1737, Alan Hourihane).
+1206. Resync the parser with the common layer data structures, removing
+      some obsolete things and adding a few missing things.
+1205. Include the class/subclass/interface values in pciVideoRec.
+
+XFree86 3.9jn (21 June 1998)
+1204. Replace the "MAGIC" module init interface with the more general
+      SetupProc/TearDownProc interface.
+1203. Fix some typos in the DESIGN doc (Koen Gadeyne).
+1202. Add some more acceleration to XAA, and support for it to the MGA
+      driver (#1732, 1733, 1735,  Mark Vojkovich).
+1201. Preliminary pixmap cache support and offscreen memory manager added
+      to XAA (#1732, 1734, 1736, Mark Vojkovich).
+1200. Fix linepitch handling in the glint driver (#1731, Alan Hourihane).
+
+XFree86 3.9jm (15 June 1998)
+1199. Add preliminary infrastructure for different pixmap and framebuffer
+      formats.
+1198. Start a module/driver name space registry.
+1197. Accelerated glint driver (#1725-1727, Alan Hourihane).
+1196. Resync the PCI IDs.
+1195. Update xf86GetPciInfoForScreen() and add a similar
+      xf86GetIsaInfoForScreen().
+1194. Update DGA support code in the common layer.
+1193. Update DPMS support code in the common layer.
+1192. Reintroduce xf86GetClocks() as a helper.
+
+XFree86 3.9jl (9 June 1998)
+1191. Bring over the serial port functions (from Metro Link).
+1190. Bring over the os-support/pmax code.
+1189. Change the interface for xf86MatchPciInstances() to use separate
+      lists of PCI chipset names and IDs.
+1188. Fix some build problems on SVR4.0 and Solaris.
+1187. Rename xf1bpp_mfb* entry points to xf1bpp (#1714, Marc La France).
+1186. Port some recent vga16 changes over to the nd branch (#1714,
+      Marc La France).
+1185. Remove CloseScreen() and SaveScreen() from ScrnInfoRec's (#1714,
+      Marc La France).
+1184. m68k's XF86_FBDev now uses low-level backing store functions
+      during VC switches (#1714, Marc La France).
+1183. Push out backing store and banking wrapper initialisation to the
+      to the callers of the various <framebuffer>ScreenInit()'s.  This allows
+      XAA to wrap screens after banking, but before backing store (#1714,
+      Marc La France).
+1182. Allow screen wrappers to free their private data on server reset and
+      termination (#1714, Marc La France).
+1181. Minimise the number of public globals in the common layer, and replace
+      those the drivers need with functions to access their values.
+1180. Update the PCI code to match that on the main branch.
+
+XFree86 3.9jk (4 June 1998)
+1179. Change the Xserver binary name to "XFree86".
+1178. Add support for building a static Xserver.
+1177. Clean up some of the module Imake config stuff.
+1176. Fix generic vga driver probe crash.
+1175. Keep a reference count for loading modules and avoid loading the
+      same module twice.
+1174. A first attempt at ABI versioning the modules and checking it
+      in the loader.
+1173. Add a canonical naming for modules, without things like the "lib"
+      prefix or "_drv" suffix.
+1172. Add the -layout and -screen options to allow a layout or screen section
+      to be specified from the command line.
+1171. Make the interface in the xf86Find{Vendor,Layout} parser functions
+      consistent with the others.
+
+XFree86 3.9jj (31 May 1998)
+1170. Add call to LoaderCheckUnresolved().
+1169. Add finding the correct Display subsection to the xf86SetDepthBpp()
+      helper (David Dawes).
+1168. Some os-support layer cleanups (more required).
+1167. Add a new helper to simplify the driver Probe() code for PCI cards
+      (David Dawes).
+1166. Remove some fields from the ScrnInfoRec.
+1165. Add a set of option handling functions and helpers to the common layer.
+      These allow the option data structures to be opaque to the drivers
+      (David Dawes).
+1164. Add xstrdup (Xstrdup) to os/utils.c, and treat xf86strdup the same way
+      as xf86malloc in the libc wrappers.
+1163. Fix XAA 14 pixel width fonts (#1699, Mark Vojkovich).
+1162. Fix XAA CopyGC crash (#1698, Mark Vojkovich).
+
+XFree86 3.9ji (23 May 1998)
+1161. MGA Support for the new XAA code (#1697, Mark Vojkovich).
+1160. New XAA code (#1695, 1696, Mark Vojkovich).
+1159. Millennium 2 (inc AGP) support for the mga driver (#1697,
+      Mark Vojkovich).
+
+XFree86 3.9jh (22 May 1998)
+1158. Fix 'Unknown symbol type 1e' messages in the a.out loader
+      (#1683, Matthieu Herrb).
+1157. Loader updates, including Alpha and PowerPC support (#1467, 1666,
+      Metro Link).
+1156. Add '-Wall' to gcc compile options
+1155. Add Xarch.h (#1399, Metro Link).
+1154. Resync libc/ansic wrappering.
+
+XFree86 3.9jg (3 May 1998)
+1153. Remove ilbm's call to miRegisterGCPrivateIndex(), which no longer
+      exists (#1670, Marc La France).
+1152. Fix problems with mi generic functions in mibank (#1670,
+      Marc La France).
+1151. Symbolically link xf86_ansic.h so osPexFont.c can #include it
+      (#1670, Marc La France).
+1150. Fix opaque types in xf86_libc.h (#1670, Marc La France).
+1149. Fix a typo in mibank which makes miScanLineWidth() always fail.
+1148. Fix various missing symbols that show up when attempting to use
+      non-dlopen modules.
+
+XFree86 3.9jf (18 April 1998)
+1147. Add xf1bpp framebuffer for use by vga2 and mono (i.e. hga2)
+      drivers.  This is just a copy of mfb compiled for the bitmapScanlinePad
+      and bitmapBitOrder needed by these hardware framebuffers (#1636,
+      Marc La France).
+1146. A mode that fails validation (for whatever reason) no longer
+      affects the resulting virtual resolution (#1636, Marc La France).
+1145. miScanlineWidth() is now passed the hardware plane pixmap format
+      rather than nBankBPP (the harware plane bpp) and nPixelBPP (the
+      "total" bpp), and have xf86ValidateModes() call miScanLineWidth()
+      to determine an appropriate line pitch for the virtual resolution
+      requested (#1636, Marc La France).
+1144. Remove the helpers' concept of pixelArea as this can be derived
+      from videoRam and bitsPerPixel, express pitchInc in bits, and
+      pass apertureSize to mode validation helper (#1636, Marc La France).
+1143. Introduce the new mi banking wrapper (not yet used) (#1636,
+      Marc La France).
+1142. Make each screen keep track of the pixmap formats and display-
+      wide attributes it needs in its ScreenInfoRec.  InitOutput()
+      can then ensure consistency before adding the screens to the
+      display (#1636, Marc La France).
+1141. Use low-level backing store functions to save/restore the
+      screen during VC switches (doesn't work with vga16) (#1636,
+      Marc La France).
+1140. Move a copy of the backing store low-level function pointers
+      into the ScreenRec.  This allows them to be wrapped (#1636,
+      Marc La France).
+1139. Rename [GS]etRootPixmap screen entries to [GS]etScreenPixmap
+      and add [GS]etWindowPixmap entries.  Some may not be needed and
+      can be removed later (#1636, Marc La France).
+1138. Remove cfbScreenInitLong() entries.  They are not needed since the
+      RGB ordering and masks can be fixed after calling cfbScreenInit()
+      (#1636, Marc La France).
+1137. Fix the saving and restoring of PSZ #define in cfb??.h headers,
+      add copyright notice to them, and get right Imakefile to include
+      them in the link kit (#1636, Marc La France).
+1136. Fix oversight in 1133 (#1636, Marc La France).
+1135. Some include file fixes (#1539, Marc La France).
+
+XFree86 3.9je (14 February 1998)
+1134. Move framebuffer ModuleInit funtions into separate files (#1475,
+      Marc La France).
+1133. Move the following GC privates to the GC structure proper:
+      pRotatedPixmap, pCompositeClip, fExpose, freeCompClip.  This is in
+      preparation for the banking mi wrapper (#1451, Marc La France).
+1132. Minor bug fix to mfb and afb framebuffers (#1443, Marc La France).
+1131. Ensure window and GC privates are aligned on a sizeof(long)
+      boundary (#1442, Marc La France).
+1130. Minor optimisation of cfb's ImageGlyphBlt entry, required for
+      the new banking code (#1431, Marc La France).
+
+XFree86 3.9jd (1 February 1998)
+1129. Update the generic VGA driver for these changes (David Dawes).
+1128. Flesh out and update the design document, and add it to the source
+      tree (in xc/programs/Xserver/hw/xfree86/DESIGN) (David Dawes).
+1127. Working non-accel MGA driver (Millennium I only) (David Dawes).
+1126. Update parser (from Metro Link).
+1125. Fill in some missing bits of infrastructure, and fix some bugs there
+      (David Dawes).
+
+XFree86 3.9jc (16 January 1998)
+1124. A start at modifying non-accel MGA driver for new design (David Dawes).
+1123. Pick up multimedia/video PCI devices in xf86GetPCIVideoInfo()
+      (David Dawes).
+1122. Fix some header usage and missing prototypes (David Dawes).
+1121. Continue filling in missing bits of the new design infrastructure
+      (David Dawes).
+1120. Get the generic vga driver working (using dll modules on FreeBSD)
+      (David Dawes).
+1119. Reorganise the vgahw module (David Dawes).
+
+XFree86 3.9jb (25 September 1997)
+1118. Continuation of 1117.
+
+XFree86 3.9ja (29 July 1997)
+1117. Start converting the generic vga driver to the new design (Dirk Hohndel,
+      David Dawes).
+1116. Add flags to allow to build some modules as shared objects (Dirk Hohndel).
+1115. Fix dll loader to work on Linux (and re-fix it to work on FreeBSD
+      again) (Dirk Hohndel, David Dawes).
+1114. Add helper functions for various stages of the server (David Dawes,
+      Dirk Hohndel).
+1113. Add glue code to interface with new parser and create internal data
+      structures (David Dawes, Dirk Hohndel).
+1112. Split up vga256/vga into vgahw and vgafb (Dirk Hohndel).
+1111. New parser for the config file (Stuart Anderson).
+1110. Start work on the new design.
+
+XFree86 3.9j (12 July 1997)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+$XFree86: xc/programs/Xserver/hw/xfree86/CHANGELOG.ND,v 1.3 1998/08/02 05:16:54 dawes Exp $

@@ -1,0 +1,1249 @@
+XFree86 2.1.1 (4 May 1994)
+ 36. Fix server crash on reset problem in Mach32 and S3 servers
+ 35. Fix typos in apollo driver
+ 34. Fix for Imake config problem on ISC 4.0
+ 33. ET3000 memory probe fix for SuperProbe
+ 32. Documentation updates
+ 31. Some updates for NetBSD-current
+
+XFree86 2.1.0B (26 April 1994)
+ 30. Disable accelerated text blit for Cirrus 543x
+ 29. Reorder some of the Bt485 code, and get clock doubling working again
+     without pixmux
+ 28. Disable the PIXMUX_SWITCH_HACK stuff -- it doesn't seem needed any more
+ 27. Fix image shift problem for pixmux on #9 cards (Robin Cutshaw)
+ 26. Fix initialisation bug for Cirrus 62{2,3}5 cards (Harm Hanemaayer)
+ 25. Remove 8514 monitor ID check in Mach8 server
+ 24. Updates to the NetBSD README (Matthieu Herrb)
+ 23. Hey Rocky, watch me unbreak the Compaq driver... This time for sure...
+
+XFree86 2.1.0Ab (16 April 1994)
+ 22. Rewrite of ATI SVGA driver (Marc La France)
+ 21. Add "no_bitblt" option for the cirrus driver
+ 20. Recognise the 5429 in the cirrus driver
+ 19. Disable interrupts while programming the ICD2061A
+ 18. sync-on-green support for the TI3020
+ 17. Move S3 clock doubler setting from icd2061ClockSelect() to s3Init()
+ 16. Fix dac_8_bit for Bt485 cursor, and fix Bt cursor blanking problem
+ 15. SuperProbe updates
+
+XFree86 2.1.0Aa (10 April 1994)
+ 14. BDM2 apollo driver (Hamish Coleman)
+ 13. S3 support for switching between pixmux and non-pixmux modes
+     (Amancio Hasty)
+ 12. S3 pixmux support for STB Pegasus, and cleanup of pixmux and icd code
+     (Leonard Zubkoff)
+ 11. Change "fifo_conservative" setting for CLGD543x
+ 10. Updates for NetBSD-current, including bumping shared lib revs
+
+XFree86 2.1.0A (7 April 1994)
+  9. Don't reserve video memory for HW cursor on S3 when using a RAMDAC cursor
+  8. Allow the "8clocks" option to force 9 clocks instead of 17 on WD90C3{0,1}
+     cards
+
+XFree86 2.1.0a (6 April 1994)
+  7. Fix some DEALLOCATE_LOCAL problems in accel servers
+  6. Support for Bt485 on #9 cards (Robin Cutshaw)
+  5. Fixes for Cirrus driver (Harm Hanemaayer)
+  4. Fix for text restore problem on some S3 cards (Jon Tombs)
+  3. Workaround for Mach32 detection problem on some platforms
+  2. Fix incorrect usage of $(DESTDIR) in some lnuxLib.rules and x386.cf rules
+  1. Code to detect 928-P (Harald Koenig)
+
+XFree86 2.1 (11 March 1994)
+151. OS README updates (affect individual OSs only)
+150. Fix AltGr handling for Linux (affects Linux only)
+149. Comment out the unused s3Save() and s3Restore() functions -- a typo in
+     some unreachable code may cause problems with some compilers (should not
+     affect any OSs)
+148. Linux compile-time fix for fonts/PEX/lex.l (affects Linux only)
+147. Late cirrus fix for large tiles
+146. Fix for LinkKit site.def and Imakefile (remove dbm references)
+
+XFree86 2.0Z (8 March 1994)
+145. Fix text/graphics mode switching for pixmux with SPEA Mercury.  This
+     code is now reasonably stable (interlace support is still absent though)
+     (Norbert Distler)
+144. Fix for cirrus stipple fill when virtual width is not a multiple of 32
+143. Linux keyboard updates
+
+XFree86 2.0Ce (7 March 1994)
+142. Preliminary support for Bt485 pixel multiplexing on the SPEA Mercury
+     card (Norbert Distler)
+141. More documentation updates
+140. SuperProbe updates (ATI and Weitek fixes)
+139. Fix for second MB cirrus BitBLT but -- BitBLT now turned back on for
+     2MB cards (Wolfgang Jung)
+
+XFree86 2.0Cd (6 March 1994)
+138. Default to building shared libs for FreeBSD
+137. Updates to cirrus driver: (Harm Hanemaayer)
+      New Option flag "no_2mb_banksel" for cards that have 2MB in the form
+        of 512kx8 DRAMS (4 chips)
+      Disable BitBLT engine use when using more than 1MB because there
+        are problems
+      New text bitmap transfer code
+136. Documentation updates
+135. Fix mi/cbrt.c so it handles negative arguments.
+
+XFree86 2.0Cc (5 March 1994)
+134. Update x386/etc/console.h to current version
+133. Some documentation updates (including removing README.XS3)
+132. Updates to cirrus driver: (Harm Hanemaayer)
+      New option flags "fifo_conservative" and "fifo_aggressive" to
+        control the CRTC fifo threshold.
+      Reduce clock limit for the 5420
+      Remove accelerated PolyGlyphBlt -- it causes problems
+131. Modify pvga1 driver to detect the 90C24 and treat it as a 90C30
+130. Support for the SC15025 RAMDAC in 8-bit/RGB mode (requires
+     the "sc15025" and "dac_8_bit" options) (Helmut Geyer)
+129. Fix vga colourmap save/restore when using a RAMDAC in 8-bit mode (Helmut
+     Geyer)
+
+XFree86 2.0Cb (3 March 1994)
+128. Fix for "snow" problems on WD90C3x cards with 80MHz clock (Anders Bostrom)
+127. Fixes for compilation problems on Mach and ISC
+126. Support for 8-bit/RGB for the AT&T 20C490/491 ramdacs (S3 server).
+     There is no auto-detect, so the "att_20c490_1" Option must be
+     specified (together with the "dac_8_bit" Option)
+125. Added some sample patches from Gertjan Akkerman which document some
+     useful changes which could me made to the VGA16 server (these are
+     in x386/vga16/doc/).
+124. Fix Mach8 and Mach32 server hang when run on a card with no Mach chip
+123. Update xterm's terminfo file
+122. Install mit/config/README in lib/X11/config
+121. Modify Trident driver to recognise the 9000i, 9200CX, 9100B and 9420
+     chipsets.  The first is treated as a 9000, and the last three are
+     treated as a 8900CL.
+
+XFree86 2.0Ca (2 March 1994)
+120. Fix CR60 setting for clocks > 100MHz (S3 server)
+119. Fix cirrus compilation on SVR4, and bsd_init.c typo
+118. Enable Home/End esc sequences for xterm on all OSs
+117. SuperProbe register unlock fixes
+
+XFree86 2.0C (1 March 1994)
+116. Allow the MIT-SHM extension to be disabled at run-time on BSD systems
+     when kernel support for sysv-shm isn't present
+115. Enable Home/End esc sequences for xterm (Linux only -- should this be
+     extended?)
+114. Set default xterm tty parameters to reasonable values (fixes problems
+     seen when using xdm)
+113. gccmakedep fix (David McCullough)
+112. Special-case code for lines where this is one rectangle in the clip
+     region -- for Mach32 (Craig Groeschel)
+111. Update to compaq probe code -- hopefully this will reduce the number
+     of false positives
+110. Major updates to SuperProbe
+109. Cirrus driver patches
+
+XFree86 2.0Bb (27 February 1994)
+108. Removed experimental "cr60=..." options (S3), and made CR60=0xFF
+     the default setting.  The "dram_{slow,med,fast}" options still remain
+     as un-documented options (just in case).
+107. Manual page updates
+106. Support for linear fb location on Mach32 PCI cards
+105. Include Solaris x86 "aperture driver" (Doug Anson and David Holland)
+104. Updated Thomas Wolfram's SVR3 mmap driver to version 2.2.3
+103. Allow the MemBase setting in Xconfig specify the high 5 bits of the
+     4MB aperture address for the Mach32 server, and the high 6 bits of
+     the LAW address for the S3 server
+
+XFree86 2.0Ba (25 February 1994)
+102. Fix/speedup for window->pixmap part of CopyPlane() in the accel servers
+101. Fix bits per RGB reported for S3 server when using 8bpRGB
+100. Modify code for determining when pixel multiplexing is required for
+     the S3 server, and restrict the DisplayWidth to either 1024 or 2048 when
+     pixel multiplexing is used
+ 99. Preliminary support for the SC11412 clock chip used on the SPEA Mercury
+     (S3).  Use 'Clocks "sc11412"' to select this (Norbert Distler)
+ 98. "icd2061a" now uses the "icd2061a_slow" clock setting algorithm.
+     The name "icd2061a_slow" will be dropped in the release after 2.1
+ 97. Fixes for zero-width arcs for the VGA16 server (Gertjan Akkerman)
+ 96. Support for David Holland's "aperture driver" for linear fbs on Solaris
+ 95. Fix Solaris panic when no free VTs are available
+ 94. Much-enhanced accelerated support for Cirrus chips (Harm Hanemaayer)
+ 93. Support for up to 17 clocks on WD90C3x cards (Anders Bostrom)
+ 92. Fix for Compaq avga driver
+ 91. Keyboard updates to handle Linux' key remapping (Orest Zborowski)
+ 90. README for Solaris (David Holland)
+
+XFree86 2.0B (21 February 1994)
+ 89. Possible fix for Bt probe problem that some people see
+
+XFree86 2.0Ab (19 February 1994)
+ 88. Combine DRAM and non-DRAM mach8 image assembler code into single files
+     with #ifdefs
+ 87. Fix for hga2 driver to prevent it from blanking MDA displays when
+     swithching back to text mode
+ 86. Code to explicitly recognise the *BSD PCVT console driver
+ 85. Preliminary support for the S3 805i in interleaved mode
+ 85. Fix for single-bank SVGA bitblt code (Giovanni Novelli)
+ 84. Fix alu usage in mach32CopyArea() (Craig Groeschel)
+ 83. Fix dash line support in Mach32 server (Mike Bernson)
+
+XFree86 2.0Aa (13 February 1994)
+ 82. S3 "No_Bt485" and "No_Ti3020" options have been replaced by "Normal_DAC",
+     and a "20C505" option has been added
+ 81. ATI text restore fixes for Mach32 server (Ton van Rosmalen)
+ 80. Planemask fixes for Mach32GetImage() (Craig Groeschel)
+ 79. Prevent S3 Ti cursor from being turned on when the screen is blanked
+ 78. No longer define __386BSD__ for BSD/386, NetBSD, FreeBSD.  Change
+     the FreeBSD define from -DFreeBSD to -D__FreeBSD__.  Code outside
+     ddx/x386 now uses the value of BSD (from <sys/param.h>) and for
+     code below ddx/x386, __BSD__ is defined for all the x86 BSD OSs
+ 77. Rewrite of Mach32 memory detection code (Mark Weaver)
+ 76. Set clock-doubler cut-in to 67.5MHz for Bt485 and 90MHz for AT&T 20C505
+ 75. Add ClearRTS option (some mice seem to need it)
+ 74. Mach8 server now uses a 1024 line pitch (regardless of virtualX) for
+     cards with 1MB
+ 73. Support for bank switching with the VGA16 server. Staticgray and
+     Grayscale visuals added to the VGA16 server (Gertjan Akkerman)
+ 72. Slowed down image routines for DRAM based Mach8 cards (Hans Nasten)
+ 71. Improvements to solx86 in/out assembler code, and removal of the
+     broken ProworksMOption
+
+XFree86 2.0A (15 January 1994)
+ 70. Increase Bt485 clock-doubler cut-in point from 67.5MHz to 90MHz.  This
+     should fix the "flashing pixel" problem many have reported
+ 69. Mach8 font cache performance updates
+ 68. Update assembler code and SuperProbe Makefile.std for the ProWorks
+     compile on Solaris x86
+ 67. Ti3020 probe code for SuperProbe (Robin Cutshaw)
+ 66. Fix Mach32 server to recognise PCI cards
+
+XFree86 2.0g (9 January 1994)
+ 65. Clock probe code for Mach32 server
+ 64. Support for TI3020 ramdac for S3 server (Robin Cutshaw)
+ 63. Fix server crash problem if reset occurs when VT switched away
+ 62. Make accel servers honour the -dpi flag
+ 61. Mach8 font cache updates
+ 60. Support for the ProWorks compiler on Solarix x86
+ 59. Add memory probe to SuperProbe (only for a couple of chipsets so far)
+ 58. Support for display widths of 640, 800 and 2048 with S3 server
+ 57. Generalise S3 HW cursor memory allocation -- fixes problems that showed
+     up with some virtualY/displaywidth combinations, and will work for
+     display widths < 1024
+
+XFree86 2.0f (27 December 1993)
+ 56. Fix mach32RecolorCursor() SIGSEGV when VT switched away
+ 55. Possible fix for cases where the S3 linear fb probe fails the first
+     time the server is started but succeeds on subsequent times
+ 54. Updates to Mach32 memory probe
+ 53. Fixes for ATI SVGA save/restore code (Ton van Rosmalen)
+ 52. Fix xman's handling of nroff bullets and bolding (Rich Murphey)
+ 51. Mach8 font cache updates (Hans Nasten)
+ 50. Mach32 HW cursor fixes (Mark Weaver)
+ 49. Change "makedepend" for systems with gcc to use "gcc -M" (based on
+     code from Hongjiu Lu).  This is much slower than the other version,
+     and maybe should be disabled by default for !UseInstalled
+
+XFree86 2.0e (18 December 1993)
+ 48. SuperProbe updates (details in SuperProbe/ChangeLog)
+ 47. Imake updates for NetBSD
+ 46. Ramdac multiplexing for Mach32 cards with TLC34075 (and ATI68875?)
+     ramdacs (Mike Bernson)
+ 45. Imake changes to allow easy building of just the servers with a
+     cut-down source tree
+ 44. Fix ClearDTR -- now it clears *only* the DTR line
+
+XFree86 2.0d (11 December 1993)
+ 43. Xconfig keyboard option: VTSysReq to enable SVR4-style VT switching
+     sequence on Linux and *BSD+syscons
+ 42. Solaris 2.x x86 support (David Holland, Doug Anson)
+ 41. Accelerated dline and dseg for Mach32 (Mike Bernson)
+ 40. Accelerated non-cache text code for Mach8 (Hans Nasten)
+ 39. VirtualY limit removed for Mach8 (cache can be disabled)
+ 38. Dynamic allocation for font cache for Mach8 (Hans Nasten)
+ 37. New GetImage for Mach32 (Mike Bernson)
+ 36. Support for linear fb on *BSD with mmapable /dev/mem
+ 35. Preliminary support for 1152 width on Rev C 801 and Rev E 928, and
+     1600 width on Rev E 928 in S3 server
+
+XFree86 2.0c (3 December 1993)
+ 34. Support for 8-bit/gun for Mach32 server (Craig Groeschel)
+ 33. New GetImage() for Mach8 and 8514
+ 32. Fix error message printed when no appropriate graphics sections are
+     present in Xconfig
+ 31. Add a "fb_debug" option to the S3 server
+ 30. MemBase Xconfig parameter added to allow the fb base address to be
+     specified.  This is currently used only by some bdm2 drivers
+ 29. Support added to bdm2 for Visa board (untested)
+ 28. HGC-1280 now supported on both primary and secondary addresses
+ 27. Sigma L-View driver tested and works now
+ 26. Code from ATI to work around memory probing problems with some Mach32
+     chips (untested)
+ 25. Workaround for some 2MB DRAM ATI cards (eg, CLX).  This allows the
+     VideoRam amount specified in Xconfig to override the detected value
+ 24. Support for NetBSD/FreeBSD shared libraries (John Brezak & ??)
+ 23. Add option "intel_gx" to handle linear fb on Intel GX/Pro (Mach32)
+ 22. Composite sync support for Mach8
+ 21. Allow linear fb for EISA S3 cards
+ 20. Fix s3RecolorCursor() SIGSEGV when VT switched away
+
+XFree86 2.0b (14 November 1993)
+ 19. Add virtualY <= 896 check to Mach8 server
+ 18. Restore settings for VGA aperture mapping if linear fb access fails for,
+     S3.  Also restore those registers at exit
+ 17. Merge in MIT fix-26 (mainly xterm security patch)
+ 16. Fix S3 interlaced modes with VTotal > 1025.
+ 15. Hack for 1280x1024 on S3 801 with 110MHz clock
+ 14. Composite sync support for Mach32 (Todd Pfaff)
+
+XFree86 2.0a (9 November 1993)
+ 13. Speedup for aligned <=16 bit wide stipple ops for Mach8 and 8514
+ 12. Fix NULL dereference when ModeDB is empty (Bill Metzenthen)
+ 11. make mit/rgb consistent with the server's usage of it.  showrgb can now
+     read rgb.txt directly, and [sng]dbm is no longer required
+ 10. Attempt to clean up strerror() vs sys_errlist[] usage outside ddx/x386
+  9. Disable saving the Tek screen to a file in xterm -- a quick hack to
+     get around another security problem.  An official X Consortium fix
+     should be available soon
+  8. Fix vgaFasm.h so it works for gcc2 with '-traditional'
+  7. Fix clock probing problem in pvga1 driver
+  6. Fix typo in xf86_OSlib.h
+  5. Fix ClockProg informational message
+  4. Truncate clock values to MHz resolution when checking against the limit
+  3. Fix bug in LinkKit Imakefile
+  2. Fix malloc problem in the PEX font reader
+  1. Some documentation fixes
+
+XFree86 2.0 (24 October 1993)
+247. Documentation finalised
+246. Fix for VT switching problem with Mach32 server
+
+XFree86 1.9Za (23 October 1993)
+245. Documentation updates
+244. Fix bug in backing pixmap used for VT switching with the S3 server
+243. Fix typo which prevented nomemaccess being turned of when a localbus
+     S3 card is used without linear fb mapping
+
+XFree86 1.9Z (18 October 1993)
+242. Code freeze for 2.0.  Docs still not finished
+241. Disable linear fb mapping for BSD/386 since it doesn't appear to work
+240. Fix for dline bug in Mach8 and 8514 servers
+239. Updates to ati SVGA driver
+238. SCO doc updates
+237. Allow "nolinear" Option for Mach32 server
+
+XFree86 1.9Fe (17 October 1993)
+236. Fix S3 cursor problem when panning
+235. Mach32 HW cursor fixes
+234. Include Accel cards db
+233. Fix video mmap problem with *BSD
+
+XFree86 1.9Fd (17 October 1993)
+232. Add undocumented "showcache" Option for the S3 server
+231. Fix ALLOCATE_LOCAL/DEALLOCATE_LOCAL problem in S3 server
+230. Fix multi-screen I/O permission bug on SYSV
+229. SVR3 version of IOPL kernel patch (required for ISC 2.0.2)
+228. Get xload's compiled-in kernel name from <paths.h> for BSD
+227. Fix some compilation-related problems
+226. Sigma Lview driver doesn't work, so removed references to it
+225. DAC_MASK save/restore for 8514 server
+
+XFree86 1.9Fc (16 October 1993)
+224. Stipple and colour mapping fixes for vga16
+223. Fix for Mach8 VT switching problem
+222. Include README.Bsdi
+221. Fix SEGV in s3WarpCursor when VT not active
+220. Don't use kbd_mode for BSDI
+
+XFree86 1.9Fb (13 October 1993)
+219. Mach32 HW cursor colouring fixes (still not quite right)
+218. Change Mach8 clock probing to measure the divided-by-4 values only
+217. Correct fix for problems when some cards are in mono address mode
+216. Fix sync polarity problem with S3 server
+215. Update kbd_mode for syscons
+214. Add "memaccess" option (for S3) so that mem access can be forced on
+     for localbus cards when the linear framebuffer can't be mapped
+
+XFree86 1.9Fa (9 October 1993)
+213. 1-pixel segments fix for Mach8
+212. Trap virtual screen sizes which are too large for Mach32
+211. Turn off Mach32 HW cursor if insufficient videoram
+210. Some documentation updates
+209. Move clock limit definitions so that they can be changed when using
+     the LinkKit
+208. SuperProbe updates
+207. Fix mis-detection of ATI cards by the compaq driver
+206. Fix hard-coded path in xdpr script
+205. Print max clock before resolving modes
+204. Fix CRTC setting procedure for Mach32
+
+XFree86 1.9F (4 October 1993)
+203. Limit clock to 80MHz for Mach8 and Mach32
+202. Mach32 HW cursor fixes and mach32im cleanup
+201. Cleanup startup messages in Mach8 and Mach32 servers
+200. Disable xterm logging by default, and provide a safer(?) method of
+     opening the log file
+
+XFree86 1.9Ed (2 October 1993)
+199. Support for Cirrus 62x5 chips (Prof. Hank Dietz)
+198. Clean up handling of 'volatile', etc for 'gcc -traditional'
+197. Merge Mach8 font cache fix into Mach32
+196. Default to probe for 4 clocks on pvga1 cards
+195. Remove implicit assumption that certain mouse protocols are only used
+     by serial devices
+194. Updates/cleanups for bdm2 code
+193. Include SVR3 mmap and SCO dmmap drivers (in x386/etc)
+192. Change location of console.h to machine/ for FreeBSD
+191. Fix setting of AdmDir for *BSD
+190. Update GnuMalloc option.  Now it enables use of GNU malloc for clients
+     as well as the servers
+189. Patches for Amoeba
+188. Fix for OAK crash with SVGA server
+187. Fix for ATI SVGA restore problem
+186. HW cursor for Mach32 (Mike Bernson)
+185. Option checking in other accel servers
+
+XFree86 1.9Ec (1 October 1993)
+184. Option checking in S3 server
+183. Fix default colour visual handling for accel servers
+182. Add checking of clock limits
+181. Clean up s3Init()
+180. Fix to allow SVR3 shared libs to build when using gas
+
+XFree86 1.9Eb (29 September 1993)
+179. Updates to syscons support (requires lastest console.h  -- which is now
+     included in ddx/x386/etc)
+178. Fix for colourmap restoration problem with 8514/A cards
+177. Updates to Bt485 code
+
+XFree86 1.9Ea (28 September 1993)
+176. Man page updates
+175. Modify "number9gxe" option to use the Bt485's clock doubling for clocks
+     higher than 67.5Mhz
+174. Alternate ICD clock selection code.  Enable it with
+     'Clocks "icd2061a_slow"'
+173. site.def cleanup
+172. Fix Bt485 Cursor support
+171. Update syscons support
+170. Fix for S3 font cache server crash problem
+169. Fix for S3 xqueue problems when operating in linear mode
+168. Fix for S3 928 localbus problem
+167. Fix SuperProbe's graphics co-processor detection, and add code to detect
+     Bt485 on S3 cards.
+166. Fix text problems in Mach8 and 8514 servers
+165. Image read/write fix for Mach32
+
+XFree86 1.9E (23 September 1993)
+164. Support for the syscons driver on *BSD (S|ren Schmidt)
+163. Get/PutImage speedups for S3
+162. Accelerated image text for non-cached fonts (S3)
+161. Image read/write speedups for Mach32
+
+XFree86 1.9Dc (22 September 1993)
+160. Hooks added for HW cursor support on SVGA cards
+159. Support for ISC 4.0
+158. Accel text functions for non-cached fonts (S3 server)
+157. Fix problems with vga sequencer not being turned off in the right places
+156. Support for dmmap driver for SCO
+155. Oak driver (from Steve Goldman)
+154. Updates for Minix
+
+XFree86 1.9Db (21 September 1993)
+153. Accelerated WD90C31 support (Mike Tierney)
+152. Updates to ImageStipple code for Mach8 and 8514
+151. Fix for memory leak in mi backing store (Amancio Hasty)
+150. Accelerated Cirrus support (Simon Cooper and Bill Reynolds)
+149. Accelerated dline for Mach8 and 8514 (from Tiago Gons)
+148. Fixes for localbus 928
+147. Modify server to use rgb.txt directly and create an internal hash table
+     (from Thomas Roell)
+146. SuperProbe updates
+145. Fix cursor recolour problems in S3 server
+144. Use uname/gethostbyname for cases where SIOCGIFCONF fails
+
+XFree86 1.9Da (18 September 1993)
+143. ImageStipple speedup for Mach8 and 8514 (from Hans Nasten)
+142. Reorganise man page installation details for *BSD
+141. Fix various minor bugs
+
+XFree86 1.9D (15 September 1993)
+140. Use non-MAP_FIXED for mmap on Linux -- requires latest kernel
+139. dseg for S3
+
+XFree86 1.9Cf (14 September 1993)
+138. line updates for S3 (including dline)
+137. Support for Thomas Wolfram's mmap driver for SVR3
+136. Config changes to support NetBSD and FreeBSD
+135. Correct fix for SIOCGIFCONF on *BSD (from Mark Davies)
+134. Use Jerry Whelan's BSDselect() for SVR4 in libXt and libXbsd
+133. CopyPlane() for Mach32 server
+132. Include Berkeley str{,n}casecmp() in libXbsd
+131. Sigma LView driver for bdm2 (untested)
+130. OsMouse support for SCO (uses the SCO event driver)
+
+XFree86 1.9Ce (9 September 1993)
+129. Improve reliablilty of mmio code (thanks Thomas)
+128. Fix xdm-related server crash on Linux
+127. Support for 4MB aperture with EISA Mach32 cards
+126. CopyPlane() for 8514 server
+125. Fix "xfig" problem in accel servers
+124. Fix GetImage and PolyText in accel servers
+123. Fix problem with VT-switching and server reset
+122. Fix some more cfb.banked bugs
+
+XFree86 1.9Cd (5 September 1993)
+121. Fast image read/write for 8514 server
+120. Mmio support for 928 in S3 server
+119. Fixes for BT ramdac HW cursor (S3) (still doesn't work)
+118. CopyPlane() fixes for S3
+117. Speedup for PolyPoint() in Mach8 (and others)
+116. Fix for lines in accel servers -- now match cfb lines.
+115. CopyPlane()
+
+XFree86 1.9Cc (2 September 1993)
+114. Fix auto-repeat trapping of lock keys
+113. Support BT485 ramdac's HW cursor (S3 server) (doesn't work yet)
+112. Use mmap for BIOS access on SVR4
+111. Only protect page 0 for SVR4 when the -protect0 flag is given.  It makes
+     cores less useful
+110. bdm2 (banked dumb mono) fb/driver (from Pascal Haible)
+109. Fast image fill for Mach8 (from Hans Nasten)
+108. Update shared-lib version numbers for Linux
+107. Split bsdi os-support from 386BSD -- little code was common
+106. Modify s3Init() code to use vgaHWInit()
+
+XFree86 1.9Cb (28 August 1993)
+105. Fast image read/write for Mach8 (from Hans Nasten)
+
+XFree86 1.9Ca (28 August 1993)
+104. Default to NoMemAccess for S3 localbus cards on OSs that don't
+     support linear videomem mapping
+103. Add QueryBestSize() for S3
+102. Protect page 0 for SVR4 (to help find NULL pointer dereferences)
+101. Fix ChordMiddle
+100. Fix some compilation problems with vga16
+ 99. vga16 fix for OpaqueMove bug
+ 98. Work around GNU make's "different" default dependency handling.
+     Dependencies should now work reliably with GNU make.
+ 97. Fast CopyPlane() for S3 server
+ 96. Fix I/O port handling to deal with multiple screens
+ 95. Mach8 updates
+
+XFree86 1.9C (25 August 1993)
+ 94. Updated video mem <-> main mem copy code to get better performance on
+     localbus cards
+ 93. Alternate fix for xqueue with S3 (previous fix degraded performance too
+     much)
+
+XFree86 1.9Be (25 August 1993)
+ 92. SIOCGIFCONF fix for ISC in xdm
+ 91. Mach support for mapping arbitrary video memory
+ 90. Fix for performance problems in S3 server
+
+XFree86 1.9Bd (24 August 1993)
+ 89. Updated version of Xconfig/probe info
+ 88. Update libXt jump entries for Shm on Linux
+ 87. Another S3 cursor update
+ 86. Use mmap() for mapping framebuffer on SVR4
+ 85. Localbus linear mapping for S3 (tested only on Linux)
+
+XFree86 1.9Bc (23 August 1993)
+ 84. SuperProbe update
+ 83. Improve picture stability when using high clocks (S3)
+ 82. Get memory detection right for S3 911
+ 81. Change localbus wait states for S3
+ 80. Go back to the MAP_FIXED mmap for Linux, added xf86UnMapVidMem()
+ 79. S3 cache updates and cursor changes
+
+XFree86 1.9Bb (21 August 1993)
+ 78. Fix S3 server crash if it exits when its VT isn't active
+ 77. Indicate where information in server startup messages comes from (ie
+     whether from Xconfig or by probing, etc)
+ 76. Fix ATI/Mach probing in SuperProbe
+ 75. Fix S3 cursor "shadowing" in interlaced modes
+ 74. Fix problems with the S3 server when using xqueue
+ 73. 16-colour generic VGA server (from Gertjan Akkerman)
+
+XFree86 1.9Ba (18 August 1993)
+ 72. Support for a Hitachi Puma Plus digitising tablet's 4-button puck
+     (from Randy Terbush)
+ 71. Mouse "ChordMiddle" option.  This is for a 3-button mouse which
+     generates left+right events when the middle button is used.  This is
+     for Microsoft protocol only (from Ted Goldblatt)
+ 70. Reorganise the way SpeedUp options are handled so that the speedup code
+     is only linked into the server when the appropriate chipset driver is
+     included.
+ 69. Fix inb/inw inlines for gcc without gas
+ 68. Code to use memory to the right of the screen for caching (S3)
+ 67. Various compilation-related fixes
+
+XFree86 1.9B (16 August 1993)
+ 66. Fix memory leak on server reset
+
+XFree86 1.9Ai (16 August 1993)
+ 65. Fix LinkKit
+ 64. Cirrus driver was ignoring clocks when a VideoRam line is specified
+ 63. Fix VT switching for Mach8 and ibm8514 servers
+ 62. Fix server reset for S3 server
+ 61. Fix problems in mach32ImageFill for virtual width != 1024
+ 60. Text save/restore added to Mach32 server
+
+XFree86 1.9Ah (15 August 1993)
+ 59. Updates to SuperProbe so it can detect the latest S3 chip revisions
+ 58. VT switching support for the S3 server
+ 57. Fix for S3 image write problems with screen width 1024 & 2MB videoram
+
+XFree86 1.9Ag (14 August 1993)
+ 56. Another stipple fill fix in cfb.banked
+ 55. S3 clock select fixes -- allows clock probing to work
+ 54. Fix initialisation of miCacheFreeSlot
+
+XFree86 1.9Af (13 August 1993)
+ 53. Allow programmable clocks to be specified with 'Clocks "prog_clk_type"'
+     in Xconfig.
+ 52. Virtual size fixes for S3
+
+XFree86 1.9Ae (13 August 1993)
+ 51. Extended I/O and IOPL handling for BSDI.
+ 50. Set virtual size for S3 if not given.
+
+XFree86 1.9Ad (13 August 1993)
+ 49. Imake config updates
+ 48. Created libxf86_hw in common_hw, and moved clock probe code there.
+ 47. XF86_Mach8 and XF86_8514 compilable.
+
+XFree86 1.9Ac (12 August 1993)
+ 46. S3 updates (diff15)
+ 45. XF86_Mach32 compilable
+
+XFree86 1.9Ab (11 August 1993)
+ 44. XF86_S3 compilable and runnable on Linux
+ 43a Cirrus driver updates (including fix for line problem)
+ 43. Fix problem in Xlib compose-key code that caused auto-repeat problems
+     on some SVR4.
+ 42. Keep /dev/console open for pccons on 386BSD to work around keyboard
+     hanging problem (from Mark Weaver)
+ 41. Fix for zero width horiz, vert lines with rop other than GXcopy, GXxor
+     (from Mark Weaver)
+
+XFree86 1.9Aa (6 August 1993)
+ 40. Include accel dirs (not compilable yet)
+
+XFree86 1.9A (4 August 1993)
+ 39. Fix authorisation for LOCALCONN connections on SYSV.
+ 38. OS-lib fixes
+
+XFree86 1.9e (1 August 1993)
+ 37. Make the ET4000 Option "force_bits" standard behaviour
+ 36. Fix problem of renderer config not being handled properly in the LinkKit
+ 35. Update screen configuration handling to better suit multiple servers.
+
+XFree86 1.9d (29 July 1993)
+ 34. Mach OS-lib fixes
+
+XFree86 1.9c (28 July 1993)
+ 33. Lots of SCO patches (including fixing the bogus window problem, xterm,
+     font server, PEX)
+ 32. SuperProbe updates (includes identification of AT&T RAMDACs and
+     detection of 8514/A and ATI Mach-xx chipsets)
+ 31. Fix for bug in cfbgetsp.c
+ 30. Include pixmap cache support in mi, mfb, cfb.
+ 29. SVR3/ISC updates for gcc 2.4.5
+ 28. Moved OS-specific parts of x386Io.c to the OS-lib
+ 27. OS-lib fixes.
+ 26. Converted the experimental ET4000 RCCONF code to an Option flag:
+     "fast_dram"
+ 25. Fix SIOCGIFCONF related problems in xdm, chooser and server/os/access.c
+     on SVR4 and 386BSD (thanks to Ian Donaldson and Peter Wemm).
+ 24. Support for easily adding multiple servers to server/Imakefile and
+     the LinkKit
+
+XFree86 1.9b (13 July 1993)
+ 23. Fix for interlaced support in the Cirrus driver
+ 22. OS-library added to separate out OS-specifics under ddx/x386
+ 21. Fix initialisation of supported pixmap formats
+ 20. Fix for authorisation on streams connections for SVR3
+ 19. Fix other line bugs (fLineH.s, suLine.s, suVHLine.s)
+ 18. Really make the horizontal panning symmetric
+ 17. Fix 2MB support on Cirrus 5426
+ 16. Fix line bug in non-speedup code (fLineBres.s)
+
+XFree86 1.9a (3 July 1993)
+ 15. Added support for BSDI's BSD/386 (from Hans Nasten)
+ 14. SuperProbe updates for C&T chipsets
+ 13. Make horizontal panning symmetric
+ 12. Allow Cirrus driver to address 2MB on the 5426 cards (not tested)
+ 11. Add ChipRounding to the vga ChipRec so that chip-specific rounding of
+     virtualX can be handled properly
+ 10. OSF/1 patches (Marc Evans)
+  9. Fix for xload problem on Linux
+  8. Fix for ATI text-mode font restore problem
+  7. Experimental code to set the RCCONF register on ET4000 cards (this is
+     only used if Et4000SetRCConf is set to YES in site.def)
+  6. Allow "black" and "white" colours to be specified in Xconfig for the mono
+     vga server
+  5. Fix Xconfig visual spec check for mono servers
+  4. Fixed some long file names (in extensions/lib/PEXlib, fonts/bdf/misc)
+  3. Fix xman bug introduced in 1.2Da
+  2. Fix bank-switching bug in cfbfillsp.c
+  1. Fix a couple problems that show up when using a XFree86 patched source
+     tree on non-i386 systems
+
+XFree86 1.3 (5 June 1993)
+98. Updates to ncr driver
+97. NCR imake config changes
+96. Docs updated for gzip extension change ".z" -> ".gz"
+95. Experimental "force_bits" option flag for ET4000
+
+XFree86 1.2Da (2 June 1993)
+94. Modify xman to use groff instead of nroff for Linux
+93. Modify xload to use /proc/loadavg for Linux
+92. Change ownership of /dev/console and /dev/tty0 for Linux
+91. Added xmodmap.std to the etc dir which lists the default key map in a form
+    that can be read by xmodmap(1)
+90. Various small SVR3 adjustments, and new README.SVR3
+89. Add a README for the LinkKit
+88. Support for banked mono in ET3000 driver (thanks to Joerg Wunsch)
+87. ET3000 probe changes
+86. README.Linux updates
+
+XFree86 1.2D (26 May 1993)
+85. Merge in MIT fix-25
+84. OSF/1 support is incomplete -- so remove references to it in the docs
+83. Add -keeptty flag to prevent server from detaching its controlling tty
+    (useful when debugging)
+82. Include support for 77C22E in ncr driver
+81. Set bank 0 for save/restore in trident driver [removed]
+80. Workaround for mouse loss when VT switching on SCO
+79. Compile-time support for SCO 3.2.4
+78. Don't include PEX in mono server (even when BuildPex is set) because it
+    only works for 8-bit PseudoColour
+77. Mach support for SuperProbe
+76. Various SVR3 shared lib fixes including fixes for AT&T SVR3.2, XDM auth
+    support and fixes for initialisation problems that showed up with Motif.
+75. Ignore SIGHUP in xterm for ISC 2.2.1, 3.0
+74. rgb/Imakefile fix
+73. Imake.tmpl updates for ISC
+
+XFree86 1.2Cb (19 May 1993)
+72. Code to slow down DAC access
+71. Possible fix for font restore bug on Linux and 386BSD (works for some
+    people, but not everyone)
+70. Merge in MIT fix-24
+69. Xosdefs.h mod for Mach
+68. Eliminate various compiler warnings with PEX
+67. Modify lndir to ignore directories called "CVS"
+66. Fix overscan restore problem when mode switching
+65. Fix a Cirrus-specific font/text restore problem
+
+XFree86 1.2Ca (16 May 1993)
+64. Fix for lndir to work with Linux (Gnu ls)
+63. Documentation updates
+62. Allow PEX to be turned on/off at link-time with the LinkKit
+61. Add "hibit_high" and "hibit_low" Option flags to handle some ET4000
+    cards when the server is started from a high-res text mode
+60. Fix screen corruption when mode-resolving fails (problem was introduced
+    in 1.2Bb)
+59. Fix to pvga1 driver for 90C11
+58. kbd_mode modified to be a no-op for codrv
+57. Imake.tmpl updates for SCO and OSF/1
+56. Remove need for <sys/ioctl_pc.h> with LinkKit on 386BSD
+
+XFree86 1.2C (8 May 1993)
+55. Modify Cirrus driver to set the reported clocks to the preset values
+    rather than probing them.  Probing can be forced with the "Probe_Clocks"
+    Option flag.
+
+XFree86 1.2Bb (6 May 1993)
+54. Compatibility support for codrv 0.1.1 (run-time only)
+53. Merge in OSF/1 support (from Marc Evans)
+52. Merge in SCO support (from David McCullough)
+
+XFree86 1.2Ba (4 May 1993)
+51. SuperProbe updates (can now be compiled with a K&R compiler)
+50. Compaq driver (from Hans Oey)
+49. Merge codrv and pccons support so that a single server can support
+    both
+48. Cirrus driver for CLGD542x cards (no accelerated support) (from Bill
+    Reynolds)
+47. Allow inline'd macros to be disabled for debugging purposes (by compiling
+    the video drivers with -DNO_INLINE)
+46. Print OS version in startup message
+
+XFree86 1.2B (19 April 1993)
+45. ET4000 text clock restoration modified -- maybe it will fix the problems
+    when restoring to a high res text mode
+44. Sample SVGA driver stubs and documentation added
+43. Xconfig option to specify VGA BIOS base address (not all are at 0xC0000)
+42. Major rewrite of tvga driver.  Now supports 8800CS, 8900B, 8900C, 8900CL,
+    9000 in all modes.
+41. Xconfig option to clear DTR after opening MouseSystems mouse (only for
+    SYSV, Linux, 386BSD)
+40. Change server names.  X386 -> XF86_SVGA, X386mono -> XF86_Mono.
+
+XFree86 1.2Aa (17 April 1993)
+39. SuperProbe will now find vga BIOS at addresses other than 0xC0000
+38. Support for building Linux shared libs (DLL version)
+37. Remove case-sensitivity of the Chipset option.
+36. Save and restore registers affected by clock probing
+35. Some more Xconfig validity checks
+34. Change 'Vendor' keyword in Xconfig to 'Option'
+33. Fix to make use of the RGBPath specified in Xconfig (this was pointed out
+    by Greg Hartman back in Sept)
+32. Use XWINHOME to specify ProjectRoot at run-time
+31. PEX patches for Linux
+30. libX11 shared lib problem fixed (for SVR4)
+
+XFree86 1.2A (3 April 1993)
+29. More pvga1/wd driver tuning, added rudimentary support for 90c20
+28. Improve overscan handling
+27. modeDB.txt updates
+
+XFree86 1.2e (27 March 1993)
+26. Minix/Amoeba updates
+25. New et3000 probe (to prevent tvga8900CL being falsly detected as et3000)
+24. More interlace tuning for pvga1 and tvga8900 drivers
+23. SuperProbe
+22. XDMCP fixes for Linux (and others)
+
+XFree86 1.2d (24 March 1993)
+21. Added support for Minix-386 and Amoeba (from Kees Verstoep)
+
+XFree86 1.2c (20 March 1993)
+20. Merged in MIT fix-23
+19. Support for 9th clock on WD90Cxx chips
+18. NCR 77C22 driver (from Stuart Anderson)
+17. Allow multiple Clocks lines in Xconfig
+16. Changes to external clock program code to handle VT switching better
+15. ISC 2.0.2 support (from Aki Atoji)
+14. Include driver source instead of objects in LinkKit
+
+XFree86 1.2b (1 March 1993)
+13. Improved ISC support for xman
+12. Improved handling of overscan colour
+11. Make the server's -pn option the default (compile time configurable)
+10. Hga2 support for 386BSD and Mach
+9.  pvga1 driver support for WD90C3x
+8.  Portable assembler macros (from Greg Sharp)
+7.  More flexible handling of Vendor strings in Xconfig
+6.  Store clock resolutions to nearest 1kHz.
+5.  Removed old SpeedUp version
+4.  Changes in LinkKit to handle distributions built with PEX support
+
+XFree86 1.2a (20 February 1993)
+3.  Xlib support for run-time selectable multiple LOCAL connection types
+    for SVR3, SVR4
+2.  Fix mapping problem when using codrv and a non-US keyboard mapping
+1.  Fix for TVGA interlaced modes
+
+
+XFree86 1.2 (8 February 1993)
+74. README updates
+73. ATI driver updates
+72. Banked mono doesn't work on ET3000 -- so turned off for that driver
+71. Merged in MIT fix-22
+70. Changes so that XFree86 patched source will build on other platforms.
+
+XFree86 1.1F (1 February 1993)
+69. Add check for presence of "Modes" line in Xconfig
+68. Add assembler code for byte-order swapping in mfb
+67. More svr3 shlib "tuning"
+
+XFree86 1.1E (26 January 1993)
+66. Change to pvga1 driver to get correct clock ordering for 90C30
+65. Fix linux problem building liboldX
+64. server locking to prevent clobbering of local connection pipes
+63. xhost fix for LOCALCONN
+62. Add missing svr3 shlib patches
+
+XFree86 1.1D (24 January 1993)
+61. Removed SVR3 shlib stubs from clients
+
+XFree86 1.1Ce (23 January 1993)
+60. SVR3 shared lib support (from Thomas Wolfram)
+59. Added Hercules driver (from Davor Matic)
+58. Re-map scancodes for Codrv so that the keycodes the server sees are the
+    same on all platforms
+57. Modify NumPad handling so that Shift works properly.
+
+XFree86 1.1Cd (13 January 1993)
+56. Commented out force VT disabling -- causes problems with Esix 4.0.3A
+55. Support for tvga9000 (from Gertjan Akkerman)
+54. Ignore FontPath in Xconfig when a FontPath is provided with the -fp option
+53. Support for new Linux VTs
+52. Turn off Alt-Sysreq-F (forced VT switch) by default for SYSV.  Added an
+    Xconfig option to prevent this disabling (AllowForceVT)
+51. X386keybd man page added
+50. mfb.banked fixes
+
+XFree86 1.1Cc (3 January 1993)
+49. tvga driver updates for banked mono
+48. Fixes to cfbblt, mfbblt for single-banked drivers
+
+XFree86 1.1Cb (1 January 1993)
+47. Added -verbose (default) and -quiet flags, and print out more information
+    in verbose mode
+46. Improved banking for mfb.banked
+
+XFree86 1.1Ca (30 December 1992)
+45. cmfb code (from Davor Matic), and an experimental mfb.banked
+44. Flush mouse input after opening
+43. Fix problem starting X from within an X session
+
+XFree86 1.1C (23 December 1992)
+42. Added -probeonly option which causes the server to exit after the
+    device probe stage.
+41. Merged in MIT fix-21
+40. Support for an external clock setting program
+39. Patches for Destiny (SVR4.2)
+
+XFree86 1.1Ba (17 December 1992)
+38. Merged in MIT fix-20
+37. Various improved error messages
+36. Improve accuracy of clock probing code -- add delay so VCO can
+    stabilise before starting the measurement
+35. Store dot-clocks to .1MHz accuracy
+34. Make the server's -dpi option work
+33. Extend fontpath validation to the compiled-in default fontpath
+32. Increase server priority while probing for clocks
+31. Fixed KDSETRAD bug introduced in 1.1a (affected DELL)
+30. Bell support for pccons driver on 386BSD
+
+XFree86 1.1B (21 November 1992)
+29. Hack for ISC local connection on SVR4 with ACP (requires the ISC
+    client binary to be edited)
+28. Added code to change IOPL on SYSV for extended I/O (including patch
+    scripts for the SVR4 kernel)
+27. Merged in MIT fix-18 and fix-19
+26. Support for PS/2 mouse
+
+XFree86 1.1A (16 November 1992)
+25. Fix problems compiling with a non-ansi compiler.
+
+XFree86 1.1c (8 November 1992)
+24. Xconfig options to set default mapping of some special keys
+23. Code to validate the fontpath given in Xconfig
+22. Patches for Logitech Trackman/Mouseman (from Christian Ziemann)
+21. Updates for version 0.1.1 of Holger's co driver
+20. Fix for et3000 text mode restoration (from Holger Veit)
+19. Fix NumLock support -- use two sets of keycodes for num keypad
+18. Add Compose / Multi-key support to Xlib (from MIT contrib)
+17. Don't reset state of lock keys when starting the server
+16. Fix code for setting visual type from Xconfig
+
+XFree86 1.1b (21 October 1992)
+15. Xload support for Linux
+14. Use Xconfig.cpp to generate the sample Xconfig with paths consistent with
+    the configuration.
+13. Allow multiple "FontPath" lines in Xconfig which are concatenated to build
+    the FontPath.
+12. Blank and clear the screen during server startup
+11. Fix tegblt code for mono server (instead of the previous workaround)
+10. Fix non-32bit tiles and stipples for mono server with 8-bit scanlines
+9.  Fix circle/ellipse drawing for mono server
+8.  Use 8-bit bitmap scanlines for mono server (can now remove pixmap hack)
+7.  Add check in server to see if euid==0.  If not, exit with a warning.
+
+XFree86 1.1a (11 October 1992)
+6.  Add a VTInit option to Xconfig to run a program on the VT during
+    screen initialisation.
+5.  Fix security holes in reading Xconfig files, and the undocumented
+    -mono and -colour options.
+4.  Use KDMKTONE for bell for systems that support it
+3.  Allow 4 clocks for generic driver
+2.  Mods to allow compile time selection of 128k display mapping for mono
+    (this is experimental and may be removed)
+1.  Holger's 386BSD co driver support (compile-time selectable)
+
+
+XFree86 1.1 (1 October 1992)
+70. Public release
+69. Set mailbox for 386bsd in Xaw
+
+XFree86 1.0Zb (30 September 1992)
+68. Mods to startx so that an absolute path is not required for a server
+67. Make the right-hand <ALt> key behave like Alt_R
+66. Updates to X386.man
+65. Add -mono and -colour (undocumented) options to server
+64. Look for Xconfig file in /etc before /usr/X386/lib/X11
+63. Print out Trident version in probe routine and add README.trident
+
+XFree86 1.0Za (27 September 1992)
+62. cfb.banked changes for Mach's BSD cpp.
+61. Add mkwhatis script for 386BSD
+60. Fix problems with xgc/lex.l
+59. Modify default keymap so Alt_L will work like both Meta_L and Alt_L.
+58. xload fixes for 386BSD
+57. Change config/x386config.sh for dumb BSD sh.
+
+XFree86 1.0Z (24 September 1992)
+56. Beta release (final for 1.1)
+55. Add ISC22, ISC30 defines
+
+XFree86 1.0Yb (21 September 1992)
+54. Included Thomas Eberhardt's updates to the compressed font code.
+53. Put Alan Hourihane's generic save/restore code into vgaHW.c
+52. Correction to xmh man page
+51. Support use of libdbm.a for ISC 3.0
+
+XFree86 1.0Ya (17 September 1992)
+50. Merge in Linux support (from Orest Zborowski)
+
+XFree86 1.0Y (14 September 1992)
+49. Beta release (second for 1.1)
+48. Removed FAS support on SVR4
+47. Changes to font and text save/restore
+
+XFree86 1.0Xc (12 September 1992)
+46. Fix xman scroll bug
+45. Update to ati driver to save more planes
+44. Single/double bank selection for drivers
+
+XFree86 1.0Xb (9 September 1992)
+43. Link Kit updates
+
+XFree86 1.0Xa (8 September 1992)
+42. Fix some Xconfig related problems
+41. Trident driver (256 colour and mono)
+40. Mono drivers for et3000, pvga1, gvga (untested)
+
+XFree86 1.0X (4 September 1992)
+39. Beta release
+38. Minor updates
+
+XFree86 1.0m (2 September 1992)
+37. Change name to XFree86
+36. Added link kit
+
+X386 1.2E 1.0l (30 August 1992)
+35. Added (experimental) ATI driver
+34. Changed configuration so that mono and colour servers can be built
+    at the same time.
+X386 1.2E 1.0k (30 August 1992)
+33. Directory re-organisation
+
+X386 1.2E 1.0j (29 August 1992)
+32. Fix problem of server crashing while resetting
+
+X386 1.2E 1.0i (28 August 1992)
+31. Portability changes to vgaFasm.h (for cc and gcc-1.??)
+30. Added a -xconfig flag to specifiy the Xconfig file from the command line.
+29. Fixed problem with xdmauth accessing memory between 640k and 1M.
+28. Round down the specified virtual width to the nearest required multiple.
+27. Fix some bugs in the Xconfig parser.
+26. Added 'vga2' keyword for Xconfig so one file can be used for both the
+    colour and mono servers.
+25. README's updated
+24. Minor speedup fix
+23. More server configuration changes
+
+X386 1.2E 1.0h (26 August 1992)
+22. cfb.banked updated for fix-17
+21. New SpeedUp code (works for any* virtual width)
+20. Monochrome VGA server
+19. Changes for compile-time selection of supported chipsets, and font
+    renderers
+18. Updated X386.man, README.Mach
+17. Fix mouse map bug for logitech (and microsoft?).
+16. Merge in changes for Mach386 (from Robert Baron, Joel Jacobson)
+15. Merge in changes for 386BSD (from Rich Murphey, Amancio Hasty)
+
+X386 1.2E 1.0g (25 August 1992)
+14. Merged in MIT fix-17
+
+X386 1.2E 1.0f (4 August 1992)
+13. SpeedUp flag for Rectangle Stipple fills
+
+X386 1.2E 1.0e (4 August 1992)
+12. Extend the trapping of unexpected fatal signals beyond just SIGSEGV.
+    The NoTrapSegV option has been changed to NoTrapSignals.
+
+X386 1.2E 1.0d (3 August 1992)
+11. Run mkfontdir in install directory rather than copying fonts.dir from
+    the build directory.
+10. Merged in MIT fix-16
+
+X386 1.2E 1.0c (1 August 1992)
+9.  Run 'mcs -d' on SVR4 shared libraries
+8.  Merged in official Type1 font patch
+7.  Merged in MIT fix-15
+6.  Fixed malloc/free problems in lib/X/XcmsLRGB.c, clients/xdm/greet.c
+5.  Merged in MIT fix-14
+
+X386 1.2E 1.0b (27 July 1992)
+4.  Updated version of fFill.s
+3.  Bug fixes (for stipple) from Jim (require GCC at the moment)
+
+X386 1.2E 1.0a (22 July 1992)
+2.  Merged in MIT fix-13
+1.  Fix problem with divide by zero when bell pitch was set to zero.
+
+
+X386 1.2E 1.0 (16 July 1992)
+97. First general release
+96. Define repz to be repe for gas.
+95. Update XdmConf.svr4 to read /etc/default/login to set ulimit, etc.
+
+X386 1.2E 0.2c (15 July 1992)
+94. Allow easy selection of ansi level when building non-core clients.
+93. Install and use sessreg (for xdm)
+92. .align changes for gas
+91. README and X386.man updates
+
+X386 1.2E 0.2b (11 July 1992)
+90. Mods to SpeedUp for gas (jcxz changes).
+89. Minor change to xdm/auth.c for ISC3.0
+88. Removed SVR4 Vendor defines.
+
+X386 1.2E 0.2a (8 July 1992)
+87. Added some missing cld's to gBitBlt.s
+86. Some portability changes to fFill.s
+85. VT release problem when using FAS/SVR4 really fixed this time.
+84. Moved libinetemul.a to lib/InetEmul; library now called libXinetem.a, and
+    used in a similar way as libXbsd.a.  Changes to top level Imakefile have
+    been removed.
+83. Updates to README (building under ISC2.2, compiling clients)
+82. Include libXbsd.a in ExtraLibraries for SVR4/SYSV
+
+X386 1.2E 0.2 (3 July 1992)
+81. Second beta version
+80. et debug option removed
+
+X386 1.2E 0.1i (2 July 1992)
+79. Fixed VT release problem when using FAS/SVR4.
+78. Added warning about using xdmauth.
+77. Updated XdmConf.svr4 to handle different auth types
+76. Reorganisation of some compiler and assembler related options in x386.cf
+
+X386 1.2E 0.1h (27 June 1992)
+75. More portability changes to assembler code.
+74. Updates to modeDB, XdmConf.svr4
+
+X386 1.2E 0.1g (25 June 1992)
+73. Assembler portability changes from Jon Block.
+72. Change startup message from 'X Windows System' to 'X Window System'
+
+X386 1.2E 0.1f (20 June 1992)
+71. Fixed line problem when compiling with SVR4 'cc'.
+70. Changes to make source compile with Esix 3.2D, ISC 3.0 (without TCPCONN)
+
+X386 1.2E 0.1e (17 June 1992)
+69. Removed Glenn's wrapper comments from cfb.banked files.
+68. Added a debug flag to check operation of hiclock selection, and hopefully
+    fixed the problem with that.
+67. Fixed PIC flag problem in sv4Lib.rules
+
+X386 1.2E 0.1d (13 June 1992)
+66. Xconfig is installed as Xconfig.sample so as not to overwrite a locally
+    configured one.
+65. Use HasSdbm to determine use of -lsdbm for server and rgb.
+64. Made SpeedUp the default when appropriate, and added 'SpeedUp "none"' and
+    'NoSpeedUp' options.
+63. Updates to README, X386.man, modeDB.txt.
+62. Added a shar file with sample configuration files for xdm.
+61. Another setpgrp() change in xdm.
+60. Added command line option to specify which VT the server runs on.
+59. Changed default pointer map to the correct 1:1 map.
+58. Fixed bug in merge of SPEEDUP_TEGBLT8 which caused problems when that
+    option was not selected.
+
+X386 1.2E 0.1c (7 June 1992)
+57. Remove some setpgrp() calls in xdm.  This allows xdm to work with
+    xqueue on Microport, Dell, AT&T versions.
+56. Default for server to open SCO Xsight connection for SVR4.  SVR4.0.4
+    supports this as part of its "Advanced Compatibility Package".  The
+    code doesn't appear to cause problems with versions of SVR4 without this
+    (the feature just can't be used on them).
+
+X386 1.2E 0.1b (3 June 1992)
+55. Fixed bug in SPEEDUP_TEGBLT8 selection in vga.c
+54. Glenn's new cfbteblt8.c
+
+X386 1.2E 0.1a (30 May 1992)
+53. Fixed problem when switching VT away too quickly after switching back.
+52. Added Vendor defines for ISC SVR4 (ISC4), AT&T SVR4 (ATT4)
+
+X386 1.2E 0.1  (29 May 1992)
+51. First beta version
+
+X386 1.2E 0.0n (28 May 1992)
+50. Added README.X386-1.2E
+49. Introductory info added to modeDB.
+48. A few missed RCS Header lines.
+
+X386 1.2E 0.0m (26 May 1992)
+47. Added options to control building 75dpi, 100dpi, and large misc fonts.
+46. More updates to modeDB.
+45. Assembly changes for more pedantic 4.0.4 assembler.
+44. Moved site-specific defines from x386.cf to site.def
+43. Define usleep as the nap syscall for all SVR4 to avoid using libucb.a
+
+X386 1.2E 0.0l (23 May 1992)
+42. Added BuildType1 option
+41. Fixed ManDir and LibmanDir in site.def
+40. Added RCS Header lines to modified files
+
+X386 1.2E 0.0k (23 May 1992)
+39. Moved Glenn's and Jim's assembler routines into ddx/x386/enhanced
+38. Local connection added to X386.man
+37. Jim's update to cfbtileodd.c
+
+X386 1.2E 0.0j (21 May 1992)
+36. Updates to ModeDB.txt
+35. New fLineH.s from Jim
+34. New gLine.s from Glenn
+
+X386 1.2E 0.0i (19 May 1992)
+33. Fixed problem with setting mouse acceleration
+32. Prettied up startup message
+
+X386 1.2E 0.0h (16 May 1992)
+31. Removed SPEEDUP_TEGBLT8 from SPEEDUP_ALL -- it causes problems for some
+    font rendering (characters coming out as solid filled blocks).
+30. Added Thomas Eberhardt's compressed bitmap font patches
+
+X386 1.2E 0.0g (15 May 1992)
+29. #undef'd SO_DONTLINGER in os/connection.c for SVR4 -- it is not properly
+    defined for SVR4, and it removes the familiar startup error message.
+28. Changed SPEEDUP_VHLINE to SPEEDUP_LINE since it's not just for V, H lines
+27. Included Glenn's gLine.s
+26. Modified auto-detect HiClock code to use Thomas' method of making 16
+    clocks available with ET4000.  HiClock option has been removed since
+    this change makes it obsolete.  X386.man and Xconfig have been updated
+    accordingly.
+25. Fix problem switching after SIGHUP is sent while VT switched away.
+24. Take x386Resetting out of os/utils.c and put it in x386Init.c
+23. Turn on screen saver before copying screen to pixmap when switching away
+22. Fixed typo in vga.c related to SPEEDUP_TEGBLT8
+
+X386 1.2E 0.0f (14 May 1992)
+21. Removed special handling of SIGSEGV when server is exiting.
+20. Take care of server exiting and resetting when VT is switched away.
+19. Copy screen to dummy pixmap when switching away, and copy it back when
+    switching back.  (The contents were of the dummy pixmap were previously
+    ignored.)  Masking window is no longer used.
+
+X386 1.2E 0.0e (13 May 1992)
+18. Add missing argument in call of GlennsFillBoxSolid -- hopefully fixes
+    SIGSEGV problem.
+17. Added x386Version.h, CHANGELOG
+16. Added a couple of #undef's in cfbhrzvert.c
+15. Fold in public-patch-9 for cfb/cfbbresd.c into cfb.banked/cfbbresd.c
+14. casting for VGABASE in cfbbitblt.c
+13. #include fix in connection.c
+12. Disable building of FontServer in site.def
+
+X386 1.2E 0.0d (12 May 1992)
+11. Changes to gFillCopy.s, gVHLine.s to improve hseg100 performance.
+10. Change the way GCOps are initialised when SpeedUp is selected
+9.  Add SpeedUp to cfbteblt8.c that assumes xdim=1024
+
+X386 1.2E 0.0c (10 May 1992)
+8.  Allow SpeedUp Xconfig option to individually select various speedups
+
+X386 1.2E 0.0b (10 May 1992)
+7.  Autodetect for HiClock option (not tested yet)
+6.  Fix for cfbblt not setting read on dst for GC ops that require it
+5.  Minor change in X386.man
+
+X386 1.2E 0.0a (09 May 1992)
+4.  Reset screen saver timer for ForceScreenSaver(Reset)
+3.  Reset screen saver when switching back
+2.  Raise masking window when switching back so all windows get expose events
+1.  Use dummy buffer for screen writes when VT is switched away
+
+X386 1.2E 0.0  (07 May 1992)
