@@ -75,16 +75,21 @@ LinuxInit ()
 	FatalError("LinuxInit: Server must be suid root\n");
     }
 
-    if ((fd = open("/dev/tty0",O_WRONLY,0)) < 0) 
+    if (kdVirtualTerminal >= 0)
+	vtno = kdVirtualTerminal;
+    else
     {
-	FatalError(
-	    "LinuxInit: Cannot open /dev/tty0 (%s)\n",
-	    strerror(errno));
-    }
-    if ((ioctl(fd, VT_OPENQRY, &vtno) < 0) ||
-	(vtno == -1))
-    {
-	FatalError("xf86OpenConsole: Cannot find a free VT\n");
+	if ((fd = open("/dev/tty0",O_WRONLY,0)) < 0) 
+	{
+	    FatalError(
+		       "LinuxInit: Cannot open /dev/tty0 (%s)\n",
+		       strerror(errno));
+	}
+	if ((ioctl(fd, VT_OPENQRY, &vtno) < 0) ||
+	    (vtno == -1))
+	{
+	    FatalError("xf86OpenConsole: Cannot find a free VT\n");
+	}
     }
     close(fd);
 

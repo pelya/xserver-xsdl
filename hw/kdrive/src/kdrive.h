@@ -309,6 +309,7 @@ extern Bool		kdEnabled;
 extern Bool		kdSwitchPending;
 extern Bool		kdEmulateMiddleButton;
 extern Bool		kdDisableZaphod;
+extern int		kdVirtualTerminal;
 extern KdOsFuncs	*kdOsFuncs;
 
 #define KdGetScreenPriv(pScreen) ((KdPrivScreenPtr) \

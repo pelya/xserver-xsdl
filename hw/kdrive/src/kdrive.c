@@ -53,6 +53,7 @@ Bool		    kdEmulateMiddleButton;
 Bool		    kdDisableZaphod;
 Bool		    kdEnabled;
 int		    kdSubpixelOrder;
+int		    kdVirtualTerminal = -1;
 Bool		    kdSwitchPending;
 DDXPointRec	    kdOrigin;
 
@@ -342,6 +343,7 @@ ddxUseMsg()
   ErrorF("-videoTest	Start the server, pause momentarily and exit\n");
   ErrorF("-origin X,Y	Locates the next screen in the the virtual screen (Xinerama)\n");
   ErrorF("-mouse path[,n]	Filename of mouse device, n is number of buttons\n");
+  ErrorF("vtxx		Use virtual terminal xx instead of the next available\n");
   ErrorF("\n");
 }
 
@@ -737,6 +739,11 @@ KdProcessArgument (int argc, char **argv, int i)
 	else
 	    UseMsg ();
 	return 2;
+    }
+    if (!strncmp (argv[i], "vt", 2) &&
+	sscanf (argv[i], "vt%2d", &kdVirtualTerminal) == 1)
+    {
+	return 1;
     }
 #ifdef PSEUDO8
     return p8ProcessArgument (argc, argv, i);
