@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/include/inputstr.h,v 1.5 2001/12/14 19:59:54 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/include/inputstr.h,v 1.6 2003/04/27 21:31:04 herrb Exp $ */
 /************************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -285,6 +285,9 @@ typedef struct _DeviceIntRec {
 #ifdef XKB
     struct _XkbInterest *	xkb_interest;
 #endif
+    DevUnion		*devPrivates;
+    int			nPrivates;
+    DeviceUnwrapProc    unwrapProc;
 } DeviceIntRec;
 
 typedef struct {

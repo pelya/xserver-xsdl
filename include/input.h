@@ -45,7 +45,7 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ********************************************************/
-/* $XFree86: xc/programs/Xserver/include/input.h,v 3.7 2001/12/14 19:59:54 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/include/input.h,v 3.8 2003/04/27 21:31:04 herrb Exp $ */
 
 #ifndef INPUT_H
 #define INPUT_H
@@ -91,6 +91,17 @@ typedef void (*ProcessInputProc)(
     xEventPtr /*events*/,
     DeviceIntPtr /*device*/,
     int /*count*/);
+
+typedef Bool (*DeviceHandleProc)(
+    DeviceIntPtr /*device*/,
+    void* /*data*/
+    );
+
+typedef void (*DeviceUnwrapProc)(
+    DeviceIntPtr /*device*/,
+    DeviceHandleProc /*proc*/,
+    void* /*data*/
+    );
 
 typedef struct _DeviceRec {
     pointer	devicePrivate;
@@ -144,6 +155,10 @@ typedef struct {
     Mask        led_mask;
     unsigned char id;
 } LedCtrl;
+
+extern int AllocateDevicePrivateIndex(void);
+extern Bool AllocateDevicePrivate(DeviceIntPtr device, int index);
+extern void ResetDevicePrivateIndex(void);
 
 extern KeybdCtrl	defaultKeyboardControl;
 extern PtrCtrl		defaultPointerControl;
