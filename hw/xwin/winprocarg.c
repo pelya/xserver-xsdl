@@ -530,6 +530,8 @@ ddxProcessArgument (int argc, char *argv[], int i)
 	  /* Parameter is for all screens */
 	  for (j = 0; j < MAXSCREENS; j++)
 	    {
+	      if (!g_ScreenInfo[j].fMultiMonitorOverride)
+	        g_ScreenInfo[j].fMultipleMonitors = TRUE;
 	      g_ScreenInfo[j].fMWExtWM = TRUE;
 	      g_ScreenInfo[j].fInternalWM = TRUE;
 	    }
@@ -537,6 +539,8 @@ ddxProcessArgument (int argc, char *argv[], int i)
       else
 	{
 	  /* Parameter is for a single screen */
+	  if (!g_ScreenInfo[g_iLastScreen].fMultiMonitorOverride)
+	    g_ScreenInfo[g_iLastScreen].fMultipleMonitors = TRUE;
 	  g_ScreenInfo[g_iLastScreen].fMWExtWM = TRUE;
 	  g_ScreenInfo[g_iLastScreen].fInternalWM = TRUE;
 	}

@@ -1,3 +1,11 @@
+2004-12-02  Alexander Gottwald  <ago at freedesktop dot org>
+
+	* winwin32rootless.c:
+	Adjust the width of the rootless backbuffer to match 32 bit alignment
+
+	* winprocarg.c:
+	Make multiplemonitors default for -internalwm
+
 2004-12-01  Alexander Gottwald  <ago at freedesktop dot org>
 
 	* InitOutput.c:

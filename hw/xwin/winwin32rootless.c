@@ -717,11 +717,24 @@ winMWExtWMStartDrawing (RootlessFrameID wid, char **pixelData, int *bytesPerRow)
       
       if (pRLWinPriv->fResized)
 	{
-	  hdcNew = CreateCompatibleDC (pRLWinPriv->hdcScreen);
-	  /* Describe shadow bitmap to be created */
-	  pRLWinPriv->pbmihShadow->biWidth = pRLWinPriv->pFrame->width;//pRLWinPriv->dwWidth;
-	  pRLWinPriv->pbmihShadow->biHeight = -pRLWinPriv->pFrame->height;//pRLWinPriv->dwHeight;
+          /* width * bpp must be multiple of 4 to match 32bit alignment */
+	  int stridesize;
+	  int misalignment;
+         
+	  pRLWinPriv->pbmihShadow->biWidth = pRLWinPriv->pFrame->width;
+	  pRLWinPriv->pbmihShadow->biHeight = -pRLWinPriv->pFrame->height;
+ 
+	  stridesize = pRLWinPriv->pFrame->width * (pScreenInfo->dwBPP >> 3);
+	  misalignment = stridesize & 3; 
+	  if (misalignment != 0)
+	  {
+	    stridesize += 4 - misalignment;
+	    pRLWinPriv->pbmihShadow->biWidth = stridesize / (pScreenInfo->dwBPP >> 3);
+	    winDebug("\tresizing to %d (was %d)\n", 
+		    pRLWinPriv->pbmihShadow->biWidth, pRLWinPriv->pFrame->width);
+	  }
 	  
+	  hdcNew = CreateCompatibleDC (pRLWinPriv->hdcScreen);
 	  /* Create a DI shadow bitmap with a bit pointer */
 	  hbmpNew = CreateDIBSection (pRLWinPriv->hdcScreen,
 				      (BITMAPINFO *) pRLWinPriv->pbmihShadow,
