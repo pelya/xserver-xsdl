@@ -130,7 +130,7 @@ static void x86emuOp2_long_jump(u8 op2)
         break;
       case 0x8d:
         name = "JNL\t";
-        cond = xorl(ACCESS_FLAG(F_SF), ACCESS_FLAG(F_OF));
+        cond = !(xorl(ACCESS_FLAG(F_SF), ACCESS_FLAG(F_OF)));
         break;
       case 0x8e:
         name = "JLE\t";
