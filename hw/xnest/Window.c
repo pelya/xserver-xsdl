@@ -449,6 +449,13 @@ xnestWindowExposures(WindowPtr pWin, RegionPtr pRgn, RegionPtr other_exposed)
 }
 
 #ifdef SHAPE
+void
+xnestSetShape(WindowPtr pWin)
+{
+  xnestShapeWindow(pWin);
+  miSetShape(pWin);
+}
+
 static Bool
 xnestRegionEqual(RegionPtr pReg1, RegionPtr pReg2)
 {

@@ -73,6 +73,7 @@ void xnestClipNotify(WindowPtr pWin, int dx, int dy);
 void xnestWindowExposures(WindowPtr pWin, RegionPtr pRgn,
 			  RegionPtr other_exposed);
 #ifdef SHAPE
+void xnestSetShape(WindowPtr pWin);
 void xnestShapeWindow(WindowPtr pWin);
 #endif /* SHAPE */
 
