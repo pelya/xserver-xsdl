@@ -263,17 +263,32 @@ get_fontlist_from_all_xfs_configs()
 
 get_fontlist_from_xf86config()
 {
-    srcxf86configfile=""
-    [ -f "/etc/X11/XF86Config-4" ] && srcxf86configfile="/etc/X11/XF86Config-4"
-    [ -f "/etc/X11/XF86Config" ]   && srcxf86configfile="/etc/X11/XF86Config"
+    srcxconf=""
+
+    XCOMM see xorg.conf(5x) manual page for the list of locations used here    
+    [ "${srcxconf}" = "" -a -f "/etc/X11/xorg.conf"  ]                      && srcxconf="/etc/X11/xorg.conf"
+    [ "${srcxconf}" = "" -a -f "/usr/X11R6/etc/X11/xorg.conf" ]             && srcxconf="/usr/X11R6/etc/X11/xorg.conf"
+    [ "${srcxconf}" = "" -a -f "/etc/X11/xorg.conf-4" ]                     && srcxconf="/etc/X11/xorg.conf-4"
+    [ "${srcxconf}" = "" -a -f "/etc/X11/xorg.conf" ]                       && srcxconf="/etc/X11/xorg.conf"
+    [ "${srcxconf}" = "" -a -f "/etc/xorg.conf" ]                           && srcxconf="/etc/xorg.conf"
+    [ "${srcxconf}" = "" -a -f "/usr/X11R6/etc/X11/xorg.conf.${hostname}" ] && srcxconf="/usr/X11R6/etc/X11/xorg.conf.${hostname}"
+    [ "${srcxconf}" = "" -a -f "/usr/X11R6/etc/X11/xorg.conf-4" ]           && srcxconf="/usr/X11R6/etc/X11/xorg.conf-4"
+    [ "${srcxconf}" = "" -a -f "/usr/X11R6/etc/X11/xorg.conf" ]             && srcxconf="/usr/X11R6/etc/X11/xorg.conf"
+    [ "${srcxconf}" = "" -a -f "/usr/X11R6/lib/X11/xorg.conf.${hostname}" ] && srcxconf="/usr/X11R6/lib/X11/xorg.conf.${hostname}"
+    [ "${srcxconf}" = "" -a -f "/usr/X11R6/lib/X11/xorg.conf-4" ]           && srcxconf="/usr/X11R6/lib/X11/xorg.conf-4"
+    [ "${srcxconf}" = "" -a -f "/usr/X11R6/lib/X11/xorg.conf" ]             && srcxconf="/usr/X11R6/lib/X11/xorg.conf"
+
+    XCOMM Xfree86 locations
+    [ "${srcxconf}" = "" -a -f "/etc/X11/XF86Config-4" ] && srcxconf="/etc/X11/XF86Config-4"
+    [ "${srcxconf}" = "" -a -f "/etc/X11/XF86Config" ]   && srcxconf="/etc/X11/XF86Config"
 
 
-    if [ "${srcxf86configfile}" = "" ] ; then
+    if [ "${srcxconf}" = "" ] ; then
         return 0
     fi
 
     currsection=""
-    cat "${srcxf86configfile}" |
+    cat "${srcxconf}" |
     while read i1 i2 i3 i4 ; do
         # Strip "\"" from I2
         i2="${i2#\"}" ; i2="${i2%\"}"
