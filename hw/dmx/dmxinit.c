@@ -1048,6 +1048,7 @@ void ddxUseMsg(void)
     ErrorF("        Ctrl-Alt-F*   Switch to VC (local only)\n");
 }
 
+#ifdef DDXTIME
 /** Return wall-clock time in milliseconds. */
 CARD32 GetTimeInMillis(void)
 {
@@ -1056,3 +1057,4 @@ CARD32 GetTimeInMillis(void)
     gettimeofday(&tp, 0);
     return tp.tv_sec * 1000 + tp.tv_usec / 1000;
 }
+#endif

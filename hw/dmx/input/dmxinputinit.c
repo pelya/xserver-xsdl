@@ -177,7 +177,7 @@ static DMXLocalInputInfoRec DMXLocalDevices[] = {
         ps2LinuxRead
     },
 #endif
-#ifndef __sgi
+#ifdef __linux__
                                 /* USB drivers, currently only for
                                    Linux, but relatively easy to port to
                                    other OSs */

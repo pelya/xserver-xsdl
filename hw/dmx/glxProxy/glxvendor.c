@@ -59,7 +59,7 @@
  *    this is because the GL single opcodes has different naming convension
  *    the other X opcodes (ie. X_GLsop_GetFloatv).
  */
-#if (__STDC__ && !defined(UNIXCPP)) || defined(ANSICPP)
+#if (defined(__STDC__) && !defined(UNIXCPP)) || defined(ANSICPP)
 #define GetReqVendorPrivate(name, req) \
         WORD64ALIGN\
 	if ((dpy->bufptr + SIZEOF(x##name##Req)) > dpy->bufmax)\

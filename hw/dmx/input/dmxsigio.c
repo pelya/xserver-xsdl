@@ -42,14 +42,18 @@
 #include "dmxevents.h"
 #include <signal.h>
 #include <unistd.h>
-#include <sys/fcntl.h>
+#include <fcntl.h>
 
 static int  dmxFdCount      = 0;
 static Bool dmxInputEnabled = TRUE;
 
-/* Define equivalents for non-POSIX systems (e.g., SGI IRIX) */
+/* Define equivalents for non-POSIX systems (e.g., SGI IRIX, Solaris) */
 #ifndef O_ASYNC
-#define O_ASYNC FASYNC
+# ifdef FASYNC
+# define O_ASYNC FASYNC
+# else
+# define O_ASYNC 0
+# endif
 #endif
 #ifndef O_NONBLOCK
 #define O_NONBLOCK FNONBLK
