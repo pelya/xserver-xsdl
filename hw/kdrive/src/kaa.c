@@ -28,8 +28,9 @@
 #include <config.h>
 #endif
 #include "kdrive.h"
-#include	"fontstruct.h"
-#include	"dixfontstr.h"
+#include "kaa.h"
+#include "fontstruct.h"
+#include "dixfontstr.h"
 
 #define DEBUG_MIGRATE 0
 #define DEBUG_PIXMAP 0
@@ -48,29 +49,10 @@ int kaaGeneration;
 int kaaScreenPrivateIndex;
 int kaaPixmapPrivateIndex;
 
-typedef struct {
-    KaaScreenInfoPtr info;
-} KaaScreenPrivRec, *KaaScreenPrivPtr;
-
-typedef struct {
-    KdOffscreenArea *area;
-    int		    score;
-    int		    devKind;
-    DevUnion	    devPrivate;
-} KaaPixmapPrivRec, *KaaPixmapPrivPtr;
-
 #define KAA_PIXMAP_SCORE_MOVE_IN    10
 #define KAA_PIXMAP_SCORE_MAX	    20
 #define KAA_PIXMAP_SCORE_MOVE_OUT   -10
 #define KAA_PIXMAP_SCORE_MIN	    -20
-
-#define KaaGetScreenPriv(s)	((KaaScreenPrivPtr)(s)->devPrivates[kaaScreenPrivateIndex].ptr)
-#define KaaScreenPriv(s)	KaaScreenPrivPtr    pKaaScr = KaaGetScreenPriv(s)
-
-#define KaaGetPixmapPriv(p)	((KaaPixmapPrivPtr)(p)->devPrivates[kaaPixmapPrivateIndex].ptr)
-#define KaaSetPixmapPriv(p,a)	((p)->devPrivates[kaaPixmapPrivateIndex].ptr = (pointer) (a))
-#define KaaPixmapPriv(p)	KaaPixmapPrivPtr pKaaPixmap = KaaGetPixmapPriv(p)
-#define KaaPixmapPitch(pitch)	(((pitch) + (pKaaScr->info->offscreenPitch - 1)) & ~(pKaaScr->info->offscreenPitch - 1))
 
 #define MIN_OFFPIX_SIZE		(4096)
 
@@ -127,7 +109,7 @@ kaaPixmapAllocArea (PixmapPtr pPixmap)
     
     pKaaPixmap->devKind = pPixmap->devKind;
     pKaaPixmap->devPrivate = pPixmap->devPrivate;
-    pKaaPixmap->area = KdOffscreenAlloc (pScreen, pitch * h * (bpp >> 3),
+    pKaaPixmap->area = KdOffscreenAlloc (pScreen, pitch * h,
 					 pKaaScr->info->offscreenByteAlign,
 					 FALSE, 
 					 kaaPixmapSave, (pointer) pPixmap);
@@ -140,7 +122,7 @@ kaaPixmapAllocArea (PixmapPtr pPixmap)
 		  KaaGetPixmapPriv(pPixmap)->area->offset : -1,
 		  pPixmap->drawable.width,
 		  pPixmap->drawable.height));
-    pPixmap->devKind = pitch * (bpp >> 3);
+    pPixmap->devKind = pitch;
     pPixmap->devPrivate.ptr = (pointer) ((CARD8 *) pScreenPriv->screen->memory_base + pKaaPixmap->area->offset);
     pPixmap->drawable.serialNumber = NEXT_SERIAL_NUMBER;
     return TRUE;
@@ -153,7 +135,6 @@ kaaMoveInPixmap (PixmapPtr pPixmap)
     unsigned char *dst, *src;
     int i;
 
-    return;
     KdCheckSync (pPixmap->drawable.pScreen);
     
     DBG_MIGRATE (("-> 0x%08x (0x%x) (%dx%d)\n",
@@ -201,7 +182,7 @@ kaaMoveOutPixmap (PixmapPtr pPixmap)
     }
 }
 
-static void
+void
 kaaPixmapUseScreen (PixmapPtr pPixmap)
 {
     KaaPixmapPriv (pPixmap);
@@ -215,7 +196,7 @@ kaaPixmapUseScreen (PixmapPtr pPixmap)
     }
 }
 
-static void
+void
 kaaPixmapUseMemory (PixmapPtr pPixmap)
 {
     KaaPixmapPriv (pPixmap);
@@ -271,6 +252,7 @@ kaaCreatePixmap(ScreenPtr pScreen, int w, int h, int depth)
 		break;
 	    }
     }
+
     pPixmap = fbCreatePixmapBpp (pScreen, w, h, depth, bpp);
     if (!pPixmap)
 	return NULL;
@@ -278,13 +260,12 @@ kaaCreatePixmap(ScreenPtr pScreen, int w, int h, int depth)
     pKaaPixmap->score = 0;
     pKaaPixmap->area = NULL;
     
-    if (depth == pScreen->rootDepth &&
-	(pPixmap->devKind * h) >= MIN_OFFPIX_SIZE)
+    if ((pPixmap->devKind * h) >= MIN_OFFPIX_SIZE)
 	kaaPixmapAllocArea (pPixmap);
     return pPixmap;
 }
 
-static Bool
+Bool
 kaaPixmapIsOffscreen(PixmapPtr p)
 {
     ScreenPtr	pScreen = p->drawable.pScreen;
@@ -295,7 +276,7 @@ kaaPixmapIsOffscreen(PixmapPtr p)
 	    pScreenPriv->screen->memory_size);
 }
 
-static PixmapPtr
+PixmapPtr
 kaaGetOffscreenPixmap (DrawablePtr pDrawable, int *xp, int *yp)
 {
     PixmapPtr	pPixmap;
@@ -326,7 +307,7 @@ kaaGetOffscreenPixmap (DrawablePtr pDrawable, int *xp, int *yp)
     return NULL;
 }
 
-static Bool
+Bool
 kaaDrawableIsOffscreen (DrawablePtr pDrawable)
 {
     PixmapPtr	pPixmap;
@@ -421,7 +402,7 @@ kaaFillSpans(DrawablePtr pDrawable, GCPtr pGC, int n,
     KdMarkSync(pDrawable->pScreen);
 }
 
-static void
+void
 kaaCopyNtoN (DrawablePtr    pSrcDrawable,
 	     DrawablePtr    pDstDrawable,
 	     GCPtr	    pGC,
@@ -935,73 +916,6 @@ kaaPaintWindow(WindowPtr pWin, RegionPtr pRegion, int what)
     }
     KdCheckPaintWindow (pWin, pRegion, what);
 }
-
-#ifdef RENDER
-#include "mipict.h"
-
-static void
-kaaComposite(CARD8	op,
-	     PicturePtr pSrc,
-	     PicturePtr pMask,
-	     PicturePtr pDst,
-	     INT16	xSrc,
-	     INT16	ySrc,
-	     INT16	xMask,
-	     INT16	yMask,
-	     INT16	xDst,
-	     INT16	yDst,
-	     CARD16	width,
-	     CARD16	height)
-{
-    if (op == PictOpSrc && !pMask)
-    {
-	/*
-	 * Check for two special cases -- solid fill and copy area
-	 */
-	if (pSrc->pDrawable->width == 1 && pSrc->pDrawable->height == 1 &&
-	    pSrc->repeat)
-	{
-	    ;
-	}
-	else if (!pSrc->repeat && pSrc->format == pDst->format)
-	{
-	    RegionRec	region;
-	    
-	    xDst += pDst->pDrawable->x;
-	    yDst += pDst->pDrawable->y;
-	    xSrc += pSrc->pDrawable->x;
-	    ySrc += pSrc->pDrawable->y;
-	    if (pMask)
-	    {
-		xMask += pMask->pDrawable->x;
-		yMask += pMask->pDrawable->y;
-	    }
-	    if (!miComputeCompositeRegion (&region, pSrc, pMask, pDst,
-					   xSrc, ySrc, xMask, yMask, xDst, yDst,
-					   width, height))
-		return;
-
-				      
-	    kaaCopyNtoN (pSrc->pDrawable, pDst->pDrawable, 0,
-			 REGION_RECTS(&region), REGION_NUM_RECTS(&region),
-			 xSrc - xDst, ySrc - yDst,
-			 FALSE, FALSE, 0, 0);
-	    return;
-	}
-    }
-    if (pSrc->pDrawable->type == DRAWABLE_PIXMAP)
-	kaaPixmapUseMemory ((PixmapPtr) pSrc->pDrawable);
-    if (pMask && pMask->pDrawable->type == DRAWABLE_PIXMAP)
-	kaaPixmapUseMemory ((PixmapPtr) pMask->pDrawable);
-#if 0
-    if (pDst->pDrawable->type == DRAWABLE_PIXMAP)
-	kaaPixmapUseMemory ((PixmapPtr) pDst->pDrawable);
-#endif
-    
-    KdCheckComposite (op, pSrc, pMask, pDst, xSrc, ySrc, 
-		      xMask, yMask, xDst, yDst, width, height);
-}
-#endif
 
 Bool
 kaaDrawInit (ScreenPtr		pScreen,

@@ -1,3 +1,17 @@
+if DRI
+DRI_INCLUDES = 	-I$(top_srcdir)/dri	\
+		-I$(top_srcdir)/drm
+DRI_LIBS = 	$(top_builddir)/dri/libdri.a	\
+		$(top_builddir)/drm/libdrm.a
+DRI_SOURCES =	ati_dri.c	\
+		ati_dri.h	\
+		ati_dripriv.h	\
+		r128_common.h	\
+		r128_sarea.h	\
+		radeon_common.h	\
+		radeon_sarea.h
+endif
+
 if KDRIVEFBDEV
 FBDEV_INCLUDES =-I$(top_srcdir)/hw/kdrive/fbdev
 FBDEV_LIBS = $(top_builddir)/hw/kdrive/fbdev/libfbdev.a
@@ -8,9 +22,9 @@ VESA_INCLUDES = -I$(top_srcdir)/hw/kdrive/vesa
 VESA_LIBS = $(top_builddir)/hw/kdrive/vesa/libvesa.a
 endif
 
-
 INCLUDES = 					\
 	@KDRIVE_INCS@				\
+	$(DRI_INCLUDES)				\
 	$(FBDEV_INCLUDES)			\
 	$(VESA_INCLUDES)			\
 	@XSERVER_CFLAGS@
@@ -25,15 +39,20 @@ noinst_LIBRARIES = libati.a
 
 libati_a_SOURCES = 	\
 	ati_draw.c	\
+	ati_draw.h	\
+	ati_drawtmp.h	\
 	ati.c		\
 	ati.h		\
-	ati_reg.h
+	ati_reg.h	\
+	r128_blendtmp.h	\
+	$(DRI_SOURCES)
 
 Xati_SOURCES = \
 	ati_stub.c
 
 Xati_LDADD = \
 	libati.a 				\
+	$(DRI_LIBS)				\
 	$(FBDEV_LIBS)				\
 	$(VESA_LIBS)				\
 	@KDRIVE_LIBS@				\

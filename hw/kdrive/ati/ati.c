@@ -27,130 +27,140 @@
 #include <config.h>
 #endif
 #include "ati.h"
+#include "ati_reg.h"
 
-struct pci_id_list radeon_id_list[] = {
-	{0x1002, 0x4136, "ATI Radeon RS100"},
-	{0x1002, 0x4137, "ATI Radeon RS200"},
-	{0x1002, 0x4237, "ATI Radeon RS250"},
-	{0x1002, 0x4144, "ATI Radeon R300 AD"},
-	{0x1002, 0x4145, "ATI Radeon R300 AE"},
-	{0x1002, 0x4146, "ATI Radeon R300 AF"},
-	{0x1002, 0x4147, "ATI Radeon R300 AG"},
-	{0x1002, 0x4148, "ATI Radeon R350 AH"},
-	{0x1002, 0x4149, "ATI Radeon R350 AI"},
-	{0x1002, 0x414a, "ATI Radeon R350 AJ"},
-	{0x1002, 0x414b, "ATI Radeon R350 AK"},
-	{0x1002, 0x4150, "ATI Radeon RV350 AP"},
-	{0x1002, 0x4151, "ATI Radeon RV350 AQ"},
-	{0x1002, 0x4152, "ATI Radeon RV350 AR"},
-	{0x1002, 0x4153, "ATI Radeon RV350 AS"},
-	{0x1002, 0x4154, "ATI Radeon RV350 AT"},
-	{0x1002, 0x4156, "ATI Radeon RV350 AV"},
-	{0x1002, 0x4242, "ATI Radeon R200 BB"},
-	{0x1002, 0x4243, "ATI Radeon R200 BC"},
-	{0x1002, 0x4336, "ATI Radeon RS100"},
-	{0x1002, 0x4337, "ATI Radeon RS200"},
-	{0x1002, 0x4437, "ATI Radeon RS250"},
-	{0x1002, 0x4964, "ATI Radeon RV250 Id"},
-	{0x1002, 0x4965, "ATI Radeon RV250 Ie"},
-	{0x1002, 0x4966, "ATI Radeon RV250 If"},
-	{0x1002, 0x4967, "ATI Radeon RV250 Ig"},
-	{0x1002, 0x4c57, "ATI Radeon RV200 LW"},
-	{0x1002, 0x4c58, "ATI Radeon RV200 LX"},
-	{0x1002, 0x4c59, "ATI Radeon Mobility M6 LY"},
-	{0x1002, 0x4c5a, "ATI Radeon Mobility LZ"},
-	{0x1002, 0x4c64, "ATI Radeon RV250 Ld"},
-	{0x1002, 0x4c65, "ATI Radeon RV250 Le"},
-	{0x1002, 0x4c66, "ATI Radeon Mobility M9 RV250 Lf"},
-	{0x1002, 0x4c67, "ATI Radeon RV250 Lg"},
-	{0x1002, 0x4e44, "ATI Radeon R300 ND"},
-	{0x1002, 0x4e45, "ATI Radeon R300 NE"},
-	{0x1002, 0x4e46, "ATI Radeon R300 NF"},
-	{0x1002, 0x4e47, "ATI Radeon R300 NG"},
-	{0x1002, 0x4e48, "ATI Radeon R350 NH"},
-	{0x1002, 0x4e49, "ATI Radeon R350 NI"},
-	{0x1002, 0x4e4a, "ATI Radeon R350 NJ"},
-	{0x1002, 0x4e4b, "ATI Radeon R350 NK"},
-	{0x1002, 0x4e50, "ATI Radeon Mobility RV350 NP"},
-	{0x1002, 0x4e51, "ATI Radeon Mobility RV350 NQ"},
-	{0x1002, 0x4e52, "ATI Radeon Mobility RV350 NR"},
-	{0x1002, 0x4e53, "ATI Radeon Mobility RV350 NS"},
-	{0x1002, 0x4e54, "ATI Radeon Mobility RV350 NT"},
-	{0x1002, 0x4e56, "ATI Radeon Mobility RV350 NV"},
-	{0x1002, 0x5144, "ATI Radeon R100 QD"},
-	{0x1002, 0x5145, "ATI Radeon R100 QE"},
-	{0x1002, 0x5146, "ATI Radeon R100 QF"},
-	{0x1002, 0x5147, "ATI Radeon R100 QG"},
-	{0x1002, 0x5148, "ATI Radeon R200 QH"},
-	{0x1002, 0x514c, "ATI Radeon R200 QL"},
-	{0x1002, 0x514d, "ATI Radeon R200 QM"},
-	{0x1002, 0x5157, "ATI Radeon RV200 QW"},
-	{0x1002, 0x5158, "ATI Radeon RV200 QX"},
-	{0x1002, 0x5159, "ATI Radeon RV100 QY"},
-	{0x1002, 0x515a, "ATI Radeon RV100 QZ"},
-	{0x1002, 0x5834, "ATI Radeon RS300"},
-	{0x1002, 0x5835, "ATI Radeon Mobility RS300"},
-	{0x1002, 0x5941, "ATI Radeon RV280 (9200)"},
-	{0x1002, 0x5961, "ATI Radeon RV280 (9200 SE)"},
-	{0x1002, 0x5964, "ATI Radeon RV280 (9200 SE)"},
-	{0x1002, 0x5c60, "ATI Radeon RV280"},
-	{0x1002, 0x5c61, "ATI Mobility Radeon RV280"},
-	{0x1002, 0x5c62, "ATI Radeon RV280"},
-	{0x1002, 0x5c63, "ATI Mobility Radeon RV280"},
-	{0x1002, 0x5c64, "ATI Radeon RV280"},
-	{0, 0, NULL}
+struct pci_id_entry ati_pci_ids[] = {
+	{0x1002, 0x4136, 0x1, "ATI Radeon RS100"},
+	{0x1002, 0x4137, 0x3, "ATI Radeon RS200"},
+	{0x1002, 0x4237, 0x3, "ATI Radeon RS250"},
+	{0x1002, 0x4144, 0x5, "ATI Radeon R300 AD"},
+	{0x1002, 0x4145, 0x5, "ATI Radeon R300 AE"},
+	{0x1002, 0x4146, 0x5, "ATI Radeon R300 AF"},
+	{0x1002, 0x4147, 0x5, "ATI Radeon R300 AG"},
+	{0x1002, 0x4148, 0x5, "ATI Radeon R350 AH"},
+	{0x1002, 0x4149, 0x5, "ATI Radeon R350 AI"},
+	{0x1002, 0x414a, 0x5, "ATI Radeon R350 AJ"},
+	{0x1002, 0x414b, 0x5, "ATI Radeon R350 AK"},
+	{0x1002, 0x4150, 0x5, "ATI Radeon RV350 AP"},
+	{0x1002, 0x4151, 0x5, "ATI Radeon RV350 AQ"},
+	{0x1002, 0x4152, 0x5, "ATI Radeon RV350 AR"},
+	{0x1002, 0x4153, 0x5, "ATI Radeon RV350 AS"},
+	{0x1002, 0x4154, 0x5, "ATI Radeon RV350 AT"},
+	{0x1002, 0x4156, 0x5, "ATI Radeon RV350 AV"},
+	{0x1002, 0x4242, 0x3, "ATI Radeon R200 BB"},
+	{0x1002, 0x4243, 0x3, "ATI Radeon R200 BC"},
+	{0x1002, 0x4336, 0x1, "ATI Radeon RS100"},
+	{0x1002, 0x4337, 0x3, "ATI Radeon RS200"},
+	{0x1002, 0x4437, 0x3, "ATI Radeon RS250"},
+	{0x1002, 0x4964, 0x3, "ATI Radeon RV250 Id"},
+	{0x1002, 0x4965, 0x3, "ATI Radeon RV250 Ie"},
+	{0x1002, 0x4966, 0x3, "ATI Radeon RV250 If"},
+	{0x1002, 0x4967, 0x3, "ATI Radeon RV250 Ig"},
+	{0x1002, 0x4c45, 0x0, "ATI Rage 128 LE"},
+	{0x1002, 0x4c46, 0x0, "ATI Rage 128 LF"},
+	{0x1002, 0x4c57, 0x3, "ATI Radeon RV200 LW"},
+	{0x1002, 0x4c58, 0x3, "ATI Radeon RV200 LX"},
+	{0x1002, 0x4c59, 0x3, "ATI Radeon Mobility M6 LY"},
+	{0x1002, 0x4c5a, 0x3, "ATI Radeon Mobility LZ"},
+	{0x1002, 0x4c64, 0x3, "ATI Radeon RV250 Ld"},
+	{0x1002, 0x4c65, 0x3, "ATI Radeon RV250 Le"},
+	{0x1002, 0x4c66, 0x3, "ATI Radeon Mobility M9 RV250 Lf"},
+	{0x1002, 0x4c67, 0x3, "ATI Radeon RV250 Lg"},
+	{0x1002, 0x4d46, 0x0, "ATI Rage 128 MF"},
+	{0x1002, 0x4d46, 0x0, "ATI Rage 128 ML"},
+	{0x1002, 0x4e44, 0x5, "ATI Radeon R300 ND"},
+	{0x1002, 0x4e45, 0x5, "ATI Radeon R300 NE"},
+	{0x1002, 0x4e46, 0x5, "ATI Radeon R300 NF"},
+	{0x1002, 0x4e47, 0x5, "ATI Radeon R300 NG"},
+	{0x1002, 0x4e48, 0x5, "ATI Radeon R350 NH"},
+	{0x1002, 0x4e49, 0x5, "ATI Radeon R350 NI"},
+	{0x1002, 0x4e4a, 0x5, "ATI Radeon R350 NJ"},
+	{0x1002, 0x4e4b, 0x5, "ATI Radeon R350 NK"},
+	{0x1002, 0x4e50, 0x5, "ATI Radeon Mobility RV350 NP"},
+	{0x1002, 0x4e51, 0x5, "ATI Radeon Mobility RV350 NQ"},
+	{0x1002, 0x4e52, 0x5, "ATI Radeon Mobility RV350 NR"},
+	{0x1002, 0x4e53, 0x5, "ATI Radeon Mobility RV350 NS"},
+	{0x1002, 0x4e54, 0x5, "ATI Radeon Mobility RV350 NT"},
+	{0x1002, 0x4e56, 0x5, "ATI Radeon Mobility RV350 NV"},
+	{0x1002, 0x5041, 0x0, "ATI Rage 128 PA"},
+	{0x1002, 0x5042, 0x0, "ATI Rage 128 PB"},
+	{0x1002, 0x5043, 0x0, "ATI Rage 128 PC"},
+	{0x1002, 0x5044, 0x0, "ATI Rage 128 PD"},
+	{0x1002, 0x5045, 0x0, "ATI Rage 128 PE"},
+	{0x1002, 0x5046, 0x0, "ATI Rage 128 PF"},
+	{0x1002, 0x5047, 0x0, "ATI Rage 128 PG"},
+	{0x1002, 0x5048, 0x0, "ATI Rage 128 PH"},
+	{0x1002, 0x5049, 0x0, "ATI Rage 128 PI"},
+	{0x1002, 0x504a, 0x0, "ATI Rage 128 PJ"},
+	{0x1002, 0x504b, 0x0, "ATI Rage 128 PK"},
+	{0x1002, 0x504c, 0x0, "ATI Rage 128 PL"},
+	{0x1002, 0x504d, 0x0, "ATI Rage 128 PM"},
+	{0x1002, 0x504e, 0x0, "ATI Rage 128 PN"},
+	{0x1002, 0x504f, 0x0, "ATI Rage 128 PO"},
+	{0x1002, 0x5050, 0x0, "ATI Rage 128 PP"},
+	{0x1002, 0x5051, 0x0, "ATI Rage 128 PQ"},
+	{0x1002, 0x5052, 0x0, "ATI Rage 128 PR"},
+	{0x1002, 0x5053, 0x0, "ATI Rage 128 PS"},
+	{0x1002, 0x5054, 0x0, "ATI Rage 128 PT"},
+	{0x1002, 0x5055, 0x0, "ATI Rage 128 PU"},
+	{0x1002, 0x5056, 0x0, "ATI Rage 128 PV"},
+	{0x1002, 0x5057, 0x0, "ATI Rage 128 PW"},
+	{0x1002, 0x5058, 0x0, "ATI Rage 128 PX"},
+	{0x1002, 0x5144, 0x1, "ATI Radeon R100 QD"},
+	{0x1002, 0x5145, 0x1, "ATI Radeon R100 QE"},
+	{0x1002, 0x5146, 0x1, "ATI Radeon R100 QF"},
+	{0x1002, 0x5147, 0x1, "ATI Radeon R100 QG"},
+	{0x1002, 0x5148, 0x1, "ATI Radeon R200 QH"},
+	{0x1002, 0x514c, 0x1, "ATI Radeon R200 QL"},
+	{0x1002, 0x514d, 0x1, "ATI Radeon R200 QM"},
+	{0x1002, 0x5157, 0x1, "ATI Radeon RV200 QW"},
+	{0x1002, 0x5158, 0x1, "ATI Radeon RV200 QX"},
+	{0x1002, 0x5159, 0x1, "ATI Radeon RV100 QY"},
+	{0x1002, 0x515a, 0x1, "ATI Radeon RV100 QZ"},
+	{0x1002, 0x5245, 0x0, "ATI Rage 128 RE"},
+	{0x1002, 0x5246, 0x0, "ATI Rage 128 RF"},
+	{0x1002, 0x5247, 0x0, "ATI Rage 128 RG"},
+	{0x1002, 0x524b, 0x0, "ATI Rage 128 RK"},
+	{0x1002, 0x524c, 0x0, "ATI Rage 128 RL"},
+	{0x1002, 0x5345, 0x0, "ATI Rage 128 SE"},
+	{0x1002, 0x5346, 0x0, "ATI Rage 128 SF"},
+	{0x1002, 0x5347, 0x0, "ATI Rage 128 SG"},
+	{0x1002, 0x5348, 0x0, "ATI Rage 128 SH"},
+	{0x1002, 0x534b, 0x0, "ATI Rage 128 SK"},
+	{0x1002, 0x534c, 0x0, "ATI Rage 128 SL"},
+	{0x1002, 0x534d, 0x0, "ATI Rage 128 SM"},
+	{0x1002, 0x534e, 0x0, "ATI Rage 128 SN"},
+	{0x1002, 0x5446, 0x0, "ATI Rage 128 TF"},
+	{0x1002, 0x544c, 0x0, "ATI Rage 128 TL"},
+	{0x1002, 0x5452, 0x0, "ATI Rage 128 TR"},
+	{0x1002, 0x5453, 0x0, "ATI Rage 128 TS"},
+	{0x1002, 0x5454, 0x0, "ATI Rage 128 TT"},
+	{0x1002, 0x5455, 0x0, "ATI Rage 128 TU"},
+	{0x1002, 0x5834, 0x5, "ATI Radeon RS300"},
+	{0x1002, 0x5835, 0x5, "ATI Radeon RS300 Mobility"},
+	{0x1002, 0x5941, 0x3, "ATI Radeon RV280 (9200)"},
+	{0x1002, 0x5961, 0x3, "ATI Radeon RV280 (9200 SE)"},
+	{0x1002, 0x5964, 0x3, "ATI Radeon RV280 (9200 SE)"},
+	{0x1002, 0x5c60, 0x3, "ATI Radeon RV280"},
+	{0x1002, 0x5c61, 0x3, "ATI Radeon RV280 Mobility"},
+	{0x1002, 0x5c62, 0x3, "ATI Radeon RV280"},
+	{0x1002, 0x5c63, 0x3, "ATI Radeon RV280 Mobility"},
+	{0x1002, 0x5c64, 0x3, "ATI Radeon RV280"},
+	{0, 0, 0, NULL}
 };
 
-struct pci_id_list r128_id_list[] = {
-	{0x1002, 0x4c45, "ATI Rage 128 LE"},
-	{0x1002, 0x4c46, "ATI Rage 128 LF"},
-	{0x1002, 0x4d46, "ATI Rage 128 MF"},
-	{0x1002, 0x4d46, "ATI Rage 128 ML"},
-	{0x1002, 0x5041, "ATI Rage 128 PA"},
-	{0x1002, 0x5042, "ATI Rage 128 PB"},
-	{0x1002, 0x5043, "ATI Rage 128 PC"},
-	{0x1002, 0x5044, "ATI Rage 128 PD"},
-	{0x1002, 0x5045, "ATI Rage 128 PE"},
-	{0x1002, 0x5046, "ATI Rage 128 PF"},
-	{0x1002, 0x5047, "ATI Rage 128 PG"},
-	{0x1002, 0x5048, "ATI Rage 128 PH"},
-	{0x1002, 0x5049, "ATI Rage 128 PI"},
-	{0x1002, 0x504a, "ATI Rage 128 PJ"},
-	{0x1002, 0x504b, "ATI Rage 128 PK"},
-	{0x1002, 0x504c, "ATI Rage 128 PL"},
-	{0x1002, 0x504d, "ATI Rage 128 PM"},
-	{0x1002, 0x504e, "ATI Rage 128 PN"},
-	{0x1002, 0x504f, "ATI Rage 128 PO"},
-	{0x1002, 0x5050, "ATI Rage 128 PP"},
-	{0x1002, 0x5051, "ATI Rage 128 PQ"},
-	{0x1002, 0x5052, "ATI Rage 128 PR"},
-	{0x1002, 0x5053, "ATI Rage 128 PS"},
-	{0x1002, 0x5054, "ATI Rage 128 PT"},
-	{0x1002, 0x5055, "ATI Rage 128 PU"},
-	{0x1002, 0x5056, "ATI Rage 128 PV"},
-	{0x1002, 0x5057, "ATI Rage 128 PW"},
-	{0x1002, 0x5058, "ATI Rage 128 PX"},
-	{0x1002, 0x5245, "ATI Rage 128 RE"},
-	{0x1002, 0x5246, "ATI Rage 128 RF"},
-	{0x1002, 0x5247, "ATI Rage 128 RG"},
-	{0x1002, 0x524b, "ATI Rage 128 RK"},
-	{0x1002, 0x524c, "ATI Rage 128 RL"},
-	{0x1002, 0x5345, "ATI Rage 128 SE"},
-	{0x1002, 0x5346, "ATI Rage 128 SF"},
-	{0x1002, 0x5347, "ATI Rage 128 SG"},
-	{0x1002, 0x5348, "ATI Rage 128 SH"},
-	{0x1002, 0x534b, "ATI Rage 128 SK"},
-	{0x1002, 0x534c, "ATI Rage 128 SL"},
-	{0x1002, 0x534d, "ATI Rage 128 SM"},
-	{0x1002, 0x534e, "ATI Rage 128 SN"},
-	{0x1002, 0x5446, "ATI Rage 128 TF"},
-	{0x1002, 0x544c, "ATI Rage 128 TL"},
-	{0x1002, 0x5452, "ATI Rage 128 TR"},
-	{0x1002, 0x5453, "ATI Rage 128 TS"},
-	{0x1002, 0x5454, "ATI Rage 128 TT"},
-	{0x1002, 0x5455, "ATI Rage 128 TU"},
-	{0, 0, NULL}
-};
+static char *
+make_busid(KdCardAttr *attr)
+{
+	char *busid;
+	
+	busid = xalloc(20);
+	if (busid == NULL)
+		return NULL;
+	snprintf(busid, 20, "pci:%04x:%02x:%02x.%d", attr->domain, attr->bus, 
+	    attr->slot, attr->func);
+	return busid;
+}
 
 static Bool
 ATICardInit(KdCardInfo *card)
@@ -205,11 +215,28 @@ ATICardInit(KdCardInfo *card)
 		return FALSE;
 	}
 
+	atic->busid = make_busid(&card->attr);
+	if (atic->busid == NULL)
+		return FALSE;
+
+#ifdef USE_DRI
+	/* We demand identification by busid, not driver name */
+	atic->drmFd = drmOpen(NULL, atic->busid);
+	if (atic->drmFd < 0)
+		ErrorF("Failed to open DRM.  DMA won't be used.\n");
+#endif /* USE_DRI */
+
 	card->driver = atic;
 
-	for (i = 0; radeon_id_list[i].name != NULL; i++) {
-		if (radeon_id_list[i].device == card->attr.deviceID)
-			atic->is_radeon = TRUE;
+	for (i = 0; ati_pci_ids[i].name != NULL; i++) {
+		struct pci_id_entry *id = &ati_pci_ids[i];
+		if (id->device == card->attr.deviceID) {
+			if (id->caps & CAP_RADEON) {
+				if (id->caps & CAP_R200)
+					atic->is_r200 = TRUE;
+				atic->is_radeon = TRUE;
+			}
+		}
 	}
 	return TRUE;
 }
@@ -227,15 +254,14 @@ static Bool
 ATIScreenInit(KdScreenInfo *screen)
 {
 	ATIScreenInfo *atis;
-	ATICardInfo *atic = screen->card->driver;
+	ATICardInfo(screen);
 	int success = FALSE;
 
 	atis = xcalloc(sizeof(ATIScreenInfo), 1);
 	if (atis == NULL)
 		return FALSE;
 
-	if (screen->fb[0].depth == 0)
-		screen->fb[0].depth = 16;
+	atis->atic = atic;
 
 	screen->driver = atis;
 

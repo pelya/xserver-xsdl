@@ -1,3 +1,4 @@
+
 /*
  * $Id$
  *
@@ -23,57 +24,19 @@
  */
 /* $Header$ */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-#include "ati.h"
-#include "klinux.h"
+#ifndef _ATI_SAREA_H_
+#define _ATI_SAREA_H_
 
-extern struct pci_id_entry ati_pci_ids[];
+/* There are 2 heaps (local/AGP).  Each region within a heap is a
+ * minimum of 64k, and there are at most 64 of them per heap.
+ */
+#define ATI_CARD_HEAP			0
+#define ATI_GART_HEAP			1
+#define ATI_NR_TEX_HEAPS		2
+#define ATI_NR_TEX_REGIONS		64
+#define ATI_LOG_TEX_GRANULARITY		16
 
-void
-InitCard(char *name)
-{
-	struct pci_id_entry *id;
-	KdCardAttr attr;
+#include "r128_sarea.h"
+#include "radeon_sarea.h"
 
-	for (id = ati_pci_ids; id->name != NULL; id++) {
-		int j = 0;
-		while (LinuxFindPci(id->vendor, id->device, j++, &attr))
-			KdCardInfoAdd(&ATIFuncs, &attr, 0);
-	}
-}
-
-void
-InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
-{
-	KdInitOutput(pScreenInfo, argc, argv);
-}
-
-void
-InitInput(int argc, char **argv)
-{
-	KdInitInput(&LinuxMouseFuncs, &LinuxKeyboardFuncs);
-}
-
-void
-ddxUseMsg (void)
-{
-	KdUseMsg();
-#ifdef KDRIVEVESA
-	vesaUseMsg();
-#endif
-}
-
-int
-ddxProcessArgument(int argc, char **argv, int i)
-{
-	int	ret;
-    
-#ifdef KDRIVEVESA
-	if (!(ret = vesaProcessArgument (argc, argv, i)))
-#endif
-		ret = KdProcessArgument(argc, argv, i);
-
-	return ret;
-}
+#endif /* _ATI_SAREA_H_ */

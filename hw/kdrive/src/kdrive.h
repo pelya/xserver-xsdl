@@ -332,6 +332,19 @@ typedef struct _KaaScreenInfo {
     int	        offscreenByteAlign;
     int         offscreenPitch;
     int		flags;
+
+    Bool        (*PrepareBlend) (int		op,
+				 PicturePtr	pSrcPicture,
+				 PicturePtr	pDstPicture,
+				 PixmapPtr	pSrc,
+				 PixmapPtr	pDst);
+    void        (*Blend) (int	srcX,
+			  int	srcY,
+			  int	dstX,
+			  int	dstY,
+			  int	width,
+			  int	height);
+    void	(*DoneBlend) (void);
 } KaaScreenInfoRec, *KaaScreenInfoPtr;
 
 #define KAA_OFFSCREEN_PIXMAPS (1 << 0)

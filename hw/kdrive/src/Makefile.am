@@ -6,6 +6,8 @@ noinst_LIBRARIES = libkdrive.a
 
 libkdrive_a_SOURCES =	\
 	kaa.c		\
+	kaa.h		\
+	kaapict.c	\
 	kasync.c	\
 	kcmap.c		\
 	kcurscol.c	\
