@@ -122,7 +122,8 @@ extern int ffs(unsigned long);
 
 # if defined(NO_INLINE) || defined(DO_PROTOTYPES)
 
-#  if !defined(__sparc__) && !defined(__arm32__) \
+#  if !defined(__arm__)
+#   if !defined(__sparc__) && !defined(__arm32__) \
       && !(defined(__alpha__) && defined(linux))
 
 extern void outb(unsigned short, unsigned char);
@@ -132,7 +133,7 @@ extern unsigned int inb(unsigned short);
 extern unsigned int inw(unsigned short);
 extern unsigned int inl(unsigned short);
 
-#  else /* __sparc__,  __arm32__, __alpha__*/
+#   else /* __sparc__,  __arm32__, __alpha__*/
 
 extern void outb(unsigned long, unsigned char);
 extern void outw(unsigned long, unsigned short);
@@ -141,7 +142,8 @@ extern unsigned int inb(unsigned long);
 extern unsigned int inw(unsigned long);
 extern unsigned int inl(unsigned long);
 
-#  endif /* __sparc__,  __arm32__, __alpha__ */
+#   endif /* __sparc__,  __arm32__, __alpha__ */
+#  endif /* __arm__ */
 
 extern unsigned long ldq_u(unsigned long *);
 extern unsigned long ldl_u(unsigned int *);
@@ -897,12 +899,12 @@ static __inline__ void stw_u(unsigned long val, unsigned short *p)
 #    define mem_barrier()         /* XXX: nop for now */
 #    define write_mem_barrier()   /* XXX: nop for now */
 
-#   elif defined(__mips__) || defined(__arm32__)
-#ifdef __arm32__
-#define PORT_SIZE long
-#else
-#define PORT_SIZE short
-#endif
+#   elif defined(__mips__) || (defined(__arm32__) && !defined(__linux__))
+#    ifdef __arm32__
+#     define PORT_SIZE long
+#    else
+#     define PORT_SIZE short
+#    endif
 
 unsigned int IOPortBase;  /* Memory mapped I/O port area */
 
@@ -1292,6 +1294,55 @@ inl(unsigned short port)
 
 #    define mem_barrier()	eieio()
 #    define write_mem_barrier()	eieio()
+
+#elif defined(__arm__) && defined(__linux__)
+
+#define ldq_u(p)	(*((unsigned long  *)(p)))
+#define ldl_u(p)	(*((unsigned int   *)(p)))
+#define ldw_u(p)	(*((unsigned short *)(p)))
+#define stq_u(v,p)	(*(unsigned long  *)(p)) = (v)
+#define stl_u(v,p)	(*(unsigned int   *)(p)) = (v)
+#define stw_u(v,p)	(*(unsigned short *)(p)) = (v)
+#define mem_barrier()   /* NOP */
+#define write_mem_barrier()   /* NOP */
+
+/* for Linux on ARM, we use the LIBC inx/outx routines */
+/* note that the appropriate setup via "ioperm" needs to be done */
+/*  *before* any inx/outx is done. */
+
+#include <sys/io.h>
+
+static __inline__ void
+xf_outb(unsigned short port, unsigned char val)
+{
+    outb(val, port);
+}
+
+static __inline__ void
+xf_outw(unsigned short port, unsigned short val)
+{
+    outw(val, port);
+}
+
+static __inline__ void
+xf_outl(unsigned short port, unsigned int val)
+{
+    outl(val, port);
+}
+
+#define outb xf_outb
+#define outw xf_outw
+#define outl xf_outl
+
+#define arm_flush_cache(addr)						\
+do {									\
+  register unsigned long _beg __asm ("a1") = (unsigned long) (addr);	\
+  register unsigned long _end __asm ("a2") = (unsigned long) (addr) + 4;\
+  register unsigned long _flg __asm ("a3") = 0;				\
+  __asm __volatile ("swi 0x9f0002		@ sys_cacheflush"	\
+    : "=r" (_beg)							\
+    : "0" (_beg), "r" (_end), "r" (_flg));				\
+} while (0)
 
 #   else /* ix86 */
 
