@@ -34,17 +34,23 @@
 #include "Pci.h"
 
 Bool
-xf86PreScanE8870(void)
+xorgProbeE8870(scanpciWrapperOpt flags)
 {
     PCITAG tag;
 
     /* Look for an E8870's Hub interface */
     tag = PCI_MAKE_TAG(0, 0x1E, 0);
-    if (pciReadLong(tag, PCI_ID_REG) != DEVID(VENDOR_INTEL, CHIP_82801_P2P))
-	return FALSE;
+    if (pciReadLong(tag, PCI_ID_REG) == DEVID(VENDOR_INTEL, CHIP_82801_P2P))
+	return TRUE;
 
+    return FALSE;
+}
+
+void
+xf86PreScanE8870(void)
+{
     /* XXX Fill me in... */
-    return TRUE;
+    return;
 }
 
 void

@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/bus/e8870PCI.h,v 1.1 2003/02/23 20:26:49 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/bus/ia64Pci.c,v 1.3 2003/02/23 20:26:49 tsi Exp $ */
 /*
  * Copyright (C) 2002-2003 The XFree86 Project, Inc.  All Rights Reserved.
  *
@@ -25,14 +25,57 @@
  * XFree86 Project.
  */
 
-#ifndef PCI_E8870_H
-#define PCI_E8870_H 1
+/*
+ * This file contains the glue needed to support various IA-64 chipsets.
+ */
 
-#include <X11/Xdefs.h>
-#include <Pci.h>
+#include "460gxPCI.h"
+#include "e8870PCI.h"
+#include "zx1PCI.h"
+#include "Pci.h"
+#include "ia64Pci.h"
 
-Bool xorgProbeE8870(scanpciWrapperOpt flags);
-void xf86PreScanE8870(void);
-void xf86PostScanE8870(void);
+void
+ia64ScanPCIWrapper(scanpciWrapperOpt flags)
+{
+    static IA64Chipset chipset = NONE_CHIPSET;
+    
+    if (flags == SCANPCI_INIT) {
 
+	/* PCI configuration space probes should be done first */
+	if (xorgProbe460GX(flags)) {
+	    chipset = I460GX_CHIPSET;
+	    xf86PreScan460GX();	
+	    return;
+	} else if (xorgProbeE8870(flags)) {
+	    chipset = E8870_CHIPSET;
+	    xf86PreScanE8870();
+	    return;
+	}
+#ifdef OS_PROBE_PCI_CHIPSET
+	chipset = OS_PROBE_PCI_CHIPSET(flags);
+	switch (chipset) {
+	    case ZX1_CHIPSET:
+		xf86PreScanZX1();
+		return;
+	    default:
+		return;
+	}
 #endif
+    } else /* if (flags == SCANPCI_TERM) */ {
+
+	switch (chipset) {
+	    case I460GX_CHIPSET:
+		xf86PostScan460GX();
+		return;
+	    case E8870_CHIPSET:
+		xf86PostScanE8870();
+		return;
+	    case ZX1_CHIPSET:
+		xf86PostScanZX1();
+		return;
+	    default:
+		return;
+	}
+    }
+}

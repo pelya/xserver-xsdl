@@ -29,8 +29,10 @@
 #define PCI_460GX_H 1
 
 #include <X11/Xdefs.h>
+#include <Pci.h>
 
-Bool xf86PreScan460GX(void);
+Bool xorgProbe460GX(scanpciWrapperOpt flags);
+void xf86PreScan460GX(void);
 void xf86PostScan460GX(void);
 
 #endif
