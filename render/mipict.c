@@ -249,8 +249,7 @@ miValidatePicture (PicturePtr pPicture,
 #define BOUND(v)	(INT16) ((v) < MINSHORT ? MINSHORT : (v) > MAXSHORT ? MAXSHORT : (v))
 
 static __inline Bool
-miClipPictureReg (ScreenPtr	pScreen,
-		  RegionPtr	pRegion,
+miClipPictureReg (RegionPtr	pRegion,
 		  RegionPtr	pClip,
 		  int		dx,
 		  int		dy)
@@ -276,19 +275,22 @@ miClipPictureReg (ScreenPtr	pScreen,
 	    REGION_EMPTY(pScreen, pRegion);
 	}
     }
+    else if (!REGION_NOTEMPTY (pScreen, pClip))
+	return FALSE;
     else
     {
-	REGION_TRANSLATE(pScreen, pRegion, dx, dy);
+	if (dx || dy)
+	    REGION_TRANSLATE(pScreen, pRegion, -dx, -dy);
 	if (!REGION_INTERSECT (pScreen, pRegion, pRegion, pClip))
 	    return FALSE;
-	REGION_TRANSLATE(pScreen, pRegion, -dx, -dy);
+	if (dx || dy)
+	    REGION_TRANSLATE(pScreen, pRegion, dx, dy);
     }
-    return TRUE;
+    return REGION_NOTEMPTY(pScreen, pRegion);
 }
 		  
 static __inline Bool
-miClipPictureSrc (ScreenPtr	pScreen,
-		  RegionPtr	pRegion,
+miClipPictureSrc (RegionPtr	pRegion,
 		  PicturePtr	pPicture,
 		  int		dx,
 		  int		dy)
@@ -314,10 +316,69 @@ miClipPictureSrc (ScreenPtr	pScreen,
     }
     else
     {
-	return miClipPictureReg (pScreen, pRegion, pPicture->pCompositeClip,
-				 dx, dy);
+	return miClipPictureReg (pRegion,
+				 pPicture->pCompositeClip,
+				 dx,
+				 dy);
     }
 }
+
+static void
+miCompositeSourceValidate (PicturePtr	pPicture,
+			   INT16	x,
+			   INT16	y,
+			   CARD16	width,
+			   CARD16	height)
+{
+    DrawablePtr	pDrawable = pPicture->pDrawable;
+    ScreenPtr	pScreen = pDrawable->pScreen;
+    
+    if (pScreen->SourceValidate)
+    {
+        x -= pPicture->pDrawable->x;
+        y -= pPicture->pDrawable->y;
+	if (pPicture->transform)
+	{
+	    xPoint	    points[4];
+	    int		    i;
+	    int		    xmin, ymin, xmax, ymax;
+
+#define VectorSet(i,_x,_y) { points[i].x = _x; points[i].y = _y; }
+	    VectorSet (0, x, y);
+	    VectorSet (1, x + width, y);
+	    VectorSet (2, x, y + height);
+	    VectorSet (3, x + width, y + height);
+	    xmin = ymin = 32767;
+	    xmax = ymax = -32737;
+	    for (i = 0; i < 4; i++)
+	    {
+		PictVector  t;
+		t.vector[0] = IntToxFixed (points[i].x);
+		t.vector[1] = IntToxFixed (points[i].y);
+		t.vector[2] = xFixed1;
+		if (PictureTransformPoint (pPicture->transform, &t))
+		{
+		    int	tx = xFixedToInt (t.vector[0]);
+		    int ty = xFixedToInt (t.vector[1]);
+		    if (tx < xmin) xmin = tx;
+		    if (tx > xmax) xmax = tx;
+		    if (ty < ymin) ymin = ty;
+		    if (ty > ymax) ymax = ty;
+		}
+	    }
+	    x = xmin;
+	    y = ymin;
+	    width = xmax - xmin;
+	    height = ymax - ymin;
+	}
+	(*pScreen->SourceValidate) (pDrawable, x, y, width, height);
+    }
+}
+
+/*
+ * returns FALSE if the final region is empty.  Indistinguishable from
+ * an allocation failure, but rendering ignores those anyways.
+ */
 
 Bool
 miComputeCompositeRegion (RegionPtr	pRegion,
@@ -333,7 +394,6 @@ miComputeCompositeRegion (RegionPtr	pRegion,
 			  CARD16	width,
 			  CARD16	height)
 {
-    ScreenPtr	pScreen = pSrc->pDrawable->pScreen;
     int		v;
 
     pRegion->extents.x1 = xDst;
@@ -347,18 +407,34 @@ miComputeCompositeRegion (RegionPtr	pRegion,
     if (pRegion->extents.x1 >= pRegion->extents.x2 ||
 	pRegion->extents.y1 >= pRegion->extents.y2)
     {
-	REGION_EMPTY (pScreen, pRegion);
-	return TRUE;
+	REGION_EMPTY (pDst->pDrawable->pScreen, pRegion);
+	return FALSE;
+    }
+    /* clip against dst */
+    if (!miClipPictureReg (pRegion, pDst->pCompositeClip, 0, 0))
+    {
+	REGION_UNINIT (pScreen, pRegion);
+	return FALSE;
+    }
+    if (pDst->alphaMap)
+    {
+	if (!miClipPictureReg (pRegion, pDst->alphaMap->pCompositeClip,
+			       -pDst->alphaOrigin.x,
+			       -pDst->alphaOrigin.y))
+	{
+	    REGION_UNINIT (pScreen, pRegion);
+	    return FALSE;
+	}
     }
     /* clip against src */
-    if (!miClipPictureSrc (pScreen, pRegion, pSrc, xDst - xSrc, yDst - ySrc))
+    if (!miClipPictureSrc (pRegion, pSrc, xDst - xSrc, yDst - ySrc))
     {
 	REGION_UNINIT (pScreen, pRegion);
 	return FALSE;
     }
     if (pSrc->alphaMap)
     {
-	if (!miClipPictureSrc (pScreen, pRegion, pSrc->alphaMap,
+	if (!miClipPictureSrc (pRegion, pSrc->alphaMap,
 			       xDst - (xSrc + pSrc->alphaOrigin.x),
 			       yDst - (ySrc + pSrc->alphaOrigin.y)))
 	{
@@ -369,15 +445,14 @@ miComputeCompositeRegion (RegionPtr	pRegion,
     /* clip against mask */
     if (pMask)
     {
-	if (!miClipPictureSrc (pScreen, pRegion, pMask,
-			       xDst - xMask, yDst - yMask))
+	if (!miClipPictureSrc (pRegion, pMask, xDst - xMask, yDst - yMask))
 	{
 	    REGION_UNINIT (pScreen, pRegion);
 	    return FALSE;
 	}	
 	if (pMask->alphaMap)
 	{
-	    if (!miClipPictureSrc (pScreen, pRegion, pMask->alphaMap,
+	    if (!miClipPictureSrc (pRegion, pMask->alphaMap,
 				   xDst - (xMask + pMask->alphaOrigin.x),
 				   yDst - (yMask + pMask->alphaOrigin.y)))
 	    {
@@ -386,22 +461,9 @@ miComputeCompositeRegion (RegionPtr	pRegion,
 	    }
 	}
     }
-    if (!miClipPictureReg (pScreen, pRegion, pDst->pCompositeClip, 0, 0))
-    {
-	REGION_UNINIT (pScreen, pRegion);
-	return FALSE;
-    }
-    if (pDst->alphaMap)
-    {
-	if (!miClipPictureReg (pScreen,
-			       pRegion, pDst->alphaMap->pCompositeClip,
-			       -pDst->alphaOrigin.x,
-			       -pDst->alphaOrigin.y))
-	{
-	    REGION_UNINIT (pScreen, pRegion);
-	    return FALSE;
-	}
-    }
+    miCompositeSourceValidate (pSrc, xSrc, ySrc, width, height);
+    if (pMask)
+	miCompositeSourceValidate (pMask, xMask, yMask, width, height);
     return TRUE;
 }
 

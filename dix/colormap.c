@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/dix/colormap.c,v 1.3 2004/07/31 08:24:13 anholt Exp $ */
+/* $XdotOrg: xc/programs/Xserver/dix/colormap.c,v 1.4 2004/08/07 00:58:21 keithp Exp $ */
 /* $XFree86: xc/programs/Xserver/dix/colormap.c,v 3.11 2003/11/03 05:10:59 tsi Exp $ */
 /***********************************************************
 
@@ -190,11 +190,10 @@ static void FindColorInRootCmap (
 #define NUMRED(vis) ((vis->redMask >> vis->offsetRed) + 1)
 #define NUMGREEN(vis) ((vis->greenMask >> vis->offsetGreen) + 1)
 #define NUMBLUE(vis) ((vis->blueMask >> vis->offsetBlue) + 1)
-#if 0
-#define NUMALPHA(vis)	XXX cant store in visual because of ABI concerns
-#define ALPHAMASK(vis)	XXX cant store in visual because of ABI concerns
+#if COMPOSITE
+#define ALPHAMASK(vis)	((vis)->nplanes < 32 ? 0 : \
+			 (CARD32) ~((vis)->redMask|(vis)->greenMask|(vis)->blueMask))
 #else
-#define NUMALPHA(vis)	0
 #define ALPHAMASK(vis)	0
 #endif
 
@@ -873,9 +872,8 @@ AllocColor (pmap, pred, pgreen, pblue, pPix, client)
 	pixB = FindBestPixel(pmap->blue, NUMBLUE(pVisual), &rgb, BLUEMAP);
 	*pPix = (pixR << pVisual->offsetRed) |
 		(pixG << pVisual->offsetGreen) |
-		(pixB << pVisual->offsetBlue);
-	
-	*pPix |= ALPHAMASK(pVisual);
+		(pixB << pVisual->offsetBlue) |
+		ALPHAMASK(pVisual);
 	
 	*pred = pmap->red[pixR].co.local.red;
 	*pgreen = pmap->green[pixG].co.local.green;
@@ -966,9 +964,7 @@ AllocColor (pmap, pred, pgreen, pblue, pPix, client)
 	    (void)FreeCo(pmap, client, REDMAP, 1, &pixR, (Pixel)0);
 	    return (BadAlloc);
 	}
-	*pPix = pixR | pixG | pixB;
-
-	*pPix |= ALPHAMASK(pVisual);
+	*pPix = pixR | pixG | pixB | ALPHAMASK(pVisual);
 
 	break;
     }

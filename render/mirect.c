@@ -42,7 +42,7 @@ miColorRects (PicturePtr    pDst,
     ScreenPtr		pScreen = pDst->pDrawable->pScreen;
     CARD32		pixel;
     GCPtr		pGC;
-    CARD32		tmpval[4];
+    CARD32		tmpval[5];
     RegionPtr		pClip;
     unsigned long	mask;
 
@@ -53,12 +53,13 @@ miColorRects (PicturePtr    pDst,
 	return;
     tmpval[0] = GXcopy;
     tmpval[1] = pixel;
-    mask = GCFunction | GCForeground;
+    tmpval[2] = pDst->subWindowMode;
+    mask = GCFunction | GCForeground | GCSubwindowMode;
     if (pClipPict->clientClipType == CT_REGION)
     {
-	tmpval[2] = pDst->clipOrigin.x - xoff;
-	tmpval[3] = pDst->clipOrigin.y - yoff;
-	mask |= CPClipXOrigin|CPClipYOrigin;
+	tmpval[3] = pDst->clipOrigin.x - xoff;
+	tmpval[4] = pDst->clipOrigin.y - yoff;
+	mask |= GCClipXOrigin|GCClipYOrigin;
 	
 	pClip = REGION_CREATE (pScreen, NULL, 1);
 	REGION_COPY (pScreen, pClip,

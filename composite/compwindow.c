@@ -667,15 +667,32 @@ compWindowUpdateAutomatic (WindowPtr pWin)
 						 &subwindowMode,
 						 serverClient,
 						 &error);
-
+    
+    /*
+     * First move the region from window to screen coordinates
+     */
     REGION_TRANSLATE (pScreen, pRegion, 
-		      pSrcPixmap->screen_x, pSrcPixmap->screen_y);
+		      pWin->drawable.x, pWin->drawable.y);
+    
+    /*
+     * Clip against the "real" border clip
+     */
     REGION_INTERSECT (pScreen, pRegion, pRegion, &cw->borderClip);
+
+    /*
+     * Now translate from screen to pixmap coordinates
+     */
     REGION_TRANSLATE (pScreen, pRegion, 
 		      -pSrcPixmap->screen_x, -pSrcPixmap->screen_y);
     
+    /*
+     * Clip the picture
+     */
     SetPictureClipRegion (pSrcPicture, 0, 0, pRegion);
     
+    /*
+     * And paint
+     */
     CompositePicture (PictOpSrc,
 		      pSrcPicture,
 		      0,
@@ -689,6 +706,10 @@ compWindowUpdateAutomatic (WindowPtr pWin)
 		      pSrcPixmap->drawable.height);
     FreePicture (pSrcPicture, 0);
     FreePicture (pDstPicture, 0);
+    /*
+     * Empty the damage region.  This has the nice effect of
+     * rendering the translations above harmless
+     */
     DamageEmpty (cw->damage);
 }
 

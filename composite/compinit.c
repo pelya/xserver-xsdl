@@ -40,6 +40,7 @@ compCloseScreen (int index, ScreenPtr pScreen)
 
     pScreen->CloseScreen = cs->CloseScreen;
     pScreen->BlockHandler = cs->BlockHandler;
+    pScreen->InstallColormap = cs->InstallColormap;
     pScreen->ReparentWindow = cs->ReparentWindow;
     pScreen->MoveWindow = cs->MoveWindow;
     pScreen->ResizeWindow = cs->ResizeWindow;
@@ -57,6 +58,23 @@ compCloseScreen (int index, ScreenPtr pScreen)
     pScreen->devPrivates[CompScreenPrivateIndex].ptr = 0;
     ret = (*pScreen->CloseScreen) (index, pScreen);
     return ret;
+}
+
+static void
+compInstallColormap (ColormapPtr pColormap)
+{
+    VisualPtr	    pVisual = pColormap->pVisual;
+    ScreenPtr	    pScreen = pColormap->pScreen;
+    CompScreenPtr   cs = GetCompScreen (pScreen);
+    int		    a;
+
+    for (a = 0; a < NUM_COMP_ALTERNATE_VISUALS; a++)
+	if (pVisual->vid == cs->alternateVisuals[a])
+	    return;
+    pScreen->InstallColormap = cs->InstallColormap;
+    (*pScreen->InstallColormap) (pColormap);
+    cs->InstallColormap = pScreen->InstallColormap;
+    pScreen->InstallColormap = compInstallColormap;
 }
 
 static void
@@ -126,7 +144,9 @@ typedef struct _alternateVisual {
 } CompAlternateVisual;
 
 static CompAlternateVisual  altVisuals[NUM_COMP_ALTERNATE_VISUALS] = {
+#if COMP_INCLUDE_RGB24_VISUAL
     {	24,	PICT_r8g8b8 },
+#endif
     {	32,	PICT_a8r8g8b8 },
 };
 
@@ -163,10 +183,6 @@ compAddAlternateVisuals (ScreenPtr pScreen, CompScreenPtr cs)
 	if (!pPictFormat)
 	    continue;
 
-	/*
-	 * Ok, create a visual id for this format
-	 */
-	cs->alternateVisuals[numAlternate] = FakeClientID (0);
 	/*
 	 * Allocate vid list for this depth
 	 */
@@ -235,6 +251,7 @@ compAddAlternateVisuals (ScreenPtr pScreen, CompScreenPtr cs)
 	DepthPtr	depth = depths[alt];
 	PictFormatPtr	pPictFormat = pPictFormats[alt];
 	VisualPtr	visual = &visuals[numVisuals + alt];
+	unsigned long	alphaMask;
 
 	/*
 	 * Initialize the visual
@@ -249,16 +266,19 @@ compAddAlternateVisuals (ScreenPtr pScreen, CompScreenPtr cs)
 			     pPictFormat->direct.green);
 	visual->blueMask  = (((unsigned long) pPictFormat->direct.blueMask) << 
 			     pPictFormat->direct.blue);
+	alphaMask =  (((unsigned long) pPictFormat->direct.alphaMask) << 
+		      pPictFormat->direct.alpha);
 	visual->offsetRed   = pPictFormat->direct.red;
 	visual->offsetGreen = pPictFormat->direct.green;
 	visual->offsetBlue  = pPictFormat->direct.blue;
 	/*
-	 * follow GLX and set nplanes to just the bits
-	 * used for the RGB value, not A
+	 * Include A bits in this (unlike GLX which includes only RGB)
+	 * This lets DIX compute suitable masks for colormap allocations
 	 */
 	visual->nplanes = Ones (visual->redMask |
 				visual->greenMask |
-				visual->blueMask);
+				visual->blueMask |
+				alphaMask);
 	/*
 	 * find widest component
 	 */
@@ -354,6 +374,9 @@ compScreenInit (ScreenPtr pScreen)
 
     cs->ReparentWindow = pScreen->ReparentWindow;
     pScreen->ReparentWindow = compReparentWindow;
+
+    cs->InstallColormap = pScreen->InstallColormap;
+    pScreen->InstallColormap = compInstallColormap;
 
     cs->BlockHandler = pScreen->BlockHandler;
     pScreen->BlockHandler = compBlockHandler;

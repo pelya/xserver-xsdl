@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/fb/fbwindow.c,v 1.2 2004/04/23 19:05:14 eich Exp $ */
+/* $XdotOrg: xc/programs/Xserver/fb/fbwindow.c,v 1.3 2004/08/11 22:40:14 keithp Exp $ */
 /*
  * Id: fbwindow.c,v 1.1 1999/11/02 03:54:45 keithp Exp $
  *
@@ -122,12 +122,12 @@ fbCopyWindow(WindowPtr	    pWin,
 {
     RegionRec	rgnDst;
     int		dx, dy;
-    WindowPtr	pwinRoot;
 #ifdef COMPOSITE
     PixmapPtr	pPixmap = fbGetWindowPixmap (pWin);
+    DrawablePtr	pDrawable = &pPixmap->drawable;
+#else
+    DrawablePtr	pDrawable = &WindowTable[pWin->drawable.pScreen->myNum]->drawable;
 #endif
-
-    pwinRoot = WindowTable[pWin->drawable.pScreen->myNum];
 
     dx = ptOldOrg.x - pWin->drawable.x;
     dy = ptOldOrg.y - pWin->drawable.y;
@@ -143,7 +143,7 @@ fbCopyWindow(WindowPtr	    pWin,
 			  -pPixmap->screen_x, -pPixmap->screen_y);
 #endif
 
-    fbCopyRegion ((DrawablePtr)pwinRoot, (DrawablePtr)pwinRoot,
+    fbCopyRegion (pDrawable, pDrawable,
 		  0,
 		  &rgnDst, dx, dy, fbCopyWindowProc, 0, 0);
     

@@ -201,15 +201,6 @@ typedef struct _FbAccessMap {
  */
 extern FbAccessMap  fbAccessMap[];
 
-/* fbaddtrap.c */
-
-void
-fbAddTraps (PicturePtr	pPicture,
-	    INT16	xOff,
-	    INT16	yOff,
-	    int		ntrap,
-	    xTrap	*traps);
-
 /* fbcompose.c */
 
 typedef struct _fbCompSrc {

@@ -460,6 +460,7 @@ compFreePixmap (WindowPtr pWin)
     {
 	DamageUnregister (&pWin->drawable, cw->damage);
 	cw->damageRegistered = FALSE;
+	DamageEmpty (cw->damage);
     }
     /*
      * Move the parent-constrained border clip region back into

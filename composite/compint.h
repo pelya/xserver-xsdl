@@ -75,7 +75,15 @@ typedef struct _CompSubwindows {
     CompClientWindowPtr	    clients;
 } CompSubwindowsRec, *CompSubwindowsPtr;
 
+#ifndef COMP_INCLUDE_RGB24_VISUAL
+#define COMP_INCLUDE_RGB24_VISUAL 0
+#endif
+
+#if COMP_INCLUDE_RGB24_VISUAL
 #define NUM_COMP_ALTERNATE_VISUALS  2
+#else
+#define NUM_COMP_ALTERNATE_VISUALS  1
+#endif
 
 typedef struct _CompScreen {
     PositionWindowProcPtr	PositionWindow;
@@ -99,6 +107,11 @@ typedef struct _CompScreen {
      */
     ReparentWindowProcPtr	ReparentWindow;
     
+    /*
+     * Colormaps for new visuals better not get installed
+     */
+    InstallColormapProcPtr	InstallColormap;
+
     ScreenBlockHandlerProcPtr	BlockHandler;
     CloseScreenProcPtr		CloseScreen;
     Bool			damaged;
