@@ -30,7 +30,9 @@
  */
 
 #include "win.h"
+#ifdef __CYGWIN__
 #include <sys/cygwin.h>
+#endif
 #include <shellapi.h>
 #include "winprefs.h"
 
@@ -44,7 +46,9 @@ extern HWND			g_hDlgDepthChange;
 extern HWND			g_hDlgExit;
 extern HWND			g_hDlgAbout;
 extern WINPREFS			pref;
+#ifdef XWIN_CLIPBOARD
 extern Bool			g_fClipboardStarted;
+#endif
 extern Bool			g_fSoftwareCursor;
 
 
@@ -217,11 +221,15 @@ winDisplayExitDialog (winPrivScreenPtr pScreenPriv)
   for (i = 1; i < currentMaxClients; i++)
     if (clients[i] != NullClient)	
       liveClients++;
+#if defined(XWIN_MULTIWINDOW)
   /* Count down server internal clients */
   if (pScreenPriv->pScreenInfo->fMultiWindow)
     liveClients -= 2; /* multiwindow window manager & XMsgProc  */
+#endif
+#if defined(XWIN_CLIPBOARD)
   if (g_fClipboardStarted)
     liveClients--; /* clipboard manager */
+#endif
 
   /* A user reported that this sometimes drops below zero. just eye-candy. */ 
   if (liveClients < 0)
@@ -314,7 +322,7 @@ winExitDlgProc (HWND hDialog, UINT message,
 					MAKEINTRESOURCE(IDI_XWIN)));
 
 	/* Format the connected clients string */
-	iReturn = sprintf (NULL, CONNECTED_CLIENTS_FORMAT,
+	iReturn = scprintf (CONNECTED_CLIENTS_FORMAT,
 			   s_pScreenPriv->iConnectedClients);
 	if (iReturn <= 0)
 	  return TRUE;
@@ -323,6 +331,7 @@ winExitDlgProc (HWND hDialog, UINT message,
 	  return TRUE;
 	snprintf (pszConnectedClients, iReturn + 1, CONNECTED_CLIENTS_FORMAT,
 		  s_pScreenPriv->iConnectedClients);
+        pszConnectedClients[iReturn] = 0;
 	
 	/* Set the number of connected clients */
 	SetWindowText (GetDlgItem (hDialog, IDC_CLIENTS_CONNECTED),
@@ -669,13 +678,18 @@ winAboutDlgProc (HWND hwndDialog, UINT message,
 
 	case ID_ABOUT_CHANGELOG:
 	  {
+	    int			iReturn;
+#ifdef __CYGWIN__
 	    const char *	pszCygPath = "/usr/X11R6/share/doc/"
 	      "xorg-x11-xwin/changelog.html";
 	    char		pszWinPath[MAX_PATH + 1];
-	    int			iReturn;
 
 	    /* Convert the POSIX path to a Win32 path */
 	    cygwin_conv_to_win32_path (pszCygPath, pszWinPath);
+#else
+	    const char *	pszWinPath = "http://x.cygwin.com/"
+		    "devel/server/changelog.html";
+#endif
 	    
 	    iReturn = (int) ShellExecute (NULL,
 					  "open",

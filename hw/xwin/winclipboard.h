@@ -35,7 +35,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#ifdef __CYGWIN__
 #include <sys/select.h>
+#else
+#include "Xwinsock.h"
+#define HAS_WINSOCK
+#endif
 #include <fcntl.h>
 #include <setjmp.h>
 #include <pthread.h>
@@ -54,6 +59,10 @@
 /* Fixups to prevent collisions between Windows and X headers */
 #define ATOM			DWORD
 
+#ifndef __CYGWIN__
+#define sleep(x) Sleep (1000 * (x))
+#endif
+
 /* Windows headers */
 #ifndef XFree86Server
 #define XFree86Server
@@ -65,7 +74,9 @@
 /* Clipboard module constants */
 #define WIN_CLIPBOARD_WINDOW_CLASS		"xwinclip"
 #define WIN_CLIPBOARD_WINDOW_TITLE		"xwinclip"
-#define WIN_MSG_QUEUE_FNAME			"/dev/windows"
+#ifdef HAS_DEVWINDOWS
+# define WIN_MSG_QUEUE_FNAME			"/dev/windows"
+#endif
 #define WIN_CONNECT_RETRIES			40
 #define WIN_CONNECT_DELAY			4
 #define WIN_JMP_OKAY				0

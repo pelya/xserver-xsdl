@@ -68,7 +68,9 @@ extern void winDebug(const char *format, ...);
 
 #define WIN_CONNECT_RETRIES	5
 #define WIN_CONNECT_DELAY	5
-#define WIN_MSG_QUEUE_FNAME	"/dev/windows"
+#ifdef HAS_DEVWINDOWS
+# define WIN_MSG_QUEUE_FNAME	"/dev/windows"
+#endif
 #define WIN_JMP_OKAY		0
 #define WIN_JMP_ERROR_IO	2
 

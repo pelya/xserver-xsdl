@@ -71,6 +71,19 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #define	POST_ERROR_MSG1 "\"Errors from xkbcomp are not fatal to the X server\""
 #define	POST_ERROR_MSG2 "\"End of messages from xkbcomp\""
 
+#ifdef WIN32
+static const char* 
+Win32TempDir()
+{
+	if (getenv("TEMP") != NULL)
+        return getenv("TEMP");
+	else if (getenv("TMP") != NULL)
+        return getenv("TEMP");
+	else
+        return "/tmp";
+}
+#endif
+
 static void
 OutputDirectory(
     char* outdir)
@@ -88,7 +101,12 @@ OutputDirectory(
 	if (outdir[strlen(outdir) - 1] != '/')	/* Hi IBM, Digital */
 	    (void) strcat (outdir, "/");
 #else
+#ifndef WIN32
 	(void) strcpy (outdir, "/tmp/");
+#else
+	strcpy(outdir, Win32TempDir());
+	strcat(outdir, "\\");
+#endif
 #endif
     }
 }
@@ -196,7 +214,7 @@ char 	cmd[PATH_MAX],file[PATH_MAX],xkm_output_dir[PATH_MAX],*map,*outFile;
 	_XkbFree(outFile);
     return False;
 }
-        	
+
 Bool    	
 XkbDDXCompileKeymapByNames(	XkbDescPtr		xkb,
 				XkbComponentNamesPtr	names,
@@ -208,7 +226,7 @@ XkbDDXCompileKeymapByNames(	XkbDescPtr		xkb,
 FILE *	out;
 char	buf[PATH_MAX],keymap[PATH_MAX],xkm_output_dir[PATH_MAX];
 #ifdef WIN32
-char tmpname[32];
+char tmpname[MAX_PATH];
 #endif    
 #ifdef __UNIXOS2__
 char *tmpbase;
@@ -228,7 +246,8 @@ int i;
     XkbEnsureSafeMapName(keymap);
     OutputDirectory(xkm_output_dir);
 #ifdef WIN32
-    strcpy(tmpname, "\\temp\\xkb_XXXXXX");
+    strcpy(tmpname, Win32TempDir());
+    strcat(tmpname, "\\xkb_XXXXXX");
     (void) mktemp(tmpname);
 #endif
 #ifdef __UNIXOS2__
@@ -387,7 +406,11 @@ FILE *	file;
     buf[0]= '\0';
     if (mapName!=NULL) {
 	OutputDirectory(xkm_output_dir);
-	if ((XkbBaseDirectory!=NULL)&&(xkm_output_dir[0]!='/')) {
+	if ((XkbBaseDirectory!=NULL)&&(xkm_output_dir[0]!='/')
+#ifdef WIN32
+                &&(!isalpha(xkm_output_dir[0]) || xkm_output_dir[1]!=':')
+#endif
+                ) {
 	    if (strlen(XkbBaseDirectory)+strlen(xkm_output_dir)
 		     +strlen(mapName)+6 <= PATH_MAX)
 	    {

@@ -89,6 +89,11 @@ OR PERFORMANCE OF THIS SOFTWARE.
 #include "site.h"
 #include "opaque.h"
 
+#ifdef WIN32
+#include <process.h>
+#define getpid(x) _getpid(x)
+#endif
+
 
 #ifdef DDXOSVERRORF
 void (*OsVendorVErrorFProc)(const char *, va_list args) = NULL;
@@ -191,7 +196,9 @@ LogInit(const char *fname, const char *backup)
 	if (saveBuffer && bufferSize > 0) {
 	    fwrite(saveBuffer, bufferPos, 1, logFile);
 	    fflush(logFile);
+#ifndef WIN32
 	    fsync(fileno(logFile));
+#endif
 	}
     }
 
@@ -263,8 +270,10 @@ LogVWrite(int verb, const char *f, va_list args)
 	    fwrite(tmpBuffer, len, 1, logFile);
 	    if (logFlush) {
 		fflush(logFile);
+#ifndef WIN32
 		if (logSync)
 		    fsync(fileno(logFile));
+#endif
 	    }
 	} else if (needBuffer) {
 	    /*

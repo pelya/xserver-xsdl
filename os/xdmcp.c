@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/os/xdmcp.c,v 1.2 2004/04/23 19:54:28 eich Exp $ */
+/* $XdotOrg: xc/programs/Xserver/os/xdmcp.c,v 1.3 2004/07/20 15:15:13 ago Exp $ */
 /* $Xorg: xdmcp.c,v 1.4 2001/01/31 13:37:19 pookie Exp $ */
 /*
  * Copyright 1989 Network Computing Devices, Inc., Mountain View, California.
@@ -17,17 +17,7 @@
 /* $XFree86: xc/programs/Xserver/os/xdmcp.c,v 3.31 2003/12/30 21:24:32 herrb Exp $ */
 
 #ifdef WIN32
-/* avoid conflicting definitions */
-#define BOOL wBOOL
-#define ATOM wATOM
-#define FreeResource wFreeResource
-#include <winsock.h>
-#undef BOOL
-#undef ATOM
-#undef FreeResource
-#undef CreateWindowA
-#undef RT_FONT
-#undef RT_CURSOR
+#include <Xwinsock.h>
 #endif
 
 #include "Xos.h"
@@ -1548,7 +1538,9 @@ get_addr_by_name(
 #ifdef XTHREADS_NEEDS_BYNAMEPARAMS
     _Xgethostbynameparams hparams;
 #endif
-
+#if defined(WIN32) && (defined(TCPCONN) || defined(DNETCONN))
+    _XSERVTransWSAStartup(); 
+#endif
     if (!(hep = _XGethostbyname(namestr, hparams)))
     {
 	FatalError("Xserver: %s unknown host: %s\n", argtype, namestr);

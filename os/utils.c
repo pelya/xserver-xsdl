@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/os/utils.c,v 1.8 2004/09/24 02:11:14 gisburn Exp $ */
+/* $XdotOrg: xc/programs/Xserver/os/utils.c,v 1.9 2004/09/29 04:17:44 gisburn Exp $ */
 /* $Xorg: utils.c,v 1.5 2001/02/09 02:05:24 xorgcvs Exp $ */
 /*
 
@@ -81,7 +81,9 @@ OR PERFORMANCE OF THIS SOFTWARE.
 #undef _POSIX_SOURCE
 #endif
 #endif
+#ifndef WIN32
 #include <sys/wait.h>
+#endif
 #if !defined(SYSV) && !defined(WIN32) && !defined(Lynx) && !defined(QNX4)
 #include <sys/resource.h>
 #endif
@@ -1974,7 +1976,11 @@ Fclose(pointer iop)
 
 /* Check args and env only if running setuid (euid == 0 && euid != uid) ? */
 #ifndef CHECK_EUID
+#ifndef WIN32
 #define CHECK_EUID 1
+#else
+#define CHECK_EUID 0
+#endif
 #endif
 
 /*

@@ -43,16 +43,22 @@ OsVendorVErrorF (const char *pszFormat, va_list va_args);
 void
 OsVendorVErrorF (const char *pszFormat, va_list va_args)
 {
+#if defined(XWIN_CLIPBOARD) || defined (XWIN_MULTIWINDOW)
+  /* make sure the clipboard and multiwindow threads do not interfere the
+   * main thread */
   static pthread_mutex_t	s_pmPrinting = PTHREAD_MUTEX_INITIALIZER;
 
   /* Lock the printing mutex */
   pthread_mutex_lock (&s_pmPrinting);
+#endif
 
   /* Print the error message to a log file, could be stderr */
   LogVWrite (0, pszFormat, va_args);
 
+#if defined(XWIN_CLIPBOARD) || defined (XWIN_MULTIWINDOW)
   /* Unlock the printing mutex */
   pthread_mutex_unlock (&s_pmPrinting);
+#endif
 }
 #endif
 
@@ -94,17 +100,18 @@ winMessageBoxF (const char *pszError, UINT uType, ...)
 
   /* Get length of formatted error string */
   va_start (args, uType);
-  i = sprintf (NULL, pszError, args);
+  i = scprintf (pszError, args);
   va_end (args);
   
   /* Allocate memory for formatted error string */
-  pszErrorF = malloc (i);
+  pszErrorF = malloc (i + 1);
   if (!pszErrorF)
     goto winMessageBoxF_Cleanup;
 
   /* Create the formatted error string */
   va_start (args, uType);
-  sprintf (pszErrorF, pszError, args);
+  snprintf (pszErrorF, i + 1, pszError, args);
+  pszErrorF[i] = 0;
   va_end (args);
 
 #define MESSAGEBOXF \
@@ -116,21 +123,22 @@ winMessageBoxF (const char *pszError, UINT uType, ...)
 	"%s\n"
 
   /* Get length of message box string */
-  i = sprintf (NULL, MESSAGEBOXF,
+  i = scprintf (MESSAGEBOXF,
 	       pszErrorF,
 	       VENDOR_STRING, VERSION_STRING, VENDOR_CONTACT,
 	       g_pszCommandLine);
 
   /* Allocate memory for message box string */
-  pszMsgBox = malloc (i);
+  pszMsgBox = malloc (i + 1);
   if (!pszMsgBox)
     goto winMessageBoxF_Cleanup;
 
   /* Format the message box string */
-  sprintf (pszMsgBox, MESSAGEBOXF,
+  snprintf (pszMsgBox, i + 1, MESSAGEBOXF,
 	   pszErrorF,
 	   VENDOR_STRING, VERSION_STRING, VENDOR_CONTACT,
 	   g_pszCommandLine);
+  pszMsgBox[i] = 0;
 
   /* Display the message box string */
   MessageBox (NULL,
@@ -145,3 +153,15 @@ winMessageBoxF (const char *pszError, UINT uType, ...)
     free (pszMsgBox);
 #undef MESSAGEBOXF
 }
+
+#ifndef HAS_SCPRINTF
+extern int scprintf(const char *format, ...)
+{
+    int ret;
+    va_list va;
+    va_start(va, format);
+    ret = vsnprintf(NULL, 0, format, va);
+    va_end(va);
+    return ret;
+}
+#endif

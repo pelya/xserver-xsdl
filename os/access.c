@@ -1,5 +1,5 @@
 /* $Xorg: access.c,v 1.5 2001/02/09 02:05:23 xorgcvs Exp $ */
-/* $XdotOrg: xc/programs/Xserver/os/access.c,v 1.5 2004/07/17 01:13:31 alanc Exp $ */
+/* $XdotOrg: xc/programs/Xserver/os/access.c,v 1.6 2004/10/17 10:46:14 herrb Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -531,7 +531,14 @@ DefineSelf (int fd)
     int		family;
     register HOST	*host;
 
+#ifndef WIN32
     struct utsname name;
+#else
+    struct {
+        char  nodename[512];	    
+    } name;
+#endif
+
     register struct hostent  *hp;
 
     union {
@@ -555,7 +562,11 @@ DefineSelf (int fd)
      * see), whereas gethostname() kindly truncates it for me.
      */
 #ifndef QNX4
+#ifndef WIN32
     uname(&name);
+#else
+    gethostname(name.nodename, sizeof(name.nodename));
+#endif
 #else
     /* QNX4's uname returns node number in name.nodename, not the hostname
        have to overwrite it */
@@ -1849,6 +1860,10 @@ ConvertAddr (
         return FamilyLocal;
 #if defined(TCPCONN) || defined(STREAMSCONN) || defined(MNX_TCPCONN)
     case AF_INET:
+#ifdef WIN32
+        if (16777343 == *(long*)&((struct sockaddr_in *) saddr)->sin_addr)
+            return FamilyLocal;
+#endif
         *len = sizeof (struct in_addr);
         *addr = (pointer) &(((struct sockaddr_in *) saddr)->sin_addr);
         return FamilyInternet;

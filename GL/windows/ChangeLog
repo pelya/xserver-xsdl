@@ -1,3 +1,9 @@
+2004-11-15  Alexander Gottwald  <ago at freedesktop dot org>
+
+	* indirect.c:
+	Bufzilla #1802, http://freedesktop.org/bugzilla/show_bug.cgi?id=1802
+	Added mingw (Win32) port     
+
 2004-08-13  Alexander Gottwald  <ago@freedesktop.org>
 
 	* Imakefile: Added $(MESASRCDIR)/src/mesa/glapi to INCLUDES.

@@ -32,8 +32,15 @@ from The Open Group.
 #include "winmsg.h"
 #include "winconfig.h"
 #include "winprefs.h"
+#ifdef XWIN_CLIPBOARD
 #include "X11/Xlocale.h"
+#endif
+#ifdef __CYGWIN__
 #include <mntent.h>
+#endif
+#if defined(XKB) && defined(WIN32)
+#include "XKBsrv.h"
+#endif
 
 
 /*
@@ -51,7 +58,9 @@ extern int			g_iLogVerbose;
 Bool				g_fLogInited;
 
 extern Bool			g_fXdmcpEnabled;
+#ifdef HAS_DEVWINDOWS
 extern int			g_fdMessageQueue;
+#endif
 extern const char *		g_pszQueryHost;
 extern HINSTANCE		g_hInstance;
 
@@ -148,13 +157,7 @@ winClipboardShutdown (void)
 	return;
       
       /* Wait for the clipboard thread to exit */
-      if (g_ptClipboardProc)
-	{
-	  pthread_join (g_ptClipboardProc, NULL);
-	  g_ptClipboardProc = 0;
-	}
-      else
-	return;
+      pthread_join (g_ptClipboardProc, NULL);
 
       g_fClipboardLaunched = FALSE;
       g_fClipboardStarted = FALSE;
@@ -206,6 +209,7 @@ ddxGiveUp (void)
   winDeinitMultiWindowWM ();
 #endif
 
+#ifdef HAS_DEVWINDOWS
   /* Close our handle to our message queue */
   if (g_fdMessageQueue != WIN_FD_INVALID)
     {
@@ -215,6 +219,7 @@ ddxGiveUp (void)
       /* Set the file handle to invalid */
       g_fdMessageQueue = WIN_FD_INVALID;
     }
+#endif
 
   if (!g_fLogInited) {
     LogInit (g_pszLogFile, NULL);
@@ -267,6 +272,7 @@ AbortDDX (void)
   ddxGiveUp ();
 }
 
+#ifdef __CYGWIN__
 /* hasmntopt is currently not implemented for cygwin */
 const char *winCheckMntOpt(const struct mntent *mnt, const char *opt)
 {
@@ -349,7 +355,278 @@ winCheckMount(void)
  if (!binary) 
    winMsg(X_WARNING, "/tmp mounted int textmode\n"); 
 }
+#else
+void
+winCheckMount(void) 
+{
+}
+#endif
 
+const char * 
+winGetBaseDir(void)
+{
+    static BOOL inited = FALSE;
+    static char buffer[MAX_PATH];
+    if (!inited)
+    {
+        char *fendptr;
+        HMODULE module = GetModuleHandle(NULL);
+        DWORD size = GetModuleFileName(module, buffer, sizeof(buffer));
+        if (sizeof(buffer) > 0)
+            buffer[sizeof(buffer)-1] = 0;
+    
+        fendptr = buffer + size;
+        while (fendptr > buffer)
+        {
+            if (*fendptr == '\\' || *fendptr == '/')
+            {
+                *fendptr = 0;
+                break;
+            }
+            fendptr--;
+        }
+        inited = TRUE;
+    }
+    return buffer;
+}
+
+static void
+winFixupPaths (void)
+{
+    BOOL changed_fontpath = FALSE;
+    MessageType font_from = X_DEFAULT;
+#ifdef RELOCATE_PROJECTROOT
+    const char *basedir = winGetBaseDir();
+    size_t basedirlen = strlen(basedir);
+#endif
+
+#ifdef READ_FONTDIRS
+    {
+        /* Open fontpath configuration file */
+        FILE *fontdirs = fopen(ETCX11DIR "/font-dirs", "rt");
+        if (fontdirs != NULL)
+        {
+            char buffer[256];
+            int needs_sep = TRUE; 
+            int comment_block = FALSE;
+
+            /* get defautl fontpath */
+            char *fontpath = xstrdup(defaultFontPath);
+            size_t size = strlen(fontpath);
+
+            /* read all lines */
+            while (!feof(fontdirs))
+            {
+                size_t blen;
+                char *hashchar;
+                char *str;
+                int has_eol = FALSE;
+
+                /* read one line */
+                str = fgets(buffer, sizeof(buffer), fontdirs);
+                if (str == NULL) /* stop on error or eof */
+                    break;
+
+                if (strchr(str, '\n') != NULL)
+                    has_eol = TRUE;
+
+                /* check if block is continued comment */
+                if (comment_block)
+                {
+                    /* ignore all input */
+                    *str = 0; 
+                    blen = 0; 
+                    if (has_eol) /* check if line ended in this block */
+                        comment_block = FALSE;
+                }
+                else 
+                {
+                    /* find comment character. ignore all trailing input */
+                    hashchar = strchr(str, '#');
+                    if (hashchar != NULL)
+                    {
+                        *hashchar = 0;
+                        if (!has_eol) /* mark next block as continued comment */
+                            comment_block = TRUE;
+                    }
+                }
+
+                /* strip whitespaces from beginning */
+                while (*str == ' ' || *str == '\t')
+                    str++;
+
+                /* get size, strip whitespaces from end */ 
+                blen = strlen(str);
+                while (blen > 0 && (str[blen-1] == ' ' || 
+                            str[blen-1] == '\t' || str[blen-1] == '\n'))
+                {
+                    str[--blen] = 0;
+                }
+
+                /* still something left to add? */ 
+                if (blen > 0)
+                {
+                    size_t newsize = size + blen;
+                    /* reserve one character more for ',' */
+                    if (needs_sep)
+                        newsize++;
+
+                    /* allocate memory */
+                    if (fontpath == NULL)
+                        fontpath = malloc(newsize+1);
+                    else
+                        fontpath = realloc(fontpath, newsize+1);
+
+                    /* add separator */
+                    if (needs_sep)
+                    {
+                        fontpath[size] = ',';
+                        size++;
+                        needs_sep = FALSE;
+                    }
+
+                    /* mark next line as new entry */
+                    if (has_eol)
+                        needs_sep = TRUE;
+
+                    /* add block */
+                    strncpy(fontpath + size, str, blen);
+                    fontpath[newsize] = 0;
+                    size = newsize;
+                }
+            }
+
+            /* cleanup */
+            fclose(fontdirs);  
+            defaultFontPath = xstrdup(fontpath);
+            free(fontpath);
+            changed_fontpath = TRUE;
+            font_from = X_CONFIG;
+        }
+    }
+#endif /* READ_FONTDIRS */
+#ifdef RELOCATE_PROJECTROOT
+    {
+        const char *libx11dir = PROJECTROOT "/lib/X11";
+        size_t libx11dir_len = strlen(libx11dir);
+        char *newfp = NULL;
+        size_t newfp_len = 0;
+        const char *endptr, *ptr, *oldptr = defaultFontPath;
+
+        endptr = oldptr + strlen(oldptr);
+        ptr = strchr(oldptr, ',');
+        if (ptr == NULL)
+            ptr = endptr;
+        while (ptr != NULL)
+        {
+            size_t oldfp_len = (ptr - oldptr);
+            size_t newsize = oldfp_len;
+            char *newpath = malloc(newsize + 1);
+            strncpy(newpath, oldptr, newsize);
+            newpath[newsize] = 0;
+
+
+            if (strncmp(libx11dir, newpath, libx11dir_len) == 0)
+            {
+                char *compose;
+                newsize = newsize - libx11dir_len + basedirlen;
+                compose = malloc(newsize + 1);  
+                strcpy(compose, basedir);
+                strncat(compose, newpath + libx11dir_len, newsize - basedirlen);
+                compose[newsize] = 0;
+                free(newpath);
+                newpath = compose;
+            }
+
+            oldfp_len = newfp_len;
+            if (oldfp_len > 0)
+                newfp_len ++; /* space for separator */
+            newfp_len += newsize;
+
+            if (newfp == NULL)
+                newfp = malloc(newfp_len + 1);
+            else
+                newfp = realloc(newfp, newfp_len + 1);
+
+            if (oldfp_len > 0)
+            {
+                strcpy(newfp + oldfp_len, ",");
+                oldfp_len++;
+            }
+            strcpy(newfp + oldfp_len, newpath);
+
+            free(newpath);
+
+            if (*ptr == 0)
+            {
+                oldptr = ptr;
+                ptr = NULL;
+            } else
+            {
+                oldptr = ptr + 1;
+                ptr = strchr(oldptr, ',');
+                if (ptr == NULL)
+                    ptr = endptr;
+            }
+        } 
+
+        defaultFontPath = xstrdup(newfp);
+        free(newfp);
+        changed_fontpath = TRUE;
+    }
+#endif /* RELOCATE_PROJECTROOT */
+    if (changed_fontpath)
+        winMsg (font_from, "FontPath set to \"%s\"\n", defaultFontPath);
+
+#ifdef RELOCATE_PROJECTROOT
+    if (1) {
+      const char *libx11dir = "/usr/X11R6/lib/X11";
+      size_t libx11dir_len = strlen(libx11dir);
+
+      if (strncmp(libx11dir, rgbPath, libx11dir_len) == 0)
+      {
+          size_t newsize = strlen(rgbPath) - libx11dir_len + basedirlen;
+          char *compose = malloc(newsize + 1);  
+          strcpy(compose, basedir);
+          strcat(compose, rgbPath + libx11dir_len);
+          compose[newsize] = 0;
+          rgbPath = xstrdup (compose);
+          free (compose);
+
+          winMsg (X_DEFAULT, "RgbPath set to \"%s\"\n", rgbPath);
+      }
+    }
+
+    if (getenv("XKEYSYMDB") == NULL)
+    {
+        char buffer[MAX_PATH];
+        snprintf(buffer, sizeof(buffer), "XKEYSYMDB=%s\\XKeysymDB",
+                basedir);
+        buffer[sizeof(buffer)-1] = 0;
+        putenv(buffer);
+        winDebug("%s\n", getenv("XKEYSYMDB"));
+    }
+    if (getenv("XLOCALEDIR") == NULL)
+    {
+        char buffer[MAX_PATH];
+        snprintf(buffer, sizeof(buffer), "XLOCALEDIR=%s\\locale",
+                basedir);
+        buffer[sizeof(buffer)-1] = 0;
+        putenv(buffer);
+        winDebug("%s\n", getenv("XLOCALEDIR"));
+    }
+#ifdef XKB
+    {
+        static char xkbbasedir[MAX_PATH];
+
+        snprintf(xkbbasedir, sizeof(xkbbasedir), "%s\\xkb", basedir);
+        if (sizeof(xkbbasedir) > 0)
+            xkbbasedir[sizeof(xkbbasedir)-1] = 0;
+        XkbBaseDirectory = xkbbasedir;
+    }
+#endif /* XKB */
+#endif /* RELOCATE_PROJECTROOT */
+}
 
 void
 OsVendorInit (void)
@@ -404,6 +681,10 @@ OsVendorInit (void)
       /* We have to flag this as an explicit screen, even though it isn't */
       g_ScreenInfo[0].fExplicitScreen = TRUE;
     }
+
+  winFixupPaths();
+
+  XSupportsLocale();
 }
 
 
@@ -760,7 +1041,7 @@ winCheckDisplayNumber ()
     }
 
   /* Setup Cygwin/X specific part of name */
-  sprintf (name, "%sCYGWINX_DISPLAY:%d", pszPrefix, nDisp);
+  snprintf (name, sizeof(name), "%sCYGWINX_DISPLAY:%d", pszPrefix, nDisp);
 
   /* Windows automatically releases the mutex when this process exits */
   mutex = CreateMutex (NULL, FALSE, name);

@@ -51,7 +51,6 @@ winWakeupHandler (int nScreen,
 		  unsigned long ulResult,
 		  pointer pReadmask)
 {
-  winScreenPriv((ScreenPtr)pWakeupData);
   MSG			msg;
 
   /* Process all messages on our queue */

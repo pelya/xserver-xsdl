@@ -222,7 +222,11 @@ WaitForSomething(int *pClientsReady)
 	{
 	    i = Select (MaxClients, &LastSelectMask, NULL, NULL, wt);
 	}
+#ifndef WIN32
 	selecterr = errno;
+#else
+	selecterr = WSAGetLastError();
+#endif
 	WakeupHandler(i, (pointer)&LastSelectMask);
 #ifdef XTESTEXT1
 	if (playback_on) {
@@ -244,18 +248,30 @@ WaitForSomething(int *pClientsReady)
 		return 0;
 	    if (i < 0) 
 	    {
+#ifndef WIN32
 		if (selecterr == EBADF)    /* Some client disconnected */
+#else
+		if (selecterr == WSAENOTSOCK)    /* Some client disconnected */
+#endif
 		{
 		    CheckConnections ();
 		    if (! XFD_ANYSET (&AllClients))
 			return 0;
 		}
+#ifndef WIN32
 		else if (selecterr == EINVAL)
+#else
+		else if (selecterr == WSAEINVAL)
+#endif
 		{
 		    FatalError("WaitForSomething(): select: errno=%d\n",
 			selecterr);
-		}
+            }
+#ifndef WIN32
 		else if (selecterr != EINTR)
+#else
+		else if (selecterr != WSAEINTR)
+#endif
 		{
 		    ErrorF("WaitForSomething(): select: errno=%d\n",
 			selecterr);

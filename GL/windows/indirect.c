@@ -44,8 +44,9 @@
 
 #include "glwindows.h"
 #include <glcontextmodes.h>
+#include <stdint.h>
 
-#include "../../hw/xwin/winpriv.h"
+#include <winpriv.h>
 
 #define GLWIN_DEBUG_HWND(hwnd)  \
     if (glWinDebugSettings.dumpHWND) { \

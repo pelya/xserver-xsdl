@@ -334,6 +334,8 @@ winClipboardWindowProc (HWND hwnd, UINT message,
 	     * previous XSetSelectionOwner messages.
 	     */
 	    XSync (pDisplay, FALSE);
+
+            winDebug("winClipboardWindowProc - XSync done.\n");
 	    
 	    /* Release PRIMARY selection if owned */
 	    iReturn = XGetSelectionOwner (pDisplay, XA_PRIMARY);

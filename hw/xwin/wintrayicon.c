@@ -111,7 +111,9 @@ winHandleIconMessage (HWND hwnd, UINT message,
 		      WPARAM wParam, LPARAM lParam,
 		      winPrivScreenPtr pScreenPriv)
 {
+#ifdef XWIN_MULTIWINDOWEXTWM
   winScreenInfo		*pScreenInfo = pScreenPriv->pScreenInfo;
+#endif
 
   switch (lParam)
     {

@@ -359,6 +359,7 @@ winXIconToHICON (WindowPtr pWin, int iconSize)
  * Change the Windows window icon 
  */
 
+#ifdef XWIN_MULTIWINDOW
 void
 winUpdateIcon (Window id)
 {
@@ -471,3 +472,4 @@ void winDestroyIcon(HICON hIcon)
       !winIconIsOverride((unsigned long)hIcon))
     DestroyIcon (hIcon);
 }
+#endif

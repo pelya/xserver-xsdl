@@ -165,7 +165,7 @@ extern int	RenderClientPrivateIndex;
 
 /* Fixed point updates from Carl Worth, USC, Information Sciences Institute */
 
-#ifdef WIN32
+#if defined(WIN32) && !defined(__GNUC__)
 typedef __int64		xFixed_32_32;
 #else
 #  if defined (_LP64) || \

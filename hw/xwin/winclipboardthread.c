@@ -29,6 +29,9 @@
  */
 
 #include "winclipboard.h"
+#ifdef __CYGWIN__
+#include <errno.h>
+#endif
 #include "X11/Xauth.h"
 
 
@@ -86,7 +89,11 @@ winClipboardProc (void *pvNotUsed)
   int			iReturn;
   HWND			hwnd = NULL;
   int			iConnectionNumber = 0;
+#ifdef HAS_DEVWINDOWS
   int			fdMessageQueue = 0;
+#else
+  struct timeval        tvTimeout;
+#endif
   fd_set		fdsRead;
   int			iMaxDescriptor;
   Display		*pDisplay = NULL;
@@ -94,6 +101,7 @@ winClipboardProc (void *pvNotUsed)
   int			iRetries;
   Bool			fUseUnicode;
   char			szDisplay[512];
+  int			iSelectError;
 
   ErrorF ("winClipboardProc - Hello\n");
 
@@ -204,6 +212,7 @@ winClipboardProc (void *pvNotUsed)
   /* Get our connection number */
   iConnectionNumber = ConnectionNumber (pDisplay);
 
+#ifdef HAS_DEVWINDOWS
   /* Open a file descriptor for the windows message queue */
   fdMessageQueue = open (WIN_MSG_QUEUE_FNAME, O_RDONLY);
   if (fdMessageQueue == -1)
@@ -214,6 +223,9 @@ winClipboardProc (void *pvNotUsed)
 
   /* Find max of our file descriptors */
   iMaxDescriptor = max (fdMessageQueue, iConnectionNumber) + 1;
+#else
+  iMaxDescriptor = iConnectionNumber + 1;
+#endif
 
   /* Select event types to watch */
   if (XSelectInput (pDisplay,
@@ -242,10 +254,6 @@ winClipboardProc (void *pvNotUsed)
       pthread_exit (NULL);
     }
 
-#if 0
-  ErrorF ("winClipboardProc - iWindow: %d\n", iWindow);
-#endif
-
   /* Save the window in the screen privates */
   g_iClipboardWindow = iWindow;
 
@@ -254,17 +262,6 @@ winClipboardProc (void *pvNotUsed)
   
   /* Save copy of HWND in screen privates */
   g_hwndClipboard = hwnd;
-
-#if 0
-  /* Assert ownership of CLIPBOARD_MANAGER */
-  iReturn = XSetSelectionOwner (pDisplay, atomClipboardManager,
-				iWindow, CurrentTime);
-  if (iReturn == BadAtom || iReturn == BadWindow)
-    {
-      ErrorF ("winClipboardProc - Could not set CLIPBOARD_MANAGER owner\n");
-      pthread_exit (NULL);
-    }
-#endif
 
   /* Assert ownership of selections if Win32 clipboard is owned */
   if (NULL != GetClipboardOwner ())
@@ -316,17 +313,41 @@ winClipboardProc (void *pvNotUsed)
        *       which descriptors are ready.
        */
       FD_ZERO (&fdsRead);
-      FD_SET (fdMessageQueue, &fdsRead);
       FD_SET (iConnectionNumber, &fdsRead);
+#ifdef HAS_DEVWINDOWS
+      FD_SET (fdMessageQueue, &fdsRead);
+#else
+      tvTimeout.tv_sec = 0;
+      tvTimeout.tv_usec = 100;
+#endif
 
       /* Wait for a Windows event or an X event */
       iReturn = select (iMaxDescriptor,	/* Highest fds number */
 			&fdsRead,	/* Read mask */
 			NULL,		/* No write mask */
 			NULL,		/* No exception mask */
-			NULL);		/* No timeout */
-      if (iReturn <= 0)
+#ifdef HAS_DEVWINDOWS
+			NULL		/* No timeout */
+#else
+			&tvTimeout      /* Set timeout */
+#endif
+          );
+
+#ifndef HAS_WINSOCK
+      iSelectError = errno;
+#else
+      iSelectError = WSAGetLastError();
+#endif
+
+      if (iReturn < 0)
 	{
+#ifndef HAS_WINSOCK
+          if (iSelectError == EINTR)
+#else
+          if (iSelectError == WSAEINTR)
+#endif
+            continue;
+          
 	  ErrorF ("winClipboardProc - Call to select () failed: %d.  "
 		  "Bailing.\n", iReturn);
 	  break;
@@ -335,11 +356,6 @@ winClipboardProc (void *pvNotUsed)
       /* Branch on which descriptor became active */
       if (FD_ISSET (iConnectionNumber, &fdsRead))
 	{
-	  /* X event ready */
-#if 0
-	  ErrorF ("winClipboardProc - X event ready\n");
-#endif
-
 	  /* Process X events */
 	  /* Exit when we see that server is shutting down */
 	  iReturn = winClipboardFlushXEvents (hwnd,
@@ -354,14 +370,13 @@ winClipboardProc (void *pvNotUsed)
 	    }
 	}
 
+#ifdef HAS_DEVWINDOWS
       /* Check for Windows event ready */
       if (FD_ISSET (fdMessageQueue, &fdsRead))
-	{
-	  /* Windows event ready */
-#if 0
-	  ErrorF ("winClipboardProc - Windows event ready\n");
+#else
+      if (1)
 #endif
-
+	{
 	  /* Process Windows messages */
 	  if (!winClipboardFlushWindowsMessageQueue (hwnd))
 	    {
@@ -383,9 +398,12 @@ winClipboardProc (void *pvNotUsed)
 	ErrorF ("winClipboardProc - XDestroyWindow succeeded.\n");
     }
 
+
+#ifdef HAS_DEVWINDOWS
   /* Close our Win32 message handle */
   if (fdMessageQueue)
     close (fdMessageQueue);
+#endif
 
 #if 0
   /*

@@ -257,7 +257,9 @@ winFinishScreenInitFB (int index,
   winScreenInfo		*pScreenInfo = pScreenPriv->pScreenInfo;
   VisualPtr		pVisual = NULL;
   char			*pbits = NULL;
+#if defined(XWIN_CLIPBOARD) || defined(XWIN_MULTIWINDOW)
   int			iReturn;
+#endif
 
   /* Create framebuffer */
   if (!(*pScreenPriv->pwinAllocateFB) (pScreen))

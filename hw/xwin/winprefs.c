@@ -31,7 +31,9 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#ifdef __CYGWIN__
 #include <sys/resource.h>
+#endif
 #include "win.h"
 
 /* Fixups to prevent collisions between Windows and X headers */
@@ -281,7 +283,9 @@ ReloadPrefs (void)
   g_hIconX = NULL;
   g_hSmallIconX = NULL;
 
+#ifdef XWIN_MULTIWINDOW
   winInitGlobalIcons();
+#endif
   
 #ifdef XWIN_MULTIWINDOW
   /* Rebuild the icons and menus */
@@ -348,6 +352,7 @@ HandleCustomWM_COMMAND (unsigned long hwndIn,
 	      /* Match! */
 	      switch(m->menuItem[j].cmd)
 		{
+#ifdef __CYGWIN__
 		case CMD_EXEC:
 		  if (fork()==0)
 		    {
@@ -372,7 +377,7 @@ HandleCustomWM_COMMAND (unsigned long hwndIn,
 		  else
 		    return TRUE;
 		  break;
-		  
+#endif		  
 		case CMD_ALWAYSONTOP:
 		  if (!hwnd)
 		    return FALSE;

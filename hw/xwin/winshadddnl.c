@@ -523,6 +523,7 @@ winAllocateFBShadowDDNL (ScreenPtr pScreen)
 }
 
 
+#if defined(XWIN_MULTIWINDOW) || defined(XWIN_MULTIWINDOWEXTWM)
 /*
  * Create a DirectDraw surface for the new multi-window window
  */
@@ -568,6 +569,7 @@ winFinishCreateWindowsWindowDDNL (WindowPtr pWin)
     }
   return TRUE;
 }
+#endif
 
 
 /*

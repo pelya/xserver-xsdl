@@ -1,3 +1,39 @@
+2004-11-15  Alexander Gottwald  <ago at freedesktop dot org>
+
+	* Imakefile:
+	* InitInput.c: (InitInput):
+	* InitOutput.c: (winClipboardShutdown), (ddxGiveUp),
+	(winCheckMount), (winGetBaseDir), (winFixupPaths), (OsVendorInit),
+	(winCheckDisplayNumber):
+	* win.h:
+	* winblock.c: (winBlockHandler):
+	* winclipboard.h:
+	* winclipboardthread.c: (winClipboardProc):
+	* winclipboardwndproc.c: (winClipboardWindowProc):
+	* winconfig.c: (winConfigKeyboard), (winConfigFiles):
+	* wincreatewnd.c: (winCreateBoundingWindowWindowed):
+	* windialogs.c: (winDisplayExitDialog), (winExitDlgProc),
+	(winAboutDlgProc):
+	* winengine.c: (winSetEngine):
+	* winerror.c: (OsVendorVErrorF), (winMessageBoxF), (scprintf):
+	* winglobals.c: (winInitializeGlobals):
+	* winkeybd.c: (winKeybdReleaseKeys):
+	* winmultiwindowicons.c:
+	* winmultiwindowwindow.c: (winCreateWindowsWindow):
+	* winmultiwindowwm.c:
+	* winprefs.c: (ReloadPrefs), (HandleCustomWM_COMMAND):
+	* winprocarg.c: (ddxProcessArgument):
+	* winscrinit.c: (winFinishScreenInitFB):
+	* winshadddnl.c:
+	* wintrayicon.c: (winHandleIconMessage):
+	* winwakeup.c: (winWakeupHandler):
+	* winwin32rootless.c: (winMWExtWMCreateFrame):
+	* winwindow.c: (winReshapeRootless):
+	* winwindow.h:
+	* winwndproc.c: (winWindowProc):
+	Bufzilla #1802, http://freedesktop.org/bugzilla/show_bug.cgi?id=1802
+	Added mingw (Win32) port     
+
 2004-11-06  Alexander Gottwald  <ago at freedesktop dot org>
 
 	* winwndproc.c, wintrayicon.c, winscrinit.c:

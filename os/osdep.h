@@ -260,6 +260,9 @@ extern OsCommPtr AvailableInput;
 extern WorkQueuePtr workQueue;
 
 /* added by raphael */
+#ifdef WIN32
+typedef long int fd_mask;
+#endif
 #define ffs mffs
 extern int mffs(fd_mask);
 

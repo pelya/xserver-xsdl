@@ -403,16 +403,20 @@ ddxProcessArgument (int argc, char *argv[], int i)
 	  /* Parameter is for all screens */
 	  for (j = 0; j < MAXSCREENS; j++)
 	    {
+#if defined(XWIN_MULTIWINDOW) || defined(XWIN_MULTIWINDOWEXTWM)
               if (!g_ScreenInfo[j].fMultiMonitorOverride)
                 g_ScreenInfo[j].fMultipleMonitors = FALSE;
+#endif
 	      g_ScreenInfo[j].fFullScreen = TRUE;
 	    }
 	}
       else
 	{
 	  /* Parameter is for a single screen */
+#if defined(XWIN_MULTIWINDOW) || defined(XWIN_MULTIWINDOWEXTWM)
           if (!g_ScreenInfo[g_iLastScreen].fMultiMonitorOverride)
             g_ScreenInfo[g_iLastScreen].fMultipleMonitors = FALSE;
+#endif
 	  g_ScreenInfo[g_iLastScreen].fFullScreen = TRUE;
 	}
 
@@ -459,16 +463,20 @@ ddxProcessArgument (int argc, char *argv[], int i)
 	  /* Parameter is for all screens */
 	  for (j = 0; j < MAXSCREENS; j++)
 	    {
+#if defined(XWIN_MULTIWINDOW) || defined(XWIN_MULTIWINDOWEXTWM)
               if (!g_ScreenInfo[j].fMultiMonitorOverride)
                 g_ScreenInfo[j].fMultipleMonitors = FALSE;
+#endif
 	      g_ScreenInfo[j].fDecoration = FALSE;
 	    }
 	}
       else
 	{
 	  /* Parameter is for a single screen */
+#if defined(XWIN_MULTIWINDOW) || defined(XWIN_MULTIWINDOWEXTWM)
           if (!g_ScreenInfo[g_iLastScreen].fMultiMonitorOverride)
             g_ScreenInfo[g_iLastScreen].fMultipleMonitors = FALSE;
+#endif
 	  g_ScreenInfo[g_iLastScreen].fDecoration = FALSE;
 	}
 
@@ -548,16 +556,20 @@ ddxProcessArgument (int argc, char *argv[], int i)
 	  /* Parameter is for all screens */
 	  for (j = 0; j < MAXSCREENS; j++)
 	    {
+#if defined(XWIN_MULTIWINDOW) || defined(XWIN_MULTIWINDOWEXTWM)
               if (!g_ScreenInfo[j].fMultiMonitorOverride)
                 g_ScreenInfo[j].fMultipleMonitors = FALSE;
+#endif
 	      g_ScreenInfo[j].fRootless = TRUE;
 	    }
 	}
       else
 	{
 	  /* Parameter is for a single screen */
+#if defined(XWIN_MULTIWINDOW) || defined(XWIN_MULTIWINDOWEXTWM)
           if (!g_ScreenInfo[g_iLastScreen].fMultiMonitorOverride)
             g_ScreenInfo[g_iLastScreen].fMultipleMonitors = FALSE;
+#endif
 	  g_ScreenInfo[g_iLastScreen].fRootless = TRUE;
 	}
 
@@ -579,16 +591,20 @@ ddxProcessArgument (int argc, char *argv[], int i)
 	  /* Parameter is for all screens */
 	  for (j = 0; j < MAXSCREENS; j++)
 	    {
+#if defined(XWIN_MULTIWINDOW) || defined(XWIN_MULTIWINDOWEXTWM)
               if (!g_ScreenInfo[j].fMultiMonitorOverride)
                 g_ScreenInfo[j].fMultipleMonitors = TRUE;
+#endif
 	      g_ScreenInfo[j].fMultiWindow = TRUE;
 	    }
 	}
       else
 	{
 	  /* Parameter is for a single screen */
+#if defined(XWIN_MULTIWINDOW) || defined(XWIN_MULTIWINDOWEXTWM)
           if (!g_ScreenInfo[g_iLastScreen].fMultiMonitorOverride)
             g_ScreenInfo[g_iLastScreen].fMultipleMonitors = TRUE;
+#endif
 	  g_ScreenInfo[g_iLastScreen].fMultiWindow = TRUE;
 	}
 
@@ -611,14 +627,18 @@ ddxProcessArgument (int argc, char *argv[], int i)
 	  /* Parameter is for all screens */
 	  for (j = 0; j < MAXSCREENS; j++)
 	    {
+#if defined(XWIN_MULTIWINDOW) || defined(XWIN_MULTIWINDOWEXTWM)
               g_ScreenInfo[j].fMultiMonitorOverride = TRUE;
+#endif
 	      g_ScreenInfo[j].fMultipleMonitors = TRUE;
 	    }
 	}
       else
 	{
 	  /* Parameter is for a single screen */
+#if defined(XWIN_MULTIWINDOW) || defined(XWIN_MULTIWINDOWEXTWM)
           g_ScreenInfo[g_iLastScreen].fMultiMonitorOverride = TRUE;
+#endif
 	  g_ScreenInfo[g_iLastScreen].fMultipleMonitors = TRUE;
 	}
 
@@ -640,14 +660,18 @@ ddxProcessArgument (int argc, char *argv[], int i)
 	  /* Parameter is for all screens */
 	  for (j = 0; j < MAXSCREENS; j++)
 	    {
+#if defined(XWIN_MULTIWINDOW) || defined(XWIN_MULTIWINDOWEXTWM)
               g_ScreenInfo[j].fMultiMonitorOverride = TRUE;
+#endif
 	      g_ScreenInfo[j].fMultipleMonitors = FALSE;
 	    }
 	}
       else
 	{
 	  /* Parameter is for a single screen */
+#if defined(XWIN_MULTIWINDOW) || defined(XWIN_MULTIWINDOWEXTWM)
           g_ScreenInfo[g_iLastScreen].fMultiMonitorOverride = TRUE;
+#endif
 	  g_ScreenInfo[g_iLastScreen].fMultipleMonitors = FALSE;
 	}
 

@@ -374,7 +374,7 @@ winConfigKeyboard (DeviceIntPtr pDevice)
         char                lname[256];
         DWORD               namesize = sizeof(lname);
 
-        regpath = alloca(sizeof(regtempl) + KL_NAMELENGTH + 1);
+        regpath = malloc(sizeof(regtempl) + KL_NAMELENGTH + 1);
         strcpy(regpath, regtempl);
         strcat(regpath, layoutName);
 
@@ -388,6 +388,7 @@ winConfigKeyboard (DeviceIntPtr pDevice)
 	/* Close registry key */
 	if (regkey)
 	  RegCloseKey (regkey);
+        free(regpath);
       }
   }  
   
@@ -737,117 +738,19 @@ winConfigFiles ()
   MessageType from;
 
   /* Fontpath */
-  from = X_DEFAULT;
-
   if (g_cmdline.fontPath)
     {
-      from = X_CMDLINE;
       defaultFontPath = g_cmdline.fontPath;
+      winMsg (X_CMDLINE, "FontPath set to \"%s\"\n", defaultFontPath);
     }
-  else 
+
+  /* RGBPath */
+  if (g_cmdline.rgbPath)
     {
-      /* Open fontpath configuration file */
-      FILE *fontdirs = fopen(ETCX11DIR "/font-dirs", "rt");
-      if (fontdirs != NULL)
-        {
-	  char buffer[256];
-	  int needs_sep = TRUE; 
-	  int comment_block = FALSE;
-
-	  /* get defautl fontpath */
-	  char *fontpath = xstrdup(defaultFontPath);
-	  size_t size = strlen(fontpath);
-
-	  /* read all lines */
-	  while (!feof(fontdirs))
-	    {
-	      size_t blen;
-	      char *hashchar;
-	      char *str;
-	      int has_eol = FALSE;
-
-	      /* read one line */
-	      str = fgets(buffer, sizeof(buffer), fontdirs);
-	      if (str == NULL) /* stop on error or eof */
-		break;
-
-              if (strchr(str, '\n') != NULL)
-                has_eol = TRUE;
-	     
-	      /* check if block is continued comment */
-	      if (comment_block)
-	        {
-		  /* ignore all input */
-		  *str = 0; 
-		  blen = 0; 
-		  if (has_eol) /* check if line ended in this block */
-		    comment_block = FALSE;
-		}
-	      else 
-  	        {
-		  /* find comment character. ignore all trailing input */
-		  hashchar = strchr(str, '#');
-		  if (hashchar != NULL)
-		    {
-		      *hashchar = 0;
-		      if (!has_eol) /* mark next block as continued comment */
-		        comment_block = TRUE;
-		    }
-		}
-              
-	      /* strip whitespaces from beginning */
-	      while (*str == ' ' || *str == '\t')
-		str++;
-
-	      /* get size, strip whitespaces from end */ 
-	      blen = strlen(str);
-	      while (blen > 0 && (str[blen-1] == ' ' || 
-		    str[blen-1] == '\t' || str[blen-1] == '\n'))
-		{
-		  str[--blen] = 0;
-		}
-	     
-	      /* still something left to add? */ 
-	      if (blen > 0)
-	        {
-		  size_t newsize = size + blen;
-		  /* reserve one character more for ',' */
-		  if (needs_sep)
-		    newsize++;
-
-		  /* allocate memory */
-		  if (fontpath == NULL)
-		    fontpath = malloc(newsize+1);
-		  else
-		    fontpath = realloc(fontpath, newsize+1);
-
-		  /* add separator */
-		  if (needs_sep)
-		    {
-		      fontpath[size] = ',';
-		      size++;
-		      needs_sep = FALSE;
-		    }
-
-		  /* mark next line as new entry */
-		  if (has_eol)
-		    needs_sep = TRUE;
-		  
-		  /* add block */
-		  strncpy(fontpath + size, str, blen);
-		  fontpath[newsize] = 0;
-		  size = newsize;
-		}
-	    }
-
-	  /* cleanup */
-	  fclose(fontdirs);  
-          from = X_CONFIG;
-          defaultFontPath = xstrdup(fontpath);
-          free(fontpath);
-	}
+      from = X_CMDLINE;
+      rgbPath = g_cmdline.rgbPath;
+      winMsg (X_CMDLINE, "RgbPath set to \"%s\"\n", rgbPath);
     }
-  winMsg (from, "FontPath set to \"%s\"\n", defaultFontPath);
 
   return TRUE;
 }

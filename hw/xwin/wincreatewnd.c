@@ -419,7 +419,9 @@ winCreateBoundingWindowWindowed (ScreenPtr pScreen)
 #endif
       )
     {
+#if defined(XWIN_MULTIWINDOW) || defined(XWIN_MULTIWINDOWEXTWM)
       pScreenPriv->fRootWindowShown = FALSE;
+#endif
       ShowWindow (*phwnd, SW_HIDE);
     }
   else

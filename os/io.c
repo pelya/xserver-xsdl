@@ -94,6 +94,7 @@ CallbackListPtr       FlushCallback;
  * systems are broken and return EWOULDBLOCK when they should return EAGAIN
  */
 #ifndef __UNIXOS2__
+#ifndef WIN32
 #if defined(EAGAIN) && defined(EWOULDBLOCK)
 #define ETEST(err) (err == EAGAIN || err == EWOULDBLOCK)
 #else
@@ -102,6 +103,9 @@ CallbackListPtr       FlushCallback;
 #else
 #define ETEST(err) (err == EWOULDBLOCK)
 #endif
+#endif
+#else /* WIN32 The socket errorcodes differ from the normal errors*/
+#define ETEST(err) (err == EAGAIN || err == WSAEWOULDBLOCK)
 #endif
 #else /* __UNIXOS2__  Writing to full pipes may return ENOSPC */
 #define ETEST(err) (err == EAGAIN || err == EWOULDBLOCK || err == ENOSPC)

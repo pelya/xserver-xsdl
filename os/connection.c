@@ -202,6 +202,10 @@ int *ConnectionTranslation = NULL;
  * This is clearly boggus and another form of storage which doesn't use the fd
  * as a direct index should really be implemented for NT.
  */
+#undef MAXSOCKS
+#define MAXSOCKS 500
+#undef MAXSELECT
+#define MAXSELECT 500
 #define MAXFD 500
 #endif
 

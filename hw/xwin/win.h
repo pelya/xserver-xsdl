@@ -139,8 +139,22 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <stdio.h>
+#ifndef HAS_SCPRINTF
+extern int scprintf(const char *format, ...);
+#else
+#ifdef WIN32
+#define scprintf _scprintf
+#endif
+#endif
+
+#ifndef __CYGWIN__
+#define sleep(x) Sleep(1000 * (x))
+#endif
+
 #include <errno.h>
+#if defined(XWIN_MULTIWINDOWEXTWM) || defined(XWIN_CLIPBOARD) || defined(XWIN_MULTIWINDOW) 
 #include <pthread.h>
+#endif
 
 #ifdef HAS_MMAP
 #include <sys/mman.h>
@@ -220,11 +234,10 @@ if (fDebugProcMsg) \
   char *pszTemp; \
   int iLength; \
   \
-  iLength = sprintf (NULL, str, ##__VA_ARGS__); \
-  \
+  iLength = scprintf (str, ##__VA_ARGS__); \
   pszTemp = malloc (iLength + 1); \
-  \
-  sprintf (pszTemp, str, ##__VA_ARGS__); \
+  snprintf (pszTemp, iLength + 1, str, ##__VA_ARGS__); \
+  pszTemp[iLength] = 0; \
   \
   MessageBox (NULL, pszTemp, szFunctionName, MB_OK); \
   \
@@ -626,7 +639,9 @@ typedef struct {
 extern winScreenInfo		g_ScreenInfo[];
 extern miPointerScreenFuncRec	g_winPointerCursorFuncs;
 extern DWORD			g_dwEvents;
+#ifdef HAS_DEVWINDOWS
 extern int			g_fdMessageQueue;
+#endif
 extern int			g_iScreenPrivateIndex;
 extern int			g_iCmapPrivateIndex;
 extern int			g_iGCPrivateIndex;

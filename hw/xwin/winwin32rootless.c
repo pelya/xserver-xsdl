@@ -276,7 +276,8 @@ winMWExtWMCreateFrame (RootlessWindowPtr pFrame, ScreenPtr pScreen,
     }
 
   /* Add incrementing window ID to make unique class name */
-  sprintf (pszWindowID, "-%x", s_iWindowID++);
+  snprintf (pszWindowID, sizeof(pszWindowID), "-%x", s_iWindowID++);
+  pszWindowID[sizeof(pszWindowID)-1] = 0;
   strcat (pszClass, pszWindowID);
 
 #if CYGMULTIWINDOW_DEBUG
