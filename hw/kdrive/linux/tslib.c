@@ -85,9 +85,7 @@ TsRead (int tsPort, void *closure)
 	return;
       }
 
-    n = ts_read(tsDev, &event, 1);
-
-    if (n == 1)  
+    while (ts_read(tsDev, &event, 1) == 1)
     {
 	if (event.pressure) 
 	{
