@@ -21,39 +21,10 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/fbdev/fbinit.c,v 1.6 2000/09/28 20:58:21 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/fbdev/fbinit.c,v 1.7 2001/05/23 08:56:08 alanh Exp $ */
 
 #include <fbdev.h>
 
-KdCardFuncs	fbdevFuncs = {
-    fbdevCardInit,	    /* cardinit */
-    fbdevScreenInit,	    /* scrinit */
-    fbdevInitScreen,	    /* initScreen */
-    fbdevPreserve,	    /* preserve */
-    fbdevEnable,	    /* enable */
-    fbdevDPMS,		    /* dpms */
-    fbdevDisable,	    /* disable */
-    fbdevRestore,	    /* restore */
-    fbdevScreenFini,	    /* scrfini */
-    fbdevCardFini,	    /* cardfini */
-    
-    0,			    /* initCursor */
-    0,			    /* enableCursor */
-    0,			    /* disableCursor */
-    0,			    /* finiCursor */
-    0,			    /* recolorCursor */
-    
-    0,			    /* initAccel */
-    0,			    /* enableAccel */
-    0,			    /* syncAccel */
-    0,			    /* disableAccel */
-    0,			    /* finiAccel */
-    
-    fbdevGetColors,    	    /* getColors */
-    fbdevPutColors,	    /* putColors */
-};
-
-#ifndef XIPAQ
 void
 InitCard (char *name)
 {
@@ -86,4 +57,3 @@ ddxProcessArgument (int argc, char **argv, int i)
 {
     return KdProcessArgument (argc, argv, i);
 }
-#endif

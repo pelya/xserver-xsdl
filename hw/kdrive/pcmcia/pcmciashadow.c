@@ -21,7 +21,7 @@
  *
  * Authors:  Alan Hourihane, <alanh@fairlite.demon.co.uk>
  */
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/pcmcia/pcmciashadow.c,v 1.1 2001/05/23 08:56:09 alanh Exp $ */
 
 #include    "X.h"
 #include    "scrnintstr.h"
@@ -37,10 +37,11 @@
 #include    "fb.h"
 
 void
-tridentUpdatePacked (ScreenPtr pScreen,
-		    PixmapPtr pShadow,
-		    RegionPtr damage)
+tridentUpdatePacked (ScreenPtr	    pScreen,
+		     shadowBufPtr   pBuf)
 {
+    RegionPtr	damage = &pBuf->damage;
+    PixmapPtr	pShadow = pBuf->pPixmap;
     shadowScrPriv(pScreen);
     int		nbox = REGION_NUM_RECTS (damage);
     BoxPtr	pbox = REGION_RECTS (damage);
@@ -48,12 +49,13 @@ tridentUpdatePacked (ScreenPtr pScreen,
     FbStride	shaStride;
     int		scrBase, scrLine, scr;
     int		shaBpp;
+    int		shaXoff, shaYoff; /* XXX assumed to be zero */
     int		x, y, w, h, width;
     int         i;
     FbBits	*winBase, *win;
     CARD32      winSize;
 
-    fbGetDrawable (&pShadow->drawable, shaBase, shaStride, shaBpp);
+    fbGetDrawable (&pShadow->drawable, shaBase, shaStride, shaBpp, shaXoff, shaYoff);
     while (nbox--)
     {
 	x = pbox->x1 * shaBpp;
@@ -79,11 +81,12 @@ tridentUpdatePacked (ScreenPtr pScreen,
 		i = scrBase + winSize - scr;
 		if (i <= 0 || scr < scrBase)
 		{
-		    winBase = (FbBits *) (*pScrPriv->window) (pScreen,
-							      y,
-							      scr * sizeof (FbBits),
-							      SHADOW_WINDOW_WRITE,
-							      &winSize);
+		    winBase = (FbBits *) (*pBuf->window) (pScreen,
+							  y,
+							  scr * sizeof (FbBits),
+							  SHADOW_WINDOW_WRITE,
+							  &winSize,
+							  pBuf->closure);
 		    if(!winBase)
 			return;
 		    scrBase = scr;
@@ -113,10 +116,11 @@ tridentUpdatePacked (ScreenPtr pScreen,
 }
 
 void
-cirrusUpdatePacked (ScreenPtr pScreen,
-		    PixmapPtr pShadow,
-		    RegionPtr damage)
+cirrusUpdatePacked (ScreenPtr	    pScreen,
+		    shadowBufPtr    pBuf)
 {
+    RegionPtr	damage = &pBuf->damage;
+    PixmapPtr	pShadow = pBuf->pPixmap;
     shadowScrPriv(pScreen);
     int		nbox = REGION_NUM_RECTS (damage);
     BoxPtr	pbox = REGION_RECTS (damage);
@@ -124,12 +128,13 @@ cirrusUpdatePacked (ScreenPtr pScreen,
     FbStride	shaStride;
     int		scrBase, scrLine, scr;
     int		shaBpp;
+    int		shaXoff, shaYoff;   /* XXX assumed to be zero */
     int		x, y, w, h, width;
     int         i;
     FbBits	*winBase, *win;
     CARD32      winSize;
 
-    fbGetDrawable (&pShadow->drawable, shaBase, shaStride, shaBpp);
+    fbGetDrawable (&pShadow->drawable, shaBase, shaStride, shaBpp, shaXoff, shaYoff);
     while (nbox--)
     {
 	x = pbox->x1 * shaBpp;
@@ -155,11 +160,12 @@ cirrusUpdatePacked (ScreenPtr pScreen,
 		i = scrBase + winSize - scr;
 		if (i <= 0 || scr < scrBase)
 		{
-		    winBase = (FbBits *) (*pScrPriv->window) (pScreen,
-							      y,
-							      scr * sizeof (FbBits),
-							      SHADOW_WINDOW_WRITE,
-							      &winSize);
+		    winBase = (FbBits *) (*pBuf->window) (pScreen,
+							  y,
+							  scr * sizeof (FbBits),
+							  SHADOW_WINDOW_WRITE,
+							  &winSize,
+							  pBuf->closure);
 		    if(!winBase)
 			return;
 		    scrBase = scr;

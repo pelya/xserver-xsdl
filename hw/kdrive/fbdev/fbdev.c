@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/fbdev/fbdev.c,v 1.13 2001/05/25 07:44:29 alanh Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/fbdev/fbdev.c,v 1.14 2001/05/29 04:54:11 keithp Exp $ */
 
 #include "fbdev.h"
 
@@ -768,3 +768,32 @@ fbdevPutColors (ScreenPtr pScreen, int fb, int n, xColorItem *pdefs)
     cmap.transp = 0;
     ioctl (priv->fd, FBIOPUTCMAP, &cmap);
 }
+
+
+KdCardFuncs	fbdevFuncs = {
+    fbdevCardInit,	    /* cardinit */
+    fbdevScreenInit,	    /* scrinit */
+    fbdevInitScreen,	    /* initScreen */
+    fbdevPreserve,	    /* preserve */
+    fbdevEnable,	    /* enable */
+    fbdevDPMS,		    /* dpms */
+    fbdevDisable,	    /* disable */
+    fbdevRestore,	    /* restore */
+    fbdevScreenFini,	    /* scrfini */
+    fbdevCardFini,	    /* cardfini */
+    
+    0,			    /* initCursor */
+    0,			    /* enableCursor */
+    0,			    /* disableCursor */
+    0,			    /* finiCursor */
+    0,			    /* recolorCursor */
+    
+    0,			    /* initAccel */
+    0,			    /* enableAccel */
+    0,			    /* syncAccel */
+    0,			    /* disableAccel */
+    0,			    /* finiAccel */
+    
+    fbdevGetColors,    	    /* getColors */
+    fbdevPutColors,	    /* putColors */
+};

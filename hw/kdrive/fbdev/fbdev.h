@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/fbdev/fbdev.h,v 1.5 2000/09/03 05:11:17 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/fbdev/fbdev.h,v 1.9 2001/05/29 04:54:11 keithp Exp $ */
 
 #ifndef _FBDEV_H_
 #define _FBDEV_H_
@@ -51,6 +51,8 @@ typedef struct _fbdevScrPriv {
     Bool			shadow;
     LayerPtr			pLayer;
 } FbdevScrPriv;
+
+extern KdCardFuncs  fbdevFuncs;
 
 Bool
 fbdevInitialize (KdCardInfo *card, FbdevPriv *priv);

@@ -22,12 +22,11 @@
  * Adapted from ts300.c by Alan Hourihane <alanh@fairlite.demon.co.uk>
  * For the Compaq IPAQ handheld, with the HP VGA Out Card (F1252A).
  */
-/* $XFree86: $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/ipaq/ipaq.c,v 1.1 2001/05/23 17:28:39 alanh Exp $ */
 
 #include "pcmcia.h"
 
 extern KdCardFuncs  pcmciaFuncs;
-extern KdCardFuncs  fbdevFuncs;
 
 void
 InitCard (char *name)
