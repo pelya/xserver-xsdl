@@ -7,4 +7,4 @@ extern int optind;
 extern char *optarg;
 #endif
 
-#include "ttf2pt1.c
+#include "ttf2pt1.c"
