@@ -1,5 +1,5 @@
 /*
- * $XFree86: xc/programs/Xserver/hw/kdrive/kdrive.c,v 1.26 2002/09/29 23:39:46 keithp Exp $ 
+ * $XFree86: xc/programs/Xserver/hw/kdrive/kdrive.c,v 1.28 2002/10/08 21:28:04 keithp Exp $ 
  *
  * Copyright © 1999 Keith Packard
  *
@@ -334,7 +334,7 @@ ddxUseMsg()
 {
   ErrorF("\nTinyX Device Dependent Usage:\n");
   ErrorF("-card pcmcia	Use PCMCIA card as additional screen\n");
-  ErrorF("-screen WIDTHxHEIGHT[xDEPTH[xFREQ]][@ROTATION]	Specify screen characteristics\n");
+  ErrorF("-screen WIDTH[/WIDTHMM]xHEIGHT[/HEIGHTMM][@ROTATION][X][Y][xDEPTH/BPP{,DEPTH/BPP}[xFREQ]]	Specify screen characteristics\n");
   ErrorF("-zaphod		Disable cursor screen switching\n");
   ErrorF("-2button	Emulate 3 button mouse\n");
   ErrorF("-3button	Disable 3 button mouse emulation\n");
