@@ -4,7 +4,7 @@
  *
  **************************************************************/
 /*
- * Copyright (c) 2001-2003 Torrey T. Lyons. All Rights Reserved.
+ * Copyright (c) 2001-2004 Torrey T. Lyons. All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -100,6 +100,17 @@ int DarwinModeProcessArgument(
     }
 #endif
 
+    return 0;
+}
+
+
+/*
+ * DarwinModeSystemKeymapSeed
+ *  Changes to NXKeyMapping are not tracked.
+ */
+unsigned int
+DarwinModeSystemKeymapSeed(void)
+{
     return 0;
 }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2003 Torrey T. Lyons. All Rights Reserved.
+ * Copyright (c) 2001-2004 Torrey T. Lyons. All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -23,7 +23,7 @@
  * holders shall not be used in advertising or otherwise to promote the sale,
  * use or other dealings in this Software without prior written authorization.
  */
-/* $XFree86: xc/programs/Xserver/hw/darwin/darwin.h,v 1.19 2003/10/16 23:50:08 torrey Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/darwin/darwin.h,v 1.20 2003/11/15 00:07:09 torrey Exp $ */
 
 #ifndef _DARWIN_H
 #define _DARWIN_H
@@ -49,6 +49,7 @@ typedef struct {
 
 // From darwin.c
 void DarwinPrintBanner();
+int DarwinParseModifierList(const char *constmodifiers);
 void DarwinAdjustScreenOrigins(ScreenInfo *pScreenInfo);
 void xf86SetRootClip (ScreenPtr pScreen, BOOL enable);
 
@@ -98,13 +99,17 @@ extern int              darwinScreensFound;
 extern io_connect_t     darwinParamConnect;
 extern int              darwinEventReadFD;
 extern int              darwinEventWriteFD;
+extern DeviceIntPtr     darwinPointer;
+extern DeviceIntPtr     darwinKeyboard;
 
 // User preferences
 extern int              darwinMouseAccelChange;
 extern int              darwinFakeButtons;
 extern int              darwinFakeMouse2Mask;
 extern int              darwinFakeMouse3Mask;
+extern int              darwinSwapAltMeta;
 extern char            *darwinKeymapFile;
+extern int              darwinSyncKeymap;
 extern unsigned int     darwinDesiredWidth, darwinDesiredHeight;
 extern int              darwinDesiredDepth;
 extern int              darwinDesiredRefresh;
@@ -145,4 +150,4 @@ enum {
     kXDarwinWindowMoved       // window has moved on screen
 };
 
-#endif	/* _DARWIN_H */
+#endif  /* _DARWIN_H */

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003 Torrey T. Lyons. All Rights Reserved.
+ * Copyright (c) 2003-2004 Torrey T. Lyons. All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -45,6 +45,8 @@ typedef struct darwinKeyboardInfo_struct {
     unsigned char modifierKeycodes[32][2];
 } darwinKeyboardInfo;
 
+void DarwinKeyboardReload(DeviceIntPtr pDev);
+unsigned int DarwinModeSystemKeymapSeed(void);
 Bool DarwinModeReadSystemKeymap(darwinKeyboardInfo *info);
 
 #endif /* DARWIN_KEYBOARD_H */

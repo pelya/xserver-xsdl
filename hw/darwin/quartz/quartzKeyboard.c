@@ -148,7 +148,7 @@ const static struct {
 };
 
 unsigned int
-DarwinSystemKeymapSeed (void)
+DarwinModeSystemKeymapSeed (void)
 {
     static unsigned int seed;
 
@@ -372,6 +372,12 @@ DarwinModeReadSystemKeymap (darwinKeyboardInfo *info)
 }
 
 #else /* !HAS_KL_API */
+
+unsigned int
+DarwinModeSystemKeymapSeed (void)
+{
+    return 0;
+}
 
 Bool
 DarwinModeReadSystemKeymap (darwinKeyboardInfo *info)
