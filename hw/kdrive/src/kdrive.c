@@ -59,6 +59,7 @@ Bool		    kdEnabled;
 int		    kdSubpixelOrder;
 int		    kdVirtualTerminal = -1;
 Bool		    kdSwitchPending;
+char		    *kdSwitchCmd;
 DDXPointRec	    kdOrigin;
 
 /*
@@ -224,6 +225,25 @@ KdDisableScreen (ScreenPtr pScreen)
 }
 
 void
+KdDoSwitchCmd (char *reason)
+{
+    if (kdSwitchCmd)
+    {
+	char    *command = xalloc (strlen (kdSwitchCmd) +
+				   1 +
+				   strlen (reason) + 
+				   1);
+	if (!command)
+	    return;
+	strcpy (command, kdSwitchCmd);
+	strcat (command, " ");
+	strcat (command, reason);
+	system (command);
+	xfree (command);
+    }
+}
+
+void
 KdSuspend (void)
 {
     KdCardInfo	    *card;
@@ -240,6 +260,7 @@ KdSuspend (void)
 		(*card->cfuncs->restore) (card);
 	}
 	KdDisableInput ();
+	KdDoSwitchCmd ("suspend");
     }
 }
 
@@ -284,6 +305,7 @@ KdResume (void)
 
     if (kdEnabled)
     {
+	KdDoSwitchCmd ("resume");
 	for (card = kdCardInfo; card; card = card->next)
 	{
 	    (*card->cfuncs->preserve) (card);
@@ -316,9 +338,7 @@ KdProcessSwitch (void)
     if (kdEnabled)
 	KdDisableScreens ();
     else
-    {
 	KdEnableScreens ();
-    }
 }
 
 void
@@ -330,6 +350,7 @@ AbortDDX(void)
 	if (kdEnabled)
 	    (*kdOsFuncs->Disable) ();
 	(*kdOsFuncs->Fini) ();
+	KdDoSwitchCmd ("stop");
     }
 }
 
@@ -348,6 +369,7 @@ ddxUseMsg()
   ErrorF("-videoTest	Start the server, pause momentarily and exit\n");
   ErrorF("-origin X,Y	Locates the next screen in the the virtual screen (Xinerama)\n");
   ErrorF("-mouse path[,n]	Filename of mouse device, n is number of buttons\n");
+  ErrorF("-switchCmd	Command to execute on vt switch\n");
   ErrorF("vtxx		Use virtual terminal xx instead of the next available\n");
   ErrorF("\n");
 }
@@ -755,6 +777,14 @@ KdProcessArgument (int argc, char **argv, int i)
 	    UseMsg ();
 	return 2;
     }
+    if (!strcmp (argv[i], "-switchCmd"))
+    {
+	if ((i+1) < argc)
+	    kdSwitchCmd = argv[i+1];
+	else
+	    UseMsg ();
+	return 2;
+    }
     if (!strncmp (argv[i], "vt", 2) &&
 	sscanf (argv[i], "vt%2d", &kdVirtualTerminal) == 1)
     {
@@ -779,7 +809,10 @@ KdOsInit (KdOsFuncs *pOsFuncs)
     if (pOsFuncs)
     {
 	if (serverGeneration == 1) 
+	{
+	    KdDoSwitchCmd ("start");
 	    (*pOsFuncs->Init) ();
+	}
     }
 }
 
