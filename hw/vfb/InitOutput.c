@@ -855,9 +855,15 @@ static Bool
 vfbScreenInit(int index, ScreenPtr pScreen, int argc, char **argv)
 {
     vfbScreenInfoPtr pvfb = &vfbScreens[index];
-    int dpix = 100, dpiy = 100;
+    int dpix = monitorResolution, dpiy = monitorResolution;
     int ret;
     char *pbits;
+    
+    if (dpix == 0)
+      dpix = 100;
+
+    if (dpiy == 0)
+      dpiy = 100;
 
     pvfb->paddedBytesWidth = PixmapBytePad(pvfb->width, pvfb->depth);
     pvfb->bitsPerPixel = vfbBitsPerPixel(pvfb->depth);
