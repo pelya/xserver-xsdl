@@ -883,8 +883,14 @@ miSlideAndSizeWindow(pWin, x, y, w, h, pSib)
 
 	    /* and move those bits */
 
-	    if (oldpt.x != x || oldpt.y != y)
+	    if (oldpt.x != x || oldpt.y != y
+#ifdef COMPOSITE
+		|| pWin->redirectDraw
+#endif
+		)
+	    {
 		(*pWin->drawable.pScreen->CopyWindow)(pWin, oldpt, gravitate[g]);
+	    }
 
 	    /* remove any overwritten bits from the remaining useful bits */
 
