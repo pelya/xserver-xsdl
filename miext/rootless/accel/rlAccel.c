@@ -26,7 +26,7 @@
  * holders shall not be used in advertising or otherwise to promote the sale,
  * use or other dealings in this Software without prior written authorization.
  */
-/* $XdotOrg: xc/programs/Xserver/miext/rootless/accel/rlAccel.c,v 1.1 2004/09/18 00:38:29 torrey Exp $ */
+/* $XdotOrg: xc/programs/Xserver/miext/rootless/accel/rlAccel.c,v 1.2 2004/10/25 19:09:11 torrey Exp $ */
 
 /*
  * The accelerated rootless code replaces some GC operations from fb with
@@ -40,6 +40,7 @@
 
 typedef struct _rlAccelScreenRec {
     CreateGCProcPtr CreateGC;
+    CloseScreenProcPtr CloseScreen;
 } rlAccelScreenRec, *rlAccelScreenPtr;
 
 static int rlAccelScreenPrivateIndex = -1;
@@ -101,6 +102,25 @@ rlCreateGC(GCPtr pGC)
 
 
 /*
+ * Clean up when closing a screen on server reset
+ */
+static Bool
+rlCloseScreen (int iScreen, ScreenPtr pScreen)
+{
+    rlAccelScreenRec *s = RLACCELREC(pScreen);
+    Bool result;
+
+    // Unwrap
+    pScreen->CloseScreen = s->CloseScreen;
+    result = pScreen->CloseScreen(iScreen, pScreen);
+
+    xfree(s);
+
+    return result;
+}
+
+
+/*
  * RootlessAccelInit
  *  Called by the rootless implementation to initialize accelerated
  *  rootless drawing.
@@ -114,15 +134,18 @@ RootlessAccelInit(ScreenPtr pScreen)
     if (rlAccelGeneration != serverGeneration) {
         rlAccelScreenPrivateIndex = AllocateScreenPrivateIndex();
         if (rlAccelScreenPrivateIndex == -1) return FALSE;
+        rlAccelGeneration = serverGeneration;
     }
 
     s = xalloc(sizeof(rlAccelScreenRec));
     if (!s) return FALSE;
     RLACCELREC(pScreen) = s;
 
-    // Wrap the one screen function we need
+    // Wrap the screen functions we need
     s->CreateGC = pScreen->CreateGC;
     pScreen->CreateGC = rlCreateGC;
+    s->CloseScreen = pScreen->CloseScreen;
+    pScreen->CloseScreen = rlCloseScreen;
 
     return TRUE;
 }
