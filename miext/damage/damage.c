@@ -78,16 +78,12 @@ getDrawableDamageRef (DrawablePtr pDrawable)
     {
 	ScreenPtr   pScreen = pDrawable->pScreen;
 
-#ifdef ROOTLESS_WORKAROUND
-	if (!((WindowPtr)pDrawable)->viewable)
-	{
-	    static DamagePtr nullDamage = 0;
-	    return &nullDamage;
-	}
-#endif
-
 	pPixmap = 0;
-	if (pScreen->GetWindowPixmap)
+	if (pScreen->GetWindowPixmap
+#ifdef ROOTLESS_WORKAROUND
+	    && ((WindowPtr)pDrawable)->viewable
+#endif
+	    )
 	    pPixmap = (*pScreen->GetWindowPixmap) ((WindowPtr)pDrawable);
 
 	if (!pPixmap)
