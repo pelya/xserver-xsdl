@@ -952,7 +952,7 @@ ATIDRICloseScreen(ScreenPtr pScreen)
 		atis->indirectBuffer = NULL;
 		atis->indirectStart = 0;
 	}
-	ATIDRIDMAStop(pScreen);
+	ATIDRIDMAStop(atis);
 
 	if (atis->irqEnabled) {
 		drmCtlUninstHandler(atic->drmFd);
