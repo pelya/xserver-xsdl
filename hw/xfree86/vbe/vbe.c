@@ -67,7 +67,7 @@ VBEExtendedInit(xf86Int10InfoPtr pInt, int entityIndex, int Flags)
 	    goto error;
 
 	xf86DrvMsg(screen,X_INFO,"initializing int10\n");
-	pInt = xf86InitInt10(entityIndex);
+	pInt = xf86ExtendedInitInt10(entityIndex,Flags);
 	if (!pInt)
 	    goto error;
 	init_int10 = TRUE;

@@ -1,7 +1,7 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/linux/int10/linux.c,v 1.30 2003/03/14 13:46:06 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/linux/int10/linux.c,v 1.32 2004/02/05 18:24:59 eich Exp $ */
 /*
  * linux specific part of the int10 module
- * Copyright 1999 Egbert Eich
+ * Copyright 1999, 2000, 2001, 2002, 2003, 2004 Egbert Eich
  */
 #include "xf86.h"
 #include "xf86_OSproc.h"
@@ -172,6 +172,9 @@ xf86ExtendedInitInt10(int entityIndex, int Flags)
 	    if (errno == ENOSYS)
 		xf86DrvMsg(screen, X_ERROR, "shmget error\n Please reconfigure"
 			   " your kernel to include System V IPC support\n");
+	    else
+		xf86DrvMsg(screen, X_ERROR,
+			   "shmget(highmem) error: %s\n",strerror(errno));
 	    goto error1;
 	}
     } else {
@@ -198,21 +201,34 @@ xf86ExtendedInitInt10(int entityIndex, int Flags)
     ErrorF("Mapping 640kB area\n");
 #endif
     if ((low_mem = shmget(counter++, V_RAM,
-			      IPC_CREAT | SHM_R | SHM_W)) == -1)
+			  IPC_CREAT | SHM_R | SHM_W)) == -1) {
+	xf86DrvMsg(screen, X_ERROR,
+		   "shmget(lowmem) error: %s\n",strerror(errno));
 	goto error2;
+    }
 
     ((linuxInt10Priv*)pInt->private)->lowMem = low_mem;
     base = shmat(low_mem, 0, 0);
-    if (base == SHMERRORPTR) goto error4;
+    if (base == SHMERRORPTR) {
+	xf86DrvMsg(screen, X_ERROR,
+		   "shmat(low_mem) error: %s\n",strerror(errno));
+	goto error3;
+    }
     ((linuxInt10Priv *)pInt->private)->base = base;
     if (high_mem > -1) {
 	base_high = shmat(high_mem, 0, 0);
-	if (base_high == SHMERRORPTR) goto error4;
+	if (base_high == SHMERRORPTR) {
+	    xf86DrvMsg(screen, X_ERROR,
+		       "shmat(high_mem) error: %s\n",strerror(errno));
+	    goto error3;
+	}
 	((linuxInt10Priv*)pInt->private)->base_high = base_high;
     } else
 	((linuxInt10Priv*)pInt->private)->base_high = NULL;
 
-    MapCurrentInt10(pInt);
+    if (!MapCurrentInt10(pInt))
+	goto error3;
+    
     Int10Current = pInt;
 
 #ifdef DEBUG
@@ -238,7 +254,7 @@ xf86ExtendedInitInt10(int entityIndex, int Flags)
 	for (cs = V_BIOS;  cs < SYS_BIOS;  cs += V_BIOS_SIZE)
 	    if (xf86ReadBIOS(cs, 0, (pointer)cs, V_BIOS_SIZE) < V_BIOS_SIZE)
 		xf86DrvMsg(screen, X_WARNING,
-			   "Unable to retrieve all of segment 0x%06X.\n", cs);
+			   "Unable to retrieve all of segment 0x%06lX.\n", cs);
 #ifdef DEBUG
 	ErrorF("done\n");
 #endif
@@ -250,13 +266,13 @@ xf86ExtendedInitInt10(int entityIndex, int Flags)
 	&& !(initPrimary(options))) {
 	if (bios.bus == BUS_ISA && bios.location.legacy) {
 	    xf86DrvMsg(screen, X_CONFIG,
-		       "Overriding BIOS location: 0x%lx\n",
+		       "Overriding BIOS location: 0x%x\n",
 		       bios.location.legacy);
 	    cs = bios.location.legacy >> 4;
 	    bios_base = (unsigned char *)(cs << 4);
 	    if (!int10_check_bios(screen, cs, bios_base)) {
 		xf86DrvMsg(screen, X_ERROR,
-			   "No V_BIOS at specified address 0x%x\n",cs << 4);
+			   "No V_BIOS at specified address 0x%lx\n",cs << 4);
 		goto error3;
 	    }
 	} else {
@@ -286,7 +302,7 @@ xf86ExtendedInitInt10(int entityIndex, int Flags)
 	    }
 	}
 
-	xf86DrvMsg(screen, X_INFO, "Primary V_BIOS segment is: 0x%x\n", cs);
+	xf86DrvMsg(screen, X_INFO, "Primary V_BIOS segment is: 0x%lx\n", cs);
 
 	pInt->BIOSseg = cs;
 	set_return_trap(pInt);
@@ -345,7 +361,7 @@ xf86ExtendedInitInt10(int entityIndex, int Flags)
 		bios_base = (unsigned char *)(cs << 4);
 		if (!int10_check_bios(screen, cs, bios_base)) {
 		    xf86DrvMsg(screen,X_ERROR,"No V_BIOS found "
-			       "on override address 0x%x\n",bios_base);
+			       "on override address %p\n",bios_base);
 		    goto error3;
 		}
 	    } else {
@@ -365,7 +381,7 @@ xf86ExtendedInitInt10(int entityIndex, int Flags)
 		    }
 		}
 	    }
-	    xf86DrvMsg(screen,X_INFO,"Primary V_BIOS segment is: 0x%x\n",cs);
+	    xf86DrvMsg(screen,X_INFO,"Primary V_BIOS segment is: 0x%lx\n",cs);
 	    pInt->BIOSseg = cs;
 	    break;
 	default:
@@ -386,8 +402,6 @@ xf86ExtendedInitInt10(int entityIndex, int Flags)
     xfree(options);
     return pInt;
 
-error4:
-    xf86DrvMsg(screen, X_ERROR, "shmat() call retruned errno %d\n", errno);
 error3:
     if (base_high)
 	shmdt(base_high);
@@ -427,6 +441,8 @@ MapCurrentInt10(xf86Int10InfoPtr pInt)
     addr = shmat(((linuxInt10Priv*)pInt->private)->lowMem, (char*)1, SHM_RND);
     if (addr == SHMERRORPTR) {
 	xf86DrvMsg(pInt->scrnIndex, X_ERROR, "Cannot shmat() low memory\n");
+	xf86DrvMsg(pInt->scrnIndex, X_ERROR,
+		   "shmat(low_mem) error: %s\n",strerror(errno));
 	return FALSE;
     }
     
@@ -436,6 +452,8 @@ MapCurrentInt10(xf86Int10InfoPtr pInt)
 	if (addr == SHMERRORPTR) {
 	    xf86DrvMsg(pInt->scrnIndex, X_ERROR,
 		       "Cannot shmat() high memory\n");
+	    xf86DrvMsg(pInt->scrnIndex, X_ERROR,
+		       "shmget error: %s\n",strerror(errno));
 	    return FALSE;
 	}
     } else {
