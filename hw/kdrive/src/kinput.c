@@ -1468,7 +1468,8 @@ KdBlockHandler (int		screen,
 		pointer		readmask)
 {
     KdMouseInfo		    *mi;
-    
+    int myTimeout=0;
+
     for (mi = kdMouseInfo; mi; mi = mi->next)
     {
 	if (mi->timeoutPending)
@@ -1476,11 +1477,20 @@ KdBlockHandler (int		screen,
 	    int	ms;
     
 	    ms = mi->emulationTimeout - GetTimeInMillis ();
-	    if (ms < 0)
-		ms = 0;
-	    AdjustWaitForDelay (timeout, ms);
+	    if (ms < 1)
+		ms = 1;
+	    if(ms<myTimeout || myTimeout==0)
+		    myTimeout=ms;
 	}
     }
+    /* if we need to poll for events, do that */
+    if(kdOsFuncs->pollEvents)
+    {
+	    (*kdOsFuncs->pollEvents)();
+	    myTimeout=20;
+    }
+    if(myTimeout>0)
+    	AdjustWaitForDelay (timeout, myTimeout);
 }
 
 void

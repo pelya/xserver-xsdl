@@ -306,6 +306,7 @@ KdOsFuncs   ItsyOsFuncs = {
     ItsyOsSpecialKey,
     ItsyOsDisable,
     ItsyOsFini,
+    0
 };
     
 void

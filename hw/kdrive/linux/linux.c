@@ -471,6 +471,7 @@ KdOsFuncs   LinuxFuncs = {
     LinuxSpecialKey,
     LinuxDisable,
     LinuxFini,
+    0
 };
 
 void

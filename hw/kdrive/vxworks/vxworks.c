@@ -59,6 +59,7 @@ KdOsFuncs   VxWorksFuncs = {
     VxWorksSpecialKey,
     VxWorksDisable,
     VxWorksFini,
+    0
 };
 
 void
