@@ -29,6 +29,7 @@
 
 #include "xgl.h"
 #include "inputstr.h"
+#include "cursorstr.h"
 #include "mipointer.h"
 
 #include <stdio.h>
@@ -58,12 +59,26 @@ int xglxScreenPrivateIndex;
 #define XGLX_SCREEN_PRIV(pScreen)			       \
     xglxScreenPtr pScreenPriv = XGLX_GET_SCREEN_PRIV (pScreen)
 
+typedef struct _xglxCursor {
+    Cursor cursor;
+} xglxCursorRec, *xglxCursorPtr;
+
+#define XGLX_GET_CURSOR_PRIV(pCursor, pScreen)		   \
+    ((xglxCursorPtr) (pCursor)->devPriv[(pScreen)->myNum])
+
+#define XGLX_SET_CURSOR_PRIV(pCursor, pScreen, v)	 \
+    ((pCursor)->devPriv[(pScreen)->myNum] = (pointer) v)
+
+#define XGLX_CURSOR_PRIV(pCursor, pScreen)			        \
+    xglxCursorPtr pCursorPriv = XGLX_GET_CURSOR_PRIV (pCursor, pScreen)
+
 char		 *xDisplayName = NULL;
 Display		 *xdisplay = NULL;
 int		 xscreen;
 glitz_format_t	 *xglxCurrentFormat;
 CARD32		 lastEventTime = 0;
 ScreenPtr	 currentScreen = NULL;
+Bool		 softCursor = FALSE;
 xglScreenInfoRec xglScreenInfo = {
     NULL, 0, 0, 0, 0, FALSE,
     DEFAULT_GEOMETRY_DATA_TYPE,
@@ -114,13 +129,115 @@ static Bool
 xglxDisplayCursor (ScreenPtr pScreen,
 		   CursorPtr pCursor)
 {
+    XGLX_SCREEN_PRIV (pScreen);
+    XGLX_CURSOR_PRIV (pCursor, pScreen);
+    
+    XDefineCursor (xdisplay, pScreenPriv->win, pCursorPriv->cursor);
+  
     return TRUE;
 }
+
+#ifdef ARGB_CURSOR
+
+static Bool
+xglxARGBCursorSupport (void);
+
+static Cursor
+xglxCreateARGBCursor (ScreenPtr pScreen,
+		      CursorPtr pCursor);
+
+#endif
 
 static Bool
 xglxRealizeCursor (ScreenPtr pScreen,
 		   CursorPtr pCursor)
 {
+    xglxCursorPtr pCursorPriv;
+    XImage	  *ximage;
+    Pixmap	  source, mask;
+    XColor	  fgColor, bgColor;
+    GC		  xgc;
+    unsigned long valuemask;
+    XGCValues	  values;
+
+    XGLX_SCREEN_PRIV (pScreen);
+
+    valuemask = GCForeground | GCBackground;
+
+    values.foreground = 1L;
+    values.background = 0L;
+
+    pCursorPriv = xalloc (sizeof (xglxCursorRec));
+    if (!pCursorPriv)
+	return FALSE;
+
+    XGLX_SET_CURSOR_PRIV (pCursor, pScreen, pCursorPriv);
+
+#ifdef ARGB_CURSOR
+    if (pCursor->bits->argb)
+    {
+	pCursorPriv->cursor = xglxCreateARGBCursor (pScreen, pCursor);
+	if (pCursorPriv->cursor)
+	    return TRUE;
+    }
+#endif
+
+    source = XCreatePixmap (xdisplay, 
+			    pScreenPriv->win,
+			    pCursor->bits->width,
+			    pCursor->bits->height,
+			    1);
+  
+    mask = XCreatePixmap (xdisplay, 
+			  pScreenPriv->win,
+			  pCursor->bits->width,
+			  pCursor->bits->height,
+			  1);
+    
+    xgc = XCreateGC (xdisplay, source, valuemask, &values);
+  
+    ximage = XCreateImage (xdisplay,
+			   DefaultVisual (xdisplay, xscreen),
+			   1, XYBitmap, 0,
+			   (char *) pCursor->bits->source,
+			   pCursor->bits->width,
+			   pCursor->bits->height,
+			   BitmapPad (xdisplay), 0);
+  
+    XPutImage (xdisplay, source, xgc, ximage,
+	       0, 0, 0, 0, pCursor->bits->width, pCursor->bits->height);
+  
+    XFree (ximage);
+  
+    ximage = XCreateImage (xdisplay, 
+			   DefaultVisual (xdisplay, xscreen),
+			   1, XYBitmap, 0, 
+			   (char *) pCursor->bits->mask,
+			   pCursor->bits->width,
+			   pCursor->bits->height,
+			   BitmapPad (xdisplay), 0);
+  
+    XPutImage (xdisplay, mask, xgc, ximage,
+	       0, 0, 0, 0, pCursor->bits->width, pCursor->bits->height);
+  
+    XFree (ximage);
+    XFreeGC (xdisplay, xgc);
+  
+    fgColor.red   = pCursor->foreRed;
+    fgColor.green = pCursor->foreGreen;
+    fgColor.blue  = pCursor->foreBlue;
+  
+    bgColor.red   = pCursor->backRed;
+    bgColor.green = pCursor->backGreen;
+    bgColor.blue  = pCursor->backBlue;
+  
+    pCursorPriv->cursor = 
+	XCreatePixmapCursor (xdisplay, source, mask, &fgColor, &bgColor,
+			     pCursor->bits->xhot, pCursor->bits->yhot);
+
+    XFreePixmap (xdisplay, mask);
+    XFreePixmap (xdisplay, source);
+  
     return TRUE;
 }
 
@@ -128,6 +245,11 @@ static Bool
 xglxUnrealizeCursor (ScreenPtr pScreen,
 		     CursorPtr pCursor)
 {
+    XGLX_CURSOR_PRIV (pCursor, pScreen);
+  
+    XFreeCursor (xdisplay, pCursorPriv->cursor);
+    xfree (pCursorPriv);
+  
     return TRUE;
 }
 
@@ -136,6 +258,19 @@ xglxRecolorCursor (ScreenPtr pScreen,
 		   CursorPtr pCursor,
 		   Bool	     displayed)
 {
+    XColor fgColor, bgColor;
+
+    XGLX_CURSOR_PRIV (pCursor, pScreen);
+  
+    fgColor.red   = pCursor->foreRed;
+    fgColor.green = pCursor->foreGreen;
+    fgColor.blue  = pCursor->foreBlue;
+    
+    bgColor.red   = pCursor->backRed;
+    bgColor.green = pCursor->backGreen;
+    bgColor.blue  = pCursor->backBlue;
+  
+    XRecolorCursor (xdisplay, pCursorPriv->cursor, &fgColor, &bgColor);
 }
 
 static Bool
@@ -177,6 +312,29 @@ xglxCloseScreen (int	   index,
     
     return (*pScreen->CloseScreen) (index, pScreen);
 }
+
+static Bool
+xglxCursorOffScreen (ScreenPtr *ppScreen, int *x, int *y)
+{
+    return FALSE;
+}
+
+static void
+xglxCrossScreen (ScreenPtr pScreen, Bool entering)
+{
+}
+
+static void
+xglxWarpCursor (ScreenPtr pScreen, int x, int y)
+{
+    miPointerWarpCursor (pScreen, x, y);
+}
+
+miPointerScreenFuncRec xglxPointerScreenFuncs = {
+    xglxCursorOffScreen,
+    xglxCrossScreen,
+    xglxWarpCursor
+};
 
 static Bool
 xglxScreenInit (int	  index,
@@ -304,16 +462,53 @@ xglxScreenInit (int	  index,
     
     if (!xglScreenInit (pScreen, &xglScreenInfo))
 	return FALSE;
-
-    pScreen->ConstrainCursor   = xglxConstrainCursor;
-    pScreen->CursorLimits      = xglxCursorLimits;
-    pScreen->DisplayCursor     = xglxDisplayCursor;
-    pScreen->RealizeCursor     = xglxRealizeCursor;
-    pScreen->UnrealizeCursor   = xglxUnrealizeCursor;
-    pScreen->RecolorCursor     = xglxRecolorCursor;
-    pScreen->SetCursorPosition = xglxSetCursorPosition;
-
+    
     XGL_SCREEN_WRAP (CloseScreen, xglxCloseScreen);
+
+#ifdef ARGB_CURSOR
+    if (!xglxARGBCursorSupport ())
+	softCursor = TRUE;
+#endif
+    
+    if (softCursor)
+    {
+	static char data = 0;
+	XColor	    black, dummy;
+	Pixmap	    bitmap;
+	Cursor	    cursor;
+	
+	if (!XAllocNamedColor (xdisplay, pScreenPriv->colormap,
+			       "black", &black, &dummy))
+	    return FALSE;
+	
+	bitmap = XCreateBitmapFromData (xdisplay, pScreenPriv->win, &data,
+					1, 1);
+	if (!bitmap)
+	    return FALSE;
+	
+	cursor = XCreatePixmapCursor (xdisplay, bitmap, bitmap, &black, &black,
+				      0, 0);
+	if (!cursor)
+	    return FALSE;
+	
+	XDefineCursor (xdisplay, pScreenPriv->win, cursor);
+
+	XFreeCursor (xdisplay, cursor);
+	XFreePixmap (xdisplay, bitmap);
+	XFreeColors (xdisplay, pScreenPriv->colormap, &black.pixel, 1, 0);
+
+	miDCInitialize (pScreen, &xglxPointerScreenFuncs);
+    }
+    else
+    {
+	pScreen->ConstrainCursor   = xglxConstrainCursor;
+	pScreen->CursorLimits      = xglxCursorLimits;
+	pScreen->DisplayCursor     = xglxDisplayCursor;
+	pScreen->RealizeCursor     = xglxRealizeCursor;
+	pScreen->UnrealizeCursor   = xglxUnrealizeCursor;
+	pScreen->RecolorCursor     = xglxRecolorCursor;
+	pScreen->SetCursorPosition = xglxSetCursorPosition;
+    }
 
     if (!xglFinishScreenInit (pScreen))
 	return FALSE;
@@ -442,6 +637,7 @@ xglxWakeupHandler (pointer blockData,
 	    x.u.keyButtonPointer.rootX = X.xmotion.x;
 	    x.u.keyButtonPointer.rootY = X.xmotion.y;
 	    x.u.keyButtonPointer.time = lastEventTime = GetTimeInMillis ();
+	    miPointerAbsoluteCursor (X.xmotion.x, X.xmotion.y, lastEventTime);
 	    mieqEnqueue (&x);
 	    break;
 	case EnterNotify:
@@ -561,6 +757,7 @@ void
 ProcessInputEvents ()
 {
     mieqProcessInputEvents ();
+    miPointerUpdate ();
 }
 
 void
@@ -589,6 +786,7 @@ ddxUseMsg (void)
 {
     ErrorF ("\nXglx usage:\n");
     ErrorF ("-display string        display name of the real server\n");
+    ErrorF ("-softcursor            force software cursor\n");
     
     xglUseMsg ();
 }
@@ -596,12 +794,18 @@ ddxUseMsg (void)
 int
 ddxProcessArgument (int argc, char **argv, int i)
 {
-    if (!strcmp (argv[i], "-display")) {
+    if (!strcmp (argv[i], "-display"))
+    {
 	if (++i < argc) {
 	    xDisplayName = argv[i];
 	    return 2;
 	}
 	return 0;
+    }
+    else if (!strcmp (argv[i], "-softcursor"))
+    {
+	softCursor = TRUE;
+	return 1;
     }
 
     return xglProcessArgument (&xglScreenInfo, argc, argv, i);
@@ -622,3 +826,68 @@ void
 OsVendorInit (void)
 {
 }
+
+#ifdef ARGB_CURSOR
+
+#include <X11/extensions/Xrender.h>
+
+static Bool
+xglxARGBCursorSupport (void)
+{
+    int renderMajor, renderMinor;
+    
+    if (!XRenderQueryVersion (xdisplay, &renderMajor, &renderMinor))
+	renderMajor = renderMinor = -1;
+
+    return (renderMajor > 0 || renderMinor > 4);
+}   
+
+static Cursor
+xglxCreateARGBCursor (ScreenPtr pScreen,
+		      CursorPtr pCursor)
+{
+    Pixmap	      xpixmap;
+    GC		      xgc;
+    XImage	      *ximage;
+    XRenderPictFormat *xformat;
+    Picture	      xpicture;
+    Cursor	      cursor;
+
+    XGLX_SCREEN_PRIV (pScreen);
+    
+    xpixmap = XCreatePixmap (xdisplay, 
+			     pScreenPriv->win,
+			     pCursor->bits->width,
+			     pCursor->bits->height,
+			     32);
+	
+    xgc = XCreateGC (xdisplay, xpixmap, 0, NULL);
+    
+    ximage = XCreateImage (xdisplay,
+			   DefaultVisual (xdisplay, xscreen),
+			   32, ZPixmap, 0,
+			   (char *) pCursor->bits->argb,
+			   pCursor->bits->width,
+			   pCursor->bits->height,
+			   32, pCursor->bits->width * 4);
+    
+    XPutImage (xdisplay, xpixmap, xgc, ximage,
+	       0, 0, 0, 0, pCursor->bits->width, pCursor->bits->height);
+    
+    XFree (ximage);
+    XFreeGC (xdisplay, xgc);
+    
+    xformat = XRenderFindStandardFormat (xdisplay, PictStandardARGB32);
+    xpicture = XRenderCreatePicture (xdisplay, xpixmap, xformat, 0, 0);
+    
+    cursor = XRenderCreateCursor (xdisplay, xpicture,
+				  pCursor->bits->xhot,
+				  pCursor->bits->yhot);
+    
+    XRenderFreePicture (xdisplay, xpicture);
+    XFreePixmap (xdisplay, xpixmap);
+    
+    return cursor;
+}
+
+#endif
