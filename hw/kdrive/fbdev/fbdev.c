@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/fbdev/fbdev.c,v 1.25 2001/07/16 19:48:00 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/fbdev/fbdev.c,v 1.26 2001/07/19 08:46:30 keithp Exp $ */
 
 #include "fbdev.h"
 
@@ -400,41 +400,10 @@ fbdevLayerCreate (ScreenPtr pScreen)
 	else
 #endif /* FAKE24_ON_16 */
 	{
-	    switch (scrpriv->rotation) {
-	    case 0:
+	    if (scrpriv->rotation)
+		update = shadowUpdateRotatePacked;
+	    else
 		update = shadowUpdatePacked;
-		break;
-	    case 90:
-		switch (pScreenPriv->screen->fb[0].bitsPerPixel) {
-		case 8:
-		    update = shadowUpdateRotate8_90; break;
-		case 16:
-		    update = shadowUpdateRotate16_90; break;
-		case 32:
-		    update = shadowUpdateRotate32_90; break;
-		}
-		break;
-	    case 180:
-		switch (pScreenPriv->screen->fb[0].bitsPerPixel) {
-		case 8:
-		    update = shadowUpdateRotate8_180; break;
-		case 16:
-		    update = shadowUpdateRotate16_180; break;
-		case 32:
-		    update = shadowUpdateRotate32_180; break;
-		}
-		break;
-	    case 270:
-		switch (pScreenPriv->screen->fb[0].bitsPerPixel) {
-		case 8:
-		    update = shadowUpdateRotate8_270; break;
-		case 16:
-		    update = shadowUpdateRotate16_270; break;
-		case 32:
-		    update = shadowUpdateRotate32_270; break;
-		}
-		break;
-	    }
 	}
 	if (!update)
 	    abort ();
@@ -449,7 +418,7 @@ fbdevLayerCreate (ScreenPtr pScreen)
 	window = 0;
     }
     return LayerCreate (pScreen, kind, screen->fb[0].depth, 
-			pPixmap, update, window, 0);
+			pPixmap, update, window, scrpriv->rotation, 0);
 }
 
 

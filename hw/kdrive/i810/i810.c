@@ -32,7 +32,7 @@ of the copyright holder.
 X Window System is a trademark of The Open Group */
 
 
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/i810/i810.c,v 1.1 2001/03/30 02:18:41 keithp Exp $ */
 
 /*
  * i810.c - KDrive driver for the i810 chipset
@@ -1954,7 +1954,9 @@ i810Enable (ScreenPtr pScreen)
         /* Set the DPMS mode */
         OUTREG8(DPMS_SYNC_SELECT, DPMSSyncSelect);
     }
-
+#ifdef XV
+    KdXVEnable (pScreen);
+#endif
     return TRUE;
 }
 
@@ -1972,6 +1974,9 @@ i810Disable(ScreenPtr pScreen) {
     if (I810_DEBUG)
         fprintf(stderr,"i810Disable\n");
 
+#ifdef XV
+    KdXVDisable (pScreen);
+#endif
     i810Restore(screen->card);
 
     if (!i810UnbindGARTMemory(screen))

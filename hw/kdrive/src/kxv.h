@@ -35,7 +35,7 @@ of the copyright holder.
 
 */
 
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/kxv.h,v 1.1 2001/03/30 02:18:41 keithp Exp $ */
 
 #ifndef _XVDIX_H_
 #define _XVDIX_H_
@@ -249,6 +249,10 @@ KdVideoAdaptorPtr KdXVAllocateVideoAdaptorRec(KdScreenInfo * screen);
 
 void KdXVFreeVideoAdaptorRec(KdVideoAdaptorPtr ptr);
 
+/* Must be called from KdCardInfo functions, can be called without Xv enabled */
+Bool KdXVEnable(ScreenPtr);
+void KdXVDisable(ScreenPtr);
+
 /*** These are DDX layer privates ***/
 
 
@@ -257,8 +261,6 @@ typedef struct {
    DestroyWindowProcPtr		DestroyWindow;
    ClipNotifyProcPtr		ClipNotify;
    WindowExposuresProcPtr	WindowExposures;
-    void        (*disable) (ScreenPtr);     /* turn off rendering */
-    Bool        (*enable) (ScreenPtr);      /* set up for rendering */
 } KdXVScreenRec, *KdXVScreenPtr;
 
 typedef struct {

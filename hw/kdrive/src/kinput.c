@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/kinput.c,v 1.17 2001/06/29 14:00:40 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/kinput.c,v 1.18 2001/07/11 02:58:19 keithp Exp $ */
 
 #include "kdrive.h"
 #include "inputstr.h"
@@ -1394,54 +1394,92 @@ KdWakeupHandler (int		screen,
 	KdProcessSwitch ();
 }
 
+#define KdScreenOrigin(pScreen) (&(KdGetScreenPriv(pScreen)->screen->origin))
+
 static Bool
 KdCursorOffScreen(ScreenPtr *ppScreen, int *x, int *y)
 {
     ScreenPtr	pScreen  = *ppScreen;
+    ScreenPtr	pNewScreen;
     int		n;
+    int		dx, dy;
+    int		best_x, best_y;
+    int		n_best_x, n_best_y;
     CARD32	ms;
     
     if (kdDisableZaphod || screenInfo.numScreens <= 1)
 	return FALSE;
-    if (*x < 0 || *y < 0)
-    {
-        ms = GetTimeInMillis ();
-	if (kdOffScreen && (int) (ms - kdOffScreenTime) < 1000)
-	    return FALSE;
-	kdOffScreen = TRUE;
-	kdOffScreenTime = ms;
+
+    if (0 <= *x && *x < pScreen->width && 0 <= *y && *y < pScreen->height)
+	return FALSE;
 	
-	n = pScreen->myNum - 1;
-	if (n < 0)
-	    n = screenInfo.numScreens - 1;
-	pScreen = screenInfo.screens[n];
+    ms = GetTimeInMillis ();
+    if (kdOffScreen && (int) (ms - kdOffScreenTime) < 1000)
+	return FALSE;
+    kdOffScreen = TRUE;
+    kdOffScreenTime = ms;
+    n_best_x = -1;
+    best_x = 32767;
+    n_best_y = -1;
+    best_y = 32767;
+    for (n = 0; n < screenInfo.numScreens; n++)
+    {
+	pNewScreen = screenInfo.screens[n];
+	if (pNewScreen == pScreen) 
+	    continue;
+	dx = KdScreenOrigin(pNewScreen)->x - KdScreenOrigin(pScreen)->x;
+	dy = KdScreenOrigin(pNewScreen)->y - KdScreenOrigin(pScreen)->y;
 	if (*x < 0)
-	    *x += pScreen->width;
+	{
+	    if (dx <= 0 && -dx < best_x)
+	    {
+		best_x = -dx;
+		n_best_x = n;
+	    }
+	}
+	else if (*x >= pScreen->width)
+	{
+	    if (dx >= 0 && dx < best_x)
+	    {
+		best_x = dx;
+		n_best_x = n;
+	    }
+	}
 	if (*y < 0)
-	    *y += pScreen->height;
-	*ppScreen = pScreen;
-	return TRUE;
+	{
+	    if (dy <= 0 && -dy < best_y)
+	    {
+		best_y = -dy;
+		n_best_y = n;
+	    }
+	}
+	else if (*y >= pScreen->height)
+	{
+	    if (dy >= 0 && dy < best_y)
+	    {
+		best_y = dy;
+		n_best_y = n;
+	    }
+	}
     }
-    else if (*x >= pScreen->width || *y >= pScreen->height)
-    {
-        ms = GetTimeInMillis ();
-	if (kdOffScreen && (int) (ms - kdOffScreenTime) < 1000)
-	    return FALSE;
-	kdOffScreen = TRUE;
-	kdOffScreenTime = ms;
-	
-	n = pScreen->myNum + 1;
-	if (n >= screenInfo.numScreens)
-	    n = 0;
-	if (*x >= pScreen->width)
-	    *x -= pScreen->width;
-	if (*y >= pScreen->height)
-	    *y -= pScreen->height;
-	pScreen = screenInfo.screens[n];
-	*ppScreen = pScreen;
-	return TRUE;
-    }
-    return FALSE;
+    if (best_y < best_x)
+	n_best_x = n_best_y;
+    if (n_best_x == -1)
+	return FALSE;
+    pNewScreen = screenInfo.screens[n_best_x];
+    
+    if (*x < 0)
+	*x += pNewScreen->width;
+    if (*y < 0)
+	*y += pNewScreen->height;
+    
+    if (*x >= pScreen->width)
+	*x -= pScreen->width;
+    if (*y >= pScreen->height)
+	*y -= pScreen->height;
+    
+    *ppScreen = pNewScreen;
+    return TRUE;
 }
 
 static void

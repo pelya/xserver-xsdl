@@ -19,7 +19,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/mach64/mach64.c,v 1.4 2001/06/19 09:31:47 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/mach64/mach64.c,v 1.5 2001/06/23 03:41:24 keithp Exp $ */
 
 #include "mach64.h"
 #include <sys/io.h>
@@ -222,12 +222,18 @@ mach64Enable (ScreenPtr pScreen)
     
     mach64SetMMIO (mach64c);
     mach64DPMS (pScreen, KD_DPMS_NORMAL);
+#ifdef XV
+    KdXVEnable (pScreen);
+#endif
     return TRUE;
 }
 
 void
 mach64Disable (ScreenPtr pScreen)
 {
+#ifdef XV
+    KdXVDisable (pScreen);
+#endif
     vesaDisable (pScreen);
 }
 

@@ -19,7 +19,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/vesa/vesa.h,v 1.9 2001/05/29 04:54:13 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/vesa/vesa.h,v 1.10 2001/06/04 09:45:42 keithp Exp $ */
 
 #ifndef _VESA_H_
 #define _VESA_H_
@@ -84,6 +84,7 @@ typedef struct _VesaCardPriv {
     int		old_vga_mode;
     VbeInfoPtr	vbeInfo;
     char	text[VESA_TEXT_SAVE];
+    CARD8	cmap[256*4];
 } VesaCardPrivRec, *VesaCardPrivPtr;
 
 #define VESA_LINEAR	0

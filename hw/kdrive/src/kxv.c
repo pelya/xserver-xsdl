@@ -35,7 +35,7 @@ of the copyright holder.
 
 */
 
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/kxv.c,v 1.1 2001/03/30 02:18:41 keithp Exp $ */
 
 #include "kdrive.h"
 
@@ -98,12 +98,7 @@ static Bool KdXVDestroyWindow(WindowPtr pWin);
 static void KdXVWindowExposures(WindowPtr pWin, RegionPtr r1, RegionPtr r2);
 static void KdXVClipNotify(WindowPtr pWin, int dx, int dy);
 
-/* KdCardInfo functions */
-static Bool KdXVEnable(ScreenPtr);
-static void KdXVDisable(ScreenPtr);
-
 /* misc */
-
 static Bool KdXVInitAdaptors(ScreenPtr, KdVideoAdaptorPtr*, int);
 
 
@@ -191,7 +186,6 @@ KdXVScreenInit(
    int num
 ){
     KdScreenPriv(pScreen);
-    KdCardInfo *card = pScreenPriv->card;
   KdXVScreenPtr ScreenPriv;
   XvScreenPtr pxvs;
 
@@ -239,18 +233,12 @@ KdXVScreenInit(
   ScreenPriv->WindowExposures = pScreen->WindowExposures;
   ScreenPriv->ClipNotify = pScreen->ClipNotify;
 
-/*   fprintf(stderr,"XV: Wrapping screen & card funcs\n"); */
-
-  ScreenPriv->enable = card->cfuncs->enable;
-  ScreenPriv->disable = card->cfuncs->disable;
+/*   fprintf(stderr,"XV: Wrapping screen funcs\n"); */
 
   pScreen->CreateWindow = KdXVCreateWindow;
   pScreen->DestroyWindow = KdXVDestroyWindow;
   pScreen->WindowExposures = KdXVWindowExposures;
   pScreen->ClipNotify = KdXVClipNotify;
-
-  card->cfuncs->disable = KdXVDisable;
-  card->cfuncs->enable = KdXVEnable;
 
   if(!KdXVInitAdaptors(pScreen, adaptors, num))
 	return FALSE;
@@ -1154,7 +1142,6 @@ static Bool
 KdXVCloseScreen(int i, ScreenPtr pScreen)
 {
     KdScreenPriv(pScreen);
-    KdCardInfo *card = pScreenPriv->card;
     KdScreenInfo *screen=pScreenPriv->screen;
   XvScreenPtr pxvs = GET_XV_SCREEN(pScreen);
   KdXVScreenPtr ScreenPriv = GET_KDXV_SCREEN(pScreen);
@@ -1168,10 +1155,7 @@ KdXVCloseScreen(int i, ScreenPtr pScreen)
   pScreen->WindowExposures = ScreenPriv->WindowExposures;
   pScreen->ClipNotify = ScreenPriv->ClipNotify;
 
-/*   fprintf(stderr,"XV: Unwrapping screen & card funcs\n"); */
-
-  card->cfuncs->enable = ScreenPriv->enable;
-  card->cfuncs->disable = ScreenPriv->disable;
+/*   fprintf(stderr,"XV: Unwrapping screen funcs\n"); */
 
   for(c = 0, pa = pxvs->pAdaptors; c < pxvs->nAdaptors; c++, pa++) { 
        KdXVFreeAdaptor(pa);
@@ -1202,29 +1186,41 @@ KdXVQueryAdaptors(
 }
 
 static Bool
-KdXVEnable(ScreenPtr pScreen)
+KdXVRunning (ScreenPtr pScreen)
 {
-    static int count=0;
-    KdXVScreenPtr ScreenPriv = GET_KDXV_SCREEN(pScreen);
-    Bool ret;
-
-    ret = (*ScreenPriv->enable)(pScreen);
-
-    if(ret) WalkTree(pScreen, KdXVReputAllVideo, 0); 
- 
-    return ret;
+    return (KdXVGeneration == serverGeneration &&
+	    GET_XV_SCREEN(pScreen) != 0);
 }
 
-static void
+Bool
+KdXVEnable(ScreenPtr pScreen)
+{
+    KdXVScreenPtr ScreenPriv;
+    
+    if (!KdXVRunning (pScreen))
+	return TRUE;
+    
+    WalkTree(pScreen, KdXVReputAllVideo, 0); 
+ 
+    return TRUE;
+}
+
+void
 KdXVDisable(ScreenPtr pScreen)
 {
-    XvScreenPtr pxvs = GET_XV_SCREEN(pScreen);
-    KdXVScreenPtr ScreenPriv = GET_KDXV_SCREEN(pScreen);
+    XvScreenPtr pxvs;
+    KdXVScreenPtr ScreenPriv;
     XvAdaptorPtr pAdaptor;
     XvPortPtr pPort;
     XvPortRecPrivatePtr pPriv;
     int i, j;
 
+    if (!KdXVRunning (pScreen))
+	return;
+
+    pxvs = GET_XV_SCREEN(pScreen);
+    ScreenPriv = GET_KDXV_SCREEN(pScreen);
+    
     for(i = 0; i < pxvs->nAdaptors; i++) {
 	pAdaptor = &pxvs->pAdaptors[i];
 	for(j = 0; j < pAdaptor->nPorts; j++) {
@@ -1247,8 +1243,6 @@ KdXVDisable(ScreenPtr pScreen)
 	    }
 	}
     }
-
-    (*ScreenPriv->disable)(pScreen);
 }
 
 /**** XvAdaptorRec fields ****/

@@ -27,7 +27,7 @@
  *
  * Tested running under a Compaq IPAQ Pocket PC running Linux
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/pcmcia/pcmcia.c,v 1.3 2001/06/20 21:53:31 alanh Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/pcmcia/pcmcia.c,v 1.4 2001/06/21 00:58:51 keithp Exp $ */
 
 #include "pcmcia.h"
 #define extern
@@ -376,7 +376,7 @@ pcmciaLayerCreate (ScreenPtr pScreen)
     pPixmap = 0;
 
     return LayerCreate (pScreen, kind, screen->fb[0].depth, 
-			pPixmap, update, window, 0);
+			pPixmap, update, window, pcmcias->rotation, 0);
 }
 
 #ifdef RANDR

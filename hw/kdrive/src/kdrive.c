@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/kdrive.c,v 1.16 2001/06/04 09:45:41 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/kdrive.c,v 1.17 2001/06/13 19:18:03 keithp Exp $ */
 
 #include "kdrive.h"
 #ifdef PSEUDO8
@@ -47,6 +47,7 @@ Bool		    kdEmulateMiddleButton;
 Bool		    kdDisableZaphod;
 Bool		    kdEnabled;
 Bool		    kdSwitchPending;
+DDXPointRec	    kdOrigin;
 
 /*
  * Carry arguments from InitOutput through driver initialization
@@ -340,8 +341,7 @@ KdParseScreen (KdScreenInfo *screen,
     
     screen->dumb = kdDumbDriver;
     screen->softCursor = kdSoftCursor;
-    kdDumbDriver = FALSE;
-    kdSoftCursor = FALSE;
+    screen->origin = kdOrigin;
     screen->rotation = 0;
     screen->width = 0;
     screen->height = 0;
@@ -386,22 +386,28 @@ KdParseScreen (KdScreenInfo *screen,
 	    return;
     }
 
+    kdOrigin.x += screen->width;
+    kdOrigin.y = 0;
+    kdDumbDriver = FALSE;
+    kdSoftCursor = FALSE;
+    
     if (delim == '@')
     {
 	arg = KdParseFindNext (arg, "x", save, &delim);
-	if (!save[0])
-	    return;
-	screen->rotation = atoi (save);
-	if (screen->rotation < 45)
-	    screen->rotation = 0;
-	else if (screen->rotation < 135)
-	    screen->rotation = 90;
-	else if (screen->rotation < 225)
-	    screen->rotation = 180;
-	else if (screen->rotation < 315)
-	    screen->rotation = 270;
-	else
-	    screen->rotation = 0;
+	if (save[0])
+	{
+	    screen->rotation = atoi (save);
+	    if (screen->rotation < 45)
+		screen->rotation = 0;
+	    else if (screen->rotation < 135)
+		screen->rotation = 90;
+	    else if (screen->rotation < 225)
+		screen->rotation = 180;
+	    else if (screen->rotation < 315)
+		screen->rotation = 270;
+	    else
+		screen->rotation = 0;
+	}
     }
     
     fb = 0;
@@ -496,6 +502,25 @@ KdProcessArgument (int argc, char **argv, int i)
     }
     if (!strcmp (argv[i], "-standalone"))
 	return 1;
+    if (!strcmp (argv[i], "-origin"))
+    {
+	if ((i+1) < argc)
+	{
+	    char    *x = argv[i+1];
+	    char    *y = strchr (x, ',');
+	    if (x)
+		kdOrigin.x = atoi (x);
+	    else
+		kdOrigin.x = 0;
+	    if (y)
+		kdOrigin.y = atoi(y+1);
+	    else
+		kdOrigin.y = 0;
+	}
+	else
+	    UseMsg ();
+	return 2;
+    }
 #ifdef PSEUDO8
     return p8ProcessArgument (argc, argv, i);
 #else
@@ -671,6 +696,9 @@ KdScreenInit(int index, ScreenPtr pScreen, int argc, char **argv)
     for (fb = 0; fb < KD_MAX_FB && screen->fb[fb].depth; fb++)
 	pScreenPriv->bytesPerPixel[fb] = screen->fb[fb].bitsPerPixel >> 3;
     pScreenPriv->dpmsState = KD_DPMS_NORMAL;
+#ifdef PANORAMIX
+    dixScreenOrigins[pScreen->myNum] = screen->origin;
+#endif
 
     if (!monitorResolution)
 	monitorResolution = 75;
