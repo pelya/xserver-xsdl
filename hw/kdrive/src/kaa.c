@@ -1,5 +1,5 @@
 /*
- * $XFree86$
+ * $XFree86: xc/programs/Xserver/hw/kdrive/kaa.c,v 1.1 2001/05/29 04:54:10 keithp Exp $
  *
  * Copyright © 2001 Keith Packard, member of The XFree86 Project, Inc.
  *
@@ -127,7 +127,8 @@ kaaCopyNtoN (DrawablePtr    pSrcDrawable,
     CARD32  cmd;
     CARD8   alu;
     
-    if ((*pKaaScr->PrepareCopy) (pSrcDrawable,
+    if (pSrcDrawable->type == DRAWABLE_WINDOW &&
+	(*pKaaScr->PrepareCopy) (pSrcDrawable,
 				 pDstDrawable,
 				 upsidedown,
 				 reverse,

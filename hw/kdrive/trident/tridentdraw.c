@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/trident/tridentdraw.c,v 1.6 2000/10/11 06:04:40 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/trident/tridentdraw.c,v 1.8 2001/05/29 04:54:12 keithp Exp $ */
 
 #include "trident.h"
 #include "tridentdraw.h"
@@ -119,9 +119,7 @@ tridentPrepareCopy (DrawablePtr	pSrcDrawable,
 {
     FbBits	    depthMask;
     
-    if ((pm & depthMask) == depthMask &&
-	pSrcDrawable->type == DRAWABLE_WINDOW &&
-	pDstDrawable->type == DRAWABLE_WINDOW)
+    if ((pm & depthMask) == depthMask)
     {
 	KdScreenPriv(pDstDrawable->pScreen);
 	tridentCardInfo(pScreenPriv);
