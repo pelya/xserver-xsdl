@@ -360,7 +360,7 @@ fbCompositeSolid_nx8888mmx (CARD8	op,
     
     CHECKPOINT();
     
-    fbComposeGetSolid(pSrc, src);
+    fbComposeGetSolid(pSrc, src, pDst->format);
     
     if (src >> 24 == 0)
 	return;
@@ -439,7 +439,7 @@ fbCompositeSolid_nx0565mmx (CARD8	op,
     
     CHECKPOINT();
     
-    fbComposeGetSolid(pSrc, src);
+    fbComposeGetSolid(pSrc, src, pDst->format);
     
     if (src >> 24 == 0)
 	return;
@@ -524,7 +524,7 @@ fbCompositeSolidMask_nx8888x8888Cmmx (CARD8	op,
     
     CHECKPOINT();
     
-    fbComposeGetSolid(pSrc, src);
+    fbComposeGetSolid(pSrc, src, pDst->format);
     
     srca = src >> 24;
     if (srca == 0)
@@ -755,7 +755,7 @@ fbCompositeSolidMask_nx8x8888mmx (CARD8      op,
     
     CHECKPOINT();
     
-    fbComposeGetSolid(pSrc, src);
+    fbComposeGetSolid(pSrc, src, pDst->format);
     
     srca = src >> 24;
     if (srca == 0)
@@ -871,7 +871,7 @@ fbCompositeSolidMask_nx8x0565mmx (CARD8      op,
     
     CHECKPOINT();
     
-    fbComposeGetSolid(pSrc, src);
+    fbComposeGetSolid(pSrc, src, pDst->format);
     
     srca = src >> 24;
     if (srca == 0)
@@ -1212,7 +1212,7 @@ fbCompositeSolidMask_nx8888x0565Cmmx (CARD8      op,
     
     CHECKPOINT();
     
-    fbComposeGetSolid(pSrc, src);
+    fbComposeGetSolid(pSrc, src, pDst->format);
     
     srca = src >> 24;
     if (srca == 0)

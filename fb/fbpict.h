@@ -72,7 +72,7 @@ typedef void	(*CompositeFunc) (CARD8      op,
 				  CARD16     width,
 				  CARD16     height);
 
-#define fbComposeGetSolid(pict, bits) { \
+#define fbComposeGetSolid(pict, bits, fmt) { \
     FbBits	*__bits__; \
     FbStride	__stride__; \
     int		__bpp__; \
@@ -92,6 +92,14 @@ typedef void	(*CompositeFunc) (CARD8      op,
 	break; \
     default: \
 	return; \
+    } \
+    /* If necessary, convert RGB <--> BGR. */ \
+    if (PICT_FORMAT_TYPE((pict)->format) != PICT_FORMAT_TYPE(fmt)) \
+    { \
+	(bits) = (((bits) & 0xff000000) | \
+		  (((bits) & 0x00ff0000) >> 16) | \
+		  (((bits) & 0x0000ff00) >>  0) | \
+		  (((bits) & 0x000000ff) << 16)); \
     } \
     /* manage missing src alpha */ \
     if ((pict)->pFormat->direct.alphaMask == 0) \

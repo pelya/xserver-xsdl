@@ -99,7 +99,7 @@ fbCompositeSolidMask_nx8x8888 (CARD8      op,
     FbStride	dstStride, maskStride;
     CARD16	w;
 
-    fbComposeGetSolid(pSrc, src);
+    fbComposeGetSolid(pSrc, src, pDst->format);
     
     dstMask = FbFullMask (pDst->pDrawable->depth);
     srca = src >> 24;
@@ -158,7 +158,7 @@ fbCompositeSolidMask_nx8888x8888C (CARD8      op,
     CARD16	w;
     CARD32	m, n, o, p;
 
-    fbComposeGetSolid(pSrc, src);
+    fbComposeGetSolid(pSrc, src, pDst->format);
     
     dstMask = FbFullMask (pDst->pDrawable->depth);
     srca = src >> 24;
@@ -231,7 +231,7 @@ fbCompositeSolidMask_nx8x0888 (CARD8      op,
     FbStride	dstStride, maskStride;
     CARD16	w;
 
-    fbComposeGetSolid(pSrc, src);
+    fbComposeGetSolid(pSrc, src, pDst->format);
     
     srca = src >> 24;
     if (src == 0)
@@ -293,7 +293,7 @@ fbCompositeSolidMask_nx8x0565 (CARD8      op,
     FbStride	dstStride, maskStride;
     CARD16	w;
 
-    fbComposeGetSolid(pSrc, src);
+    fbComposeGetSolid(pSrc, src, pDst->format);
     
     srca = src >> 24;
     if (src == 0)
@@ -358,7 +358,7 @@ fbCompositeSolidMask_nx8888x0565C (CARD8      op,
     CARD16	w;
     CARD32	m, n, o;
 
-    fbComposeGetSolid(pSrc, src);
+    fbComposeGetSolid(pSrc, src, pDst->format);
     
     srca = src >> 24;
     if (src == 0)
@@ -763,7 +763,7 @@ fbCompositeSolidMask_nx1xn (CARD8      op,
     int		maskXoff, maskYoff;
     FbBits	src;
     
-    fbComposeGetSolid(pSrc, src);
+    fbComposeGetSolid(pSrc, src, pDst->format);
 
     if ((src & 0xff000000) != 0xff000000)
     {
