@@ -22,7 +22,7 @@
  *
  * Author:  Keith Packard, SuSE, Inc.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/savage/s3draw.c,v 1.3 2000/02/23 20:30:03 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/savage/s3draw.c,v 1.4 2000/05/06 22:17:46 keithp Exp $ */
 
 #include	"s3.h"
 #include	"s3draw.h"
@@ -491,7 +491,6 @@ s3PolyFillRect (DrawablePtr pDrawable, GCPtr pGC,
     BoxPtr	    pboxClippedBase;
     BoxPtr	    pextent;
     BoxRec	    stackRects[NUM_STACK_RECTS];
-    FbGCPrivPtr	    fbPriv = fbGetGCPrivate (pGC);
     int		    numRects;
     int		    n;
     int		    xorg, yorg;
@@ -712,7 +711,6 @@ s3FillSpans (DrawablePtr pDrawable, GCPtr pGC, int n,
     int		    nTmp;
     int		    *pwidthFree;/* copies of the pointers to free */
     DDXPointPtr	    pptFree;
-    FbGCPrivPtr	    fbPriv = fbGetGCPrivate(pGC);
     BoxPtr	    extents;
     S3PatternCache  *cache;
     RegionPtr	    pClip = fbGetCompositeClip (pGC);
@@ -994,17 +992,19 @@ s3PolyFillArcSolid (DrawablePtr pDraw, GCPtr pGC, int narcs, xArc *parcs)
 }
 
 void
-s3FillPoly1Rect (DrawablePtr pDrawable, GCPtr pGC, int shape, 
-		 int mode, int countInit, DDXPointPtr ptsIn)
+s3FillPoly (DrawablePtr pDrawable, GCPtr pGC, int shape, 
+	    int mode, int countInit, DDXPointPtr ptsIn)
 {
     SetupS3(pDrawable->pScreen);
-    FbGCPrivPtr	    fbPriv;
     int		    nwidth;
     int		    maxy;
+    int		    origin;
     int		    count;
     register int    vertex1, vertex2;
     int		    c;
+    RegionPtr	    pClip = fbGetCompositeClip(pGC);    
     BoxPtr	    extents;
+    int		    clip;
     int		    y, sy;
     int		    *vertex1p, *vertex2p;
     int		    *endp;
@@ -1018,17 +1018,21 @@ s3FillPoly1Rect (DrawablePtr pDrawable, GCPtr pGC, int shape,
     int		    l, r;
     int		    nmiddle;
 
-    if (mode == CoordModePrevious)
+    if (mode == CoordModePrevious || REGION_NUM_RECTS(pClip) != 1)
     {
 	KdCheckFillPolygon (pDrawable, pGC, shape, mode, countInit, ptsIn);
 	return;
     }
     
     s3SetGlobalBitmap (pDrawable->pScreen, s3GCMap (pGC));
-    fbPriv = fbGetGCPrivate(pGC);
     sy = pDrawable->y;
     sx = pDrawable->x;
-    extents = &fbGetCompositeClip(pGC)->extents;
+    origin = *((int *) &pDrawable->x);
+    origin -= (origin & 0x8000) << 1;
+    extents = &pClip->extents;
+    vertex1 = *((int *) &extents->x1) - origin;
+    vertex2 = *((int *) &extents->x2) - origin - 0x00010001;
+    clip = 0;
     
     y = 32767;
     maxy = 0;
@@ -1040,14 +1044,7 @@ s3FillPoly1Rect (DrawablePtr pDrawable, GCPtr pGC, int shape,
     	while (count--)
     	{
 	    c = *vertex2p;
-	    /*
-	     * Check for negative or over S3 limits
-	     */
-	    if (c & 0xe000e000)
-	    {
-		KdCheckFillPolygon (pDrawable, pGC, shape, mode, countInit, ptsIn);
-		return;
-	    }
+	    clip |= (c - vertex1) | (vertex2 - c);
 	    c = intToY(c);
 	    DRAW_DEBUG ((DEBUG_POLYGON, "Y coordinate %d", c));
 	    if (c < y) 
@@ -1070,14 +1067,7 @@ s3FillPoly1Rect (DrawablePtr pDrawable, GCPtr pGC, int shape,
     	while (count--)
     	{
 	    c = *vertex2p;
-	    /*
-	     * Check for negative or over S3 limits
-	     */
-	    if (c & 0xe000e000)
-	    {
-		KdCheckFillPolygon (pDrawable, pGC, shape, mode, countInit, ptsIn);
-		return;
-	    }
+	    clip |= (c - vertex1) | (vertex2 - c);
 	    c = intToY(c);
 	    DRAW_DEBUG ((DEBUG_POLYGON, "Y coordinate %d", c));
 	    if (c < y) 
@@ -1111,16 +1101,17 @@ s3FillPoly1Rect (DrawablePtr pDrawable, GCPtr pGC, int shape,
 	if (x1 != dx2)
 	    yFlip++;
 	if (yFlip != 2) 
-	{
-	    KdCheckFillPolygon (pDrawable, pGC, shape, mode, countInit, ptsIn);
-	    return;
-	}
+	    clip = 0x8000;
     }
     if (y == maxy)
 	return;
 
+    if (clip & 0x80008000)
+    {
+	KdCheckFillPolygon (pDrawable, pGC, shape, mode, countInit, ptsIn);
+	return;
+    }
     _s3SetSolidFill(s3,pGC->fgPixel,pGC->alu,pGC->planemask);
-    _s3SetClip(s3,extents);
     
     vertex2p = vertex1p;
     vertex2 = vertex1 = *vertex2p++;
@@ -1236,7 +1227,6 @@ s3FillPoly1Rect (DrawablePtr pDrawable, GCPtr pGC, int shape,
 	if (y == maxy)
 	    break;
     }
-    _s3ResetClip (s3, pDrawable->pScreen);
     MarkSyncS3 (pDrawable->pScreen);
 }
 
@@ -2162,15 +2152,8 @@ s3CreateWindow (WindowPtr pWin)
     KdScreenPriv(pWin->drawable.pScreen);
     s3ScreenInfo(pScreenPriv);
     
-    if (!KdCreateWindow (pWin))
-	return FALSE;
     pWin->devPrivates[s3WindowPrivateIndex].ptr = 0;
-#ifndef S3_TRIO
-    if (pWin->drawable.depth != s3s->primary_depth)
-	return fbOverlayCreateWindow (pWin);
-    else
-#endif
-	return fbCreateWindow (pWin);
+    return KdCreateWindow (pWin);
 }
 
 Bool
@@ -2217,27 +2200,34 @@ s3ChangeWindowAttributes (WindowPtr pWin, Mask mask)
     return ret;
 }
 
+
 #ifndef S3_TRIO
 void
-s3PaintChromaKey (WindowPtr pWin, RegionPtr pRegion)
+s3PaintKey (DrawablePtr	pDrawable,
+	    RegionPtr	pRegion,
+	    CARD32	pixel,
+	    int		fb)
 {
-    SetupS3 (pWin->drawable.pScreen);
+    SetupS3 (pDrawable->pScreen);
     s3ScreenInfo (pScreenPriv);
+    int	    nBox = REGION_NUM_RECTS(pRegion);
+    BoxPtr  pBox = REGION_RECTS(pRegion);
+    int	    ma;
     
-    if (pWin->drawable.depth != s3s->primary_depth)
+    if (!nBox)
+	return;
+    
+    for (ma = 0; s3s->fbmap[ma] >= 0; ma++)
+	if (s3s->fbmap[ma] == fb)
+	    break;
+    s3SetGlobalBitmap (pDrawable->pScreen, ma);
+    _s3SetSolidFill (s3, pixel, GXcopy, 0xffffffff);
+    while (nBox--) 
     {
-	int	    nBox = REGION_NUM_RECTS(pRegion);
-	BoxPtr	    pBox = REGION_RECTS(pRegion);
-	
-	s3SetGlobalBitmap (pWin->drawable.pScreen, 0);
-	_s3SetSolidFill(s3,0xffffffff,GXcopy,0xffffffff);
-	while (nBox--) 
-	{
-	    _s3SolidRect(s3,pBox->x1,pBox->y1,pBox->x2-pBox->x1,pBox->y2-pBox->y1);
-	    pBox++;
-	}
-	MarkSyncS3 (pWin->drawable.pScreen);
+	_s3SolidRect(s3,pBox->x1,pBox->y1,pBox->x2-pBox->x1,pBox->y2-pBox->y1);
+	pBox++;
     }
+    MarkSyncS3 (pDrawable->pScreen);
 }
 #endif
 
@@ -2245,6 +2235,7 @@ void
 s3PaintWindow(WindowPtr pWin, RegionPtr pRegion, int what)
 {
     SetupS3(pWin->drawable.pScreen);
+    s3ScreenInfo(pScreenPriv);
     s3PatternPtr    pPattern;
 
     DRAW_DEBUG ((DEBUG_PAINT_WINDOW, "s3PaintWindow 0x%x extents %d %d %d %d n %d",
@@ -2254,9 +2245,6 @@ s3PaintWindow(WindowPtr pWin, RegionPtr pRegion, int what)
 		 REGION_NUM_RECTS(pRegion)));
     if (!REGION_NUM_RECTS(pRegion)) 
 	return;
-#ifndef S3_TRIO
-    s3PaintChromaKey (pWin, pRegion);
-#endif
     switch (what) {
     case PW_BACKGROUND:
 	switch (pWin->backgroundState) {
@@ -2289,6 +2277,12 @@ s3PaintWindow(WindowPtr pWin, RegionPtr pRegion, int what)
     	}
     	break;
     case PW_BORDER:
+#ifndef S3_TRIO
+	if (s3s->fbmap[1] >= 0)
+	    fbOverlayUpdateLayerRegion (pWin->drawable.pScreen,
+					fbOverlayWindowLayer (pWin),
+					pRegion);
+#endif
 	if (pWin->borderIsPixel)
 	{
 	    s3FillBoxSolid((DrawablePtr)pWin,
@@ -2302,19 +2296,6 @@ s3PaintWindow(WindowPtr pWin, RegionPtr pRegion, int what)
     KdCheckPaintWindow (pWin, pRegion, what);
 }
 
-void
-s3RestoreAreas(PixmapPtr    pPixmap,
-	       RegionPtr    prgnRestore,
-	       int	    xorg,
-	       int	    yorg,
-	       WindowPtr    pWin)
-{
-#ifndef S3_TRIO
-    s3PaintChromaKey (pWin, prgnRestore);
-#endif
-    KdCheckRestoreAreas (pPixmap, prgnRestore, xorg, yorg, pWin);
-}
-    
 void
 s3CopyWindowProc (DrawablePtr pSrcDrawable,
 		  DrawablePtr pDstDrawable,
@@ -2330,86 +2311,94 @@ s3CopyWindowProc (DrawablePtr pSrcDrawable,
 {
     SetupS3(pDstDrawable->pScreen);
     s3ScreenInfo(pScreenPriv);
-    int	    srcX, srcY, dstX, dstY;
-    int	    x1, x2;
-    int	    w, h;
-    int	    flags;
-    int	    ma;
-    BoxPtr  pbox;
-    int     nbox;
+    KdScreenInfo    *screen = pScreenPriv->screen;
+    int		    srcX, srcY, dstX, dstY;
+    int		    x1, x2;
+    int		    w, h;
+    int		    flags;
+    int		    fb = (int) closure;
+    int		    ma;
+    BoxPtr	    pbox;
+    int		    nbox;
+    int		    bitsPerPixel;
     
-    if (pSrcDrawable->bitsPerPixel == 24)
-	dx *= 3;
 #ifdef S3_TRIO
     ma = 0;
 #else
     for (ma = 0; s3s->fbmap[ma] >= 0; ma++)
+	if (s3s->fbmap[ma] == fb)
+	    break;
 #endif
+    bitsPerPixel = screen->fb[fb].bitsPerPixel;
+    if (bitsPerPixel == 24)
+	dx *= 3;
+    nbox = nboxOrig;
+    pbox = pboxOrig;
+    s3SetGlobalBitmap (pDstDrawable->pScreen, ma);
+    _s3SetBlt(s3,GXcopy,~0);
+    while (nbox--)
     {
-	nbox = nboxOrig;
-	pbox = pboxOrig;
-	s3SetGlobalBitmap (pDstDrawable->pScreen, ma);
-	_s3SetBlt(s3,GXcopy,~0);
-	while (nbox--)
+	x1 = pbox->x1;
+	x2 = pbox->x2;
+	if (bitsPerPixel == 24)
 	{
-	    x1 = pbox->x1;
-	    x2 = pbox->x2;
-	    if (pSrcDrawable->bitsPerPixel == 24)
-	    {
-		x1 *= 3;
-		x2 *= 3;
-	    }
-	    
-	    w = x2 - x1;
-	    h = pbox->y2 - pbox->y1;
-	    flags = 0;
-	    if (reverse)
-	    {
-		dstX = x2 - 1;
-	    }
-	    else
-	    {
-		dstX = x1;
-		flags |= INC_X;
-	    }
-	    srcX = dstX + dx;
-	    
-	    if (upsidedown)
-	    {
-		dstY = pbox->y2 - 1;
-	    }
-	    else
-	    {
-		dstY = pbox->y1;
-		flags |= INC_Y;
-	    }
-	    srcY = dstY + dy;
-	    
-	    _s3Blt (s3, srcX, srcY, dstX, dstY, w, h, flags);
-	    pbox++;
+	    x1 *= 3;
+	    x2 *= 3;
 	}
-	MarkSyncS3 (pDstDrawable->pScreen);
+	
+	w = x2 - x1;
+	h = pbox->y2 - pbox->y1;
+	flags = 0;
+	if (reverse)
+	{
+	    dstX = x2 - 1;
+	}
+	else
+	{
+	    dstX = x1;
+	    flags |= INC_X;
+	}
+	srcX = dstX + dx;
+	
+	if (upsidedown)
+	{
+	    dstY = pbox->y2 - 1;
+	}
+	else
+	{
+	    dstY = pbox->y1;
+	    flags |= INC_Y;
+	}
+	srcY = dstY + dy;
+	
+	_s3Blt (s3, srcX, srcY, dstX, dstY, w, h, flags);
+	pbox++;
     }
+    MarkSyncS3 (pDstDrawable->pScreen);
 }
 
 void 
 s3CopyWindow(WindowPtr pWin, DDXPointRec ptOldOrg, RegionPtr prgnSrc)
 {
-    ScreenPtr	pScreen = pWin->drawable.pScreen;
-    KdScreenPriv(pScreen);
-    RegionRec	rgnDst;
-    int		dx, dy;
-    WindowPtr	pwinRoot;
+    ScreenPtr	    pScreen = pWin->drawable.pScreen;
+    KdScreenPriv (pScreen);
+    s3ScreenInfo (pScreenPriv);
+    KdScreenInfo    *screen = pScreenPriv->screen;
+    RegionRec	    rgnDst;
+    int		    dx, dy;
+    WindowPtr	    pwinRoot;
 
     pwinRoot = WindowTable[pWin->drawable.pScreen->myNum];
 
     dx = ptOldOrg.x - pWin->drawable.x;
     dy = ptOldOrg.y - pWin->drawable.y;
+
     REGION_TRANSLATE(pWin->drawable.pScreen, prgnSrc, -dx, -dy);
 
     REGION_INIT (pWin->drawable.pScreen, &rgnDst, NullBox, 0);
-    
-    REGION_INTERSECT(pWin->drawable.pScreen, &rgnDst, &pWin->borderClip, prgnSrc);
+
+    REGION_INTERSECT(pWin->drawable.pScreen, &rgnDst,
+		     &pWin->borderClip, prgnSrc);
 
     fbCopyRegion ((DrawablePtr)pwinRoot, (DrawablePtr)pwinRoot,
 		  0,
@@ -2451,7 +2440,6 @@ s3_24FillSpans (DrawablePtr pDrawable, GCPtr pGC, int n,
     int		    nTmp;
     int		    *pwidthFree;/* copies of the pointers to free */
     DDXPointPtr	    pptFree;
-    FbGCPrivPtr	    fbPriv = fbGetGCPrivate(pGC);
     BoxPtr	    extents;
     RegionPtr	    pClip = fbGetCompositeClip (pGC);
 
@@ -2625,7 +2613,6 @@ s3_24PolyFillRect (DrawablePtr pDrawable, GCPtr pGC,
     BoxPtr	    pboxClippedBase;
     BoxPtr	    pextent;
     BoxRec	    stackRects[NUM_STACK_RECTS];
-    FbGCPrivPtr	    fbPriv = fbGetGCPrivate (pGC);
     int		    numRects;
     int		    n;
     int		    xorg, yorg;
@@ -3096,13 +3083,18 @@ s3DrawInit (ScreenPtr pScreen)
 	pScreen->DestroyWindow = s3DestroyWindow;
 	pScreen->PaintWindowBackground = s3PaintWindow;
 	pScreen->PaintWindowBorder = s3PaintWindow;
-	pScreen->CopyWindow = s3CopyWindow;
-	pScreen->BackingStoreFuncs.RestoreAreas = s3RestoreAreas;
-#if 0	
-	pScreen->PaintWindowBackground = s3DumbPaintWindow;
-	pScreen->PaintWindowBorder = s3DumbPaintWindow;
-	pScreen->CopyWindow = s3DumbCopyWindow;
+#ifndef S3_TRIO
+	if (pScreenPriv->screen->fb[1].depth)
+	{
+	    FbOverlayScrPrivPtr pScrPriv = fbOverlayGetScrPriv(pScreen);
+
+	    pScrPriv->PaintKey = s3PaintKey;
+	    pScrPriv->CopyWindow = s3CopyWindowProc;
+	    pScreen->CopyWindow = fbOverlayCopyWindow;
+	}
+	else
 #endif
+	    pScreen->CopyWindow = s3CopyWindow;
 	
 	/*
 	 * Initialize patterns

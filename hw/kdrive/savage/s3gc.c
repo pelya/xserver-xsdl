@@ -47,63 +47,7 @@
  *  font	<= 32 pixels wide
  */
 
-/* TE font, >= 4 pixels wide, one clip rectangle */
-static const GCOps	s3TEOps1Rect = {
-    s3FillSpans,
-    KdCheckSetSpans,
-    KdCheckPutImage,
-    s3CopyArea,
-    s3CopyPlane,
-    KdCheckPolyPoint,
-    s3Polylines,
-    s3PolySegment,
-    KdCheckPolyRectangle,
-    KdCheckPolyArc,
-    s3FillPoly1Rect,
-    s3PolyFillRect,
-    s3PolyFillArcSolid,
-    miPolyText8,
-    miPolyText16,
-    miImageText8,
-    miImageText16,
-    s3ImageTEGlyphBlt,
-    s3PolyTEGlyphBlt,
-    s3PushPixels,
-#ifdef NEED_LINEHELPER
-    ,NULL
-#endif
-};
-
-extern GCOps	    fbGCOps;
-
-/* Non TE font, one clip rectangle */
-static const GCOps	s3NonTEOps1Rect = {
-    s3FillSpans,
-    KdCheckSetSpans,
-    KdCheckPutImage,
-    s3CopyArea,
-    s3CopyPlane,
-    KdCheckPolyPoint,
-    s3Polylines,
-    s3PolySegment,
-    KdCheckPolyRectangle,
-    KdCheckPolyArc,
-    s3FillPoly1Rect,
-    s3PolyFillRect,
-    s3PolyFillArcSolid,
-    miPolyText8,
-    miPolyText16,
-    miImageText8,
-    miImageText16,
-    s3ImageGlyphBlt,
-    s3PolyGlyphBlt,
-    s3PushPixels
-#ifdef NEED_LINEHELPER
-    ,NULL
-#endif
-};
-
-/* TE font, != 1 clip rect (including 0) */
+/* TE font */
 static const GCOps	s3TEOps = {
     s3FillSpans,
     KdCheckSetSpans,
@@ -115,7 +59,7 @@ static const GCOps	s3TEOps = {
     s3PolySegment,
     KdCheckPolyRectangle,
     KdCheckPolyArc,
-    KdCheckFillPolygon,
+    s3FillPoly,
     s3PolyFillRect,
     s3PolyFillArcSolid,
     miPolyText8,
@@ -130,7 +74,7 @@ static const GCOps	s3TEOps = {
 #endif
 };
 
-/* Non TE font, != 1 clip rect (including 0) */
+/* Non TE font */
 static const GCOps	s3NonTEOps = {
     s3FillSpans,
     KdCheckSetSpans,
@@ -142,7 +86,7 @@ static const GCOps	s3NonTEOps = {
     s3PolySegment,
     KdCheckPolyRectangle,
     KdCheckPolyArc,
-    KdCheckFillPolygon,
+    s3FillPoly,
     s3PolyFillRect,
     s3PolyFillArcSolid,
     miPolyText8,
@@ -182,19 +126,9 @@ s3MatchCommon (DrawablePtr pDraw, GCPtr pGC, FbGCPrivPtr fbPriv)
     if (pGC->font)
     {
 	if (TERMINALFONT(pGC->font))
-	{
-	    if (fbPriv->oneRect)
-		return (GCOps *) &s3TEOps1Rect;
-	    else
-		return (GCOps *) &s3TEOps;
-	}
+	    return (GCOps *) &s3TEOps;
 	else
-	{
-	    if (fbPriv->oneRect)
-		return (GCOps *) &s3NonTEOps1Rect;
-	    else
-		return (GCOps *) &s3NonTEOps;
-	}
+	    return (GCOps *) &s3NonTEOps;
     }
     return 0;
 }
@@ -203,19 +137,18 @@ void
 s3ValidateGC (GCPtr pGC, Mask changes, DrawablePtr pDrawable)
 {
     int		new_type;	/* drawable type has changed */
-    int		new_onerect;	/* onerect value has changed */
     int		new_origin;
     
     /* flags for changing the proc vector */
     FbGCPrivPtr fbPriv;
     s3PrivGCPtr	s3Priv;
     int		oneRect;
+    GCOps	*newops;
     
     fbPriv = fbGetGCPrivate(pGC);
     s3Priv = s3GetGCPrivate(pGC);
 
     new_type = FALSE;
-    new_onerect = FALSE;
     new_origin = FALSE;
 
     /*
@@ -236,12 +169,8 @@ s3ValidateGC (GCPtr pGC, Mask changes, DrawablePtr pDrawable)
     /*
      * Call down to FB to set clip list and rrop values
      */
-    oneRect = fbPriv->oneRect;
     
     fbValidateGC (pGC, changes, pDrawable);
-    
-    if (oneRect != fbPriv->oneRect)
-	new_onerect = TRUE;
     
     /*
      * Check accelerated pattern if necessary
@@ -256,19 +185,12 @@ s3ValidateGC (GCPtr pGC, Mask changes, DrawablePtr pDrawable)
      * Try to match common vector
      */
     
-    if (new_type || new_onerect ||
-	(changes & (GCLineWidth|GCLineStyle|GCFillStyle|
-		    GCFont|GCForeground|GCFunction|GCPlaneMask)))
+    if (newops = s3MatchCommon (pDrawable, pGC, fbPriv))
     {
-	GCOps	*newops;
-
-	if (newops = s3MatchCommon (pDrawable, pGC, fbPriv))
- 	{
-	    if (pGC->ops->devPrivate.val)
-		miDestroyGCOps (pGC->ops);
-	    pGC->ops = newops;
-	    return;
-	}
+	if (pGC->ops->devPrivate.val)
+	    miDestroyGCOps (pGC->ops);
+	pGC->ops = newops;
+	return;
     }
     
     /*
@@ -335,14 +257,13 @@ s3ValidateGC (GCPtr pGC, Mask changes, DrawablePtr pDrawable)
     /*
      * Polygons
      */
-    if (new_type || new_onerect || (changes & (GCFillStyle)))
+    if (new_type || (changes & (GCFillStyle)))
     {
 	pGC->ops->FillPolygon = KdCheckFillPolygon;
 	if (s3Priv->type == DRAWABLE_WINDOW &&
-	    fbPriv->oneRect && 
 	    pGC->fillStyle == FillSolid)
 	{
-	    pGC->ops->FillPolygon = s3FillPoly1Rect;
+	    pGC->ops->FillPolygon = s3FillPoly;
 	}
     }
 	

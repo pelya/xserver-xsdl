@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/sis530/sisdraw.c,v 1.2 1999/12/30 03:03:14 robin Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/sis530/sisdraw.c,v 1.4 2000/05/06 22:17:50 keithp Exp $ */
 
 #include "sis.h"
 #include "sisdraw.h"
@@ -1635,11 +1635,15 @@ sisDrawEnable (ScreenPtr pScreen)
     CARD32  cmd;
     CARD32  base;
     CARD16  stride;
+    CARD16  op;
     
     base = pScreenPriv->screen->fb[0].frameBuffer - sisc->frameBuffer;
     stride = pScreenPriv->screen->fb[0].byteStride;
+#if 0    
     sis->u.general.dst_base = base;
     sis->u.general.dst_pitch = stride;
+    sis->u.general.src_pitch = stride;
+    sis->u.general._pad0 = stride;
     sis->u.general.dst_height = pScreenPriv->screen->height;
     _sisClip (sis, 0, 0, 
 	      pScreenPriv->screen->width, pScreenPriv->screen->height);
@@ -1647,6 +1651,53 @@ sisDrawEnable (ScreenPtr pScreen)
     _sisRect (sis, 0, 0, 
 	      pScreenPriv->screen->width, pScreenPriv->screen->height,
 	      cmd);
+#endif
+    base = (CARD32) (pScreenPriv->screen->fb[0].frameBuffer);
+    fprintf (stderr, "src 0x%x\n", sis->u.accel.src_addr);
+    sis->u.accel.src_addr = (base & 0x3fffff);
+    fprintf (stderr, "src 0x%x\n", sis->u.accel.src_addr);
+    sis->u.accel.dst_addr = (base & 0x3fffff);
+    sis->u.accel.pitch = (stride << 16) | stride;
+    sis->u.accel.dimension = ((pScreenPriv->screen->height-1) << 16 | 
+			      (pScreenPriv->screen->width - 1));
+    sis->u.accel.fg = (sisBltRop[GXcopy] << 24) | 0xf800;
+    sis->u.accel.bg = (sisBltRop[GXcopy] << 24) | 0x00;
+    
+#define sisLEFT2RIGHT           0x10
+#define sisRIGHT2LEFT           0x00
+#define sisTOP2BOTTOM           0x20
+#define sisBOTTOM2TOP           0x00
+
+#define sisSRCSYSTEM            0x03
+#define sisSRCVIDEO		0x02
+#define sisSRCFG		0x01
+#define sisSRCBG		0x00
+
+#define sisCMDBLT		0x0000
+#define sisCMDBLTMSK		0x0100
+#define sisCMDCOLEXP		0x0200
+#define sisCMDLINE		0x0300
+
+#define sisCMDENHCOLEXP		0x2000
+
+#define sisXINCREASE		0x10
+#define sisYINCREASE		0x20
+#define sisCLIPENABL		0x40
+#define sisCLIPINTRN		0x80 
+#define sisCLIPEXTRN		0x00
+
+
+#define sisPATREG		0x08
+#define sisPATFG		0x04
+#define sisPATBG		0x00
+
+#define sisLASTPIX		0x0800
+#define sisXMAJOR		0x0400
+
+    op = sisCMDBLT | sisLEFT2RIGHT | sisTOP2BOTTOM | sisSRCFG | sisPATFG;
+    
+    sis->u.accel.cmd = op;
+    
     KdMarkSync (pScreen);
 }
 

@@ -22,7 +22,7 @@
  *
  * Author:  Keith Packard, SuSE, Inc.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/savage/s3.c,v 1.3 2000/02/23 20:30:01 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/savage/s3.c,v 1.4 2000/05/06 22:17:44 keithp Exp $ */
 
 #include "s3.h"
 
@@ -226,11 +226,12 @@ s3ModeUsable (KdScreenInfo	*screen)
 	    screen->fb[fb].bitsPerPixel = 8;
 	}
     
-	byte_width = screen->width * (screen->fb[fb].bitsPerPixel >> 3);
-	pixel_width = screen->width;
-	screen->fb[fb].pixelStride = pixel_width;
-	screen->fb[fb].byteStride = byte_width;
-	screen_size += byte_width * screen->height;
+        /*
+         * SGRAM requires stride % 64 == 0
+         */
+        screen->fb[fb].pixelStride = (screen->width + 63) & ~63;
+        screen->fb[fb].byteStride = screen->fb[fb].pixelStride * (screen->fb[fb].bitsPerPixel >> 3);
+        screen_size += screen->fb[fb].byteStride * screen->height;
     }
 
     return screen_size <= s3c->memory;
@@ -339,6 +340,12 @@ s3ScreenInit (KdScreenInfo *screen)
 	fb = s3s->fbmap[ma];
 	screen->fb[fb].frameBuffer = s3c->frameBuffer + screen_size;
 	screen_size += screen->fb[fb].byteStride * screen->height;
+	
+	REGION_INIT(pScreen, (&s3s->region[fb]), NullBox, 0);
+	if (screen->fb[fb].bitsPerPixel == 8)
+	    s3s->fb[ma].chroma_key = 0xff;
+	else
+	    s3s->fb[ma].chroma_key = 0;
 	
 	/*
 	 * Use remaining memory for off-screen storage, but only use
@@ -1101,6 +1108,9 @@ s3Enable (ScreenPtr pScreen)
     s3Set (s3vga, s3_sequential_addressing_mode, 1);
     s3Set (s3vga, s3_select_chain_4_mode, 1);
     s3Set (s3vga, s3_linear_addressing_control, 1);
+
+    s3Set (s3vga, s3_enable_gamma_correction, 0);
+
     s3Set (s3vga, s3_enable_8_bit_luts, 1);
     
     s3Set (s3vga, s3_dclk_invert, 0);
@@ -1150,7 +1160,6 @@ s3Enable (ScreenPtr pScreen)
     s3Set (s3vga, s3_eclk_r, r);
 #endif
     
-    s3s->manage_border = FALSE;
     /*
      * Compute character lengths for horizontal timing values
      */
@@ -1189,10 +1198,6 @@ s3Enable (ScreenPtr pScreen)
 		h_blank_start_adjust = -3;
 		h_blank_end_adjust = -4;
 		s3Set (s3vga, s3_border_select, 0);
-#if 0
-		s3s->manage_border = TRUE;
-		/*	    s3Set (s3vga, s3_border_color, pScreen->blackPixel); */
-#endif
 	    }
 	    break;
 	case 16:
@@ -1522,6 +1527,8 @@ s3Enable (ScreenPtr pScreen)
     VgaFlush(&s3vga->card);
     VgaSetImm (&s3vga->card, s3_clock_load_imm, 1);
     VgaSetImm(&s3vga->card, s3_clock_load_imm, 0);
+
+
     if (s3s->use_streams)
     {
 	fb = s3s->fbmap[0];
@@ -1537,7 +1544,7 @@ s3Enable (ScreenPtr pScreen)
 	    fb = s3s->fbmap[1];
 	    s3->blend_control = 5 << 24;
 	    if (s3s->fb[0].accel_bpp == 8)
-		s3->chroma_key_control = 0x330000ff;
+		s3->chroma_key_control = 0x33000000 | s3s->fb[0].chroma_key;
 	    else
 		s3->chroma_key_control = 0x13010101;
 	    s3->secondary_stream_control = control[1] | screen->width;
@@ -1758,85 +1765,6 @@ s3DPMS (ScreenPtr pScreen, int mode)
     return TRUE;
 }
 
-void
-s3DumbPaintChromaKey (WindowPtr pWin, RegionPtr pRegion)
-{
-    ScreenPtr	pScreen = pWin->drawable.pScreen;
-    KdScreenPriv(pScreen);
-    KdCardInfo	    *card = pScreenPriv->card;
-    KdScreenInfo    *screen = pScreenPriv->screen;
-    s3CardInfo (pScreenPriv);
-    s3ScreenInfo (pScreenPriv);
-    
-    if (pWin->drawable.depth != s3s->primary_depth)
-    {
-	int	    nBox = REGION_NUM_RECTS(pRegion);
-	BoxPtr	    pBox = REGION_RECTS(pRegion);
-	PixmapPtr   pPixmap;
-	FbOverlayScrPrivPtr	pScrPriv = fbOverlayGetScrPriv(pScreen);
-	FbBits	    *dst;
-	FbStride    dstStride;
-	int	    dstBpp;
-
-	if (pScrPriv->pLayer[0]->drawable.depth == pWin->drawable.depth)
-	    pPixmap = pScrPriv->pLayer[1];
-	else
-	    pPixmap = pScrPriv->pLayer[0];
-	fbGetDrawable (&pPixmap->drawable, dst, dstStride, dstBpp);
-	while (nBox--)
-	{
-	    fbSolid (dst + pBox->y1 * dstStride,
-		     dstStride,
-		     pBox->x1 * dstBpp,
-		     dstBpp,
-		     (pBox->x2 - pBox->x1) * dstBpp,
-		     (pBox->y2 - pBox->y1),
-		     0x0, FB_ALLONES);
-	    pBox++;
-	}
-    }
-}
-
-void
-s3DumbPaintWindow (WindowPtr pWin, RegionPtr pRegion, int what)
-{
-    s3DumbPaintChromaKey (pWin, pRegion);
-    fbPaintWindow (pWin, pRegion, what);
-}
-
-void
-s3DumbCopyWindow (WindowPtr pWin, 
-	     DDXPointRec    ptOldOrg, 
-	     RegionPtr	    prgnSrc)
-{
-    ScreenPtr		pScreen = pWin->drawable.pScreen;
-    RegionRec		rgnDst;
-    int			dx, dy;
-    PixmapPtr		pPixmap;
-    FbOverlayScrPrivPtr	pScrPriv = fbOverlayGetScrPriv(pScreen);
-    int			fb;
-
-    KdCheckSync (pScreen);
-    dx = ptOldOrg.x - pWin->drawable.x;
-    dy = ptOldOrg.y - pWin->drawable.y;
-    REGION_TRANSLATE(pWin->drawable.pScreen, prgnSrc, -dx, -dy);
-
-    REGION_INIT (pWin->drawable.pScreen, &rgnDst, NullBox, 0);
-    
-    REGION_INTERSECT(pWin->drawable.pScreen, &rgnDst, &pWin->borderClip, prgnSrc);
-
-    for (fb = 0; fb < pScrPriv->nlayers; fb++)
-    {
-	pPixmap = pScrPriv->pLayer[fb];
-	fbCopyRegion (&pPixmap->drawable, &pPixmap->drawable,
-		      0,
-		      &rgnDst, dx, dy, fbCopyWindowProc, 0, 0);
-    }
-    
-    REGION_UNINIT(pWin->drawable.pScreen, &rgnDst);
-    fbValidateDrawable (&pWin->drawable);
-}
-
 Bool
 s3InitScreen(ScreenPtr pScreen)
 {
@@ -1845,10 +1773,18 @@ s3InitScreen(ScreenPtr pScreen)
     KdScreenInfo    *screen = pScreenPriv->screen;
     s3CardInfo (pScreenPriv);
     s3ScreenInfo (pScreenPriv);
+    int		ma, fb;
 
-    pScreen->PaintWindowBackground = s3DumbPaintWindow;
-    pScreen->PaintWindowBorder = s3DumbPaintWindow;
-    pScreen->CopyWindow = s3DumbCopyWindow;
+    if (screen->fb[1].depth)
+    {
+	FbOverlayScrPrivPtr pScrPriv = fbOverlayGetScrPriv(pScreen);
+
+	for (ma = 0; s3s->fbmap[ma] >= 0; ma++)
+	{
+	    fb = s3s->fbmap[ma];
+	    pScrPriv->layer[fb].key = s3s->fb[ma].chroma_key;
+	}
+    }
     return TRUE;
 }
 

@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/sis530/sis.c,v 1.2 1999/12/30 03:03:14 robin Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/sis530/sis.c,v 1.4 2000/05/06 22:17:49 keithp Exp $ */
 
 #include "sis.h"
 
@@ -29,129 +29,9 @@
 
 #define MMIO_SIZE	(64 * 1024)
 
-#define SIS_TIMING_BAIL	2
-
-SisTiming    sisTimings[] = {
-	     /* FP	BP	BLANK   */
-    { 640, 480, 85,
-		56,	80,	192,    /* horizontal	43.265 KHz */
-		1,	25,	29,	/* vertical	85.000 Hz  */
-					/* pixel	35.996 MHz */
-    },
-    
-    { 640, 480, 75,
-		16,	120,	200,    /* horizontal	37.500 KHz */
-		1,	16,	20,	/* vertical	75.000 Hz  */
-					/* pixel	31.500 MHz */
-    },
-    
-    { 640, 480, 60,
-		16,	48,	160,    /* horizontal	31.321 KHz */
-		10,	33,	45,	/* vertical	59.568 Hz  */
-					/* pixel	25.057 MHz */
-    },
-    
-    { 800, 600, 85,
-		32,	152,	248,    /* horizontal	53.673 KHz */
-		1,	27,	31,	/* vertical	85.060 Hz  */
-					/* pixel	56.249 MHz */
-    },
-    { 800, 600, 75,
-		16,	160,	256,    /* horizontal	46.891 KHz */
-		1,	21,	25,	/* vertical	75.025 Hz  */
-					/* pixel	49.516 MHz */
-    },
-    { 800, 600, 72,
-		56,	64,	240,    /* horizontal	48.186 KHz */
-		37,	23,	66,	/* vertical	72.351 Hz  */
-					/* pixel	50.113 MHz */
-    },
-    
-    { 1024, 768, 85,
-		48,	208,	352,    /* horizontal	68.676 KHz */
-		1,	36,	40,	/* vertical	84.996 Hz  */
-					/* pixel	94.499 MHz */
-    },
-    { 1024, 768, 75,
-		16,	176,	288,    /* horizontal	60.022 KHz */
-		1,	28,	32,	/* vertical	75.028 Hz  */
-					/* pixel	78.749 MHz */
-    },
-    { 1024, 768, 70,
-		24,	144,	304,    /* horizontal	56.604 KHz */
-		3,	29,	38,	/* vertical	70.227 Hz  */
-					/* pixel	75.170 MHz */
-    },
-    { 1024, 768, 66,
-		24,	144,	304,	/* horizontal	53.234 KHz */
-		3,	29,	38,	/* vertical	66.047 Hz  */
-					/* pixel	70.695 MHz */
-    },
-    
-    { 1152, 900, 85,
-		48,	208,	384,	/* horizontal	 79.900 KHz */
-		1,	32,	38,	/* vertical	 85.181 Hz  */
-					/* pixel	122.726 MHz */
-    },
-    { 1152, 900, 75,
-		32,	208,	384,	/* horizontal	 70.495 Khz */
-		1,	32,	38,	/* vertical	 75.154  Hz */
-					/* pixel	108.280 MHz */
-    },
-    { 1152, 900, 70,
-		32,	208,	384,    /* horizontal	 65.251 KHz */
-		2,	32,	38,	/* vertical	 69.564 Hz  */
-					/* pixel	100.226 MHz */
-    },
-    { 1152, 900, 66,
-		32,	208,	384,    /* horizontal	61.817 KHz */
-		1,	32,	38,	/* vertical	65.903 Hz  */
-					/* pixel	94.951 MHz */
-    },
-    { 1280, 1024, 85,
-		16,	248,	416,	/* horizontal	 90.561 KHz */
-		1,	40,	45,	/* vertical	 84.717 Hz  */
-					/* pixel	153.593 MHz */
-    },
-    { 1280, 1024, 75,
-		16,	248,	408,    /* horizontal	 80.255 KHz */
-		1,	38,	42,	/* vertical	 75.285 Hz  */
-					/* pixel	134.828 MHz */
-    },
-    { 1280, 1024, 70,
-		32,	248,	400,    /* horizontal	 74.573 KHz */
-		0,	36,	39,	/* vertical	 70.153 Hz  */
-					/* pixel        125.283 MHz */
-    },
-    { 1280, 1024, 66,
-		32,	248,	400,    /* horizontal	 70.007 KHz */
-		0,	36,	39,	/* vertical	 65.858 Hz  */
-					/* pixel        117.612 MHz */
-    },
-    
-    { 1600, 1200, 85,
-		64,	304,	560,    /* horizontal	106.059 KHz */
-		1,	46,	50,	/* vertical	 84.847 Hz  */
-					/* pixel	229.088 MHz */
-    },
-    { 1600, 1200, 75,
-		64,	304,	560,    /* horizontal	 93.748 KHz */
-		1,	46,	50,	/* vertical	 74.999 Hz  */
-					/* pixel	202.497 MHz */
-    },
-    { 1600, 1200, 70,
-		56,	304,	588,	/* horizontal	 87.524 KHz */
-		1,	46,	50,	/* vertical	 70.019 Hz  */
-					/* pixel	191.503 MHz */
-    },
-    { 1600, 1200, 65,
-		56,	308,	524,    /* horizontal	 80.050 KHz */
-		1,	38,	42,	/* vertical	 64.453 Hz  */
-					/* pixel	170.026 MHz */
-    },
+int sisMemoryTable[8] = {
+    1, 2, 4, 0, 0, 2, 4, 8
 };
-
-#define NUM_SIS_TIMINGS	(sizeof (sisTimings) / sizeof (sisTimings[0]))
 
 Bool
 sisCardInit (KdCardInfo *card)
@@ -161,19 +41,33 @@ sisCardInit (KdCardInfo *card)
     int		    size;
     CARD8	    *registers;
     CARD8	    *temp_buffer;
+    CARD8	    save_sr5;
 
     sisc = (SisCardInfo *) xalloc (sizeof (SisCardInfo));
     if (!sisc)
 	goto bail0;
     
-    temp_buffer = KdMapDevice (card->attr.address[0], MAX_FB_SIZE);
-    if (!temp_buffer)
-	goto bail1;
+    sisc->io_base = card->attr.io;
+    /*
+     * enable access to SiS ports (no MMIO available) 
+     */
+    iopl(3);
+    save_sr5 = GetSrtc(sisc,0x5);
+    if (save_sr5 != 0x21)
+	save_sr5 = 0x86;
+    PutSrtc(sisc,0x5,0x86);
+#if 0
+    {
+	int	i;
+
+	for (i = 0; i <= 0x3f; i++)
+	    fprintf (stderr, "SR%02x = %02x\n", i, GetSrtc(sisc,i));
+    }
+#endif
+    sisc->memory = sisMemoryTable[GetSrtc(sisc,0xc)&0x7] * 1024 * 1024;
+
+    PutSrtc(sisc,0x5,save_sr5);
     
-    sisc->memory = KdFrameBufferSize (temp_buffer, MAX_FB_SIZE);
-
-    KdUnmapDevice (temp_buffer, MAX_FB_SIZE);
-
     if (!sisc->memory)
     {
 	ErrorF ("Can't detect SiS530 frame buffer\n");
@@ -196,12 +90,7 @@ sisCardInit (KdCardInfo *card)
      */
     sisc->sis = (SisPtr) (sisc->registers + SIS_MMIO_OFFSET);
     sisc->cpu_bitblt = (VOL32 *) sisc->registers;
-    sisc->io_base = card->attr.io;
 
-    /*
-     * enable access to SiS ports (no MMIO available) 
-     */
-    ioperm (sisc->io_base, 0x80, 1);
     card->driver = sisc;
     
     return TRUE;
@@ -212,22 +101,60 @@ bail1:
 bail0:
     return FALSE;
 }
-    
-SisTiming *
-sisGetTiming (int width, int height, int rate)
+
+Bool
+sisModeSupported (KdScreenInfo *screen, const KdMonitorTiming *t)
 {
-    int		i;
-    SisTiming	*t;
+    if (t->horizontal != 1600 &&
+	t->horizontal != 1280 &&
+	t->horizontal != 1152 &&
+	t->horizontal != 1024 &&
+	t->horizontal != 800 &&
+	t->horizontal != 640)
+	return FALSE;
+    return TRUE;
+}
+
+Bool
+sisModeUsable (KdScreenInfo *screen)
+{
+    KdCardInfo	    *card = screen->card;
+    SisCardInfo	    *sisc = (SisCardInfo *) card->driver;
+    SisScreenInfo   *siss;
+    int		    i;
+    KdMonitorTiming *t;
+    CARD32	    memory;
+    int		    byte_width, pixel_width, screen_size;
     
-    for (i = 0; i < NUM_SIS_TIMINGS; i++)
+    if (screen->fb[0].depth >= 24)
     {
-	t = &sisTimings[i];
-	if (t->horizontal >= width &&
-	    t->vertical >= height &&
-	    (!rate || t->rate <= rate))
-	    return t;
+	screen->fb[0].depth = 24;
+	screen->fb[0].bitsPerPixel = 24;
+	screen->dumb = TRUE;
     }
-    return &sisTimings[SIS_TIMING_BAIL];
+    else if (screen->fb[0].depth >= 16)
+    {
+	screen->fb[0].depth = 16;
+	screen->fb[0].bitsPerPixel = 16;
+    }
+    else if (screen->fb[0].depth >= 15)
+    {
+	screen->fb[0].depth = 15;
+	screen->fb[0].bitsPerPixel = 16;
+    }
+    else
+    {
+	screen->fb[0].depth = 8;
+	screen->fb[0].bitsPerPixel = 8;
+    }
+    byte_width = screen->width * (screen->fb[0].bitsPerPixel >> 3);
+    pixel_width = screen->width;
+    screen->fb[0].pixelStride = pixel_width;
+    screen->fb[0].byteStride = byte_width;
+
+    screen_size = byte_width * screen->height;
+
+    return screen_size <= sisc->memory;
 }
 
 Bool
@@ -237,7 +164,7 @@ sisScreenInit (KdScreenInfo *screen)
     SisCardInfo	    *sisc = (SisCardInfo *) card->driver;
     SisScreenInfo   *siss;
     int		    i;
-    SisTiming	    *t;
+    const KdMonitorTiming *t;
     CARD32	    memory;
     int		    byte_width, pixel_width, screen_size;
 
@@ -256,116 +183,17 @@ sisScreenInit (KdScreenInfo *screen)
     if (!screen->fb[0].depth)
 	screen->fb[0].depth = 8;
     
-    for (;;)
-    {
-	if (screen->fb[0].depth >= 24)
-	{
-	    screen->fb[0].depth = 24;
-	    screen->fb[0].bitsPerPixel = 24;
-	}
-	else if (screen->fb[0].depth >= 16)
-	{
-	    screen->fb[0].depth = 16;
-	    screen->fb[0].bitsPerPixel = 16;
-	}
-	else if (screen->fb[0].depth >= 15)
-	{
-	    screen->fb[0].depth = 15;
-	    screen->fb[0].bitsPerPixel = 16;
-	}
-	else
-	{
-	    screen->fb[0].depth = 8;
-	    screen->fb[0].bitsPerPixel = 8;
-	}
-
-	/* Normalize width to supported values */
-	
-	if (screen->width >= 1600)
-	    screen->width = 1600;
-	else if (screen->width >= 1280)
-	    screen->width = 1280;
-	else if (screen->width >= 1152)
-	    screen->width = 1152;
-	else if (screen->width >= 1024)
-	    screen->width = 1024;
-	else if (screen->width >= 800)
-	    screen->width = 800;
-	else
-	    screen->width = 640;
-	
-	byte_width = screen->width * (screen->fb[0].bitsPerPixel >> 3);
-	pixel_width = screen->width;
-	screen->fb[0].pixelStride = pixel_width;
-	screen->fb[0].byteStride = byte_width;
-
-	screen_size = byte_width * screen->height;
-	
-	if (screen_size <= sisc->memory)
-	    break;
-
-	/*
-	 * Fix requested depth and geometry until it works
-	 */
-	if (screen->fb[0].depth > 16)
-	    screen->fb[0].depth = 16;
-	else if (screen->fb[0].depth > 8)
-	    screen->fb[0].depth = 8;
-	else if (screen->width > 1152)
-	{
-	    screen->width = 1152;
-	    screen->height = 900;
-	}
-	else if (screen->width > 1024)
-	{
-	    screen->width = 1024;
-	    screen->height = 768;
-	}
-	else if (screen->width > 800)
-	{
-	    screen->width = 800;
-	    screen->height = 600;
-	}
-	else if (screen->width > 640)
-	{
-	    screen->width = 640;
-	    screen->height = 480;
-	}
-	else
-	{
-	    xfree (siss);
-	    return FALSE;
-	}
-    }
+    t = KdFindMode (screen, sisModeSupported);
     
-    t = sisGetTiming (screen->width, screen->height, screen->rate);
     screen->rate = t->rate;
     screen->width = t->horizontal;
     screen->height = t->vertical;
     
-    /*
-     * Take requested geometry and adjust to fit possible geometries
-     */
-    switch (screen->fb[0].depth) {
-    case 4:
-	screen->fb[0].bitsPerPixel = 4;
-	break;
-    case 8:
-	screen->fb[0].bitsPerPixel = 8;
-	break;
-    case 15:
-    case 16:
-	screen->fb[0].bitsPerPixel = 16;
-	break;
-    case 24:
-    case 32:
-	screen->fb[0].bitsPerPixel = 24;
-	screen->dumb = TRUE;
-	break;
+    if (!KdTuneMode (screen, sisModeUsable, sisModeSupported))
+    {
+	xfree (sisc);
+	return FALSE;
     }
-
-    screen->fb[0].byteStride = screen->width * (screen->fb[0].bitsPerPixel >> 3);
-    screen->fb[0].pixelStride = screen->width;
 
     memory = sisc->memory - screen_size;
     
@@ -451,10 +279,12 @@ _sisGetCrtc (SisCardInfo *sisc, SisCrtc *crtc)
     crtc->crtc_overflow			= GetCrtc (sisc, 0x07);
     crtc->preset_row_scan		= GetCrtc (sisc, 0x08);
     crtc->_max_scan_line		= GetCrtc (sisc, 0x09);
-    
+    crtc->cursor_start			= GetCrtc (sisc, 0x0a);
+    crtc->cursor_end			= GetCrtc (sisc, 0x0a);
     crtc->start_address_8_15		= GetCrtc (sisc, 0x0c);
     crtc->start_address_0_7		= GetCrtc (sisc, 0x0d);
-
+    crtc->text_cursor_15_8		= GetCrtc (sisc, 0x0e);
+    crtc->text_cursor_7_0		= GetCrtc (sisc, 0x0f);
     crtc->v_retrace_start_0_7		= GetCrtc (sisc, 0x10);
     crtc->_v_retrace_end		= GetCrtc (sisc, 0x11);
     crtc->v_display_end_0_7		= GetCrtc (sisc, 0x12);
@@ -472,8 +302,12 @@ _sisGetCrtc (SisCardInfo *sisc, SisCrtc *crtc)
     crtc->horizontal_pixel_pan		= GetArtc (sisc, 0x13);
 
     crtc->mode_register			= GetGrtc (sisc, 0x5);
+    crtc->misc_register			= GetGrtc (sisc, 0x6);
+    crtc->color_dont_care		= GetGrtc (sisc, 0x7);
     
     crtc->clock_mode			= GetSrtc (sisc, 0x1);
+    crtc->color_plane_w_enable		= GetSrtc (sisc, 0x2);
+    crtc->memory_mode			= GetSrtc (sisc, 0x4);
     
     crtc->graphics_mode			= GetSrtc (sisc, 0x6);
     crtc->misc_control_0    		= GetSrtc (sisc, 0x7);
@@ -530,7 +364,6 @@ _sisSetBlank (SisCardInfo *sisc, Bool blank)
 static void
 _sisSetCrtc (SisCardInfo *sisc, SisCrtc *crtc)
 {
-    _sisOutb(crtc->misc_output, sisc->io_base+0x4c);
     _sisSetBlank (sisc, TRUE);
     PutCrtc (sisc, 0x00, crtc->h_total_0_7);
     PutCrtc (sisc, 0x01, crtc->h_display_end_0_7);
@@ -542,10 +375,12 @@ _sisSetCrtc (SisCardInfo *sisc, SisCrtc *crtc)
     PutCrtc (sisc, 0x07, crtc->crtc_overflow);
     PutCrtc (sisc, 0x08, crtc->preset_row_scan);
     PutCrtc (sisc, 0x09, crtc->_max_scan_line);
-    
+    PutCrtc (sisc, 0x0a, crtc->cursor_start);
+    PutCrtc (sisc, 0x0b, crtc->cursor_end);
     PutCrtc (sisc, 0x0c, crtc->start_address_8_15);
     PutCrtc (sisc, 0x0d, crtc->start_address_0_7);
-
+    PutCrtc (sisc, 0x0e, crtc->text_cursor_15_8);
+    PutCrtc (sisc, 0x0f, crtc->text_cursor_7_0);
     PutCrtc (sisc, 0x10, crtc->v_retrace_start_0_7);
     PutCrtc (sisc, 0x11, crtc->_v_retrace_end);
     PutCrtc (sisc, 0x12, crtc->v_display_end_0_7);
@@ -562,8 +397,12 @@ _sisSetCrtc (SisCardInfo *sisc, SisCrtc *crtc)
     PutArtc (sisc, 0x13, crtc->horizontal_pixel_pan);
 
     PutGrtc (sisc, 0x5, crtc->mode_register);
+    PutGrtc (sisc, 0x6, crtc->misc_register);
+    PutGrtc (sisc, 0x7, crtc->color_dont_care);
     
     PutSrtc (sisc, 0x1, crtc->clock_mode | 0x20);
+    PutSrtc (sisc, 0x2, crtc->color_plane_w_enable);
+    PutSrtc (sisc, 0x4, crtc->memory_mode);
     
     PutSrtc (sisc, 0x6, crtc->graphics_mode);
     PutSrtc (sisc, 0x7, crtc->misc_control_0);
@@ -603,6 +442,24 @@ _sisSetCrtc (SisCardInfo *sisc, SisCrtc *crtc)
     PutSrtc (sisc, 0x3E, crtc->misc_control_11);
     PutSrtc (sisc, 0x3F, crtc->misc_control_12);
     
+#if 0
+    PutCrtc (sisc, 0x5b, 0x27);
+    PutCrtc (sisc, 0x5c, 0xe1);
+    PutCrtc (sisc, 0x5d, 0x00);
+
+    PutSrtc (sisc, 0x5a, 0xe6);
+    PutSrtc (sisc, 0x5d, 0xa1);
+    PutSrtc (sisc, 0x9a, 0xe6);
+    PutSrtc (sisc, 0x9d, 0xa1);
+    PutSrtc (sisc, 0xda, 0xe6);
+    PutSrtc (sisc, 0xdd, 0x6c);
+#endif
+    
+    _sisOutb(crtc->misc_output, sisc->io_base+0x42);
+    
+    outw (0x3c4, 0x0100);
+    outw (0x3c4, 0x0300);
+    
     _sisSetBlank (sisc, FALSE);
 }
 
@@ -623,6 +480,29 @@ _sisWriteIndexRegister (CARD32 base, CARD8 index, CARD8 value)
     _sisOutb (value, base+1);
 }
 
+CARD8
+_sisReadArtc (CARD32 base, CARD8 index)
+{
+    CARD8   ret;
+    
+    _sisInb (base+0x1a);
+    _sisOutb (index,base);
+    ret = _sisInb (base+1);
+    _sisInb (base+0x1a);
+    _sisOutb (0x20,base);
+    return ret;
+}
+
+void
+_sisWriteArtc (CARD32 base, CARD8 index, CARD8 value)
+{
+    _sisInb (base+0x1a);
+    _sisOutb (index|0x20,base);
+    _sisOutb (value,base);
+    _sisInb (base+0x1a);
+    _sisOutb (0x20,base);
+}
+
 void
 sisPreserve (KdCardInfo *card)
 {
@@ -638,11 +518,16 @@ sisPreserve (KdCardInfo *card)
 	sisc->save.sr5 = 0x86;
     /* unlock extension registers */
     PutSrtc(sisc,0x5,0x86);
+    /* unlock CRTC registers */
+    PutCrtc(sisc,0x11,GetCrtc(sisc,0x11)&~0x80);
+    /* enable vga */
+    _sisOutb(0x1,sisc->io_base+0x43);
     
     /* enable MMIO access to registers */
     sisc->save.srb = GetSrtc(sisc,0xb);
     PutSrtc(sisc, 0xb, sisc->save.srb | 0x60);
     _sisGetCrtc (sisc, &sisc->save.crtc);
+    memcpy (sisc->save.text_save, sisc->frameBuffer, SIS_TEXT_SAVE);
 }
 
 void
@@ -653,7 +538,7 @@ sisEnable (ScreenPtr pScreen)
     KdCardInfo	    *card = pScreenPriv->card;
     SisCardInfo	    *sisc = card->driver;
     SisScreenInfo   *siss = screen->driver;
-    SisTiming	    *t;
+    const KdMonitorTiming *t;
     SisCrtc	    crtc;
     unsigned long   pixel;
     
@@ -686,28 +571,64 @@ sisEnable (ScreenPtr pScreen)
 
     crtc = sisc->save.crtc;
     
-    t = sisGetTiming (screen->width, screen->height, screen->rate);
+    t = KdFindMode (screen, sisModeSupported);
+    
+    /* CR9 */
+    crtc.max_scan_line = 0;
+    
+    /* CRA */
+    crtc.cursor_start = 0;
+
+    /* CRB */
+    crtc.cursor_end = 0;
+    
+    /* CRE */
+    crtc.text_cursor_15_8 = 0;
+
+    /* CRF */
+    crtc.text_cursor_7_0 = 0;
     
     /* CR11 */
     crtc.disable_v_retrace_int = 1;
+    
+    /* CR14 */
+    crtc.underline_location = 0;
+    crtc.count_by_four = 0;
+    crtc.doubleword_mode = 1;
     
     /* 3CC/3C2 */
     crtc.io_address_select = 1;
     crtc.display_ram_enable = 1;
     crtc.clock_select = 3;
     
+    /* SR1 */
+    crtc.clock_mode = 0;
+    crtc.dot_clock_8_9 = 1;
+
+    /* SR2 */
+    crtc.color_plane_w_enable = 0xf;
+
+    /* SR4 */
+    crtc.memory_mode = 0;
+    crtc.chain_4_enable = 1;
+    crtc.odd_even_disable = 1;
+    crtc.extended_memory_sz = 1;
+
     /* SR6 */
-    crtc.graphics_mode = 0;
     crtc.graphics_mode_linear = 1;
     crtc.enhanced_graphics_mode = 1;
     
+    /* SR9 */
+    crtc.crt_cpu_threshold_control_1 = 0;
+
     /* SRB */
+#if 0
     crtc.cpu_bitblt_enable = 1;
+#endif
     crtc.memory_mapped_mode = 3;
     
     /* SRC */
     crtc.graphics_mode_32bit_enable = 1;
-    crtc.text_mode_16bit_enable = 0;
     crtc.read_ahead_enable = 1;
     
     /* SR11 */
@@ -716,6 +637,24 @@ sisEnable (ScreenPtr pScreen)
     crtc.video_memory_activate = 0;
     crtc.vga_standby = 0;
     crtc.vga_suspend = 0;
+    
+    crtc.cursor_0_red = 0x3f;
+    crtc.cursor_0_green = 0x3f;
+    crtc.cursor_0_blue = 0x3f;
+
+    /* SR20 */
+    crtc.linear_base_19_26 = (card->attr.address[0] & 0x07f80000) >> 19;
+
+    /* SR21 */
+    crtc.linear_base_27_31 = (card->attr.address[0] & 0xf8000000) >> 27;
+    crtc.linear_aperture   = SIS_LINEAR_APERTURE_4M;
+     
+    /* SR27 */
+    crtc.logical_screen_width = 3;
+    crtc.graphics_prog_enable = 1;
+    
+    /* SR38 */
+    crtc.extended_clock_select = 0;
     
     /* AR10 */
     crtc.mode_control = 0;
@@ -727,13 +666,16 @@ sisEnable (ScreenPtr pScreen)
     /* AR13 */
     crtc.horizontal_pixel_pan = 0;
     
-    /* SR27 */
-    crtc.logical_screen_width = 3;
-    crtc.graphics_prog_enable = 1;
-    
-    /* SR38 */
-    crtc.extended_clock_select = 0;
-    
+    /* GR5 */
+    crtc.mode_register = 0;
+
+    /* GR6 */
+    crtc.graphics_enable = 1;
+    crtc.chain_odd_even = 0;
+    crtc.memory_address_select = 1;
+
+    /* GR7 */
+    crtc.color_dont_care = 0xf;
     if (siss->cursor_base)
     {
 	crtc_set_cursor_start_addr (&crtc, siss->cursor_off);
@@ -861,6 +803,29 @@ sisEnable (ScreenPtr pScreen)
     crtc_set_v_blank_start (&crtc, v_blank_start);
     crtc.v_blank_end_0_7 = v_blank_end;
     
+#if 0
+    crtc.h_blank_start_0_7 = 0x6a;
+    crtc._h_blank_end = 0x9a;
+    crtc.h_sync_start_0_7 = 0x6b;
+    crtc._h_sync_end = 0x9a;
+    
+    crtc.v_retrace_start_0_7 = 0x7d;
+    crtc._v_retrace_end = 0x23;
+    crtc.v_blank_start_0_7 = 0x7d;
+    crtc.v_blank_end_0_7 = 0x84;
+
+    crtc.crt_cpu_threshold_control_0 = 0xdf;	/* SR8 */
+    crtc.crt_cpu_threshold_control_1 = 0x00;	/* SR9 */
+    crtc.extended_clock_generator = 0x40;	/* SR13 */
+
+    crtc.cursor_h_start_0_7 = 0x83;
+    crtc.cursor_v_start_0_7 = 0x6c;
+
+    crtc.internal_vclk_0 = 0x68;
+    crtc.internal_vclk_1 = 0xc4;
+    crtc.misc_control_7 = 0x70;
+#endif
+    
     _sisSetCrtc (sisc, &crtc);
 }
 
@@ -905,6 +870,7 @@ sisRestore (KdCardInfo *card)
 {
     SisCardInfo	*sisc = (SisCardInfo *) card->driver;
     
+    memcpy (sisc->frameBuffer, sisc->save.text_save, SIS_TEXT_SAVE);
     _sisSetCrtc (sisc, &sisc->save.crtc);
     PutSrtc (sisc, 0xb, sisc->save.srb);
     PutSrtc (sisc, 0x5, sisc->save.sr5);
@@ -926,7 +892,6 @@ sisCardFini (KdCardInfo *card)
     
     KdUnmapDevice (sisc->frameBuffer, sisc->memory);
     KdUnmapDevice (sisc->registers, sizeof (SisRec));
-    ioperm (sisc->io_base, 0x80, 0);
 }
 
 KdCardFuncs	sisFuncs = {

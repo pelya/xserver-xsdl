@@ -22,7 +22,7 @@
  *
  * Author:  Keith Packard, SuSE, Inc.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/savage/s3cmap.c,v 1.3 2000/02/23 20:30:02 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/savage/s3cmap.c,v 1.4 2000/05/06 22:17:45 keithp Exp $ */
 
 #include "s3.h"
 
@@ -43,15 +43,51 @@ s3GetColors (ScreenPtr pScreen, int fb, int ndef, xColorItem *pdefs)
     }
 }
 
+#ifndef S3_TRIO
+#define Shift(v,d)  ((d) < 0 ? ((v) >> (-d)) : ((v) << (d)))
+
+void
+s3SetTrueChromaKey (ScreenPtr pScreen, int pfb, xColorItem *pdef)
+{
+    FbOverlayScrPrivPtr	pScrPriv = fbOverlayGetScrPriv(pScreen);
+    KdScreenPriv(pScreen);
+    s3ScreenInfo(pScreenPriv);
+    int		fb, ma;
+    CARD32	key;
+    int		r, g, b;
+
+    for (ma = 0; s3s->fbmap[ma] >= 0; ma++) 
+    {
+	fb = s3s->fbmap[ma];
+	if (fb != pfb && pScreenPriv->screen->fb[fb].redMask)
+	{
+	    r = KdComputeCmapShift (pScreenPriv->screen->fb[fb].redMask);
+	    g = KdComputeCmapShift (pScreenPriv->screen->fb[fb].greenMask);
+	    b = KdComputeCmapShift (pScreenPriv->screen->fb[fb].blueMask);
+	    key = ((Shift(pdef->red,r) & pScreenPriv->screen->fb[fb].redMask) |
+		   (Shift(pdef->green,g) & pScreenPriv->screen->fb[fb].greenMask) |
+		   (Shift(pdef->blue,b) & pScreenPriv->screen->fb[fb].blueMask));
+	    if (pScrPriv->layer[fb].key != key)
+	    {
+		pScrPriv->layer[fb].key = key;
+		(*pScrPriv->PaintKey) (&pScrPriv->layer[fb].u.run.pixmap->drawable,
+				       &pScrPriv->layer[pfb].u.run.region,
+				       pScrPriv->layer[fb].key, fb);
+	    }
+	}
+    }
+}
+#endif
+
 void
 s3PutColors (ScreenPtr pScreen, int fb, int ndef, xColorItem *pdefs)
 {
     KdScreenPriv(pScreen);
     s3CardInfo(pScreenPriv);
     s3ScreenInfo(pScreenPriv);
-    S3Vga   *s3vga = &s3c->s3vga;
-    Bool    hit_border = FALSE;
-    Bool    check_border = FALSE;
+    S3Vga	*s3vga = &s3c->s3vga;
+    xColorItem	*chroma = 0;
+    CARD32	key;
 
 #if 0
     _s3WaitVRetrace (s3vga);
@@ -59,34 +95,28 @@ s3PutColors (ScreenPtr pScreen, int fb, int ndef, xColorItem *pdefs)
     S3Ptr   s3 = s3c->s3;
     _s3WaitVRetraceFast(s3);
 #endif
-    if (pScreenPriv->enabled && s3s->manage_border && !s3s->managing_border)
-	check_border = TRUE;
+#ifndef S3_TRIO
+    if (pScreenPriv->screen->fb[1].depth)
+    {
+	FbOverlayScrPrivPtr	pScrPriv = fbOverlayGetScrPriv(pScreen);
+	key = pScrPriv->layer[fb].key;
+    }
+#endif
+    else
+	key = ~0;
     while (ndef--)
     {
-	if (check_border && pdefs->pixel == s3s->border_pixel)
-	{
-	    if (pdefs->red || pdefs->green || pdefs->blue)
-		hit_border = TRUE;
-	}
+	if (pdefs->pixel == key)
+	    chroma = pdefs;
 	s3SetImm (s3vga, s3_dac_write_index, pdefs->pixel);
 	s3SetImm (s3vga, s3_dac_data, pdefs->red >> 8);
 	s3SetImm (s3vga, s3_dac_data, pdefs->green >> 8);
 	s3SetImm (s3vga, s3_dac_data, pdefs->blue >> 8);
 	pdefs++;
     }
-    if (hit_border)
-    {
-	xColorItem  black;
-
-	black.red = 0;
-	black.green = 0;
-	black.blue = 0;
-	s3s->managing_border = TRUE;
-	FakeAllocColor (pScreenPriv->pInstalledmap[fb],
-			&black);
-	s3s->border_pixel = black.pixel;
-	FakeFreeColor (pScreenPriv->pInstalledmap[fb], s3s->border_pixel);
-/*	s3SetImm (&s3c->s3vga, s3_border_color, (VGA8) s3s->border_pixel); */
-    }
+#ifndef S3_TRIO
+    if (chroma && !pScreenPriv->closed)
+	s3SetTrueChromaKey (pScreen, fb, chroma);
+#endif
 }
 

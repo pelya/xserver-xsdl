@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/trio/s3.c,v 1.2 1999/12/30 03:03:19 robin Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/trio/s3.c,v 1.4 2000/05/06 22:17:52 keithp Exp $ */
 
 #include "s3.h"
 
@@ -429,11 +429,13 @@ s3ModeSupported (KdScreenInfo		*screen,
     if (t->horizontal != 1600 &&
 	t->horizontal != 1280 &&
 	t->horizontal != 1152 &&
+	t->horizontal != 1024 &&
 	t->horizontal != 800 &&
 	t->horizontal != 640)
 	return FALSE;
     if (t->clock > S3_MAX_CLOCK * 2)
 	return FALSE;
+    return TRUE;
 }
 
 Bool

@@ -22,7 +22,7 @@
  *
  * Author:  Keith Packard, SuSE, Inc.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/savage/s3.h,v 1.3 2000/02/23 20:30:02 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/savage/s3.h,v 1.4 2000/05/06 22:17:45 keithp Exp $ */
 
 #ifndef _S3_H_
 #define _S3_H_
@@ -439,18 +439,19 @@ typedef struct _s3FbInfo {
     CARD32	bitmap_offset;
     int		accel_stride;
     int		accel_bpp;
+    CARD32	chroma_key;
 } S3FBInfo;
     
 typedef struct _s3ScreenInfo {
     CARD8	*cursor_base;	    /* pointer to cursor area */
     S3Cursor	cursor;
-    Bool	manage_border;
     Bool	managing_border;
     Bool	use_streams;
     int		primary_depth;
     int		current_ma;
     CARD32	border_pixel;
     S3FBInfo	fb[KD_MAX_FB];
+    RegionRec	region[KD_MAX_FB];
     int		fbmap[KD_MAX_FB+1];   /* map from fb to stream */
 } S3ScreenInfo;
 

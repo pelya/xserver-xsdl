@@ -26,12 +26,19 @@
 
 #include "sis.h"
 
+static const int   sisCards[] = { 0x6306, 0x0200 };
+
+#define numSisCards (sizeof (sisCards) / sizeof (sisCards[0]))
+
 void
 InitCard (char *name)
 {
     KdCardAttr	attr;
-    if (LinuxFindPci (0x1039, 0x6306, 0, &attr))
-	KdCardInfoAdd (&sisFuncs, &attr, 0);
+    int		i;
+
+    for (i = 0; i < numSisCards; i++)
+	if (LinuxFindPci (0x1039, sisCards[i], 0, &attr))
+	    KdCardInfoAdd (&sisFuncs, &attr, (void *) sisCards[i]);
 }
 
 void

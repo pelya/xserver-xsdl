@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/sis530/sis.h,v 1.2 1999/12/30 03:03:14 robin Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/sis530/sis.h,v 1.4 2000/05/06 22:17:49 keithp Exp $ */
 
 #ifndef _SIS_H_
 #define _SIS_H_
@@ -194,6 +194,25 @@ typedef struct _sis530Trapezoid {
 					/* 8254 */
 } SisTrapezoid;
 
+typedef struct _sisAccel {
+    VOL8	pad[0x80];		/* 8200 */
+    VOL32	src_addr;	    	/* 8280 */
+    VOL32	dst_addr;		/* 8284 */
+    VOL32	pitch;			/* 8288 */
+    VOL32	dimension;		/* 828c */
+    VOL32	fg;			/* 8290 */
+    VOL32	bg;			/* 8294 */
+    
+
+    VOL32	clip_ul;		/* 82a0 */
+    VOL32	clip_br;		/* 82a4 */
+
+    VOL16	cmd;			/* 82aa */
+
+    VOL8	pattern[256];		/* 82ac */
+    
+} SisAccel;
+
 typedef struct _sis530 {
     union {
 	SisGeneral	general;
@@ -201,6 +220,7 @@ typedef struct _sis530 {
 	SisTransparent	transparent;
 	SisMultiple	multiple;
 	SisTrapezoid	trapezoid;
+	SisAccel	accel;
     } u;
 } SisRec, *SisPtr;
 
@@ -307,25 +327,28 @@ typedef struct _crtc {
 
     union {
 	struct {
-	    CARD8   _max_scan_line	    : 5;
+	    CARD8   ___max_scan_line	    : 5;
 	    CARD8   _v_blank_start_9	    : 1;
 	    CARD8   _line_compare_9	    : 1;
-	    CARD8   _double_scan		    : 1;
+	    CARD8   _double_scan	    : 1;
 	} _max_scan_line_s;
 	CARD8   __max_scan_line;		    /* CR9 */
     } _max_scan_line_u;
 
-#define max_scan_line	_max_scan_line_u._max_scan_line_s._max_scan_line
+#define max_scan_line	_max_scan_line_u._max_scan_line_s.___max_scan_line
 #define v_blank_start_9	_max_scan_line_u._max_scan_line_s._v_blank_start_9
 #define line_compare_9	_max_scan_line_u._max_scan_line_s._line_compare_9
 #define double_scan	_max_scan_line_u._max_scan_line_s._double_scan
 #define _max_scan_line	_max_scan_line_u.__max_scan_line
     
-    CARD8   cursor_start;
-    CARD8   cursor_end;
+    CARD8   cursor_start;			    /* CRA */
+    CARD8   cursor_end;				    /* CRB */
 
     CARD8   start_address_8_15;			    /* CRC */
     CARD8   start_address_0_7;			    /* CRD */
+
+    CARD8   text_cursor_15_8;			    /* CRE */
+    CARD8   text_cursor_7_0;			    /* CRF */
 
     CARD8   cursor_loc_high;
     CARD8   cursor_loc_low;
@@ -355,7 +378,7 @@ typedef struct _crtc {
     
     union {
 	struct {
-	    CARD8   _underline_location	    : 5;
+	    CARD8   ___underline_location   : 5;
 	    CARD8   _count_by_four	    : 1;
 	    CARD8   _doubleword_mode	    : 1;
 	    CARD8			    : 1;
@@ -363,7 +386,7 @@ typedef struct _crtc {
 	CARD8   __underline_location;		    /* CR14 */
     } _underline_location_u;
 
-#define underline_location  _underline_location_u._underline_location_s._underline_location
+#define underline_location  _underline_location_u._underline_location_s.___underline_location
 #define count_by_four	    _underline_location_u._underline_location_s._count_by_four
 #define doubleword_mode	    _underline_location_u._underline_location_s._doubleword_mode
 #define _underline_location _underline_location_u.__underline_location
@@ -433,6 +456,24 @@ typedef struct _crtc {
     
 #define mode_register	    _mode_register_u._mode_register
 #define color_mode_256	    _mode_register_u._mode_register_s._color_mode_256
+#define odd_even_addressing _mode_register_u._mode_register_s._odd_even_addressing
+
+    union {
+	struct {
+	    CARD8   _graphics_enable	    : 1;
+	    CARD8   _chain_odd_even	    : 1;
+	    CARD8   _memory_address_select  : 2;
+	    CARD8			    : 4;
+	} _misc_register_s;
+	CARD8   _misc_register;
+    } _misc_register_u;				    /* GR6 */
+
+#define misc_register	    _misc_register_u._misc_register
+#define graphics_enable	    _misc_register_u._misc_register_s._graphics_enable
+#define chain_odd_even	    _misc_register_u._misc_register_s._chain_odd_even
+#define memory_address_select _misc_register_u._misc_register_s._memory_address_select
+    
+    CARD8	color_dont_care;		    /* GR7 */
     
     union {
 	struct {
@@ -454,6 +495,24 @@ typedef struct _crtc {
 #define shifter_load_32	    _clock_mode_u._clock_mode_s._shifter_load_32
 #define display_off	    _clock_mode_u._clock_mode_s._display_off
 
+    CARD8   color_plane_w_enable;		    /* SR2 */
+    
+    union {
+	struct {
+	    CARD8			    : 1;
+	    CARD8   _extended_memory_size   : 1;
+	    CARD8   _odd_even_disable	    : 1;
+	    CARD8   _chain_4_enable	    : 1;
+	    CARD8			    : 4;
+	} _memory_mode_s;
+	CARD8	_memory_mode;
+    } _memory_mode_u;				    /* SR4 */
+
+#define memory_mode	    _memory_mode_u._memory_mode
+#define extended_memory_sz  _memory_mode_u._memory_mode_s._extended_memory_size
+#define	odd_even_disable    _memory_mode_u._memory_mode_s._odd_even_disable
+#define chain_4_enable	    _memory_mode_u._memory_mode_s._chain_4_enable
+    
     union {
 	struct {
 	    CARD8   _enhanced_text_mode	    : 1;
@@ -700,6 +759,7 @@ typedef struct _crtc {
     
 #define linear_base_1	    _linear_base_1_u._linear_base_1
 #define linear_base_27_31   _linear_base_1_u._linear_base_1_s._linear_base_27_31
+#define linear_aperture	    _linear_base_1_u._linear_base_1_s._linear_aperture
 
     union {
 	struct {
@@ -1027,8 +1087,8 @@ typedef struct _crtc {
 #define GetSrtc(sisc,i)	    _sisReadIndexRegister ((sisc)->io_base+0x44,i)
 #define PutSrtc(sisc,i,v)   _sisWriteIndexRegister ((sisc)->io_base+0x44,i,v)
 
-#define GetArtc(sisc,i)	    _sisReadIndexRegister ((sisc)->io_base+0x40,i)
-#define PutArtc(sisc,i,v)   _sisWriteIndexRegister ((sisc)->io_base+0x40,i,v)
+#define GetArtc(sisc,i)	    _sisReadArtc ((sisc)->io_base+0x40,i)
+#define PutArtc(sisc,i,v)   _sisWriteArtc ((sisc)->io_base+0x40,i,v)
 
 #define GetGrtc(sisc,i)	    _sisReadIndexRegister ((sisc)->io_base+0x4e,i)
 #define PutGrtc(sisc,i,v)   _sisWriteIndexRegister ((sisc)->io_base+0x4e,i,v)
@@ -1053,10 +1113,13 @@ typedef struct _sisTiming {
     int		vblank;	    /* blanking */
 } SisTiming;
 
+#define SIS_TEXT_SAVE	(64*1024)
+
 typedef struct _sisSave {
     CARD8	srb;
     CARD8	sr5;
     SisCrtc	crtc;
+    CARD8	text_save[SIS_TEXT_SAVE];
 } SisSave;
 
 typedef struct _sisCardInfo {
@@ -1109,6 +1172,8 @@ void	SISInitCard (KdCardAttr *attr);
 
 CARD8	_sisReadIndexRegister (CARD32 base, CARD8 index);
 void	_sisWriteIndexRegister (CARD32 base, CARD8 index, CARD8 value);
+CARD8	_sisReadArtc (CARD32 base, CARD8 index);
+void	_sisWriteArtc (CARD32 base, CARD8 index, CARD8 value);
 
 extern KdCardFuncs  sisFuncs;
 
