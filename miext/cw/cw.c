@@ -223,7 +223,8 @@ cwValidateGC(GCPtr pGC, unsigned long stateChanges, DrawablePtr pDrawable)
 	XID vals[2];
 	vals[0] = pGC->patOrg.x + x_off;
 	vals[1] = pGC->patOrg.y + y_off;
-	DoChangeGC(pBackingGC, GCTileStipXOrigin|GCTileStipYOrigin, vals, 0);
+	dixChangeGC(NullClient, pBackingGC,
+		    (GCTileStipXOrigin | GCTileStipYOrigin), vals, NULL);
     }
 
     if (pDrawable->serialNumber != pPriv->serialNumber) {
@@ -238,11 +239,13 @@ cwValidateGC(GCPtr pGC, unsigned long stateChanges, DrawablePtr pDrawable)
 	(*pBackingGC->funcs->CopyClip)(pBackingGC, pGC);
 	vals[0] = pGC->clipOrg.x + x_off;
 	vals[1] = pGC->clipOrg.y + y_off;
-	DoChangeGC(pBackingGC, GCClipXOrigin|GCClipYOrigin, vals, 0);
+	dixChangeGC(NullClient, pBackingGC,
+		    (GCClipXOrigin | GCClipYOrigin), vals, NULL);
 
-	ValidateGC(pBackingDrawable, pBackingGC);
 	pPriv->serialNumber = pDrawable->serialNumber;
     }
+
+    ValidateGC(pBackingDrawable, pBackingGC);
 
     FUNC_EPILOGUE(pGC, pPriv);
 }
@@ -504,7 +507,8 @@ cwFillRegionSolid(DrawablePtr pDrawable, RegionPtr pRegion, unsigned long pixel)
     v[0].val = GXcopy;
     v[1].val = pixel;
     v[2].val = FillSolid;
-    DoChangeGC(pGC, (GCFunction | GCForeground | GCFillStyle), (XID*)v, 1);
+    dixChangeGC(NullClient, pGC, (GCFunction | GCForeground | GCFillStyle),
+		NULL, v);
     ValidateGC(pDrawable, pGC);
 
     pBox = REGION_RECTS(pRegion);
@@ -529,17 +533,14 @@ cwFillRegionTiled(DrawablePtr pDrawable, RegionPtr pRegion, PixmapPtr pTile)
     GCPtr     pGC;
     BoxPtr    pBox;
     int       nbox, i;
-    ChangeGCVal v[5];
+    ChangeGCVal v[3];
 
     pGC = GetScratchGC(pDrawable->depth, pScreen);
     v[0].val = GXcopy;
-    v[1].val = FillSolid;
+    v[1].val = FillTiled;
     v[2].ptr = (pointer) pTile;
-    v[3].val = 0;
-    v[4].val = 0;
-    DoChangeGC(pGC, (GCFunction | GCFillStyle | GCTile | GCTileStipXOrigin |
-	GCTileStipYOrigin), 
-		        (XID*)v, 1);
+    dixChangeGC(NullClient, pGC, (GCFunction | GCFillStyle | GCTile),
+		NULL, v);
 
     ValidateGC(pDrawable, pGC);
 
@@ -574,17 +575,14 @@ cwPaintWindowBackground(WindowPtr pWin, RegionPtr pRegion, int what)
 	pBackingDrawable = cwGetBackingDrawable((DrawablePtr)pWin, &x_off,
 						&y_off);
 
-	/* The region is already in screen coordinates, so don't offset by the
-	 * window's coordinates in screen space.
+	/* The region is in screen coordinates, so translate to window
+	 * coordinates for the x_off/y_off window->pixmap translation.
 	 */
 	x_off -= pWin->drawable.x;
 	y_off -= pWin->drawable.y;
 
-	if (pWin->backgroundState == ParentRelative) {
-	    do {
-		pWin = pWin->parent;
-	    } while (pWin && pWin->backgroundState == ParentRelative);
-	}
+	while (pWin && pWin->backgroundState == ParentRelative)
+	    pWin = pWin->parent;
 
 	if (pWin && (pWin->backgroundState == BackgroundPixel ||
 		pWin->backgroundState == BackgroundPixmap))
@@ -622,8 +620,8 @@ cwPaintWindowBorder(WindowPtr pWin, RegionPtr pRegion, int what)
 	pBackingDrawable = cwGetBackingDrawable((DrawablePtr)pWin, &x_off,
 						&y_off);
 
-	/* The region is already in screen coordinates, so don't offset by the
-	 * window's coordinates in screen space.
+	/* The region is in screen coordinates, so translate to window
+	 * coordinates for the x_off/y_off window->pixmap translation.
 	 */
 	x_off -= pWin->drawable.x;
 	y_off -= pWin->drawable.y;
