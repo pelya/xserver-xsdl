@@ -1,5 +1,5 @@
 /* $Xorg: access.c,v 1.5 2001/02/09 02:05:23 xorgcvs Exp $ */
-/* $XdotOrg: xc/programs/Xserver/os/access.c,v 1.1.4.3.2.3 2004/03/22 11:57:11 ago Exp $ */
+/* $XdotOrg$ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -456,12 +456,22 @@ DefineSelf (int fd)
 		continue;
 
 	    /*
- 	     * ignore 'localhost' entries as they're not useful
-	     * on the other end of the wire
+ 	     * Ignore 'localhost' entries as they're not useful
+	     * on the other end of the wire.
 	     */
 	    if (len == 4 &&
 		addr[0] == 127 && addr[1] == 0 &&
 		addr[2] == 0 && addr[3] == 1)
+		continue;
+
+	    /*
+	     * Ignore '0.0.0.0' entries as they are
+	     * returned by some OSes for unconfigured NICs but they are
+	     * not useful on the other end of the wire.
+	     */
+	    if (len == 4 &&
+		addr[0] == 0 && addr[1] == 0 &&
+		addr[2] == 0 && addr[3] == 0)
 		continue;
 
 	    XdmcpRegisterConnection (family, (char *)addr, len);
@@ -588,12 +598,16 @@ DefineSelf (int fd)
 #ifdef XDMCP
 		/*
 		 *  If this is an Internet Address, but not the localhost
-		 *  address (127.0.0.1), register it.
+		 *  address (127.0.0.1), nor the bogus address (0.0.0.0),
+		 *  register it.
 		 */
 		if (family == FamilyInternet &&
-		    !(len == 4 && addr[0] == 127 && addr[1] == 0 &&
-		      addr[2] == 0 && addr[3] == 1)
-		   )
+		    !(len == 4 &&
+		      ((addr[0] == 127 && addr[1] == 0 &&
+			addr[2] == 0 && addr[3] == 1) ||
+		       (addr[0] == 0 && addr[1] == 0 &&
+			addr[2] == 0 && addr[3] == 0)))
+		      )
 		{
 		    XdmcpRegisterConnection (family, (char *)addr, len);
 		    broad_addr = *inetaddr;
@@ -857,6 +871,16 @@ DefineSelf (int fd)
 		continue;
 #endif
 
+	    /*
+	     * Ignore '0.0.0.0' entries as they are
+	     * returned by some OSes for unconfigured NICs but they are
+	     * not useful on the other end of the wire.
+	     */
+	    if (len == 4 &&
+		addr[0] == 0 && addr[1] == 0 &&
+		addr[2] == 0 && addr[3] == 0)
+		continue;
+
 	    XdmcpRegisterConnection (family, (char *)addr, len);
 
 #if defined(IPv6) && defined(AF_INET6)
@@ -979,6 +1003,7 @@ DefineSelf (int fd)
 #endif
 	    )
 		continue;
+
 	    /* 
 	     * ignore 'localhost' entries as they're not useful
 	     * on the other end of the wire
@@ -989,6 +1014,16 @@ DefineSelf (int fd)
 	    if (family == FamilyInternet && 
 		addr[0] == 127 && addr[1] == 0 &&
 		addr[2] == 0 && addr[3] == 1) 
+		continue;
+
+	    /*
+	     * Ignore '0.0.0.0' entries as they are
+	     * returned by some OSes for unconfigured NICs but they are
+	     * not useful on the other end of the wire.
+	     */
+	    if (len == 4 &&
+		addr[0] == 0 && addr[1] == 0 &&
+		addr[2] == 0 && addr[3] == 0)
 		continue;
 #if defined(IPv6) && defined(AF_INET6)
 	    else if (family == FamilyInternet6 && 
