@@ -14,13 +14,20 @@
 #include "fbdevhw.h"
 #include "fbpriv.h"
 
-#include "asm/page.h"	/* #define for PAGE_* */
+#if 0
+/* kernel header doesn't work with -ansi */
+# include "asm/page.h"	/* #define for PAGE_* */
+#else
+# define PAGE_MASK               (~(getpagesize() - 1))
+#endif
 
 #include "globals.h"
 #define DPMS_SERVER
 #include "extensions/dpms.h"
 
 #define DEBUG 0
+
+#define PAGE_MASK               (~(getpagesize() - 1))
 
 #if DEBUG
 # define TRACE_ENTER(str)	ErrorF("fbdevHW: " str " %d\n",pScrn->scrnIndex)
