@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/xf1bpp/mfbunmap.h,v 1.2 1998/07/25 16:59:25 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/xf1bpp/mfbunmap.h,v 1.1.2.1 1998/06/27 14:48:24 dawes Exp $ */
 
 #ifdef _MFBMAP_H
 #undef _MFBMAP_H

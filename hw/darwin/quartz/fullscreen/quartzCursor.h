@@ -29,7 +29,7 @@
  * holders shall not be used in advertising or otherwise to promote the sale,
  * use or other dealings in this Software without prior written authorization.
  */
-/* $XFree86: xc/programs/Xserver/hw/darwin/quartz/fullscreen/quartzCursor.h,v 1.1 2003/09/16 00:36:15 torrey Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/darwin/quartz/quartzCursor.h,v 1.1 2002/03/28 02:21:19 torrey Exp $ */
 
 #ifndef QUARTZCURSOR_H
 #define QUARTZCURSOR_H

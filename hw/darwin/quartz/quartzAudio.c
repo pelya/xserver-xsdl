@@ -35,7 +35,7 @@
  * holders shall not be used in advertising or otherwise to promote the sale,
  * use or other dealings in this Software without prior written authorization.
  */
-/* $XFree86: xc/programs/Xserver/hw/darwin/quartz/quartzAudio.c,v 1.2 2003/05/14 05:27:56 torrey Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/darwin/quartz/quartzAudio.c,v 1.1 2002/03/28 02:21:18 torrey Exp $ */
 
 #include "quartzCommon.h"
 #include "quartzAudio.h"

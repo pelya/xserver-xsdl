@@ -73,7 +73,6 @@ in this Software without prior written authorization from The Open Group.
 **    *********************************************************
 ** 
 ********************************************************************/
-/* $XFree86: xc/programs/Xserver/Xprint/ps/PsLine.c,v 1.6 2001/12/14 19:59:16 dawes Exp $ */
 
 #include "Ps.h"
 #include "gcstruct.h"

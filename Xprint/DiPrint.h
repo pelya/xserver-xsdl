@@ -30,8 +30,6 @@ not be used in advertising or otherwise to promote the sale, use or other
 dealings in this Software without prior written authorization from said
 copyright holders.
 */
-/* $XFree86: xc/programs/Xserver/Xprint/DiPrint.h,v 1.4 2001/01/17 22:36:28 dawes Exp $ */
-
 /*
  * The XpDiListEntry struct is the type of each element of the array
  * handed back to the extension code to handle a GetPrinterList request.

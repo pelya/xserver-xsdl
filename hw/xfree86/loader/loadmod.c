@@ -86,7 +86,7 @@ static char *LoaderGetCanonicalName(const char *, PatternPtr);
 static void RemoveChild(ModuleDescPtr);
 
 ModuleVersions LoaderVersionInfo = {
-    XF86_VERSION_CURRENT,
+    XORG_VERSION_CURRENT,
     ABI_ANSIC_VERSION,
     ABI_VIDEODRV_VERSION,
     ABI_XINPUT_VERSION,

@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/os/WaitFor.c,v 3.44 2004/02/17 15:30:26 eich Exp $ */
+/* $XFree86: xc/programs/Xserver/os/WaitFor.c,v 3.42 2003/10/16 01:33:35 dawes Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group

@@ -26,7 +26,7 @@
  *
  * Author: Paulo César Pereira de Andrade <pcpa@conectiva.com.br>
  *
- * $XFree86: xc/programs/Xserver/hw/xfree86/xf86cfg/interface.c,v 1.37 2002/10/21 04:18:36 paulo Exp $
+ * $XFree86: xc/programs/Xserver/hw/xfree86/xf86cfg/interface.c,v 1.36 2002/10/19 20:04:21 herrb Exp $
  */
 
 #include <X11/IntrinsicP.h>
@@ -193,8 +193,8 @@ static char *device_names[] = {
 
 static XtResource appResources[] = {
 #if 0
-    {"xf86config",  "XF86Config",  XtRString, sizeof(char*),
-      0, XtRString, "/etc/X11/XF86Config"},
+    {"config",  __XCONFIGFILE__,  XtRString, sizeof(char*),
+      0, XtRString, "/etc/X11/"__XCONFIGFILE__},
 #endif
     {"menuBitmap",  "MenuBitmap",  XtRString, sizeof(char*),
       0, XtRString, "menu10"},
@@ -205,11 +205,11 @@ Usage(void)
 {
     fprintf(stderr,
 "Usage:\n"
-"   xf86cfg [-option ...]\n"
+"   xorgcfg [-option ...]\n"
 "\n"
 "Options:\n"
-"   -xf86config <XF86Config>   Alternate configuration file.\n"
-"   -modulepath <module-path>  XFree86 modules location.\n"
+"   -config <"__XCONFIGFILE__">   Alternate configuration file.\n"
+"   -modulepath <module-path>  "__XSERVERNAME__" modules location.\n"
 "   -serverpath <server-path>  X server to start (if $DISPLAY is not defined).\n"
 "   -fontpath   <font-path>    Font path for fonts.\n"
 "   -rgbpath    <rgb-path>     Where the rgb.txt file is located.\n"
@@ -217,7 +217,7 @@ Usage(void)
 "   -textmode                  Use this option for the text only interface.\n"
 #endif
 #ifdef USE_MODULES
-"   -nomodules                 Use this option if xf86cfg is slow to start.\n"
+"   -nomodules                 Use this option if xorgcfg is slow to start.\n"
 "   -verbose <number>          Verbosity used in the loader (default 1).\n"
 #endif
 "   -verify                    Verify modules/options integrity.\n"
@@ -253,7 +253,9 @@ main(int argc, char *argv[])
     noverify = True;
 
     for (i = 1; i < argc; i++) {
-	if (strcmp(argv[i], "-xf86config") == 0) {
+	if (strcmp(argv[i], "-config") == 0 ||
+	    strcmp(argv[i], "-xorgconfig") == 0 ||
+	    strcmp(argv[i], "-xf86config") == 0) {
 	    if (i + 1 < argc) {
 		XF86Config_path = argv[++i];
 		config_set = True;
@@ -298,13 +300,13 @@ main(int argc, char *argv[])
     
     startedx = startx();
     if (XF86Config_path == NULL)
-	XF86Config_path = XtNewString("XF86Config-4");
+	XF86Config_path = XtNewString(__XCONFIGFILE__"-4");
     if (XkbConfig_path == NULL) {
 	XmuSnprintf(XkbConfig_path_static, sizeof(XkbConfig_path_static),
 		    "%s/%s%s", XFree86Dir, XkbConfigDir, XkbConfigFile);
 	XkbConfig_path = XkbConfig_path_static;
     }
-    toplevel = XtAppInitialize(&appcon, "XF86Cfg",
+    toplevel = XtAppInitialize(&appcon, "XOrgCfg",
 		    	       NULL, 0,
 			       &argc, argv,
 			       NULL, NULL, 0);
@@ -534,9 +536,9 @@ main(int argc, char *argv[])
 # endif
 #else
 # ifdef XF86CONFIGDIR
-	XF86Config_path = XtNewString(XF86CONFIGDIR "/XF86Config-4");
+	XF86Config_path = XtNewString(XF86CONFIGDIR "/"__XCONFIGFILE__"-4");
 # else
-	XF86Config_path = XtNewString("/etc/X11/XF86Config-4");
+	XF86Config_path = XtNewString("/etc/X11/"__XCONFIGFILE__"-4");
 # endif
 #endif
     }

@@ -27,7 +27,7 @@
  *
  * Authors:	Harold L Hunt II
  */
-/* $XFree86: xc/programs/Xserver/hw/xwin/winvideo.c,v 1.2 2003/11/10 18:22:44 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xwin/winvideo.c,v 1.1tsi Exp $ */
 
 #include "win.h"
 #include "Xv.h"
@@ -144,7 +144,7 @@ winSetupImageVideo (ScreenPtr pScreen)
 
     adapt->type = XvWindowMask | XvInputMask | XvImageMask;
     adapt->flags = VIDEO_OVERLAID_IMAGES | VIDEO_CLIP_TO_VIEWPORT;
-    adapt->name = "Cygwin/XFree86 Video Overlay";
+    adapt->name = "Cygwin/X Video Overlay";
     adapt->nEncodings = 1;
     adapt->pEncodings = DummyEncoding;
     adapt->nFormats = NUM_FORMATS;

@@ -116,6 +116,10 @@ extern int ffs(unsigned long);
         ;
 # endif
 
+# if defined(__SUNPRO_C)
+#  define DO_PROTOTYPES
+# endif
+
 # if defined(NO_INLINE) || defined(DO_PROTOTYPES)
 
 #  if !defined(__sparc__) && !defined(__arm32__) \
@@ -493,7 +497,7 @@ __ustw (unsigned long r5, unsigned short * r11)
 #    define outw(a,b)	_outw(b,a)
 #    define outl(a,b)	_outl(b,a) 
 
-#   elif defined(linux) && defined(__AMD64__) 
+#   elif defined(linux) && defined(__amd64__) 
  
 #    include <inttypes.h>
 
@@ -1728,7 +1732,7 @@ static __inline__ void ppc_flush_icache(char *addr)
 		: : "r"(addr) : "memory");
 }
 
-# elif defined(__sparc__)
+# elif defined(__sparc__) || defined(sparc)
  /*
   * Like powerpc, we provide byteswapping and no byteswapping functions
   * here with byteswapping as default, drivers that don't need byteswapping

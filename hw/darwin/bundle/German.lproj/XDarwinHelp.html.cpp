@@ -1,19 +1,14 @@
-<!-- $XFree86: xc/programs/Xserver/hw/darwin/bundle/German.lproj/XDarwinHelp.html.cpp,v 1.1 2001/11/03 00:25:34 torrey Exp $ -->
-
-#include "xf86Version.h"
-#ifndef PRE_RELEASE
-#define PRE_RELEASE XF86_VERSION_SNAP
-#endif
+<!-- $XFree86: xc/programs/Xserver/hw/darwin/bundle/English.lproj/XDarwinHelp.html.cpp,v 1.1 2001/05/21 01:42:17 torrey Exp $ -->
 
 <html>
 <head>
-<title>XFree86 for Mac OS X</title>
+<title>XDarwin Help</title>
 </head>
 <body>
 <center>
-    <h1>XFree86 on Darwin and Mac OS X</h1>
-    XFree86 XF86_VERSION<br>
-    Release Date: XF86_REL_DATE
+    <h1>XDarwin X Server for Mac OS X</h1>
+    X_VENDOR_NAME X_VERSION<br>
+    Release Date: X_REL_DATE
 </center>
 <h2>Contents</h2>
 <ol>
@@ -27,43 +22,54 @@
     <h2><a NAME="notice">Important Notice</a></h2>
 </center>
 <blockquote>
-#if PRE_RELEASE
-This is a pre-release version of XFree86, and is not supported in any way. Bugs may be reported and patches may be submitted to the <A HREF="http://sourceforge.net/projects/xonx/">XonX project page</A> at SourceForge.  Before reporting bugs in pre-release versions, please check the latest version from <A HREF="http://sourceforge.net/projects/xonx/">XonX</A> or in the <A HREF="http://www.XFree86.Org/cvs">XFree86 CVS repository</A>.
+#if X_PRE_RELEASE
+This is a pre-release version of XDarwin, and is not supported in any way. Bugs may be reported and patches may be submitted to the <A HREF="http://sourceforge.net/projects/xonx/">XonX project page</A> at SourceForge.  Before reporting bugs in pre-release versions, please check the latest version from <A HREF="http://sourceforge.net/projects/xonx/">XonX</A> or the X_VENDOR_LINK.
 #else
 If the server is older than 6-12 months, or if your hardware is newer than the above date, look for a newer version before reporting problems. Bugs may be reported and patches may be submitted to the <A HREF="http://sourceforge.net/projects/xonx/">XonX project page</A> at SourceForge.
 #endif
 </blockquote>
 <blockquote>
 This software is distributed under the terms of the <A HREF="#license">MIT X11 / X Consortium License</A> and is provided AS IS, with no warranty. Please read the <A HREF="#license">License</A> before using.</blockquote>
+
 <h2><a NAME="usage">Usage</a></h2>
-<p>XFree86 is a freely redistributable open-source implementation of the <a HREF
-="http://www.x.org/">X Window System</a> produced by the <a HREF="http://www.XFree86.Org/">XFree86 Project, Inc.</a> XFree86 runs on Mac OS X in full screen mode. When the X window system is active, it takes over the entire screen. You can switch back to the Mac OS X desktop by holding down Command-Option-A. This key combination can be changed in the user preferences. From the Mac OS X desktop, just click on the XDarwin icon in the floating switch window to switch back to the X window system. You can change this behavior in the user preferences so that clicking on the XDarwin icon in the Dock switches as well.</p>
+<p>XDarwin is a freely redistributable open-source X server for the <a HREF="http://www.x.org/">X Window System</a>. This version of XDarwin was produced by the X_VENDOR_LINK. XDarwin runs on Mac OS X in full screen or rootless modes.</p>
+<p>In full screen mode, when the X window system is active, it takes over the entire screen. You can switch back to the Mac OS X desktop by holding down Command-Option-A. This key combination can be changed in the user preferences. From the Mac OS X desktop, click on the XDarwin icon in the Dock to switch back to the X window system.  (You can change this behavior in the user preferences so that you must click the XDarwin icon in the floating switch window instead.)</p>
+<p>In rootless mode, the X window system and Aqua share your display. The root window of the X11 display is the size of the screen and contains all the other windows. The X11 root window is not displayed in rootless mode as Aqua handles the desktop background.</p>
 <h3>Multi-Button Mouse Emulation</h3>
-<p>Many X11 applications rely on the use of a 3-button mouse. To emulate a 3-button mouse with a single button, select "Enable emulation of multiple mouse buttons" in the Preferences. When emulating a 3-button mouse, holding down the left command key and clicking the mouse button will simulate clicking the second mouse button. Holding down the left option key and clicking will simulate the third button.</p>
-<p>Notes:</p>
-<ul>
-    <li>With most keyboards the left and right command and option keys are not differentiated so either will work.
-    <li>Even with command and/or option keys mapped to some other key with xmodmap, you still must use the original command and option keys for multibutton mouse emulation.
-    <li>The only way to simulate holding down the left command key and clicking the second mouse button is to map some other key to be the left command key. The same is true for simulating holding down the left option key and clicking the third mouse button.
-</ul>
+<p>Many X11 applications rely on the use of a 3-button mouse. You can emulate a 3-button mouse with a single button by holding down various modifier keys while you click the mouse button. This is controlled by settings in the "Multi-Button Mouse Emulation" section of the "General" preferences. By default, emulation is on and holding down the command key and clicking the mouse button will simulate clicking the second mouse button. Holding down the option key and clicking will simulate the third button. You can change to any combination of modifiers to emulate buttons two and three in the preferences. Note, even if the modifiers keys are mapped to some other key with xmodmap, you still must use the actual keys specified in the preferences for multi-button mouse emulation.</p>
+
 <h2><a NAME="path">Setting Your Path</a></h2>
-<p>The X11 binaries are located in /usr/X11R6/bin, which you may need to add to your path. Your path is the list of directories to be searched for executable commands. The way to do this depends on the shell you are using. The following directions are for tcsh, which is the default shell on Darwin and Mac OS X.</p>
-<p>You can check your path by typing "printenv PATH". You should see /usr/X11R6/bin listed as one of the directories. If not, you should add it to your default path. To do so, you can add the following line to the file ~/Library/init/tcsh/path: (You may need to create this file and directory path if it does not exist already.)</p>
-<blockquote>setenv PATH "${PATH}:/usr/X11R6/bin"</blockquote>
-<p>Note that if you have created a .cshrc or .tcshrc file, these files will override your settings in ~/Library/init/tcsh/ and you will need to change one of these files instead. These changes will not take effect until you open a new Terminal window. You may also want to add the man pages from XFree86 to the list of pages to be searched when you are looking for documentation. The X11 man pages are located in /usr/X11R6/man and the MANPATH environment variable contains the list of directories to search.</p>
+<p>Your path is the list of directories to be searched for executable commands. The X11 commands are located in <code>/usr/X11R6/bin</code>, which needs to be added to your path. XDarwin does this for you by default and can also add additional directories where you have installed command line applications.</p>
+<p>More experienced users will have already set their path correctly using the initialization files for their shell. In this case, you can inform XDarwin not to modify your path in the preferences. XDarwin launches the initial X11 clients in the user's default login shell. (An alternate shell can also be specified in the preferences.) The way to set the path depends on the shell you are using. This is described in the man page documentation for the shell.</p>
+<p>In addition you may also want to add the X11 man pages to the list of pages to be searched when you are looking for documentation. The X11 man pages are located in <code>/usr/X11R6/man</code> and the <code>MANPATH</code> environment variable contains the list of directories to search.</p>
+
 <h2><a NAME="prefs">User Preferences</a></h2>
-<p>A number of options may be set from the user preferences, accessible from the "Preferences..." menu item in the "XDarwin" menu. The options listed under Startup Options will not take effect until you have restarted XDarwin. All other options take effect immediately. The various options are described below:</p>
+<p>A number of options may be set from the user preferences, accessible from the "Preferences..." menu item in the "XDarwin" menu. The options listed as start up options will not take effect until you have restarted XDarwin. All other options take effect immediately. The various options are described below:</p>
+<h3>General</h3>
 <ul>
-    <li>Key combination button: Click this button and then press any number of modifiers followed by a standard key to change the key combination to switch between Aqua and X11.</li>
-    <li>Use System beep for X11: When enabled the standard Mac OS X alert sound is used as X11 bell. When disabled (default) a simple tone is used.</li>
-    <li>Click on icon in Dock switches to X11: Enable this to activate switching to X11 by clicking on the XDarwin icon in the Dock. On some versions of Mac OS X, switching by clicking in the Dock can cause the cursor to disappear on returning to Aqua.</li>
-    <li>Show help on startup: This will show the introductory splash screen when XDarwin is launched.</li>
-    <li>Display number: This sets what X display number XDarwin should assign to the display. Note that XDarwin always takes over the main display when showing X11.</li>
-    <li>Keymapping: By default, XDarwin loads the keymapping from the Darwin kernel on startup. On portables, this keymapping is sometimes empty so that the keyboard will appear to be dead in X11. If "Load from file" is selected, XDarwin will load the keymapping from the specified file instead.</li>
+    <li><b>Use System beep for X11:</b> When enabled the standard Mac OS X alert sound is used as the X11 bell. When disabled (default) a simple tone is used.</li>
+    <li><b>Allow X11 to change mouse acceleration:</b> In a standard X window system implementation, the window manager can change the mouse acceleration. This can lead to confusion as the mouse acceleration may be set to different values by the Mac OS X System Preferences and the X window manager. By default, X11 is not allowed to change the mouse acceleration to avoid this problem.</li>
+    <li><b>Multi-Button Mouse Emulation:</b> This is described above under <a HREF="#usage">Usage</a>. When emulation is enabled the selected modifiers must be held down when the mouse button is pushed to emulate the second or third mouse buttons.</li>
 </ul>
+<h3>Start Up</h3>
+<ul>
+    <li><b>Default Mode:</b> If the user does not indicate whether to run in full screen or rootless mode, the mode specified here will be used.</li>
+    <li><b>Show mode pick panel on startup:</b> By default, a panel is displayed when XDarwin is started to allow the user to choose between full screen or rootless mode. If this option is turned off, the default mode will be started automatically.</li>
+    <li><b>X11 Display number:</b> X11 allows there to be multiple displays managed by separate X servers on a single computer. The user may specify an integer display number for XDarwin to use if more than one X server is going to be run simultaneously.</li>
+    <li><b>Allow Xinerama multiple monitor support:</b> XDarwin supports multiple monitors with Xinerama, which treats all monitors as being part of one large rectangular screen. You can disable Xinerama with this option, but currently XDarwin does not handle multiple monitors correctly without it. If you only have a single monitor, Xinerama is automatically disabled.</li>
+    <li><b>Keymapping File:</b> A keymapping file is read at startup and translated to an X11 keymap. Keymapping files, available for a wide variety of languages, are found in <code>/System/Library/Keyboards</code>.</li>
+    <li><b>Starting First X11 Clients:</b> When XDarwin is started from the Finder, it will run <code>xinit</code> to launch the X window manager and other X clients. (See "<code>man xinit</code>" for more information.) Before XDarwin runs <code>xinit</code> it will add the specified directories to the user's path. By default only <code>/usr/X11R6/bin</code> is added. Additional directories may added, separated by a colon. The X clients are started in the user's default login shell so that the user's shell initialization files are read. If desired, an alternate shell may be specified.</li>
+</ul>
+<h3>Full Screen</h3>
+<ul>
+    <li><b>Key combination button:</b> Click this button and then press any number of modifiers followed by a standard key to change the key combination to switch between Aqua and X11.</li>
+    <li><b>Click on icon in Dock switches to X11:</b> Enable this to activate switching to X11 by clicking on the XDarwin icon in the Dock. On some versions of Mac OS X, switching by clicking in the Dock can cause the cursor to disappear on returning to Aqua.</li>
+    <li><b>Show help on startup:</b> This will show an introductory splash screen when XDarwin is started in full screen mode.</li>
+    <li><b>Color bit depth:</b> In full screen mode, the X11 display can use a different color bit depth than is used by Aqua. If "Current" is specified, the depth used by Aqua when XDarwin starts will be used. Otherwise 8, 15, or 24 bits may be specified.</li>
+</ul>
+
 <h2><a NAME="license">License</a></h2>
-The XFree86 Project is committed to providing freely redistributable binary and source releases. The main license we use is one based on the traditional MIT X11 / X Consortium License, which doesn't impose any conditions on modification or redistribution of source code or binaries other than requiring that copyright/license notices are left intact. For more information and additional copyright/licensing notices covering some sections of the code, please see the <A HREF="http://www.xfree86.org/legal/licence.html">XFree86
-License page</A>.
+The main license for XDarwin is based on the traditional MIT X11 / X Consortium License, which does not impose any conditions on modification or redistribution of source code or binaries other than requiring that copyright/license notices are left intact. For more information and additional copyright/licensing notices covering some sections of the code, please refer to the source code.
 <H3><A NAME="3"></A>X Consortium License</H3>
 <p>Copyright (C) 1996 X Consortium</p>
 <p>Permission is hereby granted, free of charge, to any person obtaining a 

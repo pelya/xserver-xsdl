@@ -1,3 +1,4 @@
+/* $XdotOrg: xc/programs/Xserver/os/utils.c,v 1.1.4.6.2.4.6.3 2004/04/20 03:27:09 gisburn Exp $ */
 /* $Xorg: utils.c,v 1.5 2001/02/09 02:05:24 xorgcvs Exp $ */
 /*
 
@@ -49,7 +50,7 @@ OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE
 OR PERFORMANCE OF THIS SOFTWARE.
 
 */
-/* $XFree86: xc/programs/Xserver/os/utils.c,v 3.97 2004/01/09 00:35:06 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/os/utils.c,v 3.96 2004/01/07 04:16:37 dawes Exp $ */
 
 #ifdef __CYGWIN__
 #include <stdlib.h>
@@ -167,7 +168,7 @@ int userdefinedfontpath = 0;
 
 char *dev_tty_from_init = NULL;		/* since we need to parse it anyway */
 
-extern int dispatchExceptionAtReset;
+extern char dispatchExceptionAtReset;
 
 OsSigHandlerPtr
 OsSignal(sig, handler)
@@ -575,6 +576,17 @@ VerifyDisplayName(const char *d)
 }
 
 /*
+ * This function is responsible for doing initalisation of any global
+ * variables at an very early point of server startup (even before
+ * |ProcessCommandLine()|. 
+ */
+void InitGlobals(void)
+{
+    ddxInitGlobals();
+}
+
+
+/*
  * This function parses the command line. Handles device-independent fields
  * and allows ddx to handle additional fields.  It is not allowed to modify
  * argc or any of the strings pointed to by argv.
@@ -607,7 +619,7 @@ ProcessCommandLine(int argc, char *argv[])
             if( ! VerifyDisplayName( display ) ) {
                 ErrorF("Bad display name: %s\n", display);
                 UseMsg();
-                exit(1);
+		FatalError("Bad display name, exiting: %s\n", display);
             }
 	}
 	else if ( strcmp( argv[i], "-a") == 0)
@@ -985,7 +997,7 @@ ProcessCommandLine(int argc, char *argv[])
  	{
 	    ErrorF("Unrecognized option: %s\n", argv[i]);
 	    UseMsg();
-	    exit (1);
+	    FatalError("Unrecognized option: %s\n", argv[i]);
         }
     }
 }
@@ -1848,13 +1860,13 @@ enum BadCode {
 #define ARGMSG \
     "\nIf the arguments used are valid, and have been rejected incorrectly\n" \
       "please send details of the arguments and why they are valid to\n" \
-      "XFree86@XFree86.org.  In the meantime, you can start the Xserver as\n" \
+      "&&&&&@X.org.  In the meantime, you can start the Xserver as\n" \
       "the \"super user\" (root).\n"   
 
 #define ENVMSG \
     "\nIf the environment is valid, and have been rejected incorrectly\n" \
       "please send details of the environment and why it is valid to\n" \
-      "XFree86@XFree86.org.  In the meantime, you can start the Xserver as\n" \
+      "&&&&&@X.org.  In the meantime, you can start the Xserver as\n" \
       "the \"super user\" (root).\n"
 
 void

@@ -26,7 +26,8 @@
  *
  * Author: Paulo César Pereira de Andrade <pcpa@conectiva.com.br>
  *
- * $XFree86: xc/programs/Xserver/hw/xfree86/xf86cfg/loader.c,v 1.20 2003/12/17 17:45:33 dawes Exp $
+ * $XdotOrg$
+ * $XFree86: xc/programs/Xserver/hw/xfree86/xf86cfg/loader.c,v 1.19 2002/06/06 21:03:32 paulo Exp $
  */
 
 #include "config.h"
@@ -187,8 +188,7 @@ LoaderInitializeOptions(void)
 	first = 0;
 
 	checkerLegend[CHECKER_OPTIONS_FILE_MISSING] =
-	"The Options file, normally /usr/X11R6/lib/X11/Options was not found.\n"
-	"In the sources, it is at xc/programs/Xserver/hw/xfree86/Options.";
+	"The Options file, normally /usr/X11R6/lib/X11/Options was not found.\n";
 	checkerLegend[CHECKER_OPTION_DESCRIPTION_MISSING] =
 	"No description for the module option. The description should be in\n"
 	"in the Options file, and using the sintax:\n"
@@ -206,7 +206,7 @@ LoaderInitializeOptions(void)
 	checkerLegend[CHECKER_NO_OPTIONS_AVAILABLE] =
 	"The driver does not have an AvailableOptions function, or that\n"
 	"function is returning NULL. If the driver is returning NULL, and\n"
-	"really does not need any options from XF86Config, than the message\n"
+	"really does not need any options from "__XCONFIGFILE__", than the message\n"
 	"can be ignored.";
 	checkerLegend[CHECKER_NO_VENDOR_CHIPSET] =
 	"The checker could not fetch the PCI chipset/vendor information from\n"

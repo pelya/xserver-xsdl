@@ -1,5 +1,5 @@
 /*
- * $XFree86: xc/programs/Xserver/miext/layer/laymodule.c,v 1.1 2002/11/08 22:19:55 keithp Exp $
+ * $XFree86$
  *
  * Copyright © 2000 Keith Packard
  *
@@ -43,7 +43,7 @@ static XF86ModuleVersionInfo VersRec =
 	MODULEVENDORSTRING,
 	MODINFOSTRING1,
 	MODINFOSTRING2,
-	XF86_VERSION_CURRENT,
+	XORG_VERSION_CURRENT,
 	1, 0, 0,
 	ABI_CLASS_ANSIC,		/* Only need the ansic layer */
 	ABI_ANSIC_VERSION,

@@ -1,4 +1,5 @@
-/* $XFree86: xc/programs/Xserver/mi/miarc.c,v 3.15 2003/12/06 18:46:28 dawes Exp $ */
+/* $XdotOrg: xc/programs/Xserver/mi/miarc.c,v 1.1.4.3 2003/12/20 00:28:31 kaleb Exp $ */
+/* $XFree86: xc/programs/Xserver/mi/miarc.c,v 3.14 2003/10/29 22:57:48 tsi Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -49,7 +50,8 @@ SOFTWARE.
 /* Author: Keith Packard and Bob Scheifler */
 /* Warning: this code is toxic, do not dally very long here. */
 
-#if defined(_XOPEN_SOURCE) || defined(__QNXNTO__)
+#if defined(_XOPEN_SOURCE) || defined(__QNXNTO__) \
+	|| (defined(sun) && defined(__SVR4))
 #include <math.h>
 #else
 #define _XOPEN_SOURCE	/* to get prototype for hypot on some systems */

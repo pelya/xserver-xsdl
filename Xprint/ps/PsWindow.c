@@ -73,11 +73,9 @@ in this Software without prior written authorization from The Open Group.
 **    *********************************************************
 ** 
 ********************************************************************/
-/* $XFree86: xc/programs/Xserver/Xprint/ps/PsWindow.c,v 1.13 2003/10/29 22:11:55 tsi Exp $ */
 
 #include <stdio.h>
 #include <string.h>
-#include <sys/types.h>
 #include <sys/wait.h>
 
 #include "mistruct.h"
@@ -87,7 +85,8 @@ in this Software without prior written authorization from The Open Group.
 
 #include "Ps.h"
 
-#if 0
+extern WindowPtr *WindowTable;
+
 /*
  * The following list of strings defines the properties which will be
  * placed on the screen's root window if the property was defined in
@@ -104,7 +103,7 @@ static char *propStrings[] = {
 	DT_PRINT_PAGE_COMMAND,
 	(char *)NULL
 };
-#endif
+
 
 /*
  * PsCreateWindow - watch for the creation of the root window.
@@ -219,6 +218,8 @@ PsPaintWindow(
   RegionPtr pRegion,
   int       what)
 {
+  int       status;
+  WindowPtr pRoot;
 
 #define FUNCTION        0
 #define FOREGROUND      1
@@ -298,6 +299,7 @@ PsPaintWindow(
   gcmask |= GCFunction | GCClipMask;
 
   i = pScreen->myNum;
+  pRoot = WindowTable[i];
 
   pBgWin = pWin;
   if (what == PW_BORDER)
@@ -375,14 +377,14 @@ PsPaintWindow(
         }
         break;
       case GCClipMask:
-        if( (pointer)(long)pGC->clientClipType!=(pointer)CT_NONE )
+        if( (pointer)pGC->clientClipType!=(pointer)CT_NONE )
         {
           gcmask |= index;
           gcval[i++] = (pointer)CT_NONE;
         }
         break;
       case GCSubwindowMode:
-        if( (pointer)(long)pGC->subWindowMode!=newValues[SUBWINDOW] )
+        if( (pointer)pGC->subWindowMode!=newValues[SUBWINDOW] )
         {
           gcmask |= index;
           gcval[i++] = newValues[SUBWINDOW];
@@ -396,7 +398,7 @@ PsPaintWindow(
         }
         break;
       case GCFillStyle:
-        if( (pointer)(long)pGC->fillStyle!=newValues[FILLSTYLE] )
+        if( (pointer)pGC->fillStyle!=newValues[FILLSTYLE] )
         {
           gcmask |= index;
           gcval[i++] = newValues[FILLSTYLE];

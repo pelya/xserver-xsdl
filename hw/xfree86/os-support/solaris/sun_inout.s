@@ -1,4 +1,4 @@
-/ $XFree86: xc/programs/Xserver/hw/xfree86/os-support/sunos/sun_inout.s,v 1.1 2001/05/28 02:42:31 tsi Exp $
+/ $XFree86$
 /
 / Copyright 1994-2001 The XFree86 Project, Inc.  All Rights Reserved.
 /

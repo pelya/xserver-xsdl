@@ -3,6 +3,7 @@
  */
 /*
 Copyright (c) 2002 Torrey T. Lyons. All Rights Reserved.
+Copyright 2004 Kaleb S. KEITHLEY. All Rights Reserved.
 
 This file is based on mieq.c by Keith Packard,
 which contains the following copyright:
@@ -28,7 +29,7 @@ Except as contained in this notice, the name of The Open Group shall not be
 used in advertising or otherwise to promote the sale, use or other dealings
 in this Software without prior written authorization from The Open Group.
  */
-/* $XFree86: xc/programs/Xserver/hw/darwin/darwinEvents.c,v 1.5 2003/11/03 05:36:30 tsi Exp $ */
+/* $XFree86$ */
 
 #define NEED_EVENTS
 #include   "X.h"
@@ -93,6 +94,29 @@ static void DarwinPressModifierMask(
     }
 }
 
+#ifdef NX_DEVICELCTLKEYMASK
+#define CONTROL_MASK(flags) (flags & (NX_DEVICELCTLKEYMASK|NX_DEVICERCTLKEYMASK))
+#else
+#define CONTROL_MASK(flags) (NX_CONTROLMASK)
+#endif /* NX_DEVICELCTLKEYMASK */
+
+#ifdef NX_DEVICELSHIFTKEYMASK
+#define SHIFT_MASK(flags) (flags & (NX_DEVICELSHIFTKEYMASK|NX_DEVICERSHIFTKEYMASK))
+#else
+#define SHIFT_MASK(flags) (NX_SHIFTMASK)
+#endif /* NX_DEVICELSHIFTKEYMASK */
+
+#ifdef NX_DEVICELCMDKEYMASK
+#define COMMAND_MASK(flags) (flags & (NX_DEVICELCMDKEYMASK|NX_DEVICERCMDKEYMASK))
+#else
+#define COMMAND_MASK(flags) (NX_COMMANDMASK)
+#endif /* NX_DEVICELCMDKEYMASK */
+
+#ifdef NX_DEVICELALTKEYMASK
+#define ALTERNATE_MASK(flags) (flags & (NX_DEVICELALTKEYMASK|NX_DEVICERALTKEYMASK))
+#else
+#define ALTERNATE_MASK(flags) (NX_ALTERNATEMASK)
+#endif /* NX_DEVICELALTKEYMASK */
 
 /*
  * DarwinUpdateModifiers
@@ -108,16 +132,16 @@ static void DarwinUpdateModifiers(
         DarwinPressModifierMask(xe, NX_ALPHASHIFTMASK);
     }
     if (flags & NX_COMMANDMASK) {
-        DarwinPressModifierMask(xe, NX_COMMANDMASK);
+        DarwinPressModifierMask(xe, COMMAND_MASK(flags));
     }
     if (flags & NX_CONTROLMASK) {
-        DarwinPressModifierMask(xe, NX_CONTROLMASK);
+        DarwinPressModifierMask(xe, CONTROL_MASK(flags));
     }
     if (flags & NX_ALTERNATEMASK) {
-        DarwinPressModifierMask(xe, NX_ALTERNATEMASK);
+        DarwinPressModifierMask(xe, ALTERNATE_MASK(flags));
     }
     if (flags & NX_SHIFTMASK) {
-        DarwinPressModifierMask(xe, NX_SHIFTMASK);
+        DarwinPressModifierMask(xe, SHIFT_MASK(flags));
     }
     if (flags & NX_SECONDARYFNMASK) {
         DarwinPressModifierMask(xe, NX_SECONDARYFNMASK);

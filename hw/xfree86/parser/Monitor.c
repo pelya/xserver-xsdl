@@ -671,15 +671,17 @@ xf86printMonitorSection (FILE * cf, XF86ConfMonitorPtr ptr)
 			fprintf (cf, "\tDisplaySize  %d\t%d\n",
 					 ptr->mon_width,
 					 ptr->mon_height);
+		if ( ptr->mon_n_hsync || ptr->mon_n_vrefresh )
+		    fprintf(cf," ### Uncomment if you don't want to default to DDC:\n");
 		for (i = 0; i < ptr->mon_n_hsync; i++)
 		{
-			fprintf (cf, "\tHorizSync    %2.1f - %2.1f\n",
+			fprintf (cf, "#\tHorizSync    %2.1f - %2.1f\n",
 					 ptr->mon_hsync[i].lo,
 					 ptr->mon_hsync[i].hi);
 		}
 		for (i = 0; i < ptr->mon_n_vrefresh; i++)
 		{
-			fprintf (cf, "\tVertRefresh  %2.1f - %2.1f\n",
+			fprintf (cf, "#\tVertRefresh  %2.1f - %2.1f\n",
 					 ptr->mon_vrefresh[i].lo,
 					 ptr->mon_vrefresh[i].hi);
 		}

@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/xf8_32bpp/cfb8_32module.c,v 1.6 1999/01/26 05:54:20 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/xf8_32bpp/cfb8_32module.c,v 1.5 1999/01/24 13:32:42 dawes Exp $ */
 
 
 #ifdef XFree86LOADER
@@ -13,7 +13,7 @@ static XF86ModuleVersionInfo VersRec =
         MODULEVENDORSTRING,
         MODINFOSTRING1,
         MODINFOSTRING2,
-        XF86_VERSION_CURRENT,
+        XORG_VERSION_CURRENT,
         1, 0, 0,
         ABI_CLASS_ANSIC,                /* Only need the ansic layer */
         ABI_ANSIC_VERSION,

@@ -20,7 +20,7 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/bus/xf86Sbus.h,v 1.7 2004/03/08 15:37:12 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/bus/xf86Sbus.h,v 1.3 2001/04/20 17:02:43 tsi Exp $ */
 
 #ifndef _XF86_SBUS_H
 #define _XF86_SBUS_H
@@ -47,22 +47,19 @@
 #endif
 
 #ifndef FBTYPE_SUNGP3
-#define FBTYPE_SUNGP3 17
-#endif
-#ifndef FBTYPE_SUNGT
-#define FBTYPE_SUNGT 18
-#endif
-#ifndef FBTYPE_SUNLEO
-#define FBTYPE_SUNLEO 19
+#define FBTYPE_SUNGP3 -1
 #endif
 #ifndef FBTYPE_MDICOLOR
-#define FBTYPE_MDICOLOR 20
+#define FBTYPE_MDICOLOR -1
+#endif
+#ifndef FBTYPE_SUNLEO
+#define FBTYPE_SUNLEO -1
 #endif
 #ifndef FBTYPE_TCXCOLOR
-#define FBTYPE_TCXCOLOR 21
+#define FBTYPE_TCXCOLOR -1
 #endif
 #ifndef FBTYPE_CREATOR
-#define FBTYPE_CREATOR 22
+#define FBTYPE_CREATOR -1
 #endif
 
 #endif /* _XF86_SBUS_H */

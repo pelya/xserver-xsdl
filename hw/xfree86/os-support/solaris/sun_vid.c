@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/sunos/sun_vid.c,v 1.4 2004/03/08 15:37:12 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/sunos/sun_vid.c,v 1.2 2001/10/28 03:34:03 tsi Exp $ */
 /*
  * Copyright 1990,91 by Thomas Roell, Dinkelscherben, Germany
  * Copyright 1993 by David Wexelblat <dwex@goblin.org>
@@ -75,15 +75,50 @@ xf86MapVidMem(int ScreenNum, int Flags, unsigned long Base, unsigned long Size)
 {
 	pointer base;
 	int fd;
+	char vtname[20];
 
-	if (!xf86LinearVidMem())
-		FatalError("xf86MapVidMem:  no aperture device\n");
+	/*
+	 * Solaris 2.1 x86 SVR4 (10/27/93)
+	 * The server must treat the virtual terminal device file as the
+	 * standard SVR4 /dev/pmem.
+	 *
+	 * Using the /dev/vtXX device as /dev/pmem only works for the
+	 * A0000-FFFFF region - If we wish you mmap the linear aperture
+	 * it requires a device driver.
+	 *
+	 * So what we'll do is use /dev/vtXX for the A0000-FFFFF stuff, and
+	 * try to use the /dev/fbs/aperture or /dev/xsvc driver if the server
+	 * tries to mmap anything > FFFFF.  Its very very unlikely that the
+	 * server will try to mmap anything below FFFFF that can't be handled
+	 * by /dev/vtXX.
+	 *
+	 * DWH - 2/23/94
+	 * DWH - 1/31/99 (Gee has it really been 5 years?)
+	 *
+	 * Solaris 2.8 7/26/99
+	 * Use /dev/xsvc for everything
+	 *
+	 * DWH - 7/26/99 - Solaris8/dev/xsvc changes
+	 *
+	 * TSI - 2001.09 - SPARC changes
+	 */
 
-	fd = open(apertureDevName,
-		  (Flags & VIDMEM_READONLY) ? O_RDONLY : O_RDWR);
+#if defined(i386) && !defined(__SOL8__)
+	if(Base < 0xFFFFF)
+		sprintf(vtname, "/dev/vt%02d", xf86Info.vtno);
+	else
+#endif
+	{
+		if (!xf86LinearVidMem())
+			FatalError("xf86MapVidMem:  no aperture device\n");
+
+		strcpy(vtname, apertureDevName);
+	}
+
+	fd = open(vtname, (Flags & VIDMEM_READONLY) ? O_RDONLY : O_RDWR);
 	if (fd < 0)
 		FatalError("xf86MapVidMem: failed to open %s (%s)\n",
-			   apertureDevName, strerror(errno));
+			   vtname, strerror(errno));
 
 	base = mmap(NULL, Size,
 		    (Flags & VIDMEM_READONLY) ?

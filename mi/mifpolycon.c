@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/mi/mifpolycon.c,v 1.3 2001/12/14 20:00:23 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/mi/mifpolycon.c,v 1.2 2001/08/06 20:51:18 dawes Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group

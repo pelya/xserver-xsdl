@@ -440,11 +440,11 @@ xf86pathIsSafe(const char *path)
  *    %A    cmdline argument as an absolute path (must be absolute to match)
  *    %R    cmdline argument as a relative path
  *    %S    cmdline argument as a "safe" path (relative, and no ".." elements)
- *    %X    default config file name ("XF86Config")
+ *    %X    default config file name ("xorg.conf")
  *    %H    hostname
- *    %E    config file environment ($XF86CONFIG) as an absolute path
- *    %F    config file environment ($XF86CONFIG) as a relative path
- *    %G    config file environment ($XF86CONFIG) as a safe path
+ *    %E    config file environment ($XORGCONFIG) as an absolute path
+ *    %F    config file environment ($XORGCONFIG) as a relative path
+ *    %G    config file environment ($XORGCONFIG) as a safe path
  *    %D    $HOME
  *    %P    projroot
  *    %M    major version number
@@ -453,14 +453,15 @@ xf86pathIsSafe(const char *path)
  */
 
 #ifndef XCONFIGFILE
-#define XCONFIGFILE	"XF86Config"
+#define XCONFIGFILE	"xorg.conf"
 #endif
 #ifndef PROJECTROOT
 #define PROJECTROOT	"/usr/X11R6"
 #endif
 #ifndef XCONFENV
-#define XCONFENV	"XF86CONFIG"
+#define XCONFENV	"XORGCONFIG"
 #endif
+#define XFREE86CFGFILE "XF86Config"
 #ifndef XF86_VERSION_MAJOR
 #ifdef XVERSION
 #if XVERSION > 40000000
@@ -495,7 +496,7 @@ xf86pathIsSafe(const char *path)
 
 static char *
 DoSubstitution(const char *template, const char *cmdline, const char *projroot,
-				int *cmdlineUsed, int *envUsed)
+				int *cmdlineUsed, int *envUsed, char *XConfigFile)
 {
 	char *result;
 	int i, l;
@@ -547,7 +548,7 @@ DoSubstitution(const char *template, const char *cmdline, const char *projroot,
 					BAIL_OUT;
 				break;
 			case 'X':
-				APPEND_STR(XCONFIGFILE);
+				APPEND_STR(XConfigFile);
 				break;
 			case 'H':
 				if (!hostname) {
@@ -701,7 +702,8 @@ xf86openConfigFile(const char *path, const char *cmdline, const char *projroot)
 	/* First, search for a config file. */
 	while (template && !configFile) {
 		if ((configPath = DoSubstitution(template, cmdline, projroot,
-										 &cmdlineUsed, NULL))) {
+						 &cmdlineUsed, NULL,
+						 XCONFIGFILE))) {
 			if ((configFile = fopen(configPath, "r")) != 0) {
 				if (cmdline && !cmdlineUsed) {
 					fclose(configFile);
@@ -715,6 +717,31 @@ xf86openConfigFile(const char *path, const char *cmdline, const char *projroot)
 		}
 		template = strtok(NULL, ",");
 	}
+	
+	/* Then search for fallback */
+	if (!configFile) {
+	    strcpy(pathcopy, path);
+	    template = strtok(pathcopy, ",");
+
+	    while (template && !configFile) {
+		if ((configPath = DoSubstitution(template, cmdline, projroot,
+						 &cmdlineUsed, NULL,
+						 XFREE86CFGFILE))) {
+		    if ((configFile = fopen(configPath, "r")) != 0) {
+			if (cmdline && !cmdlineUsed) {
+			    fclose(configFile);
+			    configFile = NULL;
+			}
+		    }
+		}
+		if (configPath && !configFile) {
+		    xf86conffree(configPath);
+		    configPath = NULL;
+		}
+		template = strtok(NULL, ",");
+	    }
+	}
+	
 	xf86conffree(pathcopy);
 	if (!configFile) {
 

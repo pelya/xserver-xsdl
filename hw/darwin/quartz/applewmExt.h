@@ -27,7 +27,7 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 **************************************************************************/
-/* $XFree86: xc/programs/Xserver/hw/darwin/quartz/applewmExt.h,v 1.3 2003/11/17 22:20:35 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/darwin/quartz/applewmExt.h,v 1.2 2003/11/11 23:48:41 torrey Exp $ */
 
 #ifndef _APPLEWMEXT_H_
 #define _APPLEWMEXT_H_

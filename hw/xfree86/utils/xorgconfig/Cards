@@ -18,7 +18,7 @@
 # The majority of entries are just a binding of a model name to a
 # chipset/server and untested.
 #
-# $XFree86: xc/programs/Xserver/hw/xfree86/xf86config/Cards,v 3.80 2002/11/18 05:24:19 paulo Exp $
+# $XFree86: xc/programs/Xserver/hw/xfree86/xf86config/Cards,v 3.79 2002/10/16 01:31:05 dawes Exp $
 
 # VGA
 
@@ -2979,7 +2979,7 @@ NOCLOCKPROBE
 
 NAME Appian Jeronimo 2000
 CHIPSET PERMEDIA 3
-SERVER XFree86
+SERVER 3DLabs
 DRIVER glint
 NOCLOCKPROBE
 

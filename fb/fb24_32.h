@@ -1,5 +1,5 @@
 /*
- * $XFree86: xc/programs/Xserver/fb/fb24_32.h,v 1.1 2000/04/04 19:24:49 dawes Exp $
+ * $XFree86$
  *
  * Copyright © 2000 SuSE, Inc.
  *

@@ -13,7 +13,7 @@
 **    *********************************************************
 ** 
 ********************************************************************/
-/* $XFree86: xc/programs/Xserver/Xprint/pcl/PclFonts.c,v 1.2 2003/07/16 01:38:34 dawes Exp $ */
+/* $XFree86$ */
 /*
 (c) Copyright 1996 Hewlett-Packard Company
 (c) Copyright 1996 International Business Machines Corp.

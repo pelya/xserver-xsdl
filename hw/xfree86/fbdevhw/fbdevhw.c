@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/fbdevhw/fbdevhw.c,v 1.33 2003/10/30 17:37:16 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/fbdevhw/fbdevhw.c,v 1.32 2003/08/26 10:57:03 daenzer Exp $ */
 
 /* all driver need this */
 #include "xf86.h"
@@ -40,7 +40,7 @@ static XF86ModuleVersionInfo fbdevHWVersRec =
 	MODULEVENDORSTRING,
 	MODINFOSTRING1,
 	MODINFOSTRING2,
-	XF86_VERSION_CURRENT,
+	XORG_VERSION_CURRENT,
 	0, 0, 2,
 	ABI_CLASS_VIDEODRV,
 	ABI_VIDEODRV_VERSION,

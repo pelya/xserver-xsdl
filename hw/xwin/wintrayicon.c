@@ -28,7 +28,7 @@
  * Authors:	Early Ehlinger
  *		Harold L Hunt II
  */
-/* $XFree86: xc/programs/Xserver/hw/xwin/wintrayicon.c,v 1.2 2003/10/02 13:30:11 eich Exp $ */
+/* $XFree86: $ */
 
 #include "win.h"
 #include <shellapi.h>
@@ -62,7 +62,7 @@ winInitNotifyIcon (winPrivScreenPtr pScreenPriv)
   /* Set display and screen-specific tooltip text */
   snprintf (nid.szTip,
 	    sizeof (nid.szTip),
-	    "Cygwin/XFree86 Server - %s:%d",
+	    "Cygwin/X Server - %s:%d",
 	    display, 
 	    (int) pScreenInfo->dwScreen);
 

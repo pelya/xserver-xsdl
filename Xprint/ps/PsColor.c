@@ -73,7 +73,6 @@ in this Software without prior written authorization from The Open Group.
 **    *********************************************************
 ** 
 ********************************************************************/
-/* $XFree86: xc/programs/Xserver/Xprint/ps/PsColor.c,v 1.3 2001/12/14 19:59:15 dawes Exp $ */
 
 #include "Ps.h"
 #include "gcstruct.h"
@@ -86,6 +85,7 @@ PsCreateColormap(ColormapPtr pColor)
   int            i;
   unsigned short rgb;
   VisualPtr      pVisual = pColor->pVisual;
+  Pixel          pix;
 
   if( pVisual->class==TrueColor )
   {

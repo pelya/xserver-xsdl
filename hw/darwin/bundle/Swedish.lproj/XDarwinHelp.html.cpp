@@ -1,19 +1,14 @@
-<!-- $XFree86: xc/programs/Xserver/hw/darwin/bundle/Swedish.lproj/XDarwinHelp.html.cpp,v 1.2 2001/11/07 22:43:27 torrey Exp $ -->
-
-#include "xf86Version.h"
-#ifndef PRE_RELEASE
-#define PRE_RELEASE XF86_VERSION_SNAP
-#endif
+<!-- $XFree86: xc/programs/Xserver/hw/darwin/bundle/English.lproj/XDarwinHelp.html.cpp,v 1.2 2001/11/04 07:02:28 torrey Exp $ -->
 
 <html>
 <head>
-<title>XFree86 f&ouml;r Mac OS X</title>
+<title>XDarwin Help</title>
 </head>
 <body>
 <center>
-    <h1>XFree86 f&ouml;r Darwin och Mac OS X</h1>
-    XFree86 XF86_VERSION<br>
-    F&auml;rdigst&auml;llt: XF86_REL_DATE
+    <h1>XDarwin X Server for Mac OS X</h1>
+    X_VENDOR_NAME X_VERSION<br>
+    F&auml;rdigst&auml;llt: X_REL_DATE
 </center>
 <h2>Inneh&aring;ll</h2>
 <ol>
@@ -28,7 +23,7 @@
 </center>
 <blockquote>
 #if PRE_RELEASE
-Detta &auml;r en testversion av XFree86, och du kan inte garranteras n&aring;gon som helst support f&ouml;r den. Buggar och fel kan rapporteras och f&ouml;rslag till fixar kan skickas till <A HREF="http://sourceforge.net/projects/xonx/">XonX-projektets sida</A> p&aring; SourceForge.  Innan du rapporterar buggar i testversioner, var god pr&ouml;va den senaste versionen fr&aring;n <A HREF="http://sourceforge.net/projects/xonx/">XonX</A> eller i <A HREF="http://www.XFree86.Org/cvs">XFree86 CVS-arkiv</A>.
+Detta &auml;r en testversion av XDarwin, och du kan inte garranteras n&aring;gon som helst support f&ouml;r den. Buggar och fel kan rapporteras och f&ouml;rslag till fixar kan skickas till <A HREF="http://sourceforge.net/projects/xonx/">XonX-projektets sida</A> p&aring; SourceForge.  Innan du rapporterar buggar i testversioner, var god pr&ouml;va den senaste versionen fr&aring;n <A HREF="http://sourceforge.net/projects/xonx/">XonX</A> eller i X_VENDOR_LINK.
 #else
 Om servern &auml;r &auml;ldre &auml;n 6-12 m&aring;nader, eller om din h&aring;rdvara &auml;r nyare &auml;n datumet ovan, leta efter en nyare version innan du rapporterar fel. Buggar och fel kan rapporteras och f&ouml;rslag till fixar kan skickas till <A HREF="http://sourceforge.net/projects/xonx/">XonX-projektets sida</A> p&aring; SourceForge.
 #endif
@@ -37,8 +32,8 @@ Om servern &auml;r &auml;ldre &auml;n 6-12 m&aring;nader, eller om din h&aring;r
 Denna programvara distrubueras i enlighet med <A HREF="#license">MIT X11 / X Consortium License</A> och tilhandh&aring;lls som den &auml;r, helt utan garantier. Var god l&auml;s igenom <A HREF="#license">licensdokumentet (engelska)</A> innan du anv&auml;nder programmet.</blockquote>
 
 <h2><a NAME="usage">Anv&auml;ndande</a></h2>
-<p>XFree86 &auml;r en fritt spridd implemenation av <a HREF
-="http://www.x.org/">X Window-systemet</a> producerad av <a HREF="http://www.XFree86.Org/">XFree86 Project, Inc</a>, med &ouml;ppen k&auml;llkod. Den X Window-server f&ouml;r Darwin och Mac OS X som tillhandah&aring;lls av XFree86 kallas XDarwin. XDarwin kan k&ouml;ras p&aring; Mac OS X i fullsk&auml;rmsl&auml;ge eller rotl&ouml;st l&auml;ge.</p>
+<p>XDarwin &auml;r en fritt spridd X server av <a HREF
+="http://www.x.org/">X Window-systemet</a>. This version of XDarwin was produced by the X_VENDOR_LINK. XDarwin kan k&ouml;ras p&aring; Mac OS X i fullsk&auml;rmsl&auml;ge eller rotl&ouml;st l&auml;ge.</p>
 <p>I fullsk&auml;rmsl&auml;ge kommer X window-systemet att ta &ouml;ver hela sk&auml;rmen n&auml;r det &auml;r aktivt. Du kan byta tillbaka till Mac OS Xs skrivbord genom att trycka Kommando-Alt-A. Denna tangentkombination kan &auml;ndra i inst&auml;llningarna. N&auml;r du &auml;r p&aring; Mac OS Xs skrivbord kan du klicka p&aring; XDarwin-ikonen i dockan f&ouml;r att byta tillbaka till X Window-systemet. (Du kan f&ouml;r&auml;ndra detta beteende i inst&auml;llningarna s&aring; att du ist&auml;llet m&aring;ste klicka i det fltande bytesf&ouml;nstret ist&auml;llet.)</p>
 <p>I rotl&ouml;stl&auml;ge delar X11 och Aqua p&aring; din sk&auml;rm. Rotf&ouml;nstret p&aring; X11-sk&auml;rmen &auml;r av samma storlek som hela sk&auml;rmen och inneh&aring;ller alla andra f&ouml;nster - det fungerar som bakgrund. I rotl&ouml;stl&auml;ge visas inte detta rotf&ouml;nster, eftersom Aqua hanterar skrvbordbakgrunden.</p>
 
@@ -49,7 +44,7 @@ Denna programvara distrubueras i enlighet med <A HREF="#license">MIT X11 / X Con
 <p>Din s&ouml;kv&auml;g &auml;r en lista av kataloger som s&ouml;ks igenom n&auml;r terminalen letar efter kommandon att exekvera. Kommandon som h&ouml;r till X11 ligger i <code>/usr/X11R6/bin</code>, en katalog som inte ligger i din s&ouml;kv&auml;g fr&aring;n b&ouml;rjan. XDarwin l&auml;gger till denna katalog &aring;t dig, och du kan ocks&aring; l&auml;gga till ytterligare kataloger i vilka du lagt program som skall k&ouml;ras fr&aring;n kommandoraden.</p>
 <p>Mer erfarna anv&auml;ndare har antagligen redan st&auml;llt in sin s&ouml;kv&auml;g i skalets inst&auml;llningsfiler. Om detta g&auml;ller dig  kan st&auml;lla in XDarwin s&aring; att din s&ouml;kv&auml;g inte modifieras. XDarwin startar de f&ouml;rsta X11-klienterna i anv&auml;ndarens inloggningsskal (Vill du anv&auml;nda ett alternativt skall, kan du specificera detta i inst&auml;llningarna). Hur du st&auml;ller in din s&ouml;kv&auml;g beror p&aring; vilket skal du anv&auml;nder. Exakt hur beskrivs i skalets man-sidor.</p>
 
-<p>Ut&ouml;ver detta kan du ocks&aring; vilja l&auml;gga till XFree86s man-sidor (dokumentation) till listan &auml;ver sidor som som skall s&ouml;kas n&auml;r du vill l&auml;sa efter dokumentationen. X11s man-sidor ligger i <code>/usr/X11R6/man</code> och listan &auml;ver kataloger att s&ouml;ka best&auml;mms av variabeln<code>MANPATH</code>.</p>
+<p>Ut&ouml;ver detta kan du ocks&aring; vilja l&auml;gga till X11s man-sidor (dokumentation) till listan &auml;ver sidor som som skall s&ouml;kas n&auml;r du vill l&auml;sa efter dokumentationen. X11s man-sidor ligger i <code>/usr/X11R6/man</code> och listan &auml;ver kataloger att s&ouml;ka best&auml;mms av variabeln<code>MANPATH</code>.</p>
 
 <h2><a NAME="prefs">Inst&auml;llningar</a></h2>
 <p>I inst&auml;llningarna finns ett antal alternativ d&auml;r du kan p&aring;verka hur XDarwin beter sig i vissa fall. Inst&auml;llningarna kommer du till genom att v&auml;lja "Inst&auml;llningar..." i menyn "XDarwin". De alternativ som finns under fliken "Starta" tr&auml;der inte i kraft f&ouml;rr&auml;n du startat om programmet. Alla andra alternativ tr&auml;der i kraft omedelbart. De olika alternativen beskrivs nedan:</p>
@@ -77,10 +72,10 @@ Denna programvara distrubueras i enlighet med <A HREF="#license">MIT X11 / X Con
 </ul>
 
 <h2><a NAME="license">Licens (svenska)</a></h2>
-<p>XFree86-projektet &aring;tar sig att tillhandah&aring;lla programvara och k&auml;llkod i format som fritt kan spridas vidare. Den huvudsakliga licens vi anv&auml;nder oss av &auml;r baserad p&aring; den traditionella MIT X11 / XConsortium-licensen, vilken inte p&aring; n&aring;got s&auml;tt begr&auml;nsar f&ouml;r&auml;ndringar eller vidarespridning av vare sig k&auml;llkod eller kompilerad programvara annat &auml;n genom att kr&auml;va att delarna som r&ouml;r copyright och licensiering l&auml;mnas intakta. F&ouml;r mer information och ytterligare copyright/licensieringsinfromation r&ouml;rande vissa speciella delar av koden, se <A HREF="http://www.xfree86.org/legal/licence.html">XFree86-licenssida</A> (engelska).</p>
+<p>Den huvudsakliga licens vi anv&auml;nder oss av &auml;r baserad p&aring; den traditionella MIT X11 / XConsortium-licensen, vilken inte p&aring; n&aring;got s&auml;tt begr&auml;nsar f&ouml;r&auml;ndringar eller vidarespridning av vare sig k&auml;llkod eller kompilerad programvara annat &auml;n genom att kr&auml;va att delarna som r&ouml;r copyright och licensiering l&auml;mnas intakta. F&ouml;r mer information och ytterligare copyright/licensieringsinfromation r&ouml;rande vissa speciella delar av koden, se the source code.</p>
 
 <h3>Licence (english)</h3>
-<p>The XFree86 Project is committed to providing freely redistributable binary and source releases. The main license we use is one based on the traditional MIT X11 / X Consortium License, which does not impose any conditions on modification or redistribution of source code or binaries other than requiring that copyright/license notices are left intact. For more information and additional copyright/licensing notices covering some sections of the code, please see the <A HREF="http://www.xfree86.org/legal/licence.html">XFree86 License page</A>.</p>
+<p>The main license for XDarwin is based on the traditional MIT X11 / X Consortium License, which does not impose any conditions on modification or redistribution of source code or binaries other than requiring that copyright/license notices are left intact. For more information and additional copyright/licensing notices covering some sections of the code, please refer to the source code.</p>
 
 <H3><A NAME="3"></A>X Consortium License</H3>
 <p>Copyright (C) 1996 X Consortium</p>

@@ -22,7 +22,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/miext/rootless/accel/rlFillSpans.c,v 1.1 2003/10/24 00:33:15 torrey Exp $ */
+/* $XFree86: xc/programs/Xserver/fb/fbfillsp.c,v 1.2 2000/02/23 20:29:43 dawes Exp $ */
 
 #include "fb.h"
 #include "rlAccel.h"

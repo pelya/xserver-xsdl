@@ -31,7 +31,7 @@
  *		Harold L Hunt II
  *		MATSUZAKI Kensuke
  */
-/* $XFree86: xc/programs/Xserver/hw/xwin/winwndproc.c,v 1.26 2003/10/02 13:30:11 eich Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xwin/winwndproc.c,v 1.23 2002/10/17 08:18:25 alanh Exp $ */
 
 #include "win.h"
 #include <commctrl.h>

@@ -1,7 +1,6 @@
-.\" $XFree86: xc/programs/Xserver/hw/xfree86/getconfig/getconfig.man,v 1.1 2003/11/12 04:52:15 dawes Exp $
 .TH getconfig 1 __vendorversion__
 .SH NAME
-getconfig - get configuration information for the XFree86 server
+getconfig - get configuration information for the __xservername__ server
 .SH SYNOPSIS
 .B getconfig
 .RI [ option
@@ -9,10 +8,10 @@ getconfig - get configuration information for the XFree86 server
 .SH DESCRIPTION
 .B getconfig
 is a programatic interface that is used by the
-.B XFree86
+.B __xservername__
 server to get configuration information about video hardware when
 operating without an
-.B XF86Config
+.B __xconfigfile__
 file.
 .PP
 This implementation of
@@ -21,7 +20,7 @@ is written in perl.  It processes a prioritized and ordered list of
 rules supplied internally and from meta-configuration files.  The rules
 are in the form of perl expressions.
 .B getconfig
-writes to standard output the XF86Config-style configuration data
+writes to standard output the __xconfigfile__-style configuration data
 specified by the last highest priority rule that evaluates to true.
 Information about the format of the meta-configuration files can be
 found in the getconfig(__filemansuffix__) manual page.
@@ -44,8 +43,9 @@ Enable debugging output.
 .B \-V
 Print out the version information and exit.
 .TP 8
-.BI \-X " XFree86-version"
-Specify the XFree86 version in numeric (integer) form.
+.BI \-X 
+.BI __xservername__-version
+Specify the __xservername__ version in numeric (integer) form.
 .TP 8
 .BI \-b " subsys-id"
 Specify the PCI subsystem ID of the video device.
@@ -68,7 +68,7 @@ Specify the PCI vendor ID of the video device.
 .I .cfg
 files located in the search path.  The search path typically specified
 by the
-.B XFree86
+.B __xservername__
 server is:
 .PP
 .RS 4
@@ -83,16 +83,16 @@ server is:
 where
 .I <modulepath>
 is the
-.B XFree86
+.B __xservername__
 server's module search path.
 
 .SH "SEE ALSO"
 getconfig(__filemansuffix__),
-XFree86(1),
-XF86Config(__filemansuffix__).
+__xservername__(__appmansuffix__),
+__xconfigfile__(__filemansuffix__).
 
 .SH AUTHORS
-The XFree86 automatic configuration support and the
+The __xservername__ automatic configuration support and the
 .B getconfig
 interface was written by David H. Dawes, with the support of X-Oz
-Technologies.
+Technologies for XFree86.

@@ -46,7 +46,7 @@ in this Software without prior written authorization from The Open Group.
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *
  */
-/* $XFree86: xc/programs/Xserver/lbx/lbxdix.c,v 1.8 2001/12/14 19:59:59 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/lbx/lbxdix.c,v 1.7 2001/08/23 14:46:57 alanh Exp $ */
 
 /* various bits of DIX-level mangling */
 

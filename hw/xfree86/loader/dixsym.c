@@ -1,4 +1,6 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/loader/dixsym.c,v 1.63 2003/12/03 17:11:29 tsi Exp $ */
+/* $XdotOrg$ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/loader/dixsym.c,v 1.63 2003/12/03
+ * 17:11:29 tsi Exp $ */
 
 /*
  * Copyright 1995-1998 by Metro Link, Inc.
@@ -343,6 +345,7 @@ LOOKUP dixLookupTab[] = {
     SYMFUNC(TimerFree)
     SYMFUNC(TimerSet)
     SYMFUNC(TimerCancel)
+    SYMFUNC(SetDPMSTimers)
     /* io.c */
     SYMFUNC(WriteToClient)
     SYMFUNC(SetCriticalOutputPending)

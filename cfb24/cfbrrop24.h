@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/cfb24/cfbrrop24.h,v 3.2 2003/10/29 22:46:27 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/cfb24/cfbrrop24.h,v 3.1tsi Exp $ */
 
 #define RROP_DECLARE \
     unsigned long piQxelAnd[3], piQxelXor[3], spiQxelXor[8];

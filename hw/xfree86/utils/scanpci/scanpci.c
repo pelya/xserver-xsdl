@@ -23,14 +23,14 @@
  * OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *
  */
-/* $XFree86: xc/programs/Xserver/hw/xfree86/etc/scanpci.c,v 3.93 2004/03/05 16:03:04 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/etc/scanpci.c,v 3.91tsi Exp $ */
 
 #include "X.h"
 #include "os.h"
 #include "xf86.h"
 #include "xf86Priv.h"
 #include "xf86_OSproc.h"
-#include "Pci.h"
+#include "xf86Pci.h"
 #include "xf86PciInfo.h"
 #include "xf86ScanPci.h"
 #include "dummylib.h"
@@ -148,7 +148,7 @@ usage(void)
 int
 main(int argc, char *argv[])
 {
-    pciConfigPtr pPCI, *pcrpp = NULL;
+    pciConfigPtr *pcrpp = NULL;
     int Verbose = 0;
     int i = 0;
     int force = 0;
@@ -159,7 +159,7 @@ main(int argc, char *argv[])
     while ((c = getopt(argc, argv, "?v12OfV:")) != -1)
 	switch(c) {
 	case 'v':
-	    Verbose++;
+	    Verbose = 1;
 	    break;
 	case '1':
 	    xf86Info.pciFlags = PCIProbe1;
@@ -204,25 +204,8 @@ main(int argc, char *argv[])
 	exit (1);
     }
 
-    while ((pPCI = pcrpp[i++]))
-	identify_card(pPCI, Verbose);
-
-    if (Verbose > 1) {
-	printf("\nPCI bus linkages:\n\n");
-
-	for (i = 0;  i < MAX_PCI_BUSES;  i++) {
-	    pciBusInfo_t *pBusInfo;
-
-	    if (!(pBusInfo = pciBusInfo[i]))
-		continue;
-
-	    if ((pPCI = pBusInfo->bridge))
-		printf("PCI bus 0x%04x has parent bridge 0x%04x:0x%02x:0x%1x\n",
-		       i, pPCI->busnum, pPCI->devnum, pPCI->funcnum);
-	    else
-		printf("PCI bus 0x%04x has no parent\n", i);
-	}
-    }
+    while (pcrpp[i])
+	identify_card(pcrpp[i++],Verbose);
 
     xf86DisableIO();
     exit(0);

@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/ramdac/BTPriv.h,v 1.2 1998/07/25 16:57:18 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/ramdac/BTPriv.h,v 1.1.2.1 1998/07/18 17:54:00 dawes Exp $ */
 
 #include "BT.h"
 

@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/ilbm/ilbm.h,v 3.3 2003/11/17 22:20:43 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/ilbm/ilbm.h,v 3.2 1998/04/05 16:42:23 robin Exp $ */
 /* Combined Purdue/PurduePlus patches, level 2.0, 1/17/89 */
 /***********************************************************
 

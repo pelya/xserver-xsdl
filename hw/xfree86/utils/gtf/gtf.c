@@ -1,3 +1,4 @@
+/* $XdotOrg$ */
 /* gtf.c  Generate mode timings using the GTF Timing Standard
  *
  * gcc gtf.c -o gtf -lm -Wall
@@ -63,7 +64,7 @@
  *
  * This program takes a desired resolution and vertical refresh rate,
  * and computes mode timings according to the GTF Timing Standard.
- * These mode timings can then be formatted as an XFree86 modeline
+ * These mode timings can then be formatted as an XServer modeline
  * or a mode description for use by fbset(8).
  *
  *
@@ -74,7 +75,7 @@
  * surrounding the addressable video); on most non-overscan type
  * systems, the margin period is zero.  I've implemented the margin
  * computations but not enabled it because 1) I don't really have
- * any experience with this, and 2) neither XFree86 modelines nor
+ * any experience with this, and 2) neither XServer modelines nor
  * fbset fb.modes provide an obvious way for margin timings to be
  * included in their mode descriptions (needs more investigation).
  * 
@@ -102,7 +103,7 @@
  * o Error checking.
  *
  */
-/* $XFree86: xc/programs/Xserver/hw/xfree86/etc/gtf.c,v 1.3 2002/12/21 02:35:20 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/etc/gtf.c,v 1.2 2002/11/15 17:01:53tsi Exp $ */
 
 
 #include <stdio.h>
@@ -145,7 +146,7 @@ typedef struct __mode
 typedef struct __options
 {
     int x, y;
-    int xf86mode, fbmode;
+    int xorgmode, fbmode;
     float v_freq;
 } options;
 
@@ -180,7 +181,7 @@ void print_value(int n, char *name, float val)
 
 
 
-/* print_xf86_mode() - print the XFree86 modeline, given mode timings. */
+/* print_xf86_mode() - print the XServer modeline, given mode timings. */
 
 void print_xf86_mode (mode *m)
 {
@@ -282,7 +283,7 @@ void print_fb_mode (mode *m)
  * feel like testing it right now.
  *
  * XXX margin computations are implemented but not tested (nor used by
- * XFree86 of fbset mode descriptions, from what I can tell).
+ * XServer of fbset mode descriptions, from what I can tell).
  */
 
 mode *vert_refresh (int h_pixels, int v_lines, float freq,
@@ -674,8 +675,9 @@ options *parse_command_line (int argc, char *argv[])
                    (strcmp (argv[n], "--fbmode") == 0)) {
             o->fbmode = 1;
         } else if ((strcmp (argv[n], "-x") == 0) ||
+		   (strcmp (argv[n], "--xorgmode") == 0) ||
                    (strcmp (argv[n], "--xf86mode") == 0)) {
-            o->xf86mode = 1;
+            o->xorgmode = 1;
         } else {
             goto bad_option;
         }
@@ -683,10 +685,10 @@ options *parse_command_line (int argc, char *argv[])
         n++;
     }
 
-    /* if neither xf86mode nor fbmode were requested, default to
-       xf86mode */
+    /* if neither xorgmode nor fbmode were requested, default to
+       xorgmode */
 
-    if (!o->fbmode && !o->xf86mode) o->xf86mode = 1;
+    if (!o->fbmode && !o->xorgmode) o->xorgmode = 1;
     
     return (o);
     
@@ -694,7 +696,7 @@ options *parse_command_line (int argc, char *argv[])
 
     fprintf (stderr, "\n");
     fprintf (stderr, "usage: %s x y refresh [-v|--verbose] "
-             "[-f|--fbmode] [-x|-xf86mode]\n", argv[0]);
+             "[-f|--fbmode] [-x|--xorgmode]\n", argv[0]);
 
     fprintf (stderr, "\n");
     
@@ -708,7 +710,7 @@ options *parse_command_line (int argc, char *argv[])
              "(traces each step of the computation)\n");
     fprintf (stderr, "  -f|--fbmode : output an fbset(8)-style mode "
              "description\n");
-    fprintf (stderr, " -x|-xf86mode : output an XFree86-style mode "
+    fprintf (stderr, " -x|--xorgmode : output an "__XSERVERNAME__"-style mode "
              "description (this is the default\n"
              "                if no mode description is requested)\n");
     
@@ -732,7 +734,7 @@ int main (int argc, char *argv[])
     m = vert_refresh (o->x, o->y, o->v_freq, 0, 0);
     if (!m) exit (1);
 
-    if (o->xf86mode)
+    if (o->xorgmode)
         print_xf86_mode(m);
     
     if (o->fbmode)

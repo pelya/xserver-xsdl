@@ -1,28 +1,38 @@
 /* $Xorg: access.c,v 1.5 2001/02/09 02:05:23 xorgcvs Exp $ */
+/* $XdotOrg: xc/programs/Xserver/os/access.c,v 1.1.4.3.2.3 2004/03/22 11:57:11 ago Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group
+Copyright 2004 Sun Microsystems, Inc.
 
-Permission to use, copy, modify, distribute, and sell this software and its
-documentation for any purpose is hereby granted without fee, provided that
-the above copyright notice appear in all copies and that both that
-copyright notice and this permission notice appear in supporting
-documentation.
+All rights reserved.
 
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
+Permission is hereby granted, free of charge, to any person obtaining a
+copy of this software and associated documentation files (the
+"Software"), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, and/or sell copies of the Software, and to permit persons
+to whom the Software is furnished to do so, provided that the above
+copyright notice(s) and this permission notice appear in all copies of
+the Software and that both the above copyright notice(s) and this
+permission notice appear in supporting documentation.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
-OPEN GROUP BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
-AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT
+OF THIRD PARTY RIGHTS. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+HOLDERS INCLUDED IN THIS NOTICE BE LIABLE FOR ANY CLAIM, OR ANY SPECIAL
+INDIRECT OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING
+FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
+NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
+WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-Except as contained in this notice, the name of The Open Group shall not be
-used in advertising or otherwise to promote the sale, use or other dealings
-in this Software without prior written authorization from The Open Group.
+Except as contained in this notice, the name of a copyright holder
+shall not be used in advertising or otherwise to promote the sale, use
+or other dealings in this Software without prior written authorization
+of the copyright holder.
 
+X Window System is a trademark of The Open Group.
 
 Copyright 1987 by Digital Equipment Corporation, Maynard, Massachusetts.
 
@@ -45,7 +55,7 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ******************************************************************/
-/* $XFree86: xc/programs/Xserver/os/access.c,v 3.54 2004/01/03 17:38:39 herrb Exp $ */
+/* $XFree86: xc/programs/Xserver/os/access.c,v 3.53 2004/01/02 18:23:19 tsi Exp $ */
 
 #ifdef WIN32
 #include <X11/Xwinsock.h>
@@ -78,6 +88,9 @@ SOFTWARE.
 #include <netdnet/dnetdb.h>
 #endif
 
+#ifdef HAS_GETPEERUCRED
+# include <ucred.h>
+#endif
 
 #if defined(DGUX)
 #include <sys/ioctl.h>
@@ -242,6 +255,11 @@ static int LocalHostEnabled = FALSE;
 static int LocalHostRequested = FALSE;
 static int UsingXdmcp = FALSE;
 
+/* FamilyServerInterpreted implementation */
+static Bool siAddrMatch(int family, pointer addr, int len, HOST *host, 
+	ClientPtr client);
+static int  siCheckAddr(const char *addrString, int length);
+static void siTypesInitialize(void);
 
 /*
  * called when authorization is not enabled to add the
@@ -641,7 +659,7 @@ DefineLocalHost:
 #endif
 #endif
 
-#ifdef DEF_SELF_DEBUG
+#if defined(DEF_SELF_DEBUG) || (defined(IPv6) && defined(AF_INET6))
 #include <arpa/inet.h>
 #endif
 
@@ -1100,6 +1118,7 @@ ResetHosts (char *display)
     pointer		addr;
     int 		len;
 
+    siTypesInitialize();
     AccessEnabled = defeatAccessControl ? FALSE : DEFAULT_ACCESS_CONTROL;
     LocalHostEnabled = FALSE;
     while ((host = validhosts) != 0)
@@ -1107,6 +1126,7 @@ ResetHosts (char *display)
         validhosts = host->next;
         FreeHost (host);
     }
+
 #define ETC_HOST_PREFIX "/etc/X"
 #define ETC_HOST_SUFFIX ".hosts"
     fnamelen = strlen(ETC_HOST_PREFIX) + strlen(ETC_HOST_SUFFIX) +
@@ -1176,10 +1196,26 @@ ResetHosts (char *display)
 	    hostname = ohostname + 4;
 	}
 #endif
+	else if (!strncmp("si:", lhostname, 3))
+	{
+	    family = FamilyServerInterpreted;
+	    hostname = ohostname + 3;
+	    hostlen -= 3;
+	}
+
+
+	if (family == FamilyServerInterpreted) 
+	{
+	    len = siCheckAddr(hostname, hostlen);
+	    if (len >= 0) {
+		NewHost(family, hostname, len, FALSE);
+	    }
+	}
+	else
 #ifdef DNETCONN
-    	if ((family == FamilyDECnet) ||
+    	if ((family == FamilyDECnet) || ((family == FamilyWild) &&
 	    (ptr = strchr(hostname, ':')) && (*(ptr + 1) == ':') &&
-	    !(*ptr = '\0'))	/* bash trailing colons if necessary */
+	    !(*ptr = '\0')))	/* bash trailing colons if necessary */
 	{
     	    /* node name (DECnet names end in "::") */
 	    dnaddrp = dnet_addr(hostname);
@@ -1332,12 +1368,14 @@ Bool LocalClient(ClientPtr client)
 int
 LocalClientCred(ClientPtr client, int *pUid, int *pGid)
 {
-#if defined(HAS_GETPEEREID) || defined(SO_PEERCRED)
+#if defined(HAS_GETPEEREID) || defined(HAS_GETPEERUCRED) || defined(SO_PEERCRED)
     int fd;
     XtransConnInfo ci;
 #ifdef HAS_GETPEEREID
     uid_t uid;
     gid_t gid;
+#elif defined(HAS_GETPEERUCRED)
+    ucred_t *peercred = NULL;
 #elif defined(SO_PEERCRED)
     struct ucred peercred;
     socklen_t so_len = sizeof(peercred);
@@ -1346,10 +1384,15 @@ LocalClientCred(ClientPtr client, int *pUid, int *pGid)
     if (client == NULL)
 	return -1;
     ci = ((OsCommPtr)client->osPrivate)->trans_conn;
-    /* We can only determine peer credentials for Unix domain sockets */
+#if !(defined(sun) && defined(HAS_GETPEERUCRED))
+    /* Most implementations can only determine peer credentials for Unix 
+     * domain sockets - Solaris getpeerucred can work with a bit more, so 
+     * we just let it tell us if the connection type is supported or not
+     */
     if (!_XSERVTransIsLocal(ci)) {
 	return -1;
     }
+#endif
     fd = _XSERVTransGetConnectionNumber(ci);
 #ifdef HAS_GETPEEREID
     if (getpeereid(fd, &uid, &gid) == -1) 
@@ -1358,6 +1401,15 @@ LocalClientCred(ClientPtr client, int *pUid, int *pGid)
 	    *pUid = uid;
     if (pGid != NULL)
 	    *pGid = gid;
+    return 0;
+#elif defined(HAS_GETPEERUCRED)
+    if (getpeerucred(fd, &peercred) < 0)
+    	return -1;
+    if (pUid != NULL)
+	*pUid = ucred_geteuid(peercred);
+    if (pGid != NULL)
+	*pGid = ucred_getegid(peercred);
+    ucred_free(peercred);
     return 0;
 #elif defined(SO_PEERCRED)
     if (getsockopt(fd, SOL_SOCKET, SO_PEERCRED, &peercred, &so_len) == -1) 
@@ -1417,6 +1469,7 @@ AddHost (ClientPtr	client,
 #endif
     case FamilyDECnet:
     case FamilyChaos:
+    case FamilyServerInterpreted:
 	if ((len = CheckAddr (family, pAddr, length)) < 0)
 	{
 	    client->errorValue = length;
@@ -1518,6 +1571,7 @@ RemoveHost (
 #endif
     case FamilyDECnet:
     case FamilyChaos:
+    case FamilyServerInterpreted:
     	if ((len = CheckAddr (family, pAddr, length)) < 0)
     	{
 	    client->errorValue = length;
@@ -1629,6 +1683,9 @@ CheckAddr (
 	}
         break;
 #endif
+      case FamilyServerInterpreted:
+	len = siCheckAddr(pAddr, length);
+	break;
       default:
         len = -1;
     }
@@ -1641,7 +1698,8 @@ CheckAddr (
 int
 InvalidHost (
     register struct sockaddr	*saddr,
-    int				len)
+    int				len,
+    ClientPtr			client)
 {
     int 			family;
     pointer			addr;
@@ -1675,8 +1733,15 @@ InvalidHost (
     }
     for (host = validhosts; host; host = host->next)
     {
-        if (addrEqual (family, addr, len, host))
-    	    return (0);
+	if ((host->family == FamilyServerInterpreted)) {
+	    if (siAddrMatch (family, addr, len, host, client)) {
+		return (0);
+	    }
+	} else {
+	    if (addrEqual (family, addr, len, host))
+		return (0);
+	}
+
     }
     return (1);
 }
@@ -1754,4 +1819,382 @@ int
 GetAccessControl(void)
 {
     return AccessEnabled;
+}
+
+/*****************************************************************************
+ * FamilyServerInterpreted host entry implementation
+ *
+ * Supports an extensible system of host types which the server can interpret
+ * See the IPv6 extensions to the X11 protocol spec for the definition.
+ *
+ * Currently supported schemes:
+ *
+ * hostname	- hostname as defined in IETF RFC 2396
+ * ipv6		- IPv6 literal address as defined in IETF RFC's 3513 and <TBD>
+ *
+ * See xc/doc/specs/SIAddresses for formal definitions of each type.
+ */
+
+/* These definitions and the siTypeAdd function could be exported in the 
+ * future to enable loading additional host types, but that was not done for
+ * the initial implementation.
+ */
+typedef Bool (*siAddrMatchFunc)(int family, pointer addr, int len, 
+  const char *siAddr, int siAddrlen, ClientPtr client, void *siTypePriv);
+typedef int  (*siCheckAddrFunc)(const char *addrString, int length, 
+  void *siTypePriv);
+
+struct siType {
+    struct siType *	next;
+    const char *	typeName;
+    siAddrMatchFunc	addrMatch;
+    siCheckAddrFunc	checkAddr;
+    void *		typePriv;	/* Private data for type routines */
+};
+
+static struct siType *siTypeList;
+
+static int
+siTypeAdd(const char *typeName, siAddrMatchFunc addrMatch,
+  siCheckAddrFunc checkAddr, void *typePriv)
+{
+    struct siType *s, *p;
+
+    if ((typeName == NULL) || (addrMatch == NULL) || (checkAddr == NULL))
+	return BadValue;
+
+    for (s = siTypeList, p = NULL; s != NULL ; p = s, s = s->next) {
+	if (strcmp(typeName, s->typeName) == 0) {
+	    s->addrMatch = addrMatch;
+	    s->checkAddr = checkAddr;
+	    s->typePriv = typePriv;
+	    return Success;
+	}
+    }
+
+    s = (struct siType *) xalloc(sizeof(struct siType));
+    if (s == NULL)
+	return BadAlloc;
+
+    if (p == NULL)
+	siTypeList = s;
+    else
+	p->next = s;
+
+    s->next = NULL;
+    s->typeName = typeName;
+    s->addrMatch = addrMatch;
+    s->checkAddr = checkAddr;
+    s->typePriv = typePriv;
+    return Success;
+}
+
+/* Checks to see if a host matches a server-interpreted host entry */
+static Bool 
+siAddrMatch(int family, pointer addr, int len, HOST *host, ClientPtr client)
+{
+    Bool matches = FALSE;
+    struct siType *s;
+    const char *valueString;
+    int addrlen;
+
+    valueString = (const char *) memchr(host->addr, '\0', host->len);
+    if (valueString != NULL) {
+	for (s = siTypeList; s != NULL ; s = s->next) {
+	    if (strcmp((char *) host->addr, s->typeName) == 0) {
+		addrlen = host->len - (strlen((char *)host->addr) + 1);
+		matches = s->addrMatch(family, addr, len, 
+		  valueString + 1, addrlen, client, s->typePriv);
+		break;
+	    }
+	}
+#ifdef FAMILY_SI_DEBUG
+	ErrorF(
+	    "Xserver: siAddrMatch(): type = %s, value = %*.*s -- %s\n",
+	      host->addr, addrlen, addrlen, valueString + 1,
+	      (matches) ? "accepted" : "rejected");
+#endif
+    }
+    return matches;
+}
+
+static int
+siCheckAddr(const char *addrString, int length)
+{
+    const char *valueString;
+    int addrlen, typelen;
+    int len = -1;
+    struct siType *s;
+
+    /* Make sure there is a \0 byte inside the specified length
+       to separate the address type from the address value. */
+    valueString = (const char *) memchr(addrString, '\0', length);
+    if (valueString != NULL) {
+	/* Make sure the first string is a recognized address type,
+	 * and the second string is a valid address of that type. 
+	 */
+	typelen = strlen(addrString) + 1;
+	addrlen = length - typelen;
+
+	for (s = siTypeList; s != NULL ; s = s->next) {
+	    if (strcmp(addrString, s->typeName) == 0) {
+		len = s->checkAddr(valueString + 1, addrlen, s->typePriv);
+		if (len >= 0) {
+		    len += typelen;
+		}
+		break;
+	    }
+	}
+#ifdef FAMILY_SI_DEBUG
+	{
+	    const char *resultMsg;
+
+	    if (s == NULL) {
+		resultMsg = "type not registered";
+	    } else {
+		if (len == -1) 
+		    resultMsg = "rejected";
+		else
+		    resultMsg = "accepted";
+	    }
+
+	    ErrorF("Xserver: siCheckAddr(): type = %s, value = %*.*s, len = %d -- %s\n",
+	      addrString, addrlen, addrlen, valueString + 1, len, resultMsg);
+	}
+#endif
+    }
+    return len;
+}
+
+
+/***
+ * Hostname server-interpreted host type
+ *
+ * Stored as hostname string, explicitly defined to be resolved ONLY
+ * at access check time, to allow for hosts with dynamic addresses
+ * but static hostnames, such as found in some DHCP & mobile setups.
+ *
+ * Hostname must conform to IETF RFC 2396 sec. 3.2.2, which defines it as:
+ * 	hostname     = *( domainlabel "." ) toplabel [ "." ]
+ *	domainlabel  = alphanum | alphanum *( alphanum | "-" ) alphanum
+ *	toplabel     = alpha | alpha *( alphanum | "-" ) alphanum
+ */
+
+#ifdef NI_MAXHOST
+# define SI_HOSTNAME_MAXLEN NI_MAXHOST
+#else
+# ifdef MAXHOSTNAMELEN
+#  define SI_HOSTNAME_MAXLEN MAXHOSTNAMELEN
+# else
+#  define SI_HOSTNAME_MAXLEN 256
+# endif
+#endif
+
+static Bool 
+siHostnameAddrMatch(int family, pointer addr, int len,
+  const char *siAddr, int siAddrLen, ClientPtr client, void *typePriv)
+{
+    Bool res = FALSE;
+
+/* Currently only supports checking against IPv4 & IPv6 connections, but 
+ * support for other address families, such as DECnet, could be added if 
+ * desired.
+ */
+#if defined(IPv6) && defined(AF_INET6)
+    if ((family == FamilyInternet) || (family == FamilyInternet6)) {
+	char hostname[SI_HOSTNAME_MAXLEN];
+	struct addrinfo *addresses;
+	struct addrinfo *a;
+	int f, hostaddrlen;
+	pointer hostaddr;
+
+	if (siAddrLen >= sizeof(hostname)) 
+	    return FALSE;
+
+	strncpy(hostname, siAddr, siAddrLen);
+	hostname[siAddrLen] = '\0';
+
+	if (getaddrinfo(hostname, NULL, NULL, &addresses) == 0) {
+	    for (a = addresses ; a != NULL ; a = a->ai_next) {
+		hostaddrlen = a->ai_addrlen;
+		f = ConvertAddr(a->ai_addr,&hostaddrlen,&hostaddr);
+		if ((f == family) && (len == hostaddrlen) &&
+		  (acmp (addr, hostaddr, len) == 0) ) {
+		    res = TRUE;
+		    break;
+		}
+	    }
+	    freeaddrinfo(addresses);
+	}
+    }
+#else /* IPv6 not supported, use gethostbyname instead for IPv4 */
+    if (family == FamilyInternet) {
+	register struct hostent *hp;
+#ifdef XTHREADS_NEEDS_BYNAMEPARAMS
+	_Xgethostbynameparams hparams;
+#endif
+	char hostname[SI_HOSTNAME_MAXLEN];
+	int f, hostaddrlen;
+	pointer hostaddr;
+	const char **addrlist;
+
+	if (siAddrLen >= sizeof(hostname)) 
+	    return FALSE;
+
+	strncpy(hostname, siAddr, siAddrLen);
+	hostname[siAddrLen] = '\0';
+
+	if ((hp = _XGethostbyname(hostname, hparams)) != NULL) {
+#ifdef h_addr				/* new 4.3bsd version of gethostent */
+	    /* iterate over the addresses */
+	    for (addrlist = hp->h_addr_list; *addrlist; addrlist++)
+#else
+	    addrlist = &hp->h_addr;
+#endif
+	    {
+		struct  sockaddr_in  sin;
+
+    		sin.sin_family = hp->h_addrtype;
+		acopy ( *addrlist, &(sin.sin_addr), hp->h_length);
+		hostaddrlen = sizeof(sin);
+    		f = ConvertAddr ((struct sockaddr *)&sin, 
+		  &hostaddrlen, &hostaddr);
+		if ((f == family) && (len == hostaddrlen) &&
+		  (acmp (addr, hostaddr, len) == 0) ) {
+		    res = TRUE;
+		    break;
+		}
+    	    }
+        }
+    }
+#endif
+    return res;
+}
+
+
+static int
+siHostnameCheckAddr(const char *valueString, int length, void *typePriv)
+{
+    /* Check conformance of hostname to RFC 2396 sec. 3.2.2 definition.
+     * We do not use ctype functions here to avoid locale-specific
+     * character sets.  Hostnames must be pure ASCII.  
+     */
+    int len = length;
+    int i;
+    Bool dotAllowed = FALSE;
+    Bool dashAllowed = FALSE;
+		    
+    if ((length <= 0) || (length >= SI_HOSTNAME_MAXLEN)) {
+	len = -1;
+    } else {
+	for (i = 0; i < length; i++) {
+	    char c = valueString[i];
+
+	    if (c == 0x2E) { /* '.' */
+		if (dotAllowed == FALSE) {
+		    len = -1;
+		    break;
+		} else {
+		    dotAllowed = FALSE;
+		    dashAllowed = FALSE;
+		}
+	    } else if (c == 0x2D) { /* '-' */
+		if (dashAllowed == FALSE) {
+		    len = -1;
+		    break;
+		} else {
+		    dotAllowed = FALSE;
+		}
+	    } else if (((c >= 0x30) && (c <= 0x3A)) /* 0-9 */ ||
+		       ((c >= 0x61) && (c <= 0x7A)) /* a-z */ ||
+		       ((c >= 0x41) && (c <= 0x5A)) /* A-Z */) {
+		dotAllowed = TRUE;
+		dashAllowed = TRUE;
+	    } else { /* Invalid character */
+		len = -1;
+		break;
+	    }
+	}
+    }
+    return len;
+}
+
+#if defined(IPv6) && defined(AF_INET6)
+/***
+ * "ipv6" server interpreted type
+ *
+ * Currently supports only IPv6 literal address as specified in IETF RFC 3513
+ *
+ * Once draft-ietf-ipv6-scoping-arch-00.txt becomes an RFC, support will be 
+ * added for the scoped address format it specifies.
+ */
+
+/* Maximum length of an IPv6 address string - increase when adding support 
+ * for scoped address qualifiers.  Includes room for trailing NUL byte. 
+ */
+#define SI_IPv6_MAXLEN INET6_ADDRSTRLEN
+
+static Bool 
+siIPv6AddrMatch(int family, pointer addr, int len,
+  const char *siAddr, int siAddrlen, ClientPtr client, void *typePriv)
+{
+    struct in6_addr addr6;
+    char addrbuf[SI_IPv6_MAXLEN];
+
+    if ((family != FamilyInternet6) || (len != sizeof(addr6)))
+	return FALSE;
+
+    memcpy(addrbuf, siAddr, siAddrlen);
+    addrbuf[siAddrlen] = '\0';
+
+    if (inet_pton(AF_INET6, addrbuf, &addr6) != 1) {
+	perror("inet_pton");
+	return FALSE;
+    }
+
+    if (memcmp(addr, &addr6, len) == 0) {
+	return TRUE;
+    } else {
+	return FALSE;
+    }
+}
+
+static int
+siIPv6CheckAddr(const char *addrString, int length, void *typePriv)
+{
+    int len;
+
+    /* Minimum length is 3 (smallest legal address is "::1") */
+    if (length < 3) {
+	/* Address is too short! */
+	len = -1;
+    } else if (length >= SI_IPv6_MAXLEN) {
+	/* Address is too long! */
+	len = -1;
+    } else {
+	/* Assume inet_pton is sufficient validation */
+	struct in6_addr addr6;
+	char addrbuf[SI_IPv6_MAXLEN];
+
+	memcpy(addrbuf, addrString, length);
+	addrbuf[length] = '\0';
+
+	if (inet_pton(AF_INET6, addrbuf, &addr6) != 1) {
+	    perror("inet_pton");
+	    len = -1;
+	} else {
+	    len = length;
+	}
+    }
+    return len;
+}
+#endif /* IPv6 */
+
+static void
+siTypesInitialize(void)
+{
+    siTypeAdd("hostname", siHostnameAddrMatch, siHostnameCheckAddr, NULL);
+#if defined(IPv6) && defined(AF_INET6)
+    siTypeAdd("ipv6", siIPv6AddrMatch, siIPv6CheckAddr, NULL);
+#endif
 }

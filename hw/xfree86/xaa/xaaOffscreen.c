@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/xaa/xaaOffscreen.c,v 1.6 2001/07/19 18:50:16 mvojkovi Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/xaa/xaaOffscreen.c,v 1.5 1999/07/04 06:39:17 dawes Exp $ */
 
 /*
    Copyright (c) 1999 -  The XFree86 Project Inc.

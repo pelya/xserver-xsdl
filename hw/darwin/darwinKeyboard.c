@@ -2,6 +2,7 @@
 //
 // Keyboard support for the Darwin X Server
 //
+// Copyright 2004 Kaleb S. KEITHLEY. All Rights Reserved.
 // Copyright (c) 2001-2003 Torrey T. Lyons. All Rights Reserved.
 // Copyright (c) 2003 Apple Computer, Inc. All Rights Reserved.
 //
@@ -37,7 +38,7 @@
 //
 //=============================================================================
 
-/* $XFree86: xc/programs/Xserver/hw/darwin/darwinKeyboard.c,v 1.19 2003/11/01 08:13:08 torrey Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/darwin/darwinKeyboard.c,v 1.18 2003/05/14 05:27:55 torrey Exp $ */
 
 /*
 ===========================================================================
@@ -656,7 +657,6 @@ Bool DarwinParseNXKeyMapping(
     return TRUE;
 }
 
-
 /*
  * DarwinBuildModifierMaps
  *      Use the keyMap field of keyboard info structure to populate
@@ -684,7 +684,11 @@ DarwinBuildModifierMaps(
                 break;
 
             case XK_Shift_R:
-                info->modifierKeycodes[NX_MODIFIERKEY_SHIFT][1] = i;
+#ifdef NX_MODIFIERKEY_RSHIFT
+                info->modifierKeycodes[NX_MODIFIERKEY_RSHIFT][0] = i;
+#else
+                info->modifierKeycodes[NX_MODIFIERKEY_SHIFT][0] = i;
+#endif
                 info->modMap[MIN_KEYCODE + i] = ShiftMask;
                 break;
 
@@ -694,7 +698,11 @@ DarwinBuildModifierMaps(
                 break;
 
             case XK_Control_R:
-                info->modifierKeycodes[NX_MODIFIERKEY_CONTROL][1] = i;
+#ifdef NX_MODIFIERKEY_RCONTROL
+                info->modifierKeycodes[NX_MODIFIERKEY_RCONTROL][0] = i;
+#else
+                info->modifierKeycodes[NX_MODIFIERKEY_CONTROL][0] = i;
+#endif
                 info->modMap[MIN_KEYCODE + i] = ControlMask;
                 break;
 
@@ -709,7 +717,11 @@ DarwinBuildModifierMaps(
                 break;
 
             case XK_Alt_R:
-                info->modifierKeycodes[NX_MODIFIERKEY_ALTERNATE][1] = i;
+#ifdef NX_MODIFIERKEY_RALTERNATE
+                info->modifierKeycodes[NX_MODIFIERKEY_RALTERNATE][0] = i;
+#else
+                info->modifierKeycodes[NX_MODIFIERKEY_ALTERNATE][0] = i;
+#endif
                 info->modMap[MIN_KEYCODE + i] = Mod1Mask;
                 break;
 
@@ -723,7 +735,11 @@ DarwinBuildModifierMaps(
                 break;
 
             case XK_Meta_R:
-                info->modifierKeycodes[NX_MODIFIERKEY_COMMAND][1] = i;
+#ifdef NX_MODIFIERKEY_RCOMMAND
+                info->modifierKeycodes[NX_MODIFIERKEY_RCOMMAND][0] = i;
+#else
+                info->modifierKeycodes[NX_MODIFIERKEY_COMMAND][0] = i;
+#endif
                 info->modMap[MIN_KEYCODE + i] = Mod2Mask;
                 break;
 
@@ -750,11 +766,6 @@ DarwinBuildModifierMaps(
                 break;
 	    }
         }
-
-#if ALT_IS_MODE_SWITCH
-        if (k[0] == XK_Alt_L || k[0] == XK_Alt_R)
-	    k[0] = XK_Mode_switch;
-#endif
     }
 }
 
@@ -844,14 +855,30 @@ int DarwinModifierNXKeycodeToNXKey(unsigned char keycode, int *outSide)
 int DarwinModifierNXMaskToNXKey(int mask)
 {
     switch (mask) {
-        case NX_ALPHASHIFTMASK:  return NX_MODIFIERKEY_ALPHALOCK;
-        case NX_SHIFTMASK:       return NX_MODIFIERKEY_SHIFT;
-        case NX_CONTROLMASK:     return NX_MODIFIERKEY_CONTROL;
-        case NX_ALTERNATEMASK:   return NX_MODIFIERKEY_ALTERNATE;
-        case NX_COMMANDMASK:     return NX_MODIFIERKEY_COMMAND;
-        case NX_NUMERICPADMASK:  return NX_MODIFIERKEY_NUMERICPAD;
-        case NX_HELPMASK:        return NX_MODIFIERKEY_HELP;
-        case NX_SECONDARYFNMASK: return NX_MODIFIERKEY_SECONDARYFN;
+        case NX_ALPHASHIFTMASK:       return NX_MODIFIERKEY_ALPHALOCK;
+        case NX_SHIFTMASK:            return NX_MODIFIERKEY_SHIFT;
+#ifdef NX_DEVICELSHIFTKEYMASK
+        case NX_DEVICELSHIFTKEYMASK:  return NX_MODIFIERKEY_SHIFT;
+        case NX_DEVICERSHIFTKEYMASK:  return NX_MODIFIERKEY_RSHIFT;
+#endif
+        case NX_CONTROLMASK:          return NX_MODIFIERKEY_CONTROL;
+#ifdef NX_DEVICELCTLKEYMASK
+        case NX_DEVICELCTLKEYMASK:    return NX_MODIFIERKEY_CONTROL;
+        case NX_DEVICERCTLKEYMASK:    return NX_MODIFIERKEY_RCONTROL;
+#endif
+        case NX_ALTERNATEMASK:        return NX_MODIFIERKEY_ALTERNATE;
+#ifdef NX_DEVICELALTKEYMASK
+        case NX_DEVICELALTKEYMASK:    return NX_MODIFIERKEY_ALTERNATE;
+        case NX_DEVICERALTKEYMASK:    return NX_MODIFIERKEY_RALTERNATE;
+#endif
+        case NX_COMMANDMASK:          return NX_MODIFIERKEY_COMMAND;
+#ifdef NX_DEVICELCMDKEYMASK
+        case NX_DEVICELCMDKEYMASK:    return NX_MODIFIERKEY_COMMAND;
+        case NX_DEVICERCMDKEYMASK:    return NX_MODIFIERKEY_RCOMMAND;
+#endif
+        case NX_NUMERICPADMASK:       return NX_MODIFIERKEY_NUMERICPAD;
+        case NX_HELPMASK:             return NX_MODIFIERKEY_HELP;
+        case NX_SECONDARYFNMASK:      return NX_MODIFIERKEY_SECONDARYFN;
     }
     return -1;
 }
@@ -865,9 +892,21 @@ int DarwinModifierNXKeyToNXMask(int key)
     switch (key) {
         case NX_MODIFIERKEY_ALPHALOCK:   return NX_ALPHASHIFTMASK;
         case NX_MODIFIERKEY_SHIFT:       return NX_SHIFTMASK;
+#ifdef NX_MODIFIERKEY_RSHIFT
+        case NX_MODIFIERKEY_RSHIFT:      return NX_SHIFTMASK;
+#endif
         case NX_MODIFIERKEY_CONTROL:     return NX_CONTROLMASK;
+#ifdef NX_MODIFIERKEY_RCONTROL
+        case NX_MODIFIERKEY_RCONTROL:    return NX_CONTROLMASK;
+#endif
         case NX_MODIFIERKEY_ALTERNATE:   return NX_ALTERNATEMASK;
+#ifdef NX_MODIFIERKEY_RALTERNATE
+        case NX_MODIFIERKEY_RALTERNATE:  return NX_ALTERNATEMASK;
+#endif
         case NX_MODIFIERKEY_COMMAND:     return NX_COMMANDMASK;
+#ifdef NX_MODIFIERKEY_RCOMMAND
+        case NX_MODIFIERKEY_RCOMMAND:    return NX_COMMANDMASK;
+#endif
         case NX_MODIFIERKEY_NUMERICPAD:  return NX_NUMERICPADMASK;
         case NX_MODIFIERKEY_HELP:        return NX_HELPMASK;
         case NX_MODIFIERKEY_SECONDARYFN: return NX_SECONDARYFNMASK;

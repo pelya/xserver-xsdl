@@ -50,7 +50,6 @@ copyright holders.
 **    *********************************************************
 ** 
 ********************************************************************/
-/* $XFree86: xc/programs/Xserver/Xprint/Init.c,v 1.15 2003/10/29 22:11:54 tsi Exp $ */
 
 #include <unistd.h>
 #include <stdlib.h>
@@ -91,6 +90,7 @@ typedef char *XPointer;
 #include "attributes.h"
 
 #include "os.h"
+#include "spooler.h"
 
 static void GenericScreenInit(
     int index,
@@ -116,57 +116,6 @@ static Bool InitPrintDrivers(
 #define MODELDIRNAME "/models"
 #define FONTDIRNAME "/fonts"
 
-/*
- * The string LIST_QUEUES is fed to a shell to generate an ordered
- * list of available printers on the system. These string definitions
- * are taken from the file PrintSubSys.C within the code for the 
- * dtprintinfo program.
- */
-#ifdef AIXV4
-const char *LIST_QUEUES = "lsallq | grep -v '^bsh$' | sort";
-#else
-#ifdef hpux
-const char *LIST_QUEUES = "LANG=C lpstat -v | "
-                            "awk '"
-                            " $2 == \"for\" "
-                            "   { "
-                            "      x = match($3, /:/); "
-                            "      print substr($3, 1, x-1)"
-                            "   }' | sort";
-#else
-#ifdef __osf__
-  const char *LIST_QUEUES = "LANG=C lpstat -v | "
-                            "nawk '"
-                            " $2 == \"for\"    "
-                            "   { print $4 }' "
-                            "   | sort";
-#else
-#ifdef __uxp__
-const char *LIST_QUEUES = "LANG=C lpstat -v | "
-                            "nawk '"
-                            " $4 == \"for\" "
-                            "   { "
-                            "      x = match($5, /:/); "
-                            "      print substr($5, 1, x-1)"
-                            "   }' | sort";
-#else
-#if defined(CSRG_BASED) || defined(linux) || defined(ISC) || defined(__GNUC__)
-const char *LIST_QUEUES = "LANG=C lpc status | grep -v '^\t' | "
-                            "sed -e /:/s/// | sort";
-#else
-const char *LIST_QUEUES = "LANG=C lpstat -v | "
-                            "nawk '"
-                            " $2 == \"for\" "
-                            "   { "
-                            "      x = match($3, /:/); "
-                            "      print substr($3, 1, x-1)"
-                            "   }' | sort";
-#endif
-#endif
-#endif
-#endif
-#endif
-
 #ifdef XPRASTERDDX
 
 static
@@ -183,9 +132,9 @@ PixmapFormatRec	RasterPixmapFormats[] = {
 
 static
 PixmapFormatRec	ColorPclPixmapFormats[] = {
-    { 1, 1, BITMAP_SCANLINE_PAD },
-    { 8, 8, BITMAP_SCANLINE_PAD },
-    { 24,32, BITMAP_SCANLINE_PAD }
+    {  1,  1, BITMAP_SCANLINE_PAD },
+    {  8,  8, BITMAP_SCANLINE_PAD },
+    { 24, 32, BITMAP_SCANLINE_PAD }
 };
 
 #define NUMCPCLFORMATS	(sizeof ColorPclPixmapFormats)/(sizeof ColorPclPixmapFormats[0])
@@ -211,9 +160,9 @@ PixmapFormatRec	MonoPclPixmapFormats[] = {
 
 static
 PixmapFormatRec	PSPixmapFormats[] = {
-    { 1, 1, BITMAP_SCANLINE_PAD },
-    { 8, 8, BITMAP_SCANLINE_PAD },
-    { 24,32, BITMAP_SCANLINE_PAD }
+    {  1,  1, BITMAP_SCANLINE_PAD },
+    {  8,  8, BITMAP_SCANLINE_PAD },
+    { 24, 32, BITMAP_SCANLINE_PAD }
 };
 
 #define NUMPSFORMATS	(sizeof PSPixmapFormats)/(sizeof PSPixmapFormats[0])
@@ -325,9 +274,63 @@ typedef struct _driverMapping {
     int screenNum;
 } DriverMapEntry, *DriverMapPtr;
 
+static const char configFilePath[] =
+"/etc/dt/config/print:/usr/dt/config/print";
+
+static const char printServerConfigDir[] = "XPSERVERCONFIGDIR";
+
+static int printScreenPrivIndex,
+	   printWindowPrivIndex,
+	   printGCPrivIndex;
+static unsigned long printGeneration = 0;
 static char *configFileName = (char *)NULL;
 static Bool freeDefaultFontPath = FALSE;
 static char *origFontPath = (char *)NULL;
+
+static Bool xprintInitGlobalsCalled = FALSE;
+/*
+ * This function is responsible for doing initalisation of any global
+ * variables at an very early point of server startup (even before
+ * |ProcessCommandLine()|. 
+ */
+void XprintInitGlobals(void)
+{
+    xprintInitGlobalsCalled = TRUE;
+
+#ifdef SMART_SCHEDULE
+    /* Somehow the XF86 "smart scheduler" completely kills the Xprint DDX 
+     * (see http://xprint.freedesktop.org/cgi-bin/bugzilla/show_bug.cgi?id=467
+     * ("Xfree86's "smart scheduler" breaks Xprt") */
+    SmartScheduleDisable = TRUE;
+#endif /* SMART_SCHEDULE */
+}
+
+/*
+ * XprintUseMsg() prints usage for the Xprint-specific options
+ */
+void XprintUseMsg()
+{
+    XpSpoolerTypePtr curr = xpstm;
+
+    /* Option '-XpFile' */
+    ErrorF("-XpFile file           specifies an alternate `Xprinters' file, rather\n");
+    ErrorF("                       than the default one (e.g.\n");
+    ErrorF("                       `${XPCONFIGDIR}/${LANG}/print/Xprinters') or\n");
+    ErrorF("                       `${XPCONFIGDIR}/C/print/Xprinters'.\n");
+    
+    /* Option '-XpSpoolerType' */
+    ErrorF("-XpSpoolerType string  specifies a spooler type.\n");
+    ErrorF("                       Supported values are:\n");
+  
+    while( curr->name != NULL )
+    {
+        ErrorF("                       - '%s'\n", curr->name);       
+        curr++;
+    }
+    ErrorF("                       (multiple values can be specified, seperated by ':',\n");
+    ErrorF("                       the first active spooler will be chosen).\n");
+    ErrorF("                       default is '%s'.\n", XPDEFAULTSPOOLERNAMELIST);
+}
 
 /*
  * XprintOptions checks argv[i] to see if it is our command line
@@ -340,6 +343,7 @@ XprintOptions(
     char **argv,
     int i)
 {
+    extern void ddxUseMsg();
     if(strcmp(argv[i], "-XpFile") == 0)
     {
 	if ((i + 1) >= argc) {
@@ -349,8 +353,19 @@ XprintOptions(
 	configFileName = argv[i + 1];
 	return i + 2;
     }
+    else if(strcmp(argv[i], "-XpSpoolerType") == 0)
+    {
+	if ((i + 1) >= argc) {
+	    ddxUseMsg ();
+	    return i + 2;
+	}
+        XpSetSpoolerTypeNameList(argv[i + 1]);
+	return i + 2;
+    }
     else
+    {
 	return i;
+    }
 }
 
 /************************************************************
@@ -417,7 +432,7 @@ FreePrinterDb(void)
 {
     PrinterDbPtr pCurEntry, pNextEntry;
 
-    for(pCurEntry = printerDb, pNextEntry = 0;
+    for(pCurEntry = printerDb, pNextEntry = (PrinterDbPtr)NULL; 
 	pCurEntry != (PrinterDbPtr)NULL; pCurEntry = pNextEntry)
     {
 	pNextEntry = pCurEntry->next;
@@ -429,7 +444,7 @@ FreePrinterDb(void)
 	 */
 	xfree(pCurEntry);
     }
-    printerDb = 0;
+    printerDb = (PrinterDbPtr)NULL;
 }
 
 /*
@@ -460,11 +475,12 @@ AddPrinterDbName(char *name)
     return TRUE;
 }
 
-static void
+static int
 AugmentPrinterDb(const char *command)
 {
     FILE *fp;
     char name[256];
+    int  num_printers = 0; /* Number of printers we found */
 
     fp = popen(command, "r");
     /* XXX is a 256 character limit overly restrictive for printer names? */
@@ -472,8 +488,10 @@ AugmentPrinterDb(const char *command)
     {
         name[strlen(name) - 1] = (char)'\0'; /* strip the \n */
         AddPrinterDbName(name);
+        num_printers++;
     }
     pclose(fp);
+    return num_printers;
 }
 
 /*
@@ -592,7 +610,7 @@ StoreDriverNames(void)
 							  "xp-ddx-identifier");
 	if(pEntry->driverName == (char *)NULL || 
 	   strlen(pEntry->driverName) == 0 ||
-	   GetInitFunc(pEntry->driverName) == 0)
+	   GetInitFunc(pEntry->driverName) == (Bool(*)())NULL)
 	{
 	    if (pEntry->driverName && (strlen(pEntry->driverName) != 0)) {
 	        ErrorF("Xp Extension: Can't load driver %s\n", 
@@ -650,7 +668,7 @@ GetConfigFileName(void)
     /*
      * Check for a LANG-specific file.
      */
-    if ((dirName = XpGetConfigDir(TRUE)) != 0)
+    if(dirName = XpGetConfigDir(TRUE))
     {
         filePath = (char *)xalloc(strlen(dirName) +
 				  strlen(XPRINTERSFILENAME) + 2);
@@ -669,7 +687,7 @@ GetConfigFileName(void)
 	xfree(filePath);
     }
 
-    if ((dirName = XpGetConfigDir(FALSE)) != 0)
+    if(dirName = XpGetConfigDir(FALSE))
     {
 	filePath = (char *)xalloc(strlen(dirName) +
 				  strlen(XPRINTERSFILENAME) + 2);
@@ -701,6 +719,7 @@ GetConfigFileName(void)
 static PrinterDbPtr
 BuildPrinterDb(void)
 {
+    char *printerList, *augmentCmd = (char *)NULL;
     Bool defaultAugment = TRUE, freeConfigFileName;
 
     if(configFileName && access(configFileName, R_OK) != 0)
@@ -727,7 +746,7 @@ BuildPrinterDb(void)
 		{
 		    while((tok = strtok((char *)NULL, " \t")) != (char *)NULL)
 		    {
-		        if ((ptr = MbStrchr(tok, '\012')) != 0)
+		        if(ptr = MbStrchr(tok, '\012'))
 		            *ptr = (char)'\0';
 			AddPrinterDbName(tok);
 		    }
@@ -768,7 +787,43 @@ BuildPrinterDb(void)
 
     if(defaultAugment == TRUE)
     {
-	AugmentPrinterDb(LIST_QUEUES);
+        XpSpoolerTypePtr curr_spooler_type;   /* spooler we are currently probing for queues */
+        int              num_printers_found;  /* number of printers found by |AugmentPrinterDb()| */
+        char            *tok_lasts;           /* strtok_r() position token */
+        char            *spnamelist;          /* list of spooler names, seperated by ":" */
+        char            *spname;              /* spooler name */
+        
+        spnamelist = strdup(XpGetSpoolerTypeNameList()); /* strtok_r() modifies string so dup' it first */
+        
+        for( spname = strtok_r(spnamelist, ":", &tok_lasts) ;
+             spname != NULL ;
+             spname = strtok_r(NULL, ":", &tok_lasts) )
+        {
+            curr_spooler_type = XpSpoolerNameToXpSpoolerType(spname);
+            if(!curr_spooler_type)
+            {
+                FatalError("BuildPrinterDb: No spooler type entry found for '%s'.\n", spname);
+            }
+            
+            if(curr_spooler_type->list_queues_command == NULL ||
+               strlen(curr_spooler_type->list_queues_command) == 0)
+            {
+                continue;
+            }
+        
+            num_printers_found = AugmentPrinterDb(curr_spooler_type->list_queues_command);
+            /* Did we found a spooler which works ? */
+            if(num_printers_found > 0)
+            {
+                spooler_type = curr_spooler_type;
+#ifdef DEBUG_gisburn
+                fprintf(stderr, "BuildPrinterDb: using '%s'.\n", spooler_type->name);
+#endif /* DEBUG_gisburn */
+                break;
+            }
+        }
+        
+        free(spnamelist);
     }
 
     MergeNameMap();
@@ -951,7 +1006,7 @@ FindFontDir(
         return (char *)NULL;
     
     configDir = XpGetConfigDir(TRUE);
-    if ((fontDir = ValidateFontDir(configDir, modelName)) != 0)
+    if(fontDir = ValidateFontDir(configDir, modelName))
     {
 	xfree(configDir);
 	return fontDir;
@@ -1013,8 +1068,8 @@ AddToFontPath(
 static void
 AugmentFontPath(void)
 {
-    char *modelID, **allIDs = (char **)NULL;
-    PrinterDbPtr pDbEntry;
+    char *newPath, *modelID, **allIDs = (char **)NULL;
+    PrinterDbPtr pDb, pDbEntry;
     int numModels, i;
 
     if(!origFontPath)
@@ -1072,7 +1127,7 @@ AugmentFontPath(void)
     for(i = 0; allIDs != (char **)NULL && allIDs[i] != (char *)NULL; i ++)
     {
 	char *fontDir;
-	if ((fontDir = FindFontDir(allIDs[i])) != 0)
+	if(fontDir = FindFontDir(allIDs[i]))
 	{
 	    AddToFontPath(fontDir);
 	    xfree(fontDir);
@@ -1162,7 +1217,7 @@ XpClientIsPrintClient(
      * fpe->name.
      */
     if(fpe->name_length < PATH_PREFIX_LEN || 
-       (strlen(fontDir) != (unsigned)(fpe->name_length - PATH_PREFIX_LEN)) ||
+       (strlen(fontDir) != (fpe->name_length - PATH_PREFIX_LEN)) ||
        strncmp(fontDir, fpe->name + PATH_PREFIX_LEN, 
 	       fpe->name_length - PATH_PREFIX_LEN))
     {
@@ -1235,6 +1290,18 @@ PrinterInitOutput(
     char **driverNames;
     char *configDir;
 
+    /* This should NEVER happen, but... */
+    if( !xprintInitGlobalsCalled )
+    {
+      FatalError("Internal error: XprintInitGlobals() not called.");
+    }
+#ifdef SMART_SCHEDULE
+    if( SmartScheduleDisable != TRUE )
+    {
+      FatalError("Internal error: XF86 smart scheduler incompatible to Xprint DDX.");
+    }
+#endif /* SMART_SCHEDULE */
+
     /* 
      * this little test is just a warning at startup to make sure
      * that the config directory exists.
@@ -1254,10 +1321,9 @@ PrinterInitOutput(
         xfree(configDir);
     }
     else {
-	ErrorF("Xp Extension: could not find config dir %s\n",
-	       configDir ? configDir : XPRINTDIR);
-
-	if (configDir) xfree(configDir);
+        /* Refuse to start when we do not have our config dir... */
+        FatalError("Xp Extension: could not find config dir %s\n",
+                   configDir ? configDir : XPRINTDIR);
     }
 
     if(printerDb != (PrinterDbPtr)NULL)
@@ -1414,7 +1480,7 @@ InitPrintDrivers(
 	    }
 	    if(callInit == TRUE)
 	    {
-	        pBFunc initFunc;
+	        Bool (*initFunc)();
 	        initFunc = GetInitFunc(pDb->driverName);
 	        if(initFunc(index, pScreen, argc, argv) == FALSE)
 	        {
@@ -1451,9 +1517,10 @@ GenericScreenInit(
      int argc,
      char **argv)
 {
+    int i;
     float fWidth, fHeight, maxWidth, maxHeight;
     unsigned short width, height;
-    PrinterDbPtr pDb;
+    PrinterDbPtr pDb, pDb2;
     int res, maxRes;
     
     /*
@@ -1477,6 +1544,7 @@ GenericScreenInit(
       {
 	if(pDb->screenNum == index)
 	{
+
 	    XpValidatePoolsRec *pValRec;
 	    pVFunc dimensionsFunc;
 
@@ -1503,6 +1571,57 @@ GenericScreenInit(
     pScreen->mmWidth = pScreen->mmHeight = ( maxWidth > maxHeight ) ?
                                            (unsigned short)(maxWidth + 0.5) : 
 					   (unsigned short)(maxHeight + 0.5);
+}
+
+/*
+ * QualifyName - takes an unqualified file name such as X6printers and
+ * a colon-separated list of directory path names such as 
+ * /etc/opt/dt:/opt/dt/config.
+ * 
+ * Returns a fully qualified file path name such as /etc/opt/dt/X6printers.
+ * The returned value is malloc'd, and the caller is responsible for 
+ * freeing the associated memory.
+ */
+static char *
+QualifyName(fileName, searchPath)
+    char *fileName;
+    char *searchPath;
+{
+    char * curPath = searchPath;
+    char * nextPath;
+    char * chance;
+    FILE *pFile;
+
+    if (fileName == NULL || searchPath == NULL)
+      return NULL;
+
+    while (1) {
+      if ((nextPath = strchr(curPath, ':')) != NULL)
+        *nextPath = 0;
+  
+      chance = (char *)xalloc(strlen(curPath) + strlen(fileName) + 2);
+      sprintf(chance,"%s/%s",curPath,fileName);
+  
+      /* see if we can read from the file */
+      if((pFile = fopen(chance, "r")) != (FILE *)NULL)
+      {
+	fclose(pFile);
+        /* ... restore the colon, .... */
+        if (nextPath)
+	  *nextPath = ':';
+  
+        return chance;
+      }
+  
+      xfree(chance);
+
+      if (nextPath == NULL) /* End of path list? */
+        break;
+  
+      /* try the next path */
+      curPath = nextPath + 1;
+    }
+    return NULL;
 }
 
 /*
@@ -1548,12 +1667,11 @@ GetPrinterListInfo(
     int localeLen,
     char *locale)
 {
-    PrinterDbPtr pDb;
+    PrinterDbPtr pDb, pDb2;
 
     for(pDb = printerDb; pDb != (PrinterDbPtr)NULL; pDb = pDb->next)
     {
-	if (strlen(pDb->name) == (unsigned)nameLen
-	&& !strncmp(pDb->name, name, nameLen))
+	if(strlen(pDb->name) == nameLen && !strncmp(pDb->name, name, nameLen))
 	{
 	    FillPrinterListEntry(pEntry, pDb, localeLen, locale);
 	    return TRUE;
@@ -1598,7 +1716,7 @@ XpDiGetPrinterList(
     if(!nameLen || name == (char *)NULL)
     {
 	int i;
-        PrinterDbPtr pDb;
+        PrinterDbPtr pDb, pDb2;
 
         for(pDb = printerDb, i = 0; pDb != (PrinterDbPtr)NULL; 
 	    pDb = pDb->next, i++)
@@ -1648,11 +1766,12 @@ WindowPtr
 XpDiValidatePrinter(char *printerName, int printerNameLen)
 {
     PrinterDbPtr pCurEntry;
+    WindowPtr pWin;
 
     for(pCurEntry = printerDb;
 	pCurEntry != (PrinterDbPtr)NULL; pCurEntry = pCurEntry->next)
     {
-        if(strlen(pCurEntry->name) == (unsigned)printerNameLen &&
+        if(strlen(pCurEntry->name) == printerNameLen &&
 	   !strncmp(pCurEntry->name, printerName, printerNameLen))
 	    return  WindowTable[pCurEntry->screenNum];
     }
@@ -1680,3 +1799,4 @@ XpDiGetDriverName(int index, char *printerName)
 
     return (char *)NULL; /* XXX Should we supply a default driverName? */
 }
+

@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/xaa/xaaTEText.c,v 1.7 1999/05/30 03:03:33 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/xaa/xaaTEText.c,v 1.6 1998/12/20 11:57:52 dawes Exp $ */
 
 /********************************************************************
 

@@ -1,5 +1,5 @@
 #!/bin/sh
-# $XFree86: xc/programs/Xserver/hw/xfree86/etc/apSolaris.shar,v 1.3 2002/10/04 19:45:33 tsi Exp $
+# $XFree86$
 # This is a shell archive (produced by GNU sharutils 4.2c).
 # To extract the files from this archive, save it to some FILE, remove
 # everything before the `!/bin/sh' line above, then type `sh FILE'.

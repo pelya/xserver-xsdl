@@ -1,4 +1,4 @@
-.\" $XFree86: xc/programs/Xserver/hw/xfree86/etc/pcitweak.man,v 3.4 2003/05/29 21:48:09 herrb Exp $ 
+.\" $XFree86: xc/programs/Xserver/hw/xfree86/etc/pcitweak.man,v 3.3 2001/01/27 18:20:56 dawes Exp $ 
 .TH PCITWEAK 1 __vendorversion__
 .SH NAME
 pcitweak - read/write PCI config space

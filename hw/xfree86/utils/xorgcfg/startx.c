@@ -26,7 +26,7 @@
  *
  * Author: Paulo César Pereira de Andrade <pcpa@conectiva.com.br>
  *
- * $XFree86: xc/programs/Xserver/hw/xfree86/xf86cfg/startx.c,v 1.8 2002/10/19 20:04:21 herrb Exp $
+ * $XFree86: xc/programs/Xserver/hw/xfree86/xf86cfg/startx.c,v 1.7 2002/01/07 20:38:29 dawes Exp $
  */
 
 #include "config.h"
@@ -64,10 +64,10 @@ startx(void)
 	 */
 	if (XFree86_path)
 	    c_pos = XmuSnprintf(commandline, sizeof(commandline),
-				"%s/XFree86 :8 -configure ",XFree86_path);
+				"%s/"__XSERVERNAME__" :8 -configure ",XFree86_path);
 	else
 	    c_pos = XmuSnprintf(commandline, sizeof(commandline), 
-				"%s/bin/XFree86 :8 -configure ", XFree86Dir);
+				"%s/bin/"__XSERVERNAME__" :8 -configure ", XFree86Dir);
 	if (XF86Module_path && ((len = sizeof(commandline) - c_pos) > 0))
 	    c_pos += XmuSnprintf(commandline + c_pos,len,
 				 " -modulepath %s",XF86Module_path);
@@ -87,9 +87,9 @@ startx(void)
 	    home = "/";
 
 #ifndef QNX4
-	XmuSnprintf(filename, sizeof(filename), "%s/XF86Config.new", home);
+	XmuSnprintf(filename, sizeof(filename), "%s/"__XCONFIGFILE__".new", home);
 #else
-	XmuSnprintf(filename, sizeof(filename), "//%d%s/XF86Config.new",
+	XmuSnprintf(filename, sizeof(filename), "//%d%s/"__XCONFIGFILE__".new",
 		    getnid(), home);
 #endif
 
@@ -106,9 +106,9 @@ startx(void)
 	    char path[PATH_MAX];
 	    /* Don't change to X! see above */
 	    if (XFree86_path)
-	        XmuSnprintf(path, sizeof(path), "%s/XFree86", XFree86_path);
+	        XmuSnprintf(path, sizeof(path), "%s/"__XSERVERNAME__, XFree86_path);
 	    else
-	        XmuSnprintf(path, sizeof(path), "%s/bin/XFree86", XFree86Dir);
+	        XmuSnprintf(path, sizeof(path), "%s/bin/"__XSERVERNAME__, XFree86Dir);
 	    execl(path, "X", ":8", /*"+xinerama",*/ "+accessx","-allowMouseOpenFail",
 		  "-xf86config", XF86Config_path, (void *)NULL);
 	    exit(-127);

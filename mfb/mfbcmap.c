@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/mfb/mfbcmap.c,v 1.8 2003/02/18 21:30:01 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/mfb/mfbcmap.c,v 1.7tsi Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group

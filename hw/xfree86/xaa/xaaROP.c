@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/xaa/xaaROP.c,v 1.2 2000/09/28 20:48:01 mvojkovi Exp $ */
+/* $XFree86$ */
 
 #include "X.h"
 #include "misc.h"

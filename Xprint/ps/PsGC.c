@@ -57,7 +57,6 @@ in this Software without prior written authorization from The Open Group.
  * or other dealings in this Software without prior written authorization
  * from said copyright holders.
  */
-/* $XFree86: xc/programs/Xserver/Xprint/ps/PsGC.c,v 1.7 2003/10/29 22:11:55 tsi Exp $ */
 
 /*******************************************************************
 **
@@ -171,6 +170,26 @@ PsGetDrawablePrivateStuff(
   }
 }
 
+PsContextPrivPtr
+PsGetPsContextPriv( DrawablePtr pDrawable )
+{
+  XpContextPtr     pCon;
+  PsContextPrivPtr cPriv;
+
+  switch(pDrawable->type)
+  {
+    case DRAWABLE_PIXMAP:
+      return FALSE;
+    case DRAWABLE_WINDOW:
+      pCon = PsGetContextFromWindow((WindowPtr)pDrawable);
+      if (pCon != NULL)
+      {
+        return pCon->devPrivates[PsContextPrivateIndex].ptr;
+      }
+  }
+  return NULL;
+}
+
 int
 PsUpdateDrawableGC(
   GCPtr        pGC,
@@ -181,6 +200,7 @@ PsUpdateDrawableGC(
   GC               dGC;
   unsigned long    valid;
   int              i;
+  PsContextPrivPtr cPriv;
   BoxPtr           boxes;
 
   if (!PsGetDrawablePrivateStuff(pDrawable, &dGC, &valid, psOut, cMap))
@@ -232,6 +252,8 @@ PsUpdateDrawableGC(
         PsOut_Offset(*psOut, pDrawable->x, pDrawable->y);
         PsOut_Clip(*psOut, pGC->clientClipType, (PsClipPtr)pGC->clientClip);
       }
+      cPriv = ( PsGetContextFromWindow( (WindowPtr)pDrawable ) )
+             ->devPrivates[PsContextPrivateIndex].ptr;
       break;
   }
   return TRUE;

@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/misc/Delay.c,v 3.4 2003/03/25 04:18:23 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/misc/Delay.c,v 3.3 2000/12/08 20:13:38 eich Exp $ */
  
 #ifdef __UNIXOS2__
 #define I_NEED_OS2_H

@@ -34,7 +34,7 @@
 # the sale, use or other dealings in this Software without prior written
 # authorization from the copyright holder(s) and author(s).
 #
-# $XFree86: xc/programs/Xserver/hw/xfree86/common/modeline2c.pl,v 1.11 2003/11/03 05:11:01 tsi Exp $
+# $XFree86: xc/programs/Xserver/hw/xfree86/common/modeline2c.pl,v 1.10tsi Exp $
 
 #my %flagshash;
 $flagshash{""} = "0";

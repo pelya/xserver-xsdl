@@ -45,7 +45,7 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ******************************************************************/
-/* $XFree86: xc/programs/Xserver/include/miscstruct.h,v 3.5 2003/07/16 01:38:52 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/include/miscstruct.h,v 3.4 2003/04/27 21:31:04 herrb Exp $ */
 
 #ifndef MISCSTRUCT_H
 #define MISCSTRUCT_H 1

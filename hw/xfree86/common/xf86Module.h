@@ -63,11 +63,11 @@ typedef enum {
 
 /* Built-in ABI classes.  These definitions must not be changed. */
 #define ABI_CLASS_NONE		NULL
-#define ABI_CLASS_ANSIC		"XFree86 ANSI C Emulation"
-#define ABI_CLASS_VIDEODRV	"XFree86 Video Driver"
-#define ABI_CLASS_XINPUT	"XFree86 XInput driver"
-#define ABI_CLASS_EXTENSION	"XFree86 Server Extension"
-#define ABI_CLASS_FONT		"XFree86 Font Renderer"
+#define ABI_CLASS_ANSIC		"X.Org ANSI C Emulation"
+#define ABI_CLASS_VIDEODRV	"X.Org Video Driver"
+#define ABI_CLASS_XINPUT	"X.Org XInput driver"
+#define ABI_CLASS_EXTENSION	"X.Org Server Extension"
+#define ABI_CLASS_FONT		"X.Org Font Renderer"
 
 #define ABI_MINOR_MASK		0x0000FFFF
 #define ABI_MAJOR_MASK		0xFFFF0000
@@ -95,9 +95,9 @@ typedef enum {
 
 #ifndef MODULEVENDORSTRING
 #ifndef __OS2ELF__
-#define MODULEVENDORSTRING	"The XFree86 Project"
+#define MODULEVENDORSTRING	"X.Org Foundation"
 #else
-#define MODULEVENDORSTRING	"The XFree86 Project - XFree86/OS2"
+#define MODULEVENDORSTRING	"X.Org Foundation - OS2"
 #endif
 #endif
 
@@ -129,10 +129,10 @@ typedef enum {
  * the video driver ABI are themselves video drivers.
  */
 #define MOD_CLASS_NONE		NULL
-#define MOD_CLASS_VIDEODRV	"XFree86 Video Driver"
-#define MOD_CLASS_XINPUT	"XFree86 XInput Driver"
-#define MOD_CLASS_FONT		"XFree86 Font Renderer"
-#define MOD_CLASS_EXTENSION	"XFree86 Server Extension"
+#define MOD_CLASS_VIDEODRV	"X.Org Video Driver"
+#define MOD_CLASS_XINPUT	"X.Org XInput Driver"
+#define MOD_CLASS_FONT		"X.Org Font Renderer"
+#define MOD_CLASS_EXTENSION	"X.Org Server Extension"
 
 /* This structure is expected to be returned by the initfunc */
 typedef struct {

@@ -28,7 +28,7 @@
  * authorization from the copyright holder(s) and author(s).
  */
 
-/* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86xv.c,v 1.38 2004/02/19 22:38:12 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86xv.c,v 1.37 2003/11/10 18:22:15 tsi Exp $ */
 
 #include "misc.h"
 #include "xf86.h"

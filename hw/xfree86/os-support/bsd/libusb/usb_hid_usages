@@ -9,7 +9,7 @@
 #    If the number is * then the line matches all usages and the name
 #    is a printf formatting string that will be given the usage number.
 #
-# $XFree86: xc/programs/Xserver/hw/xfree86/os-support/bsd/libusb/usb_hid_usages,v 1.1 2000/02/11 18:06:51 dawes Exp $ 
+# $XFree86: xc/programs/Xserver/hw/xfree86/os-support/libusb/usb_hid_usages,v 1.1.2.2 1999/12/03 10:12:43 hohndel Exp $ 
 #
 1	Generic Desktop
 	0x00	Undefined

@@ -45,7 +45,7 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ******************************************************************/
-/* $XFree86: xc/programs/Xserver/include/pixmap.h,v 1.4 2003/11/03 05:36:35 tsi Exp $ */
+/* $XFree86$ */
 
 #ifndef PIXMAP_H
 #define PIXMAP_H

@@ -21,7 +21,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $XFree86: xc/programs/Xserver/hw/xfree86/loader/hash.h,v 1.3 1998/07/25 16:56:16 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/loader/hash.h,v 1.2.2.2 1998/07/04 13:32:45 dawes Exp $ */
 
 #ifndef _HASH_H
 #define _HASH_H

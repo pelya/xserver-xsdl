@@ -23,7 +23,7 @@
  * holders shall not be used in advertising or otherwise to promote the sale,
  * use or other dealings in this Software without prior written authorization.
  */
-/* $XFree86: xc/programs/Xserver/hw/darwin/darwin.h,v 1.20 2003/11/15 00:07:09 torrey Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/darwin/darwin.h,v 1.19 2003/10/16 23:50:08 torrey Exp $ */
 
 #ifndef _DARWIN_H
 #define _DARWIN_H

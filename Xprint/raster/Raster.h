@@ -30,8 +30,6 @@ not be used in advertising or otherwise to promote the sale, use or other
 dealings in this Software without prior written authorization from said
 copyright holders.
 */
-/* $XFree86: xc/programs/Xserver/Xprint/raster/Raster.h,v 1.4 2001/12/21 21:02:06 dawes Exp $ */
-
 /*******************************************************************
 **
 **    *********************************************************
@@ -53,6 +51,7 @@ copyright holders.
  * Some sleazes to force the XrmDB stuff into the server
  */
 #ifndef HAVE_XPointer
+#define HAVE_XPointer 1
 typedef char *XPointer;
 #endif
 #define Status int
@@ -110,6 +109,6 @@ typedef struct {
 extern XpValidatePoolsRec RasterValidatePoolsRec;
 
 extern Bool InitializeRasterDriver(int ndx, ScreenPtr pScreen, int argc,
-				   char **argv);
+                                  char **argv);
 
 #endif  /* _RASTER_H_ */

@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/mi/mipolygen.c,v 1.3 2001/12/14 20:00:25 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/mi/mipolygen.c,v 1.2 2001/05/29 22:24:07 dawes Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group

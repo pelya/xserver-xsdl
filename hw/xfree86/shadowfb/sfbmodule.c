@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/shadowfb/sfbmodule.c,v 1.2 1999/02/01 12:08:45 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/shadowfb/sfbmodule.c,v 1.1 1999/01/31 12:38:06 dawes Exp $ */
 
 
 #ifdef XFree86LOADER
@@ -11,7 +11,7 @@ static XF86ModuleVersionInfo VersRec =
         MODULEVENDORSTRING,
         MODINFOSTRING1,
         MODINFOSTRING2,
-        XF86_VERSION_CURRENT,
+        XORG_VERSION_CURRENT,
         1, 0, 0,
         ABI_CLASS_ANSIC,                /* Only need the ansic layer */
         ABI_ANSIC_VERSION,

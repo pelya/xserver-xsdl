@@ -108,4 +108,4 @@ of the NeXT .keymapping file.
 
 
 
-$XFree86: xc/programs/Xserver/hw/darwin/utils/README.txt,v 1.2 2000/12/05 21:18:34 dawes Exp $
+$XFree86: xc/programs/Xserver/hw/darwin/utils/README.txt,v 1.1 2000/12/01 19:47:39 dawes Exp $

@@ -26,7 +26,7 @@ other dealings in this Software without prior written authorization
 from The Open Group.
 
 */
-/* $XFree86: xc/programs/Xserver/mi/mivalidate.h,v 1.3 2003/07/16 01:38:57 dawes Exp $ */
+/* $XFree86$ */
 
 
 #ifndef MIVALIDATE_H

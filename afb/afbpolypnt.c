@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/afb/afbpolypnt.c,v 3.2 2003/07/16 01:38:35 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/afb/afbpolypnt.c,v 3.1 1998/03/20 21:04:56 hohndel Exp $ */
 /* Combined Purdue/PurduePlus patches, level 2.0, 1/17/89 */
 /***********************************************************
 

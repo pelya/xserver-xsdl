@@ -1,4 +1,4 @@
-.\" $XFree86: xc/programs/Xserver/hw/darwin/XDarwin.man,v 1.4 2002/01/09 18:01:58 torrey Exp $
+.\" $XFree86: xc/programs/Xserver/hw/darwin/XDarwin.man,v 1.3 2001/09/23 23:02:37 torrey Exp $
 .\"
 .TH XDARWIN 1 __vendorversion__
 .SH NAME
@@ -10,7 +10,7 @@ XDarwin \- X window system server for Darwin operating system
 #ifdef DARWIN_WITH_QUARTZ
 .I XDarwin
 is the X window server for Mac OS X and the Darwin operating system
-provided by the XFree86 Project.
+provided by the X.Org Foundation.
 .I XDarwin
 can run in three different modes. On Mac OS X,
 .I XDarwin
@@ -51,7 +51,7 @@ handles the desktop background.
 #else
 .I XDarwin
 is the X window server for Mac OS X and the Darwin operating system
-provided by the XFree86 Project. This version of
+provided by the X.Org Foundation. This version of
 .I XDarwin
 can only be started from the Darwin text console. The Mac OS X Aqua GUI, if
 present, must be shut down.
@@ -147,7 +147,7 @@ Print out the server version and patchlevel.
 Same as \fB\-showconfig\fP.
 .SH "SEE ALSO"
 .PP
-X(__miscmansuffix__), XFree86(1), Xserver(1), xdm(1), xinit(1)
+X(__miscmansuffix__), Xorg(1), Xserver(1), xdm(1), xinit(1)
 .SH BUGS
 .I XDarwin
 and this man page still have many limitations. Some of the more obvious

@@ -26,7 +26,7 @@
  *
  * Author: Paulo César Pereira de Andrade <pcpa@conectiva.com.br>
  *
- * $XFree86: xc/programs/Xserver/hw/xfree86/xf86cfg/cards.h,v 1.3 2002/07/15 20:46:04 dawes Exp $
+ * $XFree86: xc/programs/Xserver/hw/xfree86/xf86cfg/cards.h,v 1.2 2001/07/06 02:04:10 paulo Exp $
  */
 
 #include <stdio.h>

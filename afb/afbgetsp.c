@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/afb/afbgetsp.c,v 3.1 2001/10/28 03:32:58 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/afb/afbgetsp.c,v 3.0 1996/08/18 01:45:37 dawes Exp $ */
 /* Combined Purdue/PurduePlus patches, level 2.0, 1/17/89 */
 /***********************************************************
 

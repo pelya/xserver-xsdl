@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/dummylib/xf86addrestolist.c,v 1.3 2002/12/24 15:50:43 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/dummylib/xf86addrestolist.c,v 1.2tsi Exp $ */
 
 #include "xf86.h"
 

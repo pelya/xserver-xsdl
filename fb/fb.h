@@ -1,5 +1,5 @@
 /*
- * $XFree86: xc/programs/Xserver/fb/fb.h,v 1.37 2003/11/03 05:11:00 tsi Exp $
+ * $XFree86: xc/programs/Xserver/fb/fb.h,v 1.36tsi Exp $
  *
  * Copyright © 1998 Keith Packard
  *
@@ -105,7 +105,7 @@ typedef unsigned __int64    FbBits;
       defined(ia64) || defined(__ia64__) || \
       defined(__sparc64__) || \
       defined(__s390x__) || \
-      defined(AMD64) || defined (__AMD64__) || \
+      defined(amd64) || defined (__amd64__) || \
       (defined(sgi) && (_MIPS_SZLONG == 64))
 typedef unsigned long	    FbBits;
 #  else

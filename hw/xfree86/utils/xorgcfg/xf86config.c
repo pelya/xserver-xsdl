@@ -24,9 +24,9 @@
  * dealings in this Software without prior written authorization from
  * Conectiva Linux.
  *
- * Author: Paulo César Pereira de Andrade <pcpa@conectiva.com.br>
+ * Author: Paulo CÃ©sar Pereira de Andrade <pcpa@conectiva.com.br>
  *
- * $XFree86: xc/programs/Xserver/hw/xfree86/xf86cfg/xf86config.c,v 1.6 2003/11/03 05:11:59 tsi Exp $
+ * $XFree86: xc/programs/Xserver/hw/xfree86/xf86cfg/xf86config.c,v 1.5tsi Exp $
  */
 
 #include "xf86config.h"

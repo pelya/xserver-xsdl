@@ -26,7 +26,7 @@
  *
  * Author: Paulo César Pereira de Andrade <pcpa@conectiva.com.br>
  *
- * $XFree86: xc/programs/Xserver/hw/xfree86/xf86cfg/text-mode.c,v 1.26 2003/11/14 02:40:22 dawes Exp $
+ * $XFree86: xc/programs/Xserver/hw/xfree86/xf86cfg/text-mode.c,v 1.25 2003/11/12 00:10:30 dawes Exp $
  */
 
 #include <stdio.h>
@@ -124,7 +124,7 @@ static char *main_menu[] = {
 #define	CONF_LAYOUT	5
     "Configure layout",
 #define	CONF_FINISH	6
-    "Write XF86Config and quit",
+    "Write "__XCONFIGFILE__" and quit",
 #define	CONF_QUIT	7
     "Quit",
 };
@@ -200,23 +200,23 @@ TextMode(void)
 
 	ClearScreen();
 	refresh();
-	if (Dialog("XFree86 Configuration",
-		   "This program will create the XF86Config file, based on "
+	if (Dialog( __XSERVERNAME__"Configuration",
+		   "This program will create the "__XCONFIGFILE__" file, based on "
 		   "menu selections you make.\n"
 		   "\n"
 #ifndef __UNIXOS2__
-		   "The XF86Config file usually resides in /usr/X11R6/etc/X11 "
+		   "The "__XCONFIGFILE__" file usually resides in /usr/X11R6/etc/X11 "
 #else
-		   "The XF86Config file usually resides in "XF86CONFIGDIR" "
+		   "The "__XCONFIGFILE__" file usually resides in "XF86CONFIGDIR" "
 #endif
-		   "or /etc/X11. A sample XF86Config file is supplied with "
-		   "XFree86; it is configured for a standard VGA card and "
+		   "or /etc/X11. A sample "__XCONFIGFILE__" file is supplied with "
+		   __XSERVERNAME__"; it is configured for a standard VGA card and "
 		   "monitor with 640x480 resolution. This program will ask for "
 		   "a pathname when it is ready to write the file.\n"
 		   "\n"
-		   "You can either take the sample XF86Config as a base and "
+		   "You can either take the sample "__XCONFIGFILE__" as a base and "
 		   "edit it for your configuration, or let this program "
-		   "produce a base XF86Config file for your configuration and "
+		   "produce a base "__XCONFIGFILE__" file for your configuration and "
 		   "fine-tune it.",
 		   20, 60, "   Ok   ", " Cancel ", 0) != 0)
 	    break;
@@ -295,12 +295,12 @@ WriteXF86Config(void)
 
     ClearScreen();
     refresh();
-    xf86config = DialogInput("Write XF86Config", "Write configuration to file:",
+    xf86config = DialogInput("Write "__XCONFIGFILE__, "Write configuration to file:",
 			     10, 60, XF86Config_path ? XF86Config_path :
 #ifndef __UNIXOS2__
-			     "/etc/X11/XF86Config", "  Ok  ", " Cancel ", 0);
+			     "/etc/X11/"__XCONFIGFILE__, "  Ok  ", " Cancel ", 0);
 #else
-			     XF86CONFIGDIR"/XF86Config", "  Ok  ", " Cancel ", 0);
+			     XF86CONFIGDIR"/"__XCONFIGFILE__, "  Ok  ", " Cancel ", 0);
 #endif
 
     if (xf86config == NULL)
@@ -711,7 +711,7 @@ KeyboardConfig(void)
 #ifdef XFREE98_XKB
 	rulesfile = XKB_RULES_DIR "/xfree98";
 #else
-	rulesfile = XKB_RULES_DIR "/xfree86";
+	rulesfile = XKB_RULES_DIR "/"__XKBDEFRULES__;
 #endif
 	rules = XkbRF_Load(rulesfile, "", True, False);
 	if (rules == NULL) {

@@ -27,7 +27,7 @@ other dealings in this Software without prior written authorization
 from The Open Group.
 
 */
-/* $XFree86: xc/programs/Xserver/record/set.h,v 1.3 2003/11/17 22:20:44 dawes Exp $ */
+/* $XFree86$ */
 
 /*
 	  A Set Abstract Data Type (ADT) for the RECORD Extension

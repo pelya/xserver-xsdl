@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/vbe/vbe_module.c,v 1.1 2003/02/17 17:06:46 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/vbe/vbe_module.c,v 1.4 2002/09/16 18:06:15 eich Exp $ */
 
 #include "xf86.h"
 #include "xf86str.h"
@@ -16,7 +16,7 @@ static XF86ModuleVersionInfo vbeVersRec =
     MODULEVENDORSTRING,
     MODINFOSTRING1,
     MODINFOSTRING2,
-    XF86_VERSION_CURRENT,
+    XORG_VERSION_CURRENT,
     1, 1, 0,
     ABI_CLASS_VIDEODRV,		/* needs the video driver ABI */
     ABI_VIDEODRV_VERSION,

@@ -1,3 +1,4 @@
+/* $XdotOrg$ */
 /**************************************************************
  *
  * Quartz-specific support for the Darwin X Server
@@ -29,7 +30,7 @@
  * holders shall not be used in advertising or otherwise to promote the sale,
  * use or other dealings in this Software without prior written authorization.
  */
-/* $XFree86: xc/programs/Xserver/hw/darwin/quartz/quartz.c,v 1.14 2003/11/24 05:39:02 torrey Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/darwin/quartz/quartz.c,v 1.13 2003/11/12 20:21:51 torrey Exp $ */
 
 #include "quartzCommon.h"
 #include "quartz.h"

@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/mfb/mfbline.c,v 1.7 2001/12/14 20:00:09 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/mfb/mfbline.c,v 1.6 2001/01/17 22:37:03 dawes Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group

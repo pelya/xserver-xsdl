@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/vbe/vbe.h,v 1.5 2004/02/02 03:55:32 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/vbe/vbe.h,v 1.4 2004/01/07 04:28:06 dawes Exp $ */
 
 /*
  *                   XFree86 vbe module

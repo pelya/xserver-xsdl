@@ -30,8 +30,6 @@ not be used in advertising or otherwise to promote the sale, use or other
 dealings in this Software without prior written authorization from said
 copyright holders.
 */
-/* $XFree86: xc/programs/Xserver/Xprint/mediaSizes.c,v 1.5 2001/12/21 21:02:05 dawes Exp $ */
-
 /*******************************************************************
 **
 **    *********************************************************
@@ -130,6 +128,14 @@ static PageDimensionsRec PageDimensions[] =
     {xpoid_val_medium_size_jis_b8,		64,		91},
     {xpoid_val_medium_size_jis_b9,		45,		64},
     {xpoid_val_medium_size_jis_b10,		32,		45},
+    {xpoid_val_medium_size_hp_2x_postcard,	148,		200},
+    {xpoid_val_medium_size_hp_european_edp,	304.8,		355.6},
+    {xpoid_val_medium_size_hp_mini,		139.7,		215.9},
+    {xpoid_val_medium_size_hp_postcard,		100,		148},
+    {xpoid_val_medium_size_hp_tabloid,		279.4,		431.8},
+    {xpoid_val_medium_size_hp_us_edp,		279.4,		355.6},
+    {xpoid_val_medium_size_hp_us_government_legal,	203.2,	330.2},
+    {xpoid_val_medium_size_hp_us_government_letter,	203.2,	254},
     {xpoid_val_medium_size_iso_c3,		324,		458},
     {xpoid_val_medium_size_iso_c4,		229,		324},
     {xpoid_val_medium_size_iso_c5,		162,		229},
@@ -145,7 +151,8 @@ static PageDimensionsRec PageDimensions[] =
  *       attributes pools have been validated.
  */
 int
-XpGetResolution(XpContextPtr pContext)
+XpGetResolution(
+		XpContextPtr pContext)
 {
     unsigned long resolution;
 
@@ -185,7 +192,8 @@ XpGetResolution(XpContextPtr pContext)
  *       attributes pools have been validated.
  */
 XpOid
-XpGetContentOrientation(XpContextPtr pContext)
+XpGetContentOrientation(
+			XpContextPtr pContext)
 {
     XpOid orientation;
 
@@ -415,7 +423,7 @@ XpGetMediumMillimeters(
 		       float *width,  /* return */
 		       float *height) /* return */
 {
-    unsigned i;
+    int i;
 
     *width = *height = 0;
     for(i = 0; i < XpNumber(PageDimensions); i++)
@@ -739,7 +747,9 @@ XpGetMaxWidthHeightRes(
 }
 
 FontResolutionPtr
-XpGetClientResolutions(ClientPtr client, int *num)
+XpGetClientResolutions(client, num)
+    ClientPtr client;
+    int *num;
 {
     static struct _FontResolution res;
     int resolution = XpGetResolution(XpContextOfClient(client)); 
@@ -755,13 +765,15 @@ XpGetClientResolutions(ClientPtr client, int *num)
 }
 
 
-void XpSetFontResFunc(ClientPtr client)
+void XpSetFontResFunc(client)
+    ClientPtr client;
 {
     client->fontResFunc = XpGetClientResolutions;
 }
 
 
-void XpUnsetFontResFunc(ClientPtr client)
+void XpUnsetFontResFunc(client)
+    ClientPtr client;
 {
     client->fontResFunc = NULL;
 }

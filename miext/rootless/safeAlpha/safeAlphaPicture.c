@@ -32,7 +32,7 @@
  *
  * Copyright © 2000 Keith Packard, member of The XFree86 Project, Inc.
  */
- /* $XFree86: xc/programs/Xserver/miext/rootless/safeAlpha/safeAlphaPicture.c,v 1.4 2004/01/19 01:22:48 torrey Exp $ */
+ /* $XFree86: xc/programs/Xserver/miext/rootless/safeAlpha/safeAlphaPicture.c,v 1.3 2003/10/24 00:33:15 torrey Exp $ */
 
 #ifdef RENDER
 

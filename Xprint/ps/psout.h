@@ -57,7 +57,6 @@ in this Software without prior written authorization from The Open Group.
  * or other dealings in this Software without prior written authorization
  * from said copyright holders.
  */
-/* $XFree86: xc/programs/Xserver/Xprint/ps/psout.h,v 1.5 2001/12/21 21:02:06 dawes Exp $ */
 
 /*******************************************************************
 **
@@ -147,10 +146,80 @@ typedef struct PsClipRec_
 
 typedef PsClipRec *PsClipPtr;
 
+typedef enum PsFTDownloadFontType_ 
+{ 
+  PsFontBitmap=0,
+  PsFontType1,
+  PsFontType3
+} PsFTDownloadFontType;
+
+#ifdef USE_PSOUT_PRIVATE
+typedef void *voidPtr;
+
+typedef struct PsPatRec_
+{
+  PsFillEnum type;
+  voidPtr    tag;
+} PsPatRec;
+
+typedef PsPatRec *PsPatPtr;
+
+typedef struct PsOutRec_
+{
+  FILE       *Fp;
+  char        Buf[16384];
+  int         CurColor;
+  int         LineWidth;
+  PsCapEnum   LineCap;
+  PsJoinEnum  LineJoin;
+  int         NDashes;
+  int        *Dashes;
+  int         DashOffset;
+  int         LineBClr;
+  PsRuleEnum  FillRule;
+  char       *FontName;
+  int         FontSize;
+  float       FontMtx[4];
+  int         ImageFormat;
+  int         RevImage;
+  int         NPatterns;
+  int         MxPatterns;
+  PsPatPtr    Patterns;
+  int         ClipType;
+  PsClipRec   Clip;
+  int         InFrame;
+  int         XOff;
+  int         YOff;
+
+  PsFillEnum  InTile;
+  int         ImgSkip;
+  int         ImgBClr;
+  int         ImgFClr;
+  int         ImgX;
+  int         ImgY;
+  int         ImgW;
+  int         ImgH;
+  int         SclW;
+  int         SclH;
+
+  Bool        isRaw;
+  
+  int         pagenum;
+
+  int         start_image;
+} PsOutRec;
+
 typedef struct PsOutRec_ *PsOutPtr;
 
-extern PsOutPtr PsOut_BeginFile(FILE *fp, int orient, int count, int plex,
-                              int res, int wd, int ht, Bool raw);
+extern void S_Flush(PsOutPtr self);
+extern void S_OutNum(PsOutPtr self, float num);
+extern void S_OutTok(PsOutPtr self, char *tok, int cr);
+#else
+typedef struct PsOutRec_ *PsOutPtr;
+#endif /* USE_PSOUT_PRIVATE */
+
+extern PsOutPtr PsOut_BeginFile(FILE *fp, char *title, int orient, int count, int plex,
+                                int res, int wd, int ht, Bool raw);
 extern void PsOut_EndFile(PsOutPtr self, int closeFile);
 extern void PsOut_BeginPage(PsOutPtr self, int orient, int count, int plex,
                             int res, int wd, int ht);
@@ -182,8 +251,9 @@ extern void PsOut_DrawArc(PsOutPtr self, int x, int y, int w, int h,
 
 extern void PsOut_Text(PsOutPtr self, int x, int y, char *text, int textl,
                        int bclr);
+extern void PsOut_Text16(PsOutPtr self, int x, int y, unsigned short *text, int textl, int bclr);
 
-extern void PsOut_BeginImage(PsOutPtr self, int bclr, int fclr, int x, int y,
+extern void PsOut_BeginImage(PsOutPtr self, int bclr, int  fclr, int x, int y,
                              int w, int h, int sw, int sh, int format);
 extern void PsOut_BeginImageIM(PsOutPtr self, int bclr, int fclr, int x, int y,
                                int w, int h, int sw, int sh, int format);
@@ -200,16 +270,17 @@ extern void PsOut_EndPattern(PsOutPtr self);
 extern void PsOut_SetPattern(PsOutPtr self, void *tag, PsFillEnum type);
 
 extern void PsOut_RawData(PsOutPtr self, char *data, int len);
-extern void PsOut_DownloadType1(PsOutPtr self, char *name, char *fname);
 
-#ifdef BM_CACHE
-extern void PsOut_BeginImageCache(PsOutPtr self, long cache_id);
-extern void PsOut_EndImageCache(PsOutPtr self);
-extern void PsOut_ImageCache(PsOutPtr self, int x, int y, long cache_id,
-			     int bclr, int fclr);
-#endif
+extern int  PsOut_DownloadType1(PsOutPtr self, const char *auditmsg, const char *name, const char *fname);
 
-extern FILE *PsOut_ChangeFile(PsOutPtr self, FILE *fp);
+extern int  PsOut_DownloadFreeType1(PsOutPtr self, const char *psfontname, FontPtr pFont, long block_offset);
+extern int  PsOut_DownloadFreeType3(PsOutPtr self, const char *psfontname, FontPtr pFont, long block_offset);
 
+extern int  PsOut_DownloadFreeType(PsOutPtr self, PsFTDownloadFontType downloadfonttype, const char *psfontname, FontPtr pFont, long block_offset);
+extern void PsOut_Get_FreeType_Glyph_Name( char *destbuf, FontPtr pFont, unsigned long x11fontindex);
+extern void PsOut_FreeType_Text(FontPtr pFont, PsOutPtr self, int x, int y, char *text, int textl);
+extern void PsOut_FreeType_Text16(FontPtr pFont, PsOutPtr self, int x, int y, unsigned short *text, int textl);
 
+extern void PsOut_FreeType_TextAttrs16(PsOutPtr self, char *fnam, int siz, int iso);
+extern void PsOut_FreeType_TextAttrsMtx16(PsOutPtr self, char *fnam, float *mtx, int iso);
 #endif

@@ -26,7 +26,7 @@
  *
  * Author: Paulo César Pereira de Andrade <pcpa@conectiva.com.br>
  *
- * $XFree86: xc/programs/Xserver/hw/xfree86/xf86cfg/loader.h,v 1.8 2004/03/05 16:04:59 tsi Exp $
+ * $XFree86: xc/programs/Xserver/hw/xfree86/xf86cfg/loader.h,v 1.6 2001/07/07 01:43:58 paulo Exp $
  */
 
 #ifdef USE_MODULES
@@ -75,7 +75,7 @@ typedef union {
     unsigned long       num;
     char *              str;
     double              realnum;
-    Bool		flag;
+    Bool		bool;
     OptFrequency	freq;
 } ValueUnion;
 

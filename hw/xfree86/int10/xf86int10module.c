@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/int10/xf86int10module.c,v 1.2 2002/09/16 18:06:09 eich Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/int10/xf86int10module.c,v 1.3 1999/12/03 19:17:41 eich Exp $ */
 /*
  *                   XFree86 int10 module
  *   execute BIOS int 10h calls in x86 real mode environment
@@ -31,7 +31,7 @@ static XF86ModuleVersionInfo NAME(VersRec) =
     MODULEVENDORSTRING,
     MODINFOSTRING1,
     MODINFOSTRING2,
-    XF86_VERSION_CURRENT,
+    XORG_VERSION_CURRENT,
     1, 0, 0,
     ABI_CLASS_VIDEODRV,		/* needs the video driver ABI */
     ABI_VIDEODRV_VERSION,

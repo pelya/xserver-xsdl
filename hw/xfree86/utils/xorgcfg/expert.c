@@ -26,7 +26,7 @@
  *
  * Author: Paulo César Pereira de Andrade <pcpa@conectiva.com.br>
  *
- * $XFree86: xc/programs/Xserver/hw/xfree86/xf86cfg/expert.c,v 1.15 2003/11/03 05:11:58 tsi Exp $
+ * $XFree86: xc/programs/Xserver/hw/xfree86/xf86cfg/expert.c,v 1.14tsi Exp $
  */
 
 #include "config.h"
@@ -4742,7 +4742,7 @@ ExpertInitialize(void)
     XtAddCallback(panner, XtNreportCallback, PannerCallback, NULL);
     tree = XtCreateManagedWidget("tree", treeWidgetClass, expert, NULL, 0);
 
-    config = XtVaCreateManagedWidget("XF86Config", toggleWidgetClass, tree,
+    config = XtVaCreateManagedWidget(__XCONFIGFILE__, toggleWidgetClass, tree,
 				     XtNstate, True, NULL, 0);
     mainNode = NewNode(NULL, config, config, NULL, NULL);
 

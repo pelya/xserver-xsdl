@@ -1,4 +1,4 @@
-.\" $XFree86: xc/programs/Xserver/hw/xfree86/etc/gtf.man,v 1.1 2002/11/12 01:31:23 dawes Exp $ 
+.\" $XFree86$
 .TH GTF 1 __vendorversion__
 .SH NAME
 gtf - calculate VESA GTF mode lines
@@ -9,14 +9,14 @@ gtf - calculate VESA GTF mode lines
 .I refresh
 .RB [ \-v | \-\-verbose ]
 .RB [ \-f | \-\-fbmode ]
-.RB [ \-x | \-\-xf86mode ]
+.RB [ \-x | \-\-xorgmode ]
 .SH DESCRIPTION
 .I Gtf
 is a utility for calculating VESA GTF modes.  Given the desired
 horizontal and vertical resolutions and refresh rate (in Hz), the parameters
 for a matching VESA GTF mode are printed out.  Two output formats are
-supported: mode lines suitable for the XFree86
-.B XF86Config(__filemansuffix__)
+supported: mode lines suitable for the __xservername__
+.B __xconfigfile__(__filemansuffix__)
 file, and mode parameters suitable for the Linux
 .B fbset(8)
 utility.
@@ -27,15 +27,15 @@ utility.
 Enable verbose printouts  This shows a trace for each step of the
 computation.
 .TP 8
-.BR \-x | \-\-xf86mode
-Print the mode parameters as XFree86-style mode lines.  This is the
+.BR \-x | \-\-xorgmode
+Print the mode parameters as __xservername__-style mode lines.  This is the
 default format.
 .TP 8
 .BR \-f | \-\-fbset
 Print the mode parameters in a format suitable for
 .BR fbset(8) .
 .SH "SEE ALSO"
-XF86Config(__filemansuffix__)
+__xconfigfile__(__filemansuffix__)
 .SH AUTHOR
 Andy Ritger.
 .PP

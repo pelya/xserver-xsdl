@@ -1,7 +1,7 @@
 /*
  * Darwin default 8-bit Colormap for StaticColor
  */
-/* $XFree86: xc/programs/Xserver/hw/darwin/darwinClut8.h,v 1.2 2003/03/04 01:37:59 torrey Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/darwin/darwinClut8.h,v 1.1.8.1 2003/03/04 01:31:43 torrey Exp $ */
 
 #ifndef _DARWIN_CLUT8_
 #define _DARWIN_CLUT8_

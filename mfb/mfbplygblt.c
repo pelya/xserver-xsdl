@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/mfb/mfbplygblt.c,v 3.5 2003/11/03 05:12:00 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/mfb/mfbplygblt.c,v 3.4tsi Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group

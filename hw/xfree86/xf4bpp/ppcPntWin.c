@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/xf4bpp/ppcPntWin.c,v 1.4 2003/11/17 22:20:42 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/xf4bpp/ppcPntWin.c,v 1.3 1999/06/06 08:49:01 dawes Exp $ */
 /*
  * Copyright IBM Corporation 1987,1988,1989
  *

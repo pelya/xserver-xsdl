@@ -73,7 +73,6 @@ in this Software without prior written authorization from The Open Group.
 **    *********************************************************
 ** 
 ********************************************************************/
-/* $XFree86: xc/programs/Xserver/Xprint/ps/PsPrint.c,v 1.11 2001/12/21 21:02:06 dawes Exp $ */
 
 #include <stdio.h>
 #include <string.h>
@@ -91,6 +90,7 @@ in this Software without prior written authorization from The Open Group.
 #include "Ps.h"
 
 #include "windowstr.h"
+#include "attributes.h"
 #include "Oid.h"
 
 /* static utility function to get document/page attributes */
@@ -206,6 +206,8 @@ PsEndJob(
     unlink(priv->jobFileName);
     xfree(priv->jobFileName);
     priv->jobFileName = (char *)NULL;
+    
+    PsFreeFontInfoRecords(priv);
 
     return Success;
   }
@@ -214,6 +216,7 @@ PsEndJob(
    * Append any trailing information here
    */
   PsOut_EndFile(priv->pPsOut, 0);
+  priv->pPsOut = NULL;
   
   /* this is where we find out if we're out of space */
   error = (fclose(priv->pJobFile) == EOF);
@@ -232,6 +235,8 @@ PsEndJob(
     unlink(priv->jobFileName);
     xfree(priv->jobFileName);
     priv->jobFileName = (char *)NULL;
+
+    PsFreeFontInfoRecords(priv);
 
     return BadAlloc;
   }
@@ -265,10 +270,12 @@ PsEndJob(
   xfree(priv->jobFileName);
   priv->jobFileName = (char *)NULL;
 
+  PsFreeFontInfoRecords(priv);
+    
 #ifdef BM_CACHE
   PsBmClearImageCache();
 #endif
-        
+
   return r;
 }
 
@@ -281,10 +288,13 @@ PsStartPage(
 {
   int                iorient, iplex, icount, ires;
   unsigned short     iwd, iht;
+  register WindowPtr pChild;
   PsContextPrivPtr   pConPriv =
      (PsContextPrivPtr)pCon->devPrivates[PsContextPrivateIndex].ptr;
   PsWindowPrivPtr    pWinPriv =
      (PsWindowPrivPtr)pWin->devPrivates[PsWindowPrivateIndex].ptr;
+  char               s[80];
+  xEvent event;
 
 /*
  * Put a pointer to the context in the window private structure
@@ -298,9 +308,16 @@ PsStartPage(
    *  Start the page
    */
   if (pConPriv->pPsOut == NULL) {
-      pConPriv->pPsOut = PsOut_BeginFile(pConPriv->pJobFile,
-				   iorient, icount, iplex, ires,
-				   (int)iwd, (int)iht, False);
+    char *title;
+    
+    /* get job level attributes */ 
+    title = XpGetOneAttribute(pCon, XPJobAttr, "job-name");
+
+    pConPriv->pPsOut = PsOut_BeginFile(pConPriv->pJobFile,
+                                       title, iorient, icount, iplex, ires,
+                                       (int)iwd, (int)iht, False);
+    pConPriv->fontInfoRecords     = NULL;
+    pConPriv->fontTypeInfoRecords = NULL;
   }
   PsOut_BeginPage(pConPriv->pPsOut, iorient, icount, iplex, ires,
 		  (int)iwd, (int)iht);
@@ -348,15 +365,22 @@ PsStartDoc(XpContextPtr pCon, XPDocumentType type)
 {
   int                iorient, iplex, icount, ires;
   unsigned short     iwd, iht;
+  char              *title;
   PsContextPrivPtr   pConPriv = 
       (PsContextPrivPtr)pCon->devPrivates[PsContextPrivateIndex].ptr;
 
+  /* get job level attributes */ 
+  title = XpGetOneAttribute(pCon, XPJobAttr, "job-name");
+ 
   /* get document level attributes */
   S_GetPageAttributes(pCon,&iorient,&icount,&iplex,&ires,&iwd,&iht);
 
   pConPriv->pPsOut = PsOut_BeginFile(pConPriv->pJobFile,
-                                   iorient, icount, iplex, ires,
-                                   (int)iwd, (int)iht, (type == XPDocRaw));
+                                     title, iorient, icount, iplex, ires,
+                                     (int)iwd, (int)iht, (Bool)(type == XPDocRaw));
+
+  pConPriv->fontInfoRecords     = NULL;
+  pConPriv->fontTypeInfoRecords = NULL;
 
   return Success;
 }
@@ -391,8 +415,11 @@ PsDocumentData(
     PsContextPrivPtr cPriv;
     PsOutPtr psOut;
 
-    if (len_fmt != 12 || !strcmp(pFmt, "PostScript 2") || len_opt)
+    if (len_fmt != 12 ||
+        strncasecmp(pFmt, "PostScript 2", len_fmt) != 0 ||
+        len_opt)
 	return BadValue;
+
     cPriv = pCon->devPrivates[PsContextPrivateIndex].ptr;
     psOut = cPriv->pPsOut;
 

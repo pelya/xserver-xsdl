@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/linux/lnx_KbdMap.c,v 1.1 2002/10/11 01:40:35 dawes Exp $ */
+/* $XFree86$ */
 
 /*
  * Slightly modified xf86KbdLnx.c which is

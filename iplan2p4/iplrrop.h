@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/iplan2p4/iplrrop.h,v 3.1 2001/07/25 15:05:09 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/iplan2p4/iplrrop.h,v 3.0 1996/08/18 01:55:04 dawes Exp $ */
 /* Modified nov 94 by Martin Schaller (Martin_Schaller@maus.r.de) for use with
 interleaved planes */
 

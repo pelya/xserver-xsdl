@@ -1,5 +1,5 @@
 /*
- * $XFree86: xc/programs/Xserver/randr/mirandr.c,v 1.7 2002/10/14 18:01:42 keithp Exp $
+ * $XFree86: xc/programs/Xserver/randr/mirandr.c,v 1.5 2001/06/04 09:45:40 keithp Exp $
  *
  * Copyright © 2000, Compaq Computer Corporation, 
  * Copyright © 2002, Hewlett Packard, Inc.

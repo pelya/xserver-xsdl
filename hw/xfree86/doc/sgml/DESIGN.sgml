@@ -1,4 +1,5 @@
-<!DOCTYPE linuxdoc PUBLIC "-//XFree86//DTD linuxdoc//EN" [
+<!DOCTYPE linuxdoc PUBLIC "-//Xorg//DTD linuxdoc//EN" [
+ <!ENTITY % defs SYSTEM "defs.ent"> %defs;
  <!-- config file keyword markup -->
  <!ENTITY s.key STARTTAG "bf">
  <!ENTITY e.key ENDTAG "bf">
@@ -27,6 +28,7 @@
 
 <title>XFree86 server 4.x Design (DRAFT)
 <author>The XFree86 Project, Inc
+<and>Updates for X11R&relvers; by Jim Gettys
 <date>19 December 2003
 
 
@@ -36,7 +38,7 @@
 
 
 <ident>
-$XFree86: xc/programs/Xserver/hw/xfree86/doc/sgml/DESIGN.sgml,v 1.54 2003/12/19 20:38:57 dawes Exp $
+$XFree86: xc/programs/Xserver/hw/xfree86/doc/sgml/DESIGN.sgml,v 1.53 2003/08/23 14:10:14 dawes Exp $
 </ident>
 
 
@@ -79,10 +81,10 @@ The broad design principles are:
 Unless we find major deficiencies in the DIX layer, we should avoid
 making changes there.
 
-<sect>The XF86Config File
+<sect>The xorg.conf File
 <p>
 
-The XF86Config file format is similar to the old format, with the following
+The xorg.conf file format is similar to the old format, with the following
 changes:
 
 <sect1>&k.device; section
@@ -315,7 +317,7 @@ the XFree86 common layer:
 
    <tag>PreInit</tag>
 
-     Process information from the XF86Config file, determine the
+     Process information from the xorg.conf file, determine the
      full characteristics of the hardware, and determine if a valid
      configuration is present.
    </descrip>
@@ -426,12 +428,12 @@ control.  &s.code;InitOutput()&e.code; is expected to fill in the global
 &s.code;screenInfo.screen[]&e.code; entry for each screen present.  Here
 is what &s.code;InitOutput()&e.code; does:
 
-<sect1>Parse the XF86Config file
+<sect1>Parse the xorg.conf file
 <p>
 
     This is done at the start of the first server generation only.
 
-    The XF86Config file is read in full, and the resulting information
+    The xorg.conf file is read in full, and the resulting information
     stored in data structures.  None of the parsed information is
     processed at this point.  The parser data structures are opaque to
     the video drivers and to most of the common layer code.
@@ -595,7 +597,7 @@ is what &s.code;InitOutput()&e.code; does:
       &s.code;PROBE_DETECT&e.code; is used if "-configure" or "-probe"
       command line arguments are given and indicates to the
       &s.code;Probe()&e.code; function that it should not configure the
-      bus entities and that no XF86Config information is available.
+      bus entities and that no xorg.conf information is available.
 
       The probe must find the active device sections that match the
       driver by calling &s.code;xf86MatchDevice()&e.code;.  The number
@@ -746,7 +748,7 @@ is what &s.code;InitOutput()&e.code; does:
 
     After the Probe phase is finished, there will be some number of
     &s.code;ScrnInfoRecs&e.code;.  These are then matched with the active
-    &k.screen; sections in the XF86Config, and those not having an active
+    &k.screen; sections in the xorg.conf, and those not having an active
     &k.screen; section are deleted.  If the number of remaining screens
     is 0, &s.code;InitOutput()&e.code; sets
     &s.code;screenInfo.numScreens&e.code; to &s.code;0&e.code; and
@@ -1294,10 +1296,10 @@ The function should not modify any other mode field, unless it wants to modify
 the mode timings reported to the user by &s.code;xf86PrintModes()&e.code;.
 
 <p>
-The function is called once for every mode in the XF86Config Monitor section
+The function is called once for every mode in the xorg.conf Monitor section
 assigned to the screen, with &s.code;flags&e.code; set to
 &s.code;MODECHECK_INITIAL&e.code;.  It is subsequently called for every mode
-in the XF86Config Display subsection assigned to the screen, with
+in the xorg.conf Display subsection assigned to the screen, with
 &s.code;flags&e.code; set to &s.code;MODECHECK_FINAL&e.code;.  In the second
 case, the mode will have successfully passed all other tests.  In addition,
 the &s.code;ScrnInfoRec&e.code;'s &s.code;virtualX&e.code;,
@@ -1866,7 +1868,7 @@ creates an entity record for each of them, registers non-relocatable
 resources and allocates screens and adds the resources to screens.
 
 Two helper functions are provided for matching device sections in the
-XF86Config file to the devices:
+xorg.conf file to the devices:
 
     <quote><p>
     &s.code;int xf86MatchPciInstances(const char *driverName, int vendorID,
@@ -5271,7 +5273,7 @@ be catered for the by the helpers.
 		<quote>Allow halved clocks</quote>
 		&s.code;LOOKUP_OPTIONAL_TOLERANCES&e.code;
 		<quote>Allow missing horizontal sync and/or vertical refresh
-		ranges in the XF86Config Monitor section</quote>
+		ranges in the xorg.conf Monitor section</quote>
 
 		&s.code;LOOKUP_OPTIONAL_TOLERANCES&e.code; should only be
 		specified when the driver can ensure all modes it generates
@@ -5291,7 +5293,7 @@ be catered for the by the helpers.
         &s.code;progClock&e.code;
 	<quote>Whether the clock is programmable or not</quote>
         &s.code;monitor&e.code;
-	<quote>Pointer to the applicable XF86Config monitor section</quote>
+	<quote>Pointer to the applicable xorg.conf monitor section</quote>
         &s.code;fdFormat&e.code;
 	<quote>Format of the screen buffer</quote>
         &s.code;videoRam&e.code;
@@ -6731,7 +6733,7 @@ ZZZProbe(DriverPtr drv, int flags)
 
     Define the &s.code;AvailableOptions()&e.code; function. The purpose
     of this is to return the available driver options back to the
-    -configure option, so that an XF86Config file can be built and the
+    -configure option, so that an xorg.conf file can be built and the
     user can see which options are available for them to use.
 
 <sect2>PreInit

@@ -30,7 +30,7 @@
  *		Peter Busch
  *		Harold L Hunt II
  */
-/* $XFree86: xc/programs/Xserver/hw/xwin/winshaddd.c,v 1.24 2003/07/29 21:25:18 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xwin/winshaddd.c,v 1.22 2002/10/17 08:18:24 alanh Exp $ */
 
 #include "win.h"
 
@@ -573,7 +573,7 @@ winShadowUpdateDD (ScreenPtr pScreen,
       ErrorF ("winShadowUpdateProcDD - Memory location of the shadow "
 	      "surface has changed, trying to update the root window "
 	      "pixmap header to point to the new address.  If you get "
-	      "this message and Cygwin/XFree86 freezes or crashes "
+	      "this message and Cygwin/X freezes or crashes "
 	      "after this message then send a problem report and your "
 	      "/tmp/XWin.log file to cygwin-xfree@cygwin.com\n");
 

@@ -1,4 +1,3 @@
-.\" $XFree86: xc/programs/Xserver/hw/xfree86/getconfig/cfg.man,v 1.1 2003/11/12 04:52:15 dawes Exp $
 .TH getconfig __filemansuffix__  __vendorversion__
 .SH NAME
 getconfig - meta configuration files for getconfig(1)
@@ -7,10 +6,10 @@ getconfig - meta configuration files for getconfig(1)
 .SH DESCRIPTION
 .B getconfig
 is a programatic interface that is used by the
-.B XFree86
+.B __xservername__
 server to get configuration information about video hardware when
 operating without an
-.B XF86Config
+.B __xconfigfile__
 file.
 .PP
 This implementation of
@@ -29,7 +28,7 @@ the file format version number.  The signature string is
 .PP
 .RS 4
 .nf
-"XFree86 Project getconfig rules file.\ \ Version: "
+"Xorg getconfig rules file.\ \ Version: "
 .fi
 .RE
 .PP
@@ -44,10 +43,10 @@ continuation convention ('\e' at the end of the line).  The first logical
 line of each rule is a perl expression.  It may be any valid perl
 expression whose evaluated (with 'eval') result may be used as the
 argument to a perl 'if' statement.  The second logical line should be
-the name of the XFree86 video driver to use when the rule is true, and
+the name of the __xservername__ video driver to use when the rule is true, and
 subsequent logical lines of each rule, if present, are additional
 configuration output for the video device's
-.B XF86Config
+.B __xconfigfile__
 .B Device
 section.  The driver name and additional lines of configuration information
 are written to standard output when the rule is chosen as the successful
@@ -70,12 +69,12 @@ They include:
 .BR "$subsys                 " "PCI subsystem ID"
 .BR "$subsysVendor           " "PCI subsystem vendor ID"
 .BR "$class                  " "PCI class"
-.BR "$XFree86Version         " "XFree86 version, as a 'v' string"
-.BR "$XFree86VersionNumeric  " "XFree86 numeric version"
-.BR "$XFree86VersionMajor    " "XFree86 major version"
-.BR "$XFree86VersionMinor    " "XFree86 minor version"
-.BR "$XFree86VersionPatch    " "XFree86 patch version"
-.BR "$XFree86VersionSnap     " "XFree86 snap version"
+.BR "$XorgVersion         " "Xorg version, as a 'v' string"
+.BR "$XorgVersionNumeric  " "Xorg numeric version"
+.BR "$XorgVersionMajor    " "Xorg major version"
+.BR "$XorgVersionMinor    " "Xorg minor version"
+.BR "$XorgVersionPatch    " "Xorg patch version"
+.BR "$XorgVersionSnap     " "Xorg snap version"
 .BR "$weight                 " "current rule weight"
 .fi
 .RE
@@ -99,7 +98,7 @@ rule that evaluates to true.
 .I .cfg
 files located in the search path.  The search path typically specified
 by the
-.B XFree86
+.B __xservername__
 server is:
 .PP
 .RS 4
@@ -114,11 +113,11 @@ server is:
 where
 .I <modulepath>
 is the
-.B XFree86
+.B __xservername__
 server's module search path.
 .PP
 .TP 30
-.I __projectroot__/lib/X11/getconfig/xfree86.cfg
+.I __projectroot__/lib/X11/getconfig/xorg.cfg
 Default rules file that gets installed.  This file doesn't contain any
 rules by default.
 .TP 30
@@ -128,11 +127,11 @@ appear in rules files.
 
 .SH "SEE ALSO"
 getconfig(1),
-XFree86(1),
-XF86Config(__filemansuffix__).
+__xservername__(__appmansuffix__),
+__xconfigfile__(__filemansuffix__).
 
 .SH AUTHORS
-The XFree86 automatic configuration support and the
+The __xservername__ automatic configuration support and the
 .B getconfig
 interface was written by David H. Dawes, with the support of X-Oz
-Technologies.
+Technologies for XFree86.

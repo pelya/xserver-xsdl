@@ -1,3 +1,4 @@
+/* $XdotOrg: xc/programs/Xserver/include/regionstr.h,v 1.1.4.6 2003/12/06 13:24:29 kaleb Exp $ */
 /* $Xorg: regionstr.h,v 1.4 2001/02/09 02:05:15 xorgcvs Exp $ */
 /***********************************************************
 
@@ -45,7 +46,7 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ******************************************************************/
-/* $XFree86: xc/programs/Xserver/include/regionstr.h,v 1.13 2003/12/03 17:11:29 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/include/regionstr.h,v 1.12tsi Exp $ */
 
 #ifndef REGIONSTRUCT_H
 #define REGIONSTRUCT_H

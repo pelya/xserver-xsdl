@@ -5,7 +5,7 @@
 #
 # It should be run as:
 #
-#   perl pciid2c.pl ../common/xf86PciInfo.h < pci.ids > xf86PciIds.h
+#   perl pciid2c.pl ../common/xf86PciInfo.h < pci.ids > xf86PciStdIds.h
 #
 #
 # Copyright © 2002 by The XFree86 Project, Inc.

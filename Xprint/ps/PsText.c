@@ -73,49 +73,13 @@ in this Software without prior written authorization from The Open Group.
 **    *********************************************************
 ** 
 ********************************************************************/
-/* $XFree86: xc/programs/Xserver/Xprint/ps/PsText.c,v 1.13 2003/10/29 22:11:55 tsi Exp $ */
 
 #include "Ps.h"
 #include "gcstruct.h"
 #include "windowstr.h"
+#include "fntfil.h"
 #include "fntfilst.h"
-#include <sys/stat.h>
-
-static int readFontName(char *fileName, char *file_name, char *dlfnam)
-{
-    FILE        *file;
-    struct stat statb;
-    char        buf[256];
-    char 	*front, *fn;
-
-    file = fopen(fileName, "r");
-    if(file)
-    {
-        if (fstat (fileno(file), &statb) == -1)
-            return 0;
-	while(fgets(buf, 255, file))
-	{
-	    if((fn = strstr(buf, " -")))
-	    {
-		strcpy(file_name, buf);
-		file_name[fn - buf - 4] = '\0';
-	        fn++;
-	        if((front = strstr(fn, "normal-")))
-	        {
-		    fn[front - fn] = '\0';
-	 	    if(strstr(dlfnam, fn))	
-		    {
-		        fclose(file);
-		        return 1; 
-		    }
-	        }
-	    }
-	}
-    }
-    file_name[0] = '\0';
-    fclose(file);
-    return 0;
-}
+#include <limits.h>
 
 int
 PsPolyText8(
@@ -147,70 +111,97 @@ PsPolyText8(
     elm->c.text8.string = (char *)xalloc(count);
     memcpy(elm->c.text8.string, string, count);
     disp->nelms += 1;
+    
+    return x;
   }
   else
   {
-    char  *fnam, ffname[512], *dlfnam;
-    FontDirectoryPtr    dir;
-    char        file_name[MAXFONTNAMELEN];
+    PsFontInfoRec *firec;
 
-    dir = pGC->font->fpe->private;
-    sprintf(ffname, "%s%s", dir->directory, "fonts.dir"); 
+    /* We need a context for rendering... */
+    if (PsGetPsContextPriv(pDrawable) == NULL)
+      return x;
 
-    fnam = PsGetPSFontName(pGC->font); 
-    if(!fnam){
-	if(!(dlfnam = PsGetFontName(pGC->font))) 
-	    return x;
-	/* If Type1 font, try to download to printer first */
-	if(strstr(ffname, "Type1") && readFontName(ffname, file_name, dlfnam)) 
-	{
-            int          siz;
-            float        mtx[4];
-            PsOutPtr     psOut;
-            ColormapPtr  cMap;
+    firec = PsGetFontInfoRec(pDrawable, pGC->font);
+    if (!firec)
+        return x;
 
-	    if( PsUpdateDrawableGC(pGC, pDrawable, &psOut, &cMap)==FALSE ) 
-		return x; 
-	    sprintf(ffname, "%s%s%s", dir->directory, file_name, ".pfa");
-	    PsOut_DownloadType1(psOut, file_name, ffname);
-            PsOut_Offset(psOut, pDrawable->x, pDrawable->y);
-       	    PsOut_Color(psOut, PsGetPixelColor(cMap, pGC->fgPixel)); 
-       	    siz = PsGetFontSize(pGC->font, mtx);
-       	    if( !siz ) PsOut_TextAttrsMtx(psOut, file_name, mtx, 1); 
-            else PsOut_TextAttrs(psOut, file_name, siz, 1); 
-       	    PsOut_Text(psOut, x, y, string, count, -1);
-	    return x;
-	}
-	{
-	    unsigned long n, i;
-	    int w;
-	    CharInfoPtr charinfo[255];  
+#ifdef XP_USE_FREETYPE    
+    if (firec->ftir->downloadableFont && 
+        (firec->ftir->font_type == PSFTI_FONT_TYPE_FREETYPE))
+    {
+        PsOutPtr       psOut;
+        ColormapPtr    cMap;
+        
+	if( PsUpdateDrawableGC(pGC, pDrawable, &psOut, &cMap)==FALSE ) 
+	    return x; 
 
-	    GetGlyphs(pGC->font, (unsigned long)count, 
-		(unsigned char *)string, Linear8Bit,&n, charinfo);
-	    w = 0;
-	    for (i=0; i < n; i++) w += charinfo[i]->metrics.characterWidth;
-	    if (n != 0)
-	        PsPolyGlyphBlt(pDrawable, pGC, x, y, n, 
-			charinfo, FONTGLYPHS(pGC->font));
-	    x += w;
-	}  
-    }else{
-	int          iso;
-	int          siz;
-	float        mtx[4];
-	PsOutPtr     psOut;
-	ColormapPtr  cMap;
+        if (firec->ftir->alreadyDownloaded[0] == False)
+        {
+            PsOut_DownloadFreeType(psOut,
+                                   firec->ftir->ft_download_font_type,
+                                   firec->ftir->download_ps_name, pGC->font, 0);              
+            firec->ftir->alreadyDownloaded[0] = True;
+        }
 
-	if( PsUpdateDrawableGC(pGC, pDrawable, &psOut, &cMap)==FALSE ) return x;
-	PsOut_Offset(psOut, pDrawable->x, pDrawable->y);
-	PsOut_Color(psOut, PsGetPixelColor(cMap, pGC->fgPixel));
-	siz = PsGetFontSize(pGC->font, mtx);
-	iso = PsIsISOLatin1Encoding(pGC->font);
-	if( !siz ) PsOut_TextAttrsMtx(psOut, fnam, mtx, iso);
-	else       PsOut_TextAttrs(psOut, fnam, siz, iso);
-	PsOut_Text(psOut, x, y, string, count, -1);
+        PsOut_Offset(psOut, pDrawable->x, pDrawable->y);
+       	PsOut_Color(psOut, PsGetPixelColor(cMap, pGC->fgPixel)); 
+       	if (!firec->size)
+            PsOut_TextAttrsMtx(psOut, firec->ftir->download_ps_name, firec->mtx, firec->ftir->is_iso_encoding); 
+        else
+            PsOut_TextAttrs(psOut, firec->ftir->download_ps_name, firec->size, firec->ftir->is_iso_encoding); 
+        PsOut_FreeType_Text(pGC->font, psOut, x, y, string, count);
+
+	return x;	
     }
+    else
+#endif /* XP_USE_FREETYPE */
+         if (firec->ftir->downloadableFont && 
+             (firec->ftir->font_type != PSFTI_FONT_TYPE_FREETYPE))
+    {
+        PsOutPtr       psOut;
+        ColormapPtr    cMap;
+        
+	if( PsUpdateDrawableGC(pGC, pDrawable, &psOut, &cMap)==FALSE ) 
+	    return x; 
+
+        if (firec->ftir->alreadyDownloaded[0] == False)
+        {
+            PsOut_DownloadType1(psOut, "PsPolyText8",
+                                firec->ftir->download_ps_name, firec->ftir->filename);
+            firec->ftir->alreadyDownloaded[0] = True;
+        }
+
+        PsOut_Offset(psOut, pDrawable->x, pDrawable->y);
+       	PsOut_Color(psOut, PsGetPixelColor(cMap, pGC->fgPixel)); 
+       	if (!firec->size)
+            PsOut_TextAttrsMtx(psOut, firec->ftir->download_ps_name, firec->mtx, firec->ftir->is_iso_encoding); 
+        else
+            PsOut_TextAttrs(psOut, firec->ftir->download_ps_name, firec->size, firec->ftir->is_iso_encoding); 
+        PsOut_Text(psOut, x, y, string, count, -1);
+
+	return x;	
+    }    
+    
+    /* Render glyphs as bitmaps */
+    {
+        unsigned long n, i;
+        int w;
+        CharInfoPtr charinfo[255];  
+
+        GetGlyphs(pGC->font, (unsigned long)count, 
+            (unsigned char *)string, Linear8Bit, &n, charinfo);
+        w = 0;
+        for (i=0; i < n; i++)
+          w += charinfo[i]->metrics.characterWidth;
+
+        if (n != 0)
+            PsPolyGlyphBlt(pDrawable, pGC, x, y, n, 
+                    charinfo, FONTGLYPHS(pGC->font));
+        x += w;
+        
+        return x;
+    }  
   }
   return x;
 }
@@ -246,21 +237,136 @@ PsPolyText16(
       (unsigned short *)xalloc(count*sizeof(unsigned short));
     memcpy(elm->c.text16.string, string, count*sizeof(unsigned short));
     disp->nelms += 1;
+
+    return x;
   }
   else
   {
-    unsigned long n, i;
-    int w;
-    CharInfoPtr charinfo[255];  /* encoding only has 1 byte for count */
+    PsFontInfoRec *firec;
 
-    GetGlyphs(pGC->font, (unsigned long)count, (unsigned char *)string,
-              (FONTLASTROW(pGC->font) == 0) ? Linear16Bit : TwoD16Bit,
-              &n, charinfo);
-    w = 0;
-    for (i=0; i < n; i++) w += charinfo[i]->metrics.characterWidth;
-    if (n != 0)
-	PsPolyGlyphBlt(pDrawable, pGC, x, y, n, charinfo, FONTGLYPHS(pGC->font));
-    x += w;
+    /* We need a context for rendering... */
+    if (PsGetPsContextPriv(pDrawable) == NULL)
+      return x;
+
+    firec = PsGetFontInfoRec(pDrawable, pGC->font);
+    if (!firec)
+        return x;
+
+#ifdef XP_USE_FREETYPE    
+    if (firec->ftir->downloadableFont &&
+        (firec->ftir->font_type == PSFTI_FONT_TYPE_FREETYPE))
+    {
+        PsOutPtr       psOut;
+        ColormapPtr    cMap;
+        unsigned short c,
+                       c_hiByte,
+                       c_lowByte,
+                       fontPage;
+        int            i;
+        
+	if( PsUpdateDrawableGC(pGC, pDrawable, &psOut, &cMap)==FALSE ) 
+	    return x; 
+
+        /* Scan the string we want to render and download all neccesary parts
+         * of the font (one part(="font page") has 256 glyphs)
+         */
+        for( i = 0 ; i < count ; i++ )
+        {
+            c = string[i];
+#if IMAGE_BYTE_ORDER == LSBFirst
+            c_hiByte = c & 0x00FF;
+            c_lowByte = (c >> 8) & 0x00FF;
+#elif IMAGE_BYTE_ORDER == MSBFirst
+            c_hiByte  = (c >> 8) & 0x00FF;
+            c_lowByte = c & 0x00FF;
+#else
+#error Unsupported byte order
+#endif
+            fontPage  = c_hiByte;
+          
+            if (firec->ftir->alreadyDownloaded[fontPage] == False)
+            {
+                char        buffer[256];
+                const char *ps_name;
+
+                if (fontPage > 0)
+                {
+                    sprintf(buffer, "%s_%x", firec->ftir->download_ps_name, (int)fontPage);
+                    ps_name = buffer;
+                }
+                else
+                {
+                    ps_name = firec->ftir->download_ps_name;
+                }
+
+                PsOut_DownloadFreeType(psOut,
+                                       firec->ftir->ft_download_font_type,
+                                       ps_name, pGC->font, (fontPage * 0x100)); /* same as (fontPage << 8) */    
+                                 
+                firec->ftir->alreadyDownloaded[fontPage] = True;
+            }
+        }
+
+
+        PsOut_Offset(psOut, pDrawable->x, pDrawable->y);
+       	PsOut_Color(psOut, PsGetPixelColor(cMap, pGC->fgPixel)); 
+       	if (!firec->size)
+            PsOut_FreeType_TextAttrsMtx16(psOut, firec->ftir->download_ps_name, firec->mtx, firec->ftir->is_iso_encoding); 
+        else
+            PsOut_FreeType_TextAttrs16(psOut, firec->ftir->download_ps_name, firec->size, firec->ftir->is_iso_encoding); 
+        PsOut_FreeType_Text16(pGC->font, psOut, x, y, string, count);
+        
+	return x;	
+    }
+    else
+#endif /* XP_USE_FREETYPE */
+         if (firec->ftir->downloadableFont &&
+             (firec->ftir->font_type != PSFTI_FONT_TYPE_FREETYPE))
+    {
+        PsOutPtr       psOut;
+        ColormapPtr    cMap;
+        unsigned short c,
+                       c_hiByte,
+                       c_lowByte,
+                       fontPage;
+        int            i;
+        
+	if( PsUpdateDrawableGC(pGC, pDrawable, &psOut, &cMap)==FALSE ) 
+	    return x; 
+
+        PsOut_DownloadType1(psOut, "PsPolyText16",
+                            firec->ftir->download_ps_name, firec->ftir->filename);
+        firec->ftir->alreadyDownloaded[fontPage] = True;
+
+        PsOut_Offset(psOut, pDrawable->x, pDrawable->y);
+       	PsOut_Color(psOut, PsGetPixelColor(cMap, pGC->fgPixel)); 
+       	if (!firec->size)
+            PsOut_TextAttrsMtx(psOut, firec->ftir->download_ps_name, firec->mtx, firec->ftir->is_iso_encoding); 
+        else
+            PsOut_TextAttrs(psOut, firec->ftir->download_ps_name, firec->size, firec->ftir->is_iso_encoding); 
+        PsOut_Text16(psOut, x, y, string, count, -1);
+        
+	return x;	
+    }
+    
+    /* Render glyphs as bitmaps */
+    {
+        unsigned long n, i;
+        int w;
+        CharInfoPtr charinfo[255];  /* encoding only has 1 byte for count */
+
+        GetGlyphs(pGC->font, (unsigned long)count, (unsigned char *)string,
+                  (FONTLASTROW(pGC->font) == 0) ? Linear16Bit : TwoD16Bit,
+                  &n, charinfo);
+        w = 0;
+        for (i=0; i < n; i++)
+          w += charinfo[i]->metrics.characterWidth;
+        if (n != 0)
+	    PsPolyGlyphBlt(pDrawable, pGC, x, y, n, charinfo, FONTGLYPHS(pGC->font));
+        x += w;
+        
+        return x;
+    }  
   }
   return x;
 }
@@ -386,7 +492,7 @@ PsPolyGlyphBlt(
   pointer       pGlyphBase)
 {
     int width, height;
-    PixmapPtr pPixmap = NullPixmap;
+    PixmapPtr pPixmap;
     int nbyLine;                        /* bytes per line of padded pixmap */
     FontPtr pfont;
     GCPtr pGCtmp;
@@ -399,7 +505,7 @@ PsPolyGlyphBlt(
     int gWidth, gHeight;                /* width and height of glyph */
     register int nbyGlyphWidth;         /* bytes per scanline of glyph */
     int nbyPadGlyph;                    /* server padded line of glyph */
-    int w;
+    int w, tmpx;
     XID gcvals[3];
 
     pfont = pGC->font;
@@ -435,6 +541,7 @@ PsPolyGlyphBlt(
         PsDestroyPixmap(pPixmap);
         return;
     }
+    tmpx = 0;
     while(nGlyphs--)
     {
         pci = *pCharInfo++;
@@ -466,8 +573,9 @@ PsPolyGlyphBlt(
 		   1, x + pci->metrics.leftSideBearing, 
 		   y - pci->metrics.ascent, gWidth, gHeight,
                    0, XYBitmap, (char *)pb);
-	    x  += pci->metrics.characterWidth;
 	}
+        
+        x  += pci->metrics.characterWidth;
     }
     DEALLOCATE_LOCAL(pbits);
     FreeScratchGC(pGCtmp);

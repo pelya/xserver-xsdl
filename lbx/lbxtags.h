@@ -46,7 +46,7 @@ in this Software without prior written authorization from The Open Group.
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *
  */
-/* $XFree86: xc/programs/Xserver/lbx/lbxtags.h,v 1.4 2001/12/14 20:00:01 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/lbx/lbxtags.h,v 1.3 2001/01/17 22:37:00 dawes Exp $ */
 
 #ifndef _LBXTAGS_H_
 #define _LBXTAGS_H_

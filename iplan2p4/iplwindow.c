@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/iplan2p4/iplwindow.c,v 3.1 2003/11/10 18:22:45 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/iplan2p4/iplwindow.c,v 3.0tsi Exp $ */
 /* $XConsortium: iplwindow.c,v 5.22 94/04/17 20:29:07 dpw Exp $ */
 /***********************************************************
 

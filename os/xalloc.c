@@ -26,7 +26,7 @@ dealings in this Software without prior written authorization from
 Pascal Haible.
 */
 
-/* $XFree86: xc/programs/Xserver/os/xalloc.c,v 3.36 2003/11/03 05:12:00 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/os/xalloc.c,v 3.35tsi Exp $ */
 
 /* Only used if INTERNAL_MALLOC is defined
  * - otherwise xalloc() in utils.c is used
@@ -184,7 +184,7 @@ extern Bool Must_have_memory;
     defined(__ia64__) || defined(ia64) || \
     defined(__sparc64__) || \
     defined(__s390x__) || \
-    defined(__AMD64__) || defined(AMD64) || \
+    defined(__amd64__) || defined(amd64) || \
     (defined(sgi) && _MIPS_SZLONG == 64))
 #define MAGIC			0x1404196414071968
 #define MAGIC_FREE              0x1506196615061966

@@ -1,4 +1,5 @@
 /* $Xorg: xkbInit.c,v 1.3 2000/08/17 19:53:47 cpqbld Exp $ */
+/* $XdotOrg$ */
 /************************************************************
 Copyright (c) 1993 by Silicon Graphics Computer Systems, Inc.
 
@@ -24,7 +25,7 @@ OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION  WITH
 THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 ********************************************************/
-/* $XFree86: xc/programs/Xserver/xkb/xkbInit.c,v 3.33 2003/12/22 17:48:12 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/xkb/xkbInit.c,v 3.32tsi Exp $ */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -188,6 +189,9 @@ char *			pval;
     if (XkbRulesFile) {
 	strcpy(&pval[out],XkbRulesFile);
 	out+= strlen(XkbRulesFile);
+    } else {
+	strcpy(&pval[out],XKB_DFLT_RULES_FILE);
+	out+= strlen(XKB_DFLT_RULES_FILE);
     }
     pval[out++]= '\0';
     if (XkbModelUsed) {

@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/afb/afbtegblt.c,v 3.2 2001/10/28 03:32:58 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/afb/afbtegblt.c,v 3.1 1998/03/20 21:04:57 hohndel Exp $ */
 /* $XConsortium: afbtegblt.c,v 5.14 94/04/17 20:28:35 dpw Exp $ */
 /* Combined Purdue/PurduePlus patches, level 2.0, 1/17/89 */
 /***********************************************************

@@ -7,6 +7,7 @@ Permission to use, copy, modify, distribute, and sell this software and its
 documentation for any purpose is hereby granted without fee, provided that
 the above copyright notice appear in all copies and that both that
 copyright notice and this permission notice appear in supporting
+documentation.
 
 The above copyright notice and this permission notice shall be included in
 all copies or substantial portions of the Software.
@@ -73,7 +74,6 @@ in this Software without prior written authorization from The Open Group.
 **    *********************************************************
 ** 
 ********************************************************************/
-/* $XFree86: xc/programs/Xserver/Xprint/ps/Ps.h,v 1.14 2003/07/16 01:38:34 dawes Exp $ */
 
 #ifndef _PS_H_
 #define _PS_H_
@@ -112,6 +112,7 @@ typedef char *XPointer;
 #include <X11/Xfuncproto.h>
 #include <X11/Xresource.h>
 #include "attributes.h"
+
 
 /*
  *  Public index variables from PsInit.c
@@ -249,6 +250,63 @@ typedef struct
   Bool        (*DestroyWindow)(WindowPtr);
 } PsScreenPrivRec, *PsScreenPrivPtr;
 
+typedef struct PsFontTypeInfoRec PsFontTypeInfoRec;
+
+/* Structure to hold information about one font on disk
+ * Notes:
+ * - multiple XLFD names can refer to the same |PsFontTypeInfoRec| (if
+ *   they all use the same font on the disk)
+ * - the FreeType font download code uses multiple |PsFontTypeInfoRec|
+ *   records for one font on disk if they differ in the encoding being
+ *   used (this is an exception from the
+ *   'one-|PsFontTypeInfoRec|-per-font-on-disk'-design; maybe it it is better
+ *   to rework that in a later step and add a new per-encoding structure). 
+ */
+struct PsFontTypeInfoRec
+{
+  PsFontTypeInfoRec *next;                    /* Next record in list...         */
+  char              *adobe_ps_name;           /* PostScript font name (from the
+                                               * "_ADOBE_POSTSCRIPT_FONTNAME" atom) */
+  char              *download_ps_name;        /* PostScript font name used for font download */
+  char              *filename;                /* File name of font              */
+#ifdef XP_USE_FREETYPE
+  char              *ft_download_encoding;    /* encoding used for download     */
+  PsFTDownloadFontType ft_download_font_type; /* PS font type used for download (e.g. Type1/Type3/CID/etc.) */
+#endif /* XP_USE_FREETYPE */
+  int                is_iso_encoding;         /* Is this font encoded in ISO Latin 1 ? */
+  int                font_type;               /* See PSFTI_FONT_TYPE_* below... */
+  Bool               downloadableFont;        /* Font can be downloaded         */
+  Bool               alreadyDownloaded[256];  /* Font has been downloaded (for 256 8bit "sub"-font) */
+};
+
+#define PSFTI_FONT_TYPE_OTHER        (0)
+#define PSFTI_FONT_TYPE_PMF          (1)
+#define PSFTI_FONT_TYPE_PS_TYPE1_PFA (2)
+#define PSFTI_FONT_TYPE_PS_TYPE1_PFB (3)
+#define PSFTI_FONT_TYPE_TRUETYPE     (4)
+/* PSFTI_FONT_TYPE_FREETYPE is means the font is handled by the freetype engine */
+#define PSFTI_FONT_TYPE_FREETYPE     (5)
+
+typedef struct PsFontInfoRec PsFontInfoRec;
+
+/* Structure which represents our context info for a single XLFD font
+ * Note that multiple |PsFontInfoRec| records can share the same
+ * |PsFontTypeInfoRec| record - the |PsFontInfoRec| records represent
+ * different appearances of the same font on disk(=|PsFontTypeInfoRec|)).
+ */
+struct PsFontInfoRec
+{
+  PsFontInfoRec     *next;          /* Next record in list...             */
+  /* |font| and |font_fontPrivate| are used by |PsFindFontInfoRec()| to
+   * identify a font */
+  FontPtr            font;          /* The font this record is for        */
+  pointer            font_fontPrivate;
+  PsFontTypeInfoRec *ftir;          /* Record about the font file on disk */
+  const char        *dfl_name;      /* XLFD for this font                 */
+  int                size;          /* Font size. Use |mtx| if |size==0|  */
+  float              mtx[4];        /* Transformation matrix (see |size|) */
+};
+
 typedef struct
 {
   char              *jobFileName;
@@ -259,6 +317,8 @@ typedef struct
   ClientPtr          getDocClient;
   int                getDocBufSize;
   PsOutPtr           pPsOut;
+  PsFontTypeInfoRec *fontTypeInfoRecords;
+  PsFontInfoRec     *fontInfoRecords;
 } PsContextPrivRec, *PsContextPrivPtr;
 
 typedef struct
@@ -291,6 +351,7 @@ typedef struct
 
 extern Bool InitializePsDriver(int ndx, ScreenPtr pScreen, int argc,
     char **argv);
+static Bool         PsDestroyContext(XpContextPtr pCon);
 extern XpContextPtr PsGetContextFromWindow(WindowPtr win);
 
 /*
@@ -314,6 +375,10 @@ extern int PsGetDocumentData(XpContextPtr pCon, ClientPtr client,
  */
 
 extern Bool PsCreateGC(GCPtr pGC);
+static int  PsGetDrawablePrivateStuff(DrawablePtr pDrawable, GC *gc,
+                                      unsigned long *valid, PsOutPtr *psOut,
+                                      ColormapPtr *cMap);
+extern PsContextPrivPtr PsGetPsContextPriv( DrawablePtr pDrawable );
 extern int  PsUpdateDrawableGC(GCPtr pGC, DrawablePtr pDrawable,
                                PsOutPtr *psOut, ColormapPtr *cMap);
 extern void PsValidateGC(GCPtr pGC, unsigned long changes, DrawablePtr pDrawable);
@@ -366,9 +431,8 @@ extern void PsPutScaledImage(DrawablePtr pDrawable, GCPtr pGC, int depth,
 extern void PsPutImage(DrawablePtr pDrawable, GCPtr pGC, int depth,
                        int x, int y, int w, int h, int leftPad, int format,
                        char *pImage);
-extern void PsPutImageMask(DrawablePtr pDrawable, GCPtr pGC, int depth,
-                           int x, int y, int w, int h, int leftPad, int format,
-                           char *pImage);
+extern void PsPutImageMask(DrawablePtr pDrawable, GCPtr pGC, int depth, int x, int y,
+                           int w, int h, int leftPad, int format, char *pImage);
 extern RegionPtr PsCopyArea(DrawablePtr pSrc, DrawablePtr pDst, GCPtr pGC,
                             int srcx, int srcy, int width, int height,
                             int dstx, int dsty);
@@ -456,7 +520,19 @@ extern Bool PsUnrealizeFont(ScreenPtr pscr, FontPtr pFont);
 extern char *PsGetFontName(FontPtr pFont);
 extern int PsGetFontSize(FontPtr pFont, float *mtx);
 extern char *PsGetPSFontName(FontPtr pFont);
+extern char *PsGetPSFaceOrFontName(FontPtr pFont);
 extern int PsIsISOLatin1Encoding(FontPtr pFont);
+extern char *PsGetEncodingName(FontPtr pFont);
+extern PsFontInfoRec *PsGetFontInfoRec(DrawablePtr pDrawable, FontPtr pFont);
+extern void PsFreeFontInfoRecords(PsContextPrivPtr priv);
+extern PsFTDownloadFontType PsGetFTDownloadFontType(void);
+
+/*
+ *  Functions in PsFTFonts.c
+ */
+ 
+extern char *PsGetFTFontFileName(FontPtr pFont);
+extern Bool  PsIsFreeTypeFont(FontPtr pFont);
 
 /*
  *  Functions in PsAttr.c
@@ -502,15 +578,5 @@ extern void PsCopyDisplayList(PixmapPtr src, PixmapPtr dst, int xoff,
 extern PsElmPtr PsCreateFillElementList(PixmapPtr pix, int *nElms);
 extern PsElmPtr PsCloneFillElementList(int nElms, PsElmPtr elms);
 extern void PsDestroyFillElementList(int nElms, PsElmPtr elms);
-
-/*
- *  Functions in PsCache.c
- */
-
-#ifdef BM_CACHE
-extern int PsBmIsImageCached(int gWidth, int gHeight, char *pBuffer);
-extern int PsBmPutImageInCache(int gWidth, int gHeight, char *pBuffer);
-extern void PsBmClearImageCache(void);
-#endif
 
 #endif  /* _PS_H_ */

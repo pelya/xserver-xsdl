@@ -27,7 +27,7 @@
  *
  * Authors:	Kensuke Matsuzaki
  */
-/* $XFree86: xc/programs/Xserver/hw/xwin/winwindow.h,v 1.4 2003/10/08 11:13:03 eich Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xwin/winwindow.h,v 1.3 2003/10/02 13:30:11 eich Exp $ */
 
 
 #ifndef _WINWINDOW_H_
@@ -41,12 +41,12 @@
 #endif
 
 /* Constant strings */
-#define WINDOW_CLASS		"cygwin/xfree86"
-#define WINDOW_TITLE		"Cygwin/XFree86 - %s:%d"
-#define WINDOW_TITLE_XDMCP	"Cygwin/XFree86 - %s"
+#define WINDOW_CLASS		"cygwin/x"
+#define WINDOW_TITLE		"Cygwin/X - %s:%d"
+#define WINDOW_TITLE_XDMCP	"Cygwin/X - %s"
 #define WIN_SCR_PROP		"cyg_screen_prop rl"
-#define WINDOW_CLASS_X		"cygwin/xfree86 X rl"
-#define WINDOW_TITLE_X		"Cygwin/XFree86 X"
+#define WINDOW_CLASS_X		"cygwin/x X rl"
+#define WINDOW_TITLE_X		"Cygwin/X X"
 #define WIN_WINDOW_PROP		"cyg_window_prop_rl"
 #define WIN_MSG_QUEUE_FNAME	"/dev/windows"
 #define WIN_LOG_FNAME		"/tmp/XWin.log"

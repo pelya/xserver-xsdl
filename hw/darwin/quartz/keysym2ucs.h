@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/darwin/quartz/keysym2ucs.h,v 1.1 2003/11/01 08:13:08 torrey Exp $
+/* $XFree86: $
  *
  * This module converts keysym values into the corresponding ISO 10646
  * (UCS, Unicode) values.

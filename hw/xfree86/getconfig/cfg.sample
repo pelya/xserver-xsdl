@@ -1,14 +1,13 @@
 # $DHD: xc/programs/Xserver/hw/xfree86/getconfig/cfg.sample,v 1.2 2003/09/23 05:12:07 dawes Exp $
-# $XFree86: xc/programs/Xserver/hw/xfree86/getconfig/cfg.sample,v 1.2 2003/11/12 04:52:15 dawes Exp $
 
-# Some sample XFree86 getconfig rules file.
+# Some sample Xorg getconfig rules file.
 
 #
 # The line below is the getconfig rules file signature, and must be the
 # first non-blank, non-comment line.
 #
 
-XFree86 Project getconfig rules file.  Version: 1.0
+Xorg Project getconfig rules file.  Version: 1.0
 
 #
 # Set the weight for the following rules.  This should be set, otherwise
@@ -38,15 +37,15 @@ $weight = 1000
 #   $subsys		PCI subsystem ID
 #   $subsysVendor	PCI subsystem vendor ID
 #   $class		PCI class
-#   $XFree86Version	XFree86 version, as a 'v' string.
+#   $XorgVersion	Xorg version, as a 'v' string.
 #
-# The XFree86 version information is also available as the following:
+# The Xorg version information is also available as the following:
 #
-#   $XFree86VersionNumeric
-#   $XFree86VersionMajor
-#   $XFree86VersionMinor
-#   $XFree86VersionPatch
-#   $XFree86VersionSnap
+#   $XorgVersionNumeric
+#   $XorgVersionMajor
+#   $XorgVersionMinor
+#   $XorgVersionPatch
+#   $XorgVersionSnap
 #   
 
 # Define a fake vendor ID for some sample rules.
@@ -67,10 +66,10 @@ $device == $nodevice
 	Option \
 	"yy"
 
-# Increase the weight of the following rules if the XFree86 version is 4.3 or
+# Increase the weight of the following rules if the Xorg version is 4.3 or
 # higher.
 
-$weight++ if ($XFree86Version ge v4.3)
+$weight++ if ($XorgVersion ge v4.3)
 
 $vendor == $novendor
 	nodriver
@@ -83,7 +82,7 @@ $vendor == $novendor
 
 $weight = 100
 
-$vendor == $novendor && $XFree86Version eq v4.3.2.1
+$vendor == $novendor && $XorgVersion eq v4.3.2.1
 	nodriver3
 
 $weight = 600

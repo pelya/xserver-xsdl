@@ -1,4 +1,4 @@
-.\" $XFree86: xc/programs/Xserver/hw/xwin/XWin.man,v 1.7 2003/10/02 13:30:09 eich Exp $
+.\" $XFree86: xc/programs/Xserver/hw/xwin/XWin.man,v 1.5 2002/07/05 09:19:25 alanh Exp $
 .TH XWIN 1 __vendorversion__
 .SH NAME
 XWin \- X Server for the Cygwin environment on Microsoft Windows
@@ -48,13 +48,13 @@ Sets the display resolution for the X server to use on screen
 .I screen_number.
 .TP 8
 .B \-nodecoration
-Draw the Cygwin/XFree86 window without a border or title bar.
+Draw the Cygwin/X window without a border or title bar.
 .TP 8
 .B \-rootless
-EXPERIMENTAL: Run Cygwin/XFree86 in pseduo-rootless mode.
+EXPERIMENTAL: Run Cygwin/X in pseduo-rootless mode.
 .TP 8
 .B \-lesspointer
-Hide the Windows mouse pointer when over an inactive XFree86 window
+Hide the Windows mouse pointer when over an inactive X window
 .TP 8
 .B \-scrollbars
 In windowed mode, allow screens bigger than the Windows desktop.
@@ -96,14 +96,14 @@ ones are:
 - The display mode can not be changed once the X server has started.
 .PP
 .SH AUTHORS
-XFree86 was originally ported to Cygwin by Dakshinamurthy Karra,
+X was originally ported to Cygwin by Dakshinamurthy Karra,
 Dr. Peter Busch, John Fortin, and Suhaib Siddiqi.
 .I XWin
-is maintained by the Cygwin/XFree86 project, with hosting services
-provided by RedHat.
+is maintained by the Cygwin/X project, with hosting services
+provided by freedesktop.org.
 .PP
 The following members, in alphabetical order by last name, of the
-Cygwin/XFree86 Team contributed to the XFree86 4.1.0 release:
+Cygwin/X Team contributed to the X.Org Foundation 6.7 release:
 .PP
 Robert Collins - Cygwin developer, miscellaneous
 .br
@@ -112,7 +112,7 @@ programming guru
 .br
 Alexander Gottwald - AltGr handling for non-U.S. keyboards
 .br
-Alan Hourihane - XFree86 developer, patch reviewer, general programming guru
+Alan Hourihane - X developer, patch reviewer, general programming guru
 .br
 Pierre A Humblet - Debugging of socket-related crashes, developer
 .br

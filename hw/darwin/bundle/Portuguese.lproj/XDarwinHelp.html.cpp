@@ -1,20 +1,14 @@
-<!-- $XFree86: xc/programs/Xserver/hw/darwin/bundle/Portuguese.lproj/XDarwinHelp.html.cpp,v 1.1 2002/01/25 06:46:46 torrey Exp $ --><html><body>
-
-#include "xf86Version.h"
-#ifndef PRE_RELEASE
-#define PRE_RELEASE XF86_VERSION_SNAP
-#endif
-
+<!-- $XFree86: xc/programs/Xserver/hw/darwin/bundle/English.lproj/XDarwinHelp.html.cpp,v 1.2 2001/11/04 07:02:28 torrey Exp $ --><html><body>
 
 <head>
-<title>XFree86 para Mac OS X</title>
+<title>XDarwin Help</title>
 </head>
 
 <center>
     
-  <h1>XFree86 para Darwin e Mac OS X</h1>
-    XFree86 XF86_VERSION<br>
-    Release Date: XF86_REL_DATE
+  <h1>XDarwin X Server para Mac OS X</h1>
+    X_VENDOR_NAME X_VERSION<br>
+    Release Date: X_REL_DATE
 </center>
 <h2>&Iacute;ndice</h2>
 <ol>
@@ -28,29 +22,32 @@
 <center>
     <h2><a NAME="notice">Notas importantes</a></h2>
 </center>
-<blockquote> #if PRE_RELEASE Essa &eacute; uma vers&atilde;o pr&eacute;-lancamento 
-  do XFree86, e ela n&atilde;o &eacute; suportada de nenhuma forma. Bugs podem 
+<blockquote>
+#if PRE_RELEASE
+  Essa &eacute; uma vers&atilde;o pr&eacute;-lancamento 
+  do XDarwin, e ela n&atilde;o &eacute; suportada de nenhuma forma. Bugs podem 
   ser reportados e corre&ccedil;&otilde;es podem ser enviadas para <A HREF="http://sourceforge.net/projects/xonx/">P&aacute;gina 
   do projeto XonX</A> no SourceForge. Antes de informar bugs em vers&otilde;es 
   pr&eacute;-lancamento, por favor verifique a þltima vers&atilde;o em <A HREF="http://sourceforge.net/projects/xonx/">XonX</A> 
-  or no <A HREF="http://www.XFree86.Org/cvs">Reposit&oacute;rio CVS do XFree86</A>. 
-  #else Se o servidor &eacute; mais velho que 6-12 semanas, ou seu hardware &eacute; 
+  or X_VENDOR_LINK. 
+#else
+Se o servidor &eacute; mais velho que 6-12 semanas, ou seu hardware &eacute; 
   mais novo que a data acima, procure por uma nova vers&atilde;o antes de informar 
   problemas. Bugs podem ser reportados e corre&ccedil;&otilde;es podem ser enviadas 
   para a <A HREF="http://sourceforge.net/projects/xonx/">P&aacute;gina do projeto 
-  XonX</A> na SourceForge. #endif </blockquote>
+  XonX</A> na SourceForge.
+#endif
+</blockquote>
 <blockquote> Este software &eacute; distribu&iacute;do sob os termos da <a href="#license">licen&ccedil;a 
   MIT X11 / X Consortium</a> e &eacute; provido, sem nenhuma garantia. Por favor 
   leia a <a href="#license">Licen&ccedil;a</a> antes de come&ccedil;ar a usar 
   o programa.</blockquote>
 
 <h2><a NAME="usage">Uso</a></h2>
-<p>O XFree86 &eacute; uma aplica&ccedil;&atilde;o &quot;open-source&quot; livremente 
+<p>O XDarwin &eacute; uma X server &quot;open-source&quot; livremente 
   redistribu&iacute;da do <a HREF
-="http://www.x.org/">Sistema X Window</a> produzido pelo <a HREF="http://www.XFree86.Org/">XFree86 
-  Project, Inc.</a> O servidor X window para o Darwin e Mac OS X provido pelo 
-  XFree86 &eacute; chamado XDarwin. XDarwin roda sobre Mac OS X no modo Tela Cheia 
-  ou no modo Compartilhado.</p>
+="http://www.x.org/">Sistema X Window</a>. This version of XDarwin was produced by the X_VENDOR_LINK.
+  XDarwin roda sobre Mac OS X no modo Tela Cheia ou no modo Compartilhado.</p>
 <p>No modo Tela Cheia, quando o sistema X window est&aacute; ativo, ele ocupa 
   a tela toda. Voc&ecirc; pode voltar ao desktop do Mac OS X clicando Command-Option-A. 
   Essa combina&ccedil;&atilde;o de teclas pode ser mudada nas prefer&ecirc;ncias. 
@@ -90,7 +87,7 @@
   do usu&aacute;rio corrente. (Um shell alternativo pode ser tamb&eacute;m expecificado 
   nas prefer&ecirc;ncias.) O modo para ajustar o path depende do shell que voc&ecirc; 
   est&aacute; usando. Isto &eacute; descrito na man page do seu shell.</p>
-<p>Voc&ecirc; pode tamb&eacute;m querer adicionar as man pages do XFree86 para 
+<p>Voc&ecirc; pode tamb&eacute;m querer adicionar as man pages do X11 para 
   a lista de p&aacute;ginas a serem procuradas quando voc&ecirc; est&aacute; procurando 
   por documenta&ccedil;&atilde;o. As man pages do X11 est&atilde;o localizadas 
   em <code>/usr/X11R6/man</code> e a vari&aacute;vel de ambiente <code>MANPATH</code> 
@@ -178,15 +175,13 @@
 </ul>
 
 <h2><a NAME="license">Licen&ccedil;a</a></h2>
-<p>O projeto XFree86 &eacute; designado a prover e a ser livremente redistribu&iacute;do 
-  as vers&otilde;es bin&aacute;rias e souce (c&oacute;digo-fonte). A licen&ccedil;a 
-  principal n&oacute;s usamos uma baseada na licen&ccedil;a tradicional MIT X11 
+<p>A licen&ccedil;a 
+  principal n&oacute;s por XDarwin baseada na licen&ccedil;a tradicional MIT X11 
   / X Consortium, que n&atilde;o imp&otilde;e nenhuma condi&ccedil;&atilde;o sobre 
   modifica&ccedil;&otilde;es ou redistribui&ccedil;&atilde;o do c&oacute;digo-fonte 
   ou dos bin&aacute;rios desde que o copyright/licen&ccedil;a sejam mantidos intactos. 
   Para mais informa&ccedil;&otilde;es e not&iacute;cias adicionais de copyright/licensing 
-  em algumas se&ccedil;&atilde;o do c&oacute;digo, por favor visite a <a href="http://www.xfree86.org/legal/licence.html">p&aacute;gina 
-  de licen&ccedil;as do XFree86</a>.</p>
+  em algumas se&ccedil;&atilde;o do c&oacute;digo, por favor refer to the source code.</p>
 <H3><A NAME="3"></A>Licen&ccedil;a do X Consortium</H3>
 <p>Copyright (C) 1996 X Consortium</p>
 <p>Permiss&otilde;es s&atilde;o em virtude garantidas, livre de mudan&ccedil;as, 

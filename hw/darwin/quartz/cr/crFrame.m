@@ -27,7 +27,8 @@
  * holders shall not be used in advertising or otherwise to promote the sale,
  * use or other dealings in this Software without prior written authorization.
  */
-/* $XFree86: xc/programs/Xserver/hw/darwin/quartz/cr/crFrame.m,v 1.8 2003/12/05 07:00:10 torrey Exp $ */
+/* $XdotOrg$ */
+/* $XFree86: xc/programs/Xserver/hw/darwin/quartz/cr/crFrame.m,v 1.9 2004/03/19 02:05:29 torrey Exp $ */
 
 #include "quartzCommon.h"
 #include "cr.h"
@@ -35,6 +36,7 @@
 #undef BOOL
 #define BOOL xBOOL
 #include "rootless.h"
+#include "windowstr.h"
 #undef BOOL
 
 WindowPtr nextWindowToFrame = NULL;
@@ -78,7 +80,12 @@ CRCreateFrame(RootlessWindowPtr pFrame, ScreenPtr pScreen,
     theWindow = [[NSWindow alloc] initWithContentRect:bounds
                                   styleMask:theStyleMask
                                   backing:NSBackingStoreBuffered
+#ifdef DEFER_NSWINDOW
+                                  defer:YES];
+#else
                                   defer:NO];
+#endif
+
     if (!theWindow) return FALSE;
 
     [theWindow setBackgroundColor:[NSColor clearColor]];  // erase transparent
@@ -94,6 +101,21 @@ CRCreateFrame(RootlessWindowPtr pFrame, ScreenPtr pScreen,
     theView = [[XView alloc] initWithFrame:bounds];
     [theWindow setContentView:theView];
     [theWindow setInitialFirstResponder:theView];
+
+#ifdef DEFER_NSWINDOW
+    // We need the NSWindow to actually be created now.
+    // If we had to defer creating it, we have to order it
+    // onto the screen to force it to be created.
+
+    if (pFrame->win->prevSib) {
+        CRWindowPtr crWinPtr = (CRWindowPtr) RootlessFrameForWindow(
+                                                pFrame->win->prevSib, FALSE);
+        int upperNum = [crWinPtr->window windowNumber];
+        [theWindow orderWindow:NSWindowBelow relativeTo:upperNum];
+    } else {
+        [theWindow orderFront:nil];
+    }
+#endif
 
     [theWindow setAcceptsMouseMovedEvents:YES];
 

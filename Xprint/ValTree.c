@@ -30,7 +30,7 @@ not be used in advertising or otherwise to promote the sale, use or other
 dealings in this Software without prior written authorization from said
 copyright holders.
 */
-/* $XFree86: xc/programs/Xserver/Xprint/ValTree.c,v 1.2 2003/11/10 18:21:44 tsi Exp $ */
+/* $XFree86$ */
 
 #include    "X.h"
 #include    "scrnintstr.h"

@@ -21,7 +21,7 @@
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *
  */
-/* $XFree86: xc/programs/Xserver/lbx/lbxgfx.c,v 1.4 2001/08/23 14:46:57 alanh Exp $ */
+/* $XFree86: xc/programs/Xserver/lbx/lbxgfx.c,v 1.3 2001/01/17 22:36:59 dawes Exp $ */
 
 /* various bits of DIX-level mangling */
 

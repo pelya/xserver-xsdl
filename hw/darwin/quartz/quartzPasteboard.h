@@ -29,7 +29,7 @@
  * holders shall not be used in advertising or otherwise to promote the sale,
  * use or other dealings in this Software without prior written authorization.
  */
-/* $XFree86: xc/programs/Xserver/hw/darwin/quartz/quartzPasteboard.h,v 1.1 2002/03/28 02:21:19 torrey Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/darwin/bundle/quartzPasteboard.h,v 1.1 2001/03/15 22:24:27 torrey Exp $ */
 
 #ifndef _QUARTZPASTEBOARD_H
 #define _QUARTZPASTEBOARD_H

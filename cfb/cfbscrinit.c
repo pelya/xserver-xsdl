@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/cfb/cfbscrinit.c,v 1.20 2003/07/16 01:38:37 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/cfb/cfbscrinit.c,v 1.19 2001/01/17 22:36:36 dawes Exp $ */
 /************************************************************
 Copyright 1987 by Sun Microsystems, Inc. Mountain View, CA.
 

@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/iplan2p4/iplmap.h,v 3.2 2001/07/25 15:05:09 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/iplan2p4/iplmap.h,v 3.1 1998/04/05 16:42:26 robin Exp $ */
 /*
  * $XConsortium: iplmap.h,v 1.9 94/04/17 20:28:54 dpw Exp $
  *

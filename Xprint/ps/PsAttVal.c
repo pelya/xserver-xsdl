@@ -32,7 +32,6 @@ not be used in advertising or otherwise to promote the sale, use or other
 dealings in this Software without prior written authorization from said
 copyright holders.
 */
-/* $XFree86: xc/programs/Xserver/Xprint/ps/PsAttVal.c,v 1.5 2001/12/19 21:28:44 dawes Exp $ */
 
 #include "Ps.h"
 #include "AttrValid.h"
@@ -73,7 +72,16 @@ static XpOidList DefaultPlexes = {
 };
 
 static unsigned long ValidPrinterResolutionsCards[] = {
+    75,
+    100,
+    120,
+    150,
+    180,
+    200,
+    240,
     300,
+    360,
+    400,
     600,
     720,
     940,
@@ -86,7 +94,20 @@ static XpOidCardList ValidPrinterResolutions = {
 };
 
 static unsigned long DefaultPrinterResolutionsCards[] = {
-    300
+     75,
+     100,
+     120,
+     150,
+     180,
+     200,
+     240,
+     300,
+     360,
+     400,
+     600,
+     720,
+     940,
+     1200
 };
 static XpOidCardList DefaultPrinterResolutions = {
     DefaultPrinterResolutionsCards, XpNumber(DefaultPrinterResolutionsCards)
@@ -143,13 +164,6 @@ static XpOidDocFmtList DefaultEmbeddedFormatsSupported = {
     DefaultEmbeddedFormatsSupportedFmts, XpNumber(DefaultEmbeddedFormatsSupportedFmts)
 };
 
-/*
-**	So filtered printers that accept other raw formats can be
-**	used with this driver.
-**
-**		Noah Roberts (jik-)
-*/
-#if 0
 static XpOidDocFmt ValidRawFormatsSupportedFmts[] = {
     { "Postscript", "2", NULL }
     
@@ -157,7 +171,6 @@ static XpOidDocFmt ValidRawFormatsSupportedFmts[] = {
 static XpOidDocFmtList ValidRawFormatsSupported = {
     ValidRawFormatsSupportedFmts, XpNumber(ValidRawFormatsSupportedFmts)
 };
-#endif
 
 static XpOidDocFmt DefaultRawFormatsSupportedFmts[] = {
     { "Postscript", "2", NULL }
@@ -178,12 +191,74 @@ static XpOidList ValidInputTrays = {
 };
 
 static XpOid ValidMediumSizesOids[] = {
+    xpoid_val_medium_size_iso_a0,
+    xpoid_val_medium_size_iso_a1,
+    xpoid_val_medium_size_iso_a2,
+    xpoid_val_medium_size_iso_a3,
     xpoid_val_medium_size_iso_a4,
+    xpoid_val_medium_size_iso_a5,
+    xpoid_val_medium_size_iso_a6,
+    xpoid_val_medium_size_iso_a7,
+    xpoid_val_medium_size_iso_a8,
+    xpoid_val_medium_size_iso_a9,
+    xpoid_val_medium_size_iso_a10,
+    xpoid_val_medium_size_iso_b0,
+    xpoid_val_medium_size_iso_b1,
+    xpoid_val_medium_size_iso_b2,
+    xpoid_val_medium_size_iso_b3,
+    xpoid_val_medium_size_iso_b4,
+    xpoid_val_medium_size_iso_b5,
+    xpoid_val_medium_size_iso_b6,
+    xpoid_val_medium_size_iso_b7,
+    xpoid_val_medium_size_iso_b8,
+    xpoid_val_medium_size_iso_b9,
+    xpoid_val_medium_size_iso_b10,
     xpoid_val_medium_size_na_letter,
     xpoid_val_medium_size_na_legal,
     xpoid_val_medium_size_executive,
+    xpoid_val_medium_size_folio,
+    xpoid_val_medium_size_invoice,
+    xpoid_val_medium_size_ledger,
+    xpoid_val_medium_size_quarto,
+    xpoid_val_medium_size_iso_c3,
+    xpoid_val_medium_size_iso_c4,
+    xpoid_val_medium_size_iso_c5,
+    xpoid_val_medium_size_iso_c6,
     xpoid_val_medium_size_iso_designated_long,
-    xpoid_val_medium_size_na_number_10_envelope
+    xpoid_val_medium_size_na_10x13_envelope,
+    xpoid_val_medium_size_na_9x12_envelope,
+    xpoid_val_medium_size_na_number_10_envelope,
+    xpoid_val_medium_size_na_7x9_envelope,
+    xpoid_val_medium_size_na_9x11_envelope,
+    xpoid_val_medium_size_na_10x14_envelope,
+    xpoid_val_medium_size_na_number_9_envelope,
+    xpoid_val_medium_size_na_6x9_envelope,
+    xpoid_val_medium_size_na_10x15_envelope,
+    xpoid_val_medium_size_monarch_envelope,
+    xpoid_val_medium_size_a,
+    xpoid_val_medium_size_b,
+    xpoid_val_medium_size_c,
+    xpoid_val_medium_size_d,
+    xpoid_val_medium_size_e,
+    xpoid_val_medium_size_jis_b0,
+    xpoid_val_medium_size_jis_b1,
+    xpoid_val_medium_size_jis_b2,
+    xpoid_val_medium_size_jis_b3,
+    xpoid_val_medium_size_jis_b4,
+    xpoid_val_medium_size_jis_b5,
+    xpoid_val_medium_size_jis_b6,
+    xpoid_val_medium_size_jis_b7,
+    xpoid_val_medium_size_jis_b8,
+    xpoid_val_medium_size_jis_b9,
+    xpoid_val_medium_size_jis_b10,
+    xpoid_val_medium_size_hp_2x_postcard,
+    xpoid_val_medium_size_hp_european_edp,
+    xpoid_val_medium_size_hp_mini,
+    xpoid_val_medium_size_hp_postcard,
+    xpoid_val_medium_size_hp_tabloid,
+    xpoid_val_medium_size_hp_us_edp,
+    xpoid_val_medium_size_hp_us_government_legal,
+    xpoid_val_medium_size_hp_us_government_letter,
 };
 static XpOidList ValidMediumSizes = {
     ValidMediumSizesOids, XpNumber(ValidMediumSizesOids)
@@ -205,7 +280,7 @@ XpValidatePoolsRec PsValidatePoolsRec = {
     &ValidPrinterResolutions, &DefaultPrinterResolutions,
     &ValidEmbeddedFormatsSupported, &DefaultEmbeddedFormatsSupported,
     &ValidListfontsModes, &DefaultListfontsModes,
-    NULL /* Any raw format specified (NR)*/, &DefaultRawFormatsSupported,
+    &ValidRawFormatsSupported, &DefaultRawFormatsSupported,
     &ValidSetupProviso,
     &DefaultDocumentFormat
 };

@@ -1,4 +1,5 @@
-/* $XFree86: xc/programs/Xserver/mi/miinitext.c,v 3.68 2003/01/15 02:34:14 torrey Exp $ */
+/* $XdotOrg: xc/programs/Xserver/mi/miinitext.c,v 1.1.4.7 2004/04/15 10:17:22 eich Exp $ */
+/* $XFree86: xc/programs/Xserver/mi/miinitext.c,v 3.67 2003/01/12 02:44:27 dawes Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -60,6 +61,30 @@ SOFTWARE.
 #undef XIE
 #undef GLXEXT
 #endif
+
+/* Make sure Xprt only announces extensions it supports */
+#ifdef PRINT_ONLY_SERVER
+#undef MITSHM /* this is incompatible to the vector-based Xprint DDX */
+#undef XKB
+#undef PANORAMIX
+#undef RES
+#undef XIE
+#undef GLXEXT /* not yet */
+#undef XINPUT
+#undef XV
+#undef SCREENSAVER
+#undef XIDLE
+#undef XRECORD
+#undef DBE
+#undef XF86VIDMODE
+#undef XF86MISC
+#undef XFreeXDGA
+#undef XF86DRI
+#undef DPMSExtension
+#undef DPSEXT
+#undef FONTCACHE
+#undef RENDER /* not yet */
+#endif /* PRINT_ONLY_SERVER */
 
 #ifdef PANORAMIX
 extern Bool noPanoramiXExtension;

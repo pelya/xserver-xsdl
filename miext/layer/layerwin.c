@@ -1,5 +1,5 @@
 /*
- * $XFree86: xc/programs/Xserver/miext/layer/layerwin.c,v 1.8 2003/11/10 18:22:49 tsi Exp $
+ * $XFree86: xc/programs/Xserver/miext/layer/layerwin.c,v 1.7tsi Exp $
  *
  * Copyright © 2001 Keith Packard, member of The XFree86 Project, Inc.
  *

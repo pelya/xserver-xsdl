@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/darwin/quartz/xpr/dristruct.h,v 1.1 2003/06/30 01:45:13 torrey Exp $ */
+/* $XFree86: xc/programs/Xserver/GL/dri/dristruct.h,v 1.10 2001/03/21 16:21:40 dawes Exp $ */
 /**************************************************************************
 
 Copyright 1998-1999 Precision Insight, Inc., Cedar Park, Texas.

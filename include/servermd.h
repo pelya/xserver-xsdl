@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/include/servermd.h,v 3.57 2003/11/03 05:11:59 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/include/servermd.h,v 3.56tsi Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -389,7 +389,7 @@ SOFTWARE.
 
 #endif /* ia64 */
 
-#if defined(__AMD64__) || defined(AMD64)
+#if defined(__amd64__) || defined(amd64)
 # define IMAGE_BYTE_ORDER	LSBFirst
 
 # if defined(XF86MONOVGA) || defined(XF86VGA16) || defined(XF86MONO)

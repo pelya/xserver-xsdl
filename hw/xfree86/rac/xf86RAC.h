@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/rac/xf86RAC.h,v 1.3 1999/06/12 07:19:05 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/rac/xf86RAC.h,v 1.2 1999/05/15 12:10:33 dawes Exp $ */
 
 #ifndef __XF86RAC_H
 #define __XF86RAC_H 1

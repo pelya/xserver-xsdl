@@ -1,5 +1,5 @@
 /*
- * $XFree86: xc/programs/Xserver/fb/fbline.c,v 1.8 2003/11/03 05:11:00 tsi Exp $
+ * $XFree86$
  *
  * Copyright © 1998 Keith Packard
  *
