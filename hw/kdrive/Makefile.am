@@ -10,12 +10,18 @@ if XSDLSERVER
 XSDL_SUBDIRS=sdl
 endif
 
+if XEPHYR
+XEPHYR_SUBDIRS = ephyr
+endif
+
 SUBDIRS =			\
 	src			\
 	linux			\
 	$(XSDL_SUBDIRS)		\
 	$(FBDEV_SUBDIRS)	\
 	$(VESA_SUBDIRS)		\
+	$(XEPHYR_SUBDIRS)       \
 	ati			\
 	fake			\
+	ephyr                   \
 	i810

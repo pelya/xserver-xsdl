@@ -1,0 +1,156 @@
+/*
+ * Xephyr - A kdrive X server thats runs in a host X window.
+ *          Authored by Matthew Allum <mallum@o-hand.com>
+ * 
+ * Copyright © 2004 Nokia 
+ *
+ * Permission to use, copy, modify, distribute, and sell this software and its
+ * documentation for any purpose is hereby granted without fee, provided that
+ * the above copyright notice appear in all copies and that both that
+ * copyright notice and this permission notice appear in supporting
+ * documentation, and that the name of Nokia not be used in
+ * advertising or publicity pertaining to distribution of the software without
+ * specific, written prior permission. Nokia makes no
+ * representations about the suitability of this software for any purpose.  It
+ * is provided "as is" without express or implied warranty.
+ *
+ * NOKIA DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
+ * INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO
+ * EVENT SHALL NOKIA BE LIABLE FOR ANY SPECIAL, INDIRECT OR
+ * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE,
+ * DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
+ * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+ * PERFORMANCE OF THIS SOFTWARE.
+ */
+
+#ifndef _EPHYR_H_
+#define _EPHYR_H_
+#include <stdio.h>
+#include <unistd.h>
+#include <signal.h>
+
+#include "os.h"  		/* for OsSignal() */
+#include "kdrive.h"
+#include "kkeymap.h"
+#include "hostx.h"
+
+#ifdef RANDR
+#include "randrstr.h"
+#endif
+
+typedef struct _ephyrPriv {
+    CARD8	*base;
+    int		bytes_per_line;
+} EphyrPriv;
+    
+typedef struct _ephyrScrPriv {
+    Rotation	randr;
+    Bool	shadow;
+    PixmapPtr	pShadow;
+} EphyrScrPriv;
+
+extern KdCardFuncs  ephyrFuncs;
+
+Bool
+ephyrInitialize (KdCardInfo *card, EphyrPriv *priv);
+
+Bool
+ephyrCardInit (KdCardInfo *card);
+
+Bool
+ephyrScreenInit (KdScreenInfo *screen);
+
+Bool
+ephyrScreenInitialize (KdScreenInfo *screen, EphyrScrPriv *scrpriv);
+    
+Bool
+ephyrInitScreen (ScreenPtr pScreen);
+
+Bool
+ephyrFinishInitScreen (ScreenPtr pScreen);
+
+Bool
+ephyrCreateResources (ScreenPtr pScreen);
+
+void
+ephyrPreserve (KdCardInfo *card);
+
+Bool
+ephyrEnable (ScreenPtr pScreen);
+
+Bool
+ephyrDPMS (ScreenPtr pScreen, int mode);
+
+void
+ephyrDisable (ScreenPtr pScreen);
+
+void
+ephyrRestore (KdCardInfo *card);
+
+void
+ephyrScreenFini (KdScreenInfo *screen);
+
+void
+ephyrCardFini (KdCardInfo *card);
+
+void
+ephyrGetColors (ScreenPtr pScreen, int fb, int n, xColorItem *pdefs);
+
+void
+ephyrPutColors (ScreenPtr pScreen, int fb, int n, xColorItem *pdefs);
+
+Bool
+ephyrMapFramebuffer (KdScreenInfo *screen);
+
+void *
+ephyrWindowLinear (ScreenPtr	pScreen,
+		   CARD32	row,
+		   CARD32	offset,
+		   int		mode,
+		   CARD32	*size,
+		   void		*closure);
+
+void
+ephyrSetScreenSizes (ScreenPtr pScreen);
+
+Bool
+ephyrUnmapFramebuffer (KdScreenInfo *screen);
+
+Bool
+ephyrSetShadow (ScreenPtr pScreen);
+
+Bool
+ephyrCreateColormap (ColormapPtr pmap);
+
+void
+ephyrPoll(void);
+    
+#ifdef RANDR
+Bool
+ephyrRandRGetInfo (ScreenPtr pScreen, Rotation *rotations);
+
+Bool
+ephyrRandRSetConfig (ScreenPtr		pScreen,
+		     Rotation		randr,
+		     int		rate,
+		     RRScreenSizePtr	pSize);
+Bool
+ephyrRandRInit (ScreenPtr pScreen);
+
+void 
+ephyrShadowUpdate (ScreenPtr pScreen, shadowBufPtr pBuf);
+
+#endif
+
+extern KdMouseFuncs EphyrMouseFuncs;
+
+extern KdKeyboardFuncs	EphyrKeyboardFuncs;
+
+extern KdOsFuncs   EphyrOsFuncs;
+
+extern Bool ephyrCursorInit(ScreenPtr pScreen);
+
+extern void ephyrCursorEnable(ScreenPtr pScreen);
+
+
+#endif
