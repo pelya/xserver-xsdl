@@ -1,4 +1,5 @@
 /* $Xorg: mivaltree.c,v 1.4 2001/02/09 02:05:22 xorgcvs Exp $ */
+/* $XdotOrg$ */
 /*
  * mivaltree.c --
  *	Functions for recalculating window clip lists. Main function
@@ -79,6 +80,7 @@ dealings in this Software without prior written authorization from Digital
 Equipment Corporation.
 
 ******************************************************************/
+
 /* $XFree86: xc/programs/Xserver/mi/mivaltree.c,v 1.9tsi Exp $ */
 
  /* 

@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/hw/xfree86/common/xf86Config.c,v 1.1.4.3 2003/12/18 19:29:13 kaleb Exp $ */
+/* $XdotOrg$ */
 /* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86Config.c,v 3.276 2003/10/08 14:58:26 dawes Exp $ */
 
 
@@ -1058,7 +1058,7 @@ configServerFlags(XF86ConfFlagsPtr flagsconf, XF86OptionPtr layoutopts)
 	}
 #endif
 
-#ifdef XINERAMA
+#ifdef PANORAMIX
     from = X_DEFAULT;
     if (!noPanoramiXExtension)
       from = X_CMDLINE;
@@ -1102,7 +1102,7 @@ configInputKbd(IDevPtr inputp)
 #endif
 #ifdef XKB
   if (!xf86IsPc98()) {
-    xf86Info.xkbrules      = "xfree86";
+    xf86Info.xkbrules      = __XKBDEFRULES__;
     xf86Info.xkbmodel      = "pc105";
     xf86Info.xkblayout     = "us";
     xf86Info.xkbvariant    = NULL;

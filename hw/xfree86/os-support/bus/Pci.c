@@ -453,9 +453,9 @@ pciHostAddrToBusAddr(PCITAG tag, PciAddrType type, ADDRESS addr)
  * to the base address register to get an accurate result.  Otherwise it
  * makes a conservative guess based on the alignment of the already allocated
  * address.  If the result is accurate (ie, not an over-estimate), this is
- * indicated by setting *min to TRUE (when min is non-NULL).  This currently
- * only happens when the destructive flag is set, but in future it may be
- * possible to get the information from the OS when supported.
+ * indicated by setting *min to TRUE (when min is non-NULL).  This happens
+ * when either the destructive flag is set, the information is supplied by
+ * the OS if the OS supports this.
  */
 
 int
@@ -575,7 +575,7 @@ Bool
 pciMfDev(int busnum, int devnum)
 {
     PCITAG tag0, tag1;
-    unsigned long id0, id1, val;
+    CARD32 id0, id1, val;
 
     /* Detect a multi-function device that complies to the PCI 2.0 spec */
 

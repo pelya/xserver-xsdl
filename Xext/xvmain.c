@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/Xext/xvmain.c,v 1.1.4.2 2003/12/18 19:29:12 kaleb Exp $ */
+/* $XdotOrg$ */
 /***********************************************************
 Copyright 1991 by Digital Equipment Corporation, Maynard, Massachusetts,
 and the Massachusetts Institute of Technology, Cambridge, Massachusetts.
@@ -99,7 +99,7 @@ SOFTWARE.
 #include "xf86_ansic.h"
 #endif
 
-#ifdef XINERAMA
+#ifdef PANORAMIX
 #include "panoramiX.h"
 #include "panoramiXsrv.h"
 #include "xvdisp.h"
@@ -172,7 +172,7 @@ XvExtensionInit()
 	  ErrorF("XvExtensionInit: Unable to allocate screen private index\n");
 	  return;
 	}
-#ifdef XINERAMA
+#ifdef PANORAMIX
         XineramaRegisterConnectionBlockCallback(XineramifyXv);
 #endif
       XvScreenGeneration = serverGeneration;
@@ -271,7 +271,7 @@ XvScreenInit(ScreenPtr pScreen)
 	  ErrorF("XvScreenInit: Unable to allocate screen private index\n");
 	  return BadAlloc;
 	}
-#ifdef XINERAMA
+#ifdef PANORAMIX
         XineramaRegisterConnectionBlockCallback(XineramifyXv);
 #endif
       XvScreenGeneration = serverGeneration; 

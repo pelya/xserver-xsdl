@@ -1,4 +1,5 @@
 /* $Xorg: Keyboard.c,v 1.3 2000/08/17 19:53:28 cpqbld Exp $ */
+/* $XdotOrg$ */
 /*
 
 Copyright 1993 by Davor Matic
@@ -65,7 +66,7 @@ extern	Status	XkbGetControls(
 #define	XKB_CONFIG_FILE		"X0-config.keyboard"
 #endif
 #ifndef XKB_DFLT_RULES_FILE
-#define	XKB_DFLT_RULES_FILE	"xfree86"
+#define	XKB_DFLT_RULES_FILE	__XKBDEFRULES__
 #endif
 #ifndef XKB_DFLT_KB_LAYOUT
 #define	XKB_DFLT_KB_LAYOUT	"us"

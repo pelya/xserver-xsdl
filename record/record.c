@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/record/record.c,v 1.1.4.3 2003/12/18 19:29:15 kaleb Exp $ */
+/* $XdotOrg$ */
 /* $Xorg: record.c,v 1.4 2001/02/09 02:05:27 xorgcvs Exp $ */
 
 /*
@@ -27,7 +27,7 @@ not be used in advertising or otherwise to promote the sale, use or
 other dealings in this Software without prior written authorization
 from The Open Group.
 
-Author: David P. Wiggins, X Consortium, Inc.
+Author: David P. Wiggins, The Open Group
 
 This work benefited from earlier work done by Martha Zimet of NCD
 and Jim Haggerty of Metheus.
@@ -49,7 +49,7 @@ and Jim Haggerty of Metheus.
 #include "xf86_ansic.h"
 #endif
 
-#ifdef XINERAMA
+#ifdef PANORAMIX
 #include "globals.h"
 #include "panoramiX.h"
 #include "panoramiXsrv.h"
@@ -871,7 +871,7 @@ RecordADeviceEvent(pcbl, nulldata, calldata)
 		    {
 		        xEvent swappedEvent;
 		        xEvent *pEvToRecord = pev;
-#ifdef XINERAMA
+#ifdef PANORAMIX
 		        xEvent shiftedEvent;
 
 			if (!noPanoramiXExtension &&
@@ -890,7 +890,7 @@ RecordADeviceEvent(pcbl, nulldata, calldata)
 					panoramiXdataPtr[0].y;
 				pEvToRecord = &shiftedEvent;
 			}
-#endif /* XINERAMA */
+#endif /* PANORAMIX */
 
 			if (pContext->pRecordingClient->swapped)
 			{

@@ -41,12 +41,12 @@
 DEPTH_CHANGE_BOX DIALOG DISCARDABLE	32, 32, 180, 100
 STYLE WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_VISIBLE | DS_CENTER
 FONT 8, "MS Sans Serif"
-CAPTION "Cygwin/XFree86"
+CAPTION "Cygwin/X"
 BEGIN
   DEFPUSHBUTTON		"Dismiss", IDOK, 66, 80, 50, 14
-  CTEXT			"Cygwin/XFree86", IDC_STATIC, 40, 12, 100, 8
+  CTEXT			"Cygwin/X", IDC_STATIC, 40, 12, 100, 8
   CTEXT			"Disruptive screen configuration change.", IDC_STATIC, 7, 40, 166, 8
-  CTEXT			"Restore previous resolution to use Cygwin/XFree86.", IDC_STATIC, 7, 52, 166, 8
+  CTEXT			"Restore previous resolution to use Cygwin/X.", IDC_STATIC, 7, 52, 166, 8
 END
 
 
@@ -55,7 +55,7 @@ END
 EXIT_DIALOG DIALOG DISCARDABLE	32, 32, 180, 70
 STYLE WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_VISIBLE | WS_TABSTOP | DS_CENTER
 FONT 8, "MS Sans Serif"
-CAPTION "Cygwin/XFree86 - Exit?"
+CAPTION "Cygwin/X - Exit?"
 BEGIN
   PUSHBUTTON "E&xit", IDOK, 55, 48, 30, 14
   DEFPUSHBUTTON "&Cancel", IDCANCEL, 95, 48, 30, 14

@@ -1,19 +1,14 @@
-<!-- $XFree86: xc/programs/Xserver/hw/darwin/bundle/English.lproj/XDarwinHelp.html.cpp,v 1.2 2001/11/04 07:02:28 torrey Exp $ -->
-
-#include "xf86Version.h"
-#ifndef PRE_RELEASE
-#define PRE_RELEASE XF86_VERSION_SNAP
-#endif
+<!-- $XFree86: xc/programs/Xserver/hw/darwin/bundle/English.lproj/XDarwinHelp.html.cpp,v 1.1 2001/05/21 01:42:17 torrey Exp $ -->
 
 <html>
 <head>
-<title>XFree86 for Mac OS X</title>
+<title>XDarwin Help</title>
 </head>
 <body>
 <center>
-    <h1>XFree86 on Darwin and Mac OS X</h1>
-    XFree86 XF86_VERSION<br>
-    Release Date: XF86_REL_DATE
+    <h1>XDarwin X Server for Mac OS X</h1>
+    X_VENDOR_NAME X_VERSION<br>
+    Release Date: X_REL_DATE
 </center>
 <h2>Contents</h2>
 <ol>
@@ -27,8 +22,8 @@
     <h2><a NAME="notice">Important Notice</a></h2>
 </center>
 <blockquote>
-#if PRE_RELEASE
-This is a pre-release version of XFree86, and is not supported in any way. Bugs may be reported and patches may be submitted to the <A HREF="http://sourceforge.net/projects/xonx/">XonX project page</A> at SourceForge.  Before reporting bugs in pre-release versions, please check the latest version from <A HREF="http://sourceforge.net/projects/xonx/">XonX</A> or in the <A HREF="http://www.XFree86.Org/cvs">XFree86 CVS repository</A>.
+#if X_PRE_RELEASE
+This is a pre-release version of XDarwin, and is not supported in any way. Bugs may be reported and patches may be submitted to the <A HREF="http://sourceforge.net/projects/xonx/">XonX project page</A> at SourceForge.  Before reporting bugs in pre-release versions, please check the latest version from <A HREF="http://sourceforge.net/projects/xonx/">XonX</A> or the X_VENDOR_LINK.
 #else
 If the server is older than 6-12 months, or if your hardware is newer than the above date, look for a newer version before reporting problems. Bugs may be reported and patches may be submitted to the <A HREF="http://sourceforge.net/projects/xonx/">XonX project page</A> at SourceForge.
 #endif
@@ -37,8 +32,7 @@ If the server is older than 6-12 months, or if your hardware is newer than the a
 This software is distributed under the terms of the <A HREF="#license">MIT X11 / X Consortium License</A> and is provided AS IS, with no warranty. Please read the <A HREF="#license">License</A> before using.</blockquote>
 
 <h2><a NAME="usage">Usage</a></h2>
-<p>XFree86 is a freely redistributable open-source implementation of the <a HREF
-="http://www.x.org/">X Window System</a> produced by the <a HREF="http://www.XFree86.Org/">XFree86 Project, Inc.</a> The X window server for Darwin and Mac OS X provided by XFree86 is called XDarwin. XDarwin runs on Mac OS X in full screen or rootless modes.</p>
+<p>XDarwin is a freely redistributable open-source X server for the <a HREF="http://www.x.org/">X Window System</a>. This version of XDarwin was produced by the X_VENDOR_LINK. XDarwin runs on Mac OS X in full screen or rootless modes.</p>
 <p>In full screen mode, when the X window system is active, it takes over the entire screen. You can switch back to the Mac OS X desktop by holding down Command-Option-A. This key combination can be changed in the user preferences. From the Mac OS X desktop, click on the XDarwin icon in the Dock to switch back to the X window system.  (You can change this behavior in the user preferences so that you must click the XDarwin icon in the floating switch window instead.)</p>
 <p>In rootless mode, the X window system and Aqua share your display. The root window of the X11 display is the size of the screen and contains all the other windows. The X11 root window is not displayed in rootless mode as Aqua handles the desktop background.</p>
 <h3>Multi-Button Mouse Emulation</h3>
@@ -47,7 +41,7 @@ This software is distributed under the terms of the <A HREF="#license">MIT X11 /
 <h2><a NAME="path">Setting Your Path</a></h2>
 <p>Your path is the list of directories to be searched for executable commands. The X11 commands are located in <code>/usr/X11R6/bin</code>, which needs to be added to your path. XDarwin does this for you by default and can also add additional directories where you have installed command line applications.</p>
 <p>More experienced users will have already set their path correctly using the initialization files for their shell. In this case, you can inform XDarwin not to modify your path in the preferences. XDarwin launches the initial X11 clients in the user's default login shell. (An alternate shell can also be specified in the preferences.) The way to set the path depends on the shell you are using. This is described in the man page documentation for the shell.</p>
-<p>In addition you may also want to add the man pages from XFree86 to the list of pages to be searched when you are looking for documentation. The X11 man pages are located in <code>/usr/X11R6/man</code> and the <code>MANPATH</code> environment variable contains the list of directories to search.</p>
+<p>In addition you may also want to add the X11 man pages to the list of pages to be searched when you are looking for documentation. The X11 man pages are located in <code>/usr/X11R6/man</code> and the <code>MANPATH</code> environment variable contains the list of directories to search.</p>
 
 <h2><a NAME="prefs">User Preferences</a></h2>
 <p>A number of options may be set from the user preferences, accessible from the "Preferences..." menu item in the "XDarwin" menu. The options listed as start up options will not take effect until you have restarted XDarwin. All other options take effect immediately. The various options are described below:</p>
@@ -75,8 +69,7 @@ This software is distributed under the terms of the <A HREF="#license">MIT X11 /
 </ul>
 
 <h2><a NAME="license">License</a></h2>
-The XFree86 Project is committed to providing freely redistributable binary and source releases. The main license we use is one based on the traditional MIT X11 / X Consortium License, which does not impose any conditions on modification or redistribution of source code or binaries other than requiring that copyright/license notices are left intact. For more information and additional copyright/licensing notices covering some sections of the code, please see the <A HREF="http://www.xfree86.org/legal/licence.html">XFree86
-License page</A>.
+The main license for XDarwin is based on the traditional MIT X11 / X Consortium License, which does not impose any conditions on modification or redistribution of source code or binaries other than requiring that copyright/license notices are left intact. For more information and additional copyright/licensing notices covering some sections of the code, please refer to the source code.
 <H3><A NAME="3"></A>X Consortium License</H3>
 <p>Copyright (C) 1996 X Consortium</p>
 <p>Permission is hereby granted, free of charge, to any person obtaining a 

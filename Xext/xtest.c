@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/Xext/xtest.c,v 1.1.4.3 2003/12/18 19:29:12 kaleb Exp $ */
+/* $XdotOrg$ */
 /* $Xorg: xtest.c,v 1.4 2001/02/09 02:04:33 xorgcvs Exp $ */
 /*
 
@@ -64,7 +64,7 @@ static unsigned char XTestReqCode;
 extern int DeviceValuator;
 #endif /* XINPUT */
 
-#ifdef XINERAMA
+#ifdef PANORAMIX
 #include "panoramiX.h"
 #include "panoramiXsrv.h"
 #endif
@@ -391,7 +391,7 @@ ProcXTestFakeInput(client)
 	    return BadValue;
 	}
 
-#ifdef XINERAMA
+#ifdef PANORAMIX
 	if (!noPanoramiXExtension) {
 	    ScreenPtr pScreen = root->drawable.pScreen;
 	    BoxRec    box;
@@ -426,7 +426,7 @@ ProcXTestFakeInput(client)
 	else if (ev->u.keyButtonPointer.rootY >= root->drawable.height)
 	    ev->u.keyButtonPointer.rootY = root->drawable.height - 1;
 
-#ifdef XINERAMA
+#ifdef PANORAMIX
 	if ((!noPanoramiXExtension
 	     && root->drawable.pScreen->myNum != XineramaGetCursorScreen())
 	    || (noPanoramiXExtension && root != GetCurrentRootWindow()))

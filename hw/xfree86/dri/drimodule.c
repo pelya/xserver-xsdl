@@ -44,7 +44,7 @@ static XF86ModuleVersionInfo VersRec =
         MODULEVENDORSTRING,
         MODINFOSTRING1,
         MODINFOSTRING2,
-        XF86_VERSION_CURRENT,
+        XORG_VERSION_CURRENT,
         1, 0, 0,
         ABI_CLASS_EXTENSION,
         ABI_EXTENSION_VERSION,
@@ -110,7 +110,7 @@ driSetup(pointer module, pointer opts, int *errmaj, int *errmin)
 	}
 	else {
 	    LoaderReqSymLists(drmSymbols, NULL);
-	    LoaderRefSymbols("noXineramaExtension", NULL);
+	    LoaderRefSymbols("noPanoramiXExtension", NULL);
 	    LoadExtension(&XF86DRIExt, FALSE);
 	}
     } else {

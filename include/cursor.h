@@ -141,8 +141,8 @@ extern void GetSpritePosition(
     int * /*px*/,
     int * /*py*/);
 
-#ifdef XINERAMA
+#ifdef PANORAMIX
 extern int XineramaGetCursorScreen(void);
-#endif /* XINERAMA */
+#endif /* PANORAMIX */
 
 #endif /* CURSOR_H */

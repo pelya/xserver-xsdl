@@ -27,6 +27,7 @@ dealings in this Software without prior written authorization from Digital
 Equipment Corporation.
 
 ******************************************************************/
+
 /* $XFree86: xc/programs/Xserver/Xext/panoramiX.h,v 1.5 2001/01/03 02:54:17 keithp Exp $ */
 
 /* THIS IS NOT AN X PROJECT TEAM SPECIFICATION */

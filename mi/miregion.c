@@ -76,6 +76,7 @@ dealings in this Software without prior written authorization from Digital
 Equipment Corporation.
 
 ******************************************************************/
+
 #include "regionstr.h"
 #include "Xprotostr.h"
 #include "gc.h"

@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/os/utils.c,v 1.1.4.6 2004/02/25 21:47:04 kaleb Exp $ */
+/* $XdotOrg$ */
 /* $Xorg: utils.c,v 1.5 2001/02/09 02:05:24 xorgcvs Exp $ */
 /*
 
@@ -129,8 +129,8 @@ OR PERFORMANCE OF THIS SOFTWARE.
 Bool CoreDump;
 Bool noTestExtensions;
 
+#ifdef PANORAMIX
 Bool noPanoramiXExtension = TRUE;
-#ifdef XINERAMA
 Bool PanoramiXVisibilityNotifySent = FALSE;
 Bool PanoramiXMapped = FALSE;
 Bool PanoramiXWindowExposureSent = FALSE;
@@ -168,7 +168,7 @@ int userdefinedfontpath = 0;
 
 char *dev_tty_from_init = NULL;		/* since we need to parse it anyway */
 
-extern int dispatchExceptionAtReset;
+extern char dispatchExceptionAtReset;
 
 OsSigHandlerPtr
 OsSignal(sig, handler)
@@ -539,7 +539,7 @@ void UseMsg(void)
     ErrorF("-wm                    WhenMapped default backing-store\n");
     ErrorF("-x string              loads named extension at init time \n");
     ErrorF("-maxbigreqsize	   set maximal bigrequest size \n");
-#ifdef XINERAMA
+#ifdef PANORAMIX
     ErrorF("+xinerama              Enable XINERAMA extension\n");
     ErrorF("-xinerama              Disable XINERAMA extension\n");
 #endif
@@ -884,7 +884,7 @@ ProcessCommandLine(int argc, char *argv[])
                  UseMsg();
              }
          }
-#ifdef XINERAMA
+#ifdef PANORAMIX
 	else if ( strcmp( argv[i], "+xinerama") == 0){
 	    noPanoramiXExtension = FALSE;
 	}
@@ -1849,13 +1849,13 @@ enum BadCode {
 #define ARGMSG \
     "\nIf the arguments used are valid, and have been rejected incorrectly\n" \
       "please send details of the arguments and why they are valid to\n" \
-      "XFree86@XFree86.org.  In the meantime, you can start the Xserver as\n" \
+      "&&&&&@X.org.  In the meantime, you can start the Xserver as\n" \
       "the \"super user\" (root).\n"   
 
 #define ENVMSG \
     "\nIf the environment is valid, and have been rejected incorrectly\n" \
       "please send details of the environment and why it is valid to\n" \
-      "XFree86@XFree86.org.  In the meantime, you can start the Xserver as\n" \
+      "&&&&&@X.org.  In the meantime, you can start the Xserver as\n" \
       "the \"super user\" (root).\n"
 
 void

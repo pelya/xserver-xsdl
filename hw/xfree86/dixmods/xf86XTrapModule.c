@@ -27,7 +27,7 @@ static XF86ModuleVersionInfo xtrapVersRec =
     MODULEVENDORSTRING,
     MODINFOSTRING1,
     MODINFOSTRING2,
-    XF86_VERSION_CURRENT,
+    XORG_VERSION_CURRENT,
     1, 0, 0,
     ABI_CLASS_EXTENSION,         /* needs the server extension ABI */
     ABI_EXTENSION_VERSION,

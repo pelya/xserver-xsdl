@@ -334,7 +334,7 @@
 	<key>CFBundleExecutable</key>
 	<string>XDarwin</string>
 	<key>CFBundleGetInfoString</key>
-	<string>XDarwin 1.3.0, ©2001-2003 XFree86 Project, Inc.</string>
+	<string>XDarwin 1.3.0, X.Org Foundation</string>
 	<key>CFBundleIconFile</key>
 	<string>XDarwin.icns</string>
 	<key>CFBundleIdentifier</key>
@@ -1792,13 +1792,13 @@
 		F5269C2D01D5BC3501000001 = {
 			fileEncoding = 30;
 			isa = PBXFileReference;
-			path = pseudorama.c;
+			path = pseudoramiX.c;
 			refType = 4;
 		};
 		F5269C2E01D5BC3501000001 = {
 			fileEncoding = 30;
 			isa = PBXFileReference;
-			path = pseudorama.h;
+			path = pseudoramiX.h;
 			refType = 4;
 		};
 		F53321390193CB6A01000001 = {

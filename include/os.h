@@ -333,7 +333,7 @@ extern int GetHosts(
 
 typedef struct sockaddr * sockaddrPtr;
 
-extern int InvalidHost(sockaddrPtr /*saddr*/, int /*len*/);
+extern int InvalidHost(sockaddrPtr /*saddr*/, int /*len*/, ClientPtr client);
 
 extern int LocalClient(ClientPtr /* client */);
 

@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/hw/xfree86/loader/extsym.c,v 1.1.4.2 2003/12/18 19:29:14 kaleb Exp $ */
+/* $XdotOrg$ */
 /* $XFree86: xc/programs/Xserver/hw/xfree86/loader/extsym.c,v 1.9 2003/10/15 16:29:03 dawes Exp $ */
 
 /*
@@ -28,7 +28,7 @@
 #include "resource.h"
 #include "sym.h"
 #include "misc.h"
-#ifdef XINERAMA
+#ifdef PANORAMIX
 #include "panoramiX.h"
 #endif
 #include "sleepuntil.h"
@@ -39,7 +39,7 @@ extern int BadShmSegCode;
 extern RESTYPE ShmSegType, ShmPixType;
 #endif
 
-#ifdef XINERAMA
+#ifdef PANORAMIX
 extern Bool noPanoramiXExtension;
 extern int PanoramiXNumScreens;
 extern PanoramiXData *panoramiXdataPtr;
@@ -63,7 +63,7 @@ LOOKUP extLookupTab[] = {
     SYMVAR(ShmSegType)
 #endif
 
-#ifdef XINERAMA
+#ifdef PANORAMIX
     SYMFUNC(XineramaRegisterConnectionBlockCallback)
     SYMFUNC(XineramaDeleteResource)
     SYMVAR(noPanoramiXExtension)

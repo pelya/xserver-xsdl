@@ -73,7 +73,7 @@ static char *XkbRulesDir = "lib/X11/xkb/rules/";
 #ifdef XFREE98_XKB
 static char *XkbRulesFile = "xfree98";
 #else
-static char *XkbRulesFile = "xfree86";
+static char *XkbRulesFile = __XKBDEFRULES__;
 #endif
 static XF86ConfInputPtr current_input;
 

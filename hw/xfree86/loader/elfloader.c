@@ -922,7 +922,7 @@ ELFCreateGOT(ELFModulePtr elffile, int maxalign)
 	    ErrorF("ELFCreateGOT() Unable to reallocate memory!!!!\n");
 	    return FALSE;
 	}
-#   if defined(linux) && defined(__ia64__) || defined(__OpenBSD__)
+#   if defined(linux) || defined(__OpenBSD__)
 	{
 	    unsigned long page_size = getpagesize();
 	    unsigned long round;
@@ -1097,6 +1097,18 @@ ELFCreatePLT(ELFModulePtr elffile)
 	ErrorF("ELFCreatePLT() Unable to allocate memory!!!!\n");
 	return;
     }
+#   if defined(linux) || defined(__OpenBSD__)
+    {
+	unsigned long page_size = getpagesize();
+	unsigned long round;
+
+	round = (unsigned long)elffile->plt & (page_size - 1);
+	mprotect(elffile->plt - round,
+		 (elffile->pltsize + round + page_size - 1) & ~(page_size - 1),
+		 PROT_READ | PROT_WRITE | PROT_EXEC);
+    }
+#   endif
+									      
     elffile->sections[elffile->pltndx].sh_size = elffile->pltsize;
 # ifdef ELFDEBUG
     ELFDEBUG("ELFCreatePLT: PLT address %lx\n", elffile->plt);
@@ -2763,10 +2775,16 @@ ELFCollectSections(ELFModulePtr elffile, int pass, int *totalsize,
 	elffile->lsection[j].size = SecSize(i);
 	elffile->lsection[j].flags = flags;
 	switch (SecType(i)) {
-#ifdef __OpenBSD__
+#if defined(linux) || defined(__OpenBSD__)
 	case SHT_PROGBITS:
-	    mprotect(elffile->lsection[j].saddr, SecSize(i),
-		     PROT_READ | PROT_WRITE | PROT_EXEC);
+	    {
+		unsigned long page_size = getpagesize();
+		unsigned long round;
+
+		round = (unsigned long)elffile->lsection[j].saddr & (page_size -1);
+		mprotect( (char *)elffile->lsection[j].saddr - round,
+			 SecSize(i) + round, PROT_READ | PROT_WRITE | PROT_EXEC);
+	    }
 	    break;
 #endif
 	case SHT_SYMTAB:
@@ -2961,7 +2979,7 @@ ELFLoadModule(loaderPtr modrec, int elffd, LOOKUP **ppLookup)
 	ErrorF("Unable to allocate ELF sections\n");
 	return NULL;
     }
-#  if defined(linux) && defined(__ia64__) || defined(__OpenBSD__)
+#  if defined(linux) || defined(__OpenBSD__)
     {
 	unsigned long page_size = getpagesize();
 	unsigned long round;

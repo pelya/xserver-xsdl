@@ -62,7 +62,7 @@ in this Software without prior written authorization from The Open Group.
 #include "xf86_ansic.h"
 #endif
 
-#ifdef XINERAMA
+#ifdef PANORAMIX
 #include "panoramiX.h"
 #include "panoramiXsrv.h"
 #endif
@@ -560,9 +560,9 @@ fbShmPutImage(dst, pGC, depth, format, w, h, sx, sy, sw, sh, dx, dy, data)
 }
 
 
-#ifdef XINERAMA
+#ifdef PANORAMIX
 static int 
-ProcXineramaShmPutImage(register ClientPtr client)
+ProcPanoramiXShmPutImage(register ClientPtr client)
 {
     int			 j, result = 0, orig_x, orig_y;
     PanoramiXRes	*draw, *gc;
@@ -600,7 +600,7 @@ ProcXineramaShmPutImage(register ClientPtr client)
 }
 
 static int 
-ProcXineramaShmGetImage(ClientPtr client)
+ProcPanoramiXShmGetImage(ClientPtr client)
 {
     PanoramiXRes	*draw;
     DrawablePtr 	drawables[MAXSCREENS];
@@ -714,7 +714,7 @@ ProcXineramaShmGetImage(ClientPtr client)
 }
 
 static int
-ProcXineramaShmCreatePixmap(
+ProcPanoramiXShmCreatePixmap(
     register ClientPtr client)
 {
     ScreenPtr pScreen = NULL;
@@ -1080,10 +1080,8 @@ CreatePmap:
 			    shmdesc->addr + stuff->offset);
     if (pMap)
     {
-#ifdef NO_XINERAMA_PORT
 #ifdef PIXPRIV
 	pMap->devPrivates[shmPixmapPrivate].ptr = (pointer) shmdesc;
-#endif
 #endif
 	shmdesc->refcnt++;
 	pMap->drawable.serialNumber = NEXT_SERIAL_NUMBER;
@@ -1110,21 +1108,21 @@ ProcShmDispatch (client)
     case X_ShmDetach:
 	return ProcShmDetach(client);
     case X_ShmPutImage:
-#ifdef XINERAMA
+#ifdef PANORAMIX
         if ( !noPanoramiXExtension )
-	   return ProcXineramaShmPutImage(client);
+	   return ProcPanoramiXShmPutImage(client);
 #endif
 	return ProcShmPutImage(client);
     case X_ShmGetImage:
-#ifdef XINERAMA
+#ifdef PANORAMIX
         if ( !noPanoramiXExtension )
-	   return ProcXineramaShmGetImage(client);
+	   return ProcPanoramiXShmGetImage(client);
 #endif
 	return ProcShmGetImage(client);
     case X_ShmCreatePixmap:
-#ifdef XINERAMA
+#ifdef PANORAMIX
         if ( !noPanoramiXExtension )
-	   return ProcXineramaShmCreatePixmap(client);
+	   return ProcPanoramiXShmCreatePixmap(client);
 #endif
 	   return ProcShmCreatePixmap(client);
     default:

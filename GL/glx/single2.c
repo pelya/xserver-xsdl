@@ -344,7 +344,7 @@ int DoGetString(__GLXclientState *cl, GLbyte *pc, GLboolean need_swap)
 	if ( atof( string ) > atof( GLServerVersion ) ) {
 	    buf = __glXMalloc( __glXStrlen( string ) 
 			       + __glXStrlen( GLServerVersion )
-			       + 3 );
+			       + 4 );
 	    if ( buf == NULL ) {
 		string = GLServerVersion;
 	    }

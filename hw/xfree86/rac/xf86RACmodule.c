@@ -8,7 +8,7 @@ static XF86ModuleVersionInfo racVersRec =
     MODULEVENDORSTRING,
     MODINFOSTRING1,
     MODINFOSTRING2,
-    XF86_VERSION_CURRENT,
+    XORG_VERSION_CURRENT,
     1, 0, 0,
     ABI_CLASS_VIDEODRV,		/* requires the video driver ABI */
     ABI_VIDEODRV_VERSION,

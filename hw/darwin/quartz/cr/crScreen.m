@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/hw/darwin/quartz/cr/crScreen.m,v 1.1.4.2 2003/12/18 19:29:13 kaleb Exp $ */
+/* $XdotOrg$ */
 /*
  * Cocoa rootless implementation initialization
  */
@@ -40,7 +40,7 @@
 #include "quartzCursor.h"
 #include "rootless.h"
 #include "safeAlpha.h"
-#include "pseudorama.h"
+#include "pseudoramiX.h"
 #include "applewmExt.h"
 
 #include "regionstr.h"
@@ -59,8 +59,8 @@ static Class classXView = nil;
  * CRDisplayInit
  *  Find all screens.
  *
- *  Multihead note: When rootless mode uses Pseudorama, the
- *  X server only sees one screen; only Pseudorama itself knows
+ *  Multihead note: When rootless mode uses PseudoramiX, the
+ *  X server only sees one screen; only PseudoramiX itself knows
  *  about all of the screens.
  */
 static void
@@ -71,7 +71,7 @@ CRDisplayInit(void)
     if (noPseudoramiXExtension) {
         darwinScreensFound = [[NSScreen screens] count];
     } else {
-        darwinScreensFound = 1; // only Pseudorama knows about the rest
+        darwinScreensFound = 1; // only PseudoramiX knows about the rest
     }
 
     CRAppleWMInit();
@@ -133,7 +133,7 @@ CRScreenParams(int index, DarwinFramebufferPtr dfb)
         dfb->height = unionRect.size.height;
         dfb->pitch = (dfb->width) * (dfb->bitsPerPixel) / 8;
 
-        // Tell Pseudorama about the real screens.
+        // Tell PseudoramiX about the real screens.
         // InitOutput() will move the big screen to (0,0),
         // so compensate for that here.
         for (i = 0; i < [screens count]; i++) {
@@ -144,7 +144,7 @@ CRScreenParams(int index, DarwinFramebufferPtr dfb)
             // Skip this screen if it's a mirrored copy of an earlier screen.
             for (j = 0; j < i; j++) {
                 if (NSEqualRects(frame, [[screens objectAtIndex:j] frame])) {
-                    ErrorF("Pseudorama screen %d is a mirror of screen %d.\n",
+                    ErrorF("PseudoramiX screen %d is a mirror of screen %d.\n",
                            i, j);
                     break;
                 }
@@ -159,14 +159,14 @@ CRScreenParams(int index, DarwinFramebufferPtr dfb)
                 frame.size.height -= aquaMenuBarHeight;
             }
 
-            ErrorF("Pseudorama screen %d added: %dx%d @ (%d,%d).\n", i,
+            ErrorF("PseudoramiX screen %d added: %dx%d @ (%d,%d).\n", i,
                    (int)frame.size.width, (int)frame.size.height,
                    (int)frame.origin.x, (int)frame.origin.y);
 
             frame.origin.x -= unionRect.origin.x;
             frame.origin.y -= unionRect.origin.y;
 
-            ErrorF("Pseudorama screen %d placed at X11 coordinate (%d,%d).\n",
+            ErrorF("PseudoramiX screen %d placed at X11 coordinate (%d,%d).\n",
                    i, (int)frame.origin.x, (int)frame.origin.y);
 
             PseudoramiXAddScreen(frame.origin.x, frame.origin.y,
@@ -219,7 +219,7 @@ CRAddScreen(int index, ScreenPtr pScreen)
 
     // This X11 screen covers all CoreGraphics displays we just found.
     // If there's more than one CG display, then video mirroring is on
-    // or Pseudorama is on.
+    // or PseudoramiX is on.
     displayInfo->displayCount = allocatedDisplays;
     displayInfo->displayIDs = displays;
 

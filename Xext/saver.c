@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/Xext/saver.c,v 1.1.4.2 2003/12/18 19:29:12 kaleb Exp $ */
+/* $XdotOrg$ */
 /*
  * $XConsortium: saver.c,v 1.12 94/04/17 20:59:36 dpw Exp $
  *
@@ -47,7 +47,7 @@ in this Software without prior written authorization from the X Consortium.
 #include "gcstruct.h"
 #include "cursorstr.h"
 #include "colormapst.h"
-#ifdef XINERAMA
+#ifdef PANORAMIX
 #include "panoramiX.h"
 #include "panoramiXsrv.h"
 #endif
@@ -677,7 +677,7 @@ ScreenSaverHandle (pScreen, xstate, force)
 	    ret = TRUE;
 	
     }
-#ifdef XINERAMA
+#ifdef PANORAMIX
     if(noPanoramiXExtension || !pScreen->myNum)
 #endif
        SendScreenSaverNotify (pScreen, state, force);
@@ -1195,7 +1195,7 @@ ScreenSaverUnsetAttributes (ClientPtr client)
 static int
 ProcScreenSaverSetAttributes (ClientPtr client)
 {
-#ifdef XINERAMA
+#ifdef PANORAMIX
     if(!noPanoramiXExtension) {
        REQUEST(xScreenSaverSetAttributesReq);
        PanoramiXRes *draw;
@@ -1274,7 +1274,7 @@ ProcScreenSaverSetAttributes (ClientPtr client)
 static int
 ProcScreenSaverUnsetAttributes (ClientPtr client)
 {
-#ifdef XINERAMA
+#ifdef PANORAMIX
     if(!noPanoramiXExtension) {
        REQUEST(xScreenSaverUnsetAttributesReq);
        PanoramiXRes *draw;

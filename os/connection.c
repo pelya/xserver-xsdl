@@ -661,7 +661,7 @@ ClientAuthorized(ClientPtr client,
 #ifdef LBX
 		!trans_conn ||
 #endif
-		InvalidHost ((struct sockaddr *) from, fromlen))
+		InvalidHost ((struct sockaddr *) from, fromlen, client))
 		AuthAudit(client, FALSE, (struct sockaddr *) from,
 			  fromlen, proto_n, auth_proto, auth_id);
 	    else

@@ -4742,7 +4742,7 @@ ExpertInitialize(void)
     XtAddCallback(panner, XtNreportCallback, PannerCallback, NULL);
     tree = XtCreateManagedWidget("tree", treeWidgetClass, expert, NULL, 0);
 
-    config = XtVaCreateManagedWidget("XF86Config", toggleWidgetClass, tree,
+    config = XtVaCreateManagedWidget(__XCONFIGFILE__, toggleWidgetClass, tree,
 				     XtNstate, True, NULL, 0);
     mainNode = NewNode(NULL, config, config, NULL, NULL);
 

@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/dix/colormap.c,v 1.1.4.3 2003/12/18 19:29:12 kaleb Exp $ */
+/* $XdotOrg$ */
 /* $XFree86: xc/programs/Xserver/dix/colormap.c,v 3.11 2003/11/03 05:10:59 tsi Exp $ */
 /***********************************************************
 
@@ -61,11 +61,6 @@ SOFTWARE.
 #include "windowstr.h"
 #ifdef LBX
 #include "lbxserve.h"
-#endif
-#ifdef XINERAMA
-#include "panoramiX.h"
-#include "panoramiXsrv.h"
-extern Bool noPanoramiXExtension;
 #endif
 
 extern XID clientErrorValue;
@@ -480,23 +475,16 @@ TellNoMap (pwin, pmid)
 
     if (wColormap(pwin) == *pmid)
     {
-#ifdef XINERAMA
-	/*
-	 * Only deliver event for Screen 0 when Xinerama enabled
-	 */
-        if (noPanoramiXExtension || 
-	    (!noPanoramiXExtension && !(pwin->drawable.pScreen->myNum))) {
-#endif
 	/* This should be call to DeliverEvent */
 	xE.u.u.type = ColormapNotify;
 	xE.u.colormap.window = pwin->drawable.id;
 	xE.u.colormap.colormap = None;
 	xE.u.colormap.new = TRUE;
 	xE.u.colormap.state = ColormapUninstalled;
-	DeliverEvents(pwin, &xE, 1, (WindowPtr)NULL);
-#ifdef XINERAMA
-      }
+#ifdef PANORAMIX
+        if(noPanoramiXExtension || !pwin->drawable.pScreen->myNum)
 #endif
+	   DeliverEvents(pwin, &xE, 1, (WindowPtr)NULL);
 	if (pwin->optional) {
 	    pwin->optional->colormap = None;
 	    CheckWindowOptionalNeed (pwin);
@@ -515,12 +503,9 @@ TellLostMap (pwin, value)
     Colormap 	*pmid = (Colormap *)value;
     xEvent 	xE;
 
-#ifdef XINERAMA
-  /*
-   * Only deliver event for Screen 0 when Xinerama enabled
-   */
-  if (noPanoramiXExtension || 
-      (!noPanoramiXExtension && !(pwin->drawable.pScreen->myNum)))
+#ifdef PANORAMIX
+    if(!noPanoramiXExtension && pwin->drawable.pScreen->myNum)
+	return WT_STOPWALKING;
 #endif
     if (wColormap(pwin) == *pmid)
     {
@@ -545,12 +530,9 @@ TellGainedMap (pwin, value)
     Colormap 	*pmid = (Colormap *)value;
     xEvent 	xE;
 
-#ifdef XINERAMA
-  /*
-   * Only deliver event for Screen 0 when Xinerama enabled
-   */
-  if (noPanoramiXExtension || 
-      (!noPanoramiXExtension && !(pwin->drawable.pScreen->myNum)))
+#ifdef PANORAMIX
+    if(!noPanoramiXExtension && pwin->drawable.pScreen->myNum)
+	return WT_STOPWALKING;
 #endif
     if (wColormap (pwin) == *pmid)
     {

@@ -5,7 +5,7 @@
  *
  **************************************************************/
 /*
- * Copyright (c) 2001-2003 Torrey T. Lyons. All Rights Reserved.
+ * Copyright (c) 2001-2004 Torrey T. Lyons. All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -29,7 +29,7 @@
  * holders shall not be used in advertising or otherwise to promote the sale,
  * use or other dealings in this Software without prior written authorization.
  */
-/* $XdotOrg: xc/programs/Xserver/hw/darwin/darwin.c,v 1.56 2003/11/24 05:39:01 torrey Exp $ */
+/* $XdotOrg$ */
 /* $XFree86: xc/programs/Xserver/hw/darwin/darwin.c,v 1.55 2003/11/15 00:07:09 torrey Exp $ */
 
 #include "X.h"
@@ -44,7 +44,7 @@
 #include "fb.h"			// fb framebuffer code
 #include "site.h"
 #include "globals.h"
-#include "xf86Version.h"
+#include "xorgVersion.h"
 #include "xf86Date.h"
 #include "dix.h"
 
@@ -54,6 +54,9 @@
 #include <stdio.h>
 #include <fcntl.h>
 #include <unistd.h>
+
+#define HAS_UTSNAME 1
+#include <sys/utsname.h>
 
 #define NO_CFPLUGIN
 #include <IOKit/IOKitLib.h>
@@ -110,7 +113,7 @@ const int NUMFORMATS = sizeof(formats)/sizeof(formats[0]);
 #define OSVENDOR ""
 #endif
 #ifndef PRE_RELEASE
-#define PRE_RELEASE XF86_VERSION_SNAP
+#define PRE_RELEASE XORG_VERSION_SNAP
 #endif
 
 void
@@ -118,37 +121,74 @@ DarwinPrintBanner()
 {
 #if PRE_RELEASE
   ErrorF("\n"
-    "This is a pre-release version of XFree86, and is not supported in any\n"
-    "way.  Bugs may be reported to XFree86@XFree86.Org and patches submitted\n"
-    "to fixes@XFree86.Org.  Before reporting bugs in pre-release versions,\n"
-    "please check the latest version in the XFree86 CVS repository\n"
-    "(http://www.XFree86.Org/cvs)\n");
+    "This is a pre-release version of the " XVENDORNAME " X11.\n"
+    "Portions of this release are based on XFree86 4.4RC2 and selected\n"
+    "files from XFree86 4.4RC3. It is not supported in any way.\n"
+    "Bugs may be filed in the bugzilla at http://bugs.freedesktop.org/.\n"
+    "Select the \"xorg\" product for bugs you find in this release.\n"
+    "Before reporting bugs in pre-release versions please check the\n"
+    "latest version in the " XVENDORNAME " \"monolithic tree\" CVS\n"
+    "repository hosted at http://www.freedesktop.org/Software/xorg/");
 #endif
-  ErrorF("\nXFree86 Version %d.%d.%d", XF86_VERSION_MAJOR, XF86_VERSION_MINOR,
-                                    XF86_VERSION_PATCH);
-#if XF86_VERSION_SNAP > 0
+#if XORG_VERSION_SNAP > 0
   ErrorF(".%d", XF86_VERSION_SNAP);
 #endif
 
-#if XF86_VERSION_SNAP >= 900
-  ErrorF(" (%d.%d.0 RC %d)", XF86_VERSION_MAJOR, XF86_VERSION_MINOR + 1,
-				XF86_VERSION_SNAP - 900);
+#if XORG_VERSION_SNAP >= 900
+  ErrorF(" (%d.%d.0 RC %d)", XORG_VERSION_MAJOR, XORG_VERSION_MINOR + 1,
+				XORG_VERSION_SNAP - 900);
 #endif
 
-#ifdef XF86_CUSTOM_VERSION
+#ifdef XORG_CUSTOM_VERSION
   ErrorF(" (%s)", XF86_CUSTOM_VERSION);
 #endif
-  ErrorF(" / X Window System\n");
-  ErrorF("(protocol Version %d, revision %d, vendor release %d)\n",
-         X_PROTOCOL, X_PROTOCOL_REVISION, VENDOR_RELEASE );
-  ErrorF("Release Date: %s\n", XF86_DATE);
-  ErrorF("\tIf the server is older than 6-12 months, or if your hardware is\n"
-         "\tnewer than the above date, look for a newer version before\n"
-         "\treporting problems.  (See http://www.XFree86.Org/FAQ)\n");
-  ErrorF("Operating System:%s%s\n", OSNAME, OSVENDOR);
+  ErrorF("\nRelease Date: %s\n", XF86_DATE);
+  ErrorF("X Protocol Version %d, Revision %d, %s\n",
+         X_PROTOCOL, X_PROTOCOL_REVISION, XORG_RELEASE );
+  ErrorF("Build Operating System:%s%s\n", OSNAME, OSVENDOR);
+#ifdef HAS_UTSNAME
+  {
+    struct utsname name;
+
+    if (uname(&name) == 0) {
+      ErrorF("Current Operating System: %s %s %s %s %s\n",
+	name.sysname, name.nodename, name.release, name.version, name.machine);
+    }
+  }
+#endif
+#if defined(BUILD_DATE) && (BUILD_DATE > 19000000)
+  {
+    struct tm t;
+    char buf[100];
+
+    bzero(&t, sizeof(t));
+    bzero(buf, sizeof(buf));
+    t.tm_mday = BUILD_DATE % 100;
+    t.tm_mon = (BUILD_DATE / 100) % 100 - 1;
+    t.tm_year = BUILD_DATE / 10000 - 1900;
+    if (strftime(buf, sizeof(buf), "%d %B %Y", &t))
+       ErrorF("Build Date: %s\n", buf);
+  }
+#endif
+#if defined(CLOG_DATE) && (CLOG_DATE > 19000000)
+  {
+    struct tm t;
+    char buf[100];
+
+    bzero(&t, sizeof(t));
+    bzero(buf, sizeof(buf));
+    t.tm_mday = CLOG_DATE % 100;
+    t.tm_mon = (CLOG_DATE / 100) % 100 - 1;
+    t.tm_year = CLOG_DATE / 10000 - 1900;
+    if (strftime(buf, sizeof(buf), "%d %B %Y", &t))
+       ErrorF("Changelog Date: %s\n", buf);
+  }
+#endif
 #if defined(BUILDERSTRING)
   ErrorF("%s \n",BUILDERSTRING);
 #endif
+  ErrorF("\tBefore reporting problems, check "__VENDORDWEBSUPPORT__"\n"
+	 "\tto make sure that you have the latest version.\n");
 }
 
 

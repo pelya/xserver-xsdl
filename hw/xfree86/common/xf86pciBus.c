@@ -310,7 +310,7 @@ FindPCIVideoInfo(void)
 			    (memType)PCIGETMEMORY64HIGH(pcrp->pci_base1) << 32;
 #else
 			if (pcrp->pci_base1)
-			  info->memBase[0] = 0;
+			    info->memBase[0] = 0;
 #endif
 		    } 
 		}
@@ -910,10 +910,15 @@ removeOverlapsWithBridges(int busIndex, resPtr target)
 {
     PciBusPtr pbp;
     resPtr tmp,bridgeRes = NULL;
-    resRange range = target->val;
+    resRange range;
 
+    if (!target)
+	return;
+    
     if (!ResCanOverlap(&target->val))
 	return;
+
+    range = target->val;
     
     for (pbp=xf86PciBus; pbp; pbp = pbp->next) {
 	if (pbp->primary == busIndex) {

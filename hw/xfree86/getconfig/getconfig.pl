@@ -33,7 +33,6 @@
 # Author: David Dawes <dawes@XFree86.Org>.
 #
 
-# $XFree86: xc/programs/Xserver/hw/xfree86/getconfig/getconfig.pl,v 1.1 2003/10/08 14:58:29 dawes Exp $
 
 #
 # This script takes PCI id information, compares it against an ordered list
@@ -52,7 +51,7 @@ $debug = 0;
 $myname = $0;
 $myname =~ s/.*\///;
 
-$signature = "XFree86 Project getconfig rules file.  Version: ";
+$signature = "Xorg Foundation getconfig rules file.  Version: ";
 
 while (@ARGV[0] =~ /^-[A-Za-z]$/) {
     $f = shift;
@@ -70,9 +69,9 @@ while (@ARGV[0] =~ /^-[A-Za-z]$/) {
 	    exit 0;
 	}
 	if ($f eq "-X") {
-	    $XFree86VersionNumeric = shift;
-	    if (!defined($XFree86VersionNumeric)) {
-		print STDERR "$myname: -X requires the XFree86 version.\n";
+	    $XorgVersionNumeric = shift;
+	    if (!defined($XorgVersionNumeric)) {
+		print STDERR "$myname: -X requires the Xorg version.\n";
 		exit 1;
 	    }
 	}
@@ -129,21 +128,21 @@ while (@ARGV[0] =~ /^-[A-Za-z]$/) {
 
 printf STDERR "$myname: Version %vd.\n", $GetconfigVersion;
 
-if (defined($XFree86VersionNumeric)) {
-    $XFree86VersionMajor = $XFree86VersionNumeric / 10000000;
-    $XFree86VersionMinor = ($XFree86VersionNumeric % 10000000) / 100000;
-    $XFree86VersionPatch = ($XFree86VersionNumeric % 100000) / 1000;
-    $XFree86VersionSnapshot = $XFree86VersionNumeric % 1000;
-    $XFree86Version = chr($XFree86VersionMajor) . chr($XFree86VersionMinor) .
-		chr($XFree86VersionPatch) . chr($XFree86VersionSnapshot);
+if (defined($XorgVersionNumeric)) {
+    $XorgVersionMajor = $XorgVersionNumeric / 10000000;
+    $XorgVersionMinor = ($XorgVersionNumeric % 10000000) / 100000;
+    $XorgVersionPatch = ($XorgVersionNumeric % 100000) / 1000;
+    $XorgVersionSnapshot = $XorgVersionNumeric % 1000;
+    $XorgVersion = chr($XorgVersionMajor) . chr($XorgVersionMinor) .
+		chr($XorgVersionPatch) . chr($XorgVersionSnapshot);
 }
 
 if ($debug) {
-    printf STDERR "$myname: XFree86 Version: %d, %d.%d.%d.%d, %vd.\n",
-	$XFree86VersionNumeric, $XFree86VersionMajor, $XFree86VersionMinor,
-	$XFree86VersionPatch, $XFree86VersionSnapshot, $XFree86Version;
+    printf STDERR "$myname: Xorg Version: %d, %d.%d.%d.%d, %vd.\n",
+	$XorgVersionNumeric, $XorgVersionMajor, $XorgVersionMinor,
+	$XorgVersionPatch, $XorgVersionSnapshot, $XorgVersion;
 } else {
-    printf STDERR "$myname: XFree86 Version: %vd.\n", $XFree86Version;
+    printf STDERR "$myname: Xorg Version: %vd.\n", $XorgVersion;
 }
   
 

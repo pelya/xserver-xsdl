@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/Xext/xvdisp.c,v 1.1.4.3 2004/02/25 21:46:33 kaleb Exp $ */
+/* $XdotOrg$ */
 /***********************************************************
 Copyright 1991 by Digital Equipment Corporation, Maynard, Massachusetts,
 and the Massachusetts Institute of Technology, Cambridge, Massachusetts.
@@ -73,7 +73,7 @@ SOFTWARE.
 
 #include "xvdisp.h"
 
-#ifdef XINERAMA
+#ifdef PANORAMIX
 #include "panoramiX.h"
 #include "panoramiXsrv.h"
 
@@ -233,14 +233,14 @@ ProcXvDispatch(ClientPtr client)
     case xv_QueryAdaptors: return(ProcXvQueryAdaptors(client));
     case xv_QueryEncodings: return(ProcXvQueryEncodings(client));
     case xv_PutVideo:
-#ifdef XINERAMA
+#ifdef PANORAMIX
         if(!noPanoramiXExtension)
             return(XineramaXvPutVideo(client));
         else
 #endif
             return(ProcXvPutVideo(client));
     case xv_PutStill:
-#ifdef XINERAMA
+#ifdef PANORAMIX
         if(!noPanoramiXExtension)
             return(XineramaXvPutStill(client));
         else
@@ -253,14 +253,14 @@ ProcXvDispatch(ClientPtr client)
     case xv_SelectVideoNotify: return(ProcXvSelectVideoNotify(client));
     case xv_SelectPortNotify: return(ProcXvSelectPortNotify(client));
     case xv_StopVideo: 
-#ifdef XINERAMA
+#ifdef PANORAMIX
         if(!noPanoramiXExtension)
 	    return(XineramaXvStopVideo(client));
 	else
 #endif
 	    return(ProcXvStopVideo(client));
     case xv_SetPortAttribute: 
-#ifdef XINERAMA
+#ifdef PANORAMIX
         if(!noPanoramiXExtension)
 	    return(XineramaXvSetPortAttribute(client));
 	else
@@ -270,7 +270,7 @@ ProcXvDispatch(ClientPtr client)
     case xv_QueryBestSize: return(ProcXvQueryBestSize(client));
     case xv_QueryPortAttributes: return(ProcXvQueryPortAttributes(client));
     case xv_PutImage:
-#ifdef XINERAMA
+#ifdef PANORAMIX
         if(!noPanoramiXExtension)
 	    return(XineramaXvPutImage(client));
 	else
@@ -278,7 +278,7 @@ ProcXvDispatch(ClientPtr client)
 	    return(ProcXvPutImage(client));
 #ifdef MITSHM
     case xv_ShmPutImage: 
-#ifdef XINERAMA
+#ifdef PANORAMIX
         if(!noPanoramiXExtension)
 	    return(XineramaXvShmPutImage(client));
 	else
@@ -1863,7 +1863,7 @@ SWriteListImageFormatsReply(
 }
 
 
-#ifdef XINERAMA
+#ifdef PANORAMIX
 
 
 
@@ -2079,8 +2079,7 @@ XineramaXvPutStill(ClientPtr client)
                 client, stuff->port, XvXRTPort, SecurityReadAccess)))
         return _XvBadPort;
 
-    isRoot = (draw->type == XRT_WINDOW) &&
-		(stuff->drawable == WindowTable[0]->drawable.id);
+    isRoot = (draw->type == XRT_WINDOW) && draw->u.win.root;
 
     x = stuff->drw_x;
     y = stuff->drw_y;

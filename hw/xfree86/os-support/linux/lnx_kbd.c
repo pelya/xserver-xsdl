@@ -117,7 +117,7 @@ KDKBDREP_ioctl_ok(int rate, int delay) {
    /* don't change, just test */
    kbdrep_s.rate = -1;
    kbdrep_s.delay = -1;
-   if (ioctl( 0, KDKBDREP, &kbdrep_s )) {
+   if (ioctl( xf86Info.consoleFd, KDKBDREP, &kbdrep_s )) {
        return 0;
    }
 
@@ -132,8 +132,8 @@ KDKBDREP_ioctl_ok(int rate, int delay) {
    if (kbdrep_s.delay < 1)
      kbdrep_s.delay = 1;
    
-   if (ioctl( 0, KDKBDREP, &kbdrep_s )) {
-     return 0;
+   if (ioctl( xf86Info.consoleFd, KDKBDREP, &kbdrep_s )) {
+       return 0;
    }
 
    return 1;			/* success! */
@@ -157,8 +157,9 @@ KIOCSRATE_ioctl_ok(int rate, int delay) {
    if (kbdrate_s.rate > 50)
      kbdrate_s.rate = 50;
 
-   if (ioctl( fd, KIOCSRATE, &kbdrate_s ))
-     return 0;
+   if (ioctl( fd, KIOCSRATE, &kbdrate_s )) {
+       return 0;
+   }
 
    close( fd );
 

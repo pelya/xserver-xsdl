@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/cfb/cfbpntwin.c,v 1.1.4.3 2003/12/18 19:29:12 kaleb Exp $ */
+/* $XdotOrg$ */
 /* $Xorg: cfbpntwin.c,v 1.4 2001/02/09 02:04:38 xorgcvs Exp $ */
 /***********************************************************
 
@@ -59,11 +59,9 @@ SOFTWARE.
 #include "cfbmskbits.h"
 #include "mi.h"
 
-#ifdef XINERAMA
+#ifdef PANORAMIX
 #include "panoramiX.h"
 #include "panoramiXsrv.h"
-extern Bool noPanoramiXExtension;
-extern WindowPtr *WindowTable;
 #endif
 
 void
@@ -100,11 +98,9 @@ cfbPaintWindow(pWin, pRegion, what)
 	    }
 	    else
 	    {
-#ifndef NO_XINERAMA_PORT
 		int xorg = pWin->drawable.x;
 		int yorg = pWin->drawable.y;
-#endif
-#ifdef XINERAMA
+#ifdef PANORAMIX
 		if(!noPanoramiXExtension) {
 		    int index = pWin->drawable.pScreen->myNum;
 		    if(WindowTable[index] == pWin) {
@@ -117,11 +113,7 @@ cfbPaintWindow(pWin, pRegion, what)
 				   (int)REGION_NUM_RECTS(pRegion),
 				   REGION_RECTS(pRegion),
 				   pWin->background.pixmap,
-#ifndef NO_XINERAMA_PORT
 				   xorg, yorg);
-#else
-				   (int)pWin->drawable.x, (int)pWin->drawable.y);
-#endif
 	    }
 	    break;
 	case BackgroundPixel:
@@ -149,20 +141,16 @@ cfbPaintWindow(pWin, pRegion, what)
 	}
 	else
 	{
-#ifndef NO_XINERAMA_PORT
 	    int xorg, yorg;
-#endif
 
 	    for (pBgWin = pWin;
 		 pBgWin->backgroundState == ParentRelative;
 		 pBgWin = pBgWin->parent);
 
-#ifndef NO_XINERAMA_PORT
 	    xorg = pBgWin->drawable.x;
 	    yorg = pBgWin->drawable.y;
-#endif
 
-#ifdef XINERAMA
+#ifdef PANORAMIX
 	    if(!noPanoramiXExtension) {
 		int index = pWin->drawable.pScreen->myNum;
 		if(WindowTable[index] == pBgWin) {
@@ -176,12 +164,7 @@ cfbPaintWindow(pWin, pRegion, what)
 			       (int)REGION_NUM_RECTS(pRegion),
 			       REGION_RECTS(pRegion),
 			       pWin->border.pixmap,
-#ifndef NO_XINERAMA_PORT
 			       xorg, yorg);
-#else
-			       (int) pBgWin->drawable.x,
-			       (int) pBgWin->drawable.y);
-#endif
 	}
 	break;
     }

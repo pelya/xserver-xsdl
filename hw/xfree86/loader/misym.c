@@ -65,9 +65,9 @@
 #include "mifillarc.h"
 #include "micmap.h"
 #include "mioverlay.h"
-#ifdef XINERAMA
+#ifdef PANORAMIX
 #include "resource.h"
-#include "xinerama.h"
+#include "panoramiX.h"
 #endif
 #ifdef RENDER
 #include "mipict.h"

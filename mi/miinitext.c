@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/mi/miinitext.c,v 1.1.4.2 2003/12/18 19:29:15 kaleb Exp $ */
+/* $XdotOrg$ */
 /* $XFree86: xc/programs/Xserver/mi/miinitext.c,v 3.67 2003/01/12 02:44:27 dawes Exp $ */
 /***********************************************************
 
@@ -62,7 +62,7 @@ SOFTWARE.
 #undef GLXEXT
 #endif
 
-#ifdef XINERAMA
+#ifdef PANORAMIX
 extern Bool noPanoramiXExtension;
 #endif
 extern Bool noTestExtensions;
@@ -103,7 +103,7 @@ typedef void (*InitExtension)(INITARGS);
 #define _SECURITY_SERVER
 #include "securstr.h"
 #endif
-#ifdef XINERAMA
+#ifdef PANORAMIX
 #include "panoramiXproto.h"
 #endif
 #ifdef XF86BIGFONT
@@ -135,7 +135,7 @@ extern void PexExtensionInit(INITARGS);
 #ifdef MULTIBUFFER
 extern void MultibufferExtensionInit(INITARGS);
 #endif
-#ifdef XINERAMA
+#ifdef PANORAMIX
 extern void PanoramiXExtensionInit(INITARGS);
 #endif
 #ifdef XINPUT
@@ -247,8 +247,8 @@ InitExtensions(argc, argv)
     int		argc;
     char	*argv[];
 {
-#ifdef XINERAMA
-# if !defined(PRINT_ONLY_SERVER) && !defined(NO_XINERAMA)
+#ifdef PANORAMIX
+# if !defined(PRINT_ONLY_SERVER) && !defined(NO_PANORAMIX)
   if (!noPanoramiXExtension) PanoramiXExtensionInit();
 # endif
 #endif
@@ -437,7 +437,7 @@ ExtensionModule extension[] =
     { NULL, "GLX", NULL, NULL },
     { NULL, "TOG-CUP", NULL, NULL },
     { NULL, "Extended-Visual-Information", NULL, NULL },
-#ifdef XINERAMA
+#ifdef PANORAMIX
     { NULL, "XINERAMA", &noPanoramiXExtension, NULL },
 #else
     { NULL, "NOXINERAMA", NULL, NULL },
@@ -488,7 +488,7 @@ static ExtensionModule staticExtensions[] = {
 #ifdef XPRINT
     { XpExtensionInit, XP_PRINTNAME, NULL, NULL, NULL },
 #endif
-#ifdef XINERAMA
+#ifdef PANORAMIX
     { PanoramiXExtensionInit, PANORAMIX_PROTOCOL_NAME, &noPanoramiXExtension, NULL, NULL },
 #endif
 #ifdef XF86BIGFONT

@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/hw/darwin/quartz/quartz.c,v 1.1.4.3 2003/12/18 19:29:12 kaleb Exp $ */
+/* $XdotOrg$ */
 /**************************************************************
  *
  * Quartz-specific support for the Darwin X Server
@@ -36,7 +36,7 @@
 #include "quartz.h"
 #include "darwin.h"
 #include "quartzAudio.h"
-#include "pseudorama.h"
+#include "pseudoramiX.h"
 #define _APPLEWM_SERVER_
 #include "applewm.h"
 #include "applewmExt.h"
@@ -140,9 +140,9 @@ void DarwinModeInitOutput(
     // Do display mode specific initialization
     quartzProcs->DisplayInit();
 
-    // Init Pseudorama implementation of Xinerama.
+    // Init PseudoramiX implementation of Xinerama.
     // This should be in InitExtensions, but that causes link errors
-    // for servers that don't link in pseudorama.c.
+    // for servers that don't link in pseudoramiX.c.
     if (!noPseudoramiXExtension) {
         PseudoramiXExtensionInit(argc, argv);
     }

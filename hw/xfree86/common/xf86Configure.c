@@ -499,7 +499,7 @@ configureLayoutSection (void)
     int scrnum = 0;
     parsePrologue (XF86ConfLayoutPtr, XF86ConfLayoutRec)
 
-    ptr->lay_identifier = "XFree86 Configured";
+    ptr->lay_identifier = "X.org Configured";
 
     {
 	XF86ConfInputrefPtr iptr;
@@ -632,8 +632,8 @@ configureModuleSection (void)
             /* Add only those font backends which are referenced by fontpath */
             /* 'strstr(dFP,"/dir")' is meant as 'dFP =~ m(/dir\W)' */
     	    if (defaultFontPath && (
-		(strcmp(*el, "xtt")  == 0 &&
-		 strstr(defaultFontPath, "/TrueType")) ||
+		(strcmp(*el, "freetype")  == 0 &&
+		 strstr(defaultFontPath, "/TTF")) ||
     	        (strcmp(*el, "type1")  == 0 &&
 		 strstr(defaultFontPath, "/Type1")) ||
     	        (strcmp(*el, "speedo") == 0 &&
@@ -741,6 +741,16 @@ configureDDCMonitorSection (int screennum)
 	    case DS_ASCII_STR:
 	    case DS_SERIAL:
 	    case DS_RANGES:
+		ptr->mon_hsync[ptr->mon_n_hsync].lo =
+		    ConfiguredMonitor->det_mon[i].section.ranges.min_h;
+		ptr->mon_hsync[ptr->mon_n_hsync].hi =
+		    ConfiguredMonitor->det_mon[i].section.ranges.max_h;
+		ptr->mon_n_vrefresh = 1;
+		ptr->mon_vrefresh[ptr->mon_n_hsync].lo =
+		    ConfiguredMonitor->det_mon[i].section.ranges.min_v;
+		ptr->mon_vrefresh[ptr->mon_n_hsync].hi =
+		ptr->mon_n_hsync++;
+		ConfiguredMonitor->det_mon[i].section.ranges.max_v;
 	    default:
 		break;
 	}
@@ -967,29 +977,33 @@ DoConfigure()
     ErrorF("\n");
 
 #ifdef SCO
-    ErrorF("\nXFree86 is using the kernel event driver to access the mouse.\n"
-	    "If you wish to use the internal XFree86 mouse drivers, please\n"
+    ErrorF("\n"__XSERVERNAME__
+	   " is using the kernel event driver to access the mouse.\n"
+	    "If you wish to use the internal "__XSERVERNAME__
+	   "mouse drivers, please\n"
 	    "edit the file and correct the Device.\n");
 #else /* !SCO */
     if (!foundMouse) {
-	ErrorF("\nXFree86 is not able to detect your mouse.\n"
+	ErrorF("\n"__XSERVERNAME__" is not able to detect your mouse.\n"
 		"Edit the file and correct the Device.\n");
     } else {
 #ifndef __UNIXOS2__  /* OS/2 definitely has a mouse */
-	ErrorF("\nXFree86 detected your mouse at device %s.\n"
+	ErrorF("\n"__XSERVERNAME__" detected your mouse at device %s.\n"
 		"Please check your config if the mouse is still not\n"
-		"operational, as by default XFree86 tries to autodetect\n"
+		"operational, as by default "__XSERVERNAME__
+	       " tries to autodetect\n"
 		"the protocol.\n",DFLT_MOUSE_DEV);
 #endif
     }
 #endif /* !SCO */
 
     if (xf86NumScreens > 1) {
-	ErrorF("\nXFree86 has configured a multihead system, please check your config.\n");
+	ErrorF("\n"__XSERVERNAME__
+	       " has configured a multihead system, please check your config.\n");
     }
 
-    ErrorF("\nYour XF86Config file is %s\n\n", filename);
-    ErrorF("To test the server, run 'XFree86 -xf86config %s'\n\n", filename);
+    ErrorF("\nYour %s file is %s\n\n", XF86CONFIGFILE ,filename);
+    ErrorF("To test the server, run 'X -xf86config %s'\n\n", filename);
 
 bail:
     OsCleanup(TRUE);

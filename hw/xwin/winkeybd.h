@@ -36,7 +36,7 @@
 
 
 /*
- * Include the standard XFree86 ASCII keymap.
+ * Include the standard ASCII keymap.
  *
  * This header declares a static KeySym array called 'map'.
  */

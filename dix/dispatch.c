@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/dix/dispatch.c,v 1.1.4.5 2004/03/05 13:39:57 eich Exp $ */
+/* $XdotOrg$ */
 /* $Xorg: dispatch.c,v 1.5 2001/02/09 02:04:40 xorgcvs Exp $ */
 /************************************************************
 
@@ -47,7 +47,7 @@ SOFTWARE.
 
 ********************************************************/
 
-/* The Xinerama components contained the following notice */
+/* The panoramix components contained the following notice */
 /*****************************************************************
 
 Copyright (c) 1991, 1997 Digital Equipment Corporation, Maynard, Massachusetts.
@@ -75,9 +75,10 @@ dealings in this Software without prior written authorization from Digital
 Equipment Corporation.
 
 ******************************************************************/
+
 /* $XFree86: xc/programs/Xserver/dix/dispatch.c,v 3.32 2003/11/10 18:21:45 tsi Exp $ */
 
-#ifdef XINERAMA_DEBUG
+#ifdef PANORAMIX_DEBUG
 #include <stdio.h>
 int ProcInitialConnection();
 #endif
@@ -98,7 +99,7 @@ int ProcInitialConnection();
 #include "dispatch.h"
 #include "swaprep.h"
 #include "swapreq.h"
-#ifdef XINERAMA
+#ifdef PANORAMIX
 #include "panoramiX.h"
 #include "panoramiXsrv.h"
 #endif
@@ -2648,7 +2649,7 @@ ProcAllocColor(client)
 	    else
 	        return (retval);
 	}
-#ifdef XINERAMA
+#ifdef PANORAMIX
 	if (noPanoramiXExtension || !pmap->pScreen->myNum)
 #endif
         WriteReplyToClient(client, sizeof(xAllocColorReply), &acr);
@@ -2707,7 +2708,7 @@ ProcAllocNamedColor           (client)
                 else
     	            return(retval);
 	    }
-#ifdef XINERAMA
+#ifdef PANORAMIX
 	    if (noPanoramiXExtension || !pcmp->pScreen->myNum)
 #endif
             WriteReplyToClient(client, sizeof (xAllocNamedColorReply), &ancr);
@@ -2777,7 +2778,7 @@ ProcAllocColorCells           (client)
 	    else
 	        return(retval);
 	}
-#ifdef XINERAMA
+#ifdef PANORAMIX
 	if (noPanoramiXExtension || !pcmp->pScreen->myNum)
 #endif
 	{
@@ -2856,7 +2857,7 @@ ProcAllocColorPlanes(client)
 	        return(retval);
 	}
 	acpr.length = length >> 2;
-#ifdef XINERAMA
+#ifdef PANORAMIX
 	if (noPanoramiXExtension || !pcmp->pScreen->myNum)
 #endif
 	{
@@ -3939,7 +3940,7 @@ SendConnSetup(client, reason)
 #endif
     /* fill in the "currentInputMask" */
     root = (xWindowRoot *)(lConnectionInfo + connBlockScreenStart);
-#ifdef XINERAMA
+#ifdef PANORAMIX
     if (noPanoramiXExtension)
 	numScreens = screenInfo.numScreens;
     else 

@@ -53,7 +53,7 @@
 typedef struct {
     // List of CoreGraphics displays that this X11 screen covers.
     // This is more than one CG display for video mirroring and
-    // rootless Pseudorama mode.
+    // rootless PseudoramiX mode.
     // No CG display will be covered by more than one X11 screen.
     int displayCount;
     CGDirectDisplayID *displayIDs;

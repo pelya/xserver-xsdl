@@ -265,7 +265,7 @@ xf86AutoConfig(void)
 		 " -v 0x%04x -d 0x%04x -r 0x%02x -s 0x%04x"
 		 " -b 0x%04x -c 0x%04x",
 		 path,
-		 (unsigned int)xf86GetVersion(),
+		 (unsigned int)xorgGetVersion(),
 		 searchPath,
 		 info->vendor, info->chipType, info->chipRev,
 		 info->subsysVendor, info->subsysCard,

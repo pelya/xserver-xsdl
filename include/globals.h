@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/include/globals.h,v 1.1.4.1 2003/12/18 19:29:15 kaleb Exp $ */
+/* $XdotOrg$ */
 /* $XFree86: xc/programs/Xserver/include/globals.h,v 1.3 1999/09/25 14:38:21 dawes Exp $ */
 
 #ifndef _XSERV_GLOBAL_H_
@@ -41,7 +41,7 @@ extern Bool DPMSDisabledSwitch;
 extern Bool DPMSCapableFlag;
 #endif
 
-#ifdef XINERAMA
+#ifdef PANORAMIX
 extern Bool noPanoramiXExtension;
 extern Bool PanoramiXMapped;
 extern Bool PanoramiXVisibilityNotifySent;

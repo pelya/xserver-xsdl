@@ -312,7 +312,7 @@ ddxUseMsg (void)
 
   ErrorF ("-lesspointer\n"
 	  "\tHide the windows mouse pointer when it is over an inactive\n"
-          "\tXFree86 window.  This prevents ghost cursors appearing where\n"
+          "\tX window.  This prevents ghost cursors appearing where\n"
 	  "\tthe Windows cursor is drawn overtop of the X cursor\n");
 
   ErrorF ("-nodecoration\n"
@@ -361,7 +361,7 @@ ddxUseMsg (void)
   ErrorF ("-[no]winkill\n"
           "\tAlt+F4 exits the X Server.\n");
 
-  ErrorF ("-xf86config\n"
+  ErrorF ("-config\n"
           "\tSpecify a configuration file.\n");
 
   ErrorF ("-keyboard\n"
@@ -1201,9 +1201,9 @@ ddxProcessArgument (int argc, char *argv[], int i)
     }
 
   /*
-   * Look for the '-xf86config' argument
+   * Look for the '-config' argument.  Accept -xf86config as an alias
    */
-  if (IS_OPTION ("-xf86config"))
+  if (IS_OPTION ("-config") || IS_OPTION ("-xf86config"))
     {
       CHECK_ARGS (1);
       g_cmdline.configFile = argv[++i];
@@ -1270,7 +1270,7 @@ InitOutput (ScreenInfo *screenInfo, int argc, char *argv[])
   ErrorF ("InitOutput\n");
 #endif
 
-  /* Try to read the XF86Config-style configuration file */
+  /* Try to read the xorg.conf-style configuration file */
   if (!winReadConfigfile ())
     ErrorF ("InitOutput - Error reading config file\n");
 

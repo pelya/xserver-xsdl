@@ -69,7 +69,7 @@
 #include "xf86Priv.h"
 #include "xf86Config.h"
 #include "xf86_OSlib.h"
-#include "xf86Version.h"
+#include "xorgVersion.h"
 #include "xf86Date.h"
 #include "xf86Build.h"
 #include "mipointer.h"
@@ -1262,12 +1262,17 @@ AbortDDX()
 void
 OsVendorFatalError()
 {
-  ErrorF("\nWhen reporting a problem related to a server crash, please\n"
-	 "send the full server output, not just the last messages.\n");
-  if (xf86LogFile && xf86LogFileWasOpened)
-    ErrorF("This can be found in the log file \"%s\".\n", xf86LogFile);
-  ErrorF("Please report problems to %s.\n", BUILDERADDR);
-  ErrorF("\n");
+#ifdef VENDORSUPPORT
+    ErrorF("\nPlease refer to your Operating System Vendor support pages\n"
+	   "at %s for support on this crash.\n",VENDORSUPPORT);
+#else
+    ErrorF("\nPlease consult the "XVENDORNAME" support \n"
+	   "\t at "__VENDORDWEBSUPPORT__"\n for help. \n");
+#endif
+    if (xf86LogFile && xf86LogFileWasOpened)
+	ErrorF("Please also check the log file at \"%s\" for additional "
+              "information.\n", xf86LogFile);
+    ErrorF("\n");
 }
 
 int
@@ -1339,15 +1344,15 @@ ddxProcessArgument(int argc, char **argv, int i)
       return 2;
     }
   }
-  if (!strcmp(argv[i], "-xf86config"))
+  if (!strcmp(argv[i], "-config") || !strcmp(argv[i], "-xf86config"))
   {
     if (!argv[i + 1])
       return 0;
     if (getuid() != 0 && !xf86PathIsSafe(argv[i + 1])) {
-      FatalError("\nInvalid argument for -xf86config\n"
-	  "\tFor non-root users, the file specified with -xf86config must be\n"
+      FatalError("\nInvalid argument for -config\n"
+	  "\tFor non-root users, the file specified with -config must be\n"
 	  "\ta relative path and must not contain any \"..\" elements.\n"
-	  "\tUsing default XF86Config search path.\n\n");
+	  "\tUsing default "__XCONFIGFILE__" search path.\n\n");
     }
     xf86ConfigFile = argv[i + 1];
     return 2;
@@ -1650,15 +1655,14 @@ ddxUseMsg()
   ErrorF("Device Dependent Usage\n");
   if (getuid() == 0)
   {
-    ErrorF("-xf86config file       specify a configuration file\n");
     ErrorF("-modulepath paths      specify the module search path\n");
     ErrorF("-logfile file          specify a log file name\n");
-    ErrorF("-configure             probe for devices and write an XF86Config\n");
+    ErrorF("-configure             probe for devices and write an "__XCONFIGFILE__"\n");
   }
   else
   {
-    ErrorF("-xf86config file       specify a configuration file, relative to the\n");
-    ErrorF("                       XF86Config search path, only root can use absolute\n");
+    ErrorF("-config file       specify a configuration file, relative to the\n");
+    ErrorF("                       "__XCONFIGFILE__" search path, only root can use absolute\n");
   }
   ErrorF("-probeonly             probe for devices, then exit\n");
   ErrorF("-scanpci               execute the scanpci module and exit\n");
@@ -1706,7 +1710,7 @@ ddxUseMsg()
 #define OSVENDOR ""
 #endif
 #ifndef PRE_RELEASE
-#define PRE_RELEASE XF86_VERSION_SNAP
+#define PRE_RELEASE XORG_VERSION_SNAP
 #endif
 
 static void
@@ -1714,25 +1718,25 @@ xf86PrintBanner()
 {
 #if PRE_RELEASE
   ErrorF("\n"
-    "This is a pre-release version of the X.org Foundation's X11.\n"
+    "This is a pre-release version of the " XVENDORNAME " X11.\n"
     "Portions of this release are based on XFree86 4.4RC2 and selected\n"
     "files from XFree86 4.4RC3. It is not supported in any way.\n"
     "Bugs may be filed in the bugzilla at http://bugs.freedesktop.org/.\n"
     "Select the \"xorg\" product for bugs you find in this release.\n"
     "Before reporting bugs in pre-release versions please check the\n"
-    "latest version in the X.org Foundation \"monolithic tree\" CVS\n"
+    "latest version in the " XVENDORNAME " \"monolithic tree\" CVS\n"
     "repository hosted at http://www.freedesktop.org/Software/xorg/");
 #endif
-#if XF86_VERSION_SNAP > 0
+#if XORG_VERSION_SNAP > 0
   ErrorF(".%d", XF86_VERSION_SNAP);
 #endif
 
-#if XF86_VERSION_SNAP >= 900
-  ErrorF(" (%d.%d.0 RC %d)", XF86_VERSION_MAJOR, XF86_VERSION_MINOR + 1,
-				XF86_VERSION_SNAP - 900);
+#if XORG_VERSION_SNAP >= 900
+  ErrorF(" (%d.%d.0 RC %d)", XORG_VERSION_MAJOR, XORG_VERSION_MINOR + 1,
+				XORG_VERSION_SNAP - 900);
 #endif
 
-#ifdef XF86_CUSTOM_VERSION
+#ifdef XORG_CUSTOM_VERSION
   ErrorF(" (%s)", XF86_CUSTOM_VERSION);
 #endif
   ErrorF("\nRelease Date: %s\n", XF86_DATE);
@@ -1780,7 +1784,7 @@ xf86PrintBanner()
 #if defined(BUILDERSTRING)
   ErrorF("%s \n",BUILDERSTRING);
 #endif
-  ErrorF("\tBefore reporting problems, check http://www.XFree86.Org/\n"
+  ErrorF("\tBefore reporting problems, check "__VENDORDWEBSUPPORT__"\n"
 	 "\tto make sure that you have the latest version.\n");
 #ifdef XFree86LOADER
   ErrorF("Module Loader present\n");

@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/dix/main.c,v 1.1.4.6 2004/03/05 13:39:57 eich Exp $ */
+/* $XdotOrg$ */
 /* $XFree86: xc/programs/Xserver/dix/main.c,v 3.43 2003/10/30 21:21:02 herrb Exp $ */
 /***********************************************************
 
@@ -48,7 +48,7 @@ SOFTWARE.
 ******************************************************************/
 /* $Xorg: main.c,v 1.4 2001/02/09 02:04:40 xorgcvs Exp $ */
 
-/* The Xinerama components contained the following notice */
+/* The panoramix components contained the following notice */
 /*****************************************************************
 
 Copyright (c) 1991, 1997 Digital Equipment Corporation, Maynard, Massachusetts.
@@ -100,8 +100,8 @@ Equipment Corporation.
 #include "site.h"
 #include "dixfont.h"
 #include "extnsionst.h"
-#ifdef XINERAMA
-extern Bool noPanoramiXExtension;
+#ifdef PANORAMIX
+#include "panoramiXsrv.h"
 #else
 #include "dixevents.h"		/* InitEvents() */
 #include "dispatch.h"		/* InitProcVectors() */
@@ -130,7 +130,7 @@ extern int screenPrivateCount;
 extern void InitProcVectors(void);
 extern Bool CreateGCperDepthArray(void);
 
-#ifndef XINERAMA
+#ifndef PANORAMIX
 static
 #endif
 Bool CreateConnectionBlock(void);
@@ -410,7 +410,7 @@ main(int argc, char *argv[], char *envp[])
      	    DPMSEnabled = FALSE;
 #endif
 
-#ifdef XINERAMA
+#ifdef PANORAMIX
 	/*
 	 * Consolidate window and colourmap information for each screen
 	 */
@@ -426,7 +426,7 @@ main(int argc, char *argv[], char *envp[])
 	SetDPMSTimers();
 #endif
 
-#ifdef XINERAMA
+#ifdef PANORAMIX
 	if (!noPanoramiXExtension) {
 	    if (!PanoramiXCreateConnectionBlock())
 		FatalError("could not create connection block info");
@@ -445,7 +445,7 @@ main(int argc, char *argv[], char *envp[])
 	FreeScreenSaverTimer();
 	CloseDownExtensions();
 
-#ifdef XINERAMA
+#ifdef PANORAMIX
 	{
 	    Bool remember_it = noPanoramiXExtension;
 	    noPanoramiXExtension = TRUE;
@@ -500,7 +500,7 @@ main(int argc, char *argv[], char *envp[])
 
 static int padlength[4] = {0, 3, 2, 1};
 
-#ifndef XINERAMA
+#ifndef PANORAMIX
 static
 #endif
 Bool

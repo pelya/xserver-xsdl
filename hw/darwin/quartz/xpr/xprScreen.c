@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/hw/darwin/quartz/xpr/xprScreen.c,v 1.1.4.2 2003/12/18 19:29:13 kaleb Exp $ */
+/* $XdotOrg$ */
 /*
  * Xplugin rootless implementation screen functions
  */
@@ -33,7 +33,7 @@
 #include "quartzCommon.h"
 #include "quartz.h"
 #include "xpr.h"
-#include "pseudorama.h"
+#include "pseudoramiX.h"
 #include "darwin.h"
 #include "rootless.h"
 #include "safeAlpha.h"
@@ -139,8 +139,8 @@ displayScreenBounds(CGDirectDisplayID id)
 
 
 /*
- * addPseudoramaScreens
- *  Add a physical screen with Pseudorama.
+ * addPseudoramiXScreens
+ *  Add a physical screen with PseudoramiX.
  */
 static void
 addPseudoramiXScreens(int *x, int *y, int *width, int *height)
@@ -168,21 +168,21 @@ addPseudoramiXScreens(int *x, int *y, int *width, int *height)
     *width = unionRect.size.width;
     *height = unionRect.size.height;
 
-    /* Tell Pseudorama about the real screens. */
+    /* Tell PseudoramiX about the real screens. */
     for (i = 0; i < displayCount; i++)
     {
         CGDirectDisplayID dpy = displayList[i];
 
         frame = displayScreenBounds(dpy);
 
-        ErrorF("Pseudorama screen %d added: %dx%d @ (%d,%d).\n", i,
+        ErrorF("PseudoramiX screen %d added: %dx%d @ (%d,%d).\n", i,
                (int)frame.size.width, (int)frame.size.height,
                (int)frame.origin.x, (int)frame.origin.y);
 
         frame.origin.x -= unionRect.origin.x;
         frame.origin.y -= unionRect.origin.y;
 
-        ErrorF("Pseudorama screen %d placed at X11 coordinate (%d,%d).\n",
+        ErrorF("PseudoramiX screen %d placed at X11 coordinate (%d,%d).\n",
                i, (int)frame.origin.x, (int)frame.origin.y);
 
         PseudoramiXAddScreen(frame.origin.x, frame.origin.y,
@@ -206,7 +206,7 @@ xprDisplayInit(void)
 
     CGGetActiveDisplayList(0, NULL, &displayCount);
 
-    /* With Pseudorama, the X server only sees one screen; only Pseudorama
+    /* With PseudoramiX, the X server only sees one screen; only PseudoramiX
        itself knows about all of the screens. */
 
     if (noPseudoramiXExtension)

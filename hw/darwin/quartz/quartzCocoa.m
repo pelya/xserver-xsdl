@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/hw/darwin/quartz/quartzCocoa.m,v 1.1.4.3 2004/02/25 21:46:45 kaleb Exp $ */
+/* $XdotOrg$ */
 /**************************************************************
  *
  * Quartz-specific support for the Darwin X Server
@@ -45,7 +45,7 @@
 #include <Cocoa/Cocoa.h>
 
 #import "Preferences.h"
-#include "pseudorama.h"
+#include "pseudoramiX.h"
 
 extern void FatalError(const char *, ...);
 extern char *display;
@@ -68,7 +68,7 @@ void QuartzReadPreferences(void)
 
     // quartzRootless has already been set
     if (quartzRootless) {
-        // Use Pseudorama instead of Xinerama
+        // Use PseudoramiX instead of Xinerama
         noPanoramiXExtension = TRUE;
         noPseudoramiXExtension = ![Preferences xinerama];
 
