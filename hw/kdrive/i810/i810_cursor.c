@@ -167,13 +167,19 @@ _i810SetCursorColors(ScreenPtr pScreen) { /* int bg, int fg */
     OUTREG8( PIXPIPE_CONFIG_0, tmp );
 }
 
+#define InvertBits32(v) { \
+    v = ((v & 0x55555555) << 1) | ((v >> 1) & 0x55555555); \
+    v = ((v & 0x33333333) << 2) | ((v >> 2) & 0x33333333); \
+    v = ((v & 0x0f0f0f0f) << 4) | ((v >> 4) & 0x0f0f0f0f); \
+}
+
 static void i810LoadCursor(ScreenPtr pScreen, int x, int y) {
 
     SetupCursor(pScreen);
 
     int		    w, h;
     unsigned short  r;
-    unsigned char   *msk, *mskLine, *src, *srcLine;
+    unsigned int   *msk, *mskLine, *src, *srcLine;
     
     int		    i, j;
     int		    src_stride, src_width;
@@ -181,35 +187,36 @@ static void i810LoadCursor(ScreenPtr pScreen, int x, int y) {
     CursorPtr	    pCursor = pCurPriv->pCursor;
     CursorBitsPtr   bits = pCursor->bits;
     CARD8 tmp;
-    unsigned char *ram, *ramLine;
+    unsigned int *ram, *ramLine;
 
     pCurPriv->pCursor = pCursor;
     pCurPriv->xhot = pCursor->bits->xhot;
     pCurPriv->yhot = pCursor->bits->yhot;
 
-    ramLine = (unsigned char *)(i810c->FbBase + i810c->CursorStart);
-    mskLine = (unsigned char *) bits->mask;
-    srcLine = (unsigned char *) bits->source;
+    ramLine = (unsigned int *) (i810c->FbBase + i810c->CursorStart);
+    mskLine = (unsigned int *) (bits->mask);
+    srcLine = (unsigned int *) (bits->source);
 
     h = bits->height;
     if (h > I810_CURSOR_HEIGHT)
 	h = I810_CURSOR_HEIGHT;
 
-
     src_stride = BitmapBytePad(bits->width);		/* bytes per line */
-    src_width = (bits->width + 7) >> 3;
+    src_stride = (src_stride +3) >> 2;
+    src_width = (bits->width + 31) >> 5;
 
     for (i = 0; i < I810_CURSOR_HEIGHT; i++) {
+
 	msk = mskLine;
 	src = srcLine;
         ram = ramLine;
 	mskLine += src_stride;
 	srcLine += src_stride;
-        ramLine += I810_CURSOR_WIDTH / 4;
+        ramLine += I810_CURSOR_WIDTH / 16;
 
-	for (j = 0; j < I810_CURSOR_WIDTH / 8; j++) {
+	for (j = 0; j < I810_CURSOR_WIDTH / 32; j++) {
 
-	    unsigned short  m, s, b1, b2;
+	    unsigned long  m, s, b1, b2;
 
 	    if (i < h && j < src_width) 
 	    {
@@ -217,23 +224,22 @@ static void i810LoadCursor(ScreenPtr pScreen, int x, int y) {
 		s = *src++ & m;
 		m = ~m;
 		/* mask off right side */
-		if (j == src_width - 1 && (bits->width & 7))
+		if (j == src_width - 1 && (bits->width & 31))
 		{
-		    m |= 0xff << (bits->width & 7);
+		    m |= 0xffffffff << (bits->width & 31);
 		}
 	    }
 	    else
 	    {
-		m = 0xff;
-		s = 0x00;
+		m = 0xffffffff;
+		s = 0x00000000;
 	    }
 
-            /* The i810 stores the cursor in an interleaved bitmap format,
-             in reverse byte order */
-            /* Not tested with cursors bigger than 16x16 !!! */
+            InvertBits32(s);
+            InvertBits32(m);
 
-            ram[8+(j ^ 1)] = s; /* b2 */
-            ram[0+(j ^ 1)] = m; /* b1 */
+            ram[2+j]=s;
+            ram[0+j]=m;
 	}
     }
     /* Set new color */
