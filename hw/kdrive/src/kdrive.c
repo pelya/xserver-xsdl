@@ -1,5 +1,5 @@
 /*
- * Id: kdrive.c,v 1.1 1999/11/02 03:54:46 keithp Exp $
+ * $XFree86: xc/programs/Xserver/hw/kdrive/kdrive.c,v 1.21tsi Exp $ 
  *
  * Copyright © 1999 Keith Packard
  *
@@ -21,7 +21,6 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/kdrive.c,v 1.20 2001/09/29 04:16:38 keithp Exp $ */
 
 #include "kdrive.h"
 #ifdef PSEUDO8
@@ -32,6 +31,10 @@
 
 #ifdef XV
 #include "kxv.h"
+#endif
+
+#ifdef DPMSExtension
+#include "dpmsproc.h"
 #endif
 
 CARD8	kdBpp[] = { 1, 4, 8, 16, 24, 32 };

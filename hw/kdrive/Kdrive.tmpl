@@ -1,18 +1,17 @@
-XCOMM $XFree86: xc/programs/Xserver/hw/kdrive/Kdrive.tmpl,v 1.2 2001/05/26 01:25:41 keithp Exp $
+XCOMM $XFree86: xc/programs/Xserver/hw/kdrive/Kdrive.tmpl,v 1.3tsi Exp $
 
 #include <Server.tmpl>
 
 #if BuildRender
-RENDERINCS=-I$(KDRIVE)/../../render -I$(EXTINCSRC)
+RENDERINCS=-I$(KDRIVE)/../../render
 #endif
 
 #if BuildRandR
-RANDRINCS=-I$(KDRIVE)/../../randr -I$(EXTINCSRC)
+RANDRINCS=-I$(KDRIVE)/../../randr
 #endif
 
 KDINCS = -I$(KDRIVE) -I$(XBUILDINCDIR) -I$(FONTINCSRC) \
-	 -I$(KDRIVE)/../../fb -I$(KDRIVE)/../../mi \
-	 -I$(KDRIVE)/../../miext/shadow \
-	 -I$(KDRIVE)/../../miext/layer \
+	 -I$(KDRIVE)/../../fb -I$(KDRIVE)/../../mi -I$(KDRIVE)/../../Xext \
+	 -I$(KDRIVE)/../../miext/shadow -I$(KDRIVE)/../../miext/layer \
 	 -I$(KDRIVE)/../../include -I$(KDRIVE)/../../os \
          -I$(EXTINCSRC) -I$(XINCLUDESRC) $(RENDERINCS) $(RANDRINCS)
