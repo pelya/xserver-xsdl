@@ -86,19 +86,14 @@ ATIWaitAvail(int n)
 		return;
 	}
 	if (is_radeon) {
-		fifo_size = MMIO_IN32(mmio, RADEON_REG_RBBM_STATUS) &
-		    RADEON_RBBM_FIFOCNT_MASK;
-		while (fifo_size < n) {
-			usleep(1);
+		do {
 			fifo_size = MMIO_IN32(mmio, RADEON_REG_RBBM_STATUS) &
 			    RADEON_RBBM_FIFOCNT_MASK;
-		}
+		} while (fifo_size < n);
 	} else {
-		fifo_size = MMIO_IN32(mmio, R128_REG_GUI_STAT) & 0xfff;
-		while (fifo_size < n) {
+		do {
 			fifo_size = MMIO_IN32(mmio, R128_REG_GUI_STAT) & 0xfff;
-			usleep(1);
-		}
+		} while (fifo_size < n);
 	}
 	fifo_size -= n;
 }
@@ -112,7 +107,7 @@ RadeonWaitIdle(void)
 
 	while ((MMIO_IN32(mmio, RADEON_REG_RBBM_STATUS) &
 	    RADEON_RBBM_ACTIVE) != 0)
-		usleep(1);
+		;
 
 	/* Flush pixel cache */
 	temp = MMIO_IN32(mmio, RADEON_REG_RB2D_DSTCACHE_CTLSTAT);
@@ -121,7 +116,7 @@ RadeonWaitIdle(void)
 
 	while ((MMIO_IN32(mmio, RADEON_REG_RB2D_DSTCACHE_CTLSTAT) &
 	    RADEON_RB2D_DC_BUSY) != 0)
-		usleep(1);
+		;
 }
 
 static void
@@ -159,9 +154,9 @@ ATIWaitIdle(void)
 }
 
 static Bool
-ATISetup(ScreenPtr pScreen, PixmapPtr pDst, PixmapPtr pSrc)
+ATISetup(PixmapPtr pDst, PixmapPtr pSrc)
 {
-	KdScreenPriv(pScreen);
+	KdScreenPriv(pDst->drawable.pScreen);
 	ATICardInfo(pScreenPriv);
 	int dst_offset, dst_pitch, src_offset = 0, src_pitch = 0;
 	int bpp = pScreenPriv->screen->fb[0].bitsPerPixel;
@@ -181,7 +176,7 @@ ATISetup(ScreenPtr pScreen, PixmapPtr pDst, PixmapPtr pSrc)
 		    pScreenPriv->screen->memory_base);
 	}
 
-	ATIWaitAvail(3);
+	ATIWaitAvail((pSrc != NULL) ? 3 : 2);
 	if (is_radeon) {
 		MMIO_OUT32(mmio, RADEON_REG_DST_PITCH_OFFSET,
 		    ((dst_pitch >> 6) << 22) | (dst_offset >> 10));
@@ -225,7 +220,7 @@ ATIPrepareSolid(PixmapPtr pPixmap, int alu, Pixel pm, Pixel fg)
 			return FALSE;
 	}
 
-	if (!ATISetup(pPixmap->drawable.pScreen, pPixmap, NULL))
+	if (!ATISetup(pPixmap, NULL))
 		return FALSE;
 
 	ATIWaitAvail(4);
@@ -273,7 +268,7 @@ ATIPrepareCopy(PixmapPtr pSrc, PixmapPtr pDst, int dx, int dy, int alu, Pixel pm
 	if (is_24bpp && pm != 0xffffffff)
 		return FALSE;
 
-	if (!ATISetup(pDst->drawable.pScreen, pDst, pSrc))
+	if (!ATISetup(pDst, pSrc))
 		return FALSE;
 
 	ATIWaitAvail(3);
@@ -377,10 +372,15 @@ ATIDrawInit(ScreenPtr pScreen)
 
 	if (is_radeon) {
 		ATIKaa.offscreenByteAlign = 1024;
-		ATIKaa.offscreenPitch = 64;
+		ATIKaa.offscreenPitch = 1024;
 	} else {
 		ATIKaa.offscreenByteAlign = 8;
-		ATIKaa.offscreenPitch = pScreenPriv->screen->fb[0].bitsPerPixel;
+		/* Workaround for corrupation at 8 and 24bpp. Why? */
+		if (atis->datatype == 2)
+			ATIKaa.offscreenPitch = 16;
+		else
+			ATIKaa.offscreenPitch =
+			    pScreenPriv->screen->fb[0].bitsPerPixel;
 	}
 	if (!kaaDrawInit(pScreen, &ATIKaa))
 		return FALSE;
