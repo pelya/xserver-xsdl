@@ -49,6 +49,22 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #endif
 #endif
 
+#ifdef WIN32
+/* from ddxLoad.c */
+extern const char* Win32TempDir();
+extern int Win32System(const char *cmdline);
+#undef System
+#define System Win32System
+
+#define W32_tmparg " '%s'"
+#define W32_tmpfile ,tmpname
+#define W32_tmplen strlen(tmpname)+3
+#else
+#define W32_tmparg
+#define W32_tmpfile 
+#define W32_tmplen 0
+#endif 
+
 /***====================================================================***/
 
 static char *componentDirs[_XkbListNumComponents] = {
@@ -115,14 +131,14 @@ XkbDDXListComponent(	DeviceIntPtr 		dev,
 			XkbSrvListInfoPtr	list,
 			ClientPtr		client)
 {
-char 	*file,*map,*tmp,buf[PATH_MAX];
+char 	*file,*map,*tmp,buf[PATH_MAX*4];
 FILE 	*in;
 Status	status;
 int	rval;
 Bool	haveDir;
 #ifdef WIN32
-char tmpname[32];
-#endif    
+char	tmpname[PATH_MAX];
+#endif
 
     if ((list->pattern[what]==NULL)||(list->pattern[what][0]=='\0'))
 	return Success;
@@ -141,7 +157,8 @@ char tmpname[32];
     in= NULL;
     haveDir= True;
 #ifdef WIN32
-    strcpy(tmpname, "\\temp\\xkb_XXXXXX");
+    strcpy(tmpname, Win32TempDir());
+    strcat(tmpname, "\\xkb_XXXXXX");
     (void) mktemp(tmpname);
 #endif
     if (XkbBaseDirectory!=NULL) {
@@ -154,19 +171,15 @@ char tmpname[32];
 	if (!in) {
 	    haveDir= False;
 	    if (strlen(XkbBaseDirectory)*2+strlen(componentDirs[what])
-		    +(xkbDebugFlags>9?2:1)+strlen(file)+31 > PATH_MAX)
+		    +W32_tmplen
+		    +(xkbDebugFlags>9?2:1)+strlen(file)+35 > PATH_MAX)
 		return BadImplementation;
-#ifndef WIN32
-	    sprintf(buf,"%s/xkbcomp -R%s/%s -w %ld -l -vlfhpR '%s'",
-		XkbBaseDirectory,XkbBaseDirectory,componentDirs[what],(long)
+	    sprintf(buf,
+		"'%s/xkbcomp' '-R%s/%s' -w %ld -l -vlfhpR '%s'" W32_tmparg,
+                XkbBaseDirectory,XkbBaseDirectory,componentDirs[what],(long)
 		((xkbDebugFlags<2)?1:((xkbDebugFlags>10)?10:xkbDebugFlags)),
-		file);
-#else
-	    sprintf(buf,"%s/xkbcomp -R%s/%s -w %ld -l -vlfhpR '%s' %s",
-		XkbBaseDirectory,XkbBaseDirectory,componentDirs[what],(long)
-		((xkbDebugFlags<2)?1:((xkbDebugFlags>10)?10:xkbDebugFlags)),
-		file, tmpname);
-#endif
+		file W32_tmpfile
+                );
 	}
     }
     else {
@@ -178,37 +191,32 @@ char tmpname[32];
 	}
 	if (!in) {
 	    haveDir= False;
-	    if (strlen(componentDirs[what])
+	    if (strlen(componentDirs[what]) + W32_tmplen
 		    +(xkbDebugFlags>9?2:1)+strlen(file)+29 > PATH_MAX)
 		return BadImplementation;
-#ifndef WIN32
-	    sprintf(buf,"xkbcomp -R%s -w %ld -l -vlfhpR '%s'",
-		componentDirs[what],(long)
+	    sprintf(buf,
+		"xkbcomp -R%s -w %ld -l -vlfhpR '%s'" W32_tmparg,
+                componentDirs[what],(long)
 		((xkbDebugFlags<2)?1:((xkbDebugFlags>10)?10:xkbDebugFlags)),
-		file);
-#else
-	    sprintf(buf,"xkbcomp -R%s -w %ld -l -vlfhpR '%s' %s",
-		componentDirs[what],(long)
-		((xkbDebugFlags<2)?1:((xkbDebugFlags>10)?10:xkbDebugFlags)),
-		file, tmpname);
-#endif
+		file W32_tmpfile
+                );
 	}
     }
     status= Success;
     if (!haveDir)
+    {  
 #ifndef WIN32
 	in= Popen(buf,"r");
 #else
-    {
 #ifdef DEBUG_CMD
-	ErrorF("xkb executes: %s\n",cmd);
+	ErrorF("xkb executes: %s\n",buf);
 #endif
 	if (System(buf) < 0)
 	    ErrorF("Could not invoke keymap compiler\n");
 	else
 	    in= fopen(tmpname, "r");
-    }
 #endif
+    }
     if (!in)
 	return BadImplementation;
     list->nFound[what]= 0;
@@ -262,6 +270,7 @@ char tmpname[32];
     }
 #else
     fclose(in);
+    unlink(tmpname);
 #endif
     return status;
 }

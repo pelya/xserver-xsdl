@@ -71,7 +71,7 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #define	POST_ERROR_MSG1 "\"Errors from xkbcomp are not fatal to the X server\""
 #define	POST_ERROR_MSG2 "\"End of messages from xkbcomp\""
 
-#ifdef __UNIXOS2__
+#if defined(__UNIXOS2__) || defined(WIN32)
 #define PATHSEPARATOR "\\"
 #else
 #define PATHSEPARATOR "/"
@@ -80,7 +80,7 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #ifdef WIN32
 
 #include <Xwindows.h>
-static const char* 
+const char* 
 Win32TempDir()
 {
     static char buffer[PATH_MAX];
@@ -102,7 +102,7 @@ Win32TempDir()
         return "/tmp";
 }
 
-static int 
+int 
 Win32System(const char *cmdline)
 {
     STARTUPINFO si;
