@@ -1,3 +1,4 @@
+/* $XdotOrg: window.c,v 1.4 2001/02/09 02:04:41 xorgcvs Exp $ */
 /* $Xorg: window.c,v 1.4 2001/02/09 02:04:41 xorgcvs Exp $ */
 /*
 
@@ -48,7 +49,7 @@ SOFTWARE.
 
 */
 
-/* The panoramix components contained the following notice */
+/* The Xinerama components contained the following notice */
 /****************************************************************
 *                                                               *
 *    Copyright (c) Digital Equipment Corporation, 1991, 1997    *
@@ -85,9 +86,9 @@ SOFTWARE.
 #include "dixstruct.h"
 #include "gcstruct.h"
 #include "servermd.h"
-#ifdef PANORAMIX
-#include "panoramiX.h"
-#include "panoramiXsrv.h"
+#ifdef XINERAMA
+#include "xinerama.h"
+#include "xineramaSrv.h"
 #endif
 #include "dixevents.h"
 #include "globals.h"
@@ -2320,10 +2321,10 @@ ConfigureWindow(pWin, mask, vlist, client)
 	    event.u.u.detail = Above;
 	event.u.configureRequest.x = x;
 	event.u.configureRequest.y = y;
-#ifdef PANORAMIX
-	if(!noPanoramiXExtension && (!pParent || !pParent->parent)) {
-            event.u.configureRequest.x += panoramiXdataPtr[0].x;
-            event.u.configureRequest.y += panoramiXdataPtr[0].y;
+#ifdef XINERAMA
+	if(!noXineramaExtension && (!pParent || !pParent->parent)) {
+            event.u.configureRequest.x += xineramaDataPtr[0].x;
+            event.u.configureRequest.y += xineramaDataPtr[0].y;
 	}
 #endif
 	event.u.configureRequest.width = w;
@@ -2406,10 +2407,10 @@ ActuallyDoSomething:
 	    event.u.configureNotify.aboveSibling = None;
 	event.u.configureNotify.x = x;
 	event.u.configureNotify.y = y;
-#ifdef PANORAMIX
-	if(!noPanoramiXExtension && (!pParent || !pParent->parent)) {
-	    event.u.configureNotify.x += panoramiXdataPtr[0].x;
-            event.u.configureNotify.y += panoramiXdataPtr[0].y;
+#ifdef XINERAMA
+	if(!noXineramaExtension && (!pParent || !pParent->parent)) {
+	    event.u.configureNotify.x += xineramaDataPtr[0].x;
+            event.u.configureNotify.y += xineramaDataPtr[0].y;
 	}
 #endif
 	event.u.configureNotify.width = w;
@@ -2564,10 +2565,10 @@ ReparentWindow(pWin, pParent, x, y, client)
     event.u.reparent.parent = pParent->drawable.id;
     event.u.reparent.x = x;
     event.u.reparent.y = y;
-#ifdef PANORAMIX
-    if(!noPanoramiXExtension && !pParent->parent) {
-	event.u.reparent.x += panoramiXdataPtr[0].x;
-	event.u.reparent.y += panoramiXdataPtr[0].y;
+#ifdef XINERAMA
+    if(!noXineramaExtension && !pParent->parent) {
+	event.u.reparent.x += xineramaDataPtr[0].x;
+	event.u.reparent.y += xineramaDataPtr[0].y;
     }
 #endif
     event.u.reparent.override = pWin->overrideRedirect;
@@ -2937,10 +2938,10 @@ UnrealizeTree(
 	{
 	    pChild->realized = FALSE;
 	    pChild->visibility = VisibilityNotViewable;
-#ifdef PANORAMIX
-	    if(!noPanoramiXExtension && !pChild->drawable.pScreen->myNum) {
-		PanoramiXRes *win;
-		win = (PanoramiXRes*)LookupIDByType(pChild->drawable.id,
+#ifdef XINERAMA
+	    if(!noXineramaExtension && !pChild->drawable.pScreen->myNum) {
+		XineramaRes *win;
+		win = (XineramaRes*)LookupIDByType(pChild->drawable.id,
 							XRT_WINDOW);
 		if(win)
 		   win->u.win.visibility = VisibilityNotViewable;
@@ -3219,25 +3220,26 @@ SendVisibilityNotify(pWin)
     WindowPtr pWin;
 {
     xEvent event;
+#ifndef NO_XINERAMA_PORT
     unsigned int visibility = pWin->visibility;
-
-#ifdef PANORAMIX
+#endif
+#ifdef XINERAMA
     /* This is not quite correct yet, but it's close */
-    if(!noPanoramiXExtension) {
-	PanoramiXRes *win;
+    if(!noXineramaExtension) {
+	XineramaRes *win;
 	WindowPtr pWin2;
 	int i, Scrnum;
 
 	Scrnum = pWin->drawable.pScreen->myNum;
 	
-	win = PanoramiXFindIDByScrnum(XRT_WINDOW, pWin->drawable.id, Scrnum);
+	win = XineramaFindIDByScrnum(XRT_WINDOW, pWin->drawable.id, Scrnum);
 
 	if(!win || (win->u.win.visibility == visibility))
 	    return;
 
 	switch(visibility) {
 	case VisibilityUnobscured:
-	    for(i = 0; i < PanoramiXNumScreens; i++) {
+	    for(i = 0; i < XineramaNumScreens; i++) {
 		if(i == Scrnum) continue;
 
 		pWin2 = (WindowPtr)LookupIDByType(win->info[i].id, RT_WINDOW);
@@ -3257,7 +3259,7 @@ SendVisibilityNotify(pWin)
 	    }
 	    break;
 	case VisibilityFullyObscured:
-	    for(i = 0; i < PanoramiXNumScreens; i++) {
+	    for(i = 0; i < XineramaNumScreens; i++) {
 		if(i == Scrnum) continue;
 
 		pWin2 = (WindowPtr)LookupIDByType(win->info[i].id, RT_WINDOW);
@@ -3275,7 +3277,6 @@ SendVisibilityNotify(pWin)
 	win->u.win.visibility = visibility;
     }
 #endif
-
     event.u.u.type = VisibilityNotify;
     event.u.visibility.window = pWin->drawable.id;
     event.u.visibility.state = visibility;

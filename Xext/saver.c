@@ -1,3 +1,4 @@
+/* $XdotOrg$ */
 /*
  * $XConsortium: saver.c,v 1.12 94/04/17 20:59:36 dpw Exp $
  *
@@ -46,9 +47,9 @@ in this Software without prior written authorization from the X Consortium.
 #include "gcstruct.h"
 #include "cursorstr.h"
 #include "colormapst.h"
-#ifdef PANORAMIX
-#include "panoramiX.h"
-#include "panoramiXsrv.h"
+#ifdef XINERAMA
+#include "xinerama.h"
+#include "xineramaSrv.h"
 #endif
 
 
@@ -676,8 +677,8 @@ ScreenSaverHandle (pScreen, xstate, force)
 	    ret = TRUE;
 	
     }
-#ifdef PANORAMIX
-    if(noPanoramiXExtension || !pScreen->myNum)
+#ifdef XINERAMA
+    if(noXineramaExtension || !pScreen->myNum)
 #endif
        SendScreenSaverNotify (pScreen, state, force);
     return ret;
@@ -1194,20 +1195,20 @@ ScreenSaverUnsetAttributes (ClientPtr client)
 static int
 ProcScreenSaverSetAttributes (ClientPtr client)
 {
-#ifdef PANORAMIX
-    if(!noPanoramiXExtension) {
+#ifdef XINERAMA
+    if(!noXineramaExtension) {
        REQUEST(xScreenSaverSetAttributesReq);
-       PanoramiXRes *draw;
-       PanoramiXRes *backPix = NULL;
-       PanoramiXRes *bordPix = NULL;
-       PanoramiXRes *cmap    = NULL;
+       XineramaRes *draw;
+       XineramaRes *backPix = NULL;
+       XineramaRes *bordPix = NULL;
+       XineramaRes *cmap    = NULL;
        int i, status = 0, len;
        int  pback_offset = 0, pbord_offset = 0, cmap_offset = 0;
        XID orig_visual, tmp;
 
        REQUEST_AT_LEAST_SIZE (xScreenSaverSetAttributesReq);
 
-       if(!(draw = (PanoramiXRes *)SecurityLookupIDByClass(
+       if(!(draw = (XineramaRes *)SecurityLookupIDByClass(
                    client, stuff->drawable, XRC_DRAWABLE, SecurityWriteAccess)))
            return BadDrawable;
 
@@ -1219,7 +1220,7 @@ ProcScreenSaverSetAttributes (ClientPtr client)
           pback_offset = Ones((Mask)stuff->mask & (CWBackPixmap - 1));
           tmp = *((CARD32 *) &stuff[1] + pback_offset);
           if ((tmp != None) && (tmp != ParentRelative)) {
-             if(!(backPix = (PanoramiXRes*) SecurityLookupIDByType(
+             if(!(backPix = (XineramaRes*) SecurityLookupIDByType(
                   client, tmp, XRT_PIXMAP, SecurityReadAccess)))
                 return BadPixmap;
           }
@@ -1229,7 +1230,7 @@ ProcScreenSaverSetAttributes (ClientPtr client)
           pbord_offset = Ones((Mask)stuff->mask & (CWBorderPixmap - 1));
           tmp = *((CARD32 *) &stuff[1] + pbord_offset);
           if (tmp != CopyFromParent) {
-             if(!(bordPix = (PanoramiXRes*) SecurityLookupIDByType(
+             if(!(bordPix = (XineramaRes*) SecurityLookupIDByType(
                   client, tmp, XRT_PIXMAP, SecurityReadAccess)))
                 return BadPixmap;
           }
@@ -1239,7 +1240,7 @@ ProcScreenSaverSetAttributes (ClientPtr client)
            cmap_offset = Ones((Mask)stuff->mask & (CWColormap - 1));
            tmp = *((CARD32 *) &stuff[1] + cmap_offset);
            if ((tmp != CopyFromParent) && (tmp != None)) {
-             if(!(cmap = (PanoramiXRes*) SecurityLookupIDByType(
+             if(!(cmap = (XineramaRes*) SecurityLookupIDByType(
                   client, tmp, XRT_COLORMAP, SecurityReadAccess)))
                  return BadColor;
            }
@@ -1258,7 +1259,7 @@ ProcScreenSaverSetAttributes (ClientPtr client)
 
           if (orig_visual != CopyFromParent) 
             stuff->visualID = 
-                     PanoramiXVisualTable[(orig_visual*MAXSCREENS) + i];
+                     XineramaVisualTable[(orig_visual*MAXSCREENS) + i];
 
           status = ScreenSaverSetAttributes(client);
        }
@@ -1273,17 +1274,17 @@ ProcScreenSaverSetAttributes (ClientPtr client)
 static int
 ProcScreenSaverUnsetAttributes (ClientPtr client)
 {
-#ifdef PANORAMIX
-    if(!noPanoramiXExtension) {
+#ifdef XINERAMA
+    if(!noXineramaExtension) {
        REQUEST(xScreenSaverUnsetAttributesReq);
-       PanoramiXRes *draw;
+       XineramaRes *draw;
        int i;
 
-       if(!(draw = (PanoramiXRes *)SecurityLookupIDByClass(
+       if(!(draw = (XineramaRes *)SecurityLookupIDByClass(
                    client, stuff->drawable, XRC_DRAWABLE, SecurityWriteAccess)))
            return BadDrawable;
 
-       for(i = PanoramiXNumScreens - 1; i > 0; i--) {
+       for(i = XineramaNumScreens - 1; i > 0; i--) {
             stuff->drawable = draw->info[i].id;
             ScreenSaverUnsetAttributes(client);
        }

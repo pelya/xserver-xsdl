@@ -1,3 +1,4 @@
+/* $XdotOrg$ */
 /*
  * $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86RandR.c,v 1.8 2003/11/10 16:42:13 tsi Exp $
  *
@@ -243,9 +244,9 @@ xf86RandRInit (ScreenPtr    pScreen)
     XF86RandRInfoPtr	randrp;
     ScrnInfoPtr		scrp = XF86SCRNINFO(pScreen);
     
-#ifdef PANORAMIX
+#ifdef XINERAMA
     /* XXX disable RandR when using Xinerama */
-    if (!noPanoramiXExtension)
+    if (!noXineramaExtension)
 	return TRUE;
 #endif
     if (xf86RandRGeneration != serverGeneration)

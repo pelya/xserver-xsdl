@@ -1,3 +1,4 @@
+/* $XdotOrg: xc/programs/Xserver/GL/dri/dri.c,v 1.39 2003/11/10 18:21:41 tsi Exp $ */
 /* $XFree86: xc/programs/Xserver/GL/dri/dri.c,v 1.39 2003/11/10 18:21:41 tsi Exp $ */
 /**************************************************************************
 
@@ -66,8 +67,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "mi.h"
 #include "mipointer.h"
 
-#if defined(XFree86LOADER) && !defined(PANORAMIX)
-extern Bool noPanoramiXExtension;
+#if defined(XFree86LOADER) && !defined(XINERAMA)
+extern Bool noXineramaExtension;
 #endif
 
 static int DRIScreenPrivIndex = -1;
@@ -129,16 +130,16 @@ DRIScreenInit(ScreenPtr pScreen, DRIInfoPtr pDRIInfo, int *pDRMFD)
      * If Xinerama is on, don't allow DRI to initialise.  It won't be usable
      * anyway.
      */
-#if defined(PANORAMIX) && !defined(XFree86LOADER)
+#if defined(XINERAMA) && !defined(XFree86LOADER)
     xineramaInCore = TRUE;
 #elif defined(XFree86LOADER)
-    if (xf86LoaderCheckSymbol("noPanoramiXExtension"))
+    if (xf86LoaderCheckSymbol("noXineramaExtension"))
 	xineramaInCore = TRUE;
 #endif
 
-#if defined(PANORAMIX) || defined(XFree86LOADER)
+#if defined(XINERAMA) || defined(XFree86LOADER)
     if (xineramaInCore) {
-	if (!noPanoramiXExtension) {
+	if (!noXineramaExtension) {
 	    DRIDrvMsg(pScreen->myNum, X_WARNING,
 		"Direct rendering is not supported when Xinerama is enabled\n");
 	    return FALSE;

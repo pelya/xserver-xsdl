@@ -1,3 +1,4 @@
+/* $XdotOrg$ */
 /*
  * $XFree86: xc/programs/Xserver/render/render.c,v 1.28 2003/11/03 05:12:02 tsi Exp $
  *
@@ -336,8 +337,8 @@ ProcRenderQueryPictFormats (ClientPtr client)
 
     REQUEST_SIZE_MATCH(xRenderQueryPictFormatsReq);
 
-#ifdef PANORAMIX
-    if (noPanoramiXExtension)
+#ifdef XINERAMA
+    if (noXineramaExtension)
 	numScreens = screenInfo.numScreens;
     else 
         numScreens = ((xConnSetup *)ConnectionInfo)->numRoots;
@@ -2283,9 +2284,9 @@ SProcRenderDispatch (ClientPtr client)
 	return BadRequest;
 }
 
-#ifdef PANORAMIX
-#include "panoramiX.h"
-#include "panoramiXsrv.h"
+#ifdef XINERAMA
+#include "xinerama.h"
+#include "xineramaSrv.h"
 
 #define VERIFY_XIN_PICTURE(pPicture, pid, client, mode, err) {\
     pPicture = SecurityLookupIDByType(client, pid, XRT_PICTURE, mode);\
@@ -2303,22 +2304,22 @@ SProcRenderDispatch (ClientPtr client)
     } \
 } \
 
-int	    (*PanoramiXSaveRenderVector[RenderNumberRequests])(ClientPtr);
+int	    (*XineramaSaveRenderVector[RenderNumberRequests])(ClientPtr);
 
 unsigned long	XRT_PICTURE;
 
 static int
-PanoramiXRenderCreatePicture (ClientPtr client)
+XineramaRenderCreatePicture (ClientPtr client)
 {
     REQUEST(xRenderCreatePictureReq);
-    PanoramiXRes    *refDraw, *newPict;
+    XineramaRes    *refDraw, *newPict;
     int		    result = Success, j;
 
     REQUEST_AT_LEAST_SIZE(xRenderCreatePictureReq);
-    if(!(refDraw = (PanoramiXRes *)SecurityLookupIDByClass(
+    if(!(refDraw = (XineramaRes *)SecurityLookupIDByClass(
 		client, stuff->drawable, XRC_DRAWABLE, SecurityWriteAccess)))
 	return BadDrawable;
-    if(!(newPict = (PanoramiXRes *) xalloc(sizeof(PanoramiXRes))))
+    if(!(newPict = (XineramaRes *) xalloc(sizeof(XineramaRes))))
 	return BadAlloc;
     newPict->type = XRT_PICTURE;
     newPict->info[0].id = stuff->pid;
@@ -2331,13 +2332,13 @@ PanoramiXRenderCreatePicture (ClientPtr client)
     else
 	newPict->u.pict.root = FALSE;
 
-    for(j = 1; j < PanoramiXNumScreens; j++)
+    for(j = 1; j < XineramaNumScreens; j++)
 	newPict->info[j].id = FakeClientID(client->index);
     
     FOR_NSCREENS_BACKWARD(j) {
 	stuff->pid = newPict->info[j].id;
 	stuff->drawable = refDraw->info[j].id;
-	result = (*PanoramiXSaveRenderVector[X_RenderCreatePicture]) (client);
+	result = (*XineramaSaveRenderVector[X_RenderCreatePicture]) (client);
 	if(result != Success) break;
     }
 
@@ -2350,9 +2351,9 @@ PanoramiXRenderCreatePicture (ClientPtr client)
 }
 
 static int
-PanoramiXRenderChangePicture (ClientPtr client)
+XineramaRenderChangePicture (ClientPtr client)
 {
-    PanoramiXRes    *pict;
+    XineramaRes    *pict;
     int		    result = Success, j;
     REQUEST(xRenderChangePictureReq);
 
@@ -2363,7 +2364,7 @@ PanoramiXRenderChangePicture (ClientPtr client)
     
     FOR_NSCREENS_BACKWARD(j) {
         stuff->picture = pict->info[j].id;
-        result = (*PanoramiXSaveRenderVector[X_RenderChangePicture]) (client);
+        result = (*XineramaSaveRenderVector[X_RenderChangePicture]) (client);
         if(result != Success) break;
     }
 
@@ -2371,11 +2372,11 @@ PanoramiXRenderChangePicture (ClientPtr client)
 }
 
 static int
-PanoramiXRenderSetPictureClipRectangles (ClientPtr client)
+XineramaRenderSetPictureClipRectangles (ClientPtr client)
 {
     REQUEST(xRenderSetPictureClipRectanglesReq);
     int		    result = Success, j;
-    PanoramiXRes    *pict;
+    XineramaRes    *pict;
 
     REQUEST_AT_LEAST_SIZE(xRenderSetPictureClipRectanglesReq);
     
@@ -2384,7 +2385,7 @@ PanoramiXRenderSetPictureClipRectangles (ClientPtr client)
     
     FOR_NSCREENS_BACKWARD(j) {
         stuff->picture = pict->info[j].id;
-        result = (*PanoramiXSaveRenderVector[X_RenderSetPictureClipRectangles]) (client);
+        result = (*XineramaSaveRenderVector[X_RenderSetPictureClipRectangles]) (client);
         if(result != Success) break;
     }
 
@@ -2392,11 +2393,11 @@ PanoramiXRenderSetPictureClipRectangles (ClientPtr client)
 }
 
 static int
-PanoramiXRenderSetPictureTransform (ClientPtr client)
+XineramaRenderSetPictureTransform (ClientPtr client)
 {
     REQUEST(xRenderSetPictureTransformReq);
     int		    result = Success, j;
-    PanoramiXRes    *pict;
+    XineramaRes    *pict;
 
     REQUEST_AT_LEAST_SIZE(xRenderSetPictureTransformReq);
     
@@ -2405,7 +2406,7 @@ PanoramiXRenderSetPictureTransform (ClientPtr client)
     
     FOR_NSCREENS_BACKWARD(j) {
         stuff->picture = pict->info[j].id;
-        result = (*PanoramiXSaveRenderVector[X_RenderSetPictureTransform]) (client);
+        result = (*XineramaSaveRenderVector[X_RenderSetPictureTransform]) (client);
         if(result != Success) break;
     }
 
@@ -2413,11 +2414,11 @@ PanoramiXRenderSetPictureTransform (ClientPtr client)
 }
 
 static int
-PanoramiXRenderSetPictureFilter (ClientPtr client)
+XineramaRenderSetPictureFilter (ClientPtr client)
 {
     REQUEST(xRenderSetPictureFilterReq);
     int		    result = Success, j;
-    PanoramiXRes    *pict;
+    XineramaRes    *pict;
 
     REQUEST_AT_LEAST_SIZE(xRenderSetPictureFilterReq);
     
@@ -2426,7 +2427,7 @@ PanoramiXRenderSetPictureFilter (ClientPtr client)
     
     FOR_NSCREENS_BACKWARD(j) {
         stuff->picture = pict->info[j].id;
-        result = (*PanoramiXSaveRenderVector[X_RenderSetPictureFilter]) (client);
+        result = (*XineramaSaveRenderVector[X_RenderSetPictureFilter]) (client);
         if(result != Success) break;
     }
 
@@ -2434,9 +2435,9 @@ PanoramiXRenderSetPictureFilter (ClientPtr client)
 }
 
 static int
-PanoramiXRenderFreePicture (ClientPtr client)
+XineramaRenderFreePicture (ClientPtr client)
 {
-    PanoramiXRes *pict;
+    XineramaRes *pict;
     int         result = Success, j;
     REQUEST(xRenderFreePictureReq);
 
@@ -2450,7 +2451,7 @@ PanoramiXRenderFreePicture (ClientPtr client)
 
     FOR_NSCREENS_BACKWARD(j) {
 	stuff->picture = pict->info[j].id;
-	result = (*PanoramiXSaveRenderVector[X_RenderFreePicture]) (client);
+	result = (*XineramaSaveRenderVector[X_RenderFreePicture]) (client);
 	if(result != Success) break;
     }
 
@@ -2461,9 +2462,9 @@ PanoramiXRenderFreePicture (ClientPtr client)
 }
 
 static int
-PanoramiXRenderComposite (ClientPtr client)
+XineramaRenderComposite (ClientPtr client)
 {
-    PanoramiXRes	*src, *msk, *dst;
+    XineramaRes	*src, *msk, *dst;
     int			result = Success, j;
     xRenderCompositeReq	orig;
     REQUEST(xRenderCompositeReq);
@@ -2483,25 +2484,25 @@ PanoramiXRenderComposite (ClientPtr client)
 	stuff->src = src->info[j].id;
 	if (src->u.pict.root)
 	{
-	    stuff->xSrc = orig.xSrc - panoramiXdataPtr[j].x;
-	    stuff->ySrc = orig.ySrc - panoramiXdataPtr[j].y;
+	    stuff->xSrc = orig.xSrc - xineramaDataPtr[j].x;
+	    stuff->ySrc = orig.ySrc - xineramaDataPtr[j].y;
 	}
 	stuff->dst = dst->info[j].id;
 	if (dst->u.pict.root)
 	{
-	    stuff->xDst = orig.xDst - panoramiXdataPtr[j].x;
-	    stuff->yDst = orig.yDst - panoramiXdataPtr[j].y;
+	    stuff->xDst = orig.xDst - xineramaDataPtr[j].x;
+	    stuff->yDst = orig.yDst - xineramaDataPtr[j].y;
 	}
 	if (msk)
 	{
 	    stuff->mask = msk->info[j].id;
 	    if (msk->u.pict.root)
 	    {
-		stuff->xMask = orig.xMask - panoramiXdataPtr[j].x;
-		stuff->yMask = orig.yMask - panoramiXdataPtr[j].y;
+		stuff->xMask = orig.xMask - xineramaDataPtr[j].x;
+		stuff->yMask = orig.yMask - xineramaDataPtr[j].y;
 	    }
 	}
-	result = (*PanoramiXSaveRenderVector[X_RenderComposite]) (client);
+	result = (*XineramaSaveRenderVector[X_RenderComposite]) (client);
 	if(result != Success) break;
     }
 
@@ -2509,9 +2510,9 @@ PanoramiXRenderComposite (ClientPtr client)
 }
 
 static int
-PanoramiXRenderCompositeGlyphs (ClientPtr client)
+XineramaRenderCompositeGlyphs (ClientPtr client)
 {
-    PanoramiXRes    *src, *dst;
+    XineramaRes    *src, *dst;
     int		    result = Success, j;
     REQUEST(xRenderCompositeGlyphsReq);
     xGlyphElt	    origElt, *elt;
@@ -2534,16 +2535,16 @@ PanoramiXRenderCompositeGlyphs (ClientPtr client)
 	    stuff->src = src->info[j].id;
 	    if (src->u.pict.root)
 	    {
-		stuff->xSrc = xSrc - panoramiXdataPtr[j].x;
-		stuff->ySrc = ySrc - panoramiXdataPtr[j].y;
+		stuff->xSrc = xSrc - xineramaDataPtr[j].x;
+		stuff->ySrc = ySrc - xineramaDataPtr[j].y;
 	    }
 	    stuff->dst = dst->info[j].id;
 	    if (dst->u.pict.root)
 	    {
-		elt->deltax = origElt.deltax - panoramiXdataPtr[j].x;
-		elt->deltay = origElt.deltay - panoramiXdataPtr[j].y;
+		elt->deltax = origElt.deltax - xineramaDataPtr[j].x;
+		elt->deltay = origElt.deltay - xineramaDataPtr[j].y;
 	    }
-	    result = (*PanoramiXSaveRenderVector[stuff->renderReqType]) (client);
+	    result = (*XineramaSaveRenderVector[stuff->renderReqType]) (client);
 	    if(result != Success) break;
 	}
     }
@@ -2552,9 +2553,9 @@ PanoramiXRenderCompositeGlyphs (ClientPtr client)
 }
 
 static int
-PanoramiXRenderFillRectangles (ClientPtr client)
+XineramaRenderFillRectangles (ClientPtr client)
 {
-    PanoramiXRes    *dst;
+    XineramaRes    *dst;
     int		    result = Success, j;
     REQUEST(xRenderFillRectanglesReq);
     char	    *extra;
@@ -2572,8 +2573,8 @@ PanoramiXRenderFillRectangles (ClientPtr client)
 	    if (j) memcpy (stuff + 1, extra, extra_len);
 	    if (dst->u.pict.root)
 	    {
-		int x_off = panoramiXdataPtr[j].x;
-		int y_off = panoramiXdataPtr[j].y;
+		int x_off = xineramaDataPtr[j].x;
+		int y_off = xineramaDataPtr[j].y;
 
 		if(x_off || y_off) {
 		    xRectangle	*rects = (xRectangle *) (stuff + 1);
@@ -2588,7 +2589,7 @@ PanoramiXRenderFillRectangles (ClientPtr client)
 		}
 	    }
 	    stuff->dst = dst->info[j].id;
-	    result = (*PanoramiXSaveRenderVector[X_RenderFillRectangles]) (client);
+	    result = (*XineramaSaveRenderVector[X_RenderFillRectangles]) (client);
 	    if(result != Success) break;
 	}
 	DEALLOCATE_LOCAL(extra);
@@ -2598,9 +2599,9 @@ PanoramiXRenderFillRectangles (ClientPtr client)
 }
 
 static int
-PanoramiXRenderTrapezoids(ClientPtr client)
+XineramaRenderTrapezoids(ClientPtr client)
 {
-    PanoramiXRes        *src, *dst;
+    XineramaRes        *src, *dst;
     int                 result = Success, j;
     REQUEST(xRenderTrapezoidsReq);
     char		*extra;
@@ -2622,8 +2623,8 @@ PanoramiXRenderTrapezoids(ClientPtr client)
 	FOR_NSCREENS_FORWARD(j) {
 	    if (j) memcpy (stuff + 1, extra, extra_len);
 	    if (dst->u.pict.root) {
-                int x_off = panoramiXdataPtr[j].x;
-		int y_off = panoramiXdataPtr[j].y;
+                int x_off = xineramaDataPtr[j].x;
+		int y_off = xineramaDataPtr[j].y;
 
 		if(x_off || y_off) {
                     xTrapezoid  *trap = (xTrapezoid *) (stuff + 1);
@@ -2648,7 +2649,7 @@ PanoramiXRenderTrapezoids(ClientPtr client)
             stuff->src = src->info[j].id;
             stuff->dst = dst->info[j].id;
 	    result =
-		(*PanoramiXSaveRenderVector[X_RenderTrapezoids]) (client);
+		(*XineramaSaveRenderVector[X_RenderTrapezoids]) (client);
 
 	    if(result != Success) break;
 	}
@@ -2660,9 +2661,9 @@ PanoramiXRenderTrapezoids(ClientPtr client)
 }
 
 static int
-PanoramiXRenderTriangles(ClientPtr client)
+XineramaRenderTriangles(ClientPtr client)
 {
-    PanoramiXRes        *src, *dst;
+    XineramaRes        *src, *dst;
     int                 result = Success, j;
     REQUEST(xRenderTrianglesReq);
     char		*extra;
@@ -2684,8 +2685,8 @@ PanoramiXRenderTriangles(ClientPtr client)
 	FOR_NSCREENS_FORWARD(j) {
 	    if (j) memcpy (stuff + 1, extra, extra_len);
 	    if (dst->u.pict.root) {
-                int x_off = panoramiXdataPtr[j].x;
-		int y_off = panoramiXdataPtr[j].y;
+                int x_off = xineramaDataPtr[j].x;
+		int y_off = xineramaDataPtr[j].y;
 
 		if(x_off || y_off) {
                     xTriangle  *tri = (xTriangle *) (stuff + 1);
@@ -2706,7 +2707,7 @@ PanoramiXRenderTriangles(ClientPtr client)
             stuff->src = src->info[j].id;
             stuff->dst = dst->info[j].id;
 	    result =
-		(*PanoramiXSaveRenderVector[X_RenderTriangles]) (client);
+		(*XineramaSaveRenderVector[X_RenderTriangles]) (client);
 
 	    if(result != Success) break;
 	}
@@ -2718,9 +2719,9 @@ PanoramiXRenderTriangles(ClientPtr client)
 }
 
 static int
-PanoramiXRenderTriStrip(ClientPtr client)
+XineramaRenderTriStrip(ClientPtr client)
 {
-    PanoramiXRes        *src, *dst;
+    XineramaRes        *src, *dst;
     int                 result = Success, j;
     REQUEST(xRenderTriStripReq);
     char		*extra;
@@ -2742,8 +2743,8 @@ PanoramiXRenderTriStrip(ClientPtr client)
 	FOR_NSCREENS_FORWARD(j) {
 	    if (j) memcpy (stuff + 1, extra, extra_len);
 	    if (dst->u.pict.root) {
-                int x_off = panoramiXdataPtr[j].x;
-		int y_off = panoramiXdataPtr[j].y;
+                int x_off = xineramaDataPtr[j].x;
+		int y_off = xineramaDataPtr[j].y;
 
 		if(x_off || y_off) {
                     xPointFixed  *fixed = (xPointFixed *) (stuff + 1);
@@ -2760,7 +2761,7 @@ PanoramiXRenderTriStrip(ClientPtr client)
             stuff->src = src->info[j].id;
             stuff->dst = dst->info[j].id;
 	    result =
-		(*PanoramiXSaveRenderVector[X_RenderTriStrip]) (client);
+		(*XineramaSaveRenderVector[X_RenderTriStrip]) (client);
 
 	    if(result != Success) break;
 	}
@@ -2772,9 +2773,9 @@ PanoramiXRenderTriStrip(ClientPtr client)
 }
 
 static int
-PanoramiXRenderTriFan(ClientPtr client)
+XineramaRenderTriFan(ClientPtr client)
 {
-    PanoramiXRes        *src, *dst;
+    XineramaRes        *src, *dst;
     int                 result = Success, j;
     REQUEST(xRenderTriFanReq);
     char		*extra;
@@ -2796,8 +2797,8 @@ PanoramiXRenderTriFan(ClientPtr client)
 	FOR_NSCREENS_FORWARD(j) {
 	    if (j) memcpy (stuff + 1, extra, extra_len);
 	    if (dst->u.pict.root) {
-                int x_off = panoramiXdataPtr[j].x;
-		int y_off = panoramiXdataPtr[j].y;
+                int x_off = xineramaDataPtr[j].x;
+		int y_off = xineramaDataPtr[j].y;
 
 		if(x_off || y_off) {
                     xPointFixed  *fixed = (xPointFixed *) (stuff + 1);
@@ -2814,7 +2815,7 @@ PanoramiXRenderTriFan(ClientPtr client)
             stuff->src = src->info[j].id;
             stuff->dst = dst->info[j].id;
 	    result =
-		(*PanoramiXSaveRenderVector[X_RenderTriFan]) (client);
+		(*XineramaSaveRenderVector[X_RenderTriFan]) (client);
 
 	    if(result != Success) break;
 	}
@@ -2828,9 +2829,9 @@ PanoramiXRenderTriFan(ClientPtr client)
 #if 0 /* Not implemented yet */
 
 static int
-PanoramiXRenderColorTrapezoids(ClientPtr client)
+XineramaRenderColorTrapezoids(ClientPtr client)
 {
-    PanoramiXRes        *src, *dst;
+    XineramaRes        *src, *dst;
     int                 result = Success, j;
     REQUEST(xRenderColorTrapezoidsReq);
     char		*extra;
@@ -2850,8 +2851,8 @@ PanoramiXRenderColorTrapezoids(ClientPtr client)
 	FOR_NSCREENS_FORWARD(j) {
 	    if (j) memcpy (stuff + 1, extra, extra_len);
 	    if (dst->u.pict.root) {
-                int x_off = panoramiXdataPtr[j].x;
-		int y_off = panoramiXdataPtr[j].y;
+                int x_off = xineramaDataPtr[j].x;
+		int y_off = xineramaDataPtr[j].y;
 
 		if(x_off || y_off) {
 			....; 
@@ -2860,7 +2861,7 @@ PanoramiXRenderColorTrapezoids(ClientPtr client)
 	    
             stuff->dst = dst->info[j].id;
 	    result =
-		(*PanoramiXSaveRenderVector[X_RenderColorTrapezoids]) (client);
+		(*XineramaSaveRenderVector[X_RenderColorTrapezoids]) (client);
 
 	    if(result != Success) break;
 	}
@@ -2872,9 +2873,9 @@ PanoramiXRenderColorTrapezoids(ClientPtr client)
 }
 
 static int
-PanoramiXRenderColorTriangles(ClientPtr client)
+XineramaRenderColorTriangles(ClientPtr client)
 {
-    PanoramiXRes        *src, *dst;
+    XineramaRes        *src, *dst;
     int                 result = Success, j;
     REQUEST(xRenderColorTrianglesReq);
     char		*extra;
@@ -2894,8 +2895,8 @@ PanoramiXRenderColorTriangles(ClientPtr client)
 	FOR_NSCREENS_FORWARD(j) {
 	    if (j) memcpy (stuff + 1, extra, extra_len);
 	    if (dst->u.pict.root) {
-                int x_off = panoramiXdataPtr[j].x;
-		int y_off = panoramiXdataPtr[j].y;
+                int x_off = xineramaDataPtr[j].x;
+		int y_off = xineramaDataPtr[j].y;
 
 		if(x_off || y_off) {
 			....; 
@@ -2904,7 +2905,7 @@ PanoramiXRenderColorTriangles(ClientPtr client)
 	    
             stuff->dst = dst->info[j].id;
 	    result =
-		(*PanoramiXSaveRenderVector[X_RenderColorTriangles]) (client);
+		(*XineramaSaveRenderVector[X_RenderColorTriangles]) (client);
 
 	    if(result != Success) break;
 	}
@@ -2918,40 +2919,40 @@ PanoramiXRenderColorTriangles(ClientPtr client)
 #endif
 
 void
-PanoramiXRenderInit (void)
+XineramaRenderInit (void)
 {
     int	    i;
     
     XRT_PICTURE = CreateNewResourceType (XineramaDeleteResource);
     for (i = 0; i < RenderNumberRequests; i++)
-	PanoramiXSaveRenderVector[i] = ProcRenderVector[i];
+	XineramaSaveRenderVector[i] = ProcRenderVector[i];
     /*
      * Stuff in Xinerama aware request processing hooks
      */
-    ProcRenderVector[X_RenderCreatePicture] = PanoramiXRenderCreatePicture;
-    ProcRenderVector[X_RenderChangePicture] = PanoramiXRenderChangePicture;
-    ProcRenderVector[X_RenderSetPictureTransform] = PanoramiXRenderSetPictureTransform;
-    ProcRenderVector[X_RenderSetPictureFilter] = PanoramiXRenderSetPictureFilter;
-    ProcRenderVector[X_RenderSetPictureClipRectangles] = PanoramiXRenderSetPictureClipRectangles;
-    ProcRenderVector[X_RenderFreePicture] = PanoramiXRenderFreePicture;
-    ProcRenderVector[X_RenderComposite] = PanoramiXRenderComposite;
-    ProcRenderVector[X_RenderCompositeGlyphs8] = PanoramiXRenderCompositeGlyphs;
-    ProcRenderVector[X_RenderCompositeGlyphs16] = PanoramiXRenderCompositeGlyphs;
-    ProcRenderVector[X_RenderCompositeGlyphs32] = PanoramiXRenderCompositeGlyphs;
-    ProcRenderVector[X_RenderFillRectangles] = PanoramiXRenderFillRectangles;
+    ProcRenderVector[X_RenderCreatePicture] = XineramaRenderCreatePicture;
+    ProcRenderVector[X_RenderChangePicture] = XineramaRenderChangePicture;
+    ProcRenderVector[X_RenderSetPictureTransform] = XineramaRenderSetPictureTransform;
+    ProcRenderVector[X_RenderSetPictureFilter] = XineramaRenderSetPictureFilter;
+    ProcRenderVector[X_RenderSetPictureClipRectangles] = XineramaRenderSetPictureClipRectangles;
+    ProcRenderVector[X_RenderFreePicture] = XineramaRenderFreePicture;
+    ProcRenderVector[X_RenderComposite] = XineramaRenderComposite;
+    ProcRenderVector[X_RenderCompositeGlyphs8] = XineramaRenderCompositeGlyphs;
+    ProcRenderVector[X_RenderCompositeGlyphs16] = XineramaRenderCompositeGlyphs;
+    ProcRenderVector[X_RenderCompositeGlyphs32] = XineramaRenderCompositeGlyphs;
+    ProcRenderVector[X_RenderFillRectangles] = XineramaRenderFillRectangles;
 
-    ProcRenderVector[X_RenderTrapezoids] = PanoramiXRenderTrapezoids;
-    ProcRenderVector[X_RenderTriangles] = PanoramiXRenderTriangles;
-    ProcRenderVector[X_RenderTriStrip] = PanoramiXRenderTriStrip;
-    ProcRenderVector[X_RenderTriFan] = PanoramiXRenderTriFan;
+    ProcRenderVector[X_RenderTrapezoids] = XineramaRenderTrapezoids;
+    ProcRenderVector[X_RenderTriangles] = XineramaRenderTriangles;
+    ProcRenderVector[X_RenderTriStrip] = XineramaRenderTriStrip;
+    ProcRenderVector[X_RenderTriFan] = XineramaRenderTriFan;
 }
 
 void
-PanoramiXRenderReset (void)
+XineramaRenderReset (void)
 {
     int	    i;
     for (i = 0; i < RenderNumberRequests; i++)
-	ProcRenderVector[i] = PanoramiXSaveRenderVector[i];
+	ProcRenderVector[i] = XineramaSaveRenderVector[i];
 }
 
-#endif	/* PANORAMIX */
+#endif	/* XINERAMA */

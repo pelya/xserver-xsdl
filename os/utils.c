@@ -1,3 +1,4 @@
+/* $XdotOrg: utils.c,v 1.5 2001/02/09 02:05:24 xorgcvs Exp $ */
 /* $Xorg: utils.c,v 1.5 2001/02/09 02:05:24 xorgcvs Exp $ */
 /*
 
@@ -128,12 +129,12 @@ OR PERFORMANCE OF THIS SOFTWARE.
 Bool CoreDump;
 Bool noTestExtensions;
 
-#ifdef PANORAMIX
-Bool noPanoramiXExtension = TRUE;
-Bool PanoramiXVisibilityNotifySent = FALSE;
-Bool PanoramiXMapped = FALSE;
-Bool PanoramiXWindowExposureSent = FALSE;
-Bool PanoramiXOneExposeRequest = FALSE;
+Bool noXineramaExtension = TRUE;
+#ifdef XINERAMA
+Bool XineramaVisibilityNotifySent = FALSE;
+Bool XineramaMapped = FALSE;
+Bool XineramaWindowExposureSent = FALSE;
+Bool XineramaOneExposeRequest = FALSE;
 #endif
 
 int auditTrailLevel = 1;
@@ -536,7 +537,7 @@ void UseMsg(void)
     ErrorF("-wm                    WhenMapped default backing-store\n");
     ErrorF("-x string              loads named extension at init time \n");
     ErrorF("-maxbigreqsize	   set maximal bigrequest size \n");
-#ifdef PANORAMIX
+#ifdef XINERAMA
     ErrorF("+xinerama              Enable XINERAMA extension\n");
     ErrorF("-xinerama              Disable XINERAMA extension\n");
 #endif
@@ -879,12 +880,12 @@ ProcessCommandLine(int argc, char *argv[])
                  UseMsg();
              }
          }
-#ifdef PANORAMIX
+#ifdef XINERAMA
 	else if ( strcmp( argv[i], "+xinerama") == 0){
-	    noPanoramiXExtension = FALSE;
+	    noXineramaExtension = FALSE;
 	}
 	else if ( strcmp( argv[i], "-xinerama") == 0){
-	    noPanoramiXExtension = TRUE;
+	    noXineramaExtension = TRUE;
 	}
 #endif
 	else if ( strcmp( argv[i], "-x") == 0)

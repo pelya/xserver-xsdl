@@ -1,3 +1,4 @@
+/* $XdotOrg: xtest.c,v 1.4 2001/02/09 02:04:33 xorgcvs Exp $ */
 /* $Xorg: xtest.c,v 1.4 2001/02/09 02:04:33 xorgcvs Exp $ */
 /*
 
@@ -63,9 +64,9 @@ static unsigned char XTestReqCode;
 extern int DeviceValuator;
 #endif /* XINPUT */
 
-#ifdef PANORAMIX
-#include "panoramiX.h"
-#include "panoramiXsrv.h"
+#ifdef XINERAMA
+#include "xinerama.h"
+#include "xineramaSrv.h"
 #endif
 
 static void XTestResetProc(
@@ -390,13 +391,13 @@ ProcXTestFakeInput(client)
 	    return BadValue;
 	}
 
-#ifdef PANORAMIX
-	if (!noPanoramiXExtension) {
+#ifdef XINERAMA
+	if (!noXineramaExtension) {
 	    ScreenPtr pScreen = root->drawable.pScreen;
 	    BoxRec    box;
 	    int       i;
-	    int       x = ev->u.keyButtonPointer.rootX + panoramiXdataPtr[0].x;
-	    int       y = ev->u.keyButtonPointer.rootY + panoramiXdataPtr[0].y;
+	    int       x = ev->u.keyButtonPointer.rootX + xineramaDataPtr[0].x;
+	    int       y = ev->u.keyButtonPointer.rootY + xineramaDataPtr[0].y;
 	    if (!POINT_IN_REGION(pScreen, &XineramaScreenRegions[pScreen->myNum],
 				 x, y, &box)) {
 		FOR_NSCREENS(i) {
@@ -405,8 +406,8 @@ ProcXTestFakeInput(client)
 					&XineramaScreenRegions[i],
 					x, y, &box)) {
 			root = WindowTable[i];
-			x   -= panoramiXdataPtr[i].x;
-			y   -= panoramiXdataPtr[i].y;
+			x   -= xineramaDataPtr[i].x;
+			y   -= xineramaDataPtr[i].y;
 			ev->u.keyButtonPointer.rootX = x;
 			ev->u.keyButtonPointer.rootY = y;
 			break;
@@ -425,10 +426,10 @@ ProcXTestFakeInput(client)
 	else if (ev->u.keyButtonPointer.rootY >= root->drawable.height)
 	    ev->u.keyButtonPointer.rootY = root->drawable.height - 1;
 
-#ifdef PANORAMIX
-	if ((!noPanoramiXExtension
+#ifdef XINERAMA
+	if ((!noXineramaExtension
 	     && root->drawable.pScreen->myNum != XineramaGetCursorScreen())
-	    || (noPanoramiXExtension && root != GetCurrentRootWindow()))
+	    || (noXineramaExtension && root != GetCurrentRootWindow()))
 
 #else
 	if (root != GetCurrentRootWindow())

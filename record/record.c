@@ -1,3 +1,4 @@
+/* $XdotOrg$ */
 /* $Xorg: record.c,v 1.4 2001/02/09 02:05:27 xorgcvs Exp $ */
 
 /*
@@ -26,7 +27,7 @@ not be used in advertising or otherwise to promote the sale, use or
 other dealings in this Software without prior written authorization
 from The Open Group.
 
-Author: David P. Wiggins, The Open Group
+Author: David P. Wiggins, X Consortium, Inc.
 
 This work benefited from earlier work done by Martha Zimet of NCD
 and Jim Haggerty of Metheus.
@@ -48,10 +49,10 @@ and Jim Haggerty of Metheus.
 #include "xf86_ansic.h"
 #endif
 
-#ifdef PANORAMIX
+#ifdef XINERAMA
 #include "globals.h"
-#include "panoramiX.h"
-#include "panoramiXsrv.h"
+#include "xinerama.h"
+#include "xineramaSrv.h"
 #include "cursor.h"
 #endif
 
@@ -870,10 +871,10 @@ RecordADeviceEvent(pcbl, nulldata, calldata)
 		    {
 		        xEvent swappedEvent;
 		        xEvent *pEvToRecord = pev;
-#ifdef PANORAMIX
+#ifdef XINERAMA
 		        xEvent shiftedEvent;
 
-			if (!noPanoramiXExtension &&
+			if (!noXineramaExtension &&
 			    (pev->u.u.type == MotionNotify ||
 			     pev->u.u.type == ButtonPress ||
 			     pev->u.u.type == ButtonRelease ||
@@ -882,14 +883,14 @@ RecordADeviceEvent(pcbl, nulldata, calldata)
 				int scr = XineramaGetCursorScreen();
 				memcpy(&shiftedEvent, pev, sizeof(xEvent));
 				shiftedEvent.u.keyButtonPointer.rootX +=
-				    panoramiXdataPtr[scr].x - 
-					panoramiXdataPtr[0].x;
+				    xineramaDataPtr[scr].x - 
+					xineramaDataPtr[0].x;
 				shiftedEvent.u.keyButtonPointer.rootY +=
-				    panoramiXdataPtr[scr].y -
-					panoramiXdataPtr[0].y;
+				    xineramaDataPtr[scr].y -
+					xineramaDataPtr[0].y;
 				pEvToRecord = &shiftedEvent;
 			}
-#endif /* PANORAMIX */
+#endif /* XINERAMA */
 
 			if (pContext->pRecordingClient->swapped)
 			{

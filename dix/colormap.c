@@ -1,3 +1,4 @@
+/* $XdotOrg$ */
 /* $XFree86: xc/programs/Xserver/dix/colormap.c,v 3.12 2003/11/17 22:20:33 dawes Exp $ */
 /***********************************************************
 
@@ -60,6 +61,11 @@ SOFTWARE.
 #include "windowstr.h"
 #ifdef LBX
 #include "lbxserve.h"
+#endif
+#ifdef XINERAMA
+#include "xinerama.h"
+#include "xineramaSrv.h"
+extern Bool noXineramaExtension;
 #endif
 
 extern XID clientErrorValue;
@@ -474,16 +480,23 @@ TellNoMap (pwin, pmid)
 
     if (wColormap(pwin) == *pmid)
     {
+#ifdef XINERAMA
+	/*
+	 * Only deliver event for Screen 0 when Xinerama enabled
+	 */
+        if (noXineramaExtension || 
+	    (!noXineramaExtension && !(pwin->drawable.pScreen->myNum))) {
+#endif
 	/* This should be call to DeliverEvent */
 	xE.u.u.type = ColormapNotify;
 	xE.u.colormap.window = pwin->drawable.id;
 	xE.u.colormap.colormap = None;
 	xE.u.colormap.new = TRUE;
 	xE.u.colormap.state = ColormapUninstalled;
-#ifdef PANORAMIX
-        if(noPanoramiXExtension || !pwin->drawable.pScreen->myNum)
+	DeliverEvents(pwin, &xE, 1, (WindowPtr)NULL);
+#ifdef XINERAMA
+      }
 #endif
-	   DeliverEvents(pwin, &xE, 1, (WindowPtr)NULL);
 	if (pwin->optional) {
 	    pwin->optional->colormap = None;
 	    CheckWindowOptionalNeed (pwin);
@@ -502,9 +515,12 @@ TellLostMap (pwin, value)
     Colormap 	*pmid = (Colormap *)value;
     xEvent 	xE;
 
-#ifdef PANORAMIX
-    if(!noPanoramiXExtension && pwin->drawable.pScreen->myNum)
-	return WT_STOPWALKING;
+#ifdef XINERAMA
+  /*
+   * Only deliver event for Screen 0 when Xinerama enabled
+   */
+  if (noXineramaExtension || 
+      (!noXineramaExtension && !(pwin->drawable.pScreen->myNum)))
 #endif
     if (wColormap(pwin) == *pmid)
     {
@@ -529,9 +545,12 @@ TellGainedMap (pwin, value)
     Colormap 	*pmid = (Colormap *)value;
     xEvent 	xE;
 
-#ifdef PANORAMIX
-    if(!noPanoramiXExtension && pwin->drawable.pScreen->myNum)
-	return WT_STOPWALKING;
+#ifdef XINERAMA
+  /*
+   * Only deliver event for Screen 0 when Xinerama enabled
+   */
+  if (noXineramaExtension || 
+      (!noXineramaExtension && !(pwin->drawable.pScreen->myNum)))
 #endif
     if (wColormap (pwin) == *pmid)
     {

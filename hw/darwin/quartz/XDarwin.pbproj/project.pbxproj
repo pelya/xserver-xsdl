@@ -1792,13 +1792,13 @@
 		F5269C2D01D5BC3501000001 = {
 			fileEncoding = 30;
 			isa = PBXFileReference;
-			path = pseudoramiX.c;
+			path = pseudorama.c;
 			refType = 4;
 		};
 		F5269C2E01D5BC3501000001 = {
 			fileEncoding = 30;
 			isa = PBXFileReference;
-			path = pseudoramiX.h;
+			path = pseudorama.h;
 			refType = 4;
 		};
 		F53321390193CB6A01000001 = {

@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/hw/xfree86/loader/dixsym.c,v 1.62 2003/11/25 05:26:38 dawes Exp $ */
+/* $XdotOrg: xc/programs/Xserver/hw/xfree86/loader/dixsym.c,v 1.1.4.2 2003/12/06 13:24:26 kaleb Exp $ */
 /* $XFree86: xc/programs/Xserver/hw/xfree86/loader/dixsym.c,v 1.62 2003/11/25 05:26:38 dawes Exp $ */
 
 /*
@@ -170,7 +170,7 @@ LOOKUP dixLookupTab[] = {
     SYMVAR(EventCallback)
     SYMVAR(inputInfo)
     SYMVAR(SetCriticalEvent)
-#ifdef PANORAMIX
+#ifdef XINERAMA
     SYMVAR(XineramaGetCursorScreen)
 #endif
     /* property.c */

@@ -1,3 +1,4 @@
+/* $XdotOrg$ */
 /************************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -88,9 +89,9 @@ SOFTWARE.
 #include "dixevents.h"
 #include "dixgrabs.h"
 #include "cursor.h"
-#ifdef PANORAMIX
-#include "panoramiX.h"
-#include "panoramiXsrv.h"
+#ifdef XINERAMA
+#include "xinerama.h"
+#include "xineramaSrv.h"
 #endif
 #include <assert.h>
 
@@ -672,7 +673,7 @@ FindAllClientResources(
     }
 }
 
-
+#ifndef NO_XINERAMA_PORT
 pointer
 LookupClientResourceComplex(
     ClientPtr client,
@@ -698,7 +699,7 @@ LookupClientResourceComplex(
     }
     return NULL;
 }
-
+#endif /* NO_XINERAMA_PORT */
 
 void
 FreeClientNeverRetainResources(ClientPtr client)
@@ -797,17 +798,17 @@ LegalNewID(id, client)
     register ClientPtr client;
 {
 
-#ifdef PANORAMIX
+#ifdef XINERAMA
     XID 	minid, maxid;
 
-	if (!noPanoramiXExtension) { 
+	if (!noXineramaExtension) { 
 	    minid = client->clientAsMask | (client->index ? 
 			                    SERVER_BIT : SERVER_MINID);
 	    maxid = (clientTable[client->index].fakeID | RESOURCE_ID_MASK) + 1;
             if ((id >= minid) && (id <= maxid))
 	        return TRUE;
 	}
-#endif /* PANORAMIX */
+#endif /* XINERAMA */
 	return ((client->clientAsMask == (id & ~RESOURCE_ID_MASK)) &&
 	    ((clientTable[client->index].expectID <= id) ||
 	     !LookupIDByClass(id, RC_ANY)));

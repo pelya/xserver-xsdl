@@ -1,3 +1,4 @@
+/* $XdotOrg: xc/programs/Xserver/dix/events.c,v 3.50 2003/11/17 22:20:34 dawes Exp $ */
 /* $XFree86: xc/programs/Xserver/dix/events.c,v 3.50 2003/11/17 22:20:34 dawes Exp $ */
 /************************************************************
 
@@ -46,7 +47,7 @@ SOFTWARE.
 
 ********************************************************/
 
-/* The panoramix components contained the following notice */
+/* The Xinerama components contained the following notice */
 /****************************************************************
 *                                                               *
 *    Copyright (c) Digital Equipment Corporation, 1991, 1997    *
@@ -82,9 +83,9 @@ SOFTWARE.
 #include "cursorstr.h"
 
 #include "dixstruct.h"
-#ifdef PANORAMIX
-#include "panoramiX.h"
-#include "panoramiXsrv.h"
+#ifdef XINERAMA
+#include "xinerama.h"
+#include "xineramaSrv.h"
 #endif
 #include "globals.h"
 
@@ -140,7 +141,6 @@ extern Bool XkbFilterEvents(ClientPtr, int, xEvent *);
 
 #define XE_KBPTR (xE->u.keyButtonPointer)
 
-
 #define rClient(obj) (clients[CLIENT_ID((obj)->resource)])
 
 CallbackListPtr EventCallback;
@@ -183,14 +183,14 @@ static  struct {
     CursorPtr	current;
     BoxRec	hotLimits;	/* logical constraints of hot spot */
     Bool	confined;	/* confined to screen */
-#if defined(SHAPE) || defined(PANORAMIX)
+#if defined(SHAPE) || defined(XINERAMA)
     RegionPtr	hotShape;	/* additional logical shape constraint */
 #endif
     BoxRec	physLimits;	/* physical constraints of hot spot */
     WindowPtr	win;		/* window of logical position */
     HotSpot	hot;		/* logical pointer position */
     HotSpot	hotPhys;	/* physical pointer position */
-#ifdef PANORAMIX
+#ifdef XINERAMA
     ScreenPtr	screen;		/* all others are in Screen 0 coordinates */
     RegionRec   Reg1;	        /* Region 1 for confining motion */
     RegionRec   Reg2;		/* Region 2 for confining virtual motion */
@@ -263,9 +263,8 @@ static CARD8 criticalEvents[32] =
     0x7c				/* key and button events */
 };
 
-#ifdef PANORAMIX
+#ifdef XINERAMA
 
-static void ConfineToShape(RegionPtr shape, int *px, int *py);
 static void SyntheticMotion(int x, int y);
 static void PostNewCursor(void);
 
@@ -284,8 +283,8 @@ XineramaSetCursorPosition(
        that screen are. */
 
     pScreen = sprite.screen;
-    x += panoramiXdataPtr[0].x;
-    y += panoramiXdataPtr[0].y;
+    x += xineramaDataPtr[0].x;
+    y += xineramaDataPtr[0].y;
 
     if(!POINT_IN_REGION(pScreen, &XineramaScreenRegions[pScreen->myNum],
 								x, y, &box)) 
@@ -303,10 +302,10 @@ XineramaSetCursorPosition(
     }
 
     sprite.screen = pScreen;
-    sprite.hotPhys.x = x - panoramiXdataPtr[0].x;
-    sprite.hotPhys.y = y - panoramiXdataPtr[0].y;
-    x -= panoramiXdataPtr[pScreen->myNum].x;
-    y -= panoramiXdataPtr[pScreen->myNum].y;
+    sprite.hotPhys.x = x - xineramaDataPtr[0].x;
+    sprite.hotPhys.y = y - xineramaDataPtr[0].y;
+    x -= xineramaDataPtr[pScreen->myNum].x;
+    y -= xineramaDataPtr[pScreen->myNum].y;
 
     return (*pScreen->SetCursorPosition)(pScreen, x, y, generateEvent);
 }
@@ -320,13 +319,18 @@ XineramaConstrainCursor(void)
 
     /* Translate the constraining box to the screen
        the sprite is actually on */
-    newBox.x1 += panoramiXdataPtr[0].x - panoramiXdataPtr[pScreen->myNum].x;
-    newBox.x2 += panoramiXdataPtr[0].x - panoramiXdataPtr[pScreen->myNum].x;
-    newBox.y1 += panoramiXdataPtr[0].y - panoramiXdataPtr[pScreen->myNum].y;
-    newBox.y2 += panoramiXdataPtr[0].y - panoramiXdataPtr[pScreen->myNum].y;
+    newBox.x1 += xineramaDataPtr[0].x - xineramaDataPtr[pScreen->myNum].x;
+    newBox.x2 += xineramaDataPtr[0].x - xineramaDataPtr[pScreen->myNum].x;
+    newBox.y1 += xineramaDataPtr[0].y - xineramaDataPtr[pScreen->myNum].y;
+    newBox.y2 += xineramaDataPtr[0].y - xineramaDataPtr[pScreen->myNum].y;
 
     (* pScreen->ConstrainCursor)(pScreen, &newBox);
 }
+
+#ifdef SHAPE
+static void
+ConfineToShape(RegionPtr, int *, int *);
+#endif
 
 static void
 XineramaCheckPhysLimits(
@@ -375,17 +379,17 @@ XineramaSetWindowPntrs(WindowPtr pWin)
 {
     if(pWin == WindowTable[0]) {
 	    memcpy(sprite.windows, WindowTable, 
-				PanoramiXNumScreens*sizeof(WindowPtr));
+				XineramaNumScreens*sizeof(WindowPtr));
     } else {
-	PanoramiXRes *win;
+	XineramaRes *win;
 	int i;
 
-	win = (PanoramiXRes*)LookupIDByType(pWin->drawable.id, XRT_WINDOW);
+	win = (XineramaRes*)LookupIDByType(pWin->drawable.id, XRT_WINDOW);
 
 	if(!win)
 	    return FALSE;
 
-	for(i = 0; i < PanoramiXNumScreens; i++) {
+	for(i = 0; i < XineramaNumScreens; i++) {
 	   sprite.windows[i] = LookupIDByType(win->info[i].id, RT_WINDOW);
 	   if(!sprite.windows[i])  /* window is being unmapped */
 		return FALSE;
@@ -416,16 +420,16 @@ XineramaCheckVirtualMotion(
 	if(!XineramaSetWindowPntrs(pWin))
 	    return;
 
-	i = PanoramiXNumScreens - 1;
+	i = XineramaNumScreens - 1;
 	
 	REGION_COPY(sprite.screen, &sprite.Reg2, 
 					&sprite.windows[i]->borderSize); 
-	off_x = panoramiXdataPtr[i].x;
-	off_y = panoramiXdataPtr[i].y;
+	off_x = xineramaDataPtr[i].x;
+	off_y = xineramaDataPtr[i].y;
 
 	while(i--) {
-	    x = off_x - panoramiXdataPtr[i].x;
-	    y = off_y - panoramiXdataPtr[i].y;
+	    x = off_x - xineramaDataPtr[i].x;
+	    y = off_y - xineramaDataPtr[i].y;
 
 	    if(x || y)
 		REGION_TRANSLATE(sprite.screen, &sprite.Reg2, x, y);
@@ -433,8 +437,8 @@ XineramaCheckVirtualMotion(
 	    REGION_UNION(sprite.screen, &sprite.Reg2, &sprite.Reg2, 
 					&sprite.windows[i]->borderSize);
 
-	    off_x = panoramiXdataPtr[i].x;
-	    off_y = panoramiXdataPtr[i].y;
+	    off_x = xineramaDataPtr[i].x;
+	    off_y = xineramaDataPtr[i].y;
 	}
 
 	lims = *REGION_EXTENTS(sprite.screen, &sprite.Reg2);
@@ -471,10 +475,10 @@ XineramaCheckMotion(xEvent *xE)
 	/* Motion events entering DIX get translated to Screen 0
 	   coordinates.  Replayed events have already been 
 	   translated since they've entered DIX before */
-	XE_KBPTR.rootX += panoramiXdataPtr[sprite.screen->myNum].x -
-			  panoramiXdataPtr[0].x;
-	XE_KBPTR.rootY += panoramiXdataPtr[sprite.screen->myNum].y -
-			  panoramiXdataPtr[0].y;
+	XE_KBPTR.rootX += xineramaDataPtr[sprite.screen->myNum].x -
+			  xineramaDataPtr[0].x;
+	XE_KBPTR.rootY += xineramaDataPtr[sprite.screen->myNum].y -
+			  xineramaDataPtr[0].y;
 
 	sprite.hot.x = XE_KBPTR.rootX;
 	sprite.hot.y = XE_KBPTR.rootY;
@@ -533,16 +537,16 @@ XineramaConfineCursorToWindow(WindowPtr pWin, Bool generateEvents)
 	if(!XineramaSetWindowPntrs(pWin))
 	    return;
 
-	i = PanoramiXNumScreens - 1;
+	i = XineramaNumScreens - 1;
 	
 	REGION_COPY(sprite.screen, &sprite.Reg1, 
 					&sprite.windows[i]->borderSize); 
-	off_x = panoramiXdataPtr[i].x;
-	off_y = panoramiXdataPtr[i].y;
+	off_x = xineramaDataPtr[i].x;
+	off_y = xineramaDataPtr[i].y;
 
 	while(i--) {
-	    x = off_x - panoramiXdataPtr[i].x;
-	    y = off_y - panoramiXdataPtr[i].y;
+	    x = off_x - xineramaDataPtr[i].x;
+	    y = off_y - xineramaDataPtr[i].y;
 
 	    if(x || y)
 		REGION_TRANSLATE(sprite.screen, &sprite.Reg1, x, y);
@@ -550,8 +554,8 @@ XineramaConfineCursorToWindow(WindowPtr pWin, Bool generateEvents)
 	    REGION_UNION(sprite.screen, &sprite.Reg1, &sprite.Reg1, 
 					&sprite.windows[i]->borderSize);
 
-	    off_x = panoramiXdataPtr[i].x;
-	    off_y = panoramiXdataPtr[i].y;
+	    off_x = xineramaDataPtr[i].x;
+	    off_y = xineramaDataPtr[i].y;
 	}
 
 	sprite.hotLimits = *REGION_EXTENTS(sprite.screen, &sprite.Reg1);
@@ -583,7 +587,7 @@ XineramaChangeToCursor(CursorPtr cursor)
 }
 
 
-#endif  /* PANORAMIX */
+#endif  /* XINERAMA */
 
 void
 SetMaskForEvent(mask, event)
@@ -609,13 +613,13 @@ SyntheticMotion(int x, int y)
 {
     xEvent xE;
 
-#ifdef PANORAMIX
+#ifdef XINERAMA
     /* Translate back to the sprite screen since processInputProc
        will translate from sprite screen to screen 0 upon reentry
        to the DIX layer */
-    if(!noPanoramiXExtension) {
-	x += panoramiXdataPtr[0].x - panoramiXdataPtr[sprite.screen->myNum].x;
-	y += panoramiXdataPtr[0].y - panoramiXdataPtr[sprite.screen->myNum].y;
+    if(!noXineramaExtension) {
+	x += xineramaDataPtr[0].x - xineramaDataPtr[sprite.screen->myNum].x;
+	y += xineramaDataPtr[0].y - xineramaDataPtr[sprite.screen->myNum].y;
     }
 #endif
     xE.u.keyButtonPointer.rootX = x;
@@ -716,8 +720,9 @@ CheckVirtualMotion(
     register QdEventPtr qe,
     register WindowPtr pWin)
 {
-#ifdef PANORAMIX
-    if(!noPanoramiXExtension) {
+
+#ifdef XINERAMA
+    if(!noXineramaExtension) {
 	XineramaCheckVirtualMotion(qe, pWin);
 	return;
     }
@@ -767,8 +772,8 @@ ConfineCursorToWindow(WindowPtr pWin, Bool generateEvents, Bool confineToScreen)
 {
     ScreenPtr pScreen = pWin->drawable.pScreen;
 
-#ifdef PANORAMIX
-    if(!noPanoramiXExtension) {
+#ifdef XINERAMA
+    if(!noXineramaExtension) {
 	XineramaConfineCursorToWindow(pWin, generateEvents);
 	return;
     }	
@@ -800,8 +805,8 @@ PointerConfinedToScreen()
 static void
 ChangeToCursor(CursorPtr cursor)
 {
-#ifdef PANORAMIX
-    if(!noPanoramiXExtension) {
+#ifdef XINERAMA
+    if(!noXineramaExtension) {
 	XineramaChangeToCursor(cursor);
 	return;
     }
@@ -885,17 +890,17 @@ GetSpritePosition(px, py)
     *py = sprite.hotPhys.y;
 }
 
-#ifdef PANORAMIX
+#ifdef XINERAMA
 int
 XineramaGetCursorScreen()
 {
-    if(!noPanoramiXExtension) {
+    if(!noXineramaExtension) {
 	return sprite.screen->myNum;
     } else {
 	return 0;
     }
 }
-#endif /* PANORAMIX */
+#endif /* XINERAMA */
 
 #define TIMESLOP (5 * 60 * 1000) /* 5 minutes */
 
@@ -969,12 +974,12 @@ EnqueueEvent(xE, device, count)
     }
     if (xE->u.u.type == MotionNotify)
     {
-#ifdef PANORAMIX
-	if(!noPanoramiXExtension) {
-	    XE_KBPTR.rootX += panoramiXdataPtr[sprite.screen->myNum].x -
-			      panoramiXdataPtr[0].x;
-	    XE_KBPTR.rootY += panoramiXdataPtr[sprite.screen->myNum].y -
-			      panoramiXdataPtr[0].y;
+#ifdef XINERAMA
+	if(!noXineramaExtension) {
+	    XE_KBPTR.rootX += xineramaDataPtr[sprite.screen->myNum].x -
+			      xineramaDataPtr[0].x;
+	    XE_KBPTR.rootY += xineramaDataPtr[sprite.screen->myNum].y -
+			      xineramaDataPtr[0].y;
 	}
 #endif
 	sprite.hotPhys.x = XE_KBPTR.rootX;
@@ -1025,17 +1030,17 @@ PlayReleasedEvents(void)
 		CheckVirtualMotion(qe, NullWindow);
 	    syncEvents.time.months = qe->months;
 	    syncEvents.time.milliseconds = qe->event->u.keyButtonPointer.time;
-#ifdef PANORAMIX
+#ifdef XINERAMA
 	   /* Translate back to the sprite screen since processInputProc
 	      will translate from sprite screen to screen 0 upon reentry
 	      to the DIX layer */
-	    if(!noPanoramiXExtension) {
+	    if(!noXineramaExtension) {
 		qe->event->u.keyButtonPointer.rootX += 
-			panoramiXdataPtr[0].x - 
-			panoramiXdataPtr[sprite.screen->myNum].x;
+			xineramaDataPtr[0].x - 
+			xineramaDataPtr[sprite.screen->myNum].x;
 		qe->event->u.keyButtonPointer.rootY += 
-			panoramiXdataPtr[0].y - 
-			panoramiXdataPtr[sprite.screen->myNum].y;
+			xineramaDataPtr[0].y - 
+			xineramaDataPtr[sprite.screen->myNum].y;
 	    }
 #endif
 	    (*qe->device->public.processInputProc)(qe->event, qe->device,
@@ -1664,7 +1669,7 @@ DeliverEventsToWindow(pWin, pEvents, count, filter, grab, mskidx)
    Only works for core events.
 */
 
-#ifdef PANORAMIX
+#ifdef XINERAMA
 static int 
 XineramaTryClientEventsResult(
     ClientPtr client,
@@ -1697,8 +1702,8 @@ MaybeDeliverEventsToClient(pWin, pEvents, count, filter, dontClient)
     {
         if (wClient(pWin) == dontClient)
 	    return 0;
-#ifdef PANORAMIX
-	if(!noPanoramiXExtension && pWin->drawable.pScreen->myNum) 
+#ifdef XINERAMA
+	if(!noXineramaExtension && pWin->drawable.pScreen->myNum) 
 	    return XineramaTryClientEventsResult(
 			wClient(pWin), NullGrab, pWin->eventMask, filter);
 #endif
@@ -1711,8 +1716,8 @@ MaybeDeliverEventsToClient(pWin, pEvents, count, filter, dontClient)
 	{
             if (SameClient(other, dontClient))
 		return 0;
-#ifdef PANORAMIX
-	    if(!noPanoramiXExtension && pWin->drawable.pScreen->myNum) 
+#ifdef XINERAMA
+	    if(!noXineramaExtension && pWin->drawable.pScreen->myNum) 
 	      return XineramaTryClientEventsResult(
 			rClient(other), NullGrab, other->mask, filter);
 #endif
@@ -1854,8 +1859,8 @@ DeliverEvents(pWin, xE, count, otherParent)
     Mask filter;
     int     deliveries;
 
-#ifdef PANORAMIX
-    if(!noPanoramiXExtension && pWin->drawable.pScreen->myNum)
+#ifdef XINERAMA
+    if(!noXineramaExtension && pWin->drawable.pScreen->myNum)
 	return count;
 #endif
 
@@ -1885,7 +1890,7 @@ DeliverEvents(pWin, xE, count, otherParent)
     return deliveries;
 }
 
-
+#ifndef NO_XINERAMA_PORT
 static Bool 
 PointInBorderSize(WindowPtr pWin, int x, int y)
 {
@@ -1894,15 +1899,15 @@ PointInBorderSize(WindowPtr pWin, int x, int y)
     if(POINT_IN_REGION(pWin->drawable.pScreen, &pWin->borderSize, x, y, &box))
 	return TRUE;
 
-#ifdef PANORAMIX
-    if(!noPanoramiXExtension && XineramaSetWindowPntrs(pWin)) {
+#ifdef XINERAMA
+    if(!noXineramaExtension && XineramaSetWindowPntrs(pWin)) {
 	int i;
 
-	for(i = 1; i < PanoramiXNumScreens; i++) {
+	for(i = 1; i < XineramaNumScreens; i++) {
 	   if(POINT_IN_REGION(sprite.screen, 
 			&sprite.windows[i]->borderSize, 
-			x + panoramiXdataPtr[0].x - panoramiXdataPtr[i].x, 
-			y + panoramiXdataPtr[0].y - panoramiXdataPtr[i].y, 
+			x + xineramaDataPtr[0].x - xineramaDataPtr[i].x, 
+			y + xineramaDataPtr[0].y - xineramaDataPtr[i].y, 
 			&box))
 		return TRUE;
 	}
@@ -1910,6 +1915,7 @@ PointInBorderSize(WindowPtr pWin, int x, int y)
 #endif
     return FALSE;
 }
+#endif /* NO_XINERAMA_PORT */
 
 static WindowPtr 
 XYToWindow(int x, int y)
@@ -1932,7 +1938,13 @@ XYToWindow(int x, int y)
 		 * is made to see if the point is inside
 		 * borderSize
 		 */
+#ifndef NO_XINERAMA_PORT
 		&& (!wBoundingShape(pWin) || PointInBorderSize(pWin, x, y))
+#else
+		&& (!wBoundingShape(pWin) ||
+		    POINT_IN_REGION(pWin->drawable.pScreen,
+			    &pWin->borderSize, x, y, &box))
+#endif
 #endif
 		)
 	{
@@ -1958,8 +1970,8 @@ CheckMotion(xEvent *xE)
 {
     WindowPtr prevSpriteWin = sprite.win;
 
-#ifdef PANORAMIX
-    if(!noPanoramiXExtension)
+#ifdef XINERAMA
+    if(!noXineramaExtension)
 	return XineramaCheckMotion(xE);
 #endif
 
@@ -2047,12 +2059,12 @@ DefineInitialRootWindow(win)
     (*pScreen->SetCursorPosition) (pScreen, sprite.hot.x, sprite.hot.y, FALSE);
     (*pScreen->DisplayCursor) (pScreen, sprite.current);
 
-#ifdef PANORAMIX
-    if(!noPanoramiXExtension) {
-	sprite.hotLimits.x1 = -panoramiXdataPtr[0].x;
-	sprite.hotLimits.y1 = -panoramiXdataPtr[0].y;
-	sprite.hotLimits.x2 = PanoramiXPixWidth  - panoramiXdataPtr[0].x;
-	sprite.hotLimits.y2 = PanoramiXPixHeight - panoramiXdataPtr[0].y;
+#ifdef XINERAMA
+    if(!noXineramaExtension) {
+	sprite.hotLimits.x1 = -xineramaDataPtr[0].x;
+	sprite.hotLimits.y1 = -xineramaDataPtr[0].y;
+	sprite.hotLimits.x2 = XineramaPixWidth  - xineramaDataPtr[0].x;
+	sprite.hotLimits.y2 = XineramaPixHeight - xineramaDataPtr[0].y;
 	sprite.physLimits = sprite.hotLimits;
 	sprite.confineWin = NullWindow;
 #ifdef SHAPE
@@ -2088,12 +2100,12 @@ NewCurrentScreen(newScreen, x, y)
 {
     sprite.hotPhys.x = x;
     sprite.hotPhys.y = y;
-#ifdef PANORAMIX
-    if(!noPanoramiXExtension) {
-	sprite.hotPhys.x += panoramiXdataPtr[newScreen->myNum].x - 
-			    panoramiXdataPtr[0].x;
-	sprite.hotPhys.y += panoramiXdataPtr[newScreen->myNum].y - 
-			    panoramiXdataPtr[0].y;
+#ifdef XINERAMA
+    if(!noXineramaExtension) {
+	sprite.hotPhys.x += xineramaDataPtr[newScreen->myNum].x - 
+			    xineramaDataPtr[0].x;
+	sprite.hotPhys.y += xineramaDataPtr[newScreen->myNum].y - 
+			    xineramaDataPtr[0].y;
 	if (newScreen != sprite.screen) {
 	    sprite.screen = newScreen;
 	    /* Make sure we tell the DDX to update its copy of the screen */
@@ -2105,10 +2117,10 @@ NewCurrentScreen(newScreen, x, y)
 	       told of the pointer warp so we reposition it here */
 	    if(!syncEvents.playingEvents)
 		(*sprite.screen->SetCursorPosition)(sprite.screen,
-		    sprite.hotPhys.x + panoramiXdataPtr[0].x - 
-			panoramiXdataPtr[sprite.screen->myNum].x,
-		    sprite.hotPhys.y + panoramiXdataPtr[0].y - 
-			panoramiXdataPtr[sprite.screen->myNum].y, FALSE);
+		    sprite.hotPhys.x + xineramaDataPtr[0].x - 
+			xineramaDataPtr[sprite.screen->myNum].x,
+		    sprite.hotPhys.y + xineramaDataPtr[0].y - 
+			xineramaDataPtr[sprite.screen->myNum].y, FALSE);
 	}
     } else 
 #endif
@@ -2116,7 +2128,7 @@ NewCurrentScreen(newScreen, x, y)
 	ConfineCursorToWindow(WindowTable[newScreen->myNum], TRUE, FALSE);
 }
 
-#ifdef PANORAMIX
+#ifdef XINERAMA
 
 static Bool
 XineramaPointInWindowIsVisible(
@@ -2136,14 +2148,14 @@ XineramaPointInWindowIsVisible(
     
     if(!XineramaSetWindowPntrs(pWin)) return FALSE;
 
-    xoff = x + panoramiXdataPtr[0].x;  
-    yoff = y + panoramiXdataPtr[0].y;  
+    xoff = x + xineramaDataPtr[0].x;  
+    yoff = y + xineramaDataPtr[0].y;  
 
-    for(i = 1; i < PanoramiXNumScreens; i++) {
+    for(i = 1; i < XineramaNumScreens; i++) {
 	pWin = sprite.windows[i];
 	pScreen = pWin->drawable.pScreen;
-	x = xoff - panoramiXdataPtr[i].x;
-	y = yoff - panoramiXdataPtr[i].y;
+	x = xoff - xineramaDataPtr[i].x;
+	y = yoff - xineramaDataPtr[i].y;
 
 	if(POINT_IN_REGION(pScreen, &pWin->borderClip, x, y, &box))
             return TRUE;
@@ -2183,8 +2195,8 @@ XineramaWarpPointer(ClientPtr client)
 	winX = source->drawable.x;
 	winY = source->drawable.y;
 	if(source == WindowTable[0]) {
-	    winX -= panoramiXdataPtr[0].x;
-	    winY -= panoramiXdataPtr[0].y;
+	    winX -= xineramaDataPtr[0].x;
+	    winY -= xineramaDataPtr[0].y;
 	}
 	if (x < winX + stuff->srcX ||
 	    y < winY + stuff->srcY ||
@@ -2199,8 +2211,8 @@ XineramaWarpPointer(ClientPtr client)
 	x = dest->drawable.x;
 	y = dest->drawable.y;
 	if(dest == WindowTable[0]) {
-	    x -= panoramiXdataPtr[0].x;
-	    y -= panoramiXdataPtr[0].y;
+	    x -= xineramaDataPtr[0].x;
+	    y -= xineramaDataPtr[0].y;
 	}
     } 
 
@@ -2223,7 +2235,7 @@ XineramaWarpPointer(ClientPtr client)
     return Success;
 }
 
-#endif
+#endif /* XINERAMA */
 
 
 int
@@ -2238,8 +2250,8 @@ ProcWarpPointer(client)
 
     REQUEST_SIZE_MATCH(xWarpPointerReq);
 
-#ifdef PANORAMIX
-    if(!noPanoramiXExtension)
+#ifdef XINERAMA
+    if(!noXineramaExtension)
 	return XineramaWarpPointer(client);
 #endif
 
@@ -2316,17 +2328,18 @@ ProcWarpPointer(client)
     return Success;
 }
 
+#ifndef NO_XINERAMA_PORT
 static Bool 
 BorderSizeNotEmpty(WindowPtr pWin)
 {
      if(REGION_NOTEMPTY(sprite.hotPhys.pScreen, &pWin->borderSize))
 	return TRUE;
 
-#ifdef PANORAMIX
-     if(!noPanoramiXExtension && XineramaSetWindowPntrs(pWin)) {
+#ifdef XINERAMA
+     if(!noXineramaExtension && XineramaSetWindowPntrs(pWin)) {
 	int i;
 
-	for(i = 1; i < PanoramiXNumScreens; i++) {
+	for(i = 1; i < XineramaNumScreens; i++) {
 	    if(REGION_NOTEMPTY(sprite.screen, &sprite.windows[i]->borderSize))
 		return TRUE;
 	}
@@ -2334,6 +2347,7 @@ BorderSizeNotEmpty(WindowPtr pWin)
 #endif
      return FALSE;
 }
+#endif /* NO_XINERAMA_PORT */
 
 /* "CheckPassiveGrabsOnWindow" checks to see if the event passed in causes a
 	passive grab set on the window to be activated. */
@@ -2389,7 +2403,12 @@ CheckPassiveGrabsOnWindow(
 	if (GrabMatchesSecond(&tempGrab, grab) &&
 	    (!grab->confineTo ||
 	     (grab->confineTo->realized && 
-				BorderSizeNotEmpty(grab->confineTo))))
+#ifndef NO_XINERAMA_PORT
+		BorderSizeNotEmpty(grab->confineTo))))
+#else
+		REGION_NOTEMPTY( grab->confineTo->drawable.pScreen,
+		  &grab->confineTo->borderSize)))) 
+#endif
 	{
 #ifdef XCSECURITY
 	    if (!SecurityCheckDeviceAccess(wClient(pWin), device, FALSE))
@@ -3331,8 +3350,8 @@ DoFocusEvents(dev, fromWin, toWin, mode)
 		FocusOutEvents(dev, sprite.win, ROOT, mode, NotifyPointer,
 			       TRUE);
 	    /* Notify all the roots */
-#ifdef PANORAMIX
- 	    if ( !noPanoramiXExtension )
+#ifdef XINERAMA
+ 	    if ( !noXineramaExtension )
 	        FocusEvent(dev, FocusOut, mode, out, WindowTable[0]);
 	    else 
 #endif
@@ -3350,8 +3369,8 @@ DoFocusEvents(dev, fromWin, toWin, mode)
 			   NotifyNonlinearVirtual, FALSE);
 	}
 	/* Notify all the roots */
-#ifdef PANORAMIX
-	if ( !noPanoramiXExtension )
+#ifdef XINERAMA
+	if ( !noXineramaExtension )
 	    FocusEvent(dev, FocusIn, mode, in, WindowTable[0]);
 	else 
 #endif
@@ -3368,8 +3387,8 @@ DoFocusEvents(dev, fromWin, toWin, mode)
 	    if (fromWin == PointerRootWin)
 		FocusOutEvents(dev, sprite.win, ROOT, mode, NotifyPointer,
 			       TRUE);
-#ifdef PANORAMIX
- 	    if ( !noPanoramiXExtension )
+#ifdef XINERAMA
+ 	    if ( !noXineramaExtension )
 	        FocusEvent(dev, FocusOut, mode, out, WindowTable[0]);
 	    else 
 #endif
@@ -3882,13 +3901,13 @@ ProcQueryPointer(client)
 	rep.winY = 0;
     }
 
-#ifdef PANORAMIX
-    if(!noPanoramiXExtension) {
-	rep.rootX += panoramiXdataPtr[0].x;
-	rep.rootY += panoramiXdataPtr[0].y;
+#ifdef XINERAMA
+    if(!noXineramaExtension) {
+	rep.rootX += xineramaDataPtr[0].x;
+	rep.rootY += xineramaDataPtr[0].y;
 	if(stuff->id == rep.root) {
-	    rep.winX += panoramiXdataPtr[0].x;
-	    rep.winY += panoramiXdataPtr[0].y;
+	    rep.winX += xineramaDataPtr[0].x;
+	    rep.winY += xineramaDataPtr[0].y;
 	}
     }
 #endif
@@ -4350,8 +4369,8 @@ CheckCursorConfinement(pWin)
     GrabPtr grab = inputInfo.pointer->grab;
     WindowPtr confineTo;
 
-#ifdef PANORAMIX
-    if(!noPanoramiXExtension && pWin->drawable.pScreen->myNum) return;
+#ifdef XINERAMA
+    if(!noXineramaExtension && pWin->drawable.pScreen->myNum) return;
 #endif
 
     if (grab && (confineTo = grab->confineTo))
@@ -4410,8 +4429,8 @@ ProcRecolorCursor(client)
     for (nscr = 0; nscr < screenInfo.numScreens; nscr++)
     {
 	pscr = screenInfo.screens[nscr];
-#ifdef PANORAMIX
-	if(!noPanoramiXExtension)
+#ifdef XINERAMA
+	if(!noXineramaExtension)
 	    displayed = (pscr == sprite.screen);
 	else
 #endif
@@ -4428,7 +4447,7 @@ WriteEventsToClient(pClient, count, events)
     int		count;
     xEvent	*events;
 {
-#ifdef PANORAMIX
+#ifdef XINERAMA
     xEvent    eventCopy;
 #endif
     xEvent    eventTo, *eventFrom;
@@ -4439,9 +4458,9 @@ WriteEventsToClient(pClient, count, events)
 	return;
 #endif
 
-#ifdef PANORAMIX
-    if(!noPanoramiXExtension && 
-       (panoramiXdataPtr[0].x || panoramiXdataPtr[0].y)) 
+#ifdef XINERAMA
+    if(!noXineramaExtension && 
+       (xineramaDataPtr[0].x || xineramaDataPtr[0].y)) 
     {
 	switch(events->u.u.type) {
 	case MotionNotify:
@@ -4458,13 +4477,13 @@ WriteEventsToClient(pClient, count, events)
         */
 	    count = 1;  /* should always be 1 */
 	    memcpy(&eventCopy, events, sizeof(xEvent));
-	    eventCopy.u.keyButtonPointer.rootX += panoramiXdataPtr[0].x;
-	    eventCopy.u.keyButtonPointer.rootY += panoramiXdataPtr[0].y;
+	    eventCopy.u.keyButtonPointer.rootX += xineramaDataPtr[0].x;
+	    eventCopy.u.keyButtonPointer.rootY += xineramaDataPtr[0].y;
 	    if(eventCopy.u.keyButtonPointer.event == 
 	       eventCopy.u.keyButtonPointer.root) 
 	    {
-		eventCopy.u.keyButtonPointer.eventX += panoramiXdataPtr[0].x;
-		eventCopy.u.keyButtonPointer.eventY += panoramiXdataPtr[0].y;
+		eventCopy.u.keyButtonPointer.eventX += xineramaDataPtr[0].x;
+		eventCopy.u.keyButtonPointer.eventY += xineramaDataPtr[0].y;
 	    }
 	    events = &eventCopy;
 	    break;

@@ -1,3 +1,4 @@
+/* $XdotOrg$ */
 /*
  * Specialized window functions to protect the alpha channel
  */
@@ -36,9 +37,9 @@
 #include "fb.h"
 #include "safeAlpha.h"
 
-#ifdef PANORAMIX
-#include "panoramiX.h"
-#include "panoramiXsrv.h"
+#ifdef XINERAMA
+#include "xinerama.h"
+#include "xineramaSrv.h"
 #endif
 
 /*
@@ -67,14 +68,14 @@ SafeAlphaFillRegionTiled(
     int         yRot = pDrawable->y;
     FbBits      planeMask;
 
-#ifdef PANORAMIX
-    if(!noPanoramiXExtension)
+#ifdef XINERAMA
+    if(!noXineramaExtension)
     {
         int index = pDrawable->pScreen->myNum;
         if(&WindowTable[index]->drawable == pDrawable)
         {
-            xRot -= panoramiXdataPtr[index].x;
-            yRot -= panoramiXdataPtr[index].y;
+            xRot -= xineramaDataPtr[index].x;
+            yRot -= xineramaDataPtr[index].y;
         }
     }
 #endif

@@ -1,3 +1,4 @@
+/* $XdotOrg: xc/programs/Xserver/hw/xfree86/common/xf86Config.c,v 3.277 2003/10/15 22:51:48 dawes Exp $ */
 /* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86Config.c,v 3.277 2003/10/15 22:51:48 dawes Exp $ */
 
 
@@ -1057,15 +1058,15 @@ configServerFlags(XF86ConfFlagsPtr flagsconf, XF86OptionPtr layoutopts)
 	}
 #endif
 
-#ifdef PANORAMIX
+#ifdef XINERAMA
     from = X_DEFAULT;
-    if (!noPanoramiXExtension)
+    if (!noXineramaExtension)
       from = X_CMDLINE;
     else if (xf86GetOptValBool(FlagOptions, FLAG_XINERAMA, &value)) {
-      noPanoramiXExtension = !value;
+      noXineramaExtension = !value;
       from = X_CONFIG;
     }
-    if (!noPanoramiXExtension)
+    if (!noXineramaExtension)
       xf86Msg(from, "Xinerama: enabled\n");
 #endif
 

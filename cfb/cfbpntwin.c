@@ -1,3 +1,4 @@
+/* $XdotOrg: cfbpntwin.c,v 1.4 2001/02/09 02:04:38 xorgcvs Exp $ */
 /* $Xorg: cfbpntwin.c,v 1.4 2001/02/09 02:04:38 xorgcvs Exp $ */
 /***********************************************************
 
@@ -58,9 +59,11 @@ SOFTWARE.
 #include "cfbmskbits.h"
 #include "mi.h"
 
-#ifdef PANORAMIX
-#include "panoramiX.h"
-#include "panoramiXsrv.h"
+#ifdef XINERAMA
+#include "xinerama.h"
+#include "xineramaSrv.h"
+extern Bool noXineramaExtension;
+extern WindowPtr *WindowTable;
 #endif
 
 void
@@ -97,14 +100,16 @@ cfbPaintWindow(pWin, pRegion, what)
 	    }
 	    else
 	    {
+#ifndef NO_XINERAMA_PORT
 		int xorg = pWin->drawable.x;
 		int yorg = pWin->drawable.y;
-#ifdef PANORAMIX
-		if(!noPanoramiXExtension) {
+#endif
+#ifdef XINERAMA
+		if(!noXineramaExtension) {
 		    int index = pWin->drawable.pScreen->myNum;
 		    if(WindowTable[index] == pWin) {
-			xorg -= panoramiXdataPtr[index].x;
-			yorg -= panoramiXdataPtr[index].y;
+			xorg -= xineramaDataPtr[index].x;
+			yorg -= xineramaDataPtr[index].y;
 		    }
 		}
 #endif
@@ -112,7 +117,11 @@ cfbPaintWindow(pWin, pRegion, what)
 				   (int)REGION_NUM_RECTS(pRegion),
 				   REGION_RECTS(pRegion),
 				   pWin->background.pixmap,
+#ifndef NO_XINERAMA_PORT
 				   xorg, yorg);
+#else
+				   (int)pWin->drawable.x, (int)pWin->drawable.y);
+#endif
 	    }
 	    break;
 	case BackgroundPixel:
@@ -140,21 +149,25 @@ cfbPaintWindow(pWin, pRegion, what)
 	}
 	else
 	{
+#ifndef NO_XINERAMA_PORT
 	    int xorg, yorg;
+#endif
 
 	    for (pBgWin = pWin;
 		 pBgWin->backgroundState == ParentRelative;
 		 pBgWin = pBgWin->parent);
 
+#ifndef NO_XINERAMA_PORT
 	    xorg = pBgWin->drawable.x;
 	    yorg = pBgWin->drawable.y;
+#endif
 
-#ifdef PANORAMIX
-	    if(!noPanoramiXExtension) {
+#ifdef XINERAMA
+	    if(!noXineramaExtension) {
 		int index = pWin->drawable.pScreen->myNum;
 		if(WindowTable[index] == pBgWin) {
-		    xorg -= panoramiXdataPtr[index].x;
-		    yorg -= panoramiXdataPtr[index].y;
+		    xorg -= xineramaDataPtr[index].x;
+		    yorg -= xineramaDataPtr[index].y;
 		}
 	    }
 #endif
@@ -163,7 +176,12 @@ cfbPaintWindow(pWin, pRegion, what)
 			       (int)REGION_NUM_RECTS(pRegion),
 			       REGION_RECTS(pRegion),
 			       pWin->border.pixmap,
+#ifndef NO_XINERAMA_PORT
 			       xorg, yorg);
+#else
+			       (int) pBgWin->drawable.x,
+			       (int) pBgWin->drawable.y);
+#endif
 	}
 	break;
     }

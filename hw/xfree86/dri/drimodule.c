@@ -1,3 +1,4 @@
+/* $XdotOrg$ */
 /**************************************************************************
 
 Copyright 1999 Precision Insight, Inc., Cedar Park, Texas.
@@ -109,7 +110,7 @@ driSetup(pointer module, pointer opts, int *errmaj, int *errmin)
 	}
 	else {
 	    LoaderReqSymLists(drmSymbols, NULL);
-	    LoaderRefSymbols("noPanoramiXExtension", NULL);
+	    LoaderRefSymbols("noXineramaExtension", NULL);
 	    LoadExtension(&XF86DRIExt, FALSE);
 	}
     } else {

@@ -1,3 +1,4 @@
+/* $XdotOrg$ */
 /*
  * $XFree86: xc/programs/Xserver/render/picturestr.h,v 1.22 2002/11/23 02:38:15 keithp Exp $
  *
@@ -493,9 +494,9 @@ AnimCurInit (ScreenPtr pScreen);
 int
 AnimCursorCreate (CursorPtr *cursors, CARD32 *deltas, int ncursor, CursorPtr *ppCursor);
 
-#ifdef PANORAMIX
-void PanoramiXRenderInit (void);
-void PanoramiXRenderReset (void);
+#ifdef XINERAMA
+void XineramaRenderInit (void);
+void XineramaRenderReset (void);
 #endif
 
 #endif /* _PICTURESTR_H_ */

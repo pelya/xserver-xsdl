@@ -1,3 +1,4 @@
+/* $XdotOrg$ */
 /* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86Mode.c,v 1.69 2003/10/08 14:58:28 dawes Exp $ */
 /*
  * Copyright (c) 1997-2003 by The XFree86 Project, Inc.
@@ -1681,8 +1682,8 @@ xf86ValidateModes(ScrnInfoPtr scrp, DisplayModePtr availModes,
     /* Lookup each mode */
 #ifdef RANDR
     if (!xf86Info.disableRandR	
-#ifdef PANORAMIX
-	&& noPanoramiXExtension
+#ifdef XINERAMA
+	&& noXineramaExtension
 #endif
 	)
 	validateAllDefaultModes = TRUE;

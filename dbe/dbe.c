@@ -1,3 +1,4 @@
+/* $XdotOrg: dbe.c,v 1.3 2000/08/17 19:48:16 cpqbld Exp $ */
 /* $Xorg: dbe.c,v 1.3 2000/08/17 19:48:16 cpqbld Exp $ */
 /******************************************************************************
  * 
@@ -1820,8 +1821,9 @@ DbeExtensionInit()
     int			nStubbedScreens = 0;
     Bool		ddxInitSuccess;
 
-#ifdef PANORAMIX
-    if(!noPanoramiXExtension) return;
+#ifdef XINERAMA
+    extern Bool noXineramaExtension;
+    if(!noXineramaExtension) return;
 #endif
 
     /* Allocate private pointers in windows and screens. */

@@ -1,3 +1,4 @@
+/* $XdotOrg$ */
 /* $XFree86: xc/programs/Xserver/mi/miinitext.c,v 3.68 2003/01/15 02:34:14 torrey Exp $ */
 /***********************************************************
 
@@ -61,8 +62,8 @@ SOFTWARE.
 #undef GLXEXT
 #endif
 
-#ifdef PANORAMIX
-extern Bool noPanoramiXExtension;
+#ifdef XINERAMA
+extern Bool noXineramaExtension;
 #endif
 extern Bool noTestExtensions;
 #ifdef XKB
@@ -102,8 +103,8 @@ typedef void (*InitExtension)(INITARGS);
 #define _SECURITY_SERVER
 #include "securstr.h"
 #endif
-#ifdef PANORAMIX
-#include "panoramiXproto.h"
+#ifdef XINERAMA
+#include "xineramaProto.h"
 #endif
 #ifdef XF86BIGFONT
 #include "xf86bigfstr.h"
@@ -134,8 +135,8 @@ extern void PexExtensionInit(INITARGS);
 #ifdef MULTIBUFFER
 extern void MultibufferExtensionInit(INITARGS);
 #endif
-#ifdef PANORAMIX
-extern void PanoramiXExtensionInit(INITARGS);
+#ifdef XINERAMA
+extern void XineramaExtensionInit(INITARGS);
 #endif
 #ifdef XINPUT
 extern void XInputExtensionInit(INITARGS);
@@ -246,9 +247,9 @@ InitExtensions(argc, argv)
     int		argc;
     char	*argv[];
 {
-#ifdef PANORAMIX
-# if !defined(PRINT_ONLY_SERVER) && !defined(NO_PANORAMIX)
-  if (!noPanoramiXExtension) PanoramiXExtensionInit();
+#ifdef XINERAMA
+# if !defined(PRINT_ONLY_SERVER) && !defined(NO_XINERAMA)
+  if (!noXineramaExtension) XineramaExtensionInit();
 # endif
 #endif
 #ifdef BEZIER
@@ -436,8 +437,8 @@ ExtensionModule extension[] =
     { NULL, "GLX", NULL, NULL },
     { NULL, "TOG-CUP", NULL, NULL },
     { NULL, "Extended-Visual-Information", NULL, NULL },
-#ifdef PANORAMIX
-    { NULL, "XINERAMA", &noPanoramiXExtension, NULL },
+#ifdef XINERAMA
+    { NULL, "XINERAMA", &noXineramaExtension, NULL },
 #else
     { NULL, "NOXINERAMA", NULL, NULL },
 #endif
@@ -487,8 +488,8 @@ static ExtensionModule staticExtensions[] = {
 #ifdef XPRINT
     { XpExtensionInit, XP_PRINTNAME, NULL, NULL, NULL },
 #endif
-#ifdef PANORAMIX
-    { PanoramiXExtensionInit, PANORAMIX_PROTOCOL_NAME, &noPanoramiXExtension, NULL, NULL },
+#ifdef XINERAMA
+    { XineramaExtensionInit, XINERAMA_PROTOCOL_NAME, &noXineramaExtension, NULL, NULL },
 #endif
 #ifdef XF86BIGFONT
     { XFree86BigfontExtensionInit, XF86BIGFONTNAME, NULL, NULL, NULL },
