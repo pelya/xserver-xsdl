@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/hw/darwin/quartz/cr/crScreen.m,v 1.2 2004/04/23 19:15:51 eich Exp $ */
+/* $XdotOrg: xc/programs/Xserver/hw/darwin/quartz/cr/crScreen.m,v 1.3 2004/07/30 19:12:18 torrey Exp $ */
 /*
  * Cocoa rootless implementation initialization
  */
@@ -47,6 +47,9 @@
 #include "scrnintstr.h"
 #include "picturestr.h"
 #include "globals.h"
+#ifdef DAMAGE
+# include "damage.h"
+#endif
 #undef BOOL
 
 // Name of GLX bundle using AGL framework
@@ -257,6 +260,13 @@ CRSetupScreen(int index, ScreenPtr pScreen)
         ps->Composite = SafeAlphaComposite;
     }
 #endif /* RENDER */
+
+#ifdef DAMAGE
+    // The Damage extension needs to wrap underneath the
+    // generic rootless layer, so do it now.
+    if (!DamageSetup(pScreen))
+        return FALSE;
+#endif
 
     // Initialize generic rootless code
     return CRInit(pScreen);

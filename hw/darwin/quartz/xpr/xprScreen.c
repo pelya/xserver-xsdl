@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/hw/darwin/quartz/xpr/xprScreen.c,v 1.2 2004/04/23 19:16:52 eich Exp $ */
+/* $XdotOrg: xc/programs/Xserver/hw/darwin/quartz/xpr/xprScreen.c,v 1.3 2004/07/30 19:12:18 torrey Exp $ */
 /*
  * Xplugin rootless implementation screen functions
  */
@@ -41,6 +41,10 @@
 #include "globals.h"
 #include "Xplugin.h"
 #include "applewmExt.h"
+
+#ifdef DAMAGE
+# include "damage.h"
+#endif
 
 // Name of GLX bundle for native OpenGL
 static const char *xprOpenGLBundle = "glxCGL.bundle";
@@ -320,6 +324,13 @@ xprSetupScreen(int index, ScreenPtr pScreen)
         ps->Composite = SafeAlphaComposite;
     }
 #endif /* RENDER */
+
+#ifdef DAMAGE
+    // The Damage extension needs to wrap underneath the
+    // generic rootless layer, so do it now.
+    if (!DamageSetup(pScreen))
+        return FALSE;
+#endif
 
     // Initialize generic rootless code
     if (!xprInit(pScreen))
