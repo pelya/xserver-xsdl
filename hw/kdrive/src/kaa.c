@@ -95,6 +95,18 @@ kaaPixmapSave (ScreenPtr pScreen, KdOffscreenArea *area)
     }
 }
 
+static int
+kaaLog2(int val)
+{
+    int bits;
+
+    if (!val)
+	return 0;
+    for (bits = 0; val != 0; bits++)
+	val >>= 1;
+    return bits - 1;
+}
+
 static Bool
 kaaPixmapAllocArea (PixmapPtr pPixmap)
 {
@@ -105,7 +117,12 @@ kaaPixmapAllocArea (PixmapPtr pPixmap)
     int		bpp = pPixmap->drawable.bitsPerPixel;
     CARD16	h = pPixmap->drawable.height;
     CARD16	w = pPixmap->drawable.width;
-    int		pitch = KaaPixmapPitch (w * bpp / 8);
+    int		pitch;
+
+    if (pKaaScr->info->flags & KAA_OFFSCREEN_ALIGN_POT && w != 1)
+	w = 1 << (kaaLog2(w - 1) + 1);
+    pitch = (w * bpp / 8 + pKaaScr->info->offscreenPitch - 1) &
+            ~(pKaaScr->info->offscreenPitch - 1);
     
     pKaaPixmap->devKind = pPixmap->devKind;
     pKaaPixmap->devPrivate = pPixmap->devPrivate;

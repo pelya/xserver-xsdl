@@ -33,7 +33,6 @@
 #define KaaGetPixmapPriv(p)	((KaaPixmapPrivPtr)(p)->devPrivates[kaaPixmapPrivateIndex].ptr)
 #define KaaSetPixmapPriv(p,a)	((p)->devPrivates[kaaPixmapPrivateIndex].ptr = (pointer) (a))
 #define KaaPixmapPriv(p)	KaaPixmapPrivPtr pKaaPixmap = KaaGetPixmapPriv(p)
-#define KaaPixmapPitch(pitch)	(((pitch) + (pKaaScr->info->offscreenPitch - 1)) & ~(pKaaScr->info->offscreenPitch - 1))
 
 typedef struct {
     KaaScreenInfoPtr info;

@@ -372,7 +372,8 @@ typedef struct _KaaScreenInfo {
 				   PixmapPtr		pDst);
 } KaaScreenInfoRec, *KaaScreenInfoPtr;
 
-#define KAA_OFFSCREEN_PIXMAPS (1 << 0)
+#define KAA_OFFSCREEN_PIXMAPS		(1 << 0)
+#define KAA_OFFSCREEN_ALIGN_POT		(1 << 1)
 
 /*
  * This is the only completely portable way to
