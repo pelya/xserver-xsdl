@@ -105,11 +105,11 @@ static PciBusPtr xf86PciBus = NULL;
 #define PCI_MEM32_LENGTH_MAX 0xFFFFFFFF
 
 #define B2M(tag,base) pciBusAddrToHostAddr(tag,PCI_MEM,base)
-#define B2I(tag,base) (base)
+#define B2I(tag,base) pciBusAddrToHostAddr(tag,PCI_IO,base)
 #define B2H(tag,base,type) (((type & ResPhysMask) == ResMem) ? \
 			B2M(tag, base) : B2I(tag, base))
-#define M2B(tag,base) pciHostAddrToBusAddr(tag,PCI_IO,base)
-#define I2B(tag,base) (base)
+#define M2B(tag,base) pciHostAddrToBusAddr(tag,PCI_MEM,base)
+#define I2B(tag,base) pciHostAddrToBusAddr(tag,PCI_IO,base)
 #define H2B(tag,base,type) (((type & ResPhysMask) == ResMem) ? \
 			M2B(tag, base) : I2B(tag, base))
 #define TAG(pvp) (pciTag(pvp->bus,pvp->device,pvp->func))
