@@ -163,7 +163,6 @@
 #define _VALID_TIMING(x) !(((x[0] == 0x01) && (x[1] == 0x01)) \
                         || ((x[0] == 0x00) && (x[1] == 0x00)) \
                         || ((x[0] == 0x20) && (x[1] == 0x20)) )
-
 #define VALID_TIMING _VALID_TIMING(c)
 #define _HSIZE1(x) ((x[0] + 31) * 8)
 #define HSIZE1 _HSIZE1(c)

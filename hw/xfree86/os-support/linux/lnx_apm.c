@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/linux/lnx_apm.c,v 3.13 2002/10/16 01:24:28 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/linux/lnx_apm.c,v 3.12 2001/12/24 22:54:31 dawes Exp $ */
 
 #include "X.h"
 #include "os.h"
@@ -98,6 +98,11 @@ lnxPMConfirmEventToOs(int fd, pmEvent event)
     case XF86_APM_CRITICAL_SUSPEND:
     case XF86_APM_USER_SUSPEND:
 	if (ioctl( fd, APM_IOC_SUSPEND, NULL )) {
+	    /* I believe this is wrong (EE)
+	       EBUSY is sent when a device refuses to be suspended.
+	       In this case we still need to undo everything we have
+	       done to suspend ourselves or we will stay in suspended
+	       state forever. */
 	    if (errno == EBUSY)
 		return PM_CONTINUE;
 	    else
