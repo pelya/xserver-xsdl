@@ -568,6 +568,10 @@ ATIUploadToScreen(PixmapPtr pDst, char *src, int src_pitch)
 	RING_LOCALS;
 
 	ENTER_DRAW (pDst);
+
+	LEAVE_DRAW (pDst);
+	/* XXX: Hostdata uploads aren't working yet. */
+	return FALSE;
 	
 	dst_offset = ((CARD8 *)pDst->devPrivate.ptr -
 	    pScreenPriv->screen->memory_base);
@@ -594,11 +598,6 @@ ATIUploadToScreen(PixmapPtr pDst, char *src, int src_pitch)
 	/* No PACKET3 packets when in PIO mode. */
 	if (atis->using_pio)
 		return FALSE;
-
-	LEAVE_DRAW (pDst);
-
-	/* XXX: Hostdata uploads aren't working yet. */
-	return FALSE;
 
 	dwords = (width * height * (bpp / 8) + 3) / 4;
 
