@@ -237,9 +237,6 @@ xglSyncSurface (DrawablePtr pDrawable)
 	    return FALSE;
     }
 
-    if (!pPixmapPriv->pDamage)
-	return TRUE;
-    
     pRegion = DamageRegion (pPixmapPriv->pDamage);
 
     if (REGION_NOTEMPTY (pDrawable->pScreen, pRegion))
@@ -375,14 +372,12 @@ xglAddCurrentBitDamage (DrawablePtr pDrawable)
 {
     XGL_DRAWABLE_PIXMAP_PRIV (pDrawable);
 
-    if (BOX_NOTEMPTY (&pPixmapPriv->bitBox))
+    if (pPixmapPriv->target == xglPixmapTargetIn &&
+	pPixmapPriv->damageBox.x1 < pPixmapPriv->bitBox.x2 &&
+	pPixmapPriv->damageBox.y1 < pPixmapPriv->bitBox.y2 &&
+	pPixmapPriv->damageBox.x2 > pPixmapPriv->bitBox.x1 &&
+	pPixmapPriv->damageBox.y2 > pPixmapPriv->bitBox.y1)
     {
-	if (pPixmapPriv->damageBox.x1 > pPixmapPriv->bitBox.x2 ||
-	    pPixmapPriv->damageBox.y1 > pPixmapPriv->bitBox.y2 ||
-	    pPixmapPriv->damageBox.x2 < pPixmapPriv->bitBox.x1 ||
-	    pPixmapPriv->damageBox.y2 < pPixmapPriv->bitBox.y1)
-	    return;
-	    
 	pPixmapPriv->bitBox = miEmptyBox;
 	pPixmapPriv->allBits = FALSE;
     }

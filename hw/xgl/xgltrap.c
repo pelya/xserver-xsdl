@@ -246,9 +246,8 @@ xglTrapezoids (CARD8	     op,
 	       is likely to exceed the size of the mask. */
 	    if ((SMOOTH_TRAPS_ESTIMATE_RECTS (nTrap) * 4) > (width * height))
 		accelerate = FALSE;
-
+	} else
 	    accelerate = FALSE;
-	}
 
 	pMask = xglCreateMaskPicture (pScreen, pDst, maskFormat,
 				      width, height, accelerate);

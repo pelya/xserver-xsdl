@@ -107,10 +107,10 @@ xglCopyWindow (WindowPtr   pWin,
 
     pPixmap = XGL_GET_WINDOW_PIXMAP (pWin);
 
-    box.x1 = pWin->drawable.x + pExtent->x1;
-    box.y1 = pWin->drawable.y + pExtent->y1;
-    box.x2 = pWin->drawable.x + pExtent->x2;
-    box.y2 = pWin->drawable.y + pExtent->y2;
+    box.x1 = pExtent->x1;
+    box.y1 = pExtent->y1;
+    box.x2 = pExtent->x2;
+    box.y2 = pExtent->y2;
 	
     dx = ptOldOrg.x - pWin->drawable.x;
     dy = ptOldOrg.y - pWin->drawable.y;

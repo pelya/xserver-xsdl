@@ -46,6 +46,9 @@ xglShmPutImage (DrawablePtr  pDrawable,
     ScreenPtr pScreen = pDrawable->pScreen;
     PixmapPtr pPixmapHeader = NULL;
     PixmapPtr pPixmap;
+    int	      saveTarget;
+
+    XGL_DRAWABLE_PIXMAP_PRIV (pDrawable);
 
     if ((format == ZPixmap) || (depth == 1))
     {
@@ -53,7 +56,9 @@ xglShmPutImage (DrawablePtr  pDrawable,
 	    GetScratchPixmapHeader (pScreen, w, h, depth,
 				    BitsPerPixel (depth),
 				    PixmapBytePad (w, depth),
-				    (pointer) data);
+				    (pointer) data);	
+	if (pPixmap)
+	    XGL_GET_PIXMAP_PRIV (pPixmap)->format = NULL;
     }
     else
     {
@@ -95,6 +100,10 @@ xglShmPutImage (DrawablePtr  pDrawable,
     if (!pPixmap)
 	return;
 
+    /* CopyArea should always be done in software */
+    saveTarget = pPixmapPriv->target;
+    pPixmapPriv->target = xglPixmapTargetNo;
+
     if (format == XYBitmap)
 	(*pGC->ops->CopyPlane) ((DrawablePtr) pPixmap, pDrawable, pGC,
 				sx, sy, sw, sh, dx, dy, 1L);
@@ -102,6 +111,8 @@ xglShmPutImage (DrawablePtr  pDrawable,
 	(*pGC->ops->CopyArea) ((DrawablePtr) pPixmap, pDrawable, pGC,
 			       sx, sy, sw, sh, dx, dy);
 
+    pPixmapPriv->target = saveTarget;
+	
     if (pPixmapHeader)
 	FreeScratchPixmapHeader (pPixmapHeader);
     else

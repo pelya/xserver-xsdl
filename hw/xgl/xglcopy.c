@@ -38,45 +38,25 @@ xglCopy (DrawablePtr pSrc,
     int		    srcXoff, srcYoff;
     int		    dstXoff, dstYoff;
 
+    XGL_SCREEN_PRIV (pDst->pScreen);
     XGL_DRAWABLE_PIXMAP_PRIV (pSrc);
-
+    
     if (!nBox)
 	return TRUE;
 
-    /* source is all in software and damaged, fall-back is probably more
-       efficient */
-    if (pPixmapPriv->allBits &&
-	pPixmapPriv->pDamage &&
-	REGION_NOTEMPTY (pDrawable->pScreen,
-			 DamageRegion (pPixmapPriv->pDamage)))
+    if (!xglPrepareTarget (pDst))
 	return FALSE;
 
-    if (xglPrepareTarget (pDst))
-    {
-	XGL_SCREEN_PRIV (pDst->pScreen);
-	
-	if (!xglSyncSurface (pSrc))
-	    return FALSE;
-
-	XGL_GET_DRAWABLE (pDst, dst, dstXoff, dstYoff);
-
-	/* blit to screen */
-	if (dst == pScreenPriv->surface)
-	    XGL_INCREMENT_PIXMAP_SCORE (pPixmapPriv, 5000);
-    }
-    else
-    {
-	if (!xglPrepareTarget (pSrc))
-	    return FALSE;
-	
-	if (!xglSyncSurface (pDst))
-	    return FALSE;
-	
-	XGL_GET_DRAWABLE (pDst, dst, dstXoff, dstYoff);
-    }
-
+    if (!xglSyncSurface (pSrc))
+	return FALSE;
+    
     XGL_GET_DRAWABLE (pSrc, src, srcXoff, srcYoff);
-	
+    XGL_GET_DRAWABLE (pDst, dst, dstXoff, dstYoff);
+
+    /* blit to screen */
+    if (dst == pScreenPriv->surface)
+	XGL_INCREMENT_PIXMAP_SCORE (pPixmapPriv, 5000);
+    
     glitz_surface_set_clip_region (dst,
 				   dstXoff, dstYoff,
 				   (glitz_box_t *) pBox, nBox);

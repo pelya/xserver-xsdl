@@ -188,10 +188,13 @@ xglFillRect (DrawablePtr pDrawable,
 		  pExtent->x2 - pExtent->x1, pExtent->y2 - pExtent->y1,
 		  pBox, nBox))
     {
-	RegionRec region;
-	Bool      overlap;
+	RegionRec	region;
+	RegionPtr       pDamageRegion;
+	glitz_surface_t *surface;
+	int             xOff, yOff;
 
 	XGL_DRAWABLE_PIXMAP (pDrawable);
+	XGL_PIXMAP_PRIV (pPixmap);
 
 	if (!xglMapPixmapBits (pPixmap))
 	    FatalError (XGL_SW_FAILURE_STRING);
@@ -209,21 +212,34 @@ xglFillRect (DrawablePtr pDrawable,
 		FatalError (XGL_SW_FAILURE_STRING);
 	    break;
 	}
+
+	pDamageRegion = DamageRegion (pPixmapPriv->pDamage);
 	
-	REGION_INIT (pGC->pScreen, &region, pBox, nBox);
+	XGL_GET_DRAWABLE (pDrawable, surface, xOff, yOff);
+	
+	pPixmapPriv->damageBox = miEmptyBox;
 	
 	while (nBox--)
 	{
 	    fbFill (pDrawable, pGC,
 		    pBox->x1, pBox->y1,
 		    pBox->x2 - pBox->x1, pBox->y2 - pBox->y1);
+
+	    if (pPixmapPriv->format)
+	    {
+		part.x1 = pBox->x1 + xOff;
+		part.y1 = pBox->y1 + yOff;
+		part.x2 = pBox->x2 + xOff;
+		part.y2 = pBox->y2 + yOff;
+		
+		REGION_INIT (pDrawable->pScreen, &region, &part, 1);
+		REGION_UNION (pDrawable->pScreen,
+			      pDamageRegion, pDamageRegion, &region);
+		REGION_UNINIT (pDrawable->pScreen, &region);
+	    }
+	    
 	    pBox++;
 	}
-
-	/* hmm, overlap can't be good, don't know what to do about that */
-	REGION_VALIDATE (pGC->pScreen, &region, &overlap);
-	xglAddSurfaceDamage (pDrawable, &region);
-	REGION_UNINIT (pGC->pScreen, &region);
     } else
 	xglAddCurrentBitDamage (pDrawable);
 
@@ -240,6 +256,9 @@ xglFillSpan (DrawablePtr pDrawable,
 {
     BoxPtr	   pExtent;
     xglGeometryPtr pGeometry;
+
+    if (n < 1)
+	return TRUE;
 
     pExtent = REGION_EXTENTS (pDrawable->pScreen, pGC->pCompositeClip);
 
@@ -272,6 +291,9 @@ xglFillLine (DrawablePtr pDrawable,
     xglGeometryPtr pGeometry;
     Bool	   coincident_endpoints;
 
+    if (npt < 2)
+	return TRUE;
+    
     pExtent = REGION_EXTENTS (pDrawable->pScreen, pGC->pCompositeClip);
 
     coincident_endpoints = FALSE;
@@ -342,6 +364,9 @@ xglFillSegment (DrawablePtr pDrawable,
     BoxPtr	   pExtent;
     xglGeometryPtr pGeometry;
 
+    if (nsegInit < 1)
+	return TRUE;
+
     pExtent = REGION_EXTENTS (pDrawable->pScreen, pGC->pCompositeClip);
 
     pGeometry = xglGetScratchVertexGeometry (pGC->pScreen, 2 * nsegInit);
@@ -375,6 +400,9 @@ xglFillGlyph (DrawablePtr  pDrawable,
 {
     BoxPtr	   pExtent;
     xglGeometryRec geometry;
+
+    if (nGlyph < 1)
+	return TRUE;
 
     pExtent = REGION_EXTENTS (pDrawable->pScreen, pGC->pCompositeClip);
 
