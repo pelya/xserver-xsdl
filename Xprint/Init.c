@@ -308,6 +308,13 @@ void XprintInitGlobals(void)
      * http://pdx.freedesktop.org/cgi-bin/bugzilla/show_bug.cgi?id=567 ("Xorg
      * Xprt starts to consume 100% CPU when being idle for some time")) */
     defaultScreenSaverTime = 0;
+    
+    /* Ensure that the maximum request size for the BIGREQUESTS extension
+     * is at least 8MB (see 
+     * http://xprint.freedesktop.org/cgi-bin/bugzilla/show_bug.cgi?id=622 - "RFE:
+     * Xprt's default BIGREQUESTS extension buffer size should be 8MB")
+     */
+    maxBigRequestSize = (8*1048576)-1;
 }
 
 /*
@@ -1316,6 +1323,15 @@ PrinterInitOutput(
     if( defaultScreenSaverTime != 0 )
     {
       FatalError("Internal screen saver must be OFF for printing.");
+    }
+    
+    /* Print a warnung when the maximum request size of the BIGREQUESTS
+     * extension is smaller than 8MB (see
+     * http://xprint.freedesktop.org/cgi-bin/bugzilla/show_bug.cgi?id=622)
+     */
+    if (maxBigRequestSize < (8*1048576)-1) {
+        ErrorF("Xp Extension: BIGREQUESTS max. request is currently %ld bytes "
+               ", recommemded minimum for Xprint is 8MB.\n", (long)maxBigRequestSize);
     }
 
     /* 
