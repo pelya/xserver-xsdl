@@ -749,8 +749,8 @@ configureDDCMonitorSection (int screennum)
 		ptr->mon_vrefresh[ptr->mon_n_hsync].lo =
 		    ConfiguredMonitor->det_mon[i].section.ranges.min_v;
 		ptr->mon_vrefresh[ptr->mon_n_hsync].hi =
+		    ConfiguredMonitor->det_mon[i].section.ranges.max_v;
 		ptr->mon_n_hsync++;
-		ConfiguredMonitor->det_mon[i].section.ranges.max_v;
 	    default:
 		break;
 	}

@@ -873,7 +873,6 @@ Bool
 xf86SetDefaultVisual(ScrnInfoPtr scrp, int visual)
 {
     MessageType visualFrom = X_DEFAULT;
-    Bool bad = FALSE;
 
     if (defaultColorVisualClass >= 0) {
 	scrp->defaultVisual = defaultColorVisualClass;
