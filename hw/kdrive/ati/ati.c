@@ -698,31 +698,23 @@ static Bool
 ATIIsAGP(ATICardInfo *atic)
 {
 	char *mmio = atic->reg_base;
-	CARD32 agp_command;
-	Bool is_agp = FALSE;
+	CARD32 cap_ptr, cap_id;
 
 	if (mmio == NULL)
 		return FALSE;
 
-	if (atic->is_radeon) {
-		/* XXX: Apparently this doesn't work.  Maybe it needs to be done
-		 * through the PCI config aperture then.
-		 */
-		agp_command = MMIO_IN32(mmio, RADEON_REG_AGP_COMMAND);
-		MMIO_OUT32(mmio, RADEON_REG_AGP_COMMAND, agp_command |
-		    RADEON_AGP_ENABLE);
-		if (MMIO_IN32(mmio, RADEON_REG_AGP_COMMAND) & RADEON_AGP_ENABLE)
-			is_agp = TRUE;
-		MMIO_OUT32(mmio, RADEON_REG_AGP_COMMAND, agp_command);
-	} else {
-		/* Don't know any way to detect R128 AGP automatically, so
-		 * assume AGP for all cards not marked as PCI-only by XFree86.
-		 */
-		if ((atic->pci_id->caps & CAP_FEATURESMASK) != CAP_NOAGP)
-			is_agp = TRUE;
+	if (MMIO_IN32(mmio, ATI_REG_PCI_CFG_STATUS) & ATI_CAP_LIST) {
+		cap_ptr = MMIO_IN32(mmio, ATI_REG_PCI_CFG_CAPABILITIES_PTR) &
+		    ATI_CAP_PTR_MASK;
+		while (cap_ptr != ATI_CAP_ID_NULL) {
+			cap_id = MMIO_IN32(mmio, ATI_PCI_CFG_OFFSET + cap_ptr);
+			if ((cap_id & 0xff) == ATI_CAP_ID_AGP)
+				return TRUE;
+			cap_ptr = (cap_id >> 8) & ATI_CAP_PTR_MASK;
+		}
 	}
 
-	return is_agp;
+	return FALSE;
 }
 
 /* This function is required to work around a hardware bug in some (all?)

@@ -283,6 +283,17 @@
 # define R128_BM_PM4_RD_FORCE_TO_PCI		(1 << 22)
 # define R128_BM_GLOBAL_FORCE_TO_PCI		(1 << 23)
 
+/* Offset of the PCI config space mirror */
+#define ATI_PCI_CFG_OFFSET			0x0f00
+
+#define ATI_REG_PCI_CFG_STATUS			0x0f06
+# define ATI_CAP_LIST				0x0010
+
+#define ATI_REG_PCI_CFG_CAPABILITIES_PTR	0x0f34
+# define ATI_CAP_PTR_MASK			0x00fc
+# define ATI_CAP_ID_NULL			0x0000 /* End of capability list */
+# define ATI_CAP_ID_AGP				0x0002 /* AGP capability ID */
+
 #define R128_REG_AGP_COMMAND			0x0f58
 # define R128_AGP_ENABLE			(1 << 8)
 
