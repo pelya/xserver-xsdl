@@ -38,6 +38,11 @@
 #include <signal.h>
 #include <stdio.h>
 
+#ifdef XKB
+#define XKB_IN_SERVER
+#include <X11/extensions/XKBsrv.h>
+#endif
+
 static DeviceIntPtr	pKdKeyboard, pKdPointer;
 
 static KdMouseFuncs	*kdMouseFuncs;
@@ -431,6 +436,9 @@ KdKeybdProc(DeviceIntPtr pDevice, int onoff)
 {
     Bool        ret;
     DevicePtr   pDev = (DevicePtr)pDevice;
+#ifdef XKB
+    XkbComponentNamesRec names;
+#endif
 
     if (!pDev)
 	return BadImplementation;
@@ -442,10 +450,24 @@ KdKeybdProc(DeviceIntPtr pDevice, int onoff)
 	{
 	    return !Success;
 	}
+#ifndef XKB
 	ret = InitKeyboardDeviceStruct(pDev,
 				       &kdKeySyms,
 				       kdModMap,
 				       KdBell, KdKbdCtrl);
+#else
+	memset(&names, 0, sizeof(XkbComponentNamesRec));
+
+	if (XkbInitialMap) 
+	    names.keymap = XkbInitialMap;
+
+	XkbSetRulesDflts ("base", "pc101", "us", NULL, NULL);
+	ret = XkbInitKeyboardDeviceStruct (pDev,
+					   &names,
+					   &kdKeySyms,
+					   kdModMap,
+					   KdBell, KdKbdCtrl);
+#endif
 	if (!ret)
 	    return BadImplementation;
 	break;
@@ -597,7 +619,7 @@ KdInitInput(KdMouseFuncs    *pMouseFuncs,
 	static long zero1, zero2;
 
 	//SetExtInputCheck (&zero1, &zero2);
-	ErrorF("Extended Input Devices not yet supported. Impelement it at line %d in %s",
+	ErrorF("Extended Input Devices not yet supported. Impelement it at line %d in %s\n",
 	       __LINE__, __FILE__);
     }
 #endif
