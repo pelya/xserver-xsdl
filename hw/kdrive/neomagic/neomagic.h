@@ -110,7 +110,7 @@ typedef volatile struct {
 } NeoMMIO;
 
 typedef struct _neoCardInfo {
-    BackendInfo backendCard;
+    VesaCardPrivRec backendCard;
 
     CARD32 reg_base;
     NeoMMIO *mmio;
@@ -146,7 +146,7 @@ struct NeoChipInfo {
 #define neoCardInfo(kd) NeoCardInfo *neoc = getNeoCardInfo(kd)
 
 typedef struct _neoScreenInfo {
-    BackendScreen backendScreen;
+    VesaScreenPrivRec backendScreen;
 
     CARD8 *screen;
     CARD8 *off_screen;

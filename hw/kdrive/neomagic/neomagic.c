@@ -61,7 +61,7 @@ neoCardInit(KdCardInfo *card)
         return FALSE;
     }
 
-    if(!backendInitialize(card, &neoc->backendCard)) {
+    if(!vesaInitialize(card, &neoc->backendCard)) {
         xfree(neoc);
         return FALSE;
     }
@@ -101,31 +101,16 @@ neoScreenInit(KdScreenInfo *screen)
 	memset (neos, '\0', sizeof (NeoScreenInfo));
 
 
-    if(!backendScreenInitialize(screen, &neos->backendScreen, &neoc->backendCard)) {
+    if(!vesaScreenInitialize(screen, &neos->backendScreen)) {
         xfree(neos);
         return FALSE;
     }
 
     screen->softCursor = TRUE;    // no hardware color cursor available
 
-    switch(neoc->backendCard.type) {
-#ifdef KDRIVEFBDEV
-        case FBDEV:
-            neos->screen = neoc->backendCard.priv.fbdev.fb;
-            break;
-#endif
-#ifdef KDRIVEVESA
-        case VESA:
-            neos->screen = neos->backendScreen.vesa.fb;
-            break;
-#endif
-        default:
-            ErrorF("Unhandled backend, we should never get here.\n");
-            xfree(neos);
-            return FALSE;
-    }
+	neos->screen = neos->backendScreen.fb;
 
-    memory = neoc->chip->linearSize * 1024;
+	memory = neos->backendScreen.fb_size;
     screen_size = screen->fb[0].byteStride * screen->height;
     memory -= screen_size;
 
@@ -146,37 +131,25 @@ neoScreenInit(KdScreenInfo *screen)
 static Bool
 neoInitScreen(ScreenPtr pScreen)
 {
-    ENTER();
-    KdScreenPriv(pScreen);
-    neoCardInfo(pScreenPriv);
-    
-    return neoc->backendCard.initScreen(pScreen);
-    LEAVE();
+    return vesaInitScreen(pScreen);
 }
 
 static Bool
 neoFinishInitScreen(ScreenPtr pScreen)
 {
-    KdScreenPriv(pScreen);
-    neoCardInfo(pScreenPriv);
-    
-    return neoc->backendCard.finishInitScreen(pScreen);
+    return vesaFinishInitScreen(pScreen);
 }
 
 static Bool
 neoCreateResources(ScreenPtr pScreen)
 {
-    KdScreenPriv(pScreen);
-    neoCardInfo(pScreenPriv);
-
-    return neoc->backendCard.createRes(pScreen);
+    return vesaCreateResources(pScreen);
 }
 
 void
 neoPreserve(KdCardInfo *card)
 {
-    NeoCardInfo *neoc = card->driver;
-    neoc->backendCard.preserve(card);
+	vesaPreserve(card);
 }
 
 CARD8
@@ -269,7 +242,7 @@ neoEnable(ScreenPtr pScreen)
     KdScreenPriv(pScreen);
     neoCardInfo(pScreenPriv);
 
-    if(!neoc->backendCard.enable(pScreen)) {
+    if(!vesaEnable(pScreen)) {
         return FALSE;
     }
 
@@ -286,34 +259,25 @@ neoDisable(ScreenPtr pScreen)
 
     neoResetMMIO(pScreenPriv->card, neoc);
 
-    neoc->backendCard.disable(pScreen);
+    vesaDisable(pScreen);
 }
 
 static void
 neoGetColors(ScreenPtr pScreen, int fb, int n, xColorItem *pdefs)
 {
-    KdScreenPriv(pScreen);
-    neoCardInfo(pScreenPriv);
-
-    neoc->backendCard.getColors(pScreen, fb, n, pdefs);
+    vesaGetColors(pScreen, fb, n, pdefs);
 }
 
 static void
 neoPutColors(ScreenPtr pScreen, int fb, int n, xColorItem *pdefs)
 {
-    KdScreenPriv(pScreen);
-    neoCardInfo(pScreenPriv);
-
-    neoc->backendCard.putColors(pScreen, fb, n, pdefs);
+    vesaPutColors(pScreen, fb, n, pdefs);
 }
 
 static Bool
 neoDPMS(ScreenPtr pScreen, int mode)
 {
-    KdScreenPriv(pScreen);
-    neoCardInfo(pScreenPriv);
-
-    return neoc->backendCard.dpms(pScreen, mode);
+    return vesaDPMS(pScreen, mode);
 }
 
 static void
@@ -322,16 +286,15 @@ neoRestore(KdCardInfo *card)
     NeoCardInfo *neoc = card->driver;
 
     neoResetMMIO(card, neoc);
-    neoc->backendCard.restore(card);
+    vesaRestore(card);
 }
 
 static void
 neoScreenFini(KdScreenInfo *screen)
 {
     NeoScreenInfo *neos =(NeoScreenInfo *) screen->driver;
-    NeoCardInfo *neoc = screen->card->driver;
 
-    neoc->backendCard.scrfini(screen);
+    vesaScreenFini(screen);
     xfree(neos);
     screen->driver = 0;
 }
@@ -341,8 +304,8 @@ neoCardFini(KdCardInfo *card)
 {
     NeoCardInfo *neoc = card->driver;
 
-    neoUnmapReg(card, neoc);
-    neoc->backendCard.cardfini(card);
+	neoUnmapReg(card, neoc);
+	vesaCardFini(card);
 }
 
 #define neoCursorInit 0       // initCursor
