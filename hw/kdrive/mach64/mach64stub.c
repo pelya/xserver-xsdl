@@ -35,6 +35,8 @@ InitCard (char *name)
 	KdCardInfoAdd (&mach64Funcs, &attr, 0);
     else if (LinuxFindPci (0x1002, 0x4c49, 0, &attr))
 	KdCardInfoAdd (&mach64Funcs, &attr, 0);
+    else if (LinuxFindPci (0x1002, 0x4c46, 0, &attr))
+	KdCardInfoAdd (&mach64Funcs, &attr, 0);
 }
 
 void
