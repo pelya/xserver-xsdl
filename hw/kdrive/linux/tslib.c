@@ -62,7 +62,8 @@
 static long lastx = 0, lasty = 0;
 static struct tsdev *tsDev = NULL;
 
-/* extern int TSLibWantRawData;  */
+void (*tslib_raw_event_hook)(int x, int y, int pressure, void *closure);
+void *tslib_raw_event_closure;
 
 int KdTsPhyScreen = 0;
 
@@ -75,11 +76,14 @@ TsRead (int tsPort, void *closure)
     long	    x, y;
     unsigned long   flags;
 
-    /*
-    if (TSLibWantRawData)
-      n = ts_read_raw(tsDev, &event, 1);
-    else
-    */
+    if (tslib_raw_event_hook)
+      {
+	if (ts_read_raw(tsDev, &event, 1) == 1)
+	  {
+	    tslib_raw_event_hook (event.x, event.y, event.pressure, tslib_raw_event_closure);
+	  }
+	return;
+      }
 
     n = ts_read(tsDev, &event, 1);
 
