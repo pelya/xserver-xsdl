@@ -17,10 +17,21 @@
 #include "Xvproto.h"
 #include "XvMCproto.h"
 #include "xvmcext.h"
-#include "xf86_ansic.h"
+
+#ifdef HAS_XVMCSHM
+#ifndef Lynx
+#include <sys/ipc.h>
+#include <sys/shm.h>
+#else
+#include <ipc.h>
+#include <shm.h>
+#endif /* Lynx */
+#endif /* HAS_XVMCSHM */
+   
+
 
 #define DR_CLIENT_DRIVER_NAME_SIZE 48
-#define DR_BUSID_SIZE 20
+#define DR_BUSID_SIZE 48
 
 int XvMCScreenIndex = -1;
 
@@ -558,7 +569,10 @@ ProcXvMCGetDRInfo(ClientPtr client)
     XvPortPtr pPort;
     ScreenPtr pScreen;
     XvMCScreenPtr pScreenPriv;
+
+#ifdef HAS_XVMCSHM
     volatile CARD32 *patternP;
+#endif
 
     REQUEST(xvmcGetDRInfoReq);
     REQUEST_SIZE_MATCH(xvmcGetDRInfoReq);
@@ -589,15 +603,16 @@ ProcXvMCGetDRInfo(ClientPtr client)
      * segment she prepared for us.
      */
 
-    rep.isLocal = 0;
-
-    if ( NULL != (patternP = (CARD32 *)shmat( stuff->shmKey, NULL, SHM_RDONLY ))) {
-	register volatile CARD32 *patternC = patternP;
+    rep.isLocal = 1;
+#ifdef HAS_XVMCSHM
+    patternP = (CARD32 *)shmat( stuff->shmKey, NULL, SHM_RDONLY );
+    if ( -1 != (long) patternP) {
+        register volatile CARD32 *patternC = patternP;
 	register int i;
 	CARD32 magic = stuff->magic;
 	
 	rep.isLocal = 1;
-	i = getpagesize() / sizeof(CARD32);
+	i = 1024 / sizeof(CARD32);
 	
 	while ( i-- ) {
 	    if (*patternC++ != magic) {
@@ -606,9 +621,10 @@ ProcXvMCGetDRInfo(ClientPtr client)
 	    }
 	    magic = ~magic;
 	}
-	shmdt( (char *)patternP );
+	shmdt( (char *)patternP ); 
     }
-
+#endif /* HAS_XVMCSHM */
+    
     WriteToClient(client, sizeof(xvmcGetDRInfoReply), 
 		  (char*)&rep);
     if (rep.length) {      
