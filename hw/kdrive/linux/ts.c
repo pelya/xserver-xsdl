@@ -132,6 +132,20 @@ char	*TsNames[] = {
 int TsInputType;
 
 static int
+TsEnable (int fd, void *closure)
+{
+    KdMouseInfo *mi = (KdMouseInfo *)closure;
+
+    return open (mi->name, 0);
+}
+
+static void
+TsDisable (int fd, void *closure)
+{
+    close (fd);
+}
+
+static int
 TsInit (void)
 {
     int		i;
@@ -172,7 +186,12 @@ TsInit (void)
 		mi->driver = (void *) fd;
 		mi->inputType = TsInputType;
 		if (KdRegisterFd (TsInputType, fd, TsRead, (void *) mi))
+		{
+		    /* Set callbacks for vt switches etc */
+		    KdRegisterFdEnableDisable (fd, TsEnable, TsDisable);
+
 		    n++;
+		}
 	    }
 	    else
 		close (fd);
