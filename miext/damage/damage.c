@@ -143,11 +143,11 @@ damageDamageRegion (DrawablePtr pDrawable, RegionPtr pRegion, Bool clip)
      */
     if (pDrawable->type != DRAWABLE_WINDOW)
     {
-	screen_x = ((PixmapPtr) pDrawable)->screen_x;
-	screen_y = ((PixmapPtr) pDrawable)->screen_y;
+	screen_x = ((PixmapPtr) pDrawable)->screen_x - pDrawable->x;
+	screen_y = ((PixmapPtr) pDrawable)->screen_y - pDrawable->y;
     }
     if (screen_x || screen_y)
-	REGION_TRANSLATE (pScreen, pRegion, screen_x, screen_y);
+        REGION_TRANSLATE (pScreen, pRegion, screen_x, screen_y);
 #endif
 	
     REGION_NULL (pScreen, &clippedRec);
@@ -169,7 +169,9 @@ damageDamageRegion (DrawablePtr pDrawable, RegionPtr pRegion, Bool clip)
 	if (pDamage->pDrawable->type == DRAWABLE_WINDOW &&
 	    !((WindowPtr) (pDamage->pDrawable))->realized)
 	{
+#if 0
 	    DAMAGE_DEBUG (("damage while window unrealized\n"));
+#endif
 	    continue;
 	}
 	
@@ -215,10 +217,12 @@ damageDamageRegion (DrawablePtr pDrawable, RegionPtr pRegion, Bool clip)
 		continue;
 	}
 	
-	DAMAGE_DEBUG (("%s %d x %d +%d +%d\n", where,
+	DAMAGE_DEBUG (("%s %d x %d +%d +%d (target 0x%lx monitor 0x%lx)\n",
+		       where,
 		       pDamageRegion->extents.x2 - pDamageRegion->extents.x1,
 		       pDamageRegion->extents.y2 - pDamageRegion->extents.y1,
-		       pDamageRegion->extents.x1, pDamageRegion->extents.y1));
+		       pDamageRegion->extents.x1, pDamageRegion->extents.y1,
+		       pDrawable->id, pDamage->pDrawable->id));
 	
 	/*
 	 * Move region to target coordinate space

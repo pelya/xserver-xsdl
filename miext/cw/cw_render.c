@@ -162,23 +162,29 @@ static void
 cwValidatePicture (PicturePtr pPicture,
 		   Mask       mask)
 {
-    ScreenPtr		pScreen = pPicture->pDrawable->pScreen;
+    DrawablePtr		pDrawable = pPicture->pDrawable;
+    ScreenPtr		pScreen = pDrawable->pScreen;
     cwPsDecl(pScreen);
     cwPictureDecl;
     
     cwPsUnwrap(ValidatePicture);
-    if (!cwDrawableIsRedirWindow (pPicture->pDrawable))
+
+    /*
+     * Must call ValidatePicture to ensure pPicture->pCompositeClip is valid
+     */
+    (*ps->ValidatePicture) (pPicture, mask);
+    
+    if (!cwDrawableIsRedirWindow (pDrawable))
     {
 	if (pBackingPicture)
 	    cwDestroyBackingPicture (pPicture);
-	(*ps->ValidatePicture) (pPicture, mask);
     }
     else
     {
 	DrawablePtr pBackingDrawable;
 	int	    x_off, y_off;
 	
-	pBackingDrawable = cwGetBackingDrawable(pPicture->pDrawable, &x_off,
+	pBackingDrawable = cwGetBackingDrawable(pDrawable, &x_off,
 						&y_off);
 
 	if (pBackingPicture && pBackingPicture->pDrawable != pBackingDrawable)
@@ -192,7 +198,6 @@ cwValidatePicture (PicturePtr pPicture,
 	    pBackingPicture = cwCreateBackingPicture (pPicture);
 	    if (!pBackingPicture)
 	    {
-		(*ps->ValidatePicture) (pPicture, mask);
 		cwPsWrap(ValidatePicture, cwValidatePicture);
 		return;
 	    }
@@ -201,20 +206,16 @@ cwValidatePicture (PicturePtr pPicture,
 	SetPictureTransform(pBackingPicture, pPicture->transform);
 	/* XXX Set filters */
 
-	if (mask & (CPClipXOrigin || CPClipYOrigin)) {
-	    XID vals[2];
-
-	    vals[0] = pPicture->clipOrigin.x + x_off;
-	    vals[1] = pPicture->clipOrigin.y + y_off;
-
-	    ChangePicture(pBackingPicture, CPClipXOrigin | CPClipYOrigin,
-			  vals, NULL, NullClient);
-	    mask &= ~(CPClipXOrigin | CPClipYOrigin);
-	}
+        mask &= ~(CPClipXOrigin | CPClipYOrigin);
 
 	CopyPicture(pPicture, mask, pBackingPicture);
 
-	(*ps->ValidatePicture) (pBackingPicture, mask);
+	SetPictureClipRegion (pBackingPicture, 
+			      x_off - pDrawable->x,
+			      y_off - pDrawable->y,
+			      pPicture->pCompositeClip);
+
+	ValidatePicture (pBackingPicture);
     }
     cwPsWrap(ValidatePicture, cwValidatePicture);
 }

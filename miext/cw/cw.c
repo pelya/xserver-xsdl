@@ -198,6 +198,11 @@ cwValidateGC(GCPtr pGC, unsigned long stateChanges, DrawablePtr pDrawable)
 
     FUNC_PROLOGUE(pGC, pPriv);
 
+    /*
+     * Must call ValidateGC to ensure pGC->pCompositeClip is valid
+     */
+    (*pGC->funcs->ValidateGC)(pGC, stateChanges, pDrawable);
+    
     if (pDrawable->serialNumber != pPriv->serialNumber &&
 	!cwDrawableIsRedirWindow(pDrawable))
     {
@@ -205,7 +210,6 @@ cwValidateGC(GCPtr pGC, unsigned long stateChanges, DrawablePtr pDrawable)
 	 * private and go back to cheap functions.
 	 */
 	cwDestroyGCPrivate(pGC);
-	(*pGC->funcs->ValidateGC)(pGC, stateChanges, pDrawable);
 	return;
     }
 
@@ -231,16 +235,21 @@ cwValidateGC(GCPtr pGC, unsigned long stateChanges, DrawablePtr pDrawable)
 
     if (pDrawable->serialNumber != pPriv->serialNumber) {
 	XID vals[2];
+	RegionPtr   pCompositeClip;
+
+	pCompositeClip = REGION_CREATE (pScreen, NULL, 0);
+	REGION_COPY (pScreen, pCompositeClip, pGC->pCompositeClip);
 
 	/* Either the drawable has changed, or the clip list in the drawable has
 	 * changed.  Copy the new clip list over and set the new translated
 	 * offset for it.
 	 */
-
-	(*pBackingGC->funcs->DestroyClip)(pBackingGC);
-	(*pBackingGC->funcs->CopyClip)(pBackingGC, pGC);
-	vals[0] = pGC->clipOrg.x + x_off;
-	vals[1] = pGC->clipOrg.y + y_off;
+	
+	(*pBackingGC->funcs->ChangeClip) (pBackingGC, CT_REGION,
+					  (pointer) pCompositeClip, 0);
+	
+	vals[0] = x_off - pDrawable->x;
+	vals[1] = y_off - pDrawable->y;
 	dixChangeGC(NullClient, pBackingGC,
 		    (GCClipXOrigin | GCClipYOrigin), vals, NULL);
 
