@@ -67,7 +67,22 @@ void ATIDMADispatchIndirect(Bool discard);
 void ATIDMAStart(ScreenPtr pScreen);
 void ATIDMAStop(ScreenPtr pScreen);
 
+Bool RadeonPrepareBlend(int op, PicturePtr pSrcPicture, PicturePtr pDstPicture,
+    PixmapPtr pSrc, PixmapPtr pDst);
+void RadeonBlend(int srcX, int srcY, int dstX, int dstY, int width, int height);
+Bool RadeonPrepareComposite(int op, PicturePtr pSrcPicture, PicturePtr pMaskPicture,
+    PicturePtr pDstPicture, PixmapPtr pSrc, PixmapPtr pMask, PixmapPtr pDst);
+void RadeonDoneBlend(void);
+void RadeonComposite(int srcX, int srcY, int maskX, int maskY, int dstX,
+    int dstY, int w, int h);
+void RadeonDoneComposite(void);
+void RadeonSwitchTo2D(void);
+void RadeonSwitchTo3D(void);
+
 #endif /* USE_DRI */
+
+void
+ATIWaitIdle(void);
 
 #if 0
 #define ATI_FALLBACK(x)		\

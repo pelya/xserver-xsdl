@@ -345,6 +345,23 @@ typedef struct _KaaScreenInfo {
 			  int	width,
 			  int	height);
     void	(*DoneBlend) (void);
+
+    Bool        (*PrepareComposite) (int		op,
+				     PicturePtr		pSrcPicture,
+				     PicturePtr		pMaskPicture,
+				     PicturePtr		pDstPicture,
+				     PixmapPtr		pSrc,
+				     PixmapPtr		pMask,
+				     PixmapPtr		pDst);
+    void        (*Composite) (int	srcX,
+			     int	srcY,
+			     int	maskX,
+			     int	maskY,
+			     int	dstX,
+			     int	dstY,
+			     int	width,
+			     int	height);
+    void	(*DoneComposite) (void);
 } KaaScreenInfoRec, *KaaScreenInfoPtr;
 
 #define KAA_OFFSCREEN_PIXMAPS (1 << 0)

@@ -320,8 +320,8 @@ kaaComposite(CARD8	op,
 		ySrc += pSrc->pDrawable->y;
 
 		if (!miComputeCompositeRegion (&region, pSrc, pMask, pDst,
-					       xSrc, ySrc, xMask, yMask, xDst, yDst,
-					       width, height))
+					       xSrc, ySrc, xMask, yMask, xDst,
+					       yDst, width, height))
 		    return;
 		
 		
@@ -395,6 +395,87 @@ kaaComposite(CARD8	op,
 
 	    return;
 	}
+    }
+    if (pScreenPriv->enabled && pKaaScr->info->PrepareComposite &&
+	!pSrc->alphaMap && (!pMask || !pMask->alphaMap) && !pDst->alphaMap)
+    {
+	/* Catch-all Composite case */
+	RegionRec region;
+	BoxPtr pbox;
+	int nbox;
+	int src_off_x, src_off_y, mask_off_x, mask_off_y, dst_off_x, dst_off_y;
+	PixmapPtr pSrcPix, pMaskPix = NULL, pDstPix;
+
+	xDst += pDst->pDrawable->x;
+	yDst += pDst->pDrawable->y;
+
+	if (pMask) {
+	    xMask += pMask->pDrawable->x;
+	    yMask += pMask->pDrawable->y;
+	}
+
+	xSrc += pSrc->pDrawable->x;
+	ySrc += pSrc->pDrawable->y;
+
+	if (!miComputeCompositeRegion (&region, pSrc, pMask, pDst,
+				       xSrc, ySrc, xMask, yMask, xDst, yDst,
+				       width, height))
+		return;
+
+
+	/* Migrate pixmaps to same place as destination */
+	if (pSrc->pDrawable->type == DRAWABLE_PIXMAP)
+		kaaPixmapUseScreen ((PixmapPtr) pSrc->pDrawable);
+	if (pMask && pMask->pDrawable->type == DRAWABLE_PIXMAP)
+		kaaPixmapUseScreen ((PixmapPtr) pMask->pDrawable);
+	if (pDst->pDrawable->type == DRAWABLE_PIXMAP)
+		kaaPixmapUseScreen ((PixmapPtr) pDst->pDrawable);
+
+	pSrcPix = kaaGetOffscreenPixmap (pSrc->pDrawable, &src_off_x,
+				    	 &src_off_y);
+	pDstPix = kaaGetOffscreenPixmap (pDst->pDrawable, &dst_off_x,
+				    	 &dst_off_y);
+	if (!pSrcPix || !pDstPix)
+		goto software2;
+	if (pMask) {
+	    pMaskPix = kaaGetOffscreenPixmap (pMask->pDrawable, &mask_off_x,
+				    	     &mask_off_y);
+	    if (!pMaskPix)
+		goto software2;
+	}
+
+    	if (!(*pKaaScr->info->PrepareComposite) (op, pSrc, pMask, pDst, pSrcPix,
+						 pMaskPix, pDstPix))
+    	{
+		goto software;
+	}
+    	
+    	nbox = REGION_NUM_RECTS(&region);
+    	pbox = REGION_RECTS(&region);
+
+    	xMask -= xDst;
+    	yMask -= yDst;
+
+    	xSrc -= xDst;
+    	ySrc -= yDst;
+	
+    	while (nbox--)
+    	{
+		(*pKaaScr->info->Composite) (pbox->x1 + xSrc + src_off_x,
+					     pbox->y1 + ySrc + src_off_y,
+					     pbox->x1 + mask_off_x,
+					     pbox->y1 + mask_off_y,
+					     pbox->x1 + dst_off_x,
+					     pbox->y1 + dst_off_y,
+					     pbox->x2 - pbox->x1,
+					     pbox->y2 - pbox->y1);
+		pbox++;
+    	}
+    	
+    	(*pKaaScr->info->DoneBlend) ();
+    	KdMarkSync(pDst->pDrawable->pScreen);
+
+    	return;
     }
 
 software:

@@ -9,6 +9,7 @@ DRI_SOURCES =	ati_dri.c	\
 		r128_common.h	\
 		r128_sarea.h	\
 		radeon_common.h	\
+		radeon_composite.c \
 		radeon_sarea.h
 endif
 

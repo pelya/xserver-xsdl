@@ -213,7 +213,7 @@ R128WaitIdle(void)
 	}
 }
 
-static void
+void
 ATIWaitIdle(void)
 {
 	ATIScreenInfo *atis = accel_atis;
@@ -349,6 +349,35 @@ drmBufPtr ATIDMAGetBuffer()
 	buf->used = 0;
 	return buf;
 }
+
+/* The hardware has a cache on the memory controller for writes to the
+ * destination, which I guess is separate for 2d and 3d.  So, when switching
+ * between 2d and 3d you need to wait for idle and for the cache to clean.
+ */
+void
+RadeonSwitchTo2D(void)
+{
+	ATIScreenInfo *atis = accel_atis;
+	RING_LOCALS;
+
+	BEGIN_RING(2);
+	OUT_RING(DMA_PACKET0(RADEON_REG_WAIT_UNTIL, 0));
+	OUT_RING(RADEON_WAIT_HOST_IDLECLEAN | RADEON_WAIT_3D_IDLECLEAN);
+	ADVANCE_RING();
+}
+
+void
+RadeonSwitchTo3D(void)
+{
+	ATIScreenInfo *atis = accel_atis;
+	RING_LOCALS;
+
+	BEGIN_RING(2);
+	OUT_RING(DMA_PACKET0(RADEON_REG_WAIT_UNTIL, 0));
+	OUT_RING(RADEON_WAIT_HOST_IDLECLEAN | RADEON_WAIT_2D_IDLECLEAN);
+	ADVANCE_RING();
+}
+
 #endif /* USE_DRI */
 
 static Bool
@@ -445,6 +474,13 @@ ATIDrawInit(ScreenPtr pScreen)
 			atis->kaa.PrepareBlend = R128PrepareBlendDMA;
 			atis->kaa.Blend = R128BlendDMA;
 			atis->kaa.DoneBlend = R128DoneBlendDMA;
+		} else if (!atic->is_r200) {
+			atis->kaa.PrepareBlend = RadeonPrepareBlend;
+			atis->kaa.Blend = RadeonBlend;
+			atis->kaa.DoneBlend = RadeonDoneBlend;
+			atis->kaa.PrepareComposite = RadeonPrepareComposite;
+			atis->kaa.Composite = RadeonComposite;
+			atis->kaa.DoneComposite = RadeonDoneComposite;
 		}
 	} else {
 #else

@@ -69,6 +69,10 @@ TAG(ATISetup)(PixmapPtr pDst, PixmapPtr pSrc)
 			ATI_FALLBACK(("Bad src offset 0x%x\n", src_offset));
 	}
 
+#ifdef USE_DMA
+	if (atic->is_radeon && !atic->is_r200)
+		RadeonSwitchTo2D();
+#endif
 	BEGIN((pSrc != NULL) ? 3 : 2);
 	if (atic->is_radeon) {
 		OUT_REG(RADEON_REG_DST_PITCH_OFFSET,
