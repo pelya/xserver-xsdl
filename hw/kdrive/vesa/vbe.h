@@ -157,4 +157,10 @@ VbeDPMS(Vm86InfoPtr vi, int mode);
 int
 VbeDoInterrupt10(Vm86InfoPtr vi);
 
+Bool
+VbeBoot(Vm86InfoPtr vi);
+
+int
+VbeDoInterruptE6(Vm86InfoPtr vi);
+
 #endif

@@ -137,6 +137,9 @@ int
 Vm86DoInterrupt(Vm86InfoPtr vi, int num);
 
 int
+Vm86DoPOST(Vm86InfoPtr vi);
+
+int
 Vm86IsMemory(Vm86InfoPtr vi, U32 i);
 
 U8

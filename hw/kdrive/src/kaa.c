@@ -100,8 +100,10 @@ kaaPixmapSave (ScreenPtr pScreen, KdOffscreenArea *area)
     pPixmap->drawable.serialNumber = NEXT_SERIAL_NUMBER;
     pKaaPixmap->area = NULL;
 
+#if 0
     if (!pKaaPixmap->dirty)
 	return;
+#endif
 
     KdCheckSync (pPixmap->drawable.pScreen);
 

@@ -146,7 +146,13 @@ const KdMonitorTiming  kdMonitorTimings[] = {
 		    32,	    208,    384,    KdSyncPositive, /* 61.849 */
 		    1,	    32,	    38,	    KdSyncPositive, /* 65.937 */
     },
-    
+
+    /* 1280x854 modes */
+    {   1280,   854,   103,     12500,			    /* ADDED */
+	            56,     16,     128,    KdSyncPositive, /* 102.554 */
+	            1,     216,     12,     KdSyncPositive,
+    },
+
     /* 1280x960 modes */
     {	1280,	960,	85,	148500,			    /* VESA */
 		    64,	    224,    448,    KdSyncPositive, /* 85.938 */
@@ -263,6 +269,7 @@ KdFindMode (KdScreenInfo    *screen,
 	    return t;
 	}
     }
+    ErrorF("Warning: mode not found, using default\n");
     return &kdMonitorTimings[MONITOR_TIMING_DEFAULT];
 }
 

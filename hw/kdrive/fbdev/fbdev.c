@@ -115,10 +115,6 @@ static Bool
 fbdevModeSupported (KdScreenInfo		*screen,
 		    const KdMonitorTiming	*t)
 {
-    /* XXX: Remove this */
-    if (t->rate > 75)
-	return FALSE;
-    
     return TRUE;
 }
 
@@ -172,7 +168,7 @@ fbdevScreenInitialize (KdScreenInfo *screen, FbdevScrPriv *scrpriv)
 	    screen->width = 1024;
 	    screen->height = 768;
 	}
-	screen->rate = 75;
+	screen->rate = 103; /* FIXME: should get proper value from fb driver */
     }
     if (!screen->fb[0].depth)
 	screen->fb[0].depth = 16;

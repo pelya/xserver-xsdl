@@ -41,6 +41,7 @@ Bool vesa_verbose = FALSE;
 Bool vesa_force_text = FALSE;
 Bool vesa_restore_font = TRUE;
 Bool vesa_map_holes = TRUE;
+Bool vesa_boot = FALSE;
 
 #define VesaPriv(scr)	((VesaScreenPrivPtr) (scr)->driver)
 
@@ -215,6 +216,9 @@ vesaInitialize (KdCardInfo *card, VesaCardPrivPtr priv)
     priv->vi = Vm86Setup(vesa_map_holes);
     if(!priv->vi)
 	goto fail;
+
+    if (vesa_boot)
+	VbeBoot (priv->vi);
 
     priv->modes = vesaGetModes (priv->vi, &priv->nmode);
 	
@@ -1756,6 +1760,7 @@ vesaUseMsg (void)
     ErrorF("-map-holes    Use contiguous memory map (For seg fault with rare BIOS)\n");
     ErrorF("-verbose      Emit diagnostic messages during BIOS initialization\n");
     ErrorF("-force-text   Always use standard 25x80 text mode on server exit or VT switch\n");
+    ErrorF("-boot         Soft boot video card\n");
     /* XXX: usage for -vesatest, -no-map-holes (don't need?),
      * XXX: and -trash-font. Also in man page. */
 }
@@ -1801,6 +1806,9 @@ vesaProcessArgument (int argc, char **argv, int i)
 	return 1;
     } else if(!strcmp(argv[i], "-trash-font")) {
 	vesa_restore_font = FALSE;
+	return 1;
+    } else if(!strcmp(argv[i], "-boot")) {
+	vesa_boot = TRUE;
 	return 1;
     }
     

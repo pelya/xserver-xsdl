@@ -638,6 +638,20 @@ VbeDPMS(Vm86InfoPtr vi, int mode)
     return TRUE;
 }
 
+Bool
+VbeBoot(Vm86InfoPtr vi)
+{
+    int	code;
+    int bus = 1;
+    int device = 0;
+    int function = 0;
+
+    vi->vms.regs.eax = (bus << 8) | (device << 3) | (function & 0x7);
+    code = VbeDoInterruptE6 (vi);
+    ErrorF ("Boot: %d\n", code);
+    return TRUE;
+}
+
 int
 VbeDoInterrupt10(Vm86InfoPtr vi)
 {
@@ -675,5 +689,19 @@ VbeDoInterrupt10(Vm86InfoPtr vi)
 	    ErrorF("\n");
 	}
     }
+    return code;
+}
+
+int
+VbeDoInterruptE6(Vm86InfoPtr vi)
+{
+    int code;
+    int oldax;
+
+    oldax = vi->vms.regs.eax & 0xffff;
+    
+    code = Vm86DoPOST (vi);
+    ErrorF("POST (0x%04X): 0x%04X\n",
+	   oldax, vi->vms.regs.eax & 0xffff);
     return code;
 }

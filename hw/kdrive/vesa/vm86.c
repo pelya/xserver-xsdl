@@ -219,7 +219,8 @@ Vm86DoInterrupt(Vm86InfoPtr vi, int num)
     off = MMW(vi,num * 4);
     if(MAKE_POINTER(seg, off) < ROM_BASE ||
        MAKE_POINTER(seg, off) >= ROM_BASE + ROM_SIZE) {
-	ErrorF("Interrupt pointer doesn't point at ROM\n");
+	ErrorF("Interrupt pointer (seg %x off %x) doesn't point at ROM\n",
+	       seg, off);
 	return -1;
     }
     memcpy(&(LM(vi,vi->ret_code)), retcode_data, sizeof(retcode_data));
@@ -227,6 +228,40 @@ Vm86DoInterrupt(Vm86InfoPtr vi, int num)
     vi->vms.regs.ss = POINTER_SEGMENT(vi->stack_base);
     vi->vms.regs.esp = STACK_SIZE;
     PUSHW(vi, IF_MASK | IOPL_MASK);
+    PUSHW(vi, POINTER_SEGMENT(vi->ret_code));
+    PUSHW(vi, POINTER_OFFSET(vi->ret_code));
+    vi->vms.regs.cs = seg;
+    vi->vms.regs.eip = off;
+    OsBlockSignals ();
+    code = vm86_loop(vi);
+    OsReleaseSignals ();
+    if(code < 0) {
+	ErrorF("vm86 failed (errno %d)\n", errno);
+	return -1;
+    } else if(code != 0) {
+	ErrorF("vm86 returned 0x%04X\n", code);
+	return -1;
+    } else
+	return 0;
+}
+
+int
+Vm86DoPOST(Vm86InfoPtr vi)
+{
+    U16 seg, off;
+    int code;
+
+    seg = 0xC000;
+    off = 3;
+    if(MAKE_POINTER(seg, off) < ROM_BASE ||
+       MAKE_POINTER(seg, off) >= ROM_BASE + ROM_SIZE) {
+	ErrorF("BIOS pointer (seg %x off %x) doesn't point at ROM\n",
+	       seg, off);
+	return -1;
+    }
+    memcpy(&(LM(vi,vi->ret_code)), retcode_data, sizeof(retcode_data));
+    vi->vms.regs.ss = POINTER_SEGMENT(vi->stack_base);
+    vi->vms.regs.esp = STACK_SIZE;
     PUSHW(vi, POINTER_SEGMENT(vi->ret_code));
     PUSHW(vi, POINTER_OFFSET(vi->ret_code));
     vi->vms.regs.cs = seg;
