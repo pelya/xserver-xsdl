@@ -57,12 +57,6 @@ pmMapReg(KdCardInfo *card, PM2CardInfo *pm2c)
 	if (pm2c->reg_base == NULL)
 		return FALSE;
 
-//	pm2c->render = (PMRender *) (pm2c->reg_base + RENDER_UNIT);
-//	pm2c->rect = (PMRectangle *) (pm2c->reg_base + RECT_UNIT);
-//	pm2c->mode = (PMMode *) (pm2c->reg_base + MODE_UNIT);
-//	pm2c->color = (PMColor *) (pm2c->reg_base + COLOR_UNIT);
-//	pm2c->scissor = (PMScissor *) (pm2c->reg_base + SCISSOR_UNIT);
-
 	KdSetMappedMode(PM2_REG_BASE(card), PM2_REG_SIZE(card),
 	    KD_MAPPED_MODE_REGISTERS);
 
@@ -99,8 +93,10 @@ pmCardInit (KdCardInfo *card)
 	xfree (pm2c);
 	return FALSE;
     }
+    
+    pm2c->InFifoSpace = 0;
 
-    card->driver = pm2c;
+    card->driver = pm2c;    
 
     return TRUE;
 }
@@ -157,6 +153,21 @@ pmScreenInit (KdScreenInfo *screen)
     {
 	pm2s->off_screen = 0;
 	pm2s->off_screen_size = 0;
+    }
+
+    switch (screen->fb[0].bitsPerPixel) {
+    case 8:
+	pm2c->BppShift = 2;
+	break;
+    case 16:
+	pm2c->BppShift = 1;
+	break;
+    case 24:
+	pm2c->BppShift = 2;
+	break;
+    case 32:
+	pm2c->BppShift = 0;
+	break;
     }
 
     screen->driver = pm2s;
