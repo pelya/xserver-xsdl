@@ -49,8 +49,8 @@ of the copyright holder.
 #include "gcstruct.h"
 #include "dixstruct.h"
 
-#include "Xv.h"
-#include "Xvproto.h"
+#include <X11/extensions/Xv.h>
+#include <X11/extensions/Xvproto.h>
 
 #include "kxv.h"
 

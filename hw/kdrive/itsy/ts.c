@@ -25,7 +25,7 @@
 
 #define NEED_EVENTS
 #include "itsy.h"
-#include "Xproto.h"
+#include <X11/Xproto.h>
 #include "inputstr.h"
 #include "Xpoll.h"
 

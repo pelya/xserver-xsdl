@@ -23,8 +23,8 @@ THE SOFTWARE.
 /* $RCSId: xc/programs/Xserver/hw/kdrive/linux/ms.c,v 1.1 2001/08/09 20:45:15 dawes Exp $ */
 
 #define NEED_EVENTS
-#include "X.h"
-#include "Xproto.h"
+#include <X11/X.h>
+#include <X11/Xproto.h>
 #include "inputstr.h"
 #include "scrnintstr.h"
 #include "kdrive.h"

@@ -41,7 +41,7 @@ of the copyright holder.
  * Author: Pontus Lidman <pontus.lidman@nokia.com> (adaption to KDrive) and others
  */
 
-#include "X.h"
+#include <X11/X.h>
 
 #include "Xdefs.h"
 #include "Xmd.h"
