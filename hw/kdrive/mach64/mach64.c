@@ -19,7 +19,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/mach64/mach64.c,v 1.16 2001/03/21 16:43:16 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/mach64/mach64.c,v 1.1 2001/06/03 18:48:19 keithp Exp $ */
 
 #include "mach64.h"
 #include <sys/io.h>
@@ -106,6 +106,42 @@ Bool
 mach64InitScreen (ScreenPtr pScreen)
 {
     return vesaInitScreen (pScreen);
+}
+
+#ifdef RANDR
+mach64RandRSetConfig (ScreenPtr		pScreen,
+		      Rotation		rotation,
+		      RRScreenSizePtr	pSize,
+		      RRVisualGroupPtr	pVisualGroup)
+{
+    KdScreenPriv(pScreen);
+    
+    KdCheckSync (pScreen);
+
+    if (!vesaRandRSetConfig (pScreen, rotation, pSize, pVisualGroup))
+	return FALSE;
+    
+    return TRUE;
+}
+
+void
+mach64RandRInit (ScreenPtr pScreen)
+{
+    rrScrPriv(pScreen);
+
+    pScrPriv->rrSetConfig = mach64RandRSetConfig;
+}
+#endif
+
+Bool
+mach64FinishInitScreen (ScreenPtr pScreen)
+{
+    Bool    ret;
+    ret = vesaFinishInitScreen (pScreen);
+#ifdef RANDR
+    mach64RandRInit (pScreen);
+#endif
+    return ret;
 }
 
 CARD32
@@ -328,4 +364,6 @@ KdCardFuncs	mach64Funcs = {
     
     vesaGetColors,    	    /* getColors */
     vesaPutColors,	    /* putColors */
+
+    mach64FinishInitScreen, /* finishInitScreen */
 };

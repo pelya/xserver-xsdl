@@ -19,13 +19,17 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/vesa/vesa.h,v 1.8 2001/05/26 01:25:42 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/vesa/vesa.h,v 1.9 2001/05/29 04:54:13 keithp Exp $ */
 
 #ifndef _VESA_H_
 #define _VESA_H_
 
 #include "kdrive.h"
+#include "layer.h"
 #include "vm86.h"
+#ifdef RANDR
+#include "randrstr.h"
+#endif
 
 #define VESA_TEXT_SAVE	(64*1024)
 
@@ -93,8 +97,10 @@ typedef struct _VesaScreenPriv {
     int		rotate;
     int		mapping;
     int		origDepth;
+    int		layerKind;
     void	*fb;
     int		fb_size;
+    LayerPtr	pLayer;
 } VesaScreenPrivRec, *VesaScreenPrivPtr;
 
 extern int vesa_video_mode;
@@ -118,8 +124,14 @@ vesaScreenInitialize (KdScreenInfo *screen, VesaScreenPrivPtr pscr);
 Bool
 vesaScreenInit(KdScreenInfo *screen);    
 
+LayerPtr
+vesaLayerCreate (ScreenPtr pScreen);
+
 Bool
 vesaInitScreen(ScreenPtr pScreen);
+
+Bool
+vesaFinishInitScreen(ScreenPtr pScreen);
 
 Bool
 vesaEnable(ScreenPtr pScreen);

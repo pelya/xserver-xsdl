@@ -1,5 +1,5 @@
 /*
- * $XFree86: xc/programs/Xserver/hw/kdrive/kaa.c,v 1.2 2001/05/30 15:36:25 keithp Exp $
+ * $XFree86: xc/programs/Xserver/hw/kdrive/kaa.c,v 1.3 2001/06/03 18:48:19 keithp Exp $
  *
  * Copyright © 2001 Keith Packard, member of The XFree86 Project, Inc.
  *
@@ -503,9 +503,8 @@ kaaCreateGC (GCPtr pGC)
     if (!fbCreateGC (pGC))
 	return FALSE;
 
-    if (pGC->depth != 1)
-	pGC->funcs = &kaaGCFuncs;
-    
+    pGC->funcs = &kaaGCFuncs;
+
     return TRUE;
 }
 
@@ -556,8 +555,11 @@ kaaFillRegionSolid (DrawablePtr	pDrawable,
 	KdMarkSync(pDrawable->pScreen);
     }
     else
+    {
+	KdCheckSync (pDrawable->pScreen);
 	fbFillRegionSolid (pDrawable, pRegion, 0,
 			   fbReplicatePixel (pixel, pDrawable->bitsPerPixel));
+    }
 }
 
 void

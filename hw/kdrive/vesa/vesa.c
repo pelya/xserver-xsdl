@@ -19,7 +19,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/vesa/vesa.c,v 1.11 2001/05/29 04:54:12 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/vesa/vesa.c,v 1.12 2001/06/03 21:52:46 keithp Exp $ */
 
 #include "vesa.h"
 #ifdef RANDR
@@ -37,8 +37,8 @@ Bool vesa_verbose = FALSE;
 #define VesaPriv(scr)	((VesaScreenPrivPtr) (scr)->driver)
 
 #define ScreenRotated(scr)  (VesaPriv(scr)->rotate == 90 || VesaPriv(scr)->rotate == 270)
-#define vesaWidth(scr,vmib) (ScreenRotated(scr) ? vmib->YResolution : vmib->XResolution)
-#define vesaHeight(scr,vmib) (ScreenRotated(scr) ? vmib->XResolution : vmib->YResolution)
+#define vesaWidth(scr,vmib) (ScreenRotated(scr) ? (vmib)->YResolution : (vmib)->XResolution)
+#define vesaHeight(scr,vmib) (ScreenRotated(scr) ? (vmib)->XResolution : (vmib)->YResolution)
 
 static Bool
 vesaModeSupportable (VesaModePtr mode, Bool complain)
@@ -370,8 +370,6 @@ vesaScreenInitialize (KdScreenInfo *screen, VesaScreenPrivPtr pscr)
     VesaCardPrivPtr	priv = screen->card->driver;
     VesaModePtr		mode;
     Pixel		allbits;
-    int			depth;
-    int			bpp, fbbpp;
 
     screen->driver = pscr;
     
@@ -406,29 +404,11 @@ vesaScreenInitialize (KdScreenInfo *screen, VesaScreenPrivPtr pscr)
     pscr->rotate = screen->rotation;
     pscr->shadow = vesa_shadow;
     pscr->origDepth = screen->fb[0].depth;
+    pscr->layerKind = LAYER_FB;
 
-    if (vesa_linear_fb)
-	pscr->mapping = VESA_LINEAR;
-    else
-	pscr->mapping = VESA_WINDOWED;
-    
-    depth = vesaDepth (&pscr->mode);
-    bpp = pscr->mode.BitsPerPixel;
-    
-    if (bpp > 24)
-	bpp = 32;
-    else if (bpp > 16)
-	bpp = 24;
-    else if (bpp > 8)
-	bpp = 16;
-    else if (bpp > 4)
-	bpp = 8;
-    else if (bpp > 1)
-	bpp = 4;
-    else
-	bpp = 1;
-    fbbpp = bpp;
-    
+    /*
+     * Compute visual support for the selected depth
+     */
     switch (pscr->mode.MemoryModel) {
     case MEMORY_DIRECT:
         /* TrueColor or DirectColor */
@@ -439,19 +419,6 @@ vesaScreenInitialize (KdScreenInfo *screen, VesaScreenPrivPtr pscr)
             FbStipMask(pscr->mode.GreenFieldPosition, pscr->mode.GreenMaskSize);
         screen->fb[0].blueMask = 
             FbStipMask(pscr->mode.BlueFieldPosition, pscr->mode.BlueMaskSize);
-        allbits = 
-            screen->fb[0].redMask | 
-            screen->fb[0].greenMask | 
-            screen->fb[0].blueMask;
-        depth = 32;
-        while (depth && !(allbits & (1 << (depth - 1))))
-            depth--;
-	if (vesa_verbose)
-	    ErrorF ("\tTrue Color bpp %d depth %d red 0x%x green 0x%x blue 0x%x\n",
-		    bpp, depth, 
-		    screen->fb[0].redMask,
-		    screen->fb[0].greenMask,
-		    screen->fb[0].blueMask);
 	break;
     case MEMORY_PSEUDO:
         /* PseudoColor */
@@ -464,9 +431,6 @@ vesaScreenInitialize (KdScreenInfo *screen, VesaScreenPrivPtr pscr)
 	screen->fb[0].blueMask  = 0x00;
 	screen->fb[0].greenMask = 0x00;
 	screen->fb[0].redMask   = 0x00;
-	if (vesa_verbose)
-	    ErrorF ("\tPseudo Color bpp %d depth %d\n",
-		    bpp, depth);
 	break;
     case MEMORY_PLANAR:
 	/* 4 plane planar */
@@ -477,94 +441,15 @@ vesaScreenInitialize (KdScreenInfo *screen, VesaScreenPrivPtr pscr)
 	screen->fb[0].blueMask  = 0x00;
 	screen->fb[0].greenMask = 0x00;
 	screen->fb[0].redMask   = 0x00;
-	if (bpp == 4)
-	{
-	    bpp = screen->fb[0].bitsPerPixel;
-	    if (bpp != 8)
-		bpp = 4;
-	    depth = bpp;
-	}
-	if (bpp == 1)
-	{
-	    pscr->mapping = VESA_MONO;
-	    if (vesa_verbose)
-		ErrorF ("\tMonochrome\n");
-	}
-	else
-	{
-	    pscr->mapping = VESA_PLANAR;
-	    if (vesa_verbose)
-		ErrorF ("\tStatic color bpp %d depth %d\n",
-			bpp, depth);
-	}
-	pscr->rotate = 0;
 	break;
     default:
         ErrorF("Unsupported VESA MemoryModel 0x%02X\n",
                pscr->mode.MemoryModel);
         return FALSE;
     }
-
-    switch (fbbpp) {
-    case 8:
-    case 16:
-    case 32:
-	break;
-    default:
-	pscr->rotate = 0;
-    }
-
-    screen->width = vesaWidth(screen, mode);
-    screen->height = vesaHeight(screen, mode);
-    screen->fb[0].depth = depth;
-    screen->fb[0].bitsPerPixel = bpp;
-    screen->fb[0].byteStride = pscr->mode.BytesPerScanLine;
-    screen->fb[0].pixelStride = ((pscr->mode.BytesPerScanLine * 8) / fbbpp);
-
-    if (pscr->mapping == VESA_LINEAR && !(pscr->mode.ModeAttributes & MODE_LINEAR))
-	pscr->mapping = VESA_WINDOWED;
-    
-    if (pscr->rotate)
-	pscr->shadow = TRUE;
-    
-    switch (pscr->mapping) {
-    case VESA_MONO:
-	pscr->shadow = TRUE;
-	/* fall through */
-    case VESA_LINEAR:
-	if (pscr->mode.vbe)
-	    pscr->fb = VbeMapFramebuffer(priv->vi, priv->vbeInfo, 
-					 pscr->mode.mode,
-					 &pscr->fb_size);
-	else
-	    pscr->fb = VgaMapFramebuffer (priv->vi, 
-					  pscr->mode.mode,
-					  &pscr->fb_size);
-	break;
-    case VESA_WINDOWED:
-	pscr->fb = NULL;
-	pscr->shadow = TRUE;
-	break;
-    case VESA_PLANAR:
-	pscr->fb = NULL;
-	pscr->shadow = TRUE;
-	break;
-    }
-
     screen->rate = 72;
-    screen->fb[0].frameBuffer = (CARD8 *)(pscr->fb);
 
-    if (pscr->rotate)
-	screen->softCursor = TRUE;
-    
-    if (pscr->shadow)
-	return KdShadowScreenInit (screen);
-    
-    if (vesa_verbose)
-	ErrorF ("Mode selected %dx%dx%d\n",
-		screen->width, screen->height, screen->fb[0].depth);
-    
-    return TRUE;
+    return vesaMapFramebuffer (screen);
 }
 
 Bool
@@ -850,6 +735,248 @@ vesaCreateColormap16 (ColormapPtr pmap)
     return TRUE;
 }
 
+LayerPtr
+vesaLayerCreate (ScreenPtr pScreen)
+{
+    KdScreenPriv(pScreen);
+    KdScreenInfo	*screen = pScreenPriv->screen;
+    VesaCardPrivPtr	priv = pScreenPriv->card->driver;
+    VesaScreenPrivPtr	pscr = pScreenPriv->screen->driver;
+    LayerPtr		pLayer;
+    ShadowUpdateProc	update;
+    ShadowWindowProc	window;
+    PixmapPtr		pPixmap;
+    int			kind;
+
+    if (pscr->shadow)
+    {
+	switch (pscr->mapping) {
+	case VESA_LINEAR:
+	    update = shadowUpdatePacked;
+	    window = vesaWindowLinear;
+	    break;
+	case VESA_WINDOWED:
+	    update = shadowUpdatePacked;
+	    window = vesaWindowWindowed;
+	    break;
+	case VESA_PLANAR:
+	    pScreen->CreateColormap = vesaCreateColormap16;
+	    if (pScreenPriv->screen->fb[0].bitsPerPixel == 8)
+		update = shadowUpdatePlanar4x8;
+	    else
+		update = shadowUpdatePlanar4;
+	    window = vesaWindowPlanar;
+	    pscr->rotate = 0;
+	    break;
+	case VESA_MONO:
+	    update = vesaUpdateMono;
+	    if (pscr->mode.mode < 8)
+		window = vesaWindowCga;
+	    else
+		window = vesaWindowLinear;
+	    pscr->rotate = 0;
+	    break;
+	}
+        switch (pscr->rotate) {
+        case 90:
+	    switch (pScreenPriv->screen->fb[0].bitsPerPixel) {
+	    case 8:
+		update = shadowUpdateRotate8_90; break;
+	    case 16:
+		update = shadowUpdateRotate16_90; break;
+	    case 32:
+		update = shadowUpdateRotate32_90; break;
+	    }
+	    break;
+	case 180:
+	    switch (pScreenPriv->screen->fb[0].bitsPerPixel) {
+	    case 8:
+		update = shadowUpdateRotate8_180; break;
+	    case 16:
+		update = shadowUpdateRotate16_180; break;
+	    case 32:
+		update = shadowUpdateRotate32_180; break;
+	    }
+	    break;
+	case 270:
+	    switch (pScreenPriv->screen->fb[0].bitsPerPixel) {
+	    case 8:
+		update = shadowUpdateRotate8_270; break;
+	    case 16:
+		update = shadowUpdateRotate16_270; break;
+	    case 32:
+		update = shadowUpdateRotate32_270; break;
+	    }
+	    break;
+	}
+	
+	kind = LAYER_SHADOW;
+	pPixmap = 0;
+    }
+    else
+    {
+	kind = pscr->layerKind;
+	pPixmap = LAYER_SCREEN_PIXMAP;
+	update = 0;
+	window = 0;
+    }
+
+    if (vesa_verbose)
+	ErrorF ("Mode selected %dx%dx%d\n",
+		screen->width, screen->height, screen->fb[0].depth);
+
+    return LayerCreate (pScreen, kind, screen->fb[0].depth, 
+			pPixmap, update, window, 0);
+}
+
+Bool
+vesaMapFramebuffer (KdScreenInfo    *screen)
+{
+    VesaCardPrivPtr	priv = screen->card->driver;
+    VesaScreenPrivPtr	pscr = screen->driver;
+    int			depth, bpp, fbbpp;
+    Pixel		allbits;
+
+    if (vesa_linear_fb)
+	pscr->mapping = VESA_LINEAR;
+    else
+	pscr->mapping = VESA_WINDOWED;
+    
+    depth = vesaDepth (&pscr->mode);
+    bpp = pscr->mode.BitsPerPixel;
+    
+    if (bpp > 24)
+	bpp = 32;
+    else if (bpp > 16)
+	bpp = 24;
+    else if (bpp > 8)
+	bpp = 16;
+    else if (bpp > 4)
+	bpp = 8;
+    else if (bpp > 1)
+	bpp = 4;
+    else
+	bpp = 1;
+    fbbpp = bpp;
+    
+    switch (pscr->mode.MemoryModel) {
+    case MEMORY_DIRECT:
+        allbits = (screen->fb[0].redMask | 
+		   screen->fb[0].greenMask | 
+		   screen->fb[0].blueMask);
+        depth = 32;
+        while (depth && !(allbits & (1 << (depth - 1))))
+            depth--;
+	if (vesa_verbose)
+	    ErrorF ("\tTrue Color red 0x%x green 0x%x blue 0x%x\n",
+		    bpp, depth, 
+		    screen->fb[0].redMask,
+		    screen->fb[0].greenMask,
+		    screen->fb[0].blueMask);
+	break;
+    case MEMORY_PSEUDO:
+	if (vesa_verbose)
+	    ErrorF ("\tPseudo Color bpp %d depth %d\n",
+		    bpp, depth);
+	break;
+    case MEMORY_PLANAR:
+	if (bpp == 4)
+	{
+	    bpp = screen->fb[0].bitsPerPixel;
+	    if (bpp != 8)
+		bpp = 4;
+	    depth = bpp;
+	}
+	if (bpp == 1)
+	{
+	    pscr->mapping = VESA_MONO;
+	    if (vesa_verbose)
+		ErrorF ("\tMonochrome\n");
+	}
+	else
+	{
+	    pscr->mapping = VESA_PLANAR;
+	    if (vesa_verbose)
+		ErrorF ("\tStatic color bpp %d depth %d\n",
+			bpp, depth);
+	}
+	pscr->rotate = 0;
+	break;
+    default:
+	return 0;
+    }
+
+    switch (fbbpp) {
+    case 8:
+    case 16:
+    case 32:
+	break;
+    default:
+	pscr->rotate = 0;
+    }
+    
+    screen->width = vesaWidth(screen, &pscr->mode);
+    screen->height = vesaHeight(screen, &pscr->mode);
+    screen->fb[0].depth = depth;
+    screen->fb[0].bitsPerPixel = bpp;
+    screen->fb[0].byteStride = pscr->mode.BytesPerScanLine;
+    screen->fb[0].pixelStride = ((pscr->mode.BytesPerScanLine * 8) / fbbpp);
+
+    if (pscr->mapping == VESA_LINEAR && !(pscr->mode.ModeAttributes & MODE_LINEAR))
+	pscr->mapping = VESA_WINDOWED;
+    
+    pscr->shadow = vesa_shadow;
+
+    if (pscr->rotate)
+	pscr->shadow = TRUE;
+    
+    if (pscr->rotate)
+	screen->softCursor = TRUE;
+
+    switch (pscr->mapping) {
+    case VESA_MONO:
+	pscr->shadow = TRUE;
+	/* fall through */
+    case VESA_LINEAR:
+	if (pscr->mode.vbe)
+	    pscr->fb = VbeMapFramebuffer(priv->vi, priv->vbeInfo, 
+					 pscr->mode.mode,
+					 &pscr->fb_size);
+	else
+	    pscr->fb = VgaMapFramebuffer (priv->vi, 
+					  pscr->mode.mode,
+					  &pscr->fb_size);
+	if (!pscr->fb)
+	    return FALSE;
+	break;
+    case VESA_WINDOWED:
+	pscr->fb = NULL;
+	pscr->shadow = TRUE;
+	break;
+    case VESA_PLANAR:
+	pscr->fb = NULL;
+	pscr->shadow = TRUE;
+	break;
+    }
+    screen->fb[0].frameBuffer = (CARD8 *)(pscr->fb);
+    return TRUE;
+}
+
+void
+vesaUnmapFramebuffer (KdScreenInfo  *screen)
+{
+    VesaCardPrivPtr	    priv = screen->card->driver;
+    VesaScreenPrivPtr	    pscr = screen->driver;
+    
+    if (pscr->fb)
+    {
+	if (pscr->mode.vbe)
+	    VbeUnmapFramebuffer(priv->vi, priv->vbeInfo, pscr->mode.mode, pscr->fb);
+	else
+	    VgaUnmapFramebuffer (priv->vi);
+    }
+}
+
 #ifdef RANDR
 Bool
 vesaRandRGetInfo (ScreenPtr pScreen, Rotation *rotations)
@@ -939,8 +1066,8 @@ vesaRandRGetInfo (ScreenPtr pScreen, Rotation *rotations)
 		pSize = RRRegisterSize (pScreen,
 					mode->XResolution,
 					mode->YResolution,
-					pScreen->mmWidth,
-					pScreen->mmHeight,
+					screen->width_mm,
+					screen->height_mm,
 					pGroupOfVisualGroup);
 		if (mode->XResolution == pScreen->width &&
 		    mode->YResolution == pScreen->height)
@@ -951,6 +1078,30 @@ vesaRandRGetInfo (ScreenPtr pScreen, Rotation *rotations)
 	    }
 	}
     }
+    return TRUE;
+}
+
+int
+vesaLayerAdd (WindowPtr pWin, pointer value)
+{
+    ScreenPtr	    pScreen = pWin->drawable.pScreen;
+    LayerPtr	    pLayer = (LayerPtr) value;
+
+    if (!LayerWindowAdd (pScreen, pLayer, pWin))
+	return WT_STOPWALKING;
+
+    return WT_WALKCHILDREN;
+}
+
+int
+vesaLayerRemove (WindowPtr pWin, pointer value)
+{
+    ScreenPtr	    pScreen = pWin->drawable.pScreen;
+    LayerPtr	    pLayer = (LayerPtr) value;
+
+    LayerWindowRemove (pScreen, pLayer, pWin);
+
+    return WT_WALKCHILDREN;
 }
 
 Bool
@@ -966,7 +1117,13 @@ vesaRandRSetConfig (ScreenPtr		pScreen,
     VesaScreenPrivPtr	pscr = pScreenPriv->screen->driver;
     int			n;
     Bool		wasEnabled = pScreenPriv->enabled;
-    Bool		ret;
+    Bool		ret = FALSE;
+    VesaScreenPrivRec	oldscr;
+    int			oldwidth;
+    int			oldheight;
+    int			oldmmwidth;
+    int			oldmmheight;
+    LayerPtr		pNewLayer;
 
     for (n = 0; n < priv->nmode; n++)
     {
@@ -990,87 +1147,144 @@ vesaRandRSetConfig (ScreenPtr		pScreen,
 	}
     }
     if (n == priv->nmode)
-	return FALSE;
+	goto bail0;
     
     if (wasEnabled)
 	KdDisableScreen (pScreen);
 
     ret = vesaSetMode (pScreen, mode);
-    if (ret)
+
+    if (!ret)
+	goto bail1;
+    
+    oldscr = *pscr;
+    
+    oldwidth = screen->width;
+    oldheight = screen->height;
+    oldmmwidth = pScreen->mmWidth;
+    oldmmheight = pScreen->mmHeight;
+    
+    /*
+     * Set new configuration
+     */
+    
+    pscr->mode = *mode;
+    switch (rotation) {
+    case RR_Rotate_0:	pscr->rotate = 0; break;
+    case RR_Rotate_90:	pscr->rotate = 90; break;
+    case RR_Rotate_180:	pscr->rotate = 180; break;
+    case RR_Rotate_270:	pscr->rotate = 270; break;
+    }
+
+    /*
+     * Can't rotate some formats
+     */
+    switch (screen->fb[0].bitsPerPixel) {
+    case 8:
+    case 16:
+    case 32:
+	break;
+    default:
+	if (pscr->rotate)
+	    goto bail2;
+	break;
+    }
+
+    pScreen->width = screen->width = vesaWidth(screen, mode);
+    pScreen->height = screen->height = vesaHeight(screen, mode);
+    
+    if (rotation & (RR_Rotate_90|RR_Rotate_270))
     {
-	pscr->mode = *mode;
-	switch (screen->fb[0].bitsPerPixel) {
-	case 8:
-	case 16:
-	case 32:
-	    switch (rotation)
-	    {
-	    case RR_Rotate_0:
-		pscr->rotate = 0;
-		break;
-	    case RR_Rotate_90:
-		pscr->rotate = 90;
-		break;
-	    case RR_Rotate_180:
-		pscr->rotate = 180;
-		break;
-	    case RR_Rotate_270:
-		pscr->rotate = 270;
-		break;
-	    }
-	    break;
-	default:
-	    pscr->rotate = 0;
-	    break;
-	}
-	screen->width = vesaWidth(screen, mode);
-	screen->height = vesaHeight(screen, mode);
-	pScreen->width = screen->width;
-	pScreen->height = screen->height;
-	if (rotation == 90 || rotation == 270)
-	{
-	    pScreen->mmWidth = pSize->mmHeight;
-	    pScreen->mmHeight = pSize->mmWidth;
-	}
-	else
-	{
-	    pScreen->mmWidth = pSize->mmWidth;
-	    pScreen->mmHeight = pSize->mmHeight;
-	}
+	pScreen->mmWidth = pSize->mmHeight;
+	pScreen->mmHeight = pSize->mmWidth;
+    }
+    else
+    {
+	pScreen->mmWidth = pSize->mmWidth;
+	pScreen->mmHeight = pSize->mmHeight;
+    }
+    
+    vesaUnmapFramebuffer (screen);
+    if (!vesaMapFramebuffer (screen))
+	goto bail3;
+    
 #if 0
-	/*
-	 * XXX can't switch depths yet
-	 */
-	screen->fb[0].depth = depth;
-	screen->fb[0].bitsPerPixel = bpp;
+    /*
+     * XXX can't switch depths yet
+     */
+    screen->fb[0].depth = depth;
+    screen->fb[0].bitsPerPixel = bpp;
 #endif
-	screen->fb[0].byteStride = pscr->mode.BytesPerScanLine;
-	screen->fb[0].pixelStride = ((pscr->mode.BytesPerScanLine * 8) / screen->fb[0].bitsPerPixel);
+    screen->fb[0].byteStride = mode->BytesPerScanLine;
+    screen->fb[0].pixelStride = ((mode->BytesPerScanLine * 8) / screen->fb[0].bitsPerPixel);
+    if (!pscr->shadow)
+    {
 	(*pScreen->ModifyPixmapHeader) (fbGetScreenPixmap (pScreen),
-					screen->width,
-					screen->height,
+					pScreen->width,
+					pScreen->height,
 					screen->fb[0].depth,
 					screen->fb[0].bitsPerPixel,
 					screen->fb[0].byteStride,
 					screen->fb[0].frameBuffer);
     }
-    else
-	(void) vesaSetMode (pScreen, &pscr->mode);
+
+    pNewLayer = vesaLayerCreate (pScreen);
+    if (!pNewLayer)
+	goto bail4;
+    
+    if (WalkTree (pScreen, vesaLayerAdd, (pointer) pNewLayer) == WT_STOPWALKING)
+	goto bail5;
+    
+    WalkTree (pScreen, vesaLayerRemove, (pointer) pscr->pLayer);
+    LayerDestroy (pScreen, pscr->pLayer);
+
+    pscr->pLayer = pNewLayer;
+
 
     if (wasEnabled)
 	KdEnableScreen (pScreen);
-    return ret;
+
+    return TRUE;
+
+bail5:
+    WalkTree (pScreen, vesaLayerRemove, (pointer) pNewLayer);
+    LayerDestroy (pScreen, pNewLayer);
+bail4:
+    vesaUnmapFramebuffer (screen);
+    *pscr = oldscr;
+    (void) vesaMapFramebuffer (screen);
+    
+bail3:
+    pScreen->width = screen->width = oldwidth;
+    pScreen->height = screen->height = oldheight;
+    pScreen->mmWidth = oldmmwidth;
+    pScreen->mmHeight = oldmmheight;
+    
+bail2:
+    *pscr = oldscr;
+    
+    (void) vesaSetMode (pScreen, &pscr->mode);
+
+bail1:
+    if (wasEnabled)
+	KdEnableScreen (pScreen);
+bail0:
+    
+    return FALSE;
 }
 
-void
+Bool
 vesaRandRInit (ScreenPtr pScreen)
 {
-    rrScrPriv(pScreen);
+    rrScrPrivPtr    pScrPriv;
+    
+    if (!RRScreenInit (pScreen))
+	return FALSE;
 
-    if (!pScrPriv)
-	return;
+    pScrPriv = rrGetScrPriv(pScreen);
     pScrPriv->rrGetInfo = vesaRandRGetInfo;
     pScrPriv->rrSetConfig = vesaRandRSetConfig;
+    return TRUE;
 }
 #endif
 
@@ -1079,76 +1293,31 @@ vesaInitScreen(ScreenPtr pScreen)
 {
     KdScreenPriv(pScreen);
     VesaScreenPrivPtr	pscr = pScreenPriv->screen->driver;
-    ShadowUpdateProc	update;
-    ShadowWindowProc	window;
     
+    if (!LayerStartInit (pScreen))
+	return FALSE;
+    
+    return TRUE;
+}
 
-    if (pscr->shadow)
-    {
-	switch (pscr->mapping) {
-	case VESA_LINEAR:
-	    update = shadowUpdatePacked;
-	    window = vesaWindowLinear;
-	    break;
-	case VESA_WINDOWED:
-	    update = shadowUpdatePacked;
-	    window = vesaWindowWindowed;
-	    break;
-	case VESA_PLANAR:
-	    pScreen->CreateColormap = vesaCreateColormap16;
-	    if (pScreenPriv->screen->fb[0].bitsPerPixel == 8)
-		update = shadowUpdatePlanar4x8;
-	    else
-		update = shadowUpdatePlanar4;
-	    window = vesaWindowPlanar;
-	    pscr->rotate = 0;
-	    break;
-	case VESA_MONO:
-	    update = vesaUpdateMono;
-	    if (pscr->mode.mode < 8)
-		window = vesaWindowCga;
-	    else
-		window = vesaWindowLinear;
-	    pscr->rotate = 0;
-	    break;
-	}
-        switch (pscr->rotate) {
-        case 90:
-	    switch (pScreenPriv->screen->fb[0].bitsPerPixel) {
-	    case 8:
-		update = shadowUpdateRotate8_90; break;
-	    case 16:
-		update = shadowUpdateRotate16_90; break;
-	    case 32:
-		update = shadowUpdateRotate32_90; break;
-	    }
-	    break;
-	case 180:
-	    switch (pScreenPriv->screen->fb[0].bitsPerPixel) {
-	    case 8:
-		update = shadowUpdateRotate8_180; break;
-	    case 16:
-		update = shadowUpdateRotate16_180; break;
-	    case 32:
-		update = shadowUpdateRotate32_180; break;
-	    }
-	    break;
-	case 270:
-	    switch (pScreenPriv->screen->fb[0].bitsPerPixel) {
-	    case 8:
-		update = shadowUpdateRotate8_270; break;
-	    case 16:
-		update = shadowUpdateRotate16_270; break;
-	    case 32:
-		update = shadowUpdateRotate32_270; break;
-	    }
-	    break;
-	}
-	
-        return KdShadowInitScreen (pScreen, update, window);
-    }
+Bool
+vesaFinishInitScreen (ScreenPtr pScreen)
+{
+    KdScreenPriv(pScreen);
+    VesaScreenPrivPtr	pscr = pScreenPriv->screen->driver;
+    
+    pscr->layerKind = LayerNewKind (pScreen);
+
+    if (!LayerFinishInit (pScreen))
+	return FALSE;
+
+    pscr->pLayer = vesaLayerCreate (pScreen);
+    if (!pscr->pLayer)
+	return FALSE;
+    
 #ifdef RANDR
-    vesaRandRInit (pScreen);
+    if (!vesaRandRInit (pScreen))
+	return FALSE;
 #endif
     
     return TRUE;
@@ -1352,16 +1521,7 @@ vesaScreenFini(KdScreenInfo *screen)
     VesaScreenPrivPtr	pscr = screen->driver;
     VesaCardPrivPtr	priv = screen->card->driver;
     
-    if (pscr->fb)
-    {
-	if (pscr->mode.vbe)
-	    VbeUnmapFramebuffer(priv->vi, priv->vbeInfo, pscr->mode.mode, pscr->fb);
-	else
-	    VgaUnmapFramebuffer (priv->vi);
-    }
-    
-    if (pscr->shadow)
-	KdShadowScreenFini (screen);
+    vesaUnmapFramebuffer (screen);
     screen->fb[0].depth = pscr->origDepth;
 }
 

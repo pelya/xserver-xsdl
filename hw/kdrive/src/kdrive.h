@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/kdrive.h,v 1.12 2000/12/08 22:59:37 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/kdrive.h,v 1.14 2001/05/29 04:54:10 keithp Exp $ */
 
 #include <stdio.h>
 #include "X.h"
@@ -140,6 +140,8 @@ typedef struct _KdCardFuncs {
 
     void        (*getColors) (ScreenPtr, int, int, xColorItem *);
     void        (*putColors) (ScreenPtr, int, int, xColorItem *);
+
+    Bool	(*finishInitScreen) (ScreenPtr pScreen);
 } KdCardFuncs;
 
 #define KD_MAX_PSEUDO_DEPTH 8
@@ -290,6 +292,17 @@ extern KdOsFuncs	*kdOsFuncs;
 }
 
 #define KdMarkSync(s)	(KdGetScreenPriv(s)->card->needSync = TRUE)
+
+/* kaa.c */
+Bool
+kaaDrawInit (ScreenPtr		pScreen,
+	     KaaScreenPrivPtr	pScreenPriv);
+
+void
+kaaWrapGC (GCPtr pGC);
+
+void
+kaaUnwrapGC (GCPtr pGC);
 
 /* kasync.c */
 void

@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/kdrive.c,v 1.14 2001/05/26 01:25:41 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/kdrive.c,v 1.15 2001/05/29 04:54:10 keithp Exp $ */
 
 #include "kdrive.h"
 #ifdef PSEUDO8
@@ -744,8 +744,12 @@ KdScreenInit(int index, ScreenPtr pScreen, int argc, char **argv)
      */
     if (screen->width_mm)
 	pScreen->mmWidth = screen->width_mm;
+    else
+	screen->width_mm = pScreen->mmWidth;
     if (screen->height_mm)
 	pScreen->mmHeight = screen->height_mm;
+    else
+	screen->height_mm = pScreen->mmHeight;
     
     /*
      * Plug in our own block/wakeup handlers.
@@ -758,11 +762,6 @@ KdScreenInit(int index, ScreenPtr pScreen, int argc, char **argv)
     if (!fbPictureInit (pScreen, 0, 0))
 	return FALSE;
 #endif
-#ifdef RANDR
-    if (!miRandRInit (pScreen))
-	return FALSE;
-#endif
-    
     if (card->cfuncs->initScreen)
 	if (!(*card->cfuncs->initScreen) (pScreen))
 	    return FALSE;
@@ -775,6 +774,10 @@ KdScreenInit(int index, ScreenPtr pScreen, int argc, char **argv)
     (void) p8Init (pScreen, PSEUDO8_USE_DEFAULT);
 #endif
     
+    if (card->cfuncs->finishInitScreen)
+	if (!(*card->cfuncs->finishInitScreen) (pScreen))
+	    return FALSE;
+	    
 #if 0
     fbInitValidateTree (pScreen);
 #endif

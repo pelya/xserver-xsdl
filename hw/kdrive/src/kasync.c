@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/kasync.c,v 1.7 2000/09/22 06:25:29 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/kasync.c,v 1.8 2001/03/30 02:15:19 keithp Exp $ */
 
 #include "kdrive.h"
 
@@ -60,7 +60,8 @@ RegionPtr
 KdCheckCopyArea (DrawablePtr pSrc, DrawablePtr pDst, GCPtr pGC,
 		 int srcx, int srcy, int w, int h, int dstx, int dsty)
 {
-    KdCheckSync (pSrc->pScreen);
+    if (pSrc->type == DRAWABLE_WINDOW || pDst->type == DRAWABLE_WINDOW)
+	KdCheckSync (pSrc->pScreen);
     return fbCopyArea (pSrc, pDst, pGC, srcx, srcy, w, h, dstx, dsty);
 }
 
@@ -69,7 +70,8 @@ KdCheckCopyPlane (DrawablePtr pSrc, DrawablePtr pDst, GCPtr pGC,
 		  int srcx, int srcy, int w, int h, int dstx, int dsty,
 		  unsigned long bitPlane)
 {
-    KdCheckSync (pSrc->pScreen);
+    if (pSrc->type == DRAWABLE_WINDOW || pDst->type == DRAWABLE_WINDOW)
+	KdCheckSync (pSrc->pScreen);
     return fbCopyPlane (pSrc, pDst, pGC, srcx, srcy, w, h, dstx, dsty,
 			bitPlane);
 }

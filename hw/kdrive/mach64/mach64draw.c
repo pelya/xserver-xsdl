@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/mach64/mach64draw.c,v 1.9 2001/05/30 15:36:25 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/mach64/mach64draw.c,v 1.1 2001/06/03 18:48:19 keithp Exp $ */
 
 #include "mach64.h"
 #include "mach64draw.h"
@@ -227,6 +227,20 @@ KaaScreenPrivRec    mach64Kaa = {
     mach64DoneCopy,
 };
 
+Bool
+mach64DrawInit (ScreenPtr pScreen)
+{
+    KdScreenPriv(pScreen);
+    
+    if (pScreenPriv->screen->fb[0].depth == 4)
+	return FALSE;
+    
+    if (!kaaDrawInit (pScreen, &mach64Kaa))
+	return FALSE;
+
+    return TRUE;
+}
+
 #define PIX_FORMAT_MONO	0
 #define PIX_FORMAT_PSEUDO_8	2
 #define PIX_FORMAT_TRUE_1555	3
@@ -238,7 +252,8 @@ KaaScreenPrivRec    mach64Kaa = {
 #define PIX_FORMAT_YUV_444	0xe
 #define PIX_FORMAT_TRUE_4444	0xf
 
-mach64DrawInit (ScreenPtr pScreen)
+void
+mach64DrawEnable (ScreenPtr pScreen)
 {
     KdScreenPriv(pScreen);
     mach64ScreenInfo(pScreenPriv);
@@ -266,7 +281,7 @@ mach64DrawInit (ScreenPtr pScreen)
 	SET_DP_DST_PIX_WIDTH = PIX_FORMAT_MONO;
 	break;
     case 4:
-	return FALSE;
+	FatalError ("mach64 can't accelerate 4bpp");
 	break;
     case 8:
 	DP_PIX_WIDTH = ((PIX_FORMAT_PSEUDO_8 << 0) |	/* DP_DST_PIX_WIDTH */
@@ -355,9 +370,6 @@ mach64DrawInit (ScreenPtr pScreen)
 	break;
     }
     
-    if (!kaaDrawInit (pScreen, &mach64Kaa))
-	return FALSE;
-
     mach64s->DP_PIX_WIDTH = DP_PIX_WIDTH;
     DST1_PITCH = (pScreenPriv->screen->fb[0].pixelStride) >> 3;
     if (mach64s->bpp24)
@@ -380,12 +392,6 @@ mach64DrawInit (ScreenPtr pScreen)
 				  (0 << 29) |		/* FAST_FILL_EN */
 				  (0 << 30) |		/* BLOCK_WRITE_EN */
 				  0);
-    return TRUE;
-}
-
-void
-mach64DrawEnable (ScreenPtr pScreen)
-{
     KdMarkSync (pScreen);
 }
 
