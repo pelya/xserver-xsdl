@@ -1076,7 +1076,12 @@ xf86WriteMmio32Be(__volatile__ void *base, const unsigned long offset,
 
 extern volatile unsigned char *ioBase;
 
-#    define eieio()		__asm__ __volatile__ ("eieio" ::: "memory")
+#if defined(linux) && defined(__powerpc64__)
+# include <asm/memory.h>
+#endif /* defined(linux) && defined(__powerpc64__) */
+#ifndef eieio /* We deal with arch-specific eieio() routines above... */
+# define eieio() __asm__ __volatile__ ("eieio" ::: "memory")
+#endif /* eieio */
 
 static __inline__ unsigned char
 xf86ReadMmio8(__volatile__ void *base, const unsigned long offset)
