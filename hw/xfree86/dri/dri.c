@@ -57,6 +57,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define _XF86DRI_SERVER_
 #include "xf86dristr.h"
 #include "swaprep.h"
+#include "xf86str.h"
 #include "dri.h"
 #include "sarea.h"
 #include "dristruct.h"

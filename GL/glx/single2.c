@@ -42,8 +42,8 @@
 #include "g_disptab.h"
 #include "GL/glx_ansic.h"
 
-#if defined(__CYGWIN__) || defined(__DARWIN__) /* should be XFree86Server */
-#define xf86atof atof
+#if defined(XFree86LOADER) && !defined(__CYGWIN__) && !defined(__DARWIN__)
+#define atof xf86atof
 #endif
 
 int __glXDisp_FeedbackBuffer(__GLXclientState *cl, GLbyte *pc)
@@ -345,7 +345,7 @@ int DoGetString(__GLXclientState *cl, GLbyte *pc, GLboolean need_swap)
 	string = buf;
     }
     else if ( name == GL_VERSION ) {
-	if ( xf86atof( string ) > xf86atof( GLServerVersion ) ) {
+	if ( atof( string ) > atof( GLServerVersion ) ) {
 	    buf = __glXMalloc( __glXStrlen( string ) 
 			       + __glXStrlen( GLServerVersion )
 			       + 4 );
