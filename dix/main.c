@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/dix/main.c,v 1.3 2004/06/30 20:06:53 kem Exp $ */
+/* $XdotOrg: xc/programs/Xserver/dix/main.c,v 1.4 2004/09/18 23:18:35 gisburn Exp $ */
 /* $XFree86: xc/programs/Xserver/dix/main.c,v 3.43 2003/10/30 21:21:02 herrb Exp $ */
 /***********************************************************
 
@@ -113,13 +113,9 @@ Equipment Corporation.
 #include "dpmsproc.h"
 #endif
 
-extern int InitClientPrivates(
-    ClientPtr /*client*/
-);
+extern int InitClientPrivates(ClientPtr client);
 
-extern void Dispatch(
-    void
-);
+extern void Dispatch(void);
 
 char *ConnectionInfo;
 xConnSetupPrefix connSetupPrefix;
@@ -152,7 +148,7 @@ NotImplemented(xEvent *from, xEvent *to)
 /*
  * Dummy entry for ReplySwapVector[]
  */
-/*ARGSUSED*/
+
 void
 ReplyNotSwappd(
 	ClientPtr pClient ,
@@ -780,8 +776,7 @@ AddScreen(
 }
 
 static void
-FreeScreen(pScreen)
-    ScreenPtr pScreen;
+FreeScreen(ScreenPtr pScreen)
 {
     xfree(pScreen->WindowPrivateSizes);
     xfree(pScreen->GCPrivateSizes);

@@ -65,16 +65,12 @@ SOFTWARE.
 extern XID clientErrorValue;
 extern FontPtr defaultFont;
 
-static Bool CreateDefaultTile(
-    GCPtr /*pGC*/
-);
+static Bool CreateDefaultTile(GCPtr pGC);
 
 unsigned char DefaultDash[2] = {4, 4};
 
 void
-ValidateGC(pDraw, pGC)
-    DrawablePtr	pDraw;
-    GC		*pGC;
+ValidateGC(DrawablePtr pDraw, GC *pGC)
 {
     (*pGC->funcs->ValidateGC) (pGC, pGC->stateChanges, pDraw);
     pGC->stateChanges = 0;
@@ -146,12 +142,7 @@ ValidateGC(pDraw, pGC)
     assert(pUnion); _var = (_type)pUnion->ptr; pUnion++; }
 
 int
-dixChangeGC(client, pGC, mask, pC32, pUnion)
-    ClientPtr client;
-    register GC 	*pGC;
-    register BITS32	mask;
-    CARD32		*pC32;
-    ChangeGCValPtr	pUnion;
+dixChangeGC(ClientPtr client, register GC *pGC, register BITS32 mask, CARD32 *pC32, ChangeGCValPtr pUnion)
 {
     register BITS32 	index2;
     register int 	error = 0;
@@ -529,10 +520,7 @@ dixChangeGC(client, pGC, mask, pC32, pUnion)
 /* Publically defined entry to ChangeGC.  Just calls dixChangeGC and tells
  * it that all of the entries are constants or IDs */
 int
-ChangeGC(pGC, mask, pval)
-    register GC 	*pGC;
-    register BITS32	mask;
-    XID			*pval;
+ChangeGC(register GC *pGC, register BITS32 mask, XID *pval)
 {
     return (dixChangeGC(NullClient, pGC, mask, pval, NULL));
 }
@@ -558,11 +546,7 @@ NOTE:
 32 bits long
 */
 int
-DoChangeGC(pGC, mask, pval, fPointer)
-    register GC 	*pGC;
-    register BITS32	mask;
-    XID			*pval;
-    int			fPointer;
+DoChangeGC(register GC *pGC, register BITS32 mask, XID *pval, int fPointer)
 {
     if (fPointer)
     /* XXX might be a problem on 64 bit big-endian servers */
@@ -614,11 +598,7 @@ AllocateGC(ScreenPtr pScreen)
 }
 
 GCPtr
-CreateGC(pDrawable, mask, pval, pStatus)
-    DrawablePtr	pDrawable;
-    BITS32	mask;
-    XID		*pval;
-    int		*pStatus;
+CreateGC(DrawablePtr pDrawable, BITS32 mask, XID *pval, int *pStatus)
 {
     register GCPtr pGC;
 
@@ -699,8 +679,7 @@ CreateGC(pDrawable, mask, pval, pStatus)
 }
 
 static Bool
-CreateDefaultTile (pGC)
-    GCPtr   pGC;
+CreateDefaultTile (GCPtr pGC)
 {
     XID		tmpval[3];
     PixmapPtr 	pTile;
@@ -743,10 +722,7 @@ CreateDefaultTile (pGC)
 }
 
 int
-CopyGC(pgcSrc, pgcDst, mask)
-    register GC		*pgcSrc;
-    register GC		*pgcDst;
-    register BITS32	mask;
+CopyGC(register GC *pgcSrc, register GC *pgcDst, register BITS32 mask)
 {
     register BITS32	index2;
     BITS32		maskQ;
@@ -904,16 +880,13 @@ CopyGC(pgcSrc, pgcDst, mask)
     return error;
 }
 
-/*****************
- * FreeGC 
- *   does the diX part of freeing the characteristics in the GC 
- ***************/
-
-/*ARGSUSED*/
+/**
+ * does the diX part of freeing the characteristics in the GC.
+ *
+ *  \param value  must conform to DeleteType
+ */
 int
-FreeGC(value, gid)
-    pointer value; /* must conform to DeleteType */
-    XID gid;
+FreeGC(pointer value, XID gid)
 {
     GCPtr pGC = (GCPtr)value;
 
@@ -933,10 +906,7 @@ FreeGC(value, gid)
 }
 
 void
-SetGCMask(pGC, selectMask, newDataMask)
-    GCPtr pGC;
-    Mask selectMask;
-    Mask newDataMask;
+SetGCMask(GCPtr pGC, Mask selectMask, Mask newDataMask)
 {
     pGC->stateChanges = (~selectMask & pGC->stateChanges) |
 		        (selectMask & newDataMask);
@@ -960,9 +930,7 @@ go with CreateGC() or ChangeGC().)
 */
 
 GCPtr
-CreateScratchGC(pScreen, depth)
-    ScreenPtr pScreen;
-    unsigned depth;
+CreateScratchGC(ScreenPtr pScreen, unsigned depth)
 {
     register GCPtr pGC;
 
@@ -1014,8 +982,7 @@ CreateScratchGC(pScreen, depth)
 }
 
 void
-FreeGCperDepth(screenNum)
-    int screenNum;
+FreeGCperDepth(int screenNum)
 {
     register int i;
     register ScreenPtr pScreen;
@@ -1031,8 +998,7 @@ FreeGCperDepth(screenNum)
 
 
 Bool
-CreateGCperDepth(screenNum)
-    int screenNum;
+CreateGCperDepth(int screenNum)
 {
     register int i;
     register ScreenPtr pScreen;
@@ -1062,8 +1028,7 @@ CreateGCperDepth(screenNum)
 }
 
 Bool
-CreateDefaultStipple(screenNum)
-    int screenNum;
+CreateDefaultStipple(int screenNum)
 {
     register ScreenPtr pScreen;
     XID tmpval[3];
@@ -1100,19 +1065,14 @@ CreateDefaultStipple(screenNum)
 }
 
 void
-FreeDefaultStipple(screenNum)
-    int screenNum;
+FreeDefaultStipple(int screenNum)
 {
     ScreenPtr pScreen = screenInfo.screens[screenNum];
     (*pScreen->DestroyPixmap)(pScreen->PixmapPerDepth[0]);
 }
 
 int
-SetDashes(pGC, offset, ndash, pdash)
-register GCPtr pGC;
-unsigned offset;
-register unsigned ndash;
-register unsigned char *pdash;
+SetDashes(register GCPtr pGC, unsigned offset, unsigned ndash, unsigned char *pdash)
 {
     register long i;
     register unsigned char *p, *indash;
@@ -1168,10 +1128,7 @@ register unsigned char *pdash;
 }
 
 int
-VerifyRectOrder(nrects, prects, ordering)
-    int			nrects;
-    xRectangle		*prects;
-    int			ordering;
+VerifyRectOrder(int nrects, xRectangle *prects, int ordering)
 {
     register xRectangle	*prectP, *prectN;
     register int	i;
@@ -1221,12 +1178,8 @@ VerifyRectOrder(nrects, prects, ordering)
 }
 
 int
-SetClipRects(pGC, xOrigin, yOrigin, nrects, prects, ordering)
-    GCPtr		pGC;
-    int			xOrigin, yOrigin;
-    int			nrects;
-    xRectangle		*prects;
-    int			ordering;
+SetClipRects(GCPtr pGC, int xOrigin, int yOrigin, int nrects, 
+             xRectangle *prects, int ordering)
 {
     int			newct, size;
     xRectangle 		*prectsNew;
@@ -1262,9 +1215,7 @@ SetClipRects(pGC, xOrigin, yOrigin, nrects, prects, ordering)
    you use it often enough it will become real.)
 */
 GCPtr
-GetScratchGC(depth, pScreen)
-    register unsigned depth;
-    register ScreenPtr pScreen;
+GetScratchGC(register unsigned depth, register ScreenPtr pScreen)
 {
     register int i;
     register GCPtr pGC;
@@ -1313,8 +1264,7 @@ mark it as available.
    if not, free it for real
 */
 void
-FreeScratchGC(pGC)
-    register GCPtr pGC;
+FreeScratchGC(register GCPtr pGC)
 {
     register ScreenPtr pScreen = pGC->pScreen;
     register int i;

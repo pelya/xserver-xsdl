@@ -71,11 +71,7 @@ cursor metrics.
 */
 
 int
-ServerBitsFromGlyph(pfont, ch, cm, ppbits)
-    FontPtr	pfont;
-    unsigned int ch;
-    register CursorMetricPtr cm;
-    unsigned char **ppbits;
+ServerBitsFromGlyph(FontPtr pfont, unsigned ch, register CursorMetricPtr cm, unsigned char **ppbits)
 {
     register ScreenPtr pScreen;
     register GCPtr pGC;
@@ -141,10 +137,7 @@ ServerBitsFromGlyph(pfont, ch, cm, ppbits)
 
 
 Bool
-CursorMetricsFromGlyph( pfont, ch, cm)
-    register FontPtr 	pfont;
-    unsigned		ch;
-    register CursorMetricPtr cm;
+CursorMetricsFromGlyph(register FontPtr pfont, unsigned ch, register CursorMetricPtr cm)
 {
     CharInfoPtr 	pci;
     unsigned long	nglyphs;

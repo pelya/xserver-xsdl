@@ -123,11 +123,8 @@ FreeGrab(GrabPtr pGrab)
     xfree(pGrab);
 }
 
-/*ARGSUSED*/
 int
-DeletePassiveGrab(value, id)
-    pointer value;
-    XID   id;
+DeletePassiveGrab(pointer value, XID id)
 {
     register GrabPtr g, prev;
     GrabPtr pGrab = (GrabPtr)value;
@@ -240,8 +237,7 @@ GrabSupersedesSecond(GrabPtr pFirstGrab, GrabPtr pSecondGrab)
 }
 
 Bool
-GrabMatchesSecond(pFirstGrab, pSecondGrab)
-    GrabPtr pFirstGrab, pSecondGrab;
+GrabMatchesSecond(GrabPtr pFirstGrab, GrabPtr pSecondGrab)
 {
     if ((pFirstGrab->device != pSecondGrab->device) ||
 	(pFirstGrab->modifierDevice != pSecondGrab->modifierDevice) ||
@@ -272,8 +268,7 @@ GrabMatchesSecond(pFirstGrab, pSecondGrab)
 }
 
 int
-AddPassiveGrabToList(pGrab)
-    GrabPtr pGrab;
+AddPassiveGrabToList(GrabPtr pGrab)
 {
     GrabPtr grab;
 
@@ -306,8 +301,7 @@ AddPassiveGrabToList(pGrab)
  */
 
 Bool
-DeletePassiveGrabFromList(pMinuendGrab)
-    GrabPtr pMinuendGrab;
+DeletePassiveGrabFromList(GrabPtr pMinuendGrab)
 {
     register GrabPtr grab;
     GrabPtr *deletes, *adds;

@@ -87,8 +87,7 @@ int fWriteToClient(ClientPtr client, int len, char *buf)
 
 #ifdef notdef
 static void
-PrintPropertys(pWin)
-    WindowPtr pWin;
+PrintPropertys(WindowPtr pWin)
 {
     PropertyPtr pProp;
     register int j;
@@ -107,8 +106,7 @@ PrintPropertys(pWin)
 #endif
 
 int
-ProcRotateProperties(client)
-    ClientPtr client;
+ProcRotateProperties(ClientPtr client)
 {
     int     i, j, delta;
     REQUEST(xRotatePropertiesReq);
@@ -200,8 +198,7 @@ found:
 }
 
 int 
-ProcChangeProperty(client)
-    ClientPtr client;
+ProcChangeProperty(ClientPtr client)
 {	      
     WindowPtr pWin;
     char format, mode;
@@ -274,13 +271,9 @@ ProcChangeProperty(client)
 }
 
 int
-ChangeWindowProperty(pWin, property, type, format, mode, len, value, sendevent)
-    WindowPtr	pWin;
-    Atom	property, type;
-    int		format, mode;
-    unsigned long len;
-    pointer	value;
-    Bool	sendevent;
+ChangeWindowProperty(WindowPtr pWin, Atom property, Atom type, int format, 
+                     int mode, unsigned long len, pointer value, 
+                     Bool sendevent)
 {
 #ifdef LBX
     return LbxChangeWindowProperty(NULL, pWin, property, type,
@@ -397,9 +390,7 @@ ChangeWindowProperty(pWin, property, type, format, mode, len, value, sendevent)
 }
 
 int
-DeleteProperty(pWin, propName)
-    WindowPtr pWin;
-    Atom propName;
+DeleteProperty(WindowPtr pWin, Atom propName)
 {
     PropertyPtr pProp, prevProp;
     xEvent event;
@@ -442,8 +433,7 @@ DeleteProperty(pWin, propName)
 }
 
 void
-DeleteAllWindowProperties(pWin)
-    WindowPtr pWin;
+DeleteAllWindowProperties(WindowPtr pWin)
 {
     PropertyPtr pProp, pNextProp;
     xEvent event;
@@ -495,8 +485,7 @@ NullPropertyReply(
  *****************/
 
 int
-ProcGetProperty(client)
-    ClientPtr client;
+ProcGetProperty(ClientPtr client)
 {
     PropertyPtr pProp, prevProp;
     unsigned long n, len, ind;
@@ -651,8 +640,7 @@ ProcGetProperty(client)
 }
 
 int
-ProcListProperties(client)
-    ClientPtr client;
+ProcListProperties(ClientPtr client)
 {
     Atom *pAtoms = NULL, *temppAtoms;
     xListPropertiesReply xlpr;
@@ -699,8 +687,7 @@ ProcListProperties(client)
 }
 
 int 
-ProcDeleteProperty(client)
-    register ClientPtr client;
+ProcDeleteProperty(register ClientPtr client)
 {
     WindowPtr pWin;
     REQUEST(xDeletePropertyReq);

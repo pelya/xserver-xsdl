@@ -74,7 +74,7 @@ Equipment Corporation.
 ******************************************************************/
 
 /* $Xorg: resource.c,v 1.5 2001/02/09 02:04:40 xorgcvs Exp $ */
-/* $XdotOrg: xc/programs/Xserver/dix/resource.c,v 1.2 2004/04/23 19:04:44 eich Exp $ */
+/* $XdotOrg: xc/programs/Xserver/dix/resource.c,v 1.3 2004/04/25 22:42:09 gisburn Exp $ */
 /* $TOG: resource.c /main/41 1998/02/09 14:20:31 kaleb $ */
 
 /*	Routines to manage various kinds of resources:
@@ -167,8 +167,7 @@ void RegisterResourceName (RESTYPE type, char *name)
 #endif
 
 RESTYPE
-CreateNewResourceType(deleteFunc)
-    DeleteType deleteFunc;
+CreateNewResourceType(DeleteType deleteFunc)
 {
     RESTYPE next = lastResourceType + 1;
     DeleteType *funcs;
@@ -218,8 +217,7 @@ ClientResourceRec clientTable[MAXCLIENTS];
  *****************/
 
 Bool
-InitClientResources(client)
-    ClientPtr client;
+InitClientResources(ClientPtr client)
 {
     register int i, j;
  
@@ -322,10 +320,7 @@ AvailableID(
 }
 
 void
-GetXIDRange(client, server, minp, maxp)
-    int client;
-    Bool server;
-    XID *minp, *maxp;
+GetXIDRange(int client, Bool server, XID *minp, XID *maxp)
 {
     register XID id, maxid;
     register ResourcePtr *resp;
@@ -359,7 +354,8 @@ GetXIDRange(client, server, minp, maxp)
     *maxp = maxid;
 }
 
-/*  GetXIDList is called by the XC-MISC extension's MiscGetXIDList function.
+/**
+ *  GetXIDList is called by the XC-MISC extension's MiscGetXIDList function.
  *  This function tries to find count unused XIDs for the given client.  It 
  *  puts the IDs in the array pids and returns the number found, which should
  *  almost always be the number requested.
@@ -375,10 +371,7 @@ GetXIDRange(client, server, minp, maxp)
  */
 
 unsigned int
-GetXIDList(pClient, count, pids)
-    ClientPtr pClient;
-    unsigned int count;
-    XID *pids;
+GetXIDList(ClientPtr pClient, unsigned count, XID *pids)
 {
     unsigned int found = 0;
     XID id = pClient->clientAsMask;
@@ -405,8 +398,7 @@ GetXIDList(pClient, count, pids)
  */
 
 XID
-FakeClientID(client)
-    register int client;
+FakeClientID(register int client)
 {
     XID id, maxid;
 
@@ -427,10 +419,7 @@ FakeClientID(client)
 }
 
 Bool
-AddResource(id, type, value)
-    XID id;
-    RESTYPE type;
-    pointer value;
+AddResource(XID id, RESTYPE type, pointer value)
 {
     int client;
     register ClientResourceRec *rrec;
@@ -466,8 +455,7 @@ AddResource(id, type, value)
 }
 
 static void
-RebuildTable(client)
-    int client;
+RebuildTable(int client)
 {
     register int j;
     register ResourcePtr res, next;
@@ -516,9 +504,7 @@ RebuildTable(client)
 }
 
 void
-FreeResource(id, skipDeleteFuncType)
-    XID id;
-    RESTYPE skipDeleteFuncType;
+FreeResource(XID id, RESTYPE skipDeleteFuncType)
 {
     int		cid;
     register    ResourcePtr res;
@@ -565,10 +551,7 @@ FreeResource(id, skipDeleteFuncType)
 
 
 void
-FreeResourceByType(id, type, skipFree)
-    XID id;
-    RESTYPE type;
-    Bool    skipFree;
+FreeResourceByType(XID id, RESTYPE type, Bool skipFree)
 {
     int		cid;
     register    ResourcePtr res;
@@ -608,10 +591,7 @@ FreeResourceByType(id, type, skipFree)
  */
 
 Bool
-ChangeResourceValue (id, rtype, value)
-    XID	id;
-    RESTYPE rtype;
-    pointer value;
+ChangeResourceValue (XID id, RESTYPE rtype, pointer value)
 {
     int    cid;
     register    ResourcePtr res;
@@ -760,8 +740,7 @@ FreeClientNeverRetainResources(ClientPtr client)
 }
 
 void
-FreeClientResources(client)
-    ClientPtr client;
+FreeClientResources(ClientPtr client)
 {
     register ResourcePtr *resources;
     register ResourcePtr this;
@@ -819,9 +798,7 @@ FreeAllResources()
 }
 
 Bool
-LegalNewID(id, client)
-    XID id;
-    register ClientPtr client;
+LegalNewID(XID id, register ClientPtr client)
 {
 
 #ifdef PANORAMIX
@@ -851,11 +828,7 @@ LegalNewID(id, client)
  */
 
 pointer
-SecurityLookupIDByType(client, id, rtype, mode)
-    ClientPtr client;
-    XID id;
-    RESTYPE rtype;
-    Mask mode;
+SecurityLookupIDByType(ClientPtr client, XID id, RESTYPE rtype, Mask mode)
 {
     int    cid;
     register    ResourcePtr res;
@@ -884,11 +857,7 @@ SecurityLookupIDByType(client, id, rtype, mode)
 
 
 pointer
-SecurityLookupIDByClass(client, id, classes, mode)
-    ClientPtr client;
-    XID id;
-    RESTYPE classes;
-    Mask mode;
+SecurityLookupIDByClass(ClientPtr client, XID id, RESTYPE classes, Mask mode)
 {
     int    cid;
     register ResourcePtr res = NULL;
@@ -920,18 +889,14 @@ SecurityLookupIDByClass(client, id, classes, mode)
  */
 
 pointer
-LookupIDByType(id, rtype)
-    XID id;
-    RESTYPE rtype;
+LookupIDByType(XID id, RESTYPE rtype)
 {
     return SecurityLookupIDByType(NullClient, id, rtype,
 				  SecurityUnknownAccess);
 }
 
 pointer
-LookupIDByClass(id, classes)
-    XID id;
-    RESTYPE classes;
+LookupIDByClass(XID id, RESTYPE classes)
 {
     return SecurityLookupIDByClass(NullClient, id, classes,
 				   SecurityUnknownAccess);
@@ -943,9 +908,7 @@ LookupIDByClass(id, classes)
  *  LookupIDByType returns the object with the given id and type, else NULL.
  */ 
 pointer
-LookupIDByType(id, rtype)
-    XID id;
-    RESTYPE rtype;
+LookupIDByType(XID id, RESTYPE rtype)
 {
     int    cid;
     register    ResourcePtr res;
@@ -967,9 +930,7 @@ LookupIDByType(id, rtype)
  *  given classes, else NULL.
  */ 
 pointer
-LookupIDByClass(id, classes)
-    XID id;
-    RESTYPE classes;
+LookupIDByClass(XID id, RESTYPE classes)
 {
     int    cid;
     register    ResourcePtr res;

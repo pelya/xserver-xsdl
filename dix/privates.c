@@ -73,9 +73,7 @@ AllocateClientPrivateIndex()
 }
 
 Bool
-AllocateClientPrivate(index2, amount)
-    int index2;
-    unsigned amount;
+AllocateClientPrivate(int index2, unsigned amount)
 {
     unsigned oldamount;
 
@@ -166,10 +164,7 @@ AllocateWindowPrivateIndex()
 }
 
 Bool
-AllocateWindowPrivate(pScreen, index2, amount)
-    register ScreenPtr pScreen;
-    int index2;
-    unsigned amount;
+AllocateWindowPrivate(register ScreenPtr pScreen, int index2, unsigned amount)
 {
     unsigned oldamount;
 
@@ -219,10 +214,7 @@ AllocateGCPrivateIndex()
 }
 
 Bool
-AllocateGCPrivate(pScreen, index2, amount)
-    register ScreenPtr pScreen;
-    int index2;
-    unsigned amount;
+AllocateGCPrivate(register ScreenPtr pScreen, int index2, unsigned amount)
 {
     unsigned oldamount;
 
@@ -272,10 +264,7 @@ AllocatePixmapPrivateIndex()
 }
 
 Bool
-AllocatePixmapPrivate(pScreen, index2, amount)
-    register ScreenPtr pScreen;
-    int index2;
-    unsigned amount;
+AllocatePixmapPrivate(register ScreenPtr pScreen, int index2, unsigned amount)
 {
     unsigned oldamount;
 
@@ -322,10 +311,7 @@ ResetColormapPrivates()
 
 
 int
-AllocateColormapPrivateIndex (initPrivFunc)
-
-InitCmapPrivFunc initPrivFunc;
-
+AllocateColormapPrivateIndex (InitCmapPrivFunc initPrivFunc)
 {
     int		index;
     int		i;
