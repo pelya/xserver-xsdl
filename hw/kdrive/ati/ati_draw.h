@@ -63,7 +63,10 @@ void RadeonSwitchTo2D(ATIScreenInfo *atis);
 void RadeonSwitchTo3D(ATIScreenInfo *atis);
 void ATIWaitIdle(ATIScreenInfo *atis);
 
-#if 0
+#define ATI_TRACE_FALL 0
+#define ATI_TRACE_DRAW 0
+
+#if ATI_TRACE_FALL
 #define ATI_FALLBACK(x)			\
 do {					\
 	ErrorF("%s: ", __FUNCTION__);	\
@@ -73,5 +76,19 @@ do {					\
 #else
 #define ATI_FALLBACK(x) return FALSE
 #endif
+
+#if ATI_TRACE_DRAW
+#define ENTER_DRAW(pix) ATIEnterDraw(pix, __FUNCTION__)
+#define LEAVE_DRAW(pix) ATILeaveDraw(pix, __FUNCTION__)
+
+void
+ATIEnterDraw (PixmapPtr pPixmap, char *function);
+
+void
+ATILeaveDraw (PixmapPtr pPixmap, char *function);
+#else /* ATI_TRACE */
+#define ENTER_DRAW(pix)
+#define LEAVE_DRAW(pix)
+#endif /* !ATI_TRACE */
 
 #endif /* _ATI_DRAW_H_ */

@@ -221,29 +221,28 @@ RadeonSwitchTo3D(ATIScreenInfo *atis)
 	LEAVE_DRAW(0);
 }
 
-#if ATI_TRACE
+#if ATI_TRACE_DRAW
 void
 ATIEnterDraw (PixmapPtr pPix, char *function)
 {
-    if (pPix)
-    {
+    if (pPix != NULL) {
 	KdScreenPriv(pPix->drawable.pScreen);
 	CARD32 offset;
     
 	offset = ((CARD8 *)pPix->devPrivate.ptr -
 		  pScreenPriv->screen->memory_base);
     
-	ErrorF ("Enter %s 0x%x\n", function, offset);
-    }
-    else
+	ErrorF ("Enter %s 0x%x (%dx%dx%d/%d)\n", function, offset,
+	    pPix->drawable.width, pPix->drawable.height, pPix->drawable.depth,
+	    pPix->drawable.bitsPerPixel);
+    } else
 	ErrorF ("Enter %s\n", function);
 }
 
 void
 ATILeaveDraw (PixmapPtr pPix, char *function)
 {
-    if (pPix)
-    {
+    if (pPix != NULL) {
 	KdScreenPriv(pPix->drawable.pScreen);
 	CARD32 offset;
     
@@ -251,8 +250,7 @@ ATILeaveDraw (PixmapPtr pPix, char *function)
 		  pScreenPriv->screen->memory_base);
     
 	ErrorF ("Leave %s 0x%x\n", function, offset);
-    }
-    else
+    } else
 	ErrorF ("Leave %s\n", function);
 }
 #endif
