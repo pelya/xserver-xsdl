@@ -164,6 +164,9 @@ xglChangePicture (PicturePtr pPicture,
     if (pPicture->stateChanges & CPComponentAlpha)
 	pPixmapPriv->pictureMask |= xglPCComponentAlphaMask;
 
+    if (pPicture->stateChanges & CPDither)
+	pPixmapPriv->pictureMask |= xglPCDitherMask;
+
     XGL_PICTURE_SCREEN_UNWRAP (ChangePicture);
     (*pPictureScreen->ChangePicture) (pPicture, mask);
     XGL_PICTURE_SCREEN_WRAP (ChangePicture, xglChangePicture);
@@ -267,6 +270,14 @@ xglUpdatePicture (PicturePtr pPicture)
 	    glitz_surface_set_component_alpha (surface, 1);
 	else
 	    glitz_surface_set_component_alpha (surface, 0);
+    }
+
+    if (pPixmapPriv->pictureMask & xglPCDitherMask)
+    {
+	if (pPicture->dither)
+	    glitz_surface_set_dither (surface, 1);
+	else
+	    glitz_surface_set_dither (surface, 0);
     }
 
     pPixmapPriv->pictureMask &= ~XGL_PICTURE_CHANGES (~0);

@@ -71,9 +71,6 @@ xglComp (CARD8		 op,
     RegionRec	    region;
     BoxPtr	    pBox;
     int		    nBox;
-
-    if (pDst->dither != None)
-	return FALSE;
     
     if (pDst->alphaMap)
 	return FALSE;

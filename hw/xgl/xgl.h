@@ -320,6 +320,7 @@ extern int xglGCPrivateIndex;
 #define xglPCFilterMask		(1L << 1)
 #define xglPCTransformMask 	(1L << 2)
 #define xglPCComponentAlphaMask (1L << 3)
+#define xglPCDitherMask		(1L << 4)
 
 #define xglPFFilterMask		(1L << 8)
 
