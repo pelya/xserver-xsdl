@@ -1,3 +1,14 @@
+2004-08-26  Chris B  <news at sempermax dot com>
+
+	* win.h, winmessages.h:
+	Add defines for WM_XBUTTON
+	* winmouse.c (winMouseProc):
+	Query number of mouse buttons from windows. 
+	* winmultiwindowwndproc.c (winTopLevelWindowProc):
+	* winwin32rootlesswndproc.c (winMWExtWMWindowProc):
+	* winwndproc.c (winWindowProc):
+	Handle WM_XBUTTON messages.  
+
 2004-08-02  Kensuke Matsuzaki
 
 	* winclipboardthread.c winclipboardwndproc.c: 

@@ -628,6 +628,16 @@ winTopLevelWindowProc (HWND hwnd, UINT message,
 	break;
       return winMouseButtonsHandle (s_pScreen, ButtonRelease, Button3, wParam);
 
+    case WM_XBUTTONDBLCLK:
+    case WM_XBUTTONDOWN:
+      if (s_pScreenPriv == NULL || s_pScreenInfo->fIgnoreInput)
+	break;
+      return winMouseButtonsHandle (s_pScreen, ButtonPress, HIWORD(wParam) + 5, wParam);
+    case WM_XBUTTONUP:
+      if (s_pScreenPriv == NULL || s_pScreenInfo->fIgnoreInput)
+	break;
+      return winMouseButtonsHandle (s_pScreen, ButtonRelease, HIWORD(wParam) + 5, wParam);
+
     case WM_MOUSEWHEEL:
 #if CYGMULTIWINDOW_DEBUG
       ErrorF ("winTopLevelWindowProc - WM_MOUSEWHEEL\n");

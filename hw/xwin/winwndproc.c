@@ -873,6 +873,28 @@ winWindowProc (HWND hwnd, UINT message,
 	ReleaseCapture ();
       return winMouseButtonsHandle (s_pScreen, ButtonRelease, Button3, wParam);
 
+    case WM_XBUTTONDBLCLK:
+    case WM_XBUTTONDOWN:
+      if (s_pScreenPriv == NULL || s_pScreenInfo->fIgnoreInput)
+	break;
+      if (s_pScreenInfo->fRootless
+#ifdef XWIN_MULTIWINDOWEXTWM
+	  || s_pScreenInfo->fMWExtWM
+#endif
+	  )
+	SetCapture (hwnd);
+      return winMouseButtonsHandle (s_pScreen, ButtonPress, HIWORD(wParam) + 5, wParam);
+    case WM_XBUTTONUP:
+      if (s_pScreenPriv == NULL || s_pScreenInfo->fIgnoreInput)
+	break;
+      if (s_pScreenInfo->fRootless
+#ifdef XWIN_MULTIWINDOWEXTWM
+	  || s_pScreenInfo->fMWExtWM
+#endif
+	  )
+	ReleaseCapture ();
+      return winMouseButtonsHandle (s_pScreen, ButtonRelease, HIWORD(wParam) + 5, wParam);
+
     case WM_TIMER:
       if (s_pScreenPriv == NULL || s_pScreenInfo->fIgnoreInput)
 	break;

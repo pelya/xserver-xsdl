@@ -64,23 +64,26 @@ winMouseCtrl (DeviceIntPtr pDevice, PtrCtrl *pCtrl)
 int
 winMouseProc (DeviceIntPtr pDeviceInt, int iState)
 {
-  CARD8			map[6];
+  int 			lngMouseButtons, i;
+  CARD8			*map;
   DevicePtr		pDevice = (DevicePtr) pDeviceInt;
 
   switch (iState)
     {
     case DEVICE_INIT:
-      map[1] = 1;
-      map[2] = 2;
-      map[3] = 3;
-      map[4] = 4;
-      map[5] = 5;
+      lngMouseButtons = GetSystemMetrics(SM_CMOUSEBUTTONS);
+      ErrorF ("%d mouse buttons found\n", lngMouseButtons);
+      map = malloc(sizeof(CARD8) * (lngMouseButtons + 1 + 2));
+      
+      for (i=1; i <= lngMouseButtons + 2; i++)
+      	map[i] = i;
       InitPointerDeviceStruct (pDevice,
 			       map,
-			       5, /* Buttons 4 and 5 are mouse wheel events */
+			       lngMouseButtons + 2, /* Buttons 4 and 5 are mouse wheel events */
 			       miPointerGetMotionEvents,
 			       winMouseCtrl,
 			       miPointerGetMotionBufferSize ());
+      free(map);
 
 #if defined(XFree86Server) && defined(XINPUT)
       g_winMouseButtonMap = pDeviceInt->button->map;
