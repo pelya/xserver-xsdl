@@ -147,12 +147,14 @@ winW32ErrorEx(int verb, const char *msg, DWORD errorcode)
 #if CYGDEBUG
 void winDebugWin32Message(const char* function, HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
+  static int force = 0;
+
   if (message >= WM_USER)
     {
-      if (getenv("WIN_DEBUG_MESSAGES") || getenv("WIN_DEBUG_WM_USER"))
+      if (force || getenv("WIN_DEBUG_MESSAGES") || getenv("WIN_DEBUG_WM_USER"))
       {
-        winDebug("%s - Message WM_USER + %d", function, message - WM_USER);
-        winDebug("\twParam 0x%x lParam 0x%x\n", wParam, lParam);
+        winDebug("%s - Message WM_USER + %d\n", function, message - WM_USER);
+        winDebug("\thwnd 0x%x wParam 0x%x lParam 0x%x\n", hwnd, wParam, lParam);
       }
     }
   else if (message < MESSAGE_NAMES_LEN && MESSAGE_NAMES[message])
@@ -161,10 +163,10 @@ void winDebugWin32Message(const char* function, HWND hwnd, UINT message, WPARAM 
       char buffer[64];
       snprintf(buffer, sizeof(buffer), "WIN_DEBUG_%s", msgname);
       buffer[63] = 0;
-      if (getenv("WIN_DEBUG_MESSAGES") || getenv(buffer))
+      if (force || getenv("WIN_DEBUG_MESSAGES") || getenv(buffer))
       {
-        winDebug("%s - Message %s", function, MESSAGE_NAMES[message]);
-        winDebug("\twParam 0x%x lParam 0x%x\n", wParam, lParam);
+        winDebug("%s - Message %s\n", function, MESSAGE_NAMES[message]);
+        winDebug("\thwnd 0x%x wParam 0x%x lParam 0x%x\n", hwnd, wParam, lParam);
       }
     }
 }
