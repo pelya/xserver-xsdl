@@ -423,18 +423,30 @@ xglMapPixmapBits (PixmapPtr pPixmap)
 {
     if (!pPixmap->devPrivate.ptr)
     {
+	CARD8 *bits;
+	
 	XGL_PIXMAP_PRIV (pPixmap);
 	
 	if (!pPixmapPriv->buffer)
 	    if (!xglAllocatePixmapBits (pPixmap))
 		return FALSE;
 	
-	pPixmap->devKind = pPixmapPriv->stride;
-	pPixmap->devPrivate.ptr =
-	    glitz_buffer_map (pPixmapPriv->buffer,
-			      GLITZ_BUFFER_ACCESS_READ_WRITE);
-	if (!pPixmap->devPrivate.ptr)
+	bits = glitz_buffer_map (pPixmapPriv->buffer,
+				 GLITZ_BUFFER_ACCESS_READ_WRITE);
+	if (!bits)
 	    return FALSE;
+
+	if (XGL_INTERNAL_SCANLINE_ORDER_UPSIDE_DOWN && pPixmapPriv->format)
+	{
+	    pPixmap->devKind = -pPixmapPriv->stride;
+	    pPixmap->devPrivate.ptr =
+		bits + (pPixmap->drawable.height - 1) * pPixmapPriv->stride;
+	}
+	else
+	{
+	    pPixmap->devKind = pPixmapPriv->stride;
+	    pPixmap->devPrivate.ptr = bits;
+	}
     }
     
     return TRUE;

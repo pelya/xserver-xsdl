@@ -698,7 +698,6 @@ Bool
 xglSetPixels (DrawablePtr pDrawable,
 	      char        *src,
 	      int	  stride,
-	      Bool	  upsideDown,
 	      int	  x,
 	      int	  y,
 	      int	  width,

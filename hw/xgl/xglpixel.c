@@ -30,7 +30,6 @@ Bool
 xglSetPixels (DrawablePtr pDrawable,
 	      char        *src,
 	      int	  stride,
-	      Bool	  upsideDown,
 	      int	  x,
 	      int	  y,
 	      int	  width,
@@ -45,7 +44,6 @@ xglSetPixels (DrawablePtr pDrawable,
     BoxPtr		 pDstBox;
     int			 nDstBox;
     int			 dstXoff, dstYoff, dstBpp;
-    int			 dstY, srcY;
     int			 x1, y1, x2, y2;
 
     XGL_DRAWABLE_PIXMAP (pDrawable);
@@ -94,21 +92,11 @@ xglSetPixels (DrawablePtr pDrawable,
 	
 	if (x1 < x2 && y1 < y2)
 	{
-	    if (XGL_INTERNAL_SCANLINE_ORDER_UPSIDE_DOWN)
-		dstY = pDrawable->height - (y2 + dstYoff);
-	    else
-		dstY = y1 + dstYoff;
-	    
-	    if (upsideDown)
-		srcY = height - (y2 - y);
-	    else
-		srcY = y1 - y;
-	    
-	    fbBlt (srcBits + srcY * srcStride,
+	    fbBlt (srcBits + (y1 - y) * srcStride,
 		   srcStride,
 		   (x1 - x) * dstBpp,
 		   
-		   dstBits + dstY * dstStride,
+		   dstBits + (y1 + dstYoff) * dstStride,
 		   dstStride,
 		   (x1 + dstXoff) * dstBpp,
 		   
@@ -119,7 +107,7 @@ xglSetPixels (DrawablePtr pDrawable,
 		   FB_ALLONES,
 		   dstBpp,
 		   FALSE,
-		   upsideDown != XGL_INTERNAL_SCANLINE_ORDER_UPSIDE_DOWN);
+		   FALSE);
 
 	    pDstBox[nDstBox].x1 = x1;
 	    pDstBox[nDstBox].y1 = y1;
