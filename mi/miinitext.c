@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/mi/miinitext.c,v 1.8 2004/07/31 08:24:14 anholt Exp $ */
+/* $XdotOrg: xc/programs/Xserver/mi/miinitext.c,v 1.9 2004/07/31 09:14:06 kem Exp $ */
 /* $XFree86: xc/programs/Xserver/mi/miinitext.c,v 3.67 2003/01/12 02:44:27 dawes Exp $ */
 /***********************************************************
 
@@ -313,7 +313,7 @@ static ExtensionToggle ExtensionToggleList[] =
     { "XEVIE", &noXevieExtension },
 #endif
 #ifdef COMPOSITE
-    { "COMPOSITE", &noCompositeExtension },
+    { "Composite", &noCompositeExtension },
 #endif
     { NULL, NULL }
 };
