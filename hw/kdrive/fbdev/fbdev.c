@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/fbdev/fbdev.c,v 1.17 2001/06/03 21:52:45 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/fbdev/fbdev.c,v 1.19 2001/06/05 17:17:39 keithp Exp $ */
 
 #include "fbdev.h"
 
@@ -316,10 +316,44 @@ fbdevLayerCreate (ScreenPtr pScreen)
     ShadowWindowProc	window;
     PixmapPtr		pPixmap;
     int			kind;
+    KdMouseMatrix	m;
 
+    switch (scrpriv->rotation) {
+    case 0:
+	pScreen->width = screen->width;
+	pScreen->height = screen->height;
+	scrpriv->shadow = FALSE;
+	m.matrix[0][0] = 1; m.matrix[0][1] = 0; m.matrix[0][2] = 0;
+	m.matrix[1][0] = 0; m.matrix[1][1] = 1; m.matrix[1][2] = 0;
+	break;
+    case 90:
+	pScreen->width = screen->height;
+	pScreen->height = screen->width;
+	scrpriv->shadow = TRUE;
+	m.matrix[0][0] = 0; m.matrix[0][1] = -1; m.matrix[0][2] = screen->width - 1;
+	m.matrix[1][0] = 1; m.matrix[1][1] = 0; m.matrix[1][2] = 0;
+	break;
+    case 180:
+	pScreen->width = screen->width;
+	pScreen->height = screen->height;
+	scrpriv->shadow = TRUE;
+	m.matrix[0][0] = -1; m.matrix[0][1] = 0; m.matrix[0][2] = screen->width - 1;
+	m.matrix[1][0] = 0; m.matrix[1][1] = -1; m.matrix[1][2] = screen->height - 1;
+	break;
+    case 270:
+	pScreen->width = screen->height;
+	pScreen->height = screen->width;
+	scrpriv->shadow = TRUE;
+	m.matrix[0][0] = 0; m.matrix[0][1] = 1; m.matrix[0][2] = 0;
+	m.matrix[1][0] = -1; m.matrix[1][1] = 0; m.matrix[1][2] = screen->height - 1;
+	break;
+    }
+    KdSetMouseMatrix (&m);
+    
     if (scrpriv->shadow)
     {
         window = fbdevWindowLinear;
+	update = 0;
 #ifdef FAKE24_ON_16
 	if (pScreenPriv->screen->fb[0].bitsPerPixel == 24 && priv->var.bits_per_pixel == 16)
 	{
@@ -364,6 +398,8 @@ fbdevLayerCreate (ScreenPtr pScreen)
 		break;
 	    }
 	}
+	if (!update)
+	    abort ();
 	kind = LAYER_SHADOW;
 	pPixmap = 0;
     }
@@ -391,6 +427,7 @@ fbdevRandRGetInfo (ScreenPtr pScreen, Rotation *rotations)
     RRGroupOfVisualGroupPtr pGroupOfVisualGroup;
     RRScreenSizePtr	    pSize;
     Rotation		    rotateKind;
+    int			    rotation;
     int			    n;
     
     *rotations = RR_Rotate_0|RR_Rotate_90|RR_Rotate_180|RR_Rotate_270;
@@ -438,7 +475,11 @@ fbdevRandRGetInfo (ScreenPtr pScreen, Rotation *rotations)
 			    screen->height_mm,
 			    pGroupOfVisualGroup);
     
-    switch (scrpriv->rotation)
+    rotation = scrpriv->rotation - screen->rotation;
+    if (rotation < 0)
+	rotation += 360;
+
+    switch (rotation)
     {
     case 0:
 	rotateKind = RR_Rotate_0;
@@ -500,58 +541,49 @@ fbdevRandRSetConfig (ScreenPtr		pScreen,
     switch (rotateKind)
     {
     case RR_Rotate_0:
-	rotation = 0;
+	rotation = screen->rotation;
 	break;
     case RR_Rotate_90:
-	rotation = 90;
+	rotation = screen->rotation + 90;
 	break;
     case RR_Rotate_180:
-	rotation = 180;
+	rotation = screen->rotation + 180;
 	break;
     case RR_Rotate_270:
-	rotation = 270;
+	rotation = screen->rotation + 270;
 	break;
     }
+    if (rotation >= 360)
+	rotation -= 360;
+
     if (scrpriv->rotation != rotation)
     {
 	LayerPtr	pNewLayer;
 	int		kind;
 	int		oldrotation = scrpriv->rotation;
 	int		oldshadow = scrpriv->shadow;
+	int		oldwidth = pScreen->width;
+	int		oldheight = pScreen->height;
 	PixmapPtr	pPixmap;
 
 	if (wasEnabled)
 	    KdDisableScreen (pScreen);
 	
 	scrpriv->rotation = rotation;
-	if (rotation)
-	    scrpriv->shadow = TRUE;
-	else
-	    scrpriv->shadow = FALSE;
-	
 	pNewLayer = fbdevLayerCreate (pScreen);
 	if (!pNewLayer)
 	{
 	    scrpriv->shadow = oldshadow;
 	    scrpriv->rotation = oldrotation;
 	}
-	if (rotation == 90 || rotation == 270)
-	{
-	    pScreen->width = screen->height;
-	    pScreen->height = screen->width;
-	}
-	else
-	{
-	    pScreen->width = screen->width;
-	    pScreen->height = screen->height;
-	}
-	    
 	if (WalkTree (pScreen, fbdevLayerAdd, (pointer) pNewLayer) == WT_STOPWALKING)
 	{
 	    WalkTree (pScreen, fbdevLayerRemove, (pointer) pNewLayer);
 	    LayerDestroy (pScreen, pNewLayer);
 	    scrpriv->rotation = oldrotation;
 	    scrpriv->shadow = oldshadow;
+	    pScreen->width = oldwidth;
+	    pScreen->height = oldheight;
 	    if (wasEnabled)
 		KdEnableScreen (pScreen);
 	    return FALSE;
@@ -655,10 +687,10 @@ Bool
 fbdevEnable (ScreenPtr pScreen)
 {
     KdScreenPriv(pScreen);
+    KdScreenInfo	*screen = pScreenPriv->screen;
     FbdevPriv		*priv = pScreenPriv->card->driver;
     FbdevScrPriv	*scrpriv = pScreenPriv->screen->driver;
     int			k;
-    KdMouseMatrix	m;
 
     priv->var.activate = FB_ACTIVATE_NOW|FB_CHANGE_CMAP_VBL;
     
@@ -669,26 +701,7 @@ fbdevEnable (ScreenPtr pScreen)
 	perror ("FBIOPUT_VSCREENINFO");
 	return FALSE;
     }
-    switch (scrpriv->rotation) {
-    case 0:
-	m.matrix[0][0] = 1; m.matrix[0][1] = 0; m.matrix[0][2] = 0;
-	m.matrix[1][0] = 0; m.matrix[1][1] = 1; m.matrix[1][2] = 0;
-	break;
-    case 90:
-	m.matrix[0][0] = 0; m.matrix[0][1] = -1; m.matrix[0][2] = pScreen->width - 1;
-	m.matrix[1][0] = 1; m.matrix[1][1] = 0; m.matrix[1][2] = 0;
-	break;
-    case 180:
-	m.matrix[0][0] = -1; m.matrix[0][1] = 0; m.matrix[0][2] = pScreen->width - 1;
-	m.matrix[1][0] = 0; m.matrix[1][1] = -1; m.matrix[1][2] = pScreen->height - 1;
-	break;
-    case 270:
-	m.matrix[0][0] = 0; m.matrix[0][1] = 1; m.matrix[0][2] = 0;
-	m.matrix[1][0] = -1; m.matrix[1][1] = 0; m.matrix[1][2] = pScreen->height - 1;
-	break;
-    }
-    KdSetMouseMatrix (&m);
-    
+	    
     if (priv->fix.visual == FB_VISUAL_DIRECTCOLOR)
     {
 	struct fb_cmap	cmap;
