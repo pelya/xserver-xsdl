@@ -384,6 +384,7 @@ R200CheckCompositeTexture(PicturePtr pPict, int unit)
 
 	return TRUE;
 }
+
 static Bool
 R200TextureSetup(PicturePtr pPict, PixmapPtr pPix, int unit)
 {
@@ -405,7 +406,7 @@ R200TextureSetup(PicturePtr pPict, PixmapPtr pPix, int unit)
 			break;
 	}
 	txformat = R200TexFormats[i].card_fmt;
-	if (R100TexFormats[i].byte_swap)
+	if (R200TexFormats[i].byte_swap)
 		txoffset |= RADEON_TXO_ENDIAN_BYTE_SWAP;
 
 	if (pPict->repeat) {
@@ -527,7 +528,7 @@ R200PrepareComposite(int op, PicturePtr pSrcPicture, PicturePtr pMaskPicture,
 	OUT_REG(R200_REG_SE_VTX_FMT_0, R200_VTX_XY);
 	OUT_REG(R200_REG_SE_VTX_FMT_1,
 	    (2 << R200_VTX_TEX0_COMP_CNT_SHIFT) |
-	    (2 << R200_VTX_TEX1_COMP_CNT_SHIFT));
+	    (pMask != NULL) ? (2 << R200_VTX_TEX1_COMP_CNT_SHIFT) : 0);
 
 	OUT_REG(RADEON_REG_RB3D_COLORPITCH, dst_pitch >> pixel_shift);
 

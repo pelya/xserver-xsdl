@@ -777,7 +777,7 @@ ATIDrawEnable(ScreenPtr pScreen)
 			atis->kaa.PrepareComposite = R100PrepareComposite;
 			atis->kaa.Composite = RadeonComposite;
 			atis->kaa.DoneComposite = RadeonDoneComposite;
-		} else if (0 && atic->is_r200) { /* XXX */
+		} else if (atic->is_r200) {
 			atis->kaa.CheckComposite = R200CheckComposite;
 			atis->kaa.PrepareComposite = R200PrepareComposite;
 			atis->kaa.Composite = RadeonComposite;
