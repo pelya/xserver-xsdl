@@ -56,8 +56,8 @@ ATIDebugFifo(ATIScreenInfo *atis)
 		    MMIO_IN32(mmio, RADEON_REG_CP_CSQ_STAT));
 		ErrorF("RADEON_REG_RBBM_STATUS: 0x%08x\n",
 		    MMIO_IN32(mmio, RADEON_REG_RBBM_STATUS));
-		ErrorF("RADEON_REG_RB2D_DSTCACHE_CTLSTAT: 0x%08x\n",
-		    MMIO_IN32(mmio, RADEON_REG_RB2D_DSTCACHE_CTLSTAT));
+		ErrorF("RADEON_REG_RB3D_DSTCACHE_CTLSTAT: 0x%08x\n",
+		    MMIO_IN32(mmio, RADEON_REG_RB3D_DSTCACHE_CTLSTAT));
 	} else {
 		ErrorF("R128_REG_PM4_BUFFER_CNTL: 0x%08x\n",
 		    MMIO_IN32(mmio, R128_REG_PM4_BUFFER_CNTL));
@@ -121,13 +121,13 @@ ATIFlushPixelCache(ATIScreenInfo *atis)
 	TIMEOUT_LOCALS;
 
 	if (atic->is_radeon) {
-		temp = MMIO_IN32(mmio, RADEON_REG_RB2D_DSTCACHE_CTLSTAT);
-		temp |= RADEON_RB2D_DC_FLUSH_ALL;
-		MMIO_OUT32(mmio, RADEON_REG_RB2D_DSTCACHE_CTLSTAT, temp);
+		temp = MMIO_IN32(mmio, RADEON_REG_RB3D_DSTCACHE_CTLSTAT);
+		temp |= RADEON_RB3D_DC_FLUSH_ALL;
+		MMIO_OUT32(mmio, RADEON_REG_RB3D_DSTCACHE_CTLSTAT, temp);
 
 		WHILE_NOT_TIMEOUT(.2) {
-			if ((MMIO_IN32(mmio, RADEON_REG_RB2D_DSTCACHE_CTLSTAT) &
-			    RADEON_RB2D_DC_BUSY) == 0)
+			if ((MMIO_IN32(mmio, RADEON_REG_RB3D_DSTCACHE_CTLSTAT) &
+			    RADEON_RB3D_DC_BUSY) == 0)
 				break;
 		}
 	} else {
@@ -323,7 +323,6 @@ ATIWaitIdle(ATIScreenInfo *atis)
 {
 	ATICardInfo *atic = atis->atic;
 	char *mmio = atic->reg_base;
-	RING_LOCALS;
 	TIMEOUT_LOCALS;
 
 	if (atis->indirectBuffer != NULL)
@@ -348,16 +347,6 @@ ATIWaitIdle(ATIScreenInfo *atis)
 		return;
 	}
 #endif
-
-	if (atic->is_radeon && (atis->using_pseudo || atis->using_dma)) {
-		BEGIN_DMA(4);
-		OUT_REG(RADEON_REG_RB2D_DSTCACHE_CTLSTAT,
-		    RADEON_RB2D_DC_FLUSH_ALL);
-		OUT_REG(ATI_REG_WAIT_UNTIL,
-		    RADEON_WAIT_HOST_IDLECLEAN | RADEON_WAIT_2D_IDLECLEAN |
-		    RADEON_WAIT_3D_IDLECLEAN);
-		END_DMA();
-	}
 
 	if (!atic->is_radeon && (atis->using_pseudo || atis->using_dma)) {
 		ATIWaitAvailPrimary(atis, atis->cce_pri_size);
