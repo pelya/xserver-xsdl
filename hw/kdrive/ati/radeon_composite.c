@@ -156,6 +156,10 @@ R100CheckCompositeTexture(PicturePtr pPict, int unit)
 	if (pPict->repeat && ((w & (w - 1)) != 0 || (h & (h - 1)) != 0))
 		ATI_FALLBACK(("NPOT repeat unsupported (%dx%d)\n", w, h));
 
+	if (pPict->filter != PictFilterNearest &&
+	    pPict->filter != PictFilterBilinear)
+		ATI_FALLBACK(("Unsupported filter 0x%x\n", pPict->filter));
+
 	return TRUE;
 }
 
@@ -206,8 +210,7 @@ R100TextureSetup(PicturePtr pPict, PixmapPtr pPix, int unit)
 			    RADEON_MIN_FILTER_LINEAR);
 		break;
 	default:
-		ATI_FALLBACK (("Bad filter 0x%x\n", pPict->filter));
-		break;
+		ATI_FALLBACK(("Bad filter 0x%x\n", pPict->filter));
 	}
 
 	BEGIN_DMA(7);
@@ -403,6 +406,10 @@ R200CheckCompositeTexture(PicturePtr pPict, int unit)
 	if (pPict->repeat && ((w & (w - 1)) != 0 || (h & (h - 1)) != 0))
 		ATI_FALLBACK(("NPOT repeat unsupported (%dx%d)\n", w, h));
 
+	if (pPict->filter != PictFilterNearest &&
+	    pPict->filter != PictFilterBilinear)
+		ATI_FALLBACK(("Unsupported filter 0x%x\n", pPict->filter));
+
 	return TRUE;
 }
 
@@ -411,7 +418,7 @@ R200TextureSetup(PicturePtr pPict, PixmapPtr pPix, int unit)
 {
 	ATIScreenInfo *atis = accel_atis;
 	KdScreenPriv(pPix->drawable.pScreen);
-	CARD32 txformat, txoffset, txpitch;
+	CARD32 txfilter, txformat, txoffset, txpitch;
 	int w = pPict->pDrawable->width;
 	int h = pPict->pDrawable->height;
 	int i;
@@ -442,10 +449,23 @@ R200TextureSetup(PicturePtr pPict, PixmapPtr pPix, int unit)
 	if ((txpitch & 0x1f) != 0)
 		ATI_FALLBACK(("Bad texture pitch 0x%x\n", txpitch));
 
+	switch (pPict->filter) {
+	case PictFilterNearest:
+		txfilter = (R200_MAG_FILTER_NEAREST |
+			    R200_MIN_FILTER_NEAREST);
+		break;
+	case PictFilterBilinear:
+		txfilter = (R200_MAG_FILTER_LINEAR |
+			    R200_MIN_FILTER_LINEAR);
+		break;
+	default:
+		ATI_FALLBACK(("Bad filter 0x%x\n", pPict->filter));
+	}
+
 	if (unit == 0) {
 		BEGIN_DMA(6);
 		OUT_RING(DMA_PACKET0(R200_REG_PP_TXFILTER_0 + 0x20 * unit, 5));
-		OUT_RING_REG(R200_REG_PP_TXFILTER_0, 0);
+		OUT_RING_REG(R200_REG_PP_TXFILTER_0, txfilter);
 		OUT_RING_REG(R200_REG_PP_TXFORMAT_0, txformat);
 		OUT_RING_REG(R200_REG_PP_TXFORMAT_X_0, 0);
 		OUT_RING_REG(R200_REG_PP_TXSIZE_0,
@@ -456,7 +476,7 @@ R200TextureSetup(PicturePtr pPict, PixmapPtr pPix, int unit)
 	} else {
 		BEGIN_DMA(6);
 		OUT_RING(DMA_PACKET0(R200_REG_PP_TXFILTER_1, 5));
-		OUT_RING_REG(R200_REG_PP_TXFILTER_1, 0);
+		OUT_RING_REG(R200_REG_PP_TXFILTER_1, txfilter);
 		OUT_RING_REG(R200_REG_PP_TXFORMAT_1, txformat);
 		OUT_RING_REG(R200_REG_PP_TXFORMAT_X_1, 0);
 		OUT_RING_REG(R200_REG_PP_TXSIZE_1,
