@@ -22,7 +22,7 @@
  *
  * Author:  Keith Packard, SuSE, Inc.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/chips/chipsstub.c,v 1.5 2000/11/29 08:42:25 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/chips/chipsstub.c,v 1.1 2001/09/05 07:12:42 keithp Exp $ */
 
 #include "chips.h"
 
@@ -45,7 +45,7 @@ InitOutput (ScreenInfo *pScreenInfo, int argc, char **argv)
 void
 InitInput (int argc, char **argv)
 {
-    KdInitInput (&Ps2MouseFuncs, &LinuxKeyboardFuncs);
+    KdInitInput (&LinuxMouseFuncs, &LinuxKeyboardFuncs);
 }
 
 int

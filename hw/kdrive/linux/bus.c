@@ -1,5 +1,5 @@
 /*
- * $XFree86$
+ * $XFree86: xc/programs/Xserver/hw/kdrive/linux/bus.c,v 1.2 2001/06/29 14:00:41 keithp Exp $
  *
  * Copyright © 2000 Keith Packard, member of The XFree86 Project, Inc.
  *
@@ -53,7 +53,7 @@ BusRead (int adbPort, void *closure)
 	    flags |= KD_BUTTON_2;
 	if ((buf[0] & 1) == 0)
 	    flags |= KD_BUTTON_3;
-        KdEnqueueMouseEvent (flags, dx, dy);
+        KdEnqueueMouseEvent (kdMouseInfo, flags, dx, dy);
     }
 }
 

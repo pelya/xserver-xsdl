@@ -1,5 +1,5 @@
 /*
- * $XFree86: xc/programs/Xserver/hw/kdrive/igs/igsstub.c,v 1.1 2000/05/06 22:17:44 keithp Exp $
+ * $XFree86: xc/programs/Xserver/hw/kdrive/igs/igsstub.c,v 1.2 2000/05/24 23:52:48 keithp Exp $
  *
  * Copyright © 2000 Keith Packard
  *
@@ -53,7 +53,7 @@ InitOutput (ScreenInfo *pScreenInfo, int argc, char **argv)
 void
 InitInput (int argc, char **argv)
 {
-    KdInitInput (&Ps2MouseFuncs, &LinuxKeyboardFuncs);
+    KdInitInput (&LinuxMouseFuncs, &LinuxKeyboardFuncs);
 }
 
 int

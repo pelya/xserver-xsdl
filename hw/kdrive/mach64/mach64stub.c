@@ -22,7 +22,7 @@
  *
  * Author:  Keith Packard, SuSE, Inc.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/mach64/mach64stub.c,v 1.5 2000/11/29 08:42:25 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/mach64/mach64stub.c,v 1.1 2001/06/03 18:48:19 keithp Exp $ */
 
 #include "mach64.h"
 
@@ -44,7 +44,7 @@ InitOutput (ScreenInfo *pScreenInfo, int argc, char **argv)
 void
 InitInput (int argc, char **argv)
 {
-    KdInitInput (&Ps2MouseFuncs, &LinuxKeyboardFuncs);
+    KdInitInput (&LinuxMouseFuncs, &LinuxKeyboardFuncs);
 }
 
 int

@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/kinfo.c,v 1.1 1999/11/19 13:53:49 hohndel Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/kinfo.c,v 1.2 2000/02/23 20:29:53 dawes Exp $ */
 
 #include "kdrive.h"
 
@@ -105,6 +105,40 @@ KdScreenInfoDispose (KdScreenInfo *si)
 	    xfree (si);
 	    if (!ci->screenList)
 		KdCardInfoDispose (ci);
+	    break;
+	}
+}
+
+KdMouseInfo *kdMouseInfo;
+
+KdMouseInfo *
+KdMouseInfoAdd (void)
+{
+    KdMouseInfo	*mi, **prev;
+
+    mi = (KdMouseInfo *) xalloc (sizeof (KdMouseInfo));
+    if (!mi)
+	return 0;
+    bzero (mi, sizeof (KdMouseInfo));
+    for (prev = &kdMouseInfo; *prev; prev = &(*prev)->next);
+    *prev = mi;
+    return mi;
+}
+
+void
+KdMouseInfoDispose (KdMouseInfo *mi)
+{
+    KdMouseInfo	**prev;
+
+    for (prev = &kdMouseInfo; *prev; prev = &(*prev)->next)
+	if (*prev == mi)
+	{
+	    *prev = mi->next;
+	    if (mi->name)
+		xfree (mi->name);
+	    if (mi->prot)
+		xfree (mi->prot);
+	    xfree (mi);
 	    break;
 	}
 }

@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/ts300/ts300.c,v 1.2 1999/12/30 03:03:20 robin Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/ts300/ts300.c,v 1.3 2000/02/23 20:30:14 dawes Exp $ */
 
 #include "kdrive.h"
 
@@ -120,7 +120,7 @@ InitOutput (ScreenInfo *pScreenInfo, int argc, char **argv)
 void
 InitInput (int argc, char **argv)
 {
-    KdInitInput (&Ps2MouseFuncs, &LinuxKeyboardFuncs);
+    KdInitInput (&LinuxMouseFuncs, &LinuxKeyboardFuncs);
 }
 
 int

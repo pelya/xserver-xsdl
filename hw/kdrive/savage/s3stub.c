@@ -22,7 +22,7 @@
  *
  * Author:  Keith Packard, SuSE, Inc.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/savage/s3stub.c,v 1.2 1999/12/30 03:03:13 robin Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/savage/s3stub.c,v 1.3 2000/02/23 20:30:05 dawes Exp $ */
 
 #include "s3.h"
 
@@ -61,7 +61,7 @@ InitInput (int argc, char **argv)
     KdInitInput (&VxWorksMouseFuncs, &VxWorksKeyboardFuncs);
 #endif
 #ifdef linux
-    KdInitInput (&Ps2MouseFuncs, &LinuxKeyboardFuncs);
+    KdInitInput (&LinuxMouseFuncs, &LinuxKeyboardFuncs);
 #endif
 }
 

@@ -22,7 +22,7 @@
  *
  * Author:  Keith Packard, SuSE, Inc.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/sis530/sisstub.c,v 1.2 1999/12/30 03:03:15 robin Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/sis530/sisstub.c,v 1.4 2000/08/09 17:52:44 keithp Exp $ */
 
 #include "sis.h"
 
@@ -50,7 +50,7 @@ InitOutput (ScreenInfo *pScreenInfo, int argc, char **argv)
 void
 InitInput (int argc, char **argv)
 {
-    KdInitInput (&Ps2MouseFuncs, &LinuxKeyboardFuncs);
+    KdInitInput (&LinuxMouseFuncs, &LinuxKeyboardFuncs);
 }
 
 int

@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/kinput.c,v 1.20 2001/08/09 09:06:08 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/kinput.c,v 1.21 2001/09/29 04:16:38 keithp Exp $ */
 
 #include "kdrive.h"
 #include "inputstr.h"
@@ -54,6 +54,7 @@ static KdMouseMatrix	kdMouseMatrix = {
 static KdMouseFuncs	*kdTsFuncs;
 #endif
 
+int		kdMouseButtonCount;
 int		kdMinScanCode;
 int		kdMaxScanCode;
 int		kdMinKeyCode;
@@ -67,8 +68,6 @@ KeySymsRec	kdKeySyms;
 void
 KdResetInputMachine (void);
     
-#define KD_MOUSEBUTTON_COUNT	3
-
 #define KD_KEY_COUNT		248
 
 CARD8		kdKeyState[KD_KEY_COUNT/8];
@@ -288,9 +287,10 @@ KdEnableInput (void)
 static int
 KdMouseProc(DeviceIntPtr pDevice, int onoff)
 {
-    BYTE	map[4];
+    BYTE	map[KD_MAX_BUTTON];
     DevicePtr	pDev = (DevicePtr)pDevice;
     int		i;
+    KdMouseInfo	*mi;
     
     if (!pDev)
 	return BadImplementation;
@@ -298,9 +298,9 @@ KdMouseProc(DeviceIntPtr pDevice, int onoff)
     switch (onoff)
     {
     case DEVICE_INIT:
-	for (i = 1; i <= KD_MOUSEBUTTON_COUNT; i++)
+	for (i = 1; i <= kdMouseButtonCount; i++)
 	    map[i] = i;
-	InitPointerDeviceStruct(pDev, map, KD_MOUSEBUTTON_COUNT,
+	InitPointerDeviceStruct(pDev, map, kdMouseButtonCount,
 	    miPointerGetMotionEvents,
 	    (PtrCtrlProcPtr)NoopDDA,
 	    miPointerGetMotionBufferSize());
@@ -503,7 +503,17 @@ KdInitInput(KdMouseFuncs    *pMouseFuncs,
 	    KdKeyboardFuncs *pKeyboardFuncs)
 {
     DeviceIntPtr	pKeyboard, pPointer;
+    KdMouseInfo		*mi;
     
+    if (!kdMouseInfo)
+	KdParseMouse (0);
+    kdMouseButtonCount = 0;
+    for (mi = kdMouseInfo; mi; mi = mi->next)
+    {
+	if (mi->nbutton > kdMouseButtonCount)
+	    kdMouseButtonCount = mi->nbutton;
+    }
+
     kdMouseFuncs = pMouseFuncs;
     kdKeyboardFuncs = pKeyboardFuncs;
     memset (kdKeyState, '\0', sizeof (kdKeyState));
@@ -555,6 +565,8 @@ KdInitTouchScreen(KdMouseFuncs *pTsFuncs)
  *	Button 2 release    ^2
  *	Button 3 press	    v3
  *	Button 3 release    ^3
+ *	Button other press  vo
+ *	Button other release ^o
  *	Mouse motion	    <>
  *	Keyboard event	    k
  *	timeout		    ...
@@ -580,6 +592,8 @@ KdInitTouchScreen(KdMouseFuncs *pTsFuncs)
  *	^2  -> (deliever) start
  *	v3  -> (hold) (settimeout) button_3_pend
  *	^3  -> (deliver) start
+ *	vo  -> (deliver) start
+ *	^o  -> (deliver) start
  *	<>  -> (deliver) start
  *	k   -> (deliver) start
  *
@@ -589,6 +603,8 @@ KdInitTouchScreen(KdMouseFuncs *pTsFuncs)
  *	^2  -> (release) (deliver) button_1_down
  *	v3  -> (cleartimeout) (generate v2) synthetic_2_down_13
  *	^3  -> (release) (deliver) button_1_down
+ *	vo  -> (release) (deliver) button_1_down
+ *	^o  -> (release) (deliver) button_1_down
  *	<-> -> (release) (deliver) button_1_down
  *	<>  -> (deliver) button_1_pend
  *	k   -> (release) (deliver) button_1_down
@@ -600,6 +616,8 @@ KdInitTouchScreen(KdMouseFuncs *pTsFuncs)
  *	^2  -> (deliver) button_1_down
  *	v3  -> (deliver) button_1_down
  *	^3  -> (deliver) button_1_down
+ *	vo  -> (deliver) button_1_down
+ *	^o  -> (deliver) button_1_down
  *	<>  -> (deliver) button_1_down
  *	k   -> (deliver) button_1_down
  *
@@ -609,6 +627,8 @@ KdInitTouchScreen(KdMouseFuncs *pTsFuncs)
  *	^2  -> (deliver) start
  *	v3  -> (deliver) button_2_down
  *	^3  -> (deliver) button_2_down
+ *	vo  -> (deliver) button_2_down
+ *	^o  -> (deliver) button_2_down
  *	<>  -> (deliver) button_2_down
  *	k   -> (deliver) button_2_down
  *
@@ -618,6 +638,8 @@ KdInitTouchScreen(KdMouseFuncs *pTsFuncs)
  *	v2  -> (release) (deliver) button_3_down
  *	^2  -> (release) (deliver) button_3_down
  *	^3  -> (release) (deliver) start
+ *	vo  -> (release) (deliver) button_3_down
+ *	^o  -> (release) (deliver) button_3_down
  *	<-> -> (release) (deliver) button_3_down
  *	<>  -> (deliver) button_3_pend
  *	k   -> (release) (deliver) button_3_down
@@ -629,6 +651,8 @@ KdInitTouchScreen(KdMouseFuncs *pTsFuncs)
  *	v2  -> (deliver) button_3_down
  *	^2  -> (deliver) button_3_down
  *	^3  -> (deliver) start
+ *	vo  -> (deliver) button_3_down
+ *	^o  -> (deliver) button_3_down
  *	<>  -> (deliver) button_3_down
  *	k   -> (deliver) button_3_down
  *
@@ -637,6 +661,8 @@ KdInitTouchScreen(KdMouseFuncs *pTsFuncs)
  *	v2  -> synthetic_2_down_13
  *	^2  -> synthetic_2_down_13
  *	^3  -> (generate ^2) synthetic_2_down_1
+ *	vo  -> (deliver) synthetic_2_down_13
+ *	^o  -> (deliver) synthetic_2_down_13
  *	<>  -> (deliver) synthetic_2_down_13
  *	k   -> (deliver) synthetic_2_down_13
  *
@@ -646,6 +672,8 @@ KdInitTouchScreen(KdMouseFuncs *pTsFuncs)
  *	v2  -> synthetic_2_down_3
  *	^2  -> synthetic_2_down_3
  *	^3  -> start
+ *	vo  -> (deliver) synthetic_2_down_3
+ *	^o  -> (deliver) synthetic_2_down_3
  *	<>  -> (deliver) synthetic_2_down_3
  *	k   -> (deliver) synthetic_2_down_3
  *
@@ -655,27 +683,17 @@ KdInitTouchScreen(KdMouseFuncs *pTsFuncs)
  *	^2  -> synthetic_2_down_1
  *	v3  -> (deliver) synthetic_2_down_1
  *	^3  -> (deliver) synthetic_2_down_1
+ *	vo  -> (deliver) synthetic_2_down_1
+ *	^o  -> (deliver) synthetic_2_down_1
  *	<>  -> (deliver) synthetic_2_down_1
  *	k   -> (deliver) synthetic_2_down_1
  */
  
-typedef enum _inputState {
-    start,
-    button_1_pend,
-    button_1_down,
-    button_2_down,
-    button_3_pend,
-    button_3_down,
-    synth_2_down_13,
-    synth_2_down_3,
-    synth_2_down_1,
-    num_input_states
-} KdInputState;
-
 typedef enum _inputClass {
     down_1, up_1,
     down_2, up_2,
     down_3, up_3,
+    down_o, up_o,
     motion, outside_box,
     keyboard, timeout,
     num_input_class
@@ -696,7 +714,7 @@ typedef enum _inputAction {
 
 typedef struct _inputTransition {
     KdInputAction  actions[MAX_ACTIONS];
-    KdInputState   nextState;
+    KdMouseState   nextState;
 } KdInputTransition;
 
 KdInputTransition  kdInputMachine[num_input_states][num_input_class] = {
@@ -708,9 +726,11 @@ KdInputTransition  kdInputMachine[num_input_states][num_input_class] = {
 	{ { deliver, noop },	    start },		/* ^2 */
 	{ { hold, setto },	    button_3_pend },	/* v3 */
 	{ { deliver, noop },	    start },		/* ^3 */
+	{ { deliver, noop },	    start },		/* vo */
+	{ { deliver, noop },	    start },		/* ^o */
 	{ { deliver, noop },	    start },		/* <> */
 	{ { deliver, noop },	    start },		/* <-> */
-	{ { deliver, noop },	    start },		/* k */
+	{ { noop, noop },	    start },		/* k */
 	{ { noop, noop },	    start },		/* ... */
     },
     /* button_1_pend */
@@ -721,9 +741,11 @@ KdInputTransition  kdInputMachine[num_input_states][num_input_class] = {
 	{ { release, deliver },	    button_1_down },	/* ^2 */
 	{ { clearto, gen_down_2 },  synth_2_down_13 },	/* v3 */
 	{ { release, deliver },	    button_1_down },	/* ^3 */
+	{ { release, deliver },	    button_1_down },	/* vo */
+	{ { release, deliver },	    button_1_down },	/* ^o */
 	{ { deliver, noop },	    button_1_pend },	/* <> */
 	{ { release, deliver },	    button_1_down },	/* <-> */
-	{ { release, deliver },	    button_1_down },	/* k */
+	{ { noop, noop },	    button_1_down },	/* k */
 	{ { release, noop },	    button_1_down },	/* ... */
     },
     /* button_1_down */
@@ -734,9 +756,11 @@ KdInputTransition  kdInputMachine[num_input_states][num_input_class] = {
 	{ { deliver, noop },	    button_1_down },	/* ^2 */
 	{ { deliver, noop },	    button_1_down },	/* v3 */
 	{ { deliver, noop },	    button_1_down },	/* ^3 */
+	{ { deliver, noop },	    button_1_down },	/* vo */
+	{ { deliver, noop },	    button_1_down },	/* ^o */
 	{ { deliver, noop },	    button_1_down },	/* <> */
 	{ { deliver, noop },	    button_1_down },	/* <-> */
-	{ { deliver, noop },	    button_1_down },	/* k */
+	{ { noop, noop },	    button_1_down },	/* k */
 	{ { noop, noop },	    button_1_down },	/* ... */
     },
     /* button_2_down */
@@ -747,9 +771,11 @@ KdInputTransition  kdInputMachine[num_input_states][num_input_class] = {
 	{ { deliver, noop },	    start },		/* ^2 */
 	{ { deliver, noop },	    button_2_down },	/* v3 */
 	{ { deliver, noop },	    button_2_down },	/* ^3 */
+	{ { deliver, noop },	    button_2_down },	/* vo */
+	{ { deliver, noop },	    button_2_down },	/* ^o */
 	{ { deliver, noop },	    button_2_down },	/* <> */
 	{ { deliver, noop },	    button_2_down },	/* <-> */
-	{ { deliver, noop },	    button_2_down },	/* k */
+	{ { noop, noop },	    button_2_down },	/* k */
 	{ { noop, noop },	    button_2_down },	/* ... */
     },
     /* button_3_pend */
@@ -760,9 +786,11 @@ KdInputTransition  kdInputMachine[num_input_states][num_input_class] = {
 	{ { release, deliver },	    button_3_down },	/* ^2 */
 	{ { release, deliver },	    button_3_down },	/* v3 */
 	{ { release, deliver },	    start },		/* ^3 */
+	{ { release, deliver },	    button_3_down },	/* vo */
+	{ { release, deliver },	    button_3_down },	/* ^o */
 	{ { deliver, noop },	    button_3_pend },	/* <> */
 	{ { release, deliver },	    button_3_down },	/* <-> */
-	{ { release, deliver },	    button_3_down },	/* k */
+	{ { release, noop },	    button_3_down },	/* k */
 	{ { release, noop },	    button_3_down },	/* ... */
     },
     /* button_3_down */
@@ -773,9 +801,11 @@ KdInputTransition  kdInputMachine[num_input_states][num_input_class] = {
 	{ { deliver, noop },	    button_3_down },	/* ^2 */
 	{ { noop, noop },	    button_3_down },	/* v3 */
 	{ { deliver, noop },	    start },		/* ^3 */
+	{ { deliver, noop },	    button_3_down },	/* vo */
+	{ { deliver, noop },	    button_3_down },	/* ^o */
 	{ { deliver, noop },	    button_3_down },	/* <> */
 	{ { deliver, noop },	    button_3_down },	/* <-> */
-	{ { deliver, noop },	    button_3_down },	/* k */
+	{ { noop, noop },	    button_3_down },	/* k */
 	{ { noop, noop },	    button_3_down },	/* ... */
     },
     /* synthetic_2_down_13 */
@@ -786,9 +816,11 @@ KdInputTransition  kdInputMachine[num_input_states][num_input_class] = {
 	{ { noop, noop },	    synth_2_down_13 },	/* ^2 */
 	{ { noop, noop },	    synth_2_down_13 },	/* v3 */
 	{ { gen_up_2, noop },	    synth_2_down_1 },	/* ^3 */
+	{ { deliver, noop },	    synth_2_down_13 },	/* vo */
+	{ { deliver, noop },	    synth_2_down_13 },	/* ^o */
 	{ { deliver, noop },	    synth_2_down_13 },	/* <> */
 	{ { deliver, noop },	    synth_2_down_13 },	/* <-> */
-	{ { deliver, noop },	    synth_2_down_13 },	/* k */
+	{ { noop, noop },	    synth_2_down_13 },	/* k */
 	{ { noop, noop },	    synth_2_down_13 },	/* ... */
     },
     /* synthetic_2_down_3 */
@@ -799,9 +831,11 @@ KdInputTransition  kdInputMachine[num_input_states][num_input_class] = {
 	{ { deliver, noop },	    synth_2_down_3 },	/* ^2 */
 	{ { noop, noop },	    synth_2_down_3 },	/* v3 */
 	{ { noop, noop },	    start },		/* ^3 */
+	{ { deliver, noop },	    synth_2_down_3 },	/* vo */
+	{ { deliver, noop },	    synth_2_down_3 },	/* ^o */
 	{ { deliver, noop },	    synth_2_down_3 },	/* <> */
 	{ { deliver, noop },	    synth_2_down_3 },	/* <-> */
-	{ { deliver, noop },	    synth_2_down_3 },	/* k */
+	{ { noop, noop },	    synth_2_down_3 },	/* k */
 	{ { noop, noop },	    synth_2_down_3 },	/* ... */
     },
     /* synthetic_2_down_1 */
@@ -812,16 +846,14 @@ KdInputTransition  kdInputMachine[num_input_states][num_input_class] = {
 	{ { deliver, noop },	    synth_2_down_1 },	/* ^2 */
 	{ { deliver, noop },	    synth_2_down_1 },	/* v3 */
 	{ { deliver, noop },	    synth_2_down_1 },	/* ^3 */
+	{ { deliver, noop },	    synth_2_down_1 },	/* vo */
+	{ { deliver, noop },	    synth_2_down_1 },	/* ^o */
 	{ { deliver, noop },	    synth_2_down_1 },	/* <> */
 	{ { deliver, noop },	    synth_2_down_1 },	/* <-> */
-	{ { deliver, noop },	    synth_2_down_1 },	/* k */
+	{ { noop, noop },	    synth_2_down_1 },	/* k */
 	{ { noop, noop },	    synth_2_down_1 },	/* ... */
     },
 };
-
-Bool		kdEventHeld;
-xEvent		kdHeldEvent;
-int		kdEmulationDx, kdEmulationDy;
 
 #define EMULATION_WINDOW    10
 #define EMULATION_TIMEOUT   100
@@ -830,24 +862,24 @@ int		kdEmulationDx, kdEmulationDy;
 #define EventY(e)   ((e)->u.keyButtonPointer.rootY)
 
 int
-KdInsideEmulationWindow (xEvent *ev)
+KdInsideEmulationWindow (KdMouseInfo *mi, xEvent *ev)
 {
     if (ev->u.keyButtonPointer.pad1)
     {
-	kdEmulationDx += EventX(ev);
-	kdEmulationDy += EventY(ev);
+	mi->emulationDx += EventX(ev);
+	mi->emulationDy += EventY(ev);
     }
     else
     {
-	kdEmulationDx = EventX(&kdHeldEvent) - EventX(ev);
-	kdEmulationDy = EventY(&kdHeldEvent) - EventY(ev);
+	mi->emulationDx = EventX(&mi->heldEvent) - EventX(ev);
+	mi->emulationDy = EventY(&mi->heldEvent) - EventY(ev);
     }
-    return (abs (kdEmulationDx) < EMULATION_WINDOW &&
-	    abs (kdEmulationDy) < EMULATION_WINDOW);
+    return (abs (mi->emulationDx) < EMULATION_WINDOW &&
+	    abs (mi->emulationDy) < EMULATION_WINDOW);
 }
 				     
 KdInputClass
-KdClassifyInput (xEvent *ev)
+KdClassifyInput (KdMouseInfo *mi, xEvent *ev)
 {
     switch (ev->u.u.type) {
     case ButtonPress:
@@ -855,6 +887,7 @@ KdClassifyInput (xEvent *ev)
 	case 1: return down_1;
 	case 2: return down_2;
 	case 3: return down_3;
+	default: return down_o;
 	}
 	break;
     case ButtonRelease:
@@ -862,10 +895,11 @@ KdClassifyInput (xEvent *ev)
 	case 1: return up_1;
 	case 2: return up_2;
 	case 3: return up_3;
+	default: return up_o;
 	}
 	break;
     case MotionNotify:
-	if (kdEventHeld && !KdInsideEmulationWindow(ev))
+	if (mi->eventHeld && !KdInsideEmulationWindow(mi, ev))
 	    return outside_box;
 	else
 	    return motion;
@@ -936,44 +970,42 @@ KdQueueEvent (xEvent *ev)
     }
 }
 
-KdInputState	kdInputState;
-
 static void
-KdRunInputMachine (KdInputClass c, xEvent *ev)
+KdRunMouseMachine (KdMouseInfo *mi, KdInputClass c, xEvent *ev)
 {
     KdInputTransition	*t;
     int			a;
 
-    t = &kdInputMachine[kdInputState][c];
+    t = &kdInputMachine[mi->mouseState][c];
     for (a = 0; a < MAX_ACTIONS; a++)
     {
 	switch (t->actions[a]) {
 	case noop:
 	    break;
 	case hold:
-	    kdEventHeld = TRUE;
-	    kdEmulationDx = 0;
-	    kdEmulationDy = 0;
-	    kdHeldEvent = *ev;
+	    mi->eventHeld = TRUE;
+	    mi->emulationDx = 0;
+	    mi->emulationDy = 0;
+	    mi->heldEvent = *ev;
 	    break;
 	case setto:
-	    kdEmulationTimeout = GetTimeInMillis () + EMULATION_TIMEOUT;
-	    kdTimeoutPending = TRUE;
+	    mi->emulationTimeout = GetTimeInMillis () + EMULATION_TIMEOUT;
+	    mi->timeoutPending = TRUE;
 	    break;
 	case deliver:
 	    KdQueueEvent (ev);
 	    break;
 	case release:
-	    kdEventHeld = FALSE;
-	    kdTimeoutPending = FALSE;
-	    KdQueueEvent (&kdHeldEvent);
+	    mi->eventHeld = FALSE;
+	    mi->timeoutPending = FALSE;
+	    KdQueueEvent (&mi->heldEvent);
 	    break;
 	case clearto:
-	    kdTimeoutPending = FALSE;
+	    mi->timeoutPending = FALSE;
 	    break;
 	case gen_down_2:
 	    ev->u.u.detail = 2;
-	    kdEventHeld = FALSE;
+	    mi->eventHeld = FALSE;
 	    KdQueueEvent (ev);
 	    break;
 	case gen_up_2:
@@ -982,29 +1014,34 @@ KdRunInputMachine (KdInputClass c, xEvent *ev)
 	    break;
 	}
     }
-    kdInputState = t->nextState;
+    mi->mouseState = t->nextState;
 }
 
 void
 KdResetInputMachine (void)
 {
-    kdInputState = start;
-    kdEventHeld = FALSE;
+    KdMouseInfo	*mi;
+
+    for (mi = kdMouseInfo; mi; mi = mi->next)
+    {
+	mi->mouseState = start;
+	mi->eventHeld = FALSE;
+    }
 }
 
 void
-KdHandleEvent (xEvent *ev)
+KdHandleMouseEvent (KdMouseInfo *mi, xEvent *ev)
 {
-    if (kdEmulateMiddleButton)
-	KdRunInputMachine (KdClassifyInput (ev), ev);
+    if (mi->emulateMiddleButton)
+	KdRunMouseMachine (mi, KdClassifyInput (mi, ev), ev);
     else
 	KdQueueEvent (ev);
 }
 
 void
-KdReceiveTimeout (void)
+KdReceiveTimeout (KdMouseInfo *mi)
 {
-    KdRunInputMachine (timeout, 0);
+    KdRunMouseMachine (mi, timeout, 0);
 }
 
 #define KILL_SEQUENCE ((1L << KK_CONTROL)|(1L << KK_ALT)|(1L << KK_F8)|(1L << KK_F10))
@@ -1107,9 +1144,10 @@ KdCheckSpecialKeys(xEvent *xE)
 void
 KdHandleKeyboardEvent (xEvent *ev)
 {
-    int	    key = ev->u.u.detail;
-    int	    byte;
-    CARD8   bit;
+    int		key = ev->u.u.detail;
+    int		byte;
+    CARD8	bit;
+    KdMouseInfo	*mi;
     
     byte = key >> 3;
     bit = 1 << (key & 7);
@@ -1121,7 +1159,9 @@ KdHandleKeyboardEvent (xEvent *ev)
 	kdKeyState[byte] &= ~bit;
 	break;
     }
-    KdHandleEvent (ev);
+    for (mi = kdMouseInfo; mi; mi = mi->next)
+	KdRunMouseMachine (mi, keyboard, 0);
+    KdQueueEvent (ev);
 }
 
 void
@@ -1235,17 +1275,15 @@ KdEnqueueKeyboardEvent(unsigned char	scan_code,
     }
 }
 
-#define SetButton(b,v, s) \
+#define SetButton(mi, b, v, s) \
 {\
-    xE.u.u.detail = b; \
+    xE.u.u.detail = mi->map[b]; \
     xE.u.u.type = v; \
-    KdHandleEvent (&xE); \
+    KdHandleMouseEvent (mi, &xE); \
 }
 
-#define Press(b)         SetButton(b+1,ButtonPress,"Down")
-#define Release(b)       SetButton(b+1,ButtonRelease,"Up")
-
-static unsigned char	kdButtonState = 0;
+#define Press(mi, b)         SetButton(mi, b, ButtonPress, "Down")
+#define Release(mi, b)       SetButton(mi, b, ButtonRelease, "Up")
 
 /*
  * kdEnqueueMouseEvent
@@ -1267,13 +1305,15 @@ KdMouseAccelerate (DeviceIntPtr	device, int delta)
 }
 
 void
-KdEnqueueMouseEvent(unsigned long flags, int rx, int ry)
+KdEnqueueMouseEvent(KdMouseInfo *mi, unsigned long flags, int rx, int ry)
 {
-    CARD32  ms;
-    xEvent  xE;
-    unsigned char	buttons;
-    int	    x, y;
-    int	    (*matrix)[3] = kdMouseMatrix.matrix;
+    CARD32	    ms;
+    xEvent	    xE;
+    unsigned char   buttons;
+    int		    x, y;
+    int		    (*matrix)[3] = kdMouseMatrix.matrix;
+    unsigned long   button;
+    int		    n;
 
     if (!pKdPointer)
 	return;
@@ -1300,48 +1340,29 @@ KdEnqueueMouseEvent(unsigned long flags, int rx, int ry)
 
     xE.u.u.type = MotionNotify;
     xE.u.u.detail = 0;
-    KdHandleEvent (&xE);
+    KdHandleMouseEvent (mi, &xE);
 
     buttons = flags;
 
-    if ((kdButtonState & KD_BUTTON_1) ^ (buttons & KD_BUTTON_1))
+    for (button = KD_BUTTON_1, n = 0; button <= KD_BUTTON_5; button <<= 1, n++)
     {
-	if (buttons & KD_BUTTON_1)
+	if ((mi->buttonState & button) ^ (buttons & button))
 	{
-	    Press(0);
-	}
-	else
-	{
-	    Release(0);
+	    if (buttons & button)
+	    {
+		Press(mi, n);
+	    }
+	    else
+	    {
+		Release(mi, n);
+	    }
 	}
     }
-    if ((kdButtonState & KD_BUTTON_2) ^ (buttons & KD_BUTTON_2)) 
-    {
-	if (buttons & KD_BUTTON_2)
-	{
-	    Press(1);
-	}
-	else
-	{
-	    Release(1);
-	}
-    }
-    if ((kdButtonState & KD_BUTTON_3) ^ (buttons & KD_BUTTON_3))
-    {
-	if (buttons & KD_BUTTON_3)
-	{
-	    Press(2);
-	}
-	else
-	{
-	    Release(2);
-	}
-    }
-    kdButtonState = buttons;
+    mi->buttonState = buttons;
 }
 
 void
-KdEnqueueMotionEvent (int x, int y)
+KdEnqueueMotionEvent (KdMouseInfo *mi, int x, int y)
 {
     xEvent  xE;
     CARD32  ms;
@@ -1353,7 +1374,7 @@ KdEnqueueMotionEvent (int x, int y)
     xE.u.keyButtonPointer.rootX = x;
     xE.u.keyButtonPointer.rootY = y;
 
-    KdHandleEvent (&xE);
+    KdHandleMouseEvent (mi, &xE);
 }
 
 void
@@ -1362,29 +1383,19 @@ KdBlockHandler (int		screen,
 		pointer		timeout,
 		pointer		readmask)
 {
-    struct timeval	**pTimeout = timeout;
+    KdMouseInfo		    *mi;
     
-    if (kdTimeoutPending)
+    for (mi = kdMouseInfo; mi; mi = mi->next)
     {
-	static struct timeval	tv;
-	int			ms;
-
-	ms = kdEmulationTimeout - GetTimeInMillis ();
-	if (ms < 0)
-	    ms = 0;
-	tv.tv_sec = ms / 1000;
-	tv.tv_usec = (ms % 1000) * 1000;
-	if (*pTimeout)
+	if (mi->timeoutPending)
 	{
-	    if ((*pTimeout)->tv_sec > tv.tv_sec ||
-		((*pTimeout)->tv_sec == tv.tv_sec && 
-		 (*pTimeout)->tv_usec > tv.tv_usec))
-	    {
-		*pTimeout = &tv;
-	    }
+	    int	ms;
+    
+	    ms = mi->emulationTimeout - GetTimeInMillis ();
+	    if (ms < 0)
+		ms = 0;
+	    AdjustWaitForDelay (timeout, ms);
 	}
-	else
-	    *pTimeout = &tv;
     }
 }
 
@@ -1394,9 +1405,10 @@ KdWakeupHandler (int		screen,
 		 unsigned long	lresult,
 		 pointer	readmask)
 {
-    int	    result = (int) lresult;
-    fd_set  *pReadmask = (fd_set *) readmask;
-    int	    i;
+    int		result = (int) lresult;
+    fd_set	*pReadmask = (fd_set *) readmask;
+    int		i;
+    KdMouseInfo	*mi;
     
     if (kdInputEnabled && result > 0)
     {
@@ -1408,14 +1420,17 @@ KdWakeupHandler (int		screen,
 		KdUnblockSigio ();
 	    }
     }
-    if (kdTimeoutPending)
+    for (mi = kdMouseInfo; mi; mi = mi->next)
     {
-	if ((long) (GetTimeInMillis () - kdEmulationTimeout) >= 0)
+	if (mi->timeoutPending)
 	{
-	    kdTimeoutPending = FALSE;
-	    KdBlockSigio ();
-	    KdReceiveTimeout ();
-	    KdUnblockSigio ();
+	    if ((long) (GetTimeInMillis () - mi->emulationTimeout) >= 0)
+	    {
+		mi->timeoutPending = FALSE;
+		KdBlockSigio ();
+		KdReceiveTimeout (mi);
+		KdUnblockSigio ();
+	    }
 	}
     }
     if (kdSwitchPending)

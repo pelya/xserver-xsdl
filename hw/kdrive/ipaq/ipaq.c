@@ -22,7 +22,7 @@
  * Adapted from ts300.c by Alan Hourihane <alanh@fairlite.demon.co.uk>
  * For the Compaq IPAQ handheld, with the HP VGA Out Card (F1252A).
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/ipaq/ipaq.c,v 1.1 2001/05/23 17:28:39 alanh Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/ipaq/ipaq.c,v 1.2 2001/05/29 17:47:55 keithp Exp $ */
 
 #include "pcmcia.h"
 
@@ -47,11 +47,7 @@ InitOutput (ScreenInfo *pScreenInfo, int argc, char **argv)
 void
 InitInput (int argc, char **argv)
 {
-#ifdef __powerpc__
-    KdInitInput (&BusMouseFuncs, &LinuxKeyboardFuncs);
-#else
-    KdInitInput (&Ps2MouseFuncs, &LinuxKeyboardFuncs);
-#endif
+    KdInitInput (&LinuxMouseFuncs, &LinuxKeyboardFuncs);
 #ifdef TOUCHSCREEN
     KdInitTouchScreen (&TsFuncs);
 #endif

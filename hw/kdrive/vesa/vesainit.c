@@ -19,7 +19,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/vesa/vesainit.c,v 1.6 2001/06/04 09:45:42 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/vesa/vesainit.c,v 1.7 2001/09/05 07:12:43 keithp Exp $ */
 
 #include "vesa.h"
 
@@ -69,7 +69,7 @@ InitOutput (ScreenInfo *pScreenInfo, int argc, char **argv)
 void
 InitInput (int argc, char **argv)
 {
-    KdInitInput(&Ps2MouseFuncs, &LinuxKeyboardFuncs);
+    KdInitInput(&LinuxMouseFuncs, &LinuxKeyboardFuncs);
 }
 
 int

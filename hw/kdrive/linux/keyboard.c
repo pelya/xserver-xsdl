@@ -1,5 +1,5 @@
 /*
- * $XFree86: xc/programs/Xserver/hw/kdrive/linux/keyboard.c,v 1.7 2001/06/29 14:00:41 keithp Exp $
+ * $XFree86: xc/programs/Xserver/hw/kdrive/linux/keyboard.c,v 1.8 2001/09/29 04:16:39 keithp Exp $
  *
  * Copyright © 1999 Keith Packard
  *
@@ -438,8 +438,8 @@ LinuxKeyboardInit (void)
     if (!LinuxKbdType)
 	LinuxKbdType = KdAllocInputType ();
 
-    LinuxKeyboardEnable (LinuxConsoleFd, 0);
     KdRegisterFd (LinuxKbdType, LinuxConsoleFd, LinuxKeyboardRead, 0);
+    LinuxKeyboardEnable (LinuxConsoleFd, 0);
     KdRegisterFdEnableDisable (LinuxConsoleFd, 
 			       LinuxKeyboardEnable,
 			       LinuxKeyboardDisable);

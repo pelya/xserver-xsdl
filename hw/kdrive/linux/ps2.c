@@ -1,5 +1,5 @@
 /*
- * $XFree86: xc/programs/Xserver/hw/kdrive/linux/ps2.c,v 1.4 2001/04/01 14:00:04 tsi Exp $
+ * $XFree86: xc/programs/Xserver/hw/kdrive/linux/ps2.c,v 1.5 2001/06/29 14:00:41 keithp Exp $
  *
  * Copyright © 1999 Keith Packard
  *
@@ -110,7 +110,7 @@ Ps2Read (int ps2Port, void *closure)
 	    dy = -dy;
 	    n -= 3;
 	    b += 3;
-	    KdEnqueueMouseEvent (flags, dx, dy);
+	    KdEnqueueMouseEvent (kdMouseInfo, flags, dx, dy);
 	}
     }
 }

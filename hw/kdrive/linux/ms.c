@@ -20,7 +20,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/linux/ms.c,v 1.1 2001/08/09 20:45:15 dawes Exp $ */
 
 #define NEED_EVENTS
 #include "X.h"
@@ -63,7 +63,7 @@ MsReadBytes (int fd, char *buf, int len, int min)
 }
 
 void
-MsRead (int port)
+MsRead (int port, void *closure)
 {
     unsigned char   buf[3 * 200];
     unsigned char   *b;
@@ -87,10 +87,12 @@ MsRead (int port)
 	    dy = (char)(((b[0] & 0x0C) << 4) | (b[2] & 0x3F));
             n -= 3;
             b += 3;
-	    KdEnqueueMouseEvent (flags, dx, dy);
+	    KdEnqueueMouseEvent (kdMouseInfo, flags, dx, dy);
 	}
     }
 }
+
+int MsInputType;
 
 int
 MsInit (void)
@@ -100,6 +102,8 @@ MsInit (void)
     struct termios t;
     int ret;
 
+    if (!MsInputType)
+	MsInputType = KdAllocInputType ();
     port = open (device, O_RDWR | O_NONBLOCK);
     if(port < 0) {
         ErrorF("Couldn't open %s (%d)\n", device, (int)errno);
@@ -107,8 +111,7 @@ MsInit (void)
     } else if (port == 0) {
         ErrorF("Opening %s returned 0!  Please complain to Keith.\n",
                device);
-        close(port);
-        return 0;
+	goto bail;
     }
 
     if(!isatty(port)) {
@@ -137,7 +140,8 @@ MsInit (void)
         ErrorF("Couldn't tcsetattr(%s): %d\n", device, errno);
         goto bail;
     }
-    return port;
+    if (KdRegisterFd (MsInputType, port, MsRead, (void *) 0))
+	return 1;
 
  bail:
     close(port);
@@ -145,14 +149,12 @@ MsInit (void)
 }
 
 void
-MsFini (int port)
+MsFini (void)
 {
-    if (port >= 0)
-	close(port);
+    KdUnregisterFds (MsInputType, TRUE);
 }
 
 KdMouseFuncs MsMouseFuncs = {
     MsInit,
-    MsRead,
     MsFini
 };

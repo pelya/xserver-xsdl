@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/fbdev/fbinit.c,v 1.7 2001/05/23 08:56:08 alanh Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/fbdev/fbinit.c,v 1.8 2001/05/29 17:47:55 keithp Exp $ */
 
 #include <fbdev.h>
 
@@ -42,11 +42,7 @@ InitOutput (ScreenInfo *pScreenInfo, int argc, char **argv)
 void
 InitInput (int argc, char **argv)
 {
-#ifdef __powerpc__
-    KdInitInput (&BusMouseFuncs, &LinuxKeyboardFuncs);
-#else
-    KdInitInput (&Ps2MouseFuncs, &LinuxKeyboardFuncs);
-#endif
+    KdInitInput (&LinuxMouseFuncs, &LinuxKeyboardFuncs);
 #ifdef TOUCHSCREEN
     KdInitTouchScreen (&TsFuncs);
 #endif

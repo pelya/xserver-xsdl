@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/kdrive.h,v 1.19 2001/07/24 21:26:17 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/kdrive.h,v 1.20 2001/08/09 20:45:15 dawes Exp $ */
 
 #include <stdio.h>
 #include "X.h"
@@ -166,6 +166,44 @@ typedef struct {
     miBSFuncRec	    BackingStoreFuncs;
 #endif
 } KdPrivScreenRec, *KdPrivScreenPtr;
+
+typedef enum _kdMouseState {
+    start,
+    button_1_pend,
+    button_1_down,
+    button_2_down,
+    button_3_pend,
+    button_3_down,
+    synth_2_down_13,
+    synth_2_down_3,
+    synth_2_down_1,
+    num_input_states
+} KdMouseState;
+
+#define KD_MAX_BUTTON  7
+
+typedef struct _KdMouseInfo {
+    struct _KdMouseInfo	*next;
+    void		*driver;
+    void		*closure;
+    char		*name;
+    char		*prot;
+    char		map[KD_MAX_BUTTON];
+    int			nbutton;
+    Bool		emulateMiddleButton;
+    unsigned long	emulationTimeout;
+    Bool		timeoutPending;
+    KdMouseState	mouseState;
+    Bool		eventHeld;
+    xEvent		heldEvent;
+    unsigned char	buttonState;
+    int			emulationDx, emulationDy;
+} KdMouseInfo;
+
+extern KdMouseInfo	*kdMouseInfo;
+
+KdMouseInfo *KdMouseInfoAdd (void);
+void	    KdParseMouse (char *);
 
 typedef struct _KdMouseFuncs {
     int		    (*Init) (void);
@@ -478,6 +516,12 @@ void
 KdParseScreen (KdScreenInfo *screen,
 	       char	    *arg);
 
+char *
+KdSaveString (char *str);
+
+void
+KdParseMouse (char *arg);
+
 void
 KdOsInit (KdOsFuncs *pOsFuncs);
 
@@ -560,13 +604,15 @@ KdEnqueueKeyboardEvent(unsigned char	scan_code,
 #define KD_BUTTON_1	0x01
 #define KD_BUTTON_2	0x02
 #define KD_BUTTON_3	0x04
+#define KD_BUTTON_4	0x08
+#define KD_BUTTON_5	0x10
 #define KD_MOUSE_DELTA	0x80000000
 
 void
-KdEnqueueMouseEvent(unsigned long flags, int x, int y);
+KdEnqueueMouseEvent(KdMouseInfo *mi, unsigned long flags, int x, int y);
 
 void
-KdEnqueueMotionEvent (int x, int y);
+KdEnqueueMotionEvent (KdMouseInfo *mi, int x, int y);
 
 void
 KdReleaseAllKeys (void);
@@ -598,6 +644,7 @@ KdEnableInput (void);
 void
 ProcessInputEvents ();
 
+extern KdMouseFuncs	LinuxMouseFuncs;
 extern KdMouseFuncs	Ps2MouseFuncs;
 extern KdMouseFuncs	BusMouseFuncs;
 extern KdMouseFuncs	MsMouseFuncs;
