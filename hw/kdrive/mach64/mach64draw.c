@@ -65,10 +65,8 @@ CARD8 mach64Rop[16] = {
 #define MACH64_DRAW_COMBO_COPY	0x8
 
 static Reg	*reg;
-static CARD32	cmd;
 static CARD32	avail;
 static CARD32	triple;
-static CARD32	combo;
 
 #define IDX(reg,n)  (&(reg)->n - &(reg)->CRTC_H_TOTAL_DISP)
 
@@ -91,32 +89,58 @@ mach64WaitIdle (Reg *reg)
 }
 
 static Bool
-mach64Setup (ScreenPtr	pScreen, CARD32 combo, int wait)
+mach64Setup (PixmapPtr pDst, PixmapPtr pSrc, CARD32 combo, int wait)
 {
+    ScreenPtr pScreen = pDst->drawable.pScreen;
     KdScreenPriv(pScreen);
     mach64ScreenInfo(pScreenPriv);
     mach64CardInfo(pScreenPriv);
+    CARD32  DST_PITCH;
+    CARD32  DST_OFFSET;
+    CARD32  SRC_PITCH;
+    CARD32  SRC_OFFSET;
 
-    avail = 0;
     reg = mach64c->reg;
     triple = mach64s->bpp24;
     if (!reg)
 	return FALSE;
     
-    mach64WaitAvail(reg, wait + 3);
-    reg->DP_PIX_WIDTH = mach64s->DP_PIX_WIDTH;
-    reg->USR1_DST_OFF_PITCH = mach64s->USR1_DST_OFF_PITCH;
+    /* pixels / 8 = ((bytes * 8) / bpp) / 8 = bytes / bpp */
+    DST_PITCH = pDst->devKind / pDst->drawable.bitsPerPixel;
+    if (triple)
+	DST_PITCH *= 3;
+    /* bytes / 8 */
+    DST_OFFSET = ((CARD8 *) pDst->devPrivate.ptr - mach64s->screen) >> 3;
+    
+    mach64WaitAvail(reg, wait + (pSrc ? 5 : 4));
     reg->DP_SET_GUI_ENGINE = mach64s->DP_SET_GUI_ENGINE | (combo << 20);
+    reg->DP_PIX_WIDTH = mach64s->DP_PIX_WIDTH;
+    reg->DST_OFF_PITCH = ((DST_OFFSET << 0) |	/* USR1_DST_OFFSET */
+			  (DST_PITCH << 22) |	/* USR1_DST_PITCH */
+			  0);
+    if (pSrc)
+    {
+	/* pixels / 8 = ((bytes * 8) / bpp) / 8 = bytes / bpp */
+	SRC_PITCH = pSrc->devKind / pSrc->drawable.bitsPerPixel;
+	if (triple)
+	    SRC_PITCH *= 3;
+	/* bytes / 8 */
+	SRC_OFFSET = ((CARD8 *) pSrc->devPrivate.ptr - mach64s->screen) >> 3;
+	
+	reg->SRC_OFF_PITCH = ((SRC_OFFSET << 0) |
+			      (SRC_PITCH << 22) |
+			      0);
+    }
     return TRUE;
 }
 
 Bool
-mach64PrepareSolid (DrawablePtr    pDrawable,
-		     int	    alu,
-		     Pixel	    pm,
-		     Pixel	    fg)
+mach64PrepareSolid (PixmapPtr   pPixmap,
+		    int		alu,
+		    Pixel	pm,
+		    Pixel	fg)
 {
-    if (!mach64Setup (pDrawable->pScreen, 1, 3))
+    if (!mach64Setup (pPixmap, 0, 1, 3))
 	return FALSE;
     reg->DP_MIX = (mach64Rop[alu] << 16) | 0;
     reg->DP_WRITE_MSK = pm;
@@ -153,22 +177,33 @@ mach64DoneSolid (void)
 
 static int copyDx;
 static int copyDy;
+static CARD32	copyCombo;
 
 Bool
-mach64PrepareCopy (DrawablePtr	pSrcDrawable,
-		   DrawablePtr	pDstDrawable,
+mach64PrepareCopy (PixmapPtr	pSrcPixmap,
+		   PixmapPtr	pDstPixmap,
 		   int		dx,
 		   int		dy,
 		   int		alu,
 		   Pixel	pm)
 {
-    CARD32	combo = 8;
+    copyCombo = 8 | 2 | 1;
+    copyDx = dx;
+    copyDy = dy;
+    
+    /*
+     * Avoid going backwards when copying pixmaps to the screen.
+     * This should reduce tearing somewhat
+     */
+    if (pSrcPixmap == pDstPixmap)
+    {
+        if (dx <= 0)
+	    copyCombo &= ~1;
+	if (dy <= 0)
+	    copyCombo &= ~2;
+    }
 
-    if ((copyDx = dx) > 0)
-	combo |= 1;
-    if ((copyDy = dy) > 0)
-	combo |= 2;
-    if (!mach64Setup (pDstDrawable->pScreen, combo, 2))
+    if (!mach64Setup (pDstPixmap, pSrcPixmap, copyCombo, 2))
 	return FALSE;
     
     reg->DP_MIX = (mach64Rop[alu] << 16) | 0;
@@ -194,20 +229,20 @@ mach64Copy (int srcX,
 
 	traj = DST_24_ROT_EN | DST_24_ROT((dstX / 4) % 6);
 	
-	if (copyDx > 0)
+	if (copyCombo & 1)
 	    traj |= 1;
-	if (copyDy > 0)
+	if (copyCombo & 2)
 	    traj |= 2;
 	
 	mach64WaitAvail (reg, 1);
 	reg->GUI_TRAJ_CNTL = traj;
     }
-    if (copyDx <= 0)
+    if ((copyCombo & 1) == 0)
     {
 	srcX += w - 1;
 	dstX += w - 1;
     }
-    if (copyDy <= 0)
+    if ((copyCombo & 2) == 0)
     {
 	srcY += h - 1;
 	dstY += h - 1;
@@ -232,6 +267,10 @@ KaaScreenInfoRec    mach64Kaa = {
     mach64PrepareCopy,
     mach64Copy,
     mach64DoneCopy,
+
+    64,			    /* Offscreen byte alignment */
+    64,			    /* Offscreen pitch */
+    KAA_OFFSCREEN_PIXMAPS,  /* Flags */
 };
 
 Bool
@@ -264,12 +303,12 @@ mach64DrawEnable (ScreenPtr pScreen)
 {
     KdScreenPriv(pScreen);
     mach64ScreenInfo(pScreenPriv);
-    CARD32  DP_PIX_WIDTH;
-    CARD32  DP_SET_GUI_ENGINE;
-    CARD32  SET_DP_DST_PIX_WIDTH;
-    CARD32  DST1_PITCH;
+    CARD32  DP_PIX_WIDTH = 0;
+    CARD32  SET_DP_DST_PIX_WIDTH = 0;
     
+    avail = 0;
     mach64s->bpp24 = FALSE;
+		
     switch (pScreenPriv->screen->fb[0].depth) {
     case 1:
 	DP_PIX_WIDTH = ((PIX_FORMAT_MONO << 0) |	/* DP_DST_PIX_WIDTH */
@@ -378,18 +417,12 @@ mach64DrawEnable (ScreenPtr pScreen)
     }
     
     mach64s->DP_PIX_WIDTH = DP_PIX_WIDTH;
-    DST1_PITCH = (pScreenPriv->screen->fb[0].pixelStride) >> 3;
-    if (mach64s->bpp24)
-	DST1_PITCH *= 3;
-    mach64s->USR1_DST_OFF_PITCH = ((0 << 0) |		/* USR1_DST_OFFSET */
-				   (DST1_PITCH << 22) |	/* USR1_DST_PITCH */
-				   0);
     mach64s->DP_SET_GUI_ENGINE = ((SET_DP_DST_PIX_WIDTH << 3) |
 				  (1 << 6) |		/* SET_DP_SRC_PIX_WIDTH */
-				  (0 << 7) |		/* SET_DST_OFFSET */
+				  (6 << 7) |		/* SET_DST_OFFSET */
 				  (0 << 10) |		/* SET_DST_PITCH */
 				  (0 << 14) |		/* SET_DST_PITCH_BY_2 */
-				  (1 << 15) |		/* SET_SRC_OFFPITCH_COPY */
+				  (0 << 15) |		/* SET_SRC_OFFPITCH_COPY */
 				  (0 << 16) |		/* SET_SRC_HGTWID1_2 */
 				  (0 << 20) |		/* SET_DRAWING_COMBO */
 				  (1 << 24) |		/* SET_BUS_MASTER_OP */

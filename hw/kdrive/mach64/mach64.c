@@ -88,25 +88,10 @@ mach64ScreenInit (KdScreenInfo *screen)
     }
     memory = mach64s->vesa.fb_size;
     screen_size = screen->fb[0].byteStride * screen->height;
-    if (mach64s->screen && memory >= screen_size + 2048)
-    {
-	memory -= 2048;
-	mach64s->cursor_base = mach64s->screen + memory - 2048;
-    }
-    else
-	mach64s->cursor_base = 0;
-    screen->softCursor = TRUE;	/* XXX for now */
     memory -= screen_size;
-    if (memory > screen->fb[0].byteStride)
-    {
-	mach64s->off_screen = mach64s->screen + screen_size;
-	mach64s->off_screen_size = memory;
-    }
-    else
-    {
-	mach64s->off_screen = 0;
-	mach64s->off_screen_size = 0;
-    }
+    screen->softCursor = TRUE;
+    screen->off_screen_base = screen_size;
+    screen->off_screen_size = memory;
     screen->driver = mach64s;
     return TRUE;
 }
@@ -124,13 +109,12 @@ mach64InitScreen (ScreenPtr pScreen)
 }
 
 #ifdef RANDR
+Bool
 mach64RandRSetConfig (ScreenPtr		pScreen,
 		      Rotation		rotation,
 		      int		rate,
 		      RRScreenSizePtr	pSize)
 {
-    KdScreenPriv(pScreen);
-    
     KdCheckSync (pScreen);
 
     if (!vesaRandRSetConfig (pScreen, rotation, rate, pSize))
@@ -281,8 +265,8 @@ const CARD8	mach64DPMSModes[4] = {
     0x8c,	    /* KD_DPMS_STANDBY */
     0x8c,	    /* KD_DPMS_STANDBY */
     0x8c,	    /* KD_DPMS_STANDBY */
-/*    0xb0,	    /* KD_DPMS_SUSPEND */
-/*    0xbc,	    /* KD_DPMS_POWERDOWN */
+/*    0xb0,	       KD_DPMS_SUSPEND */
+/*    0xbc,	       KD_DPMS_POWERDOWN */
 };
 
 #define PWR_MGT_ON		    (1 << 0)
@@ -320,7 +304,7 @@ mach64DPMS (ScreenPtr pScreen, int mode)
 {
     KdScreenPriv(pScreen);
     Mach64CardInfo	*mach64c = pScreenPriv->card->driver;
-    int			hsync_off, vsync_off, blank;
+    int			hsync_off = 0, vsync_off = 0, blank = 0;
     CARD32		CRTC_GEN_CNTL;
     CARD32		LCD_GEN_CTRL;
     Reg			*reg = mach64c->reg;

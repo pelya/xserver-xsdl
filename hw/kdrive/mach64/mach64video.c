@@ -66,6 +66,11 @@ mach64StopVideo(KdScreenInfo *screen, pointer data, Bool exit)
 	pPortPriv->videoOn = FALSE;
 	mach64WaitIdle (reg);
     }
+    if (pPortPriv->off_screen)
+    {
+	KdOffscreenFree (pPortPriv->off_screen);
+	pPortPriv->off_screen = 0;
+    }
 }
 
 static int
@@ -74,13 +79,8 @@ mach64SetPortAttribute(KdScreenInfo *screen,
 		       int	    value,
 		       pointer	    data)
 {
-    ScreenPtr		pScreen = screen->pScreen;
-    KdScreenPriv(pScreen);
-    KdCardInfo		*card = pScreenPriv->card;
     Mach64ScreenInfo	*mach64s = (Mach64ScreenInfo *) screen->driver;
-    Mach64CardInfo	*mach64c = (Mach64CardInfo *) card->driver;
     Mach64PortPrivPtr	pPortPriv = mach64s->pAdaptor->pPortPrivates[0].ptr;
-    MediaReg		*media = mach64c->media_reg;
 
     if(attribute == xvBrightness) 
     {
@@ -161,14 +161,10 @@ mach64CopyPackedData(KdScreenInfo   *screen,
 		     int	    h,
 		     int	    w)
 {
-    ScreenPtr		pScreen = screen->pScreen;
-    KdScreenPriv(pScreen);
-    KdCardInfo		*card = pScreenPriv->card;
     Mach64ScreenInfo	*mach64s = (Mach64ScreenInfo *) screen->driver;
-    Mach64CardInfo	*mach64c = (Mach64CardInfo *) card->driver;
     Mach64PortPrivPtr	pPortPriv = mach64s->pAdaptor->pPortPrivates[0].ptr;
-    CARD8		*src, *dst;
-    int			srcDown, srcRight, srcNext;
+    CARD8		*src = buf, *dst;
+    int			srcDown = srcPitch, srcRight = 2, srcNext;
     int			p;
 
     switch (randr & RR_Rotate_All) {
@@ -235,15 +231,12 @@ mach64CopyPlanarData(KdScreenInfo   *screen,
 		     int	    w,
 		     int	    id)
 {
-    ScreenPtr		pScreen = screen->pScreen;
-    KdScreenPriv(pScreen);
-    KdCardInfo		*card = pScreenPriv->card;
     Mach64ScreenInfo	*mach64s = (Mach64ScreenInfo *) screen->driver;
-    Mach64CardInfo	*mach64c = (Mach64CardInfo *) card->driver;
     Mach64PortPrivPtr	pPortPriv = mach64s->pAdaptor->pPortPrivates[0].ptr;
     int			i, j;
     CARD8		*src1, *src2, *src3, *dst1;
-    int			srcDown, srcDown2, srcRight, srcRight2, srcNext;
+    int			srcDown = srcPitch, srcDown2 = srcPitch2;
+    int			srcRight = 2, srcRight2 = 1, srcNext = 1;
 
     /* compute source data pointers */
     src1 = buf;
@@ -475,15 +468,8 @@ mach64DisplayVideo(KdScreenInfo *screen,
     Mach64PortPrivPtr	pPortPriv = mach64s->pAdaptor->pPortPrivates[0].ptr;
     Reg			*reg = mach64c->reg;
     MediaReg		*media = mach64c->media_reg;
-    int			xscaleInt, xscaleFract, yscaleInt, yscaleFract;
-    int			xscaleIntUV = 0, xscaleFractUV = 0;
-    int			yscaleIntUV = 0, yscaleFractUV = 0;
-    int			randr = mach64s->vesa.randr;
     int			HORZ_INC, VERT_INC;
     CARD32		SCALER_IN;
-    CARD32		OVERLAY_SCALE_CNTL;
-    int			tmp;
-    int			left;
     int			bright;
     int			sat;
 
@@ -570,6 +556,16 @@ mach64DisplayVideo(KdScreenInfo *screen,
     media->OVERLAY_Y_X_START = MACH64_YX (dst_x1, dst_y1);
 }
 
+static void
+mach64VideoMoveIn (KdOffscreenArea *area)
+{
+}
+
+static void
+mach64VideoMoveOut (KdOffscreenArea *area)
+{
+}
+
 static int
 mach64PutImage(KdScreenInfo	    *screen, 
 	       short		    src_x,
@@ -592,7 +588,6 @@ mach64PutImage(KdScreenInfo	    *screen,
     Mach64ScreenInfo	*mach64s = (Mach64ScreenInfo *) screen->driver;
     Mach64CardInfo	*mach64c = (Mach64CardInfo *) card->driver;
     Mach64PortPrivPtr	pPortPriv = (Mach64PortPrivPtr)data;
-    Reg			*reg = mach64c->reg;
     MediaReg		*media = mach64c->media_reg;
     INT32		x1, x2, y1, y2;
     int			randr = mach64s->vesa.randr;
@@ -645,6 +640,7 @@ mach64PutImage(KdScreenInfo	    *screen,
 	
     switch (randr & RR_Rotate_All) {
     case RR_Rotate_0:
+    default:
 	dst_x1 = dstBox.x1;
 	dst_y1 = dstBox.y1;
 	dst_x2 = dstBox.x2;
@@ -700,11 +696,29 @@ mach64PutImage(KdScreenInfo	    *screen,
     default:
 	dstPitch = ((dst_width << 1) + 15) & ~15;
 	srcPitch = (width << 1);
+	srcPitch2 = 0;
 	size = dstPitch * (int) dst_height;
 	break;
     }  
 
-    pPortPriv->offset = mach64s->off_screen - (CARD8 *) mach64s->vesa.fb;
+    if (pPortPriv->off_screen && size != pPortPriv->size)
+    {
+	KdOffscreenFree (pPortPriv->off_screen);
+	pPortPriv->off_screen = 0;
+    }
+
+    if (!pPortPriv->off_screen)
+    {
+	pPortPriv->off_screen = KdOffscreenAlloc (screen->pScreen, size * 2, 64,
+						  TRUE, mach64VideoMoveIn,
+						  mach64VideoMoveOut,
+						  pPortPriv);
+	if (!pPortPriv->off_screen)
+	    return BadAlloc;
+    }
+    
+    pPortPriv->offset = pPortPriv->off_screen->offset;
+    pPortPriv->size = size;
     /* fixup pointers */
     
     pPortPriv->YBuf0Offset = pPortPriv->offset;
@@ -860,18 +874,6 @@ static KdImageRec Images[NUM_IMAGES] =
 
 static void mach64ResetVideo(KdScreenInfo *screen) 
 {
-    ScreenPtr		pScreen = screen->pScreen;
-    KdScreenPriv(pScreen);
-    KdCardInfo		*card = pScreenPriv->card;
-    Mach64ScreenInfo	*mach64s = (Mach64ScreenInfo *) screen->driver;
-    Mach64CardInfo	*mach64c = (Mach64CardInfo *) card->driver;
-    Mach64PortPrivPtr	pPortPriv = mach64s->pAdaptor->pPortPrivates[0].ptr;
-    MediaReg		*media = mach64c->media_reg;
-
-    /*
-     * Default to maximum image size in YV12
-     */
-    
 }
 
 static int
@@ -881,10 +883,9 @@ mach64ReputImage (KdScreenInfo	    *screen,
 		  RegionPtr	    clipBoxes,
 		  pointer	    data)
 {
-    ScreenPtr		pScreen = screen->pScreen;
     Mach64PortPrivPtr	pPortPriv = (Mach64PortPrivPtr)data;
-    BoxPtr		pOldExtents = REGION_EXTENTS (pScreen, &pPortPriv->clip);
-    BoxPtr		pNewExtents = REGION_EXTENTS (pScreen, clipBoxes);
+    BoxPtr		pOldExtents = REGION_EXTENTS (screen->pScreen, &pPortPriv->clip);
+    BoxPtr		pNewExtents = REGION_EXTENTS (screen->pScreen, clipBoxes);
 
     if (pOldExtents->x1 == pNewExtents->x1 &&
 	pOldExtents->x2 == pNewExtents->x2 &&
@@ -906,10 +907,8 @@ static KdVideoAdaptorPtr
 mach64SetupImageVideo(ScreenPtr pScreen)
 {
     KdScreenPriv(pScreen);
-    mach64CardInfo(pScreenPriv);
     mach64ScreenInfo(pScreenPriv);
     KdScreenInfo	*screen = pScreenPriv->screen;
-    KdCardInfo		*card = pScreenPriv->card;
     KdVideoAdaptorPtr	adapt;
     Mach64PortPrivPtr	pPortPriv;
 
@@ -952,6 +951,9 @@ mach64SetupImageVideo(ScreenPtr pScreen)
     pPortPriv->brightness = 0;
     pPortPriv->saturation = 0;
     pPortPriv->currentBuf = 0;
+    pPortPriv->off_screen = 0;
+    pPortPriv->size = 0;
+    pPortPriv->offset = 0;
 
     /* gotta uninit this someplace */
     REGION_INIT(pScreen, &pPortPriv->clip, NullBox, 0); 
@@ -975,7 +977,6 @@ Bool mach64InitVideo(ScreenPtr pScreen)
     KdVideoAdaptorPtr	newAdaptor = NULL;
     int			num_adaptors;
     KdCardInfo		*card = pScreenPriv->card;
-    Mach64ScreenInfo	*mach64s = (Mach64ScreenInfo *) screen->driver;
     Mach64CardInfo	*mach64c = (Mach64CardInfo *) card->driver;
     
     if (!mach64c->media_reg)

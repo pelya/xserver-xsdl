@@ -28,6 +28,7 @@
 #include <config.h>
 #endif
 #include "mach64.h"
+#include <klinux.h>
 
 void
 InitCard (char *name)

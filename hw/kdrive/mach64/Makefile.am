@@ -1,6 +1,7 @@
 INCLUDES = 					\
 	-I$(top_srcdir)/fb			\
 	-I$(top_srcdir)/hw/kdrive/src		\
+	-I$(top_srcdir)/hw/kdrive/linux		\
 	-I$(top_srcdir)/hw/kdrive/vesa		\
 	-I$(top_srcdir)/mi			\
 	-I$(top_srcdir)/miext/layer		\

@@ -553,19 +553,16 @@ typedef struct _mach64PortPriv {
     Time        freeTime;
     CARD32	size;
     CARD32	offset;
+    KdOffscreenArea *off_screen;
 } Mach64PortPrivRec, *Mach64PortPrivPtr;
 
 Bool mach64InitVideo(ScreenPtr pScreen);
 
 typedef struct _mach64ScreenInfo {
     VesaScreenPrivRec		vesa;
-    CARD8			*cursor_base;
     CARD8			*screen;
-    CARD8			*off_screen;
-    int				off_screen_size;
     CARD32			DP_PIX_WIDTH;
     CARD32			DP_SET_GUI_ENGINE;
-    CARD32			USR1_DST_OFF_PITCH;
     Bool			bpp24;
     Mach64Cursor		cursor;
     CARD32			colorKey;
@@ -601,6 +598,9 @@ mach64Enable (ScreenPtr pScreen);
 
 void
 mach64Disable (ScreenPtr pScreen);
+
+Bool
+mach64DPMS (ScreenPtr pScreen, int mode);
 
 void
 mach64WaitAvail(Reg *reg, int n);
