@@ -20,7 +20,7 @@
 *content-orientation: portrait
 *copy-count: 1
 *default-medium: iso-a4
-*default-printer-resolution: 300
+*default-printer-resolution: 600
 
 # "PSspooldir" jobs should always be 300 DPI
 # (to be compatible to DPS-based PostScript viewers such as sdtimage)
@@ -32,6 +32,8 @@ PS2PDFspooldir-GS.default-printer-resolution: 600
 # Some resolution defaults to make applications happy which are too lazy
 # to pick an own default in absence of "default-printer-resolution"
 HPLJ4050-PS.default-printer-resolution: 600
+SPSPARC2.default-printer-resolution: 300
+CANONBJ10E-GS.default-printer-resolution: 360
 
 # EXAMPLES
 #
