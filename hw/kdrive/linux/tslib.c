@@ -122,6 +122,29 @@ static char *TsNames[] = {
 int TsInputType;
 
 int
+TslibEnable (int not_needed_fd, void *closure)
+{
+  KdMouseInfo	    *mi = closure;
+  int		     fd = 0;
+
+  if(!(tsDev = ts_open(mi->name, 0))) {
+    fprintf(stderr, "%s() failed to open %s\n", __func__, mi->name );
+    return -1; 			/* XXX Not sure what to return here */
+  }
+  
+  ts_config(tsDev); 
+  fd=ts_fd(tsDev);
+
+  return fd;
+}
+
+void
+TslibDisable (int fd, void *closure)
+{
+  ts_close(tsDev);
+}
+
+int
 TslibInit (void)
 {
     int		i;
@@ -131,7 +154,7 @@ TslibInit (void)
 
     if (!TsInputType)
 	TsInputType = KdAllocInputType ();
-    
+
     for (mi = kdMouseInfo; mi; mi = next)
     {
 	next = mi->next;
@@ -151,14 +174,25 @@ TslibInit (void)
 		    break;
 		}
 	    }
+	} else {
+
+	  if(!(tsDev = ts_open(mi->name,0))) 
+	    continue;
+	  ts_config(tsDev); 
+	  fd=ts_fd(tsDev);
+
 	}
 
 	if (fd > 0 && tsDev != 0) 
 	  {
 	    mi->driver = (void *) fd;
 	    mi->inputType = TsInputType;
-	    	if (KdRegisterFd (TsInputType, fd, TsRead, (void *) mi))
-		    n++;
+	    if (KdRegisterFd (TsInputType, fd, TsRead, (void *) mi))
+	      n++;
+
+	    /* Set callbacks for vt switches etc */
+	    KdRegisterFdEnableDisable (fd, TslibEnable, TslibDisable);
+
 	  } 
 	else 
 	  if (fd > 0) close(fd);
