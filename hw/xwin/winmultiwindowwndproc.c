@@ -301,6 +301,8 @@ winTopLevelWindowProc (HWND hwnd, UINT message,
   winWMMessageRec	wmMsg;
   Bool                  fWMMsgInitialized = FALSE;
   static Bool		s_fTracking = FALSE;
+  Bool			needRestack = FALSE;
+  LRESULT		ret;
 
 #if CYGDEBUG
   winDebugWin32Message("winTopLevelWindowProc", hwnd, message, wParam, lParam);
@@ -402,6 +404,13 @@ winTopLevelWindowProc (HWND hwnd, UINT message,
       {
         /* Don't pass customized menus to DefWindowProc */
         return 0;
+      }
+      if (wParam == SC_RESTORE || wParam == SC_MAXIMIZE)
+      {
+        WINDOWPLACEMENT wndpl;
+	wndpl.length = sizeof(wndpl);
+	if (GetWindowPlacement(hwnd, &wndpl) && wndpl.showCmd == SW_SHOWMINIMIZED)
+          needRestack = TRUE;
       }
       break;
 
@@ -1010,5 +1019,12 @@ winTopLevelWindowProc (HWND hwnd, UINT message,
       break;
     }
 
-  return DefWindowProc (hwnd, message, wParam, lParam);
+  ret = DefWindowProc (hwnd, message, wParam, lParam);
+  /*
+   * If the window was minized we get the stack change before the window is restored
+   * and so it gets lost. Ensure there stacking order is correct.
+   */
+  if (needRestack)
+    winReorderWindowsMultiWindow();
+  return ret;
 }
