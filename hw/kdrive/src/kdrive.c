@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/kdrive.c,v 1.13 2001/05/23 03:29:44 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/kdrive.c,v 1.14 2001/05/26 01:25:41 keithp Exp $ */
 
 #include "kdrive.h"
 #ifdef PSEUDO8
@@ -342,6 +342,7 @@ KdParseScreen (KdScreenInfo *screen,
     screen->softCursor = kdSoftCursor;
     kdDumbDriver = FALSE;
     kdSoftCursor = FALSE;
+    screen->rotation = 0;
     screen->width = 0;
     screen->height = 0;
     screen->width_mm = 0;
@@ -356,7 +357,7 @@ KdParseScreen (KdScreenInfo *screen,
     
     for (i = 0; i < 2; i++)
     {
-	arg = KdParseFindNext (arg, "x/", save, &delim);
+	arg = KdParseFindNext (arg, "x/@", save, &delim);
 	if (!save[0])
 	    return;
 	
@@ -365,7 +366,7 @@ KdParseScreen (KdScreenInfo *screen,
 	
 	if (delim == '/')
 	{
-	    arg = KdParseFindNext (arg, "x", save, &delim);
+	    arg = KdParseFindNext (arg, "x@", save, &delim);
 	    if (!save[0])
 		return;
 	    mm = atoi(save);
@@ -381,8 +382,26 @@ KdParseScreen (KdScreenInfo *screen,
 	    screen->height = pixels;
 	    screen->height_mm = mm;
 	}
-	if (delim != 'x')
+	if (delim != 'x' && delim != '@')
 	    return;
+    }
+
+    if (delim == '@')
+    {
+	arg = KdParseFindNext (arg, "x", save, &delim);
+	if (!save[0])
+	    return;
+	screen->rotation = atoi (save);
+	if (screen->rotation < 45)
+	    screen->rotation = 0;
+	else if (screen->rotation < 135)
+	    screen->rotation = 90;
+	else if (screen->rotation < 225)
+	    screen->rotation = 180;
+	else if (screen->rotation < 315)
+	    screen->rotation = 270;
+	else
+	    screen->rotation = 0;
     }
     
     fb = 0;

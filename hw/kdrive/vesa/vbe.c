@@ -196,7 +196,7 @@ VbeCleanup (Vm86InfoPtr vi, VbeInfoPtr vbe)
 }
 
 int
-VbeSetMode (Vm86InfoPtr vi, VbeInfoPtr vbe, int mode, int linear)
+VbeSetMode (Vm86InfoPtr vi, VbeInfoPtr vbe, int mode, int linear, int direct)
 {
     int			code;
     VbeInfoBlock	vib;
@@ -223,13 +223,16 @@ VbeSetMode (Vm86InfoPtr vi, VbeInfoPtr vbe, int mode, int linear)
     vbe->windowA_offset = vbe->windowB_offset = -1;
     vbe->last_window = 1;
     
-    if(vib.Capabilities[0] & 1)
-        palette_hi = 1;
-    if(vib.Capabilities[0] & 4)
-        palette_wait = 1;
-    
-    if(palette_hi || palette_wait)
-        VbeSetPaletteOptions(vi, vbe, palette_hi?8:6, palette_wait);
+    if (!direct)
+    {
+	if(vib.Capabilities[0] & 1)
+	    palette_hi = 1;
+	if(vib.Capabilities[0] & 4)
+	    palette_wait = 1;
+	
+	if(palette_hi || palette_wait)
+	    VbeSetPaletteOptions(vi, vbe, palette_hi?8:6, palette_wait);
+    }
 
     return 0;
 }

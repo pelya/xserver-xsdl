@@ -102,6 +102,7 @@ typedef struct _KdScreenInfo {
     KdCardInfo	*card;
     ScreenPtr	pScreen;
     void	*driver;
+    int		rotation;
     int		width;
     int		height;
     int		rate;
@@ -224,6 +225,33 @@ extern const int		kdNumMonitorTimings;
 typedef struct _KdMouseMatrix {
     int	    matrix[2][3];
 } KdMouseMatrix;
+
+typedef struct _KaaScreenPriv {
+    Bool	(*PrepareSolid) (DrawablePtr	pDrawable,
+				 int		alu,
+				 Pixel		planemask,
+				 Pixel		fg);
+    void	(*Solid) (int x1, int y1, int x2, int y2);
+    void	(*DoneSolid) (void);
+
+    Bool	(*PrepareCopy) (DrawablePtr	pSrcDrawable,
+				DrawablePtr	pDstDrawable,
+				Bool		upsidedown,
+				Bool		reverse,
+				int		alu,
+				Pixel		planemask);
+    void	(*Copy) (int	srcX,
+			 int	srcY,
+			 int	dstX,
+			 int	dstY,
+			 int	width,
+			 int	height);
+    void	(*DoneCopy) (void);
+} KaaScreenPrivRec, *KaaScreenPrivPtr;
+
+Bool
+KaaInit (ScreenPtr	    pScreen,
+	 KaaScreenPrivPtr   pScreenPriv);
 
 /*
  * This is the only completely portable way to

@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/fbdev/fbdev.c,v 1.12 2001/05/23 08:56:08 alanh Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/fbdev/fbdev.c,v 1.13 2001/05/25 07:44:29 alanh Exp $ */
 
 #include "fbdev.h"
 
@@ -92,7 +92,6 @@ fbdevScreenInitialize (KdScreenInfo *screen, FbdevScrPriv *scrpriv)
     FbdevPriv	*priv = screen->card->driver;
     Pixel	allbits;
     int		depth;
-    Bool	rotate;
     Bool	shadow;
 #ifdef FAKE24_ON_16
     Bool	fake24;
@@ -134,15 +133,15 @@ fbdevScreenInitialize (KdScreenInfo *screen, FbdevScrPriv *scrpriv)
 	break;
     }
     screen->rate = 72;
-    scrpriv->rotate = ((priv->var.xres < priv->var.yres) != 
-		       (screen->width < screen->height));
+    scrpriv->rotation = screen->rotation;
+    
 #ifdef FAKE24_ON_16
     if (screen->fb[0].depth == 24 && screen->fb[0].bitsPerPixel == 24 &&
 	priv->var.bits_per_pixel == 16)
     {
 	fake24 = TRUE;
 	scrpriv->shadow = TRUE;
-	scrpriv->rotate = FALSE;
+	scrpriv->rotation = 0;
 	screen->fb[0].redMask = 0xff0000;
 	screen->fb[0].greenMask = 0x00ff00;
 	screen->fb[0].blueMask = 0x0000ff;
@@ -155,27 +154,13 @@ fbdevScreenInitialize (KdScreenInfo *screen, FbdevScrPriv *scrpriv)
     {
 	screen->fb[0].depth = depth;
 	screen->fb[0].bitsPerPixel = priv->var.bits_per_pixel;
-	if (!scrpriv->rotate)
-	{
-	    screen->width = priv->var.xres;
-	    screen->height = priv->var.yres;
-	    screen->fb[0].byteStride = priv->fix.line_length;
-	    screen->fb[0].pixelStride = (priv->fix.line_length * 8 / 
-					 priv->var.bits_per_pixel);
-	    screen->fb[0].frameBuffer = (CARD8 *) (priv->fb);
-	    return TRUE;
-	}
-	else
-	{
-	    screen->width = priv->var.yres;
-	    screen->height = priv->var.xres;
-	    screen->softCursor = TRUE;
-	}
+        screen->width = priv->var.xres;
+        screen->height = priv->var.yres;
+        screen->fb[0].byteStride = priv->fix.line_length;
+        screen->fb[0].pixelStride = (priv->fix.line_length * 8 / 
+    				 priv->var.bits_per_pixel);
+        screen->fb[0].frameBuffer = (CARD8 *) (priv->fb);
     }
-    if (scrpriv->rotate)
-	scrpriv->shadow = TRUE;
-    if (scrpriv->shadow)
-	return KdShadowScreenInit (screen);
     return TRUE;
 }
 
@@ -202,7 +187,8 @@ fbdevWindowLinear (ScreenPtr	pScreen,
 		   CARD32	row,
 		   CARD32	offset,
 		   int		mode,
-		   CARD32	*size)
+		   CARD32	*size,
+		   void		*closure)
 {
     KdScreenPriv(pScreen);
     FbdevPriv	    *priv = pScreenPriv->card->driver;
@@ -295,6 +281,279 @@ fbdevUpdateFake24 (ScreenPtr pScreen,
 }
 #endif /* FAKE24_ON_16 */
 
+LayerPtr
+fbdevLayerCreate (ScreenPtr pScreen)
+{
+    KdScreenPriv(pScreen);
+    KdScreenInfo	*screen = pScreenPriv->screen;
+    FbdevPriv		*priv = pScreenPriv->card->driver;
+    FbdevScrPriv	*scrpriv = screen->driver;
+    LayerPtr		pLayer;
+    ShadowUpdateProc	update;
+    ShadowWindowProc	window;
+    PixmapPtr		pPixmap;
+    int			kind;
+
+    if (scrpriv->shadow)
+    {
+        window = fbdevWindowLinear;
+#ifdef FAKE24_ON_16
+	if (pScreenPriv->screen->fb[0].bitsPerPixel == 24 && priv->var.bits_per_pixel == 16)
+	{
+	    update = fbdevUpdateFake24;
+	}
+	else
+#endif /* FAKE24_ON_16 */
+	{
+	    switch (scrpriv->rotation) {
+	    case 0:
+		update = shadowUpdatePacked;
+		break;
+	    case 90:
+		switch (pScreenPriv->screen->fb[0].bitsPerPixel) {
+		case 8:
+		    update = shadowUpdateRotate8_90; break;
+		case 16:
+		    update = shadowUpdateRotate16_90; break;
+		case 32:
+		    update = shadowUpdateRotate32_90; break;
+		}
+		break;
+	    case 180:
+		switch (pScreenPriv->screen->fb[0].bitsPerPixel) {
+		case 8:
+		    update = shadowUpdateRotate8_180; break;
+		case 16:
+		    update = shadowUpdateRotate16_180; break;
+		case 32:
+		    update = shadowUpdateRotate32_180; break;
+		}
+		break;
+	    case 270:
+		switch (pScreenPriv->screen->fb[0].bitsPerPixel) {
+		case 8:
+		    update = shadowUpdateRotate8_270; break;
+		case 16:
+		    update = shadowUpdateRotate16_270; break;
+		case 32:
+		    update = shadowUpdateRotate32_270; break;
+		}
+		break;
+	    }
+	}
+	kind = LAYER_SHADOW;
+	pPixmap = 0;
+    }
+    else
+    {
+	kind = LAYER_FB;
+	pPixmap = LAYER_SCREEN_PIXMAP;
+	update = 0;
+	window = 0;
+    }
+    return LayerCreate (pScreen, kind, screen->fb[0].depth, 
+			pPixmap, update, window, 0);
+}
+
+
+#ifdef RANDR
+Bool
+fbdevRandRGetInfo (ScreenPtr pScreen, int *rotations, int *swaps)
+{
+    KdScreenPriv(pScreen);
+    FbdevPriv		*priv = pScreenPriv->card->driver;
+    KdScreenInfo	*screen = pScreenPriv->screen;
+    FbdevScrPriv	*scrpriv = screen->driver;
+    RRVisualSetPtr	pVisualSet;
+    RRSetOfVisualSetPtr	pSetOfVisualSet;
+    RRSizeInfoPtr	pSize;
+    int			rotateKind;
+    int			n;
+    
+    *swaps = 0;
+    *rotations = RR_ROTATE_0|RR_ROTATE_90|RR_ROTATE_180|RR_ROTATE_270;
+    
+    for (n = 0; n < pScreen->numDepths; n++)
+	if (pScreen->allowedDepths[n].numVids)
+	    break;
+    if (n == pScreen->numDepths)
+	return FALSE;
+    
+    pVisualSet = RRCreateVisualSet (pScreen);
+    if (!pVisualSet)
+	return FALSE;
+    if (!RRAddDepthToVisualSet (pScreen,
+				pVisualSet,
+				&pScreen->allowedDepths[n]))
+    {
+	RRDestroyVisualSet (pScreen, pVisualSet);
+	return FALSE;
+    }
+
+    pVisualSet = RRRegisterVisualSet (pScreen, pVisualSet);
+    if (!pVisualSet)
+	return FALSE;
+    
+    pSetOfVisualSet = RRCreateSetOfVisualSet (pScreen);
+
+    if (!RRAddVisualSetToSetOfVisualSet (pScreen,
+					 pSetOfVisualSet,
+					 pVisualSet))
+    {
+	RRDestroySetOfVisualSet (pScreen, pSetOfVisualSet);
+	/* pVisualSet left until screen closed */
+	return FALSE;
+    }
+
+    pSetOfVisualSet = RRRegisterSetOfVisualSet (pScreen, pSetOfVisualSet);
+    if (!pSetOfVisualSet)
+	return FALSE;
+    
+    pSize = RRRegisterSize (pScreen,
+			    screen->width,
+			    screen->height,
+			    screen->width_mm,
+			    screen->height_mm,
+			    pSetOfVisualSet);
+    
+    switch (scrpriv->rotation)
+    {
+    case 0:
+	rotateKind = RR_ROTATE_0;
+	break;
+    case 90:
+	rotateKind = RR_ROTATE_90;
+	break;
+    case 180:
+	rotateKind = RR_ROTATE_180;
+	break;
+    case 270:
+	rotateKind = RR_ROTATE_270;
+	break;
+    }
+
+    RRSetCurrentConfig (pScreen, rotateKind, 0, pSize, pVisualSet);
+    
+    return TRUE;
+}
+
+int
+fbdevLayerAdd (WindowPtr pWin, pointer value)
+{
+    ScreenPtr	    pScreen = pWin->drawable.pScreen;
+    LayerPtr	    pLayer = (LayerPtr) value;
+
+    if (!LayerWindowAdd (pScreen, pLayer, pWin))
+	return WT_STOPWALKING;
+
+    return WT_WALKCHILDREN;
+}
+
+int
+fbdevLayerRemove (WindowPtr pWin, pointer value)
+{
+    ScreenPtr	    pScreen = pWin->drawable.pScreen;
+    LayerPtr	    pLayer = (LayerPtr) value;
+
+    LayerWindowRemove (pScreen, pLayer, pWin);
+
+    return WT_WALKCHILDREN;
+}
+
+fbdevRandRSetConfig (ScreenPtr	    pScreen,
+		     int	    rotateKind,
+		     int	    swap,
+		     RRSizeInfoPtr  pSize,
+		     RRVisualSetPtr pVisualSet)
+{
+    KdScreenPriv(pScreen);
+    KdScreenInfo	*screen = pScreenPriv->screen;
+    FbdevPriv		*priv = pScreenPriv->card->driver;
+    FbdevScrPriv	*scrpriv = screen->driver;
+    int			rotation;
+    Bool		wasEnabled = pScreenPriv->enabled;
+
+    /*
+     * The only thing that can change is rotation
+     */
+    switch (rotateKind)
+    {
+    case RR_ROTATE_0:
+	rotation = 0;
+	break;
+    case RR_ROTATE_90:
+	rotation = 90;
+	break;
+    case RR_ROTATE_180:
+	rotation = 180;
+	break;
+    case RR_ROTATE_270:
+	rotation = 270;
+	break;
+    }
+    if (scrpriv->rotation != rotation)
+    {
+	LayerPtr	pNewLayer;
+	int		kind;
+	int		oldrotation = scrpriv->rotation;
+	int		oldshadow = scrpriv->shadow;
+	PixmapPtr	pPixmap;
+
+	if (wasEnabled)
+	    KdDisableScreen (pScreen);
+	
+	scrpriv->rotation = rotation;
+	if (rotation)
+	    scrpriv->shadow = TRUE;
+	else
+	    scrpriv->shadow = FALSE;
+	
+	pNewLayer = fbdevLayerCreate (pScreen);
+	if (!pNewLayer)
+	{
+	    scrpriv->shadow = oldshadow;
+	    scrpriv->rotation = oldrotation;
+	}
+	if (rotation == 90 || rotation == 270)
+	{
+	    pScreen->width = screen->height;
+	    pScreen->height = screen->width;
+	}
+	else
+	{
+	    pScreen->width = screen->width;
+	    pScreen->height = screen->height;
+	}
+	    
+	if (WalkTree (pScreen, fbdevLayerAdd, (pointer) pNewLayer) == WT_STOPWALKING)
+	{
+	    WalkTree (pScreen, fbdevLayerRemove, (pointer) pNewLayer);
+	    LayerDestroy (pScreen, pNewLayer);
+	    scrpriv->rotation = oldrotation;
+	    scrpriv->shadow = oldshadow;
+	    return FALSE;
+	}
+        WalkTree (pScreen, fbdevLayerRemove, (pointer) scrpriv->pLayer);
+	LayerDestroy (pScreen, scrpriv->pLayer);
+	scrpriv->pLayer = pNewLayer;
+	if (wasEnabled)
+	    KdEnableScreen (pScreen);
+    }
+    return TRUE;
+}
+
+void
+fbdevRandRInit (ScreenPtr pScreen)
+{
+    rrScrPriv(pScreen);
+
+    if (!pScrPriv)
+	return;
+    pScrPriv->rrGetInfo = fbdevRandRGetInfo;
+    pScrPriv->rrSetConfig = fbdevRandRSetConfig;
+}
+#endif
+
 #ifdef TOUCHSCREEN
 int TsFbdev = -1;
 #endif
@@ -312,33 +571,16 @@ fbdevInitScreen (ScreenPtr pScreen)
     TsFbdev = pScreen->myNum;
 #endif
 
-    if (scrpriv->shadow)
-    {
-        window = fbdevWindowLinear;
-#ifdef FAKE24_ON_16
-	if (pScreenPriv->screen->fb[0].bitsPerPixel == 24 && priv->var.bits_per_pixel == 16)
-	{
-	    update = fbdevUpdateFake24;
-	}
-	else
-#endif /* FAKE24_ON_16 */
-	{
-	    update = shadowUpdatePacked;
-	    if (scrpriv->rotate)
-	    {
-		window = fbdevWindowLinear;
-		switch (pScreenPriv->screen->fb[0].bitsPerPixel) {
-		case 8:
-		    update = shadowUpdateRotate8; break;
-		case 16:
-		    update = shadowUpdateRotate16; break;
-		case 32:
-		    update = shadowUpdateRotate32; break;
-		}
-	    }
-	}
-	return KdShadowInitScreen (pScreen, update, window);
-    }
+    if (!LayerStartInit (pScreen))
+	return FALSE;
+    if (!LayerFinishInit (pScreen))
+	return FALSE;
+    scrpriv->pLayer = fbdevLayerCreate (pScreen);
+    if (!scrpriv->pLayer)
+	return FALSE;
+#ifdef RANDR
+    fbdevRandRInit (pScreen);
+#endif
     return TRUE;
 }
 
@@ -351,7 +593,7 @@ Bool
 fbdevEnable (ScreenPtr pScreen)
 {
     KdScreenPriv(pScreen);
-    FbdevPriv	*priv = pScreenPriv->card->driver;
+    FbdevPriv		*priv = pScreenPriv->card->driver;
     FbdevScrPriv	*scrpriv = pScreenPriv->screen->driver;
     int			k;
     KdMouseMatrix	m;
@@ -365,16 +607,26 @@ fbdevEnable (ScreenPtr pScreen)
 	perror ("FBIOPUT_VSCREENINFO");
 	return FALSE;
     }
-    if (scrpriv->rotate)
-    {
-	m.matrix[0][0] = 0; m.matrix[0][1] = 1; m.matrix[0][2] = 0;
-	m.matrix[1][0] = -1; m.matrix[1][1] = 0; m.matrix[1][2] = pScreen->height - 1;
-    }
-    else
-    {
+    switch (scrpriv->rotation) {
+    case 0:
 	m.matrix[0][0] = 1; m.matrix[0][1] = 0; m.matrix[0][2] = 0;
 	m.matrix[1][0] = 0; m.matrix[1][1] = 1; m.matrix[1][2] = 0;
+	break;
+    case 90:
+	m.matrix[0][0] = 0; m.matrix[0][1] = -1; m.matrix[0][2] = pScreen->width - 1;
+	m.matrix[1][0] = 1; m.matrix[1][1] = 0; m.matrix[1][2] = 0;
+	break;
+    case 180:
+	m.matrix[0][0] = -1; m.matrix[0][1] = 0; m.matrix[0][2] = pScreen->width - 1;
+	m.matrix[1][0] = 0; m.matrix[1][1] = -1; m.matrix[1][2] = pScreen->height - 1;
+	break;
+    case 270:
+	m.matrix[0][0] = 0; m.matrix[0][1] = 1; m.matrix[0][2] = 0;
+	m.matrix[1][0] = -1; m.matrix[1][1] = 0; m.matrix[1][2] = pScreen->height - 1;
+	break;
     }
+    KdSetMouseMatrix (&m);
+    
     if (priv->fix.visual == FB_VISUAL_DIRECTCOLOR)
     {
 	struct fb_cmap	cmap;
@@ -397,7 +649,6 @@ fbdevEnable (ScreenPtr pScreen)
 	cmap.transp = 0;
 	ioctl (priv->fd, FBIOPUTCMAP, &cmap);
     }
-    KdSetMouseMatrix (&m);
     return TRUE;
 }
 
@@ -432,9 +683,6 @@ void
 fbdevScreenFini (KdScreenInfo *screen)
 {
     FbdevScrPriv	*scrpriv = screen->driver;
-    
-    if (scrpriv->shadow)
-	KdShadowScreenFini (screen);
 }
 
 void

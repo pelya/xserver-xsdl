@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/sis530/sisdraw.c,v 1.4 2000/05/06 22:17:50 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/sis530/sisdraw.c,v 1.5 2000/08/09 17:52:44 keithp Exp $ */
 
 #include "sis.h"
 #include "sisdraw.h"
@@ -803,6 +803,7 @@ sisStipplePrepare (DrawablePtr pDrawable, GCPtr pGC)
     FbStip	*stip, *stipEnd, bits;
     FbStride    stipStride;
     int		stipBpp;
+    int		stipXoff, stipYoff; /* XXX assumed to be zero */
     int		y;
     CARD32	cmd;
     
@@ -812,7 +813,7 @@ sisStipplePrepare (DrawablePtr pDrawable, GCPtr pGC)
     modulus (- xRot, FB_UNIT, stipX);
     rot = stipX;
 
-    fbGetStipDrawable (&pStip->drawable, stip, stipStride, stipBpp);
+    fbGetStipDrawable (&pStip->drawable, stip, stipStride, stipBpp, stipXoff, stipYoff);
     for (y = 0; y < 8; y++)
     {
 	bits = stip[stipY<<1];
@@ -852,8 +853,9 @@ sisTilePrepare (PixmapPtr pTile, int xRot, int yRot, CARD8 alu)
     FbBits	*tile;
     FbStride	tileStride;
     int		tileBpp;
+    int		tileXoff, tileYoff; /* XXX assumed to be zero */
 
-    fbGetDrawable (&pTile->drawable, tile, tileStride, tileBpp);
+    fbGetDrawable (&pTile->drawable, tile, tileStride, tileBpp, tileXoff, tileYoff);
     
     /*
      * Tile the pattern register
@@ -1157,6 +1159,7 @@ sisCopy1toN (DrawablePtr	pSrcDrawable,
     FbStip		*psrcBase;
     FbStride		widthSrc;
     int			srcBpp;
+    int			srcXoff, srcYoff;
 
     if (sourceInvarient (pGC->alu))
     {
@@ -1165,7 +1168,7 @@ sisCopy1toN (DrawablePtr	pSrcDrawable,
 	return;
     }
     
-    fbGetStipDrawable (pSrcDrawable, psrcBase, widthSrc, srcBpp);
+    fbGetStipDrawable (pSrcDrawable, psrcBase, widthSrc, srcBpp, srcXoff, srcYoff);
     
     sis->u.general.src_fg = args->copyPlaneFG;
     sis->u.general.src_bg = args->copyPlaneBG;
@@ -1178,7 +1181,7 @@ sisCopy1toN (DrawablePtr	pSrcDrawable,
 	_sisStipple (pDstDrawable->pScreen,
 		     psrcBase, widthSrc, 
 		     pGC->alu,
-		     dstx + dx, dsty + dy,
+		     dstx + dx - srcXoff, dsty + dy - srcYoff,
 		     dstx, dsty, 
 		     pbox->x2 - dstx, pbox->y2 - dsty);
 	pbox++;

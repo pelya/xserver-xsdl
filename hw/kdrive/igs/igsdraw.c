@@ -112,19 +112,20 @@ igsSetPattern (ScreenPtr    pScreen,
 	FbStip	    *pix;
 	FbStride    pixStride;
 	int	    pixBpp;
+	int	    pixXoff, pixYoff;
 	CARD8	    tmp[8];
 	CARD32	    *pat;
 	int	    stipX, stipY;
 	int	    y;
 	FbStip	    bits;
 
-	modulus (-yrot, pPixmap->drawable.height, stipY);
-	modulus (-xrot, FB_UNIT, stipX);
+	fbGetStipDrawable (&pPixmap->drawable, pix, pixStride, pixBpp, pixXoff, pixYoff);
+	
+	modulus (-yrot - pixYoff, pPixmap->drawable.height, stipY);
+	modulus (-xrot - pixXoff, FB_UNIT, stipX);
 
 	pat = (CARD32 *) p->base;
 
-	fbGetStipDrawable (&pPixmap->drawable, pix, pixStride, pixBpp);
-	
 	for (y = 0; y < 8; y++)
 	{
 	    bits = pix[stipY * pixStride];
@@ -152,8 +153,9 @@ igsSetPattern (ScreenPtr    pScreen,
 	FbBits	    *pat;
 	FbStride    patStride;
 	int	    patBpp;
+	int	    patXoff, patYoff;
 	
-	fbGetDrawable (&pPixmap->drawable, pix, pixStride, pixBpp);
+	fbGetDrawable (&pPixmap->drawable, pix, pixStride, pixBpp, patXoff, patYoff);
 
 	pat = (FbBits *) p->base;
 	patBpp = pixBpp;
@@ -166,7 +168,7 @@ igsSetPattern (ScreenPtr    pScreen,
 		pPixmap->drawable.width * pixBpp,
 		pPixmap->drawable.height,
 		GXcopy, FB_ALLONES, pixBpp,
-		xrot * pixBpp, yrot);
+		(xrot - patXoff) * pixBpp, yrot - patYoff);
     }
     return p;
 }
@@ -404,6 +406,7 @@ igsCopy1toN (DrawablePtr    pSrcDrawable,
     FbStip		*psrcBase;
     FbStride		widthSrc;
     int			srcBpp;
+    int			srcXoff, srcYoff;
     CARD32		cmd;
 
     if (args->opaque && sourceInvarient (pGC->alu))
@@ -413,7 +416,7 @@ igsCopy1toN (DrawablePtr    pSrcDrawable,
 	return;
     }
     
-    fbGetStipDrawable (pSrcDrawable, psrcBase, widthSrc, srcBpp);
+    fbGetStipDrawable (pSrcDrawable, psrcBase, widthSrc, srcBpp, srcXoff, srcYoff);
     
     if (args->opaque)
     {
@@ -433,7 +436,7 @@ igsCopy1toN (DrawablePtr    pSrcDrawable,
 	
 	igsStipple (pDstDrawable->pScreen, cmd,
 		    psrcBase, widthSrc, 
-		    dstx + dx, dsty + dy,
+		    dstx + dx - srcXoff, dsty + dy - srcYoff,
 		    dstx, dsty, 
 		    pbox->x2 - dstx, pbox->y2 - dsty);
 	pbox++;

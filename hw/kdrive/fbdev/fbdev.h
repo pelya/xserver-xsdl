@@ -25,11 +25,15 @@
 
 #ifndef _FBDEV_H_
 #define _FBDEV_H_
-#include "kdrive.h"
 #include <stdio.h>
 #include <linux/fb.h>
 #include <unistd.h>
 #include <sys/mman.h>
+#include "kdrive.h"
+#include "layer.h"
+#ifdef RANDR
+#include "randrstr.h"
+#endif
 
 typedef struct _fbdevPriv {
     struct fb_var_screeninfo	var;
@@ -43,8 +47,9 @@ typedef struct _fbdevPriv {
 } FbdevPriv;
     
 typedef struct _fbdevScrPriv {
-    Bool			rotate;
+    int				rotation;
     Bool			shadow;
+    LayerPtr			pLayer;
 } FbdevScrPriv;
 
 Bool

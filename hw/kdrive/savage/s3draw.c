@@ -22,7 +22,7 @@
  *
  * Author:  Keith Packard, SuSE, Inc.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/savage/s3draw.c,v 1.4 2000/05/06 22:17:46 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/savage/s3draw.c,v 1.5 2000/08/09 17:52:41 keithp Exp $ */
 
 #include	"s3.h"
 #include	"s3draw.h"
@@ -258,6 +258,7 @@ s3Copy1toN (DrawablePtr	pSrcDrawable,
     FbStip		*psrcBase;
     FbStride		widthSrc;
     int			srcBpp;
+    int			srcXoff, srcYoff;
 
     if (args->opaque && sourceInvarient (pGC->alu))
     {
@@ -267,7 +268,7 @@ s3Copy1toN (DrawablePtr	pSrcDrawable,
     }
     
     s3SetGlobalBitmap (pDstDrawable->pScreen, s3GCMap (pGC));
-    fbGetStipDrawable (pSrcDrawable, psrcBase, widthSrc, srcBpp);
+    fbGetStipDrawable (pSrcDrawable, psrcBase, widthSrc, srcBpp, srcXoff, srcYoff);
     
     if (args->opaque)
     {
@@ -287,7 +288,7 @@ s3Copy1toN (DrawablePtr	pSrcDrawable,
 	
 	_s3Stipple (s3c,
 		    psrcBase, widthSrc, 
-		    dstx + dx, dsty + dy,
+		    dstx + dx - srcXoff, dsty + dy - srcYoff,
 		    dstx, dsty, 
 		    pbox->x2 - dstx, pbox->y2 - dsty);
 	pbox++;
@@ -412,12 +413,13 @@ s3FillBoxLargeStipple (DrawablePtr pDrawable, GCPtr pGC,
     FbStip	*stip;
     FbStride	stipStride;
     int		stipBpp;
+    int		stipXoff, stipYoff;
     int		stipWidth, stipHeight;
     int		dstX, dstY, width, height;
     
     stipWidth = pStipple->width;
     stipHeight = pStipple->height;
-    fbGetStipDrawable (pStipple, stip, stipStride, stipBpp);
+    fbGetStipDrawable (pStipple, stip, stipStride, stipBpp, stipXoff, stipYoff);
 
     s3SetGlobalBitmap (pDrawable->pScreen, s3DrawMap (pDrawable));
     if (pGC->fillStyle == FillOpaqueStippled)
@@ -443,8 +445,8 @@ s3FillBoxLargeStipple (DrawablePtr pDrawable, GCPtr pGC,
 	width = pBox->x2 - pBox->x1;
 	height = pBox->y2 - pBox->y1;
 	pBox++;
-	modulus (dstY - yRot, stipHeight, stipY);
-	modulus (dstX - xRot, stipWidth, stipX);
+	modulus (dstY - yRot - stipYoff, stipHeight, stipY);
+	modulus (dstX - xRot - stipXoff, stipWidth, stipX);
 	y = dstY;
 	while (height)
 	{
@@ -649,13 +651,14 @@ _s3FillSpanLargeStipple (DrawablePtr pDrawable, GCPtr pGC,
     FbStip	*stip;
     FbStride	stipStride;
     int		stipBpp;
+    int		stipXoff, stipYoff;
     int		stipWidth, stipHeight;
     int		dstX, dstY, width, height;
     
     s3SetGlobalBitmap (pDrawable->pScreen, s3GCMap (pGC));
     stipWidth = pStipple->width;
     stipHeight = pStipple->height;
-    fbGetStipDrawable (pStipple, stip, stipStride, stipBpp);
+    fbGetStipDrawable (pStipple, stip, stipStride, stipBpp, stipXoff, stipYoff);
     if (pGC->fillStyle == FillOpaqueStippled)
     {
 	_s3SetOpaquePlaneBlt(s3,pGC->alu,pGC->planemask,
@@ -676,8 +679,8 @@ _s3FillSpanLargeStipple (DrawablePtr pDrawable, GCPtr pGC,
 	dstY = ppt->y;
 	ppt++;
 	width = *pwidth++;
-	modulus (dstY - yRot, stipHeight, stipY);
-	modulus (dstX - xRot, stipWidth, stipX);
+	modulus (dstY - yRot - stipYoff, stipHeight, stipY);
+	modulus (dstX - xRot - stipXoff, stipWidth, stipX);
 	y = dstY;
 	x = dstX;
 	sx = stipX;
@@ -2827,6 +2830,7 @@ s3_24ImageGlyphBlt (DrawablePtr	pDrawable,
     FbBits	    *dst;
     FbStride	    dstStride;
     int		    dstBpp;
+    int		    dstXoff, dstYoff;
     FbBits	    depthMask;
     int		    xBack, widthBack;
     int		    yBack, heightBack;
@@ -2839,7 +2843,7 @@ s3_24ImageGlyphBlt (DrawablePtr	pDrawable,
 	KdCheckImageGlyphBlt(pDrawable, pGC, x, y, nglyph, ppciInit, pglyphBase);
 	return;
     }
-    fbGetDrawable (pDrawable, dst, dstStride, dstBpp);
+    fbGetDrawable (pDrawable, dst, dstStride, dstBpp, dstXoff, dstYoff);
     
     x += pDrawable->x;
     y += pDrawable->y;
@@ -2882,12 +2886,12 @@ s3_24ImageGlyphBlt (DrawablePtr	pDrawable,
 	    if (gWidth <= sizeof (FbStip) * 8 &&
 		fbGlyphIn (fbGetCompositeClip(pGC), gx, gy, gWidth, gHeight))
 	    {
-		fbGlyph24 (dst + gy * dstStride,
+		fbGlyph24 (dst + (gy - dstYoff) * dstStride,
 			  dstStride,
 			  dstBpp,
 			  (FbStip *) pglyph,
 			  pPriv->fg,
-			  gx,
+			  gx - dstXoff,
 			  gHeight);
 	    }
 	    else
