@@ -1084,34 +1084,6 @@ XpSpoolerGetServerAttributes(void)
 }
 
 /*
- * ExecuteCommand takes two pointers - the command to execute,
- * and the "argv" style NULL-terminated vector of arguments for the command.
- * We wait for the command to terminate before continuing to ensure that
- * we don't delete the job file before the spooler has made a copy.
- */
-static void
-ExecCommand(pCommand, argVector)
-    char *pCommand;
-    char **argVector;
-{
-    pid_t childPid;
-    int status;
-
-    if((childPid = fork()) == 0)
-    {
-	/* return BadAlloc? */
-	if (execv(pCommand, argVector) == -1) {
-	    FatalError("unable to exec '%s'", pCommand);
-	}
-    }
-    else
-    {
-        (void) waitpid(childPid, &status, 0);
-    }
-    return;
-}
-
-/*
  * SendFileToCommand takes three character pointers - the file name,
  * the command to execute,
  * and the "argv" style NULL-terminated vector of arguments for the command.
