@@ -53,7 +53,9 @@
 #undef cfbBresD
 #undef cfbBresS
 #undef cfbChangeWindowAttributes
+#undef cfbClearVisualTypes
 #undef cfbCloseScreen
+#undef cfbCreateDefColormap
 #undef cfbCopyArea
 #undef cfbCopyImagePlane
 #undef cfbCopyPixmap
@@ -72,6 +74,7 @@
 #undef cfbDoBitbltGeneral
 #undef cfbDoBitbltOr
 #undef cfbDoBitbltXor
+#undef cfbExpandDirectColors
 #undef cfbFillBoxSolid
 #undef cfbFillBoxTile32
 #undef cfbFillBoxTile32sCopy
@@ -100,6 +103,7 @@
 #undef cfbHorzS
 #undef cfbImageGlyphBlt8
 #undef cfbInitializeColormap
+#undef cfbInitVisuals
 #undef cfbInstallColormap
 #undef cfbLineSD
 #undef cfbLineSS
@@ -129,6 +133,7 @@
 #undef cfbSetScanline
 #undef cfbSetScreenPixmap
 #undef cfbSetSpans
+#undef cfbSetVisualTypes
 #undef cfbSetupScreen
 #undef cfbSolidSpansCopy
 #undef cfbSolidSpansGeneral
