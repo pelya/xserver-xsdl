@@ -1146,7 +1146,9 @@ ARCHIVELoadModule(loaderPtr modrec, int arfd, LOOKUP ** ppLookup)
 	    lseek(arfd, 1, SEEK_CUR);	/* make it an even boundary */
 
 	if (tmp->private == (void *)-1L) {
-	    ErrorF("Skipping \"%s\":  No symbols found\n", tmp->name);
+	    xf86Msg(X_INFO, "Skipping \"%s\":  "
+		    "object file contains no symbols\n",
+		    tmp->name);
 	    continue;
 	} else
 	    ret = tmp->private;
