@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/kdrive.h,v 1.21 2001/10/12 06:33:07 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/kdrive.h,v 1.22 2002/08/02 16:15:02 keithp Exp $ */
 
 #include <stdio.h>
 #include "X.h"
@@ -108,6 +108,7 @@ typedef struct _KdScreenInfo {
     int		rate;
     int		width_mm;
     int		height_mm;
+    int		subpixel_order;
     Bool        dumb;
     Bool        softCursor;
     int		mynum;
@@ -561,6 +562,9 @@ void
 KdInitOutput (ScreenInfo *pScreenInfo,
 	      int argc, char **argv);
  
+void
+KdSetSubpixelOrder (ScreenPtr pScreen, int rotation);
+    
 /* kinfo.c */
 KdCardInfo *
 KdCardInfoAdd (KdCardFuncs  *funcs,

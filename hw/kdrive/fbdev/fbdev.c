@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/fbdev/fbdev.c,v 1.27 2001/07/20 19:35:29 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/fbdev/fbdev.c,v 1.28 2001/07/24 19:06:03 keithp Exp $ */
 
 #include "fbdev.h"
 
@@ -417,6 +417,7 @@ fbdevLayerCreate (ScreenPtr pScreen)
 	update = 0;
 	window = 0;
     }
+    
     return LayerCreate (pScreen, kind, screen->fb[0].depth, 
 			pPixmap, update, window, scrpriv->rotation, 0);
 }
@@ -430,8 +431,6 @@ fbdevRandRGetInfo (ScreenPtr pScreen, Rotation *rotations)
     FbdevPriv		    *priv = pScreenPriv->card->driver;
     KdScreenInfo	    *screen = pScreenPriv->screen;
     FbdevScrPriv	    *scrpriv = screen->driver;
-    RRVisualGroupPtr	    pVisualGroup;
-    RRGroupOfVisualGroupPtr pGroupOfVisualGroup;
     RRScreenSizePtr	    pSize;
     Rotation		    rotateKind;
     int			    rotation;
@@ -445,42 +444,11 @@ fbdevRandRGetInfo (ScreenPtr pScreen, Rotation *rotations)
     if (n == pScreen->numDepths)
 	return FALSE;
     
-    pVisualGroup = RRCreateVisualGroup (pScreen);
-    if (!pVisualGroup)
-	return FALSE;
-    if (!RRAddDepthToVisualGroup (pScreen,
-				pVisualGroup,
-				&pScreen->allowedDepths[n]))
-    {
-	RRDestroyVisualGroup (pScreen, pVisualGroup);
-	return FALSE;
-    }
-
-    pVisualGroup = RRRegisterVisualGroup (pScreen, pVisualGroup);
-    if (!pVisualGroup)
-	return FALSE;
-    
-    pGroupOfVisualGroup = RRCreateGroupOfVisualGroup (pScreen);
-
-    if (!RRAddVisualGroupToGroupOfVisualGroup (pScreen,
-					 pGroupOfVisualGroup,
-					 pVisualGroup))
-    {
-	RRDestroyGroupOfVisualGroup (pScreen, pGroupOfVisualGroup);
-	/* pVisualGroup left until screen closed */
-	return FALSE;
-    }
-
-    pGroupOfVisualGroup = RRRegisterGroupOfVisualGroup (pScreen, pGroupOfVisualGroup);
-    if (!pGroupOfVisualGroup)
-	return FALSE;
-    
     pSize = RRRegisterSize (pScreen,
 			    screen->width,
 			    screen->height,
 			    screen->width_mm,
-			    screen->height_mm,
-			    pGroupOfVisualGroup);
+			    screen->height_mm);
     
     rotation = scrpriv->rotation - screen->rotation;
     if (rotation < 0)
@@ -502,7 +470,7 @@ fbdevRandRGetInfo (ScreenPtr pScreen, Rotation *rotations)
 	break;
     }
 
-    RRSetCurrentConfig (pScreen, rotateKind, pSize, pVisualGroup);
+    RRSetCurrentConfig (pScreen, rotateKind, pSize);
     
     return TRUE;
 }
@@ -532,8 +500,7 @@ fbdevLayerRemove (WindowPtr pWin, pointer value)
 
 fbdevRandRSetConfig (ScreenPtr		pScreen,
 		     Rotation		rotateKind,
-		     RRScreenSizePtr	pSize,
-		     RRVisualGroupPtr	pVisualGroup)
+		     RRScreenSizePtr	pSize)
 {
     KdScreenPriv(pScreen);
     KdScreenInfo	*screen = pScreenPriv->screen;
@@ -598,6 +565,7 @@ fbdevRandRSetConfig (ScreenPtr		pScreen,
         WalkTree (pScreen, fbdevLayerRemove, (pointer) scrpriv->pLayer);
 	LayerDestroy (pScreen, scrpriv->pLayer);
 	scrpriv->pLayer = pNewLayer;
+	KdSetSubpixelOrder (pScreen, scrpriv->rotation);
 	if (wasEnabled)
 	    KdEnableScreen (pScreen);
     }

@@ -19,7 +19,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/vesa/vesa.c,v 1.17 2001/09/05 07:12:42 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/vesa/vesa.c,v 1.18 2001/09/14 19:25:17 keithp Exp $ */
 
 #include "vesa.h"
 #ifdef RANDR
@@ -1010,8 +1010,6 @@ vesaRandRGetInfo (ScreenPtr pScreen, Rotation *rotations)
     VesaScreenPrivPtr	    pscr = pScreenPriv->screen->driver;
     int			    nmode;
     int			    n;
-    RRVisualGroupPtr	    pVisualGroup;
-    RRGroupOfVisualGroupPtr pGroupOfVisualGroup;
     RRScreenSizePtr	    pSize;
     
     *rotations = RR_Rotate_0|RR_Rotate_90|RR_Rotate_180|RR_Rotate_270;
@@ -1026,46 +1024,6 @@ vesaRandRGetInfo (ScreenPtr pScreen, Rotation *rotations)
 	xfree (priv->modes);
     priv->modes = modes;
     priv->nmode = nmode;
-    /*
-     * XXX Create a single set of visual sets that has all of the visuals
-     * for the root depth
-     */
-    for (n = 0; n < pScreen->numDepths; n++)
-	if (pScreen->allowedDepths[n].numVids)
-	    break;
-    if (n == pScreen->numDepths)
-	return FALSE;
-    
-    pVisualGroup = RRCreateVisualGroup (pScreen);
-    if (!pVisualGroup)
-	return FALSE;
-    
-    if (!RRAddDepthToVisualGroup (pScreen,
-				pVisualGroup,
-				&pScreen->allowedDepths[n]))
-    {
-	RRDestroyVisualGroup (pScreen, pVisualGroup);
-	return FALSE;
-    }
-    pVisualGroup = RRRegisterVisualGroup (pScreen, pVisualGroup);
-    if (!pVisualGroup)
-	return FALSE;
-    
-    pGroupOfVisualGroup = RRCreateGroupOfVisualGroup (pScreen);
-
-    if (!RRAddVisualGroupToGroupOfVisualGroup (pScreen,
-					 pGroupOfVisualGroup,
-					 pVisualGroup))
-    {
-	RRDestroyGroupOfVisualGroup (pScreen, pGroupOfVisualGroup);
-	/* pVisualGroup left until screen closed */
-	return FALSE;
-    }
-
-    pGroupOfVisualGroup = RRRegisterGroupOfVisualGroup (pScreen, pGroupOfVisualGroup);
-    if (!pGroupOfVisualGroup)
-	return FALSE;
-
     for (n = 0; n < nmode; n++)
     {
 	mode = &priv->modes[n];
@@ -1102,8 +1060,7 @@ vesaRandRGetInfo (ScreenPtr pScreen, Rotation *rotations)
 		}
 		pSize = RRRegisterSize (pScreen,
 					width, height,
-					width_mm, height_mm,
-					pGroupOfVisualGroup);
+					width_mm, height_mm);
 		if (mode->XResolution == screen->width &&
 		    mode->YResolution == screen->height)
 		{
@@ -1117,8 +1074,7 @@ vesaRandRGetInfo (ScreenPtr pScreen, Rotation *rotations)
 		    case 180: rot = RR_Rotate_180; break;
 		    case 270: rot = RR_Rotate_270; break;
 		    }
-		    RRSetCurrentConfig (pScreen, rot, pSize,
-					pVisualGroup);
+		    RRSetCurrentConfig (pScreen, rot, pSize);
 		}
 	    }
 	}
@@ -1152,8 +1108,7 @@ vesaLayerRemove (WindowPtr pWin, pointer value)
 Bool
 vesaRandRSetConfig (ScreenPtr		pScreen,
 		    Rotation		rotation,
-		    RRScreenSizePtr	pSize,
-		    RRVisualGroupPtr	pVisualGroup)
+		    RRScreenSizePtr	pSize)
 {
     KdScreenPriv(pScreen);
     VesaModePtr		mode;
@@ -1300,6 +1255,8 @@ vesaRandRSetConfig (ScreenPtr		pScreen,
 
     pscr->pLayer = pNewLayer;
 
+    /* set the subpixel order */
+    KdSetSubpixelOrder (pScreen, pscr->rotate);
 
     if (wasEnabled)
 	KdEnableScreen (pScreen);

@@ -1,5 +1,5 @@
 /*
- * $XFree86: xc/programs/Xserver/hw/kdrive/kdrive.c,v 1.21tsi Exp $ 
+ * $XFree86: xc/programs/Xserver/hw/kdrive/kdrive.c,v 1.25 2002/09/26 02:56:48 keithp Exp $ 
  *
  * Copyright © 1999 Keith Packard
  *
@@ -384,6 +384,7 @@ KdParseScreen (KdScreenInfo *screen,
     screen->height = 0;
     screen->width_mm = 0;
     screen->height_mm = 0;
+    screen->subpixel_order = kdSubpixelOrder;
     screen->rate = 0;
     for (fb = 0; fb < KD_MAX_FB; fb++)
 	screen->fb[fb].depth = 0;
@@ -427,7 +428,8 @@ KdParseScreen (KdScreenInfo *screen,
     kdOrigin.y = 0;
     kdDumbDriver = FALSE;
     kdSoftCursor = FALSE;
-    
+    kdSubpixelOrder = SubPixelUnknown;
+
     if (delim == '@')
     {
 	arg = KdParseFindNext (arg, "x", save, &delim);
@@ -854,6 +856,45 @@ KdCreateWindow (WindowPtr pWin)
     return fbCreateWindow (pWin);
 }
 
+void
+KdSetSubpixelOrder (ScreenPtr pScreen, int rotation)
+{
+    KdScreenPriv(pScreen);
+    KdScreenInfo	*screen = pScreenPriv->screen;
+    int			subpixel_order = screen->subpixel_order;
+    int			subpixel_dir;
+    int			i;
+    
+    struct {
+	int	subpixel_order;
+	int	direction;
+    } orders[] = {
+	{ SubPixelHorizontalRGB, 	0 },
+	{ SubPixelHorizontalBGR,	180 },
+	{ SubPixelVerticalRGB,		270 },
+	{ SubPixelVerticalBGR,		90 },
+    };
+    
+    /* map subpixel to direction */
+    for (i = 0; i < 4; i++)
+	if (orders[i].subpixel_order == subpixel_order)
+	    break;
+    if (i < 4)
+    {
+	subpixel_dir = orders[i].direction;
+	/* add rotation */
+	subpixel_dir += rotation;
+	/* map back to subpixel order */
+	for (i = 0; i < 4; i++)
+	    if (orders[i].direction == subpixel_dir)
+	    {
+		subpixel_order = orders[i].subpixel_order;
+		break;
+	    }
+    }
+    PictureSetSubpixelOrder (pScreen, subpixel_order);
+}
+
 /* Pass through AddScreen, which doesn't take any closure */
 static KdScreenInfo *kdCurrentScreen;
 
@@ -1025,7 +1066,7 @@ KdScreenInit(int index, ScreenPtr pScreen, int argc, char **argv)
 	return FALSE;
     }
 
-    PictureSetSubpixelOrder (pScreen, kdSubpixelOrder);
+    KdSetSubpixelOrder (pScreen, screen->rotation);
 
     /*
      * Enable the hardware
