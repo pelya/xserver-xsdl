@@ -1,4 +1,4 @@
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/xf4bpp/offscreen.c,v 1.5 2001/08/01 00:44:56 tsi Exp $ */
 /*
  * Copyright 1993 Gerrit Jan Akkerman 
  *

@@ -1,4 +1,4 @@
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/xf8_32wid/cfbwid.c,v 1.1 2000/05/21 01:02:44 mvojkovi Exp $ */
 
 #include "X.h"
 #include "Xmd.h"

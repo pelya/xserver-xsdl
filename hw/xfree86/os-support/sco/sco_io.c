@@ -1,4 +1,4 @@
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/sco/sco_io.c,v 3.10 2003/02/17 15:11:59 dawes Exp $ */
 /*
  * Copyright 2001 by J. Kean Johnston <jkj@sco.com>
  *

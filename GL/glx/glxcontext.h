@@ -1,4 +1,4 @@
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/GL/glx/glxcontext.h,v 1.5 2003/09/28 20:15:43 alanh Exp $ */
 #ifndef _GLX_context_h_
 #define _GLX_context_h_
 

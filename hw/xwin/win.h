@@ -31,7 +31,7 @@
  *		Harold L Hunt II
  *		Kensuke Matsuzaki
  */
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/hw/xwin/win.h,v 1.38 2003/10/08 11:13:02 eich Exp $ */
 
 #ifndef _WIN_H_
 #define _WIN_H_

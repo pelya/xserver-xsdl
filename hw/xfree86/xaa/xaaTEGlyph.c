@@ -1,4 +1,4 @@
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/xaa/xaaTEGlyph.c,v 1.9 2000/09/01 05:49:45 mvojkovi Exp $ */
 
 
 #include "xaa.h"

@@ -26,7 +26,7 @@
  * holders shall not be used in advertising or otherwise to promote the sale,
  * use or other dealings in this Software without prior written authorization.
  */
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/miext/rootless/safeAlpha/safeAlpha.h,v 1.3 2004/01/19 01:22:48 torrey Exp $ */
 
 #ifndef _SAFEALPHA_H
 #define _SAFEALPHA_H

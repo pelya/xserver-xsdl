@@ -1,4 +1,4 @@
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/ramdac/BT.h,v 1.3 1998/08/20 08:56:03 dawes Exp $ */
 
 #include "xf86RamDac.h"
 

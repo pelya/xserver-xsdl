@@ -27,7 +27,7 @@
  *
  * Authors:	Harold L Hunt II
  */
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/hw/xwin/winregistry.c,v 1.1 2002/07/05 09:19:26 alanh Exp $ */
 
 #include "win.h"
 

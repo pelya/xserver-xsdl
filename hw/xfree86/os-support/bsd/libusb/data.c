@@ -25,7 +25,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/bsd/libusb/data.c,v 1.1 2000/02/11 18:06:49 dawes Exp $ */
 
 #include <assert.h>
 #include <stdlib.h>

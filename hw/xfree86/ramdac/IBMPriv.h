@@ -1,4 +1,4 @@
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/ramdac/IBMPriv.h,v 1.2 1998/07/25 16:57:19 dawes Exp $ */
 
 #include "IBM.h"
 

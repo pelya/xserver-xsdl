@@ -1,4 +1,4 @@
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/GL/glx/glxdrawable.h,v 1.4 2003/09/28 20:15:43 alanh Exp $ */
 #ifndef _GLX_drawable_h_
 #define _GLX_drawable_h_
 

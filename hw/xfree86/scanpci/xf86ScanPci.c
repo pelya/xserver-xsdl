@@ -1,4 +1,4 @@
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/scanpci/xf86ScanPci.c,v 1.14 2003/09/23 05:21:46 dawes Exp $ */
 /*
  * Display the Subsystem Vendor Id and Subsystem Id in order to identify
  * the cards installed in this computer

@@ -1,4 +1,4 @@
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/GL/glx/glxutil.h,v 1.4 2003/09/28 20:15:43 alanh Exp $ */
 #ifndef _glxcmds_h_
 #define _glxcmds_h_
 

@@ -27,7 +27,7 @@
  *
  * 	Authors:	Alan Hourihane <alanh@fairlite.demon.co.uk>
  */
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/hw/xwin/winrop.c,v 1.1 2003/08/07 23:47:58 alanh Exp $ */
 
 /*
  * Raster operations used by Windows translated to X's 16 rop codes...

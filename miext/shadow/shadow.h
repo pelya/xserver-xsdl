@@ -1,5 +1,5 @@
 /*
- * $XFree86$
+ * $XFree86: xc/programs/Xserver/miext/shadow/shadow.h,v 1.7 2002/12/02 20:37:24 tsi Exp $
  *
  * Copyright © 2000 Keith Packard
  *

@@ -1,4 +1,4 @@
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/afb/afbclip.c,v 3.3 2003/07/16 01:38:35 dawes Exp $ */
 /***********************************************************
 
 Copyright (c) 1987  X Consortium

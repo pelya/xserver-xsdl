@@ -44,7 +44,7 @@ not be used in advertising or otherwise to promote the sale, use or other
 dealings in this Software without prior written authorization from said
 copyright holders.
 */
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/Xprint/pcl/PclSpans.c,v 1.6 2001/01/17 22:36:30 dawes Exp $ */
 
 
 #include "Pcl.h"

@@ -27,7 +27,7 @@
  *
  * Authors:	Harold L Hunt II
  */
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/hw/xwin/winshadgdi.c,v 1.23 2003/07/29 21:25:18 dawes Exp $ */
 
 #include "win.h"
 

@@ -1,4 +1,4 @@
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/dix/events.c,v 3.52 2004/01/23 07:23:34 herrb Exp $ */
 /************************************************************
 
 Copyright 1987, 1998  The Open Group

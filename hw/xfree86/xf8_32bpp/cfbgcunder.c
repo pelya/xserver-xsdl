@@ -1,4 +1,4 @@
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/xf8_32bpp/cfbgcunder.c,v 1.6 2003/07/16 01:38:50 dawes Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group

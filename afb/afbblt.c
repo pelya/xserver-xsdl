@@ -1,4 +1,4 @@
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/afb/afbblt.c,v 3.1 2001/10/28 03:32:57 tsi Exp $ */
 /*
  * afb copy area
  */

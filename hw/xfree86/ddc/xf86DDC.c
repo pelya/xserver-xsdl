@@ -1,4 +1,4 @@
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/ddc/xf86DDC.c,v 1.27 2003/10/30 17:48:19 tsi Exp $ */
 
 /* xf86DDC.c 
  * 

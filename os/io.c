@@ -53,7 +53,7 @@ SOFTWARE.
  *   InsertFakeRequest, ResetCurrentRequest
  *
  *****************************************************************/
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/os/io.c,v 3.35 2003/04/27 21:31:08 herrb Exp $ */
 
 #if 0
 #define DEBUG_COMMUNICATION

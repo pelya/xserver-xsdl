@@ -24,7 +24,7 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 **************************************************************************/
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/GL/dri/drimodule.c,v 1.6 2001/12/10 19:07:19 dawes Exp $ */
 
 /*
  * Authors:

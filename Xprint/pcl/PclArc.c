@@ -45,7 +45,7 @@ dealings in this Software without prior written authorization from said
 copyright holders.
 */
 
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/Xprint/pcl/PclArc.c,v 1.5 2001/01/17 22:36:30 dawes Exp $ */
 
 #include <stdio.h>
 #include <math.h>

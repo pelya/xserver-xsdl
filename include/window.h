@@ -45,7 +45,7 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ******************************************************************/
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/include/window.h,v 1.6 2003/11/03 05:36:35 tsi Exp $ */
 
 #ifndef WINDOW_H
 #define WINDOW_H

@@ -14,7 +14,7 @@
 #	changes/additions that aren't XFree86-specific to the pciids
 #	project (http://pciids.sf.net/).
 #
-#	$XFree86$
+#	$XFree86: xc/programs/Xserver/hw/xfree86/etc/extrapci.ids,v 1.12 2003/12/18 16:29:18 dawes Exp $
 #
 
 # Vendors, devices and subsystems. Please keep sorted.

@@ -1,4 +1,4 @@
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/xaa/xaaBitOrder.c,v 1.8 2003/02/17 16:08:29 dawes Exp $ */
 
 #include "Xmd.h"
 CARD32 XAAReverseBitOrder(CARD32 v);

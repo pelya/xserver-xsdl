@@ -44,7 +44,7 @@ not be used in advertising or otherwise to promote the sale, use or other
 dealings in this Software without prior written authorization from said
 copyright holders.
 */
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/Xprint/pcl/PclArea.c,v 1.9 2001/10/28 03:32:54 tsi Exp $ */
 
 #include <stdio.h>
 #include <sys/types.h>

@@ -12,7 +12,7 @@ the suitability of this software for any purpose.  It is provided "as
 is" without express or implied warranty.
 
 */
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/hw/xnest/Display.c,v 3.5 2003/11/16 05:05:20 dawes Exp $ */
 
 
 #include <X11/X.h>

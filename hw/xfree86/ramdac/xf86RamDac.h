@@ -1,4 +1,4 @@
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/ramdac/xf86RamDac.h,v 1.11 2000/03/21 21:15:28 alanh Exp $ */
 
 #ifndef _XF86RAMDAC_H
 #define _XF86RAMDAC_H 1

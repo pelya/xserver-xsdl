@@ -26,7 +26,7 @@ other dealings in this Software without prior written authorization
 from The Open Group.
 
 */
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/mi/miwideline.h,v 1.12 2001/12/14 20:00:28 dawes Exp $ */
 
 /* Author:  Keith Packard, MIT X Consortium */
 

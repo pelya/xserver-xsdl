@@ -28,7 +28,7 @@
  * Authors:	Harold L Hunt II
  * 		Alan Hourihane <alanh@fairlite.demon.co.uk>
  */
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/hw/xwin/wingetsp.c,v 1.8 2003/08/07 23:47:58 alanh Exp $ */
 
 #include "win.h"
 

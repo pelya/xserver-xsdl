@@ -1,5 +1,5 @@
 /*
- * $XFree86$
+ * $XFree86: xc/programs/Xserver/render/miglyph.c,v 1.6 2000/12/05 03:13:31 keithp Exp $
  *
  * Copyright © 2000 SuSE, Inc.
  *

@@ -1,4 +1,4 @@
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/xkb/xkb.h,v 1.1 2003/07/16 01:39:08 dawes Exp $ */
 
 /* #include "XKBfile.h" */
 

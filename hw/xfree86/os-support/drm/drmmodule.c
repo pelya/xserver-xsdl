@@ -25,7 +25,7 @@
  * 
  * Authors: Rickard E. (Rik) Faith <faith@valinux.com>
  *
- * $XFree86$
+ * $XFree86: xc/programs/Xserver/hw/xfree86/os-support/linux/drm/drmmodule.c,v 1.3 2000/06/17 00:03:34 martin Exp $
  * 
  */
 

@@ -1,4 +1,4 @@
-// $XFree86$
+// $XFree86: xc/programs/Xserver/hw/darwin/utils/dumpkeymap.c,v 1.4 2003/04/13 14:52:51 herrb Exp $
 //=============================================================================
 //
 // Copyright (C) 1999,2000 by Eric Sunshine <sunshine@sunshineco.com>

@@ -27,7 +27,7 @@ other dealings in this Software without prior written authorization
 from The Open Group.
 
 */
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/record/set.c,v 1.8 2003/11/17 22:20:44 dawes Exp $ */
 
 /*
 

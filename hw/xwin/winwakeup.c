@@ -30,7 +30,7 @@
  *		Peter Busch
  *		Harold L Hunt II
  */
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/hw/xwin/winwakeup.c,v 1.7 2003/07/29 21:25:18 dawes Exp $ */
 
 #include "win.h"
 

@@ -1,4 +1,4 @@
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/iplan2p4/iplpolypnt.c,v 3.1 1998/03/20 21:08:09 hohndel Exp $ */
 /************************************************************
 
 Copyright (c) 1989  X Consortium

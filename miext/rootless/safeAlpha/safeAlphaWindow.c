@@ -31,7 +31,7 @@
  *
  * Copyright © 1998 Keith Packard
  */
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/miext/rootless/safeAlpha/safeAlphaWindow.c,v 1.2 2004/01/19 01:22:48 torrey Exp $ */
 
 #include "fb.h"
 #include "safeAlpha.h"

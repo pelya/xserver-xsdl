@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/fb/fbpixmap.c,v 1.11 2002/09/16 18:05:34 eich Exp $ */
 
 #include "fb.h"
 #ifdef IN_MODULE

@@ -1,4 +1,4 @@
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/linux/lnx_kbd.c,v 1.5 2003/11/04 03:14:39 tsi Exp $ */
 
 /*
  * Copyright (c) 2002 by The XFree86 Project, Inc.

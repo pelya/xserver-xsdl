@@ -4,7 +4,7 @@
 
 
 
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/shared/inout.S,v 1.1 1999/07/10 07:24:52 dawes Exp $ */
 
 #include "assyntax.h"
 

@@ -27,7 +27,7 @@
  *
  * Authors:	Harold L Hunt II
  */
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/hw/xwin/winfont.c,v 1.3 2003/08/07 23:47:58 alanh Exp $ */
 
 #include "win.h"
 

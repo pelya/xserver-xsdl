@@ -1,4 +1,4 @@
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/xaa/xaaFillPoly.c,v 1.16 2003/03/23 03:41:44 mvojkovi Exp $ */
 
 /*
  * Copyright 1996  The XFree86 Project

@@ -45,7 +45,7 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ******************************************************************/
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/include/property.h,v 1.4 2003/04/27 21:31:04 herrb Exp $ */
 
 #ifndef PROPERTY_H
 #define PROPERTY_H 

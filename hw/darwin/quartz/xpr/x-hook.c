@@ -27,7 +27,7 @@
    copyright holders shall not be used in advertising or otherwise to
    promote the sale, use or other dealings in this Software without
    prior written authorization. */
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/hw/darwin/quartz/xpr/x-hook.c,v 1.1 2003/06/30 01:45:13 torrey Exp $ */
 
 #include "x-hook.h"
 #include <stdlib.h>

@@ -26,7 +26,7 @@ other dealings in this Software without prior written authorization
 from The Open Group.
 
 */
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/os/mitauth.c,v 1.5 2001/12/14 20:00:34 dawes Exp $ */
 
 /*
  * MIT-MAGIC-COOKIE-1 authorization scheme

@@ -1,4 +1,4 @@
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/xaa/xaaRect.c,v 1.3 1999/05/30 03:03:33 dawes Exp $ */
 
 #include "misc.h"
 #include "xf86.h"

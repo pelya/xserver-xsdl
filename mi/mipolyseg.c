@@ -1,4 +1,4 @@
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/mi/mipolyseg.c,v 1.4 2003/07/16 01:38:57 dawes Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group

@@ -30,7 +30,7 @@
  *     Machine-independent DBE code
  *
  *****************************************************************************/
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/dbe/midbe.c,v 3.5 2001/08/23 14:19:24 alanh Exp $ */
 
 
 /* INCLUDES */

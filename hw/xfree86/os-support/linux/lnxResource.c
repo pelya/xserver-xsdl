@@ -1,4 +1,4 @@
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/linux/lnxResource.c,v 3.19 2004/02/04 16:30:50 tsi Exp $ */
 
 /* Resource information code */
 

@@ -47,7 +47,7 @@ SOFTWARE.
 
 ******************************************************************/
 
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/mfb/mfbtegblt.c,v 1.8 2001/12/14 20:00:12 dawes Exp $ */
 
 #include	"X.h"
 #include	"Xmd.h"

@@ -1,5 +1,5 @@
 /*
- * $XFree86$
+ * $XFree86: xc/programs/Xserver/fb/fbglyph.c,v 1.13 2003/12/04 17:15:12 tsi Exp $
  *
  * Copyright © 1998 Keith Packard
  *

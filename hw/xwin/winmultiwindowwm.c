@@ -27,7 +27,7 @@
  *
  * Authors:	Kensuke Matsuzaki
  */
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/hw/xwin/winmultiwindowwm.c,v 1.3 2003/10/02 13:30:11 eich Exp $ */
 
 /* X headers */
 #include <stdio.h>

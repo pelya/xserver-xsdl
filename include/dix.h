@@ -1,4 +1,4 @@
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/include/dix.h,v 3.27 2003/04/27 21:31:04 herrb Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group

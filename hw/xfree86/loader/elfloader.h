@@ -21,7 +21,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/loader/elfloader.h,v 1.4 2003/10/15 16:29:03 dawes Exp $ */
 
 #ifndef _ELFLOADER_H
 #define _ELFLOADER_H

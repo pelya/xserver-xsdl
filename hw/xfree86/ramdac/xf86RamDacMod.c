@@ -23,7 +23,7 @@
  *
  * Generic RAMDAC module.
  */
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/ramdac/xf86RamDacMod.c,v 1.6 1999/01/26 05:54:18 dawes Exp $ */
 
 #include "xf86Module.h"
 

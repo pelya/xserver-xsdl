@@ -45,7 +45,7 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ******************************************************************/
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/os/access.c,v 3.54 2004/01/03 17:38:39 herrb Exp $ */
 
 #ifdef WIN32
 #include <X11/Xwinsock.h>

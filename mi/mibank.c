@@ -44,7 +44,7 @@
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/mi/mibank.c,v 1.16 2004/01/05 16:42:10 tsi Exp $ */
 
 /*
  * This thing originated from an idea of Edwin Goei and his bank switching

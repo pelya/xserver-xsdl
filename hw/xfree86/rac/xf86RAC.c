@@ -1,4 +1,4 @@
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/rac/xf86RAC.c,v 1.7 2002/09/16 18:06:18 eich Exp $ */
 
 #include "misc.h"
 #include "xf86.h"

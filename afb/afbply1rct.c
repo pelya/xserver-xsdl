@@ -1,4 +1,4 @@
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/afb/afbply1rct.c,v 3.2 2001/10/28 03:32:58 tsi Exp $ */
 /*
  * $XConsortium: afbply1rct.c,v 1.9 94/04/17 20:28:28 dpw Exp $
  *

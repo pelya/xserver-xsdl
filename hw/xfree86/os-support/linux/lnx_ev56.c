@@ -1,4 +1,4 @@
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/linux/lnx_ev56.c,v 3.7 2002/11/25 14:05:04 eich Exp $ */
 
 #include "X.h"
 #include "input.h"

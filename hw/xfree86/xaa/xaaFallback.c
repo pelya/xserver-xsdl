@@ -1,4 +1,4 @@
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/xaa/xaaFallback.c,v 1.5 1999/05/30 03:03:31 dawes Exp $ */
 
 #include "misc.h"
 #include "xf86.h"

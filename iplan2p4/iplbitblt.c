@@ -1,4 +1,4 @@
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/iplan2p4/iplbitblt.c,v 3.2 2003/11/10 18:22:45 tsi Exp $ */
 /*
  * ipl copy area
  */

@@ -28,7 +28,7 @@
  * holders shall not be used in advertising or otherwise to promote the sale,
  * use or other dealings in this Software without prior written authorization.
  */
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/hw/darwin/quartz/quartzStartup.c,v 1.9 2003/11/15 00:07:09 torrey Exp $ */
 
 #include <fcntl.h>
 #include <unistd.h>

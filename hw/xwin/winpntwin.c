@@ -27,7 +27,7 @@
  *
  * Authors:	Harold L Hunt II
  */
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/hw/xwin/winpntwin.c,v 1.2 2001/06/04 13:04:41 alanh Exp $ */
 
 #include "win.h"
 

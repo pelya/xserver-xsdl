@@ -1,7 +1,7 @@
 /*
  * Minimal implementation of PanoramiX/Xinerama
  */
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/hw/darwin/quartz/pseudoramiX.h,v 1.2 2003/04/30 23:15:39 torrey Exp $ */
 
 extern int noPseudoramiXExtension;
 

@@ -27,7 +27,7 @@
  *
  * Authors:	Harold L Hunt II
  */
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/hw/xwin/windialogs.c,v 1.1 2003/07/29 21:25:17 dawes Exp $ */
 
 #include "win.h"
 

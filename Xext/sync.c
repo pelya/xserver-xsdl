@@ -50,7 +50,7 @@ OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 PERFORMANCE OF THIS SOFTWARE.
 
 */
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/Xext/sync.c,v 3.14 2003/11/17 22:20:27 dawes Exp $ */
 
 #define NEED_REPLIES
 #define NEED_EVENTS

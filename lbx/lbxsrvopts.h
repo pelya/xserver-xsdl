@@ -21,7 +21,7 @@
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *
  */
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/lbx/lbxsrvopts.h,v 1.3 2001/01/17 22:37:00 dawes Exp $ */
 
 #ifndef _LBX_SRVOPTS_H_
 #define _LBX_SRVOPTS_H_

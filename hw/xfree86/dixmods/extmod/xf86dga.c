@@ -1,4 +1,4 @@
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/Xext/xf86dga.c,v 3.22 2003/07/16 01:38:30 dawes Exp $ */
 
 /*
 

@@ -23,7 +23,7 @@ shall not be used in advertising or otherwise to promote the sale, use or other
 dealings in this Software without prior written authorization from Digital
 Equipment Corporation.
 ******************************************************************/
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/Xext/panoramiX.c,v 3.38 2003/11/10 18:21:43 tsi Exp $ */
 
 #define NEED_REPLIES
 #include <stdio.h>

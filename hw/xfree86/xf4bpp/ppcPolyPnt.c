@@ -1,4 +1,4 @@
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/xf4bpp/ppcPolyPnt.c,v 1.4 1999/09/25 14:38:17 dawes Exp $ */
 /*
 
 Copyright (c) 1987  X Consortium

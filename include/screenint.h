@@ -45,7 +45,7 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ******************************************************************/
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/include/screenint.h,v 1.6 2003/04/27 21:31:05 herrb Exp $ */
 #ifndef SCREENINT_H
 #define SCREENINT_H
 

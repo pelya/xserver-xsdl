@@ -1,4 +1,4 @@
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/Xext/xf86vmode.c,v 3.59 2003/11/17 22:20:27 dawes Exp $ */
 
 /*
 

@@ -46,7 +46,7 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 */
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/dix/grabs.c,v 3.5 2003/11/17 22:20:34 dawes Exp $ */
 
 #include "X.h"
 #include "misc.h"

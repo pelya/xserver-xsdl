@@ -26,7 +26,7 @@
  *
  * Author: Paulo César Pereira de Andrade <pcpa@conectiva.com.br>
  *
- * $XFree86$
+ * $XFree86: xc/programs/Xserver/hw/xfree86/xf86cfg/keyboard-cfg.c,v 1.22 2003/01/01 19:22:24 paulo Exp $
  */
 
 #include "xf86config.h"

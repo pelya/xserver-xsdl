@@ -1,5 +1,5 @@
 /*
- * $XFree86$
+ * $XFree86: xc/programs/Xserver/miext/shadow/shpacked.c,v 1.5 2001/10/28 03:34:16 tsi Exp $
  *
  * Copyright © 2000 Keith Packard
  *

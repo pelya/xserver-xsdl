@@ -1,4 +1,4 @@
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/GL/glx/glximports.h,v 1.4 2003/09/28 20:15:43 alanh Exp $ */
 #ifndef _glximports_h_
 #define _glximports_h_
 

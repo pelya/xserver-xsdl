@@ -1,4 +1,4 @@
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/loader/sym.h,v 1.7 2003/10/15 16:29:04 dawes Exp $ */
 
 /*
  *

@@ -1,4 +1,4 @@
-<!-- $XFree86$ -->
+<!-- $XFree86: xc/programs/Xserver/hw/darwin/bundle/Spanish.lproj/XDarwinHelp.html.cpp,v 1.2 2001/12/30 03:52:27 torrey Exp $ -->
 
 #include "xf86Version.h"
 #ifndef PRE_RELEASE

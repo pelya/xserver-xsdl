@@ -1,4 +1,4 @@
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/dix/globals.c,v 1.13 2003/12/03 17:11:29 tsi Exp $ */
 /************************************************************
 
 Copyright 1987, 1998  The Open Group

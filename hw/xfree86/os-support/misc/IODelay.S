@@ -1,4 +1,4 @@
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/misc/IODelay.S,v 1.1 1999/07/10 07:24:50 dawes Exp $ */
 /*******************************************************************************
                         Copyright 1994 by Glenn G. Lai
 

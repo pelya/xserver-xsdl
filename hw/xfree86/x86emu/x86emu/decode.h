@@ -35,7 +35,7 @@
 * Description:  Header file for instruction decoding logic.
 *
 ****************************************************************************/
-/* $XFree86$ */
+/* $XFree86: xc/extras/x86emu/src/x86emu/x86emu/decode.h,v 1.3 2002/07/23 01:51:03 tsi Exp $ */
 
 #ifndef __X86EMU_DECODE_H
 #define __X86EMU_DECODE_H

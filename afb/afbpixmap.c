@@ -1,4 +1,4 @@
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/afb/afbpixmap.c,v 3.1 1997/06/03 14:11:07 hohndel Exp $ */
 /***********************************************************
 
 Copyright (c) 1987  X Consortium

@@ -29,7 +29,7 @@ Except as contained in this notice, the name of The Open Group shall not be
 used in advertising or otherwise to promote the sale, use or other dealings
 in this Software without prior written authorization from The Open Group.
 */
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/mi/mipointer.h,v 3.9 2001/12/14 20:00:24 dawes Exp $ */
 
 #ifndef MIPOINTER_H
 #define MIPOINTER_H

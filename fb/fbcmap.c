@@ -1,5 +1,5 @@
 /* $XConsortium: fbcmap.c,v 4.19 94/04/17 20:28:46 dpw Exp $ */
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/fb/fbcmap.c,v 1.6 2001/10/28 03:33:08 tsi Exp $ */
 /************************************************************
 Copyright 1987 by Sun Microsystems, Inc. Mountain View, CA.
 

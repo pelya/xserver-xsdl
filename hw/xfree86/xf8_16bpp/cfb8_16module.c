@@ -1,4 +1,4 @@
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/xf8_16bpp/cfb8_16module.c,v 1.1 1999/01/31 12:22:16 dawes Exp $ */
 
 #ifdef XFree86LOADER
 

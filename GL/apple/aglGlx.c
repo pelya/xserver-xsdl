@@ -32,7 +32,7 @@
  * holders shall not be used in advertising or otherwise to promote the sale,
  * use or other dealings in this Software without prior written authorization.
  */
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/GL/apple/aglGlx.c,v 1.3 2003/10/13 00:30:54 torrey Exp $ */
 
 #include "quartzCommon.h"
 #include <AGL/agl.h>

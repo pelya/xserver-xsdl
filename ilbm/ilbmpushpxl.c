@@ -1,4 +1,4 @@
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/ilbm/ilbmpushpxl.c,v 3.1 1998/03/20 21:08:03 hohndel Exp $ */
 /***********************************************************
 
 Copyright (c) 1987  X Consortium

@@ -1,4 +1,4 @@
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/mfb/mfbbresd.c,v 1.5 2001/12/14 20:00:05 dawes Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group

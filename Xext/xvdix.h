@@ -21,7 +21,7 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ******************************************************************/
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/Xext/xvdix.h,v 1.8 2001/07/25 15:05:00 dawes Exp $ */
 
 #ifndef XVDIX_H
 #define XVDIX_H

@@ -23,7 +23,7 @@
  *
  * BT RAMDAC routines.
  */
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/ramdac/BT.c,v 1.8 2003/09/24 02:43:35 dawes Exp $ */
 
 #include "xf86.h"
 #include "xf86_OSproc.h"

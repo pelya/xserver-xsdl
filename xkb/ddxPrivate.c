@@ -1,4 +1,4 @@
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/xkb/ddxPrivate.c,v 1.3 2003/11/17 22:20:45 dawes Exp $ */
 
 #include <stdio.h>
 #define NEED_EVENTS 1

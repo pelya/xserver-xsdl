@@ -45,7 +45,7 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ********************************************************/
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/Xi/setfocus.c,v 3.3 2001/12/14 19:58:59 dawes Exp $ */
 
 /***********************************************************************
  *
