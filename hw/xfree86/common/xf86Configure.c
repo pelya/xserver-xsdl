@@ -731,19 +731,13 @@ configureDDCMonitorSection (int screennum)
 
     for (i=0;i<4;i++) {
 	switch (ConfiguredMonitor->det_mon[i].type) {
-	    case DT:
-	    case DS_STD_TIMINGS:
-	    case DS_WHITE_P:
-	      break;
 	    case DS_NAME:
 		ptr->mon_modelname  = xf86confrealloc(ptr->mon_modelname, 
 		  strlen((char*)(ConfiguredMonitor->det_mon[i].section.name))
 		    + 1);
 		strcpy(ptr->mon_modelname,
 		       (char*)(ConfiguredMonitor->det_mon[i].section.name));
-	      break;
-	    case DS_ASCII_STR:
-	    case DS_SERIAL:
+		break;
 	    case DS_RANGES:
 		ptr->mon_hsync[ptr->mon_n_hsync].lo =
 		    ConfiguredMonitor->det_mon[i].section.ranges.min_h;

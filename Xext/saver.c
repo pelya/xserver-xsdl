@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/Xext/saver.c,v 1.2 2004/04/23 18:44:41 eich Exp $ */
+/* $XdotOrg: xc/programs/Xserver/Xext/saver.c,v 1.3 2004/10/10 17:48:43 herrb Exp $ */
 /*
  * $XConsortium: saver.c,v 1.12 94/04/17 20:59:36 dpw Exp $
  *
@@ -1185,6 +1185,7 @@ ScreenSaverUnsetAttributes (ClientPtr client)
     pPriv = GetScreenPrivate (pDraw->pScreen);
     if (pPriv && pPriv->attr && pPriv->attr->client == client)
     {
+	FreeResource (pPriv->attr->resource, AttrType);
     	FreeScreenAttr (pPriv->attr);
 	pPriv->attr = NULL;
 	CheckScreenPrivate (pDraw->pScreen);

@@ -273,7 +273,7 @@ void ix86PciSelectCfgmech(void)
     switch (xf86Info.pciFlags) {
 
 	case PCIOsConfig:
-#if ARCH_PCI_OS_INIT
+#ifdef ARCH_PCI_OS_INIT
 	    return;
 #endif
 	    
