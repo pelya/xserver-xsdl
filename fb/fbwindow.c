@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/fb/fbwindow.c,v 1.4 2004/08/13 08:16:14 keithp Exp $ */
+/* $XdotOrg: xc/programs/Xserver/fb/fbwindow.c,v 1.5 2004/12/04 00:42:50 kuhn Exp $ */
 /*
  * Id: fbwindow.c,v 1.1 1999/11/02 03:54:45 keithp Exp $
  *
@@ -122,12 +122,9 @@ fbCopyWindow(WindowPtr	    pWin,
 {
     RegionRec	rgnDst;
     int		dx, dy;
-#ifdef COMPOSITE
+
     PixmapPtr	pPixmap = fbGetWindowPixmap (pWin);
     DrawablePtr	pDrawable = &pPixmap->drawable;
-#else
-    DrawablePtr	pDrawable = &WindowTable[pWin->drawable.pScreen->myNum]->drawable;
-#endif
 
     dx = ptOldOrg.x - pWin->drawable.x;
     dy = ptOldOrg.y - pWin->drawable.y;

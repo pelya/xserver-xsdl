@@ -16,16 +16,14 @@ void XAASync(ScreenPtr pScreen);
 
 /* #include "render.h" */
 
-#if 0
+#if 1
 #define COND(pDraw) \
         ((pDraw)->depth \
                       != (xaaWrapperGetScrPriv(((DrawablePtr)(pDraw))->pScreen))->depth)
-#endif
+#else
 #define COND(pDraw) 1
-
-#if 0
-static Bool xaaWrapperPreCreateGC(GCPtr pGC);
 #endif
+
 static Bool xaaWrapperCreateGC(GCPtr pGC);
 static void xaaWrapperValidateGC(GCPtr pGC, unsigned long changes, DrawablePtr pDraw);
 static void xaaWrapperDestroyGC(GCPtr pGC);
@@ -36,53 +34,7 @@ static void xaaWrapperChangeClip (GCPtr pGC, int type, pointer pvalue, int nrect
 static void xaaWrapperCopyClip(GCPtr pgcDst, GCPtr pgcSrc);
 static void xaaWrapperDestroyClip(GCPtr pGC);
 
-#if 0
-static void xaaWrapperFillSpans(DrawablePtr pDraw, GC *pGC, int nInit,
-			DDXPointPtr pptInit, int *pwidthInit, int fSorted);
-static void xaaWrapperSetSpans(DrawablePtr pDraw, GCPtr	pGC, char *pcharsrc,
-		       DDXPointPtr pptInit, int	*pwidthInit, int nspans,
-		       int fSorted);
-static void xaaWrapperPutImage(DrawablePtr pDraw, GCPtr	pGC, int depth, int x, int y,
-		       int w, int h,int	leftPad, int format, char *pImage);
-static RegionPtr xaaWrapperCopyPlane(DrawablePtr pSrc,
-			     DrawablePtr pDst, GCPtr pGC,int srcx, int srcy,
-			     int width, int height, int	dstx, int dsty,
-			     unsigned long bitPlane);
-static void xaaWrapperPolyPoint(DrawablePtr pDraw, GCPtr pGC, int mode, int npt,
-			xPoint *pptInit);
-static void xaaWrapperPolylines(DrawablePtr pDraw, GCPtr pGC, int mode,
-			int npt, DDXPointPtr pptInit);
-static void xaaWrapperPolySegment(DrawablePtr pDraw, GCPtr pGC, int nseg,
-			  xSegment *pSeg);
-static void xaaWrapperPolyRectangle(DrawablePtr  pDraw, GCPtr pGC, int nRects,
-			    xRectangle  *pRects);
-static void xaaWrapperPolyArc( DrawablePtr pDraw, GCPtr	pGC, int narcs, xArc *parcs);
-static void xaaWrapperFillPolygon(DrawablePtr pDraw, GCPtr pGC, int shape,
-			  int mode, int count, DDXPointPtr pptInit);
-static void xaaWrapperPolyFillRect(DrawablePtr pDraw, GCPtr pGC, int nRectsInit, 
-			   xRectangle *pRectsInit);
-static RegionPtr xaaWrapperCopyArea(DrawablePtr pSrc, DrawablePtr pDst, GC *pGC,
-			    int srcx, int srcy, int width, int height,
-			    int dstx, int dsty);
-static void xaaWrapperPolyFillArc(DrawablePtr pDraw, GCPtr pGC, int narcs,
-			  xArc *parcs);
-static int xaaWrapperPolyText8(DrawablePtr pDraw, GCPtr	pGC, int x, int	y, int count,
-		       char *chars);
-static int xaaWrapperPolyText16(DrawablePtr pDraw, GCPtr pGC, int x, int y,
-			int count, unsigned short *chars);
-static void xaaWrapperImageText8(DrawablePtr pDraw, GCPtr pGC, int x, 
-			 int y, int count, char	*chars);
-static void xaaWrapperImageText16(DrawablePtr pDraw, GCPtr pGC, int x, int y,
-			  int count, unsigned short *chars);
-static void xaaWrapperImageGlyphBlt(DrawablePtr pDraw, GCPtr pGC, int x, int y,
-			    unsigned int nglyph, CharInfoPtr *ppci,
-			    pointer pglyphBase);
-static void xaaWrapperPolyGlyphBlt(DrawablePtr pDraw, GCPtr pGC, int x, int y,
-			   unsigned int nglyph, CharInfoPtr *ppci,
-			   pointer pglyphBase);
-static void xaaWrapperPushPixels(GCPtr pGC, PixmapPtr pBitMap, DrawablePtr pDraw,
-			 int	dx, int dy, int xOrg, int yOrg);
-#endif
+
 static void
 xaaWrapperComposite (CARD8 op, PicturePtr pSrc, PicturePtr pMask, PicturePtr pDst,
 	     INT16 xSrc, INT16 ySrc, INT16 xMask, INT16 yMask,
@@ -145,25 +97,27 @@ typedef struct {
     real->mem = func; \
 }
 
-#if 0
-#define wrap_pre(priv,real,real_func,mem,func) {\
-    priv->mem = real->real_func; \
-    real->real_func = func; \
-}
-#endif
-
-#define get(priv,real,func,wrap) \
-    priv->wrap = real->func;
-
 #define unwrap(priv,real,mem) {\
     real->mem = priv->mem; \
 }
 
-#if 0
-#define unwrap_pre(priv,real,real_func,mem) {\
-    real->real_func = priv->mem; \
+#define cond_wrap(priv,cond,real,mem,wrapmem,func) {\
+    if (COND(cond)) \
+        priv->wrapmem = real->mem; \
+    else  \
+	priv->mem = real->mem; \
+    real->mem = func; \
 }
-#endif
+
+#define cond_unwrap(priv,cond,real,mem,wrapmem) {\
+    if (COND(cond)) \
+        real->mem = priv->wrapmem; \
+    else \
+        real->mem = priv->mem; \
+}
+
+#define get(priv,real,func,wrap) \
+    priv->wrap = real->func;
 
 typedef struct _xaaWrapperGCPriv {
     GCOps   *ops;
@@ -210,12 +164,11 @@ xaaWrapperCreateWindow(WindowPtr pWin)
     xaaWrapperScrPriv(pWin->drawable.pScreen);
     Bool ret;
     
-    unwrap (pScrPriv, pWin->drawable.pScreen, CreateWindow);
-    if (COND(&pWin->drawable))
-	pWin->drawable.pScreen->CreateWindow
-	    = pScrPriv->wrapCreateWindow;
+    cond_unwrap(pScrPriv, &pWin->drawable, pWin->drawable.pScreen,
+		CreateWindow, wrapCreateWindow);
     ret = pWin->drawable.pScreen->CreateWindow(pWin);
-    wrap(pScrPriv, pWin->drawable.pScreen, CreateWindow, xaaWrapperCreateWindow);
+    cond_wrap(pScrPriv, &pWin->drawable, pWin->drawable.pScreen, CreateWindow,
+	      wrapCreateWindow, xaaWrapperCreateWindow);
 
     return ret;
 }
@@ -244,11 +197,11 @@ xaaWrapperWindowExposures (WindowPtr	pWin,
 {
     xaaWrapperScrPriv(pWin->drawable.pScreen);
 
-    unwrap (pScrPriv, pWin->drawable.pScreen, WindowExposures);
-    if (COND(&pWin->drawable))
-	pWin->drawable.pScreen->WindowExposures = pScrPriv->wrapWindowExposures;
+    cond_unwrap(pScrPriv, &pWin->drawable, pWin->drawable.pScreen,
+		WindowExposures, wrapWindowExposures);
     pWin->drawable.pScreen->WindowExposures(pWin, prgn, other_exposed);
-    wrap(pScrPriv, pWin->drawable.pScreen, WindowExposures, xaaWrapperWindowExposures);
+    cond_wrap(pScrPriv, &pWin->drawable, pWin->drawable.pScreen,
+	      WindowExposures, wrapWindowExposures, xaaWrapperWindowExposures);
 }
 
 static void
@@ -258,29 +211,24 @@ xaaWrapperPaintWindow(WindowPtr pWin, RegionPtr pRegion, int what)
 
     switch (what) {
 	case PW_BORDER:
-	    unwrap (pScrPriv, pWin->drawable.pScreen, PaintWindowBorder);
-	    if (COND(&pWin->drawable)) {
-		pWin->drawable.pScreen->PaintWindowBorder
-		    = pScrPriv->wrapPaintWindowBorder;
-				XAASync(pWin->drawable.pScreen);
-	    }
+	    cond_unwrap(pScrPriv, &pWin->drawable, pWin->drawable.pScreen,
+			PaintWindowBorder, wrapPaintWindowBorder);
+
 	    pWin->drawable.pScreen->PaintWindowBorder (pWin, pRegion, what);
-	    wrap(pScrPriv, pWin->drawable.pScreen, PaintWindowBorder,
-		 xaaWrapperPaintWindow);
+	    cond_wrap(pScrPriv, &pWin->drawable, pWin->drawable.pScreen,
+		      PaintWindowBorder, wrapPaintWindowBorder,
+		      xaaWrapperPaintWindow);
 	    break;
 	case PW_BACKGROUND:
-	    unwrap (pScrPriv, pWin->drawable.pScreen, PaintWindowBackground);
-	    if (COND(&pWin->drawable)) {
-		pWin->drawable.pScreen->PaintWindowBackground
-		    = pScrPriv->wrapPaintWindowBackground;
-		XAASync(pWin->drawable.pScreen);
-	    }
+	    cond_unwrap(pScrPriv, &pWin->drawable, pWin->drawable.pScreen,
+			PaintWindowBackground, wrapPaintWindowBackground);
+
 	    pWin->drawable.pScreen->PaintWindowBackground (pWin, pRegion, what);
-	    wrap(pScrPriv, pWin->drawable.pScreen, PaintWindowBackground,
-		 xaaWrapperPaintWindow);
+	    cond_wrap(pScrPriv, &pWin->drawable, pWin->drawable.pScreen,
+		      PaintWindowBackground, wrapPaintWindowBackground,
+		      xaaWrapperPaintWindow);
 	    break;
     }
-
 }
 
 static Bool
@@ -378,11 +326,7 @@ xaaSetupWrapper(ScreenPtr pScreen, XAAInfoRecPtr infoPtr, int depth, SyncFunc *f
     get (pScrPriv, pScreen, PaintWindowBorder, wrapPaintWindowBorder);
     get (pScrPriv, pScreen, PaintWindowBackground, wrapPaintWindowBackground);
     get (pScrPriv, pScreen, WindowExposures, wrapWindowExposures);
-#if 0
-    wrap_pre (pScrPriv, pScreen, CreateGC, wrapCreateGC, xaaWrapperPreCreateGC);
-#else
     get (pScrPriv, pScreen, CreateGC, wrapCreateGC);
-#endif
     get (pScrPriv, pScreen, CreateColormap, wrapCreateColormap);
     get (pScrPriv, pScreen, DestroyColormap, wrapDestroyColormap);
     get (pScrPriv, pScreen, InstallColormap, wrapInstallColormap);
@@ -435,25 +379,6 @@ GCFuncs xaaWrapperGCFuncs = {
     xaaWrapperCopyClip
 };
 
-#if 0
-GCOps xaaWrapperGCOps = {
-    xaaWrapperFillSpans, xaaWrapperSetSpans, 
-    xaaWrapperPutImage, xaaWrapperCopyArea, 
-    xaaWrapperCopyPlane, xaaWrapperPolyPoint, 
-    xaaWrapperPolylines, xaaWrapperPolySegment, 
-    xaaWrapperPolyRectangle, xaaWrapperPolyArc, 
-    xaaWrapperFillPolygon, xaaWrapperPolyFillRect, 
-    xaaWrapperPolyFillArc, xaaWrapperPolyText8, 
-    xaaWrapperPolyText16, xaaWrapperImageText8, 
-    xaaWrapperImageText16, xaaWrapperImageGlyphBlt, 
-    xaaWrapperPolyGlyphBlt, xaaWrapperPushPixels,
-#ifdef NEED_LINEHELPER
-    NULL,
-#endif
-    {NULL}		/* devPrivate */
-};
-#endif
-
 #define XAAWRAPPER_GC_FUNC_PROLOGUE(pGC) \
     xaaWrapperGCPriv(pGC); \
     unwrap(pGCPriv, pGC, funcs); \
@@ -462,23 +387,6 @@ GCOps xaaWrapperGCOps = {
 #define XAAWRAPPER_GC_FUNC_EPILOGUE(pGC) \
     wrap(pGCPriv, pGC, funcs, &xaaWrapperGCFuncs);  \
     if (pGCPriv->wrap) wrap(pGCPriv, pGC, ops, pGCPriv->wrapops)
-
-#if 0
-static Bool
-xaaWrapperPreCreateGC(GCPtr pGC)
-{
-    ScreenPtr		pScreen = pGC->pScreen;
-    xaaWrapperScrPriv(pScreen);
-    xaaWrapperGCPriv(pGC);
-    Bool ret;
-
-    unwrap_pre (pScrPriv, pScreen, CreateGC, wrapCreateGC);
-    ret = (*pScreen->CreateGC) (pGC);
-    wrap_pre (pScrPriv, pScreen, CreateGC, wrapCreateGC, xaaWrapperPreCreateGC);
-
-    return ret;
-}
-#endif
 
 static Bool
 xaaWrapperCreateGC(GCPtr pGC)
@@ -571,310 +479,6 @@ xaaWrapperDestroyClip(GCPtr pGC)
     (* pGC->funcs->DestroyClip)(pGC);
     XAAWRAPPER_GC_FUNC_EPILOGUE (pGC);
 }
-
-#if 0
-#define XAAWRAPPER_GC_OP_PROLOGUE(pGC,pDraw) \
-/*     xaaWrapperScrPriv(pDraw->pScreen); */\
-    xaaWrapperGCPriv(pGC);  \
-    GCFuncs *oldFuncs = pGC->funcs; \
-    unwrap(pGCPriv, pGC, funcs);  \
-    unwrap(pGCPriv, pGC, ops); \
-	
-#define XAAWRAPPER_GC_OP_EPILOGUE(pGC,pDraw) \
-    wrap(pGCPriv, pGC, funcs, oldFuncs); \
-    wrap(pGCPriv, pGC, ops, &xaaWrapperGCOps)
-
-static void
-xaaWrapperFillSpans(
-    DrawablePtr pDraw,
-    GC		*pGC,
-    int		nInit,	
-    DDXPointPtr pptInit,	
-    int 	*pwidthInit,		
-    int 	fSorted 
-){
-    XAAWRAPPER_GC_OP_PROLOGUE(pGC, pDraw);
-    (*pGC->ops->FillSpans)(pDraw, pGC, nInit, pptInit, pwidthInit, fSorted);
-    XAAWRAPPER_GC_OP_EPILOGUE(pGC, pDraw);
-}
-
-static void
-xaaWrapperSetSpans(
-    DrawablePtr		pDraw,
-    GCPtr		pGC,
-    char		*pcharsrc,
-    DDXPointPtr 	pptInit,
-    int			*pwidthInit,
-    int			nspans,
-    int			fSorted 
-){
-    XAAWRAPPER_GC_OP_PROLOGUE(pGC, pDraw);
-
-    (*pGC->ops->SetSpans)(pDraw, pGC, pcharsrc, pptInit, 
-			  pwidthInit, nspans, fSorted);
-    XAAWRAPPER_GC_OP_EPILOGUE(pGC, pDraw);
-}
-
-
-static void
-xaaWrapperPutImage(
-    DrawablePtr pDraw,
-    GCPtr	pGC,
-    int		depth, 
-    int x, int y, int w, int h,
-    int		leftPad,
-    int		format,
-    char 	*pImage 
-){
-    XAAWRAPPER_GC_OP_PROLOGUE(pGC, pDraw);
-    (*pGC->ops->PutImage)(pDraw, pGC, depth, x, y, w, h, 
-		leftPad, format, pImage);
-    XAAWRAPPER_GC_OP_EPILOGUE(pGC, pDraw);
-}
-
-static RegionPtr
-xaaWrapperCopyArea(
-    DrawablePtr pSrc,
-    DrawablePtr pDst,
-    GC *pGC,
-    int srcx, int srcy,
-    int width, int height,
-    int dstx, int dsty 
-){
-    RegionPtr ret;
-    XAAWRAPPER_GC_OP_PROLOGUE(pGC, pDst);
-    ret = (*pGC->ops->CopyArea)(pSrc, pDst,
-            pGC, srcx, srcy, width, height, dstx, dsty);
-    XAAWRAPPER_GC_OP_EPILOGUE(pGC, pDst);
-
-    return ret;
-}
-
-
-static RegionPtr
-xaaWrapperCopyPlane(
-    DrawablePtr	pSrc,
-    DrawablePtr	pDst,
-    GCPtr pGC,
-    int	srcx, int srcy,
-    int	width, int height,
-    int	dstx, int dsty,
-    unsigned long bitPlane 
-){
-    RegionPtr ret;
-    XAAWRAPPER_GC_OP_PROLOGUE(pGC, pDst);
-    ret = (*pGC->ops->CopyPlane)(pSrc, pDst,
-	       pGC, srcx, srcy, width, height, dstx, dsty, bitPlane);
-    XAAWRAPPER_GC_OP_EPILOGUE(pGC, pDst);
-    return ret;
-}
-
-static void
-xaaWrapperPolyPoint(
-    DrawablePtr pDraw,
-    GCPtr pGC,
-    int mode,
-    int npt,
-    xPoint *pptInit 
-){
-    XAAWRAPPER_GC_OP_PROLOGUE(pGC, pDraw);
-    (*pGC->ops->PolyPoint)(pDraw, pGC, mode, npt, pptInit);
-    XAAWRAPPER_GC_OP_EPILOGUE(pGC, pDraw);
-}
-
-static void
-xaaWrapperPolylines(
-    DrawablePtr pDraw,
-    GCPtr	pGC,
-    int		mode,		
-    int		npt,		
-    DDXPointPtr pptInit 
-){
-    XAAWRAPPER_GC_OP_PROLOGUE(pGC, pDraw);
-    (*pGC->ops->Polylines)(pDraw, pGC, mode, npt, pptInit);
-    XAAWRAPPER_GC_OP_EPILOGUE(pGC, pDraw);
-}
-
-static void 
-xaaWrapperPolySegment(
-    DrawablePtr	pDraw,
-    GCPtr	pGC,
-    int		nseg,
-    xSegment	*pSeg
-    ){
-    XAAWRAPPER_GC_OP_PROLOGUE(pGC, pDraw);
-    (*pGC->ops->PolySegment)(pDraw, pGC, nseg, pSeg);
-    XAAWRAPPER_GC_OP_EPILOGUE(pGC, pDraw);
-}
-
-static void
-xaaWrapperPolyRectangle(
-    DrawablePtr  pDraw,
-    GCPtr        pGC,
-    int	         nRects,
-    xRectangle  *pRects 
-){
-    XAAWRAPPER_GC_OP_PROLOGUE(pGC, pDraw);
-    (*pGC->ops->PolyRectangle)(pDraw, pGC, nRects, pRects);
-    XAAWRAPPER_GC_OP_EPILOGUE(pGC, pDraw);
-}
-
-static void
-xaaWrapperPolyArc(
-    DrawablePtr	pDraw,
-    GCPtr	pGC,
-    int		narcs,
-    xArc	*parcs 
-){
-    XAAWRAPPER_GC_OP_PROLOGUE(pGC, pDraw);
-    (*pGC->ops->PolyArc)(pDraw, pGC, narcs, parcs);
-    XAAWRAPPER_GC_OP_EPILOGUE(pGC, pDraw);
-}
-
-static void
-xaaWrapperFillPolygon(
-    DrawablePtr	pDraw,
-    GCPtr	pGC,
-    int		shape,
-    int		mode,
-    int		count,
-    DDXPointPtr	pptInit 
-){
-    XAAWRAPPER_GC_OP_PROLOGUE(pGC, pDraw);
-    (*pGC->ops->FillPolygon)(pDraw, pGC, shape, mode, count, pptInit);
-    XAAWRAPPER_GC_OP_EPILOGUE(pGC, pDraw);
-}
-
-static void 
-xaaWrapperPolyFillRect(
-    DrawablePtr	pDraw,
-    GCPtr	pGC,
-    int		nRectsInit, 
-    xRectangle	*pRectsInit 
-){
-    XAAWRAPPER_GC_OP_PROLOGUE(pGC, pDraw);
-    (*pGC->ops->PolyFillRect)(pDraw, pGC, nRectsInit, pRectsInit);
-    XAAWRAPPER_GC_OP_EPILOGUE(pGC, pDraw);
-}
-
-static void
-xaaWrapperPolyFillArc(
-    DrawablePtr	pDraw,
-    GCPtr	pGC,
-    int		narcs,
-    xArc	*parcs 
-){
-    XAAWRAPPER_GC_OP_PROLOGUE(pGC, pDraw);
-    (*pGC->ops->PolyFillArc)(pDraw, pGC, narcs, parcs);
-    XAAWRAPPER_GC_OP_EPILOGUE(pGC, pDraw);
-}
-
-static int
-xaaWrapperPolyText8(
-    DrawablePtr pDraw,
-    GCPtr	pGC,
-    int		x, 
-    int 	y,
-    int 	count,
-    char	*chars 
-){
-    int width;
-    
-    XAAWRAPPER_GC_OP_PROLOGUE(pGC, pDraw);
-    width = (*pGC->ops->PolyText8)(pDraw, pGC, x, y, count, chars);
-    XAAWRAPPER_GC_OP_EPILOGUE(pGC, pDraw);
-
-    return width;
-}
-
-static int
-xaaWrapperPolyText16(
-    DrawablePtr pDraw,
-    GCPtr	pGC,
-    int		x,
-    int		y,
-    int 	count,
-    unsigned short *chars 
-){
-    int width;
-    
-    XAAWRAPPER_GC_OP_PROLOGUE(pGC, pDraw);
-    width = (*pGC->ops->PolyText16)(pDraw, pGC, x, y, count, chars);
-    XAAWRAPPER_GC_OP_EPILOGUE(pGC, pDraw);
-
-    return width;
-}
-
-static void
-xaaWrapperImageText8(
-    DrawablePtr pDraw,
-    GCPtr	pGC,
-    int		x, 
-    int		y,
-    int 	count,
-    char	*chars 
-){
-    XAAWRAPPER_GC_OP_PROLOGUE(pGC, pDraw);
-    (*pGC->ops->ImageText8)(pDraw, pGC, x, y, count, chars);
-    XAAWRAPPER_GC_OP_EPILOGUE(pGC, pDraw);
-}
-
-static void
-xaaWrapperImageText16(
-    DrawablePtr pDraw,
-    GCPtr	pGC,
-    int		x,
-    int		y,
-    int 	count,
-    unsigned short *chars 
-){
-    XAAWRAPPER_GC_OP_PROLOGUE(pGC, pDraw);
-    (*pGC->ops->ImageText16)(pDraw, pGC, x, y, count, chars);
-    XAAWRAPPER_GC_OP_EPILOGUE(pGC, pDraw);
-}
-
-static void
-xaaWrapperImageGlyphBlt(
-    DrawablePtr pDraw,
-    GCPtr pGC,
-    int x, int y,
-    unsigned int nglyph,
-    CharInfoPtr *ppci,
-    pointer pglyphBase 
-){
-    XAAWRAPPER_GC_OP_PROLOGUE(pGC, pDraw);
-    (*pGC->ops->ImageGlyphBlt)(pDraw, pGC, x, y, nglyph, 
-					ppci, pglyphBase);
-    XAAWRAPPER_GC_OP_EPILOGUE(pGC, pDraw);
-}
-
-static void
-xaaWrapperPolyGlyphBlt(
-    DrawablePtr pDraw,
-    GCPtr pGC,
-    int x, int y,
-    unsigned int nglyph,
-    CharInfoPtr *ppci,
-    pointer pglyphBase 
-){
-    XAAWRAPPER_GC_OP_PROLOGUE(pGC, pDraw);
-    (*pGC->ops->PolyGlyphBlt)(pDraw, pGC, x, y, nglyph, 
-				ppci, pglyphBase);
-    XAAWRAPPER_GC_OP_EPILOGUE(pGC, pDraw);
-}
-
-static void
-xaaWrapperPushPixels(
-    GCPtr	pGC,
-    PixmapPtr	pBitMap,
-    DrawablePtr pDraw,
-    int	dx, int dy, int xOrg, int yOrg 
-){
-    XAAWRAPPER_GC_OP_PROLOGUE(pGC, pDraw);
-    (*pGC->ops->PushPixels)(pGC, pBitMap, pDraw, dx, dy, xOrg, yOrg);
-    XAAWRAPPER_GC_OP_EPILOGUE(pGC, pDraw);
-}
-#endif
 
 #ifdef RENDER
 static void

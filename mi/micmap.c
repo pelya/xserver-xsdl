@@ -55,10 +55,11 @@ miInitVisualsProcPtr miInitVisualsProc = miDoInitVisuals;
 int
 miListInstalledColormaps(ScreenPtr pScreen, Colormap *pmaps)
 {
-    /* By the time we are processing requests, we can guarantee that there
-     * is always a colormap installed */
-    *pmaps = miInstalledMaps[pScreen->myNum]->mid;
-    return (1);
+    if (miInstalledMaps[pScreen->myNum]) {
+	*pmaps = miInstalledMaps[pScreen->myNum]->mid;
+	return (1);
+    }
+    return 0;
 }
 
 void
