@@ -105,6 +105,12 @@ mach64Setup (PixmapPtr pDst, PixmapPtr pSrc, CARD32 combo, int wait)
     if (!reg)
 	return FALSE;
     
+    /*
+     * No acceleration for other formats (yet)
+     */
+    if (pDst->drawable.bitsPerPixel != pScreenPriv->screen->fb[0].bitsPerPixel)
+	return FALSE;
+
     /* pixels / 8 = ((bytes * 8) / bpp) / 8 = bytes / bpp */
     DST_PITCH = pDst->devKind / pDst->drawable.bitsPerPixel;
     if (triple)

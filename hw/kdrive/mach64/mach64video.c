@@ -557,13 +557,16 @@ mach64DisplayVideo(KdScreenInfo *screen,
 }
 
 static void
-mach64VideoMoveIn (KdOffscreenArea *area)
+mach64VideoSave (KdOffscreenArea *area)
 {
-}
+    ScreenPtr		pScreen = area->screen;
+    KdScreenPriv(pScreen);
+    KdScreenInfo	*screen = pScreenPriv->screen;
+    Mach64ScreenInfo	*mach64s = (Mach64ScreenInfo *) screen->driver;
+    Mach64PortPrivPtr	pPortPriv = mach64s->pAdaptor->pPortPrivates[0].ptr;
 
-static void
-mach64VideoMoveOut (KdOffscreenArea *area)
-{
+    if (pPortPriv->off_screen == area)
+	pPortPriv->off_screen = 0;
 }
 
 static int
@@ -710,8 +713,7 @@ mach64PutImage(KdScreenInfo	    *screen,
     if (!pPortPriv->off_screen)
     {
 	pPortPriv->off_screen = KdOffscreenAlloc (screen->pScreen, size * 2, 64,
-						  TRUE, mach64VideoMoveIn,
-						  mach64VideoMoveOut,
+						  TRUE, mach64VideoSave,
 						  pPortPriv);
 	if (!pPortPriv->off_screen)
 	    return BadAlloc;
