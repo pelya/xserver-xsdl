@@ -1,3 +1,9 @@
+2005-02-08  Alexander Gottwald  <ago at freedesktop dot org>
+
+	* winkeybd.h:
+	* winkeynames.h:
+	Backout ABNT2 and HK_Toggle fix since it broke keys F1 and F4. 
+
 2005-02-07  Alexander Gottwald  <ago at freedesktop dot org>
 
 	* winlayouts.h:
