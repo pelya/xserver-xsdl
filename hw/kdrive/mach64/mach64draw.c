@@ -65,9 +65,6 @@ CARD8 mach64Rop[16] = {
 #define MACH64_DRAW_COMBO_COPY	0x8
 
 #define SYNC_ALWAYS 0
-#if SYNC_ALWAYS
-static ScreenPtr    mach64Screen;
-#endif
 static Reg	*reg;
 static CARD32	avail;
 static CARD32	triple;
@@ -114,7 +111,7 @@ static const Mach64AccelReg	mach64AccelReg[] = {
     { 1, 1,
 	/* DP_PIX_WIDTH */
 	((PIX_FORMAT_MONO << 0) |	/* DP_DST_PIX_WIDTH */
-	 (PIX_FORMAT_TRUE_8888 << 4) |	/* COMPOSITE_PIX_WIDTH */
+	 (PIX_FORMAT_MONO << 4) |	/* COMPOSITE_PIX_WIDTH */
 	 (PIX_FORMAT_MONO << 8) |	/* DP_SRC_PIX_WIDTH */
 	 (0 << 13) |			/* DP_HOST_TRIPLE_EN */
 	 (0 << 14) |			/* DP_PALETTE_TYPE */
@@ -124,7 +121,7 @@ static const Mach64AccelReg	mach64AccelReg[] = {
 	 (0 << 25) |			/* DP_CONVERSION_TEMP */
 	 (0 << 26) |			/* DP_C14_RGB_LOW_NIBBLE */
 	 (0 << 27) |			/* DP_C14_RGB_HIGH_NIBBLE */
-	 (PIX_FORMAT_TRUE_8888 << 28) |	/* DP_SCALE_PIX_WIDTH */
+	 (PIX_FORMAT_MONO << 28) |	/* DP_SCALE_PIX_WIDTH */
 	 0),
 	/* DP_SET_GUI_ENGINE */
 	((PIX_FORMAT_MONO << 3) |
@@ -146,7 +143,7 @@ static const Mach64AccelReg	mach64AccelReg[] = {
     { 8, 8,
 	/* DP_PIX_WIDTH */
 	((PIX_FORMAT_PSEUDO_8 << 0) |	/* DP_DST_PIX_WIDTH */
-	 (PIX_FORMAT_TRUE_8888 << 4) |	/* COMPOSITE_PIX_WIDTH */
+	 (PIX_FORMAT_PSEUDO_8 << 4) |	/* COMPOSITE_PIX_WIDTH */
 	 (PIX_FORMAT_PSEUDO_8 << 8) |	/* DP_SRC_PIX_WIDTH */
 	 (0 << 13) |			/* DP_HOST_TRIPLE_EN */
 	 (0 << 14) |			/* DP_PALETTE_TYPE */
@@ -156,7 +153,7 @@ static const Mach64AccelReg	mach64AccelReg[] = {
 	 (0 << 25) |			/* DP_CONVERSION_TEMP */
 	 (0 << 26) |			/* DP_C14_RGB_LOW_NIBBLE */
 	 (0 << 27) |			/* DP_C14_RGB_HIGH_NIBBLE */
-	 (PIX_FORMAT_TRUE_8888 << 28) |	/* DP_SCALE_PIX_WIDTH */
+	 (PIX_FORMAT_PSEUDO_8 << 28) |	/* DP_SCALE_PIX_WIDTH */
 	 0),
 	/* DP_SET_GUI_ENGINE */
 	((PIX_FORMAT_PSEUDO_8 << 3) |
@@ -178,7 +175,7 @@ static const Mach64AccelReg	mach64AccelReg[] = {
     { 15, 16,
 	/* DP_PIX_WIDTH */
 	((PIX_FORMAT_TRUE_1555 << 0) |	/* DP_DST_PIX_WIDTH */
-	 (PIX_FORMAT_TRUE_8888 << 4) |	/* COMPOSITE_PIX_WIDTH */
+	 (PIX_FORMAT_TRUE_1555 << 4) |	/* COMPOSITE_PIX_WIDTH */
 	 (PIX_FORMAT_TRUE_1555 << 8) |	/* DP_SRC_PIX_WIDTH */
 	 (0 << 13) |			/* DP_HOST_TRIPLE_EN */
 	 (0 << 14) |			/* DP_PALETTE_TYPE */
@@ -188,7 +185,7 @@ static const Mach64AccelReg	mach64AccelReg[] = {
 	 (0 << 25) |			/* DP_CONVERSION_TEMP */
 	 (0 << 26) |			/* DP_C14_RGB_LOW_NIBBLE */
 	 (0 << 27) |			/* DP_C14_RGB_HIGH_NIBBLE */
-	 (PIX_FORMAT_TRUE_8888 << 28) |	/* DP_SCALE_PIX_WIDTH */
+	 (PIX_FORMAT_TRUE_1555 << 28) |	/* DP_SCALE_PIX_WIDTH */
 	 0),
 	/* DP_SET_GUI_ENGINE */
 	((PIX_FORMAT_TRUE_1555 << 3) |
@@ -210,7 +207,7 @@ static const Mach64AccelReg	mach64AccelReg[] = {
     { 16, 16,
 	/* DP_PIX_WIDTH */
 	((PIX_FORMAT_TRUE_565 << 0) |	/* DP_DST_PIX_WIDTH */
-	 (PIX_FORMAT_TRUE_8888 << 4) |	/* COMPOSITE_PIX_WIDTH */
+	 (PIX_FORMAT_TRUE_565 << 4) |	/* COMPOSITE_PIX_WIDTH */
 	 (PIX_FORMAT_TRUE_565 << 8) |	/* DP_SRC_PIX_WIDTH */
 	 (0 << 13) |			/* DP_HOST_TRIPLE_EN */
 	 (0 << 14) |			/* DP_PALETTE_TYPE */
@@ -220,7 +217,7 @@ static const Mach64AccelReg	mach64AccelReg[] = {
 	 (0 << 25) |			/* DP_CONVERSION_TEMP */
 	 (0 << 26) |			/* DP_C14_RGB_LOW_NIBBLE */
 	 (0 << 27) |			/* DP_C14_RGB_HIGH_NIBBLE */
-	 (PIX_FORMAT_TRUE_8888 << 28) |	/* DP_SCALE_PIX_WIDTH */
+	 (PIX_FORMAT_TRUE_565 << 28) |	/* DP_SCALE_PIX_WIDTH */
 	 0),
 	/* DP_SET_GUI_ENGINE */
 	((PIX_FORMAT_TRUE_565 << 3) |
@@ -252,7 +249,7 @@ static const Mach64AccelReg	mach64AccelReg[] = {
 	 (0 << 25) |			    /* DP_CONVERSION_TEMP */
 	 (0 << 26) |			    /* DP_C14_RGB_LOW_NIBBLE */
 	 (0 << 27) |			    /* DP_C14_RGB_HIGH_NIBBLE */
-	 (PIX_FORMAT_TRUE_8888 << 28) |  /* DP_SCALE_PIX_WIDTH */
+	 (PIX_FORMAT_PSEUDO_8 << 28) |  /* DP_SCALE_PIX_WIDTH */
 	 0),
 	/* DP_SET_GUI_ENGINE */
 	((PIX_FORMAT_PSEUDO_8 << 3) |
@@ -353,6 +350,7 @@ mach64Setup (PixmapPtr pDst, PixmapPtr pSrc, CARD32 combo, int wait)
     CARD32  DP_SET_GUI_ENGINE;
     int	    i;
 
+    KdCheckSync (pScreen);
     for (i = 0; i < NACCELREG; i++)
 	if (mach64AccelReg[i].depth == pDst->drawable.depth &&
 	    mach64AccelReg[i].bitsPerPixel == pDst->drawable.bitsPerPixel)
@@ -364,9 +362,6 @@ mach64Setup (PixmapPtr pDst, PixmapPtr pSrc, CARD32 combo, int wait)
 
     reg = mach64c->reg;
     triple = (pDst->drawable.bitsPerPixel == 24);
-#if SYNC_ALWAYS
-    mach64Screen = pScreen;
-#endif
     if (!reg)
 	return FALSE;
     
@@ -439,7 +434,7 @@ static void
 mach64DoneSolid (void)
 {
 #if SYNC_ALWAYS
-    KdCheckSync (mach64Screen);
+    mach64WaitIdle (reg);
 #endif
 }
 
@@ -526,7 +521,7 @@ static void
 mach64DoneCopy (void)
 {
 #if SYNC_ALWAYS
-    KdCheckSync (mach64Screen);
+    mach64WaitIdle (reg);
 #endif
 }
 

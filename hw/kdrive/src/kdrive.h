@@ -849,6 +849,12 @@ KdCheckComposite (CARD8      op,
 		  INT16      yDst,
 		  CARD16     width,
 		  CARD16     height);
+
+void
+KdCheckRasterizeTrapezoid(PicturePtr	pMask,
+			  xTrapezoid	*trap,
+			  int		x_off,
+			  int		y_off);
 #endif
 
 /* kshadow.c */

@@ -291,7 +291,7 @@ kaaCreatePixmap(ScreenPtr pScreen, int w, int h, int depth)
 	return NULL;
     pKaaPixmap = KaaGetPixmapPriv(pPixmap);
     if (!w || !h)
-	pKaaPixmap->score == KAA_PIXMAP_SCORE_PINNED;
+	pKaaPixmap->score = KAA_PIXMAP_SCORE_PINNED;
     else
 	pKaaPixmap->score = KAA_PIXMAP_SCORE_INIT;
     

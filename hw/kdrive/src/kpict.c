@@ -60,10 +60,21 @@ KdCheckComposite (CARD8      op,
 }
 
 void
+KdCheckRasterizeTrapezoid(PicturePtr	pMask,
+			  xTrapezoid	*trap,
+			  int		x_off,
+			  int		y_off)
+{
+    KdCheckSync (pMask->pDrawable->pScreen);
+    fbRasterizeTrapezoid (pMask, trap, x_off, y_off);
+}
+
+void
 KdPictureInitAsync (ScreenPtr pScreen)
 {
     PictureScreenPtr    ps;
 
     ps = GetPictureScreen(pScreen);
     ps->Composite = KdCheckComposite;
+    ps->RasterizeTrapezoid = KdCheckRasterizeTrapezoid;
 }
