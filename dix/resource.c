@@ -74,7 +74,7 @@ Equipment Corporation.
 ******************************************************************/
 
 /* $Xorg: resource.c,v 1.5 2001/02/09 02:04:40 xorgcvs Exp $ */
-/* $XdotOrg: xc/programs/Xserver/dix/resource.c,v 1.3 2004/04/25 22:42:09 gisburn Exp $ */
+/* $XdotOrg: xc/programs/Xserver/dix/resource.c,v 1.1.4.6.4.1 2004/05/04 19:43:10 ewalsh Exp $ */
 /* $TOG: resource.c /main/41 1998/02/09 14:20:31 kaleb $ */
 
 /*	Routines to manage various kinds of resources:
@@ -118,6 +118,9 @@ Equipment Corporation.
 #ifdef PANORAMIX
 #include "panoramiX.h"
 #include "panoramiXsrv.h"
+#endif
+#ifdef XACE
+#include "xace.h"
 #endif
 #include <assert.h>
 
@@ -840,7 +843,7 @@ LegalNewID(id, client)
 	     !LookupIDByClass(id, RC_ANY)));
 }
 
-#ifdef XCSECURITY
+#ifdef XACE
 
 /* SecurityLookupIDByType and SecurityLookupIDByClass:
  * These are the heart of the resource ID security system.  They take
@@ -877,8 +880,9 @@ SecurityLookupIDByType(client, id, rtype, mode)
 		break;
 	    }
     }
-    if (retval && client && client->CheckAccess)
-	retval = (* client->CheckAccess)(client, id, rtype, mode, retval);
+    if (retval && client && 
+	!XaceHook(XACE_RESOURCE_ACCESS, client, id, rtype, mode, retval))
+	retval = NULL;
     return retval;
 }
 
@@ -910,8 +914,9 @@ SecurityLookupIDByClass(client, id, classes, mode)
 		break;
 	    }
     }
-    if (retval && client && client->CheckAccess)
-	retval = (* client->CheckAccess)(client, id, res->type, mode, retval);
+    if (retval && client &&
+	!XaceHook(XACE_RESOURCE_ACCESS, client, id, res->type, mode, retval))
+	retval = NULL;
     return retval;
 }
 
@@ -937,7 +942,7 @@ LookupIDByClass(id, classes)
 				   SecurityUnknownAccess);
 }
 
-#else /* not XCSECURITY */
+#else /* not XACE */
 
 /*
  *  LookupIDByType returns the object with the given id and type, else NULL.
@@ -986,4 +991,4 @@ LookupIDByClass(id, classes)
     return (pointer)NULL;
 }
 
-#endif /* XCSECURITY */
+#endif /* XACE */

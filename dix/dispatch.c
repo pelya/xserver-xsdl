@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/dix/dispatch.c,v 1.2 2004/04/23 19:04:44 eich Exp $ */
+/* $XdotOrg: xc/programs/Xserver/dix/dispatch.c,v 1.1.4.8.2.1 2004/05/04 19:43:10 ewalsh Exp $ */
 /* $Xorg: dispatch.c,v 1.5 2001/02/09 02:04:40 xorgcvs Exp $ */
 /************************************************************
 
@@ -103,9 +103,8 @@ int ProcInitialConnection();
 #include "panoramiX.h"
 #include "panoramiXsrv.h"
 #endif
-#ifdef XCSECURITY
-#define _SECURITY_SERVER
-#include "security.h"
+#ifdef XACE
+#include "xace.h"
 #endif
 #ifdef XAPPGROUP
 #include "Xagsrv.h"
@@ -1109,11 +1108,10 @@ ProcConvertSelection(client)
 	       CurrentSelections[i].selection != stuff->selection) i++;
 	if ((i < NumCurrentSelections) && 
 	    (CurrentSelections[i].window != None)
-#ifdef XCSECURITY
-	    && (!client->CheckAccess ||
-		(* client->CheckAccess)(client, CurrentSelections[i].window,
-					RT_WINDOW, SecurityReadAccess,
-					CurrentSelections[i].pWin))
+#ifdef XACE
+	    && XaceHook(XACE_RESOURCE_ACCESS, client,
+			CurrentSelections[i].window, RT_WINDOW,
+			SecurityReadAccess, CurrentSelections[i].pWin)
 #endif
 	    )
 	{        
@@ -2218,9 +2216,9 @@ DoGetImage(client, format, drawable, x, y, width, height, planemask, im_return)
 	WriteReplyToClient(client, sizeof (xGetImageReply), &xgi);
     }
 
-#ifdef XCSECURITY
-    if (client->trustLevel != XSecurityClientTrusted &&
-	pDraw->type == DRAWABLE_WINDOW)
+#ifdef XACE
+    if (pDraw->type == DRAWABLE_WINDOW &&
+	!XaceHook(XACE_DRAWABLE_ACCESS, client, pDraw))
     {
 	pVisibleRegion = NotClippedByChildren((WindowPtr)pDraw);
 	if (pVisibleRegion)
@@ -2248,9 +2246,9 @@ DoGetImage(client, format, drawable, x, y, width, height, planemask, im_return)
 				         format,
 				         planemask,
 				         (pointer) pBuf);
-#ifdef XCSECURITY
+#ifdef XACE
 	    if (pVisibleRegion)
-		SecurityCensorImage(client, pVisibleRegion, widthBytesLine,
+		XaceCensorImage(client, pVisibleRegion, widthBytesLine,
 			pDraw, x, y + linesDone, width, 
 			nlines, format, pBuf);
 #endif
@@ -2289,9 +2287,9 @@ DoGetImage(client, format, drawable, x, y, width, height, planemask, im_return)
 				                 format,
 				                 plane,
 				                 (pointer)pBuf);
-#ifdef XCSECURITY
+#ifdef XACE
 		    if (pVisibleRegion)
-			SecurityCensorImage(client, pVisibleRegion,
+			XaceCensorImage(client, pVisibleRegion,
 				widthBytesLine,
 				pDraw, x, y + linesDone, width, 
 				nlines, format, pBuf);
@@ -2317,7 +2315,7 @@ DoGetImage(client, format, drawable, x, y, width, height, planemask, im_return)
             }
 	}
     }
-#ifdef XCSECURITY
+#ifdef XACE
     if (pVisibleRegion)
 	REGION_DESTROY(pDraw->pScreen, pVisibleRegion);
 #endif
@@ -3354,11 +3352,10 @@ ProcListHosts(client)
     /* REQUEST(xListHostsReq); */
 
     REQUEST_SIZE_MATCH(xListHostsReq);
-#ifdef XCSECURITY
+#ifdef XACE
     /* untrusted clients can't list hosts */
-    if (client->trustLevel != XSecurityClientTrusted)
+    if (!XaceHook(XACE_HOSTLIST_ACCESS, client, SecurityReadAccess))
     {
-	SecurityAudit("client %d attempted to list hosts\n", client->index);
 	return BadAccess;
     }
 #endif
@@ -3743,10 +3740,8 @@ void InitClient(client, i, ospriv)
 #ifdef LBX
     client->readRequest = StandardReadRequestFromClient;
 #endif
-#ifdef XCSECURITY
-    client->trustLevel = XSecurityClientTrusted;
-    client->CheckAccess = NULL;
-    client->authId = 0;
+#ifdef XACE
+    XACE_STATE_INIT(client->securityState);
 #endif
 #ifdef XAPPGROUP
     client->appgroup = NULL;

@@ -1,5 +1,5 @@
 /* $Xorg: access.c,v 1.5 2001/02/09 02:05:23 xorgcvs Exp $ */
-/* $XdotOrg: xc/programs/Xserver/os/access.c,v 1.2 2004/04/23 19:54:28 eich Exp $ */
+/* $XdotOrg: xc/programs/Xserver/os/access.c,v 1.1.4.4.4.1 2004/05/04 19:44:01 ewalsh Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -192,9 +192,8 @@ SOFTWARE.
 #include "dixstruct.h"
 #include "osdep.h"
 
-#ifdef XCSECURITY
-#define _SECURITY_SERVER
-#include "extensions/security.h"
+#ifdef XACE
+#include "xace.h"
 #endif
 
 #ifndef PATH_MAX
@@ -1321,15 +1320,6 @@ Bool LocalClient(ClientPtr client)
     pointer		addr;
     register HOST	*host;
 
-#ifdef XCSECURITY
-    /* untrusted clients can't change host access */
-    if (client->trustLevel != XSecurityClientTrusted)
-    {
-	SecurityAudit("client %d attempted to change host access\n",
-		      client->index);
-	return FALSE;
-    }
-#endif
 #ifdef LBX
     if (!((OsCommPtr)client->osPrivate)->trans_conn)
 	return FALSE;
@@ -1431,6 +1421,11 @@ AuthorizedClient(ClientPtr client)
 {
     if (!client || defeatAccessControl)
 	return TRUE;
+#ifdef XACE
+    /* untrusted clients can't change host access */
+    if (!XaceHook(XACE_HOSTLIST_ACCESS, client, SecurityWriteAccess))
+	return FALSE;
+#endif
     return LocalClient(client);
 }
 

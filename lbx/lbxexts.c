@@ -32,26 +32,9 @@
 #define _XLBX_SERVER_
 #include "lbxstr.h"
 #include "lbxserve.h"
-#ifdef XCSECURITY
-#define _SECURITY_SERVER
-#include "extensions/security.h"
+#ifdef XACE
+#include "xace.h"
 #endif
-
-typedef struct _lbxext {
-    char       *name;
-    char      **aliases;
-    int         num_aliases;
-    int         idx;
-    int         opcode;
-    int         ev_base;
-    int         err_base;
-    int         num_reqs;
-    CARD8      *rep_mask;
-    CARD8      *ev_mask;
-#ifdef XCSECURITY
-    Bool	secure;
-#endif
-}           LbxExtensionEntry;
 
 static LbxExtensionEntry **lbx_extensions = NULL;
 static int  num_exts = 0;
@@ -97,8 +80,8 @@ LbxAddExtension(char       *name,
     ext->ev_mask = NULL;
     ext->rep_mask = NULL;
     ext->num_reqs = 0;
-#ifdef XCSECURITY
-    ext->secure = FALSE;
+#ifdef XACE
+    XACE_STATE_INIT(ext->securityState);
 #endif
 
     return TRUE;
@@ -149,10 +132,10 @@ void
 LbxDeclareExtensionSecurity(char *extname,
 			    Bool secure)
 {
-#ifdef XCSECURITY
+#ifdef XACE
     int i = LbxFindExtension(extname, strlen(extname));
     if (i >= 0)
-	lbx_extensions[i]->secure = secure;
+	XaceHook(XACE_DECLARE_LBX_EXT_SECURE, lbx_extensions[i], secure);
 #endif
 }
 
@@ -203,10 +186,9 @@ LbxQueryExtension(ClientPtr   client,
     i = LbxFindExtension(ename, nlen);
 
     if (i < 0
-#ifdef XCSECURITY
+#ifdef XACE
 	    /* don't show insecure extensions to untrusted clients */
-	    || (client->trustLevel == XSecurityClientUntrusted &&
-		!lbx_extensions[i]->secure)
+	    || !XaceHook(XACE_LBX_EXT_ACCESS, client, lbx_extensions[i])
 #endif
 	)
 	rep.present = FALSE;

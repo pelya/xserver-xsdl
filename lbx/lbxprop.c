@@ -69,9 +69,8 @@ in this Software without prior written authorization from The Open Group.
 #include "lbxserve.h"
 #include "lbxtags.h"
 #include "Xfuncproto.h"
-#ifdef XCSECURITY
-#define _SECURITY_SERVER
-#include "extensions/security.h"
+#ifdef XACE
+#include "extensions/xace.h"
 #endif
 #include "swaprep.h"
 
@@ -334,8 +333,8 @@ LbxChangeProperty(ClientPtr client)
 	swaps(&rep.sequenceNumber, n);
     }
 
-#ifdef XCSECURITY
-    switch (SecurityCheckPropertyAccess(client, pWin, stuff->property,
+#ifdef XACE
+    switch (XaceHook(XACE_PROPERTY_ACCESS, client, pWin, stuff->property,
 					SecurityWriteAccess))
     {
 	case SecurityErrorOperation:

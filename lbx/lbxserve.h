@@ -119,6 +119,22 @@ typedef struct _LbxProxy {
     lbxMotionCache motionCache;
 }           LbxProxyRec;
 
+typedef struct _lbxext {
+    char       *name;
+    char      **aliases;
+    int         num_aliases;
+    int         idx;
+    int         opcode;
+    int         ev_base;
+    int         err_base;
+    int         num_reqs;
+    CARD8      *rep_mask;
+    CARD8      *ev_mask;
+#ifdef XACE
+    pointer    securityState[4];
+#endif
+}           LbxExtensionEntry;
+
 /* This array is indexed by server client index, not lbx proxy index */
 
 extern LbxClientPtr lbxClients[MAXCLIENTS];

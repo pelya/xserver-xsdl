@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/dix/window.c,v 1.2 2004/04/23 19:04:44 eich Exp $ */
+/* $XdotOrg: xc/programs/Xserver/dix/window.c,v 1.1.4.8.2.1 2004/05/04 19:43:10 ewalsh Exp $ */
 /* $Xorg: window.c,v 1.4 2001/02/09 02:04:41 xorgcvs Exp $ */
 /*
 
@@ -103,9 +103,8 @@ Equipment Corporation.
 #ifdef XAPPGROUP
 #include "Xagsrv.h"
 #endif
-#ifdef XCSECURITY
-#define _SECURITY_SERVER
-#include "security.h"
+#ifdef XACE
+#include "xace.h"
 #endif
 
 /******
@@ -706,11 +705,11 @@ CreateWindow(wid, pParent, x, y, w, h, bw, class, vmask, vlist,
     }
 
     pWin->borderWidth = bw;
-#ifdef XCSECURITY
+#ifdef XACE
     /*  can't let untrusted clients have background None windows;
      *  they make it too easy to steal window contents
      */
-    if (client->trustLevel != XSecurityClientTrusted)
+    if (!XaceHook(XACE_BACKGRND_ACCESS, client, pWin))
     {
 	pWin->backgroundState = BackgroundPixel;
 	pWin->background.pixel = 0;
@@ -1008,9 +1007,9 @@ ChangeWindowAttributes(pWin, vmask, vlist, client)
 		borderRelative = TRUE;
 	    if (pixID == None)
 	    {
-#ifdef XCSECURITY
+#ifdef XACE
 		/*  can't let untrusted clients have background None windows */
-		if (client->trustLevel == XSecurityClientTrusted)
+		if (XaceHook(XACE_BACKGRND_ACCESS, client, pWin))
 		{
 #endif
 		if (pWin->backgroundState == BackgroundPixmap)
@@ -1019,7 +1018,7 @@ ChangeWindowAttributes(pWin, vmask, vlist, client)
 		    MakeRootTile(pWin);
 		else
 		    pWin->backgroundState = None;
-#ifdef XCSECURITY
+#ifdef XACE
 		}
 		else
 		{ /* didn't change the background to None, so don't tell ddx */
@@ -2697,13 +2696,9 @@ MapWindow(pWin, client)
     if (pWin->mapped)
 	return(Success);
 
-#ifdef XCSECURITY
-    /*  don't let an untrusted client map a child-of-trusted-window, InputOnly
-     *  window; too easy to steal device input
-     */
-    if ( (client->trustLevel != XSecurityClientTrusted) &&
-	 (pWin->drawable.class == InputOnly) &&
-	 (wClient(pWin->parent)->trustLevel == XSecurityClientTrusted) )
+#ifdef XACE
+    /*  general check for permission to map window */
+    if (!XaceHook(XACE_MAP_ACCESS, client, pWin))
 	 return Success;
 #endif	
 

@@ -89,12 +89,9 @@ SOFTWARE.
     ((client->lastDrawableID == did) ? \
      client->lastDrawable : (DrawablePtr)LookupDrawable(did, client))
 
-#ifdef XCSECURITY
+#ifdef XACE
 
 #define SECURITY_VERIFY_DRAWABLE(pDraw, did, client, mode)\
-    if (client->lastDrawableID == did && !client->trustLevel)\
-	pDraw = client->lastDrawable;\
-    else \
     {\
 	pDraw = (DrawablePtr) SecurityLookupIDByClass(client, did, \
 						      RC_DRAWABLE, mode);\
@@ -108,9 +105,6 @@ SOFTWARE.
     }
 
 #define SECURITY_VERIFY_GEOMETRABLE(pDraw, did, client, mode)\
-    if (client->lastDrawableID == did && !client->trustLevel)\
-	pDraw = client->lastDrawable;\
-    else \
     {\
 	pDraw = (DrawablePtr) SecurityLookupIDByClass(client, did, \
 						      RC_DRAWABLE, mode);\
@@ -122,9 +116,6 @@ SOFTWARE.
     }
 
 #define SECURITY_VERIFY_GC(pGC, rid, client, mode)\
-    if (client->lastGCID == rid && !client->trustLevel)\
-        pGC = client->lastGC;\
-    else\
 	pGC = (GC *) SecurityLookupIDByType(client, rid, RT_GC, mode);\
     if (!pGC)\
     {\
@@ -141,7 +132,7 @@ SOFTWARE.
 #define VERIFY_GC(pGC, rid, client)\
 	SECURITY_VERIFY_GC(pGC, rid, client, SecurityUnknownAccess)
 
-#else /* not XCSECURITY */
+#else /* not XACE */
 
 #define VERIFY_DRAWABLE(pDraw, did, client)\
     if (client->lastDrawableID == did)\
@@ -191,7 +182,7 @@ SOFTWARE.
 #define SECURITY_VERIFY_GC(pGC, rid, client, mode)\
 	VERIFY_GC(pGC, rid, client)
 
-#endif /* XCSECURITY */
+#endif /* XACE */
 
 /*
  * We think that most hardware implementations of DBE will want
@@ -379,7 +370,7 @@ extern void CopyISOLatin1Lowered(
     unsigned char * /*source*/,
     int /*length*/);
 
-#ifdef XCSECURITY
+#ifdef XACE
 
 extern WindowPtr SecurityLookupWindow(
     XID /*rid*/,
@@ -415,7 +406,7 @@ extern pointer LookupDrawable(
 #define SecurityLookupDrawable(rid, client, access_mode) \
 	LookupDrawable(rid, client)
 
-#endif /* XCSECURITY */
+#endif /* XACE */
 
 extern ClientPtr LookupClient(
     XID /*rid*/,

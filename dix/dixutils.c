@@ -93,9 +93,8 @@ Author:  Adobe Systems Incorporated
 #include "scrnintstr.h"
 #define  XK_LATIN1
 #include "keysymdef.h"
-#ifdef XCSECURITY
-#define _SECURITY_SERVER
-#include "security.h"
+#ifdef XACE
+#include "xace.h"
 #endif
 
 /*
@@ -173,7 +172,7 @@ CopyISOLatin1Lowered(dest, source, length)
     *dest = '\0';
 }
 
-#ifdef XCSECURITY
+#ifdef XACE
 
 /* SecurityLookupWindow and SecurityLookupDrawable:
  * Look up the window/drawable taking into account the client doing
@@ -181,6 +180,7 @@ CopyISOLatin1Lowered(dest, source, length)
  * if it exists and the client is allowed access, else return NULL.
  * Most Proc* functions should be calling these instead of
  * LookupWindow and LookupDrawable, which do no access checks.
+ * XACE note: need to see if client->lastDrawableID can still be used here.
  */
 
 WindowPtr
@@ -189,27 +189,10 @@ SecurityLookupWindow(rid, client, access_mode)
     ClientPtr client;
     Mask access_mode;
 {
-    WindowPtr	pWin;
-
     client->errorValue = rid;
     if(rid == INVALID)
 	return NULL;
-    if (client->trustLevel != XSecurityClientTrusted)
-	return (WindowPtr)SecurityLookupIDByType(client, rid, RT_WINDOW, access_mode);
-    if (client->lastDrawableID == rid)
-    {
-        if (client->lastDrawable->type == DRAWABLE_WINDOW)
-            return ((WindowPtr) client->lastDrawable);
-        return (WindowPtr) NULL;
-    }
-    pWin = (WindowPtr)SecurityLookupIDByType(client, rid, RT_WINDOW, access_mode);
-    if (pWin && pWin->drawable.type == DRAWABLE_WINDOW) {
-	client->lastDrawable = (DrawablePtr) pWin;
-	client->lastDrawableID = rid;
-	client->lastGCID = INVALID;
-	client->lastGC = (GCPtr)NULL;
-    }
-    return pWin;
+    return (WindowPtr)SecurityLookupIDByType(client, rid, RT_WINDOW, access_mode);
 }
 
 
@@ -223,11 +206,6 @@ SecurityLookupDrawable(rid, client, access_mode)
 
     if(rid == INVALID)
 	return (pointer) NULL;
-    if (client->trustLevel != XSecurityClientTrusted)
-	return (DrawablePtr)SecurityLookupIDByClass(client, rid, RC_DRAWABLE,
-						    access_mode);
-    if (client->lastDrawableID == rid)
-	return ((pointer) client->lastDrawable);
     pDraw = (DrawablePtr)SecurityLookupIDByClass(client, rid, RC_DRAWABLE,
 						 access_mode);
     if (pDraw && (pDraw->type != UNDRAWABLE_WINDOW))
@@ -255,7 +233,7 @@ LookupDrawable(rid, client)
     return SecurityLookupDrawable(rid, client, SecurityUnknownAccess);
 }
 
-#else /* not XCSECURITY */
+#else /* not XACE */
 
 WindowPtr
 LookupWindow(rid, client)
@@ -301,7 +279,7 @@ LookupDrawable(rid, client)
     return (pointer)NULL;
 }
 
-#endif /* XCSECURITY */
+#endif /* XACE */
 
 ClientPtr
 LookupClient(rid, client)

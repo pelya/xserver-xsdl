@@ -71,7 +71,7 @@ typedef struct _ExtensionEntry {
     unsigned short (* MinorOpcode)(	/* called for errors */
 	ClientPtr /* client */);
 #ifdef XCSECURITY
-    Bool secure;		/* extension visible to untrusted clients? */
+    pointer securityState[4];		/* 4 slots for use */
 #endif
 } ExtensionEntry;
 
@@ -129,6 +129,7 @@ extern Bool AddExtensionAlias(
     ExtensionEntry * /*extension*/);
 
 extern ExtensionEntry *CheckExtension(const char *extname);
+extern ExtensionEntry *GetExtensionEntry(int major);
 
 extern ExtensionLookupProc LookupProc(
     char* /*name*/,

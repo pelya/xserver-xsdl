@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/dix/events.c,v 1.2 2004/04/23 19:04:44 eich Exp $ */
+/* $XdotOrg: xc/programs/Xserver/dix/events.c,v 1.1.4.9.2.1 2004/05/04 19:43:10 ewalsh Exp $ */
 /* $XFree86: xc/programs/Xserver/dix/events.c,v 3.51 2004/01/12 17:04:52 tsi Exp $ */
 /************************************************************
 
@@ -101,9 +101,8 @@ Equipment Corporation.
 extern Bool XkbFilterEvents(ClientPtr, int, xEvent *);
 #endif
 
-#ifdef XCSECURITY
-#define _SECURITY_SERVER
-#include "security.h"
+#ifdef XACE
+#include "xace.h"
 #endif
 
 #include "XIproto.h"
@@ -2403,8 +2402,8 @@ CheckPassiveGrabsOnWindow(
 	     (grab->confineTo->realized && 
 				BorderSizeNotEmpty(grab->confineTo))))
 	{
-#ifdef XCSECURITY
-	    if (!SecurityCheckDeviceAccess(wClient(pWin), device, FALSE))
+#ifdef XACE
+	    if (!XaceHook(XACE_DEVICE_ACCESS, wClient(pWin), device, FALSE))
 		return FALSE;
 #endif
 #ifdef XKB
@@ -3164,10 +3163,10 @@ EnterLeaveEvent(
     {
 	xKeymapEvent ke;
 
-#ifdef XCSECURITY
+#ifdef XACE
 	ClientPtr client = grab ? rClient(grab)
 				: clients[CLIENT_ID(pWin->drawable.id)];
-	if (!SecurityCheckDeviceAccess(client, keybd, FALSE))
+	if (!XaceHook(XACE_DEVICE_ACCESS, client, keybd, FALSE))
 	{
 	    bzero((char *)&ke.map[0], 31);
 	}
@@ -3259,9 +3258,9 @@ FocusEvent(DeviceIntPtr dev, int type, int mode, int detail, register WindowPtr 
 	((pWin->eventMask | wOtherEventMasks(pWin)) & KeymapStateMask))
     {
 	xKeymapEvent ke;
-#ifdef XCSECURITY
+#ifdef XACE
 	ClientPtr client = clients[CLIENT_ID(pWin->drawable.id)];
-	if (!SecurityCheckDeviceAccess(client, dev, FALSE))
+	if (!XaceHook(XACE_DEVICE_ACCESS, client, dev, FALSE))
 	{
 	    bzero((char *)&ke.map[0], 31);
 	}
@@ -3533,8 +3532,8 @@ ProcSetInputFocus(client)
     REQUEST(xSetInputFocusReq);
 
     REQUEST_SIZE_MATCH(xSetInputFocusReq);
-#ifdef XCSECURITY
-    if (!SecurityCheckDeviceAccess(client, inputInfo.keyboard, TRUE))
+#ifdef XACE
+    if (!XaceHook(XACE_DEVICE_ACCESS, client, inputInfo.keyboard, TRUE))
 	return Success;
 #endif
     return SetInputFocus(client, inputInfo.keyboard, stuff->focus,
@@ -3811,8 +3810,8 @@ ProcGrabKeyboard(client)
     int result;
 
     REQUEST_SIZE_MATCH(xGrabKeyboardReq);
-#ifdef XCSECURITY
-    if (!SecurityCheckDeviceAccess(client, inputInfo.keyboard, TRUE))
+#ifdef XACE
+    if (!XaceHook(XACE_DEVICE_ACCESS, client, inputInfo.keyboard, TRUE))
     {
 	result = Success;
 	rep.status = AlreadyGrabbed;

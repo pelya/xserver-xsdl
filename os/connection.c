@@ -149,6 +149,9 @@ extern __const__ int _nfiles;
 #ifdef XAPPGROUP
 #include "extensions/Xagsrv.h"
 #endif
+#ifdef XACE
+#include "xace.h"
+#endif
 #ifdef XCSECURITY
 #define _SECURITY_SERVER
 #include "extensions/security.h"
@@ -632,8 +635,9 @@ ClientAuthorized(ClientPtr client,
     if (! priv->trans_conn) {
 	if (auth_id == (XID) ~0L && !GetAccessControl())
 	    auth_id = ((OsCommPtr)lbxpc->osPrivate)->auth_id;
-#ifdef XCSECURITY
-	else if (auth_id != (XID) ~0L && !SecuritySameLevel(lbxpc, auth_id)) {
+#ifdef XACE
+	else if (auth_id != (XID) ~0L &&
+		 !XaceHook(XACE_LBX_PROXY_ACCESS, lbxpc, auth_id)) {
 	    auth_id = (XID) ~0L;
 	    reason = "Client trust level differs from that of LBX Proxy";
 	}
@@ -709,9 +713,8 @@ ClientAuthorized(ClientPtr client,
     /* indicate to Xdmcp protocol that we've opened new client */
     XdmcpOpenDisplay(priv->fd);
 #endif /* XDMCP */
-#ifdef XAPPGROUP
-    if (ClientStateCallback)
-        XagCallClientStateChange (client);
+#ifdef XACE
+    XaceHook(XACE_AUTH_AVAIL, client, auth_id);
 #endif
     /* At this point, if the client is authorized to change the access control
      * list, we should getpeername() information, and add the client to
