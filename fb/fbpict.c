@@ -1088,7 +1088,12 @@ fbComposite (CARD8      op,
 		    switch (pDst->format) {
 		    case PICT_a8r8g8b8:
 		    case PICT_x8r8g8b8:
-			func = fbCompositeSrc_8888x8888;
+#ifdef USE_MMX
+			if (fbHaveMMX())
+			    func = fbCompositeSrc_8888x8888mmx;
+			else
+#endif
+			    func = fbCompositeSrc_8888x8888;
 			break;
 		    case PICT_r8g8b8:
 			func = fbCompositeSrc_8888x0888;
@@ -1123,7 +1128,12 @@ fbComposite (CARD8      op,
 		    switch (pDst->format) {
 		    case PICT_a8b8g8r8:
 		    case PICT_x8b8g8r8:
-			func = fbCompositeSrc_8888x8888;
+#ifdef USE_MMX
+			if (fbHaveMMX())
+			    func = fbCompositeSrc_8888x8888mmx;
+			else
+#endif
+			    func = fbCompositeSrc_8888x8888;
 			break;
 		    case PICT_b8g8r8:
 			func = fbCompositeSrc_8888x0888;

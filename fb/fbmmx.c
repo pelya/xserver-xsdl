@@ -732,6 +732,86 @@ fbCompositeSrc_8888x8x8888mmx (CARD8	op,
 }
 
 void
+fbCompositeSrc_8888x8888mmx (CARD8	op,
+			     PicturePtr pSrc,
+			     PicturePtr pMask,
+			     PicturePtr pDst,
+			     INT16	xSrc,
+			     INT16	ySrc,
+			     INT16      xMask,
+			     INT16      yMask,
+			     INT16      xDst,
+			     INT16      yDst,
+			     CARD16     width,
+			     CARD16     height)
+{
+    CARD32	*dstLine, *dst;
+    CARD32	*srcLine, *src;
+    FbStride	dstStride, srcStride;
+    CARD16	w;
+    __m64  srca;
+    
+    CHECKPOINT();
+    
+    fbComposeGetStart (pDst, xDst, yDst, CARD32, dstStride, dstLine, 1);
+    fbComposeGetStart (pSrc, xSrc, ySrc, CARD32, srcStride, srcLine, 1);
+
+    srca = MC (4x00ff);
+    
+    while (height--)
+    {
+	dst = dstLine;
+	dstLine += dstStride;
+	src = srcLine;
+	srcLine += srcStride;
+	w = width;
+
+	while (w && (unsigned long)dst & 7)
+	{
+	    __m64 s = load8888 (*src);
+	    __m64 d = load8888 (*dst);
+	    
+	    *dst = (ullong)pack8888 (over (s, expand_alpha (s), d), (__m64)_mm_setzero_si64());
+	    
+	    w--;
+	    dst++;
+	    src++;
+	}
+
+	while (w >= 2)
+	{
+	    __m64 vd = *(__m64 *)(dst + 0);
+	    __m64 vs = *(__m64 *)(src + 0);
+	    __m64 vs0 = expand8888 (vs, 0);
+	    __m64 vs1 = expand8888 (vs, 1);
+
+	    *(__m64 *)dst = (__m64)pack8888 (
+		over (vs0, expand_alpha (vs0), expand8888 (vd, 0)),
+		over (vs1, expand_alpha (vs1), expand8888 (vd, 1)));
+	    
+	    w -= 2;
+	    dst += 2;
+	    src += 2;
+	}
+	
+	while (w)
+	{
+	    __m64 s = load8888 (*src);
+	    __m64 d = load8888 (*dst);
+	    
+	    *dst = (ullong)pack8888 (over (s, expand_alpha (s), d),
+				     (__m64)_mm_setzero_si64());
+	    
+	    w--;
+	    dst++;
+	    src++;
+	}
+    }
+
+    _mm_empty(); 
+}
+
+void
 fbCompositeSolidMask_nx8x8888mmx (CARD8      op,
 				  PicturePtr pSrc,
 				  PicturePtr pMask,
