@@ -70,7 +70,7 @@ smiScreenInit (KdScreenInfo *screen)
     if (!smic->reg_base)
 	screen->dumb = TRUE;
     screen->softCursor = TRUE;
-#ifdef SMI_VESA
+#if SMI_VESA
     smis->screen = smis->sub.fb;
 #else
     smis->screen = smic->sub.fb;

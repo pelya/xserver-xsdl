@@ -26,9 +26,9 @@
 #ifndef _SMI_H_
 #define _SMI_H_
 
-#define SMI_VESA 1
+#define SMI_VESA 0
 
-#ifdef SMI_VESA
+#if SMI_VESA
 #include <vesa.h>
 #define subGetColors vesaGetColors
 #define subPutColors vesaPutColors
