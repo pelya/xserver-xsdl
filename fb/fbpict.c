@@ -1048,7 +1048,7 @@ fbComposite (CARD8      op,
 		}
 	    }
 	}
-	else
+	else /* no mask */
 	{
 	    if (srcRepeat && 
 		pSrc->pDrawable->width == 1 &&
@@ -1095,6 +1095,27 @@ fbComposite (CARD8      op,
 			break;
 		    case PICT_r5g6b5:
 			func = fbCompositeSrc_8888x0565;
+			break;
+		    }
+		    break;
+		case PICT_x8r8g8b8:
+		    switch (pDst->format) {
+		    case PICT_a8r8g8b8:
+		    case PICT_x8r8g8b8:
+#ifdef USE_MMX
+			if (fbHaveMMX())
+			    func = fbCompositeCopyAreammx;
+#endif
+			break;
+		    }
+		case PICT_x8b8g8r8:
+		    switch (pDst->format) {
+		    case PICT_a8b8g8r8:
+		    case PICT_x8b8g8r8:
+#ifdef USE_MMX
+			if (fbHaveMMX())
+			    func = fbCompositeCopyAreammx;
+#endif
 			break;
 		    }
 		    break;
