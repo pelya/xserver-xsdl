@@ -7,6 +7,7 @@
 #define endtab  xf1bppendtab
 #define mask  xf1bppmask
 #define mergeRopBits  xf1bppmergeRopBits
+#define mergeGetRopBits  xf1bppmergeGetRopBits
 #define mfbAllocatePrivates  xf1bppAllocatePrivates
 #define mfbBSFuncRec  xf1bppBSFuncRec
 #define mfbBlackSolidFS  xf1bppBlackSolidFS
@@ -41,6 +42,7 @@
 #define mfbGCPrivateIndex  xf1bppGCPrivateIndex
 #define mfbGetGCPrivateIndex  xf1bppGetGCPrivateIndex
 #define mfbGetImage  xf1bppGetImage
+#define mfbGetInverseAlu xf1bppGetInverseAlu
 #define mfbGetSpans  xf1bppGetSpans
 #define mfbGetWindowPixmap  xf1bppGetWindowPixmap
 #define mfbGetWindowPrivateIndex  xf1bppGetWindowPrivateIndex
@@ -62,6 +64,7 @@
 #define mfbPadPixmap  xf1bppPadPixmap
 #define mfbPaintWindow  xf1bppPaintWindow
 #define mfbPixmapToRegion  xf1bppPixmapToRegion
+#define mfbPixmapToRegionWeak xf1bppPixmapToRegionWeak
 #define mfbPolyFillArcSolid  xf1bppPolyFillArcSolid
 #define mfbPolyFillRect  xf1bppPolyFillRect
 #define mfbPolyGlyphBltBlack  xf1bppPolyGlyphBltBlack
@@ -70,9 +73,12 @@
 #define mfbPolyPoint  xf1bppPolyPoint
 #define mfbPositionWindow  xf1bppPositionWindow
 #define mfbPushPixels  xf1bppPushPixels
+#define mfbPushPixelsWeak  xf1bppPushPixelsWeak
 #define mfbPutImage  xf1bppPutImage
 #define mfbQueryBestSize  xf1bppQueryBestSize
+#define mfbQueryBestSizeWeak  xf1bppQueryBestSizeWeak
 #define mfbRealizeFont  xf1bppRealizeFont
+#define mfbRealizeFontWeak  xf1bppRealizeFontWeak
 #define mfbReduceRop  xf1bppReduceRop
 #define mfbRegisterCopyPlaneProc  xf1bppRegisterCopyPlaneProc
 #define mfbResolveColor  xf1bppResolveColor
@@ -102,6 +108,7 @@
 #define mfbUnnaturalStippleFS  xf1bppUnnaturalStippleFS
 #define mfbUnnaturalTileFS  xf1bppUnnaturalTileFS
 #define mfbUnrealizeFont  xf1bppUnrealizeFont
+#define mfbUnrealizeFontWeak  xf1bppUnrealizeFontWeak
 #define mfbValidateGC  xf1bppValidateGC
 #define mfbVertS  xf1bppVertS
 #define mfbWhiteSolidFS  xf1bppWhiteSolidFS

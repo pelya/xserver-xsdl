@@ -7,6 +7,7 @@
 #undef endtab
 #undef mask
 #undef mergeRopBits
+#undef mergeGetRopBits
 #undef mfbAllocatePrivates
 #undef mfbBSFuncRec
 #undef mfbBlackSolidFS
@@ -39,6 +40,7 @@
 #undef mfbFillPolyWhite
 #undef mfbGCPrivateIndex
 #undef mfbGetImage
+#undef mfbGetInverseAlu
 #undef mfbGetSpans
 #undef mfbGetWindowPixmap
 #undef mfbHorzS
@@ -54,6 +56,7 @@
 #undef mfbPadPixmap
 #undef mfbPaintWindow
 #undef mfbPixmapToRegion
+#undef mfbPixmapToRegionWeak
 #undef mfbPolyFillArcSolid
 #undef mfbPolyFillRect
 #undef mfbPolyGlyphBltBlack
@@ -62,9 +65,12 @@
 #undef mfbPolyPoint
 #undef mfbPositionWindow
 #undef mfbPushPixels
+#undef mfbPushPixelsWeak
 #undef mfbPutImage
 #undef mfbQueryBestSize
+#undef mfbQueryBestSizeWeak
 #undef mfbRealizeFont
+#undef mfbRealizeFontWeak
 #undef mfbReduceRop
 #undef mfbRegisterCopyPlaneProc
 #undef mfbResolveColor
@@ -94,6 +100,7 @@
 #undef mfbUnnaturalStippleFS
 #undef mfbUnnaturalTileFS
 #undef mfbUnrealizeFont
+#undef mfbUnrealizeFontWeak
 #undef mfbValidateGC
 #undef mfbVertS
 #undef mfbWhiteSolidFS
