@@ -1,5 +1,6 @@
 SUBDIRS =	\
-	vesa
+	vesa	\
+	linux
 
 INCLUDES = 					\
 	-I$(top_srcdir)/fb			\
@@ -30,18 +31,18 @@ libkdrive_la_SOURCES =	\
 	kxv.c		\
 	vga.c
 
-libkdrive_la_LIBADD = 				\
+bin_PROGRAMS = Xvesa
+
+Xvesa_SOURCES = # Intentionally left blank
+
+Xvesa_LDADD = \
 	$(top_builddir)/dix/libdix.la		\
+	$(top_builddir)/hw/kdrive/libkdrive.la  \
+	$(top_builddir)/hw/kdrive/linux/liblinux.la  \
+	$(top_builddir)/hw/kdrive/vesa/libvesa.la \
 	$(top_builddir)/fb/libfb.la		\
 	$(top_builddir)/mi/libmi.la		\
 	$(top_builddir)/render/librender.la	\
 	$(top_builddir)/randr/librandr.la	\
 	$(top_builddir)/os/libos.la		\
-	$(X_LIBS) -lXfont
-
-
-bin_PROGRAMS = Xvesa
-
-Xvesa_SOURCES = # Intentionally left blank
-
-Xvesa_LDADD = $(top_builddir)/hw/kdrive/libkdrive.la
+	$(X_LIBS) -lXfont -lm -lz
