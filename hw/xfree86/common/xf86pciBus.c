@@ -179,7 +179,6 @@ FindPCIVideoInfo(void)
     int i = 0, j, k;
     int num = 0;
     pciVideoPtr info;
-    Bool mem64 = FALSE;
 
     pcrpp = xf86PciInfo = xf86scanpci(0);
     getPciClassFlags(pcrpp);
@@ -293,120 +292,39 @@ FindPCIVideoInfo(void)
 	     * 64-bit base addresses are checked for and avoided on 32-bit
 	     * platforms.
 	     */
-	    if (pcrp->pci_base0) {
-		if (pcrp->pci_base0 & PCI_MAP_IO) {
-		    info->ioBase[0] = (memType)PCIGETIO(pcrp->pci_base0);
-		    info->type[0] = pcrp->pci_base0 & PCI_MAP_IO_ATTR_MASK;
-		} else {
-		    info->type[0] = pcrp->pci_base0 & PCI_MAP_MEMORY_ATTR_MASK;
-		    info->memBase[0] = (memType)PCIGETMEMORY(pcrp->pci_base0);
-		    if (PCI_MAP_IS64BITMEM(pcrp->pci_base0)) {
-			mem64 = TRUE;
+	    for (j = 0; j < 6; ++j) {
+		CARD32  bar = (&pcrp->pci_base0)[j];
+
+		if (bar != 0) {
+		    if (bar & PCI_MAP_IO) {
+			info->ioBase[j] = (memType)PCIGETIO(bar);
+			info->type[j] = bar & PCI_MAP_IO_ATTR_MASK;
+		    } else {
+			info->type[j] = bar & PCI_MAP_MEMORY_ATTR_MASK;
+			info->memBase[j] = (memType)PCIGETMEMORY(bar);
+			if (PCI_MAP_IS64BITMEM(bar)) {
+			    if (j == 5) {
+				xf86MsgVerb(X_WARNING, 0,
+				    "****BAR5 specified as 64-bit wide, "
+				    "which is not possible. "
+				    "Ignoring BAR5.****\n");
+				info->memBase[j] = 0;
+			    } else {
+				CARD32  bar_hi = PCIGETMEMORY64HIGH((&pcrp->pci_base0)[j]);
 #if defined(LONG64) || defined(WORD64)
-			  info->memBase[0] |= 
-			    (memType)PCIGETMEMORY64HIGH(pcrp->pci_base1) << 32;
+				    /* 64 bit architecture */
+				    info->memBase[j] |=
+					(memType)bar_hi << 32;
 #else
-			if (pcrp->pci_base1)
-			    info->memBase[0] = 0;
+				    if (bar_hi != 0)
+					info->memBase[j] = 0;
 #endif
-		    } 
+				    ++j;    /* Step over the next BAR */
+			    }
+			}
+		    }
 		}
 	    }
-
-	    if (pcrp->pci_base1 && !mem64) {
-		if (pcrp->pci_base1 & PCI_MAP_IO) {
-		    info->ioBase[1] = (memType)PCIGETIO(pcrp->pci_base1);
-		    info->type[1] = pcrp->pci_base1 & PCI_MAP_IO_ATTR_MASK;
-		} else {
-		    info->type[1] = pcrp->pci_base1 & PCI_MAP_MEMORY_ATTR_MASK;
-		    info->memBase[1] = (memType)PCIGETMEMORY(pcrp->pci_base1);
-		    if (PCI_MAP_IS64BITMEM(pcrp->pci_base1)) {
-			mem64 = TRUE;
-#if defined(LONG64) || defined(WORD64)
-			  info->memBase[1] |= 
-			    (memType)PCIGETMEMORY64HIGH(pcrp->pci_base2) << 32;
-#else
-			if (pcrp->pci_base2)
-			  info->memBase[1] = 0;
-#endif
-		    }
-		}
-	    } else
-		mem64 = FALSE;
-
-	    if (pcrp->pci_base2 && !mem64) {
-		if (pcrp->pci_base2 & PCI_MAP_IO) {
-		    info->ioBase[2] = (memType)PCIGETIO(pcrp->pci_base2);
-		    info->type[2] = pcrp->pci_base2 & PCI_MAP_IO_ATTR_MASK;
-		} else {
-		    info->type[2] = pcrp->pci_base2 & PCI_MAP_MEMORY_ATTR_MASK;
-		    info->memBase[2] = (memType)PCIGETMEMORY(pcrp->pci_base2);
-		    if (PCI_MAP_IS64BITMEM(pcrp->pci_base2)) {
-			mem64 = TRUE;
-#if defined(LONG64) || defined(WORD64)
-			info->memBase[2] |= 
-			    (memType)PCIGETMEMORY64HIGH(pcrp->pci_base3) << 32;
-#else
-			if (pcrp->pci_base3)
-			  info->memBase[2] = 0;
-#endif
-		    }
-		}
-	    } else
-		mem64 = FALSE;
-
-	    if (pcrp->pci_base3 && !mem64) {
-		if (pcrp->pci_base3 & PCI_MAP_IO) {
-		    info->ioBase[3] = (memType)PCIGETIO(pcrp->pci_base3);
-		    info->type[3] = pcrp->pci_base3 & PCI_MAP_IO_ATTR_MASK;
-		} else {
-		    info->type[3] = pcrp->pci_base3 & PCI_MAP_MEMORY_ATTR_MASK;
-		    info->memBase[3] = (memType)PCIGETMEMORY(pcrp->pci_base3);
-		    if (PCI_MAP_IS64BITMEM(pcrp->pci_base3)) {
-			mem64 = TRUE;
-#if defined(LONG64) || defined(WORD64)
-			  info->memBase[3] |= 
-			    (memType)PCIGETMEMORY64HIGH(pcrp->pci_base4) << 32;
-#else
-			if (pcrp->pci_base4)
-			  info->memBase[3] = 0;
-#endif
-		    }
-		}
-	    } else
-		mem64 = FALSE;
-
-	    if (pcrp->pci_base4 && !mem64) {
-		if (pcrp->pci_base4 & PCI_MAP_IO) {
-		    info->ioBase[4] = (memType)PCIGETIO(pcrp->pci_base4);
-		    info->type[4] = pcrp->pci_base4 & PCI_MAP_IO_ATTR_MASK;
-		} else {
-		    info->type[4] = pcrp->pci_base4 & PCI_MAP_MEMORY_ATTR_MASK;
-		    info->memBase[4] = (memType)PCIGETMEMORY(pcrp->pci_base4);
-		    if (PCI_MAP_IS64BITMEM(pcrp->pci_base4)) {
-			mem64 = TRUE;
-#if defined(LONG64) || defined(WORD64)
-			  info->memBase[4] |= 
-			    (memType)PCIGETMEMORY64HIGH(pcrp->pci_base5) << 32;
-#else
-			if (pcrp->pci_base5)
-			  info->memBase[4] = 0;
-#endif
-		    }
-		}
-	    } else
-		mem64 = FALSE;
-
-	    if (pcrp->pci_base5 && !mem64) {
-		if (pcrp->pci_base5 & PCI_MAP_IO) {
-		    info->ioBase[5] = (memType)PCIGETIO(pcrp->pci_base5);
-		    info->type[5] = pcrp->pci_base5 & PCI_MAP_IO_ATTR_MASK;
-		} else {
-		    info->type[5] = pcrp->pci_base5 & PCI_MAP_MEMORY_ATTR_MASK;
-		    info->memBase[5] = (memType)PCIGETMEMORY(pcrp->pci_base5);
-		}
-	    } else
-		mem64 = FALSE;
 	    info->listed_class = pcrp->listed_class;
 	}
 	i++;
