@@ -35,6 +35,8 @@ static int src_bpp;
 int widths[2] = {1,1};
 int heights[2] = {1,1};
 Bool is_repeat;
+Bool is_transform[2];
+PictTransform *transform[2];
 
 struct blendinfo {
 	Bool dst_alpha;
@@ -238,10 +240,6 @@ R128CheckComposite(int op, PicturePtr pSrcPicture, PicturePtr pMaskPicture,
 
 	if (op >= sizeof(R128BlendOp)/sizeof(R128BlendOp[0]))
 		ATI_FALLBACK(("Unsupported op 0x%x\n", op));
-	if (pSrcPicture->transform)
-		ATI_FALLBACK(("Source transform unsupported.\n"));
-	if (pMaskPicture && pMaskPicture->transform)
-		ATI_FALLBACK(("Mask transform unsupported.\n"));
 	if (pDstPicture->format == PICT_a8) {
 		if (R128BlendOp[op].src_alpha || R128BlendOp[op].dst_alpha ||
 		    pMaskPicture != NULL)
@@ -328,6 +326,12 @@ R128TextureSetup(PicturePtr pPict, PixmapPtr pPix, int unit, CARD32 *txsize,
 	*txsize |= ((l2w > l2h) ? l2w : l2h) << (R128_TEX_SIZE_SHIFT + shift);
 	*txsize |= l2h << (R128_TEX_HEIGHT_SHIFT + shift);
 
+	if (pPict->transform != 0) {
+		is_transform[unit] = TRUE;
+		transform[unit] = pPict->transform;
+	} else {
+		is_transform[unit] = FALSE;
+	}
 	return TRUE;
 }
 
@@ -503,11 +507,50 @@ R128Composite(int srcX, int srcY, int maskX, int maskY, int dstX, int dstY,
 	ATIScreenInfo *atis = accel_atis;
 	struct blend_vertex vtx[4];
 	int i;
+	int srcXend, srcYend, maskXend, maskYend;
 	RING_LOCALS;
 
 	/*ErrorF("R128Composite (%d,%d) (%d,%d) (%d,%d) (%d,%d)\n",
 	    srcX, srcY, maskX, maskY,dstX, dstY, w, h);*/
 
+	if (is_transform[0]) {
+		PictVector v;
+
+		v.vector[0] = IntToxFixed(srcX);
+		v.vector[1] = IntToxFixed(srcY);
+		v.vector[3] = xFixed1;
+		PictureTransformPoint(transform[0], &v);
+		srcX = xFixedToInt(v.vector[0]);
+		srcY = xFixedToInt(v.vector[1]);
+		v.vector[0] = IntToxFixed(srcX + w);
+		v.vector[1] = IntToxFixed(srcY + h);
+		v.vector[3] = xFixed1;
+		PictureTransformPoint(transform[0], &v);
+		srcXend = xFixedToInt(v.vector[0]);
+		srcYend = xFixedToInt(v.vector[1]);
+	} else {
+		srcXend = srcX + w;
+		srcYend = srcY + h;
+	}
+	if (is_transform[1]) {
+		PictVector v;
+
+		v.vector[0] = IntToxFixed(maskX);
+		v.vector[1] = IntToxFixed(maskY);
+		v.vector[3] = xFixed1;
+		PictureTransformPoint(transform[1], &v);
+		maskX = xFixedToInt(v.vector[0]);
+		maskY = xFixedToInt(v.vector[1]);
+		v.vector[0] = IntToxFixed(maskX + w);
+		v.vector[1] = IntToxFixed(maskY + h);
+		v.vector[3] = xFixed1;
+		PictureTransformPoint(transform[1], &v);
+		maskXend = xFixedToInt(v.vector[0]);
+		maskYend = xFixedToInt(v.vector[1]);
+	} else {
+		maskXend = maskX + w;
+		maskYend = maskY + h;
+	}
 	vtx[0].x.f = dstX;
 	vtx[0].y.f = dstY;
 	vtx[0].z.f = 0.0;
@@ -522,26 +565,26 @@ R128Composite(int srcX, int srcY, int maskX, int maskY, int dstX, int dstY,
 	vtx[1].z.f = 0.0;
 	vtx[1].w.f = 1.0;
 	vtx[1].s0.f = srcX;
-	vtx[1].t0.f = srcY + h;
+	vtx[1].t0.f = srcYend;
 	vtx[1].s1.f = maskX;
-	vtx[1].t1.f = maskY + h;
+	vtx[1].t1.f = maskYend;
 
 	vtx[2].x.f = dstX + w;
 	vtx[2].y.f = dstY + h;
 	vtx[2].z.f = 0.0;
 	vtx[2].w.f = 1.0;
-	vtx[2].s0.f = srcX + w;
-	vtx[2].t0.f = srcY + h;
-	vtx[2].s1.f = maskX + w;
-	vtx[2].t1.f = maskY + h;
+	vtx[2].s0.f = srcXend;
+	vtx[2].t0.f = srcYend;
+	vtx[2].s1.f = maskXend;
+	vtx[2].t1.f = maskYend;
 
 	vtx[3].x.f = dstX + w;
 	vtx[3].y.f = dstY;
 	vtx[3].z.f = 0.0;
 	vtx[3].w.f = 1.0;
-	vtx[3].s0.f = srcX + w;
+	vtx[3].s0.f = srcXend;
 	vtx[3].t0.f = srcY;
-	vtx[3].s1.f = maskX + w;
+	vtx[3].s1.f = maskXend;
 	vtx[3].t1.f = maskY;
 
 	for (i = 0; i < 4; i++) {
