@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/kdrive.c,v 1.6 2000/08/26 00:24:37 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/kdrive.c,v 1.7 2000/09/15 15:18:59 keithp Exp $ */
 
 #include "kdrive.h"
 #ifdef PSEUDO8
@@ -465,9 +465,9 @@ KdAllocatePrivates (ScreenPtr pScreen)
 	kdGeneration         = serverGeneration;
     }
     pScreenPriv = (KdPrivScreenPtr) xalloc(sizeof (*pScreenPriv));
-    memset (pScreenPriv, '\0', sizeof (KdPrivScreenRec));
     if (!pScreenPriv)
 	return FALSE;
+    memset (pScreenPriv, '\0', sizeof (KdPrivScreenRec));
     KdSetScreenPriv (pScreen, pScreenPriv);
     return TRUE;
 }
