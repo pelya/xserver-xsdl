@@ -372,6 +372,10 @@ extern int DoGetImage(
 extern void IncrementClientCount(void);
 #endif /* LBX */
 
+#if defined(DDXBEFORERESET)
+extern void ddxBeforeReset (void);
+#endif
+
 /* dixutils.c */
 
 extern void CopyISOLatin1Lowered(

@@ -251,6 +251,11 @@ OsVendorFatalError()
 {
 }
 
+void ddxBeforeReset(void)
+{
+    return;
+}
+
 void
 ddxUseMsg()
 {
