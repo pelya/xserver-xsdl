@@ -391,13 +391,44 @@ fbdevSetShadow (ScreenPtr pScreen)
     KdScreenPriv(pScreen);
     KdScreenInfo	*screen = pScreenPriv->screen;
     FbdevScrPriv	*scrpriv = screen->driver;
+    FbdevPriv		*priv = screen->card->driver;
     ShadowUpdateProc	update;
     ShadowWindowProc	window;
+    int			useYX = 0;
+
+#ifdef __arm__
+    /* Use variant copy routines that always read left to right in the
+       shadow framebuffer.  Reading vertical strips is exceptionally
+       slow on XScale due to cache effects.  */
+    useYX = 1;
+#endif
 
     window = fbdevWindowLinear;
     update = 0;
     if (scrpriv->randr)
-	update = shadowUpdateRotatePacked;
+	if (priv->var.bits_per_pixel == 16) {
+	    switch (scrpriv->randr) {
+	    case RR_Rotate_90:
+		if (useYX)
+		    update = shadowUpdateRotate16_90YX;
+		else
+		    update =  shadowUpdateRotate16_90;
+		break;
+	    case RR_Rotate_180:
+		update = shadowUpdateRotate16_180;
+		break;
+	    case RR_Rotate_270:
+		if (useYX)
+		    update = shadowUpdateRotate16_270YX;
+		else
+		    update =  shadowUpdateRotate16_270;
+		break;
+	    default:
+		update = shadowUpdateRotate16;
+		break;
+	    }
+	} else
+	    update = shadowUpdateRotatePacked;
     else
 	update = shadowUpdatePacked;
     return KdShadowSet (pScreen, scrpriv->randr, update, window);
