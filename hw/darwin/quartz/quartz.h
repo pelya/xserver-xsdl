@@ -1,11 +1,11 @@
 /*
  * quartz.h
  *
- * External interface of the Quartz modes seen by the generic, mode
+ * External interface of the Quartz display modes seen by the generic, mode
  * independent parts of the Darwin X server.
  */
 /*
- * Copyright (c) 2001-2002 Greg Parker and Torrey T. Lyons.
+ * Copyright (c) 2001-2003 Greg Parker and Torrey T. Lyons.
  *                 All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
@@ -30,21 +30,88 @@
  * holders shall not be used in advertising or otherwise to promote the sale,
  * use or other dealings in this Software without prior written authorization.
  */
-/* $XFree86: xc/programs/Xserver/hw/darwin/quartz/quartz.h,v 1.4 2002/11/20 23:51:58 torrey Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/darwin/quartz/quartz.h,v 1.7 2003/11/12 20:21:51 torrey Exp $ */
 
 #ifndef _QUARTZ_H
 #define _QUARTZ_H
 
-#include "screenint.h"
-#include "Xproto.h"
 #include "quartzPasteboard.h"
 
-int QuartzProcessArgument(int argc, char *argv[], int i);
-void QuartzInitOutput(int argc, char **argv);
-void QuartzInitInput(int argc, char **argv);
-Bool QuartzAddScreen(int index, ScreenPtr pScreen);
-Bool QuartzSetupScreen(int index, ScreenPtr pScreen);
-void QuartzGiveUp(void);
-void QuartzProcessEvent(xEvent *xe);
+#include "screenint.h"
+#include "window.h"
+
+/*------------------------------------------
+   Quartz display mode function types
+  ------------------------------------------*/
+
+/*
+ * Display mode initialization
+ */
+typedef void (*DisplayInitProc)(void);
+typedef Bool (*AddScreenProc)(int index, ScreenPtr pScreen);
+typedef Bool (*SetupScreenProc)(int index, ScreenPtr pScreen);
+typedef void (*InitInputProc)(int argc, char **argv);
+
+/*
+ * Cursor functions
+ */
+typedef Bool (*InitCursorProc)(ScreenPtr pScreen);
+typedef void (*CursorUpdateProc)(void);
+
+/*
+ * Suspend and resume X11 activity
+ */
+typedef void (*SuspendScreenProc)(ScreenPtr pScreen);
+typedef void (*ResumeScreenProc)(ScreenPtr pScreen, int x, int y);
+typedef void (*CaptureScreensProc)(void);
+typedef void (*ReleaseScreensProc)(void);
+
+/*
+ * Rootless helper functions
+ */
+typedef Bool (*IsX11WindowProc)(void *nsWindow, int windowNumber);
+
+/*
+ * Rootless functions for optional export to GLX layer
+ */
+typedef void * (*FrameForWindowProc)(WindowPtr pWin, Bool create);
+typedef WindowPtr (*TopLevelParentProc)(WindowPtr pWindow);
+typedef Bool (*CreateSurfaceProc)
+    (ScreenPtr pScreen, Drawable id, DrawablePtr pDrawable,
+     unsigned int client_id, unsigned int *surface_id,
+     unsigned int key[2], void (*notify) (void *arg, void *data),
+     void *notify_data);
+typedef Bool (*DestroySurfaceProc)
+    (ScreenPtr pScreen, Drawable id, DrawablePtr pDrawable,
+     void (*notify) (void *arg, void *data), void *notify_data);
+
+/*
+ * Quartz display mode function list
+ */
+typedef struct _QuartzModeProcs {
+    DisplayInitProc DisplayInit;
+    AddScreenProc AddScreen;
+    SetupScreenProc SetupScreen;
+    InitInputProc InitInput;
+
+    InitCursorProc InitCursor;
+    CursorUpdateProc CursorUpdate;	// Not used if NULL
+
+    SuspendScreenProc SuspendScreen;
+    ResumeScreenProc ResumeScreen;
+    CaptureScreensProc CaptureScreens;	// Only called in fullscreen
+    ReleaseScreensProc ReleaseScreens;	// Only called in fullscreen
+
+    IsX11WindowProc IsX11Window;
+
+    FrameForWindowProc FrameForWindow;
+    TopLevelParentProc TopLevelParent;
+    CreateSurfaceProc CreateSurface;
+    DestroySurfaceProc DestroySurface;
+} QuartzModeProcsRec, *QuartzModeProcsPtr;
+
+extern QuartzModeProcsPtr quartzProcs;
+
+Bool QuartzLoadDisplayBundle(const char *dpyBundleName);
 
 #endif

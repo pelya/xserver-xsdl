@@ -3,7 +3,7 @@
  * 
  * Copyright 1999 by Andrew C Aitchison <A.C.Aitchison@dpmms.cam.ac.uk>
  */
-/* $XFree86: xc/programs/Xserver/hw/xfree86/ddc/ddcProperty.c,v 1.9 2001/10/28 03:33:21 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/ddc/ddcProperty.c,v 1.10 2003/11/03 05:11:04 tsi Exp $ */
 
 #include "misc.h"
 #include "xf86.h"
@@ -100,10 +100,8 @@ xf86SetDDCproperties(ScrnInfoPtr pScrnInfo, xf86MonPtr DDC)
 					   EDID1Atom, XA_INTEGER, 8, 
 					   128, (unsigned char *)EDID1rawdata
 					   );
-#ifdef DEBUG
+      if (ret != Success)
       ErrorF("xf86RegisterRootWindowProperty returns %d\n", ret );
-#endif
-
     } 
 
     if (makeEDID2prop) {
@@ -127,9 +125,8 @@ xf86SetDDCproperties(ScrnInfoPtr pScrnInfo, xf86MonPtr DDC)
 					   EDID2Atom, XA_INTEGER, 8, 
 					   256, (unsigned char *)EDID2rawdata
 					   );
-#ifdef DEBUG
+      if (ret != Success)
       ErrorF("xf86RegisterRootWindowProperty returns %d\n", ret );
-#endif
     }
 
     if (DDC->vdif) {
@@ -151,9 +148,8 @@ xf86SetDDCproperties(ScrnInfoPtr pScrnInfo, xf86MonPtr DDC)
 					   strlen(VDIF_DUMMY_STRING),
 					   VDIF_DUMMY_STRING 
 					   );
-#ifdef DEBUG
+      if (ret != Success)
       ErrorF("xf86RegisterRootWindowProperty returns %d\n", ret );
-#endif
     }
 
     return TRUE;

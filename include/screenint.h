@@ -45,7 +45,7 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ******************************************************************/
-/* $XFree86: xc/programs/Xserver/include/screenint.h,v 1.5 2001/12/14 19:59:56 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/include/screenint.h,v 1.6 2003/04/27 21:31:05 herrb Exp $ */
 #ifndef SCREENINT_H
 #define SCREENINT_H
 
@@ -56,115 +56,57 @@ typedef struct _Visual *VisualPtr;
 typedef struct _Depth  *DepthPtr;
 typedef struct _Screen *ScreenPtr;
 
-extern void ResetScreenPrivates(
-#if NeedFunctionPrototypes
-    void
-#endif
-);
+extern void ResetScreenPrivates(void);
 
-extern int AllocateScreenPrivateIndex(
-#if NeedFunctionPrototypes
-    void
-#endif
-);
+extern int AllocateScreenPrivateIndex(void);
 
-extern void ResetWindowPrivates(
-#if NeedFunctionPrototypes
-    void
-#endif
-);
+extern void ResetWindowPrivates(void);
 
-extern int AllocateWindowPrivateIndex(
-#if NeedFunctionPrototypes
-    void
-#endif
-);
+extern int AllocateWindowPrivateIndex(void);
 
 extern Bool AllocateWindowPrivate(
-#if NeedFunctionPrototypes
     ScreenPtr /* pScreen */,
     int /* index */,
-    unsigned /* amount */
-#endif
-);
+    unsigned /* amount */);
 
-extern void ResetGCPrivates(
-#if NeedFunctionPrototypes
-    void
-#endif
-);
+extern void ResetGCPrivates(void);
 
-extern int AllocateGCPrivateIndex(
-#if NeedFunctionPrototypes
-    void
-#endif
-);
+extern int AllocateGCPrivateIndex(void);
 
 extern Bool AllocateGCPrivate(
-#if NeedFunctionPrototypes
     ScreenPtr /* pScreen */,
     int /* index */,
-    unsigned /* amount */
-#endif
-);
+    unsigned /* amount */);
 
 extern int AddScreen(
-#if NeedFunctionPrototypes
     Bool (* /*pfnInit*/)(
-#if NeedNestedPrototypes
 	int /*index*/,
 	ScreenPtr /*pScreen*/,
 	int /*argc*/,
-	char ** /*argv*/
-#endif
-    ),
+	char ** /*argv*/),
     int /*argc*/,
-    char** /*argv*/
-#endif
-);
+    char** /*argv*/);
 
 #ifdef PIXPRIV
 
-extern void ResetPixmapPrivates(
-#if NeedFunctionPrototypes
-    void
-#endif
-);
+extern void ResetPixmapPrivates(void);
 
-extern int AllocatePixmapPrivateIndex(
-#if NeedFunctionPrototypes
-    void
-#endif
-);
+extern int AllocatePixmapPrivateIndex(void);
 
 extern Bool AllocatePixmapPrivate(
-#if NeedFunctionPrototypes
     ScreenPtr /* pScreen */,
     int /* index */,
-    unsigned /* amount */
-#endif
-);
+    unsigned /* amount */);
 
 #endif /* PIXPRIV */
 
-extern void ResetColormapPrivates(
-#if NeedFunctionPrototypes
-    void
-#endif
-);
+extern void ResetColormapPrivates(void);
 
 
 typedef struct _ColormapRec *ColormapPtr;
-typedef int (*InitCmapPrivFunc)(
-#if NeedNestedPrototypes
-	ColormapPtr
-#endif
-);
+typedef int (*InitCmapPrivFunc)(ColormapPtr);
 
 extern int AllocateColormapPrivateIndex(
-#if NeedFunctionPrototypes
-    InitCmapPrivFunc /* initPrivFunc */
-#endif
-);
+    InitCmapPrivFunc /* initPrivFunc */);
 
 #endif /* SCREENINT_H */

@@ -24,7 +24,7 @@
  * Modified from IBM.c to support TI RAMDAC routines 
  *   by Jens Owen, <jens@tungstengraphics.com>.
  */
-/* $XFree86: xc/programs/Xserver/hw/xfree86/ramdac/TI.c,v 1.7 2003/02/17 16:08:29 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/ramdac/TI.c,v 1.8 2003/09/24 02:43:35 dawes Exp $ */
 
 #include "xf86.h"
 #include "xf86_OSproc.h"
@@ -318,7 +318,7 @@ TIramdacProbe(ScrnInfoPtr pScrn, RamDacSupportedInfoRecPtr ramdacs)
 	return NULL;
     } else {
         xf86DrvMsg(pScrn->scrnIndex, X_PROBED, 
-		"Attached RAMDAC is %s\n", TIramdacDeviceInfo[TIramdac_ID&0xFFFF]);
+		"Attached RAMDAC is %s\n", TIramdacDeviceInfo[TIramdac_ID&0xFFFF].DeviceName);
     }
 
     for (i=0;ramdacs[i].token != -1;i++) {

@@ -32,7 +32,7 @@ shall not be used in advertising or otherwise to promote the sale, use or other
 dealings in this Software without prior written authorization from Digital
 Equipment Corporation.
 ******************************************************************/
-/* $XFree86: xc/programs/Xserver/hw/darwin/quartz/pseudoramiX.c,v 1.2 2002/10/16 21:13:33 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/darwin/quartz/pseudoramiX.c,v 1.3 2003/04/30 23:15:39 torrey Exp $ */
 
 #include "pseudoramiX.h"
 
@@ -111,7 +111,7 @@ void PseudoramiXExtensionInit(int argc, char *argv[])
 
     if (noPseudoramiXExtension) return;
 
-    if (pseudoramiXNumScreens == 1  ||  aquaNumScreens == 1) {
+    if (pseudoramiXNumScreens == 1) {
         // Only one screen - disable Xinerama extension.
         noPseudoramiXExtension = TRUE;
         return;

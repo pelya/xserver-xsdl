@@ -28,13 +28,14 @@
  * holders shall not be used in advertising or otherwise to promote the sale,
  * use or other dealings in this Software without prior written authorization.
  */
-/* $XFree86: xc/programs/Xserver/hw/darwin/quartz/quartzStartup.c,v 1.3 2003/01/19 06:35:13 torrey Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/darwin/quartz/quartzStartup.c,v 1.9 2003/11/15 00:07:09 torrey Exp $ */
 
 #include <fcntl.h>
 #include <unistd.h>
 #include <CoreFoundation/CoreFoundation.h>
 #include "quartzCommon.h"
 #include "darwin.h"
+#include "quartz.h"
 #include "opaque.h"
 #include "micmap.h"
 
@@ -49,6 +50,8 @@ static GlxExtensionInitPtr GlxExtensionInit = NULL;
 
 typedef void (*GlxWrapInitVisualsPtr)(miInitVisualsProcPtr *);
 static GlxWrapInitVisualsPtr GlxWrapInitVisuals = NULL;
+
+typedef Bool (*QuartzModeBundleInitPtr)(void);
 
 
 /*
@@ -76,19 +79,25 @@ void DarwinHandleGUI(
 
     // Make a pipe to pass events
     assert( pipe(fd) == 0 );
-    darwinEventFD = fd[0];
-    quartzEventWriteFD = fd[1];
-    fcntl(darwinEventFD, F_SETFL, O_NONBLOCK);
+    darwinEventReadFD = fd[0];
+    darwinEventWriteFD = fd[1];
+    fcntl(darwinEventReadFD, F_SETFL, O_NONBLOCK);
 
     // Store command line arguments to pass back to main()
     argcGlobal = argc;
     argvGlobal = argv;
     envpGlobal = envp;
 
-    // Determine if we need to start X clients
-    // and what display mode to use
     quartzStartClients = 1;
     for (i = 1; i < argc; i++) {
+        // Display version info without starting Mac OS X UI if requested
+        if (!strcmp( argv[i], "-showconfig" ) || !strcmp( argv[i], "-version" )) {
+            DarwinPrintBanner();
+            exit(0);
+        }
+
+        // Determine if we need to start X clients
+        // and what display mode to use
         if (!strcmp(argv[i], "-nostartx")) {
             quartzStartClients = 0;    
         } else if (!strcmp( argv[i], "-fullscreen")) {
@@ -98,9 +107,66 @@ void DarwinHandleGUI(
         }
     }
 
-    quartz = TRUE;
     main_exit = NSApplicationMain(argc, argv);
     exit(main_exit);
+}
+
+
+/*
+ * QuartzLoadDisplayBundle
+ *  Try to load the appropriate bundle containing the back end display code.
+ */
+Bool QuartzLoadDisplayBundle(
+    const char *dpyBundleName)
+{
+    CFBundleRef mainBundle;
+    CFStringRef bundleName;
+    CFURLRef    bundleURL;
+    CFBundleRef dpyBundle;
+    QuartzModeBundleInitPtr bundleInit;
+
+    // Get the main bundle for the application
+    mainBundle = CFBundleGetMainBundle();
+
+    // Make CFString from bundle name
+    bundleName = CFStringCreateWithCStringNoCopy(kCFAllocatorDefault,
+                                                 dpyBundleName,
+                                                 kCFStringEncodingASCII,
+                                                 kCFAllocatorNull);
+
+    // Look for the appropriate bundle in the main bundle
+    bundleURL = CFBundleCopyResourceURL(mainBundle, bundleName,
+                                        NULL, NULL);
+    if (!bundleURL) {
+        ErrorF("Could not find display mode bundle %s.\n", dpyBundleName);
+        return FALSE;
+    }
+
+    // Make a bundle instance using the URLRef
+    dpyBundle = CFBundleCreate(kCFAllocatorDefault, bundleURL);
+
+    if (!CFBundleLoadExecutable(dpyBundle)) {
+        ErrorF("Could not load display mode bundle %s.\n", dpyBundleName);
+        return FALSE;
+    }
+
+    // Lookup the bundle initialization function
+    bundleInit = (void *)
+            CFBundleGetFunctionPointerForName(dpyBundle,
+                                              CFSTR("QuartzModeBundleInit"));
+    if (!bundleInit) {
+        ErrorF("Could not initialize display mode bundle %s.\n",
+               dpyBundleName);
+        return FALSE;
+    }
+    if (!bundleInit())
+        return FALSE;
+
+    // Release the CF objects
+    CFRelease(bundleName);
+    CFRelease(bundleURL);
+
+    return TRUE;
 }
 
 
@@ -122,10 +188,14 @@ static void LoadGlxBundle(void)
     // Choose the bundle to load
     ErrorF("Loading GLX bundle ");
     if (quartzUseAGL) {
-        bundleName = CFSTR("glxAGL.bundle");
-        ErrorF("glxAGL.bundle (using Apple's OpenGL)\n");
+        bundleName = CFStringCreateWithCStringNoCopy(kCFAllocatorDefault,
+                                                     quartzOpenGLBundle,
+                                                     kCFStringEncodingASCII,
+                                                     kCFAllocatorNull);
+        ErrorF("%s (using Apple's OpenGL)\n", quartzOpenGLBundle);
     } else {
         bundleName = CFSTR("glxMesa.bundle");
+        CFRetain(bundleName);			// so we can release later
         ErrorF("glxMesa.bundle (using Mesa)\n");
     }
 
@@ -155,7 +225,7 @@ static void LoadGlxBundle(void)
     }
 
     // Release the CF objects
-    CFRelease(mainBundle);
+    CFRelease(bundleName);
     CFRelease(bundleURL);
 }
 
@@ -186,7 +256,7 @@ void DarwinGlxWrapInitVisuals(
 }
 
 
-int QuartzProcessArgument( int argc, char *argv[], int i )
+int DarwinModeProcessArgument( int argc, char *argv[], int i )
 {
     // fullscreen: CoreGraphics full-screen mode
     // rootless: Cocoa rootless mode
@@ -208,7 +278,7 @@ int QuartzProcessArgument( int argc, char *argv[], int i )
                 QUARTZ_SAFETY_DELAY );
 #endif
         return 1;
-     }
+    }
 
     if ( !strcmp( argv[i], "-quartz" ) ) {
         ErrorF( "Running in parallel with Mac OS X Quartz window server.\n" );

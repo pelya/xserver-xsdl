@@ -30,7 +30,7 @@
  *		Peter Busch
  *		Harold L Hunt II
  */
-/* $XFree86: xc/programs/Xserver/hw/xwin/winshaddd.c,v 1.23 2003/02/12 15:01:38 alanh Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xwin/winshaddd.c,v 1.24 2003/07/29 21:25:18 dawes Exp $ */
 
 #include "win.h"
 
@@ -40,7 +40,7 @@
  */
 #ifdef DEFINE_GUID
 #undef DEFINE_GUID
-#define DEFINE_GUID(n,l,w1,w2,b1,b2,b3,b4,b5,b6,b7,b8) GUID_EXT const GUID n GUID_SECT = {l,w1,w2,{b1,b2,b3,b4,b5,b6,b7,b8}}
+#define DEFINE_GUID(n,l,w1,w2,b1,b2,b3,b4,b5,b6,b7,b8) const GUID n GUID_SECT = {l,w1,w2,{b1,b2,b3,b4,b5,b6,b7,b8}}
 #endif /* DEFINE_GUID */
 
 
@@ -669,6 +669,17 @@ winCloseScreenShadowDD (int nIndex, ScreenPtr pScreen)
     {
       IDirectDraw_Release (pScreenPriv->pdd);
       pScreenPriv->pdd = NULL;
+    }
+
+  /* Delete tray icon, if we have one */
+  if (!pScreenInfo->fNoTrayIcon)
+    winDeleteNotifyIcon (pScreenPriv);
+  
+  /* Free the exit confirmation dialog box, if it exists */
+  if (g_hDlgExit != NULL)
+    {
+      DestroyWindow (g_hDlgExit);
+      g_hDlgExit = NULL;
     }
 
   /* Kill our window */

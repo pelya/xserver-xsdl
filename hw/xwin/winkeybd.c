@@ -30,7 +30,7 @@
  *		Peter Busch
  *		Harold L Hunt II
  */
-/* $XFree86: xc/programs/Xserver/hw/xwin/winkeybd.c,v 1.12 2002/10/17 08:18:22 alanh Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xwin/winkeybd.c,v 1.13 2003/07/29 21:25:17 dawes Exp $ */
 
 
 #include "win.h"
@@ -649,30 +649,22 @@ void
 winKeybdReleaseKeys ()
 {
 #if !WIN_NEW_KEYBOARD_SUPPORT
-#if 0 /* Old function that just pops modifiers */
-  /* Verify that the mi input system has been initialized */
-  if (g_fdMessageQueue == WIN_FD_INVALID)
-    return;
-
-  winSendKeyEvent (KEY_Alt, FALSE);
-  winSendKeyEvent (KEY_AltLang, FALSE);
-  winSendKeyEvent (KEY_LCtrl, FALSE);
-  winSendKeyEvent (KEY_RCtrl, FALSE);
-  winSendKeyEvent (KEY_ShiftL, FALSE);
-  winSendKeyEvent (KEY_ShiftR, FALSE);
-#else /* New function that pops all keys */
   int				i;
 
   /* Verify that the mi input system has been initialized */
   if (g_fdMessageQueue == WIN_FD_INVALID)
     return;
 
-  /* Pop any pressed keys */
+  /* Loop through all keys */
   for (i = 0; i < NUM_KEYCODES; ++i)
     {
-      if (g_winKeyState[i]) winSendKeyEvent (i, FALSE);
+      /* Pop key if pressed */
+      if (g_winKeyState[i])
+	winSendKeyEvent (i, FALSE);
+
+      /* Reset pressed flag for keys */
+      g_winKeyState[i] = FALSE;
     }
-#endif
 #endif
 }
 

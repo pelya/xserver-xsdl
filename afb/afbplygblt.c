@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/afb/afbplygblt.c,v 3.2 2001/10/28 03:32:58 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/afb/afbplygblt.c,v 3.3 2003/10/29 22:15:19 tsi Exp $ */
 /* Combined Purdue/PurduePlus patches, level 2.0, 1/17/89 */
 /***********************************************************
 
@@ -86,8 +86,8 @@ one wouldn't.  the code below deals with this.)
 void
 afbPolyGlyphBlt (pDrawable, pGC, x, y, nglyph, ppci, pglyphBase)
 	DrawablePtr pDrawable;
-	GC 				*pGC;
-	int 		x, y;
+	GC				*pGC;
+	int		x, y;
 	unsigned int nglyph;
 	CharInfoPtr *ppci;			/* array of character info */
 	pointer		pglyphBase;		/* start of array of glyphs */
@@ -272,7 +272,9 @@ afbPolyGlyphBlt (pDrawable, pGC, x, y, nglyph, ppci, pglyphBase)
 				int glyphRow;				/* first row of glyph not wholly
 										   clipped out */
 				int glyphCol;				/* leftmost visible column of glyph */
+#if GETLEFTBITS_ALIGNMENT > 1
 				int getWidth;				/* bits to get from glyph */
+#endif
 
 				if(!(ppos = (afbTEXTPOS *)ALLOCATE_LOCAL(nglyph * sizeof(afbTEXTPOS))))
 					return;
@@ -364,7 +366,9 @@ afbPolyGlyphBlt (pDrawable, pGC, x, y, nglyph, ppci, pglyphBase)
 
 						glyphCol = (leftEdge - ppos[i].xpos) -
 								   (pci->metrics.leftSideBearing);
+#if GETLEFTBITS_ALIGNMENT > 1
 						getWidth = w + glyphCol;
+#endif
 
 						pdstSave = afbScanlineDelta(ppos[i].pdstBase, -(y-topEdge),
 													widthDst);

@@ -1,5 +1,5 @@
 /*
- * $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86RandR.c,v 1.4 2003/02/13 10:49:38 eich Exp $
+ * $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86RandR.c,v 1.8 2003/11/10 16:42:13 tsi Exp $
  *
  * Copyright © 2002 Keith Packard, member of The XFree86 Project, Inc.
  *
@@ -48,9 +48,9 @@ static int
 xf86RandRModeRefresh (DisplayModePtr mode)
 {
     if (mode->VRefresh)
-	return (int) mode->VRefresh;
+	return (int) (mode->VRefresh + 0.5);
     else
-	return (int) (mode->Clock * 1000.0 / mode->HTotal / mode->VTotal);
+	return (int) (mode->Clock * 1000.0 / mode->HTotal / mode->VTotal + 0.5);
 }
 
 static Bool
@@ -60,7 +60,6 @@ xf86RandRGetInfo (ScreenPtr pScreen, Rotation *rotations)
     ScrnInfoPtr		    scrp = XF86SCRNINFO(pScreen);
     XF86RandRInfoPtr	    randrp = XF86RANDRINFO(pScreen);
     DisplayModePtr	    mode;
-    Bool		    reportVirtual = TRUE;
     int			    refresh0 = 60;
     
     *rotations = RR_Rotate_0;
@@ -75,9 +74,6 @@ xf86RandRGetInfo (ScreenPtr pScreen, Rotation *rotations)
 				pScreen->mmWidth, pScreen->mmHeight);
 	if (!pSize)
 	    return FALSE;
-	if (mode->HDisplay == randrp->virtualX && 
-	    mode->VDisplay == randrp->virtualY)
-	    reportVirtual = FALSE;
 	RRRegisterRate (pScreen, pSize, refresh);
 	if (mode == scrp->currentMode &&
 	    mode->HDisplay == pScreen->width && mode->VDisplay == pScreen->height)
@@ -85,13 +81,14 @@ xf86RandRGetInfo (ScreenPtr pScreen, Rotation *rotations)
 	if (mode->next == scrp->modes)
 	    break;
     }
-    if (reportVirtual)
+    if (scrp->currentMode->HDisplay != randrp->virtualX ||
+	scrp->currentMode->VDisplay != randrp->virtualY)
     {
 	mode = scrp->modes;
 	pSize = RRRegisterSize (pScreen,
 				randrp->virtualX, randrp->virtualY,
-				pScreen->mmWidth * randrp->virtualX / mode->HDisplay,
-				pScreen->mmHeight * randrp->virtualY / mode->VDisplay);
+				pScreen->mmWidth * randrp->virtualX / scrp->currentMode->HDisplay,
+				pScreen->mmHeight * randrp->virtualY / scrp->currentMode->VDisplay);
 	if (!pSize)
 	    return FALSE;
 	RRRegisterRate (pScreen, pSize, refresh0);
@@ -202,17 +199,21 @@ xf86RandRSetConfig (ScreenPtr		pScreen,
 static Bool
 xf86RandRCreateScreenResources (ScreenPtr pScreen)
 {
-    ScrnInfoPtr		    scrp = XF86SCRNINFO(pScreen);
     XF86RandRInfoPtr	    randrp = XF86RANDRINFO(pScreen);
+#if 0
+    ScrnInfoPtr		    scrp = XF86SCRNINFO(pScreen);
     DisplayModePtr	    mode;
+#endif
 
     pScreen->CreateScreenResources = randrp->CreateScreenResources;
     if (!(*pScreen->CreateScreenResources) (pScreen))
 	return FALSE;
     
+#if 0
     mode = scrp->currentMode;
     if (mode)
 	xf86RandRSetMode (pScreen, mode, TRUE);
+#endif
     
     return TRUE;
 }

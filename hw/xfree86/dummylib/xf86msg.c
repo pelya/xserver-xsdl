@@ -1,10 +1,9 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/dummylib/xf86msg.c,v 1.1 2000/02/13 03:06:42 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/dummylib/xf86msg.c,v 1.2 2003/09/09 03:20:38 dawes Exp $ */
 
 #include "X.h"
 #include "os.h"
 #include "xf86.h"
 #include "xf86Priv.h"
-#include "dummylib.h"
 
 /*
  * Utility functions required by libxf86_os. 
@@ -16,7 +15,7 @@ xf86Msg(MessageType type, const char *format, ...)
     va_list ap;
 
     va_start(ap, format);
-    VErrorFVerb(1, format, ap);
+    LogVWrite(1, format, ap);
     va_end(ap);
 }
 

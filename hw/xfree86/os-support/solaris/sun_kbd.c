@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/sunos/sun_kbd.c,v 1.1 2001/05/28 02:42:31 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/sunos/sun_kbd.c,v 1.2 2003/10/09 11:44:00 pascal Exp $ */
 /*
  * Copyright 1990,91 by Thomas Roell, Dinkelscherben, Germany
  * Copyright 1993 by David Dawes <dawes@XFree86.org>
@@ -29,6 +29,7 @@
 
 static int sun_otranslation = -1;
 static int sun_odirect = -1;
+int sun_ktype;
 
 int
 xf86GetKbdLeds()
@@ -53,7 +54,7 @@ xf86SetKbdRepeat(char rad)
 void
 xf86KbdInit()
 {
-	int	ktype, klayout;
+	int	klayout;
 
 	if (xf86Info.kbdFd < 0) {
 		xf86Info.kbdFd = open("/dev/kbd", O_RDWR|O_NONBLOCK);
@@ -66,7 +67,7 @@ xf86KbdInit()
 	 * broken (IMO) - DWH 8/21/99
 	 */
 
-	if (ioctl(xf86Info.kbdFd, KIOCTYPE, &ktype) < 0)
+	if (ioctl(xf86Info.kbdFd, KIOCTYPE, &sun_ktype) < 0)
 		FatalError("Unable to determine keyboard type: %d\n", errno);
 
 	if (ioctl(xf86Info.kbdFd, KIOCLAYOUT, &klayout) < 0)

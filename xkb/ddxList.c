@@ -24,7 +24,7 @@ OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION  WITH
 THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 ********************************************************/
-/* $XFree86: xc/programs/Xserver/xkb/ddxList.c,v 3.7 2001/10/28 03:34:19 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/xkb/ddxList.c,v 3.9 2003/11/17 22:20:45 dawes Exp $ */
 
 #include <stdio.h>
 #include <ctype.h>
@@ -57,21 +57,12 @@ static char *componentDirs[_XkbListNumComponents] = {
 
 /***====================================================================***/
 
-Status
-#if NeedFunctionPrototypes
+static Status
 _AddListComponent(	XkbSrvListInfoPtr	list,
 			int			what,
 			unsigned		flags,
 			char *			str,
 			ClientPtr		client)
-#else
-_AddListComponent(list,what,flags,str,client)
-    XkbSrvListInfoPtr	list;
-    int			what;
-    unsigned		flags;
-    char *		str;
-    ClientPtr		client;
-#endif
 {
 int		slen,wlen;
 unsigned char *	wire8;
@@ -119,18 +110,10 @@ char *		tmp;
 
 /***====================================================================***/
 static Status
-#if NeedFunctionPrototypes
 XkbDDXListComponent(	DeviceIntPtr 		dev,
 			int			what,
 			XkbSrvListInfoPtr	list,
 			ClientPtr		client)
-#else
-XkbDDXListComponent(dev,what,list,client)
-    DeviceIntPtr	dev;
-    int			what;
-    XkbSrvListInfoPtr	list;
-    ClientPtr		client;
-#endif
 {
 char 	*file,*map,*tmp,buf[PATH_MAX];
 FILE 	*in;
@@ -284,14 +267,7 @@ char tmpname[32];
 
 /* ARGSUSED */
 Status
-#if NeedFunctionPrototypes
 XkbDDXList(DeviceIntPtr	dev,XkbSrvListInfoPtr list,ClientPtr client)
-#else
-XkbDDXList(dev,list,client)
-    DeviceIntPtr		dev;
-    XkbSrvListInfoPtr		list;
-    ClientPtr			client;
-#endif
 {
 Status	status;
 

@@ -27,7 +27,7 @@
  *
  * Authors: Alexander Gottwald	
  */
-/* $XFree86: xc/programs/Xserver/hw/xwin/winmsg.c,v 1.1 2002/10/17 08:18:22 alanh Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xwin/winmsg.c,v 1.2 2003/10/02 13:30:10 eich Exp $ */
 
 #include "win.h"
 #include "winmsg.h"
@@ -45,26 +45,7 @@ void
 winVMsg (int scrnIndex, MessageType type, int verb, const char *format,
 	 va_list ap)
 {
-  const char *prefix = NULL;
-
-  if (verb && verb > VERBOSE_LEVEL)
-    return;
-
-#undef __msg
-#define __msg(name,string) case name: prefix = string; break;
-#undef _msg
-#define _msg(name,string) __msg(name,string)
-  switch (type)
-    {
-      MESSAGE_STRINGS default:prefix = NULL;
-      break;
-    }
-#undef __msg
-#undef _msg
-
-  if (prefix != NULL)
-    ErrorF ("%s ", prefix);
-  VErrorF (format, ap);
+  LogVMessageVerb(type, verb, format, ap);
 }
 
 
@@ -73,7 +54,7 @@ winDrvMsg (int scrnIndex, MessageType type, const char *format, ...)
 {
   va_list ap;
   va_start (ap, format);
-  winVMsg (scrnIndex, type, 0, format, ap);
+  LogVMessageVerb(type, 0, format, ap);
   va_end (ap);
 }
 
@@ -83,7 +64,7 @@ winMsg (MessageType type, const char *format, ...)
 {
   va_list ap;
   va_start (ap, format);
-  winVMsg (0, type, 0, format, ap);
+  LogVMessageVerb(type, 0, format, ap);
   va_end (ap);
 }
 
@@ -94,7 +75,7 @@ winDrvMsgVerb (int scrnIndex, MessageType type, int verb, const char *format,
 {
   va_list ap;
   va_start (ap, format);
-  winVMsg (scrnIndex, type, verb, format, ap);
+  LogVMessageVerb(type, verb, format, ap);
   va_end (ap);
 }
 
@@ -104,7 +85,7 @@ winMsgVerb (MessageType type, int verb, const char *format, ...)
 {
   va_list ap;
   va_start (ap, format);
-  winVMsg (0, type, verb, format, ap);
+  LogVMessageVerb(type, verb, format, ap);
   va_end (ap);
 }
 
@@ -114,6 +95,6 @@ winErrorFVerb (int verb, const char *format, ...)
 {
   va_list ap;
   va_start (ap, format);
-  winVMsg (0, X_NONE, verb, format, ap);
+  LogVMessageVerb(X_NONE, verb, format, ap);
   va_end (ap);
 }

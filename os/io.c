@@ -53,7 +53,7 @@ SOFTWARE.
  *   InsertFakeRequest, ResetCurrentRequest
  *
  *****************************************************************/
-/* $XFree86: xc/programs/Xserver/os/io.c,v 3.34 2002/05/31 18:46:05 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/os/io.c,v 3.35 2003/04/27 21:31:08 herrb Exp $ */
 
 #if 0
 #define DEBUG_COMMUNICATION
@@ -200,25 +200,22 @@ OsCommPtr AvailableInput = (OsCommPtr)NULL;
 #ifdef LBX_NEED_OLD_SYMBOL_FOR_LOADABLES
 #undef ReadRequestFromClient
 int
-ReadRequestFromClient(client)
-    ClientPtr client;
+ReadRequestFromClient(ClientPtr client)
 {
     return (*client->readRequest)(client);
 }
 #endif
 int
-StandardReadRequestFromClient(client)
-    ClientPtr client;
+StandardReadRequestFromClient(ClientPtr client)
 #else
 int
-ReadRequestFromClient(client)
-    ClientPtr client;
+ReadRequestFromClient(ClientPtr client)
 #endif
 {
     OsCommPtr oc = (OsCommPtr)client->osPrivate;
-    register ConnectionInputPtr oci = oc->input;
+    ConnectionInputPtr oci = oc->input;
     int fd = oc->fd;
-    register unsigned int gotnow, needed;
+    unsigned int gotnow, needed;
     int result;
     register xReq *request;
     Bool need_header;
@@ -524,21 +521,18 @@ ReadRequestFromClient(client)
  **********************/
 
 Bool
-InsertFakeRequest(client, data, count)
-    ClientPtr client;
-    char *data;
-    int count;
+InsertFakeRequest(ClientPtr client, char *data, int count)
 {
     OsCommPtr oc = (OsCommPtr)client->osPrivate;
-    register ConnectionInputPtr oci = oc->input;
+    ConnectionInputPtr oci = oc->input;
     int fd = oc->fd;
-    register int gotnow, moveup;
+    int gotnow, moveup;
 
     if (AvailableInput)
     {
 	if (AvailableInput != oc)
 	{
-	    register ConnectionInputPtr aci = AvailableInput->input;
+	    ConnectionInputPtr aci = AvailableInput->input;
 	    if (aci->size > BUFWATERMARK)
 	    {
 		xfree(aci->buffer);
@@ -601,8 +595,7 @@ InsertFakeRequest(client, data, count)
  **********************/
 
 void
-ResetCurrentRequest(client)
-    ClientPtr client;
+ResetCurrentRequest(ClientPtr client)
 {
     OsCommPtr oc = (OsCommPtr)client->osPrivate;
     register ConnectionInputPtr oci = oc->input;
@@ -685,10 +678,10 @@ ResetCurrentRequest(client)
  **********************/
 
 xReqPtr
-PeekNextRequest(req, client, readmore)
-    xReqPtr req;	/* request we're starting from */
-    ClientPtr client;	/* client whose requests we're skipping */
-    Bool readmore;	/* attempt to read more if next request isn't there? */
+PeekNextRequest(
+    xReqPtr req,	/* request we're starting from */
+    ClientPtr client,	/* client whose requests we're skipping */
+    Bool readmore)	/* attempt to read more if next request isn't there? */
 {
     register ConnectionInputPtr oci = ((OsCommPtr)client->osPrivate)->input;
     xReqPtr pnextreq;
@@ -747,10 +740,10 @@ PeekNextRequest(req, client, readmore)
 CallbackListPtr SkippedRequestsCallback = NULL;
 
 void
-SkipRequests(req, client, numskipped)
-    xReqPtr req;	/* last request being skipped */
-    ClientPtr client;   /* client whose requests we're skipping */
-    int numskipped;	/* how many requests we're skipping */
+SkipRequests(
+    xReqPtr req,	/* last request being skipped */
+    ClientPtr client,   /* client whose requests we're skipping */
+    int numskipped)	/* how many requests we're skipping */
 {
     OsCommPtr oc = (OsCommPtr)client->osPrivate;
     register ConnectionInputPtr oci = oc->input;
@@ -809,7 +802,7 @@ static int padlength[4] = {0, 3, 2, 1};
  **********************/
 
 void
-FlushAllOutput()
+FlushAllOutput(void)
 {
     register int index, base;
     register fd_mask mask; /* raphael */
@@ -890,14 +883,14 @@ FlushAllOutput()
 }
 
 void
-FlushIfCriticalOutputPending()
+FlushIfCriticalOutputPending(void)
 {
     if (CriticalOutputPending)
 	FlushAllOutput();
 }
 
 void
-SetCriticalOutputPending()
+SetCriticalOutputPending(void)
 {
     CriticalOutputPending = TRUE;
 }
@@ -914,13 +907,10 @@ SetCriticalOutputPending()
  *****************/
 
 int
-WriteToClient (who, count, buf)
-    ClientPtr who;
-    char *buf;
-    int count;
+WriteToClient (ClientPtr who, int count, char *buf)
 {
     OsCommPtr oc = (OsCommPtr)who->osPrivate;
-    register ConnectionOutputPtr oco = oc->output;
+    ConnectionOutputPtr oco = oc->output;
     int padBytes;
 #ifdef DEBUG_COMMUNICATION
     Bool multicount = FALSE;
@@ -1061,27 +1051,20 @@ WriteToClient (who, count, buf)
 #ifdef LBX_NEED_OLD_SYMBOL_FOR_LOADABLES
 #undef FlushClient
 int
-FlushClient(who, oc, extraBuf, extraCount)
-    ClientPtr who;
-    OsCommPtr oc;
-    char *extraBuf;
-    int extraCount;
+FlushClient(ClientPtr who, OsCommPtr oc, char *extraBuf, int extraCount)
 {
     return (*oc->Flush)(who, oc, extraBuf, extraCount);
 }
 #endif
 int
-StandardFlushClient(who, oc, extraBuf, extraCount)
+StandardFlushClient(ClientPtr who, OsCommPtr oc, 
+    char *extraBuf, int extraCount)
 #else
 int
-FlushClient(who, oc, extraBuf, extraCount)
+FlushClient(ClientPtr who, OsCommPtr oc, char *extraBuf, int extraCount)
 #endif
-    ClientPtr who;
-    OsCommPtr oc;
-    char *extraBuf;
-    int extraCount; /* do not modify... returned below */
 {
-    register ConnectionOutputPtr oco = oc->output;
+    ConnectionOutputPtr oco = oc->output;
     int connection = oc->fd;
     XtransConnInfo trans_conn = oc->trans_conn;
     struct iovec iov[3];
@@ -1247,9 +1230,9 @@ FlushClient(who, oc, extraBuf, extraCount)
 }
 
 ConnectionInputPtr
-AllocateInputBuffer()
+AllocateInputBuffer(void)
 {
-    register ConnectionInputPtr oci;
+    ConnectionInputPtr oci;
 
     oci = (ConnectionInputPtr)xalloc(sizeof(ConnectionInput));
     if (!oci)
@@ -1268,9 +1251,9 @@ AllocateInputBuffer()
 }
 
 ConnectionOutputPtr
-AllocateOutputBuffer()
+AllocateOutputBuffer(void)
 {
-    register ConnectionOutputPtr oco;
+    ConnectionOutputPtr oco;
 
     oco = (ConnectionOutputPtr)xalloc(sizeof(ConnectionOutput));
     if (!oco)
@@ -1290,11 +1273,10 @@ AllocateOutputBuffer()
 }
 
 void
-FreeOsBuffers(oc)
-    OsCommPtr oc;
+FreeOsBuffers(OsCommPtr oc)
 {
-    register ConnectionInputPtr oci;
-    register ConnectionOutputPtr oco;
+    ConnectionInputPtr oci;
+    ConnectionOutputPtr oco;
 
     if (AvailableInput == oc)
 	AvailableInput = (OsCommPtr)NULL;
@@ -1337,10 +1319,10 @@ FreeOsBuffers(oc)
 }
 
 void
-ResetOsBuffers()
+ResetOsBuffers(void)
 {
-    register ConnectionInputPtr oci;
-    register ConnectionOutputPtr oco;
+    ConnectionInputPtr oci;
+    ConnectionOutputPtr oco;
 
     while ((oci = FreeInputs))
     {

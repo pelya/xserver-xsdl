@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/xaa/xaaWideLine.c,v 1.10 2001/11/16 16:47:56 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/xaa/xaaWideLine.c,v 1.11 2003/07/16 01:38:48 dawes Exp $ */
 
 /*
 
@@ -32,7 +32,7 @@ Original mi code written by Keith Packard.
 #include "X.h"
 #include "windowstr.h"
 #include "gcstruct.h"
-#include "miscstruct.h"
+#include "regionstr.h"
 #include "miwideline.h"
 #include "mi.h"
 #include "xf86str.h"

@@ -27,6 +27,7 @@ other dealings in this Software without prior written authorization
 from The Open Group.
 
 */
+/* $XFree86: xc/programs/Xserver/record/set.h,v 1.3 2003/11/17 22:20:44 dawes Exp $ */
 
 /*
 	  A Set Abstract Data Type (ADT) for the RECORD Extension
@@ -68,22 +69,16 @@ typedef void *RecordSetIteratePtr;
 */
 typedef struct {
     void (*DestroySet)(
-#if NeedNestedPrototypes
     RecordSetPtr pSet
-#endif
 );
     unsigned long (*IsMemberOfSet)(
-#if NeedNestedPrototypes
     RecordSetPtr pSet,
     int possible_member
-#endif
 );
     RecordSetIteratePtr (*IterateSet)(
-#if NeedNestedPrototypes
-RecordSetPtr pSet,
+    RecordSetPtr pSet,
     RecordSetIteratePtr pIter,
     RecordSetInterval *interval
-#endif
 );
 } RecordSetOperations;
 
@@ -95,12 +90,10 @@ typedef struct _RecordSetRec {
 } RecordSetRec;
 
 RecordSetPtr RecordCreateSet(
-#if NeedFunctionPrototypes
     RecordSetInterval *intervals,
     int nintervals,
     void *pMem,
     int memsize
-#endif
 );
 /*
     RecordCreateSet creates and returns a new set having members specified
@@ -115,11 +108,9 @@ RecordSetPtr RecordCreateSet(
 */
 
 int RecordSetMemoryRequirements(
-#if NeedFunctionPrototypes
     RecordSetInterval * /*pIntervals*/,
     int /*nintervals*/,
     int * /*alignment*/
-#endif
 );
 
 #define RecordDestroySet(_pSet) \

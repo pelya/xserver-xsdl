@@ -44,7 +44,7 @@ copyright holders.
 **    *********************************************************
 ** 
 ********************************************************************/
-/* $XFree86: xc/programs/Xserver/Xprint/attributes.c,v 1.18 2002/05/31 18:45:53 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/Xprint/attributes.c,v 1.20 2003/10/29 22:11:54 tsi Exp $ */
 
 #include <X11/Xproto.h>
 #include <string.h>
@@ -61,6 +61,9 @@ copyright holders.
 #include <X11/extensions/Printstr.h>
 
 #include "attributes.h"
+
+#include "Xlib.h"
+#include "Xresource.h"
 #include "Xrm.c"
 
 static XrmDatabase CopyDb(XrmDatabase inDb);
@@ -1116,9 +1119,7 @@ SendFileToCommand(
 	 */
 	if(userName)
 	{
-	    uid_t myUid;
-
-	    if((myUid = geteuid()) == (uid_t)0)
+	    if(geteuid() == (uid_t)0)
 	    {
 	        struct passwd *pPasswd;
 
@@ -1366,12 +1367,11 @@ VectorizeCommand(
     XpContextPtr pContext)
 {
     char *cmdName;
-    int numChars;
 
     if(command == (char *)NULL)
 	return (char *)NULL;
     
-    numChars = GetToken(command, &cmdName);
+    (void) GetToken(command, &cmdName);
 
     if(cmdName == (char *)NULL)
 	return (char *)NULL;

@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/mfb/mfbbitblt.c,v 1.6 2001/12/14 20:00:04 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/mfb/mfbbitblt.c,v 1.8 2003/11/10 18:22:45 tsi Exp $ */
 /* Combined Purdue/PurduePlus patches, level 2.0, 1/17/89 */
 /***********************************************************
 
@@ -50,7 +50,6 @@ SOFTWARE.
 #include "X.h"
 #include "Xprotostr.h"
 
-#include "miscstruct.h"
 #include "regionstr.h"
 #include "gcstruct.h"
 #include "windowstr.h"
@@ -150,7 +149,12 @@ int dstx, dsty;
     BoxRec fastBox;
     int fastClip = 0;		/* for fast clipping with pixmap source */
     int fastExpose = 0;		/* for fast exposures with pixmap source */
-    void (*localDoBitBlt)();
+    void (*localDoBitBlt)(
+	DrawablePtr /*pSrc*/,
+	DrawablePtr /*pDst*/,
+	int /*alu*/,
+	RegionPtr /*prgnDst*/,
+	DDXPointPtr /*pptSrc*/);
 
     origSource.x = srcx;
     origSource.y = srcy;
@@ -314,7 +318,7 @@ int dstx, dsty;
 	    /* Check to see if the region is empty */
 	    if (fastBox.x1 >= fastBox.x2 || fastBox.y1 >= fastBox.y2)
 	    {
-		REGION_INIT(pGC->pScreen, &rgnDst, NullBox, 0);
+		REGION_NULL(pGC->pScreen, &rgnDst);
 	    }
 	    else
 	    {
@@ -327,7 +331,7 @@ int dstx, dsty;
 	       a full blown region.  It is intersected with the
 	       composite clip below. */
 	    fastClip = 0;
-	    REGION_INIT(pGC->pScreen, &rgnDst, &fastBox,1);
+	    REGION_INIT(pGC->pScreen, &rgnDst, &fastBox, 1);
 	}
     }
     else
@@ -397,7 +401,17 @@ static int		copyPlaneScreenIndex = -1;
 Bool
 mfbRegisterCopyPlaneProc (pScreen, proc)
     ScreenPtr	pScreen;
-    RegionPtr	(*proc)();
+    RegionPtr	(*proc)(
+        DrawablePtr         /* pSrcDrawable */,
+        DrawablePtr         /* pDstDrawable */,
+        GCPtr               /* pGC */,
+        int                 /* srcx */,
+        int                 /* srcy */,
+        int                 /* width */,
+        int                 /* height */,
+        int                 /* dstx */,
+        int                 /* dsty */,
+        unsigned long       /* bitPlane */);
 {
     if (copyPlaneGeneration != serverGeneration)
     {
@@ -406,7 +420,7 @@ mfbRegisterCopyPlaneProc (pScreen, proc)
 	    return FALSE;
 	copyPlaneGeneration = serverGeneration;
     }
-    pScreen->devPrivates[copyPlaneScreenIndex].fptr = (pointer (*)()) proc;
+    pScreen->devPrivates[copyPlaneScreenIndex].fptr = proc;
     return TRUE;
 }
 
@@ -437,12 +451,23 @@ unsigned long plane;
 {
     int alu;
     RegionPtr	prgnExposed;
-    RegionPtr	(*copyPlane)();
+    RegionPtr	(*copyPlane)(
+        DrawablePtr         /* pSrcDrawable */,
+        DrawablePtr         /* pDstDrawable */,
+        GCPtr               /* pGC */,
+        int                 /* srcx */,
+        int                 /* srcy */,
+        int                 /* width */,
+        int                 /* height */,
+        int                 /* dstx */,
+        int                 /* dsty */,
+        unsigned long       /* bitPlane */);
+
 
     if (pSrcDrawable->depth != 1)
     {
 	if (copyPlaneScreenIndex >= 0 &&
-	    (copyPlane = (RegionPtr (*)()) 
+	    (copyPlane =
 		pSrcDrawable->pScreen->devPrivates[copyPlaneScreenIndex].fptr)
 	    )
 	{

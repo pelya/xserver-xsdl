@@ -27,7 +27,7 @@
  *
  * Authors: Alexander Gottwald	
  */
-/* $XFree86: xc/programs/Xserver/hw/xwin/winconfig.c,v 1.1 2002/10/17 08:18:22 alanh Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xwin/winconfig.c,v 1.4 2003/10/08 11:13:02 eich Exp $ */
 
 #include "win.h"
 #include "winconfig.h"
@@ -112,11 +112,10 @@ static Bool GetBoolValue (OptionInfoPtr p, const char *s);
 Bool
 winReadConfigfile ()
 {
-  Bool retval = TRUE;
-  const char *filename;
-
-  MessageType from = X_DEFAULT;
-  char *xf86ConfigFile = NULL;
+  Bool		retval = TRUE;
+  const char	*filename;
+  MessageType	from = X_DEFAULT;
+  char		*xf86ConfigFile = NULL;
 
   if (g_cmdline.configFile)
     {
@@ -146,16 +145,7 @@ winReadConfigfile ()
     }
   xf86closeConfigFile ();
 
-  winMsg (X_NONE, "Markers: ");
-  winMsg (X_PROBED, "probed, ");
-  winMsg (X_CONFIG, "from config file, ");
-  winMsg (X_DEFAULT, "default setting,\n         ");
-  winMsg (X_CMDLINE, "from command line, ");
-  winMsg (X_NOTICE, "notice, ");
-  winMsg (X_INFO, "informational,\n         ");
-  winMsg (X_WARNING, "warning, ");
-  winMsg (X_ERROR, "error, ");
-  winMsg (X_UNKNOWN, "unknown.\n");
+  LogPrintMarkers();
 
   /* set options from data structure */
 
@@ -213,9 +203,46 @@ winReadConfigfile ()
 
 /* Set the keyboard configuration */
 
+typedef struct {
+    unsigned int winlayout;
+    int winkbtype;
+    char *xkbmodel;
+    char *xkblayout;
+    char *xkbvariant;
+    char *xkboptions;
+    char *layoutname;
+} WinKBLayoutRec, *WinKBLayoutPtr;
+
+WinKBLayoutRec winKBLayouts[] = {
+    {  0x405, -1, "pc105", "cz",      NULL, NULL, "Czech"},
+    {  0x406, -1, "pc105", "dk",      NULL, NULL, "Danish"},
+    {  0x407, -1, "pc105", "de",      NULL, NULL, "German (Germany)"},
+    {0x10407, -1, "pc105", "de",      NULL, NULL, "German (Germany, IBM)"},
+    {  0x807, -1, "pc105", "de_CH",   NULL, NULL, "German (Switzerland)"},
+    {0x10409, -1, "pc105", "dvorak",  NULL, NULL, "English (USA, Dvorak)"}, 
+    {0x20409, -1, "pc105", "us_intl", NULL, NULL, "English (USA, International)"}, 
+    {  0x809, -1, "pc105", "gb",      NULL, NULL, "English (United Kingdom)"},
+    {  0x40a, -1, "pc105", "es",      NULL, NULL, "Spanish (Spain, Traditional Sort)"},
+    {  0x40b, -1, "pc105", "fi",      NULL, NULL, "Finnish"},
+    {  0x40c, -1, "pc105", "fr",      NULL, NULL, "French (Standard)"},
+    {  0x80c, -1, "pc105", "be",      NULL, NULL, "French (Belgian)"},
+    {  0x410, -1, "pc105", "it",      NULL, NULL, "Italian"},
+    {  0x411, -1, "jp",    "jp",      NULL, NULL, "Japanese"},
+    {  0x414, -1, "pc105", "no",      NULL, NULL, "Norwegian"},
+    {  0x416, -1, "pc105", "pt",      NULL, NULL, "Portuguese (Brazil, ABNT)"},
+    {0x10416, -1, "abnt2", "br",      NULL, NULL, "Portuguese (Brazil, ABNT2)"},
+    {  0x816, -1, "pc105", "pt",      NULL, NULL, "Portuguese (Portugal)"},
+    {  0x41d, -1, "pc105", "se",      NULL, NULL, "Swedish (Sweden)"},
+    {     -1, -1, NULL,    NULL,      NULL, NULL, NULL}
+};
+
+
 Bool
 winConfigKeyboard (DeviceIntPtr pDevice)
 {
+  char                          layoutName[KL_NAMELENGTH];
+  unsigned int                  layoutNum;
+  int                           keyboardType;  
   XF86ConfInputPtr		kbd = NULL;
   XF86ConfInputPtr		input_list = NULL;
   MessageType			from = X_DEFAULT;
@@ -237,6 +264,44 @@ winConfigKeyboard (DeviceIntPtr pDevice)
   g_winInfo.xkb.variant = NULL;
   g_winInfo.xkb.options = NULL;
 # endif	/* PC98 */
+
+  
+
+  keyboardType = GetKeyboardType (0);
+  if (keyboardType > 0 && GetKeyboardLayoutName (layoutName)) 
+  {
+    WinKBLayoutPtr	pLayout;
+      
+    layoutNum = strtoul (layoutName, (char **)NULL, 16);
+    if ((layoutNum & 0xffff) == 0x411) {
+        /* The japanese layouts know a lot of different IMEs which all have
+	  different layout numbers set. Map them to a single entry. 
+	  Same might apply for chinese, korean and other symbol languages
+	  too */
+        layoutNum = (layoutNum & 0xffff);
+    }
+    winMsg (X_DEFAULT, "winConfigKeyboard - Layout: \"%s\" (%08x) \n", 
+            layoutName, layoutNum);
+
+    for (pLayout = winKBLayouts; pLayout->winlayout != -1; pLayout++)
+      {
+	if (pLayout->winlayout != layoutNum)
+	  continue;
+	if (pLayout->winkbtype > 0 && pLayout->winkbtype != keyboardType)
+	  continue;
+	
+	winMsg (X_DEFAULT,
+		"Using preset keyboard for \"%s\" (%s), type \"%d\"\n",
+		pLayout->layoutname, layoutName, keyboardType);
+	
+	g_winInfo.xkb.model = pLayout->xkbmodel;
+	g_winInfo.xkb.layout = pLayout->xkblayout;
+	g_winInfo.xkb.variant = pLayout->xkbvariant;
+	g_winInfo.xkb.options = pLayout->xkboptions; 
+	break;
+      }
+  }  
+  
   g_winInfo.xkb.initialMap = NULL;
   g_winInfo.xkb.keymap = NULL;
   g_winInfo.xkb.types = NULL;
@@ -265,7 +330,7 @@ winConfigKeyboard (DeviceIntPtr pDevice)
 	{
 	  /* Check if device name matches requested name */
 	  if (g_cmdline.keyboard && winNameCompare (input_list->inp_identifier,
-						  g_cmdline.keyboard))
+						    g_cmdline.keyboard))
 	    continue;
 	  kbd = input_list;
 	}
@@ -416,7 +481,7 @@ winConfigMouse (DeviceIntPtr pDevice)
 	{
 	  /* Check if device name matches requested name */
 	  if (g_cmdline.mouse && winNameCompare (input_list->inp_identifier,
-					       g_cmdline.mouse))
+						 g_cmdline.mouse))
 	    continue;
 	  mouse = input_list;
 	}

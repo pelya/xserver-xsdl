@@ -30,6 +30,7 @@
  *     Header file for users of machine-independent DBE code
  *
  *****************************************************************************/
+/* $XFree86: xc/programs/Xserver/dbe/midbe.h,v 3.2 2003/11/17 22:20:32 dawes Exp $ */
 
 
 #ifndef MIDBE_H
@@ -38,10 +39,8 @@
 /* EXTERNS */
 
 extern Bool miDbeInit(
-#if NeedFunctionPrototypes
     ScreenPtr           pScreen,
     DbeScreenPrivPtr    pDbeScreenPriv
-#endif
 );
 
 #endif /* MIDBE_H */

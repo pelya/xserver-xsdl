@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/int10/helper_exec.c,v 1.24 2002/11/25 21:05:49 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/int10/helper_exec.c,v 1.26 2003/11/06 18:38:12 tsi Exp $ */
 /*
  *                   XFree86 int10 module
  *   execute BIOS int 10h calls in x86 real mode environment
@@ -145,7 +145,7 @@ void
 dump_code(xf86Int10InfoPtr pInt)
 {
     int i;
-    CARD32 lina = SEG_ADR((CARD32), X86_CS, IP);
+    unsigned long lina = SEG_ADR((CARD32), X86_CS, IP);
 
     xf86DrvMsgVerb(pInt->scrnIndex, X_INFO, 3, "code at 0x%8.8lx:\n", lina);
     for (i=0; i<0x10; i++)
@@ -160,25 +160,28 @@ void
 dump_registers(xf86Int10InfoPtr pInt)
 {
     xf86DrvMsgVerb(pInt->scrnIndex, X_INFO, 3,
-	"EAX=0x%8.8x, EBX=0x%8.8x, ECX=0x%8.8x, EDX=0x%8.8x\n",
-	X86_EAX, X86_EBX, X86_ECX, X86_EDX);
+	"EAX=0x%8.8lx, EBX=0x%8.8lx, ECX=0x%8.8lx, EDX=0x%8.8lx\n",
+	(unsigned long)X86_EAX, (unsigned long)X86_EBX,
+	(unsigned long)X86_ECX, (unsigned long)X86_EDX);
     xf86DrvMsgVerb(pInt->scrnIndex, X_INFO, 3,
-	"ESP=0x%8.8x, EBP=0x%8.8x, ESI=0x%8.8x, EDI=0x%8.8x\n",
-	X86_ESP, X86_EBP, X86_ESI, X86_EDI);
+	"ESP=0x%8.8lx, EBP=0x%8.8lx, ESI=0x%8.8lx, EDI=0x%8.8lx\n",
+	(unsigned long)X86_ESP, (unsigned long)X86_EBP,
+	(unsigned long)X86_ESI, (unsigned long)X86_EDI);
     xf86DrvMsgVerb(pInt->scrnIndex, X_INFO, 3,
 	"CS=0x%4.4x, SS=0x%4.4x,"
 	" DS=0x%4.4x, ES=0x%4.4x, FS=0x%4.4x, GS=0x%4.4x\n",
 	X86_CS, X86_SS, X86_DS, X86_ES, X86_FS, X86_GS);
     xf86DrvMsgVerb(pInt->scrnIndex, X_INFO, 3,
-	"EIP=0x%8.8x, EFLAGS=0x%8.8x\n", X86_EIP, X86_EFLAGS);
+	"EIP=0x%8.8lx, EFLAGS=0x%8.8lx\n",
+	(unsigned long)X86_EIP, (unsigned long)X86_EFLAGS);
 }
 
 void
 stack_trace(xf86Int10InfoPtr pInt)
 {
     int i = 0;
-    CARD32 stack = SEG_ADR((CARD32), X86_SS, SP);
-    CARD32 tail  = (CARD32)((X86_SS << 4) + 0x1000);
+    unsigned long stack = SEG_ADR((CARD32), X86_SS, SP);
+    unsigned long tail  = (CARD32)((X86_SS << 4) + 0x1000);
 
     if (stack >= tail) return;
 

@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/ramdac/xf86HWCurs.c,v 1.12 2003/02/13 20:28:41 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/ramdac/xf86HWCurs.c,v 1.13 2003/03/04 21:21:15 mvojkovi Exp $ */
 
 #include "misc.h"
 #include "xf86.h"
@@ -190,6 +190,13 @@ xf86RecolorCursor(ScreenPtr pScreen, CursorPtr pCurs, Bool displayed)
     xf86CursorScreenPtr ScreenPriv =
 	pScreen->devPrivates[xf86CursorScreenIndex].ptr;
     xf86CursorInfoPtr infoPtr = ScreenPriv->CursorInfoPtr;
+
+#ifdef ARGB_CURSOR
+    /* recoloring isn't applicable to ARGB cursors and drivers 
+       shouldn't have to ignore SetCursorColors requests */
+    if (pCurs->bits->argb)
+        return;
+#endif
 
     if (ScreenPriv->PalettedCursor) {
 	xColorItem sourceColor, maskColor;

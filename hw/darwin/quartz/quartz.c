@@ -29,16 +29,16 @@
  * holders shall not be used in advertising or otherwise to promote the sale,
  * use or other dealings in this Software without prior written authorization.
  */
-/* $XFree86: xc/programs/Xserver/hw/darwin/quartz/quartz.c,v 1.7 2003/01/23 00:34:26 torrey Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/darwin/quartz/quartz.c,v 1.13 2003/11/12 20:21:51 torrey Exp $ */
 
 #include "quartzCommon.h"
 #include "quartz.h"
 #include "darwin.h"
 #include "quartzAudio.h"
-#include "quartzCursor.h"
-#include "fullscreen.h"
-#include "rootlessAqua.h"
 #include "pseudoramiX.h"
+#define _APPLEWM_SERVER_
+#include "applewm.h"
+#include "applewmExt.h"
 
 // X headers
 #include "scrnintstr.h"
@@ -61,8 +61,8 @@ int                     quartzServerQuitting = FALSE;
 int                     quartzScreenIndex = 0;
 int                     aquaMenuBarHeight = 0;
 int                     noPseudoramiXExtension = TRUE;
-int                     aquaNumScreens = 0;
-
+QuartzModeProcsPtr      quartzProcs = NULL;
+const char             *quartzOpenGLBundle = NULL;
 
 /*
 ===========================================================================
@@ -73,10 +73,10 @@ int                     aquaNumScreens = 0;
 */
 
 /*
- * QuartzAddScreen
+ * DarwinModeAddScreen
  *  Do mode dependent initialization of each screen for Quartz.
  */
-Bool QuartzAddScreen(
+Bool DarwinModeAddScreen(
     int index,
     ScreenPtr pScreen)
 {
@@ -84,34 +84,25 @@ Bool QuartzAddScreen(
     QuartzScreenPtr displayInfo = xcalloc(sizeof(QuartzScreenRec), 1);
     QUARTZ_PRIV(pScreen) = displayInfo;
 
-    // do full screen or rootless specific initialization
-    if (quartzRootless) {
-        return AquaAddScreen(index, pScreen);
-    } else {
-        return QuartzFSAddScreen(index, pScreen);
-    }
+    // do Quartz mode specific initialization
+    return quartzProcs->AddScreen(index, pScreen);
 }
 
 
 /*
- * QuartzSetupScreen
+ * DarwinModeSetupScreen
  *  Finalize mode specific setup of each screen.
  */
-Bool QuartzSetupScreen(
+Bool DarwinModeSetupScreen(
     int index,
     ScreenPtr pScreen)
 {
-    // do full screen or rootless specific setup
-    if (quartzRootless) {
-        if (! AquaSetupScreen(index, pScreen))
-            return FALSE;
-    } else {
-        if (! QuartzFSSetupScreen(index, pScreen))
-            return FALSE;
-    }
+    // do Quartz mode specific setup
+    if (! quartzProcs->SetupScreen(index, pScreen))
+        return FALSE;
 
     // setup cursor support
-    if (! QuartzInitCursor(pScreen))
+    if (! quartzProcs->InitCursor(pScreen))
         return FALSE;
 
     return TRUE;
@@ -119,10 +110,10 @@ Bool QuartzSetupScreen(
 
 
 /*
- * QuartzInitOutput
+ * DarwinModeInitOutput
  *  Quartz display initialization.
  */
-void QuartzInitOutput(
+void DarwinModeInitOutput(
     int argc,
     char **argv )
 {
@@ -145,13 +136,8 @@ void QuartzInitOutput(
         FatalError("Could not register block and wakeup handlers.");
     }
 
-    if (quartzRootless) {
-        ErrorF("Display mode: Rootless Quartz\n");
-        AquaDisplayInit();
-    } else {
-        ErrorF("Display mode: Full screen Quartz\n");
-        QuartzFSDisplayInit();
-    }
+    // Do display mode specific initialization
+    quartzProcs->DisplayInit();
 
     // Init PseudoramiX implementation of Xinerama.
     // This should be in InitExtensions, but that causes link errors
@@ -163,21 +149,28 @@ void QuartzInitOutput(
 
 
 /*
- * QuartzInitInput
+ * DarwinModeInitInput
  *  Inform the main thread the X server is ready to handle events.
  */
-void QuartzInitInput(
+void DarwinModeInitInput(
     int argc,
     char **argv )
 {
-    QuartzMessageMainThread(kQuartzServerStarted, NULL, 0);
+    if (serverGeneration == 1) {
+        QuartzMessageMainThread(kQuartzServerStarted, NULL, 0);
+    }
+
+    // Do final display mode specific initialization before handling events
+    if (quartzProcs->InitInput)
+        quartzProcs->InitInput(argc, argv);
 }
 
 
 /*
  * QuartzShow
  *  Show the X server on screen. Does nothing if already shown.
- *  Restore the X clip regions and the X server cursor state.
+ *  Calls mode specific screen resume to restore the X clip regions
+ *  (if needed) and the X server cursor state.
  */
 static void QuartzShow(
     int x,	// cursor location
@@ -189,9 +182,7 @@ static void QuartzShow(
         quartzServerVisible = TRUE;
         for (i = 0; i < screenInfo.numScreens; i++) {
             if (screenInfo.screens[i]) {
-                QuartzResumeXCursor(screenInfo.screens[i], x, y);
-                if (!quartzRootless)
-                    xf86SetRootClip(screenInfo.screens[i], TRUE);
+                quartzProcs->ResumeScreen(screenInfo.screens[i], x, y);
             }
         }
     }
@@ -201,8 +192,8 @@ static void QuartzShow(
 /*
  * QuartzHide
  *  Remove the X server display from the screen. Does nothing if already
- *  hidden. Set X clip regions to prevent drawing, and restore the Aqua
- *  cursor.
+ *  hidden. Calls mode specific screen suspend to set X clip regions to
+ *  prevent drawing (if needed) and restore the Aqua cursor.
  */
 static void QuartzHide(void)
 {
@@ -211,9 +202,7 @@ static void QuartzHide(void)
     if (quartzServerVisible) {
         for (i = 0; i < screenInfo.numScreens; i++) {
             if (screenInfo.screens[i]) {
-                QuartzSuspendXCursor(screenInfo.screens[i]);
-                if (!quartzRootless)
-                    xf86SetRootClip(screenInfo.screens[i], FALSE);
+                quartzProcs->SuspendScreen(screenInfo.screens[i]);
             }
         }
     }
@@ -243,20 +232,58 @@ static void QuartzSetRootClip(
 
 
 /*
- * QuartzProcessEvent
+ * QuartzMessageServerThread
+ *  Send the X server thread a message by placing it on the event queue.
+ */
+void
+QuartzMessageServerThread(
+    int type,
+    int argc, ...)
+{
+    xEvent xe;
+    INT32 *argv;
+    int i, max_args;
+    va_list args;
+
+    memset(&xe, 0, sizeof(xe));
+    xe.u.u.type = type;
+    xe.u.clientMessage.u.l.type = type;
+
+    argv = &xe.u.clientMessage.u.l.longs0;
+    max_args = 4;
+
+    if (argc > 0 && argc <= max_args) {
+	va_start (args, argc);
+	for (i = 0; i < argc; i++)
+	    argv[i] = (int) va_arg (args, int);
+	va_end (args);
+    }
+
+    DarwinEQEnqueue(&xe);
+}
+
+
+/*
+ * DarwinModeProcessEvent
  *  Process Quartz specific events.
  */
-void QuartzProcessEvent(
+void DarwinModeProcessEvent(
     xEvent *xe)
 {
     switch (xe->u.u.type) {
 
-        case kXDarwinShow:
+        case kXDarwinActivate:
             QuartzShow(xe->u.keyButtonPointer.rootX,
                        xe->u.keyButtonPointer.rootY);
+            AppleWMSendEvent(AppleWMActivationNotify,
+                             AppleWMActivationNotifyMask,
+                             AppleWMIsActive, 0);
             break;
 
-        case kXDarwinHide:
+        case kXDarwinDeactivate:
+            AppleWMSendEvent(AppleWMActivationNotify,
+                             AppleWMActivationNotifyMask,
+                             AppleWMIsInactive, 0);
             QuartzHide();
             break;
 
@@ -276,18 +303,42 @@ void QuartzProcessEvent(
             QuartzWritePasteboard();
             break;
 
+        /*
+         * AppleWM events
+         */
+        case kXDarwinControllerNotify:
+            AppleWMSendEvent(AppleWMControllerNotify,
+                             AppleWMControllerNotifyMask,
+			     xe->u.clientMessage.u.l.longs0,
+			     xe->u.clientMessage.u.l.longs1);
+            break;
+
+        case kXDarwinPasteboardNotify:
+            AppleWMSendEvent(AppleWMPasteboardNotify,
+                             AppleWMPasteboardNotifyMask,
+                             xe->u.clientMessage.u.l.longs0,
+                             xe->u.clientMessage.u.l.longs1);
+            break;
+
+        case kXDarwinDisplayChanged:
+        case kXDarwinWindowState:
+        case kXDarwinWindowMoved:
+            // FIXME: Not implemented yet
+            break;
+
         default:
-            ErrorF("Unknown application defined event.\n");
+            ErrorF("Unknown application defined event type %d.\n",
+                   xe->u.u.type);
     }
 }
 
 
 /*
- * QuartzGiveUp
+ * DarwinModeGiveUp
  *  Cleanup before X server shutdown
  *  Release the screen and restore the Aqua cursor.
  */
-void QuartzGiveUp(void)
+void DarwinModeGiveUp(void)
 {
 #if 0
 // Trying to switch cursors when quitting causes deadlock
@@ -301,5 +352,5 @@ void QuartzGiveUp(void)
 #endif
 
     if (!quartzRootless)
-        QuartzFSRelease();
+        quartzProcs->ReleaseScreens();
 }

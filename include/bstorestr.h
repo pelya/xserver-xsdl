@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/include/bstorestr.h,v 1.2 2001/01/06 20:58:12 tsi Exp $*/
+/* $XFree86: xc/programs/Xserver/include/bstorestr.h,v 1.3 2003/04/27 21:31:04 herrb Exp $*/
 /*
  * Copyright (c) 1987 by the Regents of the University of California
  *
@@ -24,43 +24,26 @@
 #include "window.h"
 
 typedef    void (* BackingStoreSaveAreasProcPtr)(
-#if NeedNestedPrototypes
 	PixmapPtr /*pBackingPixmap*/,
 	RegionPtr /*pObscured*/,
 	int /*x*/,
 	int /*y*/,
-	WindowPtr /*pWin*/
-#endif
-);
+	WindowPtr /*pWin*/);
 
 typedef    void (* BackingStoreRestoreAreasProcPtr)(
-#if NeedNestedPrototypes
 	PixmapPtr /*pBackingPixmap*/,
 	RegionPtr /*pExposed*/,
 	int /*x*/,
 	int /*y*/,
-	WindowPtr /*pWin*/
-#endif
-);
+	WindowPtr /*pWin*/);
 
 typedef    void (* BackingStoreSetClipmaskRgnProcPtr)(
-#if NeedNestedPrototypes
 	GCPtr /*pBackingGC*/,
-	RegionPtr /*pbackingCompositeClip*/
-#endif
-);
+	RegionPtr /*pbackingCompositeClip*/);
 
-typedef    PixmapPtr (* BackingStoreGetImagePixmapProcPtr)(	/* unused */
-#if NeedNestedPrototypes
-	void
-#endif
-);
+typedef    PixmapPtr (* BackingStoreGetImagePixmapProcPtr)(void);
 
-typedef    PixmapPtr (* BackingStoreGetSpansPixmapProcPtr)(	/* unused */
-#if NeedNestedPrototypes
-	void
-#endif
-);
+typedef    PixmapPtr (* BackingStoreGetSpansPixmapProcPtr)(void);
 
 typedef struct _BSFuncs {
 

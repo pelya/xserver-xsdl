@@ -12,6 +12,7 @@ the suitability of this software for any purpose.  It is provided "as
 is" without express or implied warranty.
 
 */
+/* $XFree86: xc/programs/Xserver/hw/xnest/Screen.h,v 1.2 2003/11/16 05:05:20 dawes Exp $ */
 
 #ifndef XNESTSCREEN_H
 #define XNESTSCREEN_H
@@ -19,8 +20,8 @@ is" without express or implied warranty.
 extern Window xnestDefaultWindows[MAXSCREENS];
 extern Window xnestScreenSaverWindows[MAXSCREENS];
 
-ScreenPtr xnestScreen();
-Bool xnestOpenScreen();
-Bool xnestCloseScreen();
+ScreenPtr xnestScreen(Window window);
+Bool xnestOpenScreen(int index, ScreenPtr pScreen, int argc, char *argv[]);
+Bool xnestCloseScreen(int index, ScreenPtr pScreen);
 
 #endif /* XNESTSCREEN_H */

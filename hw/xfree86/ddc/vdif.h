@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/ddc/vdif.h,v 1.3 2000/04/14 12:16:04 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/ddc/vdif.h,v 1.5 2003/11/06 18:37:58 tsi Exp $ */
 
 #ifndef _VDIF_H
 #define _VDIF_H
@@ -24,7 +24,8 @@
 
 #include "Xmd.h"
 
-#pragma pack(1)
+#undef  CARD32
+#define CARD32 unsigned int	/* ... on all supported platforms */
 
 typedef struct _VDIF { /* Monitor Description: */
     CARD8 VDIFId[4]; /* alway "VDIF" */
@@ -169,6 +170,6 @@ typedef struct  _vdif {
     char * strings;
 } xf86vdif, *xf86vdifPtr;
 
-#pragma pack()
+#undef CARD32
 
 #endif

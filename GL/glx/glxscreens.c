@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/GL/glx/glxscreens.c,v 1.10 2002/04/04 14:05:36 eich Exp $ */
+/* $XFree86: xc/programs/Xserver/GL/glx/glxscreens.c,v 1.12 2003/09/28 20:15:43 alanh Exp $ */
 /*
 ** License Applicability. Except to the extent portions of this file are
 ** made subject to an alternative license as permitted in the SGI Free
@@ -46,23 +46,77 @@
 #include "glxserver.h"
 #include "glxutil.h"
 
-static char GLServerExtensions[] = 
+static const char GLServerExtensions[] = 
+			"GL_ARB_depth_texture "
 			"GL_ARB_imaging "
 			"GL_ARB_multitexture "
+			"GL_ARB_point_parameters "
+			"GL_ARB_shadow "
+			"GL_ARB_shadow_ambient "
 			"GL_ARB_texture_border_clamp "
 			"GL_ARB_texture_cube_map "
 			"GL_ARB_texture_env_add "
 			"GL_ARB_texture_env_combine "
+			"GL_ARB_texture_env_crossbar "
 			"GL_ARB_texture_env_dot3 "
+			"GL_ARB_texture_mirrored_repeat "
 			"GL_ARB_transpose_matrix "
+			"GL_ARB_window_pos "
 			"GL_EXT_abgr "
-			"GL_EXT_blend_color "
-			"GL_EXT_blend_minmax "
-			"GL_EXT_blend_subtract "
-			"GL_EXT_texture_env_add "
-			"GL_EXT_texture_env_combine "
-			"GL_EXT_texture_env_dot3 "
-			"GL_EXT_texture_lod_bias "
+			"GL_EXT_bgra "
+ 			"GL_EXT_blend_color "
+			"GL_EXT_blend_func_separate "
+			"GL_EXT_blend_logic_op "
+ 			"GL_EXT_blend_minmax "
+ 			"GL_EXT_blend_subtract "
+			"GL_EXT_clip_volume_hint "
+			"GL_EXT_copy_texture "
+			"GL_EXT_draw_range_elements "
+			"GL_EXT_fog_coord "
+			"GL_EXT_multi_draw_arrays "
+			"GL_EXT_packed_pixels "
+			"GL_EXT_polygon_offset "
+			"GL_EXT_rescale_normal "
+			"GL_EXT_secondary_color "
+			"GL_EXT_separate_specular_color "
+			"GL_EXT_shadow_funcs "
+ 			"GL_EXT_stencil_two_side "
+			"GL_EXT_stencil_wrap "
+			"GL_EXT_subtexture "
+			"GL_EXT_texture "
+			"GL_EXT_texture3D "
+			"GL_EXT_texture_edge_clamp "
+ 			"GL_EXT_texture_env_add "
+ 			"GL_EXT_texture_env_combine "
+ 			"GL_EXT_texture_env_dot3 "
+			"GL_EXT_texture_lod "
+ 			"GL_EXT_texture_lod_bias "
+			"GL_EXT_texture_object "
+			"GL_EXT_texture_rectangle "
+			"GL_EXT_vertex_array "
+			"GL_APPLE_packed_pixels "
+			"GL_ATI_texture_mirror_once "
+			"GL_ATI_texture_env_combine3 "
+#if 0
+    /* This is currently removed because there seem to be some problems with
+     * it and the software-only indirect rendering path.  At this point, I'm
+     * not sure which side (client or server) has the problem. - idr
+     */
+ 			"GL_HP_occlusion_test "
+#endif
+			"GL_IBM_texture_mirrored_repeat "
+			"GL_MESA_pack_invert "
+			"GL_MESA_ycbcr_texture "
+			"GL_NV_blend_square "
+			"GL_NV_texgen_reflection "
+			"GL_NV_texture_rectangle "
+			"GL_SGIS_generate_mipmap "
+			"GL_SGIS_texture_border_clamp "
+			"GL_SGIS_texture_edge_clamp "
+			"GL_SGIS_texture_lod "
+			"GL_SGIX_depth_texture "
+			"GL_SGIX_shadow "
+			"GL_SGIX_shadow_ambient "
 			;
 
 /*
@@ -75,6 +129,7 @@ static char GLXServerExtensions[] =
 			"GLX_EXT_visual_info "
 			"GLX_EXT_visual_rating "
 			"GLX_EXT_import_context "
+			"GLX_SGI_make_current_read "
 			;
 
 /*
@@ -94,6 +149,7 @@ GLint __glXNumActiveScreens;
 
 RESTYPE __glXDrawableRes;
 
+#if 0
 static int
 CountBits(unsigned long mask)
 {
@@ -106,6 +162,7 @@ CountBits(unsigned long mask)
 
     return count;
 }
+#endif
 
 #if 0
 /*
@@ -186,8 +243,13 @@ static Bool DrawableGone(__GLXdrawablePrivate *glxPriv, XID xid)
 	** When a window is destroyed, notify all context bound to 
 	** it, that there are no longer bound to anything.
 	*/
-	for (cx = glxPriv->glxc; cx; cx = cx1) {
-	    cx1 = cx->nextPriv;
+	for (cx = glxPriv->drawGlxc; cx; cx = cx1) {
+	    cx1 = cx->nextDrawPriv;
+	    cx->pendingState |= __GLX_PENDING_DESTROY;
+	}
+
+	for (cx = glxPriv->readGlxc; cx; cx = cx1) {
+	    cx1 = cx->nextReadPriv;
 	    cx->pendingState |= __GLX_PENDING_DESTROY;
 	}
     }
@@ -247,9 +309,14 @@ static Bool PositionWindow(WindowPtr pWin, int x, int y)
 	/* XXX: what can we possibly do here? */
 	ret = False;
     }
+
     /* mark contexts as needing resize */
-    glxc = NULL;
-    for (glxc = glxPriv->glxc; glxc; glxc = glxc->nextPriv) {
+
+    for (glxc = glxPriv->drawGlxc; glxc; glxc = glxc->nextDrawPriv) {
+	glxc->pendingState |= __GLX_PENDING_RESIZE;
+    }
+
+    for (glxc = glxPriv->readGlxc; glxc; glxc = glxc->nextReadPriv) {
 	glxc->pendingState |= __GLX_PENDING_RESIZE;
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2002 Torrey T. Lyons. All Rights Reserved.
+ * Copyright (c) 2001-2003 Torrey T. Lyons. All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -23,16 +23,15 @@
  * holders shall not be used in advertising or otherwise to promote the sale,
  * use or other dealings in this Software without prior written authorization.
  */
-/* $XFree86: xc/programs/Xserver/hw/darwin/darwin.h,v 1.15 2002/12/10 00:00:38 torrey Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/darwin/darwin.h,v 1.20 2003/11/15 00:07:09 torrey Exp $ */
 
 #ifndef _DARWIN_H
 #define _DARWIN_H
 
 #include <IOKit/IOTypes.h>
 #include "inputstr.h"
-#include "screenint.h"
+#include "scrnintstr.h"
 #include "extensions/XKB.h"
-#include "quartz/quartzShared.h"
 
 typedef struct {
     void                *framebuffer;
@@ -48,6 +47,9 @@ typedef struct {
 } DarwinFramebufferRec, *DarwinFramebufferPtr;
 
 
+// From darwin.c
+void DarwinPrintBanner();
+void DarwinAdjustScreenOrigins(ScreenInfo *pScreenInfo);
 void xf86SetRootClip (ScreenPtr pScreen, BOOL enable);
 
 // From darwinEvents.c
@@ -64,6 +66,17 @@ int DarwinModifierNXKeyToNXMask(int key);
 int DarwinModifierNXMaskToNXKey(int mask);
 int DarwinModifierStringToNXKey(const char *string);
 
+// Mode specific functions
+Bool DarwinModeAddScreen(int index, ScreenPtr pScreen);
+Bool DarwinModeSetupScreen(int index, ScreenPtr pScreen);
+void DarwinModeInitOutput(int argc,char **argv);
+void DarwinModeInitInput(int argc, char **argv);
+int DarwinModeProcessArgument(int argc, char *argv[], int i);
+void DarwinModeProcessEvent(xEvent *xe);
+void DarwinModeGiveUp(void);
+void DarwinModeBell(int volume, DeviceIntPtr pDevice, pointer ctrl, int class);
+
+
 #undef assert
 #define assert(x) { if ((x) == 0) \
     FatalError("assert failed on line %d of %s!\n", __LINE__, __FILE__); }
@@ -76,31 +89,60 @@ int DarwinModifierStringToNXKey(const char *string);
 
 #define MIN_KEYCODE XkbMinLegalKeyCode     // unfortunately, this isn't 0...
 
+
 /*
  * Global variables from darwin.c
  */
 extern int              darwinScreenIndex; // index into pScreen.devPrivates
 extern int              darwinScreensFound;
 extern io_connect_t     darwinParamConnect;
-extern int              darwinEventFD;
-extern Bool             quartz;
+extern int              darwinEventReadFD;
+extern int              darwinEventWriteFD;
+
+// User preferences
+extern int              darwinMouseAccelChange;
+extern int              darwinFakeButtons;
+extern int              darwinFakeMouse2Mask;
+extern int              darwinFakeMouse3Mask;
+extern char            *darwinKeymapFile;
+extern unsigned int     darwinDesiredWidth, darwinDesiredHeight;
+extern int              darwinDesiredDepth;
+extern int              darwinDesiredRefresh;
+
+// location of X11's (0,0) point in global screen coordinates
+extern int              darwinMainScreenX;
+extern int              darwinMainScreenY;
+
 
 /*
  * Special ddx events understood by the X server
  */
 enum {
-  kXDarwinUpdateModifiers   // update all modifier keys
-            = LASTEvent+1,  // (from X.h list of event names)
-  kXDarwinUpdateButtons,    // update state of mouse buttons 2 and up
-  kXDarwinScrollWheel,      // scroll wheel event
-  kXDarwinShow,             // vt switch to X server;
-                            // recapture screen and restore X drawing
-  kXDarwinHide,             // vt switch away from X server;
-                            // release screen and clip X drawing
-  kXDarwinSetRootClip,      // enable or disable drawing to the X screen
-  kXDarwinQuit,             // kill the X server and release the display
-  kXDarwinReadPasteboard,   // copy Mac OS X pasteboard into X cut buffer
-  kXDarwinWritePasteboard   // copy X cut buffer onto Mac OS X pasteboard
+    kXDarwinUpdateModifiers   // update all modifier keys
+            = LASTEvent+1,    // (from X.h list of event names)
+    kXDarwinUpdateButtons,    // update state of mouse buttons 2 and up
+    kXDarwinScrollWheel,      // scroll wheel event
+
+    /*
+     * Quartz-specific events -- not used in IOKit mode
+     */
+    kXDarwinActivate,         // restore X drawing and cursor
+    kXDarwinDeactivate,       // clip X drawing and switch to Aqua cursor
+    kXDarwinSetRootClip,      // enable or disable drawing to the X screen
+    kXDarwinQuit,             // kill the X server and release the display
+    kXDarwinReadPasteboard,   // copy Mac OS X pasteboard into X cut buffer
+    kXDarwinWritePasteboard,  // copy X cut buffer onto Mac OS X pasteboard
+    /*
+     * AppleWM events
+     */
+    kXDarwinControllerNotify, // send an AppleWMControllerNotify event
+    kXDarwinPasteboardNotify, // notify the WM to copy or paste
+    /*
+     * Xplugin notification events
+     */
+    kXDarwinDisplayChanged,   // display configuration has changed
+    kXDarwinWindowState,      // window visibility state has changed
+    kXDarwinWindowMoved       // window has moved on screen
 };
 
 #endif	/* _DARWIN_H */

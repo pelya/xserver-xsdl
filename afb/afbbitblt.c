@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/afb/afbbitblt.c,v 3.3 2001/10/28 03:32:57 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/afb/afbbitblt.c,v 3.6 2003/11/10 18:21:44 tsi Exp $ */
 /* Combined Purdue/PurduePlus patches, level 2.0, 1/17/89 */
 /***********************************************************
 
@@ -52,7 +52,6 @@ SOFTWARE.
 #include "X.h"
 #include "Xprotostr.h"
 
-#include "miscstruct.h"
 #include "regionstr.h"
 #include "gcstruct.h"
 #include "windowstr.h"
@@ -236,7 +235,7 @@ afbBitBlt(pSrcDrawable, pDstDrawable, pGC, srcx, srcy, width, height,
 		fastExpose = 1;
 		/*
 		 * clip the source; if regions extend beyond the source size,
- 		 * make sure exposure events get sent
+		 * make sure exposure events get sent
 		 */
 		if (fastBox.x1 < pSrcDrawable->x) {
 			fastBox.x1 = pSrcDrawable->x;
@@ -302,7 +301,7 @@ afbBitBlt(pSrcDrawable, pDstDrawable, pGC, srcx, srcy, width, height,
 
 			/* Check to see if the region is empty */
 			if (fastBox.x1 >= fastBox.x2 || fastBox.y1 >= fastBox.y2) {
-				REGION_INIT(pGC->pScreen, &rgnDst, NullBox, 0);
+				REGION_NULL(pGC->pScreen, &rgnDst);
 			} else {
 				REGION_INIT(pGC->pScreen, &rgnDst, &fastBox, 1);
 			}

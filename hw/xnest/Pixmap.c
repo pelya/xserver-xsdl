@@ -12,11 +12,11 @@ the suitability of this software for any purpose.  It is provided "as
 is" without express or implied warranty.
 
 */
-/* $XFree86: xc/programs/Xserver/hw/xnest/Pixmap.c,v 3.6 2003/01/10 13:29:40 eich Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xnest/Pixmap.c,v 3.8 2003/11/16 05:05:20 dawes Exp $ */
 
 #include "X.h"
 #include "Xproto.h"
-#include "miscstruct.h"
+#include "regionstr.h"
 #include "pixmapstr.h"
 #include "scrnintstr.h"
 #include "regionstr.h"
@@ -34,11 +34,8 @@ is" without express or implied warranty.
 int xnestPixmapPrivateIndex;	    
 #endif
 
-PixmapPtr xnestCreatePixmap(pScreen, width, height, depth)
-    ScreenPtr   pScreen;
-    int         width;
-    int         height;
-    int         depth;
+PixmapPtr
+xnestCreatePixmap(ScreenPtr pScreen, int width, int height, int depth)
 {
   PixmapPtr pPixmap;
 
@@ -75,8 +72,8 @@ PixmapPtr xnestCreatePixmap(pScreen, width, height, depth)
   return pPixmap;
 }
 
-Bool xnestDestroyPixmap(pPixmap)
-     PixmapPtr pPixmap;
+Bool
+xnestDestroyPixmap(PixmapPtr pPixmap)
 {
   if(--pPixmap->refcnt)
     return TRUE;
@@ -85,8 +82,8 @@ Bool xnestDestroyPixmap(pPixmap)
   return TRUE;
 }
 
-RegionPtr xnestPixmapToRegion(pPixmap)
-     PixmapPtr pPixmap;
+RegionPtr
+xnestPixmapToRegion(PixmapPtr pPixmap)
 {
   XImage *ximage;
   register RegionPtr pReg, pTmpReg;

@@ -24,7 +24,7 @@ OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION  WITH
 THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 ********************************************************/
-/* $XFree86: xc/programs/Xserver/xkb/xkbEvents.c,v 3.10 2001/10/28 03:34:20 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/xkb/xkbEvents.c,v 3.12 2003/11/17 22:20:46 dawes Exp $ */
 
 #include <stdio.h>
 #define NEED_EVENTS 1
@@ -35,17 +35,12 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include "inputstr.h"
 #include "windowstr.h"
 #include "XKBsrv.h"
+#include "xkb.h"
 
 /***====================================================================***/
 
 void
-#if NeedFunctionPrototypes
 XkbSendNewKeyboardNotify(DeviceIntPtr kbd,xkbNewKeyboardNotify *pNKN)
-#else
-XkbSendNewKeyboardNotify(kbd,pNKN)
-    DeviceIntPtr	 	kbd;
-    xkbNewKeyboardNotify *	pNKN;
-#endif
 {		
 register int	i;
 Time 		time;
@@ -102,13 +97,7 @@ CARD16		changed;
 /***====================================================================***/
 
 void
-#if NeedFunctionPrototypes
 XkbSendStateNotify(DeviceIntPtr kbd,xkbStateNotify *pSN)
-#else
-XkbSendStateNotify(kbd,pSN)
-    DeviceIntPtr	 kbd;
-    xkbStateNotify	*pSN;
-#endif
 {
 XkbSrvInfoPtr	xkbi;
 XkbStatePtr	state;
@@ -169,13 +158,7 @@ register CARD16	changed,bState;
 /***====================================================================***/
 
 void
-#if NeedFunctionPrototypes
 XkbSendMapNotify(DeviceIntPtr kbd,xkbMapNotify *pMN)
-#else
-XkbSendMapNotify(kbd,pMN)
-    DeviceIntPtr kbd;
-    xkbMapNotify *pMN;
-#endif
 {
 int 		i;
 XkbSrvInfoPtr	xkbi;
@@ -217,20 +200,11 @@ CARD16		changed;
 }
 
 int
-#if NeedFunctionPrototypes
 XkbComputeControlsNotify(	DeviceIntPtr	 	kbd,
 				XkbControlsPtr		old,
 				XkbControlsPtr		new,
 				xkbControlsNotify *	pCN,
 				Bool			forceCtrlProc)
-#else
-XkbComputeControlsNotify(kbd,old,new,pCN,forceCtrlProc)
-    DeviceIntPtr	 kbd;
-    XkbControlsPtr	old;
-    XkbControlsPtr	new;
-    xkbControlsNotify	*pCN;
-    Bool		forceCtrlProc;
-#endif
 {
 int		i;
 CARD32 		changedControls;
@@ -301,13 +275,7 @@ CARD32 		changedControls;
 }
 
 void
-#if NeedFunctionPrototypes
 XkbSendControlsNotify(DeviceIntPtr kbd,xkbControlsNotify *pCN)
-#else
-XkbSendControlsNotify(kbd,pCN)
-    DeviceIntPtr	 kbd;
-    xkbControlsNotify	*pCN;
-#endif
 {
 int			initialized;
 CARD32 		 	changedControls, enabledControls, enabledChanges = 0;
@@ -358,14 +326,7 @@ Time 		 	time = 0;
 }
 
 void
-#if NeedFunctionPrototypes
 XkbSendIndicatorNotify(DeviceIntPtr kbd,int xkbType,xkbIndicatorNotify *pEv)
-#else
-XkbSendIndicatorNotify(kbd,xkbType,pEv)
-    DeviceIntPtr	 kbd;
-    int			 xkbType;
-    xkbIndicatorNotify	*pEv;
-#endif
 {
 int		initialized;
 XkbInterestPtr	interest;
@@ -414,7 +375,6 @@ CARD32		state,changed;
 
 
 void
-#if NeedFunctionPrototypes
 XkbHandleBell(	BOOL		 force,
 		BOOL		 eventOnly,
 		DeviceIntPtr	 kbd,
@@ -424,18 +384,6 @@ XkbHandleBell(	BOOL		 force,
 		Atom		 name,
 		WindowPtr	 pWin,
 		ClientPtr	 pClient)
-#else
-XkbHandleBell(force,eventOnly,kbd,percent,pCtrl,class,name,pWin,pClient)
-    BOOL		 force;
-    BOOL		 eventOnly;
-    DeviceIntPtr	 kbd;
-    CARD8		 percent;
-    pointer		*pCtrl;
-    CARD8		 class;
-    Atom		 name;
-    WindowPtr		 pWin;
-    ClientPtr		 pClient;
-#endif
 {
 xkbBellNotify	bn;
 int		initialized;
@@ -511,13 +459,7 @@ XID		winID = 0;
 }
 
 void
-#if NeedFunctionPrototypes
 XkbSendAccessXNotify(DeviceIntPtr kbd,xkbAccessXNotify *pEv)
-#else
-XkbSendAccessXNotify(kbd,pEv)
-    DeviceIntPtr	 kbd;
-    xkbAccessXNotify	*pEv;
-#endif
 {
 int		initialized;
 XkbInterestPtr	interest;
@@ -562,13 +504,7 @@ CARD16		sk_delay,db_delay;
 }
 
 void
-#if NeedFunctionPrototypes
 XkbSendNamesNotify(DeviceIntPtr kbd,xkbNamesNotify *pEv)
-#else
-XkbSendNamesNotify(kbd,pEv)
-    DeviceIntPtr	 kbd;
-    xkbNamesNotify	*pEv;
-#endif
 {
 int		initialized;
 XkbInterestPtr	interest;
@@ -617,13 +553,7 @@ CARD32		changedIndicators;
 }
 
 void
-#if NeedFunctionPrototypes
 XkbSendCompatMapNotify(DeviceIntPtr kbd,xkbCompatMapNotify *pEv)
-#else
-XkbSendCompatMapNotify(kbd,pEv)
-    DeviceIntPtr	 kbd;
-    xkbCompatMapNotify	*pEv;
-#endif
 {
 int		initialized;
 XkbInterestPtr	interest;
@@ -671,13 +601,7 @@ CARD16		firstSI = 0, nSI = 0, nTotalSI = 0;
 }
 
 void
-#if NeedFunctionPrototypes
 XkbSendActionMessage(DeviceIntPtr kbd,xkbActionMessage *pEv)
-#else
-XkbSendActionMessage(kbd,pEv)
-    DeviceIntPtr	 kbd;
-    xkbActionMessage *	pEv;
-#endif
 {
 int		 initialized;
 XkbSrvInfoPtr	 xkbi;
@@ -720,16 +644,9 @@ Time 		 time = 0;
 }
 
 void
-#if NeedFunctionPrototypes
 XkbSendExtensionDeviceNotify(	DeviceIntPtr 			dev,
 				ClientPtr			client,
 				xkbExtensionDeviceNotify *	pEv)
-#else
-XkbSendExtensionDeviceNotify(dev,client,pEv)
-    DeviceIntPtr	 	dev;
-    ClientPtr			client;
-    xkbExtensionDeviceNotify *	pEv;
-#endif
 {
 int		 initialized;
 XkbInterestPtr	 interest;
@@ -791,16 +708,9 @@ CARD16		 reason, supported = 0;
 }
 
 void
-#if NeedFunctionPrototypes
 XkbSendNotification(	DeviceIntPtr		kbd,
 			XkbChangesPtr		pChanges,
 			XkbEventCausePtr	cause)
-#else
-XkbSendNotification(kbd,pChanges,cause)
-    DeviceIntPtr	kbd;
-    XkbChangesPtr	pChanges;
-    XkbEventCausePtr	cause;
-#endif
 {
 XkbSrvLedInfoPtr	sli;
 
@@ -887,14 +797,7 @@ XkbSrvLedInfoPtr	sli;
 /***====================================================================***/
 
 Bool
-#if NeedFunctionPrototypes
 XkbFilterEvents(ClientPtr pClient,int nEvents,xEvent *xE)
-#else
-XkbFilterEvents(pClient,nEvents,xE)
-    ClientPtr	 pClient;
-    int		 nEvents;
-    xEvent	*xE;
-#endif
 {
 int	i, button_mask;
 DeviceIntPtr pXDev = (DeviceIntPtr)LookupKeyboardDevice();
@@ -1011,13 +914,7 @@ XkbSrvInfoPtr	xkbi;
 /***====================================================================***/
 
 XkbInterestPtr	
-#if NeedFunctionPrototypes
 XkbFindClientResource(DevicePtr inDev,ClientPtr client)
-#else
-XkbFindClientResource(inDev,client)
-    DevicePtr	 inDev;
-    ClientPtr	client;
-#endif
 {
 DeviceIntPtr	dev = (DeviceIntPtr)inDev;
 XkbInterestPtr	interest;
@@ -1035,14 +932,7 @@ XkbInterestPtr	interest;
 }
 
 XkbInterestPtr	
-#if NeedFunctionPrototypes
 XkbAddClientResource(DevicePtr inDev,ClientPtr client,XID id)
-#else
-XkbAddClientResource(inDev,client,id)
-    DevicePtr	 inDev;
-    ClientPtr	client;
-    XID		 id;
-#endif
 {
 DeviceIntPtr	dev = (DeviceIntPtr)inDev;
 XkbInterestPtr	interest;
@@ -1076,13 +966,7 @@ XkbInterestPtr	interest;
 }
 
 int
-#if NeedFunctionPrototypes
 XkbRemoveClient(DevicePtr inDev,ClientPtr client)
-#else
-XkbRemoveClient(inDev,client)
-DevicePtr	inDev;
-ClientPtr	client;
-#endif
 {
 XkbSrvInfoPtr	xkbi;
 DeviceIntPtr	dev = (DeviceIntPtr)inDev;
@@ -1124,13 +1008,7 @@ Bool		found;
 }
 
 int
-#if NeedFunctionPrototypes
 XkbRemoveResourceClient(DevicePtr inDev,XID id) 
-#else
-XkbRemoveResourceClient(inDev,id) 
-    DevicePtr	 inDev;
-    XID		 id;
-#endif
 {
 XkbSrvInfoPtr	xkbi;
 DeviceIntPtr	dev = (DeviceIntPtr)inDev;

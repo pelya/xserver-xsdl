@@ -21,7 +21,7 @@ DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE
 OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION  WITH
 THE USE OR PERFORMANCE OF THIS SOFTWARE.
 ********************************************************/
-/* $XFree86: xc/programs/Xserver/Xext/EVI.c,v 3.9 2001/10/28 03:32:50 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/Xext/EVI.c,v 3.11 2003/10/28 23:08:43 tsi Exp $ */
 
 #include "X.h"
 #include "Xproto.h"
@@ -31,8 +31,13 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #define _XEVI_SERVER_
 #include "XEVIstr.h"
 #include "EVIstruct.h"
+#include "modinit.h"
+
+#if 0
 static unsigned char XEVIReqCode = 0;
+#endif
 static EviPrivPtr eviPriv;
+
 static int
 ProcEVIQueryVersion(ClientPtr client)
 {
@@ -74,6 +79,7 @@ ProcEVIQueryVersion(ClientPtr client)
        visual1++;					\
     }							\
 }
+
 static int
 ProcEVIGetVisualInfo(ClientPtr client)
 {
@@ -109,6 +115,7 @@ ProcEVIGetVisualInfo(ClientPtr client)
     eviPriv->freeVisualInfo(eviInfo, conflict);
     return (client->noClientException);
 }
+
 static int
 ProcEVIDispatch(ClientPtr client)
 {
@@ -122,15 +129,16 @@ ProcEVIDispatch(ClientPtr client)
 	return BadRequest;
     }
 }
+
 static int
-SProcEVIQueryVersion(client)
-ClientPtr client;
+SProcEVIQueryVersion(ClientPtr client)
 {
    REQUEST(xEVIQueryVersionReq);
    int n;
    swaps(&stuff->length, n);
    return ProcEVIQueryVersion(client);
 }
+
 static int
 SProcEVIGetVisualInfo(ClientPtr client)
 {
@@ -139,6 +147,7 @@ SProcEVIGetVisualInfo(ClientPtr client)
     swaps(&stuff->length, n);
     return ProcEVIGetVisualInfo(client);
 }
+
 static int
 SProcEVIDispatch(ClientPtr client)
 {
@@ -153,12 +162,14 @@ SProcEVIDispatch(ClientPtr client)
 	return BadRequest;
     }
 }
+
 /*ARGSUSED*/
 static void
 EVIResetProc(ExtensionEntry *extEntry)
 {
     eviDDXReset();
 }
+
 /****************
  * XEVIExtensionInit
  *
@@ -167,15 +178,21 @@ EVIResetProc(ExtensionEntry *extEntry)
  *
  ****************/
 void
-EVIExtensionInit(void)
+EVIExtensionInit(INITARGS)
 {
+#if 0
     ExtensionEntry *extEntry;
+
     if ((extEntry = AddExtension(EVINAME, 0, 0,
 				ProcEVIDispatch,
 				SProcEVIDispatch,
-				EVIResetProc, StandardMinorOpcode)))
-    {
+				EVIResetProc, StandardMinorOpcode))) {
 	XEVIReqCode = (unsigned char)extEntry->base;
+#else
+    if (AddExtension(EVINAME, 0, 0,
+		     ProcEVIDispatch, SProcEVIDispatch,
+		     EVIResetProc, StandardMinorOpcode)) {
+#endif
 	eviPriv = eviDDXInit();
     }
 }

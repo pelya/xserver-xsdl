@@ -19,7 +19,7 @@
 *   or  in  FAR 52.227-19, as applicable.                       *
 *                                                               *
 *****************************************************************/
-/* $XFree86: xc/programs/Xserver/Xext/panoramiX.h,v 1.5 2001/01/03 02:54:17 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/Xext/panoramiX.h,v 1.6 2003/03/23 04:56:02 mvojkovi Exp $ */
 
 /* THIS IS NOT AN X PROJECT TEAM SPECIFICATION */
 
@@ -52,6 +52,7 @@ typedef struct {
 	struct {
 	    char   visibility;
 	    char   class;
+            char   root;
 	} win;
 	struct {
 	    Bool shared;

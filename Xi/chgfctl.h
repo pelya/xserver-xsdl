@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/Xi/chgfctl.h,v 3.1 1996/04/15 11:18:26 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/Xi/chgfctl.h,v 3.2 2003/11/17 22:20:29 dawes Exp $ */
 /************************************************************
 
 Copyright 1996 by Thomas E. Dickey <dickey@clark.net>
@@ -29,82 +29,66 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 int
 SProcXChangeFeedbackControl(
-#if NeedFunctionPrototypes
 	ClientPtr              /* client */
-#endif
 	);
 
 int
 ProcXChangeFeedbackControl(
-#if NeedFunctionPrototypes
 	ClientPtr              /* client */
-#endif
 	);
 
 int
 ChangeKbdFeedback (
-#if NeedFunctionPrototypes
 	ClientPtr              /* client */,
 	DeviceIntPtr           /* dev */,
 	unsigned long          /* mask */,
 	KbdFeedbackPtr         /* k */,
 	xKbdFeedbackCtl *      /* f */
-#endif
 	);
 
 int
 ChangePtrFeedback (
-#if NeedFunctionPrototypes
 	ClientPtr              /* client */,
 	DeviceIntPtr           /* dev */,
 	unsigned long          /* mask */,
 	PtrFeedbackPtr         /* p */,
 	xPtrFeedbackCtl *      /* f */
-#endif
 	);
 
 int
 ChangeIntegerFeedback (
-#if NeedFunctionPrototypes
 	ClientPtr              /* client */,
 	DeviceIntPtr           /* dev */,
 	unsigned long          /* mask */,
 	IntegerFeedbackPtr     /* i */,
 	xIntegerFeedbackCtl *  /* f */
-#endif
 	);
 
 int
 ChangeStringFeedback (
-#if NeedFunctionPrototypes
 	ClientPtr              /* client */,
 	DeviceIntPtr           /* dev */,
 	unsigned long          /* mask */,
 	StringFeedbackPtr      /* s */,
 	xStringFeedbackCtl *   /* f */
-#endif
 	);
 
 int
 ChangeBellFeedback (
-#if NeedFunctionPrototypes
 	ClientPtr              /* client */,
 	DeviceIntPtr           /* dev */,
 	unsigned long          /* mask */,
 	BellFeedbackPtr        /* b */,
 	xBellFeedbackCtl *     /* f */
-#endif
 	);
 
 int
 ChangeLedFeedback (
-#if NeedFunctionPrototypes
 	ClientPtr              /* client */,
 	DeviceIntPtr           /* dev */,
 	unsigned long          /* mask */,
 	LedFeedbackPtr         /* l */,
 	xLedFeedbackCtl *      /* f */
-#endif
 	);
 
 #endif /* CHGFCTL_H */

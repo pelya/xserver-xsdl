@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/bus/e8870PCI.c,v 1.1 2003/02/23 20:26:49 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/bus/e8870PCI.c,v 1.2 2003/07/17 15:08:22 tsi Exp $ */
 /*
  * Copyright (C) 2002-2003 The XFree86 Project, Inc.  All Rights Reserved.
  *
@@ -40,7 +40,7 @@ xf86PreScanE8870(void)
 
     /* Look for an E8870's Hub interface */
     tag = PCI_MAKE_TAG(0, 0x1E, 0);
-    if (pciReadLong(tag, PCI_ID_REG) != DEVID(INTEL, 82801_P2P))
+    if (pciReadLong(tag, PCI_ID_REG) != DEVID(VENDOR_INTEL, CHIP_82801_P2P))
 	return FALSE;
 
     /* XXX Fill me in... */

@@ -50,7 +50,7 @@ copyright holders.
 **    *********************************************************
 ** 
 ********************************************************************/
-/* $XFree86: xc/programs/Xserver/Xprint/Init.c,v 1.13 2001/12/21 21:02:04 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/Xprint/Init.c,v 1.15 2003/10/29 22:11:54 tsi Exp $ */
 
 #include <unistd.h>
 #include <stdlib.h>
@@ -324,11 +324,6 @@ typedef struct _driverMapping {
     char *driverName;
     int screenNum;
 } DriverMapEntry, *DriverMapPtr;
-
-static const char configFilePath[] =
-"/etc/dt/config/print:/usr/dt/config/print";
-
-static const char printServerConfigDir[] = "XPSERVERCONFIGDIR";
 
 static char *configFileName = (char *)NULL;
 static Bool freeDefaultFontPath = FALSE;
@@ -1508,57 +1503,6 @@ GenericScreenInit(
     pScreen->mmWidth = pScreen->mmHeight = ( maxWidth > maxHeight ) ?
                                            (unsigned short)(maxWidth + 0.5) : 
 					   (unsigned short)(maxHeight + 0.5);
-}
-
-/*
- * QualifyName - takes an unqualified file name such as X6printers and
- * a colon-separated list of directory path names such as 
- * /etc/opt/dt:/opt/dt/config.
- * 
- * Returns a fully qualified file path name such as /etc/opt/dt/X6printers.
- * The returned value is malloc'd, and the caller is responsible for 
- * freeing the associated memory.
- */
-static char *
-QualifyName(
-    char *fileName,
-    char *searchPath)
-{
-    char * curPath = searchPath;
-    char * nextPath;
-    char * chance;
-    FILE *pFile;
-
-    if (fileName == NULL || searchPath == NULL)
-      return NULL;
-
-    while (1) {
-      if ((nextPath = strchr(curPath, ':')) != NULL)
-        *nextPath = 0;
-  
-      chance = (char *)xalloc(strlen(curPath) + strlen(fileName) + 2);
-      sprintf(chance,"%s/%s",curPath,fileName);
-  
-      /* see if we can read from the file */
-      if((pFile = fopen(chance, "r")) != (FILE *)NULL)
-      {
-	fclose(pFile);
-        /* ... restore the colon, .... */
-        if (nextPath)
-	  *nextPath = ':';
-  
-        return chance;
-      }
-  
-      xfree(chance);
-
-      if (nextPath == NULL) /* End of path list? */
-        break;
-  
-      /* try the next path */
-      curPath = nextPath + 1;
-    }
-    return NULL;
 }
 
 /*

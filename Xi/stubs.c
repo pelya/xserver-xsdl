@@ -45,7 +45,7 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ********************************************************/
-/* $XFree86: xc/programs/Xserver/Xi/stubs.c,v 3.4 2001/12/14 19:58:59 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/Xi/stubs.c,v 3.5 2003/11/17 22:20:30 dawes Exp $ */
 
 /*
  * stubs.c -- stub routines for the X server side of the XINPUT
@@ -132,17 +132,11 @@ ChangeKeyboardDevice (old_dev, new_dev)
  */
 
 int
-#if NeedFunctionPrototypes
 ChangePointerDevice (
     DeviceIntPtr	old_dev,
     DeviceIntPtr	new_dev,
     unsigned char	x,
     unsigned char	y)
-#else
-ChangePointerDevice (old_dev, new_dev, x, y)
-    DeviceIntPtr	old_dev, new_dev;
-    unsigned char	x, y;
-#endif
     {
     /***********************************************************************
     InitFocusClassDeviceStruct(old_dev);	* allow focusing old ptr*

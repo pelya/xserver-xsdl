@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/afb/afbwindow.c,v 3.0 1996/08/18 01:45:58 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/afb/afbwindow.c,v 3.1 2003/09/13 21:33:04 dawes Exp $ */
 /* $XConsortium: afbwindow.c,v 5.14 94/04/17 20:28:36 dpw Exp $ */
 /* Combined Purdue/PurduePlus patches, level 2.0, 1/17/89 */
 /***********************************************************
@@ -56,8 +56,6 @@ SOFTWARE.
 #include "mistruct.h"
 #include "regionstr.h"
 #include "maskbits.h"
-
-extern WindowPtr *WindowTable;
 
 Bool
 afbCreateWindow(pWin)

@@ -1,5 +1,5 @@
 /*
- * $XFree86: xc/programs/Xserver/miext/layer/layerpict.c,v 1.1 2001/05/29 04:54:13 keithp Exp $
+ * $XFree86: xc/programs/Xserver/miext/layer/layerpict.c,v 1.2 2003/08/22 19:27:32 eich Exp $
  *
  * Copyright © 2001 Keith Packard, member of The XFree86 Project, Inc.
  *

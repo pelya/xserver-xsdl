@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/Xi/getdctl.h,v 3.1 1996/04/15 11:18:38 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/Xi/getdctl.h,v 3.2 2003/11/17 22:20:29 dawes Exp $ */
 /************************************************************
 
 Copyright 1996 by Thomas E. Dickey <dickey@clark.net>
@@ -29,35 +29,27 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 int
 SProcXGetDeviceControl (
-#if NeedFunctionPrototypes
 	ClientPtr              /* client */
-#endif
 	);
 
 int
 ProcXGetDeviceControl (
-#if NeedFunctionPrototypes
 	ClientPtr              /* client */
-#endif
 	);
 
 void
 CopySwapDeviceResolution (
-#if NeedFunctionPrototypes
 	ClientPtr              /* client */,
 	ValuatorClassPtr       /* v */,
 	char *                 /* buf */,
 	int                    /* length */
-#endif
 	);
 
 void
 SRepXGetDeviceControl (
-#if NeedFunctionPrototypes
 	ClientPtr              /* client */,
 	int                    /* size */,
 	xGetDeviceControlReply * /* rep */
-#endif
 	);
 
 #endif /* GETDCTL_H */

@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/os/osinit.c,v 3.27 2002/06/17 08:04:18 alanh Exp $ */
+/* $XFree86: xc/programs/Xserver/os/osinit.c,v 3.30 2003/10/29 04:17:22 dawes Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -95,7 +95,7 @@ extern void xf86WrapperInit(void);
 #endif
 
 void
-OsInit()
+OsInit(void)
 {
     static Bool been_here = FALSE;
     static char* admpath = ADMPATH;
@@ -216,6 +216,11 @@ OsInit()
 #ifdef DDXOSINIT
     OsVendorInit();
 #endif
+    /*
+     * No log file by default.  OsVendorInit() should call LogInit() with the
+     * log file name if logging to a file is desired.
+     */
+    LogInit(NULL, NULL);
 #ifdef SMART_SCHEDULE
     if (!SmartScheduleDisable)
 	if (!SmartScheduleInit ())
@@ -226,9 +231,12 @@ OsInit()
 }
 
 void
-OsCleanup()
+OsCleanup(Bool terminating)
 {
 #ifdef SERVER_LOCK
-    UnlockServer();
+    if (terminating)
+    {
+	UnlockServer();
+    }
 #endif
 }

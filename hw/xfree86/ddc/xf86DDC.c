@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/ddc/xf86DDC.c,v 1.23 2003/02/17 16:08:27 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/ddc/xf86DDC.c,v 1.27 2003/10/30 17:48:19 tsi Exp $ */
 
 /* xf86DDC.c 
  * 
@@ -19,6 +19,7 @@ const char *i2cSymbols[] = {
     "xf86CreateI2CDevRec",
     "xf86I2CDevInit",
     "xf86I2CWriteRead",
+    "xf86I2CFindDev",
     "xf86DestroyI2CDevRec",
     NULL
 };
@@ -332,19 +333,22 @@ DDCRead_DDC2(int scrnIndex, I2CBusPtr pBus, int start, int len)
     int i;
     
     xf86LoaderReqSymLists(i2cSymbols, NULL);
-    dev = xf86CreateI2CDevRec();
-    dev->DevName = "ddc2";
-    dev->SlaveAddr = 0xA0;
-    dev->ByteTimeout = 2200; /* VESA DDC spec 3 p. 43 (+10 %) */
-    dev->StartTimeout = 550;
-    dev->BitTimeout = 40;
-    dev->ByteTimeout = 40;
-    dev->AcknTimeout = 40;
 
-    dev->pI2CBus = pBus;
-    if (! xf86I2CDevInit(dev)) {
-	xf86DrvMsg(X_PROBED,scrnIndex,"No DDC2 device\n");
-	return NULL;
+    if (!(dev = xf86I2CFindDev(pBus, 0x00A0))) {
+	dev = xf86CreateI2CDevRec();
+	dev->DevName = "ddc2";
+	dev->SlaveAddr = 0xA0;
+	dev->ByteTimeout = 2200; /* VESA DDC spec 3 p. 43 (+10 %) */
+	dev->StartTimeout = 550;
+	dev->BitTimeout = 40;
+	dev->ByteTimeout = 40;
+	dev->AcknTimeout = 40;
+
+	dev->pI2CBus = pBus;
+	if (!xf86I2CDevInit(dev)) {
+	    xf86DrvMsg(scrnIndex, X_PROBED, "No DDC2 device\n");
+	    return NULL;
+	}
     }
     if (start < 0x100) {
 	w_bytes = 1;
@@ -358,10 +362,9 @@ DDCRead_DDC2(int scrnIndex, I2CBusPtr pBus, int start, int len)
 					* (len));
     for (i=0; i<RETRIES; i++) {
 	if (xf86I2CWriteRead(dev, W_Buffer,w_bytes, R_Buffer,len)) {
-	    if (!DDC_checksum(R_Buffer,len)) { 
-		xf86DestroyI2CDevRec(dev,TRUE);
+	    if (!DDC_checksum(R_Buffer,len))
 		return R_Buffer;
-	    }
+
 #ifdef DEBUG
 	    else ErrorF("Checksum error in EDID block\n");
 #endif
@@ -375,5 +378,3 @@ DDCRead_DDC2(int scrnIndex, I2CBusPtr pBus, int start, int len)
     xfree(R_Buffer);
     return NULL;
 }
-
-

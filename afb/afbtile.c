@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/afb/afbtile.c,v 3.3 2001/10/28 03:32:59 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/afb/afbtile.c,v 3.4 2003/10/29 22:15:19 tsi Exp $ */
 /* Combined Purdue/PurduePlus patches, level 2.0, 1/17/89 */
 /***********************************************************
 
@@ -94,7 +94,6 @@ MROP_NAME(afbTileAreaPPW)(pDraw, nbox, pbox, alu, ptile, planemask)
 	register PixelType *p;		/* pointer to bits we're writing */
 	int sizeDst;
 	int depthDst;
-	int tlwidth;
 	register int d;
 	PixelType startmask;
 	PixelType endmask;		/* masks for reggedy bits at either end of line */
@@ -113,7 +112,6 @@ MROP_NAME(afbTileAreaPPW)(pDraw, nbox, pbox, alu, ptile, planemask)
 	MROP_INITIALIZE(alu,~0)
 
 	tileHeight = ptile->drawable.height;
-	tlwidth = ptile->devKind / sizeof (PixelType);
 	pSaveSrc = (PixelType *)(ptile->devPrivate.ptr);
 
 	while (nbox--) {
@@ -249,11 +247,11 @@ MROP_NAME(afbTileArea)(pDraw, nbox, pbox, alu, pTile, xOff, yOff, planemask)
 	int depthDst;
 	int sizeTile;
 	int tileLine;
-	int				iline;
-	int				w, width, x, xSrc, ySrc, srcStartOver, nend;
-	int 		tlwidth, rem, tileWidth, tileHeight, endinc;
-	int				saveW;
-	PixelType   *psrcT;
+	int iline;
+	int w, width, x, xSrc, ySrc, srcStartOver, nend;
+	int tlwidth, rem, tileWidth, tileHeight, endinc;
+	int saveW;
+	PixelType *psrcT;
 	int d;
 	int nstart;
 	PixelType startmask;
@@ -637,11 +635,11 @@ MROP_NAME(afbOpaqueStippleArea)(pDraw, nbox, pbox, alu, pTile, xOff, yOff,
 	int sizeDst;
 	int depthDst;
 	int tileLine;
-	int				iline;
-	int				w, width, x, xSrc, ySrc, srcStartOver, nend;
-	int 		tlwidth, rem, tileWidth, tileHeight, endinc;
-	int				saveW;
-	PixelType   *psrcT;
+	int iline;
+	int w, width, x, xSrc, ySrc, srcStartOver, nend;
+	int tlwidth, rem, tileWidth, tileHeight, endinc;
+	int saveW;
+	PixelType *psrcT;
 	int d;
 	int nstart;
 	PixelType startmask;

@@ -3,7 +3,7 @@
 
    Written by Mark Vojkovich
 */
-/* $XFree86: xc/programs/Xserver/Xext/xf86dga2.c,v 1.17 2001/10/28 03:32:51 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/Xext/xf86dga2.c,v 1.18 2003/07/16 01:38:30 dawes Exp $ */
 
 
 #define NEED_REPLIES
@@ -24,6 +24,7 @@
 #include "xf86dgastr.h"
 #include "swaprep.h"
 #include "dgaproc.h"
+#include "xf86dgaext.h"
 
 #ifdef EXTMODULE
 #include "xf86_ansic.h"
@@ -31,6 +32,7 @@
 #include <string.h>
 #endif
 
+#include "modinit.h"
 
 static DISPATCH_PROC(ProcXDGADispatch);
 static DISPATCH_PROC(SProcXDGADispatch);
@@ -50,10 +52,6 @@ static DISPATCH_PROC(ProcXDGASync);
 static DISPATCH_PROC(ProcXDGASetClientVersion);
 static DISPATCH_PROC(ProcXDGAChangePixmapMode);
 static DISPATCH_PROC(ProcXDGACreateColormap);
-
-
-extern DISPATCH_PROC(ProcXF86DGADispatch);
-
 
 static void XDGAResetProc(ExtensionEntry *extEntry);
 
@@ -78,7 +76,7 @@ typedef struct {
 #define DGAPRIV(c) ((c)->devPrivates[DGAClientPrivateIndex].ptr)
 
 void
-XFree86DGAExtensionInit(void)
+XFree86DGAExtensionInit(INITARGS)
 {
     ExtensionEntry* extEntry;
 
@@ -766,7 +764,7 @@ ProcXDGADispatch (ClientPtr client)
 
 #ifdef EXTMODULE
 void
-XFree86DGARegister()
+XFree86DGARegister(INITARGS)
 {
   XDGAEventBase = &DGAEventBase; 
 }

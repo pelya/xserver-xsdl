@@ -12,6 +12,7 @@ the suitability of this software for any purpose.  It is provided "as
 is" without express or implied warranty.
 
 */
+/* $XFree86: xc/programs/Xserver/hw/xnest/Pointer.h,v 1.2 2003/11/16 05:05:20 dawes Exp $ */
 
 #ifndef XNESTPOINTER_H
 #define XNESTPOINTER_H
@@ -22,7 +23,7 @@ is" without express or implied warranty.
         (ButtonPressMask | ButtonReleaseMask | PointerMotionMask | \
 	 EnterWindowMask | LeaveWindowMask)
 
-void xnestChangePointerControl();
-int xnestPointerProc();
+void xnestChangePointerControl(DeviceIntPtr pDev, PtrCtrl *ctrl);
+int xnestPointerProc(DeviceIntPtr pDev, int onoff);
 
 #endif /* XNESTPOINTER_H */

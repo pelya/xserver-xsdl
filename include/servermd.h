@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/include/servermd.h,v 3.53 2002/05/31 18:46:04 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/include/servermd.h,v 3.57 2003/11/03 05:11:59 tsi Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -153,7 +153,7 @@ SOFTWARE.
 
 #endif /* __arm32__ */
 
-#if defined (__hppa__)
+#if defined (hpux)
 
 #define IMAGE_BYTE_ORDER	MSBFirst
 #define BITMAP_BIT_ORDER	MSBFirst
@@ -165,7 +165,7 @@ SOFTWARE.
 #define LARGE_INSTRUCTION_CACHE
 #define PLENTIFUL_REGISTERS
 
-#endif /* __hppa__ */
+#endif /* hpux */
 
 #if defined(__powerpc__)
 
@@ -271,20 +271,6 @@ SOFTWARE.
 #endif
 
 #endif /* ibm */
-
-#ifdef hpux
-
-#define IMAGE_BYTE_ORDER	MSBFirst        /* Values for the HP only */
-#define BITMAP_BIT_ORDER	MSBFirst
-#define	GLYPHPADBYTES		2		/* to match product server */
-#define	GETLEFTBITS_ALIGNMENT	4		/* PA forces longs to 4 */
-						/* byte boundries */
-#define AVOID_MEMORY_READ
-#define FAST_CONSTANT_OFFSET_MODE
-#define LARGE_INSTRUCTION_CACHE
-#define PLENTIFUL_REGISTERS
-
-#endif /* hpux */
 
 #if defined (M4310) || defined(M4315) || defined(M4317) || defined(M4319) || defined(M4330)
 
@@ -403,7 +389,7 @@ SOFTWARE.
 
 #endif /* ia64 */
 
-#if defined(__x86_64__) || defined(x86_64)
+#if defined(__AMD64__) || defined(AMD64)
 # define IMAGE_BYTE_ORDER	LSBFirst
 
 # if defined(XF86MONOVGA) || defined(XF86VGA16) || defined(XF86MONO)
@@ -422,7 +408,7 @@ SOFTWARE.
 # define FAST_CONSTANT_OFFSET_MODE
 /* ???? */
 # define FAST_UNALIGNED_READS
-#endif /* x86_64 */
+#endif /* AMD64 */
 
 #ifdef stellar
 
@@ -509,19 +495,8 @@ SOFTWARE.
 
 #define IMAGE_BYTE_ORDER	MSBFirst
 #define BITMAP_BIT_ORDER	MSBFirst
-
-#if (_MIPS_SZLONG == 64)
-
-# define GLYPHPADBYTES		4
-# define GETLEFTBITS_ALIGNMENT	1
-
-#else
-
-#define GLYPHPADBYTES		2
-#define GETLEFTBITS_ALIGNMENT	4
-
-#endif
-
+#define GLYPHPADBYTES		4
+#define GETLEFTBITS_ALIGNMENT	1
 #define AVOID_MEMORY_READ
 #define FAST_CONSTANT_OFFSET_MODE
 #define LARGE_INSTRUCTION_CACHE

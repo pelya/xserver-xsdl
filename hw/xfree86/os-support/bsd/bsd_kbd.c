@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/bsd/bsd_kbd.c,v 1.5 2003/02/17 15:11:56 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/bsd/bsd_kbd.c,v 1.8 2003/11/04 03:16:58 tsi Exp $ */
 
 /*
  * Copyright (c) 2002 by The XFree86 Project, Inc.
@@ -33,7 +33,7 @@ static KbdProtocolRec protocols[] = {
 #ifdef WSCONS_SUPPORT
    {"wskbd", PROT_WSCONS },
 #endif
-   { NULL, PROT_UNKNOWN }
+   { NULL, PROT_UNKNOWN_KBD }
 };
 
 typedef struct {
@@ -143,8 +143,10 @@ static int
 KbdOn(InputInfoPtr pInfo, int what)
 {
     KbdDevPtr pKbd = (KbdDevPtr) pInfo->private;
+#if defined(SYSCONS_SUPPORT) || defined(PCCONS_SUPPORT) || defined(PCVT_SUPPORT)
     BsdKbdPrivPtr priv = (BsdKbdPrivPtr) pKbd->private;
     struct termios nTty;
+#endif
 #ifdef WSCONS_SUPPORT
     int option;
 #endif
@@ -406,7 +408,7 @@ OpenKeyboard(InputInfoPtr pInfo)
 {
     KbdDevPtr pKbd = (KbdDevPtr) pInfo->private;
     int i;
-    KbdProtocolId prot = PROT_UNKNOWN;
+    KbdProtocolId prot = PROT_UNKNOWN_KBD;
     char *s;
 
     s = xf86SetStrOption(pInfo->options, "Protocol", NULL);

@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/dix/dixfonts.c,v 3.27 2003/02/15 03:47:05 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/dix/dixfonts.c,v 3.29 2003/11/17 22:20:34 dawes Exp $ */
 /************************************************************************
 Copyright 1987 by Digital Equipment Corporation, Maynard, Massachusetts.
 
@@ -193,23 +193,13 @@ FontWakeup(data, count, LastSelectMask)
 
 /* XXX -- these two funcs may want to be broken into macros */
 static void
-#if NeedFunctionPrototypes
 UseFPE(FontPathElementPtr fpe)
-#else
-UseFPE(fpe)
-    FontPathElementPtr fpe;
-#endif
 {
     fpe->refcount++;
 }
 
 static void
-#if NeedFunctionPrototypes
 FreeFPE (FontPathElementPtr fpe)
-#else
-FreeFPE (fpe)
-    FontPathElementPtr	fpe;
-#endif
 {
     fpe->refcount--;
     if (fpe->refcount == 0) {
@@ -220,13 +210,7 @@ FreeFPE (fpe)
 }
 
 static Bool
-#if NeedFunctionPrototypes
 doOpenFont(ClientPtr client, OFclosurePtr c)
-#else
-doOpenFont(client, c)
-    ClientPtr   client;
-    OFclosurePtr c;
-#endif
 {
     FontPtr     pfont = NullFont;
     FontPathElementPtr fpe = NULL;
@@ -576,13 +560,7 @@ QueryFont(pFont, pReply, nProtoCCIStructs)
 }
 
 static Bool
-#if NeedFunctionPrototypes
 doListFontsAndAliases(ClientPtr client, LFclosurePtr c)
-#else
-doListFontsAndAliases(client, c)
-    ClientPtr   client;
-    LFclosurePtr c;
-#endif
 {
     FontPathElementPtr fpe;
     int         err = Successful;
@@ -998,7 +976,11 @@ doListFontsWithInfo(client, c)
 		c->saved = c->current;
 		c->haveSaved = TRUE;
 		c->savedNumFonts = numFonts;
-		c->savedName = (char *) pFontInfo;
+		if (c->savedName)
+		  xfree(c->savedName);
+		c->savedName = (char *)xalloc(namelen + 1);
+		if (c->savedName)
+		  memmove(c->savedName, name, namelen + 1);
 		aliascount = 20;
 	    }
 	    memmove(c->current.pattern, name, namelen);
@@ -1105,6 +1087,7 @@ bail:
 	FreeFPE(c->fpe_list[i]);
     xfree(c->reply);
     xfree(c->fpe_list);
+    if (c->savedName) xfree(c->savedName);
     xfree(c);
     return TRUE;
 }
@@ -1155,6 +1138,7 @@ StartListFontsWithInfo(client, length, pattern, max_names)
     c->savedNumFonts = 0;
     c->haveSaved = FALSE;
     c->slept = FALSE;
+    c->savedName = 0;
     doListFontsWithInfo(client, c);
     return Success;
 badAlloc:
@@ -1642,12 +1626,7 @@ ImageText(client, pDraw, pGC, nChars, data, xorg, yorg, reqType, did)
 
 /* does the necessary magic to figure out the fpe type */
 static int
-#if NeedFunctionPrototypes
 DetermineFPEType(char *pathname)
-#else
-DetermineFPEType(pathname)
-    char       *pathname;
-#endif
 {
     int         i;
 
@@ -1660,14 +1639,7 @@ DetermineFPEType(pathname)
 
 
 static void
-#if NeedFunctionPrototypes
 FreeFontPath(FontPathElementPtr *list, int n, Bool force)
-#else
-FreeFontPath(list, n, force)
-    FontPathElementPtr	*list;
-    Bool		force;
-    int         n;
-#endif
 {
     int         i;
 
@@ -1694,15 +1666,7 @@ FreeFontPath(list, n, force)
 }
 
 static FontPathElementPtr
-#if NeedFunctionPrototypes
 find_existing_fpe(FontPathElementPtr *list, int num, unsigned char *name, int len)
-#else
-find_existing_fpe(list, num, name, len)
-    FontPathElementPtr *list;
-    int         num;
-    unsigned char *name;
-    int         len;
-#endif
 {
     FontPathElementPtr fpe;
     int         i;
@@ -1717,15 +1681,7 @@ find_existing_fpe(list, num, name, len)
 
 
 static int
-#if NeedFunctionPrototypes
 SetFontPathElements(int npaths, unsigned char *paths, int *bad, Bool persist)
-#else
-SetFontPathElements(npaths, paths, bad, persist)
-    int         npaths;
-    unsigned char *paths;
-    int        *bad;
-    Bool	persist;
-#endif
 {
     int         i, err = 0;
     int         valid_paths = 0;

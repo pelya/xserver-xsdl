@@ -24,7 +24,7 @@ OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION  WITH
 THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 ********************************************************/
-/* $XFree86: xc/programs/Xserver/xkb/xkbInit.c,v 3.26.2.1 2003/03/17 23:53:14 paulo Exp $ */
+/* $XFree86: xc/programs/Xserver/xkb/xkbInit.c,v 3.32 2003/11/17 22:20:46 dawes Exp $ */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -45,7 +45,7 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include "XKBgeom.h"
 #include <X11/extensions/XKMformat.h>
 #include <X11/extensions/XKBfile.h>
-
+#include "xkb.h"
 
 #define	CREATE_ATOM(s)	MakeAtom(s,sizeof(s)-1,1)
 
@@ -141,12 +141,7 @@ Bool			XkbWantRulesProp=	XKB_DFLT_RULES_PROP;
 /***====================================================================***/
 
 char *
-#if NeedFunctionPrototypes
 XkbGetRulesDflts(XkbRF_VarDefsPtr defs)
-#else
-XkbGetRulesDflts(defs)
-	XkbRF_VarDefsPtr defs;
-#endif
 {
     if (XkbModelDflt)	defs->model= XkbModelDflt;
     else		defs->model= XKB_DFLT_KB_MODEL;
@@ -160,13 +155,7 @@ XkbGetRulesDflts(defs)
 }
 
 Bool
-#if NeedFunctionPrototypes
 XkbWriteRulesProp(ClientPtr client, pointer closure)
-#else
-XkbWriteRulesProp(client, closure)
-    ClientPtr	client;
-    pointer	closure;
-#endif
 {
 int 			len,out;
 Atom			name;
@@ -232,12 +221,7 @@ char *			pval;
 }
 
 void
-#if NeedFunctionPrototypes
 XkbSetRulesUsed(XkbRF_VarDefsPtr defs)
-#else
-XkbSetRulesUsed(defs)
-    XkbRF_VarDefsPtr	defs;
-#endif
 {
     if (XkbModelUsed)
 	_XkbFree(XkbModelUsed);
@@ -257,17 +241,8 @@ XkbSetRulesUsed(defs)
 }
 
 void
-#if NeedFunctionPrototypes
 XkbSetRulesDflts(char *rulesFile,char *model,char *layout,
 					char *variant,char *options)
-#else
-XkbSetRulesDflts(rulesFile,model,layout,variant,options)
-    char *	rulesFile;
-    char *	model;
-    char *	layout;
-    char *	variant;
-    char *	options;
-#endif
 {
     if (XkbRulesFile)
 	_XkbFree(XkbRulesFile);
@@ -308,13 +283,7 @@ XkbSetRulesDflts(rulesFile,model,layout,variant,options)
 pointer xkbBogus = &indicators;
 
 static Bool
-#if NeedFunctionPrototypes
 XkbInitKeyTypes(XkbDescPtr xkb,SrvXkmInfo *file)
-#else
-XkbInitKeyTypes(xkb,file)
-    XkbDescPtr		xkb;
-    SrvXkmInfo *	file;
-#endif
 {
     if (file->xkbinfo.defined&XkmTypesMask)
 	return True;
@@ -330,13 +299,7 @@ XkbInitKeyTypes(xkb,file)
 }
 
 static void
-#if NeedFunctionPrototypes
 XkbInitRadioGroups(XkbSrvInfoPtr xkbi,SrvXkmInfo *file)
-#else
-XkbInitRadioGroups(xkbi,file)
-    XkbSrvInfoPtr	xkbi;
-    SrvXkmInfo *	file;
-#endif
 {
     xkbi->nRadioGroups = 0;
     xkbi->radioGroups = NULL;
@@ -345,13 +308,7 @@ XkbInitRadioGroups(xkbi,file)
 
 
 static Status
-#if NeedFunctionPrototypes
 XkbInitCompatStructs(XkbDescPtr xkb,SrvXkmInfo *file)
-#else
-XkbInitCompatStructs(xkb,file)
-    XkbDescPtr		xkb;
-    SrvXkmInfo *	file;
-#endif
 {
 register int 	i;
 XkbCompatMapPtr	compat;
@@ -378,13 +335,7 @@ XkbCompatMapPtr	compat;
 }
 
 static void
-#if NeedFunctionPrototypes
 XkbInitSemantics(XkbDescPtr xkb,SrvXkmInfo *file)
-#else
-XkbInitSemantics(xkb,file)
-    XkbDescPtr		xkb;
-    SrvXkmInfo *	file;
-#endif
 {
     XkbInitKeyTypes(xkb,file);
     XkbInitCompatStructs(xkb,file);
@@ -394,13 +345,7 @@ XkbInitSemantics(xkb,file)
 /***====================================================================***/
 
 static Status
-#if NeedFunctionPrototypes
 XkbInitNames(XkbSrvInfoPtr xkbi,SrvXkmInfo *file)
-#else
-XkbInitNames(xkbi,file)
-    XkbSrvInfoPtr	xkbi;
-    SrvXkmInfo *	file;
-#endif
 {
 XkbDescPtr	xkb;
 XkbNamesPtr	names;
@@ -457,13 +402,7 @@ Atom		unknown;
 }
 
 static Status
-#if NeedFunctionPrototypes
 XkbInitIndicatorMap(XkbSrvInfoPtr xkbi,SrvXkmInfo *file)
-#else
-XkbInitIndicatorMap(xkbi,file)
-    XkbSrvInfoPtr	xkbi;
-    SrvXkmInfo *	file;
-#endif
 {
 XkbDescPtr		xkb;
 XkbIndicatorPtr		map;
@@ -500,14 +439,7 @@ XkbSrvLedInfoPtr	sli;
 }
 
 static Status
-#if NeedFunctionPrototypes
 XkbInitControls(DeviceIntPtr pXDev,XkbSrvInfoPtr xkbi,SrvXkmInfo *file)
-#else
-XkbInitControls(pXDev,xkbi,file)
-    DeviceIntPtr	pXDev;
-    XkbSrvInfoPtr	xkbi;
-    SrvXkmInfo *	file;
-#endif
 {
 XkbDescPtr	xkb;
 XkbControlsPtr	ctrls;
@@ -536,12 +468,7 @@ XkbControlsPtr	ctrls;
 }
 
 void
-#if NeedFunctionPrototypes
 XkbInitDevice(DeviceIntPtr pXDev)
-#else
-XkbInitDevice(pXDev)
-    DeviceIntPtr pXDev;
-#endif
 {
 int			i;
 XkbSrvInfoPtr		xkbi;
@@ -558,10 +485,11 @@ XkbEventCauseRec	cause;
 	if ((file.file=XkbDDXOpenConfigFile(XkbInitialMap,NULL,0))!=NULL) {
 	    XkmReadFile(file.file,0,XkmKeymapLegal,&file.xkbinfo);
 	    if (file.xkbinfo.xkb==NULL) {
-		ErrorF("Error loading keymap file %s (%s in %s)\n",
+		LogMessage(X_ERROR,
+				"Error loading keymap file %s (%s in %s)\n"
+				"\treverting to defaults\n",
 				XkbInitialMap, _XkbErrMessages[_XkbErrCode],
 				(_XkbErrLocation?_XkbErrLocation:"unknown"));
-		ErrorF("      reverting to defaults\n");
 		fclose(file.file);
 		file.file= NULL;
 		bzero(&file.xkbinfo,sizeof(XkbFileInfo));
@@ -578,8 +506,8 @@ XkbEventCauseRec	cause;
 	    }
 	}
 	else {
-	    ErrorF("Error opening keymap file %s, reverting to defaults\n",
-	    							XkbInitialMap);
+	    LogMessage(X_ERROR, "Error opening keymap file %s, reverting to defaults\n",
+	    	    XkbInitialMap);
 	}
     }
     pXDev->key->xkbInfo= xkbi= _XkbTypedCalloc(1,XkbSrvInfoRec);
@@ -667,22 +595,19 @@ XkbEventCauseRec	cause;
 #endif
 
 Bool
-#if NeedFunctionPrototypes
-XkbInitKeyboardDeviceStruct(	DeviceIntPtr		dev,
-				XkbComponentNamesPtr	names,
-				KeySymsPtr		pSymsIn,
-				CARD8 			pModsIn[],
-				void			(*bellProc)(),
-				void			(*ctrlProc)())
-#else
-XkbInitKeyboardDeviceStruct( dev,names,pSymsIn,pModsIn,bellProc,ctrlProc )
-    DeviceIntPtr		  dev;
-    XkbComponentNamesPtr	  names;
-    KeySymsPtr			  pSymsIn;
-    CARD8 			  pModsIn[];
-    void			(*bellProc)();
-    void			(*ctrlProc)();
-#endif
+XkbInitKeyboardDeviceStruct(
+    DeviceIntPtr		dev,
+    XkbComponentNamesPtr	names,
+    KeySymsPtr                  pSymsIn,
+    CARD8                       pModsIn[],
+    void                        (*bellProc)(
+        int /*percent*/,
+        DeviceIntPtr /*device*/,
+        pointer /*ctrl*/,
+        int),
+    void                        (*ctrlProc)(
+        DeviceIntPtr /*device*/,
+        KeybdCtrl * /*ctrl*/))
 {
 XkbFileInfo		finfo;
 KeySymsRec		tmpSyms,*pSyms;
@@ -826,7 +751,7 @@ XkbRF_VarDefsRec	defs;
 	_XkbInitFileInfo= &finfo;
     }
     else {
-	ErrorF("Couldn't load XKB keymap, falling back to pre-XKB keymap\n");
+	LogMessage(X_ERROR, "Couldn't load XKB keymap, falling back to pre-XKB keymap\n");
     }
     ok= InitKeyboardDeviceStruct((DevicePtr)dev,pSyms,pMods,bellProc,ctrlProc);
     if ((config!=NULL)&&(dev && dev->key && dev->key->xkbInfo))
@@ -873,12 +798,7 @@ XkbRF_VarDefsRec	defs;
 	 * default indicator feedback.
 	 */
 int
-#if NeedFunctionPrototypes
 XkbFinishDeviceInit(DeviceIntPtr pXDev)
-#else
-XkbFinishDeviceInit(pXDev)
-    DeviceIntPtr pXDev;
-#endif
 {
 XkbSrvInfoPtr		xkbi;
 XkbDescPtr		xkb;
@@ -920,12 +840,7 @@ XkbSrvLedInfoPtr	sli;
 	 * is part of this larger block.
 	 */
 void
-#if NeedFunctionPrototypes
 XkbFreeInfo(XkbSrvInfoPtr xkbi)
-#else
-XkbFreeInfo(xkbi)
-    XkbSrvInfoPtr	xkbi;
-#endif
 {
     if (xkbi->radioGroups) {
 	_XkbFree(xkbi->radioGroups);
@@ -975,14 +890,7 @@ extern unsigned int	XkbDfltAccessXFeedback;
 extern unsigned char	XkbDfltAccessXOptions;
 
 int
-#if NeedFunctionPrototypes
 XkbProcessArguments(int argc,char *argv[],int i)
-#else
-XkbProcessArguments(argc,argv,i)
-    int		argc;
-    char *	argv[];
-    int		i;
-#endif
 {
     if (strcmp(argv[i],"-kb")==0) {
 	noXkbExtension= True;
@@ -996,7 +904,7 @@ XkbProcessArguments(argc,argv,i)
 	if(++i < argc) {
 #if !defined(WIN32) && !defined(__UNIXOS2__) && !defined(__CYGWIN__)
 	    if (getuid() != geteuid()) {
-		ErrorF("-xkbdir is not available for setuid X servers\n");
+		LogMessage(X_WARNING, "-xkbdir is not available for setuid X servers\n");
 		return -1;
 	    } else
 #endif
@@ -1005,7 +913,7 @@ XkbProcessArguments(argc,argv,i)
 		    XkbBaseDirectory= argv[i];
 		    return 2;
 	        } else {
-		    ErrorF("-xkbdir pathname too long\n");
+		    LogMessage(X_ERROR, "-xkbdir pathname too long\n");
 		    return -1;
 		}
 	    }
@@ -1020,7 +928,7 @@ XkbProcessArguments(argc,argv,i)
 		XkbInitialMap= argv[i];
 		return 2;
 	    } else {
-		ErrorF("-xkbmap pathname too long\n");
+		LogMessage(X_ERROR, "-xkbmap pathname too long\n");
 		return -1;
 	    }
 	}
@@ -1034,7 +942,7 @@ XkbProcessArguments(argc,argv,i)
 		XkbDB= argv[i];
 		return 2;
 	    } else {
-		ErrorF("-xkbdb pathname too long\n");
+		LogMessage(X_ERROR, "-xkbdb pathname too long\n");
 		return -1;
 	    }
 	}
@@ -1098,11 +1006,7 @@ XkbProcessArguments(argc,argv,i)
 }
 
 void
-#if NeedFunctionPrototypes
 XkbUseMsg(void)
-#else
-XkbUseMsg()
-#endif
 {
     ErrorF("The X Keyboard Extension adds the following arguments:\n");
     ErrorF("-kb                    disable the X Keyboard Extension\n");

@@ -24,7 +24,7 @@ OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION  WITH
 THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 ********************************************************/
-/* $XFree86: xc/lib/X11/XKBAlloc.c,v 3.5 2001/01/17 19:41:48 dawes Exp $ */
+/* $XFree86: xc/lib/X11/XKBAlloc.c,v 3.6 2003/11/17 22:20:09 dawes Exp $ */
 
 #ifndef XKB_IN_SERVER
 
@@ -55,14 +55,7 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 /*ARGSUSED*/
 Status
-#if NeedFunctionPrototypes
 XkbAllocCompatMap(XkbDescPtr xkb,unsigned which,unsigned nSI)
-#else
-XkbAllocCompatMap(xkb,which,nSI)
-    XkbDescPtr	xkb;
-    unsigned	which;
-    unsigned	nSI;
-#endif
 {
 XkbCompatMapPtr	compat;
 XkbSymInterpretRec *prev_interpret;
@@ -109,14 +102,7 @@ XkbSymInterpretRec *prev_interpret;
 
 
 void
-#if NeedFunctionPrototypes
 XkbFreeCompatMap(XkbDescPtr xkb,unsigned which,Bool freeMap)
-#else
-XkbFreeCompatMap(xkb,which,freeMap)
-    XkbDescPtr	xkb;
-    unsigned	which;
-    Bool	freeMap;
-#endif
 {
 register XkbCompatMapPtr compat;
 
@@ -143,15 +129,7 @@ register XkbCompatMapPtr compat;
 /***===================================================================***/
 
 Status
-#if NeedFunctionPrototypes
 XkbAllocNames(XkbDescPtr xkb,unsigned which,int nTotalRG,int nTotalAliases)
-#else
-XkbAllocNames(xkb,which,nTotalRG,nTotalAliases)
-    XkbDescPtr	xkb;
-    unsigned	which;
-    int		nTotalRG;
-    int		nTotalAliases;
-#endif
 {
 XkbNamesPtr	names;
 
@@ -231,14 +209,7 @@ XkbNamesPtr	names;
 }
 
 void
-#if NeedFunctionPrototypes
 XkbFreeNames(XkbDescPtr xkb,unsigned which,Bool freeMap)
-#else
-XkbFreeNames(xkb,which,freeMap)
-    XkbDescPtr	xkb;
-    unsigned	which;
-    Bool	freeMap;
-#endif
 {
 XkbNamesPtr	names;
 
@@ -287,13 +258,7 @@ XkbNamesPtr	names;
 
 /*ARGSUSED*/
 Status
-#if NeedFunctionPrototypes
 XkbAllocControls(XkbDescPtr xkb,unsigned which)
-#else
-XkbAllocControls(xkb,which)
-    XkbDescPtr		xkb;
-    unsigned		which;
-#endif
 {
     if (xkb==NULL)
 	return BadMatch;
@@ -308,14 +273,7 @@ XkbAllocControls(xkb,which)
 
 /*ARGSUSED*/
 void
-#if NeedFunctionPrototypes
 XkbFreeControls(XkbDescPtr xkb,unsigned which,Bool freeMap)
-#else
-XkbFreeControls(xkb,which,freeMap)
-    XkbDescPtr		xkb;
-    unsigned		which;
-    Bool		freeMap;
-#endif
 {
     if (freeMap && (xkb!=NULL) && (xkb->ctrls!=NULL)) {
 	_XkbFree(xkb->ctrls);
@@ -327,12 +285,7 @@ XkbFreeControls(xkb,which,freeMap)
 /***===================================================================***/
 
 Status 
-#if NeedFunctionPrototypes
 XkbAllocIndicatorMaps(XkbDescPtr xkb)
-#else
-XkbAllocIndicatorMaps(xkb)
-    XkbDescPtr	xkb;
-#endif
 {
     if (xkb==NULL)
 	return BadMatch;
@@ -345,12 +298,7 @@ XkbAllocIndicatorMaps(xkb)
 }
 
 void
-#if NeedFunctionPrototypes
 XkbFreeIndicatorMaps(XkbDescPtr xkb)
-#else
-XkbFreeIndicatorMaps(xkb)
-    XkbDescPtr	xkb;
-#endif
 {
     if ((xkb!=NULL)&&(xkb->indicators!=NULL)) {
 	_XkbFree(xkb->indicators);
@@ -362,11 +310,7 @@ XkbFreeIndicatorMaps(xkb)
 /***====================================================================***/
 
 XkbDescRec	*
-#if NeedFunctionPrototypes
 XkbAllocKeyboard(void)
-#else
-XkbAllocKeyboard()
-#endif
 {
 XkbDescRec *xkb;
 
@@ -377,14 +321,7 @@ XkbDescRec *xkb;
 }
 
 void
-#if NeedFunctionPrototypes
 XkbFreeKeyboard(XkbDescPtr xkb,unsigned which,Bool freeAll)
-#else
-XkbFreeKeyboard(xkb,which,freeAll)
-    XkbDescPtr	xkb;
-    unsigned	which;
-    Bool	freeAll;
-#endif
 {
     if (xkb==NULL)
 	return;
@@ -412,14 +349,7 @@ XkbFreeKeyboard(xkb,which,freeAll)
 /***====================================================================***/
 
 XkbDeviceLedInfoPtr
-#if NeedFunctionPrototypes
 XkbAddDeviceLedInfo(XkbDeviceInfoPtr devi,unsigned ledClass,unsigned ledId)
-#else
-XkbAddDeviceLedInfo(devi,ledClass,ledId)
-    XkbDeviceInfoPtr	devi;
-    unsigned		ledClass;
-    unsigned		ledId;
-#endif
 {
 XkbDeviceLedInfoPtr	devli;
 register int		i;
@@ -457,13 +387,7 @@ register int		i;
 }
 
 Status
-#if NeedFunctionPrototypes
 XkbResizeDeviceButtonActions(XkbDeviceInfoPtr devi,unsigned newTotal)
-#else
-XkbResizeDeviceButtonActions(devi,newTotal)
-    XkbDeviceInfoPtr	devi;
-    unsigned		newTotal;
-#endif
 {
     XkbAction *prev_btn_acts;
 
@@ -497,14 +421,7 @@ XkbResizeDeviceButtonActions(devi,newTotal)
 
 /*ARGSUSED*/
 XkbDeviceInfoPtr
-#if NeedFunctionPrototypes
 XkbAllocDeviceInfo(unsigned deviceSpec,unsigned nButtons,unsigned szLeds)
-#else
-XkbAllocDeviceInfo(deviceSpec,nButtons,szLeds)
-    unsigned	deviceSpec;
-    unsigned	nButtons;
-    unsigned	szLeds;
-#endif
 {
 XkbDeviceInfoPtr	devi;
 
@@ -543,14 +460,7 @@ XkbDeviceInfoPtr	devi;
 
 
 void 
-#if NeedFunctionPrototypes
 XkbFreeDeviceInfo(XkbDeviceInfoPtr devi,unsigned which,Bool freeDevI)
-#else
-XkbFreeDeviceInfo(devi,which,freeDevI)
-    XkbDeviceInfoPtr	devi;
-    unsigned		which;
-    Bool		freeDevI;
-#endif
 {
     if (devi) {
 	if (freeDevI) {

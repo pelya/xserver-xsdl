@@ -12,6 +12,7 @@ the suitability of this software for any purpose.  It is provided "as
 is" without express or implied warranty.
 
 */
+/* $XFree86: xc/programs/Xserver/hw/xnest/Events.h,v 1.2 2003/11/16 05:05:20 dawes Exp $ */
 
 #ifndef XNESTEVENTS_H
 #define XNESTEVENTS_H
@@ -22,7 +23,8 @@ is" without express or implied warranty.
 
 extern CARD32 lastEventTime;
 
-void xnestCollectExposures();
-void xnestCollectEvents();
+void SetTimeSinceLastInputEvent(void);
+void xnestCollectExposures(void);
+void xnestCollectEvents(void);
 
 #endif /* XNESTEVENTS_H */

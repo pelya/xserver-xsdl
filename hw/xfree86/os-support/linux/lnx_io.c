@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/linux/lnx_io.c,v 3.24 2002/10/20 21:45:27 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/linux/lnx_io.c,v 3.26 2003/11/17 22:20:41 dawes Exp $ */
 /*
  * Copyright 1992 by Orest Zborowski <obz@Kodak.com>
  * Copyright 1993 by David Dawes <dawes@xfree86.org>
@@ -67,6 +67,7 @@ xf86GetKbdLeds()
  * from util-linux-2.9t package */
 
 #include <linux/kd.h>
+#include <linux/version.h>
 #ifdef __sparc__
 #include <asm/param.h>
 #include <asm/kbio.h>
@@ -142,12 +143,7 @@ KIOCSRATE_ioctl_ok(int rate, int delay) {
 
 #undef rate
 
-#if NeedFunctionPrototypes
 void xf86SetKbdRepeat(char rad)
-#else
-void xf86SetKbdRepeat(rad)
-char rad;
-#endif
 {
 #ifdef __sparc__
   int         rate  = 500;     /* Default rate */

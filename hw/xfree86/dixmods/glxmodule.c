@@ -25,7 +25,7 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 **************************************************************************/
-/* $XFree86: xc/programs/Xserver/GL/glxmodule.c,v 1.11 2001/06/15 21:22:38 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/GL/glxmodule.c,v 1.12 2003/09/28 20:15:40 alanh Exp $ */
 
 /*
  * Authors:
@@ -104,6 +104,7 @@ static const char *glcoreSymbols[] = {
     "__glLightiv_size",
     "__glMaterialfv_size",
     "__glMaterialiv_size",
+    "__glPointParameterfvARB_size",
     "__glReadPixels_size",
     "__glTexEnvfv_size",
     "__glTexEnviv_size",
@@ -146,6 +147,7 @@ static const char *glcoreSymbols[] = {
     "__glXDestroyContext",
     "__glXDestroyGLXPixmap",
     "__glXDispSwap_Accum",
+    "__glXDispSwap_ActiveStencilFaceEXT",
     "__glXDispSwap_ActiveTextureARB",
     "__glXDispSwap_AlphaFunc",
     "__glXDispSwap_AreTexturesResident",
@@ -357,6 +359,8 @@ static const char *glcoreSymbols[] = {
     "__glXDispSwap_PixelTransferf",
     "__glXDispSwap_PixelTransferi",
     "__glXDispSwap_PixelZoom",
+    "__glXDispSwap_PointParameterfARB",
+    "__glXDispSwap_PointParameterfvARB",
     "__glXDispSwap_PointSize",
     "__glXDispSwap_PolygonMode",
     "__glXDispSwap_PolygonOffset",
@@ -451,7 +455,9 @@ static const char *glcoreSymbols[] = {
     "__glXDispSwap_Vertex4iv",
     "__glXDispSwap_Vertex4sv",
     "__glXDispSwap_Viewport",
+    "__glXDispSwap_WindowPos3fARB",
     "__glXDisp_Accum",
+    "__glXDisp_ActiveStencilFaceEXT",
     "__glXDisp_ActiveTextureARB",
     "__glXDisp_AlphaFunc",
     "__glXDisp_AreTexturesResident",
@@ -663,6 +669,8 @@ static const char *glcoreSymbols[] = {
     "__glXDisp_PixelTransferf",
     "__glXDisp_PixelTransferi",
     "__glXDisp_PixelZoom",
+    "__glXDisp_PointParameterfARB",
+    "__glXDisp_PointParameterfvARB",
     "__glXDisp_PointSize",
     "__glXDisp_PolygonMode",
     "__glXDisp_PolygonOffset",
@@ -757,6 +765,7 @@ static const char *glcoreSymbols[] = {
     "__glXDisp_Vertex4iv",
     "__glXDisp_Vertex4sv",
     "__glXDisp_Viewport",
+    "__glXDisp_WindowPos3fARB",
     "__glXDrawArraysSize",
     "__glXDrawPixelsReqSize",
     "__glXDrawableRes",
@@ -886,6 +895,7 @@ static const char *glcoreSymbols[] = {
     "__glXWaitX",
     "__glXcombine_strings",
     "glAccum",
+    "glActiveStencilFaceEXT",
     "glActiveTextureARB",
     "glAlphaFunc",
     "glAreTexturesResident",
@@ -1102,6 +1112,8 @@ static const char *glcoreSymbols[] = {
     "glPixelTransferf",
     "glPixelTransferi",
     "glPixelZoom",
+    "glPointParameterfARB",
+    "glPointParameterfvARB",
     "glPointSize",
     "glPolygonMode",
     "glPolygonOffset",
@@ -1198,6 +1210,7 @@ static const char *glcoreSymbols[] = {
     "glVertex4sv",
     "glVertexPointer",
     "glViewport",
+    "glWindowPos3fARB",
     "glxSwapQueryExtensionsStringReply",
     "glxSwapQueryServerStringReply",
     NULL

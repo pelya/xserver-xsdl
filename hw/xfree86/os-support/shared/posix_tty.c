@@ -1,6 +1,6 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/shared/posix_tty.c,v 3.28 2003/02/17 15:11:59 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/shared/posix_tty.c,v 3.30 2003/08/24 17:37:06 dawes Exp $ */
 /*
- * Copyright 1993-1999 by The XFree86 Project, Inc.
+ * Copyright 1993-2003 by The XFree86 Project, Inc.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -127,12 +127,7 @@ xf86OpenSerial (pointer options)
 		return (-1);
 	}
 
-#ifndef Lynx
-	SYSCALL (fd = open (dev, O_RDWR | O_NONBLOCK | O_EXCL));
-#else
-	/* O_EXCL yields an EEXIST on LynxOS */
 	SYSCALL (fd = open (dev, O_RDWR | O_NONBLOCK));
-#endif
 	if (fd == -1)
 	{
 		xf86Msg (X_ERROR,

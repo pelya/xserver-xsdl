@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/xf4bpp/ppcCpArea.c,v 1.5 2000/09/26 15:57:21 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/xf4bpp/ppcCpArea.c,v 1.7 2003/11/10 18:22:42 tsi Exp $ */
 /*
  * Copyright IBM Corporation 1987,1988,1989
  *
@@ -71,31 +71,19 @@ vga16DoBitblt
     unsigned long   planemask
 )
 {
-    CARD32 *psrcBase, *pdstBase;	
-				/* start of src and dst bitmaps */
     int widthSrc, widthDst;	/* add to get to same position in next line */
-
     BoxPtr pbox;
     int nbox;
-
     BoxPtr pboxTmp, pboxNext, pboxBase, pboxNew1, pboxNew2;
 				/* temporaries for shuffling rectangles */
     DDXPointPtr pptTmp, pptNew1, pptNew2;
 				/* shuffling boxes entails shuffling the
 				   source points too */
     int w, h;
-    int xdir;			/* 1 = left right, -1 = right left/ */
-    int ydir;			/* 1 = top down, -1 = bottom up */
-
-    MROP_DECLARE_REG()
-
     int careful;
 
-    MROP_INITIALIZE(alu,planemask);
-
-    cfbGetLongWidthAndPointer (pSrc, widthSrc, psrcBase)
-
-    cfbGetLongWidthAndPointer (pDst, widthDst, pdstBase)
+    widthSrc = cfbGetLongWidth(pSrc);
+    widthDst = cfbGetLongWidth(pDst);
 
     /* XXX we have to err on the side of safety when both are windows,
      * because we don't know if IncludeInferiors is being used.
@@ -114,7 +102,6 @@ vga16DoBitblt
     if (careful && (pptSrc->y < pbox->y1))
     {
         /* walk source botttom to top */
-	ydir = -1;
 	widthSrc = -widthSrc;
 	widthDst = -widthDst;
 
@@ -151,17 +138,9 @@ vga16DoBitblt
 	    pptSrc = pptNew1;
         }
     }
-    else
-    {
-	/* walk source top to bottom */
-	ydir = 1;
-    }
 
     if (careful && (pptSrc->x < pbox->x1))
     {
-	/* walk source right to left */
-        xdir = -1;
-
 	if (nbox > 1)
 	{
 	    /* reverse order of rects in each band */
@@ -198,11 +177,6 @@ vga16DoBitblt
 	    pptNew2 -= nbox;
 	    pptSrc = pptNew2;
 	}
-    }
-    else
-    {
-	/* walk source left to right */
-        xdir = 1;
     }
 
     while(nbox--)
@@ -424,7 +398,7 @@ int dstx, dsty;
 	    /* Check to see if the region is empty */
 	    if (fastBox.x1 >= fastBox.x2 || fastBox.y1 >= fastBox.y2)
 	    {
-		REGION_INIT(pGC->pScreen, &rgnDst, NullBox, 0);
+		REGION_NULL(pGC->pScreen, &rgnDst);
 	    }
 	    else
 	    {

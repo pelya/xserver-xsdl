@@ -1,5 +1,5 @@
 /*
- * Id: fbbits.h,v 1.1 1999/11/02 03:54:45 keithp Exp $
+ * $XFree86: xc/programs/Xserver/fb/fbbits.h,v 1.14 2003/11/03 05:11:00 tsi Exp $
  *
  * Copyright © 1998 Keith Packard
  *
@@ -21,7 +21,6 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/fb/fbbits.h,v 1.13 2001/11/18 05:00:25 torrey Exp $ */
 
 /*
  * This file defines functions for drawing some primitives using
@@ -824,8 +823,6 @@ POLYSEGMENT (DrawablePtr    pDrawable,
     ul = coordToInt(pBox->x1 - xoff,     pBox->y1 - yoff);
     lr = coordToInt(pBox->x2 - xoff - 1, pBox->y2 - yoff - 1);
 
-    bits += bitsStride * yoff + xoff * MUL;
-    
     capNotLast = pGC->capStyle == CapNotLast;
     
     while (nseg--)

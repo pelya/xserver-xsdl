@@ -1,7 +1,7 @@
 /*
  * cfb copy area
  */
-/* $XFree86: xc/programs/Xserver/cfb/cfbblt.c,v 3.12 2001/12/14 19:59:21 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/cfb/cfbblt.c,v 3.14 2003/10/29 22:44:53 tsi Exp $ */
 
 /*
 
@@ -118,12 +118,13 @@ Author: Keith Packard
 #endif
 
 void
-MROP_NAME(cfbDoBitblt)(pSrc, pDst, alu, prgnDst, pptSrc, planemask)
-    DrawablePtr	    pSrc, pDst;
-    int		    alu;
-    RegionPtr	    prgnDst;
-    DDXPointPtr	    pptSrc;
-    unsigned long   planemask;
+MROP_NAME(cfbDoBitblt)(
+    DrawablePtr	    pSrc, 
+    DrawablePtr	    pDst,
+    int		    alu,
+    RegionPtr	    prgnDst,
+    DDXPointPtr	    pptSrc,
+    unsigned long   planemask)
 {
     CfbBits *psrcBase, *pdstBase;	
 				/* start of src and dst bitmaps */
@@ -167,12 +168,8 @@ MROP_NAME(cfbDoBitblt)(pSrc, pDst, alu, prgnDst, pptSrc, planemask)
 #endif
 
 #if MROP == 0
-    unsigned char *psrcBaseByte, *pdstBaseByte;
-    int widthSrcBytes, widthDstBytes;
-
-    cfbGetByteWidthAndPointer (pSrc, widthSrcBytes, psrcBaseByte)
-
-    cfbGetByteWidthAndPointer (pDst, widthDstBytes, pdstBaseByte)
+    int widthSrcBytes = cfbGetByteWidth(pSrc);
+    int widthDstBytes = cfbGetByteWidth(pDst);
 #endif
 #endif
 

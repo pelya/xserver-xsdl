@@ -44,7 +44,7 @@ not be used in advertising or otherwise to promote the sale, use or other
 dealings in this Software without prior written authorization from said
 copyright holders.
 */
-/* $XFree86: xc/programs/Xserver/Xprint/pcl/PclPixel.c,v 1.6 2001/10/28 03:32:55 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/Xprint/pcl/PclPixel.c,v 1.7 2003/10/29 22:11:00 tsi Exp $ */
 
 #include <stdio.h>
 
@@ -66,9 +66,11 @@ PclPolyPoint( pDrawable, pGC, mode, nPoints, pPoints )
     int xoffset, yoffset;
     BoxRec box;
     int xloc, yloc, i;
+#if 0
     XpContextPtr pCon;
     PclContextPrivPtr cPriv;
     PclPixmapPrivPtr pPriv;
+#endif
     
     if( PclUpdateDrawableGC( pGC, pDrawable, &outFile ) == FALSE )
       return;
@@ -113,6 +115,7 @@ PclPolyPoint( pDrawable, pGC, mode, nPoints, pPoints )
 	    }
       }
     
+#if 0
     /*
      * Change the line style and width back to what they were before
      * this routine was called.  No, this isn't pretty...
@@ -121,18 +124,15 @@ PclPolyPoint( pDrawable, pGC, mode, nPoints, pPoints )
       {
 	  pCon = PclGetContextFromWindow( (WindowPtr)pDrawable );
 	  cPriv = pCon->devPrivates[PclContextPrivateIndex].ptr;
-/*
 	  cPriv->changeMask = GCLineWidth | GCLineStyle;
-*/
       }
     else
       {
 	  pPriv =
 	    ((PixmapPtr)pDrawable)->devPrivates[PclPixmapPrivateIndex].ptr;
-/*
 	  pPriv->changeMask = GCLineWidth | GCLineStyle;
-*/
       }
+#endif
     
     PclUpdateDrawableGC( pGC, pDrawable, &outFile );
 

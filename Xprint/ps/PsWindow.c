@@ -73,7 +73,7 @@ in this Software without prior written authorization from The Open Group.
 **    *********************************************************
 ** 
 ********************************************************************/
-/* $XFree86: xc/programs/Xserver/Xprint/ps/PsWindow.c,v 1.12 2001/12/19 21:55:59 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/Xprint/ps/PsWindow.c,v 1.13 2003/10/29 22:11:55 tsi Exp $ */
 
 #include <stdio.h>
 #include <string.h>
@@ -219,7 +219,6 @@ PsPaintWindow(
   RegionPtr pRegion,
   int       what)
 {
-  WindowPtr pRoot;
 
 #define FUNCTION        0
 #define FOREGROUND      1
@@ -299,7 +298,6 @@ PsPaintWindow(
   gcmask |= GCFunction | GCClipMask;
 
   i = pScreen->myNum;
-  pRoot = WindowTable[i];
 
   pBgWin = pWin;
   if (what == PW_BORDER)

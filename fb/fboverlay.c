@@ -1,5 +1,5 @@
 /*
- * $XFree86: xc/programs/Xserver/fb/fboverlay.c,v 1.5 2002/09/16 18:05:34 eich Exp $
+ * $XFree86: xc/programs/Xserver/fb/fboverlay.c,v 1.7 2003/11/10 18:21:47 tsi Exp $
  *
  * Copyright © 2000 SuSE, Inc.
  *
@@ -179,7 +179,7 @@ fbOverlayUpdateLayerRegion (ScreenPtr	pScreen,
 				  &pScrPriv->layer[i].u.run.region))
 	{
 	    /* paint new piece with chroma key */
-	    REGION_INIT (pScreen, &rgnNew, NullBox, 0);
+	    REGION_NULL (pScreen, &rgnNew);
 	    REGION_INTERSECT (pScreen,
 			      &rgnNew, 
 			      prgn, 
@@ -210,12 +210,9 @@ fbOverlayCopyWindow(WindowPtr	pWin,
     FbOverlayScrPrivPtr	pScrPriv = fbOverlayGetScrPriv(pWin->drawable.pScreen);
     RegionRec		rgnDst;
     int			dx, dy;
-    WindowPtr		pwinRoot;
     int			i;
     RegionRec		layerRgn[FB_OVERLAY_MAX];
     PixmapPtr		pPixmap;
-
-    pwinRoot = WindowTable[pWin->drawable.pScreen->myNum];
 
     dx = ptOldOrg.x - pWin->drawable.x;
     dy = ptOldOrg.y - pWin->drawable.y;
@@ -224,7 +221,7 @@ fbOverlayCopyWindow(WindowPtr	pWin,
      * Clip to existing bits
      */
     REGION_TRANSLATE(pScreen, prgnSrc, -dx, -dy);
-    REGION_INIT (pScreen, &rgnDst, NullBox, 0);
+    REGION_NULL (pScreen, &rgnDst);
     REGION_INTERSECT(pScreen, &rgnDst, &pWin->borderClip, prgnSrc);
     REGION_TRANSLATE(pScreen, &rgnDst, dx, dy);
     /*
@@ -232,7 +229,7 @@ fbOverlayCopyWindow(WindowPtr	pWin,
      */
     for (i = 0; i < pScrPriv->nlayers; i++)
     {
-	REGION_INIT (pScreen, &layerRgn[i], NullBox, 0);
+	REGION_NULL (pScreen, &layerRgn[i]);
 	REGION_INTERSECT(pScreen, &layerRgn[i], &rgnDst,
 			 &pScrPriv->layer[i].u.run.region);
 	if (REGION_NOTEMPTY (pScreen, &layerRgn[i]))

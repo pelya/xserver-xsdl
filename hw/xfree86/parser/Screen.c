@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/parser/Screen.c,v 1.24 2003/01/04 20:20:23 paulo Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/parser/Screen.c,v 1.28 2003/11/07 23:41:41 dawes Exp $ */
 /* 
  * 
  * Copyright (c) 1997  Metro Link Incorporated
@@ -26,6 +26,33 @@
  * in this Software without prior written authorization from Metro Link.
  * 
  */
+/*
+ * Copyright (c) 1997-2003 by The XFree86 Project, Inc.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+ * THE COPYRIGHT HOLDER(S) OR AUTHOR(S) BE LIABLE FOR ANY CLAIM, DAMAGES OR
+ * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ *
+ * Except as contained in this notice, the name of the copyright holder(s)
+ * and author(s) shall not be used in advertising or otherwise to promote
+ * the sale, use or other dealings in this Software without prior written
+ * authorization from the copyright holder(s) and author(s).
+ */
+
 
 /* View/edit this file with tab stops set to 4 */
 
@@ -61,6 +88,7 @@ xf86parseDisplaySubSection (void)
 
 	ptr->disp_black.red = ptr->disp_black.green = ptr->disp_black.blue = -1;
 	ptr->disp_white.red = ptr->disp_white.green = ptr->disp_white.blue = -1;
+	ptr->disp_frameX0 = ptr->disp_frameY0 = -1;
 	while ((token = xf86getToken (DisplayTab)) != ENDSUBSECTION)
 	{
 		switch (token)
@@ -338,7 +366,7 @@ xf86printScreenSection (FILE * cf, XF86ConfScreenPtr ptr)
 			fprintf (cf, "\tSubSection \"Display\"\n");
 			if (dptr->disp_comment)
 				fprintf (cf, "%s", dptr->disp_comment);
-			if (dptr->disp_frameX0 != 0 || dptr->disp_frameY0 != 0)
+			if (dptr->disp_frameX0 >= 0 || dptr->disp_frameY0 >= 0)
 			{
 				fprintf (cf, "\t\tViewport   %d %d\n",
 						 dptr->disp_frameX0, dptr->disp_frameY0);
@@ -479,17 +507,20 @@ xf86validateScreen (XF86ConfigPtr p)
 			screen->scrn_identifier = screen->scrn_obso_driver;
 
 		monitor = xf86findMonitor (screen->scrn_monitor_str, p->conf_monitor_lst);
-		if (!monitor)
+		if (screen->scrn_monitor_str)
 		{
-			xf86validationError (UNDEFINED_MONITOR_MSG,
-						 screen->scrn_monitor_str, screen->scrn_identifier);
-			return (FALSE);
-		}
-		else
-		{
-			screen->scrn_monitor = monitor;
-			if (!xf86validateMonitor(p, screen))
+			if (!monitor)
+			{
+				xf86validationError (UNDEFINED_MONITOR_MSG,
+						 	screen->scrn_monitor_str, screen->scrn_identifier);
 				return (FALSE);
+			}
+			else
+			{
+				screen->scrn_monitor = monitor;
+				if (!xf86validateMonitor(p, screen))
+					return (FALSE);
+			}
 		}
 
 		device = xf86findDevice (screen->scrn_device_str, p->conf_device_lst);
@@ -541,15 +572,3 @@ xf86findScreen (const char *ident, XF86ConfScreenPtr p)
 	return (NULL);
 }
 
-XF86ConfDisplayPtr
-xf86findDisplay (int depth, XF86ConfDisplayPtr p)
-{
-	while (p)
-	{
-		if (depth == p->disp_depth)
-			return (p);
-
-		p = p->list.next;
-	}
-	return (NULL);
-}

@@ -24,7 +24,7 @@ OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION  WITH
 THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 ********************************************************/
-/* $XFree86: xc/programs/Xserver/xkb/ddxCtrls.c,v 1.3 2001/01/17 22:37:14 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/xkb/ddxCtrls.c,v 1.4 2003/11/17 22:20:45 dawes Exp $ */
 
 #include <stdio.h>
 #define	NEED_EVENTS 1
@@ -38,13 +38,7 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include "XI.h"
 
 void
-#if NeedFunctionPrototypes
 XkbDDXKeybdCtrlProc(DeviceIntPtr dev,KeybdCtrl *ctrl)
-#else
-XkbDDXKeybdCtrlProc(dev,ctrl)
-    DeviceIntPtr	dev;
-    KeybdCtrl *		ctrl;
-#endif
 {
 int realRepeat;
 
@@ -65,12 +59,7 @@ if (xkbDebugFlags&0x4) {
 
 
 int
-#if NeedFunctionPrototypes
 XkbDDXUsesSoftRepeat(DeviceIntPtr pXDev)
-#else
-XkbDDXUsesSoftRepeat(pXDev)
-    DeviceIntPtr pXDev;
-#endif
 {
 #ifndef XKB_ALWAYS_USES_SOFT_REPEAT
     if (pXDev && pXDev->kbdfeed ) {
@@ -96,14 +85,7 @@ XkbDDXUsesSoftRepeat(pXDev)
 }
 
 void
-#if NeedFunctionPrototypes
 XkbDDXChangeControls(DeviceIntPtr dev,XkbControlsPtr old,XkbControlsPtr new)
-#else
-XkbDDXChangeControls(dev,old,new)
-    DeviceIntPtr   dev;
-    XkbControlsPtr old;
-    XkbControlsPtr new;
-#endif
 {
 unsigned	changed, i;
 unsigned 	char *rep_old, *rep_new, *rep_fb;

@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/mi/miregion.c,v 1.8 2001/12/14 20:00:26 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/mi/miregion.c,v 1.10 2003/07/16 01:38:57 dawes Exp $ */
 /***********************************************************
 
 Copyright 1987, 1988, 1989, 1998  The Open Group
@@ -70,7 +70,6 @@ SOFTWARE.
 *                                                               *
 *****************************************************************/
 
-#include "miscstruct.h"
 #include "regionstr.h"
 #include "Xprotostr.h"
 #include "gc.h"
@@ -236,25 +235,27 @@ miPrintRegion(rgn)
     ErrorF("\n");
     return(num);
 }
-
+#endif /* DEBUG */
 
 Bool
-miRegionsEqual(reg1, reg2)
+miRegionEqual(reg1, reg2)
     RegionPtr reg1;
     RegionPtr reg2;
 {
-    int i;
+    int i, num;
     BoxPtr rects1, rects2;
 
     if (reg1->extents.x1 != reg2->extents.x1) return FALSE;
     if (reg1->extents.x2 != reg2->extents.x2) return FALSE;
     if (reg1->extents.y1 != reg2->extents.y1) return FALSE;
     if (reg1->extents.y2 != reg2->extents.y2) return FALSE;
-    if (REGION_NUM_RECTS(reg1) != REGION_NUM_RECTS(reg2)) return FALSE;
+
+    num = REGION_NUM_RECTS(reg1);
+    if (num != REGION_NUM_RECTS(reg2)) return FALSE;
     
     rects1 = REGION_RECTS(reg1);
     rects2 = REGION_RECTS(reg2);
-    for (i = 0; i != REGION_NUM_RECTS(reg1); i++) {
+    for (i = 0; i != num; i++) {
 	if (rects1[i].x1 != rects2[i].x1) return FALSE;
 	if (rects1[i].x2 != rects2[i].x2) return FALSE;
 	if (rects1[i].y1 != rects2[i].y1) return FALSE;
@@ -263,6 +264,7 @@ miRegionsEqual(reg1, reg2)
     return TRUE;
 }
 
+#ifdef DEBUG
 Bool
 miValidRegion(reg)
     RegionPtr reg;

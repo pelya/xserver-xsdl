@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/dix/colormap.c,v 3.10 2002/04/14 00:45:54 mvojkovi Exp $ */
+/* $XFree86: xc/programs/Xserver/dix/colormap.c,v 3.12 2003/11/17 22:20:33 dawes Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -66,74 +66,55 @@ extern XID clientErrorValue;
 extern int colormapPrivateCount;
 
 static Pixel FindBestPixel(
-#if NeedFunctionPrototypes
     EntryPtr /*pentFirst*/,
     int /*size*/,
     xrgb * /*prgb*/,
     int /*channel*/
-#endif
 );
 
 static int AllComp(
-#if NeedFunctionPrototypes
     EntryPtr /*pent*/,
     xrgb * /*prgb*/
-#endif
 );
 
 static int RedComp(
-#if NeedFunctionPrototypes
     EntryPtr /*pent*/,
     xrgb * /*prgb*/
-#endif
 );
 
 static int GreenComp(
-#if NeedFunctionPrototypes
     EntryPtr /*pent*/,
     xrgb * /*prgb*/
-#endif
 );
 
 static int BlueComp(
-#if NeedFunctionPrototypes
     EntryPtr /*pent*/,
     xrgb * /*prgb*/
-#endif
 );
 
 static void FreePixels(
-#if NeedFunctionPrototypes
     register ColormapPtr /*pmap*/,
     register int /*client*/
-#endif
 );
 
 static void CopyFree(
-#if NeedFunctionPrototypes
     int /*channel*/,
     int /*client*/,
     ColormapPtr /*pmapSrc*/,
     ColormapPtr /*pmapDst*/
-#endif
 );
 
 static void FreeCell(
-#if NeedFunctionPrototypes
     ColormapPtr /*pmap*/,
     Pixel /*i*/,
     int /*channel*/
-#endif
 );
 
 static void UpdateColors(
-#if NeedFunctionPrototypes
     ColormapPtr /*pmap*/
-#endif
 );
 
 static int AllocDirect(
-#if NeedFunctionPrototypes
     int /*client*/,
     ColormapPtr /*pmap*/,
     int /*c*/,
@@ -145,11 +126,9 @@ static int AllocDirect(
     Pixel * /*prmask*/,
     Pixel * /*pgmask*/,
     Pixel * /*pbmask*/
-#endif
 );
 
 static int AllocPseudo(
-#if NeedFunctionPrototypes
     int /*client*/,
     ColormapPtr /*pmap*/,
     int /*c*/,
@@ -158,11 +137,9 @@ static int AllocPseudo(
     Pixel * /*pixels*/,
     Pixel * /*pmask*/,
     Pixel ** /*pppixFirst*/
-#endif
 );
 
 static Bool AllocCP(
-#if NeedFunctionPrototypes
     ColormapPtr /*pmap*/,
     EntryPtr /*pentFirst*/,
     int /*count*/,
@@ -170,11 +147,9 @@ static Bool AllocCP(
     Bool /*contig*/,
     Pixel * /*pixels*/,
     Pixel * /*pMask*/
-#endif
 );
 
 static Bool AllocShared(
-#if NeedFunctionPrototypes
     ColormapPtr /*pmap*/,
     Pixel * /*ppix*/,
     int /*c*/,
@@ -185,29 +160,23 @@ static Bool AllocShared(
     Pixel /*gmask*/,
     Pixel /*bmask*/,
     Pixel * /*ppixFirst*/
-#endif
 );
 
 static int FreeCo(
-#if NeedFunctionPrototypes
     ColormapPtr /*pmap*/,
     int /*client*/,
     int /*color*/,
     int /*npixIn*/,
     Pixel * /*ppixIn*/,
     Pixel /*mask*/
-#endif
 );
 
 static int   TellNoMap(
-#if NeedFunctionPrototypes
     WindowPtr	/*pwin*/,
     Colormap 	* /*pmid*/
-#endif
 );
 
 static void FindColorInRootCmap (
-#if NeedFunctionPrototypes
     ColormapPtr	/* pmap */,
     EntryPtr	/* pentFirst */,
     int		/* size */,
@@ -215,7 +184,6 @@ static void FindColorInRootCmap (
     Pixel*	/* pPixel */,
     int		/* channel */,
     ColorCompareProcPtr /* comp */
-#endif
 );
 
 #define NUMRED(vis) ((vis->redMask >> vis->offsetRed) + 1)
@@ -635,7 +603,7 @@ CopyFree (channel, client, pmapSrc, pmapDst)
     int		channel, client;
     ColormapPtr	pmapSrc, pmapDst;
 {
-    int		z, npix, oldFree;
+    int		z, npix;
     EntryPtr	pentSrcFirst, pentDstFirst;
     EntryPtr	pentSrc, pentDst;
     Pixel	*ppix;
@@ -649,21 +617,18 @@ CopyFree (channel, client, pmapSrc, pmapDst)
 	npix = (pmapSrc->numPixelsRed)[client];
 	pentSrcFirst = pmapSrc->red;
 	pentDstFirst = pmapDst->red;
-	oldFree = pmapSrc->freeRed;
 	break;
       case GREENMAP:
 	ppix = (pmapSrc->clientPixelsGreen)[client];
 	npix = (pmapSrc->numPixelsGreen)[client];
 	pentSrcFirst = pmapSrc->green;
 	pentDstFirst = pmapDst->green;
-	oldFree = pmapSrc->freeGreen;
 	break;
       case BLUEMAP:
 	ppix = (pmapSrc->clientPixelsBlue)[client];
 	npix = (pmapSrc->numPixelsBlue)[client];
 	pentSrcFirst = pmapSrc->blue;
 	pentDstFirst = pmapDst->blue;
-	oldFree = pmapSrc->freeBlue;
 	break;
     }
     nalloc = 0;
@@ -1146,12 +1111,7 @@ typedef struct _bignum {
 				 ((r)->lower = BIGNUMLOWER-1))
 
 static void
-#if NeedFunctionPrototypes
 BigNumAdd (BigNumPtr x, BigNumPtr y, BigNumPtr r)
-#else
-BigNumAdd (x, y, r)
-    BigNumPtr	x, y, r;
-#endif
 {
     BigNumLower	lower, carry = 0;
 

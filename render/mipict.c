@@ -1,5 +1,5 @@
 /*
- * $XFree86: xc/programs/Xserver/render/mipict.c,v 1.14 2002/11/06 22:45:36 keithp Exp $
+ * $XFree86: xc/programs/Xserver/render/mipict.c,v 1.16 2003/11/10 18:22:52 tsi Exp $
  *
  * Copyright © 1999 Keith Packard
  *
@@ -125,6 +125,7 @@ miValidatePicture (PicturePtr pPicture,
 		   Mask       mask)
 {
     DrawablePtr	    pDrawable = pPicture->pDrawable;
+    ScreenPtr       pScreen = pDrawable->pScreen;
 
     if ((mask & (CPClipXOrigin|CPClipYOrigin|CPClipMask|CPSubwindowMode)) ||
 	(pDrawable->serialNumber != (pPicture->serialNumber & DRAWABLE_SERIAL_BITS)))
@@ -178,7 +179,7 @@ miValidatePicture (PicturePtr pPicture,
 
 		if (freeCompClip)
 		{
-		    REGION_INTERSECT(pPicture->pScreen, pPicture->pCompositeClip,
+		    REGION_INTERSECT(pScreen, pPicture->pCompositeClip,
 				     pregWin, pPicture->clientClip);
 		    if (freeTmpClip)
 			REGION_DESTROY(pScreen, pregWin);
@@ -248,7 +249,8 @@ miValidatePicture (PicturePtr pPicture,
 #define BOUND(v)	(INT16) ((v) < MINSHORT ? MINSHORT : (v) > MAXSHORT ? MAXSHORT : (v))
 
 static __inline Bool
-miClipPictureReg (RegionPtr	pRegion,
+miClipPictureReg (ScreenPtr	pScreen,
+		  RegionPtr	pRegion,
 		  RegionPtr	pClip,
 		  int		dx,
 		  int		dy)
@@ -285,7 +287,8 @@ miClipPictureReg (RegionPtr	pRegion,
 }
 		  
 static __inline Bool
-miClipPictureSrc (RegionPtr	pRegion,
+miClipPictureSrc (ScreenPtr	pScreen,
+		  RegionPtr	pRegion,
 		  PicturePtr	pPicture,
 		  int		dx,
 		  int		dy)
@@ -311,10 +314,8 @@ miClipPictureSrc (RegionPtr	pRegion,
     }
     else
     {
-	return miClipPictureReg (pRegion,
-				 pPicture->pCompositeClip,
-				 dx,
-				 dy);
+	return miClipPictureReg (pScreen, pRegion, pPicture->pCompositeClip,
+				 dx, dy);
     }
 }
 
@@ -332,6 +333,7 @@ miComputeCompositeRegion (RegionPtr	pRegion,
 			  CARD16	width,
 			  CARD16	height)
 {
+    ScreenPtr	pScreen = pSrc->pDrawable->pScreen;
     int		v;
 
     pRegion->extents.x1 = xDst;
@@ -345,18 +347,18 @@ miComputeCompositeRegion (RegionPtr	pRegion,
     if (pRegion->extents.x1 >= pRegion->extents.x2 ||
 	pRegion->extents.y1 >= pRegion->extents.y2)
     {
-	REGION_EMPTY (pDst->pDrawable->pScreen, pRegion);
+	REGION_EMPTY (pScreen, pRegion);
 	return TRUE;
     }
     /* clip against src */
-    if (!miClipPictureSrc (pRegion, pSrc, xDst - xSrc, yDst - ySrc))
+    if (!miClipPictureSrc (pScreen, pRegion, pSrc, xDst - xSrc, yDst - ySrc))
     {
 	REGION_UNINIT (pScreen, pRegion);
 	return FALSE;
     }
     if (pSrc->alphaMap)
     {
-	if (!miClipPictureSrc (pRegion, pSrc->alphaMap,
+	if (!miClipPictureSrc (pScreen, pRegion, pSrc->alphaMap,
 			       xDst - (xSrc + pSrc->alphaOrigin.x),
 			       yDst - (ySrc + pSrc->alphaOrigin.y)))
 	{
@@ -367,14 +369,15 @@ miComputeCompositeRegion (RegionPtr	pRegion,
     /* clip against mask */
     if (pMask)
     {
-	if (!miClipPictureSrc (pRegion, pMask, xDst - xMask, yDst - yMask))
+	if (!miClipPictureSrc (pScreen, pRegion, pMask,
+			       xDst - xMask, yDst - yMask))
 	{
 	    REGION_UNINIT (pScreen, pRegion);
 	    return FALSE;
 	}	
 	if (pMask->alphaMap)
 	{
-	    if (!miClipPictureSrc (pRegion, pMask->alphaMap,
+	    if (!miClipPictureSrc (pScreen, pRegion, pMask->alphaMap,
 				   xDst - (xMask + pMask->alphaOrigin.x),
 				   yDst - (yMask + pMask->alphaOrigin.y)))
 	    {
@@ -383,14 +386,15 @@ miComputeCompositeRegion (RegionPtr	pRegion,
 	    }
 	}
     }
-    if (!miClipPictureReg (pRegion, pDst->pCompositeClip, 0, 0))
+    if (!miClipPictureReg (pScreen, pRegion, pDst->pCompositeClip, 0, 0))
     {
 	REGION_UNINIT (pScreen, pRegion);
 	return FALSE;
     }
     if (pDst->alphaMap)
     {
-	if (!miClipPictureReg (pRegion, pDst->alphaMap->pCompositeClip,
+	if (!miClipPictureReg (pScreen,
+			       pRegion, pDst->alphaMap->pCompositeClip,
 			       -pDst->alphaOrigin.x,
 			       -pDst->alphaOrigin.y))
 	{
@@ -467,9 +471,9 @@ miRenderPixelToColor (PictFormatPtr format,
 	b = (pixel >> format->direct.blue) & format->direct.blueMask;
 	a = (pixel >> format->direct.alpha) & format->direct.alphaMask;
 	color->red = miFillColor (r, Ones (format->direct.redMask));
-	color->green = miFillColor (r, Ones (format->direct.greenMask));
-	color->blue = miFillColor (r, Ones (format->direct.blueMask));
-	color->alpha = miFillColor (r, Ones (format->direct.alphaMask));
+	color->green = miFillColor (g, Ones (format->direct.greenMask));
+	color->blue = miFillColor (b, Ones (format->direct.blueMask));
+	color->alpha = miFillColor (a, Ones (format->direct.alphaMask));
 	break;
     case PictTypeIndexed:
 	pIndexed = (miIndexedPtr) (format->index.devPrivate);

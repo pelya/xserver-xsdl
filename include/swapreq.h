@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/include/swapreq.h,v 1.2 2001/04/05 17:42:35 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/include/swapreq.h,v 1.4 2003/11/17 22:20:43 dawes Exp $ */
 /************************************************************
 
 Copyright 1996 by Thomas E. Dickey <dickey@clark.net>
@@ -29,44 +29,24 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 /* The first two are in misc.h */
 #if 0
-void
-SwapLongs (
-#if NeedFunctionPrototypes
+extern void SwapLongs (
     CARD32 * /* list */,
-    unsigned long /* count */
-#endif
-);
+    unsigned long /* count */);
 
-void
-SwapShorts (
-#if NeedFunctionPrototypes
+extern void SwapShorts (
     short * /* list */,
-    unsigned long  /* count */
-#endif
-);
+    unsigned long  /* count */);
 #endif
 
-void
-SwapColorItem(
-#if NeedFunctionPrototypes
-    xColorItem	* /* pItem */
-#endif
-);
+extern void SwapColorItem(
+    xColorItem	* /* pItem */);
 
-void
-SwapConnClientPrefix(
-#if NeedFunctionPrototypes
-    xConnClientPrefix * /* pCCP */
-#endif
-);
+extern void SwapConnClientPrefix(
+    xConnClientPrefix * /* pCCP */);
 
 #undef SWAPREQ_PROC
 
-#if NeedFunctionPrototypes
 #define SWAPREQ_PROC(func) int func(ClientPtr /* client */)
-#else
-#define SWAPREQ_PROC(func) int func(/* ClientPtr client */)
-#endif
 
 SWAPREQ_PROC(SProcAllocColor);
 SWAPREQ_PROC(SProcAllocColorCells);

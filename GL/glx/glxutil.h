@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/GL/glx/glxutil.h,v 1.3 2001/03/21 16:29:37 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/GL/glx/glxutil.h,v 1.4 2003/09/28 20:15:43 alanh Exp $ */
 #ifndef _glxcmds_h_
 #define _glxcmds_h_
 
@@ -46,8 +46,8 @@ extern void *__glXRealloc(void *addr, size_t newSize);
 extern void __glXFree(void *ptr);
 
 /* relate contexts with drawables */
-extern void __glXAssociateContext(__GLXcontext *glxc, __GLXdrawablePrivate *glxPriv);
-extern void __glXDeassociateContext(__GLXcontext *glxc, __GLXdrawablePrivate *glxPriv);
+extern void __glXAssociateContext(__GLXcontext *glxc);
+extern void __glXDeassociateContext(__GLXcontext *glxc);
 
 /* drawable operation */
 extern void __glXGetDrawableSize(__GLdrawablePrivate *glPriv, 

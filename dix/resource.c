@@ -72,7 +72,7 @@ SOFTWARE.
  *      1, and an otherwise arbitrary ID in the low 22 bits, we can create a
  *      resource "owned" by the client.
  */
-/* $XFree86: xc/programs/Xserver/dix/resource.c,v 3.12 2002/03/06 21:13:38 mvojkovi Exp $ */
+/* $XFree86: xc/programs/Xserver/dix/resource.c,v 3.14 2003/11/17 22:20:34 dawes Exp $ */
 
 #define NEED_EVENTS
 #include "X.h"
@@ -95,9 +95,7 @@ SOFTWARE.
 #include <assert.h>
 
 static void RebuildTable(
-#if NeedFunctionPrototypes
     int /*client*/
-#endif
 );
 
 #define SERVER_MINID 32
@@ -253,13 +251,7 @@ InitClientResources(client)
 
 
 static int
-#if NeedFunctionPrototypes
 Hash(int client, register XID id)
-#else
-Hash(client, id)
-    int client;
-    register XID id;
-#endif
 {
     id &= RESOURCE_ID_MASK;
     switch (clientTable[client].hashsize)
@@ -281,17 +273,11 @@ Hash(client, id)
 }
 
 static XID
-#if NeedFunctionPrototypes
 AvailableID(
     register int client,
     register XID id,
     register XID maxid,
     register XID goodid)
-#else
-AvailableID(client, id, maxid, goodid)
-    register int client;
-    register XID id, maxid, goodid;
-#endif
 {
     register ResourcePtr res;
 
@@ -427,8 +413,8 @@ AddResource(id, type, value)
     rrec = &clientTable[client];
     if (!rrec->buckets)
     {
-	ErrorF("AddResource(%x, %x, %x), client=%d \n",
-		id, type, (unsigned long)value, client);
+	ErrorF("AddResource(%lx, %lx, %lx), client=%d \n",
+		(unsigned long)id, type, (unsigned long)value, client);
         FatalError("client not in use\n");
     }
     if ((rrec->elements >= 4*rrec->buckets) &&
@@ -546,7 +532,8 @@ FreeResource(id, skipDeleteFuncType)
 	}
     }
     if (!gotOne)
-	FatalError("Freeing resource id=%X which isn't there", id);
+	FatalError("Freeing resource id=%lX which isn't there",
+		   (unsigned long)id);
 }
 
 

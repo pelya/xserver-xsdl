@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/cfb/cfbscrinit.c,v 1.19 2001/01/17 22:36:36 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/cfb/cfbscrinit.c,v 1.20 2003/07/16 01:38:37 dawes Exp $ */
 /************************************************************
 Copyright 1987 by Sun Microsystems, Inc. Mountain View, CA.
 
@@ -72,6 +72,20 @@ cfbCloseScreen (index, pScreen)
     return TRUE;
 }
 
+static void DestroyColormapNoop(
+        ColormapPtr pColormap)
+{
+    /* NOOP */
+}
+
+static void StoreColorsNoop(
+        ColormapPtr pColormap,
+        int ndef,
+        xColorItem * pdef)
+{
+    /* NOOP */
+}
+
 Bool
 cfbSetupScreen(pScreen, pbits, xsize, ysize, dpix, dpiy, width)
     register ScreenPtr pScreen;
@@ -104,11 +118,11 @@ cfbSetupScreen(pScreen, pbits, xsize, ysize, dpix, dpiy, width)
     pScreen->UnrealizeFont = mfbUnrealizeFont;
     pScreen->CreateGC = cfbCreateGC;
     pScreen->CreateColormap = cfbInitializeColormap;
-    pScreen->DestroyColormap = (void (*)())NoopDDA;
+    pScreen->DestroyColormap = DestroyColormapNoop;
     pScreen->InstallColormap = cfbInstallColormap;
     pScreen->UninstallColormap = cfbUninstallColormap;
     pScreen->ListInstalledColormaps = cfbListInstalledColormaps;
-    pScreen->StoreColors = (void (*)())NoopDDA;
+    pScreen->StoreColors = StoreColorsNoop;
     pScreen->ResolveColor = cfbResolveColor;
     pScreen->BitmapToRegion = mfbPixmapToRegion;
 

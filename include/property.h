@@ -45,7 +45,7 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ******************************************************************/
-/* $XFree86: xc/programs/Xserver/include/property.h,v 1.3 2001/12/14 19:59:55 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/include/property.h,v 1.4 2003/04/27 21:31:04 herrb Exp $ */
 
 #ifndef PROPERTY_H
 #define PROPERTY_H 
@@ -55,7 +55,6 @@ SOFTWARE.
 typedef struct _Property *PropertyPtr;
 
 extern int ChangeWindowProperty(
-#if NeedFunctionPrototypes
     WindowPtr /*pWin*/,
     Atom /*property*/,
     Atom /*type*/,
@@ -63,21 +62,13 @@ extern int ChangeWindowProperty(
     int /*mode*/,
     unsigned long /*len*/,
     pointer /*value*/,
-    Bool /*sendevent*/
-#endif
-);
+    Bool /*sendevent*/);
 
 extern int DeleteProperty(
-#if NeedFunctionPrototypes
     WindowPtr /*pWin*/,
-    Atom /*propName*/
-#endif
-);
+    Atom /*propName*/);
 
 extern void DeleteAllWindowProperties(
-#if NeedFunctionPrototypes
-    WindowPtr /*pWin*/
-#endif
-);
+    WindowPtr /*pWin*/);
 
 #endif  /* PROPERTY_H */

@@ -24,7 +24,7 @@ OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION  WITH
 THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 ********************************************************/
-/* $XFree86: xc/lib/X11/XKBGAlloc.c,v 3.4 2001/01/17 19:41:48 dawes Exp $ */
+/* $XFree86: xc/lib/X11/XKBGAlloc.c,v 3.5 2003/11/17 22:20:09 dawes Exp $ */
 
 #define	NEED_EVENTS
 #define	NEED_REPLIES
@@ -58,7 +58,6 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 /***====================================================================***/
 
 static void 
-#if NeedFunctionPrototypes
 _XkbFreeGeomLeafElems(	Bool			freeAll,
 			int			first,
 			int 			count,
@@ -66,16 +65,6 @@ _XkbFreeGeomLeafElems(	Bool			freeAll,
 			unsigned short *	sz_inout,
 			char **			elems,
 			unsigned int		elem_sz)
-#else
-_XkbFreeGeomLeafElems(freeAll,first,count,num_inout,sz_inout,elems,elem_sz)
-    Bool		freeAll;
-    int			first;
-    int			count;
-    unsigned short *	num_inout;
-    unsigned short *	sz_inout;
-    char **		elems;
-    unsigned int	elem_sz;
-#endif
 {
     if ((freeAll)||(*elems==NULL)) {
 	*num_inout= *sz_inout= 0;
@@ -106,13 +95,10 @@ _XkbFreeGeomLeafElems(freeAll,first,count,num_inout,sz_inout,elems,elem_sz)
 }
 
 typedef void (*ContentsClearFunc)(
-#if NeedFunctionPrototypes
 		char *		/* priv */
-#endif
 );
 
 static void 
-#if NeedFunctionPrototypes
 _XkbFreeGeomNonLeafElems(	Bool			freeAll,
 				int			first,
 				int 			count,
@@ -121,18 +107,6 @@ _XkbFreeGeomNonLeafElems(	Bool			freeAll,
 				char **			elems,
 				unsigned int		elem_sz,
 				ContentsClearFunc	freeFunc)
-#else
-_XkbFreeGeomNonLeafElems(freeAll,first,count,num_inout,sz_inout,elems,elem_sz,
-								 freeFunc)
-    Bool		freeAll;
-    int			first;
-    int			count;
-    unsigned short *	num_inout;
-    unsigned short *	sz_inout;
-    char **		elems;
-    unsigned int	elem_sz;
-    ContentsClearFunc	freeFunc;
-#endif
 {
 register int i;
 register char *ptr;
@@ -177,12 +151,7 @@ register char *ptr;
 /***====================================================================***/
 
 static void
-#if NeedFunctionPrototypes
 _XkbClearProperty(char *prop_in)
-#else
-_XkbClearProperty(prop_in)
-    char *	prop_in;
-#endif
 {
 XkbPropertyPtr	prop= (XkbPropertyPtr)prop_in;
 
@@ -198,18 +167,10 @@ XkbPropertyPtr	prop= (XkbPropertyPtr)prop_in;
 }
 
 void
-#if NeedFunctionPrototypes
 XkbFreeGeomProperties(	XkbGeometryPtr	geom,
 			int		first,
 			int		count,
 			Bool		freeAll)
-#else
-XkbFreeGeomProperties(geom,first,count,freeAll)
-    XkbGeometryPtr	geom;
-    int			first;
-    int			count;
-    Bool		freeAll;
-#endif
 {
     _XkbFreeGeomNonLeafElems(freeAll,first,count,
 				&geom->num_properties,&geom->sz_properties,
@@ -221,18 +182,10 @@ XkbFreeGeomProperties(geom,first,count,freeAll)
 /***====================================================================***/
 
 void
-#if NeedFunctionPrototypes
 XkbFreeGeomKeyAliases(	XkbGeometryPtr	geom,
 			int		first,
 			int		count,
 			Bool		freeAll)
-#else
-XkbFreeGeomKeyAliases(geom,first,count,freeAll)
-    XkbGeometryPtr	geom;
-    int			first;
-    int			count;
-    Bool		freeAll;
-#endif
 {	
     _XkbFreeGeomLeafElems(freeAll,first,count,
 				&geom->num_key_aliases,&geom->sz_key_aliases,
@@ -244,12 +197,7 @@ XkbFreeGeomKeyAliases(geom,first,count,freeAll)
 /***====================================================================***/
 
 static void
-#if NeedFunctionPrototypes
 _XkbClearColor(char *color_in)
-#else
-_XkbClearColor(color_in)
-    char *	color_in;
-#endif
 {
 XkbColorPtr	color= (XkbColorPtr)color_in;
 
@@ -259,15 +207,7 @@ XkbColorPtr	color= (XkbColorPtr)color_in;
 }
 
 void
-#if NeedFunctionPrototypes
 XkbFreeGeomColors(XkbGeometryPtr geom,int first,int count,Bool freeAll)
-#else
-XkbFreeGeomColors(geom,first,count,freeAll)
-    XkbGeometryPtr	geom;
-    int			first;
-    int			count;
-    Bool		freeAll;
-#endif
 {
     _XkbFreeGeomNonLeafElems(freeAll,first,count,
 				&geom->num_colors,&geom->sz_colors,
@@ -279,15 +219,7 @@ XkbFreeGeomColors(geom,first,count,freeAll)
 /***====================================================================***/
 
 void
-#if NeedFunctionPrototypes
 XkbFreeGeomPoints(XkbOutlinePtr outline,int first,int count,Bool freeAll)
-#else
-XkbFreeGeomPoints(outline,first,count,freeAll)
-    XkbOutlinePtr	outline;
-    int			first;
-    int			count;
-    Bool		freeAll;
-#endif
 {
     _XkbFreeGeomLeafElems(freeAll,first,count,
 				&outline->num_points,&outline->sz_points,
@@ -299,12 +231,7 @@ XkbFreeGeomPoints(outline,first,count,freeAll)
 /***====================================================================***/
 
 static void
-#if NeedFunctionPrototypes
 _XkbClearOutline(char *outline_in)
-#else
-_XkbClearOutline(outline_in)
-    char *	outline_in;
-#endif
 {
 XkbOutlinePtr	outline= (XkbOutlinePtr)outline_in;
 
@@ -314,15 +241,7 @@ XkbOutlinePtr	outline= (XkbOutlinePtr)outline_in;
 }
 
 void
-#if NeedFunctionPrototypes
 XkbFreeGeomOutlines(XkbShapePtr	shape,int first,int count,Bool freeAll)
-#else
-XkbFreeGeomOutlines(shape,first,count,freeAll)
-    XkbShapePtr		shape;
-    int			first;
-    int			count;
-    Bool		freeAll;
-#endif
 {
     _XkbFreeGeomNonLeafElems(freeAll,first,count,
 				&shape->num_outlines,&shape->sz_outlines,
@@ -335,12 +254,7 @@ XkbFreeGeomOutlines(shape,first,count,freeAll)
 /***====================================================================***/
 
 static void
-#if NeedFunctionPrototypes
 _XkbClearShape(char *shape_in)
-#else
-_XkbClearShape(shape_in)
-    char *	shape_in;
-#endif
 {
 XkbShapePtr	shape= (XkbShapePtr)shape_in;
 
@@ -350,15 +264,7 @@ XkbShapePtr	shape= (XkbShapePtr)shape_in;
 }
 
 void
-#if NeedFunctionPrototypes
 XkbFreeGeomShapes(XkbGeometryPtr geom,int first,int count,Bool freeAll)
-#else
-XkbFreeGeomShapes(geom,first,count,freeAll)
-    XkbGeometryPtr	geom;
-    int			first;
-    int			count;
-    Bool		freeAll;
-#endif
 {
     _XkbFreeGeomNonLeafElems(freeAll,first,count,
 				&geom->num_shapes,&geom->sz_shapes,
@@ -370,15 +276,7 @@ XkbFreeGeomShapes(geom,first,count,freeAll)
 /***====================================================================***/
 
 void 
-#if NeedFunctionPrototypes
 XkbFreeGeomOverlayKeys(XkbOverlayRowPtr row,int first,int count,Bool freeAll)
-#else
-XkbFreeGeomOverlayKeys(row,first,count,freeAll)
-    XkbOverlayRowPtr	row;
-    int			first;
-    int			count;
-    Bool		freeAll;
-#endif
 {
     _XkbFreeGeomLeafElems(freeAll,first,count,
 				&row->num_keys,&row->sz_keys,
@@ -390,12 +288,7 @@ XkbFreeGeomOverlayKeys(row,first,count,freeAll)
 /***====================================================================***/
 
 static void
-#if NeedFunctionPrototypes
 _XkbClearOverlayRow(char *row_in)
-#else
-_XkbClearOverlayRow(row_in)
-    char *	row_in;
-#endif
 {
 XkbOverlayRowPtr	row= (XkbOverlayRowPtr)row_in;
 
@@ -405,15 +298,7 @@ XkbOverlayRowPtr	row= (XkbOverlayRowPtr)row_in;
 }
 
 void
-#if NeedFunctionPrototypes
 XkbFreeGeomOverlayRows(XkbOverlayPtr overlay,int first,int count,Bool freeAll)
-#else
-XkbFreeGeomOverlayRows(overlay,first,count,freeAll)
-    XkbOverlayPtr	overlay;
-    int			first;
-    int			count;
-    Bool		freeAll;
-#endif
 {
     _XkbFreeGeomNonLeafElems(freeAll,first,count,
 				&overlay->num_rows,&overlay->sz_rows,
@@ -425,12 +310,7 @@ XkbFreeGeomOverlayRows(overlay,first,count,freeAll)
 /***====================================================================***/
 
 static void
-#if NeedFunctionPrototypes
 _XkbClearOverlay(char *overlay_in)
-#else
-_XkbClearOverlay(overlay_in)
-    char *	overlay_in;
-#endif
 {
 XkbOverlayPtr	overlay= (XkbOverlayPtr)overlay_in;
 
@@ -440,15 +320,7 @@ XkbOverlayPtr	overlay= (XkbOverlayPtr)overlay_in;
 }
 
 void
-#if NeedFunctionPrototypes
 XkbFreeGeomOverlays(XkbSectionPtr section,int first,int	count,Bool freeAll)
-#else
-XkbFreeGeomOverlays(section,first,count,freeAll)
-    XkbSectionPtr	section;
-    int			first;
-    int			count;
-    Bool		freeAll;
-#endif
 {
     _XkbFreeGeomNonLeafElems(freeAll,first,count,
 				&section->num_overlays,&section->sz_overlays,
@@ -460,15 +332,7 @@ XkbFreeGeomOverlays(section,first,count,freeAll)
 /***====================================================================***/
 
 void
-#if NeedFunctionPrototypes
 XkbFreeGeomKeys(XkbRowPtr row,int first,int count,Bool freeAll)
-#else
-XkbFreeGeomKeys(row,first,count,freeAll)
-    XkbRowPtr		row;
-    int			first;
-    int			count;
-    Bool		freeAll;
-#endif
 {
     _XkbFreeGeomLeafElems(freeAll,first,count,
 				&row->num_keys,&row->sz_keys,
@@ -480,12 +344,7 @@ XkbFreeGeomKeys(row,first,count,freeAll)
 /***====================================================================***/
 
 static void
-#if NeedFunctionPrototypes
 _XkbClearRow(char *row_in)
-#else
-_XkbClearRow(row_in)
-    char *	row_in;
-#endif
 {
 XkbRowPtr	row= (XkbRowPtr)row_in;
 
@@ -495,15 +354,7 @@ XkbRowPtr	row= (XkbRowPtr)row_in;
 }
 
 void
-#if NeedFunctionPrototypes
 XkbFreeGeomRows(XkbSectionPtr section,int first,int count,Bool freeAll)
-#else
-XkbFreeGeomRows(section,first,count,freeAll)
-    XkbSectionPtr	section;
-    int			first;
-    int			count;
-    Bool		freeAll;
-#endif
 {
     _XkbFreeGeomNonLeafElems(freeAll,first,count,
 				&section->num_rows,&section->sz_rows,
@@ -514,12 +365,7 @@ XkbFreeGeomRows(section,first,count,freeAll)
 /***====================================================================***/
 
 static void
-#if NeedFunctionPrototypes
 _XkbClearSection(char *section_in)
-#else
-_XkbClearSection(section_in)
-    char *	section_in;
-#endif
 {
 XkbSectionPtr	section= (XkbSectionPtr)section_in;
 
@@ -533,15 +379,7 @@ XkbSectionPtr	section= (XkbSectionPtr)section_in;
 }
 
 void
-#if NeedFunctionPrototypes
 XkbFreeGeomSections(XkbGeometryPtr geom,int first,int count,Bool freeAll)
-#else
-XkbFreeGeomSections(geom,first,count,freeAll)
-    XkbGeometryPtr	geom;
-    int			first;
-    int			count;
-    Bool		freeAll;
-#endif
 {
     _XkbFreeGeomNonLeafElems(freeAll,first,count,
 				&geom->num_sections,&geom->sz_sections,
@@ -553,12 +391,7 @@ XkbFreeGeomSections(geom,first,count,freeAll)
 /***====================================================================***/
 
 static void
-#if NeedFunctionPrototypes
 _XkbClearDoodad(char *doodad_in)
-#else
-_XkbClearDoodad(doodad_in)
-    char *	doodad_in;
-#endif
 {
 XkbDoodadPtr	doodad= (XkbDoodadPtr)doodad_in;
 
@@ -588,14 +421,7 @@ XkbDoodadPtr	doodad= (XkbDoodadPtr)doodad_in;
 }
 
 void
-#if NeedFunctionPrototypes
 XkbFreeGeomDoodads(XkbDoodadPtr doodads,int nDoodads,Bool freeAll)
-#else
-XkbFreeGeomDoodads(doodads,nDoodads,freeAll)
-    XkbDoodadPtr	doodads;
-    int			nDoodads;
-    Bool		freeAll;
-#endif
 {
 register int 		i;
 register XkbDoodadPtr	doodad;
@@ -611,14 +437,7 @@ register XkbDoodadPtr	doodad;
 }
 
 void
-#if NeedFunctionPrototypes
 XkbFreeGeometry(XkbGeometryPtr geom,unsigned which,Bool freeMap)
-#else
-XkbFreeGeometry(geom,which,freeMap)
-    XkbGeometryPtr	geom;
-    unsigned		which;
-    Bool		freeMap;
-#endif
 {
     if (geom==NULL)
 	return;
@@ -652,20 +471,11 @@ XkbFreeGeometry(geom,which,freeMap)
 /***====================================================================***/
 
 static Status
-#if NeedFunctionPrototypes
 _XkbGeomAlloc(	XPointer *		old,
 		unsigned short *	num,
 		unsigned short *	total,
 		int			num_new,
 		Size_t			sz_elem)
-#else
-_XkbGeomAlloc(old,num,total,num_new,sz_elem)
-    XPointer *		old;
-    unsigned short *	num;
-    unsigned short *	total;
-    int			num_new;
-    Size_t		sz_elem;
-#endif
 {
     if (num_new<1)
 	return Success;
@@ -733,181 +543,91 @@ _XkbGeomAlloc(old,num,total,num_new,sz_elem)
 				(n),sizeof(XkbOverlayKeyRec))
     
 Status
-#if NeedFunctionPrototypes
 XkbAllocGeomProps(XkbGeometryPtr geom,int nProps)
-#else
-XkbAllocGeomProps(geom,nProps)
-    XkbGeometryPtr	geom;
-    int			nProps;
-#endif
 {
     return _XkbAllocProps(geom,nProps);
 }
 
 Status
-#if NeedFunctionPrototypes
 XkbAllocGeomColors(XkbGeometryPtr geom,int nColors)
-#else
-XkbAllocGeomColors(geom,nColors)
-    XkbGeometryPtr	geom;
-    int			nColors;
-#endif
 {
     return _XkbAllocColors(geom,nColors);
 }
 
 Status
-#if NeedFunctionPrototypes
 XkbAllocGeomKeyAliases(XkbGeometryPtr geom,int nKeyAliases)
-#else
-XkbAllocGeomKeyAliases(geom,nKeyAliases)
-    XkbGeometryPtr	geom;
-    int			nKeyAliases;
-#endif
 {
     return _XkbAllocKeyAliases(geom,nKeyAliases);
 }
 
 Status
-#if NeedFunctionPrototypes
 XkbAllocGeomShapes(XkbGeometryPtr geom,int nShapes)
-#else
-XkbAllocGeomShapes(geom,nShapes)
-    XkbGeometryPtr	geom;
-    int			nShapes;
-#endif
 {
     return _XkbAllocShapes(geom,nShapes);
 }
 
 Status
-#if NeedFunctionPrototypes
 XkbAllocGeomSections(XkbGeometryPtr geom,int nSections)
-#else
-XkbAllocGeomSections(geom,nSections)
-    XkbGeometryPtr	geom;
-    int			nSections;
-#endif
 {
     return _XkbAllocSections(geom,nSections);
 }
 
 Status
-#if NeedFunctionPrototypes
 XkbAllocGeomOverlays(XkbSectionPtr section,int nOverlays)
-#else
-XkbAllocGeomOverlays(section,nOverlays)
-    XkbSectionPtr	section;
-    int			nOverlays;
-#endif
 {
     return _XkbAllocOverlays(section,nOverlays);
 }
 
 Status
-#if NeedFunctionPrototypes
 XkbAllocGeomOverlayRows(XkbOverlayPtr overlay,int nRows)
-#else
-XkbAllocGeomOverlayRows(overlay,nRows)
-    XkbOverlayPtr	overlay;
-    int			nRows;
-#endif
 {
     return _XkbAllocOverlayRows(overlay,nRows);
 }
 
 Status
-#if NeedFunctionPrototypes
 XkbAllocGeomOverlayKeys(XkbOverlayRowPtr row,int nKeys)
-#else
-XkbAllocGeomOverlayKeys(row,nKeys)
-    XkbOverlayRowPtr	row;
-    int			nKeys;
-#endif
 {
     return _XkbAllocOverlayKeys(row,nKeys);
 }
 
 Status
-#if NeedFunctionPrototypes
 XkbAllocGeomDoodads(XkbGeometryPtr geom,int nDoodads)
-#else
-XkbAllocGeomDoodads(geom,nDoodads)
-    XkbGeometryPtr	geom;
-    int			nDoodads;
-#endif
 {
     return _XkbAllocDoodads(geom,nDoodads);
 }
 
 Status
-#if NeedFunctionPrototypes
 XkbAllocGeomSectionDoodads(XkbSectionPtr section,int nDoodads)
-#else
-XkbAllocGeomSectionDoodads(section,nDoodads)
-    XkbSectionPtr	section;
-    int			nDoodads;
-#endif
 {
     return _XkbAllocDoodads(section,nDoodads);
 }
 
 Status
-#if NeedFunctionPrototypes
 XkbAllocGeomOutlines(XkbShapePtr shape,int nOL)
-#else
-XkbAllocGeomOutlines(shape,nOL)
-    XkbShapePtr		shape;
-    int			nOL;
-#endif
 {
     return _XkbAllocOutlines(shape,nOL);
 }
 
 Status
-#if NeedFunctionPrototypes
 XkbAllocGeomRows(XkbSectionPtr section,int nRows)
-#else
-XkbAllocGeomRows(section,nRows)
-    XkbSectionPtr	section;
-    int			nRows;
-#endif
 {
     return _XkbAllocRows(section,nRows);
 }
 
 Status
-#if NeedFunctionPrototypes
 XkbAllocGeomPoints(XkbOutlinePtr ol,int nPts)
-#else
-XkbAllocGeomPoints(ol,nPts)
-    XkbOutlinePtr	ol;
-    int			nPts;
-#endif
 {
     return _XkbAllocPoints(ol,nPts);
 }
 
 Status
-#if NeedFunctionPrototypes
 XkbAllocGeomKeys(XkbRowPtr row,int nKeys)
-#else
-XkbAllocGeomKeys(row,nKeys)
-    XkbRowPtr		row;
-    int			nKeys;
-#endif
 {
     return _XkbAllocKeys(row,nKeys);
 }
 
 Status
-#if NeedFunctionPrototypes
 XkbAllocGeometry(XkbDescPtr xkb,XkbGeometrySizesPtr sizes)
-#else
-XkbAllocGeometry(xkb,sizes)
-    XkbDescPtr		xkb;
-    XkbGeometrySizesPtr	sizes;
-#endif
 {
 XkbGeometryPtr	geom;
 Status		rtrn;
@@ -952,14 +672,7 @@ BAIL:
 /***====================================================================***/
 
 XkbPropertyPtr
-#if NeedFunctionPrototypes
 XkbAddGeomProperty(XkbGeometryPtr geom,char *name,char *value)
-#else
-XkbAddGeomProperty(geom,name,value)
-    XkbGeometryPtr	geom;
-    char *		name;
-    char *		value;
-#endif
 {
 register int i;
 register XkbPropertyPtr prop;
@@ -997,14 +710,7 @@ register XkbPropertyPtr prop;
 }
 
 XkbKeyAliasPtr
-#if NeedFunctionPrototypes
 XkbAddGeomKeyAlias(XkbGeometryPtr geom,char *aliasStr,char *realStr)
-#else
-XkbAddGeomKeyAlias(geom,aliasStr,realStr)
-    XkbGeometryPtr	geom;
-    char *		aliasStr;
-    char *		realStr;
-#endif
 {
 register int i;
 register XkbKeyAliasPtr alias;
@@ -1031,14 +737,7 @@ register XkbKeyAliasPtr alias;
 }
 
 XkbColorPtr
-#if NeedFunctionPrototypes
 XkbAddGeomColor(XkbGeometryPtr geom,char *spec,unsigned int pixel)
-#else
-XkbAddGeomColor(geom,spec,pixel)
-    XkbGeometryPtr	geom;
-    char *		spec;
-    unsigned int	pixel;
-#endif
 {
 register int i;
 register XkbColorPtr color;
@@ -1066,13 +765,7 @@ register XkbColorPtr color;
 }
 
 XkbOutlinePtr
-#if NeedFunctionPrototypes
 XkbAddGeomOutline(XkbShapePtr shape,int sz_points)
-#else
-XkbAddGeomOutline(shape,sz_points)
-    XkbShapePtr		shape;
-    int			sz_points;
-#endif
 {
 XkbOutlinePtr	outline;
 
@@ -1091,14 +784,7 @@ XkbOutlinePtr	outline;
 }
 
 XkbShapePtr
-#if NeedFunctionPrototypes
 XkbAddGeomShape(XkbGeometryPtr geom,Atom name,int sz_outlines)
-#else
-XkbAddGeomShape(geom,name,sz_outlines)
-    XkbGeometryPtr	geom;
-    Atom		name;
-    int			sz_outlines;
-#endif
 {
 XkbShapePtr	shape;
 register int	i;
@@ -1125,12 +811,7 @@ register int	i;
 }
 
 XkbKeyPtr
-#if NeedFunctionPrototypes
 XkbAddGeomKey(XkbRowPtr row)
-#else
-XkbAddGeomKey(row)
-    XkbRowPtr		row;
-#endif
 {
 XkbKeyPtr	key;
     if (!row)
@@ -1143,13 +824,7 @@ XkbKeyPtr	key;
 }
 
 XkbRowPtr
-#if NeedFunctionPrototypes
 XkbAddGeomRow(XkbSectionPtr section,int sz_keys)
-#else
-XkbAddGeomRow(section,sz_keys)
-    XkbSectionPtr	section;
-    int			sz_keys;
-#endif
 {
 XkbRowPtr	row;
 
@@ -1167,20 +842,11 @@ XkbRowPtr	row;
 }
 
 XkbSectionPtr
-#if NeedFunctionPrototypes
 XkbAddGeomSection(	XkbGeometryPtr	geom,
 			Atom		name,
 			int		sz_rows,
 			int		sz_doodads,
 			int		sz_over)
-#else
-XkbAddGeomSection(geom,name,sz_rows,sz_doodads,sz_over)
-    XkbGeometryPtr	geom;
-    Atom		name;
-    int			sz_rows;
-    int			sz_doodads;
-    int			sz_over;
-#endif
 {
 register int	i;
 XkbSectionPtr	section;
@@ -1216,14 +882,7 @@ XkbSectionPtr	section;
 }
 
 XkbDoodadPtr
-#if NeedFunctionPrototypes
 XkbAddGeomDoodad(XkbGeometryPtr geom,XkbSectionPtr section,Atom name)
-#else
-XkbAddGeomDoodad(geom,section,name)
-    XkbGeometryPtr	geom;
-    XkbSectionPtr	section;
-    Atom		name;
-#endif
 {
 XkbDoodadPtr	old,doodad;
 register int	i,nDoodads;
@@ -1261,18 +920,10 @@ register int	i,nDoodads;
 }
 
 XkbOverlayKeyPtr
-#if NeedFunctionPrototypes
 XkbAddGeomOverlayKey(	XkbOverlayPtr		overlay,
 			XkbOverlayRowPtr 	row,
 			char *			over,
 			char *			under)
-#else
-XkbAddGeomOverlayKey(overlay,row,over,under)
-    XkbOverlayPtr	overlay;
-    XkbOverlayRowPtr	row;
-    char *		over;
-    char *		under;
-#endif
 {
 register int	i;
 XkbOverlayKeyPtr key;
@@ -1304,14 +955,7 @@ Bool		found;
 }
 
 XkbOverlayRowPtr
-#if NeedFunctionPrototypes
 XkbAddGeomOverlayRow(XkbOverlayPtr overlay,int row_under,int sz_keys)
-#else
-XkbAddGeomOverlayRow(overlay,row_under,sz_keys)
-    XkbOverlayPtr	overlay;
-    int 		row_under;
-    int			sz_keys;
-#endif
 {
 register int		i;
 XkbOverlayRowPtr	row;
@@ -1343,14 +987,7 @@ XkbOverlayRowPtr	row;
 }
 
 XkbOverlayPtr
-#if NeedFunctionPrototypes
 XkbAddGeomOverlay(XkbSectionPtr section,Atom name,int sz_rows)
-#else
-XkbAddGeomOverlay(section,name,sz_rows)
-    XkbSectionPtr	section;
-    Atom		name;
-    int			sz_rows;
-#endif
 {
 register int	i;
 XkbOverlayPtr	overlay;

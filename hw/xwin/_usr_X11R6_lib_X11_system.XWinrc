@@ -1,0 +1,105 @@
+# XWin Server Resource File - EXAMPLE
+# Earle F. Philhower, III
+
+# Place in ~/.XWinrc or in /usr/X11R6/lib/X11/system.XWinrc
+
+# Keywords are case insensitive, comments legal pretty much anywhere
+# you can have an end-of-line
+
+# Comments begin with "#" or "//" and go to the end-of-line
+
+# Paths to commands are **cygwin** based (i.e. /usr/local/bin/xcalc)
+
+# Paths to icons are **WINDOWS** based (i.e. c:\windows\icons)
+
+# Menus are defined as...
+# MENU <name> {
+#	<Menu Text>	EXEC	<command>
+#                               ^^ This command will have any "%display%"
+#                                  string replaced with the proper display
+#                                  variable (i.e. 127.0.0.1:<display>.0)
+#  or	<Menu Text>	MENU	<name-of-some-prior-defined-menu>
+#  or	<Menu Text>	ALWAYSONTOP
+#                         ^^ Sets the window to display above all others
+#  or   <Menu Text>	RELOAD
+#                         ^^ Causes ~/.XWinrc or the system.XWinrc file
+#                            to be reloaded and icons and menus regenerated
+#  or	SEPARATOR
+#       ...
+# }
+
+# Set the taskmar menu with
+# ROOTMENU <name-of-some-prior-defined-menu>
+
+# If you want a menu to be applied to all popup window's system menu
+# DEFAULTSYSMENU <name-of-some-prior-defined-menu> <atstart|atend>
+
+# To choose a specific menu for a specific WM_CLASS or WM_NAME use ...
+# SYSMENU {
+#	<class-or-name-of-window> <name-of-prior-defined-menu> <atstart|atend>
+#	...
+# }
+
+# To define where ICO files live (** Windows path**)
+# ICONDIRECTORY	<windows-path i.e. c:\cygwin\usr\icons>
+
+# To define a replacement for the standard X icon for apps w/o specified icons
+# DEFAULTICON	<name-of-windows-ico-file-in-icondirectory>
+
+# To define substitute icons on a per-window basis use...
+# ICONS {
+#	<class-or-name-of-window> <icon-file-name.ico>
+#	...
+# }
+# In the case where multiple matches occur, the first listed in the ICONS
+# section will be chosen.
+
+# DEBUG <string> prints out the string to the XWin.log file
+
+// Below are just some silly menus to demonstrate writing your
+// own configuration file.
+
+// Make some menus...
+menu apps {
+	xterm	exec	"xterm"
+	"Emacs"		exec	"emacs"
+	notepad	exec	notepad
+	xload	exec	"xload -display %display%"  # Comment
+}
+
+menu root {
+// Comments fit here, too...
+	"Reload .XWinrc"	RELOAD
+	"Applications"	menu	apps
+	SEParATOR
+}
+
+menu aot {
+	Separator
+	"Always on Top"	alwaysontop
+}
+
+menu xtermspecial {
+	"Emacs"		exec	"emacs"
+	"Always on Top"	alwaysontop
+	SepArAtor
+}
+
+RootMenu root
+
+DefaultSysMenu aot atend
+
+SysMenu {
+	"xterm"	xtermspecial atstart
+}
+
+# IconDirectory	"c:\winnt\"
+
+# DefaultIcon	"reinstall.ico"
+
+# Icons {
+# 	"xterm"	"uninstall.ico"
+# }
+
+DEBUG "Done parsing the configuration file..."
+

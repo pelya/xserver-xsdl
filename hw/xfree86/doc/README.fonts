@@ -2,7 +2,7 @@
 
                     Juliusz Chroboczek, <jch@xfree86.org>
 
-                               17 January 2003
+                              17 November 2003
 
 1.  Introduction
 
@@ -16,8 +16,8 @@ this document for background information.
 
 1.1  Two font systems
 
-XFree86 includes two font systems: the core X11 fonts system, which is pre-
-sent in all implementations of X11, and the Xft fonts system, which is not
+XFree86 includes two font systems: the core X11 fonts system, which is
+present in all implementations of X11, and the Xft fonts system, which is not
 currently distributed with implementations of X11 that are not based on
 XFree86 but will hopefully be included by them in the future
 
@@ -596,7 +596,7 @@ Please note: the X-TrueType (X-TT) backend does not use the fontenc layer,
 but instead uses its own method for font reencoding.  If you are only inter-
 ested in X-TT you may want to skip to Using Symbol Fonts (section 4.1.5, page
 1), as the intervening information does not apply to X-TT.  X-TT itself is
-described in more detail in X-TrueType (section 4.2.3, page 1).
+described in more detail in X-TrueType (section 4.2.2, page 1).
 
 In the fontenc layer, an encoding is defined by a name (such as iso8859-1),
 possibly a number of aliases (alternate names), and an ordered collection of
@@ -926,75 +926,111 @@ more precisely described in the mkfontdir(1) manual page.
 
 4.2  Additional notes about scalable core fonts
 
-The FreeType backend (module `freetype', formerly known as xfsft) is able to
-deal with both TrueType and Type 1 fonts.  This puts it in conflict with the
-X-TT and Type 1 backends respectively.
+The FreeType (libfreetype-xtt2) backend (module `freetype', formerly known as
+xfsft) is able to deal with both TrueType and Type 1 fonts.  This puts it in
+conflict with the X-TT and Type 1 backends respectively.
 
 If both the FreeType and the Type 1 backends are loaded, the FreeType backend
 will be used for Type 1 fonts.  If both the FreeType and X-TT backends are
 loaded, X-TT will be used for TrueType fonts.
 
-4.2.1  Delayed glyph rasterisation
+4.2.1  About the FreeType backend
 
-Both FreeType and X-TT delay glyph rasterisation up to the time at which a
-glyph is first used.  For this reason, they only provide an approximate value
-for the ``average width'' font property.
-
-Both backends also support an optimisation for character-cell fonts (fonts
-with all glyph metrics equal, or terminal fonts).  A font with an XLFD speci-
-fying a character-cell spacing `c', as in
-
-     -misc-mincho-medium-r-normal--0-0-0-0-c-0-jisx0208.1990-0
-
-will not rasterise glyphs at metrics computation time, but instead trust the
-font really to be a character-cell font.  You are encouraged to make use of
-this optimisation when useful, but be warned that not all monospaced fonts
-are character-cell fonts.
-
-4.2.2  About the FreeType backend
-
-The FreeType backend (formerly xfsft) is a backend based on version 2 of the
-FreeType library (see the FreeType web site <URL:http://www.freetype.org/>)
-and has support for the ``fontenc'' style of internationalisation (see The
-fontenc layer (section 4.1.1, page 1)).  This backend supports TrueType font
-files (`*.ttf'), OpenType font files (`*.otf'), TrueType Collections
-(`*.ttc'), OpenType Collections (`*.otc') and Type 1 font files (`*.pfa' and
-`*.pfb').
+The FreeType (libfreetype-xtt2) backend (formerly xfsft) is a backend based
+on version 2 of the FreeType library (see the FreeType web site
+<URL:http://www.freetype.org/>) and has the X-TT functionalities for CJKV
+support provided by the After X-TT Project (see the After X-TT Project web
+site <URL:http://x-tt.sourceforge.jp/>).  The FreeType module has support for
+the ``fontenc'' style of internationalisation (see The fontenc layer (section
+4.1.1, page 1)).  This backend supports TrueType font files (`*.ttf'), Open-
+Type font files (`*.otf'), TrueType Collections (`*.ttc'), OpenType Collec-
+tions (`*.otc') and Type 1 font files (`*.pfa' and `*.pfb').
 
 In order to access the faces in a TrueType Collection file, the face number
-must be specified in the fonts.dir file before the filename within colons.
-For example,
+must be specified in the fonts.dir file before the filename, within a pair of
+colons, or by setting the 'fn' TTCap option.  For example,
 
-     :2:mincho.ttc -misc-mincho-medium-r-normal--0-0-0-0-c-0-jisx0208.1990-0
+     :1:mincho.ttc -misc-pmincho-medium-r-normal--0-0-0-0-p-0-jisx0208.1990-0
 
-refers to face 2 in the `mincho.ttc' TrueType Collection file.
+refers to face 1 in the `mincho.ttc' TrueType Collection file.
+
+The new FreeType backend supports the extended `fonts.dir' syntax introduced
+by X-TrueType with a number of options, collectively known as `TTCap'.  A
+`TTCap' entry follows the general syntax
+
+     option=value:
+
+and should be specified before the filename.  The new FreeType almost per-
+fectly supports TTCap options that are compatible with X-TT 1.4.  The Auto-
+matic Italic (`ai'), Double Strike (`ds') and Bounding box Width (`bw')
+options are indispensable in CJKV.  For example,
+
+     mincho.ttc -misc-mincho-medium-r-normal--0-0-0-0-c-0-jisx0208.1990-0
+     ds=y:mincho.ttc -misc-mincho-bold-r-normal--0-0-0-0-c-0-jisx0208.1990-0
+     ai=0.2:mincho.ttc -misc-mincho-medium-i-normal--0-0-0-0-c-0-jisx0208.1990-0
+     ds=y:ai=0.2:mincho.ttc -misc-mincho-bold-i-normal--0-0-0-0-c-0-jisx0208.1990-0
+     bw=0.5:mincho.ttc -misc-mincho-medium-r-normal--0-0-0-0-c-0-jisx0201.1976-0
+     bw=0.5:ds=y:mincho.ttc -misc-mincho-bold-r-normal--0-0-0-0-c-0-jisx0201.1976-0
+     bw=0.5:ai=0.2:mincho.ttc -misc-mincho-medium-i-normal--0-0-0-0-c-0-jisx0201.1976-0
+     bw=0.5:ds=y:ai=0.2:mincho.ttc -misc-mincho-bold-i-normal--0-0-0-0-c-0-jisx0201.1976-0
+
+setup the complete combination of jisx0208 and jisx0201 using mincho.ttc
+only.  More information on the TTCap syntax is found on the After X-TT
+Project page <URL:http://x-tt.sourceforge.jp/>.
 
 The FreeType backend uses the fontenc layer in order to support recoding of
 fonts; this was described in The fontenc layer (section 4.1.1, page 1) and
 especially FreeType-specific notes about fontenc (section 4.1.2.1, page 1)
 earlier in this document.
 
-4.2.3  About the X-TrueType TrueType backend
+4.2.2  About the X-TrueType TrueType backend
 
 The `X-TrueType' backend is a backend based on version 1 of the FreeType
 library.  X-TrueType doesn't use the `fontenc' layer for managing font encod-
-ings, but instead uses its own database of encodings.
+ings, but instead uses its own database of encodings.  Since the functionali-
+ties for CJKV support introduced by X-TT have been merged into the new
+FreeType backend, the X-TT backend will be removed from XFree86's tree near
+the future.  Therefore, the use of FreeType backend is preferred over the X-
+TT backend.  General information on X-TrueType may be found at ."
 
-X-TrueType extends the `fonts.dir' syntax with a number of options, collec-
-tively known as `TTCap'.  A `TTCap' entry follows the general syntax
+4.2.3  Delayed glyph rasterisation
 
-     :option=value:
+When loading a large character set, the old FreeType delayed glyph rasterisa-
+tion until the time at which the glyph was first used.  The new FreeType
+(libfreetype-xtt2) has an improved `very lazy' metric calculation method to
+speed up the process when loading TrueType or OpenType fonts.   Although the
+X-TT module also has this method, the "vl=y" TTCap option must be set if you
+want to use it.  This is the default method for FreeType when it loads multi-
+byte fonts.  Even if you use a unicode font which has tens of thousands of
+glyphs, this delay will not be worrisome as long as you use the new FreeType
+backend -- its `very lazy' method is super-fast.
 
-and should be specified before the filename.
+The maximum error of bitmap position using `very lazy' method is 1 pixel, and
+is the same as that of a character-cell spacing.  When the X-TT backend is
+used with the `vl=y' option, a chipped bitmap is displayed with certain
+fonts.  However, the new FreeType backend has minimal problem with this,
+since it corrects left- and right-side bearings using `italicAngle' in the
+TrueType/OpenType post table, and does automatic correction of bitmap posi-
+tions when rasterisation so that chipped bitmaps are not displayed.  Never-
+theless if you don't want to use the `very lazy' method when using multi-
+bytes fonts, set `vl=n' in the TTCap option to disable it:
 
-The most useful TTCap option is used to specify the face number to use with
-TTCs; this is the `fn' TTCap option.  For example, face 2 of font file `min-
-cho.ttc' is specified using:
+     vl=n:luxirr.ttf -b&h-Luxi Serif-medium-r-normal--0-0-0-0-p-0-iso10646-1
 
-     :fn=2:mincho.ttc -misc-mincho-medium-r-normal--0-0-0-0-c-0-jisx0208.1990-0
+Of course, both backends also support an optimisation for character-cell
+fonts (fonts with all glyph metrics equal, or terminal fonts).  A font with
+an XLFD specifying a character-cell spacing `c', as in
 
-More information on the TTCap syntax, and on X-TrueType in general, may be
-found on the X-TrueType home page <URL:http://x-tt.dsl.gr.jp/>.
+     -misc-mincho-medium-r-normal--0-0-0-0-c-0-jisx0208.1990-0
+
+or
+
+     fs=c:mincho.ttc -misc-mincho-medium-r-normal--0-0-0-0-p-0-jisx0208.1990-0
+
+will not compute the metric for each glyph, but instead trust the font to be
+a character-cell font.  You are encouraged to make use of this optimisation
+when useful, but be warned that not all monospaced fonts are character-cell
+fonts.
 
 5.  Appendix: background and terminology
 
@@ -1126,8 +1162,8 @@ The author's software pages <URL:http://www.pps.jussieu.fr/~jch/software/>
 might or might not contain related scribbles and development versions of
 software.
 
-The documentation of X-TrueType is available from the X-TrueType home page
-<URL:http://x-tt.dsl.gr.jp/>.
+The documentation of X-TrueType is available from the After X-TT Project page
+<URL:http://x-tt.sourceforge.jp/>.
 
 A number of East-Asian CIDFonts are available from O'Reilly's FTP site
 <URL:ftp://ftp.oreilly.com/pub/examples/nutshell/cjkv/adobe/>.
@@ -1140,7 +1176,7 @@ The IANA RFC documents, available from a number of sites throughout the
 world, often provide interesting information about character set issues; see
 for example RFC 373.
 
-     Generated from XFree86: xc/programs/Xserver/hw/xfree86/doc/sgml/fonts.sgml,v 1.20 2003/01/20 03:43:07 dawes Exp $
+     Generated from XFree86: xc/programs/Xserver/hw/xfree86/doc/sgml/fonts.sgml,v 1.22 dawes Exp $
 
 
-$XFree86: xc/programs/Xserver/hw/xfree86/doc/README.fonts,v 1.22 2003/01/20 04:10:01 dawes Exp $
+$XFree86: xc/programs/Xserver/hw/xfree86/doc/README.fonts,v 1.26 2003/11/19 01:44:58 dawes Exp $

@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/xaa/xaalocal.h,v 1.36 2003/02/17 16:08:29 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/xaa/xaalocal.h,v 1.37 2003/11/10 18:22:41 tsi Exp $ */
 
 #ifndef _XAALOCAL_H
 #define _XAALOCAL_H
@@ -1485,7 +1485,7 @@ void XAAMoveDWORDS(
 
 int
 XAAGetRectClipBoxes(
-    RegionPtr	prgnClip,
+    GCPtr pGC,
     BoxPtr pboxClippedBase,
     int nrectFill,
     xRectangle *prectInit

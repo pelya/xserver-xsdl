@@ -27,7 +27,7 @@
  *
  * Authors:	Harold L Hunt II
  */
-/* $XFree86: xc/programs/Xserver/hw/xwin/winnativegdi.c,v 1.13 2002/10/17 08:18:22 alanh Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xwin/winnativegdi.c,v 1.15 2003/08/07 23:47:58 alanh Exp $ */
 
 #include "win.h"
 
@@ -65,6 +65,17 @@ winCloseScreenNativeGDI (int nIndex, ScreenPtr pScreen)
   
   ErrorF ("winCloseScreenNativeGDI - Destroying window\n");
   
+  /* Delete tray icon, if we have one */
+  if (!pScreenInfo->fNoTrayIcon)
+    winDeleteNotifyIcon (pScreenPriv);
+
+  /* Free the exit confirmation dialog box, if it exists */
+  if (g_hDlgExit != NULL)
+    {
+      DestroyWindow (g_hDlgExit);
+      g_hDlgExit = NULL;
+    }
+
   /* Kill our window */
   if (pScreenPriv->hwndScreen)
     {
@@ -207,13 +218,28 @@ winAdjustVideoModeNativeGDI (ScreenPtr pScreen)
 
   /* Query GDI for current display depth */
   dwBPP = GetDeviceCaps (hdc, BITSPIXEL);
+  pScreenInfo->dwDepth = GetDeviceCaps (hdc, PLANES);
+
+  switch (pScreenInfo->dwDepth) {
+    case 24:
+    case 16:
+    case 15:
+    case 8:
+      break;
+    default:
+      if (dwBPP == 32)
+        pScreenInfo->dwDepth = 24;
+      else
+        pScreenInfo->dwDepth = dwBPP; 
+      break;
+  }
 
   /* GDI cannot change the screen depth */
   if (pScreenInfo->dwBPP == WIN_DEFAULT_BPP)
     {
       /* No -depth parameter passed, let the user know the depth being used */
       ErrorF ("winAdjustVideoModeNativeGDI - Using Windows display "
-	      "depth of %d bits per pixel\n", dwBPP);
+	      "depth of %d bits per pixel, %d depth\n", dwBPP, pScreenInfo->dwDepth);
 
       /* Use GDI's depth */
       pScreenInfo->dwBPP = dwBPP;

@@ -27,7 +27,7 @@
  *
  *	Id: fontcache.c,v 1.12 1999/01/31 13:47:45 akiyama Exp $
  */
-/* $XFree86: xc/programs/Xserver/Xext/fontcache.c,v 1.5 2000/02/23 20:29:39 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/Xext/fontcache.c,v 1.8 2003/11/17 22:20:26 dawes Exp $ */
 
 /* THIS IS NOT AN X CONSORTIUM STANDARD */
 
@@ -47,13 +47,12 @@
 #include "Xfuncproto.h"
 
 #include "swaprep.h"
+#include "modinit.h"
 
 static int miscErrorBase;
 
 static void FontCacheResetProc(
-#if NeedFunctionPrototypes
     ExtensionEntry* /* extEntry */
-#endif
 );
 
 static DISPATCH_PROC(ProcFontCacheDispatch);
@@ -67,11 +66,12 @@ static DISPATCH_PROC(SProcFontCacheGetCacheStatistics);
 static DISPATCH_PROC(SProcFontCacheQueryVersion);
 static DISPATCH_PROC(SProcFontCacheChangeCacheSettings);
 
+#if 0
 static unsigned char FontCacheReqCode = 0;
-
+#endif
 
 void
-FontCacheExtensionInit()
+FontCacheExtensionInit(INITARGS)
 {
     ExtensionEntry* extEntry;
 
@@ -83,7 +83,9 @@ FontCacheExtensionInit()
 				SProcFontCacheDispatch,
 				FontCacheResetProc,
 				StandardMinorOpcode))) {
+#if 0
 	FontCacheReqCode = (unsigned char)extEntry->base;
+#endif
 	miscErrorBase = extEntry->errorBase;
     }
 }

@@ -1251,7 +1251,7 @@ demo programs is available from http://dri.sourceforge.net/res.phtml
    o In the future there may be IHV and Linux vendor support resources for
      the DRI.
 
-     Generated from XFree86: xc/programs/Xserver/hw/xfree86/doc/sgml/DRI.sgml,v 1.29 2003/02/17 03:57:29 dawes Exp $
+     Generated from XFree86: xc/programs/Xserver/hw/xfree86/doc/sgml/DRI.sgml,v 1.29 dawes Exp $
 
 
-$XFree86: xc/programs/Xserver/hw/xfree86/doc/README.DRI,v 1.21 2003/02/17 04:04:07 dawes Exp $
+$XFree86: xc/programs/Xserver/hw/xfree86/doc/README.DRI,v 1.22 2003/07/15 02:28:28 dawes Exp $

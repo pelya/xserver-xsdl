@@ -1,7 +1,30 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86str.h,v 1.90 2002/11/25 14:04:56 eich Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86str.h,v 1.97 2003/10/30 17:36:56 tsi Exp $ */
 
 /*
- * Copyright (c) 1997-2000 by The XFree86 Project, Inc.
+ * Copyright (c) 1997-2003 by The XFree86 Project, Inc.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+ * THE COPYRIGHT HOLDER(S) OR AUTHOR(S) BE LIABLE FOR ANY CLAIM, DAMAGES OR
+ * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ *
+ * Except as contained in this notice, the name of the copyright holder(s)
+ * and author(s) shall not be used in advertising or otherwise to promote
+ * the sale, use or other dealings in this Software without prior written
+ * authorization from the copyright holder(s) and author(s).
  */
 
 /*
@@ -16,6 +39,7 @@
 #include "input.h"
 #include "scrnintstr.h"
 #include "pixmapstr.h"
+#include "colormapst.h"
 #include "xf86Module.h"
 #include "xf86Opt.h"
 #include "xf86Pci.h"
@@ -452,23 +476,9 @@ typedef struct _confdrirec {
 /* These values should be adjusted when new fields are added to ScrnInfoRec */
 #define NUM_RESERVED_INTS		16
 #define NUM_RESERVED_POINTERS		15
-#define NUM_RESERVED_FUNCS		16
+#define NUM_RESERVED_FUNCS		12
 
 typedef pointer (*funcPointer)(void);
-
-/* Flags for driver messages */
-typedef enum {
-    X_PROBED,			/* Value was probed */
-    X_CONFIG,			/* Value was given in the config file */
-    X_DEFAULT,			/* Value is a default */
-    X_CMDLINE,			/* Value was given on the command line */
-    X_NOTICE,			/* Notice */
-    X_ERROR,			/* Error message */
-    X_WARNING,			/* Warning message */
-    X_INFO,			/* Informational message */
-    X_NONE,			/* No prefix */
-    X_NOT_IMPLEMENTED		/* Not implemented */
-} MessageType;
 
 /* flags for depth 24 pixmap options */
 typedef enum {
@@ -747,12 +757,16 @@ typedef void xf86AdjustFrameProc          (int, int, int, int);
 typedef Bool xf86EnterVTProc              (int, int);
 typedef void xf86LeaveVTProc              (int, int);
 typedef void xf86FreeScreenProc           (int, int);
-typedef int  xf86ValidModeProc            (int, DisplayModePtr, Bool, int);
+typedef ModeStatus xf86ValidModeProc      (int, DisplayModePtr, Bool, int);
 typedef void xf86EnableDisableFBAccessProc(int, Bool);
 typedef int  xf86SetDGAModeProc           (int, int, DGADevicePtr);
 typedef int  xf86ChangeGammaProc          (int, Gamma);
 typedef void xf86PointerMovedProc         (int, int, int);
 typedef Bool xf86PMEventProc              (int, pmEvent, Bool);
+typedef int  xf86HandleMessageProc     (int, const char*, const char*, char**);
+typedef void xf86DPMSSetProc		  (ScrnInfoPtr, int, int);
+typedef void xf86LoadPaletteProc   (ScrnInfoPtr, int, int *, LOCO *, VisualPtr);
+typedef void xf86SetOverscanProc          (ScrnInfoPtr, int);
 
 /*
  * ScrnInfoRec
@@ -903,6 +917,10 @@ typedef struct _ScrnInfoRec {
     xf86ChangeGammaProc			*ChangeGamma;
     xf86PointerMovedProc		*PointerMoved;
     xf86PMEventProc			*PMEvent;
+    xf86HandleMessageProc		*HandleMessage;
+    xf86DPMSSetProc			*DPMSSet;
+    xf86LoadPaletteProc			*LoadPalette;
+    xf86SetOverscanProc			*SetOverscan;
     
     /*
      * This can be used when the minor ABI version is incremented.
@@ -1023,7 +1041,32 @@ typedef enum {
     ACTION_CLOSECLIENT,			/* Kill client holding grab */
     ACTION_SWITCHSCREEN		= 100,	/* VT switch */
     ACTION_SWITCHSCREEN_NEXT,
-    ACTION_SWITCHSCREEN_PREV
+    ACTION_SWITCHSCREEN_PREV,
+    ACTION_MESSAGE		= 9999  /* Generic message passing */
 } ActionEvent;
+
+/* xf86Versions.c */
+/*
+ * Never change existing values, and always assign values explicitly.
+ * NUM_BUILTIN_IFS must always be the last entry.
+ */
+typedef enum {
+    BUILTIN_IF_OSMOUSE = 0,
+    BUILTIN_IF_OSKBD = 1,
+    NUM_BUILTIN_IFS
+} BuiltinInterface;
+
+/*
+ * These are intentionally the same as the module version macros.
+ * It is possible to register a module as providing a specific interface,
+ * in which case the module's version is used.  This feature isn't
+ * really ready for use yet though.
+ */
+
+#define BUILTIN_INTERFACE_VERSION_NUMERIC(maj, min, patch) \
+	((((maj) & 0xFF) << 24) | (((min) & 0xFF) << 16) | (patch & 0xFFFF))
+#define GET_BUILTIN_INTERFACE_MAJOR_VERSION(vers)	(((vers) >> 24) & 0xFF)
+#define GET_BUILTIN_INTERFACE_MINOR_VERSION(vers)	(((vers) >> 16) & 0xFF)
+#define GET_BUILTIN_INTERFACE_PATCH_VERSION(vers)	((vers) & 0xFFFF)
 
 #endif /* _XF86STR_H */

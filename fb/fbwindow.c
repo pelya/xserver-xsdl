@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/fb/fbwindow.c,v 1.10 2003/01/31 00:01:45 torrey Exp $ */
+/* $XFree86: xc/programs/Xserver/fb/fbwindow.c,v 1.11 2003/11/10 18:21:47 tsi Exp $ */
 
 #include "fb.h"
 #ifdef IN_MODULE
@@ -129,7 +129,7 @@ fbCopyWindow(WindowPtr	    pWin,
     dy = ptOldOrg.y - pWin->drawable.y;
     REGION_TRANSLATE(pWin->drawable.pScreen, prgnSrc, -dx, -dy);
 
-    REGION_INIT (pWin->drawable.pScreen, &rgnDst, NullBox, 0);
+    REGION_NULL (pWin->drawable.pScreen, &rgnDst);
     
     REGION_INTERSECT(pWin->drawable.pScreen, &rgnDst, &pWin->borderClip, prgnSrc);
 

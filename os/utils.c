@@ -49,7 +49,7 @@ OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE
 OR PERFORMANCE OF THIS SOFTWARE.
 
 */
-/* $XFree86: xc/programs/Xserver/os/utils.c,v 3.85 2002/12/24 17:43:00 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/os/utils.c,v 3.95 2003/10/01 18:36:38 alanh Exp $ */
 
 #ifdef __CYGWIN__
 #include <stdlib.h>
@@ -63,6 +63,7 @@ OR PERFORMANCE OF THIS SOFTWARE.
 #include <stdio.h>
 #include "misc.h"
 #include "X.h"
+#include <X11/Xtrans.h>
 #include "input.h"
 #include "dixfont.h"
 #include "osdep.h"
@@ -154,6 +155,10 @@ extern int SelectWaitTime;
 #endif
 #endif
 
+#if defined(SVR4) || defined(__linux__) || defined(CSRG_BASED)
+#define HAS_SAVED_IDS_AND_SETEUID
+#endif
+
 #ifdef MEMBUG
 #define MEM_FAIL_SCALE 100000
 long Memory_fail = 0;
@@ -165,6 +170,8 @@ int userdefinedfontpath = 0;
 #endif /* sgi */
 
 char *dev_tty_from_init = NULL;		/* since we need to parse it anyway */
+
+extern int dispatchExceptionAtReset;
 
 OsSigHandlerPtr
 OsSignal(sig, handler)
@@ -235,7 +242,7 @@ static Bool nolock = FALSE;
  *      the lock file containing the PID.
  */
 void
-LockServer()
+LockServer(void)
 {
   char tmp[PATH_MAX], pid_str[12];
   int lfd, i, haslock, l_pid, t;
@@ -259,7 +266,7 @@ LockServer()
 						strlen(LOCK_TMP_PREFIX);
   len += strlen(tmppath) + strlen(display) + strlen(LOCK_SUFFIX) + 1;
   if (len > sizeof(LockFile))
-    FatalError("Display name `%s' is too long\n");
+    FatalError("Display name `%s' is too long\n", display);
   (void)sprintf(tmp, "%s" LOCK_TMP_PREFIX "%s" LOCK_SUFFIX, tmppath, display);
   (void)sprintf(LockFile, "%s" LOCK_PREFIX "%s" LOCK_SUFFIX, tmppath, display);
 
@@ -372,7 +379,7 @@ LockServer()
  *      Remove the server lock file.
  */
 void
-UnlockServer()
+UnlockServer(void)
 {
   if (nolock) return;
 
@@ -390,8 +397,7 @@ UnlockServer()
 
 /*ARGSUSED*/
 SIGVAL
-AutoResetServer (sig)
-    int sig;
+AutoResetServer (int sig)
 {
     int olderrno = errno;
 
@@ -411,8 +417,7 @@ AutoResetServer (sig)
 
 /*ARGSUSED*/
 SIGVAL
-GiveUp(sig)
-    int sig;
+GiveUp(int sig)
 {
     int olderrno = errno;
 
@@ -425,31 +430,9 @@ GiveUp(sig)
     errno = olderrno;
 }
 
-#ifdef __GNUC__
-static void AbortServer() __attribute__((noreturn));
-#endif
-
-static void
-AbortServer()
-{
-    OsCleanup();
-    AbortDDX();
-    fflush(stderr);
-    if (CoreDump)
-	abort();
-    exit (1);
-}
-
-void
-Error(str)
-    char *str;
-{
-    perror(str);
-}
-
 #ifndef DDXTIME
 CARD32
-GetTimeInMillis()
+GetTimeInMillis(void)
 {
     struct timeval  tp;
 
@@ -459,9 +442,7 @@ GetTimeInMillis()
 #endif
 
 void
-AdjustWaitForDelay (waitTime, newdelay)
-    pointer	    waitTime;
-    unsigned long   newdelay;
+AdjustWaitForDelay (pointer waitTime, unsigned long newdelay)
 {
     static struct timeval   delay_val;
     struct timeval	    **wt = (struct timeval **) waitTime;
@@ -484,7 +465,7 @@ AdjustWaitForDelay (waitTime, newdelay)
     }
 }
 
-void UseMsg()
+void UseMsg(void)
 {
 #if !defined(AIXrt) && !defined(AIX386)
     ErrorF("use: X [:<display>] [option]\n");
@@ -558,9 +539,14 @@ void UseMsg()
     ErrorF("-v                     screen-saver without video blanking\n");
     ErrorF("-wm                    WhenMapped default backing-store\n");
     ErrorF("-x string              loads named extension at init time \n");
+    ErrorF("-maxbigreqsize	   set maximal bigrequest size \n");
 #ifdef PANORAMIX
     ErrorF("+xinerama              Enable XINERAMA extension\n");
     ErrorF("-xinerama              Disable XINERAMA extension\n");
+#endif
+#ifdef SMART_SCHEDULE
+    ErrorF("-dumbSched             Disable smart scheduling, enable old behavior\n");
+    ErrorF("-schedInterval int     Set scheduler interval in msec\n");
 #endif
 #ifdef XDMCP
     XdmcpUseMsg();
@@ -579,8 +565,8 @@ void UseMsg()
  *  not contain a "/" and not start with a "-".
  *                                            --kvajk
  */
-int VerifyDisplayName( d )
-char *d;
+static int 
+VerifyDisplayName(const char *d)
 {
     if ( d == (char *)0 ) return( 0 );  /*  null  */
     if ( *d == '\0' ) return( 0 );  /*  empty  */
@@ -596,10 +582,7 @@ char *d;
  * argc or any of the strings pointed to by argv.
  */
 void
-ProcessCommandLine ( argc, argv )
-int	argc;
-char	*argv[];
-
+ProcessCommandLine(int argc, char *argv[])
 {
     int i, skip;
 
@@ -817,15 +800,15 @@ char	*argv[];
 #endif
 	else if ( strcmp( argv[i], "-nolisten") == 0)
 	{
-            if(++i < argc)
-	        protNoListen = argv[i];
-	    else
+            if(++i < argc) {
+		if (_XSERVTransNoListen(argv[i])) 
+		    FatalError ("Failed to disable listen for %s transport",
+				argv[i]);
+	   } else
 		UseMsg();
 	}
 	else if ( strcmp( argv[i], "-noreset") == 0)
 	{
-	    extern char dispatchExceptionAtReset;
-
 	    dispatchExceptionAtReset = 0;
 	}
 	else if ( strcmp( argv[i], "-p") == 0)
@@ -863,8 +846,6 @@ char	*argv[];
 	}
 	else if ( strcmp( argv[i], "-terminate") == 0)
 	{
-	    extern char dispatchExceptionAtReset;
-	    
 	    dispatchExceptionAtReset = DE_TERMINATE;
 	}
 	else if ( strcmp( argv[i], "-to") == 0)
@@ -884,6 +865,24 @@ char	*argv[];
 	    defaultScreenSaverBlanking = DontPreferBlanking;
 	else if ( strcmp( argv[i], "-wm") == 0)
 	    defaultBackingStore = WhenMapped;
+        else if ( strcmp( argv[i], "-maxbigreqsize") == 0) {
+             if(++i < argc) {
+                 int reqSizeArg = atoi(argv[i]);
+
+                 /* Request size > 128MB does not make much sense... */
+                 if( reqSizeArg > 0 && reqSizeArg < 128 ) {
+                     maxBigRequestSize = (reqSizeArg * 1048576) - 1;
+                 }
+                 else
+                 {
+                     UseMsg();
+                 }
+             }
+             else
+             {
+                 UseMsg();
+             }
+         }
 #ifdef PANORAMIX
 	else if ( strcmp( argv[i], "+xinerama") == 0){
 	    noPanoramiXExtension = FALSE;
@@ -993,15 +992,11 @@ char	*argv[];
 
 #ifdef COMMANDLINE_CHALLENGED_OPERATING_SYSTEMS
 static void
-InsertFileIntoCommandLine(resargc, resargv, prefix_argc, prefix_argv,
-			  filename, suffix_argc, suffix_argv)
-    int *resargc;
-    char ***resargv;
-    int prefix_argc;
-    char **prefix_argv;
-    char *filename;
-    int suffix_argc;
-    char **suffix_argv;
+InsertFileIntoCommandLine(
+    int *resargc, char ***resargv, 
+    int prefix_argc, char **prefix_argv,
+    char *filename, 
+    int suffix_argc, char **suffix_argv)
 {
     struct stat     st;
     FILE           *f;
@@ -1084,9 +1079,7 @@ InsertFileIntoCommandLine(resargc, resargv, prefix_argc, prefix_argv,
 
 
 void
-ExpandCommandLine(pargc, pargv)
-    int *pargc;
-    char ***pargv;
+ExpandCommandLine(int *pargc, char ***pargv)
 {
     int i;
 
@@ -1112,42 +1105,61 @@ ExpandCommandLine(pargc, pargv)
 /* Implement a simple-minded font authorization scheme.  The authorization
    name is "hp-hostname-1", the contents are simply the host name. */
 int
-set_font_authorizations(authorizations, authlen, client)
-char **authorizations;
-int *authlen;
-pointer client;
+set_font_authorizations(char **authorizations, int *authlen, pointer client)
 {
 #define AUTHORIZATION_NAME "hp-hostname-1"
 #if defined(TCPCONN) || defined(STREAMSCONN)
-    static char result[1024];
+    static char *result = NULL;
     static char *p = NULL;
 
     if (p == NULL)
     {
 	char hname[1024], *hnameptr;
+	unsigned int len;
+#if defined(IPv6) && defined(AF_INET6)
+	struct addrinfo hints, *ai = NULL;
+#else
 	struct hostent *host;
-	int len;
 #ifdef XTHREADS_NEEDS_BYNAMEPARAMS
 	_Xgethostbynameparams hparams;
 #endif
+#endif
 
 	gethostname(hname, 1024);
+#if defined(IPv6) && defined(AF_INET6)
+	bzero(&hints, sizeof(hints));
+	hints.ai_flags = AI_CANONNAME;
+	if (getaddrinfo(hname, NULL, &hints, &ai) == 0) {
+	    hnameptr = ai->ai_canonname;
+	} else {
+	    hnameptr = hname;
+	}
+#else
 	host = _XGethostbyname(hname, hparams);
 	if (host == NULL)
 	    hnameptr = hname;
 	else
 	    hnameptr = host->h_name;
+#endif
+
+	len = strlen(hnameptr) + 1;
+	result = xalloc(len + sizeof(AUTHORIZATION_NAME) + 4);
 
 	p = result;
         *p++ = sizeof(AUTHORIZATION_NAME) >> 8;
         *p++ = sizeof(AUTHORIZATION_NAME) & 0xff;
-        *p++ = (len = strlen(hnameptr) + 1) >> 8;
+        *p++ = (len) >> 8;
         *p++ = (len & 0xff);
 
 	memmove(p, AUTHORIZATION_NAME, sizeof(AUTHORIZATION_NAME));
 	p += sizeof(AUTHORIZATION_NAME);
 	memmove(p, hnameptr, len);
 	p += len;
+#if defined(IPv6) && defined(AF_INET6)
+	if (ai) {
+	    freeaddrinfo(ai);
+	}
+#endif
     }
     *authlen = p - result;
     *authorizations = result;
@@ -1172,8 +1184,7 @@ pointer client;
 #ifndef INTERNAL_MALLOC
 
 void * 
-Xalloc (amount)
-    unsigned long amount;
+Xalloc(unsigned long amount)
 {
     register pointer  ptr;
 	
@@ -1201,8 +1212,7 @@ Xalloc (amount)
  *****************/
 
 void *
-XNFalloc (amount)
-    unsigned long amount;
+XNFalloc(unsigned long amount)
 {
     register pointer ptr;
 
@@ -1225,14 +1235,30 @@ XNFalloc (amount)
  *****************/
 
 void *
-Xcalloc (amount)
-    unsigned long   amount;
+Xcalloc(unsigned long amount)
 {
     unsigned long   *ret;
 
     ret = Xalloc (amount);
     if (ret)
 	bzero ((char *) ret, (int) amount);
+    return ret;
+}
+
+/*****************
+ * XNFcalloc
+ *****************/
+
+void *
+XNFcalloc(unsigned long amount)
+{
+    unsigned long   *ret;
+
+    ret = Xalloc (amount);
+    if (ret)
+	bzero ((char *) ret, (int) amount);
+    else if ((long)amount > 0)
+        FatalError("Out of memory");
     return ret;
 }
 
@@ -1259,9 +1285,7 @@ XNFcalloc (amount)
  *****************/
 
 void *
-Xrealloc (ptr, amount)
-    register pointer ptr;
-    unsigned long amount;
+Xrealloc(pointer ptr, unsigned long amount)
 {
 #ifdef MEMBUG
     if (!Must_have_memory && Memory_fail &&
@@ -1292,9 +1316,7 @@ Xrealloc (ptr, amount)
  *****************/
 
 void *
-XNFrealloc (ptr, amount)
-    register pointer ptr;
-    unsigned long amount;
+XNFrealloc(pointer ptr, unsigned long amount)
 {
     if (( ptr = (pointer)Xrealloc( ptr, amount ) ) == NULL)
     {
@@ -1310,15 +1332,14 @@ XNFrealloc (ptr, amount)
  *****************/    
 
 void
-Xfree(ptr)
-    register pointer ptr;
+Xfree(pointer ptr)
 {
     if (ptr)
 	free((char *)ptr); 
 }
 
 void
-OsInitAllocator ()
+OsInitAllocator (void)
 {
 #ifdef MEMBUG
     static int	been_here;
@@ -1361,110 +1382,6 @@ XNFstrdup(const char *s)
     return sd;
 }
 
-
-void
-AuditPrefix(f)
-    const char *f;
-{
-    time_t tm;
-    char *autime, *s;
-    if (*f != ' ')
-    {
-	time(&tm);
-	autime = ctime(&tm);
-	if ((s = strchr(autime, '\n')))
-	    *s = '\0';
-	if ((s = strrchr(argvGlobal[0], '/')))
-	    s++;
-	else
-	    s = argvGlobal[0];
-	ErrorF("AUDIT: %s: %d %s: ", autime, getpid(), s);
-    }
-}
-
-void
-AuditF(const char * f, ...)
-{
-    va_list args;
-
-    AuditPrefix(f);
-
-    va_start(args, f);
-    VErrorF(f, args);
-    va_end(args);
-}
-
-void
-FatalError(const char *f, ...)
-{
-    va_list args;
-    static Bool beenhere = FALSE;
-
-    if (beenhere)
-	ErrorF("\nFatalError re-entered, aborting\n");
-    else
-	ErrorF("\nFatal server error:\n");
-
-    va_start(args, f);
-    VErrorF(f, args);
-    va_end(args);
-    ErrorF("\n");
-#ifdef DDXOSFATALERROR
-    if (!beenhere)
-	OsVendorFatalError();
-#endif
-#ifdef ABORTONFATALERROR
-    abort();
-#endif
-    if (!beenhere) {
-	beenhere = TRUE;
-	AbortServer();
-    } else
-	abort();
-    /*NOTREACHED*/
-}
-
-void
-VErrorF(f, args)
-    const char *f;
-    va_list args;
-{
-#ifdef AIXV3
-    if (SyncOn)
-        sync();
-#else
-#ifdef DDXOSVERRORF
-    if (OsVendorVErrorFProc)
-	OsVendorVErrorFProc(f, args);
-    else
-	vfprintf(stderr, f, args);
-#else
-    vfprintf(stderr, f, args);
-#endif
-#endif /* AIXV3 */
-}
-
-void
-VFatalError(const char *msg, va_list args)
-{
-    VErrorF(msg, args);
-    ErrorF("\n");
-#ifdef DDXOSFATALERROR
-    OsVendorFatalError();
-#endif
-    AbortServer();
-    /*NOTREACHED*/
-}
-
-void
-ErrorF(const char * f, ...)
-{
-    va_list args;
-    va_start(args, f);
-    VErrorF(f, args);
-    va_end(args);
-}
-
 #ifdef SMART_SCHEDULE
 
 unsigned long	SmartScheduleIdleCount;
@@ -1480,7 +1397,7 @@ Bool		SmartScheduleTimerStopped;
 #define SMART_SCHEDULE_TIMER		ITIMER_REAL
 #endif
 
-void
+static void
 SmartScheduleStopTimer (void)
 {
 #ifdef SMART_SCHEDULE_POSSIBLE
@@ -1512,7 +1429,7 @@ SmartScheduleStartTimer (void)
 }
 
 #ifdef SMART_SCHEDULE_POSSIBLE
-void
+static void
 SmartScheduleTimer (int sig)
 {
     int olderrno = errno;
@@ -1624,8 +1541,7 @@ OsReleaseSignals (void)
  */
 
 int
-System(command)
-    char *command;
+System(char *command)
 {
     int pid, p;
 #ifdef SIGCHLD
@@ -1673,9 +1589,7 @@ static struct pid {
 } *pidlist;
 
 pointer
-Popen(command, type)
-    char *command;
-    char *type;
+Popen(char *command, char *type)
 {
     struct pid *cur;
     FILE *iop;
@@ -1747,9 +1661,100 @@ Popen(command, type)
     return iop;
 }
 
+/* fopen that drops privileges */
+pointer
+Fopen(char *file, char *type)
+{
+    FILE *iop;
+#ifndef HAS_SAVED_IDS_AND_SETEUID
+    struct pid *cur;
+    int pdes[2], pid;
+
+    if (file == NULL || type == NULL)
+	return NULL;
+
+    if ((*type != 'r' && *type != 'w') || type[1])
+	return NULL;
+
+    if ((cur = (struct pid *)xalloc(sizeof(struct pid))) == NULL)
+	return NULL;
+
+    if (pipe(pdes) < 0) {
+	xfree(cur);
+	return NULL;
+    }
+
+    switch (pid = fork()) {
+    case -1: 	/* error */
+	close(pdes[0]);
+	close(pdes[1]);
+	xfree(cur);
+	return NULL;
+    case 0:	/* child */
+	setgid(getgid());
+	setuid(getuid());
+	if (*type == 'r') {
+	    if (pdes[1] != 1) {
+		/* stdout */
+		dup2(pdes[1], 1);
+		close(pdes[1]);
+	    }
+	    close(pdes[0]);
+	} else {
+	    if (pdes[0] != 0) {
+		/* stdin */
+		dup2(pdes[0], 0);
+		close(pdes[0]);
+	    }
+	    close(pdes[1]);
+	}
+	execl("/bin/cat", "cat", file, (char *)NULL);
+	_exit(127);
+    }
+
+    /* Avoid EINTR during stdio calls */
+    OsBlockSignals ();
+    
+    /* parent */
+    if (*type == 'r') {
+	iop = fdopen(pdes[0], type);
+	close(pdes[1]);
+    } else {
+	iop = fdopen(pdes[1], type);
+	close(pdes[0]);
+    }
+
+    cur->fp = iop;
+    cur->pid = pid;
+    cur->next = pidlist;
+    pidlist = cur;
+
+#ifdef DEBUG
+    ErrorF("Popen: `%s', fp = %p\n", command, iop);
+#endif
+
+    return iop;
+#else
+    int ruid, euid;
+
+    ruid = getuid();
+    euid = geteuid();
+    
+    if (seteuid(ruid) == -1) {
+	    return NULL;
+    }
+    iop = fopen(file, type);
+
+    if (seteuid(euid) == -1) {
+	    fclose(iop);
+	    return NULL;
+    }
+    return iop;
+#endif /* HAS_SAVED_IDS_AND_SETEUID */
+}
+
 int
-Pclose(iop)
-    pointer iop;
+Pclose(pointer iop)
 {
     struct pid *cur, *last;
     int pstat;
@@ -1782,6 +1787,17 @@ Pclose(iop)
     
     return pid == -1 ? -1 : pstat;
 }
+
+int 
+Fclose(pointer iop)
+{
+#ifdef HAS_SAVED_IDS_AND_SETEUID
+    return fclose(iop);
+#else
+    return Pclose(iop);
+#endif
+}
+
 #endif /* !WIN32 && !__UNIXOS2__ */
 
 
@@ -1796,6 +1812,9 @@ Pclose(iop)
 #ifndef REMOVE_ENV_LD
 #define REMOVE_ENV_LD 1
 #endif
+    AbortServer();
+    /*NOTREACHED*/
+}
 
 /* Remove long environment variables? */
 #ifndef REMOVE_LONG_ENV
@@ -2007,7 +2026,7 @@ CheckUserParameters(int argc, char **argv, char **envp)
 #endif /* USE_PAM */
 
 void
-CheckUserAuthorization()
+CheckUserAuthorization(void)
 {
 #ifdef USE_PAM
     static struct pam_conv conv = {

@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/Xext/shm.c,v 3.36 2002/04/03 19:51:11 herrb Exp $ */
+/* $XFree86: xc/programs/Xserver/Xext/shm.c,v 3.40 2003/11/17 22:20:27 dawes Exp $ */
 /************************************************************
 
 Copyright 1989, 1998  The Open Group
@@ -28,6 +28,8 @@ in this Software without prior written authorization from The Open Group.
 /* THIS IS NOT AN X CONSORTIUM STANDARD OR AN X PROJECT TEAM SPECIFICATION */
 
 /* $Xorg: shm.c,v 1.4 2001/02/09 02:04:33 xorgcvs Exp $ */
+
+#define SHM
 
 #include <sys/types.h>
 #ifndef Lynx
@@ -65,6 +67,8 @@ in this Software without prior written authorization from The Open Group.
 #include "panoramiXsrv.h"
 #endif
 
+#include "modinit.h"
+
 typedef struct _ShmDesc {
     struct _ShmDesc *next;
     int shmid;
@@ -78,21 +82,15 @@ static void miShmPutImage(XSHM_PUT_IMAGE_ARGS);
 static void fbShmPutImage(XSHM_PUT_IMAGE_ARGS);
 static PixmapPtr fbShmCreatePixmap(XSHM_CREATE_PIXMAP_ARGS);
 static int ShmDetachSegment(
-#if NeedFunctionPrototypes
     pointer		/* value */,
     XID			/* shmseg */
-#endif
     );
 static void ShmResetProc(
-#if NeedFunctionPrototypes
     ExtensionEntry *	/* extEntry */
-#endif
     );
 static void SShmCompletionEvent(
-#if NeedFunctionPrototypes
     xShmCompletionEvent * /* from */,
     xShmCompletionEvent * /* to */
-#endif
     );
 
 static Bool ShmDestroyPixmap (PixmapPtr pPixmap);
@@ -159,7 +157,7 @@ static ShmFuncs fbFuncs = {fbShmCreatePixmap, fbShmPutImage};
 }
 
 
-#if defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__)
+#if defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__) || defined(__CYGWIN__)
 #include <sys/signal.h>
 
 static Bool badSysCall = FALSE;
@@ -181,23 +179,32 @@ static Bool CheckForShmSyscall()
 
     badSysCall = FALSE;
     shmid = shmget(IPC_PRIVATE, 4096, IPC_CREAT);
-    /* Clean up */
+
     if (shmid != -1)
     {
+        /* Successful allocation - clean up */
 	shmctl(shmid, IPC_RMID, (struct shmid_ds *)NULL);
+    }
+    else
+    {
+        /* Allocation failed */
+        badSysCall = TRUE;
     }
     signal(SIGSYS, oldHandler);
     return(!badSysCall);
 }
+
+#define MUST_CHECK_FOR_SHM_SYSCALL
+
 #endif
-    
+
 void
-ShmExtensionInit()
+ShmExtensionInit(INITARGS)
 {
     ExtensionEntry *extEntry;
     int i;
 
-#if defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__)
+#ifdef MUST_CHECK_FOR_SHM_SYSCALL
     if (!CheckForShmSyscall())
     {
 	ErrorF("MIT-SHM extension disabled due to lack of kernel support\n");
@@ -270,17 +277,17 @@ ExtensionEntry	*extEntry;
 }
 
 void
-ShmRegisterFuncs(pScreen, funcs)
-    ScreenPtr pScreen;
-    ShmFuncsPtr funcs;
+ShmRegisterFuncs(
+    ScreenPtr pScreen,
+    ShmFuncsPtr funcs)
 {
     shmFuncs[pScreen->myNum] = funcs;
 }
 
 void
-ShmSetPixmapFormat(pScreen, format)
-    ScreenPtr pScreen;
-    int format;
+ShmSetPixmapFormat(
+    ScreenPtr pScreen,
+    int format)
 {
     shmPixFormat[pScreen->myNum] = format;
 }
@@ -572,8 +579,7 @@ ProcPanoramiXShmPutImage(register ClientPtr client)
                 client, stuff->gc, XRT_GC, SecurityReadAccess)))
         return BadGC;
 
-    isRoot = (draw->type == XRT_WINDOW) &&
-		(stuff->drawable == WindowTable[0]->drawable.id);
+    isRoot = (draw->type == XRT_WINDOW) && draw->u.win.root;
 
     orig_x = stuff->dstX;
     orig_y = stuff->dstY;
@@ -633,8 +639,7 @@ ProcPanoramiXShmGetImage(ClientPtr client)
     format = stuff->format;
     planemask = stuff->planeMask;
 
-    isRoot = (draw->type == XRT_WINDOW) &&
-		(stuff->drawable == WindowTable[0]->drawable.id);
+    isRoot = (draw->type == XRT_WINDOW) && draw->u.win.root;
 
     if(isRoot) {
       if( /* check for being onscreen */
@@ -709,8 +714,8 @@ ProcPanoramiXShmGetImage(ClientPtr client)
 }
 
 static int
-ProcPanoramiXShmCreatePixmap(client)
-    register ClientPtr client;
+ProcPanoramiXShmCreatePixmap(
+    register ClientPtr client)
 {
     ScreenPtr pScreen = NULL;
     PixmapPtr pMap = NULL;

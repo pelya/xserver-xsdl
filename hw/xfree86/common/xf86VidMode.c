@@ -1,7 +1,30 @@
+/* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86VidMode.c,v 1.17 2003/08/24 17:36:55 dawes Exp $ */
 /*
- * Copyright (c) 1999 by The XFree86 Project, Inc.
+ * Copyright (c) 1999-2003 by The XFree86 Project, Inc.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+ * THE COPYRIGHT HOLDER(S) OR AUTHOR(S) BE LIABLE FOR ANY CLAIM, DAMAGES OR
+ * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ *
+ * Except as contained in this notice, the name of the copyright holder(s)
+ * and author(s) shall not be used in advertising or otherwise to promote
+ * the sale, use or other dealings in this Software without prior written
+ * authorization from the copyright holder(s) and author(s).
  */
-/* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86VidMode.c,v 1.14 2003/01/28 20:52:28 tsi Exp $ */
 
 /*
  * This file contains the VidMode functions required by the extension.
@@ -330,6 +353,8 @@ Bool
 VidModeSwitchMode(int scrnIndex, pointer mode)
 {
     ScrnInfoPtr pScrn;
+    DisplayModePtr pTmpMode;
+    Bool retval;
 
     DEBUG_P("VidModeSwitchMode");
 
@@ -337,9 +362,15 @@ VidModeSwitchMode(int scrnIndex, pointer mode)
 	return FALSE;
 
     pScrn = xf86Screens[scrnIndex];
+    /* save in case we fail */
+    pTmpMode = pScrn->currentMode;
     /* Force a mode switch */
     pScrn->currentMode = NULL;
-    return xf86SwitchMode(pScrn->pScreen, mode);
+    retval = xf86SwitchMode(pScrn->pScreen, mode);
+    /* we failed: restore it */
+    if (retval == FALSE)
+	pScrn->currentMode = pTmpMode;
+    return retval;
 }
 
 Bool
@@ -440,10 +471,13 @@ VidModeAddModeline(int scrnIndex, pointer mode)
 
     pScrn = xf86Screens[scrnIndex];
 
+    ((DisplayModePtr)mode)->name         = strdup(""); /* freed by deletemode */
+    ((DisplayModePtr)mode)->status       = MODE_OK;
     ((DisplayModePtr)mode)->next         = pScrn->modes->next;
     ((DisplayModePtr)mode)->prev         = pScrn->modes;
     pScrn->modes->next                   = (DisplayModePtr)mode;
-    ((DisplayModePtr)mode)->next->prev   = (DisplayModePtr)mode;
+    if( ((DisplayModePtr)mode)->next != NULL )
+      ((DisplayModePtr)mode)->next->prev   = (DisplayModePtr)mode;
 
     return TRUE;
 }
@@ -547,6 +581,7 @@ VidModeCreateMode(void)
     mode = xalloc(sizeof(DisplayModeRec));
     if (mode != NULL) {
 	mode->name          = "";
+	mode->VScan         = 1;    /* divides refresh rate. default = 1 */
 	mode->Private       = NULL;
 	mode->next          = mode;
 	mode->prev          = mode;

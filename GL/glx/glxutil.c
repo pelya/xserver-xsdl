@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/GL/glx/glxutil.c,v 1.5 2001/03/21 16:29:37 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/GL/glx/glxutil.c,v 1.6 2003/09/28 20:15:43 alanh Exp $ */
 /*
 ** License Applicability. Except to the extent portions of this file are
 ** made subject to an alternative license as permitted in the SGI Free
@@ -130,33 +130,59 @@ __glXFree(void *addr)
 ** associate a context with a drawable
 */
 void
-__glXAssociateContext(__GLXcontext *glxc, __GLXdrawablePrivate *glxPriv)
+__glXAssociateContext(__GLXcontext *glxc)
 {
-    glxc->nextPriv = glxPriv->glxc;
-    glxPriv->glxc = glxc;
+    glxc->nextDrawPriv = glxc->drawPriv->drawGlxc;
+    glxc->drawPriv->drawGlxc = glxc;
 
-    __glXRefDrawablePrivate(glxPriv);
+    __glXRefDrawablePrivate(glxc->drawPriv);
+    
+
+    glxc->nextReadPriv = glxc->readPriv->readGlxc;
+    glxc->readPriv->readGlxc = glxc;
+
+    __glXRefDrawablePrivate(glxc->readPriv);
 }
 
 /*
 ** Deassociate a context from a drawable
 */
 void
-__glXDeassociateContext(__GLXcontext *glxc, __GLXdrawablePrivate *glxPriv)
+__glXDeassociateContext(__GLXcontext *glxc)
 {
-    __GLXcontext *glxc1, *glxc2;
+    __GLXcontext *curr, *prev;
 
-    glxc2 = NULL;
-    for (glxc1=glxPriv->glxc; glxc1; glxc2=glxc1, glxc1=glxc1->nextPriv) {
-	if (glxc1 == glxc) {
+    prev = NULL;
+    for ( curr = glxc->drawPriv->drawGlxc
+	  ; curr != NULL
+	  ; prev = curr, curr = curr->nextDrawPriv ) {
+	if (curr == glxc) {
 	    /* found context.  Deassociate. */
-	    if (glxc2 == NULL) {
-		glxPriv->glxc = glxc1->nextPriv;
+	    if (prev == NULL) {
+		glxc->drawPriv->drawGlxc = curr->nextDrawPriv;
 	    } else {
-		glxc2->nextPriv = glxc1->nextPriv;
+		prev->nextDrawPriv = curr->nextDrawPriv;
 	    }
-	    glxc1->nextPriv = NULL;
-	    __glXUnrefDrawablePrivate(glxPriv);
+	    curr->nextDrawPriv = NULL;
+	    __glXUnrefDrawablePrivate(glxc->drawPriv);
+	    break;
+	}
+    }
+
+
+    prev = NULL;
+    for ( curr = glxc->readPriv->readGlxc
+	  ; curr != NULL 
+	  ; prev = curr, curr = curr->nextReadPriv ) {
+	if (curr == glxc) {
+	    /* found context.  Deassociate. */
+	    if (prev == NULL) {
+		glxc->readPriv->readGlxc = curr->nextReadPriv;
+	    } else {
+		prev->nextReadPriv = curr->nextReadPriv;
+	    }
+	    curr->nextReadPriv = NULL;
+	    __glXUnrefDrawablePrivate(glxc->readPriv);
 	    break;
 	}
     }
@@ -259,16 +285,18 @@ LockDP(__GLdrawablePrivate *glPriv, __GLcontext *gc)
 	assert((glxc->pendingState & __GLX_PENDING_RESIZE) == 0x0);
     }
     if (glxc->pendingState & __GLX_PENDING_DESTROY) {
-	__GLXdrawablePrivate *glxPriv = glxc->glxPriv;
-
 	glxc->pendingState &= ~__GLX_PENDING_DESTROY;
 
-	assert(glxPriv->xorigin == 0);
-	assert(glxPriv->yorigin == 0);
-	assert(glxPriv->width == 0);
-	assert(glxPriv->height == 0);
+	assert(glxc->drawPriv->xorigin == 0);
+	assert(glxc->drawPriv->yorigin == 0);
+	assert(glxc->drawPriv->width == 0);
+	assert(glxc->drawPriv->height == 0);
+	assert(glxc->readPriv->xorigin == 0);
+	assert(glxc->readPriv->yorigin == 0);
+	assert(glxc->readPriv->width == 0);
+	assert(glxc->readPriv->height == 0);
 	(*glci->exports.notifyDestroy)(gc);
-	__glXDeassociateContext(glxc, glxPriv);
+	__glXDeassociateContext(glxc);
 	assert((glxc->pendingState & __GLX_PENDING_DESTROY) == 0x0);
     }
     if (glxc->pendingState & __GLX_PENDING_SWAP) {

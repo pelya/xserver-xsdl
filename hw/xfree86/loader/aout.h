@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/loader/aout.h,v 1.7 2002/05/31 18:46:00 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/loader/aout.h,v 1.8 2003/10/15 16:29:02 dawes Exp $ */
 
 /*
  * Borrowed from NetBSD's exec_aout.h
@@ -41,8 +41,8 @@
 #include <ctype.h>
 
 /* OS/2 EMX has ntohl in this file */
-#ifdef __UNIXOS2__ 
-#include <sys/param.h> 
+#ifdef __UNIXOS2__
+#include <sys/param.h>
 #endif
 
 #define __LDPGSZ        4096U
@@ -54,44 +54,44 @@
  * a.out  header 
  */
 typedef struct AOUT_exec {
-    unsigned long a_midmag;	    /* htonl(flags<<26 | mid<<16 | magic) */
-    unsigned long  a_text;         /* text segment size */
-    unsigned long  a_data;         /* initialized data size */
-    unsigned long  a_bss;          /* uninitialized data size */
-    unsigned long  a_syms;         /* symbol table size */
-    unsigned long  a_entry;        /* entry point */
-    unsigned long  a_trsize;       /* text relocation size */
-    unsigned long  a_drsize;       /* data relocation size */
+    unsigned long a_midmag;	/* htonl(flags<<26 | mid<<16 | magic) */
+    unsigned long a_text;	/* text segment size */
+    unsigned long a_data;	/* initialized data size */
+    unsigned long a_bss;	/* uninitialized data size */
+    unsigned long a_syms;	/* symbol table size */
+    unsigned long a_entry;	/* entry point */
+    unsigned long a_trsize;	/* text relocation size */
+    unsigned long a_drsize;	/* data relocation size */
 } AOUTHDR;
 
 /* a_magic */
-#define OMAGIC          0407    /* old impure format */
-#define NMAGIC          0410    /* read-only text */
-#define ZMAGIC          0413    /* demand load format */
-#define QMAGIC          0314    /* "compact" demand load format; deprecated */
+#define OMAGIC          0407	/* old impure format */
+#define NMAGIC          0410	/* read-only text */
+#define ZMAGIC          0413	/* demand load format */
+#define QMAGIC          0314	/* "compact" demand load format; deprecated */
 
 /*
  * a_mid - keep sorted in numerical order for sanity's sake
  * ensure that: 0 < mid < 0x3ff
  */
-#define MID_ZERO        0       /* unknown - implementation dependent */
-#define MID_SUN010      1       /* sun 68010/68020 binary */
-#define MID_SUN020      2       /* sun 68020-only binary */
-#define MID_PC386       100     /* 386 PC binary. (so quoth BFD) */
-#define MID_HP200       200     /* hp200 (68010) BSD binary */
-#define MID_I386        134     /* i386 BSD binary */
-#define MID_M68K        135     /* m68k BSD binary with 8K page sizes */
-#define MID_M68K4K      136     /* m68k BSD binary with 4K page sizes */
-#define MID_NS32532     137     /* ns32532 */
-#define MID_SPARC       138     /* sparc */
-#define MID_PMAX        139     /* pmax */
-#define MID_VAX         140     /* vax */
-#define MID_ALPHA       141     /* Alpha BSD binary */
-#define MID_MIPS        142     /* big-endian MIPS */
-#define MID_ARM6        143     /* ARM6 */
-#define MID_HP300       300     /* hp300 (68020+68881) BSD binary */
-#define MID_HPUX        0x20C   /* hp200/300 HP-UX binary */
-#define MID_HPUX800     0x20B   /* hp800 HP-UX binary */
+#define MID_ZERO        0	/* unknown - implementation dependent */
+#define MID_SUN010      1	/* sun 68010/68020 binary */
+#define MID_SUN020      2	/* sun 68020-only binary */
+#define MID_PC386       100	/* 386 PC binary. (so quoth BFD) */
+#define MID_HP200       200	/* hp200 (68010) BSD binary */
+#define MID_I386        134	/* i386 BSD binary */
+#define MID_M68K        135	/* m68k BSD binary with 8K page sizes */
+#define MID_M68K4K      136	/* m68k BSD binary with 4K page sizes */
+#define MID_NS32532     137	/* ns32532 */
+#define MID_SPARC       138	/* sparc */
+#define MID_PMAX        139	/* pmax */
+#define MID_VAX         140	/* vax */
+#define MID_ALPHA       141	/* Alpha BSD binary */
+#define MID_MIPS        142	/* big-endian MIPS */
+#define MID_ARM6        143	/* ARM6 */
+#define MID_HP300       300	/* hp300 (68020+68881) BSD binary */
+#define MID_HPUX        0x20C	/* hp200/300 HP-UX binary */
+#define MID_HPUX800     0x20B	/* hp800 HP-UX binary */
 
 /*
  * a_flags
@@ -179,19 +179,19 @@ typedef struct AOUT_exec {
 #define AOUT_STROFF(ex) \
         (AOUT_SYMOFF(ex) + (ex)->a_syms)
 
-
 /* Relocation format. */
 struct relocation_info_i386 {
-        int r_address;                  /* offset in text or data segment */
-        unsigned int r_symbolnum : 24,  /* ordinal number of add symbol */
-                         r_pcrel :  1,  /* 1 if value should be pc-relative */
-                        r_length :  2,  /* log base 2 of value's width */
-                        r_extern :  1,  /* 1 if need to add symbol to value */
-                       r_baserel :  1,  /* linkage table relative */
-                      r_jmptable :  1,  /* relocate to jump table */
-                      r_relative :  1,  /* load address relative */
-                          r_copy :  1;  /* run time copy */
+    int r_address;		/* offset in text or data segment */
+    unsigned int r_symbolnum:24,	/* ordinal number of add symbol */
+        r_pcrel:1,		/* 1 if value should be pc-relative */
+        r_length:2,		/* log base 2 of value's width */
+        r_extern:1,		/* 1 if need to add symbol to value */
+        r_baserel:1,		/* linkage table relative */
+        r_jmptable:1,		/* relocate to jump table */
+        r_relative:1,		/* load address relative */
+        r_copy:1;		/* run time copy */
 };
+
 #define relocation_info relocation_info_i386
 
 /*
@@ -200,33 +200,32 @@ struct relocation_info_i386 {
  */
 typedef struct AOUT_nlist {
     union {
-	char *n_name;   /* symbol name (in memory) */
-	long n_strx;    /* file string table offset (on disk) */
+	char *n_name;		/* symbol name (in memory) */
+	long n_strx;		/* file string table offset (on disk) */
     } n_un;
 
+#define AOUT_UNDF  0x00		/* undefined */
+#define AOUT_ABS   0x02		/* absolute address */
+#define AOUT_TEXT  0x04		/* text segment */
+#define AOUT_DATA  0x06		/* data segment */
+#define AOUT_BSS   0x08		/* bss segment */
+#define AOUT_INDR  0x0a		/* alias definition */
+#define AOUT_SIZE  0x0c		/* pseudo type, defines a symbol's size */
+#define AOUT_COMM  0x12		/* common reference */
+#define AOUT_FN    0x1e		/* file name (AOUT_EXT on) */
+#define AOUT_WARN  0x1e		/* warning message (AOUT_EXT off) */
 
-#define AOUT_UNDF  0x00            /* undefined */
-#define AOUT_ABS   0x02            /* absolute address */
-#define AOUT_TEXT  0x04            /* text segment */
-#define AOUT_DATA  0x06            /* data segment */
-#define AOUT_BSS   0x08            /* bss segment */
-#define AOUT_INDR  0x0a            /* alias definition */
-#define AOUT_SIZE  0x0c            /* pseudo type, defines a symbol's size */
-#define AOUT_COMM  0x12            /* common reference */
-#define AOUT_FN    0x1e            /* file name (AOUT_EXT on) */
-#define AOUT_WARN  0x1e            /* warning message (AOUT_EXT off) */
+#define AOUT_EXT   0x01		/* external (global) bit, OR'ed in */
+#define AOUT_TYPE  0x1e		/* mask for all the type bits */
+    unsigned char n_type;	/* type defines */
 
-#define AOUT_EXT   0x01            /* external (global) bit, OR'ed in */
-#define AOUT_TYPE  0x1e            /* mask for all the type bits */
-        unsigned char n_type;   /* type defines */
-
-        char n_other;           /* spare */
-#define n_hash  n_desc          /* used internally by ld(1); XXX */
-        short n_desc;           /* used by stab entries */
-        unsigned long n_value;  /* address/value of the symbol */
+    char n_other;		/* spare */
+#define n_hash  n_desc		/* used internally by ld(1); XXX */
+    short n_desc;		/* used by stab entries */
+    unsigned long n_value;	/* address/value of the symbol */
 } AOUT_nlist;
 
-#define AOUT_FORMAT        "%08x"  /* namelist value format; XXX */
-#define AOUT_STAB          0x0e0   /* mask for debugger symbols -- stab(5) */
+#define AOUT_FORMAT        "%08x"	/* namelist value format; XXX */
+#define AOUT_STAB          0x0e0	/* mask for debugger symbols -- stab(5) */
 
 #endif

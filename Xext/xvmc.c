@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/Xext/xvmc.c,v 1.7 2001/11/18 23:55:48 mvojkovi Exp $ */
+/* $XFree86: xc/programs/Xserver/Xext/xvmc.c,v 1.9 2003/07/17 16:04:33 dawes Exp $ */
 
 #define NEED_REPLIES
 #define NEED_EVENTS

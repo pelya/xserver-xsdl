@@ -1,5 +1,5 @@
 /*
- * $XFree86: xc/programs/Xserver/render/render.c,v 1.26 2003/02/14 18:15:21 dawes Exp $
+ * $XFree86: xc/programs/Xserver/render/render.c,v 1.28 2003/11/03 05:12:02 tsi Exp $
  *
  * Copyright © 2000 SuSE, Inc.
  *
@@ -186,7 +186,9 @@ int	(*SProcRenderVector[RenderNumberRequests])(ClientPtr) = {
 static void
 RenderResetProc (ExtensionEntry *extEntry);
     
+#if 0
 static CARD8	RenderReqCode;
+#endif
 int	RenderErrBase;
 int	RenderClientPrivateIndex;
 
@@ -231,7 +233,9 @@ RenderExtensionInit (void)
 			     RenderResetProc, StandardMinorOpcode);
     if (!extEntry)
 	return;
+#if 0
     RenderReqCode = (CARD8) extEntry->base;
+#endif
     RenderErrBase = extEntry->errorBase;
 }
 
@@ -2388,6 +2392,48 @@ PanoramiXRenderSetPictureClipRectangles (ClientPtr client)
 }
 
 static int
+PanoramiXRenderSetPictureTransform (ClientPtr client)
+{
+    REQUEST(xRenderSetPictureTransformReq);
+    int		    result = Success, j;
+    PanoramiXRes    *pict;
+
+    REQUEST_AT_LEAST_SIZE(xRenderSetPictureTransformReq);
+    
+    VERIFY_XIN_PICTURE(pict, stuff->picture, client, SecurityWriteAccess,
+		       RenderErrBase + BadPicture);
+    
+    FOR_NSCREENS_BACKWARD(j) {
+        stuff->picture = pict->info[j].id;
+        result = (*PanoramiXSaveRenderVector[X_RenderSetPictureTransform]) (client);
+        if(result != Success) break;
+    }
+
+    return (result);
+}
+
+static int
+PanoramiXRenderSetPictureFilter (ClientPtr client)
+{
+    REQUEST(xRenderSetPictureFilterReq);
+    int		    result = Success, j;
+    PanoramiXRes    *pict;
+
+    REQUEST_AT_LEAST_SIZE(xRenderSetPictureFilterReq);
+    
+    VERIFY_XIN_PICTURE(pict, stuff->picture, client, SecurityWriteAccess,
+		       RenderErrBase + BadPicture);
+    
+    FOR_NSCREENS_BACKWARD(j) {
+        stuff->picture = pict->info[j].id;
+        result = (*PanoramiXSaveRenderVector[X_RenderSetPictureFilter]) (client);
+        if(result != Success) break;
+    }
+
+    return (result);
+}
+
+static int
 PanoramiXRenderFreePicture (ClientPtr client)
 {
     PanoramiXRes *pict;
@@ -2551,6 +2597,326 @@ PanoramiXRenderFillRectangles (ClientPtr client)
     return result;
 }
 
+static int
+PanoramiXRenderTrapezoids(ClientPtr client)
+{
+    PanoramiXRes        *src, *dst;
+    int                 result = Success, j;
+    REQUEST(xRenderTrapezoidsReq);
+    char		*extra;
+    int			extra_len;
+    
+    REQUEST_AT_LEAST_SIZE (xRenderTrapezoidsReq);
+    
+    VERIFY_XIN_PICTURE (src, stuff->src, client, SecurityReadAccess,
+			RenderErrBase + BadPicture);
+    VERIFY_XIN_PICTURE (dst, stuff->dst, client, SecurityWriteAccess,
+			RenderErrBase + BadPicture);
+
+    extra_len = (client->req_len << 2) - sizeof (xRenderTrapezoidsReq);
+
+    if (extra_len &&
+	(extra = (char *) ALLOCATE_LOCAL (extra_len))) {
+	memcpy (extra, stuff + 1, extra_len);
+
+	FOR_NSCREENS_FORWARD(j) {
+	    if (j) memcpy (stuff + 1, extra, extra_len);
+	    if (dst->u.pict.root) {
+                int x_off = panoramiXdataPtr[j].x;
+		int y_off = panoramiXdataPtr[j].y;
+
+		if(x_off || y_off) {
+                    xTrapezoid  *trap = (xTrapezoid *) (stuff + 1);
+		    int         i = extra_len / sizeof (xTrapezoid);
+
+		    while (i--) {
+			trap->top -= y_off;
+			trap->bottom -= y_off;
+			trap->left.p1.x -= x_off;
+			trap->left.p1.y -= y_off;
+			trap->left.p2.x -= x_off;
+			trap->left.p2.y -= y_off;
+			trap->right.p1.x -= x_off;
+			trap->right.p1.y -= y_off;
+			trap->right.p2.x -= x_off;
+			trap->right.p2.y -= y_off;
+			trap++;
+		    }
+		}
+	    }
+	    
+            stuff->src = src->info[j].id;
+            stuff->dst = dst->info[j].id;
+	    result =
+		(*PanoramiXSaveRenderVector[X_RenderTrapezoids]) (client);
+
+	    if(result != Success) break;
+	}
+	
+        DEALLOCATE_LOCAL(extra);
+    }
+
+    return result;
+}
+
+static int
+PanoramiXRenderTriangles(ClientPtr client)
+{
+    PanoramiXRes        *src, *dst;
+    int                 result = Success, j;
+    REQUEST(xRenderTrianglesReq);
+    char		*extra;
+    int			extra_len;
+    
+    REQUEST_AT_LEAST_SIZE (xRenderTrianglesReq);
+    
+    VERIFY_XIN_PICTURE (src, stuff->src, client, SecurityReadAccess,
+			RenderErrBase + BadPicture);
+    VERIFY_XIN_PICTURE (dst, stuff->dst, client, SecurityWriteAccess,
+			RenderErrBase + BadPicture);
+
+    extra_len = (client->req_len << 2) - sizeof (xRenderTrianglesReq);
+
+    if (extra_len &&
+	(extra = (char *) ALLOCATE_LOCAL (extra_len))) {
+	memcpy (extra, stuff + 1, extra_len);
+
+	FOR_NSCREENS_FORWARD(j) {
+	    if (j) memcpy (stuff + 1, extra, extra_len);
+	    if (dst->u.pict.root) {
+                int x_off = panoramiXdataPtr[j].x;
+		int y_off = panoramiXdataPtr[j].y;
+
+		if(x_off || y_off) {
+                    xTriangle  *tri = (xTriangle *) (stuff + 1);
+		    int         i = extra_len / sizeof (xTriangle);
+
+		    while (i--) {
+			tri->p1.x -= x_off;
+			tri->p1.y -= y_off;
+			tri->p2.x -= x_off;
+			tri->p2.y -= y_off;
+			tri->p3.x -= x_off;
+			tri->p3.y -= y_off;
+			tri++;
+		    }
+		}
+	    }
+	    
+            stuff->src = src->info[j].id;
+            stuff->dst = dst->info[j].id;
+	    result =
+		(*PanoramiXSaveRenderVector[X_RenderTriangles]) (client);
+
+	    if(result != Success) break;
+	}
+	
+        DEALLOCATE_LOCAL(extra);
+    }
+
+    return result;
+}
+
+static int
+PanoramiXRenderTriStrip(ClientPtr client)
+{
+    PanoramiXRes        *src, *dst;
+    int                 result = Success, j;
+    REQUEST(xRenderTriStripReq);
+    char		*extra;
+    int			extra_len;
+    
+    REQUEST_AT_LEAST_SIZE (xRenderTriStripReq);
+    
+    VERIFY_XIN_PICTURE (src, stuff->src, client, SecurityReadAccess,
+			RenderErrBase + BadPicture);
+    VERIFY_XIN_PICTURE (dst, stuff->dst, client, SecurityWriteAccess,
+			RenderErrBase + BadPicture);
+
+    extra_len = (client->req_len << 2) - sizeof (xRenderTriStripReq);
+
+    if (extra_len &&
+	(extra = (char *) ALLOCATE_LOCAL (extra_len))) {
+	memcpy (extra, stuff + 1, extra_len);
+
+	FOR_NSCREENS_FORWARD(j) {
+	    if (j) memcpy (stuff + 1, extra, extra_len);
+	    if (dst->u.pict.root) {
+                int x_off = panoramiXdataPtr[j].x;
+		int y_off = panoramiXdataPtr[j].y;
+
+		if(x_off || y_off) {
+                    xPointFixed  *fixed = (xPointFixed *) (stuff + 1);
+		    int         i = extra_len / sizeof (xPointFixed);
+
+		    while (i--) {
+			fixed->x -= x_off;
+			fixed->y -= y_off;
+			fixed++;
+		    }
+		}
+	    }
+	    
+            stuff->src = src->info[j].id;
+            stuff->dst = dst->info[j].id;
+	    result =
+		(*PanoramiXSaveRenderVector[X_RenderTriStrip]) (client);
+
+	    if(result != Success) break;
+	}
+	
+        DEALLOCATE_LOCAL(extra);
+    }
+
+    return result;
+}
+
+static int
+PanoramiXRenderTriFan(ClientPtr client)
+{
+    PanoramiXRes        *src, *dst;
+    int                 result = Success, j;
+    REQUEST(xRenderTriFanReq);
+    char		*extra;
+    int			extra_len;
+    
+    REQUEST_AT_LEAST_SIZE (xRenderTriFanReq);
+    
+    VERIFY_XIN_PICTURE (src, stuff->src, client, SecurityReadAccess,
+			RenderErrBase + BadPicture);
+    VERIFY_XIN_PICTURE (dst, stuff->dst, client, SecurityWriteAccess,
+			RenderErrBase + BadPicture);
+
+    extra_len = (client->req_len << 2) - sizeof (xRenderTriFanReq);
+
+    if (extra_len &&
+	(extra = (char *) ALLOCATE_LOCAL (extra_len))) {
+	memcpy (extra, stuff + 1, extra_len);
+
+	FOR_NSCREENS_FORWARD(j) {
+	    if (j) memcpy (stuff + 1, extra, extra_len);
+	    if (dst->u.pict.root) {
+                int x_off = panoramiXdataPtr[j].x;
+		int y_off = panoramiXdataPtr[j].y;
+
+		if(x_off || y_off) {
+                    xPointFixed  *fixed = (xPointFixed *) (stuff + 1);
+		    int         i = extra_len / sizeof (xPointFixed);
+
+		    while (i--) {
+			fixed->x -= x_off;
+			fixed->y -= y_off;
+			fixed++;
+		    }
+		}
+	    }
+	    
+            stuff->src = src->info[j].id;
+            stuff->dst = dst->info[j].id;
+	    result =
+		(*PanoramiXSaveRenderVector[X_RenderTriFan]) (client);
+
+	    if(result != Success) break;
+	}
+	
+        DEALLOCATE_LOCAL(extra);
+    }
+
+    return result;
+}
+
+#if 0 /* Not implemented yet */
+
+static int
+PanoramiXRenderColorTrapezoids(ClientPtr client)
+{
+    PanoramiXRes        *src, *dst;
+    int                 result = Success, j;
+    REQUEST(xRenderColorTrapezoidsReq);
+    char		*extra;
+    int			extra_len;
+    
+    REQUEST_AT_LEAST_SIZE (xRenderColorTrapezoidsReq);
+    
+    VERIFY_XIN_PICTURE (dst, stuff->dst, client, SecurityWriteAccess,
+			RenderErrBase + BadPicture);
+
+    extra_len = (client->req_len << 2) - sizeof (xRenderColorTrapezoidsReq);
+
+    if (extra_len &&
+	(extra = (char *) ALLOCATE_LOCAL (extra_len))) {
+	memcpy (extra, stuff + 1, extra_len);
+
+	FOR_NSCREENS_FORWARD(j) {
+	    if (j) memcpy (stuff + 1, extra, extra_len);
+	    if (dst->u.pict.root) {
+                int x_off = panoramiXdataPtr[j].x;
+		int y_off = panoramiXdataPtr[j].y;
+
+		if(x_off || y_off) {
+			....; 
+		}
+	    }
+	    
+            stuff->dst = dst->info[j].id;
+	    result =
+		(*PanoramiXSaveRenderVector[X_RenderColorTrapezoids]) (client);
+
+	    if(result != Success) break;
+	}
+	
+        DEALLOCATE_LOCAL(extra);
+    }
+
+    return result;
+}
+
+static int
+PanoramiXRenderColorTriangles(ClientPtr client)
+{
+    PanoramiXRes        *src, *dst;
+    int                 result = Success, j;
+    REQUEST(xRenderColorTrianglesReq);
+    char		*extra;
+    int			extra_len;
+    
+    REQUEST_AT_LEAST_SIZE (xRenderColorTrianglesReq);
+    
+    VERIFY_XIN_PICTURE (dst, stuff->dst, client, SecurityWriteAccess,
+			RenderErrBase + BadPicture);
+
+    extra_len = (client->req_len << 2) - sizeof (xRenderColorTrianglesReq);
+
+    if (extra_len &&
+	(extra = (char *) ALLOCATE_LOCAL (extra_len))) {
+	memcpy (extra, stuff + 1, extra_len);
+
+	FOR_NSCREENS_FORWARD(j) {
+	    if (j) memcpy (stuff + 1, extra, extra_len);
+	    if (dst->u.pict.root) {
+                int x_off = panoramiXdataPtr[j].x;
+		int y_off = panoramiXdataPtr[j].y;
+
+		if(x_off || y_off) {
+			....; 
+		}
+	    }
+	    
+            stuff->dst = dst->info[j].id;
+	    result =
+		(*PanoramiXSaveRenderVector[X_RenderColorTriangles]) (client);
+
+	    if(result != Success) break;
+	}
+	
+        DEALLOCATE_LOCAL(extra);
+    }
+
+    return result;
+}
+
+#endif
+
 void
 PanoramiXRenderInit (void)
 {
@@ -2564,6 +2930,8 @@ PanoramiXRenderInit (void)
      */
     ProcRenderVector[X_RenderCreatePicture] = PanoramiXRenderCreatePicture;
     ProcRenderVector[X_RenderChangePicture] = PanoramiXRenderChangePicture;
+    ProcRenderVector[X_RenderSetPictureTransform] = PanoramiXRenderSetPictureTransform;
+    ProcRenderVector[X_RenderSetPictureFilter] = PanoramiXRenderSetPictureFilter;
     ProcRenderVector[X_RenderSetPictureClipRectangles] = PanoramiXRenderSetPictureClipRectangles;
     ProcRenderVector[X_RenderFreePicture] = PanoramiXRenderFreePicture;
     ProcRenderVector[X_RenderComposite] = PanoramiXRenderComposite;
@@ -2571,6 +2939,11 @@ PanoramiXRenderInit (void)
     ProcRenderVector[X_RenderCompositeGlyphs16] = PanoramiXRenderCompositeGlyphs;
     ProcRenderVector[X_RenderCompositeGlyphs32] = PanoramiXRenderCompositeGlyphs;
     ProcRenderVector[X_RenderFillRectangles] = PanoramiXRenderFillRectangles;
+
+    ProcRenderVector[X_RenderTrapezoids] = PanoramiXRenderTrapezoids;
+    ProcRenderVector[X_RenderTriangles] = PanoramiXRenderTriangles;
+    ProcRenderVector[X_RenderTriStrip] = PanoramiXRenderTriStrip;
+    ProcRenderVector[X_RenderTriFan] = PanoramiXRenderTriFan;
 }
 
 void

@@ -26,8 +26,9 @@
  *from the XFree86 Project.
  *
  * Authors:	Harold L Hunt II
+ * 		Alan Hourihane <alanh@fairlite.demon.co.uk>
  */
-/* $XFree86: xc/programs/Xserver/hw/xwin/winsetsp.c,v 1.7 2001/11/01 12:19:42 alanh Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xwin/winsetsp.c,v 1.8 2003/08/07 23:47:58 alanh Exp $ */
 
 #include "win.h"
 
@@ -44,22 +45,37 @@ winSetSpansNativeGDI (DrawablePtr	pDrawable,
   winGCPriv(pGC);
   PixmapPtr		pPixmap = NULL;
   winPrivPixmapPtr	pPixmapPriv = NULL;
-  int			iSpan;
-  int			*piWidth = NULL;
-  DDXPointPtr		pPoint = NULL;
-  char			*pSrc = pSrcs;
-  HDC			hdcMem;
-  BITMAPINFOHEADER	*pbmih;
-  HBITMAP		hBitmap = NULL;
   HBITMAP		hbmpOrig = NULL;
-  DEBUG_FN_NAME("winSetSpans");
-  DEBUGVARS;
-  DEBUGPROC_MSG;
+  BITMAPINFO		bmi;
+  HRGN			hrgn = NULL, combined = NULL;
+  int			nbox;
+  BoxPtr	 	pbox;
+
+  nbox = REGION_NUM_RECTS (pGC->pCompositeClip);
+  pbox = REGION_RECTS (pGC->pCompositeClip);
+
+  if (!nbox) return;
+
+  combined = CreateRectRgn (pbox->x1, pbox->y1, pbox->x2, pbox->y2);
+  nbox--; pbox++;
+  while (nbox--)
+    {
+      hrgn = CreateRectRgn (pbox->x1, pbox->y1, pbox->x2, pbox->y2);
+      CombineRgn (combined, combined, hrgn, RGN_OR);
+      DeleteObject (hrgn);
+      hrgn = NULL;
+      pbox++;
+    }
 
   /* Branch on the drawable type */
   switch (pDrawable->type)
     {
     case DRAWABLE_PIXMAP:
+
+      SelectClipRgn (pGCPriv->hdcMem, combined);
+      DeleteObject (combined);
+      combined = NULL;
+
       pPixmap = (PixmapPtr) pDrawable;
       pPixmapPriv = winGetPixmapPriv (pPixmap);
       
@@ -69,264 +85,87 @@ winSetSpansNativeGDI (DrawablePtr	pDrawable,
 	FatalError ("winSetSpans - DRAWABLE_PIXMAP - SelectObject () "
 		    "failed on pPixmapPriv->hBitmap\n");
 
-      /* Branch on the raster operation type */
-      switch (pGC->alu)
-	{
-	case GXclear:
-	  FatalError ("winSetSpans - DRAWABLE_PIXMAP - GXclear\n");
-	  break;
+      while (iSpans--)
+        {
+	  ZeroMemory (&bmi, sizeof (BITMAPINFO));
+	  bmi.bmiHeader.biSize = sizeof (BITMAPINFOHEADER);
+	  bmi.bmiHeader.biWidth = *piWidths;
+	  bmi.bmiHeader.biHeight = 1;
+	  bmi.bmiHeader.biPlanes = 1;
+	  bmi.bmiHeader.biBitCount = pDrawable->depth;
+	  bmi.bmiHeader.biCompression = BI_RGB;
 
-	case GXand:
-	  FatalError ("winSetSpans - DRAWABLE_PIXMAP - GXand\n");
-	  break;
+  	  /* Setup color table for mono DIBs */
+  	  if (pDrawable->depth == 1)
+    	    {
+      	      bmi.bmiColors[1].rgbBlue = 255;
+      	      bmi.bmiColors[1].rgbGreen = 255;
+      	      bmi.bmiColors[1].rgbRed = 255;
+    	    }
 
-	case GXandReverse:
-	  FatalError ("winSetSpans - DRAWABLE_PIXMAP - GXandReverse\n");
-	  break;
+	  StretchDIBits (pGCPriv->hdcMem, 
+			 pPoints->x, pPoints->y,
+			 *piWidths, 1,
+			 0, 0,
+			 *piWidths, 1,
+			 pSrcs,
+			 (BITMAPINFO *) &bmi,
+			 DIB_RGB_COLORS,
+			 g_copyROP[pGC->alu]);
 
-	case GXcopy:
-	  ErrorF ("winSetSpans - DRAWABLE_PIXMAP - GXcopy %08x\n",
-		  pDrawable);
-
-	  /* Loop through spans */
-	  for (iSpan = 0; iSpan < iSpans; ++iSpan)
-	    {
-	      piWidth = piWidths + iSpan;
-	      pPoint = pPoints + iSpan;
-	  
-	      /* Blast the bits to the drawable */
-	      SetDIBits (pGCPriv->hdcMem,
-			 pPixmapPriv->hBitmap,
-			 pPoint->y, 1, 
-			 pSrc,
-			 (BITMAPINFO *) pPixmapPriv->pbmih,
-			 0);
-	  
-	      /* Display some useful information */
-	      ErrorF ("(%dx%dx%d) (%d,%d) w: %d ps: %08x\n",
-		      pDrawable->width, pDrawable->height, pDrawable->depth,
-		      pPoint->x, pPoint->y, *piWidth, pSrc);
-
-	      /* Calculate offset of next bit source */
-	      pSrc += 4 * ((*piWidth  + 31) / 32);
-	    }
-
-	  /*
-	   * REMOVE - Visual verification only.
-	   */
-	  BitBlt (pGCPriv->hdc, 
-		  pDrawable->width * 2, pDrawable->height,
-		  pDrawable->width, pDrawable->height,
-		  pGCPriv->hdcMem,
-		  0, 0, 
-		  SRCCOPY);
-	  DEBUG_MSG ("DRAWABLE_PIXMAP - GXcopy");
-	  break;
-
-	case GXandInverted:
-	  FatalError ("winSetSpans - DRAWABLE_PIXMAP - GXandInverted\n");
-	  break;
-
-	case GXnoop:
-	  FatalError ("winSetSpans - DRAWABLE_PIXMAP - GXnoop\n");
-	  break;
-
-	case GXxor:
-	  FatalError ("winSetSpans - DRAWABLE_PIXMAP - GXxor\n");
-	  break;
-
-	case GXor:
-	  FatalError ("winSetSpans - DRAWABLE_PIXMAP - GXor\n");
-	  break;
-
-	case GXnor:
-	  FatalError ("winSetSpans - DRAWABLE_PIXMAP - GXnor\n");
-	  break;
-
-	case GXequiv:
-	  FatalError ("winSetSpans - DRAWABLE_PIXMAP - GXequiv\n");
-	  break;
-
-	case GXinvert:
-	  ErrorF ("winSetSpans - DRAWABLE_PIXMAP - GXinvert %08x\n",
-		  pDrawable);
-
-	  /* Create a temporary DC */
-	  hdcMem = CreateCompatibleDC (NULL);
- 
-	  /* Loop through spans */
-	  for (iSpan = 0; iSpan < iSpans; ++iSpan)
-	    {
-	      piWidth = piWidths + iSpan;
-	      pPoint = pPoints + iSpan;
-
-	      /* Create a one-line DIB for the bit data */
-	      hBitmap = winCreateDIBNativeGDI (*piWidth, 1, pDrawable->depth,
-					       NULL, (BITMAPINFO **) &pbmih);
-
-	      /* Select the span line line bitmap into the temporary DC */
-	      hbmpOrig = SelectObject (hdcMem, hBitmap);
-	      
-	      /* Blast bit data to the one-line DIB */
-	      SetDIBits (hdcMem, hBitmap,
-			 0, 1,
-			 pSrc,
-			 (BITMAPINFO *) pbmih,
-			 DIB_RGB_COLORS);
-
-	      /* Blit the span line to the drawable */
-	      BitBlt (pGCPriv->hdcMem,
-		      pPoint->x, pPoint->y,
-		      *piWidth, 1,
-		      hdcMem,
-		      0, 0, 
-		      NOTSRCCOPY);
-
-	      /*
-	       * REMOVE - Visual verification only.
-	       */
-	      BitBlt (pGCPriv->hdc,
-		      pDrawable->width, pDrawable->height + pPoint->y,
-		      *piWidth, 1,
-		      hdcMem,
-		      0, 0, 
-		      SRCCOPY);
-
-	      /* Display some useful information */
-	      ErrorF ("(%dx%dx%d) (%d,%d) w: %d ps: %08x\n",
-		      pDrawable->width, pDrawable->height, pDrawable->depth,
-		      pPoint->x, pPoint->y, *piWidth, pSrc);
-
-	      /* Calculate offset of next bit source */
-	      pSrc += 4 * ((*piWidth + 31) / 32);
-
-	      /* Pop the span line bitmap out of the memory DC */
-	      SelectObject (hdcMem, hbmpOrig);
-
-	      /* Free the temporary bitmap */
-	      DeleteObject (hBitmap);
-	      hBitmap = NULL;
-	    }
-
-	  /*
-	   * REMOVE - Visual verification only.
-	   */
-	  DEBUG_MSG ("DRAWABLE_PIXMAP - GXinvert - Prior to invert");
-	  BitBlt (pGCPriv->hdc, 
-		  pDrawable->width * 2, pDrawable->height,
-		  pDrawable->width, pDrawable->height,
-		  pGCPriv->hdcMem,
-		  0, 0, 
-		  SRCCOPY);
-	  DEBUG_MSG ("DRAWABLE_PIXMAP - GXinvert - Finished invert");
-
-	  /* Release the scratch DC */
-	  DeleteDC (hdcMem);
-	  break;
-
-	case GXorReverse:
-	  FatalError ("winSetSpans - DRAWABLE_PIXMAP - GXorReverse\n");
-	  break;
-
-	case GXcopyInverted:
-	  FatalError ("winSetSpans - DRAWABLE_PIXMAP - GXcopyInverted\n");
-	  break;
-
-	case GXorInverted:
-	  FatalError ("winSetSpans - DRAWABLE_PIXMAP - GXorInverted\n");
-	  break;
-
-	case GXnand:
-	  FatalError ("winSetSpans - DRAWABLE_PIXMAP - GXnand\n");
-	  break;
-
-	case GXset:
-	  FatalError ("winSetSpans - DRAWABLE_PIXMAP - GXset\n");
-	  break;
-
-	default:
-	  FatalError ("winSetSpans - DRAWABLE_PIXMAP - Unknown ROP\n");
-	  break;
-	}
+	  pSrcs += PixmapBytePad (*piWidths, pDrawable->depth);
+	  pPoints++;
+	  piWidths++;
+        }
+      
+      /* Reset the clip region */
+      SelectClipRgn (pGCPriv->hdcMem, NULL);
 
       /* Push the drawable pixmap out of the GC HDC */
       SelectObject (pGCPriv->hdcMem, hbmpOrig);
       break;
 
     case DRAWABLE_WINDOW:
-      FatalError ("\nwinSetSpansNativeGDI - DRAWABLE_WINDOW\n\n");
 
-      /* Branch on the raster operation type */
-      switch (pGC->alu)
-	{
-	case GXclear:
-	  ErrorF ("winSetSpans () - DRAWABLE_WINDOW - GXclear\n");
-	  break;
+      SelectClipRgn (pGCPriv->hdc, combined);
+      DeleteObject (combined);
+      combined = NULL;
 
-	case GXand:
-	  ErrorF ("winSetSpans () - DRAWABLE_WINDOW - GXand\n");
-	  break;
+      while (iSpans--)
+        {
+	  ZeroMemory (&bmi, sizeof (BITMAPINFO));
+	  bmi.bmiHeader.biSize = sizeof (BITMAPINFOHEADER);
+	  bmi.bmiHeader.biWidth = *piWidths;
+	  bmi.bmiHeader.biHeight = 1;
+	  bmi.bmiHeader.biPlanes = 1;
+	  bmi.bmiHeader.biBitCount = pDrawable->depth;
+	  bmi.bmiHeader.biCompression = BI_RGB;
 
-	case GXandReverse:
-	  ErrorF ("winSetSpans () - DRAWABLE_WINDOW - GXandReverse\n");
-	  break;
+  	  /* Setup color table for mono DIBs */
+  	  if (pDrawable->depth == 1)
+    	    {
+      	      bmi.bmiColors[1].rgbBlue = 255;
+      	      bmi.bmiColors[1].rgbGreen = 255;
+      	      bmi.bmiColors[1].rgbRed = 255;
+    	    }
 
-	case GXcopy:
-	  ErrorF ("winSetSpans () - DRAWABLE_WINDOW - GXcopy\n");
-	  break;
+	  StretchDIBits (pGCPriv->hdc, 
+			 pPoints->x, pPoints->y,
+			 *piWidths, 1,
+			 0, 0,
+			 *piWidths, 1,
+			 pSrcs,
+			 (BITMAPINFO *) &bmi,
+			 DIB_RGB_COLORS,
+			 g_copyROP[pGC->alu]);
 
-	case GXandInverted:
-	  ErrorF ("winSetSpans () - DRAWABLE_WINDOW - GXandInverted\n");
-	  break;
+	  pSrcs += PixmapBytePad (*piWidths, pDrawable->depth);
+	  pPoints++;
+	  piWidths++;
+        }
 
-	case GXnoop:
-	  ErrorF ("winSetSpans () - DRAWABLE_WINDOW - GXnoop\n");
-	  break;
-
-	case GXxor:
-	  ErrorF ("winSetSpans () - DRAWABLE_WINDOW - GXxor\n");
-	  break;
-
-	case GXor:
-	  ErrorF ("winSetSpans () - DRAWABLE_WINDOW - GXor\n");
-	  break;
-
-	case GXnor:
-	  ErrorF ("winSetSpans () - DRAWABLE_WINDOW - GXnor\n");
-	  break;
-
-	case GXequiv:
-	  ErrorF ("winSetSpans () - DRAWABLE_WINDOW - GXequiv\n");
-	  break;
-
-	case GXinvert:
-	  ErrorF ("winSetSpans () - DRAWABLE_WINDOW - GXinvert\n");
-	  break;
-
-	case GXorReverse:
-	  ErrorF ("winSetSpans () - DRAWABLE_WINDOW - GXorReverse\n");
-	  break;
-
-	case GXcopyInverted:
-	  ErrorF ("winSetSpans () - DRAWABLE_WINDOW - GXcopyInverted\n");
-	  break;
-
-	case GXorInverted:
-	  ErrorF ("winSetSpans () - DRAWABLE_WINDOW - GXorInverted\n");
-	  break;
-
-	case GXnand:
-	  ErrorF ("winSetSpans () - DRAWABLE_WINDOW - GXnand\n");
-	  break;
-
-	case GXset:
-	  ErrorF ("winSetSpans () - DRAWABLE_WINDOW - GXset\n");
-	  break;
-
-	default:
-	  ErrorF ("winSetSpans () - DRAWABLE_WINDOW - Unknown ROP\n");
-	  break;
-	}
+      /* Reset the clip region */
+      SelectClipRgn (pGCPriv->hdc, NULL);
       break;
 
     case UNDRAWABLE_WINDOW:

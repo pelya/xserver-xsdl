@@ -30,7 +30,7 @@
  *		Peter Busch
  *		Harold L Hunt II
  */
-/* $XFree86: xc/programs/Xserver/hw/xwin/winwakeup.c,v 1.6 2002/10/17 08:18:25 alanh Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xwin/winwakeup.c,v 1.7 2003/07/29 21:25:18 dawes Exp $ */
 
 #include "win.h"
 
@@ -41,17 +41,23 @@ winWakeupHandler (int nScreen,
 		  unsigned long ulResult,
 		  pointer pReadmask)
 {
+#if 0
   winScreenPriv((ScreenPtr)pWakeupData);
+#endif
   MSG			msg;
 
   /* Process all messages on our queue */
   while (PeekMessage (&msg, NULL, 0, 0, PM_REMOVE))
     {
-      if (g_hDlgDepthChange == 0 || !IsDialogMessage (g_hDlgDepthChange, &msg))
+      if ((g_hDlgDepthChange == 0
+	   || !IsDialogMessage (g_hDlgDepthChange, &msg))
+	  && (g_hDlgExit == 0
+	      || !IsDialogMessage (g_hDlgExit, &msg)))
 	{
 	  DispatchMessage (&msg);
 	}
     }
+  winReorderWindowsMultiWindow ((ScreenPtr)pWakeupData);
 }
 
 

@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/dix/tables.c,v 3.5 2002/02/19 11:09:22 alanh Exp $ */
+/* $XFree86: xc/programs/Xserver/dix/tables.c,v 3.6 2003/11/17 22:20:35 dawes Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -65,9 +65,7 @@ extern int
 #endif
 
 int (* InitialVector[3]) (
-#if NeedNestedPrototypes
 	ClientPtr /* client */
-#endif
     ) =
 {
     0,
@@ -76,9 +74,7 @@ int (* InitialVector[3]) (
 };
 
 int (* ProcVector[256]) (
-#if NeedNestedPrototypes
 	ClientPtr /* client */
-#endif
     ) =
 {
     ProcBadRequest,
@@ -212,9 +208,7 @@ int (* ProcVector[256]) (
 };
 
 int (* SwappedProcVector[256]) (
-#if NeedNestedPrototypes
 	ClientPtr /* client */
-#endif
     ) =
 {
     ProcBadRequest,

@@ -52,7 +52,7 @@ Telephone and Telegraph Company or of the Regents of the
 University of California.
 
 */
-/* $XFree86: xc/programs/Xserver/Xext/xtest1dd.c,v 3.5 2001/12/14 19:58:52 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/Xext/xtest1dd.c,v 3.7 2003/11/17 22:20:28 dawes Exp $ */
 
 /***************************************************************
  * include files
@@ -158,11 +158,6 @@ static xTestInputActionEvent	input_action_packet;
  */
 static int 			packet_index;
 /*
- * set to 1 when the input action event is full and needs to be sent to the 
- * client
- */
-static int			input_action_event_full = 0;
-/*
  * logical x position of the mouse during input action gathering
  */
 short				xtest_mousex;
@@ -170,14 +165,6 @@ short				xtest_mousex;
  * logical y position of the mouse during input action gathering
  */
 short				xtest_mousey;
-/*
- * logical x position of the mouse during input action playback
- */
-static short			mx;
-/*
- * logical y position of the mouse during input action playback
- */
-static short			my;
 /*
  * logical x position of the mouse while we are reading fake input actions
  * from the client and putting them into the fake input action array
@@ -288,60 +275,38 @@ KeyCode			xtest_command_key = 0;
  ***************************************************************/
 
 static void	parse_key_fake(
-#if NeedFunctionPrototypes
 			XTestKeyInfo	* /* fkey */
-#endif
 			);
 static void	parse_motion_fake(
-#if NeedFunctionPrototypes
 			XTestMotionInfo	* /* fmotion */
-#endif
 			);
 static void	parse_jump_fake(
-#if NeedFunctionPrototypes
 			XTestJumpInfo	* /* fjump */
-#endif
 			);
 static void	parse_delay_fake(
-#if NeedFunctionPrototypes
 			XTestDelayInfo	* /* tevent */
-#endif
 			);
 static void	send_ack(
-#if NeedFunctionPrototypes
 			ClientPtr	 /* client */
-#endif
 			);
 static void	start_play_clock(
-#if NeedFunctionPrototypes
 			void
-#endif
 			);
 static void	compute_action_time(
-#if NeedFunctionPrototypes
 			struct timeval	* /* rtime */
-#endif
 			);
 static int	find_residual_time(
-#if NeedFunctionPrototypes
 			struct timeval	* /* rtime */
-#endif
 			);
 
 static CARD16	check_time_event(
-#if NeedFunctionPrototypes
 			void
-#endif
 			);
 static CARD32	current_ms(
-#if NeedFunctionPrototypes
 			struct timeval	* /* otime */
-#endif
 			);
 static int	there_is_room(
-#if NeedFunctionPrototypes
 			int	/* actsize */
-#endif
 			);
 
 /******************************************************************************
@@ -471,7 +436,6 @@ flush_input_actions()
 	/*
 	 * re-initialize the input action event
 	 */
-	input_action_event_full = 0;
 	input_action_packet.type = XTestInputActionType;
  	packet_index = 0;
 }	
@@ -690,7 +654,6 @@ int	actsize;
 {
 	if ((packet_index + actsize) > XTestACTIONS_SIZE)
 	{ 
-		input_action_event_full = 1;
 		return(0);
 	}
 	else
@@ -1316,8 +1279,6 @@ int mousex, mousey;
 					action_array[read_index].x, 
 					action_array[read_index].y, 
 					action_array[read_index].device);
-				mx = action_array[read_index].x;
-				my = action_array[read_index].y;
 			}
 			if (action_array[read_index].type == XTestKEY_ACTION)
 			    {

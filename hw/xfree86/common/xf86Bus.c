@@ -1,7 +1,31 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86Bus.c,v 1.76 2003/02/21 17:19:34 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86Bus.c,v 1.79 2003/11/03 05:11:01 tsi Exp $ */
 /*
- * Copyright (c) 1997-1999 by The XFree86 Project, Inc.
+ * Copyright (c) 1997-2003 by The XFree86 Project, Inc.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+ * THE COPYRIGHT HOLDER(S) OR AUTHOR(S) BE LIABLE FOR ANY CLAIM, DAMAGES OR
+ * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ *
+ * Except as contained in this notice, the name of the copyright holder(s)
+ * and author(s) shall not be used in advertising or otherwise to promote
+ * the sale, use or other dealings in this Software without prior written
+ * authorization from the copyright holder(s) and author(s).
  */
+
 #define REDUCER
 /*
  * This file contains the interfaces to the bus-specific code
@@ -1280,14 +1304,14 @@ xf86PrintResList(int verb, resPtr list)
 		switch (list->res_type & ResExtMask) {
 		case ResBlock:
 		    xf86ErrorFVerb(verb,
-				   "\t[%d] %d\t%d\t0x%08lx - 0x%08lx (0x%lx)",
+				   "\t[%d] %d\t%ld\t0x%08lx - 0x%08lx (0x%lx)",
 				   i, list->entityIndex,
 				   (list->res_type & ResDomain) >> 24,
 				   list->block_begin, list->block_end,
 				   list->block_end - list->block_begin + 1);
 		    break;
 		case ResSparse:
-		    xf86ErrorFVerb(verb, "\t[%d] %d\t%d\t0x%08lx - 0x%08lx ",
+		    xf86ErrorFVerb(verb, "\t[%d] %d\t%ld\t0x%08lx - 0x%08lx ",
 				   i, list->entityIndex,
 				   (list->res_type & ResDomain) >> 24,
 				   list->sparse_base,list->sparse_mask);
@@ -1581,7 +1605,6 @@ xf86GetSparse(unsigned long type,  memType fixed_bits,
     memType new_mask;
     memType mask1;
     memType base;
-    memType bits;
     memType counter = 0;
     memType counter1;
     memType max_counter = ~(memType)0;
@@ -1653,7 +1676,6 @@ xf86GetSparse(unsigned long type,  memType fixed_bits,
     counter = 0;
     
     while (1) {
-	bits = make_base(counter,new_mask) | fixed_bits; 
 	counter1 = 0;
 	while (1) {
 	    base = make_base(counter1,mask1);
@@ -2134,7 +2156,7 @@ static void
 resError(resList list)
 {
     FatalError("A driver tried to allocate the %s %sresource at \n"
-	       "0x%x:0x%x which conflicted with another resource. Send the\n"
+	       "0x%lx:0x%lx which conflicted with another resource. Send the\n"
 	       "output of the server to %s. Please \n"
 	       "specify your computer hardware as closely as possible.\n",
 	       ResIsBlock(list)?"Block":"Sparse",

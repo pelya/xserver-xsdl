@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/loader/loaderProcs.h,v 1.19 2002/07/30 18:36:18 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/loader/loaderProcs.h,v 1.21 2003/10/15 16:29:04 dawes Exp $ */
 
 /*
  *
@@ -22,6 +22,32 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
+/*
+ * Copyright (c) 1997-2002 by The XFree86 Project, Inc.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+ * THE COPYRIGHT HOLDER(S) OR AUTHOR(S) BE LIABLE FOR ANY CLAIM, DAMAGES OR
+ * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ *
+ * Except as contained in this notice, the name of the copyright holder(s)
+ * and author(s) shall not be used in advertising or otherwise to promote
+ * the sale, use or other dealings in this Software without prior written
+ * authorization from the copyright holder(s) and author(s).
+ */
 
 #ifndef _LOADERPROCS_H
 #define _LOADERPROCS_H
@@ -31,23 +57,22 @@
 #include "fontmod.h"
 
 typedef struct module_desc {
-	struct module_desc *child;
-	struct module_desc *sib;
-	struct module_desc *parent;
-	struct module_desc *demand_next;
-	char *name;
-	char *filename;
-	char *identifier;
-	XID client_id;
-	int in_use;
-	int handle;
-	ModuleSetupProc SetupProc;
-	ModuleTearDownProc TearDownProc;
-	void *TearDownData; /* returned from SetupProc */
-	const char *path;
-	const XF86ModuleVersionInfo *VersionInfo;
+    struct module_desc *child;
+    struct module_desc *sib;
+    struct module_desc *parent;
+    struct module_desc *demand_next;
+    char *name;
+    char *filename;
+    char *identifier;
+    XID client_id;
+    int in_use;
+    int handle;
+    ModuleSetupProc SetupProc;
+    ModuleTearDownProc TearDownProc;
+    void *TearDownData;		/* returned from SetupProc */
+    const char *path;
+    const XF86ModuleVersionInfo *VersionInfo;
 } ModuleDesc, *ModuleDescPtr;
-
 
 /*
  * Extenal API for the loader 
@@ -64,16 +89,15 @@ ModuleDescPtr LoadSubModule(ModuleDescPtr, const char *,
 			    const char **, const char **, pointer,
 			    const XF86ModReqInfo *, int *, int *);
 ModuleDescPtr DuplicateModule(ModuleDescPtr mod, ModuleDescPtr parent);
-void LoadFont (FontModule *);
-void UnloadModule (ModuleDescPtr);
-void UnloadSubModule (ModuleDescPtr);
-void UnloadDriver (ModuleDescPtr);
-void FreeModuleDesc (ModuleDescPtr mod);
-ModuleDescPtr NewModuleDesc (const char *);
-ModuleDescPtr AddSibling (ModuleDescPtr head, ModuleDescPtr new);
+void LoadFont(FontModule *);
+void UnloadModule(ModuleDescPtr);
+void UnloadSubModule(ModuleDescPtr);
+void UnloadDriver(ModuleDescPtr);
+void FreeModuleDesc(ModuleDescPtr mod);
+ModuleDescPtr NewModuleDesc(const char *);
+ModuleDescPtr AddSibling(ModuleDescPtr head, ModuleDescPtr new);
 void LoaderSetPath(const char *path);
 void LoaderSortExtensions(void);
-
 
 void LoaderVReqSymLists(const char **, va_list args);
 void LoaderVReqSymbols(const char *, va_list args);
@@ -91,6 +115,5 @@ void LoaderClearOptions(unsigned long);
 
 /* Options for LoaderSetOptions */
 #define LDR_OPT_ABI_MISMATCH_NONFATAL		0x0001
-
 
 #endif /* _LOADERPROCS_H */

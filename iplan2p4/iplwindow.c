@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/iplan2p4/iplwindow.c,v 3.0 1996/08/18 01:55:13 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/iplan2p4/iplwindow.c,v 3.1 2003/11/10 18:22:45 tsi Exp $ */
 /* $XConsortium: iplwindow.c,v 5.22 94/04/17 20:29:07 dpw Exp $ */
 /***********************************************************
 
@@ -183,7 +183,7 @@ iplCopyWindow(pWin, ptOldOrg, prgnSrc)
 
     pwinRoot = WindowTable[pWin->drawable.pScreen->myNum];
 
-    REGION_INIT(pWin->drawable.pScreen, &rgnDst, NullBox, 0);
+    REGION_NULL(pWin->drawable.pScreen, &rgnDst);
 
     dx = ptOldOrg.x - pWin->drawable.x;
     dy = ptOldOrg.y - pWin->drawable.y;

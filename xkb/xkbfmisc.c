@@ -24,7 +24,7 @@
  THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
  ********************************************************/
-/* $XFree86: xc/lib/xkbfile/xkbmisc.c,v 1.4 2002/12/20 20:18:35 paulo Exp $ */
+/* $XFree86: xc/lib/xkbfile/xkbmisc.c,v 1.8 2003/11/17 22:20:24 dawes Exp $ */
 
 #include <stdio.h>
 #include <ctype.h>
@@ -55,16 +55,12 @@
 #define XKBSRV_NEED_FILE_FUNCS	1
 #include "XKBsrv.h"
 #include <X11/extensions/XKBgeom.h>
+#include "xkb.h"
 
 #endif
 
 unsigned
-#if NeedFunctionPrototypes
 _XkbKSCheckCase(KeySym ks)
-#else
-_XkbKSCheckCase(ks)
-    KeySym	ks;
-#endif
 {
 unsigned	set,rtrn;
 
@@ -149,13 +145,7 @@ unsigned	set,rtrn;
 /***===================================================================***/
 
 int
-#if NeedFunctionPrototypes
 _XkbStrCaseCmp(char *str1,char *str2)
-#else
-_XkbStrCaseCmp(str1,str2)
-    char *	str1;
-    char *	str2;
-#endif
 {
     char buf1[512],buf2[512];
     char c, *s;
@@ -183,20 +173,11 @@ _XkbStrCaseCmp(str1,str2)
 /***===================================================================***/
 
 Bool
-#if NeedFunctionPrototypes
 XkbLookupGroupAndLevel(	XkbDescPtr 	xkb,
 			int 		key,
 			int *		mods_inout,
 			int *		grp_inout,
 			int *		lvl_rtrn)
-#else
-XkbLookupGroupAndLevel(xkb,key,mods_inout,grp_inout,lvl_rtrn)
-    XkbDescPtr	xkb;
-    int		key;
-    int	*	mods_inout;
-    int *	grp_inout;
-    int	*	lvl_rtrn;
-#endif
 {
 int		nG,eG;
 
@@ -262,14 +243,7 @@ int		nG,eG;
 /***===================================================================***/
 
 static Bool
-#if NeedFunctionPrototypes
 XkbWriteSectionFromName(FILE *file,char *sectionName,char *name)
-#else
-XkbWriteSectionFromName(file,sectionName,name)
-    FILE *			file;
-    char *			sectionName;
-    char *			name;
-#endif
 {
     fprintf(file,"    xkb_%-20s { include \"%s\" };\n",sectionName,name);
     return True;
@@ -280,45 +254,25 @@ XkbWriteSectionFromName(file,sectionName,name)
 
 /* ARGSUSED */
 static void
-#if NeedFunctionPrototypes
 _AddIncl(	FILE *		file,
 		XkbFileInfo *	result,
 		Bool 		topLevel,
 		Bool 		showImplicit,
 		int 		index,
 		void *		priv)
-#else
-_AddIncl(file,result,topLevel,showImplicit,index,priv)
-    FILE *		file;
-    XkbFileInfo *	result;
-    Bool		topLevel;
-    Bool		showImplicit;
-    int			index;
-    void *		priv;
-#endif
 {
-    if ((priv)&&(strcmp(priv,"%")!=0))
+    if ((priv)&&(strcmp((char *)priv,"%")!=0))
 	fprintf(file,"    include \"%s\"\n",(char *)priv);
     return;
 }
 
 Bool
-#if NeedFunctionPrototypes
 XkbWriteXKBKeymapForNames(	FILE *			file,
 				XkbComponentNamesPtr	names,
 				Display *		dpy,
 				XkbDescPtr		xkb,
 				unsigned		want,
 				unsigned		need)
-#else
-XkbWriteXKBKeymapForNames(file,names,dpy,xkb,want,need)
-    FILE *			file;
-    XkbComponentNamesPtr	names;
-    Display *			dpy;
-    XkbDescPtr			xkb;
-    unsigned			want;
-    unsigned			need;
-#endif
 {
 char *		name,*tmp;
 unsigned	complete;
@@ -503,13 +457,7 @@ XkbFileInfo	finfo;
 
 /*ARGSUSED*/
 Status
-#if NeedFunctionPrototypes
 XkbMergeFile(XkbDescPtr xkb,XkbFileInfo finfo)
-#else
-XkbMergeFile(xkb,finfo)
-    XkbDescPtr	 xkb;
-    XkbFileInfo	*finfo;
-#endif
 {
     return BadImplementation;
 }
@@ -517,14 +465,7 @@ XkbMergeFile(xkb,finfo)
 /***====================================================================***/
 
 int
-#if NeedFunctionPrototypes
 XkbFindKeycodeByName(XkbDescPtr xkb,char *name,Bool use_aliases)
-#else
-XkbFindKeycodeByName(xkb,name,use_aliases)
-    XkbDescPtr	xkb;
-    char *	name;
-    Bool	use_aliases;
-#endif
 {
 register int	i;
 
@@ -557,13 +498,7 @@ register int	i;
 
 
 unsigned
-#if NeedFunctionPrototypes
 XkbConvertGetByNameComponents(Bool toXkm,unsigned orig)
-#else
-XkbConvertGetByNameComponents(toXkm,orig)
-    Bool	toXkm;
-    unsigned	orig;
-#endif
 {
 unsigned	rtrn;
 
@@ -589,13 +524,7 @@ unsigned	rtrn;
 }
 
 unsigned
-#if NeedFunctionPrototypes
 XkbConvertXkbComponents(Bool toXkm,unsigned orig)
-#else
-XkbConvertXkbComponents(toXkm,orig)
-    Bool		toXkm;
-    unsigned 		orig;
-#endif
 {
 unsigned	rtrn;
 
@@ -623,14 +552,7 @@ unsigned	rtrn;
 }
 
 Bool
-#if NeedFunctionPrototypes
 XkbDetermineFileType(XkbFileInfoPtr finfo,int format,int *opts_missing)
-#else
-XkbDetermineFileType(finfo,format,opts_missing)
-    XkbFileInfoPtr	finfo;
-    int			format;
-    int *		opts_missing;
-#endif
 {
 unsigned	present;
 XkbDescPtr	xkb;
@@ -715,12 +637,7 @@ static unsigned char componentSpecLegal[] = {
 };
 
 void
-#if NeedFunctionPrototypes
 XkbEnsureSafeMapName(char *name)
-#else
-XkbEnsureSafeMapName(name)
-    char *name;
-#endif
 {
    if (name==NULL)
         return;
@@ -737,13 +654,7 @@ XkbEnsureSafeMapName(name)
 #define	UNMATCHABLE(c)	(((c)=='(')||((c)==')')||((c)=='/'))
 
 Bool
-#if NeedFunctionPrototypes
 XkbNameMatchesPattern(char *name,char *ptrn)
-#else
-XkbNameMatchesPattern(name,ptrn)
-    char *	name;
-    char *	ptrn;
-#endif
 {
     while (ptrn[0]!='\0') {
 	if (name[0]=='\0') {

@@ -26,7 +26,7 @@ other dealings in this Software without prior written authorization
 from The Open Group.
 
 */
-/* $XFree86: xc/programs/Xserver/os/rpcauth.c,v 3.7 2001/12/14 20:00:35 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/os/rpcauth.c,v 3.8 2003/04/27 21:31:09 herrb Exp $ */
 
 /*
  * SUN-DES-1 authentication mechanism
@@ -62,9 +62,7 @@ extern bool_t xdr_opaque_auth(XDR *, struct opaque_auth *);
 static enum auth_stat why;
 
 static char * 
-authdes_ezdecode(inmsg, len)
-char *inmsg;
-int  len;
+authdes_ezdecode(char *inmsg, int len)
 {
     struct rpc_msg  msg;
     char            cred_area[MAX_AUTH_BYTES];
@@ -136,11 +134,8 @@ CheckNetName (
 static char rpc_error[MAXNETNAMELEN+50];
 
 XID
-SecureRPCCheck (data_length, data, client, reason)
-    register unsigned short	data_length;
-    char	*data;
-    ClientPtr client;
-    char	**reason;
+SecureRPCCheck (unsigned short data_length, char *data, 
+    ClientPtr client, char **reason)
 {
     char *fullname;
     
@@ -170,10 +165,7 @@ SecureRPCInit (void)
 }
 
 int
-SecureRPCAdd (data_length, data, id)
-unsigned short	data_length;
-char	*data;
-XID	id;
+SecureRPCAdd (unsigned short data_length, char *data, XID id)
 {
     if (data_length)
 	AddHost ((pointer) 0, FamilyNetname, data_length, data);
@@ -189,26 +181,19 @@ SecureRPCReset (void)
 }
 
 XID
-SecureRPCToID (data_length, data)
-    unsigned short	data_length;
-    char		*data;
+SecureRPCToID (unsigned short data_length, char *data)
 {
     return rpc_id;
 }
 
 int
-SecureRPCFromID (id, data_lenp, datap)
-     XID id;
-     unsigned short	*data_lenp;
-     char	**datap;
+SecureRPCFromID (XID id, unsigned short *data_lenp, char **datap)
 {
     return 0;
 }
 
 int
-SecureRPCRemove (data_length, data)
-     unsigned short	data_length;
-     char	*data;
+SecureRPCRemove (unsigned short data_length, char *data)
 {
     return 0;
 }

@@ -26,7 +26,7 @@
  *
  * Author: Paulo César Pereira de Andrade <pcpa@conectiva.com.br>
  *
- * $XFree86: xc/programs/Xserver/hw/xfree86/xf86cfg/config.c,v 1.8 2002/10/21 04:18:36 paulo Exp $
+ * $XFree86: xc/programs/Xserver/hw/xfree86/xf86cfg/config.c,v 1.9 2003/11/03 05:11:58 tsi Exp $
  */
 
 #include "config.h"
@@ -106,7 +106,7 @@ void
 StartConfig(void)
 {
     static int first = 1;
-    Widget pane, top, label, bottom, cancel;
+    Widget pane, top, bottom, cancel;
     const char *filename;
 
     if (!first)
@@ -144,7 +144,7 @@ StartConfig(void)
 				 shell, NULL, 0);
     top = XtCreateManagedWidget("top", formWidgetClass,
 				pane, NULL, 0);
-    label = XtCreateManagedWidget("label", labelWidgetClass,
+    (void) XtCreateManagedWidget("label", labelWidgetClass,
 				  top, NULL, 0);
     ident_widget = XtVaCreateManagedWidget("identifier", asciiTextWidgetClass,
 					   top,
@@ -199,11 +199,11 @@ ConfigError(void)
     static int first = 1;
 
     if (first) {
-	Widget label, command;
+	Widget command;
 
 	errcurrent = XtCreateWidget("error", formWidgetClass,
 			 	     configp, NULL, 0);
-	label = XtCreateManagedWidget("label", labelWidgetClass,
+	(void) XtCreateManagedWidget("label", labelWidgetClass,
 				      errcurrent, NULL, 0);
 	command = XtCreateManagedWidget("command", commandWidgetClass,
 					errcurrent, NULL, 0);

@@ -44,7 +44,7 @@ not be used in advertising or otherwise to promote the sale, use or other
 dealings in this Software without prior written authorization from said
 copyright holders.
 */
-/* $XFree86: xc/programs/Xserver/Xprint/pcl/PclWindow.c,v 1.10 2001/12/19 21:55:58 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/Xprint/pcl/PclWindow.c,v 1.11 2003/10/29 22:11:00 tsi Exp $ */
 
 
 #include <stdio.h>
@@ -208,7 +208,6 @@ PclPaintWindow(
     RegionPtr	pRegion,
     int		what)
 {
-    WindowPtr pRoot;
 	
 #define FUNCTION	0
 #define FOREGROUND	1
@@ -292,7 +291,6 @@ PclPaintWindow(
     gcmask |= GCFunction | GCClipMask;
 
     i = pScreen->myNum;
-    pRoot = WindowTable[i];
 
     pBgWin = pWin;
     if (what == PW_BORDER)

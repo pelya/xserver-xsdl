@@ -30,7 +30,7 @@ Except as contained in this notice, the name of The Open Group shall not be
 used in advertising or otherwise to promote the sale, use or other dealings
 in this Software without prior written authorization from The Open Group.
 */
-/* $XFree86: xc/programs/Xserver/mi/midispcur.c,v 1.9 2002/12/09 04:10:57 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/mi/midispcur.c,v 1.10 2003/03/06 05:52:58 mvojkovi Exp $ */
 
 #define NEED_EVENTS
 # include   "X.h"
@@ -379,14 +379,15 @@ miDCPutBits (
     miDCCursorPtr   pPriv,
     GCPtr	    sourceGC,
     GCPtr	    maskGC,
-    int             x,
-    int             y,
+    int             x_org,
+    int             y_org,
     unsigned        w,
     unsigned        h,
     unsigned long   source,
     unsigned long   mask)
 {
     XID	    gcvals[1];
+    int     x, y;
 
     if (sourceGC->fgPixel != source)
     {
@@ -395,6 +396,18 @@ miDCPutBits (
     }
     if (sourceGC->serialNumber != pDrawable->serialNumber)
 	ValidateGC (pDrawable, sourceGC);
+
+    if(sourceGC->miTranslate) 
+    {
+        x = pDrawable->x + x_org;
+        y = pDrawable->y + y_org;
+    } 
+    else
+    {
+        x = x_org;
+        y = y_org;
+    }
+
     (*sourceGC->ops->PushPixels) (sourceGC, pPriv->sourceBits, pDrawable, w, h, x, y);
     if (maskGC->fgPixel != mask)
     {
@@ -403,6 +416,18 @@ miDCPutBits (
     }
     if (maskGC->serialNumber != pDrawable->serialNumber)
 	ValidateGC (pDrawable, maskGC);
+
+    if(maskGC->miTranslate) 
+    {
+        x = pDrawable->x + x_org;
+        y = pDrawable->y + y_org;
+    } 
+    else
+    {
+        x = x_org;
+        y = y_org;
+    }
+
     (*maskGC->ops->PushPixels) (maskGC, pPriv->maskBits, pDrawable, w, h, x, y);
 }
 

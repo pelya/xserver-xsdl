@@ -32,7 +32,7 @@ This work benefited from earlier work done by Martha Zimet of NCD
 and Jim Haggerty of Metheus.
 
 */
-/* $XFree86: xc/programs/Xserver/record/record.c,v 1.10 2002/09/17 01:15:14 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/record/record.c,v 1.12 2003/11/17 22:20:44 dawes Exp $ */
 
 #define NEED_EVENTS
 #include "dixstruct.h"
@@ -136,10 +136,8 @@ static int numEnabledRCAPs;
 }
 
 static int RecordDeleteContext(
-#if NeedFunctionPrototypes
     pointer /*value*/,
     XID /*id*/
-#endif
 );
 
 
@@ -151,9 +149,7 @@ static int RecordDeleteContext(
  *  Proc function.
  */
 typedef int (*ProcFunctionPtr)(
-#if NeedFunctionPrototypes
     ClientPtr /*pClient*/
-#endif
 );
 
 /* Record client private.  Generally a client only has one of these if
@@ -239,12 +235,13 @@ RecordFindContextOnAllContexts(pContext)
  *	data1/len1).
  */
 static void
-RecordFlushReplyBuffer(pContext, data1, len1, data2, len2)
-    RecordContextPtr pContext;
-    pointer data1;
-    int len1;
-    pointer data2;
-    int len2;
+RecordFlushReplyBuffer(
+    RecordContextPtr pContext,
+    pointer data1,
+    int len1,
+    pointer data2,
+    int len2
+)
 {
     if (!pContext->pRecordingClient || pContext->pRecordingClient->clientGone) 
 	return;
@@ -287,13 +284,8 @@ RecordFlushReplyBuffer(pContext, data1, len1, data2, len2)
  *	client (after any buffered data).
  */
 static void
-RecordAProtocolElement(pContext, pClient, category, data, datalen, futurelen)
-    RecordContextPtr pContext;
-    ClientPtr pClient;
-    int category;
-    pointer data;
-    int datalen;
-    int futurelen;
+RecordAProtocolElement(RecordContextPtr pContext, ClientPtr pClient,
+		       int category, pointer data, int datalen, int futurelen)
 {
     CARD32 elemHeaderData[2];
     int numElemHeaders = 0;
@@ -431,10 +423,11 @@ RecordAProtocolElement(pContext, pClient, category, data, datalen, futurelen)
  * Side Effects: none.
  */
 static RecordClientsAndProtocolPtr
-RecordFindClientOnContext(pContext, clientspec, pposition)
-    RecordContextPtr pContext;
-    XID clientspec;
-    int *pposition;
+RecordFindClientOnContext(
+    RecordContextPtr pContext,
+    XID clientspec,
+    int *pposition
+)
 {
     RecordClientsAndProtocolPtr pRCAP;
 
@@ -932,10 +925,11 @@ RecordADeviceEvent(pcbl, nulldata, calldata)
  *	the recording clients.
  */
 static void
-RecordFlushAllContexts(pcbl, nulldata, calldata)
-    CallbackListPtr *pcbl;
-    pointer nulldata;
-    pointer calldata;
+RecordFlushAllContexts(
+    CallbackListPtr *pcbl,
+    pointer nulldata,
+    pointer calldata
+)
 {
     int eci; /* enabled context index */
     RecordContextPtr pContext;
@@ -1433,9 +1427,7 @@ RecordCanonicalizeClientSpecifiers(pClientspecs, pNumClientspecs, excludespec)
  * Side Effects: none.
  */
 static int
-RecordPadAlign(size, align)
-    int size;
-    int align;
+RecordPadAlign(int size, int align)
 {
     return (align - (size & (align - 1))) & (align - 1);
 } /* RecordPadAlign */
@@ -1633,14 +1625,14 @@ RecordAllocIntervals(psi, nIntervals)
  *	increased accordingly.
  */
 static int
-RecordConvertRangesToIntervals(psi, pRanges, nRanges, byteoffset,
-			       pExtSetInfo, pnExtSetInfo)
-    SetInfoPtr psi;
-    xRecordRange *pRanges;
-    int nRanges;
-    int byteoffset;
-    SetInfoPtr pExtSetInfo;
-    int *pnExtSetInfo;
+RecordConvertRangesToIntervals(
+    SetInfoPtr psi,
+    xRecordRange *pRanges,
+    int nRanges,
+    int byteoffset,
+    SetInfoPtr pExtSetInfo,
+    int *pnExtSetInfo
+)
 {
     int i;
     CARD8 *pCARD8;
@@ -2200,13 +2192,14 @@ RecordAllocRanges(pri, nRanges)
  *	more than the index of the last xRecordRange that was touched.
  */
 static int
-RecordConvertSetToRanges(pSet, pri, byteoffset, card8, imax, pStartIndex)
-    RecordSetPtr pSet;
-    GetContextRangeInfoPtr pri;
-    int byteoffset;
-    Bool card8;
-    unsigned int imax;
-    int *pStartIndex;
+RecordConvertSetToRanges(
+    RecordSetPtr pSet,
+    GetContextRangeInfoPtr pri,
+    int byteoffset,
+    Bool card8,
+    unsigned int imax,
+    int *pStartIndex
+)
 {
     int nRanges;
     RecordSetIteratePtr pIter = NULL;
@@ -2268,10 +2261,11 @@ RecordConvertSetToRanges(pSet, pri, byteoffset, card8, imax, pStartIndex)
  *	byteoffset is filled in with the information from pMinOpInfo.
  */
 static int
-RecordConvertMinorOpInfoToRanges(pMinOpInfo, pri, byteoffset)
-    RecordMinorOpPtr pMinOpInfo;
-    GetContextRangeInfoPtr pri;
-    int byteoffset;
+RecordConvertMinorOpInfoToRanges(
+    RecordMinorOpPtr pMinOpInfo,
+    GetContextRangeInfoPtr pri,
+    int byteoffset
+)
 {
     int nsets;
     int start;
@@ -2722,13 +2716,11 @@ SProcRecordQueryVersion(client)
 
 
 static void
-SwapCreateRegister(stuff)
-    xRecordRegisterClientsReq *stuff;
+SwapCreateRegister(xRecordRegisterClientsReq *stuff)
 {
     register char n;
     int i;
     XID *pClientID;
-    xRecordRange *pRange;
 
     swapl(&stuff->context, n);
     swapl(&stuff->nClients, n);
@@ -2738,7 +2730,6 @@ SwapCreateRegister(stuff)
     {
 	swapl(pClientID, n);
     }
-    pRange = (xRecordRange *)pClientID;
     RecordSwapRanges((xRecordRange *)pClientID, stuff->nRanges);
 } /* SwapCreateRegister */
 
@@ -2752,7 +2743,7 @@ SProcRecordCreateContext(client)
 
     swaps(&stuff->length, n);
     REQUEST_AT_LEAST_SIZE(xRecordCreateContextReq);
-    SwapCreateRegister(stuff);
+    SwapCreateRegister((pointer)stuff);
     return ProcRecordCreateContext(client);
 } /* SProcRecordCreateContext */
 
@@ -2766,7 +2757,7 @@ SProcRecordRegisterClients(client)
 
     swaps(&stuff->length, n);
     REQUEST_AT_LEAST_SIZE(xRecordRegisterClientsReq);
-    SwapCreateRegister(stuff);
+    SwapCreateRegister((pointer)stuff);
     return ProcRecordRegisterClients(client);
 } /* SProcRecordRegisterClients */
 

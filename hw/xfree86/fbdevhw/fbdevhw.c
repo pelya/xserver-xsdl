@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/fbdevhw/fbdevhw.c,v 1.30 2002/11/25 14:05:00 eich Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/fbdevhw/fbdevhw.c,v 1.33 2003/10/30 17:37:16 tsi Exp $ */
 
 /* all driver need this */
 #include "xf86.h"
@@ -462,7 +462,7 @@ fbdevHWSetVideoModes(ScrnInfoPtr pScrn)
 	int virtY = pScrn->display->virtualY;
 	struct fb_var_screeninfo var;
 	char **modename;
-	DisplayModePtr mode,this,last = NULL;
+	DisplayModePtr mode,this,last = pScrn->modes;
 
 	TRACE_ENTER("VerifyModes");
 	if (NULL == pScrn->display->modes)
@@ -542,7 +542,7 @@ fbdevHWUseBuildinMode(ScrnInfoPtr pScrn)
 
 /* -------------------------------------------------------------------- */
 
-void
+static void
 calculateFbmem_len(fbdevHWPtr fPtr)
 {
 	fPtr->fboff = (unsigned long) fPtr->fix.smem_start & ~PAGE_MASK;
@@ -747,7 +747,7 @@ fbdevHWLoadPalette(ScrnInfoPtr pScrn, int numColors, int *indices,
 /* -------------------------------------------------------------------- */
 /* these can be hooked directly into ScrnInfoRec                        */
 
-int
+ModeStatus
 fbdevHWValidMode(int scrnIndex, DisplayModePtr mode, Bool verbose, int flags)
 {
 	ScrnInfoPtr pScrn = xf86Screens[scrnIndex];
@@ -789,6 +789,11 @@ fbdevHWAdjustFrame(int scrnIndex, int x, int y, int flags)
 	fbdevHWPtr fPtr = FBDEVHWPTR(pScrn);
 
 	TRACE_ENTER("AdjustFrame");
+
+	if ( x < 0 || x + fPtr->var.xres > fPtr->var.xres_virtual || 
+	     y < 0 || y + fPtr->var.yres > fPtr->var.yres_virtual )
+		return;
+
 	fPtr->var.xoffset = x;
 	fPtr->var.yoffset = y;
 	if (-1 == ioctl(fPtr->fd,FBIOPAN_DISPLAY,(void*)&fPtr->var))

@@ -45,13 +45,14 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ******************************************************************/
-/* $XFree86: xc/programs/Xserver/include/miscstruct.h,v 3.3 2001/12/14 19:59:55 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/include/miscstruct.h,v 3.5 2003/07/16 01:38:52 dawes Exp $ */
 
 #ifndef MISCSTRUCT_H
 #define MISCSTRUCT_H 1
 
 #include "misc.h"
 #include "X11/Xprotostr.h"
+#include "gc.h"
 
 typedef xPoint DDXPointRec;
 
@@ -63,11 +64,17 @@ typedef union _DevUnion {
     pointer		ptr;
     long		val;
     unsigned long	uval;
-    pointer		(*fptr)(
-#if NeedFunctionPrototypes
-                        void
-#endif
-                        );
+    RegionPtr   	(*fptr)(
+        DrawablePtr         /* pSrcDrawable */,
+        DrawablePtr         /* pDstDrawable */,
+        GCPtr               /* pGC */,
+        int                 /* srcx */,
+        int                 /* srcy */,
+        int                 /* width */,
+        int                 /* height */,
+        int                 /* dstx */,
+        int                 /* dsty */,
+        unsigned long       /* bitPlane */);
 } DevUnion;
 
 #endif /* MISCSTRUCT_H */

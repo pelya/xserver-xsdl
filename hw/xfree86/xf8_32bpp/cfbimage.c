@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/xf8_32bpp/cfbimage.c,v 1.2 2000/02/25 00:21:40 mvojkovi Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/xf8_32bpp/cfbimage.c,v 1.3 2003/07/16 01:38:50 dawes Exp $ */
 
 #include "X.h"
 #include "windowstr.h"
@@ -63,7 +63,7 @@ cfb8_32GetImage (
         box.y2 = h;
         REGION_INIT(pScreen, &rgnDst, &box, 1);
         cfbDoBitblt32To8(pDraw, (DrawablePtr)pPixmap, GXcopy, &rgnDst,
-                    &ptSrc, planemask, 0);
+                    &ptSrc, planemask);
         REGION_UNINIT(pScreen, &rgnDst);
         FreeScratchPixmapHeader(pPixmap);
     }

@@ -1,4 +1,4 @@
-.\" $XFree86: xc/programs/Xserver/hw/xwin/XWin.man,v 1.6 2002/10/17 08:18:21 alanh Exp $
+.\" $XFree86: xc/programs/Xserver/hw/xwin/XWin.man,v 1.7 2003/10/02 13:30:09 eich Exp $
 .TH XWIN 1 __vendorversion__
 .SH NAME
 XWin \- X Server for the Cygwin environment on Microsoft Windows
@@ -87,7 +87,7 @@ Ctrl+Alt+Backspace exits the X Server
 Alt+F4 exits the X Server
 .SH "SEE ALSO"
 .PP
-X(__miscmansuffix__), Xserver(1), xdm(1), xinit(1)
+X(__miscmansuffix__), Xserver(1), xdm(1), xinit(1), XWinrc(5)
 .SH BUGS
 .I XWin
 and this man page still have many limitations. Some of the more obvious

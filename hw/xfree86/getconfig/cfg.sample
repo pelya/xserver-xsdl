@@ -1,0 +1,111 @@
+# $DHD: xc/programs/Xserver/hw/xfree86/getconfig/cfg.sample,v 1.2 2003/09/23 05:12:07 dawes Exp $
+# $XFree86: xc/programs/Xserver/hw/xfree86/getconfig/cfg.sample,v 1.2 2003/11/12 04:52:15 dawes Exp $
+
+# Some sample XFree86 getconfig rules file.
+
+#
+# The line below is the getconfig rules file signature, and must be the
+# first non-blank, non-comment line.
+#
+
+XFree86 Project getconfig rules file.  Version: 1.0
+
+#
+# Set the weight for the following rules.  This should be set, otherwise
+# the previously set weight will get used, and you have no idea of knowing
+# what that might be.
+#
+
+$weight = 1000
+
+#
+# Rules.  Rules consist of a condition (in perl code) followed by
+# a driver name and optionally some additional strings.  The start of a
+# rule is indicated by a line with no leading white space.  Subsequent
+# lines making up a rule must be indented.  Logical lines may be split
+# over multiple physical lines by using the usual continuation '\'.
+#
+# Rules that are not followed by a driver name may be used to do other
+# things, like setting the weight as above.
+#
+
+#
+# Pre-defined variables include:
+#
+#   $vendor		PCI vendor ID
+#   $device		PCI device ID
+#   $revision		PCI revision ID
+#   $subsys		PCI subsystem ID
+#   $subsysVendor	PCI subsystem vendor ID
+#   $class		PCI class
+#   $XFree86Version	XFree86 version, as a 'v' string.
+#
+# The XFree86 version information is also available as the following:
+#
+#   $XFree86VersionNumeric
+#   $XFree86VersionMajor
+#   $XFree86VersionMinor
+#   $XFree86VersionPatch
+#   $XFree86VersionSnap
+#   
+
+# Define a fake vendor ID for some sample rules.
+
+$novendor = 0x10000
+$nodevice = 0x10000
+
+$vendor == $novendor
+	nodriver
+	Option "xx"
+	Videoram 1000
+
+# A rule with continued lines.
+
+$vendor == $novendor && \
+$device == $nodevice 
+	nodriver2
+	Option \
+	"yy"
+
+# Increase the weight of the following rules if the XFree86 version is 4.3 or
+# higher.
+
+$weight++ if ($XFree86Version ge v4.3)
+
+$vendor == $novendor
+	nodriver
+	Option "yy"
+
+#
+# The weight can be changed at any times, and applies to rules that follow
+# until changed again.
+#
+
+$weight = 100
+
+$vendor == $novendor && $XFree86Version eq v4.3.2.1
+	nodriver3
+
+$weight = 600
+
+#
+# The following two examples use some real values.
+#
+
+# Example: make the default depth 24 for Radeon R200 and RV200 cards.
+
+$vendor == 0x1002 && \
+    ($device >= 0x5148 && $device <= 0x514F || \
+     $device >= 0x5168 && $device <= 0x516C || \
+     $device == 0x4242 || \
+     $device >= 0x5157 && device <= 0x5158)
+	ati
+	Option "DefaultDepth" "24"
+
+
+# Example: enable DRI for MGA G400
+
+$vendor == 0x102b && $device == 0x0525
+	mga
+	Option "dri"
+

@@ -25,7 +25,7 @@ in this Software without prior written authorization from The Open Group.
  *
  * Author:  Keith Packard, MIT X Consortium
  */
-/* $XFree86: xc/programs/Xserver/Xext/sleepuntil.c,v 3.5 2001/12/14 19:58:51 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/Xext/sleepuntil.c,v 3.7 2003/11/17 22:20:27 dawes Exp $ */
 
 /* dixsleep.c - implement millisecond timeouts for X clients */
 
@@ -44,10 +44,8 @@ typedef struct _Sertafied {
     ClientPtr		pClient;
     XID			id;
     void		(*notifyFunc)(
-#if NeedNestedPrototypes
 			ClientPtr /* client */,
 			pointer /* closure */
-#endif
 			);
 
     pointer		closure;
@@ -59,37 +57,31 @@ static Bool	    BlockHandlerRegistered;
 static int	    SertafiedGeneration;
 
 static void	    ClientAwaken(
-#if NeedFunctionPrototypes
     ClientPtr /* client */,
     pointer /* closure */
-#endif
 );
 static int	    SertafiedDelete(
-#if NeedFunctionPrototypes
     pointer /* value */,
     XID /* id */
-#endif
 );
 static void	    SertafiedBlockHandler(
-#if NeedFunctionPrototypes
     pointer /* data */,
     OSTimePtr /* wt */,
     pointer /* LastSelectMask */
-#endif
 );
 static void	    SertafiedWakeupHandler(
-#if NeedFunctionPrototypes
     pointer /* data */,
     int /* i */,
     pointer /* LastSelectMask */
-#endif
 );
 
 int
 ClientSleepUntil (client, revive, notifyFunc, closure)
     ClientPtr	client;
     TimeStamp	*revive;
-    void	(*notifyFunc)();
+    void	(*notifyFunc)(
+        ClientPtr /* client */,
+        pointer   /* closure */);
     pointer	closure;
 {
     SertafiedPtr	pRequest, pReq, pPrev;

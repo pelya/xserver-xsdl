@@ -12,7 +12,7 @@ the suitability of this software for any purpose.  It is provided "as
 is" without express or implied warranty.
 
 */
-/* $XFree86: xc/programs/Xserver/hw/xnest/Display.c,v 3.4 2001/10/28 03:34:10 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xnest/Display.c,v 3.5 2003/11/16 05:05:20 dawes Exp $ */
 
 
 #include <X11/X.h>
@@ -51,14 +51,12 @@ XlibGC xnestBitmapGC;
 Window xnestConfineWindow;
 unsigned long xnestEventMask;
 
-void xnestOpenDisplay(argc, argv)
-     int argc;
-     char *argv[];
+void
+xnestOpenDisplay(int argc, char *argv[])
 {
   XVisualInfo vi;
   long mask;
   int i, j;
-  extern Window xnestParentWindow;
 
   if (!xnestDoFullGeneration) return;
   
@@ -183,7 +181,8 @@ void xnestOpenDisplay(argc, argv)
 					     DefaultScreen(xnestDisplay)));
 }
 
-void xnestCloseDisplay()
+void
+xnestCloseDisplay()
 {
   if (!xnestDoFullGeneration || !xnestDisplay) return;
 

@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/xf8_32bpp/cfbgcunder.c,v 1.5 2001/12/14 19:59:52 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/xf8_32bpp/cfbgcunder.c,v 1.6 2003/07/16 01:38:50 dawes Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -66,6 +66,7 @@ SOFTWARE.
 
 #include "cfbmskbits.h"
 #include "cfb8bit.h"
+#include "cfb8_32.h"
 
 #ifdef WriteBitGroup
 #  define useTEGlyphBlt	cfbImageGlyphBlt8
@@ -217,9 +218,9 @@ static GCOps cfbNonTEOps = {
 };
 
 static GCOps *
-cfb32MatchCommon_Underlay (pGC, devPriv)
-    GCPtr	    pGC;
-    cfbPrivGCPtr    devPriv;
+cfb32MatchCommon_Underlay(
+    GCPtr	    pGC,
+    cfbPrivGCPtr    devPriv)
 {
     if (pGC->lineWidth != 0)
 	return 0;

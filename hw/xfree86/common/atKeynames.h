@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/common/atKeynames.h,v 3.18 2001/09/29 20:40:30 herrb Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/common/atKeynames.h,v 3.21 2003/10/09 11:43:59 pascal Exp $ */
 /*
  * Copyright 1990,91 by Thomas Roell, Dinkelscherben, Germany.
  *
@@ -21,6 +21,33 @@
  * PERFORMANCE OF THIS SOFTWARE.
  *
  */
+/*
+ * Copyright (c) 1994-2003 by The XFree86 Project, Inc.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+ * THE COPYRIGHT HOLDER(S) OR AUTHOR(S) BE LIABLE FOR ANY CLAIM, DAMAGES OR
+ * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ *
+ * Except as contained in this notice, the name of the copyright holder(s)
+ * and author(s) shall not be used in advertising or otherwise to promote
+ * the sale, use or other dealings in this Software without prior written
+ * authorization from the copyright holder(s) and author(s).
+ */
+
 /* $XConsortium: atKeynames.h /main/11 1996/03/09 11:17:41 kaleb $ */
 
 #ifndef _ATKEYNAMES_H
@@ -198,6 +225,71 @@
 #define KEY_XFER         /* Kanji Transfer        0x79  */  121
 #define KEY_NFER         /* No Kanji Transfer     0x7b  */  123
 #define KEY_Yen          /* Yen                   0x7d  */  125
+
+#define KEY_Power        /* Power Key             0x84  */  132
+#define KEY_Mute         /* Audio Mute            0x85  */  133
+#define KEY_AudioLower   /* Audio Lower           0x86  */  134
+#define KEY_AudioRaise   /* Audio Raise           0x87  */  135
+#define KEY_Help         /* Help                  0x88  */  136
+#define KEY_L1           /* Stop                  0x89  */  137
+#define KEY_L2           /* Again                 0x8a  */  138
+#define KEY_L3           /* Props                 0x8b  */  139
+#define KEY_L4           /* Undo                  0x8c  */  140
+#define KEY_L5           /* Front                 0x8d  */  141
+#define KEY_L6           /* Copy                  0x8e  */  142
+#define KEY_L7           /* Open                  0x8f  */  143
+#define KEY_L8           /* Paste                 0x90  */  144
+#define KEY_L9           /* Find                  0x91  */  145
+#define KEY_L10          /* Cut                   0x92  */  146
+
+/*
+ * Fake 'scancodes' in the following ranges are generated for 2-byte
+ * codes not handled elsewhere.  These correspond to most extended keys
+ * on so-called "Internet" keyboards:
+ *
+ *	0x79-0x93
+ *	0x96-0xa1
+ *	0xa3-0xac
+ *	0xb1-0xb4
+ *	0xba-0xbd
+ *	0xc2
+ *	0xcc-0xd2
+ *	0xd6-0xf7
+ */
+
+/*
+ * Remapped 'scancodes' are generated for single-byte codes in the range
+ * 0x59-0x5f,0x62-0x76.  These are used for some extra keys on some keyboards.
+ */
+
+#define KEY_0x59		0x95
+#define KEY_0x5A		0xA2
+#define KEY_0x5B		0xAD
+#define KEY_0x5C		KEY_KP_EQUAL
+#define KEY_0x5D		0xAE
+#define KEY_0x5E		0xAF
+#define KEY_0x5F		0xB0
+#define KEY_0x62		0xB5
+#define KEY_0x63		0xB6
+#define KEY_0x64		0xB7
+#define KEY_0x65		0xB8
+#define KEY_0x66		0xB9
+#define KEY_0x67		0xBE
+#define KEY_0x68		0xBF
+#define KEY_0x69		0xC0
+#define KEY_0x6A		0xC1
+#define KEY_0x6B		0xC3
+#define KEY_0x6C		0xC4
+#define KEY_0x6D		0xC5
+#define KEY_0x6E		0xC6
+#define KEY_0x6F		0xC7
+#define KEY_0x70		0xC8
+#define KEY_0x71		0xC9
+#define KEY_0x72		0xCA
+#define KEY_0x73		0xCB
+#define KEY_0x74		0xD3
+#define KEY_0x75		0xD4
+#define KEY_0x76		0xD5
 
 /* These are for "notused" and "unknown" entries in translation maps. */
 #define KEY_NOTUSED	  0

@@ -12,7 +12,7 @@ the suitability of this software for any purpose.  It is provided "as
 is" without express or implied warranty.
 
 */
-/* $XFree86: xc/programs/Xserver/hw/xnest/Handlers.c,v 1.2 2001/08/01 00:44:57 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xnest/Handlers.c,v 1.3 2003/11/16 05:05:20 dawes Exp $ */
 
 #include "X.h"
 #include "Xproto.h"
@@ -29,18 +29,15 @@ is" without express or implied warranty.
 #include "Events.h"
 #include "Handlers.h"
 
-void xnestBlockHandler(blockData, pTimeout, pReadMask)
-     pointer blockData;
-     pointer pTimeout;
-     pointer pReadMask;
+void
+xnestBlockHandler(pointer blockData, OSTimePtr pTimeout, pointer pReadMask)
 {
   xnestCollectExposures();
   XFlush(xnestDisplay);
 }
 
-void xnestWakeupHandler(result, pReadMask)
-     int result;
-     pointer pReadMask;
+void
+xnestWakeupHandler(pointer blockData, int result, pointer pReadMask)
 {
   xnestCollectEvents();
 }

@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/xf8_32bpp/cfbbstore.c,v 1.2 1999/01/31 12:22:17 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/xf8_32bpp/cfbbstore.c,v 1.3 2003/07/16 01:38:50 dawes Exp $ */
 
 #define PSZ 8
 #include "cfb.h"
@@ -49,7 +49,7 @@ cfb8_32SaveAreas(
     pScrPix = (PixmapPtr) pScreen->devPrivate;
 
     cfbDoBitblt32To8((DrawablePtr) pScrPix, (DrawablePtr)pPixmap,
-		    GXcopy, prgnSave, pPtsInit, ~0L, 0);
+		    GXcopy, prgnSave, pPtsInit, ~0L);
 
     DEALLOCATE_LOCAL (pPtsInit);
 }
@@ -95,7 +95,7 @@ cfb8_32RestoreAreas(
 		    GXcopy, prgnRestore, pPtsInit, ~0);
     } else {
 	cfbDoBitblt8To32((DrawablePtr)pPixmap, (DrawablePtr) pScrPix,
-		    GXcopy, prgnRestore, pPtsInit, ~0L, 0);
+		    GXcopy, prgnRestore, pPtsInit, ~0L);
     }
 
     DEALLOCATE_LOCAL (pPtsInit);

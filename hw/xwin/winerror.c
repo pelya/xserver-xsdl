@@ -27,11 +27,9 @@
  *
  * Authors:	Harold L Hunt II
  */
-/* $XFree86: xc/programs/Xserver/hw/xwin/winerror.c,v 1.4 2003/02/12 15:01:38 alanh Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xwin/winerror.c,v 1.6 2003/10/02 13:30:10 eich Exp $ */
 
 #include "win.h"
-
-extern FILE		*g_pfLog;
 
 #ifdef DDXOSVERRORF
 void
@@ -39,17 +37,11 @@ OsVendorVErrorF (const char *pszFormat, va_list va_args)
 {
   static pthread_mutex_t	s_pmPrinting = PTHREAD_MUTEX_INITIALIZER;
 
-  /* Check we opened the log file first */
-  if (g_pfLog == NULL) return;
-
   /* Lock the printing mutex */
   pthread_mutex_lock (&s_pmPrinting);
 
   /* Print the error message to a log file, could be stderr */
-  vfprintf (g_pfLog, pszFormat, va_args);
-
-  /* Flush after every write, to make updates show up quickly */
-  fflush (g_pfLog);
+  LogVWrite(0, pszFormat, va_args);
 
   /* Unlock the printing mutex */
   pthread_mutex_unlock (&s_pmPrinting);

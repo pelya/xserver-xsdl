@@ -3,7 +3,7 @@
 
    Written by Mark Vojkovich
 */
-/* $XFree86: xc/programs/Xserver/hw/xfree86/xaa/xaaOverlayDF.c,v 1.1 1999/03/28 15:33:03 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/xaa/xaaOverlayDF.c,v 1.2 2003/11/10 18:22:41 tsi Exp $ */
 
 
 #include "misc.h"
@@ -355,7 +355,7 @@ XAAOverCopyWindow(
     infoRec->ScratchGC.alu = GXcopy;
     infoRec->ScratchGC.planemask = ~0;
 
-    REGION_INIT(pScreen, &rgnDst, NullBox, 0);
+    REGION_NULL(pScreen, &rgnDst);
 
     dx = ptOldOrg.x - pWin->drawable.x;
     dy = ptOldOrg.y - pWin->drawable.y;
@@ -388,7 +388,7 @@ XAAOverCopyWindow(
     REGION_UNINIT(pScreen, &rgnDst);
 
     if(pWin->drawable.depth == 8) {
-      REGION_INIT(pScreen, &rgnDst, NullBox, 0);
+      REGION_NULL(pScreen, &rgnDst);
       miSegregateChildren(pWin, &rgnDst, pScrn->depth);
       if(REGION_NOTEMPTY(pScreen, &rgnDst)) {
 	REGION_INTERSECT(pScreen, &rgnDst, &rgnDst, prgnSrc);

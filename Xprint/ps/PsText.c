@@ -73,7 +73,7 @@ in this Software without prior written authorization from The Open Group.
 **    *********************************************************
 ** 
 ********************************************************************/
-/* $XFree86: xc/programs/Xserver/Xprint/ps/PsText.c,v 1.12 2001/12/14 19:59:17 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/Xprint/ps/PsText.c,v 1.13 2003/10/29 22:11:55 tsi Exp $ */
 
 #include "Ps.h"
 #include "gcstruct.h"
@@ -164,7 +164,6 @@ PsPolyText8(
 	/* If Type1 font, try to download to printer first */
 	if(strstr(ffname, "Type1") && readFontName(ffname, file_name, dlfnam)) 
 	{
-            int          iso;
             int          siz;
             float        mtx[4];
             PsOutPtr     psOut;
@@ -177,7 +176,6 @@ PsPolyText8(
             PsOut_Offset(psOut, pDrawable->x, pDrawable->y);
        	    PsOut_Color(psOut, PsGetPixelColor(cMap, pGC->fgPixel)); 
        	    siz = PsGetFontSize(pGC->font, mtx);
-       	    iso = PsIsISOLatin1Encoding(pGC->font);
        	    if( !siz ) PsOut_TextAttrsMtx(psOut, file_name, mtx, 1); 
             else PsOut_TextAttrs(psOut, file_name, siz, 1); 
        	    PsOut_Text(psOut, x, y, string, count, -1);
@@ -401,7 +399,7 @@ PsPolyGlyphBlt(
     int gWidth, gHeight;                /* width and height of glyph */
     register int nbyGlyphWidth;         /* bytes per scanline of glyph */
     int nbyPadGlyph;                    /* server padded line of glyph */
-    int w, tmpx;
+    int w;
     XID gcvals[3];
 
     pfont = pGC->font;
@@ -437,7 +435,6 @@ PsPolyGlyphBlt(
         PsDestroyPixmap(pPixmap);
         return;
     }
-    tmpx = 0;
     while(nGlyphs--)
     {
         pci = *pCharInfo++;

@@ -1,5 +1,5 @@
 /* $Xorg: xkbDflts.h,v 1.3 2000/08/17 19:53:47 cpqbld Exp $ */
-/* $XFree86: xc/programs/Xserver/xkb/xkbDflts.h,v 1.2 2001/10/28 03:34:20 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/xkb/xkbDflts.h,v 1.3 2003/11/17 22:20:46 dawes Exp $ */
 /* This file generated automatically by xkbcomp */
 /* DO  NOT EDIT */
 #ifndef DEFAULT_H
@@ -137,12 +137,7 @@ static XkbKeyTypeRec dflt_types[]= {
 
 
 static void
-#if NeedFunctionPrototypes
 initTypeNames(DPYTYPE dpy)
-#else
-initTypeNames(dpy)
-DPYTYPE dpy;
-#endif
 {
     dflt_types[0].name= GET_ATOM(dpy,"ONE_LEVEL");
     lnames_ONE_LEVEL[0]=	GET_ATOM(dpy,"Any");
@@ -502,13 +497,7 @@ static XkbIndicatorRec indicators= {
     }
 };
 static void
-#if NeedFunctionPrototypes
 initIndicatorNames(DPYTYPE dpy,XkbDescPtr xkb)
-#else
-initIndicatorNames(dpy,xkb)
-    DPYTYPE dpy;
-    XkbDescPtr xkb;
-#endif
 {
     xkb->names->indicators[ 0]=	GET_ATOM(dpy,"Caps Lock");
     xkb->names->indicators[ 1]=	GET_ATOM(dpy,"Num Lock");

@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/xaa/xaaBitBlt.c,v 1.3 1998/12/06 06:08:39 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/xaa/xaaBitBlt.c,v 1.4 2003/11/10 18:22:39 tsi Exp $ */
 
 /* 
    This is a lighter version of cfbBitBlt.  We calculate the boxes
@@ -161,7 +161,7 @@ XAABitBlt(
 
 	    /* Check to see if the region is empty */
 	    if (fastBox.x1 >= fastBox.x2 || fastBox.y1 >= fastBox.y2) {
-		REGION_INIT(pGC->pScreen, &rgnDst, NullBox, 0);
+		REGION_NULL(pGC->pScreen, &rgnDst);
 	    } else {
 		REGION_INIT(pGC->pScreen, &rgnDst, &fastBox, 1);
 	    }

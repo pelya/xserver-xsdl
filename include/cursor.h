@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/include/cursor.h,v 1.6 2002/09/17 01:15:14 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/include/cursor.h,v 1.7 2003/04/27 21:31:04 herrb Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -66,11 +66,8 @@ typedef struct _CursorMetric *CursorMetricPtr;
 extern CursorPtr rootCursor;
 
 extern int FreeCursor(
-#if NeedFunctionPrototypes
     pointer /*pCurs*/,
-    XID /*cid*/
-#endif
-);
+    XID /*cid*/);
 
 /* Quartz support on Mac OS X pulls in the QuickDraw
    framework whose AllocCursor function conflicts here. */ 
@@ -78,7 +75,6 @@ extern int FreeCursor(
 #define AllocCursor Darwin_X_AllocCursor
 #endif
 extern CursorPtr AllocCursor(
-#if NeedFunctionPrototypes
     unsigned char* /*psrcbits*/,
     unsigned char* /*pmaskbits*/,
     CursorMetricPtr /*cm*/,
@@ -87,9 +83,19 @@ extern CursorPtr AllocCursor(
     unsigned /*foreBlue*/,
     unsigned /*backRed*/,
     unsigned /*backGreen*/,
-    unsigned /*backBlue*/
-#endif
-);
+    unsigned /*backBlue*/);
+
+extern CursorPtr AllocCursorARGB(
+    unsigned char* /*psrcbits*/,
+    unsigned char* /*pmaskbits*/,
+    CARD32* /*argb*/,
+    CursorMetricPtr /*cm*/,
+    unsigned /*foreRed*/,
+    unsigned /*foreGreen*/,
+    unsigned /*foreBlue*/,
+    unsigned /*backRed*/,
+    unsigned /*backGreen*/,
+    unsigned /*backBlue*/);
 
 extern CursorPtr AllocCursorARGB(
 #if NeedFunctionPrototypes
@@ -107,7 +113,6 @@ extern CursorPtr AllocCursorARGB(
 );
 
 extern int AllocGlyphCursor(
-#if NeedFunctionPrototypes
     Font /*source*/,
     unsigned int /*sourceChar*/,
     Font /*mask*/,
@@ -119,60 +124,40 @@ extern int AllocGlyphCursor(
     unsigned /*backGreen*/,
     unsigned /*backBlue*/,
     CursorPtr* /*ppCurs*/,
-    ClientPtr /*client*/
-#endif
-);
+    ClientPtr /*client*/);
 
 extern CursorPtr CreateRootCursor(
-#if NeedFunctionPrototypes
     char* /*pfilename*/,
-    unsigned int /*glyph*/
-#endif
-);
+    unsigned int /*glyph*/);
 
 extern int ServerBitsFromGlyph(
-#if NeedFunctionPrototypes
     FontPtr /*pfont*/,
     unsigned int /*ch*/,
     register CursorMetricPtr /*cm*/,
-    unsigned char ** /*ppbits*/
-#endif
-);
+    unsigned char ** /*ppbits*/);
 
 extern Bool CursorMetricsFromGlyph(
-#if NeedFunctionPrototypes
     FontPtr /*pfont*/,
     unsigned /*ch*/,
-    CursorMetricPtr /*cm*/
-#endif
-);
+    CursorMetricPtr /*cm*/);
 
 extern void CheckCursorConfinement(
-#if NeedFunctionPrototypes
-    WindowPtr /*pWin*/
-#endif
-);
+    WindowPtr /*pWin*/);
 
 extern void NewCurrentScreen(
-#if NeedFunctionPrototypes
     ScreenPtr /*newScreen*/,
     int /*x*/,
-    int /*y*/
-#endif
-);
+    int /*y*/);
 
-extern Bool PointerConfinedToScreen(
-#if NeedFunctionPrototypes
-    void
-#endif
-);
+extern Bool PointerConfinedToScreen(void);
 
 extern void GetSpritePosition(
-#if NeedFunctionPrototypes
     int * /*px*/,
-    int * /*py*/
-#endif
-);
+    int * /*py*/);
+
+#ifdef PANORAMIX
+extern int XineramaGetCursorScreen(void);
+#endif /* PANORAMIX */
 
 #ifdef PANORAMIX
 extern int XineramaGetCursorScreen(

@@ -26,7 +26,7 @@
  *
  * Author: Paulo César Pereira de Andrade <pcpa@conectiva.com.br>
  *
- * $XFree86: xc/programs/Xserver/hw/xfree86/xf86cfg/monitor-cfg.c,v 1.7 2001/03/24 01:17:20 paulo Exp $
+ * $XFree86: xc/programs/Xserver/hw/xfree86/xf86cfg/monitor-cfg.c,v 1.8 2003/09/11 10:08:38 eich Exp $
  */
 
 #include "xf86config.h"
@@ -69,6 +69,10 @@ static char *hmodes[] = {
     "Monitor that can do 1280x1024 @ 60 Hz",
     "Monitor that can do 1280x1024 @ 74 Hz",
     "Monitor that can do 1280x1024 @ 76 Hz",
+    "Monitor that can do 1280x1024 @ 85 Hz",
+    "Monitor that can do 1600x1200 @ 85 Hz",
+    "Monitor that can do 1920x1440 @ 85 Hz",
+    "Monitor that can do 2048x1536 @ 85 Hz"
 };
 
 static char *hmodes_trans[] = {
@@ -82,6 +86,10 @@ static char *hmodes_trans[] = {
     "31.5 - 64.3",
     "31.5 - 79.0",
     "31.5 - 82.0",
+    "31.5 - 92.0",
+    "31.5 - 108.0",
+    "31.5 - 128.5",
+    "31.5 - 137.0"
 };
 
 static char *vmodes [] = { "50 - 70", "50 - 90", "50 - 100", "40 - 150", };

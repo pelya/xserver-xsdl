@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/Xext/sleepuntil.h,v 1.1 2001/08/01 00:44:44 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/Xext/sleepuntil.h,v 1.2 2003/11/17 22:20:27 dawes Exp $ */
 /*
  * Copyright (C) 2001 The XFree86 Project, Inc.  All Rights Reserved.
  *
@@ -31,17 +31,13 @@
 #include "dix.h"
 
 extern int ClientSleepUntil(
-#if NeedFunctionPrototypes
     ClientPtr client,
     TimeStamp *revive,
     void (*notifyFunc)(
-#if NeedNestedPrototypes
 	ClientPtr /* client */,
 	pointer   /* closure */
-#endif
 	),
     pointer Closure
-#endif
 );
 
 #endif

@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/GL/glx/glximports.c,v 1.5 2001/03/21 16:29:36 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/GL/glx/glximports.c,v 1.6 2003/09/28 20:15:43 alanh Exp $ */
 /*
 ** License Applicability. Except to the extent portions of this file are
 ** made subject to an alternative license as permitted in the SGI Free
@@ -167,5 +167,14 @@ __GLdrawablePrivate *__glXImpGetDrawablePrivate(__GLcontext *gc)
     __GLinterface *glci = (__GLinterface *) gc;
     __GLXcontext *glrc = (__GLXcontext *) glci->imports.other;
 
-    return &glrc->glxPriv->glPriv;
+    return &glrc->drawPriv->glPriv;
+}
+
+
+__GLdrawablePrivate *__glXImpGetReadablePrivate(__GLcontext *gc)
+{
+    __GLinterface *glci = (__GLinterface *) gc;
+    __GLXcontext *glrc = (__GLXcontext *) glci->imports.other;
+
+    return &glrc->readPriv->glPriv;
 }

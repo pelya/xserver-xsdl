@@ -27,7 +27,7 @@
  *
  * Authors:	Harold L Hunt II
  */
-/* $XFree86: xc/programs/Xserver/hw/xwin/winpolyline.c,v 1.3 2001/09/13 08:25:45 alanh Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xwin/winpolyline.c,v 1.4 2003/08/07 23:47:58 alanh Exp $ */
 
 #include "win.h"
 
@@ -39,5 +39,17 @@ winPolyLineNativeGDI (DrawablePtr	pDrawable,
 		      int		npt,
 		      DDXPointPtr	ppt)
 {
-  FatalError ("winPolyLine()\n");
+  switch (pGC->lineStyle)
+    {
+    case LineSolid:
+      if (pGC->lineWidth == 0)
+	return miZeroLine (pDrawable, pGC, mode, npt, ppt);
+      else
+	miWideLine (pDrawable, pGC, mode, npt, ppt);
+      break;
+    case LineOnOffDash:
+    case LineDoubleDash:
+      miWideDash (pDrawable, pGC, mode, npt, ppt);
+      break;
+    }
 }

@@ -7,7 +7,7 @@
  * Copyright © 2001 The XFree86 Project, Inc.
  */
 
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/linux/lnx_agp.c,v 3.10 2002/12/12 18:29:11 eich Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/linux/lnx_agp.c,v 3.12 2003/09/24 02:43:35 dawes Exp $ */
 
 #include "X.h"
 #include "xf86.h"
@@ -18,7 +18,7 @@
 #if defined(linux)
 #include <asm/ioctl.h>
 #include <linux/agpgart.h>
-#elif defined(__FreeBSD__) || defined(__NetBSD__)
+#elif defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__)
 #include <sys/ioctl.h>
 #include <sys/agpio.h>
 #endif
@@ -263,14 +263,14 @@ xf86BindGARTMemory(int screenNum, int key, unsigned long offset)
 
 	if (offset % AGP_PAGE_SIZE != 0) {
 		xf86DrvMsg(screenNum, X_WARNING, "xf86BindGARTMemory: "
-			   "offset (0x%x) is not page-aligned (%d)\n",
+			   "offset (0x%lx) is not page-aligned (%d)\n",
 			   offset, AGP_PAGE_SIZE);
 		return FALSE;
 	}
 	pageOffset = offset / AGP_PAGE_SIZE;
 
 	xf86DrvMsgVerb(screenNum, X_INFO, 3,
-		       "xf86BindGARTMemory: bind key %d at 0x%08x "
+		       "xf86BindGARTMemory: bind key %d at 0x%08lx "
 		       "(pgoffset %d)\n", key, offset, pageOffset);
 
 	bind.pg_start = pageOffset;
@@ -279,7 +279,7 @@ xf86BindGARTMemory(int screenNum, int key, unsigned long offset)
 	if (ioctl(gartFd, AGPIOC_BIND, &bind) != 0) {
 		xf86DrvMsg(screenNum, X_WARNING, "xf86BindGARTMemory: "
 			   "binding of gart memory with key %d\n"
-			   "\tat offset 0x%x failed (%s)\n",
+			   "\tat offset 0x%lx failed (%s)\n",
 			   key, offset, strerror(errno));
 		return FALSE;
 	}
@@ -332,8 +332,8 @@ xf86EnableAGP(int screenNum, CARD32 mode)
 	setup.agp_mode = mode;
 	if (ioctl(gartFd, AGPIOC_SETUP, &setup) != 0) {
 		xf86DrvMsg(screenNum, X_WARNING, "xf86EnableAGP: "
-			   "AGPIOC_SETUP with mode %d failed (%s)\n",
-			   mode, strerror(errno));
+			   "AGPIOC_SETUP with mode %ld failed (%s)\n",
+			   (unsigned long)mode, strerror(errno));
 		return FALSE;
 	}
 

@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/GL/glx/rensize.c,v 1.5 2002/02/22 21:45:07 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/GL/glx/rensize.c,v 1.6 2003/09/28 20:15:43 alanh Exp $ */
 /*
 ** License Applicability. Except to the extent portions of this file are
 ** made subject to an alternative license as permitted in the SGI Free
@@ -267,109 +267,8 @@ int __glXPixelMapusvReqSize(GLbyte *pc, Bool swap )
 int __glXImageSize( GLenum format, GLenum type, GLsizei w, GLsizei h,
 	       GLint rowLength, GLint skipRows, GLint alignment )
 {
-    GLint bytesPerElement, elementsPerGroup, groupsPerRow;
-    GLint groupSize, rowSize, padding;
-
-    if (w < 0 || h < 0 ||
-	(type == GL_BITMAP &&
-	 (format != GL_COLOR_INDEX && format != GL_STENCIL_INDEX))) {
-	return -1;
-    }
-    if (w==0 || h==0) return 0;
-
-    if (type == GL_BITMAP) {
-	if (rowLength > 0) {
-	    groupsPerRow = rowLength;
-	} else {
-	    groupsPerRow = w;
-	}
-	rowSize = (groupsPerRow + 7) >> 3;
-	padding = (rowSize % alignment);
-	if (padding) {
-	    rowSize += alignment - padding;
-	}
-	return ((h + skipRows) * rowSize);
-    } else {
-	switch(format) {
-	  case GL_COLOR_INDEX:
-	  case GL_STENCIL_INDEX:
-	  case GL_DEPTH_COMPONENT:
-	    elementsPerGroup = 1;
-	    break;
-	  case GL_RED:
-	  case GL_GREEN:
-	  case GL_BLUE:
-	  case GL_ALPHA:
-	  case GL_LUMINANCE:
-	  case GL_INTENSITY:
-	    elementsPerGroup = 1;
-	    break;
-	  case GL_LUMINANCE_ALPHA:
-	    elementsPerGroup = 2;
-	    break;
-	  case GL_RGB:
-	  case GL_BGR:
-	    elementsPerGroup = 3;
-	    break;
-	  case GL_RGBA:
-	  case GL_BGRA:
-	  case GL_ABGR_EXT:
-	    elementsPerGroup = 4;
-	    break;
-	  default:
-	    return -1;
-	}
-	switch(type) {
-	  case GL_UNSIGNED_BYTE:
-	  case GL_BYTE:
-	    bytesPerElement = 1;
-	    break;
-	  case GL_UNSIGNED_BYTE_3_3_2:
-	  case GL_UNSIGNED_BYTE_2_3_3_REV:
-	    bytesPerElement = 1;	    
-	    elementsPerGroup = 1;
-	    break;
-	  case GL_UNSIGNED_SHORT:
-	  case GL_SHORT:
-	    bytesPerElement = 2;
-	    break;
-	  case GL_UNSIGNED_SHORT_5_6_5:
-	  case GL_UNSIGNED_SHORT_5_6_5_REV:
-	  case GL_UNSIGNED_SHORT_4_4_4_4:
- 	  case GL_UNSIGNED_SHORT_4_4_4_4_REV:
-	  case GL_UNSIGNED_SHORT_5_5_5_1:
-	  case GL_UNSIGNED_SHORT_1_5_5_5_REV:
-	    bytesPerElement = 2;
-	    elementsPerGroup = 1;
-	    break;
-	  case GL_INT:
-	  case GL_UNSIGNED_INT:
-	  case GL_FLOAT:
-	    bytesPerElement = 4;
-	    break;
-	  case GL_UNSIGNED_INT_8_8_8_8:
-	  case GL_UNSIGNED_INT_8_8_8_8_REV:
-	  case GL_UNSIGNED_INT_10_10_10_2:
-	  case GL_UNSIGNED_INT_2_10_10_10_REV:
-	    bytesPerElement = 4;
-	    elementsPerGroup = 1;
-	    break;
-	  default:
-	    return -1;
-	}
-	groupSize = bytesPerElement * elementsPerGroup;
-	if (rowLength > 0) {
-	    groupsPerRow = rowLength;
-	} else {
-	    groupsPerRow = w;
-	}
-	rowSize = groupsPerRow * groupSize;
-	padding = (rowSize % alignment);
-	if (padding) {
-	    rowSize += alignment - padding;
-	}
-	return ((h + skipRows) * rowSize);
-    }
+    return __glXImage3DSize( format, type, w, h, 1, 0, rowLength,
+			     0, skipRows, alignment );
 }
 
 /* XXX
@@ -406,8 +305,6 @@ int __glXImage3DSize( GLenum format, GLenum type, GLsizei w, GLsizei h,
 	  case GL_COLOR_INDEX:
 	  case GL_STENCIL_INDEX:
 	  case GL_DEPTH_COMPONENT:
-	    elementsPerGroup = 1;
-	    break;
 	  case GL_RED:
 	  case GL_GREEN:
 	  case GL_BLUE:
@@ -416,6 +313,13 @@ int __glXImage3DSize( GLenum format, GLenum type, GLsizei w, GLsizei h,
 	  case GL_INTENSITY:
 	    elementsPerGroup = 1;
 	    break;
+	  case GL_422_EXT:
+	  case GL_422_REV_EXT:
+	  case GL_422_AVERAGE_EXT:
+	  case GL_422_REV_AVERAGE_EXT:
+	  case GL_DEPTH_STENCIL_NV:
+	  case GL_DEPTH_STENCIL_MESA:
+	  case GL_YCBCR_MESA:
 	  case GL_LUMINANCE_ALPHA:
 	    elementsPerGroup = 2;
 	    break;
@@ -451,6 +355,10 @@ int __glXImage3DSize( GLenum format, GLenum type, GLsizei w, GLsizei h,
  	  case GL_UNSIGNED_SHORT_4_4_4_4_REV:
 	  case GL_UNSIGNED_SHORT_5_5_5_1:
 	  case GL_UNSIGNED_SHORT_1_5_5_5_REV:
+	  case GL_UNSIGNED_SHORT_8_8_APPLE:
+	  case GL_UNSIGNED_SHORT_8_8_REV_APPLE:
+	  case GL_UNSIGNED_SHORT_15_1_MESA:
+	  case GL_UNSIGNED_SHORT_1_15_REV_MESA:
 	    bytesPerElement = 2;
 	    elementsPerGroup = 1;
 	    break;
@@ -463,6 +371,9 @@ int __glXImage3DSize( GLenum format, GLenum type, GLsizei w, GLsizei h,
 	  case GL_UNSIGNED_INT_8_8_8_8_REV:
 	  case GL_UNSIGNED_INT_10_10_10_2:
 	  case GL_UNSIGNED_INT_2_10_10_10_REV:
+	  case GL_UNSIGNED_INT_24_8_NV:
+	  case GL_UNSIGNED_INT_24_8_MESA:
+	  case GL_UNSIGNED_INT_8_24_REV_MESA:
 	    bytesPerElement = 4;
 	    elementsPerGroup = 1;
 	    break;
@@ -997,4 +908,13 @@ int __glXColorTableParameterivReqSize(GLbyte *pc, Bool swap )
 {
     /* no difference between fv and iv versions */
     return __glXColorTableParameterfvReqSize(pc, swap);
+}
+
+int __glXPointParameterfvARBReqSize(GLbyte *pc, Bool swap )
+{
+    GLenum pname = *(GLenum *)(pc + 0);
+    if (swap) {
+	pname = SWAPL( pname );
+    }
+    return 4 * __glPointParameterfvARB_size( pname );
 }

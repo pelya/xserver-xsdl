@@ -45,7 +45,7 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ******************************************************************/
-/* $XFree86: xc/programs/Xserver/include/windowstr.h,v 1.6 2001/12/14 19:59:57 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/include/windowstr.h,v 1.7 2003/04/27 21:31:05 herrb Exp $ */
 
 #ifndef WINDOWSTRUCT_H
 #define WINDOWSTRUCT_H
@@ -188,12 +188,9 @@ typedef struct _ScreenSaverStuff {
     XID       wid;
     char      blanked;
     Bool      (*ExternalScreenSaver)(
-#if NeedNestedPrototypes
 	ScreenPtr	/*pScreen*/,
 	int		/*xstate*/,
-	Bool		/*force*/
-#endif
-    );
+	Bool		/*force*/);
 } ScreenSaverStuffRec, *ScreenSaverStuffPtr;
 
 #define SCREEN_IS_BLANKED   0

@@ -33,12 +33,17 @@
  * holders shall not be used in advertising or otherwise to promote the sale,
  * use or other dealings in this Software without prior written authorization.
  */
-/* $XFree86: xc/programs/Xserver/hw/darwin/quartz/quartzCocoa.m,v 1.3 2003/01/19 06:52:54 torrey Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/darwin/quartz/quartzCocoa.m,v 1.4 2003/05/14 05:27:56 torrey Exp $ */
+
+#include "quartzCommon.h"
+
+#define BOOL xBOOL
+#include "darwin.h"
+#undef BOOL
 
 #include <Cocoa/Cocoa.h>
 
 #import "Preferences.h"
-#include "quartzCommon.h"
 #include "pseudoramiX.h"
 
 extern void FatalError(const char *, ...);
@@ -57,7 +62,7 @@ void QuartzReadPreferences(void)
     darwinFakeButtons = [Preferences fakeButtons];
     darwinFakeMouse2Mask = [Preferences button2Mask];
     darwinFakeMouse3Mask = [Preferences button3Mask];
-    quartzMouseAccelChange = [Preferences mouseAccelChange];
+    darwinMouseAccelChange = [Preferences mouseAccelChange];
     quartzUseSysBeep = [Preferences systemBeep];
 
     // quartzRootless has already been set

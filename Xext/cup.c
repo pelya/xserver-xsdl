@@ -24,7 +24,7 @@ used in advertising or otherwise to promote the sale, use or other dealings
 in this Software without prior written authorization from The Open Group.
 
 */
-/* $XFree86: xc/programs/Xserver/Xext/cup.c,v 1.10 2001/12/14 19:58:48 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/Xext/cup.c,v 1.12 2003/10/28 23:08:43 tsi Exp $ */
 
 #define NEED_REPLIES
 #define NEED_EVENTS
@@ -47,11 +47,16 @@ in this Software without prior written authorization from The Open Group.
 #include "xf86_ansic.h"
 #endif
 
-static int		ProcDispatch (), SProcDispatch ();
-static void		ResetProc ();
+#include "modinit.h"
 
+static int		ProcDispatch(ClientPtr client);
+static int              SProcDispatch(ClientPtr client);
+static void		ResetProc(ExtensionEntry* extEntry);
+
+#if 0
 static unsigned char	ReqCode = 0;
 static int		ErrorBase;
+#endif
 
 #if defined(WIN32) || defined(TESTWIN32)
 #define HAVE_SPECIAL_DESKTOP_COLORS
@@ -123,8 +128,9 @@ static xColorItem citems[] = {
 #define NUM_DESKTOP_COLORS (sizeof citems / sizeof citems[0])
 
 void
-XcupExtensionInit ()
+XcupExtensionInit (INITARGS)
 {
+#if 0
     ExtensionEntry* extEntry;
 
     if ((extEntry = AddExtension (XCUPNAME,
@@ -137,20 +143,29 @@ XcupExtensionInit ()
 	ReqCode = (unsigned char)extEntry->base;
 	ErrorBase = extEntry->errorBase;
     }
+#else
+    (void) AddExtension (XCUPNAME,
+			0,
+			XcupNumberErrors,
+			ProcDispatch,
+			SProcDispatch,
+			ResetProc,
+			StandardMinorOpcode);
+#endif
 
     /* PC servers initialize the desktop colors (citems) here! */
 }
 
 /*ARGSUSED*/
 static 
-void ResetProc (extEntry)
-    ExtensionEntry* extEntry;
+void ResetProc(
+    ExtensionEntry* extEntry)
 {
 }
 
 static 
-int ProcQueryVersion (client)
-    register ClientPtr client;
+int ProcQueryVersion(
+    register ClientPtr client)
 {
     /* REQUEST (xXcupQueryVersionReq); */
     xXcupQueryVersionReply rep;
@@ -173,8 +188,8 @@ int ProcQueryVersion (client)
 }
 
 static
-int ProcGetReservedColormapEntries (client)
-    register ClientPtr client;
+int ProcGetReservedColormapEntries(
+    register ClientPtr client)
 {
     REQUEST (xXcupGetReservedColormapEntriesReq);
     xXcupGetReservedColormapEntriesReply rep;
@@ -206,8 +221,8 @@ int ProcGetReservedColormapEntries (client)
 }
 
 static
-int ProcStoreColors (client)
-    register ClientPtr client;
+int ProcStoreColors(
+    register ClientPtr client)
 {
     REQUEST (xXcupStoreColorsReq);
     ColormapPtr pcmp;
@@ -265,8 +280,8 @@ int ProcStoreColors (client)
 }
 
 static 
-int ProcDispatch (client)
-    register ClientPtr	client;
+int ProcDispatch(
+    register ClientPtr client)
 {
     REQUEST (xReq);
     switch (stuff->data)
@@ -283,8 +298,8 @@ int ProcDispatch (client)
 }
 
 static 
-int SProcQueryVersion (client)
-    register ClientPtr	client;
+int SProcQueryVersion(
+    register ClientPtr client)
 {
     register int n;
 
@@ -294,8 +309,8 @@ int SProcQueryVersion (client)
 }
 
 static 
-int SProcGetReservedColormapEntries (client)
-    ClientPtr client;
+int SProcGetReservedColormapEntries(
+    ClientPtr client)
 {
     register int n;
 
@@ -307,8 +322,8 @@ int SProcGetReservedColormapEntries (client)
 }
 
 static 
-int SProcXcupStoreColors (client)
-    ClientPtr client;
+int SProcXcupStoreColors(
+    ClientPtr client)
 {
     register int n;
     int count;
@@ -325,8 +340,8 @@ int SProcXcupStoreColors (client)
 }
 
 static 
-int SProcDispatch (client)
-    register ClientPtr	client;
+int SProcDispatch(
+    register ClientPtr client)
 {
     REQUEST(xReq);
     switch (stuff->data)

@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/Xi/setmode.h,v 3.1 1996/04/15 11:19:07 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/Xi/setmode.h,v 3.2 2003/11/17 22:20:29 dawes Exp $ */
 /************************************************************
 
 Copyright 1996 by Thomas E. Dickey <dickey@clark.net>
@@ -29,25 +29,19 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 int
 SProcXSetDeviceMode(
-#if NeedFunctionPrototypes
 	ClientPtr              /* client */
-#endif
 	);
 
 int
 ProcXSetDeviceMode(
-#if NeedFunctionPrototypes
 	ClientPtr              /* client */
-#endif
 	);
 
 void
 SRepXSetDeviceMode(
-#if NeedFunctionPrototypes
 	ClientPtr              /* client */,
 	int                    /* size */,
 	xSetDeviceModeReply *  /* rep */
-#endif
 	);
 
 #endif /* SETMODE_H */

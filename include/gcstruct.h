@@ -47,14 +47,14 @@ SOFTWARE.
 ******************************************************************/
 
 
-/* $XFree86: xc/programs/Xserver/include/gcstruct.h,v 1.6 2001/12/14 19:59:54 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/include/gcstruct.h,v 1.8 2003/07/16 01:38:52 dawes Exp $ */
 
 #ifndef GCSTRUCT_H
 #define GCSTRUCT_H
 
 #include "gc.h"
 
-#include "miscstruct.h"
+#include "regionstr.h"
 #include "region.h"
 #include "pixmap.h"
 #include "screenint.h"
@@ -66,55 +66,34 @@ SOFTWARE.
 
 typedef struct _GCFuncs {
     void	(* ValidateGC)(
-#if NeedNestedPrototypes
 		GCPtr /*pGC*/,
 		unsigned long /*stateChanges*/,
-		DrawablePtr /*pDrawable*/
-#endif
-);
+		DrawablePtr /*pDrawable*/);
 
     void	(* ChangeGC)(
-#if NeedNestedPrototypes
 		GCPtr /*pGC*/,
-		unsigned long /*mask*/
-#endif
-);
+		unsigned long /*mask*/);
 
     void	(* CopyGC)(
-#if NeedNestedPrototypes
 		GCPtr /*pGCSrc*/,
 		unsigned long /*mask*/,
-		GCPtr /*pGCDst*/
-#endif
-);
+		GCPtr /*pGCDst*/);
 
     void	(* DestroyGC)(
-#if NeedNestedPrototypes
-		GCPtr /*pGC*/
-#endif
-);
+		GCPtr /*pGC*/);
 
     void	(* ChangeClip)(
-#if NeedNestedPrototypes
 		GCPtr /*pGC*/,
 		int /*type*/,
 		pointer /*pvalue*/,
-		int /*nrects*/
-#endif
-);
+		int /*nrects*/);
 
     void	(* DestroyClip)(
-#if NeedNestedPrototypes
-		GCPtr /*pGC*/
-#endif
-);
+		GCPtr /*pGC*/);
 
     void	(* CopyClip)(
-#if NeedNestedPrototypes
 		GCPtr /*pgcDst*/,
-		GCPtr /*pgcSrc*/
-#endif
-);
+		GCPtr /*pgcSrc*/);
     DevUnion	devPrivate;
 } GCFuncs;
 
@@ -124,30 +103,23 @@ typedef struct _GCFuncs {
 
 typedef struct _GCOps {
     void	(* FillSpans)(
-#if NeedNestedPrototypes
 		DrawablePtr /*pDrawable*/,
 		GCPtr /*pGC*/,
 		int /*nInit*/,
 		DDXPointPtr /*pptInit*/,
 		int * /*pwidthInit*/,
-		int /*fSorted*/
-#endif
-);
+		int /*fSorted*/);
 
     void	(* SetSpans)(
-#if NeedNestedPrototypes
 		DrawablePtr /*pDrawable*/,
 		GCPtr /*pGC*/,
 		char * /*psrc*/,
 		DDXPointPtr /*ppt*/,
 		int * /*pwidth*/,
 		int /*nspans*/,
-		int /*fSorted*/
-#endif
-);
+		int /*fSorted*/);
 
     void	(* PutImage)(
-#if NeedNestedPrototypes
 		DrawablePtr /*pDrawable*/,
 		GCPtr /*pGC*/,
 		int /*depth*/,
@@ -157,12 +129,9 @@ typedef struct _GCOps {
 		int /*h*/,
 		int /*leftPad*/,
 		int /*format*/,
-		char * /*pBits*/
-#endif
-);
+		char * /*pBits*/);
 
     RegionPtr	(* CopyArea)(
-#if NeedNestedPrototypes
 		DrawablePtr /*pSrc*/,
 		DrawablePtr /*pDst*/,
 		GCPtr /*pGC*/,
@@ -171,12 +140,9 @@ typedef struct _GCOps {
 		int /*w*/,
 		int /*h*/,
 		int /*dstx*/,
-		int /*dsty*/
-#endif
-);
+		int /*dsty*/);
 
     RegionPtr	(* CopyPlane)(
-#if NeedNestedPrototypes
 		DrawablePtr /*pSrcDrawable*/,
 		DrawablePtr /*pDstDrawable*/,
 		GCPtr /*pGC*/,
@@ -186,164 +152,117 @@ typedef struct _GCOps {
 		int /*height*/,
 		int /*dstx*/,
 		int /*dsty*/,
-		unsigned long /*bitPlane*/
-#endif
-);
+		unsigned long /*bitPlane*/);
     void	(* PolyPoint)(
-#if NeedNestedPrototypes
 		DrawablePtr /*pDrawable*/,
 		GCPtr /*pGC*/,
 		int /*mode*/,
 		int /*npt*/,
-		DDXPointPtr /*pptInit*/
-#endif
-);
+		DDXPointPtr /*pptInit*/);
 
     void	(* Polylines)(
-#if NeedNestedPrototypes
 		DrawablePtr /*pDrawable*/,
 		GCPtr /*pGC*/,
 		int /*mode*/,
 		int /*npt*/,
-		DDXPointPtr /*pptInit*/
-#endif
-);
+		DDXPointPtr /*pptInit*/);
 
     void	(* PolySegment)(
-#if NeedNestedPrototypes
 		DrawablePtr /*pDrawable*/,
 		GCPtr /*pGC*/,
 		int /*nseg*/,
-		xSegment * /*pSegs*/
-#endif
-);
+		xSegment * /*pSegs*/);
 
     void	(* PolyRectangle)(
-#if NeedNestedPrototypes
 		DrawablePtr /*pDrawable*/,
 		GCPtr /*pGC*/,
 		int /*nrects*/,
-		xRectangle * /*pRects*/
-#endif
-);
+		xRectangle * /*pRects*/);
 
     void	(* PolyArc)(
-#if NeedNestedPrototypes
 		DrawablePtr /*pDrawable*/,
 		GCPtr /*pGC*/,
 		int /*narcs*/,
-		xArc * /*parcs*/
-#endif
-);
+		xArc * /*parcs*/);
 
     void	(* FillPolygon)(
-#if NeedNestedPrototypes
 		DrawablePtr /*pDrawable*/,
 		GCPtr /*pGC*/,
 		int /*shape*/,
 		int /*mode*/,
 		int /*count*/,
-		DDXPointPtr /*pPts*/
-#endif
-);
+		DDXPointPtr /*pPts*/);
 
     void	(* PolyFillRect)(
-#if NeedNestedPrototypes
 		DrawablePtr /*pDrawable*/,
 		GCPtr /*pGC*/,
 		int /*nrectFill*/,
-		xRectangle * /*prectInit*/
-#endif
-);
+		xRectangle * /*prectInit*/);
 
     void	(* PolyFillArc)(
-#if NeedNestedPrototypes
 		DrawablePtr /*pDrawable*/,
 		GCPtr /*pGC*/,
 		int /*narcs*/,
-		xArc * /*parcs*/
-#endif
-);
+		xArc * /*parcs*/);
 
     int		(* PolyText8)(
-#if NeedNestedPrototypes
 		DrawablePtr /*pDrawable*/,
 		GCPtr /*pGC*/,
 		int /*x*/,
 		int /*y*/,
 		int /*count*/,
-		char * /*chars*/
-#endif
-);
+		char * /*chars*/);
 
     int		(* PolyText16)(
-#if NeedNestedPrototypes
 		DrawablePtr /*pDrawable*/,
 		GCPtr /*pGC*/,
 		int /*x*/,
 		int /*y*/,
 		int /*count*/,
-		unsigned short * /*chars*/
-#endif
-);
+		unsigned short * /*chars*/);
 
     void	(* ImageText8)(
-#if NeedNestedPrototypes
 		DrawablePtr /*pDrawable*/,
 		GCPtr /*pGC*/,
 		int /*x*/,
 		int /*y*/,
 		int /*count*/,
-		char * /*chars*/
-#endif
-);
+		char * /*chars*/);
 
     void	(* ImageText16)(
-#if NeedNestedPrototypes
 		DrawablePtr /*pDrawable*/,
 		GCPtr /*pGC*/,
 		int /*x*/,
 		int /*y*/,
 		int /*count*/,
-		unsigned short * /*chars*/
-#endif
-);
+		unsigned short * /*chars*/);
 
     void	(* ImageGlyphBlt)(
-#if NeedNestedPrototypes
 		DrawablePtr /*pDrawable*/,
 		GCPtr /*pGC*/,
 		int /*x*/,
 		int /*y*/,
 		unsigned int /*nglyph*/,
 		CharInfoPtr * /*ppci*/,
-		pointer /*pglyphBase*/
-#endif
-);
+		pointer /*pglyphBase*/);
 
     void	(* PolyGlyphBlt)(
-#if NeedNestedPrototypes
 		DrawablePtr /*pDrawable*/,
 		GCPtr /*pGC*/,
 		int /*x*/,
 		int /*y*/,
 		unsigned int /*nglyph*/,
 		CharInfoPtr * /*ppci*/,
-		pointer /*pglyphBase*/
-#endif
-);
+		pointer /*pglyphBase*/);
 
     void	(* PushPixels)(
-#if NeedNestedPrototypes
 		GCPtr /*pGC*/,
 		PixmapPtr /*pBitMap*/,
 		DrawablePtr /*pDst*/,
 		int /*w*/,
 		int /*h*/,
 		int /*x*/,
-		int /*y*/
-#endif
-);
+		int /*y*/);
 
 #ifdef NEED_LINEHELPER
     void	(* LineHelper)();

@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/xf86_OSlib.h,v 3.90 2002/05/31 18:46:00 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/xf86_OSlib.h,v 3.95 2003/11/17 22:20:40 dawes Exp $ */
 /*
  * Copyright 1990, 1991 by Thomas Roell, Dinkelscherben, Germany
  * Copyright 1992 by David Dawes <dawes@XFree86.org>
@@ -10,7 +10,7 @@
  * Copyright 1993 by David Wexelblat <dwex@XFree86.org>
  * Copyright 1994, 1996 by Holger Veit <Holger.Veit@gmd.de>
  * Copyright 1997 by Takis Psarogiannakopoulos <takis@dpmms.cam.ac.uk>
- * Copyright 1994-1998 by The XFree86 Project, Inc
+ * Copyright 1994-2003 by The XFree86 Project, Inc
  *
  * Permission to use, copy, modify, distribute, and sell this software and its
  * documentation for any purpose is hereby granted without fee, provided that
@@ -92,10 +92,6 @@ extern int xf86getpagesize(void);
 extern int xf86GetErrno(void);  
 typedef unsigned long xf86size_t;
 typedef signed long xf86ssize_t;
-#ifdef NEED_SNPRINTF
-extern int snprintf(char *str, size_t size, const char *format, ...);
-extern int vsnprintf(char *str, size_t size, const char *format, va_list ap);
-#endif
 #endif
 
 #include <stdio.h>
@@ -106,7 +102,7 @@ extern int vsnprintf(char *str, size_t size, const char *format, va_list ap);
 /* SYSV386 (SVR3, SVR4) - But not Solaris8                                */
 /**************************************************************************/
 #if (defined(SYSV) || defined(SVR4)) && \
-    !defined(DGUX) && \
+    !defined(DGUX) && !defined(sgi) && \
     !defined(__SOL8__) && \
     (!defined(sun) || defined(i386))
 # ifdef SCO325
@@ -180,11 +176,11 @@ extern int vsnprintf(char *str, size_t size, const char *format, va_list ap);
 # if defined(SCO)
 #  include <sys/vtkd.h>
 #  include <sys/console.h>
-#  include <sys/keyboard.h>
+#  include <sys/scankbd.h>
 #  include <sys/vid.h>
-#  define LED_CAP 0x01
-#  define LED_NUM 0x02
-#  define LED_SCR 0x04
+#  define LED_CAP CLKED
+#  define LED_NUM NLKED
+#  define LED_SCR SLKED
 # elif defined(HAS_USL_VTS)
 #  include <sys/at_ansi.h>
 #  include <sys/kd.h>
@@ -675,6 +671,17 @@ extern char* __XOS2RedirRoot(char*);
 #endif /* __GNU__ */
 
 /**************************************************************************/
+/* IRIX                                                                   */
+/**************************************************************************/
+#if defined(sgi)
+
+#include <errno.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+
+#endif
+
+/**************************************************************************/
 /* Generic                                                                */
 /**************************************************************************/
 
@@ -721,9 +728,7 @@ extern int sys_nerr;
 #if defined(ISC) || defined(Lynx)
 #define rint(x) RInt(x)
 double RInt(
-#if NeedFunctionPrototypes
 	double x
-#endif
 );
 #endif
 

@@ -45,7 +45,7 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ********************************************************/
-/* $XFree86: xc/programs/Xserver/include/site.h,v 1.8 2001/12/19 21:37:35 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/include/site.h,v 1.9 2003/09/09 03:20:41 dawes Exp $ */
 
 #ifndef SITE_H
 #define SITE_H
@@ -126,6 +126,14 @@ SOFTWARE.
 #endif
 #ifndef DEFAULT_ACCESS_CONTROL
 #define DEFAULT_ACCESS_CONTROL TRUE
+#endif
+
+/* Default logging parameters. */
+#ifndef DEFAULT_LOG_VERBOSITY
+#define DEFAULT_LOG_VERBOSITY		0
+#endif
+#ifndef DEFAULT_LOG_FILE_VERBOSITY
+#define DEFAULT_LOG_FILE_VERBOSITY	3
 #endif
 
 #endif /* SITE_H */

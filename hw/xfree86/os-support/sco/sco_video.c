@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/sco/sco_video.c,v 3.8 2002/06/03 21:22:10 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/sco/sco_video.c,v 3.9 2003/03/14 13:46:07 tsi Exp $ */
 /*
  * Copyright 2001 by J. Kean Johnston <jkj@sco.com>
  *
@@ -112,7 +112,7 @@ mapVidMemMMAP(int ScreenNum, unsigned long Base, unsigned long Size, int flags)
   unsigned long realBase, alignOff;
   pointer base;
 
-  fd = open (DEV_MEM, O_RDWR);
+  fd = open (DEV_MEM, (flags & VIDMEM_READONLY) ? O_RDONLY : O_RDWR);
   if (fd < 0) {
     FatalError("xf86MapVidMem: failed to open %s (%s)\n", DEV_MEM,
        	strerror(errno));
@@ -126,8 +126,9 @@ mapVidMemMMAP(int ScreenNum, unsigned long Base, unsigned long Size, int flags)
   ErrorF("base: %lx, realBase: %lx, alignOff: %lx\n", Base,realBase,alignOff);
 #endif
 
-  base = mmap((caddr_t)0, Size + alignOff, PROT_READ|PROT_WRITE,
-  		MAP_SHARED, fd, (off_t)realBase);
+  base = mmap((caddr_t)0, Size + alignOff,
+	      (flags & VIDMEM_READONLY) ? PROT_READ : (PROT_READ | PROT_WRITE),
+  	      MAP_SHARED, fd, (off_t)realBase);
   close(fd);
   if (base == MAP_FAILED) {
     FatalError("xf86MapVidMem: Could not mmap framebuffer (0x%08x,0x%x) (%s)\n",

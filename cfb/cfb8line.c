@@ -25,7 +25,7 @@ in this Software without prior written authorization from The Open Group.
  *
  * Author:  Keith Packard, MIT X Consortium
  *
- * $XFree86: xc/programs/Xserver/cfb/cfb8line.c,v 3.18 2002/09/18 17:11:47 tsi Exp $
+ * $XFree86: xc/programs/Xserver/cfb/cfb8line.c,v 3.19 2003/10/29 22:44:52 tsi Exp $
  * Jeff Anton'x fixes: cfb8line.c   97/02/07
  */
 
@@ -337,8 +337,12 @@ FUNC_NAME(cfb8LineSS1Rect) (pDrawable, pGC, mode, npt, pptInit, pptInitOrig,
     char *addrb;
     int stepmajor3, stepminor3, majordx, minordx;
 #endif
+#ifndef POLYSEGMENT
+#ifndef ORIGIN
 #ifdef BUGFIX_clip
     int ex_x1, ex_y1, ex_x2, ex_y2;
+#endif
+#endif
 #endif
     int		    octant;
     unsigned int    bias = miGetZeroLineBias(pDrawable->pScreen);
@@ -355,11 +359,15 @@ FUNC_NAME(cfb8LineSS1Rect) (pDrawable, pGC, mode, npt, pptInit, pptInitOrig,
     upperleft = *((int *) &extents->x1) - c2;
     lowerright = *((int *) &extents->x2) - c2 - 0x00010001;
 #endif /* !PREVIOUS */
+#ifndef POLYSEGMENT
+#ifndef ORIGIN
 #ifdef BUGFIX_clip
     ex_x1 = extents->x1 - pDrawable->x;
     ex_y1 = extents->y1 - pDrawable->y;
     ex_x2 = extents->x2 - pDrawable->x;
     ex_y2 = extents->y2 - pDrawable->y;
+#endif
+#endif
 #endif
 #if PSZ == 24
     xBase = pDrawable->x;
@@ -1079,6 +1087,7 @@ FUNC_NAME(cfb8LineSS1Rect) (pDrawable, pGC, mode, npt, pptInit, pptInitOrig,
 # endif
     }
 #endif /* !POLYSEGMENT */
+    RROP_UNDECLARE;
     return -1;
 }
 
@@ -1264,7 +1273,6 @@ RROP_NAME (cfb8ClippedLine) (pDrawable, pGC, x1, y1, x2, y2, boxp, shorten)
     Bool	    pt1_clipped, pt2_clipped;
     int		    changex, changey, result;
 #if PSZ == 24
-    int xOffset;
     PixelType   *addrLineEnd;
     char *addrb;
     int stepx3, stepy3;
@@ -1382,7 +1390,6 @@ RROP_NAME (cfb8ClippedLine) (pDrawable, pGC, x1, y1, x2, y2, boxp, shorten)
     RROP_FETCH_GC(pGC);
 
 #if PSZ == 24
-    xOffset = x1;
     addrLineEnd = addr + (y1 * nwidth);
     addrb = (char *)addrLineEnd + x1 * 3;
     if (stepx == 1  ||  stepx == -1){
@@ -1485,6 +1492,7 @@ RROP_NAME (cfb8ClippedLine) (pDrawable, pGC, x1, y1, x2, y2, boxp, shorten)
     RROP_SOLID(addrp);
 #endif
 #undef body
+    RROP_UNDECLARE
     }
 }
 

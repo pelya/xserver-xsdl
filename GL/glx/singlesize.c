@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/GL/glx/singlesize.c,v 1.4 2002/02/22 21:45:07 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/GL/glx/singlesize.c,v 1.6 2003/11/06 18:37:56 tsi Exp $ */
 /*
 ** License Applicability. Except to the extent portions of this file are
 ** made subject to an alternative license as permitted in the SGI Free
@@ -35,6 +35,7 @@
 */
 
 #include <GL/gl.h>
+#include "glxserver.h"
 #include "singlesize.h"
 
 /*
@@ -46,101 +47,7 @@
 
 GLint __glReadPixels_size(GLenum format, GLenum type, GLint w, GLint h)
 {
-    GLint elements, esize;
-    GLint rowsize, padding;
-
-    if (w < 0 || h < 0) {
-	return -1;
-    }
-    switch (format) {
-      case GL_COLOR_INDEX:
-      case GL_STENCIL_INDEX:
-      case GL_DEPTH_COMPONENT:
-	elements = 1;
-	break;
-      case GL_RED:
-      case GL_GREEN:
-      case GL_BLUE:
-      case GL_ALPHA:
-      case GL_LUMINANCE:
-      case GL_INTENSITY:
-	elements = 1;
-	break;
-      case GL_LUMINANCE_ALPHA:
-	elements = 2;
-	break;
-      case GL_RGB:
-      case GL_BGR:
-	elements = 3;
-	break;
-      case GL_RGBA:
-      case GL_BGRA:
-      case GL_ABGR_EXT:
-	elements = 4;
-	break;
-      default:
-	return -1;
-    }
-    /*
-    ** According to the GLX protocol, each row must be padded to a multiple of
-    ** 4 bytes.  4 bytes also happens to be the default alignment in the pixel
-    ** store modes of the GL.
-    */
-    switch (type) {
-      case GL_BITMAP:
-	if (format == GL_COLOR_INDEX || format == GL_STENCIL_INDEX) {
-	   rowsize = ((w * elements)+7)/8;
-	   padding = rowsize % 4;
-	   if (padding) {
-	      rowsize += 4 - padding;
-	   }
-	   return (rowsize * h);
-	} else {
-	   return -1;
-	}
-      case GL_BYTE:
-      case GL_UNSIGNED_BYTE:
-	esize = 1;
-	break;
-      case GL_UNSIGNED_BYTE_3_3_2:
-      case GL_UNSIGNED_BYTE_2_3_3_REV:
-	esize = 1;
-	elements = 1;
-	break;
-      case GL_SHORT:
-      case GL_UNSIGNED_SHORT:
-	esize = 2;
-	break;
-      case GL_UNSIGNED_SHORT_5_6_5:
-      case GL_UNSIGNED_SHORT_5_6_5_REV:
-      case GL_UNSIGNED_SHORT_4_4_4_4:
-      case GL_UNSIGNED_SHORT_4_4_4_4_REV:
-      case GL_UNSIGNED_SHORT_5_5_5_1:
-      case GL_UNSIGNED_SHORT_1_5_5_5_REV:
-	esize = 2;
-	elements = 1;
-	break;
-      case GL_INT:
-      case GL_UNSIGNED_INT:
-      case GL_FLOAT:
-	esize = 4;
-	break;
-      case GL_UNSIGNED_INT_8_8_8_8:
-      case GL_UNSIGNED_INT_8_8_8_8_REV:
-      case GL_UNSIGNED_INT_10_10_10_2:
-      case GL_UNSIGNED_INT_2_10_10_10_REV:
-	esize = 4;
-	elements = 1;
-	break;
-      default:
-	return -1;
-    }
-    rowsize = w * elements * esize;
-    padding = rowsize % 4;
-    if (padding) {
-	rowsize += 4 - padding;
-    }
-    return (rowsize * h);
+    return __glXImage3DSize( format, type, w, h, 1, 0, 0, 0, 0, 4 );
 }
 
 GLint __glGetTexEnvfv_size(GLenum pname)
@@ -207,23 +114,43 @@ GLint __glGetTexGeniv_size(GLenum pname)
 GLint __glGetTexParameterfv_size(GLenum pname)
 {
     switch (pname) {
+      case GL_TEXTURE_BORDER_COLOR:
+	return 4;
+
       case GL_TEXTURE_WRAP_S:
       case GL_TEXTURE_WRAP_T:
       case GL_TEXTURE_WRAP_R:
-	return 1;
       case GL_TEXTURE_MIN_FILTER:
       case GL_TEXTURE_MAG_FILTER:
-	return 1;
-      case GL_TEXTURE_BORDER_COLOR:
-	return 4;
       case GL_TEXTURE_PRIORITY:
-	return 1;
       case GL_TEXTURE_RESIDENT:
-	return 1;
+       
+      /* GL_SGIS_texture_lod / GL_EXT_texture_lod / GL 1.2 */
       case GL_TEXTURE_MIN_LOD:
       case GL_TEXTURE_MAX_LOD:
       case GL_TEXTURE_BASE_LEVEL:
       case GL_TEXTURE_MAX_LEVEL:
+
+      /* GL_SGIX_texture_lod_bias */
+      case GL_TEXTURE_LOD_BIAS_S_SGIX:
+      case GL_TEXTURE_LOD_BIAS_T_SGIX:
+      case GL_TEXTURE_LOD_BIAS_R_SGIX:
+
+      /* GL_ARB_shadow / GL 1.4 */
+      case GL_TEXTURE_COMPARE_MODE:
+      case GL_TEXTURE_COMPARE_FUNC:
+
+      /* GL_SGIX_shadow_ambient / GL_ARB_shadow_ambient */
+      case GL_TEXTURE_COMPARE_FAIL_VALUE_ARB:
+
+      /* GL_SGIX_shadow */
+      case GL_TEXTURE_COMPARE_SGIX:
+      case GL_TEXTURE_COMPARE_OPERATOR_SGIX:
+
+      /* GL_SGIX_texture_coordinate_clamp */
+      case GL_TEXTURE_MAX_CLAMP_S_SGIX:
+      case GL_TEXTURE_MAX_CLAMP_T_SGIX:
+      case GL_TEXTURE_MAX_CLAMP_R_SGIX:
 	return 1;
 
       default:
@@ -911,6 +838,15 @@ GLint __glGet_size(GLenum sq)
       case GL_TEXTURE_BINDING_CUBE_MAP_ARB:
       case GL_MAX_CUBE_MAP_TEXTURE_SIZE_ARB:
 	return 1;
+      case GL_OCCLUSION_TEST_RESULT_HP:
+      case GL_OCCLUSION_TEST_HP:
+	return 1;
+      case GL_PACK_INVERT_MESA:
+	return 1;
+      case GL_CULL_VERTEX_IBM:
+	return 1;
+      case GL_RASTER_POSITION_UNCLIPPED_IBM:
+	return 1;
       default:
 	return -1;
     }
@@ -964,82 +900,8 @@ GLint __glGetTexLevelParameteriv_size(GLenum pname)
 GLint __glGetTexImage_size(GLenum target, GLint level, GLenum format,
 			   GLenum type, GLint width, GLint height, GLint depth)
 {
-    GLint elements, esize;
-    GLint padding, rowsize;
-
-    switch (format) {
-      case GL_RGBA:
-      case GL_BGRA:
-      case GL_ABGR_EXT:
-	elements = 4;
-	break;
-      case GL_RGB:
-      case GL_BGR:
-	elements = 3;
-	break;
-      case GL_RED:
-      case GL_GREEN:
-      case GL_BLUE:
-      case GL_ALPHA:
-      case GL_LUMINANCE:
-      case GL_INTENSITY:
-	elements = 1;
-	break;
-      case GL_LUMINANCE_ALPHA:
-	elements = 2;
-	break;
-      default:
-	return -1;
-    }
-    switch (type) {
-      case GL_BYTE:
-      case GL_UNSIGNED_BYTE:
-	esize = 1;
-	break;
-      case GL_UNSIGNED_BYTE_3_3_2:
-      case GL_UNSIGNED_BYTE_2_3_3_REV:
-	esize = 1;
-	elements = 1;
-	break;
-      case GL_SHORT:
-      case GL_UNSIGNED_SHORT:
-	esize = 2;
-	break;
-      case GL_UNSIGNED_SHORT_5_6_5:
-      case GL_UNSIGNED_SHORT_5_6_5_REV:
-      case GL_UNSIGNED_SHORT_4_4_4_4:
-      case GL_UNSIGNED_SHORT_4_4_4_4_REV:
-      case GL_UNSIGNED_SHORT_5_5_5_1:
-      case GL_UNSIGNED_SHORT_1_5_5_5_REV:
-	esize = 2;
-	elements = 1;
-	break;
-      case GL_INT:
-      case GL_UNSIGNED_INT:
-      case GL_FLOAT:
-	esize = 4;
-	break;
-      case GL_UNSIGNED_INT_8_8_8_8:
-      case GL_UNSIGNED_INT_8_8_8_8_REV:
-      case GL_UNSIGNED_INT_10_10_10_2:
-      case GL_UNSIGNED_INT_2_10_10_10_REV:
-	esize = 4;
-	elements = 1;
-	break;
-      default:
-	return -1;
-    }
-    /*
-    ** According to the GLX protocol, each row must be padded to a multiple of
-    ** 4 bytes.  4 bytes also happens to be the default alignment in the pixel
-    ** store modes of the GL.
-    */
-    rowsize = width * elements * esize;
-    padding = rowsize % 4;
-    if (padding) {
-	rowsize += 4 - padding;
-    }
-    return (rowsize * height * depth);
+    return __glXImage3DSize( format, type, width, height, depth,
+			     0, 0, 0, 0, 4 );
 }
 
 GLint __glGetConvolutionParameteriv_size(GLenum pname)

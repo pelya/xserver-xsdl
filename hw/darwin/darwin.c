@@ -1,11 +1,11 @@
 /**************************************************************
  *
  * Shared code for the Darwin X Server
- * running with Quartz or the IOKit
+ * running with Quartz or IOKit display mode
  *
  **************************************************************/
 /*
- * Copyright (c) 2001-2002 Torrey T. Lyons. All Rights Reserved.
+ * Copyright (c) 2001-2003 Torrey T. Lyons. All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -29,7 +29,7 @@
  * holders shall not be used in advertising or otherwise to promote the sale,
  * use or other dealings in this Software without prior written authorization.
  */
-/* $XFree86: xc/programs/Xserver/hw/darwin/darwin.c,v 1.50 2003/02/26 09:21:33 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/darwin/darwin.c,v 1.55 2003/11/15 00:07:09 torrey Exp $ */
 
 #include "X.h"
 #include "Xproto.h"
@@ -52,6 +52,7 @@
 #include <sys/syslimits.h>
 #include <stdio.h>
 #include <fcntl.h>
+#include <unistd.h>
 
 #define NO_CFPLUGIN
 #include <IOKit/IOKitLib.h>
@@ -60,8 +61,6 @@
 
 #include "darwin.h"
 #include "darwinClut8.h"
-#include "quartz/quartz.h"
-#include "xfIOKit.h"
 
 /*
  * X server shared global variables
@@ -69,9 +68,9 @@
 int                     darwinScreensFound = 0;
 int                     darwinScreenIndex = 0;
 io_connect_t            darwinParamConnect = 0;
-int                     darwinEventFD = -1;
-Bool                    quartz = FALSE;
-int                     quartzMouseAccelChange = 1;
+int                     darwinEventReadFD = -1;
+int                     darwinEventWriteFD = -1;
+int                     darwinMouseAccelChange = 1;
 int                     darwinFakeButtons = 0;
 
 // location of X11's (0,0) point in global screen coordinates
@@ -113,7 +112,7 @@ const int NUMFORMATS = sizeof(formats)/sizeof(formats[0]);
 #define PRE_RELEASE XF86_VERSION_SNAP
 #endif
 
-static void
+void
 DarwinPrintBanner()
 {
 #if PRE_RELEASE
@@ -193,11 +192,7 @@ static Bool DarwinAddScreen(
     SCREEN_PRIV(pScreen) = dfb;
 
     // setup hardware/mode specific details
-    if (quartz) {
-        ret = QuartzAddScreen(foundIndex, pScreen);
-    } else {
-        ret = XFIOKitAddScreen(foundIndex, pScreen);
-    }
+    ret = DarwinModeAddScreen(foundIndex, pScreen);
     foundIndex++;
     if (! ret)
         return FALSE;
@@ -276,14 +271,8 @@ static Bool DarwinAddScreen(
     pScreen->SaveScreen = DarwinSaveScreen;
 
     // finish mode dependent screen setup including cursor support
-    if (quartz) {
-        if (! QuartzSetupScreen(index, pScreen)) {
-            return FALSE;
-        }
-    } else {
-        if (! XFIOKitSetupScreen(index, pScreen)) {
-            return FALSE;
-        }
+    if (!DarwinModeSetupScreen(index, pScreen)) {
+        return FALSE;
     }
 
     // create and install the default colormap and
@@ -337,7 +326,7 @@ static void DarwinChangePointerControl(
     kern_return_t   kr;
     double          acceleration;
 
-    if (!quartzMouseAccelChange)
+    if (!darwinMouseAccelChange)
         return;
 
     acceleration = ctrl->num / ctrl->den;
@@ -378,13 +367,13 @@ static int DarwinMouseProc(
 
         case DEVICE_ON:
             pPointer->public.on = TRUE;
-            AddEnabledDevice( darwinEventFD );
+            AddEnabledDevice( darwinEventReadFD );
             return Success;
 
         case DEVICE_CLOSE:
         case DEVICE_OFF:
             pPointer->public.on = FALSE;
-            RemoveEnabledDevice( darwinEventFD );
+            RemoveEnabledDevice( darwinEventReadFD );
             return Success;
     }
 
@@ -404,11 +393,11 @@ static int DarwinKeybdProc( DeviceIntPtr pDev, int onoff )
             break;
         case DEVICE_ON:
             pDev->public.on = TRUE;
-            AddEnabledDevice( darwinEventFD );
+            AddEnabledDevice( darwinEventReadFD );
             break;
         case DEVICE_OFF:
             pDev->public.on = FALSE;
-            RemoveEnabledDevice( darwinEventFD );
+            RemoveEnabledDevice( darwinEventReadFD );
             break;
         case DEVICE_CLOSE:
             break;
@@ -529,12 +518,61 @@ void InitInput( int argc, char **argv )
     darwinKeyboard = AddInputDevice(DarwinKeybdProc, TRUE);
     RegisterKeyboardDevice( darwinKeyboard );
 
-    DarwinEQInit( (DevicePtr)darwinKeyboard, (DevicePtr)darwinPointer );
+    if (serverGeneration == 1) {
+        DarwinEQInit( (DevicePtr)darwinKeyboard, (DevicePtr)darwinPointer );
+    }
 
-    if (quartz) {
-        QuartzInitInput(argc, argv);
-    } else {
-        XFIOKitInitInput(argc, argv);
+    DarwinModeInitInput(argc, argv);
+}
+
+
+/*
+ * DarwinAdjustScreenOrigins
+ *  Shift all screens so the X11 (0, 0) coordinate is at the top
+ *  left of the global screen coordinates.
+ *
+ *  Screens can be arranged so the top left isn't on any screen, so
+ *  instead use the top left of the leftmost screen as (0,0). This
+ *  may mean some screen space is in -y, but it's better that (0,0)
+ *  be onscreen, or else default xterms disappear. It's better that
+ *  -y be used than -x, because when popup menus are forced
+ *  "onscreen" by dumb window managers like twm, they'll shift the
+ *  menus down instead of left, which still looks funny but is an
+ *  easier target to hit.
+ */
+void
+DarwinAdjustScreenOrigins(ScreenInfo *pScreenInfo)
+{
+    int i, left, top;
+
+    left = dixScreenOrigins[0].x;
+    top  = dixScreenOrigins[0].y;
+
+    /* Find leftmost screen. If there's a tie, take the topmost of the two. */
+    for (i = 1; i < pScreenInfo->numScreens; i++) {
+        if (dixScreenOrigins[i].x < left  ||
+            (dixScreenOrigins[i].x == left &&
+             dixScreenOrigins[i].y < top))
+        {
+            left = dixScreenOrigins[i].x;
+            top = dixScreenOrigins[i].y;
+        }
+    }
+
+    darwinMainScreenX = left;
+    darwinMainScreenY = top;
+
+    /* Shift all screens so that there is a screen whose top left
+       is at X11 (0,0) and at global screen coordinate
+       (darwinMainScreenX, darwinMainScreenY). */
+
+    if (darwinMainScreenX != 0 || darwinMainScreenY != 0) {
+        for (i = 0; i < pScreenInfo->numScreens; i++) {
+            dixScreenOrigins[i].x -= darwinMainScreenX;
+            dixScreenOrigins[i].y -= darwinMainScreenY;
+            ErrorF("Screen %d placed at X11 coordinate (%d,%d).\n",
+                   i, dixScreenOrigins[i].x, dixScreenOrigins[i].y);
+        }
     }
 }
 
@@ -554,7 +592,7 @@ void InitInput( int argc, char **argv )
  */
 void InitOutput( ScreenInfo *pScreenInfo, int argc, char **argv )
 {
-    int i, left, top;
+    int i;
     static unsigned long generation = 0;
 
     pScreenInfo->imageByteOrder = IMAGE_BYTE_ORDER;
@@ -574,55 +612,14 @@ void InitOutput( ScreenInfo *pScreenInfo, int argc, char **argv )
     }
 
     // Discover screens and do mode specific initialization
-    if (quartz) {
-        QuartzInitOutput(argc, argv);
-    } else {
-        XFIOKitInitOutput(argc, argv);
-    }
+    DarwinModeInitOutput(argc, argv);
 
     // Add screens
     for (i = 0; i < darwinScreensFound; i++) {
         AddScreen( DarwinAddScreen, argc, argv );
     }
 
-    // Shift all screens so the X11 (0, 0) coordinate is at the top left
-    // of the global screen coordinates.
-    // Screens can be arranged so the top left isn't on any screen,
-    // so instead use the top left of the leftmost screen as (0,0).
-    // This may mean some screen space is in -y, but it's better
-    // that (0,0) be onscreen, or else default xterms disappear.
-    // It's better that -y be used than -x, because when popup
-    // menus are forced "onscreen" by dumb window managers like twm,
-    // they'll shift the menus down instead of left, which still looks
-    // funny but is an easier target to hit.
-    left = dixScreenOrigins[0].x;
-    top  = dixScreenOrigins[0].y;
-
-    // Find leftmost screen. If there's a tie, take the topmost of the two.
-    for (i = 1; i < pScreenInfo->numScreens; i++) {
-        if (dixScreenOrigins[i].x < left  ||
-            (dixScreenOrigins[i].x == left &&
-             dixScreenOrigins[i].y < top))
-        {
-            left = dixScreenOrigins[i].x;
-            top = dixScreenOrigins[i].y;
-        }
-    }
-
-    darwinMainScreenX = left;
-    darwinMainScreenY = top;
-
-    // Shift all screens so that there is a screen whose top left
-    // is at X11 (0,0) and at global screen coordinate
-    // (darwinMainScreenX, darwinMainScreenY).
-    if (darwinMainScreenX != 0 || darwinMainScreenY != 0) {
-        for (i = 0; i < pScreenInfo->numScreens; i++) {
-            dixScreenOrigins[i].x -= darwinMainScreenX;
-            dixScreenOrigins[i].y -= darwinMainScreenY;
-            ErrorF("Screen %d placed at X11 coordinate (%d,%d).\n",
-                   i, dixScreenOrigins[i].x, dixScreenOrigins[i].y);
-        }
-    }
+    DarwinAdjustScreenOrigins(pScreenInfo);
 }
 
 
@@ -648,13 +645,16 @@ void OsVendorInit(void)
     // Find the full path to the keymapping file.
     if ( darwinKeymapFile ) {
         char *tempStr = DarwinFindLibraryFile(darwinKeymapFile, "Keyboards");
-        if ( !tempStr )
-            FatalError("Could not find keymapping file %s.\n",
-                       darwinKeymapFile);
+        if ( !tempStr ) {
+            ErrorF("Could not find keymapping file %s.\n", darwinKeymapFile);
+        } else {
+            ErrorF("Using keymapping provided in %s.\n", tempStr);
+        }
         darwinKeymapFile = tempStr;
-        ErrorF("Using keymapping provided in %s.\n", darwinKeymapFile);
-    } else {
-        ErrorF("Reading keymapping from the kernel.\n");
+    }
+
+    if ( !darwinKeymapFile ) {
+        ErrorF("Reading keymap from the system.\n");
     }
 }
 
@@ -667,12 +667,10 @@ void OsVendorInit(void)
  */
 int ddxProcessArgument( int argc, char *argv[], int i )
 {
-#ifdef DARWIN_WITH_QUARTZ
     int numDone;
 
-    if ((numDone = QuartzProcessArgument( argc, argv, i )))
+    if ((numDone = DarwinModeProcessArgument( argc, argv, i )))
         return numDone;
-#endif
 
     if ( !strcmp( argv[i], "-fakebuttons" ) ) {
         darwinFakeButtons = TRUE;
@@ -833,11 +831,7 @@ void ddxGiveUp( void )
 {
     ErrorF( "Quitting XDarwin...\n" );
 
-    if (quartz) {
-        QuartzGiveUp();
-    } else {
-        XFIOKitGiveUp();
-    }
+    DarwinModeGiveUp();
 }
 
 

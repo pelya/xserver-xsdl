@@ -8,7 +8,7 @@
  * Copyright 1993 by Vrije Universiteit, The Netherlands
  * Copyright 1993 by David Wexelblat <dwex@XFree86.org>
  * Copyright 1994, 1996 by Holger Veit <Holger.Veit@gmd.de>
- * Copyright 1994-1999 by The XFree86 Project, Inc
+ * Copyright 1994-2003 by The XFree86 Project, Inc
  *
  * Permission to use, copy, modify, distribute, and sell this software and its
  * documentation for any purpose is hereby granted without fee, provided that
@@ -64,7 +64,7 @@
  *
  */
 
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/xf86_OSproc.h,v 3.55 2002/01/25 21:56:17 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/xf86_OSproc.h,v 3.57 2003/10/07 23:14:54 herrb Exp $ */
 
 #ifndef _XF86_OSPROC_H
 #define _XF86_OSPROC_H
@@ -125,6 +125,7 @@ extern void xf86WrapperInit(void);
 #define xf86FatalError(a, b) \
 	if (dispatchException & DE_TERMINATE) { \
 		ErrorF(a, b); \
+		ErrorF("\n"); \
 		return; \
 	} else FatalError(a, b)
 

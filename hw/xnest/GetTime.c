@@ -28,12 +28,14 @@ other dealings in this Software without prior written authorization
 from the X Consortium.
 
 */
+/* $XFree86: xc/programs/Xserver/hw/xnest/GetTime.c,v 1.2 2003/11/16 05:05:20 dawes Exp $ */
 
 
 #include "Xos.h"
+#include "os.h"
 #include <time.h>
 
-long
+CARD32
 GetTimeInMillis()
 {
     struct timeval  tp;

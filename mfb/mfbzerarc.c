@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/mfb/mfbzerarc.c,v 3.7 2002/09/27 01:57:47 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/mfb/mfbzerarc.c,v 3.8 2003/07/16 01:38:55 dawes Exp $ */
 /************************************************************
 
 Copyright 1989, 1998  The Open Group
@@ -35,7 +35,7 @@ in this Software without prior written authorization from The Open Group.
 
 #include "X.h"
 #include "Xprotostr.h"
-#include "miscstruct.h"
+#include "regionstr.h"
 #include "gcstruct.h"
 #include "pixmapstr.h"
 #include "scrnintstr.h"
@@ -72,10 +72,10 @@ in this Software without prior written authorization from The Open Group.
 #define DoPix(bit,base,yoff,xoff) if (mask & bit) Pixelate(base,yoff,xoff);
 
 static void
-mfbZeroArcSS(pDraw, pGC, arc)
-    DrawablePtr pDraw;
-    GCPtr pGC;
-    xArc *arc;
+mfbZeroArcSS(
+    DrawablePtr pDraw,
+    GCPtr pGC,
+    xArc *arc)
 {
     miZeroArcRec info;
     Bool do360;

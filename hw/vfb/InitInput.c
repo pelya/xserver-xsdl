@@ -26,7 +26,7 @@ other dealings in this Software without prior written authorization
 from The Open Group.
 
 */
-/* $XFree86: xc/programs/Xserver/hw/vfb/InitInput.c,v 3.9 2001/12/14 19:59:45 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/vfb/InitInput.c,v 3.10 2003/11/16 03:16:59 dawes Exp $ */
 
 #include "X11/X.h"
 #define NEED_EVENTS
@@ -41,9 +41,7 @@ from The Open Group.
 #include "keysym.h"
 
 Bool
-LegalModifier(key, pDev)
-    unsigned int key;
-    DevicePtr	pDev;
+LegalModifier(unsigned int key, DevicePtr pDev)
 {
     return TRUE;
 }
@@ -63,9 +61,7 @@ KeySym  map[MAP_LENGTH * LK201_GLYPHS_PER_KEY];
  * easy to lift.
  */
 static Bool
-GetLK201Mappings(pKeySyms, pModMap)
-    KeySymsPtr pKeySyms;
-    CARD8 *pModMap;
+GetLK201Mappings(KeySymsPtr pKeySyms, CARD8 *pModMap)
 {
 #define INDEX(in) ((in - VFB_MIN_KEY) * LK201_GLYPHS_PER_KEY)
     int i;
@@ -257,9 +253,7 @@ GetLK201Mappings(pKeySyms, pModMap)
 }
 
 static int
-vfbKeybdProc(pDevice, onoff)
-    DeviceIntPtr pDevice;
-    int onoff;
+vfbKeybdProc(DeviceIntPtr pDevice, int onoff)
 {
     KeySymsRec		keySyms;
     CARD8 		modMap[MAP_LENGTH];
@@ -285,9 +279,7 @@ vfbKeybdProc(pDevice, onoff)
 }
 
 static int
-vfbMouseProc(pDevice, onoff)
-    DeviceIntPtr pDevice;
-    int onoff;
+vfbMouseProc(DeviceIntPtr pDevice, int onoff)
 {
     BYTE map[4];
     DevicePtr pDev = (DevicePtr)pDevice;
@@ -317,9 +309,7 @@ vfbMouseProc(pDevice, onoff)
 }
 
 void
-InitInput(argc, argv)
-    int argc;
-    char *argv[];
+InitInput(int argc, char *argv[])
 {
     DeviceIntPtr p, k;
     p = AddInputDevice(vfbMouseProc, TRUE);
@@ -332,26 +322,18 @@ InitInput(argc, argv)
 
 #ifdef XTESTEXT1
 void
-XTestGenerateEvent(dev_type, keycode, keystate, mousex, mousey)
-	int	dev_type;
-	int	keycode;
-	int	keystate;
-	int	mousex;
-	int	mousey;
+XTestGenerateEvent(int dev_type, int keycode, int keystate, int mousex,
+		   int mousey)
 {
 }
 
 void
-XTestGetPointerPos(fmousex, fmousey)
-	short *fmousex, *fmousey;
+XTestGetPointerPos(short *fmousex, short *fmousey)
 {
 }
 
 void
-XTestJumpPointer(jx, jy, dev_type)
-	int	jx;
-	int	jy;
-	int	dev_type;
+XTestJumpPointer(int jx, int jy, int dev_type)
 {
 }
 #endif

@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/mi/miarc.c,v 3.13 2002/01/12 22:20:33 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/mi/miarc.c,v 3.14 2003/10/29 22:57:48 tsi Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -1656,7 +1656,6 @@ miGetArcPts(
 		xc, yc; /* the center point */
     int		count, i;
     SppPointPtr	poly;
-    DDXPointRec last;		/* last point on integer boundaries */
 
     /* The spec says that positive angles indicate counterclockwise motion.
      * Given our coordinate system (with 0,0 in the upper left corner), 
@@ -1703,8 +1702,6 @@ miGetArcPts(
 
     poly[cpt].x = (xc + x0);
     poly[cpt].y = (yc + y0);
-    last.x = ROUNDTOINT( poly[cpt + 1].x = (xc + x1) );
-    last.y = ROUNDTOINT( poly[cpt + 1].y = (yc + y1) );
 
     for(i = 2; i < count; i++)
     {

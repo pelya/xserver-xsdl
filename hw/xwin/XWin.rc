@@ -27,7 +27,7 @@
  *
  * Authors:	Harold L Hunt II
  */
-/* $XFree86: xc/programs/Xserver/hw/xwin/XWin.rc,v 1.1 2002/10/17 08:18:21 alanh Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xwin/XWin.rc,v 1.2 2003/07/29 21:25:15 dawes Exp $ */
 
 #include "resource.h"
 
@@ -36,8 +36,10 @@
  * Dialogs
  */
 
+/* Depth_Change */
+
 DEPTH_CHANGE_BOX DIALOG DISCARDABLE	32, 32, 180, 100
-STYLE WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_VISIBLE
+STYLE WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_VISIBLE | DS_CENTER
 FONT 8, "MS Sans Serif"
 CAPTION "Cygwin/XFree86"
 BEGIN
@@ -48,9 +50,34 @@ BEGIN
 END
 
 
+/* Exit */
+
+EXIT_DIALOG DIALOG DISCARDABLE	32, 32, 180, 70
+STYLE WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_VISIBLE | WS_TABSTOP | DS_CENTER
+FONT 8, "MS Sans Serif"
+CAPTION "Cygwin/XFree86 - Exit?"
+BEGIN
+  PUSHBUTTON "E&xit", IDOK, 55, 48, 30, 14
+  DEFPUSHBUTTON "&Cancel", IDCANCEL, 95, 48, 30, 14
+  CTEXT "Exiting will close all screens running on this display.", IDC_STATIC, 7, 12, 166, 8
+  CTEXT "Proceed with shutdown of this display/server?", IDC_STATIC, 7, 24, 166, 8
+END
+
+
 /*
  * Menus
  */
+
+IDM_TRAYICON_MENU MENU DISCARDABLE
+BEGIN
+	POPUP "TRAYICON_MENU"
+	BEGIN
+		MENUITEM "&Hide Root Window", ID_APP_HIDE_ROOT
+		MENUITEM "&Show Root Window", ID_APP_SHOW_ROOT
+		MENUITEM SEPARATOR
+		MENUITEM "E&xit", ID_APP_EXIT
+	END
+END
 
 
 /*

@@ -68,7 +68,7 @@ SOFTWARE.
 *                                                               *
 *****************************************************************/
 
-/* $XFree86: xc/programs/Xserver/dix/dispatch.c,v 3.29 2003/01/12 02:44:26 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/dix/dispatch.c,v 3.33 2003/11/17 22:20:33 dawes Exp $ */
 
 #ifdef PANORAMIX_DEBUG
 #include <stdio.h>
@@ -136,15 +136,11 @@ HWEventQueuePtr checkForInput[2];
 extern int connBlockScreenStart;
 
 static void KillAllClients(
-#if NeedFunctionPrototypes
     void
-#endif
 );
 
 static void DeleteClientFromAnySelections(
-#if NeedFunctionPrototypes
     ClientPtr /*client*/
-#endif
 );
 
 static int nextFreeClientID; /* always MIN free client ID */
@@ -444,7 +440,7 @@ Dispatch(void)
 		client->requestLog[client->requestLogIndex] = MAJOROP;
 		client->requestLogIndex++;
 #endif
-		if (result > (MAX_BIG_REQUEST_SIZE << 2))
+		if (result > (maxBigRequestSize << 2))
 		    result = BadLength;
 		else
 		    result = (* client->requestVector[MAJOROP])(client);
@@ -1172,12 +1168,7 @@ ProcGrabServer(client)
 }
 
 static void
-#if NeedFunctionPrototypes
 UngrabServer(ClientPtr client)
-#else
-UngrabServer(client)
-    ClientPtr client;
-#endif
 {
     int i;
 
@@ -2226,7 +2217,7 @@ DoGetImage(client, format, drawable, x, y, width, height, planemask, im_return)
 	pVisibleRegion = NotClippedByChildren((WindowPtr)pDraw);
 	if (pVisibleRegion)
 	{
-	    REGION_TRANSLATE(pScreen, pVisibleRegion, -pDraw->x, -pDraw->y);
+	    REGION_TRANSLATE(pDraw->pScreen, pVisibleRegion, -pDraw->x, -pDraw->y);
 	}
     }
 #endif
@@ -2320,7 +2311,7 @@ DoGetImage(client, format, drawable, x, y, width, height, planemask, im_return)
     }
 #ifdef XCSECURITY
     if (pVisibleRegion)
-	REGION_DESTROY(pScreen, pVisibleRegion);
+	REGION_DESTROY(pDraw->pScreen, pVisibleRegion);
 #endif
     if (!im_return)
 	DEALLOCATE_LOCAL(pBuf);
@@ -3297,6 +3288,8 @@ ProcSetScreenSaver            (client)
 	ScreenSaverInterval = stuff->interval * MILLI_PER_SECOND;
     else
 	ScreenSaverInterval = defaultScreenSaverInterval;
+
+    SetScreenSaverTimer();
     return (client->noClientException);
 }
 

@@ -12,7 +12,7 @@ the suitability of this software for any purpose.  It is provided "as
 is" without express or implied warranty.
 
 */
-/* $XFree86: xc/programs/Xserver/hw/xnest/TestExt.c,v 3.5 2001/08/27 17:41:00 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xnest/TestExt.c,v 3.6 2003/11/16 05:05:20 dawes Exp $ */
 
 #include <X11/X.h>
 #include <X11/Xproto.h>
@@ -26,12 +26,12 @@ is" without express or implied warranty.
 #include "mipointer.h"
 #define XTestSERVER_SIDE
 #include "xtestext1.h"
+#include "xtest1dd.h"
 
 extern CARD32 lastEventTime;
 
-void XTestGetPointerPos(fmousex, fmousey)
-     short *fmousex;
-     short *fmousey;
+void
+XTestGetPointerPos(short *fmousex, short *fmousey)
 {
   int x,y;
   
@@ -40,20 +40,15 @@ void XTestGetPointerPos(fmousex, fmousey)
   *fmousey = y;
 }
 
-void XTestJumpPointer(jx, jy, dev_type)
-     int jx;
-     int jy;
-     int dev_type;
+void
+XTestJumpPointer(int jx, int jy, int dev_type)
 {
   miPointerAbsoluteCursor(jx, jy, GetTimeInMillis());
 }
 
-void XTestGenerateEvent(dev_type, keycode, keystate, mousex, mousey)
-     int dev_type;
-     int keycode;
-     int keystate;
-     int mousex;
-     int mousey;
+void
+XTestGenerateEvent(int dev_type, int keycode, int keystate, int mousex,
+		   int mousey)
 {
 /*
   xEvent tevent;

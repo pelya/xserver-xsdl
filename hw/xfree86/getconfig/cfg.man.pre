@@ -1,0 +1,138 @@
+.\" $XFree86: xc/programs/Xserver/hw/xfree86/getconfig/cfg.man,v 1.1 2003/11/12 04:52:15 dawes Exp $
+.TH getconfig __filemansuffix__  __vendorversion__
+.SH NAME
+getconfig - meta configuration files for getconfig(1)
+.SH SYNOPSIS
+.B \(**.cfg
+.SH DESCRIPTION
+.B getconfig
+is a programatic interface that is used by the
+.B XFree86
+server to get configuration information about video hardware when
+operating without an
+.B XF86Config
+file.
+.PP
+This implementation of
+.B getconfig
+is written in perl.  It processes rules from meta-configuration files.
+All meta-configuration files have a
+.I .cfg
+suffix.
+.PP
+Lines starting with a pound-sign (#) are comments, and are ignored.
+Blank lines that consist only of white space are also treated as comments
+and ignored.
+.PP
+The first non-comment line must be a signature string followed by
+the file format version number.  The signature string is
+.PP
+.RS 4
+.nf
+"XFree86 Project getconfig rules file.\ \ Version: "
+.fi
+.RE
+.PP
+The currently defined version is "1.0".  Files that do not have the
+correct signature string are ignored.
+.PP
+The remaining non-comment lines define rules.  The start of a new rule
+is indicated by a line with no leading white space.  Subsequent lines
+making up a rule must be indented with white space.  Logical lines within
+a rule may be split over multiple physical lines by using the usual
+continuation convention ('\e' at the end of the line).  The first logical
+line of each rule is a perl expression.  It may be any valid perl
+expression whose evaluated (with 'eval') result may be used as the
+argument to a perl 'if' statement.  The second logical line should be
+the name of the XFree86 video driver to use when the rule is true, and
+subsequent logical lines of each rule, if present, are additional
+configuration output for the video device's
+.B XF86Config
+.B Device
+section.  The driver name and additional lines of configuration information
+are written to standard output when the rule is chosen as the successful
+rule.
+.PP
+Pseudo rules consisting of perl expressions may be present in the file
+for the purpose of defining custom perl variables or setting the weight
+to use for the following rules.  Pseudo rules are rules that consist of
+a single logical line only, and the are never candidates themselves for the
+successful rule.
+.PP
+Several perl variables are pre-defined, and may be used within rules.
+They include:
+.PP
+.RS 4
+.nf
+.BR "$vendor                 " "PCI vendor ID"
+.BR "$device                 " "PCI device ID"
+.BR "$revision               " "PCI revision ID"
+.BR "$subsys                 " "PCI subsystem ID"
+.BR "$subsysVendor           " "PCI subsystem vendor ID"
+.BR "$class                  " "PCI class"
+.BR "$XFree86Version         " "XFree86 version, as a 'v' string"
+.BR "$XFree86VersionNumeric  " "XFree86 numeric version"
+.BR "$XFree86VersionMajor    " "XFree86 major version"
+.BR "$XFree86VersionMinor    " "XFree86 minor version"
+.BR "$XFree86VersionPatch    " "XFree86 patch version"
+.BR "$XFree86VersionSnap     " "XFree86 snap version"
+.BR "$weight                 " "current rule weight"
+.fi
+.RE
+.PP
+The
+.B $weight
+variable deterines the weight of the rules as they are processed.  The
+weight for subsequent rules may be set with a pseudo rule that sets or
+changes the value of
+.BR $weight .
+The default weight, and the weight used for built-in rules is 500.  The
+meta-configuration files are processed in an unpredictable order.  The
+weighting of the rules is used to determine their relative priority
+.PP
+After processing all of the rules, both built-in and those read from
+the meta-configration files, the
+.B getconfig
+program chooses as the successful rule the last and highest weighted
+rule that evaluates to true.
+.SH FILES
+.I .cfg
+files located in the search path.  The search path typically specified
+by the
+.B XFree86
+server is:
+.PP
+.RS 4
+.nf
+.I /etc/X11
+.I __projectroot__/etc/X11
+.I <modulepath>
+.I __projectroot__/lib/X11/getconfig
+.fi
+.RE
+.PP
+where
+.I <modulepath>
+is the
+.B XFree86
+server's module search path.
+.PP
+.TP 30
+.I __projectroot__/lib/X11/getconfig/xfree86.cfg
+Default rules file that gets installed.  This file doesn't contain any
+rules by default.
+.TP 30
+.I __projectroot__/lib/X11/getconfig/cfg.sample
+A sample rules file that gives some examples of what types of rules can
+appear in rules files.
+
+.SH "SEE ALSO"
+getconfig(1),
+XFree86(1),
+XF86Config(__filemansuffix__).
+
+.SH AUTHORS
+The XFree86 automatic configuration support and the
+.B getconfig
+interface was written by David H. Dawes, with the support of X-Oz
+Technologies.

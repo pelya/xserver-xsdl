@@ -374,6 +374,13 @@ a 2.4.x kernel, you should add the following:
 
                  #define MesaUseSSE YES
 
+If you want to build the DRM kernel modules as part of the full build pro-
+cess, add the following:
+
+                 #define BuildXF86DRM YES
+
+Otherwise, you'll need to build them separately as described below.
+
 8.3  Compilation
 
 To compile the complete DRI tree:
@@ -401,10 +408,20 @@ work with XFree86/DRI.
 Using your text editor, examine world.log for errors by searching for the
 pattern ***.
 
-Verify that the DRI kernel module(s) for your system were built:
+After fixing the errors, run make World again.  Later, you might just compile
+parts of the source tree but it's important that the whole tree will build
+first.
+
+If you edited your host.def file to enable automatic building of the DRI ker-
+nel module(s), verify that they were built:
 
                cd ~/DRI-CVS/build/xc/programs/Xserver/hw/xfree86/os-support/linux/drm/kernel
                ls
+
+Otherwise, build them now by running
+
+               cd ~/DRI-CVS/build/xc/programs/Xserver/hw/xfree86/os-support/linux/drm/kernel
+               make -f Makefile.linux
 
 For the 3dfx Voodoo, you should see tdfx.o.  For the Matrox G200/G400, you
 should see mga.o.  For the ATI Rage 128, you should see r128.o.  For the ATI
@@ -416,17 +433,14 @@ always supported.
 
 If your build machine is running a different version of the kernel than your
 target machine (i.e. 2.2.x vs. 2.4.x), make will select the wrong kernel
-headers. This can be fixed by explicitly setting the value of TREE.  If the
-path to your kernel source is /usr/src/linux-2.4.x,
+source tree. This can be fixed by explicitly setting the value of LINUXDIR.
+If the path to your kernel source is /usr/src/linux-2.4.x,
 
                cd ~/DRI-CVS/build/xc/programs/Xserver/hw/xfree86/os-support/linux/drm/kernel
-               make TREE=/usr/src/linux-2.4.x/include
+               make -f Makefile.linux LINUXDIR=/usr/src/linux-2.4.x
 
-or alternatively, edit Makefile to include this change.
-
-After fixing the errors, run make World again.  Later, you might just compile
-parts of the source tree but it's important that the whole tree will build
-first.
+or alternatively, edit Makefile.linux to set LINUXDIR before the ifndef LIN-
+UXDIR line.
 
 8.5  DRI kernel module installation
 
@@ -537,7 +551,7 @@ At this point your X server should be up and running with hardware-acceler-
 ated direct rendering.  Please read the DRI User Guide for information about
 trouble shooting and how to use the DRI-enabled X server for 3D applications.
 
-     Generated from XFree86: xc/programs/Xserver/hw/xfree86/doc/sgml/DRIcomp.sgml,v 1.19 2002/11/26 01:05:50 dawes Exp $
+     Generated from XFree86: xc/programs/Xserver/hw/xfree86/doc/sgml/DRIcomp.sgml,v 1.20 dawes Exp $
 
 
-$XFree86: xc/programs/Xserver/hw/xfree86/doc/README.DRIcomp,v 3.16 2002/11/26 02:24:01 dawes Exp $
+$XFree86: xc/programs/Xserver/hw/xfree86/doc/README.DRIcomp,v 3.17 2003/07/15 02:28:28 dawes Exp $

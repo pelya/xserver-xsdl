@@ -45,7 +45,7 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ********************************************************/
-/* $XFree86: xc/programs/Xserver/Xi/extinit.c,v 3.6 2001/12/14 19:58:55 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/Xi/extinit.c,v 3.7 2003/11/17 22:20:29 dawes Exp $ */
 
 /********************************************************************
  *
@@ -894,13 +894,8 @@ MakeDeviceTypeAtoms ()
  */
 
 DeviceIntPtr
-#if NeedFunctionPrototypes
 LookupDeviceIntRec (
     CARD8 id)
-#else
-LookupDeviceIntRec (id)
-    CARD8 id;
-#endif
 {
     DeviceIntPtr dev;
 

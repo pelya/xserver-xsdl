@@ -26,7 +26,7 @@ other dealings in this Software without prior written authorization
 from The Open Group.
 
 */
-/* $XFree86: xc/programs/Xserver/Xext/bigreq.c,v 3.5 2001/12/14 19:58:48 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/Xext/bigreq.c,v 3.9 2003/11/17 22:20:26 dawes Exp $ */
 
 #define NEED_EVENTS
 #include "X.h"
@@ -36,26 +36,35 @@ from The Open Group.
 #include "dixstruct.h"
 #include "extnsionst.h"
 #include "bigreqstr.h"
+#include "opaque.h"
+#include "modinit.h"
 
+#if 0
 static unsigned char XBigReqCode;
+#endif
 
 static void BigReqResetProc(
-#if NeedFunctionPrototypes
     ExtensionEntry * /* extEntry */
-#endif
 );
 
 static DISPATCH_PROC(ProcBigReqDispatch);
 
 void
-BigReqExtensionInit()
+BigReqExtensionInit(INITARGS)
 {
+#if 0
     ExtensionEntry *extEntry;
 
     if ((extEntry = AddExtension(XBigReqExtensionName, 0, 0,
 				 ProcBigReqDispatch, ProcBigReqDispatch,
 				 BigReqResetProc, StandardMinorOpcode)) != 0)
 	XBigReqCode = (unsigned char)extEntry->base;
+#else
+    (void) AddExtension(XBigReqExtensionName, 0, 0,
+			ProcBigReqDispatch, ProcBigReqDispatch,
+			BigReqResetProc, StandardMinorOpcode);
+#endif
+
     DeclareExtensionSecurity(XBigReqExtensionName, TRUE);
 }
 
@@ -84,7 +93,7 @@ ProcBigReqDispatch (client)
     rep.type = X_Reply;
     rep.length = 0;
     rep.sequenceNumber = client->sequence;
-    rep.max_request_size = MAX_BIG_REQUEST_SIZE;
+    rep.max_request_size = maxBigRequestSize;
     if (client->swapped) {
     	swaps(&rep.sequenceNumber, n);
 	swapl(&rep.max_request_size, n);

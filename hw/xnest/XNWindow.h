@@ -12,6 +12,7 @@ the suitability of this software for any purpose.  It is provided "as
 is" without express or implied warranty.
 
 */
+/* $XFree86: xc/programs/Xserver/hw/xnest/XNWindow.h,v 1.4 2003/11/16 05:05:20 dawes Exp $ */
 
 #ifndef XNESTWINDOW_H
 #define XNESTWINDOW_H
@@ -57,23 +58,22 @@ extern int xnestWindowPrivateIndex;
 #define CWParent CWSibling
 #define CWStackingOrder CWStackMode
 
-extern WindowPtr *WindowTable;
-
-WindowPtr xnestWindowPtr();
-Bool xnestCreateWindow();
-Bool xnestDestroyWindow();
-Bool xnestPositionWindow();
-void xnestConfigureWindow();
-Bool xnestChangeWindowAttributes();
-Bool xnestRealizeWindow();
-Bool xnestUnrealizeWindow();
-void xnestPaintWindowBackground();
-void xnestPaintWindowBorder();
-void xnestCopyWindow();
-void xnestClipNotify();
-void xnestWindowExposures();
+WindowPtr xnestWindowPtr(Window window);
+Bool xnestCreateWindow(WindowPtr pWin);
+Bool xnestDestroyWindow(WindowPtr pWin);
+Bool xnestPositionWindow(WindowPtr pWin, int x, int y);
+void xnestConfigureWindow(WindowPtr pWin, unsigned int mask);
+Bool xnestChangeWindowAttributes(WindowPtr pWin, unsigned long mask);
+Bool xnestRealizeWindow(WindowPtr pWin);
+Bool xnestUnrealizeWindow(WindowPtr pWin);
+void xnestPaintWindowBackground(WindowPtr pWin, RegionPtr pRegion, int what);
+void xnestPaintWindowBorder(WindowPtr pWin, RegionPtr pRegion, int what);
+void xnestCopyWindow(WindowPtr pWin, xPoint oldOrigin, RegionPtr oldRegion);
+void xnestClipNotify(WindowPtr pWin, int dx, int dy);
+void xnestWindowExposures(WindowPtr pWin, RegionPtr pRgn,
+			  RegionPtr other_exposed);
 #ifdef SHAPE
-void xnestShapeWindow();
+void xnestShapeWindow(WindowPtr pWin);
 #endif /* SHAPE */
 
 #endif /* XNESTWINDOW_H */

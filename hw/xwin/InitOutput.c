@@ -26,11 +26,11 @@ other dealings in this Software without prior written authorization
 from The Open Group.
 
 */
-/* $XFree86: xc/programs/Xserver/hw/xwin/InitOutput.c,v 1.32 2003/02/12 15:01:38 alanh Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xwin/InitOutput.c,v 1.35 2003/10/08 11:13:02 eich Exp $ */
 
 #include "win.h"
 #include "winconfig.h"
-
+#include "winprefs.h"
 
 /*
  * General global variables
@@ -47,11 +47,16 @@ int		g_iPixmapPrivateIndex = -1;
 int		g_iWindowPrivateIndex = -1;
 unsigned long	g_ulServerGeneration = 0;
 Bool		g_fInitializedDefaultScreens = FALSE;
-FILE		*g_pfLog = NULL;
 DWORD		g_dwEnginesSupported = 0;
 HINSTANCE	g_hInstance = 0;
 HWND		g_hDlgDepthChange = NULL;
+HWND		g_hDlgExit = NULL;
 Bool		g_fCalledSetLocale = FALSE;
+Bool		g_fCalledXInitThreads = FALSE;
+int		g_iLogVerbose = 4;
+char *		g_pszLogFile = WIN_LOG_FNAME;
+Bool		g_fLogInited = FALSE;
+const char *	g_pszQueryHost = NULL;
 
 
 /*
@@ -151,6 +156,7 @@ winInitializeDefaultScreens (void)
       g_ScreenInfo[i].fClipboard = FALSE;
       g_ScreenInfo[i].fLessPointer = FALSE;
       g_ScreenInfo[i].fScrollbars = FALSE;
+      g_ScreenInfo[i].fNoTrayIcon = FALSE;
       g_ScreenInfo[i].iE3BTimeout = WIN_E3B_OFF;
       g_ScreenInfo[i].dwWidth_mm = (dwWidth / WIN_DEFAULT_DPI)
 	* 25.4;
@@ -177,6 +183,10 @@ ddxGiveUp()
   ErrorF ("ddxGiveUp\n");
 #endif
 
+  /* Notify the worker threads we're exiting */
+  winDeinitClipboard ();
+  winDeinitMultiWindowWM ();
+
   /* Close our handle to our message queue */
   if (g_fdMessageQueue != WIN_FD_INVALID)
     {
@@ -187,15 +197,11 @@ ddxGiveUp()
       g_fdMessageQueue = WIN_FD_INVALID;
     }
 
-  /* Close the log file handle */
-  if (g_pfLog != NULL)
-    {
-      /* Close log file */
-      fclose (g_pfLog);
-      
-      /* Set the file handle to invalid */
-      g_pfLog = NULL;
-    }
+  if (!g_fLogInited) {
+    LogInit(g_pszLogFile, NULL);
+    g_fLogInited = TRUE;
+  }  
+  LogClose();
 
   /*
    * At this point we aren't creating any new screens, so
@@ -239,11 +245,14 @@ OsVendorInit (void)
 #ifdef DDXOSVERRORF
   if (!OsVendorVErrorFProc)
     OsVendorVErrorFProc = OsVendorVErrorF;
-
-  /* Open log file if not yet open */
-  if (g_pfLog == NULL)
-    g_pfLog = fopen (WIN_LOG_FNAME, "w");
 #endif
+
+  if (!g_fLogInited) {
+    LogInit(g_pszLogFile, NULL);
+    g_fLogInited = TRUE;
+  }  
+  LogSetParameter(XLOG_FLUSH, 1);
+  LogSetParameter(XLOG_VERBOSITY, g_iLogVerbose);
 
   /* Add a default screen if no screens were specified */
   if (g_iNumScreens == 0)
@@ -328,6 +337,12 @@ ddxUseMsg (void)
 	  "\tMoreover, if the window has decorations, one can now resize\n"
 	  "\tit.\n");
 
+  ErrorF ("-[no]trayicon\n"
+          "\tDo not create a tray icon.  Default is to create one\n"
+	  "\ticon per screen.  You can globally disable tray icons with\n"
+	  "\t-notrayicon, then enable it for specific screens with\n"
+	  "\t-trayicon for those screens.\n");
+
   ErrorF ("-clipupdates num_boxes\n"
 	  "\tUse a clipping region to constrain shadow update blits to\n"
 	  "\tthe updated region when num_boxes, or more, are in the\n"
@@ -393,10 +408,6 @@ ddxProcessArgument (int argc, char *argv[], int i)
        * that are generated before OsInit () is called.
        */
       OsVendorVErrorFProc = OsVendorVErrorF;
-
-      /* Open log file if not yet open */
-      if (g_pfLog == NULL)
-	g_pfLog = fopen (WIN_LOG_FNAME, "w");
 #endif
 
       s_fBeenHere = TRUE;
@@ -761,6 +772,8 @@ ddxProcessArgument (int argc, char *argv[], int i)
       return 1;
     }
 
+
+
   /*
    * Look for the '-clipboard' argument
    */
@@ -1106,6 +1119,58 @@ ddxProcessArgument (int argc, char *argv[], int i)
     }
 
   /*
+   * Look for the '-notrayicon' argument
+   */
+  if (strcmp (argv[i], "-notrayicon") == 0)
+    {
+      /* Is this parameter attached to a screen or is it global? */
+      if (-1 == g_iLastScreen)
+	{
+	  int			j;
+
+	  /* Parameter is for all screens */
+	  for (j = 0; j < MAXSCREENS; j++)
+	    {
+	      g_ScreenInfo[j].fNoTrayIcon = TRUE;
+	    }
+	}
+      else
+	{
+	  /* Parameter is for a single screen */
+	  g_ScreenInfo[g_iLastScreen].fNoTrayIcon = TRUE;
+	}
+
+      /* Indicate that we have processed this argument */
+      return 1;
+    }
+
+  /*
+   * Look for the '-trayicon' argument
+   */
+  if (strcmp (argv[i], "-trayicon") == 0)
+    {
+      /* Is this parameter attached to a screen or is it global? */
+      if (-1 == g_iLastScreen)
+	{
+	  int			j;
+
+	  /* Parameter is for all screens */
+	  for (j = 0; j < MAXSCREENS; j++)
+	    {
+	      g_ScreenInfo[j].fNoTrayIcon = FALSE;
+	    }
+	}
+      else
+	{
+	  /* Parameter is for a single screen */
+	  g_ScreenInfo[g_iLastScreen].fNoTrayIcon = FALSE;
+	}
+
+      /* Indicate that we have processed this argument */
+      return 1;
+    }
+
+  /*
    * Look for the '-fp' argument
    */
   if (IS_OPTION ("-fp"))
@@ -1126,6 +1191,16 @@ ddxProcessArgument (int argc, char *argv[], int i)
     }
 
   /*
+   * Look for the '-query' argument
+   */
+  if (IS_OPTION ("-query"))
+    {
+      CHECK_ARGS (1);
+      g_pszQueryHost = argv[++i];
+      return 0; /* Let DIX parse this again */
+    }
+
+  /*
    * Look for the '-xf86config' argument
    */
   if (IS_OPTION ("-xf86config"))
@@ -1142,6 +1217,26 @@ ddxProcessArgument (int argc, char *argv[], int i)
     {
       CHECK_ARGS (1);
       g_cmdline.keyboard = argv[++i];
+      return 2;
+    }
+
+  /*
+   * Look for the '-logfile' argument
+   */
+  if (IS_OPTION ("-logfile"))
+    {
+      CHECK_ARGS (1);
+      g_pszLogFile = argv[++i];
+      return 2;
+    }
+
+  /*
+   * Look for the '-logverbose' argument
+   */
+  if (IS_OPTION ("-logverbose"))
+    {
+      CHECK_ARGS (1);
+      g_iLogVerbose = atoi(argv[++i]);
       return 2;
     }
 
@@ -1254,6 +1349,8 @@ InitOutput (ScreenInfo *screenInfo, int argc, char *argv[])
 	  FatalError ("InitOutput - Couldn't add screen %d", i);
 	}
     }
+
+  LoadPreferences();
 
 #if CYGDEBUG || YES
   ErrorF ("InitOutput - Returning.\n");

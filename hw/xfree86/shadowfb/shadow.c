@@ -6,7 +6,7 @@
    Pre-fb-write callbacks and RENDER support - Nolan Leake (nolan@vmware.com)
 */
 
-/* $XFree86: xc/programs/Xserver/hw/xfree86/shadowfb/shadow.c,v 1.18.2.1 2003/04/15 20:32:29 sven Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/shadowfb/shadow.c,v 1.21 2003/11/10 18:22:38 tsi Exp $ */
 
 #include "X.h"
 #include "Xproto.h"
@@ -372,7 +372,7 @@ ShadowCopyWindow(
     RegionRec rgnDst;
 
     if (pPriv->vtSema) {
-        REGION_INIT(pWin->drawable.pScreen, &rgnDst, NullBox, 0);
+        REGION_NULL(pWin->drawable.pScreen, &rgnDst);
 	REGION_COPY(pWin->drawable.pScreen, &rgnDst, prgn);
         
         REGION_TRANSLATE(pWin->drawable.pScreen, &rgnDst,
@@ -646,7 +646,11 @@ ShadowFillSpans(
 	}
 
 	box.y2++;
-	TRIM_AND_TRANSLATE_BOX(box, pDraw, pGC);
+
+        if(!pGC->miTranslate) {
+           TRANSLATE_BOX(box, pDraw);
+        }
+        TRIM_BOX(box, pGC); 
 
 	if(BOX_NOT_EMPTY(box)) {
             if(pPriv->preRefresh)
@@ -698,7 +702,11 @@ ShadowSetSpans(
 	}
 
 	box.y2++;
-	TRIM_AND_TRANSLATE_BOX(box, pDraw, pGC);
+
+        if(!pGC->miTranslate) {
+           TRANSLATE_BOX(box, pDraw);
+        }
+        TRIM_BOX(box, pGC);
 
 	if(BOX_NOT_EMPTY(box)) {
            if(pPriv->preRefresh)
@@ -1779,9 +1787,15 @@ ShadowPushPixels(
     SHADOW_GC_OP_PROLOGUE(pGC);
 
     if(IS_VISIBLE(pDraw)) {
-	box.x1 = xOrg + pDraw->x;
+	box.x1 = xOrg;
+	box.y1 = yOrg;
+
+        if(!pGC->miTranslate) {
+           box.x1 += pDraw->x;          
+           box.y1 += pDraw->y;          
+        }
+
 	box.x2 = box.x1 + dx;
-	box.y1 = yOrg + pDraw->y;
 	box.y2 = box.y1 + dy;
 
 	TRIM_BOX(box, pGC);

@@ -31,7 +31,7 @@
  * holders shall not be used in advertising or otherwise to promote the sale,
  * use or other dealings in this Software without prior written authorization.
  */
-/* $XFree86: xc/programs/Xserver/hw/darwin/quartz/quartzCommon.h,v 1.8 2003/01/23 00:34:26 torrey Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/darwin/quartz/quartzCommon.h,v 1.14 2003/11/12 20:21:51 torrey Exp $ */
 
 #ifndef _QUARTZCOMMON_H
 #define _QUARTZCOMMON_H
@@ -47,8 +47,6 @@
 #undef Cursor
 #undef WindowPtr
 #undef Picture
-
-#include "quartzShared.h"
 
 // Quartz specific per screen storage structure
 typedef struct {
@@ -78,11 +76,17 @@ extern int              quartzServerQuitting;
 extern int              quartzScreenIndex;
 extern int              aquaMenuBarHeight;
 
+// Name of GLX bundle for native OpenGL
+extern const char      *quartzOpenGLBundle;
+
 void QuartzReadPreferences(void);
 void QuartzMessageMainThread(unsigned msg, void *data, unsigned length);
+void QuartzMessageServerThread(int type, int argc, ...);
+void QuartzSetWindowMenu(int nitems, const char **items,
+                         const char *shortcuts);
 void QuartzFSCapture(void);
 void QuartzFSRelease(void);
-int QuartzFSUseQDCursor(int depth);
+int  QuartzFSUseQDCursor(int depth);
 void QuartzBlockHandler(void *blockData, void *pTimeout, void *pReadmask);
 void QuartzWakeupHandler(void *blockData, int result, void *pReadmask);
 
@@ -92,7 +96,11 @@ enum {
     kQuartzServerStarted,
     kQuartzServerDied,
     kQuartzCursorUpdate,
-    kQuartzPostEvent
+    kQuartzPostEvent,
+    kQuartzSetWindowMenu,
+    kQuartzSetWindowMenuCheck,
+    kQuartzSetFrontProcess,
+    kQuartzSetCanQuit
 };
 
 #endif	/* _QUARTZCOMMON_H */

@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/dix/property.c,v 3.12 2002/02/19 11:09:22 alanh Exp $ */
+/* $XFree86: xc/programs/Xserver/dix/property.c,v 3.13 2003/07/16 01:38:37 dawes Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -66,10 +66,12 @@ SOFTWARE.
 #endif
 
 #if defined(LBX) || defined(LBX_COMPAT)
+#if 0 /* no header in X11 environment, not used in X11 environment */
 int fWriteToClient(ClientPtr client, int len, char *buf)
 {
     return WriteToClient(client, len, buf);
 }
+#endif
 #endif
 
 /*****************************************************************
@@ -467,11 +469,11 @@ DeleteAllWindowProperties(pWin)
 }
 
 static int
-NullPropertyReply(client, propertyType, format, reply)
-    ClientPtr client;
-    ATOM propertyType;
-    int format;
-    xGetPropertyReply *reply;
+NullPropertyReply(
+    ClientPtr client,
+    ATOM propertyType,
+    int format,
+    xGetPropertyReply *reply)
 {
     reply->nItems = 0;
     reply->length = 0;

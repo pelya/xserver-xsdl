@@ -1,5 +1,5 @@
 /*
- * $XFree86: xc/programs/Xserver/miext/layer/layerstr.h,v 1.3 2002/11/08 22:19:42 keithp Exp $
+ * $XFree86: xc/programs/Xserver/miext/layer/layerstr.h,v 1.4 2003/08/22 19:27:32 eich Exp $
  *
  * Copyright © 2001 Keith Packard, member of The XFree86 Project, Inc.
  *
@@ -72,11 +72,11 @@ typedef struct _LayerKind {
     DestroyPixmapProcPtr	DestroyPixmap;
 
     CreateGCProcPtr		CreateGC;
-
+#ifdef RENDER
     CompositeProcPtr		Composite;
     GlyphsProcPtr		Glyphs;
     CompositeRectsProcPtr	CompositeRects;
-
+#endif
 } LayerKindRec;
 
 #define LayerWrap(orig,lay,member,func) \
@@ -194,6 +194,7 @@ layerDestroyPixmap (PixmapPtr pPixmap);
 Bool
 layerCreateGC (GCPtr pGC);
 
+#ifdef RENDER
 void
 layerComposite (CARD8      op,
 		PicturePtr pSrc,
@@ -224,7 +225,7 @@ layerCompositeRects (CARD8	    op,
 		     xRenderColor   *color,
 		     int	    nRect,
 		     xRectangle	    *rects);
-
+#endif
 void layerValidateGC(GCPtr, unsigned long, DrawablePtr);
 void layerChangeGC(GCPtr, unsigned long);
 void layerCopyGC(GCPtr, unsigned long, GCPtr);

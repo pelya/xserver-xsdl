@@ -26,10 +26,26 @@
  *from the XFree86 Project.
  *
  * Authors:	Harold L Hunt II
+ * 		Alan Hourihane <alanh@fairlite.demon.co.uk>
  */
-/* $XFree86: xc/programs/Xserver/hw/xwin/winfillsp.c,v 1.9 2001/11/01 12:19:40 alanh Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xwin/winfillsp.c,v 1.10 2003/08/07 23:47:58 alanh Exp $ */
 
 #include "win.h"
+
+extern void ROP16(HDC hdc, int rop);
+
+#define TRANSLATE_COLOR(color)						\
+{									\
+  if (pDrawable->depth == 15)						\
+    color = ((color & 0x1F) << 19) | ((color & 0x03E0) << 6) |		\
+      ((color & 0xF800) >> 8);						\
+  else if (pDrawable->depth == 16)					\
+    color = ((color & 0x1F) << 19) | ((color & 0x07E0) << 5) |		\
+      ((color & 0xF800) >> 8);						\
+  else if (pDrawable->depth == 24 || pDrawable->depth == 32)		\
+    color = ((color & 0xFF) << 16) | (color & 0xFF00) |			\
+      ((color & 0xFF0000) >> 16);					\
+}
 
 /* See Porting Layer Definition - p. 54 */
 void
@@ -41,87 +57,57 @@ winFillSpansNativeGDI (DrawablePtr	pDrawable,
 		       int		fSorted)
 {
   winGCPriv(pGC);
-  int			iSpan;
-  DDXPointPtr		pPoint = NULL;
-  int			*piWidth = 0;
   HBITMAP		hbmpOrig = NULL, hbmpOrigStipple = NULL;
+  HBITMAP		hPenOrig = NULL;
+  HBITMAP		hBitmap = NULL;
   PixmapPtr		pPixmap = NULL;
   winPrivPixmapPtr	pPixmapPriv = NULL;
-  HBITMAP		hbmpFilledStipple = NULL, hbmpMaskedForeground = NULL;
   PixmapPtr		pStipple = NULL;
   winPrivPixmapPtr	pStipplePriv = NULL;
   PixmapPtr		pTile = NULL;
   winPrivPixmapPtr	pTilePriv = NULL;
-  HBRUSH		hbrushStipple = NULL;
-  HDC			hdcStipple = NULL;
-  BYTE			*pbbitsFilledStipple = NULL;
+  HDC			hdcStipple = NULL, hdcTile = NULL;
+  HPEN			hPen = NULL;
   int			iX;
-  DEBUG_FN_NAME("winFillSpans");
-  DEBUGVARS;
-  DEBUGPROC_MSG;
+  int			fg, bg;
+  RegionPtr	    	pClip = pGC->pCompositeClip;
+  BoxPtr	    	pextent, pbox;
+  int		    	nbox;
+  int		    	extentX1, extentX2, extentY1, extentY2;
+  int		    	fullX1, fullX2, fullY1;
+  HRGN			hrgn = NULL, combined = NULL;
+
+  nbox = REGION_NUM_RECTS (pClip);
+  pbox = REGION_RECTS (pClip);
+
+  if (!nbox) return;
+
+  combined = CreateRectRgn (pbox->x1, pbox->y1, pbox->x2, pbox->y2);
+  nbox--; pbox++;
+
+  while (nbox--)
+    {
+      hrgn = CreateRectRgn (pbox->x1, pbox->y1, pbox->x2, pbox->y2);
+      CombineRgn (combined, combined, hrgn, RGN_OR);
+      DeleteObject (hrgn);
+      hrgn = NULL;
+      pbox++;
+    }
+
+  pextent = REGION_EXTENTS (pGC->pScreen, pClip);
+  extentX1 = pextent->x1;
+  extentY1 = pextent->y1;
+  extentX2 = pextent->x2;
+  extentY2 = pextent->y2;
 
   /* Branch on the type of drawable we have */
   switch (pDrawable->type)
     {
     case DRAWABLE_PIXMAP:
-      ErrorF ("winFillSpans - DRAWABLE_PIXMAP\n");
-#if 0
-      /* Branch on the raster operation type */
-      switch (pGC->alu)
-	{
-	case GXclear:
-	  ErrorF ("winFillSpans - DRAWABLE_PIXMAP - GXclear\n");
-	  break;
-	case GXand:
-	  ErrorF ("winFillSpans - DRAWABLE_PIXMAP - GXand\n");
-	  break;
-	case GXandReverse:
-	  ErrorF ("winFillSpans - DRAWABLE_PIXMAP - GXandReverse\n");
-	  break;
-	case GXcopy:
-	  ErrorF ("winFillSpans - DRAWABLE_PIXMAP - GXcopy\n");
-	  break;
-	case GXandInverted:
-	  ErrorF ("winFillSpans - DRAWABLE_PIXMAP - GXandInverted\n");
-	  break;
-	case GXnoop:
-	  ErrorF ("winFillSpans - DRAWABLE_PIXMAP - GXnoop\n");
-	  break;
-	case GXxor:
-	  ErrorF ("winFillSpans - DRAWABLE_PIXMAP - GXxor\n");
-	  break;
-	case GXor:
-	  ErrorF ("winFillSpans - DRAWABLE_PIXMAP - GXor\n");
-	  break;
-	case GXnor:
-	  ErrorF ("winFillSpans - DRAWABLE_PIXMAP - GXnor\n");
-	  break;
-	case GXequiv:
-	  ErrorF ("winFillSpans - DRAWABLE_PIXMAP - GXequiv\n");
-	  break;
-	case GXinvert:
-	  ErrorF ("winFillSpans - DRAWABLE_PIXMAP - GXinvert\n");
-	  break;
-	case GXorReverse:
-	  ErrorF ("winFillSpans - DRAWABLE_PIXMAP - GXorReverse\n");
-	  break;
-	case GXcopyInverted:
-	  ErrorF ("winFillSpans - DRAWABLE_PIXMAP - GXcopyInverted\n");
-	  break;
-	case GXorInverted:
-	  ErrorF ("winFillSpans - DRAWABLE_PIXMAP - GXorInverted\n");
-	  break;
-	case GXnand:
-	  ErrorF ("winFillSpans - DRAWABLE_PIXMAP - GXnand\n");
-	  break;
-	case GXset:
-	  ErrorF ("winFillSpans - DRAWABLE_PIXMAP - GXset\n");
-	  break;
-	default:
-	  FatalError ("winFillSpans - DRAWABLE_PIXMAP - Unknown ROP\n");
-	  break;
-	}
-#endif
+
+      SelectClipRgn (pGCPriv->hdcMem, combined);
+      DeleteObject (combined);
+      combined = NULL;
 
       /* Get a pixmap pointer from the drawable pointer, and fetch privates  */
       pPixmap = (PixmapPtr) pDrawable;
@@ -131,268 +117,639 @@ winFillSpansNativeGDI (DrawablePtr	pDrawable,
       hbmpOrig = SelectObject (pGCPriv->hdcMem, pPixmapPriv->hBitmap);
       if (hbmpOrig == NULL)
 	FatalError ("winFillSpans - DRAWABLE_PIXMAP - "
-		    "SelectObject () failed on pPixmapPriv->hBitmap\n");
+		    "SelectObject () failed on\n\tpPixmapPriv->hBitmap: "
+		    "%08x\n", pPixmapPriv->hBitmap);
       
       /* Branch on the fill type */
       switch (pGC->fillStyle)
 	{
 	case FillSolid:
-	  ErrorF ("winFillSpans - DRAWABLE_PIXMAP - FillSolid %08x\n",
-		  pDrawable);
-	  
-	  /*
-	   * REMOVE - Visual verification only.
-	   */
-	  BitBlt (pGCPriv->hdc, 
-		  pDrawable->width, pDrawable->height,
-		  pDrawable->width, pDrawable->height,
-		  pGCPriv->hdcMem,
-		  0, 0, 
-		  SRCCOPY);
-	  DEBUG_MSG ("FillSolid - Original bitmap");
 
-	  /* Enumerate spans */
-	  for (iSpan = 0; iSpan < iSpans; ++iSpan)
+          ROP16 (pGCPriv->hdcMem, pGC->alu);
+
+	  if (pDrawable->depth == 1) 
 	    {
-	      /* Get pointers to the current span location and width */
-	      pPoint = pPoints + iSpan;
-	      piWidth = piWidths + iSpan;
-
-	      /* Display some useful information */
-	      ErrorF ("(%dx%dx%d) (%d,%d) fg: %d bg: %d w: %d\n",
-		      pDrawable->width, pDrawable->height, pDrawable->depth,
-		      pPoint->x, pPoint->y,
-		      pGC->fgPixel, pGC->bgPixel,
-		      *piWidth);
-
-	      /* Draw the requested line */
-	      MoveToEx (pGCPriv->hdcMem, pPoint->x, pPoint->y, NULL);
-	      LineTo (pGCPriv->hdcMem, pPoint->x + *piWidth, pPoint->y);
+	      if (pGC->fgPixel == 0)
+		hPenOrig = SelectObject (pGCPriv->hdcMem, 
+					 GetStockObject (BLACK_PEN));
+	      else
+		hPenOrig = SelectObject (pGCPriv->hdcMem,
+					 GetStockObject (WHITE_PEN));
+	    } 
+	  else 
+	    {
+	      fg = pGC->fgPixel;
+	      TRANSLATE_COLOR (fg);
+	      hPen = CreatePen (PS_SOLID, 0, fg);
+	      hPenOrig = SelectObject (pGCPriv->hdcMem, hPen);
+	    }
+    	
+	  while (iSpans--)
+	    {
+	      fullX1 = pPoints->x;
+	      fullY1 = pPoints->y;
+	      fullX2 = fullX1 + (int) *piWidths;
+	      pPoints++;
+	      piWidths++;
+	
+	      if (fullY1 < extentY1 || extentY2 <= fullY1)
+		continue;
+	
+	      if (fullX1 < extentX1)
+		fullX1 = extentX1;
+	      if (fullX2 > extentX2)
+		fullX2 = extentX2;
+	
+	      if (fullX1 >= fullX2)
+		continue;
+	
+	      MoveToEx (pGCPriv->hdcMem, fullX1, fullY1, NULL);
+	      LineTo (pGCPriv->hdcMem, fullX2, fullY1);
 	    }
 
-	  /*
-	   * REMOVE - Visual verification only.
-	   */
-	  BitBlt (pGCPriv->hdc, 
-		  pDrawable->width * 2, pDrawable->height,
-		  pDrawable->width, pDrawable->height,
-		  pGCPriv->hdcMem,
-		  0, 0, 
-		  SRCCOPY);
-	  DEBUG_MSG ("FillSolid - Filled bitmap");
+          SetROP2 (pGCPriv->hdcMem, R2_COPYPEN);
 
-	  
-	  /* Push the drawable pixmap out of the GC HDC */
-	  SelectObject (pGCPriv->hdcMem, hbmpOrig);
+	  /* Give back the Pen */
+	  SelectObject (pGCPriv->hdcMem, hPenOrig);
+
+	  if (pDrawable->depth != 1)
+	    DeleteObject (hPen);
 	  break;
 
-	case FillStippled:
-	  ErrorF ("winFillSpans - DRAWABLE_PIXMAP - FillStippled %08x\n",
-		  pDrawable);
-
-	  /*
-	   * FIXME: Assuming that pGC->patOrg.x = pGC->patOrg.y = 0
-	   */
+	case FillOpaqueStippled:
 
 	  pStipple = pGC->stipple;
 	  pStipplePriv = winGetPixmapPriv (pStipple);
 
-	  /* Create a memory DC to hold the stipple */
-	  hdcStipple = CreateCompatibleDC (pGCPriv->hdc);
+	  /* Create a device-dependent bitmap for the stipple */
+	  hBitmap = CreateDIBitmap (pGCPriv->hdcMem,
+				    (BITMAPINFOHEADER *)pStipplePriv->pbmih,
+				    CBM_INIT,
+				    pStipplePriv->pbBits,
+				    (BITMAPINFO *)pStipplePriv->pbmih,
+				    DIB_RGB_COLORS);
 
-	  /* Create a destination sized compatible bitmap */
-	  hbmpFilledStipple = winCreateDIBNativeGDI (pDrawable->width,
-						     pDrawable->height,
-						     pDrawable->depth,
-						     &pbbitsFilledStipple,
-						     NULL);
+	  /* Create a memory DC to hold the stipple */
+	  hdcStipple = CreateCompatibleDC (pGCPriv->hdcMem);
 
 	  /* Select the stipple bitmap into the stipple DC */
-	  hbmpOrigStipple = SelectObject (hdcStipple, hbmpFilledStipple);
+	  hbmpOrigStipple = SelectObject (hdcStipple, hBitmap);
 	  if (hbmpOrigStipple == NULL)
 	    FatalError ("winFillSpans () - DRAWABLE_PIXMAP - FillStippled - "
-			"SelectObject () failed on hbmpFilledStipple\n");
+			"SelectObject () failed on hbmpOrigStipple\n");
 
-	  /* Create a pattern brush from the original stipple */
-	  hbrushStipple = CreatePatternBrush (pStipplePriv->hBitmap);
+	  /* Make a temporary copy of the foreground and background colors */
+   	  bg = pGC->bgPixel;
+   	  fg = pGC->fgPixel;
 
-	  /* Select the original stipple brush into the stipple DC */
-	  SelectObject (hdcStipple, hbrushStipple);
+	  /* Translate the depth-dependent colors to Win32 COLORREFs */
+	  TRANSLATE_COLOR (fg);
+	  TRANSLATE_COLOR (bg);
+	  SetTextColor (pGCPriv->hdcMem, fg);
+	  SetBkColor (pGCPriv->hdcMem, bg);
 
-	  /* PatBlt the original stipple to the filled stipple */
-	  PatBlt (hdcStipple,
-		  0, 0,
-		  pDrawable->width, pDrawable->height,
-		  PATCOPY);
+	  while (iSpans--)
+	    {
+	      int width = pStipple->drawable.width;
+	      fullX1 = pPoints->x;
+	      fullY1 = pPoints->y;
+	      fullX2 = fullX1 + (int) *piWidths;
+	      pPoints++;
+	      piWidths++;
+	
+	      if (fullY1 < extentY1 || extentY2 <= fullY1)
+		continue;
+	
+	      if (fullX1 < extentX1)
+		fullX1 = extentX1;
+	      if (fullX2 > extentX2)
+		fullX2 = extentX2;
+	
+	      if (fullX1 >= fullX2)
+		continue;
+	
+	      for (iX = fullX1; iX < fullX2; iX += width)
+		{
+		  int xoffset;
 
-	  /*
-	   * REMOVE - Visual verification only.
-	   */
-	  BitBlt (pGCPriv->hdc,
-		  pDrawable->width, 0,
-		  pDrawable->width, pDrawable->height,
-		  hdcStipple,
-		  0, 0,
-		  SRCCOPY);
-	  DEBUG_MSG("Filled a drawable-sized stipple");
+		  if ((iX + pStipple->drawable.width) > fullX2)
+		    width = fullX2 - iX;
+		  else
+		    width = pStipple->drawable.width;
 
-	  /*
-	   * Mask out the bits from the drawable that are being preserved;
-	   * hbmpFilledStipple now contains the preserved original bits.
-	   */
-	  BitBlt (hdcStipple,
-		  0, 0,
-		  pDrawable->width, pDrawable->height,
-		  pGCPriv->hdcMem,
-		  0, 0,
-		  SRCERASE);
+		  if (iX == fullX1)
+		    xoffset = (fullX1 - (pDrawable->x + (pGC->patOrg.x % pStipple->drawable.width) - pStipple->drawable.width)) % pStipple->drawable.width;
+		  else
+		    xoffset = 0;
 
-      	  /*
-	   * REMOVE - Visual verification only.
-	   */
-	  BitBlt (pGCPriv->hdc,
-		  pDrawable->width * 2, 0,
-		  pDrawable->width, pDrawable->height,
-		  hdcStipple,
-		  0, 0,
-		  SRCCOPY);
-	  DEBUG_MSG("Preserved original bits");
+		  if (xoffset + width > pStipple->drawable.width)
+		    width = pStipple->drawable.width - xoffset;
 
-	  /*
-	   * Create a destination sized compatible bitmap to hold
-	   * the masked foreground color.
-	   */
-	  hbmpMaskedForeground = winCreateDIBNativeGDI (pDrawable->width,
-							pDrawable->height,
-							pDrawable->depth,
-							NULL,
-							NULL);
+		  BitBlt (pGCPriv->hdcMem,
+			  iX, fullY1,
+			  width, 1,
+			  hdcStipple,
+			  xoffset,
+			  (fullY1 - (pDrawable->y + (pGC->patOrg.y % pStipple->drawable.height) - pStipple->drawable.height)) % pStipple->drawable.height,
+			  g_copyROP[pGC->alu]);
+		}
+	    }
 
-	  /*
-	   * Select the masked foreground bitmap into the default memory DC;
-	   * this should pop the drawable bitmap out of the default DC.
-	   */
-	  if (SelectObject (pGCPriv->hdcMem, hbmpMaskedForeground) == NULL)
-	    FatalError ("winFillSpans () - DRAWABLE_PIXMAP - FillStippled - "
-			"SelectObject () failed on hbmpMaskedForeground\n");
-
-	  /* Free the original drawable */
-	  DeleteObject (pPixmapPriv->hBitmap);
-	  pPixmapPriv->hBitmap = NULL;
-	  pPixmapPriv->pbBits = NULL;
-
-	  /* Select the stipple brush into the default memory DC */
-	  SelectObject (pGCPriv->hdcMem, hbrushStipple);
-
-	  /* Create the masked foreground bitmap using the original stipple */
-	  PatBlt (pGCPriv->hdcMem,
-		  0, 0,
-		  pDrawable->width, pDrawable->height,
-		  PATCOPY);
-	  
-      	  /*
-	   * REMOVE - Visual verification only.
-	   */
-	  BitBlt (pGCPriv->hdc,
-		  pDrawable->width * 3, 0,
-		  pDrawable->width, pDrawable->height,
-		  pGCPriv->hdcMem,
-		  0, 0,
-		  SRCCOPY);
-	  DEBUG_MSG("Masked foreground bitmap");
-      
-	  /*
-	   * Combine the masked foreground with the masked drawable;
-	   * hbmpFilledStipple will contain the drawable stipple filled
-	   * with the current foreground color
-	   */
-	  BitBlt (hdcStipple,
-		  0, 0,
-		  pDrawable->width, pDrawable->height,
-		  pGCPriv->hdcMem,
-		  0, 0,
-		  SRCPAINT);
-
-	  /*
-	   * REMOVE - Visual verification only.
-	   */
-	  BitBlt (pGCPriv->hdc,
-		  pDrawable->width * 4, 0,
-		  pDrawable->width, pDrawable->height,
-		  hdcStipple,
-		  0, 0,
-		  SRCCOPY);
-	  DEBUG_MSG("Completed stipple");
-	  
-	  /* Release the stipple DC */
-	  SelectObject (hdcStipple, hbmpOrig);
+	  /* Clear the stipple HDC */
+	  SelectObject (hdcStipple, hbmpOrigStipple);
 	  DeleteDC (hdcStipple);
-      
-	  /* Pop the stipple pattern brush out of the default mem DC */
-	  SelectObject (pGCPriv->hdcMem, GetStockObject (WHITE_BRUSH));
 
-	  /* Destroy the original stipple pattern brush */
-	  DeleteObject (hbrushStipple);
+	  /* Delete the device dependent stipple bitmap */
+	  DeleteObject (hBitmap);
 
-	  /* Clear the memory DC */
-	  SelectObject (pGCPriv->hdcMem, hbmpOrig);
+	  break;
+	case FillStippled:
 
-	  /* Free the masked foreground bitmap */
-	  DeleteObject (hbmpMaskedForeground);
+	  pStipple = pGC->stipple;
+	  pStipplePriv = winGetPixmapPriv (pStipple);
 
-	  /* Point the drawable to the new bitmap */
-	  pPixmapPriv->hBitmap = hbmpFilledStipple;
-	  pPixmapPriv->pbBits = pbbitsFilledStipple;
+	  /* Create a device-dependent bitmap for the stipple */
+	  hBitmap = CreateDIBitmap (pGCPriv->hdcMem,
+				    (BITMAPINFOHEADER *)pStipplePriv->pbmih,
+				    CBM_INIT,
+				    pStipplePriv->pbBits,
+				    (BITMAPINFO *)pStipplePriv->pbmih,
+				    DIB_RGB_COLORS);
+
+	  /* Create a memory DC to hold the stipple */
+	  hdcStipple = CreateCompatibleDC (pGCPriv->hdcMem);
+
+	  /* Select the stipple bitmap into the stipple DC */
+	  hbmpOrigStipple = SelectObject (hdcStipple, hBitmap);
+	  if (hbmpOrigStipple == NULL)
+	    FatalError ("winFillSpans () - DRAWABLE_PIXMAP - FillStippled - "
+			"SelectObject () failed on hbmpOrigStipple\n");
+
+	  /* Make a temporary copy of the foreground and background colors */
+   	  bg = pGC->bgPixel;
+   	  fg = pGC->fgPixel;
+
+	  /* Translate the depth-dependent colors to Win32 COLORREFs */
+	  TRANSLATE_COLOR (fg);
+	  TRANSLATE_COLOR (bg);
+
+	  /* this is fudgy, we should only invert on the last one
+	   * We need to get the black/white pixels right in the
+	   * colormap. But yeah ! it's working.. 
+	   */
+	  if (pGC->bgPixel != -1 && pGC->fgPixel != -1) 
+	    {
+	      SetTextColor (pGCPriv->hdcMem, fg);
+	      SetBkColor (pGCPriv->hdcMem, bg);
+	      BitBlt (hdcStipple,
+		      0, 0,
+		      pStipple->drawable.width, pStipple->drawable.height,
+		      hdcStipple,
+		      0, 0,
+		      0x330008);
+	    } 
+	  else if (pGC->bgPixel == -1) 
+	    {
+	      SetTextColor (pGCPriv->hdcMem, fg);
+	      SetBkMode (pGCPriv->hdcMem, TRANSPARENT);
+	      BitBlt (hdcStipple,
+		      0, 0,
+		      pStipple->drawable.width, pStipple->drawable.height,
+		      hdcStipple,
+		      0, 0,
+		      0x330008);
+	    } 
+	  else if (pGC->fgPixel == -1) 
+	    {
+	      SetTextColor (pGCPriv->hdcMem, bg);
+	      SetBkMode (pGCPriv->hdcMem, TRANSPARENT);
+#if 0
+	      BitBlt (hdcStipple,
+		      0, 0,
+		      pStipple->drawable.width, pStipple->drawable.height,
+		      hdcStipple,
+		      0, 0,
+		      0x330008);
+#endif
+	    }
+
+	  while (iSpans--)
+	    {
+	      int width = pStipple->drawable.width;
+	      fullX1 = pPoints->x;
+	      fullY1 = pPoints->y;
+	      fullX2 = fullX1 + (int) *piWidths;
+	      pPoints++;
+	      piWidths++;
+	
+	      if (fullY1 < extentY1 || extentY2 <= fullY1)
+		continue;
+	
+	      if (fullX1 < extentX1)
+		fullX1 = extentX1;
+	      if (fullX2 > extentX2)
+		fullX2 = extentX2;
+	
+	      if (fullX1 >= fullX2)
+		continue;
+	
+	      for (iX = fullX1; iX < fullX2; iX += width)
+		{
+		  int xoffset;
+
+		  if ((iX + pStipple->drawable.width) > fullX2)
+		    width = fullX2 - iX;
+		  else
+		    width = pStipple->drawable.width;
+
+		  if (iX == fullX1)
+		    xoffset = (fullX1 - (pDrawable->x + (pGC->patOrg.x % pStipple->drawable.width) - pStipple->drawable.width)) % pStipple->drawable.width;
+		  else
+		    xoffset = 0;
+
+		  if (xoffset + width > pStipple->drawable.width)
+		    width = pStipple->drawable.width - xoffset;
+
+		  BitBlt (pGCPriv->hdcMem,
+		          iX, fullY1,
+		          width, 1,
+		          hdcStipple,
+			  xoffset,
+			  (fullY1 - (pDrawable->y + (pGC->patOrg.y % pStipple->drawable.height) - pStipple->drawable.height)) % pStipple->drawable.height,
+			  g_copyROP[pGC->alu]);
+		}
+	    }
+
+	  /* Clear the stipple HDC */
+	  SelectObject (hdcStipple, hbmpOrigStipple);
+	  DeleteDC (hdcStipple);
+
+	  /* Delete the device dependent stipple bitmap */
+	  DeleteObject (hBitmap);
+
+	  /* Restore the background mode */
+	  SetBkMode (pGCPriv->hdcMem, OPAQUE);
 	  break;
 
 	case FillTiled:
-	  FatalError ("\nwinFillSpans - DRAWABLE_PIXMAP - FillTiled\n\n");
-	  break;
 
-	case FillOpaqueStippled:
-	  FatalError ("winFillSpans - DRAWABLE_PIXMAP - OpaqueStippled\n");
+	  /* Get a pixmap pointer from the tile pointer, and fetch privates  */
+	  pTile = (PixmapPtr) pGC->tile.pixmap;
+	  pTilePriv = winGetPixmapPriv (pTile);
+
+	  /* Create a memory DC to hold the tile */
+	  hdcTile = CreateCompatibleDC (pGCPriv->hdcMem);
+
+	  /* Select the tile into a DC */
+	  hbmpOrig = SelectObject (hdcTile, pTilePriv->hBitmap);
+	  if (hbmpOrig == NULL)
+	    FatalError ("winFillSpans - DRAWABLE_PIXMAP - FillTiled - "
+			"SelectObject () failed on pTilePriv->hBitmap\n");
+
+	  while (iSpans--)
+	    {
+	      int width = pTile->drawable.width;
+	      fullX1 = pPoints->x;
+	      fullY1 = pPoints->y;
+	      fullX2 = fullX1 + (int) *piWidths;
+	      pPoints++;
+	      piWidths++;
+	
+	      if (fullY1 < extentY1 || extentY2 <= fullY1)
+		continue;
+	
+	      if (fullX1 < extentX1)
+		fullX1 = extentX1;
+	      if (fullX2 > extentX2)
+		fullX2 = extentX2;
+	
+	      if (fullX1 >= fullX2)
+		continue;
+	
+	      for (iX = fullX1; iX < fullX2; iX += width)
+	      	{
+		  int xoffset;
+
+		  if ((iX + pTile->drawable.width) > fullX2)
+		    width = fullX2 - iX;
+		  else
+		    width = pTile->drawable.width;
+
+		  if (iX == fullX1)
+		    xoffset = (fullX1 - (pDrawable->x + (pGC->patOrg.x % pTile->drawable.width) - pTile->drawable.width)) % pTile->drawable.width;
+		  else
+		    xoffset = 0;
+
+		  if (xoffset + width > pTile->drawable.width)
+		    width = pTile->drawable.width - xoffset;
+
+		  BitBlt (pGCPriv->hdcMem,
+			  iX, fullY1,
+			  width, 1,
+			  hdcTile,
+			  xoffset,
+			  (fullY1 - (pDrawable->y + (pGC->patOrg.y % pTile->drawable.height) - pTile->drawable.height)) % pTile->drawable.height,
+			  g_copyROP[pGC->alu]);
+		}
+	    }
+
+	  /* Push the tile pixmap out of the memory HDC */
+	  SelectObject (hdcTile, hbmpOrig);
+
+	  /* Delete the tile */
+	  DeleteDC (hdcTile);
 	  break;
 
 	default:
-	  FatalError ("winFillSpans - DRAWABLE_PIXMAP - Unknown "
-		      "fillStyle\n");
+	  ErrorF ("winFillSpans - DRAWABLE_PIXMAP - Unknown fillStyle\n");
 	  break;
 	}
+
+      /* Reset clip region */
+      SelectClipRgn (pGCPriv->hdcMem, NULL);
+
+      /* Push the drawable pixmap out of the GC HDC */
+      SelectObject (pGCPriv->hdcMem, hbmpOrig);
       break;
-  
+      
     case DRAWABLE_WINDOW:
+
+      SelectClipRgn (pGCPriv->hdc, combined);
+      DeleteObject (combined);
+      combined = NULL;
+
       /* Branch on fill style */
       switch (pGC->fillStyle)
 	{
 	case FillSolid:
-	  ErrorF ("\nwinFillSpans - DRAWABLE_WINDOW - FillSolid\n\n");
 
-	  /* Enumerate spans */
-	  for (iSpan = 0; iSpan < iSpans; ++iSpan)
+          ROP16 (pGCPriv->hdc, pGC->alu);
+
+	  if (pDrawable->depth == 1) 
 	    {
-	      /* Get pointers to the current span location and width */
-	      pPoint = pPoints + iSpan;
-	      piWidth = piWidths + iSpan;
-
-	      /* Display some useful information */
-	      ErrorF ("(%dx%dx%d) (%d,%d) fg: %d bg: %d w: %d\n",
-		      pDrawable->width, pDrawable->height, pDrawable->depth,
-		      pPoint->x, pPoint->y,
-		      pGC->fgPixel, pGC->bgPixel,
-		      *piWidth);
-
-	      /* Draw the requested line */
-	      MoveToEx (pGCPriv->hdc, pPoint->x, pPoint->y, NULL);
-	      LineTo (pGCPriv->hdc, pPoint->x + *piWidth, pPoint->y);
+	      if (pGC->fgPixel == 0)
+		hPenOrig = SelectObject (pGCPriv->hdc, 
+					 GetStockObject (BLACK_PEN));
+	      else
+		hPenOrig = SelectObject (pGCPriv->hdc,
+					 GetStockObject (WHITE_PEN));
+	    } 
+	  else 
+	    {
+	      fg = pGC->fgPixel;
+	      TRANSLATE_COLOR (fg);
+	      hPen = CreatePen (PS_SOLID, 0, fg);
+	      hPenOrig = SelectObject (pGCPriv->hdc, hPen);
 	    }
+
+	  while (iSpans--)
+	    {
+	      fullX1 = pPoints->x;
+	      fullY1 = pPoints->y;
+	      fullX2 = fullX1 + (int) *piWidths;
+	      pPoints++;
+	      piWidths++;
+	
+	      if (fullY1 < extentY1 || extentY2 <= fullY1)
+		continue;
+	
+	      if (fullX1 < extentX1)
+		fullX1 = extentX1;
+	      if (fullX2 > extentX2)
+		fullX2 = extentX2;
+	
+	      if (fullX1 >= fullX2)
+		continue;
+	
+	      MoveToEx (pGCPriv->hdc, fullX1, fullY1, NULL);
+	      LineTo (pGCPriv->hdc, fullX2, fullY1);
+	    }
+
+          SetROP2 (pGCPriv->hdc, R2_COPYPEN);
+
+	  /* Give back the Brush */
+	  SelectObject (pGCPriv->hdc, hPenOrig);
+
+	  if (pDrawable->depth != 1)
+	    DeleteObject (hPen);
+	  break;
+
+	case FillOpaqueStippled:
+
+	  pStipple = pGC->stipple;
+	  pStipplePriv = winGetPixmapPriv (pStipple);
+
+	  /* Create a device-dependent bitmap for the stipple */
+	  hBitmap = CreateDIBitmap (pGCPriv->hdc,
+				    (BITMAPINFOHEADER *)pStipplePriv->pbmih,
+				    CBM_INIT,
+				    pStipplePriv->pbBits,
+				    (BITMAPINFO *)pStipplePriv->pbmih,
+				    DIB_RGB_COLORS);
+
+	  /* Create a memory DC to hold the stipple */
+	  hdcStipple = CreateCompatibleDC (pGCPriv->hdc);
+
+	  /* Select the stipple bitmap into the stipple DC */
+	  hbmpOrigStipple = SelectObject (hdcStipple, hBitmap);
+	  if (hbmpOrigStipple == NULL)
+	    FatalError ("winFillSpans () - DRAWABLE_PIXMAP - FillStippled - "
+			"SelectObject () failed on hbmpOrigStipple\n");
+
+	  /* Make a temporary copy of the foreground and background colors */
+   	  bg = pGC->bgPixel;
+   	  fg = pGC->fgPixel;
+
+	  /* Translate the depth-dependent colors to Win32 COLORREFs */
+	  TRANSLATE_COLOR (fg);
+	  TRANSLATE_COLOR (bg);
+	  SetTextColor (pGCPriv->hdc, fg);
+	  SetBkColor (pGCPriv->hdc, bg);
+
+	  while (iSpans--)
+	    {
+	      int width = pStipple->drawable.width;
+	      fullX1 = pPoints->x;
+	      fullY1 = pPoints->y;
+	      fullX2 = fullX1 + (int) *piWidths;
+	      pPoints++;
+	      piWidths++;
+	
+	      if (fullY1 < extentY1 || extentY2 <= fullY1)
+		continue;
+	
+	      if (fullX1 < extentX1)
+		fullX1 = extentX1;
+	      if (fullX2 > extentX2)
+		fullX2 = extentX2;
+	
+	      if (fullX1 >= fullX2)
+		continue;
+	
+	      for (iX = fullX1; iX < fullX2; iX += width)
+		{
+		  int xoffset;
+
+		  if ((iX + pStipple->drawable.width) > fullX2)
+		    width = fullX2 - iX;
+		  else
+		    width = pStipple->drawable.width;
+
+		  if (iX == fullX1)
+		    xoffset = (fullX1 - (pDrawable->x + (pGC->patOrg.x % pStipple->drawable.width) - pStipple->drawable.width)) % pStipple->drawable.width;
+		  else
+		    xoffset = 0;
+
+		  if (xoffset + width > pStipple->drawable.width)
+		    width = pStipple->drawable.width - xoffset;
+
+		  BitBlt (pGCPriv->hdc,
+			  iX, fullY1,
+			  width, 1,
+			  hdcStipple,
+			  xoffset,
+			  (fullY1 - (pDrawable->y + (pGC->patOrg.y % pStipple->drawable.height) - pStipple->drawable.height)) % pStipple->drawable.height,
+			  g_copyROP[pGC->alu]);
+		}
+	    }
+
+	  /* Clear the stipple HDC */
+	  SelectObject (hdcStipple, hbmpOrigStipple);
+	  DeleteDC (hdcStipple);
+
+	  /* Delete the device dependent stipple bitmap */
+	  DeleteObject (hBitmap);
+
 	  break;
 
 	case FillStippled:
-	  FatalError ("winFillSpans - DRAWABLE_WINDOW - FillStippled\n\n");
+	  pStipple = pGC->stipple;
+	  pStipplePriv = winGetPixmapPriv (pStipple);
+
+	  /* Create a device-dependent bitmap for the stipple */
+	  hBitmap = CreateDIBitmap (pGCPriv->hdcMem,
+				    (BITMAPINFOHEADER *)pStipplePriv->pbmih,
+				    CBM_INIT,
+				    pStipplePriv->pbBits,
+				    (BITMAPINFO *)pStipplePriv->pbmih,
+				    DIB_RGB_COLORS);
+
+	  /* Create a memory DC to hold the stipple */
+	  hdcStipple = CreateCompatibleDC (pGCPriv->hdc);
+
+	  /* Select the stipple bitmap into the stipple DC */
+	  hbmpOrigStipple = SelectObject (hdcStipple, hBitmap);
+	  if (hbmpOrigStipple == NULL)
+	    FatalError ("winFillSpans () - DRAWABLE_PIXMAP - FillStippled - "
+			"SelectObject () failed on hbmpOrigStipple\n");
+
+	  /* Make a temporary copy of the foreground and background colors */
+   	  bg = pGC->bgPixel;
+   	  fg = pGC->fgPixel;
+
+	  /* Translate the depth-dependent colors to Win32 COLORREFs */
+	  TRANSLATE_COLOR (fg);
+	  TRANSLATE_COLOR (bg);
+
+	  /* this is fudgy, we should only invert on the last one
+	   * We need to get the black/white pixels right in the
+	   * colormap. But yeah ! it's working.. 
+	   */
+	  if (pGC->bgPixel != -1 && pGC->fgPixel != -1) 
+	    {
+	      SetTextColor (pGCPriv->hdc, fg);
+	      SetBkColor (pGCPriv->hdc, bg);
+	      BitBlt (hdcStipple,
+		      0, 0,
+		      pStipple->drawable.width, pStipple->drawable.height,
+		      hdcStipple,
+		      0,0,
+		      0x330008);
+	    } 
+	  else if (pGC->bgPixel == -1) 
+	    {
+	      SetTextColor (pGCPriv->hdc, fg);
+	      SetBkMode (pGCPriv->hdc, TRANSPARENT);
+	      BitBlt (hdcStipple,
+		      0, 0,
+		      pStipple->drawable.width, pStipple->drawable.height,
+		      hdcStipple,
+		      0,0,
+		      0x330008);
+	    } 
+	  else if (pGC->fgPixel == -1) 
+	    {
+	      SetTextColor (pGCPriv->hdc, bg);
+	      SetBkMode (pGCPriv->hdc, TRANSPARENT);
+#if 0
+	      BitBlt (hdcStipple,
+		      0, 0,
+		      pStipple->drawable.width, pStipple->drawable.height,
+		      hdcStipple,
+		      0, 0,
+		      0x330008);
+#endif
+	    }
+
+	  while (iSpans--)
+	    {
+ 	      int width = pStipple->drawable.width;
+	      fullX1 = pPoints->x;
+	      fullY1 = pPoints->y;
+	      fullX2 = fullX1 + (int) *piWidths;
+	      pPoints++;
+	      piWidths++;
+	
+	      if (fullY1 < extentY1 || extentY2 <= fullY1)
+		continue;
+	
+	      if (fullX1 < extentX1)
+		fullX1 = extentX1;
+	      if (fullX2 > extentX2)
+		fullX2 = extentX2;
+	
+	      if (fullX1 >= fullX2)
+		continue;
+	
+	      for (iX = fullX1; iX < fullX2; iX += width)
+		{
+		  int xoffset;
+
+		  if ((iX + pStipple->drawable.width) > fullX2)
+		    width = fullX2 - iX;
+		  else
+		    width = pStipple->drawable.width;
+
+		  if (iX == fullX1)
+		    xoffset = (fullX1 - (pDrawable->x + (pGC->patOrg.x % pStipple->drawable.width) - pStipple->drawable.width)) % pStipple->drawable.width;
+		  else
+		    xoffset = 0;
+
+		  if (xoffset + width > pStipple->drawable.width)
+		    width = pStipple->drawable.width - xoffset;
+
+		  BitBlt (pGCPriv->hdc,
+			  iX, fullY1,
+			  width, 1,
+			  hdcStipple,
+			  xoffset,
+			  (fullY1 - (pDrawable->y + (pGC->patOrg.y % pStipple->drawable.height) - pStipple->drawable.height)) % pStipple->drawable.height,
+			  g_copyROP[pGC->alu]);
+		}
+	    }
+
+	  /* Clear the stipple HDC */
+	  SelectObject (hdcStipple, hbmpOrigStipple);
+	  DeleteDC (hdcStipple);
+
+	  /* Delete the device dependent stipple bitmap */
+	  DeleteObject (hBitmap);
+
+	  /* Restore the background mode */
+	  SetBkMode (pGCPriv->hdc, OPAQUE);	  
 	  break;
 
 	case FillTiled:
-	  ErrorF ("\nwinFillSpans - DRAWABLE_WINDOW - FillTiled\n\n");
 
 	  /* Get a pixmap pointer from the tile pointer, and fetch privates  */
 	  pTile = (PixmapPtr) pGC->tile.pixmap;
@@ -402,136 +759,105 @@ winFillSpansNativeGDI (DrawablePtr	pDrawable,
 	  hbmpOrig = SelectObject (pGCPriv->hdcMem, pTilePriv->hBitmap);
 	  if (hbmpOrig == NULL)
 	    FatalError ("winFillSpans - DRAWABLE_WINDOW - FillTiled - "
-			"SelectObject () failed on pTilePric->hBitmap\n");
+			"SelectObject () failed on pTilePriv->hBitmap\n");
 
-	  /* Enumerate spans */
-	  for (iSpan = 0; iSpan < iSpans; ++iSpan)
+	  while (iSpans--)
 	    {
-	      /* Get pointers to the current span location and width */
-	      pPoint = pPoints + iSpan;
-	      piWidth = piWidths + iSpan;
-	  
-	      for (iX = 0; iX < *piWidth; iX += pTile->drawable.width)
-		{
-		  /* Blit the tile to the screen, one line at a time */
+	      int width = pTile->drawable.width;
+	      fullX1 = pPoints->x;
+	      fullY1 = pPoints->y;
+	      fullX2 = fullX1 + (int) *piWidths;
+	      pPoints++;
+	      piWidths++;
+	
+	      if (fullY1 < extentY1 || extentY2 <= fullY1)
+		continue;
+	
+	      if (fullX1 < extentX1)
+		fullX1 = extentX1;
+	      if (fullX2 > extentX2)
+		fullX2 = extentX2;
+	
+	      if (fullX1 >= fullX2)
+		continue;
+	
+	      for (iX = fullX1; iX < fullX2; iX += width)
+	      	{
+		  int xoffset;
+
+		  if ((iX + pTile->drawable.width) > fullX2)
+		    width = fullX2 - iX;
+		  else
+		    width = pTile->drawable.width;
+
+		  if (iX == fullX1)
+		    xoffset = (fullX1 - (pDrawable->x + (pGC->patOrg.x % pTile->drawable.width) - pTile->drawable.width)) % pTile->drawable.width;
+		  else
+		    xoffset = 0;
+
+		  if (xoffset + width > pTile->drawable.width)
+		    width = pTile->drawable.width - xoffset;
+
 		  BitBlt (pGCPriv->hdc,
-			  pPoint->x + iX, pPoint->y,
-			  pTile->drawable.width, 1,
+			  iX, fullY1,
+			  width, 1,
 			  pGCPriv->hdcMem,
-			  0, pPoint->y % pTile->drawable.height,
-			  SRCCOPY);
+			  xoffset,
+			  (fullY1 - (pDrawable->y + (pGC->patOrg.y % pTile->drawable.height) - pTile->drawable.height)) % pTile->drawable.height,
+			  g_copyROP[pGC->alu]);
 		}
 	    }
-      
-	  /* Push the drawable pixmap out of the GC HDC */
+
+	  /* Push the tile pixmap out of the memory HDC */
 	  SelectObject (pGCPriv->hdcMem, hbmpOrig);
-
-#if 0
-	  DEBUG_MSG("Completed tile fill");
-#endif
-	  break;
-
-	case FillOpaqueStippled:
-	  FatalError ("winFillSpans - DRAWABLE_WINDOW - "
-		      "OpaqueStippled\n");
 	  break;
 
 	default:
-	  FatalError ("winFillSpans - DRAWABLE_WINDOW - Unknown "
-		      "fillStyle\n");
+	  ErrorF ("winFillSpans - DRAWABLE_WINDOW - Unknown fillStyle\n");
+	  break;
 	}
 
-      /* Branch on the raster operation type */
-      switch (pGC->alu)
-	{
-	case GXclear:
-	  ErrorF ("winFillSpans - DRAWABLE_WINDOW - GXclear\n");
-	  break;
-	case GXand:
-	  ErrorF ("winFillSpans - DRAWABLE_WINDOW - GXand\n");
-	  break;
-	case GXandReverse:
-	  ErrorF ("winFillSpans - DRAWABLE_WINDOW - GXandReverse\n");
-	  break;
-	case GXcopy:
-	  ErrorF ("winFillSpans - DRAWABLE_WINDOW - GXcopy\n");
-	  break;
-	case GXandInverted:
-	  ErrorF ("winFillSpans - DRAWABLE_WINDOW - GXandInverted\n");
-	  break;
-	case GXnoop:
-	  ErrorF ("winFillSpans - DRAWABLE_WINDOW - GXnoop\n");
-	  break;
-	case GXxor:
-	  ErrorF ("winFillSpans - DRAWABLE_WINDOW - GXxor\n");
-	  break;
-	case GXor:
-	  ErrorF ("winFillSpans - DRAWABLE_WINDOW - GXor\n");
-	  break;
-	case GXnor:
-	  ErrorF ("winFillSpans - DRAWABLE_WINDOW - GXnor\n");
-	  break;
-	case GXequiv:
-	  ErrorF ("winFillSpans - DRAWABLE_WINDOW - GXequiv\n");
-	  break;
-	case GXinvert:
-	  ErrorF ("winFillSpans - DRAWABLE_WINDOW - GXinvert\n");
-	  break;
-	case GXorReverse:
-	  ErrorF ("winFillSpans - DRAWABLE_WINDOW - GXorReverse\n");
-	  break;
-	case GXcopyInverted:
-	  ErrorF ("winFillSpans - DRAWABLE_WINDOW - GXcopyInverted\n");
-	  break;
-	case GXorInverted:
-	  ErrorF ("winFillSpans - DRAWABLE_WINDOW - GXorInverted\n");
-	  break;
-	case GXnand:
-	  ErrorF ("winFillSpans - DRAWABLE_WINDOW - GXnand\n");
-	  break;
-	case GXset:
-	  ErrorF ("winFillSpans - DRAWABLE_WINDOW - GXset\n");
-	  break;
-	default:
-	  ErrorF ("winFillSpans - DRAWABLE_WINDOW - Unknown ROP\n");
-	  break;
-	}
+      /* Reset clip region */
+      SelectClipRgn (pGCPriv->hdc, NULL);
       break;
-  
-    case UNDRAWABLE_WINDOW:
-      FatalError ("winFillSpans - UNDRAWABLE_WINDOW\n\n");
 
+    case UNDRAWABLE_WINDOW:
+      /* UNDRAWABLE_WINDOW doesn't appear to get called when running xterm */
       switch (pGC->fillStyle)
 	{
 	case FillSolid:
-	  ErrorF ("\nwinFillSpans - UNDRAWABLE_WINDOW - FillSolid\n\n");
+	  ErrorF ("winFillSpans - UNDRAWABLE_WINDOW - FillSolid - "
+		  "Unimplemented\n");
 	  break;
 
 	case FillStippled:
-	  ErrorF ("\nwinFillSpans - UNDRAWABLE_WINDOW - FillStippled\n\n");
+	  ErrorF ("winFillSpans - UNDRAWABLE_WINDOW - FillStippled - "
+		  "Unimplemented\n");
 	  break;
 
 	case FillTiled:
-	  ErrorF ("\nwinFillSpans - UNDRAWABLE_WINDOW - FillTiled\n\n");
+	  ErrorF ("winFillSpans - UNDRAWABLE_WINDOW - FillTiled - "
+		  "Unimplemented\n");
 	  break;
 
 	case FillOpaqueStippled:
-	  FatalError ("winFillSpans () - UNDRAWABLE_WINDOW - "
-		      "OpaqueStippled\n");
+	  ErrorF ("winFillSpans - UNDRAWABLE_WINDOW - OpaqueStippled - "
+		  "Unimplemented\n");
 	  break;
 
 	default:
-	  FatalError ("winFillSpans () - UNDRAWABLE_WINDOW - Unknown "
-		      "fillStyle\n");
+	  ErrorF ("winFillSpans - UNDRAWABLE_WINDOW - Unknown fillStyle\n");
+	  break;
 	}
       break;
 
     case DRAWABLE_BUFFER:
-      FatalError ("winFillSpansNativeGDI - DRAWABLE_BUFFER\n");
+      /* DRAWABLE_BUFFER seems to be undocumented. */
+      ErrorF ("winFillSpans - DRAWABLE_BUFFER - Unimplemented\n");
       break;
 
     default:
-      FatalError ("winFillSpansNativeGDI - Unknown drawable type\n");
+      ErrorF ("winFillSpans - Unknown drawable type\n");
       break;
     }
 }

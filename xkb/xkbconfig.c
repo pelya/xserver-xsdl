@@ -24,7 +24,7 @@
  THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
  ********************************************************/
-/* $XFree86: xc/lib/xkbfile/xkbconfig.c,v 3.7 2001/11/30 12:11:51 eich Exp $ */
+/* $XFree86: xc/lib/xkbfile/xkbconfig.c,v 3.8 2003/11/17 22:20:23 dawes Exp $ */
 
 #include <stdio.h>
 #include <ctype.h>
@@ -63,14 +63,7 @@
 static char _XkbCF_rtrn[XKBCF_MAX_STR_LEN+1];
 
 static int
-#if NeedFunctionPrototypes
 ScanIdent(FILE *file,int ch,XkbCFScanResultPtr val_rtrn)
-#else
-ScanIdent(file,ch,val_rtrn)
-    FILE *		file;
-    int			ch;
-    XkbCFScanResultPtr	val_rtrn;
-#endif
 {
 register int	i;
 char *		str;
@@ -87,14 +80,7 @@ char *		str;
 }
 
 static int
-#if NeedFunctionPrototypes
 ScanString(FILE *file,int quote,XkbCFScanResultPtr val_rtrn)
-#else
-ScanString(file,quote,val_rtrn)
-    FILE *		file;
-    int			quote;
-    XkbCFScanResultPtr	val_rtrn;
-#endif
 {
 int	ch,nInBuf;
 
@@ -153,14 +139,7 @@ int	ch,nInBuf;
 }
 
 static int
-#if NeedFunctionPrototypes
 ScanInteger(FILE *file,int ch,XkbCFScanResultPtr val_rtrn)
-#else
-ScanInteger(file,ch,val_rtrn)
-    FILE *		file;
-    int			ch;
-    XkbCFScanResultPtr	val_rtrn;
-#endif
 {
 int	i;
 
@@ -174,14 +153,7 @@ int	i;
 }
 
 int 
-#if NeedFunctionPrototypes
 XkbCFScan(FILE *file,XkbCFScanResultPtr val_rtrn,XkbConfigRtrnPtr rtrn)
-#else
-XkbCFScan(file,val_rtrn,rtrn)
-    FILE *		file;
-    XkbCFScanResultPtr	val_rtrn;
-    XkbConfigRtrnPtr	rtrn;
-#endif
 {
 int	ch;
 
@@ -276,14 +248,7 @@ int	ch;
 #define	_XkbCF_InitialFeedback		37
 
 static Bool
-#if NeedFunctionPrototypes
 AddCtrlByName(XkbConfigRtrnPtr rtrn,char *name,unsigned long *ctrls_rtrn)
-#else
-AddCtrlByName(rtrn,name,ctrls_rtrn)
-    XkbConfigRtrnPtr	rtrn;
-    char *		name;
-    unsigned long *	ctrls_rtrn;
-#endif
 {
     if ((_XkbStrCaseCmp(name,"repeat")==0)||
 	(_XkbStrCaseCmp(name,"repeatkeys")==0))
@@ -320,16 +285,9 @@ AddCtrlByName(rtrn,name,ctrls_rtrn)
 }
 
 static Bool
-#if NeedFunctionPrototypes
 AddAXTimeoutOptByName(	XkbConfigRtrnPtr	rtrn,
 			char *			name,
 			unsigned short *	opts_rtrn)
-#else
-AddAXTimeoutOptByName(rtrn,name,opts_rtrn)
-    XkbConfigRtrnPtr	rtrn;
-    char *		name;
-    unsigned short *	opts_rtrn;
-#endif
 {
     if (_XkbStrCaseCmp(name,"slowkeyspress")==0)
 	*opts_rtrn= XkbAX_SKPressFBMask;
@@ -363,20 +321,11 @@ AddAXTimeoutOptByName(rtrn,name,opts_rtrn)
 }
 
 XkbConfigUnboundModPtr
-#if NeedFunctionPrototypes
 XkbCFAddModByName(	XkbConfigRtrnPtr	rtrn,
 			int			what,
 			char *			name,
 			Bool			merge,
 			XkbConfigUnboundModPtr	last)
-#else
-XkbCFAddModByName(rtrn,what,name,merge,last)
-    XkbConfigRtrnPtr		rtrn;
-    int				what;
-    char *			name;
-    Bool			merge;
-    XkbConfigUnboundModPtr	last;
-#endif
 {
     if (rtrn->num_unbound_mods>=rtrn->sz_unbound_mods) {
 	rtrn->sz_unbound_mods+= 5;
@@ -428,13 +377,7 @@ XkbCFAddModByName(rtrn,what,name,merge,last)
 }
 
 int
-#if NeedFunctionPrototypes
 XkbCFBindMods(XkbConfigRtrnPtr rtrn,XkbDescPtr xkb)
-#else
-XkbCFBindMods(rtrn,xkb)
-    XkbConfigRtrnPtr	rtrn;
-    XkbDescPtr		xkb;
-#endif
 {
 register int 		n,v;
 Atom			name;
@@ -468,14 +411,7 @@ int			missing;
 }
 
 Bool
-#if NeedFunctionPrototypes
 XkbCFApplyMods(XkbConfigRtrnPtr rtrn,int what,XkbConfigModInfoPtr info)
-#else
-XkbCFApplyMods(rtrn,what,info)
-    XkbConfigRtrnPtr	rtrn;
-    int			what;
-    XkbConfigModInfoPtr	info;
-#endif
 {
 register int 		n;
 XkbConfigUnboundModPtr	mod;
@@ -509,20 +445,11 @@ XkbConfigUnboundModPtr	mod;
 
 /*ARGSUSED*/
 static Bool
-#if NeedFunctionPrototypes
 DefaultParser(	FILE *			file,
 		XkbConfigFieldsPtr	fields,
 		XkbConfigFieldPtr	field,
 		XkbDescPtr		xkb,
 		XkbConfigRtrnPtr	rtrn)
-#else
-DefaultParser(file,fields,field,xkb,rtrn)
-    FILE *		file;
-    XkbConfigFieldsPtr	fields;
-    XkbConfigFieldPtr	field;
-    XkbDescPtr		xkb;
-    XkbConfigRtrnPtr	rtrn;
-#endif
 {
 int			tok;
 XkbCFScanResultRec	val;
@@ -930,12 +857,7 @@ BAILOUT:
 }
 
 static Bool
-#if NeedFunctionPrototypes
 DefaultCleanUp(XkbConfigRtrnPtr rtrn)
-#else
-DefaultCleanUp(rtrn)
-    XkbConfigRtrnPtr	rtrn;
-#endif
 {
     if (rtrn->keymap)	_XkbFree(rtrn->keymap);
     if (rtrn->keycodes)	_XkbFree(rtrn->keycodes);
@@ -964,13 +886,7 @@ DefaultCleanUp(rtrn)
 }
 
 static Bool
-#if NeedFunctionPrototypes
 DefaultApplyNames(XkbConfigRtrnPtr rtrn,XkbDescPtr xkb)
-#else
-DefaultApplyNames(rtrn,xkb)
-    XkbConfigRtrnPtr	rtrn;
-    XkbDescPtr		xkb;
-#endif
 {
 char *str;
 
@@ -1010,13 +926,7 @@ char *str;
 }
 
 static Bool
-#if NeedFunctionPrototypes
 DefaultApplyControls(XkbConfigRtrnPtr rtrn,XkbDescPtr xkb)
-#else
-DefaultApplyControls(rtrn,xkb)
-    XkbConfigRtrnPtr	rtrn;
-    XkbDescPtr		xkb;
-#endif
 {
 unsigned	on,off;
 XkbControlsPtr	ctrls;
@@ -1135,18 +1045,10 @@ unsigned int	mask;
 
 /*ARGSUSED*/
 static Bool
-#if NeedFunctionPrototypes
 DefaultFinish(	XkbConfigFieldsPtr	fields,
 		XkbDescPtr		xkb,
 		XkbConfigRtrnPtr	rtrn,
 		int			what)
-#else
-DefaultFinish(fields,xkb,rtrn,what)
-    XkbConfigFieldsPtr	fields;
-    XkbDescPtr		xkb;
-    XkbConfigRtrnPtr	rtrn;
-    int			what;
-#endif
 {
     if ((what==XkbCF_Destroy)||(what==XkbCF_CleanUp))
 	return DefaultCleanUp(rtrn);
@@ -1239,12 +1141,7 @@ XkbConfigFieldsPtr	XkbCFDflts= &_XkbCFDflts;
 /***====================================================================***/
 
 XkbConfigFieldsPtr
-#if NeedFunctionPrototypes
 XkbCFDup(XkbConfigFieldsPtr fields)
-#else
-XkbCFDup(fields)
-    XkbConfigFieldsPtr	fields;
-#endif
 {
 XkbConfigFieldsPtr	pNew;
 
@@ -1272,13 +1169,7 @@ XkbConfigFieldsPtr	pNew;
 }
 
 XkbConfigFieldsPtr 
-#if NeedFunctionPrototypes
 XkbCFFree(XkbConfigFieldsPtr fields,Bool all)
-#else
-XkbCFFree(fields,all)
-    XkbConfigFieldsPtr	fields;
-    Bool		all;
-#endif
 {
 XkbConfigFieldsPtr	next;
 
@@ -1299,16 +1190,9 @@ XkbConfigFieldsPtr	next;
 }
 
 Bool
-#if NeedFunctionPrototypes
 XkbCFApplyRtrnValues(	XkbConfigRtrnPtr	rtrn,
 			XkbConfigFieldsPtr	fields,
 			XkbDescPtr		xkb)
-#else
-XkbCFApplyRtrnValues(rtrn,fields,xkb)
-    XkbConfigRtrnPtr	rtrn;
-    XkbConfigFieldsPtr	fields;
-    XkbDescPtr		xkb;
-#endif
 {
 Bool			ok;
 
@@ -1322,16 +1206,9 @@ Bool			ok;
 }
 
 XkbConfigRtrnPrivPtr
-#if NeedFunctionPrototypes
 XkbCFAddPrivate(	XkbConfigRtrnPtr	rtrn,
 			XkbConfigFieldsPtr	fields,
 			XPointer		ptr)
-#else
-XkbCFAddPrivate(rtrn,fields,ptr)
-    XkbConfigRtrnPtr	rtrn;
-    XkbConfigFieldsPtr	fields;
-    XPointer		ptr;
-#endif
 {
 XkbConfigRtrnPrivPtr	priv;
 
@@ -1348,16 +1225,9 @@ XkbConfigRtrnPrivPtr	priv;
 }
 
 void
-#if NeedFunctionPrototypes
 XkbCFFreeRtrn(	XkbConfigRtrnPtr	rtrn,
 		XkbConfigFieldsPtr	fields,
 		XkbDescPtr		xkb)
-#else
-XkbCFFreeRtrn(rtrn,fields,xkb)
-    XkbConfigRtrnPtr	rtrn;
-    XkbConfigFieldsPtr	fields;
-    XkbDescPtr		xkb;
-#endif
 {
 XkbConfigRtrnPrivPtr	tmp,next;
 
@@ -1378,18 +1248,10 @@ XkbConfigRtrnPrivPtr	tmp,next;
 }
 
 Bool
-#if NeedFunctionPrototypes
 XkbCFParse(	FILE *			file,
 		XkbConfigFieldsPtr	fields,
 		XkbDescPtr		xkb,
 		XkbConfigRtrnPtr	rtrn)
-#else
-XkbCFParse(file,fields,xkb,rtrn)
-    FILE *		file;
-    XkbConfigFieldsPtr	fields;
-    XkbDescPtr		xkb;
-    XkbConfigRtrnPtr	rtrn;
-#endif
 {
 int			tok;
 XkbCFScanResultRec	val;
@@ -1440,15 +1302,7 @@ BAILOUT:
 
 /*ARGSUSED*/
 void
-#if NeedFunctionPrototypes
 XkbCFReportError(FILE *file,char *name,int error,int line)
-#else
-XkbCFReportError(file,name,error,line)
-    FILE *	file;
-    char *	name;
-    int		error;
-    int		line;
-#endif
 {
 char *	msg;
 

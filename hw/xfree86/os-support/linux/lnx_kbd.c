@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/linux/lnx_kbd.c,v 1.2 2003/02/17 15:11:57 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/linux/lnx_kbd.c,v 1.5 2003/11/04 03:14:39 tsi Exp $ */
 
 /*
  * Copyright (c) 2002 by The XFree86 Project, Inc.
@@ -27,7 +27,7 @@
 
 static KbdProtocolRec protocols[] = {
    {"standard", PROT_STD },
-   { NULL, PROT_UNKNOWN }
+   { NULL, PROT_UNKNOWN_KBD }
 };
 
 extern Bool VTSwitchEnabled;
@@ -93,10 +93,18 @@ GetKbdLeds(InputInfoPtr pInfo)
 /* kbd rate stuff based on kbdrate.c from Rik Faith <faith@cs.unc.edu> et.al.
  * from util-linux-2.9t package */
 
-
+#include <linux/kd.h>
+#include <linux/version.h>
 #ifdef __sparc__
 #include <asm/param.h>
 #include <asm/kbio.h>
+#endif
+
+/* Deal with spurious kernel header change */
+#if defined(LINUX_VERSION_CODE) && defined(KERNEL_VERSION)
+# if LINUX_VERSION_CODE >= KERNEL_VERSION(2,5,42)
+#  define rate period
+# endif
 #endif
 
 static int
@@ -159,6 +167,8 @@ KIOCSRATE_ioctl_ok(int rate, int delay) {
    return 0;
 #endif /* KIOCSRATE */
 }
+
+#undef rate
 
 static void
 SetKbdRepeat(InputInfoPtr pInfo, char rad)
@@ -436,7 +446,7 @@ OpenKeyboard(InputInfoPtr pInfo)
 {
     KbdDevPtr pKbd = (KbdDevPtr) pInfo->private;
     int i;
-    KbdProtocolId prot = PROT_UNKNOWN;
+    KbdProtocolId prot = PROT_UNKNOWN_KBD;
     char *s;
 
     s = xf86SetStrOption(pInfo->options, "Protocol", NULL);

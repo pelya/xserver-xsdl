@@ -24,7 +24,7 @@ OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION  WITH
 THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 ********************************************************/
-/* $XFree86: xc/programs/Xserver/xkb/ddxConfig.c,v 3.8 2002/12/20 20:18:35 paulo Exp $ */
+/* $XFree86: xc/programs/Xserver/xkb/ddxConfig.c,v 3.9 2003/11/17 22:20:45 dawes Exp $ */
 
 #include <stdio.h>
 #define	NEED_EVENTS 1
@@ -40,13 +40,7 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include <X11/extensions/XKBconfig.h>
 
 Bool
-#if NeedFunctionPrototypes
 XkbDDXApplyConfig(XPointer cfg_in,XkbSrvInfoPtr info)
-#else
-XkbDDXApplyConfig(cfg_in,info)
-    XPointer		cfg_in;	
-    XkbSrvInfoPtr	info;
-#endif
 {
 XkbConfigRtrnPtr 	rtrn;
 XkbDescPtr		xkb;
@@ -90,18 +84,10 @@ XkbEventCauseRec	cause;
 }
 
 XPointer
-#if NeedFunctionPrototypes
 XkbDDXPreloadConfig(	char **			rulesRtrn,
 			XkbRF_VarDefsPtr 	defs,
 			XkbComponentNamesPtr	names,
 			DeviceIntPtr 		dev)
-#else
-XkbDDXPreloadConfig(rulesRtrn,defs,names,dev)
-    char **			rulesRtrn;
-    XkbRF_VarDefsPtr		defs;
-    XkbComponentNamesPtr	names;
-    DeviceIntPtr		dev;
-#endif
 {
 char			buf[PATH_MAX];
 char *			dName;

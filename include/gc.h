@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/include/gc.h,v 1.5 2001/12/14 19:59:54 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/include/gc.h,v 1.6 2003/04/27 21:31:04 herrb Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -87,28 +87,19 @@ typedef struct _GC    *GCPtr;
 typedef struct _GCOps *GCOpsPtr;
 
 extern void ValidateGC(
-#if NeedFunctionPrototypes
     DrawablePtr /*pDraw*/,
-    GCPtr /*pGC*/
-#endif
-);
+    GCPtr /*pGC*/);
 
 extern int ChangeGC(
-#if NeedFunctionPrototypes
     GCPtr/*pGC*/,
     BITS32 /*mask*/,
-    XID* /*pval*/
-#endif
-);
+    XID* /*pval*/);
 
 extern int DoChangeGC(
-#if NeedFunctionPrototypes
     GCPtr/*pGC*/,
     BITS32 /*mask*/,
     XID* /*pval*/,
-    int /*fPointer*/
-#endif
-);
+    int /*fPointer*/);
 
 typedef union {
     CARD32 val;
@@ -116,117 +107,72 @@ typedef union {
 } ChangeGCVal, *ChangeGCValPtr;
 
 extern int dixChangeGC(
-#if NeedFunctionPrototypes
     ClientPtr /*client*/,
     GCPtr /*pGC*/,
     BITS32 /*mask*/,
     CARD32 * /*pval*/,
-    ChangeGCValPtr /*pCGCV*/
-#endif
-);
+    ChangeGCValPtr /*pCGCV*/);
 
 extern GCPtr CreateGC(
-#if NeedFunctionPrototypes
     DrawablePtr /*pDrawable*/,
     BITS32 /*mask*/,
     XID* /*pval*/,
-    int* /*pStatus*/
-#endif
-);
+    int* /*pStatus*/);
 
 extern int CopyGC(
-#if NeedFunctionPrototypes
     GCPtr/*pgcSrc*/,
     GCPtr/*pgcDst*/,
-    BITS32 /*mask*/
-#endif
-);
+    BITS32 /*mask*/);
 
 extern int FreeGC(
-#if NeedFunctionPrototypes
     pointer /*pGC*/,
-    XID /*gid*/
-#endif
-);
+    XID /*gid*/);
 
 extern void SetGCMask(
-#if NeedFunctionPrototypes
     GCPtr /*pGC*/,
     Mask /*selectMask*/,
-    Mask /*newDataMask*/
-#endif
-);
+    Mask /*newDataMask*/);
 
 extern GCPtr CreateScratchGC(
-#if NeedFunctionPrototypes
     ScreenPtr /*pScreen*/,
-    unsigned /*depth*/
-#endif
-);
+    unsigned /*depth*/);
 
 extern void FreeGCperDepth(
-#if NeedFunctionPrototypes
-    int /*screenNum*/
-#endif
-);
+    int /*screenNum*/);
 
 extern Bool CreateGCperDepth(
-#if NeedFunctionPrototypes
-    int /*screenNum*/
-#endif
-);
+    int /*screenNum*/);
 
 extern Bool CreateDefaultStipple(
-#if NeedFunctionPrototypes
-    int /*screenNum*/
-#endif
-);
+    int /*screenNum*/);
 
 extern void FreeDefaultStipple(
-#if NeedFunctionPrototypes
-    int /*screenNum*/
-#endif
-);
+    int /*screenNum*/);
 
 extern int SetDashes(
-#if NeedFunctionPrototypes
     GCPtr /*pGC*/,
     unsigned /*offset*/,
     unsigned /*ndash*/,
-    unsigned char* /*pdash*/
-#endif
-);
+    unsigned char* /*pdash*/);
 
 extern int VerifyRectOrder(
-#if NeedFunctionPrototypes
     int /*nrects*/,
     xRectangle* /*prects*/,
-    int /*ordering*/
-#endif
-);
+    int /*ordering*/);
 
 extern int SetClipRects(
-#if NeedFunctionPrototypes
     GCPtr /*pGC*/,
     int /*xOrigin*/,
     int /*yOrigin*/,
     int /*nrects*/,
     xRectangle* /*prects*/,
-    int /*ordering*/
-#endif
-);
+    int /*ordering*/);
 
 extern GCPtr GetScratchGC(
-#if NeedFunctionPrototypes
     unsigned /*depth*/,
-    ScreenPtr /*pScreen*/
-#endif
-);
+    ScreenPtr /*pScreen*/);
 
 extern void FreeScratchGC(
-#if NeedFunctionPrototypes
-    GCPtr /*pGC*/
-#endif
-);
+    GCPtr /*pGC*/);
 
 #endif /* GC_H */

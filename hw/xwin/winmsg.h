@@ -27,35 +27,10 @@
  *
  * Authors: Alexander Gottwald	
  */
-/* $XFree86: xc/programs/Xserver/hw/xwin/winmsg.h,v 1.1 2002/10/17 08:18:22 alanh Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xwin/winmsg.h,v 1.2 2003/10/02 13:30:10 eich Exp $ */
 
 #ifndef __WIN_MSG_H__
 #define __WIN_MSG_H__
-
-
-#define __msg_name(name,string) name
-#define __msg(name,string) __msg_name(name,string)
-#define _msg(name,string) __msg(name,string),
-
-#define MESSAGE_STRINGS \
-    _msg(X_PROBED,"(--)"            /* Value was probed */)\
-    _msg(X_CONFIG,"(**)"            /* Value was given in the config file */)\
-    _msg(X_DEFAULT,"(==)"           /* Value is a default */)\
-    _msg(X_CMDLINE,"(++)"           /* Value was given on the command line */)\
-    _msg(X_NOTICE,"(!!)"            /* Notice */) \
-    _msg(X_ERROR,"(EE)"             /* Error message */) \
-    _msg(X_WARNING,"(WW)"           /* Warning message */) \
-    _msg(X_INFO,"(II)"              /* Informational message */) \
-    _msg(X_UNKNOWN,"(?""?)"         /* Unknown, trigraph fix */) \
-    _msg(X_NONE,NULL                /* No prefix */) \
-    __msg(X_NOT_IMPLEMENTED,"(NI)"  /* Not implemented */)
-
-typedef enum
-{
-  MESSAGE_STRINGS
-}
-MessageType;
-
 
 /*
  * Function prototypes

@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/mi/mioverlay.c,v 3.14 2002/10/18 00:07:13 mvojkovi Exp $ */
+/* $XFree86: xc/programs/Xserver/mi/mioverlay.c,v 3.16 2003/11/10 18:22:49 tsi Exp $ */
 
 #include "X.h"
 #include "scrnintstr.h"
@@ -208,8 +208,8 @@ miOverlayCreateWindow(WindowPtr pWin)
 	    pTree->visibility = VisibilityNotViewable;
 	    pWinPriv->tree = pTree;
 	    if(pWin->parent) {
-		REGION_INIT(pScreen, &(pTree->borderClip), NullBox, 1);
-		REGION_INIT(pScreen, &(pTree->clipList), NullBox, 1);
+		REGION_NULL(pScreen, &(pTree->borderClip));
+		REGION_NULL(pScreen, &(pTree->clipList));
 		RebuildTree(pWin);
 	    } else {
 		BoxRec fullBox;
@@ -539,16 +539,14 @@ miOverlayComputeClips(
                             (* pScreen->ClipNotify) (tChild->pWin, dx, dy);
 		    }
 		    if (tChild->valdata) {
-			REGION_INIT(pScreen, &tChild->valdata->borderExposed,
-				    NullBox, 0);
+			REGION_NULL(pScreen, &tChild->valdata->borderExposed);
 			if (HasParentRelativeBorder(tChild->pWin)){
 			    REGION_SUBTRACT(pScreen,
 					 &tChild->valdata->borderExposed,
 					 &tChild->borderClip,
 					 &tChild->pWin->winSize);
 			}
-			REGION_INIT( pScreen, &tChild->valdata->exposed,
-						 NullBox, 0);
+			REGION_NULL(pScreen, &tChild->valdata->exposed);
 		    }
 		    if (tChild->firstChild) {
 			tChild = tChild->firstChild;
@@ -577,8 +575,8 @@ miOverlayComputeClips(
     }
 
     borderVisible = tParent->valdata->borderVisible;
-    REGION_INIT( pScreen, &tParent->valdata->borderExposed, NullBox, 0);
-    REGION_INIT( pScreen, &tParent->valdata->exposed, NullBox, 0);
+    REGION_NULL(pScreen, &tParent->valdata->borderExposed);
+    REGION_NULL(pScreen, &tParent->valdata->exposed);
 
     if (HasBorder (pParent)) {
     	if (borderVisible) {
@@ -601,8 +599,8 @@ miOverlayComputeClips(
     	REGION_COPY( pScreen, &tParent->borderClip, universe);
 
     if ((tChild = tParent->firstChild) && pParent->mapped) {
-	REGION_INIT(pScreen, &childUniverse, NullBox, 0);
-	REGION_INIT(pScreen, &childUnion, NullBox, 0);
+	REGION_NULL(pScreen, &childUniverse);
+	REGION_NULL(pScreen, &childUnion);
 
 	for (; tChild; tChild = tChild->nextSib) {
 	    if (tChild->pWin->viewable)
@@ -751,9 +749,9 @@ miOverlayValidateTree(
 
     if (!pChild) pChild = pParent->firstChild;
 
-    REGION_INIT(pScreen, &totalClip, NullBox, 0);
-    REGION_INIT(pScreen, &childClip, NullBox, 0);
-    REGION_INIT(pScreen, &exposed, NullBox, 0);
+    REGION_NULL(pScreen, &totalClip);
+    REGION_NULL(pScreen, &childClip);
+    REGION_NULL(pScreen, &exposed);
 
     newParent = pParent;
 
@@ -811,8 +809,8 @@ miOverlayValidateTree(
     REGION_UNINIT(pScreen, &childClip);
 
     if(!((*pPriv->InOverlay)(newParent))) {
-	REGION_INIT(pScreen, &tParent->valdata->exposed, NullBox, 0);
-	REGION_INIT(pScreen, &tParent->valdata->borderExposed, NullBox, 0);
+	REGION_NULL(pScreen, &tParent->valdata->exposed);
+	REGION_NULL(pScreen, &tParent->valdata->borderExposed);
     }
 
     switch (kind) {
@@ -953,8 +951,8 @@ miOverlayMoveWindow(
     oldpt.x = pWin->drawable.x;
     oldpt.y = pWin->drawable.y;
     if (WasViewable) {
-	REGION_INIT(pScreen, &overReg, NullBox, 1);
-	REGION_INIT(pScreen, &underReg, NullBox, 0);
+	REGION_NULL(pScreen, &overReg);
+	REGION_NULL(pScreen, &underReg);
 	if(pTree) {
 	    REGION_COPY(pScreen, &overReg, &pWin->borderClip);
 	    REGION_COPY(pScreen, &underReg, &pTree->borderClip);
@@ -1667,7 +1665,6 @@ miOverlayChangeBorderWidth(
     WindowPtr pWin,
     unsigned int width
 ){
-    WindowPtr pParent;
     int oldwidth;
     register ScreenPtr pScreen;
     Bool WasViewable = (Bool)(pWin->viewable);
@@ -1681,7 +1678,6 @@ miOverlayChangeBorderWidth(
 	return;
     HadBorder = HasBorder(pWin);
     pScreen = pWin->drawable.pScreen;
-    pParent = pWin->parent;
     if (WasViewable && (width < oldwidth))
 	(*pScreen->MarkOverlappedWindows)(pWin, pWin, NULL);
 
@@ -2029,6 +2025,7 @@ HasUnderlayChildren(WindowPtr pWin)
 static Bool
 CollectUnderlayChildrenRegions(WindowPtr pWin, RegionPtr pReg)
 {
+    ScreenPtr pScreen = pWin->drawable.pScreen;
     WindowPtr pChild;
     miOverlayTreePtr pTree;
     Bool hasUnderlay;

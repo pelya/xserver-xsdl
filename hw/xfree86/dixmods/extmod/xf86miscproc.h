@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/Xext/xf86miscproc.h,v 1.5 2002/11/20 04:04:58 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/Xext/xf86miscproc.h,v 1.6 2003/04/03 16:15:47 dawes Exp $ */
 
 /* Prototypes for Pointer/Keyboard functions that the DDX must provide */
 
@@ -59,6 +59,8 @@ MiscExtReturn MiscExtApply(pointer structure, MiscExtStructType mse_or_kbd);
 Bool MiscExtSetMouseDevice(pointer mouse, char* device);
 Bool MiscExtGetFilePaths(const char **configfile, const char **modulepath,
 			 const char **logfile);
+int  MiscExtPassMessage(int scrn, const char *msgtype, const char *msgval,
+			  char **retstr);
 
 #endif
 

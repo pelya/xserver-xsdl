@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/dix/gc.c,v 3.9 2001/12/14 19:59:32 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/dix/gc.c,v 3.10 2003/11/17 22:20:34 dawes Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -66,9 +66,7 @@ extern XID clientErrorValue;
 extern FontPtr defaultFont;
 
 static Bool CreateDefaultTile(
-#if NeedFunctionPrototypes
     GCPtr /*pGC*/
-#endif
 );
 
 unsigned char DefaultDash[2] = {4, 4};
@@ -585,12 +583,7 @@ BUG:
 */
 
 static GCPtr
-#if NeedFunctionPrototypes
 AllocateGC(ScreenPtr pScreen)
-#else
-AllocateGC(pScreen)
-    ScreenPtr pScreen;
-#endif
 {
     GCPtr pGC;
     register char *ptr;

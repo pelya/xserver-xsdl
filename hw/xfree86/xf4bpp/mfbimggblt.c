@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/xf4bpp/mfbimggblt.c,v 1.7 2003/02/18 21:29:59 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/xf4bpp/mfbimggblt.c,v 1.9 2003/11/17 22:20:42 dawes Exp $ */
 
 /* Combined Purdue/PurduePlus patches, level 2.0, 1/17/89 */
 /***********************************************************
@@ -101,7 +101,6 @@ xoff, pdst, pglyph, and tmpSrc seem like the right things, though.
 
 /* Forward declarations -- GJA */
 static void doImageGlyphBlt(
-#if NeedFunctionPrototypes
     DrawablePtr,
     GC *,
     int,
@@ -110,7 +109,6 @@ static void doImageGlyphBlt(
     CharInfoPtr *,
     unsigned char *,
     ExtentInfoRec *
-#endif
 );
 
 void
@@ -352,7 +350,9 @@ doImageGlyphBlt(pDrawable, pGC, x, y, nglyph, ppci, pglyphBase,infop)
 	int glyphRow;		/* first row of glyph not wholly
 				   clipped out */
 	int glyphCol;		/* leftmost visible column of glyph */
+#if GETLEFTBITS_ALIGNMENT > 1
 	int getWidth;		/* bits to get from glyph */
+#endif
 
 	if(!(ppos = (TEXTPOS *)ALLOCATE_LOCAL(nglyph * sizeof(TEXTPOS))))
 	    return;
@@ -452,7 +452,9 @@ doImageGlyphBlt(pDrawable, pGC, x, y, nglyph, ppci, pglyphBase,infop)
 
 		glyphCol = (leftEdge - ppos[i].xpos) -
 			   (pci->metrics.leftSideBearing);
+#if GETLEFTBITS_ALIGNMENT > 1
 		getWidth = w + glyphCol;
+#endif
 		xoff = xchar + (leftEdge - ppos[i].xpos);
 		if (xoff > PLST)
 		{

@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/bus/Pci.c,v 1.71.2.2 2003/05/06 17:00:45 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/bus/Pci.c,v 1.81 2003/09/24 02:43:34 dawes Exp $ */
 /*
  * Pci.c - New server PCI access functions
  *
@@ -19,8 +19,6 @@
  *	pciWriteByte()         - Write an 8 bit value to a device's cfg space
  *	pciSetBitsLong()       - Write a 32 bit value against a mask
  *	pciSetBitsByte()       - Write an 8 bit value against a mask
- *	pciLongFunc()          - Return pointer to the requested low level
- *                               function
  *	pciTag()               - Return tag for a given PCI bus, device, &
  *                               function
  *	pciBusAddrToHostAddr() - Convert a PCI address to a host address
@@ -170,6 +168,33 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
+/*
+ * Copyright (c) 1999-2003 by The XFree86 Project, Inc.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+ * THE COPYRIGHT HOLDER(S) OR AUTHOR(S) BE LIABLE FOR ANY CLAIM, DAMAGES OR
+ * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ *
+ * Except as contained in this notice, the name of the copyright holder(s)
+ * and author(s) shall not be used in advertising or otherwise to promote
+ * the sale, use or other dealings in this Software without prior written
+ * authorization from the copyright holder(s) and author(s).
+ */
+
 #include <errno.h>
 #include <signal.h>
 #include "Xarch.h"
@@ -376,7 +401,7 @@ pciSetBitsLong(PCITAG tag, int offset, CARD32 mask, CARD32 val)
     pciInit();
 
     if ((bus >= 0) && (bus < pciNumBuses) && pciBusInfo[bus] &&
-	pciBusInfo[bus]->funcs->pciReadLong) {
+	pciBusInfo[bus]->funcs->pciSetBitsLong) {
 	(*pciBusInfo[bus]->funcs->pciSetBitsLong)(tag, offset, mask, val);
     }
 }
@@ -391,27 +416,6 @@ pciSetBitsByte(PCITAG tag, int offset, CARD8 mask, CARD8 val)
   tmp_mask = mask << shift;
   tmp_val = val << shift;
   pciSetBitsLong(tag, aligned_offset, tmp_mask, tmp_val);
-}
-
-pointer
-pciLongFunc(PCITAG tag, pciFunc func)
-{
-    int bus = PCI_BUS_FROM_TAG(tag);
-
-    pciInit();
-
-    if ((bus < 0) || (bus > pciNumBuses) || !pciBusInfo[bus] ||
-	!pciBusInfo[bus]->funcs->pciReadLong) return NULL;
-
-    switch (func) {
-    case WRITE:
-	return (void *)pciBusInfo[bus]->funcs->pciWriteLong;
-    case READ:
-	return (void *)pciBusInfo[bus]->funcs->pciReadLong;
-    case SET_BITS:
-	return (void *)pciBusInfo[bus]->funcs->pciSetBitsLong;
-    }
-    return NULL;
 }
 
 ADDRESS
@@ -551,11 +555,7 @@ pciGetBaseSize(PCITAG tag, int index, Bool destructive, Bool *min)
   }
   /* I/O maps can be no larger than 8 bits */
 
-#if defined(Lynx) && defined(__powerpc__)
-  if (PCI_MAP_IS_IO(addr1) && bits > 8)
-#else
   if ((index < 6) && PCI_MAP_IS_IO(addr1) && bits > 8)
-#endif
     bits = 8;
   /* ROM maps can be no larger than 24 bits */
   if (index == 6 && bits > 24)
@@ -569,6 +569,8 @@ pciTag(int busnum, int devnum, int funcnum)
 	return(PCI_MAKE_TAG(busnum,devnum,funcnum));
 }
 
+#if defined(PCI_MFDEV_SUPPORT) || defined(PowerMAX_OS)
+
 Bool
 pciMfDev(int busnum, int devnum)
 {
@@ -579,7 +581,7 @@ pciMfDev(int busnum, int devnum)
 
     tag0 = PCI_MAKE_TAG(busnum, devnum, 0);
     id0  = pciReadLong(tag0, PCI_ID_REG);
-    if (id0 == 0xffffffff)
+    if ((CARD16)(id0 + 1) <= (CARD16)1UL)
 	return FALSE;
 
     val = pciReadLong(tag0, PCI_HEADER_MISC) & 0x00ff0000;
@@ -594,16 +596,23 @@ pciMfDev(int busnum, int devnum)
      */
     tag1 = PCI_MAKE_TAG(busnum, devnum, 1);
     id1  = pciReadLong(tag1, PCI_ID_REG);
-    if (id1 == 0xffffffff || id1 == 0x00000000)
+    if ((CARD16)(id1 + 1) <= (CARD16)1UL)
+	return FALSE;
+
+    /* Vendor IDs should match */
+    if ((id0 ^ id1) & 0x0000ffff)
 	return FALSE;
 
     if ((id0 != id1) ||
+	/* Note the following test is valid for header types 0, 1 and 2 */
 	(pciReadLong(tag0, PCI_MAP_REG_START) !=
 	 pciReadLong(tag1, PCI_MAP_REG_START)))
 	return TRUE;
 
     return FALSE;
 }
+
+#endif
 
 /*
  * Generic find/read/write functions
@@ -678,6 +687,7 @@ pciGenFindNext(void)
 		 * No more devices for this bus. Next bus please
 		 */
 		if (speculativeProbe) {
+	NextSpeculativeBus:
 		    xfree(pciBusInfo[pciBusNum]);
 		    pciBusInfo[pciBusNum] = NULL;
 		    speculativeProbe = FALSE;
@@ -715,7 +725,7 @@ pciGenFindNext(void)
 #endif
 	pciDeviceTag = PCI_MAKE_TAG(pciBusNum, pciDevNum, pciFuncNum);
 	inProbe = TRUE;
-	devid = pciReadLong(pciDeviceTag, 0);
+	devid = pciReadLong(pciDeviceTag, PCI_ID_REG);
 	inProbe = FALSE;
 #ifdef DEBUGPCI
 	ErrorF("pciGenFindNext: pciDeviceTag = 0x%lx, devid = 0x%lx\n", pciDeviceTag, devid);
@@ -723,18 +733,36 @@ pciGenFindNext(void)
 	if ((CARD16)(devid + 1U) <= (CARD16)1UL)
 	    continue; /* Nobody home.  Next device please */
 
+	/*
+	 * Some devices mis-decode configuration cycles in such a way as to
+	 * create phantom buses.
+	 */
+	if (speculativeProbe && (pciDevNum == 0) && (pciFuncNum == 0) &&
+	    (PCI_BUS_NO_DOMAIN(pciBusNum) > 0)) {
+	    for (;;) {
+	        if (++pciDevNum >= pciBusInfo[pciBusNum]->numDevices)
+		    goto NextSpeculativeBus;
+		if (devid !=
+		    pciReadLong(PCI_MAKE_TAG(pciBusNum, pciDevNum, 0),
+			        PCI_ID_REG))
+		    break;
+	    }
+
+	    pciDevNum = 0;
+	}
+
 	if (pciNumBuses <= pciBusNum)
 	    pciNumBuses = pciBusNum + 1;
 
 	speculativeProbe = FALSE;
 	previousBus = pciBusNum;
 
+#ifdef PCI_BRIDGE_SUPPORT
 	/*
 	 * Before checking for a specific devid, look for enabled
 	 * PCI to PCI bridge devices.  If one is found, create and
 	 * initialize a bus info record (if one does not already exist).
 	 */
-#ifdef PCI_BRIDGE_SUPPORT
 	tmp = pciReadLong(pciDeviceTag, PCI_CLASS_REG);
 	base_class = PCI_CLASS_EXTRACT(tmp);
 	sub_class = PCI_SUBCLASS_EXTRACT(tmp);
@@ -754,7 +782,7 @@ pciGenFindNext(void)
 		    (sub_class != PCI_SUBCLASS_BRIDGE_CARDBUS))
 		    xf86Msg(X_WARNING,
 			    "pciGenFindNext:  primary bus mismatch on PCI"
-			    " bridge 0x%08x (0x%02x, 0x%02x)\n",
+			    " bridge 0x%08lx (0x%02x, 0x%02x)\n",
 			    pciDeviceTag, pciBusNum, pri_bus);
 		pri_bus = pciBusNum;
 	    }
@@ -970,12 +998,6 @@ xf86scanpci(int flags)
 	for (i = 0; i < 17; i++)  /* PCI hdr plus 1st dev spec dword */
 	    devp->cfgspc.dwords[i] = pciReadLong(tag, i * sizeof(CARD32));
 
-#ifdef ARCH_PCI_HOST_BRIDGE
-	if ((devp->pci_base_class == PCI_CLASS_BRIDGE) &&
-	    (devp->pci_sub_class == PCI_SUBCLASS_BRIDGE_HOST))
-	    ARCH_PCI_HOST_BRIDGE(devp);
-#endif
-
 	/* Some broken devices don't implement this field... */
 	if (devp->pci_header_type == 0xff)
 	    devp->pci_header_type = 0;
@@ -1115,7 +1137,7 @@ xf86MapPciMem(int ScreenNum, int Flags, PCITAG Tag, ADDRESS Base,
 	base = xf86MapDomainMemory(ScreenNum, Flags, Tag, hostbase, Size);
 	if (!base)	{
 		FatalError("xf86MapPciMem: Could not mmap PCI memory "
-			   "[base=0x%x,hostbase=0x%x,size=%x] (%s)\n",
+			   "[base=0x%lx,hostbase=0x%lx,size=%lx] (%s)\n",
 			   Base, hostbase, Size, strerror(errno));
 	}
 	/*
@@ -1165,8 +1187,8 @@ handlePciBIOS(PCITAG Tag, int basereg,
 	    savebase = pciReadLong(Tag, PCI_MAP_REG_START+(b_reg<<2));
 	    xf86MsgVerb(X_INFO,5,"xf86ReadPciBios: modifying membase[%i]"
 			" for device %i:%i:%i\n", basereg,
-			PCI_BUS_FROM_TAG(Tag), PCI_DEV_FROM_TAG(Tag),
-			PCI_FUNC_FROM_TAG(Tag));
+			(int)PCI_BUS_FROM_TAG(Tag), (int)PCI_DEV_FROM_TAG(Tag),
+			(int)PCI_FUNC_FROM_TAG(Tag));
 	    pciWriteLong(Tag, PCI_MAP_REG_START + (b_reg << 2),
 			 (CARD32)~0);
 	}
@@ -1275,7 +1297,7 @@ readPciBios(PCITAG Tag, CARD8* tmp, ADDRESS hostbase, pointer args)
     }
     if ((rd->Offset) > (image_length)) {
       xf86Msg(X_WARNING,"xf86ReadPciBios: requesting data past "
-	      "end of BIOS %i > %i\n",(rd->Offset) , (image_length));
+	      "end of BIOS %li > %i\n",(rd->Offset) , (image_length));
     } else {
       if ((rd->Offset + rd->Len) > (image_length)) {
 	rd->Len = (image_length) - rd->Offset;
@@ -1299,7 +1321,7 @@ getPciBIOSTypes(PCITAG Tag, CARD8* tmp, ADDRESS hostbase, pointer arg)
   /* We found a PCI BIOS Image. Now we collect the types type */
   do {
     unsigned short data_off = tmp[0x18] | (tmp[0x19] << 8);
-    unsigned char data[16];
+    unsigned char data[0x16];
     unsigned int i_length;
 
     if ((xf86ReadDomainMemory(Tag, hostbase + data_off, sizeof(data), data)
@@ -1359,22 +1381,20 @@ HandlePciBios(PCITAG Tag, int basereg,
   if (!num) return 0;
 
 #define PCI_ENA (PCI_CMD_MEM_ENABLE | PCI_CMD_IO_ENABLE)
-  Acc1 = ((ReadProcPtr)(pciLongFunc(Tag,READ)))(Tag,PCI_CMD_STAT_REG);
-  ((WriteProcPtr)(pciLongFunc(Tag,WRITE)))(Tag,
-					   PCI_CMD_STAT_REG,(Acc1 & ~PCI_ENA));
+  Acc1 = pciReadLong(Tag, PCI_CMD_STAT_REG);
+  pciWriteLong(Tag, PCI_CMD_STAT_REG, (Acc1 & ~PCI_ENA));
 
   for (i = 0; i < num; i++) {
-    Acc2 = ((ReadProcPtr)(pciLongFunc(pTag[i],READ)))(pTag[i],PCI_CMD_STAT_REG);
-    ((WriteProcPtr)(pciLongFunc(pTag[i],WRITE)))(pTag[i],
-					     PCI_CMD_STAT_REG,(Acc2 | PCI_ENA));
+    Acc2 = pciReadLong(pTag[i], PCI_CMD_STAT_REG);
+    pciWriteLong(pTag[i], PCI_CMD_STAT_REG, (Acc2 | PCI_ENA));
 
     n = handlePciBIOS(pTag[i],0,func,ptr);
 
-    ((WriteProcPtr)(pciLongFunc(pTag[i],WRITE)))(pTag[i],PCI_CMD_STAT_REG,Acc2);
+    pciWriteLong(pTag[i], PCI_CMD_STAT_REG, Acc2);
     if (n)
       break;
   }
-  ((WriteProcPtr)(pciLongFunc(Tag,WRITE)))(Tag,PCI_CMD_STAT_REG,Acc1);
+  pciWriteLong(Tag, PCI_CMD_STAT_REG, Acc1);
   return n;
 }
 

@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/mi/mizerarc.c,v 1.6 2001/12/14 20:00:28 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/mi/mizerarc.c,v 1.7 2003/07/16 01:38:59 dawes Exp $ */
 /************************************************************
 
 Copyright 1989, 1998  The Open Group
@@ -38,7 +38,7 @@ Author:  Bob Scheifler, MIT X Consortium
 #include <math.h>
 #include "X.h"
 #include "Xprotostr.h"
-#include "miscstruct.h"
+#include "regionstr.h"
 #include "gcstruct.h"
 #include "pixmapstr.h"
 #include "mi.h"

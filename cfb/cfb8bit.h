@@ -7,7 +7,7 @@
  * are used for depths other than 8.  Perhaps the file should be
  * renamed.  dpw
  */
-/* $XFree86: xc/programs/Xserver/cfb/cfb8bit.h,v 3.7 2001/12/14 19:59:20 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/cfb/cfb8bit.h,v 3.8 2003/11/17 22:20:32 dawes Exp $ */
 
 /*
 
@@ -1545,24 +1545,19 @@ extern int		cfb8StippleRRop;
 extern PixelGroup cfb8BitLenMasks[PGSZ];
 
 extern int cfb8SetStipple (
-#if NeedFunctionPrototypes
     int	/*alu*/,
     CfbBits /*fg*/,
     CfbBits /*planemask*/
-#endif
 );
 
 extern int cfb8SetOpaqueStipple (
-#if NeedFunctionPrototypes
     int /*alu*/,
     CfbBits /*fg*/,
     CfbBits /*bg*/,
     CfbBits /*planemask*/
-#endif
 );
 
 extern int cfb8ComputeClipMasks32 (
-#if NeedFunctionPrototypes
     BoxPtr	/*pBox*/,
     int		/*numRects*/,
     int		/*x*/,
@@ -1570,5 +1565,4 @@ extern int cfb8ComputeClipMasks32 (
     int		/*w*/,
     int		/*h*/,
     CARD32 * /*clips*/
-#endif
 );

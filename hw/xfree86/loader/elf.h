@@ -1,19 +1,18 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/loader/elf.h,v 1.15 2002/10/30 17:50:19 alanh Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/loader/elf.h,v 1.17 2003/10/15 16:29:02 dawes Exp $ */
 
+typedef unsigned int Elf32_Addr;
+typedef unsigned short Elf32_Half;
+typedef unsigned int Elf32_Off;
+typedef long Elf32_Sword;
+typedef unsigned int Elf32_Word;
 
-typedef unsigned int	Elf32_Addr;
-typedef unsigned short	Elf32_Half;
-typedef unsigned int	Elf32_Off;
-typedef long		Elf32_Sword;
-typedef unsigned int	Elf32_Word;
-
-typedef unsigned long	Elf64_Addr;
-typedef unsigned short	Elf64_Half;
-typedef unsigned long	Elf64_Off;
-typedef int		Elf64_Sword;
-typedef unsigned int	Elf64_Word;
-typedef unsigned long   Elf64_Xword;
-typedef long            Elf64_Sxword;
+typedef unsigned long Elf64_Addr;
+typedef unsigned short Elf64_Half;
+typedef unsigned long Elf64_Off;
+typedef int Elf64_Sword;
+typedef unsigned int Elf64_Word;
+typedef unsigned long Elf64_Xword;
+typedef long Elf64_Sxword;
 
 /* These constants are for the segment types stored in the image headers */
 #define PT_NULL    0
@@ -42,7 +41,7 @@ typedef long            Elf64_Sxword;
 #define EM_386   	3
 #define EM_68K   	4
 #define EM_88K   	5
-#define EM_486   	6   /* Perhaps disused */
+#define EM_486   	6	/* Perhaps disused */
 #define EM_860   	7
 #define EM_MIPS		8
 #define EM_MIPS_RS4_BE 10
@@ -101,23 +100,23 @@ typedef long            Elf64_Sxword;
 #define ELF64_ST_TYPE(x) ELF32_ST_TYPE (x)
 
 typedef struct dynamic32 {
-  Elf32_Sword d_tag;
-  union{
-    Elf32_Sword	d_val;
-    Elf32_Addr	d_ptr;
-  } d_un;
+    Elf32_Sword d_tag;
+    union {
+	Elf32_Sword d_val;
+	Elf32_Addr d_ptr;
+    } d_un;
 } Elf32_Dyn;
 
 typedef struct dynamic64 {
-  Elf64_Sxword d_tag;
-  union{
-    Elf64_Xword d_val;
-    Elf64_Addr  d_ptr;
-  } d_un;
+    Elf64_Sxword d_tag;
+    union {
+	Elf64_Xword d_val;
+	Elf64_Addr d_ptr;
+    } d_un;
 } Elf64_Dyn;
 
 #ifndef QNX4
-extern Elf32_Dyn _DYNAMIC [];
+extern Elf32_Dyn _DYNAMIC[];
 #endif
 
 /* The following are used with relocations */
@@ -141,7 +140,7 @@ extern Elf32_Dyn _DYNAMIC [];
 #define R_386_GOTPC	10
 #define R_386_NUM	11
 
-/* x86_64 Relocation Types */
+/* AMD64 Relocation Types */
 #define R_X86_64_NONE                   0
 #define R_X86_64_64                     1
 #define R_X86_64_PC32                   2
@@ -221,29 +220,29 @@ extern Elf32_Dyn _DYNAMIC [];
 #define	R_SPARC_NUM		56
 
 /* m68k Relocation Types */
-#define R_68K_NONE	0		/* No reloc */
-#define R_68K_32	1		/* Direct 32 bit  */
-#define R_68K_16	2		/* Direct 16 bit  */
-#define R_68K_8		3		/* Direct 8 bit  */
-#define R_68K_PC32	4		/* PC relative 32 bit */
-#define R_68K_PC16	5		/* PC relative 16 bit */
-#define R_68K_PC8	6		/* PC relative 8 bit */
-#define R_68K_GOT32	7		/* 32 bit PC relative GOT entry */
-#define R_68K_GOT16	8		/* 16 bit PC relative GOT entry */
-#define R_68K_GOT8	9		/* 8 bit PC relative GOT entry */
-#define R_68K_GOT32O	10		/* 32 bit GOT offset */
-#define R_68K_GOT16O	11		/* 16 bit GOT offset */
-#define R_68K_GOT8O	12		/* 8 bit GOT offset */
-#define R_68K_PLT32	13		/* 32 bit PC relative PLT address */
-#define R_68K_PLT16	14		/* 16 bit PC relative PLT address */
-#define R_68K_PLT8	15		/* 8 bit PC relative PLT address */
-#define R_68K_PLT32O	16		/* 32 bit PLT offset */
-#define R_68K_PLT16O	17		/* 16 bit PLT offset */
-#define R_68K_PLT8O	18		/* 8 bit PLT offset */
-#define R_68K_COPY	19		/* Copy symbol at runtime */
-#define R_68K_GLOB_DAT	20		/* Create GOT entry */
-#define R_68K_JMP_SLOT	21		/* Create PLT entry */
-#define R_68K_RELATIVE	22		/* Adjust by program base */
+#define R_68K_NONE	0	/* No reloc */
+#define R_68K_32	1	/* Direct 32 bit  */
+#define R_68K_16	2	/* Direct 16 bit  */
+#define R_68K_8		3	/* Direct 8 bit  */
+#define R_68K_PC32	4	/* PC relative 32 bit */
+#define R_68K_PC16	5	/* PC relative 16 bit */
+#define R_68K_PC8	6	/* PC relative 8 bit */
+#define R_68K_GOT32	7	/* 32 bit PC relative GOT entry */
+#define R_68K_GOT16	8	/* 16 bit PC relative GOT entry */
+#define R_68K_GOT8	9	/* 8 bit PC relative GOT entry */
+#define R_68K_GOT32O	10	/* 32 bit GOT offset */
+#define R_68K_GOT16O	11	/* 16 bit GOT offset */
+#define R_68K_GOT8O	12	/* 8 bit GOT offset */
+#define R_68K_PLT32	13	/* 32 bit PC relative PLT address */
+#define R_68K_PLT16	14	/* 16 bit PC relative PLT address */
+#define R_68K_PLT8	15	/* 8 bit PC relative PLT address */
+#define R_68K_PLT32O	16	/* 32 bit PLT offset */
+#define R_68K_PLT16O	17	/* 16 bit PLT offset */
+#define R_68K_PLT8O	18	/* 8 bit PLT offset */
+#define R_68K_COPY	19	/* Copy symbol at runtime */
+#define R_68K_GLOB_DAT	20	/* Create GOT entry */
+#define R_68K_JMP_SLOT	21	/* Create PLT entry */
+#define R_68K_RELATIVE	22	/* Adjust by program base */
 
 /* Alpha Relocation Types */
 #define R_ALPHA_NONE		0	/* No reloc */
@@ -495,79 +494,79 @@ extern Elf32_Dyn _DYNAMIC [];
 #define R_ARM_RBASE		255
 
 typedef struct elf32_rel {
-  Elf32_Addr	r_offset;
-  Elf32_Word	r_info;
+    Elf32_Addr r_offset;
+    Elf32_Word r_info;
 } Elf32_Rel;
 
 typedef struct elf64_rel {
-  Elf64_Addr	r_offset;
-  Elf64_Xword	r_info;
+    Elf64_Addr r_offset;
+    Elf64_Xword r_info;
 } Elf64_Rel;
 
-typedef struct elf32_rela{
-  Elf32_Addr	r_offset;
-  Elf32_Word	r_info;
-  Elf32_Sword	r_addend;
+typedef struct elf32_rela {
+    Elf32_Addr r_offset;
+    Elf32_Word r_info;
+    Elf32_Sword r_addend;
 } Elf32_Rela;
 
-typedef struct elf64_rela{
-  Elf64_Addr	r_offset;
-  Elf64_Xword	r_info;
-  Elf64_Sxword	r_addend;
+typedef struct elf64_rela {
+    Elf64_Addr r_offset;
+    Elf64_Xword r_info;
+    Elf64_Sxword r_addend;
 } Elf64_Rela;
 
-typedef struct elf32_sym{
-  Elf32_Word	st_name;
-  Elf32_Addr	st_value;
-  Elf32_Word	st_size;
-  unsigned char	st_info;
-  unsigned char	st_other;
-  Elf32_Half	st_shndx;
+typedef struct elf32_sym {
+    Elf32_Word st_name;
+    Elf32_Addr st_value;
+    Elf32_Word st_size;
+    unsigned char st_info;
+    unsigned char st_other;
+    Elf32_Half st_shndx;
 } Elf32_Sym;
 
-typedef struct elf64_sym{
-  Elf64_Word	st_name;
-  unsigned char	st_info;
-  unsigned char st_other;
-  Elf64_Half	st_shndx;
-  Elf64_Addr	st_value;
-  Elf64_Xword	st_size;
+typedef struct elf64_sym {
+    Elf64_Word st_name;
+    unsigned char st_info;
+    unsigned char st_other;
+    Elf64_Half st_shndx;
+    Elf64_Addr st_value;
+    Elf64_Xword st_size;
 } Elf64_Sym;
 
 #define EI_NIDENT	16
 
-typedef struct elf32hdr{
-  unsigned char	e_ident[EI_NIDENT];
-  Elf32_Half	e_type;
-  Elf32_Half	e_machine;
-  Elf32_Word	e_version;
-  Elf32_Addr	e_entry;  /* Entry point */
-  Elf32_Off	e_phoff;
-  Elf32_Off	e_shoff;
-  Elf32_Word	e_flags;
-  Elf32_Half	e_ehsize;
-  Elf32_Half	e_phentsize;
-  Elf32_Half	e_phnum;
-  Elf32_Half	e_shentsize;
-  Elf32_Half	e_shnum;
-  Elf32_Half	e_shstrndx;
+typedef struct elf32hdr {
+    unsigned char e_ident[EI_NIDENT];
+    Elf32_Half e_type;
+    Elf32_Half e_machine;
+    Elf32_Word e_version;
+    Elf32_Addr e_entry;		/* Entry point */
+    Elf32_Off e_phoff;
+    Elf32_Off e_shoff;
+    Elf32_Word e_flags;
+    Elf32_Half e_ehsize;
+    Elf32_Half e_phentsize;
+    Elf32_Half e_phnum;
+    Elf32_Half e_shentsize;
+    Elf32_Half e_shnum;
+    Elf32_Half e_shstrndx;
 } Elf32_Ehdr;
 
 typedef struct elf64hdr {
-  unsigned char	e_ident[EI_NIDENT];
-  Elf64_Half	e_type;
-  Elf64_Half	e_machine;
-  Elf64_Word	e_version;
-  Elf64_Addr	e_entry;
-  Elf64_Off	e_phoff;
-  Elf64_Off	e_shoff;
-  Elf64_Word	e_flags;
-  Elf64_Half	e_ehsize;
-  Elf64_Half	e_phentsize;
-  Elf64_Half	e_phnum;
-  Elf64_Half	e_shentsize;
-  Elf64_Half	e_shnum;
-  Elf64_Half	e_shstrndx;
+    unsigned char e_ident[EI_NIDENT];
+    Elf64_Half e_type;
+    Elf64_Half e_machine;
+    Elf64_Word e_version;
+    Elf64_Addr e_entry;
+    Elf64_Off e_phoff;
+    Elf64_Off e_shoff;
+    Elf64_Word e_flags;
+    Elf64_Half e_ehsize;
+    Elf64_Half e_phentsize;
+    Elf64_Half e_phnum;
+    Elf64_Half e_shentsize;
+    Elf64_Half e_shnum;
+    Elf64_Half e_shstrndx;
 } Elf64_Ehdr;
 
 /* These constants define the permissions on sections in the program
@@ -576,27 +575,26 @@ typedef struct elf64hdr {
 #define PF_W		0x2
 #define PF_X		0x1
 
-typedef struct elf_phdr{
-  Elf32_Word	p_type;
-  Elf32_Off	p_offset;
-  Elf32_Addr	p_vaddr;
-  Elf32_Addr	p_paddr;
-  Elf32_Word	p_filesz;
-  Elf32_Word	p_memsz;
-  Elf32_Word	p_flags;
-  Elf32_Word	p_align;
+typedef struct elf_phdr {
+    Elf32_Word p_type;
+    Elf32_Off p_offset;
+    Elf32_Addr p_vaddr;
+    Elf32_Addr p_paddr;
+    Elf32_Word p_filesz;
+    Elf32_Word p_memsz;
+    Elf32_Word p_flags;
+    Elf32_Word p_align;
 } Elf32_Phdr;
 
-typedef struct
-{
-  Elf64_Word	p_type;
-  Elf64_Word	p_flags;
-  Elf64_Off	p_offset;
-  Elf64_Addr	p_vaddr;
-  Elf64_Addr	p_paddr;
-  Elf64_Xword	p_filesz;
-  Elf64_Xword	p_memsz;
-  Elf64_Xword	p_align;
+typedef struct {
+    Elf64_Word p_type;
+    Elf64_Word p_flags;
+    Elf64_Off p_offset;
+    Elf64_Addr p_vaddr;
+    Elf64_Addr p_paddr;
+    Elf64_Xword p_filesz;
+    Elf64_Xword p_memsz;
+    Elf64_Xword p_align;
 } Elf64_Phdr;
 
 /* sh_type */
@@ -618,7 +616,7 @@ typedef struct
 #define SHT_LOUSER	0x80000000
 #define SHT_HIUSER	0xffffffff
 
-#define SHT_IA_64_UNWIND	(SHT_LOPROC + 1) /* unwind bits */
+#define SHT_IA_64_UNWIND	(SHT_LOPROC + 1)	/* unwind bits */
 
 /* sh_flags */
 #define SHF_WRITE	0x1
@@ -634,35 +632,34 @@ typedef struct
 #define SHN_ABS		0xfff1
 #define SHN_COMMON	0xfff2
 #define SHN_HIRESERVE	0xffff
- 
+
 typedef struct {
-  Elf32_Word	sh_name;
-  Elf32_Word	sh_type;
-  Elf32_Word	sh_flags;
-  Elf32_Addr	sh_addr;
-  Elf32_Off	sh_offset;
-  Elf32_Word	sh_size;
-  Elf32_Word	sh_link;
-  Elf32_Word	sh_info;
-  Elf32_Word	sh_addralign;
-  Elf32_Word	sh_entsize;
+    Elf32_Word sh_name;
+    Elf32_Word sh_type;
+    Elf32_Word sh_flags;
+    Elf32_Addr sh_addr;
+    Elf32_Off sh_offset;
+    Elf32_Word sh_size;
+    Elf32_Word sh_link;
+    Elf32_Word sh_info;
+    Elf32_Word sh_addralign;
+    Elf32_Word sh_entsize;
 } Elf32_Shdr;
 
-typedef struct
-{
-  Elf64_Word	sh_name;
-  Elf64_Word	sh_type;
-  Elf64_Xword	sh_flags;
-  Elf64_Addr	sh_addr;
-  Elf64_Off	sh_offset;
-  Elf64_Xword	sh_size;
-  Elf64_Word	sh_link;
-  Elf64_Word	sh_info;
-  Elf64_Xword	sh_addralign;
-  Elf64_Xword	sh_entsize;
+typedef struct {
+    Elf64_Word sh_name;
+    Elf64_Word sh_type;
+    Elf64_Xword sh_flags;
+    Elf64_Addr sh_addr;
+    Elf64_Off sh_offset;
+    Elf64_Xword sh_size;
+    Elf64_Word sh_link;
+    Elf64_Word sh_info;
+    Elf64_Xword sh_addralign;
+    Elf64_Xword sh_entsize;
 } Elf64_Shdr;
 
-#define	EI_MAG0		0		/* e_ident[] indexes */
+#define	EI_MAG0		0	/* e_ident[] indexes */
 #define	EI_MAG1		1
 #define	EI_MAG2		2
 #define	EI_MAG3		3
@@ -671,7 +668,7 @@ typedef struct
 #define	EI_VERSION	6
 #define	EI_PAD		7
 
-#define	ELFMAG0		0x7f		/* EI_MAG */
+#define	ELFMAG0		0x7f	/* EI_MAG */
 #define	ELFMAG1		'E'
 #define	ELFMAG2		'L'
 #define	ELFMAG3		'F'
@@ -681,16 +678,16 @@ typedef struct
 #define	ELFDLMAG	3
 #define	ELFDLOFF	16
 
-#define	ELFCLASSNONE	0		/* EI_CLASS */
+#define	ELFCLASSNONE	0	/* EI_CLASS */
 #define	ELFCLASS32	1
 #define	ELFCLASS64	2
 #define	ELFCLASSNUM	3
 
-#define ELFDATANONE	0		/* e_ident[EI_DATA] */
+#define ELFDATANONE	0	/* e_ident[EI_DATA] */
 #define ELFDATA2LSB	1
 #define ELFDATA2MSB	2
 
-#define EV_NONE		0		/* e_version, EI_VERSION */
+#define EV_NONE		0	/* e_version, EI_VERSION */
 #define EV_CURRENT	1
 #define EV_NUM		2
 
@@ -702,9 +699,9 @@ typedef struct
 
 /* Note header in a PT_NOTE section */
 typedef struct elf_note {
-  Elf32_Word	n_namesz;	/* Name size */
-  Elf32_Word	n_descsz;	/* Content size */
-  Elf32_Word	n_type;		/* Content type */
+    Elf32_Word n_namesz;	/* Name size */
+    Elf32_Word n_descsz;	/* Content size */
+    Elf32_Word n_type;		/* Content type */
 } Elf32_Nhdr;
 
 #define ELF_START_MMAP 0x80000000

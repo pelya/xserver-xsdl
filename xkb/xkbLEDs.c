@@ -24,7 +24,7 @@ OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION  WITH
 THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 ********************************************************/
-/* $XFree86: xc/programs/Xserver/xkb/xkbLEDs.c,v 3.6 2001/11/23 19:21:36 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/xkb/xkbLEDs.c,v 3.8 2003/11/17 22:20:46 dawes Exp $ */
 
 #include <stdio.h>
 #include <ctype.h>
@@ -37,6 +37,7 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 #include "XI.h"
 #include "XKBsrv.h"
+#include "xkb.h"
 
 /***====================================================================***/
 
@@ -51,16 +52,9 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 	 */
 
 unsigned
-#if NeedFunctionPrototypes
 XkbIndicatorsToUpdate(	DeviceIntPtr	dev,
 			unsigned long 	state_changes,
 			Bool		enable_changes)
-#else
-XkbIndicatorsToUpdate(dev,state_changes,enable_changes)
-    DeviceIntPtr	dev;
-    unsigned long	state_changes;
-    Bool		enable_changes;
-#endif
 {
 register unsigned	update=	0;
 XkbSrvLedInfoPtr	sli;
@@ -96,18 +90,10 @@ XkbSrvLedInfoPtr	sli;
 	 * extent of the changes is reported in change, which must be defined.
 	 */
 Bool
-#if NeedFunctionPrototypes
 XkbApplyLEDChangeToKeyboard(	XkbSrvInfoPtr		xkbi,
 				XkbIndicatorMapPtr	map,
 				Bool			on,
 				XkbChangesPtr		change)
-#else
-XkbApplyLEDChangeToKeyboard(xkbi,map,on,change)
-    XkbSrvInfoPtr	xkbi;
-    XkbIndicatorMapPtr	map;
-    Bool		on;
-    XkbChangesPtr	change;
-#endif
 {
 Bool		ctrlChange,stateChange;
 XkbStatePtr	state;
@@ -204,18 +190,10 @@ XkbStatePtr	state;
 	 */
 
 void
-#if NeedFunctionPrototypes
 XkbSetIndicators(	DeviceIntPtr		dev,
 			CARD32			affect,
 			CARD32			values,
 			XkbEventCausePtr	cause)
-#else
-XkbSetIndicators(dev,affect,values,cause)
-    DeviceIntPtr	dev;
-    CARD32		affect;
-    CARD32		values;
-    XkbEventCausePtr	cause;
-#endif
 {
 XkbSrvLedInfoPtr		sli;
 XkbChangesRec			changes;
@@ -258,16 +236,9 @@ unsigned 			side_affected;
 	 */
 
 static Bool
-#if NeedFunctionPrototypes
 ComputeAutoState(	XkbIndicatorMapPtr	map,
 			XkbStatePtr 		state,
 			XkbControlsPtr 		ctrls)
-#else
-ComputeAutoState(map,state,ctrls)
-    XkbIndicatorMapPtr		map;
-    XkbStatePtr			state;
-    XkbControlsPtr		ctrls;
-#endif
 {
 Bool 			on;
 CARD8 			mods,group;
@@ -324,20 +295,11 @@ CARD8 			mods,group;
 	 */
 
 void
-#if NeedFunctionPrototypes
 XkbUpdateIndicators(	DeviceIntPtr		dev,
 			register CARD32		update,
 			Bool			check_edevs,
 			XkbChangesPtr		changes,
 			XkbEventCausePtr	cause)
-#else
-XkbUpdateIndicators(dev,update,check_edevs,changes,cause)
-    DeviceIntPtr		dev;
-    register CARD32		update;
-    Bool			check_edevs;
-    XkbChangesPtr		changes;
-    XkbEventCausePtr		cause;
-#endif
 {
 XkbSrvLedInfoPtr	sli;
 
@@ -351,13 +313,7 @@ XkbSrvLedInfoPtr	sli;
 /***====================================================================***/
 
 void
-#if NeedFunctionPrototypes
 XkbUpdateAllDeviceIndicators(XkbChangesPtr changes,XkbEventCausePtr cause)
-#else
-XkbUpdateAllDeviceIndicators(changes,cause)
-    XkbChangesPtr	changes;
-    XkbEventCausePtr	cause;
-#endif
 {
 DeviceIntPtr		edev;
 XkbSrvLedInfoPtr	sli;
@@ -403,14 +359,7 @@ XkbSrvLedInfoPtr	sli;
 	 */
 
 void
-#if NeedFunctionPrototypes
 XkbCheckIndicatorMaps(DeviceIntPtr dev,XkbSrvLedInfoPtr sli,unsigned which)
-#else
-XkbCheckIndicatorMaps(dev,sli,which)
-    DeviceIntPtr	dev;
-    XkbSrvLedInfoPtr	sli;
-    unsigned		which;
-#endif
 {
 register unsigned	i,bit;
 XkbIndicatorMapPtr	map;
@@ -483,18 +432,10 @@ XkbDescPtr		xkb;
 	 * of the parts speicified therein are allocated.
 	 */
 XkbSrvLedInfoPtr
-#if NeedFunctionPrototypes
 XkbAllocSrvLedInfo(	DeviceIntPtr		dev,
 			KbdFeedbackPtr		kf,
 			LedFeedbackPtr		lf,
 			unsigned		needed_parts)
-#else
-XkbAllocSrvLedInfo(dev,kf,lf,needed_parts)
-    DeviceIntPtr	dev;
-    KbdFeedbackPtr	kf;
-    LedFeedbackPtr	lf;
-    unsigned		needed_parts;
-#endif
 {
 XkbSrvLedInfoPtr	sli;
 Bool			checkAccel;
@@ -581,12 +522,7 @@ Bool			checkNames;
 }
 
 void
-#if NeedFunctionPrototypes
 XkbFreeSrvLedInfo(XkbSrvLedInfoPtr sli)
-#else
-XkbFreeSrvLedInfo(sli)
-    XkbSrvLedInfoPtr	sli;
-#endif
 {
     if ((sli->flags&XkbSLI_IsDefault)==0) {
 	if (sli->maps)	_XkbFree(sli->maps);
@@ -613,18 +549,10 @@ XkbFreeSrvLedInfo(sli)
 	 */
 
 XkbSrvLedInfoPtr 
-#if NeedFunctionPrototypes
 XkbFindSrvLedInfo(	DeviceIntPtr		dev,
 			unsigned		class,
 			unsigned		id,
 			unsigned		needed_parts)
-#else
-XkbFindSrvLedInfo(dev,class,id,needed_parts)
-    DeviceIntPtr		dev;
-    unsigned			class;
-    unsigned			id;
-    unsigned			needed_parts;
-#endif
 {
 XkbSrvLedInfoPtr	sli;
 
@@ -677,22 +605,12 @@ XkbSrvLedInfoPtr	sli;
 /***====================================================================***/
 
 void
-#if NeedFunctionPrototypes
 XkbFlushLedEvents(	DeviceIntPtr			dev,
 			DeviceIntPtr			kbd,
 			XkbSrvLedInfoPtr		sli,
 			xkbExtensionDeviceNotify *	ed,
 			XkbChangesPtr			changes,
 			XkbEventCausePtr		cause)
-#else
-XkbFlushLedEvents(dev,kbd,sli,ed,changes,cause)
-    DeviceIntPtr		dev;
-    DeviceIntPtr		kbd;
-    XkbSrvLedInfoPtr		sli;
-    xkbExtensionDeviceNotify *	ed;
-    XkbChangesPtr		changes;
-    XkbEventCausePtr		cause;
-#endif
 {
     if (changes) {
 	if (changes->indicators.state_changes)
@@ -720,22 +638,12 @@ XkbFlushLedEvents(dev,kbd,sli,ed,changes,cause)
 /***====================================================================***/
 
 void
-#if NeedFunctionPrototypes
 XkbApplyLedNameChanges(	DeviceIntPtr 			dev,
 			XkbSrvLedInfoPtr		sli,
 			unsigned			changed_names,
 			xkbExtensionDeviceNotify *	ed,
 			XkbChangesPtr			changes,
 			XkbEventCausePtr		cause)
-#else
-XkbApplyLedNameChanges(dev,sli,changed_names,ed,changes,cause)
-    DeviceIntPtr		dev;
-    XkbSrvLedInfoPtr		sli;
-    unsigned			changed_names;
-    xkbExtensionDeviceNotify *	ed;
-    XkbChangesPtr		changes;
-    XkbEventCausePtr		cause;
-#endif
 {
 DeviceIntPtr			kbd;
 XkbChangesRec			my_changes;
@@ -807,22 +715,12 @@ xkbExtensionDeviceNotify	my_ed;
 	 */
 
 void
-#if NeedFunctionPrototypes
 XkbApplyLedMapChanges(	DeviceIntPtr 			dev,
 			XkbSrvLedInfoPtr		sli,
 			unsigned			changed_maps,
 			xkbExtensionDeviceNotify *	ed,
 			XkbChangesPtr			changes,
 			XkbEventCausePtr		cause)
-#else
-XkbApplyLedMapChanges(dev,sli,changed_maps,ed,changes,cause)
-    DeviceIntPtr		dev;
-    XkbSrvLedInfoPtr		sli;
-    unsigned			changed_maps;
-    xkbExtensionDeviceNotify *	ed;
-    XkbChangesPtr		changes;
-    XkbEventCausePtr		cause;
-#endif
 {
 DeviceIntPtr			kbd;
 XkbChangesRec			my_changes;
@@ -873,22 +771,12 @@ xkbExtensionDeviceNotify	my_ed;
 /***====================================================================***/
 
 void
-#if NeedFunctionPrototypes
 XkbApplyLedStateChanges(DeviceIntPtr 			dev,
 			XkbSrvLedInfoPtr		sli,
 			unsigned			changed_leds,
 			xkbExtensionDeviceNotify *	ed,
 			XkbChangesPtr			changes,
 			XkbEventCausePtr		cause)
-#else
-XkbApplyLedStateChanges(dev,sli,changed_leds,ed,changes,cause)
-    DeviceIntPtr		dev;
-    XkbSrvLedInfoPtr		sli;
-    unsigned			changed_leds;
-    xkbExtensionDeviceNotify *	ed;
-    XkbChangesPtr		changes;
-    XkbEventCausePtr		cause;
-#endif
 {
 XkbSrvInfoPtr			xkbi;
 DeviceIntPtr			kbd;
@@ -970,22 +858,12 @@ Bool				kb_changed;
 /***====================================================================***/
 
 void
-#if NeedFunctionPrototypes
 XkbUpdateLedAutoState(	DeviceIntPtr			dev,
 			XkbSrvLedInfoPtr		sli,
 			unsigned			maps_to_check,
 			xkbExtensionDeviceNotify *	ed,
 			XkbChangesPtr			changes,
 			XkbEventCausePtr		cause)
-#else
-XkbUpdateLedAutoState(dev,sli,maps_to_check,ed,changes,cause)
-    DeviceIntPtr		dev;
-    XkbSrvLedInfoPtr		sli;
-    unsigned			maps_to_check;
-    xkbExtensionDeviceNotify *	ed;
-    XkbChangesPtr		changes;
-    XkbEventCausePtr		cause;
-#endif
 {
 DeviceIntPtr			kbd;
 XkbStatePtr			state;
@@ -1056,20 +934,11 @@ unsigned			oldState;
 /***====================================================================***/
 
 static void
-#if NeedFunctionPrototypes
 _UpdateButtonVMods(	XkbDescPtr			xkb,
 			unsigned			num_btns,
 			XkbAction *			acts,
 			unsigned			changed,
 			xkbExtensionDeviceNotify *	ed_inout)
-#else
-_UpdateButtonVMods(xkb,num_btns,acts,changed,ed_inout)
-    XkbDescPtr			xkb;
-    unsigned			num_btns;
-    XkbAction *			acts;
-    unsigned			changed;
-    xkbExtensionDeviceNotify *	ed_inout;
-#endif
 {
 register int i;
 
@@ -1090,18 +959,10 @@ register int i;
 }
 
 static void
-#if NeedFunctionPrototypes
 _UpdateMapVMods(	XkbDescPtr	xkb,
 			register	XkbIndicatorMapPtr map,
 			unsigned	changed_vmods,
 			unsigned *	changed_maps_rtrn)
-#else
-_UpdateMapVMods(xkb,map,changed_vmods,changed_maps_rtrn)
-    XkbDescPtr				xkb;
-    register XkbIndicatorMapPtr 	map;
-    unsigned 				changed_vmods;
-    unsigned *				changed_maps_rtrn;
-#endif
 {
 register int i;
 
@@ -1117,18 +978,10 @@ register int i;
 }
 
 static void
-#if NeedFunctionPrototypes
 _UpdateDeviceVMods(	DeviceIntPtr		dev,
 			XkbDescPtr		xkb,
 			unsigned		changed,
 			XkbEventCausePtr	cause)
-#else
-_UpdateDeviceVMods(dev,xkb,changed,cause)
-    DeviceIntPtr	dev;
-    XkbDescPtr		xkb;
-    unsigned		changed;
-    XkbEventCausePtr	cause;
-#endif
 {
 xkbExtensionDeviceNotify	ed;
 XkbSrvLedInfoPtr		sli;
@@ -1188,18 +1041,10 @@ unsigned			changed_maps;
 }
 
 void
-#if NeedFunctionPrototypes
 XkbApplyVModChangesToAllDevices(	DeviceIntPtr		dev,
 					XkbDescPtr 		xkb,
 					unsigned 		changed,
 					XkbEventCausePtr	cause)
-#else
-XkbApplyVModChangesToAllDevices(dev,xkb,changed,cause)
-    DeviceIntPtr	dev;
-    XkbDescPtr		xkb;
-    unsigned		changed;
-    XkbEventCausePtr	cause;
-#endif
 {
 DeviceIntPtr			edev;
     if (dev!=(DeviceIntPtr)LookupKeyboardDevice())

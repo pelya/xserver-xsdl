@@ -1,5 +1,6 @@
+/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/xf86_ansic.h,v 3.53 2003/10/28 18:36:37 tsi Exp $ */
 /*
- * Copyright 1997-2000 by The XFree86 Project, Inc
+ * Copyright 1997-2003 by The XFree86 Project, Inc
  *
  * Permission to use, copy, modify, distribute, and sell this software and its
  * documentation for any purpose is hereby granted without fee, provided that
@@ -21,8 +22,6 @@
  * OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *
  */
-
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/xf86_ansic.h,v 3.49.2.1 2003/03/13 04:10:49 tsi Exp $ */
 
 #ifndef _XF86_ANSIC_H
 #define _XF86_ANSIC_H
@@ -240,6 +239,8 @@ extern int xf86strcasecmp(const char*,const char*);
 extern char* xf86strcpy(char*,const char*);
 extern xf86size_t xf86strcspn(const char*,const char*);
 extern char* xf86strerror(int);
+extern xf86size_t xf86strlcat(char*,const char*,xf86size_t);
+extern xf86size_t xf86strlcpy(char*,const char*,xf86size_t);
 extern xf86size_t xf86strlen(const char*);
 extern char* xf86strncat(char *, const char *, xf86size_t);
 extern int xf86strncmp(const char*,const char*,xf86size_t);

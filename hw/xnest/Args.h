@@ -12,6 +12,7 @@ the suitability of this software for any purpose.  It is provided "as
 is" without express or implied warranty.
 
 */
+/* $XFree86: xc/programs/Xserver/hw/xnest/Args.h,v 1.2 2003/11/16 05:05:20 dawes Exp $ */
 
 #ifndef XNESTARGC_H
 #define XNESTARGS_H
@@ -34,5 +35,6 @@ extern Bool xnestUserBorderWidth;
 extern char *xnestWindowName;           
 extern int xnestNumScreens;
 extern Bool xnestDoDirectColormaps;
+extern Window xnestParentWindow;
 
 #endif /* XNESTARGS_H */

@@ -1,6 +1,30 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/xf86_libc.h,v 3.56 2003/02/22 06:00:39 dawes Exp $ */
-
-
+/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/xf86_libc.h,v 3.60 2003/10/26 12:17:17 herrb Exp $ */
+/*
+ * Copyright (c) 1997-2003 by The XFree86 Project, Inc.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+ * THE COPYRIGHT HOLDER(S) OR AUTHOR(S) BE LIABLE FOR ANY CLAIM, DAMAGES OR
+ * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ *
+ * Except as contained in this notice, the name of the copyright holder(s)
+ * and author(s) shall not be used in advertising or otherwise to promote
+ * the sale, use or other dealings in this Software without prior written
+ * authorization from the copyright holder(s) and author(s).
+ */
 
 /*
  * This file is an attempt to make developing code for the new loadable module
@@ -71,7 +95,11 @@ struct xf86stat {
 typedef int xf86key_t;
 
 /* setjmp/longjmp */
+#if defined(__ia64__)
+typedef int xf86jmp_buf[1024] __attribute__ ((aligned (16))); /* guarantees 128-bit alignment! */
+#else
 typedef int xf86jmp_buf[1024];
+#endif
 
 /* for setvbuf */
 #define XF86_IONBF    1
@@ -348,6 +376,10 @@ typedef int xf86jmp_buf[1024];
 #define strcspn(ccp1,ccp2)	xf86strcspn(ccp1,ccp2)
 #undef strerror
 #define strerror(i)		xf86strerror(i)
+#undef strlcat
+#define strlcat(cp,ccp,I)	xf86strlcat(cp,ccp,I)
+#undef strlcpy
+#define strlcpy(cp,ccp,I)	xf86strlcpy(cp,ccp,I)
 #undef strlen
 #define strlen(ccp)		xf86strlen(ccp)
 #undef strncmp
@@ -385,11 +417,11 @@ typedef int xf86jmp_buf[1024];
 #undef ungetc
 #define ungetc(i,FP)		xf86ungetc(i,FP)
 #undef vfprinf
-#define vfprintf		xf86vfprintf
+#define vfprintf(p,f,a)		xf86vfprintf(p,f,a)
 #undef vsnprintf
-#define vsnprintf		xf86vsnprintf
+#define vsnprintf(s,n,f,a)	xf86vsnprintf(s,n,f,a)
 #undef vsprintf
-#define vsprintf		xf86vsprintf
+#define vsprintf(s,f,a)		xf86vsprintf(s,f,a)
 /* XXX Disable assert as if NDEBUG was defined */
 /* Some X headers defined this away too */
 #undef assert

@@ -1,4 +1,4 @@
-/* $XConsortium: xf86Xinput.c /main/14 1996/10/27 11:05:25 kaleb $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86Xinput.c,v 3.70 2003/11/03 05:11:02 tsi Exp $ */
 /*
  * Copyright 1995-1999 by Frederic Lepied, France. <Lepied@XFree86.org>
  *                                                                            
@@ -21,8 +21,33 @@
  * PERFORMANCE OF THIS SOFTWARE.
  *
  */
-
-/* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86Xinput.c,v 3.68 2002/10/11 01:40:31 dawes Exp $ */
+/*
+ * Copyright (c) 2000-2002 by The XFree86 Project, Inc.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+ * THE COPYRIGHT HOLDER(S) OR AUTHOR(S) BE LIABLE FOR ANY CLAIM, DAMAGES OR
+ * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ *
+ * Except as contained in this notice, the name of the copyright holder(s)
+ * and author(s) shall not be used in advertising or otherwise to promote
+ * the sale, use or other dealings in this Software without prior written
+ * authorization from the copyright holder(s) and author(s).
+ */
+/* $XConsortium: xf86Xinput.c /main/14 1996/10/27 11:05:25 kaleb $ */
 
 #include "Xfuncproto.h"
 #include "Xmd.h"
@@ -854,7 +879,6 @@ xf86PostMotionEvent(DeviceIntPtr	device,
     int				valuator[6];
     int				oldaxis[6];
     int				*axisvals;
-    AxisInfoPtr			axes;
     int				dx = 0, dy = 0;
     float			mult;
     int				x, y;
@@ -883,7 +907,6 @@ xf86PostMotionEvent(DeviceIntPtr	device,
     }
 
     axisvals = val->axisVal;
-    axes = val->axes;
     
     va_start(var, num_valuators);
 

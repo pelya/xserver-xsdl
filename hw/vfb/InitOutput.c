@@ -26,7 +26,7 @@ other dealings in this Software without prior written authorization
 from The Open Group.
 
 */
-/* $XFree86: xc/programs/Xserver/hw/vfb/InitOutput.c,v 3.22 2003/01/15 02:34:07 torrey Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/vfb/InitOutput.c,v 3.26 2003/11/16 03:16:59 dawes Exp $ */
 
 #if defined(WIN32)
 #include <X11/Xwinsock.h>
@@ -66,8 +66,6 @@ from The Open Group.
 #include "miline.h"
 #include "mfb.h"
 
-extern char *display;
-
 #define VFB_DEFAULT_WIDTH  1280
 #define VFB_DEFAULT_HEIGHT 1024
 #define VFB_DEFAULT_DEPTH  8
@@ -80,6 +78,7 @@ typedef struct
 {
     int scrnum;
     int width;
+    int paddedBytesWidth;
     int paddedWidth;
     int height;
     int depth;
@@ -92,6 +91,7 @@ typedef struct
     Pixel blackPixel;
     Pixel whitePixel;
     unsigned int lineBias;
+    CloseScreenProcPtr closeScreen;
 
 #ifdef HAS_MMAP
     int mmap_fd;
@@ -125,7 +125,7 @@ static Bool Render = TRUE;
 
 
 static void
-vfbInitializePixmapDepths()
+vfbInitializePixmapDepths(void)
 {
     int i;
     vfbPixmapDepths[1] = TRUE; /* always need bitmaps */
@@ -134,7 +134,7 @@ vfbInitializePixmapDepths()
 }
 
 static void
-vfbInitializeDefaultScreens()
+vfbInitializeDefaultScreens(void)
 {
     int i;
 
@@ -153,8 +153,7 @@ vfbInitializeDefaultScreens()
 }
 
 static int
-vfbBitsPerPixel(depth)
-    int depth;
+vfbBitsPerPixel(int depth)
 {
     if (depth == 1) return 1;
     else if (depth <= 8) return 8;
@@ -275,10 +274,7 @@ ddxUseMsg()
 }
 
 int
-ddxProcessArgument (argc, argv, i)
-    int argc;
-    char *argv[];
-    int i;
+ddxProcessArgument(int argc, char *argv[], int i)
 {
     static Bool firstTime = TRUE;
 
@@ -438,8 +434,7 @@ GetTimeInMillis()
 
 
 static Bool
-vfbMultiDepthCreateGC(pGC)
-    GCPtr   pGC;
+vfbMultiDepthCreateGC(GCPtr pGC)
 {
     switch (vfbBitsPerPixel(pGC->depth))
     {
@@ -452,13 +447,13 @@ vfbMultiDepthCreateGC(pGC)
 }
 
 static void
-vfbMultiDepthGetSpans(pDrawable, wMax, ppt, pwidth, nspans, pdstStart)
-    DrawablePtr		pDrawable;	/* drawable from which to get bits */
-    int			wMax;		/* largest value of all *pwidths */
-    register DDXPointPtr ppt;		/* points to start copying from */
-    int			*pwidth;	/* list of number of bits to copy */
-    int			nspans;		/* number of scanlines to copy */
-    char		*pdstStart;	/* where to put the bits */
+vfbMultiDepthGetSpans(
+    DrawablePtr		pDrawable,	/* drawable from which to get bits */
+    int			wMax,		/* largest value of all *pwidths */
+    register DDXPointPtr ppt,		/* points to start copying from */
+    int			*pwidth,	/* list of number of bits to copy */
+    int			nspans,		/* number of scanlines to copy */
+    char		*pdstStart)	/* where to put the bits */
 {
     switch (pDrawable->bitsPerPixel) {
     case 1:
@@ -474,12 +469,9 @@ vfbMultiDepthGetSpans(pDrawable, wMax, ppt, pwidth, nspans, pdstStart)
 }
 
 static void
-vfbMultiDepthGetImage(pDrawable, sx, sy, w, h, format, planeMask, pdstLine)
-    DrawablePtr pDrawable;
-    int		sx, sy, w, h;
-    unsigned int format;
-    unsigned long planeMask;
-    char	*pdstLine;
+vfbMultiDepthGetImage(DrawablePtr pDrawable, int sx, int sy, int w, int h,
+		      unsigned int format, unsigned long planeMask,
+		      char *pdstLine)
 {
     switch (pDrawable->bitsPerPixel)
     {
@@ -497,9 +489,7 @@ vfbMultiDepthGetImage(pDrawable, sx, sy, w, h, format, planeMask, pdstLine)
 static ColormapPtr InstalledMaps[MAXSCREENS];
 
 static int
-vfbListInstalledColormaps(pScreen, pmaps)
-    ScreenPtr	pScreen;
-    Colormap	*pmaps;
+vfbListInstalledColormaps(ScreenPtr pScreen, Colormap *pmaps)
 {
     /* By the time we are processing requests, we can guarantee that there
      * is always a colormap installed */
@@ -509,8 +499,7 @@ vfbListInstalledColormaps(pScreen, pmaps)
 
 
 static void
-vfbInstallColormap(pmap)
-    ColormapPtr	pmap;
+vfbInstallColormap(ColormapPtr pmap)
 {
     int index = pmap->pScreen->myNum;
     ColormapPtr oldpmap = InstalledMaps[index];
@@ -568,8 +557,7 @@ vfbInstallColormap(pmap)
 }
 
 static void
-vfbUninstallColormap(pmap)
-    ColormapPtr	pmap;
+vfbUninstallColormap(ColormapPtr pmap)
 {
     ColormapPtr curpmap = InstalledMaps[pmap->pScreen->myNum];
 
@@ -585,10 +573,7 @@ vfbUninstallColormap(pmap)
 }
 
 static void
-vfbStoreColors(pmap, ndef, pdefs)
-    ColormapPtr pmap;
-    int         ndef;
-    xColorItem  *pdefs;
+vfbStoreColors(ColormapPtr pmap, int ndef, xColorItem *pdefs)
 {
     XWDColor *pXWDCmap;
     int i;
@@ -623,9 +608,7 @@ vfbStoreColors(pmap, ndef, pdefs)
 }
 
 static Bool
-vfbSaveScreen(pScreen, on)
-    ScreenPtr pScreen;
-    int on;
+vfbSaveScreen(ScreenPtr pScreen, int on)
 {
     return TRUE;
 }
@@ -634,10 +617,7 @@ vfbSaveScreen(pScreen, on)
 
 /* this flushes any changes to the screens out to the mmapped file */
 static void
-vfbBlockHandler(blockData, pTimeout, pReadmask)
-    pointer   blockData;
-    OSTimePtr pTimeout;
-    pointer   pReadmask;
+vfbBlockHandler(pointer blockData, OSTimePtr pTimeout, pointer pReadmask)
 {
     int i;
 
@@ -660,17 +640,13 @@ vfbBlockHandler(blockData, pTimeout, pReadmask)
 
 
 static void
-vfbWakeupHandler(blockData, result, pReadmask)
-    pointer blockData;
-    int     result;
-    pointer pReadmask;
+vfbWakeupHandler(pointer blockData, int result, pointer pReadmask)
 {
 }
 
 
 static void
-vfbAllocateMmappedFramebuffer(pvfb)
-    vfbScreenInfoPtr pvfb;
+vfbAllocateMmappedFramebuffer(vfbScreenInfoPtr pvfb)
 {
 #define DUMMY_BUFFER_SIZE 65536
     char dummyBuffer[DUMMY_BUFFER_SIZE];
@@ -726,8 +702,7 @@ vfbAllocateMmappedFramebuffer(pvfb)
 
 #ifdef HAS_SHM
 static void
-vfbAllocateSharedMemoryFramebuffer(pvfb)
-    vfbScreenInfoPtr pvfb;
+vfbAllocateSharedMemoryFramebuffer(vfbScreenInfoPtr pvfb)
 {
     /* create the shared memory segment */
 
@@ -755,16 +730,11 @@ vfbAllocateSharedMemoryFramebuffer(pvfb)
 #endif /* HAS_SHM */
 
 static char *
-vfbAllocateFramebufferMemory(pvfb)
-    vfbScreenInfoPtr pvfb;
+vfbAllocateFramebufferMemory(vfbScreenInfoPtr pvfb)
 {
     if (pvfb->pfbMemory) return pvfb->pfbMemory; /* already done */
 
-    if (pvfb->bitsPerPixel == 1)
-	pvfb->sizeInBytes = (pvfb->paddedWidth * pvfb->height);
-    else
-	pvfb->sizeInBytes = pvfb->paddedWidth * pvfb->height *
-			    (pvfb->bitsPerPixel/8);
+    pvfb->sizeInBytes = pvfb->paddedBytesWidth * pvfb->height;
 
     /* Calculate how many entries in colormap.  This is rather bogus, because
      * the visuals haven't even been set up yet, but we need to know because we
@@ -822,8 +792,7 @@ vfbAllocateFramebufferMemory(pvfb)
 
 
 static void
-vfbWriteXWDFileHeader(pScreen)
-    ScreenPtr pScreen;
+vfbWriteXWDFileHeader(ScreenPtr pScreen)
 {
     vfbScreenInfoPtr pvfb = &vfbScreens[pScreen->myNum];
     XWDFileHeader *pXWDHeader = pvfb->pXWDHeader;
@@ -852,7 +821,7 @@ vfbWriteXWDFileHeader(pScreen)
     pXWDHeader->bitmap_pad = BITMAP_SCANLINE_PAD_PROTO;
 #endif
     pXWDHeader->bits_per_pixel = pvfb->bitsPerPixel;
-    pXWDHeader->bytes_per_line = pvfb->paddedWidth;
+    pXWDHeader->bytes_per_line = pvfb->paddedBytesWidth;
     pXWDHeader->ncolors = pvfb->ncolors;
 
     /* visual related fields are written when colormap is installed */
@@ -891,17 +860,13 @@ vfbWriteXWDFileHeader(pScreen)
 
 
 static Bool
-vfbCursorOffScreen (ppScreen, x, y)
-    ScreenPtr   *ppScreen;
-    int         *x, *y;
+vfbCursorOffScreen (ScreenPtr *ppScreen, int *x, int *y)
 {
     return FALSE;
 }
 
 static void
-vfbCrossScreen (pScreen, entering)
-    ScreenPtr   pScreen;
-    Bool        entering;
+vfbCrossScreen (ScreenPtr pScreen, Bool entering)
 {
 }
 
@@ -913,19 +878,37 @@ static miPointerScreenFuncRec vfbPointerCursorFuncs =
 };
 
 static Bool
-vfbScreenInit(index, pScreen, argc, argv)
-    int index;
-    ScreenPtr pScreen;
-    int argc;
-    char ** argv;
+vfbCloseScreen(int index, ScreenPtr pScreen)
+{
+    vfbScreenInfoPtr pvfb = &vfbScreens[index];
+    int i;
+ 
+    pScreen->CloseScreen = pvfb->closeScreen;
+
+    /*
+     * XXX probably lots of stuff to clean.  For now,
+     * clear InstalledMaps[] so that server reset works correctly.
+     */
+    for (i = 0; i < MAXSCREENS; i++)
+	InstalledMaps[i] = NULL;
+
+    return pScreen->CloseScreen(index, pScreen);
+}
+
+static Bool
+vfbScreenInit(int index, ScreenPtr pScreen, int argc, char **argv)
 {
     vfbScreenInfoPtr pvfb = &vfbScreens[index];
     int dpix = 100, dpiy = 100;
     int ret;
     char *pbits;
 
-    pvfb->paddedWidth = PixmapBytePad(pvfb->width, pvfb->depth);
+    pvfb->paddedBytesWidth = PixmapBytePad(pvfb->width, pvfb->depth);
     pvfb->bitsPerPixel = vfbBitsPerPixel(pvfb->depth);
+    if (pvfb->bitsPerPixel >= 8 )
+	pvfb->paddedWidth = pvfb->paddedBytesWidth / (pvfb->bitsPerPixel / 8);
+    else
+	pvfb->paddedWidth = pvfb->paddedBytesWidth * 8;
     pbits = vfbAllocateFramebufferMemory(pvfb);
     if (!pbits) return FALSE;
 
@@ -935,7 +918,7 @@ vfbScreenInit(index, pScreen, argc, argv)
     {
     case 1:
 	ret = mfbScreenInit(pScreen, pbits, pvfb->width, pvfb->height,
-			    dpix, dpiy, pvfb->paddedWidth * 8);
+			    dpix, dpiy, pvfb->paddedWidth);
 	break;
     case 8:
     case 16:
@@ -988,16 +971,16 @@ vfbScreenInit(index, pScreen, argc, argv)
 
     miSetZeroLineBias(pScreen, pvfb->lineBias);
 
+    pvfb->closeScreen = pScreen->CloseScreen;
+    pScreen->CloseScreen = vfbCloseScreen;
+
     return ret;
 
 } /* end vfbScreenInit */
 
 
 void
-InitOutput(screenInfo, argc, argv)
-    ScreenInfo *screenInfo;
-    int argc;
-    char **argv;
+InitOutput(ScreenInfo *screenInfo, int argc, char **argv)
 {
     int i;
     int NumFormats = 0;
@@ -1010,9 +993,16 @@ InitOutput(screenInfo, argc, argv)
 	vfbPixmapDepths[vfbScreens[i].depth] = TRUE;
     }
 
-    /* for RENDER we need 32bpp */
-    if (Render)
+    /* RENDER needs a good set of pixmaps. */
+    if (Render) {
+	vfbPixmapDepths[1] = TRUE;
+	vfbPixmapDepths[4] = TRUE;
+	vfbPixmapDepths[8] = TRUE;
+	vfbPixmapDepths[15] = TRUE;
+	vfbPixmapDepths[16] = TRUE;
+	vfbPixmapDepths[24] = TRUE;
 	vfbPixmapDepths[32] = TRUE;
+    }
 
     for (i = 1; i <= 32; i++)
     {
