@@ -74,13 +74,14 @@ fakeScreenInitialize (KdScreenInfo *screen, FakeScrPriv *scrpriv)
 	screen->height = 768;
 	screen->rate = 72;
     }
+
+    if (screen->width <= 0)
+	screen->width = 1;
+    if (screen->height <= 0)
+	screen->height = 1;
+    
     if (!screen->fb[0].depth)
 	screen->fb[0].depth = 16;
-
-    t = KdFindMode (screen, fakeModeSupported);
-    screen->rate = t->rate;
-    screen->width = t->horizontal;
-    screen->height = t->vertical;
 
     if (screen->fb[0].depth <= 8)
     {
