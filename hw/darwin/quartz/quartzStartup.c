@@ -4,7 +4,7 @@
  *
  **************************************************************/
 /*
- * Copyright (c) 2001-2003 Torrey T. Lyons. All Rights Reserved.
+ * Copyright (c) 2001-2004 Torrey T. Lyons. All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -264,28 +264,16 @@ int DarwinModeProcessArgument( int argc, char *argv[], int i )
 
     if ( !strcmp( argv[i], "-fullscreen" ) ) {
         ErrorF( "Running full screen in parallel with Mac OS X Quartz window server.\n" );
-#ifdef QUARTZ_SAFETY_DELAY
-        ErrorF( "Quitting in %d seconds if no controller is found.\n",
-                QUARTZ_SAFETY_DELAY );
-#endif
         return 1;
     }
 
     if ( !strcmp( argv[i], "-rootless" ) ) {
         ErrorF( "Running rootless inside Mac OS X window server.\n" );
-#ifdef QUARTZ_SAFETY_DELAY
-        ErrorF( "Quitting in %d seconds if no controller is found.\n",
-                QUARTZ_SAFETY_DELAY );
-#endif
         return 1;
     }
 
     if ( !strcmp( argv[i], "-quartz" ) ) {
         ErrorF( "Running in parallel with Mac OS X Quartz window server.\n" );
-#ifdef QUARTZ_SAFETY_DELAY
-        ErrorF( "Quitting in %d seconds if no controller is found.\n",
-                QUARTZ_SAFETY_DELAY );
-#endif
         return 1;
     }
 
