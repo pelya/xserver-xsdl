@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/os/utils.c,v 1.5 2004/07/31 09:14:06 kem Exp $ */
+/* $XdotOrg: xc/programs/Xserver/os/utils.c,v 1.6 2004/08/11 22:27:50 kem Exp $ */
 /* $Xorg: utils.c,v 1.5 2001/02/09 02:05:24 xorgcvs Exp $ */
 /*
 
@@ -119,7 +119,125 @@ OR PERFORMANCE OF THIS SOFTWARE.
 
 #ifdef RENDER
 #include "picture.h"
+#endif
+
+Bool noTestExtensions;
+#ifdef BEZIER
+Bool noBezierExtension = FALSE;
+#endif
+#ifdef BIGREQS
+Bool noBigReqExtension = FALSE;
+#endif
+#ifdef COMPOSITE
+/* COMPOSITE is disabled by default for now until the
+ * interface is stable */
+Bool noCompositeExtension = TRUE;
+#endif
+#ifdef DAMAGE
+Bool noDamageExtension = FALSE;
+#endif
+#ifdef DBE
+Bool noDbeExtension = FALSE;
+#endif
+#ifdef DPSEXT
+Bool noDPSExtension = FALSE;
+#endif
+#ifdef DPMSExtension
+Bool noDPMSExtension = FALSE;
+#endif
+#ifdef EVI
+Bool noEVIExtension = FALSE;
+#endif
+#ifdef FONTCACHE
+Bool noFontCacheExtension = FALSE;
+#endif
+#ifdef GLXEXT
+Bool noGlxExtension = FALSE;
+#endif
+#ifdef LBX
+Bool noLbxExtension = FALSE;
+#endif
+#ifdef SCREENSAVER
+Bool noScreenSaverExtension = FALSE;
+#endif
+#ifdef MITSHM
+Bool noMITShmExtension = FALSE;
+#endif
+#ifdef MITMISC
+Bool noMITMiscExtension = FALSE;
+#endif
+#ifdef MULTIBUFFER
+Bool noMultibufferExtension = FALSE;
+#endif
+#ifdef RANDR
+Bool noRRExtension = FALSE;
+#endif
+#ifdef RENDER
 Bool noRenderExtension = FALSE;
+#endif
+#ifdef SHAPE
+Bool noShapeExtension = FALSE;
+#endif
+#ifdef XCSECURITY
+Bool noSecurityExtension = FALSE;
+#endif
+#ifdef XSYNC
+Bool noSyncExtension = FALSE;
+#endif
+#ifdef TOGCUP
+Bool noXcupExtension = FALSE;
+#endif
+#ifdef PEXEXT
+Bool noPexExtension = FALSE;
+#endif
+#ifdef RES
+Bool noResExtension = FALSE;
+#endif
+#ifdef XAPPGROUP
+Bool noXagExtension = FALSE;
+#endif
+#ifdef XCMISC
+Bool noXCMiscExtension = FALSE;
+#endif
+#ifdef XEVIE
+/* Xevie is disabled by default for now until the
+ * interface is stable */
+Bool noXevieExtension = TRUE;
+#endif
+#ifdef XIE
+Bool noXie = FALSE;
+#endif
+#ifdef XF86BIGFONT
+Bool noXFree86BigfontExtension = FALSE;
+#endif
+#ifdef XFreeXDGA
+Bool noXFree86DGAExtension = FALSE;
+#endif
+#ifdef XF86DRI
+Bool noXFree86DRIExtension = FALSE;
+#endif
+#ifdef XF86MISC
+Bool noXFree86MiscExtension = FALSE;
+#endif
+#ifdef XF86VIDMODE
+Bool noXFree86VidModeExtension = FALSE;
+#endif
+#ifdef XFIXES
+Bool noXFixesExtension = FALSE;
+#endif
+/* |noXkbExtension| is defined in xc/programs/Xserver/xkb/xkbInit.c */
+#ifdef PANORAMIX
+/* Xinerama is disabled by default unless enabled via +xinerama */
+Bool noPanoramiXExtension = TRUE;
+#endif
+#ifdef XINPUT
+Bool noXInputExtension = FALSE;
+#endif
+#ifdef XIDLE
+Bool noXIdleExtension = FALSE;
+#endif
+#ifdef XV
+Bool noXvExtension = FALSE;
 #endif
 
 #define X_INCLUDE_NETDB_H
@@ -128,22 +246,12 @@ Bool noRenderExtension = FALSE;
 #include <errno.h>
 
 Bool CoreDump;
-Bool noTestExtensions;
 
 #ifdef PANORAMIX
-Bool noPanoramiXExtension = TRUE;
 Bool PanoramiXVisibilityNotifySent = FALSE;
 Bool PanoramiXMapped = FALSE;
 Bool PanoramiXWindowExposureSent = FALSE;
 Bool PanoramiXOneExposeRequest = FALSE;
-#endif
-
-#ifdef XEVIE
-Bool noXevieExtension = TRUE;
-#endif
-
-#ifdef COMPOSITE
-Bool noCompositeExtension = TRUE;
 #endif
 
 int auditTrailLevel = 1;

@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/include/globals.h,v 1.3 2004/07/31 04:23:21 kem Exp $ */
+/* $XdotOrg: xc/programs/Xserver/include/globals.h,v 1.4 2004/07/31 09:14:06 kem Exp $ */
 /* $XFree86: xc/programs/Xserver/include/globals.h,v 1.3 1999/09/25 14:38:21 dawes Exp $ */
 
 #ifndef _XSERV_GLOBAL_H_
@@ -42,23 +42,163 @@ extern Bool DPMSCapableFlag;
 #endif
 
 #ifdef PANORAMIX
-extern Bool noPanoramiXExtension;
 extern Bool PanoramiXMapped;
 extern Bool PanoramiXVisibilityNotifySent;
 extern Bool PanoramiXWindowExposureSent;
 extern Bool PanoramiXOneExposeRequest;
 #endif
 
-#ifdef RENDER
-extern Bool noRenderExtension;
+#ifdef BEZIER
+extern Bool noBezierExtension;
 #endif
 
-#ifdef XEVIE
-extern Bool noXevieExtension;
+#ifdef BIGREQS
+extern Bool noBigReqExtension;
 #endif
 
 #ifdef COMPOSITE
 extern Bool noCompositeExtension;
 #endif
 
-#endif /* _XSERV_GLOBAL_H_ */
+#ifdef DAMAGE
+extern Bool noDamageExtension;
+#endif
+
+#ifdef DBE
+extern Bool noDbeExtension;
+#endif
+
+#ifdef DPSEXT
+extern Bool noDPSExtension;
+#endif
+
+#ifdef DPMSExtension
+extern Bool noDPMSExtension;
+#endif
+
+#ifdef EVI
+extern Bool noEVIExtension;
+#endif
+
+#ifdef FONTCACHE
+extern Bool noFontCacheExtension;
+#endif
+
+#ifdef GLXEXT
+extern Bool noGlxExtension;
+#endif
+
+#ifdef LBX
+extern Bool noLbxExtension;
+#endif
+
+#ifdef SCREENSAVER
+extern Bool noScreenSaverExtension;
+#endif
+
+#ifdef MITSHM
+extern Bool noMITShmExtension;
+#endif
+
+#ifdef MITMISC
+extern Bool noMITMiscExtension;
+#endif
+
+#ifdef MULTIBUFFER
+extern Bool noMultibufferExtension;
+#endif
+
+#ifdef RANDR
+extern Bool noRRExtension;
+#endif
+
+#ifdef RENDER
+extern Bool noRenderExtension;
+#endif
+
+#ifdef SHAPE
+extern Bool noShapeExtension;
+#endif
+
+#ifdef XCSECURITY
+extern Bool noSecurityExtension;
+#endif
+
+#ifdef XSYNC
+extern Bool noSyncExtension;
+#endif
+
+#ifdef TOGCUP
+extern Bool noXcupExtension;
+#endif
+
+#ifdef PEXEXT
+extern Bool noPexExtension;
+#endif
+
+#ifdef RES
+extern Bool noResExtension;
+#endif
+
+#ifdef XAPPGROUP
+extern Bool noXagExtension;
+#endif
+
+#ifdef XCMISC
+extern Bool noXCMiscExtension;
+#endif
+
+#ifdef XEVIE
+extern Bool noXevieExtension;
+#endif
+
+#ifdef XIE
+extern Bool noXie;
+#endif
+
+#ifdef XF86BIGFONT
+extern Bool noXFree86BigfontExtension;
+#endif
+
+#ifdef XFreeXDGA
+extern Bool noXFree86DGAExtension;
+#endif
+
+#ifdef XF86DRI
+extern Bool noXFree86DRIExtension;
+#endif
+
+#ifdef XF86MISC
+extern Bool noXFree86MiscExtension;
+#endif
+
+#ifdef XF86VIDMODE
+extern Bool noXFree86VidModeExtension;
+#endif
+
+#ifdef XFIXES
+extern Bool noXFixesExtension;
+#endif
+
+#ifdef XKB
+/* |noXkbExtension| is defined in xc/programs/Xserver/xkb/xkbInit.c */
+extern Bool noXkbExtension;
+#endif
+
+#ifdef PANORAMIX
+extern Bool noPanoramiXExtension;
+#endif
+
+#ifdef XINPUT
+extern Bool noXInputExtension;
+#endif
+
+#ifdef XIDLE
+extern Bool noXIdleExtension;
+#endif
+
+#ifdef XV
+extern Bool noXvExtension;
+#endif
+
+#endif /* !_XSERV_GLOBAL_H_ */

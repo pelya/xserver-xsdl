@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/hw/xfree86/loader/dixsym.c,v 1.4 2004/08/09 03:40:50 krh Exp $ */
+/* $XdotOrg: xc/programs/Xserver/hw/xfree86/loader/dixsym.c,v 1.5 2004/08/19 04:08:40 kem Exp $ */
 /* $XFree86: xc/programs/Xserver/hw/xfree86/loader/dixsym.c,v 1.63 2003/12/03
  * 17:11:29 tsi Exp $ */
 
@@ -325,14 +325,121 @@ LOOKUP dixLookupTab[] = {
     SYMFUNC(AdjustWaitForDelay)
     SYMVAR(noTestExtensions)
     SYMFUNC(GiveUp)
+
+#ifdef BEZIER
+    SYMVAR(noBezierExtension)
+#endif
+#ifdef BIGREQS
+    SYMVAR(noBigReqExtension)
+#endif
 #ifdef COMPOSITE
     SYMVAR(noCompositeExtension)
+#endif
+#ifdef DAMAGE
+    SYMVAR(noDamageExtension)
+#endif
+#ifdef DBE
+    SYMVAR(noDbeExtension)
+#endif
+#ifdef DPSEXT
+    SYMVAR(noDPSExtension)
+#endif
+#ifdef DPMSExtension
+    SYMVAR(noDPMSExtension)
+#endif
+#ifdef EVI
+    SYMVAR(noEVIExtension)
+#endif
+#ifdef FONTCACHE
+    SYMVAR(noFontCacheExtension)
+#endif
+#ifdef GLXEXT
+    SYMVAR(noGlxExtension)
+#endif
+#ifdef LBX
+    SYMVAR(noLbxExtension)
+#endif
+#ifdef SCREENSAVER
+    SYMVAR(noScreenSaverExtension)
+#endif
+#ifdef MITSHM
+    SYMVAR(noMITShmExtension)
+#endif
+#ifdef MITMISC
+    SYMVAR(noMITMiscExtension)
+#endif
+#ifdef MULTIBUFFER
+    SYMVAR(noMultibufferExtension)
+#endif
+#ifdef RANDR
+    SYMVAR(noRRExtension)
 #endif
 #ifdef RENDER
     SYMVAR(noRenderExtension)
 #endif
+#ifdef SHAPE
+    SYMVAR(noShapeExtension)
+#endif
+#ifdef XCSECURITY
+    SYMVAR(noSecurityExtension)
+#endif
+#ifdef XSYNC
+    SYMVAR(noSyncExtension)
+#endif
+#ifdef TOGCUP
+    SYMVAR(noXcupExtension)
+#endif
+#ifdef PEXEXT
+    SYMVAR(noPexExtension)
+#endif
+#ifdef RES
+    SYMVAR(noResExtension)
+#endif
+#ifdef XAPPGROUP
+    SYMVAR(noXagExtension)
+#endif
+#ifdef XCMISC
+    SYMVAR(noXCMiscExtension)
+#endif
 #ifdef XEVIE
     SYMVAR(noXevieExtension)
+#endif
+#ifdef XIE
+    SYMVAR(noXie)
+#endif
+#ifdef XF86BIGFONT
+    SYMVAR(noXFree86BigfontExtension)
+#endif
+#ifdef XFreeXDGA
+    SYMVAR(noXFree86DGAExtension)
+#endif
+#ifdef XF86DRI
+    SYMVAR(noXFree86DRIExtension)
+#endif
+#ifdef XF86MISC
+    SYMVAR(noXFree86MiscExtension)
+#endif
+#ifdef XF86VIDMODE
+    SYMVAR(noXFree86VidModeExtension)
+#endif
+#ifdef XFIXES
+    SYMVAR(noXFixesExtension)
+#endif
+#ifdef XKB
+/* |noXkbExtension| is defined in xc/programs/Xserver/xkb/xkbInit.c */
+    SYMVAR(noXkbExtension)
+#endif
+#ifdef PANORAMIX
+    SYMVAR(noPanoramiXExtension)
+#endif
+#ifdef XINPUT
+    SYMVAR(noXInputExtension)
+#endif
+#ifdef XIDLE
+    SYMVAR(noXIdleExtension)
+#endif
+#ifdef XV
+    SYMVAR(noXvExtension)
 #endif
 
     /* log.c */
