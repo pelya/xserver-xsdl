@@ -1,5 +1,6 @@
 /*
  * $Xorg: stipsprc32.s,v 1.4 2001/02/09 02:04:39 xorgcvs Exp $
+ * $XdotOrg:	$
  *
 Copyright 1990, 1998  The Open Group
 
@@ -98,9 +99,17 @@ in this Software without prior written authorization from The Open Group.
 	.globl	_cfb32StippleStack
 _cfb32StippleStack:
 	save	%sp,-64,%sp
+#ifdef SHAREDCODE
+1:
+        call    2f
+        nop
+2:
+        mov     %o7,sbase                       /* sbase = 1b(1:) */
+        add     sbase, CaseBegin-1b, sbase
+#else /* !SHAREDCODE */
 	sethi	%hi(CaseBegin),sbase		/* load up switch table */
 	or	sbase,%lo(CaseBegin),sbase
-
+#endif /* !SHAREDCODE */
 	mov	4,lshift			/* compute offset within */
 	sub	lshift, shift, lshift		/*  stipple of remaining bits */
 #ifdef LITTLE_ENDIAN
