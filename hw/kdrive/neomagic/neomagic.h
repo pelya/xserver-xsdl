@@ -79,6 +79,18 @@
 #define NEO_BC3_BLT_ON_ADDR     0x10000000
 #define NEO_BC3_SKIP_MAPPING    0x80000000
 
+#define NEO_MODE1_DEPTH8        0x0100
+#define NEO_MODE1_DEPTH16       0x0200
+#define NEO_MODE1_DEPTH24       0x0300
+#define NEO_MODE1_X_320         0x0400
+#define NEO_MODE1_X_640         0x0800
+#define NEO_MODE1_X_800         0x0c00
+#define NEO_MODE1_X_1024        0x1000
+#define NEO_MODE1_X_1152        0x1400
+#define NEO_MODE1_X_1280        0x1800
+#define NEO_MODE1_X_1600        0x1c00
+#define NEO_MODE1_BLT_ON_ADDR   0x2000
+
 typedef volatile CARD8    VOL8;
 typedef volatile CARD16    VOL16;
 typedef volatile CARD32    VOL32;

@@ -75,8 +75,6 @@ neoCardInit(KdCardInfo *card)
 
     ErrorF("Using Neomagic card: %s\n", neoc->chip->name);
 
-    iopl(3);
-
     neoMapReg(card, neoc);
 
     card->driver = neoc;
@@ -170,6 +168,7 @@ neoSetIndex(NeoCardInfo *nvidiac, CARD16 addr,  CARD8 index, CARD8 val)
 static void neoLock(NeoCardInfo *neoc){
     CARD8 cr11;
     neoSetIndex(neoc, 0x3ce,  0x09, 0x00);
+    neoSetIndex(neoc, 0x3ce,  0x11, 0x0); // disable MMIO and linear mode
     cr11 = neoGetIndex(neoc, 0x3d4, 0x11);
     neoSetIndex(neoc, 0x3d4, 0x11, cr11 | 0x80);
 }
@@ -179,6 +178,7 @@ static void neoUnlock(NeoCardInfo *neoc){
     cr11 = neoGetIndex(neoc, 0x3d4, 0x11);
     neoSetIndex(neoc, 0x3d4, 0x11, cr11 & 0x7F);
     neoSetIndex(neoc, 0x3ce,  0x09, 0x26);
+    neoSetIndex(neoc, 0x3ce,  0x11, 0xc0); // enable MMIO and linear mode
 }
 
 

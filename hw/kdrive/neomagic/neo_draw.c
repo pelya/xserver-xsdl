@@ -39,23 +39,26 @@
 #include "miline.h"
 #include "picturestr.h"
 
-static inline void neoWaitIdle(NeoCardInfo *neoc)
-{
-    // if MMIO is not working it may halt the machine
-    int i = 0;
-    while ((neoc->mmio->bltStat & 1) && ++i<10000);
-    if (i>=10000) DBGOUT("Wait Idle timeout");
-}
-
-static inline void neoWaitFifo(NeoCardInfo *neoc, int requested_fifo_space)
-{
-    neoWaitIdle( neoc );
-}
-
 NeoMMIO       *mmio;
 NeoScreenInfo *screen;
 NeoCardInfo   *card;
 CARD32        fgColor;
+
+static  void neoWaitIdle(NeoCardInfo *neoc)
+{
+    // if MMIO is not working it may halt the machine
+	DBGOUT("Waiting for idle...\n");
+	DBGOUT("blStat %lx=%lx\n", &mmio->bltStat, mmio->bltStat);
+    unsigned int i = 0;
+    while ((mmio->bltStat & 1) && ++i<100000);
+    if (i>=100000) DBGOUT("Wait Idle timeout\n");
+	else DBGOUT("*** Wait Idle ok\n");
+}
+
+static  void neoWaitFifo(NeoCardInfo *neoc, int requested_fifo_space)
+{
+    neoWaitIdle( neoc );
+}
 
 static Bool neoPrepareSolid(PixmapPtr pPixmap,
                             int alu,
@@ -68,15 +71,12 @@ static Bool neoPrepareSolid(PixmapPtr pPixmap,
         return FALSE;
     } else {
         fgColor = fg;
-        neoWaitIdle(card);
         /* set blt control */
-        mmio->bltCntl =
-            NEO_BC0_SRC_IS_FG    |
+/*            NEO_BC0_SRC_IS_FG    |
             NEO_BC3_SRC_XY_ADDR |
-            NEO_BC3_DST_XY_ADDR |
-            NEO_BC3_SKIP_MAPPING |  0x0c0000;
+            NEO_BC3_DST_XY_ADDR | 
+            NEO_BC3_SKIP_MAPPING |  0x0c0000; */
 
-        mmio->fgColor = fgColor;
         return TRUE;
     }
 }
@@ -98,12 +98,23 @@ static void neoSolid (int x1, int y1, int x2, int y2)
         h = -h;
     }
 
-    neoWaitIdle(card);
+	int pitch = 16;
+	
+	neoWaitIdle(card);
+	mmio->bltStat = NEO_MODE1_DEPTH16 << 16;
+ 	mmio->pitch = (pitch << 16) | (pitch & 0xffff);
+	
+	neoWaitIdle(card);
+	mmio->fgColor = fgColor;
+	mmio->bltCntl =
+			NEO_BC3_FIFO_EN      |
+			NEO_BC0_SRC_IS_FG    |
+			NEO_BC3_SKIP_MAPPING | 0x0c0000;		
     mmio->dstStart = (y <<16) | (x & 0xffff);
 
     mmio->xyExt    = (h << 16) | (w & 0xffff);
     DBGOUT("Solid (%i, %i) - (%i, %i).  Color %li\n", x, y, w, h, fgColor);
-    DBGOUT("Offset %lx. Extent %lx\n",mmio->dstStart, mmio->xyExt);
+    // DBGOUT("Offset %lx. Extent %lx\n",mmio->dstStart, mmio->xyExt);
 }
 
 
