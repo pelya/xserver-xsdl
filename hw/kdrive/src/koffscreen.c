@@ -55,12 +55,12 @@ KdOffscreenValidate (ScreenPtr pScreen)
 #define KdOffscreenValidate(s)
 #endif
 
-static void
+static KdOffscreenArea *
 KdOffscreenKickOut (ScreenPtr pScreen, KdOffscreenArea *area)
 {
     if (area->save)
 	(*area->save) (pScreen, area);
-    KdOffscreenFree (pScreen, area);
+    return KdOffscreenFree (pScreen, area);
 }
 
 KdOffscreenArea *
@@ -161,14 +161,14 @@ KdOffscreenAlloc (ScreenPtr pScreen, int size, int align,
 	 * Kick out first area if in use
 	 */
 	if (area->state != KdOffscreenAvail)
-	    KdOffscreenKickOut (pScreen, area);
+	    area = KdOffscreenKickOut (pScreen, area);
 	/*
 	 * Now get the system to merge the other needed areas together
 	 */
 	while (area->size < real_size)
 	{
 	    assert (area->next && area->next->state == KdOffscreenRemovable);
-	    KdOffscreenKickOut (pScreen, area->next);
+	    (void) KdOffscreenKickOut (pScreen, area->next);
 	}
     }
     
@@ -225,7 +225,7 @@ KdOffscreenSwapOut (ScreenPtr pScreen)
 		break;
 	}
 	assert (area->state != KdOffscreenAvail);
-	KdOffscreenKickOut (pScreen, area);
+	(void) KdOffscreenKickOut (pScreen, area);
 	KdOffscreenValidate (pScreen);
     }    
     KdOffscreenValidate (pScreen);
@@ -251,7 +251,7 @@ KdOffscreenMerge (KdOffscreenArea *area)
     xfree (next);
 }
 
-void
+KdOffscreenArea *
 KdOffscreenFree (ScreenPtr pScreen, KdOffscreenArea *area)
 {
     KdScreenPriv(pScreen);
@@ -281,9 +281,13 @@ KdOffscreenFree (ScreenPtr pScreen, KdOffscreenArea *area)
     
     /* link with prev area if free */
     if (prev && prev->state == KdOffscreenAvail)
-	KdOffscreenMerge (prev);
+    {
+	area = prev;
+	KdOffscreenMerge (area);
+    }
 
     KdOffscreenValidate (pScreen);
+    return area;
 }
 
 Bool

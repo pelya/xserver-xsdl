@@ -102,6 +102,7 @@ typedef struct _VesaScreenPriv {
     int		fb_size;
     CARD32	fb_phys;
     PixmapPtr	pShadow;
+    Bool	mapped;
 } VesaScreenPrivRec, *VesaScreenPrivPtr;
 
 extern int vesa_video_mode;
@@ -222,12 +223,6 @@ vesaScreenInit(KdScreenInfo *screen);
 
 PixmapPtr
 vesaGetPixmap (ScreenPtr pScreen);
-
-Bool
-vesaMapFramebuffer (KdScreenInfo    *screen);
-
-void
-vesaUnmapFramebuffer (KdScreenInfo  *screen);
 
 Bool
 vesaInitScreen(ScreenPtr pScreen);

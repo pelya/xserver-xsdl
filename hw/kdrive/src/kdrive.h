@@ -882,7 +882,7 @@ KdOffscreenAlloc (ScreenPtr pScreen, int size, int align,
 		  KdOffscreenSaveProc save,
 		  pointer privData);
 
-void
+KdOffscreenArea *
 KdOffscreenFree (ScreenPtr pScreen, KdOffscreenArea *area);
 
 void

@@ -48,6 +48,12 @@ Bool vesa_map_holes = TRUE;
 #define vesaHeight(scr,vmib) ((vmib)->YResolution)
 
 static Bool
+vesaComputeFramebufferMapping (KdScreenInfo *screen);
+
+static Bool
+vesaMapFramebuffer (KdScreenInfo    *screen);
+    
+static Bool
 vesaModeSupportable (VesaModePtr mode, Bool complain)
 {
     if((mode->ModeAttributes & 0x10) == 0) {
@@ -507,7 +513,11 @@ vesaScreenInitialize (KdScreenInfo *screen, VesaScreenPrivPtr pscr)
     }
     screen->rate = 72;
 
-    return vesaMapFramebuffer (screen);
+    if (!vesaComputeFramebufferMapping (screen))
+	return FALSE;
+    if (!vesaMapFramebuffer (screen))
+	return FALSE;
+    return TRUE;
 }
 
 Bool
@@ -850,10 +860,9 @@ vesaSetShadow (ScreenPtr pScreen)
     return KdShadowSet (pScreen, pscr->randr, update, window);
 }
 
-Bool
-vesaMapFramebuffer (KdScreenInfo    *screen)
+static Bool
+vesaComputeFramebufferMapping (KdScreenInfo *screen)
 {
-    VesaCardPrivPtr	priv = screen->card->driver;
     VesaScreenPrivPtr	pscr = screen->driver;
     int			depth, bpp, fbbpp;
     Pixel		allbits;
@@ -956,7 +965,27 @@ vesaMapFramebuffer (KdScreenInfo    *screen)
 	pscr->mapping = VESA_WINDOWED;
 	pscr->shadow = TRUE;
     }
+    KdComputeMouseMatrix (&m, pscr->randr, 
+			  pscr->mode.XResolution, pscr->mode.YResolution);
+    
+    KdSetMouseMatrix (&m);
+    
+    screen->width = pscr->mode.XResolution;
+    screen->height = pscr->mode.YResolution;
+    screen->fb[0].depth = depth;
+    screen->fb[0].bitsPerPixel = bpp;
 
+    return TRUE;
+}
+
+static Bool
+vesaMapFramebuffer (KdScreenInfo    *screen)
+{
+    VesaCardPrivPtr	priv = screen->card->driver;
+    VesaScreenPrivPtr	pscr = screen->driver;
+
+    if (pscr->mapped)
+	return TRUE;
     switch (pscr->mapping) {
     case VESA_MONO:
     case VESA_LINEAR:
@@ -981,17 +1010,8 @@ vesaMapFramebuffer (KdScreenInfo    *screen)
 	break;
     }
     
-    KdComputeMouseMatrix (&m, pscr->randr, 
-			  pscr->mode.XResolution, pscr->mode.YResolution);
-    
-    KdSetMouseMatrix (&m);
-    
-    screen->width = pscr->mode.XResolution;
-    screen->height = pscr->mode.YResolution;
     screen->memory_base = pscr->fb;
     screen->memory_size = pscr->fb_size;
-    screen->fb[0].depth = depth;
-    screen->fb[0].bitsPerPixel = bpp;
     
     if (pscr->shadow)
     {
@@ -1008,16 +1028,21 @@ vesaMapFramebuffer (KdScreenInfo    *screen)
 				     screen->fb[0].bitsPerPixel);
 	screen->off_screen_base = screen->fb[0].byteStride * screen->height;
     }
+    pscr->mapped = TRUE;
     
     return TRUE;
 }
 
-void
+static void
 vesaUnmapFramebuffer (KdScreenInfo  *screen)
 {
     VesaCardPrivPtr	    priv = screen->card->driver;
     VesaScreenPrivPtr	    pscr = screen->driver;
     
+    if (!pscr->mapped)
+	return;
+    
+    pscr->mapped = FALSE;
     KdShadowFbFree (screen, 0);
     if (pscr->fb)
     {
@@ -1201,6 +1226,9 @@ vesaRandRSetConfig (ScreenPtr		pScreen,
     
     vesaUnmapFramebuffer (screen);
     
+    if (!vesaComputeFramebufferMapping (screen))
+	goto bail3;
+
     if (!vesaMapFramebuffer (screen))
 	goto bail3;
     
@@ -1231,6 +1259,7 @@ vesaRandRSetConfig (ScreenPtr		pScreen,
 bail4:
     vesaUnmapFramebuffer (screen);
     *pscr = oldscr;
+    (void) vesaComputeFramebufferMapping (screen);
     (void) vesaMapFramebuffer (screen);
     
 bail3:
@@ -1332,6 +1361,10 @@ vesaEnable(ScreenPtr pScreen)
     int			i;
     CARD32		size;
     char		*p;
+    Bool		was_mapped = pscr->mapped;
+
+    if (!vesaMapFramebuffer (screen))
+	return FALSE;
 
     if (!vesaSetMode (pScreen, &pscr->mode))
 	return FALSE;
@@ -1340,39 +1373,6 @@ vesaEnable(ScreenPtr pScreen)
     case VESA_MONO:
 	VgaSetWritePlaneMask (priv->vi, 0x1);
     case VESA_LINEAR:
-	/*
-	 * Remap the frame buffer if necessary
-	 */
-	if (!pscr->fb)
-	{
-	    if (pscr->mode.vbe)
-		pscr->fb = VbeMapFramebuffer(priv->vi, priv->vbeInfo, 
-					     pscr->mode.mode,
-					     &pscr->fb_size,
-					     &pscr->fb_phys);
-	    else
-		pscr->fb = VgaMapFramebuffer (priv->vi, 
-					      pscr->mode.mode,
-					      &pscr->fb_size,
-					      &pscr->fb_phys);
-	    if (!pscr->fb)
-		return FALSE;
-	    screen->fb[0].frameBuffer = (CARD8 *)(pscr->fb);
-	    screen->memory_base = pscr->fb;
-	    /*
-	     * Set frame buffer mapping
-	     */
-	    if (!pscr->shadow)
-	    {
-		(*pScreen->ModifyPixmapHeader) (fbGetScreenPixmap (pScreen),
-						pScreen->width,
-						pScreen->height,
-						screen->fb[0].depth,
-						screen->fb[0].bitsPerPixel,
-						screen->fb[0].byteStride,
-						screen->fb[0].frameBuffer);
-	    }
-	}
 	if (vesa_restore_font)
 	    memcpy (priv->text, pscr->fb, VESA_TEXT_SAVE);
 	break;
@@ -1404,6 +1404,16 @@ vesaEnable(ScreenPtr pScreen)
 	    }
 	}
 	break;
+    }
+    if (!was_mapped)
+    {
+	(*pScreen->ModifyPixmapHeader) (fbGetScreenPixmap (pScreen),
+					pScreen->width,
+					pScreen->height,
+					screen->fb[0].depth,
+					screen->fb[0].bitsPerPixel,
+					screen->fb[0].byteStride,
+					screen->fb[0].frameBuffer);
     }
     return TRUE;
 }
