@@ -32,11 +32,11 @@ extern CARD8 ATIBltRop[16];
 static int src_pitch;
 static int src_offset;
 static int src_bpp;
-int widths[2] = {1,1};
-int heights[2] = {1,1};
-Bool is_repeat;
-Bool is_transform[2];
-PictTransform *transform[2];
+static int widths[2] = {1,1};
+static int heights[2] = {1,1};
+static Bool is_repeat;
+static Bool is_transform[2];
+static PictTransform *transform[2];
 
 struct blendinfo {
 	Bool dst_alpha;
@@ -332,6 +332,7 @@ R128TextureSetup(PicturePtr pPict, PixmapPtr pPix, int unit, CARD32 *txsize,
 	} else {
 		is_transform[unit] = FALSE;
 	}
+
 	return TRUE;
 }
 
@@ -358,6 +359,8 @@ R128PrepareComposite(int op, PicturePtr pSrcPicture, PicturePtr pMaskPicture,
 	if (pMask != NULL && !R128TextureSetup(pMaskPicture, pMask, 1, &txsize,
 	    &sec_tex_cntl_c))
 		return FALSE;
+	else if (pMask == NULL)
+		is_transform[1] = FALSE;
 
 	if (!ATIGetPixmapOffsetPitch(pDst, &dst_pitch_offset))
 		return FALSE;

@@ -32,6 +32,8 @@
 #include "ati_draw.h"
 
 extern ATIScreenInfo *accel_atis;
+static Bool is_transform[2];
+static PictTransform *transform[2];
 
 struct blendinfo {
 	Bool dst_alpha;
@@ -204,6 +206,13 @@ R100TextureSetup(PicturePtr pPict, PixmapPtr pPix, int unit)
 	OUT_RING(txpitch - 32);
 	END_DMA();
 
+	if (pPict->transform != 0) {
+		is_transform[unit] = TRUE;
+		transform[unit] = pPict->transform;
+	} else {
+		is_transform[unit] = FALSE;
+	}
+
 	return TRUE;
 }
 
@@ -216,10 +225,6 @@ R100CheckComposite(int op, PicturePtr pSrcPicture, PicturePtr pMaskPicture,
 	/* Check for unsupported compositing operations. */
 	if (op >= sizeof(RadeonBlendOp) / sizeof(RadeonBlendOp[0]))
 		ATI_FALLBACK(("Unsupported Composite op 0x%x\n", op));
-	if (pSrcPicture->transform)
-		ATI_FALLBACK(("Source transform unsupported.\n"));
-	if (pMaskPicture != NULL && pMaskPicture->transform)
-		ATI_FALLBACK(("Mask transform unsupported.\n"));
 	if (pMaskPicture != NULL && pMaskPicture->componentAlpha &&
 	    RadeonBlendOp[op].src_alpha)
 		ATI_FALLBACK(("Component alpha not supported with source "
@@ -273,6 +278,8 @@ R100PrepareComposite(int op, PicturePtr pSrcPicture, PicturePtr pMaskPicture,
 		if (!R100TextureSetup(pMaskPicture, pMask, 1))
 			return FALSE;
 		pp_cntl |= RADEON_TEX_1_ENABLE;
+	} else {
+		is_transform[1] = FALSE;
 	}
 
 	BEGIN_DMA(14);
@@ -420,6 +427,13 @@ R200TextureSetup(PicturePtr pPict, PixmapPtr pPix, int unit)
 	OUT_REG(R200_PP_TXOFFSET_0 + 0x18 * unit, txoffset);
 	END_DMA();
 
+	if (pPict->transform != 0) {
+		is_transform[unit] = TRUE;
+		transform[unit] = pPict->transform;
+	} else {
+		is_transform[unit] = FALSE;
+	}
+
 	return TRUE;
 }
 
@@ -432,10 +446,6 @@ R200CheckComposite(int op, PicturePtr pSrcPicture, PicturePtr pMaskPicture,
 	/* Check for unsupported compositing operations. */
 	if (op >= sizeof(RadeonBlendOp) / sizeof(RadeonBlendOp[0]))
 		ATI_FALLBACK(("Unsupported Composite op 0x%x\n", op));
-	if (pSrcPicture->transform)
-		ATI_FALLBACK(("Source transform unsupported.\n"));
-	if (pMaskPicture != NULL && pMaskPicture->transform)
-		ATI_FALLBACK(("Mask transform unsupported.\n"));
 	if (pMaskPicture != NULL && pMaskPicture->componentAlpha &&
 	    RadeonBlendOp[op].src_alpha)
 		ATI_FALLBACK(("Component alpha not supported with source "
@@ -484,6 +494,8 @@ R200PrepareComposite(int op, PicturePtr pSrcPicture, PicturePtr pMaskPicture,
 		if (!R200TextureSetup(pMaskPicture, pMask, 1))
 			return FALSE;
 		pp_cntl |= RADEON_TEX_1_ENABLE;
+	} else {
+		is_transform[1] = FALSE;
 	}
 
 	BEGIN_DMA(34);
@@ -582,10 +594,50 @@ RadeonComposite(int srcX, int srcY, int maskX, int maskY, int dstX, int dstY,
 	ATIScreenInfo *atis = accel_atis;
 	ATICardInfo *atic = atis->atic;
 	struct blend_vertex vtx[4];
+	int srcXend, srcYend, maskXend, maskYend;
 	RING_LOCALS;
 
 	/*ErrorF("RadeonComposite (%d,%d) (%d,%d) (%d,%d) (%d,%d)\n",
 	    srcX, srcY, maskX, maskY,dstX, dstY, w, h);*/
+
+	if (is_transform[0]) {
+		PictVector v;
+
+		v.vector[0] = IntToxFixed(srcX);
+		v.vector[1] = IntToxFixed(srcY);
+		v.vector[3] = xFixed1;
+		PictureTransformPoint(transform[0], &v);
+		srcX = xFixedToInt(v.vector[0]);
+		srcY = xFixedToInt(v.vector[1]);
+		v.vector[0] = IntToxFixed(srcX + w);
+		v.vector[1] = IntToxFixed(srcY + h);
+		v.vector[3] = xFixed1;
+		PictureTransformPoint(transform[0], &v);
+		srcXend = xFixedToInt(v.vector[0]);
+		srcYend = xFixedToInt(v.vector[1]);
+	} else {
+		srcXend = srcX + w;
+		srcYend = srcY + h;
+	}
+	if (is_transform[1]) {
+		PictVector v;
+
+		v.vector[0] = IntToxFixed(maskX);
+		v.vector[1] = IntToxFixed(maskY);
+		v.vector[3] = xFixed1;
+		PictureTransformPoint(transform[1], &v);
+		maskX = xFixedToInt(v.vector[0]);
+		maskY = xFixedToInt(v.vector[1]);
+		v.vector[0] = IntToxFixed(maskX + w);
+		v.vector[1] = IntToxFixed(maskY + h);
+		v.vector[3] = xFixed1;
+		PictureTransformPoint(transform[1], &v);
+		maskXend = xFixedToInt(v.vector[0]);
+		maskYend = xFixedToInt(v.vector[1]);
+	} else {
+		maskXend = maskX + w;
+		maskYend = maskY + h;
+	}
 
 	vtx[0].x.f = dstX;
 	vtx[0].y.f = dstY;
@@ -597,22 +649,22 @@ RadeonComposite(int srcX, int srcY, int maskX, int maskY, int dstX, int dstY,
 	vtx[1].x.f = dstX;
 	vtx[1].y.f = dstY + h;
 	vtx[1].s0.f = srcX;
-	vtx[1].t0.f = srcY + h;
+	vtx[1].t0.f = srcYend;
 	vtx[1].s1.f = maskX;
-	vtx[1].t1.f = maskY + h;
+	vtx[1].t1.f = maskYend;
 
 	vtx[2].x.f = dstX + w;
 	vtx[2].y.f = dstY + h;
-	vtx[2].s0.f = srcX + w;
-	vtx[2].t0.f = srcY + h;
-	vtx[2].s1.f = maskX + w;
-	vtx[2].t1.f = maskY + h;
+	vtx[2].s0.f = srcXend;
+	vtx[2].t0.f = srcYend;
+	vtx[2].s1.f = maskXend;
+	vtx[2].t1.f = maskYend;
 
 	vtx[3].x.f = dstX + w;
 	vtx[3].y.f = dstY;
-	vtx[3].s0.f = srcX + w;
+	vtx[3].s0.f = srcXend;
 	vtx[3].t0.f = srcY;
-	vtx[3].s1.f = maskX + w;
+	vtx[3].s1.f = maskXend;
 	vtx[3].t1.f = maskY;
 
 	if (atic->is_r100) {
