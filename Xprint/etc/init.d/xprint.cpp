@@ -248,7 +248,7 @@ get_fontlist_from_xfs_config()
               tok="${val#*=}"
           done
       done
-    ) | tr "," "[\n]" | fontpath2fontlist
+    ) | tr "," "\n" | fontpath2fontlist
 }
 
 get_fontlist_from_all_xfs_configs()
@@ -832,7 +832,7 @@ do_get_xpserverlist()
                         echo ${display}
                     fi
                   )
-              done | tr "[\n]" " "
+              done | tr "\n" " "
           )
         # Only produce output if we have some entries...
         [ "${xpserverlist}" != "" ] && echo "${xpserverlist}"
