@@ -270,6 +270,8 @@ KdDisableInput (void)
 {
     int	i;
 
+    KdBlockSigio ();
+
     for (i = 0; i < kdNumInputFds; i++)
     {
 	KdRemoveFd (kdInputFds[i].fd);
@@ -297,6 +299,8 @@ KdEnableInput (void)
     /* reset screen saver */
     xE.u.keyButtonPointer.time = GetTimeInMillis ();
     NoticeEventTime (&xE);
+
+    KdUnblockSigio ();
 }
 
 static int
