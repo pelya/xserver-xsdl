@@ -83,9 +83,10 @@ ephyrScreenInitialize (KdScreenInfo *screen, EphyrScrPriv *scrpriv)
       screen->height = height;
     }
 
-  screen->width_mm  = screen->width  * hostx_mm_per_pixel_horizontal();
-  screen->height_mm = screen->height * hostx_mm_per_pixel_vertical();
-  
+
+  if (screen->fb[0].depth && screen->fb[0].depth != hostx_get_depth())
+      ErrorF("\nXephyr screen depth must match hosts, ignoring.\n");
+
   screen->fb[0].depth = hostx_get_depth();
   screen->rate = 72;
 
@@ -345,16 +346,17 @@ ephyrRandRGetInfo (ScreenPtr pScreen, Rotation *rotations)
 	  {
 	    RRRegisterSize (pScreen,
 			    sizes[n].width,
-			    sizes[n].height,
-			    sizes[n].width * hostx_mm_per_pixel_horizontal(),
-			    sizes[n].height * hostx_mm_per_pixel_vertical());
+			    sizes[n].height, 
+			    (sizes[n].width * screen->width_mm)/screen->width,
+			    (sizes[n].height *screen->height_mm)/screen->height
+ 			    );
 	    n++;
 	  }
       }
 
     pSize = RRRegisterSize (pScreen,
 			    screen->width,
-			    screen->height,
+			    screen->height, 
 			    screen->width_mm,
 			    screen->height_mm);
     
@@ -372,8 +374,8 @@ ephyrRandRSetConfig (ScreenPtr		pScreen,
 		     RRScreenSizePtr	pSize)
 {
     KdScreenPriv(pScreen);
-    KdScreenInfo	*screen = pScreenPriv->screen;
-    EphyrScrPriv	*scrpriv = screen->driver;
+    KdScreenInfo	*screen    = pScreenPriv->screen;
+    EphyrScrPriv	*scrpriv   = screen->driver;
     Bool		wasEnabled = pScreenPriv->enabled;
     EphyrScrPriv	oldscr;
     int			oldwidth;

@@ -57,8 +57,6 @@ struct EphyrHostXVars
   int             depth;
   XImage         *ximg;
   int             win_width, win_height;
-  double          mm_per_pixel_vertical, mm_per_pixel_horizontal;
-
   Bool            use_host_cursor;
   Bool            have_shm;
   long            damage_debug_nsec;
@@ -78,6 +76,7 @@ extern int	      kdMaxScanCode;
 extern int	      kdMinKeyCode;
 extern int	      kdMaxKeyCode;
 extern int	      kdKeymapWidth;
+extern int            monitorResolution;
 
 /* X Error traps */
 
@@ -189,11 +188,13 @@ hostx_init(void)
   HostX.depth   = DefaultDepth(HostX.dpy, HostX.screen);
   HostX.visual  = DefaultVisual(HostX.dpy, HostX.screen); 
  
+  /* old way of getting dpi 
   HostX.mm_per_pixel_vertical = (double)DisplayHeightMM(HostX.dpy, HostX.screen)
                                  / DisplayHeight(HostX.dpy, HostX.screen);
 
   HostX.mm_per_pixel_horizontal = (double)DisplayWidthMM(HostX.dpy, HostX.screen)
                                   / DisplayWidth(HostX.dpy, HostX.screen);
+  */
 
   if (HostX.win_pre_existing != None)
     {
@@ -222,14 +223,14 @@ hostx_init(void)
   else
     {
       HostX.win = XCreateWindow(HostX.dpy,
-				   HostX.winroot,
-				   0,0,100,100, /* will resize  */
-				   0,
-				   CopyFromParent,
-				   CopyFromParent,
-				   CopyFromParent,
-				   CWEventMask,
-				   &attr);
+				HostX.winroot,
+				0,0,100,100, /* will resize  */
+				0,
+				CopyFromParent,
+				CopyFromParent,
+				CopyFromParent,
+				CWEventMask,
+				&attr);
 
       XStoreName(HostX.dpy, HostX.win, "Xephyr");
     }
@@ -319,18 +320,6 @@ hostx_get_visual_masks (unsigned long *rmsk,
   *rmsk = HostX.visual->red_mask;
   *gmsk = HostX.visual->green_mask;
   *bmsk = HostX.visual->blue_mask;
-}
-
-double
-hostx_mm_per_pixel_vertical(void)
-{
-  return HostX.mm_per_pixel_vertical;
-}
-
-double
-hostx_mm_per_pixel_horizontal(void)
-{
-  return HostX.mm_per_pixel_horizontal;
 }
 
 

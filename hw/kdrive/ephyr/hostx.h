@@ -111,12 +111,6 @@ hostx_get_visual_masks (unsigned long *rmsk,
 			unsigned long *gmsk, 
 			unsigned long *bmsk);
 
-double
-hostx_mm_per_pixel_vertical(void);
-
-double
-hostx_mm_per_pixel_horizontal(void);
-
 void*
 hostx_screen_init (int width, int height);
 
