@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/dix/main.c,v 3.44 2003/11/17 22:20:34 dawes Exp $ */
+/* $XdotOrg: xc/programs/Xserver/dix/main.c,v 1.1.4.4 2003/12/18 19:29:12 kaleb Exp $ */
 /* $XFree86: xc/programs/Xserver/dix/main.c,v 3.44 2003/11/17 22:20:34 dawes Exp $ */
 /***********************************************************
 
@@ -94,7 +94,7 @@ SOFTWARE.
 #include "dixfont.h"
 #include "extnsionst.h"
 #ifdef XINERAMA
-extern Bool noXineramaExtension;
+extern Bool noPanoramiXExtension;
 #else
 #include "dixevents.h"		/* InitEvents() */
 #include "dispatch.h"		/* InitProcVectors() */
@@ -407,8 +407,8 @@ main(int argc, char *argv[], char *envp[])
 	/*
 	 * Consolidate window and colourmap information for each screen
 	 */
-	if (!noXineramaExtension)
-	    XineramaConsolidate();
+	if (!noPanoramiXExtension)
+	    PanoramiXConsolidate();
 #endif
 
 	for (i = 0; i < screenInfo.numScreens; i++)
@@ -420,8 +420,8 @@ main(int argc, char *argv[], char *envp[])
 #endif
 
 #ifdef XINERAMA
-	if (!noXineramaExtension) {
-	    if (!XineramaCreateConnectionBlock())
+	if (!noPanoramiXExtension) {
+	    if (!PanoramiXCreateConnectionBlock())
 		FatalError("could not create connection block info");
 	} else
 #endif
@@ -440,10 +440,10 @@ main(int argc, char *argv[], char *envp[])
 
 #ifdef XINERAMA
 	{
-	    Bool remember_it = noXineramaExtension;
-	    noXineramaExtension = TRUE;
+	    Bool remember_it = noPanoramiXExtension;
+	    noPanoramiXExtension = TRUE;
 	    FreeAllResources();
-	    noXineramaExtension = remember_it;
+	    noPanoramiXExtension = remember_it;
 	}
 #else
 	FreeAllResources();

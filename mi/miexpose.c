@@ -1,4 +1,4 @@
-/* $XdotOrg$ */
+/* $XdotOrg: xc/programs/Xserver/mi/miexpose.c,v 1.1.4.3 2003/12/18 19:29:15 kaleb Exp $ */
 /* $XFree86: xc/programs/Xserver/mi/miexpose.c,v 3.10 2003/11/10 18:22:49 tsi Exp $ */
 /***********************************************************
 
@@ -69,8 +69,8 @@ SOFTWARE.
 #include "globals.h"
 
 #ifdef XINERAMA
-#include "xinerama.h"
-#include "xineramaSrv.h"
+#include "panoramiX.h"
+#include "panoramiXsrv.h"
 #endif
 
 /*
@@ -427,19 +427,19 @@ miSendExposures(pWin, pRgn, dx, dy)
     }
 
 #ifdef XINERAMA
-    if(!noXineramaExtension) {
+    if(!noPanoramiXExtension) {
 	int scrnum = pWin->drawable.pScreen->myNum;
 	int x = 0, y = 0;
 	XID realWin = 0;
 
 	if(!pWin->parent) {
-	    x = xineramaDataPtr[scrnum].x;
-	    y = xineramaDataPtr[scrnum].y;
+	    x = panoramiXdataPtr[scrnum].x;
+	    y = panoramiXdataPtr[scrnum].y;
 	    pWin = WindowTable[0];
 	    realWin = pWin->drawable.id;
 	} else if (scrnum) {
-	    XineramaRes *win;
-	    win = XineramaFindIDByScrnum(XRT_WINDOW, 
+	    PanoramiXRes *win;
+	    win = PanoramiXFindIDByScrnum(XRT_WINDOW, 
 			pWin->drawable.id, scrnum);
 	    if(!win) {
 		DEALLOCATE_LOCAL(pEvent);

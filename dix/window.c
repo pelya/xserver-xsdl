@@ -1,4 +1,4 @@
-/* $XdotOrg: window.c,v 1.4 2001/02/09 02:04:41 xorgcvs Exp $ */
+/* $XdotOrg: xc/programs/Xserver/dix/window.c,v 1.1.4.3 2003/12/18 19:29:12 kaleb Exp $ */
 /* $Xorg: window.c,v 1.4 2001/02/09 02:04:41 xorgcvs Exp $ */
 /*
 
@@ -87,8 +87,8 @@ SOFTWARE.
 #include "gcstruct.h"
 #include "servermd.h"
 #ifdef XINERAMA
-#include "xinerama.h"
-#include "xineramaSrv.h"
+#include "panoramiX.h"
+#include "panoramiXsrv.h"
 #endif
 #include "dixevents.h"
 #include "globals.h"
@@ -2322,9 +2322,9 @@ ConfigureWindow(pWin, mask, vlist, client)
 	event.u.configureRequest.x = x;
 	event.u.configureRequest.y = y;
 #ifdef XINERAMA
-	if(!noXineramaExtension && (!pParent || !pParent->parent)) {
-            event.u.configureRequest.x += xineramaDataPtr[0].x;
-            event.u.configureRequest.y += xineramaDataPtr[0].y;
+	if(!noPanoramiXExtension && (!pParent || !pParent->parent)) {
+            event.u.configureRequest.x += panoramiXdataPtr[0].x;
+            event.u.configureRequest.y += panoramiXdataPtr[0].y;
 	}
 #endif
 	event.u.configureRequest.width = w;
@@ -2408,9 +2408,9 @@ ActuallyDoSomething:
 	event.u.configureNotify.x = x;
 	event.u.configureNotify.y = y;
 #ifdef XINERAMA
-	if(!noXineramaExtension && (!pParent || !pParent->parent)) {
-	    event.u.configureNotify.x += xineramaDataPtr[0].x;
-            event.u.configureNotify.y += xineramaDataPtr[0].y;
+	if(!noPanoramiXExtension && (!pParent || !pParent->parent)) {
+	    event.u.configureNotify.x += panoramiXdataPtr[0].x;
+            event.u.configureNotify.y += panoramiXdataPtr[0].y;
 	}
 #endif
 	event.u.configureNotify.width = w;
@@ -2566,9 +2566,9 @@ ReparentWindow(pWin, pParent, x, y, client)
     event.u.reparent.x = x;
     event.u.reparent.y = y;
 #ifdef XINERAMA
-    if(!noXineramaExtension && !pParent->parent) {
-	event.u.reparent.x += xineramaDataPtr[0].x;
-	event.u.reparent.y += xineramaDataPtr[0].y;
+    if(!noPanoramiXExtension && !pParent->parent) {
+	event.u.reparent.x += panoramiXdataPtr[0].x;
+	event.u.reparent.y += panoramiXdataPtr[0].y;
     }
 #endif
     event.u.reparent.override = pWin->overrideRedirect;
@@ -2939,9 +2939,9 @@ UnrealizeTree(
 	    pChild->realized = FALSE;
 	    pChild->visibility = VisibilityNotViewable;
 #ifdef XINERAMA
-	    if(!noXineramaExtension && !pChild->drawable.pScreen->myNum) {
-		XineramaRes *win;
-		win = (XineramaRes*)LookupIDByType(pChild->drawable.id,
+	    if(!noPanoramiXExtension && !pChild->drawable.pScreen->myNum) {
+		PanoramiXRes *win;
+		win = (PanoramiXRes*)LookupIDByType(pChild->drawable.id,
 							XRT_WINDOW);
 		if(win)
 		   win->u.win.visibility = VisibilityNotViewable;
@@ -3225,21 +3225,21 @@ SendVisibilityNotify(pWin)
 #endif
 #ifdef XINERAMA
     /* This is not quite correct yet, but it's close */
-    if(!noXineramaExtension) {
-	XineramaRes *win;
+    if(!noPanoramiXExtension) {
+	PanoramiXRes *win;
 	WindowPtr pWin2;
 	int i, Scrnum;
 
 	Scrnum = pWin->drawable.pScreen->myNum;
 	
-	win = XineramaFindIDByScrnum(XRT_WINDOW, pWin->drawable.id, Scrnum);
+	win = PanoramiXFindIDByScrnum(XRT_WINDOW, pWin->drawable.id, Scrnum);
 
 	if(!win || (win->u.win.visibility == visibility))
 	    return;
 
 	switch(visibility) {
 	case VisibilityUnobscured:
-	    for(i = 0; i < XineramaNumScreens; i++) {
+	    for(i = 0; i < PanoramiXNumScreens; i++) {
 		if(i == Scrnum) continue;
 
 		pWin2 = (WindowPtr)LookupIDByType(win->info[i].id, RT_WINDOW);
@@ -3259,7 +3259,7 @@ SendVisibilityNotify(pWin)
 	    }
 	    break;
 	case VisibilityFullyObscured:
-	    for(i = 0; i < XineramaNumScreens; i++) {
+	    for(i = 0; i < PanoramiXNumScreens; i++) {
 		if(i == Scrnum) continue;
 
 		pWin2 = (WindowPtr)LookupIDByType(win->info[i].id, RT_WINDOW);

@@ -1,4 +1,4 @@
-/* $XdotOrg$ */
+/* $XdotOrg: xc/programs/Xserver/dix/colormap.c,v 1.1.4.3 2003/12/18 19:29:12 kaleb Exp $ */
 /* $XFree86: xc/programs/Xserver/dix/colormap.c,v 3.12 2003/11/17 22:20:33 dawes Exp $ */
 /***********************************************************
 
@@ -63,9 +63,9 @@ SOFTWARE.
 #include "lbxserve.h"
 #endif
 #ifdef XINERAMA
-#include "xinerama.h"
-#include "xineramaSrv.h"
-extern Bool noXineramaExtension;
+#include "panoramiX.h"
+#include "panoramiXsrv.h"
+extern Bool noPanoramiXExtension;
 #endif
 
 extern XID clientErrorValue;
@@ -484,8 +484,8 @@ TellNoMap (pwin, pmid)
 	/*
 	 * Only deliver event for Screen 0 when Xinerama enabled
 	 */
-        if (noXineramaExtension || 
-	    (!noXineramaExtension && !(pwin->drawable.pScreen->myNum))) {
+        if (noPanoramiXExtension || 
+	    (!noPanoramiXExtension && !(pwin->drawable.pScreen->myNum))) {
 #endif
 	/* This should be call to DeliverEvent */
 	xE.u.u.type = ColormapNotify;
@@ -519,8 +519,8 @@ TellLostMap (pwin, value)
   /*
    * Only deliver event for Screen 0 when Xinerama enabled
    */
-  if (noXineramaExtension || 
-      (!noXineramaExtension && !(pwin->drawable.pScreen->myNum)))
+  if (noPanoramiXExtension || 
+      (!noPanoramiXExtension && !(pwin->drawable.pScreen->myNum)))
 #endif
     if (wColormap(pwin) == *pmid)
     {
@@ -549,8 +549,8 @@ TellGainedMap (pwin, value)
   /*
    * Only deliver event for Screen 0 when Xinerama enabled
    */
-  if (noXineramaExtension || 
-      (!noXineramaExtension && !(pwin->drawable.pScreen->myNum)))
+  if (noPanoramiXExtension || 
+      (!noPanoramiXExtension && !(pwin->drawable.pScreen->myNum)))
 #endif
     if (wColormap (pwin) == *pmid)
     {

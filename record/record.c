@@ -1,4 +1,4 @@
-/* $XdotOrg$ */
+/* $XdotOrg: xc/programs/Xserver/record/record.c,v 1.1.4.3 2003/12/18 19:29:15 kaleb Exp $ */
 /* $Xorg: record.c,v 1.4 2001/02/09 02:05:27 xorgcvs Exp $ */
 
 /*
@@ -51,8 +51,8 @@ and Jim Haggerty of Metheus.
 
 #ifdef XINERAMA
 #include "globals.h"
-#include "xinerama.h"
-#include "xineramaSrv.h"
+#include "panoramiX.h"
+#include "panoramiXsrv.h"
 #include "cursor.h"
 #endif
 
@@ -874,7 +874,7 @@ RecordADeviceEvent(pcbl, nulldata, calldata)
 #ifdef XINERAMA
 		        xEvent shiftedEvent;
 
-			if (!noXineramaExtension &&
+			if (!noPanoramiXExtension &&
 			    (pev->u.u.type == MotionNotify ||
 			     pev->u.u.type == ButtonPress ||
 			     pev->u.u.type == ButtonRelease ||
@@ -883,11 +883,11 @@ RecordADeviceEvent(pcbl, nulldata, calldata)
 				int scr = XineramaGetCursorScreen();
 				memcpy(&shiftedEvent, pev, sizeof(xEvent));
 				shiftedEvent.u.keyButtonPointer.rootX +=
-				    xineramaDataPtr[scr].x - 
-					xineramaDataPtr[0].x;
+				    panoramiXdataPtr[scr].x - 
+					panoramiXdataPtr[0].x;
 				shiftedEvent.u.keyButtonPointer.rootY +=
-				    xineramaDataPtr[scr].y -
-					xineramaDataPtr[0].y;
+				    panoramiXdataPtr[scr].y -
+					panoramiXdataPtr[0].y;
 				pEvToRecord = &shiftedEvent;
 			}
 #endif /* XINERAMA */

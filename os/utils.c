@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/os/utils.c,v 1.1.4.4 2003/12/18 19:29:15 kaleb Exp $ */
+/* $XdotOrg: xc/programs/Xserver/os/utils.c,v 1.1.4.5 2004/02/23 21:37:27 kaleb Exp $ */
 /* $Xorg: utils.c,v 1.5 2001/02/09 02:05:24 xorgcvs Exp $ */
 /*
 
@@ -129,12 +129,12 @@ OR PERFORMANCE OF THIS SOFTWARE.
 Bool CoreDump;
 Bool noTestExtensions;
 
-Bool noXineramaExtension = TRUE;
+Bool noPanoramiXExtension = TRUE;
 #ifdef XINERAMA
-Bool XineramaVisibilityNotifySent = FALSE;
-Bool XineramaMapped = FALSE;
-Bool XineramaWindowExposureSent = FALSE;
-Bool XineramaOneExposeRequest = FALSE;
+Bool PanoramiXVisibilityNotifySent = FALSE;
+Bool PanoramiXMapped = FALSE;
+Bool PanoramiXWindowExposureSent = FALSE;
+Bool PanoramiXOneExposeRequest = FALSE;
 #endif
 
 int auditTrailLevel = 1;
@@ -886,10 +886,10 @@ ProcessCommandLine(int argc, char *argv[])
          }
 #ifdef XINERAMA
 	else if ( strcmp( argv[i], "+xinerama") == 0){
-	    noXineramaExtension = FALSE;
+	    noPanoramiXExtension = FALSE;
 	}
 	else if ( strcmp( argv[i], "-xinerama") == 0){
-	    noXineramaExtension = TRUE;
+	    noPanoramiXExtension = TRUE;
 	}
 #endif
 	else if ( strcmp( argv[i], "-x") == 0)

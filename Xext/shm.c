@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/Xext/shm.c,v 1.1.4.3 2003/12/18 19:29:12 kaleb Exp $ */
+/* $XdotOrg: xc/programs/Xserver/Xext/shm.c,v 1.1.4.4 2003/12/20 00:28:24 kaleb Exp $ */
 /* $XFree86: xc/programs/Xserver/Xext/shm.c,v 3.42 2003/12/18 10:15:24 alanh Exp $ *
 /************************************************************
 
@@ -64,8 +64,8 @@ in this Software without prior written authorization from The Open Group.
 #endif
 
 #ifdef XINERAMA
-#include "xinerama.h"
-#include "xineramaSrv.h"
+#include "panoramiX.h"
+#include "panoramiXsrv.h"
 #endif
 
 #include "modinit.h"
@@ -566,17 +566,17 @@ static int
 ProcXineramaShmPutImage(register ClientPtr client)
 {
     int			 j, result = 0, orig_x, orig_y;
-    XineramaRes		*draw, *gc;
+    PanoramiXRes	*draw, *gc;
     Bool		 sendEvent, isRoot;
 
     REQUEST(xShmPutImageReq);
     REQUEST_SIZE_MATCH(xShmPutImageReq);
 
-    if(!(draw = (XineramaRes *)SecurityLookupIDByClass(
+    if(!(draw = (PanoramiXRes *)SecurityLookupIDByClass(
                 client, stuff->drawable, XRC_DRAWABLE, SecurityWriteAccess)))
         return BadDrawable;
 
-    if(!(gc = (XineramaRes *)SecurityLookupIDByType(
+    if(!(gc = (PanoramiXRes *)SecurityLookupIDByType(
                 client, stuff->gc, XRT_GC, SecurityReadAccess)))
         return BadGC;
 
@@ -592,8 +592,8 @@ ProcXineramaShmPutImage(register ClientPtr client)
 	stuff->drawable = draw->info[j].id;
 	stuff->gc = gc->info[j].id;
 	if (isRoot) {
-	    stuff->dstX = orig_x - xineramaDataPtr[j].x;
-	    stuff->dstY = orig_y - xineramaDataPtr[j].y;
+	    stuff->dstX = orig_x - panoramiXdataPtr[j].x;
+	    stuff->dstY = orig_y - panoramiXdataPtr[j].y;
 	}
 	result = ProcShmPutImage(client);
 	if(result != client->noClientException) break;
@@ -604,7 +604,7 @@ ProcXineramaShmPutImage(register ClientPtr client)
 static int 
 ProcXineramaShmGetImage(ClientPtr client)
 {
-    XineramaRes	*draw;
+    PanoramiXRes	*draw;
     DrawablePtr 	drawables[MAXSCREENS];
     DrawablePtr 	pDraw;
     xShmGetImageReply	xgi;
@@ -623,7 +623,7 @@ ProcXineramaShmGetImage(ClientPtr client)
         return(BadValue);
     }
 
-    if(!(draw = (XineramaRes *)SecurityLookupIDByClass(
+    if(!(draw = (PanoramiXRes *)SecurityLookupIDByClass(
 		client, stuff->drawable, XRC_DRAWABLE, SecurityWriteAccess)))
 	return BadDrawable;
 
@@ -646,15 +646,15 @@ ProcXineramaShmGetImage(ClientPtr client)
 
     if(isRoot) {
       if( /* check for being onscreen */
-	x < 0 || x + w > XineramaPixWidth ||
-	y < 0 || y + h > XineramaPixHeight )
+	x < 0 || x + w > PanoramiXPixWidth ||
+	y < 0 || y + h > PanoramiXPixHeight )
 	    return(BadMatch);
     } else {
       if( /* check for being onscreen */
-	xineramaDataPtr[0].x + pDraw->x + x < 0 ||
-	xineramaDataPtr[0].x + pDraw->x + x + w > XineramaPixWidth ||
-        xineramaDataPtr[0].y + pDraw->y + y < 0 ||
-	xineramaDataPtr[0].y + pDraw->y + y + h > XineramaPixHeight ||
+	panoramiXdataPtr[0].x + pDraw->x + x < 0 ||
+	panoramiXdataPtr[0].x + pDraw->x + x + w > PanoramiXPixWidth ||
+        panoramiXdataPtr[0].y + pDraw->y + y < 0 ||
+	panoramiXdataPtr[0].y + pDraw->y + y + h > PanoramiXPixHeight ||
 	 /* check for being inside of border */
        	x < - wBorderWidth((WindowPtr)pDraw) ||
 	x + w > wBorderWidth((WindowPtr)pDraw) + (int)pDraw->width ||
@@ -664,7 +664,7 @@ ProcXineramaShmGetImage(ClientPtr client)
     }
 
     drawables[0] = pDraw;
-    for(i = 1; i < XineramaNumScreens; i++)
+    for(i = 1; i < PanoramiXNumScreens; i++)
 	VERIFY_DRAWABLE(drawables[i], draw->info[i].id, client);
 
     xgi.visual = wVisual(((WindowPtr)pDraw));
@@ -727,7 +727,7 @@ ProcXineramaShmCreatePixmap(
     int i, j, result;
     ShmDescPtr shmdesc;
     REQUEST(xShmCreatePixmapReq);
-    XineramaRes *newPix;
+    PanoramiXRes *newPix;
 
     REQUEST_SIZE_MATCH(xShmCreatePixmapReq);
     client->errorValue = stuff->pid;
@@ -755,13 +755,13 @@ CreatePmap:
 		   PixmapBytePad(stuff->width, stuff->depth) * stuff->height,
 		   client);
 
-    if(!(newPix = (XineramaRes *) xalloc(sizeof(XineramaRes))))
+    if(!(newPix = (PanoramiXRes *) xalloc(sizeof(PanoramiXRes))))
 	return BadAlloc;
 
     newPix->type = XRT_PIXMAP;
     newPix->u.pix.shared = TRUE;
     newPix->info[0].id = stuff->pid;
-    for(j = 1; j < XineramaNumScreens; j++)
+    for(j = 1; j < PanoramiXNumScreens; j++)
 	newPix->info[j].id = FakeClientID(client->index);
 
     result = (client->noClientException);
@@ -1114,19 +1114,19 @@ ProcShmDispatch (client)
 	return ProcShmDetach(client);
     case X_ShmPutImage:
 #ifdef XINERAMA
-        if ( !noXineramaExtension )
+        if ( !noPanoramiXExtension )
 	   return ProcXineramaShmPutImage(client);
 #endif
 	return ProcShmPutImage(client);
     case X_ShmGetImage:
 #ifdef XINERAMA
-        if ( !noXineramaExtension )
+        if ( !noPanoramiXExtension )
 	   return ProcXineramaShmGetImage(client);
 #endif
 	return ProcShmGetImage(client);
     case X_ShmCreatePixmap:
 #ifdef XINERAMA
-        if ( !noXineramaExtension )
+        if ( !noPanoramiXExtension )
 	   return ProcXineramaShmCreatePixmap(client);
 #endif
 	   return ProcShmCreatePixmap(client);

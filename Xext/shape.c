@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/Xext/shape.c,v 3.19 2003/11/17 22:20:26 dawes Exp $ */
+/* $XdotOrg: xc/programs/Xserver/Xext/shape.c,v 1.1.4.3 2003/12/18 19:29:12 kaleb Exp $ */
 /* $XFree86: xc/programs/Xserver/Xext/shape.c,v 3.19 2003/11/17 22:20:26 dawes Exp $ */
 /************************************************************
 
@@ -114,8 +114,8 @@ static DISPATCH_PROC(SProcShapeRectangles);
 static DISPATCH_PROC(SProcShapeSelectInput);
 
 #ifdef XINERAMA
-#include "xinerama.h"
-#include "xineramaSrv.h"
+#include "panoramiX.h"
+#include "panoramiXsrv.h"
 #endif
 
 #if 0
@@ -382,12 +382,12 @@ ProcXineramaShapeRectangles(
     register ClientPtr client)
 {
     REQUEST(xShapeRectanglesReq);
-    XineramaRes	*win;
+    PanoramiXRes	*win;
     int        		j, result = 0;
 
     REQUEST_AT_LEAST_SIZE (xShapeRectanglesReq);
 
-    if(!(win = (XineramaRes *)SecurityLookupIDByType(
+    if(!(win = (PanoramiXRes *)SecurityLookupIDByType(
 		client, stuff->dest, XRT_WINDOW, SecurityWriteAccess)))
 	return BadWindow;
 
@@ -471,17 +471,17 @@ ProcXineramaShapeMask(
     register ClientPtr client)
 {
     REQUEST(xShapeMaskReq);
-    XineramaRes	*win, *pmap;
+    PanoramiXRes	*win, *pmap;
     int 		j, result = 0;
 
     REQUEST_SIZE_MATCH (xShapeMaskReq);
 
-    if(!(win = (XineramaRes *)SecurityLookupIDByType(
+    if(!(win = (PanoramiXRes *)SecurityLookupIDByType(
 		client, stuff->dest, XRT_WINDOW, SecurityWriteAccess)))
 	return BadWindow;
 
     if(stuff->src != None) {
-	if(!(pmap = (XineramaRes *)SecurityLookupIDByType(
+	if(!(pmap = (PanoramiXRes *)SecurityLookupIDByType(
 		client, stuff->src, XRT_PIXMAP, SecurityReadAccess)))
 	    return BadPixmap;
     } else
@@ -586,16 +586,16 @@ ProcXineramaShapeCombine(
     register ClientPtr client)
 {
     REQUEST(xShapeCombineReq);
-    XineramaRes	*win, *win2;
+    PanoramiXRes	*win, *win2;
     int 		j, result = 0;
 
     REQUEST_AT_LEAST_SIZE (xShapeCombineReq);
 
-    if(!(win = (XineramaRes *)SecurityLookupIDByType(
+    if(!(win = (PanoramiXRes *)SecurityLookupIDByType(
 		client, stuff->dest, XRT_WINDOW, SecurityWriteAccess)))
 	return BadWindow;
 
-    if(!(win2 = (XineramaRes *)SecurityLookupIDByType(
+    if(!(win2 = (PanoramiXRes *)SecurityLookupIDByType(
 		client, stuff->src, XRT_WINDOW, SecurityReadAccess)))
 	return BadWindow;
 
@@ -655,12 +655,12 @@ ProcXineramaShapeOffset(
     register ClientPtr client)
 {
     REQUEST(xShapeOffsetReq);
-    XineramaRes *win;
+    PanoramiXRes *win;
     int j, result = 0;
 
     REQUEST_AT_LEAST_SIZE (xShapeOffsetReq);
    
-    if(!(win = (XineramaRes *)SecurityLookupIDByType(
+    if(!(win = (PanoramiXRes *)SecurityLookupIDByType(
 		client, stuff->dest, XRT_WINDOW, SecurityWriteAccess)))
 	return BadWindow;
 
@@ -1066,28 +1066,28 @@ ProcShapeDispatch (client)
 	return ProcShapeQueryVersion (client);
     case X_ShapeRectangles:
 #ifdef XINERAMA
-        if ( !noXineramaExtension )
+        if ( !noPanoramiXExtension )
 	    return ProcXineramaShapeRectangles (client);
         else 
 #endif
 	return ProcShapeRectangles (client);
     case X_ShapeMask:
 #ifdef XINERAMA
-        if ( !noXineramaExtension )
+        if ( !noPanoramiXExtension )
            return ProcXineramaShapeMask (client);
 	else
 #endif
 	return ProcShapeMask (client);
     case X_ShapeCombine:
 #ifdef XINERAMA
-        if ( !noXineramaExtension )
+        if ( !noPanoramiXExtension )
            return ProcXineramaShapeCombine (client);
 	else
 #endif
 	return ProcShapeCombine (client);
     case X_ShapeOffset:
 #ifdef XINERAMA
-        if ( !noXineramaExtension )
+        if ( !noPanoramiXExtension )
            return ProcXineramaShapeOffset (client);
 	else
 #endif

@@ -1,4 +1,4 @@
-/* $XdotOrg$ */
+/* $XdotOrg: xc/programs/Xserver/hw/xfree86/loader/extsym.c,v 1.1.4.2 2003/12/18 19:29:14 kaleb Exp $ */
 /* $XFree86: xc/programs/Xserver/hw/xfree86/loader/extsym.c,v 1.9 2003/10/15 16:29:03 dawes Exp $ */
 
 /*
@@ -29,7 +29,7 @@
 #include "sym.h"
 #include "misc.h"
 #ifdef XINERAMA
-#include "xinerama.h"
+#include "panoramiX.h"
 #endif
 #include "sleepuntil.h"
 
@@ -40,10 +40,10 @@ extern RESTYPE ShmSegType, ShmPixType;
 #endif
 
 #ifdef XINERAMA
-extern Bool noXineramaExtension;
-extern int XineramaNumScreens;
-extern XineramaData *xineramaDataPtr;
-extern XID *XineramaVisualTable;
+extern Bool noPanoramiXExtension;
+extern int PanoramiXNumScreens;
+extern PanoramiXData *panoramiXdataPtr;
+extern XID *PanoramiXVisualTable;
 extern unsigned long XRT_WINDOW;
 extern unsigned long XRT_PIXMAP;
 extern unsigned long XRT_GC;
@@ -66,10 +66,10 @@ LOOKUP extLookupTab[] = {
 #ifdef XINERAMA
     SYMFUNC(XineramaRegisterConnectionBlockCallback)
     SYMFUNC(XineramaDeleteResource)
-    SYMVAR(noXineramaExtension)
-    SYMVAR(XineramaNumScreens)
-    SYMVAR(xineramaDataPtr)
-    SYMVAR(XineramaVisualTable)
+    SYMVAR(noPanoramiXExtension)
+    SYMVAR(PanoramiXNumScreens)
+    SYMVAR(panoramiXdataPtr)
+    SYMVAR(PanoramiXVisualTable)
     SYMVAR(XRT_WINDOW)
     SYMVAR(XRT_PIXMAP)
     SYMVAR(XRT_GC)

@@ -1,4 +1,4 @@
-/* $XdotOrg$ */
+/* $XdotOrg: xc/programs/Xserver/hw/xfree86/xaa/xaaPaintWin.c,v 1.1.4.1 2003/12/18 19:29:15 kaleb Exp $ */
 /* $XFree86: xc/programs/Xserver/hw/xfree86/xaa/xaaPaintWin.c,v 1.11 2003/02/17 16:08:29 dawes Exp $ */
 
 #include "misc.h"
@@ -17,8 +17,8 @@
 #include "xaawrap.h"
 
 #ifdef XINERAMA
-#include "xinerama.h"
-#include "xineramaSrv.h"
+#include "panoramiX.h"
+#include "panoramiXsrv.h"
 #endif
 
 void
@@ -93,11 +93,11 @@ XAAPaintWindow(
         yorg = pBgWin->drawable.y;
 
 #ifdef XINERAMA
-	if(!noXineramaExtension) {
+	if(!noPanoramiXExtension) {
 	    int index = pScreen->myNum;
 	    if(WindowTable[index] == pBgWin) {
-		xorg -= xineramaDataPtr[index].x;
-		yorg -= xineramaDataPtr[index].y;
+		xorg -= panoramiXdataPtr[index].x;
+		yorg -= panoramiXdataPtr[index].y;
 	    }
 	}
 #endif

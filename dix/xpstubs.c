@@ -31,24 +31,24 @@ from The Open Group.
 #include "font.h"
 
 Bool
-XpClientIsBitmapClient(client)
-    ClientPtr client;
+XpClientIsBitmapClient(
+    ClientPtr client)
 {
     return TRUE;
 }
 
 Bool
-XpClientIsPrintClient(client, fpe)
-    ClientPtr client;
-    FontPathElementPtr fpe;
+XpClientIsPrintClient(
+    ClientPtr client,
+    FontPathElementPtr fpe)
 {
     return FALSE;
 }
 int
-XprintOptions(argc, argv, i)
-    int argc;
-    char **argv;
-    int i;
+XprintOptions(
+    int argc,
+    char **argv,
+    int i)
 {
     return i;
 }

@@ -1,4 +1,4 @@
-/* $XdotOrg: cfbpntwin.c,v 1.4 2001/02/09 02:04:38 xorgcvs Exp $ */
+/* $XdotOrg: xc/programs/Xserver/cfb/cfbpntwin.c,v 1.1.4.3 2003/12/18 19:29:12 kaleb Exp $ */
 /* $Xorg: cfbpntwin.c,v 1.4 2001/02/09 02:04:38 xorgcvs Exp $ */
 /***********************************************************
 
@@ -60,9 +60,9 @@ SOFTWARE.
 #include "mi.h"
 
 #ifdef XINERAMA
-#include "xinerama.h"
-#include "xineramaSrv.h"
-extern Bool noXineramaExtension;
+#include "panoramiX.h"
+#include "panoramiXsrv.h"
+extern Bool noPanoramiXExtension;
 extern WindowPtr *WindowTable;
 #endif
 
@@ -105,11 +105,11 @@ cfbPaintWindow(pWin, pRegion, what)
 		int yorg = pWin->drawable.y;
 #endif
 #ifdef XINERAMA
-		if(!noXineramaExtension) {
+		if(!noPanoramiXExtension) {
 		    int index = pWin->drawable.pScreen->myNum;
 		    if(WindowTable[index] == pWin) {
-			xorg -= xineramaDataPtr[index].x;
-			yorg -= xineramaDataPtr[index].y;
+			xorg -= panoramiXdataPtr[index].x;
+			yorg -= panoramiXdataPtr[index].y;
 		    }
 		}
 #endif
@@ -163,11 +163,11 @@ cfbPaintWindow(pWin, pRegion, what)
 #endif
 
 #ifdef XINERAMA
-	    if(!noXineramaExtension) {
+	    if(!noPanoramiXExtension) {
 		int index = pWin->drawable.pScreen->myNum;
 		if(WindowTable[index] == pBgWin) {
-		    xorg -= xineramaDataPtr[index].x;
-		    yorg -= xineramaDataPtr[index].y;
+		    xorg -= panoramiXdataPtr[index].x;
+		    yorg -= panoramiXdataPtr[index].y;
 		}
 	    }
 #endif

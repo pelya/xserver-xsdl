@@ -1,4 +1,4 @@
-/* $XdotOrg$ */
+/* $XdotOrg: xc/programs/Xserver/XTrap/xtrapdi.c,v 1.1.4.2 2003/12/18 19:29:12 kaleb Exp $ */
 /* $XFree86: xc/programs/Xserver/XTrap/xtrapdi.c,v 1.7 2003/10/28 22:52:10 tsi Exp $ */
 /*****************************************************************************
 Copyright 1987, 1988, 1989, 1990, 1991 by Digital Equipment Corp., Maynard, MA
@@ -78,8 +78,8 @@ CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include <X11/extensions/xtrapproto.h>
 #include "colormapst.h"
 #ifdef XINERAMA
-#include "xinerama.h"
-#include "xineramaSrv.h"
+#include "panoramiX.h"
+#include "panoramiXsrv.h"
 #include "cursor.h"
 #endif
 
@@ -1560,7 +1560,7 @@ void XETrapStampAndMail(xEvent *x_event)
             (void)memcpy(&(data.u.event),x_event,sizeof(xEvent));
 
 #ifdef XINERAMA
-	    if (!noXineramaExtension &&
+	    if (!noPanoramiXExtension &&
                 (data.u.event.u.u.type == MotionNotify ||
                 data.u.event.u.u.type == ButtonPress ||
                 data.u.event.u.u.type == ButtonRelease ||
@@ -1568,9 +1568,9 @@ void XETrapStampAndMail(xEvent *x_event)
                 data.u.event.u.u.type == KeyRelease)) {
 		    int scr = XineramaGetCursorScreen();
 		    data.u.event.u.keyButtonPointer.rootX +=
-			xineramaDataPtr[scr].x - xineramaDataPtr[0].x;
+			panoramiXdataPtr[scr].x - panoramiXdataPtr[0].x;
 		    data.u.event.u.keyButtonPointer.rootY +=
-			xineramaDataPtr[scr].y - xineramaDataPtr[0].y;
+			panoramiXdataPtr[scr].y - panoramiXdataPtr[0].y;
 	    }
 #endif
 

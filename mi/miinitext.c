@@ -1,4 +1,4 @@
-/* $XdotOrg$ */
+/* $XdotOrg: xc/programs/Xserver/mi/miinitext.c,v 1.1.4.2 2003/12/18 19:29:15 kaleb Exp $ */
 /* $XFree86: xc/programs/Xserver/mi/miinitext.c,v 3.68 2003/01/15 02:34:14 torrey Exp $ */
 /***********************************************************
 
@@ -63,7 +63,7 @@ SOFTWARE.
 #endif
 
 #ifdef XINERAMA
-extern Bool noXineramaExtension;
+extern Bool noPanoramiXExtension;
 #endif
 extern Bool noTestExtensions;
 #ifdef XKB
@@ -104,7 +104,7 @@ typedef void (*InitExtension)(INITARGS);
 #include "securstr.h"
 #endif
 #ifdef XINERAMA
-#include "xineramaProto.h"
+#include "panoramiXproto.h"
 #endif
 #ifdef XF86BIGFONT
 #include "xf86bigfstr.h"
@@ -136,7 +136,7 @@ extern void PexExtensionInit(INITARGS);
 extern void MultibufferExtensionInit(INITARGS);
 #endif
 #ifdef XINERAMA
-extern void XineramaExtensionInit(INITARGS);
+extern void PanoramiXExtensionInit(INITARGS);
 #endif
 #ifdef XINPUT
 extern void XInputExtensionInit(INITARGS);
@@ -249,7 +249,7 @@ InitExtensions(argc, argv)
 {
 #ifdef XINERAMA
 # if !defined(PRINT_ONLY_SERVER) && !defined(NO_XINERAMA)
-  if (!noXineramaExtension) XineramaExtensionInit();
+  if (!noPanoramiXExtension) PanoramiXExtensionInit();
 # endif
 #endif
 #ifdef BEZIER
@@ -438,7 +438,7 @@ ExtensionModule extension[] =
     { NULL, "TOG-CUP", NULL, NULL },
     { NULL, "Extended-Visual-Information", NULL, NULL },
 #ifdef XINERAMA
-    { NULL, "XINERAMA", &noXineramaExtension, NULL },
+    { NULL, "XINERAMA", &noPanoramiXExtension, NULL },
 #else
     { NULL, "NOXINERAMA", NULL, NULL },
 #endif
@@ -489,7 +489,7 @@ static ExtensionModule staticExtensions[] = {
     { XpExtensionInit, XP_PRINTNAME, NULL, NULL, NULL },
 #endif
 #ifdef XINERAMA
-    { XineramaExtensionInit, XINERAMA_PROTOCOL_NAME, &noXineramaExtension, NULL, NULL },
+    { PanoramiXExtensionInit, PANORAMIX_PROTOCOL_NAME, &noPanoramiXExtension, NULL, NULL },
 #endif
 #ifdef XF86BIGFONT
     { XFree86BigfontExtensionInit, XF86BIGFONTNAME, NULL, NULL, NULL },

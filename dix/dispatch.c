@@ -1,4 +1,4 @@
-/* $XdotOrg: dispatch.c,v 1.5 2001/02/09 02:04:40 xorgcvs Exp $ */
+/* $XdotOrg: xc/programs/Xserver/dix/dispatch.c,v 1.1.4.3 2003/12/18 19:29:12 kaleb Exp $ */
 /* $Xorg: dispatch.c,v 1.5 2001/02/09 02:04:40 xorgcvs Exp $ */
 /************************************************************
 
@@ -93,8 +93,8 @@ int ProcInitialConnection();
 #include "swaprep.h"
 #include "swapreq.h"
 #ifdef XINERAMA
-#include "xinerama.h"
-#include "xineramaSrv.h"
+#include "panoramiX.h"
+#include "panoramiXsrv.h"
 #endif
 #ifdef XCSECURITY
 #define _SECURITY_SERVER
@@ -2643,7 +2643,7 @@ ProcAllocColor(client)
 	        return (retval);
 	}
 #ifdef XINERAMA
-	if (noXineramaExtension || !pmap->pScreen->myNum)
+	if (noPanoramiXExtension || !pmap->pScreen->myNum)
 #endif
         WriteReplyToClient(client, sizeof(xAllocColorReply), &acr);
 	return (client->noClientException);
@@ -2702,7 +2702,7 @@ ProcAllocNamedColor           (client)
     	            return(retval);
 	    }
 #ifdef XINERAMA
-	    if (noXineramaExtension || !pcmp->pScreen->myNum)
+	    if (noPanoramiXExtension || !pcmp->pScreen->myNum)
 #endif
             WriteReplyToClient(client, sizeof (xAllocNamedColorReply), &ancr);
 	    return (client->noClientException);
@@ -2772,7 +2772,7 @@ ProcAllocColorCells           (client)
 	        return(retval);
 	}
 #ifdef XINERAMA
-	if (noXineramaExtension || !pcmp->pScreen->myNum)
+	if (noPanoramiXExtension || !pcmp->pScreen->myNum)
 #endif
 	{
 	    accr.type = X_Reply;
@@ -2851,7 +2851,7 @@ ProcAllocColorPlanes(client)
 	}
 	acpr.length = length >> 2;
 #ifdef XINERAMA
-	if (noXineramaExtension || !pcmp->pScreen->myNum)
+	if (noPanoramiXExtension || !pcmp->pScreen->myNum)
 #endif
 	{
 	    WriteReplyToClient(client, sizeof(xAllocColorPlanesReply), &acpr);
@@ -3934,7 +3934,7 @@ SendConnSetup(client, reason)
     /* fill in the "currentInputMask" */
     root = (xWindowRoot *)(lConnectionInfo + connBlockScreenStart);
 #ifdef XINERAMA
-    if (noXineramaExtension)
+    if (noPanoramiXExtension)
 	numScreens = screenInfo.numScreens;
     else 
         numScreens = ((xConnSetup *)ConnectionInfo)->numRoots;

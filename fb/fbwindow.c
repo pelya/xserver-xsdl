@@ -1,4 +1,4 @@
-/* $XdotOrg$ */
+/* $XdotOrg: xc/programs/Xserver/fb/fbwindow.c,v 1.1.4.2 2003/12/18 19:29:12 kaleb Exp $ */
 /*
  * Id: fbwindow.c,v 1.1 1999/11/02 03:54:45 keithp Exp $
  *
@@ -225,8 +225,8 @@ fbFillRegionSolid (DrawablePtr	pDrawable,
 }
 
 #ifdef XINERAMA
-#include "xinerama.h"
-#include "xineramaSrv.h"
+#include "panoramiX.h"
+#include "panoramiXsrv.h"
 #endif
 
 void
@@ -249,13 +249,13 @@ fbFillRegionTiled (DrawablePtr	pDrawable,
     int		yRot = pDrawable->y;
     
 #ifdef XINERAMA
-    if(!noXineramaExtension) 
+    if(!noPanoramiXExtension) 
     {
 	int index = pDrawable->pScreen->myNum;
 	if(&WindowTable[index]->drawable == pDrawable) 
 	{
-	    xRot -= xineramaDataPtr[index].x;
-	    yRot -= xineramaDataPtr[index].y;
+	    xRot -= panoramiXdataPtr[index].x;
+	    yRot -= panoramiXdataPtr[index].y;
 	}
     }
 #endif

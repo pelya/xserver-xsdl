@@ -1,4 +1,4 @@
-/* $XdotOrg$ */
+/* $XdotOrg: xc/programs/Xserver/hw/xfree86/xf8_32bpp/cfbpntwin.c,v 1.1.4.1 2003/12/18 19:29:15 kaleb Exp $ */
 /* $XFree86: xc/programs/Xserver/hw/xfree86/xf8_32bpp/cfbpntwin.c,v 1.5 2001/10/01 13:44:15 eich Exp $ */
 
 #include "X.h"
@@ -16,8 +16,8 @@
 #include "mi.h"
 
 #ifdef XINERAMA
-#include "xinerama.h"
-#include "xineramaSrv.h"
+#include "panoramiX.h"
+#include "panoramiXsrv.h"
 #endif
 
 void
@@ -45,11 +45,11 @@ cfb8_32PaintWindow(
 	    xorg = pWin->drawable.x;
 	    yorg = pWin->drawable.y;
 #ifdef XINERAMA
-	    if(!noXineramaExtension) {
+	    if(!noPanoramiXExtension) {
 		int index = pWin->drawable.pScreen->myNum;
 		if(WindowTable[index] == pWin) {
-		    xorg -= xineramaDataPtr[index].x;
-		    yorg -= xineramaDataPtr[index].y;
+		    xorg -= panoramiXdataPtr[index].x;
+		    yorg -= panoramiXdataPtr[index].y;
 		}
 	    }
 #endif
@@ -93,11 +93,11 @@ cfb8_32PaintWindow(
 	    yorg = pBgWin->drawable.y;
 
 #ifdef XINERAMA
-	    if(!noXineramaExtension) {
+	    if(!noPanoramiXExtension) {
 		int index = pWin->drawable.pScreen->myNum;
 		if(WindowTable[index] == pBgWin) {
-		    xorg -= xineramaDataPtr[index].x;
-		    yorg -= xineramaDataPtr[index].y;
+		    xorg -= panoramiXdataPtr[index].x;
+		    yorg -= panoramiXdataPtr[index].y;
 		}
 	    }
 #endif

@@ -1,4 +1,3 @@
-/* $XdotOrg$ */
 /************************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -90,8 +89,8 @@ SOFTWARE.
 #include "dixgrabs.h"
 #include "cursor.h"
 #ifdef XINERAMA
-#include "xinerama.h"
-#include "xineramaSrv.h"
+#include "panoramiX.h"
+#include "panoramiXsrv.h"
 #endif
 #include <assert.h>
 
@@ -801,7 +800,7 @@ LegalNewID(id, client)
 #ifdef XINERAMA
     XID 	minid, maxid;
 
-	if (!noXineramaExtension) { 
+	if (!noPanoramiXExtension) { 
 	    minid = client->clientAsMask | (client->index ? 
 			                    SERVER_BIT : SERVER_MINID);
 	    maxid = (clientTable[client->index].fakeID | RESOURCE_ID_MASK) + 1;

@@ -67,7 +67,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "mipointer.h"
 
 #if defined(XFree86LOADER) && !defined(XINERAMA)
-extern Bool noXineramaExtension;
+extern Bool noPanoramiXExtension;
 #endif
 
 static int DRIScreenPrivIndex = -1;
@@ -132,13 +132,13 @@ DRIScreenInit(ScreenPtr pScreen, DRIInfoPtr pDRIInfo, int *pDRMFD)
 #if defined(XINERAMA) && !defined(XFree86LOADER)
     xineramaInCore = TRUE;
 #elif defined(XFree86LOADER)
-    if (xf86LoaderCheckSymbol("noXineramaExtension"))
+    if (xf86LoaderCheckSymbol("noPanoramiXExtension"))
 	xineramaInCore = TRUE;
 #endif
 
 #if defined(XINERAMA) || defined(XFree86LOADER)
     if (xineramaInCore) {
-	if (!noXineramaExtension) {
+	if (!noPanoramiXExtension) {
 	    DRIDrvMsg(pScreen->myNum, X_WARNING,
 		"Direct rendering is not supported when Xinerama is enabled\n");
 	    return FALSE;
