@@ -1,5 +1,5 @@
 /*
- * $Id$
+ * Id: linux.c,v 1.2 1999/11/23 04:21:09 keithp Exp $
  *
  * Copyright © 1999 Keith Packard
  *

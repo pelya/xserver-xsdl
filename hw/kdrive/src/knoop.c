@@ -1,5 +1,5 @@
 /*
- * $Id$
+ * Id: knoop.c,v 1.2 1999/11/02 06:16:28 keithp Exp $
  *
  * Copyright © 1999 Keith Packard
  *
@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/knoop.c,v 1.1 1999/11/19 13:53:50 hohndel Exp $ */
 
 /*
  * GC ops that don't do anything

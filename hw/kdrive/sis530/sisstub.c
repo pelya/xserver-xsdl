@@ -1,5 +1,5 @@
 /*
- * $Id$
+ * Id: sisstub.c,v 1.1 1999/11/02 08:20:07 keithp Exp $
  *
  * Copyright 1999 SuSE, Inc.
  *
@@ -22,7 +22,7 @@
  *
  * Author:  Keith Packard, SuSE, Inc.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/sis530/sisstub.c,v 1.1 1999/11/19 13:54:00 hohndel Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/sis530/sisstub.c,v 1.2 1999/12/30 03:03:15 robin Exp $ */
 
 #include "sis.h"
 

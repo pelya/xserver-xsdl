@@ -1,5 +1,5 @@
 /*
- * $Id$
+ * Id: s3reg.c,v 1.1 1999/11/02 03:54:47 keithp Exp $
  *
  * Copyright 1999 SuSE, Inc.
  *
@@ -22,7 +22,7 @@
  *
  * Author:  Keith Packard, SuSE, Inc.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/savage/s3reg.c,v 1.1 1999/11/19 13:53:57 hohndel Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/savage/s3reg.c,v 1.2 1999/12/30 03:03:12 robin Exp $ */
 
 #include "s3reg.h"
 

@@ -1,5 +1,5 @@
 /*
- * $Id$
+ * Id: s3.h,v 1.1 1999/11/02 08:17:24 keithp Exp $
  *
  * Copyright © 1999 Keith Packard
  *
@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/trio/s3.h,v 1.1 1999/11/19 13:54:03 hohndel Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/trio/s3.h,v 1.2 1999/12/30 03:03:19 robin Exp $ */
 
 #ifndef _S3_H_
 #define _S3_H_

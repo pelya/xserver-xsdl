@@ -1,5 +1,5 @@
 /*
- * $Id$
+ * Id: kmap.c,v 1.1 1999/11/02 03:54:46 keithp Exp $
  *
  * Copyright © 1999 Keith Packard
  *
@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/kmap.c,v 1.1 1999/11/19 13:53:50 hohndel Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/kmap.c,v 1.2 1999/12/30 03:03:06 robin Exp $ */
 
 #include "kdrive.h"
 

@@ -1,5 +1,5 @@
 /*
- * $Id$
+ * Id: keyboard.c,v 1.2 1999/11/08 06:22:01 keithp Exp $
  *
  * Copyright © 1999 Keith Packard
  *

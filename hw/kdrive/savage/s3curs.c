@@ -1,5 +1,5 @@
 /*
- * $Id$
+ * Id: s3curs.c,v 1.2 1999/11/02 06:16:29 keithp Exp $
  *
  * Copyright 1999 SuSE, Inc.
  *
@@ -22,7 +22,7 @@
  *
  * Author:  Keith Packard, SuSE, Inc.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/savage/s3curs.c,v 1.1 1999/11/19 13:53:56 hohndel Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/savage/s3curs.c,v 1.2 1999/12/30 03:03:11 robin Exp $ */
 
 #include "s3.h"
 #include "s3draw.h"

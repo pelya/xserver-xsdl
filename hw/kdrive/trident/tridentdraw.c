@@ -1,5 +1,5 @@
 /*
- * $Id$
+ * Id: tridentdraw.c,v 1.1 1999/11/02 03:54:47 keithp Exp $
  *
  * Copyright © 1999 Keith Packard
  *
@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/trident/tridentdraw.c,v 1.1 1999/11/19 13:54:01 hohndel Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/trident/tridentdraw.c,v 1.2 1999/12/30 03:03:17 robin Exp $ */
 
 #include "trident.h"
 #include "tridentdraw.h"

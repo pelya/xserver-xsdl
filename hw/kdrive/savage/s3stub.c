@@ -1,5 +1,5 @@
 /*
- * $Id$
+ * Id: s3stub.c,v 1.1 1999/11/02 08:19:15 keithp Exp $
  *
  * Copyright 1999 SuSE, Inc.
  *
@@ -22,7 +22,7 @@
  *
  * Author:  Keith Packard, SuSE, Inc.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/savage/s3stub.c,v 1.1 1999/11/19 13:53:57 hohndel Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/savage/s3stub.c,v 1.2 1999/12/30 03:03:13 robin Exp $ */
 
 #include "s3.h"
 

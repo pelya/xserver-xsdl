@@ -1,5 +1,5 @@
 /*
- * $Id$
+ * Id: sisdraw.h,v 1.1 1999/11/02 08:17:24 keithp Exp $
  *
  * Copyright © 1999 Keith Packard
  *
@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/sis530/sisdraw.h,v 1.1 1999/11/19 13:53:59 hohndel Exp $ */
 
 #ifndef _SISDRAW_H_
 #define _SISDRAW_H_

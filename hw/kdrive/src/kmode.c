@@ -1,5 +1,5 @@
 /*
- * $Id$
+ * Id: kmode.c,v 1.2 1999/12/21 03:50:49 keithp Exp $
  *
  * Copyright 1999 SuSE, Inc.
  *

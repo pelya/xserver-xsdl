@@ -1,5 +1,5 @@
 /*
- * $Id$
+ * Id: tridentstub.c,v 1.1 1999/11/02 08:19:15 keithp Exp $
  *
  * Copyright 1999 SuSE, Inc.
  *
@@ -22,7 +22,7 @@
  *
  * Author:  Keith Packard, SuSE, Inc.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/trident/tridentstub.c,v 1.1 1999/11/19 13:54:02 hohndel Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/trident/tridentstub.c,v 1.2 1999/12/30 03:03:18 robin Exp $ */
 
 #include "trident.h"
 
