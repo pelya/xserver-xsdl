@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/trident/trident.h,v 1.5 2000/09/03 05:11:20 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/trident/trident.h,v 1.6 2000/09/15 07:25:12 keithp Exp $ */
 
 #ifndef _TRIDENT_H_
 #define _TRIDENT_H_
@@ -34,9 +34,17 @@
 /*
  * offset from ioport beginning 
  */
-#define TRIDENT_COP_BASE	0xbf000
-#define TRIDENT_COP_OFF		0x00f00
-#define TRIDENT_COP_SIZE	(0x2000)
+#define USE_PCI
+
+#ifdef USE_PCI
+#define TRIDENT_COP_BASE(c)	(c->attr.address[1])
+#define TRIDENT_COP_OFF(c)	0x2100
+#define TRIDENT_COP_SIZE(c)	0x20000
+#else
+#define TRIDENT_COP_BASE(c)	0xbf000
+#define TRIDENT_COP_OFF(c)    	0x00f00
+#define TRIDENT_COP_SIZE(c)	(0x2000)
+#endif
 
 typedef volatile CARD8	VOL8;
 typedef volatile CARD16	VOL16;
@@ -71,6 +79,31 @@ typedef struct _cop {
 #define COP_DEPTH_15		    0x00000005
 #define COP_DEPTH_DITHER_DISABLE    0x00000008
     
+
+#define COP_ALPHA_SRC_BLEND_0	    0x00000000
+#define COP_ALPHA_SRC_BLEND_1	    0x00000001
+#define COP_ALPHA_SRC_BLEND_SRC_C   0x00000002
+#define COP_ALPHA_SRC_BLEND_1_SRC_C 0x00000003
+#define COP_ALPHA_SRC_BLEND_SRC_A   0x00000004
+#define COP_ALPHA_SRC_BLEND_1_SRC_A 0x00000005
+#define COP_ALPHA_SRC_BLEND_DST_A   0x00000006
+#define COP_ALPHA_SRC_BLEND_1_DST_A 0x00000007
+#define COP_ALPHA_SRC_BLEND_DST_C   0x00000008
+#define COP_ALPHA_SRC_BLEND_1_DST_C 0x00000009
+#define COP_ALPHA_SRC_BLEND_SAT     0x0000000A
+#define COP_ALPHA_SRC_BLEND_BG      0x0000000B
+
+#define COP_ALPHA_DST_BLEND_0	    0x00000000
+#define COP_ALPHA_DST_BLEND_1	    0x00000010
+#define COP_ALPHA_DST_BLEND_SRC_C   0x00000020
+#define COP_ALPHA_DST_BLEND_1_SRC_C 0x00000030
+#define COP_ALPHA_DST_BLEND_SRC_A   0x00000040
+#define COP_ALPHA_DST_BLEND_1_SRC_A 0x00000050
+#define COP_ALPHA_DST_BLEND_DST_A   0x00000060
+#define COP_ALPHA_DST_BLEND_1_DST_A 0x00000070
+#define COP_ALPHA_DST_BLEND_DST_C   0x00000080
+#define COP_ALPHA_DST_BLEND_1_DST_C 0x00000090
+#define COP_ALPHA_DST_BLEND_OTHER   0x000000A0
 
 #define COP_ALPHA_RESULT_ALPHA	    0x00100000
 #define COP_ALPHA_DEST_ALPHA	    0x00200000
@@ -157,8 +190,10 @@ typedef struct _tridentCardInfo {
 #endif
     CARD8		*cop_base;
     Cop			*cop;
+    CARD32		*window;
     CARD32		cop_depth;
     CARD32		cop_stride;
+    Bool		mmio;
     TridentSave		save;
 } TridentCardInfo;
     

@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/trident/trident.c,v 1.10 2000/09/24 13:51:22 alanh Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/trident/trident.c,v 1.12 2000/09/27 20:46:36 keithp Exp $ */
 
 #include "trident.h"
 #define extern
@@ -52,9 +52,15 @@ tridentCardInit (KdCardInfo *card)
     }
     
     iopl (3);
-    tridentc->cop_base = (CARD8 *) KdMapDevice (TRIDENT_COP_BASE,
-					      TRIDENT_COP_SIZE);
-    tridentc->cop = (Cop *) (tridentc->cop_base + TRIDENT_COP_OFF);
+    tridentc->cop_base = (CARD8 *) KdMapDevice (TRIDENT_COP_BASE(card),
+						TRIDENT_COP_SIZE(card));
+    tridentc->cop = (Cop *) (tridentc->cop_base + TRIDENT_COP_OFF(card));
+    tridentc->mmio = FALSE;
+#ifdef USE_PCI
+    tridentc->window = (CARD32 *) (tridentc->cop_base + 0x10000);
+#else
+    tridentc->window = 0;
+#endif
     card->driver = tridentc;
     
     return TRUE;
@@ -114,16 +120,32 @@ tridentReadIndex (TridentCardInfo *tridentc, CARD16 port, CARD8 index)
 {
     CARD8   value;
     
-    outb (index, port);
-    value = inb (port+1);
+    if (tridentc->mmio)
+    {
+	tridentc->cop_base[port] = index;
+	value = tridentc->cop_base[port+1];
+    }
+    else
+    {
+	outb (index, port);
+	value = inb (port+1);
+    }
     return value;
 }
 
 void
 tridentWriteIndex (TridentCardInfo *tridentc, CARD16 port, CARD8 index, CARD8 value)
 {
-    outb (index, port);
-    outb (value, port+1);
+    if (tridentc->mmio)
+    {
+	tridentc->cop_base[port] = index;
+	tridentc->cop_base[port+1] = value;
+    }
+    else
+    {
+	outb (index, port);
+	outb (value, port+1);
+    }
 }
 
 void
@@ -191,10 +213,22 @@ tridentSetMMIO (TridentCardInfo *tridentc)
 	}
 	/* enable screen */
 	tridentWriteIndex (tridentc, 0x3ce, 0x21, 0x80);
+#ifdef USE_PCI
+	/* enable burst r/w, enable memory mapped ports */
+	tridentWriteIndex (tridentc, 0x3d4, 0x39, 7);
+	tridentc->mmio = TRUE;
+	/* reset GE, enable GE, set GE to pci 1 */
+	tridentWriteIndex (tridentc, 0x3d4, 0x36, 0x90);
+#else
 	/* enable burst r/w, disable memory mapped ports */
 	tridentWriteIndex (tridentc, 0x3d4, 0x39, 0x6);
 	/* reset GE, enable GE, set GE to 0xbff00 */
 	tridentWriteIndex (tridentc, 0x3d4, 0x36, 0x92);
+#endif
+#ifdef TRI_DEBUG
+	fprintf (stderr, "0x36: 0x%02x\n",
+		 tridentReadIndex (tridentc, 0x3d4, 0x36));
+#endif
 	if (tridentc->cop->status != 0xffffffff)
 	    break;
     }
@@ -216,6 +250,7 @@ tridentResetMMIO (TridentCardInfo *tridentc)
     tridentPause ();
     tridentWriteIndex (tridentc, 0x3d4, 0x62, tridentc->save.reg_3d4_62);
     tridentWriteIndex (tridentc, 0x3d4, 0x39, tridentc->save.reg_3d4_39);
+    tridentc->mmio = FALSE;
     tridentWriteIndex (tridentc, 0x3d4, 0x36, tridentc->save.reg_3d4_36);
     tridentWriteIndex (tridentc, 0x3c4, 0x0e, tridentc->save.reg_3c4_0e);
     tridentPause ();
@@ -299,7 +334,7 @@ tridentCardFini (KdCardInfo *card)
     TridentCardInfo	*tridentc = card->driver;
 
     if (tridentc->cop_base)
-	KdUnmapDevice ((void *) tridentc->cop_base, TRIDENT_COP_SIZE);
+	KdUnmapDevice ((void *) tridentc->cop_base, TRIDENT_COP_SIZE(card));
 #ifdef VESA
     vesaCardFini (card);
 #else

@@ -49,15 +49,21 @@
 #define _tridentRect(cop,x1,y1,x2,y2,cmd) { \
     (cop)->dst_start_xy = TRI_XY (x1,y1); \
     (cop)->dst_end_xy = TRI_XY(x2,y2); \
+    _tridentWaitDone(cop); \
     (cop)->command = (cmd); \
 }
 
 #define COP_STATUS_BUSY	(COP_STATUS_BE_BUSY | \
 			 COP_STATUS_DPE_BUSY | \
-			 COP_STATUS_MI_BUSY | \
-			 COP_STATUS_FIFO_BUSY)
+			 COP_STATUS_MI_BUSY)
 
-#define _tridentWaitDone(cop)   while ((cop)->status & COP_STATUS_BUSY)
+#define _tridentWaitDone(cop)   { \
+    int __q__ = 500000; \
+    while (__q__-- && (cop)->status & COP_STATUS_BUSY) \
+	; \
+    if (!__q__) \
+	(cop)->status = 0;  \
+}
 
 #define _tridentWaitIdleEmpty(cop)	_tridentWaitDone(cop)
 

@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/trident/tridentdraw.c,v 1.2 1999/12/30 03:03:17 robin Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/trident/tridentdraw.c,v 1.5 2000/08/26 00:17:50 keithp Exp $ */
 
 #include "trident.h"
 #include "tridentdraw.h"
@@ -37,6 +37,7 @@
 #include	"fb.h"
 #include	"migc.h"
 #include	"miline.h"
+#include	"picturestr.h"
 
 CARD8 tridentRop[16] = {
     /* GXclear      */      0x00,         /* 0 */
@@ -151,6 +152,7 @@ tridentCopyNtoN (DrawablePtr	pSrcDrawable,
 	    cop->dst_end_xy   = TRI_XY (pbox->x2 - 1,
 					pbox->y2 - 1);
 	}
+	_tridentWaitDone(cop);
 	cop->command = cmd;
 	pbox++;
     }
@@ -685,6 +687,274 @@ tridentCreateGC (GCPtr pGC)
 }
 
 void
+tridentComposite (CARD8      op,
+		  PicturePtr pSrc,
+		  PicturePtr pMask,
+		  PicturePtr pDst,
+		  INT16      xSrc,
+		  INT16      ySrc,
+		  INT16      xMask,
+		  INT16      yMask,
+		  INT16      xDst,
+		  INT16      yDst,
+		  CARD16     width,
+		  CARD16     height)
+{
+    SetupTrident (pDst->pDrawable->pScreen);
+    RegionRec	    region;
+    int		    n;
+    BoxPtr	    pbox;
+    CARD32	rgb;
+    CARD8	*msk, *mskLine;
+    FbBits	*mskBits;
+    FbStride	mskStride;
+    int		mskBpp;
+    CARD32	*src, *srcLine;
+    FbBits	*srcBits;
+    FbStride	srcStride;
+    int		srcBpp;
+    int		x_msk, y_msk, x_src, y_src, x_dst, y_dst;
+    int		x2;
+    int		w, h, w_this, h_this, w_remain;
+    int		win_remain;
+    CARD32	*window;
+    int		mskExtra;
+    
+    if (pMask && 
+	!pMask->repeat &&
+	pMask->format == PICT_a8 &&
+        op == PictOpOver &&
+	pSrc->repeat &&
+	pSrc->pDrawable->width == 1 &&
+	pSrc->pDrawable->height == 1 &&
+	PICT_FORMAT_BPP(pSrc->format) == 32 &&
+	(PICT_FORMAT_A(pSrc->format) == 0 ||
+	 ((rgb = (*((CARD32 *) ((PixmapPtr) (pSrc->pDrawable))->devPrivate.ptr))
+	   & 0xff000000) == 0xff000000)) &&
+	pDst->pDrawable->bitsPerPixel == 32 &&
+	pDst->pDrawable->type == DRAWABLE_WINDOW)
+    {
+	xDst += pDst->pDrawable->x;
+	yDst += pDst->pDrawable->y;
+	xSrc += pSrc->pDrawable->x;
+	ySrc += pSrc->pDrawable->y;
+	if (pMask)
+	{
+	    xMask += pMask->pDrawable->x;
+	    yMask += pMask->pDrawable->y;
+	}
+	
+	rgb = (*((CARD32 *) ((PixmapPtr) (pSrc->pDrawable))->devPrivate.ptr)
+	       & 0xffffff);
+	
+	if (!miComputeCompositeRegion (&region,
+				       pSrc,
+				       pMask,
+				       pDst,
+				       xSrc,
+				       ySrc,
+				       xMask,
+				       yMask,
+				       xDst,
+				       yDst,
+				       width,
+				       height))
+	    return;
+	
+	fbGetDrawable (pMask->pDrawable, mskBits, mskStride, mskBpp);
+	mskStride = mskStride * sizeof (FbBits) / sizeof (CARD8);
+				       
+	cop->multi = (COP_MULTI_ROP | 0xcc);
+		      
+	cop->multi = (COP_MULTI_ALPHA |
+		      COP_ALPHA_BLEND_ENABLE |
+		      COP_ALPHA_WRITE_ENABLE |
+		      0x7 << 16 |
+		      COP_ALPHA_DST_BLEND_1_SRC_A |
+		      COP_ALPHA_SRC_BLEND_SRC_A);
+	
+	n = REGION_NUM_RECTS (&region);
+	pbox = REGION_RECTS (&region);
+	
+	while (n--)
+	{
+	    h = pbox->y2 - pbox->y1;
+	    x2 = pbox->x2;
+	    w = x2 - pbox->x1;
+	    cop->multi = COP_MULTI_CLIP_TOP_LEFT | TRI_XY(0,0);
+	    cop->clip_bottom_right = TRI_XY(x2-1, 0xfff);
+	    if (w & 1)
+	    {
+		x2++;
+		w++;
+	    }
+	    
+	    y_msk = pbox->y1 - yDst + yMask;
+	    y_dst = pbox->y1;
+	    x_msk = pbox->x1 - xDst + xMask;
+	    x_dst = pbox->x1;
+	
+	    mskLine = (CARD8 *) mskBits + y_msk * mskStride + x_msk;
+	    
+	    cop->dst_start_xy = TRI_XY(pbox->x1, pbox->y1);
+	    cop->dst_end_xy = TRI_XY(x2-1,pbox->y2-1);
+	    
+	    _tridentWaitDone(cop);
+	    
+	    cop->command = (COP_OP_BLT | COP_SCL_OPAQUE | COP_CLIP | COP_OP_ROP);
+	    
+	    win_remain = 0;
+	    while (h--)
+	    {
+		w_remain = w;
+		msk = mskLine;
+		mskLine += mskStride;
+		while (w_remain)
+		{
+		    if (!win_remain)
+		    {
+			window = tridentc->window;
+			win_remain = 0x1000 / 4;
+		    }
+		    w_this = w_remain;
+		    if (w_this > win_remain)
+			w_this = win_remain;
+		    win_remain -= w_this;
+		    w_remain -= w_this;
+		    while (w_this--)
+			*window++ = rgb | (*msk++ << 24);
+		}
+	    }
+	    pbox++;
+	}
+
+	cop->multi = TridentAlpha;
+	cop->clip_bottom_right = 0x0fff0fff;
+
+	KdMarkSync (pDst->pDrawable->pScreen);
+    }
+    else if (!pMask &&
+	     op == PictOpOver &&
+	     !pSrc->repeat &&
+	     PICT_FORMAT_A(pSrc->format) == 8 &&
+	     PICT_FORMAT_BPP(pSrc->format) == 32 &&
+	     pDst->pDrawable->bitsPerPixel == 32 &&
+	     pDst->pDrawable->type == DRAWABLE_WINDOW)
+    {
+	xDst += pDst->pDrawable->x;
+	yDst += pDst->pDrawable->y;
+	xSrc += pSrc->pDrawable->x;
+	ySrc += pSrc->pDrawable->y;
+	if (pMask)
+	{
+	    xMask += pMask->pDrawable->x;
+	    yMask += pMask->pDrawable->y;
+	}
+	
+	if (!miComputeCompositeRegion (&region,
+				       pSrc,
+				       pMask,
+				       pDst,
+				       xSrc,
+				       ySrc,
+				       xMask,
+				       yMask,
+				       xDst,
+				       yDst,
+				       width,
+				       height))
+	    return;
+	
+	fbGetDrawable (pSrc->pDrawable, srcBits, srcStride, srcBpp);
+	
+	cop->multi = (COP_MULTI_ROP | 0xcc);
+	
+	cop->multi = (COP_MULTI_ALPHA |
+		      COP_ALPHA_BLEND_ENABLE |
+		      COP_ALPHA_WRITE_ENABLE |
+		      0x7 << 16 |
+		      COP_ALPHA_DST_BLEND_1_SRC_A |
+		      COP_ALPHA_SRC_BLEND_1);
+	
+	n = REGION_NUM_RECTS (&region);
+	pbox = REGION_RECTS (&region);
+	
+	while (n--)
+	{
+	    h = pbox->y2 - pbox->y1;
+	    x2 = pbox->x2;
+	    w = x2 - pbox->x1;
+	    cop->multi = COP_MULTI_CLIP_TOP_LEFT | TRI_XY(0,0);
+	    cop->clip_bottom_right = TRI_XY(x2-1, 0xfff);
+	    if (w & 1)
+	    {
+		x2++;
+		w++;
+	    }
+	    
+	    y_src = pbox->y1 - yDst + ySrc;
+	    y_dst = pbox->y1;
+	    x_src = pbox->x1 - xDst + xSrc;
+	    x_dst = pbox->x1;
+	
+	    srcLine = srcBits + y_src * srcStride + x_src;
+	    
+	    cop->dst_start_xy = TRI_XY(pbox->x1, pbox->y1);
+	    cop->dst_end_xy = TRI_XY(x2-1,pbox->y2-1);
+	    
+	    _tridentWaitDone(cop);
+	    
+	    cop->command = (COP_OP_BLT | COP_SCL_OPAQUE | COP_OP_ROP | COP_CLIP);
+	    
+	    win_remain = 0;
+	    while (h--)
+	    {
+		w_remain = w;
+		src = srcLine;
+		srcLine += srcStride;
+		while (w_remain)
+		{
+		    if (!win_remain)
+		    {
+			window = tridentc->window;
+			win_remain = 0x1000 / 4;
+		    }
+		    w_this = w_remain;
+		    if (w_this > win_remain)
+			w_this = win_remain;
+		    win_remain -= w_this;
+		    w_remain -= w_this;
+		    while (w_this--)
+			*window++ = *src++;
+		}
+	    }
+	    pbox++;
+	}
+
+	cop->multi = TridentAlpha;
+	cop->multi = COP_MULTI_CLIP_TOP_LEFT;
+	cop->clip_bottom_right = 0x0fff0fff;
+
+	KdMarkSync (pDst->pDrawable->pScreen);
+    }
+    else
+    {
+	KdCheckComposite (op,
+			  pSrc,
+			  pMask,
+			  pDst,
+			  xSrc,
+			  ySrc,
+			  xMask,
+			  yMask,
+			  xDst,
+			  yDst,
+			  width,
+			  height);
+    }
+}
+
+void
 tridentCopyWindow(WindowPtr pWin, DDXPointRec ptOldOrg, RegionPtr prgnSrc)
 {
     ScreenPtr	pScreen = pWin->drawable.pScreen;
@@ -786,6 +1056,9 @@ tridentPaintWindow(WindowPtr pWin, RegionPtr pRegion, int what)
 Bool
 tridentDrawInit (ScreenPtr pScreen)
 {
+    SetupTrident(pScreen);
+    PictureScreenPtr    ps = GetPictureScreen(pScreen);
+    
     /*
      * Hook up asynchronous drawing
      */
@@ -797,6 +1070,9 @@ tridentDrawInit (ScreenPtr pScreen)
     pScreen->CopyWindow = tridentCopyWindow;
     pScreen->PaintWindowBackground = tridentPaintWindow;
     pScreen->PaintWindowBorder = tridentPaintWindow;
+
+    if (ps && tridentc->window)
+	ps->Composite = tridentComposite;
     
     return TRUE;
 }
@@ -811,6 +1087,7 @@ tridentDrawEnable (ScreenPtr pScreen)
     CARD32  format;
     CARD32  alpha;
     int	    tries;
+    int	    nwrite;
     
     stride = pScreenPriv->screen->fb[0].pixelStride;
     switch (pScreenPriv->screen->fb[0].bitsPerPixel) {
