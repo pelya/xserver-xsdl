@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/GL/glx/glxext.h,v 1.4 2001/03/21 16:29:36 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/GL/glx/glxext.h,v 1.7 2003/11/17 22:20:26 dawes Exp $ */
 #ifndef _glxext_h_
 #define _glxext_h_
 
@@ -92,7 +92,6 @@ extern const char GLServerVersion[];
 extern int DoGetString(__GLXclientState *cl, GLbyte *pc, GLboolean need_swap);
 
 extern int GlxInitVisuals(
-#if NeedFunctionPrototypes
     VisualPtr *       visualp,
     DepthPtr *        depthp,
     int *             nvisualp,
@@ -102,7 +101,6 @@ extern int GlxInitVisuals(
     unsigned long     sizes,
     int               bitsPerRGB,
     int               preferredVis
-#endif
 );
 
 #endif /* _glxext_h_ */

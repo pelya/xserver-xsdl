@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/GL/glx/glxcmds.c,v 1.9 2002/12/14 01:36:09 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/GL/glx/glxcmds.c,v 1.12 2004/01/28 18:11:50 alanh Exp $ */
 /*
 ** License Applicability. Except to the extent portions of this file are
 ** made subject to an alternative license as permitted in the SGI Free
@@ -765,6 +765,8 @@ int __glXQueryVersion(__GLXclientState *cl, GLbyte *pc)
 
     major = req->majorVersion;
     minor = req->minorVersion;
+    (void)major;
+    (void)minor;
 
     /*
     ** Server should take into consideration the version numbers sent by the
@@ -1724,6 +1726,7 @@ int __glXVendorPrivate(__GLXclientState *cl, GLbyte *pc)
     req = (xGLXVendorPrivateReq *) pc;
     vendorcode = req->vendorCode;
 
+#ifndef __DARWIN__
     switch( vendorcode ) {
     case X_GLvop_SampleMaskSGIS:
 	glSampleMaskSGIS(*(GLfloat *)(pc + 4),
@@ -1733,7 +1736,7 @@ int __glXVendorPrivate(__GLXclientState *cl, GLbyte *pc)
 	glSamplePatternSGIS( *(GLenum *)(pc + 4));
 	return Success;
     }
-
+#endif
 
     if ((vendorcode >= __GLX_MIN_VENDPRIV_OPCODE_EXT) &&
           (vendorcode <= __GLX_MAX_VENDPRIV_OPCODE_EXT))  {

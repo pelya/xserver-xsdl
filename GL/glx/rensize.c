@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/GL/glx/rensize.c,v 1.5 2002/02/22 21:45:07 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/GL/glx/rensize.c,v 1.6 2003/09/28 20:15:43 alanh Exp $ */
 /*
 ** License Applicability. Except to the extent portions of this file are
 ** made subject to an alternative license as permitted in the SGI Free

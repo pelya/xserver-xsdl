@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/GL/glx/glxcmdsswap.c,v 1.7 2002/01/14 22:47:08 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/GL/glx/glxcmdsswap.c,v 1.10 2004/01/28 18:11:50 alanh Exp $ */
 /*
 ** License Applicability. Except to the extent portions of this file are
 ** made subject to an alternative license as permitted in the SGI Free
@@ -378,7 +378,7 @@ int __glXSwapQueryContextInfoEXT(__GLXclientState *cl, GLbyte *pc)
     __GLX_SWAP_SHORT(&req->length);
     __GLX_SWAP_INT(&req->context);
 
-    return __glXQueryContextInfoEXT(cl, (GLbyte *)pc);
+    return __glXQueryContextInfoEXT(cl, pc);
 }
 
 /************************************************************************/
@@ -804,6 +804,7 @@ int __glXSwapVendorPrivate(__GLXclientState *cl, GLbyte *pc)
 
     vendorcode = req->vendorCode;
 
+#ifndef __DARWIN__
     switch( vendorcode ) {
     case X_GLvop_SampleMaskSGIS:
 	__GLX_SWAP_FLOAT(pc + 4);
@@ -816,6 +817,7 @@ int __glXSwapVendorPrivate(__GLXclientState *cl, GLbyte *pc)
 	glSamplePatternSGIS( *(GLenum *)(pc + 4));
 	return Success;
     }
+#endif
 
 
     if ((vendorcode >= __GLX_MIN_VENDPRIV_OPCODE_EXT) &&
