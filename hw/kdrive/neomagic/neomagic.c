@@ -300,6 +300,11 @@ neoCardFini(KdCardInfo *card)
 #define neoCursorDisable 0    // disableCursor
 #define neoCursorFini 0       // finiCursor */
 #define neoRecolorCursor 0    // recolorCursor */
+//#define     neoDrawInit 0              // initAccel
+//#define     neoDrawEnable 0            // enableAccel
+//#define     neoDrawSync 0          // syncAccel
+//#define     neoDrawDisable 0          // disableAccel
+//#define     neoDrawFini 0             // finiAccel
 
 KdCardFuncs    neoFuncs = {
     neoCardInit,              // cardinit

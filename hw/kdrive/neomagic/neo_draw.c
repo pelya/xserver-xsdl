@@ -108,6 +108,7 @@ static void neoSolid (int x1, int y1, int x2, int y2)
     mmio->dstStart = y * screen->pitch + x * screen->depth;
 
     mmio->xyExt    = (unsigned long)(h << 16) | (w & 0xffff);
+	
 }
 
 
@@ -139,7 +140,7 @@ static void neoCopy (int srcX, int srcY, int dstX, int dstY, int w, int h)
 					NEO_BC0_DST_Y_DEC |
 					NEO_BC0_SRC_Y_DEC |
 					NEO_BC3_FIFO_EN |
-					NEO_BC3_SKIP_MAPPING |  0x0c0000;
+					NEO_BC3_SKIP_MAPPING |  rop;
 		srcX+=w-1;
 		dstX+=w-1;
 		srcY+=h-1;
@@ -168,15 +169,9 @@ KaaScreenInfoRec neoKaa = {
 Bool neoDrawInit (ScreenPtr pScreen)
 {
     ENTER();
-//    SetupNeo(pScreen);
-//    PictureScreenPtr    ps = GetPictureScreen(pScreen);
-
     if (!kaaDrawInit (pScreen, &neoKaa)) {
         return FALSE;
     }
-
-//    if (ps && tridents->off_screen)
-//    ps->Composite = tridentComposite;
     LEAVE();
     return TRUE;
 }
@@ -188,7 +183,7 @@ void neoDrawEnable (ScreenPtr pScreen)
     screen = neos;
     card = neoc;
     mmio = neoc->mmio;
-    screen->depth = screen->backendScreen.mode.BitsPerPixel/8;
+    screen->depth = (screen->backendScreen.mode.BitsPerPixel+7)/8;
     screen->pitch = screen->backendScreen.mode.BytesPerScanLine;
     DBGOUT("NEO depth=%x, pitch=%x\n", screen->depth, screen->pitch);
     LEAVE();

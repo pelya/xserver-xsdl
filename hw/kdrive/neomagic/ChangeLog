@@ -1,3 +1,6 @@
+2004-06-07 Franco Catrin L. <fcatrin@tuxpan.com>
+        * Small fix for depth calculation
+
 2004-04-11 Franco Catrin L. <fcatrin@tuxpan.com>
 
         * Basic bitblt implementation
