@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/kdrive.h,v 1.27 2002/10/18 06:08:10 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/kdrive.h,v 1.28 2002/11/05 05:28:34 keithp Exp $ */
 
 #include <stdio.h>
 #include "X.h"
@@ -614,6 +614,11 @@ KdAllocInputType (void);
 
 Bool
 KdRegisterFd (int type, int fd, void (*read) (int fd, void *closure), void *closure);
+
+void
+KdRegisterFdEnableDisable (int fd, 
+			   int (*enable) (int fd, void *closure),
+			   void (*disable) (int fd, void *closure));
 
 void
 KdUnregisterFds (int type, Bool do_close);

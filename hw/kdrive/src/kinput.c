@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/kinput.c,v 1.28 2002/10/31 18:29:50 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/kinput.c,v 1.29 2002/11/05 05:28:34 keithp Exp $ */
 
 #include "kdrive.h"
 #include "inputstr.h"
@@ -80,7 +80,7 @@ typedef struct _kdInputFd {
     int	    type;
     int	    fd;
     void    (*read) (int fd, void *closure);
-    void    (*enable) (int fd, void *closure);
+    int	    (*enable) (int fd, void *closure);
     void    (*disable) (int fd, void *closure);
     void    *closure;
 } KdInputFd;
@@ -215,7 +215,7 @@ KdRegisterFd (int type, int fd, void (*read) (int fd, void *closure), void *clos
 
 void
 KdRegisterFdEnableDisable (int fd, 
-			   void (*enable) (int fd, void *closure),
+			   int (*enable) (int fd, void *closure),
 			   void (*disable) (int fd, void *closure))
 {
     int	i;
@@ -274,9 +274,9 @@ KdEnableInput (void)
     kdInputEnabled = TRUE;
     for (i = 0; i < kdNumInputFds; i++)
     {
-	KdAddFd (kdInputFds[i].fd);
 	if (kdInputFds[i].enable)
-	    (*kdInputFds[i].enable) (kdInputFds[i].fd, kdInputFds[i].closure);
+	    kdInputFds[i].fd = (*kdInputFds[i].enable) (kdInputFds[i].fd, kdInputFds[i].closure);
+	KdAddFd (kdInputFds[i].fd);
     }
     
     /* reset screen saver */
