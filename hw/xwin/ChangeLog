@@ -1,5 +1,20 @@
 2005-01-31  Alexander Gottwald  <ago at freedesktop dot org>
 
+	* winconfig.c:
+	Added hungarian keyboard layout.
+
+2005-01-31  Alexander Gottwald  <ago at freedesktop dot org>
+
+	* winmessages.h
+	* winmsg.h
+	* winmsg.c
+	* winmultiwindowwndproc.c
+	* winwin32rootlesswndproc.c
+	* winwndproc.c:
+	Make logging of messages configurable with environment variables
+
+2005-01-31  Alexander Gottwald  <ago at freedesktop dot org>
+
 	* InitOutput.c:
 	resolve SHGetFolderPath dynamicly since it is not available on all Windows 
 	systems.
