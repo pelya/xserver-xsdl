@@ -237,7 +237,6 @@ LinuxSetSwitchMode (int mode)
 	act.sa_handler = LinuxVTRequest;
 	sigemptyset (&act.sa_mask);
 	act.sa_flags = 0;
-	act.sa_restorer = 0;
 	sigaction (SIGUSR1, &act, 0);
     
 	VT.mode = mode;
@@ -249,7 +248,6 @@ LinuxSetSwitchMode (int mode)
 	act.sa_handler = SIG_IGN;
 	sigemptyset (&act.sa_mask);
 	act.sa_flags = 0;
-	act.sa_restorer = 0;
 	sigaction (SIGUSR1, &act, 0);
     
 	VT.mode = mode;
