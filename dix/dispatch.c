@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/dix/dispatch.c,v 1.3 2004/06/21 13:40:25 ago Exp $ */
+/* $XdotOrg: xc/programs/Xserver/dix/dispatch.c,v 1.4 2004/07/29 18:43:58 stukreit Exp $ */
 /* $Xorg: dispatch.c,v 1.5 2001/02/09 02:04:40 xorgcvs Exp $ */
 /************************************************************
 
@@ -1050,13 +1050,12 @@ ProcSetSelectionOwner(client)
 	CurrentSelections[i].client = (pWin ? client : NullClient);
 	if (SelectionCallback)
 	{
-	   SelectionInfoRec    info;
+	    SelectionInfoRec	info;
 
-	   info.selection = &CurrentSelections[i];
-	   info.kind= SelectionSetOwner;
-	   CallCallbacks(&SelectionCallback, &info);
+	    info.selection = &CurrentSelections[i];
+	    info.kind= SelectionSetOwner;
+	    CallCallbacks(&SelectionCallback, &info);
 	}
-
 	return (client->noClientException);
     }
     else 
@@ -2130,7 +2129,9 @@ DoGetImage(client, format, drawable, x, y, width, height, planemask, im_return)
     Mask		plane = 0;
     char		*pBuf;
     xGetImageReply	xgi;
+#ifdef XCSECURITY
     RegionPtr pVisibleRegion = NULL;
+#endif
 
     if ((format != XYPixmap) && (format != ZPixmap))
     {

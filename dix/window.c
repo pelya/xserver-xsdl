@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/dix/window.c,v 1.3 2004/07/29 18:43:58 stukreit Exp $ */
+/* $XdotOrg: xc/programs/Xserver/dix/window.c,v 1.4 2004/07/29 23:43:39 kem Exp $ */
 /* $Xorg: window.c,v 1.4 2001/02/09 02:04:41 xorgcvs Exp $ */
 /*
 
@@ -3154,15 +3154,15 @@ HandleSaveSet(client)
     {
 	pWin = SaveSetWindow(client->saveSet[j]);
 #ifdef XFIXES
-        if (SaveSetToRoot(client->saveSet[j]))
-            pParent = WindowTable[pWin->drawable.pScreen->myNum];
-        else
+	if (SaveSetToRoot(client->saveSet[j]))
+	    pParent = WindowTable[pWin->drawable.pScreen->myNum];
+	else
 #endif
-        {
-            pParent = pWin->parent;
-            while (pParent && (wClient (pParent) == client))
-                pParent = pParent->parent;
-        }
+	{
+	    pParent = pWin->parent;
+	    while (pParent && (wClient (pParent) == client))
+		pParent = pParent->parent;
+	}
 	if (pParent)
 	{
 	    if (pParent != pWin->parent)
@@ -3174,7 +3174,10 @@ HandleSaveSet(client)
 		if(!pWin->realized && pWin->mapped)
 		    pWin->mapped = FALSE;
 	    }
-	    MapWindow(pWin, client);
+#ifdef XFIXES
+	    if (SaveSetRemap (client->saveSet[j]))
+#endif
+		MapWindow(pWin, client);
 	}
     }
     xfree(client->saveSet);
