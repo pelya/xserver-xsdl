@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/kdrive.c,v 1.11 2000/12/08 22:59:37 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/kdrive.c,v 1.12 2001/03/30 02:15:20 keithp Exp $ */
 
 #include "kdrive.h"
 #ifdef PSEUDO8
@@ -733,6 +733,10 @@ KdScreenInit(int index, ScreenPtr pScreen, int argc, char **argv)
     
 #ifdef RENDER
     if (!fbPictureInit (pScreen, 0, 0))
+	return FALSE;
+#endif
+#ifdef RANDR
+    if (!miRandRInit (pScreen))
 	return FALSE;
 #endif
     
