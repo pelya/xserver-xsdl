@@ -1,5 +1,5 @@
 /*
- * $Id$
+ * $XFree86$
  *
  * Copyright © 1999 Keith Packard
  *
