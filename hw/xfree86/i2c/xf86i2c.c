@@ -87,7 +87,7 @@ I2CUDelay(I2CBusPtr b, int usec)
       d_secs  = (a_secs - b_secs);
       d_usecs = (a_usecs - b_usecs);
       diff = d_secs*1000000 + d_usecs;
-    } while (diff>0 && diff< (usec + 1));
+    } while (diff>=0 && diff< (usec + 1));
   }
 }
 #endif
