@@ -402,6 +402,8 @@ fbdevRandRSetConfig (ScreenPtr		pScreen,
     if (!fbdevMapFramebuffer (screen))
 	goto bail4;
 
+    KdShadowUnset (screen->pScreen);
+
     if (!fbdevSetShadow (screen->pScreen))
 	goto bail4;
 
