@@ -186,6 +186,8 @@ fbdevScreenInitialize (KdScreenInfo *screen, FbdevScrPriv *scrpriv)
 	return FALSE;
 	break;
     }
+    screen->fb[0].depth = depth;
+    screen->fb[0].bitsPerPixel = priv->var.bits_per_pixel;
     screen->rate = 72;
     scrpriv->randr = screen->randr;
     
@@ -249,8 +251,6 @@ fbdevMapFramebuffer (KdScreenInfo *screen)
     screen->memory_base = (CARD8 *) (priv->fb);
     screen->memory_size = 0;
     screen->off_screen_base = 0;
-    screen->fb[0].depth = priv->var.bits_per_pixel;
-    screen->fb[0].bitsPerPixel = priv->var.bits_per_pixel;
     
     if (scrpriv->shadow)
     {
