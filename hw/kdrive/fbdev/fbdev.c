@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/fbdev/fbdev.c,v 1.21 2001/06/16 05:53:05 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/fbdev/fbdev.c,v 1.22 2001/06/21 00:58:51 keithp Exp $ */
 
 #include "fbdev.h"
 
@@ -86,6 +86,23 @@ fbdevCardInit (KdCardInfo *card)
     return TRUE;
 }
 
+#define FBDEV_KLUDGE_FORMAT
+#ifdef FBDEV_KLUDGE_FORMAT
+static Pixel
+fbdevMakeContig (Pixel orig, Pixel others)
+{
+    Pixel   low;
+
+    low = lowbit (orig) >> 1;
+    while (low && (others & low) == 0)
+    {
+	orig |= low;
+	low >>= 1;
+    }
+    return orig;
+}
+#endif
+
 Bool
 fbdevScreenInitialize (KdScreenInfo *screen, FbdevScrPriv *scrpriv)
 {
@@ -141,11 +158,24 @@ fbdevScreenInitialize (KdScreenInfo *screen, FbdevScrPriv *scrpriv)
 	screen->fb[0].redMask = Mask (priv->var.red.offset, priv->var.red.length);
 	screen->fb[0].greenMask = Mask (priv->var.green.offset, priv->var.green.length);
 	screen->fb[0].blueMask = Mask (priv->var.blue.offset, priv->var.blue.length);
-#ifdef ITSY
-	screen->fb[0].redMask = 0xf800;
-	screen->fb[0].greenMask = 0x07e0;
-	screen->fb[0].blueMask = 0x001f;
-#endif	
+#ifdef FBDEV_KLUDGE_FORMAT
+	/*
+	 * This is a kludge so that Render will work -- fill in the gaps
+	 * in the pixel
+	 */
+	screen->fb[0].redMask = fbdevMakeContig (screen->fb[0].redMask,
+						 screen->fb[0].greenMask|
+						 screen->fb[0].blueMask);
+
+	screen->fb[0].greenMask = fbdevMakeContig (screen->fb[0].greenMask,
+						   screen->fb[0].redMask|
+						   screen->fb[0].blueMask);
+
+	screen->fb[0].blueMask = fbdevMakeContig (screen->fb[0].blueMask,
+						  screen->fb[0].redMask|
+						  screen->fb[0].greenMask);
+
+#endif
 	allbits = screen->fb[0].redMask | screen->fb[0].greenMask | screen->fb[0].blueMask;
 	depth = 32;
 	while (depth && !(allbits & (1 << (depth - 1))))
