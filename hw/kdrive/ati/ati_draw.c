@@ -69,7 +69,11 @@ CARD8 ATIBltRop[16] = {
 };
 
 int copydx, copydy;
-int is_radeon;
+Bool is_radeon;
+/* If is_24bpp is set, then we are using the accelerator in 8-bit mode due
+ * to it being broken for 24bpp, so coordinates have to be multiplied by 3.
+ */
+Bool is_24bpp;
 int fifo_size;
 char *mmio;
 CARD32 bltCmd;
@@ -154,25 +158,54 @@ ATIWaitIdle(void)
 		R128WaitIdle();
 }
 
-static void
-ATISetup(ScreenPtr pScreen)
+static Bool
+ATISetup(ScreenPtr pScreen, PixmapPtr pDst, PixmapPtr pSrc)
 {
 	KdScreenPriv(pScreen);
 	ATICardInfo(pScreenPriv);
-	ATIScreenInfo(pScreenPriv);
+	int dst_offset, dst_pitch, src_offset = 0, src_pitch = 0;
+	int bpp = pScreenPriv->screen->fb[0].bitsPerPixel;
 
 	mmio = atic->reg_base;
 
-	ATIWaitAvail(5);
+	/* No acceleration for other formats (yet) */
+	if (pDst->drawable.bitsPerPixel != bpp)
+		return FALSE;
+
+	dst_pitch = pDst->devKind;
+	dst_offset = ((CARD8 *)pDst->devPrivate.ptr -
+	    pScreenPriv->screen->memory_base);
+	if (pSrc != NULL) {
+		src_pitch = pSrc->devKind;
+		src_offset = ((CARD8 *)pSrc->devPrivate.ptr -
+		    pScreenPriv->screen->memory_base);
+	}
+
+	ATIWaitAvail(3);
 	if (is_radeon) {
-		MMIO_OUT32(mmio, RADEON_REG_DEFAULT_OFFSET, atis->pitch << 16);
+		MMIO_OUT32(mmio, RADEON_REG_DST_PITCH_OFFSET,
+		    ((dst_pitch >> 6) << 22) | (dst_offset >> 10));
+		if (pSrc != NULL) {
+			MMIO_OUT32(mmio, RADEON_REG_SRC_PITCH_OFFSET,
+			    ((src_pitch >> 6) << 22) | (src_offset >> 10));
+		}
 	} else {
-		MMIO_OUT32(mmio, RADEON_REG_DEFAULT_OFFSET, 0);
-		MMIO_OUT32(mmio, RADEON_REG_DEFAULT_PITCH,
-		    pScreenPriv->screen->width >> 3);
+		if (is_24bpp) {
+			dst_pitch *= 3;
+			src_pitch *= 3;
+		}
+		/* R128 pitch is in units of 8 pixels, offset in 32 bytes */
+		MMIO_OUT32(mmio, RADEON_REG_DST_PITCH_OFFSET,
+		    ((dst_pitch/bpp) << 21) | (dst_offset >> 5));
+		if (pSrc != NULL) {
+			MMIO_OUT32(mmio, RADEON_REG_SRC_PITCH_OFFSET,
+			    ((src_pitch/bpp) << 21) | (src_offset >> 5));
+		}
 	}
 	MMIO_OUT32(mmio, RADEON_REG_DEFAULT_SC_BOTTOM_RIGHT,
 	    (RADEON_DEFAULT_SC_RIGHT_MAX | RADEON_DEFAULT_SC_BOTTOM_MAX));
+
+	return TRUE;
 }
 
 static Bool
@@ -181,12 +214,27 @@ ATIPrepareSolid(PixmapPtr pPixmap, int alu, Pixel pm, Pixel fg)
 	KdScreenPriv(pPixmap->drawable.pScreen);
 	ATIScreenInfo(pScreenPriv);
 
-	ATISetup(pPixmap->drawable.pScreen);
+	if (is_24bpp) {
+		if (pm != 0xffffffff)
+			return FALSE;
+		/* Solid fills in fake-24bpp mode only work if the pixel color
+		 * is all the same byte.
+		 */
+		if ((fg & 0xffffff) != (((fg & 0xff) << 16) | ((fg >> 8) &
+		    0xffff)))
+			return FALSE;
+	}
+
+	if (!ATISetup(pPixmap->drawable.pScreen, pPixmap, NULL))
+		return FALSE;
 
 	ATIWaitAvail(4);
 	MMIO_OUT32(mmio, RADEON_REG_DP_GUI_MASTER_CNTL,
-	    atis->dp_gui_master_cntl | RADEON_GMC_BRUSH_SOLID_COLOR |
-	    RADEON_GMC_SRC_DATATYPE_COLOR | (ATISolidRop[alu] << 16));
+	    atis->dp_gui_master_cntl |
+	    RADEON_GMC_BRUSH_SOLID_COLOR |
+	    RADEON_GMC_DST_PITCH_OFFSET_CNTL |
+	    RADEON_GMC_SRC_DATATYPE_COLOR |
+	    (ATISolidRop[alu] << 16));
 	MMIO_OUT32(mmio, RADEON_REG_DP_BRUSH_FRGD_CLR, fg);
 	MMIO_OUT32(mmio, RADEON_REG_DP_WRITE_MASK, pm);
 	MMIO_OUT32(mmio, RADEON_REG_DP_CNTL, RADEON_DST_X_LEFT_TO_RIGHT |
@@ -198,6 +246,10 @@ ATIPrepareSolid(PixmapPtr pPixmap, int alu, Pixel pm, Pixel fg)
 static void
 ATISolid(int x1, int y1, int x2, int y2)
 {
+	if (is_24bpp) {
+		x1 *= 3;
+		x2 *= 3;
+	}
 	ATIWaitAvail(2);
 	MMIO_OUT32(mmio, RADEON_REG_DST_Y_X, (y1 << 16) | x1);
 	MMIO_OUT32(mmio, RADEON_REG_DST_WIDTH_HEIGHT, ((x2 - x1) << 16) |
@@ -218,10 +270,20 @@ ATIPrepareCopy(PixmapPtr pSrc, PixmapPtr pDst, int dx, int dy, int alu, Pixel pm
 	copydx = dx;
 	copydy = dy;
 
+	if (is_24bpp && pm != 0xffffffff)
+		return FALSE;
+
+	if (!ATISetup(pDst->drawable.pScreen, pDst, pSrc))
+		return FALSE;
+
 	ATIWaitAvail(3);
 	MMIO_OUT32(mmio, RADEON_REG_DP_GUI_MASTER_CNTL,
-	    atis->dp_gui_master_cntl | RADEON_GMC_BRUSH_SOLID_COLOR |
-	    RADEON_GMC_SRC_DATATYPE_COLOR | (ATIBltRop[alu] << 16) |
+	    atis->dp_gui_master_cntl |
+	    RADEON_GMC_BRUSH_SOLID_COLOR |
+	    RADEON_GMC_SRC_DATATYPE_COLOR |
+	    (ATIBltRop[alu] << 16) |
+	    RADEON_GMC_SRC_PITCH_OFFSET_CNTL |
+	    RADEON_GMC_DST_PITCH_OFFSET_CNTL |
 	    RADEON_DP_SRC_SOURCE_MEMORY);
 	MMIO_OUT32(mmio, RADEON_REG_DP_WRITE_MASK, pm);
 	MMIO_OUT32(mmio, RADEON_REG_DP_CNTL, 
@@ -234,6 +296,12 @@ ATIPrepareCopy(PixmapPtr pSrc, PixmapPtr pDst, int dx, int dy, int alu, Pixel pm
 static void
 ATICopy(int srcX, int srcY, int dstX, int dstY, int w, int h)
 {
+	if (is_24bpp) {
+		srcX *= 3;
+		dstX *= 3;
+		w *= 3;
+	}
+
 	if (copydx < 0) {
 		srcX += w - 1;
 		dstX += w - 1;
@@ -255,7 +323,7 @@ ATIDoneCopy(void)
 {
 }
 
-KaaScreenInfoRec ATIKaa = {
+static KaaScreenInfoRec ATIKaa = {
 	ATIPrepareSolid,
 	ATISolid,
 	ATIDoneSolid,
@@ -263,6 +331,10 @@ KaaScreenInfoRec ATIKaa = {
 	ATIPrepareCopy,
 	ATICopy,
 	ATIDoneCopy,
+
+	0,				/* offscreenByteAlign */
+	0,				/* offscreenPitch */
+	KAA_OFFSCREEN_PIXMAPS,		/* flags */
 };
 
 Bool
@@ -270,6 +342,10 @@ ATIDrawInit(ScreenPtr pScreen)
 {
 	KdScreenPriv(pScreen);
 	ATIScreenInfo(pScreenPriv);
+	ATICardInfo(pScreenPriv);
+
+	is_radeon = atic->is_radeon;
+	is_24bpp = FALSE;
 
 	switch (pScreenPriv->screen->fb[0].depth)
 	{
@@ -284,28 +360,28 @@ ATIDrawInit(ScreenPtr pScreen)
 		break;
 	case 24:
 		if (pScreenPriv->screen->fb[0].bitsPerPixel == 24) {
-			atis->datatype = 5;
-			ErrorF("[ati]: framebuffers at 24bpp not supported, "
-			    "disabling acceleration\n");
-			return FALSE;
+			is_24bpp = TRUE;
+			atis->datatype = 2;
 		} else {
 			atis->datatype = 6;
 		}
 		break;
-	case 32:
-		atis->datatype = 6;
-		break;
 	default:
-		ErrorF("[ati]: acceleration unsupported at depth %d\n",
+		FatalError("[ati]: depth %d unsupported\n",
 		    pScreenPriv->screen->fb[0].depth);
 		return FALSE;
 	}
 
+	atis->dp_gui_master_cntl = (atis->datatype << 8) |
+	    RADEON_GMC_CLR_CMP_CNTL_DIS | RADEON_GMC_AUX_CLIP_DIS;
 
-	if (pScreenPriv->screen->fb[0].bitsPerPixel == 24) {
-		
+	if (is_radeon) {
+		ATIKaa.offscreenByteAlign = 1024;
+		ATIKaa.offscreenPitch = 64;
+	} else {
+		ATIKaa.offscreenByteAlign = 8;
+		ATIKaa.offscreenPitch = pScreenPriv->screen->fb[0].bitsPerPixel;
 	}
-	
 	if (!kaaDrawInit(pScreen, &ATIKaa))
 		return FALSE;
 
@@ -315,16 +391,6 @@ ATIDrawInit(ScreenPtr pScreen)
 void
 ATIDrawEnable(ScreenPtr pScreen)
 {
-	KdScreenPriv(pScreen);
-	ATIScreenInfo(pScreenPriv);
-	ATICardInfo(pScreenPriv);
-
-	is_radeon = atic->is_radeon;
-
-	atis->pitch = (pScreenPriv->screen->fb[0].byteStride + 0x3f) & ~0x3f;
-
-	atis->dp_gui_master_cntl = (atis->datatype << 8) |
-	    RADEON_GMC_CLR_CMP_CNTL_DIS | RADEON_GMC_AUX_CLIP_DIS;
 	KdMarkSync(pScreen);
 }
 

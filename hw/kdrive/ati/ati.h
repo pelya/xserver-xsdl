@@ -58,7 +58,6 @@ typedef struct _ATIScreenInfo {
 	CARD8 *off_screen;
 	int off_screen_size;
 
-	int pitch;
 	int datatype;
 	int dp_gui_master_cntl;
 } ATIScreenInfo;

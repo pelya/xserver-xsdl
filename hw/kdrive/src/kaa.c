@@ -70,7 +70,7 @@ typedef struct {
 #define KaaGetPixmapPriv(p)	((KaaPixmapPrivPtr)(p)->devPrivates[kaaPixmapPrivateIndex].ptr)
 #define KaaSetPixmapPriv(p,a)	((p)->devPrivates[kaaPixmapPrivateIndex].ptr = (pointer) (a))
 #define KaaPixmapPriv(p)	KaaPixmapPrivPtr pKaaPixmap = KaaGetPixmapPriv(p)
-#define KaaPixmapPitch(w)	(((w) + (pKaaScr->info->offscreenPitch - 1)) & ~(pKaaScr->info->offscreenPitch - 1))
+#define KaaPixmapPitch(pitch)	(((pitch) + (pKaaScr->info->offscreenPitch - 1)) & ~(pKaaScr->info->offscreenPitch - 1))
 
 #define MIN_OFFPIX_SIZE		(4096)
 
@@ -123,7 +123,7 @@ kaaPixmapAllocArea (PixmapPtr pPixmap)
     int		bpp = pPixmap->drawable.bitsPerPixel;
     CARD16	h = pPixmap->drawable.height;
     CARD16	w = pPixmap->drawable.width;
-    int		pitch = KaaPixmapPitch (w);
+    int		pitch = KaaPixmapPitch (w * bpp / 8);
     
     pKaaPixmap->devKind = pPixmap->devKind;
     pKaaPixmap->devPrivate = pPixmap->devPrivate;
