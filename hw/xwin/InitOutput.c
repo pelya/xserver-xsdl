@@ -606,6 +606,14 @@ winFixupPaths (void)
         buffer[sizeof(buffer)-1] = 0;
         putenv(buffer);
     }
+    if (getenv("XERRORDB") == NULL)
+    {
+        char buffer[MAX_PATH];
+        snprintf(buffer, sizeof(buffer), "XERRORDB=%s\\XErrorDB",
+                basedir);
+        buffer[sizeof(buffer)-1] = 0;
+        putenv(buffer);
+    }
     if (getenv("XLOCALEDIR") == NULL)
     {
         char buffer[MAX_PATH];
