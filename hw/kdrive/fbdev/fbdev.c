@@ -156,10 +156,13 @@ fbdevScreenInitialize (KdScreenInfo *screen, FbdevScrPriv *scrpriv)
     struct fb_var_screeninfo var;
     const KdMonitorTiming *t;
     int k;
+
+    k = ioctl (priv->fd, FBIOGET_VSCREENINFO, &var);
     
     if (!screen->width || !screen->height)
     {
-	if (ioctl (priv->fd, FBIOGET_VSCREENINFO, &var) >= 0) {
+	if (k >= 0) 
+	{
 	    screen->width = var.xres;
 	    screen->height = var.yres;
 	}
@@ -179,7 +182,8 @@ fbdevScreenInitialize (KdScreenInfo *screen, FbdevScrPriv *scrpriv)
     screen->height = t->vertical;
 
     /* Now try setting the mode */
-    fbdevConvertMonitorTiming (t, &var);
+    if (k < 0 || (t->horizontal != var.xres || t->vertical != var.yres))
+        fbdevConvertMonitorTiming (t, &var);
 
     var.activate = FB_ACTIVATE_NOW;
     var.bits_per_pixel = screen->fb[0].depth;
