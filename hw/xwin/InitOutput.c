@@ -752,7 +752,7 @@ winUseMsg (void)
 	  "\theight and initial position for that screen. Additionally\n"
 	  "\ta monitor number can be specified to start the server on,\n"
 	  "\tat which point, all coordinates become relative to that\n"
-      "\tmonitor. Examples:\n"
+      "\tmonitor (Not for Windows NT4 and 95). Examples:\n"
       "\t -screen 0 800x600+100+100@2 ; 2nd monitor offset 100,100 size 800x600\n"
       "\t -screen 0 1024x768@3        ; 3rd monitor size 1024x768\n"
       "\t -screen 0 @1 ; on 1st monitor using its full resolution (the default)\n");

@@ -1,3 +1,10 @@
+2004-12-14  Alexander Gottwald  <ago at freedesktop dot org>
+
+	* InitOutput.c:
+	* winprocarg.c:
+	EnumDisplayMonitors is not available on Window NT4 and 95. Resolve
+	the function dynamicly
+
 2004-12-08  Alexander Gottwald  <ago at freedesktop dot org>
 
 	* InitOutput.c:

@@ -67,6 +67,44 @@ struct GetMonitorInfoData {
     int  monitorWidth;
 };
 
+typedef wBOOL (*ENUMDISPLAYMONITORSPROC)(HDC,LPCRECT,MONITORENUMPROC,LPARAM);
+ENUMDISPLAYMONITORSPROC _EnumDisplayMonitors;
+
+wBOOL CALLBACK getMonitorInfo(HMONITOR hMonitor, HDC hdc, LPRECT rect, LPARAM _data);
+
+Bool QueryMonitor(int index, struct GetMonitorInfoData *data)
+{
+    /* Load EnumDisplayMonitors from DLL */
+    HMODULE user32;
+    FARPROC func;
+    user32 = LoadLibrary("user32.dll");
+    if (user32 == NULL)
+    {
+        winW32Error(2, "Could not open user32.dll");
+        return FALSE;
+    }
+    func = GetProcAddress(user32, "EnumDisplayMonitors");
+    if (func == NULL)
+    {
+        winW32Error(2, "Could not resolve EnumDisplayMonitors: ");
+        return FALSE;
+    }
+    _EnumDisplayMonitors = (ENUMDISPLAYMONITORSPROC)func;
+    
+    /* prepare data */
+    if (data == NULL)
+        return FALSE;
+    memset(data, 0, sizeof(*data));
+    data->requestedMonitor = index;
+
+    /* query information */
+    _EnumDisplayMonitors(NULL, NULL, getMonitorInfo, (LPARAM) data);
+
+    /* cleanup */
+    FreeLibrary(user32);
+    return TRUE;
+}
+
 /*
  * Function prototypes
  */
@@ -83,8 +121,6 @@ void OsVendorVErrorF (const char *pszFormat, va_list va_args);
 
 void
 winInitializeDefaultScreens (void);
-
-wBOOL CALLBACK getMonitorInfo(HMONITOR hMonitor, HDC hdc, LPRECT rect, LPARAM data);
 
 /*
  * Process arguments on the command line
@@ -298,10 +334,11 @@ ddxProcessArgument (int argc, char *argv[], int i)
 		  && 1 == sscanf(argv[i + 2], "@%d", (int *) &iMonitor)) 
       {
         struct GetMonitorInfoData data;
-        memset(&data, 0, sizeof(data));
-        data.requestedMonitor = iMonitor;
-		EnumDisplayMonitors(NULL, NULL, getMonitorInfo, (LPARAM) &data);
-		if (data.bMonitorSpecifiedExists == TRUE) 
+        if (!QueryMonitor(iMonitor, &data))
+        {
+            ErrorF ("ddxProcessArgument - screen - "
+                    "Querying monitors is not supported on NT4 and Win95\n");
+        } else if (data.bMonitorSpecifiedExists == TRUE) 
         {
 		  winErrorFVerb(2, "ddxProcessArgument - screen - Found Valid ``@Monitor'' = %d arg\n", iMonitor);
 		  iArgsProcessed = 3;
@@ -353,10 +390,11 @@ ddxProcessArgument (int argc, char *argv[], int i)
 						 (int *) &iMonitor)) 
         {
           struct GetMonitorInfoData data;
-          memset(&data, 0, sizeof(data));
-          data.requestedMonitor = iMonitor;
-		  EnumDisplayMonitors(NULL, NULL, getMonitorInfo, (LPARAM) &data);
-		  if (data.bMonitorSpecifiedExists == TRUE) 
+          if (!QueryMonitor(iMonitor, &data))
+          {
+              ErrorF ("ddxProcessArgument - screen - "
+                      "Querying monitors is not supported on NT4 and Win95\n");
+          } else if (data.bMonitorSpecifiedExists == TRUE) 
           {
 			g_ScreenInfo[nScreenNum].dwInitialX += data.monitorOffsetX;
 			g_ScreenInfo[nScreenNum].dwInitialY += data.monitorOffsetY;
@@ -379,10 +417,11 @@ ddxProcessArgument (int argc, char *argv[], int i)
 						   (int *) &iMonitor)) 
       {
         struct GetMonitorInfoData data;
-        memset(&data, 0, sizeof(data));
-        data.requestedMonitor = iMonitor;
-		EnumDisplayMonitors(NULL, NULL, getMonitorInfo, (LPARAM) &data);
-		if (data.bMonitorSpecifiedExists == TRUE) 
+        if (!QueryMonitor(iMonitor, &data))
+        {
+		  ErrorF ("ddxProcessArgument - screen - "
+                  "Querying monitors is not supported on NT4 and Win95\n");
+        } else if (data.bMonitorSpecifiedExists == TRUE) 
         {
 		  winErrorFVerb (2, "ddxProcessArgument - screen - Found Valid ``@Monitor'' = %d arg\n", iMonitor);
 		  g_ScreenInfo[nScreenNum].fUserGavePosition = TRUE;
