@@ -62,7 +62,7 @@ static Bool neoPrepareSolid(PixmapPtr pPixmap,
                             Pixel fg)
 {
     FbBits depthMask = FbFullMask(pPixmap->drawable.depth);
-
+	DBGOUT("ROP %i\n", alu);
     if ((pm & depthMask) != depthMask) {
         return FALSE;
     } else {
@@ -76,17 +76,8 @@ static void neoSolid (int x1, int y1, int x2, int y2)
     int x, y, w, h;
     x = x1;
     y = y1;
-    w = x2-x1 + 1;
-    h = y2-y1 + 1;
-    if (x1>x2) {
-        x = x2;
-        w = -w;
-    }
-    if (y1>y2) {
-        y = y2;
-        h = -h;
-    }
-	
+    w = x2-x1;
+    h = y2-y1;
 	neoWaitIdle(card);
 	mmio->fgColor = fgColor;
 	mmio->bltCntl =
@@ -115,7 +106,7 @@ static void neoCopy (int srcX, int srcY, int dstX, int dstY, int w, int h)
 	
     if ((dstY < srcY) || ((dstY == srcY) && (dstX < srcX))) {
 		mmio->bltCntl  = 
-					NEO_BC3_FIFO_EN      |
+					NEO_BC3_FIFO_EN |
 					NEO_BC3_SKIP_MAPPING |  0x0c0000;
 		mmio->srcStart = srcY * screen->pitch + srcX * screen->depth;
 		mmio->dstStart = dstY * screen->pitch + dstX * screen->depth;
