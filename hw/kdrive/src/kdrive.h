@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/kdrive.h,v 1.18 2001/07/20 19:35:29 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/kdrive.h,v 1.19 2001/07/24 21:26:17 keithp Exp $ */
 
 #include <stdio.h>
 #include "X.h"
@@ -600,6 +600,7 @@ ProcessInputEvents ();
 
 extern KdMouseFuncs	Ps2MouseFuncs;
 extern KdMouseFuncs	BusMouseFuncs;
+extern KdMouseFuncs	MsMouseFuncs;
 #ifdef TOUCHSCREEN
 extern KdMouseFuncs	TsFuncs;
 #endif
