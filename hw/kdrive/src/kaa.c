@@ -131,12 +131,12 @@ kaaPixmapAllocArea (PixmapPtr pPixmap)
 static void
 kaaMoveInPixmap (PixmapPtr pPixmap)
 {
+    ScreenPtr	pScreen = pPixmap->drawable.pScreen;
+    KaaScreenPriv (pScreen);
     int dst_pitch, src_pitch, bytes;
     unsigned char *dst, *src;
     int i;
 
-    KdCheckSync (pPixmap->drawable.pScreen);
-    
     DBG_MIGRATE (("-> 0x%08x (0x%x) (%dx%d)\n",
 		  pPixmap->drawable.id,
 		  KaaGetPixmapPriv(pPixmap)->area ? 
@@ -150,10 +150,18 @@ kaaMoveInPixmap (PixmapPtr pPixmap)
     if (!kaaPixmapAllocArea (pPixmap))
 	return;
     
+    if (pKaaScr->info->UploadToScreen)
+    {
+	if (pKaaScr->info->UploadToScreen(pPixmap, src, src_pitch))
+	    return;
+    }
+
     dst = pPixmap->devPrivate.ptr;
     dst_pitch = pPixmap->devKind;
     
     bytes = src_pitch < dst_pitch ? src_pitch : dst_pitch;
+
+    KdCheckSync (pPixmap->drawable.pScreen);
 
     i = pPixmap->drawable.height;
     while (i--) {

@@ -269,9 +269,7 @@ ATIScreenInit(KdScreenInfo *screen)
 	if (atic->use_fbdev) {
 		success = fbdevScreenInitialize(screen,
 						&atis->backend_priv.fbdev);
-		screen->memory_size = min(atic->backend_priv.fbdev.fix.smem_len,
-		    8192 * screen->fb[0].byteStride);
-		/*screen->memory_size = atic->backend_priv.fbdev.fix.smem_len;*/
+		screen->memory_size = atic->backend_priv.fbdev.fix.smem_len;
 		screen->off_screen_base =
 		    atic->backend_priv.fbdev.var.yres_virtual *
 		    screen->fb[0].byteStride;
@@ -285,10 +283,23 @@ ATIScreenInit(KdScreenInfo *screen)
 		    &atis->backend_priv.vesa);
 	}
 #endif
+
 	if (!success) {
 		screen->driver = NULL;
 		xfree(atis);
 		return FALSE;
+	}
+
+	/* Reserve a scratch area.  It'll be used for storing glyph data during
+	 * Composite operations, because glyphs aren't in real pixmaps and thus
+	 * can't be migrated.
+	 */
+	atis->scratch_size = 65536;	/* big enough for 128x128@32bpp */
+	if (screen->off_screen_base + atis->scratch_size > screen->memory_size)
+		atis->scratch_size = 0;
+	else {
+		atis->scratch_offset = screen->off_screen_base;
+		screen->off_screen_base += atis->scratch_size;
 	}
 
 	return TRUE;

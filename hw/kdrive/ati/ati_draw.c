@@ -378,6 +378,53 @@ RadeonSwitchTo3D(void)
 	ADVANCE_RING();
 }
 
+static Bool
+ATIUploadToScreen(PixmapPtr pDst, char *src, int src_pitch)
+{
+	int i;
+	char *dst;
+	int dst_pitch;
+	int bytes;
+
+	dst = pDst->devPrivate.ptr;
+	dst_pitch = pDst->devKind;
+	bytes = src_pitch < dst_pitch ? src_pitch : dst_pitch;
+
+	KdCheckSync(pDst->drawable.pScreen);
+
+	for (i = 0; i < pDst->drawable.height; i++) {
+		memcpy(dst, src, bytes);
+		dst += dst_pitch;
+		src += src_pitch;
+	}
+
+	return TRUE;
+}
+
+
+static Bool
+ATIUploadToScratch(PixmapPtr pSrc, PixmapPtr pDst)
+{
+	KdScreenPriv(pSrc->drawable.pScreen);
+	ATIScreenInfo(pScreenPriv);
+	int dst_pitch;
+
+	dst_pitch = (pSrc->drawable.width * pSrc->drawable.bitsPerPixel / 8 +
+	    atis->kaa.offscreenPitch - 1) & ~(atis->kaa.offscreenPitch - 1);
+	
+	if (dst_pitch * pSrc->drawable.height > atis->scratch_size)
+		ATI_FALLBACK(("Pixmap too large for scratch (%d,%d)\n",
+		    pSrc->drawable.width, pSrc->drawable.height));
+
+	memcpy(pDst, pSrc, sizeof(*pDst));
+	pDst->devKind = dst_pitch;
+	pDst->devPrivate.ptr = atis->scratch_offset +
+	    pScreenPriv->screen->memory_base;
+
+	return ATIUploadToScreen(pDst, pSrc->devPrivate.ptr, pSrc->devKind);
+}
+
+
 #endif /* USE_DRI */
 
 static Bool
@@ -392,7 +439,7 @@ R128GetDatatypePict(CARD32 format, CARD32 *type)
 		return TRUE;
 	}
 
-	ErrorF ("Unsupported format: %x\n", format);
+	ATI_FALLBACK(("Unsupported format: %x\n", format));
 
 	return FALSE;
 }
@@ -420,7 +467,7 @@ ATIGetDatatypeBpp(int bpp, CARD32 *type)
 		*type = R128_DATATYPE_ARGB_8888;
 		return TRUE;
 	default:
-		ErrorF("Unsupported bpp: %x\n", bpp);
+		ATI_FALLBACK(("Unsupported bpp: %x\n", bpp));
 		return FALSE;
 	}
 }
@@ -496,6 +543,9 @@ ATIDrawInit(ScreenPtr pScreen)
 			atis->kaa.DoneBlend = R128DoneBlendMMIO;
 		}
 	}
+	atis->kaa.UploadToScreen = ATIUploadToScreen;
+	if (atis->scratch_size != 0)
+		atis->kaa.UploadToScratch = ATIUploadToScratch;
 	atis->kaa.DoneSolid = ATIDoneSolid;
 	atis->kaa.DoneCopy = ATIDoneCopy;
 	atis->kaa.flags = KAA_OFFSCREEN_PIXMAPS;

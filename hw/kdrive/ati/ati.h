@@ -147,6 +147,9 @@ typedef struct _ATIScreenInfo {
 	Bool using_dri;
 	Bool using_dma;
 
+	int scratch_offset;
+	int scratch_size;
+
 #ifdef USE_DRI
 	drmSize         registerSize;
 	drmHandle       registerHandle;

@@ -363,6 +363,12 @@ typedef struct _KaaScreenInfo {
 			     int	width,
 			     int	height);
     void	(*DoneComposite) (void);
+
+    Bool        (*UploadToScreen) (PixmapPtr		pDst,
+				   char			*src,
+				   int			src_pitch);
+    Bool        (*UploadToScratch) (PixmapPtr		pSrc,
+				   PixmapPtr		pDst);
 } KaaScreenInfoRec, *KaaScreenInfoPtr;
 
 #define KAA_OFFSCREEN_PIXMAPS (1 << 0)

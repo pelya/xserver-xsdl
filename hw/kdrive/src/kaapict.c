@@ -319,6 +319,7 @@ kaaTryDriverBlend(CARD8		op,
     int nbox;
     int src_off_x, src_off_y, dst_off_x, dst_off_y;
     PixmapPtr pSrcPix, pDstPix;
+    struct _Pixmap srcScratch;
 
     xDst += pDst->pDrawable->x;
     yDst += pDst->pDrawable->y;
@@ -339,7 +340,19 @@ kaaTryDriverBlend(CARD8		op,
     
     pSrcPix = kaaGetOffscreenPixmap (pSrc->pDrawable, &src_off_x, &src_off_y);
     pDstPix = kaaGetOffscreenPixmap (pDst->pDrawable, &dst_off_x, &dst_off_y);
-    if (!pSrcPix || !pDstPix) {
+
+    if (!pDstPix) {
+	REGION_UNINIT(pDst->pDrawable->pScreen, &region);
+	return 0;
+    }
+
+    if (!pSrcPix && pKaaScr->info->UploadToScratch) {
+	if ((*pKaaScr->info->UploadToScratch) ((PixmapPtr) pSrc->pDrawable,
+					       &srcScratch))
+	    pSrcPix = &srcScratch;
+    }
+
+    if (!pSrcPix) {
 	REGION_UNINIT(pDst->pDrawable->pScreen, &region);
 	return 0;
     }
