@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/bsd/bsd_mouse.c,v 1.27 2004/01/17 15:20:05 herrb Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/bsd/bsd_mouse.c,v 1.28 2004/02/06 17:15:36 tsi Exp $ */
 
 /*
  * Copyright (c) 1999-2003 by The XFree86 Project, Inc.
@@ -378,7 +378,7 @@ FindDevice(InputInfoPtr pInfo, const char *protocol, int flags)
     }
     return *pdev;
 }
-#endif (__OpenBSD__)
+#endif /* __OpenBSD__ && WSCONS_SUPPORT */
 
 #ifdef WSCONS_SUPPORT
 #define NUMEVENTS 64

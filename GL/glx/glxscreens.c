@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/GL/glx/glxscreens.c,v 1.12 2003/09/28 20:15:43 alanh Exp $ */
+/* $XFree86: xc/programs/Xserver/GL/glx/glxscreens.c,v 1.15 2004/02/12 02:25:01 torrey Exp $ */
 /*
 ** License Applicability. Except to the extent portions of this file are
 ** made subject to an alternative license as permitted in the SGI Free
@@ -46,11 +46,13 @@
 #include "glxserver.h"
 #include "glxutil.h"
 
+const char GLServerVersion[] = "1.2";
 static const char GLServerExtensions[] = 
 			"GL_ARB_depth_texture "
 			"GL_ARB_imaging "
 			"GL_ARB_multitexture "
 			"GL_ARB_point_parameters "
+			"GL_ARB_point_sprite "
 			"GL_ARB_shadow "
 			"GL_ARB_shadow_ambient "
 			"GL_ARB_texture_border_clamp "
@@ -108,6 +110,7 @@ static const char GLServerExtensions[] =
 			"GL_MESA_pack_invert "
 			"GL_MESA_ycbcr_texture "
 			"GL_NV_blend_square "
+			"GL_NV_point_sprite "
 			"GL_NV_texgen_reflection "
 			"GL_NV_texture_rectangle "
 			"GL_SGIS_generate_mipmap "
@@ -125,11 +128,15 @@ static const char GLServerExtensions[] =
 */
 static char GLXServerVendorName[] = "SGI";
 static char GLXServerVersion[] = "1.2";
-static char GLXServerExtensions[] = 
+static char GLXServerExtensions[] =
+			"GLX_ARB_multisample "
 			"GLX_EXT_visual_info "
 			"GLX_EXT_visual_rating "
 			"GLX_EXT_import_context "
 			"GLX_SGI_make_current_read "
+#ifndef __DARWIN__
+			"GLX_SGIS_multisample "
+#endif
 			;
 
 /*

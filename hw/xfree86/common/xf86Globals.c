@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86Globals.c,v 1.42 2004/01/27 01:31:44 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86Globals.c,v 1.41 2003/08/24 17:36:52 dawes Exp $ */
 
 /*
  * Copyright (c) 1997-2003 by The XFree86 Project, Inc.
@@ -236,7 +236,7 @@ Bool xf86VidModeAllowNonLocal = FALSE;
 Bool xf86MiscModInDevDisabled = FALSE;
 Bool xf86MiscModInDevAllowNonLocal = FALSE;
 #endif
-RootWinPropPtr *xf86RegisteredPropertiesTable = NULL;
+PropertyPtr *xf86RegisteredPropertiesTable = NULL;
 Bool xf86inSuspend = FALSE;
 
 #ifdef DLOPEN_HACK

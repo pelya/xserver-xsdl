@@ -1,4 +1,59 @@
-XFree86 4.3.99.903 (xx January 2004)
+XFree86 4.3.99.904 (xx February 2004)
+
+XFree86 4.3.99.903 (15 February 2004)
+ 805. Resync the pci.ids data with pciids.sf.net (2004-02-15 snapshot).
+ 804. Improve X server performance on OS/2 when using TCP transport:
+       - Let the server set TCP_NODELAY, et al.
+       - Change the behavior of os2PseudoSelect() on sockets.
+      (Bugzilla #1175, Frank Giessler).
+ 803. X server on OS/2 doesn't respect AutoRepeat on/off unless XKB is disabled
+      (Bugzilla #1174, Frank Giessler).
+ 802. Licence update.
+ 801. Optimise SlowBcopy() for ia64 architecture (Marc La France).
+ 800. Simplify vgaHWSaveFonts() and vgaHWRestoreFonts() to fix hangs seen with
+      certain nVidia boards on ZX1-based systems (Marc La France).
+ 799. Some more font path checks.
+ 798. Don't define X_LOCALE on Panther (Etsushi Kato and Toshimitsu Tanaka).
+ 797. Fix GL_VERSION string for indirect rendering (Bugzilla #1147, DRI Project)
+ 796. Fix the 1024x576 modes in the via driver (Bugzilla #812, Luc Verhaegen,
+      reported by Julian Cable).
+ 795. Add uz_UZ locale (Bugzilla #1151, Mashrab Kuvatov).
+ 794. Fix font alias overrun.
+ 793. Fix for the way the FreeType backend sets the
+      _ADOBE_POSTSCRIPT_FONTNAME property for Type1 fonts (Bugzilla #1123,
+      David Dawes, based on Roland Mainz, reported by David Capshaw).
+ 792. Fix formatting of the XLookupString bytes that xev prints out (Bugzilla
+      #1153, Noah Levitt).
+ 791. Likely fix for FreeBSD 5.2 libGL build problem (David Dawes, reported by
+      Terry R. Friedrichsen).
+ 790. Fix typo in bsd_mouse.c (Tyler Retzlaff).
+ 789. Fix off-by-one errors in the emulation of an ix86's BT, BTS, BTR and BTC
+      instructions (Marc La France).
+ 788. Fixing segfaults that may happen in some corner cases on VT switch
+      and int10 initialization (Egbert Eich).
+ 787. Increase PCI I/O space size on Linux/PowerPC (Bugzilla #1143,
+      Paul Mackerras).
+ 786. Fix DRI cleanup at exit and re-enabling on reset for the via driver
+      (Bugzilla #998, Thomas Hellström).
+ 785. Fix Xv error propagation to the client for the via driver (Bugzilla #998,
+      Thomas Hellström).
+ 784. Fix a problem when utilizing DrawArrays when indirect rendering
+      (Bugzilla #1142, DRI Project).
+ 783. Xterm followup fix for Bugzilla #981 (Thomas Dickey).
+ 782. Fix EXT version of vertex arrays (DRI Project).
+ 781. Fix long-standing off-by-one bug in calculating dimensions of single
+      (private) back cliprect when the window is partially offscreen in
+      libdri.a (Keith Whitwell)
+ 780. Don't do the MGAISBUSY() loop in MGAStormSync() for Mystique cards
+      because this reportedly results in an infinite loop (Bugzila #85,
+      David Dawes, reported by Phil ??? and Stéphane VOLTZ).
+ 779. Make sure the r128 driver enables the hsync and vsync signals after
+      programming a video mode (Bugzilla #935, Kevin Martin).
+ 778. Fix Multitexture problems with vertex arrays and indirect rendering
+      (Bugzilla #1092, DRI Project).
+ 777. Fix SecondaryColor & FogColor when indirect rendering (Bugzilla #1091, 
+      DRI Project).
+ 776. Fix build failures on Mac OS X 10.1.x (Torrey T. Lyons).
  775. Fix a timing problem in the nsc driver that prevents the display from
       working in some cases (Bugzilla #840, Hansruedi Glauser, Alan Hourihane).
  774. Via driver workaround to handle setting WC for the video memory when
@@ -18591,7 +18646,7 @@ XFree86 3.0a (28 April 1994)
 XFree86 3.0 (26 April 1994)
 
 
-$XFree86: xc/programs/Xserver/hw/xfree86/CHANGELOG,v 3.3118 2004/01/27 17:31:54 dawes Exp $
+$XFree86: xc/programs/Xserver/hw/xfree86/CHANGELOG,v 3.3145 2004/02/16 01:01:45 dawes Exp $
 
 
 

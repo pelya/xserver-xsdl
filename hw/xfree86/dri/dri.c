@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/GL/dri/dri.c,v 1.39 2003/11/10 18:21:41 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/GL/dri/dri.c,v 1.40 2004/01/30 14:31:58 alanh Exp $ */
 /**************************************************************************
 
 Copyright 1998-1999 Precision Insight, Inc., Cedar Park, Texas.
@@ -1191,8 +1191,8 @@ DRIGetDrawableInfo(ScreenPtr pScreen,
 
 	       if (x0 < 0) x0 = 0;
 	       if (y0 < 0) y0 = 0;
-	       if (x1 > pScreen->width-1) x1 = pScreen->width-1;
-	       if (y1 > pScreen->height-1) y1 = pScreen->height-1;
+	       if (x1 > pScreen->width) x1 = pScreen->width;
+	       if (y1 > pScreen->height) y1 = pScreen->height;
 
 	       pDRIPriv->private_buffer_rect.x1 = x0;
 	       pDRIPriv->private_buffer_rect.y1 = y0;

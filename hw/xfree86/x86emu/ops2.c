@@ -37,7 +37,7 @@
 *               instructions.
 *
 ****************************************************************************/
-/* $XFree86: xc/extras/x86emu/src/x86emu/ops2.c,v 1.6 2003/10/22 20:03:06 tsi Exp $ */
+/* $XFree86: xc/extras/x86emu/src/x86emu/ops2.c,v 1.7 2004/02/06 17:15:28 tsi Exp $ */
 
 #include "x86emu/x86emui.h"
 
@@ -1746,16 +1746,16 @@ static void x86emuOp2_btX_I(u8 X86EMU_UNUSED(op2))
     START_OF_INSTR();
     FETCH_DECODE_MODRM(mod, rh, rl);
     switch (rh) {
-    case 3:
+    case 4:
 	DECODE_PRINTF("BT\t");
 	break;
-    case 4:
+    case 5:
 	DECODE_PRINTF("BTS\t");
 	break;
-    case 5:
+    case 6:
 	DECODE_PRINTF("BTR\t");
 	break;
-    case 6:
+    case 7:
 	DECODE_PRINTF("BTC\t");
 	break;
     default:
@@ -1780,13 +1780,13 @@ static void x86emuOp2_btX_I(u8 X86EMU_UNUSED(op2))
 	    mask = (0x1 << bit);
             CONDITIONAL_SET_FLAG(srcval & mask,F_CF);
 	    switch (rh) {
-	    case 4:
+	    case 5:
 		store_data_long(srcoffset, srcval | mask);
 		break;
-	    case 5:
+	    case 6:
 		store_data_long(srcoffset, srcval & ~mask);
 		break;
-	    case 6:
+	    case 7:
 		store_data_long(srcoffset, srcval ^ mask);
 		break;
 	    default:
@@ -1805,13 +1805,13 @@ static void x86emuOp2_btX_I(u8 X86EMU_UNUSED(op2))
 	    mask = (0x1 << bit);
             CONDITIONAL_SET_FLAG(srcval & mask,F_CF);
 	    switch (rh) {
-	    case 4:
+	    case 5:
 		store_data_word(srcoffset, srcval | mask);
 		break;
-	    case 5:
+	    case 6:
 		store_data_word(srcoffset, srcval & ~mask);
 		break;
-	    case 6:
+	    case 7:
 		store_data_word(srcoffset, srcval ^ mask);
 		break;
 	    default:
@@ -1833,13 +1833,13 @@ static void x86emuOp2_btX_I(u8 X86EMU_UNUSED(op2))
 	    mask = (0x1 << bit);
             CONDITIONAL_SET_FLAG(srcval & mask,F_CF);
 	    switch (rh) {
-	    case 4:
+	    case 5:
 		store_data_long(srcoffset, srcval | mask);
 		break;
-	    case 5:
+	    case 6:
 		store_data_long(srcoffset, srcval & ~mask);
 		break;
-	    case 6:
+	    case 7:
 		store_data_long(srcoffset, srcval ^ mask);
 		break;
 	    default:
@@ -1858,13 +1858,13 @@ static void x86emuOp2_btX_I(u8 X86EMU_UNUSED(op2))
 	    mask = (0x1 << bit);
             CONDITIONAL_SET_FLAG(srcval & mask,F_CF);
 	    switch (rh) {
-	    case 4:
+	    case 5:
 		store_data_word(srcoffset, srcval | mask);
 		break;
-	    case 5:
+	    case 6:
 		store_data_word(srcoffset, srcval & ~mask);
 		break;
-	    case 6:
+	    case 7:
 		store_data_word(srcoffset, srcval ^ mask);
 		break;
 	    default:
@@ -1886,13 +1886,13 @@ static void x86emuOp2_btX_I(u8 X86EMU_UNUSED(op2))
 	    mask = (0x1 << bit);
             CONDITIONAL_SET_FLAG(srcval & mask,F_CF);
 	    switch (rh) {
-	    case 4:
+	    case 5:
 		store_data_long(srcoffset, srcval | mask);
 		break;
-	    case 5:
+	    case 6:
 		store_data_long(srcoffset, srcval & ~mask);
 		break;
-	    case 6:
+	    case 7:
 		store_data_long(srcoffset, srcval ^ mask);
 		break;
 	    default:
@@ -1911,13 +1911,13 @@ static void x86emuOp2_btX_I(u8 X86EMU_UNUSED(op2))
 	    mask = (0x1 << bit);
             CONDITIONAL_SET_FLAG(srcval & mask,F_CF);
 	    switch (rh) {
-	    case 4:
+	    case 5:
 		store_data_word(srcoffset, srcval | mask);
 		break;
-	    case 5:
+	    case 6:
 		store_data_word(srcoffset, srcval & ~mask);
 		break;
-	    case 6:
+	    case 7:
 		store_data_word(srcoffset, srcval ^ mask);
 		break;
 	    default:
@@ -1939,13 +1939,13 @@ static void x86emuOp2_btX_I(u8 X86EMU_UNUSED(op2))
 	    mask = (0x1 << bit);
             CONDITIONAL_SET_FLAG(*srcreg & mask,F_CF);
 	    switch (rh) {
-	    case 4:
+	    case 5:
 		*srcreg |= mask;
 		break;
-	    case 5:
+	    case 6:
 		*srcreg &= ~mask;
 		break;
-	    case 6:
+	    case 7:
 		*srcreg ^= mask;
 		break;
 	    default:
@@ -1964,13 +1964,13 @@ static void x86emuOp2_btX_I(u8 X86EMU_UNUSED(op2))
 	    mask = (0x1 << bit);
             CONDITIONAL_SET_FLAG(*srcreg & mask,F_CF);
 	    switch (rh) {
-	    case 4:
+	    case 5:
 		*srcreg |= mask;
 		break;
-	    case 5:
+	    case 6:
 		*srcreg &= ~mask;
 		break;
-	    case 6:
+	    case 7:
 		*srcreg ^= mask;
 		break;
 	    default:
