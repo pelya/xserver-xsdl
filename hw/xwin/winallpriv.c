@@ -116,7 +116,7 @@ winAllocatePrivates (ScreenPtr pScreen)
  */
 
 Bool
-winInitCmapPrivates (ColormapPtr pcmap)
+winInitCmapPrivates (ColormapPtr pcmap, int index)
 {
 #if CYGDEBUG
   winDebug ("winInitCmapPrivates\n");
@@ -129,7 +129,9 @@ winInitCmapPrivates (ColormapPtr pcmap)
    * anything.  Perhaps I am misunderstanding the purpose
    * of this function.
    */
-  
+  /*  That's definitely true.
+   *  I therefore changed the API and added the index as argument.
+   */
   return TRUE;
 }
 

@@ -104,7 +104,7 @@ extern void ResetColormapPrivates(void);
 
 
 typedef struct _ColormapRec *ColormapPtr;
-typedef int (*InitCmapPrivFunc)(ColormapPtr);
+typedef int (*InitCmapPrivFunc)(ColormapPtr, int);
 
 extern int AllocateColormapPrivateIndex(
     InitCmapPrivFunc /* initPrivFunc */);

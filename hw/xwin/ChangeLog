@@ -1,3 +1,9 @@
+2004-07-30  Egbert Eich  <set EMAIL_ADDRESS environment variable>
+
+	reviewed by: <delete if not using a buddy>
+
+	* winallpriv.c: (winInitCmapPrivates):
+
 2004-07-09  Alexander Gottwald  <ago@freedesktop.org>
 
 	* winconfig.c: Add entry for irish layout (ie)

@@ -358,7 +358,7 @@ InitCmapPrivFunc initPrivFunc;
     
 	    pColormap->devPrivates = privs;
     
-	    if (!privs || !(*initPrivFunc)(pColormap))
+	    if (!privs || !(*initPrivFunc)(pColormap,index))
 	    {
 		colormapPrivateCount--;
 		return -1;

@@ -104,7 +104,7 @@ LbxColormapPrivInit (ColormapPtr pmap)
 
 
 static int
-LbxDefCmapPrivInit (ColormapPtr pmap)
+LbxDefCmapPrivInit (ColormapPtr pmap, int index)
 {
 #if 0
     /* BUG: You can't do that. lbxColormapPrivIndex hasn't 

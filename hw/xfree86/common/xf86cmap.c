@@ -1,4 +1,4 @@
-/* $XdotOrg$ */
+/* $XdotOrg: xc/programs/Xserver/hw/xfree86/common/xf86cmap.c,v 1.2 2004/04/23 19:20:32 eich Exp $ */
 /* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86cmap.c,v 1.25 2003/10/17 20:02:12 alanh Exp $ */
 /*
  * Copyright (c) 1998-2001 by The XFree86 Project, Inc.
@@ -117,7 +117,7 @@ static int  CMapChangeGamma(int, Gamma);
 
 static void ComputeGamma(CMapScreenPtr);
 static Bool CMapAllocateColormapPrivate(ColormapPtr);
-static Bool CMapInitDefMap(ColormapPtr);
+static Bool CMapInitDefMap(ColormapPtr,int);
 static void CMapRefreshColors(ColormapPtr, int, int*);
 static void CMapSetOverscan(ColormapPtr, int, int *);
 static void CMapReinstallMap(ColormapPtr);
@@ -211,7 +211,7 @@ Bool xf86HandleColormaps(
     /* get the default map */
 
     pDefMap = (ColormapPtr) LookupIDByType(pScreen->defColormap, RT_COLORMAP);
-
+    
     if(!CMapAllocateColormapPrivate(pDefMap)) {
         CMapUnwrapScreen(pScreen);
 	return FALSE;
@@ -224,7 +224,7 @@ Bool xf86HandleColormaps(
 }
 
 static Bool 
-CMapInitDefMap(ColormapPtr cmap)
+CMapInitDefMap(ColormapPtr cmap, int index)
 {
     return TRUE;
 }
@@ -433,7 +433,8 @@ CMapInstallColormap(ColormapPtr pmap)
 
     /* Important. We let the lower layers, namely DGA, 
        overwrite the choice of Colormap to install */
-    pmap = miInstalledMaps[index];
+    if (miInstalledMaps[index])
+	pmap = miInstalledMaps[index];
 
     if(!(pScreenPriv->flags & CMAP_PALETTED_TRUECOLOR) &&
 	(pmap->pVisual->class == TrueColor) &&
