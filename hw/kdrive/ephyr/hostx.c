@@ -38,6 +38,7 @@
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #include <X11/Xatom.h>
+#include <X11/keysym.h>
 #include <X11/extensions/XShm.h>
 
 /*  
@@ -48,6 +49,7 @@
 
 struct EphyrHostXVars
 {
+  char           *server_dpy_name;
   Display        *dpy;
   int             screen;
   Visual         *visual;
@@ -68,7 +70,8 @@ struct EphyrHostXVars
   XShmSegmentInfo shminfo;
 };
 
-static EphyrHostXVars HostX = { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}; /* memset? */
+/* memset ( missing> ) instead of below  */
+static EphyrHostXVars HostX = { "?", 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 
 static int            HostXWantDamageDebug = 0;
 
@@ -123,6 +126,24 @@ hostx_want_screen_size(int *width, int *height)
     }
 
  return 0;
+}
+
+void
+hostx_set_display_name(char *name)
+{
+  HostX.server_dpy_name = strdup(name);
+}
+
+void
+hostx_set_win_title(char *extra_text)
+{
+  char buf[256];
+
+  snprintf(buf, 256, "Xephyr on %s %s", 
+	   HostX.server_dpy_name,
+	   (extra_text != NULL) ? extra_text : "");
+
+  XStoreName(HostX.dpy, HostX.win, buf);
 }
 
 int
@@ -233,7 +254,7 @@ hostx_init(void)
 				CWEventMask,
 				&attr);
 
-      XStoreName(HostX.dpy, HostX.win, "Xephyr");
+      hostx_set_win_title("( ctrl+shift grabs mouse and keyboard )");
     }
 
 
@@ -508,8 +529,8 @@ hostx_paint_rect(int sx,    int sy,
       unsigned char  r,g,b;
       unsigned long  host_pixel;
 
-      for (x=sx; x<sx+width; x++)
-	for (y=sy; y<sy+height; y++)
+      for (y=sy; y<sy+height; y++)
+	for (x=sx; x<sx+width; x++)
 	  {
 	    idx = (HostX.win_width*y*bytes_per_pixel)+(x*bytes_per_pixel);
 	    
@@ -607,7 +628,8 @@ hostx_load_keymap(void)
 int
 hostx_get_event(EphyrHostXEvent *ev)
 {
-  XEvent xev;
+  XEvent      xev;
+  static Bool grabbed;
 
   if (XPending(HostX.dpy))
     {
@@ -649,9 +671,45 @@ hostx_get_event(EphyrHostXEvent *ev)
 	    return 1;
 	  }
 	case KeyRelease:
-	  ev->type = EPHYR_EV_KEY_RELEASE;
-	  ev->data.key_up.scancode = xev.xkey.keycode;
 
+	  if ((XKeycodeToKeysym(HostX.dpy,xev.xkey.keycode,0) == XK_Shift_L
+	       || XKeycodeToKeysym(HostX.dpy,xev.xkey.keycode,0) == XK_Shift_R)
+	      && (xev.xkey.state & ControlMask))
+	    {
+	      if (grabbed) 
+		{
+		  XUngrabKeyboard (HostX.dpy, CurrentTime);
+		  XUngrabPointer (HostX.dpy, CurrentTime);
+		  grabbed = False;
+		  hostx_set_win_title("( ctrl+shift grabs mouse and keyboard )");
+
+		} 
+	      else 
+		{
+		  if (XGrabKeyboard (HostX.dpy, HostX.win, True, 
+				     GrabModeAsync, 
+				     GrabModeAsync, 
+				     CurrentTime)) 
+		    break;
+
+		  if (XGrabPointer (HostX.dpy, HostX.win, True, 
+				    NoEventMask, 
+				    GrabModeAsync, 
+				    GrabModeAsync, 
+				    HostX.win, None, CurrentTime)) 
+		    break;
+		  
+		  grabbed = True;
+		  hostx_set_win_title("( ctrl+shift releases mouse and keyboard )");
+
+		}
+	    } 
+	  else 
+	    {
+	      ev->type = EPHYR_EV_KEY_RELEASE;
+	      ev->data.key_up.scancode = xev.xkey.keycode;
+	      return 1;
+	    }
 	  return 1;
 
 	default:

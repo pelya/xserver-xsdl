@@ -87,6 +87,10 @@ ddxProcessArgument (int argc, char **argv, int i)
       hostx_use_host_cursor();
       return 1;
     }
+  else if (argv[i][0] == ':')
+    {
+      hostx_set_display_name(argv[i]);
+    }
 
   return KdProcessArgument (argc, argv, i);
 }

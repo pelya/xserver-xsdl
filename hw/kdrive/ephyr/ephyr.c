@@ -83,7 +83,6 @@ ephyrScreenInitialize (KdScreenInfo *screen, EphyrScrPriv *scrpriv)
       screen->height = height;
     }
 
-
   if (screen->fb[0].depth && screen->fb[0].depth != hostx_get_depth())
     {
       if (screen->fb[0].depth < hostx_get_depth()

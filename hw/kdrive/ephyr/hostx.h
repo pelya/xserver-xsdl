@@ -100,6 +100,12 @@ hostx_handle_signal(int signum);
 int
 hostx_init(void);
 
+void
+hostx_set_display_name(char *name);
+
+void
+hostx_set_win_title(char *extra_text);
+
 int
 hostx_get_depth (void);
 
