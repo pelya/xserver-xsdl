@@ -492,7 +492,7 @@ PsInitContext(pCon)
   server = XpGetOneAttribute( pCon, XPServerAttr, DOC_ATT_SUPP );
   if ((attrStr = (char *) xalloc(strlen(server) +
 				strlen(DOC_ATT_SUPP) + strlen(DOC_ATT_VAL)
-				+ strlen(PAGE_ATT_VAL) + 6)) == NULL) 
+				+ strlen(PAGE_ATT_VAL) + 8)) == NULL) 
   {
       return BadAlloc;
   }
@@ -506,7 +506,7 @@ PsInitContext(pCon)
    */
   server = XpGetOneAttribute( pCon, XPServerAttr, JOB_ATT_SUPP );
   if ((attrStr = (char *) xalloc(strlen(server) + strlen(JOB_ATT_SUPP) +
-				 strlen(JOB_ATT_VAL) + 4)) == NULL)
+				 strlen(JOB_ATT_VAL) + 8)) == NULL)
   {
       return BadAlloc;
   }
@@ -519,7 +519,7 @@ PsInitContext(pCon)
    */
   server = XpGetOneAttribute( pCon, XPServerAttr, PAGE_ATT_SUPP );
   if ((attrStr = (char *) xalloc(strlen(server) + strlen(PAGE_ATT_SUPP) +
-				 strlen(PAGE_ATT_VAL) + 4)) == NULL)
+				 strlen(PAGE_ATT_VAL) + 8)) == NULL)
   {
       return BadAlloc;
   }

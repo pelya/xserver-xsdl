@@ -427,7 +427,7 @@ PclInitContext(XpContextPtr pCon)
     server = XpGetOneAttribute( pCon, XPServerAttr, DOC_ATT_SUPP );
     if( ( attrStr = (char *)xalloc(strlen(server) + strlen(DOC_ATT_SUPP)
 				   + strlen(DOC_ATT_VAL) +
-				   strlen(PAGE_ATT_VAL) + 6 ) ) 
+				   strlen(PAGE_ATT_VAL) + 8 ) ) 
        == (char *)NULL )
       return BadAlloc;
     sprintf( attrStr, "*%s:\t%s %s %s", DOC_ATT_SUPP, server,
@@ -440,7 +440,7 @@ PclInitContext(XpContextPtr pCon)
      */
     server = XpGetOneAttribute( pCon, XPServerAttr, JOB_ATT_SUPP );
     if( ( attrStr = (char *)xalloc(strlen(server) + strlen(JOB_ATT_SUPP)
-				   + strlen(JOB_ATT_VAL) + 4 ) ) 
+				   + strlen(JOB_ATT_VAL) + 8 ) ) 
        == (char *)NULL )
       return BadAlloc;
     sprintf( attrStr, "*%s:\t%s %s", JOB_ATT_SUPP, server, JOB_ATT_VAL );
@@ -452,7 +452,7 @@ PclInitContext(XpContextPtr pCon)
      */
     server = XpGetOneAttribute( pCon, XPServerAttr, PAGE_ATT_SUPP );
     if( ( attrStr = (char *)xalloc(strlen(server) + strlen(PAGE_ATT_SUPP)
-				   + strlen(PAGE_ATT_VAL) + 4 ) ) 
+				   + strlen(PAGE_ATT_VAL) + 8 ) ) 
        == (char *)NULL )
       return BadAlloc;
     sprintf( attrStr, "*%s:\t%s %s", PAGE_ATT_SUPP, server, PAGE_ATT_VAL );
