@@ -13,16 +13,21 @@
 
 static void get_vendor_section(Uchar*, struct vendor *);
 static void get_version_section(Uchar*, struct edid_version *);
-static void get_display_section(Uchar*, struct disp_features *);
+static void get_display_section(Uchar*, struct disp_features *,
+				struct edid_version *);
 static void get_established_timing_section(Uchar*, struct established_timings *);
-static void get_std_timing_section(Uchar*, struct std_timings *);
+static void get_std_timing_section(Uchar*, struct std_timings *,
+				   struct edid_version *);
 static void get_dt_md_section(Uchar *, struct edid_version *,
 			      struct detailed_monitor_section *det_mon);
 static void copy_string(Uchar *, Uchar *);
-static void get_dst_timing_section(Uchar *, struct std_timings *);
+static void get_dst_timing_section(Uchar *, struct std_timings *,
+				   struct edid_version *);
 static void get_monitor_ranges(Uchar *, struct monitor_ranges *);
 static void get_whitepoint_section(Uchar *, struct whitePoints *);
 static void get_detailed_timing_section(Uchar*, struct 	detailed_timings *);
+static Bool validate_version(int scrnIndex, struct edid_version *);
+
 
 xf86MonPtr
 xf86InterpretEDID(int scrnIndex, Uchar *block)
@@ -33,15 +38,24 @@ xf86InterpretEDID(int scrnIndex, Uchar *block)
     if (! (m = xnfcalloc(sizeof(xf86Monitor),1))) return NULL;
     m->scrnIndex = scrnIndex;
     m->rawData = block;
+
     get_vendor_section(SECTION(VENDOR_SECTION,block),&m->vendor);
     get_version_section(SECTION(VERSION_SECTION,block),&m->ver);
-    get_display_section(SECTION(DISPLAY_SECTION,block),&m->features);
+    if (!validate_version(scrnIndex, &m->ver)) goto error;
+    get_display_section(SECTION(DISPLAY_SECTION,block),&m->features,
+			&m->ver);
     get_established_timing_section(SECTION(ESTABLISHED_TIMING_SECTION,block),
 				   &m->timings1);
-    get_std_timing_section(SECTION(STD_TIMING_SECTION,block),m->timings2);
+    get_std_timing_section(SECTION(STD_TIMING_SECTION,block),m->timings2,
+			   &m->ver);
     get_dt_md_section(SECTION(DET_TIMING_SECTION,block),&m->ver, m->det_mon);
     m->no_sections = (int)*(char *)SECTION(NO_EDID,block);
+    
     return (m);
+
+ error:
+    xfree(m);
+    return NULL;
 }
 
 static void
@@ -66,12 +80,16 @@ get_version_section(Uchar *c, struct edid_version *r)
 }
 
 static void 
-get_display_section(Uchar *c, struct disp_features *r)
+get_display_section(Uchar *c, struct disp_features *r,
+		    struct edid_version *v)
 {
     r->input_type = INPUT_TYPE;
-    r->input_voltage = INPUT_VOLTAGE;
-    r->input_setup = SETUP;
-    r->input_sync = SYNC;
+    if (!DIGITAL(r->input_type)) {
+	r->input_voltage = INPUT_VOLTAGE;
+	r->input_setup = SETUP;
+	r->input_sync = SYNC;
+    } else if (v->version > 1 || v->revision > 2)
+	r->input_dfp = DFP;
     r->hsize = HSIZE_MAX;
     r->vsize = VSIZE_MAX;
     r->gamma = GAMMA;
@@ -97,15 +115,20 @@ get_established_timing_section(Uchar *c, struct established_timings *r)
 }
 
 static void
-get_std_timing_section(Uchar *c, struct std_timings *r)
+get_std_timing_section(Uchar *c, struct std_timings *r,
+		       struct edid_version *v)
 {
     int i;
 
     for (i=0;i<STD_TIMINGS;i++){
-	r[i].hsize = HSIZE1;
-	VSIZE1(r[i].vsize);
-	r[i].refresh = REFRESH_R;
-	r[i].id = STD_TIMING_ID;
+	if (VALID_TIMING) {
+	    r[i].hsize = HSIZE1;
+	    VSIZE1(r[i].vsize);
+	    r[i].refresh = REFRESH_R;
+	    r[i].id = STD_TIMING_ID;
+	} else {
+	    r[i].hsize = r[i].vsize = r[i].refresh = r[i].id = 0;
+	}
 	NEXT_STD_TIMING;
     }
 }
@@ -142,8 +165,11 @@ get_dt_md_section(Uchar *c, struct edid_version *ver,
 	break;
       case ADD_STD_TIMINGS:
 	det_mon[i].type = DS_STD_TIMINGS;
-	get_dst_timing_section(c,det_mon[i].section.std_t);
+	get_dst_timing_section(c,det_mon[i].section.std_t, ver);
 	break;
+      case ADD_DUMMY:
+	det_mon[i].type = DS_DUMMY;
+        break;
       }
     } else { 
       det_mon[i].type = DT;
@@ -165,7 +191,8 @@ copy_string(Uchar *c, Uchar *s)
 }
 
 static void
-get_dst_timing_section(Uchar *c, struct std_timings *t)
+get_dst_timing_section(Uchar *c, struct std_timings *t,
+		       struct edid_version *v)
 {
   int j;
     c = c + 5;
@@ -188,6 +215,14 @@ get_monitor_ranges(Uchar *c, struct monitor_ranges *r)
     r->max_clock = 0;
     if(MAX_CLOCK != 0xff) /* is specified? */
 	r->max_clock = MAX_CLOCK * 10;
+    if (HAVE_2ND_GTF) {
+	r->gtf_2nd_f = F_2ND_GTF;
+	r->gtf_2nd_c = C_2ND_GTF;
+	r->gtf_2nd_m = M_2ND_GTF;
+	r->gtf_2nd_k = K_2ND_GTF;
+	r->gtf_2nd_j = J_2ND_GTF;
+    } else
+	r->gtf_2nd_f = 0;
 }
 
 static void
@@ -221,8 +256,21 @@ get_detailed_timing_section(Uchar *c, struct detailed_timings *r)
   r->v_border = V_BORDER;
   r->interlaced = INTERLACED;
   r->stereo = STEREO;
+  r->stereo_1 = STEREO1;
   r->sync = SYNC_T;
   r->misc = MISC;
 }
 
 
+static Bool
+validate_version(int scrnIndex, struct edid_version *r)
+{
+    if (r->version != 1)
+	return FALSE;
+    if (r->revision > 3) {
+	xf86DrvMsg(scrnIndex, X_ERROR,"EDID Version 1.%i not yet supported\n",
+		   r->revision);
+	return FALSE;
+    }
+    return TRUE;
+}

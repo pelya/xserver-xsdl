@@ -200,6 +200,9 @@ char tmpname[32];
 	in= Popen(buf,"r");
 #else
     {
+#ifdef DEBUG_CMD
+	ErrorF("xkb executes: %s\n",cmd);
+#endif
 	if (System(buf) < 0)
 	    ErrorF("Could not invoke keymap compiler\n");
 	else

@@ -177,6 +177,9 @@ char 	cmd[PATH_MAX],file[PATH_MAX],xkm_output_dir[PATH_MAX],*map,*outFile;
 	ErrorF("    \"cmd\"\n");
     }
 #endif
+#ifdef DEBUG_CMD
+    ErrorF("xkb executes: %s\n",cmd);
+#endif
     if (System(cmd)==0) {
 	if (nameRtrn) {
 	    strncpy(nameRtrn,outFile,nameRtrnLen);
@@ -312,6 +315,12 @@ int i;
 	if (fclose(out)==0)
 #endif
 	{
+#ifdef DEBUG_CMD
+	    ErrorF("xkb executes: %s\n",buf);
+	    ErrorF("xkbcomp input:\n");
+	    XkbWriteXKBKeymapForNames(stderr,names,NULL,xkb,want,need);
+	    ErrorF("end xkbcomp input\n");
+#endif
 #ifdef WIN32
 	    if (System(buf) < 0)
 		ErrorF("Could not invoke keymap compiler\n");
