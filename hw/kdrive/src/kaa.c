@@ -303,8 +303,13 @@ kaaGetOffscreenPixmap (DrawablePtr pDrawable, int *xp, int *yp)
     
     if (pDrawable->type == DRAWABLE_WINDOW) {
 	pPixmap = (*pDrawable->pScreen->GetWindowPixmap) ((WindowPtr) pDrawable);
-	x = pDrawable->x;
-	y = pDrawable->y;
+#ifdef COMPOSITE
+	x = -pPixmap->screen_x;
+	y = -pPixmap->screen_y;
+#else
+	x = 0;
+	y = 0;
+#endif
     }
     else
     {
@@ -314,10 +319,8 @@ kaaGetOffscreenPixmap (DrawablePtr pDrawable, int *xp, int *yp)
     }
     if (kaaPixmapIsOffscreen (pPixmap))
     {
-	x += pPixmap->drawable.x;
-	y += pPixmap->drawable.y;
-	if (xp) *xp = x;
-	if (yp) *yp = y;
+	*xp = x;
+	*yp = y;
 	return pPixmap;
     }
     return NULL;
@@ -348,10 +351,11 @@ kaaFillSpans(DrawablePtr pDrawable, GCPtr pGC, int n,
     int		    extentX1, extentX2, extentY1, extentY2;
     int		    fullX1, fullX2, fullY1;
     int		    partX1, partX2;
+    int		    off_x, off_y;
 
     if (!pScreenPriv->enabled ||
 	pGC->fillStyle != FillSolid ||
-	!(pPixmap = kaaGetOffscreenPixmap (pDrawable, NULL, NULL)) ||
+	!(pPixmap = kaaGetOffscreenPixmap (pDrawable, &off_x, &off_y)) ||
 	!(*pKaaScr->info->PrepareSolid) (pPixmap,
 					 pGC->alu,
 					 pGC->planemask,
@@ -389,7 +393,8 @@ kaaFillSpans(DrawablePtr pDrawable, GCPtr pGC, int n,
 	nbox = REGION_NUM_RECTS (pClip);
 	if (nbox == 1)
 	{
-	    (*pKaaScr->info->Solid) (fullX1, fullY1, fullX2, fullY1 + 1);
+	    (*pKaaScr->info->Solid) (fullX1 + off_x, fullY1 + off_y,
+				     fullX2 + off_x, fullY1 + 1 + off_y);
 	}
 	else
 	{
@@ -405,8 +410,8 @@ kaaFillSpans(DrawablePtr pDrawable, GCPtr pGC, int n,
 		    if (partX2 > fullX2)
 			partX2 = fullX2;
 		    if (partX2 > partX1)
-			(*pKaaScr->info->Solid) (partX1, fullY1,
-						 partX2, fullY1 + 1);
+			(*pKaaScr->info->Solid) (partX1 + off_x, fullY1 + off_y,
+						 partX2 + off_x, fullY1 + 1 + off_y);
 		}
 		pbox++;
 	    }
@@ -432,6 +437,8 @@ kaaCopyNtoN (DrawablePtr    pSrcDrawable,
     KdScreenPriv (pDstDrawable->pScreen);
     KaaScreenPriv (pDstDrawable->pScreen);
     PixmapPtr pSrcPixmap, pDstPixmap;
+    int	    src_off_x, src_off_y;
+    int	    dst_off_x, dst_off_y;
 
     /* Migrate pixmaps to same place as destination */
     if (pScreenPriv->enabled && pSrcDrawable->type == DRAWABLE_PIXMAP) {
@@ -442,8 +449,8 @@ kaaCopyNtoN (DrawablePtr    pSrcDrawable,
     }
 
     if (pScreenPriv->enabled &&
-	(pSrcPixmap = kaaGetOffscreenPixmap (pSrcDrawable, NULL, NULL)) &&
-	(pDstPixmap = kaaGetOffscreenPixmap (pDstDrawable, NULL, NULL)) && 
+	(pSrcPixmap = kaaGetOffscreenPixmap (pSrcDrawable, &src_off_x, &src_off_y)) &&
+	(pDstPixmap = kaaGetOffscreenPixmap (pDstDrawable, &dst_off_x, &dst_off_y)) && 
 	(*pKaaScr->info->PrepareCopy) (pSrcPixmap,
 				       pDstPixmap,
 				       dx,
@@ -453,8 +460,9 @@ kaaCopyNtoN (DrawablePtr    pSrcDrawable,
     {
 	while (nbox--)
 	{
-	    (*pKaaScr->info->Copy) (pbox->x1 + dx, pbox->y1 + dy,
-				    pbox->x1, pbox->y1,
+	    (*pKaaScr->info->Copy) (pbox->x1 + dx + src_off_x,
+				    pbox->y1 + dy + src_off_y,
+				    pbox->x1 + dst_off_x, pbox->y1 + dst_off_y,
 				    pbox->x2 - pbox->x1,
 				    pbox->y2 - pbox->y1);
 	    pbox++;
@@ -495,12 +503,13 @@ kaaPolyFillRect(DrawablePtr pDrawable,
     int		    extentX1, extentX2, extentY1, extentY2;
     int		    fullX1, fullX2, fullY1, fullY2;
     int		    partX1, partX2, partY1, partY2;
+    int		    xoff, yoff;
     int		    xorg, yorg;
     int		    n;
     
     if (!pScreenPriv->enabled ||
 	pGC->fillStyle != FillSolid ||
-	!(pPixmap = kaaGetOffscreenPixmap (pDrawable, &xorg, &yorg)) || 
+	!(pPixmap = kaaGetOffscreenPixmap (pDrawable, &xoff, &yoff)) || 
 	!(*pKaaScr->info->PrepareSolid) (pPixmap,
 					 pGC->alu,
 					 pGC->planemask,
@@ -509,6 +518,9 @@ kaaPolyFillRect(DrawablePtr pDrawable,
 	KdCheckPolyFillRect (pDrawable, pGC, nrect, prect);
 	return;
     }
+    
+    xorg = pDrawable->x;
+    yorg = pDrawable->y;
     
     pextent = REGION_EXTENTS(pGC->pScreen, pClip);
     extentX1 = pextent->x1;
@@ -540,7 +552,8 @@ kaaPolyFillRect(DrawablePtr pDrawable,
 	n = REGION_NUM_RECTS (pClip);
 	if (n == 1)
 	{
-	    (*pKaaScr->info->Solid) (fullX1, fullY1, fullX2, fullY2);
+	    (*pKaaScr->info->Solid) (fullX1 + xoff, fullY1 + yoff,
+				     fullX2 + xoff, fullY2 + yoff);
 	}
 	else
 	{
@@ -567,8 +580,8 @@ kaaPolyFillRect(DrawablePtr pDrawable,
 		pbox++;
 		
 		if (partX1 < partX2 && partY1 < partY2)
-		    (*pKaaScr->info->Solid) (partX1, partY1,
-					     partX2, partY2);
+		    (*pKaaScr->info->Solid) (partX1 + xoff, partY1 + yoff,
+					     partX2 + xoff, partY2 + yoff);
 	    }
 	}
     }
@@ -591,10 +604,11 @@ kaaSolidBoxClipped (DrawablePtr	pDrawable,
     PixmapPtr   pPixmap;        
     BoxPtr	pbox;
     int		nbox;
+    int		xoff, yoff;
     int		partX1, partX2, partY1, partY2;
 
     if (!pScreenPriv->enabled ||
-	!(pPixmap = kaaGetOffscreenPixmap (pDrawable, NULL, NULL)) ||
+	!(pPixmap = kaaGetOffscreenPixmap (pDrawable, &xoff, &yoff)) ||
 	!(*pKaaScr->info->PrepareSolid) (pPixmap, GXcopy, pm, fg))
     {
 	KdCheckSync (pDrawable->pScreen);
@@ -630,7 +644,8 @@ kaaSolidBoxClipped (DrawablePtr	pDrawable,
 	if (partY2 <= partY1)
 	    continue;
 	
-	(*pKaaScr->info->Solid) (partX1, partY1, partX2, partY2);
+	(*pKaaScr->info->Solid) (partX1 + xoff, partY1 + yoff,
+				 partX2 + xoff, partY2 + yoff);
     }
     (*pKaaScr->info->DoneSolid) ();
     KdMarkSync(pDrawable->pScreen);
@@ -831,9 +846,7 @@ kaaCopyWindow(WindowPtr pWin, DDXPointRec ptOldOrg, RegionPtr prgnSrc)
 {
     RegionRec	rgnDst;
     int		dx, dy;
-    WindowPtr	pwinRoot;
-
-    pwinRoot = WindowTable[pWin->drawable.pScreen->myNum];
+    PixmapPtr	pPixmap = (*pWin->drawable.pScreen->GetWindowPixmap) (pWin);
 
     dx = ptOldOrg.x - pWin->drawable.x;
     dy = ptOldOrg.y - pWin->drawable.y;
@@ -842,8 +855,13 @@ kaaCopyWindow(WindowPtr pWin, DDXPointRec ptOldOrg, RegionPtr prgnSrc)
     REGION_INIT (pWin->drawable.pScreen, &rgnDst, NullBox, 0);
     
     REGION_INTERSECT(pWin->drawable.pScreen, &rgnDst, &pWin->borderClip, prgnSrc);
+#ifdef COMPOSITE
+    if (pPixmap->screen_x || pPixmap->screen_y)
+	REGION_TRANSLATE (pWin->drawable.pScreen, &rgnDst, 
+			  -pPixmap->screen_x, -pPixmap->screen_y);
+#endif
 
-    fbCopyRegion ((DrawablePtr)pwinRoot, (DrawablePtr)pwinRoot,
+    fbCopyRegion (&pPixmap->drawable, &pPixmap->drawable,
 		  0,
 		  &rgnDst, dx, dy, kaaCopyNtoN, 0, 0);
     
@@ -858,9 +876,10 @@ kaaFillRegionSolid (DrawablePtr	pDrawable,
     KdScreenPriv(pDrawable->pScreen);
     KaaScreenPriv(pDrawable->pScreen);
     PixmapPtr pPixmap;
+    int xoff, yoff;
 
     if (pScreenPriv->enabled &&
-	(pPixmap = kaaGetOffscreenPixmap (pDrawable, NULL, NULL)) &&
+	(pPixmap = kaaGetOffscreenPixmap (pDrawable, &xoff, &yoff)) &&
 	(*pKaaScr->info->PrepareSolid) (pPixmap, GXcopy, FB_ALLONES, pixel))
     {
 	int	nbox = REGION_NUM_RECTS (pRegion);
@@ -868,7 +887,8 @@ kaaFillRegionSolid (DrawablePtr	pDrawable,
 	
 	while (nbox--)
 	{
-	    (*pKaaScr->info->Solid) (pBox->x1, pBox->y1, pBox->x2, pBox->y2);
+	    (*pKaaScr->info->Solid) (pBox->x1 + xoff, pBox->y1 + yoff,
+				     pBox->x2 + xoff, pBox->y2 + yoff);
 	    pBox++;
 	}
 	(*pKaaScr->info->DoneSolid) ();
@@ -917,6 +937,8 @@ kaaPaintWindow(WindowPtr pWin, RegionPtr pRegion, int what)
 }
 
 #ifdef RENDER
+#include "mipict.h"
+
 static void
 kaaComposite(CARD8	op,
 	     PicturePtr pSrc,
@@ -931,6 +953,33 @@ kaaComposite(CARD8	op,
 	     CARD16	width,
 	     CARD16	height)
 {
+    if (op == PictOpSrc && !pMask)
+    {
+	/*
+	 * Check for two special cases -- solid fill and copy area
+	 */
+	if (pSrc->pDrawable->width == 1 && pSrc->pDrawable->height == 1 &&
+	    pSrc->repeat)
+	{
+	    ;
+	}
+	else if (!pSrc->repeat && pSrc->format == pDst->format)
+	{
+	    RegionRec	region;
+	    
+	    if (!miComputeCompositeRegion (&region, pSrc, pMask, pDst,
+					   xSrc, ySrc, xMask, yMask, xDst, yDst,
+					   width, height))
+		return;
+
+				      
+	    kaaCopyNtoN (pSrc->pDrawable, pDst->pDrawable, 0,
+			 REGION_RECTS(&region), REGION_NUM_RECTS(&region),
+			 xSrc - xDst, ySrc - yDst,
+			 FALSE, FALSE, 0, 0);
+	    return;
+	}
+    }
     if (pSrc->pDrawable->type == DRAWABLE_PIXMAP)
 	kaaPixmapUseMemory ((PixmapPtr) pSrc->pDrawable);
     if (pMask && pMask->pDrawable->type == DRAWABLE_PIXMAP)
