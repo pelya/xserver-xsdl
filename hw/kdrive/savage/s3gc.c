@@ -22,7 +22,7 @@
  *
  * Author:  Keith Packard, SuSE, Inc.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/savage/s3gc.c,v 1.1 1999/11/19 13:53:56 hohndel Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/savage/s3gc.c,v 1.2 1999/12/30 03:03:12 robin Exp $ */
 
 #include	"s3.h"
 #include	"s3draw.h"
@@ -57,7 +57,7 @@ static const GCOps	s3TEOps1Rect = {
     KdCheckPolyPoint,
     s3Polylines,
     s3PolySegment,
-    miPolyRectangle,
+    KdCheckPolyRectangle,
     KdCheckPolyArc,
     s3FillPoly1Rect,
     s3PolyFillRect,
@@ -86,7 +86,7 @@ static const GCOps	s3NonTEOps1Rect = {
     KdCheckPolyPoint,
     s3Polylines,
     s3PolySegment,
-    miPolyRectangle,
+    KdCheckPolyRectangle,
     KdCheckPolyArc,
     s3FillPoly1Rect,
     s3PolyFillRect,
@@ -113,9 +113,9 @@ static const GCOps	s3TEOps = {
     KdCheckPolyPoint,
     s3Polylines,
     s3PolySegment,
-    miPolyRectangle,
+    KdCheckPolyRectangle,
     KdCheckPolyArc,
-    miFillPolygon,
+    KdCheckFillPolygon,
     s3PolyFillRect,
     s3PolyFillArcSolid,
     miPolyText8,
@@ -140,9 +140,9 @@ static const GCOps	s3NonTEOps = {
     KdCheckPolyPoint,
     s3Polylines,
     s3PolySegment,
-    miPolyRectangle,
+    KdCheckPolyRectangle,
     KdCheckPolyArc,
-    miFillPolygon,
+    KdCheckFillPolygon,
     s3PolyFillRect,
     s3PolyFillArcSolid,
     miPolyText8,
@@ -321,7 +321,7 @@ s3ValidateGC (GCPtr pGC, Mask changes, DrawablePtr pDrawable)
     if (new_type || (changes & (GCLineStyle|GCLineWidth|GCFillStyle)))
     {
 	pGC->ops->Polylines = KdCheckPolylines;
-	pGC->ops->PolySegment = miPolySegment;
+	pGC->ops->PolySegment = KdCheckPolySegment;
 	if (pGC->lineStyle == LineSolid &&
 	    pGC->lineWidth == 0 &&
 	    pGC->fillStyle == FillSolid &&
@@ -337,7 +337,7 @@ s3ValidateGC (GCPtr pGC, Mask changes, DrawablePtr pDrawable)
      */
     if (new_type || new_onerect || (changes & (GCFillStyle)))
     {
-	pGC->ops->FillPolygon = miFillPolygon;
+	pGC->ops->FillPolygon = KdCheckFillPolygon;
 	if (s3Priv->type == DRAWABLE_WINDOW &&
 	    fbPriv->oneRect && 
 	    pGC->fillStyle == FillSolid)
@@ -351,7 +351,7 @@ s3ValidateGC (GCPtr pGC, Mask changes, DrawablePtr pDrawable)
      */
     if (new_type || (changes & GCFillStyle))
     {
-	pGC->ops->PolyFillArc = miPolyFillArc;
+	pGC->ops->PolyFillArc = KdCheckPolyFillArc;
 	if (s3Priv->type == DRAWABLE_WINDOW &&
 	    pGC->fillStyle == FillSolid)
 	{

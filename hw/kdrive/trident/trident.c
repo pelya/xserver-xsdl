@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/trident/trident.c,v 1.1 1999/11/19 13:54:01 hohndel Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/trident/trident.c,v 1.2 1999/12/30 03:03:15 robin Exp $ */
 
 #include "trident.h"
 #define extern
@@ -167,6 +167,8 @@ tridentSetMMIO (TridentCardInfo *tridentc)
 	    fprintf (stderr, "Trident GE not enabled 0x%x\n", v);
 	    continue;
 	}
+	/* enable screen */
+	tridentWriteIndex (tridentc, 0x3ce, 0x21, 0x80);
 	/* enable burst r/w, disable memory mapped ports */
 	tridentWriteIndex (tridentc, 0x3d4, 0x39, 0x6);
 	/* reset GE, enable GE, set GE to 0xbff00 */

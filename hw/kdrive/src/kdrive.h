@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/kdrive.h,v 1.1 1999/11/19 13:53:48 hohndel Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/kdrive.h,v 1.2 1999/12/30 03:03:06 robin Exp $ */
 
 #include <stdio.h>
 #include "X.h"
@@ -265,8 +265,13 @@ void
 KdCheckPolylines (DrawablePtr pDrawable, GCPtr pGC,
 		  int mode, int npt, DDXPointPtr ppt);
 
-#define KdCheckPolySegment	miPolySegment
-#define KdCheckPolyRectangle	miPolyRectangle
+void
+KdCheckPolySegment (DrawablePtr pDrawable, GCPtr pGC,
+		    int nsegInit, xSegment *pSegInit);
+
+void
+KdCheckPolyRectangle (DrawablePtr pDrawable, GCPtr pGC, 
+		      int nrects, xRectangle *prect);
 
 void
 KdCheckPolyArc (DrawablePtr pDrawable, GCPtr pGC, 
