@@ -118,16 +118,17 @@ readKernelMapping(void)
     int		    i, j;
     struct kbentry  kbe;
     int		    minKeyCode, maxKeyCode;
+    int		    row;
 
     minKeyCode = NR_KEYS;
     maxKeyCode = 0;
-    k = kdKeymap;
-    for (i = 0; 
-	 i < NR_KEYS && (maxKeyCode - minKeyCode + 1) < KD_MAX_LENGTH; 
-	 ++i)
+    row = 0;
+    for (i = 0; i < NR_KEYS && row < KD_MAX_LENGTH; ++i)
     {
 	kbe.kb_index = i;
 
+        k = kdKeymap + row * KD_MAX_WIDTH;
+	
 	for (j = 0; j < KD_MAX_WIDTH; ++j)
 	{
 	    unsigned short kval;
@@ -367,8 +368,7 @@ readKernelMapping(void)
 	if (k[1] == k[0]) k[1] = NoSymbol;
 	if (k[0] == k[2] && k[1] == k[3]) k[2] = k[3] = NoSymbol;
 	if (k[3] == k[0] && k[2] == k[1] && k[2] == NoSymbol) k[3] =NoSymbol;
-
-	k += KD_MAX_WIDTH;
+	row++;
     }
     kdMinScanCode = minKeyCode;
     kdMaxScanCode = maxKeyCode;

@@ -1428,7 +1428,7 @@ vesaEnable(ScreenPtr pScreen)
 #include <sys/ioctl.h>
 #define TOSH_PROC "/proc/toshiba"
 #define TOSH_DEVICE "/dev/toshiba"
-#define TOSH_SMM _IOWR('t', 0x90, 24)
+#define TOSH_SMM _IOWR('t', 0x90, SMMRegisters)
 
 typedef struct {
 	unsigned int eax;
