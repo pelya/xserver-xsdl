@@ -423,8 +423,10 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
       xfree(modulelist);
     }
 
+#ifdef USE_DEPRECATED_KEYBOARD_DRIVER
     /* Setup the builtin input drivers */
     xf86AddInputDriver(&xf86KEYBOARD, NULL, 0);
+#endif
     /* Load all input driver modules specified in the config file. */
     if ((modulelist = xf86InputDriverlistFromConfig())) {
       xf86LoadModules(modulelist, NULL);
@@ -1014,12 +1016,27 @@ InitInput(argc, argv)
     if (serverGeneration == 1) {
 	/* Call the PreInit function for each input device instance. */
 	for (pDev = xf86ConfigLayout.inputs; pDev && pDev->identifier; pDev++) {
+#ifdef USE_DEPRECATED_KEYBOARD_DRIVER
 	    /* XXX The keyboard driver is a special case for now. */
 	    if (!xf86NameCmp(pDev->driver, "keyboard")) {
-		xf86Msg(X_INFO, "Keyboard \"%s\" handled by legacy driver\n",
+		xf86MsgVerb(X_WARNING, 0, "*** WARNING the legacy keyboard driver \"keyboard\" is deprecated\n");
+		xf86MsgVerb(X_WARNING, 0, "*** and will be removed in the next release of the Xorg server.\n");
+		xf86MsgVerb(X_WARNING, 0, "*** Please consider using the the new \"kbd\" driver for \"%s\".\n",
 			pDev->identifier);
+
 		continue;
 	    }
+#else
+	    if (!xf86NameCmp(pDev->driver, "keyboard")) {
+		xf86MsgVerb(X_ERROR, 0, "*** ERROR the legacy keyboard driver \"keyboard\" is deprecated\n");
+		xf86MsgVerb(X_ERROR, 0, "*** and has not been compiled into this X server.  It will be removed\n");
+		xf86MsgVerb(X_ERROR, 0, "*** in the next release of the Xorg server.\n");
+		xf86MsgVerb(X_ERROR, 0, "*** Please consider using the the new \"kbd\" driver for \"%s\".\n",
+			pDev->identifier);
+
+		continue;
+	    }
+#endif
 	    if ((pDrv = MatchInput(pDev)) == NULL) {
 		xf86Msg(X_ERROR, "No Input driver matching `%s'\n", pDev->driver);
 		/* XXX For now, just continue. */
@@ -1099,11 +1116,15 @@ InitInput(argc, argv)
       xf86Info.kbdEvents = NULL; /* to prevent the internal keybord driver usage*/
     }
     else {
+#ifdef USE_DEPRECATED_KEYBOARD_DRIVER
+      /* Only set this if we're allowing the old driver. */
       xf86Info.pKeyboard = AddInputDevice(xf86Info.kbdProc, TRUE);
+#endif
     }
     if (corePointer)
 	xf86Info.pMouse = corePointer->dev;
-    RegisterKeyboardDevice(xf86Info.pKeyboard); 
+    if (xf86Info.pKeyboard)
+      RegisterKeyboardDevice(xf86Info.pKeyboard); 
 
   miRegisterPointerDevice(screenInfo.screens[0], xf86Info.pMouse);
 #ifdef XINPUT
