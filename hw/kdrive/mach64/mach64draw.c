@@ -92,32 +92,284 @@ mach64WaitIdle (Reg *reg)
 	;
 }
 
+#define PIX_FORMAT_MONO	0
+#define PIX_FORMAT_PSEUDO_8	2
+#define PIX_FORMAT_TRUE_1555	3
+#define PIX_FORMAT_TRUE_565	4
+#define PIX_FORMAT_TRUE_8888    6
+#define PIX_FORMAT_TRUE_332	7
+#define PIX_FORMAT_GRAY_8	8
+#define PIX_FORMAT_YUV_422	0xb
+#define PIX_FORMAT_YUV_444	0xe
+#define PIX_FORMAT_TRUE_4444	0xf
+
+typedef struct _mach64AccelReg {
+    int		depth;
+    int		bitsPerPixel;
+    CARD32	DP_PIX_WIDTH;
+    CARD32	DP_SET_GUI_ENGINE;    
+} Mach64AccelReg;
+
+static const Mach64AccelReg	mach64AccelReg[] = {
+    { 1, 1,
+	/* DP_PIX_WIDTH */
+	((PIX_FORMAT_MONO << 0) |	/* DP_DST_PIX_WIDTH */
+	 (PIX_FORMAT_TRUE_8888 << 4) |	/* COMPOSITE_PIX_WIDTH */
+	 (PIX_FORMAT_MONO << 8) |	/* DP_SRC_PIX_WIDTH */
+	 (0 << 13) |			/* DP_HOST_TRIPLE_EN */
+	 (0 << 14) |			/* DP_PALETTE_TYPE */
+	 (PIX_FORMAT_MONO << 16) |	/* DP_HOST_PIX_WIDTH */
+	 (0 << 20) |			/* DP_C14_RGB_INDEX */
+	 (0 << 24) |			/* DP_BYTE_PIX_ORDER */
+	 (0 << 25) |			/* DP_CONVERSION_TEMP */
+	 (0 << 26) |			/* DP_C14_RGB_LOW_NIBBLE */
+	 (0 << 27) |			/* DP_C14_RGB_HIGH_NIBBLE */
+	 (PIX_FORMAT_TRUE_8888 << 28) |	/* DP_SCALE_PIX_WIDTH */
+	 0),
+	/* DP_SET_GUI_ENGINE */
+	((PIX_FORMAT_MONO << 3) |
+	 (1 << 6) |		/* SET_DP_SRC_PIX_WIDTH */
+	 (6 << 7) |		/* SET_DST_OFFSET */
+	 (0 << 10) |		/* SET_DST_PITCH */
+	 (0 << 14) |		/* SET_DST_PITCH_BY_2 */
+	 (0 << 15) |		/* SET_SRC_OFFPITCH_COPY */
+	 (0 << 16) |		/* SET_SRC_HGTWID1_2 */
+	 (0 << 20) |		/* SET_DRAWING_COMBO */
+	 (1 << 24) |		/* SET_BUS_MASTER_OP */
+	 (0 << 26) |		/* SET_BUS_MASTER_EN */
+	 (0 << 27) |		/* SET_BUS_MASTER_SYNC */
+	 (0 << 28) |		/* DP_HOST_TRIPLE_EN */
+	 (0 << 29) |		/* FAST_FILL_EN */
+	 (0 << 30) |		/* BLOCK_WRITE_EN */
+	 0)
+    },
+    { 8, 8,
+	/* DP_PIX_WIDTH */
+	((PIX_FORMAT_PSEUDO_8 << 0) |	/* DP_DST_PIX_WIDTH */
+	 (PIX_FORMAT_TRUE_8888 << 4) |	/* COMPOSITE_PIX_WIDTH */
+	 (PIX_FORMAT_PSEUDO_8 << 8) |	/* DP_SRC_PIX_WIDTH */
+	 (0 << 13) |			/* DP_HOST_TRIPLE_EN */
+	 (0 << 14) |			/* DP_PALETTE_TYPE */
+	 (PIX_FORMAT_PSEUDO_8 << 16) |	/* DP_HOST_PIX_WIDTH */
+	 (0 << 20) |			/* DP_C14_RGB_INDEX */
+	 (0 << 24) |			/* DP_BYTE_PIX_ORDER */
+	 (0 << 25) |			/* DP_CONVERSION_TEMP */
+	 (0 << 26) |			/* DP_C14_RGB_LOW_NIBBLE */
+	 (0 << 27) |			/* DP_C14_RGB_HIGH_NIBBLE */
+	 (PIX_FORMAT_TRUE_8888 << 28) |	/* DP_SCALE_PIX_WIDTH */
+	 0),
+	/* DP_SET_GUI_ENGINE */
+	((PIX_FORMAT_PSEUDO_8 << 3) |
+	 (1 << 6) |		/* SET_DP_SRC_PIX_WIDTH */
+	 (6 << 7) |		/* SET_DST_OFFSET */
+	 (0 << 10) |		/* SET_DST_PITCH */
+	 (0 << 14) |		/* SET_DST_PITCH_BY_2 */
+	 (0 << 15) |		/* SET_SRC_OFFPITCH_COPY */
+	 (0 << 16) |		/* SET_SRC_HGTWID1_2 */
+	 (0 << 20) |		/* SET_DRAWING_COMBO */
+	 (1 << 24) |		/* SET_BUS_MASTER_OP */
+	 (0 << 26) |		/* SET_BUS_MASTER_EN */
+	 (0 << 27) |		/* SET_BUS_MASTER_SYNC */
+	 (0 << 28) |		/* DP_HOST_TRIPLE_EN */
+	 (0 << 29) |		/* FAST_FILL_EN */
+	 (0 << 30) |		/* BLOCK_WRITE_EN */
+	 0)
+    },
+    { 15, 16,
+	/* DP_PIX_WIDTH */
+	((PIX_FORMAT_TRUE_1555 << 0) |	/* DP_DST_PIX_WIDTH */
+	 (PIX_FORMAT_TRUE_8888 << 4) |	/* COMPOSITE_PIX_WIDTH */
+	 (PIX_FORMAT_TRUE_1555 << 8) |	/* DP_SRC_PIX_WIDTH */
+	 (0 << 13) |			/* DP_HOST_TRIPLE_EN */
+	 (0 << 14) |			/* DP_PALETTE_TYPE */
+	 (PIX_FORMAT_TRUE_1555 << 16) |	/* DP_HOST_PIX_WIDTH */
+	 (0 << 20) |			/* DP_C14_RGB_INDEX */
+	 (0 << 24) |			/* DP_BYTE_PIX_ORDER */
+	 (0 << 25) |			/* DP_CONVERSION_TEMP */
+	 (0 << 26) |			/* DP_C14_RGB_LOW_NIBBLE */
+	 (0 << 27) |			/* DP_C14_RGB_HIGH_NIBBLE */
+	 (PIX_FORMAT_TRUE_8888 << 28) |	/* DP_SCALE_PIX_WIDTH */
+	 0),
+	/* DP_SET_GUI_ENGINE */
+	((PIX_FORMAT_TRUE_1555 << 3) |
+	 (1 << 6) |		/* SET_DP_SRC_PIX_WIDTH */
+	 (6 << 7) |		/* SET_DST_OFFSET */
+	 (0 << 10) |		/* SET_DST_PITCH */
+	 (0 << 14) |		/* SET_DST_PITCH_BY_2 */
+	 (0 << 15) |		/* SET_SRC_OFFPITCH_COPY */
+	 (0 << 16) |		/* SET_SRC_HGTWID1_2 */
+	 (0 << 20) |		/* SET_DRAWING_COMBO */
+	 (1 << 24) |		/* SET_BUS_MASTER_OP */
+	 (0 << 26) |		/* SET_BUS_MASTER_EN */
+	 (0 << 27) |		/* SET_BUS_MASTER_SYNC */
+	 (0 << 28) |		/* DP_HOST_TRIPLE_EN */
+	 (0 << 29) |		/* FAST_FILL_EN */
+	 (0 << 30) |		/* BLOCK_WRITE_EN */
+	 0)
+    },
+    { 16, 16,
+	/* DP_PIX_WIDTH */
+	((PIX_FORMAT_TRUE_565 << 0) |	/* DP_DST_PIX_WIDTH */
+	 (PIX_FORMAT_TRUE_8888 << 4) |	/* COMPOSITE_PIX_WIDTH */
+	 (PIX_FORMAT_TRUE_565 << 8) |	/* DP_SRC_PIX_WIDTH */
+	 (0 << 13) |			/* DP_HOST_TRIPLE_EN */
+	 (0 << 14) |			/* DP_PALETTE_TYPE */
+	 (PIX_FORMAT_TRUE_565 << 16) |	/* DP_HOST_PIX_WIDTH */
+	 (0 << 20) |			/* DP_C14_RGB_INDEX */
+	 (0 << 24) |			/* DP_BYTE_PIX_ORDER */
+	 (0 << 25) |			/* DP_CONVERSION_TEMP */
+	 (0 << 26) |			/* DP_C14_RGB_LOW_NIBBLE */
+	 (0 << 27) |			/* DP_C14_RGB_HIGH_NIBBLE */
+	 (PIX_FORMAT_TRUE_8888 << 28) |	/* DP_SCALE_PIX_WIDTH */
+	 0),
+	/* DP_SET_GUI_ENGINE */
+	((PIX_FORMAT_TRUE_565 << 3) |
+	 (1 << 6) |		/* SET_DP_SRC_PIX_WIDTH */
+	 (6 << 7) |		/* SET_DST_OFFSET */
+	 (0 << 10) |		/* SET_DST_PITCH */
+	 (0 << 14) |		/* SET_DST_PITCH_BY_2 */
+	 (0 << 15) |		/* SET_SRC_OFFPITCH_COPY */
+	 (0 << 16) |		/* SET_SRC_HGTWID1_2 */
+	 (0 << 20) |		/* SET_DRAWING_COMBO */
+	 (1 << 24) |		/* SET_BUS_MASTER_OP */
+	 (0 << 26) |		/* SET_BUS_MASTER_EN */
+	 (0 << 27) |		/* SET_BUS_MASTER_SYNC */
+	 (0 << 28) |		/* DP_HOST_TRIPLE_EN */
+	 (0 << 29) |		/* FAST_FILL_EN */
+	 (0 << 30) |		/* BLOCK_WRITE_EN */
+	 0)
+    },
+    { 24, 24,
+	/* DP_PIX_WIDTH */
+	((PIX_FORMAT_PSEUDO_8 << 0) |    /* DP_DST_PIX_WIDTH */
+	 (PIX_FORMAT_PSEUDO_8 << 4) |    /* COMPOSITE_PIX_WIDTH */
+	 (PIX_FORMAT_PSEUDO_8 << 8) |    /* DP_SRC_PIX_WIDTH */
+	 (0 << 13) |			    /* DP_HOST_TRIPLE_EN */
+	 (0 << 14) |			    /* DP_PALETTE_TYPE */
+	 (PIX_FORMAT_PSEUDO_8 << 16) |   /* DP_HOST_PIX_WIDTH */
+	 (0 << 20) |			    /* DP_C14_RGB_INDEX */
+	 (0 << 24) |			    /* DP_BYTE_PIX_ORDER */
+	 (0 << 25) |			    /* DP_CONVERSION_TEMP */
+	 (0 << 26) |			    /* DP_C14_RGB_LOW_NIBBLE */
+	 (0 << 27) |			    /* DP_C14_RGB_HIGH_NIBBLE */
+	 (PIX_FORMAT_TRUE_8888 << 28) |  /* DP_SCALE_PIX_WIDTH */
+	 0),
+	/* DP_SET_GUI_ENGINE */
+	((PIX_FORMAT_PSEUDO_8 << 3) |
+	 (1 << 6) |		/* SET_DP_SRC_PIX_WIDTH */
+	 (6 << 7) |		/* SET_DST_OFFSET */
+	 (0 << 10) |		/* SET_DST_PITCH */
+	 (0 << 14) |		/* SET_DST_PITCH_BY_2 */
+	 (0 << 15) |		/* SET_SRC_OFFPITCH_COPY */
+	 (0 << 16) |		/* SET_SRC_HGTWID1_2 */
+	 (0 << 20) |		/* SET_DRAWING_COMBO */
+	 (1 << 24) |		/* SET_BUS_MASTER_OP */
+	 (0 << 26) |		/* SET_BUS_MASTER_EN */
+	 (0 << 27) |		/* SET_BUS_MASTER_SYNC */
+	 (0 << 28) |		/* DP_HOST_TRIPLE_EN */
+	 (0 << 29) |		/* FAST_FILL_EN */
+	 (0 << 30) |		/* BLOCK_WRITE_EN */
+	 0)
+    },
+    { 24, 32,
+	/* DP_PIX_WIDTH */
+	((PIX_FORMAT_TRUE_8888 << 0) |   /* DP_DST_PIX_WIDTH */
+	 (PIX_FORMAT_TRUE_8888 << 4) |   /* COMPOSITE_PIX_WIDTH */
+	 (PIX_FORMAT_TRUE_8888 << 8) |   /* DP_SRC_PIX_WIDTH */
+	 (0 << 13) |			    /* DP_HOST_TRIPLE_EN */
+	 (0 << 14) |			    /* DP_PALETTE_TYPE */
+	 (PIX_FORMAT_TRUE_8888 << 16) |  /* DP_HOST_PIX_WIDTH */
+	 (0 << 20) |			    /* DP_C14_RGB_INDEX */
+	 (0 << 24) |			    /* DP_BYTE_PIX_ORDER */
+	 (0 << 25) |			    /* DP_CONVERSION_TEMP */
+	 (0 << 26) |			    /* DP_C14_RGB_LOW_NIBBLE */
+	 (0 << 27) |			    /* DP_C14_RGB_HIGH_NIBBLE */
+	 (PIX_FORMAT_TRUE_8888 << 28) |  /* DP_SCALE_PIX_WIDTH */
+	 0),
+	/* DP_SET_GUI_ENGINE */
+	((PIX_FORMAT_TRUE_8888 << 3) |
+	 (1 << 6) |		/* SET_DP_SRC_PIX_WIDTH */
+	 (6 << 7) |		/* SET_DST_OFFSET */
+	 (0 << 10) |		/* SET_DST_PITCH */
+	 (0 << 14) |		/* SET_DST_PITCH_BY_2 */
+	 (0 << 15) |		/* SET_SRC_OFFPITCH_COPY */
+	 (0 << 16) |		/* SET_SRC_HGTWID1_2 */
+	 (0 << 20) |		/* SET_DRAWING_COMBO */
+	 (1 << 24) |		/* SET_BUS_MASTER_OP */
+	 (0 << 26) |		/* SET_BUS_MASTER_EN */
+	 (0 << 27) |		/* SET_BUS_MASTER_SYNC */
+	 (0 << 28) |		/* DP_HOST_TRIPLE_EN */
+	 (0 << 29) |		/* FAST_FILL_EN */
+	 (0 << 30) |		/* BLOCK_WRITE_EN */
+	 0)
+    },
+    { 32, 32,
+	/* DP_PIX_WIDTH */
+	((PIX_FORMAT_TRUE_8888 << 0) |   /* DP_DST_PIX_WIDTH */
+	 (PIX_FORMAT_TRUE_8888 << 4) |   /* COMPOSITE_PIX_WIDTH */
+	 (PIX_FORMAT_TRUE_8888 << 8) |   /* DP_SRC_PIX_WIDTH */
+	 (0 << 13) |			    /* DP_HOST_TRIPLE_EN */
+	 (0 << 14) |			    /* DP_PALETTE_TYPE */
+	 (PIX_FORMAT_TRUE_8888 << 16) |  /* DP_HOST_PIX_WIDTH */
+	 (0 << 20) |			    /* DP_C14_RGB_INDEX */
+	 (0 << 24) |			    /* DP_BYTE_PIX_ORDER */
+	 (0 << 25) |			    /* DP_CONVERSION_TEMP */
+	 (0 << 26) |			    /* DP_C14_RGB_LOW_NIBBLE */
+	 (0 << 27) |			    /* DP_C14_RGB_HIGH_NIBBLE */
+	 (PIX_FORMAT_TRUE_8888 << 28) |  /* DP_SCALE_PIX_WIDTH */
+	 0),
+	/* DP_SET_GUI_ENGINE */
+	((PIX_FORMAT_TRUE_8888 << 3) |
+	 (1 << 6) |		/* SET_DP_SRC_PIX_WIDTH */
+	 (6 << 7) |		/* SET_DST_OFFSET */
+	 (0 << 10) |		/* SET_DST_PITCH */
+	 (0 << 14) |		/* SET_DST_PITCH_BY_2 */
+	 (0 << 15) |		/* SET_SRC_OFFPITCH_COPY */
+	 (0 << 16) |		/* SET_SRC_HGTWID1_2 */
+	 (0 << 20) |		/* SET_DRAWING_COMBO */
+	 (1 << 24) |		/* SET_BUS_MASTER_OP */
+	 (0 << 26) |		/* SET_BUS_MASTER_EN */
+	 (0 << 27) |		/* SET_BUS_MASTER_SYNC */
+	 (0 << 28) |		/* DP_HOST_TRIPLE_EN */
+	 (0 << 29) |		/* FAST_FILL_EN */
+	 (0 << 30) |		/* BLOCK_WRITE_EN */
+	 0)
+    }
+};
+
+#define NACCELREG (sizeof mach64AccelReg / sizeof mach64AccelReg[0])
+
 static Bool
 mach64Setup (PixmapPtr pDst, PixmapPtr pSrc, CARD32 combo, int wait)
 {
     ScreenPtr pScreen = pDst->drawable.pScreen;
     KdScreenPriv(pScreen);
-    mach64ScreenInfo(pScreenPriv);
     mach64CardInfo(pScreenPriv);
     CARD32  DST_PITCH;
     CARD32  DST_OFFSET;
     CARD32  SRC_PITCH;
     CARD32  SRC_OFFSET;
+    CARD32  DP_PIX_WIDTH;
+    CARD32  DP_SET_GUI_ENGINE;
+    int	    i;
+
+    for (i = 0; i < NACCELREG; i++)
+	if (mach64AccelReg[i].depth == pDst->drawable.depth &&
+	    mach64AccelReg[i].bitsPerPixel == pDst->drawable.bitsPerPixel)
+	    break;
+    if (i == NACCELREG)
+	return FALSE;
+    DP_PIX_WIDTH = mach64AccelReg[i].DP_PIX_WIDTH;
+    DP_SET_GUI_ENGINE = mach64AccelReg[i].DP_SET_GUI_ENGINE;
 
     reg = mach64c->reg;
-    triple = mach64s->bpp24;
+    triple = (pDst->drawable.bitsPerPixel == 24);
 #if SYNC_ALWAYS
     mach64Screen = pScreen;
 #endif
     if (!reg)
 	return FALSE;
     
-    /*
-     * No acceleration for other formats (yet)
-     */
-    if (pDst->drawable.bitsPerPixel != pScreenPriv->screen->fb[0].bitsPerPixel)
-	return FALSE;
-
     /* pixels / 8 = ((bytes * 8) / bpp) / 8 = bytes / bpp */
     DST_PITCH = pDst->devKind / pDst->drawable.bitsPerPixel;
     if (triple)
@@ -126,8 +378,8 @@ mach64Setup (PixmapPtr pDst, PixmapPtr pSrc, CARD32 combo, int wait)
     DST_OFFSET = ((CARD8 *) pDst->devPrivate.ptr - pScreenPriv->screen->memory_base) >> 3;
     
     mach64WaitAvail(reg, wait + (pSrc ? 5 : 4));
-    reg->DP_SET_GUI_ENGINE = mach64s->DP_SET_GUI_ENGINE | (combo << 20);
-    reg->DP_PIX_WIDTH = mach64s->DP_PIX_WIDTH;
+    reg->DP_SET_GUI_ENGINE = DP_SET_GUI_ENGINE | (combo << 20);
+    reg->DP_PIX_WIDTH = DP_PIX_WIDTH;
     reg->DST_OFF_PITCH = ((DST_OFFSET << 0) |	/* USR1_DST_OFFSET */
 			  (DST_PITCH << 22) |	/* USR1_DST_PITCH */
 			  0);
@@ -306,151 +558,9 @@ mach64DrawInit (ScreenPtr pScreen)
     return TRUE;
 }
 
-#define PIX_FORMAT_MONO	0
-#define PIX_FORMAT_PSEUDO_8	2
-#define PIX_FORMAT_TRUE_1555	3
-#define PIX_FORMAT_TRUE_565	4
-#define PIX_FORMAT_TRUE_8888    6
-#define PIX_FORMAT_TRUE_332	7
-#define PIX_FORMAT_GRAY_8	8
-#define PIX_FORMAT_YUV_422	0xb
-#define PIX_FORMAT_YUV_444	0xe
-#define PIX_FORMAT_TRUE_4444	0xf
-
 void
 mach64DrawEnable (ScreenPtr pScreen)
 {
-    KdScreenPriv(pScreen);
-    mach64ScreenInfo(pScreenPriv);
-    CARD32  DP_PIX_WIDTH = 0;
-    CARD32  SET_DP_DST_PIX_WIDTH = 0;
-    
-    avail = 0;
-    mach64s->bpp24 = FALSE;
-		
-    switch (pScreenPriv->screen->fb[0].depth) {
-    case 1:
-	DP_PIX_WIDTH = ((PIX_FORMAT_MONO << 0) |	/* DP_DST_PIX_WIDTH */
-			(PIX_FORMAT_TRUE_8888 << 4) |	/* COMPOSITE_PIX_WIDTH */
-			(PIX_FORMAT_MONO << 8) |	/* DP_SRC_PIX_WIDTH */
-			(0 << 13) |			/* DP_HOST_TRIPLE_EN */
-			(0 << 14) |			/* DP_PALETTE_TYPE */
-			(PIX_FORMAT_MONO << 16) |	/* DP_HOST_PIX_WIDTH */
-			(0 << 20) |			/* DP_C14_RGB_INDEX */
-			(0 << 24) |			/* DP_BYTE_PIX_ORDER */
-			(0 << 25) |			/* DP_CONVERSION_TEMP */
-			(0 << 26) |			/* DP_C14_RGB_LOW_NIBBLE */
-			(0 << 27) |			/* DP_C14_RGB_HIGH_NIBBLE */
-			(PIX_FORMAT_TRUE_8888 << 28) |	/* DP_SCALE_PIX_WIDTH */
-			0);
-	SET_DP_DST_PIX_WIDTH = PIX_FORMAT_MONO;
-	break;
-    case 4:
-	FatalError ("mach64 can't accelerate 4bpp");
-	break;
-    case 8:
-	DP_PIX_WIDTH = ((PIX_FORMAT_PSEUDO_8 << 0) |	/* DP_DST_PIX_WIDTH */
-			(PIX_FORMAT_TRUE_8888 << 4) |	/* COMPOSITE_PIX_WIDTH */
-			(PIX_FORMAT_PSEUDO_8 << 8) |	/* DP_SRC_PIX_WIDTH */
-			(0 << 13) |			/* DP_HOST_TRIPLE_EN */
-			(0 << 14) |			/* DP_PALETTE_TYPE */
-			(PIX_FORMAT_PSEUDO_8 << 16) |	/* DP_HOST_PIX_WIDTH */
-			(0 << 20) |			/* DP_C14_RGB_INDEX */
-			(0 << 24) |			/* DP_BYTE_PIX_ORDER */
-			(0 << 25) |			/* DP_CONVERSION_TEMP */
-			(0 << 26) |			/* DP_C14_RGB_LOW_NIBBLE */
-			(0 << 27) |			/* DP_C14_RGB_HIGH_NIBBLE */
-			(PIX_FORMAT_TRUE_8888 << 28) |	/* DP_SCALE_PIX_WIDTH */
-			0);
-	SET_DP_DST_PIX_WIDTH = PIX_FORMAT_PSEUDO_8;
-	break;
-    case 15:
-	DP_PIX_WIDTH = ((PIX_FORMAT_TRUE_1555 << 0) |	/* DP_DST_PIX_WIDTH */
-			(PIX_FORMAT_TRUE_8888 << 4) |	/* COMPOSITE_PIX_WIDTH */
-			(PIX_FORMAT_TRUE_1555 << 8) |	/* DP_SRC_PIX_WIDTH */
-			(0 << 13) |			/* DP_HOST_TRIPLE_EN */
-			(0 << 14) |			/* DP_PALETTE_TYPE */
-			(PIX_FORMAT_TRUE_1555 << 16) |	/* DP_HOST_PIX_WIDTH */
-			(0 << 20) |			/* DP_C14_RGB_INDEX */
-			(0 << 24) |			/* DP_BYTE_PIX_ORDER */
-			(0 << 25) |			/* DP_CONVERSION_TEMP */
-			(0 << 26) |			/* DP_C14_RGB_LOW_NIBBLE */
-			(0 << 27) |			/* DP_C14_RGB_HIGH_NIBBLE */
-			(PIX_FORMAT_TRUE_8888 << 28) |	/* DP_SCALE_PIX_WIDTH */
-			0);
-	SET_DP_DST_PIX_WIDTH = PIX_FORMAT_TRUE_1555;
-	break;
-    case 16:
-	DP_PIX_WIDTH = ((PIX_FORMAT_TRUE_565 << 0) |	/* DP_DST_PIX_WIDTH */
-			(PIX_FORMAT_TRUE_8888 << 4) |	/* COMPOSITE_PIX_WIDTH */
-			(PIX_FORMAT_TRUE_565 << 8) |	/* DP_SRC_PIX_WIDTH */
-			(0 << 13) |			/* DP_HOST_TRIPLE_EN */
-			(0 << 14) |			/* DP_PALETTE_TYPE */
-			(PIX_FORMAT_TRUE_565 << 16) |	/* DP_HOST_PIX_WIDTH */
-			(0 << 20) |			/* DP_C14_RGB_INDEX */
-			(0 << 24) |			/* DP_BYTE_PIX_ORDER */
-			(0 << 25) |			/* DP_CONVERSION_TEMP */
-			(0 << 26) |			/* DP_C14_RGB_LOW_NIBBLE */
-			(0 << 27) |			/* DP_C14_RGB_HIGH_NIBBLE */
-			(PIX_FORMAT_TRUE_8888 << 28) |	/* DP_SCALE_PIX_WIDTH */
-			0);
-	SET_DP_DST_PIX_WIDTH = PIX_FORMAT_TRUE_565;
-	break;
-    case 24:
-	if (pScreenPriv->screen->fb[0].bitsPerPixel == 24)
-	{
-	    mach64s->bpp24 = TRUE;
-	    DP_PIX_WIDTH = ((PIX_FORMAT_PSEUDO_8 << 0) |    /* DP_DST_PIX_WIDTH */
-			    (PIX_FORMAT_PSEUDO_8 << 4) |    /* COMPOSITE_PIX_WIDTH */
-			    (PIX_FORMAT_PSEUDO_8 << 8) |    /* DP_SRC_PIX_WIDTH */
-			    (0 << 13) |			    /* DP_HOST_TRIPLE_EN */
-			    (0 << 14) |			    /* DP_PALETTE_TYPE */
-			    (PIX_FORMAT_PSEUDO_8 << 16) |   /* DP_HOST_PIX_WIDTH */
-			    (0 << 20) |			    /* DP_C14_RGB_INDEX */
-			    (0 << 24) |			    /* DP_BYTE_PIX_ORDER */
-			    (0 << 25) |			    /* DP_CONVERSION_TEMP */
-			    (0 << 26) |			    /* DP_C14_RGB_LOW_NIBBLE */
-			    (0 << 27) |			    /* DP_C14_RGB_HIGH_NIBBLE */
-			    (PIX_FORMAT_TRUE_8888 << 28) |  /* DP_SCALE_PIX_WIDTH */
-			    0);
-	    SET_DP_DST_PIX_WIDTH = PIX_FORMAT_PSEUDO_8;
-	}
-	else
-	{
-	    DP_PIX_WIDTH = ((PIX_FORMAT_TRUE_8888 << 0) |   /* DP_DST_PIX_WIDTH */
-			    (PIX_FORMAT_TRUE_8888 << 4) |   /* COMPOSITE_PIX_WIDTH */
-			    (PIX_FORMAT_TRUE_8888 << 8) |   /* DP_SRC_PIX_WIDTH */
-			    (0 << 13) |			    /* DP_HOST_TRIPLE_EN */
-			    (0 << 14) |			    /* DP_PALETTE_TYPE */
-			    (PIX_FORMAT_TRUE_8888 << 16) |  /* DP_HOST_PIX_WIDTH */
-			    (0 << 20) |			    /* DP_C14_RGB_INDEX */
-			    (0 << 24) |			    /* DP_BYTE_PIX_ORDER */
-			    (0 << 25) |			    /* DP_CONVERSION_TEMP */
-			    (0 << 26) |			    /* DP_C14_RGB_LOW_NIBBLE */
-			    (0 << 27) |			    /* DP_C14_RGB_HIGH_NIBBLE */
-			    (PIX_FORMAT_TRUE_8888 << 28) |  /* DP_SCALE_PIX_WIDTH */
-			    0);
-	    SET_DP_DST_PIX_WIDTH = PIX_FORMAT_TRUE_8888;
-	}
-	break;
-    }
-    
-    mach64s->DP_PIX_WIDTH = DP_PIX_WIDTH;
-    mach64s->DP_SET_GUI_ENGINE = ((SET_DP_DST_PIX_WIDTH << 3) |
-				  (1 << 6) |		/* SET_DP_SRC_PIX_WIDTH */
-				  (6 << 7) |		/* SET_DST_OFFSET */
-				  (0 << 10) |		/* SET_DST_PITCH */
-				  (0 << 14) |		/* SET_DST_PITCH_BY_2 */
-				  (0 << 15) |		/* SET_SRC_OFFPITCH_COPY */
-				  (0 << 16) |		/* SET_SRC_HGTWID1_2 */
-				  (0 << 20) |		/* SET_DRAWING_COMBO */
-				  (1 << 24) |		/* SET_BUS_MASTER_OP */
-				  (0 << 26) |		/* SET_BUS_MASTER_EN */
-				  (0 << 27) |		/* SET_BUS_MASTER_SYNC */
-				  (0 << 28) |		/* DP_HOST_TRIPLE_EN */
-				  (0 << 29) |		/* FAST_FILL_EN */
-				  (0 << 30) |		/* BLOCK_WRITE_EN */
-				  0);
     KdMarkSync (pScreen);
 }
 
