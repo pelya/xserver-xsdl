@@ -210,7 +210,7 @@ VgaInvalidate (VgaCard *card)
 }
 
 
-void
+static void
 _VgaSync (VgaCard *card, VGA16 id)
 {
     if (!(card->values[id].flags & VGA_VALUE_VALID))

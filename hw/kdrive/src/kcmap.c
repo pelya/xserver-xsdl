@@ -130,7 +130,7 @@ KdDisableColormap (ScreenPtr pScreen)
     }
 }
 
-int
+static int
 KdColormapFb (ColormapPtr   pCmap)
 {
     ScreenPtr	pScreen = pCmap->pScreen;

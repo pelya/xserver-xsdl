@@ -27,7 +27,7 @@
 #endif
 #include "r128.h"
 
-Bool
+static Bool
 r128CardInit (KdCardInfo *card)
 {
     R128CardInfo *r128c;
@@ -51,10 +51,9 @@ r128CardInit (KdCardInfo *card)
     return TRUE;
 }
 
-Bool
+static Bool
 r128ScreenInit (KdScreenInfo *screen)
 {
-    R128CardInfo *r128c = screen->card->driver;
     R128ScreenInfo *r128s;
     int screen_size, memory;
 
@@ -96,13 +95,13 @@ r128ScreenInit (KdScreenInfo *screen)
     return TRUE;
 }
 
-Bool
+static Bool
 r128InitScreen (ScreenPtr pScreen)
 {
     return vesaInitScreen (pScreen);
 }
 
-Bool
+static Bool
 r128FinishInitScreen (ScreenPtr pScreen)
 {
     Bool ret;
@@ -112,11 +111,9 @@ r128FinishInitScreen (ScreenPtr pScreen)
     return ret;
 }
 
-void
+static void
 r128Preserve (KdCardInfo *card)
 {
-    R128CardInfo *r128c = card->driver;
-
     vesaPreserve (card);
 }
 
@@ -164,7 +161,15 @@ r128ResetMMIO (KdCardInfo *card, R128CardInfo *r128c)
     r128UnmapReg (card, r128c);
 }
 
-Bool
+
+static Bool
+r128DPMS (ScreenPtr pScreen, int mode)
+{
+    /* XXX */
+    return TRUE;
+}
+
+static Bool
 r128Enable (ScreenPtr pScreen)
 {
     KdScreenPriv (pScreen);
@@ -179,7 +184,7 @@ r128Enable (ScreenPtr pScreen)
     return TRUE;
 }
 
-void
+static void
 r128Disable (ScreenPtr pScreen)
 {
     KdScreenPriv (pScreen);
@@ -189,14 +194,7 @@ r128Disable (ScreenPtr pScreen)
     vesaDisable (pScreen);
 }
 
-Bool
-r128DPMS (ScreenPtr pScreen, int mode)
-{
-    /* XXX */
-    return TRUE;
-}
-
-void
+static void
 r128Restore (KdCardInfo *card)
 {
     R128CardInfo *r128c = card->driver;
@@ -205,7 +203,7 @@ r128Restore (KdCardInfo *card)
     vesaRestore (card);
 }
 
-void
+static void
 r128ScreenFini (KdScreenInfo *screen)
 {
     R128ScreenInfo *r128s = (R128ScreenInfo *) screen->driver;
@@ -215,7 +213,7 @@ r128ScreenFini (KdScreenInfo *screen)
     screen->driver = 0;
 }
 
-void
+static void
 r128CardFini (KdCardInfo *card)
 {
     R128CardInfo *r128c = (R128CardInfo *)card->driver;
@@ -228,6 +226,8 @@ KdCardFuncs r128Funcs = {
     r128CardInit,	/* cardinit */
     r128ScreenInit,	/* scrinit */
     r128InitScreen,	/* initScreen */
+    r128FinishInitScreen, /* finishInitScreen */
+    vesaCreateResources,/* createRes */
     r128Preserve,	/* preserve */
     r128Enable,		/* enable */
     r128DPMS,		/* dpms */
@@ -250,7 +250,5 @@ KdCardFuncs r128Funcs = {
     
     vesaGetColors,    	 /* getColors */
     vesaPutColors,	 /* putColors */
-
-    r128FinishInitScreen, /* finishInitScreen */
 };
 

@@ -28,7 +28,7 @@
 #include "nvidia.h"
 #include <sys/io.h>
 
-Bool
+static Bool
 nvidiaCardInit (KdCardInfo *card)
 {
     NvidiaCardInfo	*nvidiac;
@@ -50,7 +50,7 @@ nvidiaCardInit (KdCardInfo *card)
     return TRUE;
 }
 
-Bool
+static Bool
 nvidiaScreenInit (KdScreenInfo *screen)
 {
     NvidiaCardInfo	*nvidiac = screen->card->driver;
@@ -96,7 +96,7 @@ nvidiaScreenInit (KdScreenInfo *screen)
     return TRUE;
 }
 
-Bool
+static Bool
 nvidiaInitScreen (ScreenPtr pScreen)
 {
 #if 0
@@ -111,13 +111,12 @@ nvidiaInitScreen (ScreenPtr pScreen)
 }
 
 #ifdef RANDR
+static Bool
 nvidiaRandRSetConfig (ScreenPtr		pScreen,
 		      Rotation		rotation,
 		      int		rate,
 		      RRScreenSizePtr	pSize)
 {
-    KdScreenPriv(pScreen);
-    
     KdCheckSync (pScreen);
 
     if (!vesaRandRSetConfig (pScreen, rotation, rate, pSize))
@@ -126,7 +125,7 @@ nvidiaRandRSetConfig (ScreenPtr		pScreen,
     return TRUE;
 }
 
-void
+static void
 nvidiaRandRInit (ScreenPtr pScreen)
 {
     rrScrPriv(pScreen);
@@ -135,7 +134,7 @@ nvidiaRandRInit (ScreenPtr pScreen)
 }
 #endif
 
-Bool
+static Bool
 nvidiaFinishInitScreen (ScreenPtr pScreen)
 {
     Bool    ret;
@@ -149,8 +148,6 @@ nvidiaFinishInitScreen (ScreenPtr pScreen)
 void
 nvidiaPreserve (KdCardInfo *card)
 {
-    NvidiaCardInfo	*nvidiac = card->driver;
-
     vesaPreserve(card);
 }
 
@@ -198,7 +195,7 @@ static void vgaLockUnlock (NvidiaCardInfo *nvidiac, Bool lock)
     LEAVE ();
 }
 
-void nvidiaLockUnlock (NvidiaCardInfo *nvidiac, Bool lock)
+static void nvidiaLockUnlock (NvidiaCardInfo *nvidiac, Bool lock)
 {
     if (NVIDIA_IS_3(nvidiac))
 	nvidiaSetIndex (nvidiac, 0x3c4, 0x3c5, 0x06, lock ? 0x99 : 0x57);
@@ -276,7 +273,6 @@ nvidiaEnable (ScreenPtr pScreen)
 	return FALSE;
     
     nvidiaSetMMIO (pScreenPriv->card, nvidiac);
-    nvidiaDPMS (pScreen, KD_DPMS_NORMAL);
 #ifdef XV
     KdXVEnable (pScreen);
 #endif
@@ -296,13 +292,13 @@ nvidiaDisable (ScreenPtr pScreen)
     vesaDisable (pScreen);
 }
 
-Bool
+static Bool
 nvidiaDPMS (ScreenPtr pScreen, int mode)
 {
     return vesaDPMS (pScreen, mode);
 }
 
-void
+static void
 nvidiaRestore (KdCardInfo *card)
 {
     NvidiaCardInfo	*nvidiac = card->driver;
@@ -311,7 +307,7 @@ nvidiaRestore (KdCardInfo *card)
     vesaRestore (card);
 }
 
-void
+static void
 nvidiaScreenFini (KdScreenInfo *screen)
 {
     NvidiaScreenInfo	*nvidias = (NvidiaScreenInfo *) screen->driver;
@@ -321,7 +317,7 @@ nvidiaScreenFini (KdScreenInfo *screen)
     screen->driver = 0;
 }
 
-void
+static void
 nvidiaCardFini (KdCardInfo *card)
 {
     NvidiaCardInfo	*nvidiac = card->driver;
@@ -340,6 +336,8 @@ KdCardFuncs	nvidiaFuncs = {
     nvidiaCardInit,	    /* cardinit */
     nvidiaScreenInit,	    /* scrinit */
     nvidiaInitScreen,	    /* initScreen */
+    nvidiaFinishInitScreen, /* finishInitScreen */
+    vesaCreateResources,    /* createRes */
     nvidiaPreserve,	    /* preserve */
     nvidiaEnable,	    /* enable */
     nvidiaDPMS,		    /* dpms */
@@ -362,6 +360,4 @@ KdCardFuncs	nvidiaFuncs = {
     
     vesaGetColors,    	    /* getColors */
     vesaPutColors,	    /* putColors */
-
-    nvidiaFinishInitScreen, /* finishInitScreen */
 };

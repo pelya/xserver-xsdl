@@ -28,7 +28,7 @@
 #include "kdrive.h"
 #include "cursorstr.h"
 
-int
+static int
 KdComputeCmapShift (unsigned long mask)
 {
     int	shift;

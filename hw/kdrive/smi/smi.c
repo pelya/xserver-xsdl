@@ -27,7 +27,7 @@
 #include "smi.h"
 #include <sys/io.h>
 
-Bool
+static Bool
 smiCardInit (KdCardInfo *card)
 {
     SmiCardInfo	*smic;
@@ -51,7 +51,7 @@ smiCardInit (KdCardInfo *card)
     return TRUE;
 }
 
-Bool
+static Bool
 smiScreenInit (KdScreenInfo *screen)
 {
     SmiCardInfo		*smic = screen->card->driver;
@@ -80,7 +80,7 @@ smiScreenInit (KdScreenInfo *screen)
     return TRUE;
 }
 
-Bool
+static Bool
 smiInitScreen (ScreenPtr pScreen)
 {
     Bool    ret;
@@ -99,13 +99,13 @@ smiInitScreen (ScreenPtr pScreen)
 }
 
 #ifdef RANDR
+static Bool
 smiRandRSetConfig (ScreenPtr		pScreen,
 		   Rotation		randr,
 		   int			rate,
 		   RRScreenSizePtr	pSize)
 {
     Bool    ret;
-    KdScreenPriv(pScreen);
     
     ENTER ();
     KdCheckSync (pScreen);
@@ -115,7 +115,7 @@ smiRandRSetConfig (ScreenPtr		pScreen,
     return ret;
 }
 
-Bool
+static Bool
 smiRandRInit (ScreenPtr pScreen)
 {
     rrScrPriv(pScreen);
@@ -127,7 +127,7 @@ smiRandRInit (ScreenPtr pScreen)
 }
 #endif
 
-Bool
+static Bool
 smiFinishInitScreen (ScreenPtr pScreen)
 {
     Bool    ret;
@@ -141,8 +141,6 @@ smiFinishInitScreen (ScreenPtr pScreen)
 void
 smiPreserve (KdCardInfo *card)
 {
-    SmiCardInfo	*smic = card->driver;
-
     ENTER ();
     subPreserve(card);
     LEAVE();
@@ -229,6 +227,16 @@ smiResetMMIO (KdCardInfo *card, SmiCardInfo *smic)
     smiUnmapReg (card, smic);
 }
 
+static Bool
+smiDPMS (ScreenPtr pScreen, int mode)
+{
+    Bool    ret;
+    ENTER ();
+    ret = subDPMS (pScreen, mode);
+    LEAVE ();
+    return ret;
+}
+
 Bool
 smiEnable (ScreenPtr pScreen)
 {
@@ -268,27 +276,15 @@ smiDisable (ScreenPtr pScreen)
     LEAVE ();
 }
 
-Bool
-smiDPMS (ScreenPtr pScreen, int mode)
-{
-    Bool    ret;
-    ENTER ();
-    ret = subDPMS (pScreen, mode);
-    LEAVE ();
-    return ret;
-}
-
-void
+static void
 smiRestore (KdCardInfo *card)
 {
-    SmiCardInfo	*smic = card->driver;
-    
     ENTER ();
     subRestore (card);
     LEAVE();
 }
 
-void
+static void
 smiScreenFini (KdScreenInfo *screen)
 {
     SmiScreenInfo	*smis = (SmiScreenInfo *) screen->driver;
@@ -300,7 +296,7 @@ smiScreenFini (KdScreenInfo *screen)
     LEAVE ();
 }
 
-void
+static void
 smiCardFini (KdCardInfo *card)
 {
     SmiCardInfo	*smic = card->driver;
@@ -321,6 +317,8 @@ KdCardFuncs	smiFuncs = {
     smiCardInit,	    /* cardinit */
     smiScreenInit,	    /* scrinit */
     smiInitScreen,	    /* initScreen */
+    smiFinishInitScreen,    /* finishInitScreen */
+    subCreateResources,	    /* createRes */
     smiPreserve,	    /* preserve */
     smiEnable,		    /* enable */
     smiDPMS,		    /* dpms */
@@ -343,6 +341,4 @@ KdCardFuncs	smiFuncs = {
     
     subGetColors,    	    /* getColors */
     subPutColors,	    /* putColors */
-
-    smiFinishInitScreen,    /* finishInitScreen */
 };

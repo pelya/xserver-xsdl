@@ -35,7 +35,7 @@ THE SOFTWARE.
 #include "scrnintstr.h"
 #include "kdrive.h"
 
-int
+static int
 MsReadBytes (int fd, char *buf, int len, int min)
 {
     int		    n, tot;
@@ -65,7 +65,7 @@ MsReadBytes (int fd, char *buf, int len, int min)
     return tot;
 }
 
-void
+static void
 MsRead (int port, void *closure)
 {
     unsigned char   buf[3 * 200];
@@ -97,7 +97,7 @@ MsRead (int port, void *closure)
 
 int MsInputType;
 
-int
+static int
 MsInit (void)
 {
     int port;
@@ -151,7 +151,7 @@ MsInit (void)
     return 0;
 }
 
-void
+static void
 MsFini (void)
 {
     KdUnregisterFds (MsInputType, TRUE);

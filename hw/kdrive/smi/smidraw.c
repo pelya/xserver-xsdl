@@ -143,18 +143,16 @@ smiSetup (ScreenPtr pScreen, int wait)
     return TRUE;
 }
 
-Bool
-smiPrepareSolid (DrawablePtr    pDrawable,
+static Bool
+smiPrepareSolid (PixmapPtr    pPixmap,
 		 int		alu,
 		 Pixel		pm,
 		 Pixel		fg)
 {
-    KdScreenPriv(pDrawable->pScreen);
-
-    if (~pm & FbFullMask(pDrawable->depth))
+    if (~pm & FbFullMask(pPixmap->drawable.depth))
 	return FALSE;
     
-    if (!smiSetup (pDrawable->pScreen, 3))
+    if (!smiSetup (pPixmap->drawable.pScreen, 3))
 	return FALSE;
     
     accel_cmd = smiSolidRop[alu] | SMI_BITBLT | SMI_START_ENGINE;
@@ -164,7 +162,7 @@ smiPrepareSolid (DrawablePtr    pDrawable,
     return TRUE;
 }
 
-void
+static void
 smiSolid (int x1, int y1, int x2, int y2)
 {
     smiWaitAvail(smic,3);
@@ -173,7 +171,7 @@ smiSolid (int x1, int y1, int x2, int y2)
     dpr->accel_cmd = accel_cmd; 
 }
 
-void
+static void
 smiDoneSolid (void)
 {
 }
@@ -181,20 +179,18 @@ smiDoneSolid (void)
 static int copyDx;
 static int copyDy;
 
-Bool
-smiPrepareCopy (DrawablePtr	pSrcDrawable,
-		   DrawablePtr	pDstDrawable,
-		   int		dx,
-		   int		dy,
-		   int		alu,
-		   Pixel	pm)
+static Bool
+smiPrepareCopy (PixmapPtr	pSrcPixmap,
+		PixmapPtr	pDstPixmap,
+		int		dx,
+		int		dy,
+		int		alu,
+		Pixel		pm)
 {
-    KdScreenPriv(pSrcDrawable->pScreen);
-
-    if (~pm & FbFullMask(pSrcDrawable->depth))
+    if (~pm & FbFullMask(pSrcPixmap->drawable.depth))
 	return FALSE;
     
-    if (!smiSetup (pSrcDrawable->pScreen, 0))
+    if (!smiSetup (pSrcPixmap->drawable.pScreen, 0))
 	return FALSE;
     
     accel_cmd = smiBltRop[alu] | SMI_BITBLT | SMI_START_ENGINE;
@@ -206,7 +202,7 @@ smiPrepareCopy (DrawablePtr	pSrcDrawable,
     return TRUE;
 }
 
-void
+static void
 smiCopy (int srcX,
 	    int srcY,
 	    int dstX,
@@ -228,7 +224,7 @@ smiCopy (int srcX,
     dpr->accel_cmd = accel_cmd;
 }
 
-void
+static void
 smiDoneCopy (void)
 {
 }
@@ -248,7 +244,6 @@ smiDrawInit (ScreenPtr pScreen)
 {
     KdScreenPriv(pScreen);
     smiCardInfo (pScreenPriv);
-    smiScreenInfo (pScreenPriv);
     
     ENTER ();
     if (pScreenPriv->screen->fb[0].depth == 4)

@@ -87,7 +87,7 @@ static int acquiredScreen = -1;
  */
 
 static Bool
-GARTInit()
+GARTInit(void)
 {
 	static Bool initDone = FALSE;
 	struct _agp_info agpinf;

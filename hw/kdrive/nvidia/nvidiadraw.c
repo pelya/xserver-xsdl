@@ -81,19 +81,18 @@ nvidiaWaitIdle (NvidiaCardInfo *card)
     }
 }
 
-Bool
-nvidiaPrepareSolid (DrawablePtr    pDrawable,
-		     int	    alu,
-		     Pixel	    pm,
-		     Pixel	    fg)
+static Bool
+nvidiaPrepareSolid (PixmapPtr   pPixmap,
+		    int		alu,
+		    Pixel	pm,
+		    Pixel	fg)
 {
-    ScreenPtr pScreen = pDrawable->pScreen;
+    ScreenPtr pScreen = pPixmap->drawable.pScreen;
     KdScreenPriv(pScreen);
-    nvidiaScreenInfo(pScreenPriv);
     nvidiaCardInfo(pScreenPriv);
     
     card = nvidiac;
-    if (~pm & FbFullMask(pDrawable->depth))
+    if (~pm & FbFullMask(pPixmap->drawable.depth))
 	return FALSE;
     nvidiaWait (nvidiac, &nvidiac->rop->FifoFree, 1);
     nvidiac->rop->Rop3 = nvidiaRop[alu];
@@ -102,7 +101,7 @@ nvidiaPrepareSolid (DrawablePtr    pDrawable,
     return TRUE;
 }
 
-void
+static void
 nvidiaSolid (int x1, int y1, int x2, int y2)
 {
     nvidiaWait (card, &card->rect->FifoFree, 2);
@@ -110,34 +109,33 @@ nvidiaSolid (int x1, int y1, int x2, int y2)
     card->rect->WidthHeight = NVIDIA_XY(x2-x1,y2-y1);
 }
 
-void
+static void
 nvidiaDoneSolid (void)
 {
 }
 
 
-Bool
-nvidiaPrepareCopy (DrawablePtr	pSrcDrawable,
-		   DrawablePtr	pDstDrawable,
+static Bool
+nvidiaPrepareCopy (PixmapPtr	pSrcPixmap,
+		   PixmapPtr	pDstPixmap,
 		   int		dx,
 		   int		dy,
 		   int		alu,
 		   Pixel	pm)
 {
-    ScreenPtr pScreen = pDstDrawable->pScreen;
+    ScreenPtr pScreen = pDstPixmap->drawable.pScreen;
     KdScreenPriv(pScreen);
-    nvidiaScreenInfo(pScreenPriv);
     nvidiaCardInfo(pScreenPriv);
     
     card = nvidiac;
-    if (~pm & FbFullMask(pDstDrawable->depth))
+    if (~pm & FbFullMask(pDstPixmap->drawable.depth))
 	return FALSE;
     nvidiaWait (nvidiac, &card->rop->FifoFree, 1);
     nvidiac->rop->Rop3 = nvidiaRop[alu];
     return TRUE;
 }
 
-void
+static void
 nvidiaCopy (int srcX,
 	    int srcY,
 	    int dstX,
@@ -151,7 +149,7 @@ nvidiaCopy (int srcX,
     card->blt->WidthHeight = NVIDIA_XY(w, h);
 }
 
-void
+static void
 nvidiaDoneCopy (void)
 {
 }
@@ -170,9 +168,8 @@ Bool
 nvidiaDrawInit (ScreenPtr pScreen)
 {
     KdScreenPriv(pScreen);
-    nvidiaScreenInfo(pScreenPriv);
     nvidiaCardInfo(pScreenPriv);
-    Bool    ret;
+    Bool    ret = TRUE;
     
     ENTER ();
     if (pScreenPriv->screen->fb[0].depth == 4)
@@ -213,7 +210,6 @@ void
 nvidiaDrawEnable (ScreenPtr pScreen)
 {
     KdScreenPriv(pScreen);
-    nvidiaScreenInfo(pScreenPriv);
     nvidiaCardInfo(pScreenPriv);
     
     ENTER ();

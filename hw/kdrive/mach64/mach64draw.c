@@ -64,6 +64,10 @@ CARD8 mach64Rop[16] = {
 #define MACH64_DRAW_COMBO_SOLID	0x1
 #define MACH64_DRAW_COMBO_COPY	0x8
 
+#define SYNC_ALWAYS 0
+#if SYNC_ALWAYS
+static ScreenPtr    mach64Screen;
+#endif
 static Reg	*reg;
 static CARD32	avail;
 static CARD32	triple;
@@ -102,6 +106,9 @@ mach64Setup (PixmapPtr pDst, PixmapPtr pSrc, CARD32 combo, int wait)
 
     reg = mach64c->reg;
     triple = mach64s->bpp24;
+#if SYNC_ALWAYS
+    mach64Screen = pScreen;
+#endif
     if (!reg)
 	return FALSE;
     
@@ -140,7 +147,7 @@ mach64Setup (PixmapPtr pDst, PixmapPtr pSrc, CARD32 combo, int wait)
     return TRUE;
 }
 
-Bool
+static Bool
 mach64PrepareSolid (PixmapPtr   pPixmap,
 		    int		alu,
 		    Pixel	pm,
@@ -154,7 +161,7 @@ mach64PrepareSolid (PixmapPtr   pPixmap,
     return TRUE;
 }
 
-void
+static void
 mach64Solid (int x1, int y1, int x2, int y2)
 {
     if (triple)
@@ -176,16 +183,19 @@ mach64Solid (int x1, int y1, int x2, int y2)
     reg->DST_WIDTH_HEIGHT = MACH64_XY(x2-x1,y2-y1);
 }
 
-void
+static void
 mach64DoneSolid (void)
 {
+#if SYNC_ALWAYS
+    KdCheckSync (mach64Screen);
+#endif
 }
 
 static int copyDx;
 static int copyDy;
 static CARD32	copyCombo;
 
-Bool
+static Bool
 mach64PrepareCopy (PixmapPtr	pSrcPixmap,
 		   PixmapPtr	pDstPixmap,
 		   int		dx,
@@ -217,7 +227,7 @@ mach64PrepareCopy (PixmapPtr	pSrcPixmap,
     return TRUE;
 }
 
-void
+static void
 mach64Copy (int srcX,
 	    int srcY,
 	    int dstX,
@@ -260,9 +270,12 @@ mach64Copy (int srcX,
     reg->DST_HEIGHT_WIDTH = MACH64_YX(w,h);
 }
 
-void
+static void
 mach64DoneCopy (void)
 {
+#if SYNC_ALWAYS
+    KdCheckSync (mach64Screen);
+#endif
 }
 
 KaaScreenInfoRec    mach64Kaa = {
@@ -449,6 +462,7 @@ mach64DrawDisable (ScreenPtr pScreen)
 void
 mach64DrawFini (ScreenPtr pScreen)
 {
+    kaaDrawFini (pScreen);
 }
 
 void

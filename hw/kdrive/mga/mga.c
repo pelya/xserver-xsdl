@@ -27,7 +27,7 @@
 #endif
 #include "mga.h"
 
-Bool
+static Bool
 mgaCardInit (KdCardInfo *card)
 {
     MgaCardInfo *mgac;
@@ -51,11 +51,10 @@ mgaCardInit (KdCardInfo *card)
     return TRUE;
 }
 
-Bool
+static Bool
 mgaScreenInit (KdScreenInfo *screen)
 {
     MgaScreenInfo *mgas;
-    int screen_size, memory;
 
     mgas = (MgaScreenInfo *) xalloc (sizeof (MgaScreenInfo));
     if (!mgas)
@@ -75,33 +74,17 @@ mgaScreenInit (KdScreenInfo *screen)
 
     fprintf (stderr, "vesa mapping is %d\n", mgas->vesa.mapping);
 #endif
-    screen->memory_base = mgas->vesa.fb;
-
-    memory = mgas->vesa.fb_size;
-    screen_size = screen->fb[0].byteStride * screen->height;
-
-    memory -= screen_size;
-    if (memory > screen->fb[0].byteStride)
-    {
-	screen->off_screen_base = screen_size;
-	screen->off_screen_size = memory;
-    }
-    else
-    {
-	screen->off_screen_base = 0;
-	screen->off_screen_size = 0;
-    }
     screen->driver = mgas;
     return TRUE;
 }
 
-Bool
+static Bool
 mgaInitScreen (ScreenPtr pScreen)
 {
     return vesaInitScreen (pScreen);
 }
 
-Bool
+static Bool
 mgaFinishInitScreen (ScreenPtr pScreen)
 {
     Bool ret;
@@ -111,7 +94,13 @@ mgaFinishInitScreen (ScreenPtr pScreen)
     return ret;
 }
 
-void
+static Bool
+mgaCreateResources (ScreenPtr pScreen)
+{
+    return vesaCreateResources (pScreen);
+}
+
+static void
 mgaPreserve (KdCardInfo *card)
 {
     vesaPreserve (card);
@@ -162,14 +151,14 @@ mgaResetMMIO (KdCardInfo *card, MgaCardInfo *mgac)
     mgaUnmapReg (card, mgac);
 }
 
-Bool
+static Bool
 mgaDPMS (ScreenPtr pScreen, int mode)
 {
     /* XXX */
     return TRUE;
 }
 
-Bool
+static Bool
 mgaEnable (ScreenPtr pScreen)
 {
     KdScreenPriv (pScreen);
@@ -184,7 +173,7 @@ mgaEnable (ScreenPtr pScreen)
     return TRUE;
 }
 
-void
+static void
 mgaDisable (ScreenPtr pScreen)
 {
     KdScreenPriv (pScreen);
@@ -195,7 +184,7 @@ mgaDisable (ScreenPtr pScreen)
     vesaDisable (pScreen);
 }
 
-void
+static void
 mgaRestore (KdCardInfo *card)
 {
     MgaCardInfo *mgac = card->driver;
@@ -204,7 +193,7 @@ mgaRestore (KdCardInfo *card)
     vesaRestore (card);
 }
 
-void
+static void
 mgaScreenFini (KdScreenInfo *screen)
 {
     MgaScreenInfo *mgas = (MgaScreenInfo *) screen->driver;
@@ -214,7 +203,7 @@ mgaScreenFini (KdScreenInfo *screen)
     screen->driver = 0;
 }
 
-void
+static void
 mgaCardFini (KdCardInfo *card)
 {
     MgaCardInfo *mgac = (MgaCardInfo *)card->driver;
@@ -227,6 +216,8 @@ KdCardFuncs mgaFuncs = {
     mgaCardInit,	/* cardinit */
     mgaScreenInit,	/* scrinit */
     mgaInitScreen,	/* initScreen */
+    mgaFinishInitScreen, /* finishInitScreen */
+    mgaCreateResources,	/* createRes */
     mgaPreserve,	/* preserve */
     mgaEnable,		/* enable */
     mgaDPMS,		/* dpms */
@@ -249,7 +240,5 @@ KdCardFuncs mgaFuncs = {
     
     vesaGetColors,    	 /* getColors */
     vesaPutColors,	 /* putColors */
-
-    mgaFinishInitScreen, /* finishInitScreen */
 };
 

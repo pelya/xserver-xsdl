@@ -557,6 +557,7 @@ typedef struct _mach64PortPriv {
 } Mach64PortPrivRec, *Mach64PortPrivPtr;
 
 Bool mach64InitVideo(ScreenPtr pScreen);
+void mach64FiniVideo(ScreenPtr pScreen);
 
 typedef struct _mach64ScreenInfo {
     VesaScreenPrivRec		vesa;

@@ -26,6 +26,7 @@
 #define _NVIDIA_H_
 #include <vesa.h>
 #include "kxv.h"
+#include "klinux.h"
 
 /*
  * offset from ioport beginning 

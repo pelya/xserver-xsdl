@@ -33,7 +33,7 @@
 #include "scrnintstr.h"
 #include "kdrive.h"
 
-int
+static int
 Ps2ReadBytes (int fd, char *buf, int len, int min)
 {
     int		    n, tot;
@@ -71,7 +71,7 @@ char	*Ps2Names[] = {
 
 #define NUM_PS2_NAMES	(sizeof (Ps2Names) / sizeof (Ps2Names[0]))
 
-void
+static void
 Ps2Read (int ps2Port, void *closure)
 {
     unsigned char   buf[3 * 200];
@@ -119,7 +119,7 @@ Ps2Read (int ps2Port, void *closure)
 
 int Ps2InputType;
 
-int
+static int
 Ps2Init (void)
 {
     int	    i;
@@ -141,7 +141,7 @@ Ps2Init (void)
     return n;
 }
 
-void
+static void
 Ps2Fini (void)
 {
     KdUnregisterFds (Ps2InputType, TRUE);

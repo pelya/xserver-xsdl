@@ -51,7 +51,7 @@ int fifo_size;
 int pitch, src_pitch;
 int dir;
 
-void
+static void
 mgaWaitAvail (int n)
 {
     if (fifo_size < n) {
@@ -62,7 +62,7 @@ mgaWaitAvail (int n)
     fifo_size -= n;
 }
 
-void
+static void
 mgaWaitIdle (void)
 {
     while (MGA_IN32 (mmio, MGA_REG_STATUS) & 0x10000);
@@ -91,11 +91,10 @@ mgaSetup (ScreenPtr pScreen, int wait)
   return TRUE;
 }
 
-Bool
+static Bool
 mgaPrepareSolid (PixmapPtr pPixmap, int alu, Pixel pm, Pixel fg)
 {
     KdScreenPriv(pPixmap->drawable.pScreen);
-    mgaScreenInfo (pScreenPriv);
     int cmd;
     int dst_org;
 
@@ -115,7 +114,7 @@ mgaPrepareSolid (PixmapPtr pPixmap, int alu, Pixel pm, Pixel fg)
     return TRUE;
 }
 
-void
+static void
 mgaSolid (int x1, int y1, int x2, int y2)
 {
     mgaWaitAvail (2);
@@ -124,7 +123,7 @@ mgaSolid (int x1, int y1, int x2, int y2)
     MGA_OUT32 (mmio, MGA_REG_YDSTLEN | MGA_REG_EXEC, (y1 << 16) | (y2 - y1));
 }
 
-void
+static void
 mgaDoneSolid (void)
 {
 }
@@ -132,12 +131,11 @@ mgaDoneSolid (void)
 #define BLIT_LEFT	1
 #define BLIT_UP		4
 
-Bool
+static Bool
 mgaPrepareCopy (PixmapPtr pSrcPixmap, PixmapPtr pDstPixmap,
 		int dx, int dy, int alu, Pixel pm)
 {
     KdScreenPriv(pSrcPixmap->drawable.pScreen);
-    mgaScreenInfo (pScreenPriv);
 
     int cmd;
 
@@ -165,7 +163,7 @@ mgaPrepareCopy (PixmapPtr pSrcPixmap, PixmapPtr pDstPixmap,
     return TRUE;
 }
 
-void
+static void
 mgaCopy (int srcX, int srcY, int dstX, int dstY, int w, int h)
 {
     int start, end;
@@ -191,7 +189,7 @@ mgaCopy (int srcX, int srcY, int dstX, int dstY, int w, int h)
     MGA_OUT32 (mmio, MGA_REG_YDSTLEN | MGA_REG_EXEC, (dstY << 16) | h);
 }
 
-void
+static void
 mgaDoneCopy (void)
 {
 }

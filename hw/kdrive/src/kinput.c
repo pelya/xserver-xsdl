@@ -92,7 +92,7 @@ KdInputFd    	kdInputFds[KD_MAX_INPUT_FDS];
 int		kdNumInputFds;
 int		kdInputTypeSequence;
 
-void
+static void
 KdSigio (int sig)
 {
     int	i;
@@ -101,7 +101,7 @@ KdSigio (int sig)
 	(*kdInputFds[i].read) (kdInputFds[i].fd, kdInputFds[i].closure);
 }
 
-void
+static void
 KdBlockSigio (void)
 {
     sigset_t	set;
@@ -111,7 +111,7 @@ KdBlockSigio (void)
     sigprocmask (SIG_BLOCK, &set, 0);
 }
 
-void
+static void
 KdUnblockSigio (void)
 {
     sigset_t	set;
@@ -158,7 +158,7 @@ KdNonBlockFd (int fd)
     fcntl (fd, F_SETFL, flags);
 }
 
-void
+static void
 KdAddFd (int fd)
 {
     struct sigaction	act;
@@ -179,7 +179,7 @@ KdAddFd (int fd)
     sigprocmask (SIG_SETMASK, &set, 0);
 }
 
-void
+static void
 KdRemoveFd (int fd)
 {
     struct sigaction	act;
@@ -915,7 +915,7 @@ KdInputTransition  kdInputMachine[num_input_states][num_input_class] = {
 #define EventX(e)   ((e)->u.keyButtonPointer.rootX)
 #define EventY(e)   ((e)->u.keyButtonPointer.rootY)
 
-int
+static int
 KdInsideEmulationWindow (KdMouseInfo *mi, xEvent *ev)
 {
     if (ev->u.keyButtonPointer.pad1)
@@ -932,7 +932,7 @@ KdInsideEmulationWindow (KdMouseInfo *mi, xEvent *ev)
 	    abs (mi->emulationDy) < EMULATION_WINDOW);
 }
 				     
-KdInputClass
+static KdInputClass
 KdClassifyInput (KdMouseInfo *mi, xEvent *ev)
 {
     switch (ev->u.u.type) {
@@ -1083,7 +1083,7 @@ KdResetInputMachine (void)
     }
 }
 
-void
+static void
 KdHandleMouseEvent (KdMouseInfo *mi, xEvent *ev)
 {
     if (mi->emulateMiddleButton)
@@ -1092,7 +1092,7 @@ KdHandleMouseEvent (KdMouseInfo *mi, xEvent *ev)
 	KdQueueEvent (ev);
 }
 
-void
+static void
 KdReceiveTimeout (KdMouseInfo *mi)
 {
     KdRunMouseMachine (mi, timeout, 0);
@@ -1122,7 +1122,7 @@ extern char dispatchException;
 
 extern int nClients;
 
-void
+static void
 KdCheckSpecialKeys(xEvent *xE)
 {
     KeySym	sym = KEYCOL1(xE->u.u.detail);
@@ -1195,7 +1195,7 @@ KdCheckSpecialKeys(xEvent *xE)
  *
  */
 
-void
+static void
 KdHandleKeyboardEvent (xEvent *ev)
 {
     int		key = ev->u.u.detail;
@@ -1236,7 +1236,7 @@ KdReleaseAllKeys (void)
     KdUnblockSigio ();
 }
 
-void
+static void
 KdCheckLock (void)
 {
     KeyClassPtr	    keyc = pKdKeyboard->key;

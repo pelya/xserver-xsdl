@@ -35,8 +35,9 @@
 #define subInitialize vesaInitialize
 #define subScreenInitialize vesaScreenInitialize
 #define subInitScreen vesaInitScreen
-#define subRandRSetConfig vesaRandRSetConfig
 #define subFinishInitScreen vesaFinishInitScreen
+#define subCreateResources vesaCreateResources
+#define subRandRSetConfig vesaRandRSetConfig
 #define subPreserve vesaPreserve
 #define subEnable vesaEnable
 #define subDPMS vesaDPMS
@@ -54,8 +55,9 @@
 #define subInitialize fbdevInitialize
 #define subScreenInitialize fbdevScreenInitialize
 #define subInitScreen fbdevInitScreen
-#define subRandRSetConfig fbdevRandRSetConfig
 #define subFinishInitScreen fbdevFinishInitScreen
+#define subCreateResources fbdevCreateResources
+#define subRandRSetConfig fbdevRandRSetConfig
 #define subPreserve fbdevPreserve
 #define subEnable fbdevEnable
 #define subDPMS fbdevDPMS
@@ -195,6 +197,18 @@ smiMapReg (KdCardInfo *card, SmiCardInfo *smic);
 
 void
 smiUnmapReg (KdCardInfo *card, SmiCardInfo *smic);
+
+void
+smiOutb (CARD16 port, CARD8 val);
+
+CARD8
+smiInb (CARD16 port);
+
+CARD8
+smiGetIndex (SmiCardInfo *smic, CARD16 addr, CARD16 data, CARD8 id);
+
+void
+smiSetIndex (SmiCardInfo *smic, CARD16 addr, CARD16 data, CARD8 id, CARD8 val);
 
 void
 smiSetMMIO (KdCardInfo *card, SmiCardInfo *smic);

@@ -1,10 +1,6 @@
 INCLUDES = 					\
-	-I$(top_srcdir)/fb			\
-	-I$(top_srcdir)/mi			\
-	-I$(top_srcdir)/miext/shadow		\
-	-I$(top_srcdir)/randr			\
-	-I$(top_srcdir)/render			\
-	$(XSERVER_CFLAGS)
+	@KDRIVE_INCS@				\
+	@XSERVER_CFLAGS@
 
 noinst_LIBRARIES = libkdrive.a
 

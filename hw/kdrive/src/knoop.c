@@ -255,14 +255,14 @@ typedef void	(* typePushPixels)(
 #endif
 );
 
-RegionPtr
+static RegionPtr
 KdNoopCopyArea(DrawablePtr pSrcDrawable, DrawablePtr pDstDrawable, GCPtr pGC,
 	    int srcx, int srcy, int width, int height, int dstx, int dsty)
 {
     return NullRegion;
 }
 
-RegionPtr 
+static RegionPtr 
 KdNoopCopyPlane(DrawablePtr pSrcDrawable, DrawablePtr pDstDrawable, GCPtr pGC,
 		 int srcx, int srcy, int width, int height, 
 		 int dstx, int dsty, unsigned long bitPlane)

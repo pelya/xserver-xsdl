@@ -27,7 +27,7 @@
 #include "mach64.h"
 #include <sys/io.h>
 
-Bool
+static Bool
 mach64CardInit (KdCardInfo *card)
 {
     Mach64CardInfo	*mach64c;
@@ -50,12 +50,11 @@ mach64CardInit (KdCardInfo *card)
     return TRUE;
 }
 
-Bool
+static Bool
 mach64ScreenInit (KdScreenInfo *screen)
 {
     Mach64CardInfo	*mach64c = screen->card->driver;
     Mach64ScreenInfo	*mach64s;
-    int			screen_size, memory;
 
     mach64s = (Mach64ScreenInfo *) xalloc (sizeof (Mach64ScreenInfo));
     if (!mach64s)
@@ -70,7 +69,6 @@ mach64ScreenInit (KdScreenInfo *screen)
 	screen->dumb = TRUE;
     if (mach64s->vesa.mapping != VESA_LINEAR)
 	screen->dumb = TRUE;
-    screen->memory_base = mach64s->vesa.fb;
     switch (screen->fb[0].depth) {
     case 8:
 	mach64s->colorKey = 0xff;
@@ -86,30 +84,21 @@ mach64ScreenInit (KdScreenInfo *screen)
 	mach64s->colorKey = 1;
 	break;
     }
-    memory = mach64s->vesa.fb_size;
-    screen_size = screen->fb[0].byteStride * screen->height;
-    memory -= screen_size;
-    screen->softCursor = TRUE;
-    screen->off_screen_base = screen_size;
-    screen->off_screen_size = memory;
     screen->driver = mach64s;
     return TRUE;
 }
 
-Bool
+static Bool
 mach64InitScreen (ScreenPtr pScreen)
 {
 #ifdef XV
-    KdScreenPriv(pScreen);
-    Mach64CardInfo	*mach64c = pScreenPriv->screen->card->driver;
-    if (mach64c->media_reg && mach64c->reg)
-	mach64InitVideo(pScreen);
+    mach64InitVideo(pScreen);
 #endif
     return vesaInitScreen (pScreen);
 }
 
 #ifdef RANDR
-Bool
+static Bool
 mach64RandRSetConfig (ScreenPtr		pScreen,
 		      Rotation		rotation,
 		      int		rate,
@@ -123,7 +112,7 @@ mach64RandRSetConfig (ScreenPtr		pScreen,
     return TRUE;
 }
 
-void
+static void
 mach64RandRInit (ScreenPtr pScreen)
 {
     rrScrPriv(pScreen);
@@ -132,7 +121,7 @@ mach64RandRInit (ScreenPtr pScreen)
 }
 #endif
 
-Bool
+static Bool
 mach64FinishInitScreen (ScreenPtr pScreen)
 {
     Bool    ret;
@@ -141,6 +130,12 @@ mach64FinishInitScreen (ScreenPtr pScreen)
     mach64RandRInit (pScreen);
 #endif
     return ret;
+}
+
+static Bool
+mach64CreateResources (ScreenPtr pScreen)
+{
+    return vesaCreateResources (pScreen);
 }
 
 CARD32
@@ -367,7 +362,7 @@ mach64DPMS (ScreenPtr pScreen, int mode)
     return TRUE;
 }
 
-void
+static void
 mach64Restore (KdCardInfo *card)
 {
     Mach64CardInfo	*mach64c = card->driver;
@@ -381,23 +376,26 @@ mach64Restore (KdCardInfo *card)
     vesaRestore (card);
 }
 
-void
+static void
 mach64ScreenFini (KdScreenInfo *screen)
 {
     Mach64ScreenInfo	*mach64s = (Mach64ScreenInfo *) screen->driver;
-
+#ifdef XV
+    mach64FiniVideo(screen->pScreen);
+#endif
     vesaScreenFini (screen);
     xfree (mach64s);
     screen->driver = 0;
 }
 
-void
+static void
 mach64CardFini (KdCardInfo *card)
 {
     Mach64CardInfo	*mach64c = card->driver;
 
     mach64UnmapReg (card, mach64c);
     vesaCardFini (card);
+    xfree (mach64c);
 }
 
 #define mach64CursorInit 0       /* initCursor */
@@ -410,6 +408,8 @@ KdCardFuncs	mach64Funcs = {
     mach64CardInit,	    /* cardinit */
     mach64ScreenInit,	    /* scrinit */
     mach64InitScreen,	    /* initScreen */
+    mach64FinishInitScreen, /* finishInitScreen */
+    mach64CreateResources,  /* createRes */
     mach64Preserve,	    /* preserve */
     mach64Enable,	    /* enable */
     mach64DPMS,		    /* dpms */
@@ -432,6 +432,4 @@ KdCardFuncs	mach64Funcs = {
     
     vesaGetColors,    	    /* getColors */
     vesaPutColors,	    /* putColors */
-
-    mach64FinishInitScreen, /* finishInitScreen */
 };

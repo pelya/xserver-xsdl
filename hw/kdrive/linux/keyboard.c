@@ -112,7 +112,7 @@ static unsigned char tbl[KD_MAX_WIDTH] =
 };
 
 static void
-readKernelMapping()
+readKernelMapping(void)
 {
     KeySym	    *k;
     int		    i, j;
@@ -373,13 +373,13 @@ readKernelMapping()
     kdMaxScanCode = maxKeyCode;
 }
 
-void
+static void
 LinuxKeyboardLoad (void)
 {
     readKernelMapping ();
 }
 
-void
+static void
 LinuxKeyboardRead (int fd, void *closure)
 {
     unsigned char   buf[256], *b;
@@ -400,7 +400,7 @@ static int		LinuxKbdTrans;
 static struct termios	LinuxTermios;
 static int		LinuxKbdType;
 
-int
+static int
 LinuxKeyboardEnable (int fd, void *closure)
 {
     struct termios nTty;
@@ -429,14 +429,14 @@ LinuxKeyboardEnable (int fd, void *closure)
     return fd;
 }
 
-void
+static void
 LinuxKeyboardDisable (int fd, void *closure)
 {
     ioctl(LinuxConsoleFd, KDSKBMODE, LinuxKbdTrans);
     tcsetattr(LinuxConsoleFd, TCSANOW, &LinuxTermios);
 }
 
-int
+static int
 LinuxKeyboardInit (void)
 {
     if (!LinuxKbdType)
@@ -450,20 +450,20 @@ LinuxKeyboardInit (void)
     return 1;
 }
 
-void
+static void
 LinuxKeyboardFini (void)
 {
     LinuxKeyboardDisable (LinuxConsoleFd, 0);
     KdUnregisterFds (LinuxKbdType, FALSE);
 }
 
-void
+static void
 LinuxKeyboardLeds (int leds)
 {
     ioctl (LinuxConsoleFd, KDSETLED, leds & 7);
 }
 
-void
+static void
 LinuxKeyboardBell (int volume, int pitch, int duration)
 {
     if (volume && pitch)

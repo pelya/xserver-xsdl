@@ -28,29 +28,59 @@
 #include "kdrive.h"
 
 Bool
-KdShadowScreenInit (KdScreenInfo *screen)
+KdShadowFbAlloc (KdScreenInfo *screen, int fb, Bool rotate)
 {
+    int	    paddedWidth;
     void    *buf;
+    int	    width = rotate ? screen->height : screen->width;
+    int	    height = rotate ? screen->width : screen->height;
+    int	    bpp = screen->fb[fb].bitsPerPixel;
 
-    buf = shadowAlloc (screen->width, screen->height, screen->fb[0].bitsPerPixel);
+    /* use fb computation for width */
+    paddedWidth = ((width * bpp + FB_MASK) >> FB_SHIFT) * sizeof (FbBits);
+    buf = xalloc (paddedWidth * height);
     if (!buf)
 	return FALSE;
-    screen->fb[0].frameBuffer = buf;
-    screen->fb[0].byteStride = BitmapBytePad (screen->width * screen->fb[0].bitsPerPixel);
-    screen->fb[0].pixelStride = screen->fb[0].byteStride * 8 / screen->fb[0].bitsPerPixel;
-    screen->dumb = TRUE;
+    if (screen->fb[fb].shadow)
+	xfree (screen->fb[fb].frameBuffer);
+    screen->fb[fb].shadow = TRUE;
+    screen->fb[fb].frameBuffer = buf;
+    screen->fb[fb].byteStride = paddedWidth;
+    screen->fb[fb].pixelStride = paddedWidth * 8 / bpp;
     return TRUE;
 }
 
-Bool
-KdShadowInitScreen (ScreenPtr pScreen, ShadowUpdateProc update, ShadowWindowProc window)
+void
+KdShadowFbFree (KdScreenInfo *screen, int fb)
 {
-    return shadowInit (pScreen, update, window);
+    if (screen->fb[fb].shadow)
+    {
+	xfree (screen->fb[fb].frameBuffer);
+	screen->fb[fb].frameBuffer = 0;
+	screen->fb[fb].shadow = FALSE;
+    }
+}
+
+Bool
+KdShadowSet (ScreenPtr pScreen, int randr, ShadowUpdateProc update, ShadowWindowProc window)
+{
+    KdScreenPriv(pScreen);
+    KdScreenInfo *screen = pScreenPriv->screen;
+    int	 fb;
+
+    for (fb = 0; fb < KD_MAX_FB && screen->fb[fb].depth; fb++)
+    {
+	if (screen->fb[fb].shadow)
+	    return shadowSet (pScreen, (*pScreen->GetScreenPixmap) (pScreen), 
+			      update, window, randr, 0);
+	else
+	    shadowUnset (pScreen);
+    }
+    return TRUE;
 }
 
 void
-KdShadowScreenFini (KdScreenInfo *screen)
+KdShadowUnset (ScreenPtr pScreen)
 {
-    if (screen->fb[0].frameBuffer)
-	xfree (screen->fb[0].frameBuffer);
+    shadowUnset (pScreen);
 }

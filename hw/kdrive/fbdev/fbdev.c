@@ -29,9 +29,6 @@
 #include "fbdev.h"
 #include <sys/ioctl.h>
 
-/* this code was used to debug MSB 24bpp code on a 16bpp frame buffer */
-#undef FAKE24_ON_16
-
 extern int KdTsPhyScreen;
 
 Bool
@@ -114,9 +111,6 @@ fbdevScreenInitialize (KdScreenInfo *screen, FbdevScrPriv *scrpriv)
     Pixel	allbits;
     int		depth;
     Bool	gray;
-#ifdef FAKE24_ON_16
-    Bool	fake24;
-#endif
 
     depth = priv->var.bits_per_pixel;
     gray = priv->var.grayscale;
@@ -190,35 +184,8 @@ fbdevScreenInitialize (KdScreenInfo *screen, FbdevScrPriv *scrpriv)
     }
     screen->rate = 72;
     scrpriv->randr = screen->randr;
-    scrpriv->layerKind = LAYER_FB;
     
-#ifdef FAKE24_ON_16
-    if (screen->fb[0].depth == 24 && screen->fb[0].bitsPerPixel == 24 &&
-	priv->var.bits_per_pixel == 16)
-    {
-	fake24 = TRUE;
-	scrpriv->shadow = TRUE;
-	scrpriv->rotation = 0;
-	screen->fb[0].redMask = 0xff0000;
-	screen->fb[0].greenMask = 0x00ff00;
-	screen->fb[0].blueMask = 0x0000ff;
-	screen->width = priv->var.xres;
-	screen->height = priv->var.yres;
-	screen->softCursor = TRUE;
-    }
-    else
-#endif
-    {
-	screen->fb[0].depth = depth;
-	screen->fb[0].bitsPerPixel = priv->var.bits_per_pixel;
-        screen->width = priv->var.xres;
-        screen->height = priv->var.yres;
-        screen->fb[0].byteStride = priv->fix.line_length;
-        screen->fb[0].pixelStride = (priv->fix.line_length * 8 / 
-    				 priv->var.bits_per_pixel);
-        screen->fb[0].frameBuffer = (CARD8 *) (priv->fb);
-    }
-    return TRUE;
+    return fbdevMapFramebuffer (screen);
 }
 
 Bool
@@ -256,173 +223,94 @@ fbdevWindowLinear (ScreenPtr	pScreen,
     return (CARD8 *) priv->fb + row * priv->fix.line_length + offset;
 }
 
-#ifdef FAKE24_ON_16
-void
-fbdevUpdateFake24 (ScreenPtr pScreen,
-		   PixmapPtr pShadow,
-		   RegionPtr damage)
+Bool
+fbdevMapFramebuffer (KdScreenInfo *screen)
 {
-    shadowScrPriv(pScreen);
-    int		nbox = REGION_NUM_RECTS (damage);
-    BoxPtr	pbox = REGION_RECTS (damage);
-    FbBits	*shaBits;
-    CARD8	*shaBase, *shaLine, *sha;
-    CARD16	s;
-    FbStride	shaStride;
-    int		scrBase, scrLine, scr;
-    int		shaBpp;
-    int		x, y, w, h, width;
-    int         i;
-    CARD16	*winBase, *winLine, *win;
-    CARD32      winSize;
+    FbdevScrPriv	*scrpriv = screen->driver;
+    KdMouseMatrix	m;
+    FbdevPriv		*priv = screen->card->driver;
 
-    fbGetDrawable (&pShadow->drawable, shaBits, shaStride, shaBpp);
-    shaStride = shaStride * sizeof (FbBits) / sizeof (CARD8);
-    shaBase = (CARD8 *) shaBits;
-    while (nbox--)
+    if (scrpriv->randr != RR_Rotate_0)
+	scrpriv->shadow = TRUE;
+    else
+	scrpriv->shadow = FALSE;
+    
+    KdComputeMouseMatrix (&m, scrpriv->randr, screen->width, screen->height);
+    
+    KdSetMouseMatrix (&m);
+    
+    screen->width = priv->var.xres;
+    screen->height = priv->var.yres;
+    screen->memory_base = (CARD8 *) (priv->fb);
+    screen->memory_size = 0;
+    screen->off_screen_base = 0;
+    screen->fb[0].depth = priv->var.bits_per_pixel;
+    screen->fb[0].bitsPerPixel = priv->var.bits_per_pixel;
+    
+    if (scrpriv->shadow)
     {
-	x = pbox->x1;
-	y = pbox->y1;
-	w = (pbox->x2 - pbox->x1);
-	h = pbox->y2 - pbox->y1;
-
-	shaLine = shaBase + y * shaStride + x * 3;
-				   
-	while (h--)
-	{
-	    winSize = 0;
-	    scrBase = 0;
-	    width = w;
-	    scr = x;
-	    sha = shaLine;
-	    while (width) {
-		/* how much remains in this window */
-		i = scrBase + winSize - scr;
-		if (i <= 0 || scr < scrBase)
-		{
-		    winBase = (CARD16 *) (*pScrPriv->window) (pScreen,
-							      y,
-							      scr * sizeof (CARD16),
-							      SHADOW_WINDOW_WRITE,
-							      &winSize);
-		    if(!winBase)
-			return;
-		    scrBase = scr;
-		    winSize /= sizeof (CARD16);
-		    i = winSize;
-		}
-		win = winBase + (scr - scrBase);
-		if (i > width)
-		    i = width;
-		width -= i;
-		scr += i;
-		while (i--)
-		{
-#if IMAGE_BYTE_ORDER == MSBFirst
-		    *win++ = ((sha[2] >> 3) | 
-			      ((sha[1] & 0xf8) << 2) |
-			      ((sha[0] & 0xf8) << 7));
-#else
-		    *win++ = ((sha[0] >> 3) | 
-			      ((sha[1] & 0xfc) << 3) |
-			      ((sha[2] & 0xf8) << 8));
-#endif
-		    sha += 3;
-		}
-	    }
-	    shaLine += shaStride;
-	    y++;
-	}
-	pbox++;
+	if (!KdShadowFbAlloc (screen, 0, 
+			      scrpriv->randr & (RR_Rotate_90|RR_Rotate_270)))
+	    return FALSE;
     }
+    else
+    {
+        screen->fb[0].byteStride = priv->fix.line_length;
+        screen->fb[0].pixelStride = (priv->fix.line_length * 8 / 
+    				 priv->var.bits_per_pixel);
+        screen->fb[0].frameBuffer = (CARD8 *) (priv->fb);
+    }
+    
+    return TRUE;
 }
-#endif /* FAKE24_ON_16 */
 
 void
-fbdevConfigureScreen (ScreenPtr pScreen)
+fbdevSetScreenSizes (ScreenPtr pScreen)
 {
     KdScreenPriv(pScreen);
     KdScreenInfo	*screen = pScreenPriv->screen;
     FbdevScrPriv	*scrpriv = screen->driver;
-    KdMouseMatrix	m;
+    FbdevPriv		*priv = screen->card->driver;
 
-#ifdef FAKE24_ON_16
-    if (fake24)
+    if (scrpriv->randr & (RR_Rotate_0|RR_Rotate_180))
     {
-	scrpriv->randr = RR_Rotate_0;
-	scrpriv->shadow = TRUE;
-    }
-    else
-#endif /* FAKE24_ON_16 */
-    {
-	if (scrpriv->randr != RR_Rotate_0)
-	    scrpriv->shadow = TRUE;
-	else
-	    scrpriv->shadow = FALSE;
-    }
-    
-    KdComputeMouseMatrix (&m, scrpriv->randr, screen->width, screen->height);
-    
-    if (m.matrix[0][0])
-    {
-	pScreen->width = screen->width;
-	pScreen->height = screen->height;
+	pScreen->width = priv->var.xres;
+	pScreen->height = priv->var.yres;
 	pScreen->mmWidth = screen->width_mm;
 	pScreen->mmHeight = screen->height_mm;
     }
     else
     {
-	pScreen->width = screen->height;
-	pScreen->height = screen->width;
+	pScreen->width = priv->var.yres;
+	pScreen->height = priv->var.xres;
 	pScreen->mmWidth = screen->height_mm;
 	pScreen->mmHeight = screen->width_mm;
     }
-    KdSetMouseMatrix (&m);
 }
 
-LayerPtr
-fbdevLayerCreate (ScreenPtr pScreen)
+Bool
+fbdevUnmapFramebuffer (KdScreenInfo *screen)
+{
+    KdShadowFbFree (screen, 0);
+    return TRUE;
+}
+
+Bool
+fbdevSetShadow (ScreenPtr pScreen)
 {
     KdScreenPriv(pScreen);
     KdScreenInfo	*screen = pScreenPriv->screen;
     FbdevScrPriv	*scrpriv = screen->driver;
     ShadowUpdateProc	update;
     ShadowWindowProc	window;
-    PixmapPtr		pPixmap;
-    int			kind;
 
-    if (scrpriv->shadow)
-    {
-        window = fbdevWindowLinear;
-	update = 0;
-#ifdef FAKE24_ON_16
-	if (pScreenPriv->screen->fb[0].bitsPerPixel == 24 && priv->var.bits_per_pixel == 16)
-	{
-	    update = fbdevUpdateFake24;
-	}
-	else
-#endif /* FAKE24_ON_16 */
-	{
-	    if (scrpriv->randr)
-		update = shadowUpdateRotatePacked;
-	    else
-		update = shadowUpdatePacked;
-	}
-	if (!update)
-	    abort ();
-	kind = LAYER_SHADOW;
-	pPixmap = 0;
-    }
+    window = fbdevWindowLinear;
+    update = 0;
+    if (scrpriv->randr)
+	update = shadowUpdateRotatePacked;
     else
-    {
-	kind = scrpriv->layerKind;
-	pPixmap = LAYER_SCREEN_PIXMAP;
-	update = 0;
-	window = 0;
-    }
-    
-    return LayerCreate (pScreen, kind, screen->fb[0].depth, 
-			pPixmap, update, window, scrpriv->randr, 0);
+	update = shadowUpdatePacked;
+    return KdShadowSet (pScreen, scrpriv->randr, update, window);
 }
 
 
@@ -458,29 +346,6 @@ fbdevRandRGetInfo (ScreenPtr pScreen, Rotation *rotations)
     return TRUE;
 }
 
-int
-fbdevLayerAdd (WindowPtr pWin, pointer value)
-{
-    ScreenPtr	    pScreen = pWin->drawable.pScreen;
-    LayerPtr	    pLayer = (LayerPtr) value;
-
-    if (!LayerWindowAdd (pScreen, pLayer, pWin))
-	return WT_STOPWALKING;
-
-    return WT_WALKCHILDREN;
-}
-
-int
-fbdevLayerRemove (WindowPtr pWin, pointer value)
-{
-    ScreenPtr	    pScreen = pWin->drawable.pScreen;
-    LayerPtr	    pLayer = (LayerPtr) value;
-
-    LayerWindowRemove (pScreen, pLayer, pWin);
-
-    return WT_WALKCHILDREN;
-}
-
 Bool
 fbdevRandRSetConfig (ScreenPtr		pScreen,
 		     Rotation		randr,
@@ -496,7 +361,6 @@ fbdevRandRSetConfig (ScreenPtr		pScreen,
     int			oldheight;
     int			oldmmwidth;
     int			oldmmheight;
-    LayerPtr		pNewLayer;
     int			newwidth, newheight;
 
     if (screen->randr & (RR_Rotate_0|RR_Rotate_180))
@@ -526,34 +390,46 @@ fbdevRandRSetConfig (ScreenPtr		pScreen,
     
     scrpriv->randr = KdAddRotation (screen->randr, randr);
 
-    fbdevConfigureScreen (pScreen);
+    KdOffscreenSwapOut (screen->pScreen);
 
-    pNewLayer = fbdevLayerCreate (pScreen);
-    if (!pNewLayer)
+    fbdevUnmapFramebuffer (screen);
+    
+    if (!fbdevMapFramebuffer (screen))
 	goto bail4;
-    if (WalkTree (pScreen, fbdevLayerAdd, (pointer) pNewLayer) == WT_STOPWALKING)
-	goto bail5;
 
-    WalkTree (pScreen, fbdevLayerRemove, (pointer) scrpriv->pLayer);
-    LayerDestroy (pScreen, scrpriv->pLayer);
+    if (!fbdevSetShadow (screen->pScreen))
+	goto bail4;
 
-    scrpriv->pLayer = pNewLayer;
+    fbdevSetScreenSizes (screen->pScreen);
 
+    /*
+     * Set frame buffer mapping
+     */
+    (*pScreen->ModifyPixmapHeader) (fbGetScreenPixmap (pScreen),
+				    pScreen->width,
+				    pScreen->height,
+				    screen->fb[0].depth,
+				    screen->fb[0].bitsPerPixel,
+				    screen->fb[0].byteStride,
+				    screen->fb[0].frameBuffer);
+    
+    /* set the subpixel order */
+    
     KdSetSubpixelOrder (pScreen, scrpriv->randr);
     if (wasEnabled)
 	KdEnableScreen (pScreen);
 
     return TRUE;
 
-bail5:
-    WalkTree (pScreen, fbdevLayerRemove, (pointer) pNewLayer);
-    LayerDestroy (pScreen, pNewLayer);
 bail4:
+    fbdevUnmapFramebuffer (screen);
+    *scrpriv = oldscr;
+    (void) fbdevMapFramebuffer (screen);
     pScreen->width = oldwidth;
     pScreen->height = oldheight;
     pScreen->mmWidth = oldmmwidth;
     pScreen->mmHeight = oldmmheight;
-    *scrpriv = oldscr;
+    
     if (wasEnabled)
 	KdEnableScreen (pScreen);
     return FALSE;
@@ -616,33 +492,28 @@ fbdevInitScreen (ScreenPtr pScreen)
 #endif
 
     pScreen->CreateColormap = fbdevCreateColormap;
-
-    if (!LayerStartInit (pScreen))
-	return FALSE;
     return TRUE;
 }
 
 Bool
 fbdevFinishInitScreen (ScreenPtr pScreen)
 {
-    KdScreenPriv(pScreen);
-    FbdevScrPriv	*scrpriv = pScreenPriv->screen->driver;
-    
-    scrpriv->layerKind = LayerNewKind (pScreen);
-
-    if (!LayerFinishInit (pScreen))
+    if (!shadowSetup (pScreen))
 	return FALSE;
 
-    scrpriv->pLayer = fbdevLayerCreate (pScreen);
-    if (!scrpriv->pLayer)
-	return FALSE;
-    
 #ifdef RANDR
     if (!fbdevRandRInit (pScreen))
 	return FALSE;
 #endif
     
     return TRUE;
+}
+
+
+Bool
+fbdevCreateResources (ScreenPtr pScreen)
+{
+    return fbdevSetShadow (pScreen);
 }
 
 void

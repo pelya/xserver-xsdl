@@ -30,7 +30,6 @@
 #include <unistd.h>
 #include <sys/mman.h>
 #include "kdrive.h"
-#include "layer.h"
 
 #ifdef RANDR
 #include "randrstr.h"
@@ -50,8 +49,7 @@ typedef struct _fbdevPriv {
 typedef struct _fbdevScrPriv {
     Rotation			randr;
     Bool			shadow;
-    int				layerKind;
-    LayerPtr			pLayer;
+    PixmapPtr			pShadow;
 } FbdevScrPriv;
 
 extern KdCardFuncs  fbdevFuncs;
@@ -70,6 +68,12 @@ fbdevScreenInitialize (KdScreenInfo *screen, FbdevScrPriv *scrpriv);
     
 Bool
 fbdevInitScreen (ScreenPtr pScreen);
+
+Bool
+fbdevFinishInitScreen (ScreenPtr pScreen);
+
+Bool
+fbdevCreateResources (ScreenPtr pScreen);
 
 void
 fbdevPreserve (KdCardInfo *card);
@@ -99,6 +103,40 @@ void
 fbdevPutColors (ScreenPtr pScreen, int fb, int n, xColorItem *pdefs);
 
 Bool
-fbdevFinishInitScreen (ScreenPtr pScreen);
+fbdevMapFramebuffer (KdScreenInfo *screen);
+
+void *
+fbdevWindowLinear (ScreenPtr	pScreen,
+		   CARD32	row,
+		   CARD32	offset,
+		   int		mode,
+		   CARD32	*size,
+		   void		*closure);
+
+void
+fbdevSetScreenSizes (ScreenPtr pScreen);
+
+Bool
+fbdevUnmapFramebuffer (KdScreenInfo *screen);
+
+Bool
+fbdevSetShadow (ScreenPtr pScreen);
+
+Bool
+fbdevCreateColormap (ColormapPtr pmap);
+    
+#ifdef RANDR
+Bool
+fbdevRandRGetInfo (ScreenPtr pScreen, Rotation *rotations);
+
+Bool
+fbdevRandRSetConfig (ScreenPtr		pScreen,
+		     Rotation		randr,
+		     int		rate,
+		     RRScreenSizePtr	pSize);
+Bool
+fbdevRandRInit (ScreenPtr pScreen);
+
+#endif
 
 #endif /* _FBDEV_H_ */

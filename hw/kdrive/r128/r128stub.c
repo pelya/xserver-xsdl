@@ -26,6 +26,7 @@
 #include <config.h>
 #endif
 #include "r128.h"
+#include "klinux.h"
 
 void
 InitCard (char *name)
@@ -33,6 +34,8 @@ InitCard (char *name)
   KdCardAttr attr;
 
   if (LinuxFindPci (0x1002, 0x4c46, 0, &attr))
+    KdCardInfoAdd (&r128Funcs, &attr, 0);
+  else if (LinuxFindPci (0x1002, 0x5046, 0, &attr))
     KdCardInfoAdd (&r128Funcs, &attr, 0);
 }
 

@@ -35,7 +35,7 @@
 
 /* /dev/adbmouse is a busmouse */
 
-void
+static void
 BusRead (int adbPort, void *closure)
 {
     unsigned char   buf[3];
@@ -68,7 +68,7 @@ char	*BusNames[] = {
 
 int	BusInputType;
 
-int
+static int
 BusInit (void)
 {
     int	    i;
@@ -89,7 +89,7 @@ BusInit (void)
     return n;
 }
 
-void
+static void
 BusFini (void)
 {
     KdUnregisterFds (BusInputType, TRUE);

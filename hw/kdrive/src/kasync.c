@@ -305,11 +305,3 @@ const GCOps kdAsyncPixmapGCOps = {
     ,NULL
 #endif
 };
-
-void
-KdAssertSync (ScreenPtr pScreen)
-{
-    KdScreenPriv(pScreen);
-    KdCardInfo	*card = pScreenPriv->card;
-    assert (!card->needSync);
-}

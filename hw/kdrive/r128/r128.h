@@ -45,6 +45,10 @@
 #define R128_REG_PC_NGUI_CTLSTAT	0x0184
 #define R128_REG_DST_HEIGHT_WIDTH       0x143c
 #define R128_REG_SRC_Y_X                0x1434
+#define R128_DEFAULT_SC_BOTTOM_RIGHT    0x16e8
+#define R128_AUX_SC_CNTL                0x1660
+#define R128_SC_TOP_LEFT                0x16ec
+#define R128_SC_BOTTOM_RIGHT            0x16f0
 
 #define R128_GMC_DST_DATATYPE_SHIFT     8
 #define R128_GMC_CLR_CMP_CNTL_DIS       (1 << 28)
@@ -57,6 +61,8 @@
 #define R128_GUI_ACTIVE			(1 << 31)
 #define R128_PC_BUSY                    (1 << 31)
 #define R128_DP_SRC_SOURCE_MEMORY       (2 << 24)
+#define R128_DEFAULT_SC_RIGHT_MAX       (0x1fff <<  0)
+#define R128_DEFAULT_SC_BOTTOM_MAX      (0x1fff << 16)
 
 typedef volatile CARD8	VOL8;
 typedef volatile CARD16	VOL16;

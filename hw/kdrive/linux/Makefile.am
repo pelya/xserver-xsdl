@@ -1,15 +1,17 @@
 INCLUDES = 					\
-	-I$(top_srcdir)/hw/kdrive/src		\
-	-I$(top_srcdir)/mi			\
-	-I$(top_srcdir)/fb			\
-	-I$(top_srcdir)/miext/layer		\
-	-I$(top_srcdir)/miext/shadow		\
-	-I$(top_srcdir)/randr			\
-	-I$(top_srcdir)/render			\
-	$(XSERVER_CFLAGS)
+	@KDRIVE_INCS@				\
+	@XSERVER_CFLAGS@
 
 
 noinst_LIBRARIES = liblinux.a
+
+if TSLIB
+TSLIB_C = tslib.c
+endif
+
+if H3600_TS
+TS_C = ts.c
+endif
 
 liblinux_a_SOURCES = 	\
 	agp.c		\
@@ -18,12 +20,18 @@ liblinux_a_SOURCES = 	\
 	linux.c		\
 	mouse.c		\
 	ms.c		\
-	ps2.c
+	ps2.c		\
+	$(TSLIB_C)	\
+	$(TS_C)
 
-if TSLIB
-liblinux_a_SOURCES += tslib.c
-endif
+liblinux_a_DEPENDENCIES = \
+	agp.c		\
+	bus.c		\
+	keyboard.c	\
+	linux.c		\
+	mouse.c		\
+	ms.c		\
+	ps2.c		\
+	$(TSLIB_C)	\
+	$(TS_C)
 
-if H3600_TS
-liblinux_a_SOURCES += ts.c
-endif

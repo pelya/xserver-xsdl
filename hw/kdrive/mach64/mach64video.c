@@ -980,7 +980,10 @@ Bool mach64InitVideo(ScreenPtr pScreen)
     int			num_adaptors;
     KdCardInfo		*card = pScreenPriv->card;
     Mach64CardInfo	*mach64c = (Mach64CardInfo *) card->driver;
+    Mach64ScreenInfo	*mach64s = (Mach64ScreenInfo *) screen->driver;
     
+    mach64s->pAdaptor = NULL;
+
     if (!mach64c->media_reg)
 	return FALSE;
 
@@ -1016,4 +1019,19 @@ Bool mach64InitVideo(ScreenPtr pScreen)
     if(newAdaptors)
         xfree(newAdaptors);
     return TRUE;
+}
+
+void
+mach64FiniVideo (ScreenPtr pScreen)
+{
+    KdScreenPriv(pScreen);
+    mach64ScreenInfo(pScreenPriv);
+    KdVideoAdaptorPtr adapt = mach64s->pAdaptor;
+
+    if (adapt)
+    {
+	Mach64PortPrivPtr pPortPriv = (Mach64PortPrivPtr)(&adapt->pPortPrivates[1]);
+	REGION_UNINIT (pScreen, &pPortPriv->clip);
+	xfree (adapt);
+    }
 }

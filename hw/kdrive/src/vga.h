@@ -126,6 +126,12 @@ VgaInvalidate (VgaCard *card);
 void
 VgaRestore (VgaCard *card);
 
+void
+VgaFinish (VgaCard *card);
+
+void
+VgaFlushReg (VgaCard *card, VgaReg *reg);
+
 VGA8
 VgaFetch (VgaCard *card, VGA16 id);
 

@@ -63,6 +63,8 @@ KdCardFuncs	fbdevFuncs = {
     fbdevCardInit,	    /* cardinit */
     fbdevScreenInit,	    /* scrinit */
     fbdevInitScreen,	    /* initScreen */
+    fbdevFinishInitScreen,  /* finishInitScreen */
+    fbdevCreateResources,   /* createRes */
     fbdevPreserve,	    /* preserve */
     fbdevEnable,	    /* enable */
     fbdevDPMS,		    /* dpms */
@@ -85,6 +87,4 @@ KdCardFuncs	fbdevFuncs = {
     
     fbdevGetColors,    	    /* getColors */
     fbdevPutColors,	    /* putColors */
-
-    fbdevFinishInitScreen,  /* finishInitScreen */
 };

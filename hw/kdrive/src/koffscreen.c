@@ -21,7 +21,6 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $Header$ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -61,7 +60,7 @@ KdOffscreenValidate (ScreenPtr pScreen)
 	    
 	prev = area;
     }
-    assert (prev->area.offset + prev->area.size == pScreenPriv->screen->off_screen_size);
+    assert (prev->area.offset + prev->area.size == pScreenPriv->screen->memory_size);
 }
 #else
 #define KdOffscreenValidate(s)
@@ -97,7 +96,7 @@ KdOffscreenAlloc (ScreenPtr pScreen, int size, int align,
     }
 
     /* throw out requests that cannot fit */
-    if (size > pScreenPriv->screen->off_screen_size)
+    if (size > (pScreenPriv->screen->memory_size - pScreenPriv->screen->off_screen_base))
     {
 	DBG_OFFSCREEN (("Alloc 0x%x -> TOBIG\n", size));
 	return NULL;
@@ -280,7 +279,7 @@ KdOffscreenInit (ScreenPtr pScreen)
 
     area->area.screen = NULL;
     area->area.offset = pScreenPriv->screen->off_screen_base;
-    area->area.size = pScreenPriv->screen->off_screen_size;
+    area->area.size = pScreenPriv->screen->memory_size - area->area.offset;
     area->save = 0;
     area->locked = FALSE;
     area->next = NULL;

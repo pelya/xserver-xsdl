@@ -30,6 +30,8 @@ const KdCardFuncs vesaFuncs = {
     vesaCardInit,               /* cardinit */
     vesaScreenInit,             /* scrinit */
     vesaInitScreen,             /* initScreen */
+    vesaFinishInitScreen,	/* finishInitScreen */
+    vesaCreateResources,	/* createRes */
     vesaPreserve,               /* preserve */
     vesaEnable,                 /* enable */
     vesaDPMS,                   /* dpms */
@@ -52,8 +54,6 @@ const KdCardFuncs vesaFuncs = {
     
     vesaGetColors,              /* getColors */
     vesaPutColors,              /* putColors */
-
-    vesaFinishInitScreen,	/* finishInitScreen */
 };
 
 void

@@ -69,11 +69,9 @@ int copydx, copydy;
 int fifo_size;
 char *mmio;
 
-void
+static void
 r128WaitAvail (int n)
 {
-    int i;
-
     if (fifo_size < n)
     {
 	while ((fifo_size = R128_IN32 (mmio, R128_REG_GUI_STAT) & 0xfff) < n)
@@ -83,7 +81,7 @@ r128WaitAvail (int n)
     fifo_size -= n;
 }
 
-void
+static void
 r128WaitIdle (void)
 {
     int tries;
@@ -127,15 +125,24 @@ r128Setup (ScreenPtr pScreen, int wait)
   R128_OUT32 (mmio, R128_REG_DEFAULT_OFFSET, 0);
   R128_OUT32 (mmio, R128_REG_DEFAULT_PITCH, r128s->pitch);
 
+  r128WaitAvail (4);
+  R128_OUT32 (mmio, R128_AUX_SC_CNTL, 0);
+  R128_OUT32 (mmio, R128_DEFAULT_SC_BOTTOM_RIGHT, (R128_DEFAULT_SC_RIGHT_MAX
+						| R128_DEFAULT_SC_BOTTOM_MAX));
+  R128_OUT32 (mmio, R128_SC_TOP_LEFT, 0);
+  R128_OUT32 (mmio, R128_SC_BOTTOM_RIGHT, (R128_DEFAULT_SC_RIGHT_MAX
+						| R128_DEFAULT_SC_BOTTOM_MAX));
+  r128WaitAvail (wait);
+  return TRUE;
 }
 
-Bool
-r128PrepareSolid (DrawablePtr pDrawable, int alu, Pixel pm, Pixel fg)
+static Bool
+r128PrepareSolid (PixmapPtr pPixmap, int alu, Pixel pm, Pixel fg)
 {
-    KdScreenPriv (pDrawable->pScreen);
+    KdScreenPriv (pPixmap->drawable.pScreen);
     r128ScreenInfo (pScreenPriv);
 
-    r128Setup (pDrawable->pScreen, 4);
+    r128Setup (pPixmap->drawable.pScreen, 4);
     R128_OUT32 (mmio, R128_REG_DP_GUI_MASTER_CNTL, r128s->dp_gui_master_cntl
 		| R128_GMC_BRUSH_SOLID_COLOR
 		| R128_GMC_SRC_DATATYPE_COLOR
@@ -148,7 +155,7 @@ r128PrepareSolid (DrawablePtr pDrawable, int alu, Pixel pm, Pixel fg)
     return TRUE;
 }
 
-void
+static void
 r128Solid (int x1, int y1, int x2, int y2)
 {
     r128WaitAvail (2);
@@ -157,21 +164,21 @@ r128Solid (int x1, int y1, int x2, int y2)
     
 }
 
-void
+static void
 r128DoneSolid (void)
 {
 }
 
-Bool
-r128PrepareCopy (DrawablePtr pSrcDrawable, DrawablePtr pDstDrawable, int dx, int dy, int alu, Pixel pm)
+static Bool
+r128PrepareCopy (PixmapPtr pSrc, PixmapPtr pDst, int dx, int dy, int alu, Pixel pm)
 {
-    KdScreenPriv (pSrcDrawable->pScreen);
+    KdScreenPriv (pSrc->drawable.pScreen);
     r128ScreenInfo (pScreenPriv);
     
     copydx = dx;
     copydy = dy;
 
-    r128Setup (pSrcDrawable->pScreen, 3);
+    r128Setup (pSrc->drawable.pScreen, 3);
     R128_OUT32 (mmio, R128_REG_DP_GUI_MASTER_CNTL, r128s->dp_gui_master_cntl
 		| R128_GMC_BRUSH_SOLID_COLOR
 		| R128_GMC_SRC_DATATYPE_COLOR
@@ -186,7 +193,7 @@ r128PrepareCopy (DrawablePtr pSrcDrawable, DrawablePtr pDstDrawable, int dx, int
     return TRUE;
 }
 
-void
+static void
 r128Copy (int srcX, int srcY, int dstX, int dstY, int w, int h)
 {
     if (copydx < 0)
@@ -207,7 +214,7 @@ r128Copy (int srcX, int srcY, int dstX, int dstY, int w, int h)
     R128_OUT32 (mmio, R128_REG_DST_HEIGHT_WIDTH, (h << 16) | w);
 }
 
-void
+static void
 r128DoneCopy (void)
 {
 }
@@ -225,8 +232,6 @@ KaaScreenInfoRec r128Kaa = {
 Bool
 r128DrawInit (ScreenPtr pScreen)
 {
-    KdScreenPriv(pScreen);
-
     if (!kaaDrawInit (pScreen, &r128Kaa))
 	return FALSE;
 

@@ -28,6 +28,7 @@
 #include <config.h>
 #endif
 #include "smi.h"
+#include "klinux.h"
 
 void
 InitCard (char *name)

@@ -65,7 +65,7 @@ LinuxCheckChown (char *file)
 }
 
 static int
-LinuxInit ()
+LinuxInit (void)
 {
     int fd = -1;
     char vtname[11];

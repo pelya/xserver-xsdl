@@ -46,7 +46,7 @@ typedef struct _kbufio {
     int		    used;
 } Kbufio;
 
-Bool
+static Bool
 MouseWaitForReadable (int fd, int timeout)
 {
     fd_set	    set;
@@ -69,7 +69,7 @@ MouseWaitForReadable (int fd, int timeout)
     return FALSE;
 }
 
-int
+static int
 MouseReadByte (Kbufio *b, int timeout)
 {
     int	n;
@@ -89,7 +89,8 @@ MouseReadByte (Kbufio *b, int timeout)
     return b->buf[b->used++];
 }
 
-int
+#if NOTUSED
+static int
 MouseFlush (Kbufio *b, char *buf, int size)
 {
     CARD32  now = GetTimeInMillis ();
@@ -115,7 +116,7 @@ MouseFlush (Kbufio *b, char *buf, int size)
     return n;
 }
 
-int
+static int
 MousePeekByte (Kbufio *b, int timeout)
 {
     int	    c;
@@ -125,8 +126,9 @@ MousePeekByte (Kbufio *b, int timeout)
 	--b->used;
     return c;
 }
+#endif /* NOTUSED */
 
-Bool
+static Bool
 MouseWaitForWritable (int fd, int timeout)
 {
     fd_set	    set;
@@ -149,7 +151,7 @@ MouseWaitForWritable (int fd, int timeout)
     return FALSE;
 }
 
-Bool
+static Bool
 MouseWriteByte (int fd, unsigned char c, int timeout)
 {
     int	ret;
@@ -171,7 +173,7 @@ MouseWriteByte (int fd, unsigned char c, int timeout)
     }
 }
 
-Bool
+static Bool
 MouseWriteBytes (int fd, unsigned char *c, int n, int timeout)
 {
     while (n--)
@@ -708,7 +710,7 @@ static const KmouseProt *kmouseProts[] = {
 
 #define NUM_PROT    (sizeof (kmouseProts) / sizeof (kmouseProts[0]))
 
-void
+static void
 MouseInitProtocol (Kmouse *km)
 {
     int		    ret;
@@ -736,7 +738,7 @@ MouseInitProtocol (Kmouse *km)
     km->state = km->prot->state;
 }
 
-void
+static void
 MouseFirstProtocol (Kmouse *km, char *prot)
 {
     if (prot)
@@ -772,7 +774,7 @@ MouseFirstProtocol (Kmouse *km, char *prot)
     MouseInitProtocol (km);
 }
 
-void
+static void
 MouseNextProtocol (Kmouse *km)
 {
     do
@@ -787,7 +789,7 @@ MouseNextProtocol (Kmouse *km)
     ErrorF ("Switching to mouse protocol \"%s\"\n", km->prot->name);
 }
 
-void
+static void
 MouseRead (int mousePort, void *closure)
 {
     KdMouseInfo	    *mi = closure;
@@ -911,7 +913,7 @@ char *kdefaultMouse[] =  {
 
 #define NUM_DEFAULT_MOUSE    (sizeof (kdefaultMouse) / sizeof (kdefaultMouse[0]))
 
-Bool
+static Bool
 MouseInit (void)
 {
     int		i;
@@ -968,7 +970,7 @@ MouseInit (void)
     return TRUE;
 }
 
-void
+static void
 MouseFini (void)
 {
     KdMouseInfo	*mi;
