@@ -445,6 +445,7 @@ kaaTryDriverComposite(CARD8		op,
     if (pKaaScr->info->CheckComposite &&
 	!(*pKaaScr->info->CheckComposite) (op, pSrc, pMask, pDst))
     {
+	REGION_UNINIT(pDst->pDrawable->pScreen, &region);
 	return -1;
     }
 
