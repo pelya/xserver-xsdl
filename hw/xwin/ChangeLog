@@ -1,6 +1,13 @@
 2005-01-10  Alexander Gottwald  <ago at freedesktop dot org>
 
 	* winkeybd.h
+	* winkeynames.h:
+	Adjust keysyms for  Hiragana_Katakana toggle and backslash/underscore
+	on Japanese and ABNT2 keyboards
+
+2005-01-10  Alexander Gottwald  <ago at freedesktop dot org>
+
+	* winkeybd.h
 	* winkeyhook.c
 	* winwndproc.c:
 	Make keyhook feature work in multiwindowmode too

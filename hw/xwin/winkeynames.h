@@ -187,15 +187,15 @@
 #define KEY_F13          /* F13                   0x6e  */  110
 #define KEY_F14          /* F14                   0x6f  */  111
 #define KEY_F15          /* F15                   0x70  */  112
-#define KEY_HKTG         /* Hirugana/Katakana tog 0x70  */  112
 #define KEY_F16          /* F16                   0x71  */  113
 #define KEY_F17          /* F17                   0x72  */  114
 #define KEY_KP_DEC       /* KP_DEC                0x73  */  115
-#define KEY_BSlash2      /* \           _         0x73  */  115
 #define KEY_KP_Equal	 /* Equal (Keypad)        0x76  */  118
 #define KEY_XFER         /* Kanji Transfer        0x79  */  121
 #define KEY_NFER         /* No Kanji Transfer     0x7b  */  123
 #define KEY_Yen          /* Yen                   0x7d  */  125
+#define KEY_HKTG         /* Hiragana/Katakana tog 0xc8  */  200
+#define KEY_BSlash2      /* \           _         0xcb  */  203
 
 /* These are for "notused" and "unknown" entries in translation maps. */
 #define KEY_NOTUSED	  0
