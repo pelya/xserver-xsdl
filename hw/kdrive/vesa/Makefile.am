@@ -9,9 +9,9 @@ INCLUDES = 					\
 	-I$(top_srcdir)/render			\
 	$(XSERVER_CFLAGS)
 
-bin_PROGRAMS = Xvesa
-
 noinst_LIBRARIES = libvesa.a
+
+bin_PROGRAMS = Xvesa
 
 libvesa_a_SOURCES = \
 	vesa.c		\
