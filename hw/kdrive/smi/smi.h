@@ -25,7 +25,49 @@
 
 #ifndef _SMI_H_
 #define _SMI_H_
+
+#define SMI_VESA 1
+
+#ifdef SMI_VESA
+#include <vesa.h>
+#define subGetColors vesaGetColors
+#define subPutColors vesaPutColors
+#define subInitialize vesaInitialize
+#define subScreenInitialize vesaScreenInitialize
+#define subInitScreen vesaInitScreen
+#define subRandRSetConfig vesaRandRSetConfig
+#define subFinishInitScreen vesaFinishInitScreen
+#define subPreserve vesaPreserve
+#define subEnable vesaEnable
+#define subDPMS vesaDPMS
+#define subRestore vesaRestore
+#define subScreenFini vesaScreenFini
+#define subCardFini vesaCardFini
+#define subDisable vesaDisable
+#define SubCardPrivRec	VesaCardPrivRec
+#define SubScreenPrivRec    VesaScreenPrivRec
+#define subProcessArgument(c,v,i) vesaProcessArgument(c,v,i)
+#else
 #include <fbdev.h>
+#define subGetColors fbdevGetColors
+#define subPutColors fbdevPutColors
+#define subInitialize fbdevInitialize
+#define subScreenInitialize fbdevScreenInitialize
+#define subInitScreen fbdevInitScreen
+#define subRandRSetConfig fbdevRandRSetConfig
+#define subFinishInitScreen fbdevFinishInitScreen
+#define subPreserve fbdevPreserve
+#define subEnable fbdevEnable
+#define subDPMS fbdevDPMS
+#define subRestore fbdevRestore
+#define subScreenFini fbdevScreenFini
+#define subCardFini fbdevCardFini
+#define subDisable fbdevDisable
+#define SubCardPrivRec	FbdevPriv
+#define SubScreenPrivRec    FbdevScrPriv
+#define subProcessArgument(c,v,i) 0
+#endif
+
 #include "kxv.h"
 
 #define DEBUG
@@ -124,7 +166,7 @@ typedef struct _DPR {
 #define VGA_SEQ_DATA		0x3C5
 
 typedef struct _smiCardInfo {
-    FbdevPriv		fbdev;
+    SubCardPrivRec    	sub;
     CARD16		io_base;
     CARD8		*reg_base;
     DPR			*dpr;
@@ -135,7 +177,7 @@ typedef struct _smiCardInfo {
 #define smiCardInfo(kd)	SmiCardInfo	*smic = getSmiCardInfo(kd)
 
 typedef struct _smiScreenInfo {
-    FbdevScrPriv	fbdev;
+    SubScreenPrivRec	sub;
     CARD8		*screen;
     CARD32		stride;
     CARD32		data_format;

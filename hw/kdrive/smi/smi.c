@@ -40,7 +40,7 @@ smiCardInit (KdCardInfo *card)
     
     (void) smiMapReg (card, smic);
 
-    if (!fbdevInitialize (card, &smic->fbdev))
+    if (!subInitialize (card, &smic->sub))
     {
 	xfree (smic);
 	return FALSE;
@@ -62,7 +62,7 @@ smiScreenInit (KdScreenInfo *screen)
     if (!smis)
 	return FALSE;
     memset (smis, '\0', sizeof (SmiScreenInfo));
-    if (!fbdevScreenInitialize (screen, &smis->fbdev))
+    if (!subScreenInitialize (screen, &smis->sub))
     {
 	xfree (smis);
 	return FALSE;
@@ -70,7 +70,11 @@ smiScreenInit (KdScreenInfo *screen)
     if (!smic->reg_base)
 	screen->dumb = TRUE;
     screen->softCursor = TRUE;
-    smis->screen = smic->fbdev.fb;
+#ifdef SMI_VESA
+    smis->screen = smis->sub.fb;
+#else
+    smis->screen = smic->sub.fb;
+#endif
     screen->driver = smis;
     LEAVE();
     return TRUE;
@@ -89,7 +93,7 @@ smiInitScreen (ScreenPtr pScreen)
 	smiInitVideo(pScreen);
 #endif
 #endif
-    ret = fbdevInitScreen (pScreen);
+    ret = subInitScreen (pScreen);
     LEAVE();
     return ret;
 }
@@ -106,7 +110,7 @@ smiRandRSetConfig (ScreenPtr		pScreen,
     ENTER ();
     KdCheckSync (pScreen);
 
-    ret = fbdevRandRSetConfig (pScreen, randr, rate, pSize);
+    ret = subRandRSetConfig (pScreen, randr, rate, pSize);
     LEAVE();
     return ret;
 }
@@ -127,7 +131,7 @@ Bool
 smiFinishInitScreen (ScreenPtr pScreen)
 {
     Bool    ret;
-    ret = fbdevFinishInitScreen (pScreen);
+    ret = subFinishInitScreen (pScreen);
 #ifdef RANDR
     smiRandRInit (pScreen);
 #endif
@@ -140,7 +144,7 @@ smiPreserve (KdCardInfo *card)
     SmiCardInfo	*smic = card->driver;
 
     ENTER ();
-    fbdevPreserve(card);
+    subPreserve(card);
     LEAVE();
 }
 
@@ -232,7 +236,7 @@ smiEnable (ScreenPtr pScreen)
     SmiCardInfo	*smic = pScreenPriv->card->driver;
 
     ENTER ();
-    if (!fbdevEnable (pScreen))
+    if (!subEnable (pScreen))
 	return FALSE;
     
     smiSetMMIO (pScreenPriv->card, smic);
@@ -257,7 +261,7 @@ smiDisable (ScreenPtr pScreen)
     KdXVDisable (pScreen);
 #endif
     smiResetMMIO (pScreenPriv->card, smic);
-    fbdevDisable (pScreen);
+    subDisable (pScreen);
     LEAVE ();
 }
 
@@ -266,7 +270,7 @@ smiDPMS (ScreenPtr pScreen, int mode)
 {
     Bool    ret;
     ENTER ();
-    ret = fbdevDPMS (pScreen, mode);
+    ret = subDPMS (pScreen, mode);
     LEAVE ();
     return ret;
 }
@@ -277,7 +281,7 @@ smiRestore (KdCardInfo *card)
     SmiCardInfo	*smic = card->driver;
     
     ENTER ();
-    fbdevRestore (card);
+    subRestore (card);
     LEAVE();
 }
 
@@ -287,7 +291,7 @@ smiScreenFini (KdScreenInfo *screen)
     SmiScreenInfo	*smis = (SmiScreenInfo *) screen->driver;
 
     ENTER ();
-    fbdevScreenFini (screen);
+    subScreenFini (screen);
     xfree (smis);
     screen->driver = 0;
     LEAVE ();
@@ -300,7 +304,7 @@ smiCardFini (KdCardInfo *card)
 
     ENTER ();
     smiUnmapReg (card, smic);
-    fbdevCardFini (card);
+    subCardFini (card);
     LEAVE ();
 }
 
@@ -334,8 +338,8 @@ KdCardFuncs	smiFuncs = {
     smiDrawDisable,	    /* disableAccel */
     smiDrawFini,	    /* finiAccel */
     
-    fbdevGetColors,    	    /* getColors */
-    fbdevPutColors,	    /* putColors */
+    subGetColors,    	    /* getColors */
+    subPutColors,	    /* putColors */
 
     smiFinishInitScreen,    /* finishInitScreen */
 };
