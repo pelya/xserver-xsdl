@@ -245,14 +245,18 @@ xglSyncSurface (DrawablePtr pDrawable)
     { 
 	glitz_pixel_format_t format;
 	BoxPtr		     pBox;
+	BoxPtr		     pExt;
 	int		     nBox;
 	
 	xglUnmapPixmapBits (pPixmap);
 
 	nBox = REGION_NUM_RECTS (pRegion);
 	pBox = REGION_RECTS (pRegion);
+	pExt = REGION_EXTENTS (pDrawable->pScreen, pRegion);
 
-	format.masks = pPixmapPriv->pPixel->masks;
+	format.masks	  = pPixmapPriv->pPixel->masks;
+	format.xoffset    = pExt->x1;
+	format.skip_lines = pExt->y1;
 	
 	if (pPixmapPriv->stride < 0)
 	{
@@ -265,21 +269,18 @@ xglSyncSurface (DrawablePtr pDrawable)
 	    format.scanline_order = GLITZ_PIXEL_SCANLINE_ORDER_TOP_DOWN;
 	}
 
-	while (nBox--)
-	{
-	    format.xoffset    = pBox->x1;
-	    format.skip_lines = pBox->y1;
+	glitz_surface_set_clip_region (pPixmapPriv->surface,
+				       0, 0, (glitz_box_t *) pBox, nBox);
 
-	    glitz_set_pixels (pPixmapPriv->surface,
-			      pBox->x1,
-			      pBox->y1,
-			      pBox->x2 - pBox->x1,
-			      pBox->y2 - pBox->y1,
-			      &format,
-			      pPixmapPriv->buffer);
-	    
-	    pBox++;
-	}
+	glitz_set_pixels (pPixmapPriv->surface,
+			  pExt->x1,
+			  pExt->y1,
+			  pExt->x2 - pExt->x1,
+			  pExt->y2 - pExt->y1,
+			  &format,
+			  pPixmapPriv->buffer);
+
+	glitz_surface_set_clip_region (pPixmapPriv->surface, 0, 0, NULL, 0);
 
 	REGION_EMPTY (pDrawable->pScreen, pRegion);
     }
