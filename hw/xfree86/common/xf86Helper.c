@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86Helper.c,v 1.135 2003/10/08 14:58:27 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86Helper.c,v 1.136 2004/01/27 01:31:45 dawes Exp $ */
 
 /*
  * Copyright (c) 1997-2003 by The XFree86 Project, Inc.
@@ -2888,11 +2888,12 @@ int
 xf86RegisterRootWindowProperty(int ScrnIndex, Atom property, Atom type,
 			       int format, unsigned long len, pointer value )
 {
-    PropertyPtr pNewProp, pRegProp;
+    RootWinPropPtr pNewProp = NULL, pRegProp;
     int i;
+    Bool existing = FALSE;
 
 #ifdef DEBUG
-    ErrorF("xf86RegisterRootWindowProperty(%d, %d, %d, %d, %d, %p)\n",
+    ErrorF("xf86RegisterRootWindowProperty(%d, %ld, %ld, %d, %ld, %p)\n",
 	   ScrnIndex, property, type, format, len, value);
 #endif
 
@@ -2900,19 +2901,35 @@ xf86RegisterRootWindowProperty(int ScrnIndex, Atom property, Atom type,
       return(BadMatch);
     }
 
-    if ( (pNewProp = (PropertyPtr)xalloc(sizeof(PropertyRec)))==NULL ) {
-      return(BadAlloc);
+    if (xf86RegisteredPropertiesTable &&
+	xf86RegisteredPropertiesTable[ScrnIndex]) {
+      for (pNewProp = xf86RegisteredPropertiesTable[ScrnIndex];
+	   pNewProp; pNewProp = pNewProp->next) {
+	if (strcmp(pNewProp->name, NameForAtom(property)) == 0)
+	  break;
+      }
     }
 
-    pNewProp->propertyName = property;
+    if (!pNewProp) {
+      if ((pNewProp = (RootWinPropPtr)xalloc(sizeof(RootWinProp))) == NULL) {
+	return(BadAlloc);
+      }
+      /*
+       * We will put this property at the end of the list so that
+       * the changes are made in the order they were requested.
+       */
+      pNewProp->next = NULL;
+    } else {
+      if (pNewProp->name)
+	xfree(pNewProp->name);
+      existing = TRUE;
+    }
+
+    pNewProp->name = xnfstrdup(NameForAtom(property));
     pNewProp->type = type;
     pNewProp->format = format;
     pNewProp->size = len;
     pNewProp->data = value;
-    /* We will put this property at the end of the list so that
-     * the changes are made in the order they were requested.
-     */
-    pNewProp->next = NULL;
  
 #ifdef DEBUG
     ErrorF("new property filled\n");
@@ -2923,7 +2940,7 @@ xf86RegisterRootWindowProperty(int ScrnIndex, Atom property, Atom type,
       ErrorF("creating xf86RegisteredPropertiesTable[] size %d\n",
 	     xf86NumScreens);
 #endif
-      if ( NULL==(xf86RegisteredPropertiesTable=(PropertyPtr*)xnfcalloc(sizeof(PropertyPtr),xf86NumScreens) )) {
+      if ( NULL==(xf86RegisteredPropertiesTable=(RootWinPropPtr*)xnfcalloc(sizeof(RootWinProp),xf86NumScreens) )) {
 	return(BadAlloc);
       }
       for (i=0; i<xf86NumScreens; i++) {
@@ -2933,22 +2950,24 @@ xf86RegisterRootWindowProperty(int ScrnIndex, Atom property, Atom type,
 
 #ifdef DEBUG
     ErrorF("xf86RegisteredPropertiesTable %p\n",
-	   xf86RegisteredPropertiesTable);
+	   (void *)xf86RegisteredPropertiesTable);
     ErrorF("xf86RegisteredPropertiesTable[%d] %p\n",
-	   ScrnIndex, xf86RegisteredPropertiesTable[ScrnIndex]);
+	   ScrnIndex, (void *)xf86RegisteredPropertiesTable[ScrnIndex]);
 #endif
 
-    if ( xf86RegisteredPropertiesTable[ScrnIndex] == NULL) {
-      xf86RegisteredPropertiesTable[ScrnIndex] = pNewProp;
-    } else {
-      pRegProp = xf86RegisteredPropertiesTable[ScrnIndex];
-      while (pRegProp->next != NULL) {
+    if (!existing) {
+      if ( xf86RegisteredPropertiesTable[ScrnIndex] == NULL) {
+	xf86RegisteredPropertiesTable[ScrnIndex] = pNewProp;
+      } else {
+	pRegProp = xf86RegisteredPropertiesTable[ScrnIndex];
+	while (pRegProp->next != NULL) {
 #ifdef DEBUG
-	ErrorF("- next %p\n", pRegProp);
+	  ErrorF("- next %p\n", (void *)pRegProp);
 #endif
-	pRegProp = pRegProp->next;
+	  pRegProp = pRegProp->next;
+        }
+	pRegProp->next = pNewProp;
       }
-      pRegProp->next = pNewProp;
     }
 #ifdef DEBUG
     ErrorF("xf86RegisterRootWindowProperty succeeded\n");

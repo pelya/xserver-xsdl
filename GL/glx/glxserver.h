@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/GL/glx/glxserver.h,v 1.5 2003/09/28 20:15:43 alanh Exp $ */
+/* $XFree86: xc/programs/Xserver/GL/glx/glxserver.h,v 1.6 2004/01/28 18:11:50 alanh Exp $ */
 #ifndef _GLX_server_h_
 #define _GLX_server_h_
 
@@ -280,5 +280,6 @@ extern int __glXColorTableParameterfvSize(GLenum pname);
 extern int __glXColorTableParameterivSize(GLenum pname);
 
 extern int __glXPointParameterfvARBReqSize(GLbyte *pc, Bool swap);
+extern int __glXPointParameterivReqSize(GLbyte *pc, Bool swap);
 
 #endif /* !__GLX_server_h__ */

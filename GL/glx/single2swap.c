@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/GL/glx/single2swap.c,v 1.7 2002/01/14 22:47:08 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/GL/glx/single2swap.c,v 1.8 2004/02/09 23:46:31 alanh Exp $ */
 /*
 ** License Applicability. Except to the extent portions of this file are
 ** made subject to an alternative license as permitted in the SGI Free
@@ -262,58 +262,7 @@ int __glXDispSwap_Finish(__GLXclientState *cl, GLbyte *pc)
 
 int __glXDispSwap_GetString(__GLXclientState *cl, GLbyte *pc)
 {
-    ClientPtr client;
-    __GLXcontext *cx;
-    GLenum name;
-    const char *string;
-    __GLX_DECLARE_SWAP_VARIABLES;
-    int error;
-    char *buf = NULL, *buf1 = NULL;
-    GLint length = 0;
-
-    __GLX_SWAP_INT(&((xGLXSingleReq *)pc)->contextTag);
-    cx = __glXForceCurrent(cl, __GLX_GET_SINGLE_CONTEXT_TAG(pc), &error);
-    if (!cx) {
-	return error;
-    }
-
-    pc += __GLX_SINGLE_HDR_SIZE;
-    __GLX_SWAP_INT(pc + 0);
-    name = *(GLenum *)(pc + 0);
-    string = (const char *)glGetString(name);
-    client = cl->client;
-
-    /*
-    ** Restrict extensions to those that are supported by both the
-    ** implementation and the connection.  That is, return the
-    ** intersection of client, server, and core extension strings.
-    */
-    if (name == GL_EXTENSIONS) {
-	buf1 = __glXcombine_strings(string,
-				      cl->GLClientextensions);
-	buf = __glXcombine_strings(buf1,
-				      cx->pGlxScreen->GLextensions);
-	if (buf1 != NULL) {
-	    __glXFree(buf1);
-	}
-	string = buf;
-    }
-    if (string) {
-	length = __glXStrlen((const char *) string) + 1;
-    }
-
-    __GLX_BEGIN_REPLY(length);
-    __GLX_PUT_SIZE(length);
-
-    __GLX_SWAP_REPLY_SIZE();
-    __GLX_SWAP_REPLY_HEADER();
-    __GLX_SEND_HEADER();
-    WriteToClient(client, length, (char *) string); 
-    if (buf != NULL) {
-	__glXFree(buf);
-    }
-
-    return Success;
+    return DoGetString(cl, pc, GL_TRUE);
 }
 
 int __glXDispSwap_GetClipPlane(__GLXclientState *cl, GLbyte *pc)

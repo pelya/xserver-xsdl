@@ -1,5 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/hw/xfree86/common/compiler.h,v 1.1.4.3 2003/12/20 00:28:26 kaleb Exp $ */
-/* $XFree86: xc/programs/Xserver/hw/xfree86/common/compiler.h,v 3.105 2003/12/18 21:56:37 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/common/compiler.h,v 3.106 2004/02/02 03:55:28 dawes Exp $ */
 /*
  * Copyright 1990,91 by Thomas Roell, Dinkelscherben, Germany.
  *
@@ -58,6 +57,10 @@
 # endif
 
 # define _COMPILER_H
+
+#if defined(__SUNPRO_C)
+# define DO_PROTOTYPES
+#endif
 
 /* Allow drivers to use the GCC-supported __inline__ and/or __inline. */
 # ifndef __inline__
@@ -1301,6 +1304,7 @@ inl(unsigned short port)
 #    define mem_barrier()   /* NOP */
 #    define write_mem_barrier()   /* NOP */
 
+#    if !defined(__SUNPRO_C)
 #    if !defined(FAKEIT) && !defined(__mc68000__) && !defined(__arm__) && !defined(__sh__) && !defined(__hppa__)
 #     ifdef GCCUSESGAS
 
@@ -1446,6 +1450,7 @@ inl(unsigned short port)
 }
 
 #    endif /* FAKEIT */
+#    endif /* __SUNPRO_C */
 
 #   endif /* ix86 */
 
@@ -1541,8 +1546,8 @@ extern void outl(unsigned int a, unsigned int l);
 #if 0
 #     include <sys/types.h>
 #endif
-#     if !defined(__HIGHC__) && !defined(__SUNPRO_C)
-#      ifndef __USLC__
+#     ifndef __HIGHC__
+#      if !defined(__USLC__) && !defined(__SUNPRO_C)
 #       define __USLC__
 #      endif
 #     endif
@@ -1561,8 +1566,8 @@ extern void outl(unsigned int a, unsigned int l);
 #       include <sys/types.h>
 #      endif /* IN_MODULE */
 #     endif /* USL */
-#     ifndef sgi
-#     include <sys/inline.h>
+#     if !defined(sgi) && !defined(__SUNPRO_C)
+#      include <sys/inline.h>
 #     endif
 #    else
 #     include "scoasm.h"

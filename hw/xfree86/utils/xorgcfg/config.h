@@ -26,8 +26,7 @@
  *
  * Author: Paulo César Pereira de Andrade <pcpa@conectiva.com.br>
  *
- * $XdotOrg: xc/programs/Xserver/hw/xfree86/xf86cfg/config.h,v 1.18 2003/12/19 02:05:38 dawes Exp $
- * $XFree86: xc/programs/Xserver/hw/xfree86/xf86cfg/config.h,v 1.18 2003/12/19 02:05:38 dawes Exp $
+ * $XFree86: xc/programs/Xserver/hw/xfree86/xf86cfg/config.h,v 1.22 2004/02/14 17:53:49 dawes Exp $
  */
 
 #include <X11/IntrinsicP.h>
@@ -38,10 +37,12 @@
 #include <stdlib.h>
 #include <dirent.h>
 #include <string.h>
-#include <unistd.h>
-#if defined(sun) && defined(SVR4)
+#ifdef sun
+#undef index
+#undef rindex
 #include <strings.h>
 #endif
+#include <unistd.h>
 
 #include <stdarg.h>
 

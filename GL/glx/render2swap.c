@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/GL/glx/render2swap.c,v 1.6 2002/01/14 22:47:08 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/GL/glx/render2swap.c,v 1.7 2004/02/03 23:04:08 alanh Exp $ */
 /*
 ** License Applicability. Except to the extent portions of this file are
 ** made subject to an alternative license as permitted in the SGI Free
@@ -386,6 +386,5 @@ void __glXDispSwap_DrawArrays(GLbyte *pc)
 
 void __glXDispSwap_DrawArraysEXT(GLbyte *pc)
 {
-#ifdef XXX_STUB
-#endif /*XXX_STUB*/
+   __glXDispSwap_DrawArrays(pc);
 }

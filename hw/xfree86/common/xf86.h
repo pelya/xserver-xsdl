@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86.h,v 3.172 2003/09/24 02:43:16 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86.h,v 3.173 2004/01/27 01:31:44 dawes Exp $ */
 
 /*
  * Copyright (c) 1997-2003 by The XFree86 Project, Inc.
@@ -57,7 +57,6 @@ extern int xf86PixmapIndex;
 extern Bool xf86ResAccessEnter;
 extern ScrnInfoPtr *xf86Screens;	/* List of pointers to ScrnInfoRecs */
 extern const unsigned char byte_reversed[256];
-extern PropertyPtr *xf86RegisteredPropertiesTable;
 extern ScrnInfoPtr xf86CurrentScreen;
 extern Bool pciSlotClaimed;
 extern Bool isaSlotClaimed;

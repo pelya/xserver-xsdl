@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86Init.c,v 3.211 2003/11/01 00:47:01 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86Init.c,v 3.212 2004/01/27 01:31:45 dawes Exp $ */
 
 /*
  * Loosely based on code bearing the following copyright:
@@ -155,7 +155,7 @@ xf86CreateRootWindow(WindowPtr pWin)
   int ret = TRUE;
   int err = Success;
   ScreenPtr pScreen = pWin->drawable.pScreen;
-  PropertyPtr pRegProp, pOldRegProp;
+  RootWinPropPtr pProp;
   CreateWindowProcPtr CreateWindow =
     (CreateWindowProcPtr)(pScreen->devPrivates[xf86CreateRootWindowIndex].ptr);
 
@@ -181,25 +181,19 @@ xf86CreateRootWindow(WindowPtr pWin)
   }
 
   /* Now do our stuff */
-
   if (xf86RegisteredPropertiesTable != NULL) {
     if (pWin->parent == NULL && xf86RegisteredPropertiesTable != NULL) {
-      for (pRegProp = xf86RegisteredPropertiesTable[pScreen->myNum];
-	   pRegProp != NULL && err==Success;
-	   pRegProp = pRegProp->next )
+      for (pProp = xf86RegisteredPropertiesTable[pScreen->myNum];
+	   pProp != NULL && err==Success;
+	   pProp = pProp->next )
 	{
-	  Atom oldNameAtom = pRegProp->propertyName;
-	  char *nameString;
-	  /* propertyName was created before the screen existed,
-	   * so the atom does not belong to any screen;
-	   * we need to create a new atom with the same name.
-	   */
-	  nameString = NameForAtom(oldNameAtom);
-	  pRegProp->propertyName = MakeAtom(nameString, strlen(nameString), TRUE);
+	  Atom prop;
+
+	  prop = MakeAtom(pProp->name, strlen(pProp->name), TRUE);
 	  err = ChangeWindowProperty(pWin,
-				     pRegProp->propertyName, pRegProp->type,
-				     pRegProp->format, PropModeReplace,
-				     pRegProp->size, pRegProp->data,
+				     prop, pProp->type,
+				     pProp->format, PropModeReplace,
+				     pProp->size, pProp->data,
 				     FALSE
 				     );
 	}
@@ -207,14 +201,6 @@ xf86CreateRootWindow(WindowPtr pWin)
       /* Look at err */
       ret &= (err==Success);
       
-      /* free memory */
-      pOldRegProp = xf86RegisteredPropertiesTable[pScreen->myNum];
-      while (pOldRegProp!=NULL) { 	
-	pRegProp = pOldRegProp->next;
-	xfree(pOldRegProp);
-	pOldRegProp = pRegProp;
-      }  
-      xf86RegisteredPropertiesTable[pScreen->myNum] = NULL;
     } else {
       xf86Msg(X_ERROR, "xf86CreateRootWindow unexpectedly called with "
 	      "non-root window %p (parent %p)\n",
@@ -303,7 +289,6 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
       xf86ScreenIndex = AllocateScreenPrivateIndex();
       xf86CreateRootWindowIndex = AllocateScreenPrivateIndex();
       xf86PixmapIndex = AllocatePixmapPrivateIndex();
-      xf86RegisteredPropertiesTable=NULL;
       generation = serverGeneration;
   }
 
@@ -748,6 +733,32 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
 	}
     }
     formatsDone = TRUE;
+
+    if (xf86Info.vtno >= 0 ) {
+#define VT_ATOM_NAME         "XFree86_VT"
+      Atom VTAtom=-1;
+      CARD32  *VT = NULL;
+      int  ret;
+
+      /* This memory needs to stay available until the screen has been
+	 initialized, and we can create the property for real.
+      */
+      if ( (VT = xalloc(sizeof(CARD32)))==NULL ) {
+	FatalError("Unable to make VT property - out of memory. Exiting...\n");
+      }
+      *VT = xf86Info.vtno;
+    
+      VTAtom = MakeAtom(VT_ATOM_NAME, sizeof(VT_ATOM_NAME), TRUE);
+
+      for (i = 0, ret = Success; i < xf86NumScreens && ret == Success; i++) {
+	ret = xf86RegisterRootWindowProperty(xf86Screens[i]->scrnIndex,
+					     VTAtom, XA_INTEGER, 32, 
+					     1, VT );
+	if (ret != Success)
+	  xf86DrvMsg(xf86Screens[i]->scrnIndex, X_WARNING,
+		     "Failed to register VT property\n");
+      }
+    }
 
     /* If a screen uses depth 24, show what the pixmap format is */
     for (i = 0; i < xf86NumScreens; i++) {

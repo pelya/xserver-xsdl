@@ -1,4 +1,4 @@
-/* $XdotOrg: xdmcp.c,v 1.4 2001/01/31 13:37:19 pookie Exp $ */
+/* $XdotOrg: xc/programs/Xserver/os/xdmcp.c,v 1.1.4.4 2003/12/06 13:24:29 kaleb Exp $ */
 /* $Xorg: xdmcp.c,v 1.4 2001/01/31 13:37:19 pookie Exp $ */
 /*
  * Copyright 1989 Network Computing Devices, Inc., Mountain View, California.
@@ -14,7 +14,7 @@
  * without express or implied warranty.
  *
  */
-/* $XFree86: xc/programs/Xserver/os/xdmcp.c,v 3.29 2003/11/22 04:51:02 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/os/xdmcp.c,v 3.32 2004/01/01 17:09:29 herrb Exp $ */
 
 #ifdef WIN32
 /* avoid conflicting definitions */
@@ -759,14 +759,6 @@ XdmcpSelectHost(
     int			host_len,
     ARRAY8Ptr		AuthenticationName)
 {
-#if defined(IPv6) && defined(AF_INET6)
-    /* Don't need list of addresses for host anymore */
-    if (mgrAddrFirst != NULL) {
-	freeaddrinfo(mgrAddrFirst);
-	mgrAddrFirst = NULL;
-	mgrAddr = NULL;
-    }
-#endif
     state = XDM_START_CONNECTION;
     memmove(&req_sockaddr, host_sockaddr, host_len);
     req_socklen = host_len;
@@ -1162,7 +1154,7 @@ send_query_msg(void)
 	    socketfd = xdmcpSocket6;
 #endif	
 	XdmcpFlush (socketfd, &buffer, (XdmcpNetaddr) &ManagerAddress,
-		    sizeof (ManagerAddress));
+		    ManagerAddressLen);
     }
 }
 
@@ -1214,8 +1206,18 @@ send_request_msg(void)
     XdmcpHeader	    header;
     int		    length;
     int		    i;
+    CARD16	    XdmcpConnectionType;
     ARRAY8	    authenticationData;
     int		    socketfd = xdmcpSocket;
+
+    switch (SOCKADDR_FAMILY(ManagerAddress))
+    {
+    case AF_INET:	XdmcpConnectionType=FamilyInternet; break;
+#if defined(IPv6) && defined(AF_INET6)
+    case AF_INET6:	XdmcpConnectionType=FamilyInternet6; break;
+#endif
+    default:		XdmcpConnectionType=0xffff; break;
+    }
 
     header.version = XDM_PROTOCOL_VERSION;
     header.opcode = (CARD16) REQUEST;
@@ -1247,8 +1249,27 @@ send_request_msg(void)
 	return;
     }
     XdmcpWriteCARD16 (&buffer, DisplayNumber);
-    XdmcpWriteARRAY16 (&buffer, &ConnectionTypes);
-    XdmcpWriteARRAYofARRAY8 (&buffer, &ConnectionAddresses);
+    XdmcpWriteCARD8 (&buffer, ConnectionTypes.length);
+
+    /* The connection array is send reordered, so that connections of	*/
+    /* the same address type as the XDMCP manager connection are send	*/
+    /* first. This works around a bug in xdm. mario@klebsch.de 		*/
+    for (i = 0; i < (int)ConnectionTypes.length; i++)
+	if (ConnectionTypes.data[i]==XdmcpConnectionType)
+	    XdmcpWriteCARD16 (&buffer, ConnectionTypes.data[i]);
+    for (i = 0; i < (int)ConnectionTypes.length; i++)
+	if (ConnectionTypes.data[i]!=XdmcpConnectionType)
+	    XdmcpWriteCARD16 (&buffer, ConnectionTypes.data[i]);
+
+    XdmcpWriteCARD8 (&buffer, ConnectionAddresses.length);
+    for (i = 0; i < (int)ConnectionAddresses.length; i++)
+	if ( (i<ConnectionTypes.length) && 
+	     (ConnectionTypes.data[i]==XdmcpConnectionType) )
+	    XdmcpWriteARRAY8 (&buffer, &ConnectionAddresses.data[i]);
+    for (i = 0; i < (int)ConnectionAddresses.length; i++)
+	if ( (i>=ConnectionTypes.length) ||
+	     (ConnectionTypes.data[i]!=XdmcpConnectionType) )
+	    XdmcpWriteARRAY8 (&buffer, &ConnectionAddresses.data[i]);
 
     XdmcpWriteARRAY8 (&buffer, AuthenticationName);
     XdmcpWriteARRAY8 (&buffer, &authenticationData);

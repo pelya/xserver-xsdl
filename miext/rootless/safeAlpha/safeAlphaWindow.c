@@ -1,4 +1,4 @@
-/* $XdotOrg$ */
+/* $XdotOrg: xc/programs/Xserver/miext/rootless/safeAlpha/safeAlphaWindow.c,v 1.1.4.1 2003/12/18 19:29:15 kaleb Exp $ */
 /*
  * Specialized window functions to protect the alpha channel
  */
@@ -32,10 +32,11 @@
  *
  * Copyright © 1998 Keith Packard
  */
-/* $XFree86: xc/programs/Xserver/miext/rootless/safeAlpha/safeAlphaWindow.c,v 1.1 2003/09/16 00:36:20 torrey Exp $ */
+/* $XFree86: xc/programs/Xserver/miext/rootless/safeAlpha/safeAlphaWindow.c,v 1.2 2004/01/19 01:22:48 torrey Exp $ */
 
 #include "fb.h"
 #include "safeAlpha.h"
+#include "rootlessCommon.h"
 
 #ifdef XINERAMA
 #include "xinerama.h"

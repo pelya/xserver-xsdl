@@ -1,4 +1,259 @@
-XFree86 4.3.99.903 (xx December 2003)
+XFree86 4.3.99.904 (xx February 2004)
+
+XFree86 4.3.99.903 (15 February 2004)
+ 805. Resync the pci.ids data with pciids.sf.net (2004-02-15 snapshot).
+ 804. Improve X server performance on OS/2 when using TCP transport:
+       - Let the server set TCP_NODELAY, et al.
+       - Change the behavior of os2PseudoSelect() on sockets.
+      (Bugzilla #1175, Frank Giessler).
+ 803. X server on OS/2 doesn't respect AutoRepeat on/off unless XKB is disabled
+      (Bugzilla #1174, Frank Giessler).
+ 802. Licence update.
+ 801. Optimise SlowBcopy() for ia64 architecture (Marc La France).
+ 800. Simplify vgaHWSaveFonts() and vgaHWRestoreFonts() to fix hangs seen with
+      certain nVidia boards on ZX1-based systems (Marc La France).
+ 799. Some more font path checks.
+ 798. Don't define X_LOCALE on Panther (Etsushi Kato and Toshimitsu Tanaka).
+ 797. Fix GL_VERSION string for indirect rendering (Bugzilla #1147, DRI Project)
+ 796. Fix the 1024x576 modes in the via driver (Bugzilla #812, Luc Verhaegen,
+      reported by Julian Cable).
+ 795. Add uz_UZ locale (Bugzilla #1151, Mashrab Kuvatov).
+ 794. Fix font alias overrun.
+ 793. Fix for the way the FreeType backend sets the
+      _ADOBE_POSTSCRIPT_FONTNAME property for Type1 fonts (Bugzilla #1123,
+      David Dawes, based on Roland Mainz, reported by David Capshaw).
+ 792. Fix formatting of the XLookupString bytes that xev prints out (Bugzilla
+      #1153, Noah Levitt).
+ 791. Likely fix for FreeBSD 5.2 libGL build problem (David Dawes, reported by
+      Terry R. Friedrichsen).
+ 790. Fix typo in bsd_mouse.c (Tyler Retzlaff).
+ 789. Fix off-by-one errors in the emulation of an ix86's BT, BTS, BTR and BTC
+      instructions (Marc La France).
+ 788. Fixing segfaults that may happen in some corner cases on VT switch
+      and int10 initialization (Egbert Eich).
+ 787. Increase PCI I/O space size on Linux/PowerPC (Bugzilla #1143,
+      Paul Mackerras).
+ 786. Fix DRI cleanup at exit and re-enabling on reset for the via driver
+      (Bugzilla #998, Thomas Hellström).
+ 785. Fix Xv error propagation to the client for the via driver (Bugzilla #998,
+      Thomas Hellström).
+ 784. Fix a problem when utilizing DrawArrays when indirect rendering
+      (Bugzilla #1142, DRI Project).
+ 783. Xterm followup fix for Bugzilla #981 (Thomas Dickey).
+ 782. Fix EXT version of vertex arrays (DRI Project).
+ 781. Fix long-standing off-by-one bug in calculating dimensions of single
+      (private) back cliprect when the window is partially offscreen in
+      libdri.a (Keith Whitwell)
+ 780. Don't do the MGAISBUSY() loop in MGAStormSync() for Mystique cards
+      because this reportedly results in an infinite loop (Bugzila #85,
+      David Dawes, reported by Phil ??? and Stéphane VOLTZ).
+ 779. Make sure the r128 driver enables the hsync and vsync signals after
+      programming a video mode (Bugzilla #935, Kevin Martin).
+ 778. Fix Multitexture problems with vertex arrays and indirect rendering
+      (Bugzilla #1092, DRI Project).
+ 777. Fix SecondaryColor & FogColor when indirect rendering (Bugzilla #1091, 
+      DRI Project).
+ 776. Fix build failures on Mac OS X 10.1.x (Torrey T. Lyons).
+ 775. Fix a timing problem in the nsc driver that prevents the display from
+      working in some cases (Bugzilla #840, Hansruedi Glauser, Alan Hourihane).
+ 774. Via driver workaround to handle setting WC for the video memory when
+      initially only part of it has WC set (Bugzilla #1010 Thomas Hellström).
+ 773. Fix the XAA clipping flags for the via driver, which fixes a line
+      drawing problem seen with OpenOffice Calc (Bugzilla #1026,
+      Thomas Hellström).
+ 772. HKSCS and GB18030 support for luit (Bugzilla #1048, Zarick Lau).
+ 771. Fix some remaining memory allocation related problems with the via
+      driver (Bugzilla #998, Thomas Hellström).
+ 770. Add a UseRpath build switch to allow the use of -rpath to be enabled
+      or disabled from the host.def file.  Implemented for *BSD, Hurd, Linux.
+      The default settings remains as before (David Dawes).
+ 769. Add a root window property called XFree86_VT that holds the VT number
+      that the XFree86 server is running on (Andrew Aitcheson, suggested by
+      Samuel Thibault).
+ 768. Fix a problem where root window properties registered with
+      xf86RegisterRootWindowProperty() are not re-registered after server
+      regeneration (David Dawes, reported by Samuel Thibault).
+ 767. Fix xtest failures for the savage driver's zero width lines by
+      removing the TwoPointLine and using only the Bresenham version
+      (reported by Nicolas Joly).
+ 766. Fix refresh rate setting for 845G/856G systems that don't support the
+      Intel-specific refresh rate BIOS calls (Bugzilla #1106, David Dawes,
+      reported by Lucian Precup).
+ 765. Fixes/build updates for BSD/OS 5.1 and 4.3.1 (Bugzilla #1111, Kurt Lidl).
+ 764. Fix a problem in libXmu's FindChildren() that can cause a crash by
+      copying memory from outside the bounds of an array (Bugzilla #1109,
+      John Tillman).
+ 763. Add missing TimerCallback in trident_video.c to shutdown the video.
+      This could account for many peoples lockups with video on Trident chips.
+      Also, add a Wait for vsync when programming video modes to avoid lockups.
+      (Yukun Chen, Alan Hourihane).
+ 762. Fix a lockup problem on Trident Blade3D engines by permanently turning
+      on PCI Retry. Also sync the engine on CloseScreen and LeaveVT.
+      (Yukun Chen, Alan Hourihane).
+ 761. Fix getaddrinfo() return value check in SmsGenerateClientID() that was
+      causing a crash when the current hostname is unresolved, and returning
+      a NULL id otherwise (Bugzilla #1096, David Dawes).
+ 760. Support automatic configuration of the X server on OpenBSD with 
+      wsmouse-supported mices. (Matthieu Herrb).
+ 759. Updates for XKB keyboard maps:
+      - Add Tibetan/Dzongkha keyboard layout (Bugzilla #1082, Gregory Mokhin).
+      - Add three new Internet/multimedia keyboard descriptions
+        (Bugzilla #1088, Radics Laszlo).
+ 758. Add overlooked SecondaryColor entries to AppleDRI indirect dispatch
+      table (Torrey T. Lyons).
+ 757. Allocate pBIOSInfo->UserSetting in the via driver, which fixes a crash
+      (James Harris).
+ 756. Fix Linux drm kernel modules to handle the nopage() prototype change in
+      Linux 2.6.1 (Michel Dänzer, from DRI CVS).
+ 755. Fix use of dynamic xcursors on OS/2 (Bugzilla #1087, Frank Giessler).
+ 754. Fix the fbdev driver so that it allows 24-bit pixel size, and disable
+      the RandR extension when rotation is enabled (Jonathan Thambidurai).
+ 753. Rendition driver fixes:
+       - Fix the mode size limits so that the set of modes that the driver
+         accepts isn't unnecessarily restricted.
+       - Fix color palette refreshing after VT switching.
+       - Fix a core dump at server exit with the hardware cursor was enabled.
+       - Add checking for supported depths.  Without this the server could
+         crash if an unsupported depth was specified.
+      (Eric Wittry)
+ 752. Update XKB registry file rules/xfree86.xml (Sergey Oudaltsov).
+ 751. Fix some rules in en_US.UTF-8 Compose file (Bugzilla #1071,
+      Matthew Fischer).
+ 750. Add some content (supported hardware and driver options) to the tdfx(4)
+      man page (Bugzilla #1068, Nicolas Joly).
+ 749. Make '-pn' (partial network) the default for all X servers, and document
+      the '-nopn' option (David Dawes).
+ 748. Allow rstartd.real to be installed into a location other than LIBDIR
+      (#6034, Luke Mewburn).
+ 747. Allow xdm's chooser to be installed into a directory other than LIBDIR
+      (#6033, Luke Mewburn).
+ 746. Add XKB description for the Logitech Access keyboard (#6026,
+      Michael Geddes).
+ 745. Fix typo in computing xterm's relative font size (Jess Thrysoee).
+ 744. Fix typo in savage man page (Bugzilla #1065, Nicolas Joly).
+ 743. Fix for xf86Msg() call with swapped arguments (Bugzilla #1064,
+      Nicolas Joly).
+ 742. Set the dependencies correctly for SCO shared libraries, and use gcc
+      for linking instead of ld (Bugzilla #1045, Kean Johnston).
+ 741. Some cleanups for the SCO support, and a few changes required for
+      compilation on UnixWare (Bugzilla #1045, Kean Johnston).
+ 740. Make the X server lock file code treat the display string in the same
+      way as the local listener code (i.e., convert it to an integer then back
+      to a string).  This fixes a problem where an non-numeric display
+      argument could cause a second server to be started on display :0,
+      replacing the local listener nodes for the original server.
+      (Bugzilla #1056, David Dawes, reported by Robin Schoonover).
+ 739. Fix xfs and xdm core dumps in BecomeOrphan(), and rework/simplify
+      the BecomeDaemon() code (Bugzilla #1060, #1074, David Dawes, 
+      reported by Martin Birgmeier).
+ 738. Add a "VBERestore" option for the i830 part of the i810 driver, to
+      allow the VBE restore bug workaround to be disabled.  This is needed
+      for correct text mode restoration on some 830M-based machines
+      (David Dawes, reported by Martin van Es).
+ 737. Fix memory leak when list of registered renderers are cleared at the
+      start of each new server generation (Kevin Martin and Rik Faith).
+ 736. Fix memory double freeing at XIM destroying in imLcIm.c (Ivan Pascal,
+      reported: Bugzilla #1015).
+ 735. Add xkb keymap for Microsoft Mutimedia Keyboard keys (Bugzilla #1052,
+      Jacques Legare).
+ 734. Update Compose file for en_US.UTF-8 locale (Bugzilla #1053,
+      Matthew Fischer) and fix wrong comment signs there (Ivan Pascal).
+ 733. VIA driver fixes:
+       - Restructure the via driver's cache allocation to work with both
+	 the VIA and new open DRI module, and remove the now unneeded
+	 version check (Thomas Hellström, Alan Cox, bugzilla #998).
+       - Remove special case lindvd hack (Alan Cox)
+       - Add support for Xv when unaccelerated (Thomas Hellström)
+      (Bugzilla #998, #1020, #1021).
+ 732. Check for a NULL argument in XSetICFocus() before dereferencing it.
+      This fixes crashes with some XIM software (see
+      http://bugzilla.mozilla.gr.jp/show_bug.cgi?id=2961#c19).
+ 731. Improve the i810 bitblt bug workaround, and re-enable the pixmap cache
+      at depth 24 (David Dawes).
+ 730. Workaround for lockup at mode switch with an i810 (David Dawes).
+ 729. Fix transparent mono 8x8 pattern fills for the i810 (David Dawes).
+ 728. Disable XKB by default in XDarwin (Torrey T. Lyons).
+ 727. Fix manpage build warnings on Panther (Matthieu Herrb).
+ 726. Make sure that the ring buffer is flushed in I810CloseScreen().  This
+      fixes unpredictable behaviour that sometimes shows up after server
+      exit/restart or server reset, including memory corruption, spontaneous
+      reboots, etc, and some odd xtest behaviour (David Dawes).
+ 725. Xdmcp fixes for IPv6 and mixed IPv6/IPv4 operation. (Mario Klebsch, 
+      Matthieu Herrb).
+ 724. Update rman by merging XFree86 changes to rman 3.2 (Thomas Dickey).
+ 723. Create fonts.scale and fonts.dir files in the target directories at
+      'make install' time.  This fixes several problems where some font
+      entries get left out (David Dawes).
+ 722. Add the Bitstream Vera fonts (Bitstream, Inc and The Gnome Project).
+ 721. Xterm patches #183, #184 (Thomas Dickey).
+ 720. Build fix for the Chips driver on Linux/arm (#6011, Michel Dänzer and
+      Othmar Pasteka).
+ 719. Change v4l "norm" names to the bttv versions (#5993,
+      Marco Antonio Alvarez).
+ 718. Fix for symbols/hr map (#5991, Vlatko Kosturjak).
+ 717. The current VIA DRI driver isn't remotely compatible with the current
+      code, so make sure it isn't loaded by requiring version 2.0.0 or later
+      (Alan Cox).
+ 716. Fix VIA KM400 memory detection (Luc Verhaegen, Bugzilla #813).
+ 715. Fix a long standing VIA Xv problem with totem/xine and YUV surface
+      types (Uberto Barbini).
+ 714. VIA driver updates/fixes:
+       - Remove HARDWARE_NEEDS_PROGRAMMED_ORIGIN (Bugzilla #1011).
+       - Allocate the UserSetting structure and use it. Changed the names so
+         its uses can be tracked through the tree (Bugzilla #1006, #1014).
+       - Remove dead FIFO handling code.
+       - Clean up formatting in via_bios.h, via_driver.h.
+       - via_tuner module (1/2 of Bugzilla #1012, #1013):
+         + Add via_tuner structures and methods.
+         + Handle the back end work for boards with Philips SAA71xx
+           devices on the I2C bus providing one or two TV overlays.
+         + Handle CXA2104S audio decoder if present.
+         + Handle FI1236 TV tuners if present.
+       - Remove bogus DriverVersion, DriverName stuff.
+       - Xv updates (Bugzilla #1013):
+         + Remove DDR mode tables and compute supported overlay modes properly.
+         + Remove various bits of dead code.
+         + Probe for Tuners in the Xv setup.
+	 + Don't advertise XvImageMask on the tuner overlays - they can't do it.
+         + Clean up tuner channel computation.
+         + Make the property setting code use the via_tuner backend.
+         + Fix formatting of the various YUV copying loops.
+      (Alan Cox).
+ 713. Add a missing code for jisx0208.1990-0.enc (Chisato Yamauchi).
+ 712. Xtt2 update: Restore the behaviour of "bw" TTCap option for Netscape 4.x.
+      (Chisato Yamauchi).
+ 711. Fix neomagic driver default mode selection to match the detected
+      panel size.  This allows it to work correctly with automatic
+      configuration (David Dawes).
+ 710. Fixes and updates for XKB keyboard maps:
+      - Fix Armenian phonetic keymap (Bugzilla #1016, Ani).
+      - Fix rules for Brasilian ABNT2 keyboard (Ricardo Y. Igarashi).
+      - Add Shift+CapsLock group switcher (Ivan Pascal, see Bugzilla #1025).
+      - Update rules/xfree86.lst with missing descriptions (Ivan Pascal).
+ 709. Build fix for Solaris Express (Bugzilla #1032, Alan Coopersmith).
+ 708. Fix warning in lib/Xt/Alloc.c (Bugzilla #1035, Nicolas Joly).
+ 707. Fix short overflow problem with box clipping in fb/fbcopy.c
+      (Bugzilla #978, Stephen McCamant).
+ 706. Fix logic in xterm's get_pty() for platforms where old-style pty's are
+      preferred to /dev/ptmx (Bugzilla #997, Kean Johnston, Thomas Dickey).
+ 705. Fix handling of eightBitInput for UTF-8 locales in xterm (Thomas Dickey).
+ 704. Merge recent cygwin-related changes from freedesktop.org's config/cf
+      (Thomas Dickey).
+ 703. Disable Xv in the via driver when acceleration is disabled (Alan Cox).
+ 702. Fix bugs caused by empty PCI buses on ZX1-based systems (Marc La France).
+ 701. Fix optional save/restore of BIOS area data in int10 module
+      (Marc La France).
+ 700. Update Swedish localization of XDarwin GUI (Patrik Montgomery).
+ 699. Fixes to build/run on cygwin (Thomas Dickey).  This includes a workaround
+      for _XtInherit by Ralf Habacker, needed to run applications such as xman.
+ 698. Warning fixes for gcc 3.3.2 (Marc La France).
+ 697. Fix file descriptor leaks in xdm (Marc La France).
+ 696. Fix memory leaks in libFS (Marc La France).
+ 695. Security fix:  change xdm to use mkstemp(), where available, instead of
+      mktemp() (Marc La France).
+ 694. Update XKB registry file rules/xfree86.xml (Sergey Oudaltsov).
+ 693. Fix for FreeType-related crash when attempting to draw a missing glyph
+      with constant-width fonts (Chisato Yamauchi).
 
 XFree86 4.3.99.902 (18 December 2003)
  672. Fixes for xterm (Thomas Dickey):
@@ -18391,7 +18646,7 @@ XFree86 3.0a (28 April 1994)
 XFree86 3.0 (26 April 1994)
 
 
-$XFree86: xc/programs/Xserver/hw/xfree86/CHANGELOG,v 3.3043 2003/12/19 04:52:08 dawes Exp $
+$XFree86: xc/programs/Xserver/hw/xfree86/CHANGELOG,v 3.3145 2004/02/16 01:01:45 dawes Exp $
 
 
 

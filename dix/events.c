@@ -1,5 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/dix/events.c,v 3.50 2003/11/17 22:20:34 dawes Exp $ */
-/* $XFree86: xc/programs/Xserver/dix/events.c,v 3.50 2003/11/17 22:20:34 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/dix/events.c,v 3.52 2004/01/23 07:23:34 herrb Exp $ */
 /************************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -949,7 +948,8 @@ EnqueueEvent(xE, device, count)
 
 #ifdef XKB
     /* Fix for key repeating bug. */
-    if (xE->u.u.type == KeyRelease)
+    if (device->key != NULL && device->key->xkbInfo != NULL && 
+	xE->u.u.type == KeyRelease)
 	AccessXCancelRepeatKey(device->key->xkbInfo, xE->u.u.detail);
 #endif
 
@@ -1652,8 +1652,11 @@ DeliverEventsToWindow(pWin, pEvents, count, filter, grab, mskidx)
 #ifdef XINPUT
     else
     {
-	if (((type == DeviceMotionNotify) || (type == DeviceButtonPress)) &&
-	    deliveries)
+	if (((type == DeviceMotionNotify)
+#ifdef XKB
+	     || (type == DeviceButtonPress)
+#endif
+	    ) && deliveries)
 	    CheckDeviceGrabAndHintWindow (pWin, type,
 					  (deviceKeyButtonPointer*) pEvents,
 					  grab, client, deliveryMask);
@@ -2381,10 +2384,10 @@ CheckPassiveGrabsOnWindow(
 	xkbi= gdev->key->xkbInfo;
 #endif
 	tempGrab.modifierDevice = grab->modifierDevice;
-	if (device == grab->modifierDevice &&
-	    (xE->u.u.type == KeyPress
-#ifdef XINPUT
-	     || xE->u.u.type == DeviceKeyPress
+	if ((device == grab->modifierDevice) &&
+	    ((xE->u.u.type == KeyPress)
+#if defined(XINPUT) && defined(XKB)
+	     || (xE->u.u.type == DeviceKeyPress)
 #endif
 	     ))
 	    tempGrab.modifiersDetail.exact =
@@ -2474,11 +2477,11 @@ CheckDeviceGrabs(device, xE, checkFirst, count)
     register WindowPtr pWin = NULL;
     register FocusClassPtr focus = device->focus;
 
-    if ((xE->u.u.type == ButtonPress
-#ifdef XINPUT
-	 || xE->u.u.type == DeviceButtonPress
+    if (((xE->u.u.type == ButtonPress)
+#if defined(XINPUT) && defined(XKB)
+	 || (xE->u.u.type == DeviceButtonPress)
 #endif
-	 ) && device->button->buttonsDown != 1)
+	 ) && (device->button->buttonsDown != 1))
 	return FALSE;
 
     i = checkFirst;

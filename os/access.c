@@ -45,7 +45,7 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ******************************************************************/
-/* $XFree86: xc/programs/Xserver/os/access.c,v 3.50 2003/11/03 05:12:00 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/os/access.c,v 3.54 2004/01/03 17:38:39 herrb Exp $ */
 
 #ifdef WIN32
 #include <X11/Xwinsock.h>
@@ -645,6 +645,20 @@ DefineLocalHost:
 #include <arpa/inet.h>
 #endif
 
+#if defined(IPv6) && defined(AF_INET6)
+static void
+in6_fillscopeid(struct sockaddr_in6 *sin6)
+{
+#if defined(__KAME__)
+	if (IN6_IS_ADDR_LINKLOCAL(&sin6->sin6_addr)) {
+		sin6->sin6_scope_id =
+			ntohs(*(u_int16_t *)&sin6->sin6_addr.s6_addr[2]);
+		sin6->sin6_addr.s6_addr[2] = sin6->sin6_addr.s6_addr[3] = 0;
+	}
+#endif
+}
+#endif
+
 void
 DefineSelf (int fd)
 {
@@ -761,6 +775,10 @@ DefineSelf (int fd)
 #endif /* DNETCONN */
         if (family == -1 || family == FamilyLocal)
 	    continue;
+#if defined(IPv6) && defined(AF_INET6)
+	if (family == FamilyInternet6) 
+	    in6_fillscopeid((struct sockaddr_in6 *)&IFR_IFR_ADDR);
+#endif
 #ifdef DEF_SELF_DEBUG
 	if (family == FamilyInternet) 
 	    ErrorF("Xserver: DefineSelf(): ifname = %s, addr = %d.%d.%d.%d\n",
@@ -898,10 +916,24 @@ DefineSelf (int fd)
 	family = ConvertAddr(ifr->ifa_addr, &len, (pointer *)&addr);
 	if (family == -1 || family == FamilyLocal) 
 	    continue;
+#if defined(IPv6) && defined(AF_INET6)
+	if (family == FamilyInternet6) 
+	    in6_fillscopeid((struct sockaddr_in6 *)ifr->ifa_addr);
+#endif
+
 #ifdef DEF_SELF_DEBUG
 	if (family == FamilyInternet) 
 	    ErrorF("Xserver: DefineSelf(): ifname = %s, addr = %d.%d.%d.%d\n",
 		   ifr->ifa_name, addr[0], addr[1], addr[2], addr[3]);
+#if defined(IPv6) && defined(AF_INET6)
+	else if (family == FamilyInternet6) {
+		char cp[INET6_ADDRSTRLEN];
+
+		inet_ntop(AF_INET6, addr, cp, sizeof(cp));
+		ErrorF("Xserver: DefineSelf(): ifname = %s addr = %s\n",
+		    ifr->ifa_name, cp);
+	}
+#endif
 #endif /* DEF_SELF_DEBUG */
 	for (host = selfhosts; 
 	     host != NULL && !addrEqual(family, addr, len, host);
@@ -923,17 +955,34 @@ DefineSelf (int fd)
 	    /*
 	     * If this isn't an Internet Address, don't register it.
 	     */
-	    if (family != FamilyInternet) 
+	    if (family != FamilyInternet
+#if defined(IPv6) && defined(AF_INET6)
+		&& family != FamilyInternet6
+#endif
+	    )
 		continue;
 	    /* 
-	     * ignore 'localhost' entries as they're not usefule
+	     * ignore 'localhost' entries as they're not useful
 	     * on the other end of the wire
 	     */
-	    if (len == 4 && 
+	    if (ifr->ifa_flags & IFF_LOOPBACK) 
+		    continue;
+
+	    if (family == FamilyInternet && 
 		addr[0] == 127 && addr[1] == 0 &&
-		addr[2] == 0 && addr[2] == 1) 
+		addr[2] == 0 && addr[3] == 1) 
 		continue;
+#if defined(IPv6) && defined(AF_INET6)
+	    else if (family == FamilyInternet6 && 
+	      IN6_IS_ADDR_LOOPBACK((struct in6_addr *)addr))
+		continue;
+#endif
 	    XdmcpRegisterConnection(family, (char *)addr, len);
+#if defined(IPv6) && defined(AF_INET6)
+	    if (family == FamilyInternet6) 
+		/* IPv6 doesn't support broadcasting, so we drop out here */
+		continue;
+#endif
 	    if ((ifr->ifa_flags & IFF_BROADCAST) &&
 		(ifr->ifa_flags & IFF_UP))
 		broad_addr = *ifr->ifa_broadaddr;

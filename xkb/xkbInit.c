@@ -24,7 +24,7 @@ OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION  WITH
 THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 ********************************************************/
-/* $XFree86: xc/programs/Xserver/xkb/xkbInit.c,v 3.32 2003/11/17 22:20:46 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/xkb/xkbInit.c,v 3.33 2003/12/22 17:48:12 tsi Exp $ */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -716,7 +716,7 @@ XkbRF_VarDefsRec	defs;
 
     if (ok && (finfo.xkb!=NULL)) {
 	XkbDescPtr	xkb;
-	int		minKC,maxKC;
+	KeyCode		minKC,maxKC;
 
 	xkb= finfo.xkb;
 	minKC= xkb->min_key_code;

@@ -45,7 +45,7 @@ not be used in advertising or otherwise to promote the sale, use or other
 dealings in this Software without prior written authorization from said
 copyright holders.
 */
-/* $XFree86: xc/programs/Xserver/Xprint/pcl/PclSFonts.c,v 1.7 2003/10/29 22:11:00 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/Xprint/pcl/PclSFonts.c,v 1.8 2003/12/22 17:48:05 tsi Exp $ */
 
 
 #include <stdio.h>
@@ -58,7 +58,6 @@ static short tmp2;
 
 #define ESC 0x1b
 #define SYMBOL_SET 277
-#define MAX_CINDEX 255
 
 static unsigned int PclDownloadChar(FILE *,PclCharDataPtr,unsigned short,unsigned char);
 static unsigned int PclDownloadHeader(FILE *, PclFontDescPtr, unsigned short);
@@ -117,8 +116,6 @@ PclDownloadSoftFont16(
     }
     pfh->index[row][col].fid = pfh->cur_fid;
     pfh->index[row][col].cindex = pfh->cur_cindex++;
-    if ( pfh->cur_cindex > MAX_CINDEX )
-	pfh->cur_cindex = 0;
 
     PclDownloadChar(fp, pcd, pfh->index[row][col].fid, pfh->index[row][col].cindex);
 }

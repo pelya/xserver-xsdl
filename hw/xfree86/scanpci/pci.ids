@@ -7,7 +7,7 @@
 #	so if you have anything to contribute, please visit the home page or
 #	send a diff -u against the most recent pci.ids to pci-ids@ucw.cz.
 #
-#	Daily snapshot on Thu 2003-12-18 11:00:05
+#	Daily snapshot on Sun 2004-02-15 11:00:07
 #
 
 # Vendors, devices and subsystems. Please keep sorted.
@@ -24,6 +24,12 @@
 # Real TJN ID is e159, but they got it wrong several times --mj
 0059  Tiger Jet Network Inc. (Wrong ID)
 0070  Hauppauge computer works Inc.
+# WinTV Personal Video Recorder 350 (video capture card)
+	4000  WinTV PVR-350
+# WinTV Personal Video Recorder 250 (video capture card) - original release
+	4001  WinTV PVR-250 (v1)
+# WinTV Personal Video Recorder 250 (video capture card)
+	4009  WinTV PVR-250
 0100  Ncipher Corp Ltd
 0675  Dynalink
 	1700  IS64PH ISDN Adapter
@@ -168,11 +174,36 @@
 1002  ATI Technologies Inc
 	4136  Radeon IGP 320 M
 	4144  Radeon R300 AD [Radeon 9500 Pro]
-	4145  Radeon R300 AE [Radeon 9500 Pro]
-	4146  Radeon R300 AF [Radeon 9500 Pro]
+# New PCI ID provided by ATI developer relations (correction to above)
+	4145  R300 AE [Radeon 9700 Pro]
+# New PCI ID provided by ATI developer relations (oops, correction to above)
+	4146  R300 AF [Radeon 9700 Pro]
 	4147  Radeon R300 AG [FireGL Z1/X1]
+# Updated 2 letter ASIC code I initially missed in above entry submission
+	4148  Radeon R350 AH [Radeon 9800]
+# New PCI ID provided by ATI developer relations
+	4149  Radeon R350 AI [Radeon 9800]
+# New PCI ID provided by ATI developer relations
+	4150  RV350 AP [Radeon 9600]
+# New PCI ID provided by ATI developer relations
+	4151  RV350 AQ [Radeon 9600]
+# New PCI ID provided by ATI developer relations
+	4152  RV350 AR [Radeon 9600]
 	4158  68800AX [Mach32]
-	4164  Radeon R300 Secondary (DVI) output
+# The PCI ID is unrelated to any DVI output.
+	4164  R300 AD [Radeon 9500 Pro] (Secondary)
+# New PCI ID info provided by ATI developer relations
+	4165  R300 AE [Radeon 9700 Pro] (Secondary)
+# New PCI ID info provided by ATI developer relations
+	4166  R300 AF [Radeon 9700 Pro] (Secondary)
+# New PCI ID provided by ATI developer relations
+	4168  Radeon R350 [Radeon 9800] (Secondary)
+# New PCI ID provided by ATI developer relations (correction to above)
+	4170  RV350 AP [Radeon 9600] (Secondary)
+# New PCI ID provided by ATI developer relations (correction to above)
+	4171  RV350 AQ [Radeon 9600] (Secondary)
+# New PCI ID provided by ATI developer relations (correction to above)
+	4172  RV350 AR [Radeon 9600] (Secondary)
 	4242  Radeon R200 BB [Radeon All in Wonder 8500DV]
 		1002 02aa  Radeon 8500 AIW DV Edition
 	4336  Radeon Mobility U1
@@ -246,20 +277,20 @@
 	475a  3D Rage IIC AGP
 		1002 0087  Rage 3D IIC
 		1002 475a  Rage IIC AGP
-	4964  Radeon R250 Id [Radeon 9000]
-	4965  Radeon R250 Ie [Radeon 9000]
-	4966  Radeon R250 If [Radeon 9000]
-		10f1 0002  R250 If [Tachyon G9000 PRO]
-		148c 2039  R250 If [Radeon 9000 Pro "Evil Commando"]
-		1509 9a00  R250 If [Radeon 9000 "AT009"]
-# New subdevice - 3D Prophet 9000 PCI by Hercules.  AGP version probably would have same ID, so not specified.
-		1681 0040  R250 If [3D prophet 9000]
-		174b 7176  R250 If [Sapphire Radeon 9000 Pro]
-		174b 7192  R250 If [Radeon 9000 "Atlantis"]
-		17af 2005  R250 If [Excalibur Radeon 9000 Pro]
-		17af 2006  R250 If [Excalibur Radeon 9000]
-	4967  Radeon R250 Ig [Radeon 9000]
-	496e  Radeon R250 [Radeon 9000] (Secondary)
+	4964  Radeon RV250 Id [Radeon 9000]
+	4965  Radeon RV250 Ie [Radeon 9000]
+	4966  Radeon RV250 If [Radeon 9000]
+		10f1 0002  RV250 If [Tachyon G9000 PRO]
+		148c 2039  RV250 If [Radeon 9000 Pro "Evil Commando"]
+		1509 9a00  RV250 If [Radeon 9000 "AT009"]
+# New subdevice - 3D Prophet 9000 PCI by Hercules. AGP version probably would have same ID, so not specified.
+		1681 0040  RV250 If [3D prophet 9000]
+		174b 7176  RV250 If [Sapphire Radeon 9000 Pro]
+		174b 7192  RV250 If [Radeon 9000 "Atlantis"]
+		17af 2005  RV250 If [Excalibur Radeon 9000 Pro]
+		17af 2006  RV250 If [Excalibur Radeon 9000]
+	4967  Radeon RV250 Ig [Radeon 9000]
+	496e  Radeon RV250 [Radeon 9000] (Secondary)
 	4c42  3D Rage LT Pro AGP-133
 		0e11 b0e8  Rage 3D LT Pro
 		0e11 b10e  3D Rage LT Pro (Compaq Armada 1750)
@@ -312,15 +343,25 @@
 	4e44  Radeon R300 ND [Radeon 9700 Pro]
 	4e45  Radeon R300 NE [Radeon 9500 Pro]
 		1002 0002  Radeon R300 NE [Radeon 9500 Pro]
-	4e46  Radeon R300 NF [Radeon 9700]
+# New PCI ID provided by ATI developer relations (correction to above)
+	4e46  RV350 NF [Radeon 9600]
 	4e47  Radeon R300 NG [FireGL X1]
 	4e48  Radeon R350 [Radeon 9800]
+# New PCI ID provided by ATI developer relations
+	4e49  Radeon R350 [Radeon 9800]
+# New PCI ID provided by ATI developer relations
+	4e50  RV350 [Mobility Radeon 9600 M10]
+# New PCI ID provided by ATI developer relations
+	4e52  RV350 [Mobility Radeon 9600 M10]
 	4e64  Radeon R300 [Radeon 9700 Pro] (Secondary)
 	4e65  Radeon R300 [Radeon 9500 Pro] (Secondary)
 		1002 0003  Radeon R300 NE [Radeon 9500 Pro]
-	4e66  Radeon R300 [Radeon 9700] (Secondary)
+# New PCI ID provided by ATI developer relations (correction to above)
+	4e66  RV350 NF [Radeon 9600] (Secondary)
 	4e67  Radeon R300 [FireGL X1] (Secondary)
 	4e68  Radeon R350 [Radeon 9800] (Secondary)
+# New PCI ID provided by ATI developer relations
+	4e69  Radeon R350 [Radeon 9800] (Secondary)
 	5041  Rage 128 PA/PRO
 	5042  Rage 128 PB/PRO AGP 2x
 	5043  Rage 128 PC/PRO AGP 4x
@@ -3413,7 +3454,8 @@
 		11bd 0006  DV500 Overlay
 		11bd 000a  DV500 Overlay
 1132  Mitel Corp.
-1133  Eicon Technology Corporation
+# This is the new official company name. See disclaimer on www.eicon.com for details!
+1133  Eicon Networks Corporation
 	7901  EiconCard S90
 	7902  EiconCard S90
 	7911  EiconCard S91
@@ -6238,9 +6280,14 @@
 16be  Creatix Polymedia GmbH
 16ca  CENATEK Inc
 	0001  Rocket Drive DL
+16cd  Densitron Technologies
+# www.pikatechnologies.com
+16df  PIKA Technologies Inc.
 16ec  U.S. Robotics
 	3685  Wireless Access PCI Adapter Model 022415
 16f6  VideoTele.com, Inc.
+# www.internetmachines.com
+1702  Internet Machines Corporation (IMC)
 1705  Digital First, Inc.
 170b  NetOctave Inc
 170c  YottaYotta Inc.
@@ -6279,6 +6326,9 @@
 	0601  VSM2 dual PMC carrier
 	0710  VS14x series PowerPC PCI board
 	0720  VS24x series PowerPC PCI board
+# found e.g. on KNC DVB-S card
+1894  KNC One
+18fb  Resilience Corporation
 1a08  Sierra semiconductor
 	0000  SC15064
 1b13  Jaton Corp
@@ -6372,6 +6422,7 @@
 4033  Addtron Technology Co, Inc.
 	1360  RTL8139 Ethernet
 4143  Digital Equipment Corp
+4144  Alpha Data
 416c  Aladdin Knowledge Systems
 	0100  AladdinCARD
 	0200  CPC
@@ -6569,6 +6620,7 @@
 	0003  TURBOstor HFP-832 [HiPPI NIC]
 5654  VoiceTronix Pty Ltd
 5700  Netpower
+5851  Exacq Technologies
 6356  UltraStor
 6374  c't Magazin für Computertechnik
 	6773  GPPCI
@@ -6587,6 +6639,10 @@
 	0008  Extended Express System Support Controller
 	0039  21145
 	0122  82437FX
+	0326  PCI Bridge Hub I/OxAPIC Interrupt Controller A
+	0327  PCI Bridge Hub I/OxAPIC Interrupt Controller B
+	0329  PCI Bridge Hub A
+	032a  PCI Bridge Hub B
 	0482  82375EB
 	0483  82424ZX [Saturn]
 	0484  82378IB [SIO ISA Bridge]
@@ -6639,7 +6695,18 @@
 		8086 1002  PRO/1000 MF Server Adapter
 	1012  82546EB Gigabit Ethernet Controller (Fiber)
 		8086 1012  PRO/1000 MF Dual Port Server Adapter
+	1013  82541EI Gigabit Ethernet Controller (Copper)
+	1014  82541ER Gigabit Ethernet Controller
 	1015  82540EM Gigabit Ethernet Controller (LOM)
+	1016  82540EP Gigabit Ethernet Controller (LOM)
+	1017  82540EP Gigabit Ethernet Controller (LOM)
+# Update controller name from 82541EP to 82541EI
+	1018  82541EI Gigabit Ethernet Controller
+	1019  82547EI Gigabit Ethernet Controller (LOM)
+	101e  82540EP Gigabit Ethernet Controller (Mobile)
+	1026  82545GM Gigabit Ethernet Controller
+	1027  82545GM Gigabit Ethernet Controller
+	1028  82545GM Gigabit Ethernet Controller
 	1029  82559 Ethernet Controller
 	1030  82559 InBusiness 10/100
 	1031  82801CAM (ICH3) PRO/100 VE (LOM) Ethernet Controller
@@ -6667,7 +6734,21 @@
 	1040  536EP Data Fax Modem
 		16be 1040  V.9X DSP Data Fax Modem
 	1043  PRO/Wireless LAN 2100 3B Mini PCI Adapter
+	1048  Intel(R) PRO/10GbE LR Server Adapter
 	1059  82551QM Ethernet Controller
+# Updated controller name from 82547EI to 82547GI
+	1075  82547GI Gigabit Ethernet Controller
+# Updated controller name from 82541EI to 82541GI
+	1076  82541GI Gigabit Ethernet Controller
+# Update controller name from 82541EI to 82541GI
+	1077  82541GI Gigabit Ethernet Controller
+	1078  82541EI Gigabit Ethernet Controller
+# Update from mistaken ID of 82546EB
+	1079  82546GB Gigabit Ethernet Controller
+# Update from mistaken ID of 82546EB
+	107a  82546GB Gigabit Ethernet Controller
+# Update from mistaken ID of 82546EB
+	107b  82546GB Gigabit Ethernet Controller
 	1130  82815 815 Chipset Host Bridge and Memory Controller Hub
 		1025 1016  Travelmate 612 TX
 		1043 8027  TUSL2-C Mainboard
@@ -7069,6 +7150,7 @@
 	24dc  82801EB LPC Interface Controller
 	24dd  82801EB USB2
 	24de  82801EB USB
+	24df  82801EB (ICH5R) SATA (cc=RAID)
 	2500  82820 820 (Camino) Chipset Host Bridge (MCH)
 		1028 0095  Precision Workstation 220 Chipset
 		1043 801c  P3C-2000 system chipset
@@ -7109,12 +7191,26 @@
 	2571  82865G/PE/P Processor to AGP Controller
 	2572  82865G Integrated Graphics Device
 	2573  82865G/PE/P Processor to PCI to CSA Bridge
-	2576  82864G/PE/P Processor to I/O Memory Interface
+	2576  82865G/PE/P Processor to I/O Memory Interface
 	2578  82875P Memory Controller Hub
 	2579  82875P Processor to AGP Controller
 	257b  82875P Processor to PCI to CSA Bridge
 	257e  82875P Processor to I/O Memory Interface
+	25a1  Enterprise Southbridge ISA Bridge
+	25a2  Enterprise Southbridge PATA
+	25a3  Enterprise Southbridge SATA cc=IDE
+	25a4  Enterprise Southbridge SMBUS
+	25a6  Enterprise Southbridge AC'97 Audio
+	25a7  Enterprise Southbridge AC'97 Modem
+	25a9  Enterprise Southbridge USB 1.1 UHCI
+	25aa  Enterprise Southbridge USB 1.1 UHCI
+	25ab  Enterprise Southbridge Watchdog Timer
+	25ac  Enterprise Southbridge IOxAPIC
+	25ad  Enterprise Southbridge USB 2.0 EHCI
+	25ae  Enterprise Southbridge Hublink PCI-X Bridge
+	25b0  Enterprise Southbridge SATA cc=RAID
 	3092  Integrated RAID
+	3200  GD31244 PCI-X SATA HBA
 	3340  82855PM Processor to I/O Controller
 	3341  82855PM Processor to AGP Controller
 	3575  82830 830 Chipset Host Bridge
@@ -7126,6 +7222,18 @@
 	3578  82830 830 Chipset Host Bridge
 	3580  82852/855GM Host Bridge
 	3582  82852/855GM Integrated Graphics Device
+	3590  Server Memory Controller Hub
+	3591  Memory Controller Hub Error Reporting Register
+	3592  Server Memory Controller Hub
+	3594  Memory Controller Hub DMA Controller
+	3595  Memory Controller Hub PCI Express Port A0
+	3596  Memory Controller Hub PCI Express Port A1
+	3597  Memory Controller Hub PCI Express Port B0
+	3598  Memory Controller Hub PCI Express Port B1
+	3599  Memory Controller Hub PCI Express Port C0
+	359a  Memory Controller Hub PCI Express Port C1
+	359b  Memory Controller Hub Extended Configuration Registers
+	359e  Workstation Memory Controller Hub
 	5200  EtherExpress PRO/100 Intelligent Server
 	5201  EtherExpress PRO/100 Intelligent Server
 		8086 0001  EtherExpress PRO/100 Server Ethernet Adapter
@@ -7431,12 +7539,15 @@ d84d  Exsys
 dead  Indigita Corporation
 e000  Winbond
 	e000  W89C940
-e159  Tiger Jet Network Inc.
+# see : http://www.schoenfeld.de/inside/Inside_CWMK3.txt
+e159  Individual Computers - Jens Schoenfeld
 	0001  Intel 537
 		0059 0001  128k ISDN-S/T Adapter
 		0059 0003  128k ISDN-U Adapter
 	0002  Tiger100APC ISDN chipset
 e4bf  EKF Elektronik GmbH
+# Innovative and scalable network IC vendor
+e55e  Essence Technology, Inc.
 ea01  Eagle Technology
 # The main chip of all these devices is by Xilinx -> It could also be a Xilinx ID.
 ea60  RME
@@ -7481,6 +7592,8 @@ febd  Ultraview Corp.
 feda  Broadcom Inc (nee Epigram)
 	a0fa  BCM4210 iLine10 HomePNA 2.0
 	a10e  BCM4230 iLine10 HomePNA 2.0
+# IT & Telecom company, develops PCI Trunk cards <www.fedetec.es>
+fede  Fedetec Inc.
 fffe  VMWare Inc
 	0710  Virtual SVGA
 ffff  Illegal Vendor ID

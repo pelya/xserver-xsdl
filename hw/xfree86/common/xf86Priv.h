@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86Priv.h,v 3.82 2003/09/09 03:20:36 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86Priv.h,v 3.83 2004/01/27 01:31:45 dawes Exp $ */
 
 /*
  * Copyright (c) 1997-2002 by The XFree86 Project, Inc.
@@ -112,6 +112,8 @@ extern int xf86Verbose;                 /* verbosity level */
 extern int xf86LogVerbose;		/* log file verbosity level */
 extern Bool xf86ProbeOnly;
 extern Bool xf86DoProbe;
+
+extern RootWinPropPtr *xf86RegisteredPropertiesTable;
 
 #ifndef DEFAULT_VERBOSE
 #define DEFAULT_VERBOSE		0

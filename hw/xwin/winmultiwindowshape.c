@@ -28,7 +28,7 @@
  * Authors:	Kensuke Matsuzaki
  *		Harold L Hunt II
  */
-/* $XFree86: xc/programs/Xserver/hw/xwin/winmultiwindowshape.c,v 1.2 2003/11/10 18:22:44 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xwin/winmultiwindowshape.c,v 1.3 2003/12/22 01:34:20 dickey Exp $ */
 
 #ifdef SHAPE
 
@@ -117,9 +117,9 @@ winReshapeMultiWindow (WindowPtr pWin)
   if (!wBoundingShape (pWin))
     return;
 
-  REGION_NULL(pScreen, &rrNewShape);
-  REGION_COPY(pScreen, &rrNewShape, wBoundingShape(pWin));
-  REGION_TRANSLATE(pScreen,
+  REGION_NULL(pWin->drawable.pScreen, &rrNewShape);
+  REGION_COPY(pWin->drawable.pScreen, &rrNewShape, wBoundingShape(pWin));
+  REGION_TRANSLATE(pWin->drawable.pScreen,
 		   &rrNewShape,
 		   pWin->borderWidth,
                    pWin->borderWidth);
@@ -138,7 +138,7 @@ winReshapeMultiWindow (WindowPtr pWin)
       if (!GetClientRect (pWinPriv->hWnd, &rcClient))
 	{
 	  ErrorF ("winReshape - GetClientRect failed, bailing: %d\n",
-		  GetLastError ());
+		  (int) GetLastError ());
 	  return;
 	}
 
@@ -150,7 +150,7 @@ winReshapeMultiWindow (WindowPtr pWin)
       if (!GetWindowRect (pWinPriv->hWnd, &rcWindow))
 	{
 	  ErrorF ("winReshape - GetWindowRect failed, bailing: %d\n",
-		  GetLastError ());
+		  (int) GetLastError ());
 	  return;
 	}
 
@@ -165,7 +165,7 @@ winReshapeMultiWindow (WindowPtr pWin)
 	{
 	  ErrorF ("winReshape - Initial CreateRectRgn (%d, %d, %d, %d) "
 		  "failed: %d\n",
-		  0, 0, rcWindow.right, iOffsetY, GetLastError ());
+		  0, 0, (int) rcWindow.right, iOffsetY, (int) GetLastError ());
 	}
 
       /* Loop through all rectangles in the X region */
@@ -185,7 +185,7 @@ winReshapeMultiWindow (WindowPtr pWin)
 		      pRects->y1 + iOffsetY - 1,
 		      pRects->x2 + iOffsetX - 1,
 		      pRects->y2 + iOffsetY - 1,
-		      GetLastError (),
+		      (int) GetLastError (),
 		      pRects->x1, pRects->x2, iOffsetX,
 		      pRects->y1, pRects->y2, iOffsetY);
 	    }
@@ -194,7 +194,7 @@ winReshapeMultiWindow (WindowPtr pWin)
 	  if (CombineRgn (hRgn, hRgn, hRgnRect, RGN_OR) == ERROR)
 	    {
 	      ErrorF ("winReshape - CombineRgn () failed: %d\n",
-		      GetLastError ());
+		      (int) GetLastError ());
 	    }
 
 	  /* Delete the temporary Windows region */
@@ -205,7 +205,7 @@ winReshapeMultiWindow (WindowPtr pWin)
       pWinPriv->hRgn = hRgn;
     }
 
-  REGION_UNINIT(pScreen, &rrNewShape);
+  REGION_UNINIT(pWin->drawable.pScreen, &rrNewShape);
   
   return;
 }

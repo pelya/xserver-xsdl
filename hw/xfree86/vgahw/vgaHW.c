@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/vgahw/vgaHW.c,v 1.58 2003/11/03 05:11:53 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/vgahw/vgaHW.c,v 1.59 2004/02/11 22:06:22 tsi Exp $ */
 
 /*
  *
@@ -764,6 +764,11 @@ vgaHWRestoreFonts(ScrnInfoPtr scrninfp, vgaRegPtr restore)
 #if 0
     hwp->writeAttr(hwp, 0x10, 0x01);	/* graphics mode */
 #endif
+
+    hwp->writeSeq(hwp, 0x04, 0x06);	/* enable plane graphics */
+    hwp->writeGr(hwp, 0x05, 0x00);	/* write mode 0, read mode 0 */
+    hwp->writeGr(hwp, 0x06, 0x05);	/* set graphics */
+
     if (scrninfp->depth == 4) {
 	/* GJA */
 	hwp->writeGr(hwp, 0x03, 0x00);	/* don't rotate, write unmodified */
@@ -774,10 +779,7 @@ vgaHWRestoreFonts(ScrnInfoPtr scrninfp, vgaRegPtr restore)
 #ifdef SAVE_FONT1
     if (hwp->FontInfo1) {
 	hwp->writeSeq(hwp, 0x02, 0x04);	/* write to plane 2 */
-	hwp->writeSeq(hwp, 0x04, 0x06);	/* enable plane graphics */
 	hwp->writeGr(hwp, 0x04, 0x02);	/* read plane 2 */
-	hwp->writeGr(hwp, 0x05, 0x00);	/* write mode 0, read mode 0 */
-	hwp->writeGr(hwp, 0x06, 0x05);	/* set graphics */
 	slowbcopy_tobus(hwp->FontInfo1, hwp->Base, FONT_AMOUNT);
     }
 #endif
@@ -785,10 +787,7 @@ vgaHWRestoreFonts(ScrnInfoPtr scrninfp, vgaRegPtr restore)
 #ifdef SAVE_FONT2
     if (hwp->FontInfo2) {
 	hwp->writeSeq(hwp, 0x02, 0x08);	/* write to plane 3 */
-	hwp->writeSeq(hwp, 0x04, 0x06);	/* enable plane graphics */
 	hwp->writeGr(hwp, 0x04, 0x03);	/* read plane 3 */
-	hwp->writeGr(hwp, 0x05, 0x00);	/* write mode 0, read mode 0 */
-	hwp->writeGr(hwp, 0x06, 0x05);	/* set graphics */
 	slowbcopy_tobus(hwp->FontInfo2, hwp->Base, FONT_AMOUNT);
     }
 #endif
@@ -796,16 +795,10 @@ vgaHWRestoreFonts(ScrnInfoPtr scrninfp, vgaRegPtr restore)
 #ifdef SAVE_TEXT
     if (hwp->TextInfo) {
 	hwp->writeSeq(hwp, 0x02, 0x01);	/* write to plane 0 */
-	hwp->writeSeq(hwp, 0x04, 0x06);	/* enable plane graphics */
 	hwp->writeGr(hwp, 0x04, 0x00);	/* read plane 0 */
-	hwp->writeGr(hwp, 0x05, 0x00);	/* write mode 0, read mode 0 */
-	hwp->writeGr(hwp, 0x06, 0x05);	/* set graphics */
 	slowbcopy_tobus(hwp->TextInfo, hwp->Base, TEXT_AMOUNT);
 	hwp->writeSeq(hwp, 0x02, 0x02);	/* write to plane 1 */
-	hwp->writeSeq(hwp, 0x04, 0x06);	/* enable plane graphics */
 	hwp->writeGr(hwp, 0x04, 0x01);	/* read plane 1 */
-	hwp->writeGr(hwp, 0x05, 0x00);	/* write mode 0, read mode 0 */
-	hwp->writeGr(hwp, 0x06, 0x05);	/* set graphics */
 	slowbcopy_tobus((unsigned char *)hwp->TextInfo + TEXT_AMOUNT,
 			hwp->Base, TEXT_AMOUNT);
     }
@@ -849,8 +842,7 @@ vgaHWRestoreMode(ScrnInfoPtr scrninfp, vgaRegPtr restore)
     for (i = 1; i < restore->numSequencer; i++)
 	hwp->writeSeq(hwp, i, restore->Sequencer[i]);
   
-    /* Ensure CRTC registers 0-7 are unlocked by clearing bit 7 or CRTC[17] */
-
+    /* Ensure CRTC registers 0-7 are unlocked by clearing bit 7 of CRTC[17] */
     hwp->writeCrtc(hwp, 17, restore->CRTC[17] & ~0x80);
 
     for (i = 0; i < restore->numCRTC; i++)
@@ -958,39 +950,32 @@ vgaHWSaveFonts(ScrnInfoPtr scrninfp, vgaRegPtr save)
 #if 0
     hwp->writeAttr(hwp, 0x10, 0x01);	/* graphics mode */
 #endif
+
+    hwp->writeSeq(hwp, 0x04, 0x06);	/* enable plane graphics */
+    hwp->writeGr(hwp, 0x05, 0x00);	/* write mode 0, read mode 0 */
+    hwp->writeGr(hwp, 0x06, 0x05);	/* set graphics */
+
 #ifdef SAVE_FONT1
     if (hwp->FontInfo1 || (hwp->FontInfo1 = xalloc(FONT_AMOUNT))) {
 	hwp->writeSeq(hwp, 0x02, 0x04);	/* write to plane 2 */
-	hwp->writeSeq(hwp, 0x04, 0x06);	/* enable plane graphics */
 	hwp->writeGr(hwp, 0x04, 0x02);	/* read plane 2 */
-	hwp->writeGr(hwp, 0x05, 0x00);	/* write mode 0, read mode 0 */
-	hwp->writeGr(hwp, 0x06, 0x05);	/* set graphics */
 	slowbcopy_frombus(hwp->Base, hwp->FontInfo1, FONT_AMOUNT);
     }
 #endif /* SAVE_FONT1 */
 #ifdef SAVE_FONT2
     if (hwp->FontInfo2 || (hwp->FontInfo2 = xalloc(FONT_AMOUNT))) {
 	hwp->writeSeq(hwp, 0x02, 0x08);	/* write to plane 3 */
-	hwp->writeSeq(hwp, 0x04, 0x06);	/* enable plane graphics */
 	hwp->writeGr(hwp, 0x04, 0x03);	/* read plane 3 */
-	hwp->writeGr(hwp, 0x05, 0x00);	/* write mode 0, read mode 0 */
-	hwp->writeGr(hwp, 0x06, 0x05);	/* set graphics */
 	slowbcopy_frombus(hwp->Base, hwp->FontInfo2, FONT_AMOUNT);
     }
 #endif /* SAVE_FONT2 */
 #ifdef SAVE_TEXT
     if (hwp->TextInfo || (hwp->TextInfo = xalloc(2 * TEXT_AMOUNT))) {
 	hwp->writeSeq(hwp, 0x02, 0x01);	/* write to plane 0 */
-	hwp->writeSeq(hwp, 0x04, 0x06);	/* enable plane graphics */
 	hwp->writeGr(hwp, 0x04, 0x00);	/* read plane 0 */
-	hwp->writeGr(hwp, 0x05, 0x00);	/* write mode 0, read mode 0 */
-	hwp->writeGr(hwp, 0x06, 0x05);	/* set graphics */
 	slowbcopy_frombus(hwp->Base, hwp->TextInfo, TEXT_AMOUNT);
 	hwp->writeSeq(hwp, 0x02, 0x02);	/* write to plane 1 */
-	hwp->writeSeq(hwp, 0x04, 0x06);	/* enable plane graphics */
 	hwp->writeGr(hwp, 0x04, 0x01);	/* read plane 1 */
-	hwp->writeGr(hwp, 0x05, 0x00);	/* write mode 0, read mode 0 */
-	hwp->writeGr(hwp, 0x06, 0x05);	/* set graphics */
 	slowbcopy_frombus(hwp->Base,
 		(unsigned char *)hwp->TextInfo + TEXT_AMOUNT, TEXT_AMOUNT);
     }
@@ -1476,7 +1461,7 @@ vgaHWVBlankKGA(DisplayModePtr mode, vgaRegPtr regp, int nBits,
 	regp->CRTC[22] = i & 0xFF;
 	ExtBits = i & 0xFF00;
     }
-	return ExtBits >> 8;
+    return ExtBits >> 8;
 }
 
 /*

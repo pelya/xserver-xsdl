@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/bus/Pci.c,v 1.81 2003/09/24 02:43:34 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/bus/Pci.c,v 1.82 2004/01/16 15:39:04 tsi Exp $ */
 /*
  * Pci.c - New server PCI access functions
  *
@@ -1016,7 +1016,9 @@ xf86scanpci(int flags)
 	    if (!(devp->pci_bridge_control & PCI_PCI_BRIDGE_MASTER_ABORT_EN))
 		break;
 	    pciWriteByte(tag, PCI_PCI_BRIDGE_CONTROL_REG,
-		devp->pci_bridge_control & ~PCI_PCI_BRIDGE_MASTER_ABORT_EN);
+		devp->pci_bridge_control &
+		     ~(PCI_PCI_BRIDGE_MASTER_ABORT_EN |
+		       PCI_PCI_BRIDGE_SECONDARY_RESET));
 	    break;
 
 	default:
@@ -1079,7 +1081,7 @@ xf86scanpci(int flags)
 	    if (!(devp->pci_bridge_control & PCI_PCI_BRIDGE_MASTER_ABORT_EN))
 		break;
 	    pciWriteByte(devp->tag, PCI_PCI_BRIDGE_CONTROL_REG,
-		devp->pci_bridge_control);
+		devp->pci_bridge_control & ~PCI_PCI_BRIDGE_SECONDARY_RESET);
 	    break;
 
 	default:

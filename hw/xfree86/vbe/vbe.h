@@ -1,5 +1,4 @@
-/* $XdotOrg$ */
-/* $XFree86: xc/programs/Xserver/hw/xfree86/vbe/vbe.h,v 1.3 2003/11/14 14:58:45 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/vbe/vbe.h,v 1.5 2004/02/02 03:55:32 dawes Exp $ */
 
 /*
  *                   XFree86 vbe module
@@ -61,7 +60,8 @@ typedef struct vbeControllerInfoBlock {
     CARD8  OemData[256];
 } vbeControllerInfoRec, *vbeControllerInfoPtr;
 
-#if defined(__GNUC__) || defined(__SUNPRO_C)
+#if defined(__GNUC__) || defined(SCO) || defined(__USLC__) || \
+	defined(__SUNPRO_C)
 #pragma pack()	/* All GCC versions recognise this syntax */
 #else
 #pragma pack(0)

@@ -24,7 +24,7 @@ OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION  WITH
 THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 ********************************************************/
-/* $XFree86: xc/programs/Xserver/xkb/xkb.c,v 3.22 2003/11/17 22:20:45 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/xkb/xkb.c,v 3.23 2003/12/22 17:48:11 tsi Exp $ */
 
 #include <stdio.h>
 #include "X.h"
@@ -2307,8 +2307,7 @@ ProcXkbSetMap(ClientPtr client)
 	    stuff->maxKeyCode= xkb->max_key_code;
 	}
 	else {
-	    if ((stuff->minKeyCode<XkbMinLegalKeyCode)||
-				(stuff->maxKeyCode>XkbMaxLegalKeyCode)) {
+	    if (!XkbIsLegalKeycode(stuff->minKeyCode)) {
 		client->errorValue= _XkbErrCode3(2,stuff->minKeyCode,
 							stuff->maxKeyCode);
 		return BadValue;

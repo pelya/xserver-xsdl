@@ -1,5 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/linux/int10/linux.c,v 1.31 2003/09/24 02:43:35 dawes Exp $ */
-/* $XdotOrg$ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/linux/int10/linux.c,v 1.32 2004/02/05 18:24:59 eich Exp $ */
 /*
  * linux specific part of the int10 module
  * Copyright 1999, 2000, 2001, 2002, 2003, 2004 Egbert Eich

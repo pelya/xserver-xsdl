@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/GL/glx/singlesize.c,v 1.6 2003/11/06 18:37:56 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/GL/glx/singlesize.c,v 1.8 2004/02/09 19:51:32 tsi Exp $ */
 /*
 ** License Applicability. Except to the extent portions of this file are
 ** made subject to an alternative license as permitted in the SGI Free
@@ -50,32 +50,48 @@ GLint __glReadPixels_size(GLenum format, GLenum type, GLint w, GLint h)
     return __glXImage3DSize( format, type, w, h, 1, 0, 0, 0, 0, 4 );
 }
 
+/**
+ * Determine the number of data elements that go with the specified \c pname
+ * to a \c glGetTexEnvfv or \c glGetTexEnviv call.
+ * 
+ * \todo
+ * Replace this function with a call to \c __glTexEnvfv_size.  Make that there
+ * aren't any values of \c pname that are valid for one but not the other.
+ */
 GLint __glGetTexEnvfv_size(GLenum pname)
 {
     switch (pname) {
       case GL_TEXTURE_ENV_MODE:
+      case GL_TEXTURE_LOD_BIAS:
+      case GL_COMBINE_RGB:
+      case GL_COMBINE_ALPHA:
+      case GL_SOURCE0_RGB:
+      case GL_SOURCE1_RGB:
+      case GL_SOURCE2_RGB:
+      case GL_SOURCE0_ALPHA:
+      case GL_SOURCE1_ALPHA:
+      case GL_SOURCE2_ALPHA:
+      case GL_OPERAND0_RGB:
+      case GL_OPERAND1_RGB:
+      case GL_OPERAND2_RGB:
+      case GL_OPERAND0_ALPHA:
+      case GL_OPERAND1_ALPHA:
+      case GL_OPERAND2_ALPHA:
+      case GL_RGB_SCALE:
+      case GL_ALPHA_SCALE:
+	
+      /* GL_ARB_point_sprite / GL_NV_point_sprite */
+      case GL_COORD_REPLACE_NV:
+
+      /* GL_NV_texture_env_combine4 */
+      case GL_SOURCE3_RGB_NV:
+      case GL_SOURCE3_ALPHA_NV:
+      case GL_OPERAND3_RGB_NV:
+      case GL_OPERAND3_ALPHA_NV:
 	return 1;
+
       case GL_TEXTURE_ENV_COLOR:
 	return 4;
-      case GL_TEXTURE_LOD_BIAS_EXT:
-	return 1;
-      case GL_COMBINE_RGB_ARB:
-      case GL_COMBINE_ALPHA_ARB:
-      case GL_SOURCE0_RGB_ARB:
-      case GL_SOURCE1_RGB_ARB:
-      case GL_SOURCE2_RGB_ARB:
-      case GL_SOURCE0_ALPHA_ARB:
-      case GL_SOURCE1_ALPHA_ARB:
-      case GL_SOURCE2_ALPHA_ARB:
-      case GL_OPERAND0_RGB_ARB:
-      case GL_OPERAND1_RGB_ARB:
-      case GL_OPERAND2_RGB_ARB:
-      case GL_OPERAND0_ALPHA_ARB:
-      case GL_OPERAND1_ALPHA_ARB:
-      case GL_OPERAND2_ALPHA_ARB:
-      case GL_RGB_SCALE_ARB:
-      case GL_ALPHA_SCALE:
-	return 1;
       default:
 	return -1;
     }
@@ -140,6 +156,15 @@ GLint __glGetTexParameterfv_size(GLenum pname)
       case GL_TEXTURE_COMPARE_MODE:
       case GL_TEXTURE_COMPARE_FUNC:
 
+      /* GL_SGIS_generate_mipmap / GL 1.4 */
+      case GL_GENERATE_MIPMAP:
+
+      /* GL_ARB_depth_texture / GL 1.4 */
+      case GL_DEPTH_TEXTURE_MODE:
+
+      /* GL_EXT_texture_lod_bias / GL 1.4 */
+      case GL_TEXTURE_LOD_BIAS:
+
       /* GL_SGIX_shadow_ambient / GL_ARB_shadow_ambient */
       case GL_TEXTURE_COMPARE_FAIL_VALUE_ARB:
 
@@ -151,6 +176,9 @@ GLint __glGetTexParameterfv_size(GLenum pname)
       case GL_TEXTURE_MAX_CLAMP_S_SGIX:
       case GL_TEXTURE_MAX_CLAMP_T_SGIX:
       case GL_TEXTURE_MAX_CLAMP_R_SGIX:
+
+      /* GL_EXT_texture_filter_anisotropic */
+      case GL_TEXTURE_MAX_ANISOTROPY_EXT:
 	return 1;
 
       default:
@@ -834,10 +862,6 @@ GLint __glGet_size(GLenum sq)
       case GL_MAX_CONVOLUTION_WIDTH:
       case GL_MAX_CONVOLUTION_HEIGHT:
 	return 1;
-      case GL_TEXTURE_CUBE_MAP_ARB:
-      case GL_TEXTURE_BINDING_CUBE_MAP_ARB:
-      case GL_MAX_CUBE_MAP_TEXTURE_SIZE_ARB:
-	return 1;
       case GL_OCCLUSION_TEST_RESULT_HP:
       case GL_OCCLUSION_TEST_HP:
 	return 1;
@@ -847,6 +871,183 @@ GLint __glGet_size(GLenum sq)
 	return 1;
       case GL_RASTER_POSITION_UNCLIPPED_IBM:
 	return 1;
+
+      /* GL_ARB_texture_cube_map / GL 1.3 */
+      case GL_TEXTURE_CUBE_MAP:
+      case GL_TEXTURE_BINDING_CUBE_MAP:
+      case GL_MAX_CUBE_MAP_TEXTURE_SIZE:
+
+      /* GL_ARB_multisample / GL 1.3 */
+      case GL_MULTISAMPLE:
+      case GL_SAMPLE_ALPHA_TO_COVERAGE:
+      case GL_SAMPLE_ALPHA_TO_ONE:
+      case GL_SAMPLE_COVERAGE:
+      case GL_SAMPLE_BUFFERS:
+      case GL_SAMPLES:
+      case GL_SAMPLE_COVERAGE_VALUE:
+      case GL_SAMPLE_COVERAGE_INVERT:
+
+      /* GL_ARB_texture_comrpession / GL 1.3 */
+      case GL_TEXTURE_COMPRESSION_HINT:
+      case GL_NUM_COMPRESSED_TEXTURE_FORMATS:
+	
+      /* GL_EXT_blend_func_separate / GL 1.4 */
+      case GL_BLEND_DST_RGB:
+      case GL_BLEND_SRC_RGB:
+      case GL_BLEND_DST_ALPHA:
+      case GL_BLEND_SRC_ALPHA:
+
+      /* GL_EXT_fog_coord / GL 1.4 */
+      case GL_CURRENT_FOG_COORDINATE:
+      case GL_FOG_COORDINATE_ARRAY_TYPE:
+      case GL_FOG_COORDINATE_ARRAY_STRIDE:
+      case GL_FOG_COORDINATE_ARRAY:
+      case GL_FOG_COORDINATE_SOURCE:
+
+      /* GL_EXT_secondary_color / GL 1.4 */
+      case GL_COLOR_SUM:
+      case GL_SECONDARY_COLOR_ARRAY_SIZE:
+      case GL_SECONDARY_COLOR_ARRAY_TYPE:
+      case GL_SECONDARY_COLOR_ARRAY_STRIDE:
+      case GL_SECONDARY_COLOR_ARRAY:
+
+      /* GL_EXT_texture_lod_bias / GL 1.4 */
+      case GL_MAX_TEXTURE_LOD_BIAS:
+
+      /* GL_ARB_point_sprite */
+      case GL_POINT_SPRITE_NV:
+
+      /* GL_ARB_vertex_blend */
+      case GL_MAX_VERTEX_UNITS_ARB:
+      case GL_ACTIVE_VERTEX_UNITS_ARB:
+      case GL_WEIGHT_SUM_UNITY_ARB:
+      case GL_VERTEX_BLEND_ARB:
+      case GL_CURRENT_WEIGHT_ARB:
+      case GL_WEIGHT_ARRAY_ARB:
+      case GL_WEIGHT_ARRAY_TYPE_ARB:
+      case GL_WEIGHT_ARRAY_STRIDE_ARB:
+      case GL_WEIGHT_ARRAY_SIZE_ARB:
+
+      /* GL_ARB_matrix_palette */
+      case GL_MATRIX_PALETTE_ARB:
+      case GL_MAX_MATRIX_PALETTE_STACK_DEPTH_ARB:
+      case GL_MAX_PALETTE_MATRICES_ARB:
+      case GL_CURRENT_PALETTE_MATRIX_ARB:
+      case GL_CURRENT_MATRIX_INDEX_ARB:
+      case GL_MATRIX_INDEX_ARRAY_ARB:
+      case GL_MATRIX_INDEX_ARRAY_SIZE_ARB:
+      case GL_MATRIX_INDEX_ARRAY_TYPE_ARB:
+      case GL_MATRIX_INDEX_ARRAY_STRIDE_ARB:
+
+      /* GL_EXT_clip_volume_hint */
+      case GL_CLIP_VOLUME_CLIPPING_HINT_EXT:
+
+      /* GL_EXT_stencil_two_size */
+      case GL_STENCIL_TEST_TWO_SIDE_EXT:
+      case GL_ACTIVE_STENCIL_FACE_EXT:
+
+      /* GL_EXT_vertex_weighting */
+      case GL_VERTEX_WEIGHTING_EXT:
+      case GL_MODELVIEW0_EXT:
+      case GL_MODELVIEW1_EXT:
+      case GL_CURRENT_VERTEX_WEIGHT_EXT:
+      case GL_VERTEX_WEIGHT_ARRAY_EXT:
+      case GL_VERTEX_WEIGHT_ARRAY_SIZE_EXT:
+      case GL_VERTEX_WEIGHT_ARRAY_TYPE_EXT:
+      case GL_VERTEX_WEIGHT_ARRAY_STRIDE_EXT:
+      /* case GL_MODELVIEW0_STACK_DEPTH_EXT: */ /* alias */
+      case GL_MODELVIEW1_STACK_DEPTH_EXT:
+
+      /* GL_ATI_vertex_streams */
+      case GL_MAX_VERTEX_STREAMS_ATI:
+
+      /* GL_NV_depth_clamp */
+      case GL_DEPTH_CLAMP_NV:
+
+      /* GL_NV_fog_distance */
+      case GL_FOG_DISTANCE_MODE_NV:
+
+      /* GL_NV_light_max_exponent */
+      case GL_MAX_SHININESS_NV:
+      case GL_MAX_SPOT_EXPONENT_NV:
+
+      /* GL_NV_multisample_filter_hint */
+      case GL_MULTISAMPLE_FILTER_HINT_NV:
+
+      /* GL_NV_point_sprite */
+      /* case GL_POINT_SPRITE_NV: */ /* alias */
+      case GL_POINT_SPRITE_R_MODE_NV:
+
+      /* GL_NV_register_combiners */
+      case GL_REGISTER_COMBINERS_NV:
+      case GL_NUM_GENERAL_COMBINERS_NV:
+      case GL_COLOR_SUM_CLAMP_NV:
+      case GL_MAX_GENERAL_COMBINERS_NV:
+
+      /* GL_NV_register_combiners2 */
+      case GL_PER_STAGE_CONSTANTS_NV:
+
+      /* GL_NV_texture_rectangle */
+      case GL_TEXTURE_RECTANGLE_NV:
+      case GL_TEXTURE_BINDING_RECTANGLE_NV:
+      case GL_MAX_RECTANGLE_TEXTURE_SIZE_NV:
+	return 1;
+
+      /* GL_EXT_secondary_color / GL 1.4 */
+      case GL_CURRENT_SECONDARY_COLOR:
+
+      /* GL_NV_register_combiners */
+      case GL_CONSTANT_COLOR0_NV:
+      case GL_CONSTANT_COLOR1_NV:
+	return 4;
+
+      /* GL_ARB_vertex_blend */
+      /* case GL_MODELVIEW0_ARB: */ /* alias */
+      /* case GL_MODELVIEW1_ARB: */ /* alias */
+      case GL_MODELVIEW2_ARB:
+      case GL_MODELVIEW3_ARB:
+      case GL_MODELVIEW4_ARB:
+      case GL_MODELVIEW5_ARB:
+      case GL_MODELVIEW6_ARB:
+      case GL_MODELVIEW7_ARB:
+      case GL_MODELVIEW8_ARB:
+      case GL_MODELVIEW9_ARB:
+      case GL_MODELVIEW10_ARB:
+      case GL_MODELVIEW11_ARB:
+      case GL_MODELVIEW12_ARB:
+      case GL_MODELVIEW13_ARB:
+      case GL_MODELVIEW14_ARB:
+      case GL_MODELVIEW15_ARB:
+      case GL_MODELVIEW16_ARB:
+      case GL_MODELVIEW17_ARB:
+      case GL_MODELVIEW18_ARB:
+      case GL_MODELVIEW19_ARB:
+      case GL_MODELVIEW20_ARB:
+      case GL_MODELVIEW21_ARB:
+      case GL_MODELVIEW22_ARB:
+      case GL_MODELVIEW23_ARB:
+      case GL_MODELVIEW24_ARB:
+      case GL_MODELVIEW25_ARB:
+      case GL_MODELVIEW26_ARB:
+      case GL_MODELVIEW27_ARB:
+      case GL_MODELVIEW28_ARB:
+      case GL_MODELVIEW29_ARB:
+      case GL_MODELVIEW30_ARB:
+      case GL_MODELVIEW31_ARB:
+
+      /* GL_EXT_vertex_weighting */
+      /* case GL_MODELVIEW0_MATRIX_EXT: */ /* alias */
+      case GL_MODELVIEW1_MATRIX_EXT:
+	return 32;
+
+      /* GL_ARB_texture_comrpession / GL 1.3 */
+      case GL_COMPRESSED_TEXTURE_FORMATS: {
+	  GLint temp;
+	  
+	  glGetIntegerv( GL_NUM_COMPRESSED_TEXTURE_FORMATS, & temp );
+	  return temp;
+      }
+
       default:
 	return -1;
     }
@@ -886,7 +1087,15 @@ GLint __glGetTexLevelParameterfv_size(GLenum pname)
       case GL_TEXTURE_ALPHA_SIZE:
       case GL_TEXTURE_LUMINANCE_SIZE:
       case GL_TEXTURE_INTENSITY_SIZE:
+
+      /* GL_ARB_texture_compression / GL 1.3 */
+      case GL_TEXTURE_COMPRESSED_IMAGE_SIZE:
+      case GL_TEXTURE_COMPRESSED:
+
+      /* GL_ARB_depth_texture / GL 1.4 */
+      case GL_TEXTURE_DEPTH_SIZE:
 	return 1;
+
       default:
 	return -1;
     }
