@@ -20,3 +20,7 @@ liblinux_a_SOURCES = 	\
 	mouse.c		\
 	ms.c		\
 	ps2.c
+
+if TSLIB
+liblinux_a_SOURCES += tslib.c
+endif

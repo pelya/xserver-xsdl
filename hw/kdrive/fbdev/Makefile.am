@@ -38,3 +38,7 @@ Xfbdev_LDADD = \
 	$(XSERVER_LIBS)					\
 	-lm -lz
 
+if TSLIB
+Xfbdev_LDADD += -lts
+endif
+
