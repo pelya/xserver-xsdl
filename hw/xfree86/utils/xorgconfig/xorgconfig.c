@@ -94,7 +94,7 @@
  *  Chisato Yamauchi(cyamauch@phyas.aichi-edu.ac.jp)
  */
 /* $XConsortium: xf86config.c /main/21 1996/10/28 05:43:57 kaleb $ */
-/* $XdotOrg: $ */
+/* $XdotOrg: xc/programs/Xserver/hw/xfree86/xf86config/xorgconfig.c,v 1.3 2004/05/16 00:03:54 alanc Exp $ */
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -378,7 +378,7 @@ int	M_OSMOUSE,	M_WSMOUSE,		M_AUTO,
 	M_NETMOUSE_PS2, M_NETSCROLL_PS2,	M_THINKINGMOUSE_PS2,
 	M_ACECAD,	M_GLIDEPOINT,		M_INTELLIMOUSE,
 	M_LOGITECH,	M_MMHITTAB,		M_MMSERIES,
-	M_MOUSEMAN,	M_THINKINGMOUSE;
+	M_MOUSEMAN,	M_THINKINGMOUSE,	M_VUID;
 
 struct {
 	char *name;
@@ -404,6 +404,11 @@ struct {
 	{"Auto",		&M_AUTO,
 	 "Auto detect"
 	},
+#ifdef sun
+	{"VUID",		&M_VUID,
+	 "Solaris VUID"
+	},
+#endif
 	{"SysMouse",		&M_SYSMOUSE,
 	 "SysMouse"
 	},
@@ -470,6 +475,14 @@ struct {
 	},
 };
 
+#ifdef WSCONS_SUPPORT
+# define DEF_MOUSEDEV "/dev/wsmouse";
+#elif defined(__FreeBSD__)
+# define DEF_MOUSEDEV "/dev/sysmouse";
+#else
+# define DEF_MOUSEDEV "/dev/mouse";
+#endif
+
 #ifndef __UNIXOS2__
 static char *mouseintro_text =
 "First specify a mouse protocol type. Choose one from the following list:\n"
@@ -477,13 +490,7 @@ static char *mouseintro_text =
 
 static char *mousedev_text =
 "Now give the full device name that the mouse is connected to, for example\n"
-"/dev/tty00. Just pressing enter will use the default, /dev/mouse.\n"
-#ifdef WSCONS_SUPPORT
-"On systems with wscons, the default is /dev/wsmouse.\n"
-#endif
-#ifdef __FreeBSD__
-"On FreeBSD, the default is /dev/sysmouse.\n"
-#endif
+"/dev/tty00. Just pressing enter will use the default, %s.\n"
 "\n";
 
 static char *mousecomment_text =
@@ -535,6 +542,7 @@ mouse_configuration(void) {
 #if !defined(__UNIXOS2__) && !defined(QNX4)
 	int i, j;
 	char s[80];
+	char *def_mousedev = DEF_MOUSEDEV;
 
 #define MOUSETYPE_COUNT sizeof(mouse_info)/sizeof(mouse_info[0])
 	for (i = 0; i < MOUSETYPE_COUNT; i++)
@@ -627,22 +635,24 @@ mouse_configuration(void) {
 		config_emulate3buttons = 0;
 	printf("\n");
 
-	printf("%s", mousedev_text);
+#if (defined(sun) && defined(__i386))
+	/* SPARC & USB mice (VUID or AUTO protocols) default to /dev/mouse, 
+	   but PS/2 mice default to /dev/kdmouse */
+	if ((config_mousetype != M_AUTO) && (config_mousetype != M_VUID)) {
+	    def_mousedev = "/dev/kdmouse";
+	}
+#endif
+
+	printf(mousedev_text, def_mousedev);
 	printf("Mouse device: ");
 	getstring(s);
-	if (strlen(s) == 0)
-#ifdef WSCONS_SUPPORT
-		config_pointerdevice = "/dev/wsmouse";
-#elif defined(__FreeBSD__)
-		config_pointerdevice = "/dev/sysmouse";
-#else
-		config_pointerdevice = "/dev/mouse";
-#endif
-	else {
+	if (strlen(s) == 0) {
+		config_pointerdevice = def_mousedev;
+	} else {
 		config_pointerdevice = Malloc(strlen(s) + 1);
 		strcpy(config_pointerdevice, s);
-       }
-       printf("\n");
+	}
+	printf("\n");
 
 #else /* __UNIXOS2__ */
        	/* set some reasonable defaults for OS/2 */

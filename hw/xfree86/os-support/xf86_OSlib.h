@@ -67,6 +67,7 @@
  */
 
 /* $XConsortium: xf86_OSlib.h /main/22 1996/10/27 11:06:31 kaleb $ */
+/* $XdotOrg: $ */
 
 /*
  * This is private, and should not be included by any drivers.  Drivers
@@ -260,6 +261,7 @@ typedef signed long xf86ssize_t;
 # define LED_CAP LED_CAPS_LOCK
 # define LED_NUM LED_NUM_LOCK
 # define LED_SCR LED_SCROLL_LOCK
+# define LED_COMP LED_COMPOSE
 
 # include <signal.h>
 
