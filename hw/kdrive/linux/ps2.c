@@ -25,10 +25,10 @@
 #define NEED_EVENTS
 #include <X11/X.h>
 #include <X11/Xproto.h>
+#include <X11/Xpoll.h>
 #include "inputstr.h"
 #include "scrnintstr.h"
 #include "kdrive.h"
-#include "Xpoll.h"
 
 int
 Ps2ReadBytes (int fd, char *buf, int len, int min)

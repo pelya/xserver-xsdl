@@ -29,7 +29,7 @@
 #include <linux/kd.h>
 #include <sys/stat.h>
 #include <sys/ioctl.h>
-#include <keysym.h>
+#include <X11/keysym.h>
 #include <linux/apm_bios.h>
 
 static int  vtno;

@@ -40,7 +40,8 @@ X Window System is a trademark of The Open Group */
 #ifndef _AGP_H_
 #define _AGP_H_
 
-#include "Xdefs.h"
+#include <X11/Xdefs.h>
+#include <X11/Xmd.h>
 
 /* These two definitions must be consistent with the kernel's,
    but using 1 or 2 in driver code is even uglier */
@@ -48,8 +49,8 @@ X Window System is a trademark of The Open Group */
 #define AGP_PHYS_MEMORY   2
 
 typedef struct _AgpInfo {
-	CARD32		bridgeId;
-	CARD32		agpMode;
+	unsigned long	bridgeId;
+	unsigned long	agpMode;
 	unsigned long	base;
 	unsigned long	size;
 	unsigned long	totalPages;

@@ -9,11 +9,27 @@ INCLUDES = 					\
 	-I$(top_srcdir)/render
 
 
-noinst_LTLIBRARIES = libvesa.la
+bin_PROGRAMS = Xvesa
 
-libvesa_la_SOURCES = 	\
+Xvesa_SOURCES = \
 	vesa.c		\
 	vesainit.c	\
 	vbe.c		\
 	vga.c		\
 	vm86.c
+
+Xvesa_LDADD = \
+	$(top_builddir)/dix/libdix.la		\
+	$(top_builddir)/hw/kdrive/libkdrive.la  \
+	$(top_builddir)/hw/kdrive/linux/liblinux.la  \
+	$(top_builddir)/fb/libfb.la		\
+	$(top_builddir)/mi/libmi.la		\
+	$(top_builddir)/Xext
+	$(top_builddir)/miext/layer/liblayer.la	\
+	$(top_builddir)/miext/shadow/libshadow.la \
+	$(top_builddir)/render/librender.la	\
+	$(top_builddir)/randr/librandr.la	\
+	$(top_builddir)/os/libos.la		\
+	$(top_builddir)/xtrans/libxtrans.la	\
+	$(X_LIBS) -lXfont -lXau -lXdmcp 	\
+	-lm -lz

@@ -23,14 +23,14 @@
  */
 
 #define NEED_EVENTS
+#include <errno.h>
+#include <termios.h>
 #include <X11/X.h>
 #include <X11/Xproto.h>
+#include <X11/Xpoll.h>
 #include "inputstr.h"
 #include "scrnintstr.h"
 #include "kdrive.h"
-#include "Xpoll.h"
-#include <errno.h>
-#include <termios.h>
 
 #undef DEBUG
 #undef DEBUG_BYTES

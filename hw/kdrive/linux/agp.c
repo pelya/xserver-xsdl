@@ -43,9 +43,6 @@ of the copyright holder.
 
 #include <X11/X.h>
 
-#include "Xdefs.h"
-#include "Xmd.h"
-
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -62,7 +59,7 @@ of the copyright holder.
 #if defined(linux)
 #include <asm/ioctl.h>
 
-#include "../../xfree86/os-support/linux/agpgart.h"
+#include <linux/agpgart.h>
 
 #elif defined(__FreeBSD__)
 #include <sys/ioctl.h>
