@@ -5,7 +5,7 @@
  * and its documentation for any purpose is hereby granted without
  * fee, provided that the above copyright notice appear in all copies
  * and that both that copyright notice and this permission notice
- * appear in supporting documentation, and that the names of
+ * appear in supporting documentation, and that the name of
  * David Reveman not be used in advertising or publicity pertaining to
  * distribution of the software without specific, written prior permission.
  * David Reveman makes no representations about the suitability of this
@@ -20,7 +20,7 @@
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *
- * Author: David Reveman <davidr@freedesktop.org>
+ * Author: David Reveman <davidr@novell.com>
  */
 
 #include "xgl.h"
@@ -100,8 +100,11 @@ void
 xglUseMsg (void)
 {
     ErrorF ("-screen WIDTH[/WIDTHMM]xHEIGHT[/HEIGHTMM] "
-	    "Specify screen characteristics\n");
-    ErrorF ("-fullscreen            Run fullscreen\n");
+	    "specify screen characteristics\n");
+    ErrorF ("-fullscreen            run fullscreen\n");
+    ErrorF ("-vertextype [short|float] set vertex data type\n");
+    ErrorF ("-vbostream             "
+	    "use vertex buffer objects for streaming of vertex data\n");
 }
 
 int
@@ -121,12 +124,30 @@ xglProcessArgument (xglScreenInfoPtr pScreenInfo,
 	
 	return 2;
     }
-
-    if (!strcmp (argv[i], "-fullscreen"))
+    else if (!strcmp (argv[i], "-fullscreen"))
     {
 	pScreenInfo->fullscreen = TRUE;
 	return 1;
     }
-		    
+    else if (!strcmp (argv[i], "-vertextype"))
+    {
+	if ((i + 1) < argc)
+	{
+	    if (!strcasecmp (argv[i + 1], "short"))
+		pScreenInfo->geometryDataType = GEOMETRY_DATA_TYPE_SHORT;
+	    else if (!strcasecmp (argv[i + 1], "float"))
+		pScreenInfo->geometryDataType = GEOMETRY_DATA_TYPE_FLOAT;
+	}
+	else
+	    return 1;
+	
+	return 2;
+    }
+    else if (!strcmp (argv[i], "-vbostream"))
+    {
+	pScreenInfo->geometryUsage = GEOMETRY_USAGE_STREAM;
+	return 1;
+    }
+    
     return 0;
 }

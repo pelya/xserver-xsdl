@@ -5,7 +5,7 @@
  * and its documentation for any purpose is hereby granted without
  * fee, provided that the above copyright notice appear in all copies
  * and that both that copyright notice and this permission notice
- * appear in supporting documentation, and that the names of
+ * appear in supporting documentation, and that the name of
  * David Reveman not be used in advertising or publicity pertaining to
  * distribution of the software without specific, written prior permission.
  * David Reveman makes no representations about the suitability of this
@@ -20,10 +20,11 @@
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *
- * Author: David Reveman <davidr@freedesktop.org>
+ * Author: David Reveman <davidr@novell.com>
  */
 
 #include "xgl.h"
+#include "fb.h"
 
 Bool
 xglCopy (DrawablePtr pSrc,
@@ -33,101 +34,59 @@ xglCopy (DrawablePtr pSrc,
 	 BoxPtr	     pBox,
 	 int	     nBox)
 {
-    glitz_surface_t *srcSurface;
-    glitz_surface_t *dstSurface;
+    glitz_surface_t *src, *dst;
     int		    srcXoff, srcYoff;
     int		    dstXoff, dstYoff;
 
+    if (!nBox)
+	return TRUE;
+
     if (xglPrepareTarget (pDst))
     {
-	glitz_drawable_t *srcDrawable;
-	glitz_drawable_t *dstDrawable;
-
 	XGL_SCREEN_PRIV (pDst->pScreen);
-	XGL_DRAWABLE_PIXMAP_PRIV (pSrc);
-	    
+	
 	if (!xglSyncSurface (pSrc))
 	    return FALSE;
 
-	XGL_GET_DRAWABLE (pSrc, srcSurface, srcXoff, srcYoff);
-	XGL_GET_DRAWABLE (pDst, dstSurface, dstXoff, dstYoff);
+	XGL_GET_DRAWABLE (pDst, dst, dstXoff, dstYoff);
 
-	/*
-	 * Blit to screen.
-	 */
-	if (dstSurface == pScreenPriv->surface)
-	    XGL_INCREMENT_PIXMAP_SCORE (pPixmapPriv, 5000);
-
-	srcDrawable = glitz_surface_get_attached_drawable (srcSurface);
-	dstDrawable = glitz_surface_get_attached_drawable (dstSurface);
-	
-	if (srcDrawable != dstDrawable && nBox > 1)
+	/* blit to screen */
+	if (dst == pScreenPriv->surface)
 	{
-	    xglGeometryRec geometry;
-	    BoxRec	   extents;
-
-	    BOX_EXTENTS (pBox, nBox, &extents);
+	    XGL_DRAWABLE_PIXMAP_PRIV (pSrc);
 	    
-	    GEOMETRY_INIT (pDst->pScreen, &geometry, nBox << 3);
-	    GEOMETRY_ADD_BOX (pDst->pScreen, &geometry, pBox, nBox);
-	    GEOMETRY_TRANSLATE (&geometry, dstXoff, dstYoff);
-	    
-	    if (!GEOMETRY_ENABLE_ALL_VERTICES (&geometry, dstSurface))
-		return FALSE;
-	    
-	    pPixmapPriv->pictureMask |=
-		xglPCFillMask | xglPCFilterMask | xglPCTransformMask;
-	    
-	    glitz_surface_set_fill (srcSurface, GLITZ_FILL_TRANSPARENT);
-	    glitz_surface_set_filter (srcSurface, GLITZ_FILTER_NEAREST,
-				      NULL, 0);
-	    glitz_surface_set_transform (srcSurface, NULL);
-		
-	    glitz_composite (GLITZ_OPERATOR_SRC,
-			     srcSurface, NULL, dstSurface,
-			     extents.x1 + dx + srcXoff,
-			     extents.y1 + dy + srcYoff,
-			     0, 0,
-			     extents.x1 + dstXoff,
-			     extents.y1 + dstYoff,
-			     extents.x2 - extents.x1,
-			     extents.y2 - extents.y1);
-		
-	    GEOMETRY_UNINIT (&geometry);
-		
-	    if (glitz_surface_get_status (dstSurface))
-		return FALSE;
-		
-	    return TRUE;
+	    XGL_INCREMENT_PIXMAP_SCORE (pPixmapPriv, 5000);
 	}
     }
     else
     {
 	if (!xglPrepareTarget (pSrc))
 	    return FALSE;
-
+	
 	if (!xglSyncSurface (pDst))
 	    return FALSE;
-
-	XGL_GET_DRAWABLE (pSrc, srcSurface, srcXoff, srcYoff);
-	XGL_GET_DRAWABLE (pDst, dstSurface, dstXoff, dstYoff);
-    }
-
-    while (nBox--)
-    {
-	glitz_copy_area (srcSurface,
-			 dstSurface,
-			 pBox->x1 + dx + srcXoff,
-			 pBox->y1 + dy + srcYoff,
-			 pBox->x2 - pBox->x1,
-			 pBox->y2 - pBox->y1,
-			 pBox->x1 + dstXoff,
-			 pBox->y1 + dstYoff);
 	
-	pBox++;
+	XGL_GET_DRAWABLE (pDst, dst, dstXoff, dstYoff);
     }
 
-    if (glitz_surface_get_status (dstSurface))
+    XGL_GET_DRAWABLE (pSrc, src, srcXoff, srcYoff);
+	
+    glitz_surface_set_clip_region (dst,
+				   dstXoff, dstYoff,
+				   (glitz_box_t *) pBox, nBox);
+
+    glitz_copy_area (src,
+		     dst,
+		     pDst->x + srcXoff + dx,
+		     pDst->y + srcYoff + dy,
+		     pDst->width,
+		     pDst->height,
+		     pDst->x + dstXoff,
+		     pDst->y + dstYoff);
+
+    glitz_surface_set_clip_region (dst, 0, 0, NULL, 0);
+    
+    if (glitz_surface_get_status (dst))
 	return FALSE;
     
     return TRUE;
@@ -146,7 +105,59 @@ xglCopyProc (DrawablePtr pSrc,
 	     Pixel	 bitplane,
 	     void	 *closure)
 {
-    Bool *pRet = (Bool *) closure;
-    
-    *pRet = xglCopy (pSrc, pDst, dx, dy, pBox, nBox);
+    BoxPtr pSrcBox = (BoxPtr) closure;
+
+    if (!xglCopy (pSrc, pDst, dx, dy, pBox, nBox))
+    {
+	RegionPtr	pDamageRegion;
+	glitz_surface_t *dst;
+	int		dstXoff, dstYoff;
+	RegionRec	region;
+	BoxRec		box;
+	
+	XGL_DRAWABLE_PIXMAP (pDst);
+	XGL_PIXMAP_PRIV (pPixmap);
+
+	XGL_GET_DRAWABLE (pDst, dst, dstXoff, dstYoff);
+	
+	pDamageRegion = DamageRegion (pPixmapPriv->pDamage);
+
+	if (!xglMapPixmapBits (pPixmap))
+	    FatalError (XGL_SW_FAILURE_STRING);
+	
+	if (!xglSyncBits (pSrc, pSrcBox))
+	    FatalError (XGL_SW_FAILURE_STRING);
+
+	fbCopyNtoN (pSrc, pDst, pGC,
+		    pBox, nBox,
+		    dx, dy,
+		    reverse, upsidedown, bitplane,
+		    (void *) 0);
+
+	pPixmapPriv->damageBox = miEmptyBox;
+	if (!pPixmapPriv->format)
+	    return;
+
+	while (nBox--)
+	{
+	    box.x1 = pBox->x1 + dstXoff;
+	    box.y1 = pBox->y1 + dstYoff;
+	    box.x2 = pBox->x2 + dstXoff;
+	    box.y2 = pBox->y2 + dstYoff;
+
+	    REGION_INIT (pDst->pScreen, &region, &box, 1);
+	    REGION_UNION (pDst->pScreen,
+			  pDamageRegion, pDamageRegion, &region);
+	    REGION_UNINIT (pDst->pScreen, &region);
+
+	    pBox++;
+	}
+
+	if (pPixmapPriv->target == xglPixmapTargetIn)
+	{
+	    if (!xglSyncSurface (pDst))
+		FatalError (XGL_SW_FAILURE_STRING);
+	}
+    } else
+	xglAddCurrentBitDamage (pDst);
 }

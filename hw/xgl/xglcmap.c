@@ -5,7 +5,7 @@
  * and its documentation for any purpose is hereby granted without
  * fee, provided that the above copyright notice appear in all copies
  * and that both that copyright notice and this permission notice
- * appear in supporting documentation, and that the names of
+ * appear in supporting documentation, and that the name of
  * David Reveman not be used in advertising or publicity pertaining to
  * distribution of the software without specific, written prior permission.
  * David Reveman makes no representations about the suitability of this
@@ -20,7 +20,7 @@
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *
- * Author: David Reveman <davidr@freedesktop.org>
+ * Author: David Reveman <davidr@novell.com>
  */
 
 #include "xgl.h"
@@ -257,7 +257,7 @@ xglClearVisualTypes (void)
 void
 xglInitPixmapFormats (ScreenPtr pScreen)
 {
-    glitz_format_t *format;
+    glitz_format_t *format, **best;
     int		   i, j;
     
     XGL_SCREEN_PRIV (pScreen);
@@ -275,6 +275,7 @@ xglInitPixmapFormats (ScreenPtr pScreen)
 		
 		pScreenPriv->pixmapFormats[i].pPixel = &xglPixelFormats[j];
 		pScreenPriv->pixmapFormats[i].format = NULL;
+		best = &pScreenPriv->pixmapFormats[i].format;
 
 		rs = Ones (xglPixelFormats[j].masks.red_mask);
 		gs = Ones (xglPixelFormats[j].masks.green_mask);
@@ -287,13 +288,28 @@ xglInitPixmapFormats (ScreenPtr pScreen)
 						0, NULL, k++);
 		    if (format && format->type == GLITZ_FORMAT_TYPE_COLOR)
 		    {
-			if (rs == format->color.red_size &&
-			    gs == format->color.green_size &&
-			    bs == format->color.blue_size &&
-			    as == format->color.alpha_size)
+			/* formats must have an alpha channel, otherwise
+			   filtering wont match the render spec. */
+			if (!format->color.alpha_size)
+			    continue;
+
+			/* find best matching sufficient format */
+			if (format->color.red_size   >= rs &&
+			    format->color.green_size >= gs &&
+			    format->color.blue_size  >= bs &&
+			    format->color.alpha_size >= as)
 			{
-			    pScreenPriv->pixmapFormats[i].format = format;
-			    break;
+			    if (*best)
+			    {
+				if (((format->color.red_size   - rs) +
+				     (format->color.green_size - gs) +
+				     (format->color.blue_size  - bs)) <
+				    (((*best)->color.red_size   - rs) +
+				     ((*best)->color.green_size - gs) +
+				     ((*best)->color.blue_size  - bs)))
+				    *best = format;
+			    } else
+				*best = format;
 			}
 		    }
 		} while (format);

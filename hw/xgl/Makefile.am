@@ -13,13 +13,13 @@ libxgl_a_SOURCES =     \
 	xglcmap.c      \
 	xglparse.c     \
 	xglscreen.c    \
+	xglarea.c      \
 	xgloffscreen.c \
 	xglgeometry.c  \
 	xglpixmap.c    \
 	xglsync.c      \
 	xglsolid.c     \
 	xgltile.c      \
-	xglpixel.c     \
 	xglcopy.c      \
 	xglfill.c      \
 	xglwindow.c    \
@@ -27,4 +27,6 @@ libxgl_a_SOURCES =     \
 	xglget.c       \
 	xglgc.c	       \
 	xglcomp.c      \
-	xglpict.c
+	xglpict.c      \
+	xglglyph.c     \
+	xgltrap.c

@@ -5,7 +5,7 @@
  * and its documentation for any purpose is hereby granted without
  * fee, provided that the above copyright notice appear in all copies
  * and that both that copyright notice and this permission notice
- * appear in supporting documentation, and that the names of
+ * appear in supporting documentation, and that the name of
  * David Reveman not be used in advertising or publicity pertaining to
  * distribution of the software without specific, written prior permission.
  * David Reveman makes no representations about the suitability of this
@@ -20,7 +20,7 @@
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *
- * Author: David Reveman <davidr@freedesktop.org>
+ * Author: David Reveman <davidr@novell.com>
  */
 
 #include "xgl.h"
@@ -152,39 +152,56 @@ xglSyncBits (DrawablePtr pDrawable,
     if (!pPixmapPriv->buffer)
 	if (!xglAllocatePixmapBits (pPixmap))
 	    return FALSE;
-    
-    if (REGION_NOTEMPTY (pDrawable->pScreen, &region))
+
+    if (pPixmapPriv->pDamage)
     {
-	if (pPixmapPriv->surface)
-	{
-	    glitz_pixel_format_t format;
-	    BoxPtr		 pBox;
-	    int			 nBox;
+	RegionPtr pRegion;
 
-	    xglUnmapPixmapBits (pPixmap);
+	pRegion = DamageRegion (pPixmapPriv->pDamage);
+	REGION_SUBTRACT (pDrawable->pScreen, &region, &region, pRegion);
+    }
+    
+    if (REGION_NOTEMPTY (pDrawable->pScreen, &region) && pPixmapPriv->surface)
+    {
+	glitz_pixel_format_t format;
+	BoxPtr		     pBox;
+	int		     nBox;
+	
+	if (!xglSyncSurface (pDrawable))
+	    FatalError (XGL_SW_FAILURE_STRING);
+
+	xglUnmapPixmapBits (pPixmap);
 	    
-	    pBox = REGION_RECTS (&region);
-	    nBox = REGION_NUM_RECTS (&region);
+	pBox = REGION_RECTS (&region);
+	nBox = REGION_NUM_RECTS (&region);
 
-	    format.masks	  = pPixmapPriv->pPixel->masks;
+	format.masks = pPixmapPriv->pPixel->masks;
+
+	if (pPixmapPriv->stride < 0)
+	{
+	    format.bytes_per_line = -pPixmapPriv->stride;
+	    format.scanline_order = GLITZ_PIXEL_SCANLINE_ORDER_BOTTOM_UP;
+	}
+	else
+	{
 	    format.bytes_per_line = pPixmapPriv->stride;
-	    format.scanline_order = XGL_INTERNAL_SCANLINE_ORDER;
-
-	    while (nBox--)
-	    {
-		format.xoffset    = pBox->x1;
-		format.skip_lines = pBox->y1;
-
-		glitz_get_pixels (pPixmapPriv->surface,
-				  pBox->x1,
-				  pBox->y1,
-				  pBox->x2 - pBox->x1,
-				  pBox->y2 - pBox->y1,
-				  &format,
-				  pPixmapPriv->buffer);
-		
-		pBox++;
-	    }
+	    format.scanline_order = GLITZ_PIXEL_SCANLINE_ORDER_TOP_DOWN;
+	}
+	
+	while (nBox--)
+	{
+	    format.xoffset    = pBox->x1;
+	    format.skip_lines = pBox->y1;
+	    
+	    glitz_get_pixels (pPixmapPriv->surface,
+			      pBox->x1,
+			      pBox->y1,
+			      pBox->x2 - pBox->x1,
+			      pBox->y2 - pBox->y1,
+			      &format,
+			      pPixmapPriv->buffer);
+	    
+	    pBox++;
 	}
     }
 
@@ -234,16 +251,25 @@ xglSyncSurface (DrawablePtr pDrawable)
 
 	nBox = REGION_NUM_RECTS (pRegion);
 	pBox = REGION_RECTS (pRegion);
+
+	format.masks = pPixmapPriv->pPixel->masks;
 	
-	format.masks	      = pPixmapPriv->pPixel->masks;
-	format.bytes_per_line = pPixmapPriv->stride;
-	format.scanline_order = XGL_INTERNAL_SCANLINE_ORDER;
+	if (pPixmapPriv->stride < 0)
+	{
+	    format.bytes_per_line = -pPixmapPriv->stride;
+	    format.scanline_order = GLITZ_PIXEL_SCANLINE_ORDER_BOTTOM_UP;
+	}
+	else
+	{
+	    format.bytes_per_line = pPixmapPriv->stride;
+	    format.scanline_order = GLITZ_PIXEL_SCANLINE_ORDER_TOP_DOWN;
+	}
 
 	while (nBox--)
 	{
 	    format.xoffset    = pBox->x1;
 	    format.skip_lines = pBox->y1;
-	    
+
 	    glitz_set_pixels (pPixmapPriv->surface,
 			      pBox->x1,
 			      pBox->y1,
@@ -288,7 +314,34 @@ xglPrepareTarget (DrawablePtr pDrawable)
 }
 
 void
-xglAddSurfaceDamage (DrawablePtr pDrawable)
+xglAddSurfaceDamage (DrawablePtr pDrawable,
+		     RegionPtr   pRegion)
+{
+    RegionPtr	    pDamageRegion;
+    glitz_surface_t *surface;
+    int		    xOff, yOff;
+    
+    XGL_DRAWABLE_PIXMAP_PRIV (pDrawable);
+
+    pPixmapPriv->damageBox = miEmptyBox;
+    if (!pPixmapPriv->format)
+	return;
+
+    XGL_GET_DRAWABLE (pDrawable, surface, xOff, yOff);
+
+    if (xOff || yOff)
+	REGION_TRANSLATE (pDrawable->pScreen, pRegion, xOff, yOff);
+
+    pDamageRegion = DamageRegion (pPixmapPriv->pDamage);
+
+    REGION_UNION (pDrawable->pScreen, pDamageRegion, pDamageRegion, pRegion);
+    
+    if (xOff || yOff)
+	REGION_TRANSLATE (pDrawable->pScreen, pRegion, -xOff, -yOff);
+}
+
+void
+xglAddCurrentSurfaceDamage (DrawablePtr pDrawable)
 {   
     XGL_DRAWABLE_PIXMAP_PRIV (pDrawable);
 
@@ -310,18 +363,12 @@ xglAddSurfaceDamage (DrawablePtr pDrawable)
 		      pDamageRegion, pDamageRegion, &region);
 	REGION_UNINIT (pDrawable->pScreen, &region);
 	
-	if (pPixmapPriv->target == xglPixmapTargetIn)
-	{
-	    if (!xglSyncSurface (pDrawable))
-		FatalError (XGL_SW_FAILURE_STRING);
-	}
-
 	pPixmapPriv->damageBox = miEmptyBox;
     }
 }
 
 void
-xglAddBitDamage (DrawablePtr pDrawable)
+xglAddCurrentBitDamage (DrawablePtr pDrawable)
 {
     XGL_DRAWABLE_PIXMAP_PRIV (pDrawable);
 

@@ -5,7 +5,7 @@
  * and its documentation for any purpose is hereby granted without
  * fee, provided that the above copyright notice appear in all copies
  * and that both that copyright notice and this permission notice
- * appear in supporting documentation, and that the names of
+ * appear in supporting documentation, and that the name of
  * David Reveman not be used in advertising or publicity pertaining to
  * distribution of the software without specific, written prior permission.
  * David Reveman makes no representations about the suitability of this
@@ -20,7 +20,7 @@
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *
- * Author: David Reveman <davidr@freedesktop.org>
+ * Author: David Reveman <davidr@novell.com>
  */
 
 #include "xgl.h"
@@ -36,7 +36,7 @@
 #define XGL_GC_OP_FALLBACK_EPILOGUE(pDrawable)	  \
     XGL_GC_WRAP (funcs, (GCFuncs *) &xglGCFuncs); \
     XGL_GC_WRAP (ops, (GCOps *) &xglGCOps);	  \
-    xglAddSurfaceDamage (pDrawable)
+    xglAddCurrentSurfaceDamage (pDrawable)
 
 #define XGL_GC_FILL_OP_FALLBACK_PROLOGUE(pDrawable)		 \
     switch (pGC->fillStyle) {					 \
@@ -104,7 +104,7 @@ xglFillSpans (DrawablePtr pDrawable,
     {
 	if (xglFillSpan (pDrawable, pGC, nspans, ppt, pwidth))
 	{
-	    xglAddBitDamage (pDrawable);
+	    xglAddCurrentBitDamage (pDrawable);
 	    return;
 	}
     }
@@ -144,38 +144,45 @@ xglPutImage (DrawablePtr pDrawable,
 {
     XGL_GC_PRIV (pGC);
 
-    switch (format) {
-    case XYBitmap:
-	break;
-    case XYPixmap:
-    case ZPixmap:
-	if (!pGCPriv->flags)
-	{
-	    XGL_DRAWABLE_PIXMAP_PRIV (pDrawable);
-
-	    if (!pPixmapPriv->allBits &&
-		pPixmapPriv->target == xglPixmapTargetIn)
-	    {
-		if (xglSetPixels (pDrawable,
-				  bits,
-				  PixmapBytePad (w, pDrawable->depth),
-				  x + pDrawable->x, y + pDrawable->y,
-				  w, h,
-				  REGION_RECTS (pGC->pCompositeClip),
-				  REGION_NUM_RECTS (pGC->pCompositeClip)))
-		{
-		    xglAddBitDamage (pDrawable);
-		    return;
-		}
-	    }
-	}
-	break;
+    if (pGC->alu != GXcopy || (pGCPriv->flags & xglGCPlaneMaskFlag))
+    {
+	XGL_GC_OP_FALLBACK_PROLOGUE (pDrawable);
+	(*pGC->ops->PutImage) (pDrawable, pGC, depth,
+			       x, y, w, h, leftPad, format, bits);
+	XGL_GC_OP_FALLBACK_EPILOGUE (pDrawable);
     }
-    
-    XGL_GC_OP_FALLBACK_PROLOGUE (pDrawable);
-    (*pGC->ops->PutImage) (pDrawable, pGC, depth,
-			   x, y, w, h, leftPad, format, bits);
-    XGL_GC_OP_FALLBACK_EPILOGUE (pDrawable);
+    else
+    {
+	RegionPtr pClip = pGC->pCompositeClip;
+	RegionRec region;
+	BoxRec	  box;
+
+	XGL_DRAWABLE_PIXMAP (pDrawable);
+
+	if (!xglMapPixmapBits (pPixmap))
+	    FatalError (XGL_SW_FAILURE_STRING);
+
+	XGL_GC_UNWRAP (funcs);
+	XGL_GC_UNWRAP (ops);
+	
+	(*pGC->ops->PutImage) (pDrawable, pGC, depth,
+			       x, y, w, h, leftPad, format, bits);
+
+	XGL_GC_WRAP (funcs, (GCFuncs *) &xglGCFuncs);
+	XGL_GC_WRAP (ops, (GCOps *) &xglGCOps);
+
+	box.x1 = pDrawable->x + x;
+	box.y1 = pDrawable->y + y;
+	box.x2 = box.x1 + w;
+	box.y2 = box.y1 + h;
+	
+	REGION_INIT (pDrawable->pScreen, &region, &box, 1);
+	REGION_INTERSECT (pDrawable->pScreen, &region, pClip, &region);
+
+	xglAddSurfaceDamage (pDrawable, &region);
+
+	REGION_UNINIT (pDrawable->pScreen, &region);
+    }
 }
 
 RegionPtr
@@ -195,44 +202,36 @@ xglCopyArea (DrawablePtr pSrc,
     
     XGL_GC_PRIV (pGC);
 
+    box.x1 = pSrc->x + srcX;
+    box.y1 = pSrc->y + srcY;
+    box.x2 = box.x1 + w;
+    box.y2 = box.y1 + h;
+
     flags = pGCPriv->flags;
 
     if (XGL_GET_DRAWABLE_PIXMAP_PRIV (pSrc)->target == xglPixmapTargetIn)
 	flags &= ~xglGCReadOnlyDrawableFlag;
-
-    if (!flags)
+    
+    if (flags)
     {
-	Bool ret;
-
-	ret = TRUE;
+	if (!xglSyncBits (pSrc, &box))
+	    FatalError (XGL_SW_FAILURE_STRING);
+	
+	XGL_GC_OP_FALLBACK_PROLOGUE (pDst);
+	pRegion = (*pGC->ops->CopyArea) (pSrc, pDst, pGC,
+					 srcX, srcY, w, h, dstX, dstY);
+	XGL_GC_OP_FALLBACK_EPILOGUE (pDst);
+    }
+    else
+    {
+	/* xglCopyProc handles fall-back */
 	pRegion = fbDoCopy (pSrc, pDst, pGC,
 			    srcX, srcY,
 			    w, h,
 			    dstX, dstY,
 			    xglCopyProc, 0,
-			    (void *) &ret);
-	if (ret)
-	{
-	    xglAddBitDamage (pDst);
-	    return pRegion;
-	}
-	
-	if (pRegion)
-	    REGION_DESTROY (pDst->pScreen, pRegion);
+			    (void *) &box);
     }
-
-    box.x1 = pSrc->x + srcX;
-    box.y1 = pSrc->y + srcY;
-    box.x2 = box.x1 + w;
-    box.y2 = box.y1 + h;
-    
-    if (!xglSyncBits (pSrc, &box))
-	FatalError (XGL_SW_FAILURE_STRING);
-
-    XGL_GC_OP_FALLBACK_PROLOGUE (pDst);
-    pRegion = (*pGC->ops->CopyArea) (pSrc, pDst, pGC,
-				     srcX, srcY, w, h, dstX, dstY);
-    XGL_GC_OP_FALLBACK_EPILOGUE (pDst);
 
     return pRegion;
 }
@@ -302,13 +301,13 @@ xglPolylines (DrawablePtr pDrawable,
 	    {
 		if (xglFillLine (pDrawable, pGC, mode, npt, ppt))
 		{
-		    xglAddBitDamage (pDrawable);
+		    xglAddCurrentBitDamage (pDrawable);
 		    return;
 		}
 	    }
 	}
 	
-	XGL_GC_OP_FALLBACK_PROLOGUE (pDrawable);
+	XGL_GC_FILL_OP_FALLBACK_PROLOGUE (pDrawable);
 	(*pGC->ops->Polylines) (pDrawable, pGC, mode, npt, ppt);
 	XGL_GC_OP_FALLBACK_EPILOGUE (pDrawable);
     }
@@ -337,13 +336,13 @@ xglPolySegment (DrawablePtr pDrawable,
 	    {
 		if (xglFillSegment (pDrawable, pGC, nsegInit, pSegInit))
 		{
-		    xglAddBitDamage (pDrawable);
+		    xglAddCurrentBitDamage (pDrawable);
 		    return;
 		}
 	    }
 	}
 
-	XGL_GC_OP_FALLBACK_PROLOGUE (pDrawable);
+	XGL_GC_FILL_OP_FALLBACK_PROLOGUE (pDrawable);
 	(*pGC->ops->PolySegment) (pDrawable, pGC, nsegInit, pSegInit);
 	XGL_GC_OP_FALLBACK_EPILOGUE (pDrawable);
     } else
@@ -360,7 +359,7 @@ xglPolyArc (DrawablePtr pDrawable,
     {
 	XGL_GC_PRIV (pGC);
 	
-	XGL_GC_OP_FALLBACK_PROLOGUE (pDrawable);
+	XGL_GC_FILL_OP_FALLBACK_PROLOGUE (pDrawable);
 	(*pGC->ops->PolyArc) (pDrawable, pGC, narcs, pArcs);
 	XGL_GC_OP_FALLBACK_EPILOGUE (pDrawable);
     } else
@@ -375,18 +374,17 @@ xglPolyFillRect (DrawablePtr pDrawable,
 {
     XGL_GC_PRIV (pGC);
 
-    if (!pGCPriv->flags)
+    if (pGCPriv->flags || pGC->fillStyle == FillStippled)
     {
-	if (xglFillRect (pDrawable, pGC, nrect, prect))
-	{
-	    xglAddBitDamage (pDrawable);
-	    return;
-	}
+	XGL_GC_FILL_OP_FALLBACK_PROLOGUE (pDrawable);
+	(*pGC->ops->PolyFillRect) (pDrawable, pGC, nrect, prect);
+	XGL_GC_OP_FALLBACK_EPILOGUE (pDrawable);
     }
-
-    XGL_GC_FILL_OP_FALLBACK_PROLOGUE (pDrawable);
-    (*pGC->ops->PolyFillRect) (pDrawable, pGC, nrect, prect);
-    XGL_GC_OP_FALLBACK_EPILOGUE (pDrawable);
+    else
+    {
+	/* xglFillRect handles fall-back */
+	xglFillRect (pDrawable, pGC, nrect, prect);
+    }
 }
 
 void
@@ -412,7 +410,22 @@ xglImageGlyphBlt (DrawablePtr  pDrawable,
 		  pointer      pglyphBase)
 {
     XGL_GC_PRIV (pGC);
-    
+
+    if (!(pGCPriv->flags & ~xglGCBadFunctionFlag))
+    {
+	if (xglSolidGlyph (pDrawable,
+			   pGC,
+			   x,
+			   y,
+			   nglyph,
+			   ppci,
+			   pglyphBase))
+	{
+	    xglAddCurrentBitDamage (pDrawable);
+	    return;
+	}
+    }
+
     XGL_GC_OP_FALLBACK_PROLOGUE (pDrawable);
     (*pGC->ops->ImageGlyphBlt) (pDrawable, pGC, x, y, nglyph, ppci,
 				pglyphBase);
@@ -429,8 +442,23 @@ xglPolyGlyphBlt (DrawablePtr  pDrawable,
 		 pointer      pglyphBase)
 {
     XGL_GC_PRIV (pGC);
+
+    if (!pGCPriv->flags)
+    {
+	if (xglFillGlyph (pDrawable,
+			  pGC,
+			  x,
+			  y,
+			  nglyph,
+			  ppci,
+			  pglyphBase))
+	{
+	    xglAddCurrentBitDamage (pDrawable);
+	    return;
+	}
+    }
     
-    XGL_GC_OP_FALLBACK_PROLOGUE (pDrawable);
+    XGL_GC_FILL_OP_FALLBACK_PROLOGUE (pDrawable);
     (*pGC->ops->PolyGlyphBlt) (pDrawable, pGC, x, y, nglyph, ppci, pglyphBase);
     XGL_GC_OP_FALLBACK_EPILOGUE (pDrawable);
 }
@@ -485,6 +513,20 @@ xglValidateGC (GCPtr	     pGC,
 	       DrawablePtr   pDrawable)
 {
     XGL_GC_PRIV (pGC);
+
+    if (changes & GCTile)
+    {
+	if (!pGC->tileIsPixel && 
+	    FbEvenTile (pGC->tile.pixmap->drawable.width *
+			pDrawable->bitsPerPixel))
+	    xglSyncBits (&pGC->tile.pixmap->drawable, NULL);
+    }
+    
+    if (changes & GCStipple)
+    {
+	if (pGC->stipple)
+	    xglSyncBits (&pGC->stipple->drawable, NULL);
+    }
 
     XGL_GC_UNWRAP (funcs);
     XGL_GC_UNWRAP (ops);

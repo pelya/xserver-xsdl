@@ -5,7 +5,7 @@
  * and its documentation for any purpose is hereby granted without
  * fee, provided that the above copyright notice appear in all copies
  * and that both that copyright notice and this permission notice
- * appear in supporting documentation, and that the names of
+ * appear in supporting documentation, and that the name of
  * David Reveman not be used in advertising or publicity pertaining to
  * distribution of the software without specific, written prior permission.
  * David Reveman makes no representations about the suitability of this
@@ -20,10 +20,11 @@
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *
- * Author: David Reveman <davidr@freedesktop.org>
+ * Author: David Reveman <davidr@novell.com>
  */
 
 #include "xgl.h"
+#include "fb.h"
 
 #ifdef RENDER
 
@@ -33,7 +34,7 @@
 
 #define XGL_PICTURE_FALLBACK_EPILOGUE(pPicture, func, xglfunc) \
     XGL_PICTURE_SCREEN_WRAP (func, xglfunc);		       \
-    xglAddSurfaceDamage (pPicture->pDrawable)
+    xglAddCurrentSurfaceDamage (pPicture->pDrawable)
 
 void
 xglComposite (CARD8	 op,
@@ -49,7 +50,7 @@ xglComposite (CARD8	 op,
 	      CARD16	 width,
 	      CARD16	 height)
 {
-    PictureScreenPtr pPictureScreen; 
+    PictureScreenPtr pPictureScreen;
     ScreenPtr	     pScreen = pDst->pDrawable->pScreen;
 
     XGL_SCREEN_PRIV (pScreen);
@@ -58,9 +59,13 @@ xglComposite (CARD8	 op,
 		 pSrc, pMask, pDst,
 		 xSrc, ySrc,
 		 xMask, yMask,
-		 xDst, yDst,
-		 width, height))
+		 xDst + pDst->pDrawable->x, yDst + pDst->pDrawable->y,
+		 width, height,
+		 NULL, NULL))
+    {
+	xglAddCurrentBitDamage (pDst->pDrawable);
 	return;
+    }
     
     pPictureScreen = GetPictureScreen (pScreen);
 
@@ -73,45 +78,73 @@ xglComposite (CARD8	 op,
 	    FatalError (XGL_SW_FAILURE_STRING);
     }
 
-    XGL_PICTURE_FALLBACK_PROLOGUE (pDst, Composite);
+    if (op == PictOpSrc)
+    {
+	XGL_DRAWABLE_PIXMAP (pDst->pDrawable);
+		
+	if (!xglMapPixmapBits (pPixmap))
+	    FatalError (XGL_SW_FAILURE_STRING);
+    } else
+	xglSyncDamageBoxBits (pDst->pDrawable);
+    
+    XGL_PICTURE_SCREEN_UNWRAP (Composite);
     (*pPictureScreen->Composite) (op, pSrc, pMask, pDst,
 				  xSrc, ySrc, xMask, yMask, xDst, yDst,
 				  width, height);
-    XGL_PICTURE_FALLBACK_EPILOGUE (pDst, Composite, xglComposite);
+    XGL_PICTURE_SCREEN_WRAP (Composite, xglComposite);
+
+    if (op == PictOpSrc)
+    {
+	RegionRec region;
+
+	xDst += pDst->pDrawable->x;
+	yDst += pDst->pDrawable->y;
+
+	xSrc += pSrc->pDrawable->x;
+	ySrc += pSrc->pDrawable->y;
+
+	if (pMask)
+	{
+	    xMask += pMask->pDrawable->x;
+	    yMask += pMask->pDrawable->y;
+	}
+	
+        if (!miComputeCompositeRegion (&region, pSrc, pMask, pDst,
+				       xSrc, ySrc, xMask, yMask, xDst, yDst,
+				       width, height))
+	    return;
+
+	xglAddSurfaceDamage (pDst->pDrawable, &region);
+	REGION_UNINIT (pDst->pDrawable->pScreen, &region);
+    } else
+	xglAddCurrentSurfaceDamage (pDst->pDrawable);
 }
 
 void
-xglGlyphs (CARD8	 op,
-	   PicturePtr	 pSrc,
-	   PicturePtr	 pDst,
-	   PictFormatPtr maskFormat,
-	   INT16	 xSrc,
-	   INT16	 ySrc,
-	   int		 nlist,
-	   GlyphListPtr	 list,
-	   GlyphPtr	 *glyphs)
-{
-    miGlyphs (op, pSrc, pDst, maskFormat, xSrc, ySrc, nlist, list, glyphs);
-}
-
-void
-xglRasterizeTrapezoid (PicturePtr pDst,
-		       xTrapezoid *trap,
-		       int	  xOff,
-		       int	  yOff)
+xglAddTriangles (PicturePtr pDst,
+		 INT16	    xOff,
+		 INT16	    yOff,
+		 int	    ntri,
+		 xTriangle  *tris)
 {
     PictureScreenPtr pPictureScreen; 
     ScreenPtr	     pScreen = pDst->pDrawable->pScreen;
 
     XGL_SCREEN_PRIV (pScreen);
+    XGL_DRAWABLE_PIXMAP_PRIV (pDst->pDrawable);
 
     pPictureScreen = GetPictureScreen (pScreen);
 
-    XGL_PICTURE_FALLBACK_PROLOGUE (pDst, RasterizeTrapezoid);
-    (*pPictureScreen->RasterizeTrapezoid) (pDst, trap, xOff, yOff);
-    XGL_PICTURE_FALLBACK_EPILOGUE (pDst, RasterizeTrapezoid,
-				   xglRasterizeTrapezoid);
+    pPixmapPriv->damageBox.x1 = 0;
+    pPixmapPriv->damageBox.y1 = 0;
+    pPixmapPriv->damageBox.x2 = pDst->pDrawable->width;
+    pPixmapPriv->damageBox.y2 = pDst->pDrawable->height;
+
+    XGL_PICTURE_FALLBACK_PROLOGUE (pDst, AddTriangles);
+    (*pPictureScreen->AddTriangles) (pDst, xOff, yOff, ntri, tris);
+    XGL_PICTURE_FALLBACK_EPILOGUE (pDst, AddTriangles, xglAddTriangles);
 }
+
 
 void
 xglChangePicture (PicturePtr pPicture,
@@ -207,16 +240,18 @@ xglUpdatePicture (PicturePtr pPicture)
 	case PictFilterNearest:
 	case PictFilterFast:
 	    glitz_surface_set_filter (surface, GLITZ_FILTER_NEAREST, NULL, 0);
-	    pPixmapPriv->pictureMask &= ~xglPFFilterMask;
 	    break;
 	case PictFilterGood:
 	case PictFilterBest:
 	case PictFilterBilinear:
 	    glitz_surface_set_filter (surface, GLITZ_FILTER_BILINEAR, NULL, 0);
-	    pPixmapPriv->pictureMask &= ~xglPFFilterMask;
 	    break;
-	default:
-	    pPixmapPriv->pictureMask |= xglPFFilterMask;
+	case PictFilterConvolution:
+	    glitz_surface_set_filter (surface, GLITZ_FILTER_CONVOLUTION,
+				      (glitz_fixed16_16_t *)
+				      pPicture->filter_params,
+				      pPicture->filter_nparams);
+	    break;
 	}
     }
 
@@ -235,6 +270,187 @@ xglUpdatePicture (PicturePtr pPicture)
     }
 
     pPixmapPriv->pictureMask &= ~XGL_PICTURE_CHANGES (~0);
+}
+
+static int
+xglVisualDepth (ScreenPtr pScreen, VisualPtr pVisual)
+{
+    DepthPtr pDepth;
+    int	     d, v;
+
+    for (d = 0; d < pScreen->numDepths; d++)
+    {
+	pDepth = &pScreen->allowedDepths[d];
+	for (v = 0; v < pDepth->numVids; v++)
+	    if (pDepth->vids[v] == pVisual->vid)
+		return pDepth->depth;
+    }
+    
+    return 0;
+}
+
+typedef struct _xglformatInit {
+    CARD32 format;
+    CARD8  depth;
+} xglFormatInitRec, *xglFormatInitPtr;
+
+static int
+xglAddFormat (xglFormatInitPtr formats,
+	      int	       nformat,
+	      CARD32	       format,
+	      CARD8	       depth)
+{
+    int	n;
+
+    for (n = 0; n < nformat; n++)
+	if (formats[n].format == format && formats[n].depth == depth)
+	    return nformat;
+    
+    formats[nformat].format = format;
+    formats[nformat].depth = depth;
+    
+    return ++nformat;
+}
+
+#define Mask(n)	((n) == 32 ? 0xffffffff : ((1 << (n)) - 1))
+
+Bool
+xglPictureInit (ScreenPtr pScreen)
+{
+    int		     f, nformats = 0;
+    PictFormatPtr    pFormats;
+    xglFormatInitRec formats[64];
+    CARD32	     format;
+    CARD8	     depth;
+    VisualPtr	     pVisual;
+    int		     v;
+    int		     bpp;
+    int		     r, g, b;
+    int		     d;
+    DepthPtr	     pDepth;
+    
+    /* formats required by protocol */
+    formats[nformats].format = PICT_a1;
+    formats[nformats].depth = 1;
+    nformats++;
+    formats[nformats].format = PICT_a4;
+    formats[nformats].depth = 4;
+    nformats++;
+    formats[nformats].format = PICT_a8;
+    formats[nformats].depth = 8;
+    nformats++;
+    formats[nformats].format = PICT_a8r8g8b8;
+    formats[nformats].depth = 32;
+    nformats++;
+
+    /* now look through the depths and visuals adding other formats */
+    for (v = 0; v < pScreen->numVisuals; v++)
+    {
+	pVisual = &pScreen->visuals[v];
+	depth = xglVisualDepth (pScreen, pVisual);
+	if (!depth)
+	    continue;
+	
+    	bpp = BitsPerPixel (depth);
+	switch (pVisual->class) {
+	case DirectColor:
+	case TrueColor:
+	    r = Ones (pVisual->redMask);
+	    g = Ones (pVisual->greenMask);
+	    b = Ones (pVisual->blueMask);
+	    if (pVisual->offsetBlue == 0 &&
+		pVisual->offsetGreen == b &&
+		pVisual->offsetRed == b + g)
+	    {
+		format = PICT_FORMAT (bpp, PICT_TYPE_ARGB, 0, r, g, b);
+		nformats = xglAddFormat (formats, nformats, format, depth);
+	    }
+	    break;
+	case StaticColor:
+	case PseudoColor:
+	case StaticGray:
+	case GrayScale:
+	    break;
+	}
+    }
+
+    /* walk supported depths and add missing Direct formats */
+    for (d = 0; d < pScreen->numDepths; d++)
+    {
+	pDepth = &pScreen->allowedDepths[d];
+	bpp = BitsPerPixel (pDepth->depth);
+	format = 0;
+	switch (bpp) {
+	case 16:
+	    if (pDepth->depth == 15)
+		nformats = xglAddFormat (formats, nformats,
+					 PICT_x1r5g5b5, pDepth->depth);
+	    if (pDepth->depth == 16) 
+		nformats = xglAddFormat (formats, nformats,
+					 PICT_r5g6b5, pDepth->depth);
+	    break;
+	case 24:
+	    if (pDepth->depth == 24)
+		nformats = xglAddFormat (formats, nformats,
+					 PICT_r8g8b8, pDepth->depth);
+	    break;
+	case 32:
+	    if (pDepth->depth == 24)
+		nformats = xglAddFormat (formats, nformats,
+					 PICT_x8r8g8b8, pDepth->depth);
+	    break;
+	}
+    }
+
+    pFormats = (PictFormatPtr) xalloc (nformats * sizeof (PictFormatRec));
+    if (!pFormats)
+	return 0;
+    
+    memset (pFormats, '\0', nformats * sizeof (PictFormatRec));
+    for (f = 0; f < nformats; f++)
+    {
+        pFormats[f].id = FakeClientID (0);
+	pFormats[f].depth = formats[f].depth;
+	format = formats[f].format;
+	pFormats[f].format = format;
+	pFormats[f].type = PictTypeDirect;
+	switch (PICT_FORMAT_TYPE (format)) {
+	case PICT_TYPE_ARGB:
+	    pFormats[f].direct.alphaMask = Mask (PICT_FORMAT_A (format));
+	    if (pFormats[f].direct.alphaMask)
+		pFormats[f].direct.alpha = (PICT_FORMAT_R (format) +
+					    PICT_FORMAT_G (format) +
+					    PICT_FORMAT_B (format));
+	    
+	    pFormats[f].direct.redMask = Mask (PICT_FORMAT_R (format));
+	    pFormats[f].direct.red = (PICT_FORMAT_G (format) + 
+				      PICT_FORMAT_B (format));
+	    
+	    pFormats[f].direct.greenMask = Mask (PICT_FORMAT_G (format));
+	    pFormats[f].direct.green = PICT_FORMAT_B (format);
+	    
+	    pFormats[f].direct.blueMask = Mask (PICT_FORMAT_B (format));
+	    pFormats[f].direct.blue = 0;
+	    break;
+	case PICT_TYPE_A:
+	    pFormats[f].direct.alpha = 0;
+	    pFormats[f].direct.alphaMask = Mask (PICT_FORMAT_A (format));
+	    break;
+	case PICT_TYPE_COLOR:
+	case PICT_TYPE_GRAY:
+	    break;
+	}
+    }
+
+    if (!fbPictureInit (pScreen, pFormats, nformats))
+	return FALSE;
+
+    if (PictureAddFilter (pScreen,
+			  FilterConvolution,
+			  miFilterValidateParams) < 0)
+	return FALSE;
+    
+    return TRUE;
 }
 
 #endif

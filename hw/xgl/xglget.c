@@ -5,7 +5,7 @@
  * and its documentation for any purpose is hereby granted without
  * fee, provided that the above copyright notice appear in all copies
  * and that both that copyright notice and this permission notice
- * appear in supporting documentation, and that the names of
+ * appear in supporting documentation, and that the name of
  * David Reveman not be used in advertising or publicity pertaining to
  * distribution of the software without specific, written prior permission.
  * David Reveman makes no representations about the suitability of this
@@ -20,7 +20,7 @@
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *
- * Author: David Reveman <davidr@freedesktop.org>
+ * Author: David Reveman <davidr@novell.com>
  */
 
 #include "xgl.h"
@@ -35,8 +35,10 @@ xglGetImage (DrawablePtr   pDrawable,
 	     unsigned long planeMask,
 	     char	   *d)
 {
-    ScreenPtr pScreen = pDrawable->pScreen;
-    BoxRec    box;
+    ScreenPtr	    pScreen = pDrawable->pScreen;
+    glitz_surface_t *surface;
+    int             xOff, yOff;
+    BoxRec	    box;
     
     XGL_SCREEN_PRIV (pScreen);
 
@@ -44,11 +46,13 @@ xglGetImage (DrawablePtr   pDrawable,
     if (pDrawable->type == DRAWABLE_WINDOW)
     {
 	glitz_surface_flush (pScreenPriv->surface);
-	glitz_drawable_flush (pScreenPriv->drawable);
+	glitz_drawable_finish (pScreenPriv->drawable);
     }
 
-    box.x1 = x + pDrawable->x;
-    box.y1 = y + pDrawable->y;
+    XGL_GET_DRAWABLE (pDrawable, surface, xOff, yOff);
+
+    box.x1 = pDrawable->x + xOff + x;
+    box.y1 = pDrawable->y + yOff + y;
     box.x2 = box.x1 + w;
     box.y2 = box.y1 + h;
 

@@ -5,7 +5,7 @@
  * and its documentation for any purpose is hereby granted without
  * fee, provided that the above copyright notice appear in all copies
  * and that both that copyright notice and this permission notice
- * appear in supporting documentation, and that the names of
+ * appear in supporting documentation, and that the name of
  * David Reveman not be used in advertising or publicity pertaining to
  * distribution of the software without specific, written prior permission.
  * David Reveman makes no representations about the suitability of this
@@ -20,7 +20,7 @@
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *
- * Author: David Reveman <davidr@freedesktop.org>
+ * Author: David Reveman <davidr@novell.com>
  */
 
 #include <X11/Xlib.h>
@@ -64,7 +64,11 @@ int		 xscreen;
 glitz_format_t	 *xglxCurrentFormat;
 CARD32		 lastEventTime = 0;
 ScreenPtr	 currentScreen = NULL;
-xglScreenInfoRec xglScreenInfo = { 0, 0, 0, 0, FALSE };
+xglScreenInfoRec xglScreenInfo = {
+    NULL, 0, 0, 0, 0, FALSE,
+    DEFAULT_GEOMETRY_DATA_TYPE,
+    DEFAULT_GEOMETRY_USAGE
+};
 
 static Bool
 xglxAllocatePrivates (ScreenPtr pScreen)
@@ -386,9 +390,15 @@ xglxBlockHandler (pointer   blockData,
 		  OSTimePtr pTimeout,
 		  pointer   pReadMask)
 {
-    glitz_surface_flush (XGL_GET_SCREEN_PRIV (currentScreen)->surface);
-    glitz_drawable_flush (XGL_GET_SCREEN_PRIV (currentScreen)->drawable);
-    XFlush (xdisplay);
+    XGL_SCREEN_PRIV (currentScreen);
+
+    if (!xglSyncSurface (&pScreenPriv->pScreenPixmap->drawable))
+	FatalError (XGL_SW_FAILURE_STRING);
+    
+    glitz_surface_flush (pScreenPriv->surface);
+    glitz_drawable_finish (pScreenPriv->drawable);
+    
+    XSync (xdisplay, FALSE);
 }
 
 static void
@@ -397,8 +407,8 @@ xglxWakeupHandler (pointer blockData,
 		   pointer pReadMask)
 {
     ScreenPtr pScreen = currentScreen;
-    XEvent X;
-    xEvent x;
+    XEvent    X;
+    xEvent    x;
 
     while (XPending (xdisplay)) {
 	XNextEvent (xdisplay, &X);
@@ -578,7 +588,7 @@ InitInput (int argc, char **argv)
 void
 ddxUseMsg (void)
 {
-    ErrorF ("\nXglx Usage:\n");
+    ErrorF ("\nXglx usage:\n");
     ErrorF ("-display string        display name of the real server\n");
     
     xglUseMsg ();
