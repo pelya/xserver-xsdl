@@ -24,69 +24,44 @@
 #ifndef _ATI_DRAW_H_
 #define _ATI_DRAW_H_
 
-Bool
-ATIGetOffsetPitch(ATIScreenInfo *atis, int bpp, CARD32 *pitch_offset,
+Bool ATIGetOffsetPitch(ATIScreenInfo *atis, int bpp, CARD32 *pitch_offset,
     int offset, int pitch);
+Bool ATIGetPixmapOffsetPitch(PixmapPtr pPix, CARD32 *pitch_offset);
 
-Bool
-ATIGetPixmapOffsetPitch(PixmapPtr pPix, CARD32 *pitch_offset);
-
-Bool
-R128PrepareBlend(int op, PicturePtr pSrcPicture, PicturePtr pDstPicture,
-    PixmapPtr pSrc, PixmapPtr pDst);
-
-void
-R128Blend(int srcX, int srcY, int dstX, int dstY, int width, int height);
-
-void
-R128DoneBlend(void);
-
-Bool
-R128CheckComposite(int op, PicturePtr pSrcPicture, PicturePtr pMaskPicture,
+Bool R128CheckComposite(int op, PicturePtr pSrcPicture, PicturePtr pMaskPicture,
     PicturePtr pDstPicture);
-
-Bool
-R128PrepareComposite(int op, PicturePtr pSrcPicture, PicturePtr pMaskPicture,
-    PicturePtr pDstPicture, PixmapPtr pSrc, PixmapPtr pMask, PixmapPtr pDst);
-
-void
-R128Composite(int srcX, int srcY, int maskX, int maskY, int dstX, int dstY,
+Bool R128PrepareComposite(int op, PicturePtr pSrcPicture,
+    PicturePtr pMaskPicture, PicturePtr pDstPicture, PixmapPtr pSrc,
+    PixmapPtr pMask, PixmapPtr pDst);
+void R128Composite(int srcX, int srcY, int maskX, int maskY, int dstX, int dstY,
     int w, int h);
+void R128DoneComposite(void);
 
-void
-R128DoneComposite(void);
+Bool R128PrepareTrapezoids(PicturePtr pDstPicture, PixmapPtr pDst);
+void R128Trapezoids(KaaTrapezoid *traps, int ntraps);
+void R128DoneTrapezoids(void);
 
-Bool
-R100CheckComposite(int op, PicturePtr pSrcPicture, PicturePtr pMaskPicture,
+Bool R100CheckComposite(int op, PicturePtr pSrcPicture, PicturePtr pMaskPicture,
     PicturePtr pDstPicture);
-
-Bool
-R100PrepareComposite(int op, PicturePtr pSrcPicture, PicturePtr pMaskPicture,
-    PicturePtr pDstPicture, PixmapPtr pSrc, PixmapPtr pMask, PixmapPtr pDst);
-
-Bool
-R200CheckComposite(int op, PicturePtr pSrcPicture, PicturePtr pMaskPicture,
+Bool R100PrepareComposite(int op, PicturePtr pSrcPicture,
+    PicturePtr pMaskPicture, PicturePtr pDstPicture, PixmapPtr pSrc,
+    PixmapPtr pMask, PixmapPtr pDst);
+Bool R200CheckComposite(int op, PicturePtr pSrcPicture, PicturePtr pMaskPicture,
     PicturePtr pDstPicture);
-
-Bool
-R200PrepareComposite(int op, PicturePtr pSrcPicture, PicturePtr pMaskPicture,
-    PicturePtr pDstPicture, PixmapPtr pSrc, PixmapPtr pMask, PixmapPtr pDst);
-
-void
-RadeonComposite(int srcX, int srcY, int maskX, int maskY, int dstX,
+Bool R200PrepareComposite(int op, PicturePtr pSrcPicture,
+    PicturePtr pMaskPicture, PicturePtr pDstPicture, PixmapPtr pSrc,
+    PixmapPtr pMask, PixmapPtr pDst);
+void RadeonComposite(int srcX, int srcY, int maskX, int maskY, int dstX,
     int dstY, int w, int h);
+void RadeonDoneComposite(void);
 
-void
-RadeonDoneComposite(void);
+Bool RadeonPrepareTrapezoids(PicturePtr pDstPicture, PixmapPtr pDst);
+void RadeonTrapezoids(KaaTrapezoid *traps, int ntraps);
+void RadeonDoneTrapezoids(void);
 
-void
-RadeonSwitchTo2D(ATIScreenInfo *atis);
-
-void
-RadeonSwitchTo3D(ATIScreenInfo *atis);
-
-void
-ATIWaitIdle(ATIScreenInfo *atis);
+void RadeonSwitchTo2D(ATIScreenInfo *atis);
+void RadeonSwitchTo3D(ATIScreenInfo *atis);
+void ATIWaitIdle(ATIScreenInfo *atis);
 
 #if 0
 #define ATI_FALLBACK(x)			\

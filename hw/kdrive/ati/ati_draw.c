@@ -77,6 +77,10 @@ ATIScreenInfo *accel_atis;
 Bool is_24bpp;
 CARD32 settings, color, src_pitch_offset, dst_pitch_offset;
 
+int sample_count;
+float sample_offsets_x[255];
+float sample_offsets_y[255];
+
 #define DRAW_USING_PACKET3 0
 
 void
@@ -719,6 +723,9 @@ ATIDrawInit(ScreenPtr pScreen)
 		atis->kaa.offscreenPitch = 32;
 	}
 
+	kaaInitTrapOffsets(8, sample_offsets_x, sample_offsets_y, 0.0, 0.0);
+	sample_count = (1 << 8) - 1;
+
 	if (!kaaDrawInit(pScreen, &atis->kaa))
 		return FALSE;
 
@@ -751,15 +758,6 @@ ATIDrawEnable(ScreenPtr pScreen)
 	atis->kaa.PrepareComposite = NULL;
 	atis->kaa.Composite = NULL;
 	atis->kaa.DoneComposite = NULL;
-	/* XXX: The R128 Blend code has several issues, according to
-	 * rendercheck.  Source coordinates are sometimes wrong it appears, and
-	 * in some cases the blending results are wrong.
-	 */
-	if (0 && !atic->is_radeon) {
-		atis->kaa.PrepareBlend = R128PrepareBlend;
-		atis->kaa.Blend = R128Blend;
-		atis->kaa.DoneBlend = R128DoneBlend;
-	}
 
 	/* We can't dispatch 3d commands in PIO mode. */
 	if (!atis->using_pio) {
@@ -768,11 +766,17 @@ ATIDrawEnable(ScreenPtr pScreen)
 			atis->kaa.PrepareComposite = R128PrepareComposite;
 			atis->kaa.Composite = R128Composite;
 			atis->kaa.DoneComposite = R128DoneComposite;
+			/*atis->kaa.PrepareTrapezoids = R128PrepareTrapezoids;
+			atis->kaa.Trapezoids = R128Trapezoids;
+			atis->kaa.DoneTrapezoids = R128DoneTrapezoids;*/
 		} else if (atic->is_r100) {
 			atis->kaa.CheckComposite = R100CheckComposite;
 			atis->kaa.PrepareComposite = R100PrepareComposite;
 			atis->kaa.Composite = RadeonComposite;
 			atis->kaa.DoneComposite = RadeonDoneComposite;
+			/*atis->kaa.PrepareTrapezoids = RadeonPrepareTrapezoids;
+			atis->kaa.Trapezoids = RadeonTrapezoids;
+			atis->kaa.DoneTrapezoids = RadeonDoneTrapezoids;*/
 		} else if (0 && atic->is_r200) { /* XXX */
 			atis->kaa.CheckComposite = R200CheckComposite;
 			atis->kaa.PrepareComposite = R200PrepareComposite;

@@ -319,6 +319,20 @@ typedef struct _ATIScreenInfo {
 #define getATIScreenInfo(kd)	((ATIScreenInfo *) ((kd)->screen->driver))
 #define ATIScreenInfo(kd)	ATIScreenInfo *atis = getATIScreenInfo(kd)
 
+typedef union { float f; CARD32 i; } fi_type;
+
+/* Surely there's a better way to go about this */
+static inline CARD32
+ATIFloatAsInt(float val)
+{
+	fi_type fi;
+
+	fi.f = val;
+	return fi.i;
+}
+
+#define GET_FLOAT_BITS(x) ATIFloatAsInt(x)
+
 /* ati.c */
 Bool
 ATIMapReg(KdCardInfo *card, ATICardInfo *atic);

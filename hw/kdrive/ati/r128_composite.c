@@ -27,14 +27,13 @@
 #include "ati_draw.h"
 
 extern ATIScreenInfo *accel_atis;
+extern int sample_count;
+extern float sample_offsets_x[255];
+extern float sample_offsets_y[255];
 extern CARD8 ATIBltRop[16];
 
-static int src_pitch;
-static int src_offset;
-static int src_bpp;
 static int widths[2] = {1,1};
 static int heights[2] = {1,1};
-static Bool is_repeat;
 static Bool is_transform[2];
 static PictTransform *transform[2];
 
@@ -78,132 +77,20 @@ R128GetDatatypePict(CARD32 format, CARD32 *type)
 {
 	switch (format) {
 	case PICT_a1r5g5b5:
+	case PICT_x1r5g5b5:
 		*type = R128_DATATYPE_ARGB1555;
 		return TRUE;
 	case PICT_r5g6b5:
 		*type = R128_DATATYPE_RGB565;
 		return TRUE;
 	case PICT_a8r8g8b8:
+	case PICT_x8r8g8b8:
 		*type = R128_DATATYPE_ARGB8888;
 		return TRUE;
 	default:
 		return FALSE;
 	}
 
-}
-
-Bool
-R128PrepareBlend(int op, PicturePtr pSrcPicture, PicturePtr pDstPicture,
-    PixmapPtr pSrc, PixmapPtr pDst)
-{
-	KdScreenPriv(pDst->drawable.pScreen);
-	ATIScreenInfo(pScreenPriv);
-	CARD32 dstDatatype, srcDatatype;
-	RING_LOCALS;
-	CARD32 xinc, yinc, dst_pitch_offset;
-
-	accel_atis = atis;
-
-	src_offset = (CARD8 *)pSrc->devPrivate.ptr -
-	    pScreenPriv->screen->memory_base;
-	src_pitch = pSrc->devKind;
-	src_bpp = pSrc->drawable.bitsPerPixel;
-	is_repeat = pSrcPicture->repeat;
-
-	if (op >= sizeof(R128BlendOp)/sizeof(R128BlendOp[0]))
-		ATI_FALLBACK(("Unsupported op 0x%x\n", op));
-	if (pSrcPicture->repeat && (pSrc->drawable.width != 1 ||
-	    pSrc->drawable.height != 1))
-		ATI_FALLBACK(("repeat unsupported\n"));
-	if (pSrcPicture->transform != NULL)
-		ATI_FALLBACK(("transform unsupported\n"));
-	if (!R128GetDatatypePict(pDstPicture->format, &dstDatatype))
-		ATI_FALLBACK(("Unsupported dest format 0x%x\n",
-		    pDstPicture->format));
-	if (!R128GetDatatypePict(pSrcPicture->format, &srcDatatype))
-		ATI_FALLBACK(("Unsupported src format 0x%x\n",
-		    pSrcPicture->format));
-	if (src_pitch % src_bpp != 0)
-		ATI_FALLBACK(("Bad src pitch 0x%x\n", src_pitch));
-	if (!ATIGetPixmapOffsetPitch(pDst, &dst_pitch_offset))
-		return FALSE;
-
-	if (is_repeat) {
-		xinc = 0;
-		yinc = 0;
-	} else {
-		xinc = 65536;
-		yinc = 65536;
-	}
-
-	BEGIN_DMA(18);
-	OUT_REG(ATI_REG_DST_PITCH_OFFSET, dst_pitch_offset);
-	OUT_REG(ATI_REG_DP_GUI_MASTER_CNTL,
-	    ATI_GMC_DST_PITCH_OFFSET_CNTL |
-	    ATI_GMC_BRUSH_SOLID_COLOR |
-	    (dstDatatype << 8) |
-	    ATI_GMC_SRC_DATATYPE_COLOR |
-	    (ATIBltRop[GXcopy] << 16) |
-	    ATI_DP_SRC_SOURCE_MEMORY |
-	    R128_GMC_3D_FCN_EN |
-	    ATI_GMC_CLR_CMP_CNTL_DIS |
-	    R128_GMC_AUX_CLIP_DIS);
-	OUT_REG(ATI_REG_DP_CNTL, 
-	    ATI_DST_X_LEFT_TO_RIGHT | ATI_DST_Y_TOP_TO_BOTTOM );
-	OUT_REG(R128_REG_SCALE_3D_CNTL,
-	    R128_SCALE_3D_SCALE |
-	    R128_SCALE_PIX_REPLICATE |
-	    R128BlendOp[op].blendctl |
-	    R128_TEX_MAP_ALPHA_IN_TEXTURE);
-	OUT_REG(R128_REG_TEX_CNTL_C, R128_ALPHA_ENABLE | R128_TEX_CACHE_FLUSH);
-	OUT_REG(R128_REG_SCALE_3D_DATATYPE, srcDatatype);
-
-	/* R128_REG_SCALE_PITCH,
-	 * R128_REG_SCALE_X_INC,
-	 * R128_REG_SCALE_Y_INC,
-	 * R128_REG_SCALE_HACC
-	 * R128_REG_SCALE_VACC */
-	OUT_RING(DMA_PACKET0(R128_REG_SCALE_PITCH, 5));
-	OUT_RING(src_pitch / src_bpp);
-	OUT_RING(xinc);
-	OUT_RING(yinc);
-	OUT_RING(0x0);
-	OUT_RING(0x0);
-	END_DMA();
-
-	return TRUE;
-}
-
-void
-R128Blend(int srcX, int srcY, int dstX, int dstY, int width, int height)
-{
-	ATIScreenInfo *atis = accel_atis;
-	RING_LOCALS;
-
-	if (is_repeat) {
-		srcX = 0;
-		srcY = 0;
-	}
-
-	BEGIN_DMA(6);
-	/* R128_REG_SCALE_SRC_HEIGHT_WIDTH,
-	 * R128_REG_SCALE_OFFSET_0
-	 */
-	OUT_RING(DMA_PACKET0(R128_REG_SCALE_SRC_HEIGHT_WIDTH, 2));
-	OUT_RING((height << 16) | width);
-	OUT_RING(src_offset + srcY * src_pitch + srcX * (src_bpp >> 3));
-	/* R128_REG_SCALE_DST_X_Y
-	 * R128_REG_SCALE_DST_HEIGHT_WIDTH
-	 */
-	OUT_RING(DMA_PACKET0(R128_REG_SCALE_DST_X_Y, 2));
-	OUT_RING((dstX << 16) | dstY);
-	OUT_RING((height << 16) | width);
-	END_DMA();
-}
-
-void
-R128DoneBlend(void)
-{
 }
 
 static Bool
@@ -302,6 +189,9 @@ R128TextureSetup(PicturePtr pPict, PixmapPtr pPix, int unit, CARD32 *txsize,
 
 	*tex_cntl_c |= R128_MIP_MAP_DISABLE;
 
+	if (pPict->filter == PictFilterBilinear)
+		*tex_cntl_c |= R128_MIN_BLEND_LINEAR | R128_MAG_BLEND_LINEAR;
+
 	if (unit == 0)
 		shift = 0;
 	else {
@@ -344,6 +234,7 @@ R128PrepareComposite(int op, PicturePtr pSrcPicture, PicturePtr pMaskPicture,
 	ATIScreenInfo(pScreenPriv);
 	CARD32 txsize = 0, prim_tex_cntl_c, sec_tex_cntl_c = 0, dstDatatype;
 	CARD32 dst_pitch_offset, color_factor, in_color_factor, alpha_comb;
+	CARD32 blend_cntl;
 	int i;
 	RING_LOCALS;
 
@@ -364,6 +255,19 @@ R128PrepareComposite(int op, PicturePtr pSrcPicture, PicturePtr pMaskPicture,
 
 	if (!ATIGetPixmapOffsetPitch(pDst, &dst_pitch_offset))
 		return FALSE;
+
+	blend_cntl = R128BlendOp[op].blendctl;
+	if (PICT_FORMAT_A(pDstPicture->format) == 0 &&
+	    R128BlendOp[op].dst_alpha) {
+		if ((blend_cntl & R128_SBLEND_MASK) ==
+		    R128_SBLEND_DST_ALPHA)
+			blend_cntl = (blend_cntl & ~R128_SBLEND_MASK) |
+			    R128_SBLEND_ONE;
+		else if ((blend_cntl & R128_SBLEND_MASK) ==
+		    R128_SBLEND_INV_DST_ALPHA)
+			blend_cntl = (blend_cntl & ~R128_SBLEND_MASK) |
+			    R128_SBLEND_ZERO;
+	}
 
 	BEGIN_DMA(12);
 	OUT_REG(R128_REG_SCALE_3D_CNTL,
@@ -388,7 +292,7 @@ R128PrepareComposite(int op, PicturePtr pSrcPicture, PicturePtr pMaskPicture,
 	    R128_MISC_SCALE_3D_TEXMAP_SHADE |
 	    R128_MISC_SCALE_PIX_REPLICATE |
 	    R128_ALPHA_COMB_ADD_CLAMP |
-	    R128BlendOp[op].blendctl);
+	    blend_cntl);
 	OUT_REG(R128_REG_TEX_CNTL_C,
 	    R128_TEXMAP_ENABLE |
 	    ((pMask != NULL) ? R128_SEC_TEXMAP_ENABLE : 0) |
@@ -477,30 +381,18 @@ R128PrepareComposite(int op, PicturePtr pSrcPicture, PicturePtr pMaskPicture,
 
 	return TRUE;
 }
-
-union intfloat {
-	float f;
-	CARD32 i;
-};
-
-struct blend_vertex {
-	union intfloat x, y, z, w;
-	union intfloat s0, t0;
-	union intfloat s1, t1;
-};
-
 #define VTX_RING_COUNT 8
 
-#define VTX_OUT(vtx)		\
-do {				\
-	OUT_RING(vtx.x.i);	\
-	OUT_RING(vtx.y.i);	\
-	OUT_RING(vtx.z.i);	\
-	OUT_RING(vtx.w.i);	\
-	OUT_RING(vtx.s0.i);	\
-	OUT_RING(vtx.t0.i);	\
-	OUT_RING(vtx.s1.i);	\
-	OUT_RING(vtx.t1.i);	\
+#define VTX_OUT(_dstX, _dstY, _srcX, _srcY, _maskX, _maskY)		\
+do {									\
+	OUT_RING_F((_dstX));						\
+	OUT_RING_F(((float)(_dstY)) + .125);				\
+	OUT_RING_F(0.0);						\
+	OUT_RING_F(1.0);						\
+	OUT_RING_F((((float)(_srcX)) + 0.5) / (widths[0]));		\
+	OUT_RING_F((((float)(_srcY)) + 0.5) / (heights[0]));		\
+	OUT_RING_F((((float)(_maskX)) + 0.5) / (widths[1]));		\
+	OUT_RING_F((((float)(_maskY)) + 0.5) / (heights[1]));		\
 } while (0)
 
 void
@@ -508,95 +400,44 @@ R128Composite(int srcX, int srcY, int maskX, int maskY, int dstX, int dstY,
     int w, int h)
 {
 	ATIScreenInfo *atis = accel_atis;
-	struct blend_vertex vtx[4];
-	int i;
 	int srcXend, srcYend, maskXend, maskYend;
+	PictVector v;
 	RING_LOCALS;
 
 	/*ErrorF("R128Composite (%d,%d) (%d,%d) (%d,%d) (%d,%d)\n",
 	    srcX, srcY, maskX, maskY,dstX, dstY, w, h);*/
 
+	srcXend = srcX + w;
+	srcYend = srcY + h;
+	maskXend = maskX + w;
+	maskYend = maskY + h;
 	if (is_transform[0]) {
-		PictVector v;
-
 		v.vector[0] = IntToxFixed(srcX);
 		v.vector[1] = IntToxFixed(srcY);
-		v.vector[3] = xFixed1;
+		v.vector[2] = xFixed1;
 		PictureTransformPoint(transform[0], &v);
 		srcX = xFixedToInt(v.vector[0]);
 		srcY = xFixedToInt(v.vector[1]);
-		v.vector[0] = IntToxFixed(srcX + w);
-		v.vector[1] = IntToxFixed(srcY + h);
-		v.vector[3] = xFixed1;
+		v.vector[0] = IntToxFixed(srcXend);
+		v.vector[1] = IntToxFixed(srcYend);
+		v.vector[2] = xFixed1;
 		PictureTransformPoint(transform[0], &v);
 		srcXend = xFixedToInt(v.vector[0]);
 		srcYend = xFixedToInt(v.vector[1]);
-	} else {
-		srcXend = srcX + w;
-		srcYend = srcY + h;
 	}
 	if (is_transform[1]) {
-		PictVector v;
-
 		v.vector[0] = IntToxFixed(maskX);
 		v.vector[1] = IntToxFixed(maskY);
-		v.vector[3] = xFixed1;
+		v.vector[2] = xFixed1;
 		PictureTransformPoint(transform[1], &v);
 		maskX = xFixedToInt(v.vector[0]);
 		maskY = xFixedToInt(v.vector[1]);
-		v.vector[0] = IntToxFixed(maskX + w);
-		v.vector[1] = IntToxFixed(maskY + h);
-		v.vector[3] = xFixed1;
+		v.vector[0] = IntToxFixed(maskXend);
+		v.vector[1] = IntToxFixed(maskYend);
+		v.vector[2] = xFixed1;
 		PictureTransformPoint(transform[1], &v);
 		maskXend = xFixedToInt(v.vector[0]);
 		maskYend = xFixedToInt(v.vector[1]);
-	} else {
-		maskXend = maskX + w;
-		maskYend = maskY + h;
-	}
-	vtx[0].x.f = dstX;
-	vtx[0].y.f = dstY;
-	vtx[0].z.f = 0.0;
-	vtx[0].w.f = 1.0;
-	vtx[0].s0.f = srcX;
-	vtx[0].t0.f = srcY;
-	vtx[0].s1.f = maskX;
-	vtx[0].t1.f = maskY;
-
-	vtx[1].x.f = dstX;
-	vtx[1].y.f = dstY + h;
-	vtx[1].z.f = 0.0;
-	vtx[1].w.f = 1.0;
-	vtx[1].s0.f = srcX;
-	vtx[1].t0.f = srcYend;
-	vtx[1].s1.f = maskX;
-	vtx[1].t1.f = maskYend;
-
-	vtx[2].x.f = dstX + w;
-	vtx[2].y.f = dstY + h;
-	vtx[2].z.f = 0.0;
-	vtx[2].w.f = 1.0;
-	vtx[2].s0.f = srcXend;
-	vtx[2].t0.f = srcYend;
-	vtx[2].s1.f = maskXend;
-	vtx[2].t1.f = maskYend;
-
-	vtx[3].x.f = dstX + w;
-	vtx[3].y.f = dstY;
-	vtx[3].z.f = 0.0;
-	vtx[3].w.f = 1.0;
-	vtx[3].s0.f = srcXend;
-	vtx[3].t0.f = srcY;
-	vtx[3].s1.f = maskXend;
-	vtx[3].t1.f = maskY;
-
-	for (i = 0; i < 4; i++) {
-		vtx[i].x.f += 0.0;
-		vtx[i].y.f += 0.125;
-		vtx[i].s0.f /= widths[0];
-		vtx[i].t0.f /= heights[0];
-		vtx[i].s1.f /= widths[1];
-		vtx[i].t1.f /= heights[1];
 	}
 
 	BEGIN_DMA(3 + 4 * VTX_RING_COUNT);
@@ -609,15 +450,125 @@ R128Composite(int srcX, int srcY, int maskX, int maskY, int dstX, int dstY,
 	    R128_CCE_VC_CNTL_PRIM_WALK_RING |
 	    (4 << R128_CCE_VC_CNTL_NUM_SHIFT));
 
-	VTX_OUT(vtx[0]);
-	VTX_OUT(vtx[1]);
-	VTX_OUT(vtx[2]);
-	VTX_OUT(vtx[3]);
+	VTX_OUT(dstX,     dstY,     srcX,    srcY,    maskX,    maskY);
+	VTX_OUT(dstX,     dstY + h, srcX,    srcYend, maskX,    maskYend);
+	VTX_OUT(dstX + w, dstY + h, srcXend, srcYend, maskXend, maskYend);
+	VTX_OUT(dstX + w, dstY,     srcXend, srcY,    maskXend, maskY);
 
 	END_DMA();
 }
 
 void
 R128DoneComposite(void)
+{
+}
+
+Bool
+R128PrepareTrapezoids(PicturePtr pDstPicture, PixmapPtr pDst)
+{
+	KdScreenPriv(pDst->drawable.pScreen);
+	ATIScreenInfo(pScreenPriv);
+	CARD32 dst_pitch_offset;
+	RING_LOCALS;
+
+	accel_atis = atis;
+
+	if (!ATIGetPixmapOffsetPitch(pDst, &dst_pitch_offset))
+		return FALSE;
+
+	BEGIN_DMA(18);
+	OUT_REG(R128_REG_SCALE_3D_CNTL,
+	    R128_SCALE_3D_TEXMAP_SHADE |
+	    R128_SCALE_PIX_REPLICATE |
+	    R128_TEX_CACHE_SPLIT |
+	    R128_TEX_CACHE_LINE_SIZE_4QW);
+	OUT_REG(ATI_REG_DST_PITCH_OFFSET, dst_pitch_offset);
+	OUT_REG(ATI_REG_DP_GUI_MASTER_CNTL,
+	    ATI_GMC_DST_PITCH_OFFSET_CNTL |
+	    ATI_GMC_BRUSH_SOLID_COLOR |
+	    (R128_DATATYPE_RGB8 << 8) |
+	    ATI_GMC_SRC_DATATYPE_COLOR |
+	    (ATIBltRop[GXcopy] << 16) |
+	    ATI_DP_SRC_SOURCE_MEMORY |
+	    R128_GMC_3D_FCN_EN |
+	    ATI_GMC_CLR_CMP_CNTL_DIS |
+	    ATI_GMC_WR_MSK_DIS);
+	OUT_REG(R128_REG_MISC_3D_STATE_CNTL,
+	    R128_MISC_SCALE_3D_TEXMAP_SHADE |
+	    R128_MISC_SCALE_PIX_REPLICATE |
+	    R128_ALPHA_COMB_ADD_CLAMP | 
+	    R128BlendOp[PictOpAdd].blendctl);
+	OUT_REG(R128_REG_TEX_CNTL_C,
+	    R128_ALPHA_ENABLE);
+	OUT_REG(R128_REG_PC_GUI_CTLSTAT, R128_PC_FLUSH_GUI);
+
+	/* R128_REG_AUX_SC_CNTL,
+	 * R128_REG_AUX1_SC_LEFT
+	 * R128_REG_AUX1_SC_RIGHT
+	 * R128_REG_AUX1_SC_TOP
+	 * R128_REG_AUX1_SC_BOTTOM
+	 */
+	OUT_RING(DMA_PACKET0(R128_REG_AUX_SC_CNTL, 5));
+	OUT_RING(R128_AUX1_SC_ENB);
+	OUT_RING(0);
+	OUT_RING(pDst->drawable.width);
+	OUT_RING(0);
+	OUT_RING(pDst->drawable.height);
+	END_DMA();
+
+	return TRUE;
+}
+
+#define TRAP_VERT_RING_COUNT 4
+
+#define TRAP_VERT(_x, _y)						\
+do {									\
+	OUT_RING_F((_x) + sample_x);					\
+	OUT_RING_F((_y) + 0.125 + sample_y);				\
+	OUT_RING_F(0.0);						\
+	OUT_RING(0x01010101);						\
+} while (0)
+
+void
+R128Trapezoids(KaaTrapezoid *traps, int ntraps)
+{
+	ATIScreenInfo *atis = accel_atis;
+	RING_LOCALS;
+
+	while (ntraps > 0) {
+		int i, sample, count, vertcount;
+
+		count = 0xffff / 4 / sample_count;
+		if (count > ntraps)
+			count = ntraps;
+		vertcount = count * sample_count * 4;
+
+		BEGIN_DMA(3 + vertcount * TRAP_VERT_RING_COUNT);
+		OUT_RING(DMA_PACKET3(ATI_CCE_PACKET3_3D_RNDR_GEN_PRIM,
+		    2 + vertcount * TRAP_VERT_RING_COUNT));
+		OUT_RING(R128_CCE_VC_FRMT_DIFFUSE_ARGB);
+		OUT_RING(R128_CCE_VC_CNTL_PRIM_TYPE_TRI_FAN |
+		    R128_CCE_VC_CNTL_PRIM_WALK_RING |
+		    (vertcount << R128_CCE_VC_CNTL_NUM_SHIFT));
+
+		for (i = 0; i < count; i++) {
+		    for (sample = 0; sample < sample_count; sample++) {
+			float sample_x = sample_offsets_x[sample];
+			float sample_y = sample_offsets_y[sample];
+			TRAP_VERT(traps[i].tl, traps[i].ty);
+			TRAP_VERT(traps[i].bl, traps[i].by);
+			TRAP_VERT(traps[i].br, traps[i].by);
+			TRAP_VERT(traps[i].tr, traps[i].ty);
+		    }
+		}
+		END_DMA();
+
+		ntraps -= count;
+		traps += count;
+	}
+}
+
+void
+R128DoneTrapezoids(void)
 {
 }

@@ -32,6 +32,9 @@
 #include "ati_draw.h"
 
 extern ATIScreenInfo *accel_atis;
+extern int sample_count;
+extern float sample_offsets_x[255];
+extern float sample_offsets_y[255];
 static Bool is_transform[2];
 static PictTransform *transform[2];
 
@@ -587,14 +590,14 @@ struct blend_vertex {
 
 #define VTX_DWORD_COUNT 6
 
-#define VTX_OUT(vtx)		\
-do {				\
-	OUT_RING(vtx.x.i);	\
-	OUT_RING(vtx.y.i);	\
-	OUT_RING(vtx.s0.i);	\
-	OUT_RING(vtx.t0.i);	\
-	OUT_RING(vtx.s1.i);	\
-	OUT_RING(vtx.t1.i);	\
+#define VTX_OUT(_dstX, _dstY, _srcX, _srcY, _maskX, _maskY)		\
+do {									\
+	OUT_RING_F(_dstX);						\
+	OUT_RING_F(_dstY);						\
+	OUT_RING_F(_srcX);						\
+	OUT_RING_F(_srcY);						\
+	OUT_RING_F(_maskX);						\
+	OUT_RING_F(_maskY);						\
 } while (0)
 
 void
@@ -603,79 +606,45 @@ RadeonComposite(int srcX, int srcY, int maskX, int maskY, int dstX, int dstY,
 {
 	ATIScreenInfo *atis = accel_atis;
 	ATICardInfo *atic = atis->atic;
-	struct blend_vertex vtx[4];
 	int srcXend, srcYend, maskXend, maskYend;
 	RING_LOCALS;
+	PictVector v;
 
 	/*ErrorF("RadeonComposite (%d,%d) (%d,%d) (%d,%d) (%d,%d)\n",
 	    srcX, srcY, maskX, maskY,dstX, dstY, w, h);*/
 
+	srcXend = srcX + w;
+	srcYend = srcY + h;
+	maskXend = maskX + w;
+	maskYend = maskY + h;
 	if (is_transform[0]) {
-		PictVector v;
-
 		v.vector[0] = IntToxFixed(srcX);
 		v.vector[1] = IntToxFixed(srcY);
-		v.vector[3] = xFixed1;
+		v.vector[2] = xFixed1;
 		PictureTransformPoint(transform[0], &v);
 		srcX = xFixedToInt(v.vector[0]);
 		srcY = xFixedToInt(v.vector[1]);
-		v.vector[0] = IntToxFixed(srcX + w);
-		v.vector[1] = IntToxFixed(srcY + h);
-		v.vector[3] = xFixed1;
+		v.vector[0] = IntToxFixed(srcXend);
+		v.vector[1] = IntToxFixed(srcYend);
+		v.vector[2] = xFixed1;
 		PictureTransformPoint(transform[0], &v);
 		srcXend = xFixedToInt(v.vector[0]);
 		srcYend = xFixedToInt(v.vector[1]);
-	} else {
-		srcXend = srcX + w;
-		srcYend = srcY + h;
 	}
 	if (is_transform[1]) {
-		PictVector v;
-
 		v.vector[0] = IntToxFixed(maskX);
 		v.vector[1] = IntToxFixed(maskY);
-		v.vector[3] = xFixed1;
+		v.vector[2] = xFixed1;
 		PictureTransformPoint(transform[1], &v);
 		maskX = xFixedToInt(v.vector[0]);
 		maskY = xFixedToInt(v.vector[1]);
-		v.vector[0] = IntToxFixed(maskX + w);
-		v.vector[1] = IntToxFixed(maskY + h);
-		v.vector[3] = xFixed1;
+		v.vector[0] = IntToxFixed(maskXend);
+		v.vector[1] = IntToxFixed(maskYend);
+		v.vector[2] = xFixed1;
 		PictureTransformPoint(transform[1], &v);
 		maskXend = xFixedToInt(v.vector[0]);
 		maskYend = xFixedToInt(v.vector[1]);
-	} else {
-		maskXend = maskX + w;
-		maskYend = maskY + h;
 	}
-
-	vtx[0].x.f = dstX;
-	vtx[0].y.f = dstY;
-	vtx[0].s0.f = srcX;
-	vtx[0].t0.f = srcY;
-	vtx[0].s1.f = maskX;
-	vtx[0].t1.f = maskY;
-
-	vtx[1].x.f = dstX;
-	vtx[1].y.f = dstY + h;
-	vtx[1].s0.f = srcX;
-	vtx[1].t0.f = srcYend;
-	vtx[1].s1.f = maskX;
-	vtx[1].t1.f = maskYend;
-
-	vtx[2].x.f = dstX + w;
-	vtx[2].y.f = dstY + h;
-	vtx[2].s0.f = srcXend;
-	vtx[2].t0.f = srcYend;
-	vtx[2].s1.f = maskXend;
-	vtx[2].t1.f = maskYend;
-
-	vtx[3].x.f = dstX + w;
-	vtx[3].y.f = dstY;
-	vtx[3].s0.f = srcXend;
-	vtx[3].t0.f = srcY;
-	vtx[3].s1.f = maskXend;
-	vtx[3].t1.f = maskY;
 
 	if (atic->is_r100) {
 		BEGIN_DMA(4 * VTX_DWORD_COUNT + 3);
@@ -698,10 +667,10 @@ RadeonComposite(int srcX, int srcY, int maskX, int maskY, int dstX, int dstY,
 		    (4 << RADEON_CP_VC_CNTL_NUM_SHIFT));
 	}
 
-	VTX_OUT(vtx[0]);
-	VTX_OUT(vtx[1]);
-	VTX_OUT(vtx[2]);
-	VTX_OUT(vtx[3]);
+	VTX_OUT(dstX,     dstY,     srcX,    srcY,    maskX,    maskY);
+	VTX_OUT(dstX,     dstY + h, srcX,    srcYend, maskX,    maskYend);
+	VTX_OUT(dstX + w, dstY + h, srcXend, srcYend, maskXend, maskYend);
+	VTX_OUT(dstX + w, dstY,     srcXend, srcY,    maskXend, maskY);
 
 	END_DMA();
 }
@@ -709,4 +678,130 @@ RadeonComposite(int srcX, int srcY, int maskX, int maskY, int dstX, int dstY,
 void
 RadeonDoneComposite(void)
 {
+}
+
+Bool
+RadeonPrepareTrapezoids(PicturePtr pDstPicture, PixmapPtr pDst)
+{
+	KdScreenPriv(pDst->drawable.pScreen);
+	ATIScreenInfo(pScreenPriv);
+	CARD32 dst_offset, dst_pitch;
+	int pixel_shift;
+	RING_LOCALS;
+
+	pixel_shift = pDst->drawable.bitsPerPixel >> 4;
+
+	accel_atis = atis;
+
+	dst_offset = ((CARD8 *)pDst->devPrivate.ptr -
+	    pScreenPriv->screen->memory_base);
+	dst_pitch = pDst->devKind;
+	if ((dst_offset & 0x0f) != 0)
+		ATI_FALLBACK(("Bad destination offset 0x%x\n", dst_offset));
+	if (((dst_pitch >> pixel_shift) & 0x7) != 0)
+		ATI_FALLBACK(("Bad destination pitch 0x%x\n", dst_pitch));
+
+	BEGIN_DMA(14);
+	OUT_REG(ATI_REG_WAIT_UNTIL,
+		RADEON_WAIT_HOST_IDLECLEAN | RADEON_WAIT_2D_IDLECLEAN);
+
+	/* RADEON_REG_PP_CNTL,
+	 * RADEON_REG_RB3D_CNTL, 
+	 * RADEON_REG_RB3D_COLOROFFSET,
+	 * RADEON_REG_RE_WIDTH_HEIGHT,
+	 * RADEON_REG_RB3D_COLORPITCH
+	 */
+	OUT_RING(DMA_PACKET0(RADEON_REG_PP_CNTL, 5));
+	OUT_RING(RADEON_TEX_BLEND_0_ENABLE);
+	OUT_RING(RADEON_COLOR_FORMAT_RGB8 | RADEON_ALPHA_BLEND_ENABLE);
+	OUT_RING(dst_offset);
+	OUT_RING(((pDst->drawable.height - 1) << 16) |
+	    (pDst->drawable.width - 1));
+	OUT_RING(dst_pitch >> pixel_shift);
+
+	/* RADEON_REG_PP_TXCBLEND_0,
+	 * RADEON_REG_PP_TXABLEND_0,
+	 * RADEON_REG_PP_TFACTOR_0
+	 */
+	OUT_RING(DMA_PACKET0(RADEON_REG_PP_TXCBLEND_0, 3));
+	OUT_RING(RADEON_BLEND_CTL_ADD | RADEON_CLAMP_TX |
+	    RADEON_COLOR_ARG_C_TFACTOR_ALPHA);
+	OUT_RING(RADEON_BLEND_CTL_ADD | RADEON_CLAMP_TX |
+	    RADEON_ALPHA_ARG_C_TFACTOR_ALPHA);
+	OUT_RING(0x01000000);
+
+	OUT_REG(RADEON_REG_RB3D_BLENDCNTL, RadeonBlendOp[PictOpAdd].blend_cntl);
+	END_DMA();
+
+	return TRUE;
+}
+
+#define TRAP_VERT_RING_COUNT 2
+
+#define TRAP_VERT(_x, _y)						\
+do {									\
+	OUT_RING_F((_x) + sample_x);					\
+	OUT_RING_F((_y) + sample_y);					\
+} while (0)
+
+void
+RadeonTrapezoids(KaaTrapezoid *traps, int ntraps)
+{
+	ATIScreenInfo *atis = accel_atis;
+	ATICardInfo *atic = atis->atic;
+	RING_LOCALS;
+
+	while (ntraps > 0) {
+		int i, sample, count, vertcount;
+
+		count = 0xffff / 4 / sample_count;
+		if (count > ntraps)
+			count = ntraps;
+		vertcount = count * sample_count * 4;
+
+		if (atic->is_r100) {
+			BEGIN_DMA(3 + vertcount * TRAP_VERT_RING_COUNT);
+			OUT_RING(DMA_PACKET3(RADEON_CP_PACKET3_3D_DRAW_IMMD,
+			    2 + vertcount * TRAP_VERT_RING_COUNT));
+			OUT_RING(RADEON_CP_VC_FRMT_XY);
+			OUT_RING(RADEON_CP_VC_CNTL_PRIM_TYPE_TRI_FAN |
+			    RADEON_CP_VC_CNTL_PRIM_WALK_RING |
+			    RADEON_CP_VC_CNTL_MAOS_ENABLE |
+			    RADEON_CP_VC_CNTL_VTX_FMT_RADEON_MODE |
+			    (vertcount << RADEON_CP_VC_CNTL_NUM_SHIFT));
+		} else {
+			BEGIN_DMA(2 + vertcount * TRAP_VERT_RING_COUNT);
+			OUT_RING(DMA_PACKET3(R200_CP_PACKET3_3D_DRAW_IMMD_2,
+			    1 + vertcount * TRAP_VERT_RING_COUNT));
+			OUT_RING(RADEON_CP_VC_CNTL_PRIM_TYPE_TRI_FAN |
+			    RADEON_CP_VC_CNTL_PRIM_WALK_RING |
+			    (vertcount << RADEON_CP_VC_CNTL_NUM_SHIFT));
+		}
+
+		for (i = 0; i < count; i++) {
+		    for (sample = 0; sample < sample_count; sample++) {
+			float sample_x = sample_offsets_x[sample];
+			float sample_y = sample_offsets_y[sample];
+			TRAP_VERT(traps[i].tl, traps[i].ty);
+			TRAP_VERT(traps[i].bl, traps[i].by);
+			TRAP_VERT(traps[i].br, traps[i].by);
+			TRAP_VERT(traps[i].tr, traps[i].ty);
+		    }
+		}
+		END_DMA();
+
+		ntraps -= count;
+		traps += count;
+	}
+}
+
+void
+RadeonDoneTrapezoids(void)
+{
+	ATIScreenInfo *atis = accel_atis;
+	RING_LOCALS;
+
+	BEGIN_DMA(2);
+	OUT_REG(RADEON_REG_RE_WIDTH_HEIGHT, 0xffffffff);
+	END_DMA();
 }

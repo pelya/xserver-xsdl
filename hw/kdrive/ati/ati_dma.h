@@ -76,6 +76,8 @@ do {									\
 	__head[__count++] = (x);					\
 } while (0)
 
+#define OUT_RING_F(x) OUT_RING(GET_FLOAT_BITS(x))
+
 #define OUT_REG(reg, val)						\
 do {									\
 	OUT_RING(DMA_PACKET0(reg, 1));					\
