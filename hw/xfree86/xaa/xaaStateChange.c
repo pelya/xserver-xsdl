@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/xaa/xaaStateChange.c,v 3.3 2003/08/22 19:27:31 eich Exp $ */
+/* $XFree86$ */
 
 #include "misc.h"
 #include "xf86.h"

@@ -156,4 +156,4 @@ Most drivers currently used on ix86 need(ed) source code changes.
   multi-domain architectures, and support for Mach64 variants as
   non-primary heads is not yet available.
 
-$XFree86: xc/programs/Xserver/hw/xfree86/Domain.note,v 1.2 2002/01/25 21:55:49 tsi Exp $
+$XFree86$

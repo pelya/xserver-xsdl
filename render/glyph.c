@@ -1,5 +1,5 @@
 /*
- * $XFree86: xc/programs/Xserver/render/glyph.c,v 1.6 2001/10/28 03:34:19 tsi Exp $
+ * $XFree86$
  *
  * Copyright © 2000 SuSE, Inc.
  *

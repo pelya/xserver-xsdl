@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/bsd/bsd_ev56.c,v 1.2 2001/02/27 23:05:00 alanh Exp $ */
+/* $XFree86$ */
 
 #include "X.h"
 #include "input.h"

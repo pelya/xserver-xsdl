@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/dix/swapreq.c,v 3.5 2002/02/19 11:09:22 alanh Exp $ */
+/* $XFree86$ */
 /************************************************************
 
 Copyright 1987, 1998  The Open Group

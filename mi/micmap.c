@@ -27,7 +27,7 @@ OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION  WITH
 THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 ********************************************************/
-/* $XFree86: xc/programs/Xserver/mi/micmap.c,v 1.11 2001/05/29 22:24:06 dawes Exp $ */
+/* $XFree86$ */
 
 /*
  * This is based on cfbcmap.c.  The functions here are useful independently

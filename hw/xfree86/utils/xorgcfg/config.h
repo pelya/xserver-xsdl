@@ -26,7 +26,7 @@
  *
  * Author: Paulo César Pereira de Andrade <pcpa@conectiva.com.br>
  *
- * $XFree86: xc/programs/Xserver/hw/xfree86/xf86cfg/config.h,v 1.22 2004/02/14 17:53:49 dawes Exp $
+ * $XFree86$
  */
 
 #include <X11/IntrinsicP.h>

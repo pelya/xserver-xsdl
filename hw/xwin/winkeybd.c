@@ -30,7 +30,7 @@
  *		Peter Busch
  *		Harold L Hunt II
  */
-/* $XFree86: xc/programs/Xserver/hw/xwin/winkeybd.c,v 1.13 2003/07/29 21:25:17 dawes Exp $ */
+/* $XFree86$ */
 
 
 #include "win.h"

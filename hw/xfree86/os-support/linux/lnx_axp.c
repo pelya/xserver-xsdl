@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/linux/lnx_axp.c,v 1.5 2002/11/25 14:05:04 eich Exp $ */
+/* $XFree86$ */
 
 #include <stdio.h>
 #include "X.h"

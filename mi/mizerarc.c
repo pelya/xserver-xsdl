@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/mi/mizerarc.c,v 1.7 2003/07/16 01:38:59 dawes Exp $ */
+/* $XFree86$ */
 /************************************************************
 
 Copyright 1989, 1998  The Open Group

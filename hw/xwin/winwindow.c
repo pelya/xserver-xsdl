@@ -28,7 +28,7 @@
  * Authors:	Harold L Hunt II
  *		Kensuke Matsuzaki
  */
-/* $XFree86: xc/programs/Xserver/hw/xwin/winwindow.c,v 1.10 2003/12/22 01:34:20 dickey Exp $ */
+/* $XFree86$ */
 
 #include "win.h"
 

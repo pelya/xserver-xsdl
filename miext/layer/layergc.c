@@ -1,5 +1,5 @@
 /*
- * $XFree86: xc/programs/Xserver/miext/layer/layergc.c,v 1.5 2001/10/28 03:34:15 tsi Exp $
+ * $XFree86$
  *
  * Copyright © 2001 Keith Packard, member of The XFree86 Project, Inc.
  *

@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/iplan2p4/iplbstore.c,v 3.0 1996/08/18 01:54:39 dawes Exp $ */
+/* $XFree86$ */
 
 /*-
  * iplbstore.c --

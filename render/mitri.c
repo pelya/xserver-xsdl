@@ -1,5 +1,5 @@
 /*
- * $XFree86: xc/programs/Xserver/render/mitri.c,v 1.6 2002/08/12 04:03:21 keithp Exp $
+ * $XFree86$
  *
  * Copyright © 2002 Keith Packard, member of The XFree86 Project, Inc.
  *

@@ -1,5 +1,5 @@
 /*
- * $XFree86: xc/programs/Xserver/render/miindex.c,v 1.8 2002/11/06 22:45:36 keithp Exp $
+ * $XFree86$
  *
  * Copyright © 2001 Keith Packard, member of The XFree86 Project, Inc.
  *

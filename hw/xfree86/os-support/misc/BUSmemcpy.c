@@ -12,7 +12,7 @@ Thanks to Linus Torvalds for contributing this code.
 
 ****************************************************************************/
 
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/misc/BUSmemcpy.c,v 1.4 2000/02/12 20:45:44 dawes Exp $ */
+/* $XFree86$ */
 
 #include "X.h"
 #include "xf86.h"

@@ -57,7 +57,7 @@ in this Software without prior written authorization from The Open Group.
  * or other dealings in this Software without prior written authorization
  * from said copyright holders.
  */
-/* $XFree86: xc/programs/Xserver/Xprint/ps/PsFonts.c,v 1.7 2003/07/16 01:38:34 dawes Exp $ */
+/* $XFree86$ */
 
 /*******************************************************************
 **

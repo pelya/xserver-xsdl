@@ -27,7 +27,7 @@
  *
  * Authors:     Earle F. Philhower, III
  */
-/* $XFree86: xc/programs/Xserver/hw/xwin/winprefs.h,v 1.1 2003/10/02 13:30:11 eich Exp $ */
+/* $XFree86$ */
 
 /* Need to know how long paths can be... */
 #include <limits.h>

@@ -28,7 +28,7 @@
  * holders shall not be used in advertising or otherwise to promote the sale,
  * use or other dealings in this Software without prior written authorization.
  */
-/* $XFree86: xc/programs/Xserver/miext/rootless/rootlessWindow.c,v 1.11 2003/11/27 01:53:39 torrey Exp $ */
+/* $XFree86$ */
 
 #include "rootlessCommon.h"
 #include "rootlessWindow.h"

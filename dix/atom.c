@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/dix/atom.c,v 3.4 2002/02/19 11:09:21 alanh Exp $ */
+/* $XFree86$ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group

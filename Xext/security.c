@@ -24,7 +24,7 @@ used in advertising or otherwise to promote the sale, use or other dealings
 in this Software without prior written authorization from The Open Group.
 
 */
-/* $XFree86: xc/programs/Xserver/Xext/security.c,v 1.17 2003/12/04 16:59:35 tsi Exp $ */
+/* $XFree86$ */
 
 #include "dixstruct.h"
 #include "extnsionst.h"

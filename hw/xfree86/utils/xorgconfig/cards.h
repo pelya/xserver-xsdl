@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/xf86config/cards.h,v 3.5 1999/07/05 12:12:06 dawes Exp $ */
+/* $XFree86$ */
 
 
 

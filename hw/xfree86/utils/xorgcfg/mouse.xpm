@@ -27,7 +27,7 @@
  *
  * Author: Paulo César Pereira de Andrade <pcpa@conectiva.com.br>
  *
- * $XFree86: xc/programs/Xserver/hw/xfree86/xf86cfg/mouse.xpm,v 1.1 2000/04/04 22:37:01 dawes Exp $
+ * $XFree86$
  */
 static char * mouse_xpm[] = {
 "26 35 8 1",

@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/Xi/exglobals.h,v 3.3 1998/12/05 14:39:57 dawes Exp $ */
+/* $XFree86$ */
 /************************************************************
 
 Copyright 1996 by Thomas E. Dickey <dickey@clark.net>

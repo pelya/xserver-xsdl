@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/fb/fballpriv.c,v 1.4 2000/05/06 21:09:31 keithp Exp $ */
+/* $XFree86$ */
 
 #include "fb.h"
 

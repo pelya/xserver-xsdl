@@ -30,7 +30,7 @@
  *		Peter Busch
  *		Harold L Hunt II
  */
-/* $XFree86: xc/programs/Xserver/hw/xwin/winshadddnl.c,v 1.26 2003/10/02 13:30:11 eich Exp $ */
+/* $XFree86$ */
 
 #include "win.h"
 

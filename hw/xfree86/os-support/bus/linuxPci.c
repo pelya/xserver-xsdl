@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/bus/linuxPci.c,v 1.10 2002/11/17 18:42:01 alanh Exp $ */
+/* $XFree86$ */
 /*
  * Copyright 1998 by Concurrent Computer Corporation
  *

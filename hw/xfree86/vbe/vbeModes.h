@@ -26,7 +26,7 @@
  *
  * Authors: David Dawes <dawes@xfree86.org>
  *
- * $XFree86: xc/programs/Xserver/hw/xfree86/vbe/vbeModes.h,v 1.1 2003/02/17 17:06:46 dawes Exp $
+ * $XFree86$
  */
 
 #ifndef _VBE_MODES_H

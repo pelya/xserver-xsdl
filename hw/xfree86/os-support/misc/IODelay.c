@@ -4,7 +4,7 @@
   Stub for Alpha Linux
 *******************************************************************************/
 
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/misc/IODelay.c,v 1.3 2000/08/04 16:13:41 eich Exp $ */
+/* $XFree86$ */
  
 #include "X.h"
 #include "xf86.h"

@@ -5,7 +5,7 @@
  *      (c) 1998 Gerd Knorr <kraxel@cs.tu-berlin.de>
  */
 
-/* $XFree86: xc/programs/Xserver/hw/xfree86/i2c/xf86i2cmodule.c,v 1.7 1999/04/11 13:11:02 dawes Exp $ */
+/* $XFree86$ */
 
 #include "xf86Module.h"
 

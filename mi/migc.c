@@ -27,7 +27,7 @@ from The Open Group.
 
 */
 
-/* $XFree86: xc/programs/Xserver/mi/migc.c,v 1.9 2001/12/14 20:00:23 dawes Exp $ */
+/* $XFree86$ */
 
 #include "scrnintstr.h"
 #include "gcstruct.h"

@@ -73,7 +73,7 @@ in this Software without prior written authorization from The Open Group.
 **    *********************************************************
 **
 ********************************************************************/
-/* $XFree86: xc/programs/Xserver/Xprint/ps/PsInit.c,v 1.14 2003/10/29 22:11:55 tsi Exp $ */
+/* $XFree86$ */
 
 #include <stdio.h>
 #include <string.h>

@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/iplan2p4/iplpntwin.c,v 3.0 1996/08/18 01:55:01 dawes Exp $ */
+/* $XFree86$ */
 /* $XConsortium: iplpntwin.c,v 5.18 94/04/17 20:28:57 dpw Exp $ */
 /***********************************************************
 

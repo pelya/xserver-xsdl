@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/include/inputstr.h,v 1.6 2003/04/27 21:31:04 herrb Exp $ */
+/* $XFree86$ */
 /************************************************************
 
 Copyright 1987, 1998  The Open Group

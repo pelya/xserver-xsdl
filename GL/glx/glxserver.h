@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/GL/glx/glxserver.h,v 1.6 2004/01/28 18:11:50 alanh Exp $ */
+/* $XFree86$ */
 #ifndef _GLX_server_h_
 #define _GLX_server_h_
 

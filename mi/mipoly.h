@@ -26,7 +26,7 @@ other dealings in this Software without prior written authorization
 from The Open Group.
 
 */
-/* $XFree86: xc/programs/Xserver/mi/mipoly.h,v 1.3 2001/12/14 20:00:25 dawes Exp $ */
+/* $XFree86$ */
 
 
 /*

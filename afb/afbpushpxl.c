@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/afb/afbpushpxl.c,v 3.2 2003/07/16 01:38:35 dawes Exp $ */
+/* $XFree86$ */
 /***********************************************************
 
 Copyright (c) 1987  X Consortium

@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/afb/afbpntwin.c,v 3.0 1996/08/18 01:45:50 dawes Exp $ */
+/* $XFree86$ */
 /* $XConsortium: afbpntwin.c,v 5.12 94/04/17 20:28:30 dpw Exp $ */
 /* Combined Purdue/PurduePlus patches, level 2.0, 1/17/89 */
 /***********************************************************

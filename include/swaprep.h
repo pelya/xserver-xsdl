@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/include/swaprep.h,v 3.1 2003/04/27 21:31:05 herrb Exp $ */
+/* $XFree86$ */
 /************************************************************
 
 Copyright 1996 by Thomas E. Dickey <dickey@clark.net>

@@ -1,5 +1,5 @@
 /*
- * $XFree86: xc/programs/Xserver/fb/fbsolid.c,v 1.8 2001/10/28 03:33:08 tsi Exp $
+ * $XFree86$
  *
  * Copyright © 1998 Keith Packard
  *

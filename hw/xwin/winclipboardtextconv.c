@@ -27,7 +27,7 @@
  *
  * Authors:	Harold L Hunt II
  */
-/* $XFree86: xc/programs/Xserver/hw/xwin/winclipboardtextconv.c,v 1.2 2003/07/29 21:25:16 dawes Exp $ */
+/* $XFree86$ */
 
 #include "win.h"
 #include <stdio.h>

@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/afb/afbbstore.c,v 3.0 1996/08/18 01:45:28 dawes Exp $ */
+/* $XFree86$ */
 /* $XConsortium: afbbstore.c,v 5.7 94/04/17 20:28:18 dpw Exp $ */
 /* Combined Purdue/PurduePlus patches, level 2.0, 1/17/89 */
 /*

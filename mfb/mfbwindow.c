@@ -46,7 +46,7 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ******************************************************************/
-/* $XFree86: xc/programs/Xserver/mfb/mfbwindow.c,v 1.4 2003/11/03 05:36:35 tsi Exp $ */
+/* $XFree86$ */
 
 #include "X.h"
 #include "scrnintstr.h"

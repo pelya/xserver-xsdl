@@ -45,7 +45,7 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ********************************************************/
-/* $XFree86: xc/programs/Xserver/Xi/opendev.c,v 3.3 2001/12/14 19:58:58 dawes Exp $ */
+/* $XFree86$ */
 
 /***********************************************************************
  *

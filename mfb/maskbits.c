@@ -48,7 +48,7 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 */
-/* $XFree86: xc/programs/Xserver/mfb/maskbits.c,v 1.6 2001/12/14 20:00:03 dawes Exp $ */
+/* $XFree86$ */
 
 #include "maskbits.h"
 #include "servermd.h"

@@ -30,7 +30,7 @@
  *     Header file for users of machine-independent DBE code
  *
  *****************************************************************************/
-/* $XFree86: xc/programs/Xserver/dbe/midbe.h,v 3.2 2003/11/17 22:20:32 dawes Exp $ */
+/* $XFree86$ */
 
 
 #ifndef MIDBE_H

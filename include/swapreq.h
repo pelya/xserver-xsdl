@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/include/swapreq.h,v 1.4 2003/11/17 22:20:43 dawes Exp $ */
+/* $XFree86$ */
 /************************************************************
 
 Copyright 1996 by Thomas E. Dickey <dickey@clark.net>

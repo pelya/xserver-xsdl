@@ -30,7 +30,7 @@ not be used in advertising or otherwise to promote the sale, use or other
 dealings in this Software without prior written authorization from said
 copyright holders.
 */
-/* $XFree86: xc/programs/Xserver/Xprint/ddxInit.c,v 1.15 2003/06/23 17:35:44 eich Exp $ */
+/* $XFree86$ */
 
 #include "X.h"
 #include "Xproto.h"

@@ -1,5 +1,5 @@
 /*
- * $XFree86: xc/programs/Xserver/render/glyphstr.h,v 1.4 2001/01/21 21:19:39 tsi Exp $
+ * $XFree86$
  *
  * Copyright © 2000 SuSE, Inc.
  *

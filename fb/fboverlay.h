@@ -1,5 +1,5 @@
 /*
- * $XFree86: xc/programs/Xserver/fb/fboverlay.h,v 1.5 2002/09/19 13:22:00 tsi Exp $
+ * $XFree86$
  *
  * Copyright © 2000 SuSE, Inc.
  *

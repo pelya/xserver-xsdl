@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/iplan2p4/iplfillrct.c,v 3.1 1998/03/20 21:08:08 hohndel Exp $ */
+/* $XFree86$ */
 /*
  * Fill rectangles.
  */

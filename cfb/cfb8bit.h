@@ -7,7 +7,7 @@
  * are used for depths other than 8.  Perhaps the file should be
  * renamed.  dpw
  */
-/* $XFree86: xc/programs/Xserver/cfb/cfb8bit.h,v 3.8 2003/11/17 22:20:32 dawes Exp $ */
+/* $XFree86$ */
 
 /*
 

@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/xaa/xaaInit.c,v 1.35 2001/07/19 18:50:16 mvojkovi Exp $ */
+/* $XFree86$ */
 
 #include "misc.h"
 #include "xf86.h"

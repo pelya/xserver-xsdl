@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xwin/ddraw.h,v 1.4 2001/07/29 22:08:15 tsi Exp $ */
+/* $XFree86$ */
 
 #ifndef __WINE_DDRAW_H
 #define __WINE_DDRAW_H

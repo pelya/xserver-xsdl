@@ -1,5 +1,5 @@
 /*
- * $XFree86: xc/programs/Xserver/fb/fbtrap.c,v 1.10 2002/09/27 00:31:24 keithp Exp $
+ * $XFree86$
  *
  * Copyright © 2000 University of Southern California
  *

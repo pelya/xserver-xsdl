@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/xf4bpp/xf4bpp.h,v 1.10 2003/11/17 22:20:42 dawes Exp $ */
+/* $XFree86$ */
 
 
 #ifndef __XF4BPP_H__

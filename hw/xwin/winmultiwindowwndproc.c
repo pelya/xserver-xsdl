@@ -29,7 +29,7 @@
  *		Earle F. Philhower, III
  *		Harold L Hunt II
  */
-/* $XFree86: xc/programs/Xserver/hw/xwin/winmultiwindowwndproc.c,v 1.3 2003/10/08 11:13:03 eich Exp $ */
+/* $XFree86$ */
 
 #include "win.h"
 #include "dixevents.h"

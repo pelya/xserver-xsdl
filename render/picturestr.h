@@ -1,5 +1,5 @@
 /*
- * $XFree86: xc/programs/Xserver/render/picturestr.h,v 1.22 2002/11/23 02:38:15 keithp Exp $
+ * $XFree86$
  *
  * Copyright © 2000 SuSE, Inc.
  *

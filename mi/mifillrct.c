@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/mi/mifillrct.c,v 1.3 2001/12/14 20:00:22 dawes Exp $ */
+/* $XFree86$ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group

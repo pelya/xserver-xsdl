@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/ilbm/ilbmzerarc.c,v 3.1 1998/03/20 21:08:04 hohndel Exp $ */
+/* $XFree86$ */
 /************************************************************
 
 Copyright (c) 1989  X Consortium

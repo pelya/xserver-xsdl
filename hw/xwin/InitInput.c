@@ -26,7 +26,7 @@
   from The Open Group.
 
 */
-/* $XFree86: xc/programs/Xserver/hw/xwin/InitInput.c,v 1.13 2003/07/29 21:25:15 dawes Exp $ */
+/* $XFree86$ */
 
 #include "win.h"
 #include "../../Xext/xf86miscproc.h"

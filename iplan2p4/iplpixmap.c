@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/iplan2p4/iplpixmap.c,v 3.1 2001/12/17 20:00:46 dawes Exp $ */
+/* $XFree86$ */
 /* $XConsortium: iplpixmap.c,v 5.14 94/04/17 20:28:56 dpw Exp $ */
 /***********************************************************
 

@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/record/recordmod.c,v 1.6 2000/01/25 18:37:50 dawes Exp $ */
+/* $XFree86$ */
 
 #include "xf86Module.h"
 

@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/vbe/vbe_module.c,v 1.1 2003/02/17 17:06:46 dawes Exp $ */
+/* $XFree86$ */
 
 #include "xf86.h"
 #include "xf86str.h"

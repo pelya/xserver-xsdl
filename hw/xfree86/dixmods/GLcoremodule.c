@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/GL/mesa/GLcore/GLcoremodule.c,v 1.1 2002/02/25 00:45:41 dawes Exp $ */
+/* $XFree86$ */
 /**************************************************************************
 
 Copyright 1998-1999 Precision Insight, Inc., Cedar Park, Texas.

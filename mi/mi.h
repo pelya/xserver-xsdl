@@ -45,7 +45,7 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ******************************************************************/
-/* $XFree86: xc/programs/Xserver/mi/mi.h,v 3.10 2001/12/14 20:00:19 dawes Exp $ */
+/* $XFree86$ */
 
 #ifndef MI_H
 #define MI_H

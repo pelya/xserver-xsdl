@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/Xext/dgaproc.h,v 1.22 2003/07/16 01:38:29 dawes Exp $ */
+/* $XFree86$ */
 
 #ifndef __DGAPROC_H
 #define __DGAPROC_H

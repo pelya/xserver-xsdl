@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/xaa/xaawrap.h,v 1.5 2000/09/20 02:05:42 keithp Exp $ */
+/* $XFree86$ */
 
 #define XAA_SCREEN_PROLOGUE(pScreen, field)\
   ((pScreen)->field = \

@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/loader/coff.h,v 1.6 2003/10/15 16:29:02 dawes Exp $ */
+/* $XFree86$ */
 
 /* This file was implemented from the information in the book
    Understanding and Using COFF

@@ -24,7 +24,7 @@
  * in this Software without prior written authorization from Metro Link.
  *
  */
-/* $XFree86: xc/programs/Xserver/hw/xfree86/common/xisb.h,v 1.1 1998/12/05 14:40:10 dawes Exp $ */
+/* $XFree86$ */
 
 #ifndef	_xisb_H_
 #define _xisb_H_

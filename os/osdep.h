@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/os/osdep.h,v 3.18 2003/04/27 21:31:09 herrb Exp $ */
+/* $XFree86$ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group

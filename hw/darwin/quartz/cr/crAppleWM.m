@@ -26,7 +26,7 @@
  * holders shall not be used in advertising or otherwise to promote the sale,
  * use or other dealings in this Software without prior written authorization.
  */
-/* $XFree86: xc/programs/Xserver/hw/darwin/quartz/cr/crAppleWM.m,v 1.1 2003/09/16 00:36:14 torrey Exp $ */
+/* $XFree86$ */
 
 #include "quartzCommon.h"
 #include "cr.h"

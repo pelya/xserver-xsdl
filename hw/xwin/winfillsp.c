@@ -28,7 +28,7 @@
  * Authors:	Harold L Hunt II
  * 		Alan Hourihane <alanh@fairlite.demon.co.uk>
  */
-/* $XFree86: xc/programs/Xserver/hw/xwin/winfillsp.c,v 1.10 2003/08/07 23:47:58 alanh Exp $ */
+/* $XFree86$ */
 
 #include "win.h"
 

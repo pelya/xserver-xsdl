@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/xf4bpp/vgaBitBlt.c,v 1.6 2003/11/17 22:20:42 dawes Exp $ */
+/* $XFree86$ */
 /* GJA -- span move routines */
 
 

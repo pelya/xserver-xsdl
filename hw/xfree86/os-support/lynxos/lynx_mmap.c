@@ -21,7 +21,7 @@
  *
  */
 
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/lynxos/lynx_mmap.c,v 3.6 2000/02/11 22:36:02 dawes Exp $ */
+/* $XFree86$ */
 
 #include "X.h"
 

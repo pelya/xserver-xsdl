@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/int10/xf86int10.h,v 1.24 2002/07/23 14:22:46 tsi Exp $ */
+/* $XFree86$ */
 
 /*
  *                   XFree86 int10 module

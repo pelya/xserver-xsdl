@@ -24,7 +24,7 @@
  THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
  ********************************************************/
-/* $XFree86: xc/lib/xkbfile/maprules.c,v 3.18 2003/11/17 22:20:23 dawes Exp $ */
+/* $XFree86$ */
 
 #include <stdio.h>
 #include <ctype.h>

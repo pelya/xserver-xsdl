@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/shadowfb/sfbmodule.c,v 1.2 1999/02/01 12:08:45 dawes Exp $ */
+/* $XFree86$ */
 
 
 #ifdef XFree86LOADER

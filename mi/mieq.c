@@ -25,7 +25,7 @@ in this Software without prior written authorization from The Open Group.
  *
  * Author:  Keith Packard, MIT X Consortium
  */
-/* $XFree86: xc/programs/Xserver/mi/mieq.c,v 1.3 2001/12/14 20:00:22 dawes Exp $ */
+/* $XFree86$ */
 
 /*
  * mieq.c

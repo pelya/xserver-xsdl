@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/mi/mispans.h,v 1.3 2001/12/14 20:00:26 dawes Exp $ */
+/* $XFree86$ */
 /***********************************************************
 
 Copyright 1989, 1998  The Open Group

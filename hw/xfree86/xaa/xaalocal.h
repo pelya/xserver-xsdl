@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/xaa/xaalocal.h,v 1.37 2003/11/10 18:22:41 tsi Exp $ */
+/* $XFree86$ */
 
 #ifndef _XAALOCAL_H
 #define _XAALOCAL_H

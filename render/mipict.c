@@ -1,5 +1,5 @@
 /*
- * $XFree86: xc/programs/Xserver/render/mipict.c,v 1.16 2003/11/10 18:22:52 tsi Exp $
+ * $XFree86$
  *
  * Copyright © 1999 Keith Packard
  *

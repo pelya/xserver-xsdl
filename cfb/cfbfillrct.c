@@ -1,7 +1,7 @@
 /*
  * Fill rectangles.
  */
-/* $XFree86: xc/programs/Xserver/cfb/cfbfillrct.c,v 3.8 2001/12/14 19:59:22 dawes Exp $ */
+/* $XFree86$ */
 
 /*
 
