@@ -610,8 +610,10 @@ PsFontTypeInfoRec *PsCreateFontTypeInfoRec(DrawablePtr pDrawable, FontPtr pFont)
   }
 
   rec->adobe_ps_name         = PsGetPSFontName(pFont);
+#ifdef XP_USE_FREETYPE
   rec->ft_download_encoding  = PsGetEncodingName(pFont);
   rec->ft_download_font_type = PsGetFTDownloadFontType();
+#endif /* XP_USE_FREETYPE */
   rec->download_ps_name      = NULL;
 
 #define SET_FONT_DOWNLOAD_STATUS(rec, downloaded) { int i; for (i = 0 ; i < 256 ; i++) { (rec)->alreadyDownloaded[i]=(downloaded); } }
