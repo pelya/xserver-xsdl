@@ -33,11 +33,13 @@
 
 /* Need Bool */
 #include "Xdefs.h"
-/* Need TURE */
+/* Need TRUE */
 #include "misc.h"
 
 /* Need to know how long paths can be... */
 #include <limits.h>
+/* Xwindows redefines PATH_MAX to at least 1024 */
+#include <Xwindows.h>
 
 #ifndef NAME_MAX
 #define NAME_MAX PATH_MAX

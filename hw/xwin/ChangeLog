@@ -1,5 +1,10 @@
 2005-01-10  Alexander Gottwald  <ago at freedesktop dot org>
 
+	* winprefs.h:
+	Fix crash with not matching definitions of PATH_MAX
+	
+2005-01-10  Alexander Gottwald  <ago at freedesktop dot org>
+
 	* winkeybd.h
 	* winkeynames.h:
 	Adjust keysyms for  Hiragana_Katakana toggle and backslash/underscore
