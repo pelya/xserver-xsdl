@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/hw/xfree86/common/xf86RandR.c,v 1.6 2004/12/04 00:42:52 kuhn Exp $ */
+/* $XdotOrg: xc/programs/Xserver/hw/xfree86/common/xf86RandR.c,v 1.7 2005/01/28 16:12:59 eich Exp $ */
 /*
  * $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86RandR.c,v 1.7tsi Exp $
  *
@@ -109,7 +109,7 @@ xf86RandRGetInfo (ScreenPtr pScreen, Rotation *rotations)
 	
 	RRRotation.RRRotations = *rotations;
 	if (!(*scrp->DriverFunc)(scrp, RR_GET_INFO, &RRRotation))
-	    return FALSE;
+	    return TRUE;
 	*rotations = RRRotation.RRRotations;
     }
     
@@ -193,8 +193,6 @@ xf86RandRSetConfig (ScreenPtr		pScreen,
     int			    px, py;
     Bool		    useVirtual = FALSE;
 
-    randrp->rotation = rotation;
-
     miPointerPosition (&px, &py);
     for (mode = scrp->modes; ; mode = mode->next)
     {
@@ -215,18 +213,27 @@ xf86RandRSetConfig (ScreenPtr		pScreen,
 	}
     }
 
-    /* Have the driver do its thing. */
-    if (scrp->DriverFunc) {
-	xorgRRRotation RRRotation;
-	RRRotation.RRConfig.rotation = rotation;
-	RRRotation.RRConfig.rate = rate;
-	RRRotation.RRConfig.width = pSize->width;
-	RRRotation.RRConfig.height = pSize->height;
-	
-        if (!(*scrp->DriverFunc)(scrp, RR_SET_CONFIG, &RRRotation))
-			  return FALSE;
-    }
+    if (randrp->rotation != rotation) {
 
+    /* Have the driver do its thing. */
+	if (scrp->DriverFunc) {
+	    xorgRRRotation RRRotation;
+	    RRRotation.RRConfig.rotation = rotation;
+	    RRRotation.RRConfig.rate = rate;
+	    RRRotation.RRConfig.width = pSize->width;
+	    RRRotation.RRConfig.height = pSize->height;
+
+	    /*
+	     * Currently we need to rely on HW support for rotation.
+	     */
+	    if (!(*scrp->DriverFunc)(scrp, RR_SET_CONFIG, &RRRotation))
+		return FALSE;
+	} else
+	    return FALSE;
+	
+	randrp->rotation = rotation;
+    }
+    
     if (!xf86RandRSetMode (pScreen, mode, useVirtual, pSize->mmWidth, pSize->mmHeight))
 	return FALSE;
     /*
