@@ -19,7 +19,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/vesa/vesainit.c,v 1.4 2000/10/20 00:19:50 keithp Exp $ */
 
 #include "vesa.h"
 
@@ -55,7 +55,7 @@ void
 InitCard(char *name)
 {
     KdCardAttr attr;
-    KdCardInfoAdd(&vesaFuncs, &attr, 0);
+    KdCardInfoAdd((KdCardFuncs *) &vesaFuncs, &attr, 0);
 }
 
 void
