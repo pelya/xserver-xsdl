@@ -1,5 +1,12 @@
 2004-11-22  Alexander Gottwald  <ago at freedesktop dot org>
 
+	* winmultiwindowwm.c: 
+	Fixes for building multiwindow and internalwm on mingw
+	* winwin32rootless.c:
+	Changed some debugging output
+
+2004-11-22  Alexander Gottwald  <ago at freedesktop dot org>
+
 	* InitOutput.c, winglobals.c, winprocarg.c:
 	Xming: Place logfile in users tempdir
 	

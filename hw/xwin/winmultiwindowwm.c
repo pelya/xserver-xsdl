@@ -33,7 +33,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#ifdef __CYGWIN__
 #include <sys/select.h>
+#endif
 #include <fcntl.h>
 #include <setjmp.h>
 #include <pthread.h>
@@ -44,11 +46,8 @@
 #include <X11/Xproto.h>
 #include <X11/Xutil.h>
 
-/* Fixups to prevent collisions between Windows and X headers */
-#define ATOM DWORD
-
 /* Windows headers */
-#include <windows.h>
+#include <Xwindows.h>
 
 /* Local headers */
 #include "obj_base.h"

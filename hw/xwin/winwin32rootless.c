@@ -694,7 +694,7 @@ winMWExtWMStartDrawing (RootlessFrameID wid, char **pixelData, int *bytesPerRow)
   Bool			fReturn = TRUE;
   HDC			hdcNew;
   HBITMAP		hbmpNew;
-#if CYGMULTIWINDOW_DEBUG && FALSE
+#if CYGMULTIWINDOW_DEBUG
   winDebug ("winMWExtWMStartDrawing (%08x) %08x\n", (int) pRLWinPriv, pRLWinPriv->fDestroyed);
 #endif
 
@@ -704,7 +704,7 @@ winMWExtWMStartDrawing (RootlessFrameID wid, char **pixelData, int *bytesPerRow)
       if (pScreen) pScreenPriv = winGetScreenPriv(pScreen);
       if (pScreenPriv) pScreenInfo = pScreenPriv->pScreenInfo;
       
-#if CYGMULTIWINDOW_DEBUG && FALSE
+#if CYGMULTIWINDOW_DEBUG
       winDebug ("\tpScreenPriv %08X\n", (int) pScreenPriv);
       winDebug ("\tpScreenInfo %08X\n", (int) pScreenInfo);
       winDebug ("\t(%d, %d)\n", (int)pRLWinPriv->pFrame->width,
@@ -805,11 +805,12 @@ winMWExtWMStartDrawing (RootlessFrameID wid, char **pixelData, int *bytesPerRow)
 	  pRLWinPriv->hbmpShadow = hbmpNew;
 	  
 	  pRLWinPriv->fResized = FALSE;
-	}
 #if CYGMULTIWINDOW_DEBUG && FALSE
-      winDebug ("winMWExtWMStartDrawing - 0x%08x %d\n",
-		(unsigned int)pRLWinPriv->pfb, (unsigned int)dibsection.dsBm.bmWidthBytes);
+	  winDebug ("winMWExtWMStartDrawing - 0x%08x %d\n",
+		(unsigned int)pRLWinPriv->pfb, 
+		(unsigned int)dibsection.dsBm.bmWidthBytes);
 #endif
+	}
     }
   else
     {
