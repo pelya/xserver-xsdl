@@ -129,6 +129,7 @@ typedef struct _xglScreen {
     CreateGCProcPtr		  CreateGC;
     CloseScreenProcPtr		  CloseScreen;
     SetWindowPixmapProcPtr	  SetWindowPixmap;
+    BitmapToRegionProcPtr	  BitmapToRegion;
 
 #ifdef RENDER
     CompositeProcPtr		  Composite;
@@ -614,6 +615,9 @@ xglModifyPixmapHeader (PixmapPtr pPixmap,
 		       int	 bitsPerPixel,
 		       int	 devKind,
 		       pointer	 pPixData);
+
+RegionPtr
+xglPixmapToRegion (PixmapPtr pPixmap);
 
 Bool
 xglCreatePixmapSurface (PixmapPtr pPixmap);

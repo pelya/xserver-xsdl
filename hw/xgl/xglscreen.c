@@ -56,7 +56,6 @@ int xglWinPrivateIndex;
 #define xglListInstalledColormaps (void *) NoopDDA
 #define xglStoreColors		  (void *) NoopDDA
 #define xglResolveColor		  (void *) NoopDDA
-#define xglBitmapToRegion	  (void *) NoopDDA
 
 static PixmapPtr
 xglGetWindowPixmap (WindowPtr pWin)
@@ -226,11 +225,9 @@ xglScreenInit (ScreenPtr        pScreen,
       pScreen->ResolveColor	      = miResolveColor;
     */
     
-    /*
-      pScreen->BitmapToRegion = xglBitmapToRegion;
-    */
-
     pScreen->ModifyPixmapHeader = xglModifyPixmapHeader;
+    
+    XGL_SCREEN_WRAP (BitmapToRegion, xglPixmapToRegion);
 
     pScreen->GetWindowPixmap = xglGetWindowPixmap;
     

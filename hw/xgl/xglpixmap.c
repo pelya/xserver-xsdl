@@ -356,6 +356,24 @@ xglModifyPixmapHeader (PixmapPtr pPixmap,
     return TRUE;
 }
 
+RegionPtr
+xglPixmapToRegion (PixmapPtr pPixmap)
+{
+    ScreenPtr pScreen = pPixmap->drawable.pScreen;
+    RegionPtr pRegion;
+    
+    XGL_SCREEN_PRIV (pScreen);
+    
+    if (!xglSyncBits (&pPixmap->drawable, NullBox))
+	FatalError (XGL_SW_FAILURE_STRING);
+    
+    XGL_SCREEN_UNWRAP (BitmapToRegion);
+    pRegion = (*pScreen->BitmapToRegion) (pPixmap);
+    XGL_SCREEN_WRAP (BitmapToRegion, xglPixmapToRegion);
+
+    return pRegion;
+}
+
 Bool
 xglCreatePixmapSurface (PixmapPtr pPixmap)
 {
