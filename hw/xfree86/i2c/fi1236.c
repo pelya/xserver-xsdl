@@ -495,13 +495,16 @@ void TUNER_set_frequency(FI1236Ptr f, CARD32 frequency)
     f->afc_delta=0;
     f->original_frequency=frequency;
 
-    if(f->type==TUNER_TYPE_MT2032){
+    if(f->type==TUNER_TYPE_MT2032)
+        {
     	MT2032_tune(f, (1.0*frequency)/16.0, 0.0625);
-	} else {
+	} else 
+	{
 	FI1236_tune(f, frequency);
 	}
     
-    if(!f->afc_timer_installed){
+    if(!f->afc_timer_installed)
+        {
      	f->afc_timer_installed=TRUE;
 /*     	RegisterBlockAndWakeupHandlers(FI1236_BlockHandler, AFCWakeup, f); */
 	TimerSet(NULL, 0, 300, AFC_TimerCallback, f);
@@ -516,12 +519,14 @@ int FI1236_AFC(FI1236Ptr f)
     xf86DrvMsg(f->d.pI2CBus->scrnIndex, X_INFO, "AFC: f=%p f->count=%d f->original_frequency=%d f->afc_delta=%d\n", f, f->afc_count, f->original_frequency, f->afc_delta);
     #endif
     f->afc_count++;
-    if(f->type==TUNER_TYPE_MT2032){
+    if(f->type==TUNER_TYPE_MT2032)
+        {
     	f->last_afc_hint=MT2032_get_afc_hint(f);
         xf86DrvMsg(f->d.pI2CBus->scrnIndex, X_INFO, "AFC: afc_hint=%d\n", f->last_afc_hint);
 	if(f->last_afc_hint==TUNER_TUNED)return 0;
 	if(f->afc_count>3)f->last_afc_hint=TUNER_OFF;
-	if(f->last_afc_hint==TUNER_OFF){
+	if(f->last_afc_hint==TUNER_OFF)
+	        {
 		f->afc_delta=0;
 		} else
 		f->afc_delta+=f->last_afc_hint;
@@ -529,11 +534,13 @@ int FI1236_AFC(FI1236Ptr f)
     	MT2032_tune(f, (1.0*f->original_frequency+0.5*f->afc_delta)/16.0, 0.03125);
 	if(f->last_afc_hint==TUNER_OFF)return 0;
 	return 1; /* call me again */
-	} else {
+	} else 
+	{
     	f->last_afc_hint=FI1236_get_afc_hint(f);
 	if(f->last_afc_hint==TUNER_TUNED)return 0;
 	if(f->afc_count>3)f->last_afc_hint=TUNER_OFF;
-	if(f->last_afc_hint==TUNER_OFF){
+	if(f->last_afc_hint==TUNER_OFF)
+	        {
 		f->afc_delta=0;
 		} else
 		f->afc_delta+=f->last_afc_hint;
