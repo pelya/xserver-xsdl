@@ -195,7 +195,10 @@ KdOffscreenAlloc (ScreenPtr pScreen, int size, int align,
 	area->state = KdOffscreenRemovable;
     area->privData = privData;
     area->save = save;
-    
+
+    area->save_offset = area->offset;
+    area->offset = (area->offset + align - 1) & ~(align - 1);
+
     KdOffscreenValidate (pScreen);
     
     DBG_OFFSCREEN (("Alloc 0x%x -> 0x%x\n", size, area->offset));
@@ -260,6 +263,7 @@ KdOffscreenFree (ScreenPtr pScreen, KdOffscreenArea *area)
 
     area->state = KdOffscreenAvail;
     area->save = 0;
+    area->offset = area->save_offset;
 
     /*
      * Find previous area

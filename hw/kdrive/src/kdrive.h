@@ -121,6 +121,7 @@ typedef enum _KdOffscreenState {
 
 struct _KdOffscreenArea {
     int			offset;
+    int			save_offset;
     int			size;
     pointer		privData;
     
