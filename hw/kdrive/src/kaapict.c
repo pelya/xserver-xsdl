@@ -426,6 +426,11 @@ kaaTryDriverComposite(CARD8		op,
 				   width, height))
 	return 1;
 
+    if (pKaaScr->info->CheckComposite &&
+	!(*pKaaScr->info->CheckComposite) (op, pSrc, pMask, pDst))
+    {
+	return -1;
+    }
 
     if (pSrc->pDrawable->type == DRAWABLE_PIXMAP)
 	kaaPixmapUseScreen ((PixmapPtr) pSrc->pDrawable);

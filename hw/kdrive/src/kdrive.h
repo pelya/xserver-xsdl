@@ -348,6 +348,10 @@ typedef struct _KaaScreenInfo {
 			  int	height);
     void	(*DoneBlend) (void);
 
+    Bool        (*CheckComposite) (int		op,
+				   PicturePtr	pSrcPicture,
+				   PicturePtr	pMaskPicture,
+				   PicturePtr	pDstPicture);
     Bool        (*PrepareComposite) (int		op,
 				     PicturePtr		pSrcPicture,
 				     PicturePtr		pMaskPicture,
