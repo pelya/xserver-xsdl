@@ -22,9 +22,11 @@
  *
  * Author:  Keith Packard, SuSE, Inc.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/trident/tridentstub.c,v 1.2 1999/12/30 03:03:18 robin Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/trident/tridentstub.c,v 1.4 2000/08/29 17:20:15 keithp Exp $ */
 
 #include "trident.h"
+
+extern int  trident_clk, trident_mclk;
 
 void
 InitCard (char *name)
@@ -52,6 +54,23 @@ ddxProcessArgument (int argc, char **argv, int i)
 {
     int	ret;
     
+    if (!strcmp (argv[i], "-clk")) 
+    {
+	if (i+1 < argc)
+	    trident_clk = atoi (argv[i+1]);
+	else
+	    UseMsg ();
+	return 2;
+    }
+    if (!strcmp (argv[i], "-mclk")) 
+    {
+	if (i+1 < argc)
+	    trident_mclk = atoi (argv[i+1]);
+	else
+	    UseMsg ();
+	return 2;
+    }
+	
 #ifdef VESA
     if (!(ret = vesaProcessArgument (argc, argv, i)))
 #endif

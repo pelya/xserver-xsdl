@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/kdrive.h,v 1.8 2000/09/22 06:25:29 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/kdrive.h,v 1.10 2000/09/27 20:47:37 keithp Exp $ */
 
 #include <stdio.h>
 #include "X.h"
@@ -562,11 +562,21 @@ extern KdKeyboardFuncs	VxWorksKeyboardFuncs;
 extern KdOsFuncs	VxWorksFuncs;
 
 /* kmap.c */
+
+#define KD_MAPPED_MODE_REGISTERS    0
+#define KD_MAPPED_MODE_FRAMEBUFFER  1
+
 void *
 KdMapDevice (CARD32 addr, CARD32 size);
 
 void
 KdUnmapDevice (void *addr, CARD32 size);
+
+void
+KdSetMappedMode (CARD32 addr, CARD32 size, int mode);
+
+void
+KdResetMappedMode (CARD32 addr, CARD32 size, int mode);
 
 /* kmode.c */
 const KdMonitorTiming *

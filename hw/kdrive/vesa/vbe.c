@@ -19,7 +19,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/vesa/vbe.c,v 1.6 2000/10/20 00:19:50 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/vesa/vbe.c,v 1.7 2000/11/19 20:51:12 keithp Exp $ */
 
 #include "vesa.h"
 
@@ -281,6 +281,9 @@ VbeMapFramebuffer(Vm86InfoPtr vi, VbeInfoPtr vbe, int mode, int *ret_size)
         return NULL;
     }
 
+    KdSetMappedMode (vmib.PhysBasePtr - before, before + size + after,
+		     KD_MAPPED_MODE_FRAMEBUFFER);
+
     return fb + before;
 }
 
@@ -307,7 +310,10 @@ VbeUnmapFramebuffer(Vm86InfoPtr vi, VbeInfoPtr vbe, int mode, void *fb)
         after = 0;
 
     fb = (void *) ((char *) fb - before);
+    
     KdUnmapDevice (fb, before + size + after);
+    KdResetMappedMode (vmib.PhysBasePtr - before, before + size + after,
+		     KD_MAPPED_MODE_FRAMEBUFFER);
 }
 
 int 

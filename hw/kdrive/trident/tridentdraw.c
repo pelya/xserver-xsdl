@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/trident/tridentdraw.c,v 1.5 2000/08/26 00:17:50 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/trident/tridentdraw.c,v 1.6 2000/10/11 06:04:40 keithp Exp $ */
 
 #include "trident.h"
 #include "tridentdraw.h"
@@ -701,25 +701,37 @@ tridentComposite (CARD8      op,
 		  CARD16     height)
 {
     SetupTrident (pDst->pDrawable->pScreen);
-    RegionRec	    region;
-    int		    n;
-    BoxPtr	    pbox;
+    tridentScreenInfo(pScreenPriv);
+    RegionRec	region;
+    int		n;
+    BoxPtr	pbox;
     CARD32	rgb;
     CARD8	*msk, *mskLine;
     FbBits	*mskBits;
     FbStride	mskStride;
     int		mskBpp;
     CARD32	*src, *srcLine;
+    CARD32	*off, *offLine;
     FbBits	*srcBits;
     FbStride	srcStride;
+    FbStride	offStride;
     int		srcBpp;
     int		x_msk, y_msk, x_src, y_src, x_dst, y_dst;
     int		x2;
     int		w, h, w_this, h_this, w_remain;
-    int		win_remain;
-    CARD32	*window;
+    CARD32	*off_screen;
+    int		off_size = tridents->off_screen_size >> 2;
+    int		off_width, off_height;
+    int		stride = pScreenPriv->screen->fb[0].pixelStride;
     int		mskExtra;
+    CARD32	off_screen_offset = tridents->off_screen - tridents->screen;
+    int		mode;
     
+#define MODE_NONE   0
+#define MODE_IMAGE  1
+#define MODE_MASK   2
+    
+    rgb = *((CARD32 *) ((PixmapPtr) (pSrc->pDrawable))->devPrivate.ptr);
     if (pMask && 
 	!pMask->repeat &&
 	pMask->format == PICT_a8 &&
@@ -729,109 +741,11 @@ tridentComposite (CARD8      op,
 	pSrc->pDrawable->height == 1 &&
 	PICT_FORMAT_BPP(pSrc->format) == 32 &&
 	(PICT_FORMAT_A(pSrc->format) == 0 ||
-	 ((rgb = (*((CARD32 *) ((PixmapPtr) (pSrc->pDrawable))->devPrivate.ptr))
-	   & 0xff000000) == 0xff000000)) &&
+	 (rgb & 0xff000000) == 0xff000000) &&
 	pDst->pDrawable->bitsPerPixel == 32 &&
 	pDst->pDrawable->type == DRAWABLE_WINDOW)
     {
-	xDst += pDst->pDrawable->x;
-	yDst += pDst->pDrawable->y;
-	xSrc += pSrc->pDrawable->x;
-	ySrc += pSrc->pDrawable->y;
-	if (pMask)
-	{
-	    xMask += pMask->pDrawable->x;
-	    yMask += pMask->pDrawable->y;
-	}
-	
-	rgb = (*((CARD32 *) ((PixmapPtr) (pSrc->pDrawable))->devPrivate.ptr)
-	       & 0xffffff);
-	
-	if (!miComputeCompositeRegion (&region,
-				       pSrc,
-				       pMask,
-				       pDst,
-				       xSrc,
-				       ySrc,
-				       xMask,
-				       yMask,
-				       xDst,
-				       yDst,
-				       width,
-				       height))
-	    return;
-	
-	fbGetDrawable (pMask->pDrawable, mskBits, mskStride, mskBpp);
-	mskStride = mskStride * sizeof (FbBits) / sizeof (CARD8);
-				       
-	cop->multi = (COP_MULTI_ROP | 0xcc);
-		      
-	cop->multi = (COP_MULTI_ALPHA |
-		      COP_ALPHA_BLEND_ENABLE |
-		      COP_ALPHA_WRITE_ENABLE |
-		      0x7 << 16 |
-		      COP_ALPHA_DST_BLEND_1_SRC_A |
-		      COP_ALPHA_SRC_BLEND_SRC_A);
-	
-	n = REGION_NUM_RECTS (&region);
-	pbox = REGION_RECTS (&region);
-	
-	while (n--)
-	{
-	    h = pbox->y2 - pbox->y1;
-	    x2 = pbox->x2;
-	    w = x2 - pbox->x1;
-	    cop->multi = COP_MULTI_CLIP_TOP_LEFT | TRI_XY(0,0);
-	    cop->clip_bottom_right = TRI_XY(x2-1, 0xfff);
-	    if (w & 1)
-	    {
-		x2++;
-		w++;
-	    }
-	    
-	    y_msk = pbox->y1 - yDst + yMask;
-	    y_dst = pbox->y1;
-	    x_msk = pbox->x1 - xDst + xMask;
-	    x_dst = pbox->x1;
-	
-	    mskLine = (CARD8 *) mskBits + y_msk * mskStride + x_msk;
-	    
-	    cop->dst_start_xy = TRI_XY(pbox->x1, pbox->y1);
-	    cop->dst_end_xy = TRI_XY(x2-1,pbox->y2-1);
-	    
-	    _tridentWaitDone(cop);
-	    
-	    cop->command = (COP_OP_BLT | COP_SCL_OPAQUE | COP_CLIP | COP_OP_ROP);
-	    
-	    win_remain = 0;
-	    while (h--)
-	    {
-		w_remain = w;
-		msk = mskLine;
-		mskLine += mskStride;
-		while (w_remain)
-		{
-		    if (!win_remain)
-		    {
-			window = tridentc->window;
-			win_remain = 0x1000 / 4;
-		    }
-		    w_this = w_remain;
-		    if (w_this > win_remain)
-			w_this = win_remain;
-		    win_remain -= w_this;
-		    w_remain -= w_this;
-		    while (w_this--)
-			*window++ = rgb | (*msk++ << 24);
-		}
-	    }
-	    pbox++;
-	}
-
-	cop->multi = TridentAlpha;
-	cop->clip_bottom_right = 0x0fff0fff;
-
-	KdMarkSync (pDst->pDrawable->pScreen);
+	mode = MODE_MASK;
     }
     else if (!pMask &&
 	     op == PictOpOver &&
@@ -841,14 +755,26 @@ tridentComposite (CARD8      op,
 	     pDst->pDrawable->bitsPerPixel == 32 &&
 	     pDst->pDrawable->type == DRAWABLE_WINDOW)
     {
+	mode = MODE_IMAGE;
+    }
+    else
+	mode = MODE_NONE;
+    
+    if (mode != MODE_NONE)
+    {
 	xDst += pDst->pDrawable->x;
 	yDst += pDst->pDrawable->y;
 	xSrc += pSrc->pDrawable->x;
 	ySrc += pSrc->pDrawable->y;
+	
+	fbGetDrawable (pSrc->pDrawable, srcBits, srcStride, srcBpp);
+	
 	if (pMask)
 	{
 	    xMask += pMask->pDrawable->x;
 	    yMask += pMask->pDrawable->y;
+	    fbGetDrawable (pMask->pDrawable, mskBits, mskStride, mskBpp);
+	    mskStride = mskStride * sizeof (FbBits) / sizeof (CARD8);
 	}
 	
 	if (!miComputeCompositeRegion (&region,
@@ -865,16 +791,30 @@ tridentComposite (CARD8      op,
 				       height))
 	    return;
 	
-	fbGetDrawable (pSrc->pDrawable, srcBits, srcStride, srcBpp);
+	_tridentInit(cop,tridentc);
 	
-	cop->multi = (COP_MULTI_ROP | 0xcc);
+	cop->multi = COP_MULTI_PATTERN;
+	cop->src_offset = off_screen_offset;
 	
-	cop->multi = (COP_MULTI_ALPHA |
-		      COP_ALPHA_BLEND_ENABLE |
-		      COP_ALPHA_WRITE_ENABLE |
-		      0x7 << 16 |
-		      COP_ALPHA_DST_BLEND_1_SRC_A |
-		      COP_ALPHA_SRC_BLEND_1);
+	if (mode == MODE_IMAGE)
+	{
+	    cop->multi = (COP_MULTI_ALPHA |
+			  COP_ALPHA_BLEND_ENABLE |
+			  COP_ALPHA_WRITE_ENABLE |
+			  0x7 << 16 |
+			  COP_ALPHA_DST_BLEND_1_SRC_A |
+			  COP_ALPHA_SRC_BLEND_1);
+	}
+	else
+	{
+	    rgb &= 0xffffff;
+	    cop->multi = (COP_MULTI_ALPHA |
+			  COP_ALPHA_BLEND_ENABLE |
+			  COP_ALPHA_WRITE_ENABLE |
+			  0x7 << 16 |
+			  COP_ALPHA_DST_BLEND_1_SRC_A |
+			  COP_ALPHA_SRC_BLEND_SRC_A);
+	}
 	
 	n = REGION_NUM_RECTS (&region);
 	pbox = REGION_RECTS (&region);
@@ -882,59 +822,79 @@ tridentComposite (CARD8      op,
 	while (n--)
 	{
 	    h = pbox->y2 - pbox->y1;
-	    x2 = pbox->x2;
-	    w = x2 - pbox->x1;
-	    cop->multi = COP_MULTI_CLIP_TOP_LEFT | TRI_XY(0,0);
-	    cop->clip_bottom_right = TRI_XY(x2-1, 0xfff);
-	    if (w & 1)
-	    {
-		x2++;
-		w++;
-	    }
+	    w = pbox->x2 - pbox->x1;
 	    
-	    y_src = pbox->y1 - yDst + ySrc;
+	    offStride = (w + 7) & ~7;
+	    off_height = off_size / offStride;
+	    if (off_height > h)
+		off_height = h;
+	    
+	    cop->multi = COP_MULTI_STRIDE | (stride << 16) | offStride;
+	    
 	    y_dst = pbox->y1;
-	    x_src = pbox->x1 - xDst + xSrc;
+	    y_src = y_dst - yDst + ySrc;
+	    y_msk = y_dst - yDst + yMask;
+	    
 	    x_dst = pbox->x1;
+	    x_src = x_dst - xDst + xSrc;
+	    x_msk = x_dst - xDst + xMask;
 	
-	    srcLine = srcBits + y_src * srcStride + x_src;
-	    
-	    cop->dst_start_xy = TRI_XY(pbox->x1, pbox->y1);
-	    cop->dst_end_xy = TRI_XY(x2-1,pbox->y2-1);
-	    
-	    _tridentWaitDone(cop);
-	    
-	    cop->command = (COP_OP_BLT | COP_SCL_OPAQUE | COP_OP_ROP | COP_CLIP);
-	    
-	    win_remain = 0;
-	    while (h--)
+	    if (mode == MODE_IMAGE)
+		srcLine = (CARD32 *) srcBits + y_src * srcStride + x_src;
+	    else
+		mskLine = (CARD8 *) mskBits + y_msk * mskStride + x_msk;
+
+	    while (h)
 	    {
-		w_remain = w;
-		src = srcLine;
-		srcLine += srcStride;
-		while (w_remain)
+		h_this = h;
+		if (h_this > off_height)
+		    h_this = off_height;
+		h -= h_this;
+		
+		offLine = (CARD32 *) tridents->off_screen;
+		
+		_tridentWaitDone(cop);
+		
+		cop->dst_start_xy = TRI_XY(x_dst, y_dst);
+		cop->dst_end_xy = TRI_XY(x_dst + w - 1, y_dst + h_this - 1);
+		cop->src_start_xy = TRI_XY(0,0);
+		cop->src_end_xy = TRI_XY(w - 1, h_this - 1);
+					 
+		if (mode == MODE_IMAGE)
 		{
-		    if (!win_remain)
+		    while (h_this--)
 		    {
-			window = tridentc->window;
-			win_remain = 0x1000 / 4;
+			w_remain = w;
+			src = srcLine;
+			srcLine += srcStride;
+			off = offLine;
+			offLine += offStride;
+			while (w_remain--)
+			    *off++ = *src++;
 		    }
-		    w_this = w_remain;
-		    if (w_this > win_remain)
-			w_this = win_remain;
-		    win_remain -= w_this;
-		    w_remain -= w_this;
-		    while (w_this--)
-			*window++ = *src++;
 		}
+		else
+		{
+		    while (h_this--)
+		    {
+			w_remain = w;
+			msk = mskLine;
+			mskLine += mskStride;
+			off = offLine;
+			offLine += offStride;
+			while (w_remain--)
+			    *off++ = rgb | (*msk++ << 24);
+		    }
+		}
+		
+		cop->command = (COP_OP_BLT |
+				COP_SCL_OPAQUE |
+				COP_OP_FB);
 	    }
 	    pbox++;
 	}
-
-	cop->multi = TridentAlpha;
-	cop->multi = COP_MULTI_CLIP_TOP_LEFT;
-	cop->clip_bottom_right = 0x0fff0fff;
-
+	cop->src_offset = 0;
+	
 	KdMarkSync (pDst->pDrawable->pScreen);
     }
     else
@@ -1057,6 +1017,7 @@ Bool
 tridentDrawInit (ScreenPtr pScreen)
 {
     SetupTrident(pScreen);
+    tridentScreenInfo(pScreenPriv);
     PictureScreenPtr    ps = GetPictureScreen(pScreen);
     
     /*
@@ -1071,7 +1032,7 @@ tridentDrawInit (ScreenPtr pScreen)
     pScreen->PaintWindowBackground = tridentPaintWindow;
     pScreen->PaintWindowBorder = tridentPaintWindow;
 
-    if (ps && tridentc->window)
+    if (ps && tridents->off_screen)
 	ps->Composite = tridentComposite;
     
     return TRUE;

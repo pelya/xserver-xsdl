@@ -19,7 +19,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/vesa/vesa.c,v 1.6 2000/09/19 23:50:47 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/vesa/vesa.c,v 1.8 2000/10/20 00:19:50 keithp Exp $ */
 
 #include "vesa.h"
 
@@ -158,6 +158,8 @@ vesaGetModes (Vm86InfoPtr vi, int *ret_nmode)
 	return 0;
     
     modes = xalloc (nmode * sizeof (VesaModeRec));
+    
+    memset (modes, '\0', nmode * sizeof (VesaModeRec));
     
     if (nmodeVga)
     {

@@ -29,6 +29,7 @@
 #include <errno.h>
 #include <unistd.h>
 #include <sys/mman.h>
+#include <asm/mtrr.h>
 #endif
 
 void *
@@ -90,3 +91,72 @@ KdUnmapDevice (void *addr, CARD32 size)
 #endif
 }
 
+#ifdef linux
+static int  mtrr;
+#endif
+
+void
+KdSetMappedMode (CARD32 addr, CARD32 size, int mode)
+{
+#ifdef linux
+    struct mtrr_sentry  sentry;
+    unsigned long    	base, bound;
+    unsigned int	type;
+
+    if (addr < 0x100000)
+	return;
+    if (!mtrr)
+	mtrr = open ("/proc/mtrr", 2);
+    if (mtrr > 0)
+    {
+	base = addr & ~((1<22)-1);
+	bound = ((addr + size) + ((1<<22) - 1)) & ~((1<<22) - 1);
+	switch (mode) {
+	case KD_MAPPED_MODE_REGISTERS:
+	    type = MTRR_TYPE_UNCACHABLE;
+	    break;
+	case KD_MAPPED_MODE_FRAMEBUFFER:
+	    type = MTRR_TYPE_WRCOMB;
+	    break;
+	}
+	sentry.base = base;
+	sentry.size = bound - base;
+	sentry.type = type;
+	
+	ioctl (mtrr, MTRRIOC_ADD_ENTRY, &sentry);
+    }
+#endif
+}
+
+void
+KdResetMappedMode (CARD32 addr, CARD32 size, int mode)
+{
+#ifdef linux
+    struct mtrr_sentry  sentry;
+    unsigned long    	base, bound;
+    unsigned int	type;
+
+    if (addr < 0x100000)
+	return;
+    if (!mtrr)
+	mtrr = open ("/proc/mtrr", 2);
+    if (mtrr > 0)
+    {
+	base = addr & ~((1<22)-1);
+	bound = ((addr + size) + ((1<<22) - 1)) & ~((1<<22) - 1);
+	switch (mode) {
+	case KD_MAPPED_MODE_REGISTERS:
+	    type = MTRR_TYPE_UNCACHABLE;
+	    break;
+	case KD_MAPPED_MODE_FRAMEBUFFER:
+	    type = MTRR_TYPE_WRCOMB;
+	    break;
+	}
+	sentry.base = base;
+	sentry.size = bound - base;
+	sentry.type = type;
+	
+	ioctl (mtrr, MTRRIOC_DEL_ENTRY, &sentry);
+    }
+#endif
+}

@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/trident/trident.h,v 1.7 2000/10/11 06:04:40 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/trident/trident.h,v 1.8 2000/10/20 00:19:51 keithp Exp $ */
 
 #ifndef _TRIDENT_H_
 #define _TRIDENT_H_
@@ -179,6 +179,11 @@ typedef struct _tridentSave {
     CARD8   reg_3d4_39;
     CARD8   reg_3d4_62;	/* GE setup */
     CARD8   reg_3ce_21;	/* DPMS */
+    CARD8   reg_3c2;	/* clock config */
+    CARD8   reg_3c4_16;	/* MCLKLow */
+    CARD8   reg_3c4_17;	/* MCLKHigh */
+    CARD8   reg_3c4_18;	/* ClockLow */
+    CARD8   reg_3c4_19; /* ClockHigh */
 } TridentSave;
 
 typedef struct _tridentCardInfo {
