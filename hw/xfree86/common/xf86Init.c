@@ -1027,17 +1027,8 @@ InitInput(argc, argv)
 
 		continue;
 	    }
-#else
-	    if (!xf86NameCmp(pDev->driver, "keyboard")) {
-		xf86MsgVerb(X_ERROR, 0, "*** ERROR the legacy keyboard driver \"keyboard\" is deprecated\n");
-		xf86MsgVerb(X_ERROR, 0, "*** and has not been compiled into this X server.  It will be removed\n");
-		xf86MsgVerb(X_ERROR, 0, "*** in the next release of the Xorg server.\n");
-		xf86MsgVerb(X_ERROR, 0, "*** Please consider using the the new \"kbd\" driver for \"%s\".\n",
-			pDev->identifier);
-
-		continue;
-	    }
 #endif
+
 	    if ((pDrv = MatchInput(pDev)) == NULL) {
 		xf86Msg(X_ERROR, "No Input driver matching `%s'\n", pDev->driver);
 		/* XXX For now, just continue. */

@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/hw/xfree86/common/xf86Config.c,v 1.3 2004/07/31 09:14:06 kem Exp $ */
+/* $XdotOrg: xc/programs/Xserver/hw/xfree86/common/xf86Config.c,v 1.4 2004/08/09 02:08:35 kem Exp $ */
 /* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86Config.c,v 3.276 2003/10/08 14:58:26 dawes Exp $ */
 
 
@@ -374,12 +374,13 @@ xf86DriverlistFromConfig()
 Bool
 xf86BuiltinInputDriver(const char *name)
 {
+#ifdef USE_DEPRECATED_KEYBOARD_DRIVER
     if (xf86NameCmp(name, "keyboard") == 0)
 	return TRUE;
     else
+#endif
 	return FALSE;
 }
-
 
 char **
 xf86InputDriverlistFromConfig()
