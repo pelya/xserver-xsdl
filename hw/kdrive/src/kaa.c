@@ -1,5 +1,5 @@
 /*
- * $XFree86: xc/programs/Xserver/hw/kdrive/kaa.c,v 1.3 2001/06/03 18:48:19 keithp Exp $
+ * $XFree86: xc/programs/Xserver/hw/kdrive/kaa.c,v 1.4 2001/06/04 09:45:41 keithp Exp $
  *
  * Copyright © 2001 Keith Packard, member of The XFree86 Project, Inc.
  *
@@ -35,7 +35,9 @@ void
 kaaFillSpans(DrawablePtr pDrawable, GCPtr pGC, int n, 
 	     DDXPointPtr ppt, int *pwidth, int fSorted)
 {
-    KaaScreenPriv (pDrawable->pScreen);
+    ScreenPtr	    pScreen = pDrawable->pScreen;
+    KdScreenPriv (pScreen);
+    KaaScreenPriv (pScreen);
     RegionPtr	    pClip = fbGetCompositeClip(pGC);
     BoxPtr	    pextent, pbox;
     int		    nbox;
@@ -43,7 +45,8 @@ kaaFillSpans(DrawablePtr pDrawable, GCPtr pGC, int n,
     int		    fullX1, fullX2, fullY1;
     int		    partX1, partX2;
     
-    if (pGC->fillStyle != FillSolid ||
+    if (!pScreenPriv->enabled ||
+	pGC->fillStyle != FillSolid ||
 	!(*pKaaScr->PrepareSolid) (pDrawable,
 				   pGC->alu,
 				   pGC->planemask,
@@ -120,6 +123,7 @@ kaaCopyNtoN (DrawablePtr    pSrcDrawable,
 	     Pixel	    bitplane,
 	     void	    *closure)
 {
+    KdScreenPriv (pDstDrawable->pScreen);
     KaaScreenPriv (pDstDrawable->pScreen);
     int	    srcX, srcY, dstX, dstY;
     int	    w, h;
@@ -127,7 +131,8 @@ kaaCopyNtoN (DrawablePtr    pSrcDrawable,
     CARD32  cmd;
     CARD8   alu;
     
-    if (pSrcDrawable->type == DRAWABLE_WINDOW &&
+    if (pScreenPriv->enabled &&
+	pSrcDrawable->type == DRAWABLE_WINDOW &&
 	(*pKaaScr->PrepareCopy) (pSrcDrawable,
 				 pDstDrawable,
 				 dx,
@@ -170,6 +175,7 @@ kaaPolyFillRect(DrawablePtr pDrawable,
 		int	    nrect,
 		xRectangle  *prect)
 {
+    KdScreenPriv (pDrawable->pScreen);
     KaaScreenPriv (pDrawable->pScreen);
     RegionPtr	    pClip = fbGetCompositeClip(pGC);
     register BoxPtr pbox;
@@ -180,7 +186,8 @@ kaaPolyFillRect(DrawablePtr pDrawable,
     int		    xorg, yorg;
     int		    n;
 
-    if (pGC->fillStyle != FillSolid ||
+    if (!pScreenPriv->enabled ||
+	pGC->fillStyle != FillSolid ||
 	!(*pKaaScr->PrepareSolid) (pDrawable,
 				   pGC->alu,
 				   pGC->planemask,
@@ -269,13 +276,15 @@ kaaSolidBoxClipped (DrawablePtr	pDrawable,
 		    int		x2,
 		    int		y2)
 {
+    KdScreenPriv (pDrawable->pScreen);
     KaaScreenPriv (pDrawable->pScreen);
     BoxPtr	pbox;
     int		nbox;
     int		partX1, partX2, partY1, partY2;
     CARD32	cmd;
 
-    if (!(*pKaaScr->PrepareSolid) (pDrawable, GXcopy, pm, fg))
+    if (!pScreenPriv->enabled ||
+	!(*pKaaScr->PrepareSolid) (pDrawable, GXcopy, pm, fg))
     {
 	KdCheckSync (pDrawable->pScreen);
 	fg = fbReplicatePixel (fg, pDrawable->bitsPerPixel);
@@ -539,9 +548,11 @@ kaaFillRegionSolid (DrawablePtr	pDrawable,
 		    RegionPtr	pRegion,
 		    Pixel	pixel)
 {
+    KdScreenPriv(pDrawable->pScreen);
     KaaScreenPriv(pDrawable->pScreen);
 
-    if ((*pKaaScr->PrepareSolid) (pDrawable, GXcopy, FB_ALLONES, pixel))
+    if (pScreenPriv->enabled &&
+	(*pKaaScr->PrepareSolid) (pDrawable, GXcopy, FB_ALLONES, pixel))
     {
 	int	nbox = REGION_NUM_RECTS (pRegion);
 	BoxPtr	pBox = REGION_RECTS (pRegion);
