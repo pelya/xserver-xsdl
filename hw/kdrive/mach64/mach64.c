@@ -19,7 +19,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/mach64/mach64.c,v 1.6 2001/07/20 19:35:30 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/mach64/mach64.c,v 1.7 2001/07/24 19:06:03 keithp Exp $ */
 
 #include "mach64.h"
 #include <sys/io.h>
@@ -215,10 +215,10 @@ mach64UnmapReg (KdCardInfo *card, Mach64CardInfo *mach64c)
 {
     if (mach64c->reg_base)
     {
-	KdUnmapDevice ((void *) mach64c->reg_base, MACH64_REG_SIZE(card));
 	KdResetMappedMode (MACH64_REG_BASE(card),
 			   MACH64_REG_SIZE(card),
 			   KD_MAPPED_MODE_REGISTERS);
+	KdUnmapDevice ((void *) mach64c->reg_base, MACH64_REG_SIZE(card));
 	mach64c->reg_base = 0;
 	mach64c->reg = 0;
 	mach64c->media_reg = 0;

@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/kmap.c,v 1.8 2001/05/23 08:56:08 alanh Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/kmap.c,v 1.9 2001/06/29 13:57:45 keithp Exp $ */
 
 #include "kdrive.h"
 
@@ -135,7 +135,9 @@ KdSetMappedMode (CARD32 addr, CARD32 size, int mode)
 	sentry.size = bound - base;
 	sentry.type = type;
 	
-	ioctl (mtrr, MTRRIOC_ADD_ENTRY, &sentry);
+	if (ioctl (mtrr, MTRRIOC_ADD_ENTRY, &sentry) < 0)
+	    ErrorF ("MTRRIOC_ADD_ENTRY failed 0x%x 0x%x %d (errno %d)\n",
+		    base, bound - base, type, errno);
     }
 #endif
 }
@@ -154,7 +156,7 @@ KdResetMappedMode (CARD32 addr, CARD32 size, int mode)
 	mtrr = open ("/proc/mtrr", 2);
     if (mtrr > 0)
     {
-	base = addr & ~((1<22)-1);
+	base = addr & ~((1<<22)-1);
 	bound = ((addr + size) + ((1<<22) - 1)) & ~((1<<22) - 1);
 	switch (mode) {
 	case KD_MAPPED_MODE_REGISTERS:
@@ -168,7 +170,9 @@ KdResetMappedMode (CARD32 addr, CARD32 size, int mode)
 	sentry.size = bound - base;
 	sentry.type = type;
 	
-	ioctl (mtrr, MTRRIOC_DEL_ENTRY, &sentry);
+	if (ioctl (mtrr, MTRRIOC_DEL_ENTRY, &sentry) < 0)
+	    ErrorF ("MTRRIOC_DEL_ENTRY failed 0x%x 0x%x %d (errno %d)\n",
+		    base, bound - base, type, errno);
     }
 #endif
 }

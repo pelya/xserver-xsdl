@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/kdrive.h,v 1.17 2001/07/11 02:58:19 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/kdrive.h,v 1.18 2001/07/20 19:35:29 keithp Exp $ */
 
 #include <stdio.h>
 #include "X.h"
@@ -464,6 +464,12 @@ KdEnableScreen (ScreenPtr pScreen);
 
 void
 KdEnableScreens (void);
+
+void
+KdSuspend (void);
+
+void
+KdResume (void);
 
 void
 KdProcessSwitch (void);

@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/kdrive.c,v 1.17 2001/06/13 19:18:03 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/kdrive.c,v 1.18 2001/07/20 19:35:29 keithp Exp $ */
 
 #include "kdrive.h"
 #ifdef PSEUDO8
@@ -230,6 +230,45 @@ KdDisableScreens (void)
 	}
 	(*kdOsFuncs->Disable) ();
 	KdDisableInput ();
+    }
+}
+
+void
+KdSuspend (void)
+{
+    KdCardInfo	    *card;
+    KdScreenInfo    *screen;
+
+    if (kdEnabled)
+    {
+	for (card = kdCardInfo; card; card = card->next)
+	{
+	    for (screen = card->screenList; screen; screen = screen->next)
+		if (screen->mynum == card->selected && screen->pScreen)
+		    KdDisableScreen (screen->pScreen);
+	    if (card->driver)
+		(*card->cfuncs->restore) (card);
+	}
+	KdDisableInput ();
+    }
+}
+
+void
+KdResume (void)
+{
+    KdCardInfo	    *card;
+    KdScreenInfo    *screen;
+
+    if (kdEnabled)
+    {
+	for (card = kdCardInfo; card; card = card->next)
+	{
+	    (*card->cfuncs->preserve) (card);
+	    for (screen = card->screenList; screen; screen = screen->next)
+		if (screen->mynum == card->selected && screen->pScreen)
+		    KdEnableScreen (screen->pScreen);
+	}
+	KdEnableInput ();
     }
 }
 

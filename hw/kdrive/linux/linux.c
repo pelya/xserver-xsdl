@@ -1,5 +1,5 @@
 /*
- * $XFree86$
+ * $XFree86: xc/programs/Xserver/hw/kdrive/linux/linux.c,v 1.5 2001/03/30 02:15:20 keithp Exp $
  *
  * Copyright © 1999 Keith Packard
  *
@@ -30,9 +30,11 @@
 #include <sys/stat.h>
 #include <sys/ioctl.h>
 #include <keysym.h>
+#include <linux/apm_bios.h>
 
 static int  vtno;
 int  LinuxConsoleFd;
+int  LinuxApmFd = -1;
 static int  activeVT;
 static Bool enabled;
 
@@ -256,6 +258,65 @@ LinuxSetSwitchMode (int mode)
 }
 
 void
+LinuxApmBlock (pointer blockData, OSTimePtr pTimeout, pointer pReadmask)
+{
+}
+
+static Bool LinuxApmRunning;
+
+void
+LinuxApmWakeup (pointer blockData, int result, pointer pReadmask)
+{
+    fd_set  *readmask = (fd_set *) pReadmask;
+
+    if (result > 0 && LinuxApmFd >= 0 && FD_ISSET (LinuxApmFd, readmask))
+    {
+	apm_event_t event;
+	Bool	    running = LinuxApmRunning;
+	int	    cmd = APM_IOC_SUSPEND;
+
+	while (read (LinuxApmFd, &event, sizeof (event)) == sizeof (event))
+	{
+	    switch (event) {
+	    case APM_SYS_STANDBY:
+	    case APM_USER_STANDBY:
+		running = FALSE;
+		cmd = APM_IOC_STANDBY;
+		break;
+	    case APM_SYS_SUSPEND:
+	    case APM_USER_SUSPEND:
+	    case APM_CRITICAL_SUSPEND:
+		running = FALSE;
+		cmd = APM_IOC_SUSPEND;
+		break;
+	    case APM_NORMAL_RESUME:
+	    case APM_CRITICAL_RESUME:
+	    case APM_STANDBY_RESUME:
+		running = TRUE;
+		break;
+	    }
+	}
+	if (running && !LinuxApmRunning)
+	{
+	    KdResume ();
+	    LinuxApmRunning = TRUE;
+	}
+	else if (!running && LinuxApmRunning)
+	{
+	    KdSuspend ();
+	    LinuxApmRunning = FALSE;
+	    ioctl (LinuxApmFd, cmd, 0);
+	}
+    }
+}
+
+#ifdef FNONBLOCK
+#define NOBLOCK FNONBLOCK
+#else
+#define NOBLOCK FNDELAY
+#endif
+
+void
 LinuxEnable (void)
 {
     if (enabled)
@@ -265,6 +326,18 @@ LinuxEnable (void)
 	kdSwitchPending = FALSE;
 	ioctl (LinuxConsoleFd, VT_RELDISP, VT_ACKACQ);
     }
+    /*
+     * Open the APM driver
+     */
+    LinuxApmFd = open ("/dev/apm_bios", 0);
+    if (LinuxApmFd >= 0)
+    {
+	LinuxApmRunning = TRUE;
+	fcntl (LinuxApmFd, F_SETFL, fcntl (LinuxApmFd, F_GETFL) | NOBLOCK);
+	RegisterBlockAndWakeupHandlers (LinuxApmBlock, LinuxApmWakeup, 0);
+	AddEnabledDevice (LinuxApmFd);
+    }
+	
     /*
      * now get the VT
      */
@@ -314,6 +387,13 @@ LinuxDisable (void)
 	ioctl (LinuxConsoleFd, VT_RELDISP, 1);
     }
     enabled = FALSE;
+    if (LinuxApmFd >= 0)
+    {
+	RemoveBlockAndWakeupHandlers (LinuxApmBlock, LinuxApmWakeup, 0);
+	RemoveEnabledDevice (LinuxApmFd);
+	close (LinuxApmFd);
+	LinuxApmFd = -1;
+    }
 }
 
 void
