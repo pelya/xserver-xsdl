@@ -110,8 +110,28 @@ Win32System(const char *cmdline)
 
     if (!CreateProcess(NULL, cmd, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi)) 
     {
-        xfree(cmd);
-        return -1;
+	LPVOID buffer;
+	if (!FormatMessage( 
+		    FORMAT_MESSAGE_ALLOCATE_BUFFER | 
+		    FORMAT_MESSAGE_FROM_SYSTEM | 
+		    FORMAT_MESSAGE_IGNORE_INSERTS,
+		    NULL,
+		    GetLastError(),
+		    MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+		    (LPTSTR) &buffer,
+		    0,
+		    NULL ))
+	{
+	    ErrorF("Starting '%s' failed!\n", cmdline); 
+	}
+	else
+	{
+	    ErrorF("Starting '%s' failed: %s", cmdline, (char *)buffer); 
+	    LocalFree(buffer);
+	}
+
+	xfree(cmd);
+	return -1;
     }
     // Wait until child process exits.
     WaitForSingleObject( pi.hProcess, INFINITE );
@@ -374,7 +394,7 @@ int i;
 #ifndef WIN32
 	if (Pclose(out)==0)
 #else
-	if (fclose(out)==0)
+	if (fclose(out)==0 && System(buf) >= 0)
 #endif
 	{
 #ifdef DEBUG_CMD
@@ -382,11 +402,6 @@ int i;
 	    ErrorF("xkbcomp input:\n");
 	    XkbWriteXKBKeymapForNames(stderr,names,NULL,xkb,want,need);
 	    ErrorF("end xkbcomp input\n");
-#endif
-#ifdef WIN32
-	    if (System(buf) < 0)
-		ErrorF("Could not invoke keymap compiler\n");
-	    else {
 #endif
 	    if (nameRtrn) {
 		strncpy(nameRtrn,keymap,nameRtrnLen);
@@ -417,13 +432,14 @@ int i;
 	    }
 #endif
 	    return True;
-#ifdef WIN32
-	    }
-#endif
 	}
 #ifdef DEBUG
 	else
 	    ErrorF("Error compiling keymap (%s)\n",keymap);
+#endif
+#ifdef WIN32
+        /* remove the temporary file */
+        unlink(tmpname);
 #endif
     }
 #ifdef DEBUG
