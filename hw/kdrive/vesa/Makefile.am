@@ -38,6 +38,7 @@ Xvesa_LDADD = \
 	$(top_builddir)/randr/librandr.la	\
 	$(top_builddir)/render/librender.la	\
 	$(top_builddir)/xtrans/libxtrans.la	\
-	$(X_LIBS) -lXfont -lXau -lXdmcp 	\
+	@XFONT_LIBS@				\
+	$(X_LIBS) -lXau -lXdmcp 		\
 	$(top_builddir)/dix/libxpstubs.la	\
 	-lfreetype -lm -lz
