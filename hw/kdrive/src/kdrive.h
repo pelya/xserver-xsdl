@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/kdrive.h,v 1.3 2000/01/21 01:12:01 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/kdrive.h,v 1.4 2000/02/23 20:29:53 dawes Exp $ */
 
 #include <stdio.h>
 #include "X.h"
@@ -40,6 +40,7 @@
 #include "mi.h"
 #include "dix.h"
 #include "fb.h"
+#include "fboverlay.h"
 
 extern WindowPtr    *WindowTable;
 
@@ -49,10 +50,18 @@ extern WindowPtr    *WindowTable;
 #define KD_DPMS_POWERDOWN   3
 #define KD_DPMS_MAX	    KD_DPMS_POWERDOWN
 
+#ifndef KD_MAX_FB
+#define KD_MAX_FB   2
+#endif
+
+#ifndef KD_MAX_CARD_ADDRESS
+#define KD_MAX_CARD_ADDRESS 8
+#endif
+
 /*
  * Configuration information per video card
  */
-#define KD_MAX_CARD_ADDRESS 8
+
 typedef struct _KdCardAttr {
     CARD32  io;
     CARD32  address[KD_MAX_CARD_ADDRESS];
@@ -75,25 +84,30 @@ extern KdCardInfo	*kdCardInfo;
 /*
  * Configuration information per X screen
  */
+typedef struct _KdFrameBuffer {
+    CARD8	*frameBuffer;
+    int		depth;
+    int		bitsPerPixel;
+    int		pixelStride;
+    int		byteStride;
+    unsigned long   visuals;
+    Pixel       redMask, greenMask, blueMask;
+    void	*closure;
+} KdFrameBuffer;
+
 typedef struct _KdScreenInfo {
     struct _KdScreenInfo    *next;
     KdCardInfo	*card;
     ScreenPtr	pScreen;
     void	*driver;
-    CARD8	*frameBuffer;
     int		width;
     int		height;
-    int		depth;
     int		rate;
-    int		bitsPerPixel;
-    int		pixelStride;
-    int		byteStride;
     int         dpix, dpiy;
-    unsigned long   visuals;
-    Pixel       redMask, greenMask, blueMask;
     Bool        dumb;
     Bool        softCursor;
     int		mynum;
+    KdFrameBuffer   fb[KD_MAX_FB];
 } KdScreenInfo;
 
 typedef struct _KdCardFuncs {
@@ -120,8 +134,8 @@ typedef struct _KdCardFuncs {
     void        (*disableAccel) (ScreenPtr);
     void        (*finiAccel) (ScreenPtr);
 
-    void        (*getColors) (ScreenPtr, int, xColorItem *);
-    void        (*putColors) (ScreenPtr, int, xColorItem *);
+    void        (*getColors) (ScreenPtr, int, int, xColorItem *);
+    void        (*putColors) (ScreenPtr, int, int, xColorItem *);
 } KdCardFuncs;
 
 #define KD_MAX_PSEUDO_DEPTH 8
@@ -133,11 +147,11 @@ typedef struct {
 
     Bool	    enabled;
     Bool	    closed;
-    int		    bytesPerPixel;
+    int		    bytesPerPixel[KD_MAX_FB];
 
     int		    dpmsState;
     
-    ColormapPtr     pInstalledmap;                  /* current colormap */
+    ColormapPtr     pInstalledmap[KD_MAX_FB];         /* current colormap */
     xColorItem      systemPalette[KD_MAX_PSEUDO_SIZE];/* saved windows colors */
 
     CloseScreenProcPtr  CloseScreen;
@@ -341,7 +355,7 @@ extern GCOps		kdNoopOps;
 
 /* kcmap.c */
 void
-KdSetColormap (ScreenPtr pScreen);
+KdSetColormap (ScreenPtr pScreen, int fb);
 
 void
 KdEnableColormap (ScreenPtr pScreen);
@@ -364,6 +378,7 @@ KdStoreColors (ColormapPtr pCmap, int ndef, xColorItem *pdefs);
 /* kcurscol.c */
 void
 KdAllocateCursorPixels (ScreenPtr	pScreen,
+			int		fb,
 			CursorPtr	pCursor, 
 			Pixel		*source,
 			Pixel		*mask);

@@ -22,7 +22,7 @@
  *
  * Author:  Keith Packard, SuSE, Inc.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/savage/s3.h,v 1.2 1999/12/30 03:03:10 robin Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/savage/s3.h,v 1.3 2000/02/23 20:30:02 dawes Exp $ */
 
 #ifndef _S3_H_
 #define _S3_H_
@@ -98,110 +98,37 @@ typedef volatile struct _s3 {
     VOL32	blend_control;		/* 81a0 */
     VOL8	_pad3c[0x1c];		/* 81a4 */
     VOL32	primary_stream_addr_0;	/* 81c0 */
-    VOL8	_pad3d[0x124];		/* 81c4 */
-#if 0
-    VOL16	cur_y;			/* 82e8 */
-    VOL8	_pad4[0xc6];		/* 82ea */
-#else
+    VOL32	primary_stream_addr_1;	/* 81c4 */
+    VOL32	primary_stream_stride;	/* 81c8 */
+    VOL32       secondary_stream_mbuf;	/* 81cc */
+    VOL32       secondary_stream_addr_0;/* 81d0 */
+    VOL32       secondary_stream_addr_1;/* 81d4 */
+    VOL32       secondary_stream_stride;/* 81d8 */
+    VOL8	_pad81dc[4];		/* 81dc */
+    VOL32       secondary_stream_vscale;/* 81e0 */
+    VOL32       secondary_stream_vinit;	/* 81e4 */
+    VOL32       secondary_stream_scount;/* 81e8 */
+    VOL32       streams_fifo;		/* 81ec */
+    VOL32       primary_stream_xy;	/* 81f0 */
+    VOL32       primary_stream_size;	/* 81f4 */
+    VOL32	secondary_stream_xy;	/* 81f8 */
+    VOL32	secondary_stream_size;	/* 81fc */
+    VOL8	_pad8200[0xe8];		/* 8200 */
     VOL32	cur_y;			/* 82e8 */
-    VOL8	_pad4[0xc4];		/* 82ec */
-#endif
-    
-#if 0
-    VOL8	crt_vga_3b0;		/* 83b0 */
-    VOL8	crt_vga_3b1;		/* 83b1 */
-    VOL8	crt_vga_3b2;		/* 83b2 */
-    VOL8	crt_vga_3b3;		/* 83b3 */
-    VOL8	crt_vga_3b4;		/* 83b4 */
-    VOL8	crt_vga_3b5;		/* 83b5 */
-    VOL8	crt_vga_3b6;		/* 83b6 */
-    VOL8	crt_vga_3b7;    	/* 83b7 */
-    VOL8	crt_vga_3b8;    	/* 83b8 */
-    VOL8	crt_vga_3b9;    	/* 83b9 */
-    VOL8	crt_vga_3ba;		/* 83ba */
-    VOL8	crt_vga_3bb;		/* 83bb */
-    VOL8	crt_vga_3bc;		/* 83bc */
-    VOL8	crt_vga_3bd;		/* 83bd */
-    VOL8	crt_vga_3be;		/* 83be */
-    VOL8	crt_vga_3bf;		/* 83bf */
-    
-    VOL8	crt_vga_3c0;		/* 83c0 */
-    VOL8	crt_vga_3c1;		/* 83c1 */
-    VOL8	crt_vga_3c2;		/* 83c2 */
-    VOL8	crt_vga_3c3;		/* 83c3 */
-    VOL8	crt_vga_3c4;		/* 83c4 */
-    VOL8	crt_vga_3c5;		/* 83c5 */
-    VOL8	crt_vga_dac_ad_mk;	/* 83c6 */
-    VOL8	crt_vga_dac_rd_ad;    	/* 83c7 */
-    VOL8	crt_vga_dac_wt_ad;    	/* 83c8 */
-    VOL8	crt_vga_dac_data;    	/* 83c9 */
-    VOL8	crt_vga_3ca;		/* 83ca */
-    VOL8	crt_vga_3cb;		/* 83cb */
-    VOL8	crt_vga_3cc;		/* 83cc */
-    VOL8	crt_vga_3cd;		/* 83cd */
-    VOL8	crt_vga_3ce;		/* 83ce */
-    VOL8	crt_vga_3cf;		/* 83cf */
-    
-    VOL8	crt_vga_3d0;		/* 83d0 */
-    VOL8	crt_vga_3d1;		/* 83d1 */
-    VOL8	crt_vga_3d2;		/* 83d2 */
-    VOL8	crt_vga_3d3;		/* 83d3 */
-    VOL8	crt_vga_3d4;		/* 83d4 */
-    VOL8	crt_vga_3d5;		/* 83d5 */
-    VOL8	crt_vga_3d6;		/* 83d6 */
-    VOL8	crt_vga_3d7;    	/* 83d7 */
-    VOL8	crt_vga_3d8;    	/* 83d8 */
-    VOL8	crt_vga_3d9;    	/* 83d9 */
-    VOL8	crt_vga_status_1;    	/* 83da */
-    VOL8	crt_vga_3db;		/* 83db */
-    VOL8	crt_vga_3dc;		/* 83dc */
-    VOL8	crt_vga_3dd;		/* 83dd */
-    VOL8	crt_vga_3de;		/* 83de */
-    VOL8	crt_vga_3df;		/* 83df */
-    
-    VOL8	_pad5[0x124];		/* 83e0 */
-    VOL16	subsys_status;		/* 8504 */
-    VOL8	_pad6[0x6];		/* 8506 */
-    VOL32	subsys_status;		/* 8504 */
-    VOL8	_pad6[0x4];		/* 8508 */
-    VOL16	adv_control;		/* 850c */
-    VOL8	_pad7[0x1da];		/* 850e */
-    VOL16	cur_x;			/* 86e8 */
-    VOL8	_pad8[0x3fe];		/* 86ea */
-    VOL16	desty_axstp;		/* 8ae8 */
-    VOL8	_pad9[0x3fe];		/* 8aea */
-    VOL16	destx_diastp;		/* 8ee8 */
-    VOL8	_pad10[0x3fe];		/* 8eea */
-    VOL16	enh_err_term;		/* 92e8 */
-    VOL8	_pad11[0x3fe];		/* 92ea */
-    VOL16	maj_axis_pcnt;		/* 96e8 */
-    VOL8	_pad12[0x3fe];		/* 96ea */
-    VOL16	enh_cmd_gp_stat;    	/* 9ae8 */
-    VOL8	_pad13[0x3fe];		/* 9aea */
-    VOL16	enh_short_stroke;    	/* 9ee8 */
-    VOL8	_pad14[0x3fe];		/* 9eea */
-    VOL16	enh_bg;			/* a2e8 */
-    VOL8	_pad15[0x3fe];		/* a2ea */
-    VOL16	enh_fg;			/* a6e8 */
-    VOL8	_pad16[0x3fe];		/* a6ea */
-    VOL16	enh_wrt_mask;		/* aae8 */
-    VOL8	_pad17[0x3fe];		/* aaea */
-    VOL16	enh_rd_mask;	    	/* aee8 */
-    VOL8	_pad18[0x3fe];		/* aeea */
-    VOL16	enh_color_cmp;		/* b2e8 */
-    VOL8	_pad19[0x3fe];		/* b2ea */
-    VOL16	enh_bg_mix;    		/* b6e8 */
-    VOL8	_pad20[0x3fe];		/* b6ea */
-    VOL16	enh_fg_mix;    		/* bae8 */
-    VOL8	_pad21[0x3fe];		/* baea */
-    VOL16	enh_rd_reg_dt;		/* bee8 */
-    VOL8	_pad22[0x23fe];		/* beea */
-#else
-    VOL8	_pad_reg[0x5f38];	/* 83b0 */
-#endif
+    VOL8	_pad4[0x14];		/* 82ec */
+    VOL32	primary_stream_mem;	/* 8300 */
+    VOL32	secondary_stream_mem;	/* 8304 */
+    VOL8	_pad8308[0xD2];		/* 8308 */
+    VOL8	input_status_1;		/* 83da */
+    VOL8	_pad83db[0x131];	/* 83db */
+    VOL32	adv_func_cntl;		/* 850c */
+    VOL8	_pad8510[0x5dd8];	/* 8510 */
     VOL32	pix_trans;		/* e2e8 */
-    
-    VOL8	_pad23[0x3a974];	/*  e2ec */
+    VOL8	_pade2ec[0x3a92c];	/*  e2ec */
+    VOL32	cmd_overflow_buf_ptr;	/* 48c18 */
+    VOL8	_pad48c1c[0x8];		/* 48c1c */
+    VOL32	bci_power_management;	/* 48c24 */
+    VOL8	_pad48c28[0x38];	/* 48c28 */
     VOL32	alt_status_0;		/* 48c60 */
     VOL32	alt_status_1;		/* 48c64 */
 } S3, *S3Ptr;
@@ -368,6 +295,22 @@ typedef volatile struct _s3 {
 #define COLCMPOP_GT	0x0038
 #define	PLANEMODE	0x0004
 
+/* Multifunction Control Misc 8144 */
+#define MISC_DST_BA_0	(0x0 << 0)
+#define MISC_DST_BA_1	(0x1 << 0)
+#define MISC_DST_BA_2	(0x2 << 0)
+#define MISC_DST_BA_3	(0x3 << 0)
+#define MISC_SRC_BA_0	(0x0 << 2)
+#define MISC_SRC_BA_1	(0x1 << 2)
+#define MISC_SRC_BA_2	(0x2 << 2)
+#define MISC_SRC_BA_3	(0x3 << 2)
+#define MISC_RSF	(1 << 4)
+#define MISC_EXT_CLIP	(1 << 5)
+#define MISC_SRC_NE	(1 << 7)
+#define MISC_ENB_CMP	(1 << 8)
+#define MISC_32B	(1 << 9)
+#define MISC_DC		(1 << 11)
+#define MISC_INDEX_E	(0xe << 12)
 
 #define S3_SAVAGE4_SLOTS    0x0001ffff
 #define S3_SAVAGE4_2DI	    0x00800000
@@ -393,8 +336,7 @@ typedef volatile struct _s3 {
 }
     
 #define _s3WaitEmpty(s3)	_s3WaitLoop(s3,S3_SAVAGE4_SLOTS, 0)
-#define _s3WaitIdleEmpty(s3)	_s3WaitLoop(s3,S3_SAVAGE4_SLOTS|S3_SAVAGE4_2DI, \
-					    S3_SAVAGE4_2DI)
+#define _s3WaitIdleEmpty(s3)	_s3WaitLoop(s3,S3_SAVAGE4_SLOTS|S3_SAVAGE4_2DI, S3_SAVAGE4_2DI)
 #define _s3WaitIdle(s3)		_s3WaitLoop(s3,S3_SAVAGE4_2DI, S3_SAVAGE4_2DI)
 
 typedef struct _s3Cursor {
@@ -457,8 +399,22 @@ typedef struct _s3Save {
     CARD32		bg;
     CARD32		global_bitmap_1;
     CARD32		global_bitmap_2;
+    CARD32		adv_func_cntl;
     CARD32		primary_bitmap_1;
     CARD32		primary_bitmap_2;
+    CARD32		secondary_bitmap_1;
+    CARD32		secondary_bitmap_2;
+    CARD32		primary_stream_control;
+    CARD32		blend_control;
+    CARD32		primary_stream_addr_0;
+    CARD32		primary_stream_addr_1;
+    CARD32		primary_stream_stride;
+    CARD32		primary_stream_xy;
+    CARD32		primary_stream_size;
+    CARD32		primary_stream_mem;
+    CARD32		secondary_stream_xy;
+    CARD32		secondary_stream_size;
+    CARD32		streams_fifo;
     CARD8		text_save[S3_TEXT_SAVE];
 } S3Save;
 
@@ -473,18 +429,29 @@ typedef struct _s3CardInfo {
     Bool	bios_initialized;   /* whether the bios has been run */
 } S3CardInfo;
 
-typedef struct _s3ScreenInfo {
-    CARD8	*cursor_base;	    /* pointer to cursor area */
+typedef struct _s3FbInfo {
     CARD8	*offscreen;	    /* pointer to offscreen area */
     int		offscreen_y;	    /* top y coordinate of offscreen area */
     int		offscreen_x;	    /* top x coordinate of offscreen area */
     int		offscreen_width;    /* width of offscreen area */
     int		offscreen_height;   /* height of offscreen area */
-    S3Cursor	cursor;
     S3Patterns	patterns;
+    CARD32	bitmap_offset;
+    int		accel_stride;
+    int		accel_bpp;
+} S3FBInfo;
+    
+typedef struct _s3ScreenInfo {
+    CARD8	*cursor_base;	    /* pointer to cursor area */
+    S3Cursor	cursor;
     Bool	manage_border;
     Bool	managing_border;
+    Bool	use_streams;
+    int		primary_depth;
+    int		current_ma;
     CARD32	border_pixel;
+    S3FBInfo	fb[KD_MAX_FB];
+    int		fbmap[KD_MAX_FB+1];   /* map from fb to stream */
 } S3ScreenInfo;
 
 #define getS3CardInfo(kd)   ((S3CardInfo *) ((kd)->card->driver))
@@ -505,18 +472,21 @@ void	s3CursorDisable (ScreenPtr pScreen);
 void	s3CursorFini (ScreenPtr pScreen);
 void	s3RecolorCursor (ScreenPtr pScreen, int ndef, xColorItem *pdefs);
 
+void	s3DumbPaintWindow (WindowPtr pWin, RegionPtr pRegion, int what);
+void	s3DumbCopyWindow (WindowPtr pWin, DDXPointRec ptOldOrg, RegionPtr prgnSrc);
+    
 Bool	s3DrawInit (ScreenPtr pScreen);
 void	s3DrawEnable (ScreenPtr pScreen);
 void	s3DrawSync (ScreenPtr pScreen);
 void	s3DrawDisable (ScreenPtr pScreen);
 void	s3DrawFini (ScreenPtr pScreen);
 
-void	s3GetColors (ScreenPtr pScreen, int ndef, xColorItem *pdefs);
-void	s3PutColors (ScreenPtr pScreen, int ndef, xColorItem *pdefs);
+void	s3GetColors (ScreenPtr pScreen, int fb, int ndef, xColorItem *pdefs);
+void	s3PutColors (ScreenPtr pScreen, int fb, int ndef, xColorItem *pdefs);
 
 void	S3InitCard (KdCardAttr *attr);
 
-void	s3GetClock (int target, int *Mp, int *Np, int *Rp, int maxM, int maxN, int maxR);
+void	s3GetClock (int target, int *Mp, int *Np, int *Rp, int maxM, int maxN, int maxR, int minVco);
 
 extern KdCardFuncs  s3Funcs;
 
@@ -538,6 +508,13 @@ extern KdCardFuncs  s3Funcs;
     while (s3GetImm(s3vga, s3_vertical_sync_active) != 0) S3_RETRACE_LOOP_CHECK; \
     _loop_count = 0; \
     while (s3GetImm(s3vga, s3_vertical_sync_active) == 0) S3_RETRACE_LOOP_CHECK; \
+}
+#define _s3WaitVRetraceFast(s3) { \
+    int _loop_count; \
+    _loop_count = 0; \
+    while (s3->input_status_1 & 8) S3_RETRACE_LOOP_CHECK; \
+    _loop_count = 0; \
+    while ((s3->input_status_1 & 8) == 0) S3_RETRACE_LOOP_CHECK; \
 }
 /*
  * Wait for the begining of the retrace interval

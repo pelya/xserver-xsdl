@@ -445,31 +445,31 @@ s3ModeUsable (KdScreenInfo	*screen)
     int		    pixel_width;
     int		    byte_width;
     
-    if (screen->depth >= 24)
+    if (screen->fb[0].depth >= 24)
     {
-	screen->depth = 24;
-	screen->bitsPerPixel = 32;
+	screen->fb[0].depth = 24;
+	screen->fb[0].bitsPerPixel = 32;
     }
-    else if (screen->depth >= 16)
+    else if (screen->fb[0].depth >= 16)
     {
-	screen->depth = 16;
-	screen->bitsPerPixel = 16;
+	screen->fb[0].depth = 16;
+	screen->fb[0].bitsPerPixel = 16;
     }
-    else if (screen->depth >= 15)
+    else if (screen->fb[0].depth >= 15)
     {
-	screen->depth = 15;
-	screen->bitsPerPixel = 16;
+	screen->fb[0].depth = 15;
+	screen->fb[0].bitsPerPixel = 16;
     }
     else
     {
-	screen->depth = 8;
-	screen->bitsPerPixel = 8;
+	screen->fb[0].depth = 8;
+	screen->fb[0].bitsPerPixel = 8;
     }
 
-    byte_width = screen->width * (screen->bitsPerPixel >> 3);
+    byte_width = screen->width * (screen->fb[0].bitsPerPixel >> 3);
     pixel_width = screen->width;
-    screen->pixelStride = pixel_width;
-    screen->byteStride = byte_width;
+    screen->fb[0].pixelStride = pixel_width;
+    screen->fb[0].byteStride = byte_width;
 
     screen_size = byte_width * screen->height;
 
@@ -505,8 +505,8 @@ s3ScreenInit (KdScreenInfo *screen)
 	screen->height = 600;
 	screen->rate = 72;
     }
-    if (!screen->depth)
-	screen->depth = 8;
+    if (!screen->fb[0].depth)
+	screen->fb[0].depth = 8;
     
     DRAW_DEBUG ((DEBUG_S3INIT, "Requested parameters %dx%dx%d",
 		 screen->width, screen->height, screen->rate));
@@ -524,8 +524,8 @@ s3ScreenInit (KdScreenInfo *screen)
     /*
      * Can only operate in pixel-doubled mode at 8 bits per pixel
      */
-    if (screen->depth > 8 && S3_CLOCK(m,n,r) > S3_MAX_CLOCK)
-	screen->depth = 8;
+    if (screen->fb[0].depth > 8 && S3_CLOCK(m,n,r) > S3_MAX_CLOCK)
+	screen->fb[0].depth = 8;
     
     if (!KdTuneMode (screen, s3ModeUsable, s3ModeSupported))
     {
@@ -538,7 +538,7 @@ s3ScreenInit (KdScreenInfo *screen)
     /*
      * Stick frame buffer at start of memory
      */
-    screen->frameBuffer = s3c->frameBuffer;
+    screen->fb[0].frameBuffer = s3c->frameBuffer;
     
     /*
      * Stick cursor at end of memory
@@ -557,25 +557,25 @@ s3ScreenInit (KdScreenInfo *screen)
      */
     if (memory >= byte_width * S3_TILE_SIZE)
     {
-	s3s->offscreen = s3c->frameBuffer + screen_size;
-	s3s->offscreen_x = 0;
-	s3s->offscreen_y = screen_size / byte_width;
-	s3s->offscreen_width = pixel_width;
-	s3s->offscreen_height = memory / byte_width;
-	memory -= s3s->offscreen_height * byte_width;
+	s3s->fb[0].offscreen = s3c->frameBuffer + screen_size;
+	s3s->fb[0].offscreen_x = 0;
+	s3s->fb[0].offscreen_y = screen_size / byte_width;
+	s3s->fb[0].offscreen_width = pixel_width;
+	s3s->fb[0].offscreen_height = memory / byte_width;
+	memory -= s3s->fb[0].offscreen_height * byte_width;
     }
     else if (pixel_width - screen->width >= S3_TILE_SIZE)
     {
-	s3s->offscreen = s3c->frameBuffer + screen->width;
-	s3s->offscreen_x = screen->width;
-	s3s->offscreen_y = 0;
-	s3s->offscreen_width = pixel_width - screen->width;
-	s3s->offscreen_height = screen->height;
+	s3s->fb[0].offscreen = s3c->frameBuffer + screen->width;
+	s3s->fb[0].offscreen_x = screen->width;
+	s3s->fb[0].offscreen_y = 0;
+	s3s->fb[0].offscreen_width = pixel_width - screen->width;
+	s3s->fb[0].offscreen_height = screen->height;
     }
     else
-	s3s->offscreen = 0;
+	s3s->fb[0].offscreen = 0;
     
-    DRAW_DEBUG ((DEBUG_S3INIT, "depth %d bits %d", screen->depth, screen->bitsPerPixel));
+    DRAW_DEBUG ((DEBUG_S3INIT, "depth %d bits %d", screen->fb[0].depth, screen->fb[0].bitsPerPixel));
     
     DRAW_DEBUG ((DEBUG_S3INIT, "Screen size %dx%d memory %d",
 		screen->width, screen->height, s3c->memory));
@@ -585,35 +585,35 @@ s3ScreenInit (KdScreenInfo *screen)
 		s3s->offscreen_width, s3s->offscreen_height, 
 		s3s->offscreen_x, s3s->offscreen_y));
     
-    switch (screen->depth) {
+    switch (screen->fb[0].depth) {
     case 8:
-	screen->visuals = ((1 << StaticGray) |
+	screen->fb[0].visuals = ((1 << StaticGray) |
 			   (1 << GrayScale) |
 			   (1 << StaticColor) |
 			   (1 << PseudoColor) |
 			   (1 << TrueColor) |
 			   (1 << DirectColor));
-	screen->blueMask  = 0x00;
-	screen->greenMask = 0x00;
-	screen->redMask   = 0x00;
+	screen->fb[0].blueMask  = 0x00;
+	screen->fb[0].greenMask = 0x00;
+	screen->fb[0].redMask   = 0x00;
 	break;
     case 15:
-	screen->visuals = (1 << TrueColor);
-	screen->blueMask  = 0x001f;
-	screen->greenMask = 0x03e0;
-	screen->redMask   = 0x7c00;
+	screen->fb[0].visuals = (1 << TrueColor);
+	screen->fb[0].blueMask  = 0x001f;
+	screen->fb[0].greenMask = 0x03e0;
+	screen->fb[0].redMask   = 0x7c00;
 	break;
     case 16:
-	screen->visuals = (1 << TrueColor);
-	screen->blueMask  = 0x001f;
-	screen->greenMask = 0x07e0;
-	screen->redMask   = 0xf800;
+	screen->fb[0].visuals = (1 << TrueColor);
+	screen->fb[0].blueMask  = 0x001f;
+	screen->fb[0].greenMask = 0x07e0;
+	screen->fb[0].redMask   = 0xf800;
 	break;
     case 24:
-	screen->visuals = (1 << TrueColor);
-	screen->blueMask  = 0x0000ff;
-	screen->greenMask = 0x00ff00;
-	screen->redMask   = 0xff0000;
+	screen->fb[0].visuals = (1 << TrueColor);
+	screen->fb[0].blueMask  = 0x0000ff;
+	screen->fb[0].greenMask = 0x00ff00;
+	screen->fb[0].redMask   = 0xff0000;
 	break;
     }
     
@@ -712,7 +712,7 @@ s3Enable (ScreenPtr pScreen)
     /*
      * Compute character lengths for horizontal timing values
      */
-    switch (screen->bitsPerPixel) {
+    switch (screen->fb[0].bitsPerPixel) {
     case 8:
 	hactive = screen->width / 8;
 	hblank /= 8;
@@ -830,7 +830,7 @@ s3Enable (ScreenPtr pScreen)
      */
     if (!screen->softCursor)
     {
-	cursor_address = (s3s->cursor_base - screen->frameBuffer) / 1024;
+	cursor_address = (s3s->cursor_base - screen->fb[0].frameBuffer) / 1024;
 
 	crtc->cursor_address_0_7 = cursor_address;
 	crtc->cursor_address_8_15 = cursor_address >> 8;
@@ -855,8 +855,8 @@ s3Enable (ScreenPtr pScreen)
     /*
      * Set depth values
      */
-    crtc->bits_per_pixel = screen->bitsPerPixel;
-    crtc->depth = screen->depth;
+    crtc->bits_per_pixel = screen->fb[0].bitsPerPixel;
+    crtc->depth = screen->fb[0].depth;
 
     crtc->l_parm_0_7 = screen->width / 4;	/* Undocumented. */
 

@@ -75,10 +75,10 @@ void
 fbdevCardFini (KdCardInfo *card);
 
 void
-fbdevGetColors (ScreenPtr pScreen, int n, xColorItem *pdefs);
+fbdevGetColors (ScreenPtr pScreen, int fb, int n, xColorItem *pdefs);
 
 void
-fbdevPutColors (ScreenPtr pScreen, int n, xColorItem *pdefs);
+fbdevPutColors (ScreenPtr pScreen, int fb, int n, xColorItem *pdefs);
 
 
 #endif /* _FBDEV_H_ */

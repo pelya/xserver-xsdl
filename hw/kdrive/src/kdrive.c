@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/kdrive.c,v 1.2 1999/12/30 03:03:05 robin Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/kdrive.c,v 1.3 2000/02/23 20:29:53 dawes Exp $ */
 
 #include "kdrive.h"
 #ifdef PSEUDO8
@@ -301,10 +301,14 @@ void
 KdParseScreen (KdScreenInfo *screen,
 	       char	    *arg)
 {
+    char    *bpp;
+    int	    fb;
+    
     screen->width = 0;
     screen->height = 0;
-    screen->depth = 0;
     screen->rate = 0;
+    for (fb = 0; fb < KD_MAX_FB; fb++)
+	screen->fb[fb].depth = 0;
     if (!arg)
 	return;
     
@@ -320,7 +324,27 @@ KdParseScreen (KdScreenInfo *screen,
 	return;
     arg++;
 
-    screen->depth = atoi(arg);
+    fb = 0;
+    while (fb < KD_MAX_FB)
+    {
+	screen->fb[fb].depth = atoi(arg);
+    
+	bpp = strchr (arg, '/');
+	if (bpp)
+	{
+	    bpp++;
+	    screen->fb[fb].bitsPerPixel = atoi(bpp);
+	    arg = bpp;
+	}
+	else
+	    screen->fb[fb].bitsPerPixel = 0;
+	bpp = strchr (arg, ',');
+	if (!bpp)
+	    break;
+	arg = bpp+1;
+	fb++;
+    }
+
     arg = strchr (arg, 'x');
     if (!arg)
 	return;
@@ -551,7 +575,7 @@ KdCreateWindow (WindowPtr pWin)
 	}
     }
 #endif
-    return TRUE;
+    return fbCreateWindow (pWin);
 }
 
 /* Pass through AddScreen, which doesn't take any closure */
@@ -563,6 +587,7 @@ KdScreenInit(int index, ScreenPtr pScreen, int argc, char **argv)
     KdScreenInfo	*screen = kdCurrentScreen;
     KdCardInfo		*card = screen->card;
     KdPrivScreenPtr	pScreenPriv;
+    int			fb;
 
     KdAllocatePrivates (pScreen);
 
@@ -571,7 +596,8 @@ KdScreenInit(int index, ScreenPtr pScreen, int argc, char **argv)
     screen->pScreen = pScreen;
     pScreenPriv->screen = screen;
     pScreenPriv->card = card;
-    pScreenPriv->bytesPerPixel = screen->bitsPerPixel >> 3;
+    for (fb = 0; fb < KD_MAX_FB && screen->fb[fb].depth; fb++)
+	pScreenPriv->bytesPerPixel[fb] = screen->fb[fb].bitsPerPixel >> 3;
     pScreenPriv->dpmsState = KD_DPMS_NORMAL;
 
     /*
@@ -580,11 +606,11 @@ KdScreenInit(int index, ScreenPtr pScreen, int argc, char **argv)
      * backing store
      */
     if (!fbSetupScreen (pScreen, 
-			screen->frameBuffer, 
+			screen->fb[0].frameBuffer, 
 			screen->width, screen->height, 
 			screen->dpix, screen->dpiy, 
-			screen->pixelStride,
-			screen->bitsPerPixel))
+			screen->fb[0].pixelStride,
+			screen->fb[0].bitsPerPixel))
     {
 	return FALSE;
     }
@@ -608,14 +634,34 @@ KdScreenInit(int index, ScreenPtr pScreen, int argc, char **argv)
     pScreenPriv->BackingStoreFuncs.GetSpansPixmap = 0;
 #endif
 
-    if (!fbFinishScreenInit (pScreen, 
-			     screen->frameBuffer, 
-			     screen->width, screen->height, 
-			     screen->dpix, screen->dpiy, 
-			     screen->pixelStride,
-			     screen->bitsPerPixel))
+    if (screen->fb[1].depth)
     {
-	return FALSE;
+	if (!fbOverlayFinishScreenInit (pScreen, 
+					screen->fb[0].frameBuffer, 
+					screen->fb[1].frameBuffer, 
+					screen->width, screen->height, 
+					screen->dpix, screen->dpiy, 
+					screen->fb[0].pixelStride,
+					screen->fb[1].pixelStride,
+					screen->fb[0].bitsPerPixel,
+					screen->fb[1].bitsPerPixel,
+					screen->fb[0].depth,
+					screen->fb[1].depth))
+	{
+	    return FALSE;
+	}
+    }
+    else
+    {
+	if (!fbFinishScreenInit (pScreen, 
+				 screen->fb[0].frameBuffer, 
+				 screen->width, screen->height, 
+				 screen->dpix, screen->dpiy, 
+				 screen->fb[0].pixelStride,
+				 screen->fb[0].bitsPerPixel))
+	{
+	    return FALSE;
+	}
     }
     
     /*
@@ -720,6 +766,8 @@ KdSetPixmapFormats (ScreenInfo	*pScreenInfo)
     KdCardInfo	    *card;
     KdScreenInfo    *screen;
     int		    i;
+    int		    bpp;
+    int		    fb;
     PixmapFormatRec *format;
 
     for (i = 1; i <= 32; i++)
@@ -735,10 +783,16 @@ KdSetPixmapFormats (ScreenInfo	*pScreenInfo)
     {
 	for (screen = card->screenList; screen; screen = screen->next)
 	{
-	    if (!depthToBpp[screen->depth])
-		depthToBpp[screen->depth] = screen->bitsPerPixel;
-	    else if (depthToBpp[screen->depth] != screen->bitsPerPixel)
-		return FALSE;
+	    for (fb = 0; fb < KD_MAX_FB && screen->fb[fb].depth; fb++)
+	    {
+		bpp = screen->fb[fb].bitsPerPixel;
+		if (bpp == 24)
+		    bpp = 32;
+		if (!depthToBpp[screen->fb[fb].depth])
+		    depthToBpp[screen->fb[fb].depth] = bpp;
+		else if (depthToBpp[screen->fb[fb].depth] != bpp) 
+		    return FALSE;
+	    }
 	}
     }
     
@@ -784,18 +838,20 @@ KdAddScreen (ScreenInfo	    *pScreenInfo,
     {
 	unsigned long	visuals;
 	Pixel		rm, gm, bm;
+	int		fb;
 	
-	if (pScreenInfo->formats[i].depth == screen->depth)
+	visuals = 0;
+	rm = gm = bm = 0;
+	for (fb = 0; fb < KD_MAX_FB && screen->fb[fb].depth; fb++)
 	{
-	    visuals = screen->visuals;
-	    rm = screen->redMask;
-	    gm = screen->greenMask;
-	    bm = screen->blueMask;
-	}
-	else
-	{
-	    visuals = 0;
-	    rm = gm = bm = 0;
+	    if (pScreenInfo->formats[i].depth == screen->fb[fb].depth)
+	    {
+		visuals = screen->fb[fb].visuals;
+		rm = screen->fb[fb].redMask;
+		gm = screen->fb[fb].greenMask;
+		bm = screen->fb[fb].blueMask;
+		break;
+	    }
 	}
 	fbSetVisualTypesAndMasks (pScreenInfo->formats[i].depth,
 				  visuals,
@@ -806,6 +862,17 @@ KdAddScreen (ScreenInfo	    *pScreenInfo,
     kdCurrentScreen = screen;
     
     AddScreen (KdScreenInit, argc, argv);
+}
+
+int
+KdDepthToFb (ScreenPtr	pScreen, int depth)
+{
+    KdScreenPriv(pScreen);
+    int	    fb;
+
+    for (fb = 0; fb <= KD_MAX_FB && pScreenPriv->screen->fb[fb].frameBuffer; fb++)
+	if (pScreenPriv->screen->fb[fb].depth == depth)
+	    return fb;
 }
 
 void

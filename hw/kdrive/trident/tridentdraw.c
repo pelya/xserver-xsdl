@@ -812,8 +812,8 @@ tridentDrawEnable (ScreenPtr pScreen)
     CARD32  alpha;
     int	    tries;
     
-    stride = pScreenPriv->screen->pixelStride;
-    switch (pScreenPriv->screen->bitsPerPixel) {
+    stride = pScreenPriv->screen->fb[0].pixelStride;
+    switch (pScreenPriv->screen->fb[0].bitsPerPixel) {
     case 8:
 	format = COP_DEPTH_8;
 	break;

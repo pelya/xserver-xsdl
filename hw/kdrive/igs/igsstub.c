@@ -1,7 +1,7 @@
 /*
- * Id: s3cmap.c,v 1.1 1999/11/02 08:17:24 keithp Exp $
+ * $XFree86$
  *
- * Copyright © 1999 Keith Packard
+ * Copyright © 2000 Keith Packard
  *
  * Permission to use, copy, modify, distribute, and sell this software and its
  * documentation for any purpose is hereby granted without fee, provided that
@@ -21,50 +21,37 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/trio/s3cmap.c,v 1.1 1999/11/19 13:54:05 hohndel Exp $ */
 
-#include "s3.h"
+#include "igs.h"
 
 void
-s3GetColors (ScreenPtr pScreen, int fb, int ndef, xColorItem *pdefs)
+InitCard (char *name)
 {
-    KdScreenPriv(pScreen);
-    s3CardInfo(pScreenPriv);
-    S3Ptr   s3 = s3c->s3;
-    VOL8   *dac_rd_ad = &s3->crt_vga_dac_rd_ad;
-    VOL8   *dac_data = &s3->crt_vga_dac_data;
+    KdCardAttr	attr;
+    CARD32	count;
 
-    LockS3 (s3c);
-    while (ndef--)
+    count = 0;
+    while (LinuxFindPci (0x10ea, 0x5000, count, &attr))
     {
-	*dac_rd_ad = pdefs->pixel;
-	pdefs->red = *dac_data << 10;
-	pdefs->green = *dac_data << 10;
-	pdefs->blue = *dac_data << 10;
-	pdefs++;
+	KdCardInfoAdd (&igsFuncs, &attr, 0);
+	count++;
     }
-    UnlockS3(s3c);
 }
 
 void
-s3PutColors (ScreenPtr pScreen, int fb, int ndef, xColorItem *pdefs)
+InitOutput (ScreenInfo *pScreenInfo, int argc, char **argv)
 {
-    KdScreenPriv(pScreen);
-    s3CardInfo(pScreenPriv);
-    S3Ptr   s3 = s3c->s3;
-    VOL8   *dac_wt_ad = &s3->crt_vga_dac_wt_ad;
-    VOL8   *dac_data = &s3->crt_vga_dac_data;
-
-    LockS3(s3c);
-    _s3WaitVRetrace (s3);
-    while (ndef--)
-    {
-	*dac_wt_ad = pdefs->pixel;
-	*dac_data = pdefs->red >> 10;
-	*dac_data = pdefs->green >> 10;
-	*dac_data = pdefs->blue >> 10;
-	pdefs++;
-    }
-    UnlockS3(s3c);
+    KdInitOutput (pScreenInfo, argc, argv);
 }
 
+void
+InitInput (int argc, char **argv)
+{
+    KdInitInput (&Ps2MouseFuncs, &LinuxKeyboardFuncs);
+}
+
+int
+ddxProcessArgument (int argc, char **argv, int i)
+{
+    return KdProcessArgument (argc, argv, i);
+}

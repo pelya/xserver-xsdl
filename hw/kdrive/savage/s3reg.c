@@ -22,7 +22,7 @@
  *
  * Author:  Keith Packard, SuSE, Inc.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/savage/s3reg.c,v 1.2 1999/12/30 03:03:12 robin Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/savage/s3reg.c,v 1.3 2000/02/23 20:30:04 dawes Exp $ */
 
 #include "s3reg.h"
 
@@ -403,6 +403,11 @@ VgaReg s3_line_compare[] = {
     VGA_REG_END
 };
 
+VgaReg s3_delay_primary_load[] = {
+    CR21, 1, 1,
+    VGA_REG_END
+};
+
 VgaReg s3_device_id[] = {
     CR2E, 0, 8,
     CR2D, 0, 8,
@@ -654,13 +659,33 @@ VgaReg s3_pci_disconnect_enable[] = {
     VGA_REG_END
 };
 
+VgaReg s3_primary_load_control[] = {
+    CR66, 4, 1,
+    VGA_REG_END
+};
+
+VgaReg s3_secondary_load_control[] = {
+    CR66, 5, 1,
+    VGA_REG_END
+};
+
 VgaReg s3_pci_retry_enable[] = {
     CR66, 7, 1,
     VGA_REG_END
 };
 
+VgaReg s3_streams_mode[] = {
+    CR67, 2, 2,
+    VGA_REG_END
+};
+
 VgaReg s3_color_mode[] = {
     CR67, 4, 4,
+    VGA_REG_END
+};
+
+VgaReg s3_primary_stream_definition[] = {
+    CR69, 7, 1,
     VGA_REG_END
 };
 
@@ -711,6 +736,26 @@ VgaReg s3_dac_power_up_time[] = {
 
 VgaReg s3_dac_power_saving_disable[] = {
     CR86, 7, 1,
+    VGA_REG_END
+};
+
+VgaReg s3_flat_panel_output_control_1[] = {
+    CR90, 3, 1,
+    VGA_REG_END
+};
+
+VgaReg s3_streams_fifo_delay[] = {
+    CR90, 4, 2,
+    VGA_REG_END
+};
+
+VgaReg s3_flat_panel_output_control_2[] = {
+    CR90, 6, 1,
+    VGA_REG_END
+};
+
+VgaReg s3_enable_l1_parameter[] = {
+    CR90, 7, 1,
     VGA_REG_END
 };
 
@@ -972,6 +1017,21 @@ VgaReg s3_enable_8_bit_luts[] = {
 
 VgaReg s3_dclk_control[] = {
     SR1B, 7, 1,
+    VGA_REG_END
+};
+
+VgaReg s3_eclk_n[] = {
+    SR32, 0, 5,
+    VGA_REG_END
+};
+
+VgaReg s3_eclk_r[] = {
+    SR32, 5, 2,
+    VGA_REG_END
+};
+
+VgaReg s3_eclk_m[] = {
+    SR32, 0, 5,
     VGA_REG_END
 };
 

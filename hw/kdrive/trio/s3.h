@@ -1097,15 +1097,22 @@ typedef struct _s3CardInfo {
     Bool	need_sync;
 } S3CardInfo;
 
-typedef struct _s3ScreenInfo {
-    CARD8	*cursor_base;	    /* pointer to cursor area */
+typedef struct _s3FbInfo {
     CARD8	*offscreen;	    /* pointer to offscreen area */
     int		offscreen_y;	    /* top y coordinate of offscreen area */
     int		offscreen_x;	    /* top x coordinate of offscreen area */
     int		offscreen_width;    /* width of offscreen area */
     int		offscreen_height;   /* height of offscreen area */
-    S3Cursor	cursor;
     S3Patterns	patterns;
+    CARD32	bitmap_offset;
+    int		accel_stride;
+    int		accel_bpp;
+} S3FBInfo;
+    
+typedef struct _s3ScreenInfo {
+    CARD8	*cursor_base;	    /* pointer to cursor area */
+    S3Cursor	cursor;
+    S3FBInfo	fb[1];
 } S3ScreenInfo;
 
 #define LockS3(s3c)
@@ -1135,8 +1142,8 @@ void	s3DrawSync (ScreenPtr pScreen);
 void	s3DrawDisable (ScreenPtr pScreen);
 void	s3DrawFini (ScreenPtr pScreen);
 
-void	s3GetColors (ScreenPtr pScreen, int ndef, xColorItem *pdefs);
-void	s3PutColors (ScreenPtr pScreen, int ndef, xColorItem *pdefs);
+void	s3GetColors (ScreenPtr pScreen, int fb, int ndef, xColorItem *pdefs);
+void	s3PutColors (ScreenPtr pScreen, int fb, int ndef, xColorItem *pdefs);
 
 void	S3InitCard (KdCardAttr *attr);
 

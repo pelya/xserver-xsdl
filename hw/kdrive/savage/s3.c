@@ -22,13 +22,15 @@
  *
  * Author:  Keith Packard, SuSE, Inc.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/savage/s3.c,v 1.2 1999/12/30 03:03:10 robin Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/savage/s3.c,v 1.3 2000/02/23 20:30:01 dawes Exp $ */
 
 #include "s3.h"
 
 #define REGISTERS_OFFSET    (0x1000000)
 #define PACKED_OFFSET	    (0x8100)
 #define IOMAP_OFFSET	    (0x8000)
+
+#define S3_MIN_CLOCK	    250000
 
 static void
 _s3SetBlank (S3Ptr s3, S3Vga *s3vga, Bool blank)
@@ -171,6 +173,15 @@ Bool
 s3ModeSupported (KdScreenInfo		*screen,
 		 const KdMonitorTiming	*t)
 {
+    if (screen->fb[1].depth)
+    {
+	/*
+	 * Must have at least one true color stream
+	 */
+	if (screen->fb[0].depth <= 8 &&
+	    screen->fb[1].depth <= 8)
+	    return FALSE;
+    }
     /* make sure the clock isn't too fast */
     if (t->clock > S3_MAX_CLOCK * 2)
 	return FALSE;
@@ -188,34 +199,39 @@ s3ModeUsable (KdScreenInfo	*screen)
     int		    screen_size;
     int		    pixel_width;
     int		    byte_width;
+    int		    fb;
     
-    if (screen->depth >= 24)
+    screen_size = 0;
+    for (fb = 0; fb < KD_MAX_FB && screen->fb[fb].depth; fb++)
     {
-	screen->depth = 24;
-	screen->bitsPerPixel = 32;
+	if (screen->fb[fb].depth >= 24)
+	{
+	    screen->fb[fb].depth = 24;
+	    if (screen->fb[fb].bitsPerPixel != 24)
+		screen->fb[fb].bitsPerPixel = 32;
+	}
+	else if (screen->fb[fb].depth >= 16)
+	{
+	    screen->fb[fb].depth = 16;
+	    screen->fb[fb].bitsPerPixel = 16;
+	}
+	else if (screen->fb[fb].depth >= 15)
+	{
+	    screen->fb[fb].depth = 15;
+	    screen->fb[fb].bitsPerPixel = 16;
+	}
+	else
+	{
+	    screen->fb[fb].depth = 8;
+	    screen->fb[fb].bitsPerPixel = 8;
+	}
+    
+	byte_width = screen->width * (screen->fb[fb].bitsPerPixel >> 3);
+	pixel_width = screen->width;
+	screen->fb[fb].pixelStride = pixel_width;
+	screen->fb[fb].byteStride = byte_width;
+	screen_size += byte_width * screen->height;
     }
-    else if (screen->depth >= 16)
-    {
-	screen->depth = 16;
-	screen->bitsPerPixel = 16;
-    }
-    else if (screen->depth >= 15)
-    {
-	screen->depth = 15;
-	screen->bitsPerPixel = 16;
-    }
-    else
-    {
-	screen->depth = 8;
-	screen->bitsPerPixel = 8;
-    }
-
-    byte_width = screen->width * (screen->bitsPerPixel >> 3);
-    pixel_width = screen->width;
-    screen->pixelStride = pixel_width;
-    screen->byteStride = byte_width;
-
-    screen_size = byte_width * screen->height;
 
     return screen_size <= s3c->memory;
 }
@@ -233,6 +249,8 @@ s3ScreenInit (KdScreenInfo *screen)
     int		    i;
     const KdMonitorTiming *t;
     int		    screen_size;
+    int		    fb;
+    int		    ma;
 
     s3s = (S3ScreenInfo *) xalloc (sizeof (S3ScreenInfo));
     if (!s3s)
@@ -252,23 +270,25 @@ s3ScreenInit (KdScreenInfo *screen)
 	screen->height = 600;
 	screen->rate = 72;
     }
-    if (!screen->depth)
-	screen->depth = 8;
+    if (!screen->fb[0].depth)
+	screen->fb[0].depth = 8;
     
     t = KdFindMode (screen, s3ModeSupported);
     screen->rate = t->rate;
     screen->width = t->horizontal;
     screen->height = t->vertical;
-    s3GetClock (t->clock, &m, &n, &r, 511, 127, 4);
+    s3GetClock (t->clock, &m, &n, &r, 511, 127, 4, 250000);
 #ifdef DEBUG
     fprintf (stderr, "computed %d,%d,%d (%d)\n",
 	     m, n, r, S3_CLOCK(m,n,r));
 #endif
+#if 0
     /*
      * Can only operate in pixel-doubled mode at 8 or 16 bits per pixel
      */
     if (screen->depth > 16 && S3_CLOCK(m,n,r) > S3_MAX_CLOCK)
 	screen->depth = 16;
+#endif
     
     if (!KdTuneMode (screen, s3ModeUsable, s3ModeSupported))
     {
@@ -276,14 +296,31 @@ s3ScreenInit (KdScreenInfo *screen)
 	return FALSE;
     }
     
-    screen_size = screen->byteStride * screen->height;
+    s3s->fbmap[2] = -1;
+    if (screen->fb[1].depth)
+    {
+	if (screen->fb[0].bitsPerPixel >= 16)
+	{
+	    s3s->fbmap[0] = 1;
+	    s3s->fbmap[1] = 0;
+	}
+	else
+	{
+	    s3s->fbmap[0] = 0;
+	    s3s->fbmap[1] = 1;
+	}
+    }
+    else
+    {
+	s3s->fbmap[0] = 0;
+	s3s->fbmap[1] = -1;
+    }
+    
+    screen_size = 0;
+    for (fb = 0; fb < KD_MAX_FB && screen->fb[fb].depth; fb++)
+	screen_size += screen->fb[fb].byteStride * screen->height;
     
     memory = s3c->memory - screen_size;
-    
-    /*
-     * Stick frame buffer at start of memory
-     */
-    screen->frameBuffer = s3c->frameBuffer;
     
     /*
      * Stick cursor at end of memory
@@ -296,60 +333,61 @@ s3ScreenInit (KdScreenInfo *screen)
     else
 	s3s->cursor_base = 0;
 
-    /*
-     * Use remaining memory for off-screen storage, but only use
-     * one piece (either right or bottom).
-     */
-    if (memory >= screen->byteStride * S3_TILE_SIZE)
+    screen_size = 0;
+    for (ma = 0; s3s->fbmap[ma] >= 0; ma++)
     {
-	s3s->offscreen = s3c->frameBuffer + screen_size;
-	s3s->offscreen_x = 0;
-	s3s->offscreen_y = screen_size / screen->byteStride;
-	s3s->offscreen_width = screen->pixelStride;
-	s3s->offscreen_height = memory / screen->byteStride;
-	memory -= s3s->offscreen_height * screen->byteStride;
-    }
-    else if (screen->pixelStride - screen->width >= S3_TILE_SIZE)
-    {
-	s3s->offscreen = s3c->frameBuffer + screen->width;
-	s3s->offscreen_x = screen->width;
-	s3s->offscreen_y = 0;
-	s3s->offscreen_width = screen->pixelStride - screen->width;
-	s3s->offscreen_height = screen->height;
-    }
-    else
-	s3s->offscreen = 0;
+	fb = s3s->fbmap[ma];
+	screen->fb[fb].frameBuffer = s3c->frameBuffer + screen_size;
+	screen_size += screen->fb[fb].byteStride * screen->height;
+	
+	/*
+	 * Use remaining memory for off-screen storage, but only use
+	 * one piece (either right or bottom).
+	 */
+	if (memory >= screen->fb[fb].byteStride * S3_TILE_SIZE)
+	{
+	    s3s->fb[ma].offscreen = screen->fb[fb].frameBuffer;
+	    s3s->fb[ma].offscreen_x = 0;
+	    s3s->fb[ma].offscreen_y = screen->height;
+	    s3s->fb[ma].offscreen_width = screen->fb[fb].pixelStride;
+	    s3s->fb[ma].offscreen_height = S3_TILE_SIZE;
+	    memory -= s3s->fb[ma].offscreen_height * screen->fb[fb].byteStride;
+	    screen_size += s3s->fb[ma].offscreen_height * screen->fb[fb].byteStride;
+	}
+	else
+	    s3s->fb[ma].offscreen = 0;
     
-    switch (screen->depth) {
-    case 8:
-	screen->visuals = ((1 << StaticGray) |
-			   (1 << GrayScale) |
-			   (1 << StaticColor) |
-			   (1 << PseudoColor) |
-			   (1 << TrueColor) |
-			   (1 << DirectColor));
-	screen->blueMask  = 0x00;
-	screen->greenMask = 0x00;
-	screen->redMask   = 0x00;
-	break;
-    case 15:
-	screen->visuals = (1 << TrueColor);
-	screen->blueMask  = 0x001f;
-	screen->greenMask = 0x03e0;
-	screen->redMask   = 0x7c00;
-	break;
-    case 16:
-	screen->visuals = (1 << TrueColor);
-	screen->blueMask  = 0x001f;
-	screen->greenMask = 0x07e0;
-	screen->redMask   = 0xf800;
-	break;
-    case 24:
-	screen->visuals = (1 << TrueColor);
-	screen->blueMask  = 0x0000ff;
-	screen->greenMask = 0x00ff00;
-	screen->redMask   = 0xff0000;
-	break;
+	switch (screen->fb[fb].depth) {
+	case 8:
+	    screen->fb[fb].visuals = ((1 << StaticGray) |
+				      (1 << GrayScale) |
+				      (1 << StaticColor) |
+				      (1 << PseudoColor) |
+				      (1 << TrueColor) |
+				      (1 << DirectColor));
+	    screen->fb[fb].blueMask  = 0x00;
+	    screen->fb[fb].greenMask = 0x00;
+	    screen->fb[fb].redMask   = 0x00;
+	    break;
+	case 15:
+	    screen->fb[fb].visuals = (1 << TrueColor);
+	    screen->fb[fb].blueMask  = 0x001f;
+	    screen->fb[fb].greenMask = 0x03e0;
+	    screen->fb[fb].redMask   = 0x7c00;
+	    break;
+	case 16:
+	    screen->fb[fb].visuals = (1 << TrueColor);
+	    screen->fb[fb].blueMask  = 0x001f;
+	    screen->fb[fb].greenMask = 0x07e0;
+	    screen->fb[fb].redMask   = 0xf800;
+	    break;
+	case 24:
+	    screen->fb[fb].visuals = (1 << TrueColor);
+	    screen->fb[fb].blueMask  = 0x0000ff;
+	    screen->fb[fb].greenMask = 0x00ff00;
+	    screen->fb[fb].redMask   = 0xff0000;
+	    break;
+	}
     }
     
     screen->driver = s3s;
@@ -821,6 +859,7 @@ s3Preserve (KdCardInfo *card)
     S3Save  *save = &s3c->save;
     CARD8   t1, t2;
     CARD8   *cursor_base;
+    CARD8   streams_mode;
 
     s3Save (s3vga);
     if (!s3c->bios_initialized)
@@ -842,9 +881,30 @@ s3Preserve (KdCardInfo *card)
     save->write_mask = s3->write_mask;
     save->fg = s3->fg;
     save->bg = s3->bg;
+    /*
+     * Preserve streams processor state
+     */
+    streams_mode = s3Get (s3vga, s3_streams_mode);
+    s3SetImm (s3vga, s3_streams_mode, 3);
     save->global_bitmap_1 = s3->global_bitmap_1;
     save->global_bitmap_2 = s3->global_bitmap_2;
+    save->adv_func_cntl = s3->adv_func_cntl;
     save->primary_bitmap_1 = s3->primary_bitmap_1;
+    save->primary_bitmap_2 = s3->primary_bitmap_2;
+    save->secondary_bitmap_1 = s3->secondary_bitmap_1;
+    save->secondary_bitmap_2 = s3->secondary_bitmap_2;
+    save->primary_stream_control = s3->primary_stream_control;
+    save->blend_control = s3->blend_control;
+    save->primary_stream_addr_0 = s3->primary_stream_addr_0;
+    save->primary_stream_addr_1 = s3->primary_stream_addr_1;
+    save->primary_stream_stride = s3->primary_stream_stride;
+    save->primary_stream_xy = s3->primary_stream_xy;
+    save->primary_stream_size = s3->primary_stream_size;
+    save->primary_stream_mem = s3->primary_stream_mem;
+    save->secondary_stream_xy = s3->secondary_stream_xy;
+    save->secondary_stream_size = s3->secondary_stream_size;
+    save->streams_fifo = s3->streams_fifo;
+    s3SetImm (s3vga, s3_streams_mode, streams_mode);
     _s3SetBlank (s3, s3vga, FALSE);
 }
 
@@ -853,6 +913,49 @@ s3Preserve (KdCardInfo *card)
  * of the card here.
  */
 int  s3CpuTimeout, s3AccelTimeout;
+
+void
+s3SetGlobalBitmap (ScreenPtr pScreen, int ma)
+{
+    KdScreenPriv(pScreen);
+    s3ScreenInfo (pScreenPriv);
+    
+    if (s3s->current_ma != ma)
+    {
+	s3CardInfo (pScreenPriv);
+	S3Vga   *s3vga = &s3c->s3vga;
+	S3Ptr   s3 = s3c->s3;
+	CARD32  gb1, gb2;
+	int	    depth;
+	int	    length;
+	KdCheckSync (pScreen);
+	switch (s3s->fb[ma].accel_bpp) {
+	case 8:
+	case 24:
+	    length = 0;
+	    break;
+	case 16:
+	    length = 1;
+	    break;
+	case 32:
+	    length = 3;
+	    break;
+	}
+	s3SetImm (s3vga, s3_pixel_length, length);
+	gb1 = s3s->fb[ma].bitmap_offset;
+	gb2 = ((1 << 0) |
+	       (0 << 2) |
+	       (1 << 3) |
+	       ((s3s->fb[ma].accel_stride >> 4) << 4) |
+	       (s3s->fb[ma].accel_bpp << 16) |
+	       (0 << 24) |
+	       (1 << 28));
+	s3->global_bitmap_1 = gb1;
+	s3->global_bitmap_2 = gb2;
+	s3->global_bitmap_2 = gb2;
+	s3s->current_ma = ma;
+    }
+}
 
 void
 s3Enable (ScreenPtr pScreen)
@@ -878,7 +981,7 @@ s3Enable (ScreenPtr pScreen)
     int	    h_screen_off;
     int	    h_start_fifo_fetch;
 
-    int	    primary_stream_l1;
+    int	    primary_stream_l1[KD_MAX_FB];
 
     int	    v_total;
     int	    v_retrace_start;
@@ -886,9 +989,14 @@ s3Enable (ScreenPtr pScreen)
     int	    v_display_end;
     int	    v_blank_start;
     int	    v_blank_end;
+    int	    v_blank_start_adjust = 0;
+    int	    v_blank_end_adjust = 0;
 
-    int	    h_blank_start_adjust;
-    int	    h_blank_end_adjust;
+    int	    h_blank_start_adjust = 0;
+    int	    h_blank_end_adjust = 0;
+    int	    h_sync_start_adjust = 0;
+    int	    h_sync_end_adjust = 0;
+    int	    h_start_fifo_fetch_adjust = 0;
     int	    h_sync_extend;
     int	    h_blank_extend;
     int	    i;
@@ -899,6 +1007,13 @@ s3Enable (ScreenPtr pScreen)
     int	    cpu_timeout;
     int	    accel_timeout;
     int	    bytes_per_ms;
+    CARD32  control[2];
+    int	    fb;
+    int	    ma;
+    
+    s3s->primary_depth = screen->fb[s3s->fbmap[0]].depth;
+    
+    s3s->use_streams = TRUE;
     
     t = KdFindMode (screen, s3ModeSupported);
     
@@ -912,24 +1027,38 @@ s3Enable (ScreenPtr pScreen)
     vblank = t->vblank;
     vactive = t->vertical;
 
+    
     m = s3Get (s3vga, s3_dclk_m);
     n = s3Get (s3vga, s3_dclk_n);
     r = s3Get (s3vga, s3_dclk_r);
-#ifdef DEBUG
-    fprintf (stderr, "old clock %d, %d, %d\n", m, n, r);
+#define DEBUG_CLOCK
+#ifdef DEBUG_CLOCK
+    fprintf (stderr, "old clock %d, %d, %d (%d)\n", m, n, r, S3_CLOCK(m,n,r));
 #endif
     clock_double = FALSE;
-    s3GetClock (t->clock, &m, &n, &r, 511, 127, 4);
-    if (S3_CLOCK(m,n,r) > S3_MAX_CLOCK)
+    s3GetClock (t->clock, &m, &n, &r, 511, 127, 4, 250000);
+    if (S3_CLOCK(m,n,r) > S3_MAX_CLOCK && !s3s->use_streams)
 	clock_double = TRUE;
     s3Set (s3vga, s3_clock_select, 3);
     s3Set (s3vga, s3_dclk_m, m);
     s3Set (s3vga, s3_dclk_n, n);
     s3Set (s3vga, s3_dclk_r, r);
-#ifdef DEBUG
+#ifdef DEBUG_CLOCK
     fprintf (stderr, "new clock %d, %d, %d (%d)\n", m, n, r, S3_CLOCK(m,n,r));
 #endif
 
+    if (s3s->use_streams)
+    {
+	s3Set (s3vga, s3_streams_mode, 3);
+	s3Set (s3vga, s3_enable_l1_parameter, 1);
+    }
+    else
+    {
+	s3Set (s3vga, s3_streams_mode, 0);
+	s3Set (s3vga, s3_enable_l1_parameter, 0);
+    }
+    s3Set (s3vga, s3_flat_panel_output_control_1, 0);
+    s3Set (s3vga, s3_flat_panel_output_control_2, 0);
     s3Set (s3vga, s3_select_graphics_mode, 1);
     s3Set (s3vga, s3_enable_blinking, 0);
     s3Set (s3vga, s3_enable_vga_16bit, 0);
@@ -949,10 +1078,12 @@ s3Enable (ScreenPtr pScreen)
     s3Set (s3vga, s3_enable_2d_3d, 1);
     s3Set (s3vga, s3_refresh_control, 1);
     s3Set (s3vga, s3_disable_pci_read_bursts, 0);
+    s3Set (s3vga, s3_pci_disconnect_enable, 1);
+    s3Set (s3vga, s3_primary_load_control, 0);
+    s3Set (s3vga, s3_secondary_load_control, 0);
     s3Set (s3vga, s3_pci_retry_enable, 1);
     s3Set (s3vga, s3_enable_256, 1);
-/*    s3Set (s3vga, s3_border_select, 1);	/* eliminate white border */
-    s3Set (s3vga, s3_border_select, 0);	/* eliminate white border */
+    s3Set (s3vga, s3_border_select, 1);	/* eliminate white border */
     s3SetImm (s3vga, s3_lock_palette, 0);	/* unlock palette/border regs */
     s3Set (s3vga, s3_disable_v_retrace_int, 1);
     if (t->hpol == KdSyncPositive)
@@ -976,16 +1107,48 @@ s3Enable (ScreenPtr pScreen)
     s3Set (s3vga, s3_enable_clock_double, 0);
     s3Set (s3vga, s3_dclk_over_2, 0);
 
-    s3Set (s3vga, s3_fifo_fetch_timing, 1);
-    s3Set (s3vga, s3_fifo_drain_delay, 7);
-
-
     s3Set (s3vga, s3_delay_h_enable, 0);
     s3Set (s3vga, s3_sdclk_skew, 0);
     
     s3Set (s3vga, s3_dac_mask, 0xff);
     
-    s3Set (s3vga, s3_dac_power_saving_disable, 1);
+#if 0
+#ifdef DEBUG_CLOCK
+    m = s3Get (s3vga, s3_mclk_m);
+    n = s3Get (s3vga, s3_mclk_n);
+    r = s3Get (s3vga, s3_mclk_r);
+    fprintf (stderr, "old mclk %d, %d, %d (%d)\n", m, n, r, S3_CLOCK(m,n,r));
+#endif
+    
+    s3GetClock (125282, &m, &n, &r, 127, 31, 3, 250000);
+
+#ifdef DEBUG_CLOCK
+    fprintf (stderr, "new mclk %d, %d, %d (%d)\n", m, n, r,S3_CLOCK(m,n,r));
+#endif
+    
+    s3Set (s3vga, s3_mclk_m, m);
+    s3Set (s3vga, s3_mclk_n, n);
+    s3Set (s3vga, s3_mclk_r, r);
+    
+#ifdef DEBUG_CLOCK
+    m = s3Get (s3vga, s3_eclk_m);
+    n = s3Get (s3vga, s3_eclk_n);
+    r = s3Get (s3vga, s3_eclk_r);
+    fprintf (stderr, "old eclk %d, %d, %d (%d)\n", m, n, r, S3_CLOCK(m,n,r));
+#endif
+    
+#define S3_ECLK	125282
+    
+    s3GetClock (S3_ECLK, &m, &n, &r, 127, 31, 3, 250000);
+
+#ifdef DEBUG_CLOCK
+    fprintf (stderr, "new eclk %d, %d, %d (%d)\n", m, n, r,S3_CLOCK(m,n,r));
+#endif
+    
+    s3Set (s3vga, s3_eclk_m, m);
+    s3Set (s3vga, s3_eclk_n, n);
+    s3Set (s3vga, s3_eclk_r, r);
+#endif
     
     s3s->manage_border = FALSE;
     /*
@@ -998,61 +1161,85 @@ s3Enable (ScreenPtr pScreen)
     /*
      * Set pixel size, choose clock doubling mode
      */
-    h_blank_start_adjust = 0;
-    h_blank_end_adjust = 0;
 
-    switch (screen->bitsPerPixel) {
-    case 8:
-	h_screen_off = hactive;
-	s3Set (s3vga, s3_pixel_length, 0);
-	s3Set (s3vga, s3_color_mode, 0);
-	/*
-	 * Set up for double-pixel mode, switch color modes,
-	 * divide the dclk and delay h blank by 2 dclks
-	 */
-	if (clock_double)
-	{
-	    s3Set (s3vga, s3_color_mode, 1);
-	    s3Set (s3vga, s3_dclk_over_2, 1);
-	    s3Set (s3vga, s3_enable_clock_double, 1);
-	    s3Set (s3vga, s3_border_select, 0);
-/*	    s3Set (s3vga, s3_border_color, pScreen->blackPixel); */
-	    h_blank_start_adjust = 4;
-	    h_blank_end_adjust = -4;
-	    s3s->manage_border = TRUE;
-	}
-	break;
-    case 16:
-	h_screen_off = hactive * 2;
-	s3Set (s3vga, s3_pixel_length, 1);
-	if (clock_double)
-	{
-	    if (screen->depth == 15)
-		s3Set (s3vga, s3_color_mode, 3);
+    bytes_per_ms = 0;
+    
+    for (ma = 0; s3s->fbmap[ma] >= 0; ma++)
+    {
+	fb = s3s->fbmap[ma];
+	s3s->fb[ma].accel_bpp = screen->fb[fb].bitsPerPixel;
+	s3s->fb[ma].accel_stride = screen->fb[fb].pixelStride;
+	s3s->fb[ma].bitmap_offset = screen->fb[fb].frameBuffer - s3c->frameBuffer;
+	switch (s3s->fb[ma].accel_bpp) {
+	case 8:
+	    h_screen_off = hactive;
+	    s3Set (s3vga, s3_pixel_length, 0);
+	    s3Set (s3vga, s3_color_mode, 0);
+	    control[ma] = 0;	
+	    /*
+	     * Set up for double-pixel mode, switch color modes,
+	     * divide the dclk and delay h blank by 2 dclks
+	     */
+	    if (clock_double)
+	    {
+		s3Set (s3vga, s3_color_mode, 1);
+		s3Set (s3vga, s3_dclk_over_2, 1);
+		s3Set (s3vga, s3_enable_clock_double, 1);
+		s3Set (s3vga, s3_h_skew, 1);
+		h_blank_start_adjust = -3;
+		h_blank_end_adjust = -4;
+		s3Set (s3vga, s3_border_select, 0);
+#if 0
+		s3s->manage_border = TRUE;
+		/*	    s3Set (s3vga, s3_border_color, pScreen->blackPixel); */
+#endif
+	    }
+	    break;
+	case 16:
+	    h_screen_off = hactive * 2;
+	    s3Set (s3vga, s3_pixel_length, 1);
+	    if (screen->fb[fb].depth == 15)
+		control[ma] = 3 << 24;
 	    else
-		s3Set (s3vga, s3_color_mode, 5);
-	    s3Set (s3vga, s3_dclk_over_2, 1);
-	    s3Set (s3vga, s3_enable_clock_double, 1);
-	    s3Set (s3vga, s3_border_select, 0);
-	    h_blank_start_adjust = 4;
-	    h_blank_end_adjust = -4;
-	}
-	else
-	{
-	    if (screen->depth == 15)
-		s3Set (s3vga, s3_color_mode, 2);
+		control[ma] = 5 << 24;
+	    if (clock_double)
+	    {
+		if (screen->fb[fb].depth == 15)
+		    s3Set (s3vga, s3_color_mode, 3);
+		else
+		    s3Set (s3vga, s3_color_mode, 5);
+		s3Set (s3vga, s3_dclk_over_2, 1);
+		s3Set (s3vga, s3_enable_clock_double, 1);
+		s3Set (s3vga, s3_border_select, 0);
+		h_blank_start_adjust = 4;
+		h_blank_end_adjust = -4;
+	    }
 	    else
-		s3Set (s3vga, s3_color_mode, 4);
-	    s3Set (s3vga, s3_dclk_over_2, 0);
-	    s3Set (s3vga, s3_enable_clock_double, 0);
-	    s3Set (s3vga, s3_delay_blank, 0);
+	    {
+		if (screen->fb[fb].depth == 15)
+		    s3Set (s3vga, s3_color_mode, 2);
+		else
+		    s3Set (s3vga, s3_color_mode, 4);
+		s3Set (s3vga, s3_dclk_over_2, 0);
+		s3Set (s3vga, s3_enable_clock_double, 0);
+		s3Set (s3vga, s3_delay_blank, 0);
+	    }
+	    break;
+	case 24:
+	    control[ma] = 6 << 24;
+	    h_screen_off = hactive * 3;
+	    s3s->fb[ma].accel_bpp = 8;
+	    s3s->fb[ma].accel_stride = screen->fb[fb].pixelStride * 3;
+	    break;
+	case 32:
+	    control[ma] = 7 << 24;
+	    h_screen_off = hactive * 4;
+	    s3Set (s3vga, s3_pixel_length, 3);
+	    s3Set (s3vga, s3_color_mode, 0xd);
+	    break;
 	}
-	break;
-    case 32:
-	h_screen_off = hactive * 4;
-	s3Set (s3vga, s3_pixel_length, 3);
-	s3Set (s3vga, s3_color_mode, 0xd);
-	break;
+	bytes_per_ms += t->clock * (screen->fb[fb].bitsPerPixel / 8);
+	primary_stream_l1[ma] = (screen->width * screen->fb[fb].bitsPerPixel / (8 * 8)) - 1;
     }
 
     /*
@@ -1060,11 +1247,9 @@ s3Enable (ScreenPtr pScreen)
      */
     s3Set (s3vga, s3_start_address, 0);
     
-    
     /*
      * Set various registers to avoid snow on the screen
      */
-    bytes_per_ms = t->clock * (screen->bitsPerPixel / 8);
     
     fprintf (stderr, "bytes_per_ms %d\n", bytes_per_ms);
     fprintf (stderr, "primary 0x%x master 0x%x command 0x%x lpb 0x%x cpu 0x%x 2d 0x%x\n",
@@ -1075,28 +1260,105 @@ s3Enable (ScreenPtr pScreen)
 	     s3Get (s3vga, s3_cpu_timeout),
 	     s3Get (s3vga, s3_2d_graphics_engine_timeout));
 
-    /*		cpu	2d
-     * 576000	
-     * 288000	0x1f	0x19
-     
+    /*
+     *	Test:
+     *	    accel	x11perf -line500
+     *	    cpu		x11perf -circle500
+     *
+     *				    cpu	    accel
+     *	1600x1200x32x85 (918000)    1	    1	    not enough
+     *  1600x1200x32x75 (810000)    3	    2
+     *	1600x1200x32x70 (756000)    4	    3
+     *	1600x1200x32x60 (648000)    6	    5
+     *
+     *	1280x1024x32x85 (630000)    6	    4
+     *	1280x1024x32x75 (540000)    a	    6
+     *	1280x1024x32x60 (432000)    1f	    a
+     *
+     *	1152x900x32x85	(490000)    a	    6
+     *	1152x900x32x75	(433000)    1f	    8
+     *	1152x900x32x70	(401000)    1f	    a
+     *	1152x900x32x66	(380000)    1f	    a
+     *
+     *	1024x768x32x85	(378000)    1f	    a
+     *	1024x768x32x75	(315000)    1f	    b
+     *	1024x768x32x70	(300000)    1f	    b
+     *	1024x768x32x60	(260000)    1f	    12
+     *
+     *	800x600x32x85	(225000)    1f	    1a
+     *	800x600x32x72	(200000)    1f	    1d
+     *	800x600x32x75	(198000)    1f	    1d
+     *
+     *	1600x1200x16x85 (459000)    1f	    8
+     *	1600x1200x16x75	(405000)    1f	    a
+     *	1600x1200x16x70	(378000)    1f	    b
+     *	1600x1200x16x60	(324000)    1f	    f
+     *
+     *  1280x1024x16x85 (315000)    1f	    12
+     *	1280x1024x16x75 (270000)    1f	    16
+     *	1280x1024x16x60 (216000)    1f	    1d
+     *
+     *	1600x1200x8x85	(229000)    1f	    1f
+     *
      */
+    
     if (s3CpuTimeout)
     {
-	cpu_timeout = s3CpuTimeout;
-	if (s3AccelTimeout)
+	if (s3CpuTimeout < 0)
+	    cpu_timeout = 0;
+	else
+	    cpu_timeout = s3CpuTimeout;
+	if (s3AccelTimeout < 0)
+	    accel_timeout = 0;
+	else if (s3AccelTimeout)
 	    accel_timeout = s3AccelTimeout;
 	else
 	    accel_timeout = s3CpuTimeout;
     }
-    else if (bytes_per_ms > 400000)
+    else if (bytes_per_ms >= 900000)
     {
-	cpu_timeout = 0x10;
-	accel_timeout = 0x7;
+	cpu_timeout = 0x01;
+	accel_timeout = 0x01;
     }
-    else if (bytes_per_ms > 250000)
+    else if (bytes_per_ms >= 800000)
     {
-	cpu_timeout = 0x10;
-	accel_timeout = 0x18;
+	cpu_timeout = 0x03;
+	accel_timeout = 0x02;
+    }
+    else if (bytes_per_ms >= 700000)
+    {
+	cpu_timeout = 0x04;
+	accel_timeout = 0x03;
+    }
+    else if (bytes_per_ms >= 600000)
+    {
+	cpu_timeout = 0x06;
+	accel_timeout = 0x04;
+    }
+    else if (bytes_per_ms >= 475000)
+    {
+	cpu_timeout = 0x0a;
+	accel_timeout = 0x06;
+    }
+    else if (bytes_per_ms >= 425000)
+    {
+	cpu_timeout = 0x1f;
+	accel_timeout = 0x8;
+    }
+    else if (bytes_per_ms >= 300000)
+    {
+	cpu_timeout = 0x1f;
+	accel_timeout = 0x0a;
+    }
+    else if (bytes_per_ms >= 250000)
+    {
+	cpu_timeout = 0x1f;
+	accel_timeout = 0x12;
+    }
+    else if (bytes_per_ms >= 200000)
+    {
+	cpu_timeout = 0x1f;
+	accel_timeout = 0x1a;
     }
     else
     {
@@ -1104,6 +1366,8 @@ s3Enable (ScreenPtr pScreen)
 	accel_timeout = 0x1f;
     }
 	
+    fprintf (stderr, "cpu 0x%x accel 0x%x\n", cpu_timeout, accel_timeout);
+    
     s3Set (s3vga, s3_primary_stream_timeout, 0xc0);
     s3Set (s3vga, s3_master_control_unit_timeout, 0xf);
     s3Set (s3vga, s3_command_buffer_timeout, 0x1f);
@@ -1111,14 +1375,17 @@ s3Enable (ScreenPtr pScreen)
     s3Set (s3vga, s3_2d_graphics_engine_timeout, accel_timeout);
     s3Set (s3vga, s3_cpu_timeout, cpu_timeout);
     
+    s3Set (s3vga, s3_fifo_fetch_timing, 1);
+    s3Set (s3vga, s3_fifo_drain_delay, 2);
+
     /*
      * Compute horizontal register values from timings
      */
     h_total = hactive + hblank - 5;
     h_display_end = hactive - 1;
     
-    h_sync_start = hactive + hfp;
-    h_sync_end = hactive + hblank - hbp;
+    h_sync_start = hactive + hfp + h_sync_start_adjust;
+    h_sync_end = hactive + hblank - hbp + h_sync_end_adjust;
     /* 
      * pad the blank values narrow a bit and use the border_select to
      * eliminate the remaining border; don't know why, but it doesn't
@@ -1141,6 +1408,7 @@ s3Enable (ScreenPtr pScreen)
     else
 	h_start_fifo_fetch = h_total - 5;
 
+    h_start_fifo_fetch += h_start_fifo_fetch_adjust;
     if (h_blank_end - h_blank_start >= 0x40)
 	h_blank_extend = 1;
     else
@@ -1150,8 +1418,6 @@ s3Enable (ScreenPtr pScreen)
 	h_sync_extend = 1;
     else
 	h_sync_extend = 0;
-    
-    primary_stream_l1 = (screen->width * screen->bitsPerPixel / (8 * 8)) - 1;
     
 #ifdef DEBUG
     fprintf (stderr, "h_total %d h_display_end %d\n",
@@ -1173,18 +1439,18 @@ s3Enable (ScreenPtr pScreen)
     s3Set (s3vga, s3_h_sync_extend, h_sync_extend);
     s3Set (s3vga, s3_h_blank_extend, h_blank_extend);
     
-    s3Set (s3vga, s3_primary_stream_l1, primary_stream_l1);
+    s3Set (s3vga, s3_dac_power_saving_disable, 0);
+    s3Set (s3vga, s3_dac_power_up_time, hactive + hblank);
+    
+    s3Set (s3vga, s3_primary_stream_l1, primary_stream_l1[0]);
 
+    s3Set (s3vga, s3_streams_fifo_delay, 0);
+    
     v_total = vactive + vblank - 2;
     v_display_end = vactive - 1;
     
-#if 0
-    v_blank_start = vactive - 1;
-    v_blank_end = v_blank_start + vblank - 1;
-#else
-    v_blank_start = vactive - 1;
-    v_blank_end = v_blank_start + vblank - 1;
-#endif
+    v_blank_start = vactive - 1 + v_blank_start_adjust;
+    v_blank_end = v_blank_start + vblank - 1 + v_blank_end_adjust;
     
     v_retrace_start = vactive + vfp;
     v_retrace_end = vactive + vblank - vbp;
@@ -1206,7 +1472,7 @@ s3Enable (ScreenPtr pScreen)
      */
     if (!screen->softCursor)
     {
-	cursor_address = (s3s->cursor_base - screen->frameBuffer) / 1024;
+	cursor_address = (s3s->cursor_base - s3c->frameBuffer) / 1024;
 
 	s3Set (s3vga, s3_cursor_address, cursor_address);
 	s3Set (s3vga, s3_cursor_ms_x11, 0);
@@ -1225,12 +1491,14 @@ s3Enable (ScreenPtr pScreen)
      * Set accelerator
      */
     switch (screen->width) {
-    case 640:	s3Set (s3vga, s3_ge_screen_width, 1); break;
-    case 800:	s3Set (s3vga, s3_ge_screen_width, 2); break;
-    case 1024:	s3Set (s3vga, s3_ge_screen_width, 0); break;
-    case 1152:	s3Set (s3vga, s3_ge_screen_width, 4); break;
-    case 1280:	s3Set (s3vga, s3_ge_screen_width, 3); break;
-    case 1600:	s3Set (s3vga, s3_ge_screen_width, 6); break;
+#if 0
+    case 640: s3Set (s3vga, s3_ge_screen_width, 1); break;
+    case 800: s3Set (s3vga, s3_ge_screen_width, 2); break;
+    case 1024:        s3Set (s3vga, s3_ge_screen_width, 0); break;
+    case 1152:        s3Set (s3vga, s3_ge_screen_width, 4); break;
+    case 1280:        s3Set (s3vga, s3_ge_screen_width, 3); break;
+    case 1600:        s3Set (s3vga, s3_ge_screen_width, 6); break;
+#endif
     default:
 	s3Set (s3vga, s3_ge_screen_width, 7);   /* use global bitmap descriptor */
     }
@@ -1246,17 +1514,70 @@ s3Enable (ScreenPtr pScreen)
     s3Set (s3vga, s3_vsync_control, 0);
     
     _s3SetBlank (s3, s3vga, TRUE);
+    if (s3s->use_streams)
+	s3Set (s3vga, s3_primary_stream_definition, 1);
+    else
+	s3Set (s3vga, s3_primary_stream_definition, 0);
+
     VgaFlush(&s3vga->card);
     VgaSetImm (&s3vga->card, s3_clock_load_imm, 1);
     VgaSetImm(&s3vga->card, s3_clock_load_imm, 0);
-    s3->global_bitmap_1 = 0;
-    s3->global_bitmap_2 = MAKE_GBF (1,    /* 64 bit bitmap descriptor size */
-				    0,    /* disable BCI */
-				    pScreenPriv->screen->pixelStride >> 4,
-				    pScreenPriv->screen->bitsPerPixel,
-				    0);   /* tile format */
+    if (s3s->use_streams)
+    {
+	fb = s3s->fbmap[0];
+	s3->primary_stream_control = control[0];
+	s3->primary_stream_addr_0 =
+	s3->primary_stream_addr_1 = s3s->fb[0].bitmap_offset;
+	s3->primary_stream_stride = screen->fb[fb].byteStride;
+	s3->primary_stream_xy = (1 << 16) | 1;
+	s3->primary_stream_size = ((screen->fb[fb].pixelStride - 1) << 16) | screen->height;
+	s3->primary_stream_mem = (screen->fb[fb].byteStride * screen->height) / 8 - 1;
+	if (s3s->fbmap[1] >= 0)
+	{
+	    fb = s3s->fbmap[1];
+	    s3->blend_control = 5 << 24;
+	    if (s3s->fb[0].accel_bpp == 8)
+		s3->chroma_key_control = 0x330000ff;
+	    else
+		s3->chroma_key_control = 0x13010101;
+	    s3->secondary_stream_control = control[1] | screen->width;
+	    s3->secondary_stream_h_scale = (1 << 15);
+	    s3->color_adjustment = 0;
+	    s3->secondary_stream_vscale = (1 << 15);
+	    s3->secondary_stream_vinit = 0;
+	    s3->secondary_stream_mbuf = 0;
+	    s3->secondary_stream_addr_0 =
+	    s3->secondary_stream_addr_1 = s3s->fb[1].bitmap_offset;
+	    s3->secondary_stream_stride = screen->fb[fb].byteStride;
+	    s3->secondary_stream_scount = screen->height;
+	    s3->secondary_stream_xy = (1 << 16) | 1;
+	    s3->secondary_stream_size = ((screen->fb[fb].pixelStride - 1) << 16) | screen->height;
+	    s3->secondary_stream_mem = (1 << 22) | ((screen->fb[fb].byteStride * screen->height) / 8 - 1);
+	}
+	else
+	{
+	    s3->blend_control = 1 << 24;
+	    s3->secondary_stream_xy = 0x07ff07ff;
+	    s3->secondary_stream_size = 0x00010001;
+	}
+	s3->streams_fifo = (0x20 << 11) | (0x20 << 5) | 0x2;
+    }
+    s3->mult_misc_read_sel = (((1 << 9) |
+			       (1 << 11) |
+			       (0xe << 12)) |
+			      (((0xe << 0) |
+				(0xf << 12)) << 16));
+    
+    s3->cmd_overflow_buf_ptr = (1 << 3);
+    s3->bci_power_management = (1 << 9);
+    s3->adv_func_cntl = (3 << 8) | (1 << 4) | (1 << 2) | 1;
+    s3->primary_bitmap_1 = 0;
+    s3->primary_bitmap_2 = 0;
+    s3->secondary_bitmap_1 = 0;
+    s3->secondary_bitmap_2 = 0;
+    s3s->current_ma = -1;
     _s3SetBlank (s3, s3vga, FALSE);
-#if 1
+#if 0
     {
 	VGA16	r;
 	static CARD32	streams[][2] = {
@@ -1354,10 +1675,32 @@ s3Restore (KdCardInfo *card)
     S3Vga	*s3vga = &s3c->s3vga;
     S3Save	*save = &s3c->save;
     CARD8	*cursor_base;
+    CARD8	streams_mode;
 
-    /* graphics engine state */
+    _s3SetBlank (s3, s3vga, TRUE);
+    /* streams processor state */
+    streams_mode = s3Get (s3vga, s3_streams_mode);
+    s3SetImm (s3vga, s3_streams_mode, 3);
     s3->global_bitmap_1 = save->global_bitmap_1;
     s3->global_bitmap_2 = save->global_bitmap_2;
+    s3->adv_func_cntl = save->adv_func_cntl;
+    s3->primary_bitmap_1 = save->primary_bitmap_1;
+    s3->primary_bitmap_2 = save->primary_bitmap_2;
+    s3->secondary_bitmap_1 = save->secondary_bitmap_1;
+    s3->secondary_bitmap_2 = save->secondary_bitmap_2;
+    s3->primary_stream_control = save->primary_stream_control;
+    s3->blend_control = save->blend_control;
+    s3->primary_stream_addr_0 = save->primary_stream_addr_0;
+    s3->primary_stream_addr_0 = save->primary_stream_addr_0;
+    s3->primary_stream_stride = save->primary_stream_stride;
+    s3->primary_stream_xy = save->primary_stream_xy;
+    s3->primary_stream_size = save->primary_stream_size;
+    s3->primary_stream_mem = save->primary_stream_mem;
+    s3->secondary_stream_xy = save->secondary_stream_xy;
+    s3->secondary_stream_size = save->secondary_stream_size;
+    s3->streams_fifo = save->streams_fifo;
+    s3SetImm (s3vga, s3_streams_mode, streams_mode);
+    /* graphics engine state */
     s3->alt_mix = save->alt_mix;
     s3->write_mask = save->write_mask;
     s3->fg = save->fg;
@@ -1366,7 +1709,6 @@ s3Restore (KdCardInfo *card)
     s3->scissors_tl = 0x00000000;
     s3->scissors_br = 0x0fff0fff;
     
-    _s3SetBlank (s3, s3vga, TRUE);
     VgaRestore (&s3vga->card);
     s3Set (s3vga, s3_linear_window_size, 3);
     s3Set (s3vga, s3_enable_linear, 1);
@@ -1417,6 +1759,100 @@ s3DPMS (ScreenPtr pScreen, int mode)
 }
 
 void
+s3DumbPaintChromaKey (WindowPtr pWin, RegionPtr pRegion)
+{
+    ScreenPtr	pScreen = pWin->drawable.pScreen;
+    KdScreenPriv(pScreen);
+    KdCardInfo	    *card = pScreenPriv->card;
+    KdScreenInfo    *screen = pScreenPriv->screen;
+    s3CardInfo (pScreenPriv);
+    s3ScreenInfo (pScreenPriv);
+    
+    if (pWin->drawable.depth != s3s->primary_depth)
+    {
+	int	    nBox = REGION_NUM_RECTS(pRegion);
+	BoxPtr	    pBox = REGION_RECTS(pRegion);
+	PixmapPtr   pPixmap;
+	FbOverlayScrPrivPtr	pScrPriv = fbOverlayGetScrPriv(pScreen);
+	FbBits	    *dst;
+	FbStride    dstStride;
+	int	    dstBpp;
+
+	if (pScrPriv->pLayer[0]->drawable.depth == pWin->drawable.depth)
+	    pPixmap = pScrPriv->pLayer[1];
+	else
+	    pPixmap = pScrPriv->pLayer[0];
+	fbGetDrawable (&pPixmap->drawable, dst, dstStride, dstBpp);
+	while (nBox--)
+	{
+	    fbSolid (dst + pBox->y1 * dstStride,
+		     dstStride,
+		     pBox->x1 * dstBpp,
+		     dstBpp,
+		     (pBox->x2 - pBox->x1) * dstBpp,
+		     (pBox->y2 - pBox->y1),
+		     0x0, FB_ALLONES);
+	    pBox++;
+	}
+    }
+}
+
+void
+s3DumbPaintWindow (WindowPtr pWin, RegionPtr pRegion, int what)
+{
+    s3DumbPaintChromaKey (pWin, pRegion);
+    fbPaintWindow (pWin, pRegion, what);
+}
+
+void
+s3DumbCopyWindow (WindowPtr pWin, 
+	     DDXPointRec    ptOldOrg, 
+	     RegionPtr	    prgnSrc)
+{
+    ScreenPtr		pScreen = pWin->drawable.pScreen;
+    RegionRec		rgnDst;
+    int			dx, dy;
+    PixmapPtr		pPixmap;
+    FbOverlayScrPrivPtr	pScrPriv = fbOverlayGetScrPriv(pScreen);
+    int			fb;
+
+    KdCheckSync (pScreen);
+    dx = ptOldOrg.x - pWin->drawable.x;
+    dy = ptOldOrg.y - pWin->drawable.y;
+    REGION_TRANSLATE(pWin->drawable.pScreen, prgnSrc, -dx, -dy);
+
+    REGION_INIT (pWin->drawable.pScreen, &rgnDst, NullBox, 0);
+    
+    REGION_INTERSECT(pWin->drawable.pScreen, &rgnDst, &pWin->borderClip, prgnSrc);
+
+    for (fb = 0; fb < pScrPriv->nlayers; fb++)
+    {
+	pPixmap = pScrPriv->pLayer[fb];
+	fbCopyRegion (&pPixmap->drawable, &pPixmap->drawable,
+		      0,
+		      &rgnDst, dx, dy, fbCopyWindowProc, 0, 0);
+    }
+    
+    REGION_UNINIT(pWin->drawable.pScreen, &rgnDst);
+    fbValidateDrawable (&pWin->drawable);
+}
+
+Bool
+s3InitScreen(ScreenPtr pScreen)
+{
+    KdScreenPriv(pScreen);
+    KdCardInfo	    *card = pScreenPriv->card;
+    KdScreenInfo    *screen = pScreenPriv->screen;
+    s3CardInfo (pScreenPriv);
+    s3ScreenInfo (pScreenPriv);
+
+    pScreen->PaintWindowBackground = s3DumbPaintWindow;
+    pScreen->PaintWindowBorder = s3DumbPaintWindow;
+    pScreen->CopyWindow = s3DumbCopyWindow;
+    return TRUE;
+}
+
+void
 s3ScreenFini (KdScreenInfo *screen)
 {
     S3ScreenInfo    *s3s = (S3ScreenInfo *) screen->driver;
@@ -1439,7 +1875,7 @@ s3CardFini (KdCardInfo *card)
 KdCardFuncs	s3Funcs = {
     s3CardInit,
     s3ScreenInit,
-    0,
+    s3InitScreen,
     s3Preserve,
     s3Enable,
     s3DPMS,

@@ -22,7 +22,7 @@
  *
  * Author:  Keith Packard, SuSE, Inc.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/savage/s3reg.h,v 1.2 1999/12/30 03:03:12 robin Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/savage/s3reg.h,v 1.3 2000/02/23 20:30:05 dawes Exp $ */
 
 #ifndef _S3REG_H_
 #define _S3REG_H_
@@ -74,6 +74,7 @@ extern VgaReg s3_word_mode[];
 extern VgaReg s3_byte_mode[];
 extern VgaReg s3_hardware_reset[];
 extern VgaReg s3_line_compare[];
+extern VgaReg s3_delay_primary_load[];
 extern VgaReg s3_device_id[];
 extern VgaReg s3_revision[];
 extern VgaReg s3_enable_vga_16bit[];
@@ -123,8 +124,12 @@ extern VgaReg s3_delay_blank[];
 extern VgaReg s3_delay_h_enable[];
 extern VgaReg s3_enable_2d_3d[];
 extern VgaReg s3_pci_disconnect_enable[];
+extern VgaReg s3_primary_load_control[];
+extern VgaReg s3_secondary_load_control[];
 extern VgaReg s3_pci_retry_enable[];
+extern VgaReg s3_streams_mode[];
 extern VgaReg s3_color_mode[];
+extern VgaReg s3_primary_stream_definition[];
 extern VgaReg s3_primary_stream_timeout[];
 extern VgaReg s3_master_control_unit_timeout[];
 extern VgaReg s3_command_buffer_timeout[];
@@ -135,6 +140,10 @@ extern VgaReg s3_fifo_drain_delay[];
 extern VgaReg s3_fifo_fetch_timing[];
 extern VgaReg s3_dac_power_up_time[];
 extern VgaReg s3_dac_power_saving_disable[];
+extern VgaReg s3_flat_panel_output_control_1[];
+extern VgaReg s3_streams_fifo_delay[];
+extern VgaReg s3_flat_panel_output_control_2[];
+extern VgaReg s3_enable_l1_parameter[];
 extern VgaReg s3_primary_stream_l1[];
 
 extern VgaReg s3_dot_clock_8[];
@@ -165,6 +174,9 @@ extern VgaReg s3_dclk_double_15_16_invert[];
 extern VgaReg s3_enable_gamma_correction[];
 extern VgaReg s3_enable_8_bit_luts[];
 extern VgaReg s3_dclk_control[];
+extern VgaReg s3_eclk_n[];
+extern VgaReg s3_eclk_r[];
+extern VgaReg s3_eclk_m[];
 extern VgaReg s3_vga_dclk_n[];
 extern VgaReg s3_vga_dclk_r[];
 extern VgaReg s3_vga_dclk_m1[];

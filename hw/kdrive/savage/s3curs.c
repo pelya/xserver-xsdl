@@ -22,7 +22,7 @@
  *
  * Author:  Keith Packard, SuSE, Inc.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/savage/s3curs.c,v 1.2 1999/12/30 03:03:11 robin Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/savage/s3curs.c,v 1.3 2000/02/23 20:30:03 dawes Exp $ */
 
 #include "s3.h"
 #include "s3draw.h"
@@ -90,24 +90,42 @@ s3MoveCursor (ScreenPtr pScreen, int x, int y)
     _s3MoveCursor (pScreen, x, y);
 }
 
+#define S3Trunc(c)  (((c) >> 8) & 0xff)
+
+#define S3CursColor(r,g,b)  ((S3Trunc(r) << 16) | \
+			     (S3Trunc(g) << 8) | \
+			     (S3Trunc(b)))
+
 static void
 s3AllocCursorColors (ScreenPtr pScreen)
 {
     SetupCursor (pScreen);
     CursorPtr	    pCursor = pCurPriv->pCursor;
     
-    KdAllocateCursorPixels (pScreen, pCursor, 
-			    &pCurPriv->source, &pCurPriv->mask);
-    switch (pScreenPriv->screen->bitsPerPixel) {
-    case 4:
-	pCurPriv->source |= pCurPriv->source << 4;
-	pCurPriv->mask |= pCurPriv->mask << 4;
-    case 8:
-	pCurPriv->source |= pCurPriv->source << 8;
-	pCurPriv->mask |= pCurPriv->mask << 8;
-    case 16:
-	pCurPriv->source |= pCurPriv->source << 16;
-	pCurPriv->mask |= pCurPriv->mask << 16;
+    if (s3s->use_streams)
+    {
+	pCurPriv->source = S3CursColor(pCursor->foreRed,
+				       pCursor->foreGreen,
+				       pCursor->foreBlue);
+	pCurPriv->mask = S3CursColor(pCursor->backRed,
+				     pCursor->backGreen,
+				     pCursor->backBlue);
+    }
+    else
+    {
+	KdAllocateCursorPixels (pScreen, 0, pCursor, 
+				&pCurPriv->source, &pCurPriv->mask);
+	switch (pScreenPriv->screen->fb[0].bitsPerPixel) {
+	case 4:
+	    pCurPriv->source |= pCurPriv->source << 4;
+	    pCurPriv->mask |= pCurPriv->mask << 4;
+	case 8:
+	    pCurPriv->source |= pCurPriv->source << 8;
+	    pCurPriv->mask |= pCurPriv->mask << 8;
+	case 16:
+	    pCurPriv->source |= pCurPriv->source << 16;
+	    pCurPriv->mask |= pCurPriv->mask << 16;
+	}
     }
 }
 
@@ -221,6 +239,13 @@ s3LoadCursor (ScreenPtr pScreen, int x, int y)
 		
 	    S3AdjustBits32(and);
 	    S3AdjustBits32(xor);
+#define S3SwapNibbles(x)    ((x) = (((x) & 0x0f0f0f0f) << 4 | \
+				    ((x) >> 4) & 0x0f0f0f0f))
+	    if (s3s->use_streams)
+	    {
+		S3SwapNibbles(and);
+		S3SwapNibbles(xor);
+	    }
 	    *ram++ = (and & 0xffff) | (xor << 16);
 	    *ram++ = (and >> 16) | (xor & 0xffff0000);
 	}

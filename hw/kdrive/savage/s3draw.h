@@ -22,7 +22,7 @@
  *
  * Author:  Keith Packard, SuSE, Inc.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/savage/s3draw.h,v 1.2 1999/12/30 03:03:12 robin Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/savage/s3draw.h,v 1.3 2000/02/23 20:30:04 dawes Exp $ */
 
 #ifndef _S3DRAW_H_
 #define _S3DRAW_H_
@@ -41,6 +41,7 @@ typedef struct _s3Pattern {
 
 typedef struct _s3PrivGC {
     int    	    type;	    /* type of drawable validated against */
+    int		    ma;		    /* stream descriptor */
     s3PatternPtr    pPattern;	    /* pattern */
 } s3PrivGCRec, *s3PrivGCPtr;
 
@@ -55,8 +56,7 @@ typedef struct _s3PrivGC {
 #define s3SetWindowPrivate(w,p) (\
 	    (w)->devPrivates[s3WindowPrivateIndex].ptr = (pointer) p)
 
-
-void	_s3LoadPattern (ScreenPtr pScreen, s3PatternPtr pPattern);
+void	_s3LoadPattern (ScreenPtr pScreen, int fb, s3PatternPtr pPattern);
 
 #define SetupS3(s)  KdScreenPriv(s); \
 		    s3CardInfo(pScreenPriv); \
@@ -82,6 +82,18 @@ void	_s3LoadPattern (ScreenPtr pScreen, s3PatternPtr pPattern);
 #define WIDEN(x)    ((unsigned long) (x))
 #define MERGE(a,b)  ((WIDEN(a) << 16) | WIDEN(b))
 
+#define s3BitmapDescriptor(_stream) ((_stream) + 1)
+
+#ifdef S3_TRIO
+#define s3DrawMap(pDraw)    0
+#define s3SetGlobalBitmap(s,d)
+#else
+#define s3DrawMap(pDraw)    ((pDraw)->depth == \
+			     getS3ScreenInfo(pScreenPriv)->primary_depth ? 0 : 1)
+#endif
+
+#define s3GCMap(pGC)	    (s3GetGCPrivate(pGC)->ma)
+			     
 /*
  * Ok, so the S3 is broken -- it expects bitmaps to come MSB bit order,
  * but it's willing to take them in LSB byte order.  These macros

@@ -253,30 +253,30 @@ sisScreenInit (KdScreenInfo *screen)
 	screen->height = 600;
 	screen->rate = 72;
     }
-    if (!screen->depth)
-	screen->depth = 8;
+    if (!screen->fb[0].depth)
+	screen->fb[0].depth = 8;
     
     for (;;)
     {
-	if (screen->depth >= 24)
+	if (screen->fb[0].depth >= 24)
 	{
-	    screen->depth = 24;
-	    screen->bitsPerPixel = 24;
+	    screen->fb[0].depth = 24;
+	    screen->fb[0].bitsPerPixel = 24;
 	}
-	else if (screen->depth >= 16)
+	else if (screen->fb[0].depth >= 16)
 	{
-	    screen->depth = 16;
-	    screen->bitsPerPixel = 16;
+	    screen->fb[0].depth = 16;
+	    screen->fb[0].bitsPerPixel = 16;
 	}
-	else if (screen->depth >= 15)
+	else if (screen->fb[0].depth >= 15)
 	{
-	    screen->depth = 15;
-	    screen->bitsPerPixel = 16;
+	    screen->fb[0].depth = 15;
+	    screen->fb[0].bitsPerPixel = 16;
 	}
 	else
 	{
-	    screen->depth = 8;
-	    screen->bitsPerPixel = 8;
+	    screen->fb[0].depth = 8;
+	    screen->fb[0].bitsPerPixel = 8;
 	}
 
 	/* Normalize width to supported values */
@@ -294,10 +294,10 @@ sisScreenInit (KdScreenInfo *screen)
 	else
 	    screen->width = 640;
 	
-	byte_width = screen->width * (screen->bitsPerPixel >> 3);
+	byte_width = screen->width * (screen->fb[0].bitsPerPixel >> 3);
 	pixel_width = screen->width;
-	screen->pixelStride = pixel_width;
-	screen->byteStride = byte_width;
+	screen->fb[0].pixelStride = pixel_width;
+	screen->fb[0].byteStride = byte_width;
 
 	screen_size = byte_width * screen->height;
 	
@@ -307,10 +307,10 @@ sisScreenInit (KdScreenInfo *screen)
 	/*
 	 * Fix requested depth and geometry until it works
 	 */
-	if (screen->depth > 16)
-	    screen->depth = 16;
-	else if (screen->depth > 8)
-	    screen->depth = 8;
+	if (screen->fb[0].depth > 16)
+	    screen->fb[0].depth = 16;
+	else if (screen->fb[0].depth > 8)
+	    screen->fb[0].depth = 8;
 	else if (screen->width > 1152)
 	{
 	    screen->width = 1152;
@@ -346,30 +346,30 @@ sisScreenInit (KdScreenInfo *screen)
     /*
      * Take requested geometry and adjust to fit possible geometries
      */
-    switch (screen->depth) {
+    switch (screen->fb[0].depth) {
     case 4:
-	screen->bitsPerPixel = 4;
+	screen->fb[0].bitsPerPixel = 4;
 	break;
     case 8:
-	screen->bitsPerPixel = 8;
+	screen->fb[0].bitsPerPixel = 8;
 	break;
     case 15:
     case 16:
-	screen->bitsPerPixel = 16;
+	screen->fb[0].bitsPerPixel = 16;
 	break;
     case 24:
     case 32:
-	screen->bitsPerPixel = 24;
+	screen->fb[0].bitsPerPixel = 24;
 	screen->dumb = TRUE;
 	break;
     }
 
-    screen->byteStride = screen->width * (screen->bitsPerPixel >> 3);
-    screen->pixelStride = screen->width;
+    screen->fb[0].byteStride = screen->width * (screen->fb[0].bitsPerPixel >> 3);
+    screen->fb[0].pixelStride = screen->width;
 
     memory = sisc->memory - screen_size;
     
-    screen->frameBuffer = sisc->frameBuffer;
+    screen->fb[0].frameBuffer = sisc->frameBuffer;
     
     /*
      * Cursor lives in the last 16k of memory
@@ -389,7 +389,7 @@ sisScreenInit (KdScreenInfo *screen)
 
     if (memory > 8192)
     {
-	siss->expand = screen->frameBuffer + screen_size;
+	siss->expand = screen->fb[0].frameBuffer + screen_size;
 	siss->expand_off = siss->expand - sisc->frameBuffer;
 	siss->expand_len = memory;
 	memory = 0;
@@ -400,35 +400,35 @@ sisScreenInit (KdScreenInfo *screen)
 	siss->expand_len = 0;
     }
     
-    switch (screen->depth) {
+    switch (screen->fb[0].depth) {
     case 8:
-	screen->visuals = ((1 << StaticGray) |
+	screen->fb[0].visuals = ((1 << StaticGray) |
 			   (1 << GrayScale) |
 			   (1 << StaticColor) |
 			   (1 << PseudoColor) |
 			   (1 << TrueColor) |
 			   (1 << DirectColor));
-	screen->blueMask  = 0x00;
-	screen->greenMask = 0x00;
-	screen->redMask   = 0x00;
+	screen->fb[0].blueMask  = 0x00;
+	screen->fb[0].greenMask = 0x00;
+	screen->fb[0].redMask   = 0x00;
 	break;
     case 15:
-	screen->visuals = (1 << TrueColor);
-	screen->blueMask  = 0x001f;
-	screen->greenMask = 0x03e0;
-	screen->redMask   = 0x7c00;
+	screen->fb[0].visuals = (1 << TrueColor);
+	screen->fb[0].blueMask  = 0x001f;
+	screen->fb[0].greenMask = 0x03e0;
+	screen->fb[0].redMask   = 0x7c00;
 	break;
     case 16:
-	screen->visuals = (1 << TrueColor);
-	screen->blueMask  = 0x001f;
-	screen->greenMask = 0x07e0;
-	screen->redMask   = 0xf800;
+	screen->fb[0].visuals = (1 << TrueColor);
+	screen->fb[0].blueMask  = 0x001f;
+	screen->fb[0].greenMask = 0x07e0;
+	screen->fb[0].redMask   = 0xf800;
 	break;
     case 24:
-	screen->visuals = (1 << TrueColor);
-	screen->blueMask  = 0x0000ff;
-	screen->greenMask = 0x00ff00;
-	screen->redMask   = 0xff0000;
+	screen->fb[0].visuals = (1 << TrueColor);
+	screen->fb[0].blueMask  = 0x0000ff;
+	screen->fb[0].greenMask = 0x00ff00;
+	screen->fb[0].redMask   = 0xff0000;
 	break;
     }
     
@@ -752,7 +752,7 @@ sisEnable (ScreenPtr pScreen)
     
     pixel = (hactive + hblank) * (vactive + vblank) * t->rate;
     
-    switch (screen->bitsPerPixel) {
+    switch (screen->fb[0].bitsPerPixel) {
     case 8:
 	hactive /= 8;
 	hblank /= 8;
@@ -775,7 +775,7 @@ sisEnable (ScreenPtr pScreen)
 	
 	crtc.color_mode_256 = 0;
 	
-	if (screen->depth == 15)
+	if (screen->fb[0].depth == 15)
 	    crtc.graphics_mode_32k = 1;
 	else
 	    crtc.graphics_mode_64k = 1;
@@ -826,7 +826,7 @@ sisEnable (ScreenPtr pScreen)
     
     crtc.high_speed_dac_0 = crtc.high_speed_dac_1 = pixel > 135000000;
     
-    sisEngThresh (&crtc, pixel, screen->bitsPerPixel);
+    sisEngThresh (&crtc, pixel, screen->fb[0].bitsPerPixel);
     
     /*
      * Compute horizontal register values from timings

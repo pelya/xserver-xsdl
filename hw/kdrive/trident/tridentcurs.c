@@ -88,9 +88,9 @@ tridentAllocCursorColors (ScreenPtr pScreen)
     SetupCursor (pScreen);
     CursorPtr	    pCursor = pCurPriv->pCursor;
     
-    KdAllocateCursorPixels (pScreen, pCursor, 
+    KdAllocateCursorPixels (pScreen, 0, pCursor, 
 			    &pCurPriv->source, &pCurPriv->mask);
-    switch (pScreenPriv->screen->bitsPerPixel) {
+    switch (pScreenPriv->screen->fb[0].bitsPerPixel) {
     case 4:
 	pCurPriv->source |= pCurPriv->source << 4;
 	pCurPriv->mask |= pCurPriv->mask << 4;

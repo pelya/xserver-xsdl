@@ -22,12 +22,12 @@
  *
  * Author:  Keith Packard, SuSE, Inc.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/savage/s3cmap.c,v 1.2 1999/12/30 03:03:11 robin Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/savage/s3cmap.c,v 1.3 2000/02/23 20:30:02 dawes Exp $ */
 
 #include "s3.h"
 
 void
-s3GetColors (ScreenPtr pScreen, int ndef, xColorItem *pdefs)
+s3GetColors (ScreenPtr pScreen, int fb, int ndef, xColorItem *pdefs)
 {
     KdScreenPriv(pScreen);
     s3CardInfo(pScreenPriv);
@@ -44,7 +44,7 @@ s3GetColors (ScreenPtr pScreen, int ndef, xColorItem *pdefs)
 }
 
 void
-s3PutColors (ScreenPtr pScreen, int ndef, xColorItem *pdefs)
+s3PutColors (ScreenPtr pScreen, int fb, int ndef, xColorItem *pdefs)
 {
     KdScreenPriv(pScreen);
     s3CardInfo(pScreenPriv);
@@ -53,7 +53,12 @@ s3PutColors (ScreenPtr pScreen, int ndef, xColorItem *pdefs)
     Bool    hit_border = FALSE;
     Bool    check_border = FALSE;
 
+#if 0
     _s3WaitVRetrace (s3vga);
+#else
+    S3Ptr   s3 = s3c->s3;
+    _s3WaitVRetraceFast(s3);
+#endif
     if (pScreenPriv->enabled && s3s->manage_border && !s3s->managing_border)
 	check_border = TRUE;
     while (ndef--)
@@ -77,10 +82,10 @@ s3PutColors (ScreenPtr pScreen, int ndef, xColorItem *pdefs)
 	black.green = 0;
 	black.blue = 0;
 	s3s->managing_border = TRUE;
-	FakeAllocColor (pScreenPriv->pInstalledmap,
+	FakeAllocColor (pScreenPriv->pInstalledmap[fb],
 			&black);
 	s3s->border_pixel = black.pixel;
-	FakeFreeColor (pScreenPriv->pInstalledmap, s3s->border_pixel);
+	FakeFreeColor (pScreenPriv->pInstalledmap[fb], s3s->border_pixel);
 /*	s3SetImm (&s3c->s3vga, s3_border_color, (VGA8) s3s->border_pixel); */
     }
 }

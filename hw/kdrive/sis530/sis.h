@@ -1102,8 +1102,8 @@ void	sisDrawSync (ScreenPtr pScreen);
 void	sisDrawDisable (ScreenPtr pScreen);
 void	sisDrawFini (ScreenPtr pScreen);
 
-void	sisGetColors (ScreenPtr pScreen, int ndef, xColorItem *pdefs);
-void	sisPutColors (ScreenPtr pScreen, int ndef, xColorItem *pdefs);
+void	sisGetColors (ScreenPtr pScreen, int fb, int ndef, xColorItem *pdefs);
+void	sisPutColors (ScreenPtr pScreen, int fb, int ndef, xColorItem *pdefs);
 
 void	SISInitCard (KdCardAttr *attr);
 

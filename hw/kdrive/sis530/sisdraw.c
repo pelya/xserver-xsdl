@@ -1636,8 +1636,8 @@ sisDrawEnable (ScreenPtr pScreen)
     CARD32  base;
     CARD16  stride;
     
-    base = pScreenPriv->screen->frameBuffer - sisc->frameBuffer;
-    stride = pScreenPriv->screen->byteStride;
+    base = pScreenPriv->screen->fb[0].frameBuffer - sisc->frameBuffer;
+    stride = pScreenPriv->screen->fb[0].byteStride;
     sis->u.general.dst_base = base;
     sis->u.general.dst_pitch = stride;
     sis->u.general.dst_height = pScreenPriv->screen->height;

@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/kinput.c,v 1.2 1999/12/30 03:03:06 robin Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/kinput.c,v 1.3 2000/02/23 20:29:54 dawes Exp $ */
 
 #include "kdrive.h"
 #include "inputstr.h"
@@ -137,6 +137,9 @@ KdAddFd (int fd)
     memset (&act, '\0', sizeof act);
     act.sa_handler = KdSigio;
     sigemptyset (&act.sa_mask);
+    sigaddset (&act.sa_mask, SIGIO);
+    sigaddset (&act.sa_mask, SIGALRM);
+    sigaddset (&act.sa_mask, SIGVTALRM);
     sigaction (SIGIO, &act, 0);
     sigemptyset (&set);
     sigprocmask (SIG_SETMASK, &set, 0);

@@ -22,7 +22,7 @@
  *
  * Author:  Keith Packard, SuSE, Inc.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/savage/s3clock.c,v 1.2 1999/12/30 03:03:11 robin Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/savage/s3clock.c,v 1.3 2000/02/23 20:30:02 dawes Exp $ */
 
 #include "s3.h"
 
@@ -41,11 +41,9 @@
  */
  
 /* all in kHz */
-#define MIN_VCO	135000.0
-#define MAX_VCO 270000.0
 
 void
-s3GetClock (int target, int *Mp, int *Np, int *Rp, int maxM, int maxN, int maxR)
+s3GetClock (int target, int *Mp, int *Np, int *Rp, int maxM, int maxN, int maxR, int minVco)
 {
     int	    M, N, R, bestM, bestN;
     int	    f_vco, f_out;
@@ -57,15 +55,15 @@ s3GetClock (int target, int *Mp, int *Np, int *Rp, int maxM, int maxN, int maxR)
     for (R = 0; R <= maxR; R++)
     {
 	f_vco = target * (1 << R);
-	if (f_vco >= MIN_VCO)
+	if (f_vco >= minVco)
 	    break;
     }
 
     /* M = f_out / f_ref * ((N + 2) * (1 << R)); */
     besterr = target;
-    for (N = 0; N <= maxN; N++)
+    for (N = 1; N <= maxN; N++)
     {
-	M = (target * (N + 2) * (1 << R) + (S3_CLOCK_REF/2)) / S3_CLOCK_REF - 2;
+	M = ((target * (N + 2) * (1 << R) + (S3_CLOCK_REF/2)) + S3_CLOCK_REF/2) / S3_CLOCK_REF - 2;
 	if (0 <= M && M <= maxM)
 	{
 	    f_out = S3_CLOCK(M,N,R);

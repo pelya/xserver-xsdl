@@ -45,6 +45,7 @@ KdComputeCmapShift (unsigned long mask)
 
 void
 KdAllocateCursorPixels (ScreenPtr	pScreen,
+			int		fb,
 			CursorPtr	pCursor, 
 			Pixel		*source,
 			Pixel		*mask)
@@ -53,18 +54,18 @@ KdAllocateCursorPixels (ScreenPtr	pScreen,
     int		    r, g, b;
     KdScreenPriv(pScreen);
 
-    if (pScreenPriv->screen->redMask)
+    if (pScreenPriv->screen->fb[fb].redMask)
     {
 
-	r = KdComputeCmapShift (pScreenPriv->screen->redMask);
-	g = KdComputeCmapShift (pScreenPriv->screen->greenMask);
-	b = KdComputeCmapShift (pScreenPriv->screen->blueMask);
-	*source = ((Shift(pCursor->foreRed,r) & pScreenPriv->screen->redMask) |
-			    (Shift(pCursor->foreGreen,g) & pScreenPriv->screen->greenMask) |
-			    (Shift(pCursor->foreBlue,b) & pScreenPriv->screen->blueMask));
-	*mask = ((Shift(pCursor->backRed,r) & pScreenPriv->screen->redMask) |
-			  (Shift(pCursor->backGreen,g) & pScreenPriv->screen->greenMask) |
-			  (Shift(pCursor->backBlue,b) & pScreenPriv->screen->blueMask));
+	r = KdComputeCmapShift (pScreenPriv->screen->fb[fb].redMask);
+	g = KdComputeCmapShift (pScreenPriv->screen->fb[fb].greenMask);
+	b = KdComputeCmapShift (pScreenPriv->screen->fb[fb].blueMask);
+	*source = ((Shift(pCursor->foreRed,r) & pScreenPriv->screen->fb[fb].redMask) |
+			    (Shift(pCursor->foreGreen,g) & pScreenPriv->screen->fb[fb].greenMask) |
+			    (Shift(pCursor->foreBlue,b) & pScreenPriv->screen->fb[fb].blueMask));
+	*mask = ((Shift(pCursor->backRed,r) & pScreenPriv->screen->fb[fb].redMask) |
+			  (Shift(pCursor->backGreen,g) & pScreenPriv->screen->fb[fb].greenMask) |
+			  (Shift(pCursor->backBlue,b) & pScreenPriv->screen->fb[fb].blueMask));
     }
     else
     {
@@ -79,13 +80,13 @@ KdAllocateCursorPixels (ScreenPtr	pScreen,
 	sourceColor.red = pCursor->foreRed;
 	sourceColor.green = pCursor->foreGreen;
 	sourceColor.blue = pCursor->foreBlue;
-	FakeAllocColor(pScreenPriv->pInstalledmap, &sourceColor);
+	FakeAllocColor(pScreenPriv->pInstalledmap[fb], &sourceColor);
 	maskColor.red = pCursor->backRed;
 	maskColor.green = pCursor->backGreen;
 	maskColor.blue = pCursor->backBlue;
-	FakeAllocColor(pScreenPriv->pInstalledmap, &maskColor);
-	FakeFreeColor(pScreenPriv->pInstalledmap, sourceColor.pixel);
-	FakeFreeColor(pScreenPriv->pInstalledmap, maskColor.pixel);
+	FakeAllocColor(pScreenPriv->pInstalledmap[fb], &maskColor);
+	FakeFreeColor(pScreenPriv->pInstalledmap[fb], sourceColor.pixel);
+	FakeFreeColor(pScreenPriv->pInstalledmap[fb], maskColor.pixel);
 	*source = sourceColor.pixel;
 	*mask = maskColor.pixel;
     }

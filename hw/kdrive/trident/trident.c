@@ -74,7 +74,7 @@ tridentScreenInit (KdScreenInfo *screen)
     }
     if (!tridentc->cop)
 	screen->dumb = TRUE;
-    screen_size = screen->byteStride * screen->height;
+    screen_size = screen->fb[0].byteStride * screen->height;
     memory = (2048 + 512) * 1024;
     if (memory >= screen_size + 2048)
     {

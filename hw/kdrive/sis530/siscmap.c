@@ -26,7 +26,7 @@
 #include "sis.h"
 
 void
-sisGetColors (ScreenPtr pScreen, int ndef, xColorItem *pdefs)
+sisGetColors (ScreenPtr pScreen, int fb, int ndef, xColorItem *pdefs)
 {
     KdScreenPriv(pScreen);
     sisCardInfo(pScreenPriv);
@@ -44,7 +44,7 @@ sisGetColors (ScreenPtr pScreen, int ndef, xColorItem *pdefs)
 }
 
 void
-sisPutColors (ScreenPtr pScreen, int ndef, xColorItem *pdefs)
+sisPutColors (ScreenPtr pScreen, int fb, int ndef, xColorItem *pdefs)
 {
     KdScreenPriv(pScreen);
     sisCardInfo(pScreenPriv);
