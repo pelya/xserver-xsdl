@@ -403,6 +403,8 @@ vesaModeBetter (KdScreenInfo	*screen,
     if (vabs (screen->fb[0].depth - vesaDepth (a)) < 
 	vabs (screen->fb[0].depth - vesaDepth (b)))
 	return TRUE;
+    if (a->BitsPerPixel == 32 && b->BitsPerPixel == 24)
+	return TRUE;
     return FALSE;
 }
 
@@ -845,7 +847,6 @@ vesaSetShadow (ScreenPtr pScreen)
 	window = vesaWindowWindowed;
 	break;
     case VESA_PLANAR:
-	pScreen->CreateColormap = vesaCreateColormap16;
 	if (pScreenPriv->screen->fb[0].bitsPerPixel == 8)
 	    update = shadowUpdatePlanar4x8;
 	else
@@ -909,7 +910,7 @@ vesaComputeFramebufferMapping (KdScreenInfo *screen)
         while (depth && !(allbits & (1 << (depth - 1))))
             depth--;
 	if (vesa_verbose)
-	    ErrorF ("\tTrue Color red 0x%x green 0x%x blue 0x%x\n",
+	    ErrorF ("\tTrue Color %d/%d red 0x%x green 0x%x blue 0x%x\n",
 		    bpp, depth, 
 		    screen->fb[0].redMask,
 		    screen->fb[0].greenMask,
@@ -1302,6 +1303,13 @@ vesaRandRInit (ScreenPtr pScreen)
 Bool
 vesaInitScreen(ScreenPtr pScreen)
 {
+    KdScreenPriv(pScreen);
+    VesaScreenPrivPtr	pscr = pScreenPriv->screen->driver;
+    switch (pscr->mapping) {
+    case VESA_PLANAR:
+	pScreen->CreateColormap = vesaCreateColormap16;
+	break;
+    }
     return TRUE;
 }
 
