@@ -27,7 +27,7 @@
  *
  * Tested running under a Compaq IPAQ Pocket PC running Linux
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/pcmcia/pcmcia.c,v 1.1 2001/05/23 08:56:08 alanh Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/pcmcia/pcmcia.c,v 1.2 2001/06/05 16:57:44 alanh Exp $ */
 
 #include "pcmcia.h"
 #define extern
@@ -143,6 +143,8 @@ pcmciaScreenInit (KdScreenInfo *screen)
 	return FALSE; /* end of list */
     }
 
+    pcmcias->rotation = screen->rotation;
+
     memory = 512 * 1024;
     pcmcias->screen = pcmciac->fb;
 
@@ -210,7 +212,7 @@ pcmciaScreenInit (KdScreenInfo *screen)
 
     screen->driver = pcmcias;
 
-    return KdShadowScreenInit(screen);
+    return TRUE;
 }
 
 void *
@@ -247,29 +249,341 @@ cirrusWindowWindowed (ScreenPtr	pScreen,
 	return 0;
 
     bank = (row * pScreenPriv->screen->fb[0].byteStride) / 0x1000;
-    pcmciaWriteIndex(pcmciac, 0x3ce, 0x0B, 8);
+    pcmciaWriteIndex(pcmciac, 0x3ce, 0x0B, 0x0c);
     pcmciaWriteIndex(pcmciac, 0x3ce, 0x09, bank);
     pcmciaWriteIndex(pcmciac, 0x3ce, 0x0A, bank);
     *size = pScreenPriv->screen->fb[0].byteStride;
     return (CARD8 *) pcmciac->fb + (row * pScreenPriv->screen->fb[0].byteStride) - (bank * 0x1000) + offset;
 }
 
+LayerPtr
+pcmciaLayerCreate (ScreenPtr pScreen)
+{
+    KdScreenPriv(pScreen);
+    KdScreenInfo	*screen = pScreenPriv->screen;
+    pcmciaCardInfo	*pcmciac = pScreenPriv->card->driver;
+    pcmciaScreenInfo	*pcmcias = (pcmciaScreenInfo *) pScreenPriv->screen->driver;
+    ShadowUpdateProc	update;
+    ShadowWindowProc	window;
+    KdMouseMatrix	m;
+    PixmapPtr		pPixmap;
+    int			kind;
+
+    switch (pcmcias->rotation) {
+    case 0:
+	pScreen->width = screen->width;
+	pScreen->height = screen->height;
+	m.matrix[0][0] = 1; m.matrix[0][1] = 0; m.matrix[0][2] = 0;
+	m.matrix[1][0] = 0; m.matrix[1][1] = 1; m.matrix[1][2] = 0;
+	break;
+    case 90:
+	pScreen->width = screen->height;
+	pScreen->height = screen->width;
+	m.matrix[0][0] = 0; m.matrix[0][1] = -1; m.matrix[0][2] = screen->height - 1;
+	m.matrix[1][0] = 1; m.matrix[1][1] = 0; m.matrix[1][2] = 0;
+	break;
+    case 180:
+	pScreen->width = screen->width;
+	pScreen->height = screen->height;
+	m.matrix[0][0] = -1; m.matrix[0][1] = 0; m.matrix[0][2] = screen->width - 1;
+	m.matrix[1][0] = 0; m.matrix[1][1] = -1; m.matrix[1][2] = screen->height - 1;
+	break;
+    case 270:
+	pScreen->width = screen->height;
+	pScreen->height = screen->width;
+	m.matrix[0][0] = 0; m.matrix[0][1] = 1; m.matrix[0][2] = 0;
+	m.matrix[1][0] = -1; m.matrix[1][1] = 0; m.matrix[1][2] = screen->width - 1;
+	break;
+    }
+    KdSetMouseMatrix (&m);
+
+    if (pcmciac->HP) {
+    	window = tridentWindowLinear;
+	switch (pcmcias->rotation) {
+	case 0:
+    		update = tridentUpdatePacked;
+		break;
+	case 90:
+ 		switch (pScreenPriv->screen->fb[0].bitsPerPixel) {
+ 		case 8:
+		    update = shadowUpdateRotate8_90; break;
+ 		case 16:
+		    update = shadowUpdateRotate16_90; break;
+ 		}
+		break;
+	    case 180:
+		switch (pScreenPriv->screen->fb[0].bitsPerPixel) {
+		case 8:
+		    update = shadowUpdateRotate8_180; break;
+		case 16:
+		    update = shadowUpdateRotate16_180; break;
+		}
+		break;
+	    case 270:
+		switch (pScreenPriv->screen->fb[0].bitsPerPixel) {
+		case 8:
+		    update = shadowUpdateRotate8_270; break;
+		case 16:
+		    update = shadowUpdateRotate16_270; break;
+		}
+		break;
+	}
+    } else {
+    	window = cirrusWindowWindowed;
+	switch (pcmcias->rotation) {
+	case 0:
+    		update = cirrusUpdatePacked;
+		break;
+	case 90:
+ 		switch (pScreenPriv->screen->fb[0].bitsPerPixel) {
+ 		case 8:
+		    update = shadowUpdateRotate8_90; break;
+ 		case 16:
+		    update = shadowUpdateRotate16_90; break;
+ 		}
+		break;
+	    case 180:
+		switch (pScreenPriv->screen->fb[0].bitsPerPixel) {
+		case 8:
+		    update = shadowUpdateRotate8_180; break;
+		case 16:
+		    update = shadowUpdateRotate16_180; break;
+		}
+		break;
+	    case 270:
+		switch (pScreenPriv->screen->fb[0].bitsPerPixel) {
+		case 8:
+		    update = shadowUpdateRotate8_270; break;
+		case 16:
+		    update = shadowUpdateRotate16_270; break;
+		}
+		break;
+	}
+    }
+
+    if (!update)
+	abort ();
+
+    kind = LAYER_SHADOW;
+    pPixmap = 0;
+
+    return LayerCreate (pScreen, kind, screen->fb[0].depth, 
+			pPixmap, update, window, 0);
+}
+
+#ifdef RANDR
+Bool
+pcmciaRandRGetInfo (ScreenPtr pScreen, Rotation *rotations)
+{
+    KdScreenPriv(pScreen);
+    pcmciaCardInfo	    *pcmciac = pScreenPriv->card->driver;
+    KdScreenInfo	    *screen = pScreenPriv->screen;
+    pcmciaScreenInfo	*pcmcias = (pcmciaScreenInfo *) pScreenPriv->screen->driver;
+    RRVisualGroupPtr	    pVisualGroup;
+    RRGroupOfVisualGroupPtr pGroupOfVisualGroup;
+    RRScreenSizePtr	    pSize;
+    Rotation		    rotateKind;
+    int			    rotation;
+    int			    n;
+    
+    *rotations = RR_Rotate_0|RR_Rotate_90|RR_Rotate_180|RR_Rotate_270;
+    
+    for (n = 0; n < pScreen->numDepths; n++)
+	if (pScreen->allowedDepths[n].numVids)
+	    break;
+    if (n == pScreen->numDepths)
+	return FALSE;
+    
+    pVisualGroup = RRCreateVisualGroup (pScreen);
+    if (!pVisualGroup)
+	return FALSE;
+    if (!RRAddDepthToVisualGroup (pScreen,
+				pVisualGroup,
+				&pScreen->allowedDepths[n]))
+    {
+	RRDestroyVisualGroup (pScreen, pVisualGroup);
+	return FALSE;
+    }
+
+    pVisualGroup = RRRegisterVisualGroup (pScreen, pVisualGroup);
+    if (!pVisualGroup)
+	return FALSE;
+    
+    pGroupOfVisualGroup = RRCreateGroupOfVisualGroup (pScreen);
+
+    if (!RRAddVisualGroupToGroupOfVisualGroup (pScreen,
+					 pGroupOfVisualGroup,
+					 pVisualGroup))
+    {
+	RRDestroyGroupOfVisualGroup (pScreen, pGroupOfVisualGroup);
+	/* pVisualGroup left until screen closed */
+	return FALSE;
+    }
+
+    pGroupOfVisualGroup = RRRegisterGroupOfVisualGroup (pScreen, pGroupOfVisualGroup);
+    if (!pGroupOfVisualGroup)
+	return FALSE;
+    
+    pSize = RRRegisterSize (pScreen,
+			    screen->width,
+			    screen->height,
+			    screen->width_mm,
+			    screen->height_mm,
+			    pGroupOfVisualGroup);
+    
+    rotation = pcmcias->rotation - screen->rotation;
+    if (rotation < 0)
+	rotation += 360;
+
+    switch (rotation)
+    {
+    case 0:
+	rotateKind = RR_Rotate_0;
+	break;
+    case 90:
+	rotateKind = RR_Rotate_90;
+	break;
+    case 180:
+	rotateKind = RR_Rotate_180;
+	break;
+    case 270:
+	rotateKind = RR_Rotate_270;
+	break;
+    }
+
+    RRSetCurrentConfig (pScreen, rotateKind, pSize, pVisualGroup);
+    
+     return TRUE;
+ }
+ 
+int
+pcmciaLayerAdd (WindowPtr pWin, pointer value)
+{
+    ScreenPtr	    pScreen = pWin->drawable.pScreen;
+    LayerPtr	    pLayer = (LayerPtr) value;
+
+    if (!LayerWindowAdd (pScreen, pLayer, pWin))
+	return WT_STOPWALKING;
+
+    return WT_WALKCHILDREN;
+}
+
+int
+pcmciaLayerRemove (WindowPtr pWin, pointer value)
+{
+    ScreenPtr	    pScreen = pWin->drawable.pScreen;
+    LayerPtr	    pLayer = (LayerPtr) value;
+
+    LayerWindowRemove (pScreen, pLayer, pWin);
+
+    return WT_WALKCHILDREN;
+}
+
+pcmciaRandRSetConfig (ScreenPtr		pScreen,
+		     Rotation		rotateKind,
+		     RRScreenSizePtr	pSize,
+		     RRVisualGroupPtr	pVisualGroup)
+{
+    KdScreenPriv(pScreen);
+    KdScreenInfo	*screen = pScreenPriv->screen;
+    FbdevPriv		*priv = pScreenPriv->card->driver;
+    pcmciaScreenInfo	*pcmcias = (pcmciaScreenInfo *) pScreenPriv->screen->driver;
+    int			rotation;
+    Bool		wasEnabled = pScreenPriv->enabled;
+
+    /*
+     * The only thing that can change is rotation
+     */
+    switch (rotateKind)
+    {
+    case RR_Rotate_0:
+	rotation = screen->rotation;
+	break;
+    case RR_Rotate_90:
+	rotation = screen->rotation + 90;
+	break;
+    case RR_Rotate_180:
+	rotation = screen->rotation + 180;
+	break;
+    case RR_Rotate_270:
+	rotation = screen->rotation + 270;
+	break;
+    }
+    if (rotation >= 360)
+	rotation -= 360;
+
+    if (pcmcias->rotation != rotation)
+    {
+	LayerPtr	pNewLayer;
+	int		kind;
+	int		oldrotation = pcmcias->rotation;
+	int		oldwidth = pScreen->width;
+	int		oldheight = pScreen->height;
+	PixmapPtr	pPixmap;
+
+	if (wasEnabled)
+	    KdDisableScreen (pScreen);
+	
+	pcmcias->rotation = rotation;
+	pNewLayer = pcmciaLayerCreate (pScreen);
+	if (!pNewLayer)
+	{
+	    pcmcias->rotation = oldrotation;
+	}
+	if (WalkTree (pScreen, pcmciaLayerAdd, (pointer) pNewLayer) == WT_STOPWALKING)
+	{
+	    WalkTree (pScreen, pcmciaLayerRemove, (pointer) pNewLayer);
+	    LayerDestroy (pScreen, pNewLayer);
+	    pcmcias->rotation = oldrotation;
+	    pScreen->width = oldwidth;
+	    pScreen->height = oldheight;
+	    if (wasEnabled)
+		KdEnableScreen (pScreen);
+	    return FALSE;
+	}
+        WalkTree (pScreen, pcmciaLayerRemove, (pointer) pcmcias->pLayer);
+	LayerDestroy (pScreen, pcmcias->pLayer);
+	pcmcias->pLayer = pNewLayer;
+	if (wasEnabled)
+	    KdEnableScreen (pScreen);
+    }
+    return TRUE;
+}
+
+Bool
+pcmciaRandRInit (ScreenPtr pScreen)
+{
+    rrScrPrivPtr    pScrPriv;
+    
+    if (!RRScreenInit (pScreen))
+	return FALSE;
+
+    pScrPriv = rrGetScrPriv(pScreen);
+    pScrPriv->rrGetInfo = pcmciaRandRGetInfo;
+    pScrPriv->rrSetConfig = pcmciaRandRSetConfig;
+    return TRUE;
+}
+#endif
+
 Bool
 pcmciaInitScreen (ScreenPtr pScreen)
 {
     KdScreenPriv(pScreen);
-    pcmciaCardInfo	*pcmciac = pScreenPriv->card->driver;
-    ShadowUpdateProc	update;
-    ShadowWindowProc	window;
+    FbdevPriv		*priv = pScreenPriv->card->driver;
+    pcmciaScreenInfo	*pcmcias = (pcmciaScreenInfo *) pScreenPriv->screen->driver;
 
-    if (pcmciac->HP) {
-    	update = tridentUpdatePacked;
-    	window = tridentWindowLinear;
-    } else {
-    	update = cirrusUpdatePacked;
-    	window = cirrusWindowWindowed;
-    }
-    return KdShadowInitScreen (pScreen, update, window);
+    if (!LayerStartInit (pScreen))
+	return FALSE;
+    if (!LayerFinishInit (pScreen))
+	return FALSE;
+    pcmcias->pLayer = pcmciaLayerCreate (pScreen);
+    if (!pcmcias->pLayer)
+	return FALSE;
+#ifdef RANDR
+    if (!pcmciaRandRInit (pScreen))
+	return FALSE;
+#endif
+    return TRUE;
 }
 
 CARD8

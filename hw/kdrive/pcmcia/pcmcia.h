@@ -21,7 +21,7 @@
  *
  * Authors:  Alan Hourihane, <alanh@fairlite.demon.co.uk>
  */
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/pcmcia/pcmcia.h,v 1.1 2001/05/23 08:56:09 alanh Exp $ */
 
 #ifndef _PCMCIA_H_
 #define _PCMCIA_H_
@@ -194,7 +194,9 @@ typedef struct _pcmciaScreenInfo {
     CARD8	    *screen;
     CARD8	    *off_screen;
     int		    off_screen_size;
-    pcmciaCursor   cursor;
+    int	            rotation;
+    LayerPtr        pLayer;
+    pcmciaCursor    cursor;
 } pcmciaScreenInfo;
 
 #define getpcmciaScreenInfo(kd) ((pcmciaScreenInfo *) ((kd)->screen->driver))
