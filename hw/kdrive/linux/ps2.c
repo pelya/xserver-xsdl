@@ -1,5 +1,5 @@
 /*
- * Id: ps2.c,v 1.1 1999/11/02 03:54:46 keithp Exp $
+ * $XFree86$
  *
  * Copyright © 1999 Keith Packard
  *
