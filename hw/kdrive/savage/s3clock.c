@@ -22,7 +22,7 @@
  *
  * Author:  Keith Packard, SuSE, Inc.
  */
-/* $XFree86: $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/savage/s3clock.c,v 1.1 1999/11/19 13:53:55 hohndel Exp $ */
 
 #include "s3.h"
 
@@ -57,7 +57,7 @@ s3GetClock (int target, int *Mp, int *Np, int *Rp, int maxM, int maxN, int maxR)
     for (R = 0; R <= maxR; R++)
     {
 	f_vco = target * (1 << R);
-	if (MIN_VCO <= f_vco && f_vco < MAX_VCO)
+	if (f_vco >= MIN_VCO)
 	    break;
     }
 

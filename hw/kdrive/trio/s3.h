@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/trio/s3.h,v 1.1 1999/11/19 13:54:03 hohndel Exp $ */
 
 #ifndef _S3_H_
 #define _S3_H_
@@ -87,8 +87,7 @@ typedef volatile struct _s3 {
     VOL32	alt_mix;		/* 8134 */
     VOL32	scissors_tl;		/* 8138 */
     VOL32	scissors_br;		/* 813c */
-    VOL16	pix_cntl;		/* 8140 */
-    VOL16	mult_misc2;		/* 8142 */
+    VOL32	pix_cntl_mult_misc2;	/* 8140 */
     VOL32	mult_misc_read_sel;	/* 8144 */
     VOL32	alt_pcnt;		/* 8148 min_axis_pcnt, maj_axis_pcnt */
     VOL8	_pad3[0x19c];		/* 814c */
@@ -231,6 +230,7 @@ typedef volatile struct _s3 {
 #define	PATTERN_L	0x8000
 #define	PATTERN_H	0x9000
 #define	PIX_CNTL	0xa000
+#define CONTROL_MISC2	0xd000
 #define	PIX_TRANS	0xe2e8
 
 /* Advanced Function Control Regsiter */
@@ -347,13 +347,19 @@ typedef volatile struct _s3 {
 
 #define FIFO_SLOTS	13
 
+#define GPSLOT(n)   (1 << ((n) > 8 ? (15 - ((n) - 9)) : (8 - (n))))
+
+/* Wait for n slots to become available */
 #if 0
-/* Wait for one slot to become available */
-#define _s3WaitSlot(s3) { \
-    DRAW_DEBUG ((DEBUG_CRTC, "_s3WaitSlot 0x%x", (s3)->cmd_gp_stat)); \
-    while ((s3)->cmd_gp_stat & GPBUSY_1) ; \
-    DRAW_DEBUG ((DEBUG_CRTC, "  s3 slot available")); \
+#define _s3WaitSlots(s3,n) { \
+    DRAW_DEBUG ((DEBUG_CRTC, "_s3WaitSlots 0x%x %d", (s3)->cmd_gp_stat, n)); \
+    while (((s3)->cmd_gp_stat & GPSLOT(n)) != 0); \
+    DRAW_DEBUG ((DEBUG_CRTC, "  s3 0x%x %d slots ready", (s3)->cmd_gp_stat, n)); \
 }
+#else
+/* let PCI retries solve this problem */
+#define _s3WaitSlots(s3,n)
+#endif
 
 /* Wait until queue is empty */
 #define _s3WaitEmpty(s3) { \
@@ -375,11 +381,6 @@ typedef volatile struct _s3 {
     while ((s3)->cmd_gp_stat & GPBUSY) ; \
     DRAW_DEBUG ((DEBUG_CRTC, "  s3 idle")); \
 }
-#endif
-#define _s3WaitSlot(s3)
-#define _s3WaitEmpty(s3)
-#define _s3WaitIdleEmpty(s3)
-#define _s3WaitIdle(s3)
 
 typedef struct _s3Cursor {
     int		width, height;
@@ -1072,25 +1073,6 @@ typedef struct _crtc {
 #define S3_MAX_CLOCK	135000	/* KHz */
 #endif
 
-typedef struct _s3Timing {
-    /* label */
-    int		horizontal;
-    int		vertical;
-    int		rate;
-    /* horizontal timing */
-    int		hfp;	    /* front porch */
-    int		hbp;	    /* back porch */
-    int		hblank;	    /* blanking */
-    /* vertical timing */
-    int		vfp;	    /* front porch */
-    int		vbp;	    /* back porch */
-    int		vblank;	    /* blanking */
-    /* clock values */
-    int		dac_m;
-    int		dac_n;
-    int		dac_r;
-} S3Timing;
-
 typedef struct _s3Save {
     CARD8		cursor_fg;
     CARD8		cursor_bg;
@@ -1112,6 +1094,7 @@ typedef struct _s3CardInfo {
     CARD8	*registers;	    /* pointer to register map */
     S3Save	save;
     Bool	savage;
+    Bool	need_sync;
 } S3CardInfo;
 
 typedef struct _s3ScreenInfo {
@@ -1148,6 +1131,7 @@ void	s3RecolorCursor (ScreenPtr pScreen, int ndef, xColorItem *pdefs);
 
 Bool	s3DrawInit (ScreenPtr pScreen);
 void	s3DrawEnable (ScreenPtr pScreen);
+void	s3DrawSync (ScreenPtr pScreen);
 void	s3DrawDisable (ScreenPtr pScreen);
 void	s3DrawFini (ScreenPtr pScreen);
 
@@ -1156,7 +1140,7 @@ void	s3PutColors (ScreenPtr pScreen, int ndef, xColorItem *pdefs);
 
 void	S3InitCard (KdCardAttr *attr);
 
-void	s3GetClock (S3Timing *t, int *Mp, int *Np, int *Rp, int maxM, int maxN, int maxR);
+void	s3GetClock (int target, int *Mp, int *Np, int *Rp, int maxM, int maxN, int maxR);
 
 CARD8	_s3ReadIndexRegister (VOL8 *base, CARD8 index);
 void	_s3WriteIndexRegister (VOL8 *base, CARD8 index, CARD8 value);
@@ -1208,31 +1192,5 @@ extern KdCardFuncs  s3Funcs;
 #define S3_CURSOR_SIZE	    ((S3_CURSOR_WIDTH * S3_CURSOR_HEIGHT + 7) / 8)
 
 #define S3_TILE_SIZE	    8
-
-/*
- * Ok, so the S3 is broken -- it expects bitmaps to come MSB bit order,
- * but it's willing to take them in LSB byte order.  These macros
- * flip bits around without flipping bytes.  Instead of using a table
- * and burning memory bandwidth, do them in place with the CPU.
- */
-
-/* The MIPS compiler automatically places these constants in registers */
-#define S3InvertBits32(v) { \
-    v = ((v & 0x55555555) << 1) | ((v >> 1) & 0x55555555); \
-    v = ((v & 0x33333333) << 2) | ((v >> 2) & 0x33333333); \
-    v = ((v & 0x0f0f0f0f) << 4) | ((v >> 4) & 0x0f0f0f0f); \
-}
-
-#define S3InvertBits16(v) { \
-    v = ((v & 0x5555) << 1) | ((v >> 1) & 0x5555); \
-    v = ((v & 0x3333) << 2) | ((v >> 2) & 0x3333); \
-    v = ((v & 0x0f0f) << 4) | ((v >> 4) & 0x0f0f); \
-}
-
-#define S3InvertBits8(v) { \
-    v = ((v & 0x55) << 1) | ((v >> 1) & 0x55); \
-    v = ((v & 0x33) << 2) | ((v >> 2) & 0x33); \
-    v = ((v & 0x0f) << 4) | ((v >> 4) & 0x0f); \
-}
 
 #endif /* _S3_H_ */

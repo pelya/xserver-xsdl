@@ -22,7 +22,7 @@
  *
  * Author:  Keith Packard, SuSE, Inc.
  */
-/* $XFree86: $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/savage/s3stub.c,v 1.1 1999/11/19 13:53:57 hohndel Exp $ */
 
 #include "s3.h"
 
@@ -30,6 +30,13 @@ void
 InitCard (char *name)
 {
     KdCardAttr	attr;
+#ifdef VXWORKS
+    attr.naddr = 2;
+    attr.io = 0;
+    attr.address[0] = 0xbc000000;		/* registers */
+    attr.address[1] = 0xba000000;		/* frame buffer */
+    KdCardInfoAdd (&s3Funcs, &attr, 0);
+#else
     CARD32	count;
 
     count = 0;
@@ -38,6 +45,7 @@ InitCard (char *name)
 	KdCardInfoAdd (&s3Funcs, &attr, 0);
 	count++;
     }
+#endif
 }
 
 void
@@ -49,12 +57,31 @@ InitOutput (ScreenInfo *pScreenInfo, int argc, char **argv)
 void
 InitInput (int argc, char **argv)
 {
+#ifdef VXWORKS
+    KdInitInput (&VxWorksMouseFuncs, &VxWorksKeyboardFuncs);
+#endif
+#ifdef linux
     KdInitInput (&Ps2MouseFuncs, &LinuxKeyboardFuncs);
+#endif
 }
 
-void
-OsVendorInit (void)
+extern int	s3CpuTimeout;
+extern int	s3AccelTimeout;
+
+int
+ddxProcessArgument (int argc, char **argv, int i)
 {
-    KdOsInit (&LinuxFuncs);
+    int	ret;
+    
+    if (!strcmp (argv[i], "-cpu"))
+    {
+	s3CpuTimeout = strtol(argv[i+1], NULL, 0);
+	return 2;
+    }
+    if (!strcmp (argv[i], "-accel"))
+    {
+	s3AccelTimeout = strtol (argv[i+1], NULL, 0);
+	return 2;
+    }
+    return KdProcessArgument (argc, argv, i);
 }
-

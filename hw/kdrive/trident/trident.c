@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/trident/trident.c,v 1.1 1999/11/19 13:54:01 hohndel Exp $ */
 
 #include "trident.h"
 #define extern
@@ -84,6 +84,12 @@ tridentScreenInit (KdScreenInfo *screen)
 	tridents->cursor_base = 0;
     screen->driver = tridents;
     return TRUE;
+}
+
+Bool
+tridentInitScreen (ScreenPtr pScreen)
+{
+    return fbdevInitScreen (pScreen);
 }
 
 CARD8
@@ -255,6 +261,7 @@ tridentCardFini (KdCardInfo *card)
 KdCardFuncs	tridentFuncs = {
     tridentCardInit,	    /* cardinit */
     tridentScreenInit,	    /* scrinit */
+    tridentInitScreen,	    /* initScreen */
     tridentPreserve,	    /* preserve */
     tridentEnable,	    /* enable */
     tridentDPMS,	    /* dpms */
@@ -271,6 +278,7 @@ KdCardFuncs	tridentFuncs = {
     
     tridentDrawInit,        /* initAccel */
     tridentDrawEnable,      /* enableAccel */
+    tridentDrawSync,	    /* syncAccel */
     tridentDrawDisable,     /* disableAccel */
     tridentDrawFini,        /* finiAccel */
     

@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/kinput.c,v 1.1 1999/11/19 13:53:49 hohndel Exp $ */
 
 #include "kdrive.h"
 #include "inputstr.h"
@@ -134,10 +134,9 @@ KdAddFd (int fd)
     flags |= FASYNC|NOBLOCK;
     fcntl (fd, F_SETFL, flags);
     AddEnabledDevice (fd);
+    memset (&act, '\0', sizeof act);
     act.sa_handler = KdSigio;
     sigemptyset (&act.sa_mask);
-    act.sa_flags = 0;
-    act.sa_restorer = 0;
     sigaction (SIGIO, &act, 0);
     sigemptyset (&set);
     sigprocmask (SIG_SETMASK, &set, 0);
@@ -156,10 +155,9 @@ KdRemoveFd (int fd)
     fcntl (fd, F_SETFL, flags);
     if (kdnFds == 0)
     {
+	memset (&act, '\0', sizeof act);
 	act.sa_handler = SIG_IGN;
 	sigemptyset (&act.sa_mask);
-	act.sa_flags = 0;
-	act.sa_restorer = 0;
 	sigaction (SIGIO, &act, 0);
     }
 }
@@ -320,8 +318,8 @@ KdKeybdProc(DeviceIntPtr pDevice, int onoff)
 
 extern KeybdCtrl defaultKeyboardControl;
 
-void
-InitAutoRepeats (void)
+static void
+KdInitAutoRepeats (void)
 {
     int		    key_code;
     unsigned char   mask;
@@ -341,8 +339,8 @@ InitAutoRepeats (void)
     }
 }
 
-void
-InitModMap (void)
+static void
+KdInitModMap (void)
 {
     int	    key_code;
     int	    row;
@@ -412,8 +410,8 @@ KdInitInput(KdMouseFuncs    *pMouseFuncs,
     kdLeds = 0;
     kdBellPitch = 1000;
     kdBellDuration = 200;
-    InitModMap ();
-    InitAutoRepeats ();
+    KdInitModMap ();
+    KdInitAutoRepeats ();
     KdResetInputMachine ();
     pPointer  = AddInputDevice(KdMouseProc, TRUE);
     pKeyboard = AddInputDevice(KdKeybdProc, TRUE);
@@ -421,6 +419,13 @@ KdInitInput(KdMouseFuncs    *pMouseFuncs,
     RegisterKeyboardDevice(pKeyboard);
     miRegisterPointerDevice(screenInfo.screens[0], pPointer);
     mieqInit(&pKeyboard->public, &pPointer->public);
+#ifdef XINPUT
+    {
+	static long zero1, zero2;
+
+	SetExtInputCheck (&zero1, &zero2);
+    }
+#endif
 }
 
 /*
@@ -1095,7 +1100,7 @@ KdEnqueueKeyboardEvent(unsigned char	scan_code,
 #define Press(b)         SetButton(b+1,ButtonPress,"Down")
 #define Release(b)       SetButton(b+1,ButtonRelease,"Up")
 
-unsigned char	ButtonState = 0;
+static unsigned char	kdButtonState = 0;
 
 /*
  * kdEnqueueMouseEvent
@@ -1146,7 +1151,7 @@ KdEnqueueMouseEvent(unsigned long flags, int x, int y)
 
     buttons = flags;
 
-    if ((ButtonState & KD_BUTTON_1) ^ (buttons & KD_BUTTON_1))
+    if ((kdButtonState & KD_BUTTON_1) ^ (buttons & KD_BUTTON_1))
     {
 	if (buttons & KD_BUTTON_1)
 	{
@@ -1157,7 +1162,7 @@ KdEnqueueMouseEvent(unsigned long flags, int x, int y)
 	    Release(0);
 	}
     }
-    if ((ButtonState & KD_BUTTON_2) ^ (buttons & KD_BUTTON_2)) 
+    if ((kdButtonState & KD_BUTTON_2) ^ (buttons & KD_BUTTON_2)) 
     {
 	if (buttons & KD_BUTTON_2)
 	{
@@ -1168,7 +1173,7 @@ KdEnqueueMouseEvent(unsigned long flags, int x, int y)
 	    Release(1);
 	}
     }
-    if ((ButtonState & KD_BUTTON_3) ^ (buttons & KD_BUTTON_3))
+    if ((kdButtonState & KD_BUTTON_3) ^ (buttons & KD_BUTTON_3))
     {
 	if (buttons & KD_BUTTON_3)
 	{
@@ -1179,7 +1184,7 @@ KdEnqueueMouseEvent(unsigned long flags, int x, int y)
 	    Release(2);
 	}
     }
-    ButtonState = buttons;
+    kdButtonState = buttons;
 }
 
 void
@@ -1328,4 +1333,3 @@ ProcessInputEvents ()
 	KdProcessSwitch ();
     KdCheckLock ();
 }
-

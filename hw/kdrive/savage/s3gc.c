@@ -22,7 +22,7 @@
  *
  * Author:  Keith Packard, SuSE, Inc.
  */
-/* $XFree86: $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/savage/s3gc.c,v 1.1 1999/11/19 13:53:56 hohndel Exp $ */
 
 #include	"s3.h"
 #include	"s3draw.h"
@@ -48,17 +48,17 @@
  */
 
 /* TE font, >= 4 pixels wide, one clip rectangle */
-static GCOps	s3TEOps1Rect = {
+static const GCOps	s3TEOps1Rect = {
     s3FillSpans,
-    fbSetSpans,
-    fbPutImage,
+    KdCheckSetSpans,
+    KdCheckPutImage,
     s3CopyArea,
     s3CopyPlane,
-    fbPolyPoint,
+    KdCheckPolyPoint,
     s3Polylines,
     s3PolySegment,
     miPolyRectangle,
-    fbPolyArc,
+    KdCheckPolyArc,
     s3FillPoly1Rect,
     s3PolyFillRect,
     s3PolyFillArcSolid,
@@ -68,7 +68,7 @@ static GCOps	s3TEOps1Rect = {
     miImageText16,
     s3ImageTEGlyphBlt,
     s3PolyTEGlyphBlt,
-    fbPushPixels,
+    s3PushPixels,
 #ifdef NEED_LINEHELPER
     ,NULL
 #endif
@@ -77,17 +77,17 @@ static GCOps	s3TEOps1Rect = {
 extern GCOps	    fbGCOps;
 
 /* Non TE font, one clip rectangle */
-static GCOps	s3NonTEOps1Rect = {
+static const GCOps	s3NonTEOps1Rect = {
     s3FillSpans,
-    fbSetSpans,
-    fbPutImage,
+    KdCheckSetSpans,
+    KdCheckPutImage,
     s3CopyArea,
     s3CopyPlane,
-    fbPolyPoint,
+    KdCheckPolyPoint,
     s3Polylines,
     s3PolySegment,
     miPolyRectangle,
-    fbPolyArc,
+    KdCheckPolyArc,
     s3FillPoly1Rect,
     s3PolyFillRect,
     s3PolyFillArcSolid,
@@ -97,24 +97,24 @@ static GCOps	s3NonTEOps1Rect = {
     miImageText16,
     s3ImageGlyphBlt,
     s3PolyGlyphBlt,
-    fbPushPixels
+    s3PushPixels
 #ifdef NEED_LINEHELPER
     ,NULL
 #endif
 };
 
 /* TE font, != 1 clip rect (including 0) */
-static GCOps	s3TEOps = {
+static const GCOps	s3TEOps = {
     s3FillSpans,
-    fbSetSpans,
-    fbPutImage,
+    KdCheckSetSpans,
+    KdCheckPutImage,
     s3CopyArea,
     s3CopyPlane,
-    fbPolyPoint,
+    KdCheckPolyPoint,
     s3Polylines,
     s3PolySegment,
     miPolyRectangle,
-    fbPolyArc,
+    KdCheckPolyArc,
     miFillPolygon,
     s3PolyFillRect,
     s3PolyFillArcSolid,
@@ -124,24 +124,24 @@ static GCOps	s3TEOps = {
     miImageText16,
     s3ImageTEGlyphBlt,
     s3PolyTEGlyphBlt,
-    fbPushPixels
+    s3PushPixels
 #ifdef NEED_LINEHELPER
     ,NULL
 #endif
 };
 
 /* Non TE font, != 1 clip rect (including 0) */
-static GCOps	s3NonTEOps = {
+static const GCOps	s3NonTEOps = {
     s3FillSpans,
-    fbSetSpans,
-    fbPutImage,
+    KdCheckSetSpans,
+    KdCheckPutImage,
     s3CopyArea,
     s3CopyPlane,
-    fbPolyPoint,
+    KdCheckPolyPoint,
     s3Polylines,
     s3PolySegment,
     miPolyRectangle,
-    fbPolyArc,
+    KdCheckPolyArc,
     miFillPolygon,
     s3PolyFillRect,
     s3PolyFillArcSolid,
@@ -151,7 +151,7 @@ static GCOps	s3NonTEOps = {
     miImageText16,
     s3ImageGlyphBlt,
     s3PolyGlyphBlt,
-    fbPushPixels
+    s3PushPixels
 #ifdef NEED_LINEHELPER
     ,NULL
 #endif
@@ -169,7 +169,7 @@ s3MatchCommon (DrawablePtr pDraw, GCPtr pGC, FbGCPrivPtr fbPriv)
     }
 
     if (pDraw->type != DRAWABLE_WINDOW)
-	return (GCOps *) &fbGCOps;
+	return (GCOps *) &kdAsyncPixmapGCOps;
     
     if (pGC->lineWidth != 0)
 	return 0;
@@ -184,16 +184,16 @@ s3MatchCommon (DrawablePtr pDraw, GCPtr pGC, FbGCPrivPtr fbPriv)
 	if (TERMINALFONT(pGC->font))
 	{
 	    if (fbPriv->oneRect)
-		return &s3TEOps1Rect;
+		return (GCOps *) &s3TEOps1Rect;
 	    else
-		return &s3TEOps;
+		return (GCOps *) &s3TEOps;
 	}
 	else
 	{
 	    if (fbPriv->oneRect)
-		return &s3NonTEOps1Rect;
+		return (GCOps *) &s3NonTEOps1Rect;
 	    else
-		return &s3NonTEOps;
+		return (GCOps *) &s3NonTEOps;
 	}
     }
     return 0;
@@ -283,7 +283,7 @@ s3ValidateGC (GCPtr pGC, Mask changes, DrawablePtr pDrawable)
 	 */
 	if (pGC->ops == &kdNoopOps)
 	{
-	    pGC->ops = (GCOps *) &fbGCOps;
+	    pGC->ops = (GCOps *) &kdAsyncPixmapGCOps;
 	    new_type = TRUE;
 	}
         pGC->ops = miCreateGCOps (pGC->ops);
@@ -295,8 +295,8 @@ s3ValidateGC (GCPtr pGC, Mask changes, DrawablePtr pDrawable)
      */
     if (new_type || (changes & (GCFillStyle|GCTile|GCStipple)))
     {
-        pGC->ops->FillSpans = fbFillSpans;
-	pGC->ops->PolyFillRect = fbPolyFillRect;
+        pGC->ops->FillSpans = KdCheckFillSpans;
+	pGC->ops->PolyFillRect = KdCheckPolyFillRect;
 	if (s3Priv->type == DRAWABLE_WINDOW &&
 	    (pGC->fillStyle != FillTiled || s3Priv->pPattern))
 	{
@@ -310,13 +310,9 @@ s3ValidateGC (GCPtr pGC, Mask changes, DrawablePtr pDrawable)
      */
     if (new_type)
     {
-	pGC->ops->CopyArea = fbCopyArea;
-	pGC->ops->CopyPlane = fbCopyPlane;
-	if (s3Priv->type == DRAWABLE_WINDOW)
-	{
-	    pGC->ops->CopyArea = s3CopyArea;
-	    pGC->ops->CopyPlane = s3CopyPlane;
-	}
+	pGC->ops->CopyArea = s3CopyArea;
+	pGC->ops->CopyPlane = s3CopyPlane;
+	pGC->ops->PushPixels = s3PushPixels;
     }
     
     /*
@@ -324,8 +320,8 @@ s3ValidateGC (GCPtr pGC, Mask changes, DrawablePtr pDrawable)
      */
     if (new_type || (changes & (GCLineStyle|GCLineWidth|GCFillStyle)))
     {
-	pGC->ops->Polylines = fbPolyLine;
-	pGC->ops->PolySegment = fbPolySegment;
+	pGC->ops->Polylines = KdCheckPolylines;
+	pGC->ops->PolySegment = miPolySegment;
 	if (pGC->lineStyle == LineSolid &&
 	    pGC->lineWidth == 0 &&
 	    pGC->fillStyle == FillSolid &&
@@ -355,7 +351,7 @@ s3ValidateGC (GCPtr pGC, Mask changes, DrawablePtr pDrawable)
      */
     if (new_type || (changes & GCFillStyle))
     {
-	pGC->ops->PolyFillArc = fbPolyFillArc;
+	pGC->ops->PolyFillArc = miPolyFillArc;
 	if (s3Priv->type == DRAWABLE_WINDOW &&
 	    pGC->fillStyle == FillSolid)
 	{
@@ -368,8 +364,8 @@ s3ValidateGC (GCPtr pGC, Mask changes, DrawablePtr pDrawable)
      */
     if (new_type || (changes & (GCFont|GCFillStyle)))
     {
-	pGC->ops->PolyGlyphBlt = fbPolyGlyphBlt;
-	pGC->ops->ImageGlyphBlt = fbImageGlyphBlt;
+	pGC->ops->PolyGlyphBlt = KdCheckPolyGlyphBlt;
+	pGC->ops->ImageGlyphBlt = KdCheckImageGlyphBlt;
 	if (s3Priv->type == DRAWABLE_WINDOW && pGC->font)
 	{
 	    if (pGC->fillStyle == FillSolid)

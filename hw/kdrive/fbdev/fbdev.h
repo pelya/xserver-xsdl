@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/fbdev/fbdev.h,v 1.1 1999/11/19 13:53:52 hohndel Exp $ */
 
 #ifndef _FBDEV_H_
 #define _FBDEV_H_
@@ -49,6 +49,9 @@ fbdevCardInit (KdCardInfo *card);
 
 Bool
 fbdevScreenInit (KdScreenInfo *screen);
+
+Bool
+fbdevInitScreen (ScreenPtr pScreen);
 
 void
 fbdevPreserve (KdCardInfo *card);

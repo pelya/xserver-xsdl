@@ -21,9 +21,10 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/trio/s3curs.c,v 1.1 1999/11/19 13:54:06 hohndel Exp $ */
 
 #include "s3.h"
+#include "s3draw.h"
 #include "cursorstr.h"
 
 #define SetupCursor(s)	    KdScreenPriv(s); \
@@ -94,31 +95,8 @@ s3AllocCursorColors (ScreenPtr pScreen)
     CursorPtr	    pCursor = pCurPriv->pCursor;
     xColorItem	    sourceColor, maskColor;
     
-    /*
-     * Set these to an invalid pixel value so that
-     * when the store colors comes through, the cursor
-     * won't get recolored
-     */
-    pCurPriv->source = ~0;
-    pCurPriv->mask = ~0;
-    /* 
-     * XXX S3 bug workaround; s3 chip doesn't use RGB values from
-     * the cursor color registers as documented, rather it uses
-     * them to index the DAC.  This is in the errata though.
-     */
-    sourceColor.red = pCursor->foreRed;
-    sourceColor.green = pCursor->foreGreen;
-    sourceColor.blue = pCursor->foreBlue;
-    FakeAllocColor(pScreenPriv->pInstalledmap, &sourceColor);
-    maskColor.red = pCursor->backRed;
-    maskColor.green = pCursor->backGreen;
-    maskColor.blue = pCursor->backBlue;
-    FakeAllocColor(pScreenPriv->pInstalledmap, &maskColor);
-    FakeFreeColor(pScreenPriv->pInstalledmap, sourceColor.pixel);
-    FakeFreeColor(pScreenPriv->pInstalledmap, maskColor.pixel);
-    
-    pCurPriv->source = sourceColor.pixel;
-    pCurPriv->mask = maskColor.pixel;
+    KdAllocateCursorPixels (pScreen, pCursor,
+			    &pCurPriv->source, &pCurPriv->mask);
     switch (pScreenPriv->screen->bitsPerPixel) {
     case 4:
 	pCurPriv->source |= pCurPriv->source << 4;
@@ -192,8 +170,9 @@ s3LoadCursor (ScreenPtr pScreen, int x, int y)
     CursorBitsPtr   bits = pCursor->bits;
     int	w, h;
     unsigned char   r[2], g[2], b[2];
-    unsigned short  *ram, *msk, *mskLine, *src, *srcLine;
-    unsigned short  and, xor;
+    unsigned long   *ram;
+    unsigned long   *msk, *mskLine, *src, *srcLine;
+    unsigned long   and, xor;
     int		    i, j;
     int		    cursor_address;
     int		    wsrc;
@@ -204,11 +183,6 @@ s3LoadCursor (ScreenPtr pScreen, int x, int y)
      */
     s3AllocCursorColors (pScreen);
     
-    /*
-     * Lock S3 so the cursor doesn't move while we're setting it
-     */
-    LockS3(s3c);
-    
     pCurPriv->pCursor = pCursor;
     pCurPriv->xhot = pCursor->bits->xhot;
     pCurPriv->yhot = pCursor->bits->yhot;
@@ -216,24 +190,25 @@ s3LoadCursor (ScreenPtr pScreen, int x, int y)
     /*
      * Stick new image into cursor memory
      */
-    ram = (unsigned short *) s3s->cursor_base;
-    mskLine = (unsigned short *) bits->mask;
-    srcLine = (unsigned short *) bits->source;
+    ram = (unsigned long *) s3s->cursor_base;
+    mskLine = (unsigned long *) bits->mask;
+    srcLine = (unsigned long *) bits->source;
 
     h = bits->height;
     if (h > S3_CURSOR_HEIGHT)
 	h = S3_CURSOR_HEIGHT;
 
-    wsrc = BitmapBytePad(bits->width) / 2;        /* words per line */
+    wsrc = BitmapBytePad(bits->width) / 4;        /* ulongs per line */
 
-    for (i = 0; i < S3_CURSOR_HEIGHT; i++) {
+    for (i = 0; i < S3_CURSOR_HEIGHT; i++) 
+    {
 	msk = mskLine;
 	src = srcLine;
 	mskLine += wsrc;
 	srcLine += wsrc;
-	for (j = 0; j < S3_CURSOR_WIDTH / 16; j++) {
+	for (j = 0; j < S3_CURSOR_WIDTH / 32; j++) {
 
-	    unsigned short  m, s;
+	    unsigned long  m, s;
 
 	    if (i < h && j < wsrc) 
 	    {
@@ -244,14 +219,14 @@ s3LoadCursor (ScreenPtr pScreen, int x, int y)
 	    }
 	    else
 	    {
-		and = 0xffff;
-		xor = 0x0000;
+		and = 0xffffffff;
+		xor = 0x00000000;
 	    }
 		
-	    S3InvertBits16(and);
-	    *ram++ = and;
-	    S3InvertBits16(xor);
-	    *ram++ = xor;
+	    S3AdjustBits32(and);
+	    S3AdjustBits32(xor);
+	    *ram++ = (and & 0xffff) | (xor << 16);
+	    *ram++ = (and >> 16) | (xor & 0xffff0000);
 	}
     }
     
@@ -302,7 +277,11 @@ s3RealizeCursor (ScreenPtr pScreen, CursorPtr pCursor)
     {
 	if (pCursor)
 	{
-	    int	    x, y;
+#ifdef FB_OLD_SCREEN
+	    short	x, y;
+#else
+	    int		x, y;
+#endif
 	    
 	    miPointerPosition (&x, &y);
 	    s3LoadCursor (pScreen, x, y);
@@ -397,7 +376,11 @@ s3CursorEnable (ScreenPtr pScreen)
     {
 	if (pCurPriv->pCursor)
 	{
-	    int	    x, y;
+#ifdef FB_OLD_SCREEN
+	    short	x, y;
+#else
+	    int		x, y;
+#endif
 	    
 	    miPointerPosition (&x, &y);
 	    s3LoadCursor (pScreen, x, y);

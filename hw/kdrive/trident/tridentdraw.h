@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/trident/tridentdraw.h,v 1.1 1999/11/19 13:54:02 hohndel Exp $ */
 
 #ifndef _TRIDENTDRAW_H_
 #define _TRIDENTDRAW_H_
@@ -30,10 +30,13 @@
 		    tridentCardInfo(pScreenPriv); \
 		    Cop	    *cop = tridentc->cop
 
+#define TridentAlpha	(COP_MULTI_ALPHA|COP_ALPHA_WRITE_ENABLE)
+
 #define _tridentInit(cop,tridentc) { \
     if ((cop)->status == 0xffffffff) tridentSetMMIO(tridentc); \
     (cop)->multi = (tridentc)->cop_depth; \
     (cop)->multi = (tridentc)->cop_stride; \
+    (cop)->multi = TridentAlpha; \
 } \
 
 #define _tridentSetSolidRect(cop,pix,alu,cmd) {\
@@ -56,7 +59,7 @@
 
 #define _tridentWaitDone(cop)   while ((cop)->status & COP_STATUS_BUSY)
 
-#define _tridentWaitIdleEmpty(cop)	_tridentWaitDone(cop);
+#define _tridentWaitIdleEmpty(cop)	_tridentWaitDone(cop)
 
 #define sourceInvarient(alu)	(((alu) & 3) == (((alu) >> 2) & 3))
 

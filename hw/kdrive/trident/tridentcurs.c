@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/trident/tridentcurs.c,v 1.1 1999/11/19 13:54:01 hohndel Exp $ */
 
 #include "trident.h"
 #include "cursorstr.h"
@@ -82,39 +82,14 @@ tridentMoveCursor (ScreenPtr pScreen, int x, int y)
     _tridentMoveCursor (pScreen, x, y);
 }
 
-
 static void
 tridentAllocCursorColors (ScreenPtr pScreen)
 {
     SetupCursor (pScreen);
     CursorPtr	    pCursor = pCurPriv->pCursor;
-    xColorItem	    sourceColor, maskColor;
     
-    /*
-     * Set these to an invalid pixel value so that
-     * when the store colors comes through, the cursor
-     * won't get recolored
-     */
-    pCurPriv->source = ~0;
-    pCurPriv->mask = ~0;
-    /* 
-     * XXX S3 bug workaround; s3 chip doesn't use RGB values from
-     * the cursor color registers as documented, rather it uses
-     * them to index the DAC.  This is in the errata though.
-     */
-    sourceColor.red = pCursor->foreRed;
-    sourceColor.green = pCursor->foreGreen;
-    sourceColor.blue = pCursor->foreBlue;
-    FakeAllocColor(pScreenPriv->pInstalledmap, &sourceColor);
-    maskColor.red = pCursor->backRed;
-    maskColor.green = pCursor->backGreen;
-    maskColor.blue = pCursor->backBlue;
-    FakeAllocColor(pScreenPriv->pInstalledmap, &maskColor);
-    FakeFreeColor(pScreenPriv->pInstalledmap, sourceColor.pixel);
-    FakeFreeColor(pScreenPriv->pInstalledmap, maskColor.pixel);
-    
-    pCurPriv->source = sourceColor.pixel;
-    pCurPriv->mask = maskColor.pixel;
+    KdAllocateCursorPixels (pScreen, pCursor, 
+			    &pCurPriv->source, &pCurPriv->mask);
     switch (pScreenPriv->screen->bitsPerPixel) {
     case 4:
 	pCurPriv->source |= pCurPriv->source << 4;

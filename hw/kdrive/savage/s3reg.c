@@ -22,7 +22,7 @@
  *
  * Author:  Keith Packard, SuSE, Inc.
  */
-/* $XFree86: $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/savage/s3reg.c,v 1.1 1999/11/19 13:53:57 hohndel Exp $ */
 
 #include "s3reg.h"
 
@@ -360,6 +360,16 @@ VgaReg s3_v_blank_end[] = {
     VGA_REG_END
 };
 
+VgaReg s3_2bk_cga[] = {
+    CR17, 0, 1,
+    VGA_REG_END
+};
+
+VgaReg s3_4bk_hga[] = {
+    CR17, 1, 1,
+    VGA_REG_END
+};
+
 VgaReg s3_v_total_double[] = {
     CR17, 2, 1,
     VGA_REG_END
@@ -370,8 +380,18 @@ VgaReg s3_word_mode[] = {
     VGA_REG_END
 };
 
+VgaReg s3_address_16k_wrap[] = {
+    CR17, 5, 1,
+    VGA_REG_END
+};
+
 VgaReg s3_byte_mode[] = {
     CR17, 6, 1,
+    VGA_REG_END
+};
+
+VgaReg s3_hardware_reset[] = {
+    CR17, 7, 1,
     VGA_REG_END
 };
 
@@ -414,6 +434,11 @@ VgaReg s3_border_select[] = {
     VGA_REG_END
 };
     
+VgaReg s3_lock_palette[] = {
+    CR33, 6, 1,
+    VGA_REG_END
+};
+
 VgaReg s3_enable_sff[] = {
     CR34, 4, 1,
     VGA_REG_END
@@ -639,6 +664,11 @@ VgaReg s3_color_mode[] = {
     VGA_REG_END
 };
 
+VgaReg s3_primary_stream_timeout[] = {
+    CR71, 0, 8,
+    VGA_REG_END
+};
+
 VgaReg s3_master_control_unit_timeout[] = {
     CR74, 0, 8,
     VGA_REG_END
@@ -671,6 +701,16 @@ VgaReg s3_fifo_drain_delay[] = {
 
 VgaReg s3_fifo_fetch_timing[] = {
     CR85, 4, 1,
+    VGA_REG_END
+};
+
+VgaReg s3_dac_power_up_time[] = {
+    CR86, 0, 7,
+    VGA_REG_END
+};
+
+VgaReg s3_dac_power_saving_disable[] = {
+    CR86, 7, 1,
     VGA_REG_END
 };
 
@@ -985,7 +1025,22 @@ VgaReg s3_enable_blinking[] = {
     VGA_REG_END
 };
 
-#define AR_LAST	    AR10
+VgaReg s3_border_color[] = {
+    AR11, 0, 8,
+    VGA_REG_END
+};
+
+#define AR_LAST	    AR11
+
+VgaReg s3_io_addr_select[] = {
+    S3_MISC_OUT, 0, 1,
+    VGA_REG_END
+};
+
+VgaReg s3_enable_ram[] = {
+    S3_MISC_OUT, 1, 1,
+    VGA_REG_END
+};
 
 VgaReg s3_clock_select[] = {
     S3_MISC_OUT, 2, 2,
@@ -1002,13 +1057,43 @@ VgaReg s3_vert_sync_neg[] = {
     VGA_REG_END
 };
 
+VgaReg s3_display_mode_inactive[] = {
+    S3_INPUT_STATUS_1,	0, 1,
+    VGA_REG_END
+};
+
+VgaReg s3_vertical_sync_active[] = {
+    S3_INPUT_STATUS_1, 3, 1,
+    VGA_REG_END
+};
+
+VgaReg s3_dac_mask[] = {
+    S3_DAC + 0,	0, 8,
+    VGA_REG_END
+};
+
+VgaReg s3_dac_read_index[] = {
+    S3_DAC + 1, 0, 8,
+    VGA_REG_END
+};
+
+VgaReg s3_dac_write_index[] = {
+    S3_DAC + 2, 0, 8,
+    VGA_REG_END
+};
+
+VgaReg s3_dac_data[] = {
+    S3_DAC + 3, 0, 8,
+    VGA_REG_END
+};
+
 VGA8
 _s3Inb (VgaCard *card, VGA16 port)
 {
     VGAVOL8 *reg;
     
     if (card->closure)
-	return *(((VGAVOL8 *) card->closure) + port);
+	return VgaReadMemb ((VGA32) card->closure + port);
     else
 	return VgaInb (port);
 }
@@ -1016,10 +1101,8 @@ _s3Inb (VgaCard *card, VGA16 port)
 void
 _s3Outb (VgaCard *card, VGA8 value, VGA16 port)
 {
-    VGAVOL8 *reg;
-    
     if (card->closure)
-	*(((VGAVOL8 *) card->closure) + port) = value;
+	VgaWriteMemb (value, (VGA32) card->closure + port);
     else
 	VgaOutb (value, port);
 }
@@ -1050,14 +1133,19 @@ _s3RegMap (VgaCard *card, VGA16 reg, VgaMap *map, VGABOOL write)
 	map->access = VgaAccessDone;
 	/* reset AFF to index */
 	(void) _s3Inb (card, 0x3da);
+	if (reg >= 16)
+	    reg |= 0x20;
 	_s3Outb (card, reg, 0x3c0);
 	if (write)
 	    _s3Outb (card, map->value, 0x3c0);
 	else
 	    map->value = _s3Inb (card, 0x3c1);
-	/* enable video display again */
-	(void) _s3Inb (card, 0x3da);
-	_s3Outb (card, 0x20, 0x3c0);
+	if (!(reg & 0x20))
+	{
+	    /* enable video display again */
+	    (void) _s3Inb (card, 0x3da);
+	    _s3Outb (card, 0x20, 0x3c0);
+	}
 	return;
     }
     else if (reg < S3_CR + S3_NCR)
@@ -1068,6 +1156,11 @@ _s3RegMap (VgaCard *card, VGA16 reg, VgaMap *map, VGABOOL write)
 	map->value = 1;
 	map->index = reg - S3_CR;
     }
+    else if (reg < S3_DAC + S3_NDAC)
+    {
+	map->access = VgaAccessIo;
+	map->port = 0x3c6 + reg - S3_DAC;
+    }
     else switch (reg) {
     case S3_MISC_OUT:
 	map->access = VgaAccessIo;
@@ -1075,6 +1168,10 @@ _s3RegMap (VgaCard *card, VGA16 reg, VgaMap *map, VGABOOL write)
 	    map->port = 0x3c2;
 	else
 	    map->port = 0x3cc;
+	break;
+    case S3_INPUT_STATUS_1:
+	map->access = VgaAccessIo;
+	map->port = 0x3da;
 	break;
     }
     if (card->closure)
@@ -1115,7 +1212,7 @@ s3Save (S3Vga *s3vga)
     s3vga->save_register_lock_1 = s3Get (s3vga, s3_register_lock_1);
     s3SetImm (s3vga, s3_register_lock_1, 0x48);
     s3vga->save_register_lock_2 = s3Get (s3vga, s3_register_lock_2);
-    s3SetImm (s3vga, s3_register_lock_2, 0xa0);
+    s3SetImm (s3vga, s3_register_lock_2, 0xa5);
     s3vga->save_unlock_extended_sequencer = s3Get (s3vga, s3_unlock_extended_sequencer);
     s3SetImm (s3vga, s3_unlock_extended_sequencer, 0x06);
     s3vga->save_lock_horz = s3Get (s3vga, s3_lock_horz);

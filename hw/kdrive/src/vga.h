@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/vga.h,v 1.1 1999/11/19 13:53:51 hohndel Exp $ */
 
 #ifndef _VGA_H_
 #define _VGA_H_
@@ -93,6 +93,12 @@ VgaInb (VGA16 r);
 void
 VgaOutb (VGA8 v, VGA16 r);
     
+VGA8
+VgaReadMemb (VGA32 addr);
+
+void
+VgaWriteMemb (VGA8 v, VGA32 addr);
+
 void
 VgaSetImm (VgaCard *card, VgaReg *reg, VGA32 value);
 
@@ -113,6 +119,9 @@ VgaFill (VgaCard *card, VGA16 low, VGA16 high);
 
 void
 VgaPreserve (VgaCard *card);
+
+void
+VgaInvalidate (VgaCard *card);
 
 void
 VgaRestore (VgaCard *card);

@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/sis530/sis.c,v 1.1 1999/11/19 13:53:58 hohndel Exp $ */
 
 #include "sis.h"
 
@@ -932,6 +932,7 @@ sisCardFini (KdCardInfo *card)
 KdCardFuncs	sisFuncs = {
     sisCardInit,
     sisScreenInit,
+    0,
     sisPreserve,
     sisEnable,
     sisDPMS,
@@ -946,6 +947,7 @@ KdCardFuncs	sisFuncs = {
     0,
     sisDrawInit,
     sisDrawEnable,
+    sisDrawSync,
     sisDrawDisable,
     sisDrawFini,
     sisGetColors,

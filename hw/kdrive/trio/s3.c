@@ -21,139 +21,13 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/trio/s3.c,v 1.1 1999/11/19 13:54:02 hohndel Exp $ */
 
 #include "s3.h"
 
 #define REGISTERS_OFFSET    (0x1000000)
 #define PACKED_OFFSET	    (0x8100)
 
-/*
- * Clock synthesis:
- *
- *  f_out = f_ref * ((M + 2) / ((N + 2) * (1 << R)))
- *
- *  Constraints:
- *
- *  1.	135MHz <= f_ref * ((M + 2) / (N + 2)) <= 270 MHz
- *  2.	N >= 1
- *
- *  Vertical refresh rate = clock / ((hsize + hblank) * (vsize + vblank))
- *  Horizontal refresh rate = clock / (hsize + hblank)
- */
- 
-#define DEFAULT_S3_TIMING   1
-    
-S3Timing    s3Timings[] = {
-	     /* FP	BP	BLANK   */
-    /*  M   N   R blank bios5 */
-    { 640, 480, 60,
-		16,	48,	160,    /* horizontal	31.321 KHz */
-		10,	33,	45,	/* vertical	59.568 Hz  */
-	26, 0,	3,			/* pixel	25.057 MHz */
-    },
-    
-    { 800, 600, 85,
-		32,	152,	248,    /* horizontal	53.673 KHz */
-		1,	27,	31,	/* vertical	85.060 Hz  */
-	108, 5,	2,			/* pixel	56.249 MHz */
-    },
-    { 800, 600, 75,
-		16,	160,	256,    /* horizontal	46.891 KHz */
-		1,	21,	25,	/* vertical	75.025 Hz  */
-	81, 4,	2,			/* pixel	49.516 MHz */
-    },
-    { 800, 600, 72,
-		56,	64,	240,    /* horizontal	48.186 KHz */
-		37,	23,	66,	/* vertical	72.351 Hz  */
-	26, 0,	2,			/* pixel	50.113 MHz */
-    },
-    
-    { 1024, 768, 85,
-		48,	208,	352,    /* horizontal	68.676 KHz */
-		1,	36,	40,	/* vertical	84.996 Hz  */
-	64, 3,	1,			/* pixel	94.499 MHz */
-    },
-    { 1024, 768, 75,
-		16,	176,	288,    /* horizontal	60.022 KHz */
-		1,	28,	32,	/* vertical	75.028 Hz  */
-	20, 0,	1,			/* pixel	78.749 MHz */
-    },
-    { 1024, 768, 70,
-		24,	144,	304,    /* horizontal	56.604 KHz */
-		3,	29,	38,	/* vertical	70.227 Hz  */
-	40, 2,	1,			/* pixel	75.170 MHz */
-    },
-    { 1024, 768, 66,
-		24,	144,	304,	/* horizontal	53.234 KHz */
-		3,	29,	38,	/* vertical	66.047 Hz  */
-	77, 6,	1,			/* pixel	70.695 MHz */
-    },
-    
-    { 1152, 900, 85,
-		48,	208,	384,	/* horizontal	 79.900 KHz */
-		1,	32,	38,	/* vertical	 85.181 Hz  */
-	118, 5, 1,			/* pixel	122.726 MHz */
-    },
-    { 1152, 900, 75,
-		32,	208,	384,	/* horizontal	 70.495 Khz */
-		1,	32,	38,	/* vertical	 75.154  Hz */
-	119, 6,	1,			/* pixel	108.280 MHz */
-    },
-    { 1152, 900, 70,
-		32,	208,	384,    /* horizontal	 65.251 KHz */
-		2,	32,	38,	/* vertical	 69.564 Hz  */
-	 12, 0, 0,			/* pixel	100.226 MHz */
-    },
-    { 1152, 900, 66,
-		32,	208,	384,    /* horizontal	61.817 KHz */
-		1,	32,	38,	/* vertical	65.903 Hz  */
-	124, 17, 0,			/* pixel	94.951 MHz */
-    },
-    { 1280, 1024, 85,
-		16,	248,	416,	/* horizontal	 90.561 KHz */
-		1,	40,	45,	/* vertical	 84.717 Hz  */
-	116, 9,	0,			/* pixel	153.593 MHz */
-    },
-    { 1280, 1024, 75,
-		16,	248,	408,    /* horizontal	 80.255 KHz */
-		1,	38,	42,	/* vertical	 75.285 Hz  */
-	111, 4,	1,			/* pixel	134.828 MHz */
-    },
-    { 1280, 1024, 70,
-		32,	248,	400,    /* horizontal	 74.573 KHz */
-		0,	36,	39,	/* vertical	 70.153 Hz  */
-	68, 2,	1,			/* pixel        125.283 MHz */
-    },
-    { 1280, 1024, 66,
-		32,	248,	400,    /* horizontal	 70.007 KHz */
-		0,	36,	39,	/* vertical	 65.858 Hz  */
-	113, 5,	1,			/* pixel        117.612 MHz */
-    },
-    
-    { 1600, 1200, 85,
-		64,	304,	560,    /* horizontal	106.059 KHz */
-		1,	46,	50,	/* vertical	 84.847 Hz  */
-	126, 6,	0,			/* pixel	229.088 MHz */
-    },
-    { 1600, 1200, 75,
-		64,	304,	560,    /* horizontal	 93.748 KHz */
-		1,	46,	50,	/* vertical	 74.999 Hz  */
-	97, 5,	0,			/* pixel	202.497 MHz */
-    },
-    { 1600, 1200, 70,
-		56,	304,	588,	/* horizontal	 87.524 KHz */
-		1,	46,	50,	/* vertical	 70.019 Hz  */
-	105, 6,  0,			/* pixel	191.503 MHz */
-    },
-    { 1600, 1200, 65,
-		56,	308,	524,    /* horizontal	 80.050 KHz */
-		1,	38,	42,	/* vertical	 64.453 Hz  */
-	93, 6,	0,			/* pixel	170.026 MHz */
-    },
-};
-
-#define NUM_S3_TIMINGS	(sizeof (s3Timings) / sizeof (s3Timings[0]))
 
 CARD8
 _s3ReadIndexRegister (volatile CARD8 *base, CARD8 index)
@@ -245,20 +119,7 @@ _s3LoadCrtc (S3Ptr s3, S3Crtc *crtc)
     crtc->dclk_value_high		= GetSrtc (s3, 0x13);
     crtc->control_2			= GetSrtc (s3, 0x15);
     crtc->ramdac_control		= GetSrtc (s3, 0x18);
-
-    crtc->dclk_value_low_savage		= GetSrtc (s3, 0x36);
-    crtc->dclk_pll_m0_savage_0_7	= GetSrtc (s3, 0x37);
-    crtc->dclk_pll_m1_savage_0_7	= GetSrtc (s3, 0x38);
-    crtc->extended_seq_39		= GetSrtc (s3, 0x39);
     
-    fprintf (stderr, "SR1A 0x%x SR1B 0x%x\n",
-	     GetSrtc (s3, 0x1a),
-	     GetSrtc (s3, 0x1b));
-    fprintf (stderr, "SR36 0x%x SR37 0x%x SR38 0x%x SR39 0x%x\n",
-	     GetSrtc (s3, 0x36),
-	     GetSrtc (s3, 0x37),
-	     GetSrtc (s3, 0x38),
-	     GetSrtc (s3, 0x39));
 /* combine values */
     
     switch (crtc_ge_screen_width(crtc)) {
@@ -391,12 +252,8 @@ _s3SetDepth (S3Ptr s3, S3Crtc *crtc)
      */
     save_3c2 = s3->crt_vga_3cc;
     DRAW_DEBUG ((DEBUG_S3INIT, "save_3c2 0x%x", save_3c2));
-    s3->crt_vga_3c2 = 0x0f;
+    s3->crt_vga_3c2 = save_3c2 | 0x0c;
     
-    PutSrtc (s3, 0x36, crtc->dclk_value_low_savage);
-    PutSrtc (s3, 0x37, crtc->dclk_pll_m0_savage_0_7);
-    PutSrtc (s3, 0x38, crtc->dclk_pll_m1_savage_0_7);
-    PutSrtc (s3, 0x39, crtc->extended_seq_39);
     PutSrtc(s3, 0x12, crtc->dclk_value_low);
     PutSrtc(s3, 0x13, crtc->dclk_value_high);
     
@@ -453,7 +310,6 @@ s3Reset (S3CardInfo *s3c)
     s3->scissors_br = 0x0fff0fff;
     
     _s3WriteIndexRegister (&s3->crt_vga_3c4, 0x01, save->clock_mode);
-    PutSrtc(s3, 0x08, save->locksrtc);
     PutCrtc(s3, 0x39, save->lock2);
     PutCrtc(s3, 0x38, save->lock1);
     
@@ -478,11 +334,6 @@ s3Save (S3CardInfo  *s3c)
     
     save->lock1 = GetCrtc(s3, 0x38);
     save->lock2 = GetCrtc(s3, 0x39);
-    save->locksrtc = GetSrtc (s3, 0x08);
-    
-    /* unlock srtc registers to read them */
-    PutSrtc (s3, 0x08, 0x06);
-    
     save->clock_mode = _s3ReadIndexRegister (&s3->crt_vga_3c4, 0x01);
     
     _s3UnlockExt (s3);
@@ -502,10 +353,8 @@ s3CardInit (KdCardInfo *card)
     S3Ptr	s3;
     int		size;
     CARD8	*registers;
-    CARD32	s3FrameBuffer;
-    CARD32	s3Registers;
+    CARD32	s3Address = card->attr.address[0];
     CARD8	*temp_buffer;
-    CARD32	max_memory;
 
     DRAW_DEBUG ((DEBUG_S3INIT, "s3CardInit"));
     s3c = (S3CardInfo *) xalloc (sizeof (S3CardInfo));
@@ -519,23 +368,8 @@ s3CardInit (KdCardInfo *card)
     
     card->driver = s3c;
     
-    if (card->attr.naddr > 1)
-    {
-	s3FrameBuffer = card->attr.address[1];
-	s3Registers = card->attr.address[0];
-	max_memory = 32 * 1024 * 1024;
-	s3c->savage = TRUE;
-    }
-    else
-    {
-	s3FrameBuffer = card->attr.address[0];
-	s3Registers = s3FrameBuffer + REGISTERS_OFFSET;
-	max_memory = 4 * 1024 * 1024;
-	s3c->savage = FALSE;
-    }
-	
-    fprintf (stderr, "S3 at 0x%x/0x%x\n", s3Registers, s3FrameBuffer);
-    registers = KdMapDevice (s3Registers,
+    fprintf (stderr, "S3 at 0x%x\n", s3Address);
+    registers = KdMapDevice (s3Address + REGISTERS_OFFSET, 
 			     sizeof (S3) + PACKED_OFFSET);
     if (!registers)
     {
@@ -546,34 +380,30 @@ s3CardInit (KdCardInfo *card)
     s3c->registers = registers;
     s3c->s3 = s3;
     
-#if 0
     s3->crt_vga_3c3 = 1;    /* wake up part from deep sleep */
     s3->crt_vga_3c2 = 0x01 | 0x02 | 0x0c;
     
     s3->crt_vga_3c4 = 0x58;
     s3->crt_vga_3c5 = 0x10 | 0x3;
-#endif
     
     /*
      * Can't trust S3 register value for frame buffer amount, must compute
      */
-    temp_buffer = KdMapDevice (s3FrameBuffer, max_memory);
+    temp_buffer = KdMapDevice (s3Address, 4096 * 1024);
     
-    s3c->memory = KdFrameBufferSize (temp_buffer, max_memory);
+    s3c->memory = KdFrameBufferSize (temp_buffer, 4096 * 1024);
 
-    fprintf (stderr, "Frame buffer 0x%x\n", s3c->memory);
-    
     DRAW_DEBUG ((DEBUG_S3INIT, "Detected frame buffer %d", s3c->memory));
 
     KdUnmapDevice (temp_buffer, 4096 * 1024);
     
     if (!s3c->memory)
     {
-	ErrorF ("Can't detect s3 frame buffer at 0x%x\n", s3FrameBuffer);
+	ErrorF ("Can't detect s3 frame buffer\n");
 	goto bail3;
     }
     
-    s3c->frameBuffer = KdMapDevice (s3FrameBuffer, s3c->memory);
+    s3c->frameBuffer = KdMapDevice (s3Address, s3c->memory);
     if (!s3c->frameBuffer)
     {
 	ErrorF ("Can't map s3 frame buffer\n");
@@ -593,6 +423,60 @@ bail0:
 }
 
 Bool
+s3ModeSupported (KdScreenInfo		*screen,
+		 const KdMonitorTiming	*t)
+{
+    if (t->horizontal != 1600 &&
+	t->horizontal != 1280 &&
+	t->horizontal != 1152 &&
+	t->horizontal != 800 &&
+	t->horizontal != 640)
+	return FALSE;
+    if (t->clock > S3_MAX_CLOCK * 2)
+	return FALSE;
+}
+
+Bool
+s3ModeUsable (KdScreenInfo	*screen)
+{
+    KdCardInfo	    *card = screen->card;
+    S3CardInfo	    *s3c = (S3CardInfo *) card->driver;
+    int		    screen_size;
+    int		    pixel_width;
+    int		    byte_width;
+    
+    if (screen->depth >= 24)
+    {
+	screen->depth = 24;
+	screen->bitsPerPixel = 32;
+    }
+    else if (screen->depth >= 16)
+    {
+	screen->depth = 16;
+	screen->bitsPerPixel = 16;
+    }
+    else if (screen->depth >= 15)
+    {
+	screen->depth = 15;
+	screen->bitsPerPixel = 16;
+    }
+    else
+    {
+	screen->depth = 8;
+	screen->bitsPerPixel = 8;
+    }
+
+    byte_width = screen->width * (screen->bitsPerPixel >> 3);
+    pixel_width = screen->width;
+    screen->pixelStride = pixel_width;
+    screen->byteStride = byte_width;
+
+    screen_size = byte_width * screen->height;
+
+    return screen_size <= s3c->memory;
+}
+
+Bool
 s3ScreenInit (KdScreenInfo *screen)
 {
     KdCardInfo	    *card = screen->card;
@@ -606,7 +490,7 @@ s3ScreenInit (KdScreenInfo *screen)
     int		    pixel_width;
     int		    m, n, r;
     int		    i;
-    S3Timing	    *t;
+    const KdMonitorTiming   *t;
 
     DRAW_DEBUG ((DEBUG_S3INIT, "s3ScreenInit"));
     s3s = (S3ScreenInfo *) xalloc (sizeof (S3ScreenInfo));
@@ -626,29 +510,12 @@ s3ScreenInit (KdScreenInfo *screen)
     
     DRAW_DEBUG ((DEBUG_S3INIT, "Requested parameters %dx%dx%d",
 		 screen->width, screen->height, screen->rate));
-    for (i = 0, t = s3Timings; i < NUM_S3_TIMINGS; i++, t++)
-    {
-	DRAW_DEBUG ((DEBUG_S3INIT, "Available parameters %dx%dx%d",
-		     t->horizontal, t->vertical, t->rate));
-	if (t->horizontal >= screen->width &&
-	    t->vertical >= screen->height &&
-	    (!screen->rate || t->rate <= screen->rate))
-	    break;
-    }
-    if (i == NUM_S3_TIMINGS)
-	t = &s3Timings[DEFAULT_S3_TIMING];
+    t = KdFindMode (screen, s3ModeSupported);
     screen->rate = t->rate;
     screen->width = t->horizontal;
     screen->height = t->vertical;
+    s3GetClock (t->clock, &m, &n, &r, 127, 31, 3);
 #if 0
-    s3GetClock (t, &m, &n, &r, 
-		s3c->savage ? 511 : 127,
-		s3c->savage ? 127 : 31,
-		s3c->savage ? 4 : 3);
-#else
-    s3GetClock (t, &m, &n, &r, 127, 31, 3);
-#endif
-#if 1
     fprintf (stderr, "computed %d,%d,%d (%d) provided %d,%d,%d (%d)\n",
 	     m, n, r, S3_CLOCK(m,n,r),
 	     t->dac_m, t->dac_n, t->dac_r, 
@@ -657,97 +524,13 @@ s3ScreenInit (KdScreenInfo *screen)
     /*
      * Can only operate in pixel-doubled mode at 8 bits per pixel
      */
-    if (s3c->savage)
-    {
-	if (screen->depth > 16 && S3_CLOCK(m,n,r) > S3_MAX_CLOCK)
-	    screen->depth = 16;
-    }
-    else
-    {
-	if (screen->depth > 8 && S3_CLOCK(m,n,r) > S3_MAX_CLOCK)
-	    screen->depth = 8;
-    }
+    if (screen->depth > 8 && S3_CLOCK(m,n,r) > S3_MAX_CLOCK)
+	screen->depth = 8;
     
-    for (;;)
+    if (!KdTuneMode (screen, s3ModeUsable, s3ModeSupported))
     {
-	if (screen->depth >= 24)
-	{
-	    screen->depth = 24;
-	    screen->bitsPerPixel = 32;
-	}
-	else if (screen->depth >= 16)
-	{
-	    screen->depth = 16;
-	    screen->bitsPerPixel = 16;
-	}
-	else if (screen->depth >= 15)
-	{
-	    screen->depth = 15;
-	    screen->bitsPerPixel = 16;
-	}
-	else
-	{
-	    screen->depth = 8;
-	    screen->bitsPerPixel = 8;
-	}
-
-	/* Normalize width to supported values */
-	
-	if (screen->width >= 1600)
-	    screen->width = 1600;
-	else if (screen->width >= 1280)
-	    screen->width = 1280;
-	else if (screen->width >= 1152)
-	    screen->width = 1152;
-	else if (screen->width >= 1024)
-	    screen->width = 1024;
-	else if (screen->width >= 800)
-	    screen->width = 800;
-	else
-	    screen->width = 640;
-	
-	byte_width = screen->width * (screen->bitsPerPixel >> 3);
-	pixel_width = screen->width;
-	screen->pixelStride = pixel_width;
-	screen->byteStride = byte_width;
-
-	screen_size = byte_width * screen->height;
-	
-	if (screen_size <= s3c->memory)
-	    break;
-
-	/*
-	 * Fix requested depth and geometry until it works
-	 */
-	if (screen->depth > 16)
-	    screen->depth = 16;
-	else if (screen->depth > 8)
-	    screen->depth = 8;
-	else if (screen->width > 1152)
-	{
-	    screen->width = 1152;
-	    screen->height = 900;
-	}
-	else if (screen->width > 1024)
-	{
-	    screen->width = 1024;
-	    screen->height = 768;
-	}
-	else if (screen->width > 800)
-	{
-	    screen->width = 800;
-	    screen->height = 600;
-	}
-	else if (screen->width > 640)
-	{
-	    screen->width = 640;
-	    screen->height = 480;
-	}
-	else
-	{
-	    xfree (s3s);
-	    return FALSE;
-	}
+	xfree (s3s);
+	return FALSE;
     }
     
     memory = s3c->memory - screen_size;
@@ -886,7 +669,7 @@ s3Enable (ScreenPtr pScreen)
     int	    h_blank_extend_;
     int	    i;
     CARD16  cursor_address;
-    S3Timing    *t;
+    const KdMonitorTiming   *t;
     int	    m, n, r;
     
     DRAW_DEBUG ((DEBUG_S3INIT, "s3Enable"));
@@ -894,17 +677,7 @@ s3Enable (ScreenPtr pScreen)
     DRAW_DEBUG ((DEBUG_S3INIT, "requested bpp %d current %d",
 		pScreenPriv->bitsPerPixel, s3c->save.crtc.bits_per_pixel));
     
-    for (i = 0; i < NUM_S3_TIMINGS; i++)
-    {
-	t = &s3Timings[i];
-
-	if (t->horizontal == screen->width &&
-	    t->vertical == screen->height &&
-	    t->rate <= screen->rate)
-	    break;
-    }
-    if (i == NUM_S3_TIMINGS)
-	t = &s3Timings[DEFAULT_S3_TIMING];
+    t = KdFindMode (screen, s3ModeSupported);
     
     hfp = t->hfp;
     hbp = t->hbp;
@@ -919,58 +692,23 @@ s3Enable (ScreenPtr pScreen)
     crtcR = s3c->save.crtc;
     crtc = &crtcR;
     
-#if 0
-    if (s3c->savage)
-    {
-	m = ((int) crtc->dclk_pll_m_savage_8 << 8) | crtc->dclk_pll_m0_savage_0_7;
-	n = (crtc->dclk_pll_n_savage_6 << 6) | crtc->dclk_pll_n_savage_0_5;
-	r = (crtc->dclk_pll_r_savage_2 << 2) | crtc->dclk_pll_r_savage_0_1;
-	fprintf (stderr, "old clock %d, %d, %d\n", m, n, r);
-	s3GetClock (t, &m, &n, &r, 127, 31, 3);
-#if 0
-	s3GetClock (t, &m, &n, &r, 511, 127, 4);
-	crtc->dclk_pll_m0_savage_0_7 = m;
-	crtc->dclk_pll_m1_savage_0_7 = m;
-	crtc->dclk_pll_m_savage_8 = m >> 8;
-	crtc->dclk_pll_n_savage_0_5 = n;
-	crtc->dclk_pll_n_savage_6 = n >> 6;
-	crtc->dclk_pll_r_savage_0_1 = r;
-	crtc->dclk_pll_r_savage_2 = r >> 2;
-	crtc->dclk_pll_select_savage = 1;
-#endif
-	fprintf (stderr, "new clock %d, %d, %d\n", m, n, r);
-    }
-    else
-    {
-	s3GetClock (t, &m, &n, &r, 127, 31, 3);
-	crtc->dclk_pll_m_trio = m;
-	crtc->dclk_pll_n_trio = n;
-	crtc->dclk_pll_r_trio = r;
-    }
+    s3GetClock (t->clock, &m, &n, &r, 127, 31, 3);
+    crtc->dclk_pll_m_trio = m;
+    crtc->dclk_pll_n_trio = n;
+    crtc->dclk_pll_r_trio = r;
 
-    if (!s3c->savage)
-    {
-	crtc->alt_refresh_count = 0x02;
-	crtc->enable_alt_refresh = 1;
-    }
-    else
-    {
-	crtc->alt_refresh_count = 1;
-	crtc->enable_alt_refresh = 0;
-    }
+    crtc->alt_refresh_count = 0x02;
+    crtc->enable_alt_refresh = 1;
     crtc->enable_256_or_more = 1;
 
     DRAW_DEBUG ((DEBUG_S3INIT, "memory_bus_size %d\n", crtc->memory_bus_size));
-    if (!s3c->savage)
-	crtc->memory_bus_size = 1;
+    crtc->memory_bus_size = 1;
     
-    if (!s3c->savage)
-	crtc->dclk_over_2 = 0;
+    crtc->dclk_over_2 = 0;
     crtc->dclk_invert = 0;
     crtc->enable_clock_double = 0;
     crtc->delay_blank = 0;
-    if (!s3c->savage)
-	crtc->extended_bios_5 = 0;
+    crtc->extended_bios_5 = 0;
     /*
      * Compute character lengths for horizontal timing values
      */
@@ -987,11 +725,12 @@ s3Enable (ScreenPtr pScreen)
 	 * Set up for double-pixel mode, switch color modes,
 	 * divide the dclk and delay h blank by 2 dclks
 	 */
-	if (S3_CLOCK(m, n, r) > S3_MAX_CLOCK)
+	if (S3_CLOCK(crtc->dclk_pll_m_trio, crtc->dclk_pll_n_trio, 
+		     crtc->dclk_pll_r_trio) > S3_MAX_CLOCK)
 	{
 	    DRAW_DEBUG ((DEBUG_S3INIT, "S3 clock %g > 80MHz, using pixel double mode",
-			 S3_CLOCK(crtc->dclk_pll_m, crtc->dclk_pll_n, 
-				  crtc->dclk_pll_r)));
+			 S3_CLOCK(crtc->dclk_pll_m_trio, crtc->dclk_pll_n_trio, 
+				  crtc->dclk_pll_r_trio)));
 	    crtc->color_mode = 1;
 	    crtc->dclk_over_2 = 1;
 	    crtc->enable_clock_double = 1;
@@ -1001,50 +740,18 @@ s3Enable (ScreenPtr pScreen)
 	h_adjust = 1;
 	break;
     case 16:
-	if (s3c->savage)
-	{
-	    hactive = screen->width / 4;
-	    hblank /= 4;
-	    hfp /= 4;
-	    hbp /= 4;
-	    h_screen_off = hactive * 2;
-	    crtc->pixel_length = 1;
-	    if (S3_CLOCK(m,n,r) > S3_MAX_CLOCK)
-	    {
-		if (crtc->depth == 15)
-		    crtc->color_mode = 3;
-		else
-		    crtc->color_mode = 5;
-		crtc->dclk_over_2 = 1;
-		crtc->enable_clock_double = 1;
-		crtc->delay_blank = 2;
-	    }
-	    else
-	    {
-		if (crtc->depth == 15)
-		    crtc->color_mode = 2;
-		else
-		    crtc->color_mode = 4;
-		crtc->dclk_over_2 = 0;
-		crtc->enable_clock_double = 0;
-	    }
-	    h_adjust = 1;
-	}
+	hactive = screen->width / 4;
+	hblank /= 4;
+	hfp /= 4;
+	hbp /= 4;
+	h_screen_off = hactive;
+	crtc->pixel_length = 1;
+	crtc->extended_bios_5 = 2;
+	if (crtc->depth == 15)
+	    crtc->color_mode = 3;
 	else
-	{
-	    hactive = screen->width / 4;
-	    hblank /= 4;
-	    hfp /= 4;
-	    hbp /= 4;
-	    h_screen_off = hactive;
-	    crtc->pixel_length = 1;
-	    crtc->extended_bios_5 = 2;
-	    if (crtc->depth == 15)
-		crtc->color_mode = 3;
-	    else
-		crtc->color_mode = 5;
-	    h_adjust = 2;
-	}
+	    crtc->color_mode = 5;
+	h_adjust = 2;
 	break;
     case 32:
 	hactive = screen->width / 8;
@@ -1057,7 +764,6 @@ s3Enable (ScreenPtr pScreen)
 	h_adjust = 1;
 	break;
     }
-#endif
 
     /*
      * X server starts frame buffer at top of memory
@@ -1066,7 +772,6 @@ s3Enable (ScreenPtr pScreen)
 		 crtc_start_address (crtc)));
     crtc_set_start_address (crtc, 0);
     
-#if 0    
     /*
      * Compute horizontal register values from timings
      */
@@ -1119,7 +824,6 @@ s3Enable (ScreenPtr pScreen)
     crtc_set_v_display_end (crtc, v_display_end);
     crtc_set_v_blank_start (crtc, v_blank_start);
     crtc->v_blank_end_0_7 = v_blank_end;
-#endif
     
     /*
      * Set cursor
@@ -1277,6 +981,7 @@ s3CardFini (KdCardInfo *card)
 KdCardFuncs	s3Funcs = {
     s3CardInit,
     s3ScreenInit,
+    0,
     s3Preserve,
     s3Enable,
     s3DPMS,
@@ -1291,8 +996,15 @@ KdCardFuncs	s3Funcs = {
     s3RecolorCursor,
     s3DrawInit,
     s3DrawEnable,
+    s3DrawSync,
     s3DrawDisable,
     s3DrawFini,
     s3GetColors,
     s3PutColors,
 };
+
+void
+S3InitCard (KdCardAttr *attr)
+{
+    KdCardInfoAdd (&s3Funcs, attr, 0);
+}

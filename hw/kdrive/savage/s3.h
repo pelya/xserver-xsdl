@@ -22,15 +22,13 @@
  *
  * Author:  Keith Packard, SuSE, Inc.
  */
-/* $XFree86: $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/savage/s3.h,v 1.1 1999/11/19 13:53:55 hohndel Exp $ */
 
 #ifndef _S3_H_
 #define _S3_H_
 
 #include "kdrive.h"
 #include "s3reg.h"
-
-#define PLATFORM 300
 
 /* VESA Approved Register Definitions */
 
@@ -74,14 +72,42 @@ typedef volatile struct _s3 {
     VOL32	alt_mix;		/* 8134 */
     VOL32	scissors_tl;		/* 8138 */
     VOL32	scissors_br;		/* 813c */
+#if 0
     VOL16	pix_cntl;		/* 8140 */
     VOL16	mult_misc2;		/* 8142 */
+#else
+    VOL32	pix_cntl_mult_misc2;	/* 8140 */
+#endif
     VOL32	mult_misc_read_sel;	/* 8144 */
     VOL32	alt_pcnt;		/* 8148 min_axis_pcnt, maj_axis_pcnt */
-    VOL8	_pad3[0x19c];		/* 814c */
+    VOL8	_pad3a[0x1c];		/* 814c */
+    VOL32	global_bitmap_1;	/* 8168 */
+    VOL32	global_bitmap_2;	/* 816c */
+    VOL32	primary_bitmap_1;	/* 8170 */
+    VOL32	primary_bitmap_2;	/* 8174 */
+    VOL32	secondary_bitmap_1;	/* 8178 */
+    VOL32	secondary_bitmap_2;	/* 817c */
+    VOL32	primary_stream_control;	/* 8180 */
+    VOL32	chroma_key_control;	/* 8184 */
+    VOL32	genlocking_control;	/* 8188 */
+    VOL8	_pad3b[0x4];		/* 818c */
+    VOL32	secondary_stream_control;   /* 8190 */
+    VOL32	chroma_key_upper_bound;	/* 8194 */
+    VOL32	secondary_stream_h_scale;   /* 8198 */
+    VOL32	color_adjustment;	/* 819c */
+    VOL32	blend_control;		/* 81a0 */
+    VOL8	_pad3c[0x1c];		/* 81a4 */
+    VOL32	primary_stream_addr_0;	/* 81c0 */
+    VOL8	_pad3d[0x124];		/* 81c4 */
+#if 0
     VOL16	cur_y;			/* 82e8 */
     VOL8	_pad4[0xc6];		/* 82ea */
+#else
+    VOL32	cur_y;			/* 82e8 */
+    VOL8	_pad4[0xc4];		/* 82ec */
+#endif
     
+#if 0
     VOL8	crt_vga_3b0;		/* 83b0 */
     VOL8	crt_vga_3b1;		/* 83b1 */
     VOL8	crt_vga_3b2;		/* 83b2 */
@@ -136,6 +162,8 @@ typedef volatile struct _s3 {
     VOL8	_pad5[0x124];		/* 83e0 */
     VOL16	subsys_status;		/* 8504 */
     VOL8	_pad6[0x6];		/* 8506 */
+    VOL32	subsys_status;		/* 8504 */
+    VOL8	_pad6[0x4];		/* 8508 */
     VOL16	adv_control;		/* 850c */
     VOL8	_pad7[0x1da];		/* 850e */
     VOL16	cur_x;			/* 86e8 */
@@ -168,10 +196,14 @@ typedef volatile struct _s3 {
     VOL8	_pad21[0x3fe];		/* baea */
     VOL16	enh_rd_reg_dt;		/* bee8 */
     VOL8	_pad22[0x23fe];		/* beea */
+#else
+    VOL8	_pad_reg[0x5f38];	/* 83b0 */
+#endif
     VOL32	pix_trans;		/* e2e8 */
     
     VOL8	_pad23[0x3a974];	/*  e2ec */
     VOL32	alt_status_0;		/* 48c60 */
+    VOL32	alt_status_1;		/* 48c64 */
 } S3, *S3Ptr;
 
 #define VGA_STATUS_1_DTM    0x01
@@ -221,6 +253,7 @@ typedef volatile struct _s3 {
 #define	PATTERN_L	0x8000
 #define	PATTERN_H	0x9000
 #define	PIX_CNTL	0xa000
+#define CONTROL_MISC2	0xd000
 #define	PIX_TRANS	0xe2e8
 
 /* Advanced Function Control Regsiter */
@@ -339,8 +372,8 @@ typedef volatile struct _s3 {
 #define S3_SAVAGE4_SLOTS    0x0001ffff
 #define S3_SAVAGE4_2DI	    0x00800000
 
-#define _s3WaitLoop(mask,value){ \
-    int	__loop = 100000; \
+#define _s3WaitLoop(s3,mask,value){ \
+    int	__loop = 1000000; \
     while (((s3)->alt_status_0 & (mask)) != (value)) \
 	if (--__loop == 0) { \
 	    ErrorF ("savage wait loop failed 0x%x\n", s3->alt_status_0); \
@@ -348,11 +381,21 @@ typedef volatile struct _s3 {
 	} \
 }
 
-#define _s3WaitSlot(s3)		_s3WaitLoop(0x1, 0x0)
-#define _s3WaitEmpty(s3)	_s3WaitLoop(S3_SAVAGE4_SLOTS, 0)
-#define _s3WaitIdleEmpty(s3)	_s3WaitLoop(S3_SAVAGE4_SLOTS|S3_SAVAGE4_2DI, \
+#define S3_SAVAGE4_ROOM	    10
+
+#define _s3WaitSlots(s3,n) { \
+    int __loop = 1000000; \
+    while (((s3)->alt_status_0 & S3_SAVAGE4_SLOTS) >= S3_SAVAGE4_ROOM-(n)) \
+	if (--__loop == 0) { \
+	    ErrorF ("savage wait loop failed 0x%x\n", s3->alt_status_0); \
+	    break; \
+	} \
+}
+    
+#define _s3WaitEmpty(s3)	_s3WaitLoop(s3,S3_SAVAGE4_SLOTS, 0)
+#define _s3WaitIdleEmpty(s3)	_s3WaitLoop(s3,S3_SAVAGE4_SLOTS|S3_SAVAGE4_2DI, \
 					    S3_SAVAGE4_2DI)
-#define _s3WaitIdle(s3)		_s3WaitLoop(S3_SAVAGE4_2DI, S3_SAVAGE4_2DI)
+#define _s3WaitIdle(s3)		_s3WaitLoop(s3,S3_SAVAGE4_2DI, S3_SAVAGE4_2DI)
 
 typedef struct _s3Cursor {
     int		width, height;
@@ -376,14 +419,9 @@ typedef struct _s3Patterns {
 
 #define S3_CLOCK_REF	14318	/* KHz */
 
-#define S3_CLOCK(m,n,r)	(S3_CLOCK_REF * ((m) + 2) / (((n) + 2) * (1 << (r))))
+#define S3_CLOCK(m,n,r)	((S3_CLOCK_REF * ((m) + 2)) / (((n) + 2) * (1 << (r))))
 
-#if PLATFORM == 200
-#define S3_MAX_CLOCK	80000	/* KHz */
-#endif
-#if PLATFORM == 300
-#define S3_MAX_CLOCK	135000	/* KHz */
-#endif
+#define S3_MAX_CLOCK	150000	/* KHz */
 
 typedef struct _s3Timing {
     /* label */
@@ -417,6 +455,10 @@ typedef struct _s3Save {
     CARD32		write_mask;
     CARD32		fg;
     CARD32		bg;
+    CARD32		global_bitmap_1;
+    CARD32		global_bitmap_2;
+    CARD32		primary_bitmap_1;
+    CARD32		primary_bitmap_2;
     CARD8		text_save[S3_TEXT_SAVE];
 } S3Save;
 
@@ -427,6 +469,8 @@ typedef struct _s3CardInfo {
     CARD8	*registers;	    /* pointer to register map */
     S3Vga	s3vga;
     S3Save	save;
+    Bool	need_sync;
+    Bool	bios_initialized;   /* whether the bios has been run */
 } S3CardInfo;
 
 typedef struct _s3ScreenInfo {
@@ -438,6 +482,9 @@ typedef struct _s3ScreenInfo {
     int		offscreen_height;   /* height of offscreen area */
     S3Cursor	cursor;
     S3Patterns	patterns;
+    Bool	manage_border;
+    Bool	managing_border;
+    CARD32	border_pixel;
 } S3ScreenInfo;
 
 #define getS3CardInfo(kd)   ((S3CardInfo *) ((kd)->card->driver))
@@ -460,6 +507,7 @@ void	s3RecolorCursor (ScreenPtr pScreen, int ndef, xColorItem *pdefs);
 
 Bool	s3DrawInit (ScreenPtr pScreen);
 void	s3DrawEnable (ScreenPtr pScreen);
+void	s3DrawSync (ScreenPtr pScreen);
 void	s3DrawDisable (ScreenPtr pScreen);
 void	s3DrawFini (ScreenPtr pScreen);
 
@@ -469,10 +517,6 @@ void	s3PutColors (ScreenPtr pScreen, int ndef, xColorItem *pdefs);
 void	S3InitCard (KdCardAttr *attr);
 
 void	s3GetClock (int target, int *Mp, int *Np, int *Rp, int maxM, int maxN, int maxR);
-
-#define S3ModeClock(t)    (((t->horizontal + t->hblank) * \
-			    (t->vertical + t->vblank) * \
-			    t->rate) / 1000)
 
 extern KdCardFuncs  s3Funcs;
 
@@ -488,26 +532,22 @@ extern KdCardFuncs  s3Funcs;
 
 #define DRAW_DEBUG(a)
 
-#define _s3WaitVRetrace(s3) { \
-    VOL8  *_status = &s3->crt_vga_status_1; \
+#define _s3WaitVRetrace(s3vga) { \
     int _loop_count; \
-    DRAW_DEBUG ((DEBUG_CRTC, "_s3WaitVRetrace 0x%x", *_status)); \
     _loop_count = 0; \
-    while ((*_status & VGA_STATUS_1_VSY) != 0) S3_RETRACE_LOOP_CHECK; \
+    while (s3GetImm(s3vga, s3_vertical_sync_active) != 0) S3_RETRACE_LOOP_CHECK; \
     _loop_count = 0; \
-    while ((*_status & VGA_STATUS_1_VSY) == 0) S3_RETRACE_LOOP_CHECK; \
+    while (s3GetImm(s3vga, s3_vertical_sync_active) == 0) S3_RETRACE_LOOP_CHECK; \
 }
 /*
  * Wait for the begining of the retrace interval
  */
-#define _s3WaitVRetraceEnd(s3) { \
-    VOL8  *_status = &s3->crt_vga_status_1; \
+#define _s3WaitVRetraceEnd(s3vga) { \
     int _loop_count; \
-    DRAW_DEBUG ((DEBUG_CRTC, "_s3WaitVRetraceEnd 0x%x", *_status)); \
     _loop_count = 0; \
-    while ((*_status & VGA_STATUS_1_VSY) == 0) S3_RETRACE_LOOP_CHECK; \
+    while (s3GetImm(s3vga, s3_vertical_sync_active) == 0) S3_RETRACE_LOOP_CHECK; \
     _loop_count = 0; \
-    while ((*_status & VGA_STATUS_1_VSY) != 0) S3_RETRACE_LOOP_CHECK; \
+    while (s3GetImm(s3vga, s3_vertical_sync_active) != 0) S3_RETRACE_LOOP_CHECK; \
 }
 
 #define S3_CURSOR_WIDTH	    64
@@ -515,31 +555,5 @@ extern KdCardFuncs  s3Funcs;
 #define S3_CURSOR_SIZE	    ((S3_CURSOR_WIDTH * S3_CURSOR_HEIGHT + 7) / 8)
 
 #define S3_TILE_SIZE	    8
-
-/*
- * Ok, so the S3 is broken -- it expects bitmaps to come MSB bit order,
- * but it's willing to take them in LSB byte order.  These macros
- * flip bits around without flipping bytes.  Instead of using a table
- * and burning memory bandwidth, do them in place with the CPU.
- */
-
-/* The MIPS compiler automatically places these constants in registers */
-#define S3InvertBits32(v) { \
-    v = ((v & 0x55555555) << 1) | ((v >> 1) & 0x55555555); \
-    v = ((v & 0x33333333) << 2) | ((v >> 2) & 0x33333333); \
-    v = ((v & 0x0f0f0f0f) << 4) | ((v >> 4) & 0x0f0f0f0f); \
-}
-
-#define S3InvertBits16(v) { \
-    v = ((v & 0x5555) << 1) | ((v >> 1) & 0x5555); \
-    v = ((v & 0x3333) << 2) | ((v >> 2) & 0x3333); \
-    v = ((v & 0x0f0f) << 4) | ((v >> 4) & 0x0f0f); \
-}
-
-#define S3InvertBits8(v) { \
-    v = ((v & 0x55) << 1) | ((v >> 1) & 0x55); \
-    v = ((v & 0x33) << 2) | ((v >> 2) & 0x33); \
-    v = ((v & 0x0f) << 4) | ((v >> 4) & 0x0f); \
-}
 
 #endif /* _S3_H_ */

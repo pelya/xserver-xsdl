@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/kmap.c,v 1.1 1999/11/19 13:53:50 hohndel Exp $ */
 
 #include "kdrive.h"
 
@@ -70,6 +70,9 @@ KdMapDevice (CARD32 addr, CARD32 size)
 		    strerror (errno));
     return a;
 #endif
+#ifdef VXWORKS
+    return (void *) addr;
+#endif
 }
 
 void
@@ -81,6 +84,9 @@ KdUnmapDevice (void *addr, CARD32 size)
 #endif
 #ifdef linux
     munmap (addr, size);
+#endif
+#ifdef VXWORKS
+    ;
 #endif
 }
 

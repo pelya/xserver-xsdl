@@ -22,7 +22,7 @@
  *
  * Author:  Keith Packard, SuSE, Inc.
  */
-/* $XFree86: $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/savage/s3cmap.c,v 1.1 1999/11/19 13:53:55 hohndel Exp $ */
 
 #include "s3.h"
 
@@ -31,16 +31,14 @@ s3GetColors (ScreenPtr pScreen, int ndef, xColorItem *pdefs)
 {
     KdScreenPriv(pScreen);
     s3CardInfo(pScreenPriv);
-    S3Ptr   s3 = s3c->s3;
-    VOL8   *dac_rd_ad = &s3->crt_vga_dac_rd_ad;
-    VOL8   *dac_data = &s3->crt_vga_dac_data;
+    S3Vga   *s3vga = &s3c->s3vga;
 
     while (ndef--)
     {
-	*dac_rd_ad = pdefs->pixel;
-	pdefs->red = *dac_data << 8;
-	pdefs->green = *dac_data << 8;
-	pdefs->blue = *dac_data << 8;
+	s3SetImm (s3vga, s3_dac_read_index, pdefs->pixel);
+	pdefs->red = s3GetImm (s3vga, s3_dac_data) << 8;
+	pdefs->green = s3GetImm (s3vga, s3_dac_data) << 8;
+	pdefs->blue = s3GetImm (s3vga, s3_dac_data) << 8;
 	pdefs++;
     }
 }
@@ -50,18 +48,40 @@ s3PutColors (ScreenPtr pScreen, int ndef, xColorItem *pdefs)
 {
     KdScreenPriv(pScreen);
     s3CardInfo(pScreenPriv);
-    S3Ptr   s3 = s3c->s3;
-    VOL8   *dac_wt_ad = &s3->crt_vga_dac_wt_ad;
-    VOL8   *dac_data = &s3->crt_vga_dac_data;
+    s3ScreenInfo(pScreenPriv);
+    S3Vga   *s3vga = &s3c->s3vga;
+    Bool    hit_border = FALSE;
+    Bool    check_border = FALSE;
 
-    _s3WaitVRetrace (s3);
+    _s3WaitVRetrace (s3vga);
+    if (pScreenPriv->enabled && s3s->manage_border && !s3s->managing_border)
+	check_border = TRUE;
     while (ndef--)
     {
-	*dac_wt_ad = pdefs->pixel;
-	*dac_data = pdefs->red >> 8;
-	*dac_data = pdefs->green >> 8;
-	*dac_data = pdefs->blue >> 8;
+	if (check_border && pdefs->pixel == s3s->border_pixel)
+	{
+	    if (pdefs->red || pdefs->green || pdefs->blue)
+		hit_border = TRUE;
+	}
+	s3SetImm (s3vga, s3_dac_write_index, pdefs->pixel);
+	s3SetImm (s3vga, s3_dac_data, pdefs->red >> 8);
+	s3SetImm (s3vga, s3_dac_data, pdefs->green >> 8);
+	s3SetImm (s3vga, s3_dac_data, pdefs->blue >> 8);
 	pdefs++;
+    }
+    if (hit_border)
+    {
+	xColorItem  black;
+
+	black.red = 0;
+	black.green = 0;
+	black.blue = 0;
+	s3s->managing_border = TRUE;
+	FakeAllocColor (pScreenPriv->pInstalledmap,
+			&black);
+	s3s->border_pixel = black.pixel;
+	FakeFreeColor (pScreenPriv->pInstalledmap, s3s->border_pixel);
+/*	s3SetImm (&s3c->s3vga, s3_border_color, (VGA8) s3s->border_pixel); */
     }
 }
 

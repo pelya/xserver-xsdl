@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/kdrive.h,v 1.1 1999/11/19 13:53:48 hohndel Exp $ */
 
 #include <stdio.h>
 #include "X.h"
@@ -67,6 +67,7 @@ typedef struct _KdCardInfo {
     struct _KdScreenInfo    *screenList;
     int			    selected;
     struct _KdCardInfo	    *next;
+    Bool		    needSync;
 } KdCardInfo;
 
 extern KdCardInfo	*kdCardInfo;
@@ -98,6 +99,7 @@ typedef struct _KdScreenInfo {
 typedef struct _KdCardFuncs {
     Bool	(*cardinit) (KdCardInfo *); /* detect and map device */
     Bool	(*scrinit) (KdScreenInfo *);/* initialize screen information */
+    Bool	(*initScreen) (ScreenPtr);  /* initialize ScreenRec */
     void	(*preserve) (KdCardInfo *); /* save graphics card state */
     void        (*enable) (ScreenPtr);      /* set up for rendering */
     Bool	(*dpms) (ScreenPtr, int);   /* set DPMS screen saver */
@@ -114,6 +116,7 @@ typedef struct _KdCardFuncs {
 
     Bool        (*initAccel) (ScreenPtr);
     void        (*enableAccel) (ScreenPtr);
+    void	(*syncAccel) (ScreenPtr);
     void        (*disableAccel) (ScreenPtr);
     void        (*finiAccel) (ScreenPtr);
 
@@ -129,6 +132,7 @@ typedef struct {
     KdCardInfo	    *card;
 
     Bool	    enabled;
+    Bool	    closed;
     int		    bytesPerPixel;
 
     int		    dpmsState;
@@ -137,6 +141,9 @@ typedef struct {
     xColorItem      systemPalette[KD_MAX_PSEUDO_SIZE];/* saved windows colors */
 
     CloseScreenProcPtr  CloseScreen;
+#ifdef FB_OLD_SCREEN
+    miBSFuncRec	    BackingStoreFuncs;
+#endif
 } KdPrivScreenRec, *KdPrivScreenPtr;
 
 typedef struct _KdMouseFuncs {
@@ -162,6 +169,32 @@ typedef struct _KdOsFuncs {
     void	    (*Disable) (void);
     void	    (*Fini) (void);
 } KdOsFuncs;
+
+typedef enum _KdSyncPolarity {
+    KdSyncNegative, KdSyncPositive
+} KdSyncPolarity;
+
+typedef struct _KdMonitorTiming {
+    /* label */
+    int		    horizontal;
+    int		    vertical;
+    int		    rate;
+    /* pixel clock */
+    int		    clock;  /* in KHz */
+    /* horizontal timing */
+    int		    hfp;    /* front porch */
+    int		    hbp;    /* back porch */
+    int		    hblank; /* blanking */
+    KdSyncPolarity  hpol;   /* polarity */
+    /* vertical timing */
+    int		    vfp;    /* front porch */
+    int		    vbp;    /* back porch */
+    int		    vblank; /* blanking */
+    KdSyncPolarity  vpol;   /* polarity */
+} KdMonitorTiming;
+
+extern const KdMonitorTiming	kdMonitorTimings[];
+extern const int		kdNumMonitorTimings;
 
 /*
  * This is the only completely portable way to
@@ -190,6 +223,114 @@ extern KdOsFuncs	*kdOsFuncs;
 				    (pointer) v)
 #define KdScreenPriv(pScreen) KdPrivScreenPtr pScreenPriv = KdGetScreenPriv(pScreen)
 
+#define KdCheckSync(s)	{ \
+    KdScreenPriv(s); \
+    KdCardInfo	*card = pScreenPriv->card; \
+    if (card->needSync) { \
+	card->needSync = FALSE; \
+	(*card->cfuncs->syncAccel) (s); \
+    } \
+}
+
+#define KdMarkSync(s)	(KdGetScreenPriv(s)->card->needSync = TRUE)
+
+/* kasync.c */
+void
+KdCheckFillSpans  (DrawablePtr pDrawable, GCPtr pGC, int nspans,
+		   DDXPointPtr ppt, int *pwidth, int fSorted);
+
+void
+KdCheckSetSpans (DrawablePtr pDrawable, GCPtr pGC, char *psrc,
+		 DDXPointPtr ppt, int *pwidth, int nspans, int fSorted);
+
+void
+KdCheckPutImage (DrawablePtr pDrawable, GCPtr pGC, int depth,
+		 int x, int y, int w, int h, int leftPad, int format,
+		 char *bits);
+
+RegionPtr
+KdCheckCopyArea (DrawablePtr pSrc, DrawablePtr pDst, GCPtr pGC,
+		 int srcx, int srcy, int w, int h, int dstx, int dsty);
+
+RegionPtr
+KdCheckCopyPlane (DrawablePtr pSrc, DrawablePtr pDst, GCPtr pGC,
+		  int srcx, int srcy, int w, int h, int dstx, int dsty,
+		  unsigned long bitPlane);
+
+void
+KdCheckPolyPoint (DrawablePtr pDrawable, GCPtr pGC, int mode, int npt,
+		  DDXPointPtr pptInit);
+
+void
+KdCheckPolylines (DrawablePtr pDrawable, GCPtr pGC,
+		  int mode, int npt, DDXPointPtr ppt);
+
+#define KdCheckPolySegment	miPolySegment
+#define KdCheckPolyRectangle	miPolyRectangle
+
+void
+KdCheckPolyArc (DrawablePtr pDrawable, GCPtr pGC, 
+		int narcs, xArc *pArcs);
+
+#define KdCheckFillPolygon	miFillPolygon
+
+void
+KdCheckPolyFillRect (DrawablePtr pDrawable, GCPtr pGC,
+		     int nrect, xRectangle *prect);
+
+#define KdCheckPolyFillArc	miPolyFillArc
+
+void
+KdCheckImageGlyphBlt (DrawablePtr pDrawable, GCPtr pGC,
+		      int x, int y, unsigned int nglyph,
+		      CharInfoPtr *ppci, pointer pglyphBase);
+
+void
+KdCheckPolyGlyphBlt (DrawablePtr pDrawable, GCPtr pGC,
+		     int x, int y, unsigned int nglyph,
+		     CharInfoPtr *ppci, pointer pglyphBase);
+
+void
+KdCheckPushPixels (GCPtr pGC, PixmapPtr pBitmap,
+		   DrawablePtr pDrawable,
+		   int w, int h, int x, int y);
+
+void
+KdCheckGetImage (DrawablePtr pDrawable,
+		 int x, int y, int w, int h,
+		 unsigned int format, unsigned long planeMask,
+		 char *d);
+
+void
+KdCheckGetSpans (DrawablePtr pDrawable,
+		 int wMax,
+		 DDXPointPtr ppt,
+		 int *pwidth,
+		 int nspans,
+		 char *pdstStart);
+
+void
+KdCheckSaveAreas (PixmapPtr	pPixmap,
+		  RegionPtr	prgnSave,
+		  int		xorg,
+		  int		yorg,
+		  WindowPtr	pWin);
+
+void
+KdCheckRestoreAreas (PixmapPtr	pPixmap,
+		     RegionPtr	prgnSave,
+		     int	xorg,
+		     int    	yorg,
+		     WindowPtr	pWin);
+
+void
+KdScreenInitAsync (ScreenPtr pScreen);
+
+void
+KdCheckPaintWindow (WindowPtr pWin, RegionPtr pRegion, int what);
+    
+extern const GCOps	kdAsyncPixmapGCOps;
+
 /* knoop.c */
 extern GCOps		kdNoopOps;
 
@@ -214,6 +355,13 @@ KdListInstalledColormaps (ScreenPtr pScreen, Colormap *pCmaps);
 
 void
 KdStoreColors (ColormapPtr pCmap, int ndef, xColorItem *pdefs);
+
+/* kcurscol.c */
+void
+KdAllocateCursorPixels (ScreenPtr	pScreen,
+			CursorPtr	pCursor, 
+			Pixel		*source,
+			Pixel		*mask);
 
 /* kdrive.c */
 extern miPointerScreenFuncRec kdPointerScreenFuncs;
@@ -347,6 +495,10 @@ extern KdMouseFuncs	Ps2MouseFuncs;
 extern KdKeyboardFuncs	LinuxKeyboardFuncs;
 extern KdOsFuncs	LinuxFuncs;
 
+extern KdMouseFuncs	VxWorksMouseFuncs;
+extern KdKeyboardFuncs	VxWorksKeyboardFuncs;
+extern KdOsFuncs	VxWorksFuncs;
+
 /* kmap.c */
 void *
 KdMapDevice (CARD32 addr, CARD32 size);
@@ -354,9 +506,22 @@ KdMapDevice (CARD32 addr, CARD32 size);
 void
 KdUnmapDevice (void *addr, CARD32 size);
 
+/* kmode.c */
+const KdMonitorTiming *
+KdFindMode (KdScreenInfo    *screen,
+	    Bool	    (*supported) (KdScreenInfo *,
+					  const KdMonitorTiming *));
+
+Bool
+KdTuneMode (KdScreenInfo    *screen,
+	    Bool	    (*usable) (KdScreenInfo *),
+	    Bool	    (*supported) (KdScreenInfo *,
+					  const KdMonitorTiming *));
+
 /* ktest.c */
 Bool
 KdFrameBufferValid (CARD8 *base, int size);
 
 int
 KdFrameBufferSize (CARD8 *base, int max);
+

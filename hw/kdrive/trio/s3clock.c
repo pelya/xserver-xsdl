@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/trio/s3clock.c,v 1.1 1999/11/19 13:54:03 hohndel Exp $ */
 
 #include "s3.h"
 
@@ -44,16 +44,12 @@
 #define MAX_VCO 360000.0
 
 void
-s3GetClock (S3Timing *t, int *Mp, int *Np, int *Rp, int maxM, int maxN, int maxR)
+s3GetClock (int target, int *Mp, int *Np, int *Rp, int maxM, int maxN, int maxR)
 {
     int	    M, N, R, bestM, bestN;
     int	    f_vco, f_out;
-    int	    target;
     int	    err, abserr, besterr;
 
-    target = ((t->horizontal + t->hblank) * 
-	      (t->vertical + t->vblank) * 
-	      t->rate) / 1000;
     /*
      * Compute correct R value to keep VCO in range
      */

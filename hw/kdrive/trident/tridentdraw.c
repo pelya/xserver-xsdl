@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/trident/tridentdraw.c,v 1.1 1999/11/19 13:54:01 hohndel Exp $ */
 
 #include "trident.h"
 #include "tridentdraw.h"
@@ -84,7 +84,7 @@ tridentFillBoxSolid (DrawablePtr pDrawable, int nBox, BoxPtr pBox,
 	_tridentRect(cop,pBox->x1,pBox->y1,pBox->x2-1,pBox->y2-1,cmd);
 	pBox++;
     }
-    _tridentWaitIdleEmpty(cop);
+    KdMarkSync(pDrawable->pScreen);
 }
 
 void
@@ -154,7 +154,7 @@ tridentCopyNtoN (DrawablePtr	pSrcDrawable,
 	cop->command = cmd;
 	pbox++;
     }
-    _tridentWaitIdleEmpty(cop);
+    KdMarkSync(pDstDrawable->pScreen);
 }
 
 RegionPtr
@@ -173,8 +173,8 @@ tridentCopyArea(DrawablePtr pSrcDrawable, DrawablePtr pDstDrawable, GCPtr pGC,
 			 srcx, srcy, width, height, 
 			 dstx, dsty, tridentCopyNtoN, 0, 0);
     }
-    return fbCopyArea (pSrcDrawable, pDstDrawable, pGC, 
-		       srcx, srcy, width, height, dstx, dsty);
+    return KdCheckCopyArea (pSrcDrawable, pDstDrawable, pGC, 
+			    srcx, srcy, width, height, dstx, dsty);
 }
 
 BOOL
@@ -217,7 +217,7 @@ tridentFillSpans (DrawablePtr pDrawable, GCPtr pGC, int n,
     
     if (!tridentFillOk (pGC))
     {
-	fbFillSpans (pDrawable, pGC, n, ppt, pwidth, fSorted);
+	KdCheckFillSpans (pDrawable, pGC, n, ppt, pwidth, fSorted);
 	return;
     }
     nTmp = n * miFindMaxBand(fbGetCompositeClip(pGC));
@@ -261,10 +261,10 @@ tridentFillSpans (DrawablePtr pDrawable, GCPtr pGC, int n,
 	width = *pwidth++;
 	if (width)
 	{
-	    _tridentRect(cop,x,y,x + width,y,cmd);
+	    _tridentRect(cop,x,y,x + width - 1,y,cmd);
 	}
     }
-    _tridentWaitIdleEmpty (cop);
+    KdMarkSync(pDrawable->pScreen);
     DEALLOCATE_LOCAL(pptFree);
     DEALLOCATE_LOCAL(pwidthFree);
 }
@@ -291,7 +291,7 @@ tridentPolyFillRect (DrawablePtr pDrawable, GCPtr pGC,
     
     if (!tridentFillOk (pGC))
     {
-	fbPolyFillRect (pDrawable, pGC, nrectFill, prectInit);
+	KdCheckPolyFillRect (pDrawable, pGC, nrectFill, prectInit);
 	return;
     }
     prgnClip = fbGetCompositeClip(pGC);
@@ -491,7 +491,7 @@ tridentSolidBoxClipped (DrawablePtr	pDrawable,
 	
 	_tridentRect(cop,partX1, partY1, partX2-1, partY2-1,cmd);
     }
-    _tridentWaitIdleEmpty(cop);
+    KdMarkSync(pDrawable->pScreen);
 }
 
 void
@@ -527,7 +527,7 @@ tridentImageGlyphBlt (DrawablePtr	pDrawable,
     depthMask = FbFullMask(pDrawable->depth);
     if ((pGC->planemask & depthMask) != depthMask)
     {
-	fbImageGlyphBlt(pDrawable, pGC, x, y, nglyph, ppciInit, pglyphBase);
+	KdCheckImageGlyphBlt(pDrawable, pGC, x, y, nglyph, ppciInit, pglyphBase);
 	return;
     }
     glyph = 0;
@@ -575,6 +575,8 @@ tridentImageGlyphBlt (DrawablePtr	pDrawable,
 	opaque = FALSE;
     }
 
+    KdCheckSync (pDrawable->pScreen);
+    
     ppci = ppciInit;
     while (nglyph--)
     {
@@ -623,25 +625,25 @@ tridentImageGlyphBlt (DrawablePtr	pDrawable,
 
 static const GCOps	tridentOps = {
     tridentFillSpans,
-    fbSetSpans,
-    fbPutImage,
+    KdCheckSetSpans,
+    KdCheckPutImage,
     tridentCopyArea,
-    fbCopyPlane,
-    fbPolyPoint,
-    fbPolyLine,
-    fbPolySegment,
+    KdCheckCopyPlane,
+    KdCheckPolyPoint,
+    KdCheckPolylines,
+    KdCheckPolySegment,
     miPolyRectangle,
-    fbPolyArc,
+    KdCheckPolyArc,
     miFillPolygon,
     tridentPolyFillRect,
-    fbPolyFillArc,
+    KdCheckPolyFillArc,
     miPolyText8,
     miPolyText16,
     miImageText8,
     miImageText16,
     tridentImageGlyphBlt,
-    fbPolyGlyphBlt,
-    fbPushPixels,
+    KdCheckPolyGlyphBlt,
+    KdCheckPushPixels,
 #ifdef NEED_LINEHELPER
     ,NULL
 #endif
@@ -657,7 +659,7 @@ tridentValidateGC (GCPtr pGC, Mask changes, DrawablePtr pDrawable)
     if (pDrawable->type == DRAWABLE_WINDOW)
 	pGC->ops = (GCOps *) &tridentOps;
     else
-	pGC->ops = (GCOps *) &fbGCOps;
+	pGC->ops = (GCOps *) &kdAsyncPixmapGCOps;
 }
 
 GCFuncs	tridentGCFuncs = {
@@ -778,12 +780,16 @@ tridentPaintWindow(WindowPtr pWin, RegionPtr pRegion, int what)
 #endif
 	break;
     }
-    fbPaintWindow (pWin, pRegion, what);
+    KdCheckPaintWindow (pWin, pRegion, what);
 }
 
 Bool
 tridentDrawInit (ScreenPtr pScreen)
 {
+    /*
+     * Hook up asynchronous drawing
+     */
+    KdScreenInitAsync (pScreen);
     /*
      * Replace various fb screen functions
      */
@@ -803,6 +809,7 @@ tridentDrawEnable (ScreenPtr pScreen)
     CARD32  base;
     CARD16  stride;
     CARD32  format;
+    CARD32  alpha;
     int	    tries;
     
     stride = pScreenPriv->screen->pixelStride;
@@ -845,7 +852,7 @@ tridentDrawEnable (ScreenPtr pScreen)
     _tridentRect (cop, 0, 0, 
 		  pScreenPriv->screen->width, pScreenPriv->screen->height,
 		  cmd);
-    _tridentWaitIdleEmpty (cop);
+    KdMarkSync (pScreen);
 }
 
 void
@@ -856,4 +863,12 @@ tridentDrawDisable (ScreenPtr pScreen)
 void
 tridentDrawFini (ScreenPtr pScreen)
 {
+}
+
+void
+tridentDrawSync (ScreenPtr pScreen)
+{
+    SetupTrident(pScreen);
+    
+    _tridentWaitIdleEmpty(cop);
 }

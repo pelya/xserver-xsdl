@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/sis530/sisdraw.c,v 1.1 1999/11/19 13:53:59 hohndel Exp $ */
 
 #include "sis.h"
 #include "sisdraw.h"
@@ -292,7 +292,7 @@ sisGlyphBltClipped (DrawablePtr	    pDrawable,
     }
     _sisClip (sis, 0, 0, 
 	      pScreenPriv->screen->width, pScreenPriv->screen->height);
-    _sisWaitIdleEmpty(sis);
+    KdMarkSync (pDrawable->pScreen);
 }
 
 Bool
@@ -493,7 +493,7 @@ sisTEGlyphBlt (DrawablePtr	pDrawable,
     }
     if (imageBlt)
 	sis->u.general.clip_right = pScreenPriv->screen->width;
-    _sisWaitIdleEmpty(sis);
+    KdMarkSync (pDrawable->pScreen);
     return TRUE;
 }
 
@@ -704,7 +704,7 @@ sisGlyphBlt(DrawablePtr	    pDrawable,
 	}
 	x += pci->metrics.characterWidth;
     }
-    _sisWaitIdleEmpty(sis);
+    KdMarkSync (pDrawable->pScreen);
     return TRUE;
 }
 /*
@@ -737,7 +737,7 @@ sisPolyGlyphBlt (DrawablePtr pDrawable,
 		return;
 	}
     }
-    fbPolyGlyphBlt (pDrawable, pGC, x, y, nglyph, ppci, pglyphBase);
+    KdCheckPolyGlyphBlt (pDrawable, pGC, x, y, nglyph, ppci, pglyphBase);
 }
 
 void
@@ -764,7 +764,7 @@ sisImageGlyphBlt (DrawablePtr pDrawable,
 		return;
 	}
     }
-    fbImageGlyphBlt (pDrawable, pGC, x, y, nglyph, ppci, pglyphBase);
+    KdCheckImageGlyphBlt (pDrawable, pGC, x, y, nglyph, ppci, pglyphBase);
 }
 
 #define sourceInvarient(alu)	(((alu) & 3) == (((alu) >> 2) & 3))
@@ -896,7 +896,7 @@ sisFillBoxSolid (DrawablePtr pDrawable, int nBox, BoxPtr pBox,
 	_sisRect(sis,pBox->x1,pBox->y1,pBox->x2-pBox->x1,pBox->y2-pBox->y1,cmd);
 	pBox++;
     }
-    _sisWaitIdleEmpty(sis);
+    KdMarkSync (pDrawable->pScreen);
 }
 
 void
@@ -913,7 +913,7 @@ sisFillBoxStipple (DrawablePtr pDrawable, GCPtr pGC,
 	_sisRect(sis,pBox->x1,pBox->y1,pBox->x2-pBox->x1,pBox->y2-pBox->y1,cmd);
 	pBox++;
     }
-    _sisWaitIdleEmpty (sis);
+    KdMarkSync (pDrawable->pScreen);
 }
 
 void
@@ -931,7 +931,7 @@ sisFillBoxTiled (DrawablePtr pDrawable,
 	_sisRect(sis,pBox->x1,pBox->y1,pBox->x2-pBox->x1,pBox->y2-pBox->y1,cmd);
 	pBox++;
     }
-    _sisWaitIdleEmpty (sis);
+    KdMarkSync (pDrawable->pScreen);
 }
 
 /*
@@ -1003,7 +1003,7 @@ sisCopyNtoN (DrawablePtr	pSrcDrawable,
 	_sisBlt (sis, srcX, srcY, dstX, dstY, w, h, cmd|flags);
 	pbox++;
     }
-    _sisWaitIdleEmpty(sis);
+    KdMarkSync (pDstDrawable->pScreen);
 }
 
 RegionPtr
@@ -1022,7 +1022,7 @@ sisCopyArea(DrawablePtr pSrcDrawable, DrawablePtr pDstDrawable, GCPtr pGC,
 			 srcx, srcy, width, height, 
 			 dstx, dsty, sisCopyNtoN, 0, 0);
     }
-    return fbCopyArea (pSrcDrawable, pDstDrawable, pGC, 
+    return KdCheckCopyArea (pSrcDrawable, pDstDrawable, pGC, 
 		       srcx, srcy, width, height, dstx, dsty);
 }
 
@@ -1183,7 +1183,7 @@ sisCopy1toN (DrawablePtr	pSrcDrawable,
 		     pbox->x2 - dstx, pbox->y2 - dsty);
 	pbox++;
     }
-    _sisWaitIdleEmpty (sis);
+    KdMarkSync (pDstDrawable->pScreen);
 }
 
 RegionPtr
@@ -1207,7 +1207,7 @@ sisCopyPlane(DrawablePtr pSrcDrawable, DrawablePtr pDstDrawable, GCPtr pGC,
 			 srcx, srcy, width, height, 
 			 dstx, dsty, sisCopy1toN, bitPlane, &args);
     }
-    return fbCopyPlane(pSrcDrawable, pDstDrawable, pGC, 
+    return KdCheckCopyPlane(pSrcDrawable, pDstDrawable, pGC, 
 		       srcx, srcy, width, height, 
 		       dstx, dsty, bitPlane);
 }
@@ -1227,7 +1227,7 @@ sisFillSpans (DrawablePtr pDrawable, GCPtr pGC, int n,
     
     if (!sisFillOk (pGC))
     {
-	fbFillSpans (pDrawable, pGC, n, ppt, pwidth, fSorted);
+	KdCheckFillSpans (pDrawable, pGC, n, ppt, pwidth, fSorted);
 	return;
     }
     nTmp = n * miFindMaxBand(fbGetCompositeClip(pGC));
@@ -1269,7 +1269,7 @@ sisFillSpans (DrawablePtr pDrawable, GCPtr pGC, int n,
 	    _sisRect(sis,x,y,width,1,cmd);
 	}
     }
-    _sisWaitIdleEmpty (sis);
+    KdMarkSync (pDrawable->pScreen);
     DEALLOCATE_LOCAL(pptFree);
     DEALLOCATE_LOCAL(pwidthFree);
 }
@@ -1296,7 +1296,7 @@ sisPolyFillRect (DrawablePtr pDrawable, GCPtr pGC,
     
     if (!sisFillOk (pGC))
     {
-	fbPolyFillRect (pDrawable, pGC, nrectFill, prectInit);
+	KdCheckPolyFillRect (pDrawable, pGC, nrectFill, prectInit);
 	return;
     }
     prgnClip = fbGetCompositeClip(pGC);
@@ -1450,25 +1450,25 @@ sisPolyFillRect (DrawablePtr pDrawable, GCPtr pGC,
 
 static const GCOps sisOps = {
     sisFillSpans,
-    fbSetSpans,
-    fbPutImage,
+    KdCheckSetSpans,
+    KdCheckPutImage,
     sisCopyArea,
     sisCopyPlane,
-    fbPolyPoint,
-    fbPolyLine,
-    fbPolySegment,
+    KdCheckPolyPoint,
+    KdCheckPolylines,
+    KdCheckPolySegment,
     miPolyRectangle,
-    fbPolyArc,
+    KdCheckPolyArc,
     miFillPolygon,
     sisPolyFillRect,
-    fbPolyFillArc,
+    KdCheckPolyFillArc,
     miPolyText8,
     miPolyText16,
     miImageText8,
     miImageText16,
     sisImageGlyphBlt,
     sisPolyGlyphBlt,
-    fbPushPixels,
+    KdCheckPushPixels,
 #ifdef NEED_LINEHELPER
     ,NULL
 #endif
@@ -1484,7 +1484,7 @@ sisValidateGC (GCPtr pGC, Mask changes, DrawablePtr pDrawable)
     if (pDrawable->type == DRAWABLE_WINDOW)
 	pGC->ops = (GCOps *) &sisOps;
     else
-	pGC->ops = (GCOps *) &fbGCOps;
+	pGC->ops = (GCOps *) &kdAsyncPixmapGCOps;
 }
 
 GCFuncs	sisGCFuncs = {
@@ -1505,6 +1505,8 @@ sisCreateGC (GCPtr pGC)
 
     if (pGC->depth != 1)
 	pGC->funcs = &sisGCFuncs;
+    
+    pGC->ops = (GCOps *) &kdAsyncPixmapGCOps;
     
     return TRUE;
 }
@@ -1601,7 +1603,7 @@ sisPaintWindow(WindowPtr pWin, RegionPtr pRegion, int what)
 	}
 	break;
     }
-    fbPaintWindow (pWin, pRegion, what);
+    KdCheckPaintWindow (pWin, pRegion, what);
 }
 
 Bool
@@ -1610,6 +1612,10 @@ sisDrawInit (ScreenPtr pScreen)
     KdScreenPriv(pScreen);
     sisScreenInfo(pScreenPriv);
     
+    /*
+     * Hook up asynchronous drawing
+     */
+    KdScreenInitAsync (pScreen);
     /*
      * Replace various fb screen functions
      */
@@ -1632,7 +1638,6 @@ sisDrawEnable (ScreenPtr pScreen)
     
     base = pScreenPriv->screen->frameBuffer - sisc->frameBuffer;
     stride = pScreenPriv->screen->byteStride;
-    _sisWaitIdleEmpty(sis);
     sis->u.general.dst_base = base;
     sis->u.general.dst_pitch = stride;
     sis->u.general.dst_height = pScreenPriv->screen->height;
@@ -1642,6 +1647,14 @@ sisDrawEnable (ScreenPtr pScreen)
     _sisRect (sis, 0, 0, 
 	      pScreenPriv->screen->width, pScreenPriv->screen->height,
 	      cmd);
+    KdMarkSync (pScreen);
+}
+
+void
+sisDrawSync (ScreenPtr pScreen)
+{
+    SetupSis(pScreen);
+    
     _sisWaitIdleEmpty (sis);
 }
 

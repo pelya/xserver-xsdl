@@ -21,13 +21,14 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/fbdev/fbinit.c,v 1.1 1999/11/19 13:53:52 hohndel Exp $ */
 
 #include <fbdev.h>
 
 KdCardFuncs	fbdevFuncs = {
     fbdevCardInit,	    /* cardinit */
     fbdevScreenInit,	    /* scrinit */
+    fbdevInitScreen,	    /* initScreen */
     fbdevPreserve,	    /* preserve */
     fbdevEnable,	    /* enable */
     fbdevDPMS,		    /* dpms */
@@ -44,6 +45,7 @@ KdCardFuncs	fbdevFuncs = {
     
     0,			    /* initAccel */
     0,			    /* enableAccel */
+    0,			    /* syncAccel */
     0,			    /* disableAccel */
     0,			    /* finiAccel */
     
@@ -71,8 +73,8 @@ InitInput (int argc, char **argv)
     KdInitInput (&Ps2MouseFuncs, &LinuxKeyboardFuncs);
 }
 
-void
-OsVendorInit (void)
+int
+ddxProcessArgument (int argc, char **argv, int i)
 {
-    KdOsInit (&LinuxFuncs);
+    return KdProcessArgument (argc, argv, i);
 }

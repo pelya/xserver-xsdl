@@ -21,9 +21,12 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/kdrive.c,v 1.1 1999/11/19 13:53:48 hohndel Exp $ */
 
 #include "kdrive.h"
+#ifdef PSEUDO8
+#include "pseudo8/pseudo8.h"
+#endif
 #include <mivalidate.h>
 #include <dixstruct.h>
 
@@ -41,8 +44,6 @@ Bool		    kdDisableZaphod;
 Bool		    kdEnabled;
 Bool		    kdSwitchPending;
 
-void                (*restoreHardware)(void);
-
 /*
  * Carry arguments from InitOutput through driver initialization
  * to KdScreenInit
@@ -54,6 +55,7 @@ extern WindowPtr *WindowTable;
 void
 KdSetRootClip (ScreenPtr pScreen, BOOL enable)
 {
+#ifndef FB_OLD_SCREEN
     WindowPtr	pWin = WindowTable[pScreen->myNum];
     WindowPtr	pChild;
     Bool	WasViewable = (Bool)(pWin->viewable);
@@ -173,6 +175,7 @@ KdSetRootClip (ScreenPtr pScreen, BOOL enable)
     }
     if (pWin->realized)
 	WindowsRestructured ();
+#endif	/* !FB_OLD_SCREEN */
 }
 
 void
@@ -182,7 +185,9 @@ KdDisableScreen (ScreenPtr pScreen)
     
     if (!pScreenPriv->enabled)
 	return;
-    KdSetRootClip (pScreen, FALSE);
+    KdCheckSync (pScreen);
+    if (!pScreenPriv->closed)
+	KdSetRootClip (pScreen, FALSE);
     KdDisableColormap (pScreen);
     if (!pScreenPriv->screen->dumb)
 	(*pScreenPriv->card->cfuncs->disableAccel) (pScreen);
@@ -332,7 +337,7 @@ Bool	kdDumbDriver;
 Bool	kdSoftCursor;
 
 int
-ddxProcessArgument (int argc, char **argv, int i)
+KdProcessArgument (int argc, char **argv, int i)
 {
     KdCardInfo	    *card;
     KdScreenInfo    *screen;
@@ -398,7 +403,11 @@ ddxProcessArgument (int argc, char **argv, int i)
     }
     if (!strcmp (argv[i], "-standalone"))
 	return 1;
+#ifdef PSEUDO8
+    return p8ProcessArgument (argc, argv, i);
+#else
     return 0;
+#endif
 }
 
 /*
@@ -443,6 +452,7 @@ KdCloseScreen (int index, ScreenPtr pScreen)
     KdCardInfo	    *card = pScreenPriv->card;
     Bool	    ret;
     
+    pScreenPriv->closed = TRUE;
     pScreen->CloseScreen = pScreenPriv->CloseScreen;
     ret = (*pScreen->CloseScreen) (index, pScreen);
     
@@ -529,6 +539,7 @@ KdSaveScreen (ScreenPtr pScreen, int on)
 Bool
 KdCreateWindow (WindowPtr pWin)
 {
+#ifndef PHOENIX
     if (!pWin->parent)
     {
 	KdScreenPriv(pWin->drawable.pScreen);
@@ -539,6 +550,7 @@ KdCreateWindow (WindowPtr pWin)
 	    REGION_BREAK (pWin->drawable.pScreen, &pWin->clipList);
 	}
     }
+#endif
     return TRUE;
 }
 
@@ -588,9 +600,13 @@ KdScreenInit(int index, ScreenPtr pScreen, int argc, char **argv)
     pScreen->SaveScreen		= KdSaveScreen;
     pScreen->CreateWindow	= KdCreateWindow;
 
-    if (!screen->dumb && card->cfuncs->initAccel)
-	if (!(*card->cfuncs->initAccel) (pScreen))
-	    screen->dumb = TRUE;
+#ifdef FB_OLD_SCREEN
+    pScreenPriv->BackingStoreFuncs.SaveAreas = fbSaveAreas;
+    pScreenPriv->BackingStoreFuncs.RestoreAreas = fbSaveAreas;
+    pScreenPriv->BackingStoreFuncs.SetClipmaskRgn = 0;
+    pScreenPriv->BackingStoreFuncs.GetImagePixmap = 0;
+    pScreenPriv->BackingStoreFuncs.GetSpansPixmap = 0;
+#endif
 
     if (!fbFinishScreenInit (pScreen, 
 			     screen->frameBuffer, 
@@ -609,6 +625,24 @@ KdScreenInit(int index, ScreenPtr pScreen, int argc, char **argv)
     pScreen->BlockHandler	= KdBlockHandler;
     pScreen->WakeupHandler	= KdWakeupHandler;
     
+    if (card->cfuncs->initScreen)
+	if (!(*card->cfuncs->initScreen) (pScreen))
+	    return FALSE;
+	    
+    if (!screen->dumb && card->cfuncs->initAccel)
+	if (!(*card->cfuncs->initAccel) (pScreen))
+	    screen->dumb = TRUE;
+
+#ifdef PSEUDO8
+    (void) p8Init (pScreen, PSEUDO8_USE_DEFAULT);
+#endif
+    
+    pScreen->backingStoreSupport = Always;
+#ifdef FB_OLD_SCREEN
+    miInitializeBackingStore (pScreen, &pScreenPriv->BackingStoreFuncs);
+#else
+    miInitializeBackingStore (pScreen);
+#endif
     /* 
      * Wrap CloseScreen, the order now is:
      *	KdCloseScreen
@@ -683,17 +717,13 @@ Bool
 KdSetPixmapFormats (ScreenInfo	*pScreenInfo)
 {
     CARD8	    depthToBpp[33];	/* depth -> bpp map */
-    CARD8	    bppToDepth[33];	/* bpp -> depth map */
     KdCardInfo	    *card;
     KdScreenInfo    *screen;
     int		    i;
     PixmapFormatRec *format;
 
     for (i = 1; i <= 32; i++)
-    {
 	depthToBpp[i] = 0;
-	bppToDepth[i] = 0;
-    }
 
     /*
      * Generate mappings between bitsPerPixel and depth,
@@ -709,8 +739,6 @@ KdSetPixmapFormats (ScreenInfo	*pScreenInfo)
 		depthToBpp[screen->depth] = screen->bitsPerPixel;
 	    else if (depthToBpp[screen->depth] != screen->bitsPerPixel)
 		return FALSE;
-	    if (!bppToDepth[screen->bitsPerPixel])
-		bppToDepth[screen->bitsPerPixel] = screen->depth;
 	}
     }
     
@@ -718,11 +746,8 @@ KdSetPixmapFormats (ScreenInfo	*pScreenInfo)
      * Fill in additional formats
      */
     for (i = 0; i < NUM_KD_BPP; i++)
-	if (!bppToDepth[kdBpp[i]] && !depthToBpp[kdBpp[i]])
-	{
-	    bppToDepth[kdBpp[i]] = kdBpp[i];
+	if (!depthToBpp[kdBpp[i]])
 	    depthToBpp[kdBpp[i]] = kdBpp[i];
-	}
 	
     pScreenInfo->imageByteOrder     = IMAGE_BYTE_ORDER;
     pScreenInfo->bitmapScanlineUnit = BITMAP_SCANLINE_UNIT;

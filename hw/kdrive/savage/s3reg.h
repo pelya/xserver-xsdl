@@ -22,7 +22,7 @@
  *
  * Author:  Keith Packard, SuSE, Inc.
  */
-/* $XFree86: $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/savage/s3reg.h,v 1.1 1999/11/19 13:53:57 hohndel Exp $ */
 
 #ifndef _S3REG_H_
 #define _S3REG_H_
@@ -37,8 +37,11 @@
 #define S3_NAR	0x15
 #define S3_CR	(S3_AR+S3_NAR)
 #define S3_NCR	0xc0
-#define S3_MISC_OUT (S3_CR+S3_NCR)
-#define S3_NREG	(S3_MISC_OUT+1)
+#define S3_DAC	(S3_CR+S3_NCR)
+#define S3_NDAC	4
+#define S3_MISC_OUT	    (S3_DAC + S3_NDAC)
+#define S3_INPUT_STATUS_1   (S3_MISC_OUT+1)
+#define S3_NREG		    (S3_INPUT_STATUS_1+1)
 
 extern VgaReg s3_h_total[];
 extern VgaReg s3_h_display_end[];
@@ -63,9 +66,13 @@ extern VgaReg s3_count_by_4_mode[];
 extern VgaReg s3_doubleword_mode[];
 extern VgaReg s3_v_blank_start[];
 extern VgaReg s3_v_blank_end[];
+extern VgaReg s3_2bk_cga[];
+extern VgaReg s3_4bk_hga[];
 extern VgaReg s3_v_total_double[];
+extern VgaReg s3_address_16k_wrap[];
 extern VgaReg s3_word_mode[];
 extern VgaReg s3_byte_mode[];
+extern VgaReg s3_hardware_reset[];
 extern VgaReg s3_line_compare[];
 extern VgaReg s3_device_id[];
 extern VgaReg s3_revision[];
@@ -74,6 +81,7 @@ extern VgaReg s3_enhanced_memory_mapping[];
 extern VgaReg s3_enable_sff[];
 extern VgaReg s3_lock_dac_writes[];
 extern VgaReg s3_border_select[];
+extern VgaReg s3_lock_palette[];
 extern VgaReg s3_lock_vert[];
 extern VgaReg s3_lock_horz[];
 extern VgaReg s3_io_disable[];
@@ -117,6 +125,7 @@ extern VgaReg s3_enable_2d_3d[];
 extern VgaReg s3_pci_disconnect_enable[];
 extern VgaReg s3_pci_retry_enable[];
 extern VgaReg s3_color_mode[];
+extern VgaReg s3_primary_stream_timeout[];
 extern VgaReg s3_master_control_unit_timeout[];
 extern VgaReg s3_command_buffer_timeout[];
 extern VgaReg s3_lpb_timeout[];
@@ -124,6 +133,8 @@ extern VgaReg s3_cpu_timeout[];
 extern VgaReg s3_2d_graphics_engine_timeout[];
 extern VgaReg s3_fifo_drain_delay[];
 extern VgaReg s3_fifo_fetch_timing[];
+extern VgaReg s3_dac_power_up_time[];
+extern VgaReg s3_dac_power_saving_disable[];
 extern VgaReg s3_primary_stream_l1[];
 
 extern VgaReg s3_dot_clock_8[];
@@ -161,9 +172,21 @@ extern VgaReg s3_vga_dclk_m2[];
 extern VgaReg s3_vga_clk_select[];
 extern VgaReg s3_select_graphics_mode[];
 extern VgaReg s3_enable_blinking[];
+extern VgaReg s3_border_color[];
+
+extern VgaReg s3_io_addr_select[];
+extern VgaReg s3_enable_ram[];
 extern VgaReg s3_clock_select[];
 extern VgaReg s3_horz_sync_neg[];
 extern VgaReg s3_vert_sync_neg[];
+
+extern VgaReg s3_display_mode_inactive[];
+extern VgaReg s3_vertical_sync_active[];
+
+extern VgaReg s3_dac_mask[];
+extern VgaReg s3_dac_read_index[];
+extern VgaReg s3_dac_write_index[];
+extern VgaReg s3_dac_data[];
 
 #define s3Get(sv,r)	    VgaGet(&(sv)->card, (r))
 #define s3GetImm(sv,r)	    VgaGetImm(&(sv)->card, (r))

@@ -1,0 +1,16 @@
+XCOMM $XConsortium: Imakefile /main/10 1996/12/02 10:20:33 lehors $
+XCOMM $XFree86: $
+#include <Server.tmpl>
+
+SRCS = keyboard.c linux.c ps2.c
+
+OBJS = keyboard.o linux.o ps2.o
+
+INCLUDES = -I. -I.. -I$(XBUILDINCDIR) -I$(FONTINCSRC) \
+	   -I../../../fb -I../../../mi -I../../../include -I../../../os  \
+           -I$(EXTINCSRC) -I$(XINCLUDESRC)
+
+NormalLibraryObjectRule()
+NormalLibraryTarget(linux,$(OBJS))
+
+DependTarget()

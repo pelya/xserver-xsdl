@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/fbdev/fbdev.c,v 1.1 1999/11/19 13:53:52 hohndel Exp $ */
 
 #include "fbdev.h"
 
@@ -125,6 +125,12 @@ fbdevScreenInit (KdScreenInfo *screen)
     return TRUE;
 }
 
+Bool
+fbdevInitScreen (ScreenPtr pScreen)
+{
+    return TRUE;
+}
+
 void
 fbdevPreserve (KdCardInfo *card)
 {
@@ -151,8 +157,10 @@ fbdevDPMS (ScreenPtr pScreen, int mode)
     KdScreenPriv(pScreen);
     FbdevPriv	*priv = pScreenPriv->card->driver;
 
+#ifdef FBIOPUT_POWERMODE
     if (!ioctl (priv->fd, FBIOPUT_POWERMODE, &mode))
 	return TRUE;
+#endif
     return FALSE;
 }
 

@@ -21,22 +21,37 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/vga.c,v 1.1 1999/11/19 13:53:51 hohndel Exp $ */
 
 #include "vga.h"
 #include <stdio.h>
 
 #ifdef linux
-#define extern
+#define extern static
 #include <asm/io.h>
 #undef extern
 
 #define _VgaInb(r)	inb(r)
 #define _VgaOutb(v,r)	outb(v,r)
 
+#define _VgaByteAddr(a)	((VGAVOL8 *) (a))
+#define _VgaBytePort(a)	(a)
 #endif
 
-#if 0
+#ifdef VXWORKS
+#define _VgaInb(r)  0
+#define _VgaOutb(v,r)   0
+
+#define _VgaByteAddr(a)     ((VGAVOL8 *) ((VGA32) (a) ^ 3))
+#define _VgaBytePort(a)	    0
+
+#undef stderr
+#define stderr stdout
+
+#endif
+
+#undef VGA_DEBUG_REGISTERS
+#ifdef VGA_DEBUG_REGISTERS
 #define VGA_DEBUG(a)	fprintf a
 #else
 #define VGA_DEBUG(a)
@@ -55,26 +70,37 @@ VgaOutb (VGA8 v, VGA16 r)
 }
 	
 VGA8
+VgaReadMemb (VGA32 addr)
+{
+    return *_VgaByteAddr(addr);
+}
+
+void
+VgaWriteMemb (VGA8 v, VGA32 addr)
+{
+    *_VgaByteAddr(addr) = v;
+}
+
+VGA8
 VgaFetch (VgaCard *card, VGA16 reg)
 {
     VgaMap	map;
-    VGAVOL8	*mem;
     VGA8	value;
 
     (*card->map) (card, reg, &map, VGAFALSE);
     switch (map.access) {
     case VgaAccessMem:
-	mem = (VGAVOL8 *) map.port;
-	value = *mem;
+	value = VgaReadMemb (map.port);
+	VGA_DEBUG ((stderr, "%08x -> %2x\n", map.port, value));
 	break;
     case VgaAccessIo:
 	value = _VgaInb (map.port);
 	VGA_DEBUG ((stderr, "%4x    -> %2x\n", map.port, value));
 	break;
     case VgaAccessIndMem:
-	mem = (VGAVOL8 *) map.port;
-	mem[map.addr] = map.index;
-	value = mem[map.value];
+	VgaWriteMemb (map.index, map.port + map.addr);
+	value = VgaReadMemb (map.port + map.value);
+	VGA_DEBUG ((stderr, "%4x/%2x -> %2x\n", map.port, map.index, value));
 	break;
     case VgaAccessIndIo:
 	_VgaOutb (map.index, map.port + map.addr);
@@ -93,23 +119,22 @@ void
 VgaStore (VgaCard *card, VGA16 reg, VGA8 value)
 {
     VgaMap  map;
-    VGAVOL8 *mem;
 
     map.value = value;
     (*card->map) (card, reg, &map, VGATRUE);
     switch (map.access) {
     case VgaAccessMem:
-	mem = (VGAVOL8 *) map.port;
-	*mem = value;
+	VGA_DEBUG ((stderr, "%8x <- %2x\n", map.port, value));
+	VgaWriteMemb (map.value, map.port);
 	break;
     case VgaAccessIo:
 	VGA_DEBUG ((stderr, "%4x    <- %2x\n", map.port, value));
 	_VgaOutb (value, map.port);
 	break;
     case VgaAccessIndMem:
-	mem = (VGAVOL8 *) map.port;
-	mem[map.addr] = map.index;
-	mem[map.value] = value;
+	VgaWriteMemb (map.index, map.port + map.addr);
+	VgaWriteMemb (value, map.port + map.value);
+	VGA_DEBUG ((stderr, "%4x/%2x <- %2x\n", map.port, map.index, value));
 	break;
     case VgaAccessIndIo:
 	VGA_DEBUG ((stderr, "%4x/%2x <- %2x\n", map.port, map.index, value));
@@ -166,6 +191,16 @@ VgaFinish (VgaCard *card)
     for (id = 0; id < card->max; id++)
 	card->values[id].flags = 0;
 }
+
+void
+VgaInvalidate (VgaCard *card)
+{
+    VGA16   id;
+
+    for (id = 0; id < card->max; id++)
+	card->values[id].flags &= ~VGA_VALUE_VALID;
+}
+
 
 void
 _VgaSync (VgaCard *card, VGA16 id)

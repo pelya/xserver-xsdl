@@ -21,9 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: $ */
-
-/* $XConsortium: oscolor.c,v 1.23 94/04/17 20:27:04 dpw Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/kcolor.c,v 1.1 1999/11/19 13:53:48 hohndel Exp $ */
 
 #include "kdrive.h"
 #include <stdio.h>
@@ -45,7 +43,7 @@ KdToLower (unsigned char a)
 }
 
 int
-KdStrCaseCmp (unsigned char *s1, unsigned char *s2, int l2)
+KdStrCaseCmp (const unsigned char *s1, const unsigned char *s2, int l2)
 {
     unsigned char   c1, c2;
 
@@ -69,12 +67,12 @@ typedef struct _kdNamedColor {
     unsigned short	red;
     unsigned short	green;
     unsigned short	blue;
-    unsigned char	*name;
+    const unsigned char	*name;
 } KdNamedColor;
 
 #define C   0x101
 
-KdNamedColor KdColors[] = {
+const KdNamedColor KdColors[] = {
 240*C, 248*C, 255*C, "alice blue",
 240*C, 248*C, 255*C, "AliceBlue",
 250*C, 235*C, 215*C, "antique white",
@@ -847,10 +845,10 @@ OsLookupColor(int		screen,
 	      unsigned short	*pgreen,
 	      unsigned short	*pblue)
 {
-    KdNamedColor    *c;
-    unsigned char   *name = (unsigned char *) s_name;
-    int		    low, mid, high;
-    int		    r;
+    const KdNamedColor	*c;
+    unsigned char	*name = (unsigned char *) s_name;
+    int			low, mid, high;
+    int			r;
 
     low = 0;
     high = NUM_KD_COLORS;

@@ -22,7 +22,7 @@
  *
  * Author:  Keith Packard, SuSE, Inc.
  */
-/* $XFree86: $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/sis530/sisstub.c,v 1.1 1999/11/19 13:54:00 hohndel Exp $ */
 
 #include "sis.h"
 
@@ -46,8 +46,8 @@ InitInput (int argc, char **argv)
     KdInitInput (&Ps2MouseFuncs, &LinuxKeyboardFuncs);
 }
 
-void
-OsVendorInit (void)
+int
+ddxProcessArgument (int argc, char **argv, int i)
 {
-    KdOsInit (&LinuxFuncs);
+    return KdProcessArgument (argc, argv, i);
 }

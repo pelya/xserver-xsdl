@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/trident/trident.h,v 1.1 1999/11/19 13:54:01 hohndel Exp $ */
 
 #ifndef _TRIDENT_H_
 #define _TRIDENT_H_
@@ -61,13 +61,22 @@ typedef struct _cop {
 #define COP_MULTI_TEXTURE_ADVANCED  0x20000000
 #define COP_MULTI_MASK		    0xf0000000
     
-        
 #define COP_DEPTH_8		    0x00000000
 #define COP_DEPTH_16		    0x00000001
 #define COP_DEPTH_24_32		    0x00000002
 #define COP_DEPTH_15		    0x00000005
 #define COP_DEPTH_DITHER_DISABLE    0x00000008
     
+
+#define COP_ALPHA_RESULT_ALPHA	    0x00100000
+#define COP_ALPHA_DEST_ALPHA	    0x00200000
+#define COP_ALPHA_SOURCE_ALPHA	    0x00400000
+#define COP_ALPHA_WRITE_ENABLE	    0x00800000
+#define COP_ALPHA_TEST_ENABLE	    0x01000000
+#define COP_ALPHA_BLEND_ENABLE	    0x02000000
+#define COP_ALPHA_DEST_VALUE	    0x04000000
+#define COP_ALPHA_SOURCE_VALUE	    0x08000000
+
     VOL32	command;	    /* 0x24 */
 #define COP_OP_NULL	    0x00000000
 #define COP_OP_LINE	    0x20000000
@@ -172,6 +181,9 @@ tridentDrawInit (ScreenPtr pScreen);
 
 void
 tridentDrawEnable (ScreenPtr pScreen);
+
+void
+tridentDrawSync (ScreenPtr pScreen);
 
 void
 tridentDrawDisable (ScreenPtr pScreen);

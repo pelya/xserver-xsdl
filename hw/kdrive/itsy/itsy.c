@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/itsy/itsy.c,v 1.1 1999/11/19 13:53:53 hohndel Exp $ */
 
 #include "itsy.h"
 
@@ -89,6 +89,46 @@ itsyScreenInit (KdScreenInfo *screen)
     return TRUE;
 }
 
+static unsigned short itsyIntensity[16] = {
+    0xffff,
+    0xffff,
+    0xedb6,
+    0xdb6d,
+    0xc924,
+    0xb6db,
+    0xa492,
+    0x9249,
+    0x8000,
+    0x6db6,
+    0x5b6d,
+    0x4924,
+    0x36db,
+    0x2492,
+    0x1249,
+    0x0000,
+};
+
+Bool
+itsyCreateColormap (ColormapPtr pmap)
+{
+    int	    i;
+
+    for (i = 0; i < 16; i++)
+    {
+	pmap->red[i].co.local.red = itsyIntensity[i];
+	pmap->red[i].co.local.green = itsyIntensity[i];
+	pmap->red[i].co.local.blue = itsyIntensity[i];
+    }
+    return TRUE;
+}
+
+Bool
+itsyInitScreen (ScreenPtr pScreen)
+{
+    pScreen->CreateColormap = itsyCreateColormap;
+    return TRUE;
+}
+
 void
 itsyPreserve (KdCardInfo *card)
 {
@@ -147,49 +187,10 @@ itsyCardFini (KdCardInfo *card)
     fprintf (stderr, "itsyFini done\n");
 }
 
-static unsigned short itsyIntensity[16] = {
-    0xffff,
-    0xffff,
-    0xedb6,
-    0xdb6d,
-    0xc924,
-    0xb6db,
-    0xa492,
-    0x9249,
-    0x8000,
-    0x6db6,
-    0x5b6d,
-    0x4924,
-    0x36db,
-    0x2492,
-    0x1249,
-    0x0000,
-};
-
-Bool
-itsyCreateColormap (ColormapPtr pmap)
-{
-    int	    i;
-
-    for (i = 0; i < 16; i++)
-    {
-	pmap->red[i].co.local.red = itsyIntensity[i];
-	pmap->red[i].co.local.green = itsyIntensity[i];
-	pmap->red[i].co.local.blue = itsyIntensity[i];
-    }
-    return TRUE;
-}
-
-Bool
-itsySetupScreen (ScreenPtr pScreen)
-{
-    pScreen->CreateColormap = itsyCreateColormap;
-    return FALSE;
-}
-
 KdCardFuncs	itsyFuncs = {
     itsyCardInit,	    /* cardinit */
     itsyScreenInit,	    /* scrinit */
+    itsyInitScreen,	    /* initScreen */
     itsyPreserve,	    /* preserve */
     itsyEnable,		    /* enable */
     itsyDPMS,		    /* dpms */
@@ -204,7 +205,7 @@ KdCardFuncs	itsyFuncs = {
     0,			    /* finiCursor */
     0,			    /* recolorCursor */
     
-    itsySetupScreen,	    /* initAccel */
+    0,			    /* initAccel */
     0,			    /* enableAccel */
     0,			    /* disableAccel */
     0,			    /* finiAccel */
@@ -308,4 +309,10 @@ void
 OsVendorInit (void)
 {
     KdOsInit (&ItsyOsFuncs);
+}
+
+int
+ddxProcessArgument (int argc, char **argv, int i)
+{
+    return KdProcessArgument (argc, argv, i);
 }
