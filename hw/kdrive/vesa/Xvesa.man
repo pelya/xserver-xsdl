@@ -1,4 +1,4 @@
-.\" $XFree86$
+.\" $XFree86: xc/programs/Xserver/hw/kdrive/vesa/Xvesa.man,v 1.2 2000/09/03 05:11:22 keithp Exp $
 .TH Xvesa 1
 .SH NAME
 Xvesa \- VESA VBE tiny X server
@@ -11,10 +11,13 @@ Xvesa \- VESA VBE tiny X server
 is a generic X server for Linux on the x86 platform.  
 .B Xvesa
 doesn't know about any particular hardware, and sets the video mode by
-running the video BIOS in VM86 mode.  
+running the video BIOS in VM86 mode.
 .B Xvesa
 therefore runs untrusted code with full priviledges, and is one of the
 most insecure X servers available.
+.B Xvesa
+uses both standard VGA BIOS modes and any modes advertised by a VESA 2.0
+BIOS if available.
 .B Run at your own risk.
 .SH OPTIONS
 In addition to the normal tiny-X server's options (to be described in
@@ -28,9 +31,9 @@ specifies the VESA video mode to use.  If mode
 is not supported by your BIOS and hardware,
 .B Xvesa
 will fail, hang your system, or make your monitor explode; you are on
-your own.  This option is ignored if the
+your own.  This option overrides any
 .B -screen
-option was used.
+options.
 .TP 8
 .B -listmodes
 tells the server to list all supported video modes.  If
@@ -55,8 +58,11 @@ don't use a linear framebuffer even if one is available.  You don't
 want to use this option.
 .TP 8
 .B -swaprgb
-pass RGB values in the order that works on my machine.  Use this if
+pass RGB values in the order that works on broken BIOSes.  Use this if
 the colours are wrong in PseudoColor modes.
+.TP 8
+.B -verbose
+emit diagnostic messages during BIOS initialization and teardown.
 .SH KEYBOARD
 Xvesa handles the keyboard in the same manner as the
 .B Xfbdev
@@ -69,10 +75,17 @@ assumed to be buggy.  Allowing your users to run
 is a major security hole.  Allowing yourself to run
 .B Xvesa
 is probably a mistake.
+.B Xvesa
+records the current BIOS mode when it starts and restores that mode on
+termination; if the video card has been reprogrammed by another application,
+the display will almost certainly be trashed.  The alternative of saving and
+restoring the complete video card state has proven unreliable on most video
+cards.
 .SH SEE ALSO
 X(1), Xserver(1), xdm(1), xinit(1), Xfbdev(1).
 .SH AUTHORS
 The tiny-X server was written by Keith Packard, and the VESA driver
 was added by Juliusz Chroboczek who didn't realise what he was doing
 until it was too late.  Tiny-X uses code from XFree86, which in turn
-is based on the Sample Implementation.
+is based on the Sample Implementation.  Keith Packard then added support for
+standard VGA BIOS modes and is especially proud of 320x200 16 color mode.

@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/trident/trident.c,v 1.12 2000/09/27 20:46:36 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/trident/trident.c,v 1.13 2000/10/11 06:04:40 keithp Exp $ */
 
 #include "trident.h"
 #define extern
@@ -33,13 +33,31 @@
 Bool
 tridentCardInit (KdCardInfo *card)
 {
-    int		k;
-    char	*pixels;
+    int			k;
+    char		*pixels;
     TridentCardInfo	*tridentc;
+    CARD8		r39;
 
     tridentc = (TridentCardInfo *) xalloc (sizeof (TridentCardInfo));
     if (!tridentc)
 	return FALSE;
+    
+    iopl (3);
+    tridentc->cop_base = (CARD8 *) KdMapDevice (TRIDENT_COP_BASE(card),
+						TRIDENT_COP_SIZE(card));
+    tridentc->cop = (Cop *) (tridentc->cop_base + TRIDENT_COP_OFF(card));
+    tridentc->mmio = FALSE;
+    r39 = tridentReadIndex (tridentc, 0x3d4, 0x39);
+    if (r39 & 1)
+    {
+	tridentc->mmio = TRUE;
+	r39 = tridentReadIndex (tridentc, 0x3d4, 0x39);
+	if ((r39 & 1) == 0)
+	{
+	    ErrorF ("Trident: inconsisent IO mapping values\n");
+	    return FALSE;
+	}
+    }
     
 #ifdef VESA
     if (!vesaInitialize (card, &tridentc->vesa))
@@ -51,11 +69,6 @@ tridentCardInit (KdCardInfo *card)
 	return FALSE;
     }
     
-    iopl (3);
-    tridentc->cop_base = (CARD8 *) KdMapDevice (TRIDENT_COP_BASE(card),
-						TRIDENT_COP_SIZE(card));
-    tridentc->cop = (Cop *) (tridentc->cop_base + TRIDENT_COP_OFF(card));
-    tridentc->mmio = FALSE;
 #ifdef USE_PCI
     tridentc->window = (CARD32 *) (tridentc->cop_base + 0x10000);
 #else
@@ -92,15 +105,32 @@ tridentScreenInit (KdScreenInfo *screen)
     if (tridents->vesa.mapping != VESA_LINEAR)
 	screen->dumb = TRUE;
     tridents->screen = tridents->vesa.fb;
+    memory = tridents->vesa.fb_size;
 #else
     tridents->screen = tridentc->fb.fb;
+    memory = (2048 + 512) * 1024;
 #endif
     screen_size = screen->fb[0].byteStride * screen->height;
-    memory = (2048 + 512) * 1024;
     if (tridents->screen && memory >= screen_size + 2048)
+    {
+	memory -= 2048;
 	tridents->cursor_base = tridents->screen + memory - 2048;
+    }
     else
 	tridents->cursor_base = 0;
+    memory -= screen_size;
+#if 0
+    if (memory > screen->fb[0].byteStride)
+    {
+	screen->off_screen = tridents->screen + screen_size;
+	screen->off_screen_size = memory - screen_size;
+    }
+    else
+    {
+	screen->off_screen = 0;
+	screen->off_screen_size = 0;
+    }
+#endif
     screen->driver = tridents;
     return TRUE;
 }

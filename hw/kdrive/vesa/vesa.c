@@ -30,6 +30,7 @@ Bool vesa_shadow = FALSE;
 Bool vesa_linear_fb = TRUE;
 Bool vesa_restore = FALSE;
 Bool vesa_rotate = FALSE;
+Bool vesa_verbose = FALSE;
 
 #define VesaPriv(scr)	((VesaScreenPrivPtr) (scr)->driver)
 
@@ -38,164 +39,214 @@ Bool vesa_rotate = FALSE;
 #define vesaHeight(scr,vmib) (ScreenRotated(scr) ? vmib->XResolution : vmib->YResolution)
 
 static Bool
-vesaModeSupported(VbeInfoPtr vi, VbeModeInfoBlock *vmib, Bool complain)
+vesaModeSupportable (VesaModePtr mode, Bool complain)
 {
-    if((vmib->ModeAttributes & 0x10) == 0) {
-        if(complain)
-            ErrorF("Text mode specified.\n");
-        return FALSE;
+    if((mode->ModeAttributes & 0x10) == 0) {
+	if(complain)
+	    ErrorF("Text mode specified.\n");
+	return FALSE;
     }
-    if(vmib->MemoryModel != 0x06 && vmib->MemoryModel != 0x04 && vmib->MemoryModel != 0x03) {
-        if(complain)
-            ErrorF("Unsupported memory model 0x%X\n", vmib->MemoryModel);
-        return FALSE;
+    if(mode->MemoryModel != 0x06 && mode->MemoryModel != 0x04 && mode->MemoryModel != 0x03) {
+	if(complain)
+	    ErrorF("Unsupported memory model 0x%X\n", mode->MemoryModel);
+	return FALSE;
     }
-    if((vmib->ModeAttributes & 0x80) == 0) {
-	if ((vmib->WinAAttributes & 0x5) != 0x5) {
+    if((mode->ModeAttributes & 0x80) == 0) {
+	if ((mode->ModeAttributes & 0x40) != 0) {
 	    if(complain)
 		ErrorF("Neither linear nor windowed framebuffer available in this mode\n");
 	    return FALSE;
 	}
     }
-    if(!(vmib->ModeAttributes & 1)) {
-        if(complain)
-            ErrorF("Mode not supported on this hardware\n");
-        return FALSE;
-    }
-    return TRUE;
-}
-
-Bool
-vesaListModes()
-{
-    int code;
-    VbeInfoPtr vi = NULL;
-    VbeInfoBlock *vib;
-    VbeModeInfoBlock *vmib;
-    unsigned p, num_modes, i;
-    CARD16 *modes_list = NULL;
-
-    vi = VbeSetup();
-    if(!vi)
-        goto fail;
-
-    vib = VbeGetInfo(vi);
-    if(!vib)
-        goto fail;
-
-    VbeReportInfo(vi, vib);
-    /* The spec says you need to copy the list */
-    p = MAKE_POINTER_1(vib->VideoModePtr);
-    num_modes = 0;
-    while(VbeMemoryW(vi, p) != 0xFFFF) {
-        num_modes++;
-        p+=2;
-    }
-    modes_list = ALLOCATE_LOCAL(num_modes * sizeof(CARD16));
-    if(!modes_list)
-        goto fail;
-    p = MAKE_POINTER_1(vib->VideoModePtr);
-    for(i=0; i<num_modes; i++) {
-        modes_list[i] = VbeMemoryW(vi, p);
-        p += 2;
-    }
-        
-    for(i=0; i<num_modes; i++) {
-        vmib = VbeGetModeInfo(vi, modes_list[i]);
-        if(!vmib)
-            goto fail;
-        if(vesa_force_mode || vesaModeSupported(vi, vmib, FALSE))
-           VbeReportModeInfo(vi, modes_list[i], vmib);
-    }
-
-    if(modes_list)
-        DEALLOCATE_LOCAL(modes_list);
-    VbeCleanup(vi);
-    return TRUE;
-
-  fail:
-    if(modes_list)
-        DEALLOCATE_LOCAL(modes_list);
-    VbeCleanup(vi);
-    return FALSE;
-}
-
-Bool
-vesaGetModes (KdCardInfo *card, VesaCardPrivPtr priv)
-{
-    VesaModePtr		mode;
-    int			nmode;
-    unsigned int	i;
-    VbeInfoPtr		vi = priv->vi;
-    VbeInfoBlock	*vib = priv->vib;
-    VbeModeInfoBlock	*vmib;
-
-    /* The spec says you need to copy the list */
-    i = MAKE_POINTER_1(vib->VideoModePtr);
-    nmode = 0;
-    while(VbeMemoryW(vi, i) != 0xFFFF) {
-        nmode++;
-        i+=2;
-    }
-    if (!nmode)
+    if(!(mode->ModeAttributes & 1)) {
+	if(complain)
+	    ErrorF("Mode not supported on this hardware\n");
 	return FALSE;
-    priv->modes = xalloc (nmode * sizeof (VesaModeRec));
-    if (!priv->modes)
-	return FALSE;
-    priv->nmode = nmode;
-    i = MAKE_POINTER_1(vib->VideoModePtr);
-    nmode = 0;
-    while(nmode < priv->nmode) {
-	priv->modes[nmode].mode = VbeMemoryW(vi, i);
-        nmode++;
-        i+=2;
-    }
-    i = MAKE_POINTER_1(vib->VideoModePtr);
-    nmode = 0;
-    while(nmode < priv->nmode) {
-	vmib = VbeGetModeInfo(vi, priv->modes[nmode].mode);
-	if(!vmib)
-	    break;
-	priv->modes[nmode].vmib = *vmib;
-	i += 2;
-	nmode++;
     }
     return TRUE;
 }
 
+static Bool
+vesaModeSupported (VesaCardPrivPtr priv, VesaModePtr mode, Bool complain)
+{
+    if (!priv->vbeInfo && mode->vbe) {
+	if (complain)
+	    ErrorF("VBE bios mode not usable.\n");
+	return FALSE;
+    }
+    return vesaModeSupportable (mode, complain);
+}
+
+void
+vesaReportMode (VesaModePtr mode)
+{
+    int supported = (mode->ModeAttributes&MODE_SUPPORTED)?1:0;
+    int colour = (mode->ModeAttributes&MODE_COLOUR)?1:0;
+    int graphics = (mode->ModeAttributes&MODE_GRAPHICS)?1:0;
+    int vga_compatible = !((mode->ModeAttributes&MODE_VGA)?1:0);
+    int linear_fb = (mode->ModeAttributes&MODE_LINEAR)?1:0;
+
+    ErrorF("0x%04X: %dx%dx%d%s",
+           (unsigned)mode->mode, 
+           (int)mode->XResolution, (int)mode->YResolution,
+	   vesaDepth (mode),
+           colour?"":" (monochrome)");
+    switch(mode->MemoryModel) {
+    case MEMORY_TEXT:
+        ErrorF(" text mode");
+        break;
+    case MEMORY_CGA:
+        ErrorF(" CGA graphics");
+        break;
+    case MEMORY_HERCULES:
+        ErrorF(" Hercules graphics");
+        break;
+    case MEMORY_PLANAR:
+        ErrorF(" Planar (%d planes)", mode->NumberOfPlanes);
+        break;
+    case MEMORY_PSEUDO:
+        ErrorF(" PseudoColor");
+        break;
+    case MEMORY_NONCHAIN:
+        ErrorF(" Non-chain 4, 256 colour");
+        break;
+    case MEMORY_DIRECT:
+        if(mode->DirectColorModeInfo & MODE_DIRECT)
+            ErrorF(" DirectColor");
+        else
+            ErrorF(" TrueColor");
+        ErrorF(" [%d:%d:%d:%d]",
+               mode->RedMaskSize, mode->GreenMaskSize, mode->BlueMaskSize,
+               mode->RsvdMaskSize);
+        if(mode->DirectColorModeInfo & 2)
+            ErrorF(" (reserved bits are reserved)");
+        break;
+    case MEMORY_YUV:
+	ErrorF("YUV");
+        break;
+    default:
+        ErrorF("unknown MemoryModel 0x%X ", mode->MemoryModel);
+    }
+    if(!supported)
+        ErrorF(" (unsupported)");
+    else if(!linear_fb)
+        ErrorF(" (no linear framebuffer)");
+    ErrorF("\n");
+}
+
+VesaModePtr
+vesaGetModes (Vm86InfoPtr vi, int *ret_nmode)
+{
+    VesaModePtr		modes;
+    int			nmode, nmodeVbe, nmodeVga;
+    int			code;
+    
+    code = VgaGetNmode (vi);
+    if (code <= 0)
+	nmodeVga = 0;
+    else
+	nmodeVga = code;
+    
+    code = VbeGetNmode (vi);
+    if (code <= 0)
+	nmodeVbe = 0;
+    else
+	nmodeVbe = code;
+
+    nmode = nmodeVga + nmodeVbe;
+    if (nmode <= 0)
+	return 0;
+    
+    modes = xalloc (nmode * sizeof (VesaModeRec));
+    
+    if (nmodeVga)
+    {
+	code = VgaGetModes (vi, modes, nmodeVga);
+	if (code <= 0)
+	    nmodeVga = 0;
+	else
+	    nmodeVga = code;
+    }
+
+    if (nmodeVbe)
+    {
+	code = VbeGetModes (vi, modes + nmodeVga, nmodeVbe);
+	if (code <= 0)
+	    nmodeVbe = 0;
+	else
+	    nmodeVbe = code;
+    }
+    
+    nmode = nmodeVga + nmodeVbe;
+
+    if (nmode == 0)
+    {
+	xfree (modes);
+	modes = 0;
+	return 0;
+    }
+    *ret_nmode = nmode;
+    return modes;
+}
 
 Bool
 vesaInitialize (KdCardInfo *card, VesaCardPrivPtr priv)
 {
     int code;
-    
-    priv->vi = VbeSetup();
+
+    priv->vi = Vm86Setup();
     if(!priv->vi)
-        goto fail;
-
-    priv->vib = VbeGetInfo(priv->vi);
-    if(!priv->vib) 
-        goto fail;
-
-    code = VbeSetupStateBuffer(priv->vi);
-    if(code < 0)
-        goto fail;
-
-    code = VbeSaveState(priv->vi);
-    if(code<0)
-        goto fail;
-
-    if (!vesaGetModes (card, priv))
 	goto fail;
+
+    priv->modes = vesaGetModes (priv->vi, &priv->nmode);
+	
+    if (!priv->modes)
+	goto fail;
+
+    priv->vbeInfo = VbeInit (priv->vi);
     
     card->driver = priv;
 
     return TRUE;
 
-  fail:
+fail:
     if(priv->vi)
-	VbeCleanup(priv->vi);
+	Vm86Cleanup(priv->vi);
     return FALSE;
+}
+
+void
+vesaListModes (void)
+{
+    Vm86InfoPtr	vi;
+    VesaModePtr	modes;
+    int		nmode;
+    int		n;
+
+    vi = Vm86Setup ();
+    if (!vi)
+    {
+	ErrorF ("Can't setup vm86\n");
+    }
+    else
+    {
+	modes = vesaGetModes (vi, &nmode);
+	if (!modes)
+	{
+	    ErrorF ("No modes available\n");
+	}
+	else
+	{
+	    VbeReportInfo (vi);
+	    for (n = 0; n < nmode; n++)
+	    {
+		if (vesa_force_mode || vesaModeSupportable (modes+n, 0))
+		    vesaReportMode (modes+n);
+	    }
+	    xfree (modes);
+	}
+	Vm86Cleanup (vi);
+    }
 }
 
 Bool
@@ -217,19 +268,19 @@ vesaCardInit(KdCardInfo *card)
 }
 
 int
-vesaDepth (VbeModeInfoBlock *m)
+vesaDepth (VesaModePtr mode)
 {
-    if (m->MemoryModel == 0x06)
-	return (m->RedMaskSize +
-		m->GreenMaskSize +
-		m->BlueMaskSize);
+    if (mode->MemoryModel == MEMORY_DIRECT)
+	return (mode->RedMaskSize +
+		mode->GreenMaskSize +
+		mode->BlueMaskSize);
     else
-	return m->BitsPerPixel;
+	return mode->BitsPerPixel;
 }
 
 Bool
-vesaModeGood (KdScreenInfo	    *screen,
-	      VbeModeInfoBlock	    *a)
+vesaModeGood (KdScreenInfo  *screen,
+	      VesaModePtr   a)
 {
     if (vesaWidth(screen,a) <= screen->width &&
 	vesaHeight(screen,a) <= screen->height &&
@@ -242,8 +293,8 @@ vesaModeGood (KdScreenInfo	    *screen,
 #define vabs(a)	((a) >= 0 ? (a) : -(a))
 
 int
-vesaSizeError (KdScreenInfo          *screen,
-	       VbeModeInfoBlock      *a)
+vesaSizeError (KdScreenInfo *screen,
+	       VesaModePtr  a)
 {
     int     xdist, ydist;
     xdist = vabs (screen->width - vesaWidth(screen,a));
@@ -252,9 +303,9 @@ vesaSizeError (KdScreenInfo          *screen,
 }
 
 Bool
-vesaModeBetter (KdScreenInfo	    *screen,
-		VbeModeInfoBlock    *a,
-		VbeModeInfoBlock    *b)
+vesaModeBetter (KdScreenInfo	*screen,
+		VesaModePtr	a,
+		VesaModePtr	b)
 {
     int	    aerr, berr;
 
@@ -290,21 +341,21 @@ vesaSelectMode (KdScreenInfo *screen)
     {
 	for (best = 0; best < priv->nmode; best++)
 	    if (priv->modes[best].mode == vesa_video_mode &&
-		(vesaModeSupported (priv->vi, &priv->modes[best].vmib, FALSE) ||
+		(vesaModeSupported (priv, &priv->modes[best], FALSE) ||
 		 vesa_force_mode))
 		return &priv->modes[best];
     }
     for (best = 0; best < priv->nmode; best++)
     {
-	if (vesaModeSupported (priv->vi, &priv->modes[best].vmib, FALSE))
+	if (vesaModeSupported (priv, &priv->modes[best], FALSE))
 	    break;
     }
     if (best == priv->nmode)
 	return 0;
     for (i = best + 1; i < priv->nmode; i++)
-	if (vesaModeSupported (priv->vi, &priv->modes[i].vmib, FALSE) &&
-	    vesaModeBetter (screen, &priv->modes[i].vmib, 
-			    &priv->modes[best].vmib))
+	if (vesaModeSupported (priv, &priv->modes[i], FALSE) &&
+	    vesaModeBetter (screen, &priv->modes[i], 
+			    &priv->modes[best]))
 	    best = i;
     return &priv->modes[best];
 }   
@@ -313,19 +364,43 @@ Bool
 vesaScreenInitialize (KdScreenInfo *screen, VesaScreenPrivPtr pscr)
 {
     VesaCardPrivPtr	priv = screen->card->driver;
-    VbeModeInfoBlock	*vmib;
+    VesaModePtr		mode;
     Pixel		allbits;
     int			depth;
-    int			bpp;
+    int			bpp, fbbpp;
 
     screen->driver = pscr;
     pscr->rotate = FALSE;
     if (screen->width < screen->height)
 	pscr->rotate = TRUE;
+    
+    if (!screen->width || !screen->height)
+    {
+	screen->width = 640;
+	screen->height = 480;
+    }
+    if (!screen->fb[0].depth)
+	screen->fb[0].depth = 4;
+    
+    if (vesa_verbose)
+	ErrorF ("Mode requested %dx%dx%d\n",
+		screen->width, screen->height, screen->fb[0].depth);
+    
     pscr->mode = vesaSelectMode (screen);
+    
     if (!pscr->mode)
+    {
+	if (vesa_verbose)
+	    ErrorF ("No selectable mode\n");
 	return FALSE;
+    }
 
+    if (vesa_verbose)
+    {
+	ErrorF ("\t");
+	vesaReportMode (pscr->mode);
+    }
+    
     pscr->shadow = vesa_shadow;
     pscr->origDepth = screen->fb[0].depth;
     if (vesa_linear_fb)
@@ -333,21 +408,35 @@ vesaScreenInitialize (KdScreenInfo *screen, VesaScreenPrivPtr pscr)
     else
 	pscr->mapping = VESA_WINDOWED;
     
-    vmib = &pscr->mode->vmib;
+    mode = pscr->mode;
 
-    depth = vesaDepth (vmib);
-    bpp = vmib->BitsPerPixel;
+    depth = vesaDepth (mode);
+    bpp = mode->BitsPerPixel;
     
-    switch (vmib->MemoryModel) {
-    case 0x06:
+    if (bpp > 24)
+	bpp = 32;
+    else if (bpp > 16)
+	bpp = 24;
+    else if (bpp > 8)
+	bpp = 16;
+    else if (bpp > 4)
+	bpp = 8;
+    else if (bpp > 1)
+	bpp = 4;
+    else
+	bpp = 1;
+    fbbpp = bpp;
+    
+    switch (mode->MemoryModel) {
+    case MEMORY_DIRECT:
         /* TrueColor or DirectColor */
         screen->fb[0].visuals = (1 << TrueColor);
         screen->fb[0].redMask = 
-            FbStipMask(vmib->RedFieldPosition, vmib->RedMaskSize);
+            FbStipMask(mode->RedFieldPosition, mode->RedMaskSize);
         screen->fb[0].greenMask = 
-            FbStipMask(vmib->GreenFieldPosition, vmib->GreenMaskSize);
+            FbStipMask(mode->GreenFieldPosition, mode->GreenMaskSize);
         screen->fb[0].blueMask = 
-            FbStipMask(vmib->BlueFieldPosition, vmib->BlueMaskSize);
+            FbStipMask(mode->BlueFieldPosition, mode->BlueMaskSize);
         allbits = 
             screen->fb[0].redMask | 
             screen->fb[0].greenMask | 
@@ -355,8 +444,14 @@ vesaScreenInitialize (KdScreenInfo *screen, VesaScreenPrivPtr pscr)
         depth = 32;
         while (depth && !(allbits & (1 << (depth - 1))))
             depth--;
+	if (vesa_verbose)
+	    ErrorF ("\tTrue Color bpp %d depth %d red 0x%x green 0x%x blue 0x%x\n",
+		    bpp, depth, 
+		    screen->fb[0].redMask,
+		    screen->fb[0].greenMask,
+		    screen->fb[0].blueMask);
 	break;
-    case 0x04:
+    case MEMORY_PSEUDO:
         /* PseudoColor */
 	screen->fb[0].visuals = ((1 << StaticGray) |
                                  (1 << GrayScale) |
@@ -367,43 +462,73 @@ vesaScreenInitialize (KdScreenInfo *screen, VesaScreenPrivPtr pscr)
 	screen->fb[0].blueMask  = 0x00;
 	screen->fb[0].greenMask = 0x00;
 	screen->fb[0].redMask   = 0x00;
+	if (vesa_verbose)
+	    ErrorF ("\tPseudo Color bpp %d depth %d\n",
+		    bpp, depth);
 	break;
-    case 0x03:
+    case MEMORY_PLANAR:
 	/* 4 plane planar */
-	screen->fb[0].visuals = (1 << StaticColor);
+	if (mode->ModeAttributes & MODE_COLOUR)
+	    screen->fb[0].visuals = (1 << StaticColor);
+	else
+	    screen->fb[0].visuals = (1 << StaticGray);
 	screen->fb[0].blueMask  = 0x00;
 	screen->fb[0].greenMask = 0x00;
 	screen->fb[0].redMask   = 0x00;
-	bpp = screen->fb[0].bitsPerPixel;
-	if (bpp != 8)
-	    bpp = 4;
-	depth = bpp;
-	pscr->mapping = VESA_PLANAR;
+	if (bpp == 4)
+	{
+	    bpp = screen->fb[0].bitsPerPixel;
+	    if (bpp != 8)
+		bpp = 4;
+	    depth = bpp;
+	}
+	if (bpp == 1)
+	{
+	    pscr->mapping = VESA_MONO;
+	    if (vesa_verbose)
+		ErrorF ("\tMonochrome\n");
+	}
+	else
+	{
+	    pscr->mapping = VESA_PLANAR;
+	    if (vesa_verbose)
+		ErrorF ("\tStatic color bpp %d depth %d\n",
+			bpp, depth);
+	}
 	pscr->rotate = FALSE;
 	break;
     default:
         ErrorF("Unsupported VESA MemoryModel 0x%02X\n",
-               vmib->MemoryModel);
+               mode->MemoryModel);
         return FALSE;
     }
 
-    screen->width = vesaWidth(screen, vmib);
-    screen->height = vesaHeight(screen, vmib);
+    screen->width = vesaWidth(screen, mode);
+    screen->height = vesaHeight(screen, mode);
     screen->fb[0].depth = depth;
     screen->fb[0].bitsPerPixel = bpp;
-    screen->fb[0].byteStride = vmib->BytesPerScanLine;
-    screen->fb[0].pixelStride = ((vmib->BytesPerScanLine * 8) / 
-				 vmib->BitsPerPixel);
+    screen->fb[0].byteStride = mode->BytesPerScanLine;
+    screen->fb[0].pixelStride = ((mode->BytesPerScanLine * 8) / fbbpp);
 
-    if (pscr->mapping == VESA_LINEAR && !(vmib->ModeAttributes & 0x80))
+    if (pscr->mapping == VESA_LINEAR && !(mode->ModeAttributes & MODE_LINEAR))
 	pscr->mapping = VESA_WINDOWED;
     
     if (pscr->rotate)
 	pscr->shadow = TRUE;
     
     switch (pscr->mapping) {
+    case VESA_MONO:
+	pscr->shadow = TRUE;
+	/* fall through */
     case VESA_LINEAR:
-	pscr->fb = VbeMapFramebuffer(priv->vi, vmib);
+	if (mode->vbe)
+	    pscr->fb = VbeMapFramebuffer(priv->vi, priv->vbeInfo, 
+					 pscr->mode->mode,
+					 &pscr->fb_size);
+	else
+	    pscr->fb = VgaMapFramebuffer (priv->vi, 
+					  pscr->mode->mode,
+					  &pscr->fb_size);
 	break;
     case VESA_WINDOWED:
 	pscr->fb = NULL;
@@ -424,6 +549,10 @@ vesaScreenInitialize (KdScreenInfo *screen, VesaScreenPrivPtr pscr)
     if (pscr->shadow)
 	return KdShadowScreenInit (screen);
     
+    if (vesa_verbose)
+	ErrorF ("Mode selected %dx%dx%d\n",
+		screen->width, screen->height, screen->fb[0].depth);
+    
     return TRUE;
 }
 
@@ -441,7 +570,7 @@ vesaScreenInit(KdScreenInfo *screen)
 }
 
 void *
-vesaWindowPlanar (ScreenPtr pScreen,
+vesaSetWindowPlanar(ScreenPtr pScreen,
 		  CARD32    row,
 		  CARD32    offset,
 		  int	    mode,
@@ -450,22 +579,93 @@ vesaWindowPlanar (ScreenPtr pScreen,
     KdScreenPriv(pScreen);
     VesaCardPrivPtr	priv = pScreenPriv->card->driver;
     VesaScreenPrivPtr	pscr = pScreenPriv->screen->driver;
-    VbeModeInfoBlock	*vmib = &pscr->mode->vmib;
     static int		plane;
     int			winSize;
     void		*base;
 
-    if (!pScreenPriv->enabled)
-	return 0;
     plane = offset & 3;
-    VbeSetWritePlaneMask (priv->vi, (1 << plane));
+    VgaSetWritePlaneMask (priv->vi, (1 << plane));
     offset = offset >> 2;
-    base = VbeSetWindow (priv->vi,
-			 vmib->BytesPerScanLine * row + offset,
-			 mode,
-			 &winSize);
+    if (pscr->mode->vbe)
+    {
+	base = VbeSetWindow (priv->vi,
+			     priv->vbeInfo,
+			     pscr->mode->BytesPerScanLine * row + offset,
+			     mode,
+			     &winSize);
+    }
+    else
+    {
+	base = VgaSetWindow (priv->vi,
+			     pscr->mode->mode,
+			     pscr->mode->BytesPerScanLine * row + offset,
+			     mode,
+			     &winSize);
+    }
     *size = (CARD32) winSize;
     return base;
+}
+
+void *
+vesaSetWindowLinear (ScreenPtr	pScreen,
+		     CARD32	row,
+		     CARD32	offset,
+		     int	mode,
+		     CARD32	*size)
+{
+    KdScreenPriv(pScreen);
+    VesaCardPrivPtr	priv = pScreenPriv->card->driver;
+    VesaScreenPrivPtr	pscr = pScreenPriv->screen->driver;
+
+    *size = pscr->mode->BytesPerScanLine;
+    return (CARD8 *) pscr->fb + row * pscr->mode->BytesPerScanLine + offset;
+}
+
+void *
+vesaSetWindowWindowed (ScreenPtr    pScreen,
+		       CARD32	    row,
+		       CARD32	    offset,
+		       int	    mode,
+		       CARD32	    *size)
+{
+    KdScreenPriv(pScreen);
+    VesaCardPrivPtr	priv = pScreenPriv->card->driver;
+    VesaScreenPrivPtr	pscr = pScreenPriv->screen->driver;
+    int			winSize;
+    void		*base;
+
+    if (pscr->mode->vbe)
+    {
+	base = VbeSetWindow (priv->vi,
+			     priv->vbeInfo,
+			     pscr->mode->BytesPerScanLine * row + offset,
+			     mode,
+			     &winSize);
+    }
+    else
+    {
+	base = VgaSetWindow (priv->vi,
+			     pscr->mode->mode,
+			     pscr->mode->BytesPerScanLine * row + offset,
+			     mode,
+			     &winSize);
+    }
+    *size = (CARD32) winSize;
+    return base;
+}
+
+void *
+vesaWindowPlanar (ScreenPtr pScreen,
+		  CARD32    row,
+		  CARD32    offset,
+		  int	    mode,
+		  CARD32    *size)
+{
+    KdScreenPriv(pScreen);
+
+    if (!pScreenPriv->enabled)
+	return 0;
+    return vesaSetWindowPlanar (pScreen, row, offset, mode, size);
 }
 
 void *
@@ -476,14 +676,10 @@ vesaWindowLinear (ScreenPtr pScreen,
 		  CARD32    *size)
 {
     KdScreenPriv(pScreen);
-    VesaCardPrivPtr	priv = pScreenPriv->card->driver;
-    VesaScreenPrivPtr	pscr = pScreenPriv->screen->driver;
-    VbeModeInfoBlock	*vmib = &pscr->mode->vmib;
 
     if (!pScreenPriv->enabled)
 	return 0;
-    *size = vmib->BytesPerScanLine;
-    return (CARD8 *) pscr->fb + row * vmib->BytesPerScanLine + offset;
+    return vesaSetWindowLinear (pScreen, row, offset, mode, size);
 }
 
 void *
@@ -494,41 +690,114 @@ vesaWindowWindowed (ScreenPtr	pScreen,
 		    CARD32	*size)
 {
     KdScreenPriv(pScreen);
-    VesaCardPrivPtr	priv = pScreenPriv->card->driver;
-    VesaScreenPrivPtr	pscr = pScreenPriv->screen->driver;
-    VbeModeInfoBlock	*vmib = &pscr->mode->vmib;
-    int			winSize;
-    void		*base;
 
     if (!pScreenPriv->enabled)
 	return 0;
-    base = VbeSetWindow (priv->vi,
-			 vmib->BytesPerScanLine * row + offset,
-			 mode,
-			 &winSize);
-    *size = (CARD32) winSize;
-    return base;
+    return vesaSetWindowWindowed (pScreen, row, offset, mode, size);
 }
 
-static CARD16	vga16Colors[16][3] = {
-#if 0
-    { 0,   0,   0,   },       /*  0 */
-    { 0,   0,   0x80,},       /*  1 */
-    { 0,   0x80,0,   },       /*  2 */
-    { 0,   0x80,0x80,},       /*  3 */
-    { 0x80,0,   0,   },       /*  4 */
-    { 0x80,0,   0x80,},       /*  5 */
-    { 0x80,0x80,0,   },       /*  6 */
-    { 0xC0,0xC0,0xC0,},       /*  7 */
-    { 0x80,0x80,0x80,},       /*  8 */
-    { 0,   0,   0xFF,},       /*  9 */
-    { 0,   0xFF,0   ,},       /* 10 */
-    { 0,   0xFF,0xFF,},       /* 11 */
-    { 0xFF,0,   0   ,},       /* 12 */
-    { 0xFF,0,   0xFF,},       /* 13 */
-    { 0xFF,0xFF,0   ,},       /* 14 */
-    { 0xFF,0xFF,0xFF,},       /* 15 */
-#else
+#define vesaInvertBits32(v) { \
+    v = ((v & 0x55555555) << 1) | ((v >> 1) & 0x55555555); \
+    v = ((v & 0x33333333) << 2) | ((v >> 2) & 0x33333333); \
+    v = ((v & 0x0f0f0f0f) << 4) | ((v >> 4) & 0x0f0f0f0f); \
+}
+
+void *
+vesaWindowCga (ScreenPtr    pScreen,
+	       CARD32	    row,
+	       CARD32	    offset,
+	       int	    mode,
+	       CARD32	    *size)
+{
+    KdScreenPriv(pScreen);
+    VesaCardPrivPtr	priv = pScreenPriv->card->driver;
+    VesaScreenPrivPtr	pscr = pScreenPriv->screen->driver;
+    int			line;
+    
+    if (!pScreenPriv->enabled)
+	return 0;
+    *size = pscr->mode->BytesPerScanLine;
+    line = ((row & 1) << 13) + (row >> 1) * pscr->mode->BytesPerScanLine;
+    return (CARD8 *) pscr->fb + line + offset;
+}
+
+void
+vesaUpdateMono (ScreenPtr pScreen,
+		PixmapPtr pShadow,
+		RegionPtr damage)
+{
+    shadowScrPriv(pScreen);
+    int		nbox = REGION_NUM_RECTS (damage);
+    BoxPtr	pbox = REGION_RECTS (damage);
+    FbBits	*shaBase, *shaLine, *sha;
+    FbBits	s;
+    FbStride	shaStride;
+    int		scrBase, scrLine, scr;
+    int		shaBpp;
+    int		x, y, w, h, width;
+    int         i;
+    FbBits	*winBase, *winLine, *win;
+    CARD32      winSize;
+    FbBits	bits;
+    int		plane;
+
+    fbGetDrawable (&pShadow->drawable, shaBase, shaStride, shaBpp);
+    while (nbox--)
+    {
+	x = pbox->x1 * shaBpp;
+	y = pbox->y1;
+	w = (pbox->x2 - pbox->x1) * shaBpp;
+	h = pbox->y2 - pbox->y1;
+
+	scrLine = (x >> FB_SHIFT);
+	shaLine = shaBase + y * shaStride + (x >> FB_SHIFT);
+				   
+	x &= FB_MASK;
+	w = (w + x + FB_MASK) >> FB_SHIFT;
+	
+	while (h--)
+	{
+	    winSize = 0;
+	    scrBase = 0;
+	    width = w;
+	    scr = scrLine;
+	    sha = shaLine;
+	    while (width) {
+		/* how much remains in this window */
+		i = scrBase + winSize - scr;
+		if (i <= 0 || scr < scrBase)
+		{
+		    winBase = (FbBits *) (*pScrPriv->window) (pScreen,
+							      y,
+							      scr * sizeof (FbBits),
+							      SHADOW_WINDOW_WRITE,
+							      &winSize);
+		    if(!winBase)
+			return;
+		    scrBase = scr;
+		    winSize /= sizeof (FbBits);
+		    i = winSize;
+		}
+		win = winBase + (scr - scrBase);
+		if (i > width)
+		    i = width;
+		width -= i;
+		scr += i;
+		while (i--)
+		{
+		    bits = *sha++;
+		    vesaInvertBits32(bits);
+		    *win++ = bits;
+		}
+	    }
+	    shaLine += shaStride;
+	    y++;
+	}
+	pbox++;
+    }
+}
+
+static const CARD16	vga16Colors[16][3] = {
     { 0,   0,   0,   },       /*  0 */
     { 0,   0,   0xAA,},       /*  1 */
     { 0,   0xAA,0,   },       /*  2 */
@@ -545,7 +814,6 @@ static CARD16	vga16Colors[16][3] = {
     { 0xFF,0x55,0xFF,},       /* 13 */
     { 0xFF,0xFF,0x55,},       /* 14 */
     { 0xFF,0xFF,0xFF,},       /* 15 */
-#endif
 };
 
 Bool
@@ -586,24 +854,18 @@ vesaInitScreen(ScreenPtr pScreen)
 	case VESA_PLANAR:
 	    pScreen->CreateColormap = vesaCreateColormap16;
 	    if (pScreenPriv->screen->fb[0].bitsPerPixel == 8)
-	    {
-#if 0
-		int	i;
-
-		for (i = 0; i < pScreen->numVisuals; i++)
-		{
-		    if (pScreen->visuals[i].nplanes == 
-			pScreenPriv->screen->fb[0].depth)
-		    {
-			pScreen->visuals[i].ColormapEntries = 16;
-		    }
-		}
-#endif
 		update = shadowUpdatePlanar4x8;
-	    }
 	    else
 		update = shadowUpdatePlanar4;
 	    window = vesaWindowPlanar;
+	    pscr->rotate = FALSE;
+	    break;
+	case VESA_MONO:
+	    update = vesaUpdateMono;
+	    if (pscr->mode->mode < 8)
+		window = vesaWindowCga;
+	    else
+		window = vesaWindowLinear;
 	    pscr->rotate = FALSE;
 	    break;
 	}
@@ -629,55 +891,41 @@ Bool
 vesaEnable(ScreenPtr pScreen)
 {
     KdScreenPriv(pScreen);
-    VesaCardPrivPtr priv = pScreenPriv->card->driver;
+    VesaCardPrivPtr	priv = pScreenPriv->card->driver;
     VesaScreenPrivPtr	pscr = pScreenPriv->screen->driver;
-    int code;
-    int palette_wait = 0, palette_hi = 0;
-    int i;
-    int size;
-    char *p;
+    int			code;
+    int			i;
+    CARD32		size;
+    char		*p;
     KdMouseMatrix	m;
 
-    code = VbeSetMode(priv->vi, pscr->mode->mode, pscr->mapping == VESA_LINEAR);
-    if(code < 0)
-	return FALSE;
-
+    if (pscr->mode->vbe)
     {
-	int	    p;
-	CARD8 scratch[4] = {0x40,0x40,0x40,0};
-	for (p = 0; p < 256; p++)
-	{
-	    if (20 <= p && p < 21)
-	    {
-		scratch[0] = 255;
-		scratch[1] = 255;
-		scratch[2] = 255;
-	    }
-	    else
-	    {
-		scratch[0] = 0;
-		scratch[1] = 0;
-		scratch[2] = 0;
-	    }
-	    VbeSetPalette(priv->vi, p, 1, scratch);
-	}
+	if (vesa_verbose)
+	    ErrorF ("Enable VBE mode 0x%x\n", pscr->mode->mode);
+	code = VbeSetMode(priv->vi, priv->vbeInfo, pscr->mode->mode,
+			  pscr->mapping == VESA_LINEAR);
+    }
+    else
+    {
+	if (vesa_verbose)
+	    ErrorF ("Enable BIOS mode 0x%x\n", pscr->mode->mode);
+	code = VgaSetMode (priv->vi, pscr->mode->mode);
     }
     
-    if(priv->vib->Capabilities[0] & 1)
-        palette_hi = 1;
-    if(priv->vib->Capabilities[0] & 4)
-        palette_wait = 1;
-    if(palette_hi || palette_wait)
-        VbeSetPaletteOptions(priv->vi, palette_hi?8:6, palette_wait);
-
+    if(code < 0)
+	return FALSE;
+    
     switch (pscr->mapping) {
+    case VESA_MONO:
+	VgaSetWritePlaneMask (priv->vi, 0x1);
     case VESA_LINEAR:
 	memcpy (priv->text, pscr->fb, VESA_TEXT_SAVE);
 	break;
     case VESA_WINDOWED:
 	for (i = 0; i < VESA_TEXT_SAVE;) 
 	{
-            p = VbeSetWindow(priv->vi, i, VBE_WINDOW_READ, &size);
+	    p = vesaSetWindowWindowed (pScreen, 0, i, VBE_WINDOW_READ, &size);
             if(!p) {
                 ErrorF("Couldn't set window for saving VGA font\n");
                 break;
@@ -689,10 +937,9 @@ vesaEnable(ScreenPtr pScreen)
         }
 	break;
     case VESA_PLANAR:
-	p = VbeSetWindow (priv->vi, 0, VBE_WINDOW_READ, &size);
 	for (i = 0; i < 4; i++)
 	{
-	    VbeSetReadPlaneMap (priv->vi, i);
+	    p = vesaSetWindowPlanar (pScreen, 0, i, VBE_WINDOW_READ, &size);
 	    memcpy (((char *)priv->text) + i * (VESA_TEXT_SAVE/4), p,
 		    (VESA_TEXT_SAVE/4));
 	}
@@ -716,19 +963,20 @@ void
 vesaDisable(ScreenPtr pScreen)
 {
     KdScreenPriv(pScreen);
-    VesaCardPrivPtr priv = pScreenPriv->card->driver;
+    VesaCardPrivPtr	priv = pScreenPriv->card->driver;
     VesaScreenPrivPtr	pscr = pScreenPriv->screen->driver;
-    int i=0;
-    int size;
-    char *p;
+    int			i=0;
+    CARD32		size;
+    char		*p;
 
     switch (pscr->mapping) {
     case VESA_LINEAR:
+    case VESA_MONO:
         memcpy(pscr->fb, priv->text, VESA_TEXT_SAVE);
 	break;
     case VESA_WINDOWED:
         while(i < VESA_TEXT_SAVE) {
-            p = VbeSetWindow(priv->vi, i, VBE_WINDOW_WRITE, &size);
+	    p = vesaSetWindowWindowed (pScreen, 0, i, VBE_WINDOW_WRITE, &size);
             if(!p) {
                 ErrorF("Couldn't set window for restoring VGA font\n");
                 break;
@@ -740,10 +988,9 @@ vesaDisable(ScreenPtr pScreen)
         }
 	break;
     case VESA_PLANAR:
-	p = VbeSetWindow (priv->vi, 0, VBE_WINDOW_WRITE, &size);
 	for (i = 0; i < 4; i++)
 	{
-	    VbeSetWritePlaneMask (priv->vi, 1 << i);
+	    p = vesaSetWindowPlanar (pScreen, 0, i, VBE_WINDOW_WRITE, &size);
 	    memcpy (p,
 		    ((char *)priv->text) + i * (VESA_TEXT_SAVE/4),
 		    (VESA_TEXT_SAVE/4));
@@ -761,29 +1008,49 @@ vesaPreserve(KdCardInfo *card)
     /* The framebuffer might not be valid at this point, so we cannot
        save the VGA fonts now; we do it in vesaEnable. */
 
-    code = VbeSaveState(priv->vi);
-    if(code < 0)
-        FatalError("Couldn't save state\n");
+    if (VbeGetMode (priv->vi, &priv->old_vbe_mode) < 0)
+	priv->old_vbe_mode = -1;
 
-    return;
+    if (VgaGetMode (priv->vi, &priv->old_vga_mode) < 0)
+	priv->old_vga_mode = -1;
+    
+    if (vesa_verbose)
+	ErrorF ("Previous modes: VBE 0x%x BIOS 0x%x\n",
+		priv->old_vbe_mode, priv->old_vga_mode);
 }
 
 void
 vesaRestore(KdCardInfo *card)
 {
     VesaCardPrivPtr priv = card->driver;
-    VbeRestoreState(priv->vi);
-    return;
+    int		    n;
+
+    for (n = 0; n < priv->nmode; n++)
+	if (priv->modes[n].vbe && priv->modes[n].mode == (priv->old_vbe_mode&0x3fff))
+	    break;
+
+    if (n < priv->nmode)
+    {
+	if (vesa_verbose)
+	    ErrorF ("Restore VBE mode 0x%x\n", priv->old_vbe_mode);
+	VbeSetMode (priv->vi, priv->vbeInfo, priv->old_vbe_mode, 0);
+    }
+    else
+    {
+	if (vesa_verbose)
+	    ErrorF ("Restore BIOS mode 0x%x\n", priv->old_vga_mode);
+	VgaSetMode (priv->vi, priv->old_vga_mode);
+    }
 }
 
 void
 vesaCardFini(KdCardInfo *card)
 {
     VesaCardPrivPtr priv = card->driver;
-    if (vesa_restore)
-	VbeSetTextMode(priv->vi,3);
-    VbeCleanup(priv->vi);
-    return;
+    
+    if (priv->vbeInfo)
+	VbeCleanup (priv->vi, priv->vbeInfo);
+    Vm86Cleanup(priv->vi);
 }
 
 void 
@@ -793,14 +1060,47 @@ vesaScreenFini(KdScreenInfo *screen)
     VesaCardPrivPtr	priv = screen->card->driver;
     
     if (pscr->fb)
-	VbeUnmapFramebuffer(priv->vi, &pscr->mode->vmib, pscr->fb);
+    {
+	if (pscr->mode->vbe)
+	    VbeUnmapFramebuffer(priv->vi, priv->vbeInfo, pscr->mode->mode, pscr->fb);
+	else
+	    VgaUnmapFramebuffer (priv->vi);
+    }
     
     if (pscr->shadow)
 	KdShadowScreenFini (screen);
     screen->fb[0].depth = pscr->origDepth;
-    return;
 }
 
+int 
+vesaSetPalette(VesaCardPrivPtr priv, int first, int number, U8 *entries)
+{
+    if (priv->vga_palette)
+	return VgaSetPalette (priv->vi, first, number, entries);
+    else
+	return VbeSetPalette (priv->vi, priv->vbeInfo, first, number, entries);
+}
+    
+
+int 
+vesaGetPalette(VesaCardPrivPtr priv, int first, int number, U8 *entries)
+{
+    int	code;
+    
+    if (priv->vga_palette)
+	code = VgaGetPalette (priv->vi, first, number, entries);
+    else
+    {
+	code = VbeGetPalette (priv->vi, priv->vbeInfo, first, number, entries);
+	if (code < 0)
+	{
+	    priv->vga_palette = 1;
+	    code = VgaGetPalette (priv->vi, first, number, entries);
+	}
+    }
+    return code;
+}
+    
 void
 vesaPutColors (ScreenPtr pScreen, int fb, int n, xColorItem *pdefs)
 {
@@ -841,15 +1141,15 @@ vesaPutColors (ScreenPtr pScreen, int fb, int n, xColorItem *pdefs)
 	     */
 	    if (p < 16)
 	    {
-		VbeSetPalette (priv->vi, p, 1, scratch);
+		vesaSetPalette (priv, p, 1, scratch);
 		if (p >= 8)
-		    VbeSetPalette (priv->vi, p+0x30, 1, scratch);
+		    vesaSetPalette (priv, p+0x30, 1, scratch);
 		else if (p == 6)
-		    VbeSetPalette (priv->vi, 0x14, 1, scratch);
+		    vesaSetPalette (priv, 0x14, 1, scratch);
 	    }
 	}
 	else
-	    VbeSetPalette(priv->vi, p, 1, scratch);
+	    vesaSetPalette(priv, p, 1, scratch);
     }
 }
 
@@ -876,7 +1176,7 @@ vesaGetColors (ScreenPtr pScreen, int fb, int n, xColorItem *pdefs)
     }
     
     for(i = 0; i<n; i++) {
-        VbeGetPalette(priv->vi, pdefs[i].pixel, 1, scratch);
+        vesaGetPalette(priv, pdefs[i].pixel, 1, scratch);
         pdefs[i].red = scratch[red]<<8;
         pdefs[i].green = scratch[green]<<8;
         pdefs[i].blue = scratch[blue]<<8;
@@ -907,8 +1207,8 @@ vesaProcessArgument (int argc, char **argv, int i)
     } else if(!strcmp(argv[i], "-nolinear")) {
         vesa_linear_fb = FALSE;
         return 1;
-    } else if(!strcmp(argv[i], "-restore")) {
-	vesa_restore = TRUE;
+    } else if(!strcmp(argv[i], "-verbose")) {
+	vesa_verbose = TRUE;
 	return 1;
     }
     

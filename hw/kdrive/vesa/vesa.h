@@ -25,54 +25,127 @@ THE SOFTWARE.
 #define _VESA_H_
 
 #include "kdrive.h"
-#include <sys/vm86.h>
-#include "vbe.h"
+#include "vm86.h"
 
 #define VESA_TEXT_SAVE	(64*1024)
 
+#define MODE_SUPPORTED	0x01
+#define MODE_COLOUR	0x08
+#define MODE_GRAPHICS	0x10
+#define MODE_VGA	0x20
+#define MODE_LINEAR	0x80
+
+#define MODE_DIRECT	0x1
+
+#define MEMORY_TEXT	0
+#define MEMORY_CGA	1
+#define MEMORY_HERCULES	2
+#define MEMORY_PLANAR	3
+#define MEMORY_PSEUDO	4
+#define MEMORY_NONCHAIN	5
+#define MEMORY_DIRECT	6
+#define MEMORY_YUV	7
+
 typedef struct _VesaMode {
-    int mode;
-    VbeModeInfoBlock vmib;
+    int		mode;			/* mode number */
+    int		vbe;			/* a VBE mode */
+    int		ModeAttributes;		/* mode attributes */
+    int		NumberOfPlanes;		/* number of memory planes */
+    int		BitsPerPixel;		/* bits per pixel */
+    int		MemoryModel;		/* memory model type */
+    int		RedMaskSize;            /* size of direct color red mask in bits */
+    int		RedFieldPosition;       /* bit position of lsb of red mask */
+    int		GreenMaskSize;          /* size of direct color green mask in bits */
+    int		GreenFieldPosition;     /* bit position of lsb of green mask */
+    int		BlueMaskSize;           /* size of direct color blue mask in bits */
+    int		BlueFieldPosition;      /* bit position of lsb of blue mask */
+    int		RsvdMaskSize;           /* size of direct color reserved mask bits*/
+    int		RsvdFieldPosition;      /* bit position of lsb of reserved mask */
+    int		DirectColorModeInfo;    /* direct color mode attributes */
+    int		XResolution;            /* horizontal resolution */
+    int		YResolution;            /* vertical resolution */
+    int		BytesPerScanLine;       /* bytes per scan line */
 } VesaModeRec, *VesaModePtr;
 
+#include "vbe.h"
+#include "vga.h"
+
 typedef struct _VesaCardPriv {
-    VbeInfoPtr vi;
-    VbeInfoBlock *vib;
+    int		vbe;
+    Vm86InfoPtr	vi;
     VesaModePtr modes;
-    int	nmode;
-    char text[VESA_TEXT_SAVE];
+    int		nmode;
+    int		vga_palette;
+    int		old_vbe_mode;
+    int		old_vga_mode;
+    VbeInfoPtr	vbeInfo;
+    char	text[VESA_TEXT_SAVE];
 } VesaCardPrivRec, *VesaCardPrivPtr;
 
 #define VESA_LINEAR	0
 #define VESA_WINDOWED	1
 #define VESA_PLANAR	2
+#define VESA_MONO	3
+
 typedef struct _VesaScreenPriv {
     VesaModePtr mode;
     Bool	shadow;
     Bool	rotate;
     int		mapping;
     int		origDepth;
-    void *fb;
+    void	*fb;
+    int		fb_size;
 } VesaScreenPrivRec, *VesaScreenPrivPtr;
 
 extern int vesa_video_mode;
 extern Bool vesa_force_mode;
 
-Bool vesaListModes(void);
-Bool vesaInitialize(KdCardInfo *card, VesaCardPrivPtr priv);
-Bool vesaCardInit(KdCardInfo *card);
-Bool vesaInitialize (KdCardInfo *card, VesaCardPrivPtr priv);
-Bool vesaScreenInitialize (KdScreenInfo *screen, VesaScreenPrivPtr pscr);
-Bool vesaScreenInit(KdScreenInfo *screen);    
-Bool vesaInitScreen(ScreenPtr pScreen);
-Bool vesaEnable(ScreenPtr pScreen);
-void vesaDisable(ScreenPtr pScreen);
-void vesaPreserve(KdCardInfo *card);
-void vesaRestore(KdCardInfo *card);
-void vesaCardFini(KdCardInfo *card);
-void vesaScreenFini(KdScreenInfo *screen);
-void vesaPutColors (ScreenPtr pScreen, int fb, int n, xColorItem *pdefs);
-void vesaGetColors (ScreenPtr pScreen, int fb, int n, xColorItem *pdefs);
-int vesaProcessArgument (int argc, char **argv, int i);
+void
+vesaListModes(void);
+
+Bool
+vesaInitialize(KdCardInfo *card, VesaCardPrivPtr priv);
+
+Bool
+vesaCardInit(KdCardInfo *card);
+
+Bool
+vesaInitialize (KdCardInfo *card, VesaCardPrivPtr priv);
+
+Bool
+vesaScreenInitialize (KdScreenInfo *screen, VesaScreenPrivPtr pscr);
+
+Bool
+vesaScreenInit(KdScreenInfo *screen);    
+
+Bool
+vesaInitScreen(ScreenPtr pScreen);
+
+Bool
+vesaEnable(ScreenPtr pScreen);
+
+void
+vesaDisable(ScreenPtr pScreen);
+
+void
+vesaPreserve(KdCardInfo *card);
+
+void
+vesaRestore(KdCardInfo *card);
+
+void
+vesaCardFini(KdCardInfo *card);
+
+void
+vesaScreenFini(KdScreenInfo *screen);
+
+void
+vesaPutColors (ScreenPtr pScreen, int fb, int n, xColorItem *pdefs);
+
+void
+vesaGetColors (ScreenPtr pScreen, int fb, int n, xColorItem *pdefs);
+
+int
+vesaProcessArgument (int argc, char **argv, int i);
 
 #endif _VESA_H_

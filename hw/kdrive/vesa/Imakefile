@@ -1,10 +1,10 @@
-XCOMM $XFree86$
+XCOMM $XFree86: xc/programs/Xserver/hw/kdrive/vesa/Imakefile,v 1.2 2000/09/03 05:11:22 keithp Exp $
 KDRIVE=..
 #include "../Kdrive.tmpl"
 
-SRCS = 	vesa.c vesainit.c vbe.c 
+SRCS = 	vesa.c vesainit.c vbe.c vga.c vm86.c
 
-OBJS = 	vesa.o vesainit.o vbe.o
+OBJS = 	vesa.o vesainit.o vbe.o vga.o vm86.o
 
 INCLUDES = -I. $(KDINCS)
 

@@ -23,7 +23,7 @@ THE SOFTWARE.
 
 #include "vesa.h"
 
-KdCardFuncs vesaFuncs = {
+const KdCardFuncs vesaFuncs = {
     vesaCardInit,               /* cardinit */
     vesaScreenInit,             /* scrinit */
     vesaInitScreen,             /* initScreen */

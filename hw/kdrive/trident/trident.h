@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/trident/trident.h,v 1.6 2000/09/15 07:25:12 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/trident/trident.h,v 1.7 2000/10/11 06:04:40 keithp Exp $ */
 
 #ifndef _TRIDENT_H_
 #define _TRIDENT_H_
@@ -34,7 +34,6 @@
 /*
  * offset from ioport beginning 
  */
-#define USE_PCI
 
 #ifdef USE_PCI
 #define TRIDENT_COP_BASE(c)	(c->attr.address[1])
@@ -219,6 +218,8 @@ typedef struct _tridentScreenInfo {
 #endif
     CARD8	    *cursor_base;
     CARD8	    *screen;
+    CARD8	    *off_screen;
+    int		    off_screen_size;
     TridentCursor   cursor;
 } TridentScreenInfo;
 

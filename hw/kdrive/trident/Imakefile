@@ -1,5 +1,5 @@
 XCOMM $XConsortium: Imakefile /main/10 1996/12/02 10:20:33 lehors $
-XCOMM $XFree86: xc/programs/Xserver/hw/kdrive/trident/Imakefile,v 1.4 2000/09/15 07:25:12 keithp Exp $
+XCOMM $XFree86: xc/programs/Xserver/hw/kdrive/trident/Imakefile,v 1.5 2000/09/19 23:49:55 keithp Exp $
 KDRIVE=..
 #include "../Kdrive.tmpl"
 
@@ -7,7 +7,7 @@ SRCS = 	trident.c tridentdraw.c tridentcurs.c tridentstub.c
 
 OBJS = 	trident.o tridentdraw.o tridentcurs.o tridentstub.o
 
-DEFINES = -DVESA
+DEFINES = -DVESA /* -DUSE_PCI*/
 
 INCLUDES = -I. $(KDINCS) -I$(KDRIVE)/fbdev -I$(KDRIVE)/vesa
 

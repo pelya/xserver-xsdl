@@ -28,56 +28,6 @@ THE SOFTWARE.
 #define VBE_WINDOW_READ 2
 #define VBE_WINDOW_WRITE 4
 
-#ifndef U8
-#define U8 unsigned char
-#define U16 unsigned short
-#define U32 unsigned int
-#endif
-
-/* The whole addressable memory */
-#define SYSMEM_BASE 0x00000
-#define SYSMEM_SIZE 0x100000
-
-/* Interrupt vectors and BIOS data area */
-/* This is allocated privately from /dev/mem */
-#define MAGICMEM_BASE 0x00000
-#define MAGICMEM_SIZE 0x01000
-
-/* The low memory, allocated privately from /dev/zero */
-/* 64KB should be enough for anyone, as they used to say */
-#define LOMEM_BASE 0x10000
-#define LOMEM_SIZE 0x10000
-
-/* The video memory and BIOS ROM, allocated shared from /dev/mem */
-#define HIMEM_BASE 0xA0000
-#define HIMEM_SIZE (SYSMEM_BASE + SYSMEM_SIZE - HIMEM_BASE)
-
-/* The BIOS ROM */
-#define ROM_BASE 0xC0000
-#define ROM_SIZE 0x30000
-
-#define STACK_SIZE 0x1000
-
-#define POINTER_SEGMENT(ptr) (((unsigned int)ptr)>>4)
-#define POINTER_OFFSET(ptr) (((unsigned int)ptr)&0x000F)
-#define MAKE_POINTER(seg, off) (((((unsigned int)(seg))<<4) + (unsigned int)(off)))
-#define MAKE_POINTER_1(lw) MAKE_POINTER(((lw)&0xFFFF0000)/0x10000, (lw)&0xFFFF)
-#define ALLOC_FAIL ((U32)-1)
-
-typedef struct _VbeInfoRec {
-    int devmem, devzero;
-    void *magicMem, *loMem, *hiMem;
-    U32 brk;
-    struct vm86_struct vms;
-    U32 ret_code, stack_base, vib_base, vmib_base, statebuffer_base, palette_scratch_base;
-    U8 palette_format;
-    int palette_wait;
-    int windowA_offset;
-    int windowB_offset;
-    int last_window;
-    int vga_palette;
-} VbeInfoRec, *VbeInfoPtr;
-
 typedef struct _VbeInfoBlock {
     U8 VbeSignature[4];         /* VBE Signature */
     U16 VbeVersion;             /* VBE Version */
@@ -134,6 +84,15 @@ typedef struct _VbeModeInfoBlock {
     U8 Reserved2[206];          /* remainder of ModeInfoBlock */
 } __attribute__((packed)) VbeModeInfoBlock;
 
+typedef struct _VbeInfoRec {
+    U8			palette_format;
+    int			palette_wait;
+    int			windowA_offset;
+    int			windowB_offset;
+    int			window_size;
+    int			last_window;
+    VbeModeInfoBlock	vmib;
+} VbeInfoRec, *VbeInfoPtr;
 
 typedef struct _SupVbeInfoBlock {
     U8 SupVbeSignature[7];      /* Supplemental VBE Signature */
@@ -147,32 +106,58 @@ typedef struct _SupVbeInfoBlock {
     U8 Reserved[221];           /* Reserved */
 } __attribute__((packed)) SupVbeInfoBlock;
 
-VbeInfoPtr VbeSetup(void);
-void VbeCleanup(VbeInfoPtr vi);
-VbeInfoBlock *VbeGetInfo(VbeInfoPtr vi);
-VbeModeInfoBlock *VbeGetModeInfo(VbeInfoPtr vi, int mode);
-int VbeSetMode(VbeInfoPtr vi, int mode, int linear);
-int  VbeGetMode(VbeInfoPtr vi, int *mode);
-int VbeSetupStateBuffer(VbeInfoPtr vi);
-int VbeSaveState(VbeInfoPtr vi);
-int VbeRestoreState(VbeInfoPtr vi);
-void *VbeMapFramebuffer(VbeInfoPtr vi, VbeModeInfoBlock *vmib);
-int VbeUnmapFrambuffer(VbeInfoPtr vi, VbeModeInfoBlock *vmib, void *fb);
-int VbeSetPalette(VbeInfoPtr vi, int first, int number, U8 *entries);
-int VbeSetPaletteOptions(VbeInfoPtr vi, U8 bits, int wait);
-void *VbeSetWindow(VbeInfoPtr vi, int offset, int purpose, int *size_return);
-int VbeReportInfo(VbeInfoPtr, VbeInfoBlock *);
-int VbeReportModeInfo(VbeInfoPtr, U16 mode, VbeModeInfoBlock *);
+int
+VbeGetVib (Vm86InfoPtr vi, VbeInfoBlock *vib);
 
-int VbeDoInterrupt(VbeInfoPtr, int num);
-int VbeDoInterrupt10(VbeInfoPtr vi);
-int  VbeIsMemory(VbeInfoPtr vi, U32 i);
-U8 VbeMemory(VbeInfoPtr, U32);
-U16 VbeMemoryW(VbeInfoPtr, U32);
-U32 VbeMemoryL(VbeInfoPtr, U32);
-void VbeWriteMemory(VbeInfoPtr, U32, U8);
-void VbeWriteMemoryW(VbeInfoPtr, U32, U16);
-void VbeWriteMemoryL(VbeInfoPtr, U32, U32);
-int VbeAllocateMemory(VbeInfoPtr, int);
-void VbeDebug(VbeInfoPtr vi);
+int
+VbeGetVmib (Vm86InfoPtr vi, int mode, VbeModeInfoBlock *vmib);
+
+void
+VbeReportInfo (Vm86InfoPtr vi);
+
+int
+VbeGetNmode (Vm86InfoPtr vi);
+
+int
+VbeGetModes (Vm86InfoPtr vi, VesaModePtr modes, int nmode);
+
+int
+VbeGetModeInfo(Vm86InfoPtr vi, int m, VesaModePtr mode);
+
+VbeInfoPtr
+VbeInit (Vm86InfoPtr vi);
+
+int
+VbeSetMode (Vm86InfoPtr vi, VbeInfoPtr vbe, int mode, int linear);
+
+int 
+VbeGetMode(Vm86InfoPtr vi, int *mode);
+
+void *
+VbeMapFramebuffer(Vm86InfoPtr vi, VbeInfoPtr vbe, int mode, int *size);
+
+void
+VbeUnmapFramebuffer(Vm86InfoPtr vi, VbeInfoPtr vbe, int mode, void *fb);
+
+int 
+VbeSetPalette(Vm86InfoPtr vi, VbeInfoPtr vbe, int first, int number, U8 *entries);
+        
+int 
+VbeGetPalette(Vm86InfoPtr vi, VbeInfoPtr vbe, int first, int number, U8 *entries);
+        
+int 
+VbeSetPaletteOptions(Vm86InfoPtr vi, VbeInfoPtr vbe, U8 bits, int wait);
+
+void *
+VbeSetWindow(Vm86InfoPtr vi, VbeInfoPtr vbe, int offset, int purpose, int *size_return);
+
+int 
+VbeReportVib(Vm86InfoPtr vi, VbeInfoBlock *vib);
+
+int 
+VbeReportModeInfo(Vm86InfoPtr vi, U16 mode, VbeModeInfoBlock *vmib);
+
+int
+VbeDoInterrupt10(Vm86InfoPtr vi);
+    
 #endif
