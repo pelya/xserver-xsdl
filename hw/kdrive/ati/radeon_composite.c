@@ -293,9 +293,9 @@ R100PrepareComposite(int op, PicturePtr pSrcPicture, PicturePtr pMaskPicture,
 		is_transform[1] = FALSE;
 	}
 
-	BEGIN_DMA(14);
-	OUT_REG(ATI_REG_WAIT_UNTIL,
-		RADEON_WAIT_HOST_IDLECLEAN | RADEON_WAIT_2D_IDLECLEAN);
+	RadeonSwitchTo3D(atis);
+
+	BEGIN_DMA(12);
 
 	/* RADEON_REG_PP_CNTL,
 	 * RADEON_REG_RB3D_CNTL, 
@@ -512,9 +512,9 @@ R200PrepareComposite(int op, PicturePtr pSrcPicture, PicturePtr pMaskPicture,
 		is_transform[1] = FALSE;
 	}
 
-	BEGIN_DMA(22);
-	OUT_REG(ATI_REG_WAIT_UNTIL,
-		RADEON_WAIT_HOST_IDLECLEAN | RADEON_WAIT_2D_IDLECLEAN);
+	RadeonSwitchTo3D(atis);
+
+	BEGIN_DMA(20);
 
 	/* RADEON_REG_PP_CNTL,
 	 * RADEON_REG_RB3D_CNTL, 
@@ -713,9 +713,9 @@ RadeonPrepareTrapezoids(PicturePtr pDstPicture, PixmapPtr pDst)
 	if (((dst_pitch >> pixel_shift) & 0x7) != 0)
 		ATI_FALLBACK(("Bad destination pitch 0x%x\n", dst_pitch));
 
-	BEGIN_DMA(10);
-	OUT_REG(ATI_REG_WAIT_UNTIL,
-		RADEON_WAIT_HOST_IDLECLEAN | RADEON_WAIT_2D_IDLECLEAN);
+	RadeonSwitchTo3D(atis);
+
+	BEGIN_DMA(8);
 
 	/* RADEON_REG_PP_CNTL,
 	 * RADEON_REG_RB3D_CNTL, 
