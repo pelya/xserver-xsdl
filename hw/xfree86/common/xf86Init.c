@@ -1251,8 +1251,8 @@ AbortDDX()
 void
 OsVendorFatalError()
 {
-  ErrorF("\nWhen reporting a problem related to a server crash, please send\n"
-	 "the full server output, not just the last messages.\n");
+  ErrorF("\nWhen reporting a problem related to a server crash, please\n"
+	 "send the full server output, not just the last messages.\n");
   if (xf86LogFile && xf86LogFileWasOpened)
     ErrorF("This can be found in the log file \"%s\".\n", xf86LogFile);
   ErrorF("Please report problems to %s.\n", BUILDERADDR);
@@ -1703,14 +1703,15 @@ xf86PrintBanner()
 {
 #if PRE_RELEASE
   ErrorF("\n"
-    "This is a pre-release version of XFree86, and is not supported in any\n"
-    "way.  Bugs may be reported to XFree86@XFree86.Org and patches submitted\n"
-    "to fixes@XFree86.Org.  Before reporting bugs in pre-release versions,\n"
-    "please check the latest version in the XFree86 CVS repository\n"
-    "(http://www.XFree86.Org/cvs).\n");
+    "This is a pre-release version of the X.org Foundation's X11.\n"
+    "Portions of this release are based on XFree86 4.4RC2 and selected\n"
+    "files from XFree86 4.4RC3. It is not supported in any way.\n"
+    "Bugs may be filed in the bugzilla at http://bugs.freedesktop.org/.\n"
+    "Select the \"xorg\" product for bugs you find in this release.\n"
+    "Before reporting bugs in pre-release versions please check the\n"
+    "latest version in the X.org Foundation \"monolithic tree\" CVS\n"
+    "repository hosted at http://www.freedesktop.org/Software/xorg/"
 #endif
-  ErrorF("\nXFree86 Version %d.%d.%d", XF86_VERSION_MAJOR, XF86_VERSION_MINOR,
-					XF86_VERSION_PATCH);
 #if XF86_VERSION_SNAP > 0
   ErrorF(".%d", XF86_VERSION_SNAP);
 #endif
