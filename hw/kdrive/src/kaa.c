@@ -384,6 +384,53 @@ kaaDrawableIsOffscreen (DrawablePtr pDrawable)
     return kaaPixmapIsOffscreen (pPixmap);
 }
 
+#if 0
+static void
+kaaFillTiled(int	dst_x,
+	     int	dst_y,
+	     int	width,
+	     int	height,
+	     int	src_x,
+	     int	src_y,
+	     int	src_width,
+	     int	src_height,
+	     void	(*Copy) (int	srcX,
+				 int	srcY,
+				 int	dstX,
+				 int	dstY,
+				 int	width,
+				 int	height))
+{
+    modulus (src_x, src_width, src_x);
+    modulus (src_y, src_height, src_y);
+    
+    while (height)
+    {
+	int dst_x_tmp = dst_x;
+	int src_x_tmp = src_x;
+	int width_tmp = width;
+	int height_left = src_height - src_y;
+	int height_this = min (height, height_left);
+	
+	while (width_tmp)
+	{
+	    int width_left = src_width - src_x_tmp;
+	    int width_this = min (width_tmp, width_left);
+
+	    (*Copy) (src_x_tmp, src_y,
+		     dst_x_tmp, dst_y,
+		     width_this, height_this);
+
+	    width_tmp -= width_this;
+	    dst_x_tmp += width_this;
+	}
+	height -= height_this;
+	dst_y += height_this;
+	src_y = 0;
+    }
+}
+#endif
+
 static void
 kaaFillSpans(DrawablePtr pDrawable, GCPtr pGC, int n, 
 	     DDXPointPtr ppt, int *pwidth, int fSorted)
@@ -956,6 +1003,18 @@ kaaFillRegionSolid (DrawablePtr	pDrawable,
     kaaDrawableDirty (pDrawable);
 }
 
+#if 0
+static void
+kaaFillRegionTiled (DrawablePtr pDrawable,
+		    RegionPtr	pRegion,
+		    Pixmap	pTile)
+{
+    else
+    {
+	KdCheckSync
+}
+#endif
+
 static void
 kaaPaintWindow(WindowPtr pWin, RegionPtr pRegion, int what)
 {
@@ -977,6 +1036,11 @@ kaaPaintWindow(WindowPtr pWin, RegionPtr pRegion, int what)
 	case BackgroundPixel:
 	    kaaFillRegionSolid((DrawablePtr)pWin, pRegion, pWin->background.pixel);
 	    return;
+#if 0	    
+	case BackgroundPixmap:
+	    kaaFillRegionTiled((DrawablePtr)pWin, pRegion, pWin->background.pixmap);
+	    return;
+#endif
     	}
     	break;
     case PW_BORDER:
@@ -985,6 +1049,13 @@ kaaPaintWindow(WindowPtr pWin, RegionPtr pRegion, int what)
 	    kaaFillRegionSolid((DrawablePtr)pWin, pRegion, pWin->border.pixel);
 	    return;
 	}
+#if 0
+	else
+	{
+	    kaaFillRegionTiled((DrawablePtr)pWin, pRegion, pWin->border.pixmap);
+	    return;
+	}
+#endif
 	break;
     }
     KdCheckPaintWindow (pWin, pRegion, what);

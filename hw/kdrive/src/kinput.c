@@ -45,7 +45,10 @@
 
 static DeviceIntPtr	pKdKeyboard, pKdPointer;
 
-static KdMouseFuncs	*kdMouseFuncs;
+#define MAX_MOUSE_DRIVERS   4
+
+static KdMouseFuncs	*kdMouseFuncs[MAX_MOUSE_DRIVERS];
+static int		kdNMouseFuncs;
 static KdKeyboardFuncs	*kdKeyboardFuncs;
 static int		kdBellPitch;
 static int		kdBellDuration;
@@ -57,10 +60,6 @@ static KdMouseMatrix	kdMouseMatrix = {
    { { 1, 0, 0 },
      { 0, 1, 0 } }
 };
-
-#ifdef TOUCHSCREEN
-static KdMouseFuncs	*kdTsFuncs;
-#endif
 
 int		kdMouseButtonCount;
 int		kdMinScanCode;
@@ -327,12 +326,8 @@ KdMouseProc(DeviceIntPtr pDevice, int onoff)
     case DEVICE_ON:
 	pDev->on = TRUE;
 	pKdPointer = pDevice;
-#ifdef TOUCHSCREEN
-	if (kdTsFuncs)
-	    (*kdTsFuncs->Init) ();
-#endif
-	if (kdMouseFuncs)
-	    (*kdMouseFuncs->Init) ();
+	for (i = 0; i < kdNMouseFuncs; i++)
+	    (*kdMouseFuncs[i]->Init)();
 	break;
     case DEVICE_OFF:
     case DEVICE_CLOSE:
@@ -340,12 +335,8 @@ KdMouseProc(DeviceIntPtr pDevice, int onoff)
 	{
 	    pDev->on = FALSE;
 	    pKdPointer = 0;
-	    if (kdMouseFuncs)
-		(*kdMouseFuncs->Fini) ();
-#ifdef TOUCHSCREEN
-	    if (kdTsFuncs)
-		(*kdTsFuncs->Fini) ();
-#endif
+	    for (i = 0; i < kdNMouseFuncs; i++)
+		(*kdMouseFuncs[i]->Fini) ();
 	}
 	break;
     }
@@ -579,6 +570,13 @@ KdInitModMap (void)
 }
 
 void
+KdAddMouseDriver(KdMouseFuncs *pMouseFuncs)
+{
+    if (kdNMouseFuncs < MAX_MOUSE_DRIVERS)
+	kdMouseFuncs[kdNMouseFuncs++] = pMouseFuncs;
+}
+
+void
 KdInitInput(KdMouseFuncs    *pMouseFuncs,
 	    KdKeyboardFuncs *pKeyboardFuncs)
 {
@@ -594,7 +592,8 @@ KdInitInput(KdMouseFuncs    *pMouseFuncs,
 	    kdMouseButtonCount = mi->nbutton;
     }
 
-    kdMouseFuncs = pMouseFuncs;
+    kdNMouseFuncs = 0;
+    KdAddMouseDriver (pMouseFuncs);
     kdKeyboardFuncs = pKeyboardFuncs;
     memset (kdKeyState, '\0', sizeof (kdKeyState));
     if (kdKeyboardFuncs)
@@ -628,14 +627,6 @@ KdInitInput(KdMouseFuncs    *pMouseFuncs,
     }
 #endif
 }
-
-#ifdef TOUCHSCREEN
-void
-KdInitTouchScreen(KdMouseFuncs *pTsFuncs)
-{
-    kdTsFuncs = pTsFuncs;
-}
-#endif
 
 /*
  * Middle button emulation state machine

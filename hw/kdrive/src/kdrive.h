@@ -708,6 +708,9 @@ KdScreenInfoDispose (KdScreenInfo *si);
 void
 KdInitInput(KdMouseFuncs *, KdKeyboardFuncs *);
 
+void
+KdAddMouseDriver(KdMouseFuncs *);
+
 int
 KdAllocInputType (void);
 
@@ -721,11 +724,6 @@ KdRegisterFdEnableDisable (int fd,
 
 void
 KdUnregisterFds (int type, Bool do_close);
-
-#ifdef TOUCHSCREEN
-void
-KdInitTouchScreen(KdMouseFuncs *pTsFuncs);
-#endif
 
 void
 KdEnqueueKeyboardEvent(unsigned char	scan_code,
@@ -778,6 +776,7 @@ void
 ProcessInputEvents (void);
 
 extern KdMouseFuncs	LinuxMouseFuncs;
+extern KdMouseFuncs	LinuxEvdevFuncs;
 extern KdMouseFuncs	Ps2MouseFuncs;
 extern KdMouseFuncs	BusMouseFuncs;
 extern KdMouseFuncs	MsMouseFuncs;

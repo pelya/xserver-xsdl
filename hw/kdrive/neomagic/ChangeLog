@@ -1,3 +1,37 @@
+2005-02-08  Keith Packard  <keithp@keithp.com>
+
+	reviewed by: <delete if not using a buddy>
+
+	* ChangeLog:
+	* neomagicstub.c: (InitInput):
+
+2005-02-08  Keith Packard  <keithp@keithp.com>
+
+	reviewed by: <delete if not using a buddy>
+
+	* ChangeLog:
+	* neomagicstub.c: (InitInput):
+
+2005-02-08  Keith Packard  <keithp@keithp.com>
+
+	reviewed by: <delete if not using a buddy>
+
+	* ChangeLog:
+	* neomagicstub.c: (InitInput):
+
+2005-02-08  Keith Packard  <keithp@keithp.com>
+
+	reviewed by: <delete if not using a buddy>
+
+	* ChangeLog:
+	* neomagicstub.c: (InitInput):
+
+2005-02-08  Keith Packard  <keithp@keithp.com>
+
+	reviewed by: <delete if not using a buddy>
+
+	* neomagicstub.c: (InitInput):
+
 2004-07-21  Phil Blundell  <pb@nexus.co.uk>
 
 	* Makefile.am (Xneomagic_LDADD): Include -lts if appropriate.

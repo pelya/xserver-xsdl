@@ -1,5 +1,5 @@
 /*
- * $RCSId$
+ * $RCSId: $
  *
  * Copyright © 2001 Keith Packard
  *

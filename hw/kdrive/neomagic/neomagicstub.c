@@ -53,7 +53,7 @@ InitInput (int argc, char **argv)
 {
     KdInitInput (&LinuxMouseFuncs, &LinuxKeyboardFuncs);
 #ifdef TOUCHSCREEN
-    KdInitTouchScreen (&TsFuncs);
+    KdAddMouseDriver (&TsFuncs);
 #endif
 }
 

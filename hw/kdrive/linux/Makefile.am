@@ -21,6 +21,7 @@ liblinux_a_SOURCES = 	\
 	klinux.h	\
 	linux.c		\
 	mouse.c		\
+	evdev.c		\
 	ms.c		\
 	ps2.c		\
 	$(TSLIB_C)	\
@@ -32,6 +33,7 @@ liblinux_a_DEPENDENCIES = \
 	keyboard.c	\
 	linux.c		\
 	mouse.c		\
+	evdev.c		\
 	ms.c		\
 	ps2.c		\
 	$(TSLIB_C)	\

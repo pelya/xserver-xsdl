@@ -164,7 +164,7 @@ R100TextureSetup(PicturePtr pPict, PixmapPtr pPix, int unit)
 {
 	ATIScreenInfo *atis = accel_atis;
 	KdScreenPriv(pPix->drawable.pScreen);
-	CARD32 txformat, txoffset, txpitch;
+	CARD32 txfilter, txformat, txoffset, txpitch;
 	int w = pPict->pDrawable->width;
 	int h = pPict->pDrawable->height;
 	int i;
@@ -196,10 +196,24 @@ R100TextureSetup(PicturePtr pPict, PixmapPtr pPix, int unit)
 	if ((txpitch & 0x1f) != 0)
 		ATI_FALLBACK(("Bad texture pitch 0x%x\n", txpitch));
 
+	switch (pPict->filter) {
+	case PictFilterNearest:
+		txfilter = (RADEON_MAG_FILTER_NEAREST |
+			    RADEON_MIN_FILTER_NEAREST);
+		break;
+	case PictFilterBilinear:
+		txfilter = (RADEON_MAG_FILTER_LINEAR |
+			    RADEON_MIN_FILTER_LINEAR);
+		break;
+	default:
+		ATI_FALLBACK (("Bad filter 0x%x\n", pPict->filter));
+		break;
+	}
+
 	BEGIN_DMA(7);
 	if (unit == 0) {
 		OUT_RING(DMA_PACKET0(RADEON_REG_PP_TXFILTER_0, 3));
-		OUT_RING_REG(RADEON_REG_PP_TXFILTER_0, 0);
+		OUT_RING_REG(RADEON_REG_PP_TXFILTER_0, txfilter);
 		OUT_RING_REG(RADEON_REG_PP_TXFORMAT_0, txformat);
 		OUT_RING_REG(RADEON_REG_PP_TXOFFSET_0, txoffset);
 		OUT_RING(DMA_PACKET0(RADEON_REG_PP_TEX_SIZE_0, 2));
@@ -209,7 +223,7 @@ R100TextureSetup(PicturePtr pPict, PixmapPtr pPix, int unit)
 		OUT_RING_REG(RADEON_REG_PP_TEX_PITCH_0, txpitch - 32);
 	} else {
 		OUT_RING(DMA_PACKET0(RADEON_REG_PP_TXFILTER_1, 3));
-		OUT_RING_REG(RADEON_REG_PP_TXFILTER_1, 0);
+		OUT_RING_REG(RADEON_REG_PP_TXFILTER_1, txfilter);
 		OUT_RING_REG(RADEON_REG_PP_TXFORMAT_1, txformat);
 		OUT_RING_REG(RADEON_REG_PP_TXOFFSET_1, txoffset);
 		OUT_RING(DMA_PACKET0(RADEON_REG_PP_TEX_SIZE_1, 2));

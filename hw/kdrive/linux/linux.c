@@ -429,28 +429,31 @@ LinuxFini (void)
     }
     memset (&vts, '\0', sizeof (vts));	/* valgrind */
     ioctl (LinuxConsoleFd, VT_GETSTATE, &vts);
-    /*
-     * Find a legal VT to switch to, either the one we started from
-     * or the lowest active one that isn't ours
-     */
-    if (activeVT < 0 || 
-	activeVT == vts.v_active || 
-	!(vts.v_state & (1 << activeVT)))
+    if (vtno == vts.v_active)
     {
-	for (activeVT = 1; activeVT < 16; activeVT++)
-	    if (activeVT != vtno && (vts.v_state & (1 << activeVT)))
-		break;
-	if (activeVT == 16)
+	/*
+	 * Find a legal VT to switch to, either the one we started from
+	 * or the lowest active one that isn't ours
+	 */
+	if (activeVT < 0 || 
+	    activeVT == vts.v_active || 
+	    !(vts.v_state & (1 << activeVT)))
+	{
+	    for (activeVT = 1; activeVT < 16; activeVT++)
+		if (activeVT != vtno && (vts.v_state & (1 << activeVT)))
+		    break;
+	    if (activeVT == 16)
+		activeVT = -1;
+	}
+	/*
+	 * Perform a switch back to the active VT when we were started
+	 */
+	if (activeVT >= -1)
+	{
+	    ioctl (LinuxConsoleFd, VT_ACTIVATE, activeVT);
+	    ioctl (LinuxConsoleFd, VT_WAITACTIVE, activeVT);
 	    activeVT = -1;
-    }
-    /*
-     * Perform a switch back to the active VT when we were started
-     */
-    if (activeVT >= -1)
-    {
-	ioctl (LinuxConsoleFd, VT_ACTIVATE, activeVT);
-	ioctl (LinuxConsoleFd, VT_WAITACTIVE, activeVT);
-	activeVT = -1;
+	}
     }
     close(LinuxConsoleFd);                /* make the vt-manager happy */
     fd = open ("/dev/tty0", O_RDWR|O_NDELAY, 0);
