@@ -1,4 +1,5 @@
 /* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86DPMS.c,v 1.11 2003/11/11 21:02:28 dawes Exp $ */
+/* $XdotOrg: $ */
 
 /*
  * Copyright (c) 1997-2003 by The XFree86 Project, Inc.
@@ -87,7 +88,7 @@ xf86DPMSInit(ScreenPtr pScreen, DPMSSetProcPtr set, int flags)
 	pDPMS->Enabled = TRUE;
     }  
     else {
-	pDPMS->Enabled = FALSE;
+	pDPMS->Enabled = defaultDPMSEnabled;
     }
     pDPMS->CloseScreen = pScreen->CloseScreen;
     pScreen->CloseScreen = DPMSClose;
