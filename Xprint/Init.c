@@ -303,6 +303,11 @@ void XprintInitGlobals(void)
      * ("Xfree86's "smart scheduler" breaks Xprt") */
     SmartScheduleDisable = TRUE;
 #endif /* SMART_SCHEDULE */
+
+    /* Disable internal screensaver for Xprint (workaround for
+     * http://pdx.freedesktop.org/cgi-bin/bugzilla/show_bug.cgi?id=567 ("Xorg
+     * Xprt starts to consume 100% CPU when being idle for some time")) */
+    defaultScreenSaverTime = 0;
 }
 
 /*
@@ -1296,11 +1301,22 @@ PrinterInitOutput(
       FatalError("Internal error: XprintInitGlobals() not called.");
     }
 #ifdef SMART_SCHEDULE
+    /* |XprintInitGlobals| should have set |SmartScheduleDisable| to
+     * |TRUE| - if not we will trigger this safeguard. */
     if( SmartScheduleDisable != TRUE )
     {
       FatalError("Internal error: XF86 smart scheduler incompatible to Xprint DDX.");
     }
 #endif /* SMART_SCHEDULE */
+    /* Safeguard for
+     * http://pdx.freedesktop.org/cgi-bin/bugzilla/show_bug.cgi?id=567 ("Xorg
+     * Xprt starts to consume 100% CPU when being idle for some time")
+     * |XprintInitGlobals| should have set |defaultScreenSaverTime| to
+     * |0| - if not we will trigger this trap. */
+    if( defaultScreenSaverTime != 0 )
+    {
+      FatalError("Internal screen saver must be OFF for printing.");
+    }
 
     /* 
      * this little test is just a warning at startup to make sure

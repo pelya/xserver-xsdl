@@ -74,7 +74,7 @@ Equipment Corporation.
 ******************************************************************/
 
 /* $Xorg: resource.c,v 1.5 2001/02/09 02:04:40 xorgcvs Exp $ */
-/* $XdotOrg$ */
+/* $XdotOrg: xc/programs/Xserver/dix/resource.c,v 1.3 2004/04/25 22:42:09 gisburn Exp $ */
 /* $TOG: resource.c /main/41 1998/02/09 14:20:31 kaleb $ */
 
 /*	Routines to manage various kinds of resources:
@@ -559,7 +559,7 @@ FreeResource(id, skipDeleteFuncType)
 	}
     }
     if (!gotOne)
-	FatalError("Freeing resource id=%lX which isn't there",
+	ErrorF("Freeing resource id=%lX which isn't there.\n",
 		   (unsigned long)id);
 }
 

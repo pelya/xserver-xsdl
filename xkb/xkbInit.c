@@ -1,5 +1,5 @@
 /* $Xorg: xkbInit.c,v 1.3 2000/08/17 19:53:47 cpqbld Exp $ */
-/* $XdotOrg$ */
+/* $XdotOrg: xc/programs/Xserver/xkb/xkbInit.c,v 1.2 2004/04/23 19:54:30 eich Exp $ */
 /************************************************************
 Copyright (c) 1993 by Silicon Graphics Computer Systems, Inc.
 

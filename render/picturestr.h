@@ -1,4 +1,4 @@
-/* $XdotOrg$ */
+/* $XdotOrg: xc/programs/Xserver/render/picturestr.h,v 1.2 2004/04/23 19:54:29 eich Exp $ */
 /*
  * $XFree86: xc/programs/Xserver/render/picturestr.h,v 1.21 2002/11/06 22:45:36 keithp Exp $
  *

@@ -1,4 +1,4 @@
-/* $XdotOrg$ */
+/* $XdotOrg: xc/programs/Xserver/hw/xfree86/xorgVersion.h,v 1.2 2004/04/23 19:20:02 eich Exp $ */
 
 /*
  * Copyright (c) 2004, X.Org Foundation
@@ -48,4 +48,4 @@
 # define XORG_VERSION_SNAP	XORG_GET_PATCH_VERSION(XORG_VERSION_CURRENT)
 
 #endif
-/* $XdotOrg$ */
+/* $XdotOrg: xc/programs/Xserver/hw/xfree86/xorgVersion.h,v 1.2 2004/04/23 19:20:02 eich Exp $ */

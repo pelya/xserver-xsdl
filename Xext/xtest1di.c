@@ -1,4 +1,4 @@
-/* $XdotOrg: xtest1di.c,v 1.4 2001/02/09 02:04:33 xorgcvs Exp $ */
+/* $XdotOrg: xc/programs/Xserver/Xext/xtest1di.c,v 1.2 2004/04/23 18:44:42 eich Exp $ */
 /* $Xorg: xtest1di.c,v 1.4 2001/02/09 02:04:33 xorgcvs Exp $ */
 /*
  *	File:  xtest1di.c

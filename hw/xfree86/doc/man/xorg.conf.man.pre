@@ -1,4 +1,4 @@
-.\" $XdotOrg$
+.\" $XdotOrg: xc/programs/Xserver/hw/xfree86/xorg.conf.man,v 1.2 2004/04/23 19:20:02 eich Exp $
 .\" shorthand for double quote that works everywhere.
 .ds q \N'34'
 .TH __xconfigfile__ __filemansuffix__ __vendorversion__

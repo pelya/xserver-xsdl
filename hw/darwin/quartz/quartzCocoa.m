@@ -1,4 +1,4 @@
-/* $XdotOrg$ */
+/* $XdotOrg: xc/programs/Xserver/hw/darwin/quartz/quartzCocoa.m,v 1.2 2004/04/23 19:15:17 eich Exp $ */
 /**************************************************************
  *
  * Quartz-specific support for the Darwin X Server

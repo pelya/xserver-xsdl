@@ -1,4 +1,4 @@
-/* $XdotOrg$ */
+/* $XdotOrg: xc/programs/Xserver/hw/darwin/quartz/cr/crScreen.m,v 1.2 2004/04/23 19:15:51 eich Exp $ */
 /*
  * Cocoa rootless implementation initialization
  */

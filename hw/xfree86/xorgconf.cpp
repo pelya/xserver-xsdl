@@ -1,4 +1,4 @@
-XCOMM $XdotOrg$
+XCOMM $XdotOrg: xc/programs/Xserver/hw/xfree86/xorgconf.cpp,v 1.2 2004/04/23 19:20:02 eich Exp $
 XCOMM
 XCOMM Copyright (c) 1994-1998 by The XFree86 Project, Inc.
 XCOMM

@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/include/regionstr.h,v 1.1.4.6 2003/12/06 13:24:29 kaleb Exp $ */
+/* $XdotOrg: xc/programs/Xserver/include/regionstr.h,v 1.2 2004/04/23 19:54:23 eich Exp $ */
 /* $Xorg: regionstr.h,v 1.4 2001/02/09 02:05:15 xorgcvs Exp $ */
 /***********************************************************
 

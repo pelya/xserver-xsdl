@@ -29,7 +29,7 @@
  * sale, use or other dealings in this Software without prior written
  * authorization.
  */
-/* $XdotOrg: xc/programs/Xserver/hw/darwin/quartz/XServer.h,v 1.17 2003/11/24 05:39:01 torrey Exp $ */
+/* $XdotOrg: xc/programs/Xserver/hw/darwin/quartz/XServer.h,v 1.2 2004/04/23 19:15:17 eich Exp $ */
 /* $XFree86: xc/programs/Xserver/hw/darwin/quartz/XServer.h,v 1.16 2003/11/23 06:04:01 torrey Exp $ */
 
 #define BOOL xBOOL

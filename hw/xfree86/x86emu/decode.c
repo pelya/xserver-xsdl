@@ -37,7 +37,7 @@
 *
 ****************************************************************************/
 
-/* $XdotOrg: xc/extras/x86emu/src/x86emu/decode.c,v 1.12 2003/12/05 19:23:23 dawes Exp $ */
+/* $XdotOrg: xc/extras/x86emu/src/x86emu/decode.c,v 1.2 2004/04/23 18:42:59 eich Exp $ */
 /* $XFree86: xc/extras/x86emu/src/x86emu/decode.c,v 1.11 2002/07/23 20:20:43 tsi Exp $ */
 
 #include "x86emu/x86emui.h"

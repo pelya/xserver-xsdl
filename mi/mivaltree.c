@@ -1,5 +1,5 @@
 /* $Xorg: mivaltree.c,v 1.4 2001/02/09 02:05:22 xorgcvs Exp $ */
-/* $XdotOrg$ */
+/* $XdotOrg: xc/programs/Xserver/mi/mivaltree.c,v 1.2 2004/04/23 19:54:26 eich Exp $ */
 /*
  * mivaltree.c --
  *	Functions for recalculating window clip lists. Main function

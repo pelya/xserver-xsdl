@@ -1,4 +1,4 @@
-/* $XdotOrg$ */
+/* $XdotOrg: xc/programs/Xserver/hw/darwin/quartz/quartzCommon.h,v 1.2 2004/04/23 19:15:17 eich Exp $ */
 /*
  * quartzCommon.h
  *

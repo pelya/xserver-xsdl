@@ -1,4 +1,4 @@
-.\" $XdotOrg$
+.\" $XdotOrg: xc/programs/Xserver/hw/xfree86/Xorg.man,v 1.2 2004/04/23 19:20:02 eich Exp $
 .TH __xservername__ __appmansuffix__ __vendorversion__
 .SH NAME
 __xservername__ - X11R6 X server
