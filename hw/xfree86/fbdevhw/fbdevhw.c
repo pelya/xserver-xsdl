@@ -881,11 +881,26 @@ fbdevHWSaveScreen(ScreenPtr pScreen, int mode)
 	return TRUE;
 }
 
-void
-fbdevHWFillInScreenInfo(ScrnInfoPtr pScrn) {
-	pScrn->SwitchMode	= fbdevHWSwitchMode;
-	pScrn->AdjustFrame	= fbdevHWAdjustFrame;
-	pScrn->EnterVT		= fbdevHWEnterVT;
-	pScrn->LeaveVT		= fbdevHWLeaveVT;
-	pScrn->ValidMode	= fbdevHWValidMode;
-}
+xf86SwitchModeProc *
+fbdevHWSwitchModeWeak(void) { return fbdevHWSwitchMode; }
+
+xf86AdjustFrameProc *
+fbdevHWAdjustFrameWeak(void) { return fbdevHWAdjustFrame; }
+
+xf86EnterVTProc *
+fbdevHWEnterVTWeak(void) { return fbdevHWEnterVT; }
+
+xf86LeaveVTProc *
+fbdevHWLeaveVTWeak(void) { return fbdevHWLeaveVT; }
+
+xf86ValidModeProc *
+fbdevHWValidModeWeak(void) { return fbdevHWValidMode; }
+
+xf86DPMSSetProc *
+fbdevHWDPMSSetWeak(void) { return fbdevHWDPMSSet; }
+
+xf86LoadPaletteProc *
+fbdevHWLoadPaletteWeak(void) { return fbdevHWLoadPalette; }
+
+SaveScreenProcPtr
+fbdevHWSaveScreenWeak(void) { return fbdevHWSaveScreen; }

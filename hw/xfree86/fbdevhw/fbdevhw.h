@@ -49,6 +49,13 @@ void  fbdevHWDPMSSet(ScrnInfoPtr pScrn, int mode, int flags);
 
 Bool  fbdevHWSaveScreen(ScreenPtr pScreen, int mode);
 
-void  fbdevHWFillInScreenInfo(ScrnInfoPtr pScrn);
+xf86SwitchModeProc	*fbdevHWSwitchModeWeak(void);
+xf86AdjustFrameProc	*fbdevHWAdjustFrameWeak(void);
+xf86EnterVTProc		*fbdevHWEnterVTWeak(void);
+xf86LeaveVTProc		*fbdevHWLeaveVTWeak(void);
+xf86ValidModeProc	*fbdevHWValidModeWeak(void);
+xf86DPMSSetProc		*fbdevHWDPMSSetWeak(void);
+xf86LoadPaletteProc	*fbdevHWLoadPaletteWeak(void);
+SaveScreenProcPtr	fbdevHWSaveScreenWeak(void);
 
 #endif

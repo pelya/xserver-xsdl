@@ -83,7 +83,7 @@ ddcSetup(pointer module, pointer opts, int *errmaj, int *errmin)
 
 static unsigned char *EDIDRead_DDC1(
     ScrnInfoPtr pScrn,
-    void (*)(ScrnInfoPtr,xf86ddcSpeed), 
+    DDC1SetSpeedProc,
     unsigned int (*)(ScrnInfoPtr)
 );
 
@@ -139,7 +139,7 @@ DDCAvailableOptions(void *unused)
 
 xf86MonPtr 
 xf86DoEDID_DDC1(
-    int scrnIndex, void (*DDC1SetSpeed)(ScrnInfoPtr, xf86ddcSpeed), 
+    int scrnIndex, DDC1SetSpeedProc DDC1SetSpeed, 
     unsigned int (*DDC1Read)(ScrnInfoPtr)
 )
 {
@@ -227,7 +227,7 @@ xf86DoEDID_DDC2(int scrnIndex, I2CBusPtr pBus)
  * function; it will also decide if we need to reread it 
  */
 static unsigned char *
-EDIDRead_DDC1(ScrnInfoPtr pScrn, void (*DDCSpeed)(ScrnInfoPtr,xf86ddcSpeed), 
+EDIDRead_DDC1(ScrnInfoPtr pScrn, DDC1SetSpeedProc DDCSpeed, 
               unsigned int (*read_DDC)(ScrnInfoPtr))
 {
     unsigned char *EDID_block = NULL;

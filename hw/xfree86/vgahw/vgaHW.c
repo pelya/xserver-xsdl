@@ -1988,3 +1988,7 @@ vgaHWddc1SetSpeed(ScrnInfoPtr pScrn, xf86ddcSpeed speed)
 	break;
     }
 }
+
+DDC1SetSpeedProc *vgaHWddc1SetSpeedWeak(void) { return vgaHWddc1SetSpeed; }
+
+SaveScreenProcPtr vgaHWSaveScreenWeak(void) { return vgaHWSaveScreen; }
