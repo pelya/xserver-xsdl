@@ -1764,6 +1764,10 @@ xf86PrintBanner()
     "latest version in the " XVENDORNAME " \"monolithic tree\" CVS\n"
     "repository hosted at http://www.freedesktop.org/Software/xorg/");
 #endif
+  ErrorF("\nX Window System Version %d.%d.%d",
+	 XORG_VERSION_MAJOR,
+	 XORG_VERSION_MINOR,
+	 XORG_VERSION_PATCH);
 #if XORG_VERSION_SNAP > 0
   ErrorF(".%d", XORG_VERSION_SNAP);
 #endif
