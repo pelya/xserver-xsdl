@@ -29,7 +29,7 @@
  * holders shall not be used in advertising or otherwise to promote the sale,
  * use or other dealings in this Software without prior written authorization.
  */
-/* $XdotOrg: xc/programs/Xserver/hw/darwin/darwin.c,v 1.2 2004/04/23 19:06:15 eich Exp $ */
+/* $XdotOrg: xc/programs/Xserver/hw/darwin/darwin.c,v 1.3 2004/07/30 18:22:12 torrey Exp $ */
 /* $XFree86: xc/programs/Xserver/hw/darwin/darwin.c,v 1.55 2003/11/15 00:07:09 torrey Exp $ */
 
 #include "X.h"
@@ -138,7 +138,7 @@ DarwinPrintBanner()
     "repository hosted at http://www.freedesktop.org/Software/xorg/");
 #endif
 #if XORG_VERSION_SNAP > 0
-  ErrorF(".%d", XF86_VERSION_SNAP);
+  ErrorF(".%d", XORG_VERSION_SNAP);
 #endif
 
 #if XORG_VERSION_SNAP >= 900
