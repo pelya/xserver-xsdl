@@ -40,11 +40,15 @@ fbdevInitialize (KdCardInfo *card, FbdevPriv *priv)
 	perror("Error opening /dev/fb0\n");
 	return FALSE;
     }
+    /* quiet valgrind */
+    memset (&priv->fix, '\0', sizeof (priv->fix));
     if ((k=ioctl(priv->fd, FBIOGET_FSCREENINFO, &priv->fix)) < 0) {
 	perror("Error with /dev/fb ioctl FIOGET_FSCREENINFO");
 	close (priv->fd);
 	return FALSE;
     }
+    /* quiet valgrind */
+    memset (&priv->var, '\0', sizeof (priv->var));
     if ((k=ioctl(priv->fd, FBIOGET_VSCREENINFO, &priv->var)) < 0) {
 	perror("Error with /dev/fb ioctl FIOGET_VSCREENINFO");
 	close (priv->fd);
@@ -197,12 +201,13 @@ fbdevScreenInit (KdScreenInfo *screen)
     if (!scrpriv)
 	return FALSE;
     memset (scrpriv, '\0', sizeof (FbdevScrPriv));
+    screen->driver = scrpriv;
     if (!fbdevScreenInitialize (screen, scrpriv))
     {
+	screen->driver = 0;
 	xfree (scrpriv);
 	return FALSE;
     }
-    screen->driver = scrpriv;
     return TRUE;
 }
     

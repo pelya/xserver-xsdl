@@ -62,6 +62,7 @@ smiScreenInit (KdScreenInfo *screen)
     if (!smis)
 	return FALSE;
     memset (smis, '\0', sizeof (SmiScreenInfo));
+    screen->driver = smis;
     if (!subScreenInitialize (screen, &smis->sub))
     {
 	xfree (smis);
@@ -75,7 +76,6 @@ smiScreenInit (KdScreenInfo *screen)
 #else
     smis->screen = smic->sub.fb;
 #endif
-    screen->driver = smis;
     LEAVE();
     return TRUE;
 }

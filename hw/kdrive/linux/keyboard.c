@@ -135,6 +135,7 @@ readKernelMapping(void)
 	    k[j] = NoSymbol;
 
 	    kbe.kb_table = tbl[j];
+	    kbe.kb_value = 0;
 	    if (ioctl(LinuxConsoleFd, KDGKBENT, &kbe))
 		continue;
 

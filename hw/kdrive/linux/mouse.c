@@ -38,6 +38,7 @@
 #undef DEBUG
 #undef DEBUG_BYTES
 #define KBUFIO_SIZE 256
+#define MOUSE_TIMEOUT	100
 
 typedef struct _kbufio {
     int		    fd;
@@ -52,20 +53,32 @@ MouseWaitForReadable (int fd, int timeout)
     fd_set	    set;
     struct timeval  tv, *tp;
     int		    n;
+    CARD32	    done;
 
-    FD_ZERO (&set);
-    FD_SET (fd, &set);
-    if (timeout == -1)
-	tp = 0;
-    else
+    done = GetTimeInMillis () + timeout;
+    for (;;)
     {
-	tv.tv_sec = timeout / 1000;
-	tv.tv_usec = (timeout % 1000) * 1000;
-	tp = &tv;
+	FD_ZERO (&set);
+	FD_SET (fd, &set);
+	if (timeout == -1)
+	    tp = 0;
+	else
+	{
+	    tv.tv_sec = timeout / 1000;
+	    tv.tv_usec = (timeout % 1000) * 1000;
+	    tp = &tv;
+	}
+	n = select (fd + 1, &set, 0, 0, tp);
+	if (n > 0)
+	    return TRUE;
+	if (n < 0 && (errno == EAGAIN || errno == EINTR))
+	{
+	    timeout = (int) (done - GetTimeInMillis ());
+	    if (timeout > 0)
+		continue;
+	}
+	break;
     }
-    n = select (fd + 1, &set, 0, 0, tp);
-    if (n > 0)
-	return TRUE;
     return FALSE;
 }
 
@@ -76,7 +89,12 @@ MouseReadByte (Kbufio *b, int timeout)
     if (b->avail <= b->used)
     {
 	if (timeout && !MouseWaitForReadable (b->fd, timeout))
+	{
+#ifdef DEBUG_BYTES
+	    ErrorF ("\tTimeout %d\n", timeout);
+#endif
 	    return -1;
+	}
 	n = read (b->fd, b->buf, KBUFIO_SIZE);
 	if (n <= 0)
 	    return -1;
@@ -443,7 +461,7 @@ ps2SkipInit (KdMouseInfo *mi, int ninit, Bool ret_next)
     waiting = FALSE;
     while (ninit || ret_next)
     {
-	c = MouseReadByte (&km->iob, 100);
+	c = MouseReadByte (&km->iob, MOUSE_TIMEOUT);
 	if (c == -1)
 	    break;
 	/* look for ACK */
@@ -895,7 +913,7 @@ MouseRead (int mousePort, void *closure)
 		timeout = 0;
 	    }
 	    else
-		timeout = 100;
+		timeout = MOUSE_TIMEOUT;
 	}
     }
 }

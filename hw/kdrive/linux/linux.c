@@ -118,6 +118,7 @@ LinuxInit (void)
      * Linux doesn't switch to an active vt after the last close of a vt,
      * so we do this ourselves by remembering which is active now.
      */
+    memset (&vts, '\0', sizeof (vts));	/* valgrind */
     if (ioctl(LinuxConsoleFd, VT_GETSTATE, &vts) == 0)
     {
 	activeVT = vts.v_active;
@@ -376,6 +377,7 @@ LinuxSpecialKey (KeySym sym)
     if (XK_F1 <= sym && sym <= XK_F12)
     {
 	con = sym - XK_F1 + 1;
+	memset (&vts, '\0', sizeof (vts));	/* valgrind */
 	ioctl (LinuxConsoleFd, VT_GETSTATE, &vts);
 	if (con != vts.v_active && (vts.v_state & (1 << con)))
 	{
@@ -420,6 +422,7 @@ LinuxFini (void)
 	VT.mode = VT_AUTO;
 	ioctl(LinuxConsoleFd, VT_SETMODE, &VT); /* set dflt vt handling */
     }
+    memset (&vts, '\0', sizeof (vts));	/* valgrind */
     ioctl (LinuxConsoleFd, VT_GETSTATE, &vts);
     /*
      * Find a legal VT to switch to, either the one we started from
@@ -448,6 +451,7 @@ LinuxFini (void)
     fd = open ("/dev/tty0", O_RDWR|O_NDELAY, 0);
     if (fd >= 0)
     {
+	memset (&vts, '\0', sizeof (vts));	/* valgrind */
 	ioctl (fd, VT_GETSTATE, &vts);
 	if (ioctl (fd, VT_DISALLOCATE, vtno) < 0)
 	    fprintf (stderr, "Can't deallocate console %d errno %d\n", vtno, errno);
