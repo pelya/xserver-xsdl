@@ -85,7 +85,7 @@ in this Software without prior written authorization from The Open Group.
 #include "mi.h"
 #include "micmap.h"
 #include "AttrValid.h"
-#include "../../mfb/mfb.h"
+#include "mfb.h"
 
 #include "windowstr.h"
 #include "DiPrint.h"
@@ -93,8 +93,6 @@ in this Software without prior written authorization from The Open Group.
 static void AllocatePsPrivates(ScreenPtr pScreen);
 static int PsInitContext(XpContextPtr pCon);
 static int PsDestroyContext(XpContextPtr pCon);
-
-extern Bool cfbCreateDefColormap(ScreenPtr pScreen);
 
 int PsScreenPrivateIndex;
 int PsContextPrivateIndex;
@@ -386,7 +384,7 @@ InitializePsDriver(ndx, pScreen, argc, argv)
                0, rootDepth, nd,
                depths, defaultVisual, nv, visuals);
 
-  if( cfbCreateDefColormap(pScreen)==FALSE ) return FALSE;
+  if( miCreateDefColormap(pScreen)==FALSE ) return FALSE;
 
 /*scalingScreenInit(pScreen);*/
 
