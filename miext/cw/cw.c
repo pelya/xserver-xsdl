@@ -675,30 +675,50 @@ cwCopyWindow(WindowPtr pWin, DDXPointRec ptOldOrg, RegionPtr prgnSrc)
     if (!cwDrawableIsRedirWindow((DrawablePtr)pWin)) {
 	(*pScreen->CopyWindow)(pWin, ptOldOrg, prgnSrc);
     } else {
-	GCPtr pGC;
-	BoxPtr pBox;
-	int nbox, i,  x_off, y_off;
-	int dx, dy;
+	GCPtr	    pGC;
+	BoxPtr	    pExtents;
+	int	    x_off, y_off;
+	int	    dx, dy;
 	DrawablePtr pBackingDrawable;
-
-	pBackingDrawable = cwGetBackingDrawable((DrawablePtr)pWin, &x_off,
-						&y_off);
-
-	pGC = GetScratchGC(pBackingDrawable->depth, pScreen);
-	ValidateGC(pBackingDrawable, pGC);
-
-	pBox = REGION_RECTS(prgnSrc);
-	nbox = REGION_NUM_RECTS(prgnSrc);
+	RegionPtr   pClip;
+	int	    src_x, src_y, dst_x, dst_y, w, h;
 
 	dx = ptOldOrg.x - pWin->drawable.x;
 	dy = ptOldOrg.y - pWin->drawable.y;
 
-	for (i = 0; i < nbox; i++, pBox++) {
-	(*pGC->ops->CopyArea)(pBackingDrawable, pBackingDrawable, pGC,
-			      pBox->x1 + x_off, pBox->y1 + y_off,
-			      pBox->x2 - pBox->x1, pBox->y2 - pBox->y1,
-			      pBox->x1 + x_off + dx, pBox->y1 + y_off + dy);
-	}
+	pExtents = REGION_EXTENTS(pScreen, prgnSrc);
+
+	src_x = pExtents->x1;
+	src_y = pExtents->y1;
+	w = pExtents->x2 - pExtents->x1;
+	h = pExtents->y2 - pExtents->y1;
+	dst_x = src_x - dx;
+	dst_y = src_y - dy;
+			       
+	pBackingDrawable = cwGetBackingDrawable((DrawablePtr)pWin, &x_off,
+						&y_off);
+
+	/* Translate region (as required by API) */
+	REGION_TRANSLATE(pScreen, prgnSrc, -dx, -dy);
+	
+	pGC = GetScratchGC(pBackingDrawable->depth, pScreen);
+	/*
+	 * Copy region to GC as clip, aligning as dest clip
+	 */
+	pClip = REGION_CREATE (pScreen, NULL, 0);
+	REGION_INTERSECT(pScreen, pClip, &pWin->borderClip, prgnSrc);
+	REGION_TRANSLATE(pScreen, pClip, 
+			 -pWin->drawable.x + x_off,
+			 -pWin->drawable.y + y_off);
+	
+	(*pGC->funcs->ChangeClip) (pGC, CT_REGION, pClip, 0);
+
+	ValidateGC(pBackingDrawable, pGC);
+
+	(*pGC->ops->CopyArea) (pBackingDrawable, pBackingDrawable, pGC,
+			       src_x, src_y, w, h, dst_x, dst_y);
+
+	(*pGC->funcs->DestroyClip) (pGC);
 
 	FreeScratchGC(pGC);
     }
