@@ -73,6 +73,11 @@ fbCreatePixmapBpp (ScreenPtr pScreen, int width, int height, int depth, int bpp)
     fbInitializeDrawable (&pPixmap->drawable);
 #endif
 
+#ifdef COMPOSITE
+    pPixmap->screen_x = 0;
+    pPixmap->screen_y = 0;
+#endif
+
     return pPixmap;
 }
 

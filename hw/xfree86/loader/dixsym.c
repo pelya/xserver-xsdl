@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/hw/xfree86/loader/dixsym.c,v 1.2 2004/04/23 19:54:06 eich Exp $ */
+/* $XdotOrg: xc/programs/Xserver/hw/xfree86/loader/dixsym.c,v 1.3 2004/08/09 02:08:35 kem Exp $ */
 /* $XFree86: xc/programs/Xserver/hw/xfree86/loader/dixsym.c,v 1.63 2003/12/03
  * 17:11:29 tsi Exp $ */
 
@@ -81,6 +81,7 @@
 #include "dgaproc.h"
 #ifdef RENDER
 #include "mipict.h"
+#include "renderedge.h"
 #endif
 #include "selection.h"
 #ifdef XKB
@@ -404,6 +405,11 @@ LOOKUP dixLookupTab[] = {
     SYMFUNC(PictureSetFilterAlias)
     SYMFUNC(PictureGetSubpixelOrder)
     SYMFUNC(PictureSetSubpixelOrder)
+    SYMFUNC(RenderSampleCeilY)
+    SYMFUNC(RenderSampleFloorY)
+    SYMFUNC(RenderEdgeStep)
+    SYMFUNC(RenderEdgeInit)
+    SYMFUNC(RenderLineFixedEdgeInit)
 #endif
 
     {0, 0}
