@@ -855,6 +855,8 @@ MouseRead (int mousePort, void *closure)
 	    km->invalid += i + km->tested;
 	    km->valid = 0;
 	    km->tested = 0;
+	    if (km->stage == MouseWorking)
+		km->i_prot--;
 	    km->stage = MouseBroken;
 	    if (km->invalid > MAX_SKIP)
 	    {
