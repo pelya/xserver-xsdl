@@ -111,6 +111,31 @@ static Bool neoPrepareCopy (PixmapPtr pSrcPixpam, PixmapPtr pDstPixmap,
 
 static void neoCopy (int srcX, int srcY, int dstX, int dstY, int w, int h)
 {
+	neoWaitIdle(card);
+	
+    if ((dstY < srcY) || ((dstY == srcY) && (dstX < srcX))) {
+		mmio->bltCntl  = 
+					NEO_BC3_FIFO_EN      |
+					NEO_BC3_SKIP_MAPPING |  0x0c0000;
+		mmio->srcStart = srcY * screen->pitch + srcX * screen->depth;
+		mmio->dstStart = dstY * screen->pitch + dstX * screen->depth;
+		
+		mmio->xyExt    = (unsigned long)(h << 16) | (w & 0xffff);
+	} else {
+		mmio->bltCntl  = NEO_BC0_X_DEC |
+					NEO_BC0_DST_Y_DEC |
+					NEO_BC0_SRC_Y_DEC |
+					NEO_BC3_FIFO_EN |
+					NEO_BC3_SKIP_MAPPING |  0x0c0000;
+		srcX+=w-1;
+		dstX+=w-1;
+		srcY+=h-1;
+		dstY+=h-1;
+		mmio->srcStart = srcY * screen->pitch + srcX * screen->depth;
+		mmio->dstStart = dstY * screen->pitch + dstX * screen->depth;
+		mmio->xyExt    = (unsigned long)(h << 16) | (w & 0xffff);
+	}	
+
 }
 
 static void neoDoneCopy (void)
@@ -170,9 +195,7 @@ void neoDrawFini (ScreenPtr pScreen)
 
 void neoDrawSync (ScreenPtr pScreen)
 {
-    ENTER();
     SetupNeo(pScreen);
 
     neoWaitIdle(neoc);
-    LEAVE();
 }

@@ -1,3 +1,6 @@
+2004-04-11 Franco Catrin L. <fcatrin@tuxpan.com>
+        * Basic bitblt implementation
+
 2004-04-10 Franco Catrin L. <fcatrin@tuxpan.com>
         * MMIO enabled after switching to new VT
 	* First acceleration function implemented (DrawSolid)
