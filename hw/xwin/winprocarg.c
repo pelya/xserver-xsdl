@@ -45,6 +45,9 @@ extern Bool			g_fClipboard;
 #endif
 extern int			g_iLogVerbose;
 extern char *			g_pszLogFile;
+#ifdef RELOCATE_PROJECTROOT
+extern Bool			g_fLogFileChanged;
+#endif
 extern Bool			g_fXdmcpEnabled;
 extern char *			g_pszCommandLine;
 extern Bool			g_fKeyboardHookLL;
@@ -1177,6 +1180,9 @@ ddxProcessArgument (int argc, char *argv[], int i)
     {
       CHECK_ARGS (1);
       g_pszLogFile = argv[++i];
+#ifdef RELOCATE_PROJECTROOT
+      g_fLogFileChanged = TRUE;
+#endif
       return 2;
     }
 

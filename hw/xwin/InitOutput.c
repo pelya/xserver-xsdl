@@ -54,6 +54,7 @@ extern char *			g_pszCommandLine;
 extern Bool			g_fSilentFatalError;
 
 extern char *			g_pszLogFile;
+extern Bool			g_fLogFileChanged;
 extern int			g_iLogVerbose;
 Bool				g_fLogInited;
 
@@ -604,7 +605,6 @@ winFixupPaths (void)
                 basedir);
         buffer[sizeof(buffer)-1] = 0;
         putenv(buffer);
-        winDebug("%s\n", getenv("XKEYSYMDB"));
     }
     if (getenv("XLOCALEDIR") == NULL)
     {
@@ -613,7 +613,18 @@ winFixupPaths (void)
                 basedir);
         buffer[sizeof(buffer)-1] = 0;
         putenv(buffer);
-        winDebug("%s\n", getenv("XLOCALEDIR"));
+    }
+    if (!g_fLogFileChanged) {
+        static char buffer[MAX_PATH];
+        DWORD size = GetTempPath(sizeof(buffer), buffer);
+        if (size && size < sizeof(buffer))
+        {
+            snprintf(buffer + size, sizeof(buffer) - size, 
+                    "XWin.%s.log", display); 
+            buffer[sizeof(buffer)-1] = 0;
+            g_pszLogFile = buffer;
+            winMsg (X_DEFAULT, "Logfile set to \"%s\"\n", g_pszLogFile);
+        }
     }
 #ifdef XKB
     {
@@ -634,6 +645,11 @@ OsVendorInit (void)
   /* Re-initialize global variables on server reset */
   winInitializeGlobals ();
 
+  LogInit (NULL, NULL);
+  LogSetParameter (XLOG_VERBOSITY, g_iLogVerbose);
+
+  winFixupPaths();
+
 #ifdef DDXOSVERRORF
   if (!OsVendorVErrorFProc)
     OsVendorVErrorFProc = OsVendorVErrorF;
@@ -647,7 +663,7 @@ OsVendorInit (void)
      */  
     g_fLogInited = TRUE;
     LogInit (g_pszLogFile, NULL);
-  }  
+  } 
   LogSetParameter (XLOG_FLUSH, 1);
   LogSetParameter (XLOG_VERBOSITY, g_iLogVerbose);
   LogSetParameter (XLOG_FILE_VERBOSITY, 1);
@@ -681,10 +697,6 @@ OsVendorInit (void)
       /* We have to flag this as an explicit screen, even though it isn't */
       g_ScreenInfo[0].fExplicitScreen = TRUE;
     }
-
-  winFixupPaths();
-
-  XSupportsLocale();
 }
 
 

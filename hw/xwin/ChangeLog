@@ -1,3 +1,8 @@
+2004-11-22  Alexander Gottwald  <ago at freedesktop dot org>
+
+	* InitOutput.c, winglobals.c, winprocarg.c:
+	Xming: Place logfile in users tempdir
+	
 2004-11-15  Alexander Gottwald  <ago at freedesktop dot org>
 
 	* Imakefile:

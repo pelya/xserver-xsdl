@@ -61,6 +61,7 @@ HICON		g_hSmallIconX = NULL;
 char *		g_pszLogFile = "/tmp/XWin.log";
 #else
 char *		g_pszLogFile = "XWin.log";
+Bool		g_fLogFileChanged = FALSE;
 #endif
 int		g_iLogVerbose = 2;
 Bool		g_fLogInited = FALSE;
