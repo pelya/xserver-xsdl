@@ -905,6 +905,9 @@ MouseInit (void)
     int		n = 0;
     char	*prot;
 
+    if (!MouseInputType)
+	MouseInputType = KdAllocInputType ();
+
     for (mi = kdMouseInfo; mi; mi = next)
     {
 	next = mi->next;
