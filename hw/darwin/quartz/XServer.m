@@ -8,7 +8,7 @@
 //
 /*
  * Copyright (c) 2001 Andreas Monitzer. All Rights Reserved.
- * Copyright (c) 2002-2003 Torrey T. Lyons. All Rights Reserved.
+ * Copyright (c) 2002-2005 Torrey T. Lyons. All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
@@ -34,7 +34,7 @@
  * sale, use or other dealings in this Software without prior written
  * authorization.
  */
-/* $XdotOrg: xc/programs/Xserver/hw/darwin/quartz/XServer.m,v 1.2 2004/04/23 19:15:17 eich Exp $ */
+/* $XdotOrg: xc/programs/Xserver/hw/darwin/quartz/XServer.m,v 1.3 2004/07/30 19:12:17 torrey Exp $ */
 /* $XFree86: xc/programs/Xserver/hw/darwin/quartz/XServer.m,v 1.19 2003/11/24 05:39:01 torrey Exp $ */
 
 #include "quartzCommon.h"
@@ -258,18 +258,17 @@ static io_connect_t root_port;
 
     switch (type) {
         case NSLeftMouseUp:
-            [self getMousePosition:&xe fromEvent:anEvent];
             if (quartzRootless && !mouse1Pressed) {
                 // MouseUp after MouseDown in menu - ignore
                 return NO;
             }
             mouse1Pressed = NO;
+            [self getMousePosition:&xe fromEvent:anEvent];
             xe.u.u.type = ButtonRelease;
             xe.u.u.detail = 1;
             break;
 
         case NSLeftMouseDown:
-            [self getMousePosition:&xe fromEvent:anEvent];
             if (quartzRootless) {
                 // Check that event is in X11 window
                 if (!quartzProcs->IsX11Window([anEvent window],
@@ -284,9 +283,42 @@ static io_connect_t root_port;
                 }
             }
             mouse1Pressed = YES;
+            [self getMousePosition:&xe fromEvent:anEvent];
             xe.u.u.type = ButtonPress;
             xe.u.u.detail = 1;
             break;
+
+        case NSRightMouseUp:
+            [self getMousePosition:&xe fromEvent:anEvent];
+            xe.u.u.type = ButtonRelease;
+            xe.u.u.detail = 3;
+            break;
+
+        case NSRightMouseDown:
+            [self getMousePosition:&xe fromEvent:anEvent];
+            xe.u.u.type = ButtonPress;
+            xe.u.u.detail = 3;
+            break;
+
+        case NSOtherMouseUp:
+        {
+            int hwButton = [anEvent buttonNumber];
+
+            [self getMousePosition:&xe fromEvent:anEvent];
+            xe.u.u.type = ButtonRelease;
+            xe.u.u.detail = (hwButton == 2) ? hwButton : hwButton + 1;
+            break;
+        }
+
+        case NSOtherMouseDown:
+        {
+            int hwButton = [anEvent buttonNumber];
+
+            [self getMousePosition:&xe fromEvent:anEvent];
+            xe.u.u.type = ButtonPress;
+            xe.u.u.detail = (hwButton == 2) ? hwButton : hwButton + 1;
+            break;
+        }
 
         case NSMouseMoved:
         case NSLeftMouseDragged:
@@ -295,23 +327,6 @@ static io_connect_t root_port;
             [self getMousePosition:&xe fromEvent:anEvent];
             xe.u.u.type = MotionNotify;
             break;
-
-        case NSSystemDefined:
-        {
-            long hwButtons = [anEvent data2];
-
-            if (![anEvent subtype]==7)
-                return NO; // we only use multibutton mouse events
-            if (mouseState == hwButtons)
-                return NO; // ignore double events
-            mouseState = hwButtons;
-
-            [self getMousePosition:&xe fromEvent:anEvent];
-            xe.u.u.type = kXDarwinUpdateButtons;
-            xe.u.clientMessage.u.l.longs0 = [anEvent data1];
-            xe.u.clientMessage.u.l.longs1 =[anEvent data2];
-            break;
-        }
 
         case NSScrollWheel:
             [self getMousePosition:&xe fromEvent:anEvent];
