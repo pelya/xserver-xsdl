@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/xf86_OSlib.h,v 3.93 2003/09/09 03:20:38 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/xf86_OSlib.h,v 3.94 2003/11/03 05:11:51 tsi Exp $ */
 /*
  * Copyright 1990, 1991 by Thomas Roell, Dinkelscherben, Germany
  * Copyright 1992 by David Dawes <dawes@XFree86.org>
@@ -102,7 +102,7 @@ typedef signed long xf86ssize_t;
 /* SYSV386 (SVR3, SVR4) - But not Solaris8                                */
 /**************************************************************************/
 #if (defined(SYSV) || defined(SVR4)) && \
-    !defined(DGUX) && \
+    !defined(DGUX) && !defined(sgi) && \
     !defined(__SOL8__) && \
     (!defined(sun) || defined(i386))
 # ifdef SCO325
@@ -532,7 +532,7 @@ extern int errno;
 # endif
 # endif /* __bsdi__ */
 
-#ifdef USE_I386_IOPL
+#if defined(USE_I386_IOPL) || defined(USE_AMD64_IOPL)
 #include <machine/sysarch.h>
 #endif
 
@@ -671,6 +671,17 @@ extern char* __XOS2RedirRoot(char*);
 #endif /* __GNU__ */
 
 /**************************************************************************/
+/* IRIX                                                                   */
+/**************************************************************************/
+#if defined(sgi)
+
+#include <errno.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+
+#endif
+
+/**************************************************************************/
 /* Generic                                                                */
 /**************************************************************************/
 
@@ -717,9 +728,7 @@ extern int sys_nerr;
 #if defined(ISC) || defined(Lynx)
 #define rint(x) RInt(x)
 double RInt(
-#if NeedFunctionPrototypes
 	double x
-#endif
 );
 #endif
 

@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/bsd/i386_video.c,v 1.3 2003/03/14 13:46:03 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/bsd/i386_video.c,v 1.4 2003/09/24 02:43:34 dawes Exp $ */
 /*
  * Copyright 1992 by Rich Murphey <Rich@Rice.edu>
  * Copyright 1993 by David Wexelblat <dwex@goblin.org>
@@ -46,6 +46,11 @@
 #include <sys/queue.h>
 #endif
 
+#if defined(__OpenBSD__) && defined(__amd64__)
+#include <machine/mtrr.h>
+#include <machine/sysarch.h>
+#endif
+
 #include "xf86_OSlib.h"
 #include "xf86OSpriv.h"
 
@@ -62,11 +67,11 @@
 #ifdef __OpenBSD__
 #define SYSCTL_MSG "\tCheck that you have set 'machdep.allowaperture=1'\n"\
 		   "\tin /etc/sysctl.conf and reboot your machine\n" \
-		   "\trefer to xf86(4) for details\n"
+		   "\trefer to xf86(4) for details"
 #define SYSCTL_MSG2 \
 		"Check that you have set 'machdep.allowaperture=2'\n" \
 		"\tin /etc/sysctl.conf and reboot your machine\n" \
-		"\trefer to xf86(4) for details\n"
+		"\trefer to xf86(4) for details"
 #endif
 
 /***************************************************************************/
@@ -94,7 +99,11 @@ static pointer NetBSDsetWC(int, unsigned long, unsigned long, Bool,
 			   MessageType);
 static void NetBSDundoWC(int, pointer);
 #endif
-
+#if defined(__amd64__) && defined(__OpenBSD__)
+static pointer amd64setWC(int, unsigned long, unsigned long, Bool, 
+    MessageType);
+static void amd64undoWC(int, pointer);
+#endif
 
 /*
  * Check if /dev/mem can be mmap'd.  If it can't print a warning when
@@ -206,6 +215,10 @@ xf86OSInitVidMem(VidMemInfoPtr pVidMem)
 	pVidMem->setWC = NetBSDsetWC;
 	pVidMem->undoWC = NetBSDundoWC;
 #endif
+#if defined(__amd64__) && defined(__OpenBSD__)
+	pVidMem->setWC = amd64setWC;
+	pVidMem->undoWC = amd64undoWC;
+#endif
 	pVidMem->initialised = TRUE;
 }
 
@@ -220,7 +233,7 @@ mapVidMem(int ScreenNum, unsigned long Base, unsigned long Size, int flags)
 	{
 	    if (devMemFd < 0) 
 	    {
-		FatalError("xf86MapVidMem: failed to open %s (%s)\n",
+		FatalError("xf86MapVidMem: failed to open %s (%s)",
 			   DEV_MEM, strerror(errno));
 	    }
 	    base = mmap((caddr_t)0, Size,
@@ -229,7 +242,7 @@ mapVidMem(int ScreenNum, unsigned long Base, unsigned long Size, int flags)
 			MAP_FLAGS, devMemFd, (off_t)Base);
 	    if (base == MAP_FAILED)
 	    {
-		FatalError("%s: could not mmap %s [s=%x,a=%x] (%s)\n",
+		FatalError("%s: could not mmap %s [s=%lx,a=%lx] (%s)",
 			   "xf86MapVidMem", DEV_MEM, Size, Base, 
 			   strerror(errno));
 	    }
@@ -239,7 +252,7 @@ mapVidMem(int ScreenNum, unsigned long Base, unsigned long Size, int flags)
 	/* else, mmap /dev/vga */
 	if ((unsigned long)Base < 0xA0000 || (unsigned long)Base >= 0xC0000)
 	{
-		FatalError("%s: Address 0x%x outside allowable range\n",
+		FatalError("%s: Address 0x%lx outside allowable range",
 			   "xf86MapVidMem", Base);
 	}
 	base = mmap(0, Size,
@@ -250,7 +263,7 @@ mapVidMem(int ScreenNum, unsigned long Base, unsigned long Size, int flags)
 	    );
 	if (base == MAP_FAILED)
 	{
-	    FatalError("xf86MapVidMem: Could not mmap /dev/vga (%s)\n",
+	    FatalError("xf86MapVidMem: Could not mmap /dev/vga (%s)",
 		       strerror(errno));
 	}
 	return(base);
@@ -288,7 +301,7 @@ xf86ReadBIOS(unsigned long Base, unsigned long Offset, unsigned char *Buf,
 	if ((long)ptr == -1)
 	{
 		xf86Msg(X_WARNING, 
-			"xf86ReadBIOS: %s mmap[s=%x,a=%x,o=%x] failed (%s)\n",
+			"xf86ReadBIOS: %s mmap[s=%x,a=%lx,o=%lx] failed (%s)\n",
 			DEV_MEM, Len, Base, Offset, strerror(errno));
 #ifdef __OpenBSD__
 		if (Base < 0xa0000) {
@@ -311,7 +324,6 @@ xf86ReadBIOS(unsigned long Base, unsigned long Offset, unsigned char *Buf,
 	return(Len);
 }
 
-
 #ifdef USE_I386_IOPL
 /***************************************************************************/
 /* I/O Permissions section                                                 */
@@ -328,7 +340,7 @@ xf86EnableIO()
 	if (i386_iopl(TRUE) < 0)
 	{
 #ifndef __OpenBSD__
-		FatalError("%s: Failed to set IOPL for extended I/O\n",
+		FatalError("%s: Failed to set IOPL for extended I/O",
 			   "xf86EnableIO");
 #else
 		FatalError("%s: Failed to set IOPL for extended I/O\n%s",
@@ -354,6 +366,51 @@ xf86DisableIO()
 
 #endif /* USE_I386_IOPL */
 
+#ifdef USE_AMD64_IOPL
+/***************************************************************************/
+/* I/O Permissions section                                                 */
+/***************************************************************************/
+
+static Bool ExtendedEnabled = FALSE;
+
+void
+xf86EnableIO()
+{
+	if (ExtendedEnabled)
+		return;
+
+	if (amd64_iopl(TRUE) < 0)
+	{
+#ifndef __OpenBSD__
+		FatalError("%s: Failed to set IOPL for extended I/O",
+			   "xf86EnableIO");
+#else
+		FatalError("%s: Failed to set IOPL for extended I/O\n%s",
+			   "xf86EnableIO", SYSCTL_MSG);
+#endif
+	}
+	ExtendedEnabled = TRUE;
+
+	return;
+}
+	
+void
+xf86DisableIO()
+{
+	if (!ExtendedEnabled)
+		return;
+
+	if (amd64_iopl(FALSE) == 0) {
+		ExtendedEnabled = FALSE;
+	}
+	/* Otherwise, the X server has revoqued its root uid, 
+	   and thus cannot give up IO privileges any more */
+	   
+	return;
+}
+
+#endif /* USE_AMD64_IOPL */
+
 #ifdef USE_DEV_IO
 static int IoFd = -1;
 
@@ -366,7 +423,7 @@ xf86EnableIO()
 	if ((IoFd = open("/dev/io", O_RDWR)) == -1)
 	{
 		FatalError("xf86EnableIO: "
-				"Failed to open /dev/io for extended I/O\n");
+				"Failed to open /dev/io for extended I/O");
 	}
 	return;
 }
@@ -439,7 +496,7 @@ xf86SetTVOut(int mode)
 #endif /* PCCONS_SUPPORT */
 
 	default:
-	    FatalError("Xf86SetTVOut: Unsupported console\n");
+	    FatalError("Xf86SetTVOut: Unsupported console");
 	    break; 
     }
     return;
@@ -464,13 +521,12 @@ xf86SetRGBOut()
 #endif /* PCCONS_SUPPORT */
 
 	default:
-	    FatalError("Xf86SetTVOut: Unsupported console\n");
+	    FatalError("Xf86SetTVOut: Unsupported console");
 	    break; 
     }
     return;
 }
 #endif
-
 
 #ifdef HAS_MTRR_SUPPORT
 /* memory range (MTRR) support for FreeBSD */
@@ -879,3 +935,55 @@ NetBSDundoWC(int screenNum, pointer list)
 	xfree(mtrrp);
 }
 #endif
+
+#if defined(__OpenBSD__) && defined(__amd64__)
+static pointer
+amd64setWC(int screenNum, unsigned long base, unsigned long size, Bool enable,
+	    MessageType from)
+{
+	struct mtrr *mtrrp;
+	int n;
+
+	xf86DrvMsg(screenNum, X_WARNING,
+		   "%s MTRR %lx - %lx\n", enable ? "set" : "remove",
+		   base, (base + size));
+
+	mtrrp = xnfalloc(sizeof (struct mtrr));
+	mtrrp->base = base;
+	mtrrp->len = size;
+	mtrrp->type = MTRR_TYPE_WC;
+
+	/*
+	 * MTRR_PRIVATE will make this MTRR get reset automatically
+	 * if this process exits, so we have no need for an explicit
+	 * cleanup operation when starting a new server.
+	 */
+
+	if (enable)
+		mtrrp->flags = MTRR_VALID | MTRR_PRIVATE;
+	else
+		mtrrp->flags = 0;
+	n = 1;
+
+	if (amd64_set_mtrr(mtrrp, &n) < 0) {
+		xfree(mtrrp);
+		return NULL;
+	}
+	return mtrrp;
+}
+
+static void
+amd64undoWC(int screenNum, pointer list)
+{
+	struct mtrr *mtrrp = (struct mtrr *)list;
+	int n;
+
+	if (mtrrp == NULL)
+		return;
+	n = 1;
+	mtrrp->flags &= ~MTRR_VALID;
+	amd64_set_mtrr(mtrrp, &n);
+	xfree(mtrrp);
+}
+#endif /* OpenBSD/amd64 */
+
