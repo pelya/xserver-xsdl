@@ -331,6 +331,13 @@ LoaderInit(void)
 {
     const char *osname = NULL;
 
+#ifdef DLOPEN_SUPPORT
+    char *ld_bind_now = getenv("LD_BIND_NOW");
+    if (ld_bind_now && *ld_bind_now) {
+        xf86Msg(X_ERROR, "LD_BIND_NOW is set, dlloader will NOT work!\n");
+    }
+#endif
+
     LoaderAddSymbols(-1, -1, miLookupTab);
     LoaderAddSymbols(-1, -1, xfree86LookupTab);
     LoaderAddSymbols(-1, -1, dixLookupTab);
