@@ -1,0 +1,16 @@
+XCOMM $XFree86$
+
+#include <Server.tmpl>
+
+SRCS = 	vesa.c vesainit.c vbe.c 
+
+OBJS = 	vesa.o vesainit.o vbe.o
+
+INCLUDES = -I.. -I. -I$(XBUILDINCDIR) -I$(FONTINCSRC) \
+	   -I../../../fb -I../../../mi -I../../../include -I../../../os  \
+           -I$(EXTINCSRC) -I$(XINCLUDESRC)
+
+NormalLibraryObjectRule()
+NormalLibraryTarget(vesa,$(OBJS))
+InstallManPage(Xvesa,$(MANDIR))
+DependTarget()

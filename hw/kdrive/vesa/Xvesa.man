@@ -1,0 +1,63 @@
+.\" $XFree86$
+.TH Xvesa 1
+.SH NAME
+Xvesa \- VESA VBE tiny X server
+.SH SYNOPSIS
+.B Xvesa
+.RI [ :display ] 
+.RI [ option ...]
+.SH DESCRIPTION
+Xvesa is an X server for Linux on the x86 platform.  Xvesa manipulates
+the video hardware by running the VESA BIOS in VM86 mode.  It
+therefore runs untrusted code with full priviledges, and is one of the
+most insecure X servers available.
+.B Run at your own risk.
+.SH OPTIONS
+In addition to the normal tiny-X server's options (to be described in
+a separate man page),
+.B Xvesa
+accepts the following command line switches:
+.TP 8
+.B -mode \fIn\fB
+specifies the VESA video mode to use.  If mode
+.I n
+is not supported by your BIOS and hardware,
+.B Xvesa
+will fail, hang your system, or make your monitor explode.  You are on
+your own.  The list of video modes that your BIOS claims to support
+can be obtained by using the 
+.B -listmodes
+option.
+.TP 8
+.B -listmodes
+tells the server to list all supported video modes.  If
+.B -force
+was specified before
+.BR -listmodes ,
+lists all the modes that your BIOS claims to support, even those that
+the
+.B Xvesa
+server won't be able to use.
+.TP 8
+.B -force
+tells the server to disable some sanity checks and use the specified
+mode even if the BIOS claims not to support it.
+.SH KEYBOARD
+Xvesa handles the keyboard in the same manner as the
+.B Xfbdev
+Linux X server.  See Xfbdev(1) (not yet written) for more information.
+.SH BUGS
+.B Xvesa
+opens all IO ports and runs your VESA BIOS, which may safely be
+assumed to be buggy.  Allowing your users to run
+.B Xvesa
+is a major security hole.  Allowing yourself to run
+.B Xvesa
+is probably a mistake.
+.SH SEE ALSO
+X(1), Xserver(1), xdm(1), xinit(1), Xfbdev(1).
+.SH AUTHORS
+The tiny-X server was written by Keith Packard, and the VESA driver
+was added by Juliusz Chroboczek who didn't realise what he was doing
+until it was too late.  Tiny-X uses code from XFree86, which in turn
+is based on the Sample Implementation.
