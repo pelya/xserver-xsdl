@@ -1095,12 +1095,10 @@ localQueryLargestOffscreenLinear(
 
     *size = 0;
     
-    if (!offman->LinearAreas) return FALSE;
-
     pLink = offman->LinearAreas;
-    pLinkRet = pLink;
 
-    if (!pLink->area) {
+    if (pLink && !pLink->area) {
+	pLinkRet = pLink;
 	while (pLink) {
 	    if (pLink->free) {
 		if (pLink->linear.size > pLinkRet->linear.size)
