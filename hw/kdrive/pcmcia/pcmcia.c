@@ -40,8 +40,6 @@
 #define CLK_K(a,b)	(((b) >> 6) & 3)
 #define CLK_FREQ(a,b)	(((CLK_N(a,b) + 8) * CLOCK) / ((CLK_M(a,b)+2) << CLK_K(a,b)))
 
-#include "modes.h"
-
 extern void
 tridentUpdatePacked (ScreenPtr pScreen,
 		    shadowBufPtr pBuf);
@@ -49,6 +47,12 @@ extern void
 cirrusUpdatePacked (ScreenPtr pScreen,
 		    shadowBufPtr pBuf);
 
+static Bool
+tridentSetCLK(int clock, CARD8 *a, CARD8 *b);
+
+static Bool
+CirrusFindClock(int freq, int *num_out, int *den_out);
+    
 Bool
 pcmciaCardInit (KdCardInfo *card)
 {
@@ -102,12 +106,65 @@ pcmciaCardInit (KdCardInfo *card)
 }
 
 Bool
+pcmciaModeSupported (KdScreenInfo		*screen,
+		     const KdMonitorTiming	*t)
+{
+    KdCardInfo		*card = screen->card;
+    pcmciaCardInfo	*pcmciac = (pcmciaCardInfo *) card->driver;
+
+    if (pcmciac->HP)
+    {
+	CARD8	a, b;
+	if (!tridentSetCLK (t->clock, &a, &b))
+	    return FALSE;
+    }
+    else
+    {
+	int a, b;
+	if (!CirrusFindClock (t->clock, &a, &b))
+	    return FALSE;
+    }
+    
+    /* width must be a multiple of 16 */
+    if (t->horizontal & 0xf)
+	return FALSE;
+    return TRUE;
+}
+
+Bool
+pcmciaModeUsable (KdScreenInfo	*screen)
+{
+    KdCardInfo		*card = screen->card;
+    pcmciaCardInfo	*pcmciac = (pcmciaCardInfo *) card->driver;
+    int			screen_size;
+    int			pixel_width;
+    int			byte_width;
+    int			fb;
+    
+    if (screen->fb[0].depth == 8) 
+    	screen->fb[0].bitsPerPixel = 8;
+    else if (screen->fb[0].depth == 15 || screen->fb[0].depth == 16)
+    	screen->fb[0].bitsPerPixel = 16;
+    else
+	return FALSE;
+
+    screen_size = 0;
+    screen->fb[0].pixelStride = screen->width;
+    screen->fb[0].byteStride = screen->width * (screen->fb[0].bitsPerPixel >>3);
+    screen->fb[0].frameBuffer = pcmciac->fb;
+    screen_size = screen->fb[0].byteStride * screen->height;
+    
+    return screen_size <= pcmciac->memory;
+}
+
+Bool
 pcmciaScreenInit (KdScreenInfo *screen)
 {
     pcmciaCardInfo	*pcmciac = screen->card->driver;
     pcmciaScreenInfo	*pcmcias;
     int			screen_size, memory;
     int			i;
+    const KdMonitorTiming   *t;
 
     pcmcias = (pcmciaScreenInfo *) xalloc (sizeof (pcmciaScreenInfo));
     if (!pcmcias)
@@ -117,64 +174,50 @@ pcmciaScreenInit (KdScreenInfo *screen)
     /* if (!pcmciac->cop) */
 	screen->dumb = TRUE;
 
-    /* default to 8bpp */
-    if (!screen->fb[0].depth)
+    if (screen->fb[0].depth < 8) 
 	screen->fb[0].depth = 8;
+    
+    /* default to 16bpp */
+    if (!screen->fb[0].depth)
+	screen->fb[0].depth = 16;
 
     /* default to 60Hz refresh */
-    if (!screen->rate)
+    if (!screen->width || !screen->height)
+    {
+	screen->width = 640;
+	screen->height = 400;
 	screen->rate = 60;
-
-    i = 0;
-    pcmcias->Mode = -1;
-    while (pcmciaDefaultModes[i].Width != 0) {
-	if ( (screen->width  == pcmciaDefaultModes[i].Width) &&
-	     (screen->height == pcmciaDefaultModes[i].Height) &&
-	     (screen->rate   == pcmciaDefaultModes[i].Refresh) ) {
-		pcmcias->Mode = i;
-		break;
-	}
-	i++;
     }
 
-    if ( pcmcias->Mode == -1 ) {
-	ErrorF("PCMCIA: no matching vesa mode for screen selection, aborting.\n");
-	ErrorF("PCMCIA: use -listmodes to check for supported list of modes.\n");
-	return FALSE; /* end of list */
-    }
-
-    pcmcias->rotation = screen->rotation;
-
-    memory = 512 * 1024;
-    pcmcias->screen = pcmciac->fb;
-
-    if (pcmciac->HP && !screen->softCursor && screen->fb[0].depth == 8) {
+    pcmciac->memory = 512 * 1024;
+    if (pcmciac->HP && !screen->softCursor && screen->fb[0].depth == 8) 
+    {
+	/* ack, bail on the HW cursor for everything -- no ARGB falback */
+	pcmcias->cursor_base = 0;
+#if 0
 	/* Let's do hw cursor for the HP card, only in 8bit mode though */
-    	pcmcias->cursor_base = pcmcias->screen + memory - 4096; 
-    	memory -= 4096;
+    	pcmcias->cursor_base = pcmcias->screen + pcmciac->memory - 4096; 
+    	pcmciac->memory -= 4096;
+#endif
     }
 
-    if (screen->fb[0].depth == 4) {
-	ErrorF("PCMCIA: depth 4 isn't supported.\n");
-    	return FALSE; /* screen->fb[0].bitsPerPixel = 4; need fb to support it*/
-    } else
-    if (screen->fb[0].depth == 8) 
-    	screen->fb[0].bitsPerPixel = 8;
-    else
-    if (screen->fb[0].depth == 15 ||
-        screen->fb[0].depth == 16)
-    	screen->fb[0].bitsPerPixel = 16;
+    pcmcias->screen = pcmciac->fb;
+    screen->driver = pcmcias;
 
-    if ( (screen->width * screen->height * 
-	 (screen->fb[0].bitsPerPixel / 8)) > memory) {
-	ErrorF("PCMCIA: Not enough memory for resolution requested, aborting.\n");
+    t = KdFindMode (screen, pcmciaModeSupported);
+    
+    screen->rate = t->rate;
+    screen->width = t->horizontal;
+    screen->height = t->vertical;
+
+    pcmcias->randr = screen->randr;
+
+    if (!KdTuneMode (screen, pcmciaModeUsable, pcmciaModeSupported))
+    {
+	xfree (pcmcias);
 	return FALSE;
     }
 
-    screen->fb[0].pixelStride = screen->width;
-    screen->fb[0].byteStride = screen->width * (screen->fb[0].bitsPerPixel >>3);
-
-    screen->fb[0].frameBuffer = pcmciac->fb;
     switch (screen->fb[0].depth) {
     case 4:
 	screen->fb[0].visuals = ((1 << StaticGray) |
@@ -208,9 +251,6 @@ pcmciaScreenInit (KdScreenInfo *screen)
 	screen->fb[0].redMask   = 0xf800;
 	break;
     }
-    screen_size = screen->fb[0].byteStride * screen->height;
-
-    screen->driver = pcmcias;
 
     return TRUE;
 }
@@ -265,108 +305,21 @@ pcmciaLayerCreate (ScreenPtr pScreen)
     pcmciaScreenInfo	*pcmcias = (pcmciaScreenInfo *) pScreenPriv->screen->driver;
     ShadowUpdateProc	update;
     ShadowWindowProc	window;
-    KdMouseMatrix	m;
     PixmapPtr		pPixmap;
     int			kind;
 
-    switch (pcmcias->rotation) {
-    case 0:
-	pScreen->width = screen->width;
-	pScreen->height = screen->height;
-	pScreen->mmWidth = screen->width_mm;
-	pScreen->mmHeight = screen->height_mm;
-	m.matrix[0][0] = 1; m.matrix[0][1] = 0; m.matrix[0][2] = 0;
-	m.matrix[1][0] = 0; m.matrix[1][1] = 1; m.matrix[1][2] = 0;
-	break;
-    case 90:
-	pScreen->width = screen->height;
-	pScreen->height = screen->width;
-	pScreen->mmWidth = screen->height_mm;
-	pScreen->mmHeight = screen->width_mm;
-	m.matrix[0][0] = 0; m.matrix[0][1] = -1; m.matrix[0][2] = screen->height - 1;
-	m.matrix[1][0] = 1; m.matrix[1][1] = 0; m.matrix[1][2] = 0;
-	break;
-    case 180:
-	pScreen->width = screen->width;
-	pScreen->height = screen->height;
-	pScreen->mmWidth = screen->width_mm;
-	pScreen->mmHeight = screen->height_mm;
-	m.matrix[0][0] = -1; m.matrix[0][1] = 0; m.matrix[0][2] = screen->width - 1;
-	m.matrix[1][0] = 0; m.matrix[1][1] = -1; m.matrix[1][2] = screen->height - 1;
-	break;
-    case 270:
-	pScreen->width = screen->height;
-	pScreen->height = screen->width;
-	pScreen->mmWidth = screen->height_mm;
-	pScreen->mmHeight = screen->width_mm;
-	m.matrix[0][0] = 0; m.matrix[0][1] = 1; m.matrix[0][2] = 0;
-	m.matrix[1][0] = -1; m.matrix[1][1] = 0; m.matrix[1][2] = screen->width - 1;
-	break;
-    }
-    KdSetMouseMatrix (&m);
-
     if (pcmciac->HP) {
     	window = tridentWindowLinear;
-	switch (pcmcias->rotation) {
-	case 0:
-    		update = tridentUpdatePacked;
-		break;
-	case 90:
- 		switch (pScreenPriv->screen->fb[0].bitsPerPixel) {
- 		case 8:
-		    update = shadowUpdateRotate8_90; break;
- 		case 16:
-		    update = shadowUpdateRotate16_90; break;
- 		}
-		break;
-	    case 180:
-		switch (pScreenPriv->screen->fb[0].bitsPerPixel) {
-		case 8:
-		    update = shadowUpdateRotate8_180; break;
-		case 16:
-		    update = shadowUpdateRotate16_180; break;
-		}
-		break;
-	    case 270:
-		switch (pScreenPriv->screen->fb[0].bitsPerPixel) {
-		case 8:
-		    update = shadowUpdateRotate8_270; break;
-		case 16:
-		    update = shadowUpdateRotate16_270; break;
-		}
-		break;
-	}
+	if (pcmcias->randr == RR_Rotate_0)
+	    update = tridentUpdatePacked;
+	else
+	    update = pcmciaUpdateRotatePacked;
     } else {
     	window = cirrusWindowWindowed;
-	switch (pcmcias->rotation) {
-	case 0:
-    		update = cirrusUpdatePacked;
-		break;
-	case 90:
- 		switch (pScreenPriv->screen->fb[0].bitsPerPixel) {
- 		case 8:
-		    update = shadowUpdateRotate8_90; break;
- 		case 16:
-		    update = shadowUpdateRotate16_90; break;
- 		}
-		break;
-	    case 180:
-		switch (pScreenPriv->screen->fb[0].bitsPerPixel) {
-		case 8:
-		    update = shadowUpdateRotate8_180; break;
-		case 16:
-		    update = shadowUpdateRotate16_180; break;
-		}
-		break;
-	    case 270:
-		switch (pScreenPriv->screen->fb[0].bitsPerPixel) {
-		case 8:
-		    update = shadowUpdateRotate8_270; break;
-		case 16:
-		    update = shadowUpdateRotate16_270; break;
-		}
-		break;
-	}
+	if (pcmcias->randr == RR_Rotate_0)
+	    update = cirrusUpdatePacked;
+	else
+	    update = pcmciaUpdateRotatePacked;
     }
 
     if (!update)
@@ -376,93 +329,70 @@ pcmciaLayerCreate (ScreenPtr pScreen)
     pPixmap = 0;
 
     return LayerCreate (pScreen, kind, screen->fb[0].depth, 
-			pPixmap, update, window, pcmcias->rotation, 0);
+			pPixmap, update, window, pcmcias->randr, 0);
+}
+
+void
+pcmciaConfigureScreen (ScreenPtr pScreen)
+{
+    KdScreenPriv(pScreen);
+    KdScreenInfo	*screen = pScreenPriv->screen;
+    FbdevPriv		*priv = pScreenPriv->card->driver;
+    pcmciaScreenInfo	*pcmcias = (pcmciaScreenInfo *) screen->driver;
+    KdMouseMatrix	m;
+
+    KdComputeMouseMatrix (&m, pcmcias->randr, 
+			  screen->width, screen->height);
+    
+    if (m.matrix[0][0])
+    {
+	pScreen->width = screen->width;
+	pScreen->height = screen->height;
+	pScreen->mmWidth = screen->width_mm;
+	pScreen->mmHeight = screen->height_mm;
+    }
+    else
+    {
+	pScreen->width = screen->height;
+	pScreen->height = screen->width;
+	pScreen->mmWidth = screen->height_mm;
+	pScreen->mmHeight = screen->width_mm;
+    }
+    KdSetMouseMatrix (&m);
 }
 
 #ifdef RANDR
+
 Bool
-pcmciaRandRGetInfo (ScreenPtr pScreen, Rotation *rotations)
+pcmciaRandRSupported (ScreenPtr		    pScreen,
+		      const KdMonitorTiming *t)
 {
     KdScreenPriv(pScreen);
     pcmciaCardInfo	    *pcmciac = pScreenPriv->card->driver;
     KdScreenInfo	    *screen = pScreenPriv->screen;
-    pcmciaScreenInfo	*pcmcias = (pcmciaScreenInfo *) pScreenPriv->screen->driver;
-    RRVisualGroupPtr	    pVisualGroup;
-    RRGroupOfVisualGroupPtr pGroupOfVisualGroup;
-    RRScreenSizePtr	    pSize;
-    Rotation		    rotateKind;
-    int			    rotation;
-    int			    n;
+    int			    screen_size;
+    int			    byteStride;
     
-    *rotations = RR_Rotate_0|RR_Rotate_90|RR_Rotate_180|RR_Rotate_270;
-    
-    for (n = 0; n < pScreen->numDepths; n++)
-	if (pScreen->allowedDepths[n].numVids)
-	    break;
-    if (n == pScreen->numDepths)
+    /* Make sure the clock is supported */
+    if (!pcmciaModeSupported (screen, t))
 	return FALSE;
-    
-    pVisualGroup = RRCreateVisualGroup (pScreen);
-    if (!pVisualGroup)
-	return FALSE;
-    if (!RRAddDepthToVisualGroup (pScreen,
-				pVisualGroup,
-				&pScreen->allowedDepths[n]))
-    {
-	RRDestroyVisualGroup (pScreen, pVisualGroup);
-	return FALSE;
-    }
+    /* Check for sufficient memory */
+    byteStride = screen->width * (screen->fb[0].bitsPerPixel >>3);
+    screen_size = byteStride * screen->height;
 
-    pVisualGroup = RRRegisterVisualGroup (pScreen, pVisualGroup);
-    if (!pVisualGroup)
-	return FALSE;
-    
-    pGroupOfVisualGroup = RRCreateGroupOfVisualGroup (pScreen);
+    return screen_size <= pcmciac->memory;
+}
 
-    if (!RRAddVisualGroupToGroupOfVisualGroup (pScreen,
-					 pGroupOfVisualGroup,
-					 pVisualGroup))
-    {
-	RRDestroyGroupOfVisualGroup (pScreen, pGroupOfVisualGroup);
-	/* pVisualGroup left until screen closed */
-	return FALSE;
-    }
-
-    pGroupOfVisualGroup = RRRegisterGroupOfVisualGroup (pScreen, pGroupOfVisualGroup);
-    if (!pGroupOfVisualGroup)
-	return FALSE;
+Bool
+pcmciaRandRGetInfo (ScreenPtr pScreen, Rotation *rotations)
+{
+    KdScreenPriv(pScreen);
     
-    pSize = RRRegisterSize (pScreen,
-			    screen->width,
-			    screen->height,
-			    screen->width_mm,
-			    screen->height_mm,
-			    pGroupOfVisualGroup);
+    *rotations = (RR_Rotate_0|RR_Rotate_90|RR_Rotate_180|RR_Rotate_270|
+		  RR_Reflect_X|RR_Reflect_Y);
     
-    rotation = pcmcias->rotation - screen->rotation;
-    if (rotation < 0)
-	rotation += 360;
-
-    switch (rotation)
-    {
-    case 0:
-	rotateKind = RR_Rotate_0;
-	break;
-    case 90:
-	rotateKind = RR_Rotate_90;
-	break;
-    case 180:
-	rotateKind = RR_Rotate_180;
-	break;
-    case 270:
-	rotateKind = RR_Rotate_270;
-	break;
-    }
-
-    RRSetCurrentConfig (pScreen, rotateKind, pSize, pVisualGroup);
-    
-     return TRUE;
- }
+    return KdRandRGetInfo (pScreen, pcmciaRandRSupported);
+}
  
 int
 pcmciaLayerAdd (WindowPtr pWin, pointer value)
@@ -488,73 +418,62 @@ pcmciaLayerRemove (WindowPtr pWin, pointer value)
 }
 
 pcmciaRandRSetConfig (ScreenPtr		pScreen,
-		     Rotation		rotateKind,
-		     RRScreenSizePtr	pSize,
-		     RRVisualGroupPtr	pVisualGroup)
+		      Rotation		randr,
+		      int		rate,
+		      RRScreenSizePtr	pSize)
 {
     KdScreenPriv(pScreen);
     KdScreenInfo	*screen = pScreenPriv->screen;
     FbdevPriv		*priv = pScreenPriv->card->driver;
     pcmciaScreenInfo	*pcmcias = (pcmciaScreenInfo *) pScreenPriv->screen->driver;
-    int			rotation;
     Bool		wasEnabled = pScreenPriv->enabled;
-
-    /*
-     * The only thing that can change is rotation
-     */
-    switch (rotateKind)
-    {
-    case RR_Rotate_0:
-	rotation = screen->rotation;
-	break;
-    case RR_Rotate_90:
-	rotation = screen->rotation + 90;
-	break;
-    case RR_Rotate_180:
-	rotation = screen->rotation + 180;
-	break;
-    case RR_Rotate_270:
-	rotation = screen->rotation + 270;
-	break;
-    }
-    if (rotation >= 360)
-	rotation -= 360;
-
-    if (pcmcias->rotation != rotation)
-    {
-	LayerPtr	pNewLayer;
-	int		kind;
-	int		oldrotation = pcmcias->rotation;
-	int		oldwidth = pScreen->width;
-	int		oldheight = pScreen->height;
-	PixmapPtr	pPixmap;
-
-	if (wasEnabled)
-	    KdDisableScreen (pScreen);
+    int			newwidth, newheight;
+    LayerPtr		pNewLayer;
+    int			kind;
+    int			oldrandr = pcmcias->randr;
+    PixmapPtr		pPixmap;
+    KdMonitorTiming	*t;
+    
+    randr = KdAddRotation (screen->randr, randr);
+    
+    t = KdRandRGetTiming (pScreen, pcmciaRandRSupported, rate, pSize);
+    
+    if (wasEnabled)
+        KdDisableScreen (pScreen);
 	
-	pcmcias->rotation = rotation;
-	pNewLayer = pcmciaLayerCreate (pScreen);
-	if (!pNewLayer)
-	{
-	    pcmcias->rotation = oldrotation;
-	}
-	if (WalkTree (pScreen, pcmciaLayerAdd, (pointer) pNewLayer) == WT_STOPWALKING)
-	{
-	    WalkTree (pScreen, pcmciaLayerRemove, (pointer) pNewLayer);
-	    LayerDestroy (pScreen, pNewLayer);
-	    pcmcias->rotation = oldrotation;
-	    pScreen->width = oldwidth;
-	    pScreen->height = oldheight;
-	    if (wasEnabled)
-		KdEnableScreen (pScreen);
-	    return FALSE;
-	}
-        WalkTree (pScreen, pcmciaLayerRemove, (pointer) pcmcias->pLayer);
-	LayerDestroy (pScreen, pcmcias->pLayer);
-	pcmcias->pLayer = pNewLayer;
+    screen->rate = t->rate;
+    screen->width = t->horizontal;
+    screen->height = t->vertical;
+
+    pcmcias->randr = randr;
+    pcmciaConfigureScreen (pScreen);
+
+    pNewLayer = pcmciaLayerCreate (pScreen);
+    
+    if (!pNewLayer)
+    {
+	pcmcias->randr = oldrandr;
+	pcmciaConfigureScreen (pScreen);
 	if (wasEnabled)
 	    KdEnableScreen (pScreen);
+	return FALSE;
     }
+	
+    if (WalkTree (pScreen, pcmciaLayerAdd, (pointer) pNewLayer) == WT_STOPWALKING)
+    {
+	WalkTree (pScreen, pcmciaLayerRemove, (pointer) pNewLayer);
+	LayerDestroy (pScreen, pNewLayer);
+	pcmcias->randr = oldrandr;
+	pcmciaConfigureScreen (pScreen);
+	if (wasEnabled)
+	    KdEnableScreen (pScreen);
+	return FALSE;
+    }
+    WalkTree (pScreen, pcmciaLayerRemove, (pointer) pcmcias->pLayer);
+    LayerDestroy (pScreen, pcmcias->pLayer);
+    pcmcias->pLayer = pNewLayer;
+    if (wasEnabled)
+	KdEnableScreen (pScreen);
     return TRUE;
 }
 
@@ -584,6 +503,9 @@ pcmciaInitScreen (ScreenPtr pScreen)
 	return FALSE;
     if (!LayerFinishInit (pScreen))
 	return FALSE;
+
+    pcmciaConfigureScreen (pScreen);
+
     pcmcias->pLayer = pcmciaLayerCreate (pScreen);
     if (!pcmcias->pLayer)
 	return FALSE;
@@ -657,50 +579,47 @@ pcmciaPreserve (KdCardInfo *card)
 #define CLOCKVAL(n, d) \
      (VCOVAL(n, d) >> ((d) & 1))
 
-int CirrusFindClock(freq, max_clock, num_out, den_out)
-	int freq;
-	int max_clock;
-	int *num_out;
-	int *den_out;
+static Bool
+CirrusFindClock(int freq, int *num_out, int *den_out)
 {
-	int n;
-	int num = 0, den = 0;
-	int mindiff;
+    int n;
+    int num = 0, den = 0;
+    int mindiff;
 
-	/*
-	 * If max_clock is greater than the MAX_VCO default, ignore
-	 * MAX_VCO. On the other hand, if MAX_VCO is higher than max_clock,
-	 * make use of the higher MAX_VCO value.
-	 */
-	if (MAX_VCO > max_clock)
-		max_clock = MAX_VCO;
+    /*
+     * If max_clock is greater than the MAX_VCO default, ignore
+     * MAX_VCO. On the other hand, if MAX_VCO is higher than max_clock,
+     * make use of the higher MAX_VCO value.
+     */
 
-	mindiff = freq; 
-	for (n = 0x10; n < 0x7f; n++) {
-		int d;
-		for (d = 0x14; d < 0x3f; d++) {
-			int c, diff;
-			/* Avoid combinations that can be unstable. */
-			if ((VCOVAL(n, d) < MIN_VCO) || (VCOVAL(n, d) > max_clock))
-				continue;
-			c = CLOCKVAL(n, d);
-			diff = abs(c - freq);
-			if (diff < mindiff) {
-				mindiff = diff;
-				num = n;
-				den = d;
-			}
-		}
+    mindiff = freq; 
+    for (n = 0x10; n < 0x7f; n++) {
+	int d;
+	for (d = 0x14; d < 0x3f; d++) {
+	    int c, diff;
+	    /* Avoid combinations that can be unstable. */
+	    if ((VCOVAL(n, d) < MIN_VCO) || (VCOVAL(n, d) > MAX_VCO))
+		continue;
+	    c = CLOCKVAL(n, d);
+	    diff = abs(c - freq);
+	    if (diff < mindiff) {
+		mindiff = diff;
+		num = n;
+		den = d;
+	    }
 	}
+    }
+    if (n == 0x80)
+	return FALSE;
 
-	*num_out = num;
-	*den_out = den;
+    *num_out = num;
+    *den_out = den;
 
-	return 0;
+    return TRUE;
 }
 
 
-void
+static Bool
 tridentSetCLK(int clock, CARD8 *a, CARD8 *b)
 {
     int powerup[4] = { 1,2,4,8 };
@@ -736,55 +655,76 @@ tridentSetCLK(int clock, CARD8 *a, CARD8 *b)
     ErrorF ("ffreq %d clock %d\n", s, clock);
 #endif
     if (s == 0)
-    {
-	FatalError("Unable to set programmable clock.\n"
-		   "Frequency %d is not a valid clock.\n"
-		   "Please modify XF86Config for a new clock.\n",	
-		   freq);
-    }
+	return FALSE;
 
     /* N is first 7bits, first M bit is 8th bit */
     *a = ((1 & q) << 7) | p;
     /* first 4bits are rest of M, 1bit for K value */
     *b = (((q & 0xFE) >> 1) | (r << 4));
+    return TRUE;
 }
 
 Bool
 pcmciaEnable (ScreenPtr pScreen)
 {
     KdScreenPriv(pScreen);
+    KdScreenInfo	*screen = pScreenPriv->screen;
     pcmciaCardInfo	*pcmciac = pScreenPriv->card->driver;
-    pcmciaScreenInfo	*pcmcias = (pcmciaScreenInfo *) pScreenPriv->screen->driver;
+    pcmciaScreenInfo	*pcmcias = (pcmciaScreenInfo *) screen->driver;
     int i,j;
     unsigned char Sequencer[6];
     unsigned char CRTC[31];
     unsigned char Graphics[9];
     unsigned char Attribute[21];
     unsigned char MiscOutReg;
-    pcmciaDisplayModeRec mode = pcmciaDefaultModes[pcmcias->Mode];
+    const KdMonitorTiming	*t;
+    int	    hactive, hblank, hfp, hbp;
+    int	    vactive, vblank, vfp, vbp;
+    
+    int	    h_active;
+    int	    h_total;
+    int	    h_display_end;
+    int	    h_sync_start;
+    int	    h_sync_end;
+    int	    h_skew = 0;
+
+    int	    v_active;
+    int	    v_total;
+    int	    v_sync_start;
+    int	    v_sync_end;
+    int	    v_skew = 0;
+
+    t = KdFindMode (screen, pcmciaModeSupported);
+    
+    hactive = t->horizontal;
+    hfp = t->hfp;
+    hbp = t->hbp;
+    hblank = t->hblank;
+    
+    h_active = hactive;
+    h_sync_start = hactive + hfp;
+    h_sync_end = hactive + hblank - hbp;
+    h_total = hactive + hblank;
+
+    vactive = t->vertical;
+    vfp = t->vfp;
+    vbp = t->vbp;
+    vblank = t->vblank;
+    
+    v_active = vactive;
+    v_sync_start = vactive + vfp;
+    v_sync_end = vactive + vblank - vbp;
+    v_total = vactive + vblank;
 
     /*
      * compute correct Hsync & Vsync polarity 
      */
-    if ((mode.Flags & (V_PHSYNC | V_NHSYNC))
-        && (mode.Flags & (V_PVSYNC | V_NVSYNC)))
-    {
-        MiscOutReg = 0x23;
-        if (mode.Flags & V_NHSYNC) MiscOutReg |= 0x40;
-        if (mode.Flags & V_NVSYNC) MiscOutReg |= 0x80;
-    }
-    else
-    {
-        int VDisplay = mode.VDisplay;
-        if (VDisplay < 400)
-            MiscOutReg = 0xA3;		/* +hsync -vsync */
-        else if (VDisplay < 480)
-            MiscOutReg = 0x63;		/* -hsync +vsync */
-        else if (VDisplay < 768)
-            MiscOutReg = 0xE3;		/* -hsync -vsync */
-        else
-            MiscOutReg = 0x23;		/* +hsync +vsync */
-    }
+
+    MiscOutReg = 0x23;
+    if (t->hpol == KdSyncNegative)
+	MiscOutReg |= 0x40;
+    if (t->vpol == KdSyncNegative)
+        MiscOutReg |= 0x80;
     
     /*
      * Time Sequencer
@@ -805,36 +745,37 @@ pcmciaEnable (ScreenPtr pScreen)
     /*
      * CRTC Controller
      */
-    CRTC[0]  = (mode.HTotal >> 3) - 5;
-    CRTC[1]  = (mode.HDisplay >> 3) - 1;
-    CRTC[2]  = ((min(mode.HSyncStart,mode.HDisplay)) >> 3) - 1;
-    CRTC[3]  = ((((min(mode.HSyncEnd,mode.HTotal)) >> 3) - 1) & 0x1F) | 0x80;
-    i = (((mode.HSkew << 2) + 0x10) & ~0x1F);
+    CRTC[0]  = ((h_total) >> 3) - 5;
+    CRTC[1]  = (hactive >> 3) - 1;
+    CRTC[2]  = ((min(h_sync_start,h_active)) >> 3) - 1;
+    CRTC[3]  = ((((min(h_sync_end,h_total)) >> 3) - 1) & 0x1F) | 0x80;
+    i = (((h_skew << 2) + 0x10) & ~0x1F);
     if (i < 0x80)
 	CRTC[3] |= i;
-    CRTC[4]  = (mode.HSyncStart >> 3);
-    CRTC[5]  = (((((min(mode.HSyncEnd,mode.HTotal)) >> 3) - 1) & 0x20) << 2)
-	| (((mode.HSyncEnd >> 3)) & 0x1F);
-    CRTC[6]  = (mode.VTotal - 2) & 0xFF;
-    CRTC[7]  = (((mode.VTotal - 2) & 0x100) >> 8)
-	| (((mode.VDisplay - 1) & 0x100) >> 7)
-	| ((mode.VSyncStart & 0x100) >> 6)
-	| ((((min(mode.VSyncStart,mode.VDisplay)) - 1) & 0x100) >> 5)
+    CRTC[4]  = (h_sync_start >> 3);
+    CRTC[5]  = (((((min(h_sync_end,h_total)) >> 3) - 1) & 0x20) << 2)
+	| (((h_sync_end >> 3)) & 0x1F);
+    
+    CRTC[6]  = (v_total - 2) & 0xFF;
+    CRTC[7]  = (((v_total - 2) & 0x100) >> 8)
+	| (((v_active - 1) & 0x100) >> 7)
+	| ((v_sync_start & 0x100) >> 6)
+	| ((((min(v_sync_start,v_active)) - 1) & 0x100) >> 5)
 	| 0x10
-	| (((mode.VTotal - 2) & 0x200)   >> 4)
-	| (((mode.VDisplay - 1) & 0x200) >> 3)
-	| ((mode.VSyncStart & 0x200) >> 2);
+	| (((v_total - 2) & 0x200)   >> 4)
+	| (((v_active - 1) & 0x200) >> 3)
+	| ((v_sync_start & 0x200) >> 2);
     CRTC[8]  = 0x00;
-    CRTC[9]  = ((((min(mode.VSyncStart,mode.VDisplay))-1) & 0x200) >> 4) | 0x40;
+    CRTC[9]  = ((((min(v_sync_start,v_active))-1) & 0x200) >> 4) | 0x40;
     CRTC[10] = 0x00;
     CRTC[11] = 0x00;
     CRTC[12] = 0x00;
     CRTC[13] = 0x00;
     CRTC[14] = 0x00;
     CRTC[15] = 0x00;
-    CRTC[16] = mode.VSyncStart & 0xFF;
-    CRTC[17] = (mode.VSyncEnd & 0x0F) | 0x20;
-    CRTC[18] = (mode.VDisplay - 1) & 0xFF;
+    CRTC[16] = v_sync_start & 0xFF;
+    CRTC[17] = (v_sync_end & 0x0F) | 0x20;
+    CRTC[18] = (v_active - 1) & 0xFF;
     if (pScreenPriv->screen->fb[0].depth == 4)
         CRTC[19] = pScreenPriv->screen->fb[0].pixelStride >> 4;
     else
@@ -845,8 +786,8 @@ pcmciaEnable (ScreenPtr pScreen)
         pScreenPriv->screen->fb[0].depth == 15)
         CRTC[19] = pScreenPriv->screen->fb[0].pixelStride >> 2;
     CRTC[20] = 0x00;
-    CRTC[21] = ((min(mode.VSyncStart,mode.VDisplay)) - 1) & 0xFF; 
-    CRTC[22] = ((min(mode.VSyncEnd,mode.VDisplay)) - 1) & 0xFF;
+    CRTC[21] = ((min(v_sync_end,v_active)) - 1) & 0xFF; 
+    CRTC[22] = ((min(v_sync_end,v_active)) - 1) & 0xFF;
     if (pScreenPriv->screen->fb[0].depth < 8)
 	CRTC[23] = 0xE3;
     else
@@ -854,8 +795,10 @@ pcmciaEnable (ScreenPtr pScreen)
     CRTC[24] = 0xFF;
     CRTC[25] = 0x00;
     CRTC[26] = 0x00;
+#if 0
     if (!pcmciac->HP)
     	if (mode.Flags & V_INTERLACE) CRTC[26] |= 0x01;
+#endif
     if (pcmciac->HP)
     	CRTC[27] = 0x00;
     else
@@ -863,8 +806,10 @@ pcmciaEnable (ScreenPtr pScreen)
     CRTC[28] = 0x00;
     CRTC[29] = 0x00;
     CRTC[30] = 0x80;
+#if 0
     if (pcmciac->HP)
     	if (mode.Flags & V_INTERLACE) CRTC[30] |= 0x04;
+#endif
 
 {
     int nExtBits = 0;
@@ -872,20 +817,20 @@ pcmciaEnable (ScreenPtr pScreen)
     CARD32 ExtBitMask = ((1 << nExtBits) - 1) << 6;
 
     CRTC[3]  = (CRTC[3] & ~0x1F) 
-                     | ((((min(mode.HSyncEnd,mode.HTotal)) >> 3) - 1) & 0x1F);
+                     | ((((min(h_sync_end,h_total)) >> 3) - 1) & 0x1F);
     CRTC[5]  = (CRTC[5] & ~0x80) 
-                     | (((((min(mode.HSyncEnd,mode.HTotal)) >> 3) - 1) & 0x20) << 2);
-    ExtBits        = (((min(mode.HSyncEnd,mode.HTotal)) >> 3) - 1) & ExtBitMask;
+                     | (((((min(h_sync_end,h_total)) >> 3) - 1) & 0x20) << 2);
+    ExtBits        = (((min(h_sync_end,h_total)) >> 3) - 1) & ExtBitMask;
 
     /* First the horizontal case */
-    if ((((min(mode.HSyncEnd,mode.HTotal)) >> 3) == (mode.HTotal >> 3)))
+    if ((((min(h_sync_end,h_total)) >> 3) == (h_total >> 3)))
     {
 	int i = (CRTC[3] & 0x1F) 
 	    | ((CRTC[5] & 0x80) >> 2)
 	    | ExtBits;
-	if ((i-- > ((((min(mode.HSyncStart,mode.HDisplay)) >> 3) - 1) 
+	if ((i-- > ((((min(h_sync_start,h_active)) >> 3) - 1) 
 		       & (0x3F | ExtBitMask)))
-	    && ((min(mode.HSyncEnd,mode.HTotal)) == mode.HTotal))
+	    && ((min(h_sync_end,h_total)) == h_total))
 	    i = 0;
 	CRTC[3] = (CRTC[3] & ~0x1F) | (i & 0x1F);
 	CRTC[5] = (CRTC[5] & ~0x80) | ((i << 2) & 0x80);
@@ -898,11 +843,11 @@ pcmciaEnable (ScreenPtr pScreen)
     /* If width is not known nBits should be 0. In this 
      * case BitMask is set to 0 so we can check for it. */
     CARD32 BitMask = 0;
-    int VBlankStart = ((min(mode.VSyncStart,mode.VDisplay)) - 1) & 0xFF; 
-    CRTC[22] = ((min(mode.VSyncEnd,mode.VTotal)) - 1) & 0xFF;
-    ExtBits        = ((min(mode.VSyncEnd,mode.VTotal)) - 1) & ExtBitMask;
+    int VBlankStart = ((min(v_sync_start,v_active)) - 1) & 0xFF; 
+    CRTC[22] = ((min(v_sync_end,v_total)) - 1) & 0xFF;
+    ExtBits        = ((min(v_sync_end,v_total)) - 1) & ExtBitMask;
 
-    if ((min(mode.VSyncEnd,mode.VTotal)) == mode.VTotal)
+    if ((min(v_sync_end,v_total)) == v_total)
       /* Null top overscan */
     {
 	int i = CRTC[22] | ExtBits;
@@ -1090,7 +1035,7 @@ pcmciaEnable (ScreenPtr pScreen)
     /* Set the Clock */
     if (pcmciac->HP) {
 	CARD8 a,b;
-	int clock = mode.Clock;
+	int clock = t->clock;
     	if (pScreenPriv->screen->fb[0].bitsPerPixel == 16)
 		clock *= 2;
 	tridentSetCLK(clock, &a, &b);
@@ -1099,11 +1044,11 @@ pcmciaEnable (ScreenPtr pScreen)
     } else {
 	int num, den;
 	unsigned char tmp;
-	int clock = mode.Clock;
+	int clock = t->clock;
     	if (pScreenPriv->screen->fb[0].bitsPerPixel == 16)
 		clock *= 2;
 
-	CirrusFindClock(clock, MAX_VCO, &num, &den);
+	CirrusFindClock(clock, &num, &den);
 
 	tmp = pcmciaReadIndex(pcmciac, 0x3c4, 0x0d);
 	pcmciaWriteIndex(pcmciac, 0x3c4, 0x0d, (tmp & 0x80) | num);
@@ -1112,19 +1057,19 @@ pcmciaEnable (ScreenPtr pScreen)
     }
     pcmciaWriteReg(pcmciac, 0x3c2, MiscOutReg | 0x08);
 
-#if 0  /* for debugging */
+#if 1
     for (i=1;i<0x3f;i++)
-	ErrorF("0x%x, ",pcmciaReadIndex(pcmciac, 0x3c4, i));
+	ErrorF("0x3c4:%02x: 0x%x\n",i,pcmciaReadIndex(pcmciac, 0x3c4, i));
 
     ErrorF("\n");
 
     for (i=0;i<0x3f;i++)
-	ErrorF("0x%x, ",pcmciaReadIndex(pcmciac, 0x3ce, i));
+	ErrorF("0x3ce:%02x: 0x%x\n",i,pcmciaReadIndex(pcmciac, 0x3ce, i));
 
     ErrorF("\n");
 
     for (i=0;i<0x3f;i++)
-	ErrorF("0x%x, ",pcmciaReadIndex(pcmciac, 0x3d4, i));
+	ErrorF("0x3d4:%02x: 0x%x\n",i,pcmciaReadIndex(pcmciac, 0x3d4, i));
 #endif
 
     return TRUE;

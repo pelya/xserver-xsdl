@@ -58,28 +58,5 @@ extern pcmciaDisplayModeRec pcmciaDefaultModes[];
 int
 ddxProcessArgument (int argc, char **argv, int i)
 {
-    int	ret;
-    
-    if (!strcmp (argv[i], "-listmodes"))
-    {
-	int j = 0, bpp = 0;
-	ErrorF("Valid modes are....\n\n");
-	
-	for (bpp = 8; bpp < 24; bpp += 8) {
-    	  while (pcmciaDefaultModes[j].Width != 0) {
-	    if ((pcmciaDefaultModes[j].Width *
-		 pcmciaDefaultModes[j].Height * bpp/8) <= 512 * 1024) {
-		ErrorF("%dx%dx%dx%d\n",
-			pcmciaDefaultModes[j].Width,
-			pcmciaDefaultModes[j].Height,
-			bpp,
-			pcmciaDefaultModes[j].Refresh);
-	    }
-	    j++;
-	  }
-	  j = 0;
-	} 
-	exit(1);
-    }
     return KdProcessArgument (argc, argv, i);
 }

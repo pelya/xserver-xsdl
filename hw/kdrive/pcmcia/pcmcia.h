@@ -167,6 +167,7 @@ typedef struct _cop {
 typedef struct _pcmciaCardInfo {
     CARD8		*fb;
     Bool		HP;
+    CARD32		memory;
     CARD8		*cop_base;
     Cop			*cop;
     CARD32		*window;
@@ -189,12 +190,11 @@ typedef struct _pcmciaCursor {
 #define PCMCIA_CURSOR_HEIGHT	64
 
 typedef struct _pcmciaScreenInfo {
-    int	Mode;
     CARD8	    *cursor_base;
     CARD8	    *screen;
     CARD8	    *off_screen;
     int		    off_screen_size;
-    int	            rotation;
+    int	            randr;
     LayerPtr        pLayer;
     pcmciaCursor    cursor;
 } pcmciaScreenInfo;
@@ -240,6 +240,10 @@ pcmciaCursorFini (ScreenPtr pScreen);
 
 void
 pcmciaRecolorCursor (ScreenPtr pScreen, int ndef, xColorItem *pdef);
+
+void
+pcmciaUpdateRotatePacked (ScreenPtr	pScreen,
+			  shadowBufPtr	pBuf);
 
 typedef struct _pcmciaDisplayModeRec {
     int				Width;

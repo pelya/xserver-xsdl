@@ -123,6 +123,7 @@ mach64InitScreen (ScreenPtr pScreen)
 #ifdef RANDR
 mach64RandRSetConfig (ScreenPtr		pScreen,
 		      Rotation		rotation,
+		      int		rate,
 		      RRScreenSizePtr	pSize)
 {
     KdScreenPriv(pScreen);

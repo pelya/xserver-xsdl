@@ -1049,7 +1049,7 @@ vesaRandRGetInfo (ScreenPtr pScreen, Rotation *rotations)
 		    mode->YResolution == screen->height)
 		{
 		    int	randr = KdSubRotation (pscr->randr, screen->randr);
-		    RRSetCurrentConfig (pScreen, randr, pSize);
+		    RRSetCurrentConfig (pScreen, randr, 0, pSize);
 		}
 	    }
 	}
@@ -1083,6 +1083,7 @@ vesaLayerRemove (WindowPtr pWin, pointer value)
 Bool
 vesaRandRSetConfig (ScreenPtr		pScreen,
 		    Rotation		randr,
+		    int			rate,
 		    RRScreenSizePtr	pSize)
 {
     KdScreenPriv(pScreen);

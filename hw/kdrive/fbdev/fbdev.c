@@ -444,7 +444,7 @@ fbdevRandRGetInfo (ScreenPtr pScreen, Rotation *rotations)
     
     randr = KdSubRotation (scrpriv->randr, screen->randr);
     
-    RRSetCurrentConfig (pScreen, randr, pSize);
+    RRSetCurrentConfig (pScreen, randr, 0, pSize);
     
     return TRUE;
 }
@@ -474,6 +474,7 @@ fbdevLayerRemove (WindowPtr pWin, pointer value)
 
 fbdevRandRSetConfig (ScreenPtr		pScreen,
 		     Rotation		randr,
+		     int		rate,
 		     RRScreenSizePtr	pSize)
 {
     KdScreenPriv(pScreen);
