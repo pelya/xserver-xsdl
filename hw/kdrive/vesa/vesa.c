@@ -19,7 +19,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/vesa/vesa.c,v 1.16 2001/07/24 19:06:04 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/vesa/vesa.c,v 1.17 2001/09/05 07:12:42 keithp Exp $ */
 
 #include "vesa.h"
 #ifdef RANDR
@@ -749,6 +749,8 @@ vesaConfigureScreen (ScreenPtr pScreen)
     {
 	pscr->shadow = TRUE;
 	pscr->rotate = 0;
+	m.matrix[0][0] = 1; m.matrix[0][1] = 0; m.matrix[0][2] = 0;
+	m.matrix[1][0] = 0; m.matrix[1][1] = 1; m.matrix[1][2] = 0;
     } 
     else switch (pscr->rotate) {
     case 0:
