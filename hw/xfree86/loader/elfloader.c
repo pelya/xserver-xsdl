@@ -1,4 +1,4 @@
-/* $XdotOrg$ */
+/* $XdotOrg: xc/programs/Xserver/hw/xfree86/loader/elfloader.c,v 1.2 2004/04/23 19:54:06 eich Exp $ */
 /* $XFree86: xc/programs/Xserver/hw/xfree86/loader/elfloader.c,v 1.61tsi Exp $ */
 
 /*
@@ -922,7 +922,7 @@ ELFCreateGOT(ELFModulePtr elffile, int maxalign)
 	    ErrorF("ELFCreateGOT() Unable to reallocate memory!!!!\n");
 	    return FALSE;
 	}
-#   if defined(linux) || defined(__OpenBSD__)
+#   if defined(linux) || defined(__OpenBSD__) || defined(sun)
 	{
 	    unsigned long page_size = getpagesize();
 	    unsigned long round;
@@ -1097,7 +1097,7 @@ ELFCreatePLT(ELFModulePtr elffile)
 	ErrorF("ELFCreatePLT() Unable to allocate memory!!!!\n");
 	return;
     }
-#   if defined(linux) || defined(__OpenBSD__)
+#   if defined(linux) || defined(__OpenBSD__) || defined(sun)
     {
 	unsigned long page_size = getpagesize();
 	unsigned long round;
@@ -2775,7 +2775,7 @@ ELFCollectSections(ELFModulePtr elffile, int pass, int *totalsize,
 	elffile->lsection[j].size = SecSize(i);
 	elffile->lsection[j].flags = flags;
 	switch (SecType(i)) {
-#if defined(linux) || defined(__OpenBSD__)
+#if defined(linux) || defined(__OpenBSD__) || defined(sun)
 	case SHT_PROGBITS:
 	    {
 		unsigned long page_size = getpagesize();
@@ -2979,7 +2979,7 @@ ELFLoadModule(loaderPtr modrec, int elffd, LOOKUP **ppLookup)
 	ErrorF("Unable to allocate ELF sections\n");
 	return NULL;
     }
-#  if defined(linux) || defined(__OpenBSD__)
+#  if defined(linux) || defined(__OpenBSD__) || defined(sun)
     {
 	unsigned long page_size = getpagesize();
 	unsigned long round;
