@@ -1,5 +1,16 @@
 2005-01-31  Alexander Gottwald  <ago at freedesktop dot org>
 
+	* winmultiwindowwindow.c
+	* winmultiwindowwndproc.c:
+	Create windows with SWP_NOACTIVATE flag (updated) (Kensuke Matsuzaki)
+
+2005-01-31  Alexander Gottwald  <ago at freedesktop dot org>
+
+	* winmultiwindowwndproc.c:
+	Fixes for window ordering problem (updated) (Kensuke Matsuzaki)
+
+2005-01-31  Alexander Gottwald  <ago at freedesktop dot org>
+
 	* winconfig.c:
 	Added hungarian keyboard layout.
 

@@ -922,7 +922,7 @@ winTopLevelWindowProc (HWND hwnd, UINT message,
 	  ErrorF ("overridden window is shown\n");
 #endif
 	  SetWindowPos (hwnd, HWND_TOPMOST, 0, 0, 0, 0,
-			SWP_NOMOVE | SWP_NOSIZE);
+			SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
 	}
 	  
       /* Setup the Window Manager message */
@@ -942,6 +942,7 @@ winTopLevelWindowProc (HWND hwnd, UINT message,
       return ValidateSizing (hwnd, pWin, wParam, lParam);
 
     case WM_WINDOWPOSCHANGING:  
+#if 0
       if (lParam != 0)
         {
           WINDOWPOS *windowpos = (WINDOWPOS *)lParam;
@@ -978,8 +979,67 @@ winTopLevelWindowProc (HWND hwnd, UINT message,
                 winSendMessageToWM (s_pScreenPriv->pWMInfo, &wmMsg);
             }
         }
+#endif
       break;
     case WM_WINDOWPOSCHANGED:
+      {
+	LPWINDOWPOS pWinPos = (LPWINDOWPOS) lParam;
+
+	if (!(pWinPos->flags & SWP_NOZORDER))
+	  {
+#if CYGWINDOWING_DEBUG
+	    winDebug ("\twindow z order was changed\n");
+#endif
+	    if (pWinPos->hwndInsertAfter == HWND_TOP
+		||pWinPos->hwndInsertAfter == HWND_TOPMOST
+		||pWinPos->hwndInsertAfter == HWND_NOTOPMOST)
+	      {
+#if CYGWINDOWING_DEBUG
+		winDebug ("\traise to top\n");
+#endif
+		/* Raise the window to the top in Z order */
+		wmMsg.msg = WM_WM_RAISE;
+		if (fWMMsgInitialized)
+		  winSendMessageToWM (s_pScreenPriv->pWMInfo, &wmMsg);
+	      }
+	    else if (pWinPos->hwndInsertAfter == HWND_BOTTOM)
+	      {
+	      }
+	    else
+	      {
+		/* Check if this window is top of X windows. */
+		HWND hWndAbove = NULL;
+		DWORD dwCurrentProcessID = GetCurrentProcessId ();
+		DWORD dwWindowProcessID = 0;
+
+		for (hWndAbove = pWinPos->hwndInsertAfter;
+		     hWndAbove != NULL;
+		     hWndAbove = GetNextWindow (hWndAbove, GW_HWNDPREV))
+		  {
+		    /* Ignore other XWin process's window */
+		    GetWindowThreadProcessId (hWndAbove, &dwWindowProcessID);
+
+		    if ((dwWindowProcessID == dwCurrentProcessID)
+			&& GetProp (hWndAbove, WIN_WINDOW_PROP)
+			&& !IsWindowVisible (hWndAbove)
+			&& !IsIconic (hWndAbove) ) /* ignore minimized windows */
+		      break;
+		  }
+		/* If this is top of X windows in Windows stack,
+		   raise it in X stack. */
+		if (hWndAbove == NULL)
+		  {
+#if CYGWINDOWING_DEBUG
+		    winDebug ("\traise to top\n");
+#endif
+		    /* Raise the window to the top in Z order */
+		    wmMsg.msg = WM_WM_RAISE;
+		    if (fWMMsgInitialized)
+		      winSendMessageToWM (s_pScreenPriv->pWMInfo, &wmMsg);
+		  }
+	      }
+	  }
+      }
       /*
        * Pass the message to DefWindowProc to let the function
        * break down WM_WINDOWPOSCHANGED to WM_MOVE and WM_SIZE.
