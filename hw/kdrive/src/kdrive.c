@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/kdrive.c,v 1.15 2001/05/29 04:54:10 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/kdrive.c,v 1.16 2001/06/04 09:45:41 keithp Exp $ */
 
 #include "kdrive.h"
 #ifdef PSEUDO8
@@ -672,6 +672,8 @@ KdScreenInit(int index, ScreenPtr pScreen, int argc, char **argv)
 	pScreenPriv->bytesPerPixel[fb] = screen->fb[fb].bitsPerPixel >> 3;
     pScreenPriv->dpmsState = KD_DPMS_NORMAL;
 
+    if (!monitorResolution)
+	monitorResolution = 75;
     /*
      * This is done in this order so that backing store wraps
      * our GC functions; fbFinishScreenInit initializes MI
@@ -680,7 +682,7 @@ KdScreenInit(int index, ScreenPtr pScreen, int argc, char **argv)
     if (!fbSetupScreen (pScreen, 
 			screen->fb[0].frameBuffer, 
 			screen->width, screen->height, 
-			75, 75, 
+			monitorResolution, monitorResolution, 
 			screen->fb[0].pixelStride,
 			screen->fb[0].bitsPerPixel))
     {
@@ -713,7 +715,7 @@ KdScreenInit(int index, ScreenPtr pScreen, int argc, char **argv)
 					screen->fb[0].frameBuffer, 
 					screen->fb[1].frameBuffer, 
 					screen->width, screen->height, 
-					75, 75,
+					monitorResolution, monitorResolution,
 					screen->fb[0].pixelStride,
 					screen->fb[1].pixelStride,
 					screen->fb[0].bitsPerPixel,
@@ -730,7 +732,7 @@ KdScreenInit(int index, ScreenPtr pScreen, int argc, char **argv)
 	if (!fbFinishScreenInit (pScreen, 
 				 screen->fb[0].frameBuffer, 
 				 screen->width, screen->height,
-				 75, 75,
+				 monitorResolution, monitorResolution,
 				 screen->fb[0].pixelStride,
 				 screen->fb[0].bitsPerPixel))
 	{
