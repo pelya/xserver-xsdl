@@ -6,6 +6,10 @@ INCLUDES = 					\
 
 bin_PROGRAMS = Xsmi
 
+if TSLIB
+TSLIB_FLAG = -lts
+endif
+
 noinst_LIBRARIES = libsmi.a
 
 #	smivideo.c	# not ready yet
@@ -22,4 +26,5 @@ Xsmi_LDADD = \
 	$(top_builddir)/hw/kdrive/fbdev/libfbdev.a \
 	$(top_builddir)/hw/kdrive/vesa/libvesa.a \
 	@KDRIVE_LIBS@				\
-	@XSERVER_LIBS@
+	@XSERVER_LIBS@                          \
+	$(TSLIB_FLAG)

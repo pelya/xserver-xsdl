@@ -6,6 +6,11 @@ noinst_LIBRARIES = libvesa.a
 
 bin_PROGRAMS = Xvesa
 
+if TSLIB
+TSLIB_FLAG = -lts
+endif
+
+
 libvesa_a_SOURCES = \
 	vesa.c		\
 	vbe.c		\
@@ -18,8 +23,9 @@ Xvesa_SOURCES = \
 Xvesa_LDADD = \
 	libvesa.a 				\
 	@KDRIVE_LIBS@				\
-	@XSERVER_LIBS@
+	@XSERVER_LIBS@                          \
+	$(TSLIB_FLAG)
 
 Xvesa_DEPENDENCIES = \
-	libvesa.a				\
+	libvesa.a    \
 	@KDRIVE_LIBS@

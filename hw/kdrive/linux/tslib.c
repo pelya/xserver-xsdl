@@ -62,19 +62,27 @@
 static long lastx = 0, lasty = 0;
 static struct tsdev *tsDev = NULL;
 
-void
+/* extern int TSLibWantRawData;  */
+
+int KdTsPhyScreen = 0;
+
+static void
 TsRead (int tsPort, void *closure)
 {
     KdMouseInfo	    *mi = closure;
-    int		    fd = (int) mi->driver;
     struct ts_sample event;
     int		    n;
-    long	    pressure;
     long	    x, y;
     unsigned long   flags;
-    unsigned long   buttons;
+
+    /*
+    if (TSLibWantRawData)
+      n = ts_read_raw(tsDev, &event, 1);
+    else
+    */
 
     n = ts_read(tsDev, &event, 1);
+
     if (n == 1)  
     {
 	if (event.pressure) 
@@ -85,7 +93,7 @@ TsRead (int tsPort, void *closure)
 	     * touch screen, if it is we send absolute coordinates. If not,
 	     * then we send delta's so that we can track the entire vga screen.
 	     */
-	    if (KdTsCurScreen == KdTsPhyScreen) {
+	    if (KdCurScreen == KdTsPhyScreen) {
 	    	flags = KD_BUTTON_1;
 	    	x = event.x;
 	    	y = event.y;
@@ -108,11 +116,13 @@ TsRead (int tsPort, void *closure)
 	    lastx = 0;
 	    lasty = 0;
 	}
+
 	KdEnqueueMouseEvent (mi, flags, x, y);
     }
 }
 
 static char *TsNames[] = {
+  NULL,
   "/dev/ts",	
   "/dev/touchscreen/0",
 };
@@ -121,11 +131,13 @@ static char *TsNames[] = {
 
 int TsInputType;
 
-int
+static int
 TslibEnable (int not_needed_fd, void *closure)
 {
   KdMouseInfo	    *mi = closure;
   int		     fd = 0;
+
+  fprintf(stderr, "%s() called\n", __func__);
 
   if(!(tsDev = ts_open(mi->name, 0))) {
     fprintf(stderr, "%s() failed to open %s\n", __func__, mi->name );
@@ -138,16 +150,16 @@ TslibEnable (int not_needed_fd, void *closure)
   return fd;
 }
 
-void
+static void
 TslibDisable (int fd, void *closure)
 {
   ts_close(tsDev);
 }
 
-int
+static int
 TslibInit (void)
 {
-    int		i;
+    int		i, j = 0;
     KdMouseInfo	*mi, *next;
     int		fd= 0;
     int		n = 0;
@@ -161,10 +173,17 @@ TslibInit (void)
 	if (mi->inputType)
 	    continue;
 
+	/* Check for tslib env var device setting */
+	if ((TsNames[0] = getenv("TSLIB_TSDEVICE")) == NULL)
+	  j++;
+	
 	if (!mi->name)
 	{
-	    for (i = 0; i < NUM_TS_NAMES; i++)    
+	    for (i = j; i < NUM_TS_NAMES; i++)    
 	    {
+
+	      /* XXX Should check for  */
+
 		if(!(tsDev = ts_open(TsNames[i],0))) continue;
 	        ts_config(tsDev); 
 	        fd=ts_fd(tsDev);
@@ -195,11 +214,18 @@ TslibInit (void)
 
 	  } 
 	else 
-	  if (fd > 0) close(fd);
+	  {
+	    fprintf(stderr, "%s() failed to open tslib\n", __func__);	    
+	    if (fd > 0) close(fd);
+	  }
+
+
 	}
+
+    return n;
 }
 
-void
+static void
 TslibFini (void)
 {
     KdMouseInfo	*mi;

@@ -6,16 +6,15 @@ noinst_LIBRARIES = libfbdev.a
 
 bin_PROGRAMS = Xfbdev
 
+if TSLIB
+TSLIB_FLAG = -lts
+endif
+
 libfbdev_a_SOURCES = \
 	fbdev.c
 
 Xfbdev_SOURCES = \
 	fbinit.c
-
-
-if TSLIB
-TSLIB_FLAG = -lts
-endif
 
 Xfbdev_LDADD = 						\
 	libfbdev.a					\
@@ -25,5 +24,5 @@ Xfbdev_LDADD = 						\
 
 Xfbdev_DEPENDENCIES =					\
 	libfbdev.a					\
-	@KDRIVE_LIBS@
+	@KDRIVE_LIBS@					
 

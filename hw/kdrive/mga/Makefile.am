@@ -7,6 +7,10 @@ bin_PROGRAMS = Xmga
 
 noinst_LIBRARIES = libmga.a
 
+if TSLIB
+TSLIB_FLAG = -lts
+endif
+
 libmga_a_SOURCES = 	\
 	mgadraw.c	\
 	mga.c		\
@@ -19,4 +23,6 @@ Xmga_LDADD = \
 	libmga.a 					\
 	$(top_builddir)/hw/kdrive/vesa/libvesa.a 	\
 	@KDRIVE_LIBS@					\
-	@XSERVER_LIBS@
+	@XSERVER_LIBS@                                  \
+	$(TSLIB_FLAG)
+

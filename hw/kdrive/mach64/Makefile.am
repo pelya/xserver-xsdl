@@ -5,6 +5,11 @@ INCLUDES = 					\
 
 bin_PROGRAMS = Xmach64
 
+if TSLIB
+TSLIB_FLAG = -lts
+endif
+
+
 noinst_LIBRARIES = libmach64.a
 
 libmach64_a_SOURCES = 	\
@@ -20,11 +25,14 @@ Xmach64_SOURCES = \
 
 MACH64_LIBS =						\
 	libmach64.a 					\
-	$(top_builddir)/hw/kdrive/vesa/libvesa.a
+	$(top_builddir)/hw/kdrive/vesa/libvesa.a        
+
 
 Xmach64_LDADD = 					\
 	$(MACH64_LIBS)					\
 	@KDRIVE_LIBS@					\
-	@XSERVER_LIBS@
+	@XSERVER_LIBS@                                  \
+	$(TSLIB_FLAG)
+
 
 Xmach64_DEPENDENCIES = $(MACH64_LIBS) @KDRIVE_LIBS@

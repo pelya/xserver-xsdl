@@ -5,6 +5,10 @@ INCLUDES = 					\
 
 bin_PROGRAMS = Xr128
 
+if TSLIB
+TSLIB_FLAG = -lts
+endif
+
 noinst_LIBRARIES = libr128.a
 
 libr128_a_SOURCES = 	\
@@ -19,4 +23,6 @@ Xr128_LDADD = \
 	libr128.a 				\
 	$(top_builddir)/hw/kdrive/vesa/libvesa.a \
 	@KDRIVE_LIBS@				\
-	@XSERVER_LIBS@
+	@XSERVER_LIBS@                          \
+	$(TSLIB_FLAG)
+
