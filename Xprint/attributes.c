@@ -1170,7 +1170,14 @@ SendFileToCommand(
 
 	        if((pPasswd = getpwnam(userName)))
 	        {
-		    setuid((uid_t)pPasswd->pw_uid);
+                    if (setgid((gid_t)pPasswd->pw_gid) != 0)
+                        perror("SendFileToCommand: setgid() failure.");
+
+                    if (initgroups(userName, (gid_t)pPasswd->pw_gid) != 0)
+                        perror("SendFileToCommand: initgroups() failure.");
+
+                    if (setuid((uid_t)pPasswd->pw_uid) != 0)
+                        perror("SendFileToCommand: setuid() failure.");
 	        }
 	    }
 	}
