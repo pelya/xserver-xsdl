@@ -1,5 +1,5 @@
 /*
- * $XFree86: xc/programs/Xserver/hw/kdrive/linux/ts.c,v 1.7 2002/08/02 16:11:35 keithp Exp $
+ * $XFree86: xc/programs/Xserver/hw/kdrive/linux/ts.c,v 1.8 2002/08/02 16:30:50 keithp Exp $
  *
  * Derived from ps2.c by Jim Gettys
  *
@@ -183,6 +183,8 @@ TsInit (void)
 		if (KdRegisterFd (TsInputType, fd, TsRead, (void *) mi))
 		    n++;
 	    }
+	    else
+		close (fd);
 	}
     }
 }

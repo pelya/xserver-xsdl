@@ -309,12 +309,12 @@ KdMouseProc(DeviceIntPtr pDevice, int onoff)
     case DEVICE_ON:
 	pDev->on = TRUE;
 	pKdPointer = pDevice;
-	if (kdMouseFuncs)
-	    (*kdMouseFuncs->Init) ();
 #ifdef TOUCHSCREEN
 	if (kdTsFuncs)
 	    (*kdTsFuncs->Init) ();
 #endif
+	if (kdMouseFuncs)
+	    (*kdMouseFuncs->Init) ();
 	break;
     case DEVICE_OFF:
     case DEVICE_CLOSE:
