@@ -30,6 +30,14 @@
 #include "os.h"
 #include <stdarg.h>
 #include <stdio.h>
+
+#ifndef va_copy
+# ifdef __va_copy
+#  define va_copy __va_copy
+# else
+#  error "no working va_copy was found"
+# endif
+#endif
     
 char *
 Xvprintf(const char *format, va_list va)
