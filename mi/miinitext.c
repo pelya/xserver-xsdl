@@ -243,6 +243,9 @@ typedef void (*InitExtension)(INITARGS);
 #define _XAG_SERVER_
 #include <X11/extensions/Xagstr.h>
 #endif
+#ifdef XACE
+#include "xace.h"
+#endif
 #ifdef XCSECURITY
 #define _SECURITY_SERVER
 #include <X11/extensions/securstr.h>
@@ -313,7 +316,11 @@ extern void DbeExtensionInit(INITARGS);
 #ifdef XAPPGROUP
 extern void XagExtensionInit(INITARGS);
 #endif
+#ifdef XACE
+extern void XaceExtensionInit(INITARGS);
+#endif
 #ifdef XCSECURITY
+extern void SecurityExtensionSetup(INITARGS);
 extern void SecurityExtensionInit(INITARGS);
 #endif
 #ifdef XPRINT
@@ -524,6 +531,9 @@ InitExtensions(argc, argv)
     int		argc;
     char	*argv[];
 {
+#ifdef XCSECURITY
+    SecurityExtensionSetup();
+#endif
 #ifdef PANORAMIX
 # if !defined(PRINT_ONLY_SERVER) && !defined(NO_PANORAMIX)
   if (!noPanoramiXExtension) PanoramiXExtensionInit();
@@ -585,6 +595,9 @@ InitExtensions(argc, argv)
 #endif
 #ifdef XAPPGROUP
     if (!noXagExtension) XagExtensionInit();
+#endif
+#ifdef XACE
+    XaceExtensionInit();
 #endif
 #ifdef XCSECURITY
     if (!noSecurityExtension) SecurityExtensionInit();
@@ -688,8 +701,11 @@ static ExtensionModule staticExtensions[] = {
 #ifdef XAPPGROUP
     { XagExtensionInit, XAGNAME, &noXagExtension, NULL, NULL },
 #endif
+#ifdef XACE
+    { XaceExtensionInit, XACE_EXTENSION_NAME, NULL, NULL, NULL },
+#endif
 #ifdef XCSECURITY
-    { SecurityExtensionInit, SECURITY_EXTENSION_NAME, &noSecurityExtension, NULL, NULL },
+    { SecurityExtensionInit, SECURITY_EXTENSION_NAME, &noSecurityExtension, SecurityExtensionSetup, NULL },
 #endif
 #ifdef XPRINT
     { XpExtensionInit, XP_PRINTNAME, NULL, NULL, NULL },

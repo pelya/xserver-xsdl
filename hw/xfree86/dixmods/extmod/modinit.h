@@ -127,7 +127,12 @@ extern void ShmRegisterFuncs(
     ShmFuncsPtr funcs);
 #endif
 
+#ifdef XACE
+extern void XaceExtensionInit(INITARGS);
+#endif
+
 #if 1
+extern void SecurityExtensionSetup(INITARGS);
 extern void SecurityExtensionInit(INITARGS);
 #endif
 
