@@ -27,6 +27,7 @@
 #include <config.h>
 #endif
 #include "fbdev.h"
+#include <sys/ioctl.h>
 
 /* this code was used to debug MSB 24bpp code on a 16bpp frame buffer */
 #undef FAKE24_ON_16
@@ -73,8 +74,6 @@ fbdevInitialize (KdCardInfo *card, FbdevPriv *priv)
 Bool
 fbdevCardInit (KdCardInfo *card)
 {
-    int		k;
-    char	*pixels;
     FbdevPriv	*priv;
 
     priv = (FbdevPriv *) xalloc (sizeof (FbdevPriv));
@@ -114,7 +113,6 @@ fbdevScreenInitialize (KdScreenInfo *screen, FbdevScrPriv *scrpriv)
     FbdevPriv	*priv = screen->card->driver;
     Pixel	allbits;
     int		depth;
-    Bool	shadow;
     Bool	gray;
 #ifdef FAKE24_ON_16
     Bool	fake24;
@@ -345,7 +343,6 @@ fbdevConfigureScreen (ScreenPtr pScreen)
 {
     KdScreenPriv(pScreen);
     KdScreenInfo	*screen = pScreenPriv->screen;
-    FbdevPriv		*priv = pScreenPriv->card->driver;
     FbdevScrPriv	*scrpriv = screen->driver;
     KdMouseMatrix	m;
 
@@ -388,14 +385,11 @@ fbdevLayerCreate (ScreenPtr pScreen)
 {
     KdScreenPriv(pScreen);
     KdScreenInfo	*screen = pScreenPriv->screen;
-    FbdevPriv		*priv = pScreenPriv->card->driver;
     FbdevScrPriv	*scrpriv = screen->driver;
-    LayerPtr		pLayer;
     ShadowUpdateProc	update;
     ShadowWindowProc	window;
     PixmapPtr		pPixmap;
     int			kind;
-    KdMouseMatrix	m;
 
     if (scrpriv->shadow)
     {
@@ -437,7 +431,6 @@ Bool
 fbdevRandRGetInfo (ScreenPtr pScreen, Rotation *rotations)
 {
     KdScreenPriv(pScreen);
-    FbdevPriv		    *priv = pScreenPriv->card->driver;
     KdScreenInfo	    *screen = pScreenPriv->screen;
     FbdevScrPriv	    *scrpriv = screen->driver;
     RRScreenSizePtr	    pSize;
@@ -488,6 +481,7 @@ fbdevLayerRemove (WindowPtr pWin, pointer value)
     return WT_WALKCHILDREN;
 }
 
+Bool
 fbdevRandRSetConfig (ScreenPtr		pScreen,
 		     Rotation		randr,
 		     int		rate,
@@ -495,7 +489,6 @@ fbdevRandRSetConfig (ScreenPtr		pScreen,
 {
     KdScreenPriv(pScreen);
     KdScreenInfo	*screen = pScreenPriv->screen;
-    FbdevPriv		*priv = pScreenPriv->card->driver;
     FbdevScrPriv	*scrpriv = screen->driver;
     Bool		wasEnabled = pScreenPriv->enabled;
     FbdevScrPriv	oldscr;
@@ -560,12 +553,9 @@ bail4:
     pScreen->height = oldheight;
     pScreen->mmWidth = oldmmwidth;
     pScreen->mmHeight = oldmmheight;
-bail2:
     *scrpriv = oldscr;
-bail1:
     if (wasEnabled)
 	KdEnableScreen (pScreen);
-bail0:
     return FALSE;
 }
 
@@ -621,8 +611,6 @@ fbdevCreateColormap (ColormapPtr pmap)
 Bool
 fbdevInitScreen (ScreenPtr pScreen)
 {
-    KdScreenPriv(pScreen);
-
 #ifdef TOUCHSCREEN
     KdTsPhyScreen = pScreen->myNum;
 #endif
@@ -638,7 +626,6 @@ Bool
 fbdevFinishInitScreen (ScreenPtr pScreen)
 {
     KdScreenPriv(pScreen);
-    FbdevPriv		*priv = pScreenPriv->card->driver;
     FbdevScrPriv	*scrpriv = pScreenPriv->screen->driver;
     
     scrpriv->layerKind = LayerNewKind (pScreen);
@@ -667,9 +654,7 @@ Bool
 fbdevEnable (ScreenPtr pScreen)
 {
     KdScreenPriv(pScreen);
-    KdScreenInfo	*screen = pScreenPriv->screen;
     FbdevPriv		*priv = pScreenPriv->card->driver;
-    FbdevScrPriv	*scrpriv = pScreenPriv->screen->driver;
     int			k;
 
     priv->var.activate = FB_ACTIVATE_NOW|FB_CHANGE_CMAP_VBL;
@@ -746,13 +731,11 @@ fbdevRestore (KdCardInfo *card)
 void
 fbdevScreenFini (KdScreenInfo *screen)
 {
-    FbdevScrPriv	*scrpriv = screen->driver;
 }
 
 void
 fbdevCardFini (KdCardInfo *card)
 {
-    int	k;
     FbdevPriv	*priv = card->driver;
     
     munmap (priv->fb_base, priv->fix.smem_len);
