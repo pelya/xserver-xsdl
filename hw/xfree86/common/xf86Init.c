@@ -1244,7 +1244,7 @@ AbortDDX()
   /*
    * try to deinitialize all input devices
    */
-  if (xf86Info.pKeyboard)
+  if (xf86Info.kbdProc && xf86Info.pKeyboard)
     (xf86Info.kbdProc)(xf86Info.pKeyboard, DEVICE_CLOSE);
 
   /*
