@@ -245,7 +245,17 @@ KdXVQueryOffscreenImages(
    ScreenPtr pScreen,
    int *num
 );
-   
+
+void
+KdXVCopyPackedData(KdScreenInfo *screen, CARD8 *src, CARD8 *dst, int randr,
+   int srcPitch, int dstPitch, int srcW, int srcH, int top, int left,
+   int h, int w);
+
+void
+KdXVCopyPlanarData(KdScreenInfo *screen, CARD8 *src, CARD8 *dst, int randr,
+   int srcPitch, int srcPitch2, int dstPitch, int srcW, int srcH, int height,
+   int top, int left, int h, int w, int id);
+
 KdVideoAdaptorPtr KdXVAllocateVideoAdaptorRec(KdScreenInfo * screen);
 
 void KdXVFreeVideoAdaptorRec(KdVideoAdaptorPtr ptr);
