@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/kinput.c,v 1.10 2000/10/08 02:08:39 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/kinput.c,v 1.11 2000/12/08 21:40:02 keithp Exp $ */
 
 #include "kdrive.h"
 #include "inputstr.h"
@@ -420,12 +420,12 @@ const KdKeySymModsRec kdKeySymMods[] = {
   XK_Hyper_R,	Mod3Mask,
   XK_Mode_switch, Mod4Mask,
 #ifdef TOUCHSCREEN
-  /* iPAQ specific hacks */
+  /* PDA specific hacks */
   XF86XK_Start, ControlMask,
   XK_Menu, ShiftMask,
-  XF86XK_Calendar, LockMask,
   XK_telephone, Mod1Mask,
   XF86XK_AudioRecord, Mod2Mask,
+  XF86XK_Calendar, Mod3Mask,
 #endif
 };
 
