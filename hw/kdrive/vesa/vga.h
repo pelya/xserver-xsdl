@@ -1,5 +1,5 @@
 /*
- * $XFree86$
+ * $XFree86: xc/programs/Xserver/hw/kdrive/vesa/vga.h,v 1.1 2000/10/20 00:19:51 keithp Exp $
  *
  * Copyright © 2000 Keith Packard, member of The XFree86 Project, Inc.
  *
@@ -53,7 +53,7 @@ void *
 VgaSetWindow (Vm86InfoPtr vi, int vmode, int bytes, int mode, int *size);
     
 void *
-VgaMapFramebuffer (Vm86InfoPtr vi, int vmode, int *size);
+VgaMapFramebuffer (Vm86InfoPtr vi, int vmode, int *size, CARD32 *phys);
 
 void
 VgaUnmapFramebuffer (Vm86InfoPtr vi);

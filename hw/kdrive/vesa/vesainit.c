@@ -19,7 +19,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/vesa/vesainit.c,v 1.5 2000/12/08 21:40:29 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/vesa/vesainit.c,v 1.6 2001/06/04 09:45:42 keithp Exp $ */
 
 #include "vesa.h"
 
@@ -29,7 +29,7 @@ const KdCardFuncs vesaFuncs = {
     vesaInitScreen,             /* initScreen */
     vesaPreserve,               /* preserve */
     vesaEnable,                 /* enable */
-    0,                          /* dpms */
+    vesaDPMS,                   /* dpms */
     vesaDisable,                /* disable */
     vesaRestore,                /* restore */
     vesaScreenFini,             /* scrfini */

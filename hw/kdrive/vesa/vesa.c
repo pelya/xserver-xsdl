@@ -19,7 +19,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/vesa/vesa.c,v 1.15 2001/07/20 19:35:30 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/vesa/vesa.c,v 1.16 2001/07/24 19:06:04 keithp Exp $ */
 
 #include "vesa.h"
 #ifdef RANDR
@@ -33,6 +33,7 @@ Bool vesa_shadow = FALSE;
 Bool vesa_linear_fb = TRUE;
 Bool vesa_restore = FALSE;
 Bool vesa_verbose = FALSE;
+Bool vesa_force_text = FALSE;
 
 #define VesaPriv(scr)	((VesaScreenPrivPtr) (scr)->driver)
 
@@ -959,11 +960,13 @@ vesaMapFramebuffer (KdScreenInfo    *screen)
 	if (pscr->mode.vbe)
 	    pscr->fb = VbeMapFramebuffer(priv->vi, priv->vbeInfo, 
 					 pscr->mode.mode,
-					 &pscr->fb_size);
+					 &pscr->fb_size,
+					 &pscr->fb_phys);
 	else
 	    pscr->fb = VgaMapFramebuffer (priv->vi, 
 					  pscr->mode.mode,
-					  &pscr->fb_size);
+					  &pscr->fb_size,
+					  &pscr->fb_phys);
 	if (!pscr->fb)
 	    return FALSE;
 	break;
@@ -1451,11 +1454,13 @@ vesaEnable(ScreenPtr pScreen)
 	    if (pscr->mode.vbe)
 		pscr->fb = VbeMapFramebuffer(priv->vi, priv->vbeInfo, 
 					     pscr->mode.mode,
-					     &pscr->fb_size);
+					     &pscr->fb_size,
+					     &pscr->fb_phys);
 	    else
 		pscr->fb = VgaMapFramebuffer (priv->vi, 
 					      pscr->mode.mode,
-					      &pscr->fb_size);
+					      &pscr->fb_size,
+					      &pscr->fb_phys);
 	    if (!pscr->fb)
 		return FALSE;
 	    screen->fb[0].frameBuffer = (CARD8 *)(pscr->fb);
@@ -1499,6 +1504,77 @@ vesaEnable(ScreenPtr pScreen)
 	break;
     }
     return TRUE;
+}
+
+#ifndef TOSHIBA_SMM
+
+# ifdef linux
+#  define TOSHIBA_SMM 1
+# endif
+
+# ifndef TOSHIBA_SMM
+#  define TOSHIBA_SMM 0
+# endif
+
+#endif
+
+#if TOSHIBA_SMM
+/*
+ * Toshiba laptops use a special interface to operate the backlight
+ */
+#include <sys/ioctl.h>
+#define TOSH_PROC "/proc/toshiba"
+#define TOSH_DEVICE "/dev/toshiba"
+#define TOSH_SMM _IOWR('t', 0x90, 24)
+
+typedef struct {
+	unsigned int eax;
+	unsigned int ebx __attribute__ ((packed));
+	unsigned int ecx __attribute__ ((packed));
+	unsigned int edx __attribute__ ((packed));
+	unsigned int esi __attribute__ ((packed));
+	unsigned int edi __attribute__ ((packed));
+} SMMRegisters;
+
+#define HCI_BACKLIGHT	0x0002
+#define HCI_DISABLE	0x0000
+#define HCI_ENABLE	0x0001
+#define HCI_GET		0xfe00,
+#define HCI_SET		0xff00
+
+Bool
+toshibaDPMS (ScreenPtr pScreen, int mode)
+{
+    SMMRegisters    regs;
+    static int	    fd;
+
+    if (!fd)
+	fd = open (TOSH_DEVICE, 2);
+    if (fd < 0)
+	return FALSE;
+    regs.eax = HCI_SET;
+    regs.ebx = HCI_BACKLIGHT;
+    regs.ecx = mode ? HCI_DISABLE : HCI_ENABLE;
+    if (ioctl (fd, TOSH_SMM, &regs) < 0)
+	return FALSE;
+    return TRUE;
+}
+#endif /* TOSHIBA_SMM */
+
+Bool
+vesaDPMS (ScreenPtr pScreen, int mode)
+{
+    KdScreenPriv(pScreen);
+    VesaCardPrivPtr	priv = pScreenPriv->card->driver;
+    VesaScreenPrivPtr	pscr = pScreenPriv->screen->driver;
+
+#if TOSHIBA_SMM
+    if (toshibaDPMS (pScreen, mode))
+	return TRUE;
+#endif
+    if (pscr->mode.vbe)
+	return VbeDPMS (priv->vi, priv->vbeInfo, mode);
+    return FALSE;
 }
 
 void
@@ -1569,6 +1645,13 @@ vesaRestore(KdCardInfo *card)
     VesaCardPrivPtr priv = card->driver;
     int		    n;
 
+    if (vesa_force_text)
+    {
+	if (vesa_verbose)
+	    ErrorF ("Forcing switch back to mode 3 text\n");
+	priv->old_vbe_mode = -1;
+	priv->old_vga_mode = 3;
+    }
     for (n = 0; n < priv->nmode; n++)
 	if (priv->modes[n].vbe && priv->modes[n].mode == (priv->old_vbe_mode&0x3fff))
 	    break;
@@ -1773,6 +1856,9 @@ vesaProcessArgument (int argc, char **argv, int i)
         return 1;
     } else if(!strcmp(argv[i], "-verbose")) {
 	vesa_verbose = TRUE;
+	return 1;
+    } else if(!strcmp(argv[i], "-force-text")) {
+	vesa_force_text = TRUE;
 	return 1;
     }
     

@@ -19,7 +19,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/vesa/vbe.h,v 1.5 2000/10/20 00:19:50 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/vesa/vbe.h,v 1.6 2001/05/29 04:54:12 keithp Exp $ */
 
 #ifndef _VBE_H
 #define _VBE_H
@@ -134,7 +134,7 @@ int
 VbeGetMode(Vm86InfoPtr vi, int *mode);
 
 void *
-VbeMapFramebuffer(Vm86InfoPtr vi, VbeInfoPtr vbe, int mode, int *size);
+VbeMapFramebuffer(Vm86InfoPtr vi, VbeInfoPtr vbe, int mode, int *size, CARD32 *phys);
 
 void
 VbeUnmapFramebuffer(Vm86InfoPtr vi, VbeInfoPtr vbe, int mode, void *fb);

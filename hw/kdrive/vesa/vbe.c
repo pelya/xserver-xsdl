@@ -19,7 +19,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/vesa/vbe.c,v 1.7 2000/11/19 20:51:12 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/vesa/vbe.c,v 1.9 2001/05/29 04:54:12 keithp Exp $ */
 
 #include "vesa.h"
 
@@ -251,7 +251,7 @@ VbeGetMode(Vm86InfoPtr vi, int *mode)
 }
 
 void *
-VbeMapFramebuffer(Vm86InfoPtr vi, VbeInfoPtr vbe, int mode, int *ret_size)
+VbeMapFramebuffer(Vm86InfoPtr vi, VbeInfoPtr vbe, int mode, int *ret_size, CARD32 *ret_phys)
 {
     U8			*fb;
     VbeInfoBlock	vib;
@@ -270,6 +270,7 @@ VbeMapFramebuffer(Vm86InfoPtr vi, VbeInfoPtr vbe, int mode, int *ret_size)
     size = 1024 * 64L * vib.TotalMemory;
     
     *ret_size = size;
+    *ret_phys = vmib.PhysBasePtr;
 
     before = vmib.PhysBasePtr % pagesize;
     after = pagesize - ((vmib.PhysBasePtr + size) % pagesize);
@@ -499,6 +500,48 @@ windowB:
     vbe->last_window = 1;
     *size_return = vbe->vmib.WinSize * 1024 - (offset - vbe->windowB_offset);
     return ((U8*)&(LM(vi, MAKE_POINTER(vbe->vmib.WinBSegment, 0)))) + offset - vbe->windowB_offset;
+}
+
+static const int VbeDPMSModes[4] = {
+    0x00,	    /* KD_DPMS_NORMAL */
+    0x01,	    /* KD_DPMS_STANDBY */
+    0x02,	    /* KD_DPMS_SUSPEND */
+    0x04,	    /* KD_DPMS_POWERDOWN */
+};
+
+Bool
+VbeDPMS(Vm86InfoPtr vi, VbeInfoBlock *vib, int mode)
+{
+    int	code;
+    
+    /*
+     * Check which modes are supported
+     */
+    vi->vms.regs.eax = 0x4f10;
+    vi->vms.regs.ebx = 0x0000;
+    vi->vms.regs.es = 0;
+    vi->vms.regs.edi = 0;
+    code = VbeDoInterrupt10 (vi);
+    if (code < 0)
+    {
+	ErrorF ("No DPMS Support\n");
+	return FALSE;
+    }
+    /* Skip this stage if it's not supported */
+    if (((vi->vms.regs.ebx >> 4) & VbeDPMSModes[mode]) != VbeDPMSModes[mode])
+	return FALSE;
+    
+    /* Select this mode */
+    vi->vms.regs.eax = 0x4f10;
+    vi->vms.regs.ebx = (VbeDPMSModes[mode] << 8) | 0x01;
+    code = VbeDoInterrupt10 (vi);
+    if (code < 0)
+    {
+	ErrorF ("DPMS failed %d\n", code);
+	return FALSE;
+    }
+    
+    return TRUE;
 }
 
 int 

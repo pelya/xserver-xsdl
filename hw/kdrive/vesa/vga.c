@@ -1,5 +1,5 @@
 /*
- * $XFree86$
+ * $XFree86: xc/programs/Xserver/hw/kdrive/vesa/vga.c,v 1.1 2000/10/20 00:19:51 keithp Exp $
  *
  * Copyright © 2000 Keith Packard, member of The XFree86 Project, Inc.
  *
@@ -225,12 +225,13 @@ VgaSetWindow (Vm86InfoPtr vi, int vmode, int bytes, int mode, int *size)
 }
 
 void *
-VgaMapFramebuffer (Vm86InfoPtr vi, int vmode, int *size)
+VgaMapFramebuffer (Vm86InfoPtr vi, int vmode, int *size, CARD32 *ret_phys)
 {
     if (VGA_FB(vmode) == 0xa0000)
 	*size = 0x10000;
     else
 	*size = 0x4000;
+    *ret_phys = VGA_FB(vmode);
     return &LM(vi,VGA_FB(vmode));
 }
 
