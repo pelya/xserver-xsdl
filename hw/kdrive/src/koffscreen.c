@@ -83,7 +83,7 @@ KdOffscreenAlloc (ScreenPtr pScreen, int size, int align,
 {
     RealOffscreenArea *area, **prev;
     KdScreenPriv (pScreen);
-    int tmp, real_size;
+    int tmp, real_size = 0;
 
     KdOffscreenValidate (pScreen);
     if (!align)
@@ -102,8 +102,6 @@ KdOffscreenAlloc (ScreenPtr pScreen, int size, int align,
 	return NULL;
     }
     
-retry:
-
     /* Go through the areas */
     for (area = pScreenPriv->screen->off_screen_areas; area; area = area->next)
     {
@@ -119,79 +117,99 @@ retry:
 	
 	/* does it fit? */
 	if (real_size <= area->area.size)
-	{
-	    RealOffscreenArea *new_area;
-
-	    /* save extra space in new area */
-	    if (real_size < area->area.size)
-	    {
-		new_area = xalloc (sizeof (RealOffscreenArea));
-		if (!new_area)
-		    return NULL;
-		new_area->area.offset = area->area.offset + real_size;
-		new_area->area.size = area->area.size - real_size;
-		new_area->area.screen = 0;
-		new_area->locked = FALSE;
-		new_area->save = 0;
-		if ((new_area->next = area->next))
-		    new_area->next->prev = new_area;
-		new_area->prev = area;
-		area->next = new_area;
-		area->area.size = real_size;
-	    }
-	    area->area.screen = pScreen;
-	    area->area.privData = privData;
-	    area->locked = locked;
-	    area->save = save;
-
-	    KdOffscreenValidate (pScreen);
-	    
-	    DBG_OFFSCREEN (("Alloc 0x%x -> 0x%x\n", size, area->area.offset));
-	    return &area->area;
-	}
-    }
-    
-    /* 
-     * Kick out existing users.  This is pretty simplistic; it just
-     * keeps deleting areas until the first area is free and has enough room
-     */
-    
-    prev = (RealOffscreenArea **) &pScreenPriv->screen->off_screen_areas;
-    while ((area = *prev))
-    {
-	if (area->area.screen && !area->locked)
-	{
-	    KdOffscreenKickOut (&area->area);
-	    continue;
-	}
-	/* adjust size to match alignment requirement */
-	real_size = size;
-	tmp = area->area.offset % align;
-	if (tmp)
-	    real_size += (align - tmp);
-	
-	/* does it fit? */
-	if (real_size <= area->area.size)
-	    goto retry;
-
-	/* kick out the next area */
-	area = area->next;
-	if (!area)
 	    break;
-	/* skip over locked areas */
-	if (area->locked)
-	{
-	    prev = &area->next;
-	    continue;
-	}
-	assert (area->area.screen);
-	KdOffscreenKickOut (&area->area);
     }
     
-    DBG_OFFSCREEN (("Alloc 0x%x -> NOSPACE\n", size));
-    /* Could not allocate memory */
+    if (!area)
+    {
+	/* 
+	 * Kick out existing users to make space.
+	 *
+	 * First, locate a region which can hold the desired object.
+	 */
+	
+	/* prev points at the first object to boot */
+	prev = (RealOffscreenArea **) &pScreenPriv->screen->off_screen_areas;
+	while ((area = *prev))
+	{
+	    int avail;
+	    RealOffscreenArea *scan;
+	    
+	    /* adjust size to match alignment requirement */
+	    real_size = size;
+	    tmp = area->area.offset % align;
+	    if (tmp)
+		real_size += (align - tmp);
+	    
+	    avail = 0;
+	    /* now see if we can make room here */
+	    for (scan = area; scan; scan = scan->next)
+	    {
+		if (scan->locked)
+		    break;
+		avail += scan->area.size;
+		if (avail >= real_size)
+		    break;
+	    }
+	    /* space? */
+	    if (avail >= real_size)
+		break;
+    
+	    /* nope, try the next area */
+	    prev = &scan->next;
+	}
+	if (!area)
+	{
+	    DBG_OFFSCREEN (("Alloc 0x%x -> NOSPACE\n", size));
+	    /* Could not allocate memory */
+	    KdOffscreenValidate (pScreen);
+	    return NULL;
+	}
+
+	/*
+	 * Kick out first area if in use
+	 */
+	if (area->area.screen)
+	    KdOffscreenKickOut (&area->area);
+	/*
+	 * Now get the system to merge the other needed areas together
+	 */
+	while (area->area.size < real_size)
+	{
+	    assert (area->next && area->next->area.screen);
+	    KdOffscreenKickOut (&area->next->area);
+	}
+    }
+    
+    /* save extra space in new area */
+    if (real_size < area->area.size)
+    {
+	RealOffscreenArea   *new_area = xalloc (sizeof (RealOffscreenArea));
+	if (!new_area)
+	    return NULL;
+	new_area->area.offset = area->area.offset + real_size;
+	new_area->area.size = area->area.size - real_size;
+	new_area->area.screen = 0;
+	new_area->locked = FALSE;
+	new_area->save = 0;
+	if ((new_area->next = area->next))
+	    new_area->next->prev = new_area;
+	new_area->prev = area;
+	area->next = new_area;
+	area->area.size = real_size;
+    }
+    /*
+     * Mark this area as in use
+     */
+    area->area.screen = pScreen;
+    area->area.privData = privData;
+    area->locked = locked;
+    area->save = save;
+    
     KdOffscreenValidate (pScreen);
-    return NULL;
+    
+    DBG_OFFSCREEN (("Alloc 0x%x -> 0x%x\n", size, area->area.offset));
+    return &area->area;
 }
 
 void

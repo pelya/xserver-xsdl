@@ -694,7 +694,7 @@ KdXVRegetVideo(XvPortRecPrivatePtr portPriv)
      REGION_SUBTRACT(portPriv->pDraw->pScreen, &ClipRegion, &WinRegion, &ClipRegion);
   }
 
-  ret = (*portPriv->AdaptorRec->GetVideo)(portPriv->screen, 
+  ret = (*portPriv->AdaptorRec->GetVideo)(portPriv->screen, portPriv->pDraw,
 			portPriv->vid_x, portPriv->vid_y, 
 			WinBox.x1, WinBox.y1, 
 			portPriv->vid_w, portPriv->vid_h, 
@@ -785,7 +785,7 @@ KdXVReputVideo(XvPortRecPrivatePtr portPriv)
      REGION_SUBTRACT(pScreen, &ClipRegion, &WinRegion, &ClipRegion);
   }
 
-  ret = (*portPriv->AdaptorRec->PutVideo)(portPriv->screen, 
+  ret = (*portPriv->AdaptorRec->PutVideo)(portPriv->screen, portPriv->pDraw,
 			portPriv->vid_x, portPriv->vid_y, 
 			WinBox.x1, WinBox.y1,
 			portPriv->vid_w, portPriv->vid_h, 
@@ -874,7 +874,7 @@ KdXVReputImage(XvPortRecPrivatePtr portPriv)
      REGION_SUBTRACT(pScreen, &ClipRegion, &WinRegion, &ClipRegion);
   }
 
-  ret = (*portPriv->AdaptorRec->ReputImage)(portPriv->screen, 
+  ret = (*portPriv->AdaptorRec->ReputImage)(portPriv->screen, portPriv->pDraw,
 			WinBox.x1, WinBox.y1,
 			&ClipRegion, portPriv->DevPriv.ptr);
 
@@ -1387,7 +1387,7 @@ KdXVPutStill(
      REGION_SUBTRACT(pScreen, &ClipRegion, &WinRegion, &ClipRegion);
   }
 
-  ret = (*portPriv->AdaptorRec->PutStill)(portPriv->screen, 
+  ret = (*portPriv->AdaptorRec->PutStill)(portPriv->screen, pDraw,
 		vid_x, vid_y, WinBox.x1, WinBox.y1,
 		vid_w, vid_h, drw_w, drw_h,
 		&ClipRegion, portPriv->DevPriv.ptr);
@@ -1515,7 +1515,7 @@ KdXVGetStill(
      REGION_SUBTRACT(pScreen, &ClipRegion, &WinRegion, &ClipRegion);
   }
 
-  ret = (*portPriv->AdaptorRec->GetStill)(portPriv->screen,
+  ret = (*portPriv->AdaptorRec->GetStill)(portPriv->screen, pDraw,
 		vid_x, vid_y, WinBox.x1, WinBox.y1,
 		vid_w, vid_h, drw_w, drw_h,
 		&ClipRegion, portPriv->DevPriv.ptr);
@@ -1687,7 +1687,7 @@ KdXVPutImage(
      REGION_SUBTRACT(pScreen, &ClipRegion, &WinRegion, &ClipRegion);
   }
 
-  ret = (*portPriv->AdaptorRec->PutImage)(portPriv->screen, 
+  ret = (*portPriv->AdaptorRec->PutImage)(portPriv->screen, pDraw,
 		src_x, src_y, WinBox.x1, WinBox.y1,
 		src_w, src_h, drw_w, drw_h, format->id, data, width, height,
 		sync, &ClipRegion, portPriv->DevPriv.ptr);

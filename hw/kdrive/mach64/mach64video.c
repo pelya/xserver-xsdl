@@ -327,9 +327,8 @@ mach64CopyPlanarData(KdScreenInfo   *screen,
 }
 
 static void
-mach64PaintRegion (ScreenPtr pScreen, RegionPtr pRgn, Pixel fg)
+mach64PaintRegion (DrawablePtr pDraw, RegionPtr pRgn, Pixel fg)
 {
-    WindowPtr	pRoot = WindowTable[pScreen->myNum];
     GCPtr	pGC;
     CARD32    	val[2];
     xRectangle	*rects, *r;
@@ -342,15 +341,15 @@ mach64PaintRegion (ScreenPtr pScreen, RegionPtr pRgn, Pixel fg)
     r = rects;
     while (nBox--)
     {
-	r->x = pBox->x1;
-	r->y = pBox->y1;
+	r->x = pBox->x1 - pDraw->x;
+	r->y = pBox->y1 - pDraw->y;
 	r->width = pBox->x2 - pBox->x1;
 	r->height = pBox->y2 - pBox->y1;
 	r++;
 	pBox++;
     }
     
-    pGC = GetScratchGC (pRoot->drawable.depth, pScreen);
+    pGC = GetScratchGC (pDraw->depth, pDraw->pScreen);
     if (!pGC)
 	goto bail1;
     
@@ -358,9 +357,9 @@ mach64PaintRegion (ScreenPtr pScreen, RegionPtr pRgn, Pixel fg)
     val[1] = IncludeInferiors;
     ChangeGC (pGC, GCForeground|GCSubwindowMode, val);
     
-    ValidateGC (&pRoot->drawable, pGC);
+    ValidateGC (pDraw, pGC);
     
-    (*pGC->ops->PolyFillRect) (&pRoot->drawable, pGC, 
+    (*pGC->ops->PolyFillRect) (pDraw, pGC, 
 			       REGION_NUM_RECTS (pRgn), rects);
 
     FreeScratchGC (pGC);
@@ -571,6 +570,7 @@ mach64VideoSave (KdOffscreenArea *area)
 
 static int
 mach64PutImage(KdScreenInfo	    *screen, 
+	       DrawablePtr	    pDraw,
 	       short		    src_x,
 	       short		    src_y,
 	       short		    drw_x,
@@ -778,7 +778,7 @@ mach64PutImage(KdScreenInfo	    *screen,
     if (!REGION_EQUAL (screen->pScreen, &pPortPriv->clip, clipBoxes))
     {
 	REGION_COPY (screen->pScreen, &pPortPriv->clip, clipBoxes);
-	mach64PaintRegion (screen->pScreen, &pPortPriv->clip, pPortPriv->colorKey);
+	mach64PaintRegion (pDraw, &pPortPriv->clip, pPortPriv->colorKey);
     }
 
     pPortPriv->videoOn = TRUE;
@@ -880,6 +880,7 @@ static void mach64ResetVideo(KdScreenInfo *screen)
 
 static int
 mach64ReputImage (KdScreenInfo	    *screen,
+		  DrawablePtr	    pDraw,
 		  short		    drw_x,
 		  short		    drw_y,
 		  RegionPtr	    clipBoxes,
@@ -898,7 +899,7 @@ mach64ReputImage (KdScreenInfo	    *screen,
 	if (!REGION_EQUAL (screen->pScreen, &pPortPriv->clip, clipBoxes))
 	{
 	    REGION_COPY (screen->pScreen, &pPortPriv->clip, clipBoxes);
-	    mach64PaintRegion (screen->pScreen, &pPortPriv->clip, pPortPriv->colorKey);
+	    mach64PaintRegion (pDraw, &pPortPriv->clip, pPortPriv->colorKey);
 	}
 	return Success;
     }
