@@ -6,7 +6,9 @@ if KDRIVEFBDEV
 FBDEV_SUBDIRS = fbdev
 endif
 
-XSDL_SUBDIRS=@XSDL_DIRS@
+if XSDLSERVER
+XSDL_SUBDIRS=sdl
+endif
 
 SUBDIRS =			\
 	src			\
