@@ -27,7 +27,7 @@
  *
  * Tested running under a Compaq IPAQ Pocket PC running Linux
  */
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/pcmcia/pcmcia.c,v 1.1 2001/05/23 08:56:08 alanh Exp $ */
 
 #include "pcmcia.h"
 #define extern
@@ -44,12 +44,10 @@
 
 extern void
 tridentUpdatePacked (ScreenPtr pScreen,
-		    PixmapPtr pShadow,
-		    RegionPtr damage);
+		    shadowBufPtr pBuf);
 extern void
 cirrusUpdatePacked (ScreenPtr pScreen,
-		    PixmapPtr pShadow,
-		    RegionPtr damage);
+		    shadowBufPtr pBuf);
 
 Bool
 pcmciaCardInit (KdCardInfo *card)
@@ -220,7 +218,8 @@ tridentWindowLinear (ScreenPtr	pScreen,
 		     CARD32	row,
 		     CARD32	offset,
 		     int	mode,
-		     CARD32	*size)
+		     CARD32	*size,
+		     void 	*closure)
 {
     KdScreenPriv(pScreen);
     pcmciaCardInfo	*pcmciac = pScreenPriv->card->driver;
@@ -237,7 +236,8 @@ cirrusWindowWindowed (ScreenPtr	pScreen,
 		     CARD32	row,
 		     CARD32	offset,
 		     int	mode,
-		     CARD32	*size)
+		     CARD32	*size,
+		     void 	*closure)
 {
     KdScreenPriv(pScreen);
     pcmciaCardInfo	*pcmciac = pScreenPriv->card->driver;
