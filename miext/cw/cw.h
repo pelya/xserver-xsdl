@@ -62,6 +62,7 @@ typedef struct {
 
     PaintWindowBackgroundProcPtr PaintWindowBackground;
     PaintWindowBorderProcPtr	PaintWindowBorder;
+    CopyWindowProcPtr		CopyWindow;
 
 #ifdef RENDER
     DestroyPictureProcPtr	DestroyPicture;

@@ -653,6 +653,47 @@ cwPaintWindowBorder(WindowPtr pWin, RegionPtr pRegion, int what)
     SCREEN_EPILOGUE(pScreen, PaintWindowBorder, cwPaintWindowBorder);
 }
 
+static void
+cwCopyWindow(WindowPtr pWin, DDXPointRec ptOldOrg, RegionPtr prgnSrc)
+{
+    ScreenPtr pScreen = pWin->drawable.pScreen;
+
+    SCREEN_PROLOGUE(pScreen, CopyWindow);
+
+    if (!cwDrawableIsRedirWindow((DrawablePtr)pWin)) {
+	(*pScreen->CopyWindow)(pWin, ptOldOrg, prgnSrc);
+    } else {
+	GCPtr pGC;
+	BoxPtr pBox;
+	int nbox, i,  x_off, y_off;
+	int dx, dy;
+	DrawablePtr pBackingDrawable;
+
+	pBackingDrawable = cwGetBackingDrawable((DrawablePtr)pWin, &x_off,
+						&y_off);
+
+	pGC = GetScratchGC(pBackingDrawable->depth, pScreen);
+	ValidateGC(pBackingDrawable, pGC);
+
+	pBox = REGION_RECTS(prgnSrc);
+	nbox = REGION_NUM_RECTS(prgnSrc);
+
+	dx = ptOldOrg.x - pWin->drawable.x;
+	dy = ptOldOrg.y - pWin->drawable.y;
+
+	for (i = 0; i < nbox; i++, pBox++) {
+	(*pGC->ops->CopyArea)(pBackingDrawable, pBackingDrawable, pGC,
+			      pBox->x1 + x_off, pBox->y1 + y_off,
+			      pBox->x2 - pBox->x1, pBox->y2 - pBox->y1,
+			      pBox->x1 + x_off + dx, pBox->y1 + y_off + dy);
+	}
+
+	FreeScratchGC(pGC);
+    }
+	
+    SCREEN_EPILOGUE(pScreen, CopyWindow, cwCopyWindow);
+}
+
 /* Screen initialization/teardown */
 void
 miInitializeCompositeWrapper(ScreenPtr pScreen)
@@ -688,6 +729,7 @@ miInitializeCompositeWrapper(ScreenPtr pScreen)
     SCREEN_EPILOGUE(pScreen, CreateGC, cwCreateGC);
     SCREEN_EPILOGUE(pScreen, PaintWindowBackground, cwPaintWindowBackground);
     SCREEN_EPILOGUE(pScreen, PaintWindowBorder, cwPaintWindowBorder);
+    SCREEN_EPILOGUE(pScreen, CopyWindow, cwCopyWindow);
 
 #ifdef RENDER
     if (GetPictureScreen (pScreen))
@@ -711,6 +753,7 @@ cwCloseScreen (int i, ScreenPtr pScreen)
     pScreen->CreateGC = pScreenPriv->CreateGC;
     pScreen->PaintWindowBackground = pScreenPriv->PaintWindowBackground;
     pScreen->PaintWindowBorder = pScreenPriv->PaintWindowBorder;
+    pScreen->CopyWindow = pScreenPriv->CopyWindow;
 
 #ifdef RENDER
     if (ps)
