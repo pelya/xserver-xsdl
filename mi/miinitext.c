@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/mi/miinitext.c,v 1.1.4.7 2004/04/15 10:17:22 eich Exp $ */
+/* $XdotOrg: xc/programs/Xserver/mi/miinitext.c,v 1.2 2004/04/23 19:54:26 eich Exp $ */
 /* $XFree86: xc/programs/Xserver/mi/miinitext.c,v 3.67 2003/01/12 02:44:27 dawes Exp $ */
 /***********************************************************
 
@@ -69,7 +69,6 @@ SOFTWARE.
 #undef PANORAMIX
 #undef RES
 #undef XIE
-#undef GLXEXT /* not yet */
 #undef XINPUT
 #undef XV
 #undef SCREENSAVER
@@ -379,12 +378,10 @@ InitExtensions(argc, argv)
 #endif
 #endif
 #ifdef GLXEXT
-#ifndef XPRINT	/* we don't want Glx in the Xprint server */
 #ifndef __DARWIN__
     GlxExtensionInit();
 #else
     DarwinGlxExtensionInit();
-#endif
 #endif
 #endif
 #ifdef DPSEXT
@@ -408,12 +405,10 @@ InitVisualWrap()
 {
     miResetInitVisuals();
 #ifdef GLXEXT
-#ifndef XPRINT
 #ifndef __DARWIN__
     GlxWrapInitVisuals(&miInitVisualsProc);
 #else
     DarwinGlxWrapInitVisuals(&miInitVisualsProc);
-#endif
 #endif
 #endif
 }
