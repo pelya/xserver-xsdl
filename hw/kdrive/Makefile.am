@@ -1,5 +1,5 @@
 if KDRIVEVESA
-VESA_SUBDIRS = vesa mach64 mga nvidia
+VESA_SUBDIRS = vesa mach64 mga nvidia r128
 endif
 
 SUBDIRS =	\
