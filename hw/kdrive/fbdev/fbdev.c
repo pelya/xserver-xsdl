@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/fbdev/fbdev.c,v 1.29 2002/09/29 23:39:46 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/fbdev/fbdev.c,v 1.31 2002/10/14 18:01:40 keithp Exp $ */
 
 #include "fbdev.h"
 
@@ -581,10 +581,6 @@ fbdevCreateColormap (ColormapPtr pmap)
     }
 }
 
-#ifdef TOUCHSCREEN
-int TsFbdev = -1;
-#endif
-
 Bool
 fbdevInitScreen (ScreenPtr pScreen)
 {
@@ -595,7 +591,7 @@ fbdevInitScreen (ScreenPtr pScreen)
     ShadowWindowProc	window;
 
 #ifdef TOUCHSCREEN
-    TsFbdev = pScreen->myNum;
+    KdTsPhyScreen = pScreen->myNum;
 #endif
 
     pScreen->CreateColormap = fbdevCreateColormap;

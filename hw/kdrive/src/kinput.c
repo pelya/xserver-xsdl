@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/kinput.c,v 1.27 2002/10/30 21:25:53 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/kinput.c,v 1.28 2002/10/31 18:29:50 keithp Exp $ */
 
 #include "kdrive.h"
 #include "inputstr.h"
@@ -325,7 +325,7 @@ KdMouseProc(DeviceIntPtr pDevice, int onoff)
 	    if (kdMouseFuncs)
 		(*kdMouseFuncs->Fini) ();
 #ifdef TOUCHSCREEN
-	    if (kdTsFuncs >= 0)
+	    if (kdTsFuncs)
 		(*kdTsFuncs->Fini) ();
 #endif
 	}
@@ -1577,7 +1577,8 @@ KdCrossScreen(ScreenPtr pScreen, Bool entering)
 
 #ifdef TOUCHSCREEN
 /* HACK! */
-extern int TsScreen;
+int KdTsCurScreen;	/* current event screen */
+int KdTsPhyScreen = -1;	/* screen associated with touch screen */
 #endif
 
 static void
@@ -1585,7 +1586,7 @@ KdWarpCursor (ScreenPtr pScreen, int x, int y)
 {
     KdBlockSigio ();
 #ifdef TOUCHSCREEN
-    TsScreen = pScreen->myNum;
+    KdTsCurScreen = pScreen->myNum;
 #endif
     miPointerWarpCursor (pScreen, x, y);
     KdUnblockSigio ();

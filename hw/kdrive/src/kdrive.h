@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/kdrive.h,v 1.26 2002/10/14 18:01:40 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/kdrive.h,v 1.27 2002/10/18 06:08:10 keithp Exp $ */
 
 #include <stdio.h>
 #include "X.h"
@@ -207,6 +207,16 @@ typedef struct _KdMouseInfo {
 } KdMouseInfo;
 
 extern KdMouseInfo	*kdMouseInfo;
+
+#ifdef TOUCHSCREEN
+/* 
+ * HACK! Send absolute events when touch screen is current,
+ * else send relative events.  Used to drive pointers on
+ * alternate screens with the touch screen
+ */
+extern int KdTsCurScreen;
+extern int KdTsPhyScreen;
+#endif
 
 KdMouseInfo *KdMouseInfoAdd (void);
 void	    KdParseMouse (char *);

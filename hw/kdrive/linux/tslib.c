@@ -1,5 +1,5 @@
 /*
- * $XFree86$
+ * $XFree86: xc/programs/Xserver/hw/kdrive/linux/tslib.c,v 1.1 2002/11/01 22:27:49 keithp Exp $
  * TSLIB based touchscreen driver for TinyX
  * Derived from ts.c by Keith Packard
  * Derived from ps2.c by Jim Gettys
@@ -57,8 +57,6 @@
 #include <tslib.h>
 
 static long lastx = 0, lasty = 0;
-int TsScreen;
-extern int TsFbdev;
 static struct tsdev *tsDev = NULL;
 
 void
@@ -84,7 +82,7 @@ TsRead (int tsPort, void *closure)
 	     * touch screen, if it is we send absolute coordinates. If not,
 	     * then we send delta's so that we can track the entire vga screen.
 	     */
-	    if (TsScreen == TsFbdev) {
+	    if (KdTsCurScreen == KdTsPhyScreen) {
 	    	flags = KD_BUTTON_1;
 	    	x = event.x;
 	    	y = event.y;
