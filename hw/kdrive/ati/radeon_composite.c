@@ -511,7 +511,7 @@ R200PrepareComposite(int op, PicturePtr pSrcPicture, PicturePtr pMaskPicture,
 		is_transform[1] = FALSE;
 	}
 
-	BEGIN_DMA(34);
+	BEGIN_DMA(22);
 	OUT_REG(ATI_REG_WAIT_UNTIL,
 		RADEON_WAIT_HOST_IDLECLEAN | RADEON_WAIT_2D_IDLECLEAN);
 
@@ -523,6 +523,11 @@ R200PrepareComposite(int op, PicturePtr pSrcPicture, PicturePtr pMaskPicture,
 	OUT_RING(pp_cntl);
 	OUT_RING(dst_format | RADEON_ALPHA_BLEND_ENABLE);
 	OUT_RING(dst_offset);
+
+	OUT_REG(R200_REG_SE_VTX_FMT_0, R200_VTX_XY);
+	OUT_REG(R200_REG_SE_VTX_FMT_1,
+	    (2 << R200_VTX_TEX0_COMP_CNT_SHIFT) |
+	    (2 << R200_VTX_TEX1_COMP_CNT_SHIFT));
 
 	OUT_REG(RADEON_REG_RB3D_COLORPITCH, dst_pitch >> pixel_shift);
 
@@ -685,6 +690,7 @@ RadeonPrepareTrapezoids(PicturePtr pDstPicture, PixmapPtr pDst)
 {
 	KdScreenPriv(pDst->drawable.pScreen);
 	ATIScreenInfo(pScreenPriv);
+	ATICardInfo(pScreenPriv);
 	CARD32 dst_offset, dst_pitch;
 	int pixel_shift;
 	RING_LOCALS;
@@ -701,7 +707,7 @@ RadeonPrepareTrapezoids(PicturePtr pDstPicture, PixmapPtr pDst)
 	if (((dst_pitch >> pixel_shift) & 0x7) != 0)
 		ATI_FALLBACK(("Bad destination pitch 0x%x\n", dst_pitch));
 
-	BEGIN_DMA(14);
+	BEGIN_DMA(10);
 	OUT_REG(ATI_REG_WAIT_UNTIL,
 		RADEON_WAIT_HOST_IDLECLEAN | RADEON_WAIT_2D_IDLECLEAN);
 
@@ -718,20 +724,35 @@ RadeonPrepareTrapezoids(PicturePtr pDstPicture, PixmapPtr pDst)
 	OUT_RING(((pDst->drawable.height - 1) << 16) |
 	    (pDst->drawable.width - 1));
 	OUT_RING(dst_pitch >> pixel_shift);
-
-	/* RADEON_REG_PP_TXCBLEND_0,
-	 * RADEON_REG_PP_TXABLEND_0,
-	 * RADEON_REG_PP_TFACTOR_0
-	 */
-	OUT_RING(DMA_PACKET0(RADEON_REG_PP_TXCBLEND_0, 3));
-	OUT_RING(RADEON_BLEND_CTL_ADD | RADEON_CLAMP_TX |
-	    RADEON_COLOR_ARG_C_TFACTOR_ALPHA);
-	OUT_RING(RADEON_BLEND_CTL_ADD | RADEON_CLAMP_TX |
-	    RADEON_ALPHA_ARG_C_TFACTOR_ALPHA);
-	OUT_RING(0x01000000);
-
 	OUT_REG(RADEON_REG_RB3D_BLENDCNTL, RadeonBlendOp[PictOpAdd].blend_cntl);
 	END_DMA();
+
+	if (atic->is_r100) {
+		BEGIN_DMA(4);
+		/* RADEON_REG_PP_TXCBLEND_0,
+		 * RADEON_REG_PP_TXABLEND_0,
+		 * RADEON_REG_PP_TFACTOR_0
+		 */
+		OUT_RING(DMA_PACKET0(RADEON_REG_PP_TXCBLEND_0, 3));
+		OUT_RING(RADEON_BLEND_CTL_ADD | RADEON_CLAMP_TX |
+		    RADEON_COLOR_ARG_C_TFACTOR_ALPHA);
+		OUT_RING(RADEON_BLEND_CTL_ADD | RADEON_CLAMP_TX |
+		    RADEON_ALPHA_ARG_C_TFACTOR_ALPHA);
+		OUT_RING(0x01000000);
+		END_DMA();
+	} else if (atic->is_r200) {
+		BEGIN_DMA(12);
+		OUT_REG(R200_REG_SE_VTX_FMT_0, R200_VTX_XY);
+		OUT_REG(R200_REG_SE_VTX_FMT_1, 0);
+		OUT_REG(R200_REG_PP_TXCBLEND_0,
+		    R200_TXC_ARG_C_TFACTOR_COLOR);
+		OUT_REG(R200_REG_PP_TXABLEND_0,
+		    R200_TXA_ARG_C_TFACTOR_ALPHA);
+		OUT_REG(R200_REG_PP_TXCBLEND2_0, 0);
+		OUT_REG(R200_REG_PP_TXABLEND2_0, 0);
+		OUT_REG(RADEON_REG_PP_TFACTOR_0, 0x01000000);
+		END_DMA();
+	}
 
 	return TRUE;
 }

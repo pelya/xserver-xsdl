@@ -162,14 +162,15 @@ ATIDrawSetup(ScreenPtr pScreen)
 			    RADEON_TEX1_W_ROUTING_USE_W0);
 			END_DMA();
 		} else {
-			BEGIN_DMA(12);
+			BEGIN_DMA(8);
 			OUT_REG(R200_REG_RE_CNTL, 0);
-			OUT_REG(R200_REG_SE_VTE_CNTL, R200_VTX_XY_FMT);
-			OUT_REG(R200_REG_SE_VTX_FMT_0, R200_VTX_XY);
-			OUT_REG(R200_REG_SE_VTX_FMT_1,
-			    (2 << R200_VTX_TEX0_COMP_CNT_SHIFT) |
-			    (2 << R200_VTX_TEX1_COMP_CNT_SHIFT));
-			OUT_REG(R200_REG_SE_VAP_CNTL, 0);
+			/* XXX: VTX_ST_DENORMALIZED is illegal for the case of
+			 * repeating textures.
+			 */
+			OUT_REG(R200_REG_SE_VTE_CNTL, R200_VTX_ST_DENORMALIZED);
+			OUT_REG(R200_REG_SE_VAP_CNTL,
+			    R200_VAP_FORCE_W_TO_ONE |
+			    R200_VAP_VF_MAX_VTX_NUM);
 			OUT_REG(R200_REG_RE_AUX_SCISSOR_CNTL, 0);
 			END_DMA();
 		}
@@ -789,7 +790,7 @@ ATIDrawEnable(ScreenPtr pScreen)
 			/*atis->kaa.PrepareTrapezoids = R128PrepareTrapezoids;
 			atis->kaa.Trapezoids = R128Trapezoids;
 			atis->kaa.DoneTrapezoids = R128DoneTrapezoids;*/
-		} else if (atic->is_r100) {
+		} else if (atic->is_r100 || atic->is_r200) {
 			atis->kaa.PrepareTrapezoids = RadeonPrepareTrapezoids;
 			atis->kaa.Trapezoids = RadeonTrapezoids;
 			atis->kaa.DoneTrapezoids = RadeonDoneTrapezoids;
