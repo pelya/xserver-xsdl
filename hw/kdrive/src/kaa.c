@@ -750,12 +750,12 @@ kaaImageGlyphBlt (DrawablePtr	pDrawable,
 	    if (glyph && gWidth <= sizeof (FbStip) * 8 &&
 		fbGlyphIn (fbGetCompositeClip(pGC), gx, gy, gWidth, gHeight))
 	    {
-		(*glyph) (dst + (gy - dstYoff) * dstStride,
+		(*glyph) (dst + (gy + dstYoff) * dstStride,
 			  dstStride,
 			  dstBpp,
 			  (FbStip *) pglyph,
 			  pPriv->fg,
-			  gx - dstXoff,
+			  gx + dstXoff,
 			  gHeight);
 	    }
 	    else
