@@ -42,17 +42,17 @@
 #define ATI_REG_GEN_INT_CNTL			0x0040
 
 #define ATI_REG_GEN_CNTL			0x0050
-# define ATI_CRTC_DBL_SCAN_EN			(1 <<  0)
-# define ATI_CRTC_INTERLACE_EN			(1 <<  1)
-# define ATI_CRTC_CSYNC_EN			(1 <<  4)
-# define ATI_CRTC_PIX_WIDTH_MASK		(7 << 8)
-# define ATI_CRTC_CUR_EN			(1 << 16)
-# define ATI_CRTC_CUR_MODE_MASK			(7 << 17)
-# define ATI_CRTC_ICON_EN			(1 << 20)
-# define ATI_CRTC_ARGB_EN			(2 << 20)
-# define ATI_CRTC_EXT_DISP_EN			(1 << 24)
-# define ATI_CRTC_EN				(1 << 25)
-# define ATI_CRTC_DISP_REQ_EN_B			(1 << 26)
+# define ATI_CRTC_DBL_SCAN_EN			(1 <<  0)   /* 0x00000001 */
+# define ATI_CRTC_INTERLACE_EN			(1 <<  1)   /* 0x00000002 */
+# define ATI_CRTC_CSYNC_EN			(1 <<  4)   /* 0x00000010 */
+# define ATI_CRTC_PIX_WIDTH_MASK		(7 << 8)    /* 0x00000700 */
+# define ATI_CRTC_CUR_EN			(1 << 16)   /* 0x00010000 */
+# define ATI_CRTC_CUR_MODE_MASK			(7 << 17)   /* 0x000e0000 */
+# define ATI_CRTC_ICON_EN			(1 << 20)   /* 0x00100000 */
+# define ATI_CRTC_ARGB_EN			(2 << 20)   /* 0x00200000 */
+# define ATI_CRTC_EXT_DISP_EN			(1 << 24)   /* 0x01000000 */
+# define ATI_CRTC_EN				(1 << 25)   /* 0x02000000 */
+# define ATI_CRTC_DISP_REQ_EN_B			(1 << 26)   /* 0x04000000 */
 
 #define ATI_REG_CRTC_EXT_CNTL			0x0054
 # define ATI_CRTC_EN				(1 << 25)

@@ -256,9 +256,14 @@ RadeonLoadCursor(ScreenPtr pScreen)
 	h = bits->height;
 	if (h > ATI_CURSOR_HEIGHT)
 		h = ATI_CURSOR_HEIGHT;
+    
+	tmp = MMIO_IN32(mmio, 0x7c);
+	tmp = 0x00010f80;
+	MMIO_OUT32 (mmio, 0x7c, tmp);
 
 	tmp = MMIO_IN32(mmio, ATI_REG_GEN_CNTL);
-	MMIO_OUT32(mmio, ATI_REG_GEN_CNTL, tmp & ~ATI_CRTC_CUR_EN);
+	tmp &= ~(ATI_CRTC_CUR_EN | ATI_CRTC_ICON_EN | ATI_CRTC_ARGB_EN);
+	MMIO_OUT32(mmio, ATI_REG_GEN_CNTL, tmp);
 
 	/* Stick new image into cursor memory */
 	ram = (CARD32 *)(pScreenPriv->screen->memory_base +
@@ -336,7 +341,7 @@ RadeonLoadCursor(ScreenPtr pScreen)
 
 	/* Enable the cursor */
 	tmp &= ~(ATI_CRTC_ICON_EN);
-	tmp |= (ATI_CRTC_ARGB_EN);
+	tmp |= ATI_CRTC_ARGB_EN;
 	tmp |= ATI_CRTC_CUR_EN;
 	MMIO_OUT32(mmio, ATI_REG_GEN_CNTL, tmp);
 }
@@ -349,7 +354,8 @@ ATIUnloadCursor(ScreenPtr pScreen)
 	CARD8 *mmio = atic->reg_base;
 	CARD32 tmp;
 
-	tmp = MMIO_IN32(mmio, ATI_REG_GEN_CNTL) & ~ATI_CRTC_CUR_EN;
+	tmp = MMIO_IN32(mmio, ATI_REG_GEN_CNTL);
+	tmp &= ~(ATI_CRTC_CUR_EN | ATI_CRTC_ICON_EN | ATI_CRTC_ARGB_EN);
 	MMIO_OUT32(mmio, ATI_REG_GEN_CNTL, tmp);
 }
 
@@ -471,11 +477,11 @@ ATICursorEnable(ScreenPtr pScreen)
 		if (atic->is_radeon)
 			pCurPriv->area = KdOffscreenAlloc(pScreen,
 			    ATI_CURSOR_HEIGHT * ATI_CURSOR_WIDTH * 4,
-			    1, TRUE, ATICursorSave, atis);
+			    128, TRUE, ATICursorSave, atis);
 		else
 			pCurPriv->area = KdOffscreenAlloc(pScreen,
 			    ATI_CURSOR_HEIGHT * ATI_CURSOR_PITCH * 2,
-			    1, TRUE, ATICursorSave, atis);
+			    32, TRUE, ATICursorSave, atis);
 	}
 	if (pCurPriv->area == NULL)
 		FatalError("Couldn't allocate offscreen memory for cursor.\n");

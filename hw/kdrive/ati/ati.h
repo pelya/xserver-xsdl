@@ -146,6 +146,8 @@ typedef struct _ATICardInfo {
 	Bool is_r300;
 	Bool is_agp;
 	char *busid;
+	CARD32 crtc_pitch;
+	CARD32 crtc2_pitch;
 #ifdef USE_DRI
 	int drmFd;
 #endif /* USE_DRI */

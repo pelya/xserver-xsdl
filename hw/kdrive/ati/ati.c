@@ -291,12 +291,37 @@ ATICardFini(KdCardInfo *card)
 static void
 ATISetOffscreen (KdScreenInfo *screen)
 {
-#if defined(USE_DRI) && defined(GLXEXT)
 	ATICardInfo(screen);
+#if defined(USE_DRI) && defined(GLXEXT)
 	ATIScreenInfo *atis = (ATIScreenInfo *)screen->driver;
 	int l;
 #endif
-	int screen_size = screen->fb[0].byteStride * screen->height;
+	int screen_size;
+	char *mmio = atic->reg_base;
+    
+	/* check (and adjust) pitch */
+	if (mmio)
+	{
+		int	byteStride = screen->fb[0].byteStride;
+		int	bitStride;
+		int	pixelStride;
+		int	bpp = screen->fb[0].bitsPerPixel;
+		
+		/*
+		 * Ensure frame buffer is correctly aligned
+		 */
+		if (byteStride & 0x3f)
+		{
+			byteStride = (byteStride + 0x3f) & ~0x3f;
+			bitStride = byteStride * 8;
+			pixelStride = bitStride / bpp;
+
+			screen->fb[0].byteStride = byteStride;
+			screen->fb[0].pixelStride = pixelStride;
+		}
+	}
+
+	screen_size = screen->fb[0].byteStride * screen->height;
 
 	screen->off_screen_base = screen_size;
 
@@ -348,6 +373,62 @@ ATISetOffscreen (KdScreenInfo *screen)
 		atis->textureSize = 0;
 	}
 #endif /* USE_DRI && GLXEXT */
+}
+
+static void
+ATISetPitch (KdScreenInfo *screen)
+{
+	ATICardInfo(screen);
+#if defined(USE_DRI) && defined(GLXEXT)
+	ATIScreenInfo *atis = (ATIScreenInfo *)screen->driver;
+	int l;
+#endif
+	char *mmio = atic->reg_base;
+    
+	/* check (and adjust) pitch for radeon */
+	if (mmio)
+	{
+		int	byteStride = screen->fb[0].byteStride;
+		int	bitStride;
+		int	pixelStride;
+		int	bpp = screen->fb[0].bitsPerPixel;
+		CARD32	crtc_pitch;
+		CARD32	crtc2_pitch;
+#if 0
+		CARD32	crtc_ext_cntl;
+		CARD32	dac_cntl;
+#endif
+		bitStride = byteStride * 8;
+		pixelStride = bitStride / bpp;
+
+		crtc_pitch = (pixelStride >> 3);
+		crtc_pitch |= crtc_pitch << 16;
+		crtc2_pitch = (pixelStride >> 3);
+		crtc2_pitch |= crtc2_pitch << 16;
+#if 0
+		crtc_ext_cntl = MMIO_IN32 (mmio, ATI_REG_CRTC_EXT_CNTL);
+		dac_cntl = MMIO_IN32 (mmio, ATI_REG_DAC_CNTL);
+		/* Turn off the screen */
+		MMIO_OUT32 (mmio, ATI_REG_CRTC_EXT_CNTL,
+			    crtc_ext_cntl |
+			    ATI_CRTC_VSYNC_DIS |
+			    ATI_CRTC_HSYNC_DIS |
+			    ATI_CRTC_DISPLAY_DIS);
+		MMIO_OUT32 (mmio, ATI_REG_DAC_CNTL,
+			    dac_cntl |
+			    ATI_DAC_RANGE_CNTL |
+			    ATI_DAC_BLANKING);
+#endif
+		MMIO_OUT32 (mmio, ATI_REG_CRTC_PITCH, crtc_pitch);
+		MMIO_OUT32 (mmio, ATI_REG_CRTC2_PITCH, crtc2_pitch);
+#if 0
+		/* Turn the screen back on */
+		MMIO_OUT32 (mmio, ATI_REG_CRTC_EXT_CNTL,
+			    crtc_ext_cntl);
+		MMIO_OUT32 (mmio, ATI_REG_DAC_CNTL,
+			    dac_cntl);
+#endif
+	}
 }
 
 static Bool
@@ -406,6 +487,18 @@ ATIRandRSetConfig (ScreenPtr		pScreen,
 	ATIDrawDisable (pScreen);
 	ret = atic->backend_funcs.randrSetConfig(pScreen, randr, rate, pSize);
 	ATISetOffscreen (screen);
+	ATISetPitch (screen);
+	/*
+	 * Set frame buffer mapping
+	 */
+	(*pScreen->ModifyPixmapHeader) (fbGetScreenPixmap (pScreen),
+					pScreen->width,
+					pScreen->height,
+					screen->fb[0].depth,
+					screen->fb[0].bitsPerPixel,
+					screen->fb[0].byteStride,
+					screen->fb[0].frameBuffer);
+
 	ATIDrawEnable (pScreen);
 	return ret;
 }
@@ -502,15 +595,25 @@ static void
 ATIPreserve(KdCardInfo *card)
 {
 	ATICardInfo *atic = card->driver;
+	char *mmio = atic->reg_base;
 
 	atic->backend_funcs.preserve(card);
+	if (atic->is_radeon && mmio)
+	{
+		atic->crtc_pitch = MMIO_IN32(mmio, ATI_REG_CRTC_PITCH);
+		atic->crtc2_pitch = MMIO_IN32(mmio, ATI_REG_CRTC2_PITCH);
+		
+	}
 }
 
 static void
 ATIRestore(KdCardInfo *card)
 {
 	ATICardInfo *atic = card->driver;
+	char *mmio = atic->reg_base;
 
+	MMIO_OUT32(mmio, ATI_REG_CRTC_PITCH, atic->crtc_pitch);
+	MMIO_OUT32(mmio, ATI_REG_CRTC2_PITCH, atic->crtc2_pitch);
 	ATIUnmapReg(card, atic);
 
 	atic->backend_funcs.restore(card);
@@ -534,13 +637,13 @@ ATIEnable(ScreenPtr pScreen)
 	if (!atic->backend_funcs.enable(pScreen))
 		return FALSE;
 
-	ATISetOffscreen (pScreenPriv->screen);
-
 	if ((atic->reg_base == NULL) && !ATIMapReg(pScreenPriv->screen->card,
 	    atic))
 		return FALSE;
 
-	ATIDPMS(pScreen, KD_DPMS_NORMAL);
+	ATISetOffscreen (pScreenPriv->screen);
+
+	ATISetPitch (pScreenPriv->screen);
 
 	return TRUE;
 }
