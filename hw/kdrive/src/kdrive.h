@@ -68,7 +68,14 @@ typedef struct _KdCardAttr {
     CARD32  io;
     CARD32  address[KD_MAX_CARD_ADDRESS];
     int	    naddr;
-    int     bus;
+
+    /* PCI bus info */
+    CARD16  vendorID;
+    CARD16  deviceID;
+    CARD8   domain;
+    CARD8   bus;
+    CARD8   slot;
+    CARD8   func;
 } KdCardAttr;
 
 typedef struct _KdCardInfo {

@@ -138,6 +138,8 @@ LinuxFindPci (CARD16 vendor, CARD16 device, CARD32 count, KdCardAttr *attr)
     Bool    ret = FALSE;
     int	    i;
 
+    attr->vendorID = vendor;
+    attr->deviceID = device;
     ven_dev = (((CARD32) vendor) << 16) | ((CARD32) device);
     f = fopen ("/proc/bus/pci/devices", "r");
     if (!f)
@@ -159,7 +161,7 @@ LinuxFindPci (CARD16 vendor, CARD16 device, CARD32 count, KdCardAttr *attr)
 	    continue;
 	if (count--)
 	    continue;
-	(void) strtoul (l, &end, 16);
+	(void) strtoul (l, &end, 16);	/* IRQ */
 	if (end == l)
 	    continue;
 	l = end;
@@ -186,7 +188,10 @@ LinuxFindPci (CARD16 vendor, CARD16 device, CARD32 count, KdCardAttr *attr)
 	    n--;
 	}
 	attr->naddr = n;
-        attr->bus = bus;
+	attr->domain = 0; /* XXX */
+	attr->bus = (bus >> 8) & 0xff;
+	attr->slot = (bus >> 3) & 0x1f;
+	attr->func = bus & 0x07;
 	ret = TRUE;
 	break;
     }
