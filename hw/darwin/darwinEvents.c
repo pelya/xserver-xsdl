@@ -94,6 +94,29 @@ static void DarwinPressModifierMask(
     }
 }
 
+#ifdef NX_DEVICELCTLKEYMASK
+#define CONTROL_MASK(flags) (flags & (NX_DEVICELCTLKEYMASK|NX_DEVICERCTLKEYMASK))
+#else
+#define CONTROL_MASK(flags) (NX_CONTROLMASK)
+#endif /* NX_DEVICELCTLKEYMASK */
+
+#ifdef NX_DEVICELSHIFTKEYMASK
+#define SHIFT_MASK(flags) (flags & (NX_DEVICELSHIFTKEYMASK|NX_DEVICERSHIFTKEYMASK))
+#else
+#define SHIFT_MASK(flags) (NX_SHIFTMASK)
+#endif /* NX_DEVICELSHIFTKEYMASK */
+
+#ifdef NX_DEVICELCMDKEYMASK
+#define COMMAND_MASK(flags) (flags & (NX_DEVICELCMDKEYMASK|NX_DEVICERCMDKEYMASK))
+#else
+#define COMMAND_MASK(flags) (NX_COMMANDMASK)
+#endif /* NX_DEVICELCMDKEYMASK */
+
+#ifdef NX_DEVICELALTKEYMASK
+#define ALTERNATE_MASK(flags) (flags & (NX_DEVICELALTKEYMASK|NX_DEVICERALTKEYMASK))
+#else
+#define ALTERNATE_MASK(flags) (NX_ALTERNATEMASK)
+#endif /* NX_DEVICELALTKEYMASK */
 
 /*
  * DarwinUpdateModifiers
@@ -109,20 +132,16 @@ static void DarwinUpdateModifiers(
         DarwinPressModifierMask(xe, NX_ALPHASHIFTMASK);
     }
     if (flags & NX_COMMANDMASK) {
-        DarwinPressModifierMask(xe, 
-	    flags & (NX_DEVICELCMDKEYMASK|NX_DEVICERCMDKEYMASK));
+        DarwinPressModifierMask(xe, COMMAND_MASK(flags));
     }
     if (flags & NX_CONTROLMASK) {
-        DarwinPressModifierMask(xe, 
-	    flags & (NX_DEVICELCTLKEYMASK|NX_DEVICERCTLKEYMASK));
+        DarwinPressModifierMask(xe, CONTROL_MASK(flags));
     }
     if (flags & NX_ALTERNATEMASK) {
-        DarwinPressModifierMask(xe, 
-	    flags & (NX_DEVICELALTKEYMASK|NX_DEVICERALTKEYMASK));
+        DarwinPressModifierMask(xe, ALTERNATE_MASK(flags));
     }
     if (flags & NX_SHIFTMASK) {
-        DarwinPressModifierMask(xe, 
-	    flags & (NX_DEVICELSHIFTKEYMASK|NX_DEVICERSHIFTKEYMASK));
+        DarwinPressModifierMask(xe, SHIFT_MASK(flags));
     }
     if (flags & NX_SECONDARYFNMASK) {
         DarwinPressModifierMask(xe, NX_SECONDARYFNMASK);
