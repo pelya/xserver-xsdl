@@ -408,6 +408,7 @@ kaaTryDriverComposite(CARD8		op,
     int nbox;
     int src_off_x, src_off_y, mask_off_x, mask_off_y, dst_off_x, dst_off_y;
     PixmapPtr pSrcPix, pMaskPix = NULL, pDstPix;
+    struct _Pixmap scratch;
 
     xDst += pDst->pDrawable->x;
     yDst += pDst->pDrawable->y;
@@ -438,7 +439,23 @@ kaaTryDriverComposite(CARD8		op,
 	pMaskPix = kaaGetOffscreenPixmap (pMask->pDrawable, &mask_off_x,
 					  &mask_off_y);
     pDstPix = kaaGetOffscreenPixmap (pDst->pDrawable, &dst_off_x, &dst_off_y);
-    if (!pSrcPix || (pMask && !pMaskPix) || !pDstPix) {
+
+    if (!pDstPix) {
+	REGION_UNINIT(pDst->pDrawable->pScreen, &region);
+	return 0;
+    }
+
+    if (!pSrcPix && (!pMask || pMaskPix) && pKaaScr->info->UploadToScratch) {
+	if ((*pKaaScr->info->UploadToScratch) ((PixmapPtr) pSrc->pDrawable,
+					       &scratch))
+	    pSrcPix = &scratch;
+    } else if (pSrcPix && pMask && !pMaskPix && pKaaScr->info->UploadToScratch) {
+	if ((*pKaaScr->info->UploadToScratch) ((PixmapPtr) pMask->pDrawable,
+					       &scratch))
+	    pMaskPix = &scratch;
+    }
+
+    if (!pSrcPix || (pMask && !pMaskPix)) {
 	REGION_UNINIT(pDst->pDrawable->pScreen, &region);
 	return 0;
     }
