@@ -350,7 +350,6 @@ mach64Setup (PixmapPtr pDst, PixmapPtr pSrc, CARD32 combo, int wait)
     CARD32  DP_SET_GUI_ENGINE;
     int	    i;
 
-    KdCheckSync (pScreen);
     for (i = 0; i < NACCELREG; i++)
 	if (mach64AccelReg[i].depth == pDst->drawable.depth &&
 	    mach64AccelReg[i].bitsPerPixel == pDst->drawable.bitsPerPixel)
@@ -361,14 +360,22 @@ mach64Setup (PixmapPtr pDst, PixmapPtr pSrc, CARD32 combo, int wait)
     DP_SET_GUI_ENGINE = mach64AccelReg[i].DP_SET_GUI_ENGINE;
 
     reg = mach64c->reg;
-    triple = (pDst->drawable.bitsPerPixel == 24);
     if (!reg)
 	return FALSE;
     
-    /* pixels / 8 = ((bytes * 8) / bpp) / 8 = bytes / bpp */
-    DST_PITCH = pDst->devKind / pDst->drawable.bitsPerPixel;
+    triple = (pDst->drawable.bitsPerPixel == 24);
+    
     if (triple)
-	DST_PITCH *= 3;
+    {
+	/* bytes / 8 = bytes >> 3 */
+	DST_PITCH = pDst->devKind >> 3;
+    }
+    else
+    {
+	/* pixels / 8 = ((bytes * 8) / bpp) / 8 = bytes / bpp */
+	DST_PITCH = pDst->devKind / pDst->drawable.bitsPerPixel;
+    }
+    
     /* bytes / 8 */
     DST_OFFSET = ((CARD8 *) pDst->devPrivate.ptr - pScreenPriv->screen->memory_base) >> 3;
     
@@ -380,10 +387,15 @@ mach64Setup (PixmapPtr pDst, PixmapPtr pSrc, CARD32 combo, int wait)
 			  0);
     if (pSrc)
     {
-	/* pixels / 8 = ((bytes * 8) / bpp) / 8 = bytes / bpp */
-	SRC_PITCH = pSrc->devKind / pSrc->drawable.bitsPerPixel;
 	if (triple)
-	    SRC_PITCH *= 3;
+	{
+	    SRC_PITCH = pSrc->devKind >> 3;
+	}
+        else
+	{
+	    /* pixels / 8 = ((bytes * 8) / bpp) / 8 = bytes / bpp */
+	    SRC_PITCH = pSrc->devKind / pSrc->drawable.bitsPerPixel;
+	}
 	/* bytes / 8 */
 	SRC_OFFSET = ((CARD8 *) pSrc->devPrivate.ptr - pScreenPriv->screen->memory_base) >> 3;
 	
