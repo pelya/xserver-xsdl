@@ -14,7 +14,7 @@
 #	changes/additions that aren't XFree86-specific to the pciids
 #	project (http://pciids.sf.net/).
 #
-#	$XdotOrg: xc/programs/Xserver/hw/xfree86/etc/extrapci.ids,v 1.12 2003/12/18 16:29:18 dawes Exp $
+#	$XdotOrg: xc/programs/Xserver/hw/xfree86/etc/extrapci.ids,v 1.2 2004/04/23 19:53:57 eich Exp $
 #	$XFree86: xc/programs/Xserver/hw/xfree86/etc/extrapci.ids,v 1.11 2003/12/18 16:22:27 dawes Exp $
 #
 
@@ -42,21 +42,32 @@
 
 # Some NVIDIA cards that are not in the master pci.ids file yet.
 10de	"
+	018c	Quadro NVS 50 PC
+	0042	NV40.2 [GeForce 6800 LE]
+	00c1	NV41.1 [GeForce 6800]
+	00c2	NV41.2 [GeForce 6800 LE]
+	00c8	NV41.8 [GeForce Go 6800]
+	00c9	GeForce Go 6800 Ultra
+	00cc	Quadro GX Go 1400
+	00ce	NV41GL [Quadro FX 1400]
+	0140	GeForce 6600 GT
+	0141	GeForce 6600
+	0144	GeForce Go 6600
+	0145	GeForce 6610 XL
+	0146	GeForce Go 6600 TE/6200 TE
+	0148	GeForce Go 6600
+	014E	Quadro FX 540
+	014F	GeForce 6200
+	0161	GeForce 6200 TurboCache(TM)
+	0164	GeForce Go 6200
+	0166	GeForce Go 6250
+	0167	GeForce Go 6200
+	0168	GeForce Go 6250
+	0211	GeForce 6800
+	0212	GeForce 6800 LE
+	0215	GeForce 6800 GT
 	0314	GeForce FX 5600SE
-	031a	GeForce FX Go5600
-	031b	GeForce FX Go5650
-	031c	Quadro FX Go700
 	0323	GeForce FX 5200SE
-	0324	GeForce FX Go5200
-	0325	GeForce FX Go5250
 	0328	GeForce FX Go5200 32M/64M
 	0329	GeForce FX 5200 (Mac)
-	032a	Quadro NVS 280 PCI
-	032c	GeForce FX Go5300
-	032d	GeForce FX Go5100
-	0332	GeForce FX 5900XT
-	0333	GeForce FX 5950 Ultra
-	0341	GeForce FX 5700 Ultra
-	0342	GeForce FX 5700
-	034e	Quadro FX 1100
 
