@@ -104,9 +104,6 @@ static PciBusPtr xf86PciBus = NULL;
 
 #define PCI_MEM32_LENGTH_MAX 0xFFFFFFFF
 
-#undef MIN
-#define MIN(x,y) ((x<y)?x:y)
-
 #define B2M(tag,base) pciBusAddrToHostAddr(tag,PCI_MEM,base)
 #define B2I(tag,base) (base)
 #define B2H(tag,base,type) (((type & ResPhysMask) == ResMem) ? \
@@ -1649,7 +1646,7 @@ getValidBIOSBase(PCITAG tag, int num)
 	    m = xf86JoinResLists(m,tmp);
 	    tmp = m;
 	    while (tmp) {
-		tmp->block_end = MIN(tmp->block_end,PCI_MEM32_LENGTH_MAX);
+		tmp->block_end = min(tmp->block_end,PCI_MEM32_LENGTH_MAX);
 		tmp = tmp->next;
 	    }
 	} else if ((pbp->primary == pvp->bus) &&
