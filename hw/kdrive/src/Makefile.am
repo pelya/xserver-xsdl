@@ -12,7 +12,6 @@ libkdrive_a_SOURCES =	\
 	kaa.c		\
 	kasync.c	\
 	kcmap.c		\
-	kcolor.c	\
 	kcurscol.c	\
 	kdrive.c	\
 	kinfo.c		\

@@ -1610,19 +1610,13 @@ KdCrossScreen(ScreenPtr pScreen, Bool entering)
 #endif
 }
 
-#ifdef TOUCHSCREEN
-/* HACK! */
-int KdTsCurScreen;	/* current event screen */
-int KdTsPhyScreen = -1;	/* screen associated with touch screen */
-#endif
+int KdCurScreen;	/* current event screen */
 
 static void
 KdWarpCursor (ScreenPtr pScreen, int x, int y)
 {
     KdBlockSigio ();
-#ifdef TOUCHSCREEN
-    KdTsCurScreen = pScreen->myNum;
-#endif
+    KdCurScreen = pScreen->myNum;
     miPointerWarpCursor (pScreen, x, y);
     KdUnblockSigio ();
 }

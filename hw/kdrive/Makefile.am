@@ -1,11 +1,9 @@
 if KDRIVEVESA
-VESA_SUBDIRS = vesa mach64
+VESA_SUBDIRS = vesa mach64 mga smi
 endif
 
 SUBDIRS =	\
 	src	\
 	linux	\
 	fbdev	\
-	mga	\
-	smi	\
 	$(VESA_SUBDIRS)

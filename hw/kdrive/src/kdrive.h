@@ -209,15 +209,7 @@ typedef struct _KdMouseInfo {
 
 extern KdMouseInfo	*kdMouseInfo;
 
-#ifdef TOUCHSCREEN
-/* 
- * HACK! Send absolute events when touch screen is current,
- * else send relative events.  Used to drive pointers on
- * alternate screens with the touch screen
- */
-extern int KdTsCurScreen;
-extern int KdTsPhyScreen;
-#endif
+extern int KdCurScreen;
 
 KdMouseInfo *KdMouseInfoAdd (void);
 void	    KdParseMouse (char *);

@@ -23,21 +23,13 @@
  */
 /* $RCSId: xc/programs/Xserver/hw/kdrive/kmap.c,v 1.10 2001/07/24 21:26:17 keithp Exp $ */
 
-#ifdef HAVE_CONFIG_H
 #include <config.h>
-#endif
 #include "kdrive.h"
-
-#ifdef linux
-#ifdef __i386__
-#define HAS_MTRR
-#endif
-#endif
 
 #include <errno.h>
 #include <unistd.h>
 #include <sys/mman.h>
-#ifdef HAS_MTRR
+#ifdef HAVE_ASM_MTRR_H
 #include <asm/mtrr.h>
 #endif
 
@@ -106,14 +98,14 @@ KdUnmapDevice (void *addr, CARD32 size)
 #endif
 }
 
-#ifdef HAS_MTRR
+#ifdef HAVE_ASM_MTRR_H
 static int  mtrr;
 #endif
 
 void
 KdSetMappedMode (CARD32 addr, CARD32 size, int mode)
 {
-#ifdef HAS_MTRR
+#ifdef HAVE_ASM_MTRR_H
     struct mtrr_sentry  sentry;
     unsigned long    	base, bound;
     unsigned int	type;
@@ -152,7 +144,7 @@ KdSetMappedMode (CARD32 addr, CARD32 size, int mode)
 void
 KdResetMappedMode (CARD32 addr, CARD32 size, int mode)
 {
-#ifdef HAS_MTRR
+#ifdef HAVE_ASM_MTRR_H
     struct mtrr_sentry  sentry;
     unsigned long    	base, bound;
     unsigned int	type;

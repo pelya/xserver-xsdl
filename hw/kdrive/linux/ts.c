@@ -36,17 +36,7 @@
 #include "scrnintstr.h"
 #include "kdrive.h"
 #include <sys/ioctl.h>
-#if 1
 #include <linux/h3600_ts.h>	/* touch screen events */
-#else
-/* inline for non-arm debug builds */
-typedef struct {
-        unsigned short pressure;
-        unsigned short x;
-        unsigned short y;
-        unsigned short pad;	/* TODO TODO word boundary pad */
-} TS_EVENT;
-#endif
 
 static long lastx = 0, lasty = 0;
 
@@ -104,7 +94,7 @@ TsRead (int tsPort, void *closure)
 	     * touch screen, if it is we send absolute coordinates. If not,
 	     * then we send delta's so that we can track the entire vga screen.
 	     */
-	    if (KdTsCurScreen == KdTsPhyScreen) {
+	    if (KdCurScreen == KdTsPhyScreen) {
 	    	flags = KD_BUTTON_1;
 	    	x = event.x;
 	    	y = event.y;
