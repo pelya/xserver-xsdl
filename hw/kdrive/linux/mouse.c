@@ -1,5 +1,5 @@
 /*
- * $XFree86: xc/programs/Xserver/hw/kdrive/linux/mouse.c,v 1.1 2001/10/12 06:33:10 keithp Exp $
+ * $XFree86: xc/programs/Xserver/hw/kdrive/linux/mouse.c,v 1.2 2001/11/08 09:35:08 keithp Exp $
  *
  * Copyright © 2001 Keith Packard, member of The XFree86 Project, Inc.
  *
@@ -929,10 +929,12 @@ MouseInit (void)
 	    km = (Kmouse *) xalloc (sizeof (Kmouse));
 	    if (km)
 	    {
-		km->tty = isatty (fd);
-		mi->driver = km;
 		km->iob.fd = fd;
 		km->iob.avail = km->iob.used = 0;
+		km->prot = 0;
+		km->i_prot = 0;
+		km->tty = isatty (fd);
+		mi->driver = km;
 		MouseFirstProtocol (km, mi->prot);
 		if (KdRegisterFd (MouseInputType, fd, MouseRead, (void *) mi))
 		    n++;
