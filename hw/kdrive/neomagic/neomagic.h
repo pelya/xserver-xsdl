@@ -23,7 +23,7 @@
 
 #ifndef _NEOMAGIC_H_
 #define _NEOMAGIC_H_
-#include <vesa.h>
+#include <backend.h>
 #include "kxv.h"
 #include "klinux.h"
 
@@ -35,7 +35,7 @@
 #define DBGOUT(fmt,a...)
 #endif
 
-#define ENTER()	DBGOUT("Enter %s\n", __FUNCTION__)
+#define ENTER()    DBGOUT("Enter %s\n", __FUNCTION__)
 #define LEAVE() DBGOUT("Leave %s\n", __FUNCTION__)
 
 #define NEO_VENDOR 0x10c8
@@ -79,51 +79,52 @@
 #define NEO_BC3_BLT_ON_ADDR     0x10000000
 #define NEO_BC3_SKIP_MAPPING    0x80000000
 
-typedef volatile CARD8	VOL8;
-typedef volatile CARD16	VOL16;
-typedef volatile CARD32	VOL32;
+typedef volatile CARD8    VOL8;
+typedef volatile CARD16    VOL16;
+typedef volatile CARD32    VOL32;
 
-#define NEO_REG_SIZE(c)	    (0x200000L)
+#define NEO_REG_SIZE(c)        (0x200000L)
 
 typedef volatile struct {
-  CARD32 bltStat;
-  CARD32 bltCntl;
-  CARD32 xpColor;
-  CARD32 fgColor;
-  CARD32 bgColor;
-  CARD32 pitch;
-  CARD32 clipLT;
-  CARD32 clipRB;
-  CARD32 srcBitOffset;
-  CARD32 srcStart;
-  CARD32 reserved0;
-  CARD32 dstStart;
-  CARD32 xyExt;
+    CARD32 bltStat;
+    CARD32 bltCntl;
+    CARD32 xpColor;
+    CARD32 fgColor;
+    CARD32 bgColor;
+    CARD32 pitch;
+    CARD32 clipLT;
+    CARD32 clipRB;
+    CARD32 srcBitOffset;
+    CARD32 srcStart;
+    CARD32 reserved0;
+    CARD32 dstStart;
+    CARD32 xyExt;
 
-  CARD32 reserved1[19];
+    CARD32 reserved1[19];
 
-  CARD32 pageCntl;
-  CARD32 pageBase;
-  CARD32 postBase;
-  CARD32 postPtr;
-  CARD32 dataPtr;
+    CARD32 pageCntl;
+    CARD32 pageBase;
+    CARD32 postBase;
+    CARD32 postPtr;
+    CARD32 dataPtr;
 } NeoMMIO;
 
 typedef struct _neoCardInfo {
-	VesaCardPrivRec	vesa;
-	CARD32		reg_base;
-	NeoMMIO		*mmio;
-	int dstOrg;
-	int dstPitch;
-	int dstPixelWidth;
+    BackendInfo backendCard;
 
-	int srcOrg;
-	int srcPitch;
-	int srcPixelWidth;
+    CARD32 reg_base;
+    NeoMMIO *mmio;
+    int dstOrg;
+    int dstPitch;
+    int dstPixelWidth;
+
+    int srcOrg;
+    int srcPitch;
+    int srcPixelWidth;
 
     struct NeoChipInfo *chip;
-	
-	CARD32 bltCntl;
+
+    CARD32 bltCntl;
 
 } NeoCardInfo;
 
@@ -140,26 +141,27 @@ struct NeoChipInfo {
     int maxWidth;
     int maxHeight;
 };
-    
-#define getNeoCardInfo(kd)	((NeoCardInfo *) ((kd)->card->driver))
-#define neoCardInfo(kd)	NeoCardInfo	*neoc = getNeoCardInfo(kd)
+
+#define getNeoCardInfo(kd) ((NeoCardInfo *) ((kd)->card->driver))
+#define neoCardInfo(kd) NeoCardInfo    *neoc = getNeoCardInfo(kd)
 
 typedef struct _neoScreenInfo {
-    VesaScreenPrivRec		vesa;
-    CARD8			*screen;
-    CARD8			*off_screen;
-    int		off_screen_size;
-	int		pitch;
-	int 		depth;
-    KdVideoAdaptorPtr		pAdaptor;
+    BackendScreen backendScreen;
+
+    CARD8 *screen;
+    CARD8 *off_screen;
+    int off_screen_size;
+    int pitch;
+    int depth;
+    KdVideoAdaptorPtr pAdaptor;
 } NeoScreenInfo;
 
 #define getNeoScreenInfo(kd) ((NeoScreenInfo *) ((kd)->screen->driver))
-#define neoScreenInfo(kd)    NeoScreenInfo *neos = getNeoScreenInfo(kd)
+#define neoScreenInfo(kd) NeoScreenInfo *neos = getNeoScreenInfo(kd)
 
 #define SetupNeo(s) KdScreenPriv(s); \
-		    neoCardInfo(pScreenPriv); \
-			neoScreenInfo(pScreenPriv);
+                    neoCardInfo(pScreenPriv); \
+                    neoScreenInfo(pScreenPriv);
 
 void
 neoPreserve (KdCardInfo *card);

@@ -26,126 +26,106 @@
 #endif
 #include "neomagic.h"
 
-#include	<X11/Xmd.h>
-#include	"gcstruct.h"
-#include	"scrnintstr.h"
-#include	"pixmapstr.h"
-#include	"regionstr.h"
-#include	"mistruct.h"
-#include	"fontstruct.h"
-#include	"dixfontstr.h"
-#include	"fb.h"
-#include	"migc.h"
-#include	"miline.h"
-#include	"picturestr.h"
+#include <X11/Xmd.h>
+#include "gcstruct.h"
+#include "scrnintstr.h"
+#include "pixmapstr.h"
+#include "regionstr.h"
+#include "mistruct.h"
+#include "fontstruct.h"
+#include "dixfontstr.h"
+#include "fb.h"
+#include "migc.h"
+#include "miline.h"
+#include "picturestr.h"
 
-static inline void neoWaitIdle( NeoCardInfo *neoc)
+static inline void neoWaitIdle(NeoCardInfo *neoc)
 {
-	// if MMIO is not working it may halt the machine
+    // if MMIO is not working it may halt the machine
     int i = 0;
     while ((neoc->mmio->bltStat & 1) && ++i<10000);
     if (i>=10000) DBGOUT("Wait Idle timeout");
 }
 
-static inline void neoWaitFifo(NeoCardInfo *neoc,
-                                     int requested_fifo_space )
+static inline void neoWaitFifo(NeoCardInfo *neoc, int requested_fifo_space)
 {
-  neoWaitIdle( neoc );
+    neoWaitIdle( neoc );
 }
 
-NeoMMIO           *mmio;
+NeoMMIO       *mmio;
 NeoScreenInfo *screen;
-NeoCardInfo *card;
-CARD32	fgColor;
+NeoCardInfo   *card;
+CARD32        fgColor;
 
-static Bool neoPrepareSolid(PixmapPtr    pPixmap,
-		     int	    alu,
-		     Pixel	    pm,
-		     Pixel	    fg)
+static Bool neoPrepareSolid(PixmapPtr pPixmap,
+                            int alu,
+                            Pixel pm,
+                            Pixel fg)
 {
-	FbBits  depthMask = FbFullMask(pPixmap->drawable.depth);
-	
-	if ((pm & depthMask) != depthMask)
-	{
-		return FALSE;
-	}
-	else
-	{
-		fgColor = fg;
-		neoWaitIdle(card);
-		/* set blt control */
-		mmio->bltCntl = 
-			NEO_BC0_SRC_IS_FG    |
-			NEO_BC3_SRC_XY_ADDR |
-			NEO_BC3_DST_XY_ADDR |
-			NEO_BC3_SKIP_MAPPING |  0x0c0000;
-		
-		mmio->fgColor = fgColor;
-		return TRUE;
-	}
+    FbBits depthMask = FbFullMask(pPixmap->drawable.depth);
+
+    if ((pm & depthMask) != depthMask) {
+        return FALSE;
+    } else {
+        fgColor = fg;
+        neoWaitIdle(card);
+        /* set blt control */
+        mmio->bltCntl =
+            NEO_BC0_SRC_IS_FG    |
+            NEO_BC3_SRC_XY_ADDR |
+            NEO_BC3_DST_XY_ADDR |
+            NEO_BC3_SKIP_MAPPING |  0x0c0000;
+
+        mmio->fgColor = fgColor;
+        return TRUE;
+    }
 }
 
-void
-neoSolid (int x1, int y1, int x2, int y2)
+static void neoSolid (int x1, int y1, int x2, int y2)
 {
-	DBGOUT("Solid (%i, %i) - (%i, %i).  \n", x1, y1, x2, y2);		
-	int x, y, w, h;
-	x = x1;
-	y = y1;
-	w = x2-x1 + 1;
-	h = y2-y1 + 1;
-	if (x1>x2)
-	{
-		x = x2;
-		w = -w;
-	}
-	if (y1>y2)
-	{
-		y = y2;
-		h = -h;
-	}
-	
-	neoWaitIdle(card);
-	mmio->dstStart = (y <<16) | (x & 0xffff);
+    DBGOUT("Solid (%i, %i) - (%i, %i).  \n", x1, y1, x2, y2);
+    int x, y, w, h;
+    x = x1;
+    y = y1;
+    w = x2-x1 + 1;
+    h = y2-y1 + 1;
+    if (x1>x2) {
+        x = x2;
+        w = -w;
+    }
+    if (y1>y2) {
+        y = y2;
+        h = -h;
+    }
 
-	mmio->xyExt    = (h << 16) | (w & 0xffff);
-	DBGOUT("Solid (%i, %i) - (%i, %i).  Color %x\n", x, y, w, h, fgColor);		
-	DBGOUT("Offset %lx. Extent %lx\n",mmio->dstStart, mmio->xyExt);		
+    neoWaitIdle(card);
+    mmio->dstStart = (y <<16) | (x & 0xffff);
+
+    mmio->xyExt    = (h << 16) | (w & 0xffff);
+    DBGOUT("Solid (%i, %i) - (%i, %i).  Color %li\n", x, y, w, h, fgColor);
+    DBGOUT("Offset %lx. Extent %lx\n",mmio->dstStart, mmio->xyExt);
 }
 
 
-void
-neoDoneSolid(void)
+static void neoDoneSolid(void)
 {
 }
 
-Bool
-neoPrepareCopy (PixmapPtr	pSrcPixpam,
-		    PixmapPtr	pDstPixmap,
-		    int		dx,
-		    int		dy,
-		    int		alu,
-		    Pixel	pm)
+static Bool neoPrepareCopy (PixmapPtr pSrcPixpam, PixmapPtr pDstPixmap,
+                     int dx, int dy, int alu, Pixel pm)
 {
-	return TRUE;
+    return TRUE;
 }
 
-void
-neoCopy (int srcX,
-	     int srcY,
-	     int dstX,
-	     int dstY,
-	     int w,
-	     int h)
+static void neoCopy (int srcX, int srcY, int dstX, int dstY, int w, int h)
 {
 }
 
-void
-neoDoneCopy (void)
+static void neoDoneCopy (void)
 {
 }
 
-KaaScreenInfoRec    neoKaa = {
+KaaScreenInfoRec neoKaa = {
     neoPrepareSolid,
     neoSolid,
     neoDoneSolid,
@@ -155,57 +135,53 @@ KaaScreenInfoRec    neoKaa = {
     neoDoneCopy
 };
 
-Bool
-neoDrawInit (ScreenPtr pScreen)
+Bool neoDrawInit (ScreenPtr pScreen)
 {
     ENTER();
 //    SetupNeo(pScreen);
 //    PictureScreenPtr    ps = GetPictureScreen(pScreen);
-    
-    if (!kaaDrawInit (pScreen, &neoKaa))
-	return FALSE;
+
+    if (!kaaDrawInit (pScreen, &neoKaa)) {
+        return FALSE;
+    }
 
 //    if (ps && tridents->off_screen)
-//	ps->Composite = tridentComposite;
+//    ps->Composite = tridentComposite;
     LEAVE();
     return TRUE;
 }
 
-void
-neoDrawEnable (ScreenPtr pScreen)
+void neoDrawEnable (ScreenPtr pScreen)
 {
     ENTER();
     SetupNeo(pScreen);
     screen = neos;
     card = neoc;
     mmio = neoc->mmio;
-    DBGOUT("NEO AA MMIO=%lx\n", mmio);
-    screen->depth = screen->vesa.mode.BitsPerPixel/8;
-    screen->pitch = screen->vesa.mode.BytesPerScanLine;
-    DBGOUT("NEO depth=%x, pitch=%x\n", screen->depth, screen->pitch);
+    DBGOUT("NEO AA MMIO=%p\n", mmio);
+//    screen->depth = screen->vesa.mode.BitsPerPixel/8;
+//    screen->pitch = screen->vesa.mode.BytesPerScanLine;
+//    DBGOUT("NEO depth=%x, pitch=%x\n", screen->depth, screen->pitch);
     LEAVE();
 }
 
-void
-neoDrawDisable (ScreenPtr pScreen)
+void neoDrawDisable (ScreenPtr pScreen)
 {
     ENTER();
     LEAVE();
 }
 
-void
-neoDrawFini (ScreenPtr pScreen)
+void neoDrawFini (ScreenPtr pScreen)
 {
     ENTER();
     LEAVE();
 }
 
-void
-neoDrawSync (ScreenPtr pScreen)
+void neoDrawSync (ScreenPtr pScreen)
 {
     ENTER();
     SetupNeo(pScreen);
-    
+
     neoWaitIdle(neoc);
     LEAVE();
 }

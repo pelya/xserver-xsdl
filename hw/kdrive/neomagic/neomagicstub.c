@@ -31,7 +31,7 @@ extern struct NeoChipInfo neoChips[];
 void
 InitCard (char *name)
 {
-    KdCardAttr	attr;
+    KdCardAttr attr;
     struct NeoChipInfo *chip;
 
     for (chip = neoChips; chip->name != NULL; ++chip) {
@@ -67,9 +67,9 @@ ddxUseMsg (void)
 int
 ddxProcessArgument (int argc, char **argv, int i)
 {
-    int	ret;
-    
+    int ret;
+
     if (!(ret = vesaProcessArgument (argc, argv, i)))
-	ret = KdProcessArgument(argc, argv, i);
+    ret = KdProcessArgument(argc, argv, i);
     return ret;
 }
