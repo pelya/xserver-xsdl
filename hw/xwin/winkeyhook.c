@@ -65,6 +65,7 @@ winKeyboardMessageHookLL (int iCode, WPARAM wParam, LPARAM lParam)
 {
   BOOL			fPassKeystroke = FALSE;
   PKBDLLHOOKSTRUCT	p = (PKBDLLHOOKSTRUCT) lParam;
+  HWND			hwnd = GetActiveWindow(); 
 
   /* Pass keystrokes on to our main message loop */
   if (iCode == HC_ACTION)
@@ -79,9 +80,7 @@ winKeyboardMessageHookLL (int iCode, WPARAM wParam, LPARAM lParam)
 	case WM_KEYUP:    case WM_SYSKEYUP: 
 	  fPassKeystroke = 
 	    ((p->vkCode == VK_TAB) && ((p->flags & LLKHF_ALTDOWN) != 0))
-#if 0
 	    || (p->vkCode == VK_LWIN) || (p->vkCode == VK_RWIN)
-#endif
 	    ;
 	  break;
 	}
@@ -107,7 +106,7 @@ winKeyboardMessageHookLL (int iCode, WPARAM wParam, LPARAM lParam)
       lParamKey = lParamKey | (0x80000000 & ((p->flags & LLKHF_UP) << 24));
 
       /* Send message to our main window that has the keyboard focus */
-      PostMessage (g_hwndKeyboardFocus,
+      PostMessage (hwnd,
 		   (UINT) wParam,
 		   (WPARAM) p->vkCode,
 		   lParamKey);

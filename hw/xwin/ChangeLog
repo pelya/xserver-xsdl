@@ -1,3 +1,11 @@
+2005-01-10  Alexander Gottwald  <ago at freedesktop dot org>
+
+	* winkeybd.h
+	* winkeyhook.c
+	* winwndproc.c:
+	Make keyhook feature work in multiwindowmode too
+	Hook windows keys
+
 2005-01-08  Alexander Gottwald  <ago at freedesktop dot org>
 
 	* winblock.c:

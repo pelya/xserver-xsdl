@@ -1013,7 +1013,7 @@ winWindowProc (HWND hwnd, UINT message,
        * be returned to Windows.  We may be able to trap the Windows keys,
        * but we should determine if that is desirable before doing so.
        */
-      if (wParam == VK_LWIN || wParam == VK_RWIN)
+      if ((wParam == VK_LWIN || wParam == VK_RWIN) && !g_fKeyboardHookLL)
 	break;
 
 #ifdef XKB
@@ -1054,7 +1054,7 @@ winWindowProc (HWND hwnd, UINT message,
        * be returned to Windows.  We may be able to trap the Windows keys,
        * but we should determine if that is desirable before doing so.
        */
-      if (wParam == VK_LWIN || wParam == VK_RWIN)
+      if ((wParam == VK_LWIN || wParam == VK_RWIN) && !g_fKeyboardHookLL)
 	break;
 
       /* Ignore the fake Ctrl_L that follows an AltGr release */
