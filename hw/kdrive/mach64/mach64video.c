@@ -25,8 +25,8 @@
 #endif
 #include "mach64.h"
 
-#include "Xv.h"
-#include "../../xfree86/common/fourcc.h"
+#include <X11/extensions/Xv.h>
+#include "fourcc.h"
 
 #define MAKE_ATOM(a) MakeAtom(a, sizeof(a) - 1, TRUE)
 

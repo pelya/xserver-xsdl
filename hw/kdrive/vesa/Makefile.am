@@ -11,14 +11,19 @@ INCLUDES = 					\
 
 bin_PROGRAMS = Xvesa
 
-Xvesa_SOURCES = \
+noinst_LTLIBRARIES = libvesa.la
+
+libvesa_la_SOURCES = \
 	vesa.c		\
-	vesainit.c	\
 	vbe.c		\
 	vga.c		\
 	vm86.c
+	
+Xvesa_SOURCES = \
+	vesainit.c
 
 Xvesa_LDADD = \
+	$(top_builddir)/hw/kdrive/vesa/libvesa.la \
 	$(top_builddir)/dix/libdix.la		\
 	$(top_builddir)/os/libos.la		\
 	$(top_builddir)/miext/layer/liblayer.la	\

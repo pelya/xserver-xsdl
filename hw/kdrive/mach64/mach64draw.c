@@ -29,7 +29,7 @@
 #include "mach64.h"
 #include "mach64draw.h"
 
-#include	"Xmd.h"
+#include	<X11/Xmd.h>
 #include	"gcstruct.h"
 #include	"scrnintstr.h"
 #include	"pixmapstr.h"
