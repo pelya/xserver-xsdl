@@ -118,7 +118,7 @@ RadeonTextureSetup(PicturePtr pPict, PixmapPtr pPix, int unit)
 	}
 	if (pPict->repeat) {
 		if ((w & (w - 1)) != 0 || (h & (h - 1)) != 0)
-			ATI_FALLBACK(("NPOT repeat unsupported (%dx%d)\n", w,
+			ATI_FALLBACK(("NPOT repeat unsupported (%dx%d)\n", w,
 			    h));
 
 		txformat |= (ATILog2(w) - 1) << RADEON_TXFORMAT_WIDTH_SHIFT;
