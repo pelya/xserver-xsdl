@@ -1,3 +1,5 @@
+/* $XFree86$ */
+
 #include "xf86.h"
 #include "xf86_OSproc.h"
 #include "xf86_ansic.h"
@@ -173,7 +175,7 @@ vm86_GP_fault(xf86Int10InfoPtr pInt)
 
     case 0x0f:
 	xf86DrvMsg(pInt->scrnIndex, X_ERROR,
-	    "CPU 0x0f Trap at CS:EIP=0x%4.4x:0x%8.8x\n", X86_CS, X86_EIP);
+	    "CPU 0x0f Trap at CS:EIP=0x%4.4x:0x%8.8lx\n", X86_CS, X86_EIP);
 	goto op0ferr;
 
     default:
@@ -269,14 +271,18 @@ vm86_rep(struct vm86_struct *ptr)
     /* When compiling with -fPIC, we can't use asm constraint "b" because
        %ebx is already taken by gcc. */
     __asm__ __volatile__("pushl %%ebx\n\t"
+			 "push %%gs\n\t"
 			 "movl %2,%%ebx\n\t"
 			 "movl %1,%%eax\n\t"
 			 "int $0x80\n\t"
+			 "pop %%gs\n\t"
 			 "popl %%ebx"
 			 :"=a" (__res)
 			 :"n" ((int)113), "r" ((struct vm86_struct *)ptr));
 #else
-    __asm__ __volatile__("int $0x80\n\t"
+    __asm__ __volatile__("push %%gs\n\t"
+			 "int $0x80\n\t"
+			 "pop %%gs"
 			 :"=a" (__res):"a" ((int)113),
 			 "b" ((struct vm86_struct *)ptr));
 #endif
