@@ -37,13 +37,18 @@
 	&src_off_y)
 
 #define PROLOGUE(pGC) do { \
+    pGC->funcs = pGCPrivate->wrapFuncs;\
     pGC->ops = pGCPrivate->wrapOps;\
 } while (0)
 
 #define EPILOGUE(pGC) do { \
+    pGCPrivate->wrapFuncs = (pGC)->funcs; \
     pGCPrivate->wrapOps = (pGC)->ops; \
+    (pGC)->funcs = &cwGCFuncs; \
     (pGC)->ops = &cwGCOps; \
 } while (0)
+
+extern GCFuncs cwGCFuncs;
 
 /*
  * GC ops -- wrap each GC operation with our own function

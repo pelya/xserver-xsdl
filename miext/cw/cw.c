@@ -65,7 +65,7 @@ cwCopyClip(GCPtr pgcDst, GCPtr pgcSrc);
 static void
 cwDestroyClip(GCPtr pGC);
 
-static GCFuncs cwGCFuncs = {
+GCFuncs cwGCFuncs = {
     cwValidateGC,
     cwChangeGC,
     cwCopyGC,
