@@ -178,6 +178,9 @@ xglFillRect (DrawablePtr pDrawable,
 	}
     }
 
+    if (!nBox)
+	return;
+    
     pBox = (heapBox) ? heapBox : stackBox;
 
     if (!xglFill (pDrawable, pGC, NULL,
@@ -206,7 +209,7 @@ xglFillRect (DrawablePtr pDrawable,
 		FatalError (XGL_SW_FAILURE_STRING);
 	    break;
 	}
-	    
+	
 	REGION_INIT (pGC->pScreen, &region, pBox, nBox);
 	
 	while (nBox--)
