@@ -46,8 +46,7 @@
 # define DRM_PAGE_SIZE 4096
 #endif
 
-void XFree86DRIExtensionInit(void);
-
+#ifdef GLXEXT
 /* Initialize the visual configs that are supported by the hardware.
  * These are combined with the visual configs that the indirect
  * rendering core supports, and the intersection is exported to the
@@ -212,6 +211,7 @@ static Bool ATIInitVisualConfigs(ScreenPtr pScreen)
 	GlxSetVisualConfigs(numConfigs, pConfigs, (void**)pATIConfigPtrs);
 	return TRUE;
 }
+#endif /* GLXEXT */
 
 static void
 ATIDRIInitGARTValues(ScreenPtr pScreen)
