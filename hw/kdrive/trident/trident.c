@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/trident/trident.c,v 1.7 2000/08/29 17:20:15 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/trident/trident.c,v 1.8 2000/09/03 05:11:20 keithp Exp $ */
 
 #include "trident.h"
 #define extern
@@ -74,7 +74,7 @@ tridentScreenInit (KdScreenInfo *screen)
 #ifdef VESA
     if (!vesaScreenInitialize (screen, &tridents->vesa))
 #else
-    if (!fbdevScreenInit (screen))
+    if (!fbdevScreenInitialize (screen, &tridents->fbdev))
 #endif
     {
 	xfree (tridents);

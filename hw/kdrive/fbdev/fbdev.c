@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/fbdev/fbdev.c,v 1.4 2000/05/06 22:17:41 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/fbdev/fbdev.c,v 1.5 2000/09/03 05:11:17 keithp Exp $ */
 
 #include "fbdev.h"
 
@@ -80,19 +80,14 @@ fbdevCardInit (KdCardInfo *card)
 }
 
 Bool
-fbdevScreenInit (KdScreenInfo *screen)
+fbdevScreenInitialize (KdScreenInfo *screen, FbdevScrPriv *scrpriv)
 {
     FbdevPriv	*priv = screen->card->driver;
     Pixel	allbits;
     int		depth;
+    Bool	rotate;
+    Bool	shadow;
 
-    screen->width = priv->var.xres;
-    screen->height = priv->var.yres;
-    screen->fb[0].depth = priv->var.bits_per_pixel;
-    screen->fb[0].bitsPerPixel = priv->var.bits_per_pixel;
-    screen->fb[0].byteStride = priv->fix.line_length;
-    screen->fb[0].pixelStride = (priv->fix.line_length * 8 / 
-			   priv->var.bits_per_pixel);
     switch (priv->fix.visual) {
     case FB_VISUAL_PSEUDOCOLOR:
 	screen->fb[0].visuals = ((1 << StaticGray) |
@@ -121,13 +116,84 @@ fbdevScreenInit (KdScreenInfo *screen)
 	break;
     }
     screen->rate = 72;
-    screen->fb[0].frameBuffer = (CARD8 *) (priv->fb);
+    scrpriv->rotate = ((priv->var.xres < priv->var.yres) != 
+		       (screen->width < screen->height));
+    screen->fb[0].depth = priv->var.bits_per_pixel;
+    screen->fb[0].bitsPerPixel = priv->var.bits_per_pixel;
+    if (!scrpriv->rotate)
+    {
+	screen->width = priv->var.xres;
+	screen->height = priv->var.yres;
+	screen->fb[0].byteStride = priv->fix.line_length;
+	screen->fb[0].pixelStride = (priv->fix.line_length * 8 / 
+				     priv->var.bits_per_pixel);
+	screen->fb[0].frameBuffer = (CARD8 *) (priv->fb);
+	return TRUE;
+    }
+    else
+    {
+	screen->width = priv->var.yres;
+	screen->height = priv->var.xres;
+	screen->softCursor = TRUE;
+	return KdShadowScreenInit (screen);
+    }
+}
+
+Bool
+fbdevScreenInit (KdScreenInfo *screen)
+{
+    FbdevScrPriv *scrpriv;
+
+    scrpriv = xalloc (sizeof (FbdevScrPriv));
+    if (!scrpriv)
+	return FALSE;
+    if (!fbdevScreenInitialize (screen, scrpriv))
+    {
+	xfree (scrpriv);
+	return FALSE;
+    }
+    screen->driver = scrpriv;
     return TRUE;
+}
+    
+void *
+fbdevWindowLinear (ScreenPtr	pScreen,
+		   CARD32	row,
+		   CARD32	offset,
+		   int		mode,
+		   CARD32	*size)
+{
+    KdScreenPriv(pScreen);
+    FbdevPriv	    *priv = pScreenPriv->card->driver;
+
+    if (!pScreenPriv->enabled)
+	return 0;
+    *size = priv->fix.line_length;
+    return (CARD8 *) priv->fb + row * priv->fix.line_length + offset;
 }
 
 Bool
 fbdevInitScreen (ScreenPtr pScreen)
 {
+    KdScreenPriv(pScreen);
+    FbdevPriv		*priv = pScreenPriv->card->driver;
+    FbdevScrPriv	*scrpriv = pScreenPriv->screen->driver;
+    ShadowUpdateProc	update;
+    ShadowWindowProc	window;
+
+    if (scrpriv->rotate)
+    {
+	window = fbdevWindowLinear;
+	switch (pScreenPriv->screen->fb[0].bitsPerPixel) {
+	case 8:
+	    update = shadowUpdateRotate8; break;
+	case 16:
+	    update = shadowUpdateRotate16; break;
+	case 32:
+	    update = shadowUpdateRotate32; break;
+	}
+	return KdShadowInitScreen (pScreen, update, window);
+    }
     return TRUE;
 }
 
@@ -141,7 +207,9 @@ fbdevEnable (ScreenPtr pScreen)
 {
     KdScreenPriv(pScreen);
     FbdevPriv	*priv = pScreenPriv->card->driver;
-    int		k;
+    FbdevScrPriv	*scrpriv = pScreenPriv->screen->driver;
+    int			k;
+    KdMouseMatrix	m;
 
     priv->var.activate = FB_ACTIVATE_NOW|FB_CHANGE_CMAP_VBL;
     
@@ -152,6 +220,17 @@ fbdevEnable (ScreenPtr pScreen)
 	perror ("FBIOPUT_VSCREENINFO");
 	return FALSE;
     }
+    if (scrpriv->rotate)
+    {
+	m.matrix[0][0] = 0; m.matrix[0][1] = 1; m.matrix[0][2] = 0;
+	m.matrix[1][0] = -1; m.matrix[1][1] = 0; m.matrix[1][2] = pScreen->height - 1;
+    }
+    else
+    {
+	m.matrix[0][0] = 1; m.matrix[0][1] = 0; m.matrix[0][2] = 0;
+	m.matrix[1][0] = 0; m.matrix[1][1] = 1; m.matrix[1][2] = 0;
+    }
+    KdSetMouseMatrix (&m);
     return TRUE;
 }
 

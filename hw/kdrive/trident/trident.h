@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/trident/trident.h,v 1.4 2000/08/29 17:20:15 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/trident/trident.h,v 1.5 2000/09/03 05:11:20 keithp Exp $ */
 
 #ifndef _TRIDENT_H_
 #define _TRIDENT_H_
@@ -179,6 +179,8 @@ typedef struct _tridentCursor {
 typedef struct _tridentScreenInfo {
 #ifdef VESA
     VesaScreenPrivRec	vesa;
+#else
+    FbdevScrPriv    fbdev;
 #endif
     CARD8	    *cursor_base;
     CARD8	    *screen;

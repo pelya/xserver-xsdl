@@ -49,6 +49,7 @@ typedef struct _VesaCardPriv {
 typedef struct _VesaScreenPriv {
     VesaModePtr mode;
     Bool	shadow;
+    Bool	rotate;
     int		mapping;
     void *fb;
 } VesaScreenPrivRec, *VesaScreenPrivPtr;
