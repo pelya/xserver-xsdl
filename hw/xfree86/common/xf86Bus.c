@@ -1,4 +1,5 @@
 /* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86Bus.c,v 1.79 2003/11/03 05:11:01 tsi Exp $ */
+/* $XdotOrg$ */
 /*
  * Copyright (c) 1997-2003 by The XFree86 Project, Inc.
  *
@@ -525,14 +526,14 @@ disableAccess(void)
     for (i = 0; i < xf86NumScreens; i++) {
 	peacc = xf86Screens[i]->CurrentAccess->pIoAccess;
 	while (peacc) {
-	    if (peacc->pAccess->AccessDisable)
+	    if (peacc->pAccess && peacc->pAccess->AccessDisable)
 		peacc->pAccess->AccessDisable(peacc->pAccess->arg);
 	    peacc = peacc->next;
 	}
 	xf86Screens[i]->CurrentAccess->pIoAccess = NULL;
 	peacc = xf86Screens[i]->CurrentAccess->pMemAccess;
 	while (peacc) {
-	    if (peacc->pAccess->AccessDisable)
+	    if (peacc->pAccess && peacc->pAccess->AccessDisable)
 		peacc->pAccess->AccessDisable(peacc->pAccess->arg);
 	    peacc = peacc->next;
 	}
