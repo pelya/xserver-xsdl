@@ -79,7 +79,6 @@ Ps2Read (int ps2Port, void *closure)
     int		    n;
     int		    dx, dy;
     unsigned long   flags;
-    int		    id = (int) closure;
     unsigned long   left_button = KD_BUTTON_1;
     unsigned long   right_button = KD_BUTTON_3;
 

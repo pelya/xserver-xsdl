@@ -26,6 +26,7 @@
 #include <config.h>
 #endif
 #include "kdrive.h"
+#include "klinux.h"
 #include <errno.h>
 #include <signal.h>
 #include <linux/vt.h>
@@ -41,14 +42,14 @@ int  LinuxApmFd = -1;
 static int  activeVT;
 static Bool enabled;
 
-void
+static void
 LinuxVTRequest (int sig)
 {
     kdSwitchPending = TRUE;
 }
 
 /* Check before chowning -- this avoids touching the file system */
-void
+static void
 LinuxCheckChown (char *file)
 {
     struct stat	    st;
@@ -63,13 +64,12 @@ LinuxCheckChown (char *file)
 	chown (file, u, g);
 }
 
-int
+static int
 LinuxInit ()
 {
-    int i, fd;
+    int fd = -1;
     char vtname[11];
     struct vt_stat vts;
-    struct stat	statb;
 
     LinuxConsoleFd = -1;
     /* check if we're run with euid==0 */
@@ -131,7 +131,7 @@ LinuxFindPci (CARD16 vendor, CARD16 device, CARD32 count, KdCardAttr *attr)
 {
     FILE    *f;
     char    line[2048], *l, *end;
-    CARD32  bus, id, mode, addr;
+    CARD32  bus, id, addr;
     int	    n;
     CARD32  ven_dev;
     Bool    ret = FALSE;
@@ -194,7 +194,8 @@ LinuxFindPci (CARD16 vendor, CARD16 device, CARD32 count, KdCardAttr *attr)
 }
 
 unsigned char *
-LinuxGetPciCfg(KdCardAttr *attr) {
+LinuxGetPciCfg(KdCardAttr *attr) 
+{
     char filename[256];
     FILE *f;
     unsigned char *cfg;
@@ -224,7 +225,7 @@ LinuxGetPciCfg(KdCardAttr *attr) {
     return cfg;
 }
 
-void
+static void
 LinuxSetSwitchMode (int mode)
 {
     struct sigaction	act;
@@ -263,14 +264,14 @@ LinuxSetSwitchMode (int mode)
     }
 }
 
-void
+static void
 LinuxApmBlock (pointer blockData, OSTimePtr pTimeout, pointer pReadmask)
 {
 }
 
 static Bool LinuxApmRunning;
 
-void
+static void
 LinuxApmWakeup (pointer blockData, int result, pointer pReadmask)
 {
     fd_set  *readmask = (fd_set *) pReadmask;
@@ -322,7 +323,7 @@ LinuxApmWakeup (pointer blockData, int result, pointer pReadmask)
 #define NOBLOCK FNDELAY
 #endif
 
-void
+static void
 LinuxEnable (void)
 {
     if (enabled)
@@ -364,7 +365,7 @@ LinuxEnable (void)
     enabled = TRUE;
 }
 
-Bool
+static Bool
 LinuxSpecialKey (KeySym sym)
 {
     struct vt_stat  vts;
@@ -383,7 +384,7 @@ LinuxSpecialKey (KeySym sym)
     return FALSE;
 }
 
-void
+static void
 LinuxDisable (void)
 {
     ioctl(LinuxConsoleFd, KDSETMODE, KD_TEXT);  /* Back to text mode ... */
@@ -402,7 +403,7 @@ LinuxDisable (void)
     }
 }
 
-void
+static void
 LinuxFini (void)
 {
     struct vt_mode   VT;

@@ -39,7 +39,6 @@ void
 BusRead (int adbPort, void *closure)
 {
     unsigned char   buf[3];
-    unsigned char   *b;
     int		    n;
     int		    dx, dy;
     unsigned long   flags;

@@ -406,7 +406,6 @@ LinuxKeyboardEnable (int fd, void *closure)
     struct termios nTty;
     unsigned char   buf[256];
     int		    n;
-    int		    flags;
 
     ioctl (fd, KDGKBMODE, &LinuxKbdTrans);
     tcgetattr (fd, &LinuxTermios);

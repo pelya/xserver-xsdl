@@ -94,7 +94,6 @@ MouseFlush (Kbufio *b, char *buf, int size)
 {
     CARD32  now = GetTimeInMillis ();
     CARD32  done = now + 100;
-    int	    p = 0;
     int	    c;
     int	    n = 0;
     
@@ -434,7 +433,7 @@ static int
 ps2SkipInit (KdMouseInfo *mi, int ninit, Bool ret_next)
 {
     Kmouse  *km = mi->driver;
-    int	    c;
+    int	    c = -1;
     int	    skipping;
     Bool    waiting;
     
@@ -465,7 +464,6 @@ static Bool
 ps2Init (KdMouseInfo *mi)
 {
     Kmouse	    *km = mi->driver;
-    int		    c;
     int		    skipping;
     Bool	    waiting;
     int		    id;
@@ -507,6 +505,7 @@ ps2Init (KdMouseInfo *mi)
      * skipped
      */
     (void) ps2SkipInit (mi, ninit, FALSE);
+    return TRUE;
 }
 
 static Bool busParse (KdMouseInfo *mi, unsigned char *ev, int ne)
@@ -584,13 +583,12 @@ static const KmouseProt msProt = {
 static Bool logiComplete (KdMouseInfo *mi, unsigned char *ev, int ne)
 {
     Kmouse		*km = mi->driver;
-    const KmouseProt	*prot = km->prot;
-    int			c;
 
     if ((ev[0] & 0x40) == 0x40)
 	return ne == 3;
     if (km->stage != MouseBroken && (ev[0] & ~0x23) == 0)
 	return ne == 1;
+    return FALSE;
 }
 
 static int logiValid (KdMouseInfo *mi, unsigned char *ev, int ne)
@@ -880,6 +878,8 @@ MouseRead (int mousePort, void *closure)
 				km->stage = MouseBroken;
 			}
 			break;
+		    case MouseWorking:
+			break;
 		    }
 		}
 		else
@@ -911,14 +911,13 @@ char *kdefaultMouse[] =  {
 
 #define NUM_DEFAULT_MOUSE    (sizeof (kdefaultMouse) / sizeof (kdefaultMouse[0]))
 
-int
+Bool
 MouseInit (void)
 {
     int		i;
     int		fd;
     Kmouse	*km;
     KdMouseInfo	*mi, *next;
-    KmouseProt	*mp;
     int		n = 0;
     char	*prot;
 
@@ -966,6 +965,7 @@ MouseInit (void)
 		close (fd);
 	}
     }
+    return TRUE;
 }
 
 void
