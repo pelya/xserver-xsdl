@@ -25,6 +25,7 @@
  * the sale, use or other dealings in this Software without prior written
  * authorization from the copyright holder(s) and author(s).
  */
+/* $XdotOrg: $ */
 
 #ifdef XFree86Server
 #ifdef __UNIXOS2__
@@ -32,10 +33,8 @@
 #endif
 # include "X.h"
 # include "xf86.h"
-# include "xf86drm.h"
 # include "xf86Priv.h"
 # include "xf86_OSlib.h"
-# include "xf86drm.h"
 #else
 # include <unistd.h>
 # include <signal.h>
