@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/trident/tridentdraw.c,v 1.8 2001/05/29 04:54:12 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/trident/tridentdraw.c,v 1.9 2001/05/30 15:36:25 keithp Exp $ */
 
 #include "trident.h"
 #include "tridentdraw.h"
@@ -112,8 +112,8 @@ tridentDoneSolid (void)
 Bool
 tridentPrepareCopy (DrawablePtr	pSrcDrawable,
 		    DrawablePtr	pDstDrawable,
-		    Bool	upsidedown,
-		    Bool	reverse,
+		    int		dx,
+		    int		dy,
 		    int		alu,
 		    Pixel	pm)
 {
@@ -128,7 +128,7 @@ tridentPrepareCopy (DrawablePtr	pSrcDrawable,
 	cop->multi = COP_MULTI_PATTERN;
 	cop->multi = COP_MULTI_ROP | tridentRop[alu];
 	cmd = COP_OP_BLT | COP_SCL_OPAQUE | COP_OP_ROP | COP_OP_FB;
-	if (upsidedown || reverse)
+	if (dx < 0 || dy < 0)
 	    cmd |= COP_X_REVERSE;
 	return TRUE;
     }

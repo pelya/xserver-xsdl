@@ -1,5 +1,5 @@
 /*
- * $XFree86: xc/programs/Xserver/hw/kdrive/kaa.c,v 1.1 2001/05/29 04:54:10 keithp Exp $
+ * $XFree86: xc/programs/Xserver/hw/kdrive/kaa.c,v 1.2 2001/05/30 15:36:25 keithp Exp $
  *
  * Copyright © 2001 Keith Packard, member of The XFree86 Project, Inc.
  *
@@ -130,8 +130,8 @@ kaaCopyNtoN (DrawablePtr    pSrcDrawable,
     if (pSrcDrawable->type == DRAWABLE_WINDOW &&
 	(*pKaaScr->PrepareCopy) (pSrcDrawable,
 				 pDstDrawable,
-				 upsidedown,
-				 reverse,
+				 dx,
+				 dy,
 				 pGC ? pGC->alu : GXcopy,
 				 pGC ? pGC->planemask : FB_ALLONES))
     {
@@ -275,46 +275,45 @@ kaaSolidBoxClipped (DrawablePtr	pDrawable,
     int		partX1, partX2, partY1, partY2;
     CARD32	cmd;
 
-    if ((*pKaaScr->PrepareSolid) (pDrawable, GXcopy, pm, fg))
+    if (!(*pKaaScr->PrepareSolid) (pDrawable, GXcopy, pm, fg))
     {
-	for (nbox = REGION_NUM_RECTS(pClip), pbox = REGION_RECTS(pClip); 
-	     nbox--; 
-	     pbox++)
-	{
-	    partX1 = pbox->x1;
-	    if (partX1 < x1)
-		partX1 = x1;
-	    
-	    partX2 = pbox->x2;
-	    if (partX2 > x2)
-		partX2 = x2;
-	    
-	    if (partX2 <= partX1)
-		continue;
-	    
-	    partY1 = pbox->y1;
-	    if (partY1 < y1)
-		partY1 = y1;
-	    
-	    partY2 = pbox->y2;
-	    if (partY2 > y2)
-		partY2 = y2;
-	    
-	    if (partY2 <= partY1)
-		continue;
-	    
-	    (*pKaaScr->Solid) (partX1, partY1, partX2, partY2);
-	}
-	(*pKaaScr->DoneSolid) ();
-	KdMarkSync(pDrawable->pScreen);
-    }
-    else
-    {
+	KdCheckSync (pDrawable->pScreen);
 	fg = fbReplicatePixel (fg, pDrawable->bitsPerPixel);
 	fbSolidBoxClipped (pDrawable, pClip, x1, y1, x2, y2,
 			   fbAnd (GXcopy, fg, pm),
 			   fbXor (GXcopy, fg, pm));
+	return;
     }
+    for (nbox = REGION_NUM_RECTS(pClip), pbox = REGION_RECTS(pClip); 
+	 nbox--; 
+	 pbox++)
+    {
+	partX1 = pbox->x1;
+	if (partX1 < x1)
+	    partX1 = x1;
+	
+	partX2 = pbox->x2;
+	if (partX2 > x2)
+	    partX2 = x2;
+	
+	if (partX2 <= partX1)
+	    continue;
+	
+	partY1 = pbox->y1;
+	if (partY1 < y1)
+	    partY1 = y1;
+	
+	partY2 = pbox->y2;
+	if (partY2 > y2)
+	    partY2 = y2;
+	
+	if (partY2 <= partY1)
+	    continue;
+	
+	(*pKaaScr->Solid) (partX1, partY1, partX2, partY2);
+    }
+    (*pKaaScr->DoneSolid) ();
+    KdMarkSync(pDrawable->pScreen);
 }
 
 void

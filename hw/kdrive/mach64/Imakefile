@@ -1,0 +1,15 @@
+XCOMM $XFree86: xc/programs/Xserver/hw/kdrive/mach64/Imakefile,v 1.6 2000/10/20 00:19:51 keithp Exp $
+KDRIVE=..
+#include "../Kdrive.tmpl"
+
+SRCS = 	mach64.c mach64draw.c mach64stub.c
+
+OBJS = 	mach64.o mach64draw.o mach64stub.o
+
+DEFINES = -DVESA /* -DUSE_PCI*/
+
+INCLUDES = -I. $(KDINCS) -I$(KDRIVE)/vesa
+
+NormalLibraryObjectRule()
+NormalLibraryTarget(mach64,$(OBJS))
+DependTarget()
