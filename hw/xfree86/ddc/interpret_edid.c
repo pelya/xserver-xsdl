@@ -185,7 +185,9 @@ get_monitor_ranges(Uchar *c, struct monitor_ranges *r)
     r->max_v = MAX_V;
     r->min_h = MIN_H;
     r->max_h = MAX_H;
-    r->max_clock = MAX_CLOCK * 10;
+    r->max_clock = 0;
+    if(MAX_CLOCK != 0xff) /* is specified? */
+	r->max_clock = MAX_CLOCK * 10;
 }
 
 static void
