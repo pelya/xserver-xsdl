@@ -1,11 +1,10 @@
 if KDRIVEVESA
-VESA_SUBDIRS = vesa mach64 mga nvidia r128
+VESA_SUBDIRS = vesa mach64 mga nvidia r128 smi
 endif
 
 SUBDIRS =	\
 	src	\
 	linux	\
 	fbdev	\
-	$(VESA_SUBDIRS) \
-	smi
+	$(VESA_SUBDIRS)
 
