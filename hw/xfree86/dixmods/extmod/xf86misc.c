@@ -582,14 +582,22 @@ ProcXF86MiscPassMessage(client)
 	strncpy(msgtype,(char*)(&stuff[1]),stuff->typelen);
     } else return BadValue;
     if (stuff->vallen) {
-	if (!(msgval = xalloc(stuff->vallen)))
+	if (!(msgval = xalloc(stuff->vallen))) {
+	    xfree(msgtype);
 	    return BadAlloc;
-	strncpy(msgval,(char*)(&stuff[1] + ((stuff->typelen + 3) & ~3)),
+	}
+	strncpy(msgval,(char*)((char*)&stuff[1] + ((stuff->typelen + 3) & ~3)),
 			stuff->vallen);
-    } else return BadValue;
+    } else {
+	xfree(msgtype);
+	return BadValue;
+    }
 
-    if ((retval= MiscExtPassMessage(stuff->screen,msgtype,msgval,&retstr)) != 0)
+    if ((retval = MiscExtPassMessage(stuff->screen,msgtype,msgval,&retstr)) != 0) {
+	xfree(msgtype);
+	xfree(msgval);
 	return retval;
+    }
 
     rep.type = X_Reply;
     rep.sequenceNumber = client->sequence;
@@ -607,6 +615,9 @@ ProcXF86MiscPassMessage(client)
     if (rep.mesglen)
         WriteToClient(client, rep.mesglen, (char *)retstr);
 
+    xfree(msgtype);
+    xfree(msgval);
+    
     return (client->noClientException);
 }
 
