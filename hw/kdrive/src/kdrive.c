@@ -303,11 +303,11 @@ KdEnableScreen (ScreenPtr pScreen)
 	    return FALSE;
     pScreenPriv->enabled = TRUE;
     pScreenPriv->card->selected = pScreenPriv->screen->mynum;
+    KdOffscreenSwapIn (pScreen);    
     if (!pScreenPriv->screen->softCursor && pScreenPriv->card->cfuncs->enableCursor)
 	(*pScreenPriv->card->cfuncs->enableCursor) (pScreen);
     if (!pScreenPriv->screen->dumb && pScreenPriv->card->cfuncs->enableAccel)
 	(*pScreenPriv->card->cfuncs->enableAccel) (pScreen);
-    KdOffscreenSwapIn (pScreen);    
     KdEnableColormap (pScreen);
     KdSetRootClip (pScreen, TRUE);
     if (pScreenPriv->card->cfuncs->dpms)
