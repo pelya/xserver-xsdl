@@ -282,6 +282,10 @@
 #define R128_REG_PM4_MICRO_CNTL			0x07fc
 # define R128_PM4_MICRO_FREERUN			(1 << 30)
 
+#define RADEON_TV_MASTER_CNTL                    0x0800
+# define RADEON_TV_MACROVISION			(1 << 5)
+# define RADEON_TVCLK_ALWAYS_ON           	(1 << 30)
+
 #define R128_REG_BM_CHUNK_0_VAL			0x0a18
 # define R128_BM_PTR_FORCE_TO_PCI		(1 << 21)
 # define R128_BM_PM4_RD_FORCE_TO_PCI		(1 << 22)

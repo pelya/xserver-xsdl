@@ -302,6 +302,7 @@ KdEnableScreen (ScreenPtr pScreen)
 	if (!(*pScreenPriv->card->cfuncs->enable) (pScreen))
 	    return FALSE;
     pScreenPriv->enabled = TRUE;
+    pScreenPriv->dpmsState = KD_DPMS_NORMAL;
     pScreenPriv->card->selected = pScreenPriv->screen->mynum;
     KdOffscreenSwapIn (pScreen);    
     if (!pScreenPriv->screen->softCursor && pScreenPriv->card->cfuncs->enableCursor)
