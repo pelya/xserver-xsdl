@@ -1,3 +1,9 @@
+2005-02-02  Alexander Gottwald  <ago at freedesktop dot org>
+
+	* wincreatewnd.c:
+	Force ShowWindow if XWin was started via run.exe. Fixes mainwindow
+	not showing bug
+
 2005-01-31  Alexander Gottwald  <ago at freedesktop dot org>
 
 	* winmultiwindowwindow.c
