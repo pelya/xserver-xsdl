@@ -372,36 +372,6 @@ extern int DoGetImage(
 extern void IncrementClientCount(void);
 #endif /* LBX */
 
-extern int SendConnSetup(
-#if NeedFunctionPrototypes
-    ClientPtr /*client*/,
-    char* /*reason*/
-#endif
-);
-
-extern int
-DoGetImage(
-#if NeedFunctionPrototypes
-    ClientPtr	/*client*/,
-    int /*format*/,
-    Drawable /*drawable*/,
-    int /*x*/, 
-    int /*y*/, 
-    int /*width*/, 
-    int /*height*/,
-    Mask /*planemask*/,
-    xGetImageReply **/*im_return*/
-#endif
-);
-
-#ifdef LBX
-extern void IncrementClientCount(
-#if NeedFunctionPrototypes
-    void
-#endif
-);
-#endif /* LBX */
-
 /* dixutils.c */
 
 extern void CopyISOLatin1Lowered(
@@ -489,12 +459,6 @@ extern void InitBlockAndWakeupHandlers(void);
 extern void ProcessWorkQueue(void);
 
 extern void ProcessWorkQueueZombies(void);
-
-extern void ProcessWorkQueueZombies(
-#if NeedFunctionPrototypes
-    void
-#endif
-);
 
 extern Bool QueueWorkProc(
     Bool (* /*function*/)(
@@ -647,15 +611,6 @@ extern void FixKeyState(
     DeviceIntPtr /* keybd */);
 #endif /* XKB */
 
-#ifdef XKB
-extern void FixKeyState(
-#if NeedFunctionPrototypes
-    xEvent * /* xE */,
-    DeviceIntPtr /* keybd */
-#endif
-);
-#endif /* XKB */
-
 extern void RecalculateDeliverableEvents(
     WindowPtr /* pWin */);
 
@@ -692,8 +647,6 @@ extern void InitEvents(void);
 
 extern void CloseDownEvents(void);
 
-extern void CloseDownEvents(void);
-
 extern void DeleteWindowFromAnyEvents(
     WindowPtr	/* pWin */,
     Bool /* freeResources */);
@@ -710,7 +663,6 @@ extern int DeliverEvents(
     xEventPtr /*xE*/,
     int /*count*/,
     WindowPtr /*otherParent*/);
-
 
 
 extern void WriteEventsToClient(

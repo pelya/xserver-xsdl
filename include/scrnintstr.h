@@ -323,8 +323,6 @@ typedef    void (* ResolveColorProcPtr)(
 
 #ifdef NEED_SCREEN_REGIONS
 
-#ifdef NEED_SCREEN_REGIONS
-
 typedef    RegionPtr (* RegionCreateProcPtr)(
 	BoxPtr /*rect*/,
 	int /*size*/);
@@ -396,18 +394,6 @@ typedef    Bool (* RegionBrokenProcPtr)(
 typedef    Bool (* RegionBreakProcPtr)(
 	RegionPtr /*pReg*/);
 
-typedef    Bool (* RegionBrokenProcPtr)(
-#if NeedNestedPrototypes
-	RegionPtr /*pReg*/
-#endif
-);
-
-typedef    Bool (* RegionBreakProcPtr)(
-#if NeedNestedPrototypes
-	RegionPtr /*pReg*/
-#endif
-);
-
 typedef    void (* RegionEmptyProcPtr)(
 	RegionPtr /*pReg*/);
 
@@ -424,12 +410,8 @@ typedef    Bool (* RegionValidateProcPtr)(
 
 #endif /* NEED_SCREEN_REGIONS */
 
-#endif /* NEED_SCREEN_REGIONS */
-
 typedef    RegionPtr (* BitmapToRegionProcPtr)(
 	PixmapPtr /*pPix*/);
-
-#ifdef NEED_SCREEN_REGIONS
 
 #ifdef NEED_SCREEN_REGIONS
 
@@ -437,8 +419,6 @@ typedef    RegionPtr (* RectsToRegionProcPtr)(
 	int /*nrects*/,
 	xRectangle* /*prect*/,
 	int /*ctype*/);
-
-#endif /* NEED_SCREEN_REGIONS */
 
 #endif /* NEED_SCREEN_REGIONS */
 

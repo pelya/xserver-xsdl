@@ -188,14 +188,6 @@ extern void FindAllClientResources(
     FindAllRes /*func*/,
     pointer /*cdata*/);
 
-extern void FindAllClientResources(
-#if NeedFunctionPrototypes
-    ClientPtr /*client*/,
-    FindAllRes /*func*/,
-    pointer /*cdata*/
-#endif
-);
-
 extern void FreeClientNeverRetainResources(
     ClientPtr /*client*/);
 
@@ -221,15 +213,6 @@ extern pointer LookupClientResourceComplex(
     RESTYPE type,
     FindComplexResType func,
     pointer cdata);
-
-extern pointer LookupClientResourceComplex(
-#if NeedFunctionPrototypes
-    ClientPtr client,
-    RESTYPE type,
-    FindComplexResType func,
-    pointer cdata
-#endif
-);
 
 /* These are the access modes that can be passed in the last parameter
  * to SecurityLookupIDByType/Class.  The Security extension doesn't
@@ -278,14 +261,6 @@ extern unsigned int GetXIDList(
     ClientPtr /*client*/,
     unsigned int /*count*/,
     XID * /*pids*/);
-
-extern RESTYPE lastResourceType;
-extern RESTYPE TypeMask;
-
-#ifdef XResExtension
-extern Atom *ResourceNames;
-void RegisterResourceName(RESTYPE type, char* name);
-#endif
 
 extern RESTYPE lastResourceType;
 extern RESTYPE TypeMask;

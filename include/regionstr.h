@@ -381,12 +381,6 @@ extern void miRegionReset(
 extern Bool miRegionBreak(
     RegionPtr /*pReg*/);
 
-extern Bool miRegionBreak(
-#if NeedFunctionPrototypes
-    RegionPtr /*pReg*/
-#endif
-);
-
 extern Bool miPointInRegion(
     RegionPtr /*pReg*/,
     int /*x*/,

@@ -160,16 +160,6 @@ extern DeviceIntPtr _AddInputDevice(
     DeviceProc /*deviceProc*/,
     Bool /*autoStart*/);
 
-#define AddInputDevice(deviceProc, autoStart) \
-       _AddInputDevice(deviceProc, autoStart)
-
-extern DeviceIntPtr _AddInputDevice(
-#if NeedFunctionPrototypes
-    DeviceProc /*deviceProc*/,
-    Bool /*autoStart*/
-#endif
-);
-
 extern Bool EnableDevice(
     DeviceIntPtr /*device*/);
 

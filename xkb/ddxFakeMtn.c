@@ -45,14 +45,6 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include "mipointer.h"
 #include "mipointrst.h"
 
-extern void NewCurrentScreen(
-#if NeedFunctionPrototypes
-    ScreenPtr	/* newScreen */,
-    int		/* x */,
-    int		/* y */
-#endif
-);
-
 void
 XkbDDXFakePointerMotion(unsigned flags,int x,int y)
 {

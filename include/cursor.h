@@ -97,21 +97,6 @@ extern CursorPtr AllocCursorARGB(
     unsigned /*backGreen*/,
     unsigned /*backBlue*/);
 
-extern CursorPtr AllocCursorARGB(
-#if NeedFunctionPrototypes
-    unsigned char* /*psrcbits*/,
-    unsigned char* /*pmaskbits*/,
-    CARD32* /*argb*/,
-    CursorMetricPtr /*cm*/,
-    unsigned /*foreRed*/,
-    unsigned /*foreGreen*/,
-    unsigned /*foreBlue*/,
-    unsigned /*backRed*/,
-    unsigned /*backGreen*/,
-    unsigned /*backBlue*/
-#endif
-);
-
 extern int AllocGlyphCursor(
     Font /*source*/,
     unsigned int /*sourceChar*/,
@@ -157,14 +142,6 @@ extern void GetSpritePosition(
 
 #ifdef PANORAMIX
 extern int XineramaGetCursorScreen(void);
-#endif /* PANORAMIX */
-
-#ifdef PANORAMIX
-extern int XineramaGetCursorScreen(
-#if NeedFunctionPrototypes
-    void
-#endif
-);
 #endif /* PANORAMIX */
 
 #endif /* CURSOR_H */

@@ -289,10 +289,6 @@ XdmcpOptions(int argc, char **argv, int i)
 	get_fromaddr_by_name(argc, argv, ++i);
 	return (i + 1);
     }
-    if (strcmp(argv[i], "-from") == 0) {
-	get_fromaddr_by_name(argc, argv, ++i);
-	return (i + 1);
-    }
     if (strcmp(argv[i], "-once") == 0) {
 	OneSession = TRUE;
 	return (i + 1);

@@ -266,24 +266,6 @@ extern void LockServer(void);
 extern void UnlockServer(void);
 #endif
 
-#if NeedVarargsPrototypes
-extern void VErrorF(const char *f, va_list args);
-#endif
-
-#ifdef SERVER_LOCK
-extern void LockServer(
-#if NeedFunctionPrototypes
-    void
-#endif
-);
-
-extern void UnlockServer(
-#if NeedFunctionPrototypes
-    void
-#endif
-);
-#endif
-
 extern int OsLookupColor(
     int	/*screen*/,
     char * /*name*/,
@@ -318,31 +300,6 @@ extern int Fclose(pointer);
 #define Pclose(a) pclose(a)
 #define Fopen(a,b) fopen(a,b)
 #define Fclose(a) fclose(a)
-#endif
-
-extern void CheckUserParameters(int argc, char **argv, char **envp);
-extern void CheckUserAuthorization(void);
-
-void OsBlockSignals (
-#if NeedFunctionPrototypes
-		     void
-#endif		     
-		     );
-
-void OsReleaseSignals (
-#if NeedFunctionPrototypes
-		     void
-#endif		     
-		     );
-
-#if !defined(WIN32) && !defined(__UNIXOS2__)
-extern int System(char *);
-extern pointer Popen(char *, char *);
-extern int Pclose(pointer);
-#else
-#define System(a) system(a)
-#define Popen(a,b) popen(a,b)
-#define Pclose(a) pclose(a)
 #endif
 
 extern void CheckUserParameters(int argc, char **argv, char **envp);
@@ -420,19 +377,6 @@ extern int AuthorizationFromID (
 	unsigned short	*data_lenp,
 	char		**datap);
 
-extern XID AuthorizationToID (
-	unsigned short	name_length,
-	char		*name,
-	unsigned short	data_length,
-	char		*data);
-
-extern int AuthorizationFromID (
-	XID 		id,
-	unsigned short	*name_lenp,
-	char		**namep,
-	unsigned short	*data_lenp,
-	char		**datap);
-
 extern XID CheckAuthorization(
     unsigned int /*namelength*/,
     char * /*name*/,
@@ -443,12 +387,6 @@ extern XID CheckAuthorization(
 );
 
 extern void ResetAuthorization(void);
-
-extern int RemoveAuthorization (
-    unsigned short	name_length,
-    char		*name,
-    unsigned short	data_length,
-    char		*data);
 
 extern int RemoveAuthorization (
     unsigned short	name_length,
@@ -475,8 +413,6 @@ extern void ExpandCommandLine(int * /*pargc*/, char *** /*pargv*/);
 #endif
 
 extern int ddxProcessArgument(int /*argc*/, char * /*argv*/ [], int /*i*/);
-
-extern void ddxUseMsg(void);
 
 extern void ddxUseMsg(void);
 

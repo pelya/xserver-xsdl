@@ -135,9 +135,6 @@ LoadAuthorization (void)
     Xauth   *auth;
     int	    i;
     int	    count = 0;
-#if !defined(WIN32) && !defined(__UNIXOS2__)
-    char    *buf;
-#endif
 
     ShouldLoadAuth = FALSE;
     if (!authorization_file)
