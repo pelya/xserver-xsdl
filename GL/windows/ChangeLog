@@ -1,0 +1,7 @@
+2004-05-27  Alexander Gottwald  <ago@freedesktop.org>
+
+	* glwindows.h: write current function and line in debug output
+	* indirect.c: moved actual setup and creation of windows GL context to 
+	glWinCreateContextReal. 
+	* indirect.c (glWinCreateContext): Deferred context creation to attach.   
+	* indirect.c (glWinMakeCurrent): Check if context is NULL. Fixes segfault.
