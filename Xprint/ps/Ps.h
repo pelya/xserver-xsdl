@@ -556,7 +556,7 @@ extern int  PsListInstalledColormaps(ScreenPtr pScreen, XID *pCmapList);
 extern void PsStoreColors(ColormapPtr pColor, int ndef, xColorItem *pdefs);
 extern void PsResolveColor(unsigned short *pRed, unsigned short *pGreen,
                            unsigned short *pBlue, VisualPtr pVisual);
-extern int  PsGetPixelColor(ColormapPtr cMap, int pixval);
+extern PsOutColor PsGetPixelColor(ColormapPtr cMap, int pixval);
 extern void PsSetFillColor(DrawablePtr pDrawable, GCPtr pGC, PsOutPtr psOut,
                            ColormapPtr cMap);
 

@@ -153,6 +153,30 @@ typedef enum PsFTDownloadFontType_
   PsFontType3
 } PsFTDownloadFontType;
 
+#ifdef PSOUT_USE_DEEPCOLOR
+typedef long long PsOutColor;
+#define PSOUTCOLOR_TO_REDBITS(clr)    ((clr) >> 32)
+#define PSOUTCOLOR_TO_GREENBITS(clr)  (((clr) >> 16) & 0xFFFF)
+#define PSOUTCOLOR_TO_BLUEBITS(clr)   ((clr) & 0xFFFF)
+#define PSOUTCOLOR_BITS_TO_PSFLOAT(b) ((float)(b) / 65535.)
+#define PSOUTCOLOR_WHITE              (0xFFFFFFFFFFFFLL)
+#define PSOUTCOLOR_NOCOLOR            (-1LL)
+#define PSOUTCOLOR_TO_RGB24BIT(clr)   (((PSOUTCOLOR_TO_REDBITS(clr)   >> 8) << 16) | \
+                                       ((PSOUTCOLOR_TO_GREENBITS(clr) >> 8) << 8)  | \
+                                       ((PSOUTCOLOR_TO_BLUEBITS(clr)  >> 8) << 0))
+#else
+typedef long PsOutColor;
+#define PSOUTCOLOR_TO_REDBITS(clr)    ((clr) >> 16)
+#define PSOUTCOLOR_TO_GREENBITS(clr)  (((clr) >> 8) & 0xFF)
+#define PSOUTCOLOR_TO_BLUEBITS(clr)   ((clr) & 0xFF)
+#define PSOUTCOLOR_BITS_TO_PSFLOAT(b) ((float)(b) / 255.)
+#define PSOUTCOLOR_WHITE              (0xFFFFFF)
+#define PSOUTCOLOR_NOCOLOR            (-1)
+#define PSOUTCOLOR_TO_RGB24BIT(clr)   ((PSOUTCOLOR_TO_REDBITS(clr)   << 16) | \
+                                       (PSOUTCOLOR_TO_GREENBITS(clr) << 8)  | \
+                                       (PSOUTCOLOR_TO_BLUEBITS(clr)  << 0))
+#endif /* PSOUT_USE_DEEPCOLOR */
+
 #ifdef USE_PSOUT_PRIVATE
 typedef void *voidPtr;
 
@@ -168,14 +192,14 @@ typedef struct PsOutRec_
 {
   FILE       *Fp;
   char        Buf[16384];
-  int         CurColor;
+  PsOutColor  CurColor;
   int         LineWidth;
   PsCapEnum   LineCap;
   PsJoinEnum  LineJoin;
   int         NDashes;
   int        *Dashes;
   int         DashOffset;
-  int         LineBClr;
+  PsOutColor  LineBClr;
   PsRuleEnum  FillRule;
   char       *FontName;
   int         FontSize;
@@ -193,8 +217,8 @@ typedef struct PsOutRec_
 
   PsFillEnum  InTile;
   int         ImgSkip;
-  int         ImgBClr;
-  int         ImgFClr;
+  PsOutColor  ImgBClr;
+  PsOutColor  ImgFClr;
   int         ImgX;
   int         ImgY;
   int         ImgW;
@@ -230,11 +254,11 @@ extern void PsOut_Offset(PsOutPtr self, int x, int y);
 
 extern void PsOut_Clip(PsOutPtr self, int clpTyp, PsClipPtr clpinf);
 
-extern void PsOut_Color(PsOutPtr self, int clr);
+extern void PsOut_Color(PsOutPtr self, PsOutColor clr);
 extern void PsOut_FillRule(PsOutPtr self, PsRuleEnum rule);
 extern void PsOut_LineAttrs(PsOutPtr self, int wd, PsCapEnum cap,
                             PsJoinEnum join, int nDsh, int *dsh, int dshOff,
-                            int bclr);
+                            PsOutColor bclr);
 extern void PsOut_TextAttrs(PsOutPtr self, char *fnam, int siz, int iso);
 extern void PsOut_TextAttrsMtx(PsOutPtr self, char *fnam, float *mtx, int iso);
 
@@ -250,12 +274,12 @@ extern void PsOut_DrawArc(PsOutPtr self, int x, int y, int w, int h,
                           float ang1, float ang2);
 
 extern void PsOut_Text(PsOutPtr self, int x, int y, char *text, int textl,
-                       int bclr);
-extern void PsOut_Text16(PsOutPtr self, int x, int y, unsigned short *text, int textl, int bclr);
+                       PsOutColor bclr);
+extern void PsOut_Text16(PsOutPtr self, int x, int y, unsigned short *text, int textl, PsOutColor bclr);
 
-extern void PsOut_BeginImage(PsOutPtr self, int bclr, int  fclr, int x, int y,
+extern void PsOut_BeginImage(PsOutPtr self, PsOutColor bclr, PsOutColor fclr, int x, int y,
                              int w, int h, int sw, int sh, int format);
-extern void PsOut_BeginImageIM(PsOutPtr self, int bclr, int fclr, int x, int y,
+extern void PsOut_BeginImageIM(PsOutPtr self, PsOutColor bclr, PsOutColor fclr, int x, int y,
                                int w, int h, int sw, int sh, int format);
 extern void PsOut_EndImage(PsOutPtr self);
 extern void PsOut_OutImageBytes(PsOutPtr self, int nBytes, char *bytes);
@@ -265,7 +289,7 @@ extern void PsOut_BeginFrame(PsOutPtr self, int xoff, int yoff, int x, int y,
 extern void PsOut_EndFrame(PsOutPtr self);
 
 extern int  PsOut_BeginPattern(PsOutPtr self, void *tag, int w, int h,
-                               PsFillEnum type, int bclr, int fclr);
+                               PsFillEnum type, PsOutColor bclr, PsOutColor fclr);
 extern void PsOut_EndPattern(PsOutPtr self);
 extern void PsOut_SetPattern(PsOutPtr self, void *tag, PsFillEnum type);
 

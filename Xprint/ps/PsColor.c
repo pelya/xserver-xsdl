@@ -75,6 +75,8 @@ in this Software without prior written authorization from The Open Group.
 ********************************************************************/
 
 #include "Ps.h"
+#include "mi.h"
+#include "micmap.h"
 #include "gcstruct.h"
 #include "windowstr.h"
 #include "colormapst.h"
@@ -82,49 +84,25 @@ in this Software without prior written authorization from The Open Group.
 Bool
 PsCreateColormap(ColormapPtr pColor)
 {
-  int            i;
-  unsigned short rgb;
-  VisualPtr      pVisual = pColor->pVisual;
-  Pixel          pix;
-
-  if( pVisual->class==TrueColor )
-  {
-    for( i=0 ; i<pVisual->ColormapEntries ; i++ )
-    {
-      rgb = (i<<8)|i;
-
-      pColor->red[i].fShared = FALSE;
-      pColor->red[i].co.local.red     = rgb;
-      pColor->red[i].co.local.green   = 0;
-      pColor->red[i].co.local.blue    = 0;
-
-      pColor->green[i].fShared = FALSE;
-      pColor->green[i].co.local.red   = 0;
-      pColor->green[i].co.local.green = rgb;
-      pColor->green[i].co.local.blue  = 0;
-
-      pColor->blue[i].fShared = FALSE;
-      pColor->blue[i].co.local.red    = 0;
-      pColor->blue[i].co.local.green  = 0;
-      pColor->blue[i].co.local.blue   = rgb;
-    }
-  }
-  return TRUE;
+  miInitializeColormap(pColor);
 }
 
 void
 PsDestroyColormap(ColormapPtr pColor)
 {
+  /* NO-OP */
 }
 
 void
 PsInstallColormap(ColormapPtr pColor)
 {
+  miInstallColormap(pColor);
 }
 
 void
 PsUninstallColormap(ColormapPtr pColor)
 {
+  miUninstallColormap(pColor);
 }
 
 int
@@ -132,7 +110,7 @@ PsListInstalledColormaps(
   ScreenPtr pScreen,
   XID      *pCmapList)
 {
-  return 0;
+  return miListInstalledColormaps(pScreen, pCmapList);
 }
 
 void
@@ -160,18 +138,71 @@ PsResolveColor(
   unsigned short *pBlue,
   VisualPtr       pVisual)
 {
+  miResolveColor(pRed, pGreen, pBlue, pVisual);
 }
 
-int
+PsOutColor
 PsGetPixelColor(ColormapPtr cMap, int pixval)
 {
-  int r, g, b;
-  if( cMap->pVisual->class==TrueColor ) return(pixval);
-  if( pixval<0 || pixval>255 ) return(0);
-  r = cMap->red[pixval].co.local.red>>8;
-  g = cMap->red[pixval].co.local.green>>8;
-  b = cMap->red[pixval].co.local.blue>>8;
-  return((r<<16)|(g<<8)|b);
+  VisualPtr v = cMap->pVisual;
+  switch( v->class )
+  {
+    case TrueColor:
+    {
+        PsOutColor p = pixval;       
+        PsOutColor r, g, b;
+#ifdef PSOUT_USE_DEEPCOLOR
+        int shift = 16 - v->bitsPerRGBValue;
+#else
+        int shift =  8 - v->bitsPerRGBValue;
+#endif /* PSOUT_USE_DEEPCOLOR */
+
+        r = ((p & v->redMask)   >> v->offsetRed)   << shift;
+        g = ((p & v->greenMask) >> v->offsetGreen) << shift;
+        b = ((p & v->blueMask)  >> v->offsetBlue)  << shift;
+
+#ifdef PSOUT_USE_DEEPCOLOR
+        return((r<<32)|(g<<16)|b);
+#else
+        return((r<<16)|(g<<8)|b);
+#endif /* PSOUT_USE_DEEPCOLOR */
+    }
+    case PseudoColor:
+    case GrayScale:
+    case StaticGray:
+    {
+        PsOutColor r, g, b;
+                  
+        if( pixval < 0 || pixval > v->ColormapEntries)
+          return(0);
+
+        r = cMap->red[pixval].co.local.red;
+        g = cMap->red[pixval].co.local.green;
+        b = cMap->red[pixval].co.local.blue;
+
+        if ((v->class | DynamicClass) == GrayScale)
+        {
+          /* rescale to gray (see |miResolveColor()|) */
+          r = g = b = (30L*r + 59L*g + 11L*b) / 100L;
+        }
+        
+#ifdef PSOUT_USE_DEEPCOLOR
+        return((r<<32)|(g<<16)|b);
+#else
+        r >>= 8;
+        g >>= 8;
+        b >>= 8;
+
+        return((r<<16)|(g<<8)|b);
+#endif /* PSOUT_USE_DEEPCOLOR */
+    }
+    default:
+        FatalError("PsGetPixelColor: Unsupported visual %x\n",
+                   (int)cMap->pVisual->class);
+        break;
+  }
+  
+  return 0; /* NO-OP*/
 }
 
 void

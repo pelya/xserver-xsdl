@@ -422,17 +422,19 @@ S_OutTok(PsOutPtr self, char *tok, int cr)
 }
 
 static void
-S_Color(PsOutPtr self, int clr)
+S_Color(PsOutPtr self, PsOutColor clr)
 {
   int   ir, ig, ib;
-  ir = clr>>16; ig = (clr>>8)&0xFF; ib = clr&0xFF;
+  ir = PSOUTCOLOR_TO_REDBITS(clr);
+  ig = PSOUTCOLOR_TO_GREENBITS(clr);
+  ib = PSOUTCOLOR_TO_BLUEBITS(clr);
   if( ir==ig && ig==ib )
-    { S_OutNum(self, (float)ir/255.); S_OutTok(self, "g", 1); }
+    { S_OutNum(self, PSOUTCOLOR_BITS_TO_PSFLOAT(ir)); S_OutTok(self, "g", 1); }
   else
   {
-    S_OutNum(self, (float)ir/255.);
-    S_OutNum(self, (float)ig/255.);
-    S_OutNum(self, (float)ib/255.);
+    S_OutNum(self, PSOUTCOLOR_BITS_TO_PSFLOAT(ir));
+    S_OutNum(self, PSOUTCOLOR_BITS_TO_PSFLOAT(ig));
+    S_OutNum(self, PSOUTCOLOR_BITS_TO_PSFLOAT(ib));
     S_OutTok(self, "sc", 1);
   }
 }
@@ -636,7 +638,7 @@ PsOut_BeginFile(FILE *fp, char *title, int orient, int count, int plex, int res,
 /*
  *  Initialize the structure
  */
-  psout->CurColor    = 0xFFFFFFFF;
+  psout->CurColor    = PSOUTCOLOR_NOCOLOR;
   psout->LineWidth   = 1;
   psout->LineCap     = PsCButt;
   psout->LineJoin    = PsJMiter;
@@ -723,7 +725,7 @@ void
 PsOut_DirtyAttributes(PsOutPtr self)
 {
   int  i;
-  self->CurColor    = 0xFFFFFFFF;
+  self->CurColor    = PSOUTCOLOR_NOCOLOR;
   self->LineWidth   = -1;
   self->LineCap     = (PsCapEnum)-1;
   self->LineJoin    = (PsJoinEnum)-1;
@@ -911,7 +913,7 @@ PsOut_Clip(PsOutPtr self, int clpTyp, PsClipPtr clpinf)
 }
 
 void
-PsOut_Color(PsOutPtr self, int clr)
+PsOut_Color(PsOutPtr self, PsOutColor clr)
 {
   if( clr==self->CurColor || self->InTile>=PsStip ) return;
   self->CurColor = clr;
@@ -926,7 +928,7 @@ PsOut_FillRule(PsOutPtr self, PsRuleEnum rule)
 
 void
 PsOut_LineAttrs(PsOutPtr self, int wd, PsCapEnum cap, PsJoinEnum join,
-                int nDsh, int *dsh, int dshOff, int bclr)
+                int nDsh, int *dsh, int dshOff, PsOutColor bclr)
 {
   int         i;
   int         same = 1;
@@ -973,7 +975,10 @@ PsOut_LineAttrs(PsOutPtr self, int wd, PsCapEnum cap, PsJoinEnum join,
     S_OutTok(self, "ds", 1);
   }
 
-  if( nDsh ) self->LineBClr = bclr; else bclr = -1;
+  if( nDsh )
+    self->LineBClr = bclr;
+  else
+    bclr = PSOUTCOLOR_NOCOLOR;
 }
 
 void
@@ -1094,7 +1099,7 @@ PsOut_Lines(PsOutPtr self, int nPts, PsPointPtr pts)
     if( i==0 ) S_OutTok(self, "m", 0);
     else       S_OutTok(self, "l", 0);
   }
-  if( self->LineBClr>=0 )
+  if( self->LineBClr != PSOUTCOLOR_NOCOLOR )
   {
     S_OutTok(self, "gs", 0);
     S_Color(self, self->LineBClr);
@@ -1133,7 +1138,7 @@ PsOut_DrawRect(PsOutPtr self, int x, int y, int w, int h)
   S_OutNum(self, (float)w);
   S_OutNum(self, (float)h);
   S_OutTok(self, "R", 0);
-  if( self->LineBClr>=0 )
+  if( self->LineBClr != PSOUTCOLOR_NOCOLOR )
   {
     S_OutTok(self, "gs", 0);
     S_Color(self, self->LineBClr);
@@ -1159,7 +1164,7 @@ PsOut_DrawArc(PsOutPtr self, int x, int y, int w, int h,
   S_OutNum(self, ang1+ang2);
   if( ang2<0 ) S_OutTok(self, "An", 0);
   else         S_OutTok(self, "Ac", 0);
-  if( self->LineBClr>=0 )
+  if( self->LineBClr != PSOUTCOLOR_NOCOLOR )
   {
     S_OutTok(self, "gs", 0);
     S_Color(self, self->LineBClr);
@@ -1169,7 +1174,7 @@ PsOut_DrawArc(PsOutPtr self, int x, int y, int w, int h,
 }
 
 void
-PsOut_Text(PsOutPtr self, int x, int y, char *text, int textl, int bclr)
+PsOut_Text(PsOutPtr self, int x, int y, char *text, int textl, PsOutColor bclr)
 {
   int  xo = self->XOff;
   int  yo = self->YOff;
@@ -1179,21 +1184,23 @@ PsOut_Text(PsOutPtr self, int x, int y, char *text, int textl, int bclr)
   S_OutStr(self, text, textl);
   S_OutNum(self, (float)x);
   S_OutNum(self, (float)y);
-  if( bclr<0 ) S_OutTok(self, "T", 1);
+  if( bclr == PSOUTCOLOR_NOCOLOR )
+    S_OutTok(self, "T", 1);
   else
   {
-    int ir = bclr>>16;
-    int ig = (bclr>>8)&0xFF;
-    int ib = bclr&0xFF;
-    S_OutNum(self, (float)ir/255.);
-    S_OutNum(self, (float)ig/255.);
-    S_OutNum(self, (float)ib/255.);
+    int ir = PSOUTCOLOR_TO_REDBITS(bclr);
+    int ig = PSOUTCOLOR_TO_GREENBITS(bclr);
+    int ib = PSOUTCOLOR_TO_BLUEBITS(bclr);
+
+    S_OutNum(self, PSOUTCOLOR_BITS_TO_PSFLOAT(ir));
+    S_OutNum(self, PSOUTCOLOR_BITS_TO_PSFLOAT(ig));
+    S_OutNum(self, PSOUTCOLOR_BITS_TO_PSFLOAT(ib));
     S_OutTok(self, "Tb", 1);
   }
 }
 
 void
-PsOut_Text16(PsOutPtr self, int x, int y, unsigned short *text, int textl, int bclr)
+PsOut_Text16(PsOutPtr self, int x, int y, unsigned short *text, int textl, PsOutColor bclr)
 {
   int  xo = self->XOff;
   int  yo = self->YOff;
@@ -1203,22 +1210,23 @@ PsOut_Text16(PsOutPtr self, int x, int y, unsigned short *text, int textl, int b
   S_OutStr16(self, text, textl);
   S_OutNum(self, (float)x);
   S_OutNum(self, (float)y);
-  if( bclr<0 ) S_OutTok(self, "T", 1);
+  if( bclr == PSOUTCOLOR_NOCOLOR )
+    S_OutTok(self, "T", 1);
   else
   {
-    int ir = bclr>>16;
-    int ig = (bclr>>8)&0xFF;
-    int ib = bclr&0xFF;
-    S_OutNum(self, (float)ir/255.);
-    S_OutNum(self, (float)ig/255.);
-    S_OutNum(self, (float)ib/255.);
+    int ir = PSOUTCOLOR_TO_REDBITS(bclr);
+    int ig = PSOUTCOLOR_TO_GREENBITS(bclr);
+    int ib = PSOUTCOLOR_TO_BLUEBITS(bclr);
+    S_OutNum(self, PSOUTCOLOR_BITS_TO_PSFLOAT(ir));
+    S_OutNum(self, PSOUTCOLOR_BITS_TO_PSFLOAT(ig));
+    S_OutNum(self, PSOUTCOLOR_BITS_TO_PSFLOAT(ib));
     S_OutTok(self, "Tb", 1);
   }
 }
 
 #ifdef BM_CACHE
 void  /* new */
-PsOut_ImageCache(PsOutPtr self, int x, int y, long cache_id, int bclr, int fclr)
+PsOut_ImageCache(PsOutPtr self, int x, int y, long cache_id, PsOutColor bclr, PsOutColor fclr)
 {
   char cacheID[10];
   int xo = self->XOff;
@@ -1231,22 +1239,26 @@ PsOut_ImageCache(PsOutPtr self, int x, int y, long cache_id, int bclr, int fclr)
   S_OutNum(self, (float)x);
   S_OutNum(self, (float)y);
 
-  if( fclr==0xFFFFFF )
+  if( fclr==PSOUTCOLOR_WHITE )
   {
-    int   ir, ig, ib;
-    ir = bclr>>16; ig = (bclr>>8)&0xFF; ib = bclr&0xFF;
+    int ir = PSOUTCOLOR_TO_REDBITS(bclr);
+    int ig = PSOUTCOLOR_TO_GREENBITS(bclr);
+    int ib = PSOUTCOLOR_TO_BLUEBITS(bclr);
+
     if( ir==ig && ig==ib )
-      S_OutNum(self, (float)ir/255.);
+      S_OutNum(self, PSOUTCOLOR_BITS_TO_PSFLOAT(ir));
     else
       S_OutNum(self, (float)0);
       self->RevImage = 1;
     }
   else
   {
-    int   ir, ig, ib;
-    ir = fclr>>16; ig = (fclr>>8)&0xFF; ib = fclr&0xFF;
+    int ir = PSOUTCOLOR_TO_REDBITS(fclr);
+    int ig = PSOUTCOLOR_TO_GREENBITS(fclr);
+    int ib = PSOUTCOLOR_TO_BLUEBITS(fclr);
+
     if( ir==ig && ig==ib )
-      S_OutNum(self, (float)ir/255.);
+      S_OutNum(self, PSOUTCOLOR_BITS_TO_PSFLOAT(ir));
     else
       S_OutNum(self, (float)0);
   }
@@ -1272,10 +1284,10 @@ PsOut_EndImageCache(PsOutPtr self)
 #endif
 
 void
-PsOut_BeginImage(PsOutPtr self, int bclr, int fclr, int x, int y,
+PsOut_BeginImage(PsOutPtr self, PsOutColor bclr, PsOutColor fclr, int x, int y,
                  int w, int h, int sw, int sh, int format)
 {
-  int savClr = self->CurColor;
+  PsOutColor savClr = self->CurColor;
   int xo = self->XOff;
   int yo = self->YOff;
 
@@ -1291,7 +1303,7 @@ PsOut_BeginImage(PsOutPtr self, int bclr, int fclr, int x, int y,
     S_OutTok(self, "<", 0);
     self->ImageFormat = format;
     self->RevImage = 0;
-    if( self->InTile==PsTile && format==1 && fclr==0xFFFFFF )
+    if( self->InTile==PsTile && format==1 && fclr==PSOUTCOLOR_WHITE )
       self->RevImage = 1;
     return;
   }
@@ -1300,7 +1312,7 @@ PsOut_BeginImage(PsOutPtr self, int bclr, int fclr, int x, int y,
   if( format==1 )
   {
     S_OutTok(self, "gs", 0);
-    if( fclr==0xFFFFFF )
+    if( fclr==PSOUTCOLOR_WHITE )
     {
       PsOut_Color(self, fclr);
       PsOut_FillRect(self, x, y, sw, sh);
@@ -1332,10 +1344,10 @@ PsOut_BeginImage(PsOutPtr self, int bclr, int fclr, int x, int y,
 }
 
 void
-PsOut_BeginImageIM(PsOutPtr self, int bclr, int fclr, int x, int y,
+PsOut_BeginImageIM(PsOutPtr self, PsOutColor bclr, PsOutColor fclr, int x, int y,
                  int w, int h, int sw, int sh, int format)
 {
-  int savClr = self->CurColor;
+  PsOutColor savClr = self->CurColor;
   int xo = self->XOff;
   int yo = self->YOff;
 
@@ -1351,7 +1363,7 @@ PsOut_BeginImageIM(PsOutPtr self, int bclr, int fclr, int x, int y,
     S_OutTok(self, "<", 0);
     self->ImageFormat = format;
     self->RevImage = 0;
-    if( self->InTile==PsTile && format==1 && fclr==0xFFFFFF )
+    if( self->InTile==PsTile && format==1 && fclr==PSOUTCOLOR_WHITE )
       self->RevImage = 1;
     return;
   }
@@ -1363,7 +1375,7 @@ PsOut_BeginImageIM(PsOutPtr self, int bclr, int fclr, int x, int y,
 #ifdef BM_CACHE
     S_OutTok(self, "g", 1);
 #else
-    if( fclr==0xFFFFFF )
+    if( fclr==PSOUTCOLOR_WHITE )
     {
       PsOut_Color(self, bclr);
       self->RevImage = 1;
@@ -1411,7 +1423,7 @@ PsOut_EndImage(PsOutPtr  self)
     S_OutTok(self, ">", 1);
     if( self->ImageFormat==1 && self->InTile==PsTile )
     {
-      if( self->ImgFClr==0xFFFFFF )
+      if( self->ImgFClr==PSOUTCOLOR_WHITE )
       {
         PsOut_Color(self, self->ImgFClr);
         PsOut_FillRect(self, self->ImgX, self->ImgY, self->SclW, self->SclH);
@@ -1509,7 +1521,7 @@ PsOut_EndFrame(PsOutPtr self)
 
 int
 PsOut_BeginPattern(PsOutPtr self, void *tag, int w, int h, PsFillEnum type,
-                   int bclr, int fclr)
+                   PsOutColor bclr, PsOutColor fclr)
 {
   int   i;
   char  key[64];
@@ -1585,7 +1597,7 @@ PsOut_SetPattern(PsOutPtr self, void *tag, PsFillEnum type)
     case PsOpStip: key[0] = 'o'; break; }
   S_OutTok(self, key, 0);
   S_OutTok(self, "spt", 1);
-  self->CurColor = 0xFFFFFFFF;
+  self->CurColor = PSOUTCOLOR_NOCOLOR;
 }
 
 void

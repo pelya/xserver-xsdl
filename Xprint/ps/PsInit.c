@@ -119,8 +119,18 @@ InitializePsDriver(ndx, pScreen, argc, argv)
 #endif
   char            **printerNames;
   int               numPrinters;
-  int               nVisuals;
-  int               nDepths;
+  int               nv,       /* total number of visuals */
+                    nv_1bit,  /* number of 8bit visuals */
+                    nv_8bit,  /* number of 8bit visuals */
+                    nv_12bit, /* number of 12bit visuals */
+                    nv_24bit, /* number of 24bit visuals*/
+                    nv_30bit; /* number of 30bit visuals*/
+  int               nd;       /* number of depths */
+  VisualID         *vids_1bit,
+                   *vids_8bit,
+                   *vids_12bit,
+                   *vids_24bit,
+                   *vids_30bit;
   VisualPtr         visuals;
   DepthPtr          depths;
   VisualID          defaultVisual;
@@ -179,44 +189,180 @@ InitializePsDriver(ndx, pScreen, argc, argv)
     /* Will BitmapToRegion make any difference at all? */
   pScreen->BitmapToRegion         = mfbPixmapToRegion;
 
-  nVisuals = 2;
-  nDepths  = 2;
-  visuals  = (VisualPtr)xalloc(nVisuals*sizeof(VisualRec));
-  depths   = (DepthPtr) xalloc(nDepths*sizeof(DepthRec));
+  visuals    = (VisualPtr) xalloc(8*sizeof(VisualRec));
+  depths     = (DepthPtr)  xalloc(8*sizeof(DepthRec));
+  vids_1bit  = (VisualID *)xalloc(8*sizeof(VisualID));
+  vids_8bit  = (VisualID *)xalloc(8*sizeof(VisualID));
+  vids_12bit = (VisualID *)xalloc(8*sizeof(VisualID));
+  vids_24bit = (VisualID *)xalloc(8*sizeof(VisualID));
+  vids_30bit = (VisualID *)xalloc(8*sizeof(VisualID));
 
-  visuals[0].vid             = FakeClientID(0);
-  visuals[0].class           = TrueColor;
-  visuals[0].bitsPerRGBValue = 8;
-  visuals[0].ColormapEntries = 256;
-  visuals[0].nplanes         = 24;
-  visuals[0].redMask         = 0x00FF0000;
-  visuals[0].greenMask       = 0x0000FF00;
-  visuals[0].blueMask        = 0x000000FF;
-  visuals[0].offsetRed       = 16;
-  visuals[0].offsetGreen     = 8;
-  visuals[0].offsetBlue      = 0;
+  nv = nv_1bit = nv_8bit = nv_12bit = nv_24bit = nv_30bit = nd = 0;
 
-  visuals[1].vid             = FakeClientID(0);
-  visuals[1].class           = PseudoColor;
-  visuals[1].bitsPerRGBValue = 8;
-  visuals[1].ColormapEntries = 256;
-  visuals[1].nplanes         = 8;
-  visuals[1].redMask         = 0x0;
-  visuals[1].greenMask       = 0x0;
-  visuals[1].blueMask        = 0x0;
-  visuals[1].offsetRed       = 0x0;
-  visuals[1].offsetGreen     = 0x0;
-  visuals[1].offsetBlue      = 0x0;
+  /* TrueColor, 24bit */
+  visuals[nv].vid             = FakeClientID(0);
+  visuals[nv].class           = TrueColor;
+  visuals[nv].bitsPerRGBValue = 8;
+  visuals[nv].ColormapEntries = 256;
+  visuals[nv].nplanes         = 24;
+  visuals[nv].redMask         = 0X00FF0000;
+  visuals[nv].greenMask       = 0X0000FF00;
+  visuals[nv].blueMask        = 0X000000FF;
+  visuals[nv].offsetRed       = 16;
+  visuals[nv].offsetGreen     = 8;
+  visuals[nv].offsetBlue      = 0;
+  vids_24bit[nv_24bit] = visuals[nv].vid;
+  nv++; nv_24bit++;
 
-  depths[0].depth   = 24;
-  depths[0].numVids = 1;
-  depths[0].vids    = (VisualID *)xalloc(sizeof(VisualID));
-  depths[0].vids[0] = visuals[0].vid;
+  /* PseudoColor, 8bit */
+  visuals[nv].vid             = FakeClientID(0);
+  visuals[nv].class           = PseudoColor;
+  visuals[nv].bitsPerRGBValue = 8;
+  visuals[nv].ColormapEntries = 256;
+  visuals[nv].nplanes         = 8;
+  visuals[nv].redMask         = 0x0;
+  visuals[nv].greenMask       = 0x0;
+  visuals[nv].blueMask        = 0x0;
+  visuals[nv].offsetRed       = 0x0;
+  visuals[nv].offsetGreen     = 0x0;
+  visuals[nv].offsetBlue      = 0x0;
+  vids_8bit[nv_8bit] = visuals[nv].vid;
+  nv++; nv_8bit++;
 
-  depths[1].depth   = 8;
-  depths[1].numVids = 1;
-  depths[1].vids    = (VisualID *)xalloc(sizeof(VisualID));
-  depths[1].vids[0] = visuals[1].vid;
+  /* GrayScale, 8bit */
+  visuals[nv].vid             = FakeClientID(0);
+  visuals[nv].class           = GrayScale;
+  visuals[nv].bitsPerRGBValue = 8;
+  visuals[nv].ColormapEntries = 256;
+  visuals[nv].nplanes         = 8;
+  visuals[nv].redMask         = 0x0;
+  visuals[nv].greenMask       = 0x0;
+  visuals[nv].blueMask        = 0x0;
+  visuals[nv].offsetRed       = 0x0;
+  visuals[nv].offsetGreen     = 0x0;
+  visuals[nv].offsetBlue      = 0x0;
+  vids_8bit[nv_8bit] = visuals[nv].vid;
+  nv++; nv_8bit++;
+
+  /* StaticGray, 8bit */
+  visuals[nv].vid             = FakeClientID(0);
+  visuals[nv].class           = StaticGray;
+  visuals[nv].bitsPerRGBValue = 8;
+  visuals[nv].ColormapEntries = 256;
+  visuals[nv].nplanes         = 8;
+  visuals[nv].redMask         = 0x0;
+  visuals[nv].greenMask       = 0x0;
+  visuals[nv].blueMask        = 0x0;
+  visuals[nv].offsetRed       = 0x0;
+  visuals[nv].offsetGreen     = 0x0;
+  visuals[nv].offsetBlue      = 0x0;
+  vids_8bit[nv_8bit] = visuals[nv].vid;
+  nv++; nv_8bit++;
+
+  /* StaticGray, 1bit */
+  visuals[nv].vid             = FakeClientID(0);
+  visuals[nv].class           = StaticGray;
+  visuals[nv].bitsPerRGBValue = 8;
+  visuals[nv].ColormapEntries = 2;
+  visuals[nv].nplanes         = 1;
+  visuals[nv].redMask         = 0x0;
+  visuals[nv].greenMask       = 0x0;
+  visuals[nv].blueMask        = 0x0;
+  visuals[nv].offsetRed       = 0x0;
+  visuals[nv].offsetGreen     = 0x0;
+  visuals[nv].offsetBlue      = 0x0;
+  vids_1bit[nv_1bit] = visuals[nv].vid;
+  nv++; nv_1bit++;
+
+#ifdef PSOUT_USE_DEEPCOLOR
+  /* TrueColor, 30bit, 10bit per R-,G-,B-gun */
+  visuals[nv].vid             = FakeClientID(0);
+  visuals[nv].class           = TrueColor;
+  visuals[nv].bitsPerRGBValue = 10;
+  visuals[nv].ColormapEntries = 1024;
+  visuals[nv].nplanes         = 30;
+  visuals[nv].redMask         = 0X3FF00000;
+  visuals[nv].greenMask       = 0X000FFC00;
+  visuals[nv].blueMask        = 0X000003FF;
+  visuals[nv].offsetRed       = 20;
+  visuals[nv].offsetGreen     = 10;
+  visuals[nv].offsetBlue      = 0;
+  vids_30bit[nv_30bit] = visuals[nv].vid;
+  nv++; nv_30bit++;
+
+  /* PostScript Level 2 and above, colors can have 12 bits per component
+   * (36 bit for RGB) */
+
+  /* GrayScale, 12bit, 12bit per R-,G-,B-gun */
+  visuals[nv].vid             = FakeClientID(0);
+  visuals[nv].class           = GrayScale;
+  visuals[nv].bitsPerRGBValue = 12;
+  visuals[nv].ColormapEntries = 4096;
+  visuals[nv].nplanes         = 12;
+  visuals[nv].redMask         = 0x0;
+  visuals[nv].greenMask       = 0x0;
+  visuals[nv].blueMask        = 0x0;
+  visuals[nv].offsetRed       = 0x0;
+  visuals[nv].offsetGreen     = 0x0;
+  visuals[nv].offsetBlue      = 0x0;
+  vids_12bit[nv_12bit] = visuals[nv].vid;
+  nv++; nv_12bit++;
+
+  /* StaticGray, 12bit, 12bit per R-,G-,B-gun */
+  visuals[nv].vid             = FakeClientID(0);
+  visuals[nv].class           = StaticGray;
+  visuals[nv].bitsPerRGBValue = 12;
+  visuals[nv].ColormapEntries = 4096;
+  visuals[nv].nplanes         = 12;
+  visuals[nv].redMask         = 0x0;
+  visuals[nv].greenMask       = 0x0;
+  visuals[nv].blueMask        = 0x0;
+  visuals[nv].offsetRed       = 0x0;
+  visuals[nv].offsetGreen     = 0x0;
+  visuals[nv].offsetBlue      = 0x0;
+  vids_12bit[nv_12bit] = visuals[nv].vid;
+  nv++; nv_12bit++;
+#endif /* PSOUT_USE_DEEPCOLOR */
+
+  if( nv_30bit > 0 )
+  {
+    depths[nd].depth   = 30;
+    depths[nd].numVids = nv_30bit;
+    depths[nd].vids    = vids_30bit;
+    nd++;
+  }
+
+  if( nv_24bit > 0 )
+  {
+    depths[nd].depth   = 24;
+    depths[nd].numVids = nv_24bit;
+    depths[nd].vids    = vids_24bit;
+    nd++;
+  }
+
+  if( nv_12bit > 0 )
+  {
+    depths[nd].depth   = 12;
+    depths[nd].numVids = nv_12bit;
+    depths[nd].vids    = vids_12bit;
+    nd++;
+  }
+  
+  if( nv_8bit > 0 )
+  {
+    depths[nd].depth   = 8;
+    depths[nd].numVids = nv_8bit;
+    depths[nd].vids    = vids_8bit;
+    nd++;
+  }
+
+  if( nv_1bit > 0 )
+  {
+    depths[nd].depth   = 1;
+    depths[nd].numVids = nv_1bit;
+    depths[nd].vids    = vids_1bit;
+    nd++;
+  }
 
   /* Defaul visual is 8bit PseudoColor */
   defaultVisual = visuals[1].vid;
@@ -228,7 +374,7 @@ InitializePsDriver(ndx, pScreen, argc, argv)
 
     GlxWrapInitVisuals(&proc);
     /* GlxInitVisuals ignores the last three arguments. */
-    proc(&visuals, &depths, &nVisuals, &nDepths,
+    proc(&visuals, &depths, &nv, &nd,
          &rootDepth, &defaultVisual, 0, 0, 0);
   }
 #endif /* GLXEXT */
@@ -237,8 +383,8 @@ InitializePsDriver(ndx, pScreen, argc, argv)
                pScreen->width, pScreen->height,
                (int) (pScreen->width / (pScreen->mmWidth / 25.40)), 
                (int) (pScreen->height / (pScreen->mmHeight / 25.40)),
-               0, rootDepth, nDepths,
-               depths, defaultVisual, nVisuals, visuals);
+               0, rootDepth, nd,
+               depths, defaultVisual, nv, visuals);
 
   if( cfbCreateDefColormap(pScreen)==FALSE ) return FALSE;
 

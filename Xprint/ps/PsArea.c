@@ -131,6 +131,13 @@ PsPutScaledImage(DrawablePtr pDrawable, GCPtr pGC, int depth, int x, int y,
     PsOut_Offset(psOut, pDrawable->x, pDrawable->y);
     pt = (char *)(&i); i = 1; if( pt[0]=='\001' ) swap = 1; else swap = 0;
 
+#ifdef PSOUT_USE_DEEPCOLOR
+    if( depth==30 )
+    {
+      ErrorF("PsPutScaledImage: Not implemented yet for 30bit\m");
+    }
+    else
+#endif /* PSOUT_USE_DEEPCOLOR */
     if( depth==24 )
     {
       PsOut_BeginImage(psOut, 0, 0, x, y, w, h, sw, sh, 3);
@@ -174,6 +181,34 @@ PsPutScaledImage(DrawablePtr pDrawable, GCPtr pGC, int depth, int x, int y,
       else goto error;
       PsOut_EndImage(psOut);
     }
+#ifdef PSOUT_USE_DEEPCOLOR
+    else if( (depth > 8) && (depth < 16) )
+    {
+      int  rowsiz = PixmapBytePad(w, depth);
+      PsOut_BeginImage(psOut, 0, 0, x, y, w, h, sw, sh, 3);
+      for( r=0 ; r<h ; r++ )
+      {
+        short *pt = (short *)&pImage[rowsiz*r];
+        for( c=0 ; c<w ; c++,pt++ )
+        {
+          PsOutColor clr = PsGetPixelColor(cMap, (int)(*pt)&0xFFFF);
+          /* XXX: This needs to be fixed for endian swapping and to support
+           * depths deeper than 8bit per R-,G-,B-gun... */
+          int        val = PSOUTCOLOR_TO_RGB24BIT(clr);
+          char      *ipt = (char *)&val;
+          if( swap )
+          {
+            char tmp[4];
+            tmp[0] = ipt[3]; tmp[1] = ipt[2]; tmp[2] = ipt[1]; tmp[3] = ipt[0];
+            PsOut_OutImageBytes(psOut, 3, &tmp[1]);
+          }
+          else
+            PsOut_OutImageBytes(psOut, 3, &ipt[1]);
+        }
+      }
+      PsOut_EndImage(psOut);
+    }
+#endif /* PSOUT_USE_DEEPCOLOR */
     else if( depth==8 )
     {
       int  rowsiz = PixmapBytePad(w, depth);
@@ -183,8 +218,9 @@ PsPutScaledImage(DrawablePtr pDrawable, GCPtr pGC, int depth, int x, int y,
         char *pt = &pImage[rowsiz*r];
         for( c=0 ; c<w ; c++,pt++ )
         {
-          int   val = PsGetPixelColor(cMap, (int)(*pt)&0xFF);
-          char *ipt = (char *)&val;
+          PsOutColor clr = PsGetPixelColor(cMap, (int)(*pt)&0xFF);
+          int        val = PSOUTCOLOR_TO_RGB24BIT(clr);
+          char      *ipt = (char *)&val;
           if( swap )
           {
             char tmp[4];
@@ -296,6 +332,14 @@ PsPutScaledImageIM(DrawablePtr pDrawable, GCPtr pGC, int depth, int x, int y,
 
       PsOut_BeginImageCache(psOut, cache_id);
 #endif
+
+#ifdef PSOUT_USE_DEEPCOLOR
+      if( depth==30 )
+      {
+        ErrorF("PsPutScaledImageIM: Not implemented yet for 30bit\m");
+      }
+      else
+#endif /* PSOUT_USE_DEEPCOLOR */
       if( depth==24 )
       {
         PsOut_BeginImageIM(psOut, 0, 0, x, y, w, h, sw, sh, 3);
@@ -339,6 +383,32 @@ PsPutScaledImageIM(DrawablePtr pDrawable, GCPtr pGC, int depth, int x, int y,
         else goto error;
         PsOut_EndImage(psOut);
       }
+#ifdef PSOUT_USE_DEEPCOLOR
+      else if( (depth > 8) && (depth < 16) )
+      {
+        int  rowsiz = PixmapBytePad(w, depth);
+        PsOut_BeginImageIM(psOut, 0, 0, x, y, w, h, sw, sh, 3);
+        for( r=0 ; r<h ; r++ )
+        {
+          short *pt = (short *)&pImage[rowsiz*r];
+          for( c=0 ; c<w ; c++,pt++ )
+          {
+            PsOutColor clr = PsGetPixelColor(cMap, (int)(*pt)&0xFFFF);
+            int        val = PSOUTCOLOR_TO_RGB24BIT(clr);
+            char      *ipt = (char *)&val;
+            if( swap )
+            {
+              char tmp[4];
+              tmp[0] = ipt[3]; tmp[1] = ipt[2]; tmp[2] = ipt[1]; tmp[3] = ipt[0];
+              PsOut_OutImageBytes(psOut, 3, &tmp[1]);
+            }
+            else
+              PsOut_OutImageBytes(psOut, 3, &ipt[1]);
+          }
+        }
+        PsOut_EndImage(psOut);
+      }
+#endif /* PSOUT_USE_DEEPCOLOR */
       else if( depth==8 )
       {
         int  rowsiz = PixmapBytePad(w, depth);
@@ -348,8 +418,11 @@ PsPutScaledImageIM(DrawablePtr pDrawable, GCPtr pGC, int depth, int x, int y,
           char *pt = &pImage[rowsiz*r];
           for( c=0 ; c<w ; c++,pt++ )
           {
-            int   val = PsGetPixelColor(cMap, (int)(*pt)&0xFF);
-            char *ipt = (char *)&val;
+            PsOutColor clr = PsGetPixelColor(cMap, (int)(*pt)&0xFF);
+            /* XXX: This needs to be fixed for endian swapping and to support
+             * depths deeper than 8bit per R-,G-,B-gun... */
+            int        val = PSOUTCOLOR_TO_RGB24BIT(clr);
+            char      *ipt = (char *)&val;
             if( swap )
             {
               char tmp[4];
