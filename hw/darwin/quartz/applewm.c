@@ -40,24 +40,26 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "windowstr.h"
 #include "servermd.h"
 #include "swaprep.h"
+#include "propertyst.h"
 #include "Xatom.h"
 #include "darwin.h"
 #define _APPLEWM_SERVER_
 #include "applewmstr.h"
 #include "applewmExt.h"
 
-#define DEFINE_ATOM_HELPER(func,atom_name)			\
-static Atom func (void) {					\
-    static int generation;					\
-    static Atom atom;						\
-    if (generation != serverGeneration) {			\
-	generation = serverGeneration;				\
-	atom = MakeAtom (atom_name, strlen (atom_name), TRUE);	\
-    }								\
-    return atom;						\
+#define DEFINE_ATOM_HELPER(func,atom_name)                      \
+static Atom func (void) {                                       \
+    static int generation;                                      \
+    static Atom atom;                                           \
+    if (generation != serverGeneration) {                       \
+        generation = serverGeneration;                          \
+        atom = MakeAtom (atom_name, strlen (atom_name), TRUE);  \
+    }                                                           \
+    return atom;                                                \
 }
 
 DEFINE_ATOM_HELPER(xa_native_screen_origin, "_NATIVE_SCREEN_ORIGIN")
+DEFINE_ATOM_HELPER (xa_apple_no_order_in, "_APPLE_NO_ORDER_IN")
 
 static AppleWMProcsPtr appleWMProcs;
 
@@ -84,8 +86,8 @@ static void SNotifyEvent(xAppleWMNotifyEvent *from, xAppleWMNotifyEvent *to);
 typedef struct _WMEvent *WMEventPtr;
 typedef struct _WMEvent {
     WMEventPtr      next;
-    ClientPtr	    client;
-    XID		    clientResource;
+    ClientPtr       client;
+    XID             clientResource;
     unsigned int    mask;
 } WMEventRec;
 
@@ -152,6 +154,29 @@ AppleWMSetScreenOrigin(
                          32, PropModeReplace, 2, data, TRUE);
 }
 
+/* Window managers can set the _APPLE_NO_ORDER_IN property on windows
+   that are being genie-restored from the Dock. We want them to
+   be mapped but remain ordered-out until the animation
+   completes (when the Dock will order them in). */
+Bool
+AppleWMDoReorderWindow(
+    WindowPtr pWin
+)
+{
+    Atom atom;
+    PropertyPtr prop;
+
+    atom = xa_apple_no_order_in();
+    for (prop = wUserProps(pWin); prop != NULL; prop = prop->next)
+    {
+        if (prop->propertyName == atom && prop->type == atom)
+            return FALSE;
+    }
+
+    return TRUE;
+}
+
+
 static int
 ProcAppleWMQueryVersion(
     register ClientPtr client
@@ -191,8 +216,8 @@ updateEventMask (WMEventPtr *pHead)
 /*ARGSUSED*/
 static int
 WMFreeClient (data, id)
-    pointer	    data;
-    XID		    id;
+    pointer     data;
+    XID         id;
 {
     WMEventPtr   pEvent;
     WMEventPtr   *pHead, pCur, pPrev;
@@ -218,8 +243,8 @@ WMFreeClient (data, id)
 /*ARGSUSED*/
 static int
 WMFreeEvents (data, id)
-    pointer	    data;
-    XID		    id;
+    pointer     data;
+    XID         id;
 {
     WMEventPtr   *pHead, pCur, pNext;
 
@@ -236,11 +261,11 @@ WMFreeEvents (data, id)
 
 static int
 ProcAppleWMSelectInput (client)
-    register ClientPtr	client;
+    register ClientPtr  client;
 {
     REQUEST(xAppleWMSelectInputReq);
-    WMEventPtr		pEvent, pNewEvent, *pHead;
-    XID			clientResource;
+    WMEventPtr      pEvent, pNewEvent, *pHead;
+    XID             clientResource;
 
     REQUEST_SIZE_MATCH (xAppleWMSelectInputReq);
     pHead = (WMEventPtr *)SecurityLookupIDByType(client,
@@ -329,8 +354,8 @@ AppleWMSendEvent (type, mask, which, arg)
     int type, which, arg;
     unsigned int mask;
 {
-    WMEventPtr		*pHead, pEvent;
-    ClientPtr		client;
+    WMEventPtr      *pHead, pEvent;
+    ClientPtr       client;
     xAppleWMNotifyEvent se;
 
     pHead = (WMEventPtr *) LookupIDByType(eventResource, EventType);
@@ -610,7 +635,7 @@ ProcAppleWMFrameDraw(
 
 static int
 ProcAppleWMDispatch (
-    register ClientPtr	client
+    register ClientPtr  client
 )
 {
     REQUEST(xReq);
@@ -666,7 +691,7 @@ SNotifyEvent(from, to)
 
 static int
 SProcAppleWMQueryVersion(
-    register ClientPtr	client
+    register ClientPtr  client
 )
 {
     register int n;
@@ -677,7 +702,7 @@ SProcAppleWMQueryVersion(
 
 static int
 SProcAppleWMDispatch (
-    register ClientPtr	client
+    register ClientPtr  client
 )
 {
     REQUEST(xReq);

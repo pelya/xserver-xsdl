@@ -267,6 +267,20 @@ typedef void (*RootlessSwitchWindowProc)
     (RootlessWindowPtr pFrame, WindowPtr oldWin);
 
 /*
+ * Check if window should be reordered. (Optional)
+ *  The underlying window system may animate windows being ordered in.
+ *  We want them to be mapped but remain ordered out until the animation
+ *  completes. If defined this function will be called to check if a
+ *  framed window should be reordered now. If this function returns
+ *  FALSE, the window will still be mapped from the X11 perspective, but
+ *  the RestackFrame function will not be called for its frame.
+ *
+ *  pFrame      Frame to reorder
+ */
+typedef Bool (*RootlessDoReorderWindowProc)
+    (RootlessWindowPtr pFrame);
+
+/*
  * Copy bytes. (Optional)
  *  Source and destinate may overlap and the right thing should happen.
  *
@@ -354,6 +368,7 @@ typedef struct _RootlessFrameProcs {
 
     /* Optional frame functions */
     RootlessSwitchWindowProc SwitchWindow;
+    RootlessDoReorderWindowProc DoReorderWindow;
 
     /* Optional acceleration functions */
     RootlessCopyBytesProc CopyBytes;

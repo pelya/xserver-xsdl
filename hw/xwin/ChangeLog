@@ -1,3 +1,9 @@
+2004-10-07  Torrey Lyons  <torrey at freedesktop dot org>
+
+	* winscrinit.c:
+	Add compatibility with the generic rootless layer's new
+	DoReorderWindow function.
+
 2004-09-17  Torrey Lyons  <torrey at freedesktop dot org>
 
 	* winscrinit.c: (winFinishScreenInitFB):

@@ -27,7 +27,7 @@
  * holders shall not be used in advertising or otherwise to promote the sale,
  * use or other dealings in this Software without prior written authorization.
  */
-/* $XdotOrg: xc/programs/Xserver/hw/darwin/quartz/xpr/xprFrame.c,v 1.5 2003/11/27 01:59:53 torrey Exp $ */
+/* $XdotOrg: xc/programs/Xserver/hw/darwin/quartz/xpr/xprFrame.c,v 1.2 2004/04/23 19:16:52 eich Exp $ */
 /* $XFree86: xc/programs/Xserver/hw/darwin/quartz/xpr/xprFrame.c,v 1.4 2003/11/12 20:21:52 torrey Exp $ */
 
 #include "xpr.h"
@@ -35,6 +35,7 @@
 #include "Xplugin.h"
 #include "x-hash.h"
 #include "x-list.h"
+#include "applewmExt.h"
 
 #include "propertyst.h"
 #include "dix.h"
@@ -43,15 +44,15 @@
 
 #include <pthread.h>
 
-#define DEFINE_ATOM_HELPER(func,atom_name)			\
-static Atom func (void) {					\
-    static int generation;					\
-    static Atom atom;						\
-    if (generation != serverGeneration) {			\
-        generation = serverGeneration;				\
-        atom = MakeAtom (atom_name, strlen (atom_name), TRUE);	\
-    }								\
-    return atom;						\
+#define DEFINE_ATOM_HELPER(func,atom_name)                      \
+static Atom func (void) {                                       \
+    static int generation;                                      \
+    static Atom atom;                                           \
+    if (generation != serverGeneration) {                       \
+        generation = serverGeneration;                          \
+        atom = MakeAtom (atom_name, strlen (atom_name), TRUE);  \
+    }                                                           \
+    return atom;                                                \
 }
 
 DEFINE_ATOM_HELPER(xa_native_window_id, "_NATIVE_WINDOW_ID")
@@ -343,6 +344,17 @@ xprSwitchWindow(RootlessWindowPtr pFrame, WindowPtr oldWin)
 
 
 /*
+ * Called to check if the frame should be reordered when it is restacked.
+ */
+Bool xprDoReorderWindow(RootlessWindowPtr pFrame)
+{
+    WindowPtr pWin = pFrame->win;
+
+    return AppleWMDoReorderWindow(pWin);
+}
+
+
+/*
  * Copy area in frame to another part of frame.
  *  Used to accelerate scrolling.
  */
@@ -368,6 +380,7 @@ static RootlessFrameProcsRec xprRootlessProcs = {
     xprUpdateRegion,
     xprDamageRects,
     xprSwitchWindow,
+    xprDoReorderWindow,
     xp_copy_bytes,
     xp_fill_bytes,
     xp_composite_pixels,

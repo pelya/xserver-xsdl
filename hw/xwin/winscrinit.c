@@ -57,6 +57,7 @@ winMWExtWMProcs = {
   winMWExtWMDamageRects,
 #endif
   winMWExtWMRootlessSwitchWindow,
+  NULL,//winWMExtWMDoReorderWindow,
   
   NULL,//winMWExtWMCopyBytes,
   NULL,//winMWExtWMFillBytes,
