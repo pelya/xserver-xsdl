@@ -310,5 +310,16 @@ void
 xnestPushPixels(GCPtr pGC, PixmapPtr pBitmap, DrawablePtr pDst,
 		int width, int height, int x, int y)
 {
-  ErrorF("xnest warning: function xnestPushPixels not implemented\n");
+  /* only works for solid bitmaps */
+  if (pGC->fillStyle == FillSolid)
+  {
+    XSetStipple (xnestDisplay, xnestGC(pGC), xnestPixmap(pBitmap));
+    XSetTSOrigin (xnestDisplay, xnestGC(pGC), x, y);
+    XSetFillStyle (xnestDisplay, xnestGC(pGC), FillStippled);
+    XFillRectangle (xnestDisplay, xnestDrawable(pDst),
+		    xnestGC(pGC), x, y, width, height);
+    XSetFillStyle (xnestDisplay, xnestGC(pGC), FillSolid);
+  }
+  else
+    ErrorF("xnest warning: function xnestPushPixels not implemented\n");
 }

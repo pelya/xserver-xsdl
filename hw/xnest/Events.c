@@ -34,6 +34,7 @@ is" without express or implied warranty.
 #include "Screen.h"
 #include "XNWindow.h"
 #include "Events.h"
+#include "mipointer.h"
 
 CARD32 lastEventTime = 0;
 
@@ -41,6 +42,7 @@ void
 ProcessInputEvents()
 {
   mieqProcessInputEvents();
+  miPointerUpdate();
 }
 
 int
@@ -131,11 +133,15 @@ xnestCollectEvents()
       break;
       
     case MotionNotify:
+#if 0
       x.u.u.type = MotionNotify;
       x.u.keyButtonPointer.rootX = X.xmotion.x;
       x.u.keyButtonPointer.rootY = X.xmotion.y;
       x.u.keyButtonPointer.time = lastEventTime = GetTimeInMillis();
       mieqEnqueue(&x);
+#endif 
+      miPointerAbsoluteCursor (X.xmotion.x, X.xmotion.y, 
+			       lastEventTime = GetTimeInMillis());
       break;
       
     case FocusIn:
@@ -162,11 +168,15 @@ xnestCollectEvents()
 	pScreen = xnestScreen(X.xcrossing.window);
 	if (pScreen) {
 	  NewCurrentScreen(pScreen, X.xcrossing.x, X.xcrossing.y);
+#if 0
 	  x.u.u.type = MotionNotify;
 	  x.u.keyButtonPointer.rootX = X.xcrossing.x;
 	  x.u.keyButtonPointer.rootY = X.xcrossing.y;
 	  x.u.keyButtonPointer.time = lastEventTime = GetTimeInMillis();
 	  mieqEnqueue(&x);
+#endif
+	  miPointerAbsoluteCursor (X.xcrossing.x, X.xcrossing.y, 
+				   lastEventTime = GetTimeInMillis());
 	  xnestDirectInstallColormaps(pScreen);
 	}
       }

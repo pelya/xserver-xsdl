@@ -46,6 +46,12 @@ typedef struct _damage {
 typedef struct _damageScrPriv {
     int				internalLevel;
 
+    /*
+     * For DDXen which don't provide GetScreenPixmap, this provides
+     * a place to hook damage for windows on the screen
+     */
+    DamagePtr			pScreenDamage;
+
     PaintWindowBackgroundProcPtr PaintWindowBackground;
     PaintWindowBorderProcPtr	PaintWindowBorder;
     CopyWindowProcPtr		CopyWindow;

@@ -61,30 +61,44 @@
 #define DAMAGE_DEBUG(x)
 #endif
 
-static PixmapPtr
-GetDrawablePixmap (DrawablePtr pDrawable)
+#define getPixmapDamageRef(pPixmap) \
+    ((DamagePtr *) &(pPixmap->devPrivates[damagePixPrivateIndex].ptr))
+
+#define pixmapDamage(pPixmap)		damagePixPriv(pPixmap)
+
+static DamagePtr *
+getDrawableDamageRef (DrawablePtr pDrawable)
 {
-    ScreenPtr	pScreen = pDrawable->pScreen;
-    PixmapPtr	pPixmap;
+    PixmapPtr   pPixmap;
+    
     if (pDrawable->type == DRAWABLE_WINDOW)
     {
-	pPixmap = (*pScreen->GetWindowPixmap) ((WindowPtr) pDrawable);
+	ScreenPtr   pScreen = pDrawable->pScreen;
+
+	pPixmap = 0;
+	if (pScreen->GetWindowPixmap)
+	    pPixmap = (*pScreen->GetWindowPixmap) ((WindowPtr)pDrawable);
+
 	if (!pPixmap)
-	    pPixmap = (*pScreen->GetScreenPixmap) (pDrawable->pScreen);
+	{
+	    damageScrPriv(pScreen);
+
+	    return &pScrPriv->pScreenDamage;
+	}
     }
     else
 	pPixmap = (PixmapPtr) pDrawable;
-    return pPixmap;
+    return getPixmapDamageRef (pPixmap);
 }
 
-#define pixmapDamage(pPixmap)	damagePixPriv(pPixmap)
-#define drawableDamage(pDrawable)	damagePixPriv(GetDrawablePixmap(pDrawable))
-#define windowDamage(pWin)	drawableDamage(&(pWin)->drawable)
-#define getDrawableDamage(pDrawable)    damageGetPixPriv(GetDrawablePixmap(pDrawable))
-#define getWindowDamage(pWin)	    getDrawableDamage(&(pWin)->drawable)
-#define pixDamageRef(pPixmap) \
-    DamagePtr	*pPrev = (DamagePtr *) \
-	    &(pPixmap->devPrivates[damagePixPrivateIndex].ptr)
+#define getDrawableDamage(pDrawable)	(*getDrawableDamageRef (pDrawable))
+#define getWindowDamage(pWin)		getDrawableDamage(&(pWin)->drawable)
+
+#define drawableDamage(pDrawable)	\
+    DamagePtr	pDamage = getDrawableDamage(pDrawable)
+
+#define windowDamage(pWin)		drawableDamage(&(pWin)->drawable)
+
 #define winDamageRef(pWindow) \
     DamagePtr	*pPrev = (DamagePtr *) \
 	    &(pWindow->devPrivates[damageWinPrivateIndex].ptr)
@@ -299,6 +313,7 @@ damageCreateGC(GCPtr pGC)
     damageGCPriv(pGC);
     Bool ret;
 
+    pGC->pCompositeClip = 0;
     unwrap (pScrPriv, pScreen, CreateGC);
     if((ret = (*pScreen->CreateGC) (pGC))) {
 	pGCPriv->ops = NULL;
@@ -416,7 +431,7 @@ damageDestroyClip(GCPtr pGC)
     DAMAGE_GC_FUNC_EPILOGUE (pGC);
 }
 
-#define TRIM_BOX(box, pGC) { \
+#define TRIM_BOX(box, pGC) if (pGC->pCompositeClip) { \
     BoxPtr extents = &pGC->pCompositeClip->extents;\
     if(box.x1 < extents->x1) box.x1 = extents->x1; \
     if(box.x2 > extents->x2) box.x2 = extents->x2; \
@@ -440,7 +455,9 @@ damageDestroyClip(GCPtr pGC)
     (((box.x2 - box.x1) > 0) && ((box.y2 - box.y1) > 0))
 
 #define checkGCDamage(d,g)	(getDrawableDamage(d) && \
-				 REGION_NOTEMPTY(d->pScreen, g->pCompositeClip))
+				 (!g->pCompositeClip ||\
+				  REGION_NOTEMPTY(d->pScreen, \
+						  g->pCompositeClip)))
 
 #ifdef RENDER
 
@@ -1442,10 +1459,8 @@ damagePushPixels(GCPtr		pGC,
 }
 
 static void
-damageRemoveDamage (PixmapPtr pPixmap, DamagePtr pDamage)
+damageRemoveDamage (DamagePtr *pPrev, DamagePtr pDamage)
 {
-    pixDamageRef (pPixmap);
-
     while (*pPrev)
     {
 	if (*pPrev == pDamage)
@@ -1462,10 +1477,8 @@ damageRemoveDamage (PixmapPtr pPixmap, DamagePtr pDamage)
 }
 
 static void
-damageInsertDamage (PixmapPtr pPixmap, DamagePtr pDamage)
+damageInsertDamage (DamagePtr *pPrev, DamagePtr pDamage)
 {
-    pixDamageRef (pPixmap);
-
 #if DAMAGE_VALIDATE_ENABLE
     DamagePtr	pOld;
 
@@ -1484,13 +1497,15 @@ damageDestroyPixmap (PixmapPtr pPixmap)
 {
     ScreenPtr	pScreen = pPixmap->drawable.pScreen;
     damageScrPriv(pScreen);
-    DamagePtr	pDamage;
 
     if (pPixmap->refcnt == 1)
     {
-	while ((pDamage = damageGetPixPriv(pPixmap)))
+	DamagePtr	*pPrev = getPixmapDamageRef (pPixmap);
+	DamagePtr	pDamage;
+
+	while ((pDamage = *pPrev))
 	{
-	    damageRemoveDamage (pPixmap, pDamage);
+	    damageRemoveDamage (pPrev, pDamage);
 	    if (!pDamage->isWindow)
 		DamageDestroy (pDamage);
 	}
@@ -1599,9 +1614,11 @@ damageSetWindowPixmap (WindowPtr pWindow, PixmapPtr pPixmap)
     if ((pDamage = damageGetWinPriv(pWindow)))
     {
 	PixmapPtr   pOldPixmap = (*pScreen->GetWindowPixmap) (pWindow);
+	DamagePtr   *pPrev = getPixmapDamageRef(pOldPixmap);
+	
 	while (pDamage)
 	{
-	    damageRemoveDamage (pOldPixmap, pDamage);
+	    damageRemoveDamage (pPrev, pDamage);
 	    pDamage = pDamage->pNextWin;
 	}
     }
@@ -1610,9 +1627,11 @@ damageSetWindowPixmap (WindowPtr pWindow, PixmapPtr pPixmap)
     wrap (pScrPriv, pScreen, SetWindowPixmap, damageSetWindowPixmap);
     if ((pDamage = damageGetWinPriv(pWindow)))
     {
+	DamagePtr   *pPrev = getPixmapDamageRef(pPixmap);
+	
 	while (pDamage)
 	{
-	    damageInsertDamage (pPixmap, pDamage);
+	    damageInsertDamage (pPrev, pDamage);
 	    pDamage = pDamage->pNextWin;
 	}
     }
@@ -1698,6 +1717,7 @@ DamageSetup (ScreenPtr pScreen)
 	return FALSE;
 
     pScrPriv->internalLevel = 0;
+    pScrPriv->pScreenDamage = 0;
 
     wrap (pScrPriv, pScreen, DestroyPixmap, damageDestroyPixmap);
     wrap (pScrPriv, pScreen, CreateGC, damageCreateGC);
@@ -1773,7 +1793,7 @@ DamageRegister (DrawablePtr pDrawable,
     else
 	pDamage->isWindow = FALSE;
     pDamage->pDrawable = pDrawable;
-    damageInsertDamage (GetDrawablePixmap (pDrawable), pDamage);
+    damageInsertDamage (getDrawableDamageRef (pDrawable), pDamage);
 }
 
 void
@@ -1816,7 +1836,7 @@ DamageUnregister (DrawablePtr	    pDrawable,
 #endif
     }
     pDamage->pDrawable = 0;
-    damageRemoveDamage (GetDrawablePixmap (pDrawable), pDamage);
+    damageRemoveDamage (getDrawableDamageRef (pDrawable), pDamage);
 }
 
 void
