@@ -58,7 +58,7 @@ THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 **************************************************************************/
 
 
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/i810/i810_video.c,v 1.1tsi Exp $ */
 
 /*
  * i810_video.c: i810 KDrive Xv driver. 
@@ -433,36 +433,6 @@ i810SetupImageVideo(ScreenPtr pScreen)
     i810ResetVideo(screen);
 
     return adapt;
-}
-
-
-static Bool
-RegionsEqual(RegionPtr A, RegionPtr B)
-{
-    int *dataA, *dataB;
-    int num;
-
-    num = REGION_NUM_RECTS(A);
-    if(num != REGION_NUM_RECTS(B))
-	return FALSE;
-
-    if((A->extents.x1 != B->extents.x1) ||
-       (A->extents.x2 != B->extents.x2) ||
-       (A->extents.y1 != B->extents.y1) ||
-       (A->extents.y2 != B->extents.y2))
-	return FALSE;
-
-    dataA = (int*)REGION_RECTS(A);
-    dataB = (int*)REGION_RECTS(B);
-
-    while(num--) {
-	if((dataA[0] != dataB[0]) || (dataA[1] != dataB[1]))
-	   return FALSE;
-	dataA += 2; 
-	dataB += 2;
-    }
-
-    return TRUE;
 }
 
 
@@ -1056,8 +1026,8 @@ i810PutImage(
     }
 
     /* update cliplist */
-    if(!RegionsEqual(&pPriv->clip, clipBoxes)) {
-	REGION_COPY(pScreen, &pPriv->clip, clipBoxes);
+    if(!REGION_EQUAL(screen->pScreen, &pPriv->clip, clipBoxes)) {
+	REGION_COPY(screen->pScreen, &pPriv->clip, clipBoxes);
         i810FillBoxSolid(screen, REGION_NUM_RECTS(clipBoxes),
                          REGION_RECTS(clipBoxes),
                          pPriv->colorKey, GXcopy, ~0);

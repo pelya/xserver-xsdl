@@ -19,7 +19,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/mach64/mach64video.c,v 1.8 2002/10/03 22:08:53 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/mach64/mach64video.c,v 1.9tsi Exp $ */
 #include "mach64.h"
 
 #include "Xv.h"
@@ -328,36 +328,6 @@ mach64CopyPlanarData(KdScreenInfo   *screen,
 	    src3 += srcDown2;
 	}
     }
-}
-
-/* I really should stick this in miregion */
-static Bool
-RegionsEqual(RegionPtr A, RegionPtr B)
-{
-    int *dataA, *dataB;
-    int num;
-
-    num = REGION_NUM_RECTS(A);
-    if(num != REGION_NUM_RECTS(B))
-	return FALSE;
-
-    if((A->extents.x1 != B->extents.x1) ||
-       (A->extents.x2 != B->extents.x2) ||
-       (A->extents.y1 != B->extents.y1) ||
-       (A->extents.y2 != B->extents.y2))
-	return FALSE;
-
-    dataA = (int*)REGION_RECTS(A);
-    dataB = (int*)REGION_RECTS(B);
-
-    while(num--) {
-	if((dataA[0] != dataB[0]) || (dataA[1] != dataB[1]))
-	   return FALSE;
-	dataA += 2;
-	dataB += 2;
-    }
-
-    return TRUE;
 }
 
 static void
@@ -786,7 +756,7 @@ mach64PutImage(KdScreenInfo	    *screen,
 		       rot_src_w, rot_src_h, rot_drw_w, rot_drw_h);
 
     /* update cliplist */
-    if (!RegionsEqual (&pPortPriv->clip, clipBoxes))
+    if (!REGION_EQUAL (screen->pScreen, &pPortPriv->clip, clipBoxes))
     {
 	REGION_COPY (screen->pScreen, &pPortPriv->clip, clipBoxes);
 	mach64PaintRegion (screen->pScreen, &pPortPriv->clip, pPortPriv->colorKey);
@@ -919,7 +889,7 @@ mach64ReputImage (KdScreenInfo	    *screen,
 	pOldExtents->y2 == pNewExtents->y2)
     {
 	/* update cliplist */
-	if (!RegionsEqual (&pPortPriv->clip, clipBoxes))
+	if (!REGION_EQUAL (screen->pScreen, &pPortPriv->clip, clipBoxes))
 	{
 	    REGION_COPY (screen->pScreen, &pPortPriv->clip, clipBoxes);
 	    mach64PaintRegion (screen->pScreen, &pPortPriv->clip, pPortPriv->colorKey);
