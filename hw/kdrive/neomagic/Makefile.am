@@ -16,6 +16,10 @@ INCLUDES =                      \
 
 bin_PROGRAMS = Xneomagic
 
+if TSLIB
+TSLIB_FLAG = -lts
+endif
+
 noinst_LIBRARIES = libneomagic.a
 
 libneomagic_a_SOURCES =         \
@@ -37,6 +41,7 @@ NEOMAGIC_LIBS =                 \
 Xneomagic_LDADD = \
 	$(NEOMAGIC_LIBS)            \
 	@KDRIVE_LIBS@               \
-	@XSERVER_LIBS@
+	@XSERVER_LIBS@              \
+	$(TSLIB_FLAG)
 
 Xneomagic_DEPENDENCIES = $(NEOMAGIC_LIBS) @KDRIVE_LIBS@
