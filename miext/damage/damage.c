@@ -53,6 +53,7 @@
      (a)->x2 == (b)->x2 && \
      (a)->y2 == (b)->y2)
 
+#define DAMAGE_VALIDATE_ENABLE 0
 #define DAMAGE_DEBUG_ENABLE 0
 #if DAMAGE_DEBUG_ENABLE
 #define DAMAGE_DEBUG(x)	ErrorF x
@@ -109,12 +110,30 @@ damageDamageRegion (DrawablePtr pDrawable, RegionPtr pRegion, Bool clip)
     RegionRec	    tmpRegion;
     BoxRec	    tmpBox;
     int		    draw_x, draw_y;
+#ifdef COMPOSITE
+    int		    screen_x = 0, screen_y = 0;
+#endif
 
     /* short circuit for empty regions */
     if (!REGION_NOTEMPTY(pScreen, pRegion))
 	return;
     
-    REGION_INIT (pScreen, &clippedRec, NullBox, 0);
+#ifdef COMPOSITE
+    /*
+     * When drawing to a pixmap which is storing window contents,
+     * the region presented is in pixmap relative coordinates which
+     * need to be converted to screen relative coordinates
+     */
+    if (pDrawable->type != DRAWABLE_WINDOW)
+    {
+	screen_x = ((PixmapPtr) pDrawable)->screen_x;
+	screen_y = ((PixmapPtr) pDrawable)->screen_y;
+    }
+    if (screen_x || screen_y)
+	REGION_TRANSLATE (pScreen, pRegion, screen_x, screen_y);
+#endif
+	
+    REGION_NULL (pScreen, &clippedRec);
     for (; pDamage; pDamage = pNext)
     {
 	pNext = pDamage->pNext;
@@ -137,6 +156,20 @@ damageDamageRegion (DrawablePtr pDrawable, RegionPtr pRegion, Bool clip)
 	    continue;
 	}
 	
+	draw_x = pDamage->pDrawable->x;
+	draw_y = pDamage->pDrawable->y;
+#ifdef COMPOSITE
+	/*
+	 * Need to move everyone to screen coordinates
+	 * XXX what about off-screen pixmaps with non-zero x/y?
+	 */
+	if (pDamage->pDrawable->type != DRAWABLE_WINDOW)
+	{
+	    draw_x += ((PixmapPtr) pDamage->pDrawable)->screen_x;
+	    draw_y += ((PixmapPtr) pDamage->pDrawable)->screen_y;
+	}
+#endif
+	
 	/*
 	 * Clip against border or pixmap bounds
 	 */
@@ -150,10 +183,10 @@ damageDamageRegion (DrawablePtr pDrawable, RegionPtr pRegion, Bool clip)
 	    else
 	    {
 		BoxRec	box;
-		box.x1 = pDamage->pDrawable->x;
-		box.y1 = pDamage->pDrawable->y;
-		box.x2 = pDamage->pDrawable->x + pDamage->pDrawable->width;
-		box.y2 = pDamage->pDrawable->y + pDamage->pDrawable->height;
+		box.x1 = draw_x;
+		box.y1 = draw_y;
+		box.x2 = draw_x + pDamage->pDrawable->width;
+		box.y2 = draw_y + pDamage->pDrawable->height;
 		REGION_INIT(pScreen, &pixClip, &box, 1);
 		pClip = &pixClip;
 	    }
@@ -173,8 +206,6 @@ damageDamageRegion (DrawablePtr pDrawable, RegionPtr pRegion, Bool clip)
 	/*
 	 * Move region to target coordinate space
 	 */
-	draw_x = pDamage->pDrawable->x;
-	draw_y = pDamage->pDrawable->y;
 	if (draw_x || draw_y)
 	    REGION_TRANSLATE (pScreen, pDamageRegion, -draw_x, -draw_y);
 	
@@ -183,7 +214,7 @@ damageDamageRegion (DrawablePtr pDrawable, RegionPtr pRegion, Bool clip)
 	    (*pDamage->damageReport) (pDamage, pDamageRegion, pDamage->closure);
 	    break;
 	case DamageReportDeltaRegion:
-	    REGION_INIT (pScreen, &tmpRegion, NullBox, 0);
+	    REGION_NULL (pScreen, &tmpRegion);
 	    REGION_SUBTRACT (pScreen, &tmpRegion, pDamageRegion, &pDamage->damage);
 	    if (REGION_NOTEMPTY (pScreen, &tmpRegion))
 	    {
@@ -217,6 +248,11 @@ damageDamageRegion (DrawablePtr pDrawable, RegionPtr pRegion, Bool clip)
 	if (pDamageRegion == pRegion && (draw_x || draw_y))
 	    REGION_TRANSLATE (pScreen, pDamageRegion, draw_x, draw_y);
     }
+#ifdef COMPOSITE
+    if (screen_x || screen_y)
+	REGION_TRANSLATE (pScreen, pRegion, -screen_x, -screen_y);
+#endif
+    
     REGION_UNINIT (pScreen, &clippedRec);
 }
 
@@ -1415,10 +1451,14 @@ damageRemoveDamage (PixmapPtr pPixmap, DamagePtr pDamage)
 	if (*pPrev == pDamage)
 	{
 	    *pPrev = pDamage->pNext;
-	    break;
+	    return;
 	}
 	pPrev = &(*pPrev)->pNext;
     }
+#if DAMAGE_VALIDATE_ENABLE
+    ErrorF ("Damage not on list\n");
+    abort ();
+#endif
 }
 
 static void
@@ -1426,6 +1466,15 @@ damageInsertDamage (PixmapPtr pPixmap, DamagePtr pDamage)
 {
     pixDamageRef (pPixmap);
 
+#if DAMAGE_VALIDATE_ENABLE
+    DamagePtr	pOld;
+
+    for (pOld = *pPrev; pOld; pOld = pOld->pNext)
+	if (pOld == pDamage) {
+	    ErrorF ("Damage already on list\n");
+	    abort ();
+	}
+#endif
     pDamage->pNext = *pPrev;
     *pPrev = pDamage;
 }
@@ -1677,7 +1726,7 @@ DamageCreate (DamageReportFunc  damageReport,
 	      DamageReportLevel	damageLevel,
 	      Bool		isInternal,
 	      ScreenPtr		pScreen,
-	      void *		closure)
+	      void		*closure)
 {
     DamagePtr	pDamage;
 
@@ -1686,9 +1735,7 @@ DamageCreate (DamageReportFunc  damageReport,
 	return 0;
     pDamage->pNext = 0;
     pDamage->pNextWin = 0;
-
-    REGION_INIT(pScreen, &pDamage->damage, NullBox, 0);
-
+    REGION_NULL(pScreen, &pDamage->damage);
     
     pDamage->damageLevel = damageLevel;
     pDamage->isInternal = isInternal;
@@ -1710,6 +1757,15 @@ DamageRegister (DrawablePtr pDrawable,
 	WindowPtr   pWindow = (WindowPtr) pDrawable;
 	winDamageRef(pWindow);
 
+#if DAMAGE_VALIDATE_ENABLE
+	DamagePtr   pOld;
+	
+	for (pOld = *pPrev; pOld; pOld = pOld->pNextWin)
+	    if (pOld == pDamage) {
+		ErrorF ("Damage already on window list\n");
+		abort ();
+	    }
+#endif
 	pDamage->pNextWin = *pPrev;
 	*pPrev = pDamage;
 	pDamage->isWindow = TRUE;
@@ -1736,16 +1792,28 @@ DamageUnregister (DrawablePtr	    pDrawable,
     {
 	WindowPtr   pWindow = (WindowPtr) pDrawable;
 	winDamageRef (pWindow);
+#if DAMAGE_VALIDATE_ENABLE
+	int	found = 0;
+#endif
 
 	while (*pPrev)
 	{
 	    if (*pPrev == pDamage)
 	    {
 		*pPrev = pDamage->pNextWin;
+#if DAMAGE_VALIDATE_ENABLE
+		found = 1;
+#endif
 		break;
 	    }
 	    pPrev = &(*pPrev)->pNextWin;
 	}
+#if DAMAGE_VALIDATE_ENABLE
+	if (!found) {
+	    ErrorF ("Damage not on window list\n");
+	    abort ();
+	}
+#endif
     }
     pDamage->pDrawable = 0;
     damageRemoveDamage (GetDrawablePixmap (pDrawable), pDamage);
