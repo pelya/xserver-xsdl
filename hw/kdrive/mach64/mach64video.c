@@ -19,7 +19,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/mach64/mach64video.c,v 1.3 2001/06/21 01:01:30 keithp Exp $ */
 #include "mach64.h"
 
 #include "Xv.h"
@@ -708,8 +708,6 @@ mach64SetupImageVideo(ScreenPtr pScreen)
     KdVideoAdaptorPtr	adapt;
     Mach64PortPrivPtr	pPortPriv;
 
-    fprintf(stderr,"mach64SetupImageVideo\n"); 
-
     if(!(adapt = xcalloc(1, sizeof(KdVideoAdaptorRec) +
 			    sizeof(Mach64PortPrivRec) +
 			    sizeof(DevUnion))))
@@ -771,8 +769,6 @@ Bool mach64InitVideo(ScreenPtr pScreen)
     KdVideoAdaptorPtr	newAdaptor = NULL;
     int			num_adaptors;
 
-    fprintf(stderr,"mach64InitVideo\n");
-	
     newAdaptor = mach64SetupImageVideo(pScreen);
 
     num_adaptors = KdXVListGenericAdaptors(screen, &adaptors);
