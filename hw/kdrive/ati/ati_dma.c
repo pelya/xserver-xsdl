@@ -21,6 +21,8 @@
  */
 /* $Header$ */
 
+#include <sys/time.h>
+
 #include "ati.h"
 #include "ati_reg.h"
 #include "ati_dma.h"
@@ -115,15 +117,15 @@ ATIFlushPixelCache(ATIScreenInfo *atis)
 {
 	ATICardInfo *atic = atis->atic;
 	char *mmio = atic->reg_base;
-	int tries;
 	CARD32 temp;
+	TIMEOUT_LOCALS;
 
 	if (atic->is_radeon) {
 		temp = MMIO_IN32(mmio, RADEON_REG_RB2D_DSTCACHE_CTLSTAT);
 		temp |= RADEON_RB2D_DC_FLUSH_ALL;
 		MMIO_OUT32(mmio, RADEON_REG_RB2D_DSTCACHE_CTLSTAT, temp);
 
-		for (tries = 1000000; tries != 0; tries--) {
+		WHILE_NOT_TIMEOUT(.2) {
 			if ((MMIO_IN32(mmio, RADEON_REG_RB2D_DSTCACHE_CTLSTAT) &
 			    RADEON_RB2D_DC_BUSY) == 0)
 				break;
@@ -133,13 +135,13 @@ ATIFlushPixelCache(ATIScreenInfo *atis)
 		temp |= R128_PC_FLUSH_ALL;
 		MMIO_OUT32(mmio, R128_REG_PC_NGUI_CTLSTAT, temp);
 
-		for (tries = 1000000; tries != 0; tries--) {
+		WHILE_NOT_TIMEOUT(.2) {
 			if ((MMIO_IN32(mmio, R128_REG_PC_NGUI_CTLSTAT) &
 			    R128_PC_BUSY) != R128_PC_BUSY)
 				break;
 		}
 	}
-	if (tries == 0)
+	if (TIMEDOUT())
 		ErrorF("Timeout flushing pixel cache.\n");
 }
 
@@ -184,7 +186,6 @@ ATIEngineReset(ATIScreenInfo *atis)
 		} else {
 			MMIO_OUT32(mmio, RADEON_REG_RBBM_SOFT_RESET,
 			    RADEON_SOFT_RESET_CP |
-			    RADEON_SOFT_RESET_HI |
 			    RADEON_SOFT_RESET_SE |
 			    RADEON_SOFT_RESET_RE |
 			    RADEON_SOFT_RESET_PP |
@@ -235,28 +236,31 @@ ATIWaitAvailMMIO(ATIScreenInfo *atis, int n)
 {
 	ATICardInfo *atic = atis->atic;
 	char *mmio = atic->reg_base;
-	int tries;
+	TIMEOUT_LOCALS;
 
 	if (atis->mmio_avail >= n) {
 		atis->mmio_avail -= n;
 		return;
 	}
 	if (atic->is_radeon) {
-		for (tries = 1000000; tries != 0 && atis->mmio_avail < n; tries--)
-		{
+		WHILE_NOT_TIMEOUT(.2) {
 			atis->mmio_avail = MMIO_IN32(mmio,
 			    RADEON_REG_RBBM_STATUS) & RADEON_RBBM_FIFOCNT_MASK;
+			if (atis->mmio_avail >= n)
+				break;
 		}
 	} else {
-		for (tries = 1000000; tries != 0 && atis->mmio_avail < n; tries--)
-		{
+		WHILE_NOT_TIMEOUT(.2) {
 			atis->mmio_avail = MMIO_IN32(mmio, R128_REG_GUI_STAT) &
 			    0xfff;
+			if (atis->mmio_avail >= n)
+				break;
 		}
 	}
-	if (tries == 0) {
+	if (TIMEDOUT()) {
 		ErrorF("Timeout waiting for %d MMIO slots.\n", n);
 		ATIEngineReset(atis);
+		ATIDrawSetup(atis->screen->pScreen);
 	}
 	atis->mmio_avail -= n;
 }
@@ -291,23 +295,25 @@ ATIGetAvailPrimary(ATIScreenInfo *atis)
 static void
 ATIWaitAvailPrimary(ATIScreenInfo *atis, int n)
 {
-	int tries;
+	TIMEOUT_LOCALS;
 
 	if (atis->cce_pri_avail >= n) {
 		atis->cce_pri_avail -= n;
 		return;
 	}
 
-	for (tries = 1000000; tries != 0 && atis->cce_pri_avail < n; tries--)
-	{
+	WHILE_NOT_TIMEOUT(.2) {
+		if (atis->cce_pri_avail >= n)
+			break;
 		atis->cce_pri_avail = ATIGetAvailPrimary(atis);
 		if (atis->cce_pri_avail >= n)
 			break;
 	}
-	if (tries == 0) {
+	if (TIMEDOUT()) {
 		ErrorF("Timeout waiting for %d CCE slots (%d avail).\n", n,
 		    atis->cce_pri_avail);
 		ATIEngineReset(atis);
+		ATIDrawSetup(atis->screen->pScreen);
 	}
 	atis->cce_pri_avail -= n;
 }
@@ -316,24 +322,24 @@ void
 ATIWaitIdle(ATIScreenInfo *atis)
 {
 	ATICardInfo *atic = atis->atic;
-	int tries;
 	char *mmio = atic->reg_base;
 	RING_LOCALS;
+	TIMEOUT_LOCALS;
 
 	if (atis->indirectBuffer != NULL)
 		ATIFlushIndirect(atis, 0);
 
 #ifdef USE_DRI
 	if (atis->using_dri) {
-		int ret;
+		int ret = 0;
 		int cmd = (atic->is_radeon ? DRM_RADEON_CP_IDLE :
 		    DRM_R128_CCE_IDLE);
-		for (tries = 100; tries != 0; tries--) {
+		WHILE_NOT_TIMEOUT(2) {
 			ret = drmCommandNone(atic->drmFd, cmd);
 			if (ret != -EBUSY)
 				break;
 		}
-		if (tries == 0) {
+		if (TIMEDOUT()) {
 			ATIDebugFifo(atis);
 			FatalError("Timed out idling CCE (card hung)\n");
 		}
@@ -356,14 +362,15 @@ ATIWaitIdle(ATIScreenInfo *atis)
 	if (!atic->is_radeon && (atis->using_pseudo || atis->using_dma)) {
 		ATIWaitAvailPrimary(atis, atis->cce_pri_size);
 
-		for (tries = 1000000; tries != 0; tries--) {
+		WHILE_NOT_TIMEOUT(.2) {
 			if ((MMIO_IN32(mmio, R128_REG_PM4_STAT) &
 			    (R128_PM4_BUSY | R128_PM4_GUI_ACTIVE)) == 0)
 				break;
 		}
-		if (tries == 0) {
+		if (TIMEDOUT()) {
 			ErrorF("Timeout idling CCE, resetting...\n");
 			ATIEngineReset(atis);
+			ATIDrawSetup(atis->screen->pScreen);
 		}
 	}
 
@@ -373,21 +380,22 @@ ATIWaitIdle(ATIScreenInfo *atis)
 		ATIWaitAvailMMIO(atis, 64);
 
 		if (atic->is_radeon) {
-			for (tries = 1000000; tries != 0; tries--) {
+			WHILE_NOT_TIMEOUT(.2) {
 				if ((MMIO_IN32(mmio, RADEON_REG_RBBM_STATUS) &
 				    RADEON_RBBM_ACTIVE) == 0)
 					break;
 			}
 		} else {
-			for (tries = 1000000; tries != 0; tries--) {
+			WHILE_NOT_TIMEOUT(.2) {
 				if ((MMIO_IN32(mmio, R128_REG_GUI_STAT) &
 				    R128_GUI_ACTIVE) == 0)
 					break;
 			}
 		}
-		if (tries == 0) {
+		if (TIMEDOUT()) {
 			ErrorF("Timeout idling accelerator, resetting...\n");
 			ATIEngineReset(atis);
+			ATIDrawSetup(atis->screen->pScreen);
 		}
 	}
 
@@ -580,12 +588,16 @@ RadeonDispatchIndirectPDMA(ATIScreenInfo *atis)
 	char *mmio = atic->reg_base;
 	CARD32 *addr;
 	int count, avail, reg, i;
+	TIMEOUT_LOCALS;
 
 	addr = (CARD32 *)((char *)buf->address + atis->indirectStart);
 	count = (buf->used - atis->indirectStart) / 4;
 
 	reg = RADEON_REG_CSQ_APER_PRIMARY;
-	while (count > 0) {
+	WHILE_NOT_TIMEOUT(3) {
+		/* 3 seconds is empirical, using render_bench on an r100. */
+		if (count <= 0)
+			break;
 		avail = ATIGetAvailPrimary(atis);
 		for (i = 0; i < min(count, avail); i++) {
 			MMIO_OUT32(mmio, reg, *addr++);
@@ -595,6 +607,11 @@ RadeonDispatchIndirectPDMA(ATIScreenInfo *atis)
 				reg += 4;
 		}
 		count -= i;
+	}
+	if (TIMEDOUT()) {
+		ErrorF("Timeout submitting packets, resetting...\n");
+		ATIEngineReset(atis);
+		ATIDrawSetup(atis->screen->pScreen);
 	}
 }
 
@@ -610,26 +627,30 @@ R128DispatchIndirectDMA(ATIScreenInfo *atis)
 	char *mmio = atic->reg_base;
 	CARD32 *addr;
 	int count, ring_count;
+	TIMEOUT_LOCALS;
 
 	addr = (CARD32 *)((char *)buf->address + atis->indirectStart);
 	count = (buf->used - atis->indirectStart) / 4;
 	ring_count = atis->ring_len / 4;
 
-	while (count > 0) {
-		int tries = 0;
+	WHILE_NOT_TIMEOUT(.2) {
+		if (count <= 0)
+			break;
 
 		atis->ring_addr[atis->ring_write++] = *addr++;
 		if (atis->ring_write >= ring_count)
 			atis->ring_write = 0;
 		while (atis->ring_write == atis->ring_read) {
 			atis->ring_read = MMIO_IN32(mmio, ATI_REG_CCE_RPTR);
-			if (tries++ == 1000000) {
-				ErrorF("Timeout submitting packets, resetting...\n");
-				ATIEngineReset(atis);
-			}
 		}
 		count--;
 	}
+	if (TIMEDOUT()) {
+		ErrorF("Timeout submitting packets, resetting...\n");
+		ATIEngineReset(atis);
+		ATIDrawSetup(atis->screen->pScreen);
+	}
+		
 	/* Workaround for some early Rage 128 ASIC spins where the CCE parser
 	 * may read up to 32 DWORDS beyond the end of the ring buffer memory
 	 * before wrapping around, if the ring buffer was empty and a <32 DWORD

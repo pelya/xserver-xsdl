@@ -84,6 +84,27 @@ do {									\
 	OUT_RING(val);							\
 } while (0)
 
+#define TIMEOUT_LOCALS struct timeval _target, _curtime
+
+static inline Bool
+tv_le(struct timeval *tv1, struct timeval *tv2)
+{
+	if (tv1->tv_sec < tv2->tv_sec ||
+	    (tv1->tv_sec == tv2->tv_sec && tv1->tv_usec < tv2->tv_usec))
+		return TRUE;
+	else
+		return FALSE;
+}
+
+#define WHILE_NOT_TIMEOUT(_timeout)					\
+	gettimeofday(&_target, NULL);					\
+	_target.tv_usec += ((_timeout) * 1000000);			\
+	_target.tv_sec += _target.tv_usec / 1000000;			\
+	_target.tv_usec = _target.tv_usec % 1000000;			\
+	while (gettimeofday(&_curtime, NULL), tv_le(&_curtime, &_target))
+
+#define TIMEDOUT()	(!tv_le(&_curtime, &_target))
+
 dmaBuf *
 ATIGetDMABuffer(ATIScreenInfo *atis);
 

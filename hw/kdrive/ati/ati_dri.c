@@ -23,6 +23,8 @@
  */
 /* $Header$ */
 
+#include <sys/time.h>
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -1106,7 +1108,8 @@ ATIDRIGetBuffer(ATIScreenInfo *atis)
 	drmBufPtr buf = NULL;
 	int indx = 0;
 	int size = 0;
-	int ret, tries;
+	int ret;
+	TIMEOUT_LOCALS;
 
 	dma.context = atis->serverContext;
 	dma.send_count = 0;
@@ -1122,12 +1125,12 @@ ATIDRIGetBuffer(ATIScreenInfo *atis)
 	dma.request_sizes = &size;
 	dma.granted_count = 0;
 
-	for (tries = 100; tries != 0; tries--) {
+	WHILE_NOT_TIMEOUT(.2) {
 		ret = drmDMA(atic->drmFd, &dma);
 		if (ret != -EBUSY)
 			break;
 	}
-	if (tries == 0)
+	if (TIMEDOUT())
 		FatalError("Timeout fetching DMA buffer (card hung)\n");
 	if (ret != 0)
 		FatalError("Error fetching DMA buffer: %d\n", ret);
