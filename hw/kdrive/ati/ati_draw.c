@@ -175,7 +175,9 @@ RadeonSwitchTo2D(ATIScreenInfo *atis)
 {
 	RING_LOCALS;
 
-	BEGIN_DMA(2);
+	BEGIN_DMA(4);
+	OUT_REG(RADEON_REG_RB2D_DSTCACHE_CTLSTAT,
+		RADEON_RB2D_DC_FLUSH);
 	OUT_REG(ATI_REG_WAIT_UNTIL,
 	    RADEON_WAIT_HOST_IDLECLEAN | RADEON_WAIT_3D_IDLECLEAN);
 	END_DMA();
@@ -186,7 +188,9 @@ RadeonSwitchTo3D(ATIScreenInfo *atis)
 {
 	RING_LOCALS;
 
-	BEGIN_DMA(2);
+	BEGIN_DMA(4);
+	OUT_REG(RADEON_REG_RB2D_DSTCACHE_CTLSTAT,
+		RADEON_RB2D_DC_FLUSH);
 	OUT_REG(ATI_REG_WAIT_UNTIL,
 	    RADEON_WAIT_HOST_IDLECLEAN | RADEON_WAIT_2D_IDLECLEAN);
 	END_DMA();
@@ -658,10 +662,9 @@ ATIUploadToScratch(PixmapPtr pSrc, PixmapPtr pDst)
 }
 
 static void
-ATIBlockHandler (int screen, pointer blockData, pointer timeout,
-    pointer readmask)
+ATIBlockHandler (pointer blockData, OSTimePtr timeout, pointer readmask)
 {
-	ScreenPtr pScreen = screenInfo.screens[screen];
+	ScreenPtr pScreen = (ScreenPtr) blockData;
 	KdScreenPriv(pScreen);
 	ATIScreenInfo(pScreenPriv);
 
@@ -669,6 +672,11 @@ ATIBlockHandler (int screen, pointer blockData, pointer timeout,
 	 * been flushed.
 	 */
 	ATIFlushIndirect(atis, 1);
+}
+
+static void
+ATIWakeupHandler (pointer blockData, int result, pointer readmask)
+{
 }
 
 Bool
@@ -774,8 +782,8 @@ ATIDrawEnable(ScreenPtr pScreen)
 	atis->kaa.UploadToScreen = ATIUploadToScreen;
 	atis->kaa.UploadToScratch = ATIUploadToScratch;
 
-	atis->save_blockhandler = pScreen->BlockHandler;
-	pScreen->BlockHandler = ATIBlockHandler;
+	RegisterBlockAndWakeupHandlers (ATIBlockHandler, ATIWakeupHandler,
+				       pScreen);
 
 	KdMarkSync(pScreen);
 }
@@ -783,19 +791,17 @@ ATIDrawEnable(ScreenPtr pScreen)
 void
 ATIDrawDisable(ScreenPtr pScreen)
 {
-	KdScreenPriv(pScreen);
-	ATIScreenInfo(pScreenPriv);
-
 	ATIDMATeardown(pScreen);
 
-	pScreen->BlockHandler = atis->save_blockhandler;
+	RemoveBlockAndWakeupHandlers (ATIBlockHandler, ATIWakeupHandler,
+				      pScreen);
 }
 
 void
 ATIDrawFini(ScreenPtr pScreen)
 {
-	KdScreenPriv(pScreen);
 #ifdef USE_DRI
+	KdScreenPriv(pScreen);
 	ATIScreenInfo(pScreenPriv);
 	if (atis->using_dri) {
 		ATIDRICloseScreen(pScreen);

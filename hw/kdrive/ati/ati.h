@@ -122,6 +122,9 @@ struct backend_funcs {
 	void    (*disable)(ScreenPtr);
 	void    (*getColors)(ScreenPtr, int, int, xColorItem *);
 	void    (*putColors)(ScreenPtr, int, int, xColorItem *);
+#ifdef RANDR
+	Bool	(*randrSetConfig) (ScreenPtr, Rotation, int, RRScreenSizePtr);
+#endif
 };
 
 typedef struct _ATICardInfo {
@@ -161,6 +164,8 @@ typedef struct _ATICursor {
 	Pixel		source, mask;
 	KdOffscreenArea	*area;
 	CARD32		offset;
+	
+	int		cursor_size;
 } ATICursor;
 
 typedef struct _ATIPortPriv {

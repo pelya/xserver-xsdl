@@ -495,7 +495,7 @@ ATICursorInit(ScreenPtr pScreen)
 
 	pCurPriv->has_cursor = FALSE;
 
-	if (pCurPriv->offset == 0)
+	if (pCurPriv->cursor_size == 0)
 		return FALSE;
 
 	if (atic->reg_base == NULL)

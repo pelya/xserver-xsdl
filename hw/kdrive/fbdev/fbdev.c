@@ -333,14 +333,14 @@ fbdevMapFramebuffer (KdScreenInfo *screen)
     screen->width = priv->var.xres;
     screen->height = priv->var.yres;
     screen->memory_base = (CARD8 *) (priv->fb);
-    screen->memory_size = 0;
-    screen->off_screen_base = 0;
+    screen->memory_size = priv->fix.smem_len;
     
     if (scrpriv->shadow)
     {
 	if (!KdShadowFbAlloc (screen, 0, 
 			      scrpriv->randr & (RR_Rotate_90|RR_Rotate_270)))
 	    return FALSE;
+	screen->off_screen_base = screen->memory_size;
     }
     else
     {
@@ -348,6 +348,7 @@ fbdevMapFramebuffer (KdScreenInfo *screen)
         screen->fb[0].pixelStride = (priv->fix.line_length * 8 / 
     				 priv->var.bits_per_pixel);
         screen->fb[0].frameBuffer = (CARD8 *) (priv->fb);
+	screen->off_screen_base = screen->fb[0].byteStride * screen->height;
     }
     
     return TRUE;

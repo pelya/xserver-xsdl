@@ -203,6 +203,9 @@ ATICardInit(KdCardInfo *card)
 		atic->backend_funcs.disable = fbdevDisable;
 		atic->backend_funcs.getColors = fbdevGetColors;
 		atic->backend_funcs.putColors = fbdevPutColors;
+#ifdef RANDR
+		atic->backend_funcs.randrSetConfig = fbdevRandRSetConfig;
+#endif
 	}
 #endif
 #ifdef KDRIVEVESA
@@ -221,6 +224,9 @@ ATICardInit(KdCardInfo *card)
 		atic->backend_funcs.disable = vesaDisable;
 		atic->backend_funcs.getColors = vesaGetColors;
 		atic->backend_funcs.putColors = vesaPutColors;
+#ifdef RANDR
+		atic->backend_funcs.randrSetConfig = vesaRandRSetConfig;
+#endif
 	}
 #endif
 
@@ -277,62 +283,31 @@ ATICardFini(KdCardInfo *card)
 	atic->backend_funcs.cardfini(card);
 }
 
-static Bool
-ATIScreenInit(KdScreenInfo *screen)
+/*
+ * Once screen->off_screen_base is set, this function
+ * allocates the remaining memory appropriately
+ */
+
+static void
+ATISetOffscreen (KdScreenInfo *screen)
 {
-	ATIScreenInfo *atis;
 	ATICardInfo(screen);
-	Bool success = FALSE;
-	int screen_size = 0;
-	int cursor_size;
+	ATIScreenInfo *atis = (ATIScreenInfo *)screen->driver;
+	int screen_size = screen->fb[0].byteStride * screen->height;
 #if defined(USE_DRI) && defined(GLXEXT)
 	int l;
 #endif
 
-	atis = xcalloc(sizeof(ATIScreenInfo), 1);
-	if (atis == NULL)
-		return FALSE;
-
-	atis->atic = atic;
-	atis->screen = screen;
-	screen->driver = atis;
-
-#ifdef KDRIVEFBDEV
-	if (atic->use_fbdev) {
-		success = fbdevScreenInitialize(screen,
-						&atis->backend_priv.fbdev);
-		screen->memory_size = atic->backend_priv.fbdev.fix.smem_len;
-		screen_size = atic->backend_priv.fbdev.var.yres_virtual *
-		    screen->fb[0].byteStride;
-	}
-#endif
-#ifdef KDRIVEVESA
-	if (atic->use_vesa) {
-		if (screen->fb[0].depth == 0)
-			screen->fb[0].depth = 16;
-		success = vesaScreenInitialize(screen,
-		    &atis->backend_priv.vesa);
-		screen_size = screen->off_screen_base;
-	}
-#endif
-
-	if (!success) {
-		screen->driver = NULL;
-		xfree(atis);
-		return FALSE;
-	}
-
 	screen->off_screen_base = screen_size;
 
 	if (atic->is_radeon)
-		cursor_size = ATI_CURSOR_HEIGHT * ATI_CURSOR_WIDTH * 4;
+		atis->cursor.cursor_size = ATI_CURSOR_HEIGHT * ATI_CURSOR_WIDTH * 4;
 	else
-		cursor_size = ATI_CURSOR_HEIGHT * ATI_CURSOR_PITCH * 2;
-	/* Reserve the area for the cursor. */
-	if (screen->off_screen_base + cursor_size <= screen->memory_size) {
-		atis->cursor.offset = screen->off_screen_base;
-		screen->off_screen_base += cursor_size;
-	}
+		atis->cursor.cursor_size = ATI_CURSOR_HEIGHT * ATI_CURSOR_PITCH * 3;
+
+	atis->cursor.offset = screen->off_screen_base;
+
+	screen->off_screen_base += atis->cursor.cursor_size;
 
 #if defined(USE_DRI) && defined(GLXEXT)
 	/* Reserve a static area for the back buffer the same size as the
@@ -393,12 +368,83 @@ ATIScreenInit(KdScreenInfo *screen)
 		atis->scratch_offset = screen->off_screen_base;
 		screen->off_screen_base += atis->scratch_size;
 		atis->scratch_next = atis->scratch_offset;
-	} else {
+	}
+	else 
+	{
 		atis->scratch_size = 0;
 	}
+}
+
+static Bool
+ATIScreenInit(KdScreenInfo *screen)
+{
+	ATIScreenInfo *atis;
+	ATICardInfo(screen);
+	Bool success = FALSE;
+
+	atis = xcalloc(sizeof(ATIScreenInfo), 1);
+	if (atis == NULL)
+		return FALSE;
+
+	atis->atic = atic;
+	atis->screen = screen;
+	screen->driver = atis;
+
+	if (screen->fb[0].depth == 0)
+		screen->fb[0].depth = 16;
+#ifdef KDRIVEFBDEV
+	if (atic->use_fbdev) {
+		success = fbdevScreenInitialize(screen,
+						&atis->backend_priv.fbdev);
+	}
+#endif
+#ifdef KDRIVEVESA
+	if (atic->use_vesa) {
+		success = vesaScreenInitialize(screen,
+					       &atis->backend_priv.vesa);
+	}
+#endif
+
+	if (!success) {
+		screen->driver = NULL;
+		xfree(atis);
+		return FALSE;
+	}
+
+	ATISetOffscreen (screen);
 
 	return TRUE;
 }
+
+#ifdef RANDR
+static Bool
+ATIRandRSetConfig (ScreenPtr		pScreen,
+		   Rotation		randr,
+		   int			rate,
+		   RRScreenSizePtr	pSize)
+{
+	KdScreenPriv(pScreen);
+	KdScreenInfo *screen = pScreenPriv->screen;
+	ATICardInfo *atic = screen->card->driver;
+	Bool ret;
+
+	ATIDrawDisable (pScreen);
+	ret = atic->backend_funcs.randrSetConfig(pScreen, randr, rate, pSize);
+	ATISetOffscreen (screen);
+	ATIDrawEnable (pScreen);
+	return ret;
+}
+
+static Bool
+ATIRandRInit (ScreenPtr pScreen)
+{
+    rrScrPrivPtr    pScrPriv;
+    
+    pScrPriv = rrGetScrPriv(pScreen);
+    pScrPriv->rrSetConfig = ATIRandRSetConfig;
+    return TRUE;
+}
+#endif
 
 static void
 ATIScreenFini(KdScreenInfo *screen)
@@ -459,7 +505,13 @@ ATIFinishInitScreen(ScreenPtr pScreen)
 	KdScreenPriv(pScreen);
 	ATICardInfo(pScreenPriv);
 
-	return atic->backend_funcs.finishInitScreen(pScreen);
+	if (!atic->backend_funcs.finishInitScreen(pScreen))
+		return FALSE;
+#ifdef RANDR
+	if (!ATIRandRInit (pScreen))
+		return FALSE;
+#endif
+	return TRUE;
 }
 
 static Bool
@@ -506,6 +558,8 @@ ATIEnable(ScreenPtr pScreen)
 
 	if (!atic->backend_funcs.enable(pScreen))
 		return FALSE;
+
+	ATISetOffscreen (pScreenPriv->screen);
 
 	if ((atic->reg_base == NULL) && !ATIMapReg(pScreenPriv->screen->card,
 	    atic))
