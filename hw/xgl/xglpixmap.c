@@ -64,6 +64,7 @@ xglPixmapCreateDamage (PixmapPtr pPixmap)
     pPixmapPriv->pDamage =
 	DamageCreate (xglPixmapDamageReport, (DamageDestroyFunc) 0,
 		      DamageReportRawRegion, TRUE,
+		      pPixmap->drawable.pScreen,
 		      (void *) pPixmap);
     if (!pPixmapPriv->pDamage)
 	return FALSE;
