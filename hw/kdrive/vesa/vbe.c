@@ -19,7 +19,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/vesa/vbe.c,v 1.5 2000/09/27 20:46:37 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/vesa/vbe.c,v 1.6 2000/10/20 00:19:50 keithp Exp $ */
 
 #include "vesa.h"
 
@@ -128,7 +128,7 @@ VbeGetModes (Vm86InfoPtr vi, VesaModePtr modes, int nmode)
     if (code < 0)
 	return code;
 
-    memset (modes, '\0', n * sizeof (VesaModeRec));
+    memset (modes, '\0', nmode * sizeof (VesaModeRec));
     
     p = MAKE_POINTER_1(vib.VideoModePtr);
     for (n = 0; n < nmode; n++)
