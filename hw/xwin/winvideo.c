@@ -145,7 +145,7 @@ winSetupImageVideo (ScreenPtr pScreen)
 
     adapt->type = XvWindowMask | XvInputMask | XvImageMask;
     adapt->flags = VIDEO_OVERLAID_IMAGES | VIDEO_CLIP_TO_VIEWPORT;
-    adapt->name = "Cygwin/X Video Overlay";
+    adapt->name = PROJECT_NAME " Video Overlay";
     adapt->nEncodings = 1;
     adapt->pEncodings = DummyEncoding;
     adapt->nFormats = NUM_FORMATS;

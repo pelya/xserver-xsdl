@@ -57,7 +57,7 @@ winInitNotifyIcon (winPrivScreenPtr pScreenPriv)
   /* Set display and screen-specific tooltip text */
   snprintf (nid.szTip,
 	    sizeof (nid.szTip),
-	    "Cygwin/X Server - %s:%d",
+	    PROJECT_NAME " Server - %s:%d",
 	    display, 
 	    (int) pScreenInfo->dwScreen);
 

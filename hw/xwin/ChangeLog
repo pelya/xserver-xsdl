@@ -1,5 +1,17 @@
 2005-01-06  Alexander Gottwald  <ago at freedesktop dot org>
 
+	* Imakefile 
+	* InitOutput.c 
+	* XWin.rc 
+	* winerror.c 
+	* wintrayicon.c 
+	* winvideo.c 
+	* winwindow.h:
+	Set PROJECT_NAME in Imakefile to create alternative window titles 
+	for Cygwin/X and Xming
+	
+2005-01-06  Alexander Gottwald  <ago at freedesktop dot org>
+
 	* winmultiwindowclass.c:
 	* winmultiwindowwm.c:
 	Fix crash with non-nullterminated strings (reported by Øyvind Harboe)

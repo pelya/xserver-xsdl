@@ -39,12 +39,15 @@
 #endif
 
 /* Constant strings */
+#ifndef PROJECT_NAME
+#  define PROJECT_NAME		"Cygwin/X"
+#endif
 #define WINDOW_CLASS		"cygwin/x"
-#define WINDOW_TITLE		"Cygwin/X - %s:%d"
-#define WINDOW_TITLE_XDMCP	"Cygwin/X - %s"
+#define WINDOW_TITLE		PROJECT_NAME " - %s:%d"
+#define WINDOW_TITLE_XDMCP	PROJECT_NAME " - %s"
 #define WIN_SCR_PROP		"cyg_screen_prop rl"
 #define WINDOW_CLASS_X		"cygwin/x X rl"
-#define WINDOW_TITLE_X		"Cygwin/X X"
+#define WINDOW_TITLE_X		PROJECT_NAME " X"
 #define WIN_WINDOW_PROP		"cyg_window_prop_rl"
 #ifdef HAS_DEVWINDOWS
 # define WIN_MSG_QUEUE_FNAME	"/dev/windows"

@@ -759,7 +759,7 @@ winUseMsg (void)
 
   ErrorF ("-lesspointer\n"
 	  "\tHide the windows mouse pointer when it is over an inactive\n"
-          "\tCygwin/X window.  This prevents ghost cursors appearing where\n"
+          "\t" PROJECT_NAME " window.  This prevents ghost cursors appearing where\n"
 	  "\tthe Windows cursor is drawn overtop of the X cursor\n");
 
   ErrorF ("-nodecoration\n"
@@ -891,7 +891,7 @@ ddxUseMsg(void)
 
   /* Notify user where UseMsg text can be found.*/
   if (!g_fNoHelpMessageBox)
-    winMessageBoxF ("The Cygwin/X help text has been printed to "
+    winMessageBoxF ("The " PROJECT_NAME " help text has been printed to "
 		  "/tmp/XWin.log.\n"
 		  "Please open /tmp/XWin.log to read the help text.\n",
 		  MB_ICONINFORMATION);
@@ -1104,7 +1104,7 @@ winCheckDisplayNumber ()
   if (GetLastError () == ERROR_ALREADY_EXISTS)
     {
       ErrorF ("winCheckDisplayNumber - "
-	      "Cygwin/X is already running on display %d\n",
+	      PROJECT_NAME " is already running on display %d\n",
 	      nDisp);
       return FALSE;
     }

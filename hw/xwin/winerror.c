@@ -78,7 +78,8 @@ OsVendorFatalError (void)
   if (g_fSilentFatalError)
     return;
 
-  winMessageBoxF ("A fatal error has occurred and Cygwin/X will now exit.\n" \
+  winMessageBoxF (
+          "A fatal error has occurred and " PROJECT_NAME " will now exit.\n" \
 		  "Please open /tmp/XWin.log for more information.\n",
 		  MB_ICONERROR);
 }
@@ -120,7 +121,7 @@ winMessageBoxF (const char *pszError, UINT uType, ...)
   /* Display the message box string */
   MessageBox (NULL,
 	      pszMsgBox,
-	      "Cygwin/X",
+	      PROJECT_NAME,
 	      MB_OK | uType);
 
  winMessageBoxF_Cleanup:
