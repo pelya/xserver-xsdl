@@ -315,6 +315,7 @@ smiDrawEnable (ScreenPtr pScreen)
 	}
     }
     
+    smiSetup (pScreen, 0);
     KdMarkSync (pScreen);
     LEAVE ();
 }

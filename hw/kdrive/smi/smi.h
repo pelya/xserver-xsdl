@@ -70,8 +70,8 @@
 
 #include "kxv.h"
 
-#define DEBUG
-#ifdef DEBUG
+#define SMI_DEBUG 0
+#if SMI_DEBUG
 #define DBGOUT(fmt,a...) fprintf (stderr, fmt, ##a)
 #else
 #define DBGOUT(fmt,a...)
