@@ -229,9 +229,6 @@ extern volatile ScreenPtr currentRegionScreen;
 #define REGION_BREAK(_pScreen, _pReg) \
     (REGION_SCREEN(_pScreen), miRegionBreak(_pReg))
 
-#define REGION_BREAK(_pScreen, _pReg) \
-    miRegionBreak(_pReg)
-
 #ifdef DONT_INLINE_REGION_OPS
 
 #define REGION_INIT(_pScreen, _pReg, _rect, _size) \
@@ -248,9 +245,6 @@ extern volatile ScreenPtr currentRegionScreen;
 
 #define REGION_BROKEN(_pScreen, _pReg) \
     (REGION_SCREEN(_pScreen), miRegionBroken(_pReg))
-
-#define REGION_BROKEN(_pScreen, _pReg) \
-    miRegionBroken(_pReg)
 
 #define REGION_EMPTY(_pScreen, _pReg) \
     (REGION_SCREEN(_pScreen), miRegionEmpty(_pReg))
