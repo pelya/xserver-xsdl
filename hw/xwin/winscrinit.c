@@ -365,6 +365,22 @@ winFinishScreenInitFB (int index,
   pScreen->blockData = pScreen;
   pScreen->wakeupData = pScreen;
 
+#ifdef XWIN_MULTIWINDOWEXTWM
+  /*
+   * Setup acceleration for multi-window external window manager mode.
+   * To be compatible with the Damage extension, this must be done
+   * before calling miDCInitialize, which calls DamageSetup.
+   */
+  if (pScreenInfo->fMWExtWM)
+    {
+      if (!RootlessAccelInit (pScreen))
+        {
+          ErrorF ("winFinishScreenInitFB - RootlessAccelInit () failed\n");
+          return FALSE;
+        }
+    }
+#endif
+
 #ifdef RENDER
   /* Render extension initialization, calls miPictureInit */
   if (!fbPictureInit (pScreen, NULL, 0))

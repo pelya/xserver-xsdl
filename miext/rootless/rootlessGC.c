@@ -45,10 +45,6 @@
 
 #include "rootlessCommon.h"
 
-#if ROOTLESS_ACCEL
-#include "rlAccel.h"
-#endif
-
 
 // GC functions
 static void RootlessValidateGC(GCPtr pGC, unsigned long changes,
@@ -165,7 +161,7 @@ static GCOps rootlessGCOps = {
 
        ...
 
-       if (can_accel_xxx(..) && otherwise-suitable)
+       if (canAccelxxx(..) && otherwise-suitable)
             GC_UNSET_PM(gc, dst);
 
        gc->funcs->OP(gc, ...);
@@ -282,13 +278,6 @@ RootlessCreateGC(GCPtr pGC)
     s = (RootlessScreenRec *) pGC->pScreen->
             devPrivates[rootlessScreenPrivateIndex].ptr;
     result = s->CreateGC(pGC);
-
-#if ROOTLESS_ACCEL
-    pGC->ops->FillSpans = rlFillSpans;
-    pGC->ops->CopyArea = rlCopyArea;
-    pGC->ops->PolyFillRect = rlPolyFillRect;
-    pGC->ops->ImageGlyphBlt = rlImageGlyphBlt;
-#endif
 
     gcrec = (RootlessGCRec *) pGC->devPrivates[rootlessGCPrivateIndex].ptr;
     gcrec->originalOps = NULL; // don't wrap ops yet

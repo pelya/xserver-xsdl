@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/hw/darwin/quartz/cr/crScreen.m,v 1.3 2004/07/30 19:12:18 torrey Exp $ */
+/* $XdotOrg: xc/programs/Xserver/hw/darwin/quartz/cr/crScreen.m,v 1.4 2004/08/12 20:24:36 torrey Exp $ */
 /*
  * Cocoa rootless implementation initialization
  */
@@ -260,6 +260,10 @@ CRSetupScreen(int index, ScreenPtr pScreen)
         ps->Composite = SafeAlphaComposite;
     }
 #endif /* RENDER */
+
+    // Initialize accelerated rootless drawing
+    // Note that this must be done before DamageSetup().
+    RootlessAccelInit(pScreen);
 
 #ifdef DAMAGE
     // The Damage extension needs to wrap underneath the

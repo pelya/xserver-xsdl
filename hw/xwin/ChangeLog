@@ -1,3 +1,9 @@
+2004-09-17  Torrey Lyons  <torrey at freedesktop dot org>
+
+	* winscrinit.c: (winFinishScreenInitFB):
+	Bugzilla #1032: Make rootless acceleration functions compatible with
+	Damage.
+
 2004-09-16  Alexander Gottwald <ago at freedesktop dot org>
 
 	* wincreatewnd.c (winCreateBoundingWindowWindowed):

@@ -369,6 +369,13 @@ typedef struct _RootlessFrameProcs {
 Bool RootlessInit(ScreenPtr pScreen, RootlessFrameProcsPtr procs);
 
 /*
+ * Initialize acceleration for rootless mode on a given screen.
+ *  Note: RootlessAccelInit() must be called before DamageSetup()
+ *  and RootlessInit() must be called afterwards.
+ */
+Bool RootlessAccelInit(ScreenPtr pScreen);
+
+/*
  * Return the frame ID for the physical window displaying the given window. 
  *
  *  create      If true and the window has no frame, attempt to create one
