@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/Xext/saver.c,v 1.3 2004/10/10 17:48:43 herrb Exp $ */
+/* $XdotOrg: xc/programs/Xserver/Xext/saver.c,v 1.4 2004/11/01 16:05:27 eich Exp $ */
 /*
  * $XConsortium: saver.c,v 1.12 94/04/17 20:59:36 dpw Exp $
  *
@@ -210,7 +210,7 @@ static int ScreenPrivateIndex;
 
 #define GetScreenPrivate(s) ((ScreenSaverScreenPrivatePtr)(s)->devPrivates[ScreenPrivateIndex].ptr)
 #define SetScreenPrivate(s,v) ((s)->devPrivates[ScreenPrivateIndex].ptr = (pointer) v);
-#define SetupScreen(s)	ScreenSaverScreenPrivatePtr pPriv = GetScreenPrivate(s)
+#define SetupScreen(s)	ScreenSaverScreenPrivatePtr pPriv = (s ? GetScreenPrivate(s) : NULL)
 
 #define New(t)	((t *) xalloc (sizeof (t)))
 
