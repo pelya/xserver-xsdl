@@ -213,9 +213,6 @@ KaaScreenInfoRec mgaKaa = {
 Bool
 mgaDrawInit (ScreenPtr pScreen)
 {
-    KdScreenPriv(pScreen);
-    mgaScreenInfo (pScreenPriv);
-    
     if (!kaaDrawInit (pScreen, &mgaKaa))
 	return FALSE;
 

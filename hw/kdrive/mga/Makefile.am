@@ -2,6 +2,7 @@ INCLUDES = 					\
 	-I$(top_srcdir)/fb			\
 	-I$(top_srcdir)/hw/kdrive/src		\
 	-I$(top_srcdir)/hw/kdrive/vesa		\
+	-I$(top_srcdir)/hw/kdrive/linux		\
 	-I$(top_srcdir)/include			\
 	-I$(top_srcdir)/mi			\
 	-I$(top_srcdir)/miext/layer		\
@@ -23,7 +24,7 @@ Xmga_SOURCES = \
 	mgastub.c
 
 Xmga_LDADD = \
-	$(top_builddir)/hw/kdrive/mga/libmga.a \
+	libmga.a 				\
 	$(top_builddir)/hw/kdrive/vesa/libvesa.a \
 	$(top_builddir)/dix/libdix.a		\
 	$(top_builddir)/os/libos.a		\

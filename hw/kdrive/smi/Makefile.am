@@ -24,7 +24,7 @@ Xsmi_SOURCES = \
 	smistub.c
 
 Xsmi_LDADD = \
-	$(top_builddir)/hw/kdrive/smi/libsmi.a \
+	libsmi.a 				\
 	$(top_builddir)/hw/kdrive/fbdev/libfbdev.a \
 	$(top_builddir)/hw/kdrive/vesa/libvesa.a \
 	$(top_builddir)/dix/libdix.a		\

@@ -22,7 +22,7 @@ Xvesa_SOURCES = \
 	vesainit.c
 
 Xvesa_LDADD = \
-	$(top_builddir)/hw/kdrive/vesa/libvesa.a \
+	libvesa.a 				\
 	$(top_builddir)/dix/libdix.a		\
 	$(top_builddir)/os/libos.a		\
 	$(top_builddir)/miext/layer/liblayer.a	\

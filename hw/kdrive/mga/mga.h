@@ -26,6 +26,7 @@
 #ifndef _MGA_H_
 #define _MGA_H_
 #include <vesa.h>
+#include <klinux.h>
 
 #define MGA_REG_BASE(c)	    ((c)->attr.address[1])
 #define MGA_REG_SIZE(c)	    (0x4000)

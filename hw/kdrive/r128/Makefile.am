@@ -23,7 +23,7 @@ Xr128_SOURCES = \
 	r128stub.c
 
 Xr128_LDADD = \
-	$(top_builddir)/hw/kdrive/r128/libr128.a \
+	libr128.a 				\
 	$(top_builddir)/hw/kdrive/vesa/libvesa.a \
 	$(top_builddir)/dix/libdix.a		\
 	$(top_builddir)/os/libos.a		\

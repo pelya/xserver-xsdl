@@ -19,7 +19,7 @@ Xfbdev_SOURCES = \
 	fbinit.c
 
 Xfbdev_LDADD = \
-	$(top_builddir)/hw/kdrive/fbdev/libfbdev.a	\
+	libfbdev.a					\
 	$(top_builddir)/dix/libdix.a			\
 	$(top_builddir)/os/libos.a			\
 	$(top_builddir)/miext/layer/liblayer.a		\

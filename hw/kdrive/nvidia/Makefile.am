@@ -27,7 +27,7 @@ Xnvidia_SOURCES = \
 	nvidiastub.c
 
 Xnvidia_LDADD = \
-	$(top_builddir)/hw/kdrive/nvidia/libnvidia.a \
+	libnvidia.a 				\
 	$(top_builddir)/hw/kdrive/vesa/libvesa.a \
 	$(top_builddir)/dix/libdix.a		\
 	$(top_builddir)/os/libos.a		\

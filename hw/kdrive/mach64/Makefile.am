@@ -27,7 +27,7 @@ Xmach64_SOURCES = \
 	mach64stub.c
 
 Xmach64_LDADD = \
-	$(top_builddir)/hw/kdrive/mach64/libmach64.a \
+	libmach64.a \
 	$(top_builddir)/hw/kdrive/vesa/libvesa.a \
 	$(top_builddir)/dix/libdix.a		\
 	$(top_builddir)/os/libos.a		\
