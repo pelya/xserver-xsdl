@@ -378,6 +378,8 @@ RadeonSwitchTo3D(void)
 	ADVANCE_RING();
 }
 
+#endif /* USE_DRI */
+
 static Bool
 ATIUploadToScreen(PixmapPtr pDst, char *src, int src_pitch)
 {
@@ -423,9 +425,6 @@ ATIUploadToScratch(PixmapPtr pSrc, PixmapPtr pDst)
 
 	return ATIUploadToScreen(pDst, pSrc->devPrivate.ptr, pSrc->devKind);
 }
-
-
-#endif /* USE_DRI */
 
 static Bool
 R128GetDatatypePict(CARD32 format, CARD32 *type)

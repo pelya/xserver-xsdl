@@ -34,8 +34,8 @@
 #include "ati_sarea.h"
 
 #define TAG(x)		x##DMA
-#define LOCALS		(void)atic; \
-			RING_LOCALS
+#define LOCALS		RING_LOCALS; \
+			(void)atic;
 #define BEGIN(x)	BEGIN_RING(x * 2)
 #define OUT_REG(reg, val) OUT_RING_REG(reg, val)
 #define END()		ADVANCE_RING()
@@ -322,8 +322,8 @@ RadeonComposite(int srcX, int srcY, int maskX, int maskY, int dstX, int dstY,
 {
 	ATIScreenInfo *atis = accel_atis;
 	ATICardInfo *atic = atis->atic;
-	LOCALS;
 	struct blend_vertex vtx[4];
+	LOCALS;
 
 	/*ErrorF("RadeonComposite %d %d %d %d %d %d\n", srcX, srcY, maskX, maskY,
 	    dstX, dstY, w, h);*/
