@@ -27,7 +27,7 @@
 #endif
 #include "compint.h"
 
-#ifndef NDEBUG
+#ifdef COMPOSITE_DEBUG
 static int
 compCheckWindow (WindowPtr pWin, pointer data)
 {
@@ -151,8 +151,10 @@ compPositionWindow (WindowPtr pWin, int x, int y)
      *
     compCheckRedirect (pWin);
      */
+#ifdef COMPOSITE_DEBUG
     if (pWin->redirectDraw != (pWin->viewable && (GetCompWindow(pWin) != NULL)))
 	abort ();
+#endif
     if (pWin->redirectDraw)
     {
 	PixmapPtr   pPixmap = (*pScreen->GetWindowPixmap) (pWin);

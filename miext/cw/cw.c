@@ -164,11 +164,6 @@ cwDestroyGCPrivate(GCPtr pGC)
 	FreeGC(pPriv->pBackingGC, (XID)0);
     setCwGC (pGC, pPriv->wrapFuncs);
     xfree((pointer)pPriv);
-    /* The ChangeGC and ValidateGCs on the window haven't been passed down the
-     * stack, so report all state being changed.
-     */
-    pGC->stateChanges |= (1 << (GCLastBit + 1)) - 1;
-    (*pGC->funcs->ChangeGC)(pGC, (1 << (GCLastBit + 1)) - 1);
 }
 
 /* GCFuncs wrappers.  These only get used when the drawable is a window with a
@@ -747,6 +742,10 @@ cwGetWindowPixmap (WindowPtr pWin)
 static void
 cwSetWindowPixmap (WindowPtr pWindow, PixmapPtr pPixmap)
 {
+    ScreenPtr	pScreen = pWindow->drawable.pScreen;
+    
+    if (pPixmap == (*pScreen->GetScreenPixmap) (pScreen))
+	pPixmap = NULL;
     setCwPixmap (pWindow, pPixmap);
 }
 

@@ -49,6 +49,12 @@
 #include <X11/extensions/compositeproto.h>
 #include <assert.h>
 
+/*
+ *  enable this for debugging
+ 
+    #define COMPOSITE_DEBUG
+ */
+
 typedef struct _CompClientWindow {
     struct _CompClientWindow	*next;
     XID				id;
@@ -117,10 +123,6 @@ typedef struct _CompScreen {
     Bool			damaged;
     XID				alternateVisuals[NUM_COMP_ALTERNATE_VISUALS];
 } CompScreenRec, *CompScreenPtr;
-
-#define HasCompRedirect(w)  (wPixmap(w) != wPixmap(w->parent))
-#define wScreen(w)	    ((w)->drawable.pScreen)
-#define wPixmap(w)	    (*(wScreen(w)->GetWindowPixmap) (w))
 
 extern int  CompScreenPrivateIndex;
 extern int  CompWindowPrivateIndex;
@@ -192,11 +194,11 @@ compScreenInit (ScreenPtr pScreen);
  * compwindow.c
  */
 
-#ifdef NDEBUG
-#define compCheckTree(s)
-#else
+#ifdef COMPOSITE_DEBUG
 void
 compCheckTree (ScreenPtr pScreen);
+#else
+#define compCheckTree(s)
 #endif
 
 void
