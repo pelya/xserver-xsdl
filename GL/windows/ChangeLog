@@ -1,5 +1,12 @@
 2005-02-02  Alexander Gottwald  <ago at freedesktop dot org>
 
+	* xc/programs/Xserver/GL/windows/Imakefile: 
+	Bugzilla #1866 (https://bugs.freedesktop.org/show_bug.cgi?id=1866)
+	attachment #1819 (https://bugs.freedesktop.org/attachment.cgi?id=1819):
+	Define APIENTRY on windows to prevent <GL/gl.h> from loading <windows.h>
+
+2005-02-02  Alexander Gottwald  <ago at freedesktop dot org>
+
 	* glwrap.c:
 	* glwindows.h:
 	Bugzilla #1866 (https://bugs.freedesktop.org/show_bug.cgi?id=1866)
