@@ -160,28 +160,3 @@ void ddxBeforeReset(void)
 int SelectWaitTime = 10000; /* usec */
 #endif
 
-#ifdef DPMSExtension
-/**************************************************************
- * DPMSSet(), DPMSGet(), DPMSSupported()
- *
- * stubs
- *
- ***************************************************************/
-
-void
-DPMSSet(int level)
-{
-}
-
-int
-DPMSGet(int *level)
-{
-    return -1;
-}
-
-Bool
-DPMSSupported()
-{
-    return FALSE;
-}
-#endif
