@@ -111,7 +111,9 @@ int src_bpp;
 /* If is_24bpp is set, then we are using the accelerator in 8-bit mode due
  * to it being broken for 24bpp, so coordinates have to be multiplied by 3.
  */
-int is_24bpp;
+Bool is_24bpp;
+/* For r128 Blend, tells whether to force src x/y offset to (0,0). */
+Bool is_repeat;
 
 static void
 ATIWaitAvailMMIO(int n)

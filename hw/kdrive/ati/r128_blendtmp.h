@@ -54,10 +54,12 @@ TAG(R128PrepareBlend)(int op, PicturePtr pSrcPicture, PicturePtr pDstPicture,
 		return FALSE;
 
 	src_bpp = pSrc->drawable.bitsPerPixel;
+	is_repeat = pSrcPicture->repeat;
 
 	if (op >= sizeof(R128BlendOp)/sizeof(R128BlendOp[0]))
 		ATI_FALLBACK(("Unsupported op 0x%x\n", op));
-	if (pSrcPicture->repeat)
+	if (pSrcPicture->repeat && (pSrc->drawable.width != 1 ||
+	    pSrc->drawable.height != 1))
 		ATI_FALLBACK(("repeat unsupported\n"));
 	if (pSrcPicture->transform != NULL)
 		ATI_FALLBACK(("transform unsupported\n"));
@@ -86,8 +88,13 @@ TAG(R128PrepareBlend)(int op, PicturePtr pSrcPicture, PicturePtr pDstPicture,
 	OUT_REG(R128_REG_SCALE_3D_DATATYPE, srcDatatype);
 	OUT_REG(R128_REG_SCALE_PITCH, src_pitch / src_bpp);
 	/* 4.16 fixed point scaling factor? */
-	OUT_REG(R128_REG_SCALE_X_INC, 65536);
-	OUT_REG(R128_REG_SCALE_Y_INC, 65536);
+	if (is_repeat) {
+		OUT_REG(R128_REG_SCALE_X_INC, 0);
+		OUT_REG(R128_REG_SCALE_Y_INC, 0);
+	} else {
+		OUT_REG(R128_REG_SCALE_X_INC, 65536);
+		OUT_REG(R128_REG_SCALE_Y_INC, 65536);
+	}
 	OUT_REG(R128_REG_SCALE_HACC, 0x00000000);
 	OUT_REG(R128_REG_SCALE_VACC, 0x00000000);
 	OUT_REG(RADEON_REG_DP_CNTL, 
@@ -103,6 +110,11 @@ TAG(R128Blend)(int srcX, int srcY, int dstX, int dstY, int width, int height)
 	ATIScreenInfo *atis = accel_atis;
 	ATICardInfo *atic = atis->atic;
 	LOCALS;
+
+	if (is_repeat) {
+		srcX = 0;
+		srcY = 0;
+	}
 
 	BEGIN(4);
 	OUT_REG(R128_REG_SCALE_OFFSET_0, src_offset + srcY * src_pitch + srcX *
