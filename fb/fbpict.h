@@ -333,15 +333,8 @@ fbCombineDisjointOverC (FbCompositeOperand   *src,
 			FbCompositeOperand   *msk,
 			FbCompositeOperand   *dst);
 
-void
-fbCombineDisjointOverReverseU (FbCompositeOperand    *src,
-			       FbCompositeOperand    *msk,
-			       FbCompositeOperand    *dst);
-
-void
-fbCombineDisjointOverReverseC (FbCompositeOperand    *src,
-			       FbCompositeOperand    *msk,
-			       FbCompositeOperand    *dst);
+#define fbCombineDisjointOverReverseU fbCombineSaturateU
+#define fbCombineDisjointOverReverseC fbCombineSaturateC
 
 void
 fbCombineDisjointInU (FbCompositeOperand	    *src,

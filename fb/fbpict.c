@@ -1001,7 +1001,6 @@ fbComposite (CARD8      op,
 	{
 	    switch (pSrc->format) {
 	    case PICT_a8r8g8b8:
-	    case PICT_x8r8g8b8:
 		switch (pDst->format) {
 		case PICT_a8r8g8b8:
 		case PICT_x8r8g8b8:
@@ -1016,7 +1015,6 @@ fbComposite (CARD8      op,
 		}
 		break;
 	    case PICT_a8b8g8r8:
-	    case PICT_x8b8g8r8:
 		switch (pDst->format) {
 		case PICT_a8b8g8r8:
 		case PICT_x8b8g8r8:
