@@ -118,6 +118,10 @@ DPMSClose(int i, ScreenPtr pScreen)
 
     pScreen->CloseScreen = pDPMS->CloseScreen;
 
+    if (xf86Screens[i]->DPMSSet) {
+ 	xf86Screens[i]->DPMSSet(xf86Screens[i],DPMSModeOn,0);
+    }
+    
     xfree((pointer)pDPMS);
     pScreen->devPrivates[DPMSIndex].ptr = NULL;
     if (--DPMSCount == 0)

@@ -93,6 +93,11 @@
 extern int xtest_command_key;
 #endif /* XTESTEXT1 */
 
+#ifdef DPMSExtension
+#define DPMS_SERVER
+#include "extensions/dpms.h"
+#endif
+
 
 /* forward declarations */
 
@@ -1246,6 +1251,10 @@ AbortDDX()
 	       * screen explicitely.
 	       */
 	      xf86EnableAccess(xf86Screens[i]);
+#ifdef DPMSExtension
+	      if (xf86Screens[i]->DPMSSet)
+		  xf86Screens[i]->DPMSSet(xf86Screens[i],DPMSModeOn,0);
+#endif
 	      (xf86Screens[i]->LeaveVT)(i, 0);
 	  }
   }

@@ -49,7 +49,7 @@
  */
 
 /* $XConsortium: xf86Events.c /main/46 1996/10/25 11:36:30 kaleb $ */
-/* $XdotOrg: xc/programs/Xserver/hw/xfree86/common/xf86Events.c,v 1.1.4.3 2003/12/06 13:24:24 kaleb Exp $ */
+/* $XdotOrg: xc/programs/Xserver/hw/xfree86/common/xf86Events.c,v 1.2 2004/04/23 19:20:32 eich Exp $ */
 
 /* [JCH-96/01/21] Extended std reverse map to four buttons. */
 
@@ -93,6 +93,12 @@
 
 #ifdef XKB
 extern Bool noXkbExtension;
+#endif
+
+#ifdef DPMSExtension
+#define DPMS_SERVER
+#include "extensions/dpms.h"
+#include "dpmsproc.h"
 #endif
 
 #define XE_POINTER  1
@@ -1348,7 +1354,11 @@ xf86VTSwitch()
 #endif /* !__UNIXOS2__ */
     xf86EnterServerState(SETUP);
     for (i = 0; i < xf86NumScreens; i++) {
-      xf86Screens[i]->LeaveVT(i, 0);
+#ifdef DPMSExtension
+	if (xf86Screens[i]->DPMSSet)
+	    xf86Screens[i]->DPMSSet(xf86Screens[i],DPMSModeOn,0);
+#endif
+	xf86Screens[i]->LeaveVT(i, 0);
     }
     for (ih = InputHandlers; ih; ih = ih->next)
       xf86DisableInputHandler(ih);
