@@ -425,6 +425,9 @@ typedef struct
 #ifdef XWIN_MULTIWINDOW
   Bool			fMultiWindow;
 #endif
+#if defined(XWIN_MULTIWINDOW) || defined(XWIN_MULTIWINDOWEXTWM)
+  Bool			fMultiMonitorOverride;
+#endif
   Bool                  fMultipleMonitors;
   Bool			fLessPointer;
   Bool			fScrollbars;
@@ -508,6 +511,7 @@ typedef struct _winPrivScreenRec
   LPDIRECTDRAW4		pdd4;
   LPDIRECTDRAWSURFACE4	pddsShadow4;
   LPDIRECTDRAWSURFACE4	pddsPrimary4;
+  BOOL			fRetryCreateSurface;
 
   /* Privates used by both shadow fb DirectDraw servers */
   LPDIRECTDRAWCLIPPER	pddcPrimary;

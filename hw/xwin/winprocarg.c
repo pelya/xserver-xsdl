@@ -128,6 +128,9 @@ winInitializeDefaultScreens (void)
 #ifdef XWIN_MULTIWINDOW
       g_ScreenInfo[i].fMultiWindow = FALSE;
 #endif
+#if defined(XWIN_MULTIWINDOW) || defined(XWIN_MULTIWINDOWEXTWM)
+      g_ScreenInfo[i].fMultiMonitorOverride = FALSE;
+#endif
       g_ScreenInfo[i].fMultipleMonitors = FALSE;
       g_ScreenInfo[i].fLessPointer = FALSE;
       g_ScreenInfo[i].fScrollbars = FALSE;
@@ -399,12 +402,16 @@ ddxProcessArgument (int argc, char *argv[], int i)
 	  /* Parameter is for all screens */
 	  for (j = 0; j < MAXSCREENS; j++)
 	    {
+              if (!g_ScreenInfo[j].fMultiMonitorOverride)
+                g_ScreenInfo[j].fMultipleMonitors = FALSE;
 	      g_ScreenInfo[j].fFullScreen = TRUE;
 	    }
 	}
       else
 	{
 	  /* Parameter is for a single screen */
+          if (!g_ScreenInfo[g_iLastScreen].fMultiMonitorOverride)
+            g_ScreenInfo[g_iLastScreen].fMultipleMonitors = FALSE;
 	  g_ScreenInfo[g_iLastScreen].fFullScreen = TRUE;
 	}
 
@@ -451,12 +458,16 @@ ddxProcessArgument (int argc, char *argv[], int i)
 	  /* Parameter is for all screens */
 	  for (j = 0; j < MAXSCREENS; j++)
 	    {
+              if (!g_ScreenInfo[j].fMultiMonitorOverride)
+                g_ScreenInfo[j].fMultipleMonitors = FALSE;
 	      g_ScreenInfo[j].fDecoration = FALSE;
 	    }
 	}
       else
 	{
 	  /* Parameter is for a single screen */
+          if (!g_ScreenInfo[g_iLastScreen].fMultiMonitorOverride)
+            g_ScreenInfo[g_iLastScreen].fMultipleMonitors = FALSE;
 	  g_ScreenInfo[g_iLastScreen].fDecoration = FALSE;
 	}
 
@@ -478,12 +489,16 @@ ddxProcessArgument (int argc, char *argv[], int i)
 	  /* Parameter is for all screens */
 	  for (j = 0; j < MAXSCREENS; j++)
 	    {
+              if (!g_ScreenInfo[j].fMultiMonitorOverride)
+                g_ScreenInfo[j].fMultipleMonitors = TRUE;
 	      g_ScreenInfo[j].fMWExtWM = TRUE;
 	    }
 	}
       else
 	{
 	  /* Parameter is for a single screen */
+          if (!g_ScreenInfo[g_iLastScreen].fMultiMonitorOverride)
+            g_ScreenInfo[g_iLastScreen].fMultipleMonitors = TRUE;
 	  g_ScreenInfo[g_iLastScreen].fMWExtWM = TRUE;
 	}
 
@@ -505,12 +520,16 @@ ddxProcessArgument (int argc, char *argv[], int i)
 	  /* Parameter is for all screens */
 	  for (j = 0; j < MAXSCREENS; j++)
 	    {
+              if (!g_ScreenInfo[j].fMultiMonitorOverride)
+                g_ScreenInfo[j].fMultipleMonitors = FALSE;
 	      g_ScreenInfo[j].fRootless = TRUE;
 	    }
 	}
       else
 	{
 	  /* Parameter is for a single screen */
+          if (!g_ScreenInfo[g_iLastScreen].fMultiMonitorOverride)
+            g_ScreenInfo[g_iLastScreen].fMultipleMonitors = FALSE;
 	  g_ScreenInfo[g_iLastScreen].fRootless = TRUE;
 	}
 
@@ -532,12 +551,16 @@ ddxProcessArgument (int argc, char *argv[], int i)
 	  /* Parameter is for all screens */
 	  for (j = 0; j < MAXSCREENS; j++)
 	    {
+              if (!g_ScreenInfo[j].fMultiMonitorOverride)
+                g_ScreenInfo[j].fMultipleMonitors = TRUE;
 	      g_ScreenInfo[j].fMultiWindow = TRUE;
 	    }
 	}
       else
 	{
 	  /* Parameter is for a single screen */
+          if (!g_ScreenInfo[g_iLastScreen].fMultiMonitorOverride)
+            g_ScreenInfo[g_iLastScreen].fMultipleMonitors = TRUE;
 	  g_ScreenInfo[g_iLastScreen].fMultiWindow = TRUE;
 	}
 
@@ -560,18 +583,50 @@ ddxProcessArgument (int argc, char *argv[], int i)
 	  /* Parameter is for all screens */
 	  for (j = 0; j < MAXSCREENS; j++)
 	    {
+              g_ScreenInfo[j].fMultiMonitorOverride = TRUE;
 	      g_ScreenInfo[j].fMultipleMonitors = TRUE;
 	    }
 	}
       else
 	{
 	  /* Parameter is for a single screen */
+          g_ScreenInfo[g_iLastScreen].fMultiMonitorOverride = TRUE;
 	  g_ScreenInfo[g_iLastScreen].fMultipleMonitors = TRUE;
 	}
 
       /* Indicate that we have processed this argument */
       return 1;
     }
+
+  /*
+   * Look for the '-nomultiplemonitors' argument
+   */
+  if (IS_OPTION ("-nomultiplemonitors")
+      || IS_OPTION ("-nomultimonitors"))
+    {
+      /* Is this parameter attached to a screen or is it global? */
+      if (-1 == g_iLastScreen)
+	{
+	  int			j;
+
+	  /* Parameter is for all screens */
+	  for (j = 0; j < MAXSCREENS; j++)
+	    {
+              g_ScreenInfo[j].fMultiMonitorOverride = TRUE;
+	      g_ScreenInfo[j].fMultipleMonitors = FALSE;
+	    }
+	}
+      else
+	{
+	  /* Parameter is for a single screen */
+          g_ScreenInfo[g_iLastScreen].fMultiMonitorOverride = TRUE;
+	  g_ScreenInfo[g_iLastScreen].fMultipleMonitors = FALSE;
+	}
+
+      /* Indicate that we have processed this argument */
+      return 1;
+    }
+
 
   /*
    * Look for the '-scrollbars' argument

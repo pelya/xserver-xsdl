@@ -141,11 +141,21 @@ winCreatePrimarySurfaceShadowDDNL (ScreenPtr pScreen)
 				       &ddsd,
 				       &pScreenPriv->pddsPrimary4,
 				       NULL);
+  pScreenPriv->fRetryCreateSurface = FALSE;
   if (FAILED (ddrval))
     {
-      ErrorF ("winCreatePrimarySurfaceShadowDDNL - Could not create primary "
-	      "surface: %08x\n",
-	      (unsigned int) ddrval);
+      if (ddrval == DDERR_NOEXCLUSIVEMODE)
+        {
+          /* Recreating the surface failed. Mark screen to retry later */ 
+          pScreenPriv->fRetryCreateSurface = TRUE;
+          winDebug ("winCreatePrimarySurfaceShadowDDNL - Could not create "
+	          "primary surface: DDERR_NOEXCLUSIVEMODE\n");
+        }
+      else
+        {
+          ErrorF ("winCreatePrimarySurfaceShadowDDNL - Could not create "
+	          "primary surface: %08x\n", (unsigned int) ddrval);
+        }
       return FALSE;
     }
   
@@ -1055,6 +1065,17 @@ winBltExposedRegionsShadowDDNL (ScreenPtr pScreen)
   Bool			fReturn = TRUE;
   int			i;
 
+  /* Quite common case. The primary surface was lost (maybe because of depth
+   * change). Try to create a new primary surface. Bail out if this fails */
+  if (pScreenPriv->pddsPrimary4 == NULL && pScreenPriv->fRetryCreateSurface &&
+      !winCreatePrimarySurfaceShadowDDNL(pScreen))
+    {
+      Sleep(100);
+      return FALSE;
+    }
+  if (pScreenPriv->pddsPrimary4 == NULL)
+    return FALSE;  
+  
   /* BeginPaint gives us an hdc that clips to the invalidated region */
   hdcUpdate = BeginPaint (pScreenPriv->hwndScreen, &ps);
   if (hdcUpdate == NULL)

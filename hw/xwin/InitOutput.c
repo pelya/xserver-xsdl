@@ -30,9 +30,7 @@ from The Open Group.
 
 #include "win.h"
 #include "winmsg.h"
-#ifdef XWIN_XF86CONFIG
 #include "winconfig.h"
-#endif
 #include "winprefs.h"
 #include "X11/Xlocale.h"
 #include <mntent.h>
@@ -635,6 +633,7 @@ InitOutput (ScreenInfo *screenInfo, int argc, char *argv[])
   winMsg(X_INFO, "XF86Config is not supported\n");
   winMsg(X_INFO, "See http://x.cygwin.com/docs/faq/cygwin-x-faq.html "
          "for more information\n");
+  winConfigFiles ();
 #endif
 
   /* Load preferences from XWinrc file */

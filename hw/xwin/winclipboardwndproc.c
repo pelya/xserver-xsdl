@@ -44,6 +44,7 @@
  */
 
 extern Bool		g_fUseUnicode;
+extern Bool		g_fUnicodeSupport;
 extern void		*g_pClipboardDisplay;
 extern Window		g_iClipboardWindow;
 extern Atom		g_atomLastOwnedSelection;
@@ -445,7 +446,7 @@ winClipboardWindowProc (HWND hwnd, UINT message,
 	if (message == WM_RENDERALLFORMATS)
 	  fConvertToUnicode = FALSE;
 	else
-	  fConvertToUnicode = g_fUseUnicode && (CF_UNICODETEXT == wParam);
+	  fConvertToUnicode = g_fUnicodeSupport && (CF_UNICODETEXT == wParam);
 
 	/* Request the selection contents */
 	iReturn = XConvertSelection (pDisplay,
@@ -521,10 +522,9 @@ winClipboardWindowProc (HWND hwnd, UINT message,
 	if (WIN_XEVENTS_NOTIFY != iReturn)
 	  {
 	    /* Paste no data, to satisfy required call to SetClipboardData */
-	    if (fConvertToUnicode)
+	    if (g_fUnicodeSupport)
 	      SetClipboardData (CF_UNICODETEXT, NULL);
-	    else
-	      SetClipboardData (CF_TEXT, NULL);
+	    SetClipboardData (CF_TEXT, NULL);
 	  }
 
 	/* Special handling for WM_RENDERALLFORMATS */

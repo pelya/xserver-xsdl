@@ -1161,6 +1161,9 @@ winWindowProc (HWND hwnd, UINT message,
 	  /* Display Exit dialog */
 	  winDisplayExitDialog (s_pScreenPriv);
 	  return 0;
+    case ID_APP_SHOWCURSOR:
+      winDebug("ShowCursor: %d\n", ShowCursor(TRUE));
+      return 0;
 
 #ifdef XWIN_MULTIWINDOW
 	case ID_APP_HIDE_ROOT:

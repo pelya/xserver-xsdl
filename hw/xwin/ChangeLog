@@ -1,9 +1,70 @@
+2004-10-28  Alexander Gottwald  <ago at freedesktop dot org>
+
+	* win.h:
+	add fRetryCreateSurface
+	* winshaddnl.c (winBltExposedRegionsShadowDDNL):
+	try to recreate the primary surface if it was lost
+	* winshaddnl.c (winCreatePrimarySurfaceShadowDDNL):
+	mark screen to retry creating the primary surface if it failed
+
+2004-10-23  Alexander Gottwald  <ago at freedesktop dot org>
+
+	* winconfig (winConfigFiles):
+	Simplify /etc/X11/font-dirs parsing
+
+2004-10-20  Alexander Gottwald  <ago at freedesktop dot org>
+
+	* XWin.rc, winresource.h, winwndproc.c:
+	Add ShowCursor entry to tray menu 
+
+2004-10-20  Alexander Gottwald  <ago at freedesktop dot org>
+
+	* Imakefile:
+	Add ETCX11DIR to DEFINES
+	* InitOutput.c (InitOutput):
+	* winconfig.c (winConfigFiles) :
+	Add entries from /etc/X11/font-dirs to default fontpath
+
+2004-10-16  Alexander Gottwald  <ago at freedesktop dot org>
+
+	* winprocarg.c (winInitializeDefaultScreens, ddxProcessArgument):
+	* win.h:
+	Make multiple monitors default for -multiwindow and -mwextwm.
+	Added a flag to indicate if the user has overridden the multimonitor
+	settings. (Øyvind Harboe, Alexander Gottwald)
+
 2004-10-07  Torrey Lyons  <torrey at freedesktop dot org>
 
 	* winscrinit.c:
 	Add compatibility with the generic rootless layer's new
 	DoReorderWindow function.
 
+2004-10-05  Alexander Gottwald  <ago at freedesktop dot org>
+
+	* XWin.rc:
+	Set the dialogstyle to DS_CENTERMOUSE. Dialogs will now popup on the
+	monitor where the mouse is and not on the center of the whole desktop.
+
+2004-10-02  Alexander Gottwald  <ago at freedesktop dot org>
+
+	* winmouse.c (winMouseProc):
+	Make sure buttons 1-3 are mouse buttons and wheel events are 4-5
+	Document code
+	Replace ErrorF with appropriate winMsg
+	use a symbolic name for the wheel event offset
+	
+2004-10-01  Alexander Gottwald  <ago at freedesktop dot org>
+
+	* wincreatewnd.c (winCreateBoundingWindowWindowed):
+	Do not adjust workarea if native windowmanager is used
+
+2004-09-22  Kensuke Matsuzaki
+
+	* winclipboardthread.c (winClipboardErrorHandler):
+	* winclipboardwndproc.c (winClipboardWindowProc):
+	* winclipboardxevents.c (winClipboardFlushXEvents):
+	Fix clipboard bug with unicode applications.
+	
 2004-09-17  Torrey Lyons  <torrey at freedesktop dot org>
 
 	* winscrinit.c: (winFinishScreenInitFB):

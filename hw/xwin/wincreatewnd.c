@@ -271,20 +271,30 @@ winCreateBoundingWindowWindowed (ScreenPtr pScreen)
       /* We cannot have scrollbars if we do not have a window border */
       pScreenInfo->fScrollbars = FALSE;
     }
+ 
+  if (TRUE 
+#ifdef XWIN_MULTIWINDOWEXTWM
+       && !pScreenInfo->fMWExtWM
+#endif
+#ifdef XWIN_MULTIWINDOW
+       && !pScreenInfo->fMultiWindow
+#endif
+     )
+    {
+      /* Trim window width to fit work area */
+      if (iWidth > (rcWorkArea.right - rcWorkArea.left))
+        iWidth = rcWorkArea.right - rcWorkArea.left;
   
-  /* Trim window width to fit work area */
-  if (iWidth > (rcWorkArea.right - rcWorkArea.left))
-    iWidth = rcWorkArea.right - rcWorkArea.left;
-  
-  /* Trim window height to fit work area */
-  if (iHeight >= (rcWorkArea.bottom - rcWorkArea.top))
-    iHeight = rcWorkArea.bottom - rcWorkArea.top;
+      /* Trim window height to fit work area */
+      if (iHeight >= (rcWorkArea.bottom - rcWorkArea.top))
+        iHeight = rcWorkArea.bottom - rcWorkArea.top;
   
 #if CYGDEBUG
-  winDebug ("winCreateBoundingWindowWindowed - Adjusted width: %d "\
-	  "height: %d\n",
-	  iWidth, iHeight);
+      winDebug ("winCreateBoundingWindowWindowed - Adjusted width: %d "\
+	      "height: %d\n",
+    	  iWidth, iHeight);
 #endif
+    }
 
   /* Set display and screen-specific tooltip text */
   if (g_pszQueryHost != NULL)
