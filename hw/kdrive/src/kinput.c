@@ -1085,16 +1085,16 @@ KdCheckSpecialKeys(xEvent *xE)
     /* 
      * Check for buttons 1, 2 and 3 on the iPAQ
      */
-    if (sym == XK_Pointer_Button1) {
-	KdEnqueueMouseEvent(KD_MOUSE_DELTA | KD_BUTTON_1, 0, 0);
+    if (sym == XK_Pointer_Button1 && kdMouseInfo) {
+	KdEnqueueMouseEvent(kdMouseInfo, KD_MOUSE_DELTA | KD_BUTTON_1, 0, 0);
 	return;
     }
-    if (sym == XK_Pointer_Button2) {
-	KdEnqueueMouseEvent(KD_MOUSE_DELTA | KD_BUTTON_2, 0, 0);
+    if (sym == XK_Pointer_Button2 && kdMouseInfo) {
+	KdEnqueueMouseEvent(kdMouseInfo, KD_MOUSE_DELTA | KD_BUTTON_2, 0, 0);
 	return;
     }
-    if (sym == XK_Pointer_Button3) {
-	KdEnqueueMouseEvent(KD_MOUSE_DELTA | KD_BUTTON_3, 0, 0);
+    if (sym == XK_Pointer_Button3 && kdMouseInfo) {
+	KdEnqueueMouseEvent(kdMouseInfo, KD_MOUSE_DELTA | KD_BUTTON_3, 0, 0);
 	return;
     }
 #endif
