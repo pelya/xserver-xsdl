@@ -905,7 +905,7 @@ GLint __glGet_size(GLenum sq)
       case GL_FOG_COORD_ARRAY_TYPE:
       case GL_FOG_COORD_ARRAY_STRIDE:
       case GL_FOG_COORD_ARRAY:
-      case GL_FOG_COORD_SOURCE:
+      case GL_FOG_COORD_SRC:
 
       /* GL_EXT_secondary_color / GL 1.4 */
       case GL_COLOR_SUM:
