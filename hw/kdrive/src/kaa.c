@@ -32,10 +32,16 @@
 #include	"dixfontstr.h"
 
 #define DEBUG_MIGRATE 0
+#define DEBUG_PIXMAP 0
 #if DEBUG_MIGRATE
 #define DBG_MIGRATE(a) ErrorF a
 #else
 #define DBG_MIGRATE(a)
+#endif
+#if DEBUG_PIXMAP
+#define DBG_PIXMAP(a) ErrorF a
+#else
+#define DBG_PIXMAP(a)
 #endif
  
 int kaaGeneration;
@@ -144,7 +150,7 @@ kaaPixmapAllocArea (PixmapPtr pPixmap)
     if (!pKaaPixmap->area)
 	return FALSE;
     
-    DBG_MIGRATE(("++ 0x%08x (0x%x) (%dx%d)\n",
+    DBG_PIXMAP(("++ 0x%08x (0x%x) (%dx%d)\n",
 		  pPixmap->drawable.id,
 		  KaaGetPixmapPriv(pPixmap)->area ? 
 		  KaaGetPixmapPriv(pPixmap)->area->offset : -1,
@@ -219,7 +225,6 @@ kaaPixmapUseScreen (PixmapPtr pPixmap)
     if (pKaaPixmap->score < KAA_PIXMAP_SCORE_MAX)
     {
 	pKaaPixmap->score++;
-	DBG_MIGRATE (("UseScreen 0x%x (%d)\n", pPixmap->drawable.id, pKaaPixmap->score));
 	if (!pKaaPixmap->area &&
 	    pKaaPixmap->score >= KAA_PIXMAP_SCORE_MOVE_IN)
 	    kaaMoveInPixmap (pPixmap);
@@ -234,7 +239,6 @@ kaaPixmapUseMemory (PixmapPtr pPixmap)
     if (pKaaPixmap->score > KAA_PIXMAP_SCORE_MIN)
     {
 	pKaaPixmap->score--;
-	DBG_MIGRATE (("UseMemory 0x%x (%d)\n", pPixmap->drawable.id, pKaaPixmap->score));
 	if (pKaaPixmap->area &&
 	    pKaaPixmap->score <= KAA_PIXMAP_SCORE_MOVE_OUT)
 	    kaaMoveOutPixmap (pPixmap);
@@ -252,7 +256,7 @@ kaaDestroyPixmap (PixmapPtr pPixmap)
 	KaaPixmapPriv (pPixmap);
 	if (pKaaPixmap->area)
 	{
-	    DBG_MIGRATE(("-- 0x%08x (0x%x) (%dx%d)\n",
+	    DBG_PIXMAP(("-- 0x%08x (0x%x) (%dx%d)\n",
 			 pPixmap->drawable.id,
 			 KaaGetPixmapPriv(pPixmap)->area->offset,
 			 pPixmap->drawable.width,
@@ -287,8 +291,7 @@ kaaCreatePixmap(ScreenPtr pScreen, int w, int h, int depth)
     pKaaPixmap->score = 0;
     pKaaPixmap->area = NULL;
     
-/*    if ((pPixmap->devKind * h >= MIN_OFFPIX_SIZE) */
-    if (w * h > 100 * 100)
+    if ((pPixmap->devKind * h) >= MIN_OFFPIX_SIZE)
 	kaaPixmapAllocArea (pPixmap);
     return pPixmap;
 }
@@ -912,11 +915,11 @@ kaaComposite(CARD8	op,
 	     CARD16	width,
 	     CARD16	height)
 {
-#if 0
     if (pSrc->pDrawable->type == DRAWABLE_PIXMAP)
 	kaaPixmapUseMemory ((PixmapPtr) pSrc->pDrawable);
     if (pMask && pMask->pDrawable->type == DRAWABLE_PIXMAP)
 	kaaPixmapUseMemory ((PixmapPtr) pMask->pDrawable);
+#if 0
     if (pDst->pDrawable->type == DRAWABLE_PIXMAP)
 	kaaPixmapUseMemory ((PixmapPtr) pDst->pDrawable);
 #endif

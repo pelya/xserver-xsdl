@@ -235,7 +235,7 @@ Vm86DoInterrupt(Vm86InfoPtr vi, int num)
     code = vm86_loop(vi);
     OsReleaseSignals ();
     if(code < 0) {
-	perror("vm86 failed");
+	ErrorF("vm86 failed (errno %d)\n", errno);
 	return -1;
     } else if(code != 0) {
 	ErrorF("vm86 returned 0x%04X\n", code);

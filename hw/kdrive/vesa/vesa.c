@@ -1553,7 +1553,7 @@ vesaDPMS (ScreenPtr pScreen, int mode)
 	return TRUE;
 #endif
     if (pscr->mode.vbe)
-	return VbeDPMS (priv->vi, priv->vbeInfo, mode);
+	return VbeDPMS (priv->vi, mode);
     return FALSE;
 }
 

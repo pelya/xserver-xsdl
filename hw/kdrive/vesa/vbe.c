@@ -604,14 +604,9 @@ static const int VbeDPMSModes[4] = {
 };
 
 Bool
-VbeDPMS(Vm86InfoPtr vi, VbeInfoPtr vbe, int mode)
+VbeDPMS(Vm86InfoPtr vi, int mode)
 {
     int		    code;
-    VbeInfoBlock    vib;
-    
-    code = VbeGetVib (vi, &vib);
-    if (code < 0)
-	return FALSE;
 
     /*
      * Check which modes are supported
@@ -623,7 +618,7 @@ VbeDPMS(Vm86InfoPtr vi, VbeInfoPtr vbe, int mode)
     code = VbeDoInterrupt10 (vi);
     if (code < 0)
     {
-	ErrorF ("No DPMS Support\n");
+	ErrorF ("No DPMS Support %d\n", code);
 	return FALSE;
     }
     /* Skip this stage if it's not supported */

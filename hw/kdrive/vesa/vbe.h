@@ -152,7 +152,7 @@ void *
 VbeSetWindow(Vm86InfoPtr vi, VbeInfoPtr vbe, int offset, int purpose, int *size_return);
 
 Bool
-VbeDPMS(Vm86InfoPtr vi, VbeInfoPtr vbe, int mode);
+VbeDPMS(Vm86InfoPtr vi, int mode);
     
 int
 VbeDoInterrupt10(Vm86InfoPtr vi);
