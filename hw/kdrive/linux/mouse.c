@@ -1,5 +1,5 @@
 /*
- * $XFree86: $
+ * $XFree86: xc/programs/Xserver/hw/kdrive/linux/mouse.c,v 1.1 2001/10/12 06:33:10 keithp Exp $
  *
  * Copyright © 2001 Keith Packard, member of The XFree86 Project, Inc.
  *
@@ -338,27 +338,77 @@ static const KmouseProt exps2Prot = {
  * Once the mouse is known to speak ps/2 protocol, go and find out
  * what advanced capabilities it has and turn them on
  */
+
+/* these extracted from FreeBSD 4.3 sys/dev/kbd/atkbdcreg.h */
+
+/* aux device commands (sent to KBD_DATA_PORT) */
+#define PSMC_SET_SCALING11      0x00e6
+#define PSMC_SET_SCALING21      0x00e7
+#define PSMC_SET_RESOLUTION     0x00e8
+#define PSMC_SEND_DEV_STATUS    0x00e9
+#define PSMC_SET_STREAM_MODE    0x00ea
+#define PSMC_SEND_DEV_DATA      0x00eb
+#define PSMC_SET_REMOTE_MODE    0x00f0
+#define PSMC_SEND_DEV_ID        0x00f2
+#define PSMC_SET_SAMPLING_RATE  0x00f3
+#define PSMC_ENABLE_DEV         0x00f4
+#define PSMC_DISABLE_DEV        0x00f5
+#define PSMC_SET_DEFAULTS       0x00f6
+#define PSMC_RESET_DEV          0x00ff
+
+/* PSMC_SET_RESOLUTION argument */
+#define PSMD_RES_LOW            0       /* typically 25ppi */
+#define PSMD_RES_MEDIUM_LOW     1       /* typically 50ppi */
+#define PSMD_RES_MEDIUM_HIGH    2       /* typically 100ppi (default) */
+#define PSMD_RES_HIGH           3       /* typically 200ppi */
+#define PSMD_MAX_RESOLUTION     PSMD_RES_HIGH
+
+/* PSMC_SET_SAMPLING_RATE */
+#define PSMD_MAX_RATE           255     /* FIXME: not sure if it's possible */
+
+/* aux device ID */
+#define PSM_MOUSE_ID            0
+#define PSM_BALLPOINT_ID        2
+#define PSM_INTELLI_ID          3
+#define PSM_EXPLORER_ID         4
+#define PSM_4DMOUSE_ID          6
+#define PSM_4DPLUS_ID           8
+
 static unsigned char	ps2_init[] = { 
-    0xf4, 0 
+    PSMC_ENABLE_DEV,
+    0,
 };
 
 #define NINIT_PS2   1
 
 static unsigned char    wheel_3button_init[] = { 
-    0xf3, 0xc8, 0xf3, 0x64, 0xf3, 0x50, 0xf2, 0 
+    PSMC_SET_SAMPLING_RATE, 200,
+    PSMC_SET_SAMPLING_RATE, 100,
+    PSMC_SET_SAMPLING_RATE,  80,
+    PSMC_SEND_DEV_ID,
+    0,
 };
 
 #define NINIT_IMPS2 4
 
 static unsigned char    wheel_5button_init[] = {
-    0xf3, 0xc8, 0xf3, 0x64, 0xf3, 0x50,
-    0xf3, 0xc8, 0xf3, 0xc8, 0xf3, 0x50, 0xf2, 0
+    PSMC_SET_SAMPLING_RATE, 200,
+    PSMC_SET_SAMPLING_RATE, 100,
+    PSMC_SET_SAMPLING_RATE,  80,
+    PSMC_SET_SAMPLING_RATE, 200,
+    PSMC_SET_SAMPLING_RATE, 200,
+    PSMC_SET_SAMPLING_RATE,  80,
+    PSMC_SEND_DEV_ID, 
+    0
 };
 
 #define NINIT_EXPS2 7
 
 static unsigned char	intelli_init[] = {
-    0xf3, 0xc8, 0xf3, 0x64, 0xf3, 0x50, 0
+    PSMC_SET_SAMPLING_RATE, 200,
+    PSMC_SET_SAMPLING_RATE, 100, 
+    PSMC_SET_SAMPLING_RATE,  80, 
+    0
 };
 
 #define NINIT_INTELLI	3
@@ -410,7 +460,7 @@ ps2Init (KdMouseInfo *mi)
     /*
      * Send ID command
      */
-    if (!MouseWriteByte (km->iob.fd, 0xf2, 100))
+    if (!MouseWriteByte (km->iob.fd, PSMC_SEND_DEV_ID, 100))
 	return FALSE;
     skipping = 0;
     waiting = FALSE;
