@@ -3152,17 +3152,10 @@ HandleSaveSet(client)
 
     for (j=0; j<client->numSaved; j++)
     {
-	pWin = SaveSetWindow(client->saveSet[j]);
-#ifdef XFIXES
-        if (SaveSetToRoot(client->saveSet[j]))
-            pParent = WindowTable[pWin->drawable.pScreen->myNum];
-        else
-#endif
-        {
-            pParent = pWin->parent;
-            while (pParent && (wClient (pParent) == client))
-                pParent = pParent->parent;
-        }
+	pWin = (WindowPtr)client->saveSet[j];
+	pParent = pWin->parent;
+	while (pParent && (wClient (pParent) == client))
+	    pParent = pParent->parent;
 	if (pParent)
 	{
 	    if (pParent != pWin->parent)
@@ -3179,7 +3172,7 @@ HandleSaveSet(client)
     }
     xfree(client->saveSet);
     client->numSaved = 0;
-    client->saveSet = (SaveSetElt *)NULL;
+    client->saveSet = (pointer *)NULL;
 }
 
 Bool

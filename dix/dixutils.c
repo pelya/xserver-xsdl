@@ -152,21 +152,6 @@ ClientTimeToServerTime(c)
  * beware of too-small buffers
  */
 
-static unsigned char
-ISOLatin1ToLower (unsigned char source)
-{
-    unsigned char   dest;
-    if ((source >= XK_A) && (source <= XK_Z))
-	dest = source + (XK_a - XK_A);
-    else if ((source >= XK_Agrave) && (source <= XK_Odiaeresis))
-	dest = source + (XK_agrave - XK_Agrave);
-    else if ((source >= XK_Ooblique) && (source <= XK_Thorn))
-	dest = source + (XK_oslash - XK_Ooblique);
-    else
-	dest = source;
-    return dest;
-}
-
 void
 CopyISOLatin1Lowered(dest, source, length)
     register unsigned char *dest, *source;
@@ -175,27 +160,17 @@ CopyISOLatin1Lowered(dest, source, length)
     register int i;
 
     for (i = 0; i < length; i++, source++, dest++)
-	*dest = ISOLatin1ToLower (*source);
-    *dest = '\0';
-}
-
-int
-CompareISOLatin1Lowered(unsigned char *s1, int s1len, 
-			unsigned char *s2, int s2len)
-{
-    unsigned char   c1, c2;
-    
-    for (;;) 
     {
-	/* note -- compare against zero so that -1 ignores len */
-	c1 = s1len-- ? *s1++ : '\0';
-	c2 = s2len-- ? *s2++ : '\0';
-	if (!c1 || 
-	    (c1 != c2 && 
-	     (c1 = ISOLatin1ToLower (c1)) != (c2 = ISOLatin1ToLower (c2))))
-	    break;
+	if ((*source >= XK_A) && (*source <= XK_Z))
+	    *dest = *source + (XK_a - XK_A);
+	else if ((*source >= XK_Agrave) && (*source <= XK_Odiaeresis))
+	    *dest = *source + (XK_agrave - XK_Agrave);
+	else if ((*source >= XK_Ooblique) && (*source <= XK_Thorn))
+	    *dest = *source + (XK_oslash - XK_Ooblique);
+	else
+	    *dest = *source;
     }
-    return (int) c1 - (int) c2;
+    *dest = '\0';
 }
 
 #ifdef XCSECURITY
@@ -346,11 +321,10 @@ LookupClient(rid, client)
 
 
 int
-AlterSaveSetForClient(ClientPtr client,
-		      WindowPtr pWin,
-		      unsigned mode,
-		      Bool  toRoot,
-		      Bool  remap)
+AlterSaveSetForClient(client, pWin, mode)
+    ClientPtr client;
+    WindowPtr pWin;
+    unsigned mode;
 {
     int numnow;
     pointer *pTmp = NULL;
@@ -374,9 +348,7 @@ AlterSaveSetForClient(ClientPtr client,
 	    return(BadAlloc);
 	client->saveSet = pTmp;
        	client->numSaved = numnow;
-	SaveSetAssignWindow(client->saveSet[numnow - 1], pWin);
-	SaveSetAssignToRoot(client->saveSet[numnow - 1], toRoot);
-	SaveSetAssignRemap(client->saveSet[numnow - 1], remap);
+	client->saveSet[numnow - 1] = (pointer)pWin;
 	return(Success);
     }
     else if ((mode == SetModeDelete) && (j < numnow))
@@ -416,7 +388,7 @@ DeleteWindowFromAnySaveSet(pWin)
     {    
 	client = clients[i];
 	if (client && client->numSaved)
-	    (void)AlterSaveSetForClient(client, pWin, SetModeDelete, FALSE, TRUE);
+	    (void)AlterSaveSetForClient(client, pWin, SetModeDelete);
     }
 }
 

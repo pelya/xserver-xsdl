@@ -627,7 +627,7 @@ ProcChangeSaveSet(client)
         return BadMatch;
     if ((stuff->mode == SetModeInsert) || (stuff->mode == SetModeDelete))
     {
-        result = AlterSaveSetForClient(client, pWin, stuff->mode, FALSE, TRUE);
+        result = AlterSaveSetForClient(client, pWin, stuff->mode);
 	if (client->noClientException != Success)
 	    return(client->noClientException);
 	else

@@ -181,6 +181,11 @@ static WindowPtr *spriteTrace = (WindowPtr *)NULL;
 static int spriteTraceSize = 0;
 static int spriteTraceGood;
 
+typedef struct {
+    int		x, y;
+    ScreenPtr	pScreen;
+} HotSpot;
+
 static  struct {
     CursorPtr	current;
     BoxRec	hotLimits;	/* logical constraints of hot spot */
