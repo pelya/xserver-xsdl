@@ -62,6 +62,12 @@ mfbRealizeFont( pscr, pFont)
     return (TRUE);
 }
 
+mfbRealizeFontProc *
+mfbRealizeFontWeak(void)
+{
+    return mfbRealizeFont;
+}
+
 /*ARGSUSED*/
 Bool
 mfbUnrealizeFont( pscr, pFont)
@@ -69,4 +75,10 @@ mfbUnrealizeFont( pscr, pFont)
     FontPtr	pFont;
 {
     return (TRUE);
+}
+
+mfbUnrealizeFontProc *
+mfbUnrealizeFontWeak(void)
+{
+    return mfbUnrealizeFont;
 }

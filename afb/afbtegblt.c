@@ -296,7 +296,7 @@ afbTEGlyphBlt (pDrawable, pGC, x, y, nglyph, ppci, pglyphBase)
 	widthGlyphs = widthGlyph * PGSZB;
 
 #ifdef USE_LEFTBITS
-	glyphMask = endtab[widthGlyph];
+	glyphMask = mfbGetendtab(widthGlyph);
 	glyphBytes = GLYPHWIDTHBYTESPADDED(*ppci);
 #endif
 

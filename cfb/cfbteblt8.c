@@ -160,7 +160,6 @@ typedef unsigned int	*glyphPointer;
 #endif
 
 #ifdef USE_LEFTBITS
-extern CfbBits endtab[];
 
 #define IncChar(c)  (c = (glyphPointer) (((char *) c) + glyphBytes))
 
@@ -408,7 +407,7 @@ CFBTEGBLT8 (pDrawable, pGC, xInit, yInit, nglyph, ppci, pglyphBase)
 #endif
 
 #ifdef USE_LEFTBITS
-    glyphMask = endtab[widthGlyph];
+    glyphMask = mfbGetendtab(widthGlyph);
     glyphBytes = GLYPHWIDTHBYTESPADDED(*ppci);
 #endif
 

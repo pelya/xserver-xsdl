@@ -164,7 +164,7 @@ afbPadPixmap(pPixmap)
 	if (rep*width != PPW)
 		return;
 
-	mask = endtab[width];
+	mask = mfbGetendtab(width);
 
 	p = (PixelType *)(pPixmap->devPrivate.ptr);
 
@@ -206,7 +206,7 @@ afbXRotatePixmap(pPix, rw)
 		while(pw < pwFinal) {
 			t = *pw;
 			*pw++ = SCRRIGHT(t, rw) |
-					(SCRLEFT(t, (PPW-rw)) & endtab[rw]);
+				(SCRLEFT(t, (PPW-rw)) & mfbGetendtab(rw));
 		}
 	} else {
 		/* We no longer do this.  Validate doesn't try to rotate odd-size

@@ -401,13 +401,13 @@ afbLineSS(pDrawable, pGC, mode, npt, pptInit)
 
 					switch(rrops[d]) {
 						case RROP_BLACK:
-							*addrl &= rmask[x2 & PIM];
+							*addrl &= mfbGetrmask(x2 & PIM);
 							break;
 						case RROP_WHITE:
-							*addrl |= mask[x2 & PIM];
+							*addrl |= mfbGetmask(x2 & PIM);
 							break;
 						case RROP_INVERT:
-							*addrl ^= mask[x2 & PIM];
+							*addrl ^= mfbGetmask(x2 & PIM);
 							break;
 						case RROP_NOP:
 							break;
@@ -679,14 +679,14 @@ dontStep:		;
 
 					switch (rop) {
 						case RROP_BLACK:
-							*addrl &= rmask[x2 & PIM];
+							*addrl &= mfbGetrmask(x2 & PIM);
 							break;
 						case RROP_WHITE:
-							*addrl |= mask[x2 & PIM];
+							*addrl |= mfbGetmask(x2 & PIM);
 							break;
 
 						case RROP_INVERT:
-							*addrl ^= mask[x2 & PIM];
+							*addrl ^= mfbGetmask(x2 & PIM);
 							break;
 
 						case RROP_NOP:

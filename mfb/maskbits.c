@@ -1053,5 +1053,9 @@ mergeRopRec mergeRopBits[16] = {
 { O,O,O,I, },	/* set		0xf		1 */
 };
 
+mergeRopPtr mergeGetRopBits(int i) {
+    return &mergeRopBits[i];
+}
+
 #undef O
 #undef I

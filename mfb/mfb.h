@@ -64,7 +64,7 @@ SOFTWARE.
 #include "mibstore.h"
 
 extern int InverseAlu[];
-
+extern int mfbGetInverseAlu(int i);
 
 /* warning: PixelType definition duplicated in maskbits.h */
 #ifndef PixelType
@@ -229,6 +229,13 @@ extern void mfbRestoreAreas(
 extern RegionPtr mfbPixmapToRegion(
     PixmapPtr /*pPix*/
 );
+
+#ifndef MFB_PROTOTYPES_ONLY
+typedef RegionPtr (*mfbPixmapToRegionProc)(PixmapPtr);
+
+extern mfbPixmapToRegionProc *mfbPixmapToRegionWeak(void);
+#endif
+
 /* mfbcmap.c */
 
 extern int mfbListInstalledColormaps(
@@ -371,6 +378,15 @@ extern Bool mfbUnrealizeFont(
     ScreenPtr /*pscr*/,
     FontPtr /*pFont*/
 );
+
+#ifndef MFB_PROTOTYPES_ONLY
+typedef void (*mfbRealizeFontProc)(ScreenPtr, FontPtr);
+typedef void (*mfbUnrealizeFontProc)(ScreenPtr, FontPtr);
+
+extern mfbRealizeFontProc *mfbRealizeFontWeak(void);
+extern mfbUnrealizeFontProc *mfbUnrealizeFontWeak(void);
+#endif
+
 /* mfbgc.c */
 
 extern Bool mfbCreateGC(
@@ -490,6 +506,14 @@ extern void mfbQueryBestSize(
     unsigned short * /*pheight*/,
     ScreenPtr /*pScreen*/
 );
+
+#ifndef MFB_PROTOTYPES_ONLY
+typedef void (*mfbQueryBestSizeProc)(int, unsigned short *, unsigned short *,
+                                     ScreenPtr);
+
+extern mfbQueryBestSizeProc *mfbQueryBestSizeWeak(void);
+#endif
+
 /* mfbpablack.c */
 
 extern void mfbSolidBlackArea(
@@ -680,6 +704,14 @@ extern void mfbPushPixels(
     int /*xOrg*/,
     int /*yOrg*/
 );
+
+#ifndef MFB_PROTOTYPES_ONLY
+typedef void (*mfbPushPixelsProc)(GCPtr, PixmapPtr, DrawablePtr, int, int,
+                                  int, int);
+
+extern mfbPushPixelsProc *mfbPushPixelsWeak(void);
+#endif
+
 /* mfbscrclse.c */
 
 extern Bool mfbCloseScreen(

@@ -102,7 +102,7 @@ afbPixmapToRegion(pPix)
 	register BoxPtr		prectO, prectN;
 	BoxPtr			FirstRect, rects, prectLineStart;
 	Bool			fInBox, fSame;
-	register PixelType	mask0 = mask[0];
+	register PixelType	mask0 = mfbGetmask(0);
 	PixelType		*pwLine;
 	int			nWidth;
 

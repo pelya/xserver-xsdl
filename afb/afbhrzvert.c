@@ -186,17 +186,17 @@ unsigned char *rrops;
 
 		switch (rrops[d]) {
 			case RROP_BLACK:
-				bitmask = rmask[x1 & PIM];
+				bitmask = mfbGetrmask(x1 & PIM);
 				Duff(len, *addrl &= bitmask; afbScanlineInc(addrl, nlwidth) );
 				break;
 
 			case RROP_WHITE:
-				bitmask = mask[x1 & PIM];
+				bitmask = mfbGetmask(x1 & PIM);
 				Duff(len, *addrl |= bitmask; afbScanlineInc(addrl, nlwidth) );
 				break;
 
 			case RROP_INVERT:
-				bitmask = mask[x1 & PIM];
+				bitmask = mfbGetmask(x1 & PIM);
 				Duff(len, *addrl ^= bitmask; afbScanlineInc(addrl, nlwidth) );
 				break;
 

@@ -268,3 +268,9 @@ mfbPixmapToRegion(pPix)
 #endif
     return(pReg);
 }
+
+mfbPixmapToRegionProc *
+mfbPixmapToRegionWeak(void)
+{
+    return mfbPixmapToRegion;
+}

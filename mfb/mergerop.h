@@ -39,6 +39,7 @@ typedef struct _mergeRopBits {
 } mergeRopRec, *mergeRopPtr;
 
 extern mergeRopRec	mergeRopBits[16];
+extern mergeRopPtr	mergeGetRopBits(int i);
 
 #if defined(PPW) && defined(PGSZ) && (PPW != PGSZ)	/* cfb */
 #define DeclareMergeRop() MfbBits   _ca1 = 0, _cx1 = 0, _ca2 = 0, _cx2 = 0;
@@ -59,7 +60,7 @@ extern mergeRopRec	mergeRopBits[16];
     MfbBits   _pm; \
     mergeRopPtr  _bits; \
     _pm = PFILL(pm); \
-    _bits = &mergeRopBits[alu]; \
+    _bits = mergeGetRopBits(alu); \
     _ca1 = _bits->ca1 &  _pm; \
     _cx1 = _bits->cx1 | ~_pm; \
     _ca2 = _bits->ca2 &  _pm; \
@@ -70,7 +71,7 @@ extern mergeRopRec	mergeRopBits[16];
 #define InitializeMergeRop24(alu,pm) {\
     register int i; \
     register MfbBits _pm = (pm) & 0xFFFFFF; \
-    mergeRopPtr  _bits = &mergeRopBits[alu]; \
+    mergeRopPtr  _bits = mergeGetRopBits(alu); \
     MfbBits _bits_ca1 = _bits->ca1; \
     MfbBits _bits_cx1 = _bits->cx1; \
     MfbBits _bits_ca2 = _bits->ca2; \
@@ -88,7 +89,7 @@ extern mergeRopRec	mergeRopBits[16];
 #define InitializeMergeRop24(alu,pm) {\
     register int i; \
     register MfbBits _pm = (pm) & cfbmask[0]; \
-    mergeRopPtr  _bits = &mergeRopBits[alu]; \
+    mergeRopPtr  _bits = mergeGetRopBits(alu); \
     MfbBits _bits_ca1 = _bits->ca1 & cfbmask[0]; \
     MfbBits _bits_cx1 = _bits->cx1 & cfbmask[0]; \
     MfbBits _bits_ca2 = _bits->ca2 & cfbmask[0]; \
@@ -111,7 +112,7 @@ extern mergeRopRec	mergeRopBits[16];
 #else /* mfb */
 #define InitializeMergeRop(alu,pm) {\
     mergeRopPtr  _bits; \
-    _bits = &mergeRopBits[alu]; \
+    _bits = mergeGetRopBits(alu); \
     _ca1 = _bits->ca1; \
     _cx1 = _bits->cx1; \
     _ca2 = _bits->ca2; \
@@ -328,7 +329,7 @@ extern mergeRopRec	mergeRopBits[16];
 #define MROP_DECLARE_REG()	register MROP_DECLARE()
 #define MROP_INITIALIZE(alu,pm)	{ \
     mergeRopPtr  _bits; \
-    _bits = &mergeRopBits[alu]; \
+    _bits = mergeGetRopBits(alu); \
     _ca1 = _bits->ca1; \
     _cx1 = _bits->cx1; \
 }

@@ -79,8 +79,8 @@ unsigned char *rrops;
 	register int yinc;		/* increment to next scanline, in bytes */
 	register PixelType *addrl;		/* bitmask long pointer */
 	register PixelType bit;		/* current bit being set/cleared/etc.  */
-	PixelType leftbit = mask[0]; /* leftmost bit to process in new word */
-	PixelType rightbit = mask[PPW-1]; /* rightmost bit to process in new word */
+	PixelType leftbit = mfbGetmask(0); /* leftmost bit to process in new word */
+	PixelType rightbit = mfbGetmask(PPW-1); /* rightmost bit to process in new word */
 
 	register int e3 = e2-e1;
 	PixelType		tmp;
@@ -103,7 +103,7 @@ unsigned char *rrops;
 		addrlbase += sizeDst;	/* @@@ NEXT PLANE @@@ */
 		len = saveLen;
 		e = saveE;
-		bit = mask[x1 & PIM];
+		bit = mfbGetmask(x1 & PIM);
 
 		switch (rrops[d]) {
 			case RROP_BLACK:

@@ -396,7 +396,7 @@ extern PixelType mfbGetmask(int);
     else \
     { \
 	register int d = PPW-(x); \
-	*(pdst) = (*(pdst) & endtab[x]) | (SCRRIGHT((src), x)); \
+	*(pdst) = (*(pdst) & mfbGetendtab(x)) | (SCRRIGHT((src), x)); \
 	(pdst)[1] = ((pdst)[1] & mfbGetstarttab(n)) | \
 		(SCRLEFT(src, d) & mfbGetendtab(n)); \
     } \

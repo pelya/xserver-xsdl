@@ -276,3 +276,8 @@ mfbPushPixels(pGC, pBitMap, pDrawable, dx, dy, xOrg, yOrg)
 	(*pGC->ops->FillSpans)(pDrawable, pGC, ipt, pt, width, TRUE);
     }
 }
+
+mfbPushPixelsProc *mfbPushPixelsWeak(void)
+{
+   return mfbPushPixels;
+}

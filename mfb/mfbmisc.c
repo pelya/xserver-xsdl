@@ -89,3 +89,8 @@ ScreenPtr pScreen;
     }
 }
 
+mfbQueryBestSizeProc *
+mfbQueryBestSizeWeak(void)
+{
+    return mfbQueryBestSize;
+}

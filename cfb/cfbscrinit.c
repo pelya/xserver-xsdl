@@ -99,7 +99,7 @@ cfbSetupScreen(pScreen, pbits, xsize, ysize, dpix, dpiy, width)
     pScreen->defColormap = FakeClientID(0);
     /* let CreateDefColormap do whatever it wants for pixels */ 
     pScreen->blackPixel = pScreen->whitePixel = (Pixel) 0;
-    pScreen->QueryBestSize = mfbQueryBestSize;
+    pScreen->QueryBestSize = mfbQueryBestSizeWeak();
     /* SaveScreen */
     pScreen->GetImage = cfbGetImage;
     pScreen->GetSpans = cfbGetSpans;
@@ -114,8 +114,8 @@ cfbSetupScreen(pScreen, pbits, xsize, ysize, dpix, dpiy, width)
     pScreen->CopyWindow = cfbCopyWindow;
     pScreen->CreatePixmap = cfbCreatePixmap;
     pScreen->DestroyPixmap = cfbDestroyPixmap;
-    pScreen->RealizeFont = mfbRealizeFont;
-    pScreen->UnrealizeFont = mfbUnrealizeFont;
+    pScreen->RealizeFont = mfbRealizeFontWeak();
+    pScreen->UnrealizeFont = mfbUnrealizeFontWeak();
     pScreen->CreateGC = cfbCreateGC;
     pScreen->CreateColormap = cfbInitializeColormap;
     pScreen->DestroyColormap = DestroyColormapNoop;
@@ -124,7 +124,7 @@ cfbSetupScreen(pScreen, pbits, xsize, ysize, dpix, dpiy, width)
     pScreen->ListInstalledColormaps = cfbListInstalledColormaps;
     pScreen->StoreColors = StoreColorsNoop;
     pScreen->ResolveColor = cfbResolveColor;
-    pScreen->BitmapToRegion = mfbPixmapToRegion;
+    pScreen->BitmapToRegion = mfbPixmapToRegionWeak();
 
     mfbRegisterCopyPlaneProc (pScreen, cfbCopyPlane);
     return TRUE;

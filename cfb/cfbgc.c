@@ -85,11 +85,13 @@ SOFTWARE.
 # define usePolyGlyphBlt	miPolyGlyphBlt
 #endif
 
+void cfbUnPushPixels (GCPtr, PixmapPtr, DrawablePtr, int, int, int, int);
+
 #ifdef FOUR_BIT_CODE
 # define usePushPixels	cfbPushPixels8
 #else
 #ifndef LOWMEMFTPT
-# define usePushPixels	mfbPushPixels
+# define usePushPixels	cfbUnPushPixels
 #else
 # define usePushPixels	miPushPixels
 #endif /* ifndef LOWMEMFTPT */
@@ -283,6 +285,14 @@ cfbCreateGC(pGC)
 	return (mfbCreateGC(pGC));
     pGC->clientClip = NULL;
     pGC->clientClipType = CT_NONE;
+
+    if (cfbNonTEOps.PushPixels == cfbUnPushPixels)
+    {
+        cfbTEOps1Rect.PushPixels    = mfbPushPixelsWeak();
+        cfbNonTEOps1Rect.PushPixels = mfbPushPixelsWeak();
+        cfbTEOps.PushPixels         = mfbPushPixelsWeak();
+        cfbNonTEOps.PushPixels      = mfbPushPixelsWeak();		    
+    }
 
     /*
      * some of the output primitives aren't really necessary, since they
@@ -767,7 +777,7 @@ cfbValidateGC(pGC, changes, pDrawable)
 #endif
 #ifdef FOUR_BIT_CODE
 #ifndef LOWMEMFTPT
-	pGC->ops->PushPixels = mfbPushPixels;
+	pGC->ops->PushPixels = mfbPushPixelsWeak();
 #else
 	pGC->ops->PushPixels = miPushPixels;
 #endif /* ifndef LOWMEMFTPT */
@@ -788,4 +798,18 @@ cfbValidateGC(pGC, changes, pDrawable)
 	    }
 	}
     }
+}
+
+/*
+ * this is never called, it just exists to have its address
+ * taken in mfbCreateGC.
+ */
+static void
+cfbUnPushPixels (pGC, pBitmap, pDrawable, dx, dy, xOrg, yOrg)
+    GCPtr       pGC;
+    PixmapPtr   pBitmap;
+    DrawablePtr pDrawable;
+    int         dx, dy, xOrg, yOrg;
+{
+    return;
 }

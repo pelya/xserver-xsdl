@@ -64,7 +64,6 @@ in this Software without prior written authorization from The Open Group.
 
 #ifdef USE_LEFTBITS
 typedef	unsigned char	*glyphPointer;
-extern CfbBits endtab[];
 
 #define GlyphBits(bits,width,dst)	getleftbits(bits,width,dst); \
 					(dst) &= widthMask; \
@@ -251,7 +250,7 @@ cfbPolyGlyphBlt8 (pDrawable, pGC, x, y, nglyph, ppci, pglyphBase)
 #ifdef USE_LEFTBITS
 	    w = pci->metrics.rightSideBearing - pci->metrics.leftSideBearing;
 	    widthGlyph = PADGLYPHWIDTHBYTES(w);
-	    widthMask = endtab[w];
+	    widthMask = mfbGetendtab(w);
 #endif
 	    do {
 	    	dst = dstLine;
@@ -380,7 +379,7 @@ cfbPolyGlyphBlt8Clipped(
 #ifdef USE_LEFTBITS
 	    w = pci->metrics.rightSideBearing - pci->metrics.leftSideBearing;
 	    widthGlyph = PADGLYPHWIDTHBYTES(w);
-	    widthMask = endtab[w];
+	    widthMask = mfbGetendtab(w);
 #endif
 	    switch (cfb8ComputeClipMasks32 (pBox, numRects, xG, yG, w, hTmp, clips))
  	    {

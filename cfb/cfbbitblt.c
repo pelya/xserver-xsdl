@@ -973,15 +973,15 @@ cfbCopyPlane1to8 (pSrcDrawable, pDstDrawable, rop, prgnDst, pptSrc, planemask)
 #else /* PSZ == 8 */
 
 #define mfbmaskbits(x, w, startmask, endmask, nlw) \
-    startmask = starttab[(x)&0x1f]; \
-    endmask = endtab[((x)+(w)) & 0x1f]; \
+    startmask = mfbGetstarttab((x)&0x1f); \
+    endmask = mfbGetendtab(((x)+(w)) & 0x1f); \
     if (startmask) \
 	nlw = (((w) - (32 - ((x)&0x1f))) >> 5); \
     else \
 	nlw = (w) >> 5;
 
 #define mfbmaskpartialbits(x, w, mask) \
-    mask = partmasks[(x)&0x1f][(w)&0x1f];
+    mask = mfbGetpartmasks((x)&0x1f,(w)&0x1f);
 
 #define LeftMost    0
 #define StepBit(bit, inc)  ((bit) += (inc))
@@ -1389,7 +1389,7 @@ RegionPtr cfbCopyPlane(pSrcDrawable, pDstDrawable,
 
 	oldalu = pGC->alu;
     	if ((pGC->fgPixel & 1) == 0 && (pGC->bgPixel&1) == 1)
-	    pGC->alu = InverseAlu[pGC->alu];
+	    pGC->alu = mfbGetInverseAlu(pGC->alu);
     	else if ((pGC->fgPixel & 1) == (pGC->bgPixel & 1))
 	    pGC->alu = mfbReduceRop(pGC->alu, pGC->fgPixel);
 	ret = cfbCopyPlaneReduce(pSrcDrawable, pDstDrawable,

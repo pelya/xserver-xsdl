@@ -60,8 +60,6 @@ SOFTWARE.
 #include "cfb.h"
 #include "cfbmskbits.h"
 
-extern CfbBits endtab[];
-
 PixmapPtr
 cfbCreatePixmap (pScreen, width, height, depth)
     ScreenPtr	pScreen;
@@ -160,7 +158,7 @@ cfbPadPixmap(pPixmap)
     if (rep*width != PGSZ)
         return;
  
-    mask = endtab[width];
+    mask = mfbGetendtab(width);
  
     p = (CfbBits *)(pPixmap->devPrivate.ptr);
     for (h=0; h < pPixmap->drawable.height; h++)

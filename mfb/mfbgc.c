@@ -1454,6 +1454,12 @@ int InverseAlu[16] = {
 	GXset
 };
 
+int mfbGetInverseAlu(i)
+    int i;
+{
+    return InverseAlu[i];
+}
+
 int
 mfbReduceRop(alu, src)
     register int alu;

@@ -184,7 +184,7 @@ afbPushPixels(pGC, pBitMap, pDrawable, dx, dy, xOrg, yOrg)
 		pwEnd = pwLineStart + dxDivPPW;
 		while(pw  < pwEnd) {
 			w = *pw;
-			mask = endtab[1];
+			mask = mfbGetendtab(1);
 			for(ib = 0; ib < PPW; ib++) {
 				if(w & mask) {
 					if(!fInBox) {
@@ -214,7 +214,7 @@ afbPushPixels(pGC, pBitMap, pDrawable, dx, dy, xOrg, yOrg)
 		if(ibEnd) {
 			/* Process final partial word on line */
 			w = *pw;
-			mask = endtab[1];
+			mask = mfbGetendtab(1);
 			for(ib = 0; ib < ibEnd; ib++) {
 				if(w & mask) {
 					if(!fInBox) {

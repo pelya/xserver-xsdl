@@ -42,7 +42,7 @@ in this Software without prior written authorization from The Open Group.
 #include "cfbmskbits.h"
 #include "mibstore.h"
 
-#if PSZ==8
+#if 1 || PSZ==8
 int cfbWindowPrivateIndex;
 int cfbGCPrivateIndex;
 #endif
