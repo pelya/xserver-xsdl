@@ -902,25 +902,6 @@ xf86SetDefaultVisual(ScrnInfoPtr scrp, int visual)
     case DirectColor:
 	xf86DrvMsg(scrp->scrnIndex, visualFrom, "Default visual is %s\n",
 		   xf86VisualNames[scrp->defaultVisual]);
-	/* Check if the visual is valid for the depth */
-	if (scrp->depth == 1 && scrp->defaultVisual != StaticGray)
-	   bad = TRUE;
-#if 0
-        else if (scrp->depth == 4 &&
-                 (scrp->defaultVisual == TrueColor ||
-                  scrp->defaultVisual == DirectColor))
-           bad = TRUE;
-#endif
-        else if (scrp->depth > MAX_PSEUDO_DEPTH &&
-		 scrp->defaultVisual != TrueColor &&
-		 scrp->defaultVisual != DirectColor)
-	   bad = TRUE;
-	if (bad) {
-	    xf86DrvMsg(scrp->scrnIndex, X_ERROR, "Selected default "
-		       "visual (%s) is not valid for depth %d\n",
-		       xf86VisualNames[scrp->defaultVisual], scrp->depth);
-	    return FALSE;
-	} else
 	    return TRUE;
     default:
 
