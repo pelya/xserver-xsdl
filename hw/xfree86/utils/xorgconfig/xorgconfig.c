@@ -94,7 +94,7 @@
  *  Chisato Yamauchi(cyamauch@phyas.aichi-edu.ac.jp)
  */
 /* $XConsortium: xf86config.c /main/21 1996/10/28 05:43:57 kaleb $ */
-/* $XdotOrg: xc/programs/Xserver/hw/xfree86/xf86config/xorgconfig.c,v 1.8 2004/11/14 17:29:56 alanc Exp $ */
+/* $XdotOrg: xc/programs/Xserver/hw/xfree86/xf86config/xorgconfig.c,v 1.9 2005/01/03 15:39:35 eich Exp $ */
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -225,7 +225,7 @@ char *config_keyboard_dev = "/dev/wskbd0";
 #endif
 int config_xkbdisable = 0;
 char *config_xkbrules;
-char *config_xkbmodel = "pc101";
+char *config_xkbmodel = "pc105";
 char *config_xkblayout = "us";
 char *config_xkbvariant = (char *) 0;
 char *config_xkboptions = (char *) 0;
@@ -679,7 +679,7 @@ mouse_configuration(void) {
 static char *xkbmodeltext = 
 "Please select one of the following keyboard types that is the better\n"
 "description of your keyboard. If nothing really matches,\n"
-"choose 1 (Generic 101-key PC)\n\n";
+"choose \"Generic 104-key PC\"\n\n";
 
 static char *xkblayouttext = 
 "Please select the layout corresponding to your keyboard\n";
@@ -2077,7 +2077,7 @@ static char *keyboardchunk3_text =
 "# To customise the XKB settings to suit your keyboard, modify the\n"
 "# lines below (which are the defaults).  For example, for a non-U.S.\n"
 "# keyboard, you will probably want to use:\n"
-"#    Option \"XkbModel\"    \"pc102\"\n"
+"#    Option \"XkbModel\"    \"pc105\"\n"
 "# If you have a US Microsoft Natural keyboard, you can use:\n"
 "#    Option \"XkbModel\"    \"microsoft\"\n"
 "#\n"
@@ -2094,7 +2094,7 @@ static char *keyboardchunk3_text =
 "\n"
 "# These are the default XKB settings for "__XSERVERNAME__"\n"
 "#    Option \"XkbRules\"    \""__XKBDEFRULES__"\"\n"
-"#    Option \"XkbModel\"    \"pc101\"\n"
+"#    Option \"XkbModel\"    \"pc105\"\n"
 "#    Option \"XkbLayout\"   \"us\"\n"
 "#    Option \"XkbVariant\"  \"\"\n"
 "#    Option \"XkbOptions\"  \"\"\n"
