@@ -41,14 +41,20 @@
         }, 
         {
             ACTIONS = {
+                bringAllToFront = id; 
                 closeHelpAndShow = id; 
+                itemSelected = id; 
+                nextWindow = id; 
+                previousWindow = id; 
                 showAction = id; 
+                showSwitchPanel = id; 
                 startFullScreen = id; 
                 startRootless = id; 
             }; 
             CLASS = XServer; 
             LANGUAGE = ObjC; 
             OUTLETS = {
+                dockMenu = NSMenu; 
                 helpWindow = NSWindow; 
                 modeWindow = NSWindow; 
                 startFullScreenButton = NSButton; 
@@ -56,6 +62,8 @@
                 startupHelpButton = NSButton; 
                 startupModeButton = NSButton; 
                 switchWindow = NSPanel; 
+                windowMenu = NSMenu; 
+                windowSeparator = NSMenuItem; 
             }; 
             SUPERCLASS = NSObject; 
         }

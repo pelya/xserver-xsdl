@@ -1,4 +1,5 @@
-/* $XFree86: xc/programs/Xserver/mi/miarc.c,v 3.14 2003/10/29 22:57:48 tsi Exp $ */
+/* $XdotOrg: xc/programs/Xserver/mi/miarc.c,v 3.15 2003/12/06 18:46:28 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/mi/miarc.c,v 3.15 2003/12/06 18:46:28 dawes Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -1702,6 +1703,8 @@ miGetArcPts(
 
     poly[cpt].x = (xc + x0);
     poly[cpt].y = (yc + y0);
+    poly[cpt + 1].x = (xc + x1);
+    poly[cpt + 1].y = (yc + y1);
 
     for(i = 2; i < count; i++)
     {

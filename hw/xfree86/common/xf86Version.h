@@ -1,5 +1,5 @@
-/* $XdotOrg: xc/programs/Xserver/hw/xfree86/xf86Version.h,v 3.565 2003/12/03 05:06:00 dawes Exp $ */
-/* $XFree86: xc/programs/Xserver/hw/xfree86/xf86Version.h,v 3.565 2003/12/03 05:06:00 dawes Exp $ */
+/* $XdotOrg: xc/programs/Xserver/hw/xfree86/xf86Version.h,v 1.1.4.3 2003/12/06 13:24:23 kaleb Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/xf86Version.h,v 3.566 2003/12/19 04:52:11 dawes Exp $ */
 
 /*
  * Copyright (c) 1994-2003 by The XFree86 Project, Inc.
@@ -33,7 +33,7 @@
 #define XF86_VERSION_MAJOR	4
 #define XF86_VERSION_MINOR	3
 #define XF86_VERSION_PATCH	99
-#define XF86_VERSION_SNAP	901
+#define XF86_VERSION_SNAP	902
 
 /* This has five arguments for compatibilty reasons */
 #define XF86_VERSION_NUMERIC(major,minor,patch,snap,dummy) \
@@ -59,4 +59,4 @@
 #endif
 
 /* $XConsortium: xf86Version.h /main/78 1996/10/28 05:42:10 kaleb $ */
-/* $XdotOrg: xf86Version.h /main/78 1996/10/28 05:42:10 kaleb $ */
+/* $XdotOrg: xc/programs/Xserver/hw/xfree86/xf86Version.h,v 1.1.4.3 2003/12/06 13:24:23 kaleb Exp $ */

@@ -14,7 +14,8 @@
 #	changes/additions that aren't XFree86-specific to the pciids
 #	project (http://pciids.sf.net/).
 #
-#	$XFree86: xc/programs/Xserver/hw/xfree86/etc/extrapci.ids,v 1.10 2003/10/30 15:29:32 tsi Exp $
+#	$XdotOrg: xc/programs/Xserver/hw/xfree86/etc/extrapci.ids,v 1.12 2003/12/18 16:29:18 dawes Exp $
+#	$XFree86: xc/programs/Xserver/hw/xfree86/etc/extrapci.ids,v 1.12 2003/12/18 16:29:18 dawes Exp $
 #
 
 # Vendors, devices and subsystems. Please keep sorted.
@@ -39,6 +40,23 @@
 	0002	"
 		C  0401
 
-126f	"
-	0730	SM731 Cougar3DR
-	
+# Some NVIDIA cards that are not in the master pci.ids file yet.
+10de	"
+	0314	GeForce FX 5600SE
+	031a	GeForce FX Go5600
+	031b	GeForce FX Go5650
+	031c	Quadro FX Go700
+	0323	GeForce FX 5200SE
+	0324	GeForce FX Go5200
+	0325	GeForce FX Go5250
+	0328	GeForce FX Go5200 32M/64M
+	0329	GeForce FX 5200 (Mac)
+	032a	Quadro NVS 280 PCI
+	032c	GeForce FX Go5300
+	032d	GeForce FX Go5100
+	0332	GeForce FX 5900XT
+	0333	GeForce FX 5950 Ultra
+	0341	GeForce FX 5700 Ultra
+	0342	GeForce FX 5700
+	034e	Quadro FX 1100
+

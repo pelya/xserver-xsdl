@@ -1,4 +1,5 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/bus/zx1PCI.c,v 1.5 2003/11/06 18:38:14 tsi Exp $ */
+/* $XdotOrg: xc/programs/Xserver/hw/xfree86/os-support/bus/zx1PCI.c,v 1.6 2003/12/11 17:11:39 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/bus/zx1PCI.c,v 1.6 2003/12/11 17:11:39 tsi Exp $ */
 /*
  * Copyright (C) 2002-2003 The XFree86 Project, Inc.  All Rights Reserved.
  *
@@ -445,13 +446,13 @@ xf86PreScanZX1(void)
     resRange range;
     unsigned long mapSize = xf86getpagesize();
     unsigned long tmp, base, ioaaddr;
-    unsigned long flagsd = 0, based = 0, lastd = 0, maskd = 0, routed = 0;
-    unsigned long flags0 = 0, base0 = 0, last0 = 0, mask0 = 0, route0 = 0;
-    unsigned long flags1 = 0, base1 = 0, last1 = 0, mask1 = 0, route1 = 0;
-    unsigned long flags2 = 0, base2 = 0, last2 = 0, mask2 = 0, route2 = 0;
-    unsigned long flags3 = 0, base3 = 0, last3 = 0, mask3 = 0, route3 = 0;
-    unsigned long flagsg = 0, baseg = 0, lastg = 0, maskg = 0, routeg = 0;
-    unsigned long flagsl = 0, basel = 0, lastl = 0;
+    unsigned long flagsd, based, lastd, maskd, routed;
+    unsigned long flags0, base0, last0, mask0, route0;
+    unsigned long flags1, base1, last1, mask1, route1;
+    unsigned long flags2, base2, last2, mask2, route2;
+    unsigned long flags3, base3, last3, mask3, route3;
+    unsigned long flagsg, baseg, lastg, maskg, routeg;
+    unsigned long flagsl, basel, lastl;
     int i, rope;
 
     /* Map mio registers (minimum 8k) */
@@ -461,7 +462,7 @@ xf86PreScanZX1(void)
     if (!(pZX1mio = xf86MapVidMem(-1, VIDMEM_MMIO, MIO_BASE, mapSize)))
 	return FALSE;
 
-    /* Look for ZX1's SBA and IOC */
+    /* Look for ZX1's SBA and IOC */	/* XXX What about Dino? */
     if ((MIO_LONG(MIO_FUNCTION0 + PCI_ID_REG) !=
 	 DEVID(VENDOR_HP, CHIP_ZX1_SBA)) ||
 	(MIO_LONG(MIO_FUNCTION1 + PCI_ID_REG) !=
@@ -588,6 +589,14 @@ xf86PreScanZX1(void)
      * consequence of the fact that high-order mask bits are zeroes instead of
      * ones.
      */
+
+    flagsd = 0; based = 0; lastd = 0; maskd = 0; routed = 0;
+    flags0 = 0; base0 = 0; last0 = 0; mask0 = 0; route0 = 0;
+    flags1 = 0; base1 = 0; last1 = 0; mask1 = 0; route1 = 0;
+    flags2 = 0; base2 = 0; last2 = 0; mask2 = 0; route2 = 0;
+    flags3 = 0; base3 = 0; last3 = 0; mask3 = 0; route3 = 0;
+    flagsg = 0; baseg = 0; lastg = 0; maskg = 0; routeg = 0;
+    flagsl = 0; basel = 0; lastl = 0;
 
     if ((tmp = MIO_QUAD(IOS_DIST_BASE)) & RANGE_ENABLE) {
 	flagsd = RANGE_ENABLE;
@@ -909,9 +918,11 @@ xf86PostScanZX1(void)
     ppPCI = ppPCI2 = xf86scanpci(0);	/* Recursion is only apparent */
     while ((pPCI = *ppPCI2++)) {
 	switch (pPCI->pci_device_vendor) {
-	case DEVID(VENDOR_HP, CHIP_ZX1_SBA):
-	case DEVID(VENDOR_HP, CHIP_ZX1_IOC):
-	case DEVID(VENDOR_HP, CHIP_ZX1_LBA):
+	case DEVID(VENDOR_HP, CHIP_ELROY):
+	case DEVID(VENDOR_HP, CHIP_ZX1_SBA):	/* Pluto function 0 */
+	case DEVID(VENDOR_HP, CHIP_ZX1_IOC):	/* Pluto function 1 */
+	case DEVID(VENDOR_HP, CHIP_ZX1_LBA):	/* Mercury */
+	case DEVID(VENDOR_HP, CHIP_ZX1_AGP8):	/* QuickSilver */
 	    xfree(pPCI);		/* Remove it */
 	    continue;
 
