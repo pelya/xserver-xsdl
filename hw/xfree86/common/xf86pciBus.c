@@ -172,6 +172,17 @@ IsBaseUnassigned(CARD32 base)
     return (!base || (base == mask));
 }
 
+static Bool
+IsBaseUnassigned64(CARD32 base0, CARD32 base1)
+{
+    base0 &= ~PCI_MAP_MEMORY_ATTR_MASK;
+    base1 &= 0xffffffff;
+    
+    return ((!base0 && !base1)
+	    || ((base0 == ~PCI_MAP_MEMORY_ATTR_MASK)
+		&& (base1 == 0xffffffff)));
+}
+
 static void
 FindPCIVideoInfo(void)
 {
@@ -274,18 +285,28 @@ FindPCIVideoInfo(void)
 	    }
 
 	    if (PCINONSYSTEMCLASSES(baseclass, subclass)) {
-		if (info->size[0] && IsBaseUnassigned(pcrp->pci_base0))
-		    pcrp->pci_base0 = pciCheckForBrokenBase(pcrp->tag, 0);
-		if (info->size[1] && IsBaseUnassigned(pcrp->pci_base1))
-		    pcrp->pci_base1 = pciCheckForBrokenBase(pcrp->tag, 1);
-		if (info->size[2] && IsBaseUnassigned(pcrp->pci_base2))
-		    pcrp->pci_base2 = pciCheckForBrokenBase(pcrp->tag, 2);
-		if (info->size[3] && IsBaseUnassigned(pcrp->pci_base3))
-		    pcrp->pci_base3 = pciCheckForBrokenBase(pcrp->tag, 3);
-		if (info->size[4] && IsBaseUnassigned(pcrp->pci_base4))
-		    pcrp->pci_base4 = pciCheckForBrokenBase(pcrp->tag, 4);
-		if (info->size[5] && IsBaseUnassigned(pcrp->pci_base5))
-		    pcrp->pci_base5 = pciCheckForBrokenBase(pcrp->tag, 5);
+		/*
+		 * Check of a PCI base is unassigned. If so
+		 * attempt to fix it. Validation will determine
+		 * if the value was correct later on.
+		 */
+		CARD32 *base = &pcrp->pci_base0;
+
+		for (j = 0; j < 6; j++) {
+		    if (!PCI_MAP_IS64BITMEM(base[j])) {
+			if (info->size[j] && IsBaseUnassigned(base[j])) 
+			    base[j] = pciCheckForBrokenBase(pcrp->tag, j);
+		    } else {
+			if (j == 5) /* bail out */
+			    break;
+			if (info->size[j]
+			    && IsBaseUnassigned64(base[j],base[j+1])) {
+			    base[j] = pciCheckForBrokenBase(pcrp->tag, j);
+			    j++;
+			    base[j] = pciCheckForBrokenBase(pcrp->tag, j);
+			}
+		    }
+		}
 	    }
 	    
 	    /*
