@@ -49,7 +49,7 @@
  */
 
 /* $XConsortium: xf86Events.c /main/46 1996/10/25 11:36:30 kaleb $ */
-/* $XdotOrg: xc/programs/Xserver/hw/xfree86/common/xf86Events.c,v 1.2 2004/04/23 19:20:32 eich Exp $ */
+/* $XdotOrg: xc/programs/Xserver/hw/xfree86/common/xf86Events.c,v 1.3 2004/07/30 20:56:53 eich Exp $ */
 
 /* [JCH-96/01/21] Extended std reverse map to four buttons. */
 
@@ -1334,6 +1334,10 @@ xf86VTSwitch()
     ErrorF("xf86VTSwitch: Leaving, xf86Exiting is %s\n",
 	   BOOLTOSTRING((dispatchException & DE_TERMINATE) ? TRUE : FALSE));
 #endif
+#ifdef DPMSExtension
+    if (DPMSPowerLevel != DPMSModeOn)
+	DPMSSet(DPMSModeOn);
+#endif
     for (i = 0; i < xf86NumScreens; i++) {
       if (!(dispatchException & DE_TERMINATE))
 	if (xf86Screens[i]->EnableDisableFBAccess)
@@ -1353,13 +1357,9 @@ xf86VTSwitch()
     }
 #endif /* !__UNIXOS2__ */
     xf86EnterServerState(SETUP);
-    for (i = 0; i < xf86NumScreens; i++) {
-#ifdef DPMSExtension
-	if (xf86Screens[i]->DPMSSet)
-	    xf86Screens[i]->DPMSSet(xf86Screens[i],DPMSModeOn,0);
-#endif
+    for (i = 0; i < xf86NumScreens; i++)
 	xf86Screens[i]->LeaveVT(i, 0);
-    }
+
     for (ih = InputHandlers; ih; ih = ih->next)
       xf86DisableInputHandler(ih);
     xf86AccessLeave();      /* We need this here, otherwise */

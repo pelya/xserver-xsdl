@@ -96,6 +96,7 @@ extern int xtest_command_key;
 #ifdef DPMSExtension
 #define DPMS_SERVER
 #include "extensions/dpms.h"
+#include "dpmsproc.h"
 #endif
 
 
@@ -1254,6 +1255,10 @@ AbortDDX()
   /* Need the sleep when starting X from within another X session */
   sleep(1);
 #endif
+#ifdef DPMSExtension /* Turn screens back on */
+  if (DPMSPowerLevel != DPMSModeOn)
+      DPMSSet(DPMSModeOn);
+#endif
   if (xf86Screens) {
       if (xf86Screens[0]->vtSema)
 	  xf86EnterServerState(SETUP);
@@ -1265,10 +1270,6 @@ AbortDDX()
 	       * screen explicitely.
 	       */
 	      xf86EnableAccess(xf86Screens[i]);
-#ifdef DPMSExtension
-	      if (xf86Screens[i]->DPMSSet)
-		  xf86Screens[i]->DPMSSet(xf86Screens[i],DPMSModeOn,0);
-#endif
 	      (xf86Screens[i]->LeaveVT)(i, 0);
 	  }
   }
