@@ -437,7 +437,7 @@ xf86PostScan460GX(void)
 		if (pPCI->funcnum > 0)
 		    break;
 
-		if ((pBusInfo = pciBusInfo[busno_460gx[i]]))
+		if ((pBusInfo == pciBusInfo[busno_460gx[i]]))
 		    break;
 
 		/* Fix bus linkage */
