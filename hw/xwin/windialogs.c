@@ -307,7 +307,6 @@ winExitDlgProc (HWND hDialog, UINT message,
     case WM_INITDIALOG:
       {
 	char			*pszConnectedClients;
-	int			iReturn;
 
 	/* Store pointers to private structures for future use */
 	s_pScreenPriv = (winPrivScreenPtr) lParam;
@@ -322,21 +321,17 @@ winExitDlgProc (HWND hDialog, UINT message,
 					MAKEINTRESOURCE(IDI_XWIN)));
 
 	/* Format the connected clients string */
-	iReturn = scprintf (CONNECTED_CLIENTS_FORMAT,
-			   s_pScreenPriv->iConnectedClients);
-	if (iReturn <= 0)
-	  return TRUE;
-	pszConnectedClients = malloc (iReturn + 1);
+	pszConnectedClients = Xprintf (CONNECTED_CLIENTS_FORMAT,
+            s_pScreenPriv->iConnectedClients);
 	if (!pszConnectedClients)
-	  return TRUE;
-	snprintf (pszConnectedClients, iReturn + 1, CONNECTED_CLIENTS_FORMAT,
-		  s_pScreenPriv->iConnectedClients);
-        pszConnectedClients[iReturn] = 0;
+	    return TRUE;
+     
+        
 	
 	/* Set the number of connected clients */
 	SetWindowText (GetDlgItem (hDialog, IDC_CLIENTS_CONNECTED),
 		       pszConnectedClients);
-	free (pszConnectedClients);
+	xfree (pszConnectedClients);
       }
       return TRUE;
 

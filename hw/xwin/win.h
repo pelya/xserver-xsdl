@@ -139,13 +139,6 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <stdio.h>
-#ifndef HAS_SCPRINTF
-extern int scprintf(const char *format, ...);
-#else
-#ifdef WIN32
-#define scprintf _scprintf
-#endif
-#endif
 
 #ifndef __CYGWIN__
 #define sleep(x) Sleep(1000 * (x))
@@ -233,15 +226,9 @@ if (fDebugProcMsg) \
 { \
   char *pszTemp; \
   int iLength; \
-  \
-  iLength = scprintf (str, ##__VA_ARGS__); \
-  pszTemp = malloc (iLength + 1); \
-  snprintf (pszTemp, iLength + 1, str, ##__VA_ARGS__); \
-  pszTemp[iLength] = 0; \
-  \
+  pszTemp = Xprintf (str, ##__VA_ARGS__); \
   MessageBox (NULL, pszTemp, szFunctionName, MB_OK); \
-  \
-  free (pszTemp); \
+  xfree (pszTemp); \
 }
 #else
 #define DEBUG_MSG(str,...)

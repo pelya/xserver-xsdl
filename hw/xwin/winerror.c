@@ -98,21 +98,11 @@ winMessageBoxF (const char *pszError, UINT uType, ...)
   char *	pszMsgBox = NULL;
   va_list	args;
 
-  /* Get length of formatted error string */
-  va_start (args, uType);
-  i = scprintf (pszError, args);
-  va_end (args);
-  
-  /* Allocate memory for formatted error string */
-  pszErrorF = malloc (i + 1);
+  va_start(args, uType);
+  pszErrorF = Xvprintf(pszError, args);
+  va_end(args);
   if (!pszErrorF)
     goto winMessageBoxF_Cleanup;
-
-  /* Create the formatted error string */
-  va_start (args, uType);
-  snprintf (pszErrorF, i + 1, pszError, args);
-  pszErrorF[i] = 0;
-  va_end (args);
 
 #define MESSAGEBOXF \
 	"%s\n" \
@@ -122,23 +112,11 @@ winMessageBoxF (const char *pszError, UINT uType, ...)
 	"XWin was started with the following command-line:\n\n" \
 	"%s\n"
 
-  /* Get length of message box string */
-  i = scprintf (MESSAGEBOXF,
-	       pszErrorF,
-	       VENDOR_STRING, VERSION_STRING, VENDOR_CONTACT,
-	       g_pszCommandLine);
-
-  /* Allocate memory for message box string */
-  pszMsgBox = malloc (i + 1);
+  pszMsgBox = Xprintf (MESSAGEBOXF,
+	   pszErrorF, VENDOR_STRING, VERSION_STRING, VENDOR_CONTACT,
+	   g_pszCommandLine);
   if (!pszMsgBox)
     goto winMessageBoxF_Cleanup;
-
-  /* Format the message box string */
-  snprintf (pszMsgBox, i + 1, MESSAGEBOXF,
-	   pszErrorF,
-	   VENDOR_STRING, VERSION_STRING, VENDOR_CONTACT,
-	   g_pszCommandLine);
-  pszMsgBox[i] = 0;
 
   /* Display the message box string */
   MessageBox (NULL,
@@ -148,20 +126,8 @@ winMessageBoxF (const char *pszError, UINT uType, ...)
 
  winMessageBoxF_Cleanup:
   if (pszErrorF)
-    free (pszErrorF);
+    xfree (pszErrorF);
   if (pszMsgBox)
-    free (pszMsgBox);
+    xfree (pszMsgBox);
 #undef MESSAGEBOXF
 }
-
-#ifndef HAS_SCPRINTF
-extern int scprintf(const char *format, ...)
-{
-    int ret;
-    va_list va;
-    va_start(va, format);
-    ret = vsnprintf(NULL, 0, format, va);
-    va_end(va);
-    return ret;
-}
-#endif
