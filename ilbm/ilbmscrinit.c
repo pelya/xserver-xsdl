@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/ilbm/ilbmscrinit.c,v 3.5 1998/11/22 10:37:40 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/ilbm/ilbmscrinit.c,v 3.4 1998/07/26 01:53:45 dawes Exp $ */
 /***********************************************************
 
 Copyright (c) 1987  X Consortium

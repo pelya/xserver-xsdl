@@ -1,4 +1,4 @@
-.\" $XFree86: xc/programs/Xserver/hw/xfree86/etc/scanpci.man,v 3.3 2001/01/27 18:20:56 dawes Exp $ 
+.\" $XFree86: xc/programs/Xserver/hw/xfree86/etc/scanpci.man,v 3.2 2000/12/11 20:18:45 dawes Exp $ 
 .TH SCANPCI 1 __vendorversion__
 .SH NAME
 scanpci - scan/probe PCI buses

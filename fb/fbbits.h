@@ -1,5 +1,5 @@
 /*
- * $XFree86: xc/programs/Xserver/fb/fbbits.h,v 1.14 2003/11/03 05:11:00 tsi Exp $
+ * $XFree86$
  *
  * Copyright © 1998 Keith Packard
  *

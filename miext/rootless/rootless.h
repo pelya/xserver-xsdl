@@ -27,7 +27,7 @@
  * holders shall not be used in advertising or otherwise to promote the sale,
  * use or other dealings in this Software without prior written authorization.
  */
-/* $XFree86: xc/programs/Xserver/miext/rootless/rootless.h,v 1.6 2003/10/24 00:33:14 torrey Exp $ */
+/* $XFree86: xc/programs/Xserver/miext/rootless/rootless.h,v 1.5 2003/10/18 00:00:34 torrey Exp $ */
 
 #ifndef _ROOTLESS_H
 #define _ROOTLESS_H

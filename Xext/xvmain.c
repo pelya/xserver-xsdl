@@ -22,7 +22,7 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ******************************************************************/
-/* $XFree86: xc/programs/Xserver/Xext/xvmain.c,v 1.16 2003/10/28 23:08:44 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/Xext/xvmain.c,v 1.15tsi Exp $ */
 
 /*
 ** File: 

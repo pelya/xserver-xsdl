@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/ilbm/ilbmimage.c,v 3.1 1998/03/20 21:08:02 hohndel Exp $ */
+/* $XFree86: xc/programs/Xserver/ilbm/ilbmimage.c,v 3.0 1996/08/18 01:53:56 dawes Exp $ */
 #include <stdio.h>
 
 /* Modified jun 95 by Geert Uytterhoeven (Geert.Uytterhoeven@cs.kuleuven.ac.be)

@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/xaa/xaaTables.c,v 1.2 1998/07/25 16:58:53 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/xaa/xaaTables.c,v 1.1.2.1 1998/07/12 09:43:04 dawes Exp $ */
 
 /*
  * This is a table of 24-bit values, indexed with an 8-bit byte value, then

@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/xf8_32bpp/cfbgcmisc.c,v 1.3 2000/02/29 00:17:16 mvojkovi Exp $ */
+/* $XFree86$ */
 
 #include "X.h"
 #include "Xmd.h"

@@ -27,7 +27,7 @@
  *
  * Authors:	Harold L Hunt II
  */
-/* $XFree86: xc/programs/Xserver/hw/xwin/winnativegdi.c,v 1.15 2003/08/07 23:47:58 alanh Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xwin/winnativegdi.c,v 1.14 2003/07/29 21:25:18 dawes Exp $ */
 
 #include "win.h"
 

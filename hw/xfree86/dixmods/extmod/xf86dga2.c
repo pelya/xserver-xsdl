@@ -3,7 +3,7 @@
 
    Written by Mark Vojkovich
 */
-/* $XFree86: xc/programs/Xserver/Xext/xf86dga2.c,v 1.18 2003/07/16 01:38:30 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/Xext/xf86dga2.c,v 1.17 2001/10/28 03:32:51 tsi Exp $ */
 
 
 #define NEED_REPLIES

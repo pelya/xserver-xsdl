@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/ilbm/ilbmfillarc.c,v 3.1 1998/03/20 21:08:01 hohndel Exp $ */
+/* $XFree86: xc/programs/Xserver/ilbm/ilbmfillarc.c,v 3.0 1996/08/18 01:53:48 dawes Exp $ */
 /************************************************************
 
 Copyright (c) 1989  X Consortium

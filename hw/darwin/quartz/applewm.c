@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/darwin/quartz/applewm.c,v 1.3 2003/11/11 23:48:41 torrey Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/darwin/quartz/applewm.c,v 1.2 2003/09/16 00:36:13 torrey Exp $ */
 /**************************************************************************
 
 Copyright (c) 2002 Apple Computer, Inc. All Rights Reserved.

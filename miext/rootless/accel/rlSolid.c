@@ -26,7 +26,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/miext/rootless/accel/rlSolid.c,v 1.1 2003/10/24 00:33:15 torrey Exp $ */
+/* $XFree86: xc/programs/Xserver/fb/fbsolid.c,v 1.8 2001/10/28 03:33:08 tsi Exp $ */
 
 #include "fb.h"
 #include "rootlessCommon.h"

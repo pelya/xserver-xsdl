@@ -38,7 +38,7 @@
 //
 //=============================================================================
 
-/* $XFree86: xc/programs/Xserver/hw/darwin/darwinKeyboard.c,v 1.19 2003/11/01 08:13:08 torrey Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/darwin/darwinKeyboard.c,v 1.18 2003/05/14 05:27:55 torrey Exp $ */
 
 /*
 ===========================================================================

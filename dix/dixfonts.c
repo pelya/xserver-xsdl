@@ -1,5 +1,5 @@
 /* $XdotOrg: xc/programs/Xserver/dix/dixfonts.c,v 1.1.4.3 2003/12/18 19:29:12 kaleb Exp $ */
-/* $XFree86: xc/programs/Xserver/dix/dixfonts.c,v 3.29 2003/11/17 22:20:34 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/dix/dixfonts.c,v 3.28 2003/11/08 02:02:03 dawes Exp $ */
 /************************************************************************
 Copyright 1987 by Digital Equipment Corporation, Maynard, Massachusetts.
 

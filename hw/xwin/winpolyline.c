@@ -27,7 +27,7 @@
  *
  * Authors:	Harold L Hunt II
  */
-/* $XFree86: xc/programs/Xserver/hw/xwin/winpolyline.c,v 1.4 2003/08/07 23:47:58 alanh Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xwin/winpolyline.c,v 1.3 2001/09/13 08:25:45 alanh Exp $ */
 
 #include "win.h"
 

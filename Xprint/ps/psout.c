@@ -73,7 +73,7 @@ in this Software without prior written authorization from The Open Group.
 **    *********************************************************
 **
 ********************************************************************/
-/* $XFree86: xc/programs/Xserver/Xprint/ps/psout.c,v 1.12 2001/12/21 21:02:06 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/Xprint/ps/psout.c,v 1.11 2001/12/19 21:55:59 dawes Exp $ */
 
 /*      
  * For XFree86 3.3.3:  

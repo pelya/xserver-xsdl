@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/ilbm/ilbmpntarea.c,v 3.0 1996/08/18 01:54:04 dawes Exp $ */
+/* $XFree86$ */
 /* Combined Purdue/PurduePlus patches, level 2.0, 1/17/89 */
 /***********************************************************
 

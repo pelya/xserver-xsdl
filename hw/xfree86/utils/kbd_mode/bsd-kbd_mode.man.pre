@@ -1,4 +1,4 @@
-.\" $XFree86: xc/programs/Xserver/hw/xfree86/etc/kbd_mode.man,v 3.5 2001/01/27 18:20:56 dawes Exp $
+.\" $XFree86: xc/programs/Xserver/hw/xfree86/etc/kbd_mode.man,v 3.4 1998/04/05 02:28:42 dawes Exp $
 .TH KBD_MODE 1 __vendorversion__
 .SH NAME
 kbd_mode \- recover the PC console keyboard

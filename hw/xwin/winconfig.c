@@ -27,7 +27,7 @@
  *
  * Authors: Alexander Gottwald	
  */
-/* $XFree86: xc/programs/Xserver/hw/xwin/winconfig.c,v 1.4 2003/10/08 11:13:02 eich Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xwin/winconfig.c,v 1.3 2003/10/02 13:30:10 eich Exp $ */
 
 #include "win.h"
 #include "winconfig.h"

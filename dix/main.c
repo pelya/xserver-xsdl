@@ -1,5 +1,5 @@
 /* $XdotOrg: xc/programs/Xserver/dix/main.c,v 1.1.4.4 2003/12/18 19:29:12 kaleb Exp $ */
-/* $XFree86: xc/programs/Xserver/dix/main.c,v 3.44 2003/11/17 22:20:34 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/dix/main.c,v 3.43 2003/10/30 21:21:02 herrb Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group

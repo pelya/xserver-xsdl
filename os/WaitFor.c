@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/os/WaitFor.c,v 3.43 2003/10/29 04:17:22 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/os/WaitFor.c,v 3.42 2003/10/16 01:33:35 dawes Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -604,7 +604,8 @@ DPMSStandbyTimerExpire(OsTimerPtr timer,CARD32 now,pointer arg)
         return DPMSStandbyTime - timeout;
     }
     if (DPMSPowerLevel < DPMSModeStandby) {
-        DPMSSet(DPMSModeStandby);
+	if (DPMSEnabled)
+	    DPMSSet(DPMSModeStandby);
     }
     return DPMSStandbyTime;
 }
@@ -618,7 +619,8 @@ DPMSSuspendTimerExpire(OsTimerPtr timer,CARD32 now,pointer arg)
         return DPMSSuspendTime - timeout;
     }
     if (DPMSPowerLevel < DPMSModeSuspend) {
-        DPMSSet(DPMSModeSuspend);
+	if (DPMSEnabled)
+	    DPMSSet(DPMSModeSuspend);
     }
     return DPMSSuspendTime;
 }
@@ -632,7 +634,8 @@ DPMSOffTimerExpire(OsTimerPtr timer,CARD32 now,pointer arg)
         return DPMSOffTime - timeout;
     }
     if (DPMSPowerLevel < DPMSModeOff) {
-        DPMSSet(DPMSModeOff);
+	if (DPMSEnabled)
+	    DPMSSet(DPMSModeOff);
     }
     return DPMSOffTime;
 }

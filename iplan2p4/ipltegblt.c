@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/iplan2p4/ipltegblt.c,v 3.0 1996/08/18 01:55:09 dawes Exp $ */
+/* $XFree86$ */
 /* $XConsortium: ipltegblt.c,v 5.9 94/04/17 20:29:03 dpw Exp $ */
 /***********************************************************
 

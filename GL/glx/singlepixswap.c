@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/GL/glx/singlepixswap.c,v 1.6 2001/10/31 22:50:27 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/GL/glx/singlepixswap.c,v 1.5 2001/03/21 16:29:37 dawes Exp $ */
 /*
 ** License Applicability. Except to the extent portions of this file are
 ** made subject to an alternative license as permitted in the SGI Free

@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/cfb/cfbbres.c,v 3.5 2001/12/14 19:59:21 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/cfb/cfbbres.c,v 3.4 2001/01/17 22:36:34 dawes Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group

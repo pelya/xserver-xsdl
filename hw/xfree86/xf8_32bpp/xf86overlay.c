@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/xf8_32bpp/xf86overlay.c,v 1.9 2002/02/11 00:07:25 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/xf8_32bpp/xf86overlay.c,v 1.8 2000/03/25 20:14:43 mvojkovi Exp $ */
 
 /*
    Copyright (C) 1998.  The XFree86 Project Inc.

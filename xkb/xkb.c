@@ -24,7 +24,7 @@ OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION  WITH
 THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 ********************************************************/
-/* $XFree86: xc/programs/Xserver/xkb/xkb.c,v 3.23 2003/12/22 17:48:11 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/xkb/xkb.c,v 3.22tsi Exp $ */
 
 #include <stdio.h>
 #include "X.h"

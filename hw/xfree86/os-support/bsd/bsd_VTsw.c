@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/bsd/bsd_VTsw.c,v 3.6 1998/07/25 16:56:33 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/bsd/bsd_VTsw.c,v 3.5.4.3 1998/06/05 16:23:03 dawes Exp $ */
 /*
  * Derived from VTsw_usl.c which is
  * Copyright 1993 by David Wexelblat <dwex@goblin.org>

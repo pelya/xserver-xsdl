@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/fb/fbarc.c,v 1.8 2002/11/09 04:59:29 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/fb/fbarc.c,v 1.7tsi Exp $ */
 
 #include "fb.h"
 #include "mizerarc.h"

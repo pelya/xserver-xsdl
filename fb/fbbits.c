@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/fb/fbbits.c,v 1.6 2000/02/23 20:29:41 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/fb/fbbits.c,v 1.5 2000/02/17 14:16:22 dawes Exp $ */
 
 #include "fb.h"
 #include "miline.h"

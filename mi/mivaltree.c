@@ -73,7 +73,7 @@ in this Software without prior written authorization from The Open Group.
 *                                                               *
 *****************************************************************/
 
-/* $XFree86: xc/programs/Xserver/mi/mivaltree.c,v 1.10 2003/11/10 18:22:49 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/mi/mivaltree.c,v 1.9tsi Exp $ */
 
  /* 
   * Aug '86: Susan Angebranndt -- original code

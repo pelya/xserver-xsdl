@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/cfb/cfbhrzvert.c,v 3.8 2002/09/16 18:05:30 eich Exp $ */
+/* $XFree86: xc/programs/Xserver/cfb/cfbhrzvert.c,v 3.6 2001/10/28 03:33:00 tsi Exp $ */
 /***********************************************************
 
 Copyright 1987,1998  The Open Group

@@ -35,7 +35,7 @@
  * authorization.
  */
 /* $XdotOrg: xc/programs/Xserver/hw/darwin/quartz/XServer.m,v 1.20 2003/11/27 01:59:53 torrey Exp $ */
-/* $XFree86: xc/programs/Xserver/hw/darwin/quartz/XServer.m,v 1.20 2003/11/27 01:59:53 torrey Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/darwin/quartz/XServer.m,v 1.19 2003/11/24 05:39:01 torrey Exp $ */
 
 #include "quartzCommon.h"
 

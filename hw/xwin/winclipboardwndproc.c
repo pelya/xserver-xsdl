@@ -27,7 +27,7 @@
  *
  * Authors:	Harold L Hunt II
  */
-/* $XFree86: xc/programs/Xserver/hw/xwin/winclipboardwndproc.c,v 1.2 2003/07/29 21:25:16 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xwin/winclip.c,v 1.2 2001/06/04 13:04:41 alanh Exp $ */
 
 #include "winclipboard.h"
 

@@ -45,7 +45,7 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ********************************************************/
-/* $XFree86: xc/programs/Xserver/Xi/sendexev.c,v 3.3 2001/12/14 19:58:58 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/Xi/sendexev.c,v 3.2 2001/01/17 22:13:26 dawes Exp $ */
 
 /***********************************************************************
  *

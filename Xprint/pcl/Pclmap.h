@@ -30,7 +30,7 @@ not be used in advertising or otherwise to promote the sale, use or other
 dealings in this Software without prior written authorization from said
 copyright holders.
 */
-/* $XFree86: xc/programs/Xserver/Xprint/pcl/Pclmap.h,v 1.6 2001/12/21 21:02:05 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/Xprint/pcl/Pclmap.h,v 1.5 2001/07/25 15:05:00 dawes Exp $ */
 
 #ifndef _PCLMAP_H_
 #define _PCLMAP_H_

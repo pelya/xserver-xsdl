@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/xf4bpp/wm3.h,v 1.3 2000/09/26 15:57:21 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/xf4bpp/wm3.h,v 1.2 1998/07/25 16:59:46 dawes Exp $ */
 
 
 

@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/cfb/cfbfillarc.c,v 3.7 2003/10/29 22:44:53 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/cfb/cfbfillarc.c,v 3.6tsi Exp $ */
 /************************************************************
 
 Copyright 1989, 1998  The Open Group

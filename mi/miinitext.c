@@ -1,5 +1,5 @@
 /* $XdotOrg: xc/programs/Xserver/mi/miinitext.c,v 1.1.4.2 2003/12/18 19:29:15 kaleb Exp $ */
-/* $XFree86: xc/programs/Xserver/mi/miinitext.c,v 3.68 2003/01/15 02:34:14 torrey Exp $ */
+/* $XFree86: xc/programs/Xserver/mi/miinitext.c,v 3.67 2003/01/12 02:44:27 dawes Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group

@@ -34,7 +34,7 @@
  * use or other dealings in this Software without prior written authorization.
  */
 /* $XdotOrg: xc/programs/Xserver/hw/darwin/iokit/xfIOKit.c,v 1.3 2003/12/09 04:42:36 torrey Exp $ */
-/* $XFree86: xc/programs/Xserver/hw/darwin/iokit/xfIOKit.c,v 1.3 2003/12/09 04:42:36 torrey Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/darwin/iokit/xfIOKit.c,v 1.2 2003/10/16 23:50:09 torrey Exp $ */
 
 #include "X.h"
 #include "Xproto.h"

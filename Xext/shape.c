@@ -1,5 +1,5 @@
 /* $XdotOrg: xc/programs/Xserver/Xext/shape.c,v 1.1.4.3 2003/12/18 19:29:12 kaleb Exp $ */
-/* $XFree86: xc/programs/Xserver/Xext/shape.c,v 3.19 2003/11/17 22:20:26 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/Xext/shape.c,v 3.18 2003/10/28 23:08:43 tsi Exp $ */
 /************************************************************
 
 Copyright 1989, 1998  The Open Group

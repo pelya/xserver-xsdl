@@ -45,7 +45,7 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ********************************************************/
-/* $XFree86: xc/programs/Xserver/Xi/chgptr.c,v 3.7 2001/12/14 19:58:55 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/Xi/chgptr.c,v 3.6 2001/08/23 14:56:19 alanh Exp $ */
 
 /***********************************************************************
  *

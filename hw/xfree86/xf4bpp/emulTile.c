@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/xf4bpp/emulTile.c,v 1.4 2003/11/03 05:11:56 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/xf4bpp/emulTile.c,v 1.3tsi Exp $ */
 /*
  * Copyright IBM Corporation 1987,1988,1989
  *

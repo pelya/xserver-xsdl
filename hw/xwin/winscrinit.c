@@ -31,7 +31,7 @@
  *		Harold L Hunt II
  *		Kensuke Matsuzaki
  */
-/* $XFree86: xc/programs/Xserver/hw/xwin/winscrinit.c,v 1.28 2003/08/07 23:47:58 alanh Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xwin/winscrinit.c,v 1.27 2003/07/29 21:25:18 dawes Exp $ */
 
 #include "win.h"
 

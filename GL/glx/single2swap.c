@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/GL/glx/single2swap.c,v 1.8 2004/02/09 23:46:31 alanh Exp $ */
+/* $XFree86: xc/programs/Xserver/GL/glx/single2swap.c,v 1.7 2002/01/14 22:47:08 tsi Exp $ */
 /*
 ** License Applicability. Except to the extent portions of this file are
 ** made subject to an alternative license as permitted in the SGI Free

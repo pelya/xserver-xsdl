@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/afb/afbcmap.c,v 3.1 1998/11/22 10:36:58 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/afb/afbcmap.c,v 3.0 1996/08/18 01:45:30 dawes Exp $ */
 /* $XConsortium: afbcmap.c,v 4.19 94/04/17 20:28:46 dpw Exp $ */
 /************************************************************
 Copyright 1987 by Sun Microsystems, Inc. Mountain View, CA.

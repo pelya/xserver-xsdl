@@ -26,7 +26,7 @@ other dealings in this Software without prior written authorization
 from The Open Group.
 
 */
-/* $XFree86: xc/programs/Xserver/cfb/cfb8bit.c,v 1.5 2001/12/14 19:59:20 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/cfb/cfb8bit.c,v 1.4 2001/01/17 22:36:34 dawes Exp $ */
 
 /*
  * cfb8bit.c

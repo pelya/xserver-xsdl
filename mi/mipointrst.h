@@ -29,7 +29,7 @@ Except as contained in this notice, the name of The Open Group shall not be
 used in advertising or otherwise to promote the sale, use or other dealings
 in this Software without prior written authorization from The Open Group.
 */
-/* $XFree86: xc/programs/Xserver/mi/mipointrst.h,v 1.4 2001/12/14 20:00:25 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/mi/mipointrst.h,v 1.3 2001/04/19 14:14:07 tsi Exp $ */
 
 #include "mipointer.h"
 #include "scrnintstr.h"

@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/xf8_32bpp/cfbcpyplane.c,v 1.1 1999/01/03 03:58:55 dawes Exp $ */
+/* $XFree86$ */
 
 #include "X.h"
 #include "Xmd.h"

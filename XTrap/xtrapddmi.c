@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/XTrap/xtrapddmi.c,v 1.2 2002/01/23 03:31:39 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/XTrap/xtrapddmi.c,v 1.1 2001/11/02 23:29:29 dawes Exp $ */
 /*****************************************************************************
 Copyright 1987, 1988, 1989, 1990, 1991 by Digital Equipment Corp., Maynard, MA
 

@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/dix/extension.c,v 3.12 2002/02/19 11:09:22 alanh Exp $ */
+/* $XFree86: xc/programs/Xserver/dix/extension.c,v 3.11 2001/12/14 19:59:31 dawes Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group

@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/bus/freebsdPci.c,v 1.6 2003/10/02 13:30:07 eich Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/bus/freebsdPci.c,v 1.4 2002/07/24 19:06:52 tsi Exp $ */
 /*
  * Copyright 1998 by Concurrent Computer Corporation
  *

@@ -24,7 +24,7 @@ OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION  WITH
 THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 ********************************************************/
-/* $XFree86: xc/programs/Xserver/xkb/xkbSwap.c,v 3.5 2003/11/17 22:20:46 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/xkb/xkbSwap.c,v 3.4 2003/09/13 16:39:01 dawes Exp $ */
 
 #include "stdio.h"
 #include "X.h"

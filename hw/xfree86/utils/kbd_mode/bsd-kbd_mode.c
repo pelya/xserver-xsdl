@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/etc/kbd_mode.c,v 3.6 1998/07/26 09:56:17 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/etc/kbd_mode.c,v 3.5 1996/12/23 06:47:13 dawes Exp $ */
 
 
 /* Keyboard mode control program for 386BSD */

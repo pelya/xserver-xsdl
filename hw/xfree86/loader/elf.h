@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/loader/elf.h,v 1.17 2003/10/15 16:29:02 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/loader/elf.h,v 1.16 2003/06/12 14:12:34 eich Exp $ */
 
 typedef unsigned int Elf32_Addr;
 typedef unsigned short Elf32_Half;

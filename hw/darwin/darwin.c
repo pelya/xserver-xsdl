@@ -30,7 +30,7 @@
  * use or other dealings in this Software without prior written authorization.
  */
 /* $XdotOrg: xc/programs/Xserver/hw/darwin/darwin.c,v 1.56 2003/11/24 05:39:01 torrey Exp $ */
-/* $XFree86: xc/programs/Xserver/hw/darwin/darwin.c,v 1.56 2003/11/24 05:39:01 torrey Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/darwin/darwin.c,v 1.55 2003/11/15 00:07:09 torrey Exp $ */
 
 #include "X.h"
 #include "Xproto.h"
@@ -408,11 +408,9 @@ static int DarwinKeybdProc( DeviceIntPtr pDev, int onoff )
 }
 
 /*
-===========================================================================
 
  Utility routines
 
-===========================================================================
 */
 
 /*
@@ -500,11 +498,9 @@ static int DarwinParseModifierList(
 }
 
 /*
-===========================================================================
 
  Functions needed to link against device independent X
 
-===========================================================================
 */
 
 /*

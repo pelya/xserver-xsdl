@@ -1,6 +1,6 @@
 /* $XdotOrg: xc/programs/Xserver/render/picturestr.h,v 1.1.4.1 2003/12/18 19:29:15 kaleb Exp $ */
 /*
- * $XFree86: xc/programs/Xserver/render/picturestr.h,v 1.22 2002/11/23 02:38:15 keithp Exp $
+ * $XFree86: xc/programs/Xserver/render/picturestr.h,v 1.21 2002/11/06 22:45:36 keithp Exp $
  *
  * Copyright © 2000 SuSE, Inc.
  *

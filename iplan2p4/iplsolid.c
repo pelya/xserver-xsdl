@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/iplan2p4/iplsolid.c,v 3.1 1998/03/20 21:08:09 hohndel Exp $ */
+/* $XFree86: xc/programs/Xserver/iplan2p4/iplsolid.c,v 3.0 1996/08/18 01:55:08 dawes Exp $ */
 /*
  * $XConsortium: iplsolid.c,v 1.9 94/04/17 20:29:02 dpw Exp $
  *

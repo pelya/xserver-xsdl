@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/xf4bpp/vgaGC.c,v 1.4 2003/02/18 21:29:59 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/xf4bpp/vgaGC.c,v 1.3tsi Exp $ */
 /*
 
 Copyright (c) 1987  X Consortium

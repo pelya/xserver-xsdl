@@ -6,7 +6,7 @@
    Pre-fb-write callbacks and RENDER support - Nolan Leake (nolan@vmware.com)
 */
 
-/* $XFree86: xc/programs/Xserver/hw/xfree86/shadowfb/shadow.c,v 1.21 2003/11/10 18:22:38 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/shadowfb/shadow.c,v 1.20tsi Exp $ */
 
 #include "X.h"
 #include "Xproto.h"

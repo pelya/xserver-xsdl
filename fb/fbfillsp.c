@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/fb/fbfillsp.c,v 1.2 2000/02/23 20:29:43 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/fb/fbfillsp.c,v 1.1 1999/11/19 13:53:43 hohndel Exp $ */
 
 #include "fb.h"
 

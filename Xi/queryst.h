@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/Xi/queryst.h,v 3.2 2003/11/17 22:20:29 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/Xi/queryst.h,v 3.1 1996/04/15 11:19:00 dawes Exp $ */
 /************************************************************
 
 Copyright 1996 by Thomas E. Dickey <dickey@clark.net>

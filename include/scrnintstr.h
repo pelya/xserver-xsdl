@@ -45,7 +45,7 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ******************************************************************/
-/* $XFree86: xc/programs/Xserver/include/scrnintstr.h,v 1.13 2003/07/16 01:38:53 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/include/scrnintstr.h,v 1.12 2003/04/27 21:31:05 herrb Exp $ */
 
 #ifndef SCREENINTSTRUCT_H
 #define SCREENINTSTRUCT_H

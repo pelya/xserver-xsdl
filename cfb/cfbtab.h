@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/cfb/cfbtab.h,v 1.1 2003/07/16 01:38:37 dawes Exp $ */
+/* $XFree86$ */
 
 #ifndef _CFBTAB_H_
 #define _CFBTAB_H_

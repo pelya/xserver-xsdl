@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/GL/glx/glxmem.c,v 1.7 2002/08/28 06:41:26 torrey Exp $ */
+/* $XFree86: xc/programs/Xserver/GL/glx/glxmem.c,v 1.6 2001/10/31 22:50:27 tsi Exp $ */
 /*
 ** License Applicability. Except to the extent portions of this file are
 ** made subject to an alternative license as permitted in the SGI Free

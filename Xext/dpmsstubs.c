@@ -26,7 +26,7 @@ dealings in this Software without prior written authorization from Digital
 Equipment Corporation.
 
 ******************************************************************/
-/* $XFree86: xc/programs/Xserver/Xext/dpmsstubs.c,v 3.5 2003/07/16 01:38:29 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/Xext/dpmsstubs.c,v 3.4 2001/01/17 22:13:15 dawes Exp $ */
 
 typedef int Bool;
 

@@ -1,6 +1,6 @@
 /*
  * $XdotOrg: xc/programs/Xserver/fb/fbglyph.c,v 1.13 2003/12/04 17:15:12 tsi Exp $
- * $XFree86: xc/programs/Xserver/fb/fbglyph.c,v 1.13 2003/12/04 17:15:12 tsi Exp $
+ * $XFree86: xc/programs/Xserver/fb/fbglyph.c,v 1.12tsi Exp $
  *
  * Copyright © 1998 Keith Packard
  *

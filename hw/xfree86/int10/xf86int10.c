@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/int10/xf86int10.c,v 1.11 2003/03/21 22:26:11 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/int10/xf86int10.c,v 1.10tsi Exp $ */
 /*
  *                   XFree86 int10 module
  *   execute BIOS int 10h calls in x86 real mode environment

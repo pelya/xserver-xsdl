@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/xf8_32bpp/cfbgc.c,v 1.4 2001/12/14 19:59:52 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/xf8_32bpp/cfbgc.c,v 1.3 2000/02/11 06:33:46 mvojkovi Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group

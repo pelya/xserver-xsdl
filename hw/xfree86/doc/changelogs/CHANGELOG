@@ -1,4 +1,41 @@
-XFree86 4.3.99.904 (xx February 2004)
+XFree86 4.4.0 (29 February 2004)
+ 821. Fix Radeon secondary head register initialization (Hui Yu@ATI,
+      Benjamin Herrenschmidt).
+ 820. ati & atimisc module changes (Marc La France)
+      - Allow builds with ATIAvoidNonPCI && !ATIAvoidCPIO;
+      - Make handling of unknown Radeon's saner;
+      - Add private option to re-enable BIOS display switches;
+      - Deal with ati & atimisc module version skews;
+      - Fix private option handling;
+ 819. Fix rendition driver system lockup on changes to text mode
+      (Bugzilla #1204, Eric Wittry).
+ 818. Make the "fp=n" TTCap option behave the same with the FreeType backend
+      as with the X-TT backend (Bugzilla #1163, Chisato Yamauchi).
+ 817. Fix the disappearance of the RAW_ASCENT, RAW_DESCENT, RAW_PIXEL_SIZE,
+      and RAW_POINT_SIZE properties for the FreeType backend (Bugzilla #1163,
+      Chisato Yamauchi).
+ 816. Fix a FreeType backend problem with the font ascent/descent being
+      incorrect with some fonts (Bugzilla #1163, Chisato Yamauchi, reported by
+      Michael Lampe).
+ 815. Fix for detection of hardwired panel for the via driver (Bugzilla #813,
+      Luc Verhaegen, reported by Johannes Specht).
+ 814. Fix missing ';' in via_driver.c hidden by an empty macro (Bugzilla #813,
+      Luc Verhaegen).
+ 813. Add FT_Get_Postscript_Name() to the freetype2 export list for OS/2.
+      This is needed for the recent PostScript fontname property fix
+      (Bugzilla #1189, Frank Giessler).
+ 812. Fix MGA driver for big endian and EXTRADEBUG compilation (derived from
+      #6132, Rene Rebe).
+ 811. Turn off the GetDisplayInfo BIOS call by default and add an option 
+      to turn it back on in the i810 driver. This fixes some lockup
+      problems found with some Dell BIOS' (Alan Hourihane, Alain Poirier).
+ 810. Fix compile issue in imstt driver (#6140, Rene Rebe)
+ 809. Only reset primary head of a Radeon (#6133, Rene Rebe).
+ 808. Fix big-endian typo in xf86CopyYUV12ToPacked (#6131, Rene Rebe).
+ 807. Fix neomagic white screen/lockup bug introduced in 4.3.99.15 (Bugzilla
+      #1179, #1157, David Dawes).
+ 806. Fixing DPMS: let modification of DPMS timeout take effect immeditately,
+      don't activate DPMS when disabled (Egbert Eich).
 
 XFree86 4.3.99.903 (15 February 2004)
  805. Resync the pci.ids data with pciids.sf.net (2004-02-15 snapshot).
@@ -18646,7 +18683,7 @@ XFree86 3.0a (28 April 1994)
 XFree86 3.0 (26 April 1994)
 
 
-$XFree86: xc/programs/Xserver/hw/xfree86/CHANGELOG,v 3.3145 2004/02/16 01:01:45 dawes Exp $
+$XFree86: xc/programs/Xserver/hw/xfree86/CHANGELOG,v 3.3156 2004/02/29 04:25:24 martin Exp $
 
 
 

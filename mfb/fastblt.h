@@ -26,7 +26,7 @@ other dealings in this Software without prior written authorization
 from The Open Group.
 
 */
-/* $XFree86: xc/programs/Xserver/mfb/fastblt.h,v 1.5 2001/12/14 20:00:03 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/mfb/fastblt.h,v 1.4 2001/01/17 22:37:01 dawes Exp $ */
 
 /*
  * Fast bitblt macros for certain hardware.  If your machine has an addressing

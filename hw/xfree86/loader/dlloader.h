@@ -19,7 +19,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $XFree86: xc/programs/Xserver/hw/xfree86/loader/dlloader.h,v 1.3 1998/09/20 14:41:04 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/loader/dlloader.h,v 1.2 1998/07/25 16:56:14 dawes Exp $ */
 
 #ifndef _DLLOADER_H
 #define _DLLOADER_H

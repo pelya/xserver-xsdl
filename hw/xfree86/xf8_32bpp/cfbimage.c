@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/xf8_32bpp/cfbimage.c,v 1.3 2003/07/16 01:38:50 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/xf8_32bpp/cfbimage.c,v 1.2 2000/02/25 00:21:40 mvojkovi Exp $ */
 
 #include "X.h"
 #include "windowstr.h"

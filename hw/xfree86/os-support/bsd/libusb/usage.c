@@ -25,7 +25,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/bsd/libusb/usage.c,v 1.1 2000/02/11 18:06:50 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/libusb/usage.c,v 1.1.2.2 1999/12/03 10:12:42 hohndel Exp $ */
 
 #include <ctype.h>
 #include <err.h>

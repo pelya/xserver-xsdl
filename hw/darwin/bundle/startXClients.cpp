@@ -3,7 +3,7 @@ XCOMM!/bin/sh
 XCOMM This script is used by XDarwin to start X clients when XDarwin is
 XCOMM launched from the Finder.
 XCOMM
-XCOMM $XFree86: xc/programs/Xserver/hw/darwin/bundle/startXClients.cpp,v 1.1 2001/10/18 05:03:42 torrey Exp $
+XCOMM $XFree86: $
 
 userclientrc=$HOME/.xinitrc
 sysclientrc=XINITDIR/xinitrc

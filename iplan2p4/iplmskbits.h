@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/iplan2p4/iplmskbits.h,v 3.0 1996/08/18 01:54:55 dawes Exp $ */
+/* $XFree86$ */
 /* Modified nov 94 by Martin Schaller (Martin_Schaller@maus.r.de) for use with
 interleaved planes */
 

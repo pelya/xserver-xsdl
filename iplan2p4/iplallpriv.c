@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/iplan2p4/iplallpriv.c,v 3.0 1996/08/18 01:54:33 dawes Exp $ */
+/* $XFree86$ */
 /*
  * $XConsortium: iplallpriv.c,v 1.5 94/04/17 20:28:42 dpw Exp $
  *

@@ -1,5 +1,5 @@
 /*
- * $XFree86: xc/programs/Xserver/miext/layer/layerstr.h,v 1.4 2003/08/22 19:27:32 eich Exp $
+ * $XFree86: xc/programs/Xserver/miext/layer/layerstr.h,v 1.2 2001/06/04 09:45:41 keithp Exp $
  *
  * Copyright © 2001 Keith Packard, member of The XFree86 Project, Inc.
  *

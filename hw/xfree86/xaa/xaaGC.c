@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/xaa/xaaGC.c,v 1.19 2001/02/19 22:19:50 mvojkovi Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/xaa/xaaGC.c,v 1.18 2000/09/28 20:48:00 mvojkovi Exp $ */
 
 #include "misc.h"
 #include "xf86.h"

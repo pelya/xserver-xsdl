@@ -21,7 +21,7 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ******************************************************************/
-/* $XFree86: xc/programs/Xserver/include/dixfont.h,v 3.8 2001/04/05 17:42:35 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/include/dixfont.h,v 3.7 2001/02/02 21:39:02 herrb Exp $ */
 
 #ifndef DIXFONT_H
 #define DIXFONT_H 1

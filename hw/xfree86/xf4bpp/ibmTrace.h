@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/xf4bpp/ibmTrace.h,v 1.2 1998/07/25 16:59:28 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/xf4bpp/ibmTrace.h,v 1.1.2.1 1998/06/27 14:48:30 dawes Exp $ */
 
 
 

@@ -25,7 +25,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/bsd/libusb/usb.h,v 1.1 2000/02/11 18:06:51 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/libusb/usb.h,v 1.1.2.2 1999/12/03 10:12:43 hohndel Exp $ */
 
 #define _DIAGASSERT(e) assert(e)
 

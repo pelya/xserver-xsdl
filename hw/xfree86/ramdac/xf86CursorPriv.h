@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/ramdac/xf86CursorPriv.h,v 1.5 2003/02/15 03:14:47 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/ramdac/xf86CursorPriv.h,v 1.4tsi Exp $ */
 
 #ifndef _XF86CURSORPRIV_H
 #define _XF86CURSORPRIV_H

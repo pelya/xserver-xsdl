@@ -30,7 +30,7 @@
  * sale, use or other dealings in this Software without prior written
  * authorization.
  */
-/* $XFree86: xc/programs/Xserver/hw/darwin/quartz/XApplication.h,v 1.2 2002/10/12 00:32:45 torrey Exp $ */
+/* $XFree86: $ */
 
 #import <Cocoa/Cocoa.h>
 

@@ -3,7 +3,7 @@
 //      "VESA and Industry Standards and Guide for Computer Display Monitor
 //       Timing", version 1.0, revision 0.8, adopted September 17, 1998.
 //  
-//  $XFree86: xc/programs/Xserver/hw/xfree86/etc/vesamodes,v 1.4 1999/11/18 16:52:17 tsi Exp $
+//  $XFree86: xc/programs/Xserver/hw/xfree86/etc/vesamodes,v 1.3 1999/11/16 03:28:03 tsi Exp $
 
 
 # 640x350 @ 85Hz (VESA) hsync: 37.9kHz

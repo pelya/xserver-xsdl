@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/iplan2p4/ipltileodd.c,v 3.0 1996/08/18 01:55:11 dawes Exp $ */
+/* $XFree86$ */
 /*
  * Fill odd tiled rectangles and spans.
  * no depth dependencies.

@@ -45,7 +45,7 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ******************************************************************/
-/* $XFree86: xc/programs/Xserver/include/resource.h,v 1.12 2003/04/27 21:31:05 herrb Exp $ */
+/* $XFree86: xc/programs/Xserver/include/resource.h,v 1.11 2002/03/06 21:14:04 mvojkovi Exp $ */
 
 #ifndef RESOURCE_H
 #define RESOURCE_H 1

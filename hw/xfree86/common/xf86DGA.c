@@ -1,5 +1,5 @@
 /* $XdotOrg: xc/programs/Xserver/hw/xfree86/common/xf86DGA.c,v 1.1.4.2 2003/12/18 19:29:13 kaleb Exp $ */
-/* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86DGA.c,v 1.47 2003/08/24 17:36:51 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86DGA.c,v 1.46 2002/12/03 18:17:40 tsi Exp $ */
 /*
  * Copyright (c) 1998-2002 by The XFree86 Project, Inc.
  *

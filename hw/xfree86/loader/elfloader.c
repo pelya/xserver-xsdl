@@ -1,5 +1,5 @@
 /* $XdotOrg$ */
-/* $XFree86: xc/programs/Xserver/hw/xfree86/loader/elfloader.c,v 1.62 2003/11/06 18:38:13 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/loader/elfloader.c,v 1.61tsi Exp $ */
 
 /*
  *

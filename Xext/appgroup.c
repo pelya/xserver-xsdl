@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/Xext/appgroup.c,v 1.11 2003/10/28 23:08:43 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/Xext/appgroup.c,v 1.10tsi Exp $ */
 /*
 Copyright 1996, 1998, 2001  The Open Group
 

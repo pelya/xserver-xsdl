@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/afb/afbbresd.c,v 3.0 1996/08/18 01:45:26 dawes Exp $ */
+/* $XFree86$ */
 /***********************************************************
 
 Copyright (c) 1987  X Consortium

@@ -23,7 +23,7 @@
 
 /* Modified for FreeBSD by David Dawes <dawes@XFree86.org> */
 
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/bsd/bsd_jstk.c,v 3.8 2002/08/06 13:20:47 herrb Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/bsd/bsd_jstk.c,v 3.7 1998/07/25 16:56:34 dawes Exp $ */
 
 #include <sys/types.h>
 #include <unistd.h>

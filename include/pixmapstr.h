@@ -45,7 +45,7 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ******************************************************************/
-/* $XFree86: xc/programs/Xserver/include/pixmapstr.h,v 1.3 2003/07/16 01:38:52 dawes Exp $ */
+/* $XFree86$ */
 
 #ifndef PIXMAPSTRUCT_H
 #define PIXMAPSTRUCT_H

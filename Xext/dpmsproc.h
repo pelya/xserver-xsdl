@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/Xext/dpmsproc.h,v 1.4 2003/07/16 01:38:29 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/Xext/dpmsproc.h,v 1.3 2001/10/28 03:32:50 tsi Exp $ */
 
 /* Prototypes for functions that the DDX must provide */
 

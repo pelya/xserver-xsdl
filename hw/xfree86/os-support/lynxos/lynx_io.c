@@ -21,7 +21,7 @@
  *
  */
 
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/lynxos/lynx_io.c,v 3.10 2003/02/17 15:11:57 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/lynxos/lynx_io.c,v 3.9 2002/10/11 01:40:35 dawes Exp $ */
 
 #include "X.h"
 

@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/xaa/xaaNonTEGlyph.c,v 1.6 1999/11/06 23:14:46 mvojkovi Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/xaa/xaaNonTEGlyph.c,v 1.4 1998/09/13 05:23:55 dawes Exp $ */
 
 
 #include "xaa.h"

@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/xf4bpp/vgaSolid.c,v 1.6 2003/11/03 05:11:57 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/xf4bpp/vgaSolid.c,v 1.5tsi Exp $ */
 /*
  * Copyright IBM Corporation 1987,1988,1989
  *

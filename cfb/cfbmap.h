@@ -26,7 +26,7 @@ in this Software without prior written authorization from The Open Group.
  * Author:  Keith Packard, MIT X Consortium
  */
 
-/* $XFree86: xc/programs/Xserver/cfb/cfbmap.h,v 3.12 2003/07/19 13:22:27 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/cfb/cfbmap.h,v 3.11tsi Exp $ */
 
 /*
  * Map names around so that multiple depths can be supported simultaneously

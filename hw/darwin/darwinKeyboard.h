@@ -23,7 +23,7 @@
  * holders shall not be used in advertising or otherwise to promote the sale,
  * use or other dealings in this Software without prior written authorization.
  */
-/* $XFree86: xc/programs/Xserver/hw/darwin/darwinKeyboard.h,v 1.1 2003/11/01 08:13:08 torrey Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/darwin/darwinKeyboard.c,v 1.18 2003/05/14 05:27:55 torrey Exp $ */
 
 #ifndef DARWIN_KEYBOARD_H
 #define DARWIN_KEYBOARD_H 1

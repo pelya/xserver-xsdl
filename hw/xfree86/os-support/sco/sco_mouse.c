@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/sco/sco_mouse.c,v 3.13 2002/11/20 23:07:50 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/sco/sco_mouse.c,v 3.12 2001/06/30 22:41:49 tsi Exp $ */
 /*
  * Copyright 2001 by J. Kean Johnston <jkj@sco.com>
  *

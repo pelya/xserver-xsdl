@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/etc/ioport.c,v 1.5 2004/01/05 16:42:10 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/etc/ioport.c,v 1.4 2003/01/01 19:16:41 tsi Exp $ */
 /*
  * Copyright 2002 through 2004 by Marc Aurele La France (TSI @ UQV), tsi@xfree86.org
  *

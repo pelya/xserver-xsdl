@@ -28,7 +28,7 @@ other dealings in this Software without prior written authorization
 from the X Consortium.
 
 */
-/* $XFree86: xc/programs/Xserver/hw/xnest/Xnest.h,v 1.3 2001/08/28 16:48:08 tsi Exp $ */
+/* $XFree86$ */
 
 /* 
 ** Machines with a 64 bit library interface and a 32 bit server require
