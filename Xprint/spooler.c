@@ -2,6 +2,7 @@
 /* $Xorg: spooler.c,v 1.1 2003/09/14 1:19:56 gisburn Exp $ */
 /*
 Copyright (c) 2003-2004 Roland Mainz <roland.mainz@nrubsig.org>
+Copyright (c) 2004      Sun Microsystems, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -117,7 +118,15 @@ copyright holders.
   \
   "[ \"${WHICH_LPSTAT}\" != \"\" ] && (LANG=C lpstat -v     | ${NAWK} ' $2 == \"for\" { x = match($3, /:/); print substr($3, 1, x-1)   }')\n" \
   ") | egrep -v -i \" |^all$\" | sort | uniq"
-  
+
+#define LIST_QUEUES_SOLARIS "LANG=C lpget -k description " \
+  "`lpstat -v " \
+    "| nawk '$2 == \"for\" { x = match($3, /:/); print substr($3, 1,x-1) }' " \
+    "| sort -u` " \
+  "| nawk -F: ' NF == 2 { name=$1 } " \
+             " NF == 1 { sub(\"^.*description\\( - undefined|=\\)\",\"\"); " \
+                        " printf \"%sxp-printerattr.descriptor=%s\\n\",  name, $1 } '"
+
 #define LIST_QUEUES_OTHER \
   "LANG=C lpstat -v | " \
   "nawk '" \
@@ -126,11 +135,12 @@ copyright holders.
   "      x = match($3, /:/); " \
   "      print substr($3, 1, x-1)" \
   "   }' | sort | uniq"
-
-#define DEFAULT_SPOOL_COMMAND_HPUX  "/usr/bin/lp -d %printer-name% -o raw -n %copy-count% -t %job-name% %options%"
-#define DEFAULT_SPOOL_COMMAND_BSD   "/usr/bin/lpr -P %printer-name% -#%copy-count% -T %job-name% %options%"
-#define DEFAULT_SPOOL_COMMAND_SYSV  "/usr/bin/lp -d %printer-name% -n %copy-count% -t %job-name% %options%"
-#define DEFAULT_SPOOL_COMMAND_OTHER "/usr/bin/lp -d %printer-name% -n %copy-count% -t %job-name% %options%"
+  
+#define DEFAULT_SPOOL_COMMAND_HPUX      "/usr/bin/lp -d %printer-name% -o raw -n %copy-count% -t %job-name% %options%"
+#define DEFAULT_SPOOL_COMMAND_BSD       "/usr/bin/lpr -P %printer-name% -#%copy-count% -T %job-name% %options%"
+#define DEFAULT_SPOOL_COMMAND_SYSV      "/usr/bin/lp -d %printer-name% -n %copy-count% -t %job-name% %options%"
+#define DEFAULT_SPOOL_COMMAND_SOLARIS   "/usr/bin/lp -d %printer-name% -n %copy-count% -t %job-name% %options%"
+#define DEFAULT_SPOOL_COMMAND_OTHER     "/usr/bin/lp -d %printer-name% -n %copy-count% -t %job-name% %options%"
 
 
 /* List of spooler types and the commands used to enumerate
@@ -138,21 +148,21 @@ copyright holders.
 XpSpoolerType xpstm[] =
 {
   /* OS-specific spoolers */
-  { "aix",      LIST_QUEUES_AIX4,   DEFAULT_SPOOL_COMMAND_OTHER   },
-  { "aix4",     LIST_QUEUES_AIX4,   DEFAULT_SPOOL_COMMAND_OTHER   },
-  { "bsd",      LIST_QUEUES_BSD,    DEFAULT_SPOOL_COMMAND_BSD     },
-  { "osf",      LIST_QUEUES_OSF,    DEFAULT_SPOOL_COMMAND_OTHER   },
-  { "solaris",  LIST_QUEUES_SYSV,   DEFAULT_SPOOL_COMMAND_SYSV    },
-  { "sysv",     LIST_QUEUES_SYSV,   DEFAULT_SPOOL_COMMAND_SYSV    },
-  { "uxp",      LIST_QUEUES_UXP,    DEFAULT_SPOOL_COMMAND_OTHER   },
+  { "aix",      LIST_QUEUES_AIX4,       DEFAULT_SPOOL_COMMAND_OTHER      },
+  { "aix4",     LIST_QUEUES_AIX4,       DEFAULT_SPOOL_COMMAND_OTHER      },
+  { "bsd",      LIST_QUEUES_BSD,        DEFAULT_SPOOL_COMMAND_BSD        },
+  { "osf",      LIST_QUEUES_OSF,        DEFAULT_SPOOL_COMMAND_OTHER      },
+  { "solaris",  LIST_QUEUES_SOLARIS,    DEFAULT_SPOOL_COMMAND_SOLARIS    },
+  { "sysv",     LIST_QUEUES_SYSV,       DEFAULT_SPOOL_COMMAND_SYSV       },
+  { "uxp",      LIST_QUEUES_UXP,        DEFAULT_SPOOL_COMMAND_OTHER      },
   /* crossplatform spoolers */
-  { "cups",     LIST_QUEUES_SYSV,   DEFAULT_SPOOL_COMMAND_SYSV    },
-  { "lprng",    LIST_QUEUES_BSD,    DEFAULT_SPOOL_COMMAND_BSD     },
+  { "cups",     LIST_QUEUES_SYSV,       DEFAULT_SPOOL_COMMAND_SYSV       },
+  { "lprng",    LIST_QUEUES_BSD,        DEFAULT_SPOOL_COMMAND_BSD        },
   /* misc */
-  { "other",    LIST_QUEUES_OTHER,  DEFAULT_SPOOL_COMMAND_OTHER   },
-  { "none",     NULL,               NULL                          },
-  { NULL,       NULL,               NULL                          }
-}; 
+  { "other",    LIST_QUEUES_OTHER,      DEFAULT_SPOOL_COMMAND_OTHER      },
+  { "none",     NULL,                   NULL                             },
+  { NULL,       NULL,                   NULL                             }
+};
 
 /* Used by Init.c and attributes.c */
 XpSpoolerTypePtr spooler_type = NULL;

@@ -2,11 +2,12 @@
 /*
 (c) Copyright 1996 Hewlett-Packard Company
 (c) Copyright 1996 International Business Machines Corp.
-(c) Copyright 1996 Sun Microsystems, Inc.
+(c) Copyright 1996-2004 Sun Microsystems, Inc.
 (c) Copyright 1996 Novell, Inc.
 (c) Copyright 1996 Digital Equipment Corp.
 (c) Copyright 1996 Fujitsu Limited
 (c) Copyright 1996 Hitachi, Ltd.
+(c) Copyright 2003-2004 Roland Mainz <roland.mainz@nrubsig.org>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -245,6 +246,7 @@ typedef struct _printerDbEntry {
     char *qualifier;
     int screenNum;
     char *driverName;
+    char *desc;
 } PrinterDbEntry, *PrinterDbPtr;
 
 static PrinterDbPtr printerDb = (PrinterDbPtr)NULL;
@@ -456,6 +458,8 @@ FreePrinterDb(void)
 	pNextEntry = pCurEntry->next;
 	if(pCurEntry->name != (char *)NULL)
 	    xfree(pCurEntry->name);
+        if(pCurEntry->desc != (char *)NULL)
+            xfree(pCurEntry->desc);
 	/*
 	 * We don't free the driver name, because it's expected to simply
 	 * be a pointer into the xrm database.
@@ -472,12 +476,13 @@ FreePrinterDb(void)
  * XXX AddPrinterDbName needs to check for (and not add) duplicate names.
  */
 static Bool
-AddPrinterDbName(char *name)
+AddPrinterDbName(char *name, char *desc)
 {
     PrinterDbPtr pEntry = (PrinterDbPtr)xalloc(sizeof(PrinterDbEntry));
 
     if(pEntry == (PrinterDbPtr)NULL) return FALSE;
-    pEntry->name = strdup(name);
+    pEntry->name = (name != NULL) ? strdup(name) : NULL;
+    pEntry->desc = (desc != NULL) ? strdup(desc) : NULL;
     pEntry->qualifier = (char *)NULL;
 
     if(printerDb == (PrinterDbPtr)NULL)
@@ -499,13 +504,35 @@ AugmentPrinterDb(const char *command)
     FILE *fp;
     char name[256];
     int  num_printers = 0; /* Number of printers we found */
+    size_t namelen;
+    char *desc = NULL;
 
     fp = popen(command, "r");
     /* XXX is a 256 character limit overly restrictive for printer names? */
-    while(fgets(name, 256, fp) != (char *)NULL && strlen(name))
+    while(fgets(name, 256, fp) != (char *)NULL && (namelen=strlen(name)))
     {
-        name[strlen(name) - 1] = (char)'\0'; /* strip the \n */
-        AddPrinterDbName(name);
+        char *option = name;
+
+        name[namelen-1] = (char)'\0'; /* strip the \n */
+
+#define XP_DESCRIPTOR     "xp-printerattr.descriptor="
+#define XP_DESCRIPTOR_LEN (sizeof(XP_DESCRIPTOR)-1)
+        while (option = strchr(option, '\t')) {
+           option++; /* Skip the '\t' */
+           if (!strncmp(option, XP_DESCRIPTOR, XP_DESCRIPTOR_LEN)) {
+               *(option-1) = '\0'; /* Kill the '\t' (only if we found a valid option) */
+               option += XP_DESCRIPTOR_LEN;
+               if (*option != '\0') {
+                   desc = option;
+               }
+           }
+           else
+           {
+               /* Unknown option */
+               ErrorF("AugmentPrinterDb: Unknown option '%s'\n", option);
+           }
+        }
+        AddPrinterDbName(name, desc);
         num_printers++;
     }
     pclose(fp);
@@ -645,6 +672,29 @@ StoreDriverNames(void)
     }
 }
 
+/*
+ * StoreDescriptors -  queries the attribute store for the descriptor.
+ * if the descriptor is not in the attribute database, then the descriptor
+ * from the printerDb is store in the attribute store for the printer.
+ */
+static void
+StoreDescriptors()
+{
+    PrinterDbPtr pEntry;
+
+    for(pEntry = printerDb; pEntry != (PrinterDbPtr)NULL; 
+       pEntry = pEntry->next)
+    {
+       if (pEntry->desc != NULL)
+       {
+           XpAddPrinterAttribute(pEntry->name,
+                                 (pEntry->qualifier != (char *)NULL)?
+                                 pEntry->qualifier : pEntry->name,
+                                 "*descriptor", pEntry->desc);
+       }
+    }
+}
+
 static char *
 MbStrchr(
     char *str,
@@ -766,7 +816,7 @@ BuildPrinterDb(void)
 		    {
 		        if(ptr = MbStrchr(tok, '\012'))
 		            *ptr = (char)'\0';
-			AddPrinterDbName(tok);
+			AddPrinterDbName(tok, NULL);
 		    }
 		}
 		else if(strcmp(tok, "Map") == 0)
@@ -855,6 +905,7 @@ BuildPrinterDb(void)
      * in the printerDb
      */
     StoreDriverNames();
+    StoreDescriptors();
 
     if(freeConfigFileName)
     {
