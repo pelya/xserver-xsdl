@@ -45,6 +45,7 @@ from The Open Group.
 #include "gcstruct.h"
 #include "input.h"
 #include "mipointer.h"
+#include "micmap.h"
 #include <sys/types.h>
 #ifdef HAS_MMAP
 #include <sys/mman.h>
@@ -64,7 +65,6 @@ from The Open Group.
 #endif /* HAS_SHM */
 #include "dix.h"
 #include "miline.h"
-#include "mfb.h"
 
 #define VFB_DEFAULT_WIDTH  1280
 #define VFB_DEFAULT_HEIGHT 1024
@@ -441,60 +441,6 @@ GetTimeInMillis()
     return(tp.tv_sec * 1000) + (tp.tv_usec / 1000);
 }
 #endif
-
-
-static Bool
-vfbMultiDepthCreateGC(GCPtr pGC)
-{
-    switch (vfbBitsPerPixel(pGC->depth))
-    {
-    case 1:  return mfbCreateGC (pGC);
-    case 8:  
-    case 16: 
-    case 32: return fbCreateGC (pGC);
-    default: return FALSE;
-    }
-}
-
-static void
-vfbMultiDepthGetSpans(
-    DrawablePtr		pDrawable,	/* drawable from which to get bits */
-    int			wMax,		/* largest value of all *pwidths */
-    register DDXPointPtr ppt,		/* points to start copying from */
-    int			*pwidth,	/* list of number of bits to copy */
-    int			nspans,		/* number of scanlines to copy */
-    char		*pdstStart)	/* where to put the bits */
-{
-    switch (pDrawable->bitsPerPixel) {
-    case 1:
-	mfbGetSpans(pDrawable, wMax, ppt, pwidth, nspans, pdstStart);
-	break;
-    case 8:
-    case 16:
-    case 32:
-	fbGetSpans(pDrawable, wMax, ppt, pwidth, nspans, pdstStart);
-	break;
-    }
-    return;
-}
-
-static void
-vfbMultiDepthGetImage(DrawablePtr pDrawable, int sx, int sy, int w, int h,
-		      unsigned int format, unsigned long planeMask,
-		      char *pdstLine)
-{
-    switch (pDrawable->bitsPerPixel)
-    {
-    case 1:
-	mfbGetImage(pDrawable, sx, sy, w, h, format, planeMask, pdstLine);
-	break;
-    case 8:
-    case 16:
-    case 32:
-	fbGetImage(pDrawable, sx, sy, w, h, format, planeMask, pdstLine);
-	break;
-    }
-}
 
 static ColormapPtr InstalledMaps[MAXSCREENS];
 
@@ -922,39 +868,38 @@ vfbScreenInit(int index, ScreenPtr pScreen, int argc, char **argv)
     pbits = vfbAllocateFramebufferMemory(pvfb);
     if (!pbits) return FALSE;
 
-    /*    miSetPixmapDepths ();*/
+    miSetPixmapDepths ();
 
-    switch (pvfb->bitsPerPixel)
-    {
-    case 1:
-	ret = mfbScreenInit(pScreen, pbits, pvfb->width, pvfb->height,
-			    dpix, dpiy, pvfb->paddedWidth);
+    switch (pvfb->depth) {
+    case 15:
+	miSetVisualTypesAndMasks (15, (1 << TrueColor), 8, TrueColor,
+				  0x7c00, 0x03e0, 0x001f);
 	break;
-    case 8:
     case 16:
-    case 32:
-	ret = fbScreenInit(pScreen, pbits, pvfb->width, pvfb->height,
-			      dpix, dpiy, pvfb->paddedWidth,pvfb->bitsPerPixel);
-#ifdef RENDER
-	if (ret && Render) 
-	    fbPictureInit (pScreen, 0, 0);
-#endif
+	miSetVisualTypesAndMasks (16, (1 << TrueColor), 8, TrueColor,
+				  0xf800, 0x07e0, 0x001f);
 	break;
-    default:
-	return FALSE;
+    case 24:
+	miSetVisualTypesAndMasks (24, (1 << TrueColor), 8, TrueColor,
+				  0xff0000, 0x00ff00, 0x0000ff);
+	break;
     }
+	
+    ret = fbScreenInit(pScreen, pbits, pvfb->width, pvfb->height,
+		       dpix, dpiy, pvfb->paddedWidth,pvfb->bitsPerPixel);
+#ifdef RENDER
+    if (ret && Render) 
+	fbPictureInit (pScreen, 0, 0);
+#endif
 
     if (!ret) return FALSE;
 
-    miInitializeBackingStore(pScreen);
+    /* miInitializeBackingStore(pScreen); */
 
     /*
      * Circumvent the backing store that was just initialised.  This amounts
      * to a truely bizarre way of initialising SaveDoomedAreas and friends.
      */
-    pScreen->CreateGC = vfbMultiDepthCreateGC;
-    pScreen->GetImage = vfbMultiDepthGetImage;
-    pScreen->GetSpans = vfbMultiDepthGetSpans;
 
     pScreen->InstallColormap = vfbInstallColormap;
     pScreen->UninstallColormap = vfbUninstallColormap;
@@ -970,14 +915,7 @@ vfbScreenInit(int index, ScreenPtr pScreen, int argc, char **argv)
     pScreen->blackPixel = pvfb->blackPixel;
     pScreen->whitePixel = pvfb->whitePixel;
 
-    if (pvfb->bitsPerPixel == 1)
-    {
-	ret = mfbCreateDefColormap(pScreen);
-    }
-    else
-    {
-	ret = fbCreateDefColormap(pScreen);
-    }
+    ret = fbCreateDefColormap(pScreen);
 
     miSetZeroLineBias(pScreen, pvfb->lineBias);
 
@@ -1008,7 +946,7 @@ InitOutput(ScreenInfo *screenInfo, int argc, char **argv)
 	vfbPixmapDepths[1] = TRUE;
 	vfbPixmapDepths[4] = TRUE;
 	vfbPixmapDepths[8] = TRUE;
-	vfbPixmapDepths[15] = TRUE;
+/*	vfbPixmapDepths[15] = TRUE; */
 	vfbPixmapDepths[16] = TRUE;
 	vfbPixmapDepths[24] = TRUE;
 	vfbPixmapDepths[32] = TRUE;
