@@ -1,4 +1,4 @@
-                              Fonts in X11R6.7
+                              Fonts in X11R6.8
 
                   Juliusz Chroboczek, <jch@pps.jussieu.fr>
 
@@ -6,10 +6,9 @@
 
 1.  Introduction
 
-This document describes the support for fonts in X11R6.7.  Installing fonts
+This document describes the support for fonts in X11R6.8.  Installing fonts
 (section 2., page 1) is aimed at the casual user wishing to install fonts in
-X11R6.7 or XFree86; the rest of the document describes the font support in
-more detail.
+X11R6.8 the rest of the document describes the font support in more detail.
 
 We assume some familiarity with digital fonts.  If anything is not clear to
 you, please consult Appendix: Background (section 5., page 1) at the end of
@@ -19,7 +18,7 @@ this document for background information.
 
 X includes two font systems: the original core X11 fonts system, which is
 present in all implementations of X11, and the Xft fonts system, which may
-not be distributed with implementations of X11 that are not based on X116.7.0
+not be distributed with implementations of X11 that are not based on X11R6.8
 but will hopefully be included by them in the future
 
 The core X11 fonts system is directly derived from the fonts system included
@@ -49,13 +48,13 @@ access newly-installed fonts.
 
 Xft has no configuration mechanism itself, rather it relies upon the fontcon-
 fig library to configure and customize fonts.  That library is not specific
-to X11R6.7.0 or indeed on any particular font output mechanism.  This discus-
+to X11R6.8 or indeed on any particular font output mechanism.  This discus-
 sion describes how fontconfig, rather than Xft, works.
 
 2.1.1  Installing fonts in Xft
 
 Fontconfig looks for fonts in a set of well-known directories that include
-all of X11R6.7's standard font directories (`/usr/X11R6/lib/X11/lib/fonts/*')
+all of X11R6.8's standard font directories (`/usr/X11R6/lib/X11/lib/fonts/*')
 by default) as well as a directory called `.fonts/' in the user's home direc-
 tory.  Installing a font for use by Xft applications is as simple as copying
 a font file into one of these directories.
@@ -115,9 +114,9 @@ Anti-aliasing can be disabled for all fonts by the following incantation:
          </edit>
      </match>
 
-Xft supports sub-pixel rasterisation on LCD displays.  X11R67 should automat-
-ically enable this feature on laptops and when using an LCD monitor connected
-with a DVI cable; you can check whether this was done by typing
+Xft supports sub-pixel rasterisation on LCD displays.  X11R6.8 should auto-
+matically enable this feature on laptops and when using an LCD monitor con-
+nected with a DVI cable; you can check whether this was done by typing
 
      $ xdpyinfo -ext RENDER | grep sub-pixel
 
@@ -186,8 +185,8 @@ of this new directory by including it in the font path.
 
 2.2.1  Installing bitmap fonts
 
-The X11R6.7 server can use bitmap fonts in both the cross-platform BDF format
-and the somewhat more efficient binary PCF format.  (X11R6.7 also supports
+The X11R6.8 server can use bitmap fonts in both the cross-platform BDF format
+and the somewhat more efficient binary PCF format.  (X11R6.8 also supports
 the obsolete SNF format.)
 
 Bitmap fonts are normally distributed in the BDF format.  Before installing
@@ -216,7 +215,7 @@ directory; see Setting the server font path (section 2.2.4, page 1) below.
 
 2.2.2  Installing scalable fonts
 
-The X11R6.7 server supports scalable fonts in four formats: Type 1, Speedo,
+The X11R6.8 server supports scalable fonts in four formats: Type 1, Speedo,
 TrueType and CIDFont.  This section only applies to the former three; for
 information on CIDFonts, please see Installing CIDFonts (section 2.2.3, page
 1) later in this document.
@@ -252,7 +251,7 @@ CMap `UniKS-UCS2-H' is called
 
      Munhwa-Regular--UniKS-UCS2-H
 
-The CIDFont code in X11R6.7 requires a very rigid directory structure.  The
+The CIDFont code in X11R6.8 requires a very rigid directory structure.  The
 main directory must be called `CID' (its location defaults to
 `/usr/X11R6/lib/X11/fonts/CID' but it may be located anywhere), and it should
 contain a subdirectory for every CID collection.  Every subdirectory must
@@ -311,7 +310,7 @@ For best results, scalable fonts should appear in the font path before the
 bitmap fonts; this way, the server will prefer bitmap fonts to scalable fonts
 when an exact match is possible, but will avoid scaling bitmap fonts when a
 scalable font can be used.  (The `:unscaled' hack, while still supported,
-should no longer be necessary in X11R6.7.0.)
+should no longer be necessary in X11R6.8.)
 
 You may check the font path of the running server by typing the command
 
@@ -354,11 +353,11 @@ mounted font directories).  If this doesn't help, it is quite possible that
 you are trying to use a font in a format that is not supported by your
 server.
 
-X11R6.7 supports the BDF, PCF, SNF, Type 1, Speedo, TrueType, OpenType and
-CIDFont font formats.  However, not all X11R6.7 or XFree86 servers come with
-all the font backends configured in.
+X11R6.8 supports the BDF, PCF, SNF, Type 1, Speedo, TrueType, OpenType and
+CIDFont font formats.  However, not all X11R6.8 servers come with all the
+font backends configured in.
 
-On most platforms, the X11R6.7 servers are modular: the font backends are
+On most platforms, the X11R6.8 servers are modular: the font backends are
 included in modules that are loaded at runtime.  The modules to be loaded are
 specified in the `xorg.conf' file using the `Load' directive:
 
@@ -366,7 +365,7 @@ specified in the `xorg.conf' file using the `Load' directive:
 
 If you have trouble installing fonts in a specific format, you may want to
 check the server's log file in order to see whether the relevant modules are
-properly loaded.  The list of font modules distributed with X11R6.7 is as
+properly loaded.  The list of font modules distributed with X11R6.8 is as
 follows:
 
    o  "bitmap": bitmap fonts (`*.bdf', `*.pcf' and `*.snf');
@@ -383,7 +382,7 @@ follows:
 
 Please note that the argument of the `Load' directive is case-sensitive.
 
-3.  Fonts included with X11R6.7
+3.  Fonts included with X11R6.8
 
 3.1  Standard bitmap fonts
 
@@ -392,7 +391,7 @@ fonts, including the `fixed' family, and bitmap versions of Courier, Times,
 Helvetica and some members of the Lucida family.  In the SI, these fonts are
 provided in the ISO 8859-1 encoding (ISO Latin Western-European).
 
-In X11R6.7, a number of these fonts are provided in Unicode-encoded font
+In X11R6.8, a number of these fonts are provided in Unicode-encoded font
 files instead.  At build time, these fonts are split into font files encoded
 according to legacy encodings, a process which allows us to provide the stan-
 dard fonts in a number of regional encodings with no duplication of work.
@@ -470,7 +469,7 @@ for improved presentation of text.
 
 3.3  Standard scalable fonts
 
-X11R6.7 includes all the scalable fonts distributed with X11R6.
+X11R6.8 includes all the scalable fonts distributed with X11R6.
 
 3.3.1  Standard Type 1 fonts
 
@@ -492,7 +491,7 @@ and reside in the font files
 
      /usr/X11R6/lib/X11/fonts/Type1/UT*.pfa
 
-Finally, X11R6.7 also comes with Type 1 versions of Bitstream Courier and
+Finally, X11R6.8 also comes with Type 1 versions of Bitstream Courier and
 Charter.  These fonts have XLFD
 
      -bitstream-courier-*-*-normal--0-0-0-0-m-0-iso8859-1
@@ -504,7 +503,7 @@ and reside in the font files
 
 3.3.2  Standard Speedo fonts
 
-X11R6.7 includes Speedo versions of the Bitstream Courier and Charter fonts.
+X11R6.8 includes Speedo versions of the Bitstream Courier and Charter fonts.
 In order to use these fonts, you should ensure that your X server is loading
 the `Speedo' font backend; see Troubleshooting (section 2.2.5, page 1).
 
@@ -520,7 +519,7 @@ and reside in the font files
 
 3.4  The Bigelow & Holmes Luxi family
 
-X11R6.7 includes the Luxi family of scalable fonts, in both TrueType and
+X11R6.8 includes the Luxi family of scalable fonts, in both TrueType and
 Type 1 format.  This family consists of the fonts Luxi Serif, with XLFD
 
      -b&h-luxi serif-medium-*-normal--*-*-*-*-p-*-*-*
@@ -566,11 +565,11 @@ For more information, please contact <design@bigelowandholmes.com> or
 
 An earlier version of the Luxi fonts was made available under the name
 Lucidux.  This name should no longer be used due to trademark uncertainties,
-and all traces of the Lucidux name have been removed from X11R6.7.
+and all traces of the Lucidux name have been removed from X11R6.8.
 
 4.  More about core fonts
 
-This section describes X11R6.7-specific enhancements to the core X11 fonts
+This section describes X11R6.8-specific enhancements to the core X11 fonts
 system.
 
 4.1  Core fonts and internationalisation
@@ -593,11 +592,8 @@ backend) use a common fontenc layer for font re-encoding.  This allows these
 backends to share their encoding data, and allows simple configuration of new
 locales independently of font type.
 
-Please note: the X-TrueType (X-TT) backend does not use the fontenc layer,
-but instead uses its own method for font reencoding.  If you are only inter-
-ested in X-TT you may want to skip to Using Symbol Fonts (section 4.1.5, page
-1), as the intervening information does not apply to X-TT.  X-TT itself is
-described in more detail in X-TrueType (section 4.2.2, page 1).
+Please note: the X-TrueType (X-TT) backend is not included in X11R6.8.  That
+functionality has been merged into the FreeType backend.>
 
 In the fontenc layer, an encoding is defined by a name (such as iso8859-1),
 possibly a number of aliases (alternate names), and an ordered collection of
@@ -656,7 +652,7 @@ option followed by the name of a directory containing encoding files, can be
 used to automatically build `encodings.dir' files.  Please see the mkfont-
 dir(1) manual page for more details.
 
-A number of encoding files for common encodings are included with X11R6.7.
+A number of encoding files for common encodings are included with X11R6.8.
 Information on writing new encoding files can be found in Format of encodings
 directory files (section 4.1.3, page 1) and Format of encoding files (section
 4.1.4, page 1) later in this document.
@@ -976,8 +972,8 @@ options are indispensable in CJKV.  For example,
      bw=0.5:ds=y:ai=0.2:mincho.ttc -misc-mincho-bold-i-normal--0-0-0-0-c-0-jisx0201.1976-0
 
 setup the complete combination of jisx0208 and jisx0201 using mincho.ttc
-only.  More information on the TTCap syntax is found on the After X-TT
-Project page <URL:http://x-tt.sourceforge.jp/>.
+only.  More information on the TTCap syntax is found on the After X-TT Pro-
+ject page <URL:http://x-tt.sourceforge.jp/>.
 
 The FreeType backend uses the fontenc layer in order to support recoding of
 fonts; this was described in The fontenc layer (section 4.1.1, page 1) and
@@ -992,7 +988,7 @@ ings, but instead uses its own database of encodings.
 
 Since the functionalities for CJKV support introduced by X-TT have been
 merged into the new FreeType backend, the X-TT backend will be removed from
-X11R6.7's tree near the future.  Therefore, the use of FreeType backend is
+X11R6.8's tree near the future.  Therefore, the use of FreeType backend is
 preferred over the X-TT backend.
 
 General information on X-TrueType may be found at the After X-TT Project page
@@ -1120,10 +1116,10 @@ and `cursor' aliases are defined in
 
 5.3  Unicode
 
-Unicode (<URL:http://www.unicode.org>) is a coded character set with the goal
-of uniquely identifying all characters for all scripts, current and histori-
-cal.  While Unicode was explicitly not designed as a glyph encoding scheme,
-it is often possible to use it as such.
+Unicode (urlnam <URL:http://www.unicode.org>) is a coded character set with
+the goal of uniquely identifying all characters for all scripts, current and
+historical.  While Unicode was explicitly not designed as a glyph encoding
+scheme, it is often possible to use it as such.
 
 Unicode is an open character set, meaning that codepoint assignments may be
 added to Unicode at any time (once specified, though, an assignment can never
@@ -1139,15 +1135,15 @@ last two fields of their XLFD set to `iso10646-1'.
 
 6.  References
 
-X11R6.7 comes with extensive documentation in the form of manual pages and
+X11R6.8 comes with extensive documentation in the form of manual pages and
 typeset documents.  Before installing fonts, you really should read the font-
 config(3) and mkfontdir(1) manual pages; other manual pages of interest
 include X(7), Xserver(1), xset(1), Xft(3), xlsfonts(1) and showfont(1).  In
 addition, you may want to read the X Logical Font Description document, by
 Jim Flowers, which is provided in the file `xc/doc/xlfd.PS.Z'.
 
-The latest released version of the X11R6.7 documentation (including this doc-
-ument and all manual pages) can be found from current X11R6.7 documentation
+The latest released version of the X11R6.8 documentation (including this doc-
+ument and all manual pages) can be found from current X11R6.8 documentation
 <URL:http://wiki.x.org/>.
 
 The comp.fonts FAQ <URL:http://www.netmeg.net/faq/computers/fonts/>, which is
@@ -1182,6 +1178,5 @@ The IANA RFC documents, available from a number of sites throughout the
 world, often provide interesting information about character set issues; see
 for example RFC 373.
 
-     Generated from Id: fonts.sgml,v 1.1.4.3.2.2 eich Exp $
 
-
+$XdotOrg$
