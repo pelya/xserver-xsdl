@@ -5,6 +5,7 @@ INCLUDES = 					\
 noinst_LIBRARIES = libkdrive.a
 
 libkdrive_a_SOURCES =	\
+	fourcc.h	\
 	kaa.c		\
 	kaa.h		\
 	kaapict.c	\

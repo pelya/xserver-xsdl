@@ -16,7 +16,6 @@ libmach64_a_SOURCES = 	\
 	mach64.c	\
 	mach64draw.c	\
 	mach64video.c	\
-	fourcc.h	\
 	mach64.h	\
 	mach64draw.h
 

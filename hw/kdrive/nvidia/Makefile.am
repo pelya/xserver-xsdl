@@ -8,11 +8,10 @@ bin_PROGRAMS = Xnvidia
 noinst_LIBRARIES = libnvidia.a
 
 #	nvidiavideo.c
-	
+
 libnvidia_a_SOURCES = 	\
 	nvidia.c	\
 	nvidiadraw.c	\
-	fourcc.h	\
 	nvidia.h	\
 	nvidiadraw.h
 
