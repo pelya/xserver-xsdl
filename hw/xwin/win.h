@@ -719,7 +719,7 @@ Bool
 winAllocatePrivates (ScreenPtr pScreen);
 
 Bool
-winInitCmapPrivates (ColormapPtr pCmap);
+winInitCmapPrivates (ColormapPtr pCmap, int index);
 
 Bool
 winAllocateCmapPrivates (ColormapPtr pCmap);
