@@ -612,8 +612,11 @@ ATIRestore(KdCardInfo *card)
 	ATICardInfo *atic = card->driver;
 	char *mmio = atic->reg_base;
 
-	MMIO_OUT32(mmio, ATI_REG_CRTC_PITCH, atic->crtc_pitch);
-	MMIO_OUT32(mmio, ATI_REG_CRTC2_PITCH, atic->crtc2_pitch);
+	if (mmio)
+	{
+		MMIO_OUT32(mmio, ATI_REG_CRTC_PITCH, atic->crtc_pitch);
+		MMIO_OUT32(mmio, ATI_REG_CRTC2_PITCH, atic->crtc2_pitch);
+	}
 	ATIUnmapReg(card, atic);
 
 	atic->backend_funcs.restore(card);
