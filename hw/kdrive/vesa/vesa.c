@@ -19,7 +19,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/vesa/vesa.c,v 1.18 2001/09/14 19:25:17 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/vesa/vesa.c,v 1.19 2002/09/29 23:39:47 keithp Exp $ */
 
 #include "vesa.h"
 #ifdef RANDR
@@ -401,7 +401,7 @@ vesaScreenInitialize (KdScreenInfo *screen, VesaScreenPrivPtr pscr)
 	vesaReportMode (&pscr->mode);
     }
     
-    pscr->rotate = screen->rotation;
+    pscr->randr = screen->randr;
     pscr->shadow = vesa_shadow;
     pscr->origDepth = screen->fb[0].depth;
     pscr->layerKind = LAYER_FB;
@@ -409,6 +409,7 @@ vesaScreenInitialize (KdScreenInfo *screen, VesaScreenPrivPtr pscr)
     /*
      * Compute visual support for the selected depth
      */
+    
     switch (pscr->mode.MemoryModel) {
     case MEMORY_DIRECT:
         /* TrueColor or DirectColor */
@@ -748,50 +749,31 @@ vesaConfigureScreen (ScreenPtr pScreen)
     if (pscr->mapping == VESA_PLANAR || pscr->mapping == VESA_MONO)
     {
 	pscr->shadow = TRUE;
-	pscr->rotate = 0;
-	m.matrix[0][0] = 1; m.matrix[0][1] = 0; m.matrix[0][2] = 0;
-	m.matrix[1][0] = 0; m.matrix[1][1] = 1; m.matrix[1][2] = 0;
+	pscr->randr = RR_Rotate_0;
     } 
-    else switch (pscr->rotate) {
-    case 0:
+    else if (pscr->mapping == VESA_WINDOWED)
+	pscr->shadow = TRUE;
+    else if (pscr->randr != RR_Rotate_0)
+	pscr->shadow = TRUE;
+    else
+	pscr->shadow = vesa_shadow;
+    
+    KdComputeMouseMatrix (&m, pscr->randr, 
+			  pscr->mode.XResolution, pscr->mode.YResolution);
+    
+    if (m.matrix[0][0])
+    {
 	pScreen->width = pscr->mode.XResolution;
 	pScreen->height = pscr->mode.YResolution;
 	pScreen->mmWidth = screen->width_mm;
 	pScreen->mmHeight = screen->height_mm;
-	if (pscr->mapping == VESA_WINDOWED)
-	    pscr->shadow = TRUE;
-	else
-	    pscr->shadow = vesa_shadow;
-	m.matrix[0][0] = 1; m.matrix[0][1] = 0; m.matrix[0][2] = 0;
-	m.matrix[1][0] = 0; m.matrix[1][1] = 1; m.matrix[1][2] = 0;
-	break;
-    case 90:
+    }
+    else
+    {
 	pScreen->width = pscr->mode.YResolution;
 	pScreen->height = pscr->mode.XResolution;
 	pScreen->mmWidth = screen->height_mm;
 	pScreen->mmHeight = screen->width_mm;
-	pscr->shadow = TRUE;
-	m.matrix[0][0] = 0; m.matrix[0][1] = -1; m.matrix[0][2] = pscr->mode.YResolution - 1;
-	m.matrix[1][0] = 1; m.matrix[1][1] = 0; m.matrix[1][2] = 0;
-	break;
-    case 180:
-	pScreen->width = pscr->mode.XResolution;
-	pScreen->height = pscr->mode.YResolution;
-	pScreen->mmWidth = screen->width_mm;
-	pScreen->mmHeight = screen->height_mm;
-	pscr->shadow = TRUE;
-	m.matrix[0][0] = -1; m.matrix[0][1] = 0; m.matrix[0][2] = pscr->mode.XResolution - 1;
-	m.matrix[1][0] = 0; m.matrix[1][1] = -1; m.matrix[1][2] = pscr->mode.YResolution - 1;
-	break;
-    case 270:
-	pScreen->width = pscr->mode.YResolution;
-	pScreen->height = pscr->mode.XResolution;
-	pScreen->mmWidth = screen->height_mm;
-	pScreen->mmHeight = screen->width_mm;
-	pscr->shadow = TRUE;
-	m.matrix[0][0] = 0; m.matrix[0][1] = 1; m.matrix[0][2] = 0;
-	m.matrix[1][0] = -1; m.matrix[1][1] = 0; m.matrix[1][2] = pscr->mode.XResolution - 1;
-	break;
     }
     KdSetMouseMatrix (&m);
 }
@@ -811,7 +793,7 @@ vesaLayerCreate (ScreenPtr pScreen)
 
     if (pscr->shadow)
     {
-	if (pscr->rotate)
+	if (pscr->randr != RR_Rotate_0)
 	    update = shadowUpdateRotatePacked;
 	else
 	    update = shadowUpdatePacked;
@@ -855,7 +837,7 @@ vesaLayerCreate (ScreenPtr pScreen)
 		pScreen->width, pScreen->height, screen->fb[0].depth);
 
     return LayerCreate (pScreen, kind, screen->fb[0].depth, 
-			pPixmap, update, window, pscr->rotate, 0);
+			pPixmap, update, window, pscr->randr, 0);
 }
 
 Bool
@@ -929,7 +911,7 @@ vesaMapFramebuffer (KdScreenInfo    *screen)
 		ErrorF ("\tStatic color bpp %d depth %d\n",
 			bpp, depth);
 	}
-	pscr->rotate = 0;
+	pscr->randr = RR_Rotate_0;
 	break;
     default:
 	return 0;
@@ -941,7 +923,8 @@ vesaMapFramebuffer (KdScreenInfo    *screen)
     case 32:
 	break;
     default:
-	pscr->rotate = 0;
+	pscr->randr = RR_Rotate_0;
+	break;
     }
     
     screen->width = pscr->mode.XResolution;
@@ -1012,7 +995,8 @@ vesaRandRGetInfo (ScreenPtr pScreen, Rotation *rotations)
     int			    n;
     RRScreenSizePtr	    pSize;
     
-    *rotations = RR_Rotate_0|RR_Rotate_90|RR_Rotate_180|RR_Rotate_270;
+    *rotations = (RR_Rotate_0|RR_Rotate_90|RR_Rotate_180|RR_Rotate_270|
+		  RR_Reflect_X|RR_Reflect_Y);
     /*
      * Get mode information from BIOS -- every time in case
      * something changes, like an external monitor is plugged in
@@ -1044,7 +1028,7 @@ vesaRandRGetInfo (ScreenPtr pScreen, Rotation *rotations)
 		mode->BlueFieldPosition == pscr->mode.BlueFieldPosition)
 	    {
 		int width, height, width_mm, height_mm;
-		if (screen->rotation == 0 || screen->rotation == 180)
+		if (screen->randr & (RR_Rotate_0|RR_Rotate_180))
 		{
 		    width = mode->XResolution;
 		    height = mode->YResolution;
@@ -1064,17 +1048,8 @@ vesaRandRGetInfo (ScreenPtr pScreen, Rotation *rotations)
 		if (mode->XResolution == screen->width &&
 		    mode->YResolution == screen->height)
 		{
-		    int	rotate = pscr->rotate - screen->rotation;
-		    int	rot;
-		    if (rotate < 0)
-			rotate += 360;
-		    switch (rotate) {
-		    case   0: rot = RR_Rotate_0; break;
-		    case  90: rot = RR_Rotate_90; break;
-		    case 180: rot = RR_Rotate_180; break;
-		    case 270: rot = RR_Rotate_270; break;
-		    }
-		    RRSetCurrentConfig (pScreen, rot, pSize);
+		    int	randr = KdSubRotation (pscr->randr, screen->randr);
+		    RRSetCurrentConfig (pScreen, randr, pSize);
 		}
 	    }
 	}
@@ -1107,7 +1082,7 @@ vesaLayerRemove (WindowPtr pWin, pointer value)
 
 Bool
 vesaRandRSetConfig (ScreenPtr		pScreen,
-		    Rotation		rotation,
+		    Rotation		randr,
 		    RRScreenSizePtr	pSize)
 {
     KdScreenPriv(pScreen);
@@ -1126,7 +1101,7 @@ vesaRandRSetConfig (ScreenPtr		pScreen,
     LayerPtr		pNewLayer;
     int			newwidth, newheight;
 
-    if (screen->rotation == 0 || screen->rotation == 180)
+    if (screen->randr & (RR_Rotate_0|RR_Rotate_180))
     {
 	newwidth = pSize->width;
 	newheight = pSize->height;
@@ -1182,17 +1157,8 @@ vesaRandRSetConfig (ScreenPtr		pScreen,
      */
     
     pscr->mode = *mode;
-    switch (rotation) {
-    case RR_Rotate_0:	pscr->rotate = 0; break;
-    case RR_Rotate_90:	pscr->rotate = 90; break;
-    case RR_Rotate_180:	pscr->rotate = 180; break;
-    case RR_Rotate_270:	pscr->rotate = 270; break;
-    }
-
-    pscr->rotate += screen->rotation;
-    if (pscr->rotate >= 360)
-	pscr->rotate -= 360;
-
+    pscr->randr = KdAddRotation (screen->randr, randr);
+			       
     /*
      * Can't rotate some formats
      */
@@ -1202,7 +1168,7 @@ vesaRandRSetConfig (ScreenPtr		pScreen,
     case 32:
 	break;
     default:
-	if (pscr->rotate)
+	if (pscr->randr)
 	    goto bail2;
 	break;
     }
@@ -1256,7 +1222,7 @@ vesaRandRSetConfig (ScreenPtr		pScreen,
     pscr->pLayer = pNewLayer;
 
     /* set the subpixel order */
-    KdSetSubpixelOrder (pScreen, pscr->rotate);
+    KdSetSubpixelOrder (pScreen, pscr->randr);
 
     if (wasEnabled)
 	KdEnableScreen (pScreen);

@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/kinput.c,v 1.21 2001/09/29 04:16:38 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/kinput.c,v 1.24 2002/08/15 18:07:57 keithp Exp $ */
 
 #include "kdrive.h"
 #include "inputstr.h"
@@ -367,6 +367,42 @@ void
 KdSetMouseMatrix (KdMouseMatrix *matrix)
 {
     kdMouseMatrix = *matrix;
+}
+
+void
+KdComputeMouseMatrix (KdMouseMatrix *m, Rotation randr, int width, int height)
+{
+    int		    x_dir = 1, y_dir = 1;
+    int		    i, j;
+    int		    size[2];
+
+    size[0] = width; size[1] = height;
+    if (randr & RR_Reflect_X)
+	x_dir = -1;
+    if (randr & RR_Reflect_Y)
+	y_dir = -1;
+    switch (randr & (RR_Rotate_All)) {
+    case RR_Rotate_0:
+	m->matrix[0][0] = x_dir; m->matrix[0][1] = 0;
+	m->matrix[1][0] = 0; m->matrix[1][1] = y_dir;
+	break;
+    case RR_Rotate_90:
+	m->matrix[0][0] = 0; m->matrix[0][1] = -y_dir;
+	m->matrix[1][0] = x_dir; m->matrix[1][1] = 0;
+	break;
+    case RR_Rotate_180:
+	m->matrix[0][0] = -x_dir; m->matrix[0][1] = 0;
+	m->matrix[1][0] = 0; m->matrix[1][1] = -y_dir;
+	break;
+    case RR_Rotate_270:
+	m->matrix[0][0] = 0; m->matrix[0][1] = y_dir;
+	m->matrix[1][0] = -x_dir; m->matrix[1][1] = 0;
+	break;
+    }
+    for (i = 0; i < 2; i++)
+	for (j = 0 ; j < 2; j++)
+	    if (m->matrix[i][j] < 0)
+		m->matrix[i][3] = size[j] - 1;
 }
 
 static void

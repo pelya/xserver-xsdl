@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/kdrive.h,v 1.22 2002/08/02 16:15:02 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/kdrive.h,v 1.23 2002/09/29 23:39:46 keithp Exp $ */
 
 #include <stdio.h>
 #include "X.h"
@@ -42,6 +42,7 @@
 #include "fb.h"
 #include "fboverlay.h"
 #include "shadow.h"
+#include "randrstr.h"
 
 extern WindowPtr    *WindowTable;
 
@@ -97,12 +98,15 @@ typedef struct _KdFrameBuffer {
     void	*closure;
 } KdFrameBuffer;
 
+#define RR_Rotate_All	(RR_Rotate_0|RR_Rotate_90|RR_Rotate_180|RR_Rotate_270)
+#define RR_Reflect_All	(RR_Reflect_X|RR_Reflect_Y)
+
 typedef struct _KdScreenInfo {
     struct _KdScreenInfo    *next;
     KdCardInfo	*card;
     ScreenPtr	pScreen;
     void	*driver;
-    int		rotation;
+    Rotation	randr;	/* rotation and reflection */
     int		width;
     int		height;
     int		rate;
@@ -514,6 +518,12 @@ KdResume (void);
 void
 KdProcessSwitch (void);
 
+Rotation
+KdAddRotation (Rotation a, Rotation b);
+
+Rotation
+KdSubRotation (Rotation a, Rotation b);
+
 void
 KdParseScreen (KdScreenInfo *screen,
 	       char	    *arg);
@@ -563,7 +573,7 @@ KdInitOutput (ScreenInfo *pScreenInfo,
 	      int argc, char **argv);
  
 void
-KdSetSubpixelOrder (ScreenPtr pScreen, int rotation);
+KdSetSubpixelOrder (ScreenPtr pScreen, Rotation randr);
     
 /* kinfo.c */
 KdCardInfo *
@@ -628,6 +638,9 @@ KdSetLed (int led, Bool on);
 void
 KdSetMouseMatrix (KdMouseMatrix *matrix);
 
+void
+KdComputeMouseMatrix (KdMouseMatrix *matrix, Rotation randr, int width, int height);
+    
 void
 KdBlockHandler (int		screen,
 		pointer		blockData,

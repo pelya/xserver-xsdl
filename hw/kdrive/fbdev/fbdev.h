@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/fbdev/fbdev.h,v 1.10 2001/05/29 17:47:55 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/fbdev/fbdev.h,v 1.11 2001/06/03 21:52:45 keithp Exp $ */
 
 #ifndef _FBDEV_H_
 #define _FBDEV_H_
@@ -48,7 +48,7 @@ typedef struct _fbdevPriv {
 } FbdevPriv;
     
 typedef struct _fbdevScrPriv {
-    int				rotation;
+    Rotation			randr;
     Bool			shadow;
     LayerPtr			pLayer;
 } FbdevScrPriv;

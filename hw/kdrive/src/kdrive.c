@@ -1,5 +1,5 @@
 /*
- * $XFree86: xc/programs/Xserver/hw/kdrive/kdrive.c,v 1.25 2002/09/26 02:56:48 keithp Exp $ 
+ * $XFree86: xc/programs/Xserver/hw/kdrive/kdrive.c,v 1.26 2002/09/29 23:39:46 keithp Exp $ 
  *
  * Copyright © 1999 Keith Packard
  *
@@ -28,6 +28,9 @@
 #endif
 #include <mivalidate.h>
 #include <dixstruct.h>
+#ifdef RANDR
+#include <randrstr.h>
+#endif
 
 #ifdef XV
 #include "kxv.h"
@@ -365,6 +368,28 @@ KdParseFindNext (char *cur, char *delim, char *save, char *last)
     return cur;
 }
 
+Rotation
+KdAddRotation (Rotation a, Rotation b)
+{
+    Rotation	rotate = (a & RR_Rotate_All) * (b & RR_Rotate_All);
+    Rotation	reflect = (a & RR_Reflect_All) ^ (b & RR_Reflect_All);
+
+    if (rotate > RR_Rotate_270)
+	rotate /= (RR_Rotate_270 * RR_Rotate_90);
+    return reflect | rotate;
+}
+
+Rotation
+KdSubRotation (Rotation a, Rotation b)
+{
+    Rotation	rotate = (a & RR_Rotate_All) * 16 / (b & RR_Rotate_All);
+    Rotation	reflect = (a & RR_Reflect_All) ^ (b & RR_Reflect_All);
+
+    if (rotate > RR_Rotate_270)
+	rotate /= (RR_Rotate_270 * RR_Rotate_90);
+    return reflect | rotate;
+}
+
 void
 KdParseScreen (KdScreenInfo *screen,
 	       char	    *arg)
@@ -379,7 +404,7 @@ KdParseScreen (KdScreenInfo *screen,
     screen->dumb = kdDumbDriver;
     screen->softCursor = kdSoftCursor;
     screen->origin = kdOrigin;
-    screen->rotation = 0;
+    screen->randr = RR_Rotate_0;
     screen->width = 0;
     screen->height = 0;
     screen->width_mm = 0;
@@ -395,7 +420,7 @@ KdParseScreen (KdScreenInfo *screen,
     
     for (i = 0; i < 2; i++)
     {
-	arg = KdParseFindNext (arg, "x/@", save, &delim);
+	arg = KdParseFindNext (arg, "x/@XY", save, &delim);
 	if (!save[0])
 	    return;
 	
@@ -404,7 +429,7 @@ KdParseScreen (KdScreenInfo *screen,
 	
 	if (delim == '/')
 	{
-	    arg = KdParseFindNext (arg, "x@", save, &delim);
+	    arg = KdParseFindNext (arg, "x@XY", save, &delim);
 	    if (!save[0])
 		return;
 	    mm = atoi(save);
@@ -420,7 +445,7 @@ KdParseScreen (KdScreenInfo *screen,
 	    screen->height = pixels;
 	    screen->height_mm = mm;
 	}
-	if (delim != 'x' && delim != '@')
+	if (delim != 'x' && delim != '@' && delim != 'X' && delim != 'Y')
 	    return;
     }
 
@@ -432,21 +457,32 @@ KdParseScreen (KdScreenInfo *screen,
 
     if (delim == '@')
     {
-	arg = KdParseFindNext (arg, "x", save, &delim);
+	arg = KdParseFindNext (arg, "xXY", save, &delim);
 	if (save[0])
 	{
-	    screen->rotation = atoi (save);
-	    if (screen->rotation < 45)
-		screen->rotation = 0;
-	    else if (screen->rotation < 135)
-		screen->rotation = 90;
-	    else if (screen->rotation < 225)
-		screen->rotation = 180;
-	    else if (screen->rotation < 315)
-		screen->rotation = 270;
+	    int	    rotate = atoi (save);
+	    if (rotate < 45)
+		screen->randr = RR_Rotate_0;
+	    else if (rotate < 135)
+		screen->randr = RR_Rotate_90;
+	    else if (rotate < 225)
+		screen->randr = RR_Rotate_180;
+	    else if (rotate < 315)
+		screen->randr = RR_Rotate_270;
 	    else
-		screen->rotation = 0;
+		screen->randr = RR_Rotate_0;
 	}
+    }
+    if (delim == 'X')
+    {
+	arg = KdParseFindNext (arg, "xY", save, &delim);
+	screen->randr |= RR_Reflect_X;
+    }
+
+    if (delim == 'Y')
+    {
+	arg = KdParseFindNext (arg, "xY", save, &delim);
+	screen->randr |= RR_Reflect_Y;
     }
     
     fb = 0;
@@ -857,22 +893,33 @@ KdCreateWindow (WindowPtr pWin)
 }
 
 void
-KdSetSubpixelOrder (ScreenPtr pScreen, int rotation)
+KdSetSubpixelOrder (ScreenPtr pScreen, Rotation randr)
 {
     KdScreenPriv(pScreen);
     KdScreenInfo	*screen = pScreenPriv->screen;
     int			subpixel_order = screen->subpixel_order;
-    int			subpixel_dir;
+    Rotation		subpixel_dir;
     int			i;
     
-    struct {
-	int	subpixel_order;
-	int	direction;
+    static struct {
+	int	    subpixel_order;
+	Rotation    direction;
     } orders[] = {
-	{ SubPixelHorizontalRGB, 	0 },
-	{ SubPixelHorizontalBGR,	180 },
-	{ SubPixelVerticalRGB,		270 },
-	{ SubPixelVerticalBGR,		90 },
+	{ SubPixelHorizontalRGB, 	RR_Rotate_0 },
+	{ SubPixelHorizontalBGR,	RR_Rotate_180 },
+	{ SubPixelVerticalRGB,		RR_Rotate_270 },
+	{ SubPixelVerticalBGR,		RR_Rotate_90 },
+    };
+
+    static struct {
+	int	bit;
+	int	normal; 
+	int	reflect;
+    } reflects[] = {
+	{ RR_Reflect_X, SubPixelHorizontalRGB,	SubPixelHorizontalBGR },
+	{ RR_Reflect_X, SubPixelHorizontalBGR,	SubPixelHorizontalRGB },
+	{ RR_Reflect_Y, SubPixelVerticalRGB,	SubPixelVerticalBGR },
+	{ RR_Reflect_Y, SubPixelVerticalRGB,	SubPixelVerticalRGB },
     };
     
     /* map subpixel to direction */
@@ -881,14 +928,21 @@ KdSetSubpixelOrder (ScreenPtr pScreen, int rotation)
 	    break;
     if (i < 4)
     {
-	subpixel_dir = orders[i].direction;
-	/* add rotation */
-	subpixel_dir += rotation;
+	subpixel_dir = KdAddRotation (randr & RR_Rotate_All, orders[i].direction);
+	
 	/* map back to subpixel order */
 	for (i = 0; i < 4; i++)
-	    if (orders[i].direction == subpixel_dir)
+	    if (orders[i].direction & subpixel_dir)
 	    {
 		subpixel_order = orders[i].subpixel_order;
+		break;
+	    }
+	/* reflect */
+	for (i = 0; i < 4; i++)
+	    if ((randr & reflects[i].bit) &&
+		reflects[i].normal == subpixel_order)
+	    {
+		subpixel_order = reflects[i].reflect;
 		break;
 	    }
     }
@@ -1066,7 +1120,7 @@ KdScreenInit(int index, ScreenPtr pScreen, int argc, char **argv)
 	return FALSE;
     }
 
-    KdSetSubpixelOrder (pScreen, screen->rotation);
+    KdSetSubpixelOrder (pScreen, screen->randr);
 
     /*
      * Enable the hardware

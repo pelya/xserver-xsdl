@@ -19,7 +19,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/mach64/mach64video.c,v 1.6 2001/07/24 19:06:03 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/mach64/mach64video.c,v 1.7 2001/08/09 09:08:55 keithp Exp $ */
 #include "mach64.h"
 
 #include "Xv.h"
@@ -148,7 +148,7 @@ mach64QueryBestSize(KdScreenInfo    *screen,
 static void
 mach64CopyPackedData(KdScreenInfo   *screen, 
 		     unsigned char  *buf,
-		     int	    rotate,
+		     int	    randr,
 		     int	    srcPitch,
 		     int	    dstPitch,
 		     int	    srcW,
@@ -168,24 +168,24 @@ mach64CopyPackedData(KdScreenInfo   *screen,
     int			srcDown, srcRight, srcNext;
     int			p;
 
-    switch (rotate) {
-    case 0:
+    switch (randr & RR_Rotate_All) {
+    case RR_Rotate_0:
 	src = buf;
 	srcDown = srcPitch;
 	srcRight = 2;
 	break;
-    case 90:
-	src = src + (srcH - 1) * 2;
+    case RR_Rotate_90:
+	src = buf + (srcH - 1) * 2;
 	srcDown = -2;
 	srcRight = srcPitch;
 	break;
-    case 180:
-	src = src + srcPitch * (srcH - 1) + (srcW - 1) * 2;
+    case RR_Rotate_180:
+	src = buf + srcPitch * (srcH - 1) + (srcW - 1) * 2;
 	srcDown = -srcPitch;
 	srcRight = -2;
 	break;
-    case 270:
-	src = src + srcPitch * (srcW - 1);
+    case RR_Rotate_270:
+	src = buf + srcPitch * (srcW - 1);
 	srcDown = 2;
 	srcRight = -srcPitch;
 	break;
@@ -505,7 +505,7 @@ mach64DisplayVideo(KdScreenInfo *screen,
     int			xscaleInt, xscaleFract, yscaleInt, yscaleFract;
     int			xscaleIntUV = 0, xscaleFractUV = 0;
     int			yscaleIntUV = 0, yscaleFractUV = 0;
-    int			rotate = mach64s->vesa.rotate;
+    int			randr = mach64s->vesa.randr;
     int			HORZ_INC, VERT_INC;
     CARD32		SCALER_IN;
     CARD32		OVERLAY_SCALE_CNTL;
@@ -622,7 +622,7 @@ mach64PutImage(KdScreenInfo	    *screen,
     Reg			*reg = mach64c->reg;
     MediaReg		*media = mach64c->media_reg;
     INT32		x1, x2, y1, y2;
-    int			rotate = mach64s->vesa.rotate;
+    int			randr = mach64s->vesa.randr;
     int			srcPitch, srcPitch2, dstPitch;
     int			top, left, npixels, nlines, size;
     BoxRec		dstBox;
@@ -651,29 +651,27 @@ mach64PutImage(KdScreenInfo	    *screen,
     if (!media)
 	return BadAlloc;
 
-    switch (rotate) {
-    case 0:
-    case 180:
+    if (randr & (RR_Rotate_0|RR_Rotate_180))
+    {
 	dst_width = width;
 	dst_height = height;
 	rot_src_w = src_w;
 	rot_src_h = src_h;
 	rot_drw_w = drw_w;
 	rot_drw_h = drw_h;
-	break;
-    case 90:
-    case 270:
+    }
+    else
+    {
 	dst_width = height;
 	dst_height = width;
 	rot_src_w = src_h;
 	rot_src_h = src_w;
 	rot_drw_w = drw_h;
 	rot_drw_h = drw_w;
-	break;
     }
 	
-    switch (rotate) {
-    case 0:
+    switch (randr & RR_Rotate_All) {
+    case RR_Rotate_0:
 	dst_x1 = dstBox.x1;
 	dst_y1 = dstBox.y1;
 	dst_x2 = dstBox.x2;
@@ -683,7 +681,7 @@ mach64PutImage(KdScreenInfo	    *screen,
 	rot_x2 = x2;
 	rot_y2 = y2;
 	break;
-    case 90:
+    case RR_Rotate_90:
 	dst_x1 = dstBox.y1;
 	dst_y1 = screen->height - dstBox.x2;
 	dst_x2 = dstBox.y2;
@@ -694,7 +692,7 @@ mach64PutImage(KdScreenInfo	    *screen,
 	rot_x2 = y2;
 	rot_y2 = (src_w << 16) - x1;
 	break;
-    case 180:
+    case RR_Rotate_180:
 	dst_x1 = screen->width - dstBox.x2;
 	dst_y1 = screen->height - dstBox.y2;
 	dst_x2 = screen->width - dstBox.x1;
@@ -704,7 +702,7 @@ mach64PutImage(KdScreenInfo	    *screen,
 	rot_x2 = (src_w << 16) - x1;
 	rot_y2 = (src_h << 16) - y1;
 	break;
-    case 270:
+    case RR_Rotate_270:
 	dst_x1 = screen->width - dstBox.y2;
 	dst_y1 = dstBox.x1;
 	dst_x2 = screen->width - dstBox.y1;
@@ -764,7 +762,7 @@ mach64PutImage(KdScreenInfo	    *screen,
     case FOURCC_I420:
 	top &= ~1;
 	nlines = ((((rot_y2 + 0xffff) >> 16) + 1) & ~1) - top;
-	mach64CopyPlanarData(screen, buf, rotate,
+	mach64CopyPlanarData(screen, buf, randr,
 			     srcPitch, srcPitch2, dstPitch,  
 			     rot_src_w, rot_src_h, height,
 			     top, left, nlines, npixels, id);
@@ -773,7 +771,7 @@ mach64PutImage(KdScreenInfo	    *screen,
     case FOURCC_YUY2:
     default:
 	nlines = ((rot_y2 + 0xffff) >> 16) - top;
-	mach64CopyPackedData(screen, buf, rotate,
+	mach64CopyPackedData(screen, buf, randr,
 			     srcPitch, dstPitch,
 			     rot_src_w, rot_src_h,
 			     top, left, nlines, 
