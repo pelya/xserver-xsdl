@@ -263,13 +263,14 @@ typedef struct _XAAStateWrapRec {
    BackingStoreSaveAreasProcPtr SaveAreas;
    BackingStoreRestoreAreasProcPtr RestoreAreas;
 #ifdef RENDER
-   Bool (*SetupForCPUToScreenAlphaTexture)(ScrnInfoPtr pScrn, int op,
+   Bool (*SetupForCPUToScreenAlphaTexture2)(ScrnInfoPtr pScrn, int op,
                                            CARD16 red, CARD16 green,
                                            CARD16 blue, CARD16 alpha,
-                                           int alphaType, CARD8 *alphaPtr,
-                                           int alphaPitch, int width,
-                                           int height, int flags);
-   Bool (*SetupForCPUToScreenTexture)(ScrnInfoPtr pScrn, int op, int texType,
+					   CARD32 maskFormat, CARD32 dstFormat,
+                                           CARD8 *alphaPtr, int alphaPitch,
+					   int width, int height, int flags);
+   Bool (*SetupForCPUToScreenTexture2)(ScrnInfoPtr pScrn, int op,
+                                      CARD32 srcFormat, CARD32 dstFormat,
                                       CARD8 *texPtr, int texPitch,
                                       int width, int height, int flags);
 #endif
@@ -1499,38 +1500,41 @@ static void XAAStateWrapRestoreAreas(PixmapPtr pBackingPixmap, RegionPtr pExpose
 }
 
 #ifdef RENDER
-static Bool XAAStateWrapSetupForCPUToScreenAlphaTexture(ScrnInfoPtr pScrn,
-                                                        int op, CARD16 red,
-                                                        CARD16 green,
-                                                        CARD16 blue,
-                                                        CARD16 alpha,
-                                                        int alphaType,
-                                                        CARD8 *alphaPtr,
-                                                        int alphaPitch,
-                                                        int width, int height,
-                                                        int flags)
+static Bool XAAStateWrapSetupForCPUToScreenAlphaTexture2(ScrnInfoPtr pScrn,
+                                                         int op, CARD16 red,
+                                                         CARD16 green,
+                                                         CARD16 blue,
+                                                         CARD16 alpha,
+							 CARD32 srcFormat,
+							 CARD32 dstFormat,
+                                                         CARD8 *alphaPtr,
+                                                         int alphaPitch,
+                                                         int width, int height,
+                                                         int flags)
 {
    GET_STATEPRIV_PSCRN(pScrn);
    STATE_CHECK_PSCRN(pScrn);
 
-   return (*pStatePriv->SetupForCPUToScreenAlphaTexture)(pScrn, op, red, green,
-                                                         blue, alpha, alphaType,
-                                                         alphaPtr, alphaPitch,
-                                                         width, height, flags);
+   return (*pStatePriv->SetupForCPUToScreenAlphaTexture2)(pScrn, op, red, green,
+                                                         blue, alpha, srcFormat,
+							 dstFormat, alphaPtr,
+							 alphaPitch, width,
+							 height, flags);
 }
 
-static Bool XAAStateWrapSetupForCPUToScreenTexture(ScrnInfoPtr pScrn, int op,
-                                                   int texType, CARD8 *texPtr,
-                                                   int texPitch,
-                                                   int width, int height,
-                                                   int flags)
+static Bool XAAStateWrapSetupForCPUToScreenTexture2(ScrnInfoPtr pScrn, int op,
+                                                    CARD32 srcFormat,
+						    CARD32 dstFormat,
+						    CARD8 *texPtr, int texPitch,
+                                                    int width, int height,
+                                                    int flags)
 {
    GET_STATEPRIV_PSCRN(pScrn);
    STATE_CHECK_PSCRN(pScrn);
 
-   return (*pStatePriv->SetupForCPUToScreenTexture)(pScrn, op, texType, texPtr,
-                                                    texPitch, width, height,
-                                                    flags);
+   return (*pStatePriv->SetupForCPUToScreenTexture2)(pScrn, op, srcFormat,
+                                                    dstFormat, texPtr, texPitch,
+						    width, height, flags);
 }
 #endif
 
@@ -1671,8 +1675,8 @@ XAAInitStateWrap(ScreenPtr pScreen, XAAInfoRecPtr infoRec)
    XAA_STATE_WRAP(SaveAreas);
    XAA_STATE_WRAP(RestoreAreas);
 #ifdef RENDER
-   XAA_STATE_WRAP(SetupForCPUToScreenAlphaTexture);
-   XAA_STATE_WRAP(SetupForCPUToScreenTexture);
+   XAA_STATE_WRAP(SetupForCPUToScreenAlphaTexture2);
+   XAA_STATE_WRAP(SetupForCPUToScreenTexture2);
 #endif
    return TRUE;
 }
