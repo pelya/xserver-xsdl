@@ -70,7 +70,7 @@ static UINT_PTR		g_uipMousePollingTimerID = 0;
 
 DEFINE_ATOM_HELPER(AtmWindowsWmRaiseOnClick, WINDOWSWM_RAISE_ON_CLICK)
 DEFINE_ATOM_HELPER(AtmWindowsWMMouseActivate, WINDOWSWM_MOUSE_ACTIVATE)
-DEFINE_ATOM_HELPER(AtmWindowsWMClientWindow, WINDOWSWM_CLIENT_WINDOW)
+/* DEFINE_ATOM_HELPER(AtmWindowsWMClientWindow, WINDOWSWM_CLIENT_WINDOW) */
 
 /*
  * ConstrainSize - Taken from TWM sources - Respects hints for sizing
@@ -957,26 +957,27 @@ winMWExtWMWindowProc (HWND hwnd, UINT message,
       return ValidateSizing (hwnd, pWin, wParam, lParam);
 
     case WM_WINDOWPOSCHANGED:
-#if CYGMULTIWINDOW_DEBUG
-      winDebug ("winMWExtWMWindowProc - WM_WINDOWPOSCHANGED\n");
-#endif
       {
 	pWinPos = (LPWINDOWPOS) lParam;
 #if CYGMULTIWINDOW_DEBUG
-	winDebug("flags: ");
-	if (pWinPos->flags & SWP_DRAWFRAME) winDebug("SWP_DRAWFRAME ");
-	if (pWinPos->flags & SWP_FRAMECHANGED) winDebug("SWP_FRAMECHANGED ");
-	if (pWinPos->flags & SWP_HIDEWINDOW) winDebug("SWP_HIDEWINDOW ");
-	if (pWinPos->flags & SWP_NOACTIVATE) winDebug("SWP_NOACTIVATE ");
-	if (pWinPos->flags & SWP_NOCOPYBITS) winDebug("SWP_NOCOPYBITS ");
-	if (pWinPos->flags & SWP_NOMOVE) winDebug("SWP_NOMOVE ");
-	if (pWinPos->flags & SWP_NOOWNERZORDER) winDebug("SWP_NOOWNERZORDER ");
-	if (pWinPos->flags & SWP_NOSIZE) winDebug("SWP_NOSIZE ");
-	if (pWinPos->flags & SWP_NOREDRAW) winDebug("SWP_NOREDRAW ");
-	if (pWinPos->flags & SWP_NOSENDCHANGING) winDebug("SWP_NOSENDCHANGING ");
-	if (pWinPos->flags & SWP_NOZORDER) winDebug("SWP_NOZORDER ");
-	if (pWinPos->flags & SWP_SHOWWINDOW) winDebug("SWP_SHOWWINDOW ");
-	winDebug("\n");
+        winDebug("winMWExtWMWindowProc - WM_WINDOWPOSCHANGED\n");
+	winDebug("\tflags: %s%s%s%s%s%s%s%s%s%s%s%s\n",
+	(pWinPos->flags & SWP_DRAWFRAME)?"SWP_DRAWFRAME ":"",
+	(pWinPos->flags & SWP_FRAMECHANGED)?"SWP_FRAMECHANGED ":"",
+	(pWinPos->flags & SWP_HIDEWINDOW)?"SWP_HIDEWINDOW ":"",
+	(pWinPos->flags & SWP_NOACTIVATE)?"SWP_NOACTIVATE ":"",
+	(pWinPos->flags & SWP_NOCOPYBITS)?"SWP_NOCOPYBITS ":"",
+	(pWinPos->flags & SWP_NOMOVE)?"SWP_NOMOVE ":"",
+	(pWinPos->flags & SWP_NOOWNERZORDER)?"SWP_NOOWNERZORDER ":"",
+	(pWinPos->flags & SWP_NOSIZE)?"SWP_NOSIZE ":"",
+	(pWinPos->flags & SWP_NOREDRAW)?"SWP_NOREDRAW ":"",
+	(pWinPos->flags & SWP_NOSENDCHANGING)?"SWP_NOSENDCHANGING ":"",
+	(pWinPos->flags & SWP_NOZORDER)?"SWP_NOZORDER ":"",
+	(pWinPos->flags & SWP_SHOWWINDOW)?"SWP_SHOWWINDOW ":"");
+	winDebug("\tno_configure: %s\n", (g_fNoConfigureWindow?"Yes":"No"));
+	winDebug("\textend: (%d, %d, %d, %d)\n",
+            pWinPos->x, pWinPos->y, pWinPos->cx, pWinPos->cy);
+
 #endif
 	if (pWinPos->flags & SWP_HIDEWINDOW) break;
 
@@ -1094,7 +1095,7 @@ winMWExtWMWindowProc (HWND hwnd, UINT message,
 	      winDebug ("\tmove & resize\n");
 #endif
 	      if (winIsInternalWMRunning(pScreenInfo))
-		winAdjustXWindow (pWin, hwnd);
+                winAdjustXWindow (pWin, hwnd);
 
 	      winMWExtWMMoveResizeXWindow (pWin,
 					   rcClient.left - wBorderWidth (pWin)
@@ -1110,7 +1111,23 @@ winMWExtWMWindowProc (HWND hwnd, UINT message,
 	      winDebug ("\tmove\n");
 #endif
 	      if (winIsInternalWMRunning(pScreenInfo))
-		winAdjustXWindow (pWin, hwnd);
+                winAdjustXWindow (pWin, hwnd);
+
+	      winMWExtWMMoveResizeXWindow (pWin,
+					   rcClient.left - wBorderWidth (pWin)
+					   - GetSystemMetrics (SM_XVIRTUALSCREEN),
+					   rcClient.top - wBorderWidth (pWin)
+					   - GetSystemMetrics (SM_YVIRTUALSCREEN),
+					   rcClient.right - rcClient.left
+					   - wBorderWidth (pWin)*2,
+					   rcClient.bottom - rcClient.top
+					   - wBorderWidth (pWin)*2);
+	    } else if (!(pWinPos->flags & SWP_NOMOVE)) {
+#if CYGMULTIWINDOW_DEBUG
+	      winDebug ("\tmove\n");
+#endif
+	      if (winIsInternalWMRunning(pScreenInfo))
+                winAdjustXWindow (pWin, hwnd); 
 
 	      winMWExtWMMoveXWindow (pWin,
 				     rcClient.left - wBorderWidth (pWin)
@@ -1122,7 +1139,7 @@ winMWExtWMWindowProc (HWND hwnd, UINT message,
 	      winDebug ("\tresize\n");
 #endif
 	      if (winIsInternalWMRunning(pScreenInfo))
-		winAdjustXWindow (pWin, hwnd);
+                winAdjustXWindow (pWin, hwnd); 
 
 	      winMWExtWMResizeXWindow (pWin,
 				       rcClient.right - rcClient.left
@@ -1204,7 +1221,7 @@ winMWExtWMWindowProc (HWND hwnd, UINT message,
       if (!pRLWinPriv->fMovingOrSizing)
 	{
 	  if (winIsInternalWMRunning(pScreenInfo))
-	    winAdjustXWindow (pWin, hwnd);
+            winAdjustXWindow (pWin, hwnd);
 
 	  winMWExtWMResizeXWindow (pWin,
 				   (short) LOWORD(lParam)
@@ -1275,7 +1292,7 @@ winMWExtWMWindowProc (HWND hwnd, UINT message,
       MapWindowPoints (hwnd, HWND_DESKTOP, (LPPOINT)&rcClient, 2);
 
       if (winIsInternalWMRunning(pScreenInfo))
-	winAdjustXWindow (pWin, hwnd);
+        winAdjustXWindow (pWin, hwnd); 
 
       winMWExtWMMoveResizeXWindow (pWin,
 				   rcClient.left - wBorderWidth (pWin)

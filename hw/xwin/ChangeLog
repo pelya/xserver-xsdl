@@ -1,5 +1,12 @@
 2005-02-12  Alexander Gottwald  <ago at freedesktop dot org>
 
+	* winmultiwindowwindow.c
+	* winmultiwindowwndproc.c
+	* winwin32rootlesswndproc.c:
+	Cleanup some message debugging
+	
+2005-02-12  Alexander Gottwald  <ago at freedesktop dot org>
+
 	* win.h
 	* winfont.c
 	* winmultiwindowshape.c

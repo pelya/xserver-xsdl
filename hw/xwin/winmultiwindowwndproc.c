@@ -355,9 +355,6 @@ winTopLevelWindowProc (HWND hwnd, UINT message,
   switch (message)
     {
     case WM_CREATE:
-#if CYGMULTIWINDOW_DEBUG
-      ErrorF ("winTopLevelWindowProc - WM_CREATE\n");
-#endif
 
       /* */
       SetProp (hwnd,
@@ -388,33 +385,11 @@ winTopLevelWindowProc (HWND hwnd, UINT message,
       /*
        * Any window menu items go through here
        */
-#if CYGMULTIWINDOW_DEBUG
-      switch (wParam & 0xFFF0) /* See MSDN for the magic number 0xFFF0 */
-	{
-	case SC_MINIMIZE:
-	  ErrorF ("winTopLevelWindowProc - WM_SYSCOMMAND (SC_MINIMIZE)\n");
-	  break;
-
-	case SC_RESTORE:
-	  ErrorF ("winTopLevelWindowProc - WM_SYSCOMMAND (SC_RESTORE)\n");
-	  break;
-
-	case SC_MAXIMIZE:
-	  ErrorF ("winTopLevelWindowProc - WM_SYSCOMMAND (SC_MAXIMIZE)\n");
-	  break;
-	  
-	default:
-	  ErrorF ("winTopLevelWindowProc - WM_SYSCOMMAND (UNKNOWN)\n");
-#endif
-	  if (HandleCustomWM_COMMAND ((unsigned long)hwnd, LOWORD(wParam)))
-	    {
-	      /* Don't pass customized menus to DefWindowProc */
-	      return 0;
-	    }
-#if CYGMULTIWINDOW_DEBUG
-	  break;
-	}
-#endif
+      if (HandleCustomWM_COMMAND ((unsigned long)hwnd, LOWORD(wParam)))
+      {
+        /* Don't pass customized menus to DefWindowProc */
+        return 0;
+      }
       break;
 
     case WM_INITMENU:
@@ -628,9 +603,6 @@ winTopLevelWindowProc (HWND hwnd, UINT message,
       return winMouseButtonsHandle (s_pScreen, ButtonRelease, HIWORD(wParam) + 5, wParam);
 
     case WM_MOUSEWHEEL:
-#if CYGMULTIWINDOW_DEBUG
-      ErrorF ("winTopLevelWindowProc - WM_MOUSEWHEEL\n");
-#endif
       
       /* Pass the message to the root window */
       SendMessage (hwndScreen, message, wParam, lParam);
@@ -665,9 +637,6 @@ winTopLevelWindowProc (HWND hwnd, UINT message,
 
     case WM_SYSKEYDOWN:
     case WM_KEYDOWN:
-#if CYGMULTIWINDOW_DEBUG
-      ErrorF ("winTopLevelWindowProc - WM_*KEYDOWN\n");
-#endif
 
       /*
        * Don't pass Alt-F4 key combo to root window,
@@ -729,27 +698,18 @@ winTopLevelWindowProc (HWND hwnd, UINT message,
     case WM_SYSKEYUP:
     case WM_KEYUP:
 
-#if CYGMULTIWINDOW_DEBUG
-      ErrorF ("winTopLevelWindowProc - WM_*KEYUP\n");
-#endif
 
       /* Pass the message to the root window */
       SendMessage (hwndScreen, message, wParam, lParam);
       return 0;
 
     case WM_HOTKEY:
-#if CYGMULTIWINDOW_DEBUG
-      ErrorF ("winTopLevelWindowProc - WM_HOTKEY\n");
-#endif
 
       /* Pass the message to the root window */
       SendMessage (hwndScreen, message, wParam, lParam);
       return 0;
 
     case WM_ACTIVATE:
-#if CYGMULTIWINDOW_DEBUG
-      ErrorF ("winTopLevelWindowProc - WM_ACTIVATE\n");
-#endif
 
       /* Pass the message to the root window */
       SendMessage (hwndScreen, message, wParam, lParam);
@@ -770,9 +730,6 @@ winTopLevelWindowProc (HWND hwnd, UINT message,
       return 0;
 
     case WM_ACTIVATEAPP:
-#if CYGMULTIWINDOW_DEBUG
-      ErrorF ("winTopLevelWindowProc - WM_ACTIVATEAPP\n");
-#endif
       /*
        * This message is also sent to the root window
        * so we do nothing for individual multiwindow windows
@@ -780,9 +737,6 @@ winTopLevelWindowProc (HWND hwnd, UINT message,
       break;
 
     case WM_CLOSE:
-#if CYGMULTIWINDOW_DEBUG
-      ErrorF ("winTopLevelWindowProc - WM_CLOSE\n");
-#endif
       /* Branch on if the window was killed in X already */
       if (pWinPriv->fXKilled)
         {
@@ -799,9 +753,6 @@ winTopLevelWindowProc (HWND hwnd, UINT message,
       return 0;
 
     case WM_DESTROY:
-#if CYGMULTIWINDOW_DEBUG
-      ErrorF ("winTopLevelWindowProc - WM_DESTROY\n");
-#endif
 
       /* Branch on if the window was killed in X already */
       if (pWinPriv && !pWinPriv->fXKilled)
@@ -818,17 +769,9 @@ winTopLevelWindowProc (HWND hwnd, UINT message,
       RemoveProp (hwnd, WIN_WID_PROP);
       RemoveProp (hwnd, WIN_NEEDMANAGE_PROP);
 
-#if CYGMULTIWINDOW_DEBUG
-      ErrorF ("winTopLevelWindowProc - WM_DESTROY\n");
-#endif
       break;
 
     case WM_MOVE:
-#if CYGWINDOWING_DEBUG
-      ErrorF ("winTopLevelWindowProc - WM_MOVE to (%d, %d) - %d ms\n",
-	      (int)(short)LOWORD(lParam), (int)(short)HIWORD(lParam),
-	      (int)(GetTickCount ()));
-#endif
       /* Adjust the X Window to the moved Windows window */
       winAdjustXWindow (pWin, hwnd);
       return 0;
@@ -838,10 +781,6 @@ winTopLevelWindowProc (HWND hwnd, UINT message,
       if (!wParam)
 	return 0;
 
-#if CYGWINDOWING_DEBUG
-      ErrorF ("winTopLevelWindowProc - WM_SHOWWINDOW\n");
-#endif
-      
       /* Tell X to map the window */
       MapWindow (pWin, wClient(pWin));
 
@@ -1075,9 +1014,6 @@ winTopLevelWindowProc (HWND hwnd, UINT message,
       return 0; /* end of WM_SIZE handler */
 
     case WM_MOUSEACTIVATE:
-#if CYGMULTIWINDOW_DEBUG
-      ErrorF ("winTopLevelWindowProc - WM_MOUSEACTIVATE\n");
-#endif
 
       /* Check if this window needs to be made active when clicked */
       if (!GetProp (pWinPriv->hWnd, WIN_NEEDMANAGE_PROP))
