@@ -30,34 +30,8 @@
 #include "picturestr.h"
 #include "mipict.h"
 #include "fbpict.h"
+#include "fbmmx.h"
 
-#define cvt8888to0565(s)    ((((s) >> 3) & 0x001f) | \
-			     (((s) >> 5) & 0x07e0) | \
-			     (((s) >> 8) & 0xf800))
-#define cvt0565to8888(s)    (((((s) << 3) & 0xf8) | (((s) >> 2) & 0x7)) | \
-			     ((((s) << 5) & 0xfc00) | (((s) >> 1) & 0x300)) | \
-			     ((((s) << 8) & 0xf80000) | (((s) << 3) & 0x70000)))
-
-#if IMAGE_BYTE_ORDER == MSBFirst
-#define Fetch24(a)  ((unsigned long) (a) & 1 ? \
-		     ((*(a) << 16) | *((CARD16 *) ((a)+1))) : \
-		     ((*((CARD16 *) (a)) << 8) | *((a)+2)))
-#define Store24(a,v) ((unsigned long) (a) & 1 ? \
-		      ((*(a) = (CARD8) ((v) >> 16)), \
-		       (*((CARD16 *) ((a)+1)) = (CARD16) (v))) : \
-		      ((*((CARD16 *) (a)) = (CARD16) ((v) >> 8)), \
-		       (*((a)+2) = (CARD8) (v))))
-#else
-#define Fetch24(a)  ((unsigned long) (a) & 1 ? \
-		     ((*(a)) | (*((CARD16 *) ((a)+1)) << 8)) : \
-		     ((*((CARD16 *) (a))) | (*((a)+2) << 16)))
-#define Store24(a,v) ((unsigned long) (a) & 1 ? \
-		      ((*(a) = (CARD8) (v)), \
-		       (*((CARD16 *) ((a)+1)) = (CARD16) ((v) >> 8))) : \
-		      ((*((CARD16 *) (a)) = (CARD16) (v)),\
-		       (*((a)+2) = (CARD8) ((v) >> 16))))
-#endif
-		      
 CARD32
 fbOver (CARD32 x, CARD32 y)
 {
@@ -99,43 +73,6 @@ fbIn (CARD32 x, CARD8 y)
     return m|n|o|p;
 }
 
-#define fbComposeGetSolid(pict, bits) { \
-    FbBits	*__bits__; \
-    FbStride	__stride__; \
-    int		__bpp__; \
-    int		__xoff__,__yoff__; \
-\
-    fbGetDrawable((pict)->pDrawable,__bits__,__stride__,__bpp__,__xoff__,__yoff__); \
-    switch (__bpp__) { \
-    case 32: \
-	(bits) = *(CARD32 *) __bits__; \
-	break; \
-    case 24: \
-	(bits) = Fetch24 ((CARD8 *) __bits__); \
-	break; \
-    case 16: \
-	(bits) = *(CARD16 *) __bits__; \
-	(bits) = cvt0565to8888(bits); \
-	break; \
-    default: \
-	return; \
-    } \
-    /* manage missing src alpha */ \
-    if ((pict)->pFormat->direct.alphaMask == 0) \
-	(bits) |= 0xff000000; \
-}
-
-#define fbComposeGetStart(pict,x,y,type,stride,line,mul) {\
-    FbBits	*__bits__; \
-    FbStride	__stride__; \
-    int		__bpp__; \
-    int		__xoff__,__yoff__; \
-\
-    fbGetDrawable((pict)->pDrawable,__bits__,__stride__,__bpp__,__xoff__,__yoff__); \
-    (stride) = __stride__ * sizeof (FbBits) / sizeof (type); \
-    (line) = ((type *) __bits__) + (stride) * ((y) - __yoff__) + (mul) * ((x) - __xoff__); \
-}
-
 /*
  * Naming convention:
  *
@@ -168,7 +105,7 @@ fbCompositeSolidMask_nx8x8888 (CARD8      op,
     srca = src >> 24;
     if (src == 0)
 	return;
-    
+
     fbComposeGetStart (pDst, xDst, yDst, CARD32, dstStride, dstLine, 1);
     fbComposeGetStart (pMask, xMask, yMask, CARD8, maskStride, maskLine, 1);
     
@@ -940,7 +877,12 @@ fbComposite (CARD8      op,
 			switch (pDst->format) {
 			case PICT_r5g6b5:
 			case PICT_b5g6r5:
-			    func = fbCompositeSolidMask_nx8x0565;
+#ifdef USE_GCC34_MMX
+			    if (fbHaveMMX())
+				func = fbCompositeSolidMask_nx8x0565mmx;
+			    else
+#endif
+				func = fbCompositeSolidMask_nx8x0565;
 			    break;
 			case PICT_r8g8b8:
 			case PICT_b8g8r8:
@@ -950,7 +892,12 @@ fbComposite (CARD8      op,
 			case PICT_x8r8g8b8:
 			case PICT_a8b8g8r8:
 			case PICT_x8b8g8r8:
-			    func = fbCompositeSolidMask_nx8x8888;
+#ifdef USE_GCC34_MMX
+			    if (fbHaveMMX())
+				func = fbCompositeSolidMask_nx8x8888mmx;
+			    else
+#endif
+				func = fbCompositeSolidMask_nx8x8888;
 			    break;
 			}
 			break;
@@ -959,10 +906,20 @@ fbComposite (CARD8      op,
 			    switch (pDst->format) {
 			    case PICT_a8r8g8b8:
 			    case PICT_x8r8g8b8:
-				func = fbCompositeSolidMask_nx8888x8888C;
+#ifdef USE_GCC34_MMX
+				if (fbHaveMMX())
+				    func = fbCompositeSolidMask_nx8888x8888Cmmx;
+				else
+#endif
+				    func = fbCompositeSolidMask_nx8888x8888C;
 				break;
 			    case PICT_r5g6b5:
-				func = fbCompositeSolidMask_nx8888x0565C;
+#ifdef USE_GCC34_MMX
+				if (fbHaveMMX())
+				    func = fbCompositeSolidMask_nx8888x0565Cmmx;
+				else
+#endif
+				    func = fbCompositeSolidMask_nx8888x0565C;
 				break;
 			    }
 			}
@@ -972,10 +929,20 @@ fbComposite (CARD8      op,
 			    switch (pDst->format) {
 			    case PICT_a8b8g8r8:
 			    case PICT_x8b8g8r8:
-				func = fbCompositeSolidMask_nx8888x8888C;
+#ifdef USE_GCC34_MMX
+				if (fbHaveMMX())
+				    func = fbCompositeSolidMask_nx8888x8888Cmmx;
+				else
+#endif
+				    func = fbCompositeSolidMask_nx8888x8888C;
 				break;
 			    case PICT_b5g6r5:
-				func = fbCompositeSolidMask_nx8888x0565C;
+#ifdef USE_GCC34_MMX
+				if (fbHaveMMX())
+				    func = fbCompositeSolidMask_nx8888x0565Cmmx;
+				else
+#endif
+				    func = fbCompositeSolidMask_nx8888x0565C;
 				break;
 			    }
 			}
@@ -993,55 +960,145 @@ fbComposite (CARD8      op,
 			    func = fbCompositeSolidMask_nx1xn;
 			    break;
 			}
+			break;
 		    }
+		}
+	    }
+	    else /* has mask and non-repeating source */
+	    {
+		if (pSrc->pDrawable == pMask->pDrawable &&
+		    xSrc == xMask && ySrc == yMask &&
+		    !pMask->componentAlpha)
+		{
+		    switch (pSrc->format) {
+		    case PICT_x8b8g8r8:
+			switch (pMask->format) {
+			case PICT_a8r8g8b8:
+			case PICT_a8b8g8r8:
+			    switch (pDst->format) {
+			    case PICT_a8r8g8b8:
+			    case PICT_x8r8g8b8:
+#ifdef USE_GCC34_MMX
+				if (fbHaveMMX())
+				    func = fbCompositeSrc_8888RevNPx8888mmx;
+#endif
+				break;
+			    case PICT_r5g6b5:
+#ifdef USE_GCC34_MMX
+				if (fbHaveMMX())
+				    func = fbCompositeSrc_8888RevNPx0565mmx;
+#endif
+				break;
+			    }
+			    break;
+			}
+			break;
+		    case PICT_x8r8g8b8:
+			switch (pMask->format) {
+			case PICT_a8r8g8b8:
+			case PICT_a8b8g8r8:
+			    switch (pDst->format) {
+			    case PICT_a8b8g8r8:
+			    case PICT_x8b8g8r8:
+#ifdef USE_GCC34_MMX
+				if (fbHaveMMX())
+				    func = fbCompositeSrc_8888RevNPx8888mmx;
+#endif
+				break;
+			    case PICT_r5g6b5:
+#ifdef USE_GCC34_MMX
+				if (fbHaveMMX())
+				    func = fbCompositeSrc_8888RevNPx0565mmx;
+#endif
+				break;
+			    }
+			    break;
+			}
+			break;
+		    }
+		    break;
 		}
 	    }
 	}
 	else
 	{
-	    switch (pSrc->format) {
-	    case PICT_a8r8g8b8:
-		switch (pDst->format) {
+	    if (srcRepeat && 
+		pSrc->pDrawable->width == 1 &&
+		pSrc->pDrawable->height == 1)
+	    {
+		/* no mask and repeating source */
+		switch (pSrc->format) {
 		case PICT_a8r8g8b8:
-		case PICT_x8r8g8b8:
-		    func = fbCompositeSrc_8888x8888;
-		    break;
-		case PICT_r8g8b8:
-		    func = fbCompositeSrc_8888x0888;
-		    break;
-		case PICT_r5g6b5:
-		    func = fbCompositeSrc_8888x0565;
+		    switch (pDst->format) {
+		    case PICT_a8r8g8b8:
+		    case PICT_x8r8g8b8:
+#ifdef USE_GCC34_MMX
+			if (fbHaveMMX())
+			{
+			    srcRepeat = FALSE;
+			    func = fbCompositeSolid_nx8888mmx;
+			}
+#endif
+			break;
+		    case PICT_r5g6b5:
+#ifdef USE_GCC34_MMX
+			if (fbHaveMMX())
+			{
+			    srcRepeat = FALSE;
+			    func = fbCompositeSolid_nx0565mmx;
+			}
+#endif
+			break;
+		    }
 		    break;
 		}
-		break;
-	    case PICT_a8b8g8r8:
-		switch (pDst->format) {
+	    }
+	    else
+	    {
+		switch (pSrc->format) {
+		case PICT_a8r8g8b8:
+		    switch (pDst->format) {
+		    case PICT_a8r8g8b8:
+		    case PICT_x8r8g8b8:
+			func = fbCompositeSrc_8888x8888;
+			break;
+		    case PICT_r8g8b8:
+			func = fbCompositeSrc_8888x0888;
+			break;
+		    case PICT_r5g6b5:
+			func = fbCompositeSrc_8888x0565;
+			break;
+		    }
+		    break;
 		case PICT_a8b8g8r8:
-		case PICT_x8b8g8r8:
-		    func = fbCompositeSrc_8888x8888;
+		    switch (pDst->format) {
+		    case PICT_a8b8g8r8:
+		    case PICT_x8b8g8r8:
+			func = fbCompositeSrc_8888x8888;
+			break;
+		    case PICT_b8g8r8:
+			func = fbCompositeSrc_8888x0888;
+			break;
+		    case PICT_b5g6r5:
+			func = fbCompositeSrc_8888x0565;
+			break;
+		    }
 		    break;
-		case PICT_b8g8r8:
-		    func = fbCompositeSrc_8888x0888;
-		    break;
-		case PICT_b5g6r5:
-		    func = fbCompositeSrc_8888x0565;
-		    break;
-		}
-		break;
-	    case PICT_r5g6b5:
-		switch (pDst->format) {
 		case PICT_r5g6b5:
-		    func = fbCompositeSrc_0565x0565;
+		    switch (pDst->format) {
+		    case PICT_r5g6b5:
+			func = fbCompositeSrc_0565x0565;
+			break;
+		    }
 		    break;
-		}
-		break;
-	    case PICT_b5g6r5:
-		switch (pDst->format) {
 		case PICT_b5g6r5:
-		    func = fbCompositeSrc_0565x0565;
+		    switch (pDst->format) {
+		    case PICT_b5g6r5:
+			func = fbCompositeSrc_0565x0565;
+			break;
+		    }
 		    break;
 		}
-		break;
 	    }
 	}
 	break;
@@ -1052,21 +1109,36 @@ fbComposite (CARD8      op,
 	    case PICT_a8r8g8b8:
 		switch (pDst->format) {
 		case PICT_a8r8g8b8:
-		    func = fbCompositeSrcAdd_8888x8888;
+#ifdef USE_GCC34_MMX
+		    if (fbHaveMMX())
+			func = fbCompositeSrcAdd_8888x8888mmx;
+		    else
+#endif
+			func = fbCompositeSrcAdd_8888x8888;
 		    break;
 		}
 		break;
 	    case PICT_a8b8g8r8:
 		switch (pDst->format) {
 		case PICT_a8b8g8r8:
-		    func = fbCompositeSrcAdd_8888x8888;
+#ifdef USE_GCC34_MMX
+		    if (fbHaveMMX())
+			func = fbCompositeSrcAdd_8888x8888mmx;
+		    else
+#endif
+			func = fbCompositeSrcAdd_8888x8888;
 		    break;
 		}
 		break;
 	    case PICT_a8:
 		switch (pDst->format) {
 		case PICT_a8:
-		    func = fbCompositeSrcAdd_8000x8000;
+#ifdef USE_GCC34_MMX
+		    if (fbHaveMMX())
+			func = fbCompositeSrcAdd_8000x8000mmx;
+		    else
+#endif
+			func = fbCompositeSrcAdd_8000x8000;
 		    break;
 		}
 		break;

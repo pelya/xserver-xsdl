@@ -49,7 +49,6 @@ fbSolid (FbBits	    *dst,
 	return;
     }
 #endif
-	
     dst += dstX >> FB_SHIFT;
     dstX &= FB_MASK;
     FbMaskBitsBytes(dstX, width, and == 0, startmask, startbyte, 

@@ -70,6 +70,70 @@ typedef void	(*CompositeFunc) (CARD8      op,
 				  CARD16     width,
 				  CARD16     height);
 
+#define fbComposeGetSolid(pict, bits) { \
+    FbBits	*__bits__; \
+    FbStride	__stride__; \
+    int		__bpp__; \
+    int		__xoff__,__yoff__; \
+\
+    fbGetDrawable((pict)->pDrawable,__bits__,__stride__,__bpp__,__xoff__,__yoff__); \
+    switch (__bpp__) { \
+    case 32: \
+	(bits) = *(CARD32 *) __bits__; \
+	break; \
+    case 24: \
+	(bits) = Fetch24 ((CARD8 *) __bits__); \
+	break; \
+    case 16: \
+	(bits) = *(CARD16 *) __bits__; \
+	(bits) = cvt0565to8888(bits); \
+	break; \
+    default: \
+	return; \
+    } \
+    /* manage missing src alpha */ \
+    if ((pict)->pFormat->direct.alphaMask == 0) \
+	(bits) |= 0xff000000; \
+}
+
+#define fbComposeGetStart(pict,x,y,type,stride,line,mul) {\
+    FbBits	*__bits__; \
+    FbStride	__stride__; \
+    int		__bpp__; \
+    int		__xoff__,__yoff__; \
+\
+    fbGetDrawable((pict)->pDrawable,__bits__,__stride__,__bpp__,__xoff__,__yoff__); \
+    (stride) = __stride__ * sizeof (FbBits) / sizeof (type); \
+    (line) = ((type *) __bits__) + (stride) * ((y) - __yoff__) + (mul) * ((x) - __xoff__); \
+}
+#define cvt8888to0565(s)    ((((s) >> 3) & 0x001f) | \
+			     (((s) >> 5) & 0x07e0) | \
+			     (((s) >> 8) & 0xf800))
+#define cvt0565to8888(s)    (((((s) << 3) & 0xf8) | (((s) >> 2) & 0x7)) | \
+			     ((((s) << 5) & 0xfc00) | (((s) >> 1) & 0x300)) | \
+			     ((((s) << 8) & 0xf80000) | (((s) << 3) & 0x70000)))
+
+#if IMAGE_BYTE_ORDER == MSBFirst
+#define Fetch24(a)  ((unsigned long) (a) & 1 ? \
+		     ((*(a) << 16) | *((CARD16 *) ((a)+1))) : \
+		     ((*((CARD16 *) (a)) << 8) | *((a)+2)))
+#define Store24(a,v) ((unsigned long) (a) & 1 ? \
+		      ((*(a) = (CARD8) ((v) >> 16)), \
+		       (*((CARD16 *) ((a)+1)) = (CARD16) (v))) : \
+		      ((*((CARD16 *) (a)) = (CARD16) ((v) >> 8)), \
+		       (*((a)+2) = (CARD8) (v))))
+#else
+#define Fetch24(a)  ((unsigned long) (a) & 1 ? \
+		     ((*(a)) | (*((CARD16 *) ((a)+1)) << 8)) : \
+		     ((*((CARD16 *) (a))) | (*((a)+2) << 16)))
+#define Store24(a,v) ((unsigned long) (a) & 1 ? \
+		      ((*(a) = (CARD8) (v)), \
+		       (*((CARD16 *) ((a)+1)) = (CARD16) ((v) >> 8))) : \
+		      ((*((CARD16 *) (a)) = (CARD16) (v)),\
+		       (*((a)+2) = (CARD8) ((v) >> 16))))
+#endif
+		      
+
 typedef struct _FbCompositeOperand FbCompositeOperand;
 
 typedef CARD32 (*FbCompositeFetch)(FbCompositeOperand *op);
