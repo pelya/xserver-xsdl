@@ -112,10 +112,16 @@ getfont(int *width, int *height,
 
 }
 
+#define VERSION_LEN 31
+
 Bool
 lnx_savefont(void)
 {
     unsigned char *fontdata;
+#if CHECK_OS_VERSION
+    char kernel_version[VERSION_LEN + 1];
+    int k_major, k_minor, k_release;
+#endif
     int size;
     int fd;
     int width = 32, height = 32, charcount = 2048;
@@ -123,6 +129,29 @@ lnx_savefont(void)
 #ifdef DEBUG
     ErrorF("SAVE font\n");
 #endif
+
+#if CHECK_OS_VERSION
+    /* Check if the kernel has full support for this */
+    if ((fd = open ("/proc/sys/kernel/osrelease",O_RDONLY)) == -1) {
+	close (fd);
+	return TRUE;
+    }
+    size = read(fd, kernel_version, VERSION_LEN);
+    close (fd);
+
+    if (size < 0)
+	return TRUE;
+
+    size = sscanf(kernel_version, "%d.%d.%d",&k_major,&k_minor,&k_release);
+    if (size < 3 
+	|| (k_major < 2) 
+	|| ((k_major == 2) 
+	    && ((k_minor < 6) 
+		|| ( k_minor == 6 
+		     && k_release < 11))))
+	return TRUE;
+#endif
+							    
     /* if we are in fbdev mode we don't bother saving fonts */
     if ((fd = open ("/dev/fb0",O_RDWR)) != -1) {
 	close (fd);
