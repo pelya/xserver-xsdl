@@ -27,7 +27,7 @@
  *
  * Tested running under a Compaq IPAQ Pocket PC running Linux
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/pcmcia/pcmcia.c,v 1.2 2001/06/05 16:57:44 alanh Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/pcmcia/pcmcia.c,v 1.3 2001/06/20 21:53:31 alanh Exp $ */
 
 #include "pcmcia.h"
 #define extern
@@ -273,24 +273,32 @@ pcmciaLayerCreate (ScreenPtr pScreen)
     case 0:
 	pScreen->width = screen->width;
 	pScreen->height = screen->height;
+	pScreen->mmWidth = screen->width_mm;
+	pScreen->mmHeight = screen->height_mm;
 	m.matrix[0][0] = 1; m.matrix[0][1] = 0; m.matrix[0][2] = 0;
 	m.matrix[1][0] = 0; m.matrix[1][1] = 1; m.matrix[1][2] = 0;
 	break;
     case 90:
 	pScreen->width = screen->height;
 	pScreen->height = screen->width;
+	pScreen->mmWidth = screen->height_mm;
+	pScreen->mmHeight = screen->width_mm;
 	m.matrix[0][0] = 0; m.matrix[0][1] = -1; m.matrix[0][2] = screen->height - 1;
 	m.matrix[1][0] = 1; m.matrix[1][1] = 0; m.matrix[1][2] = 0;
 	break;
     case 180:
 	pScreen->width = screen->width;
 	pScreen->height = screen->height;
+	pScreen->mmWidth = screen->width_mm;
+	pScreen->mmHeight = screen->height_mm;
 	m.matrix[0][0] = -1; m.matrix[0][1] = 0; m.matrix[0][2] = screen->width - 1;
 	m.matrix[1][0] = 0; m.matrix[1][1] = -1; m.matrix[1][2] = screen->height - 1;
 	break;
     case 270:
 	pScreen->width = screen->height;
 	pScreen->height = screen->width;
+	pScreen->mmWidth = screen->height_mm;
+	pScreen->mmHeight = screen->width_mm;
 	m.matrix[0][0] = 0; m.matrix[0][1] = 1; m.matrix[0][2] = 0;
 	m.matrix[1][0] = -1; m.matrix[1][1] = 0; m.matrix[1][2] = screen->width - 1;
 	break;

@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/fbdev/fbdev.c,v 1.20 2001/06/13 19:18:44 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/fbdev/fbdev.c,v 1.21 2001/06/16 05:53:05 keithp Exp $ */
 
 #include "fbdev.h"
 
@@ -322,6 +322,8 @@ fbdevLayerCreate (ScreenPtr pScreen)
     case 0:
 	pScreen->width = screen->width;
 	pScreen->height = screen->height;
+	pScreen->mmWidth = screen->width_mm;
+	pScreen->mmHeight = screen->height_mm;
 	scrpriv->shadow = FALSE;
 	m.matrix[0][0] = 1; m.matrix[0][1] = 0; m.matrix[0][2] = 0;
 	m.matrix[1][0] = 0; m.matrix[1][1] = 1; m.matrix[1][2] = 0;
@@ -329,6 +331,8 @@ fbdevLayerCreate (ScreenPtr pScreen)
     case 90:
 	pScreen->width = screen->height;
 	pScreen->height = screen->width;
+	pScreen->mmWidth = screen->height_mm;
+	pScreen->mmHeight = screen->width_mm;
 	scrpriv->shadow = TRUE;
 	m.matrix[0][0] = 0; m.matrix[0][1] = -1; m.matrix[0][2] = screen->height - 1;
 	m.matrix[1][0] = 1; m.matrix[1][1] = 0; m.matrix[1][2] = 0;
@@ -336,6 +340,8 @@ fbdevLayerCreate (ScreenPtr pScreen)
     case 180:
 	pScreen->width = screen->width;
 	pScreen->height = screen->height;
+	pScreen->mmWidth = screen->width_mm;
+	pScreen->mmHeight = screen->height_mm;
 	scrpriv->shadow = TRUE;
 	m.matrix[0][0] = -1; m.matrix[0][1] = 0; m.matrix[0][2] = screen->width - 1;
 	m.matrix[1][0] = 0; m.matrix[1][1] = -1; m.matrix[1][2] = screen->height - 1;
@@ -343,6 +349,8 @@ fbdevLayerCreate (ScreenPtr pScreen)
     case 270:
 	pScreen->width = screen->height;
 	pScreen->height = screen->width;
+	pScreen->mmWidth = screen->height_mm;
+	pScreen->mmHeight = screen->width_mm;
 	scrpriv->shadow = TRUE;
 	m.matrix[0][0] = 0; m.matrix[0][1] = 1; m.matrix[0][2] = 0;
 	m.matrix[1][0] = -1; m.matrix[1][1] = 0; m.matrix[1][2] = screen->width - 1;
