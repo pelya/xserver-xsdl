@@ -26,6 +26,12 @@
 #include "kdrive.h"
 
 #ifdef linux
+#ifdef __i386__
+#define HAS_MTRR
+#endif
+#endif
+
+#ifdef HAS_MTRR
 #include <errno.h>
 #include <unistd.h>
 #include <sys/mman.h>
@@ -91,14 +97,14 @@ KdUnmapDevice (void *addr, CARD32 size)
 #endif
 }
 
-#ifdef linux
+#ifdef HAS_MTRR
 static int  mtrr;
 #endif
 
 void
 KdSetMappedMode (CARD32 addr, CARD32 size, int mode)
 {
-#ifdef linux
+#ifdef HAS_MTRR
     struct mtrr_sentry  sentry;
     unsigned long    	base, bound;
     unsigned int	type;
@@ -131,7 +137,7 @@ KdSetMappedMode (CARD32 addr, CARD32 size, int mode)
 void
 KdResetMappedMode (CARD32 addr, CARD32 size, int mode)
 {
-#ifdef linux
+#ifdef HAS_MTRR
     struct mtrr_sentry  sentry;
     unsigned long    	base, bound;
     unsigned int	type;

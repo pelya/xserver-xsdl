@@ -1,5 +1,5 @@
 /*
- * $XFree86$
+ * $XFree86: xc/programs/Xserver/hw/kdrive/linux/keyboard.c,v 1.4 2000/10/10 14:05:48 tsi Exp $
  *
  * Copyright © 1999 Keith Packard
  *
@@ -64,7 +64,7 @@ static const KeySym linux_to_x[256] = {
 	XK_p,		XK_q,		XK_r,		XK_s,
 	XK_t,		XK_u,		XK_v,		XK_w,
 	XK_x,		XK_y,		XK_z,		XK_braceleft,
-	XK_bar,		XK_braceright,	XK_asciitilde,	XK_Delete,
+	XK_bar,		XK_braceright,	XK_asciitilde,	XK_BackSpace,
 	NoSymbol,	NoSymbol,	NoSymbol,	NoSymbol,
 	NoSymbol,	NoSymbol,	NoSymbol,	NoSymbol,
 	NoSymbol,	NoSymbol,	NoSymbol,	NoSymbol,
