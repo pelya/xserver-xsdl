@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/kmap.c,v 1.7 2001/03/30 02:15:20 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/kmap.c,v 1.8 2001/05/23 08:56:08 alanh Exp $ */
 
 #include "kdrive.h"
 
@@ -121,7 +121,7 @@ KdSetMappedMode (CARD32 addr, CARD32 size, int mode)
 	mtrr = open ("/proc/mtrr", 2);
     if (mtrr > 0)
     {
-	base = addr & ~((1<22)-1);
+	base = addr & ~((1<<22)-1);
 	bound = ((addr + size) + ((1<<22) - 1)) & ~((1<<22) - 1);
 	switch (mode) {
 	case KD_MAPPED_MODE_REGISTERS:
