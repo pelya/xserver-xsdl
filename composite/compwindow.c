@@ -69,6 +69,23 @@ typedef struct _compPixmapVisit {
     PixmapPtr	pPixmap;
 } CompPixmapVisitRec, *CompPixmapVisitPtr;
 
+static Bool
+compRepaintBorder (ClientPtr pClient, pointer closure)
+{
+    WindowPtr	pWindow = LookupWindow ((XID) closure, pClient);
+
+    if (pWindow)
+    {
+	RegionRec exposed;
+
+	REGION_NULL(pScreen, &exposed);
+	REGION_SUBTRACT(pScreen, &exposed, &pWindow->borderClip, &pWindow->winSize);
+	(*pWindow->drawable.pScreen->PaintWindowBorder)(pWindow, &exposed, PW_BORDER);
+	REGION_UNINIT(pScreen, &exposed);
+    }
+    return TRUE;
+}
+
 static int
 compSetPixmapVisitWindow (WindowPtr pWindow, pointer data)
 {
@@ -85,6 +102,9 @@ compSetPixmapVisitWindow (WindowPtr pWindow, pointer data)
      */
     SetWinSize (pWindow);
     SetBorderSize (pWindow);
+    if (HasBorder (pWindow))
+	QueueWorkProc (compRepaintBorder, serverClient, 
+		       (pointer) pWindow->drawable.id);
     return WT_WALKCHILDREN;
 }
 

@@ -65,9 +65,8 @@
 static cwPicturePtr
 cwCreatePicturePrivate (PicturePtr pPicture)
 {
-    ScreenPtr	    pScreen = pPicture->pDrawable->pScreen;
     WindowPtr	    pWindow = (WindowPtr) pPicture->pDrawable;
-    PixmapPtr	    pPixmap = (*pScreen->GetWindowPixmap) (pWindow);
+    PixmapPtr	    pPixmap = getCwPixmap (pWindow);
     int		    error;
     cwPicturePtr    pPicturePrivate;
 
@@ -118,12 +117,11 @@ cwGetBackingPicture (PicturePtr pPicture, int *x_off, int *y_off)
     if (pPicturePrivate)
     {
 	DrawablePtr pDrawable = pPicture->pDrawable;
-	ScreenPtr   pScreen = pDrawable->pScreen;
-	WindowPtr   pWin = (WindowPtr) pDrawable;
-	PixmapPtr   pPixmap = (*pScreen->GetWindowPixmap) (pWin);
+	WindowPtr   pWindow = (WindowPtr) pDrawable;
+	PixmapPtr   pPixmap = getCwPixmap (pWindow);
 
-	*x_off = pWin->drawable.x - pPixmap->screen_x;
-	*y_off = pWin->drawable.y - pPixmap->screen_y;
+	*x_off = pDrawable->x - pPixmap->screen_x;
+	*y_off = pDrawable->y - pPixmap->screen_y;
 
 	return pPicturePrivate->pBackingPicture;
     }

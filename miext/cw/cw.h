@@ -60,10 +60,15 @@ typedef struct {
 
 extern int  cwPictureIndex;
 
+extern int cwWindowIndex;
+
+#define cwWindowPrivate(pWindow)    ((pWindow)->devPrivates[cwWindowIndex].ptr)
+#define getCwPixmap(pWindow)	    ((PixmapPtr) cwWindowPrivate(pWindow))
+#define setCwPixmap(pWindow,pPixmap) (cwWindowPrivate(pWindow) = (pointer) (pPixmap))
+
 #define cwDrawableIsRedirWindow(pDraw)					\
 	((pDraw)->type == DRAWABLE_WINDOW &&				\
-	 ((*(pDraw)->pScreen->GetWindowPixmap)((WindowPtr)(pDraw)) !=	\
-	  (*(pDraw)->pScreen->GetScreenPixmap)((pDraw)->pScreen)))
+	 getCwPixmap((WindowPtr) (pDraw)) != NULL)
 
 typedef struct {
     /*
@@ -78,6 +83,9 @@ typedef struct {
     PaintWindowBorderProcPtr	PaintWindowBorder;
     CopyWindowProcPtr		CopyWindow;
 
+    GetWindowPixmapProcPtr	GetWindowPixmap;
+    SetWindowPixmapProcPtr	SetWindowPixmap;
+    
 #ifdef RENDER
     DestroyPictureProcPtr	DestroyPicture;
     ChangePictureClipProcPtr	ChangePictureClip;

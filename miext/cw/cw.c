@@ -40,6 +40,7 @@
 
 int cwGCIndex;
 int cwScreenIndex;
+int cwWindowIndex;
 #ifdef RENDER
 int cwPictureIndex;
 #endif
@@ -105,16 +106,16 @@ static GCFuncs cwCheapGCFuncs = {
 DrawablePtr
 cwGetBackingDrawable(DrawablePtr pDrawable, int *x_off, int *y_off)
 {
-    if (cwDrawableIsRedirWindow(pDrawable)) {
-	WindowPtr pWin = (WindowPtr)pDrawable;
-	PixmapPtr pPixmap = (*pDrawable->pScreen->GetWindowPixmap)(pWin);
+    PixmapPtr	pPixmap;
+    
+    if (pDrawable->type == DRAWABLE_WINDOW && 
+	(pPixmap = getCwPixmap ((WindowPtr) pDrawable)))
+    {
 	*x_off = pDrawable->x - pPixmap->screen_x;
 	*y_off = pDrawable->y - pPixmap->screen_y;
-
 	return &pPixmap->drawable;
     } else {
 	*x_off = *y_off = 0;
-
 	return pDrawable;
     }
 }
@@ -727,6 +728,28 @@ cwCopyWindow(WindowPtr pWin, DDXPointRec ptOldOrg, RegionPtr prgnSrc)
     SCREEN_EPILOGUE(pScreen, CopyWindow, cwCopyWindow);
 }
 
+static PixmapPtr
+cwGetWindowPixmap (WindowPtr pWin)
+{
+    PixmapPtr	pPixmap = getCwPixmap (pWin);
+
+    if (!pPixmap)
+    {
+	ScreenPtr   pScreen = pWin->drawable.pScreen;
+	SCREEN_PROLOGUE(pScreen, GetWindowPixmap);
+	if (pScreen->GetWindowPixmap)
+	    pPixmap = (*pScreen->GetWindowPixmap) (pWin);
+	SCREEN_EPILOGUE(pScreen, GetWindowPixmap, cwGetWindowPixmap);
+    }
+    return pPixmap;
+}
+
+static void
+cwSetWindowPixmap (WindowPtr pWindow, PixmapPtr pPixmap)
+{
+    setCwPixmap (pWindow, pPixmap);
+}
+
 /* Screen initialization/teardown */
 void
 miInitializeCompositeWrapper(ScreenPtr pScreen)
@@ -739,12 +762,15 @@ miInitializeCompositeWrapper(ScreenPtr pScreen)
 	if (cwScreenIndex < 0)
 	    return;
 	cwGCIndex = AllocateGCPrivateIndex();
+	cwWindowIndex = AllocateWindowPrivateIndex();
 #ifdef RENDER
 	cwPictureIndex = AllocatePicturePrivateIndex();
 #endif
 	cwGeneration = serverGeneration;
     }
     if (!AllocateGCPrivate(pScreen, cwGCIndex, 0))
+	return;
+    if (!AllocateWindowPrivate(pScreen, cwWindowIndex, 0))
 	return;
 #ifdef RENDER
     if (!AllocatePicturePrivate(pScreen, cwPictureIndex, 0))
@@ -763,6 +789,9 @@ miInitializeCompositeWrapper(ScreenPtr pScreen)
     SCREEN_EPILOGUE(pScreen, PaintWindowBackground, cwPaintWindowBackground);
     SCREEN_EPILOGUE(pScreen, PaintWindowBorder, cwPaintWindowBorder);
     SCREEN_EPILOGUE(pScreen, CopyWindow, cwCopyWindow);
+
+    SCREEN_EPILOGUE(pScreen, SetWindowPixmap, cwSetWindowPixmap);
+    SCREEN_EPILOGUE(pScreen, GetWindowPixmap, cwGetWindowPixmap);
 
 #ifdef RENDER
     if (GetPictureScreen (pScreen))
