@@ -215,14 +215,15 @@ KdDisableScreen (ScreenPtr pScreen)
 	KdSetRootClip (pScreen, FALSE);
     KdDisableColormap (pScreen);
     KdOffscreenSwapOut (pScreen);
-    if (!pScreenPriv->screen->dumb)
+    if (!pScreenPriv->screen->dumb && pScreenPriv->card->cfuncs->disableAccel)
 	(*pScreenPriv->card->cfuncs->disableAccel) (pScreen);
-    if (!pScreenPriv->screen->softCursor)
+    if (!pScreenPriv->screen->softCursor && pScreenPriv->card->cfuncs->disableCursor)
 	(*pScreenPriv->card->cfuncs->disableCursor) (pScreen);
     if (pScreenPriv->card->cfuncs->dpms)
 	(*pScreenPriv->card->cfuncs->dpms) (pScreen, KD_DPMS_NORMAL);
     pScreenPriv->enabled = FALSE;
-    (*pScreenPriv->card->cfuncs->disable) (pScreen);
+    if(pScreenPriv->card->cfuncs->disable)
+        (*pScreenPriv->card->cfuncs->disable) (pScreen);
 }
 
 static void
@@ -283,13 +284,14 @@ KdEnableScreen (ScreenPtr pScreen)
 
     if (pScreenPriv->enabled)
 	return TRUE;
-    if (!(*pScreenPriv->card->cfuncs->enable) (pScreen))
-	return FALSE;
+    if(pScreenPriv->card->cfuncs->enable)
+	if (!(*pScreenPriv->card->cfuncs->enable) (pScreen))
+	    return FALSE;
     pScreenPriv->enabled = TRUE;
     pScreenPriv->card->selected = pScreenPriv->screen->mynum;
-    if (!pScreenPriv->screen->softCursor)
+    if (!pScreenPriv->screen->softCursor && pScreenPriv->card->cfuncs->enableCursor)
 	(*pScreenPriv->card->cfuncs->enableCursor) (pScreen);
-    if (!pScreenPriv->screen->dumb)
+    if (!pScreenPriv->screen->dumb && pScreenPriv->card->cfuncs->enableAccel)
 	(*pScreenPriv->card->cfuncs->enableAccel) (pScreen);
     KdOffscreenSwapIn (pScreen);    
     KdEnableColormap (pScreen);
@@ -310,7 +312,8 @@ KdResume (void)
 	KdDoSwitchCmd ("resume");
 	for (card = kdCardInfo; card; card = card->next)
 	{
-	    (*card->cfuncs->preserve) (card);
+	    if(card->cfuncs->preserve)
+		(*card->cfuncs->preserve) (card);
 	    for (screen = card->screenList; screen; screen = screen->next)
 		if (screen->mynum == card->selected && screen->pScreen)
 		    KdEnableScreen (screen->pScreen);
@@ -843,7 +846,10 @@ KdCreateScreenResources (ScreenPtr pScreen)
     Bool ret;
 
     pScreen->CreateScreenResources = pScreenPriv->CreateScreenResources;
-    ret = (*pScreen->CreateScreenResources) (pScreen);
+    if(pScreen->CreateScreenResources)
+	ret = (*pScreen->CreateScreenResources) (pScreen);
+    else
+	ret= -1;
     pScreenPriv->CreateScreenResources = pScreen->CreateScreenResources;
     pScreen->CreateScreenResources = KdCreateScreenResources;
     if (ret && card->cfuncs->createRes)
@@ -861,7 +867,10 @@ KdCloseScreen (int index, ScreenPtr pScreen)
     
     pScreenPriv->closed = TRUE;
     pScreen->CloseScreen = pScreenPriv->CloseScreen;
-    ret = (*pScreen->CloseScreen) (index, pScreen);
+    if(pScreen->CloseScreen)
+        ret = (*pScreen->CloseScreen) (index, pScreen);
+    else
+	ret = TRUE;
     
     if (screen->off_screen_base < screen->memory_size)
 	KdOffscreenFini (pScreen);
@@ -877,17 +886,18 @@ KdCloseScreen (int index, ScreenPtr pScreen)
      */
     if (screen == card->screenList)
     {
-	if (kdEnabled)
+	if (kdEnabled && card->cfuncs->restore)
 	    (*card->cfuncs->restore) (card);
     }
 	
-    if (!pScreenPriv->screen->dumb)
+    if (!pScreenPriv->screen->dumb && card->cfuncs->finiAccel)
 	(*card->cfuncs->finiAccel) (pScreen);
 
-    if (!pScreenPriv->screen->softCursor)
+    if (!pScreenPriv->screen->softCursor && card->cfuncs->finiCursor)
 	(*card->cfuncs->finiCursor) (pScreen);
 
-    (*card->cfuncs->scrfini) (screen);
+    if(card->cfuncs->scrfini)
+        (*card->cfuncs->scrfini) (screen);
 
     /*
      * Clean up card when last screen is closed, DIX closes them in
@@ -895,7 +905,8 @@ KdCloseScreen (int index, ScreenPtr pScreen)
      */
     if (screen == card->screenList)
     {
-	(*card->cfuncs->cardfini) (card);
+	if(card->cfuncs->cardfini)
+	    (*card->cfuncs->cardfini) (card);
 	/*
 	 * Clean up OS when last card is closed
 	 */
@@ -904,7 +915,8 @@ KdCloseScreen (int index, ScreenPtr pScreen)
 	    if (kdEnabled)
 	    {
 		kdEnabled = FALSE;
-		(*kdOsFuncs->Disable) ();
+		if(kdOsFuncs->Disable)
+		    (*kdOsFuncs->Disable) ();
 	    }
 	}
     }
@@ -1230,19 +1242,22 @@ KdScreenInit(int index, ScreenPtr pScreen, int argc, char **argv)
     if (!kdEnabled)
     {
 	kdEnabled = TRUE;
-	(*kdOsFuncs->Enable) ();
+	if(kdOsFuncs->Enable)
+	    (*kdOsFuncs->Enable) ();
     }
     
     if (screen->mynum == card->selected)
     {
-	(*card->cfuncs->preserve) (card);
-	if (!(*card->cfuncs->enable) (pScreen))
-	    return FALSE;
+	if(card->cfuncs->preserve)
+	    (*card->cfuncs->preserve) (card);
+	if(card->cfuncs->enable)
+	    if (!(*card->cfuncs->enable) (pScreen))
+		return FALSE;
 	pScreenPriv->enabled = TRUE;
-	if (!screen->softCursor)
+	if (!screen->softCursor && card->cfuncs->enableCursor)
 	    (*card->cfuncs->enableCursor) (pScreen);
 	KdEnableColormap (pScreen);
-	if (!screen->dumb)
+	if (!screen->dumb && card->cfuncs->enableAccel)
 	    (*card->cfuncs->enableAccel) (pScreen);
     }
     
@@ -1406,7 +1421,10 @@ KdInitOutput (ScreenInfo    *pScreenInfo,
      */
     for (card = kdCardInfo; card; card = card->next)
     {
-	if ((*card->cfuncs->cardinit) (card))
+	int ret=1;
+	if(card->cfuncs->cardinit)
+		ret=(*card->cfuncs->cardinit) (card);
+	if (ret)
 	{
 	    for (screen = card->screenList; screen; screen = screen->next)
 		KdInitScreen (pScreenInfo, screen, argc, argv);
