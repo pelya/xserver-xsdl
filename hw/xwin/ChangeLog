@@ -1,8 +1,29 @@
 2005-02-12  Alexander Gottwald  <ago at freedesktop dot org>
 
+	* win.h
+	* winfont.c
+	* winmultiwindowshape.c
+	* winmultiwindowwindow.c
+	* winpfbdd.c
+	* winshaddd.c
+	* winshadddnl.c
+	* winshadgdi.c
+	* winwindow.c:
+	Fix incorrect wrapping of functions. Ensure the pointers from pScreen 
+	point to the called function even if wrapped functions changed it
+	
+	* winmultiwindowwindow.c:
+	Set the window properties to NULL to avoid referencing freed memory 
+	because of timing problems after deleting a window
+
+	* winscrinit.c:
+	Do not wrap ChangeWindowAttributes. All functions are noops currently
+	
+2005-02-12  Alexander Gottwald  <ago at freedesktop dot org>
+
 	* winmsg.h:
 	* winmsg.c:
-	print window handle in message outout
+	print window handle in message output
 	
 2005-02-08  Alexander Gottwald  <ago at freedesktop dot org>
 

@@ -88,15 +88,17 @@ Bool
 winCreateWindowMultiWindow (WindowPtr pWin)
 {
   Bool			fResult = TRUE;
+  ScreenPtr		pScreen = pWin->drawable.pScreen;
   winWindowPriv(pWin);
+  winScreenPriv(pScreen);
 
 #if CYGMULTIWINDOW_DEBUG
   winTrace ("winCreateWindowMultiWindow - pWin: %p\n", pWin);
 #endif
   
-  /* Call any wrapped CreateWindow function */
-  if (winGetScreenPriv(pWin->drawable.pScreen)->CreateWindow)
-    fResult = winGetScreenPriv(pWin->drawable.pScreen)->CreateWindow (pWin);
+  WIN_UNWRAP(CreateWindow);
+  fResult = (*pScreen->CreateWindow) (pWin);
+  WIN_WRAP(CreateWindow, winCreateWindowMultiWindow);
   
   /* Initialize some privates values */
   pWinPriv->hRgn = NULL;
@@ -116,15 +118,17 @@ Bool
 winDestroyWindowMultiWindow (WindowPtr pWin)
 {
   Bool			fResult = TRUE;
+  ScreenPtr		pScreen = pWin->drawable.pScreen;
   winWindowPriv(pWin);
+  winScreenPriv(pScreen);
 
 #if CYGMULTIWINDOW_DEBUG
   ErrorF ("winDestroyWindowMultiWindow - pWin: %p\n", pWin);
 #endif
   
-  /* Call any wrapped DestroyWindow function */
-  if (winGetScreenPriv(pWin->drawable.pScreen)->DestroyWindow)
-    fResult = winGetScreenPriv(pWin->drawable.pScreen)->DestroyWindow (pWin);
+  WIN_UNWRAP(DestroyWindow); 
+  fResult = (*pScreen->DestroyWindow)(pWin);
+  WIN_WRAP(DestroyWindow, winDestroyWindowMultiWindow);
   
   /* Flag that the window has been destroyed */
   pWinPriv->fXKilled = TRUE;
@@ -149,7 +153,10 @@ winPositionWindowMultiWindow (WindowPtr pWin, int x, int y)
 {
   Bool			fResult = TRUE;
   int		        iX, iY, iWidth, iHeight;
+  ScreenPtr		pScreen = pWin->drawable.pScreen;
   winWindowPriv(pWin);
+  winScreenPriv(pScreen);
+
   HWND hWnd = pWinPriv->hWnd;
   RECT rcNew;
   RECT rcOld;
@@ -164,9 +171,9 @@ winPositionWindowMultiWindow (WindowPtr pWin, int x, int y)
   winTrace ("winPositionWindowMultiWindow - pWin: %p\n", pWin);
 #endif
   
-  /* Call any wrapped PositionWindow function */
-  if (winGetScreenPriv(pWin->drawable.pScreen)->PositionWindow)
-    fResult = winGetScreenPriv(pWin->drawable.pScreen)->PositionWindow (pWin, x, y);
+  WIN_UNWRAP(PositionWindow);
+  fResult = (*pScreen->PositionWindow)(pWin, x, y);
+  WIN_WRAP(PositionWindow, winPositionWindowMultiWindow);
   
 #if CYGWINDOWING_DEBUG
   ErrorF ("winPositionWindowMultiWindow: (x, y) = (%d, %d)\n",
@@ -265,14 +272,17 @@ Bool
 winChangeWindowAttributesMultiWindow (WindowPtr pWin, unsigned long mask)
 {
   Bool			fResult = TRUE;
+  ScreenPtr		pScreen = pWin->drawable.pScreen;
+  winWindowPriv(pWin);
+  winScreenPriv(pScreen);
 
 #if CYGMULTIWINDOW_DEBUG
   ErrorF ("winChangeWindowAttributesMultiWindow - pWin: %08x\n", pWin);
 #endif
   
-  /* Call any wrapped ChangeWindowAttributes function */
-  if (winGetScreenPriv(pWin->drawable.pScreen)->ChangeWindowAttributes)
-    fResult = winGetScreenPriv(pWin->drawable.pScreen)->ChangeWindowAttributes (pWin, mask);
+  WIN_UNWRAP(ChangeWindowAttributes); 
+  fResult = (*pScreen->ChangeWindowAttributes)(pWin, mask);
+  WIN_WRAP(ChangeWindowAttributes, winChangeWindowAttributesMultiWindow);
   
   /*
    * NOTE: We do not currently need to do anything here.
@@ -291,15 +301,17 @@ Bool
 winUnmapWindowMultiWindow (WindowPtr pWin)
 {
   Bool			fResult = TRUE;
+  ScreenPtr		pScreen = pWin->drawable.pScreen;
   winWindowPriv(pWin);
+  winScreenPriv(pScreen);
 
 #if CYGMULTIWINDOW_DEBUG
   ErrorF ("winUnmapWindowMultiWindow - pWin: %08x\n", pWin);
 #endif
   
-  /* Call any wrapped UnrealizeWindow function */
-  if (winGetScreenPriv(pWin->drawable.pScreen)->UnrealizeWindow)
-    fResult = winGetScreenPriv(pWin->drawable.pScreen)->UnrealizeWindow (pWin);
+  WIN_UNWRAP(UnrealizeWindow); 
+  fResult = (*pScreen->UnrealizeWindow)(pWin);
+  WIN_WRAP(UnrealizeWindow, winUnmapWindowMultiWindow);
   
   /* Flag that the window has been killed */
   pWinPriv->fXKilled = TRUE;
@@ -320,15 +332,17 @@ Bool
 winMapWindowMultiWindow (WindowPtr pWin)
 {
   Bool			fResult = TRUE;
+  ScreenPtr		pScreen = pWin->drawable.pScreen;
   winWindowPriv(pWin);
+  winScreenPriv(pScreen);
 
 #if CYGMULTIWINDOW_DEBUG
   ErrorF ("winMapWindowMultiWindow - pWin: %08x\n", pWin);
 #endif
   
-  /* Call any wrapped RealizeWindow function */
-  if (winGetScreenPriv(pWin->drawable.pScreen)->RealizeWindow)
-    fResult = winGetScreenPriv(pWin->drawable.pScreen)->RealizeWindow (pWin);
+  WIN_UNWRAP(RealizeWindow); 
+  fResult = (*pScreen->RealizeWindow)(pWin);
+  WIN_WRAP(RealizeWindow, winMapWindowMultiWindow);
   
   /* Flag that this window has not been destroyed */
   pWinPriv->fXKilled = FALSE;
@@ -353,14 +367,18 @@ winMapWindowMultiWindow (WindowPtr pWin)
 void
 winReparentWindowMultiWindow (WindowPtr pWin, WindowPtr pPriorParent)
 {
+  ScreenPtr		pScreen = pWin->drawable.pScreen;
+  winWindowPriv(pWin);
+  winScreenPriv(pScreen);
+
 #if CYGMULTIWINDOW_DEBUG
   ErrorF ("winReparentMultiWindow - pWin: %08x\n", pWin);
 #endif
 
-  /* Call any wrapped ReparentWindow function */
-  if (winGetScreenPriv(pWin->drawable.pScreen)->ReparentWindow)
-    winGetScreenPriv(pWin->drawable.pScreen)->ReparentWindow (pWin,
-							      pPriorParent);
+  WIN_UNWRAP(ReparentWindow);
+  if (pScreen->ReparentWindow) 
+    (*pScreen->ReparentWindow)(pWin, pPriorParent);
+  WIN_WRAP(ReparentWindow, winReparentWindowMultiWindow);
   
   /* Update the Windows window associated with this X window */
   winUpdateWindowsWindow (pWin);
@@ -378,16 +396,18 @@ winRestackWindowMultiWindow (WindowPtr pWin, WindowPtr pOldNextSib)
   UINT			uFlags;
   HWND			hInsertAfter;
   HWND                  hWnd = NULL;
+  ScreenPtr		pScreen = pWin->drawable.pScreen;
   winWindowPriv(pWin);
+  winScreenPriv(pScreen);
 
 #if CYGMULTIWINDOW_DEBUG || CYGWINDOWING_DEBUG
   winTrace ("winRestackMultiWindow - %08x\n", pWin);
 #endif
   
-  /* Call any wrapped RestackWindow function */
-  if (winGetScreenPriv(pWin->drawable.pScreen)->RestackWindow)
-    winGetScreenPriv(pWin->drawable.pScreen)->RestackWindow (pWin,
-							     pOldNextSib);
+   WIN_UNWRAP(RestackWindow);
+   if (pScreen->RestackWindow) 
+     (*pScreen->RestackWindow)(pWin, pOldNextSib);
+   WIN_WRAP(RestackWindow, winRestackWindowMultiWindow);
   
 #if 1
   /*
@@ -620,6 +640,7 @@ winDestroyWindowsWindow (WindowPtr pWin)
   hiconSmClass = (HICON) GetClassLong (pWinPriv->hWnd, GCL_HICONSM);
   iReturn = GetClassName (pWinPriv->hWnd, pszClass, 512);
   
+  SetProp (pWinPriv->hWnd, WIN_WINDOW_PROP, NULL);
   /* Destroy the Windows window */
   DestroyWindow (pWinPriv->hWnd);
 
@@ -859,14 +880,16 @@ void
 winCopyWindowMultiWindow (WindowPtr pWin, DDXPointRec oldpt,
 			  RegionPtr oldRegion)
 {
+  ScreenPtr		pScreen = pWin->drawable.pScreen;
+  winWindowPriv(pWin);
+  winScreenPriv(pScreen);
+
 #if CYGWINDOWING_DEBUG
   ErrorF ("CopyWindowMultiWindow\n");
 #endif
-  /* Call any wrapped CopyWindow function */
-  if (winGetScreenPriv(pWin->drawable.pScreen)->CopyWindow)
-    winGetScreenPriv(pWin->drawable.pScreen)->CopyWindow (pWin,
-							  oldpt,
-							  oldRegion);
+  WIN_UNWRAP(CopyWindow); 
+  (*pScreen->CopyWindow)(pWin, oldpt, oldRegion);
+  WIN_WRAP(CopyWindow, winCopyWindowMultiWindow);
 }
 
 
@@ -877,13 +900,17 @@ void
 winMoveWindowMultiWindow (WindowPtr pWin, int x, int y,
 			  WindowPtr pSib, VTKind kind)
 {
+  ScreenPtr		pScreen = pWin->drawable.pScreen;
+  winWindowPriv(pWin);
+  winScreenPriv(pScreen);
+
 #if CYGWINDOWING_DEBUG
   ErrorF ("MoveWindowMultiWindow to (%d, %d)\n", x, y);
 #endif
-  /* Call any wrapped MoveWindow function */
-  if (winGetScreenPriv(pWin->drawable.pScreen)->MoveWindow)
-    winGetScreenPriv(pWin->drawable.pScreen)->MoveWindow (pWin, x, y,
-							  pSib, kind);
+
+  WIN_UNWRAP(MoveWindow); 
+  (*pScreen->MoveWindow)(pWin, x, y, pSib, kind);
+  WIN_WRAP(MoveWindow, winMoveWindowMultiWindow);
 }
 
 
@@ -894,13 +921,16 @@ void
 winResizeWindowMultiWindow (WindowPtr pWin, int x, int y, unsigned int w,
 			    unsigned int h, WindowPtr pSib)
 {
+  ScreenPtr		pScreen = pWin->drawable.pScreen;
+  winWindowPriv(pWin);
+  winScreenPriv(pScreen);
+
 #if CYGWINDOWING_DEBUG
   ErrorF ("ResizeWindowMultiWindow to (%d, %d) - %dx%d\n", x, y, w, h);
 #endif
-  /* Call any wrapped MoveWindow function */
-  if (winGetScreenPriv(pWin->drawable.pScreen)->ResizeWindow)
-    winGetScreenPriv(pWin->drawable.pScreen)->ResizeWindow (pWin, x, y,
-							    w, h, pSib);
+  WIN_UNWRAP(ResizeWindow); 
+  (*pScreen->ResizeWindow)(pWin, x, y, w, h, pSib);
+  WIN_WRAP(ResizeWindow, winResizeWindowMultiWindow);
 }
 
 

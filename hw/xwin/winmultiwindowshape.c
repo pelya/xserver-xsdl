@@ -42,13 +42,17 @@
 void
 winSetShapeMultiWindow (WindowPtr pWin)
 {
+  ScreenPtr		pScreen = pWin->drawable.pScreen;
+  winWindowPriv(pWin);
+  winScreenPriv(pScreen);
+
 #if CYGMULTIWINDOW_DEBUG
   ErrorF ("winSetShapeMultiWindow - pWin: %08x\n", pWin);
 #endif
   
-  /* Call any wrapped SetShape function */
-  if (winGetScreenPriv(pWin->drawable.pScreen)->SetShape)
-    winGetScreenPriv(pWin->drawable.pScreen)->SetShape (pWin);
+  WIN_UNWRAP(SetShape); 
+  (*pScreen->SetShape)(pWin);
+  WIN_WRAP(SetShape, winSetShapeMultiWindow);
   
   /* Update the Windows window's shape */
   winReshapeMultiWindow (pWin);

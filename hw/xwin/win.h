@@ -725,6 +725,21 @@ extern FARPROC			g_fpTrackMouseEvent;
 #define winWindowPriv(pWin) \
 	winPrivWinPtr pWinPriv = winGetWindowPriv(pWin)
 
+/*
+ * wrapper macros 
+ */
+#define _WIN_WRAP(priv, real, mem, func) {\
+    priv->mem = real->mem; \
+    real->mem = func; \
+}
+
+#define _WIN_UNWRAP(priv, real, mem) {\
+    real->mem = priv->mem; \
+}
+
+#define WIN_WRAP(mem, func) _WIN_WRAP(pScreenPriv, pScreen, mem, func) 
+
+#define WIN_UNWRAP(mem) _WIN_UNWRAP(pScreenPriv, pScreen, mem)
 
 /*
  * BEGIN DDX and DIX Function Prototypes
