@@ -424,7 +424,7 @@ FindPCIVideoInfo(void)
 	    if ((pcrp->pci_command & PCI_CMD_MEM_ENABLE) &&
 		(num == 1 ||
 		 ((info->class == PCI_CLASS_DISPLAY) &&
-		  (info->subclass == PCI_SUBCLASS_DISPLAY_MISC)))) {
+		  (info->subclass == PCI_SUBCLASS_DISPLAY_VGA)))) {
 		if (primaryBus.type == BUS_NONE) {
 		    primaryBus.type = BUS_PCI;
 		    primaryBus.id.pci.bus = pcrp->busnum;

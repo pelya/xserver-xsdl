@@ -153,7 +153,7 @@ SOFTWARE.
 
 #endif /* __arm32__ */
 
-#if defined (hpux)
+#if defined (hpux) || defined __hppa__
 
 #define IMAGE_BYTE_ORDER	MSBFirst
 #define BITMAP_BIT_ORDER	MSBFirst
@@ -165,7 +165,7 @@ SOFTWARE.
 #define LARGE_INSTRUCTION_CACHE
 #define PLENTIFUL_REGISTERS
 
-#endif /* hpux */
+#endif /* hpux || __hppa__ */
 
 #if defined(__powerpc__)
 
