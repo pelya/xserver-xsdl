@@ -327,6 +327,18 @@ AbortDDX(void)
 void
 ddxUseMsg()
 {
+  ErrorF("\nTinyX Device Dependent Usage:\n");
+  ErrorF("-card pcmcia	Use PCMCIA card as additional screen\n");
+  ErrorF("-screen WIDTHxHEIGHT[xDEPTH[xFREQ]][@ROTATION]	Specify screen characteristics\n");
+  ErrorF("-zaphod		Disable cursor screen switching\n");
+  ErrorF("-2button	Emulate 3 button mouse\n");
+  ErrorF("-3button	Disable 3 button mouse emulation\n");
+  ErrorF("-dumb 		Disable hardware acceleration\n");
+  ErrorF("-softCursor	Force software cursor\n");
+  ErrorF("-videoTest	Start the server, pause momentarily and exit\n");
+  ErrorF("-origin X,Y	Locates the next screen in the the virtual screen (Xinerama)\n");
+  ErrorF("-mouse path[,n]	Filename of mouse device, n is number of buttons\n");
+  ErrorF("\n");
 }
 
 void
@@ -632,8 +644,6 @@ KdProcessArgument (int argc, char **argv, int i)
 	kdVideoTest = TRUE;
 	return 1;
     }
-    if (!strcmp (argv[i], "-standalone"))
-	return 1;
     if (!strcmp (argv[i], "-origin"))
     {
 	if ((i+1) < argc)
