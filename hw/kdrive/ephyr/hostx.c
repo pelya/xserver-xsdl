@@ -198,7 +198,7 @@ hostx_init(void)
   if (HostX.win_pre_existing != None)
     {
       Status            result;
-      XWindowAttributes attr;
+      XWindowAttributes prewin_attr;
 
       /* Get screen size from existing window */
 
@@ -206,7 +206,7 @@ hostx_init(void)
 
       hostx_errors_trap();
 
-      result = XGetWindowAttributes(HostX.dpy, HostX.win, &attr);
+      result = XGetWindowAttributes(HostX.dpy, HostX.win, &prewin_attr);
 
       if (hostx_errors_untrap() || !result)
 	{
@@ -214,8 +214,10 @@ hostx_init(void)
 	  exit(1);
 	}
 
-      HostX.win_width  = attr.width;
-      HostX.win_height = attr.height;
+      HostX.win_width  = prewin_attr.width;
+      HostX.win_height = prewin_attr.height;
+
+      XSelectInput(HostX.dpy, HostX.win, attr.event_mask);
     }
   else
     {
