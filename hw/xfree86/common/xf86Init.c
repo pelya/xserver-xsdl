@@ -1721,7 +1721,7 @@ xf86PrintBanner()
     "Select the \"xorg\" product for bugs you find in this release.\n"
     "Before reporting bugs in pre-release versions please check the\n"
     "latest version in the X.org Foundation \"monolithic tree\" CVS\n"
-    "repository hosted at http://www.freedesktop.org/Software/xorg/"
+    "repository hosted at http://www.freedesktop.org/Software/xorg/");
 #endif
 #if XF86_VERSION_SNAP > 0
   ErrorF(".%d", XF86_VERSION_SNAP);
