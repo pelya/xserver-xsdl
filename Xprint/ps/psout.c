@@ -79,6 +79,10 @@ in this Software without prior written authorization from The Open Group.
 #include "os.h"
 #define USE_PSOUT_PRIVATE 1
 #include "psout.h"
+#ifdef XP_USE_FREETYPE
+#include <ft2build.h>
+#include FT_FREETYPE_H
+#endif /* XP_USE_FREETYPE */
 /* For VENDOR_STRING and VENDOR_RELEASE */
 #include "site.h"
 
@@ -589,9 +593,25 @@ PsOut_BeginFile(FILE *fp, char *title, int orient, int count, int plex, int res,
       /* GhostScript will rant about the missing BoundingBox if we use
        * "%!PS-Adobe-3.0 EPSF-3.0" here... */
       S_Comment(psout, "%!PS-Adobe-3.0");
+#ifdef XP_USE_FREETYPE
+      {
+        FT_Int ftmajor = 0,
+               ftminor = 0,
+               ftpatch = 0; 
+        extern FT_Library ftypeLibrary; /* defined in xc/lib/font/FreeType/ftfuncs.c */
+
+        FT_Library_Version(ftypeLibrary, &ftmajor, &ftminor, &ftpatch);
+        sprintf(buffer, 
+                "%%%%Creator: The X Print Server's PostScript DDX "
+                "(%s, release %d, FreeType version %d.%d.%d)",
+                VENDOR_STRING, VENDOR_RELEASE,
+                (int)ftmajor, (int)ftminor, (int)ftpatch);
+      }
+#else
       sprintf(buffer, 
               "%%%%Creator: The X Print Server's PostScript DDX (%s, release %d)",
               VENDOR_STRING, VENDOR_RELEASE);
+#endif /* XP_USE_FREETYPE */
       S_Comment(psout, buffer);
 
       if (title)
