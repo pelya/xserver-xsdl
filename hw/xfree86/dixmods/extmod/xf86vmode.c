@@ -29,7 +29,7 @@ or other dealings in this Software without prior written authorization
 from Kaleb S. KEITHLEY
 
 */
-/* $XdotOrg: xf86vmode.c,v 1.3 2000/08/17 19:47:59 cpqbld Exp $ */
+/* $XdotOrg: xc/programs/Xserver/Xext/xf86vmode.c,v 1.2 2004/04/23 18:44:41 eich Exp $ */
 /* $Xorg: xf86vmode.c,v 1.3 2000/08/17 19:47:59 cpqbld Exp $ */
 /* THIS IS NOT AN X CONSORTIUM STANDARD OR AN X PROJECT TEAM SPECIFICATION */
 
@@ -51,6 +51,8 @@ from Kaleb S. KEITHLEY
 #ifdef EXTMODULE
 #include "xf86_ansic.h"
 #endif
+
+#define DEFAULT_XF86VIDMODE_VERBOSITY	3
 
 static int VidModeErrorBase;
 static int VidModeGeneration = 0;
@@ -468,7 +470,7 @@ ProcXF86VidModeGetModeLine(ClientPtr client)
     rep.vtotal = VidModeGetModeValue(mode, VIDMODE_V_TOTAL);
     rep.flags = VidModeGetModeValue(mode, VIDMODE_FLAGS);
 
-    if (xf86GetVerbosity() > 1) {
+    if (xf86GetVerbosity() > DEFAULT_XF86VIDMODE_VERBOSITY) {
 	ErrorF("GetModeLine - scrn: %d clock: %ld\n",
 	       stuff->screen, (unsigned long)rep.dotclock);
 	ErrorF("GetModeLine - hdsp: %d hbeg: %d hend: %d httl: %d\n",
@@ -676,7 +678,7 @@ ProcXF86VidModeAddModeLine(ClientPtr client)
 	stuff->after_vtotal = oldstuff->after_vtotal;
 	stuff->after_flags = oldstuff->after_flags;
     }
-    if (xf86GetVerbosity() > 1) {
+    if (xf86GetVerbosity() > DEFAULT_XF86VIDMODE_VERBOSITY) {
 	ErrorF("AddModeLine - scrn: %d clock: %ld\n",
 		(int)stuff->screen, (unsigned long)stuff->dotclock);
 	ErrorF("AddModeLine - hdsp: %d hbeg: %d hend: %d httl: %d\n",
@@ -787,7 +789,7 @@ ProcXF86VidModeAddModeLine(ClientPtr client)
     
     VidModeAddModeline(stuff->screen, mode);
     
-    if (xf86GetVerbosity() > 1)
+    if (xf86GetVerbosity() > DEFAULT_XF86VIDMODE_VERBOSITY)
 	ErrorF("AddModeLine - Succeeded\n");
     return client->noClientException;
 }
@@ -824,7 +826,7 @@ ProcXF86VidModeDeleteModeLine(ClientPtr client)
 	stuff->flags = oldstuff->flags;
 	stuff->privsize = oldstuff->privsize;
     }
-    if (xf86GetVerbosity() > 1) {
+    if (xf86GetVerbosity() > DEFAULT_XF86VIDMODE_VERBOSITY) {
 	ErrorF("DeleteModeLine - scrn: %d clock: %ld\n",
 		(int)stuff->screen, (unsigned long)stuff->dotclock);
 	ErrorF("                 hdsp: %d hbeg: %d hend: %d httl: %d\n",
@@ -843,7 +845,7 @@ ProcXF86VidModeDeleteModeLine(ClientPtr client)
 	len = client->req_len - (sizeof(xXF86VidModeDeleteModeLineReq) >> 2);
     }
     if (len != stuff->privsize) {
-	if (xf86GetVerbosity() > 1) {
+	if (xf86GetVerbosity() > DEFAULT_XF86VIDMODE_VERBOSITY) {
 	    ErrorF("req_len = %ld, sizeof(Req) = %d, privsize = %ld, "
 		   "len = %d, length = %d\n",
 		    (unsigned long)client->req_len,
@@ -859,7 +861,7 @@ ProcXF86VidModeDeleteModeLine(ClientPtr client)
     if (!VidModeGetCurrentModeline(stuff->screen, &mode, &dotClock))
 	return BadValue;
 
-    if (xf86GetVerbosity() > 1) {
+    if (xf86GetVerbosity() > DEFAULT_XF86VIDMODE_VERBOSITY) {
 	ErrorF("Checking against clock: %d (%d)\n",
 		VidModeGetModeValue(mode, VIDMODE_CLOCK), dotClock);
 	ErrorF("                 hdsp: %d hbeg: %d hend: %d httl: %d\n",
@@ -882,7 +884,7 @@ ProcXF86VidModeDeleteModeLine(ClientPtr client)
 	return BadValue;
 
      do {
-	if (xf86GetVerbosity() > 1) {
+	if (xf86GetVerbosity() > DEFAULT_XF86VIDMODE_VERBOSITY) {
 	    ErrorF("Checking against clock: %d (%d)\n",
 		 VidModeGetModeValue(mode, VIDMODE_CLOCK), dotClock);
 	    ErrorF("                 hdsp: %d hbeg: %d hend: %d httl: %d\n",
@@ -900,7 +902,7 @@ ProcXF86VidModeDeleteModeLine(ClientPtr client)
 	if ((VidModeGetDotClock(stuff->screen, stuff->dotclock) == dotClock) &&
 		MODEMATCH(mode, stuff)) {
 	    VidModeDeleteModeline(stuff->screen, mode);
-	    if (xf86GetVerbosity())
+	    if (xf86GetVerbosity() > DEFAULT_XF86VIDMODE_VERBOSITY)
 		ErrorF("DeleteModeLine - Succeeded\n");
 	    return(client->noClientException);
 	}
@@ -940,7 +942,7 @@ ProcXF86VidModeModModeLine(ClientPtr client)
 	stuff->flags = oldstuff->flags;
 	stuff->privsize = oldstuff->privsize;
     }
-    if (xf86GetVerbosity() > 1) {
+    if (xf86GetVerbosity() > DEFAULT_XF86VIDMODE_VERBOSITY) {
 	ErrorF("ModModeLine - scrn: %d hdsp: %d hbeg: %d hend: %d httl: %d\n",
 		(int)stuff->screen, stuff->hdisplay, stuff->hsyncstart,
 		stuff->hsyncend, stuff->htotal);
@@ -1028,7 +1030,7 @@ ProcXF86VidModeModModeLine(ClientPtr client)
     VidModeSetCrtcForMode(stuff->screen, mode);
     VidModeSwitchMode(stuff->screen, mode);
 
-    if (xf86GetVerbosity() > 1)
+    if (xf86GetVerbosity() > DEFAULT_XF86VIDMODE_VERBOSITY)
 	ErrorF("ModModeLine - Succeeded\n");
     return(client->noClientException);
 }
@@ -1066,7 +1068,7 @@ ProcXF86VidModeValidateModeLine(ClientPtr client)
 	stuff->flags = oldstuff->flags;
 	stuff->privsize = oldstuff->privsize;
     }
-    if (xf86GetVerbosity() > 1) {
+    if (xf86GetVerbosity() > DEFAULT_XF86VIDMODE_VERBOSITY) {
 	ErrorF("ValidateModeLine - scrn: %d clock: %ld\n",
 		(int)stuff->screen, (unsigned long)stuff->dotclock);
 	ErrorF("                   hdsp: %d hbeg: %d hend: %d httl: %d\n",
@@ -1146,7 +1148,7 @@ status_reply:
 	swapl(&rep.status, n);
     }
     WriteToClient(client, sizeof(xXF86VidModeValidateModeLineReply), (char *)&rep);
-    if (xf86GetVerbosity() > 1)
+    if (xf86GetVerbosity() > DEFAULT_XF86VIDMODE_VERBOSITY)
 	ErrorF("ValidateModeLine - Succeeded (status = %d)\n", status);
     return(client->noClientException);
 }
@@ -1200,7 +1202,7 @@ ProcXF86VidModeSwitchToMode(ClientPtr client)
 	stuff->flags = oldstuff->flags;
 	stuff->privsize = oldstuff->privsize;
     }
-    if (xf86GetVerbosity() > 1) {
+    if (xf86GetVerbosity() > DEFAULT_XF86VIDMODE_VERBOSITY) {
 	ErrorF("SwitchToMode - scrn: %d clock: %ld\n",
 		(int)stuff->screen, (unsigned long)stuff->dotclock);
 	ErrorF("               hdsp: %d hbeg: %d hend: %d httl: %d\n",
@@ -1235,7 +1237,7 @@ ProcXF86VidModeSwitchToMode(ClientPtr client)
 	return BadValue;
 
     do {
-	if (xf86GetVerbosity() > 1) {
+	if (xf86GetVerbosity() > DEFAULT_XF86VIDMODE_VERBOSITY) {
 	    ErrorF("Checking against clock: %d (%d)\n",
 		 VidModeGetModeValue(mode, VIDMODE_CLOCK), dotClock);
 	    ErrorF("                 hdsp: %d hbeg: %d hend: %d httl: %d\n",
@@ -1256,7 +1258,7 @@ ProcXF86VidModeSwitchToMode(ClientPtr client)
 	    if (!VidModeSwitchMode(stuff->screen, mode))
 		return BadValue;
 
-	    if (xf86GetVerbosity() > 1)
+	    if (xf86GetVerbosity() > DEFAULT_XF86VIDMODE_VERBOSITY)
 		ErrorF("SwitchToMode - Succeeded\n");
 	    return(client->noClientException);
 	}
