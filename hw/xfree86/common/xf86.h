@@ -226,11 +226,6 @@ void xf86ProcessActionEvent(ActionEvent action, void *arg);
 
 /* xf86Helper.c */
 
-#ifdef printf
-#define printf_defined
-#undef printf
-#endif
-
 void xf86AddDriver(DriverPtr driver, pointer module, int flags);
 void xf86DeleteDriver(int drvIndex);
 ScrnInfoPtr xf86AllocateScreen(DriverPtr drv, int flags);

@@ -502,14 +502,9 @@ typedef enum {
 /* XXX Need to check which GCC versions have the format(printf) attribute. */
 #if defined(__GNUC__) && \
     ((__GNUC__ > 2) || ((__GNUC__ == 2) && (__GNUC_MINOR__ > 4)))
-#define _printf_attribute(a,b) __attribute((format(printf,a,b)))
+#define _printf_attribute(a,b) __attribute((format(__printf__,a,b)))
 #else
 #define _printf_attribute(a,b) /**/
-#endif
-
-#ifdef printf
-#define printf_defined
-#undef printf
 #endif
 
 extern const char *LogInit(const char *fname, const char *backup);
