@@ -60,6 +60,9 @@
 
 #include "glcontextmodes.h"
 
+// ggs: needed to call back to glx with visual configs
+extern void GlxSetVisualConfigs(int nconfigs, __GLXvisualConfig *configs, void **configprivs);
+
 // Write debugging output, or not
 #ifdef GLAQUA_DEBUG
 #define GLAQUA_DEBUG_MSG ErrorF
@@ -201,6 +204,7 @@ struct __GLcontextRec {
 
   AGLContext ctx;
   AGLPixelFormat pixelFormat;
+
   Bool isAttached; // TRUE if ctx is really attached to a window
 };
 
@@ -215,22 +219,28 @@ static GLboolean glAquaDestroyContext(__GLcontext *gc)
         if (gc->pixelFormat) aglDestroyPixelFormat(gc->pixelFormat);
         free(gc);
     }
+
     return GL_TRUE;
 }
 
 
 static GLboolean glAquaLoseCurrent(__GLcontext *gc)
 {
-    // GLAQUA_DEBUG_MSG("glAquaLoseCurrent (ctx 0x%x)\n", gc->ctx);
+    GLAQUA_DEBUG_MSG("glAquaLoseCurrent (ctx 0x%x)\n", gc->ctx);
+
     aglSetCurrentContext(NULL);
     __glXLastContext = NULL; // Mesa does this; why?
+    gc->isAttached = FALSE;
+
     return GL_TRUE;
 }
 
-// (x, y, w, h) is global coordinates of view or -1
-// glPriv may be NULL
-static void attach(__GLcontext *gc, __GLdrawablePrivate *glPriv,
-                   int x, int y, int w, int h)
+
+/*
+ * Attach a GL context to a GL drawable
+ * If glPriv is NULL, the context is detached.
+ */
+static void attach(__GLcontext *gc, __GLdrawablePrivate *glPriv)
 {
     __GLXdrawablePrivate *glxPriv;
 
@@ -253,7 +263,15 @@ static void attach(__GLcontext *gc, __GLdrawablePrivate *glPriv,
         CRWindowPtr crWinPtr;
         AGLDrawable newPort;
 
-        crWinPtr = (CRWindowPtr) quartzProcs->FrameForWindow(pWin, TRUE);
+        if (glPriv->width <= 0 || glPriv->height <= 0) {
+            // attach to zero size drawable - will really attach later
+            GLAQUA_DEBUG_MSG("couldn't attach to zero size drawable\n");
+            aglSetDrawable(gc->ctx, NULL);
+            gc->isAttached = FALSE;
+            return;
+        }
+
+        crWinPtr = (CRWindowPtr) quartzProcs->FrameForWindow(pWin, FALSE);
 
         if (crWinPtr) {
             newPort = (AGLDrawable) crWinPtr->port;
@@ -262,35 +280,43 @@ static void attach(__GLcontext *gc, __GLdrawablePrivate *glPriv,
         }
 
         if (newPort) {
-            // fixme won't be a CGrafPtr if currently offscreen or fullscreen
+            // FIXME: won't be a CGrafPtr if currently offscreen or fullscreen
             AGLDrawable oldPort = aglGetDrawable(gc->ctx);
             // AGLDrawable newPort = GetWindowPort(window);
-            GLint frame[4] = {x, y, w, h}; // fixme multi-screen?
-            // frame is now X11-global
+
+            // Frame is GLdrawable in X11 global coordinates
+            // FIXME: Does this work for multiple screens?
+            GLint frame[4] = {glPriv->xOrigin, glPriv->yOrigin, glPriv->width, glPriv->height};
+            GLAQUA_DEBUG_MSG("global size %d %d %d %d\n",
+                             frame[0], frame[1], frame[2], frame[3]);
+
+            // Convert to window-local coordinates
             frame[0] -= topWin->drawable.x - topWin->borderWidth;
             frame[1] -= topWin->drawable.y - topWin->borderWidth;
-            // frame is now window-local
-            // GL uses flipped coordinates
+
+            // AGL uses flipped coordinates
             frame[1] = topWin->drawable.height + 2*topWin->borderWidth -
                        frame[1] - frame[3];
 
-            // GLAQUA_DEBUG_MSG("local size %d %d %d %d\n",
-            // frame[0], frame[1], frame[2], frame[3]);
+            GLAQUA_DEBUG_MSG("local size %d %d %d %d\n",
+                             frame[0], frame[1], frame[2], frame[3]);
 
             if (oldPort != newPort) {
-                // fixme retain/release windows
-                aglSetDrawable(gc->ctx, newPort);
+                // FIXME: retain/release windows
+                if (!aglSetDrawable(gc->ctx, newPort)) return;
             }
-            aglSetInteger(gc->ctx, AGL_BUFFER_RECT, frame);
-            aglEnable(gc->ctx, AGL_BUFFER_RECT);
-            // aglSetInteger(gc->ctx, AGL_SWAP_RECT, frame);
-            // aglEnable(gc->ctx, AGL_SWAP_RECT);
-            aglUpdateContext(gc->ctx);
+            if (!aglSetInteger(gc->ctx, AGL_BUFFER_RECT, frame)) return;
+            if (!aglEnable(gc->ctx, AGL_BUFFER_RECT)) return;
+            if (!aglSetInteger(gc->ctx, AGL_SWAP_RECT, frame)) return;
+            if (!aglEnable(gc->ctx, AGL_SWAP_RECT)) return;
+            if (!aglUpdateContext(gc->ctx)) return;
+
             gc->isAttached = TRUE;
-            GLAQUA_DEBUG_MSG("attached\n");
+            GLAQUA_DEBUG_MSG("attached context 0x%x to window 0x%x\n", gc->ctx,
+                             pWin->drawable.id);
         } else {
             // attach to not-yet-realized window - will really attach later
-            GLAQUA_DEBUG_MSG("couldn't attach\n");
+            GLAQUA_DEBUG_MSG("couldn't attach to unrealized window\n");
             aglSetDrawable(gc->ctx, NULL);
             gc->isAttached = FALSE;
         }
@@ -303,14 +329,14 @@ static void attach(__GLcontext *gc, __GLdrawablePrivate *glPriv,
 
 static GLboolean glAquaMakeCurrent(__GLcontext *gc)
 {
-#if 0
     __GLdrawablePrivate *glPriv = gc->interface.imports.getDrawablePrivate(gc);
+
     GLAQUA_DEBUG_MSG("glAquaMakeCurrent (ctx 0x%x)\n", gc->ctx);
 
     if (!gc->isAttached) {
-        attach(gc, glPriv, glPriv->xOrigin, glPriv->yOrigin, glPriv->width, glPriv->height);
+        attach(gc, glPriv);
     }
-#endif
+
     return aglSetCurrentContext(gc->ctx);
 }
 
@@ -326,8 +352,8 @@ static GLboolean glAquaCopyContext(__GLcontext *dst, const __GLcontext *src,
                                    GLuint mask)
 {
   GLAQUA_DEBUG_MSG("glAquaCopyContext\n");
-  aglCopyContext(src->ctx, dst->ctx, mask);
-  return GL_TRUE;
+
+    return aglCopyContext(src->ctx, dst->ctx, mask);
 }
 
 static GLboolean glAquaForceCurrent(__GLcontext *gc)
@@ -450,11 +476,10 @@ static __GLinterface *glAquaCreateContext(__GLimports *imports,
 {
     __GLcontext *result;
     __GLcontext *sharectx = (__GLcontext *)shareGC;
-    GLint value;
 
     GLAQUA_DEBUG_MSG("glAquaCreateContext\n");
 
-    result = (__GLcontext *)malloc(sizeof(__GLcontext));
+    result = (__GLcontext *)calloc(1, sizeof(__GLcontext));
     if (!result) return NULL;
 
     result->interface.imports = *imports;
@@ -476,10 +501,6 @@ static __GLinterface *glAquaCreateContext(__GLimports *imports,
     }
 
     result->isAttached = FALSE;
-
-    // Tell aglSwapBuffers to wait for vertical retrace
-    value = 1;
-    aglSetInteger(result->ctx, AGL_SWAP_INTERVAL, &value);
 
     GLAQUA_DEBUG_MSG("glAquaCreateContext done\n");
     return (__GLinterface *)result;
@@ -514,17 +535,15 @@ glAquaRealizeWindow(WindowPtr pWin)
         GLAQUA_DEBUG_MSG("glAquaRealizeWindow is GL drawable!\n");
 
         // GL contexts bound to this window for drawing
-        for (gx = glxPriv->drawGlxc; gx != NULL; gx = gx->next) {
+        for (gx = glxPriv->drawGlxc; gx != NULL; gx = gx->nextDrawPriv) {
             gc = (__GLcontext *)gx->gc;
-            attach(gc, glPriv, glxPriv->xorigin, glxPriv->yorigin,
-                   glxPriv->width, glxPriv->height);
+            attach(gc, glPriv);
         }
 
         // GL contexts bound to this window for reading
-        for (gx = glxPriv->readGlxc; gx != NULL; gx = gx->next) {
+        for (gx = glxPriv->readGlxc; gx != NULL; gx = gx->nextReadPriv) {
             gc = (__GLcontext *)gx->gc;
-            attach(gc, glPriv, glxPriv->xorigin, glxPriv->yorigin,
-                   glxPriv->width, glxPriv->height);
+            attach(gc, glPriv);
         }
     }
 
@@ -553,15 +572,15 @@ glAquaUnrealizeWindow(WindowPtr pWin)
         GLAQUA_DEBUG_MSG("glAquaUnealizeWindow is GL drawable!\n");
 
         // GL contexts bound to this window for drawing
-        for (gx = glxPriv->drawGlxc; gx != NULL; gx = gx->next) {
+        for (gx = glxPriv->drawGlxc; gx != NULL; gx = gx->nextDrawPriv) {
             gc = (__GLcontext *)gx->gc;
-            attach(gc, NULL, 0, 0, 0, 0);
+            attach(gc, NULL);
         }
 
         // GL contexts bound to this window for reading
-        for (gx = glxPriv->readGlxc; gx != NULL; gx = gx->next) {
+        for (gx = glxPriv->readGlxc; gx != NULL; gx = gx->nextReadPriv) {
             gc = (__GLcontext *)gx->gc;
-            attach(gc, NULL, 0, 0, 0, 0);
+            attach(gc, NULL);
         }
     }
 
@@ -689,6 +708,26 @@ static __GLXvisualConfig FallbackConfigs[NUM_FALLBACK_CONFIGS] = {
   },
 };
 
+static __GLXvisualConfig NullConfig = {
+    -1,                 /* vid */
+    -1,                 /* class */
+    False,              /* rgba */
+    -1, -1, -1, 0,      /* rgba sizes */
+    -1, -1, -1, 0,      /* rgba masks */
+     0,  0,  0, 0,      /* rgba accum sizes */
+    False,              /* doubleBuffer */
+    False,              /* stereo */
+    -1,                 /* bufferSize */
+    16,                 /* depthSize */
+    0,                  /* stencilSize */
+    0,                  /* auxBuffers */
+    0,                  /* level */
+    GLX_NONE_EXT,       /* visualRating */
+    0,                  /* transparentPixel */
+    0, 0, 0, 0,         /* transparent rgba color (floats scaled to ints) */
+    0                   /* transparentIndex */
+};
+
 
 static int count_bits(unsigned int n)
 {
@@ -773,9 +812,15 @@ static Bool init_visuals(int *nvisualp, VisualPtr *visualp,
     /* Count the total number of visuals to compute */
     numNewVisuals = 0;
     for (i = 0; i < numVisuals; i++) {
-        numNewVisuals +=
-            (pVisual[i].class == TrueColor || pVisual[i].class == DirectColor)
-            ? numRGBconfigs : numCIconfigs;
+        int count;
+
+        count = ((pVisual[i].class == TrueColor ||
+                  pVisual[i].class == DirectColor)
+                ? numRGBconfigs : numCIconfigs);
+        if (count == 0)
+            count = 1;          /* preserve the existing visual */
+
+        numNewVisuals += count;
     }
 
     /* Reset variables for use with the next screen/driver's visual configs */
@@ -826,6 +871,33 @@ static Bool init_visuals(int *nvisualp, VisualPtr *visualp,
     for (i = j = 0; i < numVisuals; i++) {
         int is_rgb = (pVisual[i].class == TrueColor ||
                   pVisual[i].class == DirectColor);
+
+        if (!is_rgb)
+        {
+            /* We don't support non-rgb visuals for GL. But we don't
+               want to remove them either, so just pass them through
+               with null glX configs */
+
+            pVisualNew[j] = pVisual[i];
+            pVisualNew[j].vid = FakeClientID(0);
+
+            /* Check for the default visual */
+            if (!found_default && pVisual[i].vid == *defaultVisp) {
+                *defaultVisp = pVisualNew[j].vid;
+                found_default = TRUE;
+            }
+
+            /* Save the old VisualID */
+            orig_vid[j] = pVisual[i].vid;
+
+            /* Initialize the glXVisual */
+            _gl_copy_visual_to_context_mode( modes, & NullConfig );
+            modes->visualID = pVisualNew[j].vid;
+
+            j++;
+
+            continue;
+        }
 
         for (k = 0; k < numNewConfigs; k++) {
             if (pNewVisualConfigs[k].rgba != is_rgb)
@@ -933,6 +1005,94 @@ static Bool init_visuals(int *nvisualp, VisualPtr *visualp,
     return TRUE;
 }
 
+/* based on code in i830_dri.c
+   This ends calling glAquaSetVisualConfigs to set the static
+   numconfigs, etc. */
+static void
+glAquaInitVisualConfigs(void)
+{
+    int                 lclNumConfigs     = 0;
+    __GLXvisualConfig  *lclVisualConfigs  = NULL;
+    void              **lclVisualPrivates = NULL;
+
+    int depth, aux, buffers, stencil, accum;
+    int i = 0;
+
+    GLAQUA_DEBUG_MSG("glAquaInitVisualConfigs ");
+
+    /* count num configs:
+        2 Z buffer (0, 24 bit)
+        2 AUX buffer (0, 2)
+        2 buffers (single, double)
+        2 stencil (0, 8 bit)
+        2 accum (0, 64 bit)
+        = 32 configs */
+
+    lclNumConfigs = 2 * 2 * 2 * 2 * 2; /* 32 */
+
+    /* alloc */
+    lclVisualConfigs = xcalloc(sizeof(__GLXvisualConfig), lclNumConfigs);
+    lclVisualPrivates = xcalloc(sizeof(void *), lclNumConfigs);
+
+    /* fill in configs */
+    if (NULL != lclVisualConfigs) {
+        i = 0; /* current buffer */
+        for (depth = 0; depth < 2; depth++) {
+            for (aux = 0; aux < 2; aux++) {
+                for (buffers = 0; buffers < 2; buffers++) {
+                    for (stencil = 0; stencil < 2; stencil++) {
+                        for (accum = 0; accum < 2; accum++) {
+                            lclVisualConfigs[i].vid = -1;
+                            lclVisualConfigs[i].class = -1;
+                            lclVisualConfigs[i].rgba = TRUE;
+                            lclVisualConfigs[i].redSize = -1;
+                            lclVisualConfigs[i].greenSize = -1;
+                            lclVisualConfigs[i].blueSize = -1;
+                            lclVisualConfigs[i].redMask = -1;
+                            lclVisualConfigs[i].greenMask = -1;
+                            lclVisualConfigs[i].blueMask = -1;
+                            lclVisualConfigs[i].alphaMask = 0;
+                            if (accum) {
+                                lclVisualConfigs[i].accumRedSize = 16;
+                                lclVisualConfigs[i].accumGreenSize = 16;
+                                lclVisualConfigs[i].accumBlueSize = 16;
+                                lclVisualConfigs[i].accumAlphaSize = 16;
+                            }
+                            else {
+                                lclVisualConfigs[i].accumRedSize = 0;
+                                lclVisualConfigs[i].accumGreenSize = 0;
+                                lclVisualConfigs[i].accumBlueSize = 0;
+                                lclVisualConfigs[i].accumAlphaSize = 0;
+                            }
+                            lclVisualConfigs[i].doubleBuffer = buffers ? TRUE : FALSE;
+                            lclVisualConfigs[i].stereo = FALSE;
+                            lclVisualConfigs[i].bufferSize = -1;
+
+                            lclVisualConfigs[i].depthSize = depth? 24 : 0;
+                            lclVisualConfigs[i].stencilSize = stencil ? 8 : 0;
+                            lclVisualConfigs[i].auxBuffers = aux ? 2 : 0;
+                            lclVisualConfigs[i].level = 0;
+                            lclVisualConfigs[i].visualRating = GLX_NONE_EXT;
+                            lclVisualConfigs[i].transparentPixel = 0;
+                            lclVisualConfigs[i].transparentRed = 0;
+                            lclVisualConfigs[i].transparentGreen = 0;
+                            lclVisualConfigs[i].transparentBlue = 0;
+                            lclVisualConfigs[i].transparentAlpha = 0;
+                            lclVisualConfigs[i].transparentIndex = 0;
+                            i++;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    if (i != lclNumConfigs)
+        GLAQUA_DEBUG_MSG("glAquaInitVisualConfigs failed to alloc visual configs");
+
+    GlxSetVisualConfigs(lclNumConfigs, lclVisualConfigs, lclVisualPrivates);
+}
+
+
 static void glAquaSetVisualConfigs(int nconfigs, __GLXvisualConfig *configs,
                                    void **privates)
 {
@@ -949,6 +1109,9 @@ static Bool glAquaInitVisuals(VisualPtr *visualp, DepthPtr *depthp,
                               unsigned long sizes, int bitsPerRGB)
 {
     GLAQUA_DEBUG_MSG("glAquaInitVisuals\n");
+
+    if (numConfigs == 0) /* if no configs */
+        glAquaInitVisualConfigs(); /* ensure the visual configs are setup */
 
     /*
      * Setup the visuals supported by this particular screen.
@@ -1104,22 +1267,22 @@ static GLboolean glAquaResizeBuffers(__GLdrawableBuffer *buffer,
                                      GLuint bufferMask)
 {
     GLAquaDrawableRec *aquaPriv = (GLAquaDrawableRec *)glPriv->private;
+    __GLXdrawablePrivate *glxPriv = (__GLXdrawablePrivate *)glPriv->other;
     __GLXcontext *gx;
     __GLcontext *gc;
-    __GLXdrawablePrivate *glxPriv = (__GLXdrawablePrivate *)glPriv->other;
 
     GLAQUA_DEBUG_MSG("glAquaResizeBuffers to (%d %d %d %d)\n", x, y, width, height);
 
     // update all contexts that point at this drawable for drawing (hack?)
-    for (gx = glxPriv->drawGlxc; gx != NULL; gx = gx->next) {
+    for (gx = glxPriv->drawGlxc; gx != NULL; gx = gx->nextDrawPriv) {
         gc = (__GLcontext *)gx->gc;
-        attach(gc, glPriv, x, y, width, height);
+        attach(gc, glPriv);
     }
 
     // update all contexts that point at this drawable for reading (hack?)
-    for (gx = glxPriv->readGlxc; gx != NULL; gx = gx->next) {
+    for (gx = glxPriv->readGlxc; gx != NULL; gx = gx->nextReadPriv) {
         gc = (__GLcontext *)gx->gc;
-        attach(gc, glPriv, x, y, width, height);
+        attach(gc, glPriv);
     }
 
     return aquaPriv->resize(buffer, x, y, width, height, glPriv, bufferMask);
