@@ -21,6 +21,9 @@
 #include "xf86Xinput.h"
 #include "xf86OSKbd.h"
 #include "atKeynames.h"
+#if defined(DO_OS_FONTRESTORE)
+#include "lnx.h"
+#endif
 #include "lnx_kbd.h"
 
 #define KBC_TIMEOUT 250        /* Timeout in ms for sending to keyboard controller */

@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/linux/lnx.h,v 3.3 2002/11/25 14:05:04 eich Exp $ */
+/* $XFree86: Exp $ */
 
 #ifndef LNX_H_
 # ifdef __alpha__
@@ -38,6 +38,13 @@ extern long (*_iobase)(unsigned, int, int, int);
 #   define IOBASE_FROM_HOSE	0x10000
 #  endif
 # endif /* __alpha__ */
+
+# if defined(DO_OS_FONTRESTORE)
+Bool lnx_savefont(void);
+Bool lnx_restorefont(void);
+Bool lnx_switchaway(void);
+void lnx_freefontdata(void);
+# endif
 
 #define LNX_H_
 

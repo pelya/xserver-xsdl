@@ -25,7 +25,7 @@
 #include "xf86cmap.h"
 
 #ifndef SAVE_FONT1
-#define SAVE_FONT1
+#define SAVE_FONT1 1
 #endif
 
 /*
@@ -36,10 +36,10 @@
 #define NEED_SAVED_CMAP
 #endif
 #ifndef SAVE_TEXT
-#define SAVE_TEXT
+#define SAVE_TEXT 1
 #endif
 #ifndef SAVE_FONT2
-#define SAVE_FONT2
+#define SAVE_FONT2 1
 #endif
 
 /* bytes per plane to save for text */
@@ -51,11 +51,11 @@
 #if 0
 /* Override all of these for now */
 #undef SAVE_FONT1
-#define SAVE_FONT1
+#define SAVE_FONT1 1
 #undef SAVE_FONT2
-#define SAVE_FONT2
+#define SAVE_FONT2 1
 #undef SAVE_TEST
-#define SAVE_TEST
+#define SAVE_TEST 1
 #undef FONT_AMOUNT
 #define FONT_AMOUNT 65536
 #undef TEXT_AMOUNT
@@ -720,12 +720,11 @@ vgaHWSeqReset(vgaHWPtr hwp, Bool start)
 void
 vgaHWRestoreFonts(ScrnInfoPtr scrninfp, vgaRegPtr restore)
 {
+#if SAVE_TEXT || SAVE_FONT1 || SAVE_FONT2
     vgaHWPtr hwp = VGAHWPTR(scrninfp);
     int savedIOBase;
     unsigned char miscOut, attr10, gr1, gr3, gr4, gr5, gr6, gr8, seq2, seq4;
     Bool doMap = FALSE;
-
-#if defined(SAVE_TEXT) || defined(SAVE_FONT1) || defined(SAVE_FONT2)
 
     /* If nothing to do, return now */
     if (!hwp->FontInfo1 && !hwp->FontInfo2 && !hwp->TextInfo)
@@ -782,7 +781,7 @@ vgaHWRestoreFonts(ScrnInfoPtr scrninfp, vgaRegPtr restore)
 	hwp->writeGr(hwp, 0x01, 0x00);	/* all planes come from CPU */
     }
 
-#ifdef SAVE_FONT1
+#if SAVE_FONT1
     if (hwp->FontInfo1) {
 	hwp->writeSeq(hwp, 0x02, 0x04);	/* write to plane 2 */
 	hwp->writeGr(hwp, 0x04, 0x02);	/* read plane 2 */
@@ -790,7 +789,7 @@ vgaHWRestoreFonts(ScrnInfoPtr scrninfp, vgaRegPtr restore)
     }
 #endif
 
-#ifdef SAVE_FONT2
+#if SAVE_FONT2
     if (hwp->FontInfo2) {
 	hwp->writeSeq(hwp, 0x02, 0x08);	/* write to plane 3 */
 	hwp->writeGr(hwp, 0x04, 0x03);	/* read plane 3 */
@@ -798,7 +797,7 @@ vgaHWRestoreFonts(ScrnInfoPtr scrninfp, vgaRegPtr restore)
     }
 #endif
 
-#ifdef SAVE_TEXT
+#if SAVE_TEXT
     if (hwp->TextInfo) {
 	hwp->writeSeq(hwp, 0x02, 0x01);	/* write to plane 0 */
 	hwp->writeGr(hwp, 0x04, 0x00);	/* read plane 0 */
@@ -828,7 +827,7 @@ vgaHWRestoreFonts(ScrnInfoPtr scrninfp, vgaRegPtr restore)
     if (doMap)
 	vgaHWUnmapMem(scrninfp);
 
-#endif /* defined(SAVE_TEXT) || defined(SAVE_FONT1) || defined(SAVE_FONT2) */
+#endif /* SAVE_TEXT || SAVE_FONT1 || SAVE_FONT2 */
 }
 
 
@@ -906,12 +905,11 @@ vgaHWRestore(ScrnInfoPtr scrninfp, vgaRegPtr restore, int flags)
 void
 vgaHWSaveFonts(ScrnInfoPtr scrninfp, vgaRegPtr save)
 {
+#if  SAVE_TEXT || SAVE_FONT1 || SAVE_FONT2
     vgaHWPtr hwp = VGAHWPTR(scrninfp);
     int savedIOBase;
     unsigned char miscOut, attr10, gr4, gr5, gr6, seq2, seq4;
     Bool doMap = FALSE;
-
-#if defined(SAVE_TEXT) || defined(SAVE_FONT1) || defined(SAVE_FONT2)
 
     if (hwp->Base == NULL) {
 	doMap = TRUE;
@@ -961,21 +959,21 @@ vgaHWSaveFonts(ScrnInfoPtr scrninfp, vgaRegPtr save)
     hwp->writeGr(hwp, 0x05, 0x00);	/* write mode 0, read mode 0 */
     hwp->writeGr(hwp, 0x06, 0x05);	/* set graphics */
 
-#ifdef SAVE_FONT1
+#if SAVE_FONT1
     if (hwp->FontInfo1 || (hwp->FontInfo1 = xalloc(FONT_AMOUNT))) {
 	hwp->writeSeq(hwp, 0x02, 0x04);	/* write to plane 2 */
 	hwp->writeGr(hwp, 0x04, 0x02);	/* read plane 2 */
 	slowbcopy_frombus(hwp->Base, hwp->FontInfo1, FONT_AMOUNT);
     }
 #endif /* SAVE_FONT1 */
-#ifdef SAVE_FONT2
+#if SAVE_FONT2
     if (hwp->FontInfo2 || (hwp->FontInfo2 = xalloc(FONT_AMOUNT))) {
 	hwp->writeSeq(hwp, 0x02, 0x08);	/* write to plane 3 */
 	hwp->writeGr(hwp, 0x04, 0x03);	/* read plane 3 */
 	slowbcopy_frombus(hwp->Base, hwp->FontInfo2, FONT_AMOUNT);
     }
 #endif /* SAVE_FONT2 */
-#ifdef SAVE_TEXT
+#if SAVE_TEXT
     if (hwp->TextInfo || (hwp->TextInfo = xalloc(2 * TEXT_AMOUNT))) {
 	hwp->writeSeq(hwp, 0x02, 0x01);	/* write to plane 0 */
 	hwp->writeGr(hwp, 0x04, 0x00);	/* read plane 0 */
@@ -1002,7 +1000,7 @@ vgaHWSaveFonts(ScrnInfoPtr scrninfp, vgaRegPtr save)
     if (doMap)
 	vgaHWUnmapMem(scrninfp);
 
-#endif /* defined(SAVE_TEXT) || defined(SAVE_FONT1) || defined(SAVE_FONT2) */
+#endif /* SAVE_TEXT || SAVE_FONT1 || SAVE_FONT2 */
 }
 
 void
