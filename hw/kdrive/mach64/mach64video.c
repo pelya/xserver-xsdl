@@ -19,7 +19,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/mach64/mach64video.c,v 1.7 2001/08/09 09:08:55 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/mach64/mach64video.c,v 1.8 2002/10/03 22:08:53 keithp Exp $ */
 #include "mach64.h"
 
 #include "Xv.h"
@@ -219,7 +219,7 @@ mach64CopyPackedData(KdScreenInfo   *screen,
 static void
 mach64CopyPlanarData(KdScreenInfo   *screen, 
 		     unsigned char  *buf,
-		     int	    rotate,
+		     int	    randr,
 		     int	    srcPitch,
 		     int	    srcPitch2,
 		     int	    dstPitch,  /* of chroma */
@@ -246,15 +246,15 @@ mach64CopyPlanarData(KdScreenInfo   *screen,
     src1 = buf;
     src2 = src1 + height * srcPitch;
     src3 = src2 + (height >> 1) * srcPitch2;
-    switch (rotate) {
-    case 0:
+    switch (randr & RR_Rotate_All) {
+    case RR_Rotate_0:
 	srcDown = srcPitch;
 	srcDown2 = srcPitch2;
 	srcRight = 2;
 	srcRight2 = 1;
 	srcNext = 1;
 	break;
-    case 90:
+    case RR_Rotate_90:
 	src1 = src1 + srcH - 1;
 	src2 = src2 + (srcH >> 1) - 1;
 	src3 = src3 + (srcH >> 1) - 1;
@@ -264,7 +264,7 @@ mach64CopyPlanarData(KdScreenInfo   *screen,
 	srcRight2 = srcPitch2;
 	srcNext = srcPitch;
 	break;
-    case 180:
+    case RR_Rotate_180:
 	src1 = src1 + srcPitch * (srcH - 1) + (srcW - 1);
 	src2 = src2 + srcPitch2 * ((srcH >> 1) - 1) + ((srcW >> 1) - 1);
 	src3 = src3 + srcPitch2 * ((srcH >> 1) - 1) + ((srcW >> 1) - 1);
@@ -274,7 +274,7 @@ mach64CopyPlanarData(KdScreenInfo   *screen,
 	srcRight2 = -1;
 	srcNext = -1;
 	break;
-    case 270:
+    case RR_Rotate_270:
 	src1 = src1 + srcPitch * (srcW - 1);
 	src2 = src2 + srcPitch2 * ((srcW >> 1) - 1);
 	src3 = src3 + srcPitch2 * ((srcW >> 1) - 1);
