@@ -1,3 +1,4 @@
+/* $XdotOrg: xtest1di.c,v 1.4 2001/02/09 02:04:33 xorgcvs Exp $ */
 /* $Xorg: xtest1di.c,v 1.4 2001/02/09 02:04:33 xorgcvs Exp $ */
 /*
  *	File:  xtest1di.c
@@ -73,8 +74,6 @@ University of California.
 #define  XTestSERVER_SIDE
 #include "xtestext1.h"
 #include "modinit.h"
-
-#include "xtest1dd.h"
 
 #include "xtest1dd.h"
 

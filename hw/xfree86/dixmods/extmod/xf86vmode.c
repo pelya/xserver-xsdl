@@ -29,6 +29,7 @@ or other dealings in this Software without prior written authorization
 from Kaleb S. KEITHLEY
 
 */
+/* $XdotOrg: xf86vmode.c,v 1.3 2000/08/17 19:47:59 cpqbld Exp $ */
 /* $Xorg: xf86vmode.c,v 1.3 2000/08/17 19:47:59 cpqbld Exp $ */
 /* THIS IS NOT AN X CONSORTIUM STANDARD OR AN X PROJECT TEAM SPECIFICATION */
 
@@ -113,7 +114,6 @@ static DISPATCH_PROC(SProcXF86VidModeGetGammaRampSize);
 #if 0
 static unsigned char XF86VidModeReqCode = 0;
 #endif
-
 
 /* The XF86VIDMODE_EVENTS code is far from complete */
 

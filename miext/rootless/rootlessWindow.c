@@ -1,3 +1,4 @@
+/* $XdotOrg$ */
 /*
  * Rootless window management
  */
@@ -28,7 +29,7 @@
  * holders shall not be used in advertising or otherwise to promote the sale,
  * use or other dealings in this Software without prior written authorization.
  */
-/* $XFree86: xc/programs/Xserver/miext/rootless/rootlessWindow.c,v 1.10 2003/11/13 20:26:31 torrey Exp $ */
+/* $XFree86: xc/programs/Xserver/miext/rootless/rootlessWindow.c,v 1.11 2003/11/27 01:53:39 torrey Exp $ */
 
 #include "rootlessCommon.h"
 #include "rootlessWindow.h"
@@ -1042,7 +1043,6 @@ FinishFrameResize(WindowPtr pWin, Bool gravity, int oldX, int oldY,
 {
     ScreenPtr pScreen = pWin->drawable.pScreen;
     RootlessWindowRec *winRec = WINREC(pWin);
-    BoxRec box;
     int i;
 
     RootlessStopDrawing(pWin, FALSE);
@@ -1065,12 +1065,7 @@ FinishFrameResize(WindowPtr pWin, Bool gravity, int oldX, int oldY,
     /* Redraw everything. FIXME: there must be times when we don't need
        to do this. Perhaps when top-left weighting and no gravity? */
 
-    box.x1 = 0;
-    box.y1 = 0;
-    box.x2 = winRec->width;
-    box.y2 = winRec->height;
-
-    RootlessDamageBox(pWin, &box);
+    RootlessDamageRect(pWin, -newBW, -newBW, newW, newH);
 
     for (i = 0; i < 2; i++) {
         if (gResizeDeathPix[i] != NULL) {

@@ -1,3 +1,4 @@
+/* $XdotOrg: xdmcp.c,v 1.4 2001/01/31 13:37:19 pookie Exp $ */
 /* $Xorg: xdmcp.c,v 1.4 2001/01/31 13:37:19 pookie Exp $ */
 /*
  * Copyright 1989 Network Computing Devices, Inc., Mountain View, California.
@@ -13,7 +14,7 @@
  * without express or implied warranty.
  *
  */
-/* $XFree86: xc/programs/Xserver/os/xdmcp.c,v 3.28 2003/11/11 00:27:14 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/os/xdmcp.c,v 3.29 2003/11/22 04:51:02 dawes Exp $ */
 
 #ifdef WIN32
 /* avoid conflicting definitions */
@@ -1607,7 +1608,7 @@ get_mcast_options(argc, argv, i)
     int	    argc, i;
     char    **argv;
 {
-    char *address = "ff02::1";	/* Default address until IANA assigns one */
+    char *address = XDM_DEFAULT_MCAST_ADDR6;
     int hopcount = 1;
     struct addrinfo hints;
     char portstr[6];

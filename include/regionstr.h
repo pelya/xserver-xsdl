@@ -1,3 +1,4 @@
+/* $XdotOrg: regionstr.h,v 1.4 2001/02/09 02:05:15 xorgcvs Exp $ */
 /* $Xorg: regionstr.h,v 1.4 2001/02/09 02:05:15 xorgcvs Exp $ */
 /***********************************************************
 
@@ -45,7 +46,7 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ******************************************************************/
-/* $XFree86: xc/programs/Xserver/include/regionstr.h,v 1.11 2003/11/10 18:22:45 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/include/regionstr.h,v 1.12 2003/11/29 02:29:43 dawes Exp $ */
 
 #ifndef REGIONSTRUCT_H
 #define REGIONSTRUCT_H
@@ -169,13 +170,12 @@ extern RegDataRec miBrokenData;
 
 /* Reference _pScreen macro argument and possibly check its type */
 #undef REGION_SCREEN
+extern volatile ScreenPtr currentRegionScreen;
 #if defined(NDEBUG) && !defined(DEBUG) && !defined(BUILDDEBUG)
 
 # define REGION_SCREEN(_pScreen_) (void)(_pScreen_)
 
 #else
-
-extern volatile ScreenPtr currentRegionScreen;
 
 # define REGION_SCREEN(_pScreen_) (void)(currentRegionScreen = (_pScreen_))
 

@@ -1,4 +1,5 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/loader/dixsym.c,v 1.61 2003/11/10 18:22:35 tsi Exp $ */
+/* $XdotOrg: xc/programs/Xserver/hw/xfree86/loader/dixsym.c,v 1.62 2003/11/25 05:26:38 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/loader/dixsym.c,v 1.62 2003/11/25 05:26:38 dawes Exp $ */
 
 /*
  * Copyright 1995-1998 by Metro Link, Inc.
@@ -114,6 +115,10 @@ LOOKUP dixLookupTab[] = {
     SYMFUNC(InitFocusClassDeviceStruct)
     SYMFUNC(InitLedFeedbackClassDeviceStruct)
     SYMFUNC(InitPtrFeedbackClassDeviceStruct)
+    SYMFUNC(InitKbdFeedbackClassDeviceStruct)
+    SYMFUNC(InitIntegerFeedbackClassDeviceStruct)
+    SYMFUNC(InitStringFeedbackClassDeviceStruct)
+    SYMFUNC(InitBellFeedbackClassDeviceStruct)
     SYMFUNC(InitValuatorClassDeviceStruct)
     SYMFUNC(InitKeyClassDeviceStruct)
     SYMFUNC(InitKeyboardDeviceStruct)

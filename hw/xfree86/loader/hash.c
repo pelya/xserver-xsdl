@@ -1,4 +1,5 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/loader/hash.c,v 1.24 2003/11/17 22:20:40 dawes Exp $ */
+/* $XdotOrg: xc/programs/Xserver/hw/xfree86/loader/hash.c,v 1.25 2003/11/23 00:57:56 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/loader/hash.c,v 1.25 2003/11/23 00:57:56 dawes Exp $ */
 
 /*
  *
@@ -41,9 +42,7 @@
 
 /* Prototypes for static functions. */
 static unsigned int hashFunc(const char *);
-static itemPtr LoaderHashFindNearest(
-					unsigned long
-	);
+static itemPtr LoaderHashFindNearest(unsigned long);
 
 static itemPtr LoaderhashTable[HASHSIZE];
 
