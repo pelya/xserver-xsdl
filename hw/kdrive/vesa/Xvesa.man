@@ -1,7 +1,7 @@
-.\" $XFree86: xc/programs/Xserver/hw/kdrive/vesa/Xvesa.man,v 1.2 2000/09/03 05:11:22 keithp Exp $
+.\" $XFree86: xc/programs/Xserver/hw/kdrive/vesa/Xvesa.man,v 1.3 2000/10/20 00:19:50 keithp Exp $
 .TH Xvesa 1
 .SH NAME
-Xvesa \- VESA VBE tiny X server
+Xvesa \- VESA Bios Extensions tiny X server
 .SH SYNOPSIS
 .B Xvesa
 .RI [ :display ] 
@@ -13,15 +13,14 @@ is a generic X server for Linux on the x86 platform.
 doesn't know about any particular hardware, and sets the video mode by
 running the video BIOS in VM86 mode.
 .B Xvesa
-therefore runs untrusted code with full priviledges, and is one of the
-most insecure X servers available.
+can use both standard VGA BIOS modes and any modes advertised by a
+VESA BIOS if available.
 .B Xvesa
-uses both standard VGA BIOS modes and any modes advertised by a VESA 2.0
-BIOS if available.
+runs untrusted code with full privileges, and is therefore a fairly
+insecure X server.
 .B Run at your own risk.
 .SH OPTIONS
-In addition to the normal tiny-X server's options (to be described in
-a separate man page),
+In addition to the normal KDrive server's options (see Xkdrive(1)),
 .B Xvesa
 accepts the following command line switches:
 .TP 8
@@ -30,13 +29,13 @@ specifies the VESA video mode to use.  If mode
 .I n
 is not supported by your BIOS and hardware,
 .B Xvesa
-will fail, hang your system, or make your monitor explode; you are on
-your own.  This option overrides any
+will fail, hang your system, or cause your monitor to explode; you are
+on your own.  This option overrides any
 .B -screen
 options.
 .TP 8
 .B -listmodes
-tells the server to list all supported video modes.  If
+list all supported video modes.  If
 .B -force
 was specified before
 .BR -listmodes ,
@@ -46,12 +45,12 @@ the
 server won't be able to use.
 .TP 8
 .B -force
-disables some sanity checks and use the specified mode even if the
+disable some sanity checks and use the specified mode even if the
 BIOS claims not to support it.
 .TP 8
 .B -shadow
 use a shadow framebuffer even if it is not strictly necessary.  This
-may dramatically improve performance on some machines.
+may dramatically improve performance on some hardware.
 .TP 8
 .B -nolinear
 don't use a linear framebuffer even if one is available.  You don't
@@ -59,22 +58,19 @@ want to use this option.
 .TP 8
 .B -swaprgb
 pass RGB values in the order that works on broken BIOSes.  Use this if
-the colours are wrong in PseudoColor modes.
+the colours are wrong in PseudoColor and 16 colour modes.
 .TP 8
 .B -verbose
 emit diagnostic messages during BIOS initialization and teardown.
 .SH KEYBOARD
-Xvesa handles the keyboard in the same manner as the
-.B Xfbdev
-Linux X server.  See Xfbdev(1) (not yet written) for more information.
+To be written.
 .SH BUGS
 .B Xvesa
-opens all IO ports and runs your VESA BIOS, which may safely be
-assumed to be buggy.  Allowing your users to run
+opens all IO ports and runs your VESA BIOS, which may be assumed to be
+buggy.  Allowing your users to run
 .B Xvesa
-is a major security hole.  Allowing yourself to run
-.B Xvesa
-is probably a mistake.
+is probably a security hole.
+
 .B Xvesa
 records the current BIOS mode when it starts and restores that mode on
 termination; if the video card has been reprogrammed by another application,
@@ -82,10 +78,9 @@ the display will almost certainly be trashed.  The alternative of saving and
 restoring the complete video card state has proven unreliable on most video
 cards.
 .SH SEE ALSO
-X(1), Xserver(1), xdm(1), xinit(1), Xfbdev(1).
+X(1), Xserver(1), Xkdrive(1), xdm(1), xinit(1).
 .SH AUTHORS
-The tiny-X server was written by Keith Packard, and the VESA driver
-was added by Juliusz Chroboczek who didn't realise what he was doing
-until it was too late.  Tiny-X uses code from XFree86, which in turn
-is based on the Sample Implementation.  Keith Packard then added support for
-standard VGA BIOS modes and is especially proud of 320x200 16 color mode.
+The VESA driver was written by Juliusz Chroboczek who didn't realise
+what he was doing until it was too late.  Keith Packard then added
+support for standard VGA BIOS modes and is especially proud of 320x200
+16 colour mode.

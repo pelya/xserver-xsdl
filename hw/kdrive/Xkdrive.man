@@ -1,0 +1,75 @@
+.TH Xkdrive 1
+.SH NAME
+Xkdrive \- tiny X server
+.SH SYNOPSIS
+.B Xvesa
+.RI [ :display ]
+.RI [ option ...]
+
+.B Xfbdev
+.RI [ :display ]
+.RI [ option ...]
+
+.B Xigs
+.RI [ :display ]
+.RI [ option ...]
+
+.B Xtrident
+.RI [ :display ]
+.RI [ option ...]
+
+.B Xsis530
+.RI [ :display ]
+.RI [ option ...]
+
+.B Xtrio
+.RI [ :display ]
+.RI [ option ...]
+
+.B Xitsy
+.RI [ :display ]
+.RI [ option ...]
+.SH DESCRIPTION
+.B Xkdrive
+is a family of X servers designed to be particularly small.  This
+manual page describes the common functionality of the 
+.B Xkdrive
+servers; for information on a specific X server, please refer to the
+relevant manual page.
+.SH OPTIONS
+In addition to the standard options accepted by all X servers (see
+Xserver(1)), all the 
+.B Xkdrive
+servers accept the following options:
+.TP 8
+.B -screen \fIwidth\fBx\fIheight\fR[\fBx\fIdepth\fR]\fB
+use a screen of the specified size.
+.TP 8
+.B -zaphod
+disable switching screens by moving the pointer accross a screen boundary.
+.TP 8
+.B -3button
+disable emulation of a middle mouse button by chording.
+.TP 8
+.B -2button
+enable emulation of a middle mouse button by chording.
+.TP 8
+.B -dumb
+disable hardware acceleration.
+.TP 8
+.B -softCursor
+disable the hardware cursor.
+.TP 8
+.B -card \fIcard\fB
+not documented.
+.TP 8
+.B -videoTest
+not documented.
+.TP 8
+.B -standalone
+not documented.
+.SH SEE ALSO
+X(1), Xserver(1), xdm(1), xinit(1), Xvesa(1), Xfbdev(1).
+.SH AUTHORS
+The Xkdrive common core was written by Keith Packard, based on XFree86
+which, in turn, is based on the Sample Implementation of X.

@@ -1,5 +1,5 @@
 XCOMM $XConsortium: Imakefile /main/10 1996/12/02 10:20:33 lehors $
-XCOMM $XFree86: xc/programs/Xserver/hw/nvfb/Imakefile,v 3.8 1996/12/23 06:30:19 dawes Exp $
+XCOMM $XFree86: xc/programs/Xserver/hw/kdrive/fbdev/Imakefile,v 1.2 2000/09/03 05:11:17 keithp Exp $
 KDRIVE=..
 #include "../Kdrive.tmpl"
 
@@ -11,4 +11,5 @@ INCLUDES = $(KDINCS) -I.
 
 NormalLibraryObjectRule()
 NormalLibraryTarget(fbdev,$(OBJS))
+InstallManPage(Xfbdev,$(MANDIR))
 DependTarget()

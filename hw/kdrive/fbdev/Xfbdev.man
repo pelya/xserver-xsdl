@@ -1,0 +1,26 @@
+.TH Xfbdev 1
+.SH NAME
+Xvesa \- Linux framebuffer device tiny X server
+.SH SYNOPSIS
+.B Xfbdev
+.RI [ :display ] 
+.RI [ option ...]
+.SH DESCRIPTION
+.B Xfbdev
+is a generic X server for Linux.
+.B Xfbdev
+doesn't know about any particular hardware, and uses the framebuffer
+provided by the Linux framebuffer device.
+.SH OPTIONS
+.B Xfbdev
+accepts the common options of the Xkdrive family of servers.  Please
+see Xkdrive(1).
+.SH KEYBOARD
+To be written.
+.SH SEE ALSO
+X(1), Xserver(1), Xkdrive(1), xdm(1), xinit(1).
+.SH AUTHORS
+The
+.B Xfbdev
+server was written by Keith Packard.
+
