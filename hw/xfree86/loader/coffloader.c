@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/loader/coffloader.c,v 1.21 2003/10/15 17:40:15 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/loader/coffloader.c,v 1.22 2003/12/22 17:48:11 tsi Exp $ */
 
 /*
  *
@@ -133,7 +133,9 @@ static COFFCommonPtr COFFAddCOMMON(SYMENT *, int);
 static LOOKUP *COFFCreateCOMMON(COFFModulePtr);
 static COFFRelocPtr COFFDelayRelocation(COFFModulePtr, int, RELOC *);
 static SYMENT *COFFGetSymbol(COFFModulePtr, int);
+#if defined(i386) || defined(__powerpc__)
 static unsigned char *COFFGetSymbolValue(COFFModulePtr, int);
+#endif
 static COFFRelocPtr COFF_RelocateEntry(COFFModulePtr, int, RELOC *);
 static LOOKUP *COFF_GetSymbols(COFFModulePtr);
 static void COFFCollectSections(COFFModulePtr);
@@ -298,6 +300,7 @@ COFFGetSymbol(COFFModulePtr file, int index)
     return (SYMENT *) (((unsigned char *)file->symtab) + (index * SYMESZ));
 }
 
+#if defined(i386) || defined(__powerpc__)
 static unsigned char *
 COFFGetSymbolValue(COFFModulePtr cofffile, int index)
 {
@@ -323,6 +326,7 @@ COFFGetSymbolValue(COFFModulePtr cofffile, int index)
     xf86loaderfree(symname);
     return symval;
 }
+#endif
 
 #if defined(__powerpc__)
 /*

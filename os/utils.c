@@ -49,7 +49,7 @@ OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE
 OR PERFORMANCE OF THIS SOFTWARE.
 
 */
-/* $XFree86: xc/programs/Xserver/os/utils.c,v 3.95 2003/10/01 18:36:38 alanh Exp $ */
+/* $XFree86: xc/programs/Xserver/os/utils.c,v 3.97 2004/01/09 00:35:06 dawes Exp $ */
 
 #ifdef __CYGWIN__
 #include <stdlib.h>
@@ -244,6 +244,7 @@ LockServer(void)
   int lfd, i, haslock, l_pid, t;
   char *tmppath = NULL;
   int len;
+  char port[20];
 
   if (nolock) return;
   /*
@@ -258,13 +259,14 @@ LockServer(void)
     FatalError("No TMP dir found\n");
 #endif
 
+  sprintf(port, "%d", atoi(display));
   len = strlen(LOCK_PREFIX) > strlen(LOCK_TMP_PREFIX) ? strlen(LOCK_PREFIX) :
 						strlen(LOCK_TMP_PREFIX);
-  len += strlen(tmppath) + strlen(display) + strlen(LOCK_SUFFIX) + 1;
+  len += strlen(tmppath) + strlen(port) + strlen(LOCK_SUFFIX) + 1;
   if (len > sizeof(LockFile))
-    FatalError("Display name `%s' is too long\n", display);
-  (void)sprintf(tmp, "%s" LOCK_TMP_PREFIX "%s" LOCK_SUFFIX, tmppath, display);
-  (void)sprintf(LockFile, "%s" LOCK_PREFIX "%s" LOCK_SUFFIX, tmppath, display);
+    FatalError("Display name `%s' is too long\n", port);
+  (void)sprintf(tmp, "%s" LOCK_TMP_PREFIX "%s" LOCK_SUFFIX, tmppath, port);
+  (void)sprintf(LockFile, "%s" LOCK_PREFIX "%s" LOCK_SUFFIX, tmppath, port);
 
   /*
    * Create a temporary file containing our PID.  Attempt three times
@@ -359,7 +361,7 @@ LockServer(void)
          */
         unlink(tmp);
 	FatalError("Server is already active for display %s\n%s %s\n%s\n",
-		   display, "\tIf this server is no longer running, remove",
+		   port, "\tIf this server is no longer running, remove",
 		   LockFile, "\tand start again.");
       }
     }
@@ -584,8 +586,10 @@ ProcessCommandLine(int argc, char *argv[])
 
     defaultKeyboardControl.autoRepeat = TRUE;
 
-#ifdef PART_NET
-	PartialNetwork = TRUE;
+#ifdef NO_PART_NET
+    PartialNetwork = FALSE;
+#else
+    PartialNetwork = TRUE;
 #endif
 
     for ( i = 1; i < argc; i++ )

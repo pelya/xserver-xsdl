@@ -987,23 +987,28 @@ earlier in this document.
 
 The `X-TrueType' backend is a backend based on version 1 of the FreeType
 library.  X-TrueType doesn't use the `fontenc' layer for managing font encod-
-ings, but instead uses its own database of encodings.  Since the functionali-
-ties for CJKV support introduced by X-TT have been merged into the new
-FreeType backend, the X-TT backend will be removed from XFree86's tree near
-the future.  Therefore, the use of FreeType backend is preferred over the X-
-TT backend.  General information on X-TrueType may be found at ."
+ings, but instead uses its own database of encodings.
+
+Since the functionalities for CJKV support introduced by X-TT have been
+merged into the new FreeType backend, the X-TT backend will be removed from
+XFree86's tree near the future.  Therefore, the use of FreeType backend is
+preferred over the X-TT backend.
+
+General information on X-TrueType may be found at the After X-TT Project page
+<URL:http://x-tt.sourceforge.jp/>.
 
 4.2.3  Delayed glyph rasterisation
 
-When loading a large character set, the old FreeType delayed glyph rasterisa-
-tion until the time at which the glyph was first used.  The new FreeType
-(libfreetype-xtt2) has an improved `very lazy' metric calculation method to
-speed up the process when loading TrueType or OpenType fonts.   Although the
-X-TT module also has this method, the "vl=y" TTCap option must be set if you
-want to use it.  This is the default method for FreeType when it loads multi-
-byte fonts.  Even if you use a unicode font which has tens of thousands of
-glyphs, this delay will not be worrisome as long as you use the new FreeType
-backend -- its `very lazy' method is super-fast.
+When loading a proportional fonts which contain a huge number of glyphs, the
+old FreeType delayed glyph rasterisation until the time at which the glyph
+was first used.   The new FreeType (libfreetype-xtt2) has an improved `very
+lazy' metric calculation method to speed up the process when loading TrueType
+or OpenType fonts.   Although the X-TT module also has this method, the
+"vl=y" TTCap option must be set if you want to use it.  This is the default
+method for FreeType when it loads multi-byte fonts.   Even if you use a uni-
+code font which has tens of thousands of glyphs, this delay will not be wor-
+risome as long as you use the new FreeType backend -- its `very lazy' method
+is super-fast.
 
 The maximum error of bitmap position using `very lazy' method is 1 pixel, and
 is the same as that of a character-cell spacing.  When the X-TT backend is
@@ -1176,7 +1181,7 @@ The IANA RFC documents, available from a number of sites throughout the
 world, often provide interesting information about character set issues; see
 for example RFC 373.
 
-     Generated from XFree86: xc/programs/Xserver/hw/xfree86/doc/sgml/fonts.sgml,v 1.23 dawes Exp $
+     Generated from XFree86: xc/programs/Xserver/hw/xfree86/doc/sgml/fonts.sgml,v 1.24 dawes Exp $
 
 
-$XFree86: xc/programs/Xserver/hw/xfree86/doc/README.fonts,v 1.27 2003/11/24 01:57:56 dawes Exp $
+$XFree86: xc/programs/Xserver/hw/xfree86/doc/README.fonts,v 1.28 2003/12/20 19:47:28 dawes Exp $

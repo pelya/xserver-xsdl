@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/bsd/alpha_video.c,v 1.5 2003/04/03 16:50:04 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/bsd/alpha_video.c,v 1.6 2003/12/30 15:18:30 herrb Exp $ */
 /*
  * Copyright 1992 by Rich Murphey <Rich@Rice.edu>
  * Copyright 1993 by David Wexelblat <dwex@goblin.org>
@@ -121,7 +121,7 @@ static struct alpha_bus_window *abw;
 static int abw_count = -1;
 
 static void
-init_abw()
+init_abw(void)
 {
 	if (abw_count < 0) {
 		abw_count = alpha_bus_getwindows(ALPHA_BUS_TYPE_PCI_MEM, &abw);
@@ -142,7 +142,7 @@ has_bwx(void)
 }
 
 static unsigned long
-dense_base()
+dense_base(void)
 {
 	if (abw_count < 0)
 		init_abw();
@@ -154,7 +154,7 @@ dense_base()
 }
 
 static unsigned long
-memory_base()
+memory_base(void)
 {
 	if (abw_count < 0)
 		init_abw();
@@ -284,11 +284,13 @@ xf86OSInitVidMem(VidMemInfoPtr pVidMem)
 	    xf86Msg(X_PROBED,"Machine needs sparse mapping\n");
 	    pVidMem->mapMem = mapVidMemSparse;
 	    pVidMem->unmapMem = unmapVidMemSparse;
+#ifndef __NetBSD__
 	    if (axpSystem == -1)
                 axpSystem = bsdGetAXP(); 
 	    hae_thresh = xf86AXPParams[axpSystem].hae_thresh;
             hae_mask = xf86AXPParams[axpSystem].hae_mask;
             sparse_size = xf86AXPParams[axpSystem].size;
+#endif /* __NetBSD__ */
 	}
 	pVidMem->initialised = TRUE;
 }
@@ -314,7 +316,7 @@ mapVidMem(int ScreenNum, unsigned long Base, unsigned long Size, int flags)
 			 MAP_FLAGS, devMemFd, (off_t)Base + BUS_BASE_BWX);
 	    if (base == MAP_FAILED)
 	    {
-		FatalError("%s: could not mmap %s [s=%x,a=%x] (%s)\n",
+		FatalError("%s: could not mmap %s [s=%lx,a=%lx] (%s)\n",
 			   "xf86MapVidMem", DEV_MEM, Size, Base, 
 			   strerror(errno));
 	    }
@@ -324,7 +326,7 @@ mapVidMem(int ScreenNum, unsigned long Base, unsigned long Size, int flags)
 	/* else, mmap /dev/vga */
 	if ((unsigned long)Base < 0xA0000 || (unsigned long)Base >= 0xC0000)
 	{
-		FatalError("%s: Address 0x%x outside allowable range\n",
+		FatalError("%s: Address 0x%lx outside allowable range\n",
 			   "xf86MapVidMem", Base);
 	}
 	base = mmap(0, Size,
@@ -372,7 +374,7 @@ xf86ReadBIOS(unsigned long Base, unsigned long Offset, unsigned char *Buf,
 	if ((long)ptr == -1)
 	{
 		xf86Msg(X_WARNING, 
-			"xf86ReadBIOS: %s mmap[s=%x,a=%x,o=%x] failed (%s)\n",
+			"xf86ReadBIOS: %s mmap[s=%x,a=%lx,o=%lx] failed (%s)\n",
 			DEV_MEM, Len, Base, Offset, strerror(errno));
 		return(-1);
 	}
@@ -446,7 +448,9 @@ xf86EnableInterrupts()
 
 #define vuip    volatile unsigned int *
 
+#ifndef __NetBSD__
 static unsigned long msb_set = 0;
+#endif
 static pointer memSBase = 0;
 static pointer memBase = 0;
 
@@ -490,6 +494,7 @@ struct parms {
 	u_int64_t hae;
 };
 
+#ifndef __NetBSD__
 static int
 sethae(u_int64_t hae)
 {
@@ -505,6 +510,7 @@ sethae(u_int64_t hae)
 	return -1;
 #endif
 }
+#endif /* __NetBSD__ */
 
 static pointer
 mapVidMemSparse(int ScreenNum, unsigned long Base, unsigned long Size, int flags)
@@ -552,11 +558,13 @@ static int
 readSparse8(pointer Base, register unsigned long Offset)
 {
     register unsigned long result, shift;
+#ifndef __NetBSD__
     register unsigned long msb;
-
+#endif
     mem_barrier();
     Offset += (unsigned long)Base - (unsigned long)memBase;
     shift = (Offset & 0x3) << 3;
+#ifndef __NetBSD__
       if (Offset >= (hae_thresh)) {
         msb = Offset & hae_mask;
         Offset -= msb;
@@ -565,7 +573,7 @@ readSparse8(pointer Base, register unsigned long Offset)
 	msb_set = msb;
 	}
       }
-
+#endif
     result = *(vuip) ((unsigned long)memSBase + (Offset << 5));
     result >>= shift;
     return 0xffUL & result;
@@ -575,11 +583,14 @@ static int
 readSparse16(pointer Base, register unsigned long Offset)
 {
     register unsigned long result, shift;
+#ifndef __NetBSD__
     register unsigned long msb;
+#endif
 
     mem_barrier();
     Offset += (unsigned long)Base - (unsigned long)memBase;
     shift = (Offset & 0x2) << 3;
+#ifndef __NetBSD__
     if (Offset >= (hae_thresh)) {
         msb = Offset & hae_mask;
         Offset -= msb;
@@ -588,6 +599,7 @@ readSparse16(pointer Base, register unsigned long Offset)
 	msb_set = msb;
       }
     }
+#endif
     result = *(vuip)((unsigned long)memSBase+(Offset<<5)+(1<<(5-2)));
     result >>= shift;
     return 0xffffUL & result;
@@ -603,11 +615,14 @@ readSparse32(pointer Base, register unsigned long Offset)
 static void
 writeSparse8(int Value, pointer Base, register unsigned long Offset)
 {
+#ifndef __NetBSD__
     register unsigned long msb;
+#endif
     register unsigned int b = Value & 0xffU;
 
     write_mem_barrier();
     Offset += (unsigned long)Base - (unsigned long)memBase;
+#ifndef __NetBSD__
     if (Offset >= (hae_thresh)) {
       msb = Offset & hae_mask;
       Offset -= msb;
@@ -616,17 +631,21 @@ writeSparse8(int Value, pointer Base, register unsigned long Offset)
 	msb_set = msb;
       }
     }
+#endif
     *(vuip) ((unsigned long)memSBase + (Offset << 5)) = b * 0x01010101;
 }
 
 static void
 writeSparse16(int Value, pointer Base, register unsigned long Offset)
 {
+#ifndef __NetBSD__
     register unsigned long msb;
+#endif
     register unsigned int w = Value & 0xffffU;
 
     write_mem_barrier();
     Offset += (unsigned long)Base - (unsigned long)memBase;
+#ifndef __NetBSD__
     if (Offset >= (hae_thresh)) {
       msb = Offset & hae_mask;
       Offset -= msb;
@@ -635,6 +654,7 @@ writeSparse16(int Value, pointer Base, register unsigned long Offset)
 	msb_set = msb;
       }
     }
+#endif
     *(vuip)((unsigned long)memSBase+(Offset<<5)+(1<<(5-2))) =
       w * 0x00010001;
 
@@ -651,10 +671,13 @@ writeSparse32(int Value, pointer Base, register unsigned long Offset)
 static void
 writeSparseNB8(int Value, pointer Base, register unsigned long Offset)
 {
+#ifndef __NetBSD__
     register unsigned long msb;
+#endif
     register unsigned int b = Value & 0xffU;
 
     Offset += (unsigned long)Base - (unsigned long)memBase;
+#ifndef __NetBSD__
     if (Offset >= (hae_thresh)) {
       msb = Offset & hae_mask;
       Offset -= msb;
@@ -663,16 +686,20 @@ writeSparseNB8(int Value, pointer Base, register unsigned long Offset)
 	msb_set = msb;
       }
     }
+#endif
     *(vuip) ((unsigned long)memSBase + (Offset << 5)) = b * 0x01010101;
 }
 
 static void
 writeSparseNB16(int Value, pointer Base, register unsigned long Offset)
 {
+#ifndef __NetBSD__
     register unsigned long msb;
+#endif
     register unsigned int w = Value & 0xffffU;
 
     Offset += (unsigned long)Base - (unsigned long)memBase;
+#ifndef __NetBSD__
     if (Offset >= (hae_thresh)) {
       msb = Offset & hae_mask ;
       Offset -= msb;
@@ -681,6 +708,7 @@ writeSparseNB16(int Value, pointer Base, register unsigned long Offset)
 	msb_set = msb;
       }
     }
+#endif
     *(vuip)((unsigned long)memSBase+(Offset<<5)+(1<<(5-2))) =
       w * 0x00010001;
 }

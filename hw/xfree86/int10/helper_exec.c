@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/int10/helper_exec.c,v 1.26 2003/11/06 18:38:12 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/int10/helper_exec.c,v 1.27 2003/12/23 22:32:38 tsi Exp $ */
 /*
  *                   XFree86 int10 module
  *   execute BIOS int 10h calls in x86 real mode environment
@@ -56,7 +56,7 @@ setup_int(xf86Int10InfoPtr pInt)
     X86_GS = 0;
     X86_EFLAGS = X86_IF_MASK | X86_IOPL_MASK;
 #if defined (_PC)
-    if (pInt->flags & SET_BIOS_SCRATCH)
+    if (pInt->Flags & SET_BIOS_SCRATCH)
 	SetResetBIOSVars(pInt, TRUE);
 #endif
     return xf86BlockSIGIO();
@@ -76,7 +76,7 @@ finish_int(xf86Int10InfoPtr pInt, int sig)
     pInt->bp = (CARD32) X86_EBP;
     pInt->flags = (CARD32) X86_FLAGS;
 #if defined (_PC)
-    if (pInt->flags & RESTORE_BIOS_SCRATCH)
+    if (pInt->Flags & RESTORE_BIOS_SCRATCH)
 	SetResetBIOSVars(pInt, FALSE);
 #endif
 }

@@ -28,7 +28,7 @@
  * Authors:	Harold L Hunt II
  *		Kensuke Matsuzaki
  */
-/* $XFree86: xc/programs/Xserver/hw/xwin/winwindow.c,v 1.9 2003/11/10 18:22:44 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xwin/winwindow.c,v 1.10 2003/12/22 01:34:20 dickey Exp $ */
 
 #include "win.h"
 
@@ -98,7 +98,7 @@ winCopyWindowNativeGDI (WindowPtr pWin,
   int			dx, dy;
   int			i, nbox;
   WindowPtr		pwinRoot;
-  BoxPtr		pBoxDst, pBoxSrc;
+  BoxPtr		pBoxDst;
   ScreenPtr		pScreen = pWin->drawable.pScreen;
   winScreenPriv(pScreen);
 
@@ -465,9 +465,7 @@ void
 winReshapePRootless (WindowPtr pWin)
 {
   int		nRects;
-#if 0
   ScreenPtr	pScreen = pWin->drawable.pScreen;
-#endif
   RegionRec	rrNewShape;
   BoxPtr	pShape, pRects, pEnd;
   HRGN		hRgn, hRgnRect;

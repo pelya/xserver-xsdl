@@ -1,5 +1,5 @@
 /*
- * Copyright 1997 through 2003 by Marc Aurele La France (TSI @ UQV), tsi@xfree86.org
+ * Copyright 1997 through 2004 by Marc Aurele La France (TSI @ UQV), tsi@xfree86.org
  *
  * Permission to use, copy, modify, distribute, and sell this software and its
  * documentation for any purpose is hereby granted without fee, provided that
@@ -20,7 +20,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $XFree86: xc/programs/Xserver/mi/mibank.h,v 1.10 2003/01/01 19:16:42 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/mi/mibank.h,v 1.11 2004/01/05 16:42:10 tsi Exp $ */
 
 #ifndef __MIBANK_H__
 #define __MIBANK_H__ 1

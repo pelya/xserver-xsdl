@@ -25,9 +25,9 @@
 
 <article>
 
-<title>XFree86 X server ``New Design'' (DRAFT)
+<title>XFree86 server 4.x Design (DRAFT)
 <author>The XFree86 Project, Inc
-<date>Last modified 2003 January 22
+<date>19 December 2003
 
 
 
@@ -36,7 +36,7 @@
 
 
 <ident>
-$XFree86: xc/programs/Xserver/hw/xfree86/doc/sgml/DESIGN.sgml,v 1.53 2003/08/23 14:10:14 dawes Exp $
+$XFree86: xc/programs/Xserver/hw/xfree86/doc/sgml/DESIGN.sgml,v 1.54 2003/12/19 20:38:57 dawes Exp $
 </ident>
 
 
