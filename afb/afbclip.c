@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/afb/afbclip.c,v 3.2 2001/10/28 03:32:57 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/afb/afbclip.c,v 3.3 2003/07/16 01:38:35 dawes Exp $ */
 /***********************************************************
 
 Copyright (c) 1987  X Consortium
@@ -49,10 +49,9 @@ SOFTWARE.
 /* $XConsortium: afbclip.c,v 5.6 94/04/17 20:28:19 dpw Exp $ */
 
 #include "X.h"
-#include "miscstruct.h"
+#include "regionstr.h"
 #include "pixmapstr.h"
 #include "scrnintstr.h"
-#include "regionstr.h"
 #include "gc.h"
 #include "maskbits.h"
 #include "mi.h"

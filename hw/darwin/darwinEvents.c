@@ -28,6 +28,7 @@ Except as contained in this notice, the name of The Open Group shall not be
 used in advertising or otherwise to promote the sale, use or other dealings
 in this Software without prior written authorization from The Open Group.
  */
+/* $XFree86: xc/programs/Xserver/hw/darwin/darwinEvents.c,v 1.5 2003/11/03 05:36:30 tsi Exp $ */
 
 #define NEED_EVENTS
 #include   "X.h"
@@ -42,7 +43,6 @@ in this Software without prior written authorization from The Open Group.
 #include   "mipointer.h"
 
 #include "darwin.h"
-#include "quartz/quartz.h"
 
 #include <sys/types.h>
 #include <sys/uio.h>
@@ -181,6 +181,7 @@ DarwinEQEnqueue(
     const xEvent *e)
 {
     HWEventQueueType oldtail, newtail;
+    char byte = 0;
 
     oldtail = darwinEventQueue.tail;
 
@@ -209,6 +210,9 @@ DarwinEQEnqueue(
 
     // Update the tail after the event is prepared
     darwinEventQueue.tail = newtail;
+
+    // Signal there is an event ready to handle
+    write(darwinEventWriteFD, &byte, 1);
 }
 
 
@@ -253,7 +257,7 @@ void ProcessInputEvents(void)
     // Empty the signaling pipe
     x = sizeof(xe);
     while (x == sizeof(xe)) {
-        x = read(darwinEventFD, &xe, sizeof(xe));
+        x = read(darwinEventReadFD, &xe, sizeof(xe));
     }
 
     while (darwinEventQueue.head != darwinEventQueue.tail)
@@ -425,11 +429,8 @@ void ProcessInputEvents(void)
             }
 
             default:
-                if (quartz) {
-                    QuartzProcessEvent(&xe);
-                } else {
-                    ErrorF("Unknown X event caught: %d\n", xe.u.u.type);
-                }
+                // Check for mode specific event
+                DarwinModeProcessEvent(&xe);
 	    }
 	}
     }

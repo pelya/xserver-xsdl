@@ -27,9 +27,16 @@
  *
  * Authors:	Harold L Hunt II
  */
-/* $XFree86: xc/programs/Xserver/hw/xwin/winengine.c,v 1.4 2003/02/12 15:01:38 alanh Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xwin/winengine.c,v 1.5 2003/07/29 21:25:17 dawes Exp $ */
 
 #include "win.h"
+
+
+/*
+ * External global variables
+ */
+
+extern const GUID _IID_IDirectDraw4;
 
 
 /*

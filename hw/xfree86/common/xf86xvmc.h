@@ -1,4 +1,31 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86xvmc.h,v 1.5 2001/11/14 21:54:39 mvojkovi Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86xvmc.h,v 1.7 2003/10/08 22:31:59 mvojkovi Exp $ */
+
+/*
+ * Copyright (c) 2001 by The XFree86 Project, Inc.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+ * THE COPYRIGHT HOLDER(S) OR AUTHOR(S) BE LIABLE FOR ANY CLAIM, DAMAGES OR
+ * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ *
+ * Except as contained in this notice, the name of the copyright holder(s)
+ * and author(s) shall not be used in advertising or otherwise to promote
+ * the sale, use or other dealings in this Software without prior written
+ * authorization from the copyright holder(s) and author(s).
+ */
 
 #ifndef _XF86XVMC_H
 #define _XF86XVMC_H
@@ -130,5 +157,8 @@ Bool xf86XvMCScreenInit(
   int num_adaptors,
   XF86MCAdaptorPtr *adaptors
 );
+
+XF86MCAdaptorPtr xf86XvMCCreateAdaptorRec (void);
+void xf86XvMCDestroyAdaptorRec(XF86MCAdaptorPtr adaptor);
 
 #endif /* _XF86XVMC_H */

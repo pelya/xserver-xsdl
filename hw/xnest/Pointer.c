@@ -12,9 +12,12 @@ the suitability of this software for any purpose.  It is provided "as
 is" without express or implied warranty.
 
 */
+/* $XFree86: xc/programs/Xserver/hw/xnest/Pointer.c,v 1.2 2003/11/16 05:05:20 dawes Exp $ */
+
 #include "X.h"
 #include "Xproto.h"
 #include "screenint.h"
+#include "inputstr.h"
 #include "input.h"
 #include "misc.h"
 #include "scrnintstr.h"
@@ -28,18 +31,15 @@ is" without express or implied warranty.
 #include "Pointer.h"
 #include "Args.h"
 
-void xnestChangePointerControl(pDev, ctrl)
-     DeviceIntPtr pDev;
-     PtrCtrl *ctrl;
+void
+xnestChangePointerControl(DeviceIntPtr pDev, PtrCtrl *ctrl)
 {
   XChangePointerControl(xnestDisplay, True, True, 
 			ctrl->num, ctrl->den, ctrl->threshold); 
 }
 
-int xnestPointerProc(pDev, onoff, argc, argv)
-     DevicePtr pDev;
-     int onoff, argc;
-     char *argv[];
+int
+xnestPointerProc(DeviceIntPtr pDev, int onoff)
 {
   CARD8 map[MAXBUTTONS];
   int nmap;
@@ -51,7 +51,7 @@ int xnestPointerProc(pDev, onoff, argc, argv)
       nmap = XGetPointerMapping(xnestDisplay, map, MAXBUTTONS);
       for (i = 0; i <= nmap; i++)
 	map[i] = i; /* buttons are already mapped */
-      InitPointerDeviceStruct(pDev, map, nmap,
+      InitPointerDeviceStruct(&pDev->public, map, nmap,
 			      miPointerGetMotionEvents,
 			      xnestChangePointerControl,
 			      miPointerGetMotionBufferSize());

@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/bus/Pci.h,v 1.36.2.1 2003/03/21 22:29:59 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/bus/Pci.h,v 1.44 2003/11/07 23:57:47 dawes Exp $ */
 /*
  * Copyright 1998 by Concurrent Computer Corporation
  *
@@ -69,6 +69,33 @@
  * OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *
  */
+/*
+ * Copyright (c) 1999-2003 by The XFree86 Project, Inc.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+ * THE COPYRIGHT HOLDER(S) OR AUTHOR(S) BE LIABLE FOR ANY CLAIM, DAMAGES OR
+ * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ *
+ * Except as contained in this notice, the name of the copyright holder(s)
+ * and author(s) shall not be used in advertising or otherwise to promote
+ * the sale, use or other dealings in this Software without prior written
+ * authorization from the copyright holder(s) and author(s).
+ */
+
 
 /*
  * This file has the private Pci definitions.  The public ones are imported
@@ -98,7 +125,7 @@
 #endif
 
 #define DEVID(vendor, device) \
-    ((CARD32)((PCI_CHIP_##device << 16) | PCI_VENDOR_##vendor))
+    ((CARD32)((PCI_##device << 16) | PCI_##vendor))
 
 #ifndef PCI_DOM_MASK
 # define PCI_DOM_MASK 0x0ffu
@@ -228,11 +255,14 @@
 #  define ARCH_PCI_INIT linuxPciInit
 #  define INCLUDE_XF86_MAP_PCI_MEM
 #  define INCLUDE_XF86_NO_DOMAIN
+# elif defined(FreeBSD)
+#  define ARCH_PCI_INIT freebsdPciInit
+#  define INCLUDE_XF86_MAP_PCI_MEM
+#  define INCLUDE_XF86_NO_DOMAIN
 # endif
 # define XF86SCANPCI_WRAPPER ia64ScanPCIWrapper
 #elif defined(__i386__)
 # define ARCH_PCI_INIT ix86PciInit
-# define ARCH_PCI_HOST_BRIDGE ix86PciHostBridge
 # define INCLUDE_XF86_MAP_PCI_MEM
 # define INCLUDE_XF86_NO_DOMAIN
 # if defined(linux)
@@ -289,14 +319,20 @@
 # elif defined(sun)
 #  define ARCH_PCI_INIT sparcPciInit
 #  define INCLUDE_XF86_MAP_PCI_MEM
-# elif defined(__OpenBSD__) && defined(__sparc64__)
+# elif (defined(__OpenBSD__) || defined(__FreeBSD__)) && defined(__sparc64__)
 #  define  ARCH_PCI_INIT freebsdPciInit
 #  define INCLUDE_XF86_MAP_PCI_MEM
 #  define INCLUDE_XF86_NO_DOMAIN
 # endif
-# define ARCH_PCI_PCI_BRIDGE sparcPciPciBridge
-#elif defined(__x86_64__)
-# define ARCH_PCI_INIT ix86PciInit
+# if !defined(__FreeBSD__)
+#  define ARCH_PCI_PCI_BRIDGE sparcPciPciBridge
+# endif
+#elif defined(__AMD64__)
+# if defined(__FreeBSD__)
+#  define ARCH_PCI_INIT freebsdPciInit
+# else
+#  define ARCH_PCI_INIT ix86PciInit
+# endif
 # define INCLUDE_XF86_MAP_PCI_MEM
 # define INCLUDE_XF86_NO_DOMAIN
 # if defined(linux)
@@ -311,10 +347,6 @@
 extern void ARCH_PCI_INIT(void);
 #if defined(ARCH_PCI_OS_INIT)
 extern void ARCH_PCI_OS_INIT(void);
-#endif
-
-#if defined(ARCH_PCI_HOST_BRIDGE)
-extern void ARCH_PCI_HOST_BRIDGE(pciConfigPtr pPCI);
 #endif
 
 #if defined(ARCH_PCI_PCI_BRIDGE)
@@ -344,7 +376,7 @@ typedef struct pci_bus_funcs {
 	 * to be performed generically.
 	 */
 	CARD16  (*pciControlBridge)(int, CARD16, CARD16);
-	void    (*pciGetBridgeBusses)(int, int *, int *, int *);
+	void    (*pciGetBridgeBuses)(int, int *, int *, int *);
 	/* Use pointer's to avoid #include recursion */
 	void    (*pciGetBridgeResources)(int, pointer *, pointer *, pointer *);
 } pciBusFuncs_t, *pciBusFuncs_p;

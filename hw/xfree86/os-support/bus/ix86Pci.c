@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/bus/ix86Pci.c,v 1.18 2003/01/27 00:01:44 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/bus/ix86Pci.c,v 1.25 2003/09/24 02:43:34 dawes Exp $ */
 /*
  * ix86Pci.c - x86 PCI driver
  *
@@ -109,6 +109,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+/*
+ * Copyright (c) 1999-2003 by The XFree86 Project, Inc.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+ * THE COPYRIGHT HOLDER(S) OR AUTHOR(S) BE LIABLE FOR ANY CLAIM, DAMAGES OR
+ * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ *
+ * Except as contained in this notice, the name of the copyright holder(s)
+ * and author(s) shall not be used in advertising or otherwise to promote
+ * the sale, use or other dealings in this Software without prior written
+ * authorization from the copyright holder(s) and author(s).
+ */
+
 #include <stdio.h>
 #include "compiler.h"
 #include "xf86.h"
@@ -318,8 +345,9 @@ void ix86PciSelectCfgmech(void)
 
 		xf86MsgVerb(X_INFO, 2, "PCI: Config type is 1\n");
 		xf86MsgVerb(X_INFO, 3,
-			"PCI: stages = 0x%02x, oldVal1 = 0x%08x, mode1Res1"
-			" = 0x%08x\n", stages, oldVal1, mode1Res1);
+			"PCI: stages = 0x%02x, oldVal1 = 0x%08lx, mode1Res1"
+			" = 0x%08lx\n", stages, (unsigned long)oldVal1,
+			(unsigned long)mode1Res1);
 		return;
 	    }
 
@@ -372,9 +400,10 @@ void ix86PciSelectCfgmech(void)
 
 		xf86MsgVerb(X_INFO, 2, "PCI: Config type is 1\n");
 		xf86MsgVerb(X_INFO, 3,
-			"PCI: stages = 0x%02x, oldVal1 = 0x%08x,\n"
-			"\tmode1Res1 = 0x%08x, mode1Res2 = 0x%08x\n",
-			stages, oldVal1, mode1Res1, mode1Res2);
+			"PCI: stages = 0x%02x, oldVal1 = 0x%08lx,\n"
+			"\tmode1Res1 = 0x%08lx, mode1Res2 = 0x%08lx\n",
+			stages, (unsigned long)oldVal1,
+			(unsigned long)mode1Res1, (unsigned long)mode1Res2);
 		return;
 	    }
 
@@ -388,9 +417,10 @@ void ix86PciSelectCfgmech(void)
       }
 
       xf86MsgVerb(X_INFO, 3, "PCI: Standard check for type 1 failed.\n");
-      xf86MsgVerb(X_INFO, 3, "PCI: stages = 0x%02x, oldVal1 = 0x%08x,\n"
-	       "\tmode1Res1 = 0x%08x, mode1Res2 = 0x%08x\n",
-	       stages, oldVal1, mode1Res1, mode1Res2);
+      xf86MsgVerb(X_INFO, 3, "PCI: stages = 0x%02x, oldVal1 = 0x%08lx,\n"
+	       "\tmode1Res1 = 0x%08lx, mode1Res2 = 0x%08lx\n",
+	       stages, (unsigned long)oldVal1, (unsigned long)mode1Res1,
+	       (unsigned long)mode1Res2);
 
       /* Try config type 2 */
       oldVal2 = inb(PCI_CFGMECH2_ENABLE_REG);
@@ -656,35 +686,3 @@ ix86PciInit()
 	pciBusInfo[0]  = NULL;
     }
 }
-
-#ifdef ARCH_PCI_HOST_BRIDGE
-
-/*
- * A small table of host bridges that limit the number of PCI buses to less
- * than the maximum of 256.
- */
-static struct {
-    CARD32 devid;
-    int    maxpcibus;
-} host_bridges[] = {
-    { DEVID(ALI_2,	M1541),			128},
-    { DEVID(VIA,	APOLLOVP1),		64},
-    { DEVID(VIA,	APOLLOPRO133X),		64},
-    { DEVID(INTEL,	430HX_BRIDGE),		16},
-    { DEVID(INTEL,	440BX_BRIDGE),		32},
-};
-#define NUM_BRIDGES (sizeof(host_bridges) / sizeof(host_bridges[0]))
-
-void ARCH_PCI_HOST_BRIDGE(pciConfigPtr pPCI)
-{
-    int i;
-
-    for (i = 0;  i < NUM_BRIDGES;  i++) {
-	if (pPCI->pci_device_vendor == host_bridges[i].devid) {
-	    pciMaxBusNum = host_bridges[i].maxpcibus;
-	    break;
-	}
-    }
-}
-
-#endif /* ARCH_PCI_HOST_BRIDGE */

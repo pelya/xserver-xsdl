@@ -45,7 +45,7 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ******************************************************************/
-/* $XFree86: xc/programs/Xserver/cfb/cfbpntwin.c,v 3.7 2002/09/16 18:05:31 eich Exp $ */
+/* $XFree86: xc/programs/Xserver/cfb/cfbpntwin.c,v 3.8 2003/10/29 22:44:53 tsi Exp $ */
 
 #include "X.h"
 
@@ -226,7 +226,6 @@ cfbFillBoxSolid (pDrawable, nBox, pBox, pixel)
     CfbBits   *pdstBase;
     int		    widthDst;
     register int    h;
-    register CfbBits   rrop_xor;
     register CfbBits   *pdst;
     int		    nmiddle;
     int		    w;
@@ -238,13 +237,16 @@ cfbFillBoxSolid (pDrawable, nBox, pBox, pixel)
     piQxelArray[1] = ((pixel&0xFFFF00)>>8) | ((pixel&0xFFFF)<<16);
     piQxelArray[2] = ((pixel&0xFFFFFF)<<8) | ((pixel&0xFF0000)>>16);
 #else
+    register CfbBits   rrop_xor;
     register CfbBits   leftMask, rightMask;
     register int    m;
 #endif
 
     cfbGetLongWidthAndPointer(pDrawable, widthDst, pdstBase);
 
+#if PSZ != 24
     rrop_xor = PFILL(pixel);
+#endif
     for (; nBox; nBox--, pBox++)
     {
     	pdst = pdstBase + pBox->y1 * widthDst;

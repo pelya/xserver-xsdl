@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/linux/lnx_video.c,v 3.64 2003/02/17 15:29:22 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/linux/lnx_video.c,v 3.68 2003/09/24 02:43:35 dawes Exp $ */
 /*
  * Copyright 1992 by Orest Zborowski <obz@Kodak.com>
  * Copyright 1993 by David Wexelblat <dwex@goblin.org>
@@ -407,6 +407,7 @@ mapVidMem(int ScreenNum, unsigned long Base, unsigned long Size, int flags)
     pointer base;
     int fd;
     int mapflags = MAP_SHARED; 
+    int prot;
     memType realBase, alignOff;
 
     realBase = Base & ~(getpagesize() - 1);
@@ -429,25 +430,31 @@ mapVidMem(int ScreenNum, unsigned long Base, unsigned long Size, int flags)
         mapflags |= MAP_NONCACHED; 
 #endif
 
-#if defined(__ia64__)
+#if 0
     /* this will disappear when people upgrade their kernels */
-    if ((fd = open(DEV_MEM, O_RDWR|O_SYNC)) < 0) 
+    fd = open(DEV_MEM,
+	      ((flags & VIDMEM_READONLY) ? O_RDONLY : O_RDWR) | O_SYNC);
 #else
-    if ((fd = open(DEV_MEM, O_RDWR)) < 0)
+    fd = open(DEV_MEM, (flags & VIDMEM_READONLY) ? O_RDONLY : O_RDWR);
 #endif
+    if (fd < 0)
     {
 	FatalError("xf86MapVidMem: failed to open " DEV_MEM " (%s)\n",
 		   strerror(errno));
     }
+
+    if (flags & VIDMEM_READONLY)
+	prot = PROT_READ;
+    else
+	prot = PROT_READ | PROT_WRITE;
+
     /* This requires linux-0.99.pl10 or above */
-    base = mmap((caddr_t)0, Size + alignOff,
-  		PROT_READ|PROT_WRITE,
-  		mapflags, fd,
+    base = mmap((caddr_t)0, Size + alignOff, prot, mapflags, fd,
  		(off_t)(off_t)realBase  + BUS_BASE);
     close(fd);
     if (base == MAP_FAILED) {
         FatalError("xf86MapVidMem: Could not mmap framebuffer"
-		   " (0x%08x,0x%x) (%s)\n", Base, Size,
+		   " (0x%08lx,0x%lx) (%s)\n", Base, Size,
 		   strerror(errno));
     }
 #ifdef DEBUG
@@ -500,7 +507,7 @@ xf86EnableIO(void)
 	fd = open("/dev/mem", O_RDWR);
 	if (ioBase == NULL) {
 		ioBase = (volatile unsigned char *)mmap(0, 0x20000,
-				PROT_READ|PROT_WRITE, MAP_SHARED, fd,
+				PROT_READ | PROT_WRITE, MAP_SHARED, fd,
 				ioBase_phys);
 /* Should this be fatal or just a warning? */
 #if 0
@@ -656,7 +663,7 @@ static unsigned long msb_set = 0;
 static pointer
 mapVidMemSparse(int ScreenNum, unsigned long Base, unsigned long Size, int flags)
 {
-    int fd;
+    int fd, prot;
     unsigned long ret, rets = 0;
 
     static Bool was_here = FALSE;
@@ -675,7 +682,8 @@ mapVidMemSparse(int ScreenNum, unsigned long Base, unsigned long Size, int flags
       xf86ReadMmio32 = readSparse32;
     }
 	
-    if ((fd = open(DEV_MEM, O_RDWR)) < 0) {
+    fd = open(DEV_MEM, (flags & VIDMEM_READONLY) ? O_RDONLY : O_RDWR);
+    if (fd < 0) {
         FatalError("xf86MapVidMem: failed to open " DEV_MEM " (%s)\n",
 		   strerror(errno));
     }
@@ -685,14 +693,18 @@ mapVidMemSparse(int ScreenNum, unsigned long Base, unsigned long Size, int flags
 	    Base, Size, flags);
 #endif
 
+    if (flags & VIDMEM_READONLY)
+	prot = PROT_READ;
+    else
+	prot = PROT_READ | PROT_WRITE;
+
     /* This requirers linux-0.99.pl10 or above */
 
     /*
      * Always do DENSE mmap, since read32/write32 currently require it.
      */
     ret = (unsigned long)mmap((caddr_t)(DENSE_BASE + Base), Size,
-		   PROT_READ | PROT_WRITE,
-		   MAP_SHARED, fd,
+		   prot, MAP_SHARED, fd,
 		   (off_t) (bus_base + Base));
 
     /*
@@ -706,8 +718,7 @@ mapVidMemSparse(int ScreenNum, unsigned long Base, unsigned long Size, int flags
 	((flags & VIDMEM_FRAMEBUFFER) && (flags & VIDMEM_SPARSE)))
     {
         rets = (unsigned long)mmap((caddr_t)(SPARSE_BASE + (Base << 5)),
-				   Size << 5, PROT_READ | PROT_WRITE,
-				   MAP_SHARED, fd,
+				   Size << 5, prot, MAP_SHARED, fd,
 				   (off_t) _bus_base_sparse() + (Base << 5));
     }
 
@@ -968,7 +979,7 @@ static pointer
 mapVidMemJensen(int ScreenNum, unsigned long Base, unsigned long Size, int flags)
 {
   pointer base;
-  int fd;
+  int fd, prot;
 
   xf86WriteMmio8 = writeSparseJensen8;
   xf86WriteMmio16 = writeSparseJensen16;
@@ -980,14 +991,20 @@ mapVidMemJensen(int ScreenNum, unsigned long Base, unsigned long Size, int flags
   xf86ReadMmio16 = readSparseJensen16;
   xf86ReadMmio32 = readSparseJensen32;
 
-  if ((fd = open(DEV_MEM, O_RDWR)) < 0) {
+  fd = open(DEV_MEM, (flags & VIDMEM_READONLY) ? O_RDONLY : O_RDWR);
+  if (fd < 0) {
     FatalError("xf86MapVidMem: failed to open " DEV_MEM " (%s)\n",
 	       strerror(errno));
   }
+
+  if (flags & VIDMEM_READONLY)
+    prot = PROT_READ;
+  else
+    prot = PROT_READ | PROT_WRITE;
+
   /* This requires linux-0.99.pl10 or above */
   base = mmap((caddr_t)0, JENSEN_SHIFT(Size),
-	      PROT_READ|PROT_WRITE,
-	      MAP_SHARED, fd,
+	      prot, MAP_SHARED, fd,
 	      (off_t)(JENSEN_SHIFT((off_t)Base) + _bus_base_sparse()));
   close(fd);
   if (base == MAP_FAILED) {

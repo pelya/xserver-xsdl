@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/mi/mipushpxl.c,v 3.12 2001/12/14 20:00:26 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/mi/mipushpxl.c,v 3.13 2003/07/16 01:38:57 dawes Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -50,7 +50,7 @@ SOFTWARE.
 #include "gcstruct.h"
 #include "scrnintstr.h"
 #include "pixmapstr.h"
-#include "miscstruct.h"
+#include "regionstr.h"
 #include "../mfb/maskbits.h"
 #include "mi.h"
 

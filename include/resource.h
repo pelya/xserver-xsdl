@@ -45,7 +45,7 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ******************************************************************/
-/* $XFree86: xc/programs/Xserver/include/resource.h,v 1.11 2002/03/06 21:14:04 mvojkovi Exp $ */
+/* $XFree86: xc/programs/Xserver/include/resource.h,v 1.12 2003/04/27 21:31:05 herrb Exp $ */
 
 #ifndef RESOURCE_H
 #define RESOURCE_H 1
@@ -123,60 +123,35 @@ typedef unsigned long RESTYPE;
 #define BAD_RESOURCE 0xe0000000
 
 typedef int (*DeleteType)(
-#if NeedNestedPrototypes
     pointer /*value*/,
-    XID /*id*/
-#endif
-);
+    XID /*id*/);
 
 typedef void (*FindResType)(
-#if NeedNestedPrototypes
     pointer /*value*/,
     XID /*id*/,
-    pointer /*cdata*/
-#endif
-);
+    pointer /*cdata*/);
 
 typedef void (*FindAllRes)(
-#if NeedNestedPrototypes
     pointer /*value*/,
     XID /*id*/,
     RESTYPE /*type*/,
-    pointer /*cdata*/
-#endif
-);
+    pointer /*cdata*/);
 
 typedef Bool (*FindComplexResType)(
-#if NeedNestedPrototypes
     pointer /*value*/,
     XID /*id*/,
-    pointer /*cdata*/
-#endif
-);
+    pointer /*cdata*/);
 
 extern RESTYPE CreateNewResourceType(
-#if NeedFunctionPrototypes
-    DeleteType /*deleteFunc*/
-#endif
-);
+    DeleteType /*deleteFunc*/);
 
-extern RESTYPE CreateNewResourceClass(
-#if NeedFunctionPrototypes
-void
-#endif
-);
+extern RESTYPE CreateNewResourceClass(void);
 
 extern Bool InitClientResources(
-#if NeedFunctionPrototypes
-    ClientPtr /*client*/
-#endif
-);
+    ClientPtr /*client*/);
 
 extern XID FakeClientID(
-#if NeedFunctionPrototypes
-    int /*client*/
-#endif
-);
+    int /*client*/);
 
 /* Quartz support on Mac OS X uses the CarbonCore
    framework whose AddResource function conflicts here. */
@@ -184,100 +159,60 @@ extern XID FakeClientID(
 #define AddResource Darwin_X_AddResource
 #endif
 extern Bool AddResource(
-#if NeedFunctionPrototypes
     XID /*id*/,
     RESTYPE /*type*/,
-    pointer /*value*/
-#endif
-);
+    pointer /*value*/);
 
 extern void FreeResource(
-#if NeedFunctionPrototypes
     XID /*id*/,
-    RESTYPE /*skipDeleteFuncType*/
-#endif
-);
+    RESTYPE /*skipDeleteFuncType*/);
 
 extern void FreeResourceByType(
-#if NeedFunctionPrototypes
     XID /*id*/,
     RESTYPE /*type*/,
-    Bool /*skipFree*/
-#endif
-);
+    Bool /*skipFree*/);
 
 extern Bool ChangeResourceValue(
-#if NeedFunctionPrototypes
     XID /*id*/,
     RESTYPE /*rtype*/,
-    pointer /*value*/
-#endif
-);
+    pointer /*value*/);
 
 extern void FindClientResourcesByType(
-#if NeedFunctionPrototypes
     ClientPtr /*client*/,
     RESTYPE /*type*/,
     FindResType /*func*/,
-    pointer /*cdata*/
-#endif
-);
+    pointer /*cdata*/);
 
 extern void FindAllClientResources(
-#if NeedFunctionPrototypes
     ClientPtr /*client*/,
     FindAllRes /*func*/,
-    pointer /*cdata*/
-#endif
-);
+    pointer /*cdata*/);
 
 extern void FreeClientNeverRetainResources(
-#if NeedFunctionPrototypes
-    ClientPtr /*client*/
-#endif
-);
+    ClientPtr /*client*/);
 
 extern void FreeClientResources(
-#if NeedFunctionPrototypes
-    ClientPtr /*client*/
-#endif
-);
+    ClientPtr /*client*/);
 
-extern void FreeAllResources(
-#if NeedFunctionPrototypes
-void
-#endif
-);
+extern void FreeAllResources(void);
 
 extern Bool LegalNewID(
-#if NeedFunctionPrototypes
     XID /*id*/,
-    ClientPtr /*client*/
-#endif
-);
+    ClientPtr /*client*/);
 
 extern pointer LookupIDByType(
-#if NeedFunctionPrototypes
     XID /*id*/,
-    RESTYPE /*rtype*/
-#endif
-);
+    RESTYPE /*rtype*/);
 
 extern pointer LookupIDByClass(
-#if NeedFunctionPrototypes
     XID /*id*/,
-    RESTYPE /*classes*/
-#endif
-);
+    RESTYPE /*classes*/);
 
 extern pointer LookupClientResourceComplex(
-#if NeedFunctionPrototypes
     ClientPtr client,
     RESTYPE type,
     FindComplexResType func,
-    pointer cdata
-#endif
-);
+    pointer cdata);
 
 /* These are the access modes that can be passed in the last parameter
  * to SecurityLookupIDByType/Class.  The Security extension doesn't
@@ -295,22 +230,16 @@ extern pointer LookupClientResourceComplex(
 #ifdef XCSECURITY
 
 extern pointer SecurityLookupIDByType(
-#if NeedFunctionPrototypes
     ClientPtr /*client*/,
     XID /*id*/,
     RESTYPE /*rtype*/,
-    Mask /*access_mode*/
-#endif
-);
+    Mask /*access_mode*/);
 
 extern pointer SecurityLookupIDByClass(
-#if NeedFunctionPrototypes
     ClientPtr /*client*/,
     XID /*id*/,
     RESTYPE /*classes*/,
-    Mask /*access_mode*/
-#endif
-);
+    Mask /*access_mode*/);
 
 #else /* not XCSECURITY */
 
@@ -323,21 +252,15 @@ extern pointer SecurityLookupIDByClass(
 #endif /* XCSECURITY */
 
 extern void GetXIDRange(
-#if NeedFunctionPrototypes
     int /*client*/,
     Bool /*server*/,
     XID * /*minp*/,
-    XID * /*maxp*/
-#endif
-);
+    XID * /*maxp*/);
 
 extern unsigned int GetXIDList(
-#if NeedFunctionPrototypes
     ClientPtr /*client*/,
     unsigned int /*count*/,
-    XID * /*pids*/
-#endif
-);
+    XID * /*pids*/);
 
 extern RESTYPE lastResourceType;
 extern RESTYPE TypeMask;

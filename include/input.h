@@ -45,7 +45,7 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ********************************************************/
-/* $XFree86: xc/programs/Xserver/include/input.h,v 3.7 2001/12/14 19:59:54 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/include/input.h,v 3.8 2003/04/27 21:31:04 herrb Exp $ */
 
 #ifndef INPUT_H
 #define INPUT_H
@@ -84,19 +84,13 @@ typedef struct _InputClients *InputClientsPtr;
 typedef struct _DeviceIntRec *DeviceIntPtr;
 
 typedef int (*DeviceProc)(
-#if NeedNestedPrototypes
     DeviceIntPtr /*device*/,
-    int /*what*/
-#endif
-);
+    int /*what*/);
 
 typedef void (*ProcessInputProc)(
-#if NeedNestedPrototypes
     xEventPtr /*events*/,
     DeviceIntPtr /*device*/,
-    int /*count*/
-#endif
-);
+    int /*count*/);
 
 typedef struct _DeviceRec {
     pointer	devicePrivate;
@@ -156,380 +150,227 @@ extern PtrCtrl		defaultPointerControl;
 
 #undef  AddInputDevice
 extern DevicePtr AddInputDevice(
-#if NeedFunctionPrototypes
     DeviceProc /*deviceProc*/,
-    Bool /*autoStart*/
-#endif
-);
+    Bool /*autoStart*/);
 
 #define AddInputDevice(deviceProc, autoStart) \
        _AddInputDevice(deviceProc, autoStart)
 
 extern DeviceIntPtr _AddInputDevice(
-#if NeedFunctionPrototypes
     DeviceProc /*deviceProc*/,
-    Bool /*autoStart*/
-#endif
-);
+    Bool /*autoStart*/);
 
 extern Bool EnableDevice(
-#if NeedFunctionPrototypes
-    DeviceIntPtr /*device*/
-#endif
-);
+    DeviceIntPtr /*device*/);
 
 extern Bool DisableDevice(
-#if NeedFunctionPrototypes
-    DeviceIntPtr /*device*/
-#endif
-);
+    DeviceIntPtr /*device*/);
 
-extern int InitAndStartDevices(
-#if NeedFunctionPrototypes
-    void
-#endif
-);
+extern int InitAndStartDevices(void);
 
-extern void CloseDownDevices(
-#if NeedFunctionPrototypes
-    void
-#endif
-);
+extern void CloseDownDevices(void);
 
 extern void RemoveDevice(
-#if NeedFunctionPrototypes
-    DeviceIntPtr /*dev*/
-#endif
-);
+    DeviceIntPtr /*dev*/);
 
-extern int NumMotionEvents(
-#if NeedFunctionPrototypes
-    void
-#endif
-);
+extern int NumMotionEvents(void);
 
 #undef  RegisterPointerDevice
 extern void RegisterPointerDevice(
-#if NeedFunctionPrototypes
-    DevicePtr /*device*/
-#endif
-);
+    DevicePtr /*device*/);
 
 #define RegisterPointerDevice(device) \
        _RegisterPointerDevice(device)
 
 extern void _RegisterPointerDevice(
-#if NeedFunctionPrototypes
-    DeviceIntPtr /*device*/
-#endif
-);
+    DeviceIntPtr /*device*/);
 
 #undef  RegisterKeyboardDevice
 extern void RegisterKeyboardDevice(
-#if NeedFunctionPrototypes
-    DevicePtr /*device*/
-#endif
-);
+    DevicePtr /*device*/);
 
 #define RegisterKeyboardDevice(device) \
        _RegisterKeyboardDevice(device)
 
 extern void _RegisterKeyboardDevice(
-#if NeedFunctionPrototypes
-    DeviceIntPtr /*device*/
-#endif
-);
+    DeviceIntPtr /*device*/);
 
-extern DevicePtr LookupKeyboardDevice(
-#if NeedFunctionPrototypes
-    void
-#endif
-);
+extern DevicePtr LookupKeyboardDevice(void);
 
-extern DevicePtr LookupPointerDevice(
-#if NeedFunctionPrototypes
-    void
-#endif
-);
+extern DevicePtr LookupPointerDevice(void);
 
 extern DevicePtr LookupDevice(
-#if NeedFunctionPrototypes
-    int /* id */
-#endif
-);
+    int /* id */);
 
 extern void QueryMinMaxKeyCodes(
-#if NeedFunctionPrototypes
     KeyCode* /*minCode*/,
-    KeyCode* /*maxCode*/
-#endif
-);
+    KeyCode* /*maxCode*/);
 
 extern Bool SetKeySymsMap(
-#if NeedFunctionPrototypes
     KeySymsPtr /*dst*/,
-    KeySymsPtr /*src*/
-#endif
-);
+    KeySymsPtr /*src*/);
 
 extern Bool InitKeyClassDeviceStruct(
-#if NeedFunctionPrototypes
     DeviceIntPtr /*device*/,
     KeySymsPtr /*pKeySyms*/,
-    CARD8 /*pModifiers*/[]
-#endif
-);
+    CARD8 /*pModifiers*/[]);
 
 extern Bool InitButtonClassDeviceStruct(
-#if NeedFunctionPrototypes
     DeviceIntPtr /*device*/,
     int /*numButtons*/,
-    CARD8* /*map*/
-#endif
-);
+    CARD8* /*map*/);
 
 typedef int (*ValuatorMotionProcPtr)(
-#if NeedNestedPrototypes
 		DeviceIntPtr /*pdevice*/,
 		xTimecoord * /*coords*/,
 		unsigned long /*start*/,
 		unsigned long /*stop*/,
-		ScreenPtr /*pScreen*/
-#endif
-);
+		ScreenPtr /*pScreen*/);
 
 extern Bool InitValuatorClassDeviceStruct(
-#if NeedFunctionPrototypes
     DeviceIntPtr /*device*/,
     int /*numAxes*/,
     ValuatorMotionProcPtr /* motionProc */,
     int /*numMotionEvents*/,
-    int /*mode*/
-#endif
-);
+    int /*mode*/);
 
 extern Bool InitFocusClassDeviceStruct(
-#if NeedFunctionPrototypes
-    DeviceIntPtr /*device*/
-#endif
-);
+    DeviceIntPtr /*device*/);
 
 typedef void (*BellProcPtr)(
-#if NeedNestedPrototypes
     int /*percent*/,
     DeviceIntPtr /*device*/,
     pointer /*ctrl*/,
-    int
-#endif
-);
+    int);
 
 typedef void (*KbdCtrlProcPtr)(
-#if NeedNestedPrototypes
     DeviceIntPtr /*device*/,
-    KeybdCtrl * /*ctrl*/
-#endif				     
-);
+    KeybdCtrl * /*ctrl*/);
 
 extern Bool InitKbdFeedbackClassDeviceStruct(
-#if NeedFunctionPrototypes
     DeviceIntPtr /*device*/,
     BellProcPtr /*bellProc*/,
-    KbdCtrlProcPtr /*controlProc*/
-#endif
-);
+    KbdCtrlProcPtr /*controlProc*/);
 
 typedef void (*PtrCtrlProcPtr)(
-#if NeedNestedPrototypes
     DeviceIntPtr /*device*/,
-    PtrCtrl * /*ctrl*/
-#endif				     
-);
+    PtrCtrl * /*ctrl*/);
 
 extern Bool InitPtrFeedbackClassDeviceStruct(
-#if NeedFunctionPrototypes
     DeviceIntPtr /*device*/,
-    PtrCtrlProcPtr /*controlProc*/
-#endif
-);
+    PtrCtrlProcPtr /*controlProc*/);
 
 typedef void (*StringCtrlProcPtr)(
-#if NeedNestedPrototypes
     DeviceIntPtr /*device*/,
-    StringCtrl * /*ctrl*/
-#endif				     
-);
+    StringCtrl * /*ctrl*/);
 
 extern Bool InitStringFeedbackClassDeviceStruct(
-#if NeedFunctionPrototypes
     DeviceIntPtr /*device*/,
     StringCtrlProcPtr /*controlProc*/,
     int /*max_symbols*/,
     int /*num_symbols_supported*/,
-    KeySym* /*symbols*/
-#endif
-);
+    KeySym* /*symbols*/);
 
 typedef void (*BellCtrlProcPtr)(
-#if NeedNestedPrototypes
     DeviceIntPtr /*device*/,
-    BellCtrl * /*ctrl*/
-#endif				     
-);
+    BellCtrl * /*ctrl*/);
 
 extern Bool InitBellFeedbackClassDeviceStruct(
-#if NeedFunctionPrototypes
     DeviceIntPtr /*device*/,
     BellProcPtr /*bellProc*/,
-    BellCtrlProcPtr /*controlProc*/
-#endif
-);
+    BellCtrlProcPtr /*controlProc*/);
 
 typedef void (*LedCtrlProcPtr)(
-#if NeedNestedPrototypes
     DeviceIntPtr /*device*/,
-    LedCtrl * /*ctrl*/
-#endif				     
-);
+    LedCtrl * /*ctrl*/);
 
 extern Bool InitLedFeedbackClassDeviceStruct(
-#if NeedFunctionPrototypes
     DeviceIntPtr /*device*/,
-    LedCtrlProcPtr /*controlProc*/
-#endif
-);
+    LedCtrlProcPtr /*controlProc*/);
 
 typedef void (*IntegerCtrlProcPtr)(
-#if NeedNestedPrototypes
     DeviceIntPtr /*device*/,
-    IntegerCtrl * /*ctrl*/
-#endif
-);
+    IntegerCtrl * /*ctrl*/);
 
 
 extern Bool InitIntegerFeedbackClassDeviceStruct(
-#if NeedFunctionPrototypes
     DeviceIntPtr /*device*/,
-    IntegerCtrlProcPtr /*controlProc*/
-#endif
-);
+    IntegerCtrlProcPtr /*controlProc*/);
 
 extern Bool InitPointerDeviceStruct(
-#if NeedFunctionPrototypes
     DevicePtr /*device*/,
     CARD8* /*map*/,
     int /*numButtons*/,
     ValuatorMotionProcPtr /*motionProc*/,
     PtrCtrlProcPtr /*controlProc*/,
-    int /*numMotionEvents*/
-#endif
-);
+    int /*numMotionEvents*/);
 
 extern Bool InitKeyboardDeviceStruct(
-#if NeedFunctionPrototypes
     DevicePtr /*device*/,
     KeySymsPtr /*pKeySyms*/,
     CARD8 /*pModifiers*/[],
     BellProcPtr /*bellProc*/,
-    KbdCtrlProcPtr /*controlProc*/
-#endif
-);
+    KbdCtrlProcPtr /*controlProc*/);
 
 extern void SendMappingNotify(
-#if NeedFunctionPrototypes
     unsigned int /*request*/,
     unsigned int /*firstKeyCode*/,
     unsigned int /*count*/,
-    ClientPtr	/* client */
-#endif
-);
+    ClientPtr	/* client */);
 
 extern Bool BadDeviceMap(
-#if NeedFunctionPrototypes
     BYTE* /*buff*/,
     int /*length*/,
     unsigned /*low*/,
     unsigned /*high*/,
-    XID* /*errval*/
-#endif
-);
+    XID* /*errval*/);
 
 extern Bool AllModifierKeysAreUp(
-#if NeedFunctionPrototypes
     DeviceIntPtr /*device*/,
     CARD8* /*map1*/,
     int /*per1*/,
     CARD8* /*map2*/,
-    int /*per2*/
-#endif
-);
+    int /*per2*/);
 
 extern void NoteLedState(
-#if NeedFunctionPrototypes
     DeviceIntPtr /*keybd*/,
     int /*led*/,
-    Bool /*on*/
-#endif
-);
+    Bool /*on*/);
 
 extern void MaybeStopHint(
-#if NeedFunctionPrototypes
     DeviceIntPtr /*device*/,
-    ClientPtr /*client*/
-#endif
-);
+    ClientPtr /*client*/);
 
 extern void ProcessPointerEvent(
-#if NeedFunctionPrototypes
     xEventPtr /*xE*/,
     DeviceIntPtr /*mouse*/,
-    int /*count*/
-#endif
-);
+    int /*count*/);
 
 extern void ProcessKeyboardEvent(
-#if NeedFunctionPrototypes
     xEventPtr /*xE*/,
     DeviceIntPtr /*keybd*/,
-    int /*count*/
-#endif
-);
+    int /*count*/);
 
 #ifdef XKB
 extern void CoreProcessPointerEvent(
-#if NeedFunctionPrototypes
     xEventPtr /*xE*/,
     DeviceIntPtr /*mouse*/,
-    int /*count*/
-#endif
-);
+    int /*count*/);
 
 extern void CoreProcessKeyboardEvent(
-#if NeedFunctionPrototypes
     xEventPtr /*xE*/,
     DeviceIntPtr /*keybd*/,
-    int /*count*/
-#endif
-);
+    int /*count*/);
 #endif
 
 extern Bool LegalModifier(
-#if NeedFunctionPrototypes
     unsigned int /*key*/, 
-    DevicePtr /*pDev*/
-#endif
-);
+    DevicePtr /*pDev*/);
 
-extern void ProcessInputEvents(
-#if NeedFunctionPrototypes
-    void
-#endif
-);
+extern void ProcessInputEvents(void);
 
 extern void InitInput(
-#if NeedFunctionPrototypes
     int  /*argc*/,
-    char ** /*argv*/
-#endif
-);
+    char ** /*argv*/);
 
 #endif /* INPUT_H */

@@ -26,7 +26,7 @@
  *
  * Author: Paulo César Pereira de Andrade <pcpa@conectiva.com.br>
  *
- * $XFree86: xc/programs/Xserver/hw/xfree86/xf86cfg/vidmode.c,v 1.7 2001/07/07 23:00:43 paulo Exp $
+ * $XFree86: xc/programs/Xserver/hw/xfree86/xf86cfg/vidmode.c,v 1.8 2003/11/03 05:11:58 tsi Exp $
  */
 
 /*
@@ -130,11 +130,10 @@ static Bool autoflag;
 static xf86cfgVidmode *vidtune;
 static XF86VidModeModeLine modeline, orig_modeline;
 static int dot_clock, hsync_rate, vsync_rate, hitError;
-static Bool S3Specials;
-static int invert_vclk, blank1, blank2, early_sc, screenno;
+static int screenno;
 static int (*XtErrorFunc)(Display*, XErrorEvent*);
-static Widget labels[VSYNC + 1], values[VSYNC + 1], repeater, monitor,
-	      monitorb, add, text, vesab, vesap, forceshell, testshell, addshell;
+static Widget values[VSYNC + 1], repeater, monitor,
+	      monitorb, add, text, vesap, forceshell, testshell, addshell;
 static int MajorVersion, MinorVersion, EventBase, ErrorBase;
 static XtIntervalId timeout;
 
@@ -449,7 +448,7 @@ VideoModeInitialize(void)
     vtune = XtCreateWidget("vidtune", formWidgetClass,
 			   work, NULL, 0);
 
-    vesab = XtVaCreateManagedWidget("vesaB", menuButtonWidgetClass, vtune,
+    (void) XtVaCreateManagedWidget("vesaB", menuButtonWidgetClass, vtune,
 				    XtNmenuName, "vesaP", NULL, 0);
     vesap = XtCreatePopupShell("vesaP", simpleMenuWidgetClass, vtune, NULL, 0);
     for (i = 0; i < sizeof(vesamodes) / sizeof(vesamodes[0]); i++) {
@@ -556,7 +555,7 @@ VideoModeInitialize(void)
 
     form = XtCreateManagedWidget("form", formWidgetClass, vtune, NULL, 0);
     for (i = 2; i < VSYNC + 1; i++) {
-	labels[i] = XtCreateManagedWidget(names[i], labelWidgetClass,
+	(void) XtCreateManagedWidget(names[i], labelWidgetClass,
 					  form, NULL, 0);
 	values[i] = XtCreateManagedWidget(vnames[i], labelWidgetClass,
 					  form, NULL, 0);
@@ -888,15 +887,6 @@ GetModeLine(Bool save)
 	if (save)
 	    memcpy(&orig_modeline, &modeline, sizeof(XF86VidModeModeLine));
 	UpdateSyncRates(False);
-	if (modeline.privsize != 0 && modeline.private != NULL) {
-	    S3Specials = True;
-	    invert_vclk = modeline.private[1];
-	    blank1 = modeline.private[2] & 7;
-	    blank2 = (modeline.private[2] >> 4) & 7;
-	    early_sc = modeline.private[3];
-	}
-	else
-	    S3Specials = False;
 	return (True);
     }
 

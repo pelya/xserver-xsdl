@@ -1,5 +1,5 @@
 /*
- * $XFree86: xc/programs/Xserver/randr/randr.c,v 1.19 2003/02/08 03:52:30 dawes Exp $
+ * $XFree86: xc/programs/Xserver/randr/randr.c,v 1.22 2003/11/06 18:38:15 tsi Exp $
  *
  * Copyright © 2000, Compaq Computer Corporation, 
  * Copyright © 2002, Hewlett Packard, Inc.
@@ -41,11 +41,18 @@
 #include "randr.h"
 #include "randrproto.h"
 #include "randrstr.h"
+#ifdef RENDER
 #include "render.h" 	/* we share subpixel order information */
 #include "picturestr.h"
+#endif
 #include "Xfuncproto.h"
 #ifdef EXTMODULE
 #include "xf86_ansic.h"
+#endif
+
+/* From render.h */
+#ifndef SubPixelUnknown
+#define SubPixelUnknown 0
 #endif
 
 #define RR_VALIDATE
@@ -66,8 +73,10 @@ static int SProcRRQueryVersion (ClientPtr pClient);
     real->mem = priv->mem; \
 }
 
+#if 0
 static CARD8	RRReqCode;
 static int	RRErrBase;
+#endif
 static int	RREventBase;
 static RESTYPE ClientType, EventType; /* resource types for event masks */
 static int	RRClientPrivateIndex;
@@ -292,8 +301,10 @@ RRExtensionInit (void)
 			     RRResetProc, StandardMinorOpcode);
     if (!extEntry)
 	return;
+#if 0
     RRReqCode = (CARD8) extEntry->base;
     RRErrBase = extEntry->errorBase;
+#endif
     RREventBase = extEntry->eventBase;
     EventSwapVector[RREventBase + RRScreenChangeNotify] = (EventSwapPtr) 
       SRRScreenChangeNotifyEvent;
@@ -322,7 +333,11 @@ TellChanged (WindowPtr pWin, pointer value)
     se.configTimestamp = pScrPriv->lastConfigTime.milliseconds;
     se.root =  pRoot->drawable.id;
     se.window = pWin->drawable.id;
+#ifdef RENDER
     se.subpixelOrder = PictureGetSubpixelOrder (pScreen);
+#else
+    se.subpixelOrder = SubPixelUnknown;
+#endif
     if (pScrPriv->size >= 0)
     {
 	pSize = &pScrPriv->pSizes[pScrPriv->size];
@@ -523,7 +538,7 @@ ProcRRGetScreenInfo (ClientPtr client)
     ScreenPtr		    pScreen;
     rrScrPrivPtr	    pScrPriv;
     CARD8		    *extra;
-    int			    extraLen;
+    unsigned long	    extraLen;
 
     REQUEST_SIZE_MATCH(xRRGetScreenInfoReq);
     pWin = (WindowPtr)SecurityLookupWindow(stuff->window, client,
@@ -645,8 +660,8 @@ ProcRRGetScreenInfo (ClientPtr client)
 	data8 = (CARD8 *) rates;
 
 	if (data8 - (CARD8 *) extra != extraLen)
-	    FatalError ("RRGetScreenInfo bad extra len %d != %d\n",
-			data8 - (CARD8 *) extra, extraLen);
+	    FatalError ("RRGetScreenInfo bad extra len %ld != %ld\n",
+			(unsigned long)(data8 - (CARD8 *) extra), extraLen);
 	rep.length =  (extraLen + 3) >> 2;
     }
     if (client->swapped) {

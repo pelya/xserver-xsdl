@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/xaa/xaaStateChange.c,v 3.2 2003/02/04 01:44:07 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/xaa/xaaStateChange.c,v 3.3 2003/08/22 19:27:31 eich Exp $ */
 
 #include "misc.h"
 #include "xf86.h"
@@ -1670,8 +1670,9 @@ XAAInitStateWrap(ScreenPtr pScreen, XAAInfoRecPtr infoRec)
    XAA_STATE_WRAP(CopyWindow);
    XAA_STATE_WRAP(SaveAreas);
    XAA_STATE_WRAP(RestoreAreas);
+#ifdef RENDER
    XAA_STATE_WRAP(SetupForCPUToScreenAlphaTexture);
    XAA_STATE_WRAP(SetupForCPUToScreenTexture);
-   
+#endif
    return TRUE;
 }

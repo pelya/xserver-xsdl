@@ -12,6 +12,7 @@ the suitability of this software for any purpose.  It is provided "as
 is" without express or implied warranty.
 
 */
+/* $XFree86: xc/programs/Xserver/hw/xnest/XNGC.h,v 1.2 2003/11/16 05:05:20 dawes Exp $ */
 
 #ifndef XNESTGC_H
 #define XNESTGC_H
@@ -30,14 +31,14 @@ extern int xnestGCPrivateIndex;
 
 #define xnestGC(pGC) (xnestGCPriv(pGC)->gc)
 
-Bool xnestCreateGC();
-void xnestValidateGC();
-void xnestChangeGC();
-void xnestCopyGC();
-void xnestDestroyGC();
-void xnestChangeClip();
-void xnestDestroyClip();
-void xnestDestroyClipHelper();
-void xnestCopyClip();
+Bool xnestCreateGC(GCPtr pGC);
+void xnestValidateGC(GCPtr pGC, unsigned long changes, DrawablePtr pDrawable);
+void xnestChangeGC(GCPtr pGC, unsigned long mask);
+void xnestCopyGC(GCPtr pGCSrc, unsigned long mask, GCPtr pGCDst);
+void xnestDestroyGC(GCPtr pGC);
+void xnestChangeClip(GCPtr pGC, int type, pointer pValue, int nRects);
+void xnestDestroyClip(GCPtr pGC);
+void xnestDestroyClipHelper(GCPtr pGC);
+void xnestCopyClip(GCPtr pGCDst, GCPtr pGCSrc);
 
 #endif /* XNESTGC_H */

@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/Xext/xf86dga.c,v 3.21 2000/06/30 19:06:54 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/Xext/xf86dga.c,v 3.22 2003/07/16 01:38:30 dawes Exp $ */
 
 /*
 
@@ -23,6 +23,8 @@ Copyright (c) 1995, 1996, 1999  XFree86 Inc
 #include "xf86dgastr.h"
 #include "swaprep.h"
 #include "dgaproc.h"
+
+#include "xf86dgaext.h"
 
 
 static DISPATCH_PROC(ProcXF86DGADirectVideo);
@@ -270,8 +272,7 @@ ProcXF86DGAViewPortChanged(ClientPtr client)
 }
 
 int
-ProcXF86DGADispatch (client)
-    register ClientPtr	client;
+ProcXF86DGADispatch(register ClientPtr client)
 {
     REQUEST(xReq);
 

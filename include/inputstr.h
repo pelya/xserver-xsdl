@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/include/inputstr.h,v 1.5 2001/12/14 19:59:54 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/include/inputstr.h,v 1.6 2003/04/27 21:31:04 herrb Exp $ */
 /************************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -265,18 +265,12 @@ typedef struct _DeviceIntRec {
     Bool		fromPassiveGrab;
     GrabRec		activeGrab;
     void		(*ActivateGrab) (
-#if NeedNestedPrototypes
 			DeviceIntPtr /*device*/,
 			GrabPtr /*grab*/,
 			TimeStamp /*time*/,
-			Bool /*autoGrab*/
-#endif
-);
+			Bool /*autoGrab*/);
     void		(*DeactivateGrab)(
-#if NeedNestedPrototypes
-			DeviceIntPtr /*device*/
-#endif
-);
+			DeviceIntPtr /*device*/);
     KeyClassPtr		key;
     ValuatorClassPtr	valuator;
     ButtonClassPtr	button;

@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/bus/zx1PCI.c,v 1.1 2003/02/23 20:26:49 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/bus/zx1PCI.c,v 1.5 2003/11/06 18:38:14 tsi Exp $ */
 /*
  * Copyright (C) 2002-2003 The XFree86 Project, Inc.  All Rights Reserved.
  *
@@ -97,6 +97,8 @@
 #define LBA_PORT5_CNTRL		0x1228U
 #define LBA_PORT6_CNTRL		0x1230U
 #define LBA_PORT7_CNTRL		0x1238U
+#define LBA_ROPE_RESET		  0x01UL
+#define LBA_CLEAR_ERROR		  0x10UL
 #define LBA_HARD_FAIL		  0x40UL
 
 #define ROPE_PAGE_CONTROL	0x1418U
@@ -326,7 +328,8 @@ ControlZX1Bridge(int bus, CARD16 mask, CARD16 value)
 	}
 
 	/* Move on to master abort failure enablement */
-	tmp1 = MIO_QUAD((ropenum << 3) + LBA_PORT0_CNTRL);
+	tmp1 = MIO_QUAD((ropenum << 3) + LBA_PORT0_CNTRL) &
+	       ~(LBA_ROPE_RESET | LBA_CLEAR_ERROR);
 	if ((tmp1 & LBA_HARD_FAIL) || (tmp2 & IOA_HARD_FAIL)) {
 	    current |= PCI_PCI_BRIDGE_MASTER_ABORT_EN;
 	    if ((mask & PCI_PCI_BRIDGE_MASTER_ABORT_EN) &&
@@ -388,14 +391,15 @@ GetZX1BridgeResources(int bus,
 static CARD32
 zx1FakeReadLong(PCITAG tag, int offset)
 {
-    FatalError("zx1FakeReadLong(0x%X, 0x%X) called\n", tag, offset);
+    FatalError("zx1FakeReadLong(0x%lX, 0x%X) called\n",
+	       (unsigned long)tag, offset);
 }
 
 static void
 zx1FakeWriteLong(PCITAG tag, int offset, CARD32 val)
 {
-    FatalError("zx1FakeWriteLong(0x%X, 0x%X, 0x%08X) called\n",
-	       tag, offset, val);
+    FatalError("zx1FakeWriteLong(0x%lX, 0x%X, 0x%08X) called\n",
+	       (unsigned long)tag, offset, val);
 }
 
 static void
@@ -458,8 +462,10 @@ xf86PreScanZX1(void)
 	return FALSE;
 
     /* Look for ZX1's SBA and IOC */
-    if ((MIO_LONG(MIO_FUNCTION0 + PCI_ID_REG) != DEVID(HP, ZX1_SBA)) ||
-	(MIO_LONG(MIO_FUNCTION1 + PCI_ID_REG) != DEVID(HP, ZX1_IOC))) {
+    if ((MIO_LONG(MIO_FUNCTION0 + PCI_ID_REG) !=
+	 DEVID(VENDOR_HP, CHIP_ZX1_SBA)) ||
+	(MIO_LONG(MIO_FUNCTION1 + PCI_ID_REG) !=
+	 DEVID(VENDOR_HP, CHIP_ZX1_IOC))) {
 	xf86UnMapVidMem(-1, pZX1mio, mapSize);
 	pZX1mio = NULL;
 	return FALSE;
@@ -513,7 +519,8 @@ xf86PreScanZX1(void)
 	if (zx1_ropemap[i] == i) {
 
 	    /* Prevent hard-fails */
-	    zx1_lbacntl[i] = MIO_QUAD((i << 3) + LBA_PORT0_CNTRL);
+	    zx1_lbacntl[i] = MIO_QUAD((i << 3) + LBA_PORT0_CNTRL) &
+		~(LBA_ROPE_RESET | LBA_CLEAR_ERROR);
 	    if (zx1_lbacntl[i] & LBA_HARD_FAIL)
 		MIO_QUAD((i << 3) + LBA_PORT0_CNTRL) =
 		    zx1_lbacntl[i] & ~LBA_HARD_FAIL;
@@ -521,8 +528,10 @@ xf86PreScanZX1(void)
 	    /* Poke for an ioa */
 	    tmp = IOA_LONG(i, PCI_ID_REG);
 	    switch ((CARD32)tmp) {
-	    case DEVID(HP, ELROY):	/* Expected vendor/device id's */
-	    case DEVID(HP, ZX1_LBA):
+	    case DEVID(VENDOR_HP, CHIP_ELROY):
+	    case DEVID(VENDOR_HP, CHIP_ZX1_LBA):	/* Mercury */
+	    case DEVID(VENDOR_HP, CHIP_ZX1_AGP8):	/* QuickSilver */
+		/* Expected vendor/device IDs */
 		zx1_busno[i] =
 		    (unsigned int)IOA_BYTE(i, IOA_SECONDARY_BUS);
 		zx1_subno[i] =
@@ -900,9 +909,9 @@ xf86PostScanZX1(void)
     ppPCI = ppPCI2 = xf86scanpci(0);	/* Recursion is only apparent */
     while ((pPCI = *ppPCI2++)) {
 	switch (pPCI->pci_device_vendor) {
-	case DEVID(HP, ZX1_SBA):
-	case DEVID(HP, ZX1_IOC):
-	case DEVID(HP, ZX1_LBA):
+	case DEVID(VENDOR_HP, CHIP_ZX1_SBA):
+	case DEVID(VENDOR_HP, CHIP_ZX1_IOC):
+	case DEVID(VENDOR_HP, CHIP_ZX1_LBA):
 	    xfree(pPCI);		/* Remove it */
 	    continue;
 
@@ -975,7 +984,7 @@ xf86PostScanZX1(void)
     pPCI->tag = PCI_MAKE_TAG(zx1_fakebus, 0, 0);
     pPCI->busnum = zx1_fakebus;
  /* pPCI->devnum = pPCI->funcnum = 0; */
-    pPCI->pci_device_vendor = DEVID(HP, ZX1_SBA);
+    pPCI->pci_device_vendor = DEVID(VENDOR_HP, CHIP_ZX1_SBA);
     pPCI->pci_base_class = PCI_CLASS_BRIDGE;
  /* pPCI->pci_sub_class = PCI_SUBCLASS_BRIDGE_HOST; */
     pPCI->fakeDevice = TRUE;
@@ -1009,7 +1018,7 @@ xf86PostScanZX1(void)
 	pPCI->devnum = i | 0x10;
      /* pPCI->funcnum = 0; */
 	pPCI->tag = PCI_MAKE_TAG(zx1_fakebus, pPCI->devnum, 0);
-	pPCI->pci_device_vendor = DEVID(HP, ZX1_LBA);
+	pPCI->pci_device_vendor = DEVID(VENDOR_HP, CHIP_ZX1_LBA);
 	pPCI->pci_base_class = PCI_CLASS_BRIDGE;
 	pPCI->pci_sub_class = PCI_SUBCLASS_BRIDGE_PCI;
 	pPCI->pci_header_type = 1;

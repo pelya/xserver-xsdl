@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/xf4bpp/mfbline.c,v 1.4 2002/01/25 21:56:22 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/xf4bpp/mfbline.c,v 1.6 2003/11/17 22:20:42 dawes Exp $ */
 /***********************************************************
 
 Copyright (c) 1987  X Consortium
@@ -92,9 +92,7 @@ actual clipping.
 */
 #ifdef POLYSEGMENT
 static void DoV16SegmentSS(
-#if NeedFunctionPrototypes
     DrawablePtr, GCPtr, int, xSegment*
-#endif
 );
 
 void
@@ -113,9 +111,7 @@ xf4bppSegmentSS (pDrawable, pGC, nseg, pSeg)
 
 #else
 static void DoV16LineSS(
-#if NeedFunctionPrototypes
     DrawablePtr, GCPtr, int, int, DDXPointPtr
-#endif
 );
 
 void
@@ -182,13 +178,14 @@ DoV16LineSS (pDrawable, pGC, mode, npt, pptInit)
     register int y1, y2;
     register int x1, x2;
     RegionPtr cclip;
-    int		    alu;
+#ifndef POLYSEGMENT
+    int	     alu = pGC->alu; /* GJA */
+#endif
 
     if (!(pGC->planemask & 0x0F))
 	return;
 
     cclip = pGC->pCompositeClip;
-    alu = pGC->alu; /* GJA */
     pboxInit = REGION_RECTS(cclip);
     nboxInit = REGION_NUM_RECTS(cclip);
 
@@ -499,9 +496,7 @@ DoV16LineSS (pDrawable, pGC, mode, npt, pptInit)
 
 #ifdef POLYSEGMENT
 static void DoV16SegmentSD(
-#if NeedFunctionPrototypes
     DrawablePtr, GCPtr, int, xSegment*
-#endif
 );
 
 void
@@ -520,9 +515,7 @@ xf4bppSegmentSD (pDrawable, pGC, nseg, pSeg)
 
 #else
 static void DoV16LineSD(
-#if NeedFunctionPrototypes
     DrawablePtr, GCPtr, int, int, DDXPointPtr
-#endif
 );
 
 void
@@ -803,10 +796,7 @@ dontStep:	;
 		(y2 <  pbox->y2))
 	    {
 		unsigned long _mask;
-		int ink;
 
-		ink = fgink;
-		if (dashIndex & 1) ink = bgink;
 		_mask = mask[x2 & PIM];
 		addrl = mfbScanline(addrl, x2, y2, nlwidth);
 		UPDRW(addrl,_mask);

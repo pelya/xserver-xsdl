@@ -1,5 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/loader/dlloader.c,v 1.11 2000/08/23 22:10:14 tsi Exp $ */
-
+/* $XFree86: xc/programs/Xserver/hw/xfree86/loader/dlloader.c,v 1.13 2003/10/15 16:29:02 dawes Exp $ */
 
 /*
  *
@@ -100,13 +99,13 @@ DLFindSymbol(const char *name)
     n = xf86loadermalloc(strlen(name) + 2);
     sprintf(n, "_%s", name);
 #endif
-    
-    (void)dlerror();	/* Clear out any previous error */
+
+    (void)dlerror();		/* Clear out any previous error */
     for (l = dlModuleList; l != NULL; l = l->next) {
 #ifdef NEED_UNDERSCORE_FOR_DLLSYM
-        p = dlsym(l->module->dlhandle, n);
+	p = dlsym(l->module->dlhandle, n);
 #else
-        p = dlsym(l->module->dlhandle, name);
+	p = dlsym(l->module->dlhandle, name);
 #endif
 	if (dlerror() == NULL) {
 #ifdef NEED_UNDERSCORE_FOR_DLLSYM
@@ -115,10 +114,10 @@ DLFindSymbol(const char *name)
 	    return p;
 	}
     }
-#ifdef NEED_UNDERSCORE_FOR_DLLSYM    
+#ifdef NEED_UNDERSCORE_FOR_DLLSYM
     xf86loaderfree(n);
 #endif
-    
+
     return NULL;
 }
 
@@ -126,12 +125,12 @@ DLFindSymbol(const char *name)
  * public interface
  */
 void *
-DLLoadModule(loaderPtr modrec, int fd, LOOKUP **ppLookup)
+DLLoadModule(loaderPtr modrec, int fd, LOOKUP ** ppLookup)
 {
     DLModulePtr dlfile;
     DLModuleList *l;
 
-    if ((dlfile=xf86loadercalloc(1,sizeof(DLModuleRec)))==NULL) {
+    if ((dlfile = xf86loadercalloc(1, sizeof(DLModuleRec))) == NULL) {
 	ErrorF("Unable  to allocate DLModuleRec\n");
 	return NULL;
     }
@@ -167,7 +166,7 @@ DLCheckForUnresolved(void *mod)
 void
 DLUnloadModule(void *modptr)
 {
-    DLModulePtr dlfile = (DLModulePtr)modptr;
+    DLModulePtr dlfile = (DLModulePtr) modptr;
     DLModuleList *l, *p;
 
     /*  remove it from dlModuleList */

@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/fbdevhw/fbdevhw.h,v 1.11 2001/10/01 13:44:12 eich Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/fbdevhw/fbdevhw.h,v 1.12 2003/10/30 17:37:16 tsi Exp $ */
 
 #ifndef _FBDEVHW_H_
 #define _FBDEVHW_H_
@@ -40,7 +40,7 @@ void  fbdevHWRestore(ScrnInfoPtr pScrn);
 void  fbdevHWLoadPalette(ScrnInfoPtr pScrn, int numColors, int *indices,
 		 LOCO *colors, VisualPtr pVisual);
 
-int   fbdevHWValidMode(int scrnIndex, DisplayModePtr mode, Bool verbose, int flags);
+ModeStatus fbdevHWValidMode(int scrnIndex, DisplayModePtr mode, Bool verbose, int flags);
 Bool  fbdevHWSwitchMode(int scrnIndex, DisplayModePtr mode, int flags);
 void  fbdevHWAdjustFrame(int scrnIndex, int x, int y, int flags);
 Bool  fbdevHWEnterVT(int scrnIndex, int flags);

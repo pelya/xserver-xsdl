@@ -2,7 +2,7 @@
  * Fill odd tiled rectangles and spans.
  * no depth dependencies.
  */
-/* $XFree86: xc/programs/Xserver/cfb/cfbtileodd.c,v 3.6 2001/12/14 19:59:25 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/cfb/cfbtileodd.c,v 3.7 2003/10/29 22:44:53 tsi Exp $ */
 
 /*
 
@@ -139,7 +139,11 @@ MROP_NAME(cfbFillBoxTileOdd) (pDrawable, nBox, pBox, tile, xrot, yrot, alu, plan
     int xoffDst, xoffSrc;
     int leftShift, rightShift;
 
+#if MROP == 0 && PSZ == 24
+    DeclareMergeRop24()
+#else
     MROP_DECLARE_REG()
+#endif
 
     CfbBits *pdstBase;	/* pointer to start of dest */
     CfbBits *pDstLine;	/* poitner to start of dest box */
@@ -160,7 +164,11 @@ MROP_NAME(cfbFillBoxTileOdd) (pDrawable, nBox, pBox, tile, xrot, yrot, alu, plan
     int	    narrowShift = 0;
     Bool    narrowTile;
 
+#if MROP == 0 && PSZ == 24
+    InitializeMergeRop24 (alu, planemask)
+#else
     MROP_INITIALIZE (alu, planemask)
+#endif
 
     tileHeight = tile->drawable.height;
     tileWidth = tile->drawable.width;
@@ -395,7 +403,11 @@ MROP_NAME(cfbFillSpanTileOdd) (pDrawable, n, ppt, pwidth, tile, xrot, yrot, alu,
     int xoffDst, xoffSrc;
     int leftShift, rightShift;
 
+#if MROP == 0 && PSZ == 24
+    DeclareMergeRop24()
+#else
     MROP_DECLARE_REG()
+#endif
 
     CfbBits *pdstBase;	/* pointer to start of dest */
     CfbBits *pDstLine;	/* poitner to start of dest box */
@@ -416,7 +428,11 @@ MROP_NAME(cfbFillSpanTileOdd) (pDrawable, n, ppt, pwidth, tile, xrot, yrot, alu,
     int	    narrowShift = 0;
     Bool    narrowTile;
 
+#if MROP == 0 && PSZ == 24
+    InitializeMergeRop24 (alu, planemask)
+#else
     MROP_INITIALIZE (alu, planemask)
+#endif
 
     tileHeight = tile->drawable.height;
     tileWidth = tile->drawable.width;
@@ -643,7 +659,11 @@ MROP_NAME(cfbFillBoxTile32s) (pDrawable, nBox, pBox, tile, xrot, yrot, alu, plan
     int	srcStart;	/* number of longwords source offset at left of box */
     int	leftShift, rightShift;
 
+#if MROP == 0 && PSZ == 24
+    DeclareMergeRop24()
+#else
     MROP_DECLARE_REG()
+#endif
 
     CfbBits	    *pdstBase;	/* pointer to start of dest */
     CfbBits	    *pdstLine;	/* poitner to start of dest box */
@@ -655,7 +675,11 @@ MROP_NAME(cfbFillBoxTile32s) (pDrawable, nBox, pBox, tile, xrot, yrot, alu, plan
     register CfbBits  bits, bits1;
     register int	    nlTemp;
 
+#if MROP == 0 && PSZ == 24
+    InitializeMergeRop24 (alu, planemask)
+#else
     MROP_INITIALIZE (alu, planemask)
+#endif
 
     psrcBase = (CfbBits *)tile->devPrivate.ptr;
     tileHeight = tile->drawable.height;
@@ -954,7 +978,11 @@ MROP_NAME(cfbFillSpanTile32s) (pDrawable, n, ppt, pwidth, tile, xrot, yrot, alu,
     int	srcStart;	/* number of longwords source offset at left of box */
     int	leftShift, rightShift;
 
+#if MROP == 0 && PSZ == 24
+    DeclareMergeRop24()
+#else
     MROP_DECLARE_REG()
+#endif
 
     CfbBits	    *pdstBase;	/* pointer to start of dest */
     CfbBits	    *pdstLine;	/* poitner to start of dest box */
@@ -966,7 +994,11 @@ MROP_NAME(cfbFillSpanTile32s) (pDrawable, n, ppt, pwidth, tile, xrot, yrot, alu,
     register CfbBits  bits, bits1;
     register int	    nlTemp;
 
+#if MROP == 0 && PSZ == 24
+    InitializeMergeRop24 (alu, planemask)
+#else
     MROP_INITIALIZE (alu, planemask)
+#endif
 
     psrcBase = (CfbBits *)tile->devPrivate.ptr;
     tileHeight = tile->drawable.height;

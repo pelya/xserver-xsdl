@@ -30,6 +30,7 @@
  *     Header file for DIX-related DBE
  *
  *****************************************************************************/
+/* $XFree86: xc/programs/Xserver/dbe/dbestruct.h,v 3.2 2003/11/17 22:20:32 dawes Exp $ */
 
 
 #ifndef DBE_STRUCT_H
@@ -179,77 +180,53 @@ typedef struct _DbeScreenPrivRec
 
     /* Per-screen DIX routines */
     Bool	(*SetupBackgroundPainter)(
-#if NeedNestedPrototypes
 		WindowPtr /*pWin*/,
 		GCPtr /*pGC*/
-#endif
 );
     DbeWindowPrivPtr (*AllocWinPriv)(
-#if NeedNestedPrototypes
 		ScreenPtr /*pScreen*/
-#endif
 );
     int		(*AllocWinPrivPrivIndex)(
-#if NeedNestedPrototypes
 		void
-#endif
 );
     Bool	(*AllocWinPrivPriv)(
-#if NeedNestedPrototypes
 		ScreenPtr /*pScreen*/,
 		int /*index*/,
 		unsigned /*amount*/
-#endif
 );
 
     /* Per-screen DDX routines */
     Bool	(*GetVisualInfo)(
-#if NeedNestedPrototypes
 		ScreenPtr /*pScreen*/,
 		XdbeScreenVisualInfo * /*pVisInfo*/
-#endif
 );
     int		(*AllocBackBufferName)(
-#if NeedNestedPrototypes
 		WindowPtr /*pWin*/,
 		XID /*bufId*/,
 		int /*swapAction*/
-#endif
 );
     int		(*SwapBuffers)(
-#if NeedNestedPrototypes
 		ClientPtr /*client*/,
 		int * /*pNumWindows*/,
 		DbeSwapInfoPtr /*swapInfo*/
-#endif
 );
     void	(*BeginIdiom)(
-#if NeedNestedPrototypes
 		ClientPtr /*client*/
-#endif
 );
     void	(*EndIdiom)(
-#if NeedNestedPrototypes
 		ClientPtr /*client*/
-#endif
 );
     void	(*WinPrivDelete)(
-#if NeedNestedPrototypes
 		DbeWindowPrivPtr /*pDbeWindowPriv*/,
 		XID /*bufId*/
-#endif
 );
     void	(*ResetProc)(
-#if NeedNestedPrototypes
 		ScreenPtr /*pScreen*/
-#endif
 );
     void	(*ValidateBuffer)(
-#if NeedNestedPrototypes
 		WindowPtr /*pWin*/,
 		XID /*bufId*/,
 		Bool /*dstbuffer*/
-#endif
 );
 
     /* Device-specific private information.

@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/Xext/dgaproc.h,v 1.21 2000/06/30 19:06:54 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/Xext/dgaproc.h,v 1.22 2003/07/16 01:38:29 dawes Exp $ */
 
 #ifndef __DGAPROC_H
 #define __DGAPROC_H
@@ -52,9 +52,6 @@ typedef struct {
    int reserved1;
    int reserved2;
 } XDGAModeRec, *XDGAModePtr;
-
-
-void XFree86DGAExtensionInit(void);
 
 /* DDX interface */
 

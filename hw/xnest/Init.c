@@ -12,7 +12,7 @@ the suitability of this software for any purpose.  It is provided "as
 is" without express or implied warranty.
 
 */
-/* $XFree86: xc/programs/Xserver/hw/xnest/Init.c,v 3.24 2003/01/15 02:34:14 torrey Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xnest/Init.c,v 3.25 2003/11/16 05:05:20 dawes Exp $ */
 
 #include "X.h"
 #include "Xproto.h"
@@ -37,13 +37,14 @@ is" without express or implied warranty.
 #include "Drawable.h"
 #include "XNGC.h"
 #include "XNFont.h"
+#ifdef DPMSExtension
+#include "dpmsproc.h"
+#endif
 
 Bool xnestDoFullGeneration = True;
 
-void InitOutput(screenInfo, argc, argv)
-     ScreenInfo *screenInfo;
-     int argc;
-     char *argv[];
+void
+InitOutput(ScreenInfo *screenInfo, int argc, char *argv[])
 {
   int i, j;
 
@@ -83,9 +84,8 @@ void InitOutput(screenInfo, argc, argv)
   xnestDoFullGeneration = xnestFullGeneration;
 }
 
-void InitInput(argc, argv)
-     int argc;
-     char *argv[];
+void
+InitInput(int argc, char *argv[])
 {
   pointer ptr, kbd;
 
@@ -163,18 +163,19 @@ int SelectWaitTime = 10000; /* usec */
  *
  ***************************************************************/
 
-void DPMSSet (level)
-    int level;
+void
+DPMSSet(int level)
 {
 }
 
-int DPMSGet (level)
-    int* level;
+int
+DPMSGet(int *level)
 {
     return -1;
 }
 
-Bool DPMSSupported ()
+Bool
+DPMSSupported()
 {
     return FALSE;
 }

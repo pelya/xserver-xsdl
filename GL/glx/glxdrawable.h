@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/GL/glx/glxdrawable.h,v 1.3 2001/03/21 16:29:36 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/GL/glx/glxdrawable.h,v 1.4 2003/09/28 20:15:43 alanh Exp $ */
 #ifndef _GLX_drawable_h_
 #define _GLX_drawable_h_
 
@@ -78,9 +78,13 @@ struct __GLXdrawablePrivateRec {
     GLint width, height;
 
     /*
-    ** list of contexts bound to this drawable
+    ** Lists of contexts bound to this drawable.  There are two lists here.
+    ** One list is of the contexts that have this drawable bound for drawing,
+    ** and the other is the list of contexts that have this drawable bound
+    ** for reading.
     */
-    struct __GLXcontextRec *glxc;
+    struct __GLXcontextRec *drawGlxc;
+    struct __GLXcontextRec *readGlxc;
 
     /*
     ** "methods" that the drawble should be able to respond to.

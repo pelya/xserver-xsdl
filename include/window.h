@@ -45,6 +45,7 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ******************************************************************/
+/* $XFree86: xc/programs/Xserver/include/window.h,v 1.6 2003/11/03 05:36:35 tsi Exp $ */
 
 #ifndef WINDOW_H
 #define WINDOW_H
@@ -71,65 +72,40 @@ typedef struct _BackingStore *BackingStorePtr;
 typedef struct _Window *WindowPtr;
 
 typedef int (*VisitWindowProcPtr)(
-#if NeedNestedPrototypes
     WindowPtr /*pWin*/,
-    pointer /*data*/
-#endif
-);
+    pointer /*data*/);
 
 extern int TraverseTree(
-#if NeedFunctionPrototypes
     WindowPtr /*pWin*/,
     VisitWindowProcPtr /*func*/,
-    pointer /*data*/
-#endif
-);
+    pointer /*data*/);
 
 extern int WalkTree(
-#if NeedFunctionPrototypes
     ScreenPtr /*pScreen*/,
     VisitWindowProcPtr /*func*/,
-    pointer /*data*/
-#endif
-);
+    pointer /*data*/);
 
 extern WindowPtr AllocateWindow(
-#if NeedFunctionPrototypes
-    ScreenPtr /*pScreen*/
-#endif
-);
+    ScreenPtr /*pScreen*/);
 
 extern Bool CreateRootWindow(
-#if NeedFunctionPrototypes
-    ScreenPtr /*pScreen*/
-#endif
-);
+    ScreenPtr /*pScreen*/);
 
 extern void InitRootWindow(
-#if NeedFunctionPrototypes
-    WindowPtr /*pWin*/
-#endif
-);
+    WindowPtr /*pWin*/);
 
 extern void ClippedRegionFromBox(
-#if NeedFunctionPrototypes
     WindowPtr /*pWin*/,
     RegionPtr /*Rgn*/,
     int /*x*/,
     int /*y*/,
     int /*w*/,
-    int /*h*/
-#endif
-);
+    int /*h*/);
 
 extern WindowPtr RealChildHead(
-#if NeedFunctionPrototypes
-    WindowPtr /*pWin*/
-#endif
-);
+    WindowPtr /*pWin*/);
 
 extern WindowPtr CreateWindow(
-#if NeedFunctionPrototypes
     Window /*wid*/,
     WindowPtr /*pParent*/,
     int /*x*/,
@@ -143,23 +119,15 @@ extern WindowPtr CreateWindow(
     int /*depth*/,
     ClientPtr /*client*/,
     VisualID /*visual*/,
-    int* /*error*/
-#endif
-);
+    int* /*error*/);
 
 extern int DeleteWindow(
-#if NeedFunctionPrototypes
     pointer /*pWin*/,
-    XID /*wid*/
-#endif
-);
+    XID /*wid*/);
 
 extern void DestroySubwindows(
-#if NeedFunctionPrototypes
     WindowPtr /*pWin*/,
-    ClientPtr /*client*/
-#endif
-);
+    ClientPtr /*client*/);
 
 /* Quartz support on Mac OS X uses the HIToolbox
    framework whose ChangeWindowAttributes function conflicts here. */
@@ -167,13 +135,10 @@ extern void DestroySubwindows(
 #define ChangeWindowAttributes Darwin_X_ChangeWindowAttributes
 #endif
 extern int ChangeWindowAttributes(
-#if NeedFunctionPrototypes
     WindowPtr /*pWin*/,
     Mask /*vmask*/,
     XID* /*vlist*/,
-    ClientPtr /*client*/
-#endif
-);
+    ClientPtr /*client*/);
 
 /* Quartz support on Mac OS X uses the HIToolbox
    framework whose GetWindowAttributes function conflicts here. */
@@ -183,21 +148,14 @@ extern void Darwin_X_GetWindowAttributes(
 #else
 extern void GetWindowAttributes(
 #endif
-#if NeedFunctionPrototypes
     WindowPtr /*pWin*/,
     ClientPtr /*client*/,
-    xGetWindowAttributesReply* /* wa */
-#endif
-);
+    xGetWindowAttributesReply* /* wa */);
 
 extern RegionPtr CreateUnclippedWinSize(
-#if NeedFunctionPrototypes
-    WindowPtr /*pWin*/
-#endif
-);
+    WindowPtr /*pWin*/);
 
 extern void GravityTranslate(
-#if NeedFunctionPrototypes
     int /*x*/,
     int /*y*/,
     int /*oldx*/,
@@ -206,157 +164,92 @@ extern void GravityTranslate(
     int /*dh*/,
     unsigned /*gravity*/,
     int* /*destx*/,
-    int* /*desty*/
-#endif
-);
+    int* /*desty*/);
 
 extern int ConfigureWindow(
-#if NeedFunctionPrototypes
     WindowPtr /*pWin*/,
     Mask /*mask*/,
     XID* /*vlist*/,
-    ClientPtr /*client*/
-#endif
-);
+    ClientPtr /*client*/);
 
 extern int CirculateWindow(
-#if NeedFunctionPrototypes
     WindowPtr /*pParent*/,
     int /*direction*/,
-    ClientPtr /*client*/
-#endif
-);
+    ClientPtr /*client*/);
 
 extern int ReparentWindow(
-#if NeedFunctionPrototypes
     WindowPtr /*pWin*/,
     WindowPtr /*pParent*/,
     int /*x*/,
     int /*y*/,
-    ClientPtr /*client*/
-#endif
-);
+    ClientPtr /*client*/);
 
 extern int MapWindow(
-#if NeedFunctionPrototypes
     WindowPtr /*pWin*/,
-    ClientPtr /*client*/
-#endif
-);
+    ClientPtr /*client*/);
 
 extern void MapSubwindows(
-#if NeedFunctionPrototypes
     WindowPtr /*pParent*/,
-    ClientPtr /*client*/
-#endif
-);
+    ClientPtr /*client*/);
 
 extern int UnmapWindow(
-#if NeedFunctionPrototypes
     WindowPtr /*pWin*/,
-    Bool /*fromConfigure*/
-#endif
-);
+    Bool /*fromConfigure*/);
 
 extern void UnmapSubwindows(
-#if NeedFunctionPrototypes
-    WindowPtr /*pWin*/
-#endif
-);
+    WindowPtr /*pWin*/);
 
 extern void HandleSaveSet(
-#if NeedFunctionPrototypes
-    ClientPtr /*client*/
-#endif
-);
+    ClientPtr /*client*/);
 
 extern Bool VisibleBoundingBoxFromPoint(
-#if NeedFunctionPrototypes
     WindowPtr /*pWin*/,
     int /*x*/,
     int /*y*/,
-    BoxPtr /*box*/
-#endif
-);
+    BoxPtr /*box*/);
 
 extern Bool PointInWindowIsVisible(
-#if NeedFunctionPrototypes
     WindowPtr /*pWin*/,
     int /*x*/,
-    int /*y*/
-#endif
-);
+    int /*y*/);
 
 extern RegionPtr NotClippedByChildren(
-#if NeedFunctionPrototypes
-    WindowPtr /*pWin*/
-#endif
-);
+    WindowPtr /*pWin*/);
 
 extern void SendVisibilityNotify(
-#if NeedFunctionPrototypes
-    WindowPtr /*pWin*/
-#endif
-);
+    WindowPtr /*pWin*/);
 
 extern void SaveScreens(
-#if NeedFunctionPrototypes
     int /*on*/,
-    int /*mode*/
-#endif
-);
+    int /*mode*/);
 
 extern WindowPtr FindWindowWithOptional(
-#if NeedFunctionPrototypes
-    WindowPtr /*w*/
-#endif
-);
+    WindowPtr /*w*/);
 
 extern void CheckWindowOptionalNeed(
-#if NeedFunctionPrototypes
-    WindowPtr /*w*/
-#endif
-);
+    WindowPtr /*w*/);
 
 extern Bool MakeWindowOptional(
-#if NeedFunctionPrototypes
-    WindowPtr /*pWin*/
-#endif
-);
+    WindowPtr /*pWin*/);
 
 extern void DisposeWindowOptional(
-#if NeedFunctionPrototypes
-    WindowPtr /*pWin*/
-#endif
-);
+    WindowPtr /*pWin*/);
 
 extern WindowPtr MoveWindowInStack(
-#if NeedFunctionPrototypes
     WindowPtr /*pWin*/,
-    WindowPtr /*pNextSib*/
-#endif
-);
+    WindowPtr /*pNextSib*/);
 
 void SetWinSize(
-#if NeedFunctionPrototypes
-    WindowPtr /*pWin*/
-#endif
-);
+    WindowPtr /*pWin*/);
 
 void SetBorderSize(
-#if NeedFunctionPrototypes
-    WindowPtr /*pWin*/
-#endif
-);
+    WindowPtr /*pWin*/);
 
 void ResizeChildrenWinSize(
-#if NeedFunctionPrototypes
     WindowPtr /*pWin*/,
     int /*dx*/,
     int /*dy*/,
     int /*dw*/,
-    int /*dh*/
-#endif
-);
+    int /*dh*/);
 
 #endif /* WINDOW_H */

@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/xf8_32bpp/cfbscrinit.c,v 1.11 2001/04/14 21:17:49 mvojkovi Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/xf8_32bpp/cfbscrinit.c,v 1.12 2003/07/16 01:38:50 dawes Exp $ */
 
 
 #include "X.h"
@@ -76,6 +76,20 @@ cfb8_32AllocatePrivates(ScreenPtr pScreen)
    return TRUE;
 }
 
+static void DestroyColormapNoop(
+        ColormapPtr pColormap)
+{
+    /* NOOP */
+}
+
+static void StoreColorsNoop(
+        ColormapPtr pColormap,
+        int ndef,
+        xColorItem * pdef)
+{
+    /* NOOP */
+}
+
 static Bool
 cfb8_32SetupScreen(
     ScreenPtr pScreen,
@@ -108,11 +122,11 @@ cfb8_32SetupScreen(
     pScreen->UnrealizeFont = mfbUnrealizeFont;
     pScreen->CreateGC = cfb8_32CreateGC;
     pScreen->CreateColormap = miInitializeColormap;
-    pScreen->DestroyColormap = (void (*)())NoopDDA;
+    pScreen->DestroyColormap = DestroyColormapNoop;
     pScreen->InstallColormap = miInstallColormap;
     pScreen->UninstallColormap = miUninstallColormap;
     pScreen->ListInstalledColormaps = miListInstalledColormaps;
-    pScreen->StoreColors = (void (*)())NoopDDA;
+    pScreen->StoreColors = StoreColorsNoop;
     pScreen->ResolveColor = miResolveColor;
     pScreen->BitmapToRegion = mfbPixmapToRegion;
 

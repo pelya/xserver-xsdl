@@ -28,7 +28,7 @@
  * Authors:	drewry, september 1986
  *		Harold L Hunt II
  */
-/* $XFree86: xc/programs/Xserver/hw/xwin/winpixmap.c,v 1.10 2002/10/17 08:18:24 alanh Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xwin/winpixmap.c,v 1.11 2003/08/07 23:47:58 alanh Exp $ */
 
 #include "win.h"
 
@@ -50,9 +50,11 @@ winCreatePixmapNativeGDI (ScreenPtr pScreen,
       return NullPixmap;
     }
 
+#if CYGDEBUG
   ErrorF ("winCreatePixmap () - w %d h %d d %d bw %d\n",
 	  iWidth, iHeight, iDepth,
 	  PixmapBytePad (iWidth, iDepth));
+#endif
 
   /* Setup pixmap values */
   pPixmap->drawable.type = DRAWABLE_PIXMAP;
@@ -112,7 +114,9 @@ winDestroyPixmapNativeGDI (PixmapPtr pPixmap)
 {
   winPrivPixmapPtr		pPixmapPriv = NULL;
   
+#if CYGDEBUG
   ErrorF ("winDestroyPixmapNativeGDI ()\n");
+#endif
 
   /* Bail early if there is not a pixmap to destroy */
   if (pPixmap == NULL)
@@ -124,8 +128,10 @@ winDestroyPixmapNativeGDI (PixmapPtr pPixmap)
   /* Get a handle to the pixmap privates */
   pPixmapPriv = winGetPixmapPriv (pPixmap);
 
+#if CYGDEBUG
   ErrorF ("winDestroyPixmapNativeGDI - pPixmapPriv->hBitmap: %08x\n",
 	  pPixmapPriv->hBitmap);
+#endif
 
   /* Decrement reference count, return if nonzero */
   --pPixmap->refcnt;

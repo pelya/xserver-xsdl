@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/xaa/xaaFillPoly.c,v 1.15 2001/10/28 03:34:04 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/xaa/xaaFillPoly.c,v 1.16 2003/03/23 03:41:44 mvojkovi Exp $ */
 
 /*
  * Copyright 1996  The XFree86 Project
@@ -770,7 +770,11 @@ XAAFillPolygonStippled(
 		    pCache = (*infoRec->CacheMono8x8Pattern)(
 					infoRec->pScrn, patx, paty);
 		    patx = pCache->x;  paty = pCache->y;
-	    	}
+	    	} else {
+                    pCache = &(infoRec->ScratchCacheInfoRec);
+                    pCache->pat0 = patx;
+                    pCache->pat1 = paty;
+                }
 		RectFunc = Mono8x8PatternRectHelper;
        	    }
 

@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/mi/miwindow.c,v 1.7 2001/12/14 20:00:28 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/mi/miwindow.c,v 1.10 2003/11/10 18:22:49 tsi Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -47,7 +47,7 @@ SOFTWARE.
 ******************************************************************/
 /* $Xorg: miwindow.c,v 1.4 2001/02/09 02:05:22 xorgcvs Exp $ */
 #include "X.h"
-#include "miscstruct.h"
+#include "regionstr.h"
 #include "region.h"
 #include "mi.h"
 #include "windowstr.h"
@@ -196,7 +196,7 @@ miCheckSubSaveUnder(
 		{
 		    if (!subInited)
 		    {
-			REGION_INIT(pScreen, &SubRegion, NullBox, 0);
+			REGION_NULL(pScreen, &SubRegion);
 			subInited = TRUE;
 		    }
 		    REGION_COPY(pScreen, &SubRegion, pRegion);
@@ -279,7 +279,7 @@ miChangeSaveUnder(pWin, first)
     numSaveUndersViewable += deltaSaveUndersViewable;
     deltaSaveUndersViewable = 0;
     pScreen = pWin->drawable.pScreen;
-    REGION_INIT(pScreen, &rgn, NullBox, 1);
+    REGION_NULL(pScreen, &rgn);
     res = miCheckSubSaveUnder (pWin->parent,
 			       pWin->saveUnder ? first : pWin->nextSib,
 			       &rgn);
@@ -1076,7 +1076,6 @@ miChangeBorderWidth(pWin, width)
     register WindowPtr pWin;
     unsigned int width;
 {
-    WindowPtr pParent;
     int oldwidth;
     Bool anyMarked = FALSE;
     register ScreenPtr pScreen;
@@ -1092,7 +1091,6 @@ miChangeBorderWidth(pWin, width)
 	return;
     HadBorder = HasBorder(pWin);
     pScreen = pWin->drawable.pScreen;
-    pParent = pWin->parent;
     if (WasViewable && width < oldwidth)
 	anyMarked = (*pScreen->MarkOverlappedWindows)(pWin, pWin, &pLayerWin);
 

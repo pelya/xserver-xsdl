@@ -1,12 +1,39 @@
+/* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86MiscExt.c,v 1.16 2003/11/03 05:11:02 tsi Exp $ */
 /*
- * Copyright (c) 1999 by The XFree86 Project, Inc.
+ * Copyright (c) 1999-2003 by The XFree86 Project, Inc.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+ * THE COPYRIGHT HOLDER(S) OR AUTHOR(S) BE LIABLE FOR ANY CLAIM, DAMAGES OR
+ * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ *
+ * Except as contained in this notice, the name of the copyright holder(s)
+ * and author(s) shall not be used in advertising or otherwise to promote
+ * the sale, use or other dealings in this Software without prior written
+ * authorization from the copyright holder(s) and author(s).
  */
-/* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86MiscExt.c,v 1.11 2002/11/20 04:04:57 dawes Exp $ */
 
 /*
  * This file contains the Pointer/Keyboard functions needed by the 
  * XFree86-Misc extension.
  */
+
+#ifdef __UNIXOS2__
+#define I_NEED_OS2_H
+#endif
 
 #include "X.h"
 #include "os.h"
@@ -62,31 +89,17 @@ typedef struct {
 	int	serverNumLock;	/* obsolete */
 } kbdParamsRec, *kbdParamsPtr;
 
-typedef enum {
-    TO_MISC,
-    FROM_MISC
-} MseProtoMapDirection;
-
-static void MiscExtClientStateCallback(pointer, pointer, pointer);
-
 /*
     Sigh...
 
     The extension should probably be changed to use protocol
     names instead of ID numbers
 */
-struct mouse_map {
+static struct mouse_map {
     int mtype;
     MouseProtocolID proto;
-};
-
-static int
-MapMseProto(int proto, MseProtoMapDirection mapping)
+} m_map[] =
 {
-    int i;
-    
-    static struct mouse_map m_map[] = 
-    {
 	{ MTYPE_MICROSOFT, PROT_MS },
 	{ MTYPE_MOUSESYS, PROT_MSC },
 	{ MTYPE_MMSERIES, PROT_MM },
@@ -109,17 +122,30 @@ MapMseProto(int proto, MseProtoMapDirection mapping)
 	{ MTYPE_AUTOMOUSE, PROT_AUTO },
 	{ MTYPE_SYSMOUSE, PROT_SYSMOUSE },
 	{ MTYPE_UNKNOWN, PROT_UNKNOWN }
-    };
+};
+
+static int
+MapMseProtoToMisc(MouseProtocolID proto)
+{
+    int i;
     
-    if (mapping == TO_MISC) {
 	for (i = 0; m_map[i].proto != PROT_UNKNOWN; i++)
-	    if (proto == m_map[i].proto) return m_map[i].mtype;
+	if (proto == m_map[i].proto)
+	    return m_map[i].mtype;
+
 	return MTYPE_UNKNOWN;
-    } else {
+}
+
+static MouseProtocolID
+MapMseMiscToProto(int proto)
+{
+    int i;
+
 	for (i = 0; m_map[i].mtype != MTYPE_UNKNOWN; i++)
-	    if (proto == m_map[i].mtype) return m_map[i].proto;
+	if (proto == m_map[i].mtype)
+	    return m_map[i].proto;
+
 	return PROT_UNKNOWN;
-    }
 }
 
 Bool
@@ -140,7 +166,7 @@ MiscExtGetMouseSettings(pointer *mouse, char **devname)
 	*devname = xf86FindOptionValue(pInfo->options, "Device");
 	pMse = pInfo->private;
 
-	mseptr->type =		MapMseProto(pMse->protocolID, TO_MISC);
+	mseptr->type =		MapMseProtoToMisc(pMse->protocolID);
 	mseptr->baudrate =	pMse->baudRate;
 	mseptr->samplerate =	pMse->sampleRate;
 	mseptr->resolution =	pMse->resolution;
@@ -279,7 +305,8 @@ MiscExtSetKbdValue(pointer keyboard, MiscExtKbdValType valtype, int value)
 }
 
 static void
-MiscExtClientStateCallback(pointer callbacks, pointer data, pointer args)
+MiscExtClientStateCallback(CallbackListPtr *callbacks,
+			   pointer data, pointer args)
 {
     NewClientInfoRec *clientinfo = (NewClientInfoRec*)args;
 
@@ -287,8 +314,7 @@ MiscExtClientStateCallback(pointer callbacks, pointer data, pointer args)
 	clientinfo->client->clientState == ClientStateGone) {
 	xf86Info.grabInfo.override = NULL;
 	xf86Info.grabInfo.disabled = 0;
-	DeleteCallback(&ClientStateCallback,
-		       (CallbackProcPtr)MiscExtClientStateCallback, NULL);
+	DeleteCallback(&ClientStateCallback, MiscExtClientStateCallback, NULL);
     }
 }
 
@@ -307,13 +333,13 @@ MiscExtSetGrabKeysState(ClientPtr client, int state)
 	if (state == 0 && xf86Info.grabInfo.disabled == 0) {
 	    xf86Info.grabInfo.disabled = 1;
 	    AddCallback(&ClientStateCallback,
-			(CallbackProcPtr)MiscExtClientStateCallback, NULL);
+			MiscExtClientStateCallback, NULL);
 	    xf86Info.grabInfo.override = client;
 	}
 	else if (state == 1 && xf86Info.grabInfo.disabled == 1) {
 	    xf86Info.grabInfo.disabled = 0;
 	    DeleteCallback(&ClientStateCallback,
-			   (CallbackProcPtr)MiscExtClientStateCallback, NULL);
+			   MiscExtClientStateCallback, NULL);
 	    xf86Info.grabInfo.override = NULL;
 	}
 	else
@@ -426,6 +452,7 @@ MiscExtApply(pointer structure, MiscExtStructType mse_or_kbd)
 	Bool protoChanged = FALSE;
 	int oldflags;
 	Bool reopen = FALSE;
+	MouseProtocolID newProtocol;
 	mseParamsPtr mse = structure;
 	InputInfoPtr pInfo;
 	MouseDevPtr pMse;
@@ -508,7 +535,8 @@ MiscExtApply(pointer structure, MiscExtStructType mse_or_kbd)
 	pMse = pInfo->private;
 	oldflags = pMse->mouseFlags;
 	
-	protoChanged = pMse->protocolID != MapMseProto(mse->type, FROM_MISC);
+	newProtocol = MapMseMiscToProto(mse->type);
+	protoChanged = pMse->protocolID != newProtocol;
 	if (protoChanged
 		|| pMse->baudRate != mse->baudrate
 		|| pMse->sampleRate != mse->samplerate
@@ -522,7 +550,7 @@ MiscExtApply(pointer structure, MiscExtStructType mse_or_kbd)
 	if (reopen)
 	    (pMse->device->deviceProc)(pMse->device, DEVICE_CLOSE);
 	
-	pMse->protocolID      = MapMseProto(mse->type, FROM_MISC);
+	pMse->protocolID      = newProtocol;
 	pMse->baudRate        = mse->baudrate;
 	pMse->sampleRate      = mse->samplerate;
 	pMse->resolution      = mse->resolution;
@@ -606,6 +634,19 @@ MiscExtGetFilePaths(const char **configfile, const char **modulepath,
     *logfile    = xf86LogFile;
 
     return TRUE;
+}
+
+int
+MiscExtPassMessage(int scrnIndex, const char *msgtype, const char *msgval,
+		   char **retstr)
+{
+    ScrnInfoPtr pScr = xf86Screens[scrnIndex];
+
+    DEBUG_P("MiscExtPassMessage");
+
+    if (*pScr->HandleMessage == NULL)
+	    return BadImplementation;
+    return (*pScr->HandleMessage)(scrnIndex, msgtype, msgval, retstr);
 }
 
 #endif /* XF86MISC */

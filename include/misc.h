@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/include/misc.h,v 3.28 2001/12/14 19:59:55 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/include/misc.h,v 3.29 2003/04/27 21:31:04 herrb Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -238,30 +238,17 @@ typedef struct _xReq *xReqPtr;
 		 ((char *) &(dst))[1] = ((char *) &(src))[0]; }
 
 extern void SwapLongs(
-#if NeedFunctionPrototypes
     CARD32 *list,
-    unsigned long count
-#endif
-);
+    unsigned long count);
 
 extern void SwapShorts(
-#if NeedFunctionPrototypes
     short *list,
-    unsigned long count
-#endif
-);
+    unsigned long count);
 
-extern void MakePredeclaredAtoms(
-#if NeedFunctionPrototypes
-    void
-#endif
-);
+extern void MakePredeclaredAtoms(void);
 
 extern int Ones(
-#if NeedFunctionPrototypes
-    unsigned long /*mask*/
-#endif
-);
+    unsigned long /*mask*/);
 
 typedef struct _xPoint *DDXPointPtr;
 typedef struct _Box *BoxPtr;

@@ -1,4 +1,4 @@
-// $XFree86: xc/programs/Xserver/hw/darwin/utils/dumpkeymap.c,v 1.3 2000/12/05 21:18:34 dawes Exp $
+// $XFree86: xc/programs/Xserver/hw/darwin/utils/dumpkeymap.c,v 1.4 2003/04/13 14:52:51 herrb Exp $
 //=============================================================================
 //
 // Copyright (C) 1999,2000 by Eric Sunshine <sunshine@sunshineco.com>
@@ -141,6 +141,7 @@
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/stat.h>
 #if !defined(DUMPKEYMAP_FILE_ONLY)
 #include <drivers/event_status_driver.h>

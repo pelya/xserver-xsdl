@@ -26,7 +26,7 @@ Equipment Corporation.
 
 /* Massively rewritten by Mark Vojkovich <markv@valinux.com> */
 
-/* $XFree86: xc/programs/Xserver/Xext/panoramiXprocs.c,v 3.33 2002/04/10 21:38:53 mvojkovi Exp $ */
+/* $XFree86: xc/programs/Xserver/Xext/panoramiXprocs.c,v 3.37 2003/11/10 18:21:43 tsi Exp $ */
 
 #include <stdio.h>
 #include "X.h"
@@ -46,20 +46,21 @@ Equipment Corporation.
 #include "panoramiX.h"
 #include "panoramiXsrv.h"
 #include "resource.h"
+#include "panoramiXh.h"
 
 #define XINERAMA_IMAGE_BUFSIZE (256*1024)
 #define INPUTONLY_LEGAL_MASK (CWWinGravity | CWEventMask | \
                               CWDontPropagate | CWOverrideRedirect | CWCursor )
 
-extern ScreenInfo *GlobalScrInfo;
-extern char *ConnectionInfo;
-extern int connBlockScreenStart;
+#if 0
+extern void (* EventSwapVector[128]) (fsError *, fsError *);
 
-extern int (* SavedProcVector[256]) ();
-extern void (* EventSwapVector[128]) ();
-extern void Swap32Write(), SLHostsExtend(), SQColorsExtend(), 
+extern void Swap32Write();
+extern void SLHostsExtend();
+extern void SQColorsExtend();
 WriteSConnectionInfo();
 extern void WriteSConnSetupPrefix();
+#endif
 
 /* Various of the DIX function interfaces were not designed to allow
  * the client->errorValue to be set on BadValue and other errors.
@@ -131,6 +132,7 @@ int PanoramiXCreateWindow(ClientPtr client)
     newWin->type = XRT_WINDOW;
     newWin->u.win.visibility = VisibilityNotViewable;
     newWin->u.win.class = stuff->class;
+    newWin->u.win.root = FALSE;
     newWin->info[0].id = stuff->wid;
     for(j = 1; j < PanoramiXNumScreens; j++)
         newWin->info[j].id = FakeClientID(client->index);
@@ -140,7 +142,8 @@ int PanoramiXCreateWindow(ClientPtr client)
     orig_visual = stuff->visual;
     orig_x = stuff->x;
     orig_y = stuff->y;
-    parentIsRoot = (stuff->parent == WindowTable[0]->drawable.id);
+    parentIsRoot = (stuff->parent == WindowTable[0]->drawable.id) ||
+                   (stuff->parent == savedScreenInfo[0].wid);
     FOR_NSCREENS_BACKWARD(j) {
         stuff->wid = newWin->info[j].id;
         stuff->parent = parent->info[j].id;
@@ -329,7 +332,8 @@ int PanoramiXReparentWindow(ClientPtr client)
 
     x = stuff->x;
     y = stuff->y;
-    parentIsRoot = (stuff->parent == WindowTable[0]->drawable.id);
+    parentIsRoot = (stuff->parent == WindowTable[0]->drawable.id) ||
+                   (stuff->parent == savedScreenInfo[0].wid);
     FOR_NSCREENS_BACKWARD(j) {
 	stuff->window = win->info[j].id;
 	stuff->parent = parent->info[j].id;
@@ -468,7 +472,9 @@ int PanoramiXConfigureWindow(ClientPtr client)
 	}
     }
 
-    if(pWin->parent && (pWin->parent == WindowTable[0])) {
+    if(pWin->parent && ((pWin->parent == WindowTable[0]) ||
+                        (pWin->parent->drawable.id == savedScreenInfo[0].wid)))
+    {
 	if ((Mask)stuff->mask & CWX) {
 	    x_offset = 0;
 	    x = *((CARD32 *)&stuff[1]);
@@ -548,7 +554,9 @@ int PanoramiXGetGeometry(ClientPtr client)
         WindowPtr pWin = (WindowPtr)pDraw;
 	rep.x = pWin->origin.x - wBorderWidth (pWin);
 	rep.y = pWin->origin.y - wBorderWidth (pWin);
-	if(pWin->parent == WindowTable[0]) {
+	if((pWin->parent == WindowTable[0]) || 
+           (pWin->parent->drawable.id == savedScreenInfo[0].wid))
+        {
 	   rep.x += panoramiXdataPtr[0].x;
 	   rep.y += panoramiXdataPtr[0].y;
 	}
@@ -582,7 +590,9 @@ int PanoramiXTranslateCoords(ClientPtr client)
     rep.sameScreen = xTrue;
     rep.child = None;
 
-    if(pWin == WindowTable[0]) {
+    if((pWin == WindowTable[0]) || 
+       (pWin->drawable.id == savedScreenInfo[0].wid))
+    { 
 	x = stuff->srcX - panoramiXdataPtr[0].x;
 	y = stuff->srcY - panoramiXdataPtr[0].y;
     } else {
@@ -622,7 +632,9 @@ int PanoramiXTranslateCoords(ClientPtr client)
     }
     rep.dstX = x - pDst->drawable.x;
     rep.dstY = y - pDst->drawable.y;
-    if(pDst == WindowTable[0]) {
+    if((pDst == WindowTable[0]) || 
+       (pDst->drawable.id == savedScreenInfo[0].wid))
+    {
 	rep.dstX += panoramiXdataPtr[0].x;
 	rep.dstY += panoramiXdataPtr[0].y;
     }
@@ -947,7 +959,7 @@ int PanoramiXClearToBackground(ClientPtr client)
 
     x = stuff->x;
     y = stuff->y;
-    isRoot = (stuff->window == WindowTable[0]->drawable.id);
+    isRoot = win->u.win.root;
     FOR_NSCREENS_BACKWARD(j) {
 	stuff->window = win->info[j].id;
 	if(isRoot) {
@@ -1002,11 +1014,9 @@ int PanoramiXCopyArea(ClientPtr client)
 		client, stuff->gc, XRT_GC, SecurityReadAccess)))
 	return BadGC;
 
-    if((dst->type == XRT_WINDOW) &&
-       (stuff->dstDrawable == WindowTable[0]->drawable.id))
+    if((dst->type == XRT_WINDOW) && dst->u.win.root)
 	dstIsRoot = TRUE;
-    if((src->type == XRT_WINDOW) &&
-       (stuff->srcDrawable == WindowTable[0]->drawable.id))
+    if((src->type == XRT_WINDOW) && src->u.win.root)
 	srcIsRoot = TRUE;
 
     srcx = stuff->srcX; srcy = stuff->srcY;
@@ -1095,7 +1105,7 @@ int PanoramiXCopyArea(ClientPtr client)
 	    RegionRec totalReg;
 	    Bool overlap;
 
-	    REGION_INIT(pScreen, &totalReg, NullBox, 1);
+	    REGION_NULL(pScreen, &totalReg);
 	    FOR_NSCREENS_BACKWARD(j) {
 		if(pRgn[j]) {
 		   if(srcIsRoot) {
@@ -1152,11 +1162,9 @@ int PanoramiXCopyPlane(ClientPtr client)
 		client, stuff->gc, XRT_GC, SecurityReadAccess)))
 	return BadGC;
 
-    if((dst->type == XRT_WINDOW) &&
-       (stuff->dstDrawable == WindowTable[0]->drawable.id))
+    if((dst->type == XRT_WINDOW) && dst->u.win.root)
 	dstIsRoot = TRUE;
-    if((src->type == XRT_WINDOW) &&
-       (stuff->srcDrawable == WindowTable[0]->drawable.id))
+    if((src->type == XRT_WINDOW) && src->u.win.root)
 	srcIsRoot = TRUE;
 
     srcx = stuff->srcX; srcy = stuff->srcY;
@@ -1208,7 +1216,7 @@ int PanoramiXCopyPlane(ClientPtr client)
 	RegionRec totalReg;
 	Bool overlap;
 
-	REGION_INIT(pScreen, &totalReg, NullBox, 1);
+	REGION_NULL(pScreen, &totalReg);
 	FOR_NSCREENS_BACKWARD(j) {
 	    if(pRgn[j]) {
 		REGION_APPEND(pScreen, &totalReg, pRgn[j]);
@@ -1246,8 +1254,7 @@ int PanoramiXPolyPoint(ClientPtr client)
 		client, stuff->gc, XRT_GC, SecurityReadAccess)))
 	return BadGC;    
 
-    isRoot = (draw->type == XRT_WINDOW) &&
-		(stuff->drawable == WindowTable[0]->drawable.id);
+    isRoot = (draw->type == XRT_WINDOW) && draw->u.win.root;
     npoint = ((client->req_len << 2) - sizeof(xPolyPointReq)) >> 2;
     if (npoint > 0) {
         origPts = (xPoint *) ALLOCATE_LOCAL(npoint * sizeof(xPoint));
@@ -1305,8 +1312,7 @@ int PanoramiXPolyLine(ClientPtr client)
 		client, stuff->gc, XRT_GC, SecurityReadAccess)))
 	return BadGC;    
 
-    isRoot = (draw->type == XRT_WINDOW) &&
-		(stuff->drawable == WindowTable[0]->drawable.id);
+    isRoot = (draw->type == XRT_WINDOW) && draw->u.win.root;
     npoint = ((client->req_len << 2) - sizeof(xPolyLineReq)) >> 2;
     if (npoint > 0){
         origPts = (xPoint *) ALLOCATE_LOCAL(npoint * sizeof(xPoint));
@@ -1364,8 +1370,7 @@ int PanoramiXPolySegment(ClientPtr client)
 		client, stuff->gc, XRT_GC, SecurityReadAccess)))
 	return BadGC;    
 
-    isRoot = (draw->type == XRT_WINDOW) &&
-		(stuff->drawable == WindowTable[0]->drawable.id);
+    isRoot = (draw->type == XRT_WINDOW) && draw->u.win.root;
 
     nsegs = (client->req_len << 2) - sizeof(xPolySegmentReq);
     if(nsegs & 4) return BadLength;
@@ -1427,8 +1432,7 @@ int PanoramiXPolyRectangle(ClientPtr client)
 		client, stuff->gc, XRT_GC, SecurityReadAccess)))
 	return BadGC;    
 
-    isRoot = (draw->type == XRT_WINDOW) &&
-		(stuff->drawable == WindowTable[0]->drawable.id);
+    isRoot = (draw->type == XRT_WINDOW) && draw->u.win.root;
 
     nrects = (client->req_len << 2) - sizeof(xPolyRectangleReq);
     if(nrects & 4) return BadLength;
@@ -1488,8 +1492,7 @@ int PanoramiXPolyArc(ClientPtr client)
 		client, stuff->gc, XRT_GC, SecurityReadAccess)))
 	return BadGC;    
 
-    isRoot = (draw->type == XRT_WINDOW) &&
-		(stuff->drawable == WindowTable[0]->drawable.id);
+    isRoot = (draw->type == XRT_WINDOW) && draw->u.win.root;
 
     narcs = (client->req_len << 2) - sizeof(xPolyArcReq);
     if(narcs % sizeof(xArc)) return BadLength;
@@ -1547,8 +1550,7 @@ int PanoramiXFillPoly(ClientPtr client)
 		client, stuff->gc, XRT_GC, SecurityReadAccess)))
 	return BadGC;    
 
-    isRoot = (draw->type == XRT_WINDOW) &&
-		(stuff->drawable == WindowTable[0]->drawable.id);
+    isRoot = (draw->type == XRT_WINDOW) && draw->u.win.root;
 
     count = ((client->req_len << 2) - sizeof(xFillPolyReq)) >> 2;
     if (count > 0){
@@ -1607,8 +1609,7 @@ int PanoramiXPolyFillRectangle(ClientPtr client)
 		client, stuff->gc, XRT_GC, SecurityReadAccess)))
 	return BadGC;    
 
-    isRoot = (draw->type == XRT_WINDOW) &&
-		(stuff->drawable == WindowTable[0]->drawable.id);
+    isRoot = (draw->type == XRT_WINDOW) && draw->u.win.root;
 
     things = (client->req_len << 2) - sizeof(xPolyFillRectangleReq);
     if(things & 4) return BadLength;
@@ -1667,8 +1668,7 @@ int PanoramiXPolyFillArc(ClientPtr client)
 		client, stuff->gc, XRT_GC, SecurityReadAccess)))
 	return BadGC;    
 
-    isRoot = (draw->type == XRT_WINDOW) &&
-		(stuff->drawable == WindowTable[0]->drawable.id);
+    isRoot = (draw->type == XRT_WINDOW) && draw->u.win.root;
 
     narcs = (client->req_len << 2) - sizeof(xPolyFillArcReq);
     IF_RETURN((narcs % sizeof(xArc)), BadLength);
@@ -1726,8 +1726,7 @@ int PanoramiXPutImage(ClientPtr client)
 		client, stuff->gc, XRT_GC, SecurityReadAccess)))
 	return BadGC;    
 
-    isRoot = (draw->type == XRT_WINDOW) &&
-		(stuff->drawable == WindowTable[0]->drawable.id);
+    isRoot = (draw->type == XRT_WINDOW) && draw->u.win.root;
 
     orig_x = stuff->dstX;
     orig_y = stuff->dstY;
@@ -1786,8 +1785,7 @@ int PanoramiXGetImage(ClientPtr client)
     format = stuff->format;
     planemask = stuff->planeMask;
 
-    isRoot = (draw->type == XRT_WINDOW) &&
-		(stuff->drawable == WindowTable[0]->drawable.id);
+    isRoot = (draw->type == XRT_WINDOW) && draw->u.win.root;
 
     if(isRoot) {
       if( /* check for being onscreen */
@@ -1919,8 +1917,7 @@ PanoramiXPolyText8(ClientPtr client)
 		client, stuff->gc, XRT_GC, SecurityReadAccess)))
 	return BadGC;    
 
-    isRoot = (draw->type == XRT_WINDOW) &&
-		(stuff->drawable == WindowTable[0]->drawable.id);
+    isRoot = (draw->type == XRT_WINDOW) && draw->u.win.root;
 
     orig_x = stuff->x;
     orig_y = stuff->y;
@@ -1959,8 +1956,7 @@ PanoramiXPolyText16(ClientPtr client)
 		client, stuff->gc, XRT_GC, SecurityReadAccess)))
 	return BadGC;    
 
-    isRoot = (draw->type == XRT_WINDOW) &&
-		(stuff->drawable == WindowTable[0]->drawable.id);
+    isRoot = (draw->type == XRT_WINDOW) && draw->u.win.root;
 
     orig_x = stuff->x;
     orig_y = stuff->y;
@@ -1999,8 +1995,7 @@ int PanoramiXImageText8(ClientPtr client)
 		client, stuff->gc, XRT_GC, SecurityReadAccess)))
 	return BadGC;    
 
-    isRoot = (draw->type == XRT_WINDOW) &&
-		(stuff->drawable == WindowTable[0]->drawable.id);
+    isRoot = (draw->type == XRT_WINDOW) && draw->u.win.root;
 
     orig_x = stuff->x;
     orig_y = stuff->y;
@@ -2039,8 +2034,7 @@ int PanoramiXImageText16(ClientPtr client)
 		client, stuff->gc, XRT_GC, SecurityReadAccess)))
 	return BadGC;    
 
-    isRoot = (draw->type == XRT_WINDOW) &&
-		(stuff->drawable == WindowTable[0]->drawable.id);
+    isRoot = (draw->type == XRT_WINDOW) && draw->u.win.root;
 
     orig_x = stuff->x;
     orig_y = stuff->y;

@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/GL/glx/impsize.h,v 1.3 2001/03/21 16:29:37 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/GL/glx/impsize.h,v 1.4 2003/09/28 20:15:43 alanh Exp $ */
 #ifndef _impsize_h_
 #define _impsize_h_
 
@@ -66,5 +66,7 @@ extern int __glTexGeniv_size(GLenum pname);
 extern int __glTexParameterfv_size(GLenum e);
 extern int __glTexParameteriv_size(GLenum e);
 extern int __glEvalComputeK(GLenum target);
+
+extern int __glPointParameterfvARB_size(GLenum pname);
 
 #endif /* _impsize_h_ */

@@ -12,7 +12,7 @@ the suitability of this software for any purpose.  It is provided "as
 is" without express or implied warranty.
 
 */
-/* $XFree86: xc/programs/Xserver/hw/xnest/XNCursor.h,v 1.2 2002/11/23 19:27:50 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xnest/XNCursor.h,v 1.3 2003/11/16 05:05:20 dawes Exp $ */
 
 #ifndef XNESTCURSOR_H
 #define XNESTCURSOR_H
@@ -27,12 +27,14 @@ typedef struct {
 #define xnestCursor(pCursor, pScreen) \
   (xnestCursorPriv(pCursor, pScreen)->cursor)
 
-void xnestConstrainCursor();
-void xnestCursorLimits();
-Bool xnestDisplayCursor();
-Bool xnestRealizeCursor();
-Bool xnestUnrealizeCursor();
-void xnestRecolorCursor();
-Bool xnestSetCursorPosition();
+void xnestConstrainCursor(ScreenPtr pScreen, BoxPtr pBox);
+void xnestCursorLimits(ScreenPtr pScreen, CursorPtr pCursor, BoxPtr pHotBox,
+		       BoxPtr pTopLeftBox);
+Bool xnestDisplayCursor(ScreenPtr pScreen, CursorPtr pCursor);
+Bool xnestRealizeCursor(ScreenPtr pScreen, CursorPtr pCursor);
+Bool xnestUnrealizeCursor(ScreenPtr pScreen, CursorPtr pCursor);
+void xnestRecolorCursor(ScreenPtr pScreen, CursorPtr pCursor, Bool displayed);
+Bool xnestSetCursorPosition(ScreenPtr pScreen, int x, int y,
+			    Bool generateEvent);
 
 #endif /* XNESTCURSOR_H */

@@ -25,7 +25,7 @@ in this Software without prior written authorization from The Open Group.
  *
  * Author:  Keith Packard, MIT X Consortium
  */
-/* $XFree86: xc/programs/Xserver/cfb/cfbcppl.c,v 1.6 2001/12/14 19:59:22 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/cfb/cfbcppl.c,v 1.7 2003/07/16 01:38:37 dawes Exp $ */
 
 #include "X.h"
 #include "Xmd.h"
@@ -40,18 +40,23 @@ in this Software without prior written authorization from The Open Group.
 #include "maskbits.h"
 #define PSZ 8
 #include "mergerop.h"
-#endif
+#else /* PSZ==8 */
+#include "cfbtab.h" /* provides starttab, endttab, partmasks */
+#endif /* PSZ==8 */
 
 
 void
-cfbCopyImagePlane (pSrcDrawable, pDstDrawable, rop, prgnDst, pptSrc, planemask)
-    DrawablePtr pSrcDrawable;
-    DrawablePtr pDstDrawable;
-    int	rop;
-    RegionPtr prgnDst;
-    DDXPointPtr pptSrc;
-    unsigned long planemask;
+cfbCopyImagePlane(
+    DrawablePtr pSrcDrawable,
+    DrawablePtr pDstDrawable,
+    int	rop,
+    RegionPtr prgnDst,
+    DDXPointPtr pptSrc,
+    unsigned long planemask)
 {
+    /* note: there must be some sort of trick behind,
+       passing a planemask value with all bits set
+       whilst using the current planemask for the bitPlane value. */
 #if PSZ == 8
     cfbCopyPlane8to1 (pSrcDrawable, pDstDrawable, rop, prgnDst, pptSrc,
 		      (unsigned long) ~0L, planemask);
@@ -90,14 +95,14 @@ cfbCopyImagePlane (pSrcDrawable, pDstDrawable, rop, prgnDst, pptSrc, planemask)
 }
 
 void
-cfbCopyPlane8to1 (pSrcDrawable, pDstDrawable, rop, prgnDst, pptSrc, planemask, bitPlane)
-    DrawablePtr pSrcDrawable;
-    DrawablePtr pDstDrawable;
-    int	rop;
-    RegionPtr prgnDst;
-    DDXPointPtr pptSrc;
-    unsigned long planemask;
-    unsigned long   bitPlane;
+cfbCopyPlane8to1(
+    DrawablePtr pSrcDrawable,
+    DrawablePtr pDstDrawable,
+    int	rop,
+    RegionPtr prgnDst,
+    DDXPointPtr pptSrc,
+    unsigned long planemask,
+    unsigned long bitPlane)
 {
     int			    srcx, srcy, dstx, dsty, width, height;
     unsigned char	    *psrcBase;
@@ -291,24 +296,22 @@ cfbCopyPlane8to1 (pSrcDrawable, pDstDrawable, rop, prgnDst, pptSrc, planemask, b
 
 void
 #if PSZ == 16
-cfbCopyPlane16to1 (pSrcDrawable, pDstDrawable, rop, prgnDst, pptSrc, 
-		   planemask, bitPlane)
+cfbCopyPlane16to1
 #endif
 #if PSZ == 24
-cfbCopyPlane24to1 (pSrcDrawable, pDstDrawable, rop, prgnDst, pptSrc, 
-		   planemask, bitPlane)
+cfbCopyPlane24to1
 #endif
 #if PSZ == 32
-cfbCopyPlane32to1 (pSrcDrawable, pDstDrawable, rop, prgnDst, pptSrc, 
-		   planemask, bitPlane)
+cfbCopyPlane32to1
 #endif
-    DrawablePtr pSrcDrawable;
-    DrawablePtr pDstDrawable;
-    int	rop;
-    RegionPtr prgnDst;
-    DDXPointPtr pptSrc;
-    unsigned long planemask;
-    unsigned long bitPlane;
+(
+    DrawablePtr pSrcDrawable,
+    DrawablePtr pDstDrawable,
+    int	rop,
+    RegionPtr prgnDst,
+    DDXPointPtr pptSrc,
+    unsigned long planemask,
+    unsigned long bitPlane)
 {
     int			    srcx, srcy, dstx, dsty, width, height;
     CfbBits	    *psrcBase;
@@ -332,16 +335,13 @@ cfbCopyPlane32to1 (pSrcDrawable, pDstDrawable, rop, prgnDst, pptSrc,
     register int	    curBit;
     register int	    bitPos;
     register unsigned int   bits;
-    unsigned int	    startmask, endmask;
+    unsigned int	    startmask = 0, endmask = 0;
     int			    niStart = 0, niEnd = 0;
     int			    bitStart = 0, bitEnd = 0;
     int			    nl, nlMiddle;
     int			    nbox;
     BoxPtr		    pbox;
     int result;
-
-    extern int starttab[32], endtab[32];
-    extern unsigned int partmasks[32][32];
 
 
     if (!(planemask & 1))

@@ -44,7 +44,7 @@ not be used in advertising or otherwise to promote the sale, use or other
 dealings in this Software without prior written authorization from said
 copyright holders.
 */
-/* $XFree86: xc/programs/Xserver/Xprint/pcl/PclText.c,v 1.10 2001/12/19 21:55:58 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/Xprint/pcl/PclText.c,v 1.11 2003/10/29 22:11:00 tsi Exp $ */
 
 #ifdef DO_TWO_BYTE_PCL
 #include "iconv.h"
@@ -673,7 +673,7 @@ FontPropPtr props;
 FontInfoPtr pfi;
 char *fontname;
 Atom xa_pcl_font_name, xa_res, xa_ave_width, xa_spacing;
-int res, width = 1;
+int width = 1;
 int mask;
 int i;
 
@@ -723,7 +723,6 @@ int i;
 	    pin->height = (float) props->value / 10.0;
 	    mask |= 0x2;
 	} else if ( (Atom) props->name == xa_res ) {
-	    res = (int) props->value;
 	    mask |= 0x4;
 	} else if ( (Atom) props->name == xa_ave_width ) {
 	    width = (int) props->value / 10;

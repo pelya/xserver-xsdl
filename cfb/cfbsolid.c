@@ -25,7 +25,7 @@ in this Software without prior written authorization from The Open Group.
  *
  * Author:  Keith Packard, MIT X Consortium
  */
-/* $XFree86: xc/programs/Xserver/cfb/cfbsolid.c,v 3.8 2002/09/16 18:05:31 eich Exp $ */
+/* $XFree86: xc/programs/Xserver/cfb/cfbsolid.c,v 3.9 2003/10/29 22:44:53 tsi Exp $ */
 
 
 #include "X.h"
@@ -771,6 +771,7 @@ RROP_NAME(cfbFillRectSolid) (pDrawable, pGC, nBox, pBox)
 	}
 #endif
     }
+    RROP_UNDECLARE
 }
 
 void
@@ -1358,4 +1359,5 @@ RROP_NAME(cfbSolidSpans) (pDrawable, pGC, nInit, pptInit, pwidthInit, fSorted)
     }
     DEALLOCATE_LOCAL(pptFree);
     DEALLOCATE_LOCAL(pwidthFree);
+    RROP_UNDECLARE
 }

@@ -1,5 +1,5 @@
 /*
- * $XFree86: xc/programs/Xserver/render/picture.h,v 1.18 2002/11/06 22:45:36 keithp Exp $
+ * $XFree86: xc/programs/Xserver/render/picture.h,v 1.21 2003/11/03 05:12:01 tsi Exp $
  *
  * Copyright © 2000 SuSE, Inc.
  *
@@ -165,11 +165,13 @@ int	PictureParseCmapPolicy (const char *name);
 #ifdef WIN32
 typedef __int64		xFixed_32_32;
 #else
-#  if defined(__alpha__) || defined(__alpha) || \
+#  if defined (_LP64) || \
+      defined(__alpha__) || defined(__alpha) || \
       defined(ia64) || defined(__ia64__) || \
       defined(__sparc64__) || \
       defined(__s390x__) || \
-      defined(x86_64) || defined (__x86_64__)
+      defined(AMD64) || defined (__AMD64__) || \
+      (defined(sgi) && (_MIPS_SZLONG == 64))
 typedef long		xFixed_32_32;
 # else
 #  if defined(__GNUC__) && \

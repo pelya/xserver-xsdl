@@ -1,4 +1,35 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86Debug.c,v 1.4 2001/12/13 18:01:50 eich Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86Debug.c,v 1.7 2003/09/24 02:43:17 dawes Exp $ */
+
+/*
+ * Copyright (c) 2000-2003 by The XFree86 Project, Inc.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+ * THE COPYRIGHT HOLDER(S) OR AUTHOR(S) BE LIABLE FOR ANY CLAIM, DAMAGES OR
+ * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ *
+ * Except as contained in this notice, the name of the copyright holder(s)
+ * and author(s) shall not be used in advertising or otherwise to promote
+ * the sale, use or other dealings in this Software without prior written
+ * authorization from the copyright holder(s) and author(s).
+ */
+
+#ifdef __UNIXOS2__
+#define I_NEED_OS2_H
+#endif
 
 #include <sys/time.h>
 #include <unistd.h> 
@@ -154,7 +185,7 @@ xf86SPTimestamp(xf86TsPtr* timestamp, char *str)
 	else
 	    diff =  ((*timestamp)->sec - ts.tv_sec) * 1000
 		+(- ts.tv_usec + (*timestamp)->usec) / 1000;
-	ErrorF("%s Elapsed: %i\n",str,diff);
+	ErrorF("%s Elapsed: %li\n",str,diff);
     } else {
 	*timestamp = xnfalloc(sizeof(xf86TsRec));
 	gettimeofday((struct timeval*)*timestamp,NULL);

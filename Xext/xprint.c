@@ -64,7 +64,7 @@ copyright holders.
 **    *********************************************************
 **
 ********************************************************************/
-/* $XFree86: xc/programs/Xserver/Xext/xprint.c,v 1.13 2001/11/23 19:21:31 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/Xext/xprint.c,v 1.15 2003/10/28 23:08:44 tsi Exp $ */
 
 #define _XP_PRINT_SERVER_
 #include "X.h"
@@ -83,6 +83,7 @@ copyright holders.
 #include "Printstr.h"
 #include "../Xprint/DiPrint.h"
 #include "../Xprint/attributes.h"
+#include "modinit.h"
 
 static void XpResetProc(ExtensionEntry *);
 
@@ -282,7 +283,7 @@ static CARD32 allEvents = XPPrintMask | XPAttributeMask;
  */
 
 void
-XpExtensionInit(void)
+XpExtensionInit(INITARGS)
 {
     ExtensionEntry *extEntry;
     int i;
@@ -753,15 +754,17 @@ ProcXpGetPageDimensions(ClientPtr client)
         return XpErrorBase+XPBadContext;
     }
 
-    if(pContext->funcs.GetMediumDimensions != 0)
-        result = pContext->funcs.GetMediumDimensions(pContext, &width, &height);
-    else
+    if((pContext->funcs.GetMediumDimensions == 0) ||
+       (pContext->funcs.GetReproducibleArea == 0))
         return BadImplementation;
 
-    if(pContext->funcs.GetReproducibleArea != 0)
+    result = pContext->funcs.GetMediumDimensions(pContext, &width, &height);
+    if(result != Success)
+        return result;
+
         result = pContext->funcs.GetReproducibleArea(pContext, &rect);
-    else
-        return BadImplementation;
+    if(result != Success)
+        return result;
 
     rep.type = X_Reply;
     rep.sequenceNumber = client->sequence;
@@ -814,11 +817,13 @@ ProcXpSetImageResolution(ClientPtr client)
     }
 
     rep.prevRes = pContext->imageRes;
-    if(pContext->funcs.SetImageResolution != 0)
+    if(pContext->funcs.SetImageResolution != 0) {
         result = pContext->funcs.SetImageResolution(pContext,
 						    (int)stuff->imageRes,
 						    &status);
-    else
+	if(result != Success)
+	    status = FALSE;
+    } else
         status = FALSE;
 
     rep.type = X_Reply;
@@ -1491,7 +1496,6 @@ ProcXpStartJob(ClientPtr client)
     REQUEST(xPrintStartJobReq);
     XpContextPtr pContext;
     int result = Success;
-    XpScreenPtr pPrintScreen;
 
     REQUEST_SIZE_MATCH(xPrintStartJobReq);
 
@@ -1509,7 +1513,6 @@ ProcXpStartJob(ClientPtr client)
 	return BadValue;
     }
 
-    pPrintScreen = XpScreens[pContext->screenNum];
     if(pContext->funcs.StartJob != 0)
         result = pContext->funcs.StartJob(pContext, 
 			 (stuff->saveData == XPGetData)? TRUE:FALSE,
@@ -1533,7 +1536,6 @@ static int
 ProcXpEndJob(ClientPtr client)
 {
     REQUEST(xPrintEndJobReq);
-    XpScreenPtr pPrintScreen;
     int result = Success;
     XpContextPtr pContext;
 
@@ -1542,8 +1544,6 @@ ProcXpEndJob(ClientPtr client)
     if((pContext = (XpContextPtr)client->devPrivates[XpClientPrivateIndex].ptr)
        == (XpContextPtr)NULL)
         return XpErrorBase+XPBadSequence;
-
-    pPrintScreen = XpScreens[pContext->screenNum];
 
     if(!(pContext->state & JOB_STARTED))
 	return XpErrorBase+XPBadSequence;
@@ -1603,8 +1603,6 @@ ProcXpEndJob(ClientPtr client)
 static Bool
 DoStartDoc(ClientPtr client, XpStDocPtr c)
 {
-    XpScreenPtr pPrintScreen;
-    int result = Success;
     XpContextPtr pContext = c->pContext;
 
     if(c->pContext->state & JOB_GET_DATA && 
@@ -1619,10 +1617,8 @@ DoStartDoc(ClientPtr client, XpStDocPtr c)
 	return TRUE;
     }
     
-    pPrintScreen = XpScreens[pContext->screenNum];
-
     if(pContext->funcs.StartDoc != 0)
-        result = pContext->funcs.StartDoc(pContext, c->type);
+        (void) pContext->funcs.StartDoc(pContext, c->type);
     else
     {
 	    SendErrorToClient(client, XpReqCode, X_PrintStartPage, 0, 
@@ -1682,7 +1678,6 @@ static int
 ProcXpEndDoc(ClientPtr client)
 {
     REQUEST(xPrintEndDocReq);
-    XpScreenPtr pPrintScreen;
     XpContextPtr pContext;
     int result = Success;
 
@@ -1691,8 +1686,6 @@ ProcXpEndDoc(ClientPtr client)
     if((pContext = (XpContextPtr)client->devPrivates[XpClientPrivateIndex].ptr)
        == (XpContextPtr)NULL)
         return XpErrorBase+XPBadSequence;
-
-    pPrintScreen = XpScreens[pContext->screenNum];
 
     if(!(pContext->state & DOC_RAW_STARTED) &&
        !(pContext->state & DOC_COOKED_STARTED))
@@ -1744,7 +1737,6 @@ DoStartPage(
     ClientPtr client,
     XpStPagePtr c)
 {
-    XpScreenPtr pPrintScreen;
     WindowPtr pWin = c->pWin;
     int result = Success;
     XpContextPtr pContext = c->pContext;
@@ -1815,9 +1807,6 @@ DoStartPage(
     pPage->context = pContext;
     pContext->pageWin = c->pWin->drawable.id;
 
-    pPrintScreen = XpScreens[pContext->screenNum];
-
-
     if(pContext->funcs.StartPage != 0)
         result = pContext->funcs.StartPage(pContext, pWin);
     else
@@ -1884,7 +1873,6 @@ static int
 ProcXpEndPage(ClientPtr client)
 {
     REQUEST(xPrintEndPageReq);
-    XpScreenPtr pPrintScreen;
     int result = Success;
     XpContextPtr pContext;
     XpPagePtr page;
@@ -1899,7 +1887,6 @@ ProcXpEndPage(ClientPtr client)
     if(!(pContext->state & PAGE_STARTED))
 	return XpErrorBase+XPBadSequence;
 
-    pPrintScreen = XpScreens[pContext->screenNum];
     pWin = (WindowPtr )LookupIDByType(pContext->pageWin, RT_WINDOW);
 
     /* Call the ddx's EndPage proc. */

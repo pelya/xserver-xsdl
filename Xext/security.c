@@ -24,7 +24,7 @@ used in advertising or otherwise to promote the sale, use or other dealings
 in this Software without prior written authorization from The Open Group.
 
 */
-/* $XFree86: xc/programs/Xserver/Xext/security.c,v 1.11 2002/05/31 18:45:53 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/Xext/security.c,v 1.16 2003/11/17 22:20:26 dawes Exp $ */
 
 #include "dixstruct.h"
 #include "extnsionst.h"
@@ -56,6 +56,8 @@ extern unsigned char LbxReqCode;
 #undef index
 #endif
 
+#include "modinit.h"
+
 static int SecurityErrorBase;  /* first Security error number */
 static int SecurityEventBase;  /* first Security event number */
 
@@ -73,14 +75,10 @@ static RESTYPE RTEventClient;
  * the extension can't be listed or queried.
  */
 int (*UntrustedProcVector[256])(
-#if NeedNestedPrototypes
     ClientPtr /*client*/
-#endif
 );
 int (*SwappedUntrustedProcVector[256])(
-#if NeedNestedPrototypes
     ClientPtr /*client*/
-#endif
 );
 
 /* SecurityAudit
@@ -102,9 +100,8 @@ SecurityAudit(char *format, ...)
 
     if (auditTrailLevel < SECURITY_AUDIT_LEVEL)
 	return;
-    AuditPrefix(format);
     va_start(args, format);
-    VErrorF(format, args);
+    VAuditF(format, args);
     va_end(args);
 } /* SecurityAudit */
 
@@ -123,9 +120,9 @@ SecurityAudit(char *format, ...)
  */
 
 static int
-SecurityDeleteAuthorization(value, id)
-    pointer value;
-    XID id;
+SecurityDeleteAuthorization(
+    pointer value,
+    XID id)
 {
     SecurityAuthorizationPtr pAuth = (SecurityAuthorizationPtr)value;
     unsigned short name_len, data_len;
@@ -141,6 +138,7 @@ SecurityDeleteAuthorization(value, id)
     assert(status);
     status = RemoveAuthorization(name_len, name, data_len, data);
     assert(status);
+    (void)status;
 
     /* free the auth timer if there is one */
 
@@ -181,9 +179,9 @@ SecurityDeleteAuthorization(value, id)
 
 /* resource delete function for RTEventClient */
 static int
-SecurityDeleteAuthorizationEventClient(value, id)
-    pointer value;
-    XID id;
+SecurityDeleteAuthorizationEventClient(
+    pointer value,
+    XID id)
 {
     OtherClientsPtr pEventClient, prev = NULL;
     SecurityAuthorizationPtr pAuth = (SecurityAuthorizationPtr)value;
@@ -223,9 +221,9 @@ SecurityDeleteAuthorizationEventClient(value, id)
  */
 
 static CARD32
-SecurityComputeAuthorizationTimeout(pAuth, seconds)
-    SecurityAuthorizationPtr pAuth;
-    unsigned int seconds;
+SecurityComputeAuthorizationTimeout(
+    SecurityAuthorizationPtr pAuth,
+    unsigned int seconds)
 {
     /* maxSecs is the number of full seconds that can be expressed in
      * 32 bits worth of milliseconds
@@ -264,10 +262,10 @@ SecurityComputeAuthorizationTimeout(pAuth, seconds)
  */
 
 static CARD32
-SecurityAuthorizationExpired(timer, time, pval)
-    OsTimerPtr timer;
-    CARD32 time;
-    pointer pval;
+SecurityAuthorizationExpired(
+    OsTimerPtr timer,
+    CARD32 time,
+    pointer pval)
 {
     SecurityAuthorizationPtr pAuth = (SecurityAuthorizationPtr)pval;
 
@@ -299,8 +297,8 @@ SecurityAuthorizationExpired(timer, time, pval)
  */
 
 static void
-SecurityStartAuthorizationTimer(pAuth)
-    SecurityAuthorizationPtr pAuth;
+SecurityStartAuthorizationTimer(
+    SecurityAuthorizationPtr pAuth)
 {
     pAuth->timer = TimerSet(pAuth->timer, 0,
 	SecurityComputeAuthorizationTimeout(pAuth, pAuth->timeout),
@@ -313,8 +311,8 @@ SecurityStartAuthorizationTimer(pAuth)
  */
 
 static int
-ProcSecurityQueryVersion(client)
-    ClientPtr client;
+ProcSecurityQueryVersion(
+    ClientPtr client)
 {
     /* REQUEST(xSecurityQueryVersionReq); */
     xSecurityQueryVersionReply 	rep;
@@ -345,10 +343,10 @@ ProcSecurityQueryVersion(client)
 
 
 static int
-SecurityEventSelectForAuthorization(pAuth, client, mask)
-    SecurityAuthorizationPtr pAuth;
-    ClientPtr client;
-    Mask mask;
+SecurityEventSelectForAuthorization(
+    SecurityAuthorizationPtr pAuth,
+    ClientPtr client,
+    Mask mask)
 {
     OtherClients *pEventClient;
 
@@ -385,8 +383,8 @@ SecurityEventSelectForAuthorization(pAuth, client, mask)
 
 
 static int
-ProcSecurityGenerateAuthorization(client)
-    ClientPtr client;
+ProcSecurityGenerateAuthorization(
+    ClientPtr client)
 {
     REQUEST(xSecurityGenerateAuthorizationReq);
     int len;			/* request length in CARD32s*/
@@ -582,8 +580,8 @@ bailout:
 } /* ProcSecurityGenerateAuthorization */
 
 static int
-ProcSecurityRevokeAuthorization(client)
-    ClientPtr client;
+ProcSecurityRevokeAuthorization(
+    ClientPtr client)
 {
     REQUEST(xSecurityRevokeAuthorizationReq);
     SecurityAuthorizationPtr pAuth;
@@ -607,8 +605,8 @@ ProcSecurityRevokeAuthorization(client)
 
 
 static int
-ProcSecurityDispatch(client)
-    ClientPtr client;
+ProcSecurityDispatch(
+    ClientPtr client)
 {
     REQUEST(xReq);
 
@@ -626,8 +624,8 @@ ProcSecurityDispatch(client)
 } /* ProcSecurityDispatch */
 
 static int
-SProcSecurityQueryVersion(client)
-    ClientPtr client;
+SProcSecurityQueryVersion(
+    ClientPtr client)
 {
     REQUEST(xSecurityQueryVersionReq);
     register char 	n;
@@ -641,8 +639,8 @@ SProcSecurityQueryVersion(client)
 
 
 static int
-SProcSecurityGenerateAuthorization(client)
-    ClientPtr client;
+SProcSecurityGenerateAuthorization(
+    ClientPtr client)
 {
     REQUEST(xSecurityGenerateAuthorizationReq);
     register char 	n;
@@ -664,8 +662,8 @@ SProcSecurityGenerateAuthorization(client)
 
 
 static int
-SProcSecurityRevokeAuthorization(client)
-    ClientPtr client;
+SProcSecurityRevokeAuthorization(
+    ClientPtr client)
 {
     REQUEST(xSecurityRevokeAuthorizationReq);
     register char 	n;
@@ -678,8 +676,8 @@ SProcSecurityRevokeAuthorization(client)
 
 
 static int
-SProcSecurityDispatch(client)
-    ClientPtr client;
+SProcSecurityDispatch(
+    ClientPtr client)
 {
     REQUEST(xReq);
 
@@ -697,8 +695,9 @@ SProcSecurityDispatch(client)
 } /* SProcSecurityDispatch */
 
 static void 
-SwapSecurityAuthorizationRevokedEvent(from, to)
-    xSecurityAuthorizationRevokedEvent *from, *to;
+SwapSecurityAuthorizationRevokedEvent(
+    xSecurityAuthorizationRevokedEvent *from,
+    xSecurityAuthorizationRevokedEvent *to)
 {
     to->type = from->type;
     to->detail = from->detail;
@@ -726,10 +725,10 @@ SwapSecurityAuthorizationRevokedEvent(from, to)
  */
 
 static void
-SecurityDetermineEventPropogationLimits(dev, ppWin, ppStopWin)
-    DeviceIntPtr dev;
-    WindowPtr *ppWin;
-    WindowPtr *ppStopWin;
+SecurityDetermineEventPropogationLimits(
+    DeviceIntPtr dev,
+    WindowPtr *ppWin,
+    WindowPtr *ppStopWin)
 {
     WindowPtr pFocusWin = dev->focus ? dev->focus->win : NoneWin;
 
@@ -896,9 +895,9 @@ SecurityCheckDeviceAccess(client, dev, fromRequest)
  */
 
 static pointer
-SecurityAuditResourceIDAccess(client, id)
-    ClientPtr client;
-    XID id;
+SecurityAuditResourceIDAccess(
+    ClientPtr client,
+    XID id)
 {
     int cid = CLIENT_ID(id);
     int reqtype = ((xReq *)client->requestBuffer)->reqType;
@@ -950,12 +949,12 @@ SecurityAuditResourceIDAccess(client, id)
  */
 
 static pointer
-SecurityCheckResourceIDAccess(client, id, rtype, access_mode, rval)
-    ClientPtr client;
-    XID id;
-    RESTYPE rtype;
-    Mask access_mode;
-    pointer rval;
+SecurityCheckResourceIDAccess(
+    ClientPtr client,
+    XID id,
+    RESTYPE rtype,
+    Mask access_mode,
+    pointer rval)
 {
     int cid = CLIENT_ID(id);
     int reqtype = ((xReq *)client->requestBuffer)->reqType;
@@ -1116,10 +1115,10 @@ SecurityCheckResourceIDAccess(client, id, rtype, access_mode, rval)
  */
 
 static void
-SecurityClientStateCallback(pcbl, nulldata, calldata)
-    CallbackListPtr *pcbl;
-    pointer nulldata;
-    pointer calldata;
+SecurityClientStateCallback(
+    CallbackListPtr *pcbl,
+    pointer nulldata,
+    pointer calldata)
 {
     NewClientInfoRec *pci = (NewClientInfoRec *)calldata;
     ClientPtr client = pci->client;
@@ -1220,6 +1219,7 @@ SecurityCensorImage(client, pVisibleRegion, widthBytesLine, pDraw, x, y, w, h,
     unsigned int format;
     char * pBuf;
 {
+    ScreenPtr pScreen = pDraw->pScreen;
     RegionRec imageRegion;  /* region representing x,y,w,h */
     RegionRec censorRegion; /* region to obliterate */
     BoxRec imageBox;
@@ -1230,7 +1230,7 @@ SecurityCensorImage(client, pVisibleRegion, widthBytesLine, pDraw, x, y, w, h,
     imageBox.x2 = x + w;
     imageBox.y2 = y + h;
     REGION_INIT(pScreen, &imageRegion, &imageBox, 1);
-    REGION_INIT(pScreen, &censorRegion, NullBox, 0);
+    REGION_NULL(pScreen, &censorRegion);
 
     /* censorRegion = imageRegion - visibleRegion */
     REGION_SUBTRACT(pScreen, &censorRegion, &imageRegion, pVisibleRegion);
@@ -1348,7 +1348,7 @@ static char *SecurityKeywords[] = {
 /*#define PROPDEBUG  1*/
 
 static void
-SecurityFreePropertyAccessList()
+SecurityFreePropertyAccessList(void)
 {
     while (PropertyAccessList)
     {
@@ -1365,8 +1365,8 @@ SecurityFreePropertyAccessList()
 #endif
 
 static char *
-SecuritySkipWhitespace(p)
-    char *p;
+SecuritySkipWhitespace(
+    char *p)
 {
     while (SecurityIsWhitespace(*p))
 	p++;
@@ -1375,8 +1375,8 @@ SecuritySkipWhitespace(p)
 
 
 static char *
-SecurityParseString(rest)
-    char **rest;
+SecurityParseString(
+    char **rest)
 {
     char *startOfString;
     char *s = *rest;
@@ -1412,8 +1412,8 @@ SecurityParseString(rest)
 
 
 static int
-SecurityParseKeyword(p)
-    char **p;
+SecurityParseKeyword(
+    char **p)
 {
     int i;
     char *s = *p;
@@ -1433,8 +1433,8 @@ SecurityParseKeyword(p)
 
 
 static Bool
-SecurityParsePropertyAccessRule(p)
-    char *p;
+SecurityParsePropertyAccessRule(
+    char *p)
 {
     char *propname;
     char c;
@@ -1574,8 +1574,8 @@ static char **SecurityPolicyStrings = NULL;
 static int nSecurityPolicyStrings = 0;
 
 static Bool
-SecurityParseSitePolicy(p)
-    char *p;
+SecurityParseSitePolicy(
+    char *p)
 {
     char *policyStr = SecurityParseString(&p);
     char *copyPolicyStr;
@@ -1613,7 +1613,7 @@ SecurityGetSitePolicyStrings(n)
 } /* SecurityGetSitePolicyStrings */
 
 static void
-SecurityFreeSitePolicyStrings()
+SecurityFreeSitePolicyStrings(void)
 {
     if (SecurityPolicyStrings)
     {
@@ -1630,7 +1630,7 @@ SecurityFreeSitePolicyStrings()
 
 
 static void
-SecurityLoadPropertyAccessList()
+SecurityLoadPropertyAccessList(void)
 {
     FILE *f;
     int lineNumber = 0;
@@ -1732,9 +1732,9 @@ SecurityLoadPropertyAccessList()
 
 
 static Bool
-SecurityMatchString(ws, cs)
-    char *ws;
-    char *cs;
+SecurityMatchString(
+    char *ws,
+    char *cs)
 {
     while (*ws && *cs)
     {
@@ -1908,8 +1908,8 @@ SecurityCheckPropertyAccess(client, pWin, propertyName, access_mode)
  */
 
 static void
-SecurityResetProc(extEntry)
-    ExtensionEntry	*extEntry;
+SecurityResetProc(
+    ExtensionEntry *extEntry)
 {
     SecurityFreePropertyAccessList();
     SecurityFreeSitePolicyStrings();
@@ -1944,7 +1944,7 @@ XSecurityOptions(argc, argv, i)
  */
 
 void
-SecurityExtensionInit()
+SecurityExtensionInit(INITARGS)
 {
     ExtensionEntry	*extEntry;
     int i;

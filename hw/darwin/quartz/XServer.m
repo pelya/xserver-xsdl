@@ -34,7 +34,7 @@
  * sale, use or other dealings in this Software without prior written
  * authorization.
  */
-/* $XFree86: xc/programs/Xserver/hw/darwin/quartz/XServer.m,v 1.8 2003/01/23 00:34:26 torrey Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/darwin/quartz/XServer.m,v 1.17 2003/11/14 20:27:58 torrey Exp $ */
 
 #include "quartzCommon.h"
 
@@ -42,7 +42,12 @@
 #include "X.h"
 #include "Xproto.h"
 #include "os.h"
+#include "opaque.h"
 #include "darwin.h"
+#include "quartz.h"
+#define _APPLEWM_SERVER_
+#include "applewm.h"
+#include "applewmExt.h"
 #undef BOOL
 
 #import "XServer.h"
@@ -64,14 +69,6 @@
 #import <IOKit/pwr_mgt/IOPMLib.h>
 #import <IOKit/IOMessage.h>
 
-#define ENQUEUE(xe)                                                         \
-{                                                                           \
-    char byte = 0;                                                          \
-    DarwinEQEnqueue(xe);                                                    \
-    /* signal there is an event ready to handle */                          \
-    write(eventWriteFD, &byte, 1);                                          \
-}
-
 // Types of shells
 enum {
     shell_Unknown,
@@ -90,7 +87,7 @@ static shellList_t const shellList[] = {
     { "sh",     shell_Bourne },		// standard Bourne shell
     { "zsh",    shell_Bourne },		// Z shell
     { "bash",   shell_Bourne },		// GNU Bourne again shell
-    { NULL,	shell_Unknown }
+    { NULL,     shell_Unknown }
 };
 
 extern int argcGlobal;
@@ -99,7 +96,6 @@ extern char **envpGlobal;
 extern int main(int argc, char *argv[], char *envp[]);
 extern void HideMenuBar(void);
 extern void ShowMenuBar(void);
-extern void QuartzReallySetCursor();
 static void childDone(int sig);
 static void powerDidChange(void *x, io_service_t y, natural_t messageType,
                            void *messageArgument);
@@ -122,15 +118,15 @@ static io_connect_t root_port;
 
     serverState = server_NotStarted;
     serverLock = [[NSRecursiveLock alloc] init];
+    pendingClients = nil;
     clientPID = 0;
     sendServerEvents = NO;
+    x11Active = YES;
     serverVisible = NO;
     rootlessMenuBarVisible = YES;
     queueShowServer = YES;
     quartzServerQuitting = NO;
     mouseState = 0;
-    eventWriteFD = quartzEventWriteFD;
-    windowClass = [NSWindow class];
 
     // set up a port to safely send messages to main thread from server thread
     signalPort = [[NSPort port] retain];
@@ -144,6 +140,11 @@ static io_connect_t root_port;
                                 forMode:NSDefaultRunLoopMode];
     [[NSRunLoop currentRunLoop] addPort:signalPort
                                 forMode:NSModalPanelRunLoopMode];
+
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                          selector:@selector(windowBecameKey:)
+                                          name:NSWindowDidBecomeKeyNotification
+                                          object:nil];
 
     return self;
 }
@@ -164,7 +165,7 @@ static io_connect_t root_port;
     [self showServer:NO];
     sendServerEvents = NO;
 
-    if (clientPID != 0 || !quartzStartClients) {
+    if (!quitWithoutQuery && (clientPID != 0 || !quartzStartClients)) {
         int but;
 
         but = NSRunAlertPanel(NSLocalizedString(@"Quit X server?",@""),
@@ -270,11 +271,18 @@ static io_connect_t root_port;
             break;
         case NSLeftMouseDown:
             [self getMousePosition:&xe fromEvent:anEvent];
-            if (quartzRootless &&
-                ! ([anEvent window] &&
-                   [[anEvent window] isKindOfClass:windowClass])) {
-                // Click in non X window - ignore
-                return NO;
+            if (quartzRootless) {
+                // Check that event is in X11 window
+                if (!quartzProcs->IsX11Window([anEvent window],
+                                              [anEvent windowNumber]))
+                {
+                    if (x11Active)
+                        [self activateX11:NO];
+                    return NO;
+                } else {
+                    if (!x11Active)
+                        [self activateX11:YES];
+                }
             }
             mouse1Pressed = YES;
             xe.u.u.type = ButtonPress;
@@ -310,6 +318,8 @@ static io_connect_t root_port;
             break;
         case NSKeyDown:
         case NSKeyUp:
+            if (!x11Active)
+                return NO;
             // If the mouse is not on the valid X display area,
             // we don't send the X server key events.
             if (![self getMousePosition:&xe fromEvent:nil])
@@ -321,6 +331,8 @@ static io_connect_t root_port;
             xe.u.u.detail = [anEvent keyCode];
             break;
         case NSFlagsChanged:
+            if (!x11Active)
+                return NO;
             [self getMousePosition:&xe fromEvent:nil];
             xe.u.u.type = kXDarwinUpdateModifiers;
             xe.u.clientMessage.u.l.longs0 = flags;
@@ -335,14 +347,13 @@ static io_connect_t root_port;
 
     [self sendXEvent:&xe];
 
-    // Rootless: Send first NSLeftMouseDown to windows and views so window
-    // ordering can be suppressed.
+    // Rootless: Send first NSLeftMouseDown to Cocoa windows and views so
+    // window ordering can be suppressed.
     // Don't pass further events - they (incorrectly?) bring the window
     // forward no matter what.
     if (quartzRootless  &&
         (type == NSLeftMouseDown || type == NSLeftMouseUp) &&
-        [anEvent clickCount] == 1 &&
-        [[anEvent window] isKindOfClass:windowClass])
+        [anEvent clickCount] == 1 && [anEvent window])
     {
         return NO;
     }
@@ -429,6 +440,27 @@ static io_connect_t root_port;
     }
 }
 
+
+// Load the appropriate display mode bundle
+- (BOOL)loadDisplayBundle
+{
+    if (quartzRootless) {
+        NSEnumerator *enumerator = [[Preferences displayModeBundles]
+                                            objectEnumerator];
+        NSString *bundleName;
+
+        while ((bundleName = [enumerator nextObject])) {
+            if (QuartzLoadDisplayBundle([bundleName cString]))
+                return YES;
+        }
+
+        return NO;
+    } else {
+        return QuartzLoadDisplayBundle("fullscreen.bundle");
+    }
+}
+
+
 // Start the X server thread and the client process
 - (void)startX
 {
@@ -454,6 +486,9 @@ static io_connect_t root_port;
         NSLog(@"\n%@", appVersion);
     else
         NSLog(@"No version");
+
+    if (![self loadDisplayBundle])
+        [NSApp terminate:nil];
 
     // Start the X server thread
     serverState = server_Starting;
@@ -517,6 +552,19 @@ static io_connect_t root_port;
     if (quartzServerQuitting) {
         [self quitServer];
         [NSApp replyToApplicationShouldTerminate:YES];
+        return;
+    }
+
+    if (pendingClients) {
+        NSEnumerator *enumerator = [pendingClients objectEnumerator];
+        NSString *filename;
+
+        while ((filename = [enumerator nextObject])) {
+            [self runClient:filename];
+        }
+
+        [pendingClients release];
+        pendingClients = nil;
     }
 }
 
@@ -666,6 +714,87 @@ static io_connect_t root_port;
     return YES;
 }
 
+// Start the specified client in its own task
+// FIXME: This should be unified with startXClients
+- (void)runClient:(NSString *)filename
+{
+    const char *command = [filename UTF8String];
+    const char *shell;
+    const char *argv[5];
+    int child1, child2 = 0;
+    int status;
+
+    shell = getenv("SHELL");
+    if (shell == NULL)
+        shell = "/bin/bash";
+
+    /* At least [ba]sh, [t]csh and zsh all work with this syntax. We
+       need to use an interactive shell to force it to load the user's
+       environment. */
+
+    argv[0] = shell;
+    argv[1] = "-i";
+    argv[2] = "-c";
+    argv[3] = command;
+    argv[4] = NULL;
+
+    /* Do the fork-twice trick to avoid having to reap zombies */
+
+    child1 = fork();
+
+    switch (child1) {
+        case -1:                                /* error */
+            break;
+
+        case 0:                                 /* child1 */
+            child2 = fork();
+
+            switch (child2) {
+                int max_files, i;
+                char buf[1024], *tem;
+
+            case -1:                            /* error */
+                _exit(1);
+
+            case 0:                             /* child2 */
+                /* close all open files except for standard streams */
+                max_files = sysconf(_SC_OPEN_MAX);
+                for (i = 3; i < max_files; i++)
+                    close(i);
+
+                /* ensure stdin is on /dev/null */
+                close(0);
+                open("/dev/null", O_RDONLY);
+
+                /* cd $HOME */
+                tem = getenv("HOME");
+                if (tem != NULL)
+                    chdir(tem);
+
+                /* Setup environment */
+                snprintf(buf, sizeof(buf), ":%s", display);
+                setenv("DISPLAY", buf, TRUE);
+                tem = getenv("PATH");
+                if (tem != NULL && tem[0] != NULL)
+                    snprintf(buf, sizeof(buf), "%s:/usr/X11R6/bin", tem);
+                else
+                    snprintf(buf, sizeof(buf), "/bin:/usr/bin:/usr/X11R6/bin");
+                setenv("PATH", buf, TRUE);
+
+                execvp(argv[0], (char **const) argv);
+
+                _exit(2);
+
+            default:                            /* parent (child1) */
+                _exit(0);
+            }
+            break;
+
+        default:                                /* parent */
+            waitpid(child1, &status, 0);
+    }
+}
+
 // Run the X server thread
 - (void)run
 {
@@ -710,6 +839,12 @@ static io_connect_t root_port;
 
     [self forceShowServer:YES];
     [NSApp activateIgnoringOtherApps:YES];
+}
+
+// Show the Aqua-X11 switch panel useful for fullscreen mode
+- (IBAction)showSwitchPanel:(id)sender
+{
+    [switchWindow orderFront:nil];
 }
 
 // Show the X server when sent message from GUI
@@ -787,11 +922,10 @@ static io_connect_t root_port;
 
     if (show) {
         if (!quartzRootless) {
-            QuartzFSCapture();
+            quartzProcs->CaptureScreens();
             HideMenuBar();
         }
-        xe.u.u.type = kXDarwinShow;
-        [self sendXEvent:&xe];
+        [self activateX11:YES];
 
         // the mouse location will have moved; track it
         xe.u.u.type = MotionNotify;
@@ -802,14 +936,19 @@ static io_connect_t root_port;
         xe.u.clientMessage.u.l.longs0 = [[NSApp currentEvent] modifierFlags];
         [self sendXEvent:&xe];
 
-        // put the pasteboard into the X cut buffer
-        [self readPasteboard];
+        // If there is no AppleWM-aware cut and paste manager, do what we can.
+        if ((AppleWMSelectedEvents() & AppleWMPasteboardNotifyMask) == 0) {
+            // put the pasteboard into the X cut buffer
+            [self readPasteboard];
+        }
     } else {
-        // put the X cut buffer on the pasteboard
-        [self writePasteboard];
+        // If there is no AppleWM-aware cut and paste manager, do what we can.
+        if ((AppleWMSelectedEvents() & AppleWMPasteboardNotifyMask) == 0) {
+            // put the X cut buffer on the pasteboard
+            [self writePasteboard];
+        }
 
-        xe.u.u.type = kXDarwinHide;
-        [self sendXEvent:&xe];
+        [self activateX11:NO];
     }
 
     serverVisible = show;
@@ -877,7 +1016,7 @@ static io_connect_t root_port;
     }
 #endif
 
-    ENQUEUE(xe);
+    DarwinEQEnqueue(xe);
 }
 
 // Handle messages from the X server thread
@@ -885,12 +1024,12 @@ static io_connect_t root_port;
 {
     unsigned msg = [portMessage msgid];
 
-    switch(msg) {
+    switch (msg) {
         case kQuartzServerHidden:
             // Make sure the X server wasn't queued to be shown again while
             // the hide was pending.
             if (!quartzRootless && !serverVisible) {
-                QuartzFSRelease();
+                quartzProcs->ReleaseScreens();
                 ShowMenuBar();
             }
             break;
@@ -908,13 +1047,43 @@ static io_connect_t root_port;
             break;
 
         case kQuartzCursorUpdate:
-            QuartzReallySetCursor();
+            if (quartzProcs->CursorUpdate)
+                quartzProcs->CursorUpdate();
             break;
 
         case kQuartzPostEvent:
         {
             const xEvent *xe = [[[portMessage components] lastObject] bytes];
-            ENQUEUE(xe);
+            DarwinEQEnqueue(xe);
+            break;
+        }
+
+        case kQuartzSetWindowMenu:
+        {
+            NSArray *list;
+            [[[portMessage components] lastObject] getBytes:&list];
+            [self setX11WindowList:list];
+            [list release];
+            break;
+        }
+
+        case kQuartzSetWindowMenuCheck:
+        {
+            int n;
+            [[[portMessage components] lastObject] getBytes:&n];
+            [self setX11WindowCheck:[NSNumber numberWithInt:n]];
+            break;
+        }
+
+        case kQuartzSetFrontProcess:
+            [NSApp activateIgnoringOtherApps:YES];
+            break;
+
+        case kQuartzSetCanQuit:
+        {
+            int n;
+            [[[portMessage components] lastObject] getBytes:&n];
+            quitWithoutQuery = (BOOL) n;
             break;
         }
 
@@ -939,6 +1108,234 @@ static io_connect_t root_port;
     }
 }
 
+// User selected an X11 window from a menu
+- (IBAction)itemSelected:(id)sender
+{
+    xEvent xe;
+
+    [NSApp activateIgnoringOtherApps:YES];
+
+    // Notify the client of the change through the X server thread
+    xe.u.u.type = kXDarwinControllerNotify;
+    xe.u.clientMessage.u.l.longs0 = AppleWMWindowMenuItem;
+    xe.u.clientMessage.u.l.longs1 = [sender tag];
+    [self sendXEvent:&xe];
+}
+
+// User selected Next from window menu
+- (IBAction)nextWindow:(id)sender
+{
+    QuartzMessageServerThread(kXDarwinControllerNotify, 1,
+                              AppleWMNextWindow);
+}
+
+// User selected Previous from window menu
+- (IBAction)previousWindow:(id)sender
+{
+    QuartzMessageServerThread(kXDarwinControllerNotify, 1,
+                              AppleWMPreviousWindow);
+}
+
+/*
+ * The XPR implementation handles close, minimize, and zoom actions for X11
+ * windows here, while CR handles these in the NSWindow class.
+ */
+
+// Handle Close from window menu for X11 window in XPR implementation
+- (IBAction)performClose:(id)sender
+{
+    QuartzMessageServerThread(kXDarwinControllerNotify, 1,
+                              AppleWMCloseWindow);
+}
+
+// Handle Minimize from window menu for X11 window in XPR implementation
+- (IBAction)performMiniaturize:(id)sender
+{
+    QuartzMessageServerThread(kXDarwinControllerNotify, 1,
+                              AppleWMMinimizeWindow);
+}
+
+// Handle Zoom from window menu for X11 window in XPR implementation
+- (IBAction)performZoom:(id)sender
+{
+    QuartzMessageServerThread(kXDarwinControllerNotify, 1,
+                              AppleWMZoomWindow);
+}
+
+// Handle "Bring All to Front" from window menu
+- (IBAction)bringAllToFront:(id)sender
+{
+    if ((AppleWMSelectedEvents() & AppleWMControllerNotifyMask) != 0) {
+        QuartzMessageServerThread(kXDarwinControllerNotify, 1,
+                                  AppleWMBringAllToFront);
+    } else {
+        [NSApp arrangeInFront:nil];
+    }
+}
+
+// This ends up at the end of the responder chain.
+- (IBAction)copy:(id)sender
+{
+    QuartzMessageServerThread(kXDarwinPasteboardNotify, 1,
+                              AppleWMCopyToPasteboard);
+}
+
+// Set whether or not X11 is active and should receive all key events
+- (void)activateX11:(BOOL)state
+{
+    if (state) {
+	QuartzMessageServerThread(kXDarwinActivate, 0);
+    }
+    else {
+	QuartzMessageServerThread(kXDarwinDeactivate, 0);
+    }
+
+    x11Active = state;
+}
+
+// Some NSWindow became the key window
+- (void)windowBecameKey:(NSWindow *)window
+{
+    if (quartzProcs->IsX11Window(window, [window windowNumber])) {
+        if (!x11Active)
+            [self activateX11:YES];
+    } else {
+        if (x11Active)
+            [self activateX11:NO];
+    }
+}
+
+// Set the Apple-WM specifiable part of the window menu
+- (void)setX11WindowList:(NSArray *)list
+{
+    NSMenuItem *item;
+    int first, count, i;
+    xEvent xe;
+
+    /* Work backwards so we don't mess up the indices */
+    first = [windowMenu indexOfItem:windowSeparator] + 1;
+    if (first > 0) {
+        count = [windowMenu numberOfItems];
+        for (i = count - 1; i >= first; i--)
+            [windowMenu removeItemAtIndex:i];
+    } else {
+        windowSeparator = (NSMenuItem *)[windowMenu addItemWithTitle:@""
+                                                    action:nil
+                                                    keyEquivalent:@""];
+    }
+
+    count = [dockMenu numberOfItems];
+    for (i = 0; i < count; i++)
+        [dockMenu removeItemAtIndex:0];
+
+    count = [list count];
+
+    for (i = 0; i < count; i++)
+    {
+        NSString *name, *shortcut;
+
+        name = [[list objectAtIndex:i] objectAtIndex:0];
+        shortcut = [[list objectAtIndex:i] objectAtIndex:1];
+
+        item = (NSMenuItem *)[windowMenu addItemWithTitle:name
+                                         action:@selector(itemSelected:)
+                                         keyEquivalent:shortcut];
+        [item setTarget:self];
+        [item setTag:i];
+        [item setEnabled:YES];
+
+        item = (NSMenuItem *)[dockMenu insertItemWithTitle:name
+                                       action:@selector(itemSelected:)
+                                       keyEquivalent:shortcut atIndex:i];
+        [item setTarget:self];
+        [item setTag:i];
+        [item setEnabled:YES];
+    }
+
+    if (checkedWindowItem >= 0 && checkedWindowItem < count)
+    {
+        item = (NSMenuItem *)[windowMenu itemAtIndex:first + checkedWindowItem];
+        [item setState:NSOnState];
+        item = (NSMenuItem *)[dockMenu itemAtIndex:checkedWindowItem];
+        [item setState:NSOnState];
+    }
+
+    // Notify the client of the change through the X server thread
+    xe.u.u.type = kXDarwinControllerNotify;
+    xe.u.clientMessage.u.l.longs0 = AppleWMWindowMenuNotify;
+    [self sendXEvent:&xe];
+}
+
+// Set the checked item on the Apple-WM specifiable window menu
+- (void)setX11WindowCheck:(NSNumber *)nn
+{
+    NSMenuItem *item;
+    int first, count;
+    int n = [nn intValue];
+
+    first = [windowMenu indexOfItem:windowSeparator] + 1;
+    count = [windowMenu numberOfItems] - first;
+
+    if (checkedWindowItem >= 0 && checkedWindowItem < count)
+    {
+        item = (NSMenuItem *)[windowMenu itemAtIndex:first + checkedWindowItem];
+        [item setState:NSOffState];
+        item = (NSMenuItem *)[dockMenu itemAtIndex:checkedWindowItem];
+        [item setState:NSOffState];
+    }
+    if (n >= 0 && n < count)
+    {
+        item = (NSMenuItem *)[windowMenu itemAtIndex:first + n];
+        [item setState:NSOnState];
+        item = (NSMenuItem *)[dockMenu itemAtIndex:n];
+        [item setState:NSOnState];
+    }
+    checkedWindowItem = n;
+}
+
+// Return whether or not a menu item should be enabled
+- (BOOL)validateMenuItem:(NSMenuItem *)item
+{
+    NSMenu *menu = [item menu];
+
+    if (menu == windowMenu && [item tag] == 30) {
+        // Mode switch panel is for fullscreen only
+        return !quartzRootless;
+    }
+    else if ((menu == windowMenu && [item tag] != 40) || menu == dockMenu) {
+        // The special window and dock menu items should not be active unless
+        // there is an AppleWM-aware window manager running.
+        return (AppleWMSelectedEvents() & AppleWMControllerNotifyMask) != 0;
+    }
+    else {
+        return TRUE;
+    }
+}
+
+/*
+ * Application Delegate Methods
+ */
+
+- (void)applicationDidHide:(NSNotification *)aNotification
+{
+    if ((AppleWMSelectedEvents() & AppleWMControllerNotifyMask) != 0) {
+        QuartzMessageServerThread(kXDarwinControllerNotify, 1,
+                                  AppleWMHideAll);
+    } else {
+        // FIXME: We need to hide Xplugin windows here
+    }
+}
+
+- (void)applicationDidUnhide:(NSNotification *)aNotification
+{
+    if ((AppleWMSelectedEvents() & AppleWMControllerNotifyMask) != 0) {
+        QuartzMessageServerThread(kXDarwinControllerNotify, 1,
+                                  AppleWMShowAll);
+    } else {
+        [NSApp arrangeInFront:nil];
+    }
+}
+
 // Called when the user clicks the application icon,
 // but not when Cmd-Tab is used.
 // Rootless: Don't switch until applicationWillBecomeActive.
@@ -958,8 +1355,38 @@ static io_connect_t root_port;
 
 - (void)applicationWillBecomeActive:(NSNotification *)aNotification
 {
-    if (quartzRootless)
+    if (quartzRootless) {
         [self showServer:YES];
+
+        // If there is no AppleWM-aware window manager, we can't allow
+        // interleaving of Aqua and X11 windows.
+        if ((AppleWMSelectedEvents() & AppleWMControllerNotifyMask) == 0) {
+            [NSApp arrangeInFront:nil];
+        }
+    }
+}
+
+// Called when the user opens a document type that we claim (ie. an X11 executable).
+- (BOOL)application:(NSApplication *)theApplication openFile:(NSString *)filename
+{
+    if (serverState == server_Running) {
+        [self runClient:filename];
+        return YES;
+    }
+    else if (serverState == server_NotStarted || serverState == server_Starting) {
+        if ([filename UTF8String][0] != ':') {          // Ignore display names
+            if (!pendingClients) {
+                pendingClients = [[NSMutableArray alloc] initWithCapacity:1];
+            }
+            [pendingClients addObject:filename];
+            return YES;                 // Assume it will launch successfully
+        }
+        return NO;
+    }
+
+    // If the server is quitting or done,
+    // its too late to launch new clients this time.
+    return NO;
 }
 
 @end
@@ -970,7 +1397,7 @@ static io_connect_t root_port;
 // NSPort is not thread safe.
 void QuartzMessageMainThread(unsigned msg, void *data, unsigned length)
 {
-    if (msg == kQuartzPostEvent) {
+    if (length > 0) {
         NSData *eventData = [NSData dataWithBytes:data length:length];
         NSArray *eventArray = [NSArray arrayWithObject:eventData];
         NSPortMessage *newMessage =
@@ -984,6 +1411,36 @@ void QuartzMessageMainThread(unsigned msg, void *data, unsigned length)
         [signalMessage setMsgid:msg];
         [signalMessage sendBeforeDate:[NSDate distantPast]];
     }
+}
+
+void
+QuartzSetWindowMenu(int nitems, const char **items,
+                    const char *shortcuts)
+{
+    NSMutableArray *array;
+    int i;
+
+    array = [[NSMutableArray alloc] initWithCapacity:nitems];
+
+    for (i = 0; i < nitems; i++) {
+        NSMutableArray *subarray = [NSMutableArray arrayWithCapacity:2];
+        NSString *string = [NSString stringWithUTF8String:items[i]];
+
+        [subarray addObject:string];
+
+        if (shortcuts[i] != 0) {
+            NSString *number = [NSString stringWithFormat:@"%d",
+                                         shortcuts[i]];
+            [subarray addObject:number];
+        } else
+            [subarray addObject:@""];
+
+        [array addObject:subarray];
+    }
+
+    /* Send the array of strings over to the main thread. */
+    /* Will be released in main thread. */
+    QuartzMessageMainThread(kQuartzSetWindowMenu, &array, sizeof(NSArray *));
 }
 
 // Handle SIGCHLD signals
@@ -1025,5 +1482,5 @@ static void powerDidChange(
             }
             break;
     }
-    
+
 }

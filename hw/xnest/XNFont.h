@@ -12,6 +12,7 @@ the suitability of this software for any purpose.  It is provided "as
 is" without express or implied warranty.
 
 */
+/* $XFree86: xc/programs/Xserver/hw/xnest/XNFont.h,v 1.2 2003/11/16 05:05:20 dawes Exp $ */
 
 
 #ifndef XNESTFONT_H
@@ -30,7 +31,7 @@ extern int xnestFontPrivateIndex;
 
 #define xnestFont(pFont) (xnestFontStruct(pFont)->fid)
 
-Bool xnestRealizeFont();
-Bool xnestUnrealizeFont();
+Bool xnestRealizeFont(ScreenPtr pScreen, FontPtr pFont);
+Bool xnestUnrealizeFont(ScreenPtr pScreen, FontPtr pFont);
 
 #endif /* XNESTFONT_H */

@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/mfb/mfbfillarc.c,v 1.5 2001/12/14 20:00:06 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/mfb/mfbfillarc.c,v 1.6 2003/07/16 01:38:55 dawes Exp $ */
 /************************************************************
 
 Copyright 1989, 1998  The Open Group
@@ -29,7 +29,7 @@ in this Software without prior written authorization from The Open Group.
 
 #include "X.h"
 #include "Xprotostr.h"
-#include "miscstruct.h"
+#include "regionstr.h"
 #include "gcstruct.h"
 #include "pixmapstr.h"
 #include "scrnintstr.h"
@@ -39,10 +39,10 @@ in this Software without prior written authorization from The Open Group.
 #include "mi.h"
 
 static void
-mfbFillEllipseSolid(pDraw, arc, rop)
-    DrawablePtr pDraw;
-    xArc *arc;
-    register int rop;
+mfbFillEllipseSolid(
+    DrawablePtr pDraw,
+    xArc *arc,
+    register int rop)
 {
     int x, y, e;
     int yk, xk, ym, xm, dx, dy, xorg, yorg;
@@ -220,11 +220,11 @@ mfbFillEllipseSolid(pDraw, arc, rop)
     }
 
 static void
-mfbFillArcSliceSolidCopy(pDraw, pGC, arc, rop)
-    DrawablePtr pDraw;
-    GCPtr pGC;
-    xArc *arc;
-    register int rop;
+mfbFillArcSliceSolidCopy(
+    DrawablePtr pDraw,
+    GCPtr pGC,
+    xArc *arc,
+    register int rop)
 {
     register PixelType *addrl;
     register int n;

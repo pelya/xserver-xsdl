@@ -31,14 +31,18 @@
  *		Harold L Hunt II
  *		MATSUZAKI Kensuke
  */
-/* $XFree86: xc/programs/Xserver/hw/xwin/winwndproc.c,v 1.24 2003/02/12 15:01:38 alanh Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xwin/winwndproc.c,v 1.26 2003/10/02 13:30:11 eich Exp $ */
 
 #include "win.h"
 #include <commctrl.h>
+#include "winprefs.h"
 
-BOOL CALLBACK
-winChangeDepthDlgProc (HWND hDialog, UINT message,
-		       WPARAM wParam, LPARAM lParam);
+/*
+ * Global variables
+ */
+
+Bool			g_fCursor = TRUE;
+
 
 
 /*
@@ -55,7 +59,6 @@ winWindowProc (HWND hwnd, UINT message,
   static ScreenPtr		s_pScreen = NULL;
   static HWND			s_hwndLastPrivates = NULL;
   static HINSTANCE		s_hInstance;
-  static Bool			s_fCursor = TRUE;
   static Bool			s_fTracking = FALSE;
   static unsigned long		s_ulServerGeneration = 0;
   int				iScanCode;
@@ -90,6 +93,10 @@ winWindowProc (HWND hwnd, UINT message,
   /* Branch on message type */
   switch (message)
     {
+    case WM_TRAYICON:
+      return winHandleIconMessage (hwnd, message, wParam, lParam,
+				   s_pScreenPriv);
+
     case WM_CREATE:
 #if CYGDEBUG
       ErrorF ("winWindowProc - WM_CREATE\n");
@@ -113,6 +120,23 @@ winWindowProc (HWND hwnd, UINT message,
 
       /* Store the mode key states so restore doesn't try to restore them */
       winStoreModeKeyStates (s_pScreen);
+
+      /* Setup tray icon */
+      if (!s_pScreenInfo->fNoTrayIcon)
+	{
+	  /*
+	   * NOTE: The WM_CREATE message is processed before CreateWindowEx
+	   * returns, so s_pScreenPriv->hwndScreen is invalid at this point.
+	   * We go ahead and copy our hwnd parameter over top of the screen
+	   * privates hwndScreen so that we have a valid value for
+	   * that member.  Otherwise, the tray icon will disappear
+	   * the first time you move the mouse over top of it.
+	   */
+	  
+	  s_pScreenPriv->hwndScreen = hwnd;
+
+	  winInitNotifyIcon (s_pScreenPriv);
+	}
       return 0;
 
     case WM_DISPLAYCHANGE:
@@ -161,7 +185,7 @@ winWindowProc (HWND hwnd, UINT message,
        *		Shadow DirectDraw Non-Locking
        *		Primary DirectDraw
        *
-       * TrueColor --> TrueColor depth changs are non-optimal for:
+       * TrueColor --> TrueColor depth changes are non-optimal for:
        *	Windowed:
        *		Shadow GDI
        *
@@ -189,45 +213,14 @@ winWindowProc (HWND hwnd, UINT message,
 	  /* Cannot display the visual until the depth is restored */
 	  ErrorF ("winWindowProc - Disruptive change in depth\n");
 
-	  /* Check if the dialog box already exists */
-	  if (g_hDlgDepthChange != NULL)
-	    {
-	      ErrorF ("winWindowProc - Dialog box already exists\n");
+	  /* Display Exit dialog */
+	  winDisplayDepthChangeDialog (s_pScreenPriv);
 
-	      /* Dialog box already exists, just display it */
-	      ShowWindow (g_hDlgDepthChange, SW_SHOWDEFAULT);
-	    }
-	  else
-	    {
-	      /*
-	       * Display a notification to the user that the visual 
-	       * will not be displayed until the Windows display depth 
-	       * is restored to the original value.
-	       */
-	      g_hDlgDepthChange = CreateDialogParam (s_hInstance,
-						     "DEPTH_CHANGE_BOX",
-						     hwnd,
-						     winChangeDepthDlgProc,
-						     (int) s_pScreenPriv);
-	      
-	      /* Show the dialog box */
-	      ShowWindow (g_hDlgDepthChange, SW_SHOW);
-	      
-	      ErrorF ("winWindowProc - DialogBox returned: %d\n",
-		      g_hDlgDepthChange);
-	      ErrorF ("winWindowProc - GetLastError: %d\n", GetLastError ());
-	      
-	      /* Minimize the display window */
-	      ShowWindow (hwnd, SW_MINIMIZE);
-	      
-	      /* Flag that we have an invalid screen depth */
-	      s_pScreenPriv->fBadDepth = TRUE;
-	      
-	      /*
-	       * TODO: Redisplay the dialog box if it is not
-	       * currently displayed.
-	       */
-	    }
+	  /* Flag that we have an invalid screen depth */
+	  s_pScreenPriv->fBadDepth = TRUE;
+
+	  /* Minimize the display window */
+	  ShowWindow (hwnd, SW_MINIMIZE);
 	}
       else
 	{
@@ -693,17 +686,17 @@ winWindowProc (HWND hwnd, UINT message,
 	}
 
       /* Hide or show the Windows mouse cursor */
-      if (s_fCursor && (s_pScreenPriv->fActive || s_pScreenInfo->fLessPointer))
+      if (g_fCursor && (s_pScreenPriv->fActive || s_pScreenInfo->fLessPointer))
 	{
 	  /* Hide Windows cursor */
-	  s_fCursor = FALSE;
+	  g_fCursor = FALSE;
 	  ShowCursor (FALSE);
 	}
-      else if (!s_fCursor && !s_pScreenPriv->fActive
+      else if (!g_fCursor && !s_pScreenPriv->fActive
 	       && !s_pScreenInfo->fLessPointer)
 	{
 	  /* Show Windows cursor */
-	  s_fCursor = TRUE;
+	  g_fCursor = TRUE;
 	  ShowCursor (TRUE);
 	}
       
@@ -728,9 +721,9 @@ winWindowProc (HWND hwnd, UINT message,
 	break;
       
       /* Non-client mouse movement, show Windows cursor */
-      if (!s_fCursor)
+      if (!g_fCursor)
 	{
-	  s_fCursor = TRUE;
+	  g_fCursor = TRUE;
 	  ShowCursor (TRUE);
 	}
       break;
@@ -742,9 +735,9 @@ winWindowProc (HWND hwnd, UINT message,
       s_fTracking = FALSE;
 
       /* Show the mouse cursor, if necessary */
-      if (!s_fCursor)
+      if (!g_fCursor)
 	{
-	  s_fCursor = TRUE;
+	  g_fCursor = TRUE;
 	  ShowCursor (TRUE);
 	}
       return 0;
@@ -806,6 +799,22 @@ winWindowProc (HWND hwnd, UINT message,
 	  /* Clear screen privates flags */
 	  s_pScreenPriv->iE3BCachedPress = 0;
 	  break;
+
+	case WIN_POLLING_MOUSE_TIMER_ID:
+	  {
+	    POINT		point;
+	    
+	    /* Get the current position of the mouse cursor */
+	    GetCursorPos (&point);
+	    
+	    /* Map from screen (-X, -Y) to root (0, 0) */
+	    point.x -= GetSystemMetrics (SM_XVIRTUALSCREEN);
+	    point.y -= GetSystemMetrics (SM_YVIRTUALSCREEN);
+	    
+	    /* Deliver absolute cursor position to X Server */
+	    miPointerAbsoluteCursor (point.x, point.y,
+				     g_c32LastInputEventTime = GetTickCount());
+	  }
 	}
       return 0;
 
@@ -880,7 +889,7 @@ winWindowProc (HWND hwnd, UINT message,
 	   && (GetKeyState (VK_MENU) & 0x8000))
 	  || (s_pScreenInfo->fUseUnixKillKey && wParam == VK_BACK
 	      && (GetKeyState (VK_MENU) & 0x8000)
-	      && (GetKeyState (VK_CONTROL) & 0x8000))) 
+	      && (GetKeyState (VK_CONTROL) & 0x8000)))
 	{
 	  /*
 	   * Better leave this message here, just in case some unsuspecting
@@ -889,8 +898,8 @@ winWindowProc (HWND hwnd, UINT message,
 	   */
 	  ErrorF ("winWindowProc - WM_*KEYDOWN - Closekey hit, quitting\n");
 	  
-	  /* Tell our message queue to give up */
-	  PostMessage (hwnd, WM_CLOSE, 0, 0);
+	  /* Display Exit dialog */
+	  winDisplayExitDialog (s_pScreenPriv);
 	  return 0;
 	}
       
@@ -973,8 +982,6 @@ winWindowProc (HWND hwnd, UINT message,
 	  return 0;
 	}
 
-
-
 #if CYGDEBUG
       ErrorF ("winWindowProc - WM_ACTIVATE\n");
 #endif
@@ -990,10 +997,10 @@ winWindowProc (HWND hwnd, UINT message,
 
       /* Reshow the Windows mouse cursor if we are being deactivated */
       if (LOWORD(wParam) == WA_INACTIVE
-	  && !s_fCursor)
+	  && !g_fCursor)
 	{
 	  /* Show Windows cursor */
-	  s_fCursor = TRUE;
+	  g_fCursor = TRUE;
 	  ShowCursor (TRUE);
 	}
       return 0;
@@ -1012,10 +1019,10 @@ winWindowProc (HWND hwnd, UINT message,
 
       /* Reshow the Windows mouse cursor if we are being deactivated */
       if (!s_pScreenPriv->fActive
-	  && !s_fCursor)
+	  && !g_fCursor)
 	{
 	  /* Show Windows cursor */
-	  s_fCursor = TRUE;
+	  g_fCursor = TRUE;
 	  ShowCursor (TRUE);
 	}
 
@@ -1023,109 +1030,43 @@ winWindowProc (HWND hwnd, UINT message,
       (*s_pScreenPriv->pwinActivateApp) (s_pScreen);
       return 0;
 
-    case WM_CLOSE:
-      /* Tell X that we are giving up */
+    case WM_COMMAND:
+      switch (LOWORD (wParam))
+	{
+	case ID_APP_EXIT:
+	  /* Display Exit dialog */
+	  winDisplayExitDialog (s_pScreenPriv);
+	  return 0;
+
+	case ID_APP_HIDE_ROOT:
+	  ShowWindow (s_pScreenPriv->hwndScreen, SW_HIDE);
+	  s_pScreenPriv->fRootWindowShown = FALSE;
+	  return 0;
+
+	case ID_APP_SHOW_ROOT:
+	  ShowWindow (s_pScreenPriv->hwndScreen, SW_SHOW);
+	  s_pScreenPriv->fRootWindowShown = TRUE;
+	  return 0;
+
+	default:
+	  /* It's probably one of the custom menus... */
+	  return HandleCustomWM_COMMAND (0, LOWORD (wParam));
+	  
+	}
+      break;
+
+    case WM_GIVEUP:
+       /* Tell X that we are giving up */
+      winDeinitClipboard ();
+      winDeinitMultiWindowWM ();
       GiveUp (0);
+      return 0;
+
+    case WM_CLOSE:
+      /* Display Exit dialog */
+      winDisplayExitDialog (s_pScreenPriv);
       return 0;
     }
 
   return DefWindowProc (hwnd, message, wParam, lParam);
-}
-
-
-/*
- * Process messages for the dialog that is displayed for
- * disruptive screen depth changes. 
- */
-
-BOOL CALLBACK
-winChangeDepthDlgProc (HWND hwndDialog, UINT message,
-		       WPARAM wParam, LPARAM lParam)
-{
-  static winPrivScreenPtr	s_pScreenPriv = NULL;
-  static winScreenInfo		*s_pScreenInfo = NULL;
-  static ScreenPtr		s_pScreen = NULL;
-
-#if CYGDEBUG
-  ErrorF ("winChangeDepthDlgProc\n");
-#endif
-
-  /* Branch on message type */
-  switch (message)
-    {
-    case WM_INITDIALOG:
-#if CYGDEBUG
-      ErrorF ("winChangeDepthDlgProc - WM_INITDIALOG\n");
-#endif
-
-      /* Store pointers to private structures for future use */
-      s_pScreenPriv = (winPrivScreenPtr) lParam;
-      s_pScreenInfo = s_pScreenPriv->pScreenInfo;
-      s_pScreen = s_pScreenInfo->pScreen;
-
-#if CYGDEBUG
-      ErrorF ("winChangeDepthDlgProc - WM_INITDIALG - s_pScreenPriv: %08x, "
-	      "s_pScreenInfo: %08x, s_pScreen: %08x\n",
-	      s_pScreenPriv, s_pScreenInfo, s_pScreen);
-#endif
-
-#if CYGDEBUG
-      ErrorF ("winChangeDepthDlgProc - WM_INITDIALOG - orig bpp: %d, "
-	      "last bpp: %d\n",
-	      s_pScreenInfo->dwBPP,
-	      s_pScreenPriv->dwLastWindowsBitsPixel);
-#endif
-      return TRUE;
-
-    case WM_DISPLAYCHANGE:
-#if CYGDEBUG
-      ErrorF ("winChangeDepthDlgProc - WM_DISPLAYCHANGE - orig bpp: %d, "
-	      "last bpp: %d, new bpp: %d\n",
-	      s_pScreenInfo->dwBPP,
-	      s_pScreenPriv->dwLastWindowsBitsPixel,
-	      wParam);
-#endif
-
-      /* Dismiss the dialog if the display returns to the original depth */
-      if (wParam == s_pScreenInfo->dwBPP)
-	{
-	  ErrorF ("winChangeDelthDlgProc - wParam == s_pScreenInfo->dwBPP\n");
-
-	  /* Depth has been restored, dismiss dialog */
-	  DestroyWindow (g_hDlgDepthChange);
-	  g_hDlgDepthChange = NULL;
-
-	  /* Flag that we have a valid screen depth */
-	  s_pScreenPriv->fBadDepth = FALSE;
-	}
-      return TRUE;
-
-    case WM_COMMAND:
-      switch (LOWORD (wParam))
-	{
-	case IDOK:
-	case IDCANCEL:
-	  ErrorF ("winChangeDepthDlgProc - WM_COMMAND - IDOK or IDCANCEL\n");
-
-	  /* 
-	   * User dismissed the dialog, hide it until the
-	   * display mode is restored.
-	   */
-	  ShowWindow (g_hDlgDepthChange, SW_HIDE);
-	  return TRUE;
-	}
-      break;
-
-    case WM_CLOSE:
-      ErrorF ("winChangeDepthDlgProc - WM_CLOSE\n");
-
-      /* 
-       * User dismissed the dialog, hide it until the
-       * display mode is restored.
-       */
-      ShowWindow (g_hDlgDepthChange, SW_HIDE);
-      return TRUE;
-    }
-
-  return FALSE;
 }

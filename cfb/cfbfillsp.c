@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/cfb/cfbfillsp.c,v 3.7 2001/12/14 19:59:22 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/cfb/cfbfillsp.c,v 3.8 2003/10/29 22:44:53 tsi Exp $ */
 /************************************************************
 Copyright 1987 by Sun Microsystems, Inc. Mountain View, CA.
 
@@ -509,7 +509,10 @@ int fSorted;
 	    width = *pwidth;
 	    while(width > 0)
 	    {
-	        int xtemp, tmpx;
+		int xtemp;
+#if PSZ != 32 || PPW != 1
+		int tmpx;
+#endif
 		register CfbBits *ptemp;
 		register CfbBits *pdsttmp;
 		/*
@@ -541,7 +544,9 @@ int fSorted;
 		tmpx = x & 3;
 		pdsttmp = pdst + ((x * 3)>>2);
 #else
+#if PSZ != 32 || PPW != 1
 		tmpx = x & PIM;
+#endif
 		pdsttmp = pdst + (x>>PWSH);
 #endif
 		switch ( pGC->fillStyle ) {

@@ -73,7 +73,7 @@ in this Software without prior written authorization from The Open Group.
 *                                                               *
 *****************************************************************/
 
-/* $XFree86: xc/programs/Xserver/mi/mivaltree.c,v 1.9 2001/12/14 20:00:27 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/mi/mivaltree.c,v 1.10 2003/11/10 18:22:49 tsi Exp $ */
 
  /* 
   * Aug '86: Susan Angebranndt -- original code
@@ -291,9 +291,8 @@ miComputeClips (
 		    }
 		    if (pChild->valdata)
 		    {
-			REGION_INIT(pScreen, 
-				    &pChild->valdata->after.borderExposed,
-				    NullBox, 0);
+			REGION_NULL(pScreen,
+				    &pChild->valdata->after.borderExposed);
 			if (HasParentRelativeBorder(pChild))
 			{
 			    REGION_SUBTRACT(pScreen,
@@ -301,8 +300,7 @@ miComputeClips (
 					 &pChild->borderClip,
 					 &pChild->winSize);
 			}
-			REGION_INIT( pScreen, &pChild->valdata->after.exposed,
-						 NullBox, 0);
+			REGION_NULL(pScreen, &pChild->valdata->after.exposed);
 		    }
 		    if (pChild->firstChild)
 		    {
@@ -343,8 +341,8 @@ miComputeClips (
 
     borderVisible = pParent->valdata->before.borderVisible;
     resized = pParent->valdata->before.resized;
-    REGION_INIT( pScreen, &pParent->valdata->after.borderExposed, NullBox, 0);
-    REGION_INIT( pScreen, &pParent->valdata->after.exposed, NullBox, 0);
+    REGION_NULL(pScreen, &pParent->valdata->after.borderExposed);
+    REGION_NULL(pScreen, &pParent->valdata->after.exposed);
 
     /*
      * Since the borderClip must not be clipped by the children, we do
@@ -394,8 +392,8 @@ miComputeClips (
     
     if ((pChild = pParent->firstChild) && pParent->mapped)
     {
-	REGION_INIT(pScreen, &childUniverse, NullBox, 0);
-	REGION_INIT(pScreen, &childUnion, NullBox, 0);
+	REGION_NULL(pScreen, &childUniverse);
+	REGION_NULL(pScreen, &childUnion);
 	if ((pChild->drawable.y < pParent->lastChild->drawable.y) ||
 	    ((pChild->drawable.y == pParent->lastChild->drawable.y) &&
 	     (pChild->drawable.x < pParent->lastChild->drawable.x)))
@@ -589,8 +587,8 @@ miValidateTree (pParent, pChild, kind)
     if (pChild == NullWindow)
 	pChild = pParent->firstChild;
 
-    REGION_INIT(pScreen, &childClip, NullBox, 0);
-    REGION_INIT(pScreen, &exposed, NullBox, 0);
+    REGION_NULL(pScreen, &childClip);
+    REGION_NULL(pScreen, &exposed);
 
     /*
      * compute the area of the parent window occupied
@@ -598,7 +596,7 @@ miValidateTree (pParent, pChild, kind)
      * is the area which can be divied up among the marked
      * children in their new configuration.
      */
-    REGION_INIT(pScreen, &totalClip, NullBox, 0);
+    REGION_NULL(pScreen, &totalClip);
     viewvals = 0;
     if (REGION_BROKEN (pScreen, &pParent->clipList) &&
 	!REGION_BROKEN (pScreen, &pParent->borderClip))
@@ -680,7 +678,7 @@ miValidateTree (pParent, pChild, kind)
 	     * lower than the cost of multiple Subtracts in the
 	     * loop below.
 	     */
-	    REGION_INIT(pScreen, &childUnion, NullBox, 0);
+	    REGION_NULL(pScreen, &childUnion);
 	    if (forward)
 	    {
 		for (pWin = pChild; pWin; pWin = pWin->nextSib)
@@ -744,8 +742,8 @@ miValidateTree (pParent, pChild, kind)
 	REGION_UNINIT(pScreen, &childUnion);
     }
 
-    REGION_INIT( pScreen, &pParent->valdata->after.exposed, NullBox, 0);
-    REGION_INIT( pScreen, &pParent->valdata->after.borderExposed, NullBox, 0);
+    REGION_NULL(pScreen, &pParent->valdata->after.exposed);
+    REGION_NULL(pScreen, &pParent->valdata->after.borderExposed);
 
     /*
      * each case below is responsible for updating the

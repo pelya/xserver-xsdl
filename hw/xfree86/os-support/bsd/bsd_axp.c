@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/bsd/bsd_axp.c,v 1.2 2002/10/29 23:19:13 herrb Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/bsd/bsd_axp.c,v 1.3 2003/10/07 22:33:37 herrb Exp $ */
 
 #include "X.h"
 #include "os.h"
@@ -23,9 +23,9 @@ axpDevice bsdGetAXP(void);
 typedef struct {
 	char *name;
 	int type;
-} AXP; 
+} _AXP; 
 
-static AXP axpList[] = {
+static _AXP axpList[] = {
 	{"apecs",APECS},
 	{"pyxis",PYXIS},
 	{"cia",CIA},

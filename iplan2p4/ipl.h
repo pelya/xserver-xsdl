@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/iplan2p4/ipl.h,v 3.5 2001/01/30 22:06:21 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/iplan2p4/ipl.h,v 3.6 2003/11/17 22:20:43 dawes Exp $ */
 /* $XConsortium: ipl.h,v 5.37 94/04/17 20:28:38 dpw Exp $ */
 /************************************************************
 Copyright 1987 by Sun Microsystems, Inc. Mountain View, CA.
@@ -96,24 +96,19 @@ typedef struct {
 /* ipl8bit.c */
 
 extern int iplSetStipple(
-#if NeedFunctionPrototypes
     int /*alu*/,
     unsigned long /*fg*/,
     unsigned long /*planemask*/
-#endif
 );
 
 extern int iplSetOpaqueStipple(
-#if NeedFunctionPrototypes
     int /*alu*/,
     unsigned long /*fg*/,
     unsigned long /*bg*/,
     unsigned long /*planemask*/
-#endif
 );
 
 extern int iplComputeClipMasks32(
-#if NeedFunctionPrototypes
     BoxPtr /*pBox*/,
     int /*numRects*/,
     int /*x*/,
@@ -121,23 +116,19 @@ extern int iplComputeClipMasks32(
     int /*w*/,
     int /*h*/,
     CARD32 * /*clips*/
-#endif
 );
 /* ipl8cppl.c */
 
 extern void iplCopyImagePlane(
-#if NeedFunctionPrototypes
     DrawablePtr /*pSrcDrawable*/,
     DrawablePtr /*pDstDrawable*/,
     int /*rop*/,
     RegionPtr /*prgnDst*/,
     DDXPointPtr /*pptSrc*/,
     unsigned long /*planemask*/
-#endif
 );
 
 extern void iplCopyPlane8to1(
-#if NeedFunctionPrototypes
     DrawablePtr /*pSrcDrawable*/,
     DrawablePtr /*pDstDrawable*/,
     int /*rop*/,
@@ -145,12 +136,10 @@ extern void iplCopyPlane8to1(
     DDXPointPtr /*pptSrc*/,
     unsigned long /*planemask*/,
     unsigned long /*bitPlane*/
-#endif
 );
 /* ipl8lineCO.c */
 
 extern int ipl8LineSS1RectCopy(
-#if NeedFunctionPrototypes
     DrawablePtr /*pDrawable*/,
     GCPtr /*pGC*/,
     int /*mode*/,
@@ -161,21 +150,17 @@ extern int ipl8LineSS1RectCopy(
     int * /*y1p*/,
     int * /*x2p*/,
     int * /*y2p*/
-#endif
 );
 
 extern void ipl8LineSS1Rect(
-#if NeedFunctionPrototypes
     DrawablePtr /*pDrawable*/,
     GCPtr /*pGC*/,
     int /*mode*/,
     int /*npt*/,
     DDXPointPtr /*pptInit*/
-#endif
 );
 
 extern void ipl8ClippedLineCopy(
-#if NeedFunctionPrototypes
     DrawablePtr /*pDrawable*/,
     GCPtr /*pGC*/,
     int /*x1*/,
@@ -184,12 +169,10 @@ extern void ipl8ClippedLineCopy(
     int /*y2*/,
     BoxPtr /*boxp*/,
     Bool /*shorten*/
-#endif
 );
 /* ipl8lineCP.c */
 
 extern int ipl8LineSS1RectPreviousCopy(
-#if NeedFunctionPrototypes
     DrawablePtr /*pDrawable*/,
     GCPtr /*pGC*/,
     int /*mode*/,
@@ -200,13 +183,10 @@ extern int ipl8LineSS1RectPreviousCopy(
     int * /*y1p*/,
     int * /*x2p*/,
     int * /*y2p*/
-
-#endif
 );
 /* ipl8lineG.c */
 
 extern int ipl8LineSS1RectGeneral(
-#if NeedFunctionPrototypes
     DrawablePtr /*pDrawable*/,
     GCPtr /*pGC*/,
     int /*mode*/,
@@ -217,11 +197,9 @@ extern int ipl8LineSS1RectGeneral(
     int * /*y1p*/,
     int * /*x2p*/,
     int * /*y2p*/
-#endif
 );
 
 extern void ipl8ClippedLineGeneral(
-#if NeedFunctionPrototypes
     DrawablePtr /*pDrawable*/,
     GCPtr /*pGC*/,
     int /*x1*/,
@@ -230,12 +208,10 @@ extern void ipl8ClippedLineGeneral(
     int /*y2*/,
     BoxPtr /*boxp*/,
     Bool /*shorten*/
-#endif
 );
 /* ipl8lineX.c */
 
 extern int ipl8LineSS1RectXor(
-#if NeedFunctionPrototypes
     DrawablePtr /*pDrawable*/,
     GCPtr /*pGC*/,
     int /*mode*/,
@@ -246,11 +222,9 @@ extern int ipl8LineSS1RectXor(
     int * /*y1p*/,
     int * /*x2p*/,
     int * /*y2p*/
-#endif
 );
 
 extern void ipl8ClippedLineXor(
-#if NeedFunctionPrototypes
     DrawablePtr /*pDrawable*/,
     GCPtr /*pGC*/,
     int /*x1*/,
@@ -259,70 +233,56 @@ extern void ipl8ClippedLineXor(
     int /*y2*/,
     BoxPtr /*boxp*/,
     Bool /*shorten*/
-#endif
 );
 /* ipl8segC.c */
 
 extern int ipl8SegmentSS1RectCopy(
-#if NeedFunctionPrototypes
     DrawablePtr /*pDrawable*/,
     GCPtr /*pGC*/,
     int /*nseg*/,
     xSegment * /*pSegInit*/
-#endif
 );
 /* ipl8segCS.c */
 
 extern int ipl8SegmentSS1RectShiftCopy(
-#if NeedFunctionPrototypes
     DrawablePtr /*pDrawable*/,
     GCPtr /*pGC*/,
     int /*nseg*/,
     xSegment * /*pSegInit*/
-#endif
 );
 
 extern void ipl8SegmentSS1Rect(
-#if NeedFunctionPrototypes
     DrawablePtr /*pDrawable*/,
     GCPtr /*pGC*/,
     int /*nseg*/,
     xSegment * /*pSegInit*/
-#endif
 );
 /* ipl8segG.c */
 
 extern int ipl8SegmentSS1RectGeneral(
-#if NeedFunctionPrototypes
     DrawablePtr /*pDrawable*/,
     GCPtr /*pGC*/,
     int /*nseg*/,
     xSegment * /*pSegInit*/
-#endif
 );
 /* iplsegX.c */
 
 extern int ipl8SegmentSS1RectXor(
-#if NeedFunctionPrototypes
     DrawablePtr /*pDrawable*/,
     GCPtr /*pGC*/,
     int /*nseg*/,
     xSegment * /*pSegInit*/
-#endif
 );
 /* iplallpriv.c */
 
 extern Bool iplAllocatePrivates(
-#if NeedFunctionPrototypes
     ScreenPtr /*pScreen*/,
     int * /*window_index*/,
     int * /*gc_index*/
-#endif
 );
 /* iplbitblt.c */
 
 extern RegionPtr iplBitBlt(
-#if NeedFunctionPrototypes
     DrawablePtr /*pSrcDrawable*/,
     DrawablePtr /*pDstDrawable*/,
     GCPtr/*pGC*/,
@@ -334,22 +294,18 @@ extern RegionPtr iplBitBlt(
     int /*dsty*/,
     void (* /*doBitBlt*/)(),
     unsigned long /*bitPlane*/
-#endif
 );
 
 extern void iplDoBitblt(
-#if NeedFunctionPrototypes
     DrawablePtr /*pSrc*/,
     DrawablePtr /*pDst*/,
     int /*alu*/,
     RegionPtr /*prgnDst*/,
     DDXPointPtr /*pptSrc*/,
     unsigned long /*planemask*/
-#endif
 );
 
 extern RegionPtr iplCopyArea(
-#if NeedFunctionPrototypes
     DrawablePtr /*pSrcDrawable*/,
     DrawablePtr /*pDstDrawable*/,
     GCPtr/*pGC*/,
@@ -359,11 +315,9 @@ extern RegionPtr iplCopyArea(
     int /*height*/,
     int /*dstx*/,
     int /*dsty*/
-#endif
 );
 
 extern void iplCopyPlane1to8(
-#if NeedFunctionPrototypes
     DrawablePtr /*pSrcDrawable*/,
     DrawablePtr /*pDstDrawable*/,
     int /*rop*/,
@@ -371,11 +325,9 @@ extern void iplCopyPlane1to8(
     DDXPointPtr /*pptSrc*/,
     unsigned long /*planemask*/,
     unsigned long /*bitPlane*/
-#endif
 );
 
 extern RegionPtr iplCopyPlane(
-#if NeedFunctionPrototypes
     DrawablePtr /*pSrcDrawable*/,
     DrawablePtr /*pDstDrawable*/,
     GCPtr /*pGC*/,
@@ -386,60 +338,50 @@ extern RegionPtr iplCopyPlane(
     int /*dstx*/,
     int /*dsty*/,
     unsigned long /*bitPlane*/
-#endif
 );
 /* iplbltC.c */
 
 extern void iplDoBitbltCopy(
-#if NeedFunctionPrototypes
     DrawablePtr /*pSrc*/,
     DrawablePtr /*pDst*/,
     int /*alu*/,
     RegionPtr /*prgnDst*/,
     DDXPointPtr /*pptSrc*/,
     unsigned long /*planemask*/
-#endif
 );
 /* iplbltG.c */
 
 extern void iplDoBitbltGeneral(
-#if NeedFunctionPrototypes
     DrawablePtr /*pSrc*/,
     DrawablePtr /*pDst*/,
     int /*alu*/,
     RegionPtr /*prgnDst*/,
     DDXPointPtr /*pptSrc*/,
     unsigned long /*planemask*/
-#endif
 );
 /* iplbltO.c */
 
 extern void iplDoBitbltOr(
-#if NeedFunctionPrototypes
     DrawablePtr /*pSrc*/,
     DrawablePtr /*pDst*/,
     int /*alu*/,
     RegionPtr /*prgnDst*/,
     DDXPointPtr /*pptSrc*/,
     unsigned long /*planemask*/
-#endif
 );
 /* iplbltX.c */
 
 extern void iplDoBitbltXor(
-#if NeedFunctionPrototypes
     DrawablePtr /*pSrc*/,
     DrawablePtr /*pDst*/,
     int /*alu*/,
     RegionPtr /*prgnDst*/,
     DDXPointPtr /*pptSrc*/,
     unsigned long /*planemask*/
-#endif
 );
 /* iplbres.c */
 
 extern void iplBresS(
-#if NeedFunctionPrototypes
     int /*rop*/,
     unsigned short * /*and*/,
     unsigned short * /*xor*/,
@@ -454,12 +396,10 @@ extern void iplBresS(
     int /*e1*/,
     int /*e2*/,
     int /*len*/
-#endif
 );
 /* iplbresd.c */
 
 extern void iplBresD(
-#if NeedFunctionPrototypes
     iplRRopPtr /*rrops*/,
     int * /*pdashIndex*/,
     unsigned char * /*pDash*/,
@@ -477,90 +417,68 @@ extern void iplBresD(
     int /*e1*/,
     int /*e2*/,
     int /*len*/
-#endif
 );
 /* iplbstore.c */
 
 extern void iplSaveAreas(
-#if NeedFunctionPrototypes
     PixmapPtr /*pPixmap*/,
     RegionPtr /*prgnSave*/,
     int /*xorg*/,
     int /*yorg*/,
     WindowPtr /*pWin*/
-#endif
 );
 
 extern void iplRestoreAreas(
-#if NeedFunctionPrototypes
     PixmapPtr /*pPixmap*/,
     RegionPtr /*prgnRestore*/,
     int /*xorg*/,
     int /*yorg*/,
     WindowPtr /*pWin*/
-#endif
 );
 /* iplcmap.c */
 
 extern int iplListInstalledColormaps(
-#if NeedFunctionPrototypes
     ScreenPtr	/*pScreen*/,
     Colormap	* /*pmaps*/
-#endif
 );
 
 extern void iplInstallColormap(
-#if NeedFunctionPrototypes
     ColormapPtr	/*pmap*/
-#endif
 );
 
 extern void iplUninstallColormap(
-#if NeedFunctionPrototypes
     ColormapPtr	/*pmap*/
-#endif
 );
 
 extern void iplResolveColor(
-#if NeedFunctionPrototypes
     unsigned short * /*pred*/,
     unsigned short * /*pgreen*/,
     unsigned short * /*pblue*/,
     VisualPtr /*pVisual*/
-#endif
 );
 
 extern Bool iplInitializeColormap(
-#if NeedFunctionPrototypes
     ColormapPtr /*pmap*/
-#endif
 );
 
 extern int iplExpandDirectColors(
-#if NeedFunctionPrototypes
     ColormapPtr /*pmap*/,
     int /*ndef*/,
     xColorItem * /*indefs*/,
     xColorItem * /*outdefs*/
-#endif
 );
 
 extern Bool iplCreateDefColormap(
-#if NeedFunctionPrototypes
     ScreenPtr /*pScreen*/
-#endif
 );
 
 extern Bool iplSetVisualTypes(
-#if NeedFunctionPrototypes
     int /*depth*/,
     int /*visuals*/,
     int /*bitsPerRGB*/
-#endif
 );
 
 extern Bool iplInitVisuals(
-#if NeedFunctionPrototypes
     VisualPtr * /*visualp*/,
     DepthPtr * /*depthp*/,
     int * /*nvisualp*/,
@@ -569,142 +487,114 @@ extern Bool iplInitVisuals(
     VisualID * /*defaultVisp*/,
     unsigned long /*sizes*/,
     int /*bitsPerRGB*/
-#endif
 );
 /* iplfillarcC.c */
 
 extern void iplPolyFillArcSolidCopy(
-#if NeedFunctionPrototypes
     DrawablePtr /*pDraw*/,
     GCPtr /*pGC*/,
     int /*narcs*/,
     xArc * /*parcs*/
-#endif
 );
 /* iplfillarcG.c */
 
 extern void iplPolyFillArcSolidGeneral(
-#if NeedFunctionPrototypes
     DrawablePtr /*pDraw*/,
     GCPtr /*pGC*/,
     int /*narcs*/,
     xArc * /*parcs*/
-#endif
 );
 /* iplfillrct.c */
 
 extern void iplFillBoxTileOdd(
-#if NeedFunctionPrototypes
     DrawablePtr /*pDrawable*/,
     int /*n*/,
     BoxPtr /*rects*/,
     PixmapPtr /*tile*/,
     int /*xrot*/,
     int /*yrot*/
-#endif
 );
 
 extern void iplFillRectTileOdd(
-#if NeedFunctionPrototypes
     DrawablePtr /*pDrawable*/,
     GCPtr /*pGC*/,
     int /*nBox*/,
     BoxPtr /*pBox*/
-#endif
 );
 
 extern void iplPolyFillRect(
-#if NeedFunctionPrototypes
     DrawablePtr /*pDrawable*/,
     GCPtr /*pGC*/,
     int /*nrectFill*/,
     xRectangle * /*prectInit*/
-#endif
 );
 /* iplfillsp.c */
 
 extern void iplUnnaturalTileFS(
-#if NeedFunctionPrototypes
     DrawablePtr /*pDrawable*/,
     GCPtr/*pGC*/,
     int /*nInit*/,
     DDXPointPtr /*pptInit*/,
     int * /*pwidthInit*/,
     int /*fSorted*/
-#endif
 );
 
 extern void iplUnnaturalStippleFS(
-#if NeedFunctionPrototypes
     DrawablePtr /*pDrawable*/,
     GCPtr/*pGC*/,
     int /*nInit*/,
     DDXPointPtr /*pptInit*/,
     int * /*pwidthInit*/,
     int /*fSorted*/
-#endif
 );
 
 extern void ipl8Stipple32FS(
-#if NeedFunctionPrototypes
     DrawablePtr /*pDrawable*/,
     GCPtr /*pGC*/,
     int /*nInit*/,
     DDXPointPtr /*pptInit*/,
     int * /*pwidthInit*/,
     int /*fSorted*/
-#endif
 );
 
 extern void ipl8OpaqueStipple32FS(
-#if NeedFunctionPrototypes
     DrawablePtr /*pDrawable*/,
     GCPtr /*pGC*/,
     int /*nInit*/,
     DDXPointPtr /*pptInit*/,
     int * /*pwidthInit*/,
     int /*fSorted*/
-#endif
 );
 /* iplgc.c */
 
 extern GCOpsPtr iplMatchCommon(
-#if NeedFunctionPrototypes
     GCPtr /*pGC*/,
     iplPrivGCPtr /*devPriv*/
-#endif
 );
 
 extern Bool iplCreateGC(
-#if NeedFunctionPrototypes
     GCPtr /*pGC*/
-#endif
 );
 
 extern void iplValidateGC(
-#if NeedFunctionPrototypes
     GCPtr /*pGC*/,
     unsigned long /*changes*/,
     DrawablePtr /*pDrawable*/
-#endif
 );
 
 /* iplgetsp.c */
 
 extern void iplGetSpans(
-#if NeedFunctionPrototypes
     DrawablePtr /*pDrawable*/,
     int /*wMax*/,
     DDXPointPtr /*ppt*/,
     int * /*pwidth*/,
     int /*nspans*/,
     char * /*pdstStart*/
-#endif
 );
 /* iplglblt8.c */
 
 extern void iplPolyGlyphBlt8(
-#if NeedFunctionPrototypes
     DrawablePtr /*pDrawable*/,
     GCPtr /*pGC*/,
     int /*x*/,
@@ -712,12 +602,10 @@ extern void iplPolyGlyphBlt8(
     unsigned int /*nglyph*/,
     CharInfoPtr * /*ppci*/,
     pointer /*pglyphBase*/
-#endif
 );
 /* iplglrop8.c */
 
 extern void iplPolyGlyphRop8(
-#if NeedFunctionPrototypes
     DrawablePtr /*pDrawable*/,
     GCPtr /*pGC*/,
     int /*x*/,
@@ -725,12 +613,10 @@ extern void iplPolyGlyphRop8(
     unsigned int /*nglyph*/,
     CharInfoPtr * /*ppci*/,
     pointer /*pglyphBase*/
-#endif
 );
 /* iplhrzvert.c */
 
 extern int iplHorzS(
-#if NeedFunctionPrototypes
     int /*rop*/,
     unsigned short * /*and*/,
     unsigned short * /*xor*/,
@@ -739,11 +625,9 @@ extern int iplHorzS(
     int /*x1*/,
     int /*y1*/,
     int /*len*/
-#endif
 );
 
 extern int iplVertS(
-#if NeedFunctionPrototypes
     int /*rop*/,
     unsigned short * /*and*/,
     unsigned short * /*xor*/,
@@ -752,12 +636,10 @@ extern int iplVertS(
     int /*x1*/,
     int /*y1*/,
     int /*len*/
-#endif
 );
 /* ipligblt8.c */
 
 extern void iplImageGlyphBlt8(
-#if NeedFunctionPrototypes
     DrawablePtr /*pDrawable*/,
     GCPtr /*pGC*/,
     int /*x*/,
@@ -765,12 +647,10 @@ extern void iplImageGlyphBlt8(
     unsigned int /*nglyph*/,
     CharInfoPtr * /*ppci*/,
     pointer /*pglyphBase*/
-#endif
 );
 /* iplimage.c */
 
 extern void iplPutImage(
-#if NeedFunctionPrototypes
     DrawablePtr /*pDraw*/,
     GCPtr /*pGC*/,
     int /*depth*/,
@@ -781,11 +661,9 @@ extern void iplPutImage(
     int /*leftPad*/,
     int /*format*/,
     char * /*pImage*/
-#endif
 );
 
 extern void iplGetImage(
-#if NeedFunctionPrototypes
     DrawablePtr /*pDrawable*/,
     int /*sx*/,
     int /*sy*/,
@@ -794,147 +672,115 @@ extern void iplGetImage(
     unsigned int /*format*/,
     unsigned long /*planeMask*/,
     char * /*pdstLine*/
-#endif
 );
 /* iplline.c */
 
 extern void iplLineSS(
-#if NeedFunctionPrototypes
     DrawablePtr /*pDrawable*/,
     GCPtr /*pGC*/,
     int /*mode*/,
     int /*npt*/,
     DDXPointPtr /*pptInit*/
-#endif
 );
 
 extern void iplLineSD(
-#if NeedFunctionPrototypes
     DrawablePtr /*pDrawable*/,
     GCPtr /*pGC*/,
     int /*mode*/,
     int /*npt*/,
     DDXPointPtr /*pptInit*/
-#endif
 );
 /* iplmskbits.c */
 /* iplpixmap.c */
 
 extern PixmapPtr iplCreatePixmap(
-#if NeedFunctionPrototypes
     ScreenPtr /*pScreen*/,
     int /*width*/,
     int /*height*/,
     int /*depth*/
-#endif
 );
 
 extern Bool iplDestroyPixmap(
-#if NeedFunctionPrototypes
     PixmapPtr /*pPixmap*/
-#endif
 );
 
 extern PixmapPtr iplCopyPixmap(
-#if NeedFunctionPrototypes
     PixmapPtr /*pSrc*/
-#endif
 );
 
 extern void iplPadPixmap(
-#if NeedFunctionPrototypes
     PixmapPtr /*pPixmap*/
-#endif
 );
 
 extern void iplXRotatePixmap(
-#if NeedFunctionPrototypes
     PixmapPtr /*pPix*/,
     int /*rw*/
-#endif
 );
 
 extern void iplYRotatePixmap(
-#if NeedFunctionPrototypes
     PixmapPtr /*pPix*/,
     int /*rh*/
-#endif
 );
 
 extern void iplCopyRotatePixmap(
-#if NeedFunctionPrototypes
     PixmapPtr /*psrcPix*/,
     PixmapPtr * /*ppdstPix*/,
     int /*xrot*/,
     int /*yrot*/
-#endif
 );
 /* iplply1rctC.c */
 
 extern void iplFillPoly1RectCopy(
-#if NeedFunctionPrototypes
     DrawablePtr /*pDrawable*/,
     GCPtr /*pGC*/,
     int /*shape*/,
     int /*mode*/,
     int /*count*/,
     DDXPointPtr /*ptsIn*/
-#endif
 );
 /* iplply1rctG.c */
 
 extern void iplFillPoly1RectGeneral(
-#if NeedFunctionPrototypes
     DrawablePtr /*pDrawable*/,
     GCPtr /*pGC*/,
     int /*shape*/,
     int /*mode*/,
     int /*count*/,
     DDXPointPtr /*ptsIn*/
-#endif
 );
 /* iplpntwin.c */
 
 extern void iplPaintWindow(
-#if NeedFunctionPrototypes
     WindowPtr /*pWin*/,
     RegionPtr /*pRegion*/,
     int /*what*/
-#endif
 );
 
 extern void iplFillBoxSolid(
-#if NeedFunctionPrototypes
     DrawablePtr /*pDrawable*/,
     int /*nBox*/,
     BoxPtr /*pBox*/,
     unsigned long /*pixel*/
-#endif
 );
 
 extern void iplFillBoxTile32(
-#if NeedFunctionPrototypes
     DrawablePtr /*pDrawable*/,
     int /*nBox*/,
     BoxPtr /*pBox*/,
     PixmapPtr /*tile*/
-#endif
 );
 /* iplpolypnt.c */
 
 extern void iplPolyPoint(
-#if NeedFunctionPrototypes
     DrawablePtr /*pDrawable*/,
     GCPtr /*pGC*/,
     int /*mode*/,
     int /*npt*/,
     xPoint * /*pptInit*/
-#endif
 );
 /* iplpush8.c */
 
 extern void iplPushPixels8(
-#if NeedFunctionPrototypes
     GCPtr /*pGC*/,
     PixmapPtr /*pBitmap*/,
     DrawablePtr /*pDrawable*/,
@@ -942,58 +788,46 @@ extern void iplPushPixels8(
     int /*dy*/,
     int /*xOrg*/,
     int /*yOrg*/
-#endif
 );
 /* iplrctstp8.c */
 
 extern void ipl8FillRectOpaqueStippled32(
-#if NeedFunctionPrototypes
     DrawablePtr /*pDrawable*/,
     GCPtr /*pGC*/,
     int /*nBox*/,
     BoxPtr /*pBox*/
-#endif
 );
 
 extern void ipl8FillRectTransparentStippled32(
-#if NeedFunctionPrototypes
     DrawablePtr /*pDrawable*/,
     GCPtr /*pGC*/,
     int /*nBox*/,
     BoxPtr /*pBox*/
-#endif
 );
 
 extern void ipl8FillRectStippledUnnatural(
-#if NeedFunctionPrototypes
     DrawablePtr /*pDrawable*/,
     GCPtr /*pGC*/,
     int /*nBox*/,
     BoxPtr /*pBox*/
-#endif
 );
 /* iplrrop.c */
 
 extern int iplReduceRasterOp(
-#if NeedFunctionPrototypes
     int /*rop*/,
     unsigned long /*fg*/,
     unsigned long /*pm*/,
     unsigned short * /*andp*/,
     unsigned short * /*xorp*/
-#endif
 );
 /* iplscrinit.c */
 
 extern Bool iplCloseScreen(
-#if NeedFunctionPrototypes
     int /*index*/,
     ScreenPtr /*pScreen*/
-#endif
 );
 
 extern Bool iplSetupScreen(
-#if NeedFunctionPrototypes
     ScreenPtr /*pScreen*/,
     pointer /*pbits*/,
     int /*xsize*/,
@@ -1001,11 +835,9 @@ extern Bool iplSetupScreen(
     int /*dpix*/,
     int /*dpiy*/,
     int /*width*/
-#endif
 );
 
 extern int iplFinishScreenInit(
-#if NeedFunctionPrototypes
     ScreenPtr /*pScreen*/,
     pointer /*pbits*/,
     int /*xsize*/,
@@ -1013,11 +845,9 @@ extern int iplFinishScreenInit(
     int /*dpix*/,
     int /*dpiy*/,
     int /*width*/
-#endif
 );
 
 extern Bool iplScreenInit(
-#if NeedFunctionPrototypes
     ScreenPtr /*pScreen*/,
     pointer /*pbits*/,
     int /*xsize*/,
@@ -1025,44 +855,34 @@ extern Bool iplScreenInit(
     int /*dpix*/,
     int /*dpiy*/,
     int /*width*/
-#endif
 );
 
 extern PixmapPtr iplGetScreenPixmap(
-#if NeedFunctionPrototypes
     ScreenPtr /*pScreen*/
-#endif
 );
 
 extern void iplSetScreenPixmap(
-#if NeedFunctionPrototypes
     PixmapPtr /*pPix*/
-#endif
 );
 
 /* iplseg.c */
 
 extern void iplSegmentSS(
-#if NeedFunctionPrototypes
     DrawablePtr /*pDrawable*/,
     GCPtr /*pGC*/,
     int /*nseg*/,
     xSegment * /*pSeg*/
-#endif
 );
 
 extern void iplSegmentSD(
-#if NeedFunctionPrototypes
     DrawablePtr /*pDrawable*/,
     GCPtr /*pGC*/,
     int /*nseg*/,
     xSegment * /*pSeg*/
-#endif
 );
 /* iplsetsp.c */
 
 extern int iplSetScanline(
-#if NeedFunctionPrototypes
     int /*y*/,
     int /*xOrigin*/,
     int /*xStart*/,
@@ -1072,11 +892,9 @@ extern int iplSetScanline(
     unsigned short * /*pdstBase*/,
     int /*widthDst*/,
     unsigned long /*planemask*/
-#endif
 );
 
 extern void iplSetSpans(
-#if NeedFunctionPrototypes
     DrawablePtr /*pDrawable*/,
     GCPtr /*pGC*/,
     char * /*psrc*/,
@@ -1084,75 +902,61 @@ extern void iplSetSpans(
     int * /*pwidth*/,
     int /*nspans*/,
     int /*fSorted*/
-#endif
 );
 /* iplsolidC.c */
 
 extern void iplFillRectSolidCopy(
-#if NeedFunctionPrototypes
     DrawablePtr /*pDrawable*/,
     GCPtr /*pGC*/,
     int /*nBox*/,
     BoxPtr /*pBox*/
-#endif
 );
 
 extern void iplSolidSpansCopy(
-#if NeedFunctionPrototypes
     DrawablePtr /*pDrawable*/,
     GCPtr /*pGC*/,
     int /*nInit*/,
     DDXPointPtr /*pptInit*/,
     int * /*pwidthInit*/,
     int /*fSorted*/
-#endif
 );
 /* iplsolidG.c */
 
 extern void iplFillRectSolidGeneral(
-#if NeedFunctionPrototypes
     DrawablePtr /*pDrawable*/,
     GCPtr /*pGC*/,
     int /*nBox*/,
     BoxPtr /*pBox*/
-#endif
 );
 
 extern void iplSolidSpansGeneral(
-#if NeedFunctionPrototypes
     DrawablePtr /*pDrawable*/,
     GCPtr /*pGC*/,
     int /*nInit*/,
     DDXPointPtr /*pptInit*/,
     int * /*pwidthInit*/,
     int /*fSorted*/
-#endif
 );
 /* iplsolidX.c */
 
 extern void iplFillRectSolidXor(
-#if NeedFunctionPrototypes
     DrawablePtr /*pDrawable*/,
     GCPtr /*pGC*/,
     int /*nBox*/,
     BoxPtr /*pBox*/
-#endif
 );
 
 extern void iplSolidSpansXor(
-#if NeedFunctionPrototypes
     DrawablePtr /*pDrawable*/,
     GCPtr /*pGC*/,
     int /*nInit*/,
     DDXPointPtr /*pptInit*/,
     int * /*pwidthInit*/,
     int /*fSorted*/
-#endif
 );
 /* iplteblt8.c */
 
 extern void iplTEGlyphBlt8(
-#if NeedFunctionPrototypes
     DrawablePtr /*pDrawable*/,
     GCPtr/*pGC*/,
     int /*xInit*/,
@@ -1160,12 +964,10 @@ extern void iplTEGlyphBlt8(
     unsigned int /*nglyph*/,
     CharInfoPtr * /*ppci*/,
     pointer /*pglyphBase*/
-#endif
 );
 /* ipltegblt.c */
 
 extern void iplTEGlyphBlt(
-#if NeedFunctionPrototypes
     DrawablePtr /*pDrawable*/,
     GCPtr/*pGC*/,
     int /*x*/,
@@ -1173,54 +975,44 @@ extern void iplTEGlyphBlt(
     unsigned int /*nglyph*/,
     CharInfoPtr * /*ppci*/,
     pointer /*pglyphBase*/
-#endif
 );
 /* ipltile32C.c */
 
 extern void iplFillRectTile32Copy(
-#if NeedFunctionPrototypes
     DrawablePtr /*pDrawable*/,
     GCPtr /*pGC*/,
     int /*nBox*/,
     BoxPtr /*pBox*/
-#endif
 );
 
 extern void iplTile32FSCopy(
-#if NeedFunctionPrototypes
     DrawablePtr /*pDrawable*/,
     GCPtr /*pGC*/,
     int /*nInit*/,
     DDXPointPtr /*pptInit*/,
     int * /*pwidthInit*/,
     int /*fSorted*/
-#endif
 );
 /* ipltile32G.c */
 
 extern void iplFillRectTile32General(
-#if NeedFunctionPrototypes
     DrawablePtr /*pDrawable*/,
     GCPtr /*pGC*/,
     int /*nBox*/,
     BoxPtr /*pBox*/
-#endif
 );
 
 extern void iplTile32FSGeneral(
-#if NeedFunctionPrototypes
     DrawablePtr /*pDrawable*/,
     GCPtr /*pGC*/,
     int /*nInit*/,
     DDXPointPtr /*pptInit*/,
     int * /*pwidthInit*/,
     int /*fSorted*/
-#endif
 );
 /* ipltileoddC.c */
 
 extern void iplFillBoxTileOddCopy(
-#if NeedFunctionPrototypes
     DrawablePtr /*pDrawable*/,
     int /*nBox*/,
     BoxPtr /*pBox*/,
@@ -1229,11 +1021,9 @@ extern void iplFillBoxTileOddCopy(
     int /*yrot*/,
     int /*alu*/,
     unsigned long /*planemask*/
-#endif
 );
 
 extern void iplFillSpanTileOddCopy(
-#if NeedFunctionPrototypes
     DrawablePtr /*pDrawable*/,
     int /*n*/,
     DDXPointPtr /*ppt*/,
@@ -1243,11 +1033,9 @@ extern void iplFillSpanTileOddCopy(
     int /*yrot*/,
     int /*alu*/,
     unsigned long /*planemask*/
-#endif
 );
 
 extern void iplFillBoxTile32sCopy(
-#if NeedFunctionPrototypes
     DrawablePtr /*pDrawable*/,
     int /*nBox*/,
     BoxPtr /*pBox*/,
@@ -1256,11 +1044,9 @@ extern void iplFillBoxTile32sCopy(
     int /*yrot*/,
     int /*alu*/,
     unsigned long /*planemask*/
-#endif
 );
 
 extern void iplFillSpanTile32sCopy(
-#if NeedFunctionPrototypes
     DrawablePtr /*pDrawable*/,
     int /*n*/,
     DDXPointPtr /*ppt*/,
@@ -1270,12 +1056,10 @@ extern void iplFillSpanTile32sCopy(
     int /*yrot*/,
     int /*alu*/,
     unsigned long /*planemask*/
-#endif
 );
 /* ipltileoddG.c */
 
 extern void iplFillBoxTileOddGeneral(
-#if NeedFunctionPrototypes
     DrawablePtr /*pDrawable*/,
     int /*nBox*/,
     BoxPtr /*pBox*/,
@@ -1284,11 +1068,9 @@ extern void iplFillBoxTileOddGeneral(
     int /*yrot*/,
     int /*alu*/,
     unsigned long /*planemask*/
-#endif
 );
 
 extern void iplFillSpanTileOddGeneral(
-#if NeedFunctionPrototypes
     DrawablePtr /*pDrawable*/,
     int /*n*/,
     DDXPointPtr /*ppt*/,
@@ -1298,11 +1080,9 @@ extern void iplFillSpanTileOddGeneral(
     int /*yrot*/,
     int /*alu*/,
     unsigned long /*planemask*/
-#endif
 );
 
 extern void iplFillBoxTile32sGeneral(
-#if NeedFunctionPrototypes
     DrawablePtr /*pDrawable*/,
     int /*nBox*/,
     BoxPtr /*pBox*/,
@@ -1311,11 +1091,9 @@ extern void iplFillBoxTile32sGeneral(
     int /*yrot*/,
     int /*alu*/,
     unsigned long /*planemask*/
-#endif
 );
 
 extern void iplFillSpanTile32sGeneral(
-#if NeedFunctionPrototypes
     DrawablePtr /*pDrawable*/,
     int /*n*/,
     DDXPointPtr /*ppt*/,
@@ -1325,85 +1103,64 @@ extern void iplFillSpanTile32sGeneral(
     int /*yrot*/,
     int /*alu*/,
     unsigned long /*planemask*/
-#endif
 );
 /* iplwindow.c */
 
 extern Bool iplCreateWindow(
-#if NeedFunctionPrototypes
     WindowPtr /*pWin*/
-#endif
 );
 
 extern Bool iplDestroyWindow(
-#if NeedFunctionPrototypes
     WindowPtr /*pWin*/
-#endif
 );
 
 extern Bool iplMapWindow(
-#if NeedFunctionPrototypes
     WindowPtr /*pWindow*/
-#endif
 );
 
 extern Bool iplPositionWindow(
-#if NeedFunctionPrototypes
     WindowPtr /*pWin*/,
     int /*x*/,
     int /*y*/
-#endif
 );
 
 extern Bool iplUnmapWindow(
-#if NeedFunctionPrototypes
     WindowPtr /*pWindow*/
-#endif
 );
 
 extern void iplCopyWindow(
-#if NeedFunctionPrototypes
     WindowPtr /*pWin*/,
     DDXPointRec /*ptOldOrg*/,
     RegionPtr /*prgnSrc*/
-#endif
 );
 
 extern Bool iplChangeWindowAttributes(
-#if NeedFunctionPrototypes
     WindowPtr /*pWin*/,
     unsigned long /*mask*/
-#endif
 );
 /* iplzerarcC.c */
 
 extern void iplZeroPolyArcSS8Copy(
-#if NeedFunctionPrototypes
     DrawablePtr /*pDraw*/,
     GCPtr /*pGC*/,
     int /*narcs*/,
     xArc * /*parcs*/
-#endif
 );
 /* iplzerarcG.c */
 
 extern void iplZeroPolyArcSS8General(
-#if NeedFunctionPrototypes
     DrawablePtr /*pDraw*/,
     GCPtr /*pGC*/,
     int /*narcs*/,
     xArc * /*parcs*/
-#endif
 );
 /* iplzerarcX.c */
 
 extern void iplZeroPolyArcSS8Xor(
-#if NeedFunctionPrototypes
     DrawablePtr /*pDraw*/,
     GCPtr /*pGC*/,
     int /*narcs*/,
     xArc * /*parcs*/
-#endif
 );
 
 /* Common macros for extracting drawing information */

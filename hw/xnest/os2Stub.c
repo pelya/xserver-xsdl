@@ -26,7 +26,7 @@
  *
  */
 
-/* $XFree86: xc/programs/Xserver/hw/xnest/os2Stub.c,v 3.1 2002/05/31 18:46:04 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xnest/os2Stub.c,v 3.2 2003/11/06 03:25:46 dawes Exp $ */
 
 /* This below implements select() for calls in xnest. It has been         */
 /* somewhat optimized for improved performance, but assumes a few */
@@ -111,7 +111,7 @@ if(FirstTime){
              }
     rc = DosResetEventSem(hPipeSem, &postCount); */ /* Done in xtrans code for servers*/
 
-fprintf(stderr, "Client select() done first-time stuff, sem handle %d.\n",hPipeSem);
+	/*fprintf(stderr, "Client select() done first-time stuff, sem handle %d.\n",hPipeSem);*/
 
    FirstTime = FALSE;
 }
@@ -153,7 +153,7 @@ fprintf(stderr, "Client select() done first-time stuff, sem handle %d.\n",hPipeS
                }
             else if (np == -1) { return(-1); }
             while(!any_ready){
-                 rc = DosWaitEventSem(hPipeSem, timeout_ms);
+                 rc = DosWaitEventSem(hPipeSem, 1L);
                  /* if(rc) fprintf(stderr,"Sem-wait timeout, rc = %d\n",rc); */
                  if(rc == 640)  {
                      return(0);
@@ -191,7 +191,8 @@ fprintf(stderr, "Client select() done first-time stuff, sem handle %d.\n",hPipeS
 
            while (!any_ready && timeout_ms){
 
-                rc = DosWaitEventSem(hPipeSem, 10L);
+                rc = DosWaitEventSem(hPipeSem, 1L);
+                if (rc==640) return(0);
                 if(rc == 0){
                         np = os2_check_pipes(&sd,readfds,writefds);
                         if(np > 0){

@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/fb/fbcopy.c,v 1.12 2001/07/16 05:04:05 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/fb/fbcopy.c,v 1.13 2003/11/10 18:21:47 tsi Exp $ */
 
 #include "fb.h"
 #ifdef IN_MODULE
@@ -531,7 +531,7 @@ fbDoCopy (DrawablePtr	pSrcDrawable,
     /* Check to see if the region is empty */
     if (box.x1 >= box.x2 || box.y1 >= box.y2)
     {
-	REGION_INIT(pGC->pScreen, &rgnDst, NullBox, 0);
+	REGION_NULL(pGC->pScreen, &rgnDst);
     }
     else
     {

@@ -1,5 +1,5 @@
 /*
- * Id: fbline.c,v 1.1 1999/11/02 03:54:45 keithp Exp $
+ * $XFree86: xc/programs/Xserver/fb/fbline.c,v 1.8 2003/11/03 05:11:00 tsi Exp $
  *
  * Copyright © 1998 Keith Packard
  *
@@ -21,7 +21,6 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/fb/fbline.c,v 1.7 2001/01/17 07:40:02 keithp Exp $ */
 
 #include "fb.h"
 
@@ -32,20 +31,15 @@ fbZeroLine (DrawablePtr	pDrawable,
 	    int		npt,
 	    DDXPointPtr	ppt)
 {
-    FbGCPrivPtr	    pPriv = fbGetGCPrivate (pGC);
     int		    x1, y1, x2, y2;
     int		    x, y;
     int		    dashOffset;
-    int		    totalDash;
 
     x = pDrawable->x;
     y = pDrawable->y;
     x1 = ppt->x;
     y1 = ppt->y;
     dashOffset = pGC->dashOffset;
-    totalDash = 0;
-    if (pGC->lineStyle != LineSolid)
-	totalDash = pPriv->dashLength;
     while (--npt)
     {
 	++ppt;

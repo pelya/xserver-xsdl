@@ -12,6 +12,8 @@ the suitability of this software for any purpose.  It is provided "as
 is" without express or implied warranty.
 
 */
+/* $XFree86: xc/programs/Xserver/hw/xnest/Visual.c,v 1.2 2003/11/16 05:05:20 dawes Exp $ */
+
 #include "X.h"
 #include "Xproto.h"
 #include "scrnintstr.h"
@@ -23,8 +25,8 @@ is" without express or implied warranty.
 #include "Display.h"
 #include "Visual.h"
 
-Visual *xnestVisual(pVisual)
-     VisualPtr pVisual;
+Visual *
+xnestVisual(VisualPtr pVisual)
 {
   int i;
 
@@ -41,9 +43,8 @@ Visual *xnestVisual(pVisual)
   return NULL;
 }
 
-Visual *xnestVisualFromID(pScreen, visual)
-     ScreenPtr pScreen;
-     VisualID visual;
+Visual *
+xnestVisualFromID(ScreenPtr pScreen, VisualID visual)
 {
   int i;
   
@@ -54,8 +55,8 @@ Visual *xnestVisualFromID(pScreen, visual)
   return NULL;
 }
 
-Colormap xnestDefaultVisualColormap(visual)
-     Visual *visual;
+Colormap
+xnestDefaultVisualColormap(Visual *visual)
 {
   int i;
   

@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/loader/hash.c,v 1.19 2001/07/25 15:05:07 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/loader/hash.c,v 1.24 2003/11/17 22:20:40 dawes Exp $ */
 
 /*
  *
@@ -42,58 +42,54 @@
 /* Prototypes for static functions. */
 static unsigned int hashFunc(const char *);
 static itemPtr LoaderHashFindNearest(
-#if NeedFunctionPrototypes
-unsigned long
-#endif
-);
+					unsigned long
+	);
 
-static itemPtr LoaderhashTable[ HASHSIZE ] ;
+static itemPtr LoaderhashTable[HASHSIZE];
 
 #ifdef DEBUG
-static int hashhits[ HASHSIZE ] ;
+static int hashhits[HASHSIZE];
 
 void
 DumpHashHits(void)
 {
-    int	i;
-    int	depth=0;
-    int	dev=0;
+    int i;
+    int depth = 0;
+    int dev = 0;
 
-    for(i=0;i<HASHSIZE;i++) {
-	ErrorF("hashhits[%d]=%d\n", i, hashhits[i] );
+    for (i = 0; i < HASHSIZE; i++) {
+	ErrorF("hashhits[%d]=%d\n", i, hashhits[i]);
 	depth += hashhits[i];
     }
 
     depth /= HASHSIZE;
-    ErrorF("Average hash depth=%d\n", depth );
+    ErrorF("Average hash depth=%d\n", depth);
 
-    for(i=0;i<HASHSIZE;i++) {
-	if( hashhits[i] < depth )
-	    dev += depth-hashhits[i];
+    for (i = 0; i < HASHSIZE; i++) {
+	if (hashhits[i] < depth)
+	    dev += depth - hashhits[i];
 	else
-	    dev += hashhits[i]-depth;
+	    dev += hashhits[i] - depth;
     }
 
-    dev /=HASHSIZE;
-    ErrorF("Average hash deviation=%d\n", dev );
+    dev /= HASHSIZE;
+    ErrorF("Average hash deviation=%d\n", dev);
 }
 #endif
 
-
 static unsigned int
-hashFunc(string)
-const char *string;
+hashFunc(const char *string)
 {
-    int i=0; 
+    int i = 0;
 
-    while ( i < 10 && string[i] )
-      i ++ ;
+    while (i < 10 && string[i])
+	i++;
 
-    if ( i < 5 ) {
+    if (i < 5) {
 #ifdef DEBUG
 	hashhits[i]++;
 #endif
-	return i ;
+	return i;
     }
 
 /*
@@ -111,29 +107,25 @@ const char *string;
 }
 
 void
-LoaderHashAdd( entry )
-    itemPtr entry ;
+LoaderHashAdd(itemPtr entry)
 {
-  int bucket = hashFunc( entry->name ) ;
-  itemPtr oentry;
+    int bucket = hashFunc(entry->name);
+    itemPtr oentry;
 
-  if ((oentry = LoaderHashFind(entry->name)) != NULL)
+    if ((oentry = LoaderHashFind(entry->name)) != NULL)
 	LoaderDuplicateSymbol(entry->name, oentry->handle);
 
-  entry->next = LoaderhashTable[ bucket ] ;
-  LoaderhashTable[ bucket ] = entry ;
-  return;
+    entry->next = LoaderhashTable[bucket];
+    LoaderhashTable[bucket] = entry;
+    return;
 }
 
 void
-LoaderAddSymbols(handle, module, list)
-int	handle;
-int	module;
-LOOKUP	*list ;
+LoaderAddSymbols(int handle, int module, LOOKUP *list)
 {
-    LOOKUP	*l = list, *exports = NULL;
-    itemPtr	i, exportsItem = NULL;
-    char	*modname;
+    LOOKUP *l = list, *exports = NULL;
+    itemPtr i, exportsItem = NULL;
+    char *modname;
 
     if (!list)
 	return;
@@ -148,7 +140,7 @@ LOOKUP	*list ;
 	char *exportname;
 
 	exportname = xf86loadermalloc(strlen("ExportedSymbols") +
-					strlen(modname) + 1);
+				      strlen(modname) + 1);
 	if (exportname) {
 	    sprintf(exportname, "%sExportedSymbols", modname);
 	    while (l->symName) {
@@ -160,6 +152,7 @@ LOOKUP	*list ;
 		}
 		l++;
 	    }
+	    xf86loaderfree(exportname);
 	}
     }
 
@@ -167,13 +160,13 @@ LOOKUP	*list ;
      * Allocate the exports list item first.
      */
     if (exports) {
-	exportsItem = xf86loadermalloc( sizeof( itemRec )) ;
-	exportsItem->name = exports->symName ;
-	exportsItem->address = (char *) exports->offset ;
-	exportsItem->handle = handle ;
-	exportsItem->module = module ;
+	exportsItem = xf86loadermalloc(sizeof(itemRec));
+	exportsItem->name = exports->symName;
+	exportsItem->address = (char *)exports->offset;
+	exportsItem->handle = handle;
+	exportsItem->module = module;
 	exportsItem->exports = NULL;
-	LoaderHashAdd( exportsItem );
+	LoaderHashAdd(exportsItem);
     }
 
     /*
@@ -181,107 +174,106 @@ LOOKUP	*list ;
      * reference to the export list, if present.
      */
     l = list;
-    while ( l->symName ) {
+    while (l->symName) {
 	if (l != exports) {
-	    i = xf86loadermalloc( sizeof( itemRec )) ;
-	    i->name = l->symName ;
-	    i->address = (char *) l->offset ;
-	    i->handle = handle ;
-	    i->module = module ;
+	    i = xf86loadermalloc(sizeof(itemRec));
+	    i->name = l->symName;
+	    i->address = (char *)l->offset;
+	    i->handle = handle;
+	    i->module = module;
 	    i->exports = exportsItem;
-	    LoaderHashAdd( i );
+	    LoaderHashAdd(i);
 	}
-	l ++ ;
+	l++;
     }
 }
 
 itemPtr
-LoaderHashDelete(string)
-const char *string;
+LoaderHashDelete(const char *string)
 {
-  int bucket = hashFunc( string ) ;
-  itemPtr entry;
-  itemPtr *entry2;
+    int bucket = hashFunc(string);
+    itemPtr entry;
+    itemPtr *entry2;
 
-  entry = LoaderhashTable[ bucket ] ;
-  entry2= &(LoaderhashTable[ bucket ]);
-  while ( entry ) {
-    if (! strcmp( entry->name, string )) {
-      *entry2=entry->next;
-      xf86loaderfree(entry->name);
-      xf86loaderfree( entry ) ;
-      return 0 ;
+    entry = LoaderhashTable[bucket];
+    entry2 = &(LoaderhashTable[bucket]);
+    while (entry) {
+	if (!strcmp(entry->name, string)) {
+	    *entry2 = entry->next;
+	    xf86loaderfree(entry->name);
+	    xf86loaderfree(entry);
+	    return 0;
+	}
+	entry2 = &(entry->next);
+	entry = entry->next;
     }
-    entry2 = &(entry->next) ;
-    entry = entry->next ;
-  }
-  return 0 ;
+    return 0;
 }
 
 itemPtr
-LoaderHashFind(string)
-const char *string;
+LoaderHashFind(const char *string)
 {
-    int bucket = hashFunc( string ) ;
-    itemPtr entry ;
-	entry = LoaderhashTable[ bucket ] ;
-	while ( entry ) {
-	    if (!strcmp(entry->name, string)) {
-		return entry;
-	    }
-	    entry = entry->next;
+    int bucket = hashFunc(string);
+    itemPtr entry;
+
+    entry = LoaderhashTable[bucket];
+    while (entry) {
+	if (!strcmp(entry->name, string)) {
+	    return entry;
 	}
+	entry = entry->next;
+    }
     return 0;
 }
 
 static itemPtr
-LoaderHashFindNearest(address)
-unsigned long address;
+LoaderHashFindNearest(unsigned long address)
 {
-  int i ;
-  itemPtr entry, best_entry = 0 ;
-  long best_difference = MAXINT;
+    int i;
+    itemPtr entry, best_entry = 0;
+    long best_difference = MAXINT;
 
-  for ( i = 0 ; i < HASHSIZE ; i ++ ) {
-    entry = LoaderhashTable[ i ] ;
-    while ( entry ) {
-      long difference = (long) address - (long) entry->address ;
-      if ( difference >= 0 ) {
-	if ( best_entry ) {
-	  if ( difference < best_difference ) {
-	    best_entry = entry ;
-	    best_difference = difference ;
-	  }
+    for (i = 0; i < HASHSIZE; i++) {
+	entry = LoaderhashTable[i];
+	while (entry) {
+	    long difference = (long)address - (long)entry->address;
+
+	    if (difference >= 0) {
+		if (best_entry) {
+		    if (difference < best_difference) {
+			best_entry = entry;
+			best_difference = difference;
+		    }
+		} else {
+		    best_entry = entry;
+		    best_difference = difference;
+		}
+	    }
+	    entry = entry->next;
 	}
-	else {
-	  best_entry = entry ;
-	  best_difference = difference ;
-	}
-      }
-      entry = entry->next ;
     }
-  }
-  return best_entry ;
+    return best_entry;
 }
 
 void
-LoaderPrintSymbol(address)
-unsigned long address;
+LoaderPrintSymbol(unsigned long address)
 {
-    itemPtr	entry;
-    entry=LoaderHashFindNearest(address);
+    itemPtr entry;
+
+    entry = LoaderHashFindNearest(address);
     if (entry) {
 	const char *module, *section;
+
 #if defined(__alpha__) || defined(__ia64__)
-	ErrorF("0x%016lx %s+%lx\n", entry->address, entry->name,
-		   address - (unsigned long) entry->address);
+	ErrorF("0x%016lx %s+%lx\n", (unsigned long)entry->address,
+	       entry->name, address - (unsigned long)entry->address);
 #else
-	ErrorF("0x%x %s+%x\n", entry->address, entry->name,
-		   address - (unsigned long) entry->address);
+	ErrorF("0x%lx %s+%lx\n", (unsigned long)entry->address, entry->name,
+	       address - (unsigned long)entry->address);
 #endif
 
-	if ( _LoaderAddressToSection(address, &module, &section) )
-		ErrorF("\tModule \"%s\"\n\tSection \"%s\"\n",module, section );
+	if (_LoaderAddressToSection(address, &module, &section))
+	    ErrorF("\tModule \"%s\"\n\tSection \"%s\"\n", module, section);
     } else {
 	ErrorF("(null)\n");
     }
@@ -292,73 +284,70 @@ LoaderPrintItem(itemPtr pItem)
 {
     if (pItem) {
 	const char *module, *section;
+
 #if defined(__alpha__) || defined(__ia64__)
-	ErrorF("0x%016lx %s\n", pItem->address, pItem->name);
+	ErrorF("0x%016lx %s\n", (unsigned long)pItem->address, pItem->name);
 #else
-	ErrorF("0x%lx %s\n", pItem->address, pItem->name);
+	ErrorF("0x%lx %s\n", (unsigned long)pItem->address, pItem->name);
 #endif
-	if ( _LoaderAddressToSection((unsigned long)pItem->address,
-				     &module, &section) )
-		ErrorF("\tModule \"%s\"\n\tSection \"%s\"\n",module, section );
+	if (_LoaderAddressToSection((unsigned long)pItem->address,
+				    &module, &section))
+	    ErrorF("\tModule \"%s\"\n\tSection \"%s\"\n", module, section);
     } else
 	ErrorF("(null)\n");
 }
-	
+
 void
-LoaderPrintAddress(symbol)
-const char *symbol;
+LoaderPrintAddress(const char *symbol)
 {
-    itemPtr	entry;
+    itemPtr entry;
+
     entry = LoaderHashFind(symbol);
     LoaderPrintItem(entry);
 }
 
 void
-LoaderHashTraverse(card, fnp)
-    void *card;
-    int (*fnp)(void *, itemPtr);
+LoaderHashTraverse(void *card, int (*fnp)(void *, itemPtr))
 {
-  int i ;
-  itemPtr entry, last_entry = 0 ;
+    int i;
+    itemPtr entry, last_entry = 0;
 
-  for ( i = 0 ; i < HASHSIZE ; i ++ ) {
-    last_entry = 0 ;
-    entry = LoaderhashTable[ i ] ;
-    while ( entry ) {
-      if (( * fnp )( card, entry )) {
-	if ( last_entry ) {
-	  last_entry->next = entry->next ;
-	  xf86loaderfree( entry->name ) ;
-	  xf86loaderfree( entry ) ;
-	  entry = last_entry->next ;
+    for (i = 0; i < HASHSIZE; i++) {
+	last_entry = 0;
+	entry = LoaderhashTable[i];
+	while (entry) {
+	    if ((*fnp) (card, entry)) {
+		if (last_entry) {
+		    last_entry->next = entry->next;
+		    xf86loaderfree(entry->name);
+		    xf86loaderfree(entry);
+		    entry = last_entry->next;
+		} else {
+		    LoaderhashTable[i] = entry->next;
+		    xf86loaderfree(entry->name);
+		    xf86loaderfree(entry);
+		    entry = LoaderhashTable[i];
+		}
+	    } else {
+		last_entry = entry;
+		entry = entry->next;
+	    }
 	}
-	else {
-	  LoaderhashTable[ i ] = entry->next ;
-	  xf86loaderfree( entry->name ) ;
-	  xf86loaderfree( entry ) ;
-	  entry = LoaderhashTable[ i ] ;
-	}
-      }
-      else {
-	last_entry = entry ;
-	entry = entry->next ;
-      }
     }
-  }
 }
 
 void
 LoaderDumpSymbols()
 {
-	itemPtr       entry;
-	int           j;
-		
-	for (j=0; j<HASHSIZE; j++) {
-		entry = LoaderhashTable[j];
-		while (entry) {
-			LoaderPrintItem(entry);
-			entry = entry->next;
-		}
+    itemPtr entry;
+    int j;
+
+    for (j = 0; j < HASHSIZE; j++) {
+	entry = LoaderhashTable[j];
+	while (entry) {
+	    LoaderPrintItem(entry);
+	    entry = entry->next;
 	}
-		
+    }
+
 }

@@ -4,7 +4,7 @@
    Written by Mark Vojkovich (mvojkovi@ucsd.edu)
 */
 
-/* $XFree86: xc/programs/Xserver/hw/xfree86/xf8_16bpp/cfbwindow.c,v 1.4 2003/02/17 16:08:30 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/xf8_16bpp/cfbwindow.c,v 1.5 2003/11/10 18:22:42 tsi Exp $ */
 
 #include "X.h"
 #include "scrnintstr.h"
@@ -70,7 +70,7 @@ cfb8_16CopyWindow(
     int i, nbox, dx, dy;
     WindowPtr pRoot = WindowTable[pScreen->myNum];
 
-    REGION_INIT(pScreen, &rgnDst, NullBox, 0);
+    REGION_NULL(pScreen, &rgnDst);
 
     dx = ptOldOrg.x - pWin->drawable.x;
     dy = ptOldOrg.y - pWin->drawable.y;
@@ -99,7 +99,7 @@ cfb8_16CopyWindow(
     REGION_UNINIT(pScreen, &rgnDst);
 
     if(pWin->drawable.depth == 8) {
-      REGION_INIT(pScreen, &rgnDst, NullBox, 0);
+      REGION_NULL(pScreen, &rgnDst);
       miSegregateChildren(pWin, &rgnDst, pScrn->depth);
       if(REGION_NOTEMPTY(pScreen, &rgnDst)) {
 	REGION_INTERSECT(pScreen, &rgnDst, &rgnDst, prgnSrc);

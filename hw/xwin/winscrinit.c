@@ -31,7 +31,7 @@
  *		Harold L Hunt II
  *		Kensuke Matsuzaki
  */
-/* $XFree86: xc/programs/Xserver/hw/xwin/winscrinit.c,v 1.26 2003/02/12 15:01:38 alanh Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xwin/winscrinit.c,v 1.28 2003/08/07 23:47:58 alanh Exp $ */
 
 #include "win.h"
 
@@ -510,6 +510,11 @@ winFinishScreenInitFB (int index,
   /* Set the ServerStarted flag to false */
   pScreenPriv->fServerStarted = FALSE;
 
+  /* Set the WindowOrderChanged flag to false */
+  pScreenPriv->fWindowOrderChanged = FALSE;
+
+  pScreenPriv->fRestacking = FALSE;
+
 #if CYGDEBUG || YES
   if (pScreenInfo->fMultiWindow)
     ErrorF ("winFinishScreenInitFB - Calling winInitWM.\n");
@@ -519,6 +524,7 @@ winFinishScreenInitFB (int index,
   if (pScreenInfo->fMultiWindow
       && !winInitWM (&pScreenPriv->pWMInfo,
 		     &pScreenPriv->ptWMProc,
+		     &pScreenPriv->ptXMsgProc,
 		     &pScreenPriv->pmServerStarted,
 		     pScreenInfo->dwScreen))
     {
@@ -584,7 +590,7 @@ winFinishScreenInitNativeGDI (int index,
   int			nVisuals = 0, nDepths = 0, nRootDepth = 0;
 
   /* Ignore user input (mouse, keyboard) */
-  pScreenInfo->fIgnoreInput = TRUE;
+  pScreenInfo->fIgnoreInput = FALSE;
 
   /* Get device contexts for the screen and shadow bitmap */
   pScreenPriv->hdcScreen = GetDC (pScreenPriv->hwndScreen);
@@ -616,13 +622,15 @@ winFinishScreenInitNativeGDI (int index,
 		     NULL, /* No framebuffer */
 		     pScreenInfo->dwWidth, pScreenInfo->dwHeight,
 		     monitorResolution, monitorResolution,
-		     pScreenInfo->dwWidth,
+		     pScreenInfo->dwStride,
 		     nRootDepth, nDepths, pDepths, rootVisual,
 		     nVisuals, pVisuals))
     {
       ErrorF ("winFinishScreenInitNativeGDI - miScreenInit failed\n");
       return FALSE;
     }
+
+  pScreen->defColormap = FakeClientID(0);
 
   /*
    * Register our block and wakeup handlers; these procedures

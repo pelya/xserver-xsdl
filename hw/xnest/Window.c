@@ -12,7 +12,7 @@ the suitability of this software for any purpose.  It is provided "as
 is" without express or implied warranty.
 
 */
-/* $XFree86: xc/programs/Xserver/hw/xnest/Window.c,v 3.7 2001/10/28 03:34:11 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xnest/Window.c,v 3.8 2003/11/16 05:05:20 dawes Exp $ */
 
 #include "X.h"
 #include "Xproto.h"
@@ -39,9 +39,8 @@ is" without express or implied warranty.
 
 int xnestWindowPrivateIndex;
 
-static int xnestFindWindowMatch(pWin, ptr)
-     WindowPtr pWin;
-     pointer ptr;
+static int
+xnestFindWindowMatch(WindowPtr pWin, pointer ptr)
 {
   xnestWindowMatch *wm = (xnestWindowMatch *)ptr;
   if (wm->window == xnestWindow(pWin)) {
@@ -52,8 +51,8 @@ static int xnestFindWindowMatch(pWin, ptr)
     return WT_WALKCHILDREN;
 }
 
-WindowPtr xnestWindowPtr(window)
-     Window window;
+WindowPtr
+xnestWindowPtr(Window window)
 {
   xnestWindowMatch wm;
   int i;
@@ -69,8 +68,8 @@ WindowPtr xnestWindowPtr(window)
   return wm.pWin;
 }
     
-Bool xnestCreateWindow(pWin)
-     WindowPtr pWin;
+Bool
+xnestCreateWindow(WindowPtr pWin)
 {
   unsigned long mask;
   XSetWindowAttributes attributes;
@@ -143,8 +142,8 @@ Bool xnestCreateWindow(pWin)
   return True;
 }
 
-Bool xnestDestroyWindow(pWin)
-     WindowPtr pWin;
+Bool
+xnestDestroyWindow(WindowPtr pWin)
 {
   if (pWin->nextSib)
     xnestWindowPriv(pWin->nextSib)->sibling_above = 
@@ -164,9 +163,8 @@ Bool xnestDestroyWindow(pWin)
   return True;
 }
 
-Bool xnestPositionWindow(pWin, x, y)
-     WindowPtr pWin;
-     int x, y;
+Bool
+xnestPositionWindow(WindowPtr pWin, int x, int y)
 {
   xnestConfigureWindow(pWin, 
 		       CWParent |
@@ -177,9 +175,8 @@ Bool xnestPositionWindow(pWin, x, y)
   return True;
 }
 
-void xnestConfigureWindow(pWin, mask)
-     WindowPtr pWin;
-     unsigned int mask;
+void
+xnestConfigureWindow(WindowPtr pWin, unsigned int mask)
 {
   unsigned int valuemask;
   XWindowChanges values;
@@ -267,9 +264,8 @@ void xnestConfigureWindow(pWin, mask)
   }
 }
 
-Bool xnestChangeWindowAttributes(pWin, mask)
-     WindowPtr pWin;
-     unsigned long mask;
+Bool
+xnestChangeWindowAttributes(WindowPtr pWin, unsigned long mask)
 {
   XSetWindowAttributes attributes;
   
@@ -360,8 +356,8 @@ Bool xnestChangeWindowAttributes(pWin, mask)
   return True;
 }	  
 
-Bool xnestRealizeWindow(pWin)
-     WindowPtr pWin;
+Bool
+xnestRealizeWindow(WindowPtr pWin)
 {
   xnestConfigureWindow(pWin, CWStackingOrder);
 #ifdef SHAPE
@@ -372,18 +368,16 @@ Bool xnestRealizeWindow(pWin)
   return True;
 }
 
-Bool xnestUnrealizeWindow(pWin)
-    WindowPtr pWin;
+Bool
+xnestUnrealizeWindow(WindowPtr pWin)
 {
   XUnmapWindow(xnestDisplay, xnestWindow(pWin));
 
   return True;
 }
 
-void xnestPaintWindowBackground(pWin, pRegion, what)
-     WindowPtr pWin;
-     RegionPtr pRegion;
-     int what;
+void
+xnestPaintWindowBackground(WindowPtr pWin, RegionPtr pRegion, int what)
 {
   int i;
   BoxPtr pBox;
@@ -400,24 +394,19 @@ void xnestPaintWindowBackground(pWin, pRegion, what)
 	       False);
 }
 
-void xnestPaintWindowBorder(pWin, pRegion, what)
-     WindowPtr pWin;
-     RegionPtr pRegion;
-     int what;
+void
+xnestPaintWindowBorder(WindowPtr pWin, RegionPtr pRegion, int what)
 {
   xnestConfigureWindow(pWin, CWBorderWidth);
 }
 
-void xnestCopyWindow(pWin, oldOrigin, oldRegion)
-     WindowPtr pWin;
-     xPoint oldOrigin;
-     RegionPtr oldRegion;
+void
+xnestCopyWindow(WindowPtr pWin, xPoint oldOrigin, RegionPtr oldRegion)
 {
 }
 
-void xnestClipNotify(pWin, dx, dy)
-     WindowPtr pWin;
-     int dx, dy;
+void
+xnestClipNotify(WindowPtr pWin, int dx, int dy)
 {
   xnestConfigureWindow(pWin, CWStackingOrder); 
 #ifdef SHAPE
@@ -425,17 +414,14 @@ void xnestClipNotify(pWin, dx, dy)
 #endif /* SHAPE */
 }
 
-static Bool xnestWindowExposurePredicate(display, event, ptr)
-     Display *display;
-     XEvent *event;
-     XPointer ptr;
+static Bool
+xnestWindowExposurePredicate(Display *display, XEvent *event, XPointer ptr)
 {
   return (event->type == Expose && event->xexpose.window == *(Window *)ptr);
 }
 
-void xnestWindowExposures(pWin, pRgn, other_exposed)
-     WindowPtr pWin;
-     RegionPtr pRgn, other_exposed;
+void
+xnestWindowExposures(WindowPtr pWin, RegionPtr pRgn, RegionPtr other_exposed)
 {
   XEvent event;
   Window window;
@@ -463,8 +449,8 @@ void xnestWindowExposures(pWin, pRgn, other_exposed)
 }
 
 #ifdef SHAPE
-static Bool xnestRegionEqual(pReg1, pReg2)
-     RegionPtr pReg1, pReg2;
+static Bool
+xnestRegionEqual(RegionPtr pReg1, RegionPtr pReg2)
 {
   BoxPtr pBox1, pBox2;
   unsigned int n1, n2;
@@ -488,8 +474,8 @@ static Bool xnestRegionEqual(pReg1, pReg2)
   return True;
 }
 
-void xnestShapeWindow(pWin)
-     WindowPtr pWin;
+void
+xnestShapeWindow(WindowPtr pWin)
 {
   Region reg;
   BoxPtr pBox;

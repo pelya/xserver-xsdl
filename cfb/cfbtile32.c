@@ -2,7 +2,7 @@
  * Fill 32 bit tiled rectangles.  Used by both PolyFillRect and PaintWindow.
  * no depth dependencies.
  */
-/* $XFree86: xc/programs/Xserver/cfb/cfbtile32.c,v 3.6 2001/12/14 19:59:25 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/cfb/cfbtile32.c,v 3.7 2003/10/29 22:44:53 tsi Exp $ */
 
 /*
 
@@ -234,7 +234,11 @@ MROP_NAME(cfbFillRectTile32) (pDrawable, pGC, nBox, pBox)
 
     CfbBits *pbits;/* pointer to start of pixmap */
     PixmapPtr	    tile;	/* rotated, expanded tile */
+#if MROP == 0 && PSZ == 24
+    DeclareMergeRop()
+#else
     MROP_DECLARE_REG()
+#endif
     MROP_PREBUILT_DECLARE()
 #if PSZ == 24
     CfbBits xtmp;
@@ -244,7 +248,11 @@ MROP_NAME(cfbFillRectTile32) (pDrawable, pGC, nBox, pBox)
     tileHeight = tile->drawable.height;
     psrc = (CfbBits *)tile->devPrivate.ptr;
 
+#if MROP == 0 && PSZ == 24
+    InitializeMergeRop(pGC->alu, pGC->planemask);
+#else
     MROP_INITIALIZE(pGC->alu, pGC->planemask);
+#endif
 
     cfbGetLongWidthAndPointer (pDrawable, nlwDst, pbits)
 
@@ -346,7 +354,11 @@ MROP_NAME(cfbTile32FS)(pDrawable, pGC, nInit, pptInit, pwidthInit, fSorted)
     PixmapPtr		tile;
     CfbBits	*psrc;	/* pointer to bits in tile */
     int			tileHeight;/* height of the tile */
-    MROP_DECLARE_REG ()
+#if MROP == 0 && PSZ == 24
+    DeclareMergeRop()
+#else
+    MROP_DECLARE_REG()
+#endif
     MROP_PREBUILT_DECLARE()
 #if PSZ == 24      
     CfbBits	xtmp;
@@ -371,7 +383,11 @@ MROP_NAME(cfbTile32FS)(pDrawable, pGC, nInit, pptInit, pwidthInit, fSorted)
     tileHeight = tile->drawable.height;
     psrc = (CfbBits *)tile->devPrivate.ptr;
 
+#if MROP == 0 && PSZ == 24
+    InitializeMergeRop(pGC->alu, pGC->planemask);
+#else
     MROP_INITIALIZE(pGC->alu, pGC->planemask);
+#endif
 
     cfbGetLongWidthAndPointer (pDrawable, nlwDst, pbits)
 

@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/xf8_32bpp/cfbcpyarea.c,v 1.5 2000/02/29 00:17:16 mvojkovi Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/xf8_32bpp/cfbcpyarea.c,v 1.6 2003/07/16 01:38:50 dawes Exp $ */
 
 #include "X.h"
 #include "Xmd.h"
@@ -67,8 +67,7 @@ cfbDoBitblt8To32(
     int rop,
     RegionPtr prgnDst, 
     DDXPointPtr pptSrc,
-    unsigned long pm,
-    unsigned long bitPlane
+    unsigned long pm
 ){
     BoxPtr pbox = REGION_RECTS(prgnDst);
     int nbox = REGION_NUM_RECTS(prgnDst);
@@ -184,8 +183,7 @@ cfbDoBitblt32To8(
     int rop,
     RegionPtr prgnDst, 
     DDXPointPtr pptSrc,
-    unsigned long pm,
-    unsigned long bitPlane
+    unsigned long pm
 ){
     BoxPtr pbox = REGION_RECTS(prgnDst);
     int nbox = REGION_NUM_RECTS(prgnDst);
@@ -394,7 +392,15 @@ cfb8_32DoBitBlt(
     DrawablePtr	    pDst,
     RegionPtr	    prgnDst,
     DDXPointPtr	    pptSrc,
-    void	    (*DoBlt)() 
+    void	    (*DoBlt)(
+        unsigned char *SrcPtr,
+        int SrcPitch,
+        unsigned char *DstPtr,
+        int DstPitch,
+        int nbox,
+        DDXPointPtr pptSrc,
+        BoxPtr pbox,
+        int xdir, int ydir)
 ){
     int nbox, careful, SrcPitch, DstPitch;
     BoxPtr pbox, pboxTmp, pboxNext, pboxBase, pboxNew1, pboxNew2;
@@ -519,8 +525,7 @@ cfbDoBitblt8To8GXcopy(
     int rop,
     RegionPtr prgnDst, 
     DDXPointPtr pptSrc,
-    unsigned long pm,
-    unsigned long bitPlane
+    unsigned long pm
 ){
     cfb8_32DoBitBlt(pSrc, pDst, prgnDst, pptSrc, Do8To8Blt);
 }
@@ -533,8 +538,7 @@ cfbDoBitblt24To24GXcopy(
     int rop,
     RegionPtr prgnDst, 
     DDXPointPtr pptSrc,
-    unsigned long pm,
-    unsigned long bitPlane
+    unsigned long pm
 ){
     cfb8_32DoBitBlt(pSrc, pDst, prgnDst, pptSrc, Do24To24Blt);
 }

@@ -12,7 +12,7 @@ the suitability of this software for any purpose.  It is provided "as
 is" without express or implied warranty.
 
 */
-/* $XFree86: xc/programs/Xserver/hw/xnest/Keyboard.c,v 1.8 2001/10/28 03:34:11 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xnest/Keyboard.c,v 1.10 2003/11/16 05:05:20 dawes Exp $ */
 
 #define NEED_EVENTS
 #include "X.h"
@@ -36,31 +36,26 @@ is" without express or implied warranty.
 #include <X11/extensions/XKBsrv.h>
 #include <X11/extensions/XKBconfig.h>
 
-extern	Bool	XkbQueryExtension(
-#if NeedFunctionPrototypes
+extern Bool
+XkbQueryExtension(
 	Display *		/* dpy */,
 	int *			/* opcodeReturn */,
 	int *			/* eventBaseReturn */,
 	int *			/* errorBaseReturn */,
 	int *			/* majorRtrn */,
 	int *			/* minorRtrn */
-#endif
 );
 
 extern	XkbDescPtr XkbGetKeyboard(
-#if NeedFunctionPrototypes
 	Display *		/* dpy */,
 	unsigned int		/* which */,
 	unsigned int		/* deviceSpec */
-#endif
 );
 
 extern	Status	XkbGetControls(
-#if NeedFunctionPrototypes
 	Display *		/* dpy */,
 	unsigned long		/* which */,
 	XkbDescPtr		/* desc */
-#endif
 );
 
 #ifndef XKB_BASE_DIRECTORY
@@ -85,21 +80,16 @@ extern	Status	XkbGetControls(
 #define	XKB_DFLT_KB_OPTIONS	NULL
 #endif
 
-extern Bool noXkbExtension;
 #endif
 
-void xnestBell(volume, pDev, ctrl, cls)
-     int volume;
-     DeviceIntPtr pDev;
-     pointer ctrl;
-     int cls;
+void
+xnestBell(int volume, DeviceIntPtr pDev, pointer ctrl, int cls)
 {
   XBell(xnestDisplay, volume);
 }
 
-void xnestChangeKeyboardControl(pDev, ctrl)
-     DeviceIntPtr pDev;
-     KeybdCtrl *ctrl;
+void
+xnestChangeKeyboardControl(DeviceIntPtr pDev, KeybdCtrl *ctrl)
 {
 #if 0
   unsigned long value_mask;
@@ -136,10 +126,8 @@ void xnestChangeKeyboardControl(pDev, ctrl)
 #endif
 }
 
-int xnestKeyboardProc(pDev, onoff, argc, argv)
-     DevicePtr pDev;
-     int onoff, argc;
-     char *argv[];
+int
+xnestKeyboardProc(DeviceIntPtr pDev, int onoff)
 {
   XModifierKeymap *modifier_keymap;
   KeySym *keymap;
@@ -202,7 +190,7 @@ XkbError:
       memmove((char *) defaultKeyboardControl.autoRepeats,
              (char *) values.auto_repeats, sizeof(values.auto_repeats));
 
-      InitKeyboardDeviceStruct(pDev, &keySyms, modmap,
+      InitKeyboardDeviceStruct(&pDev->public, &keySyms, modmap,
 			       xnestBell, xnestChangeKeyboardControl);
 #ifdef XKB
       } else {
@@ -260,9 +248,9 @@ XkbError:
 	}
 
 	XkbSetRulesDflts(rules, model, layout, variants, options);
-	XkbInitKeyboardDeviceStruct((pointer)pDev, &names, &keySyms, modmap,
+	XkbInitKeyboardDeviceStruct(pDev, &names, &keySyms, modmap,
 				    xnestBell, xnestChangeKeyboardControl);
-	XkbDDXChangeControls((pointer)pDev, xkb->ctrls, xkb->ctrls);
+	XkbDDXChangeControls(pDev, xkb->ctrls, xkb->ctrls);
 	XkbFreeKeyboard(xkb, 0, False);
       }
 #endif
@@ -288,9 +276,8 @@ XkbError:
   return Success;
 }
 
-Bool LegalModifier(key, pDev)
-     unsigned int key;
-     DevicePtr pDev;
+Bool
+LegalModifier(unsigned int key, DevicePtr pDev)
 {
   return TRUE;
 }

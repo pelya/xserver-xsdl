@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/sysv/sysv_video.c,v 3.20 2000/10/28 01:42:29 mvojkovi Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/sysv/sysv_video.c,v 3.21 2003/03/14 13:46:08 tsi Exp $ */
 /*
  * Copyright 1990,91 by Thomas Roell, Dinkelscherben, Germany
  * Copyright 1993 by David Wexelblat <dwex@goblin.org>
@@ -144,13 +144,16 @@ mapVidMem(int ScreenNum, unsigned long Base, unsigned long Size, int flags)
 	int fd;
 
 #if defined(SVR4)
-	if ((fd = open(DEV_MEM, O_RDWR)) < 0)
+	fd = open(DEV_MEM, (flags & VIDMEM_READONLY) ? O_RDONLY : O_RDWR);
+	if (fd < 0)
 	{
 		FatalError("xf86MapVidMem: failed to open %s (%s)\n",
 			   DEV_MEM, strerror(errno));
 	}
-	base = mmap((caddr_t)0, Size, PROT_READ|PROT_WRITE,
-		     MAP_SHARED, fd, (off_t)Base);
+	base = mmap((caddr_t)0, Size,
+		    (flags & VIDMEM_READONLY) ?
+		     PROT_READ : (PROT_READ | PROT_WRITE),
+		    MAP_SHARED, fd, (off_t)Base);
 	close(fd);
 	if (base == MAP_FAILED)
 	{

@@ -31,7 +31,7 @@ dealings in this Software without prior written authorization from said
 copyright holders.
 */
 
-/* $XFree86: xc/programs/Xserver/Xprint/raster/Raster.c,v 1.11 2001/12/21 21:02:06 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/Xprint/raster/Raster.c,v 1.12 2003/10/29 22:11:55 tsi Exp $ */
 
 /*******************************************************************
 **
@@ -1505,14 +1505,14 @@ RasterCloseScreen(
 /* ARGSUSED */
 static void SigchldHndlr (int dummy)
 {
-    int   status, w;
+    int   status;
     int   olderrno = errno;
     struct sigaction act;
     sigfillset(&act.sa_mask);
     act.sa_flags = 0;
     act.sa_handler = SigchldHndlr;
 
-    w = wait (&status);
+    (void) wait (&status);
 
     /*
      * Is this really necessary?

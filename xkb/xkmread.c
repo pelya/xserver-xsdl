@@ -24,7 +24,7 @@
  THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
  ********************************************************/
-/* $XFree86: xc/lib/xkbfile/xkmread.c,v 1.6 2002/02/13 22:09:42 herrb Exp $ */
+/* $XFree86: xc/lib/xkbfile/xkmread.c,v 1.7 2003/11/17 22:20:24 dawes Exp $ */
 
 #include <stdio.h>
 
@@ -57,14 +57,7 @@
 #include "XKBgeom.h"
 
 Atom
-#if NeedFunctionPrototypes
 XkbInternAtom(Display *dpy,char *str,Bool only_if_exists)
-#else
-XkbInternAtom(dpy,str,only_if_exists)
-    Display *	dpy;
-    char *	str;
-    Bool	only_if_exists;
-#endif
 {
     if (str==NULL)
 	return None;
@@ -78,12 +71,7 @@ XkbInternAtom(dpy,str,only_if_exists)
 #endif
 
 char *
-#if NeedFunctionPrototypes
 _XkbDupString(char *str)
-#else
-_XkbDupString(str)
-   char *str;
-#endif
 {
 char *new;
    
@@ -98,15 +86,7 @@ char *new;
 /***====================================================================***/
 
 static XPointer
-#if NeedFunctionPrototypes
 XkmInsureSize(XPointer oldPtr,int oldCount,int *newCountRtrn,int elemSize)
-#else
-XkmInsureSize(oldPtr,oldCount,newCountRtrn,elemSize)
-    XPointer	oldPtr;
-    int		oldCount;
-    int *	newCountRtrn;
-    int		elemSize;
-#endif
 {
 int	newCount= *newCountRtrn;
 
@@ -131,13 +111,7 @@ int	newCount= *newCountRtrn;
 #define	XkmInsureTypedSize(p,o,n,t) ((p)=((t *)XkmInsureSize((char *)(p),(o),(n),sizeof(t))))
 
 static CARD8
-#if NeedFunctionPrototypes
 XkmGetCARD8(FILE *file,int *pNRead)
-#else
-XkmGetCARD8(file,pNRead)
-    FILE *	file;
-    int *	pNRead;
-#endif
 {
 int	tmp;
     tmp= getc(file);
@@ -147,13 +121,7 @@ int	tmp;
 }
 
 static CARD16
-#if NeedFunctionPrototypes
 XkmGetCARD16(FILE *file,int *pNRead)
-#else
-XkmGetCARD16(file,pNRead)
-    FILE *	file;
-    int *	pNRead;
-#endif
 {
 CARD16		val;
 
@@ -163,13 +131,7 @@ CARD16		val;
 }
 
 static CARD32
-#if NeedFunctionPrototypes
 XkmGetCARD32(FILE *file,int *pNRead)
-#else
-XkmGetCARD32(file,pNRead)
-    FILE *	file;
-    int *	pNRead;
-#endif
 {
 CARD32	val;
 
@@ -179,13 +141,7 @@ CARD32	val;
 }
 
 static int
-#if NeedFunctionPrototypes
 XkmSkipPadding(FILE *file,unsigned pad)
-#else
-XkmSkipPadding(file,pad)
-    FILE *		file;
-    unsigned		pad;
-#endif
 {
 register int	i,nRead=0;
 
@@ -197,14 +153,7 @@ register int	i,nRead=0;
 }
 
 static int
-#if NeedFunctionPrototypes
 XkmGetCountedString(FILE *file,char *str,int max_len)
-#else
-XkmGetCountedString(file,str,max_len)
-    FILE *		file;
-    char *		str;
-    int			max_len;
-#endif
 {
 int	count,nRead=0;
 
@@ -235,14 +184,7 @@ int	count,nRead=0;
 /***====================================================================***/
 
 static int
-#if NeedFunctionPrototypes
 ReadXkmVirtualMods(FILE *file,XkbFileInfo *result,XkbChangesPtr changes)
-#else
-ReadXkmVirtualMods(file,result,changes)
-    FILE *		file;
-    XkbFileInfo *	result;
-    XkbChangesPtr	changes;
-#endif
 {
 register unsigned int i,bit;
 unsigned int	bound,named,tmp;
@@ -286,14 +228,7 @@ XkbDescPtr	xkb;
 /***====================================================================***/
 
 static int
-#if NeedFunctionPrototypes
 ReadXkmKeycodes(FILE *file,XkbFileInfo *result,XkbChangesPtr changes)
-#else
-ReadXkmKeycodes(file,result,changes)
-    FILE *		file;
-    XkbFileInfo *	result;
-    XkbChangesPtr	changes;
-#endif
 {
 register int	i;
 unsigned	minKC,maxKC,nAl;
@@ -360,14 +295,7 @@ XkbDescPtr	xkb;
 /***====================================================================***/
 
 static int
-#if NeedFunctionPrototypes
 ReadXkmKeyTypes(FILE *file,XkbFileInfo *result,XkbChangesPtr changes)
-#else
-ReadXkmKeyTypes(file,result,changes)
-    FILE *		file;
-    XkbFileInfo *	result;
-    XkbChangesPtr	changes;
-#endif
 {
 register unsigned	i,n;
 unsigned		num_types;
@@ -505,14 +433,7 @@ XkbDescPtr		xkb;
 /***====================================================================***/
 
 static int
-#if NeedFunctionPrototypes
 ReadXkmCompatMap(FILE *file,XkbFileInfo *result,XkbChangesPtr changes)
-#else
-ReadXkmCompatMap(file,result,changes)
-    FILE *		file;
-    XkbFileInfo *	result;
-    XkbChangesPtr	changes;
-#endif
 {
 register int		i;
 unsigned		num_si,groups;
@@ -590,14 +511,7 @@ XkbCompatMapPtr		compat;
 }
 
 static int
-#if NeedFunctionPrototypes
 ReadXkmIndicators(FILE *file,XkbFileInfo *result,XkbChangesPtr changes)
-#else
-ReadXkmIndicators(file,result,changes)
-    FILE *		file;
-    XkbFileInfo *	result;
-    XkbChangesPtr	changes;
-#endif
 {
 register unsigned	nLEDs;
 xkmIndicatorMapDesc	wire;
@@ -654,15 +568,7 @@ XkbDescPtr		xkb;
 }
 
 static XkbKeyTypePtr
-#if NeedFunctionPrototypes
 FindTypeForKey(XkbDescPtr xkb,Atom name,unsigned width,KeySym *syms)
-#else
-FindTypeForKey(xkb,name,width,syms)
-    XkbDescPtr	xkb;
-    Atom	name;
-    unsigned	width;
-    KeySym *	syms;
-#endif
 {
     if ((!xkb)||(!xkb->map))
 	return NULL;
@@ -690,13 +596,7 @@ FindTypeForKey(xkb,name,width,syms)
 }
 
 static int
-#if NeedFunctionPrototypes
 ReadXkmSymbols(FILE *file,XkbFileInfo *result)
-#else
-ReadXkmSymbols(file,result)
-    FILE *		file;
-    XkbFileInfo *	result;
-#endif
 {
 register int		i,g,s,totalVModMaps;
 xkmKeySymMapDesc 	wireMap;
@@ -851,19 +751,11 @@ XkbDescPtr		xkb;
 }
 
 static int
-#if NeedFunctionPrototypes
 ReadXkmGeomDoodad(
     FILE *		file,
     Display *		dpy,
     XkbGeometryPtr	geom,
     XkbSectionPtr	section)
-#else
-ReadXkmGeomDoodad(file,dpy,geom,section)
-    FILE *		file;
-    Display *		dpy;
-    XkbGeometryPtr	geom;
-    XkbSectionPtr	section;
-#endif
 {
 XkbDoodadPtr	doodad;
 xkmDoodadDesc	doodadWire;
@@ -918,18 +810,10 @@ int		nRead=0;
 }
 
 static int
-#if NeedFunctionPrototypes
 ReadXkmGeomOverlay(	FILE *		file,
 			Display *	dpy,
 			XkbGeometryPtr	geom,
 			XkbSectionPtr	section)
-#else
-ReadXkmGeomOverlay(file,dpy,geom,section)
-    FILE *		file;
-    Display *		dpy;
-    XkbGeometryPtr	geom;
-    XkbSectionPtr	section;
-#endif
 {
 char 			buf[100];
 unsigned		tmp;
@@ -969,16 +853,9 @@ register int		r;
 }
 
 static int
-#if NeedFunctionPrototypes
 ReadXkmGeomSection(	FILE *		file,
 			Display *	dpy,
 			XkbGeometryPtr	geom)
-#else
-ReadXkmGeomSection(file,dpy,geom)
-    FILE *		file;
-    Display *		dpy;
-    XkbGeometryPtr	geom;
-#endif
 {
 register int	i;
 XkbSectionPtr	section;
@@ -1058,13 +935,7 @@ Atom		nameAtom;
 }
 
 static int
-#if NeedFunctionPrototypes
 ReadXkmGeometry(FILE *file,XkbFileInfo *result)
-#else
-ReadXkmGeometry(file,result)
-    FILE *		file;
-    XkbFileInfo *	result;
-#endif
 {
 register int		i;
 char 			buf[100];
@@ -1192,12 +1063,7 @@ XkbGeometrySizesRec	sizes;
 }
 
 Bool
-#if NeedFunctionPrototypes
 XkmProbe(FILE *file)
-#else
-XkmProbe(file)
-    FILE *	file;
-#endif
 {
 unsigned hdr,tmp;
 int	 nRead=0;
@@ -1214,15 +1080,7 @@ int	 nRead=0;
 }
 
 Bool
-#if NeedFunctionPrototypes
 XkmReadTOC(FILE *file,xkmFileInfo* file_info,int max_toc,xkmSectionInfo *toc)
-#else
-XkmReadTOC(file,file_info,max_toc,toc)
-    FILE *		file;
-    xkmFileInfo *	file_info;
-    int			max_toc;
-    xkmSectionInfo *	toc;
-#endif
 {
 unsigned hdr,tmp;
 int	nRead=0;
@@ -1255,14 +1113,7 @@ unsigned i,size_toc;
 }
 
 xkmSectionInfo *
-#if NeedFunctionPrototypes
 XkmFindTOCEntry(xkmFileInfo *finfo,xkmSectionInfo *toc,unsigned type)
-#else
-XkmFindTOCEntry(finfo,toc,type)
-    xkmFileInfo *	finfo;
-    xkmSectionInfo *	toc;
-    unsigned		type;
-#endif
 {
 register int i;
 
@@ -1274,18 +1125,10 @@ register int i;
 }
 
 Bool
-#if NeedFunctionPrototypes
 XkmReadFileSection(	FILE *			file,
 			xkmSectionInfo *	toc,
 			XkbFileInfo *		result,
 			unsigned *		loaded_rtrn)
-#else
-XkmReadFileSection(file,toc,result,loaded_rtrn)
-    FILE *		file;
-    xkmSectionInfo *	toc;
-    XkbFileInfo *	result;
-    unsigned *		loaded_rtrn;
-#endif
 {
 xkmSectionInfo		tmpTOC;
 int			nRead;
@@ -1353,13 +1196,7 @@ int			nRead;
 }
 
 char *
-#if NeedFunctionPrototypes
 XkmReadFileSectionName(FILE *file,xkmSectionInfo *toc)
-#else
-XkmReadFileSectionName(file,toc)
-    FILE *		file;
-    xkmSectionInfo *	toc;
-#endif
 {
 xkmSectionInfo	tmpTOC;
 char 		name[100];
@@ -1397,15 +1234,7 @@ char 		name[100];
 
 #define	MAX_TOC	16
 unsigned
-#if NeedFunctionPrototypes
 XkmReadFile(FILE *file,unsigned need,unsigned want,XkbFileInfo *result)
-#else
-XkmReadFile(file,need,want,result)
-    FILE *		file;
-    unsigned 		need;
-    unsigned		want;
-    XkbFileInfo	*	result;
-#endif
 {
 register unsigned	i;
 xkmSectionInfo		toc[MAX_TOC],tmpTOC;

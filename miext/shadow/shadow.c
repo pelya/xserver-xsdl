@@ -1,5 +1,5 @@
 /*
- * $XFree86: xc/programs/Xserver/miext/shadow/shadow.c,v 1.13 2002/12/02 20:37:23 tsi Exp $
+ * $XFree86: xc/programs/Xserver/miext/shadow/shadow.c,v 1.15 2003/11/10 18:22:51 tsi Exp $
  *
  * Copyright © 2000 Keith Packard
  *
@@ -413,7 +413,7 @@ shadowFillSpans(
 
 	while(--i) {
 	   ppt++;
-	   pwidthInit++;
+	   pwidth++;
 	   if(box.x1 > ppt->x) box.x1 = ppt->x;
 	   if(box.x2 < (ppt->x + *pwidth))
 		box.x2 = ppt->x + *pwidth;
@@ -425,7 +425,11 @@ shadowFillSpans(
 
 	(*pGC->ops->FillSpans)(pDraw, pGC, nInit, pptInit, pwidthInit, fSorted);
 
-	TRIM_AND_TRANSLATE_BOX(box, pDraw, pGC);
+        if(!pGC->miTranslate) {
+           TRANSLATE_BOX(box, pDraw);
+        }
+        TRIM_BOX(box, pGC); 
+
 	if(BOX_NOT_EMPTY(box))
 	   shadowDamageBox ((WindowPtr) pDraw, &box);
     } else
@@ -471,7 +475,11 @@ shadowSetSpans(
 	(*pGC->ops->SetSpans)(pDraw, pGC, pcharsrc, pptInit,
 				pwidthInit, nspans, fSorted);
 
-	TRIM_AND_TRANSLATE_BOX(box, pDraw, pGC);
+        if(!pGC->miTranslate) {
+           TRANSLATE_BOX(box, pDraw);
+        }
+        TRIM_BOX(box, pGC); 
+
 	if(BOX_NOT_EMPTY(box))
 	   shadowDamageBox ((WindowPtr) pDraw, &box);
     } else
@@ -1254,9 +1262,15 @@ shadowPushPixels(
     if(IS_VISIBLE(pDraw)) {
 	BoxRec box;
 
-	box.x1 = xOrg + pDraw->x;
+        box.x1 = xOrg;
+        box.y1 = yOrg;
+
+        if(!pGC->miTranslate) {
+           box.x1 += pDraw->x;          
+           box.y1 += pDraw->y;          
+        }
+
 	box.x2 = box.x1 + dx;
-	box.y1 = yOrg + pDraw->y;
 	box.y2 = box.y1 + dy;
 
 	TRIM_BOX(box, pGC);
@@ -1459,7 +1473,7 @@ shadowAdd (ScreenPtr	    pScreen,
     pBuf->pPixmap = pPixmap;
     pBuf->update = update;
     pBuf->window = window;
-    REGION_INIT (pScreen, &pBuf->damage, NullBox, 0);
+    REGION_NULL(pScreen, &pBuf->damage);
     pBuf->pNext = pScrPriv->pBuf;
     pBuf->randr = randr;
     pBuf->closure = 0;

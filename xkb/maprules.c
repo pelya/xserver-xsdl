@@ -24,7 +24,7 @@
  THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
  ********************************************************/
-/* $XFree86: xc/lib/xkbfile/maprules.c,v 3.17 2002/11/26 01:43:25 dawes Exp $ */
+/* $XFree86: xc/lib/xkbfile/maprules.c,v 3.18 2003/11/17 22:20:23 dawes Exp $ */
 
 #include <stdio.h>
 #include <ctype.h>
@@ -89,12 +89,7 @@ typedef struct {
 } InputLine;
 
 static void
-#if NeedFunctionPrototypes
 InitInputLine(InputLine *line)
-#else
-InitInputLine(line)
-    InputLine *	line;
-#endif
 {
     line->line_num= 1;
     line->num_line= 0;
@@ -104,12 +99,7 @@ InitInputLine(line)
 }
 
 static void
-#if NeedFunctionPrototypes
 FreeInputLine(InputLine *line)
-#else
-FreeInputLine(line)
-    InputLine *line;
-#endif
 {
     if (line->line!=line->buf)
 	_XkbFree(line->line);
@@ -121,13 +111,7 @@ FreeInputLine(line)
 }
 
 static int
-#if NeedFunctionPrototypes
 InputLineAddChar(InputLine *line,int ch)
-#else
-InputLineAddChar(line,ch)
-    InputLine *	line;
-    int		ch;
-#endif
 {
     if (line->num_line>=line->sz_line) {
 	if (line->line==line->buf) {
@@ -148,14 +132,7 @@ InputLineAddChar(line,ch)
 				InputLineAddChar(l,c))
 
 static Bool
-#if NeedFunctionPrototypes
 GetInputLine(FILE *file,InputLine *line,Bool checkbang)
-#else
-GetInputLine(file,line,checkbang)
-    FILE *	file;
-    InputLine *	line;
-    Bool	checkbang;
-#endif
 {
 int	ch;
 Bool	endOfFile,spacePending,slashPending,inComment;
@@ -279,13 +256,7 @@ typedef struct {
 /***====================================================================***/
 
 static char*
-#if NeedFunctionPrototypes
 get_index(char *str, int *ndx)
-#else
-get_index(str, ndx)
-   char		*str;
-   int		*ndx;
-#endif
 {
    char ndx_buf[NDX_BUFF_SIZE];
    char *end;
@@ -311,13 +282,7 @@ get_index(str, ndx)
 }
 
 static void
-#if NeedFunctionPrototypes
 SetUpRemap(InputLine *line,RemapSpec *remap)
-#else
-SetUpRemap(line,remap)
-   InputLine *	line;
-   RemapSpec *	remap;
-#endif
 {
 char *		tok,*str;
 unsigned	present, l_ndx_present, v_ndx_present;
@@ -426,13 +391,7 @@ Bool		found;
 }
 
 static Bool
-#if NeedFunctionPrototypes
 MatchOneOf(char *wanted,char *vals_defined)
-#else
-MatchOneOf(wanted,vals_defined)
-    char *	wanted;
-    char *	vals_defined;
-#endif
 {
 char	*str,*next;
 int	want_len= strlen(wanted);
@@ -456,18 +415,10 @@ int	want_len= strlen(wanted);
 /***====================================================================***/
 
 static Bool
-#if NeedFunctionPrototypes
 CheckLine(	InputLine *		line,
 		RemapSpec *		remap,
 		XkbRF_RulePtr		rule,
 		XkbRF_GroupPtr		group)
-#else
-CheckLine(line,remap,rule,group)
-    InputLine *		line;
-    RemapSpec *		remap;
-    XkbRF_RulePtr	rule;
-    XkbRF_GroupsPtr	group;
-#endif
 {
 char *		str,*tok;
 register int	nread, i;
@@ -566,13 +517,7 @@ Bool 		append = False;
 }
 
 static char *
-#if NeedFunctionPrototypes
 _Concat(char *str1,char *str2)
-#else
-_Concat(str1,str2)
-    char *	str1;
-    char *	str2;
-#endif
 {
 int len;
 
@@ -586,12 +531,7 @@ int len;
 }
 
 static void
-#if NeedFunctionPrototypes
 squeeze_spaces(char *p1)
-#else
-squeeze_spaces(p1)
-    char    *p1;
-#endif
 {
    char *p2;
    for (p2 = p1; *p2; p2++) {
@@ -602,13 +542,7 @@ squeeze_spaces(p1)
 }
 
 static Bool
-#if NeedFunctionPrototypes
 MakeMultiDefs(XkbRF_MultiDefsPtr mdefs, XkbRF_VarDefsPtr defs)
-#else
-MakeMultiDefs(mdefs, defs)
-    XkbRF_MultiDefsPtr mdefs
-    XkbRF_VarDefsPtr    defs;
-#endif
 {
 
    bzero((char *)mdefs,sizeof(XkbRF_MultiDefsRec));
@@ -667,12 +601,7 @@ MakeMultiDefs(mdefs, defs)
 }
 
 static void
-#if NeedFunctionPrototypes
 FreeMultiDefs(XkbRF_MultiDefsPtr defs)
-#else
-FreeMultiDefs(defs)
-    XkbRF_MultiDefsPtr    defs;
-#endif
 {
   if (defs->options) _XkbFree(defs->options);
   if (defs->layout[1])  _XkbFree(defs->layout[1]);
@@ -680,13 +609,7 @@ FreeMultiDefs(defs)
 }
 
 static void
-#if NeedFunctionPrototypes
 Apply(char *src, char **dst)
-#else
-Apply(src, dst)
-    char *src;
-    char *dst;
-#endif
 {
     if (src) {
         if (*src == '+' || *src == '!') {
@@ -699,14 +622,8 @@ Apply(src, dst)
 }
 
 static void
-#if NeedFunctionPrototypes
 XkbRF_ApplyRule(	XkbRF_RulePtr 		rule,
 			XkbComponentNamesPtr	names)
-#else
-XkbRF_ApplyRule(rule,names)
-    XkbRF_RulePtr		rule;
-    XkbComponentNamesPtr	names;
-#endif
 {
     rule->flags&= ~XkbRF_PendingMatch; /* clear the flag because it's applied */
 
@@ -719,16 +636,9 @@ XkbRF_ApplyRule(rule,names)
 }
 
 static Bool
-#if NeedFunctionPrototypes
 CheckGroup(	XkbRF_RulesPtr          rules,
 		char * 			group_name,
 		char * 			name)
-#else
-XkbRF_CheckApplyRule(rules,group,name)
-    XkbRF_RulesPtr      rules;
-    char *		group_name;
-    char *		name;
-#endif
 {
    int i;
    char *p;
@@ -750,18 +660,10 @@ XkbRF_CheckApplyRule(rules,group,name)
 }
 
 static int
-#if NeedFunctionPrototypes
 XkbRF_CheckApplyRule(	XkbRF_RulePtr 		rule,
 			XkbRF_MultiDefsPtr	mdefs,
 			XkbComponentNamesPtr	names,
 			XkbRF_RulesPtr          rules)
-#else
-XkbRF_CheckApplyRule(rule,mdefs,names)
-    XkbRF_RulePtr		rule;
-    XkbRF_MultiDefsPtr		mdefs;
-    XkbComponentNamesPtr	names;
-    XkbRF_RulesPtr          	rules;
-#endif
 {
     Bool pending = False;
 
@@ -832,12 +734,7 @@ XkbRF_CheckApplyRule(rule,mdefs,names)
 }
 
 static void
-#if NeedFunctionPrototypes
 XkbRF_ClearPartialMatches(XkbRF_RulesPtr rules)
-#else
-XkbRF_ClearPartialMatches(rules)
-    XkbRF_RulesPtr 	rules;
-#endif
 {
 register int 	i;
 XkbRF_RulePtr	rule;
@@ -848,13 +745,7 @@ XkbRF_RulePtr	rule;
 }
 
 static void
-#if NeedFunctionPrototypes
 XkbRF_ApplyPartialMatches(XkbRF_RulesPtr rules,XkbComponentNamesPtr names)
-#else
-XkbRF_ApplyPartialMatches(rules,names)
-    XkbRF_RulesPtr 		rules;
-    XkbComponentNamesPtr	names;
-#endif
 {
 int		i;
 XkbRF_RulePtr	rule;
@@ -867,18 +758,10 @@ XkbRF_RulePtr	rule;
 }
 
 static void
-#if NeedFunctionPrototypes
 XkbRF_CheckApplyRules(	XkbRF_RulesPtr 		rules,
 			XkbRF_MultiDefsPtr	mdefs,
 			XkbComponentNamesPtr	names,
 			int			flags)
-#else
-XkbRF_CheckApplyRules(rules, mdefs, names, flags)
-    XkbRF_RulesPtr 		rules;
-    XkbRF_MultiDefsPtr		mdefs;
-    XkbComponentNamesPtr	names;
-    int				flags;
-#endif
 {
 int		i;
 XkbRF_RulePtr	rule;
@@ -899,13 +782,7 @@ int		skip;
 /***====================================================================***/
 
 static char *
-#if NeedFunctionPrototypes
 XkbRF_SubstituteVars(char *name, XkbRF_MultiDefsPtr mdefs)
-#else
-XkbRF_SubstituteVars(name, mdefs)
-    char *		name;
-    XkbRF_MultiDefsPtr	mdefs;
-#endif
 {
 char 	*str, *outstr, *orig, *var;
 int	len, ndx;
@@ -1000,16 +877,9 @@ int	len, ndx;
 /***====================================================================***/
 
 Bool
-#if NeedFunctionPrototypes
 XkbRF_GetComponents(	XkbRF_RulesPtr		rules,
 			XkbRF_VarDefsPtr	defs,
 			XkbComponentNamesPtr	names)
-#else
-XkbRF_GetComponents(rules,defs,names)
-    XkbRF_RulesPtr		rules;
-    XkbRF_VarDefsPtr		defs;
-    XkbComponentNamesPtr	names;
-#endif
 {
     XkbRF_MultiDefsRec mdefs;
 
@@ -1042,12 +912,7 @@ XkbRF_GetComponents(rules,defs,names)
 }
 
 XkbRF_RulePtr
-#if NeedFunctionPrototypes
 XkbRF_AddRule(XkbRF_RulesPtr	rules)
-#else
-XkbRF_AddRule(rules)
-    XkbRF_RulesPtr	rules;
-#endif
 {
     if (rules->sz_rules<1) {
 	rules->sz_rules= 16;
@@ -1071,12 +936,7 @@ XkbRF_AddRule(rules)
 }
 
 XkbRF_GroupPtr
-#if NeedFunctionPrototypes
 XkbRF_AddGroup(XkbRF_RulesPtr	rules)
-#else
-XkbRF_AddGroup(rules)
-    XkbRF_RulesPtr	rules;
-#endif
 {
     if (rules->sz_groups<1) {
 	rules->sz_groups= 16;
@@ -1098,13 +958,7 @@ XkbRF_AddGroup(rules)
 }
 
 Bool
-#if NeedFunctionPrototypes
 XkbRF_LoadRules(FILE *file, XkbRF_RulesPtr rules)
-#else
-XkbRF_LoadRules(file,rules)
-    FILE *			file;
-    XkbRF_RulesPtr		rules;
-#endif
 {
 InputLine	line;
 RemapSpec	remap;
@@ -1137,14 +991,7 @@ XkbRF_GroupRec  tgroup,*group;
 }
 
 Bool
-#if NeedFunctionPrototypes
 XkbRF_LoadRulesByName(char *base,char *locale,XkbRF_RulesPtr rules)
-#else
-XkbRF_LoadRulesByName(base,locale,rules)
-    char *		base;
-    char *		locale;
-    XkbRF_RulesPtr	rules;
-#endif
 {
 FILE *		file;
 char		buf[PATH_MAX];
@@ -1185,12 +1032,7 @@ Bool		ok;
 #define	HEAD_EXTRA	5
 
 XkbRF_VarDescPtr
-#if NeedFunctionPrototypes
 XkbRF_AddVarDesc(XkbRF_DescribeVarsPtr	vars)
-#else
-XkbRF_AddVarDesc(vars)
-    XkbRF_DescribeVarsPtr 	vars;
-#endif
 {
     if (vars->sz_desc<1) {
 	vars->sz_desc= 16;
@@ -1212,13 +1054,7 @@ XkbRF_AddVarDesc(vars)
 }
 
 XkbRF_VarDescPtr
-#if NeedFunctionPrototypes
 XkbRF_AddVarDescCopy(XkbRF_DescribeVarsPtr vars,XkbRF_VarDescPtr from)
-#else
-XkbRF_AddVarDescCopy(vars,from)
-    XkbRF_DescribeVarsPtr 	vars;
-    XkbRF_VarDescPtr		from;
-#endif
 {
 XkbRF_VarDescPtr	nd;
 
@@ -1230,13 +1066,7 @@ XkbRF_VarDescPtr	nd;
 }
 
 XkbRF_DescribeVarsPtr 
-#if NeedFunctionPrototypes
 XkbRF_AddVarToDescribe(XkbRF_RulesPtr rules,char *name)
-#else
-XkbRF_AddVarToDescribe(rules,name)
-    XkbRF_RulesPtr	rules;
-    char *		name;
-#endif
 {
     if (rules->sz_extra<1) {
 	rules->num_extra= 0;
@@ -1264,13 +1094,7 @@ XkbRF_AddVarToDescribe(rules,name)
 }
 
 Bool
-#if NeedFunctionPrototypes
 XkbRF_LoadDescriptions(FILE *file,XkbRF_RulesPtr rules)
-#else
-XkbRF_LoadDescriptions(file,rules)
-    FILE *		file;
-    XkbRF_RulesPtr	rules;
-#endif
 {
 InputLine		line;
 XkbRF_VarDescRec	tmp;
@@ -1366,14 +1190,7 @@ int			len,headingtype,extra_ndx = 0;
 }
 
 Bool
-#if NeedFunctionPrototypes
 XkbRF_LoadDescriptionsByName(char *base,char *locale,XkbRF_RulesPtr rules)
-#else
-XkbRF_LoadDescriptionsByName(base,locale,rules)
-    char *		base;
-    char *		locale;
-    XkbRF_RulesPtr	rules;
-#endif
 {
 FILE *		file;
 char		buf[PATH_MAX];
@@ -1408,15 +1225,7 @@ Bool		ok;
 /***====================================================================***/
 
 XkbRF_RulesPtr
-#if NeedFunctionPrototypes
 XkbRF_Load(char *base,char *locale,Bool wantDesc,Bool wantRules)
-#else
-XkbRF_Load(base,locale,wantDesc,wantRules)
-    char *base;
-    char *locale;
-    Bool wantDesc;
-    Bool wantRules;
-#endif
 {
 XkbRF_RulesPtr	rules;
 
@@ -1466,12 +1275,7 @@ XkbRF_RulesPtr rules;
 /***====================================================================***/
 
 static void
-#if NeedFunctionPrototypes
 XkbRF_ClearVarDescriptions(XkbRF_DescribeVarsPtr var)
-#else
-XkbRF_ClearVarDescriptions(var)
-    XkbRF_DescribeVarsPtr var;
-#endif
 {
 register int i;
     
@@ -1489,13 +1293,7 @@ register int i;
 }
 
 void
-#if NeedFunctionPrototypes
 XkbRF_Free(XkbRF_RulesPtr rules,Bool freeRules)
-#else
-XkbRF_Free(rules,freeRules)
-    XkbRF_RulesPtr 	rules;
-    Bool		freeRules;
-#endif
 {
 int		i;
 XkbRF_RulePtr	rule;
@@ -1551,14 +1349,7 @@ XkbRF_GroupPtr	group;
 #ifndef XKB_IN_SERVER
 
 Bool 
-#if NeedFunctionPrototypes
 XkbRF_GetNamesProp(Display *dpy,char **rf_rtrn,XkbRF_VarDefsPtr vd_rtrn)
-#else
-XkbRF_GetNamesProp(dpy,rf_rtrn,vd_rtrn)
-   Display *		dpy;
-   char **	rf_rtrn;
-   XkbRF_VarDefsPtr	vd_rtrn;
-#endif
 {
 Atom		rules_atom,actual_type;
 int		fmt;
@@ -1618,14 +1409,7 @@ Status		rtrn;
 }
 
 Bool 
-#if NeedFunctionPrototypes
 XkbRF_SetNamesProp(Display *dpy,char *rules_file,XkbRF_VarDefsPtr var_defs)
-#else
-XkbRF_SetNamesProp(dpy,rules_file,var_defs)
-   Display *		dpy;
-   char *		rules_file;
-   XkbRF_VarDefsPtr	var_defs;
-#endif
 {
 int	len,out;
 Atom	name;

@@ -12,6 +12,8 @@ the suitability of this software for any purpose.  It is provided "as
 is" without express or implied warranty.
 
 */
+/* $XFree86: xc/programs/Xserver/hw/xnest/Color.c,v 1.4 2003/11/16 05:05:20 dawes Exp $ */
+
 #include "X.h"
 #include "Xproto.h"
 #include "scrnintstr.h"
@@ -32,8 +34,8 @@ is" without express or implied warranty.
 
 static ColormapPtr InstalledMaps[MAXSCREENS];
 
-Bool xnestCreateColormap(pCmap)
-     ColormapPtr pCmap;
+Bool
+xnestCreateColormap(ColormapPtr pCmap)
 {
   VisualPtr pVisual;
   XColor *colors;
@@ -118,8 +120,8 @@ Bool xnestCreateColormap(pCmap)
   return True;
 }
 
-void xnestDestroyColormap (pCmap)
-     ColormapPtr pCmap;
+void
+xnestDestroyColormap(ColormapPtr pCmap)
 {
   XFreeColormap(xnestDisplay, xnestColormap(pCmap));
   xfree(pCmap->devPriv);
@@ -128,9 +130,8 @@ void xnestDestroyColormap (pCmap)
 #define SEARCH_PREDICATE \
   (xnestWindow(pWin) != None && wColormap(pWin) == icws->cmapIDs[i])
 
-static int xnestCountInstalledColormapWindows(pWin, ptr)
-     WindowPtr pWin;
-     pointer ptr;
+static int
+xnestCountInstalledColormapWindows(WindowPtr pWin, pointer ptr)
 {
   xnestInstalledColormapWindows *icws = (xnestInstalledColormapWindows *)ptr;
   int i;
@@ -144,9 +145,8 @@ static int xnestCountInstalledColormapWindows(pWin, ptr)
   return WT_WALKCHILDREN;
 }
 
-static int xnestGetInstalledColormapWindows(pWin, ptr)
-     WindowPtr pWin;
-     pointer ptr;
+static int
+xnestGetInstalledColormapWindows(WindowPtr pWin, pointer ptr)
 {
   xnestInstalledColormapWindows *icws = (xnestInstalledColormapWindows *)ptr;
   int i;
@@ -163,9 +163,8 @@ static int xnestGetInstalledColormapWindows(pWin, ptr)
 static Window *xnestOldInstalledColormapWindows = NULL;
 static int xnestNumOldInstalledColormapWindows = 0;
 
-static Bool xnestSameInstalledColormapWindows(windows, numWindows)
-     Window *windows;
-     int numWindows;
+static Bool
+xnestSameInstalledColormapWindows(Window *windows, int numWindows)
 {
   if (xnestNumOldInstalledColormapWindows != numWindows) 
     return False;
@@ -183,8 +182,8 @@ static Bool xnestSameInstalledColormapWindows(windows, numWindows)
   return True;
 }
 
-void xnestSetInstalledColormapWindows(pScreen)
-     ScreenPtr pScreen;
+void
+xnestSetInstalledColormapWindows(ScreenPtr pScreen)
 {
   xnestInstalledColormapWindows icws;
   int numWindows;
@@ -262,8 +261,8 @@ void xnestSetInstalledColormapWindows(pScreen)
     if (icws.windows) xfree(icws.windows);
 }
 
-void xnestSetScreenSaverColormapWindow(pScreen)
-     ScreenPtr pScreen;
+void
+xnestSetScreenSaverColormapWindow(ScreenPtr pScreen)
 {
   if (xnestOldInstalledColormapWindows)
     xfree(xnestOldInstalledColormapWindows);
@@ -288,8 +287,8 @@ void xnestSetScreenSaverColormapWindow(pScreen)
   xnestDirectUninstallColormaps(pScreen);
 }
 
-void xnestDirectInstallColormaps(pScreen)
-     ScreenPtr pScreen;
+void
+xnestDirectInstallColormaps(ScreenPtr pScreen)
 {
   int i, n;
   Colormap pCmapIDs[MAXCMAPS];
@@ -307,8 +306,8 @@ void xnestDirectInstallColormaps(pScreen)
   }
 }
 
-void xnestDirectUninstallColormaps(pScreen)
-     ScreenPtr pScreen;
+void
+xnestDirectUninstallColormaps(ScreenPtr pScreen)
 {
   int i, n;
   Colormap pCmapIDs[MAXCMAPS];
@@ -326,8 +325,8 @@ void xnestDirectUninstallColormaps(pScreen)
   }
 }
 
-void xnestInstallColormap(pCmap)
-     ColormapPtr pCmap;
+void
+xnestInstallColormap(ColormapPtr pCmap)
 {
   int index;
   ColormapPtr pOldCmap;
@@ -351,8 +350,8 @@ void xnestInstallColormap(pCmap)
     }
 }
 
-void xnestUninstallColormap(pCmap)
-     ColormapPtr pCmap;
+void
+xnestUninstallColormap(ColormapPtr pCmap)
 {
   int index;
   ColormapPtr pCurCmap;
@@ -373,9 +372,8 @@ void xnestUninstallColormap(pCmap)
 
 static Bool xnestInstalledDefaultColormap = False;
 
-int xnestListInstalledColormaps(pScreen, pCmapIDs)
-     ScreenPtr pScreen;
-     Colormap *pCmapIDs;
+int
+xnestListInstalledColormaps(ScreenPtr pScreen, Colormap *pCmapIDs)
 {
   if (xnestInstalledDefaultColormap) {
     *pCmapIDs = InstalledMaps[pScreen->myNum]->mid;
@@ -385,10 +383,8 @@ int xnestListInstalledColormaps(pScreen, pCmapIDs)
     return 0;
 }
 
-void xnestStoreColors(pCmap, nColors, pColors)
-     ColormapPtr pCmap;
-     int nColors;
-     xColorItem *pColors;
+void
+xnestStoreColors(ColormapPtr pCmap, int nColors, xColorItem *pColors)
 {
   if (pCmap->pVisual->class & DynamicClass)
 #ifdef _XSERVER64
@@ -413,11 +409,9 @@ void xnestStoreColors(pCmap, nColors, pColors)
 #endif
 }
 
-void xnestResolveColor(pRed, pGreen, pBlue, pVisual)
-     unsigned short *pRed;
-     unsigned short *pGreen;
-     unsigned short *pBlue;
-     VisualPtr pVisual;
+void
+xnestResolveColor(unsigned short *pRed, unsigned short *pGreen,
+		  unsigned short *pBlue, VisualPtr pVisual)
 {
   int shift;
   unsigned int lim;
@@ -465,8 +459,8 @@ void xnestResolveColor(pRed, pGreen, pBlue, pVisual)
     }
 }
 
-Bool xnestCreateDefaultColormap(pScreen)
-    ScreenPtr   pScreen;
+Bool
+xnestCreateDefaultColormap(ScreenPtr pScreen)
 {
   VisualPtr   pVisual;
   ColormapPtr pCmap;

@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/xaa/xaaCpyWin.c,v 1.3 2003/02/17 16:08:29 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/xaa/xaaCpyWin.c,v 1.4 2003/11/10 18:22:40 tsi Exp $ */
 
 #include "misc.h"
 #include "xf86.h"
@@ -47,7 +47,7 @@ XAACopyWindow(
 
     pwinRoot = WindowTable[pScreen->myNum];
 
-    REGION_INIT(pScreen, &rgnDst, NullBox, 0);
+    REGION_NULL(pScreen, &rgnDst);
 
     dx = ptOldOrg.x - pWin->drawable.x;
     dy = ptOldOrg.y - pWin->drawable.y;

@@ -36,7 +36,7 @@
 
 
 <ident>
-$XFree86: xc/programs/Xserver/hw/xfree86/doc/sgml/DESIGN.sgml,v 1.52 2003/02/25 19:31:00 dawes Exp $
+$XFree86: xc/programs/Xserver/hw/xfree86/doc/sgml/DESIGN.sgml,v 1.53 2003/08/23 14:10:14 dawes Exp $
 </ident>
 
 
@@ -6784,11 +6784,13 @@ ZZZPreInit(ScrnInfoPtr pScrn, int flags)
      */
 
     /*
-     * Set the depth/bpp.  Our preferred default depth/bpp is 8, and
-     * we support both 24bpp and 32bpp framebuffer layouts.
+     * Set the depth/bpp.  Use the globally preferred depth/bpp.  If the
+     * driver has special default depth/bpp requirements, the defaults should
+     * be specified here explicitly.
+     * We support both 24bpp and 32bpp framebuffer layouts.
      * This sets pScrn->display also.
      */
-    if (!xf86SetDepthBpp(pScrn, 8, 8, 8,
+    if (!xf86SetDepthBpp(pScrn, 0, 0, 0,
                          Support24bppFb | Support32bppFb)) {
         return FALSE;
     } else {

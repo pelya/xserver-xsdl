@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/parser/Keyboard.c,v 1.15 2003/01/04 20:20:22 paulo Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/parser/Keyboard.c,v 1.17 2003/08/24 17:37:07 dawes Exp $ */
 /* 
  * 
  * Copyright (c) 1997  Metro Link Incorporated
@@ -26,6 +26,33 @@
  * in this Software without prior written authorization from Metro Link.
  * 
  */
+/*
+ * Copyright (c) 1997-2003 by The XFree86 Project, Inc.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+ * THE COPYRIGHT HOLDER(S) OR AUTHOR(S) BE LIABLE FOR ANY CLAIM, DAMAGES OR
+ * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ *
+ * Except as contained in this notice, the name of the copyright holder(s)
+ * and author(s) shall not be used in advertising or otherwise to promote
+ * the sale, use or other dealings in this Software without prior written
+ * authorization from the copyright holder(s) and author(s).
+ */
+
 
 /* View/edit this file with tab stops set to 4 */
 
@@ -101,8 +128,8 @@ xf86parseKeyboardSection (void)
 			if (xf86getSubToken (&(ptr->inp_comment)) != STRING)
 				Error (QUOTE_MSG, "Protocol");
 			ptr->inp_option_lst = xf86addNewOption(ptr->inp_option_lst,
-												xf86configStrdup("Protocol"),
-												val.str);
+							       xf86configStrdup("Protocol"),
+							       val.str);
 			break;
 		case AUTOREPEAT:
 			if (xf86getSubToken (&(ptr->inp_comment)) != NUMBER)
@@ -117,7 +144,7 @@ xf86parseKeyboardSection (void)
 			xf86conffree(s1);
 			xf86conffree(s2);
 			ptr->inp_option_lst = xf86addNewOption(ptr->inp_option_lst,
-												xf86configStrdup("AutoRepeat"), s);
+							       xf86configStrdup("AutoRepeat"), s);
 			break;
 		case XLEDS:
 			if (xf86getSubToken (&(ptr->inp_comment)) != NUMBER)

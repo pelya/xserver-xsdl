@@ -12,7 +12,7 @@ the suitability of this software for any purpose.  It is provided "as
 is" without express or implied warranty.
 
 */
-/* $XFree86: xc/programs/Xserver/hw/xnest/XNPixmap.h,v 1.3 2003/01/10 13:29:40 eich Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xnest/XNPixmap.h,v 1.4 2003/11/16 05:05:20 dawes Exp $ */
 
 #ifndef XNESTPIXMAP_H
 #define XNESTPIXMAP_H
@@ -37,8 +37,9 @@ typedef struct {
 
 #define xnestSharePixmap(pPixmap) ((pPixmap)->refcnt++)
 
-PixmapPtr xnestCreatePixmap();
-Bool xnestDestroyPixmap();
-RegionPtr xnestPixmapToRegion();
+PixmapPtr xnestCreatePixmap(ScreenPtr pScreen, int width, int height,
+			    int depth);
+Bool xnestDestroyPixmap(PixmapPtr pPixmap);
+RegionPtr xnestPixmapToRegion(PixmapPtr pPixmap);
 
 #endif /* XNESTPIXMAP_H */

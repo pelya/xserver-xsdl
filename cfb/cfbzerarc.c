@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/cfb/cfbzerarc.c,v 3.3 2001/12/14 19:59:25 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/cfb/cfbzerarc.c,v 3.5 2003/10/29 22:44:53 tsi Exp $ */
 /************************************************************
 
 Copyright 1989, 1998  The Open Group
@@ -35,7 +35,7 @@ in this Software without prior written authorization from The Open Group.
 
 #include "X.h"
 #include "Xprotostr.h"
-#include "miscstruct.h"
+#include "regionstr.h"
 #include "gcstruct.h"
 #include "pixmapstr.h"
 #include "scrnintstr.h"
@@ -48,10 +48,10 @@ in this Software without prior written authorization from The Open Group.
 #ifdef PIXEL_ADDR
 
 static void
-RROP_NAME(cfbZeroArcSS8) (pDraw, pGC, arc)
-    DrawablePtr pDraw;
-    GCPtr pGC;
-    xArc *arc;
+RROP_NAME(cfbZeroArcSS8)(
+    DrawablePtr pDraw,
+    GCPtr pGC,
+    xArc *arc)
 {
     miZeroArcRec info;
     Bool do360;
@@ -266,6 +266,7 @@ RROP_NAME(cfbZeroArcSS8) (pDraw, pGC, arc)
 	    RROP_SOLID(yorgop - yoffset + info.xorg + x);
 #endif /* PSZ == 24 */
     }
+    RROP_UNDECLARE
 }
 
 void

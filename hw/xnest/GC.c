@@ -12,7 +12,7 @@ the suitability of this software for any purpose.  It is provided "as
 is" without express or implied warranty.
 
 */
-/* $XFree86: xc/programs/Xserver/hw/xnest/GC.c,v 3.6 2001/10/28 03:34:11 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xnest/GC.c,v 3.7 2003/11/16 05:05:20 dawes Exp $ */
 
 #include "X.h"
 #include "Xproto.h"
@@ -68,8 +68,8 @@ static GCOps xnestOps = {
   xnestPushPixels
 };
 
-Bool xnestCreateGC(pGC)
-     GCPtr pGC;
+Bool
+xnestCreateGC(GCPtr pGC)
 {
   pGC->clientClipType = CT_NONE;
   pGC->clientClip = NULL;
@@ -87,18 +87,15 @@ Bool xnestCreateGC(pGC)
   return True;
 }
 
-void xnestValidateGC(pGC, changes, pDrawable)
-     GCPtr pGC;
-     unsigned long changes;
-     DrawablePtr pDrawable;
+void
+xnestValidateGC(GCPtr pGC, unsigned long changes, DrawablePtr pDrawable)
 {
   pGC->lastWinOrg.x = pDrawable->x;
   pGC->lastWinOrg.y = pDrawable->y;
 }
 
-void xnestChangeGC(pGC, mask)
-     GC *pGC;
-     unsigned long mask;
+void
+xnestChangeGC(GCPtr pGC, unsigned long mask)
 {
   XGCValues values;
   
@@ -182,25 +179,20 @@ void xnestChangeGC(pGC, mask)
     XChangeGC(xnestDisplay, xnestGC(pGC), mask, &values);
 }
 
-void xnestCopyGC(pGCSrc, mask, pGCDst)
-     GCPtr pGCSrc;
-     unsigned long mask;
-     GCPtr pGCDst;
+void
+xnestCopyGC(GCPtr pGCSrc, unsigned long mask, GCPtr pGCDst)
 {
   XCopyGC(xnestDisplay, xnestGC(pGCSrc), mask, xnestGC(pGCDst));
 }
 
-void xnestDestroyGC(pGC)
-     GC *pGC;
+void
+xnestDestroyGC(GCPtr pGC)
 {
   XFreeGC(xnestDisplay, xnestGC(pGC));
 }
 
-void xnestChangeClip(pGC, type, pValue, nRects)
-     GCPtr pGC;
-     int type;
-     pointer pValue;
-     int nRects;
+void
+xnestChangeClip(GCPtr pGC, int type, pointer pValue, int nRects)
 {
   int i, size;
   BoxPtr pBox;
@@ -296,8 +288,8 @@ void xnestChangeClip(pGC, type, pValue, nRects)
   xnestGCPriv(pGC)->nClipRects = nRects;
 }
 
-void xnestDestroyClip(pGC)
-     GCPtr pGC;
+void
+xnestDestroyClip(GCPtr pGC)
 {
   xnestDestroyClipHelper(pGC);
 
@@ -308,8 +300,8 @@ void xnestDestroyClip(pGC)
   xnestGCPriv(pGC)->nClipRects = 0;
 }
 
-void xnestDestroyClipHelper(pGC)
-     GCPtr pGC;
+void
+xnestDestroyClipHelper(GCPtr pGC)
 {
   switch (pGC->clientClipType)
     {
@@ -323,9 +315,8 @@ void xnestDestroyClipHelper(pGC)
     }
 }
 
-void xnestCopyClip(pGCDst, pGCSrc)
-     GCPtr pGCSrc;
-     GCPtr pGCDst;
+void
+xnestCopyClip(GCPtr pGCDst, GCPtr pGCSrc)
 {
   RegionPtr pRgn;
 

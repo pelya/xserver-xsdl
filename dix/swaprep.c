@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/dix/swaprep.c,v 3.7 2001/12/14 19:59:33 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/dix/swaprep.c,v 3.8 2003/11/17 22:20:35 dawes Exp $ */
 /************************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -60,23 +60,17 @@ SOFTWARE.
 #include "globals.h"
 
 static void SwapFontInfo(
-#if NeedFunctionPrototypes
     xQueryFontReply * /* pr */
-#endif
 );
 
 #ifndef LBX
 static void SwapCharInfo(
-#if NeedFunctionPrototypes
     xCharInfo * /* pInfo */
-#endif
     );
 
 static void SwapFont(
-#if NeedFunctionPrototypes
     xQueryFontReply * /* pr */,
     Bool /* hasGlyphs */
-#endif
     );
 #endif
 

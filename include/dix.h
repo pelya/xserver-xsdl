@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/include/dix.h,v 3.26 2003/01/12 02:44:27 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/include/dix.h,v 3.27 2003/04/27 21:31:04 herrb Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -308,108 +308,56 @@ typedef struct _TimeStamp {
 /* dispatch.c */
 
 extern void SetInputCheck(
-#if NeedFunctionPrototypes
     HWEventQueuePtr /*c0*/,
-    HWEventQueuePtr /*c1*/
-#endif
-);
+    HWEventQueuePtr /*c1*/);
 
 extern void CloseDownClient(
-#if NeedFunctionPrototypes
-    ClientPtr /*client*/
-#endif
-);
+    ClientPtr /*client*/);
 
-extern void UpdateCurrentTime(
-#if NeedFunctionPrototypes
-    void
-#endif
-);
+extern void UpdateCurrentTime(void);
 
-extern void UpdateCurrentTimeIf(
-#if NeedFunctionPrototypes
-    void
-#endif
-);
+extern void UpdateCurrentTimeIf(void);
 
-extern void InitSelections(
-#if NeedFunctionPrototypes
-    void
-#endif
-);
+extern void InitSelections(void);
 
-extern void FlushClientCaches(
-#if NeedFunctionPrototypes
-    XID /*id*/
-#endif
-);
+extern void FlushClientCaches(XID /*id*/);
 
 extern int dixDestroyPixmap(
-#if NeedFunctionPrototypes
     pointer /*value*/,
-    XID /*pid*/
-#endif
-);
+    XID /*pid*/);
 
-extern void CloseDownRetainedResources(
-#if NeedFunctionPrototypes
-    void
-#endif
-);
+extern void CloseDownRetainedResources(void);
 
 extern void InitClient(
-#if NeedFunctionPrototypes
     ClientPtr /*client*/,
     int /*i*/,
-    pointer /*ospriv*/
-#endif
-);
+    pointer /*ospriv*/);
 
 extern ClientPtr NextAvailableClient(
-#if NeedFunctionPrototypes
-    pointer /*ospriv*/
-#endif
-);
+    pointer /*ospriv*/);
 
 extern void SendErrorToClient(
-#if NeedFunctionPrototypes
     ClientPtr /*client*/,
     unsigned int /*majorCode*/,
     unsigned int /*minorCode*/,
     XID /*resId*/,
-    int /*errorCode*/
-#endif
-);
+    int /*errorCode*/);
 
 extern void DeleteWindowFromAnySelections(
-#if NeedFunctionPrototypes
-    WindowPtr /*pWin*/
-#endif
-);
+    WindowPtr /*pWin*/);
 
 extern void MarkClientException(
-#if NeedFunctionPrototypes
-    ClientPtr /*client*/
-#endif
-);
+    ClientPtr /*client*/);
 
 extern int GetGeometry(
-#if NeedFunctionPrototypes
     ClientPtr /*client*/,
-    xGetGeometryReply* /* wa */
-#endif
-);
+    xGetGeometryReply* /* wa */);
 
 extern int SendConnSetup(
-#if NeedFunctionPrototypes
     ClientPtr /*client*/,
-    char* /*reason*/
-#endif
-);
+    char* /*reason*/);
 
-extern int
-DoGetImage(
-#if NeedFunctionPrototypes
+extern int DoGetImage(
     ClientPtr	/*client*/,
     int /*format*/,
     Drawable /*drawable*/,
@@ -418,75 +366,48 @@ DoGetImage(
     int /*width*/, 
     int /*height*/,
     Mask /*planemask*/,
-    xGetImageReply **/*im_return*/
-#endif
-);
+    xGetImageReply **/*im_return*/);
 
 #ifdef LBX
-extern void IncrementClientCount(
-#if NeedFunctionPrototypes
-    void
-#endif
-);
+extern void IncrementClientCount(void);
 #endif /* LBX */
 
 /* dixutils.c */
 
 extern void CopyISOLatin1Lowered(
-#if NeedFunctionPrototypes
     unsigned char * /*dest*/,
     unsigned char * /*source*/,
-    int /*length*/
-#endif
-);
+    int /*length*/);
 
 #ifdef XCSECURITY
 
 extern WindowPtr SecurityLookupWindow(
-#if NeedFunctionPrototypes
     XID /*rid*/,
     ClientPtr /*client*/,
-    Mask /*access_mode*/
-#endif
-);
+    Mask /*access_mode*/);
 
 extern pointer SecurityLookupDrawable(
-#if NeedFunctionPrototypes
     XID /*rid*/,
     ClientPtr /*client*/,
-    Mask /*access_mode*/
-#endif
-);
+    Mask /*access_mode*/);
 
 extern WindowPtr LookupWindow(
-#if NeedFunctionPrototypes
     XID /*rid*/,
-    ClientPtr /*client*/
-#endif
-);
+    ClientPtr /*client*/);
 
 extern pointer LookupDrawable(
-#if NeedFunctionPrototypes
     XID /*rid*/,
-    ClientPtr /*client*/
-#endif
-);
+    ClientPtr /*client*/);
 
 #else
 
 extern WindowPtr LookupWindow(
-#if NeedFunctionPrototypes
     XID /*rid*/,
-    ClientPtr /*client*/
-#endif
-);
+    ClientPtr /*client*/);
 
 extern pointer LookupDrawable(
-#if NeedFunctionPrototypes
     XID /*rid*/,
-    ClientPtr /*client*/
-#endif
-);
+    ClientPtr /*client*/);
 
 #define SecurityLookupWindow(rid, client, access_mode) \
 	LookupWindow(rid, client)
@@ -497,385 +418,221 @@ extern pointer LookupDrawable(
 #endif /* XCSECURITY */
 
 extern ClientPtr LookupClient(
-#if NeedFunctionPrototypes
     XID /*rid*/,
-    ClientPtr /*client*/
-#endif
-);
+    ClientPtr /*client*/);
 
-extern void NoopDDA(
-#if NeedFunctionPrototypes
-    void
-#endif
-);
+extern void NoopDDA(void);
 
 extern int AlterSaveSetForClient(
-#if NeedFunctionPrototypes
     ClientPtr /*client*/,
     WindowPtr /*pWin*/,
-    unsigned /*mode*/
-#endif
-);
+    unsigned /*mode*/);
 
 extern void DeleteWindowFromAnySaveSet(
-#if NeedFunctionPrototypes
-    WindowPtr /*pWin*/
-#endif
-);
+    WindowPtr /*pWin*/);
 
 extern void BlockHandler(
-#if NeedFunctionPrototypes
     pointer /*pTimeout*/,
-    pointer /*pReadmask*/
-#endif
-);
+    pointer /*pReadmask*/);
 
 extern void WakeupHandler(
-#if NeedFunctionPrototypes
     int /*result*/,
-    pointer /*pReadmask*/
-#endif
-);
+    pointer /*pReadmask*/);
 
 typedef void (* WakeupHandlerProcPtr)(
-#if NeedNestedPrototypes
     pointer /* blockData */,
     int /* result */,
-    pointer /* pReadmask */
-#endif
-);
+    pointer /* pReadmask */);
 
 extern Bool RegisterBlockAndWakeupHandlers(
-#if NeedFunctionPrototypes
     BlockHandlerProcPtr /*blockHandler*/,
     WakeupHandlerProcPtr /*wakeupHandler*/,
-    pointer /*blockData*/
-#endif
-);
+    pointer /*blockData*/);
 
 extern void RemoveBlockAndWakeupHandlers(
-#if NeedFunctionPrototypes
     BlockHandlerProcPtr /*blockHandler*/,
     WakeupHandlerProcPtr /*wakeupHandler*/,
-    pointer /*blockData*/
-#endif
-);
+    pointer /*blockData*/);
 
-extern void InitBlockAndWakeupHandlers(
-#if NeedFunctionPrototypes
-    void
-#endif
-);
+extern void InitBlockAndWakeupHandlers(void);
 
-extern void ProcessWorkQueue(
-#if NeedFunctionPrototypes
-    void
-#endif
-);
+extern void ProcessWorkQueue(void);
 
-extern void ProcessWorkQueueZombies(
-#if NeedFunctionPrototypes
-    void
-#endif
-);
+extern void ProcessWorkQueueZombies(void);
 
 extern Bool QueueWorkProc(
-#if NeedFunctionPrototypes
     Bool (* /*function*/)(
-#if NeedNestedPrototypes
         ClientPtr /*clientUnused*/,
-        pointer /*closure*/
-#endif
-        ),
+        pointer /*closure*/),
     ClientPtr /*client*/,
     pointer /*closure*/
-#endif
 );
 
 typedef Bool (* ClientSleepProcPtr)(
-#if NeedFunctionPrototypes
     ClientPtr /*client*/,
-    pointer /*closure*/
-#endif
-);
+    pointer /*closure*/);
 
 extern Bool ClientSleep(
-#if NeedFunctionPrototypes
     ClientPtr /*client*/,
     ClientSleepProcPtr /* function */,
-    pointer /*closure*/
-#endif
-);
+    pointer /*closure*/);
 
 #ifndef ___CLIENTSIGNAL_DEFINED___
 #define ___CLIENTSIGNAL_DEFINED___
 extern Bool ClientSignal(
-#if NeedFunctionPrototypes
-    ClientPtr /*client*/
-#endif
-);
+    ClientPtr /*client*/);
 #endif /* ___CLIENTSIGNAL_DEFINED___ */
 
 extern void ClientWakeup(
-#if NeedFunctionPrototypes
-    ClientPtr /*client*/
-#endif
-);
+    ClientPtr /*client*/);
 
 extern Bool ClientIsAsleep(
-#if NeedFunctionPrototypes
-    ClientPtr /*client*/
-#endif
-);
+    ClientPtr /*client*/);
 
 /* atom.c */
 
 extern Atom MakeAtom(
-#if NeedFunctionPrototypes
     char * /*string*/,
     unsigned /*len*/,
-    Bool /*makeit*/
-#endif
-);
+    Bool /*makeit*/);
 
 extern Bool ValidAtom(
-#if NeedFunctionPrototypes
-    Atom /*atom*/
-#endif
-);
+    Atom /*atom*/);
 
 extern char *NameForAtom(
-#if NeedFunctionPrototypes
-    Atom /*atom*/
-#endif
-);
+    Atom /*atom*/);
 
-extern void AtomError(
-#if NeedFunctionPrototypes
-    void
-#endif
-);
+extern void AtomError(void);
 
-extern void FreeAllAtoms(
-#if NeedFunctionPrototypes
-    void
-#endif
-);
+extern void FreeAllAtoms(void);
 
-extern void InitAtoms(
-#if NeedFunctionPrototypes
-    void
-#endif
-);
+extern void InitAtoms(void);
 
 /* events.c */
 
 extern void SetMaskForEvent(
-#if NeedFunctionPrototypes
     Mask /* mask */,
-    int /* event */
-#endif
-);
+    int /* event */);
 
 
 extern Bool IsParent(
-#if NeedFunctionPrototypes
     WindowPtr /* maybeparent */,
-    WindowPtr /* child */
-#endif
-);
+    WindowPtr /* child */);
 
-extern WindowPtr GetCurrentRootWindow(
-#if NeedFunctionPrototypes
-    void
-#endif
-);
+extern WindowPtr GetCurrentRootWindow(void);
 
-extern WindowPtr GetSpriteWindow(
-#if NeedFunctionPrototypes
-    void
-#endif
-);
+extern WindowPtr GetSpriteWindow(void);
 
 
-extern void NoticeEventTime(
-#if NeedFunctionPrototypes
-    xEventPtr /* xE */
-#endif
-);
+extern void NoticeEventTime(xEventPtr /* xE */);
 
 extern void EnqueueEvent(
-#if NeedFunctionPrototypes
     xEventPtr /* xE */,
     DeviceIntPtr /* device */,
-    int	/* count */
-#endif
-);
+    int	/* count */);
 
-extern void ComputeFreezes(
-#if NeedFunctionPrototypes
-    void
-#endif
-);
+extern void ComputeFreezes(void);
 
 extern void CheckGrabForSyncs(
-#if NeedFunctionPrototypes
     DeviceIntPtr /* dev */,
     Bool /* thisMode */,
-    Bool /* otherMode */
-#endif
-);
+    Bool /* otherMode */);
 
 extern void ActivatePointerGrab(
-#if NeedFunctionPrototypes
     DeviceIntPtr /* mouse */,
     GrabPtr /* grab */,
     TimeStamp /* time */,
-    Bool /* autoGrab */
-#endif
-);
+    Bool /* autoGrab */);
 
 extern void DeactivatePointerGrab(
-#if NeedFunctionPrototypes
-    DeviceIntPtr /* mouse */
-#endif
-);
+    DeviceIntPtr /* mouse */);
 
 extern void ActivateKeyboardGrab(
-#if NeedFunctionPrototypes
     DeviceIntPtr /* keybd */,
     GrabPtr /* grab */,
     TimeStamp /* time */,
-    Bool /* passive */
-#endif
-);
+    Bool /* passive */);
 
 extern void DeactivateKeyboardGrab(
-#if NeedFunctionPrototypes
-    DeviceIntPtr /* keybd */
-#endif
-);
+    DeviceIntPtr /* keybd */);
 
 extern void AllowSome(
-#if NeedFunctionPrototypes
     ClientPtr	/* client */,
     TimeStamp /* time */,
     DeviceIntPtr /* thisDev */,
-    int /* newState */
-#endif
-);
+    int /* newState */);
 
 extern void ReleaseActiveGrabs(
-#if NeedFunctionPrototypes
-ClientPtr client
-#endif
-);
+    ClientPtr client);
 
 extern int DeliverEventsToWindow(
-#if NeedFunctionPrototypes
     WindowPtr /* pWin */,
     xEventPtr /* pEvents */,
     int /* count */,
     Mask /* filter */,
     GrabPtr /* grab */,
-    int /* mskidx */
-#endif
-);
+    int /* mskidx */);
 
 extern int DeliverDeviceEvents(
-#if NeedFunctionPrototypes
     WindowPtr /* pWin */,
     xEventPtr /* xE */,
     GrabPtr /* grab */,
     WindowPtr /* stopAt */,
     DeviceIntPtr /* dev */,
-    int /* count */
-#endif
-);
+    int /* count */);
 
 extern void DefineInitialRootWindow(
-#if NeedFunctionPrototypes
-    WindowPtr /* win */
-#endif
-);
+    WindowPtr /* win */);
 
 extern void WindowHasNewCursor(
-#if NeedFunctionPrototypes
-    WindowPtr /* pWin */
-#endif
-);
+    WindowPtr /* pWin */);
 
 extern Bool CheckDeviceGrabs(
-#if NeedFunctionPrototypes
     DeviceIntPtr /* device */,
     xEventPtr /* xE */,
     int /* checkFirst */,
-    int /* count */
-#endif
-);
+    int /* count */);
 
 extern void DeliverFocusedEvent(
-#if NeedFunctionPrototypes
     DeviceIntPtr /* keybd */,
     xEventPtr /* xE */,
     WindowPtr /* window */,
-    int /* count */
-#endif
-);
+    int /* count */);
 
 extern void DeliverGrabbedEvent(
-#if NeedFunctionPrototypes
     xEventPtr /* xE */,
     DeviceIntPtr /* thisDev */,
     Bool /* deactivateGrab */,
-    int /* count */
-#endif
-);
+    int /* count */);
 
 #ifdef XKB
 extern void FixKeyState(
-#if NeedFunctionPrototypes
     xEvent * /* xE */,
-    DeviceIntPtr /* keybd */
-#endif
-);
+    DeviceIntPtr /* keybd */);
 #endif /* XKB */
 
 extern void RecalculateDeliverableEvents(
-#if NeedFunctionPrototypes
-    WindowPtr /* pWin */
-#endif
-);
+    WindowPtr /* pWin */);
 
 extern int OtherClientGone(
-#if NeedFunctionPrototypes
     pointer /* value */,
-    XID /* id */
-#endif
-);
+    XID /* id */);
 
 extern void DoFocusEvents(
-#if NeedFunctionPrototypes
     DeviceIntPtr /* dev */,
     WindowPtr /* fromWin */,
     WindowPtr /* toWin */,
-    int /* mode */
-#endif
-);
+    int /* mode */);
 
 extern int SetInputFocus(
-#if NeedFunctionPrototypes
     ClientPtr /* client */,
     DeviceIntPtr /* dev */,
     Window /* focusID */,
     CARD8 /* revertTo */,
     Time /* ctime */,
-    Bool /* followOK */
-#endif
-);
+    Bool /* followOK */);
 
 extern int GrabDevice(
-#if NeedFunctionPrototypes
     ClientPtr /* client */,
     DeviceIntPtr /* dev */,
     unsigned /* this_mode */,
@@ -884,69 +641,44 @@ extern int GrabDevice(
     unsigned /* ownerEvents */,
     Time /* ctime */,
     Mask /* mask */,
-    CARD8 * /* status */
-#endif
-);
+    CARD8 * /* status */);
 
-extern void InitEvents(
-#if NeedFunctionPrototypes
-    void
-#endif
-);
+extern void InitEvents(void);
 
 extern void CloseDownEvents(void);
 
 extern void DeleteWindowFromAnyEvents(
-#if NeedFunctionPrototypes
     WindowPtr	/* pWin */,
-    Bool /* freeResources */
-#endif
-);
+    Bool /* freeResources */);
 
 
 extern Mask EventMaskForClient(
-#if NeedFunctionPrototypes
     WindowPtr /* pWin */,
-    ClientPtr /* client */
-#endif
-);
+    ClientPtr /* client */);
 
 
 
 extern int DeliverEvents(
-#if NeedFunctionPrototypes
     WindowPtr /*pWin*/,
     xEventPtr /*xE*/,
     int /*count*/,
-    WindowPtr /*otherParent*/
-#endif
-);
+    WindowPtr /*otherParent*/);
 
 
 extern void WriteEventsToClient(
-#if NeedFunctionPrototypes
     ClientPtr /*pClient*/,
     int	     /*count*/,
-    xEventPtr /*events*/
-#endif
-);
+    xEventPtr /*events*/);
 
 extern int TryClientEvents(
-#if NeedFunctionPrototypes
     ClientPtr /*client*/,
     xEventPtr /*pEvents*/,
     int /*count*/,
     Mask /*mask*/,
     Mask /*filter*/,
-    GrabPtr /*grab*/
-#endif
-);
+    GrabPtr /*grab*/);
 
-extern void WindowsRestructured(
-#if NeedFunctionPrototypes
-    void
-#endif
-);
+extern void WindowsRestructured(void);
 
 
 #ifdef RANDR
@@ -954,24 +686,13 @@ void
 ScreenRestructured (ScreenPtr pScreen);
 #endif
 
-extern void ResetClientPrivates(
-#if NeedFunctionPrototypes
-    void
-#endif
-);
+extern void ResetClientPrivates(void);
 
-extern int AllocateClientPrivateIndex(
-#if NeedFunctionPrototypes
-    void
-#endif
-);
+extern int AllocateClientPrivateIndex(void);
 
 extern Bool AllocateClientPrivate(
-#if NeedFunctionPrototypes
     int /*index*/,
-    unsigned /*amount*/
-#endif
-);
+    unsigned /*amount*/);
 
 /*
  *  callback manager stuff
@@ -983,34 +704,19 @@ typedef struct _CallbackList *CallbackListPtr; /* also in misc.h */
 #endif
 
 typedef void (*CallbackProcPtr) (
-#if NeedNestedPrototypes
-    CallbackListPtr *, pointer, pointer
-#endif
-);
+    CallbackListPtr *, pointer, pointer);
 
 typedef Bool (*AddCallbackProcPtr) (
-#if NeedNestedPrototypes
-    CallbackListPtr *, CallbackProcPtr, pointer
-#endif
-);
+    CallbackListPtr *, CallbackProcPtr, pointer);
 
 typedef Bool (*DeleteCallbackProcPtr) (
-#if NeedNestedPrototypes
-    CallbackListPtr *, CallbackProcPtr, pointer
-#endif
-);
+    CallbackListPtr *, CallbackProcPtr, pointer);
 
 typedef void (*CallCallbacksProcPtr) (
-#if NeedNestedPrototypes
-    CallbackListPtr *, pointer
-#endif
-);
+    CallbackListPtr *, pointer);
 
 typedef void (*DeleteCallbackListProcPtr) (
-#if NeedNestedPrototypes
-    CallbackListPtr *
-#endif
-);
+    CallbackListPtr *);
 
 typedef struct _CallbackProcs {
     AddCallbackProcPtr		AddCallback;
@@ -1020,46 +726,27 @@ typedef struct _CallbackProcs {
 } CallbackFuncsRec, *CallbackFuncsPtr;
 
 extern Bool CreateCallbackList(
-#if NeedFunctionPrototypes
     CallbackListPtr * /*pcbl*/,
-    CallbackFuncsPtr /*cbfuncs*/
-#endif
-);
+    CallbackFuncsPtr /*cbfuncs*/);
 
 extern Bool AddCallback(
-#if NeedFunctionPrototypes
     CallbackListPtr * /*pcbl*/,
     CallbackProcPtr /*callback*/,
-    pointer /*data*/
-#endif
-);
+    pointer /*data*/);
 
 extern Bool DeleteCallback(
-#if NeedFunctionPrototypes
     CallbackListPtr * /*pcbl*/,
     CallbackProcPtr /*callback*/,
-    pointer /*data*/
-#endif
-);
+    pointer /*data*/);
 
 extern void CallCallbacks(
-#if NeedFunctionPrototypes
     CallbackListPtr * /*pcbl*/,
-    pointer /*call_data*/
-#endif
-);
+    pointer /*call_data*/);
 
 extern void DeleteCallbackList(
-#if NeedFunctionPrototypes
-    CallbackListPtr * /*pcbl*/
-#endif
-);
+    CallbackListPtr * /*pcbl*/);
 
-extern void InitCallbackManager(
-#if NeedFunctionPrototypes
-    void
-#endif
-);
+extern void InitCallbackManager(void);
 
 /*
  *  ServerGrabCallback stuff

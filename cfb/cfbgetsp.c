@@ -45,7 +45,7 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ******************************************************************/
-/* $XFree86: xc/programs/Xserver/cfb/cfbgetsp.c,v 3.9 2001/12/14 19:59:22 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/cfb/cfbgetsp.c,v 3.10 2003/10/29 22:44:53 tsi Exp $ */
 
 #include "X.h"
 #include "Xmd.h"
@@ -91,7 +91,9 @@ cfbGetSpans(pDrawable, wMax, ppt, pwidth, nspans, pchardstStart)
     register int xIndex = 0;
 #else
     register int	nstart; 
+#if PSZ != 32 || PPW != 1
     int	 		nend; 
+#endif
     PixelGroup		startmask, endmask;
     int			nlMiddle;
 #endif
@@ -158,7 +160,7 @@ cfbGetSpans(pDrawable, wMax, ppt, pwidth, nspans, pchardstStart)
 	  psrc = (PixelGroup *)((unsigned long)psrcb & ~0x03);
 	  getbits24(psrc, tmpSrc, srcBit);
 	  pdst = (PixelGroup *)((unsigned long)pdstb & ~0x03);
-	  putbits24(tmpSrc, nstart, PPW, pdst, ~((CfbBits)0), xIndex);
+	  putbits24(tmpSrc, PPW, pdst, ~((CfbBits)0), xIndex);
 	  srcBit++;
 	  psrcb += 3;
 	  xIndex++;
@@ -194,7 +196,9 @@ cfbGetSpans(pDrawable, wMax, ppt, pwidth, nspans, pchardstStart)
 	    } 
 	    if (endmask) 
 	    { 
+#if PSZ != 32 || PPW != 1
 		nend = xEnd & PIM; 
+#endif
 		getbits(psrc, 0, nend, tmpSrc);
 		putbits(tmpSrc, nstart, nend, pdst, ~((CfbBits)0));
 	    } 

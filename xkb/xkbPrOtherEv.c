@@ -24,6 +24,7 @@ OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION  WITH
 THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 ********************************************************/
+/* $XFree86: xc/programs/Xserver/xkb/xkbPrOtherEv.c,v 1.2 2003/11/17 22:20:46 dawes Exp $ */
 
 #include <stdio.h>
 #include <math.h>
@@ -39,24 +40,15 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include "XIproto.h"
 
 extern	void	ProcessOtherEvent(
-#if NeedFunctionPrototypes
     xEvent *		/* xE */,
     DeviceIntPtr 	/* dev */,
     int 		/* count */
-#endif
 );
 
 /***====================================================================***/
 
 void
-#if NeedFunctionPrototypes
 XkbProcessOtherEvent(xEvent *xE,DeviceIntPtr dev,int count)
-#else
-XkbProcessOtherEvent(xE,dev,count)
-    xEvent *		xE;
-    DeviceIntPtr 	dev;
-    int 		count;
-#endif
 {
 Bool	xkbCares,isBtn;
 

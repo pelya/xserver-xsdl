@@ -44,7 +44,7 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ********************************************************/
-/* $XFree86: xc/programs/Xserver/Xi/exevents.c,v 3.10 2001/12/14 19:58:55 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/Xi/exevents.c,v 3.11 2003/11/17 22:20:29 dawes Exp $ */
 
 /********************************************************************
  *
@@ -82,15 +82,11 @@ SOFTWARE.
 			      (class)->state | (class)->motionMask)
 
 static Bool		ShouldFreeInputMasks(
-#if NeedFunctionPrototypes
 				WindowPtr /* pWin */,
 				Bool /* ignoreSelectedEvents */
-#endif
 				);
 static Bool		MakeInputMasks (
-#if NeedFunctionPrototypes
 				WindowPtr /* pWin */
-#endif
 				);
 
 /**************************************************************************
@@ -328,7 +324,6 @@ InitValuatorAxisStruct(	DeviceIntPtr dev,
 }
 
 static void
-#if NeedFunctionPrototypes
 FixDeviceStateNotify (
     DeviceIntPtr dev,
     deviceStateNotify *ev,
@@ -336,15 +331,6 @@ FixDeviceStateNotify (
     ButtonClassPtr b,
     ValuatorClassPtr v,
     int first)
-#else
-FixDeviceStateNotify (dev, ev, k, b, v, first)
-    DeviceIntPtr dev;
-    deviceStateNotify *ev;
-    KeyClassPtr k;
-    ButtonClassPtr b;
-    ValuatorClassPtr v;
-    int first;
-#endif
 {
     ev->type = DeviceStateNotify;
     ev->deviceid = dev->id;
@@ -383,19 +369,11 @@ FixDeviceStateNotify (dev, ev, k, b, v, first)
     }
 
 static void
-#if NeedFunctionPrototypes
 FixDeviceValuator (
     DeviceIntPtr dev,
     deviceValuator *ev,
     ValuatorClassPtr v,
     int first)
-#else
-FixDeviceValuator (dev, ev, v, first)
-    DeviceIntPtr dev;
-    deviceValuator *ev;
-    ValuatorClassPtr v;
-    int first;
-#endif
 {
     int nval = v->numAxes - first;
 
@@ -538,7 +516,6 @@ DeviceFocusEvent(dev, type, mode, detail, pWin)
     }
 
 int
-#if NeedFunctionPrototypes
 GrabButton(
     ClientPtr client,
     DeviceIntPtr dev,
@@ -552,23 +529,6 @@ GrabButton(
     Cursor rcursor,
     Window rconfineTo,
     Mask eventMask)
-#else
-GrabButton(client, dev, this_device_mode, other_devices_mode, modifiers,
-	modifier_device, button, grabWindow, ownerEvents, rcursor, rconfineTo,
-	eventMask)
-    ClientPtr client;
-    DeviceIntPtr dev;
-    BYTE this_device_mode;
-    BYTE other_devices_mode;
-    CARD16 modifiers;
-    DeviceIntPtr modifier_device;
-    CARD8 button;
-    Window grabWindow;
-    BOOL ownerEvents;
-    Cursor rcursor;
-    Window rconfineTo;
-    Mask eventMask;
-#endif   
 {
     WindowPtr pWin, confineTo;
     CursorPtr cursor;
@@ -630,7 +590,6 @@ GrabButton(client, dev, this_device_mode, other_devices_mode, modifiers,
     }
 
 int
-#if NeedFunctionPrototypes
 GrabKey(
     ClientPtr client,
     DeviceIntPtr dev,
@@ -642,20 +601,6 @@ GrabKey(
     Window grabWindow,
     BOOL ownerEvents,
     Mask mask)
-#else
-GrabKey(client, dev, this_device_mode, other_devices_mode, modifiers,
-    modifier_device, key, grabWindow, ownerEvents, mask)
-    ClientPtr client;
-    DeviceIntPtr dev;
-    BYTE this_device_mode;
-    BYTE other_devices_mode;
-    CARD16 modifiers;
-    DeviceIntPtr modifier_device;
-    CARD8 key;
-    Window grabWindow;
-    BOOL ownerEvents;
-    Mask mask;
-#endif 
 {
     WindowPtr pWin;
     GrabPtr grab;
@@ -1102,18 +1047,11 @@ SetModifierMapping(client, dev, len, rlen, numKeyPerModifier, inputMap, k)
     }
 
 void
-#if NeedFunctionPrototypes
 SendDeviceMappingNotify(
     CARD8 request,
     KeyCode firstKeyCode,
     CARD8 count,
     DeviceIntPtr dev)
-#else
-SendDeviceMappingNotify(request, firstKeyCode, count, dev)
-    CARD8 request, count;
-    KeyCode firstKeyCode;
-    DeviceIntPtr dev;
-#endif
 {
     xEvent event;
     deviceMappingNotify         *ev = (deviceMappingNotify *) &event;
@@ -1132,7 +1070,6 @@ SendDeviceMappingNotify(request, firstKeyCode, count, dev)
     }
 
 int
-#if NeedFunctionPrototypes
 ChangeKeyMapping(
     ClientPtr 	client,
     DeviceIntPtr dev,
@@ -1142,18 +1079,6 @@ ChangeKeyMapping(
     CARD8 	keyCodes,
     CARD8 	keySymsPerKeyCode,
     KeySym	*map)
-#else
-ChangeKeyMapping(client, dev, len, type, firstKeyCode, keyCodes, 
-	keySymsPerKeyCode, map)
-    ClientPtr 	client;
-    DeviceIntPtr dev;
-    unsigned 	len;
-    int 	type;
-    KeyCode 	firstKeyCode;
-    CARD8 	keyCodes;
-    CARD8 	keySymsPerKeyCode;
-    KeySym	*map;
-#endif
 {
     KeySymsRec keysyms;
     KeyClassPtr k = dev->key;

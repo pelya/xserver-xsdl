@@ -27,7 +27,7 @@
  *
  * Authors:	Harold L Hunt II
  */
-/* $XFree86: xc/programs/Xserver/hw/xwin/wincreatewnd.c,v 1.5 2003/02/12 15:01:38 alanh Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xwin/wincreatewnd.c,v 1.7 2003/10/08 11:13:03 eich Exp $ */
 
 #include "win.h"
 #include "shellapi.h"
@@ -57,6 +57,7 @@ winCreateBoundingWindowFullScreen (ScreenPtr pScreen)
   int			iHeight = pScreenInfo->dwHeight;
   HWND			*phwnd = &pScreenPriv->hwndScreen;
   WNDCLASS		wc;
+  char			szTitle[256];
 
 #if CYGDEBUG
   ErrorF ("winCreateBoundingWindowFullScreen\n");
@@ -75,10 +76,23 @@ winCreateBoundingWindowFullScreen (ScreenPtr pScreen)
   wc.lpszClassName = WINDOW_CLASS;
   RegisterClass (&wc);
 
+  /* Set display and screen-specific tooltip text */
+  if (g_pszQueryHost != NULL)
+    snprintf (szTitle,
+	    sizeof (szTitle),
+	    WINDOW_TITLE_XDMCP,
+	    g_pszQueryHost); 
+  else    
+    snprintf (szTitle,
+	    sizeof (szTitle),
+	    WINDOW_TITLE,
+	    display, 
+	    (int) pScreenInfo->dwScreen);
+
   /* Create the window */
   *phwnd = CreateWindowExA (WS_EX_TOPMOST,	/* Extended styles */
 			    WINDOW_CLASS,	/* Class name */
-			    WINDOW_TITLE,	/* Window name */
+			    szTitle,		/* Window name */
 			    WS_POPUP,
 			    0,			/* Horizontal position */
 			    0,			/* Vertical position */
@@ -102,7 +116,7 @@ winCreateBoundingWindowFullScreen (ScreenPtr pScreen)
       ShowWindow (*phwnd, SW_SHOWNORMAL);
       break;
     }
-  
+
   /* Send first paint message */
   UpdateWindow (*phwnd);
 
@@ -128,6 +142,7 @@ winCreateBoundingWindowWindowed (ScreenPtr pScreen)
   WNDCLASS		wc;
   RECT			rcClient, rcWorkArea;
   DWORD			dwWindowStyle;
+  char			szTitle[256];
   
   ErrorF ("winCreateBoundingWindowWindowed - User w: %d h: %d\n",
 	  pScreenInfo->dwUserWidth, pScreenInfo->dwUserHeight);
@@ -267,10 +282,23 @@ winCreateBoundingWindowWindowed (ScreenPtr pScreen)
 	  iWidth, iHeight);
 #endif
 
+  /* Set display and screen-specific tooltip text */
+  if (g_pszQueryHost != NULL)
+    snprintf (szTitle,
+	    sizeof (szTitle),
+	    WINDOW_TITLE_XDMCP,
+	    g_pszQueryHost); 
+  else    
+    snprintf (szTitle,
+	    sizeof (szTitle),
+	    WINDOW_TITLE,
+	    display, 
+	    (int) pScreenInfo->dwScreen);
+
   /* Create the window */
   *phwnd = CreateWindowExA (0,			/* Extended styles */
 			    WINDOW_CLASS,	/* Class name */
-			    WINDOW_TITLE,	/* Window name */
+			    szTitle,		/* Window name */
 			    dwWindowStyle,
 			    rcWorkArea.left,	/* Horizontal position */
 			    rcWorkArea.top,	/* Vertical position */
@@ -369,7 +397,10 @@ winCreateBoundingWindowWindowed (ScreenPtr pScreen)
 
   /* Show the window */
   if (pScreenInfo->fMultiWindow)
-    ShowWindow (*phwnd, SW_SHOWMINNOACTIVE);
+    {
+      pScreenPriv->fRootWindowShown = FALSE;
+      ShowWindow (*phwnd, SW_HIDE);
+    }
   else
     ShowWindow (*phwnd, SW_SHOWNORMAL);
   if (!UpdateWindow (*phwnd))

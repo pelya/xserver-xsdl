@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/xf4bpp/vgaImages.c,v 1.4 2002/01/25 21:56:22 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/xf4bpp/vgaImages.c,v 1.5 2003/11/03 05:11:57 tsi Exp $ */
 /*
  * Copyright IBM Corporation 1987,1988,1989
  *
@@ -117,10 +117,7 @@ register unsigned char tmp1;
 		default:
 			break ;
 	}
-#ifndef PC98_EGC
-	if ( invert_existing_data )
-		xf4bppFillSolid( pWin, VGA_ALLPLANES, GXinvert, planes, x, y, w, h ) ;
-#endif
+
 #ifdef	PC98_EGC
 	/* Setup EGC Registers */
 	switch(data_rotate_value) {
@@ -153,6 +150,8 @@ register unsigned char tmp1;
 	outw(EGC_FGC, 0x0000);
 	tmp1 = 0;
 #else
+	if ( invert_existing_data )
+		xf4bppFillSolid( pWin, VGA_ALLPLANES, GXinvert, planes, x, y, w, h ) ;
 	/* Setup VGA Registers */
 	SetVideoSequencer( Mask_MapIndex, planes & VGA_ALLPLANES ) ;
 	/* Set Raster Op */
@@ -205,6 +204,7 @@ if ( invert_source_data )
 			SetVideoGraphics( Bit_MaskIndex, currMask ) ;
 			/* Read To Load vga Data Latches */
 			tmp = *( (VgaMemoryPtr) dst ) ;
+			(void) tmp;
 			*( (VgaMemoryPtr) dst ) = ~ *src ;
 			if ( currMask & RightmostBit ) {
 				currMask = LeftmostBit ;
@@ -256,6 +256,7 @@ else /* invert_source_data == FALSE */
 			SetVideoGraphics( Bit_MaskIndex, currMask ) ; /* GJA */
 			/* Read To Load vga Data Latches */
 			tmp = *( (VgaMemoryPtr) dst ) ;
+			(void) tmp;
 			*( (VgaMemoryPtr) dst ) = *src ;
 			if ( currMask & RightmostBit ) {
 				currMask = LeftmostBit ;

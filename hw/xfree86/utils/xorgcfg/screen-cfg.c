@@ -26,7 +26,7 @@
  *
  * Author: Paulo César Pereira de Andrade <pcpa@conectiva.com.br>
  *
- * $XFree86: xc/programs/Xserver/hw/xfree86/xf86cfg/screen-cfg.c,v 1.12 2002/11/18 05:24:18 paulo Exp $
+ * $XFree86: xc/programs/Xserver/hw/xfree86/xf86cfg/screen-cfg.c,v 1.14 2003/11/03 05:11:58 tsi Exp $
  */
 
 #include "xf86config.h"
@@ -73,6 +73,8 @@ static char *standard_modes[] = {
     "1800x1400",
     "512x384",
     "1400x1050",
+    "2048x1536",
+    "1920x1440",
 };
 
 static char **modes;
@@ -519,6 +521,8 @@ ScreenDialog(XF86SetupInfo *info)
 	    XtMapWidget(ccw);
 	}
     }
+#else
+    (void)labelRotate;
 #endif
     if (rotate == CW) {
 	XtVaSetValues(cw, XtNstate, True, NULL, 0);

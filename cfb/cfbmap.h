@@ -26,7 +26,7 @@ in this Software without prior written authorization from The Open Group.
  * Author:  Keith Packard, MIT X Consortium
  */
 
-/* $XFree86: xc/programs/Xserver/cfb/cfbmap.h,v 3.11 2001/12/14 19:59:23 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/cfb/cfbmap.h,v 3.12 2003/07/19 13:22:27 tsi Exp $ */
 
 /*
  * Map names around so that multiple depths can be supported simultaneously
@@ -59,6 +59,7 @@ in this Software without prior written authorization from The Open Group.
 #undef cfbCopyImagePlane
 #undef cfbCopyPixmap
 #undef cfbCopyPlane
+#undef cfbCopyPlaneReduce
 #undef cfbCopyRotatePixmap
 #undef cfbCopyWindow
 #undef cfbCreateGC
@@ -227,6 +228,7 @@ cfb can not hack PSZ yet
 #define cfbCopyImagePlane CFBNAME(CopyImagePlane)
 #define cfbCopyPixmap CFBNAME(CopyPixmap)
 #define cfbCopyPlane CFBNAME(CopyPlane)
+#define cfbCopyPlaneReduce CFBNAME(CopyPlaneReduce)
 #define cfbCopyRotatePixmap CFBNAME(CopyRotatePixmap)
 #define cfbCopyWindow CFBNAME(CopyWindow)
 #define cfbCreateGC CFBNAME(CreateGC)

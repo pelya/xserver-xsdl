@@ -12,7 +12,7 @@ the suitability of this software for any purpose.  It is provided "as
 is" without express or implied warranty.
 
 */
-/* $XFree86: xc/programs/Xserver/hw/xnest/Cursor.c,v 1.3 2002/11/23 19:27:50 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xnest/Cursor.c,v 1.4 2003/11/16 05:05:20 dawes Exp $ */
 
 #include "X.h"
 #include "Xproto.h"
@@ -33,9 +33,8 @@ is" without express or implied warranty.
 #include "Keyboard.h"
 #include "Args.h"
 
-void xnestConstrainCursor(pScreen, pBox)
-     ScreenPtr pScreen;
-     BoxPtr pBox;
+void
+xnestConstrainCursor(ScreenPtr pScreen, BoxPtr pBox)
 {
 #ifdef _XSERVER64
   Window64 wroot;
@@ -71,18 +70,15 @@ void xnestConstrainCursor(pScreen, pBox)
   }
 }
 
-void xnestCursorLimits(pScreen, pCursor, pHotBox, pTopLeftBox)
-     ScreenPtr pScreen;
-     CursorPtr pCursor;
-     BoxPtr pHotBox;
-     BoxPtr pTopLeftBox;
+void
+xnestCursorLimits(ScreenPtr pScreen, CursorPtr pCursor, BoxPtr pHotBox,
+		  BoxPtr pTopLeftBox)
 {
   *pTopLeftBox = *pHotBox;		   
 }
 
-Bool xnestDisplayCursor(pScreen, pCursor)
-     ScreenPtr pScreen;
-     CursorPtr pCursor;
+Bool
+xnestDisplayCursor(ScreenPtr pScreen, CursorPtr pCursor)
 {
   XDefineCursor(xnestDisplay, 
 		xnestDefaultWindows[pScreen->myNum], 
@@ -90,9 +86,8 @@ Bool xnestDisplayCursor(pScreen, pCursor)
   return True;
 }
 
-Bool xnestRealizeCursor(pScreen, pCursor)
-     ScreenPtr pScreen;
-     CursorPtr pCursor;
+Bool
+xnestRealizeCursor(ScreenPtr pScreen, CursorPtr pCursor)
 {
   XImage *ximage;
   Pixmap source, mask;
@@ -171,19 +166,16 @@ Bool xnestRealizeCursor(pScreen, pCursor)
   return True;
 }
 
-Bool xnestUnrealizeCursor(pScreen, pCursor)
-     ScreenPtr pScreen;
-     CursorPtr pCursor;
+Bool
+xnestUnrealizeCursor(ScreenPtr pScreen, CursorPtr pCursor)
 {
   XFreeCursor(xnestDisplay, xnestCursor(pCursor, pScreen));
   xfree(xnestCursorPriv(pCursor, pScreen));
   return True;
 }
 
-void xnestRecolorCursor(pScreen,  pCursor, displayed)
-     ScreenPtr pScreen;
-     CursorPtr pCursor;
-     Bool displayed;
+void
+xnestRecolorCursor(ScreenPtr pScreen, CursorPtr pCursor, Bool displayed)
 {
   XColor fg_color, bg_color;
   
@@ -200,10 +192,8 @@ void xnestRecolorCursor(pScreen,  pCursor, displayed)
 		 &fg_color, &bg_color);
 }
 
-Bool xnestSetCursorPosition(pScreen, x, y, generateEvent)
-     ScreenPtr pScreen;
-     int x, y;
-     Bool generateEvent;
+Bool
+xnestSetCursorPosition(ScreenPtr pScreen, int x, int y, Bool generateEvent)
 {
   int i;
 

@@ -1,7 +1,30 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86DPMS.c,v 1.8 2003/02/13 02:41:09 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86DPMS.c,v 1.11 2003/11/11 21:02:28 dawes Exp $ */
 
 /*
- * Copyright (c) 1997-1998 by The XFree86 Project, Inc.
+ * Copyright (c) 1997-2003 by The XFree86 Project, Inc.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+ * THE COPYRIGHT HOLDER(S) OR AUTHOR(S) BE LIABLE FOR ANY CLAIM, DAMAGES OR
+ * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ *
+ * Except as contained in this notice, the name of the copyright holder(s)
+ * and author(s) shall not be used in advertising or otherwise to promote
+ * the sale, use or other dealings in this Software without prior written
+ * authorization from the copyright holder(s) and author(s).
  */
 
 /*
@@ -14,6 +37,8 @@
 #include "xf86.h"
 #include "xf86Priv.h"
 #ifdef DPMSExtension
+#define DPMS_SERVER
+#include "extensions/dpms.h"
 #include "dpmsproc.h"
 #endif
 
@@ -30,6 +55,7 @@ Bool
 xf86DPMSInit(ScreenPtr pScreen, DPMSSetProcPtr set, int flags)
 {
 #ifdef DPMSExtension
+    ScrnInfoPtr pScrn = xf86Screens[pScreen->myNum];
     DPMSPtr pDPMS;
     pointer DPMSOpt;
 
@@ -45,13 +71,12 @@ xf86DPMSInit(ScreenPtr pScreen, DPMSSetProcPtr set, int flags)
 	return FALSE;
 
     pDPMS = (DPMSPtr)pScreen->devPrivates[DPMSIndex].ptr;
-    pDPMS->Set = set;
+    pScrn->DPMSSet = set;
     pDPMS->Flags = flags;
-    DPMSOpt = xf86FindOption(xf86Screens[pScreen->myNum]->options, "dpms");
+    DPMSOpt = xf86FindOption(pScrn->options, "dpms");
     if (DPMSOpt) {
 	if ((pDPMS->Enabled
-	    = xf86SetBoolOption(xf86Screens[pScreen->myNum]->options,
-				"dpms",FALSE))
+	    = xf86SetBoolOption(pScrn->options, "dpms", FALSE))
 	    && !DPMSDisabledSwitch)
 	    DPMSEnabled = TRUE;
 	xf86MarkOptionUsed(DPMSOpt);
@@ -111,18 +136,23 @@ DPMSSet(int level)
 {
     int i;
     DPMSPtr pDPMS;
+    ScrnInfoPtr pScrn;
 
     DPMSPowerLevel = level;
 
     if (DPMSIndex < 0)
 	return;
 
+    if (level != DPMSModeOn)
+	SaveScreens(SCREEN_SAVER_FORCER, ScreenSaverActive);
+
     /* For each screen, set the DPMS level */
     for (i = 0; i < xf86NumScreens; i++) {
+    	pScrn = xf86Screens[i];
 	pDPMS = (DPMSPtr)screenInfo.screens[i]->devPrivates[DPMSIndex].ptr;
-	if (pDPMS && pDPMS->Set && pDPMS->Enabled && xf86Screens[i]->vtSema) {
-	    xf86EnableAccess(xf86Screens[i]);
-	    pDPMS->Set(xf86Screens[i], level, 0);
+	if (pDPMS && pScrn->DPMSSet && pDPMS->Enabled && pScrn->vtSema) { 
+	    xf86EnableAccess(pScrn);
+	    pScrn->DPMSSet(pScrn, level, 0);
 	}
     }
 }
@@ -137,6 +167,7 @@ DPMSSupported(void)
 {
     int i;
     DPMSPtr pDPMS;
+    ScrnInfoPtr pScrn;
 
     if (DPMSIndex < 0) {
 	return FALSE;
@@ -144,8 +175,9 @@ DPMSSupported(void)
 
     /* For each screen, check if DPMS is supported */
     for (i = 0; i < xf86NumScreens; i++) {
+    	pScrn = xf86Screens[i];
 	pDPMS = (DPMSPtr)screenInfo.screens[i]->devPrivates[DPMSIndex].ptr;
-	if (pDPMS && pDPMS->Set)
+	if (pDPMS && pScrn->DPMSSet)
 	    return TRUE;
     }
     return FALSE;

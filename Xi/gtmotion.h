@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/Xi/gtmotion.h,v 3.1 1996/04/15 11:18:56 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/Xi/gtmotion.h,v 3.2 2003/11/17 22:20:29 dawes Exp $ */
 /************************************************************
 
 Copyright 1996 by Thomas E. Dickey <dickey@clark.net>
@@ -29,25 +29,19 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 int
 SProcXGetDeviceMotionEvents(
-#if NeedFunctionPrototypes
 	ClientPtr              /* client */
-#endif
 	);
 
 int
 ProcXGetDeviceMotionEvents(
-#if NeedFunctionPrototypes
 	ClientPtr              /* client */
-#endif
 	);
 
 void
 SRepXGetDeviceMotionEvents (
-#if NeedFunctionPrototypes
 	ClientPtr              /* client */,
 	int                    /* size */,
 	xGetDeviceMotionEventsReply * /* rep */
-#endif
 	);
 
 #endif /* GTMOTION_H */

@@ -36,7 +36,7 @@
 *
 ****************************************************************************/
 
-/* $XFree86: xc/extras/x86emu/include/x86emu/types.h,v 1.5 2002/07/23 14:22:45 tsi Exp $ */
+/* $XFree86: xc/extras/x86emu/include/x86emu/types.h,v 1.7 2003/07/07 15:34:21 eich Exp $ */
 
 #ifndef __X86EMU_TYPES_H
 #define __X86EMU_TYPES_H
@@ -70,12 +70,13 @@
 
 /* Taken from Xmd.h */
 #undef NUM32
-#if defined(__alpha) || defined(__alpha__) || \
+#if defined (_LP64) || \
+    defined(__alpha) || defined(__alpha__) || \
     defined(__ia64__) || defined(ia64) || \
     defined(__sparc64__) || \
     defined(__s390x__) || \
     (defined(__hppa__) && defined(__LP64)) || \
-    defined(__x86_64__) || defined(x86_64) || \
+    defined(__AMD64__) || defined(AMD64) || \
     (defined(__sgi) && (_MIPS_SZLONG == 64))
 #define NUM32 int
 #else

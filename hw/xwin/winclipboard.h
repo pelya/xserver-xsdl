@@ -27,7 +27,7 @@
  *
  * Authors:	Harold Hunt
  */
-/* $XFree86: xc/programs/Xserver/hw/xwin/winclipboard.h,v 1.1 2003/02/12 15:01:38 alanh Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xwin/winclipboard.h,v 1.3 2003/10/02 13:30:10 eich Exp $ */
 
 
 #ifndef _WINCLIPBOARD_H_
@@ -119,6 +119,8 @@ winClipboardUNIXtoDOS (unsigned char **ppszData, int iLength);
 void *
 winClipboardProc (void *pArg);
 
+void
+winDeinitClipboard ();
 
 /*
  * winclipboardunicode.c

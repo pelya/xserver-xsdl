@@ -7,7 +7,7 @@
    Mark Vojkovich's work.
 */
 
-/* $XFree86: xc/programs/Xserver/hw/xfree86/xf8_32wid/cfbwindow.c,v 1.2 2001/10/28 03:34:09 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/xf8_32wid/cfbwindow.c,v 1.3 2003/11/10 18:22:43 tsi Exp $ */
 
 #include "X.h"
 #include "scrnintstr.h"
@@ -98,7 +98,7 @@ cfb8_32WidCopyWindow(WindowPtr pWin, DDXPointRec ptOldOrg, RegionPtr prgnSrc)
 	BoxPtr pbox;
 	int i, nbox, dx, dy, other_bpp;
 
-	REGION_INIT(pScreen, &rgnDst, NullBox, 0);
+	REGION_NULL(pScreen, &rgnDst);
 
 	dx = ptOldOrg.x - pWin->drawable.x;
 	dy = ptOldOrg.y - pWin->drawable.y;
@@ -136,7 +136,7 @@ cfb8_32WidCopyWindow(WindowPtr pWin, DDXPointRec ptOldOrg, RegionPtr prgnSrc)
 	else
 		other_bpp = 8;
 
-	REGION_INIT(pScreen, &rgnOther, NullBox, 0);
+	REGION_NULL(pScreen, &rgnOther);
 	SegregateChildrenBpp(pWin, &rgnOther, 0,
 			     other_bpp, pWin->drawable.bitsPerPixel);
 	pPixChildren = NULL;
@@ -162,7 +162,7 @@ cfb8_32WidCopyWindow(WindowPtr pWin, DDXPointRec ptOldOrg, RegionPtr prgnSrc)
 				ppt->y = pbox->y1 + dy;
 			}
 
-			REGION_INIT(pScreen, &rgnPixmap, NullBox, 0);
+			REGION_NULL(pScreen, &rgnPixmap);
 			REGION_COPY(pScreen, &rgnPixmap, &rgnOther);
 			REGION_TRANSLATE(pScreen, &rgnPixmap, -(rgnOther.extents.x1), -(rgnOther.extents.y1));
 

@@ -24,7 +24,7 @@ OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION  WITH
 THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 ********************************************************/
-/* $XFree86: xc/lib/X11/XKBMAlloc.c,v 3.11 2001/01/17 19:41:48 dawes Exp $ */
+/* $XFree86: xc/lib/X11/XKBMAlloc.c,v 3.12 2003/11/17 22:20:09 dawes Exp $ */
 
 #ifndef XKB_IN_SERVER
 
@@ -54,14 +54,7 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 /***====================================================================***/
 
 Status
-#if NeedFunctionPrototypes
 XkbAllocClientMap(XkbDescPtr xkb,unsigned which,unsigned nTotalTypes)
-#else
-XkbAllocClientMap(xkb,which,nTotalTypes)
-    XkbDescPtr		xkb;
-    unsigned		which;
-    unsigned		nTotalTypes;
-#endif
 {
 register int	i;
 XkbClientMapPtr map;
@@ -144,14 +137,7 @@ fprintf(stderr,"bad keycode (%d,%d) in XkbAllocClientMap\n",
 }
 
 Status
-#if NeedFunctionPrototypes
 XkbAllocServerMap(XkbDescPtr xkb,unsigned which,unsigned nNewActions)
-#else
-XkbAllocServerMap(xkb,which,nNewActions)
-    XkbDescPtr		xkb;
-    unsigned		which;
-    unsigned		nNewActions;
-#endif
 {
 register int	i;
 XkbServerMapPtr map;
@@ -245,13 +231,7 @@ XkbServerMapPtr map;
 /***====================================================================***/
 
 Status
-#if NeedFunctionPrototypes
 XkbCopyKeyType(XkbKeyTypePtr from,XkbKeyTypePtr into)
-#else
-XkbCopyKeyType(from,into)
-    XkbKeyTypePtr	from;
-    XkbKeyTypePtr	into;
-#endif
 {
     if ((!from)||(!into))
 	return BadMatch;
@@ -292,14 +272,7 @@ XkbCopyKeyType(from,into)
 }
 
 Status
-#if NeedFunctionPrototypes
 XkbCopyKeyTypes(XkbKeyTypePtr from,XkbKeyTypePtr into,int num_types)
-#else
-XkbCopyKeyTypes(from,into,num_types)
-    XkbKeyTypePtr	from;
-    XkbKeyTypePtr	into;
-    int			num_types;
-#endif
 {
 register int i,rtrn;
 
@@ -313,20 +286,11 @@ register int i,rtrn;
 }
 
 XkbKeyTypePtr
-#if NeedFunctionPrototypes
 XkbAddKeyType(	XkbDescPtr	xkb,
 		Atom 		name,
 		int 		map_count,
 		Bool 		want_preserve,
 		int		num_lvls)
-#else
-XkbAddKeyType(xkb,name,map_count,want_preserve,num_lvls)
-    XkbDescPtr	xkb;
-    Atom	name;
-    int		map_count;
-    Bool	want_preserve;
-    int		num_lvls;
-#endif
 {
 register int 	i;
 unsigned	tmp;
@@ -397,20 +361,11 @@ XkbClientMapPtr	map;
 }
 
 Status
-#if NeedFunctionPrototypes
 XkbResizeKeyType(	XkbDescPtr	xkb,
 			int		type_ndx,
 			int		map_count,
 			Bool		want_preserve,
 			int		new_num_lvls)
-#else
-XkbResizeKeyType(xkb,type_ndx,map_count,want_preserve,new_num_lvls)
-    XkbDescPtr		xkb;
-    int			type_ndx;
-    int			map_count;
-    Bool		want_preserve;
-    int			new_num_lvls;
-#endif
 {
 XkbKeyTypePtr	type;
 KeyCode		matchingKeys[XkbMaxKeyCount],nMatchingKeys;
@@ -604,14 +559,7 @@ KeyCode		matchingKeys[XkbMaxKeyCount],nMatchingKeys;
 }
 
 KeySym *
-#if NeedFunctionPrototypes
 XkbResizeKeySyms(XkbDescPtr xkb,int key,int needed)
-#else
-XkbResizeKeySyms(xkb,key,needed)
-    XkbDescPtr	xkb;
-    int 	key;
-    int 	needed;
-#endif
 {
 register int i,nSyms,nKeySyms;
 unsigned nOldSyms;
@@ -666,20 +614,11 @@ KeySym	*newSyms;
 }
 
 static unsigned
-#if NeedFunctionPrototypes
 _ExtendRange(	unsigned int 	old_flags,
 		unsigned int	flag,
 		KeyCode		newKC,
 		KeyCode *	old_min,
 		unsigned char *	old_num)
-#else
-_ExtendRange(old_flags,flag,newKC,old_min,old_num)
-    unsigned int	old_flags;
-    unsigned int	flag;
-    KeyCode		newKC;
-    KeyCode *		old_min;
-    unsigned char *	old_num;
-#endif
 {
     if ((old_flags&flag)==0) {
 	old_flags|= flag;
@@ -700,18 +639,10 @@ _ExtendRange(old_flags,flag,newKC,old_min,old_num)
 }
 
 Status
-#if NeedFunctionPrototypes
 XkbChangeKeycodeRange(	XkbDescPtr	xkb,
 			int 		minKC,
 			int 		maxKC,
 			XkbChangesPtr	changes)
-#else
-XkbChangeKeycodeRange(xkb,minKC,maxKC,changes)
-    XkbDescPtr		xkb;
-    int 		minKC;
-    int 		maxKC;
-    XkbChangesPtr	changes;
-#endif
 {
 int	tmp;
 
@@ -908,14 +839,7 @@ int	tmp;
 }
 
 XkbAction *
-#if NeedFunctionPrototypes
 XkbResizeKeyActions(XkbDescPtr xkb,int key,int needed)
-#else
-XkbResizeKeyActions(xkb,key,needed)
-    XkbDescPtr	xkb;
-    int 	key;
-    int 	needed;
-#endif
 {
 register int i,nActs;
 XkbAction *newActs;
@@ -965,14 +889,7 @@ XkbAction *newActs;
 }
 
 void
-#if NeedFunctionPrototypes
 XkbFreeClientMap(XkbDescPtr xkb,unsigned what,Bool freeMap)
-#else
-XkbFreeClientMap(xkb,what,freeMap)
-    XkbDescPtr	xkb;
-    unsigned	what;
-    Bool	freeMap;
-#endif
 {
 XkbClientMapPtr	map;
 
@@ -1030,14 +947,7 @@ XkbClientMapPtr	map;
 }
 
 void
-#if NeedFunctionPrototypes
 XkbFreeServerMap(XkbDescPtr xkb,unsigned what,Bool freeMap)
-#else
-XkbFreeServerMap(xkb,what,freeMap)
-    XkbDescPtr	xkb;
-    unsigned	what;
-    Bool	freeMap;
-#endif
 {
 XkbServerMapPtr	map;
 

@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86KbdBSD.c,v 3.20 2002/05/22 21:38:27 herrb Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86KbdBSD.c,v 3.22 2003/10/07 22:00:52 herrb Exp $ */
 /*
  * Derived from xf86Kbd.c by S_ren Schmidt (sos@login.dkuug.dk)
  * which is Copyright 1990,91 by Thomas Roell, Dinkelscherben, Germany.
@@ -22,6 +22,33 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
+/*
+ * Copyright (c) 1994-2002 by The XFree86 Project, Inc.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+ * THE COPYRIGHT HOLDER(S) OR AUTHOR(S) BE LIABLE FOR ANY CLAIM, DAMAGES OR
+ * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ *
+ * Except as contained in this notice, the name of the copyright holder(s)
+ * and author(s) shall not be used in advertising or otherwise to promote
+ * the sale, use or other dealings in this Software without prior written
+ * authorization from the copyright holder(s) and author(s).
+ */
+
 /* $XConsortium: xf86KbdBSD.c /main/6 1996/10/23 13:12:27 kaleb $ */
 
 #include "X.h"
@@ -1057,6 +1084,8 @@ static CARD8 wsAdbMap[] = {
 	/* 223 */ KEY_NOTUSED,
 };
 
+#define WS_ADB_MAP_SIZE (sizeof(wsAdbMap)/sizeof(unsigned char))
+
 static CARD8 wsSunMap[] = {
 	/* 0x00 */ KEY_NOTUSED,
 	/* 0x01 */ KEY_NOTUSED,		/* stop */
@@ -1190,9 +1219,6 @@ static CARD8 wsSunMap[] = {
 
 #define WS_SUN_MAP_SIZE (sizeof(wsSunMap)/sizeof(unsigned char))
 
-
-#define WS_ADB_MAP_SIZE (sizeof(wsAdbMap)/sizeof(unsigned char))
-
 /*
  * Translate raw wskbd keyboard event values to XFree86 standard keycodes
  * (based on the AT keyboard scan codes using the tables above
@@ -1210,7 +1236,7 @@ WSKbdToKeycode(int keycode)
 			return KEY_UNKNOWN;
 		else 
 			return wsUsbMap[keycode];
-#ifdef WSKBD_TYPE_ADB			
+#ifdef WSKBD_TYPE_ADB
 	case WSKBD_TYPE_ADB:
 		if (keycode < 0 || keycode >= WS_ADB_MAP_SIZE) 
 			return KEY_UNKNOWN;
@@ -1219,6 +1245,9 @@ WSKbdToKeycode(int keycode)
 #endif
 #ifdef WSKBD_TYPE_SUN
 	case WSKBD_TYPE_SUN:
+#ifdef WSKBD_TYPE_SUN5
+	case WSKBD_TYPE_SUN5:
+#endif
 		if (keycode < 0 || keycode >= WS_SUN_MAP_SIZE)
 			return KEY_UNKNOWN;
 		else

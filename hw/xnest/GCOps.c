@@ -12,11 +12,11 @@ the suitability of this software for any purpose.  It is provided "as
 is" without express or implied warranty.
 
 */
-/* $XFree86: xc/programs/Xserver/hw/xnest/GCOps.c,v 3.4 2001/01/17 22:36:55 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xnest/GCOps.c,v 3.6 2003/11/16 05:05:20 dawes Exp $ */
 
 #include "X.h"
 #include "Xproto.h"
-#include "miscstruct.h"
+#include "regionstr.h"
 #include "fontstruct.h"
 #include "gcstruct.h"
 #include "scrnintstr.h"
@@ -35,45 +35,30 @@ is" without express or implied warranty.
 #include "Drawable.h"
 #include "Visual.h"
 
-void xnestFillSpans(pDrawable, pGC, nSpans, pPoints, pWidths, fSorted)
-     DrawablePtr pDrawable;
-     GCPtr pGC;
-     int nSpans;
-     xPoint *pPoints;
-     int *pWidths;
-     int fSorted;
+void
+xnestFillSpans(DrawablePtr pDrawable, GCPtr pGC, int nSpans, xPoint *pPoints,
+	       int *pWidths, int fSorted)
 {
   ErrorF("xnest warning: function xnestFillSpans not implemented\n");
 }
 
-void xnestSetSpans(pDrawable, pGC, pSrc, pPoints, pWidths, nSpans, fSorted)
-     DrawablePtr pDrawable;
-     GCPtr pGC;
-     unsigned char * pSrc;
-     xPoint *pPoints;
-     int *pWidths;
-     int nSpans;
-     int fSorted;
+void
+xnestSetSpans(DrawablePtr pDrawable, GCPtr pGC, char *pSrc,
+	      xPoint *pPoints, int *pWidths, int nSpans, int fSorted)
 {
   ErrorF("xnest warning: function xnestSetSpans not implemented\n");
 }
 
-void xnestGetSpans(pDrawable, maxWidth, pPoints, pWidths, nSpans, pBuffer)
-     DrawablePtr pDrawable; 
-     int maxWidth;
-     xPoint *pPoints;
-     int *pWidths;
-     int nSpans;
-     int *pBuffer;
+void
+xnestGetSpans(DrawablePtr pDrawable, int maxWidth, DDXPointPtr pPoints,
+	      int *pWidths, int nSpans, char *pBuffer)
 {
   ErrorF("xnest warning: function xnestGetSpans not implemented\n");
 }
 
-void xnestQueryBestSize(class, pWidth, pHeight, pScreen)
-     int class;
-     short *pWidth;
-     short *pHeight;
-     ScreenPtr pScreen;
+void
+xnestQueryBestSize(int class, unsigned short *pWidth, unsigned short *pHeight,
+		   ScreenPtr pScreen)
 {
   unsigned int width, height;
 
@@ -88,13 +73,9 @@ void xnestQueryBestSize(class, pWidth, pHeight, pScreen)
   *pHeight = height;
 }
 
-void xnestPutImage(pDrawable, pGC, depth, x, y, w, h, leftPad, format, pImage)
-     DrawablePtr pDrawable;
-     GCPtr       pGC;
-     int         depth, x, y, w, h;
-     int         leftPad;
-     unsigned int format;
-     unsigned char *pImage;
+void
+xnestPutImage(DrawablePtr pDrawable, GCPtr pGC, int depth, int x, int y,
+	      int w, int h, int leftPad, int format, char *pImage)
 {
   XImage *ximage;
   
@@ -111,12 +92,10 @@ void xnestPutImage(pDrawable, pGC, depth, x, y, w, h, leftPad, format, pImage)
   }
 }
 
-void xnestGetImage(pDrawable, x, y, w, h, format, planeMask, pImage)
-     DrawablePtr pDrawable;
-     int         x, y, w, h;
-     unsigned int format;
-     unsigned long planeMask;
-     unsigned char *pImage;
+void
+xnestGetImage(DrawablePtr pDrawable, int x, int y, int w, int h,
+	      unsigned int format, unsigned long planeMask,
+	      char *pImage)
 {
   XImage *ximage;
   int length;
@@ -133,16 +112,14 @@ void xnestGetImage(pDrawable, x, y, w, h, format, planeMask, pImage)
   }
 }
 
-static Bool xnestBitBlitPredicate(display, event, args)
-     Display *display;
-     XEvent *event;
-     char *args;
+static Bool
+xnestBitBlitPredicate(Display *display, XEvent *event, char *args)
 {
   return (event->type == GraphicsExpose || event->type == NoExpose);
 }
 
-RegionPtr xnestBitBlitHelper(pGC)
-     GC *pGC;
+static RegionPtr
+xnestBitBlitHelper(GCPtr pGC)
 {
   if (!pGC->graphicsExposures) 
     return NullRegion;
@@ -183,14 +160,10 @@ RegionPtr xnestBitBlitHelper(pGC)
   }
 }
 
-RegionPtr xnestCopyArea(pSrcDrawable, pDstDrawable,
-			pGC, srcx, srcy, width, height, dstx, dsty)
-     DrawablePtr pSrcDrawable;
-     DrawablePtr pDstDrawable;
-     GC *pGC;
-     int srcx, srcy;
-     int width, height;
-     int dstx, dsty;
+RegionPtr
+xnestCopyArea(DrawablePtr pSrcDrawable, DrawablePtr pDstDrawable,
+	      GCPtr pGC, int srcx, int srcy, int width, int height,
+	      int dstx, int dsty)
 {
   XCopyArea(xnestDisplay, 
 	    xnestDrawable(pSrcDrawable), xnestDrawable(pDstDrawable),
@@ -199,15 +172,10 @@ RegionPtr xnestCopyArea(pSrcDrawable, pDstDrawable,
   return xnestBitBlitHelper(pGC);
 }
 
-RegionPtr xnestCopyPlane(pSrcDrawable, pDstDrawable,
-			 pGC, srcx, srcy, width, height, dstx, dsty, plane)
-     DrawablePtr pSrcDrawable;
-     DrawablePtr pDstDrawable;
-     GC *pGC;
-     int srcx, srcy;
-     int width, height;
-     int dstx, dsty;
-     unsigned long plane;
+RegionPtr
+xnestCopyPlane(DrawablePtr pSrcDrawable, DrawablePtr pDstDrawable,
+	       GCPtr pGC, int srcx, int srcy, int width, int height,
+	       int dstx, int dsty, unsigned long plane)
 {
   XCopyPlane(xnestDisplay, 
 	     xnestDrawable(pSrcDrawable), xnestDrawable(pDstDrawable),
@@ -216,96 +184,71 @@ RegionPtr xnestCopyPlane(pSrcDrawable, pDstDrawable,
   return xnestBitBlitHelper(pGC);
 }
 
-void xnestPolyPoint(pDrawable, pGC, mode, nPoints, pPoints)
-     DrawablePtr pDrawable;
-     GCPtr pGC;
-     int mode;
-     int nPoints;
-     XPoint *pPoints;
+void
+xnestPolyPoint(DrawablePtr pDrawable, GCPtr pGC, int mode, int nPoints,
+	       DDXPointPtr pPoints)
 {
   XDrawPoints(xnestDisplay, xnestDrawable(pDrawable), xnestGC(pGC), 
-              pPoints, nPoints, mode);
+              (XPoint *)pPoints, nPoints, mode);
 }
 
-void xnestPolylines(pDrawable, pGC, mode, nPoints, pPoints)
-     DrawablePtr pDrawable;
-     GCPtr pGC;
-     int mode;
-     int nPoints;
-     XPoint *pPoints;
+void
+xnestPolylines(DrawablePtr pDrawable, GCPtr pGC, int mode, int nPoints,
+	       DDXPointPtr pPoints)
 {
   XDrawLines(xnestDisplay, xnestDrawable(pDrawable), xnestGC(pGC), 
-              pPoints, nPoints, mode);
+              (XPoint *)pPoints, nPoints, mode);
 }
 
-void xnestPolySegment(pDrawable, pGC, nSegments, pSegments)
-     DrawablePtr pDrawable;
-     GCPtr pGC;
-     int nSegments;
-     XSegment *pSegments;
+void
+xnestPolySegment(DrawablePtr pDrawable, GCPtr pGC, int nSegments,
+		 xSegment *pSegments)
 {
   XDrawSegments(xnestDisplay, xnestDrawable(pDrawable), xnestGC(pGC), 
-                pSegments, nSegments);
+                (XSegment *)pSegments, nSegments);
 }
 
-void xnestPolyRectangle(pDrawable, pGC, nRectangles, pRectangles)
-     DrawablePtr pDrawable;
-     GCPtr pGC;
-     int nRectangles;
-     XRectangle *pRectangles;
+void
+xnestPolyRectangle(DrawablePtr pDrawable, GCPtr pGC, int nRectangles,
+		   xRectangle *pRectangles)
 {
   XDrawRectangles(xnestDisplay, xnestDrawable(pDrawable), xnestGC(pGC),
-                  pRectangles, nRectangles);
+                  (XRectangle *)pRectangles, nRectangles);
 }
 
-void xnestPolyArc(pDrawable, pGC, nArcs, pArcs)
-     DrawablePtr pDrawable;
-     GCPtr pGC;
-     int nArcs;
-     XArc *pArcs;
+void
+xnestPolyArc(DrawablePtr pDrawable, GCPtr pGC, int nArcs, xArc *pArcs)
 {
   XDrawArcs(xnestDisplay, xnestDrawable(pDrawable), xnestGC(pGC),
-            pArcs, nArcs);
+            (XArc *)pArcs, nArcs);
 }
 
-void xnestFillPolygon(pDrawable, pGC, shape, mode, nPoints, pPoints)
-     DrawablePtr pDrawable;
-     GCPtr pGC;
-     int shape;
-     int mode;
-     int nPoints;
-     XPoint *pPoints;
+void
+xnestFillPolygon(DrawablePtr pDrawable, GCPtr pGC, int shape, int mode,
+		 int nPoints, DDXPointPtr pPoints)
 {
   XFillPolygon(xnestDisplay, xnestDrawable(pDrawable), xnestGC(pGC), 
-               pPoints, nPoints, shape, mode);
+               (XPoint *)pPoints, nPoints, shape, mode);
 }
 
-void xnestPolyFillRect(pDrawable, pGC, nRectangles, pRectangles)
-     DrawablePtr pDrawable;
-     GCPtr pGC;
-     int nRectangles;
-     XRectangle *pRectangles;
+void
+xnestPolyFillRect(DrawablePtr pDrawable, GCPtr pGC, int nRectangles,
+		  xRectangle *pRectangles)
 {
   XFillRectangles(xnestDisplay, xnestDrawable(pDrawable), xnestGC(pGC),
-                  pRectangles, nRectangles);
+                  (XRectangle *)pRectangles, nRectangles);
 }
 
-void xnestPolyFillArc(pDrawable, pGC, nArcs, pArcs)
-     DrawablePtr pDrawable;
-     GCPtr pGC;
-     int nArcs;
-     XArc *pArcs;
+void
+xnestPolyFillArc(DrawablePtr pDrawable, GCPtr pGC, int nArcs, xArc *pArcs)
 {
   XFillArcs(xnestDisplay, xnestDrawable(pDrawable), xnestGC(pGC),
-            pArcs, nArcs);
+            (XArc *)pArcs, nArcs);
 }
 
-int xnestPolyText8(pDrawable, pGC, x, y, count, string)
-     DrawablePtr pDrawable;
-     GCPtr pGC;
-     int x, y;
-     int count;
-     char *string;
+int
+xnestPolyText8(DrawablePtr pDrawable, GCPtr pGC, int x, int y, int count,
+	       char *string)
 {
   int width;
 
@@ -317,73 +260,55 @@ int xnestPolyText8(pDrawable, pGC, x, y, count, string)
   return width + x;
 }
 
-int xnestPolyText16(pDrawable, pGC, x, y, count, string)
-     DrawablePtr pDrawable;
-     GCPtr pGC;
-     int x, y;
-     int count;
-     XChar2b *string;
+int
+xnestPolyText16(DrawablePtr pDrawable, GCPtr pGC, int x, int y, int count,
+		unsigned short *string)
 {
   int width;
 
   XDrawString16(xnestDisplay, xnestDrawable(pDrawable), xnestGC(pGC),
-                x, y, string, count);
+                x, y, (XChar2b *)string, count);
 
-  width = XTextWidth16(xnestFontStruct(pGC->font), string, count);
+  width = XTextWidth16(xnestFontStruct(pGC->font), (XChar2b *)string, count);
 
   return width + x;
 }
 
-void xnestImageText8(pDrawable, pGC, x, y, count, string)
-     DrawablePtr pDrawable;
-     GCPtr pGC;
-     int x, y;
-     int count;
-     char *string;
+void
+xnestImageText8(DrawablePtr pDrawable, GCPtr pGC, int x, int y, int count,
+		char *string)
 {
   XDrawImageString(xnestDisplay, xnestDrawable(pDrawable), xnestGC(pGC),
                    x, y, string, count);
 }
 
-void xnestImageText16(pDrawable, pGC, x, y, count, string)
-     DrawablePtr pDrawable;
-     GCPtr pGC;
-     int x, y;
-     int count;
-     XChar2b *string;
+void
+xnestImageText16(DrawablePtr pDrawable, GCPtr pGC, int x, int y, int count,
+		 unsigned short *string)
 {
   XDrawImageString16(xnestDisplay, xnestDrawable(pDrawable), xnestGC(pGC),
-                     x, y, string, count);
+                     x, y, (XChar2b *)string, count);
 }
 
-void xnestImageGlyphBlt(pDrawable, pGC, x, y, nGlyphs, pCharInfo, pGlyphBase)
-     DrawablePtr pDrawable;
-     GC pGC;
-     int x, y;
-     int nGlyphs;
-     CharInfoPtr pCharInfo;
-     char pGlyphBase;
+void
+xnestImageGlyphBlt(DrawablePtr pDrawable, GCPtr pGC, int x, int y,
+		   unsigned int nGlyphs, CharInfoPtr *pCharInfo,
+		   pointer pGlyphBase)
 {
   ErrorF("xnest warning: function xnestImageGlyphBlt not implemented\n");
 }
 
-void xnestPolyGlyphBlt(pDrawable, pGC, x, y, nGlyphs, pCharInfo, pGlyphBase)
-     DrawablePtr pDrawable;
-     GC pGC;
-     int x, y;
-     int nGlyphs;
-     CharInfoPtr pCharInfo;
-     char pGlyphBase;
+void
+xnestPolyGlyphBlt(DrawablePtr pDrawable, GCPtr pGC, int x, int y,
+		  unsigned int nGlyphs, CharInfoPtr *pCharInfo,
+		  pointer pGlyphBase)
 {
   ErrorF("xnest warning: function xnestPolyGlyphBlt not implemented\n");
 }
 
-void xnestPushPixels(pDrawable, pGC, pBitmap, width, height, x, y)
-     DrawablePtr pDrawable;
-     GC pGC;
-     PixmapPtr pBitmap;
-     int width, height;
-     int x, y;
+void
+xnestPushPixels(GCPtr pGC, PixmapPtr pBitmap, DrawablePtr pDst,
+		int width, int height, int x, int y)
 {
   ErrorF("xnest warning: function xnestPushPixels not implemented\n");
 }

@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/xf4bpp/mfbfillarc.c,v 1.5 2003/02/18 21:29:59 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/xf4bpp/mfbfillarc.c,v 1.6 2003/11/03 05:11:56 tsi Exp $ */
 /************************************************************
 
 Copyright (c) 1989  X Consortium
@@ -244,16 +244,16 @@ xf4bppPolyFillArcSolid
     xArc	*parcs
 )
 {
-    mfbPrivGC *priv;
     register xArc *arc;
     register int i;
     BoxRec box;
     RegionPtr cclip;
+#if 0
+    mfbPrivGC *priv;
     int rop;
 
     priv = (mfbPrivGC *) pGC->devPrivates[mfbGCPrivateIndex].ptr;
     rop = priv->rop;
-#if 0
     if ((rop == RROP_NOP) || !(pGC->planemask & 1))
 #else
     if ( !(pGC->planemask & 0x0F))

@@ -42,7 +42,7 @@ implied warranty.
 
 ******************************************************************/
 
-/* $XFree86: xc/programs/Xserver/mi/mibstore.c,v 1.10 2001/12/14 20:00:20 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/mi/mibstore.c,v 1.11 2003/11/10 18:22:47 tsi Exp $ */
 
 #define NEED_EVENTS
 #include "X.h"
@@ -504,8 +504,8 @@ miBSGetImage (pDrawable, sx, sy, w, h, format, planemask, pdstLine)
 		    }
 		    ChangeGC (pGC, GCSubwindowMode, &subWindowMode);
 		    ValidateGC ((DrawablePtr)pPixmap, pGC);
-		    REGION_INIT(pScreen, &Border, NullBox, 0);
-		    REGION_INIT(pScreen, &Inside, NullBox, 0);
+		    REGION_NULL(pScreen, &Border);
+		    REGION_NULL(pScreen, &Inside);
 		    pSrcWin = (WindowPtr) pDrawable;
 		    x = sx;
 		    y = sy;
@@ -2584,7 +2584,7 @@ miBSAllocate(pWin)
 	pBackingStore->pBackingPixmap = NullPixmap;
 	pBackingStore->x = 0;
 	pBackingStore->y = 0;
-	REGION_INIT( pScreen, &pBackingStore->SavedRegion, NullBox, 1);
+	REGION_NULL( pScreen, &pBackingStore->SavedRegion);
 	pBackingStore->viewable = (char)pWin->viewable;
 	pBackingStore->status = StatusNoPixmap;
 	pBackingStore->backgroundState = None;
@@ -3850,7 +3850,7 @@ miBSExposeCopy (pSrc, pDst, pGC, prgnExposed, srcx, srcy, dstx, dsty, plane)
 	(pBackingStore->status == StatusBadAlloc))
     	return;
 
-    REGION_INIT( pGC->pScreen, &tempRgn, NullBox, 0);
+    REGION_NULL( pGC->pScreen, &tempRgn);
     REGION_INTERSECT( pGC->pScreen, &tempRgn, prgnExposed,
 				 &pBackingStore->SavedRegion);
     REGION_SUBTRACT( pGC->pScreen, prgnExposed, prgnExposed, &tempRgn);

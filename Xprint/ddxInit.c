@@ -30,7 +30,7 @@ not be used in advertising or otherwise to promote the sale, use or other
 dealings in this Software without prior written authorization from said
 copyright holders.
 */
-/* $XFree86: xc/programs/Xserver/Xprint/ddxInit.c,v 1.14 2001/10/28 03:32:53 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/Xprint/ddxInit.c,v 1.15 2003/06/23 17:35:44 eich Exp $ */
 
 #include "X.h"
 #include "Xproto.h"
@@ -38,8 +38,6 @@ copyright holders.
 #include "servermd.h"
 #include "Xos.h"
 #include "DiPrint.h"
-
-static void Exit(int);
 
 /*-
  *-----------------------------------------------------------------------
@@ -238,12 +236,6 @@ GetTimeInMillis(void)
 void ddxUseMsg(void)
 {
 	/* Right now, let's just do nothing */
-}
-
-static void Exit (code)
-    int	code;
-{
-    exit (code);
 }
 
 void AbortDDX (void)

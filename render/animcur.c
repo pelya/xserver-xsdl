@@ -1,5 +1,5 @@
 /*
- * $XFree86: xc/programs/Xserver/render/animcur.c,v 1.5 2002/12/22 15:07:12 tsi Exp $
+ * $XFree86: xc/programs/Xserver/render/animcur.c,v 1.6 2003/11/03 05:12:01 tsi Exp $
  *
  * Copyright © 2002 Keith Packard, member of The XFree86 Project, Inc.
  *
@@ -353,7 +353,6 @@ AnimCursorCreate (CursorPtr *cursors, CARD32 *deltas, int ncursor, CursorPtr *pp
     CursorPtr	pCursor;
     int		i;
     AnimCurPtr	ac;
-    AnimCurElt	*ae;
 
     for (i = 0; i < screenInfo.numScreens; i++)
 	if (!GetAnimCurScreenIfSet (screenInfo.screens[i]))
@@ -386,7 +385,6 @@ AnimCursorCreate (CursorPtr *cursors, CARD32 *deltas, int ncursor, CursorPtr *pp
     ac = GetAnimCur (pCursor);
     ac->nelt = ncursor;
     ac->elts = (AnimCurElt *) (ac + 1);
-    ae = ac->elts;
     
     for (i = 0; i < ncursor; i++)
     {

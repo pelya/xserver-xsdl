@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/vgahw/vgaHW.c,v 1.57 2003/02/24 21:29:36 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/vgahw/vgaHW.c,v 1.58 2003/11/03 05:11:53 tsi Exp $ */
 
 /*
  *
@@ -221,14 +221,12 @@ stdWriteFCR(vgaHWPtr hwp, CARD8 value)
 static void
 stdWriteAttr(vgaHWPtr hwp, CARD8 index, CARD8 value)
 {
-    CARD8 tmp;
-
     if (hwp->paletteEnabled)
 	index &= ~0x20;
     else
 	index |= 0x20;
 
-    tmp = inb(hwp->IOBase + hwp->PIOOffset + VGA_IN_STAT_1_OFFSET);
+    (void) inb(hwp->IOBase + hwp->PIOOffset + VGA_IN_STAT_1_OFFSET);
     outb(hwp->PIOOffset + VGA_ATTR_INDEX, index);
     outb(hwp->PIOOffset + VGA_ATTR_DATA_W, value);
 }
@@ -236,14 +234,12 @@ stdWriteAttr(vgaHWPtr hwp, CARD8 index, CARD8 value)
 static CARD8
 stdReadAttr(vgaHWPtr hwp, CARD8 index)
 {
-    CARD8 tmp;
-
     if (hwp->paletteEnabled)
 	index &= ~0x20;
     else
 	index |= 0x20;
 
-    tmp = inb(hwp->IOBase + hwp->PIOOffset + VGA_IN_STAT_1_OFFSET);
+    (void) inb(hwp->IOBase + hwp->PIOOffset + VGA_IN_STAT_1_OFFSET);
     outb(hwp->PIOOffset + VGA_ATTR_INDEX, index);
     return inb(hwp->PIOOffset + VGA_ATTR_DATA_R);
 }
@@ -263,9 +259,7 @@ stdReadMiscOut(vgaHWPtr hwp)
 static void
 stdEnablePalette(vgaHWPtr hwp)
 {
-    CARD8 tmp;
-
-    tmp = inb(hwp->IOBase + hwp->PIOOffset + VGA_IN_STAT_1_OFFSET);
+    (void) inb(hwp->IOBase + hwp->PIOOffset + VGA_IN_STAT_1_OFFSET);
     outb(hwp->PIOOffset + VGA_ATTR_INDEX, 0x00);
     hwp->paletteEnabled = TRUE;
 }
@@ -273,9 +267,7 @@ stdEnablePalette(vgaHWPtr hwp)
 static void
 stdDisablePalette(vgaHWPtr hwp)
 {
-    CARD8 tmp;
-
-    tmp = inb(hwp->IOBase + hwp->PIOOffset + VGA_IN_STAT_1_OFFSET);
+    (void) inb(hwp->IOBase + hwp->PIOOffset + VGA_IN_STAT_1_OFFSET);
     outb(hwp->PIOOffset + VGA_ATTR_INDEX, 0x20);
     hwp->paletteEnabled = FALSE;
 }
@@ -436,14 +428,12 @@ mmioWriteFCR(vgaHWPtr hwp, CARD8 value)
 static void
 mmioWriteAttr(vgaHWPtr hwp, CARD8 index, CARD8 value)
 {
-    CARD8 tmp;
-
     if (hwp->paletteEnabled)
 	index &= ~0x20;
     else
 	index |= 0x20;
 
-    tmp = minb(hwp->IOBase + VGA_IN_STAT_1_OFFSET);
+    (void) minb(hwp->IOBase + VGA_IN_STAT_1_OFFSET);
     moutb(VGA_ATTR_INDEX, index);
     moutb(VGA_ATTR_DATA_W, value);
 }
@@ -451,14 +441,12 @@ mmioWriteAttr(vgaHWPtr hwp, CARD8 index, CARD8 value)
 static CARD8
 mmioReadAttr(vgaHWPtr hwp, CARD8 index)
 {
-    CARD8 tmp;
-
     if (hwp->paletteEnabled)
 	index &= ~0x20;
     else
 	index |= 0x20;
 
-    tmp = minb(hwp->IOBase + VGA_IN_STAT_1_OFFSET);
+    (void) minb(hwp->IOBase + VGA_IN_STAT_1_OFFSET);
     moutb(VGA_ATTR_INDEX, index);
     return minb(VGA_ATTR_DATA_R);
 }
@@ -478,9 +466,7 @@ mmioReadMiscOut(vgaHWPtr hwp)
 static void
 mmioEnablePalette(vgaHWPtr hwp)
 {
-    CARD8 tmp;
-
-    tmp = minb(hwp->IOBase + VGA_IN_STAT_1_OFFSET);
+    (void) minb(hwp->IOBase + VGA_IN_STAT_1_OFFSET);
     moutb(VGA_ATTR_INDEX, 0x00);
     hwp->paletteEnabled = TRUE;
 }
@@ -488,9 +474,7 @@ mmioEnablePalette(vgaHWPtr hwp)
 static void
 mmioDisablePalette(vgaHWPtr hwp)
 {
-    CARD8 tmp;
-
-    tmp = minb(hwp->IOBase + VGA_IN_STAT_1_OFFSET);
+    (void) minb(hwp->IOBase + VGA_IN_STAT_1_OFFSET);
     moutb(VGA_ATTR_INDEX, 0x20);
     hwp->paletteEnabled = FALSE;
 }

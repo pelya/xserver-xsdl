@@ -24,7 +24,7 @@
  THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
  ********************************************************/
-/* $XFree86: xc/lib/xkbfile/xkbout.c,v 3.9 2001/10/28 03:32:47 tsi Exp $ */
+/* $XFree86: xc/lib/xkbfile/xkbout.c,v 3.10 2003/11/17 22:20:24 dawes Exp $ */
 
 #include <stdio.h>
 #include <ctype.h>
@@ -63,15 +63,7 @@
 #define	VMOD_COMMENT_VALUE 2
 
 static Bool
-#if NeedFunctionPrototypes
 WriteXKBVModDecl(FILE *file,Display *dpy,XkbDescPtr xkb,int showValue)
-#else
-WriteXKBVModDecl(file,dpy,xkb,showValue)
-    FILE *	file;
-    Display *	dpy;
-    XkbDescPtr	xkb;
-    int		showValue;
-#endif
 {
 register int 	i,nMods;
 Atom *		vmodNames;
@@ -109,14 +101,7 @@ Atom *		vmodNames;
 /***====================================================================***/
 
 static Bool
-#if NeedFunctionPrototypes
 WriteXKBAction(FILE *file,XkbFileInfo *result,XkbAnyAction *action)
-#else
-WriteXKBAction(file,result,action)
-    FILE *		file;
-    XkbFileInfo *	result;
-    XkbAnyAction *	action;
-#endif
 {
 XkbDescPtr	xkb;
 Display *	dpy;
@@ -130,22 +115,12 @@ Display *	dpy;
 /***====================================================================***/
 
 Bool
-#if NeedFunctionPrototypes
 XkbWriteXKBKeycodes(	FILE *			file,
 			XkbFileInfo *		result,
 			Bool			topLevel,
 			Bool			showImplicit,
 			XkbFileAddOnFunc	addOn,
 			void *			priv)
-#else
-XkbWriteXKBKeycodes(file,result,topLevel,showImplicit,addOn,priv)
-    FILE *		file;
-    XkbFileInfo *	result;
-    Bool		topLevel;
-    Bool		showImplicit;
-    XkbFileAddOnFunc	addOn;
-    void *		priv;
-#endif
 {
 Atom			kcName;
 register unsigned 	i;
@@ -204,22 +179,12 @@ char *			alternate;
 }
 
 Bool
-#if NeedFunctionPrototypes
 XkbWriteXKBKeyTypes(	FILE *			file,
 			XkbFileInfo *		result,
 			Bool			topLevel,
 			Bool			showImplicit,
 			XkbFileAddOnFunc	addOn,
 			void *			priv)
-#else
-XkbWriteXKBKeyTypes(file,result,topLevel,showImplicit,addOn,priv)
-    FILE *		file;
-    XkbFileInfo *	result;
-    Bool		topLevel;
-    Bool		showImplicit;
-    XkbFileAddOnFunc	addOn;
-    void *		priv;
-#endif
 {
 Display *		dpy;
 register unsigned	i,n;
@@ -284,22 +249,12 @@ XkbDescPtr		xkb;
 }
 
 static Bool
-#if NeedFunctionPrototypes
 WriteXKBIndicatorMap(	FILE *			file,
 			XkbFileInfo *		result,
 			Atom			name,
 			XkbIndicatorMapPtr	led,
 			XkbFileAddOnFunc	addOn,
 			void *			priv)
-#else
-WriteXKBIndicatorMap(file,result,name,led,addOn,priv)
-    FILE *		file;
-    XkbFileInfo *	result;
-    Atom		name;
-    XkbIndicatorMapPtr	led;
-    XkbFileAddOnFunc	addOn;
-    void *		priv;
-#endif
 {
 XkbDescPtr	xkb;
 
@@ -337,22 +292,12 @@ XkbDescPtr	xkb;
 }
 
 Bool
-#if NeedFunctionPrototypes
 XkbWriteXKBCompatMap(	FILE *			file,
 			XkbFileInfo *		result,
 			Bool			topLevel,
 			Bool			showImplicit,
 			XkbFileAddOnFunc	addOn,
 			void *			priv)
-#else
-XkbWriteXKBCompatMap(file,result,topLevel,showImplicit,addOn,priv)
-    FILE *		file;
-    XkbFileInfo *	result;
-    Bool		topLevel;
-    Bool		showImplicit;
-    XkbFileAddOnFunc	addOn;
-    void *		priv;
-#endif
 {
 Display *		dpy;
 register unsigned	i;
@@ -426,22 +371,12 @@ XkbDescPtr		xkb;
 }
 
 Bool
-#if NeedFunctionPrototypes
 XkbWriteXKBSymbols(	FILE *			file,
 			XkbFileInfo *		result,
 			Bool			topLevel,
 			Bool			showImplicit,
 			XkbFileAddOnFunc	addOn,
 			void *			priv)
-#else
-XkbWriteXKBSymbols(file,result,topLevel,showImplicit,addOn,priv)
-    FILE *		file;
-    XkbFileInfo *	result;
-    Bool		topLevel;
-    Bool		showImplicit;
-    XkbFileAddOnFunc	addOn;
-    void *		priv;
-#endif
 {
 Display *		dpy;
 register unsigned	i,tmp;
@@ -638,22 +573,12 @@ Bool			showActions;
 }
 
 static Bool
-#if NeedFunctionPrototypes
 WriteXKBOutline(	FILE *		file,
 			XkbShapePtr	shape,
 			XkbOutlinePtr	outline,
 			int		lastRadius,
 			int		first,
 			int		indent)
-#else
-WriteXKBOutline(file,shape,outline,lastRadius,first,indent)
-    FILE *		file;
-    XkbShapePtr		shape;
-    XkbOutlinePtr	outline;
-    int			lastRadius;
-    int			first;
-    int			indent;
-#endif
 {
 register int	i;
 XkbPointPtr	pt;
@@ -688,20 +613,11 @@ char *		iStr;
 }
 
 static Bool
-#if NeedFunctionPrototypes
 WriteXKBDoodad(	FILE *		file,
 		Display *	dpy,
 		unsigned	indent,
 		XkbGeometryPtr	geom,
 		XkbDoodadPtr	doodad)
-#else
-WriteXKBDoodad(file,dpy,indent,geom,doodad)
-    FILE *		file;
-    Display *		dpy;
-    unsigned		indent;
-    XkbGeometryPtr	geom;
-    XkbDoodadPtr	doodad;
-#endif
 {
 register char *	i_str;
 XkbShapePtr	shape;
@@ -789,20 +705,11 @@ XkbColorPtr	color;
 
 /*ARGSUSED*/
 static Bool
-#if NeedFunctionPrototypes
 WriteXKBOverlay(	FILE *		file,
 			Display *	dpy,
 			unsigned	indent,
 			XkbGeometryPtr	geom,
 			XkbOverlayPtr	ol)
-#else
-WriteXKBOverlay(file,dpy,indent,geom,ol)
-    FILE *		file;
-    Display *		dpy;
-    unsigned		indent;
-    XkbGeometryPtr	geom;
-    XkbOverlayPtr	ol;
-#endif
 {
 register char *		i_str;
 int			r,k,nOut;
@@ -833,18 +740,10 @@ XkbOverlayKeyPtr	key;
 }
 
 static Bool
-#if NeedFunctionPrototypes
 WriteXKBSection(	FILE *		file,
 			Display *	dpy,
 			XkbSectionPtr 	s,
 			XkbGeometryPtr	geom)
-#else
-WriteXKBSection(file,dpy,s,geom)
-    FILE *		file;
-    Display *		dpy;
-    XkbSectionPtr 	s;
-    XkbGeometryPtr	geom;
-#endif
 {
 register int	i;
 XkbRowPtr	row;
@@ -930,22 +829,12 @@ int		dfltKeyColor = 0;
 }
 
 Bool
-#if NeedFunctionPrototypes
 XkbWriteXKBGeometry(	FILE *			file,
 			XkbFileInfo *		result,
 			Bool			topLevel,
 			Bool			showImplicit,
 			XkbFileAddOnFunc	addOn,
 			void *			priv)
-#else
-XkbWriteXKBGeometry(file,result,topLevel,showImplicit,addOn,priv)
-    FILE *		file;
-    XkbFileInfo *	result;
-    Bool		topLevel;
-    Bool		showImplicit;
-    XkbFileAddOnFunc	addOn;
-    void *		priv;
-#endif
 {
 Display *		dpy;
 register unsigned	i,n;
@@ -1048,22 +937,12 @@ XkbGeometryPtr		geom;
 
 /*ARGSUSED*/
 Bool
-#if NeedFunctionPrototypes
 XkbWriteXKBSemantics(	FILE *			file,
 			XkbFileInfo *		result,
 			Bool			topLevel,
 			Bool			showImplicit,
 			XkbFileAddOnFunc	addOn,
 			void *			priv)
-#else
-XkbWriteXKBSemantics(file,result,topLevel,showImplicit,addOn,priv)
-    FILE *		file;
-    XkbFileInfo *	result;
-    Bool		topLevel;
-    Bool		showImplicit;
-    XkbFileAddOnFunc	addOn;
-    void *		priv;
-#endif
 {
 Bool		ok;
 
@@ -1076,22 +955,12 @@ Bool		ok;
 
 /*ARGSUSED*/
 Bool
-#if NeedFunctionPrototypes
 XkbWriteXKBLayout(	FILE *			file,
 			XkbFileInfo *		result,
 			Bool			topLevel,
 			Bool			showImplicit,
 			XkbFileAddOnFunc	addOn,
 			void *			priv)
-#else
-XkbWriteXKBLayout(file,result,topLevel,showImplicit,addOn,priv)
-    FILE *		file;
-    XkbFileInfo *	result;
-    Bool		topLevel;
-    Bool		showImplicit;
-    XkbFileAddOnFunc	addOn;
-    void *		priv;
-#endif
 {
 Bool		ok;
 XkbDescPtr	xkb;
@@ -1109,22 +978,12 @@ XkbDescPtr	xkb;
 
 /*ARGSUSED*/
 Bool
-#if NeedFunctionPrototypes
 XkbWriteXKBKeymap(	FILE *			file,
 			XkbFileInfo *		result,
 			Bool			topLevel,
 			Bool			showImplicit,
 			XkbFileAddOnFunc	addOn,
 			void *			priv)
-#else
-XkbWriteXKBKeymap(file,result,topLevel,showImplicit,addOn,priv)
-    FILE *		file;
-    XkbFileInfo *	result;
-    Bool		topLevel;
-    Bool		showImplicit;
-    XkbFileAddOnFunc	addOn;
-    void *		priv;
-#endif
 {
 Bool		ok;
 XkbDescPtr	xkb;
@@ -1142,31 +1001,20 @@ XkbDescPtr	xkb;
 }
 
 Bool
-#if NeedFunctionPrototypes
 XkbWriteXKBFile(	FILE *			out,
 			XkbFileInfo *		result,
 			Bool			showImplicit,
 			XkbFileAddOnFunc	addOn,
 			void *			priv)
-#else
-XkbWriteXKBFile(out,result,showImplicit,addOn,priv)
-    FILE *		out;
-    XkbFileInfo *	result;
-    Bool		showImplicit;
-    XkbFileAddOnFunc	addOn;
-    void *		priv;
-#endif
 {
 Bool	 		ok = False;
 Bool			(*func)(
-#if NeedFunctionPrototypes
     FILE *		/* file */,
     XkbFileInfo *	/* result */,
     Bool		/* topLevel */,
     Bool		/* showImplicit */,
     XkbFileAddOnFunc	/* addOn */,
     void *		/* priv */
-#endif
 ) = NULL;
 
     switch (result->type) {

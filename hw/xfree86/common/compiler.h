@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/common/compiler.h,v 3.99 2003/01/29 15:23:20 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/common/compiler.h,v 3.104 2003/11/03 05:11:01 tsi Exp $ */
 /*
  * Copyright 1990,91 by Thomas Roell, Dinkelscherben, Germany.
  *
@@ -21,6 +21,33 @@
  * PERFORMANCE OF THIS SOFTWARE.
  *
  */
+/*
+ * Copyright (c) 1994-2003 by The XFree86 Project, Inc.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+ * THE COPYRIGHT HOLDER(S) OR AUTHOR(S) BE LIABLE FOR ANY CLAIM, DAMAGES OR
+ * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ *
+ * Except as contained in this notice, the name of the copyright holder(s)
+ * and author(s) shall not be used in advertising or otherwise to promote
+ * the sale, use or other dealings in this Software without prior written
+ * authorization from the copyright holder(s) and author(s).
+ */
+
 /* $XConsortium: compiler.h /main/16 1996/10/25 15:38:34 kaleb $ */
 
 #ifndef _COMPILER_H
@@ -423,23 +450,37 @@ __ustw (unsigned long r5, unsigned short * r11)
 #    define stq_u(v,p)	__ustq(v,p)
 #    define stl_u(v,p)	__ustl(v,p)
 #    define stw_u(v,p)	__ustw(v,p)
-  
-#    define mem_barrier()        __asm__ __volatile__ ("mf" ::: "memory")
-#    define write_mem_barrier()  __asm__ __volatile__ ("mf" ::: "memory")
+
+#    ifndef __INTEL_COMPILER  
+#      define mem_barrier()        __asm__ __volatile__ ("mf" ::: "memory")
+#      define write_mem_barrier()  __asm__ __volatile__ ("mf" ::: "memory")
+#    else
+#      include "ia64intrin.h"
+#      define mem_barrier() __mf()
+#      define write_mem_barrier() __mf()
+#    endif
 
 /*
  * This is overkill, but for different reasons depending on where it is used.
  * This is thus general enough to be used everywhere cache flushes are needed.
  * It doesn't handle memory access serialisation by other processors, though.
  */
-#    define ia64_flush_cache(Addr) \
+#    ifndef __INTEL_COMPILER
+#       define ia64_flush_cache(Addr) \
 	__asm__ __volatile__ ( \
 		"fc %0;;;" \
 		"sync.i;;;" \
 		"mf;;;" \
 		"srlz.i;;;" \
 		:: "r"(Addr) : "memory")
-
+#    else
+#      define ia64_flush_cache(Addr) { \
+        __fc(Addr);\
+        __synci();\
+        __mf();\
+        __isrlz();\
+       }
+#    endif
 #    undef outb
 #    undef outw
 #    undef outl
@@ -448,7 +489,7 @@ __ustw (unsigned long r5, unsigned short * r11)
 #    define outw(a,b)	_outw(b,a)
 #    define outl(a,b)	_outl(b,a) 
 
-#   elif defined(linux) && defined(__x86_64__) 
+#   elif defined(linux) && defined(__AMD64__) 
  
 #    include <inttypes.h>
 
@@ -514,7 +555,7 @@ inl(unsigned short port)
    return ret;
 }
 
-#   elif (defined(linux) || defined(Lynx) || defined(sun) || defined(__OpenBSD__)) && defined(__sparc__)
+#   elif (defined(linux) || defined(Lynx) || defined(sun) || defined(__OpenBSD__) || defined(__FreeBSD__)) && defined(__sparc__)
 
 #    if !defined(Lynx)
 #     ifndef ASI_PL
@@ -1515,11 +1556,13 @@ extern void outl(unsigned int a, unsigned int l);
 #       include <sys/types.h>
 #      endif /* IN_MODULE */
 #     endif /* USL */
+#     ifndef sgi
 #     include <sys/inline.h>
+#     endif
 #    else
 #     include "scoasm.h"
 #    endif
-#    if !defined(__HIGHC__) && !defined(SCO325)
+#    if !defined(__HIGHC__) && !defined(SCO325) && !defined(sgi)
 #     pragma asm partial_optimization outl
 #     pragma asm partial_optimization outw
 #     pragma asm partial_optimization outb

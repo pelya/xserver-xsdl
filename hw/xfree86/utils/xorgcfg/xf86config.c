@@ -26,7 +26,7 @@
  *
  * Author: Paulo César Pereira de Andrade <pcpa@conectiva.com.br>
  *
- * $XFree86: xc/programs/Xserver/hw/xfree86/xf86cfg/xf86config.c,v 1.5 2001/03/27 20:25:30 paulo Exp $
+ * $XFree86: xc/programs/Xserver/hw/xfree86/xf86cfg/xf86config.c,v 1.6 2003/11/03 05:11:59 tsi Exp $
  */
 
 #include "xf86config.h"
@@ -206,7 +206,10 @@ xf86removeMonitor(XF86ConfigPtr config, XF86ConfMonitorPtr monitor)
     while (scr != NULL) {
 	if (scr->scrn_monitor == monitor) {
 	    xf86removeScreen(config, scr);
+	    if (scr == psc)
 	    scr = psc = config->conf_screen_lst;
+	    else
+		scr = psc;
 	    continue;
 	}
 	psc = scr;

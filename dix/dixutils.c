@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/dix/dixutils.c,v 3.13 2003/01/12 02:44:26 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/dix/dixutils.c,v 3.14 2003/11/17 22:20:34 dawes Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -604,22 +604,13 @@ ProcessWorkQueueZombies(void)
 }
 
 Bool
-#if NeedFunctionPrototypes
 QueueWorkProc (
     Bool	(*function)(
-#if NeedNestedPrototypes
 		ClientPtr	/* pClient */,
 		pointer		/* closure */
-#endif
 		),
     ClientPtr	client,
     pointer	closure)
-#else
-QueueWorkProc (function, client, closure)
-    Bool	(*function)();
-    ClientPtr	client;
-    pointer	closure;
-#endif
 {
     WorkQueuePtr    q;
 
@@ -736,17 +727,10 @@ static int numCallbackListsToCleanup = 0;
 static CallbackListPtr **listsToCleanup = NULL;
 
 static Bool 
-#if NeedFunctionPrototypes
 _AddCallback(
     CallbackListPtr *pcbl,
     CallbackProcPtr callback,
     pointer         data)
-#else
-_AddCallback(pcbl, callback, data)
-    CallbackListPtr *pcbl;
-    CallbackProcPtr callback;
-    pointer         data;
-#endif
 {
     CallbackPtr     cbr;
 
@@ -762,17 +746,10 @@ _AddCallback(pcbl, callback, data)
 }
 
 static Bool 
-#if NeedFunctionPrototypes
 _DeleteCallback(
     CallbackListPtr *pcbl,
     CallbackProcPtr callback,
     pointer         data)
-#else
-_DeleteCallback(pcbl, callback, data)
-    CallbackListPtr *pcbl;
-    CallbackProcPtr callback;
-    pointer         data;
-#endif
 {
     CallbackListPtr cbl = *pcbl;
     CallbackPtr     cbr, pcbr;
@@ -805,15 +782,9 @@ _DeleteCallback(pcbl, callback, data)
 }
 
 static void 
-#if NeedFunctionPrototypes
 _CallCallbacks(
     CallbackListPtr    *pcbl,
     pointer	    call_data)
-#else
-_CallCallbacks(pcbl, call_data)
-    CallbackListPtr    *pcbl;
-    pointer	    call_data;
-#endif
 {
     CallbackListPtr cbl = *pcbl;
     CallbackPtr     cbr, pcbr;
@@ -868,13 +839,8 @@ _CallCallbacks(pcbl, call_data)
 }
 
 static void
-#if NeedFunctionPrototypes
 _DeleteCallbackList(
     CallbackListPtr    *pcbl)
-#else
-_DeleteCallbackList(pcbl)
-    CallbackListPtr    *pcbl;
-#endif
 {
     CallbackListPtr cbl = *pcbl;
     CallbackPtr     cbr, nextcbr;

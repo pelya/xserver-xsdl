@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/dix/devices.c,v 3.20 2001/12/14 19:59:30 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/dix/devices.c,v 3.21 2003/11/17 22:20:33 dawes Exp $ */
 /************************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -197,12 +197,7 @@ InitAndStartDevices()
 }
 
 static void
-#if NeedFunctionPrototypes
 CloseDevice(register DeviceIntPtr dev)
-#else
-CloseDevice(dev)
-    register DeviceIntPtr dev;
-#endif
 {
     KbdFeedbackPtr k, knext;
     PtrFeedbackPtr p, pnext;
@@ -501,12 +496,7 @@ SetKeySymsMap(dst, src)
 }
 
 static Bool
-#if NeedFunctionPrototypes
 InitModMap(register KeyClassPtr keyc)
-#else
-InitModMap(keyc)
-    register KeyClassPtr keyc;
-#endif
 {
     int i, j;
     CARD8 keysPerModifier[8];
@@ -1712,17 +1702,10 @@ ProcQueryKeymap(client)
 #ifdef AddInputDevice
 #undef AddInputDevice
 
-#if NeedFunctionPrototypes
 DevicePtr
 AddInputDevice(
     DeviceProc deviceProc,
     Bool autoStart)
-#else
-DevicePtr
-AddInputDevice(deviceProc, autoStart)
-    DeviceProc deviceProc;
-    Bool autoStart;
-#endif
 {
     return (DevicePtr)_AddInputDevice(deviceProc, autoStart);
 }
@@ -1731,14 +1714,8 @@ AddInputDevice(deviceProc, autoStart)
 #ifdef RegisterPointerDevice
 #undef RegisterPointerDevice
 
-#if NeedFunctionPrototypes
 void
 RegisterPointerDevice(DevicePtr device)
-#else
-void
-RegisterPointerDevice(device)
-    DevicePtr device;
-#endif
 {
     _RegisterPointerDevice((DeviceIntPtr)device);
 }
@@ -1747,14 +1724,8 @@ RegisterPointerDevice(device)
 #ifdef RegisterKeyboardDevice
 #undef RegisterKeyboardDevice
 
-#if NeedFunctionPrototypes
 void
 RegisterKeyboardDevice(DevicePtr device)
-#else
-void
-RegisterKeyboardDevice(device)
-    DevicePtr device;
-#endif
 {
     _RegisterKeyboardDevice((DeviceIntPtr)device);
 }

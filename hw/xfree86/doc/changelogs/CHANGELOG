@@ -1,46 +1,1696 @@
-XFree86 4.3.0.2 (xx May 2003)
+XFree86 4.3.99.17 (xx November 2003)
 
-XFree86 4.3.0.1 (9 May 2003)
- 987. Fix a FreeBSD/alpha build problem (#5679, Fred Clift).
- 986. Fix SiliconMotion driver for mode switching and SEGV problem when
-      initializing Xv functionality (Bugzilla #50, Alan Hourihane).
- 985. Fix a SEGV that can happen with Riva128 cards (Mark Vojkovich).
- 984. Prevent a SIGFPE with the glint/pm3 driver when attempting to display
-      an XVideo image less than 8 pixels wide (Måns Rullgård).
- 983. Fix double free bug when a Mac-specific font fails to load with
-      Freetype (Torrey T. Lyons).
- 982. Check for NULL tObj in the i830 3D driver's TexEnv function.  This
-      fixes a FlightGear crash (Keith Whitwell).
- 981. Fix lockup on server reset in radeon driver
-      (Michel Dänzer, Keith Whitwell).
- 980. Set Mesa hooks to flush vertices on state changes in Radeon 3D drivers
-      (Keith Whitwell).
- 979. Fix to prevent PCI and CardBus resets when switching out of the server's
-      virtual console (Marc La France).
- 978. Fix infinite loop that occurs on systems whose PCI configuration space
-      doesn't advertise a host bridge (Marc La France).
- 977. Workaround for broken devices that don't implement the header type field
-      in their PCI configuration space (Marc La France).
- 976. Fix programming error in ix86 motherboard chipset determination
+XFree86 4.3.99.16 (20 November 2003)
+ 609. Fix 'constype' for modern framebuffers on Solaris (Bugzilla #890,
+      Alan Coopersmith).
+ 608. Fix a thread deadlock problem in libXp (Bugzilla #887, Roland Mainz).
+ 607. Fix event buffer overrun in the wacom driver (Bugzilla #882, David Dawes,
+      reported by Jonathan Hough).
+ 606. Add unmapping code to DGAUnmapPhysical() for most systems that use
+      mmap().  Without this lots of map/unmap calls would result in running
+      out of address space and/or file handles (Bugzilla #880, David Dawes,
+      reported by Eckhard Neber).
+ 605. Restore the Windows keycodes in the 'xfree86' XKB keycodes map,
+      and add the Solaris-compatible tokens as aliases (reported by
+      Panagiotis Papadakos).
+ 604. Fix some problems building against external installations of
+      freetype2 (David Dawes).
+ 603. Add font bounds checking to the X server side of the font server
+      interface (Chisato Yamauchi, David Dawes).
+ 602. Fix ForcePCIMode option to work as advertised in Radeon driver
+      (Bugzilla #850, Kevin Martin).
+ 601. Update the fonts document for the FreeType backend changes
+      (Chisato Yamauchi, Reiko Nakajima, After X-TT Project).
+ 600. Don't allow the lack of "SUPERSCRIPT TWO" to prevent Adobe Standard
+      Cyrillic encoded fonts from being accepted as "koi8" capable
+      (Michail Vidiassov).
+ 599. Xvfb didn't have enough pixmap formats for Render (David Dawes).
+ 598. Fix the processing of xdm/config/Xres.cpp, which is broken with
+      gcc 3.3.2 (reported by Chisato Yamauchi).
+ 597. Fix two problems with Xvfb:
+        - Too much memory was allocated because of a confusion between
+          bytes and pixels.
+        - The XWD header was corrupted at server reset.
+      (David Dawes).
+ 596. Fix several problems xwud has displaying TrueColor dumps (extreme
+      slowness displaying on TrueColor visuals, and incorrectness displaying
+      on DirectColor visuals) (David Dawes).
+ 595. Rank TrueColor above DirectColor in xwud.  This avoids colourmap flashing
+      by default when running on a server with both visuals available
+      (David Dawes).
+ 594. Build with Xplugin support by default on Panther (Torrey T. Lyons).
+ 593. On Mac OS X, allow "X -version" to work without connecting to
+      CoreGraphics (Torrey T. Lyons, reported by Benjamin Reed).
+ 592. Don't optimize away window restacks in rootless mode (John Harper).
+ 591. Fix problems preventing mesa-based GLX from working with Xnest, even
+      though it is linked in and advertised (David Dawes).
+ 590. Fix typing in XDarwin Preference panel going to X11 (Torrey T. Lyons).
+ 589. Fix rootless build after REGION_* macro rework (Torrey T. Lyons).
+ 588. Fix broken GLX indirect rendering (David Dawes).
+ 587. Fix the XKB definitions for the "Hiragana_Katakana" key, and fix
+      some incorrect definitions in symbols/jp (Chisato Yamauchi).
+ 586. Change the mkfontdir wrapper script to invoke mkfontscale via its full
+      path name (Chisato Yamauchi).
+ 585. Modify xf86config and xf86cfg to enable loading the "freetype" module
+      (Chisato Yamauchi).
+ 584. Wrap ucs2any with ProgramTargetName in dependencies, as needed for
+      OS/2, and note that OS/2 doesn't have basename(3) (Bugzilla #871,
+      Frank Giessler).
+ 583. Fix atimisc's decoding of the mode on input for large panels
       (Marc La France).
- 975. Fix bug in mode validation that occurs when the XF86Config doesn't
+ 582. Fix SEGV when ATIPreinit() fails (Marc La France).
+ 581. In rootless XDarwin, don't send ButtonPress events when clicking in
+      non-X11 windows (Torrey T. Lyons, John Harper).
+ 580. AppleWM compatibility fixes:
+       - Disable XDarwin handling cut and paste if AppleWM-aware cut and
+         paste manager is available.
+       - Set _NATIVE_SCREEN_ORIGIN property on root window.
+      (John Harper, Torrey T. Lyons).
+ 579. Change ProjectRoot from /XFree86 to /usr/X11R6 on OS/2 (Bugzilla #865,
+      Frank Giessler).
+ 578. Fix building of new Mesa on OS/2 (Bugzilla #865, Frank Giessler).
+ 577. Change the way how libraries with long file names are handed on
+      OS/2 (Bugzilla #865, Frank Giessler).
+ 576. Force screen blanking when entering DPMS states (Bugzilla #866,
+      David Dawes, reported by Ed Fardos).
+ 575. XDarwin fixes/cleanups:
+       - Handle X11 executables opened from the Finder.
+       - Use xcodebuild instead of pbxbuild on Panther.
+       - Clean up Darwin specific imake #defines.
+       - Fix compiler warnings on Panther.
+      (Torrey T. Lyons).
+ 574. A workaround for platforms (like *BSD) where IPv6 sockets don't accept
+      IPv4 connections: disable IPv6 XDMCP code by default.  This allows IPv4
+      XDMCP to work on such platforms (David Dawes).
+ 573. Rework REGION_* macros to eliminate NEED_SCREEN_REGIONS build failures
+      (Marc La France).
+ 572. Fix an old bug in the X server and xfs related to usage of
+      c->savedName (Bugzilla #818, Owen Taylor).
+ 571. Fix FontFileListOneFontWithInfo() so that it handles aliases in the
+      same was as FontFileOpenFont() (Bugzilla #818, Owen Taylor).
+ 570. Respect USE_SSE_ASM for the .S files in the r200 and radeon 3D drivers.
+      This should fix the reported OpenBSD build problem (David Dawes).
+ 569. Some missing FreeBSD AMD64/Sparc64 patches (Bugzilla #786, Eric Anholt).
+ 568. The call to xf86RandRSetMode() from xf86RandRCreateScreenResources()
+      doesn't appear to be necessary.  Removing it restores the documented
+      ViewPort behaviour when RandR is enabled (David Dawes).
+ 567. Make the vesa driver blank the screen during initialisation for
+      cosmetic reasons (David Dawes).
+ 566. Make the cirrus driver blank the screen during initialisation for
+      cosmetic reaons (most other drivers do this) (Bugzilla #781,
+      Nicholas Miell).
+ 565. The vesa driver wasn't setting the viewport correctly either at
+      ScreenInit or EnterVT (David Dawes).
+ 564. Fix the viewport initialisation.  The ViewPort parameters from the
+      XF86Config file were being ignored, and the default was a 0,0 viewport
+      rather than centred on the virtual screen as documented.  When RandR
+      is enabled, it undoes all of this though... (David Dawes).
+ 563. Fix an off-by-one bug in libXcursor that can result in segfaulting
+      applications (David Dawes, reported by Agustin Gianni).
+ 562. Fix RandR initialization problem when default screen resolution is
+      different from the virtual resolution. (Bugzilla #853, Bob Paauwe).
+ 561. Fix an Xv problem with the via driver where updating a portion of the
+      overlay causes excessive CPU usage (Bugzilla #821, Neil Terry).
+ 560. Fix an Xnest hang on OS/2 (Bugzilla #852, Frank Giessler).
+ 559. OS/2 update for the recent move to building most libraries shared,
+      and add some functions to the export lists for freetype and Xt for
+      compatibility with older applications (Bugzilla #852, Frank Giessler).
+ 558. Fix the installation location of the XRes and Xss manpage aliases
+      (Bugzilla #848, ISHIKAWA Mutsumi).
+ 557. Include backwards compatibility API for renamed stream functions in
+      Freetype2 library (Torrey T. Lyons).
+ 556. Fix acecad driver to call xf86DeleteInput() (Bugzilla #855, S. Voltz).
+ 555. Register to handle X11 executables on Panther (John Harper).
+ 554. Fixes for GLX on Mac OS X:
+       - Make libGL not export libGLU symbols.
+       - Fix uninitialized mutex for threaded direct GLX.
+      (John Harper).
+ 553. Fix "Non-aligned pointer being freed" warnings on XDarwin startup
+      (Torrey T. Lyons).
+ 552. Miscellaneous fixes for Panther:
+       - Fix spurious #pragma getting inserted by cpp (Martin Costabel).
+       - Fix startup failure due to bad keymapping file (Torrey T. Lyons).
+       - Fix startup warning about missing semicolons (Torrey T. Lyons).
+ 551. Mesa X86 asm build fix for Solaris (David Dawes).
+ 550. Fix building libOSMesa on Darwin (Torrey T. Lyons).
+ 549. Get backlight working on Apple's GeForce4 powerbooks (Guido Guenther).
+
+XFree86 4.3.99.15 ( 1 November 2003)
+ 548. Update libfreetype-xtt2 to version 1.1:
+       - Improved the very lazy method.  To prevent displaying chipped bitmap
+         when having italic angle, the lsb and rsb are adjusted by using
+         italicAngle in post table.
+       - Added automatic correction of bitmap position for preventing
+         displaying chipped bitmap when using charcell or very lazy method.
+       - Set DEFAULT_VERY_LAZY macro.  If post table is available, the very
+         lazy method is used as default when handling multi-bytes fonts.
+       - Added additional glyphs(0x2d21-0x2d7c) to jisx0208.1990-0.enc.
+      (Chisato Yamauchi, After X-TT Project).
+ 547. Set the pixel clock limit above which hzoom is enabled for the video
+      overlay for G450 and G550 cards to 234MHz.  This fixes a problem with
+      the Xv support having half horizontal resolution (Michel Lespinasse).
+ 546. Add support on Mac OS X for building keymap using Carbon Keyboard
+      Layout API (John Harper).
+ 545. Map holes in kdrive VESA driver (#5436, Juliusz Chroboczek).
+ 544. Add option to Radeon driver to allow minimum dot clock to be
+      overridden (Bugzilla #831, Nils Philippsen).
+ 543. Add shared libraries run-path information to pkg-config datafiles
+      provided for some libraries. (Bugzilla #832, Frederick Bruckman, 
+      Matthieu Herrb).
+ 542. Fix buglets detected by SGI compiler in neomagic, sis and tseng drivers
+      (Marc La France).
+ 541. Fix I/O alignment in mga and via drivers (Marc La France).
+ 540. Improve xkbcomp's key types auto-recognition (Ivan Pascal).
+ 539. Add support for multi-threaded direct GLX rendering with AppleDRI
+      (John Harper).
+ 538. Fix a problem in Xlib that was cause by the ANSI prototype cleanups
+      (Bugzilla #839, Owen Taylor).
+ 537. Limit the rate of duplicate audit messages in the X server. (Matthieu 
+      Herrb, David Dawes).
+ 536. Fix ChipValidMode() return type (Marc La France).
+ 535. Fix for AGP8x support on HP zx1-based systems (Marc La France). 
+ 534. Workaround for mysterious segfault related to mkfontscale's use of
+      memcmp()  (Marc La France).
+ 533. Support the new Linear allocator in the trident driver and make the
+      hardware cursor use it. Xv automagically uses it. (Alan Hourihane).
+ 532. Fix acecad input driver build and re-enable it 
+      (Bugzilla #816, Alan Hourihane).
+ 531. Fix DRM_CAS on ia64 as used by the DRI (Bugzilla #778, John Dennis).
+ 530. Call OsCleanup() at the end of each server generation, and add an
+      argument to indicate when the server is terminating.  This allows
+      misc end-of-generation cleanups to be added to OsCleanup() (David Dawes).
+ 529. Explicitly free the DPMS and ScreenSaver timer resources at the end
+      of each server generation (David Dawes).
+ 528. Cygwin configuration updates and install script updates (Bugzilla #799, 
+      805, Harold L Hunt II, Alexander Gottwald)
+ 527. Build shared libraries for Xt and Xaw on Cygwin. (Bugzilla #804, 
+      Ralf Habacker).
+ 526. Xterm patches #180, 181 (Thomas Dickey).
+ 525. Update libfreetype-xtt2 to version 1.0d:
+       - Fixed server crash caused by loading fonts for which encoding file
+         does not exist.
+       - Some fixes for minor bugs when handling errors.
+       - Some minor cleanups.
+      (Chisato Yamauchi, After X-TT Project).
+ 524. Export strl{cat,cpy} functions to the server modules and provide 
+      an implementation for the systems that don't have them. (Matthieu 
+      Herrb).
+ 523. Fixes and updates for XKB keyboard maps:
+      - Update Serbian layouts (Bugzilla #92, Danilo Segan).
+      - Add 'MS Windows like' US International variant for 'us' keymap (Ivan
+        Pascal).
+      - Change CapsLock default behavior to 'Caps acts as locking Shift,
+        Shift cancels Caps'.  Add new type for four-level keys (Ivan Pascal).
+ 522. Fix generic rootless code bug which tests CopyWindow instead of CopyBytes
+      (Kensuke Matsuzaki).
+ 521. Update libfreetype-xtt2 to version 1.0c.  This consists of some minor
+      fixes and cleanups (Chisato Yamauchi, After X-TT Project).
+ 520. Add accelerated rootless drawing support and fix bug in rootless
+      FillSpans (Torrey T. Lyons and John Harper).
+ 519. Update SiS driver:
+      - Merge 661/741/760 support
+      - Clean up
+      - Fix Xv problems after swsuspend
+      - Fix LCD-via-CRT1 on various machines
+ 518. Prevent some compilers from optimising out Mesa's X11 error interface
+      (Marc La France).
+ 517. Add rules to generate post-processed and assembler source from C++ files
+      (Marc La France).
+ 516. Change `make World` so that well it interrupts itself to build a utility
+      (makedepend, pswrap, etc), it only builds that utility.  Some things were
+      being built too early (Marc La France).
+ 515. When the i830 driver's checks for sufficient memory for tiled mode
+      fail, don't later try to allocate with tiling enabled (David Dawes).
+ 514. Enable I845G_VBE_WORKAROUND in the i830 driver for all platforms, since
+      this reportedly fixes VT switching problems on hardware other than the
+      845G.
+ 513. Updated README.SiS (Thomas Winischhofer).
+ 512. Add the After X-TT Project's libfreetype-xtt2 1.0b fixes and
+      enhancements to the "freetype" module (Chisato Yamauchi,
+      After X-TT Project).  This should make it possible to deprecate the
+     "xtt" module in a future release.  Fixes and enhancements include:
+       - Fixed crash caused by using fonts which have OS2 sfnt table.
+       - Corrected metrics calculation error.  Although the original code uses
+         size->metrics, the FT_Size_Metrics does not have exact values when
+         handling the outline.  So the codes for metrics calculation were
+         drastically rewritten.
+       - Fixed some problems with FreeTypeRasteriseGlyph():
+          + Made "only metrics is required" distinct from "both metrics and
+            rasterised bitmap are required" to improve performance when
+            loading large charset.
+          + Fixed the erroneous usage of freetype2 API.  To get valid metrics,
+            FT_Outline_Get_BBox() or FT_Outline_Get_CBox() is used for outline.
+          + Took the strange code for raster copying and rewrote it.
+       - Fixed UNDERLINE_POSITION so that it counts downwards.
+       - Fixed a risky calculational method for info->maxbound and
+         info->minbound when spacing is not charcell.  All glyphs' metrics are
+         calculated and valid info->maxbounds and info->minbounds are set
+         without cutting any corners.
+       - Added TTCap option "fn","ai","ds","fs","vl","cr","bw","eb","hi",
+         "fc" and "fm" which are compatible with X-TT 1.4.
+       - Supported character width for vertical layouts.
+ 511. Encoding file updates (After X-TT Project):
+       - Removed jisx0208.1983-0.enc and added 'ALIAS jisx0208.1983-0' to
+         jisx0208.1990-0.enc.
+       - Added Windows ucs2 cmap(3,1) to jisx0208.1990-0.enc and
+         jisx0201.1976-0.enc.
+       - Added files for GB18030-0 and GB18030-1 (James Su).
+ 510. Update X-TrueType (X-TT) to version 1.4.2 (Chisato Yamauchi,
+      After X-TT Project):
+       - Fixed several bugs of make_up_italic_bitmap() function.
+       - Changed the order of priority of mapIDRelations in JISX0208 and
+         JISX0201 code converter. The windows ucs2 is given the highest
+         priority for kochi-substitute Japanese fonts.
+       - Fixed code relation in cc_jisx0208_to_std_ucs2() function
+         (not 0x215d -> 0x00b1 but 0x215d -> 0x2212)
+       - Added minor improvements.
+ 509. Fixes and updates for HTML and PDF versions of spec docs for
+      installation and inclusion in the online docs (David Dawes).
+ 508. Implement SharedLibtoolLibraryTarget, etc for bsdLib/ELF, including
+      creating links for older but compatible revisions of such
+      libraries (David Dawes).
+ 507. Allow a simple form of option name aliasing for options handled
+      via OptionInfoRec (David Dawes).
+ 506. Add optimized code for RENDER with rootless XDarwin (John Harper,
+      Torrey T. Lyons).
+ 505. Declare LoadPalette, SetOverscan and DPMSSet as public functions through
+      the XFree86's ScrnInfoRec, so these functions can be wrapped.
+      (Alan Hourihane).
+ 504. XDarwin improvements:
+       - Add complete server side support for AppleWM with xpr.
+       - Allow Aqua and X11 windows to interleave when AppleWM-aware window
+         manager is present.
+       - Fix hang on server reset.
+      (Torrey T. Lyons, John Harper).
+ 503. Fix double-free at server regeneration in the screensave/DPMS timer
+      code (David Dawes).
+ 502. Build most libraries as shared by default. (Matthieu Herrb, 
+      David Dawes).
+ 501. Add missing symbol definition files for libraries (Matthieu Herrb).
+ 500. Add 'inet' keymaps for two Logitec keyboard models (Bugzilla #762,
+      Eric Mountain; Bugzilla #766, Chris Hornbaker) and cleanup Logitec
+      keymaps (Ivan Pascal).
+ 499. Add missing SetScreenSaverTimer() to ProcSetScreenSaver (Ivan Pascal).
+ 498. Fix building on Mac OS X after DRI merge (Torrey T. Lyons).
+
+XFree86 4.3.99.14 (10 October 2003)
+ 497. Add an xf86InitFBManagerLinear() function and implement the Linear
+      allocation routines. These still fallback to XY area allocation if
+      no (or the lack of) linear space is available. It assumes the driver
+      has already called one of the init routines to the FBManager for Areas
+      before this new setup can be used (Alan Hourihane).
+ 496. Added USB keyboard support for Solaris/x86 platform (Bugzilla #352,
+      Daniel Rock).
+ 495. i830/i810 driver:
+      * Added Christian Ziez's code to tweak BIOS image to convince chipset of
+        resized video RAM.
+      * Fixed viewport/video overlay window alignment issues.
+      * Fixed calculation of video overlay memory size.
+      * Fixed video overlay on TV out (Bugzilla #213). (Egbert Eich).
+ 494. Fixed mode setting in trident driver: use mode passed in function 
+      argument, not value in currentMode (Bugzilla #197, Egbert Eich).
+ 493. Added delay when writing to Glint PM2 ramdac to avoid lockups 
+      (Egbert Eich).
+ 492. Fixed bug in Glint Bresenham line fallback code that caused line be drawn
+      beyond framebuffer boundaries (Bugzilla #624, Egbert Eich).
+ 490. Force sane pallette when entering DGA mode in Matrox driver 
+      (Egbert Eich).
+ 489. ATI Rage128: Wait with modifying FP video mode according to BIOS values
+      until final call of ValidMode() to prevent modes from being rejected
+      (Bugzilla #661, Egbert Eich).
+ 488. Some Savage BIOSes turn on clock doubling on non-doubled modes. 
+      Added code that catches and fixes this situation (Egbert Eich).
+ 487. Tdfx driver: Fixed order of initialization/deinitialization in 
+      ScreenInit()/ CloseScreen().
+      Fixed texture video support, removed artefacts in last line of overlay
+      video support (Bugzilla #299). (Egbert Eich).
+ 486. Add "automatic configuration" support for the XFree86 server, allowing
+      it to be started in a useful way without an XF86Config file.
+       - Add support to the config file parser for processing internally
+         supplied configuration data.
+       - Modify the algorithm for finding core input devices to maximise the
+         likelihood that they will be found.
+       - Add a FindDevice function to the OSMouse interface, allowing
+         an OS-specific function to be called to find the mouse device when
+         none is specified in the configuration.  Implementations included for
+         Linux and FreeBSD.
+       - Add a GuessProtocol function to the OSMouse interface, allowing
+         an OS-specific function to be called as a fallback when the mouse
+         protocol can't otherwise be detected.  Implementation included for
+         Linux.
+       - Bump the OSMouse interface version to 1.1 with the addition of the
+         above two functions.
+       - An interface for calling an external utility "getconfig" to generate
+         some configuration data.  Implementation of getconfig included.
+       - Generate a default internal configuration, autodetecting as much
+         as possible, with reasonable fallbacks.
+       - Recognise "DefaultDepth" and "DefaultFbbpp" options in the Device
+         section.
+       - Add a "TargetRefreshRate" option to help prevent modes with too
+         high a resolution (and poor refresh rate) being used as the default.
+       - Use DDC-probed mode timings to estimate the monitor parameters when
+         the DDC-probed information doesn't include a DS_RANGES property.
+         This should improve the reliability of monitor auto-detection.
+      (David Dawes, X-Oz Technologies).
+ 485. Add functions for checking option values without marking them as "used"
+      (David Dawes).
+ 484. Add missing xf86ReplaceRealOption() function (David Dawes).
+ 483. Added support for Siliconmotion Cougar3DR chip (Bugzilla #754, 
+      Chris Edgington).
+ 482. Cygwin:
+      * Added another German keyboard layout.
+      * Added Japanese keyboard layout to the list of defaults as jp.
+      * Added a new default keyboard layout for Portuguese (Brazil, ABNT2).
+      * Print the layout number in hexadecimal.
+      * Display the argument to the -query option in the window title.
+        (Bugzilla #763, Alexander Gottwald)
+ 481. Add processing for WM_WINDOWPOSCHANGED to cause window to repaint when
+      using TweakUI's focus-follows-mouse behavior.  (Bugzilla #763, 
+      Harold L Hunt II)
+ 480. Added runtime detection of SHM support by checking the return value of 
+      shmget to the SHM and xf86BIGFONT extension to support SHM on Cygwin 
+      (Bugzilla #764, Harold L Hunt II).
+ 479. Adding O_BINARY flag when opening an xkm file if this flag is defined
+      (Bugzilla #768, Alexander Gottwald).
+ 478. Radeon driver fixes (Hui Yu@ATI)
+      - 9200 DVI fix and TMDS_PLL initialization for all chips
+      - New chips support (9800XT/SE, 9600XT/SE, M11, T2/X2 etc.)
+      - Cleanup unused/secondary chip ids
+      - Autodetect PCI cards
+      - Add BusType to override PCI card autodetect
+      - Add display bandwidth calculation routine to fix flickering/tearing
+        display problem
+      - Workaround for corrupted BIOS image causing incorrect panel size
+      - Fix the LCD table reading loop
+      - Various small changes (including improving DDC reliability and
+        CRTC_MORE_CNTL initialization)
+ 477. Fix XAA Color8x8 cache bug:
+      Pattern was expanded from source instead of destination
+      (Thomas Winischhofer)
+ 476. Fixes and updates for XKB keyboard maps:
+      - Add 'United Kingdom w/deadkeys' gb(intl) keymap (Bugzilla #744,
+        Phil Jones).
+      - Add multi_layout compliant 'us_intl' keymap (Ivan Pascal).
+      - Fix 'macintosh' geometry file (Bugzilla #753, Simon Vallet).
+ 475. APM driver:
+      . improved clock parameter calculation.
+      . Fixed order of initialization of cursor.
+      . Fixed restauration of graphical text mode.
+      . Added YUY2 video format.
+      . Corrected accel framebuffer pitches and max screen height 
+      (Bugzilla #528, Egbert Eich).
+ 474. Moved DisableMMIO() out of the unmap() function, added call to 
+      EnableMMIO() to EnterVT() to work around lockup problems when 
+      switching between two Xserver (Bugzilla #748, Egbert Eich).
+ 473. Fixed problem with text widget in Xaw when widget has a different 
+      depth than the default visual (Bugzilla #745, Wolfram Gloger).
+ 472. Fixed Sig11 when calling X -query with no ipv6 support in kernel 
+      (Bugzilla #737, Egbert Eich).
+ 471. Added support for Sparc64 and AMD64 on FreeBSD.
+      This patch also disables warnings from system headers, fixes some elf
+      relocations also relevant for other platforms and disables translation of
+      KEY_SysReqest and KEY_Break on sparc64. (Bugzilla #739, Eric Anholt).
+ 470. Switched VIA video driver to fillkey helper function (Bugzilla #525,
+      Alan Cox).
+ 469. Fixed CRT modes > FP panel size for siliconmotion (Bugzilla #727, 
+      Hugues Fournier).
+ 468. Fixed xedit coredumps: update counter of free objects when getting an
+      object from the list (Bugzilla #722, Egbert Eich).
+ 467. Fixed definition of UseInstalledOnCrossCompile so that it never is
+      undefined (Harlod L. Hunt II).
+ 466. Add the 'b' flag to fopen() when opening binary xkm files. This is
+      irrelevant for *nix OSes, but required for Cygwin. (Bugzilla #689, 
+      Harold L Hunt II).
+ 465. Cygwin:
+      * MultiWindow Mode: Automatically validate the size of windows that are
+        being resized.  (Earle F. Philhower III)
+      * Safely shutdown the MultiWindow Mode and Clipboard Manager threads on
+        server shutdown.  (Earle F. Philhower III)
+      * MultiWindow Mode - Fix a crash from a string copy bug.  
+        (Earle F. Philhower III)
+      * Add lots of defaults for keyboardlayout.  (Alexander Gottwald)
+      * Add a system tha allows arbitrary commands to be added to the tray menu
+        icon.  (Earle F. Philhower III)
+      * Print the name of the keyboardlayout to aid in adding more layouts. 
+        (Alexander Gottwald)
+      * Stop printing the IDirectDrawSurface4_Blt() failure messages after 10
+        times.  (Harold L Hunt II)
+      * Disable check for pc105 keyboard and just assume that it is present.  
+        This check was causing problems with certain keyboard drivers that 
+        failed to report that a pc105 keyboard was present. 
+	(Alexander Gottwald)
+      * MultiWindow Mode - Add handling for WM_CHANGE_STATE IconicState 
+        messages;
+      minimize the associated Windows window when these messages are
+      received. (Harold L Hunt II).
+      Submitted: (Bugzilla #704, Harold L. Hunt).
+ 464. cygwin.cf:
+      * removed BuildDPS flag.
+      * Changed Alloca flag as Cygwin 1.5.x supports alloca, now.
+      * Use external expat package by default.
+      * Changed XawI18nDefines to utilize improved wide char support in 
+      Cygwin 1.5.x. (Bugzilla #699, Harold L. Hunt II). 
+ 463. Fixed C&T panel register setting (Akira Taniguchi, Egbert Eich).
+ 462. Fixing crash on ia64 because of wrong setjmp buffer alignment (Bugzilla
+      #596, John Dennis).
+ 461. Changing ImPS/2 mouse Z-axis range to -8 to 7 (Bugzilla #691, 
+      Matthew W. S. Bell, Egbert Eich).
+ 460. Making sure the compiled xkb config file is found by Xnest if 
+      ProjectRoot is modified (Bugzilla #688, Frank Giessler).
+ 459. Fixing build of machine code .S files on OS/2 (Bugzilla #689, 
+      Frank Giessler).
+ 458. Import Mesa 5.0.2 (Alan Hourihane).
+ 457. DRI merge (DRI Project)
+      * details to follow..........
+ 456. Fixes and updates for XKB keyboard maps:
+      - Update xkb geometry files (Alexander Pohoyda).
+      - Fix German-Romanian maps (Manfred Pohler).
+      - Cleanup Hungarian layout (Bugzilla #730, Egmont Koblinger).
+ 455. Change the order of the timeouts processing and the input devices
+      reading in WaitForSomething() which caused unneeded keyboard autorepat
+      events (Ivan Pascal).
+
+XFree86 4.3.99.13 (25 September 2003)
+ 454. Add support for chip ID 5964 (Radeon 9200 SE) to the radeon driver, and
+      fix detection of IDs 5962 and 5963 with Driver "ati" (Bugzilla #732,
+      Michel Daenzer)
+ 453. Add gcc format checking for the X server's message and logging
+      functions, and fix lots of associated warnings (David Dawes).
+ 452. Replace the perl version of ucs2any with a C version ( Ben Collver and 
+      other NetBSD developers, Matthieu Herrb).
+ 451. For drivers that support 'Option "dri"' have the driver request
+      loading the dri module when this option is true.  This brings
+      it in to line with how other things are handled.  Other drivers
+      that have DRI support need to have the "dri" option added (David Dawes).
+ 450. Fix libGL bug that could cause deadlock when switching contexts
+      (John Harper).
+ 449. Improve the contrast of the whiteglass xterm cursor, and fix the
+      hotspot of the whiteglass right_ptr cursor and add transparency
+      to it (#5867, René Rebe).
+ 448. Fix a problem with the "pl2" (Polish qwertz) map where the order in
+      which the Alt_R and Shift keys are pressed affects the results
+      (Tom Pala).
+ 447. In xdm, use better pseudo-random number generators to generate
+      magic cookies. Add support for EGD and other compatible entropy
+      gathering daemons. (Oswald Buddenhagen from KDE, Matthieu Herrb).
+ 446. Fix IMPS/2 mouse wheel on platforms where char defaults to unsigned
+      (Rene Rebe).
+ 445. Fix rare xterm crash on Darwin due to dyld deadlock when a signal comes
+      in while dyld is looking up a symbol (Rob Braun).
+ 444. XDarwin cleanup and improvements:
+      - Load bundle at runtime for chosen Quartz mode: xpr, cr, or fullscreen.
+      - AppleWM extension has been generalized to work with any Quartz mode.
+        Currently only the xpr implementation is complete.
+      - Wrote a man page for AppleWM.
+      - Moved hw/darwin/quartz/aqua* files that contained code to protect
+        the alpha channel to miext/rootless/safeAlpha.
+      (Torrey T. Lyons).
+ 443. Remove lots of redundant redeclarations (David Dawes).
+ 442. VIA driver:
+      Fixed video memory detection. (Bugzilla #525, Alan Cox).
+      Fixed TV and FP initialization problems (Bugzilla #525, Frederic Crozat,
+       Alan Cox).
+      Removed remaining globals (Egbert Eich).
+ 441. Fixed memory leaks in the loader (Bugzilla #682 and #683, Juergen Keil).
+ 440. Fixed erroneous freeing of DisplayModeRec in xf86DeleteMode() when
+      deleting the modePool in xf86PruneDriverModes() the 'prev' member has
+      a different meaning for modePool modes than for ScrnInfoPtr->modes modes
+      where it creates a doubly linked list (Bugzilla #678, Juergen Keil).
+ 439. Fixed SDK for VIA driver (Bugzilla #674, Bernhard Rosenkraenzer).
+ 438. Extended list of monitor ranges and modes in xf86cfg (Egbert Eich).
+
+XFree86 4.3.99.12 (10 September 2003)
+ 437. Move the X server log file handling from the XFree86 DDX to the DIX,
+      allowing the more descriptive logging to be used throughout the server,
+      and the log messages to be more uniform in formatting (David Dawes).
+ 436. Added support for the Compaq Evo keyboard (Stanislav Brabec).
+ 435. Fixed writes past end of array in via_bios.c (Bugzilla #662,
+      Egbert Eich).
+ 434. Let luit copy the termios settings from the calling terminal (Bugzilla
+      #641, Juliusz Chroboczek).
+ 433. Add _ADOBE_POSTSCRIPT_FONTNAME to the list of font properties xlsfonts
+      that are atoms and should be converted to strings when run with the
+      -ll flag. Also fixed the lenght problems that may arise (Bugzilla # 659,
+      Alan Coopersmith).
+ 432. Backing out 321.: sysMem gets initialized once during server lifetime
+      (Egbert Eich).
+ 431. Fixing X11.tmpl to set XFTINCLUDES after defining a non-standard path
+      to fontconfig, adding FONTCONFIGINCLUDES to the build rules for fontconfig
+      (Kevin P. Fleming).
+ 430. Added support for the hp5181 inet keyboard (Bugzilla #648, Alan Strohm).
+ 429. Added support for Apple Laptop keyboards, added level3/group switching to
+      KP_Enter, modified layout so keyboards acts the same way as under Mac OS
+      (Bugzilla #642, Frank Murphy).
+ 428. Adding ANGKHANKHU (U+0E5A) character to level 3 of keycode <AD09> on
+      th_tis keymap (Theppitak Karoonboonyanan).
+ 427. Fixes and updates for XKB keyboard maps:
+      - Add 'Romanian keymap for German keyboard' and 'Romanian keymap with
+        access to German umlauts' (Manfred Pohler).
+      - Update xfree86.dtd file (Sergey V. Oudaltsov).
+      - Add an XkbOption that makes a keyboard map without special keysyms
+        on Ctrl+Alt+smth for those who use such combinations for another
+        purposes (Ivan Pascal).
+ 426. Reverse patch #423 because it causes compile problems (Ivan Pascal).
+ 425. Disable the bytecode interpreter by default in FreeType 1, bringing it
+      into line with the default for FreeType 2.  Document how to enable
+      it in xf86site.def for those with no legal impediment to doing so
+      (David Dawes).
+ 424. Improvement of Xlib's keysym compose module:
+      - Allow to figure out a mulibyte string if it is omitted in Compose file.
+      - Add 'include' instruction with some substitutions.
+      - Add a searching of Compose file as a value of XCOMPOSEFILE environment
+        variable and as a $HOME/.XCompose file. (Ivan Pascal).
+ 423. Add a writing of some Xserver XKB module error messages into a servers
+      log file (Ivan Pascal).
+ 422. Add Trident CyberBladeXP4 support, but acceleration is currently
+      disabled. (Alan Hourihane).
+ 421. Xinstall.sh updates to reduce its reliance on external utilities and
+      provide better diagnostics when required external utilities don't exist.
+      (David Dawes).
+ 420. Fixes and updates for XKB keyboard maps:
+      - Fix unneeded BKSL redefinition in Ukrainian 'winkeys' keyboard map
+        (Andriy Rysin).
+      - Fix some keycodes for jp106 keyboard model (Bugzilla #657,
+        Stephen J. Turnbull).
+      - Update xfree86.xml registry file (Andriy Rysin, Sergey V. Oudaltsov).
+ 419. Add a missing xf86UnblockSIGIO() call to xf86InstallSIGIOHandler()
+      (#5839, NetBSD PR xsrc/22668, Yorick Hardy).
+ 418. Fix a problem with the "pl" map where the order in which the Alt_R and
+      Shift keys are pressed affects the results (#5832, Tom Pala).
+ 417. Fix the warning generated by the ONE_LEVEL <RALT> definition in
+      the "level3" map (#5832, Tom Pala).
+ 416. Remove the unnecessary dependence of RandR on RENDER (David Dawes).
+ 415. Remove some static variables that should be per-screen (David Dawes).
+ 414. SiS driver update:
+      - Add 8x8 Color Pattern Fill (315/330 series)
+      - Add transparency support for 8x8 Mono Pattern (300/315/330 series)
+      - Fix Xv "insufficency" triggered by MPlayer (315 series)
+ 413. Add missing REQUEST_SIZE_MATCH() to xSyncSetCounter protocol request
+      (noticed by Ruben Nunez Francisco).
+ 412. Allow building libOSMesa during non-XFree86 builds (Marc La France).
+ 411. Rip out incorrect limits on the number of PCI buses an ix86 chipset can
+      handle and implement an improved solution for avoiding "phantom" PCI
+      buses (Marc La France, Bugzilla #604).
+ 410. Fixes for potential integer overflows in font libraries. (blexim, 
+      Matthieu Herrb).
+ 409. SiS driver: Add RENDER hardware acceleration
+ 408. Add a Fopen() function to open the Xauthority file without spawning
+      a shell (Bugzilla #255, Aidan Kehoe, Matthieu Herrb). 
+ 407. Fix a bug introduced with #397 that results in the core pointer and
+      keyboard devices specified in a ServerLayout section being ignored
+      (David Dawes).
+ 406. Added big5hkscs encoding to font encoding files (Bugzilla #575, 
+      Jungshik Shin).
+ 405. Don't call FBIOPAN_DISPLAY ioctl with arguments that will cause a
+      confusing if harmless error; make an fbdevhw internal function static to
+      fix a warning. (Michel Dänzer)
+ 404. Passing correct virtual screen size to xf86ValidateModes() in VIA driver
+      (Luc Verhaegen).
+ 403. Added RGB overlays to i810 driver (Bugzilla# 625, Alastair M. Robinson).
+ 402. Fixed mode switching and mode comparison for xf86VidMode extension for S3
+      driver (Bugzilla #613, Alexey Baj, Egbert Eich).
+ 401. Via driver: Fixed remaining globals, some formatting issues, out of 
+      memory handling in Xv overlay code and a couple of small glitches caused 
+      by the fixes (Bugzilla# 525, Alan Cox)
+      Fixed some missing globals and static build (Egbert Eich).
+      A handful globals still remain.
+ 400. Update the Xserver(1), XFree86(1) and XF86Config(5) man pages to
+      clarify how XFree86 configuration/run-time parameters are specified
+      and their order of precedence (David Dawes).
+
+XFree86 4.3.99.11 (25 August 2003)
+ 399. Try to make the state of libXfont more consistent.  It shouldn't depend
+      on whether a static or loadable XFree86 server is being built, so it
+      now always has a dependency on the FreeType2 library (when FreeType
+      support is enabled) (David Dawes).
+ 398. Make the specification of a Monitor in the Screen sections of the
+      XF86Config file optional.  Some drivers may need changes (coming later)
+      to maximise the utility of this (David Dawes).
+ 397. When a core keyboard or core pointer cannot be found in the
+      configuration, create default ones.  The pointer part of this
+      requires some changes to the mouse driver (coming later) before
+      the default core pointer configuration will be useful on most
+      platforms (David Dawes).
+ 396. Add a facility for assigning version numbers to builtin XFree86 server
+      interfaces and allowing modules to query them.  Assign versions for
+      the os-mouse and os-kbd interfaces (David Dawes).
+ 395. Include uname(2) information in the server's banner messages
+      (Marc La France). 
+ 394. Fix bug in detection of multi-function PCI devices (Marc La France, in
+      partial resolution of Bugzilla #574).
+ 393. Change the XFree86 server's global default depth to 16, and change most
+      drivers that support the three common depths (8, 16, 24) to defer to
+      the global default rather than specifying their own (David Dawes).
+ 392. Fixed a crash when _XIMProtoOpenIM(), hich is called through XOpenIM() 
+      API when protocol IM is being set up,  fails (Bugzilla #618, 
+      Hisashi MIYASHITA).
+ 391. Fixed a possible source of Sig11 in Jamstudio driver (Bugzilla #617,
+      Jonathan Hough, Egbert Eich).
+ 390. Fixed building without RENDER support (Bugzilla #306, Matthieu Herrb, 
+      Egbert Eich).
+ 389. Pass pointer obtained by Xalloc() to Xfree() not the one that may be
+      manipulated in the mean time (Bugzilla #614, Alan Coopersmith).
+ 388. Added reverse mapping of keysyms to keycodes (XKeysymToKeycode())
+      to xev to detect situations where this maps to a different keycode than
+      the one of the key pressed (Egbert Eich).
+ 387. Made xauth called by startx quiet (Bugzilla #597, Stas Sergeev).
+ 386. Added missing operand size override handling to PUSH imm8 in x86emu
+      (Bugzilla #590, Boris Weissman).
+ 385. Fixed compile glitch with NetBSD in xdm/genauth.c (Bugzilla #587, 
+      Nicolas JOLY)
+ 384. Fix bugs in Xlib's EUC string converters that cause incorrect work of
+      _Xmblen.  Fix _Xmblen usage in imCallbk.c when Xlib is built with
+      X_LOCALE (Etsushi Kato).
+ 383. Update xev program for print the result of XmbLookupString call
+      (Bugzilla #582, Noah Levitt, Ivan Pascal)
+ 382. Fixes and updates for XKB keyboard maps:
+      - Fix for Uzbek keyboard map (Bugzilla #595, Mashrab Kuvatov).
+      - Fix for the problem with Alt+Tab combinations in some window mangers
+        (Bugzilla #580,616): window chooser menu doesn't disappear after
+        Alt key release (Egbert Eich, Ivan Pascal).
+ 381. Allow a Display subsection with no depth or fbbpp specified to match
+      any depth/fbbpp, and make Display subsections optional, creating one
+      with default parameters when no suitable one can be found (David Dawes).
+ 380. Include <sys/param.h> to get the BSD macro for luit (ITO Tsuyoshi).
+ 379. DRM resync from the DRI trunk...
+       - Lots of misc fixes/cleanups, and some resyncs with 2.4 and 2.6
+         kernels.
+       - Fix maplist entries being used after they were freed; thanks to
+         Benjamin Herrenschmidt for tracking this down (Michel Daenzer).
+       - FreeBSD updates (Eric Anholt).
+       - Fail in DRM(agp_acquire) if the AGP aperture can't be used, such
+         that the X server falls back to PCI GART or disables the DRI
+         gracefully (Michel Daenzer).
+       - Possibly fix stanford checker complaints about sarea for radeon
+         (Keith Whitwell).
+       - Restore i830 texture age waiting when swapping in new textures
+         (Keith Whitwell).
+       - Fix texture rectangle support for r100 (Keith Whitwell).
+       - Add i810 add page flipping support to the DRM (Dave Airlie).
+       - Merged DRM documentation (Jose Fonseca). 
+       - r128 MESA_ycbcr_texture (Ian Romanick, Leif Delgass).
+ 378. Linux drm module build fixes for newish kernels from the DRI
+      repository (Michel Daenzer, Linus Torvalds, Leif Delgass).  This
+      addresses Bugzilla #603, 605 (Calum Mackay).
+ 377. Fix the test for 2.5.x with x < 52 Linux kernels for the drm module
+      build (Bugzilla #601, Callum Mackay).
+ 376. Fix an XAA pixmap cache server crash that can happen in some cases
+      when the off-screen memory is heavily fragmented (David Dawes, based
+      on #5752, Koike Kazuhiko, Chisato Yamauchi).
+ 375. Fix for the Brazilian ABNT2 keyboard extra key that now translates to
+      a different keycode value. Patch suggested by Ivan Pascal.
+ 374. Fixed XDarwin fullscreen crash in some screen sizes (Torrey T. Lyons).
+ 373. Be a little more precise about differentiating between active and
+      inactive non-video PCI resources (Marc La France).
+ 372. Added Apple-WM extension and library (John Harper, Torrey T. Lyons).
+ 371. Fixed indirect GLX on Mac OS X when the client can not make a
+      connection to the CoreGraphics window server (John Harper).
+ 370. Fixed support for 64bit PCI bus on 32bit systems (Egbert Eich).
+ 369. Added support for using aliases in the -nolisten option. '-nolisten tcp'
+      aliases to IPv4 and IPv6 (Matthieu Herrb, Egbert Eich).
+ 368. Added fallback Xlib transport layer if IPv6 socket cannot be openend
+      (Egbert Eich).
+ 367. Added missing symbol to the vbeSymbols table in i740 driver (Bugzilla
+      #583, Egbert Eich).
+ 366. Changed scripts containing 'head -1' which is not supported by 
+      POSIX 1003.1-2001 any more (Bugzilla #570, #569, Paul Eggert, 
+      Egbert Eich).
+ 365. Changed POSIX 1003.1-2001 non-conformant 'sort +2' to 'sort -k 3' with
+      backward compatibility (Bugzilla #568, Paul Eggert).
+ 364. Add Microsoft Pro OEM model to XKB inet map (Bugzilla #458,
+      maxim@wzzrd.com)
+ 363. Extract the CHANGELOG's commit date and include it in the XFree86
+      server log/version information (David Dawes).
+ 362. Change the way xf86Build.h is created so that it doesn't cause its
+      dependencies to be rebuilt when its contents are not changed
+      (David Dawes).
+
+XFree86 4.3.99.10 (10 August 2003)
+ 361. Fixes and updates for XKB keyboard maps:
+      - Added numpad:microsoft XKB option (Bugzilla #558, Will Styles).
+      - Fixed inconsistence in indicator names (Bugzilla #577, Noah Levitt).
+      - Added type6 model of Sun keyboard (Warren Turkal).
+ 360. Add UK (gb) layout to the dvorak XKB map (#5739, Mike Sulivan).
+ 359. More work on the NativeGDI server for Cygwin/XFree86. The span routines
+      are nearing completion (albeit they run slowly until the higher
+      level X primitive functions are implemented). The obvious issue with
+      the current code is the problems surrounding 1-bit DIBsections which
+      have msb/lsb issues compared to the other types of DIBsections.
+      This work was done quite some time ago in the Cygwin/XFree86 CVS.
+      (Alan Hourihane).
+ 358. SiS driver update:
+      - Added pseudo-Xinerama extension for MergedFB mode
+      - Fixes for Clevo L285/L287 (1024x768)
+ 357. Include Xmd.h in Xpm/lib/XpmI.h to get definitions of LONG64 
+      (Bugzilla #562, John Dennis).
+ 356. Moved Meta_L/R keys and added Super_L/R keys on macintosh keyboard.
+      This makes the layout more compatible to the PC keyboard layout 
+      (Bugzilla #565, Frank Murphy).
+ 355. Add check for Xmalloc() return value in XGetErrorDatabaseText() to avoid
+      Sig11 (Bugzilla #563, Alan Coopersmith).
+ 354. Separated build of libglx.a module and normal libglx.a library 
+      (Bugzilla #541, Frank Giessler).
+ 353. Fixed build of Xnest, Xprt and Xvfb for OS/2 by linking with the linker
+      definition files (Bugzilla #541, Frank Giessler).
+ 352. Fixed freeing of properties form xkb_geomerty block (Bugzilla #550, 
+      Alexander Pohoyda).
+ 351. Fixed string octal number parsing and string to int conversion for "\00"
+      in xkbcomp (Bugzilla #553, Egbert Eich).
+ 350. Removed stale definition from XftCompat.h (Bugzilla #543, Egbert Eich).
+ 349. Added XLC_LOCALE file for zh_CN.UTF-8, moved iso10646 encoding to the end
+      in ja_JP, ko_KR and zh_TW UTF-8  XLC_LOCALE files 
+      (Bugzilla #544, Akira TAGOH).
+ 348. Fixed typo in #if conditional in cfb code (Bugzilla #556, Dave Love).
+ 347. Fixed ValidMode() in C&T driver to work with option 'FixPanelSize' 
+      (Egbert Eich).
+ 346. Fixed Meta_R key on us layout Macintosh keyboard (Bugzilla #539, 
+      Frank Murphy).
+ 345. Add new charset sequence for CText at the end of list. This way the
+      sequence of a charsets that were added earlier will be picked if two
+      sequences for the same charset are registered (Bugzilla #228, 
+      Egbert Eich).
+ 344. Use return value sysconf (_SC_OPEN_MAX) instead of the fixed number 256
+      for allowed number of open files on POSIX.1 conformant systems
+      (Egbert Eich).
+ 343. Added missing exported functions in libfreetype to compile mkfontscale,
+      made mkfontsdir script install on platforms that use extensions (Bugzilla
+      536, Frank Giessler).
+ 342, Fixed a sig11 in Xaw that may appear on the rare condition that no font
+      can be found (Bugzilla #482, Egbert Eich).
+ 341. Added KP_Separator to symbols that can generate decimal() in xcalc
+      (Egbert Eich).
+ 340. Disabled Color8x8PatternFill() in savage driver (Egbert Eich).
+ 339. Fixed a sig11 in twm when used with a session manager (Egbert Eich).
+ 338. Fixed rounding of refresh rate in RandR, updated Xrandr man page 
+       (Bugzilla #527, Egbert Eich).
+ 337. Added MenuBorderWidth and MenuBorderColor options to twm (Bugzilla #529, 
+      Alexander Pohoyda)
+ 336. Update for VIA driver:   
+      - DGA no longer hangs (eg freedroidRPG now runs reliably)
+      - Starting two copies of Xine no longer aborts the X server
+      - Added support for KM400/K8M400
+      - Improved video overlay support.
+      - Fixed video overlay clipping when the image cliprects change but 
+	not the size.
+      - TV tuner support via XV interface for two overlay ports.
+      - DRI support (the client side library is not yet fully ported to 4.3).
+      - Disable Xv in modes with insufficient bandwidth (1600c1200x16).
+      - Updated documentation
+	It differs from the base VIA codedrop.
+      - Several of the fixes were done by me on top of it (the dual Xine fix,
+	and bandwidth)
+      - Various system types have been turned to CARD32 to make the code 
+	portable
+      - The hybrid Video4Linux/XV glue was racy and has been removed 
+	(the XV layer is more than sufficient anyway)
+      - DRI library client code is not included (porting not yet finished)
+      - Additional debugging
+        (Bugzilla #525, VIA, Alan Cox) .
+      - Cleaning up namespace pollution, removing dependency on via_drm.h
+	removing some global symbols from driver (Egbert Eich).
+        Please note: there are more global symbols yet to be removed.
+ 335. Remove the 'xc/xkbcomp/geometry/HP' directory from the CVS repository.
+ 334. Substantial rewrite of the "nv" driver (Mark Vojkovich).
+ 333. Resync with Cygwin/XFree86 changes up to Test92 (#5721, Harold Hunt and
+      the Cygwin/XFree86 project).
+ 332. Add a clean target for Cygwin's ResourceObjectRule() rule (#5720,
+      Harold Hunt).
+ 331. Fix xman's formatting/displaying of manual pages on Darwin, where
+      'groff' defaults to PostScript formatting (#5719, T. M. Pederson).
+ 330. SiS driver update:
+       - Fixed SiS 620 support
+       - Added interface for sisctrl utility
+      (Thomas Winischhofer)
+ 329. Fixes for regressions in xauth and xhost with IPv6 code
+      (Matthieu Herrb, Hideki ONO). 
+ 328. Update X-TrueType (X-TT) to version 1.4.1 (Chisato Yamauchi,
+      After X-TT Project):
+       - Extension of code converter modules for ARABIC, ARMSCII8,
+         BIG5HKSCS, GB18030, ISO8859.*, etc. (Pablo Saratxaga, James Su)
+       - Try to use TT_Load_Glyph_Bitmap() in get_metrics() when `bs'
+         option is not set.
+       - Use Embedded Bitmap with the option `eb=y' when Auto Italic is set.
+       - Enhancements for `ds', `eb' and `bw' options.
+       - New options for TTCap, `fc' and `fm': they enable the *extremely*
+         fast loading of big Japanese or unicode fonts with `-p-' in the XLFD.
+       - Performance improvement of FreeTypeGetMetrics() function.
+       - Improved performance based on the solution to the buffer
+         overflow problem, caused by exceeding the range of
+         maxbounds.ascent/maxbounds.descent.  This problem occurred only
+         when `-m-' spacing was used.
+       - Improved fix to crashes caused when certain fonts (e.g. verdana.ttf)
+         are used; solution based on investigating the true nature of the
+         problem.
+       - Added patch for mktcapdir-0.5.4 and some ttfconf files suitable for
+         X-TT 1.4.0.
+       - Preparation for extending the encoding field of XLFD.  X-TT permits
+         the following additional XLFD format:
+            "-foo-foo-medium-r-normal--0-0-0-0-c-0-foo.2000-0.0"
+            "-foo-foo-medium-r-normal--0-0-0-0-c-0-foo.2000-0.1"
+         The last number can be used to indicate the plane number of a huge
+         character set.
+       - Support for reverse `fc' specification. `fc=0xaa00-0xa0ff' means
+         specifying the ranges 0x0000-0xa0ff and 0xaa00-0xffff.  This is
+         useful for GB18030 proportional fonts.
+       - Improved fix for server crash that appears on Linux/PPC.
+       - Added ksc5601.*-3 and ksx1001.*-3 to KSCJOHAB/main.c (Jungshik Shin).
+       - Added U+20AC and U+00AE characters to KSCJOHABtoUCS2.c and
+         KSC5601toUCS2.c (Jungshik Shin).
+       - Fixed an X server crash when using LucidaSansRegular.ttf
+         (reported by Koike Kazuhiko).
+       - Improved fix to prevent NULL dereference when the font cache
+         becomes full; solution by allocation of a dummy area for bitmap.
+       - Fixed an X server crash because of an inconsistency problem between
+         XFree86 and X-TT (reported by Koike Kazuhiko).
+       - Numerous minor improvements.
+
+XFree86 4.3.99.9 (25 July 2003)
+ 327. Add Mach64 I2C framework.  Derived from GATOS project (Marc La France).
+ 326. Removed ru_yawerty xkb symbols file as it is misleading as suggested
+      by Ivan Pasacal (Bugzilla #516, Ivan Pascal).
+ 325. Fixed two bounds errors in rman 
+      (Bugzilla #505, Dan Nelson, Bugzilla #506,  Eric Anholt).
+ 324. Cleaned up MMIO map/unmap in RADEONPreInit(), unmapped MMIO in 
+      CloseScreen() even when server is switched away (Bugzilla #504, 
+      Hui Yu, Egbert Eich).
+ 323. Modified transport code so that a bind to an IPv4 socket fails silently
+      when the bind to an IPv6 socket for the same port was successful.
+      This works around a problem in theIPv6 implementation on some OSes
+      that also handle IPv4 calls over IPv6 sockets (Egbert Eich).
+ 322. Simplified handling of the -nolisten option as suggested by 
+      Alan Coopersmith. This option can now be issued multiple times.
+ 321. Added code to unmap sysMem when freeing int10 (Bugzilla #504, 
+      Frank Giessler).
+ 320. Fix generic rootless crash while resizing when CopyBytes is not defined
+      by the implementation (Torrey T. Lyons).
+ 319. Fix XDarwin Cocoa rootless crash when unshaping a shaped window
+      (Torrey T. Lyons).
+ 318. More IPv6 changes from Alan Coopersmith as follows:
+      - Add support for IPv6 bracketed numeric addresses, similar to RFC 2732
+        syntax to a number of areas.
+      - Fix some issues with colon parsing and determining which addresses are
+        DECnet (two colons between hostname and display number) and which are
+        non-bracketed IPv6 numeric addresses ending in two colons, followed by
+        another colon and the display number (three colons in a row).
+      - Fix additional places Fabio forgot to change the string length when
+        switching "inetv6" to "inet6".
+      - Use MAXHOSTNAMELEN if it is defined for MAXHOSTNAME in xrdb.  (Perhaps
+        NI_MAXHOST should be used as well on platforms that support it.)
+      - Make #include <sys/socket.h> in Xtrans.h look like the other places
+        it's included in the tree, with checks for Lynx & Win32
+ 317. IPv6:  2003.07.11 update to X.Org's response to comment #13;  i.e.
+      s/FamilyInternetV6/FamilyInternet6/g  (Marc La France).
+ 316. IPv6 build fixes for older Linux systems;  Many of these are derived from
+      a suggestion by Alan Coopersmith (Marc La France).
+ 315. Change DEVID macro to work around glitch in SCO's C compiler
+      (Marc La France).
+ 314. Fixed Radeon driver so that clone modes survive server reset 
+      (Bugzilla #487, Egbert Eich).
+ 313. Changed behavior of FreeType and Type1 renderer: when no encoding file
+      is found fail with BadFontName instead of using an iso8859-1 encoding
+      (Bugzilla #479, Roland Mainz, Juliusz Chroboczek, Egbert Eich).
+ 312. Fixed screen switching problem on SCO where VT was off by one 
+      (Bugzilla #470, Kean Johnston).
+ 311. S3 driver:
+      . allow only specific displayWidths when acceleration is enabled 
+      . added double_scan support (Egbert Eich).
+ 310. Removed build rules for hp Xserver that was recently removed from 
+      Xserver/Imakefile (Egbert Eich).
+ 309. Fixes for C&T driver: 
+      . switch to SW mouse in doublescan modes.
+      . centered video correctly for all interlaced modes (docs were
+        misleading).
+      . fixed README (Egbert Eich).
+ 308. Fixed a typo in mkfontscale (Bugzilla #491, Juliusz Chroboczek).
+ 307. A lot of X server prototype cleanups, including fixing an
+      inconsistency between the cfbBitBlt and CopyPlane functions 
+      exposed by the prototyping (#A.1859, Alexander Stohr).
+ 306. Fix missing newline in Message -> MessageF transition in dri_glx.c
+      (#A.1833, Alexander Stohr).
+ 305. Fill out the sunleo man page (#A.1783, Arnaud Quette).
+ 304. Fix a typo in the XSetWMProtocols(3) man page (#5697, Alexander Pohoyda).
+ 303. Fix for a few Xlib charset converters (Bruno Haible).
+ 302. Fix calculation of CRTC2 frame offset with page flipping in radeon driver
+      (Michel Daenzer)
+ 301. Xinerama-fy the XTest extension (Rik Faith).
+
+XFree86 4.3.99.8 (10 July 2003)
+ 300. X.Org IPv6 changes (Bugzilla #227, Alan Coopersmith, Marc La France).
+      See http://www.x.org/IPV6_Specific_Changes.html for details.  This has
+      been further modified as follows.
+      - Deal with small memory leaks in xdm & xauth.
+      - Fix a number of compilation issues.
+      - Where supported, use SIOCGLIFCONF to query network interfaces on more
+        than only Solaris.
+      - Incorporate X.Org responses to comments #'s 1, 2, 4, 5, 7, 10, 11, 12,
+        13, 14 and 15 (taken from an X.Org-internal document dated 2003.06.17).
+      - Replace HasIPv6 imake symbol with BuildIPv6, defaulting it to YES, and
+        build in IPv6 support whenever BuildIPv6 is asserted _and_ the OS
+        #define's AF_INET6.  This is to maximise IPv6 code exposure and
+        eliminate <OS>.cf file changes to support IPv6.
+ 299. On Solaris, don't allow remote root xdm logins if CONSOLE is set in
+      /etc/default/login (Bugzilla #227, Alan Coopersmith).
+ 298. Fix SEGV in fstobdf when font server is not specified and FSServerName()
+      returns NULL (Bugzilla #227, Alan Coopersmith).
+ 297. Fix XDMCP bug that could cause local host entries in /etc/X0.hosts to be
+      lost (Bugzilla #227, Alan Coopersmith).
+ 296. Make certain xtrans static variable volatile to avoid optimisation issues
+      that occur when they are modified by SIGALRM handlers
+      (Bugzilla #227, Alan Coopersmith).
+ 295. Use %p instead of %x to print pointer values in xtrans debug messages to
+      avoid overflow on platforms with 32-bit ints & 64-bit pointers
+      (Bugzilla #227, Alan Coopersmith).
+ 294. Change SUN-RPC code to use authdes_seccreate() call rather than the
+      deprecated authdes_create() (Bugzilla #227, Alan Coopersmith).
+ 293. Add xdm /dev/random handling for Solaris
+      (Bugzilla #227, Alan Coopersmith).
+ 292. Solaris compile fixes (Bugzilla #227, Alan Coopersmith).
+ 291. Update X.Org version numbers to X11R6.6 or X11R6.7 and replace old
+      references to X Consortium with X.Org (Bugzilla #227, Alan Coopersmith).
+ 290. Update the usage of DRM AGP handles so that valid handles aren't
+      mis-interpreted as invalid handles (based on Bugzilla #484, Dave Airlie).
+ 289. Twisting fontfile.c and fontdir.c to be able to pass all fonts (bitmap
+      and scaleable) to the scalable renderer as this one can deal with 
+      XLFD names (Bugzilla #475, Juliusz Chroboczek). PLEASE TEST!
+ 288. Changing PS/2 mouse resolution to 8 counts/mm as some broken mice have
+      problems with other values (W. uses 8) (Egbert Eich).
+ 287. Fixing mode setting by BIOS. Wrong clock selection in MiscOut register
+      caused screen to stay blank (Egbert Eich).
+ 286. Added description for -dumpSched and -schedInterval to the usage
+      message (Egbert Eich)
+ 285. Update the SCO OpenServer port, fixing these specific problems:
+        . Fixed the Imake template so i[3456]86 and friends arent defined
+        . Fixed bad preprocessor stuff in X11.tmpl that was producing warnings
+        . Updated default GCC flags to more aggresively optimize
+        . Fixed keyboard LED handling
+        . Enable SCO function keys in xterm
+        . Make Delete key send  DEL by default on SCO in xterm
+        . Fix to make fonttosfnt compile (Bugzilla #470, Kean Johnston).
+ 284. Added missing ro2 symbols file to list of files to install 
+      (Bugzilla #476, Egbert Eich).
+ 283. Corrected precedence problem in test in xc/lib/X11/XKBUse.c:
+      XkbUseExtension(). This avoids an extra round trip during application
+      startup (Bugzilla #473, Owen Taylor).
+ 282. Fixing deadlock in libXi - when is called _XLockDisplay() twice - when 
+      calling a Xi function that calls XGetExtensionVersion() (Bugzilla #260,
+      Bastien Nocera, Owen Taylor). 
+ 281. Adding support for video modes <320x240 to S3 driver by changing the 
+      minimal clock frequency to 15.6 MHz (Bugzilla #472, Alexey Baj).
+ 280. Made mkfontscale behavior and options compatible to mkfontdir, fixed
+      bugs in output format (Bugzilla #425, Juliusz Chroboczek, Kean Johnston).
+ 279. Changed xclock hands back to black (antialiased) , created XClk-col.ad
+      to set colored hands instead, added missing documentation for missing
+      resources. This follows the behavior of the other X applications more
+      closely (Bugzilla #437, Joerg Wunsch).
+ 278. Added support for Trio64UV+ and Trio64V2/DX/GX to S3 driver (backport
+      from 3.x) (Bugzilla #465, Alexej Baj).
+ 277. Increased Xlib default buffer size to 16k (was 2048), made size 
+      configurable thru environment variable XLIBBUFFERSIZE (minimum 2048)
+      (Bugzilla #466, Roland Mainz).
+ 276. Increased maximum BIGREQUEST size to 4Mb and made it configurable thru
+      a command line option. This increases performance of certain 
+      applications considerably (Bugzilla #460, Roland Mainz).
+ 275. VIA driver: initialized screen parameters in PreInit() instead of
+      AccelInit() so that they are set even when acceleration is disabled
+      (Egbert Eich).
+ 274. Do not drop H&V sync during screen blanking for Radeon
+      (Bugzilla #320, Michael Breuer, Hui Yu@ATI).
+ 273. Let out-of-limit pixel clocks only use the frequency below pll output
+      lower limit for Radeons (Bugzilla #262, John Vickers, Hui Yu@ATI).
+ 272. Add support for Radeon cards with DAC/TMDS wire up in different ways
+      from what the driver was originally programmed to; includes support
+      for dual DVI cards (Hui Yu@ATI).
+ 271. Add Radeon DPMS handling for flat panels (Bugzilla #26, Hui Yu@ATI).
+ 270. Decreased the retry loops in DDC probing so that Radeon startup
+      time won't be too long in the worst case (Hui Yu@ATI).
+ 269. Fix Radeon Asic bug in RMX unit of IGP chips (Hui Yu@ATI).
+ 268. Fix Radeon register initialization for RGB offset to fix the
+      "milky-screen" problem (Bugzilla #351, Hui Yu@ATI).
+ 267. Add support for new Radeon chips: R350(9800), RV350(9600,M10),
+      RS250(IGP7000), RS300(IGP9000), RV280(9200) (Hui Yu@ATI).
+ 266. Fix a lockup with the trident driver when stopping/starting Xv
+      applications (Alan Hourihane).
+ 265. Fix initialisation in xauth (Martin Birgmeier).
+ 264. Calling RADEONSaveFPRegisters() regardless of display type to catch
+      register restauration problems (Bugzilla #193, Hui Yu).
+ 263. Fixed order of name and filename in encodings.dir files generated by
+      mkfontscale (Roland Mainz).
+ 262. Changed resource registration in TDFX driver: VGA mem resources
+      are unused during OPERATING state, RAC isn't required for memory
+      resources (Bugzilla #357, Egbert Eich).
+ 261. Attempt to fix VIA driver lockups when moving windows:
+      assumed bug compatibility to previous S3 products 
+      (Bugzilla #435, Egbert Eich).
+ 260. Disabled mode writeback to client program from MGA driver (Egbert Eich).
+ 259. #ifdef'ed variables in os-support/bsd in cases they are not needed
+      (Bugzilla #430, Jason L. Wright).
+ 258. Fixes and updates for XKB keyboard maps:
+      - add Faroese keyboard map (Bugzilla #401, Roi a Torkilsheyggi)
+      - add missing KPPT key to ABNT2 keycodes list (Bugzilla #431, Christian
+        Tosta)
+      - fix geometry/pc file (Alexander Pohoyda).
+ 257. Don't sleep on Darwin for directory owner/mode problems (John Harper).
+ 256. Limit 430TX and 430VX to 128 and 32 PCI buses respectively
+      (Marc La France).
+ 255. Add direct GLX rendering on Mac OS X and Apple-DRI extension
+      (John Harper).
+ 254. Replaced inline asms with compier intrinsics for Intel compiler
+      (Bugzilla #427, Slava Sysoltsev).
+ 253. Partly fixed build problems caused by mkfontdir replacement
+      (Bugzilla #425, Egbert Eich).
+ 252. SiS driver update:
+      Fixed Xabre support
+      (Final) fix for Compaq 3045US
+      Customized timing for 848x480 parallel panels
+ 251. Replaced mkfontdir by simple shell script that calls mkfontscale
+      (see #233) (Bugzilla #388, Juliusz Chroboczek).
+ 250. Added encoding files for Arabic (iso8859-6.16 and iso8859-6.8x)
+      (Bugzilla #420, Roland Mainz).
+ 249. Removed O_SYNC from open call for /dev/mem for all Linux platforms.
+      This hopefully takes care of the speed problem 
+      (Bugzilla #419, #414, Egbert Eich).
+ 248. Fixed fontstosfnt to build on OS/2 (Bugzilla #415, Frank Giessler
+      Juliusz Chroboczek).
+ 247. Fixed DMC touchscreen driver: button press events are properly
+      recognized now, made sure device is still recognized after a restart,
+      fixed misleading error messages (Bugzilla #418, Andreas Kies).
+ 246. Added PanoramiX supprt for the RENDER requests: Trapezoids, Triangles,
+      TriStrip, TriFan, SetPictureTransform and SetPictureFilter 
+      (Bugzilla #138, Egbert Eich).
+ 245. Fixed SW/Theme cursor drawing glitches in i740 driver (Bugzilla #21,
+      Egbert Eich).
+ 244. Added input driver for Aiptek tablet (Bugzilla: #393, (list #5686), 
+      Bryan W. Headley).
+
+XFree86 4.3.99.7 (25 June 2003)
+ 243. Added 'BitKeeper' to the directories that get excluded by lndir
+      (Bugzilla #408, H.J.Lu).
+ 242. Fixed gcc warnings in xdmauth.c (Bugzilla #410, Jason L. Wright).
+ 241. Updated Citron touchscreen driver: set 'block duration time'
+      to one second to avoid timeouts, added user strings to inform about
+      HW version (Peter Kunzmann).
+ 240. Fixed wraparound bug in TimerSet() (Peter Osterlund).
+ 239. Fixed X*LookupString() in imDevLkup.c to return status 
+      XBufferOverflow and the required size as required 
+      (Bugzilla #397, Kusanagi Kouichi).
+      Dto. for imLcLkup.c (Egbert Eich).
+ 238. Removed unused function QualifyName, Exit() from Xprint 
+      and CountBits(), matchVisuals() from GLX 
+      (Bugzilla #395, #400, #394 Jason L. Wright).
+ 237. Fixed type warning when building sunffb driver on 64bit 
+      (Bugzilla #404, Jason L. Wright).
+ 236. Fixed warnings when building Palmex touchscreen driver statically
+      (Bugzilla #405, Jason L. Wright).
+ 235. Fixes and updates for XKB keyboard maps:
+      - add programmers variant to the Turkish keyboard map (Nilgün Belma
+        Bugüner)
+      - add a variant of the Romanian keyboard map for German keyboard
+        (Manfred Pohler)
+      - add layout for BTC 9001AH keyboard (Nick Kurshev)
+      - add Uzbek keymap description (Bugzilla #391, Mashrab Kuvatov)
+      - update geometry files (Alexander Pohoyda)
+ 234. Added fonttosfnt, a utility that generates bitmap-only TTFs. It is
+      capable of reading most font formats (Bugzilla #389, 
+      Juliusz Chroboczek). 
+ 233. Added functionalities to mkfontscale so mkfontscale performs every
+      functionality mkfontdir does (Bugzilla #387, Juliusz Chroboczek).
+ 232. Removed absolute path from cpp for Linux as /usr/bin/ should be
+      in the default search patch (Egbert Eich).
+ 231. Fix regression of Xvideo not working with some videos on the
+      CyberBladeXP/Ai1 chips (Bugzilla #251, Stephane Voltz).
+ 230. Added early failure and warning message when not sufficient memory
+      available for DRI in i8xx driver (Egbert Eich).
+ 229. Fix bug in original patch which added support for two new relocation
+      types for IA64 (Bugzilla #195, John Dennis).
+ 228. Fix scaling calculus in savage driver (Bugzilla #274, Emmanuel).
+ 227. Clarifying if conditions, fixing memory leaks in error path, removing
+      useless code in savage driver (Bugzilla #278+279, Emmanuel).
+ 226. Adding message to R128 driver which informs about modified modes for LCD
+      according to VBIOS (Bugzilla #23, Egbert Eich).
+ 225. Fixed chipset ID for v2100/v2200 for overrides (Egbert Eich).
+ 224. Added interlaced support for Voodoo 3,4,5 to TDFX driver (Bugzilla #383,
+      Jakub Bogusz).
+ 223. Fixed typo in getPciBiosTypes() (Bugzilla #382,  Jakub Bogusz).
+ 222. Restore previous mode if mode switch fails (Bugzilla #381, Jakub Bogusz).
+ 221. Fixed typo that prevented lubB19 fonts with different maps from being
+      generated (Bugzilla #380, Jakub Bogusz).
+ 220. Sync entrypoints for OS/2 with recent changes in fontconfig and Xft
+      (Bugzilla #374, Frank Giessler).
+ 219. Added detection of 2Mb memory for CLGD7548, fixed a possible memory 
+      leak and did minor cleanups (Bugzilla #369, Lucas Correia Villa Real). 
+      (PLEASE TEST!)
+ 218. Recode single-byte keyboard scancodes that clash with recoded
+      double-byte scancodes (David Dawes).
+ 217. Fixes and updates for XKB keyboard maps:
+      - add more EuroSign to "us_intl" keyboard map (Paul Bolle)
+      - update geometry files (Alexander Pohoyda)
+      - add AudioMute key to inet(hpxe3gc) (Bugzilla #350, Paul Pacheco)
+      - add option for replacing RCtrl key with Right Alt (Bugzilla #343,
+        Adam Tlalka)
+      - add Uzbek keyboard map (Bugzilla #372, Mashrab Kuvatov)
+ 216. (Re-)fix portability of gccmakedep and generate ccmakedep on all
+      platforms (Marc La France).
+ 215. Fix i810/i815 problem with interlaced modes where only the top half
+      of the screen gets displayed (Paul Stewart).
+ 214. Changed any occurance of x86_64 to AMD64, the official name of the
+      architecture (Egbert Eich).
+ 213. Removed Copyright sign from man pages as this causes some formatters
+      to choke (Egbert Eich).
+ 212. Export SysV IPC functions to modules in Net and OpenBSD 
+      (Bugzilla #355, Quentin Garnier). 
+ 211. Fix rootless bug when reordering windows behind others (Torrey T Lyons).
+ 210. Fix page size issues that prevented the mmap()'ing of SBUS devices
+      (Marc La France).
+ 209. Fixes for the following problems on OS/2:
+       - long startup delay of xinit
+       - recovery from hard-error popups
+       - text-mode version of xf86cfg
+       - xf86cfg unable to find default config file
+       - installation of static libraries
+       - missing exported functions in X11.dll
+       - typo in xf86pathIsAbsolute()
+      (Bugzilla #267, Frank Giessler).
+ 208. SiS driver update:
+      Fixed 1280x960 and 1280x1024 LCD support (SiS 30x)
+      Added Chroma-Keying support to Xv part
+      Added support for Barco iQ R and G series projectors
+
+XFree86 4.3.99.6 (10 June 2003)
+ 207. Add support for the Mac's KP_Equal key (untested) (David Dawes).
+ 206. Import fontconfig 2.1.0 as an external package, and update the build
+      to use this version (David Dawes).
+ 205. New version of the FreeType backend. (Bugzilla #325, Juliusz Chroboczek).
+ 204. Rework XDarwin's Cocoa rootless implementation to use new generic
+      rootless code in miext/rootless (Torrey T. Lyons).
+ 203. Fix repeated image problem when using a vesa video mode before starting
+      the Xserver on the S3 Trio3D cards (Alan Hourihane).
+ 202. Import zlib 1.1.4 for systems that don't provide it (Matthieu Herrb).
+ 201. Improve fonts width and weight detection (Bugzilla #265-266,
+      Juliusz Chroboczek).
+ 200. Fix library dependencies for xlibi18n modules (Bugzilla #82, Joe Kelsey,
+      Matthieu Herrb).
+ 199. Fix manual pages typos (Bugzilla #316, Jens Schweikhardt).
+ 198. Fix bug (Bugzilla #315) in _XTextPropertyToTextList() that causes
+      an application crash in some circumstances (Ivan Pascal).
+ 197. Fixes and updates for XKB keyboard maps:
+      - add asciitilde to Swedish 'nodeadkeys' map (Bugzilla #291).
+      - add map for true Romanian keyboard (Bugzilla #300, Manfred Pohler).
+      - add EuroSign to "us_intl" keyboard map (Bugzilla #309, Paul Bolle).
+      - fix some keys in Armenian 'phonetic' layout (Bugzilla #313, Ani).
+      - add some geometry files (Alexander Pohoyda).
+      - some cosmetic changes.
+ 196. Import FreeType 2.1.4, and do initial merge for config/build
+      (David Dawes).
+ 195. Remove unnecessary links of libm (Marc La France).
+ 194. IRIX 6.5 build fixes and noise reductions (Marc La France).
+ 193. Clean up confusion in Imakefiles between XONLYLIB and XLIBONLY (and
+      between DEPXONLYLIB and the previously non-existent DEPXLIBONLY)
+      (Marc La France).
+ 192. Do not unnecessarily link libXmu, libXt and/or libXext into executables
+      (Marc La France).
+ 191. Fix makedepend for IRIX 6.5 (Marc La France).
+ 190. Make the handling of X_BYTE_ORDER in Imakefiles more portable
+      (Marc La France).
+ 189. Allow building of a libXfont without font cache support (Marc La France).
+ 188. When using cpp to generate scripts and data files, change XCOMM to pound
+      signs even when preceeded by only whitespace, and provide a means to
+      generate output lines with trailing backslashes.  Change `startx` script
+      accordingly (Marc La France).
+
+XFree86 4.3.99.5 (25 May 2003)
+ 187. Fix XDMCP queries in xdm on systems using getifaddrs(). 
+      (Bugzilla #277, Joel Ray Holveck). 
+ 186. Initial imake/config support for more closely (and more
+      automatically) emulating how libtool handles shared library revisions.
+      Implmemented for Linux only so far (David Dawes).
+ 185. Fix libexpat shared lib revision on platforms that use minor version
+      numbers (David Dawes).
+ 184. Update Tamil keyboard map (Thuraiappah Vaseeharan).
+ 183. Add missing xfs reply to GetEventMask requests (Marc La France).
+ 182. Change the ELF loader to ignore .debug* sections (Marc La France).
+ 181. Simplify internal interfaces in the PCI code and remove the Xserver's
+      interference with normal PCMCIA operation (Marc La France).
+ 180. i810/815 depth buffer needs to be a multiple of the tile size.  This
+      fixes 3D corruption near the bottom of the screen at 800x600@16bpp
+      (Bugzilla #283, Dave Airlie).
+ 179. SiS driver update
+       - Allow Modelines for LCD and secondary VGA on 301B
+       - Support plasma panels natively (including a small
+         database for some known panels since some panels
+	 report wrong timing data via DDC)
+ 178. DRM resync from the DRI trunk...
+       - Lots of fixes/cleanups/resyncs for the BSD DRM drivers (Eric Anholt).
+       - Fix potential oops and memory leaks when allocations fail in
+         addbufs_agp/pci (Leif Delgass).
+       - Add support for buffer private structs with PCI DMA buffers
+         (Leif Delgass).
+       - Disable MTRRS on FreeBSD-stable (Eric Anholt).
+       - Remove some unused code (Keith Whitwell).
+       - Move prototypes for gamma functions to gamma_drv.h (Keith Whitwell).
+       - 2.5.x resync (Linus Torvalds).
+       - Ensure driver has been initialized before installing irq handler,
+	 and modify all drivers to ensure irq handler is removed before
+	 cleanup, and cleanup is called at takedown (Leif Delgass).
+       - Check for lock on init/cleanup in all drivers except i810/i830
+         (Leif Delgass).
+       - Put back __HAVE_KERNEL_CTX_SWITCH for the sparc drm driver
+         (Keith Whitwell).
+       - Only free original pagelist in addbufs_pci if one already exists
+         (fixes oops) (Leif Delgass).
+       - texmem-0-0-1 branch merge (Ian Romanick).
+       - Fix warning on machines where sizeof(drm_addr_t) != 4 (Randy Dunlap).
+       - Support AGP bridges where the AGP aperture can't be accessed directly
+         by the CPU (David Mosberger, Benjamin Herrenschmidt, Michel Daenzer,
+         Paul Mackerras, Jeff Wiedemeier).
+ 177. Fix another xedit compile problem (Marc La France).
+ 176. Small fix for Italian keyboard map (Sebastiano Vigna).
+ 175. Don't ship xf86Bus.h and xf86pciBus.h with the SDK (Marc La France).
+ 174. Restore VGA driver's checking for depths 1, 4 & 8 (Marc La France).
+ 173. Fix a problem with savage driver when UseBIOS is off, such that the
+      performance drops dramatically. Now the performance matches or
+      exceeds that of the option UseBIOS (Alan Hourihane).
+ 172. Add workaround for problems that arise when in multi-layout map
+      different modifier keysyms share the same key (Ivan Pascal).
+ 171. Fix bug that causes XGetKeyboardMapping produce incorrect map when keys
+      have more then two keysyms.  Also add a map columns duplication for better
+      compatibility with core protocol keyboard maps (Ivan Pascal).
+ 170. Fix XKB bug (Bugzilla #253) that causes an Xserver crash when XKB action
+      RedirectKey is used (Ivan Pascal).
+ 169. Add missing letters to Ukrainian phonetic keyboard map (Andriy Rysin).
+
+XFree86 4.3.99.4 (10 May 2003)
+ 168. Prevent a SIGFPE with the glint/pm3 driver when attempting to display
+      an XVideo image less than 8 pixels wide (Måns Rullgård).
+ 167. Support for building a DRI enabled server on OpenBSD (Wilbern Cobb,
+      Matthieu Herrb).
+ 166. Fix double free bug when a Mac-specific font fails to load with
+      Freetype (Torrey T. Lyons).
+ 165. Check for NULL tObj in the i830 3D driver's TexEnv function.  This
+      fixes a FlightGear crash (Keith Whitwell).
+ 164. Set Mesa hooks to flush vertices on state changes in Radeon 3D drivers
+      (Keith Whitwell).
+ 163. Add an entry to the i2c module that drivers can call to retrieve an array
+      of all I2C buses associated with a screen (Marc La France).
+ 162. Fix to prevent PCI and CardBus resets when switching out of the server's
+      virtual console (Marc La France).
+ 161. Change the /dev/ file used on some *BSD's to mmap the framebuffer in DGA
+      clients to match the /dev/ file used by the server (Marc La France).
+ 160. SiS driver fixes:
+      - Added MergedFB mode (including HWCursor and Xv)
+      - Xv enhancements and fixes for all chipsets
+      - New Xv properties (SWITCHCRT, TVPOSITION, etc)
+      - Added support for custom LCD resolutions (via DDC)
+      - Fixed DVI output (DVI-D and DVI-A), automatic detection
+      - Numerous bugfixes and enhancements
+      (Thomas Winischhofer)
+ 159. Make freetype-config more useful on NetBSD (#5693, Thomas Klausner).
+ 158. Small fixes in keyboard maps:
+      - add an explicit type declaration in level3(ralt_switch)
+        (Bugzilla #225, Séamus Ó Ciardhuáin);
+      - fix wrong group number in Russian keyboard map (Ivan Pascal).
+ 157. Add rootless implementation for XDarwin using Apple's Xplugin API
+      (John Harper, Torrey T. Lyons).
+ 156. Fix precision problems in xf86XVClipVideoHelper and in Mach64 XVideo
+      support (Marc La France).
+ 155. Add missing symbols when DRI is disabled to glint driver
+      (Bugzilla #203, Mike Harris).
+ 154. Fix a memory leak caused by the data allocated in XGetDefault() never
+      being freed (Jim Radford).
+ 153. Update keysym capitalization rules in XConvertCase() with unicode
+      keysyms and some missed charsets (Bugzilla #209, Séamus Ó Ciardhuáin).
+ 152. Use C89 style function prototypes in manual pages (Bugzilla #208,
+      Aidan Kehoe).
+ 151. Fix small memory leaks in XvQueryAdaptors() and __driUtilCreateScreen()
+      (Jim Radford).
+ 150. Updated Wacom driver to support ntuos 2 2D mouse and a few styli,
+      TabletPC with ISD V4 protocol, intiq 15X and Cintiq 18SX 
+      (Wacom).
+ 149. Fix programming error in ix86 motherboard chipset determination
+      (Marc La France).
+ 148. Ansi prototypes cleanup in Xserver/include and Xserver/os 
+      (Matthieu Herrb).
+ 147. Fix shared libXp dependencies on *BSD and Darwin (Dale Rahn). 
+ 146. Fix infinite loop that occurs on systems whose PCI configuration space
+      doesn't advertise a host bridge (Marc La France).
+ 145. Workaround for broken devices that don't implement the header type field
+      in their PCI configuration space (Marc La France).
+ 144. Portability changes for older Sun compilers (Alan Coopersmith).
+
+XFree86 4.3.99.3 (25 April 2003)
+ 143. Fix building of the dristat and drmstat utilities (David Dawes).
+ 142. From the DRI trunk...
+       - Remove more dead code from the BSD DRM (Eric Anholt).
+       - Remove some #if 0'd code and unused string functions from the Linux
+         DRM (Keith Whitwell).
+       - Move debug versions of the DRM memory functions to a new file
+         (Keith Whitwell).
+       - drm_memory cleanup (Leif Delgass).
+       - dristat and drmstat cleanups (Leif Delgass).
+       - Remove unused dev->map_count (Leif Delgass).
+       - For the i830 DRM driver, pass the dma handle from pci_alloc_consistent
+	 to the card for status page rather than using virt_to_bus on
+	 the virtual address (Leif Delgass).
+       - Cleanup the style of the linux-compat code in the BSD DRM, and use
+         ioctl directly rather than reimplementing it (Eric Anholt).
+ 141. Remove old XF86Setup source code. (Matthieu Herrb).
+ 140. Only add all default modes to mode list when RandR is enabled and 
+      active (Egbert Eich).
+ 139. MGA driver: vertical blanking can generate interrupt (2D driver part)
+      (Ville Syrjala Bugz.: 199).
+ 138. Fix mmapw SEGV (Marc La France).
+ 137. From the DRI trunk...
+       - Install dummy/noop read & poll fops unless the driver has
+         replacements (Keith Whitwell).
+       - Remove gamma-specific stuff from the BSD DRM (Eric Anholt).
+       - Remove DRM_DMA_HISTOGRAM and associated code from the BSD DRM
+         (Eric Anholt).
+       - Remove BSD DRM's unused drm_init.h (Eric Anholt).
+       - Handle read() failures in the drm X server module (Michel Daenzer).
+       - Set DRM device major for NetBSD.
+ 136. Fix bug that prevented fbman from using the last partial scanline of a
+      Mach64 framebuffer (Marc La France).
+ 135. Make ATI Mach64 FIFO cache integrity testing optional (Marc La France).
+ 134. Export ATI Mach64 hardware overlay as an XVideo adaptor (derived from
+      GATOS project, Egbert Eich, Marc La France).
+ 133. Reorganise ATI Mach64 support into separate source files
+      (Marc La France).
+ 132. Refine atimisc's decoding of the panel mode on server entry in an attempt
+      to reduce the effect of atyfb bugs (Marc La France).
+ 131. Make Rage128 and Radeon XVideo available even when 2D acceleration is
+      disabled (Marc La France).
+ 130. There is no longer any need to require hardware cursors during Rage128
+      and Radeon XVideo displays (Marc La France).
+ 129. Initialise v4l's XVideo adaptors last (Marc La France).
+ 128. Reduce cut&paste effects by adding more helpers to Xv
+      (derived from #5645, Björn Augustsson, Marc La France).
+ 127. Centralise a region comparison primitive into 'mi' and use it instead of
+      local definitions throughout the server (Marc La France).
+ 126. DPMSExtension & XvExtension driver cleanups (Marc La France).
+ 125. Add missing tests for vtSema to xaa 'Picture' functions.
+      These missing checks caused strange behavior with some drivers
+      when RENDER extension requests were made while X was switched away.
+      (Egbert Eich).
+ 124. i810 driver: call drmCtlUninstHandler() on CloseScreen() 
+      (David Airlie).
+ 123. Savage driver updated to 1.1.1.27: several fixes for video glitches
+      (Tim Roberts).
+ 122. Put back the DRM part of Charl Botha's Radeon suspend/resume support
+      that was inadvertently backed out in the DRI resync last week.
+ 121. Resync the Linux drm modules with the DRI trunk.  Includes:
+       - Check for NULL map before calling DRM(ioremapfree) on cleanup
+         (Leif Delgass).
+       - Remove DRM read, poll and write_string (Keith Whitwell).
+       - Add more get_param queries for embedded project (Keith Whitwell).
+       - Move a bunch of gamma-specific code into a gamma-specific file,
+         and restore the kooky DRM(write_string) code for gamma
+         (Keith Whitwell).
+       - Remove unused DMA histogram code (Keith Whitwell).
+       - Remove unused 'DRM_FLAG_NOCTX' option (Keith Whitwell).
+       - Remove unused __HAVE_KERNEL_CTX_SWITCH code (Keith Whitwell).
+       - Fix templates so the i8x0 drivers don't have to define
+         __HAVE_DMA_WAITLIST (Keith Whitwell).
+       - Gamma drm updates (Alan Hourihane).
+       - Only mga, i810, i830 require AGP (Leif Delgass).
+       - Remove PCIGART_ENABLED define for radeon, pcigart support now
+         included for any arch (Leif Delgass).
+       - Get rid of superfluous fields in struct drm_radeon_ring_buffer
+         (Michel Daenzer).
+       - Use correct address for radeon ring read pointer writeback
+         (Michel Daenzer).
+ 120. Fix a potential bug in ZX1 support (Marc La France).
+ 119. Fix a buffer overflow in xkbprint (Ivan Pascal).
+ 118. Fix a bug in Xlib that prevents a vertical text drawing with
+      X[mb|wc]DrawString (bugzilla #178, OSAME Ken-ichiro).
+ 117. Added missing files to the SDK so it can actually be used (Sven Luther).
+ 116. mkfontscale enhancements (bugzilla #166, Julius Chroboczek). 
+ 115. Fix handling of local host names in /etc/X<n>.hosts (bugzilla #156,
+      Alan Coopersmith).
+ 114. Add to XLookupString an automatic search of the layout which keysym can
+      be converted to a control-code when Control modifier is set (Ivan Pascal).
+ 113. Fix xkbcomp crash with some combinations of layouts in a multi-layout
+      keyboard map (Ivan Pascal).
+ 112. Keyboard maps cleanups, including:
+      - fix incorrect aliases in a keycodes file.
+      - remove unneeded type declarations.
+      - remove ThirdLevel modifier key descriptions in maps and replace them
+        with references to a common one in 'level3' file.
+      - some cosmetic changes.
+      (Ivan Pascal).
+ 111. Fix some function definition conflicts from Xlib cleanup when X_LOCALE
+      or NeedWidePrototypes is set (Torrey T. Lyons).
+ 110. Resync the BSD drm modules with the DRI trunk (Eric Anholt).
+ 109. Resync the Linux drm modules with the DRI trunk.  Includes:
+       - Add 2nd arg for DRM_FREE (Keith Whitwell).
+       - Use file pointers instead of pids for resource and lock tracking
+         (Keith Whitwell).
+       - Add 'SG' map type identifier string ((pci scatter/gather) to /proc vm
+         info (Leif Delgass).
+       - Use list_entry() to get container struct from struct list_head
+         pointers.  Build fix for RedHat 9 kernel (5 args to
+         remap_page_range()) (Leif Delgass).
+ 108. Fix a server crash with shadowfb and render when refreshing outside the
+      visible screen (Sven Luther).
+ 107. Fix a potential infinite loop during server generation when in
+      Xinerama (Rik Faith).
+ 106. Fix DRM module build on 2.5.41 and later kernels (tqueue -> workqueue)
+      (David Dawes).
+ 105. Fix lockup when using Xv in the trident driver (Alan Hourihane).
+ 104. Add support for TV chipsets VT1621 and CH7005 to the trident driver
+      (VIA, Alan Hourihane).
+ 103. Add VIA CLE266 driver (Bugzilla #154, VIA/S3)
+ 102. Remove non-functioning glxStub, and remove external GlxStaticServerLib
+      support (David Dawes).
+ 101. Change the WORLDOPTS default to empty.  This means that 'make World'
+      will now stop on the first error.  To get the old behaviour, run
+      'make WORLDOPTS=-k World' (David Dawes).
+ 100. Add preliminary version of generic rootless code based on XDarwin's
+      rootless mode (Torrey T. Lyons, John Harper).
+  99. Remove PEX and XIE source code (Matthieu Herrb).
+  98. The XKB version of XRefreshKeyboardMapping() had an UnlockDisplay()
+      call without a preceding LockDisplay() call (Yoel Perl).
+  97. Xlib cleanups and fixes, including:
+       - Fixed up any old style function defintions that raised warnings.
+       - Fixed functions with no parameter or return value.
+       - Moved any external prototype in a c-files to h-files.
+       - Set unreferenced and unmentioned functions to static.
+       - Completed any forward declartion with its calling parameters.
+       - Established function typedefs where might be helpful.
+       - Fixed bogus XIM callback function to XID type, fixed XPointer* -
+         XPointer mismatch on some callback.
+       - Added explicit FIXME XXX statement on locations for the work around
+         macro XCMS_CONVERSION_HARDWARE where the compiler was unsatisfied
+         about a known problem with the currently inconsistent src_to_CIEXYZ
+         table types.
+       - Split _XcmsSetGetColor and *Colors handling routine in order
+	 to avoid any type conflicts there, fixed a memory leak for
+	 error case in that area.  Used stack based Buffer for single-color
+	 version (should be simpler and faster).
+       - Fixed _XAsyncReply where a "register variable pend" was passed
+	 and returned with the & operator.  This location is further
+	 suspect of variable size problems on anything else but 32 bit
+	 platforms, with the new code it might more likely raise a type
+	 mismatch warning for those specific location.
+      (#A.1729, Alexander Stohr).
+  96. Fix the <KPDL> mapping for the hr XKB map, and add an hr_US map (#A.1726,
+      Vlatko Kosturjak).
+  95. Fix vmware driver crash when running two X servers concurrently (#5688,
+      Nolan Leake).
+  94. Rework the Linux drm kernel module build to leverage off the standard
+      kernel build system.  This is based on suggestions and examples from
+      David Woodhouse.  This approach has the advantage that the build
+      requirements of a wider range of standard kernels are now supported
+      transparently, but the disadvantage of some extra complexity to handle
+      building against clean vendor-distributed kernel source trees.
+      This has been tested with some recent Red Hat and SuSE distributions
+      (David Dawes).
+  93. Update Italian keyboard map (Bugzilla #109, Sebastiano Vigna).
+  92. Add keys missed in multi-layout keyboard maps: LSGT key in Belgian map
+      and 'old','phonetic' variants in Armenian map (Ivan Pascal).
+  91. More reliable workaround for handling the I830Sync() function being
+      called while VT switched away (David Dawes).
+  90. Fix references to DRI functions in non-DRI i810_driver.c build
+      (David Dawes).
+  89. Import expat 1.95.4 (Matthieu Herrb). 
+
+XFree86 4.3.99.2 (10 April 2003)
+  88. Fix file descriptor leaks in xman (Ted Unangst, OpenBSD PR#3186).
+  87. Fix bug in mode validation that occurs when the XF86Config doesn't
       specify any mode or virtual resolution information (Marc La France).
- 974. Another int10 fix.  This time for adapters found at PCI:0:0:0.  This
+  86. Resetting 'bound' flag for an agp entry after undbind succeeded in
+      drm_agpsupport.h (Egbert Eich).
+  85. Ignoring hw_lock for drm device if lock was set by a different instance
+      (ie Xserver) to prevent second server to spin in driver release function
+      (currently only relevant for i8xx drm drivers) (David Dawes).
+  84. Adding extra delay before doing a slowBcopy in ia64 to prevent a MC
+      when saving/restoring VGA fonts (Egbert Eich).
+  83. Turn off needToSync in LeaveVT() in i830 driver to prevent server
+      crashes because xaa tries to sync blitter while switched away 
+      (Egbert Eich).
+  82. Added the O_SYNC flag when opening /dev/mem to work around a kernel bug
+      which causes conflits between WC settings in MTRR registers and cacheable
+      attribute in page table (Egbert Eich).
+  81. Reduced retry count for mouse configuration to 4. This should speed
+      up server start for people who use a mouse repeater like gpm
+      (Egbert Eich).
+  80. Fixed xf86cfg to duplicate font names before they get freed when
+      unloading the module (Egbert Eich).
+  79. Added missing functions to xf86cfg (Egbert Eich).
+  78. Added missing ROP_NEEDS_SOURCE to Savage driver;
+      now all 2D accel functions should use this flag (Egbert Eich).
+  77. Reduced flicker with video playback in Savage driver (Tim Roberts).
+  76. Load vgahw submodule in RENDITION driver before using it
+      (Egbert Eich).
+  75. Magically speed up video playback on Neomagic (Egbert Eich).
+  74. Added drmAgpUnbind()/drmAgpBind() functionality on Leave/Enter for i810
+      cards to allow a second Xserver to be started if the first one has
+      DRI enabled (Egbert Eich).
+  73. Set NeedRingBufferLow for i855/i865 to avoid lockups on vt switches
+      (Egbert Eich).
+  72. Check for vtSema before accessing registers in I830BIOSSaveScreen()
+      (Egbert Eich).
+  71. Some sanity fixes for atiprobe to work better with xf86cfg: Handle
+      situation gracefully if the PCI config pointer doesn't exist 
+      (Egbert Eich).
+  70. Changed behavior of fontfile: don't drop the entire directory if some
+      fonts cannot be rendered (Egbert Eich).
+  69. Fixed B&H bdf fonts: AVERAGE_WIDTH is not a string but an int (Mike Fabian).
+  68. Fixed type in radeon driver which caused display to go into
+      powersaving mode when Xcursor is disabled (Bugz: 90, Michel Dänzer).
+  67. Fixed typo in XKB-Config.sgml (Bugz: 53, Hiroyuki Bessho).
+  66. Fix SiliconMotion driver for mode switching and SEGV problem when
+      initializing Xv functionality (Bugzilla #50, Alan Hourihane).
+  65. Add Radeon DRI suspend/resume support (Charl Botha, #A.1431).
+  64. Rage 128 Xv fix for high resolution displays (Rik Faith).
+  63. PPC updates for Radeon (Michel Dänzer, Hui Yu@ATI).
+  62. Radeon patch from ATI (Hui Yu@ATI).
+      - IGP320/330/340 support (2D only)
+      - RV280 (9200/M9+) support
+      - Fix for some M9 laptop panels
+      - Improved version of monitor detection code previously submitted
+      - Fixed bug for two or more radeon cards
+      - Man page updates
+      - Workaround for double scan modes problem at high resolutions
+      - Overlay scaling problem when RMX is used
+  61. Fix xprop to get all windows (not only the first) in a property holding
+      a window list printed (#A.1676, Kim Woelders).
+  60. Fix for spontaneous repeated keyboard events during sync grab (#A.1713,
+      Michal Maruska).
+  59. Fixed DPMS problem on C&T 69000 due to incorrect LCD flag 
+      (Bugzilla #101, Egbert Eich).
+  58. Added xkb symbols layout for BTC 5090 internet keyboard  
+      (Bugzilla #57, Jack Angel).
+  57. Fix the Xinstall.sh script so that it can handle being run from a
+      directory with white space in its path name (#A.1690, Eric Branlund).
+  56. Allow AGPGART support to be enabled for OpenBSD (#A.1684, Brian Feldman).
+  55. Make the mouse driver check the SendDragEvents option (based on #A.1682,
+      Juuso Åberg).
+  54. Fix a double allocation in _XTextPropertyToTextList() (#A.1681,
+      Lubos Lunak).
+  53. Fix a typo that causes the 'yu' keymap to emit a lower case 'L' in
+      both shift states (#A.1675, Nikola Smolenski).
+  52. Allow the remote shell command for xon to be specified from the
+      command line.  This allows ssh to be used (for example) (#A.1657,
+      Mike Urban).
+  51. Fix segfaults that can happen when using composition of RENDER and
+      non-RENDER fonts (#A.1656, Wu Jian Feng).
+  50. Add convenient ways to enter "double quote" and "cedilla" with the
+      en_US.UTF-8 compose rules (Alexandre Oliva).
+  49. Improve support for Wacom Cintiq boards (#A.1547, Sebastian Rittau).
+  48. Add support for Kensington's "ValuMouse" to the mouse driver (#A.1494,
+      Roy Wood).
+  47. Workaround for a crash that happens if a scalable font has a bitmap
+      entry in fonts.dir (#5687, Juliusz Chroboczek).
+  46. Single/dual rasterizer quiescence patch for the glint/gamma DRI driver
+      (#5685, Sven Luther).
+  45. Fix a FreeBSD/alpha build problem (#5679, Fred Clift).
+  44. Fix a bug in the GLU/project.3gl man page (#5676, Thomas Klausner).
+  43. Luit fixes:
+       - Fix a buffer overflow.
+       - Allow for holes in the pty space, and use the union of the pty
+         names in 4.4BSD and recent FreeBSD.
+       - Allow luit to be set-uid on all BSD releases, and introduce an
+         additional security fix on POSIX saved-id systems.
+      (#5672, 5674, ITO Tsuyoshi, Juliusz Chroboczek).
+  42. Fix memory leaks in ProcXF86VidModeModModeLine and
+      ProcXF86VidModeValidateModeLine, and unintialized fields of the mode
+      structure in ProcXF86VidModeAddModeLine, VidModeCreateMode, and
+      VidModeAddModeline (#5671, Miguel Freitas).
+  41. Fix SEGV in fbdev's mode validation (Alexandr Andreev).
+  40. Add two more variations of Thai XKB maps (#5658,
+      Theppitak Karoonboonyanan, Visanu Euarchukiati,
+      Supphachoke Santiwichaya).
+  39. Fix a twm crash when the window menu is used and no windows are open
+      (#5667, Matthias Scheler).
+  38. Restore the sign of UNDERLINE_POSITION in the FreeType backend (#5665,
+      Roman Kagan).
+  37. Check the return value of fclose() in xauth to prevent losing the
+      existing contents of an Xauthority file when there is insufficient
+      space to write the new one (#5663, Owen Taylor).
+  36. Fix case in xmag which would cause a BadMatch during a X_GetImage for
+      single child of root class InputOnly.  Also do some null pointer
+      protection (#5657, Kevin Brosius).
+  35. Allow an arbitary message to be sent to the DDX by pressing a key
+      which has the appropriate action definition (#5519, Joe Moss).
+  34. Add a new request to the XF86Misc extension that allows a client
+      to send an arbitrary message to the DDX, which in turn can send the
+      message to the driver.  The driver may also send a string back.
+      An example of this is implemented for the radeon driver (#5518,
+      Joe Moss).
+  33. Remove duplicate XShmGetEventBase() declaration (#5656,
+      Branden Robinson).
+  32. Fix drag lock when using a mouse button greater than 4
+      (Bugzilla #51, Paul Elliott)
+  31. Fix lockup on server shutdown/restart with the radeon driver
+      (Bugzilla #94, Michel Dänzer).
+  30. Add missing symbols to reference list that show up when DRI is not
+      loaded in r128 driver (Bugzilla #83, Leif Delgass).
+  29. Add missing symbols to reference list that show up when DRI is not
+      loaded in mga driver (Bugzilla #84, Leif Delgass).
+  28. Various build and warning fixes (#A.1703, Peter Breitenlohner).
+  27. Avoid overlapping strcpy() in imake.c (Dan Nelson).
+  26. Updates for building on OS/2 (#5650, Frank Giessler).
+
+XFree86 4.3.99.1 (23 March 2003)
+  25. Xterm patch #176 (Thomas Dickey).
+  24. Another int10 fix.  This time for adapters found at PCI:0:0:0.  This
       fix is particularly important for ZX1-based systems (Marc La France).
- 973. int10 fix for all ix86 non-Linux systems (Marc La France).
- 972. Fix compatibility problem between modules generated without the recent
+  23. int10 fix for all ix86 non-Linux systems (Marc La France).
+  22. Add preliminary support for generating HTML and PDF versions of most
+      spec documents (David Dawes).
+  21. Use lower-case extensions uniformly for text and PostScript documents
+      (based on #4876, Branden Robinson).
+  20. Disable cuase of SEGV's in rendition driver (Marc La France).
+  18. Limit 440EX & 440LX based systems to 32 PCI buses (Marc La France).
+  18. Fix typo that caused incorrect initialization of xkb memory
+      (John Heasley).
+  17. Fix bug in trident driver that caused old Cyber 9382/9385 chipsets
+      to display half a jittered screen (Alan Hourihane).
+  16. Add shadowfb support to XDarwin IOKit mode (Torrey T. Lyons).
+  15. Change most of os-support/ to respect VIDMEM_READONLY (Marc La France).
+  14. Fix compatibility problem between modules generated without the recent
       setjmp/longjmp work and a server generated using glibc <= 2.2.*
       (Marc La France).
- 971. setjmp/longjmp related fixes for Linux/libc5 systems (Marc La France).
- 970. Make setjmp/longjmp emulation save/restore blocked signal masks on all
+  13. setjmp/longjmp related fixes for Linux/libc5 systems (Marc La France).
+  12. Fix possible overflow in _XlcLocaleDirName. (Matthieu Herrb).
+  11. Various NetBSD fixes for non-i386 (#5662, #5666 Aymeric Vincent, 
+      Matthew Green, Chris Gilbert, Thomas Klausner). 
+  10. Enable native thread support on NetBSD 1.6M and later (#5597, #5660, 
+      Matthias Scheler). 
+   9. Make setjmp/longjmp emulation save/restore blocked signal masks on all
       libc5 & glibc systems (Marc La France).
- 969. Fix setjmp/longjmp emulation for glibc 2.2.[01] systems and remove
+   8. Fix for non-PC keyboard bug introduced by changes to make SysRq
+      generate the same keycode as PrtScrn (Ivan Pascal).
+   7. Workaround for problems linking C programs against libGLU on FreeBSD 3.x
+      (David Dawes).
+   6. Make setjmp/longjmp emulation save/restore blocked signal masks on all
+   5. Fix setjmp/longjmp emulation for glibc 2.2.[01] systems and remove
       HasGlibc21Sigsetjmp override (Marc La France).
- 968. setjmp/longjmp-related compilation fixes for libc5 systems
+   4. setjmp/longjmp-related compilation fixes for libc5 systems
       (Marc La France).
- 967. Fix possible overflow in _XlcLocaleDirName. (Matthieu Herrb).
- 966. Fix XDarwin build broken by #960 (Shantonu Sen).
- 965. Fix StaticColor colormap on Darwin/x86 6.x (Rob Braun).
+   3. Fix minor glitch in the generation of Makefiles for libraries that don't
+      need threads support (Marc La France).
+   2. Fix XDarwin build broken by #960 (Shantonu Sen).
+   1. Fix StaticColor colormap on Darwin/x86 6.x (Rob Braun).
 
 XFree86 4.3.0 (27 February 2003)
  964. Add an imake option to allow the glibc21-style setjmp() behaviour
@@ -91,7 +1741,7 @@ XFree86 4.3.0 (27 February 2003)
       ARGB cursors by always using the ARGB mode (#A.1639, Michel Dänzer and
       Fredrik Höglund).
  944. Fix rootless XDarwin crash when trying to GetImage with a rectangle
-      bigger then the associated top level window (Apple).
+      bigger then the associated top level window (John Harper).
  943. Add support for multi-head on ZX1-based Itanium2 systems  (Marc La France
       with documentation and assistance from Hewlett-Packard).
  942. Correctly initialize the RE_LINE_PATTERN register in the radeon
@@ -443,14 +2093,14 @@ XFree86 4.2.99.901 (4 February 2003)
  797. Fix for memory fences on PowerPC (Marc La France).
  796. Work-around for Radeon int10 problems (Marc La France).
  795. Fix XDarwin crash in rootless mode with 16-bit color by ensuring that
-      window pixmap pointers are 32-bit aligned (Apple, Torrey T. Lyons).
+      window pixmap pointers are 32-bit aligned (John Harper, Torrey T. Lyons).
  794. Update the i810 2D driver and i830 3D drivers to recognise and handle
       the Intel 852GM/855GM integrated graphics chipsets (David Dawes,
       Keith Whitwell).
  793. Force extension-generated mode switches always occur (Marc La France).
  792. Fix OS/2 library build problem (Frank Giessler).
  791. Fix bug that at times prevented recognition of resources decoded on PCI
-      root busses (Marc La France).
+      root buses (Marc La France).
  790. Fix XDarwin's spurious transparent regions in rootless windows
       (Torrey T. Lyons).
  789. Fix bug in recognition of certain ix86 Host-to-PCI bridges
@@ -483,7 +2133,7 @@ XFree86 4.2.99.901 (4 February 2003)
       (#A.1539, Juergen Keil).
  773. Fix artifacts left by XDarwin when reshaping a shaped window (reported
       by Adrian Umpleby).
- 772. Fix XDarwin rootless crash when resizing a window (Apple).
+ 772. Fix XDarwin rootless crash when resizing a window (John Harper).
  771. Fix vbe module to not assume BIOS call results are zero-extended
       (Paulo Cesar Pereira de Andrade).
  770. Fix improper initialisation of pciConfigRec's.  Reported by Marcel
@@ -495,7 +2145,7 @@ XFree86 4.2.99.901 (4 February 2003)
       (reported by Alexis Vartanian).
 
 XFree86 4.2.99.4 (20 January 2003)
- 766. Fix XDarwin's rootless mode with 16-bit color (Apple).
+ 766. Fix XDarwin's rootless mode with 16-bit color (John Harper).
  765. Allow UTF8 conversion to work for Japanese locales (#A.1527,
       Etsushi Kato).
  764. Add a method for working around a problem that can show up when
@@ -16580,7 +18230,7 @@ XFree86 3.0a (28 April 1994)
 XFree86 3.0 (26 April 1994)
 
 
-$XFree86: xc/programs/Xserver/hw/xfree86/CHANGELOG,v 3.2588.2.13 2003/05/10 01:12:56 dawes Exp $
+$XFree86: xc/programs/Xserver/hw/xfree86/CHANGELOG,v 3.2982 2003/11/21 06:01:42 dawes Exp $
 
 
 

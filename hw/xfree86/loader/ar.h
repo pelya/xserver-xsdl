@@ -1,5 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/loader/ar.h,v 1.3 1998/07/25 16:56:12 dawes Exp $ */
-
+/* $XFree86: xc/programs/Xserver/hw/xfree86/loader/ar.h,v 1.4 2003/10/15 16:29:02 dawes Exp $ */
 
 #ifndef _AR_H
 #define _AR_H
@@ -10,13 +9,13 @@
 
 #if !(defined(__powerpc__) && defined(Lynx))
 struct ar_hdr {
-	char	ar_name[16],
-		ar_date[12],
-		ar_uid[6],
-		ar_gid[6],
-		ar_mode[8],
-		ar_size[10],
-		ar_fmag[2];
+    char ar_name[16];
+    char ar_date[12];
+    char ar_uid[6];
+    char ar_gid[6];
+    char ar_mode[8];
+    char ar_size[10];
+    char ar_fmag[2];
 };
 
 #else
@@ -25,35 +24,31 @@ struct ar_hdr {
 #define SAIAMAG 8
 #define AIAFMAG "`\n"
 
-struct fl_hdr		/* archive fixed length header - printable ascii */
-{
-	char	fl_magic[SAIAMAG];	/* Archive file magic string */
-	char	fl_memoff[12];		/* Offset to member table */
-	char	fl_gstoff[12];		/* Offset to global symbol table */
-	char	fl_fstmoff[12];		/* Offset to first archive member */
-	char	fl_lstmoff[12];		/* Offset to last archive member */
-	char	fl_freeoff[12];		/* Offset to first mem on free list */
+struct fl_hdr {			/* archive fixed length header - printable ascii */
+    char fl_magic[SAIAMAG];	/* Archive file magic string */
+    char fl_memoff[12];		/* Offset to member table */
+    char fl_gstoff[12];		/* Offset to global symbol table */
+    char fl_fstmoff[12];	/* Offset to first archive member */
+    char fl_lstmoff[12];	/* Offset to last archive member */
+    char fl_freeoff[12];	/* Offset to first mem on free list */
 };
 
 #define FL_HDR struct fl_hdr
 #define FL_HSZ sizeof(FL_HDR)
 
-
-struct ar_hdr		/* archive file member header - printable ascii */
-{
-	char	ar_size[12];	/* file member size - decimal */
-	char	ar_nxtmem[12];	/* pointer to next member -  decimal */
-	char	ar_prvmem[12];	/* pointer to previous member -  decimal */
-	char	ar_date[12];	/* file member date - decimal */
-	char	ar_uid[12];	/* file member user id - decimal */
-	char	ar_gid[12];	/* file member group id - decimal */
-	char	ar_mode[12];	/* file member mode - octal */
-	char	ar_namlen[4];	/* file member name length - decimal */
-	union
-	{
-		char	an_name[2];	/* variable length member name */
-		char	an_fmag[2];	/* AIAFMAG - string to end header */
-	}	_ar_name;		/*      and variable length name */
+struct ar_hdr {			/* archive file member header - printable ascii */
+    char ar_size[12];		/* file member size - decimal */
+    char ar_nxtmem[12];		/* pointer to next member -  decimal */
+    char ar_prvmem[12];		/* pointer to previous member -  decimal */
+    char ar_date[12];		/* file member date - decimal */
+    char ar_uid[12];		/* file member user id - decimal */
+    char ar_gid[12];		/* file member group id - decimal */
+    char ar_mode[12];		/* file member mode - octal */
+    char ar_namlen[4];		/* file member name length - decimal */
+    union {
+	char an_name[2];	/* variable length member name */
+	char an_fmag[2];	/* AIAFMAG - string to end header */
+    } _ar_name;			/*      and variable length name */
 };
 
 #define ar_name _ar_name.an_name
@@ -74,4 +69,3 @@ struct ar_hdr		/* archive file member header - printable ascii */
 #endif /* !__powerpc__ && Lynx */
 
 #endif /* _AR_H */
-

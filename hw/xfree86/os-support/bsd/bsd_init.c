@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/bsd/bsd_init.c,v 3.19 2002/05/05 18:54:02 herrb Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/bsd/bsd_init.c,v 3.22 2003/10/07 23:14:55 herrb Exp $ */
 /*
  * Copyright 1992 by Rich Murphey <Rich@Rice.edu>
  * Copyright 1993 by David Wexelblat <dwex@goblin.org>
@@ -38,8 +38,10 @@
 
 static Bool KeepTty = FALSE;
 static int devConsoleFd = -1;
+#if defined (SYSCONS_SUPPORT) || defined (PCVT_SUPPORT)
 static int VTnum = -1;
 static int initialVT = -1;
+#endif
 
 #ifdef PCCONS_SUPPORT
 /* Stock 0.1 386bsd pccons console driver interface */
@@ -146,10 +148,10 @@ void
 xf86OpenConsole()
 {
     int i, fd = -1;
-    int result;
-    struct utsname uts;
     xf86ConsOpen_t *driver;
 #if defined (SYSCONS_SUPPORT) || defined (PCVT_SUPPORT)
+    int result;
+    struct utsname uts;
     vtmode_t vtmode;
 #endif
     
@@ -158,7 +160,7 @@ xf86OpenConsole()
 	/* check if we are run with euid==0 */
 	if (geteuid() != 0)
 	{
-	    FatalError("xf86OpenConsole: Server must be suid root\n");
+	    FatalError("xf86OpenConsole: Server must be suid root");
 	}
 
 	if (!KeepTty)
@@ -196,7 +198,7 @@ xf86OpenConsole()
 		strcat(cons_drivers, supported_drivers[i]);
 	    }
 	    FatalError(
-		"%s: No console driver found\n\tSupported drivers: %s\n\t%s\n",
+		"%s: No console driver found\n\tSupported drivers: %s\n\t%s",
 		"xf86OpenConsole", cons_drivers, CHECK_DRIVER_MSG);
 	}
 #if 0 /* stdin is already closed in OsInit() */
@@ -211,7 +213,7 @@ xf86OpenConsole()
 	case PCCONS:
 	    if (ioctl (xf86Info.consoleFd, CONSOLE_X_MODE_ON, 0) < 0)
 	    {
-		FatalError("%s: CONSOLE_X_MODE_ON failed (%s)\n%s\n", 
+		FatalError("%s: CONSOLE_X_MODE_ON failed (%s)\n%s",
 			   "xf86OpenConsole", strerror(errno),
 			   CHECK_DRIVER_MSG);
 	    }
@@ -280,18 +282,18 @@ acquire_vt:
 	    vtmode.frsig = SIGUSR1;
 	    if (ioctl(xf86Info.consoleFd, VT_SETMODE, &vtmode) < 0) 
 	    {
-	        FatalError("xf86OpenConsole: VT_SETMODE VT_PROCESS failed\n");
+	        FatalError("xf86OpenConsole: VT_SETMODE VT_PROCESS failed");
 	    }
 #if !defined(USE_DEV_IO) && !defined(USE_I386_IOPL)
 	    if (ioctl(xf86Info.consoleFd, KDENABIO, 0) < 0)
 	    {
-	        FatalError("xf86OpenConsole: KDENABIO failed (%s)\n",
+	        FatalError("xf86OpenConsole: KDENABIO failed (%s)",
 		           strerror(errno));
 	    }
 #endif
 	    if (ioctl(xf86Info.consoleFd, KDSETMODE, KD_GRAPHICS) < 0)
 	    {
-	        FatalError("xf86OpenConsole: KDSETMODE KD_GRAPHICS failed\n");
+	        FatalError("xf86OpenConsole: KDSETMODE KD_GRAPHICS failed");
 	    }
    	    break; 
 #endif /* SYSCONS_SUPPORT || PCVT_SUPPORT */
@@ -335,7 +337,7 @@ xf86OpenPccons()
 	if (ioctl(fd, CONSOLE_X_MODE_OFF, 0) < 0)
 	{
 	    FatalError(
-		"%s: CONSOLE_X_MODE_OFF failed (%s)\n%s\n%s\n",
+		"%s: CONSOLE_X_MODE_OFF failed (%s)\n%s\n%s",
 		"xf86OpenPccons",
 		strerror(errno),
 		"Was expecting pccons driver with X support",
@@ -425,11 +427,11 @@ xf86OpenSyscons()
 		    {
 			if (syscons_version >= 0x100)
 			{
-			    FatalError("%s: Cannot find a free VT\n",
+			    FatalError("%s: Cannot find a free VT",
 				       "xf86OpenSyscons");
 			}
 			/* Should no longer reach here */
-			FatalError("%s: %s %s\n\t%s %s\n",
+			FatalError("%s: %s %s\n\t%s %s",
 				   "xf86OpenSyscons",
 				   "syscons versions prior to 1.0 require",
 				   "either the",
@@ -448,18 +450,18 @@ xf86OpenSyscons()
 #endif	    
 	    if ((fd = open(vtname, SYSCONS_CONSOLE_MODE, 0)) < 0)
 	    {
-		FatalError("xf86OpenSyscons: Cannot open %s (%s)\n",
+		FatalError("xf86OpenSyscons: Cannot open %s (%s)",
 			   vtname, strerror(errno));
 	    }
 	    if (ioctl(fd, VT_GETMODE, &vtmode) < 0)
 	    {
-		FatalError("xf86OpenSyscons: VT_GETMODE failed\n");
+		FatalError("xf86OpenSyscons: VT_GETMODE failed");
 	    }
 	    xf86Info.consType = SYSCONS;
 	    xf86Msg(X_PROBED, "Using syscons driver with X support");
 	    if (syscons_version >= 0x100)
 	    {
-		xf86ErrorF(" (version %d.%d)\n", syscons_version >> 8,
+		xf86ErrorF(" (version %ld.%ld)\n", syscons_version >> 8,
 			   syscons_version & 0xFF);
 	    }
 	    else
@@ -513,7 +515,7 @@ xf86OpenPcvt()
 	{
 	    if(ioctl(fd, VT_GETMODE, &vtmode) < 0)
 	    {
-		FatalError("%s: VT_GETMODE failed\n%s%s\n%s\n",
+		FatalError("%s: VT_GETMODE failed\n%s%s\n%s",
 			   "xf86OpenPcvt",
 			   "Found pcvt driver but X11 seems to be",
 			   " not supported.", CHECK_DRIVER_MSG);
@@ -552,7 +554,7 @@ xf86OpenPcvt()
 		    }
 		    else
 		    {
-			FatalError("%s: Cannot find a free VT\n",
+			FatalError("%s: Cannot find a free VT",
 				   "xf86OpenPcvt");
 		    }
 		}
@@ -562,12 +564,12 @@ xf86OpenPcvt()
             sprintf(vtname, "%s%01x", vtprefix, xf86Info.vtno - 1);
 	    if ((fd = open(vtname, PCVT_CONSOLE_MODE, 0)) < 0)
 	    {
-		FatalError("xf86OpenPcvt: Cannot open %s (%s)\n",
+		FatalError("xf86OpenPcvt: Cannot open %s (%s)",
 			   vtname, strerror(errno));
 	    }
 	    if (ioctl(fd, VT_GETMODE, &vtmode) < 0)
 	    {
-		FatalError("xf86OpenPcvt: VT_GETMODE failed\n");
+		FatalError("xf86OpenPcvt: VT_GETMODE failed");
 	    }
 	    xf86Info.consType = PCVT;
 #ifdef WSCONS_SUPPORT
@@ -614,7 +616,7 @@ xf86OpenWScons()
     }
     if (fd != -1) {
 	if (ioctl(fd, WSDISPLAYIO_SMODE, &mode) < 0) {
-	    FatalError("%s: WSDISPLAYIO_MODE_MAPPED failed (%s)\n%s\n", 
+	    FatalError("%s: WSDISPLAYIO_MODE_MAPPED failed (%s)\n%s",
 		       "xf86OpenConsole", strerror(errno),
 		       CHECK_DRIVER_MSG);
 	}
@@ -652,7 +654,7 @@ xf86CloseConsole()
 #if !defined(USE_DEV_IO) && !defined(USE_I386_IOPL)
         if (ioctl(xf86Info.consoleFd, KDDISABIO, 0) < 0)
         {
-            xf86FatalError("xf86CloseConsole: KDDISABIO failed (%s)\n",
+            xf86FatalError("xf86CloseConsole: KDDISABIO failed (%s)",
 	                   strerror(errno));
         }
 #endif
@@ -676,7 +678,7 @@ xf86CloseConsole()
 	close(xf86Info.consoleFd);
 	if ((xf86Info.consoleFd = open("/dev/console",O_RDONLY,0)) <0)
 	{
-	    xf86FatalError("xf86CloseConsole: Cannot open /dev/console (%s)\n",
+	    xf86FatalError("xf86CloseConsole: Cannot open /dev/console (%s)",
 			   strerror(errno));
 	}
     }

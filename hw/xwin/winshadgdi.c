@@ -27,7 +27,7 @@
  *
  * Authors:	Harold L Hunt II
  */
-/* $XFree86: xc/programs/Xserver/hw/xwin/winshadgdi.c,v 1.22 2003/02/12 15:01:38 alanh Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xwin/winshadgdi.c,v 1.23 2003/07/29 21:25:18 dawes Exp $ */
 
 #include "win.h"
 
@@ -216,7 +216,7 @@ winRedrawAllProcShadowGDI (HWND hwnd, LPARAM lParam)
 
   if (GetClassName (hwnd, strClassName, 100))
     {
-      if(strcmp (WINDOW_CLASS_X, strClassName) == 0)
+      if (strncmp (WINDOW_CLASS_X, strClassName, strlen (WINDOW_CLASS_X)) == 0)
 	{
 	  InvalidateRect (hwnd, NULL, FALSE);
 	  UpdateWindow (hwnd);
@@ -321,6 +321,17 @@ winAllocateFBShadowGDI (ScreenPtr pScreen)
     {
       ErrorF ("winAllocateFBShadowGDI - Shadow blit failure\n");
       return FALSE;
+    }
+
+  /* Look for height weirdness */
+  if (dibsection.dsBmih.biHeight < 0)
+    {
+      /* FIXME: Figure out why biHeight is sometimes negative */
+      ErrorF ("winAllocateFBShadowGDI - WEIRDNESS - biHeight "
+	      "still negative: %d\n"
+	      "winAllocateFBShadowGDI - WEIRDNESS - Flipping biHeight sign\n",
+	      dibsection.dsBmih.biHeight);
+      dibsection.dsBmih.biHeight = -dibsection.dsBmih.biHeight;
     }
 
   /* Set screeninfo stride */
@@ -514,6 +525,17 @@ winCloseScreenShadowGDI (int nIndex, ScreenPtr pScreen)
 
   /* Free the screen DC */
   ReleaseDC (pScreenPriv->hwndScreen, pScreenPriv->hdcScreen);
+
+  /* Delete tray icon, if we have one */
+  if (!pScreenInfo->fNoTrayIcon)
+    winDeleteNotifyIcon (pScreenPriv);
+
+  /* Free the exit confirmation dialog box, if it exists */
+  if (g_hDlgExit != NULL)
+    {
+      DestroyWindow (g_hDlgExit);
+      g_hDlgExit = NULL;
+    }
 
   /* Kill our window */
   if (pScreenPriv->hwndScreen)

@@ -26,7 +26,7 @@
  *
  * Author: Paulo César Pereira de Andrade <pcpa@conectiva.com.br>
  *
- * $XFree86: xc/programs/Xserver/hw/xfree86/xf86cfg/expert.c,v 1.14 2003/02/07 05:46:53 paulo Exp $
+ * $XFree86: xc/programs/Xserver/hw/xfree86/xf86cfg/expert.c,v 1.15 2003/11/03 05:11:58 tsi Exp $
  */
 
 #include "config.h"
@@ -498,12 +498,12 @@ CreateFiles(TreeNode *files)
 static void
 CreateFilesField(TreeNode *node, char *name, char *value)
 {
-    Widget box, label, text;
+    Widget box, text;
 
     box = XtVaCreateManagedWidget(name, boxWidgetClass, tree,
 				  XtNtreeParent, node->node, NULL, 0);
     node->node = box;
-    label = XtVaCreateManagedWidget("label", labelWidgetClass, box,
+    (void) XtVaCreateManagedWidget("label", labelWidgetClass, box,
 				    XtNlabel, name, NULL, 0);
     text = XtVaCreateManagedWidget("value", asciiTextWidgetClass, box,
 				   XtNeditType, XawtextEdit, XtNstring, value,
@@ -542,7 +542,6 @@ static void
 CreateFontPath(TreeNode *fontpath, char *path)
 {
     TreeNode *prev = NULL, *node;
-    Widget w;
 
     if (path == NULL) {
 	if (XF86Font_path) {
@@ -568,7 +567,7 @@ CreateFontPath(TreeNode *fontpath, char *path)
 	for (s = strtok(path, ","); s != NULL; s = strtok(NULL, ",")) {
 	    node = NewNode(fontpath, NULL, NULL, fontpath->node, NULL);
 	    node->destroy = FontPathChanged;
-	    w = CreateFontPathField(node, s, False);
+	    (void) CreateFontPathField(node, s, False);
 	    if (fontpath->child == NULL)
 		fontpath->child = node;
 	    else
@@ -579,7 +578,7 @@ CreateFontPath(TreeNode *fontpath, char *path)
     }
 
     node = NewNode(fontpath, NULL, NULL, fontpath->node, NULL);
-    w = CreateFontPathField(node, "", True);
+    (void) CreateFontPathField(node, "", True);
     if (fontpath->child == NULL)
 	fontpath->child = node;
     else
@@ -719,7 +718,6 @@ static void
 CreateModulePath(TreeNode *modulepath, char *path)
 {
     TreeNode *prev = NULL, *node;
-    Widget w;
 
     if (path == NULL) {
 	if (XF86Module_path) {
@@ -745,7 +743,7 @@ CreateModulePath(TreeNode *modulepath, char *path)
 	for (s = strtok(path, ","); s != NULL; s = strtok(NULL, ",")) {
 	    node = NewNode(modulepath, NULL, NULL, modulepath->node, NULL);
 	    node->destroy = ModulePathChanged;
-	    w = CreateModulePathField(node, s, False);
+	    (void) CreateModulePathField(node, s, False);
 	    if (modulepath->child == NULL)
 		modulepath->child = node;
 	    else
@@ -756,7 +754,7 @@ CreateModulePath(TreeNode *modulepath, char *path)
     }
 
     node = NewNode(modulepath, NULL, NULL, modulepath->node, NULL);
-    w = CreateModulePathField(node, "", True);
+    (void) CreateModulePathField(node, "", True);
     if (modulepath->child == NULL)
 	modulepath->child = node;
     else
@@ -2130,7 +2128,7 @@ CreateMonitorModes(TreeNode *parent, XF86ConfModesLinkPtr lnk)
 static void
 CreateMonitorModesField(TreeNode *node, Bool addnew)
 {
-    Widget box, command, label;
+    Widget box, command;
 
     box = XtVaCreateWidget("modes", formWidgetClass, tree,
 			   XtNtreeParent, node->treeParent, NULL, 0);
@@ -2142,7 +2140,7 @@ CreateMonitorModesField(TreeNode *node, Bool addnew)
 	command = XtCreateManagedWidget("remove", commandWidgetClass, box,
 					NULL, 0);
 	XtAddCallback(command, XtNcallback, DestroyCallback, (XtPointer)node);
-	label = XtVaCreateManagedWidget("mode", labelWidgetClass, box,
+	(void) XtVaCreateManagedWidget("mode", labelWidgetClass, box,
 					XtNlabel, lnk->ml_modes_str, NULL, 0);
     }
     else {
@@ -2983,7 +2981,7 @@ CreateScreenAdaptor(TreeNode *parent, XF86ConfAdaptorLinkPtr lnk)
 static void
 CreateScreenAdaptorField(TreeNode *node, Bool addnew)
 {
-    Widget box, command, label;
+    Widget box, command;
 
     box = XtVaCreateWidget("adaptor", formWidgetClass, tree,
 			   XtNtreeParent, node->treeParent, NULL, 0);
@@ -2995,7 +2993,7 @@ CreateScreenAdaptorField(TreeNode *node, Bool addnew)
 	command = XtCreateManagedWidget("remove", commandWidgetClass, box,
 					NULL, 0);
 	XtAddCallback(command, XtNcallback, DestroyCallback, (XtPointer)node);
-	label = XtVaCreateManagedWidget("label", labelWidgetClass, box,
+	(void) XtVaCreateManagedWidget("label", labelWidgetClass, box,
 					XtNlabel, lnk->al_adaptor_str, NULL, 0);
     }
     else {
@@ -3756,7 +3754,7 @@ CreateAdjacency(TreeNode *parent, XF86ConfAdjacencyPtr adj)
 static void
 CreateAdjacencyField(TreeNode *node, Bool addnew)
 {
-    Widget box, command, label, sme;
+    Widget box, command, sme;
     XF86ConfScreenPtr ptr = XF86Config->conf_screen_lst;
 
     box = XtVaCreateWidget("adjacency", formWidgetClass, tree,
@@ -3786,7 +3784,7 @@ CreateAdjacencyField(TreeNode *node, Bool addnew)
 	command = XtCreateManagedWidget("remove", commandWidgetClass, box,
 					NULL, 0);
 	XtAddCallback(command, XtNcallback, DestroyCallback, (XtPointer)node);
-	label = XtVaCreateManagedWidget("label", labelWidgetClass, box,
+	(void) XtVaCreateManagedWidget("label", labelWidgetClass, box,
 					XtNlabel, adj->adj_screen->scrn_identifier,
 					NULL, 0);
 

@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/os/oscolor.c,v 3.8 2002/05/31 18:46:06 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/os/oscolor.c,v 3.11 2003/09/24 02:43:36 dawes Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -70,10 +70,13 @@ DBM *rgb_dbm = (DBM *)NULL;
 int rgb_dbm = 0;
 #endif
 
-extern void CopyISOLatin1Lowered();
+extern void CopyISOLatin1Lowered(
+    unsigned char * /*dest*/,
+    unsigned char * /*source*/,
+    int /*length*/);
 
 int
-OsInitColors()
+OsInitColors(void)
 {
     if (!rgb_dbm)
     {
@@ -93,12 +96,8 @@ OsInitColors()
 
 /*ARGSUSED*/
 int
-OsLookupColor(screen, name, len, pred, pgreen, pblue)
-    int		screen;
-    char	*name;
-    unsigned	len;
-    unsigned short	*pred, *pgreen, *pblue;
-
+OsLookupColor(int screen, char *name, unsigned int len, 
+    unsigned short *pred, unsigned short *pgreen, unsigned short *pblue)
 {
     datum		dbent;
     RGB			rgb;
@@ -164,23 +163,23 @@ typedef struct _dbEntry {
 } dbEntry;
 
 
-extern void CopyISOLatin1Lowered();
+extern void CopyISOLatin1Lowered(
+    unsigned char * /*dest*/,
+    unsigned char * /*source*/,
+    int /*length*/);
 
 static dbEntryPtr hashTab[HASHSIZE];
 
 
 static dbEntryPtr
-lookup(name, len, create)
-     char *name;
-     int  len;
-     Bool create;
+lookup(char *name, int len, Bool create)
 {
   unsigned int h = 0, g;
   dbEntryPtr   entry, *prev = NULL;
   char         *str = name;
 
   if (!(name = (char*)ALLOCATE_LOCAL(len +1))) return NULL;
-  CopyISOLatin1Lowered(name, str, len);
+  CopyISOLatin1Lowered((unsigned char *)name, (unsigned char *)str, len);
   name[len] = '\0';
 
   for(str = name; *str; str++) {
@@ -212,7 +211,7 @@ lookup(name, len, create)
 
 
 Bool
-OsInitColors()
+OsInitColors(void)
 {
   FILE       *rgb;
   char       *path;
@@ -281,12 +280,8 @@ OsInitColors()
 
 
 Bool
-OsLookupColor(screen, name, len, pred, pgreen, pblue)
-    int		   screen;
-    char	   *name;
-    unsigned	   len;
-    unsigned short *pred, *pgreen, *pblue;
-
+OsLookupColor(int screen, char *name, unsigned int len, 
+    unsigned short *pred, unsigned short *pgreen, unsigned short *pblue)
 {
   dbEntryPtr entry;
 

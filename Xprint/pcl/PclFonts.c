@@ -13,6 +13,7 @@
 **    *********************************************************
 ** 
 ********************************************************************/
+/* $XFree86: xc/programs/Xserver/Xprint/pcl/PclFonts.c,v 1.2 2003/07/16 01:38:34 dawes Exp $ */
 /*
 (c) Copyright 1996 Hewlett-Packard Company
 (c) Copyright 1996 International Business Machines Corp.
@@ -45,7 +46,7 @@ dealings in this Software without prior written authorization from said
 copyright holders.
 */
 
-#include "miscstruct.h"
+#include "regionstr.h"
 #include "fontstruct.h"
 #include "dixfontstr.h"
 #include "scrnintstr.h"

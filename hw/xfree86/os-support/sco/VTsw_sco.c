@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/sco/VTsw_sco.c,v 1.3 2001/06/30 22:41:49 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/sco/VTsw_sco.c,v 1.4 2003/07/07 15:34:27 eich Exp $ */
 /*
  * Copyright 1993 by David Wexelblat <dwex@goblin.org>
  * Copyright 1993 by David McCullough <davidm@stallion.oz.au>
@@ -72,6 +72,7 @@ xf86VTSwitchAway()
 {
   ev_flush();
   ev_suspend();
+
   sco_ledstatus = ioctl(xf86Info.consoleFd, KDGETLED, &sco_ledstate);
 
   xf86Info.vtRequestsPending = FALSE;
@@ -97,7 +98,7 @@ xf86VTSwitchTo()
     return(FALSE);
   } else {
     if (sco_ledstatus >= 0) {
-      ioctl (xf86Info.consoleFd, KDSETLED, &sco_ledstate);
+      ioctl (xf86Info.consoleFd, KDSETLED, sco_ledstate);
     }
     sco_ledstatus = -1;
 

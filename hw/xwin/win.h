@@ -31,7 +31,7 @@
  *		Harold L Hunt II
  *		Kensuke Matsuzaki
  */
-/* $XFree86: xc/programs/Xserver/hw/xwin/win.h,v 1.34 2003/02/12 15:01:38 alanh Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xwin/win.h,v 1.38 2003/10/08 11:13:02 eich Exp $ */
 
 #ifndef _WIN_H_
 #define _WIN_H_
@@ -93,8 +93,14 @@
 				| (1 << ( 8 - 1)))
 #define WIN_CHECK_DEPTH		YES
 
+/*
+ * Timer IDs for WM_TIMER
+ */
+#define WIN_E3B_TIMER_ID		1
+#define WIN_POLLING_MOUSE_TIMER_ID	2
+
+
 #define WIN_E3B_OFF		-1
-#define WIN_E3B_TIMER_ID	1
 #define WIN_FD_INVALID		-1
 
 #define WIN_SERVER_NONE		0x0L	/* 0 */
@@ -144,7 +150,6 @@
 #include "pixmapstr.h"
 #include "pixmap.h"
 #include "region.h"
-#include "regionstr.h"
 #include "gcstruct.h"
 #include "colormap.h"
 #include "colormapst.h"
@@ -181,6 +186,15 @@
  * Windows headers
  */
 #include "winms.h"
+
+
+/*
+ * Define Windows constants
+ */
+
+#define WM_TRAYICON		(WM_USER + 1000)
+#define WM_INIT_SYS_MENU	(WM_USER + 1001)
+#define WM_GIVEUP		(WM_USER + 1002)
 
 
 /*
@@ -222,7 +236,7 @@ if (fDebugProcMsg) \
 #define DEBUG_MSG(str,...)
 #endif
 
-#if CYGDEBUG || YES
+#if CYGDEBUG
 #define DEBUG_FN_NAME(str) PTSTR szFunctionName = str
 #else
 #define DEBUG_FN_NAME(str)
@@ -387,6 +401,7 @@ typedef struct
   Bool			fClipboard;
   Bool			fLessPointer;
   Bool			fScrollbars;
+  Bool			fNoTrayIcon;
   int			iE3BTimeout;
   /* Windows (Alt+F4) and Unix (Ctrl+Alt+Backspace) Killkey */
   Bool                  fUseWinKillKey;
@@ -421,6 +436,9 @@ typedef struct _winPrivScreenRec
   DWORD			dwBitsPerRGB;
 
   DWORD			dwModeKeyStates;
+
+  /* Handle to icons that must be freed */
+  HICON			hiconNotifyIcon;
 
   /* Clipboard support */
   pthread_t		ptClipboardProc;
@@ -482,7 +500,11 @@ typedef struct _winPrivScreenRec
 
   /* Privates used by multi-window server */
   pthread_t		ptWMProc;
+  pthread_t		ptXMsgProc;
   void			*pWMInfo;
+  Bool                  fWindowOrderChanged;
+  Bool                  fRestacking;
+  Bool			fRootWindowShown;
 
   /* Privates used for any module running in a seperate thread */
   pthread_mutex_t	pmServerStarted;
@@ -531,6 +553,12 @@ typedef struct _winPrivScreenRec
 } winPrivScreenRec;
 
 
+typedef struct {
+  pointer		value;
+  XID			id;
+} WindowIDPairRec, *WindowIDPairPtr;
+
+
 /*
  * Extern declares for general global variables
  */
@@ -549,6 +577,10 @@ extern CARD32			g_c32LastInputEventTime;
 extern DWORD			g_dwEnginesSupported;
 extern HINSTANCE		g_hInstance;
 extern HWND			g_hDlgDepthChange;
+extern HWND			g_hDlgExit;
+extern int                      g_copyROP[];
+extern int                      g_patternROP[];
+extern const char *		g_pszQueryHost;
 
 
 /*
@@ -703,6 +735,13 @@ winInitClipboard (pthread_t *ptClipboardProc,
 		  pthread_mutex_t *ppmServerStarted,
 		  DWORD dwScreen);
 
+/*
+ * winclipboardthread.c
+ */
+
+void
+winDeinitClipboard ();
+
 
 /*
  * wincmap.c
@@ -769,6 +808,18 @@ winCursorOffScreen (ScreenPtr *ppScreen, int *x, int *y);
 
 void
 winCrossScreen (ScreenPtr pScreen, Bool fEntering);
+
+
+/*
+ * windialogs.c
+ */
+
+void
+winDisplayExitDialog (winPrivScreenPtr pScreenPriv);
+
+
+void
+winDisplayDepthChangeDialog (winPrivScreenPtr pScreenPriv);
 
 
 /*
@@ -1377,6 +1428,33 @@ winSetShapePRootless (WindowPtr pWindow);
 
 
 /*
+ * winmultiwindowicons.c
+ */
+
+HICON
+winXIconToHICON (WindowPtr pWin);
+
+void
+winUpdateIcon (Window id);
+
+
+/*
+ * winmultiwindowshape.c
+ */
+
+#ifdef SHAPE
+void
+winReshapeMultiWindow (WindowPtr pWin);
+
+void
+winSetShapeMultiWindow (WindowPtr pWindow);
+
+void
+winUpdateRgnMultiWindow (WindowPtr pWindow);
+#endif
+
+
+/*
  * winmultiwindowwindow.c
  */
 
@@ -1404,10 +1482,42 @@ winReparentWindowMultiWindow (WindowPtr pWin, WindowPtr pPriorParent);
 void
 winRestackWindowMultiWindow (WindowPtr pWin, WindowPtr pOldNextSib);
 
-#ifdef SHAPE
 void
-winSetShapeMultiWindow (WindowPtr pWindow);
-#endif
+winReorderWindowsMultiWindow (ScreenPtr pScreen);
+
+void
+winMoveXWindow (WindowPtr pWin, int x, int y);
+
+void
+winResizeXWindow (WindowPtr pWin, int w, int h);
+
+XID
+winGetWindowID (WindowPtr pWin);
+
+
+/*
+ * winmultiwindowwndproc.c
+ */
+
+LRESULT CALLBACK
+winTopLevelWindowProc (HWND hwnd, UINT message, 
+		       WPARAM wParam, LPARAM lParam);
+
+
+/*
+ * wintrayicon.c
+ */
+
+void
+winInitNotifyIcon (winPrivScreenPtr pScreenPriv);
+
+void
+winDeleteNotifyIcon (winPrivScreenPtr pScreenPriv);
+
+LRESULT
+winHandleIconMessage (HWND hwnd, UINT message,
+		      WPARAM wParam, LPARAM lParam,
+		      winPrivScreenPtr pScreenPriv);
 
 
 /*

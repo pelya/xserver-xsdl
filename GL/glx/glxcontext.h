@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/GL/glx/glxcontext.h,v 1.4 2002/02/22 21:45:07 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/GL/glx/glxcontext.h,v 1.5 2003/09/28 20:15:43 alanh Exp $ */
 #ifndef _GLX_context_h_
 #define _GLX_context_h_
 
@@ -54,7 +54,8 @@ struct __GLXcontextRec {
     /*
     ** list of contexts bound to the same drawable
     */
-    struct __GLXcontextRec *nextPriv;
+    struct __GLXcontextRec *nextDrawPriv;
+    struct __GLXcontextRec *nextReadPriv;
 
     /*
     ** Opaque pointer the context object created by the GL that the
@@ -142,12 +143,14 @@ struct __GLXcontextRec {
     /*
     ** Set only if current drawable is a glx pixmap.
     */
-    __GLXpixmap *pGlxPixmap;
+    __GLXpixmap *drawPixmap;
+    __GLXpixmap *readPixmap;
 
     /*
     ** The drawable private this context is bound to
     */
-    __GLXdrawablePrivate *glxPriv;
+    __GLXdrawablePrivate *drawPriv;
+    __GLXdrawablePrivate *readPriv;
 };
 
 /* pending state defines */

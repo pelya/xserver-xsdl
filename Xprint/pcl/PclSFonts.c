@@ -45,7 +45,7 @@ not be used in advertising or otherwise to promote the sale, use or other
 dealings in this Software without prior written authorization from said
 copyright holders.
 */
-/* $XFree86: xc/programs/Xserver/Xprint/pcl/PclSFonts.c,v 1.6 2001/10/28 03:32:55 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/Xprint/pcl/PclSFonts.c,v 1.7 2003/10/29 22:11:00 tsi Exp $ */
 
 
 #include <stdio.h>
@@ -151,7 +151,7 @@ PclDestroySoftFontInfo( PclSoftFontInfoPtr pSoftFontInfo )
 PclFontHead8Ptr  pfh8,  pfh8_next;
 PclFontHead16Ptr pfh16, pfh16_next;
 PclInternalFontPtr pin, pin_next;
-unsigned char nindex_row, nindex_col;
+unsigned char nindex_row;
 int i;
 
     if ( pSoftFontInfo == (PclSoftFontInfoPtr) NULL )
@@ -169,7 +169,6 @@ int i;
     pfh16 = pSoftFontInfo->phead16;
     while (pfh16 != (PclFontHead16Ptr) NULL) {
 	xfree(pfh16->fontname);
-	nindex_col = pfh16->lastCol - pfh16->firstCol + 1;
 	nindex_row = pfh16->lastRow - pfh16->firstRow + 1;
 	for (i=0; i<nindex_row; i++)
 	    xfree(pfh16->index[i]);

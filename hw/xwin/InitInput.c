@@ -26,9 +26,10 @@
   from The Open Group.
 
 */
-/* $XFree86: xc/programs/Xserver/hw/xwin/InitInput.c,v 1.12 2003/02/12 15:01:38 alanh Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xwin/InitInput.c,v 1.13 2003/07/29 21:25:15 dawes Exp $ */
 
 #include "win.h"
+#include "../../Xext/xf86miscproc.h"
 
 CARD32		g_c32LastInputEventTime = 0;
 
@@ -116,6 +117,34 @@ InitInput (int argc, char *argv[])
       /* Add the message queue as a device to wait for in WaitForSomething */
       AddEnabledDevice (g_fdMessageQueue);
     }
+
+#if 0
+  {
+    MiscExtReturn ret;
+    pointer kbd;
+    
+#if 0
+    if ((kbd = MiscExtCreateStruct(MISC_KEYBOARD)) == (pointer) 0)
+      return BadAlloc;
+#else
+    kbd = MiscExtCreateStruct (MISC_KEYBOARD);
+#endif
+    
+    MiscExtSetKbdValue(kbd, MISC_KBD_TYPE,	        0);
+    MiscExtSetKbdValue(kbd, MISC_KBD_RATE,		0);
+    MiscExtSetKbdValue(kbd, MISC_KBD_DELAY,		0);
+    MiscExtSetKbdValue(kbd, MISC_KBD_SERVNUMLOCK,	0);
+    
+    switch ((ret = MiscExtApply (kbd, MISC_KEYBOARD)))
+      {
+      case MISC_RET_SUCCESS:      break;
+      case MISC_RET_BADVAL:
+      case MISC_RET_BADKBDTYPE:
+      default:
+	ErrorF ("Unexpected return from MiscExtApply(KEYBOARD) = %d\n", ret);
+      }
+  }
+#endif
 
 #if CYGDEBUG
   ErrorF ("InitInput - returning\n");

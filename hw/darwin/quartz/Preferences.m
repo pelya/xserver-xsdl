@@ -3,10 +3,43 @@
 //
 //  This class keeps track of the user preferences.
 //
-/* $XFree86: xc/programs/Xserver/hw/darwin/quartz/Preferences.m,v 1.2 2003/01/15 02:34:06 torrey Exp $ */
+/*
+ * Copyright (c) 2002-2003 Torrey T. Lyons. All Rights Reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+ * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE ABOVE LISTED COPYRIGHT HOLDER(S) BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ * Except as contained in this notice, the name(s) of the above copyright
+ * holders shall not be used in advertising or otherwise to promote the
+ * sale, use or other dealings in this Software without prior written
+ * authorization.
+ */
+/* $XFree86: xc/programs/Xserver/hw/darwin/quartz/Preferences.m,v 1.4 2003/09/16 00:36:12 torrey Exp $ */
+
+#import "quartzCommon.h"
+
+#define BOOL xBOOL
+#include "darwin.h"
+#undef BOOL
 
 #import "Preferences.h"
-#import "quartzCommon.h"
+
 #include <IOKit/hidsystem/IOLLEvent.h>	// for modifier masks
 
 // Macros to build the path name
@@ -36,8 +69,8 @@
         @"YES", @"ShowStartupHelp",
         [NSNumber numberWithInt:0], @"SwitchKeyCode",
         [NSNumber numberWithInt:(NSCommandKeyMask | NSAlternateKeyMask)],
-        @"SwitchModifiers", @"NO", @"UseSystemBeep", 
-        @"YES", @"DockSwitch", 
+        @"SwitchModifiers", @"NO", @"UseSystemBeep",
+        @"YES", @"DockSwitch",
         @"NO", @"AllowMouseAccelChange",
         [NSNumber numberWithInt:qdCursor_Not8Bit], @"UseQDCursor",
         @"YES", @"Xinerama",
@@ -45,7 +78,13 @@
         [NSString stringWithCString:XSTRPATH(XBINDIR)], @"AddToPathString",
         @"YES", @"UseDefaultShell",
         @"/bin/tcsh", @"Shell",
-        [NSNumber numberWithInt:depth_Current], @"Depth", nil];
+        [NSNumber numberWithInt:depth_Current], @"Depth",
+#ifdef BUILD_XPR
+        [NSArray arrayWithObjects:@"xpr.bundle", @"cr.bundle", nil],
+#else
+        [NSArray arrayWithObjects:@"cr.bundle", nil],
+#endif
+        @"DisplayModeBundles", nil];
 
     [super initialize];
     [[NSUserDefaults standardUserDefaults] registerDefaults:appDefaults];
@@ -207,7 +246,7 @@
     [switchString setString:@""];
 }
 
-- (BOOL)sendEvent:(NSEvent*)anEvent
+- (BOOL)sendEvent:(NSEvent *)anEvent
 {
     if(isGettingKeyCode) {
         if([anEvent type]==NSKeyDown) // wait for keyup
@@ -240,7 +279,7 @@
     return NO;
 }
 
-+ (void)setKeymapFile:(NSString*)newFile
++ (void)setKeymapFile:(NSString *)newFile
 {
     [[NSUserDefaults standardUserDefaults] setObject:newFile
             forKey:@"KeymappingFile"];
@@ -252,7 +291,7 @@
             forKey:@"UseKeymappingFile"];
 }
 
-+ (void)setSwitchString:(NSString*)newString
++ (void)setSwitchString:(NSString *)newString
 {
     [[NSUserDefaults standardUserDefaults] setObject:newString
             forKey:@"SwitchString"];
@@ -311,7 +350,7 @@
     [[NSUserDefaults standardUserDefaults] setBool:newMouseAccelChange
             forKey:@"AllowMouseAccelChange"];
     // Update the setting used by the X server thread
-    quartzMouseAccelChange = newMouseAccelChange;
+    darwinMouseAccelChange = newMouseAccelChange;
 }
 
 + (void)setUseQDCursor:(int)newUseQDCursor
@@ -364,7 +403,7 @@
             forKey:@"AddToPath"];
 }
 
-+ (void)setAddToPathString:(NSString*)newAddToPathString
++ (void)setAddToPathString:(NSString *)newAddToPathString
 {
     [[NSUserDefaults standardUserDefaults] setObject:newAddToPathString
             forKey:@"AddToPathString"];
@@ -376,7 +415,7 @@
             forKey:@"UseDefaultShell"];
 }
 
-+ (void)setShellString:(NSString*)newShellString
++ (void)setShellString:(NSString *)newShellString
 {
     [[NSUserDefaults standardUserDefaults] setObject:newShellString
             forKey:@"Shell"];
@@ -386,6 +425,12 @@
 {
     [[NSUserDefaults standardUserDefaults] setInteger:newDepth
             forKey:@"Depth"];
+}
+
++ (void)setDisplayModeBundles:(NSArray *)newBundles
+{
+    [[NSUserDefaults standardUserDefaults] setObject:newBundles
+            forKey:@"DisplayModeBundles"];
 }
 
 + (void)saveToDisk
@@ -399,13 +444,13 @@
                 boolForKey:@"UseKeymappingFile"];
 }
 
-+ (NSString*)keymapFile
++ (NSString *)keymapFile
 {
     return [[NSUserDefaults standardUserDefaults]
                 stringForKey:@"KeymappingFile"];
 }
 
-+ (NSString*)switchString
++ (NSString *)switchString
 {
     return [[NSUserDefaults standardUserDefaults]
                 stringForKey:@"SwitchString"];
@@ -502,7 +547,7 @@
     return [[NSUserDefaults standardUserDefaults] boolForKey:@"AddToPath"];
 }
 
-+ (NSString*)addToPathString
++ (NSString *)addToPathString
 {
     return [[NSUserDefaults standardUserDefaults]
                 stringForKey:@"AddToPathString"];
@@ -514,7 +559,7 @@
                 boolForKey:@"UseDefaultShell"];
 }
 
-+ (NSString*)shellString
++ (NSString *)shellString
 {
     return [[NSUserDefaults standardUserDefaults]
                 stringForKey:@"Shell"];
@@ -526,5 +571,10 @@
                 integerForKey:@"Depth"];
 }
 
++ (NSArray *)displayModeBundles
+{
+    return [[NSUserDefaults standardUserDefaults]
+                objectForKey:@"DisplayModeBundles"];
+}
 
 @end

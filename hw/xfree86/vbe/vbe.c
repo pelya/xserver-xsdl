@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/vbe/vbe.c,v 1.1 2003/02/17 17:06:45 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/vbe/vbe.c,v 1.3 2003/11/03 05:11:53 tsi Exp $ */
 
 /*
  *                   XFree86 vbe module
@@ -106,11 +106,13 @@ VBEExtendedInit(xf86Int10InfoPtr pInt, int entityIndex, int Flags)
     }
     
     xf86DrvMsgVerb(screen, X_INFO, 4,
-		"VbeVersion is %d, OemStringPtr is 0x%08x,\n"
-		"\tOemVendorNamePtr is 0x%08x, OemProductNamePtr is 0x%08x,\n"
-		"\tOemProductRevPtr is 0x%08x\n",
-		vbe->VbeVersion, vbe->OemStringPtr, vbe->OemVendorNamePtr,
-		vbe->OemProductNamePtr, vbe->OemProductRevPtr);
+		"VbeVersion is %d, OemStringPtr is 0x%08lx,\n"
+		"\tOemVendorNamePtr is 0x%08lx, OemProductNamePtr is 0x%08lx,\n"
+		"\tOemProductRevPtr is 0x%08lx\n",
+		vbe->VbeVersion, (unsigned long)vbe->OemStringPtr,
+		(unsigned long)vbe->OemVendorNamePtr,
+		(unsigned long)vbe->OemProductNamePtr,
+		(unsigned long)vbe->OemProductRevPtr);
 
     xf86DrvMsgVerb(screen,X_INFO,3,"VESA VBE Version %i.%i\n",
 		   VERSION(vbe->VbeVersion));
@@ -341,7 +343,7 @@ VBEGetVBEInfo(vbeInfoPtr pVbe)
     VbeInfoBlock *block = NULL;
     int i, pStr, pModes;
     char *str;
-    CARD16 major, minor, *modes;
+    CARD16 major, *modes;
 
     bzero(pVbe->memory, sizeof(VbeInfoBlock));
 
@@ -378,7 +380,6 @@ VBEGetVBEInfo(vbeInfoPtr pVbe)
 
     block->VESAVersion = *(CARD16*)(((char*)pVbe->memory) + 4);
     major = (unsigned)block->VESAVersion >> 8;
-    minor = block->VESAVersion & 0xff;
 
     pStr = *(CARD32*)(((char*)pVbe->memory) + 6);
     str = xf86int10Addr(pVbe->pInt10, FARP(pStr));

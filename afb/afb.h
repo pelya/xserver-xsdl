@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/afb/afb.h,v 3.8 2001/10/28 03:32:57 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/afb/afb.h,v 3.11 2003/11/17 22:20:32 dawes Exp $ */
 /* Combined Purdue/PurduePlus patches, level 2.0, 1/17/89 */
 /***********************************************************
 
@@ -56,7 +56,7 @@ SOFTWARE.
 #include "region.h"
 #include "gc.h"
 #include "colormap.h"
-#include "miscstruct.h"
+#include "regionstr.h"
 #include "mibstore.h"
 #include "mfb.h"
 
@@ -64,7 +64,7 @@ extern int afbInverseAlu[];
 extern int afbScreenPrivateIndex;
 /* warning: PixelType definition duplicated in maskbits.h */
 #ifndef PixelType
-#define PixelType CARD32 
+#define PixelType CARD32
 #endif /* PixelType */
 
 #define AFB_MAX_DEPTH 8
@@ -72,18 +72,15 @@ extern int afbScreenPrivateIndex;
 /* afbbitblt.c */
 
 extern void afbDoBitblt(
-#if NeedFunctionPrototypes
 	DrawablePtr /*pSrc*/,
 	DrawablePtr /*pDst*/,
 	int /*alu*/,
 	RegionPtr /*prgnDst*/,
 	DDXPointPtr /*pptSrc*/,
 	unsigned long /*planemask*/
-#endif
 );
 
 extern RegionPtr afbBitBlt(
-#if NeedFunctionPrototypes
 	DrawablePtr /*pSrc*/,
 	DrawablePtr /*pDst*/,
 	GCPtr /*pGC*/,
@@ -94,21 +91,17 @@ extern RegionPtr afbBitBlt(
 	int /*dstx*/,
 	int /*dsty*/,
 	void (*doBitBlt)(
-#if NeedNestedPrototypes
 		DrawablePtr /*pSrc*/,
 		DrawablePtr /*pDst*/,
 		int /*alu*/,
 		RegionPtr /*prgnDst*/,
 		DDXPointPtr /*pptSrc*/,
 		unsigned long /*planemask*/
-#endif
         ),
 	unsigned long /*planemask*/
-#endif
 );
 
 extern RegionPtr afbCopyArea(
-#if NeedFunctionPrototypes
 	DrawablePtr /*pSrcDrawable*/,
 	DrawablePtr /*pDstDrawable*/,
 	GCPtr/*pGC*/,
@@ -118,11 +111,9 @@ extern RegionPtr afbCopyArea(
 	int /*height*/,
 	int /*dstx*/,
 	int /*dsty*/
-#endif
 );
 
 extern RegionPtr afbCopyPlane(
-#if NeedFunctionPrototypes
 	DrawablePtr /*pSrcDrawable*/,
 	DrawablePtr /*pDstDrawable*/,
 	GCPtr/*pGC*/,
@@ -133,83 +124,69 @@ extern RegionPtr afbCopyPlane(
 	int /*dstx*/,
 	int /*dsty*/,
 	unsigned long /*plane*/
-#endif
 );
 
 extern void afbCopy1ToN(
-#if NeedFunctionPrototypes
 	DrawablePtr /*pSrc*/,
 	DrawablePtr /*pDst*/,
 	int /*alu*/,
 	RegionPtr /*prgnDst*/,
 	DDXPointPtr /*pptSrc*/,
 	unsigned long /*planemask*/
-#endif
 );
 /* afbbltC.c */
 
 extern void afbDoBitbltCopy(
-#if NeedFunctionPrototypes
 	DrawablePtr /*pSrc*/,
 	DrawablePtr /*pDst*/,
 	int /*alu*/,
 	RegionPtr /*prgnDst*/,
 	DDXPointPtr /*pptSrc*/,
 	unsigned long /*planemask*/
-#endif
 );
 /* afbbltCI.c */
 
 extern void afbDoBitbltCopyInverted(
-#if NeedFunctionPrototypes
 	DrawablePtr /*pSrc*/,
 	DrawablePtr /*pDst*/,
 	int /*alu*/,
 	RegionPtr /*prgnDst*/,
 	DDXPointPtr /*pptSrc*/,
 	unsigned long /*planemask*/
-#endif
 );
 /* afbbltG.c */
 
 extern void afbDoBitbltGeneral(
-#if NeedFunctionPrototypes
 	DrawablePtr /*pSrc*/,
 	DrawablePtr /*pDst*/,
 	int /*alu*/,
 	RegionPtr /*prgnDst*/,
 	DDXPointPtr /*pptSrc*/,
 	unsigned long /*planemask*/
-#endif
 );
 /* afbbltO.c */
 
 extern void afbDoBitbltOr(
-#if NeedFunctionPrototypes
 	DrawablePtr /*pSrc*/,
 	DrawablePtr /*pDst*/,
 	int /*alu*/,
 	RegionPtr /*prgnDst*/,
 	DDXPointPtr /*pptSrc*/,
 	unsigned long /*planemask*/
-#endif
 );
 /* afbbltX.c */
 
 extern void afbDoBitbltXor(
-#if NeedFunctionPrototypes
 	DrawablePtr /*pSrc*/,
 	DrawablePtr /*pDst*/,
 	int /*alu*/,
 	RegionPtr /*prgnDst*/,
 	DDXPointPtr /*pptSrc*/,
 	unsigned long /*planemask*/
-#endif
 );
 /* afbbres.c */
 
 extern void afbBresS(
-#if NeedFunctionPrototypes
 	PixelType * /*addrl*/,
 	int /*nlwidth*/,
 	int /*sizeDst*/,
@@ -224,12 +201,10 @@ extern void afbBresS(
 	int /*e2*/,
 	int /*len*/,
 	unsigned char * /*rrops*/
-#endif
 );
 /* afbbresd.c */
 
 extern void afbBresD(
-#if NeedFunctionPrototypes
 	int * /*pdashIndex*/,
 	unsigned char * /*pDash*/,
 	int /*numInDashList*/,
@@ -250,98 +225,74 @@ extern void afbBresD(
 	int /*len*/,
 	unsigned char * /*rrops*/,
 	unsigned char * /*bgrrops*/
-#endif
 );
 /* afbbstore.c */
 
 extern void afbSaveAreas(
-#if NeedFunctionPrototypes
 	PixmapPtr /*pPixmap*/,
 	RegionPtr /*prgnSave*/,
 	int /*xorg*/,
 	int /*yorg*/,
 	WindowPtr /*pWin*/
-#endif
 );
 
 extern void afbRestoreAreas(
-#if NeedFunctionPrototypes
 	PixmapPtr /*pPixmap*/,
 	RegionPtr /*prgnRestore*/,
 	int /*xorg*/,
 	int /*yorg*/,
 	WindowPtr /*pWin*/
-#endif
 );
 /* afbclip.c */
 
 extern RegionPtr afbPixmapToRegion(
-#if NeedFunctionPrototypes
 	PixmapPtr /*pPix*/
-#endif
 );
 
 /* afbcmap.c */
 
 extern int afbListInstalledColormaps(
-#if NeedFunctionPrototypes
 	ScreenPtr /*pScreen*/,
 	Colormap * /*pmaps*/
-#endif
 );
 
 extern void afbInstallColormap(
-#if NeedFunctionPrototypes
 	ColormapPtr /*pmap*/
-#endif
 );
 
 extern void afbUninstallColormap(
-#if NeedFunctionPrototypes
 	ColormapPtr /*pmap*/
-#endif
 );
 
 extern void afbResolveColor(
-#if NeedFunctionPrototypes
 	unsigned short * /*pred*/,
 	unsigned short * /*pgreen*/,
 	unsigned short * /*pblue*/,
 	VisualPtr /*pVisual*/
-#endif
 );
 
 extern Bool afbInitializeColormap(
-#if NeedFunctionPrototypes
 	ColormapPtr /*pmap*/
-#endif
 );
 
 extern int afbExpandDirectColors(
-#if NeedFunctionPrototypes
 	ColormapPtr /*pmap*/,
 	int /*ndefs*/,
 	xColorItem * /*indefs*/,
 	xColorItem * /*outdefs*/
-#endif
 );
 
 extern Bool afbCreateDefColormap(
-#if NeedFunctionPrototypes
 	ScreenPtr /*pScreen*/
-#endif
 );
 
 extern Bool afbSetVisualTypes(
-#if NeedFunctionPrototypes
 	int /*depth*/,
 	int /*visuals*/,
 	int /*bitsPerRGB*/
-#endif
 );
 
 extern Bool afbInitVisuals(
-#if NeedFunctionPrototypes
 	VisualPtr * /*visualp*/,
 	DepthPtr * /*depthp*/,
 	int * /*nvisualp*/,
@@ -350,201 +301,161 @@ extern Bool afbInitVisuals(
 	VisualID * /*defaultVisp*/,
 	unsigned long /*sizes*/,
 	int /*bitsPerRGB*/
-#endif
 );
 
 /* afbfillarc.c */
 
 extern void afbPolyFillArcSolid(
-#if NeedFunctionPrototypes
 	DrawablePtr /*pDraw*/,
 	GCPtr /*pGC*/,
 	int /*narcs*/,
 	xArc * /*parcs*/
-#endif
 );
 /* afbfillrct.c */
 
 extern void afbPolyFillRect(
-#if NeedFunctionPrototypes
 	DrawablePtr /*pDrawable*/,
 	GCPtr /*pGC*/,
 	int /*nrectFill*/,
 	xRectangle * /*prectInit*/
-#endif
 );
 
 /* afbply1rct.c */
 extern void afbFillPolygonSolid(
-#if NeedFunctionPrototypes
 	DrawablePtr /*pDrawable*/,
 	GCPtr /*pGC*/,
 	int /*mode*/,
 	int /*shape*/,
 	int /*count*/,
 	DDXPointPtr /*ptsIn*/
-#endif
 );
 
 /* afbfillsp.c */
 
 extern void afbSolidFS(
-#if NeedFunctionPrototypes
 	DrawablePtr /*pDrawable*/,
 	GCPtr /*pGC*/,
 	int /*nInit*/,
 	DDXPointPtr /*pptInit*/,
 	int * /*pwidthInit*/,
 	int /*fSorted*/
-#endif
 );
 
 extern void afbStippleFS(
-#if NeedFunctionPrototypes
 	DrawablePtr /*pDrawable*/,
 	GCPtr/*pGC*/,
 	int /*nInit*/,
 	DDXPointPtr /*pptInit*/,
 	int * /*pwidthInit*/,
 	int /*fSorted*/
-#endif
 );
 
 extern void afbTileFS(
-#if NeedFunctionPrototypes
 	DrawablePtr /*pDrawable*/,
 	GCPtr/*pGC*/,
 	int /*nInit*/,
 	DDXPointPtr /*pptInit*/,
 	int * /*pwidthInit*/,
 	int /*fSorted*/
-#endif
 );
 
 extern void afbUnnaturalTileFS(
-#if NeedFunctionPrototypes
 	DrawablePtr /*pDrawable*/,
 	GCPtr/*pGC*/,
 	int /*nInit*/,
 	DDXPointPtr /*pptInit*/,
 	int * /*pwidthInit*/,
 	int /*fSorted*/
-#endif
 );
 
 extern void afbUnnaturalStippleFS(
-#if NeedFunctionPrototypes
 	DrawablePtr /*pDrawable*/,
 	GCPtr/*pGC*/,
 	int /*nInit*/,
 	DDXPointPtr /*pptInit*/,
 	int * /*pwidthInit*/,
 	int /*fSorted*/
-#endif
 );
 
 extern void afbOpaqueStippleFS(
-#if NeedFunctionPrototypes
 	DrawablePtr /*pDrawable*/,
 	GCPtr/*pGC*/,
 	int /*nInit*/,
 	DDXPointPtr /*pptInit*/,
 	int * /*pwidthInit*/,
 	int /*fSorted*/
-#endif
 );
 
 extern void afbUnnaturalOpaqueStippleFS(
-#if NeedFunctionPrototypes
 	DrawablePtr /*pDrawable*/,
 	GCPtr/*pGC*/,
 	int /*nInit*/,
 	DDXPointPtr /*pptInit*/,
 	int * /*pwidthInit*/,
 	int /*fSorted*/
-#endif
 );
 
 /* afbfont.c */
 
 extern Bool afbRealizeFont(
-#if NeedFunctionPrototypes
 	ScreenPtr /*pscr*/,
 	FontPtr /*pFont*/
-#endif
 );
 
 extern Bool afbUnrealizeFont(
-#if NeedFunctionPrototypes
 	ScreenPtr /*pscr*/,
 	FontPtr /*pFont*/
-#endif
 );
 /* afbgc.c */
 
 extern Bool afbCreateGC(
-#if NeedFunctionPrototypes
 	GCPtr /*pGC*/
-#endif
 );
 
 extern void afbValidateGC(
-#if NeedFunctionPrototypes
 	GCPtr /*pGC*/,
 	unsigned long /*changes*/,
 	DrawablePtr /*pDrawable*/
-#endif
 );
 
 extern void afbDestroyGC(
-#if NeedFunctionPrototypes
 	GCPtr /*pGC*/
-#endif
 );
 
 extern void afbReduceRop(
-#if NeedFunctionPrototypes
 	int /*alu*/,
 	Pixel /*src*/,
 	unsigned long /*planemask*/,
 	int /*depth*/,
 	unsigned char * /*rrops*/
-#endif
 );
 
 extern void afbReduceOpaqueStipple (
-#if NeedFunctionPrototypes
 	Pixel /*fg*/,
 	Pixel /*bg*/,
 	unsigned long /*planemask*/,
 	int /*depth*/,
 	unsigned char * /*rrops*/
-#endif
 );
 
 extern void afbComputeCompositeClip(
-#if NeedFunctionPrototypes
    GCPtr /*pGC*/,
    DrawablePtr /*pDrawable*/
-#endif
 );
 
 /* afbgetsp.c */
 
 extern void afbGetSpans(
-#if NeedFunctionPrototypes
 	DrawablePtr /*pDrawable*/,
 	int /*wMax*/,
 	DDXPointPtr /*ppt*/,
 	int * /*pwidth*/,
 	int /*nspans*/,
 	char * /*pdstStart*/
-#endif
 );
 /* afbhrzvert.c */
 
 extern void afbHorzS(
-#if NeedFunctionPrototypes
 	PixelType * /*addrl*/,
 	int /*nlwidth*/,
 	int /*sizeDst*/,
@@ -553,11 +464,9 @@ extern void afbHorzS(
 	int /*y1*/,
 	int /*len*/,
 	unsigned char * /*rrops*/
-#endif
 );
 
 extern void afbVertS(
-#if NeedFunctionPrototypes
 	PixelType * /*addrl*/,
 	int /*nlwidth*/,
 	int /*sizeDst*/,
@@ -566,12 +475,10 @@ extern void afbVertS(
 	int /*y1*/,
 	int /*len*/,
 	unsigned char * /*rrops*/
-#endif
 );
 /* afbigbblak.c */
 
 extern void afbImageGlyphBlt (
-#if NeedFunctionPrototypes
 	DrawablePtr /*pDrawable*/,
 	GCPtr/*pGC*/,
 	int /*x*/,
@@ -579,14 +486,12 @@ extern void afbImageGlyphBlt (
 	unsigned int /*nglyph*/,
 	CharInfoPtr * /*ppci*/,
 	pointer /*pglyphBase*/
-#endif
 );
 /* afbigbwht.c */
 
 /* afbimage.c */
 
 extern void afbPutImage(
-#if NeedFunctionPrototypes
 	DrawablePtr /*dst*/,
 	GCPtr /*pGC*/,
 	int /*depth*/,
@@ -597,11 +502,9 @@ extern void afbPutImage(
 	int /*leftPad*/,
 	int /*format*/,
 	char * /*pImage*/
-#endif
 );
 
 extern void afbGetImage(
-#if NeedFunctionPrototypes
 	DrawablePtr /*pDrawable*/,
 	int /*sx*/,
 	int /*sy*/,
@@ -610,62 +513,50 @@ extern void afbGetImage(
 	unsigned int /*format*/,
 	unsigned long /*planeMask*/,
 	char * /*pdstLine*/
-#endif
 );
 /* afbline.c */
 
 extern void afbLineSS(
-#if NeedFunctionPrototypes
 	DrawablePtr /*pDrawable*/,
 	GCPtr /*pGC*/,
 	int /*mode*/,
 	int /*npt*/,
 	DDXPointPtr /*pptInit*/
-#endif
 );
 
 extern void afbLineSD(
-#if NeedFunctionPrototypes
 	DrawablePtr /*pDrawable*/,
 	GCPtr /*pGC*/,
 	int /*mode*/,
 	int /*npt*/,
 	DDXPointPtr /*pptInit*/
-#endif
 );
 
 /* afbmisc.c */
 
 extern void afbQueryBestSize(
-#if NeedFunctionPrototypes
 	int /*class*/,
 	unsigned short * /*pwidth*/,
 	unsigned short * /*pheight*/,
 	ScreenPtr /*pScreen*/
-#endif
 );
 /* afbpntarea.c */
 
 extern void afbSolidFillArea(
-#if NeedFunctionPrototypes
 	DrawablePtr /*pDraw*/,
 	int /*nbox*/,
 	BoxPtr /*pbox*/,
 	unsigned char * /*rrops*/
-#endif
 );
 
 extern void afbStippleAreaPPW(
-#if NeedFunctionPrototypes
 	DrawablePtr /*pDraw*/,
 	int /*nbox*/,
 	BoxPtr /*pbox*/,
 	PixmapPtr /*pstipple*/,
 	unsigned char * /*rrops*/
-#endif
 );
 extern void afbStippleArea(
-#if NeedFunctionPrototypes
 	DrawablePtr /*pDraw*/,
 	int /*nbox*/,
 	BoxPtr /*pbox*/,
@@ -673,12 +564,10 @@ extern void afbStippleArea(
 	int /*xOff*/,
 	int /*yOff*/,
 	unsigned char * /*rrops*/
-#endif
 );
 /* afbplygblt.c */
 
 extern void afbPolyGlyphBlt(
-#if NeedFunctionPrototypes
 	DrawablePtr /*pDrawable*/,
 	GCPtr /*pGC*/,
 	int /*x*/,
@@ -686,82 +575,62 @@ extern void afbPolyGlyphBlt(
 	unsigned int /*nglyph*/,
 	CharInfoPtr * /*ppci*/,
 	pointer /*pglyphBase*/
-#endif
 );
 
 /* afbpixmap.c */
 
 extern PixmapPtr afbCreatePixmap(
-#if NeedFunctionPrototypes
 	ScreenPtr /*pScreen*/,
 	int /*width*/,
 	int /*height*/,
 	int /*depth*/
-#endif
 );
 
 extern Bool afbDestroyPixmap(
-#if NeedFunctionPrototypes
 	PixmapPtr /*pPixmap*/
-#endif
 );
 
 extern PixmapPtr afbCopyPixmap(
-#if NeedFunctionPrototypes
 	PixmapPtr /*pSrc*/
-#endif
 );
 
 extern void afbPadPixmap(
-#if NeedFunctionPrototypes
 	PixmapPtr /*pPixmap*/
-#endif
 );
 
 extern void afbXRotatePixmap(
-#if NeedFunctionPrototypes
 	PixmapPtr /*pPix*/,
 	int /*rw*/
-#endif
 );
 
 extern void afbYRotatePixmap(
-#if NeedFunctionPrototypes
 	PixmapPtr /*pPix*/,
 	int /*rh*/
-#endif
 );
 
 extern void afbCopyRotatePixmap(
-#if NeedFunctionPrototypes
 	PixmapPtr /*psrcPix*/,
 	PixmapPtr * /*ppdstPix*/,
 	int /*xrot*/,
 	int /*yrot*/
-#endif
 );
 extern void afbPaintWindow(
-#if NeedFunctionPrototypes
 	WindowPtr /*pWin*/,
 	RegionPtr /*pRegion*/,
 	int /*what*/
-#endif
 );
 /* afbpolypnt.c */
 
 extern void afbPolyPoint(
-#if NeedFunctionPrototypes
 	DrawablePtr /*pDrawable*/,
 	GCPtr /*pGC*/,
 	int /*mode*/,
 	int /*npt*/,
 	xPoint * /*pptInit*/
-#endif
 );
 /* afbpushpxl.c */
 
 extern void afbPushPixels(
-#if NeedFunctionPrototypes
 	GCPtr /*pGC*/,
 	PixmapPtr /*pBitMap*/,
 	DrawablePtr /*pDrawable*/,
@@ -769,28 +638,22 @@ extern void afbPushPixels(
 	int /*dy*/,
 	int /*xOrg*/,
 	int /*yOrg*/
-#endif
 );
 /* afbscrclse.c */
 
 extern Bool afbCloseScreen(
-#if NeedFunctionPrototypes
 	int /*index*/,
 	ScreenPtr /*pScreen*/
-#endif
 );
 /* afbscrinit.c */
 
 extern Bool afbAllocatePrivates(
-#if NeedFunctionPrototypes
 	ScreenPtr /*pScreen*/,
 	int * /*pWinIndex*/,
 	int * /*pGCIndex*/
-#endif
 );
 
 extern Bool afbScreenInit(
-#if NeedFunctionPrototypes
 	ScreenPtr /*pScreen*/,
 	pointer /*pbits*/,
 	int /*xsize*/,
@@ -798,45 +661,35 @@ extern Bool afbScreenInit(
 	int /*dpix*/,
 	int /*dpiy*/,
 	int /*width*/
-#endif
 );
 
 extern PixmapPtr afbGetWindowPixmap(
-#if NeedFunctionPrototypes
 	WindowPtr /*pWin*/
-#endif
 );
 
 extern void afbSetWindowPixmap(
-#if NeedFunctionPrototypes
 	WindowPtr /*pWin*/,
 	PixmapPtr /*pPix*/
-#endif
 );
 
 /* afbseg.c */
 
 extern void afbSegmentSS(
-#if NeedFunctionPrototypes
 	DrawablePtr /*pDrawable*/,
 	GCPtr /*pGC*/,
 	int /*nseg*/,
 	xSegment * /*pSeg*/
-#endif
 );
 
 extern void afbSegmentSD(
-#if NeedFunctionPrototypes
 	DrawablePtr /*pDrawable*/,
 	GCPtr /*pGC*/,
 	int /*nseg*/,
 	xSegment * /*pSeg*/
-#endif
 );
 /* afbsetsp.c */
 
 extern void afbSetScanline(
-#if NeedFunctionPrototypes
 	int /*y*/,
 	int /*xOrigin*/,
 	int /*xStart*/,
@@ -848,11 +701,9 @@ extern void afbSetScanline(
 	int /*sizeDst*/,
 	int /*depthDst*/,
 	int /*sizeSrc*/
-#endif
 );
 
 extern void afbSetSpans(
-#if NeedFunctionPrototypes
 	DrawablePtr /*pDrawable*/,
 	GCPtr /*pGC*/,
 	char * /*psrc*/,
@@ -860,12 +711,10 @@ extern void afbSetSpans(
 	int * /*pwidth*/,
 	int /*nspans*/,
 	int /*fSorted*/
-#endif
 );
 /* afbtegblt.c */
 
 extern void afbTEGlyphBlt(
-#if NeedFunctionPrototypes
 	DrawablePtr /*pDrawable*/,
 	GCPtr/*pGC*/,
 	int /*x*/,
@@ -873,35 +722,29 @@ extern void afbTEGlyphBlt(
 	unsigned int /*nglyph*/,
 	CharInfoPtr * /*ppci*/,
 	pointer /*pglyphBase*/
-#endif
 );
 /* afbtileC.c */
 
 extern void afbTileAreaPPWCopy(
-#if NeedFunctionPrototypes
 	DrawablePtr /*pDraw*/,
 	int /*nbox*/,
 	BoxPtr /*pbox*/,
 	int /*alu*/,
 	PixmapPtr /*ptile*/,
 	unsigned long /*planemask*/
-#endif
 );
 /* afbtileG.c */
 
 extern void afbTileAreaPPWGeneral(
-#if NeedFunctionPrototypes
 	DrawablePtr /*pDraw*/,
 	int /*nbox*/,
 	BoxPtr /*pbox*/,
 	int /*alu*/,
 	PixmapPtr /*ptile*/,
 	unsigned long /*planemask*/
-#endif
 );
 
 extern void afbTileAreaCopy(
-#if NeedFunctionPrototypes
 	DrawablePtr /*pDraw*/,
 	int /*nbox*/,
 	BoxPtr /*pbox*/,
@@ -910,12 +753,10 @@ extern void afbTileAreaCopy(
 	int /*xOff*/,
 	int /*yOff*/,
 	unsigned long /*planemask*/
-#endif
 );
 /* afbtileG.c */
 
 extern void afbTileAreaGeneral(
-#if NeedFunctionPrototypes
 	DrawablePtr /*pDraw*/,
 	int /*nbox*/,
 	BoxPtr /*pbox*/,
@@ -924,11 +765,9 @@ extern void afbTileAreaGeneral(
 	int /*xOff*/,
 	int /*yOff*/,
 	unsigned long /*planemask*/
-#endif
 );
 
 extern void afbOpaqueStippleAreaPPWCopy(
-#if NeedFunctionPrototypes
 	DrawablePtr /*pDraw*/,
 	int /*nbox*/,
 	BoxPtr /*pbox*/,
@@ -936,12 +775,10 @@ extern void afbOpaqueStippleAreaPPWCopy(
 	PixmapPtr /*ptile*/,
 	unsigned char */*rropsOS*/,
 	unsigned long /*planemask*/
-#endif
 );
 /* afbtileG.c */
 
 extern void afbOpaqueStippleAreaPPWGeneral(
-#if NeedFunctionPrototypes
 	DrawablePtr /*pDraw*/,
 	int /*nbox*/,
 	BoxPtr /*pbox*/,
@@ -949,11 +786,9 @@ extern void afbOpaqueStippleAreaPPWGeneral(
 	PixmapPtr /*ptile*/,
 	unsigned char */*rropsOS*/,
 	unsigned long /*planemask*/
-#endif
 );
 
 extern void afbOpaqueStippleAreaCopy(
-#if NeedFunctionPrototypes
 	DrawablePtr /*pDraw*/,
 	int /*nbox*/,
 	BoxPtr /*pbox*/,
@@ -963,12 +798,10 @@ extern void afbOpaqueStippleAreaCopy(
 	int /*yOff*/,
 	unsigned char */*rropsOS*/,
 	unsigned long /*planemask*/
-#endif
 );
 /* afbtileG.c */
 
 extern void afbOpaqueStippleAreaGeneral(
-#if NeedFunctionPrototypes
 	DrawablePtr /*pDraw*/,
 	int /*nbox*/,
 	BoxPtr /*pbox*/,
@@ -978,66 +811,49 @@ extern void afbOpaqueStippleAreaGeneral(
 	int /*yOff*/,
 	unsigned char */*rropsOS*/,
 	unsigned long /*planemask*/
-#endif
 );
 
 /* afbwindow.c */
 
 extern Bool afbCreateWindow(
-#if NeedFunctionPrototypes
 	WindowPtr /*pWin*/
-#endif
 );
 
 extern Bool afbDestroyWindow(
-#if NeedFunctionPrototypes
 	WindowPtr /*pWin*/
-#endif
 );
 
 extern Bool afbMapWindow(
-#if NeedFunctionPrototypes
 	WindowPtr /*pWindow*/
-#endif
 );
 
 extern Bool afbPositionWindow(
-#if NeedFunctionPrototypes
 	WindowPtr /*pWin*/,
 	int /*x*/,
 	int /*y*/
-#endif
 );
 
 extern Bool afbUnmapWindow(
-#if NeedFunctionPrototypes
 	WindowPtr /*pWindow*/
-#endif
 );
 
 extern void afbCopyWindow(
-#if NeedFunctionPrototypes
 	WindowPtr /*pWin*/,
 	DDXPointRec /*ptOldOrg*/,
 	RegionPtr /*prgnSrc*/
-#endif
 );
 
 extern Bool afbChangeWindowAttributes(
-#if NeedFunctionPrototypes
 	WindowPtr /*pWin*/,
 	unsigned long /*mask*/
-#endif
 );
 /* afbzerarc.c */
 
 extern void afbZeroPolyArcSS(
-#if NeedFunctionPrototypes
 	DrawablePtr /*pDraw*/,
 	GCPtr /*pGC*/,
 	int /*narcs*/,
 	xArc * /*parcs*/
-#endif
 );
 
 /*
@@ -1110,7 +926,7 @@ typedef struct {
 	(pointer) = (PixelType *)_pPix->devPrivate.ptr; \
 	(width) = ((int)_pPix->devKind) / sizeof (PixelType); \
 	(size) = (width) * _pPix->drawable.height; \
-	(dep) = _pPix->drawable.depth; \
+	(dep) = _pPix->drawable.depth; (void)(dep); \
 }
 
 #define afbGetByteWidthAndPointer(pDrawable, width, pointer) \

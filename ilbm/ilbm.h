@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/ilbm/ilbm.h,v 3.2 1998/04/05 16:42:23 robin Exp $ */
+/* $XFree86: xc/programs/Xserver/ilbm/ilbm.h,v 3.3 2003/11/17 22:20:43 dawes Exp $ */
 /* Combined Purdue/PurduePlus patches, level 2.0, 1/17/89 */
 /***********************************************************
 
@@ -74,18 +74,15 @@ extern int ilbmScreenPrivateIndex;
 /* ilbmbitblt.c */
 
 extern void ilbmDoBitblt(
-#if NeedFunctionPrototypes
 	DrawablePtr /*pSrc*/,
 	DrawablePtr /*pDst*/,
 	int /*alu*/,
 	RegionPtr /*prgnDst*/,
 	DDXPointPtr /*pptSrc*/,
 	unsigned long /*planemask*/
-#endif
 );
 
 extern RegionPtr ilbmBitBlt(
-#if NeedFunctionPrototypes
 	DrawablePtr /*pSrc*/,
 	DrawablePtr /*pDst*/,
 	GCPtr /*pGC*/,
@@ -97,11 +94,9 @@ extern RegionPtr ilbmBitBlt(
 	int /*dsty*/,
 	void (*doBitBlt)(),
 	unsigned long /*planemask*/
-#endif
 );
 
 extern RegionPtr ilbmCopyArea(
-#if NeedFunctionPrototypes
 	DrawablePtr /*pSrcDrawable*/,
 	DrawablePtr /*pDstDrawable*/,
 	GCPtr/*pGC*/,
@@ -111,11 +106,9 @@ extern RegionPtr ilbmCopyArea(
 	int /*height*/,
 	int /*dstx*/,
 	int /*dsty*/
-#endif
 );
 
 extern RegionPtr ilbmCopyPlane(
-#if NeedFunctionPrototypes
 	DrawablePtr /*pSrcDrawable*/,
 	DrawablePtr /*pDstDrawable*/,
 	GCPtr/*pGC*/,
@@ -126,83 +119,69 @@ extern RegionPtr ilbmCopyPlane(
 	int /*dstx*/,
 	int /*dsty*/,
 	unsigned long /*plane*/
-#endif
 );
 
 extern void ilbmCopy1ToN(
-#if NeedFunctionPrototypes
 	DrawablePtr /*pSrc*/,
 	DrawablePtr /*pDst*/,
 	int /*alu*/,
 	RegionPtr /*prgnDst*/,
 	DDXPointPtr /*pptSrc*/,
 	unsigned long /*planemask*/
-#endif
 );
 /* ilbmbltC.c */
 
 extern void ilbmDoBitbltCopy(
-#if NeedFunctionPrototypes
 	DrawablePtr /*pSrc*/,
 	DrawablePtr /*pDst*/,
 	int /*alu*/,
 	RegionPtr /*prgnDst*/,
 	DDXPointPtr /*pptSrc*/,
 	unsigned long /*planemask*/
-#endif
 );
 /* ilbmbltCI.c */
 
 extern void ilbmDoBitbltCopyInverted(
-#if NeedFunctionPrototypes
 	DrawablePtr /*pSrc*/,
 	DrawablePtr /*pDst*/,
 	int /*alu*/,
 	RegionPtr /*prgnDst*/,
 	DDXPointPtr /*pptSrc*/,
 	unsigned long /*planemask*/
-#endif
 );
 /* ilbmbltG.c */
 
 extern void ilbmDoBitbltGeneral(
-#if NeedFunctionPrototypes
 	DrawablePtr /*pSrc*/,
 	DrawablePtr /*pDst*/,
 	int /*alu*/,
 	RegionPtr /*prgnDst*/,
 	DDXPointPtr /*pptSrc*/,
 	unsigned long /*planemask*/
-#endif
 );
 /* ilbmbltO.c */
 
 extern void ilbmDoBitbltOr(
-#if NeedFunctionPrototypes
 	DrawablePtr /*pSrc*/,
 	DrawablePtr /*pDst*/,
 	int /*alu*/,
 	RegionPtr /*prgnDst*/,
 	DDXPointPtr /*pptSrc*/,
 	unsigned long /*planemask*/
-#endif
 );
 /* ilbmbltX.c */
 
 extern void ilbmDoBitbltXor(
-#if NeedFunctionPrototypes
 	DrawablePtr /*pSrc*/,
 	DrawablePtr /*pDst*/,
 	int /*alu*/,
 	RegionPtr /*prgnDst*/,
 	DDXPointPtr /*pptSrc*/,
 	unsigned long /*planemask*/
-#endif
 );
 /* ilbmbres.c */
 
 extern void ilbmBresS(
-#if NeedFunctionPrototypes
 	PixelType * /*addrl*/,
 	int /*nlwidth*/,
 	int /*sizeDst*/,
@@ -217,12 +196,10 @@ extern void ilbmBresS(
 	int /*e2*/,
 	int /*len*/,
 	unsigned char * /*rrops*/
-#endif
 );
 /* ilbmbresd.c */
 
 extern void ilbmBresD(
-#if NeedFunctionPrototypes
 	int * /*pdashIndex*/,
 	unsigned char * /*pDash*/,
 	int /*numInDashList*/,
@@ -243,254 +220,202 @@ extern void ilbmBresD(
 	int /*len*/,
 	unsigned char * /*rrops*/,
 	unsigned char * /*bgrrops*/
-#endif
 );
 /* ilbmbstore.c */
 
 extern void ilbmSaveAreas(
-#if NeedFunctionPrototypes
 	PixmapPtr /*pPixmap*/,
 	RegionPtr /*prgnSave*/,
 	int /*xorg*/,
 	int /*yorg*/,
 	WindowPtr /*pWin*/
-#endif
 );
 
 extern void ilbmRestoreAreas(
-#if NeedFunctionPrototypes
 	PixmapPtr /*pPixmap*/,
 	RegionPtr /*prgnRestore*/,
 	int /*xorg*/,
 	int /*yorg*/,
 	WindowPtr /*pWin*/
-#endif
 );
 /* ilbmclip.c */
 
 extern RegionPtr ilbmPixmapToRegion(
-#if NeedFunctionPrototypes
 	PixmapPtr /*pPix*/
-#endif
 );
 
 /* ilbmcmap.c */
 
 extern Bool ilbmInitializeColormap(
-#if NeedFunctionPrototypes
 	ColormapPtr /*pmap*/
-#endif
 );
 
 extern void ilbmResolveColor(
-#if NeedFunctionPrototypes
 	unsigned short * /*pred*/,
 	unsigned short * /*pgreen*/,
 	unsigned short * /*pblue*/,
 	VisualPtr /*pVisual*/
-#endif
 );
 
 extern Bool ilbmSetVisualTypes(
-#if NeedFunctionPrototypes
 	int /*depth*/,
 	int /*visuals*/,
 	int /*bitsPerRGB*/
-#endif
 );
 
 /* ilbmfillarc.c */
 
 extern void ilbmPolyFillArcSolid(
-#if NeedFunctionPrototypes
 	DrawablePtr /*pDraw*/,
 	GCPtr /*pGC*/,
 	int /*narcs*/,
 	xArc * /*parcs*/
-#endif
 );
 /* ilbmfillrct.c */
 
 extern void ilbmPolyFillRect(
-#if NeedFunctionPrototypes
 	DrawablePtr /*pDrawable*/,
 	GCPtr /*pGC*/,
 	int /*nrectFill*/,
 	xRectangle * /*prectInit*/
-#endif
 );
 
 /* ilbmply1rct.c */
 extern void ilbmFillPolygonSolid(
-#if NeedFunctionPrototypes
 	DrawablePtr /*pDrawable*/,
 	GCPtr /*pGC*/,
 	int /*mode*/,
 	int /*shape*/,
 	int /*count*/,
 	DDXPointPtr /*ptsIn*/
-#endif
 );
 
 /* ilbmfillsp.c */
 
 extern void ilbmSolidFS(
-#if NeedFunctionPrototypes
 	DrawablePtr /*pDrawable*/,
 	GCPtr /*pGC*/,
 	int /*nInit*/,
 	DDXPointPtr /*pptInit*/,
 	int * /*pwidthInit*/,
 	int /*fSorted*/
-#endif
 );
 
 extern void ilbmStippleFS(
-#if NeedFunctionPrototypes
 	DrawablePtr /*pDrawable*/,
 	GCPtr/*pGC*/,
 	int /*nInit*/,
 	DDXPointPtr /*pptInit*/,
 	int * /*pwidthInit*/,
 	int /*fSorted*/
-#endif
 );
 
 extern void ilbmTileFS(
-#if NeedFunctionPrototypes
 	DrawablePtr /*pDrawable*/,
 	GCPtr/*pGC*/,
 	int /*nInit*/,
 	DDXPointPtr /*pptInit*/,
 	int * /*pwidthInit*/,
 	int /*fSorted*/
-#endif
 );
 
 extern void ilbmUnnaturalTileFS(
-#if NeedFunctionPrototypes
 	DrawablePtr /*pDrawable*/,
 	GCPtr/*pGC*/,
 	int /*nInit*/,
 	DDXPointPtr /*pptInit*/,
 	int * /*pwidthInit*/,
 	int /*fSorted*/
-#endif
 );
 
 extern void ilbmUnnaturalStippleFS(
-#if NeedFunctionPrototypes
 	DrawablePtr /*pDrawable*/,
 	GCPtr/*pGC*/,
 	int /*nInit*/,
 	DDXPointPtr /*pptInit*/,
 	int * /*pwidthInit*/,
 	int /*fSorted*/
-#endif
 );
 
 extern void ilbmOpaqueStippleFS(
-#if NeedFunctionPrototypes
 	DrawablePtr /*pDrawable*/,
 	GCPtr/*pGC*/,
 	int /*nInit*/,
 	DDXPointPtr /*pptInit*/,
 	int * /*pwidthInit*/,
 	int /*fSorted*/
-#endif
 );
 
 extern void ilbmUnnaturalOpaqueStippleFS(
-#if NeedFunctionPrototypes
 	DrawablePtr /*pDrawable*/,
 	GCPtr/*pGC*/,
 	int /*nInit*/,
 	DDXPointPtr /*pptInit*/,
 	int * /*pwidthInit*/,
 	int /*fSorted*/
-#endif
 );
 
 /* ilbmfont.c */
 
 extern Bool ilbmRealizeFont(
-#if NeedFunctionPrototypes
 	ScreenPtr /*pscr*/,
 	FontPtr /*pFont*/
-#endif
 );
 
 extern Bool ilbmUnrealizeFont(
-#if NeedFunctionPrototypes
 	ScreenPtr /*pscr*/,
 	FontPtr /*pFont*/
-#endif
 );
 /* ilbmgc.c */
 
 extern Bool ilbmCreateGC(
-#if NeedFunctionPrototypes
 	GCPtr /*pGC*/
-#endif
 );
 
 extern void ilbmValidateGC(
-#if NeedFunctionPrototypes
 	GCPtr /*pGC*/,
 	unsigned long /*changes*/,
 	DrawablePtr /*pDrawable*/
-#endif
 );
 
 extern void ilbmDestroyGC(
-#if NeedFunctionPrototypes
 	GCPtr /*pGC*/
-#endif
 );
 
 extern void ilbmReduceRop(
-#if NeedFunctionPrototypes
 	int /*alu*/,
 	Pixel /*src*/,
 	unsigned long /*planemask*/,
 	int /*depth*/,
 	unsigned char * /*rrops*/
-#endif
 );
 
 extern void ilbmReduceOpaqueStipple (
-#if NeedFunctionPrototypes
 	Pixel /*fg*/,
 	Pixel /*bg*/,
 	unsigned long /*planemask*/,
 	int /*depth*/,
 	unsigned char * /*rrops*/
-#endif
 );
 
 extern void ilbmComputeCompositeClip(
-#if NeedFunctionPrototypes
    GCPtr /*pGC*/,
    DrawablePtr /*pDrawable*/
-#endif
 );
 
 /* ilbmgetsp.c */
 
 extern void ilbmGetSpans(
-#if NeedFunctionPrototypes
 	DrawablePtr /*pDrawable*/,
 	int /*wMax*/,
 	DDXPointPtr /*ppt*/,
 	int * /*pwidth*/,
 	int /*nspans*/,
 	char * /*pdstStart*/
-#endif
 );
 /* ilbmhrzvert.c */
 
 extern int ilbmHorzS(
-#if NeedFunctionPrototypes
 	PixelType * /*addrl*/,
 	int /*nlwidth*/,
 	int /*sizeDst*/,
@@ -499,11 +424,9 @@ extern int ilbmHorzS(
 	int /*y1*/,
 	int /*len*/,
 	unsigned char * /*rrops*/
-#endif
 );
 
 extern int ilbmVertS(
-#if NeedFunctionPrototypes
 	PixelType * /*addrl*/,
 	int /*nlwidth*/,
 	int /*sizeDst*/,
@@ -512,12 +435,10 @@ extern int ilbmVertS(
 	int /*y1*/,
 	int /*len*/,
 	unsigned char * /*rrops*/
-#endif
 );
 /* ilbmigbblak.c */
 
 extern void ilbmImageGlyphBlt (
-#if NeedFunctionPrototypes
 	DrawablePtr /*pDrawable*/,
 	GCPtr/*pGC*/,
 	int /*x*/,
@@ -525,14 +446,12 @@ extern void ilbmImageGlyphBlt (
 	unsigned int /*nglyph*/,
 	CharInfoPtr * /*ppci*/,
 	pointer /*pglyphBase*/
-#endif
 );
 /* ilbmigbwht.c */
 
 /* ilbmimage.c */
 
 extern void ilbmPutImage(
-#if NeedFunctionPrototypes
 	DrawablePtr /*dst*/,
 	GCPtr /*pGC*/,
 	int /*depth*/,
@@ -543,11 +462,9 @@ extern void ilbmPutImage(
 	int /*leftPad*/,
 	int /*format*/,
 	char * /*pImage*/
-#endif
 );
 
 extern void ilbmGetImage(
-#if NeedFunctionPrototypes
 	DrawablePtr /*pDrawable*/,
 	int /*sx*/,
 	int /*sy*/,
@@ -556,62 +473,50 @@ extern void ilbmGetImage(
 	unsigned int /*format*/,
 	unsigned long /*planeMask*/,
 	char * /*pdstLine*/
-#endif
 );
 /* ilbmline.c */
 
 extern void ilbmLineSS(
-#if NeedFunctionPrototypes
 	DrawablePtr /*pDrawable*/,
 	GCPtr /*pGC*/,
 	int /*mode*/,
 	int /*npt*/,
 	DDXPointPtr /*pptInit*/
-#endif
 );
 
 extern void ilbmLineSD(
-#if NeedFunctionPrototypes
 	DrawablePtr /*pDrawable*/,
 	GCPtr /*pGC*/,
 	int /*mode*/,
 	int /*npt*/,
 	DDXPointPtr /*pptInit*/
-#endif
 );
 
 /* ilbmmisc.c */
 
 extern void ilbmQueryBestSize(
-#if NeedFunctionPrototypes
 	int /*class*/,
 	unsigned short * /*pwidth*/,
 	unsigned short * /*pheight*/,
 	ScreenPtr /*pScreen*/
-#endif
 );
 /* ilbmpntarea.c */
 
 extern void ilbmSolidFillArea(
-#if NeedFunctionPrototypes
 	DrawablePtr /*pDraw*/,
 	int /*nbox*/,
 	BoxPtr /*pbox*/,
 	unsigned char * /*rrops*/
-#endif
 );
 
 extern void ilbmStippleAreaPPW(
-#if NeedFunctionPrototypes
 	DrawablePtr /*pDraw*/,
 	int /*nbox*/,
 	BoxPtr /*pbox*/,
 	PixmapPtr /*pstipple*/,
 	unsigned char * /*rrops*/
-#endif
 );
 extern void ilbmStippleArea(
-#if NeedFunctionPrototypes
 	DrawablePtr /*pDraw*/,
 	int /*nbox*/,
 	BoxPtr /*pbox*/,
@@ -619,12 +524,10 @@ extern void ilbmStippleArea(
 	int /*xOff*/,
 	int /*yOff*/,
 	unsigned char * /*rrops*/
-#endif
 );
 /* ilbmplygblt.c */
 
 extern void ilbmPolyGlyphBlt(
-#if NeedFunctionPrototypes
 	DrawablePtr /*pDrawable*/,
 	GCPtr /*pGC*/,
 	int /*x*/,
@@ -632,82 +535,62 @@ extern void ilbmPolyGlyphBlt(
 	unsigned int /*nglyph*/,
 	CharInfoPtr * /*ppci*/,
 	pointer /*pglyphBase*/
-#endif
 );
 
 /* ilbmpixmap.c */
 
 extern PixmapPtr ilbmCreatePixmap(
-#if NeedFunctionPrototypes
 	ScreenPtr /*pScreen*/,
 	int /*width*/,
 	int /*height*/,
 	int /*depth*/
-#endif
 );
 
 extern Bool ilbmDestroyPixmap(
-#if NeedFunctionPrototypes
 	PixmapPtr /*pPixmap*/
-#endif
 );
 
 extern PixmapPtr ilbmCopyPixmap(
-#if NeedFunctionPrototypes
 	PixmapPtr /*pSrc*/
-#endif
 );
 
 extern void ilbmPadPixmap(
-#if NeedFunctionPrototypes
 	PixmapPtr /*pPixmap*/
-#endif
 );
 
 extern void ilbmXRotatePixmap(
-#if NeedFunctionPrototypes
 	PixmapPtr /*pPix*/,
 	int /*rw*/
-#endif
 );
 
 extern void ilbmYRotatePixmap(
-#if NeedFunctionPrototypes
 	PixmapPtr /*pPix*/,
 	int /*rh*/
-#endif
 );
 
 extern void ilbmCopyRotatePixmap(
-#if NeedFunctionPrototypes
 	PixmapPtr /*psrcPix*/,
 	PixmapPtr * /*ppdstPix*/,
 	int /*xrot*/,
 	int /*yrot*/
-#endif
 );
 extern void ilbmPaintWindow(
-#if NeedFunctionPrototypes
 	WindowPtr /*pWin*/,
 	RegionPtr /*pRegion*/,
 	int /*what*/
-#endif
 );
 /* ilbmpolypnt.c */
 
 extern void ilbmPolyPoint(
-#if NeedFunctionPrototypes
 	DrawablePtr /*pDrawable*/,
 	GCPtr /*pGC*/,
 	int /*mode*/,
 	int /*npt*/,
 	xPoint * /*pptInit*/
-#endif
 );
 /* ilbmpushpxl.c */
 
 extern void ilbmPushPixels(
-#if NeedFunctionPrototypes
 	GCPtr /*pGC*/,
 	PixmapPtr /*pBitMap*/,
 	DrawablePtr /*pDrawable*/,
@@ -715,28 +598,22 @@ extern void ilbmPushPixels(
 	int /*dy*/,
 	int /*xOrg*/,
 	int /*yOrg*/
-#endif
 );
 /* ilbmscrclse.c */
 
 extern Bool ilbmCloseScreen(
-#if NeedFunctionPrototypes
 	int /*index*/,
 	ScreenPtr /*pScreen*/
-#endif
 );
 /* ilbmscrinit.c */
 
 extern Bool ilbmAllocatePrivates(
-#if NeedFunctionPrototypes
 	ScreenPtr /*pScreen*/,
 	int * /*pWinIndex*/,
 	int * /*pGCIndex*/
-#endif
 );
 
 extern Bool ilbmScreenInit(
-#if NeedFunctionPrototypes
 	ScreenPtr /*pScreen*/,
 	pointer /*pbits*/,
 	int /*xsize*/,
@@ -744,45 +621,35 @@ extern Bool ilbmScreenInit(
 	int /*dpix*/,
 	int /*dpiy*/,
 	int /*width*/
-#endif
 );
 
 extern PixmapPtr ilbmGetWindowPixmap(
-#if NeedFunctionPrototypes
 	WindowPtr /*pWin*/
-#endif
 );
 
 extern void ilbmSetWindowPixmap(
-#if NeedFunctionPrototypes
 	WindowPtr /*pWin*/,
 	PixmapPtr /*pPix*/
-#endif
 );
 
 /* ilbmseg.c */
 
 extern void ilbmSegmentSS(
-#if NeedFunctionPrototypes
 	DrawablePtr /*pDrawable*/,
 	GCPtr /*pGC*/,
 	int /*nseg*/,
 	xSegment * /*pSeg*/
-#endif
 );
 
 extern void ilbmSegmentSD(
-#if NeedFunctionPrototypes
 	DrawablePtr /*pDrawable*/,
 	GCPtr /*pGC*/,
 	int /*nseg*/,
 	xSegment * /*pSeg*/
-#endif
 );
 /* ilbmsetsp.c */
 
 extern int ilbmSetScanline(
-#if NeedFunctionPrototypes
 	int /*y*/,
 	int /*xOrigin*/,
 	int /*xStart*/,
@@ -794,11 +661,9 @@ extern int ilbmSetScanline(
 	int /*sizeDst*/,
 	int /*depthDst*/,
 	int /*sizeSrc*/
-#endif
 );
 
 extern void ilbmSetSpans(
-#if NeedFunctionPrototypes
 	DrawablePtr /*pDrawable*/,
 	GCPtr /*pGC*/,
 	char * /*psrc*/,
@@ -806,12 +671,10 @@ extern void ilbmSetSpans(
 	int * /*pwidth*/,
 	int /*nspans*/,
 	int /*fSorted*/
-#endif
 );
 /* ilbmtegblt.c */
 
 extern void ilbmTEGlyphBlt(
-#if NeedFunctionPrototypes
 	DrawablePtr /*pDrawable*/,
 	GCPtr/*pGC*/,
 	int /*x*/,
@@ -819,35 +682,29 @@ extern void ilbmTEGlyphBlt(
 	unsigned int /*nglyph*/,
 	CharInfoPtr * /*ppci*/,
 	pointer /*pglyphBase*/
-#endif
 );
 /* ilbmtileC.c */
 
 extern void ilbmTileAreaPPWCopy(
-#if NeedFunctionPrototypes
 	DrawablePtr /*pDraw*/,
 	int /*nbox*/,
 	BoxPtr /*pbox*/,
 	int /*alu*/,
 	PixmapPtr /*ptile*/,
 	unsigned long /*planemask*/
-#endif
 );
 /* ilbmtileG.c */
 
 extern void ilbmTileAreaPPWGeneral(
-#if NeedFunctionPrototypes
 	DrawablePtr /*pDraw*/,
 	int /*nbox*/,
 	BoxPtr /*pbox*/,
 	int /*alu*/,
 	PixmapPtr /*ptile*/,
 	unsigned long /*planemask*/
-#endif
 );
 
 extern void ilbmTileAreaCopy(
-#if NeedFunctionPrototypes
 	DrawablePtr /*pDraw*/,
 	int /*nbox*/,
 	BoxPtr /*pbox*/,
@@ -856,12 +713,10 @@ extern void ilbmTileAreaCopy(
 	int /*xOff*/,
 	int /*yOff*/,
 	unsigned long /*planemask*/
-#endif
 );
 /* ilbmtileG.c */
 
 extern void ilbmTileAreaGeneral(
-#if NeedFunctionPrototypes
 	DrawablePtr /*pDraw*/,
 	int /*nbox*/,
 	BoxPtr /*pbox*/,
@@ -870,11 +725,9 @@ extern void ilbmTileAreaGeneral(
 	int /*xOff*/,
 	int /*yOff*/,
 	unsigned long /*planemask*/
-#endif
 );
 
 extern void ilbmOpaqueStippleAreaPPWCopy(
-#if NeedFunctionPrototypes
 	DrawablePtr /*pDraw*/,
 	int /*nbox*/,
 	BoxPtr /*pbox*/,
@@ -882,12 +735,10 @@ extern void ilbmOpaqueStippleAreaPPWCopy(
 	PixmapPtr /*ptile*/,
 	unsigned char */*rropsOS*/,
 	unsigned long /*planemask*/
-#endif
 );
 /* ilbmtileG.c */
 
 extern void ilbmOpaqueStippleAreaPPWGeneral(
-#if NeedFunctionPrototypes
 	DrawablePtr /*pDraw*/,
 	int /*nbox*/,
 	BoxPtr /*pbox*/,
@@ -895,11 +746,9 @@ extern void ilbmOpaqueStippleAreaPPWGeneral(
 	PixmapPtr /*ptile*/,
 	unsigned char */*rropsOS*/,
 	unsigned long /*planemask*/
-#endif
 );
 
 extern void ilbmOpaqueStippleAreaCopy(
-#if NeedFunctionPrototypes
 	DrawablePtr /*pDraw*/,
 	int /*nbox*/,
 	BoxPtr /*pbox*/,
@@ -909,12 +758,10 @@ extern void ilbmOpaqueStippleAreaCopy(
 	int /*yOff*/,
 	unsigned char */*rropsOS*/,
 	unsigned long /*planemask*/
-#endif
 );
 /* ilbmtileG.c */
 
 extern void ilbmOpaqueStippleAreaGeneral(
-#if NeedFunctionPrototypes
 	DrawablePtr /*pDraw*/,
 	int /*nbox*/,
 	BoxPtr /*pbox*/,
@@ -924,66 +771,49 @@ extern void ilbmOpaqueStippleAreaGeneral(
 	int /*yOff*/,
 	unsigned char */*rropsOS*/,
 	unsigned long /*planemask*/
-#endif
 );
 
 /* ilbmwindow.c */
 
 extern Bool ilbmCreateWindow(
-#if NeedFunctionPrototypes
 	WindowPtr /*pWin*/
-#endif
 );
 
 extern Bool ilbmDestroyWindow(
-#if NeedFunctionPrototypes
 	WindowPtr /*pWin*/
-#endif
 );
 
 extern Bool ilbmMapWindow(
-#if NeedFunctionPrototypes
 	WindowPtr /*pWindow*/
-#endif
 );
 
 extern Bool ilbmPositionWindow(
-#if NeedFunctionPrototypes
 	WindowPtr /*pWin*/,
 	int /*x*/,
 	int /*y*/
-#endif
 );
 
 extern Bool ilbmUnmapWindow(
-#if NeedFunctionPrototypes
 	WindowPtr /*pWindow*/
-#endif
 );
 
 extern void ilbmCopyWindow(
-#if NeedFunctionPrototypes
 	WindowPtr /*pWin*/,
 	DDXPointRec /*ptOldOrg*/,
 	RegionPtr /*prgnSrc*/
-#endif
 );
 
 extern Bool ilbmChangeWindowAttributes(
-#if NeedFunctionPrototypes
 	WindowPtr /*pWin*/,
 	unsigned long /*mask*/
-#endif
 );
 /* ilbmzerarc.c */
 
 extern void ilbmZeroPolyArcSS(
-#if NeedFunctionPrototypes
 	DrawablePtr /*pDraw*/,
 	GCPtr /*pGC*/,
 	int /*narcs*/,
 	xArc * /*parcs*/
-#endif
 );
 
 /*

@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/Xext/mbufbf.c,v 3.4 2001/12/14 19:58:49 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/Xext/mbufbf.c,v 3.6 2003/11/10 18:21:42 tsi Exp $ */
 /*
 
 Copyright 1989, 1998  The Open Group
@@ -243,7 +243,7 @@ bufMultibufferInit(pScreen, pMBScreen)
     pMBPriv->rgnChanged = TRUE;
     REGION_INIT(pScreen, &pMBPriv->backBuffer, &box, 1);
     REGION_INIT(pScreen, &pMBPriv->subtractRgn, &box, 1);
-    REGION_INIT(pScreen, &pMBPriv->unionRgn, NullBox, 0);
+    REGION_NULL(pScreen, &pMBPriv->unionRgn);
 
     /* Misc functions */
     pMBPriv->CopyBufferBits  = bufCopyBufferBitsFunc[pScreen->myNum];
@@ -778,7 +778,7 @@ bufPostValidateTree(pParent, pChild, kind)
 			      pUnionRgn);
 
 	/* Paint gained and lost backbuffer areas in select plane */
-	REGION_INIT(pScreen, &exposed, NullBox, 0);
+	REGION_NULL(pScreen, &exposed);
 	REGION_SUBTRACT(pScreen, &exposed, pSubtractRgn, pUnionRgn);
 	(* pMBPriv->DrawSelectPlane)(pScreen, pMBPriv->selectPlane,
 				     &exposed, FRONT_BUFFER);
@@ -791,33 +791,6 @@ bufPostValidateTree(pParent, pChild, kind)
 	REGION_EMPTY(pScreen, pSubtractRgn);
 	REGION_EMPTY(pScreen, pUnionRgn);
     }
-}
-
-/* XXX - Knows region internals. */
-
-static Bool
-RegionsEqual(reg1, reg2)
-    RegionPtr reg1;
-    RegionPtr reg2;
-{
-    int i;
-    BoxPtr rects1, rects2;
-
-    if (reg1->extents.x1 != reg2->extents.x1) return FALSE;
-    if (reg1->extents.x2 != reg2->extents.x2) return FALSE;
-    if (reg1->extents.y1 != reg2->extents.y1) return FALSE;
-    if (reg1->extents.y2 != reg2->extents.y2) return FALSE;
-    if (REGION_NUM_RECTS(reg1) != REGION_NUM_RECTS(reg2)) return FALSE;
-    
-    rects1 = REGION_RECTS(reg1);
-    rects2 = REGION_RECTS(reg2);
-    for (i = 0; i != REGION_NUM_RECTS(reg1); i++) {
-	if (rects1[i].x1 != rects2[i].x1) return FALSE;
-	if (rects1[i].x2 != rects2[i].x2) return FALSE;
-	if (rects1[i].y1 != rects2[i].y1) return FALSE;
-	if (rects1[i].y2 != rects2[i].y2) return FALSE;
-    }
-    return TRUE;
 }
 
 /*
@@ -849,7 +822,7 @@ bufClipNotify(pWin, dx,dy)
     {
 	RegionPtr pOldClipList = (RegionPtr) pMBWindow->devPrivate.ptr;
 
-	if (! RegionsEqual(pOldClipList, &pWin->clipList))
+	if (! REGION_EQUAL(pScreen, pOldClipList, &pWin->clipList))
 	{
 	    if (pMBWindow->displayedMultibuffer == BACK_BUFFER)
 	    {
@@ -940,8 +913,8 @@ bufWindowExposures(pWin, prgn, other_exposed)
     /* miWindowExposures munges prgn and other_exposed. */
     if (handleBuffers)
     {
-	REGION_INIT(pScreen, &tmp_rgn, NullBox, 0);
-	REGION_COPY(pScreen, &tmp_rgn,prgn);
+	REGION_NULL(pScreen, &tmp_rgn);
+	REGION_COPY(pScreen, &tmp_rgn, prgn);
     }
 
     UNWRAP_SCREEN_FUNC(pScreen, pMBPriv, void, WindowExposures);

@@ -24,6 +24,7 @@ OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION  WITH
 THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 ********************************************************/
+/* $XFree86: xc/programs/Xserver/xkb/ddxKeyClick.c,v 1.2 2003/11/17 22:20:45 dawes Exp $ */
 
 #include <stdio.h>
 #define	NEED_EVENTS 1
@@ -37,14 +38,7 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include "XI.h"
 
 void
-#if NeedFunctionPrototypes
 XkbDDXKeyClick(DeviceIntPtr pXDev,int keycode,int synthetic)
-#else
-XkbDDXKeyClick(pXDev,keycode,synthetic)
-    DeviceIntPtr	pXDev;
-    int			keycode;
-    int			synthetic;
-#endif
 {
 #ifdef DEBUG
     if (xkbDebugFlags)

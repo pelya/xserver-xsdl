@@ -20,7 +20,7 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/bus/Sbus.c,v 1.2 2001/10/28 03:34:01 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/bus/Sbus.c,v 1.4 2003/10/02 13:30:06 eich Exp $ */
 
 #include <fcntl.h>
 #include <stdio.h>
@@ -170,6 +170,8 @@ promIsP1275(void)
 	promP1275 = TRUE;
     else
 	promP1275 = FALSE;
+#elif defined(__FreeBSD__)
+    promP1275 = TRUE;
 #else
 #error Missing promIsP1275() function for this OS
 #endif
@@ -554,6 +556,9 @@ pointer
 xf86MapSbusMem(sbusDevicePtr psdp, unsigned long offset, unsigned long size)
 {
     pointer ret;
+    unsigned long pagemask = xf86getpagesize() - 1;
+    unsigned long off = offset & ~pagemask;
+    unsigned long len = ((offset + size + pagemask) & ~pagemask) - off;
 
     if (psdp->fd == -1) {
 	psdp->fd = open(psdp->device, O_RDWR);
@@ -562,22 +567,26 @@ xf86MapSbusMem(sbusDevicePtr psdp, unsigned long offset, unsigned long size)
     } else if (psdp->fd < 0)
 	return NULL;
 
-    ret = (pointer) mmap (NULL, size, PROT_READ | PROT_WRITE, MAP_PRIVATE,
-			  psdp->fd, offset);
+    ret = (pointer) mmap (NULL, len, PROT_READ | PROT_WRITE, MAP_PRIVATE,
+			  psdp->fd, off);
     if (ret == (pointer) -1) {
-	ret = (pointer) mmap (NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED,
-			      psdp->fd, offset);
+	ret = (pointer) mmap (NULL, len, PROT_READ | PROT_WRITE, MAP_SHARED,
+			      psdp->fd, off);
     }
     if (ret == (pointer) -1)
 	return NULL;
 
-    return ret;
+    return (char *)ret + (offset - off);
 }
 
 void
 xf86UnmapSbusMem(sbusDevicePtr psdp, pointer addr, unsigned long size)
 {
-    munmap (addr, size);
+    unsigned long mask = xf86getpagesize() - 1;
+    unsigned long base = (unsigned long)addr & ~mask;
+    unsigned long len = (((unsigned long)addr + size + mask) & ~mask) - base;
+
+    munmap ((pointer)base, len);
 }
 
 /* Tell OS that we are driving the HW cursor ourselves. */

@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/xf8_32bpp/cfb8_32.h,v 1.5 2000/03/02 02:32:52 mvojkovi Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/xf8_32bpp/cfb8_32.h,v 1.6 2003/07/16 01:38:50 dawes Exp $ */
 
 #ifndef _CFB8_32_H
 #define _CFB8_32_H
@@ -57,8 +57,7 @@ cfbDoBitblt8To32(
     int rop,
     RegionPtr prgnDst, 
     DDXPointPtr pptSrc,
-    unsigned long planemask,
-    unsigned long bitPlane
+    unsigned long planemask
 );
 
 void 
@@ -68,8 +67,7 @@ cfbDoBitblt32To8(
     int rop,
     RegionPtr prgnDst, 
     DDXPointPtr pptSrc,
-    unsigned long planemask,
-    unsigned long bitPlane
+    unsigned long planemask
 );
 
 
@@ -177,8 +175,7 @@ cfbDoBitblt8To8GXcopy(
     int rop,
     RegionPtr prgnDst, 
     DDXPointPtr pptSrc,
-    unsigned long pm,
-    unsigned long bitPlane
+    unsigned long pm
 );
 
 void 
@@ -188,8 +185,7 @@ cfbDoBitblt24To24GXcopy(
     int rop,
     RegionPtr prgnDst, 
     DDXPointPtr pptSrc,
-    unsigned long pm,
-    unsigned long bitPlane
+    unsigned long pm
 );
 
 Bool cfb8_32CreateWindow(WindowPtr pWin);

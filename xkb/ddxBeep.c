@@ -24,7 +24,7 @@ OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION  WITH
 THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 ********************************************************/
-/* $XFree86: xc/programs/Xserver/xkb/ddxBeep.c,v 3.9 2002/12/05 21:59:00 paulo Exp $ */
+/* $XFree86: xc/programs/Xserver/xkb/ddxBeep.c,v 3.10 2003/11/17 22:20:44 dawes Exp $ */
 
 #include <stdio.h>
 #define	NEED_EVENTS 1
@@ -97,11 +97,7 @@ static  char 	doesPitch = 1;
 #define	MAKE_ATOM(a)	MakeAtom(a,sizeof(a)-1,True)
 
 static void
-#if NeedFunctionPrototypes
 _XkbDDXBeepInitAtoms(void)
-#else
-_XkbDDXBeepInitAtoms()
-#endif
 {
     featureOn= 		MAKE_ATOM(FEATURE_ON);
     featureOff= 	MAKE_ATOM(FEATURE_OFF);
@@ -148,14 +144,7 @@ _XkbDDXBeepInitAtoms()
 }
 
 static CARD32
-#if NeedFunctionPrototypes
 _XkbDDXBeepExpire(OsTimerPtr timer,CARD32 now,pointer arg)
-#else
-_XkbDDXBeepExpire(timer,now,arg)
-    OsTimerPtr	 timer;
-    CARD32	 now;
-    pointer	 arg;
-#endif
 {
 DeviceIntPtr	dev= (DeviceIntPtr)arg;
 KbdFeedbackPtr	feed;
@@ -360,14 +349,7 @@ Atom		name;
 }
 
 int
-#if NeedFunctionPrototypes
 XkbDDXAccessXBeep(DeviceIntPtr dev,unsigned what,unsigned which)
-#else
-XkbDDXAccessXBeep(dev,what,which)
-    DeviceIntPtr	dev;
-    unsigned		what;
-    unsigned		which;
-#endif
 {
 XkbSrvInfoRec	*xkbInfo= dev->key->xkbInfo;
 CARD32		 next;

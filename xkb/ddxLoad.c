@@ -24,7 +24,7 @@ OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION  WITH
 THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 ********************************************************/
-/* $XFree86: xc/programs/Xserver/xkb/ddxLoad.c,v 3.30 2002/05/31 18:46:06 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/xkb/ddxLoad.c,v 3.36 2003/11/17 22:20:45 dawes Exp $ */
 
 #include <stdio.h>
 #include <ctype.h>
@@ -40,6 +40,7 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #define	XKBSRV_NEED_FILE_FUNCS
 #include "XKBsrv.h"
 #include "XI.h"
+#include "xkb.h"
 
 #if defined(CSRG_BASED) || defined(linux) || defined(__sgi) || defined(AIXV3) || defined(__osf__) || defined(__GNU__)
 #include <paths.h>
@@ -71,8 +72,8 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #define	POST_ERROR_MSG2 "\"End of messages from xkbcomp\""
 
 static void
-OutputDirectory (outdir)
-    char* outdir;
+OutputDirectory(
+    char* outdir)
 {
 #ifndef WIN32
     if (getuid() == 0) {
@@ -93,18 +94,10 @@ OutputDirectory (outdir)
 }
 
 Bool
-#if NeedFunctionPrototypes
 XkbDDXCompileNamedKeymap(	XkbDescPtr		xkb,
 				XkbComponentNamesPtr	names,
 				char *			nameRtrn,
 				int			nameRtrnLen)
-#else
-XkbDDXCompileNamedKeymap(xkb,names,nameRtrn,nameRtrnLen)
-    XkbDescPtr			xkb;
-    XkbComponentNamesPtr	names;
-    char *			nameRtrn;
-    int				nameRtrnLen;
-#endif
 {
 char 	cmd[PATH_MAX],file[PATH_MAX],xkm_output_dir[PATH_MAX],*map,*outFile;
 
@@ -202,22 +195,12 @@ char 	cmd[PATH_MAX],file[PATH_MAX],xkm_output_dir[PATH_MAX],*map,*outFile;
 }
         	
 Bool    	
-#if NeedFunctionPrototypes
 XkbDDXCompileKeymapByNames(	XkbDescPtr		xkb,
 				XkbComponentNamesPtr	names,
 				unsigned		want,
 				unsigned		need,
 				char *			nameRtrn,
 				int			nameRtrnLen)
-#else
-XkbDDXCompileKeymapByNames(xkb,names,want,need,nameRtrn,nameRtrnLen)
-    XkbDescPtr			xkb;
-    XkbComponentNamesPtr	names;
-    unsigned			want;
-    unsigned			need;
-    char *			nameRtrn;
-    int				nameRtrnLen;
-#endif
 {
 FILE *	out;
 char	buf[PATH_MAX],keymap[PATH_MAX],xkm_output_dir[PATH_MAX];
@@ -387,14 +370,7 @@ int i;
 }
 
 FILE *
-#if NeedFunctionPrototypes
 XkbDDXOpenConfigFile(char *mapName,char *fileNameRtrn,int fileNameRtrnLen)
-#else
-XkbDDXOpenConfigFile(mapName,fileNameRtrn,fileNameRtrnLen)
-    char *	mapName;
-    char *	fileNameRtrn;
-    int		fileNameRtrnLen;
-#endif
 {
 char	buf[PATH_MAX],xkm_output_dir[PATH_MAX];
 FILE *	file;
@@ -413,7 +389,7 @@ FILE *	file;
 	else if (strlen(xkm_output_dir)+strlen(mapName)+5 <= PATH_MAX)
 	    sprintf(buf,"%s%s.xkm",xkm_output_dir,mapName);
 	if (buf[0] != '\0')
-	    file= fopen(buf,"r");
+	    file= fopen(buf,"rb");
 	else file= NULL;
     }
     else file= NULL;
@@ -425,7 +401,6 @@ FILE *	file;
 }
 
 unsigned
-#if NeedFunctionPrototypes
 XkbDDXLoadKeymapByNames(	DeviceIntPtr		keybd,
 				XkbComponentNamesPtr	names,
 				unsigned		want,
@@ -433,16 +408,6 @@ XkbDDXLoadKeymapByNames(	DeviceIntPtr		keybd,
 				XkbFileInfo *		finfoRtrn,
 				char *			nameRtrn,
 				int 			nameRtrnLen)
-#else
-XkbDDXLoadKeymapByNames(keybd,names,want,need,finfoRtrn,nameRtrn,nameRtrnLen)
-    DeviceIntPtr		keybd;
-    XkbComponentNamesPtr	names;
-    unsigned			want;
-    unsigned			need;
-    XkbFileInfo *		finfoRtrn;
-    char *			nameRtrn;
-    int 			nameRtrnLen;
-#endif
 {
 XkbDescPtr	xkb;
 FILE	*	file;
@@ -482,12 +447,12 @@ unsigned	missing;
     }
     file= XkbDDXOpenConfigFile(nameRtrn,fileName,PATH_MAX);
     if (file==NULL) {
-	ErrorF("Couldn't open compiled keymap file %s\n",fileName);
+	LogMessage(X_ERROR, "Couldn't open compiled keymap file %s\n",fileName);
 	return 0;
     }
     missing= XkmReadFile(file,need,want,finfoRtrn);
     if (finfoRtrn->xkb==NULL) {
-	ErrorF("Error loading keymap %s\n",fileName);
+	LogMessage(X_ERROR, "Error loading keymap %s\n",fileName);
 	fclose(file);
 	(void) unlink (fileName);
 	return 0;
@@ -503,18 +468,10 @@ unsigned	missing;
 }
 
 Bool
-#if NeedFunctionPrototypes
 XkbDDXNamesFromRules(	DeviceIntPtr		keybd,
 			char *			rules_name,
 			XkbRF_VarDefsPtr	defs,
 			XkbComponentNamesPtr	names)
-#else
-XkbDDXNamesFromRules(keybd,rules_name,defs,names)
-    DeviceIntPtr		keybd;
-    char *			rules_name;
-    XkbRF_VarDefsPtr		defs;
-    XkbComponentNamesPtr	names;
-#endif
 {
 char 		buf[PATH_MAX];
 FILE *		file;

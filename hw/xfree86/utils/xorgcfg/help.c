@@ -26,7 +26,7 @@
  *
  * Author: Paulo César Pereira de Andrade <pcpa@conectiva.com.br>
  *
- * $XFree86: xc/programs/Xserver/hw/xfree86/xf86cfg/help.c,v 1.7 2002/06/06 21:03:32 paulo Exp $
+ * $XFree86: xc/programs/Xserver/hw/xfree86/xf86cfg/help.c,v 1.8 2003/11/03 05:11:58 tsi Exp $
  */
 
 #include <X11/IntrinsicP.h>
@@ -205,11 +205,11 @@ typedef struct _Html_Item Html_Item;
 
 typedef struct _Html_TagInfo {
     char *name;
-    int entity	: 1;	/* it changes the type of the text */
-    int nest	: 1;	/* does not close tags automatically */
-    int end	: 1;	/* need a close markup */
-    int adnl	: 1;	/* add newline before/after tag contents */
-    int para	: 1;	/* changes the paragraph formatting */
+    unsigned int entity	: 1;	/* it changes the type of the text */
+    unsigned int nest	: 1;	/* does not close tags automatically */
+    unsigned int end	: 1;	/* need a close markup */
+    unsigned int adnl	: 1;	/* add newline before/after tag contents */
+    unsigned int para	: 1;	/* changes the paragraph formatting */
     unsigned long mask;	/* enforce use of attributes of this tag-info */
     unsigned long xlfd_mask;
     void (*parse_args)(Html_Parser*, Html_Item*);

@@ -52,7 +52,7 @@ Telephone and Telegraph Company or of the Regents of the
 University of California.
 
 */
-/* $XFree86: xc/programs/Xserver/Xext/xtest1di.c,v 3.3 2001/12/14 19:58:52 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/Xext/xtest1di.c,v 3.6 2003/11/17 22:20:28 dawes Exp $ */
 
 /*****************************************************************************
  * include files
@@ -72,29 +72,13 @@ University of California.
 #include "opaque.h"
 #define  XTestSERVER_SIDE
 #include "xtestext1.h"
+#include "modinit.h"
 
 #include "xtest1dd.h"
 
 /*****************************************************************************
  * defines
  ****************************************************************************/
-
-/*****************************************************************************
- * externals
- ****************************************************************************/
-
-/*
- * id of client using XTestGetInput
- *
- * defined in xtest1dd.c
- */
-extern ClientPtr	current_xtest_client;
-/*
- * id of client using XTestFakeInput
- *
- * defined in xtest1dd.c
- */
-extern ClientPtr	playback_client;
 
 /*****************************************************************************
  * variables
@@ -150,29 +134,21 @@ static DISPATCH_PROC(ProcTestQueryInputSize);
 static DISPATCH_PROC(SProcTestQueryInputSize);
 
 static void	XTestResetProc(
-#if NeedFunctionPrototypes
 	ExtensionEntry *	/* unused */
-#endif
 	);
 static void	SReplyXTestDispatch(
-#if NeedFunctionPrototypes
 	ClientPtr		/* client_ptr */,
 	int			/* size */,
 	char *			/* reply_ptr */
-#endif
 	);
 static void	SEventXTestDispatch(
-#if NeedFunctionPrototypes
 	xEvent *		/* from */,
 	xEvent *		/* to */
-#endif
 	);
 
 static int	XTestCurrentClientGone(
-#if NeedFunctionPrototypes
 	pointer			/* value */,
 	XID			/* id */
-#endif
 	);
 
 /*****************************************************************************
@@ -186,7 +162,7 @@ static int	XTestCurrentClientGone(
  *	(other than the core errors).
  */
 void
-XTestExtension1Init()
+XTestExtension1Init(INITARGS)
 {
 	/*
 	 * holds the pointer to the extension entry structure

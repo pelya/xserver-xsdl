@@ -50,7 +50,7 @@ OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 PERFORMANCE OF THIS SOFTWARE.
 
 */
-/* $XFree86: xc/programs/Xserver/Xext/sync.c,v 3.11 2001/12/14 19:58:51 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/Xext/sync.c,v 3.14 2003/11/17 22:20:27 dawes Exp $ */
 
 #define NEED_REPLIES
 #define NEED_EVENTS
@@ -76,10 +76,11 @@ PERFORMANCE OF THIS SOFTWARE.
 #endif
 #endif
 
+#include "modinit.h"
+
 /*
  * Local Global Variables
  */
-static int      SyncReqCode;
 static int      SyncEventBase;
 static int      SyncErrorBase;
 static RESTYPE  RTCounter = 0;
@@ -98,219 +99,165 @@ static SyncCounter **SysCounterList = NULL;
 
 static int
 FreeAlarm(
-#if NeedFunctionPrototypes
     pointer /* addr */,
     XID /* id */
-#endif
 );
 
 static int
 FreeAlarmClient(
-#if NeedFunctionPrototypes
     pointer /* value */,
     XID /* id */
-#endif
 );
 
 static int
 FreeAwait(
-#if NeedFunctionPrototypes
     pointer /* addr */,
     XID /* id */
-#endif
 );
 
 static void
 ServertimeBracketValues(
-#if NeedFunctionPrototypes
     pointer /* pCounter */,
     CARD64 * /* pbracket_less */,
     CARD64 * /* pbracket_greater */
-#endif
 );
 
 static void
 ServertimeQueryValue(
-#if NeedFunctionPrototypes
     pointer /* pCounter */,
     CARD64 * /* pValue_return */
-#endif
 );
 
 static void
 ServertimeWakeupHandler(
-#if NeedFunctionPrototypes
     pointer /* env */,
     int /* rc */,
     pointer /* LastSelectMask */
-#endif
 );
 
 static int 
 SyncInitTrigger(
-#if NeedFunctionPrototypes
     ClientPtr /* client */,
     SyncTrigger * /* pTrigger */,
     XSyncCounter /* counter */,
     Mask /* changes */
-#endif
 );
 
 static void
 SAlarmNotifyEvent(
-#if NeedFunctionPrototypes
     xSyncAlarmNotifyEvent * /* from */,
     xSyncAlarmNotifyEvent * /* to */
-#endif
 );
 
 static void
 SCounterNotifyEvent(
-#if NeedFunctionPrototypes
     xSyncCounterNotifyEvent * /* from */,
     xSyncCounterNotifyEvent * /* to */
-#endif
 );
 
 static void
 ServertimeBlockHandler(
-#if NeedFunctionPrototypes
     pointer  /* env */,
     struct timeval ** /* wt */,
     pointer  /* LastSelectMask */
-#endif
 );
 
 static int
 SyncAddTriggerToCounter(
-#if NeedFunctionPrototypes
     SyncTrigger * /* pTrigger */
-#endif
 );
 
 extern void
 SyncAlarmCounterDestroyed(
-#if NeedFunctionPrototypes
     SyncTrigger * /* pTrigger */
-#endif
 );
 
 static void
 SyncAlarmTriggerFired(
-#if NeedFunctionPrototypes
     SyncTrigger * /* pTrigger */
-#endif
 );
 
 static void
 SyncAwaitTriggerFired(
-#if NeedFunctionPrototypes
     SyncTrigger * /* pTrigger */
-#endif
 );
 
 static int
 SyncChangeAlarmAttributes(
-#if NeedFunctionPrototypes
     ClientPtr /* client */,
     SyncAlarm * /* pAlarm */,
     Mask /* mask */,
     CARD32 * /* values */
-#endif
 );
 
 static Bool
 SyncCheckTriggerNegativeComparison(
-#if NeedFunctionPrototypes
     SyncTrigger * /* pTrigger */,
     CARD64 /* oldval */
-#endif
 );
 
 static Bool
 SyncCheckTriggerNegativeTransition(
-#if NeedFunctionPrototypes
     SyncTrigger * /* pTrigger */,
     CARD64 /* oldval */
-#endif
 );
 
 static Bool
 SyncCheckTriggerPositiveComparison(
-#if NeedFunctionPrototypes
     SyncTrigger * /* pTrigger */,
     CARD64 /* oldval */
-#endif
 );
 
 static Bool
 SyncCheckTriggerPositiveTransition(
-#if NeedFunctionPrototypes
     SyncTrigger * /* pTrigger */,
     CARD64 /* oldval */
-#endif
 );
 
 static SyncCounter *
 SyncCreateCounter(
-#if NeedFunctionPrototypes
     ClientPtr /* client */,
     XSyncCounter /* id */,
     CARD64 /* initialvalue */
-#endif
 );
 
 static void SyncComputeBracketValues(
-#if NeedFunctionPrototypes
     SyncCounter * /* pCounter */,
     Bool /* startOver */
-#endif
 );
 
 static void
 SyncDeleteTriggerFromCounter(
-#if NeedFunctionPrototypes
     SyncTrigger * /* pTrigger */
-#endif
 );
 
 static Bool
 SyncEventSelectForAlarm(
-#if NeedFunctionPrototypes
     SyncAlarm * /* pAlarm */,
     ClientPtr /* client */,
     Bool /* wantevents */
-#endif
 );
 
 static void
 SyncInitServerTime(
-#if NeedFunctionPrototypes
     void
-#endif
 );
 
 static void 
 SyncResetProc(
-#if NeedFunctionPrototypes
     ExtensionEntry * /* extEntry */
-#endif
 );
 
 static void
 SyncSendAlarmNotifyEvents(
-#if NeedFunctionPrototypes
     SyncAlarm * /* pAlarm */
-#endif
 );
 
 static void
 SyncSendCounterNotifyEvents(
-#if NeedFunctionPrototypes
     ClientPtr /* client */,
     SyncAwait ** /* ppAwait */,
     int /* num_events */
-#endif
 );
 
 static DISPATCH_PROC(ProcSyncAwait);
@@ -1081,10 +1028,8 @@ SyncCreateCounter(client, id, initialvalue)
 }
 
 static int FreeCounter(
-#if NeedFunctionPrototypes
     pointer /*env*/,
     XID     /*id*/
-#endif
 );
 
 /*
@@ -1098,8 +1043,13 @@ SyncCreateSystemCounter(name, initial, resolution, counterType,
     CARD64          initial;
     CARD64          resolution;
     SyncCounterType counterType;
-    void            (*QueryValue) ();
-    void            (*BracketValues) ();
+    void            (*QueryValue) (
+        pointer /* pCounter */, 
+        CARD64 * /* pValue_return */);
+    void            (*BracketValues) (
+        pointer /* pCounter */,
+        CARD64 * /* pbracket_less */,
+        CARD64 * /* pbracket_greater */);
 {
     SyncCounter    *pCounter;
 
@@ -1588,6 +1538,8 @@ ProcSyncSetCounter(client)
     SyncCounter    *pCounter;
     CARD64	   newvalue;
 
+    REQUEST_SIZE_MATCH(xSyncSetCounterReq);
+
     pCounter = (SyncCounter *)SecurityLookupIDByType(client, stuff->cid,
 					   RTCounter, SecurityWriteAccess);
     if (pCounter == NULL)
@@ -2031,12 +1983,11 @@ static int
 ProcSyncDestroyAlarm(client)
     ClientPtr       client;
 {
-    SyncAlarm      *pAlarm;
     REQUEST(xSyncDestroyAlarmReq);
 
     REQUEST_SIZE_MATCH(xSyncDestroyAlarmReq);
 
-    if (!(pAlarm = (SyncAlarm *)SecurityLookupIDByType(client, stuff->alarm,
+    if (!((SyncAlarm *)SecurityLookupIDByType(client, stuff->alarm,
 					      RTAlarm, SecurityDestroyAccess)))
     {
 	client->errorValue = stuff->alarm;
@@ -2399,7 +2350,7 @@ SyncResetProc(extEntry)
  * ** Initialise the extension.
  */
 void 
-SyncExtensionInit()
+SyncExtensionInit(INITARGS)
 {
     ExtensionEntry *extEntry;
 
@@ -2424,7 +2375,6 @@ SyncExtensionInit()
 	return;
     }
 
-    SyncReqCode = extEntry->base;
     SyncEventBase = extEntry->eventBase;
     SyncErrorBase = extEntry->errorBase;
     EventSwapVector[SyncEventBase + XSyncCounterNotify] = (EventSwapPtr) SCounterNotifyEvent;
@@ -2488,6 +2438,7 @@ pointer LastSelectMask;
 	{
 	    Bool overflow;
             XSyncValueSubtract(&delay, *pnext_time, Now, &overflow);
+	    (void)overflow;
             timeout = XSyncValueLow32(delay);
         }
         AdjustWaitForDelay(wt, timeout); /* os/utils.c */

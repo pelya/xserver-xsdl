@@ -24,7 +24,7 @@ OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION  WITH
 THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 ********************************************************/
-/* $XFree86: xc/programs/Xserver/xkb/xkbAccessX.c,v 1.9 2001/08/23 14:33:25 alanh Exp $ */
+/* $XFree86: xc/programs/Xserver/xkb/xkbAccessX.c,v 1.10 2003/11/17 22:20:46 dawes Exp $ */
 
 #include <stdio.h>
 #include <math.h>
@@ -57,13 +57,7 @@ unsigned int	XkbDfltAccessXFeedback= XkbAccessXFeedbackMask;
 unsigned short	XkbDfltAccessXOptions=  XkbAX_AllOptionsMask & ~(XkbAX_IndicatorFBMask|XkbAX_SKReleaseFBMask|XkbAX_SKRejectFBMask);
 
 void
-#if NeedFunctionPrototypes
 AccessXComputeCurveFactor(XkbSrvInfoPtr xkbi,XkbControlsPtr ctrls)
-#else
-AccessXComputeCurveFactor(xkbi,ctrls)
-    XkbSrvInfoPtr	xkbi;
-    XkbControlsPtr	ctrls;
-#endif
 {
     xkbi->mouseKeysCurve= 1.0+(((double)ctrls->mk_curve)*0.001);
     xkbi->mouseKeysCurveFactor= ( ((double)ctrls->mk_max_speed)/
@@ -72,12 +66,7 @@ AccessXComputeCurveFactor(xkbi,ctrls)
 }
 
 void
-#if NeedFunctionPrototypes
 AccessXInit(DeviceIntPtr keybd)
-#else
-AccessXInit(keybd)
-    DeviceIntPtr keybd;
-#endif
 {
 XkbSrvInfoPtr	xkbi = keybd->key->xkbInfo;
 XkbControlsPtr	ctrls = xkbi->desc->ctrls;
@@ -129,18 +118,10 @@ XkbControlsPtr	ctrls = xkbi->desc->ctrls;
 /*									*/
 /************************************************************************/
 static void 
-#if NeedFunctionPrototypes
 AccessXKeyboardEvent(DeviceIntPtr	keybd,
 				 BYTE		type,
 				 BYTE		keyCode,
 				 Bool		isRepeat)
-#else
-AccessXKeyboardEvent(keybd,type,keyCode,isRepeat)
-    DeviceIntPtr keybd;
-    BYTE	 type;
-    BYTE	 keyCode;
-    Bool	 isRepeat;
-#endif
 {
 xEvent		xE;
     
@@ -171,14 +152,7 @@ xEvent		xE;
 /*									*/
 /************************************************************************/
 static void
-#if NeedFunctionPrototypes
 AccessXKRGTurnOn(DeviceIntPtr dev,CARD16 KRGControl,xkbControlsNotify	*pCN)
-#else
-AccessXKRGTurnOn(dev,KRGControl,pCN)
-    DeviceIntPtr	dev;
-    CARD16 		KRGControl;
-    xkbControlsNotify	*pCN;
-#endif
 {
 XkbSrvInfoPtr		xkbi = dev->key->xkbInfo;
 XkbControlsPtr		ctrls = xkbi->desc->ctrls;
@@ -210,13 +184,7 @@ XkbSrvLedInfoPtr	sli;
 /*									*/
 /************************************************************************/
 static void 
-#if NeedFunctionPrototypes
 AccessXKRGTurnOff(DeviceIntPtr dev,xkbControlsNotify *pCN)
-#else
-AccessXKRGTurnOff(dev,pCN)
-    DeviceIntPtr dev;
-    xkbControlsNotify *pCN;
-#endif
 {
 XkbSrvInfoPtr		xkbi = dev->key->xkbInfo;
 XkbControlsPtr		ctrls = xkbi->desc->ctrls;
@@ -250,13 +218,7 @@ XkbSrvLedInfoPtr	sli;
 /*									*/
 /************************************************************************/
 static void
-#if NeedFunctionPrototypes
 AccessXStickyKeysTurnOn(DeviceIntPtr dev,xkbControlsNotify *pCN)
-#else
-AccessXStickyKeysTurnOn(dev,pCN)
-    DeviceIntPtr	 dev;
-    xkbControlsNotify	*pCN;
-#endif
 {
 XkbSrvInfoPtr		xkbi = dev->key->xkbInfo;
 XkbControlsPtr		ctrls = xkbi->desc->ctrls;
@@ -290,13 +252,7 @@ XkbSrvLedInfoPtr	sli;
 /*									*/
 /************************************************************************/
 static void
-#if NeedFunctionPrototypes
 AccessXStickyKeysTurnOff(DeviceIntPtr dev,xkbControlsNotify *pCN)
-#else
-AccessXStickyKeysTurnOff(dev,pCN)
-    DeviceIntPtr	 dev;
-    xkbControlsNotify	*pCN;
-#endif
 {
 XkbSrvInfoPtr		xkbi = dev->key->xkbInfo;
 XkbControlsPtr		ctrls = xkbi->desc->ctrls;
@@ -326,14 +282,7 @@ XkbSrvLedInfoPtr	sli;
 } /* AccessXStickyKeysTurnOff */
 
 static CARD32
-#if NeedFunctionPrototypes
 AccessXKRGExpire(OsTimerPtr timer,CARD32 now,pointer arg)
-#else
-AccessXKRGExpire(timer,now,arg)
-    OsTimerPtr	 timer;
-    CARD32	 now;
-    pointer	 arg;
-#endif
 {
 XkbSrvInfoPtr		xkbi= ((DeviceIntPtr)arg)->key->xkbInfo;
 xkbControlsNotify	cn;
@@ -355,14 +304,7 @@ xkbControlsNotify	cn;
 }
 
 static CARD32
-#if NeedFunctionPrototypes
 AccessXRepeatKeyExpire(OsTimerPtr timer,CARD32 now,pointer arg)
-#else
-AccessXRepeatKeyExpire(timer,now,arg)
-    OsTimerPtr	 timer;
-    CARD32	 now;
-    pointer	 arg;
-#endif
 {
 XkbSrvInfoPtr	xkbi= ((DeviceIntPtr)arg)->key->xkbInfo;
 KeyCode		key;
@@ -376,13 +318,7 @@ KeyCode		key;
 }
 
 void
-#if NeedFunctionPrototypes
 AccessXCancelRepeatKey(XkbSrvInfoPtr xkbi,KeyCode key)
-#else
-AccessXCancelRepeatKey(xkbi,key)
-    XkbSrvInfoPtr	xkbi;
-    KeyCode		key;
-#endif
 {
     if (xkbi->repeatKey==key)
 	xkbi->repeatKey= 0;
@@ -390,14 +326,7 @@ AccessXCancelRepeatKey(xkbi,key)
 }
 
 static CARD32
-#if NeedFunctionPrototypes
 AccessXSlowKeyExpire(OsTimerPtr timer,CARD32 now,pointer arg)
-#else
-AccessXSlowKeyExpire(timer,now,arg)
-    OsTimerPtr	 timer;
-    CARD32	 now;
-    pointer	 arg;
-#endif
 {
 DeviceIntPtr	keybd;
 XkbSrvInfoPtr	xkbi;
@@ -445,14 +374,7 @@ XkbControlsPtr	ctrls;
 }
 
 static CARD32
-#if NeedFunctionPrototypes
 AccessXBounceKeyExpire(OsTimerPtr timer,CARD32 now,pointer arg)
-#else
-AccessXBounceKeyExpire(timer,now,arg)
-    OsTimerPtr	 timer;
-    CARD32	 now;
-    pointer	 arg;
-#endif
 {
 XkbSrvInfoPtr	xkbi= ((DeviceIntPtr)arg)->key->xkbInfo;
 
@@ -461,14 +383,7 @@ XkbSrvInfoPtr	xkbi= ((DeviceIntPtr)arg)->key->xkbInfo;
 }
 
 static CARD32
-#if NeedFunctionPrototypes
 AccessXTimeoutExpire(OsTimerPtr timer,CARD32 now,pointer arg)
-#else
-AccessXTimeoutExpire(timer,now,arg)
-    OsTimerPtr	 timer;
-    CARD32	 now;
-    pointer	 arg;
-#endif
 {
 DeviceIntPtr		dev = (DeviceIntPtr)arg;
 XkbSrvInfoPtr		xkbi= dev->key->xkbInfo;
@@ -531,16 +446,9 @@ XkbSrvLedInfoPtr	sli;
 /*									*/
 /************************************************************************/
 Bool
-#if NeedFunctionPrototypes
 AccessXFilterPressEvent(	register xEvent *	xE, 
 				register DeviceIntPtr	keybd, 
 				int			count)
-#else
-AccessXFilterPressEvent(xE,keybd,count)
-    register xEvent 		*xE;
-    register DeviceIntPtr	keybd;
-    int				count;    
-#endif
 {
 XkbSrvInfoPtr	xkbi = keybd->key->xkbInfo;
 XkbControlsPtr	ctrls = xkbi->desc->ctrls;
@@ -673,16 +581,9 @@ KeySym *	sym = XkbKeySymsPtr(xkbi->desc,key);
 /*									*/
 /************************************************************************/
 Bool
-#if NeedFunctionPrototypes
 AccessXFilterReleaseEvent(	register xEvent *	xE, 
 				register DeviceIntPtr	keybd, 
 				int			count)
-#else
-AccessXFilterReleaseEvent(xE,keybd,count)
-    register xEvent 		*xE;
-    register DeviceIntPtr	keybd;
-    int				count;    
-#endif
 {
 XkbSrvInfoPtr	xkbi = keybd->key->xkbInfo;
 XkbControlsPtr	ctrls = xkbi->desc->ctrls;
@@ -788,16 +689,9 @@ Bool		ignoreKeyEvent = FALSE;
 /*									*/
 /************************************************************************/
 void
-#if NeedFunctionPrototypes
 ProcessPointerEvent(	register xEvent  *	xE, 
 			register DeviceIntPtr	mouse, 
 			int		        count)
-#else
-ProcessPointerEvent(xE,mouse,count)
-    register xEvent 		*xE;
-    register DeviceIntPtr	mouse;
-    int		        	count;
-#endif
 {
 DeviceIntPtr	dev = (DeviceIntPtr)LookupKeyboardDevice();
 XkbSrvInfoPtr	xkbi = dev->key->xkbInfo;

@@ -1,7 +1,30 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86Privstr.h,v 1.37 2003/02/20 04:05:14 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86Privstr.h,v 1.40 2003/10/17 20:02:12 alanh Exp $ */
 
 /*
- * Copyright (c) 1997,1998 by The XFree86 Project, Inc.
+ * Copyright (c) 1997-2003 by The XFree86 Project, Inc.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+ * THE COPYRIGHT HOLDER(S) OR AUTHOR(S) BE LIABLE FOR ANY CLAIM, DAMAGES OR
+ * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ *
+ * Except as contained in this notice, the name of the copyright holder(s)
+ * and author(s) shall not be used in advertising or otherwise to promote
+ * the sale, use or other dealings in this Software without prior written
+ * authorization from the copyright holder(s) and author(s).
  */
 
 /*
@@ -159,7 +182,6 @@ typedef struct {
 #ifdef DPMSExtension
 /* Private info for DPMS */
 typedef struct {
-    DPMSSetProcPtr	Set;
     CloseScreenProcPtr	CloseScreen;
     Bool		Enabled;
     int			Flags;
@@ -197,38 +219,6 @@ typedef struct {
 #define SYSCONS		   8
 #define PCVT		  16
 #define WSCONS		  32
-#endif
-
-/* Prefix strings for driver messages */
-#ifndef X_UNKNOWN_STRING
-#define X_UNKNOWN_STRING	"(\?\?)"
-#endif
-#ifndef X_PROBE_STRING
-#define X_PROBE_STRING		"(--)"
-#endif
-#ifndef X_CONFIG_STRING
-#define X_CONFIG_STRING		"(**)"
-#endif
-#ifndef X_DEFAULT_STRING
-#define X_DEFAULT_STRING	"(==)"
-#endif
-#ifndef X_CMDLINE_STRING
-#define X_CMDLINE_STRING	"(++)"
-#endif
-#ifndef X_NOTICE_STRING
-#define X_NOTICE_STRING		"(!!)"
-#endif
-#ifndef X_ERROR_STRING
-#define X_ERROR_STRING		"(EE)"
-#endif
-#ifndef X_WARNING_STRING
-#define X_WARNING_STRING	"(WW)"
-#endif
-#ifndef X_INFO_STRING
-#define X_INFO_STRING		"(II)"
-#endif
-#ifndef X_NOT_IMPLEMENTED_STRING
-#define X_NOT_IMPLEMENTED_STRING	"(NI)"
 #endif
 
 #endif /* _XF86PRIVSTR_H */

@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/GL/glx/glxcmds.c,v 1.9 2002/12/14 01:36:09 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/GL/glx/glxcmds.c,v 1.11 2003/10/28 22:50:17 tsi Exp $ */
 /*
 ** License Applicability. Except to the extent portions of this file are
 ** made subject to an alternative license as permitted in the SGI Free
@@ -64,8 +64,12 @@ static __GLimports imports = {
     __glXImpFclose,
     __glXImpFprintf,
     __glXImpGetDrawablePrivate,
+    __glXImpGetReadablePrivate,
     NULL
 };
+
+static int DoMakeCurrent( __GLXclientState *cl, GLXDrawable drawId,
+ GLXDrawable readId, GLXContextID contextId, GLXContextTag tag );
 
 /************************************************************************/
 
@@ -361,26 +365,138 @@ static void StartUsingContext(__GLXclientState *cl, __GLXcontext *glxc)
 /*
 ** Make an OpenGL context and drawable current.
 */
+
 int __glXMakeCurrent(__GLXclientState *cl, GLbyte *pc)
+{
+    xGLXMakeCurrentReq *req = (xGLXMakeCurrentReq *) pc;
+
+   return DoMakeCurrent( cl, req->drawable, req->drawable,
+			 req->context, req->oldContextTag );
+}
+
+int __glXMakeContextCurrent(__GLXclientState *cl, GLbyte *pc)
+{
+    xGLXMakeContextCurrentReq *req = (xGLXMakeContextCurrentReq *) pc;
+
+   return DoMakeCurrent( cl, req->drawable, req->readdrawable,
+			 req->context, req->oldContextTag );
+}
+
+int __glXMakeCurrentReadSGI(__GLXclientState *cl, GLbyte *pc)
+{
+    xGLXMakeCurrentReadSGIReq *req = (xGLXMakeCurrentReadSGIReq *) pc;
+
+   return DoMakeCurrent( cl, req->drawable, req->readable,
+			 req->context, req->oldContextTag );
+}
+
+
+/**
+ * Given a drawable ID, get the associated drawable and / or pixmap.
+ * 
+ * If the specified drawable ID is not a pixmap, \c ppPixmap will be set
+ * to \c NULL on return.  In either case, \c ppDraw will be set to a drawable.
+ * In the case where the drawable ID is a pixmap, \c ppDraw will be set to
+ * the drawable associated with that pixmap.
+ *
+ * \param glxc      Associated GLX context.
+ * \param drawId    ID of the drawable.
+ * \param ppDraw    Location to store the pointer to the drawable.
+ * \param ppPixmap  Location to store the pointer to the pixmap.
+ * \param client    Pointer to the client state.
+ * \return  Zero is returned on success.  Otherwise a GLX / X11 protocol error
+ *          is returned.
+ * 
+ * \notes This function will need some modification when support pbuffers
+ *        is added.
+ */
+static int GetDrawableOrPixmap( __GLXcontext *glxc, GLXDrawable drawId,
+				DrawablePtr *ppDraw, __GLXpixmap **ppPixmap,
+				ClientPtr client )
+{
+    DrawablePtr pDraw;
+    __GLXpixmap *drawPixmap = NULL;
+
+    pDraw = (DrawablePtr) LookupDrawable(drawId, client);
+    if (pDraw) {
+	if (pDraw->type == DRAWABLE_WINDOW) {
+	    /*
+	    ** Drawable is an X Window.
+	    */
+	    WindowPtr pWin = (WindowPtr)pDraw;
+	    VisualID vid = wVisual(pWin);
+
+	    /*
+	    ** Check if window and context are similar.
+	    */
+	    if ((vid != glxc->pVisual->vid) ||
+		(pWin->drawable.pScreen != glxc->pScreen)) {
+		client->errorValue = drawId;
+		return BadMatch;
+	    }
+	} else {
+	    /*
+	    ** An X Pixmap is not allowed as a parameter (a GLX Pixmap
+	    ** is, but it must first be created with glxCreateGLXPixmap).
+	    */
+	    client->errorValue = drawId;
+	    return __glXBadDrawable;
+	}
+    } else {
+	drawPixmap = (__GLXpixmap *) LookupIDByType(drawId, __glXPixmapRes);
+	if (drawPixmap) {
+	    /*
+	    ** Check if pixmap and context are similar.
+	    */
+	    if (drawPixmap->pScreen != glxc->pScreen ||
+		drawPixmap->pGlxVisual != glxc->pGlxVisual) {
+		client->errorValue = drawId;
+		return BadMatch;
+	    }
+	    pDraw = drawPixmap->pDraw;
+
+	} else {
+	    /*
+	    ** Drawable is neither a Window nor a GLXPixmap.
+	    */
+	    client->errorValue = drawId;
+	    return __glXBadDrawable;
+	}
+    }
+
+    *ppPixmap = drawPixmap;
+    *ppDraw = pDraw;
+
+    return 0;
+}
+
+
+static int DoMakeCurrent( __GLXclientState *cl,
+			  GLXDrawable drawId, GLXDrawable readId,
+			  GLXContextID contextId, GLXContextTag tag )
 {
     ClientPtr client = cl->client;
     DrawablePtr pDraw;
-    xGLXMakeCurrentReq *req = (xGLXMakeCurrentReq *) pc;
+    DrawablePtr pRead;
     xGLXMakeCurrentReply reply;
-    GLXDrawable drawId = req->drawable;
-    GLXContextID contextId = req->context;
-    __GLXpixmap *pGlxPixmap = 0;
+    __GLXpixmap *drawPixmap = NULL;
+    __GLXpixmap *readPixmap = NULL;
     __GLXcontext *glxc, *prevglxc;
     __GLinterface *gc, *prevgc;
-    __GLXdrawablePrivate *glxPriv = NULL;
-    GLXContextTag tag = req->oldContextTag;
+    __GLXdrawablePrivate *drawPriv = NULL;
+    __GLXdrawablePrivate *readPriv = NULL;
     GLint error;
+    GLuint  mask;
 
     /*
     ** If one is None and the other isn't, it's a bad match.
     */
-    if ((drawId == None && contextId != None) ||
-	(drawId != None && contextId == None)) {
+
+    mask  = (drawId == None)    ? (1 << 0) : 0;
+    mask |= (readId == None)    ? (1 << 1) : 0;
+    mask |= (contextId == None) ? (1 << 2) : 0;
+
+    if ( (mask != 0x00) && (mask != 0x07) ) {
 	return BadMatch;
     }
     
@@ -410,6 +526,8 @@ int __glXMakeCurrent(__GLXclientState *cl, GLbyte *pc)
     ** Lookup new context.  It must not be current for someone else.
     */
     if (contextId != None) {
+	int  status;
+
 	glxc = (__GLXcontext *) LookupIDByType(contextId, __glXContextRes);
 	if (!glxc) {
 	    client->errorValue = contextId;
@@ -420,72 +538,53 @@ int __glXMakeCurrent(__GLXclientState *cl, GLbyte *pc)
 	    return BadAccess;
 	}
 	gc = glxc->gc;
+
+
+	assert( drawId != None );
+	assert( readId != None );
+
+	status = GetDrawableOrPixmap( glxc, drawId, & pDraw, & drawPixmap,
+				      client );
+	if ( status != 0 ) {
+	    return status;
+	}
+
+	if ( readId != drawId ) {
+	    status = GetDrawableOrPixmap( glxc, readId, & pRead, & readPixmap,
+					  client );
+	    if ( status != 0 ) {
+		return status;
+	    }
+	} else {
+	    pRead = pDraw;
+	}
+
+	/* FIXME: Finish refactoring this. - idr */
+	/* get the drawable private */
+	if (pDraw) {
+	    drawPriv = __glXGetDrawablePrivate(pDraw, drawId, glxc->modes);
+	    if (drawPriv == NULL) {
+		return __glXBadDrawable;
+	    }
+	}
+
+	if (pRead != pDraw) {
+	    readPriv = __glXGetDrawablePrivate(pRead, readId, glxc->modes);
+	    if (readPriv == NULL) {
+		return __glXBadDrawable;
+	    }
+	} else {
+	    readPriv = drawPriv;
+	}
+
     } else {
 	/* Switching to no context.  Ignore new drawable. */
 	glxc = 0;
 	gc = 0;
-    }
-
-    if (drawId != None) {
-	pDraw = (DrawablePtr) LookupDrawable(drawId, client);
-	if (pDraw) {
-	    if (pDraw->type == DRAWABLE_WINDOW) {
-		/*
-		** Drawable is an X Window.
-		*/
-		WindowPtr pWin = (WindowPtr)pDraw;
-		VisualID vid = wVisual(pWin);
-
-		/*
-		** Check if window and context are similar.
-		*/
-		if ((vid != glxc->pVisual->vid) ||
-		    (pWin->drawable.pScreen != glxc->pScreen)) {
-		    client->errorValue = drawId;
-		    return BadMatch;
-		}
-
-	    } else {
-		/*
-		** An X Pixmap is not allowed as a parameter (a GLX Pixmap
-		** is, but it must first be created with glxCreateGLXPixmap).
-		*/
-		client->errorValue = drawId;
-		return __glXBadDrawable;
-	    }
-	} else {
-	    pGlxPixmap = (__GLXpixmap *) LookupIDByType(drawId,
-							__glXPixmapRes);
-	    if (pGlxPixmap) {
-		/*
-		** Check if pixmap and context are similar.
-		*/
-		if (pGlxPixmap->pScreen != glxc->pScreen ||
-		    pGlxPixmap->pGlxVisual != glxc->pGlxVisual) {
-		    client->errorValue = drawId;
-		    return BadMatch;
-		}
-		pDraw = pGlxPixmap->pDraw;
-
-	    } else {
-		/*
-		** Drawable is neither a Window nor a GLXPixmap.
-		*/
-		client->errorValue = drawId;
-		return __glXBadDrawable;
-	    }
-	}
-    } else {
 	pDraw = 0;
+	pRead = 0;
     }
 
-    /* get the drawable private */
-    if (pDraw) {
-	glxPriv = __glXGetDrawablePrivate(pDraw, drawId, glxc->modes);
-	if (glxPriv == NULL) {
-	    return __glXBadDrawable;
-	}
-    }
 
     if (prevglxc) {
 	/*
@@ -506,66 +605,97 @@ int __glXMakeCurrent(__GLXclientState *cl, GLbyte *pc)
 	if (!(*prevgc->exports.loseCurrent)((__GLcontext *)prevgc)) {
 	    return __glXBadContext;
 	}
-	__glXDeassociateContext(prevglxc, prevglxc->glxPriv);
+	__glXDeassociateContext(prevglxc);
     }
 	
+
     if ((glxc != 0) && !glxc->isDirect) {
 
-	glxc->glxPriv = glxPriv;
-	__glXCacheDrawableSize(glxPriv);
+	glxc->drawPriv = drawPriv;
+	glxc->readPriv = readPriv;
+	__glXCacheDrawableSize(drawPriv);
 
 	/* make the context current */
-	if (!(*gc->exports.makeCurrent)((__GLcontext *)gc, &glxPriv->glPriv)) {
-	    glxc->glxPriv = NULL;
+	if (!(*gc->exports.makeCurrent)((__GLcontext *)gc)) {
+	    glxc->drawPriv = NULL;
+	    glxc->readPriv = NULL;
 	    return __glXBadContext;
 	}
 
 	/* resize the buffers */
-	if (!__glXResizeDrawableBuffers(glxPriv)) {
+	if (!__glXResizeDrawableBuffers(drawPriv)) {
 	    /* could not do initial resize.  make current failed */
 	    (*gc->exports.loseCurrent)((__GLcontext *)gc);
-	    glxc->glxPriv = NULL;
+	    glxc->drawPriv = NULL;
+	    glxc->readPriv = NULL;
 	    return __glXBadContext;
 	}
 
 	glxc->isCurrent = GL_TRUE;
-	__glXAssociateContext(glxc, glxPriv);
-	assert(glxPriv->glxc == glxc);
+	__glXAssociateContext(glxc);
+	assert(drawPriv->drawGlxc == glxc);
+	assert(readPriv->readGlxc == glxc);
     }
 
     if (prevglxc) {
-	if (prevglxc->pGlxPixmap) {
+	if (prevglxc->drawPixmap) {
+	    if (prevglxc->drawPixmap != prevglxc->readPixmap) {
+		/*
+		** The previous drawable was a glx pixmap, release it.
+		*/
+		prevglxc->readPixmap->refcnt--;
+		if (!prevglxc->readPixmap->idExists &&
+		    !prevglxc->readPixmap->refcnt) {
+		    PixmapPtr pPixmap = (PixmapPtr) prevglxc->readPixmap->pDraw;
+		    /*
+		    ** The DestroyPixmap routine should decrement the
+		    ** refcount of the X pixmap and free only if it's zero.
+		    */
+		    (*prevglxc->readPixmap->pScreen->DestroyPixmap)(pPixmap);
+		    __glXFree(prevglxc->readPixmap);
+		}
+	    }
+
 	    /*
 	    ** The previous drawable was a glx pixmap, release it.
 	    */
-	    prevglxc->pGlxPixmap->refcnt--;
-	    if (!prevglxc->pGlxPixmap->idExists &&
-		!prevglxc->pGlxPixmap->refcnt) {
-		PixmapPtr pPixmap = (PixmapPtr) prevglxc->pGlxPixmap->pDraw;
+	    prevglxc->drawPixmap->refcnt--;
+	    if (!prevglxc->drawPixmap->idExists &&
+		!prevglxc->drawPixmap->refcnt) {
+		PixmapPtr pPixmap = (PixmapPtr) prevglxc->drawPixmap->pDraw;
 		/*
 		** The DestroyPixmap routine should decrement the
 		** refcount of the X pixmap and free only if it's zero.
 		*/
-		(*prevglxc->pGlxPixmap->pScreen->DestroyPixmap)(pPixmap);
-		__glXFree(prevglxc->pGlxPixmap);
+		(*prevglxc->drawPixmap->pScreen->DestroyPixmap)(pPixmap);
+		__glXFree(prevglxc->drawPixmap);
 	    }
-	    prevglxc->pGlxPixmap = 0;
+
+	    prevglxc->drawPixmap = NULL;
 	}
 	ChangeCurrentContext(cl, glxc, tag);
 	StopUsingContext(prevglxc);
     } else {
 	tag = AddCurrentContext(cl, glxc);
     }
+
     if (glxc) {
-	if (pGlxPixmap) {
-	    pGlxPixmap->refcnt++;
-	    glxc->pGlxPixmap = pGlxPixmap;
+	if (drawPixmap) {
+	    drawPixmap->refcnt++;
+	    glxc->drawPixmap = drawPixmap;
 	}
+
+	if (readPixmap && (readPixmap != drawPixmap)) {
+	    readPixmap->refcnt++;
+	    glxc->readPixmap = readPixmap;
+	}
+
 	StartUsingContext(cl, glxc);
 	reply.contextTag = tag;
     } else {
 	reply.contextTag = 0;
     }
+
     reply.length = 0;
     reply.type = X_Reply;
     reply.sequenceNumber = client->sequence;
@@ -617,6 +747,8 @@ int __glXQueryVersion(__GLXclientState *cl, GLbyte *pc)
 
     major = req->majorVersion;
     minor = req->minorVersion;
+    (void)major;
+    (void)minor;
 
     /*
     ** Server should take into consideration the version numbers sent by the
@@ -1446,6 +1578,8 @@ int __glXVendorPrivateWithReply(__GLXclientState *cl, GLbyte *pc)
     switch (vendorcode) {
       case X_GLXvop_QueryContextInfoEXT:
 	return __glXQueryContextInfoEXT(cl, pc);
+      case X_GLXvop_MakeCurrentReadSGI:
+	return __glXMakeCurrentReadSGI(cl, pc);
       default:
 	break;
     }

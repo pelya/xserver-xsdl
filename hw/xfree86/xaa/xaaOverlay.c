@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/xaa/xaaOverlay.c,v 1.14 2002/12/10 04:18:20 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/xaa/xaaOverlay.c,v 1.15 2003/11/10 18:22:41 tsi Exp $ */
 
 #include "misc.h"
 #include "xf86.h"
@@ -57,7 +57,7 @@ XAACopyWindow8_32(
     if(doUnderlay)
 	freeReg = miOverlayCollectUnderlayRegions(pWin, &borderClip);
 
-    REGION_INIT(pScreen, &rgnDst, NullBox, 0);
+    REGION_NULL(pScreen, &rgnDst);
 
     dx = ptOldOrg.x - pWin->drawable.x;
     dy = ptOldOrg.y - pWin->drawable.y;

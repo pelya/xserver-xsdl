@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/afb/afbfillrct.c,v 3.1 1998/03/20 21:04:54 hohndel Exp $ */
+/* $XFree86: xc/programs/Xserver/afb/afbfillrct.c,v 3.3 2003/10/29 22:15:19 tsi Exp $ */
 /* Combined Purdue/PurduePlus patches, level 2.0, 1/17/89 */
 /***********************************************************
 
@@ -54,7 +54,6 @@ SOFTWARE.
 #include "pixmapstr.h"
 #include "gcstruct.h"
 #include "windowstr.h"
-#include "miscstruct.h"
 #include "regionstr.h"
 #include "scrnintstr.h"
 
@@ -76,8 +75,8 @@ void
 afbPolyFillRect(pDrawable, pGC, nrectFill, prectInit)
 	DrawablePtr pDrawable;
 	GCPtr pGC;
-	int nrectFill; 					/* number of rectangles to fill */
-	xRectangle *prectInit;  		/* Pointer to first rectangle to fill */
+	int nrectFill;				/* number of rectangles to fill */
+	xRectangle *prectInit;			/* Pointer to first rectangle to fill */
 {
 	xRectangle *prect;
 	RegionPtr prgnClip;
@@ -90,12 +89,10 @@ afbPolyFillRect(pDrawable, pGC, nrectFill, prectInit)
 	int n;
 	int xorg, yorg;
 	afbPrivGC *priv;
-	PixmapPtr ppix;
 	unsigned char *rrops;
 	unsigned char *rropsOS;
 
 	priv = (afbPrivGC *)pGC->devPrivates[afbGCPrivateIndex].ptr;
-	ppix = pGC->pRotatedPixmap;
 	prgnClip = pGC->pCompositeClip;
 	rrops = priv->rrops;
 	rropsOS = priv->rropOS;

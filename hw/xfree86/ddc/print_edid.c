@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/ddc/print_edid.c,v 1.15 2001/05/22 17:01:23 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/ddc/print_edid.c,v 1.16 2003/09/24 02:43:17 dawes Exp $ */
 
 /* print_edid.c: print out all information retrieved from display device 
  * 
@@ -41,7 +41,7 @@ static void
 print_vendor(int scrnIndex, struct vendor *c)
 {
     xf86DrvMsg(scrnIndex, X_INFO, "Manufacturer: %s  Model: %x  Serial#: %u\n",
-	&c->name, c->prod_id, c->serial);
+	(char *)&c->name, c->prod_id, c->serial);
     xf86DrvMsg(scrnIndex, X_INFO, "Year: %u  Week: %u\n", c->year, c->week);
 }
   

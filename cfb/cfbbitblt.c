@@ -2,7 +2,7 @@
  * cfb copy area
  */
 
-/* $XFree86: xc/programs/Xserver/cfb/cfbbitblt.c,v 1.14 2001/12/14 19:59:21 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/cfb/cfbbitblt.c,v 1.20 2003/11/10 18:21:44 tsi Exp $ */
 
 /*
 
@@ -68,17 +68,23 @@ static unsigned int FgPixel, BgPixel;
 # endif
 #endif
 
+/* cfbBitBltcfb == cfbCopyPlaneExpand */
 RegionPtr
-cfbBitBlt (pSrcDrawable, pDstDrawable,
-            pGC, srcx, srcy, width, height, dstx, dsty, doBitBlt, bitPlane)
-    register DrawablePtr pSrcDrawable;
-    register DrawablePtr pDstDrawable;
-    GC *pGC;
-    int srcx, srcy;
-    int width, height;
-    int dstx, dsty;
-    void (*doBitBlt)();
-    unsigned long bitPlane;
+cfbBitBlt (
+    register DrawablePtr pSrcDrawable,
+    register DrawablePtr pDstDrawable,
+    GC *pGC,
+    int srcx, int srcy,
+    int width, int height,
+    int dstx, int dsty,
+    void (*doBitBlt)(
+        DrawablePtr /*pSrc*/,
+        DrawablePtr /*pDst*/,
+        int /*alu*/,
+        RegionPtr /*prgnDst*/,
+        DDXPointPtr /*pptSrc*/,
+        unsigned long /*planemask*/),
+    unsigned long bitPlane)
 {
     RegionPtr prgnSrcClip = NULL; /* may be a new region, or just a copy */
     Bool freeSrcClip = FALSE;
@@ -254,7 +260,7 @@ cfbBitBlt (pSrcDrawable, pDstDrawable,
 	    /* Check to see if the region is empty */
 	    if (fastBox.x1 >= fastBox.x2 || fastBox.y1 >= fastBox.y2)
 	    {
-		REGION_INIT(pGC->pScreen, &rgnDst, NullBox, 0);
+		REGION_NULL(pGC->pScreen, &rgnDst);
 	    }
 	    else
 	    {
@@ -302,15 +308,276 @@ cfbBitBlt (pSrcDrawable, pDstDrawable,
 	    ppt->y = pbox->y1 + dy;
 	}
 
-	(*doBitBlt) (pSrcDrawable, pDstDrawable, pGC->alu, &rgnDst, pptSrc, pGC->planemask, bitPlane);
+	(*doBitBlt) (pSrcDrawable, pDstDrawable, pGC->alu, &rgnDst, pptSrc, pGC->planemask);
 	DEALLOCATE_LOCAL(pptSrc);
     }
 
     prgnExposed = NULL;
     if (pGC->fExpose)
     {
-	extern RegionPtr    miHandleExposures();
+        /* Pixmap sources generate a NoExposed (we return NULL to do this) */
+        if (!fastExpose)
+	    prgnExposed =
+		miHandleExposures(pSrcDrawable, pDstDrawable, pGC,
+				  origSource.x, origSource.y,
+				  (int)origSource.width,
+				  (int)origSource.height,
+				  origDest.x, origDest.y, bitPlane);
+    }
+    REGION_UNINIT(pGC->pScreen, &rgnDst);
+    if (freeSrcClip)
+	REGION_DESTROY(pGC->pScreen, prgnSrcClip);
+    return prgnExposed;
+}
 
+
+RegionPtr
+cfbCopyPlaneReduce (
+    register DrawablePtr pSrcDrawable,
+    register DrawablePtr pDstDrawable,
+    GC *pGC,
+    int srcx, int srcy,
+    int width, int height,
+    int dstx, int dsty,
+    void (*doCopyPlane)(
+        DrawablePtr /*pSrc*/,
+        DrawablePtr /*pDst*/,
+        int /*alu*/,
+        RegionPtr /*prgnDst*/,
+        DDXPointPtr /*pptSrc*/,
+        unsigned long /*planemask*/,
+        unsigned long /*bitPlane*/),
+    unsigned long bitPlane)
+{
+    RegionPtr prgnSrcClip = NULL; /* may be a new region, or just a copy */
+    Bool freeSrcClip = FALSE;
+
+    RegionPtr prgnExposed;
+    RegionRec rgnDst;
+    DDXPointPtr pptSrc;
+    register DDXPointPtr ppt;
+    register BoxPtr pbox;
+    int i;
+    register int dx;
+    register int dy;
+    xRectangle origSource;
+    DDXPointRec origDest;
+    int numRects;
+    BoxRec fastBox;
+    int fastClip = 0;		/* for fast clipping with pixmap source */
+    int fastExpose = 0;		/* for fast exposures with pixmap source */
+
+    origSource.x = srcx;
+    origSource.y = srcy;
+    origSource.width = width;
+    origSource.height = height;
+    origDest.x = dstx;
+    origDest.y = dsty;
+
+    if ((pSrcDrawable != pDstDrawable) &&
+	pSrcDrawable->pScreen->SourceValidate)
+    {
+	(*pSrcDrawable->pScreen->SourceValidate) (pSrcDrawable, srcx, srcy, width, height);
+    }
+
+    srcx += pSrcDrawable->x;
+    srcy += pSrcDrawable->y;
+
+    /* clip the source */
+
+    if (pSrcDrawable->type == DRAWABLE_PIXMAP)
+    {
+	if ((pSrcDrawable == pDstDrawable) &&
+	    (pGC->clientClipType == CT_NONE))
+	{
+	    prgnSrcClip = cfbGetCompositeClip(pGC);
+	}
+	else
+	{
+	    fastClip = 1;
+	}
+    }
+    else
+    {
+	if (pGC->subWindowMode == IncludeInferiors)
+	{
+	    /*
+	     * XFree86 DDX empties the border clip when the
+	     * VT is inactive
+	     */
+	    if (!((WindowPtr) pSrcDrawable)->parent &&
+		REGION_NOTEMPTY (pSrcDrawable->pScreen,
+				 &((WindowPtr) pSrcDrawable)->borderClip))
+	    {
+		/*
+		 * special case bitblt from root window in
+		 * IncludeInferiors mode; just like from a pixmap
+		 */
+		fastClip = 1;
+	    }
+	    else if ((pSrcDrawable == pDstDrawable) &&
+		(pGC->clientClipType == CT_NONE))
+	    {
+		prgnSrcClip = cfbGetCompositeClip(pGC);
+	    }
+	    else
+	    {
+		prgnSrcClip = NotClippedByChildren((WindowPtr)pSrcDrawable);
+		freeSrcClip = TRUE;
+	    }
+	}
+	else
+	{
+	    prgnSrcClip = &((WindowPtr)pSrcDrawable)->clipList;
+	}
+    }
+
+    fastBox.x1 = srcx;
+    fastBox.y1 = srcy;
+    fastBox.x2 = srcx + width;
+    fastBox.y2 = srcy + height;
+
+    /* Don't create a source region if we are doing a fast clip */
+    if (fastClip)
+    {
+	fastExpose = 1;
+	/*
+	 * clip the source; if regions extend beyond the source size,
+ 	 * make sure exposure events get sent
+	 */
+	if (fastBox.x1 < pSrcDrawable->x)
+	{
+	    fastBox.x1 = pSrcDrawable->x;
+	    fastExpose = 0;
+	}
+	if (fastBox.y1 < pSrcDrawable->y)
+	{
+	    fastBox.y1 = pSrcDrawable->y;
+	    fastExpose = 0;
+	}
+	if (fastBox.x2 > pSrcDrawable->x + (int) pSrcDrawable->width)
+	{
+	    fastBox.x2 = pSrcDrawable->x + (int) pSrcDrawable->width;
+	    fastExpose = 0;
+	}
+	if (fastBox.y2 > pSrcDrawable->y + (int) pSrcDrawable->height)
+	{
+	    fastBox.y2 = pSrcDrawable->y + (int) pSrcDrawable->height;
+	    fastExpose = 0;
+	}
+    }
+    else
+    {
+	REGION_INIT(pGC->pScreen, &rgnDst, &fastBox, 1);
+	REGION_INTERSECT(pGC->pScreen, &rgnDst, &rgnDst, prgnSrcClip);
+    }
+
+    dstx += pDstDrawable->x;
+    dsty += pDstDrawable->y;
+
+    if (pDstDrawable->type == DRAWABLE_WINDOW)
+    {
+	if (!((WindowPtr)pDstDrawable)->realized)
+	{
+	    if (!fastClip)
+		REGION_UNINIT(pGC->pScreen, &rgnDst);
+	    if (freeSrcClip)
+		REGION_DESTROY(pGC->pScreen, prgnSrcClip);
+	    return NULL;
+	}
+    }
+
+    dx = srcx - dstx;
+    dy = srcy - dsty;
+
+    /* Translate and clip the dst to the destination composite clip */
+    if (fastClip)
+    {
+	RegionPtr cclip;
+
+        /* Translate the region directly */
+        fastBox.x1 -= dx;
+        fastBox.x2 -= dx;
+        fastBox.y1 -= dy;
+        fastBox.y2 -= dy;
+
+	/* If the destination composite clip is one rectangle we can
+	   do the clip directly.  Otherwise we have to create a full
+	   blown region and call intersect */
+
+	/* XXX because CopyPlane uses this routine for 8-to-1 bit
+	 * copies, this next line *must* also correctly fetch the
+	 * composite clip from an mfb gc
+	 */
+
+	cclip = cfbGetCompositeClip(pGC);
+        if (REGION_NUM_RECTS(cclip) == 1)
+        {
+	    BoxPtr pBox = REGION_RECTS(cclip);
+
+	    if (fastBox.x1 < pBox->x1) fastBox.x1 = pBox->x1;
+	    if (fastBox.x2 > pBox->x2) fastBox.x2 = pBox->x2;
+	    if (fastBox.y1 < pBox->y1) fastBox.y1 = pBox->y1;
+	    if (fastBox.y2 > pBox->y2) fastBox.y2 = pBox->y2;
+
+	    /* Check to see if the region is empty */
+	    if (fastBox.x1 >= fastBox.x2 || fastBox.y1 >= fastBox.y2)
+	    {
+		REGION_NULL(pGC->pScreen, &rgnDst);
+	    }
+	    else
+	    {
+		REGION_INIT(pGC->pScreen, &rgnDst, &fastBox, 1);
+	    }
+	}
+        else
+	{
+	    /* We must turn off fastClip now, since we must create
+	       a full blown region.  It is intersected with the
+	       composite clip below. */
+	    fastClip = 0;
+	    REGION_INIT(pGC->pScreen, &rgnDst, &fastBox, 1);
+	}
+    }
+    else
+    {
+        REGION_TRANSLATE(pGC->pScreen, &rgnDst, -dx, -dy);
+    }
+
+    if (!fastClip)
+    {
+	REGION_INTERSECT(pGC->pScreen, &rgnDst,
+				   &rgnDst,
+				   cfbGetCompositeClip(pGC));
+    }
+
+    /* Do bit blitting */
+    numRects = REGION_NUM_RECTS(&rgnDst);
+    if (numRects && width && height)
+    {
+	if(!(pptSrc = (DDXPointPtr)ALLOCATE_LOCAL(numRects *
+						  sizeof(DDXPointRec))))
+	{
+	    REGION_UNINIT(pGC->pScreen, &rgnDst);
+	    if (freeSrcClip)
+		REGION_DESTROY(pGC->pScreen, prgnSrcClip);
+	    return NULL;
+	}
+	pbox = REGION_RECTS(&rgnDst);
+	ppt = pptSrc;
+	for (i = numRects; --i >= 0; pbox++, ppt++)
+	{
+	    ppt->x = pbox->x1 + dx;
+	    ppt->y = pbox->y1 + dy;
+	}
+
+	(*doCopyPlane) (pSrcDrawable, pDstDrawable, pGC->alu, &rgnDst, pptSrc, pGC->planemask, bitPlane);
+	DEALLOCATE_LOCAL(pptSrc);
+    }
+
+    prgnExposed = NULL;
+    if (pGC->fExpose)
+    {
         /* Pixmap sources generate a NoExposed (we return NULL to do this) */
         if (!fastExpose)
 	    prgnExposed =
@@ -335,21 +602,29 @@ cfbDoBitblt (pSrc, pDst, alu, prgnDst, pptSrc, planemask)
     DDXPointPtr	    pptSrc;
     unsigned long   planemask;
 {
-    void (*blt)() = cfbDoBitbltGeneral;
+    void (*doBitBlt)(
+        DrawablePtr /*pSrc*/,
+        DrawablePtr /*pDst*/,
+        int /*alu*/,
+        RegionPtr /*prgnDst*/,
+        DDXPointPtr /*pptSrc*/,
+        unsigned long /*planemask*/)
+        = cfbDoBitbltGeneral;
+
     if ((planemask & PMSK) == PMSK) {
 	switch (alu) {
 	case GXcopy:
-	    blt = cfbDoBitbltCopy;
+	    doBitBlt = cfbDoBitbltCopy;
 	    break;
 	case GXxor:
-	    blt = cfbDoBitbltXor;
+	    doBitBlt = cfbDoBitbltXor;
 	    break;
 	case GXor:
-	    blt = cfbDoBitbltOr;
+	    doBitBlt = cfbDoBitbltOr;
 	    break;
 	}
     }
-    (*blt) (pSrc, pDst, alu, prgnDst, pptSrc, planemask);
+    (*doBitBlt) (pSrc, pDst, alu, prgnDst, pptSrc, planemask);
 }
 
 RegionPtr
@@ -362,7 +637,13 @@ cfbCopyArea(pSrcDrawable, pDstDrawable,
     int width, height;
     int dstx, dsty;
 {
-    void (*doBitBlt) ();
+    void (*doBitBlt) (
+        DrawablePtr /*pSrc*/,
+        DrawablePtr /*pDst*/,
+        int /*alu*/,
+        RegionPtr /*prgnDst*/,
+        DDXPointPtr /*pptSrc*/,
+        unsigned long /*planemask*/);
     
     doBitBlt = cfbDoBitbltCopy;
     if (pGC->alu != GXcopy || (pGC->planemask & PMSK) != PMSK)
@@ -386,18 +667,17 @@ cfbCopyArea(pSrcDrawable, pDstDrawable,
 
 #if PSZ == 8
 void
-cfbCopyPlane1to8 (pSrcDrawable, pDstDrawable, rop, prgnDst, pptSrc, planemask, bitPlane)
+cfbCopyPlane1to8 (pSrcDrawable, pDstDrawable, rop, prgnDst, pptSrc, planemask)
     DrawablePtr pSrcDrawable;	/* must be a bitmap */
     DrawablePtr pDstDrawable;	/* must be depth 8 drawable */
     int	rop;		/* not used; caller must call cfb8CheckOpaqueStipple
 			 * beforehand to get cfb8StippleRRop set correctly */
-    unsigned long planemask;	/* to apply to destination writes */
     RegionPtr prgnDst;		/* region in destination to draw to;
 				 * screen relative coords. if dest is a window;
 				 * drawable relative if dest is a pixmap */
     DDXPointPtr pptSrc;		/* drawable relative src coords to copy from;
 				 * must be one point for each box in prgnDst */
-    unsigned long   bitPlane;	/* not used; assumed always to be 1 */
+    unsigned long planemask;	/* to apply to destination writes */
 {
     int	srcx, srcy;	/* upper left corner of box being copied in source */
     int dstx, dsty;	/* upper left corner of box being copied in dest */
@@ -718,26 +998,23 @@ cfbCopyPlane1to8 (pSrcDrawable, pDstDrawable, rop, prgnDst, pptSrc, planemask, b
 
 /******************************************************************/
 
-void
+static void
 #if PSZ == 16
-cfbCopyPlane1to16 (pSrcDrawable, pDstDrawable, rop, prgnDst, pptSrc, 
-		   planemask, bitPlane)
+cfbCopyPlane1to16
 #endif
 #if PSZ == 24
-cfbCopyPlane1to24 (pSrcDrawable, pDstDrawable, rop, prgnDst, pptSrc, 
-		   planemask, bitPlane)
+cfbCopyPlane1to24
 #endif
 #if PSZ == 32
-cfbCopyPlane1to32 (pSrcDrawable, pDstDrawable, rop, prgnDst, pptSrc, 
-		   planemask, bitPlane)
+cfbCopyPlane1to32
 #endif
-    DrawablePtr pSrcDrawable;
-    DrawablePtr pDstDrawable;
-    int	rop;
-    unsigned long planemask;
-    RegionPtr prgnDst;
-    DDXPointPtr pptSrc;
-    unsigned long bitPlane;
+(
+    DrawablePtr pSrcDrawable,
+    DrawablePtr pDstDrawable,
+    int	rop,
+    RegionPtr prgnDst,
+    DDXPointPtr pptSrc,
+    unsigned long planemask)
 {
     int	srcx, srcy, dstx, dsty;
     int width, height;
@@ -1078,13 +1355,19 @@ RegionPtr cfbCopyPlane(pSrcDrawable, pDstDrawable,
 
 #if IMAGE_BYTE_ORDER == LSBFirst
 
-    void		(*doBitBlt)();
+    void (*doCopyPlaneExpand)(
+        DrawablePtr /*pSrc*/,
+        DrawablePtr /*pDst*/,
+        int /*alu*/,
+        RegionPtr /*prgnDst*/,
+        DDXPointPtr /*pptSrc*/,
+        unsigned long /*planemask*/);
 
     if (pSrcDrawable->bitsPerPixel == 1 && pDstDrawable->bitsPerPixel == PSZ)
     {
     	if (bitPlane == 1)
 	{
-       	    doBitBlt = cfbCopyPlane1toN;
+       	    doCopyPlaneExpand = cfbCopyPlane1toN;
 #if PSZ == 8
 	    cfb8CheckOpaqueStipple (pGC->alu,
 				    pGC->fgPixel, pGC->bgPixel,
@@ -1093,8 +1376,8 @@ RegionPtr cfbCopyPlane(pSrcDrawable, pDstDrawable,
 	    FgPixel = pGC->fgPixel;
 	    BgPixel = pGC->bgPixel;
 #endif
-    	    ret = cfbBitBlt (pSrcDrawable, pDstDrawable,
-	    	    pGC, srcx, srcy, width, height, dstx, dsty, doBitBlt, bitPlane);
+    	    ret = cfbCopyPlaneExpand (pSrcDrawable, pDstDrawable,
+	    	    pGC, srcx, srcy, width, height, dstx, dsty, doCopyPlaneExpand, bitPlane);
 	}
 	else
 	    ret = miHandleExposures (pSrcDrawable, pDstDrawable,
@@ -1102,7 +1385,6 @@ RegionPtr cfbCopyPlane(pSrcDrawable, pDstDrawable,
     }
     else if (pSrcDrawable->bitsPerPixel == PSZ && pDstDrawable->bitsPerPixel == 1)
     {
-	extern	int InverseAlu[16];
 	int oldalu;
 
 	oldalu = pGC->alu;
@@ -1110,7 +1392,7 @@ RegionPtr cfbCopyPlane(pSrcDrawable, pDstDrawable,
 	    pGC->alu = InverseAlu[pGC->alu];
     	else if ((pGC->fgPixel & 1) == (pGC->bgPixel & 1))
 	    pGC->alu = mfbReduceRop(pGC->alu, pGC->fgPixel);
-	ret = cfbBitBlt (pSrcDrawable, pDstDrawable,
+	ret = cfbCopyPlaneReduce(pSrcDrawable, pDstDrawable,
 			 pGC, srcx, srcy, width, height, dstx, dsty, 
 			 cfbCopyPlaneNto1, bitPlane);
 	pGC->alu = oldalu;
@@ -1137,7 +1419,7 @@ RegionPtr cfbCopyPlane(pSrcDrawable, pDstDrawable,
 	 */
 	ValidateGC ((DrawablePtr) pBitmap, pGC1);
 	/* no exposures here, scratch GC's don't get graphics expose */
-	(void) cfbBitBlt (pSrcDrawable, (DrawablePtr) pBitmap,
+	cfbCopyPlaneReduce(pSrcDrawable, (DrawablePtr) pBitmap,
 			  pGC1, srcx, srcy, width, height, 0, 0, 
 			  cfbCopyPlaneNto1, bitPlane);
 #if PSZ == 8
@@ -1149,7 +1431,7 @@ RegionPtr cfbCopyPlane(pSrcDrawable, pDstDrawable,
 	    BgPixel = pGC->bgPixel;
 #endif
 	/* no exposures here, copy bits from inside a pixmap */
-	(void) cfbBitBlt ((DrawablePtr) pBitmap, pDstDrawable, pGC,
+	cfbCopyPlaneExpand((DrawablePtr) pBitmap, pDstDrawable, pGC,
 			    0, 0, width, height, dstx, dsty, cfbCopyPlane1toN, 1);
 	FreeScratchGC (pGC1);
 	(*pScreen->DestroyPixmap) (pBitmap);

@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/Xext/xf86bigfont.c,v 1.13 2001/06/30 22:41:44 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/Xext/xf86bigfont.c,v 1.18 2003/11/17 22:20:27 dawes Exp $ */
 /*
  * BIGFONT extension for sharing font metrics between clients (if possible)
  * and for transmitting font metrics to clients in a compressed form.
@@ -73,9 +73,7 @@
 #include "xf86bigfstr.h"
 
 static void XF86BigfontResetProc(
-#if NeedFunctionPrototypes
     ExtensionEntry *	/* extEntry */
-#endif
     );
 
 static DISPATCH_PROC(ProcXF86BigfontDispatch);
@@ -85,7 +83,9 @@ static DISPATCH_PROC(SProcXF86BigfontDispatch);
 static DISPATCH_PROC(SProcXF86BigfontQueryVersion);
 static DISPATCH_PROC(SProcXF86BigfontQueryFont);
 
+#if 0
 static unsigned char XF86BigfontReqCode;
+#endif
 
 #ifdef HAS_SHM
 
@@ -112,9 +112,10 @@ SigSysHandler(
     badSysCall = TRUE;
 }
 
-static Bool CheckForShmSyscall()
+static Bool
+CheckForShmSyscall(void)
 {
-    void (*oldHandler)();
+    void (*oldHandler)(int);
     int shmid = -1;
 
     /* If no SHM support in the kernel, the bad syscall will generate SIGSYS */
@@ -122,9 +123,15 @@ static Bool CheckForShmSyscall()
 
     badSysCall = FALSE;
     shmid = shmget(IPC_PRIVATE, 4096, IPC_CREAT);
-    /* Clean up */
-    if (shmid != -1) {
+    if (shmid != -1)
+    {
+        /* Successful allocation - clean up */
 	shmctl(shmid, IPC_RMID, (struct shmid_ds *)NULL);
+    }
+    else
+    {
+        /* Allocation failed */
+        badSysCall = TRUE;
     }
     signal(SIGSYS, oldHandler);
     return (!badSysCall);
@@ -139,6 +146,7 @@ static Bool CheckForShmSyscall()
 void
 XFree86BigfontExtensionInit()
 {
+#if 0
     ExtensionEntry* extEntry;
 
     if ((extEntry = AddExtension(XF86BIGFONTNAME,
@@ -149,10 +157,25 @@ XFree86BigfontExtensionInit()
 				 XF86BigfontResetProc,
 				 StandardMinorOpcode))) {
 	XF86BigfontReqCode = (unsigned char) extEntry->base;
+#else
+    if (AddExtension(XF86BIGFONTNAME,
+		     XF86BigfontNumberEvents,
+		     XF86BigfontNumberErrors,
+		     ProcXF86BigfontDispatch,
+		     SProcXF86BigfontDispatch,
+		     XF86BigfontResetProc,
+		     StandardMinorOpcode)) {
+#endif
 #ifdef HAS_SHM
 #ifdef MUST_CHECK_FOR_SHM_SYSCALL
+	/*
+	 * Note: Local-clients will not be optimized without shared memory
+	 * support. Remote-client optimization does not depend on shared
+	 * memory support.  Thus, the extension is still registered even
+	 * when shared memory support is not functional.  
+	 */
 	if (!CheckForShmSyscall()) {
-	    ErrorF(XF86BIGFONTNAME " extension disabled due to lack of shared memory support in the kernel\n");
+	    ErrorF(XF86BIGFONTNAME " extension local-client optimization disabled due to lack of shared memory support in the kernel\n");
 	    return;
 	}
 #endif

@@ -28,7 +28,7 @@
  * Authors:	Harold L Hunt II
  *		Kensuke Matsuzaki
  */
-/* $XFree86: xc/programs/Xserver/hw/xwin/winwindow.c,v 1.6 2003/02/12 15:01:38 alanh Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xwin/winwindow.c,v 1.9 2003/11/10 18:22:44 tsi Exp $ */
 
 #include "win.h"
 
@@ -41,12 +41,12 @@ winAddRgn (WindowPtr pWindow, pointer data);
 
 static
 void
-winUpdateRgn (WindowPtr pWindow);
+winUpdateRgnPRootless (WindowPtr pWindow);
 
 #ifdef SHAPE
 static
 void
-winReshape (WindowPtr pWin);
+winReshapePRootless (WindowPtr pWin);
 #endif
 
 
@@ -91,7 +91,84 @@ winCopyWindowNativeGDI (WindowPtr pWin,
 			DDXPointRec ptOldOrg,
 			RegionPtr prgnSrc)
 {
-  ErrorF ("winCopyWindowNativeGDI ()\n");
+  DDXPointPtr		pptSrc;
+  DDXPointPtr		ppt;
+  RegionPtr		prgnDst;
+  BoxPtr		pBox;
+  int			dx, dy;
+  int			i, nbox;
+  WindowPtr		pwinRoot;
+  BoxPtr		pBoxDst, pBoxSrc;
+  ScreenPtr		pScreen = pWin->drawable.pScreen;
+  winScreenPriv(pScreen);
+
+#if 0
+  ErrorF ("winCopyWindow\n");
+#endif
+
+  /* Get a pointer to the root window */
+  pwinRoot = WindowTable[pWin->drawable.pScreen->myNum];
+
+  /* Create a region for the destination */
+  prgnDst = REGION_CREATE(pWin->drawable.pScreen, NULL, 1);
+
+  /* Calculate the shift from the source to the destination */
+  dx = ptOldOrg.x - pWin->drawable.x;
+  dy = ptOldOrg.y - pWin->drawable.y;
+
+  /* Translate the region from the destination to the source? */
+  REGION_TRANSLATE(pWin->drawable.pScreen, prgnSrc, -dx, -dy);
+  REGION_INTERSECT(pWin->drawable.pScreen, prgnDst, &pWin->borderClip,
+		   prgnSrc);
+
+  /* Get a pointer to the first box in the region to be copied */
+  pBox = REGION_RECTS(prgnDst);
+  
+  /* Get the number of boxes in the region */
+  nbox = REGION_NUM_RECTS(prgnDst);
+
+  /* Allocate source points for each box */
+  if(!(pptSrc = (DDXPointPtr )ALLOCATE_LOCAL(nbox * sizeof(DDXPointRec))))
+    return;
+
+  /* Set an iterator pointer */
+  ppt = pptSrc;
+
+  /* Calculate the source point of each box? */
+  for (i = nbox; --i >= 0; ppt++, pBox++)
+    {
+      ppt->x = pBox->x1 + dx;
+      ppt->y = pBox->y1 + dy;
+    }
+
+  /* Setup loop pointers again */
+  pBoxDst = REGION_RECTS(prgnDst);
+  ppt = pptSrc;
+
+#if 0
+  ErrorF ("winCopyWindow - x1\tx2\ty1\ty2\tx\ty\n");
+#endif
+
+  /* BitBlt each source to the destination point */
+  for (i = nbox; --i >= 0; pBoxDst++, ppt++)
+    {
+#if 0
+      ErrorF ("winCopyWindow - %d\t%d\t%d\t%d\t%d\t%d\n",
+	      pBoxDst->x1, pBoxDst->x2, pBoxDst->y1, pBoxDst->y2,
+	      ppt->x, ppt->y);
+#endif
+
+      BitBlt (pScreenPriv->hdcScreen,
+	      pBoxDst->x1, pBoxDst->y1,
+	      pBoxDst->x2 - pBoxDst->x1, pBoxDst->y2 - pBoxDst->y1,
+	      pScreenPriv->hdcScreen,
+	      ppt->x, ppt->y,
+	      SRCCOPY);
+    }
+
+  /* Cleanup the regions, etc. */
+  DEALLOCATE_LOCAL(pptSrc);
+  REGION_DESTROY(pWin->drawable.pScreen, prgnDst);
 }
 
 
@@ -153,7 +230,6 @@ winCreateWindowPRootless (WindowPtr pWin)
   fResult = winGetScreenPriv(pWin->drawable.pScreen)->CreateWindow(pWin);
   
   pWinPriv->hRgn = NULL;
-  /*winUpdateRgn (pWin);*/
   
   return fResult;
 }
@@ -180,7 +256,7 @@ winDestroyWindowPRootless (WindowPtr pWin)
       pWinPriv->hRgn = NULL;
     }
   
-  winUpdateRgn (pWin);
+  winUpdateRgnPRootless (pWin);
   
   return fResult;
 }
@@ -200,7 +276,7 @@ winPositionWindowPRootless (WindowPtr pWin, int x, int y)
 
   fResult = winGetScreenPriv(pWin->drawable.pScreen)->PositionWindow(pWin, x, y);
   
-  winUpdateRgn (pWin);
+  winUpdateRgnPRootless (pWin);
   
   return fResult;
 }
@@ -220,7 +296,7 @@ winChangeWindowAttributesPRootless (WindowPtr pWin, unsigned long mask)
 
   fResult = winGetScreenPriv(pWin->drawable.pScreen)->ChangeWindowAttributes(pWin, mask);
   
-  winUpdateRgn (pWin);
+  winUpdateRgnPRootless (pWin);
   
   return fResult;
 }
@@ -248,7 +324,7 @@ winUnmapWindowPRootless (WindowPtr pWin)
       pWinPriv->hRgn = NULL;
     }
   
-  winUpdateRgn (pWin);
+  winUpdateRgnPRootless (pWin);
   
   return fResult;
 }
@@ -269,9 +345,9 @@ winMapWindowPRootless (WindowPtr pWin)
 
   fResult = winGetScreenPriv(pWin->drawable.pScreen)->RealizeWindow(pWin);
   
-  winReshape (pWin);
+  winReshapePRootless (pWin);
   
-  winUpdateRgn (pWin);
+  winUpdateRgnPRootless (pWin);
   
   return fResult;
 }
@@ -287,8 +363,8 @@ winSetShapePRootless (WindowPtr pWin)
 
   winGetScreenPriv(pWin->drawable.pScreen)->SetShape(pWin);
   
-  winReshape (pWin);
-  winUpdateRgn (pWin);
+  winReshapePRootless (pWin);
+  winUpdateRgnPRootless (pWin);
   
   return;
 }
@@ -366,7 +442,7 @@ winAddRgn (WindowPtr pWin, pointer data)
 
 static
 void
-winUpdateRgn (WindowPtr pWin)
+winUpdateRgnPRootless (WindowPtr pWin)
 {
   HRGN		hRgn = CreateRectRgn (0, 0, 0, 0);
   
@@ -378,7 +454,7 @@ winUpdateRgn (WindowPtr pWin)
     }
   else
     {
-      ErrorF ("winUpdateRgn - CreateRectRgn failed.\n");
+      ErrorF ("winUpdateRgnPRootless - CreateRectRgn failed.\n");
     }
 }
 
@@ -386,17 +462,19 @@ winUpdateRgn (WindowPtr pWin)
 #ifdef SHAPE
 static
 void
-winReshape (WindowPtr pWin)
+winReshapePRootless (WindowPtr pWin)
 {
   int		nRects;
+#if 0
   ScreenPtr	pScreen = pWin->drawable.pScreen;
+#endif
   RegionRec	rrNewShape;
   BoxPtr	pShape, pRects, pEnd;
   HRGN		hRgn, hRgnRect;
   winWindowPriv(pWin);
 
 #if CYGDEBUG
-  ErrorF ("winReshape ()\n");
+  ErrorF ("winReshapePRootless ()\n");
 #endif
 
   /* Bail if the window is the root window */
@@ -418,7 +496,7 @@ winReshape (WindowPtr pWin)
   if (!wBoundingShape (pWin))
     return;
 
-  REGION_INIT(pScreen, &rrNewShape, NullBox, 0);
+  REGION_NULL(pScreen, &rrNewShape);
   REGION_COPY(pScreen, &rrNewShape, wBoundingShape(pWin));
   REGION_TRANSLATE(pScreen, &rrNewShape, pWin->borderWidth,
                    pWin->borderWidth);
@@ -439,13 +517,13 @@ winReshape (WindowPtr pWin)
 				    pRects->x2, pRects->y2);
 	  if (hRgnRect == NULL)
 	    {
-	      ErrorF("winReshape - CreateRectRgn() failed\n");
+	      ErrorF("winReshapePRootless - CreateRectRgn() failed\n");
 	    }
 
 	  /* Merge the Windows region with the accumulated region */
 	  if (CombineRgn (hRgn, hRgn, hRgnRect, RGN_OR) == ERROR)
 	    {
-	      ErrorF("winReshape - CombineRgn() failed\n");
+	      ErrorF("winReshapePRootless - CombineRgn() failed\n");
 	    }
 
 	  /* Delete the temporary Windows region */

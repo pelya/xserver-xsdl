@@ -30,7 +30,7 @@
  *		Peter Busch
  *		Harold L Hunt II
  */
-/* $XFree86: xc/programs/Xserver/hw/xwin/wincursor.c,v 1.5 2002/07/05 09:19:26 alanh Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xwin/wincursor.c,v 1.6 2003/07/29 21:25:17 dawes Exp $ */
 
 #include "win.h"
 
@@ -47,6 +47,21 @@ winPointerWarpCursor (ScreenPtr pScreen, int x, int y)
 {
   winScreenPriv(pScreen);
   RECT			rcClient;
+  static Bool		s_fInitialWarp = TRUE;
+
+  /* Discard first warp call */
+  if (s_fInitialWarp)
+    {
+      /* First warp moves mouse to center of window, just ignore it */
+
+      /* Don't ignore subsequent warps */
+      s_fInitialWarp = FALSE;
+
+      ErrorF ("winPointerWarpCursor - Discarding first warp: %d %d\n",
+	      x, y);
+      
+      return;
+    }
 
   /* Only update the Windows cursor position if we are active */
   if (pScreenPriv->hwndScreen == GetForegroundWindow ())

@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/mfb/mfbplygblt.c,v 3.4 2001/12/14 20:00:10 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/mfb/mfbplygblt.c,v 3.5 2003/11/03 05:12:00 tsi Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -248,7 +248,9 @@ MFBPOLYGLYPHBLT(pDrawable, pGC, x, y, nglyph, ppci, pglyphBase)
 	int glyphRow;		/* first row of glyph not wholly
 				   clipped out */
 	int glyphCol;		/* leftmost visible column of glyph */
+#if GETLEFTBITS_ALIGNMENT > 1
 	int getWidth;		/* bits to get from glyph */
+#endif
 
 	if(!(ppos = (TEXTPOS *)ALLOCATE_LOCAL(nglyph * sizeof(TEXTPOS))))
 	    return;
@@ -341,7 +343,9 @@ MFBPOLYGLYPHBLT(pDrawable, pGC, x, y, nglyph, ppci, pglyphBase)
 
 		glyphCol = (leftEdge - ppos[i].xpos) -
 			   (pci->metrics.leftSideBearing);
+#if GETLEFTBITS_ALIGNMENT > 1
 		getWidth = w + glyphCol;
+#endif
 		xoff = xchar + (leftEdge - ppos[i].xpos);
 		if (xoff > PLST)
 		{

@@ -22,7 +22,9 @@
 .\" not be used in advertising or otherwise to promote the sale, use or
 .\" other dealings in this Software without prior written authorization
 .\" from The Open Group.
-.\" $XFree86: xc/programs/Xserver/Xserver.man,v 3.21 2002/11/19 23:18:09 dawes Exp $
+.\" $XFree86: xc/programs/Xserver/Xserver.man,v 3.29 2003/09/08 14:25:26 eich Exp $
+.\" shorthand for double quote that works everywhere.
+.ds q \N'34'
 .TH XSERVER 1 __xorgversion__
 .SH NAME
 Xserver \- X Window System display server
@@ -60,7 +62,10 @@ Many X servers have device-specific command line options.  See the manual
 pages for the individual servers for more details; a list of
 server-specific manual pages is provided in the SEE ALSO section below.
 .PP
-All of the X servers accept the following command line options:
+All of the X servers accept the command line options described below.
+Some X servers may have alternative ways of providing the parameters
+described here, but the values provided via the command line options
+should override values specified via other mechanisms.
 .TP 8
 .B :\fIdisplaynumber\fP
 The X server runs as the given \fIdisplaynumber\fP, which by default is 0.
@@ -118,7 +123,7 @@ Not obeyed by all servers.
 .TP 8
 .B \-co \fIfilename\fP
 sets name of RGB color database.  The default is
-\fI__projectroot__/lib/X11/rgb\fP.
+.IR __projectroot__/lib/X11/rgb .
 .ig
 .TP 8
 .B \-config \fIfilename\fP
@@ -135,8 +140,9 @@ different from the user's real uid.
 causes the server to generate a core dump on fatal errors.
 .TP 8
 .B \-dpi \fIresolution\fP
-sets the resolution of the screen, in dots per inch.
-To be used when the server cannot determine the screen size from the hardware.
+sets the resolution for all screens, in dots per inch.
+To be used when the server cannot determine the screen size(s) from the
+hardware.
 .TP 8
 .B \-deferglyphs \fIwhichfonts\fP
 specifies the types of fonts for which the server should attempt to use
@@ -166,6 +172,8 @@ causes all remaining command line arguments to be ignored.
 disables a transport type.  For example, TCP/IP connections can be disabled
 with
 .BR "\-nolisten tcp" .
+This option may be issued multiple times to disable listening to different
+transport types.
 .TP 8
 .B \-noreset
 prevents a server reset when the last client connection is closed.  This
@@ -261,6 +269,25 @@ There is currently no way to change this from a client.
 .B nologo
 turns off the X Window System logo display in the screen-saver.
 There is currently no way to change this from a client.
+.TP 8
+.B \-render 
+.BR default | mono | gray | color
+sets the color allocation policy that will be used by the render extension.
+.RS 8
+.TP 8
+.I default
+selects the default policy defined for the display depth of the X
+server. 
+.TP 8
+.I mono
+don't use any color cell. 
+.TP 8
+.I gray 
+use a gray map of 13 color cells for the X render extension.
+.TP 8
+.I color
+use a color cube of at most 4*4*4 colors (that is 64 color cells).
+.RE
 .SH XDMCP OPTIONS
 X servers that support XDMCP have the following options.
 See the \fIX Display Manager Control Protocol\fP specification for more
@@ -273,6 +300,15 @@ enables XDMCP and sends Query packets to the specified
 .B \-broadcast
 enable XDMCP and broadcasts BroadcastQuery packets to the network.  The
 first responding display manager will be chosen for the session.
+.B \-multicast [\fIaddress\fP [\fIhop count\fP]]
+Enable XDMCP and multicast BroadcastQuery packets to the  network.   
+The first responding display manager is chosen for the session.  If an 
+address is specified, the multicast is sent to that address.  If no 
+address is specified, the multicast is sent to the default XDMCP IPv6 
+multicast group.  If a hop count is specified, it is used as the maximum 
+hop count for the multicast.  If no hop count is specified, the multicast 
+is set to a maximum of 1 hop, to prevent the multicast from being routed 
+beyond the local network.
 .TP 8
 .B \-indirect \fIhostname\fP
 enables XDMCP and send IndirectQuery packets to the specified
@@ -307,7 +343,7 @@ data (not that it is very private, being on the command line!).
 Yet another XDMCP specific value, this one allows the display manager to
 identify each display so that it can locate the shared key.
 .SH XKEYBOARD OPTIONS
-X servers that support the XKEYBOARD (a.k.a. \(oqXKB\(cq) extension accept the
+X servers that support the XKEYBOARD (a.k.a. \*qXKB\*q) extension accept the
 following options:
 .TP 8
 .B [+-]kb
@@ -435,7 +471,7 @@ null-terminated strings.  If any of the strings match <string/rv>, the
 rule applies.
 .PP
 The definition of string matching is simple case-sensitive string
-comparison with one elaboration: the occurence of the character '*' in
+comparison with one elaboration: the occurrence of the character '*' in
 <string/rv> is a wildcard meaning "any string."  A <string/rv> can
 contain multiple wildcards anywhere in the string.  For example, "x*"
 matches strings that begin with x, "*x" matches strings that end with
@@ -673,9 +709,6 @@ Bitmap font directories
 .TP 30
 .IR __projectroot__/lib/X11/fonts/Speedo , __projectroot__/lib/X11/fonts/Type1
 Outline font directories
-.\" .TP 30
-.\" __projectroot__/lib/X11/fonts/PEX
-.\" PEX font directories
 .TP 30
 .I __projectroot__/lib/X11/rgb.txt
 Color database
@@ -700,7 +733,7 @@ Protocols:
 .I "X Display Manager Control Protocol"
 .PP
 Fonts: \fIbdftopcf\fP(1), \fImkfontdir\fP(1), \fIxfs\fP(1), 
-\FIxlsfonts\fP(1), \fIxfontsel\fP(1), \fIxfd\fP(1),
+\fIxlsfonts\fP(1), \fIxfontsel\fP(1), \fIxfd\fP(1),
 .I "X Logical Font Description Conventions"
 .PP
 Security: \fIXsecurity\fP(__miscmansuffix__), \fIxauth\fP(1), \fIXau\fP(1), 

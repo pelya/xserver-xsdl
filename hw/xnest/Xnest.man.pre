@@ -25,7 +25,7 @@
 .\" other dealings in this Software without prior written authorization
 .\" from the X Consortium.
 .\"
-.\" $XFree86: xc/programs/Xserver/hw/xnest/Xnest.man,v 1.6 2001/01/27 18:21:00 dawes Exp $
+.\" $XFree86: xc/programs/Xserver/hw/xnest/Xnest.man,v 1.7 2003/10/24 17:22:33 dawes Exp $
 .\"
 .TH XNEST 1 __xorgversion__
 .SH NAME
@@ -102,7 +102,7 @@ saver is software generated since \fIXnest\fP does not control any
 actual hardware.  However, it is treated as a hardware screen saver
 within the sample server code.
 .TP 4
-.B \-geometry \fIW+H+X+Y\fP
+.B \-geometry \fIWxH+X+Y\fP
 This option specifies geometry parameters for the top level
 \fIXnest\fP windows.  These windows corresponds to the root windows of
 the nested server.  The width and height specified with this option

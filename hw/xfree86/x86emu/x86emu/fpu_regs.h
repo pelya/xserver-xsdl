@@ -35,13 +35,12 @@
 * Description:  Header file for FPU register definitions.
 *
 ****************************************************************************/
+/* $XFree86: xc/extras/x86emu/include/x86emu/fpu_regs.h,v 1.3 2003/10/28 16:01:40 tsi Exp $ */
 
 #ifndef __X86EMU_FPU_REGS_H
 #define __X86EMU_FPU_REGS_H
 
 #ifdef X86_FPU_SUPPORT
-
-#pragma	pack(1)
 
 /* Basic 8087 register can hold any of the following values: */
 
@@ -86,8 +85,6 @@ struct x86_fpu_registers {
     int                 x86_fpu_config;         /* rounding modes, etc. */
     short               x86_fpu_tos, x86_fpu_bos;
 	};
-
-#pragma	pack()
 
 /*
  * There are two versions of the following macro.

@@ -45,7 +45,7 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ******************************************************************/
-/* $XFree86: xc/programs/Xserver/cfb/cfbsetsp.c,v 3.5 2001/12/14 19:59:24 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/cfb/cfbsetsp.c,v 3.6 2003/10/29 22:44:53 tsi Exp $ */
 
 #include "X.h"
 #include "Xmd.h"
@@ -83,16 +83,18 @@ cfbSetScanline(y, xOrigin, xStart, xEnd, psrc, alu, pdstBase, widthDst, planemas
     int			w;		/* width of scanline in bits */
     register int	*pdst;		/* where to put the bits */
     register int	tmpSrc;		/* scratch buffer to collect bits in */
-    int			dstBit;		/* offset in bits from beginning of 
-					 * word */
     int			offSrc;
     int			nl;
 #if PSZ == 24
     register char *psrcb, *pdstb;
     register int	xIndex;
 #else
+    int			dstBit;		/* offset in bits from beginning of
+					 * word */
     register int	nstart; 	/* number of bits from first partial */
+#if PSZ != 32 || PPW != 1
     register int	nend; 		/* " " last partial word */
+#endif
     int			startmask, endmask, nlMiddle;
 #endif
     DeclareMergeRop()
@@ -110,7 +112,6 @@ cfbSetScanline(y, xOrigin, xStart, xEnd, psrc, alu, pdstBase, widthDst, planemas
     offSrc = (xStart - xOrigin) & PIM;
 #endif
     w = xEnd - xStart;
-    dstBit = xStart & PIM;
 
 #if PSZ == 24
     nl = w;
@@ -125,6 +126,7 @@ cfbSetScanline(y, xOrigin, xStart, xEnd, psrc, alu, pdstBase, widthDst, planemas
       pdstb += 3;
     } 
 #else /* PSZ == 24 */
+    dstBit = xStart & PIM;
     if (dstBit + w <= PPW) 
     { 
 	maskpartialbits(dstBit, w, startmask);
@@ -139,10 +141,12 @@ cfbSetScanline(y, xOrigin, xStart, xEnd, psrc, alu, pdstBase, widthDst, planemas
 	nstart = PPW - dstBit; 
     else 
 	nstart = 0; 
+#if PSZ != 32 || PPW != 1
     if (endmask) 
 	nend = xEnd & PIM; 
     else 
 	nend = 0; 
+#endif
     if (startmask) 
     { 
 	getbits(psrc, offSrc, nstart, tmpSrc);

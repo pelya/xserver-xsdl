@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/cfb/cfbunmap.h,v 1.5 1999/12/13 02:13:07 robin Exp $ */
+/* $XFree86: xc/programs/Xserver/cfb/cfbunmap.h,v 1.6 2003/07/19 13:22:28 tsi Exp $ */
 /*
  * Copyright (C) 1994-1998 The XFree86 Project, Inc.  All Rights Reserved.
  *
@@ -58,6 +58,7 @@
 #undef cfbCopyImagePlane
 #undef cfbCopyPixmap
 #undef cfbCopyPlane
+#undef cfbCopyPlaneReduce
 #undef cfbCopyRotatePixmap
 #undef cfbCopyWindow
 #undef cfbCreateGC

@@ -24,6 +24,7 @@ OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION  WITH
 THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 ********************************************************/
+/* $XFree86: xc/programs/Xserver/xkb/ddxLEDs.c,v 1.2 2003/11/17 22:20:45 dawes Exp $ */
 
 #include <stdio.h>
 #define	NEED_EVENTS 1
@@ -37,13 +38,7 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include "XI.h"
 
 void
-#if NeedFunctionPrototypes
 XkbDDXUpdateIndicators(DeviceIntPtr dev,CARD32 new)
-#else
-XkbDDXUpdateIndicators(dev,new)
-    DeviceIntPtr  dev;
-    CARD32 new;
-#endif
 {
     dev->kbdfeed->ctrl.leds= new;
     (*dev->kbdfeed->CtrlProc)(dev,&dev->kbdfeed->ctrl);
@@ -51,16 +46,9 @@ XkbDDXUpdateIndicators(dev,new)
 }
 
 void
-#if NeedFunctionPrototypes
 XkbDDXUpdateDeviceIndicators(	DeviceIntPtr		dev,
 				XkbSrvLedInfoPtr 	sli,
 				CARD32 			new)
-#else
-XkbDDXUpdateDeviceIndicators(dev,sli,new)
-    DeviceIntPtr  	dev;
-    XkbSrvLedInfoPtr	sli;
-    CARD32 		new;
-#endif
 {
     if (sli->fb.kf==dev->kbdfeed)
 	XkbDDXUpdateIndicators(dev,new);

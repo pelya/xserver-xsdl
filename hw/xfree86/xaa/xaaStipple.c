@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/xaa/xaaStipple.c,v 1.11 2001/10/28 03:34:04 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/xaa/xaaStipple.c,v 1.12 2003/08/04 22:18:31 mvojkovi Exp $ */
 
 #include "xaa.h"
 #include "xaalocal.h"
@@ -762,20 +762,28 @@ StippleOver32(
 ){
    CARD32* srcp;
    CARD32 bits;
-   int bitsleft, shift;   
+   int bitsleft, shift, usable;   
 
    while(dwords--) {
-	bitsleft = width - offset;
-	srcp = src + (offset >> 5);
-	shift = offset & 31;
+        bitsleft = width - offset;
+        srcp = src + (offset >> 5);
+        shift = offset & 31;
+        usable = 32 - shift;
 
-	if(bitsleft < 32)
-	    bits = SHIFT_L(*src,bitsleft) | 
-		      (SHIFT_R(*srcp,shift) & XAAShiftMasks[bitsleft]);
-	else if(shift)
-	    bits = SHIFT_R(*srcp,shift) | SHIFT_L(srcp[1],32-shift);
-	else
-	    bits = *srcp;
+        if(bitsleft < 32) {
+            if(bitsleft <= usable) {
+                 bits = SHIFT_L(*src,bitsleft) | 
+                       (SHIFT_R(*srcp,shift) & XAAShiftMasks[bitsleft]);
+            } else {
+                 bits = SHIFT_L(*src,bitsleft) |
+                       (SHIFT_L(srcp[1],usable) & XAAShiftMasks[bitsleft]) |
+                       (SHIFT_R(*srcp,shift) & XAAShiftMasks[usable]);
+            }
+        }
+        else if(shift)
+            bits = SHIFT_R(*srcp,shift) | SHIFT_L(srcp[1],usable);
+        else
+            bits = *srcp;
 
 #ifdef TRIPLE_BITS
 	if(dwords >= 2) {
@@ -805,20 +813,28 @@ StippleOver32_Inverted(
 ){
    CARD32* srcp;
    CARD32 bits;
-   int bitsleft, shift;   
+   int bitsleft, shift, usable;
 
    while(dwords--) {
-	bitsleft = width - offset;
-	srcp = src + (offset >> 5);
-	shift = offset & 31;
+        bitsleft = width - offset;
+        srcp = src + (offset >> 5);
+        shift = offset & 31;
+        usable = 32 - shift;
 
-	if(bitsleft < 32)
-	    bits = SHIFT_L(*src,bitsleft) | 
-		      (SHIFT_R(*srcp,shift) & XAAShiftMasks[bitsleft]);
-	else if(shift)
-	    bits = SHIFT_R(*srcp,shift) | SHIFT_L(srcp[1],32-shift);
-	else
-	    bits = *srcp;
+        if(bitsleft < 32) {
+            if(bitsleft <= usable) {
+                 bits = SHIFT_L(*src,bitsleft) |
+                       (SHIFT_R(*srcp,shift) & XAAShiftMasks[bitsleft]);
+            } else {
+                 bits = SHIFT_L(*src,bitsleft) |
+                       (SHIFT_L(srcp[1],usable) & XAAShiftMasks[bitsleft]) |
+                       (SHIFT_R(*srcp,shift) & XAAShiftMasks[usable]);
+            }
+        }
+        else if(shift)
+            bits = SHIFT_R(*srcp,shift) | SHIFT_L(srcp[1],usable);
+        else
+            bits = *srcp;
 
 	bits = ~bits;
 

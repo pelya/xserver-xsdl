@@ -25,7 +25,7 @@ in this Software without prior written authorization from The Open Group.
  *
  * Author:  Keith Packard, MIT X Consortium
  */
-/* $XFree86: xc/programs/Xserver/cfb/cfbply1rct.c,v 3.9 2001/12/14 19:59:24 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/cfb/cfbply1rct.c,v 3.11 2003/10/30 14:53:39 tsi Exp $ */
 
 #include "X.h"
 
@@ -76,7 +76,10 @@ RROP_NAME(cfbFillPoly1Rect) (pDrawable, pGC, shape, mode, count, ptsIn)
     int		    step1 = 0, step2 = 0;
     int		    sign1 = 0, sign2 = 0;
     int		    h;
-    int		    l, r;
+    int		    l;
+#if PSZ != 24 && PPW > 1
+    int		    r;
+#endif
     int		    nmiddle;
     RROP_DECLARE
 
@@ -262,13 +265,17 @@ RROP_NAME(cfbFillPoly1Rect) (pDrawable, pGC, shape, mode, count, ptsIn)
 	for (;;)
 	{
 	    l = x1;
+#if PSZ != 24 && PPW > 1
 	    r = x2;
+#endif
 	    nmiddle = x2 - x1;
     	    if (nmiddle < 0)
 	    {
 	    	nmiddle = -nmiddle;
 	    	l = x2;
+#if PSZ != 24 && PPW > 1
 	    	r = x1;
+#endif
     	    }
 #if PPW > 1
 	    c = l & PIM;
@@ -283,16 +290,6 @@ RROP_NAME(cfbFillPoly1Rect) (pDrawable, pGC, shape, mode, count, ptsIn)
 
 #if PSZ == 24
 	    addr = (CfbBits *)((char *)addrl + ((l * 3) & ~0x03));
-#else /* PSZ == 24 */
-#if PWSH > LWRD_SHIFT
-	    l = l >> (PWSH - LWRD_SHIFT);
-#endif
-#if PWSH < LWRD_SHIFT
-	    l = l << (LWRD_SHIFT - PWSH);
-#endif
-	    addr = (CfbBits *) (((char *) addrl) + l);
-#endif /* PSZ == 24 */
-#if PSZ == 24
 	    if (nmiddle <= 1){
 	      if (nmiddle)
 	        RROP_SOLID24(addr, l);
@@ -315,6 +312,13 @@ RROP_NAME(cfbFillPoly1Rect) (pDrawable, pGC, shape, mode, count, ptsIn)
 		RROP_SOLID_MASK(addr, endmask, pidx);
 	    }
 #else /* PSZ == 24 */
+#if PWSH > LWRD_SHIFT
+	    l = l >> (PWSH - LWRD_SHIFT);
+#endif
+#if PWSH < LWRD_SHIFT
+	    l = l << (LWRD_SHIFT - PWSH);
+#endif
+	    addr = (CfbBits *) (((char *) addrl) + l);
 #if PPW > 1
 	    if (c + nmiddle < PPW)
 	    {
@@ -351,4 +355,5 @@ RROP_NAME(cfbFillPoly1Rect) (pDrawable, pGC, shape, mode, count, ptsIn)
 	    break;
 	addrl = AddrYPlus (addrl, 1);
     }
+    RROP_UNDECLARE
 }

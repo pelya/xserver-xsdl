@@ -1,7 +1,30 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86.h,v 3.169 2003/02/13 10:49:38 eich Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86.h,v 3.172 2003/09/24 02:43:16 dawes Exp $ */
 
 /*
- * Copyright (c) 1997 by The XFree86 Project, Inc.
+ * Copyright (c) 1997-2003 by The XFree86 Project, Inc.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+ * THE COPYRIGHT HOLDER(S) OR AUTHOR(S) BE LIABLE FOR ANY CLAIM, DAMAGES OR
+ * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ *
+ * Except as contained in this notice, the name of the copyright holder(s)
+ * and author(s) shall not be used in advertising or otherwise to promote
+ * the sale, use or other dealings in this Software without prior written
+ * authorization from the copyright holder(s) and author(s).
  */
 
 /*
@@ -203,6 +226,11 @@ void xf86ProcessActionEvent(ActionEvent action, void *arg);
 
 /* xf86Helper.c */
 
+#ifdef printf
+#define printf_defined
+#undef printf
+#endif
+
 void xf86AddDriver(DriverPtr driver, pointer module, int flags);
 void xf86DeleteDriver(int drvIndex);
 ScrnInfoPtr xf86AllocateScreen(DriverPtr drv, int flags);
@@ -221,12 +249,14 @@ void xf86EnableDisableFBAccess(int scrnIndex, Bool enable);
 void xf86VDrvMsgVerb(int scrnIndex, MessageType type, int verb,
 		     const char *format, va_list args);
 void xf86DrvMsgVerb(int scrnIndex, MessageType type, int verb,
-		    const char *format, ...);
-void xf86DrvMsg(int scrnIndex, MessageType type, const char *format, ...);
-void xf86MsgVerb(MessageType type, int verb, const char *format, ...);
-void xf86Msg(MessageType type, const char *format, ...);
-void xf86ErrorFVerb(int verb, const char *format, ...);
-void xf86ErrorF(const char *format, ...);
+		    const char *format, ...) _printf_attribute(4,5);
+void xf86DrvMsg(int scrnIndex, MessageType type, const char *format, ...)
+		_printf_attribute(3,4);
+void xf86MsgVerb(MessageType type, int verb, const char *format, ...)
+		_printf_attribute(3,4);
+void xf86Msg(MessageType type, const char *format, ...) _printf_attribute(2,3);
+void xf86ErrorFVerb(int verb, const char *format, ...) _printf_attribute(2,3);
+void xf86ErrorF(const char *format, ...) _printf_attribute(1,2);
 const char *xf86TokenToString(SymTabPtr table, int token);
 int xf86StringToToken(SymTabPtr table, const char *string);
 void xf86ShowClocks(ScrnInfoPtr scrp, MessageType from);
@@ -334,6 +364,11 @@ void xf86AddModuleInfo(ModuleInfoPtr info, pointer module);
 void xf86DeleteModuleInfo(int idx);
 #endif
 
+#ifdef printf_defined
+#define printf xf86printf
+#undef printf_defined
+#endif
+
 /* xf86Debug.c */
 #ifdef BUILDDEBUG
  void xf86Break1(void);
@@ -401,6 +436,12 @@ void xf86RandRSetInitialMode (ScreenPtr pScreen);
 /* xf86VidModeExtentionInit.c */
 
 Bool VidModeExtensionInit(ScreenPtr pScreen);
+
+/* xf86Versions.c */
+CARD32 xf86GetBuiltinInterfaceVersion(BuiltinInterface iface, int flag);
+Bool xf86RegisterBuiltinInterfaceVersion(BuiltinInterface iface,
+					 CARD32 version, int flags);
+
 
 #endif /* _NO_XF86_PROTOTYPES */
 

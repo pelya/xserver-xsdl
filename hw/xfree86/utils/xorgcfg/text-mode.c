@@ -26,7 +26,7 @@
  *
  * Author: Paulo César Pereira de Andrade <pcpa@conectiva.com.br>
  *
- * $XFree86: xc/programs/Xserver/hw/xfree86/xf86cfg/text-mode.c,v 1.22 2003/02/16 05:23:45 paulo Exp $
+ * $XFree86: xc/programs/Xserver/hw/xfree86/xf86cfg/text-mode.c,v 1.26 2003/11/14 02:40:22 dawes Exp $
  */
 
 #include <stdio.h>
@@ -46,7 +46,15 @@
 #include "xf86config.h"
 #include "loader.h"
 
-#define XKB_RULES_DIR "/usr/X11R6/lib/X11/xkb/rules"
+#ifndef PROJECT_ROOT
+#define PROJECT_ROOT "/usr/X11R6"
+#endif
+
+#ifndef __UNIXOS2__
+#define XKB_RULES_DIR PROJECT_ROOT "/lib/X11/xkb/rules"
+#else
+#define XKB_RULES_DIR XF86CONFIGDIR "/xkb/rules"
+#endif
 
 #define CONTROL_A	1
 #define CONTROL_D	4
@@ -196,7 +204,11 @@ TextMode(void)
 		   "This program will create the XF86Config file, based on "
 		   "menu selections you make.\n"
 		   "\n"
+#ifndef __UNIXOS2__
 		   "The XF86Config file usually resides in /usr/X11R6/etc/X11 "
+#else
+		   "The XF86Config file usually resides in "XF86CONFIGDIR" "
+#endif
 		   "or /etc/X11. A sample XF86Config file is supplied with "
 		   "XFree86; it is configured for a standard VGA card and "
 		   "monitor with 640x480 resolution. This program will ask for "
@@ -285,7 +297,11 @@ WriteXF86Config(void)
     refresh();
     xf86config = DialogInput("Write XF86Config", "Write configuration to file:",
 			     10, 60, XF86Config_path ? XF86Config_path :
+#ifndef __UNIXOS2__
 			     "/etc/X11/XF86Config", "  Ok  ", " Cancel ", 0);
+#else
+			     XF86CONFIGDIR"/XF86Config", "  Ok  ", " Cancel ", 0);
+#endif
 
     if (xf86config == NULL)
 	return (-1);
@@ -301,7 +317,7 @@ WriteXF86Config(void)
 		XtCalloc(1, sizeof(XF86ConfModuleRec));
 
 	    XF86Config->conf_modules->mod_comment =
-		XtNewString("\t# Load \"freetype\"\n"
+		XtNewString("\tLoad \"freetype\"\n"
 			    "\t# Load \"xtt\"\n");
 
 	    for (i = 0; i < sizeof(modules) / sizeof(modules[0]); i++) {
@@ -330,6 +346,9 @@ WriteXF86Config(void)
 }
 
 static char *protocols[] = {
+#ifdef __UNIXOS2__
+    "OS2Mouse",
+#endif
 #ifdef SCO
     "OsMouse",
 #endif
@@ -521,6 +540,8 @@ MouseConfig(void)
 	str = "/dev/wsmouse";
 #elif defined(__FreeBSD__)
 	str = "/dev/sysmouse";
+#elif defined(__UNIXOS2__)
+	str = "mouse$";
 #else
 	str = "/dev/mouse";
 #endif
@@ -805,6 +826,10 @@ static char *hsync[] = {
     "31.5 - 64.3; Monitor that can do 1280x1024 @ 60 Hz",
     "31.5 - 79.0; Monitor that can do 1280x1024 @ 74 Hz",
     "31.5 - 82.0; Monitor that can do 1280x1024 @ 76 Hz",
+    "31.5 - 92.0; Monitor that can do 1280x1024 @ 85 Hz",
+    "31.5 - 108.0; Monitor that can do 1600x1200 @ 85 Hz",
+    "31.5 - 128.5; Monitor that can do 1920x1440 @ 85 Hz",
+    "31.5 - 137.0; Monitor that can do 2048x1536 @ 85 Hz"
 };
 
 static char *vrefresh[] = {
@@ -1358,6 +1383,9 @@ static char *depths[] = {
 };
 
 static char *modes[] = {
+    "2048x1536",
+    "1920x1440",
+    "1800x1400",
     "1600x1200",
     "1400x1050",
     "1280x1024",

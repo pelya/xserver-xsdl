@@ -24,7 +24,7 @@ OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION  WITH
 THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 ********************************************************/
-/* $XFree86: xc/programs/Xserver/xkb/ddxFakeMtn.c,v 1.4 2001/01/17 22:37:14 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/xkb/ddxFakeMtn.c,v 1.6 2003/11/17 22:20:45 dawes Exp $ */
 
 #include <stdio.h>
 #define	NEED_EVENTS 1
@@ -45,29 +45,8 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include "mipointer.h"
 #include "mipointrst.h"
 
-extern	WindowPtr GetSpriteWindow(
-#if NeedFunctionPrototypes
-	void
-#endif
-);
-
-extern void NewCurrentScreen(
-#if NeedFunctionPrototypes
-    ScreenPtr	/* newScreen */,
-    int		/* x */,
-    int		/* y */
-#endif
-);
-
 void
-#if NeedFunctionPrototypes
 XkbDDXFakePointerMotion(unsigned flags,int x,int y)
-#else
-XkbDDXFakePointerMotion(flags,x,y)
-    unsigned	flags;
-    int 	x;
-    int 	y;
-#endif
 {
 int 		   oldX,oldY;
 ScreenPtr	   pScreen, oldScreen;

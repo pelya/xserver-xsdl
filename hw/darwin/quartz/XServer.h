@@ -29,7 +29,7 @@
  * sale, use or other dealings in this Software without prior written
  * authorization.
  */
-/* $XFree86: xc/programs/Xserver/hw/darwin/quartz/XServer.h,v 1.8 2003/01/23 00:34:26 torrey Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/darwin/quartz/XServer.h,v 1.15 2003/11/14 20:27:58 torrey Exp $ */
 
 #define BOOL xBOOL
 #include "Xproto.h"
@@ -41,15 +41,14 @@
     // server state
     int serverState;
     NSRecursiveLock *serverLock;
+    NSMutableArray *pendingClients;
     BOOL serverVisible;
     BOOL rootlessMenuBarVisible;
     BOOL queueShowServer;
+    BOOL quitWithoutQuery;
     UInt32 mouseState;
-    Class windowClass;
-
-    // server event queue
     BOOL sendServerEvents;
-    int eventWriteFD;
+    BOOL x11Active;
 
     // Aqua interface
     IBOutlet NSWindow *modeWindow;
@@ -59,6 +58,12 @@
     IBOutlet NSWindow *helpWindow;
     IBOutlet NSButton *startupHelpButton;
     IBOutlet NSPanel *switchWindow;
+
+    // Menu elements setable by Apple-WM extension
+    IBOutlet NSMenu *windowMenu;
+    IBOutlet NSMenuItem *windowSeparator;
+    IBOutlet NSMenu *dockMenu;
+    int checkedWindowItem;
 }
 
 - (id)init;
@@ -68,9 +73,11 @@
 
 + (void)append:(NSString *)value toEnv:(NSString *)name;
 
+- (BOOL)loadDisplayBundle;
 - (void)startX;
 - (void)finishStartX;
 - (BOOL)startXClients;
+- (void)runClient:(NSString *)filename;
 - (void)run;
 - (void)toggle;
 - (void)showServer:(BOOL)show;
@@ -82,19 +89,36 @@
 - (void)sendXEvent:(xEvent *)xe;
 - (void)sendShowHide:(BOOL)show;
 - (void)clientProcessDone:(int)clientStatus;
+- (void)activateX11:(BOOL)state;
+- (void)windowBecameKey:(NSWindow *)window;
+- (void)setX11WindowList:(NSArray *)list;
+- (void)setX11WindowCheck:(NSNumber *)nn;
 
 // Aqua interface actions
 - (IBAction)startFullScreen:(id)sender;
 - (IBAction)startRootless:(id)sender;
 - (IBAction)closeHelpAndShow:(id)sender;
+- (IBAction)showSwitchPanel:(id)sender;
 - (IBAction)showAction:(id)sender;
+- (IBAction)itemSelected:(id)sender;
+- (IBAction)nextWindow:(id)sender;
+- (IBAction)previousWindow:(id)sender;
+- (IBAction)performClose:(id)sender;
+- (IBAction)performMiniaturize:(id)sender;
+- (IBAction)performZoom:(id)sender;
+- (IBAction)bringAllToFront:(id)sender;
+- (IBAction)copy:(id)sender;
 
 // NSApplication delegate
 - (NSApplicationTerminateReply)applicationShouldTerminate:(NSApplication *)sender;
+- (void)applicationWillTerminate:(NSNotification *)aNotification;
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification;
+- (void)applicationDidHide:(NSNotification *)aNotification;
+- (void)applicationDidUnhide:(NSNotification *)aNotification;
 - (BOOL)applicationShouldHandleReopen:(NSApplication *)theApplication hasVisibleWindows:(BOOL)flag;
 - (void)applicationWillResignActive:(NSNotification *)aNotification;
 - (void)applicationWillBecomeActive:(NSNotification *)aNotification;
+- (BOOL)application:(NSApplication *)theApplication openFile:(NSString *)filename;
 
 // NSPort delegate
 - (void)handlePortMessage:(NSPortMessage *)portMessage;
@@ -109,4 +133,3 @@ enum {
     server_Quitting,
     server_Done
 };
-

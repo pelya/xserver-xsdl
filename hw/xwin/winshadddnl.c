@@ -30,7 +30,7 @@
  *		Peter Busch
  *		Harold L Hunt II
  */
-/* $XFree86: xc/programs/Xserver/hw/xwin/winshadddnl.c,v 1.24 2003/02/12 15:01:38 alanh Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xwin/winshadddnl.c,v 1.26 2003/10/02 13:30:11 eich Exp $ */
 
 #include "win.h"
 
@@ -40,7 +40,7 @@
  */
 #ifdef DEFINE_GUID
 #undef DEFINE_GUID
-#define DEFINE_GUID(n,l,w1,w2,b1,b2,b3,b4,b5,b6,b7,b8) GUID_EXT const GUID n GUID_SECT = {l,w1,w2,{b1,b2,b3,b4,b5,b6,b7,b8}}
+#define DEFINE_GUID(n,l,w1,w2,b1,b2,b3,b4,b5,b6,b7,b8) const GUID n GUID_SECT = {l,w1,w2,{b1,b2,b3,b4,b5,b6,b7,b8}}
 #endif /* DEFINE_GUID */
 
 /*
@@ -50,6 +50,8 @@
 #ifndef IID_IDirectDraw4
 DEFINE_GUID( IID_IDirectDraw4, 0x9c59509a,0x39bd,0x11d1,0x8c,0x4a,0x00,0xc0,0x4f,0xd9,0x30,0xc5 );
 #endif /* IID_IDirectDraw4 */
+
+#define FAIL_MSG_MAX_BLT	10
 
 
 /*
@@ -514,9 +516,24 @@ winShadowUpdateDDNL (ScreenPtr pScreen,
 					    NULL);
 	  if (FAILED (ddrval))
 	    {
-	      ErrorF ("winShadowUpdateDDNL - IDirectDrawSurface4_Blt () "
-		      "failed: %08x\n",
-		      ddrval);
+	      static int	s_iFailCount = 0;
+	      
+	      if (s_iFailCount < FAIL_MSG_MAX_BLT)
+		{
+		  ErrorF ("winShadowUpdateDDNL - IDirectDrawSurface4_Blt () "
+			  "failed: %08x\n",
+			  ddrval);
+		  
+		  ++s_iFailCount;
+
+		  if (s_iFailCount == FAIL_MSG_MAX_BLT)
+		    {
+		      ErrorF ("winShadowUpdateDDNL - IDirectDrawSurface4_Blt "
+			      "failure message maximum (%d) reached.  No "
+			      "more failure messages will be printed.",
+			      FAIL_MSG_MAX_BLT);
+		    }
+		}
 	    }
 	  
 	  /* Get a pointer to the next box */
@@ -648,6 +665,17 @@ winCloseScreenShadowDDNL (int nIndex, ScreenPtr pScreen)
     {
       IDirectDraw_Release (pScreenPriv->pdd);
       pScreenPriv->pdd = NULL;
+    }
+
+  /* Delete tray icon, if we have one */
+  if (!pScreenInfo->fNoTrayIcon)
+    winDeleteNotifyIcon (pScreenPriv);
+
+  /* Free the exit confirmation dialog box, if it exists */
+  if (g_hDlgExit != NULL)
+    {
+      DestroyWindow (g_hDlgExit);
+      g_hDlgExit = NULL;
     }
 
   /* Kill our window */

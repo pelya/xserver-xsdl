@@ -2,11 +2,11 @@
  *  Copyright (C) 1998 Itai Nahshon, Michael Schimek
  */
 
-/* $XFree86: xc/programs/Xserver/hw/xfree86/i2c/xf86i2c.h,v 1.8 2001/07/19 14:19:40 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/i2c/xf86i2c.h,v 1.11 2003/08/29 21:08:06 tsi Exp $ */
 #ifndef _XF86I2C_H
 #define _XF86I2C_H
 
-#include "miscstruct.h"
+#include "regionstr.h"
 
 typedef unsigned char  I2CByte;
 typedef unsigned short I2CSlaveAddr;
@@ -52,6 +52,8 @@ I2CBusPtr 	xf86CreateI2CBusRec(void);
 void      	xf86DestroyI2CBusRec(I2CBusPtr pI2CBus, Bool unalloc, Bool devs_too);
 Bool      	xf86I2CBusInit(I2CBusPtr pI2CBus);
 I2CBusPtr 	xf86I2CFindBus(int scrnIndex, char *name);
+int		xf86I2CGetScreenBuses(int scrnIndex, I2CBusPtr **pppI2CBus);
+
 
 /* I2C slave devices */
 

@@ -12,7 +12,7 @@ the suitability of this software for any purpose.  It is provided "as
 is" without express or implied warranty.
 
 */
-/* $XFree86: xc/programs/Xserver/hw/xnest/Events.c,v 1.2 2001/08/01 00:44:57 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xnest/Events.c,v 1.3 2003/11/16 05:05:20 dawes Exp $ */
 
 #include "X.h"
 #define NEED_EVENTS
@@ -28,6 +28,7 @@ is" without express or implied warranty.
 
 #include "Xnest.h"
 
+#include "Args.h"
 #include "Color.h"
 #include "Display.h"
 #include "Screen.h"
@@ -36,40 +37,40 @@ is" without express or implied warranty.
 
 CARD32 lastEventTime = 0;
 
-void ProcessInputEvents()
+void
+ProcessInputEvents()
 {
   mieqProcessInputEvents();
 }
 
-int TimeSinceLastInputEvent()
+int
+TimeSinceLastInputEvent()
 {
     if (lastEventTime == 0)
         lastEventTime = GetTimeInMillis();
     return GetTimeInMillis() - lastEventTime;
 }
 
-void SetTimeSinceLastInputEvent()
+void
+SetTimeSinceLastInputEvent()
 {
   lastEventTime = GetTimeInMillis();
 }
 
-static Bool xnestExposurePredicate(display, event, args)
-     Display *display;
-     XEvent *event;
-     char *args;
+static Bool
+xnestExposurePredicate(Display *display, XEvent *event, char *args)
 {
   return (event->type == Expose || event->type == ProcessedExpose);
 }
 
-static Bool xnestNotExposurePredicate(display, event, args)
-     Display *display;
-     XEvent *event;
-     char *args;
+static Bool
+xnestNotExposurePredicate(Display *display, XEvent *event, char *args)
 {
   return !xnestExposurePredicate(display, event, args);
 }
 
-void xnestCollectExposures()
+void
+xnestCollectExposures()
 {
   XEvent X;
   WindowPtr pWin;
@@ -92,12 +93,12 @@ void xnestCollectExposures()
   }
 }
 
-void xnestCollectEvents()
+void
+xnestCollectEvents()
 {
   XEvent X;
   xEvent x;
   ScreenPtr pScreen;
-  extern Window xnestParentWindow;
 
   while (XCheckIfEvent(xnestDisplay, &X, xnestNotExposurePredicate, NULL)) {
     switch (X.type) {

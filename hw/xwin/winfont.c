@@ -27,7 +27,7 @@
  *
  * Authors:	Harold L Hunt II
  */
-/* $XFree86: xc/programs/Xserver/hw/xwin/winfont.c,v 1.2 2001/06/04 13:04:41 alanh Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xwin/winfont.c,v 1.3 2003/08/07 23:47:58 alanh Exp $ */
 
 #include "win.h"
 
@@ -36,7 +36,9 @@
 Bool
 winRealizeFontNativeGDI (ScreenPtr pScreen, FontPtr pFont)
 {
+#if CYGDEBUG
   ErrorF ("winRealizeFont()\n");
+#endif
   return TRUE;
 }
 
@@ -45,6 +47,8 @@ winRealizeFontNativeGDI (ScreenPtr pScreen, FontPtr pFont)
 Bool
 winUnrealizeFontNativeGDI (ScreenPtr pScreen, FontPtr pFont)
 {
+#if CYGDEBUG
   ErrorF ("winUnrealizeFont()\n");
+#endif
   return TRUE;
 }

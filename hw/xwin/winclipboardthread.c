@@ -27,7 +27,7 @@
  *
  * Authors:	Harold L Hunt II
  */
-/* $XFree86: xc/programs/Xserver/hw/xwin/winclipboardthread.c,v 1.1 2003/02/12 15:01:38 alanh Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xwin/winclipboardthread.c,v 1.3 2003/10/02 13:30:10 eich Exp $ */
 
 #include "winclipboard.h"
 
@@ -43,6 +43,7 @@ extern Bool g_fCalledSetLocale;
  */
 
 static jmp_buf			g_jmpEntry;
+static Bool                     g_shutdown = FALSE;
 
 
 /*
@@ -79,7 +80,6 @@ winClipboardProc (void *pArg)
   int			iRetries;
   Bool			fUnicodeSupport;
   char			szDisplay[512];
-  int			i;
   ClipboardProcArgPtr	pProcArg = (ClipboardProcArgPtr) pArg;
 
   ErrorF ("winClipboardProc - Hello\n");
@@ -93,7 +93,7 @@ winClipboardProc (void *pArg)
 
   ErrorF ("winClipboardProc - Calling pthread_mutex_lock ()\n");
 
-  /* Grab our garbage mutex to satisfy pthread_cond_wait */
+  /* Grab the server started mutex - pause until we get it */
   iReturn = pthread_mutex_lock (pProcArg->ppmServerStarted);
   if (iReturn != 0)
     {
@@ -129,11 +129,6 @@ winClipboardProc (void *pArg)
   /* Flag that we have called setlocale */
   g_fCalledSetLocale = TRUE;
 
-  /* Release the garbage mutex */
-  pthread_mutex_unlock (pProcArg->ppmServerStarted);
-
-  ErrorF ("winClipboardProc - pthread_mutex_unlock () returned.\n");
-
   /* Allow multiple threads to access Xlib */
   if (XInitThreads () == 0)
     {
@@ -142,6 +137,11 @@ winClipboardProc (void *pArg)
     }
 
   ErrorF ("winClipboardProc - XInitThreads () returned.\n");
+
+  /* Release the server started mutex */
+  pthread_mutex_unlock (pProcArg->ppmServerStarted);
+
+  ErrorF ("winClipboardProc - pthread_mutex_unlock () returned.\n");
 
   /* Set jump point for Error exits */
   iReturn = setjmp (g_jmpEntry);
@@ -155,6 +155,12 @@ winClipboardProc (void *pArg)
 	      iReturn);
       pthread_exit (NULL);
     }
+  else if (g_shutdown) 
+    {
+      /* Shutting down, the X server severed out connection! */
+      ErrorF ("winClipboardProc - Detected shutdown in progress\n");
+      pthread_exit (NULL);
+    }
   else if (iReturn == WIN_JMP_ERROR_IO)
     {
       ErrorF ("winClipboardProc - setjmp returned and hwnd: %08x\n", hwnd);
@@ -163,13 +169,12 @@ winClipboardProc (void *pArg)
   /* Initialize retry count */
   iRetries = 0;
 
-#if 0
   /* Setup the display connection string x */
-  snprintf (szDisplay, 512, "127.0.0.1:%s.%d", display, pProcArg->dwScreen);
-#else
-  /* Setup the display connection string x */
-  snprintf (szDisplay, 512, ":%s.%d", display, pProcArg->dwScreen);
-#endif
+  snprintf (szDisplay,
+	    512,
+	    "127.0.0.1:%s.%d",
+	    display,
+	    (int) pProcArg->dwScreen);
 
   /* Print the display connection string */
   ErrorF ("winClipboardProc - DISPLAY=%s\n", szDisplay);
@@ -434,14 +439,18 @@ winClipboardErrorHandler (Display *pDisplay, XErrorEvent *pErr)
 		 sizeof (pszErrorMsg));
   ErrorF ("winClipboardErrorHandler - ERROR: \n\t%s\n", pszErrorMsg);
 
-  if (pErr->error_code==BadWindow
-      || pErr->error_code==BadMatch
-      || pErr->error_code==BadDrawable)
+  if (pErr->error_code == BadWindow
+      || pErr->error_code == BadMatch
+      || pErr->error_code == BadDrawable)
     {
+#if 0
       pthread_exit (NULL);
+#endif
     }
 
+#if 0
   pthread_exit (NULL);
+#endif
 
   return 0;
 }
@@ -460,4 +469,16 @@ winClipboardIOErrorHandler (Display *pDisplay)
   longjmp (g_jmpEntry, WIN_JMP_ERROR_IO);
   
   return 0;
+}
+
+
+/*
+ * Notify the clipboard thread we're exiting and not to reconnect
+ */
+
+void
+winDeinitClipboard ()
+{
+  ErrorF ("winDeinitClipboard - Noting shutdown in progress\n");
+  g_shutdown = TRUE;
 }
