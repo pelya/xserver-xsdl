@@ -198,7 +198,7 @@ kaaPixmapUseScreen (PixmapPtr pPixmap)
     if (pKaaPixmap->score < KAA_PIXMAP_SCORE_MAX)
     {
 	pKaaPixmap->score++;
-	if (!pKaaPixmap->area &&
+	if (!kaaPixmapIsOffscreen(pPixmap) &&
 	    pKaaPixmap->score >= KAA_PIXMAP_SCORE_MOVE_IN)
 	    kaaMoveInPixmap (pPixmap);
     }
