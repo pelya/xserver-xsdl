@@ -24,4 +24,5 @@ SUBDIRS =			\
 	ati			\
 	fake			\
 	ephyr                   \
-	i810
+	i810			\
+	epson
