@@ -26,6 +26,7 @@
 #include <config.h>
 #endif
 #include "compint.h"
+#include "cw.h"
 
 int	CompScreenPrivateIndex;
 int	CompWindowPrivateIndex;

@@ -99,14 +99,17 @@ static GCFuncs cwCheapGCFuncs = {
     cwCheapCopyClip,
 };
 
+/* Find the real drawable to draw to, and provide offsets that will translate
+ * window coordinates to backing pixmap coordinates.
+ */
 DrawablePtr
 cwGetBackingDrawable(DrawablePtr pDrawable, int *x_off, int *y_off)
 {
     if (cwDrawableIsRedirWindow(pDrawable)) {
 	WindowPtr pWin = (WindowPtr)pDrawable;
 	PixmapPtr pPixmap = (*pDrawable->pScreen->GetWindowPixmap)(pWin);
-	*x_off = -pPixmap->screen_x;
-	*y_off = -pPixmap->screen_y;
+	*x_off = pDrawable->x - pPixmap->screen_x;
+	*y_off = pDrawable->y - pPixmap->screen_y;
 
 	return &pPixmap->drawable;
     } else {
@@ -138,7 +141,6 @@ cwCreateGCPrivate(GCPtr pGC, DrawablePtr pDrawable)
 	xfree(pPriv);
 	return FALSE;
     }
-    pPriv->guarantee = GuaranteeNothing;
     pPriv->serialNumber = 0;
     pPriv->stateChanges = (1 << (GCLastBit + 1)) - 1;
     pPriv->wrapOps = pGC->ops;
@@ -340,7 +342,7 @@ cwCheapValidateGC(GCPtr pGC, unsigned long stateChanges, DrawablePtr pDrawable)
      * re-wrap on return.
      */
     if (pDrawable->type == DRAWABLE_WINDOW &&
-cwDrawableIsRedirWindow(pDrawable) &&
+	cwDrawableIsRedirWindow(pDrawable) &&
 	cwCreateGCPrivate(pGC, pDrawable))
     {
 	(*pGC->funcs->ValidateGC)(pGC, stateChanges, pDrawable);
@@ -448,21 +450,21 @@ cwCreateGC(GCPtr pGC)
 }
 
 static void
-cwGetImage(DrawablePtr pSrc, int sx, int sy, int w, int h, unsigned int format,
+cwGetImage(DrawablePtr pSrc, int x, int y, int w, int h, unsigned int format,
 	   unsigned long planemask, char *pdstLine)
 {
     ScreenPtr pScreen = pSrc->pScreen;
     DrawablePtr pBackingDrawable;
-    int x_off, y_off;
+    int src_off_x, src_off_y;
     
     SCREEN_PROLOGUE(pScreen, GetImage);
 
-    pBackingDrawable = cwGetBackingDrawable(pSrc, &x_off, &y_off);
+    pBackingDrawable = cwGetBackingDrawable(pSrc, &src_off_x, &src_off_y);
 
-    sx += x_off;
-    sy += y_off;
+    CW_OFFSET_XY_SRC(x, y);
 
-    (*pScreen->GetImage)(pBackingDrawable, sx, sy, w, h, format, planemask, pdstLine);
+    (*pScreen->GetImage)(pBackingDrawable, x, y, w, h, format, planemask,
+			 pdstLine);
 
     SCREEN_EPILOGUE(pScreen, GetImage, cwGetImage);
 }
@@ -474,26 +476,170 @@ cwGetSpans(DrawablePtr pSrc, int wMax, DDXPointPtr ppt, int *pwidth,
     ScreenPtr pScreen = pSrc->pScreen;
     DrawablePtr pBackingDrawable;
     int i;
-    int x_off, y_off;
-    DDXPointPtr ppt_trans;
+    int src_off_x, src_off_y;
     
     SCREEN_PROLOGUE(pScreen, GetSpans);
 
-    pBackingDrawable = cwGetBackingDrawable(pSrc, &x_off, &y_off);
+    pBackingDrawable = cwGetBackingDrawable(pSrc, &src_off_x, &src_off_y);
 
-    ppt_trans = (DDXPointPtr)ALLOCATE_LOCAL(nspans * sizeof(DDXPointRec));
-    if (ppt_trans) {
-	for (i = 0; i < nspans; i++) {
-	    ppt_trans[i].x = ppt[i].x + x_off;
-	    ppt_trans[i].y = ppt[i].y + y_off;
-	}
+    for (i = 0; i < nspans; i++)
+	CW_OFFSET_XY_SRC(ppt[i].x, ppt[i].y);
 
-	(*pScreen->GetSpans)(pBackingDrawable, wMax, ppt, pwidth, nspans,
-			     pdstStart);
-	DEALLOCATE_LOCAL(ppt_trans);
-     }
+    (*pScreen->GetSpans)(pBackingDrawable, wMax, ppt, pwidth, nspans,
+			 pdstStart);
 
     SCREEN_EPILOGUE(pScreen, GetSpans, cwGetSpans);
+}
+
+static void
+cwFillRegionSolid(DrawablePtr pDrawable, RegionPtr pRegion, unsigned long pixel)
+{
+    ScreenPtr pScreen = pDrawable->pScreen;
+    GCPtr     pGC;
+    BoxPtr    pBox;
+    int       nbox, i;
+    ChangeGCVal v[3];
+
+    pGC = GetScratchGC(pDrawable->depth, pScreen);
+    v[0].val = GXcopy;
+    v[1].val = pixel;
+    v[2].val = FillSolid;
+    DoChangeGC(pGC, (GCFunction | GCForeground | GCFillStyle), (XID*)v, 1);
+    ValidateGC(pDrawable, pGC);
+
+    pBox = REGION_RECTS(pRegion);
+    nbox = REGION_NUM_RECTS(pRegion);
+
+    for (i = 0; i < nbox; i++, pBox++) {
+	xRectangle rect;
+	rect.x      = pBox->x1;
+	rect.y      = pBox->y1;
+	rect.width  = pBox->x2 - pBox->x1;
+	rect.height = pBox->y2 - pBox->y1;
+	(*pGC->ops->PolyFillRect)(pDrawable, pGC, 1, &rect);
+    }
+
+   FreeScratchGC(pGC);
+}
+
+static void
+cwFillRegionTiled(DrawablePtr pDrawable, RegionPtr pRegion, PixmapPtr pTile)
+{
+    ScreenPtr pScreen = pDrawable->pScreen;
+    GCPtr     pGC;
+    BoxPtr    pBox;
+    int       nbox, i;
+    ChangeGCVal v[5];
+
+    pGC = GetScratchGC(pDrawable->depth, pScreen);
+    v[0].val = GXcopy;
+    v[1].val = FillSolid;
+    v[2].ptr = (pointer) pTile;
+    v[3].val = 0;
+    v[4].val = 0;
+    DoChangeGC(pGC, (GCFunction | GCFillStyle | GCTile | GCTileStipXOrigin |
+	GCTileStipYOrigin), 
+		        (XID*)v, 1);
+
+    ValidateGC(pDrawable, pGC);
+
+    pBox = REGION_RECTS(pRegion);
+    nbox = REGION_NUM_RECTS(pRegion);
+
+    for (i = 0; i < nbox; i++, pBox++) {
+	xRectangle rect;
+	rect.x      = pBox->x1;
+	rect.y      = pBox->y1;
+	rect.width  = pBox->x2 - pBox->x1;
+	rect.height = pBox->y2 - pBox->y1;
+	(*pGC->ops->PolyFillRect)(pDrawable, pGC, 1, &rect);
+    }
+
+   FreeScratchGC(pGC);
+}
+
+static void
+cwPaintWindowBackground(WindowPtr pWin, RegionPtr pRegion, int what)
+{
+    ScreenPtr pScreen = pWin->drawable.pScreen;
+    int x_off, y_off;
+
+    SCREEN_PROLOGUE(pScreen, PaintWindowBackground);
+
+    if (!cwDrawableIsRedirWindow((DrawablePtr)pWin)) {
+	(*pScreen->PaintWindowBackground)(pWin, pRegion, what);
+    } else {
+	DrawablePtr pBackingDrawable;
+
+	pBackingDrawable = cwGetBackingDrawable((DrawablePtr)pWin, &x_off,
+						&y_off);
+
+	/* The region is already in screen coordinates, so don't offset by the
+	 * window's coordinates in screen space.
+	 */
+	x_off -= pWin->drawable.x;
+	y_off -= pWin->drawable.y;
+
+	if (pWin->backgroundState == ParentRelative) {
+	    do {
+		pWin = pWin->parent;
+	    } while (pWin && pWin->backgroundState == ParentRelative);
+	}
+
+	if (pWin && (pWin->backgroundState == BackgroundPixel ||
+		pWin->backgroundState == BackgroundPixmap))
+	{
+	    REGION_TRANSLATE(pScreen, pRegion, x_off, y_off);
+
+	    if (pWin->backgroundState == BackgroundPixel) {
+		cwFillRegionSolid(pBackingDrawable, pRegion,
+				  pWin->background.pixel);
+	    } else {
+		cwFillRegionTiled(pBackingDrawable, pRegion,
+				  pWin->background.pixmap);
+	    }
+
+	    REGION_TRANSLATE(pScreen, pRegion, -x_off, -y_off);
+	}
+    }
+
+    SCREEN_EPILOGUE(pScreen, PaintWindowBackground, cwPaintWindowBackground);
+}
+
+static void
+cwPaintWindowBorder(WindowPtr pWin, RegionPtr pRegion, int what)
+{
+    ScreenPtr pScreen = pWin->drawable.pScreen;
+    int x_off, y_off;
+
+    SCREEN_PROLOGUE(pScreen, PaintWindowBorder);
+
+    if (!cwDrawableIsRedirWindow((DrawablePtr)pWin)) {
+	(*pScreen->PaintWindowBorder)(pWin, pRegion,  what);
+    } else {
+	DrawablePtr pBackingDrawable;
+
+	pBackingDrawable = cwGetBackingDrawable((DrawablePtr)pWin, &x_off,
+						&y_off);
+
+	/* The region is already in screen coordinates, so don't offset by the
+	 * window's coordinates in screen space.
+	 */
+	x_off -= pWin->drawable.x;
+	y_off -= pWin->drawable.y;
+
+	REGION_TRANSLATE(pScreen, pRegion, x_off, y_off);
+
+	if (pWin->borderIsPixel) {
+	    cwFillRegionSolid(pBackingDrawable, pRegion, pWin->border.pixel);
+	} else {
+	    cwFillRegionTiled(pBackingDrawable, pRegion, pWin->border.pixmap);
+	}
+
+	REGION_TRANSLATE(pScreen, pRegion, -x_off, -y_off);
+    }
+
+    SCREEN_EPILOGUE(pScreen, PaintWindowBorder, cwPaintWindowBorder);
 }
 
 /* Screen initialization/teardown */
@@ -523,11 +669,15 @@ miInitializeCompositeWrapper(ScreenPtr pScreen)
     pScreenPriv->GetImage = pScreen->GetImage;
     pScreenPriv->GetSpans = pScreen->GetSpans;
     pScreenPriv->CreateGC = pScreen->CreateGC;
+    pScreenPriv->PaintWindowBackground = pScreen->PaintWindowBackground;
+    pScreenPriv->PaintWindowBorder = pScreen->PaintWindowBorder;
 
     pScreen->CloseScreen = cwCloseScreen;
     pScreen->GetImage = cwGetImage;
     pScreen->GetSpans = cwGetSpans;
     pScreen->CreateGC = cwCreateGC;
+    pScreen->PaintWindowBackground = cwPaintWindowBackground;
+    pScreen->PaintWindowBorder = cwPaintWindowBorder;
 
     pScreen->devPrivates[cwScreenIndex].ptr = (pointer)pScreenPriv;
 
@@ -556,6 +706,8 @@ cwCloseScreen (int i, ScreenPtr pScreen)
     pScreen->GetImage = pScreenPriv->GetImage;
     pScreen->GetSpans = pScreenPriv->GetSpans;
     pScreen->CreateGC = pScreenPriv->CreateGC;
+    pScreen->PaintWindowBackground = pScreenPriv->PaintWindowBackground;
+    pScreen->PaintWindowBorder = pScreenPriv->PaintWindowBorder;
 
 #ifdef RENDER
     if (ps) {

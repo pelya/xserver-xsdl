@@ -123,8 +123,8 @@ cwGetBackingPicture (PicturePtr pPicture, int *x_off, int *y_off)
 	WindowPtr   pWin = (WindowPtr) pDrawable;
 	PixmapPtr   pPixmap = (*pScreen->GetWindowPixmap) (pWin);
 
-	*x_off = -pPixmap->screen_x;
-	*y_off = -pPixmap->screen_y;
+	*x_off = pPixmap->drawable.x - pPixmap->screen_x;
+	*y_off = pPixmap->drawable.y - pPixmap->screen_y;
 
 	return pBackingPicture;
     }
@@ -141,9 +141,9 @@ cwCreatePicture (PicturePtr pPicture)
     int			ret;
     ScreenPtr		pScreen = pPicture->pDrawable->pScreen;
     cwPsDecl(pScreen);
-    
+
     cwPsUnwrap (CreatePicture);
-    setCwPicture(pPicture, 0);
+    bzero(getCwPicture(pPicture), sizeof(cwPictureRec));
     ret = (*ps->CreatePicture) (pPicture);
     cwPsWrap (CreatePicture, cwCreatePicture);
     return ret;
@@ -428,7 +428,7 @@ cwInitializeRender (ScreenPtr pScreen)
 {
     cwPsDecl (pScreen);
 
-    if (!AllocatePicturePrivate (pScreen, cwPictureIndex, 0))
+    if (!AllocatePicturePrivate (pScreen, cwPictureIndex, sizeof(cwPictureRec)))
 	return FALSE;
     cwPsWrap(CreatePicture, cwCreatePicture);
     cwPsWrap(DestroyPicture, cwDestroyPicture);

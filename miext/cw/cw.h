@@ -33,7 +33,6 @@ typedef struct {
 				     * set FALSE and the clientClip set to
 				     * clip output to the valid regions of the
 				     * backing pixmap. */
-    int		    guarantee;      /* GuaranteeNothing, etc. */
     unsigned long   serialNumber;   /* clientClip computed time */
     unsigned long   stateChanges;   /* changes in parent gc since last copy */
     GCOps	    *wrapOps;	    /* wrapped ops */
@@ -48,34 +47,30 @@ extern int cwGCIndex;
 typedef struct {
     PicturePtr	    pBackingPicture;
     unsigned long   serialNumber;   /* clientClip computed time */
-    unsigned long   stateChanges;   /* changes in parent gc since last copy */
+    unsigned long   stateChanges;   /* changes in parent picture since last copy */
 } cwPictureRec, *cwPicturePtr;
 
 extern int  cwPictureIndex;
 
 #define getCwPicture(pPicture)	    ((cwPicturePtr)(pPicture)->devPrivates[cwPictureIndex].ptr)
-#define setCwPicture(pPicture,p)    ((pPicture)->devPrivates[cwPictureIndex].ptr = (pointer) (p))
 
-#define cwDrawableIsRedirWindow(pDraw)	((pDraw)->type == DRAWABLE_WINDOW && \
-					 ((WindowPtr)(pDraw))->redirectDraw)
+#define cwDrawableIsRedirWindow(pDraw)					\
+	((pDraw)->type == DRAWABLE_WINDOW &&				\
+	 ((*(pDraw)->pScreen->GetWindowPixmap)((WindowPtr)(pDraw)) !=	\
+	  (*(pDraw)->pScreen->GetScreenPixmap)((pDraw)->pScreen)))
 
 typedef struct {
     /*
      * screen func wrappers
      */
-    CloseScreenProcPtr	CloseScreen;
-    GetImageProcPtr	GetImage;
-    GetSpansProcPtr	GetSpans;
-    CreateGCProcPtr	CreateGC;
+    CloseScreenProcPtr		CloseScreen;
+    GetImageProcPtr		GetImage;
+    GetSpansProcPtr		GetSpans;
+    CreateGCProcPtr		CreateGC;
 
-    DestroyWindowProcPtr	DestroyWindow;
+    PaintWindowBackgroundProcPtr PaintWindowBackground;
+    PaintWindowBorderProcPtr	PaintWindowBorder;
 
-    StoreColorsProcPtr		StoreColors;
-
-    InitIndexedProcPtr		InitIndexed;
-    CloseIndexedProcPtr		CloseIndexed;
-    UpdateIndexedProcPtr	UpdateIndexed;
-    
 #ifdef RENDER
     CreatePictureProcPtr	CreatePicture;
     DestroyPictureProcPtr	DestroyPicture;
@@ -106,48 +101,39 @@ extern int cwScreenIndex;
 #define getCwScreen(pScreen)	((cwScreenPtr)(pScreen)->devPrivates[cwScreenIndex].ptr)
 #define setCwScreen(pScreen,p)	((cwScreenPtr)(pScreen)->devPrivates[cwScreenIndex].ptr = (p))
 
-#define CW_COPY_OFFSET_XYPOINTS(ppt_trans, ppt, npt) do { \
-    short *_origpt = (short *)(ppt); \
-    short *_transpt = (short *)(ppt_trans); \
+#define CW_OFFSET_XYPOINTS(ppt, npt) do { \
+    DDXPointPtr _ppt = (DDXPointPtr)(ppt); \
     int _i; \
     for (_i = 0; _i < npt; _i++) { \
-	*_transpt++ = *_origpt++ + dst_off_x; \
-	*_transpt++ = *_origpt++ + dst_off_y; \
+	_ppt[_i].x += dst_off_x; \
+	_ppt[_i].y += dst_off_y; \
     } \
 } while (0)
 
-#define CW_COPY_OFFSET_RECTS(prect_trans, prect, nrect) do { \
-    short *_origpt = (short *)(prect); \
-    short *_transpt = (short *)(prect_trans); \
+#define CW_OFFSET_RECTS(prect, nrect) do { \
     int _i; \
     for (_i = 0; _i < nrect; _i++) { \
-	*_transpt++ = *_origpt++ + dst_off_x; \
-	*_transpt++ = *_origpt++ + dst_off_y; \
-	_transpt += 2; \
-	_origpt += 2; \
+	(prect)[_i].x += dst_off_x; \
+	(prect)[_i].y += dst_off_y; \
     } \
 } while (0)
 
-#define CW_COPY_OFFSET_ARCS(parc_trans, parc, narc) do { \
-    short *_origpt = (short *)(parc); \
-    short *_transpt = (short *)(parc_trans); \
+#define CW_OFFSET_ARCS(parc, narc) do { \
     int _i; \
     for (_i = 0; _i < narc; _i++) { \
-	*_transpt++ = *_origpt++ + dst_off_x; \
-	*_transpt++ = *_origpt++ + dst_off_y; \
-	_transpt += 4; \
-	_origpt += 4; \
+	(parc)[_i].x += dst_off_x; \
+	(parc)[_i].y += dst_off_y; \
     } \
 } while (0)
 
-#define CW_COPY_OFFSET_XY_DST(bx, by, x, y) do { \
-    bx = x + dst_off_x; \
-    by = y + dst_off_y; \
+#define CW_OFFSET_XY_DST(x, y) do { \
+    (x) = (x) + dst_off_x; \
+    (y) = (y) + dst_off_y; \
 } while (0)
 
-#define CW_COPY_OFFSET_XY_SRC(bx, by, x, y) do { \
-    bx = x + src_off_x; \
-    by = y + src_off_y; \
+#define CW_OFFSET_XY_SRC(x, y) do { \
+    (x) = (x) + src_off_x; \
+    (y) = (y) + src_off_y; \
 } while (0)
 
 /* cw.c */
