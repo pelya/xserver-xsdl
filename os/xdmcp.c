@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/os/xdmcp.c,v 1.1.4.5 2004/02/23 21:37:27 kaleb Exp $ */
+/* $XdotOrg: xc/programs/Xserver/os/xdmcp.c,v 1.2 2004/04/23 19:54:28 eich Exp $ */
 /* $Xorg: xdmcp.c,v 1.4 2001/01/31 13:37:19 pookie Exp $ */
 /*
  * Copyright 1989 Network Computing Devices, Inc., Mountain View, California.
@@ -1558,7 +1558,7 @@ get_addr_by_name(
 	memmove(&addr->sin_addr, hep->h_addr, hep->h_length);
 	*addrlen = sizeof(struct sockaddr_in);
 	addr->sin_family = AF_INET;
-	addr->sin_port = htons (xdm_udp_port);
+	addr->sin_port = htons (port);
     }
     else
     {
