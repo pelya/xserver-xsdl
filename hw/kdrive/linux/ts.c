@@ -33,15 +33,57 @@
 #include "kdrive.h"
 #include "Xpoll.h"
 #include <sys/ioctl.h>
+#if 1
 #include <linux/h3600_ts.h>	/* touch screen events */
+#else
+/* inline for non-arm debug builds */
+typedef struct {
+        unsigned short pressure;
+        unsigned short x;
+        unsigned short y;
+        unsigned short pad;	/* TODO TODO word boundary pad */
+} TS_EVENT;
+#endif
 
 static long lastx = 0, lasty = 0;
 int TsScreen;
 extern int TsFbdev;
 
+int
+TsReadBytes (int fd, char *buf, int len, int min)
+{
+    int		    n, tot;
+    fd_set	    set;
+    struct timeval  tv;
+
+    tot = 0;
+    while (len)
+    {
+	n = read (fd, buf, len);
+	if (n > 0)
+	{
+	    tot += n;
+	    buf += n;
+	    len -= n;
+	}
+	if (tot % min == 0)
+	    break;
+	FD_ZERO (&set);
+	FD_SET (fd, &set);
+	tv.tv_sec = 0;
+	tv.tv_usec = 100 * 1000;
+	n = select (fd + 1, &set, 0, 0, &tv);
+	if (n <= 0)
+	    break;
+    }
+    return tot;
+}
+
 void
 TsRead (int tsPort, void *closure)
 {
+    KdMouseInfo	    *mi = closure;
+    int		    fd = (int) mi->driver;
     TS_EVENT	    event;
     long	    buf[3];
     int		    n;
@@ -50,8 +92,7 @@ TsRead (int tsPort, void *closure)
     unsigned long   flags;
     unsigned long   buttons;
 
-    n = Ps2ReadBytes (tsPort, (char *) &event, 
-			 sizeof (event), sizeof (event));
+    n = TsReadBytes (tsPort, (char *) &event, sizeof (event), sizeof (event));
     if (n == sizeof (event))  
     {
 	if (event.pressure) 
@@ -85,7 +126,7 @@ TsRead (int tsPort, void *closure)
 	    lastx = 0;
 	    lasty = 0;
 	}
-	KdEnqueueMouseEvent (flags, x, y);
+	KdEnqueueMouseEvent (mi, flags, x, y);
     }
 }
 
@@ -102,22 +143,40 @@ int TsInputType;
 int
 TsInit (void)
 {
-    int	    i;
-    int	    TsPort;
+    int		i;
+    int		fd;
+    KdMouseInfo	*mi, *next;
+    int		n = 0;
 
     if (!TsInputType)
 	TsInputType = KdAllocInputType ();
-    for (i = 0; i < NUM_TS_NAMES; i++)    
+    
+    for (mi = kdMouseInfo; mi; mi = next)
     {
-	TsPort = open (TsNames[i], 0);
-	if (TsPort >= 0) 
+	next = mi->next;
+	if (!mi->name)
 	{
-	    if (KdRegisterFd (TsInputType, TsPort, TsRead, 0))
-		return 1;
+	    for (i = 0; i < NUM_TS_NAMES; i++)    
+	    {
+		fd = open (TsNames[i], 0);
+		if (fd >= 0) 
+		{
+		    mi->name = KdSaveString (TsNames[i]);
+		    break;
+		}
+	    }
 	}
+	else
+	    fd = open (mi->name, 0);
+	if (fd >= 0)
+	{
+	    mi->driver = (void *) fd;
+	    if (KdRegisterFd (TsInputType, fd, TsRead, (void *) mi))
+		n++;
+	}
+	else
+	    KdMouseInfoDispose (mi);
     }
-    perror("Touch screen not found.\n");
-    exit (1);
 }
 
 void
