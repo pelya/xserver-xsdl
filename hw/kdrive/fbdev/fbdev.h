@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/fbdev/fbdev.h,v 1.9 2001/05/29 04:54:11 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/fbdev/fbdev.h,v 1.10 2001/05/29 17:47:55 keithp Exp $ */
 
 #ifndef _FBDEV_H_
 #define _FBDEV_H_
@@ -31,6 +31,7 @@
 #include <sys/mman.h>
 #include "kdrive.h"
 #include "layer.h"
+
 #ifdef RANDR
 #include "randrstr.h"
 #endif

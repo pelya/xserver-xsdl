@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/fbdev/fbdev.c,v 1.15 2001/05/29 17:47:55 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/fbdev/fbdev.c,v 1.16 2001/05/29 21:55:41 keithp Exp $ */
 
 #include "fbdev.h"
 
@@ -358,20 +358,19 @@ fbdevLayerCreate (ScreenPtr pScreen)
 
 #ifdef RANDR
 Bool
-fbdevRandRGetInfo (ScreenPtr pScreen, int *rotations, int *swaps)
+fbdevRandRGetInfo (ScreenPtr pScreen, Rotation *rotations)
 {
     KdScreenPriv(pScreen);
-    FbdevPriv		*priv = pScreenPriv->card->driver;
-    KdScreenInfo	*screen = pScreenPriv->screen;
-    FbdevScrPriv	*scrpriv = screen->driver;
-    RRVisualSetPtr	pVisualSet;
-    RRSetOfVisualSetPtr	pSetOfVisualSet;
-    RRSizeInfoPtr	pSize;
-    int			rotateKind;
-    int			n;
+    FbdevPriv		    *priv = pScreenPriv->card->driver;
+    KdScreenInfo	    *screen = pScreenPriv->screen;
+    FbdevScrPriv	    *scrpriv = screen->driver;
+    RRVisualGroupPtr	    pVisualGroup;
+    RRGroupOfVisualGroupPtr pGroupOfVisualGroup;
+    RRScreenSizePtr	    pSize;
+    Rotation		    rotateKind;
+    int			    n;
     
-    *swaps = 0;
-    *rotations = RR_ROTATE_0|RR_ROTATE_90|RR_ROTATE_180|RR_ROTATE_270;
+    *rotations = RR_Rotate_0|RR_Rotate_90|RR_Rotate_180|RR_Rotate_270;
     
     for (n = 0; n < pScreen->numDepths; n++)
 	if (pScreen->allowedDepths[n].numVids)
@@ -379,34 +378,34 @@ fbdevRandRGetInfo (ScreenPtr pScreen, int *rotations, int *swaps)
     if (n == pScreen->numDepths)
 	return FALSE;
     
-    pVisualSet = RRCreateVisualSet (pScreen);
-    if (!pVisualSet)
+    pVisualGroup = RRCreateVisualGroup (pScreen);
+    if (!pVisualGroup)
 	return FALSE;
-    if (!RRAddDepthToVisualSet (pScreen,
-				pVisualSet,
+    if (!RRAddDepthToVisualGroup (pScreen,
+				pVisualGroup,
 				&pScreen->allowedDepths[n]))
     {
-	RRDestroyVisualSet (pScreen, pVisualSet);
+	RRDestroyVisualGroup (pScreen, pVisualGroup);
 	return FALSE;
     }
 
-    pVisualSet = RRRegisterVisualSet (pScreen, pVisualSet);
-    if (!pVisualSet)
+    pVisualGroup = RRRegisterVisualGroup (pScreen, pVisualGroup);
+    if (!pVisualGroup)
 	return FALSE;
     
-    pSetOfVisualSet = RRCreateSetOfVisualSet (pScreen);
+    pGroupOfVisualGroup = RRCreateGroupOfVisualGroup (pScreen);
 
-    if (!RRAddVisualSetToSetOfVisualSet (pScreen,
-					 pSetOfVisualSet,
-					 pVisualSet))
+    if (!RRAddVisualGroupToGroupOfVisualGroup (pScreen,
+					 pGroupOfVisualGroup,
+					 pVisualGroup))
     {
-	RRDestroySetOfVisualSet (pScreen, pSetOfVisualSet);
-	/* pVisualSet left until screen closed */
+	RRDestroyGroupOfVisualGroup (pScreen, pGroupOfVisualGroup);
+	/* pVisualGroup left until screen closed */
 	return FALSE;
     }
 
-    pSetOfVisualSet = RRRegisterSetOfVisualSet (pScreen, pSetOfVisualSet);
-    if (!pSetOfVisualSet)
+    pGroupOfVisualGroup = RRRegisterGroupOfVisualGroup (pScreen, pGroupOfVisualGroup);
+    if (!pGroupOfVisualGroup)
 	return FALSE;
     
     pSize = RRRegisterSize (pScreen,
@@ -414,25 +413,25 @@ fbdevRandRGetInfo (ScreenPtr pScreen, int *rotations, int *swaps)
 			    screen->height,
 			    screen->width_mm,
 			    screen->height_mm,
-			    pSetOfVisualSet);
+			    pGroupOfVisualGroup);
     
     switch (scrpriv->rotation)
     {
     case 0:
-	rotateKind = RR_ROTATE_0;
+	rotateKind = RR_Rotate_0;
 	break;
     case 90:
-	rotateKind = RR_ROTATE_90;
+	rotateKind = RR_Rotate_90;
 	break;
     case 180:
-	rotateKind = RR_ROTATE_180;
+	rotateKind = RR_Rotate_180;
 	break;
     case 270:
-	rotateKind = RR_ROTATE_270;
+	rotateKind = RR_Rotate_270;
 	break;
     }
 
-    RRSetCurrentConfig (pScreen, rotateKind, 0, pSize, pVisualSet);
+    RRSetCurrentConfig (pScreen, rotateKind, pSize, pVisualGroup);
     
     return TRUE;
 }
@@ -460,11 +459,10 @@ fbdevLayerRemove (WindowPtr pWin, pointer value)
     return WT_WALKCHILDREN;
 }
 
-fbdevRandRSetConfig (ScreenPtr	    pScreen,
-		     int	    rotateKind,
-		     int	    swap,
-		     RRSizeInfoPtr  pSize,
-		     RRVisualSetPtr pVisualSet)
+fbdevRandRSetConfig (ScreenPtr		pScreen,
+		     Rotation		rotateKind,
+		     RRScreenSizePtr	pSize,
+		     RRVisualGroupPtr	pVisualGroup)
 {
     KdScreenPriv(pScreen);
     KdScreenInfo	*screen = pScreenPriv->screen;
@@ -478,16 +476,16 @@ fbdevRandRSetConfig (ScreenPtr	    pScreen,
      */
     switch (rotateKind)
     {
-    case RR_ROTATE_0:
+    case RR_Rotate_0:
 	rotation = 0;
 	break;
-    case RR_ROTATE_90:
+    case RR_Rotate_90:
 	rotation = 90;
 	break;
-    case RR_ROTATE_180:
+    case RR_Rotate_180:
 	rotation = 180;
 	break;
-    case RR_ROTATE_270:
+    case RR_Rotate_270:
 	rotation = 270;
 	break;
     }

@@ -19,7 +19,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/vesa/vesa.c,v 1.10 2001/05/26 01:25:41 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/vesa/vesa.c,v 1.11 2001/05/29 04:54:12 keithp Exp $ */
 
 #include "vesa.h"
 #ifdef RANDR
@@ -852,21 +852,20 @@ vesaCreateColormap16 (ColormapPtr pmap)
 
 #ifdef RANDR
 Bool
-vesaRandRGetInfo (ScreenPtr pScreen, int *rotations, int *swaps)
+vesaRandRGetInfo (ScreenPtr pScreen, Rotation *rotations)
 {
     KdScreenPriv(pScreen);
-    VesaModePtr		modes, mode;
-    KdScreenInfo	*screen = pScreenPriv->screen;
-    VesaCardPrivPtr	priv = pScreenPriv->card->driver;
-    VesaScreenPrivPtr	pscr = pScreenPriv->screen->driver;
-    int			nmode;
-    int			n;
-    RRVisualSetPtr	pVisualSet;
-    RRSetOfVisualSetPtr	pSetOfVisualSet;
-    RRSizeInfoPtr	pSize;
+    VesaModePtr		    modes, mode;
+    KdScreenInfo	    *screen = pScreenPriv->screen;
+    VesaCardPrivPtr	    priv = pScreenPriv->card->driver;
+    VesaScreenPrivPtr	    pscr = pScreenPriv->screen->driver;
+    int			    nmode;
+    int			    n;
+    RRVisualGroupPtr	    pVisualGroup;
+    RRGroupOfVisualGroupPtr pGroupOfVisualGroup;
+    RRScreenSizePtr	    pSize;
     
-    *rotations = RR_ROTATE_0;
-    *swaps = 0;
+    *rotations = RR_Rotate_0;
     /*
      * Get mode information from BIOS -- every time in case
      * something changes, like an external monitor is plugged in
@@ -888,34 +887,34 @@ vesaRandRGetInfo (ScreenPtr pScreen, int *rotations, int *swaps)
     if (n == pScreen->numDepths)
 	return FALSE;
     
-    pVisualSet = RRCreateVisualSet (pScreen);
-    if (!pVisualSet)
+    pVisualGroup = RRCreateVisualGroup (pScreen);
+    if (!pVisualGroup)
 	return FALSE;
     
-    if (!RRAddDepthToVisualSet (pScreen,
-				pVisualSet,
+    if (!RRAddDepthToVisualGroup (pScreen,
+				pVisualGroup,
 				&pScreen->allowedDepths[n]))
     {
-	RRDestroyVisualSet (pScreen, pVisualSet);
+	RRDestroyVisualGroup (pScreen, pVisualGroup);
 	return FALSE;
     }
-    pVisualSet = RRRegisterVisualSet (pScreen, pVisualSet);
-    if (!pVisualSet)
+    pVisualGroup = RRRegisterVisualGroup (pScreen, pVisualGroup);
+    if (!pVisualGroup)
 	return FALSE;
     
-    pSetOfVisualSet = RRCreateSetOfVisualSet (pScreen);
+    pGroupOfVisualGroup = RRCreateGroupOfVisualGroup (pScreen);
 
-    if (!RRAddVisualSetToSetOfVisualSet (pScreen,
-					 pSetOfVisualSet,
-					 pVisualSet))
+    if (!RRAddVisualGroupToGroupOfVisualGroup (pScreen,
+					 pGroupOfVisualGroup,
+					 pVisualGroup))
     {
-	RRDestroySetOfVisualSet (pScreen, pSetOfVisualSet);
-	/* pVisualSet left until screen closed */
+	RRDestroyGroupOfVisualGroup (pScreen, pGroupOfVisualGroup);
+	/* pVisualGroup left until screen closed */
 	return FALSE;
     }
 
-    pSetOfVisualSet = RRRegisterSetOfVisualSet (pScreen, pSetOfVisualSet);
-    if (!pSetOfVisualSet)
+    pGroupOfVisualGroup = RRRegisterGroupOfVisualGroup (pScreen, pGroupOfVisualGroup);
+    if (!pGroupOfVisualGroup)
 	return FALSE;
 
     for (n = 0; n < nmode; n++)
@@ -942,12 +941,12 @@ vesaRandRGetInfo (ScreenPtr pScreen, int *rotations, int *swaps)
 					mode->YResolution,
 					pScreen->mmWidth,
 					pScreen->mmHeight,
-					pSetOfVisualSet);
+					pGroupOfVisualGroup);
 		if (mode->XResolution == pScreen->width &&
 		    mode->YResolution == pScreen->height)
 		{
-		    RRSetCurrentConfig (pScreen, RR_ROTATE_0, 0, pSize,
-					pVisualSet);
+		    RRSetCurrentConfig (pScreen, RR_Rotate_0, pSize,
+					pVisualGroup);
 		}
 	    }
 	}
@@ -955,11 +954,10 @@ vesaRandRGetInfo (ScreenPtr pScreen, int *rotations, int *swaps)
 }
 
 Bool
-vesaRandRSetConfig (ScreenPtr	    pScreen,
-		    int		    rotation,
-		    int		    swap,
-		    RRSizeInfoPtr   pSize,
-		    RRVisualSetPtr  pVisualSet)
+vesaRandRSetConfig (ScreenPtr		pScreen,
+		    Rotation		rotation,
+		    RRScreenSizePtr	pSize,
+		    RRVisualGroupPtr	pVisualGroup)
 {
     KdScreenPriv(pScreen);
     VesaModePtr		mode;
@@ -1007,16 +1005,16 @@ vesaRandRSetConfig (ScreenPtr	    pScreen,
 	case 32:
 	    switch (rotation)
 	    {
-	    case RR_ROTATE_0:
+	    case RR_Rotate_0:
 		pscr->rotate = 0;
 		break;
-	    case RR_ROTATE_90:
+	    case RR_Rotate_90:
 		pscr->rotate = 90;
 		break;
-	    case RR_ROTATE_180:
+	    case RR_Rotate_180:
 		pscr->rotate = 180;
 		break;
-	    case RR_ROTATE_270:
+	    case RR_Rotate_270:
 		pscr->rotate = 270;
 		break;
 	    }
