@@ -74,10 +74,9 @@ xglCreateMaskPicture (ScreenPtr     pScreen,
 
 	pPixmapPriv->target = xglPixmapTargetNo;
 
-	/* force negative stride
+	/* force negative stride */
 	if (pPixmapPriv->stride > 0)
 	    pPixmapPriv->stride = -pPixmapPriv->stride;
-	*/
     }
     
     pGC = GetScratchGC (pPixmap->drawable.depth, pScreen);

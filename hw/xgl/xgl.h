@@ -337,7 +337,7 @@ typedef struct _xglPixmap {
     int		      score;
     Bool	      acceleratedTile;
     pointer	      bits;
-    unsigned int      stride;
+    int		      stride;
     DamagePtr	      pDamage;
     BoxRec	      damageBox;
     BoxRec	      bitBox;
