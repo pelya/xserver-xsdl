@@ -69,8 +69,8 @@ from The Open Group.
 #define VFB_DEFAULT_WIDTH  1280
 #define VFB_DEFAULT_HEIGHT 1024
 #define VFB_DEFAULT_DEPTH  8
-#define VFB_DEFAULT_WHITEPIXEL 0
-#define VFB_DEFAULT_BLACKPIXEL 1
+#define VFB_DEFAULT_WHITEPIXEL 1
+#define VFB_DEFAULT_BLACKPIXEL 0
 #define VFB_DEFAULT_LINEBIAS 0
 #define XWD_WINDOW_NAME_LEN 60
 
@@ -871,6 +871,16 @@ vfbScreenInit(int index, ScreenPtr pScreen, int argc, char **argv)
     miSetPixmapDepths ();
 
     switch (pvfb->depth) {
+    case 8:
+	miSetVisualTypesAndMasks (8,
+				  ((1 << StaticGray) |
+				   (1 << GrayScale) |
+				   (1 << StaticColor) |
+				   (1 << PseudoColor) |
+				   (1 << TrueColor) |
+				   (1 << DirectColor)),
+				  8, PseudoColor, 0x07, 0x38, 0xc0);
+	break;
     case 15:
 	miSetVisualTypesAndMasks (15, (1 << TrueColor), 8, TrueColor,
 				  0x7c00, 0x03e0, 0x001f);
