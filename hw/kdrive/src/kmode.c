@@ -31,6 +31,16 @@
 const KdMonitorTiming  kdMonitorTimings[] = {
     /*	H	V	Hz	KHz */
 		/*  FP	    BP	    BLANK   POLARITY */
+
+    /* IPAQ modeline:
+     *
+     * Modeline "320x240"      5.7222 320 337 340 352   240 241 244 254"
+     */
+    {   320,	240,	64,	16256,
+	            17,	    12,	    32,     KdSyncNegative,
+	            1,      11,     14,     KdSyncNegative,
+    },
+    
     /* Other VESA modes */
     {	640,	350,	85,	31500,			    /* VESA */
 		    32,	    96,	    192,    KdSyncPositive, /* 26.413 */
