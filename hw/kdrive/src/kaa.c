@@ -224,6 +224,7 @@ kaaPixmapUseScreen (PixmapPtr pPixmap)
 	    pKaaPixmap->score >= KAA_PIXMAP_SCORE_MOVE_IN)
 	    kaaMoveInPixmap (pPixmap);
     }
+    KdOffscreenMarkUsed (pPixmap);
 }
 
 void

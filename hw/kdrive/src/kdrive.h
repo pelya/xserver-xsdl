@@ -123,6 +123,7 @@ struct _KdOffscreenArea {
     int			offset;
     int			save_offset;
     int			size;
+    int			score;
     pointer		privData;
     
     KdOffscreenSaveProc save;
@@ -890,6 +891,9 @@ KdOffscreenAlloc (ScreenPtr pScreen, int size, int align,
 
 KdOffscreenArea *
 KdOffscreenFree (ScreenPtr pScreen, KdOffscreenArea *area);
+
+void
+KdOffscreenMarkUsed (PixmapPtr pPixmap);
 
 void
 KdOffscreenSwapOut (ScreenPtr pScreen);

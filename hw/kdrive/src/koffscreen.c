@@ -26,6 +26,7 @@
 #include <config.h>
 #endif
 #include "kdrive.h"
+#include "kaa.h"
 
 #define DEBUG_OFFSCREEN 0
 #if DEBUG_OFFSCREEN
@@ -69,9 +70,9 @@ KdOffscreenAlloc (ScreenPtr pScreen, int size, int align,
 		  KdOffscreenSaveProc save,
 		  pointer privData)
 {
-    KdOffscreenArea *area, **prev;
+    KdOffscreenArea *area, *begin, *best;
     KdScreenPriv (pScreen);
-    int tmp, real_size = 0;
+    int tmp, real_size = 0, best_score;
 
     KdOffscreenValidate (pScreen);
     if (!align)
@@ -90,7 +91,7 @@ KdOffscreenAlloc (ScreenPtr pScreen, int size, int align,
 	return NULL;
     }
     
-    /* Go through the areas */
+    /* Try to find a free space that'll fit. */
     for (area = pScreenPriv->off_screen_areas; area; area = area->next)
     {
 	/* skip allocated areas */
@@ -117,38 +118,46 @@ KdOffscreenAlloc (ScreenPtr pScreen, int size, int align,
 	 */
 	
 	/* prev points at the first object to boot */
-	prev = (KdOffscreenArea **) &pScreenPriv->off_screen_areas;
-	while ((area = *prev))
+	best = NULL;
+	best_score = MAXINT;
+	for (begin = pScreenPriv->off_screen_areas; begin != NULL;
+	     begin = begin->next)
 	{
-	    int avail;
-	    KdOffscreenArea *scan, **nprev;
-	    
+	    int avail, score;
+	    KdOffscreenArea *scan;
+
+	    if (begin->state == KdOffscreenLocked)
+		continue;
+
 	    /* adjust size to match alignment requirement */
 	    real_size = size;
-	    tmp = area->offset % align;
+	    tmp = begin->offset % align;
 	    if (tmp)
 		real_size += (align - tmp);
 	    
 	    avail = 0;
-	    /* now see if we can make room here */
-	    for (nprev = prev; (scan = *nprev); nprev = &scan->next)
+	    score = 0;
+	    /* now see if we can make room here, and how "costly" it'll be. */
+	    for (scan = begin; scan != NULL; scan = scan->next)
 	    {
-		if (scan->state == KdOffscreenLocked)
+		if (scan->state == KdOffscreenLocked) {
+		    /* Can't make room here, start after this locked area. */
+		    begin = scan->next;
 		    break;
+		}
+		/* Score should only be non-zero for KdOffscreenRemovable */
+		score += scan->score;
 		avail += scan->size;
 		if (avail >= real_size)
 		    break;
 	    }
-	    /* space? */
-	    if (avail >= real_size)
-		break;
-    
-	    /* nope, try the next area */
-	    prev = nprev;
-	    /* skip to next unlocked area */
-	    while ((area = *prev) && area->state == KdOffscreenLocked)
-		prev = &area->next;
+	    /* Is it the best option we've found so far? */
+	    if (avail >= real_size && score < best_score) {
+		best = begin;
+		best_score = score;
+	    }
 	}
+	area = best;
 	if (!area)
 	{
 	    DBG_OFFSCREEN (("Alloc 0x%x -> NOSPACE\n", size));
@@ -156,6 +165,12 @@ KdOffscreenAlloc (ScreenPtr pScreen, int size, int align,
 	    KdOffscreenValidate (pScreen);
 	    return NULL;
 	}
+
+	/* adjust size to match alignment requirement */
+	real_size = size;
+	tmp = begin->offset % align;
+	if (tmp)
+	    real_size += (align - tmp);
 
 	/*
 	 * Kick out first area if in use
@@ -182,6 +197,7 @@ KdOffscreenAlloc (ScreenPtr pScreen, int size, int align,
 	new_area->size = area->size - real_size;
 	new_area->state = KdOffscreenAvail;
 	new_area->save = 0;
+	new_area->score = 0;
 	new_area->next = area->next;
 	area->next = new_area;
 	area->size = real_size;
@@ -195,6 +211,7 @@ KdOffscreenAlloc (ScreenPtr pScreen, int size, int align,
 	area->state = KdOffscreenRemovable;
     area->privData = privData;
     area->save = save;
+    area->score = 0;
 
     area->save_offset = area->offset;
     area->offset = (area->offset + align - 1) & ~(align - 1);
@@ -264,6 +281,7 @@ KdOffscreenFree (ScreenPtr pScreen, KdOffscreenArea *area)
     area->state = KdOffscreenAvail;
     area->save = 0;
     area->offset = area->save_offset;
+    area->score = 0;
 
     /*
      * Find previous area
@@ -290,6 +308,29 @@ KdOffscreenFree (ScreenPtr pScreen, KdOffscreenArea *area)
     return area;
 }
 
+void
+KdOffscreenMarkUsed (PixmapPtr pPixmap)
+{
+    KaaPixmapPriv (pPixmap);
+    KdScreenPriv (pPixmap->drawable.pScreen);
+    static int iter = 0;
+
+    if (!pKaaPixmap->area)
+	return;
+
+    /* The numbers here are arbitrary.  We may want to tune these. */
+    pKaaPixmap->area->score += 100;
+    if (++iter == 10) {
+	KdOffscreenArea *area;
+	for (area = pScreenPriv->off_screen_areas; area != NULL;
+	     area = area->next)
+	{
+	    if (area->state == KdOffscreenRemovable)
+		area->score = (area->score * 7) / 8;
+	}
+    }
+}
+
 Bool
 KdOffscreenInit (ScreenPtr pScreen)
 {
@@ -307,6 +348,7 @@ KdOffscreenInit (ScreenPtr pScreen)
     area->size = pScreenPriv->screen->memory_size - area->offset;
     area->save = 0;
     area->next = NULL;
+    area->score = 0;
     
     /* Add it to the free areas */
     pScreenPriv->off_screen_areas = area;
