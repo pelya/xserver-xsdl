@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/fbdev/fbdev.c,v 1.14 2001/05/29 04:54:11 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/fbdev/fbdev.c,v 1.15 2001/05/29 17:47:55 keithp Exp $ */
 
 #include "fbdev.h"
 
@@ -531,6 +531,8 @@ fbdevRandRSetConfig (ScreenPtr	    pScreen,
 	    LayerDestroy (pScreen, pNewLayer);
 	    scrpriv->rotation = oldrotation;
 	    scrpriv->shadow = oldshadow;
+	    if (wasEnabled)
+		KdEnableScreen (pScreen);
 	    return FALSE;
 	}
         WalkTree (pScreen, fbdevLayerRemove, (pointer) scrpriv->pLayer);
