@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/mi/miinitext.c,v 1.3 2004/04/26 11:07:03 gisburn Exp $ */
+/* $XdotOrg: xc/programs/Xserver/mi/miinitext.c,v 1.4 2004/06/30 20:06:56 kem Exp $ */
 /* $XFree86: xc/programs/Xserver/mi/miinitext.c,v 3.67 2003/01/12 02:44:27 dawes Exp $ */
 /***********************************************************
 
@@ -83,6 +83,8 @@ SOFTWARE.
 #undef DPSEXT
 #undef FONTCACHE
 #undef RENDER /* not yet */
+#undef DAMAGE
+#undef XFIXES
 #endif /* PRINT_ONLY_SERVER */
 
 #ifdef PANORAMIX
@@ -268,6 +270,12 @@ extern void ResExtensionInit(INITARGS);
 #ifdef DMXEXT
 extern void DMXExtensionInit(INITARGS);
 #endif
+#ifdef XFIXES
+extern void XFixesExtensionInit(INITARGS);
+#endif
+#ifdef DAMAGE
+extern void DamageExtensionInit(INITARGS);
+#endif
 
 #ifndef XFree86LOADER
 
@@ -411,6 +419,12 @@ InitExtensions(argc, argv)
 #ifdef DMXEXT
     DMXExtensionInit();
 #endif
+#ifdef XFIXES
+    XFixesExtensionInit();
+#endif
+#ifdef DAMAGE
+    DamageExtensionInit();
+#endif
 }
 
 void
@@ -533,6 +547,12 @@ static ExtensionModule staticExtensions[] = {
 #ifdef RANDR
     { RRExtensionInit, "RANDR", NULL, NULL, NULL },
 #endif
+#ifdef DAMAGE
+    { DamageExtensionInit, "DAMAGE", NULL, NULL },
+#endif
+#ifdef XFIXES
+    { XFixesExtensionInit, "XFIXES", NULL, NULL },
+#endif 
     { NULL, NULL, NULL, NULL, NULL }
 };
     
