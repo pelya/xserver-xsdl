@@ -204,19 +204,6 @@ winSetEngine (ScreenPtr pScreen)
       winSetEngineFunctionsShadowGDI (pScreen);
       return TRUE;
     }
-#ifdef WIN_PSEUDOCOLOR8BITPLANE
-  /* Edited by Sebastian Haby 
-  ShadowGDI is the only engine that supports PseudoColor "emulation" */
-  if (pScreenInfo->fEmulatePseudo)
-    {
-      winErrorFVerb (2, "winSetEngine - EMULATEPSEUDO => ShadowGDI\n");
-      pScreenInfo->dwEngine = WIN_SERVER_SHADOW_GDI;
-
-      /* Set engine function pointers */
-      winSetEngineFunctionsShadowGDI (pScreen);
-      return TRUE;
-    }
-#endif
 
   /* If the user's choice is supported, we'll use that */
   if (g_dwEnginesSupported & pScreenInfo->dwEnginePreferred)
