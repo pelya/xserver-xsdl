@@ -278,15 +278,15 @@ typedef struct _KdMouseMatrix {
 } KdMouseMatrix;
 
 typedef struct _KaaScreenInfo {
-    Bool	(*PrepareSolid) (DrawablePtr	pDrawable,
+    Bool	(*PrepareSolid) (PixmapPtr	pPixmap,
 				 int		alu,
 				 Pixel		planemask,
 				 Pixel		fg);
     void	(*Solid) (int x1, int y1, int x2, int y2);
     void	(*DoneSolid) (void);
 
-    Bool	(*PrepareCopy) (DrawablePtr	pSrcDrawable,
-				DrawablePtr	pDstDrawable,
+    Bool	(*PrepareCopy) (PixmapPtr	pSrcPixmap,
+				PixmapPtr	pDstPixmap,
 				Bool		upsidedown,
 				Bool		reverse,
 				int		alu,

@@ -92,33 +92,22 @@ mgaSetup (ScreenPtr pScreen, int wait)
 }
 
 Bool
-mgaPrepareSolid (DrawablePtr pDrawable, int alu, Pixel pm, Pixel fg)
+mgaPrepareSolid (PixmapPtr pPixmap, int alu, Pixel pm, Pixel fg)
 {
-    KdScreenPriv(pDrawable->pScreen);
+    KdScreenPriv(pPixmap->drawable.pScreen);
     mgaScreenInfo (pScreenPriv);
     int cmd;
+    int dst_org;
 
     cmd = MGA_OPCOD_TRAP | MGA_DWGCTL_SOLID | MGA_DWGCTL_ARZERO | MGA_DWGCTL_SGNZERO |
 	MGA_DWGCTL_SHIFTZERO | mgaRop[alu];
 
-    mgaSetup (pDrawable->pScreen, 5);
+    dst_org = (int)pPixmap->devPrivate.ptr - (int)mgas->screen;
+    
+    mgaSetup (pPixmap->drawable.pScreen, 5);
 
-    if (pDrawable->type == DRAWABLE_WINDOW)
-    {
-	MGA_OUT32 (mmio, MGA_REG_DSTORG, 0);
-	MGA_OUT32 (mmio, MGA_REG_PITCH, pitch);
-    }
-    else
-    {
-	PixmapPtr pPixmap = (PixmapPtr)pDrawable;
-	int dst_org;
-
-	dst_org = (int)pPixmap->devPrivate.ptr - (int)mgas->screen;
-
-	MGA_OUT32 (mmio, MGA_REG_DSTORG, dst_org);
-	MGA_OUT32 (mmio, MGA_REG_PITCH, pPixmap->devKind / (pPixmap->drawable.bitsPerPixel >> 3));
-    }
-
+    MGA_OUT32 (mmio, MGA_REG_DSTORG, dst_org);
+    MGA_OUT32 (mmio, MGA_REG_PITCH, pPixmap->devKind / (pPixmap->drawable.bitsPerPixel >> 3));
     MGA_OUT32 (mmio, MGA_REG_DWGCTL, cmd);
     MGA_OUT32 (mmio, MGA_REG_FCOL, fg);
     MGA_OUT32 (mmio, MGA_REG_PLNWT, pm);
@@ -144,8 +133,12 @@ mgaDoneSolid (void)
 #define BLIT_UP		4
 
 Bool
-mgaPrepareCopy (DrawablePtr pSrcDrawable, DrawablePtr pDstDrawable, int	dx, int dy, int alu, Pixel pm)
+mgaPrepareCopy (PixmapPtr pSrcPixmap, PixmapPtr pDstPixmap,
+		int dx, int dy, int alu, Pixel pm)
 {
+    KdScreenPriv(pSrcPixmap->drawable.pScreen);
+    mgaScreenInfo (pScreenPriv);
+
     int cmd;
 
     cmd = MGA_OPCOD_BITBLT | MGA_DWGCTL_BFCOL | MGA_DWGCTL_SHIFTZERO | mgaRop[alu];
@@ -157,39 +150,13 @@ mgaPrepareCopy (DrawablePtr pSrcDrawable, DrawablePtr pDstDrawable, int	dx, int 
     if (dx < 0)
 	dir |= BLIT_LEFT;
 
-    mgaSetup (pDstDrawable->pScreen, 6);
+    mgaSetup (pSrcPixmap->drawable.pScreen, 7);
 
-    if (pSrcDrawable->type == DRAWABLE_WINDOW)
-    {
-	MGA_OUT32 (mmio, MGA_REG_SRCORG, 0);
-
-	src_pitch = pitch;
-    }
-    else
-    {
-	KdScreenPriv(pSrcDrawable->pScreen);
-	mgaScreenInfo (pScreenPriv);
-	PixmapPtr pPixmap = (PixmapPtr)pSrcDrawable;
-
-	MGA_OUT32 (mmio, MGA_REG_SRCORG, ((int)pPixmap->devPrivate.ptr - (int)mgas->screen));
-	src_pitch = pPixmap->devKind / (pPixmap->drawable.bitsPerPixel >> 3);
-    }
-    
-    if (pDstDrawable->type == DRAWABLE_WINDOW)
-    {
-	MGA_OUT32 (mmio, MGA_REG_DSTORG, 0);
-	MGA_OUT32 (mmio, MGA_REG_PITCH, pitch);
-    }
-    else
-    {
-	KdScreenPriv(pDstDrawable->pScreen);
-	mgaScreenInfo (pScreenPriv);
-	PixmapPtr pPixmap = (PixmapPtr)pDstDrawable;
-
-	MGA_OUT32 (mmio, MGA_REG_DSTORG, ((int)pPixmap->devPrivate.ptr - (int)mgas->screen));
-	MGA_OUT32 (mmio, MGA_REG_PITCH, pPixmap->devKind / (pPixmap->drawable.bitsPerPixel >> 3));
-    }
-
+    MGA_OUT32 (mmio, MGA_REG_SRCORG, ((int)pSrcPixmap->devPrivate.ptr - (int)mgas->screen));
+    MGA_OUT32 (mmio, MGA_REG_DSTORG, ((int)pDstPixmap->devPrivate.ptr - (int)mgas->screen));
+    MGA_OUT32 (mmio, MGA_REG_PITCH, pDstPixmap->devKind / (pDstPixmap->drawable.bitsPerPixel >> 3));
+    src_pitch = pSrcPixmap->devKind / (pSrcPixmap->drawable.bitsPerPixel >> 3);
+	
     MGA_OUT32 (mmio, MGA_REG_DWGCTL, cmd);
     MGA_OUT32 (mmio, MGA_REG_SGN, dir);
     MGA_OUT32 (mmio, MGA_REG_PLNWT, pm);

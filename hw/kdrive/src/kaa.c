@@ -64,6 +64,9 @@ typedef struct {
 #define KaaPixmapPriv(p) KaaPixmapPrivPtr pKaaPixmap = KaaGetPixmapPriv (p)
 
 #define KaaPixmapPitch(w) (((w) + (pKaaScr->info->offscreenPitch - 1)) & ~(pKaaScr->info->offscreenPitch - 1))
+#define KaaDrawableIsOffscreenPixmap(d) (d->type == DRAWABLE_PIXMAP && \
+                                        KaaGetPixmapPriv ((PixmapPtr)(d))->offscreenArea != NULL && \
+				        !KaaGetPixmapPriv ((PixmapPtr)(d))->offscreenArea->swappedOut)
 
 #define KAA_SCREEN_PROLOGUE(pScreen, field) ((pScreen)->field = \
    ((KaaScreenPrivPtr) (pScreen)->devPrivates[kaaScreenPrivateIndex].ptr)->field)
@@ -107,7 +110,7 @@ kaaMoveInPixmap (KdOffscreenArea *area)
     PixmapPtr pPixmap = area->privData;
     ScreenPtr pScreen = pPixmap->drawable.pScreen;
     KaaScreenPriv (pScreen);
-    PixmapPtr pScreenPixmap = (*pScreen->GetScreenPixmap) (pScreen);
+    PixmapPtr pScreenPixmap =  (*pScreen->GetScreenPixmap) (pScreen);
     int dst_pitch, src_pitch;
     unsigned char *dst, *src;
     int i;
@@ -249,6 +252,28 @@ kaaCreatePixmap(ScreenPtr pScreen, int w, int h, int depth)
     return pPixmap;
 }
 
+PixmapPtr
+kaaGetDrawingPixmap (DrawablePtr pDrawable, int *x, int *y)
+{
+    if (pDrawable->type == DRAWABLE_WINDOW) {
+	if (x)
+	    *x = pDrawable->x;
+	if (y)
+	    *y = pDrawable->y;
+
+	return (*pDrawable->pScreen->GetScreenPixmap) (pDrawable->pScreen);
+    }
+    else if (KaaDrawableIsOffscreenPixmap (pDrawable))
+    {
+	if (x)
+	    *x = 0;
+	if (y)
+	    *y = 0;
+	return ((PixmapPtr)pDrawable);
+    }
+    else
+	return NULL;
+}
 
 void
 kaaFillSpans(DrawablePtr pDrawable, GCPtr pGC, int n, 
@@ -258,15 +283,17 @@ kaaFillSpans(DrawablePtr pDrawable, GCPtr pGC, int n,
     KdScreenPriv (pScreen);
     KaaScreenPriv (pScreen);
     RegionPtr	    pClip = fbGetCompositeClip(pGC);
+    PixmapPtr	    pPixmap;    
     BoxPtr	    pextent, pbox;
     int		    nbox;
     int		    extentX1, extentX2, extentY1, extentY2;
     int		    fullX1, fullX2, fullY1;
     int		    partX1, partX2;
-    
+
     if (!pScreenPriv->enabled ||
 	pGC->fillStyle != FillSolid ||
-	!(*pKaaScr->info->PrepareSolid) (pDrawable,
+	!(pPixmap = kaaGetDrawingPixmap (pDrawable, NULL, NULL)) ||
+	!(*pKaaScr->info->PrepareSolid) (pPixmap,
 					 pGC->alu,
 					 pGC->planemask,
 					 pGC->fgPixel))
@@ -344,6 +371,7 @@ kaaCopyNtoN (DrawablePtr    pSrcDrawable,
 {
     KdScreenPriv (pDstDrawable->pScreen);
     KaaScreenPriv (pDstDrawable->pScreen);
+    PixmapPtr pSrcPixmap, pDstPixmap;
     int	    srcX, srcY, dstX, dstY;
     int	    w, h;
     CARD32  flags;
@@ -351,9 +379,10 @@ kaaCopyNtoN (DrawablePtr    pSrcDrawable,
     CARD8   alu;
 
     if (pScreenPriv->enabled &&
-	pSrcDrawable->type == DRAWABLE_WINDOW &&
-	(*pKaaScr->info->PrepareCopy) (pSrcDrawable,
-				       pDstDrawable,
+	(pSrcPixmap = kaaGetDrawingPixmap (pSrcDrawable, NULL, NULL)) &&
+	(pDstPixmap = kaaGetDrawingPixmap (pDstDrawable, NULL, NULL)) && 
+	(*pKaaScr->info->PrepareCopy) (pSrcPixmap,
+				       pDstPixmap,
 				       dx,
 				       dy,
 				       pGC ? pGC->alu : GXcopy,
@@ -399,6 +428,7 @@ kaaPolyFillRect(DrawablePtr pDrawable,
     KdScreenPriv (pDrawable->pScreen);
     KaaScreenPriv (pDrawable->pScreen);
     RegionPtr	    pClip = fbGetCompositeClip(pGC);
+    PixmapPtr	    pPixmap;
     register BoxPtr pbox;
     BoxPtr	    pextent;
     int		    extentX1, extentX2, extentY1, extentY2;
@@ -406,10 +436,11 @@ kaaPolyFillRect(DrawablePtr pDrawable,
     int		    partX1, partX2, partY1, partY2;
     int		    xorg, yorg;
     int		    n;
-
+    
     if (!pScreenPriv->enabled ||
 	pGC->fillStyle != FillSolid ||
-	!(*pKaaScr->info->PrepareSolid) (pDrawable,
+	!(pPixmap = kaaGetDrawingPixmap (pDrawable, &xorg, &yorg)) || 
+	!(*pKaaScr->info->PrepareSolid) (pPixmap,
 					 pGC->alu,
 					 pGC->planemask,
 					 pGC->fgPixel))
@@ -417,9 +448,6 @@ kaaPolyFillRect(DrawablePtr pDrawable,
 	KdCheckPolyFillRect (pDrawable, pGC, nrect, prect);
 	return;
     }
-    
-    xorg = pDrawable->x;
-    yorg = pDrawable->y;
     
     pextent = REGION_EXTENTS(pGC->pScreen, pClip);
     extentX1 = pextent->x1;
@@ -499,13 +527,15 @@ kaaSolidBoxClipped (DrawablePtr	pDrawable,
 {
     KdScreenPriv (pDrawable->pScreen);
     KaaScreenPriv (pDrawable->pScreen);
+    PixmapPtr   pPixmap;        
     BoxPtr	pbox;
     int		nbox;
     int		partX1, partX2, partY1, partY2;
     CARD32	cmd;
 
     if (!pScreenPriv->enabled ||
-	!(*pKaaScr->info->PrepareSolid) (pDrawable, GXcopy, pm, fg))
+	!(pPixmap = kaaGetDrawingPixmap (pDrawable, NULL, NULL)) ||
+	!(*pKaaScr->info->PrepareSolid) (pPixmap, GXcopy, pm, fg))
     {
 	KdCheckSync (pDrawable->pScreen);
 	fg = fbReplicatePixel (fg, pDrawable->bitsPerPixel);
@@ -711,7 +741,8 @@ kaaValidateGC (GCPtr pGC, Mask changes, DrawablePtr pDrawable)
     
     fbValidateGC (pGC, changes, pDrawable);
 
-    if (pDrawable->type == DRAWABLE_WINDOW)
+    if (pDrawable->type == DRAWABLE_WINDOW ||
+	KaaDrawableIsOffscreenPixmap (pDrawable))
 	pGC->ops = (GCOps *) &kaaOps;
     else
 	pGC->ops = (GCOps *) &kdAsyncPixmapGCOps;
@@ -772,9 +803,11 @@ kaaFillRegionSolid (DrawablePtr	pDrawable,
 {
     KdScreenPriv(pDrawable->pScreen);
     KaaScreenPriv(pDrawable->pScreen);
+    PixmapPtr pPixmap;
 
     if (pScreenPriv->enabled &&
-	(*pKaaScr->info->PrepareSolid) (pDrawable, GXcopy, FB_ALLONES, pixel))
+	(pPixmap = kaaGetDrawingPixmap (pDrawable, NULL, NULL)) &&
+	(*pKaaScr->info->PrepareSolid) (pPixmap, GXcopy, FB_ALLONES, pixel))
     {
 	int	nbox = REGION_NUM_RECTS (pRegion);
 	BoxPtr	pBox = REGION_RECTS (pRegion);
