@@ -41,7 +41,6 @@ extern CARD32 radeon_cp_microcode[][2];
 extern CARD32 r200_cp_microcode[][2];
 extern CARD32 r300_cp_microcode[][2];
 
-#if DEBUG_FIFO
 static void
 ATIDebugFifo(ATIScreenInfo *atis)
 {
@@ -68,7 +67,6 @@ ATIDebugFifo(ATIScreenInfo *atis)
 		    MMIO_IN32(mmio, R128_REG_PC_NGUI_CTLSTAT));
 	}
 }
-#endif
 
 static void
 ATIUploadMicrocode(ATIScreenInfo *atis)
@@ -320,9 +318,15 @@ ATIWaitIdle(ATIScreenInfo *atis)
 		int ret;
 		int cmd = (atic->is_radeon ? DRM_RADEON_CP_IDLE :
 		    DRM_R128_CCE_IDLE);
-		do {
+		for (tries = 100; tries != 0; tries--) {
 			ret = drmCommandNone(atic->drmFd, cmd);
-		} while (ret == -EBUSY);
+			if (ret != -EBUSY)
+				break;
+		}
+		if (tries == 0) {
+			ATIDebugFifo(atis);
+			FatalError("Timed out idling CCE (card hung)\n");
+		}
 		if (ret != 0)
 			ErrorF("Failed to idle DMA, returned %d\n", ret);
 		return;

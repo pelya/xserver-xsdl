@@ -1048,7 +1048,7 @@ ATIDRIDMAStart(ScreenPtr pScreen)
 	if (ret == 0)
 		atis->dma_started = TRUE;
 	else
-		ErrorF("%s: DMA start returned %d\n", __FUNCTION__, ret);
+		FatalError("%s: DMA start returned %d\n", __FUNCTION__, ret);
 }
 
 /* Attempts to idle the DMA engine and stops it.  Note that the ioctl is the
@@ -1105,7 +1105,7 @@ ATIDRIGetBuffer(ATIScreenInfo *atis)
 	drmBufPtr buf = NULL;
 	int indx = 0;
 	int size = 0;
-	int ret;
+	int ret, tries;
 
 	dma.context = atis->serverContext;
 	dma.send_count = 0;
@@ -1113,7 +1113,7 @@ ATIDRIGetBuffer(ATIScreenInfo *atis)
 	dma.send_sizes = NULL;
 	dma.flags = 0;
 	dma.request_count = 1;
-	if (atis->atic->is_radeon)
+	if (atic->is_radeon)
 		dma.request_size = RADEON_BUFFER_SIZE;
 	else
 		dma.request_size = R128_BUFFER_SIZE;
@@ -1121,9 +1121,15 @@ ATIDRIGetBuffer(ATIScreenInfo *atis)
 	dma.request_sizes = &size;
 	dma.granted_count = 0;
 
-	do {
+	for (tries = 100; tries != 0; tries--) {
 		ret = drmDMA(atic->drmFd, &dma);
-	} while (ret != 0);
+		if (ret != -EBUSY)
+			break;
+	}
+	if (tries == 0)
+		FatalError("Timeout fetching DMA buffer (card hung)\n");
+	if (ret != 0)
+		FatalError("Error fetching DMA buffer: %d\n", ret);
 
 	buf = &atis->buffers->list[indx];
 	buf->used = 0;

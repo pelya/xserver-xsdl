@@ -65,8 +65,8 @@ do {									\
 } while (0)
 #define END_DMA() do {							\
 	if (__count != __total)						\
-		ErrorF("count != total (%d vs %d) at %s:%d\n", __count, \
-		    __total, __FILE__, __LINE__);			\
+		FatalError("count != total (%d vs %d) at %s:%d\n",	 \
+		     __count, __total, __FILE__, __LINE__);		\
 	atis->indirectBuffer->used += __count * 4;			\
 } while (0)
 
