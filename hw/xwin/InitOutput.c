@@ -43,6 +43,13 @@ from The Open Group.
 #endif
 #ifdef RELOCATE_PROJECTROOT
 #include <shlobj.h>
+typedef HRESULT (*SHGETFOLDERPATHPROC)(
+    HWND hwndOwner,
+    int nFolder,
+    HANDLE hToken,
+    DWORD dwFlags,
+    LPTSTR pszPath
+);
 #endif
 
 
@@ -627,11 +634,34 @@ winFixupPaths (void)
     }
     if (getenv("HOME") == NULL)
     {
+        HMODULE shfolder;
+        SHGETFOLDERPATHPROC shgetfolderpath = NULL;
         char buffer[MAX_PATH + 5];
         strncpy(buffer, "HOME=", 5);
-        if(SHGetFolderPath(NULL, CSIDL_APPDATA|CSIDL_FLAG_CREATE, NULL, 0, 
-                        buffer + 5) == 0) 
+
+        /* Try to load SHGetFolderPath from shfolder.dll and shell32.dll */
+        
+        shfolder = LoadLibrary("shfolder.dll");
+        /* fallback to shell32.dll */
+        if (shfolder == NULL)
+            shfolder = LoadLibrary("shell32.dll");
+
+        /* resolve SHGetFolderPath */
+        if (shfolder != NULL)
+            shgetfolderpath = (SHGETFOLDERPATHPROC)GetProcAddress(shfolder, "SHGetFolderPathA");
+
+        /* query appdata directory */
+        if (shgetfolderpath &&
+                shgetfolderpath(NULL, CSIDL_APPDATA|CSIDL_FLAG_CREATE, NULL, 0, 
+                    buffer + 5) == 0)
+        { 
             putenv(buffer);
+        } else
+        {
+            winMsg (X_ERROR, "Can not determine HOME directory\n");
+        } 
+        if (shfolder != NULL)
+            FreeLibrary(shfolder);
     }
     if (!g_fLogFileChanged) {
         static char buffer[MAX_PATH];
