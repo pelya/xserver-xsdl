@@ -57,11 +57,11 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 **************************************************************************/
-/* $XFree86: xc/programs/Xserver/hw/xfree86/drivers/i810/i810_reg.h,v 1.4 2000/09/26 15:57:12 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/i810/i810_reg.h,v 1.1 2001/03/30 02:18:41 keithp Exp $ */
 
 /*
  * Authors:
- *   Keith Whitwell <keithw@precisioninsight.com>
+ *   Keith Whitwell <keith@tungstengraphics.com>
  *   Pontus Lidman <pontus.lidman@nokia.com>
  *
  *   based on the i740 driver by
