@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/bus/Pci.c,v 1.80 2003/08/29 20:49:03 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/bus/Pci.c,v 1.82 2004/01/16 15:39:04 tsi Exp $ */
 /*
  * Pci.c - New server PCI access functions
  *
@@ -453,9 +453,9 @@ pciHostAddrToBusAddr(PCITAG tag, PciAddrType type, ADDRESS addr)
  * to the base address register to get an accurate result.  Otherwise it
  * makes a conservative guess based on the alignment of the already allocated
  * address.  If the result is accurate (ie, not an over-estimate), this is
- * indicated by setting *min to TRUE (when min is non-NULL).  This currently
- * only happens when the destructive flag is set, but in future it may be
- * possible to get the information from the OS when supported.
+ * indicated by setting *min to TRUE (when min is non-NULL).  This happens
+ * when either the destructive flag is set, the information is supplied by
+ * the OS if the OS supports this.
  */
 
 int
@@ -575,7 +575,7 @@ Bool
 pciMfDev(int busnum, int devnum)
 {
     PCITAG tag0, tag1;
-    unsigned long id0, id1, val;
+    CARD32 id0, id1, val;
 
     /* Detect a multi-function device that complies to the PCI 2.0 spec */
 
@@ -782,7 +782,7 @@ pciGenFindNext(void)
 		    (sub_class != PCI_SUBCLASS_BRIDGE_CARDBUS))
 		    xf86Msg(X_WARNING,
 			    "pciGenFindNext:  primary bus mismatch on PCI"
-			    " bridge 0x%08x (0x%02x, 0x%02x)\n",
+			    " bridge 0x%08lx (0x%02x, 0x%02x)\n",
 			    pciDeviceTag, pciBusNum, pri_bus);
 		pri_bus = pciBusNum;
 	    }
@@ -1016,7 +1016,9 @@ xf86scanpci(int flags)
 	    if (!(devp->pci_bridge_control & PCI_PCI_BRIDGE_MASTER_ABORT_EN))
 		break;
 	    pciWriteByte(tag, PCI_PCI_BRIDGE_CONTROL_REG,
-		devp->pci_bridge_control & ~PCI_PCI_BRIDGE_MASTER_ABORT_EN);
+		devp->pci_bridge_control &
+		     ~(PCI_PCI_BRIDGE_MASTER_ABORT_EN |
+		       PCI_PCI_BRIDGE_SECONDARY_RESET));
 	    break;
 
 	default:
@@ -1079,7 +1081,7 @@ xf86scanpci(int flags)
 	    if (!(devp->pci_bridge_control & PCI_PCI_BRIDGE_MASTER_ABORT_EN))
 		break;
 	    pciWriteByte(devp->tag, PCI_PCI_BRIDGE_CONTROL_REG,
-		devp->pci_bridge_control);
+		devp->pci_bridge_control & ~PCI_PCI_BRIDGE_SECONDARY_RESET);
 	    break;
 
 	default:
@@ -1137,7 +1139,7 @@ xf86MapPciMem(int ScreenNum, int Flags, PCITAG Tag, ADDRESS Base,
 	base = xf86MapDomainMemory(ScreenNum, Flags, Tag, hostbase, Size);
 	if (!base)	{
 		FatalError("xf86MapPciMem: Could not mmap PCI memory "
-			   "[base=0x%x,hostbase=0x%x,size=%x] (%s)\n",
+			   "[base=0x%lx,hostbase=0x%lx,size=%lx] (%s)\n",
 			   Base, hostbase, Size, strerror(errno));
 	}
 	/*
@@ -1187,8 +1189,8 @@ handlePciBIOS(PCITAG Tag, int basereg,
 	    savebase = pciReadLong(Tag, PCI_MAP_REG_START+(b_reg<<2));
 	    xf86MsgVerb(X_INFO,5,"xf86ReadPciBios: modifying membase[%i]"
 			" for device %i:%i:%i\n", basereg,
-			PCI_BUS_FROM_TAG(Tag), PCI_DEV_FROM_TAG(Tag),
-			PCI_FUNC_FROM_TAG(Tag));
+			(int)PCI_BUS_FROM_TAG(Tag), (int)PCI_DEV_FROM_TAG(Tag),
+			(int)PCI_FUNC_FROM_TAG(Tag));
 	    pciWriteLong(Tag, PCI_MAP_REG_START + (b_reg << 2),
 			 (CARD32)~0);
 	}
@@ -1201,7 +1203,8 @@ handlePciBIOS(PCITAG Tag, int basereg,
 	if ((xf86ReadDomainMemory(Tag, hostbase, sizeof(tmp), tmp) !=
 	     sizeof(tmp)) ||
 	    (tmp[0] != 0x55) || (tmp[1] != 0xaa) || !tmp[2] ) {
-	  /* Restore the base register if it was changed. */
+	  /* Restore the base registers if they were changed. */
+	    pciWriteLong(Tag, PCI_MAP_ROM_REG, romsave);
 	    if (savebase) pciWriteLong(Tag, PCI_MAP_REG_START + (b_reg << 2),
 				       (CARD32) savebase);
 
@@ -1297,7 +1300,7 @@ readPciBios(PCITAG Tag, CARD8* tmp, ADDRESS hostbase, pointer args)
     }
     if ((rd->Offset) > (image_length)) {
       xf86Msg(X_WARNING,"xf86ReadPciBios: requesting data past "
-	      "end of BIOS %i > %i\n",(rd->Offset) , (image_length));
+	      "end of BIOS %li > %i\n",(rd->Offset) , (image_length));
     } else {
       if ((rd->Offset + rd->Len) > (image_length)) {
 	rd->Len = (image_length) - rd->Offset;
