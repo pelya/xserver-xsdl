@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/fbdev/fbdev.c,v 1.24 2001/07/11 16:42:17 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/fbdev/fbdev.c,v 1.25 2001/07/16 19:48:00 keithp Exp $ */
 
 #include "fbdev.h"
 
@@ -676,7 +676,6 @@ fbdevCreateColormap (ColormapPtr pmap)
 	    pmap->red[i].co.local.red = pdefs[i].red;
 	    pmap->red[i].co.local.green = pdefs[i].green;
 	    pmap->red[i].co.local.blue = pdefs[i].blue;
-	    break;
 	}
 	DEALLOCATE_LOCAL (pdefs);
 	return TRUE;
