@@ -1,3 +1,4 @@
+/* $XdotOrg$ */
 /* $XFree86: xc/programs/Xserver/hw/xfree86/loader/elfloader.c,v 1.62 2003/11/06 18:38:13 tsi Exp $ */
 
 /*
@@ -2695,6 +2696,8 @@ ELFCollectSections(ELFModulePtr elffile, int pass, int *totalsize,
 	    if (!strcmp(name, ".shstrtab"))	/* already loaded */
 		continue;
 	    if (!strcmp(name, ".stabstr"))	/* ignore debug info */
+		continue;
+	    if (!strcmp(name, ".stab.indexstr")) /* ignore more debug info */
 		continue;
 	case SHT_SYMTAB:
 	    if (pass)
