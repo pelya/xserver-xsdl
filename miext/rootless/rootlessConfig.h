@@ -47,7 +47,7 @@
 
 #endif /* __DARWIN__ */
 
-#ifdef __CYGWIN__
+#if defined(__CYGWIN__) || defined(WIN32)
 
 # define ROOTLESS_ACCEL YES
 # define ROOTLESS_GLOBAL_COORDS TRUE

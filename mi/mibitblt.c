@@ -61,6 +61,21 @@ SOFTWARE.
 #include "Xmd.h"
 #include "servermd.h"
 
+#ifdef WIN32
+static 
+int ffs(int word) {
+     int i;
+     if (!word)
+         return 0;
+     i = 0;
+     for (;;)
+     {
+         if (((1 << i++) & word) != 0)
+             return i;
+     }
+}
+#endif
+
 /* MICOPYAREA -- public entry for the CopyArea request 
  * For each rectangle in the source region
  *     get the pixels with GetSpans
