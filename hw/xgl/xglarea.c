@@ -40,7 +40,8 @@ xglAreaMoveOut (xglAreaPtr pArea)
 {
     (*pArea->pRoot->funcs->MoveOut) (pArea, pArea->closure);
 
-    pArea->state = xglAreaAvailable;
+    pArea->closure = (pointer) 0;
+    pArea->state   = xglAreaAvailable;
 }
 
 static xglAreaPtr
@@ -58,14 +59,14 @@ xglAreaCreate (xglRootAreaPtr pRoot,
     if (!pArea)
 	return NULL;
 
-    pArea->level      = level;
-    pArea->x	      = x;
-    pArea->y	      = y;
-    pArea->width      = width;
-    pArea->height     = height;
-    pArea->pRoot      = pRoot;
-    pArea->closure    = (pointer) 0;
-    pArea->state      = xglAreaAvailable;
+    pArea->level   = level;
+    pArea->x	   = x;
+    pArea->y	   = y;
+    pArea->width   = width;
+    pArea->height  = height;
+    pArea->pRoot   = pRoot;
+    pArea->closure = (pointer) 0;
+    pArea->state   = xglAreaAvailable;
     
     while (n--)
 	pArea->pArea[n] = NULL;
@@ -108,34 +109,37 @@ xglAreaDestroy (xglAreaPtr pArea)
 static xglAreaPtr
 xglAreaGetTopScoredSubArea (xglAreaPtr pArea)
 {
+    if (!pArea)
+	return NULL;
+		
     switch (pArea->state) {
     case xglAreaOccupied:
 	return pArea;
     case xglAreaAvailable:
 	break;
-    case xglAreaDivided:
-    {
+    case xglAreaDivided: {
 	xglAreaPtr tmp, top = NULL;
 	int	   i;
 	
 	for (i = 0; i < 4; i++)
 	{
-	    if (pArea->pArea[i])
+	    tmp = xglAreaGetTopScoredSubArea (pArea->pArea[i]);
+	    if (tmp && top)
 	    {
-		tmp = xglAreaGetTopScoredSubArea (pArea->pArea[i]);
-		if (!tmp)
-		    break;
-		    
-		if ((!top) ||
-		    (*pArea->pRoot->funcs->CompareScore) (tmp,
+		if ((*pArea->pRoot->funcs->CompareScore) (tmp,
 							  tmp->closure,
 							  top->closure) > 0)
 		    top = tmp;
+	    }
+	    else if (tmp)
+	    {
+		top = tmp;
 	    }
 	}
 	return top;
     }
     }
+    
     return NULL;
 }
 
@@ -254,7 +258,8 @@ xglAreaFind (xglAreaPtr pArea,
 	    pArea->pArea[i] = NULL;
 	}
 	
-	pArea->state = xglAreaAvailable;
+	pArea->closure = (pointer) 0;
+	pArea->state   = xglAreaAvailable;
 	if (xglFindArea (pArea, width, height, TRUE, closure))
 	    return TRUE;
 	    
