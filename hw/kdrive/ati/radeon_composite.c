@@ -133,6 +133,7 @@ RadeonTextureSetup(PicturePtr pPict, PixmapPtr pPix, int unit)
 		txformat |= (ATILog2(h) - 1) << RADEON_TXFORMAT_HEIGHT_SHIFT;
 	} else 
 		txformat |= RADEON_TXFORMAT_NON_POWER2;
+	txformat |= unit << 24; /* RADEON_TXFORMAT_ST_ROUTE_STQX */
 
 	txpitch = pPix->devKind;
 	txoffset = ((CARD8 *)pPix->devPrivate.ptr -

@@ -475,13 +475,12 @@ ATIDrawInit(ScreenPtr pScreen)
 			atis->kaa.Blend = R128BlendDMA;
 			atis->kaa.DoneBlend = R128DoneBlendDMA;
 		} else if (!atic->is_r200) {
-			/* XXX: This code is broken so far. */
-			/*atis->kaa.PrepareBlend = RadeonPrepareBlend;
+			atis->kaa.PrepareBlend = RadeonPrepareBlend;
 			atis->kaa.Blend = RadeonBlend;
 			atis->kaa.DoneBlend = RadeonDoneBlend;
 			atis->kaa.PrepareComposite = RadeonPrepareComposite;
 			atis->kaa.Composite = RadeonComposite;
-			atis->kaa.DoneComposite = RadeonDoneComposite;*/
+			atis->kaa.DoneComposite = RadeonDoneComposite;
 		}
 	} else {
 #else
