@@ -32,6 +32,13 @@
 
 
 /*
+ * References to external symbols
+ */
+
+extern Bool		g_fUnicodeSupport;
+
+
+/*
  * Process any pending X events
  */
 
@@ -39,7 +46,7 @@ int
 winClipboardFlushXEvents (HWND hwnd,
 			  int iWindow,
 			  Display *pDisplay,
-			  Bool fUnicodeSupport)
+			  Bool fUseUnicode)
 {
   Atom			atomLocalProperty = XInternAtom (pDisplay,
 							 WIN_LOCAL_PROPERTY,
@@ -173,7 +180,7 @@ winClipboardFlushXEvents (HWND hwnd,
 	    }
 
 	  /* Check that clipboard format is available */
-	  if (fUnicodeSupport
+	  if (fUseUnicode
 	      && !IsClipboardFormatAvailable (CF_UNICODETEXT))
 	    {
 	      ErrorF ("winClipboardFlushXEvents - CF_UNICODETEXT is not "
@@ -183,7 +190,7 @@ winClipboardFlushXEvents (HWND hwnd,
 	      fAbort = TRUE;
 	      goto winClipboardFlushXEvents_SelectionRequest_Done;
 	    }
-	  else if (!fUnicodeSupport
+	  else if (!fUseUnicode
 		   && !IsClipboardFormatAvailable (CF_TEXT))
 	    {
 	      ErrorF ("winClipboardFlushXEvents - CF_TEXT is not "
@@ -232,7 +239,7 @@ winClipboardFlushXEvents (HWND hwnd,
 	   */
 	  
 	  /* Get a pointer to the clipboard text, in desired format */
-	  if (fUnicodeSupport)
+	  if (fUseUnicode)
 	    {
 	      /* Retrieve clipboard data */
 	      hGlobal = GetClipboardData (CF_UNICODETEXT);
@@ -255,7 +262,7 @@ winClipboardFlushXEvents (HWND hwnd,
 	  pszGlobalData = (char *) GlobalLock (hGlobal);
 
 	  /* Convert the Unicode string to UTF8 (MBCS) */
-	  if (fUnicodeSupport)
+	  if (fUseUnicode)
 	    {
 	      iConvertDataLen = WideCharToMultiByte (CP_UTF8,
 						     0,
@@ -293,7 +300,7 @@ winClipboardFlushXEvents (HWND hwnd,
 	  xtpText.value = NULL;
 
 	  /* Create the text property from the text list */
-	  if (fUnicodeSupport)
+	  if (fUseUnicode)
 	    {
 #ifdef X_HAVE_UTF8_STRING
 	      iReturn = Xutf8TextListToTextProperty (pDisplay,
@@ -586,7 +593,7 @@ winClipboardFlushXEvents (HWND hwnd,
 	    }
 #endif
 
-	  if (fUnicodeSupport)
+	  if (fUseUnicode)
 	    {
 #ifdef X_HAVE_UTF8_STRING
 	      /* Convert the text property to a text list */
@@ -657,7 +664,7 @@ winClipboardFlushXEvents (HWND hwnd,
 	  /* Convert the X clipboard string to DOS format */
 	  winClipboardUNIXtoDOS (&pszReturnData, strlen (pszReturnData));
 
-	  if (fUnicodeSupport)
+	  if (fUseUnicode)
 	    {
 	      /* Find out how much space needed to convert MBCS to Unicode */
 	      iUnicodeLen = MultiByteToWideChar (CP_UTF8,
@@ -726,7 +733,7 @@ winClipboardFlushXEvents (HWND hwnd,
 	    }
 
 	  /* Copy the returned string into the global memory */
-	  if (fUnicodeSupport)
+	  if (fUseUnicode)
 	    {
 	      memcpy (pszGlobalData,
 		      pwszUnicodeStr,
@@ -746,7 +753,7 @@ winClipboardFlushXEvents (HWND hwnd,
 	  pszGlobalData = NULL;
 
 	  /* Push the selection data to the Windows clipboard */
-	  if (fUnicodeSupport)
+	  if (fUseUnicode)
 	    SetClipboardData (CF_UNICODETEXT, hGlobal);
 	  else
 	    SetClipboardData (CF_TEXT, hGlobal);
@@ -771,9 +778,9 @@ winClipboardFlushXEvents (HWND hwnd,
 	    free (pwszUnicodeStr);
 	  if (hGlobal && pszGlobalData)
 	    GlobalUnlock (hGlobal);
-	  if (fSetClipboardData && fUnicodeSupport)
+	  if (fSetClipboardData && g_fUnicodeSupport)
 	    SetClipboardData (CF_UNICODETEXT, NULL);
-	  if (fSetClipboardData && !fUnicodeSupport)
+	  if (fSetClipboardData)
 	    SetClipboardData (CF_TEXT, NULL);
 	  return WIN_XEVENTS_NOTIFY;
 

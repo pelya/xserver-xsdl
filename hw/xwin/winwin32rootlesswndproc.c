@@ -932,7 +932,7 @@ winMWExtWMWindowProc (HWND hwnd, UINT message,
 
 		    if ((dwWindowProcessID == dwCurrentProcessID)
 			&& GetProp (Above, WIN_WINDOW_PROP)
-			&& !IsIconic (hwnd) ) /* ignore minimized windows */
+			&& !IsIconic (hWndAbove) ) /* ignore minimized windows */
 		      break;
 		  }
 		/* If this is top of X windows in Windows stack,

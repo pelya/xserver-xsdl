@@ -1,3 +1,12 @@
+2004-08-02  Kensuke Matsuzaki
+
+	* winclipboardthread.c winclipboardwndproc.c: 
+	* winclipboardxevents.c winwin32rootlesswndproc.c:
+	Fix the bug that we can't copy & paste multi-byte string to
+	Unicode-base Windows application.  Rename fUnicodeSupport to
+	fUseUnicode, because it don't mean wheather Windows support
+	Unicode or not.
+	
 2004-07-31  Alexander Gottwald  <ago@freedesktop.org>
 
 	* win.h:
@@ -8,7 +17,6 @@
 	* winallpriv.c: (winInitCmapPrivates):
 	test if colormap with index really exists in the list of
 	installed maps before using it.
-
 
 2004-07-09  Alexander Gottwald  <ago@freedesktop.org>
 

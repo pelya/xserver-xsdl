@@ -43,7 +43,7 @@
  * References to external symbols
  */
 
-extern Bool		g_fUnicodeSupport;
+extern Bool		g_fUseUnicode;
 extern void		*g_pClipboardDisplay;
 extern Window		g_iClipboardWindow;
 extern Atom		g_atomLastOwnedSelection;
@@ -55,7 +55,7 @@ extern Atom		g_atomLastOwnedSelection;
 
 static Bool
 winProcessXEventsTimeout (HWND hwnd, int iWindow, Display *pDisplay,
-			  Bool fUnicodeSupport, int iTimeoutSec);
+			  Bool fUseUnicode, int iTimeoutSec);
 
 
 /*
@@ -64,7 +64,7 @@ winProcessXEventsTimeout (HWND hwnd, int iWindow, Display *pDisplay,
 
 static int
 winProcessXEventsTimeout (HWND hwnd, int iWindow, Display *pDisplay,
-			  Bool fUnicodeSupport, int iTimeoutSec)
+			  Bool fUseUnicode, int iTimeoutSec)
 {
   int			iConnNumber;
   struct timeval	tv;
@@ -115,7 +115,7 @@ winProcessXEventsTimeout (HWND hwnd, int iWindow, Display *pDisplay,
 	  iReturn = winClipboardFlushXEvents (hwnd,
 					      iWindow,
 					      pDisplay,
-					      fUnicodeSupport);
+					      fUseUnicode);
 	  if (WIN_XEVENTS_NOTIFY == iReturn
 	      || WIN_XEVENTS_CONVERT == iReturn)
 	    {
@@ -445,7 +445,7 @@ winClipboardWindowProc (HWND hwnd, UINT message,
 	if (message == WM_RENDERALLFORMATS)
 	  fConvertToUnicode = FALSE;
 	else
-	  fConvertToUnicode = g_fUnicodeSupport && (CF_UNICODETEXT == wParam);
+	  fConvertToUnicode = g_fUseUnicode && (CF_UNICODETEXT == wParam);
 
 	/* Request the selection contents */
 	iReturn = XConvertSelection (pDisplay,

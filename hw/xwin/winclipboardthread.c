@@ -61,6 +61,7 @@ extern Window		g_iClipboardWindow;
 
 static jmp_buf			g_jmpEntry;
 Bool				g_fUnicodeSupport = FALSE;
+Bool				g_fUseUnicode = FALSE;
 
 
 /*
@@ -91,16 +92,19 @@ winClipboardProc (void *pvNotUsed)
   Display		*pDisplay = NULL;
   Window		iWindow = None;
   int			iRetries;
-  Bool			fUnicodeSupport;
+  Bool			fUseUnicode;
   char			szDisplay[512];
 
   ErrorF ("winClipboardProc - Hello\n");
 
   /* Do we have Unicode support? */
-  fUnicodeSupport = g_fUnicodeClipboard && winClipboardDetectUnicodeSupport ();
+  g_fUnicodeSupport = winClipboardDetectUnicodeSupport ();
+
+  /* Do we use Unicode clipboard? */
+  fUseUnicode = g_fUnicodeClipboard && g_fUnicodeSupport;
 
   /* Save the Unicode support flag in a global */
-  g_fUnicodeSupport = fUnicodeSupport;
+  g_fUseUnicode = fUseUnicode;
 
   /* Allow multiple threads to access Xlib */
   if (XInitThreads () == 0)
@@ -224,9 +228,6 @@ winClipboardProc (void *pvNotUsed)
   atomClipboard = XInternAtom (pDisplay, "CLIPBOARD", False);
   atomClipboardManager = XInternAtom (pDisplay, "CLIPBOARD_MANAGER", False);
 
-  /* FIXME: Save some values as globals for the window proc */
-  g_fUnicodeSupport = fUnicodeSupport;
-
   /* Create a messaging window */
   iWindow = XCreateSimpleWindow (pDisplay,
 				 DefaultRootWindow (pDisplay),
@@ -296,7 +297,7 @@ winClipboardProc (void *pvNotUsed)
   winClipboardFlushXEvents (hwnd,
 			    iWindow,
 			    pDisplay,
-			    fUnicodeSupport);
+			    fUseUnicode);
 
   /* Pre-flush Windows messages */
   if (!winClipboardFlushWindowsMessageQueue (hwnd))
@@ -344,7 +345,7 @@ winClipboardProc (void *pvNotUsed)
 	  iReturn = winClipboardFlushXEvents (hwnd,
 					      iWindow,
 					      pDisplay,
-					      fUnicodeSupport);
+					      fUseUnicode);
 	  if (WIN_XEVENTS_SHUTDOWN == iReturn)
 	    {
 	      ErrorF ("winClipboardProc - winClipboardFlushXEvents "
