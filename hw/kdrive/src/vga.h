@@ -57,7 +57,7 @@ typedef struct _vgaValue {
 
 typedef enum _vgaAccess {
     VgaAccessMem, VgaAccessIo, VgaAccessIndMem, VgaAccessIndIo,
-    VgaAccessDone,
+    VgaAccessDone
 } VgaAccess;
 
 typedef struct _vgaMap {

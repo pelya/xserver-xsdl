@@ -27,12 +27,17 @@
 #include <stdio.h>
 
 #ifdef linux
+#ifdef __i386__
 #define extern static
 #include <asm/io.h>
 #undef extern
 
 #define _VgaInb(r)	inb(r)
 #define _VgaOutb(v,r)	outb(v,r)
+#else
+#define _VgaInb(r)	0
+#define _VgaOutb(v,r)	
+#endif
 
 #define _VgaByteAddr(a)	((VGAVOL8 *) (a))
 #define _VgaBytePort(a)	(a)

@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/kcmap.c,v 1.2 2000/02/23 20:29:52 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/kcmap.c,v 1.3 2000/05/06 22:17:39 keithp Exp $ */
 
 #include "kdrive.h"
 
@@ -55,12 +55,12 @@ KdSetColormap (ScreenPtr pScreen, int fb)
      * true/direct as well as pseudo/static visuals
      */
     
-    for (i = 0; i < (1 << pScreenPriv->screen->fb[i].depth); i++)
+    for (i = 0; i < (1 << pScreenPriv->screen->fb[fb].depth); i++)
 	pixels[i] = i;
 
-    QueryColors (pCmap, (1 << pScreenPriv->screen->fb[i].depth), pixels, colors);
+    QueryColors (pCmap, (1 << pScreenPriv->screen->fb[fb].depth), pixels, colors);
     
-    for (i = 0; i < (1 << pScreenPriv->screen->fb[i].depth); i++)
+    for (i = 0; i < (1 << pScreenPriv->screen->fb[fb].depth); i++)
     {
 	defs[i].pixel = i;
 	defs[i].red = colors[i].red;
@@ -70,7 +70,7 @@ KdSetColormap (ScreenPtr pScreen, int fb)
     }
 
     (*pScreenPriv->card->cfuncs->putColors) (pCmap->pScreen, fb,
-					     (1 << pScreenPriv->screen->fb[i].depth),
+					     (1 << pScreenPriv->screen->fb[fb].depth),
 					     defs);
 
     /* recolor hardware cursor */

@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/kdrive.c,v 1.3 2000/02/23 20:29:53 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/kdrive.c,v 1.4 2000/05/06 22:17:39 keithp Exp $ */
 
 #include "kdrive.h"
 #ifdef PSEUDO8
@@ -58,7 +58,7 @@ KdSetRootClip (ScreenPtr pScreen, BOOL enable)
 #ifndef FB_OLD_SCREEN
     WindowPtr	pWin = WindowTable[pScreen->myNum];
     WindowPtr	pChild;
-    Bool	WasViewable = (Bool)(pWin->viewable);
+    Bool	WasViewable;
     Bool	anyMarked;
     RegionPtr	pOldClip, bsExposed;
 #ifdef DO_SAVE_UNDERS
@@ -67,6 +67,9 @@ KdSetRootClip (ScreenPtr pScreen, BOOL enable)
     WindowPtr   pLayerWin;
     BoxRec	box;
 
+    if (!pWin)
+	return;
+    WasViewable = (Bool)(pWin->viewable);
     if (WasViewable)
     {
 	for (pChild = pWin->firstChild; pChild; pChild = pChild->nextSib)
