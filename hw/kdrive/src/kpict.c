@@ -29,6 +29,7 @@
 #include <picturestr.h>
 #include <mipict.h>
 #include <fbpict.h>
+#include "kaa.h"
 
 void
 KdCheckComposite (CARD8      op,
