@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/mi/miinitext.c,v 1.4 2004/06/30 20:06:56 kem Exp $ */
+/* $XdotOrg: xc/programs/Xserver/mi/miinitext.c,v 1.5 2004/07/29 18:49:42 stukreit Exp $ */
 /* $XFree86: xc/programs/Xserver/mi/miinitext.c,v 3.67 2003/01/12 02:44:27 dawes Exp $ */
 /***********************************************************
 
@@ -85,6 +85,7 @@ SOFTWARE.
 #undef RENDER /* not yet */
 #undef DAMAGE
 #undef XFIXES
+#undef XEVIE
 #endif /* PRINT_ONLY_SERVER */
 
 #ifdef PANORAMIX
@@ -270,6 +271,9 @@ extern void ResExtensionInit(INITARGS);
 #ifdef DMXEXT
 extern void DMXExtensionInit(INITARGS);
 #endif
+#ifdef XEVIE
+extern void XevieExtensionInit(INITARGS);
+#endif
 #ifdef XFIXES
 extern void XFixesExtensionInit(INITARGS);
 #endif
@@ -419,6 +423,9 @@ InitExtensions(argc, argv)
 #ifdef DMXEXT
     DMXExtensionInit();
 #endif
+#ifdef XEVIE
+    XevieExtensionInit();
+#endif
 #ifdef XFIXES
     XFixesExtensionInit();
 #endif
@@ -552,6 +559,9 @@ static ExtensionModule staticExtensions[] = {
 #endif
 #ifdef XFIXES
     { XFixesExtensionInit, "XFIXES", NULL, NULL },
+#endif 
+#ifdef XEVIE
+    { XevieExtensionInit, "XEVIE", NULL, NULL },
 #endif 
     { NULL, NULL, NULL, NULL, NULL }
 };
