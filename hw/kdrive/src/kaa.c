@@ -51,12 +51,11 @@ int kaaPixmapPrivateIndex;
 
 #define KAA_PIXMAP_SCORE_MOVE_IN    10
 #define KAA_PIXMAP_SCORE_MAX	    20
-#define KAA_PIXMAP_SCORE_INIT	    0
 #define KAA_PIXMAP_SCORE_MOVE_OUT   -10
 #define KAA_PIXMAP_SCORE_MIN	    -20
 #define KAA_PIXMAP_SCORE_PINNED	    1000
+#define KAA_PIXMAP_SCORE_INIT	    1001
 
-#define MIN_OFFPIX_SIZE		(4096)
 void
 kaaDrawableDirty (DrawablePtr pDrawable)
 {
@@ -240,6 +239,11 @@ kaaPixmapUseScreen (PixmapPtr pPixmap)
     if (pKaaPixmap->score == KAA_PIXMAP_SCORE_PINNED)
 	return;
 
+    if (pKaaPixmap->score == KAA_PIXMAP_SCORE_INIT) {
+	kaaMoveInPixmap(pPixmap);
+	pKaaPixmap->score = 0;
+    }
+
     if (pKaaPixmap->score < KAA_PIXMAP_SCORE_MAX)
     {
 	pKaaPixmap->score++;
@@ -257,6 +261,9 @@ kaaPixmapUseMemory (PixmapPtr pPixmap)
 
     if (pKaaPixmap->score == KAA_PIXMAP_SCORE_PINNED)
 	return;
+
+    if (pKaaPixmap->score == KAA_PIXMAP_SCORE_INIT)
+	pKaaPixmap->score = 0;
 
     if (pKaaPixmap->score > KAA_PIXMAP_SCORE_MIN)
     {
@@ -320,10 +327,6 @@ kaaCreatePixmap(ScreenPtr pScreen, int w, int h, int depth)
 	pKaaPixmap->score = KAA_PIXMAP_SCORE_INIT;
     
     pKaaPixmap->area = NULL;
-    
-    if (pKaaPixmap->score != KAA_PIXMAP_SCORE_PINNED &&
-	(pPixmap->devKind * h) >= MIN_OFFPIX_SIZE)
-	kaaPixmapAllocArea (pPixmap);
     pKaaPixmap->dirty = FALSE;
 
     return pPixmap;
