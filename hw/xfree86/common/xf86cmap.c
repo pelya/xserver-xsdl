@@ -1,3 +1,4 @@
+/* $XdotOrg$ */
 /* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86cmap.c,v 1.25 2003/10/17 20:02:12 alanh Exp $ */
 /*
  * Copyright (c) 1998-2001 by The XFree86 Project, Inc.
@@ -26,7 +27,8 @@
  * authorization from the copyright holder(s) and author(s).
  */
 
-#if defined(_XOPEN_SOURCE) || defined(__QNXNTO__)
+#if defined(_XOPEN_SOURCE) || defined(__QNXNTO__) \
+	|| (defined(sun) && defined(__SVR4))
 #include <math.h>
 #else
 #define _XOPEN_SOURCE   /* to get prototype for pow on some systems */
