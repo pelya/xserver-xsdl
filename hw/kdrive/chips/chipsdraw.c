@@ -28,7 +28,7 @@
 #endif
 #include "chips.h"
 
-#include	"Xmd.h"
+#include	<X11/Xmd.h>
 #include	"gcstruct.h"
 #include	"scrnintstr.h"
 #include	"pixmapstr.h"
@@ -147,7 +147,7 @@ static CARD32	byteStride;
 static CARD32	bytesPerPixel;
 static CARD32	pixelStride;
 
-void
+static void
 chipsSet (ScreenPtr pScreen)
 {
     KdScreenPriv(pScreen);
@@ -182,7 +182,7 @@ chipsSet (ScreenPtr pScreen)
 
 #define DBG(x)
 
-void
+static void
 chipsPitch (int src, int dst)
 {
     CARD32  p;
@@ -196,7 +196,7 @@ chipsPitch (int src, int dst)
 #endif
 }
 
-void
+static void
 chipsBg (Pixel   bg)
 {
     DBG(ErrorF ("\tbg 0x%x\n", bg));
@@ -207,7 +207,7 @@ chipsBg (Pixel   bg)
 #endif
 }
 
-void
+static void
 chipsFg (Pixel   fg)
 {
     DBG(ErrorF ("\tfg 0x%x\n", fg));
@@ -218,7 +218,7 @@ chipsFg (Pixel   fg)
 #endif
 }
 
-void
+static void
 chipsOp (CARD32 op)
 {
     DBG(ErrorF ("\top 0x%x\n", op));
@@ -229,7 +229,7 @@ chipsOp (CARD32 op)
 #endif
 }
     
-void
+static void
 chipsRopSolid (int rop)
 {
     CARD32  op;
@@ -238,7 +238,7 @@ chipsRopSolid (int rop)
     chipsOp (op);
 }
 
-void
+static void
 chipsSrc (int addr)
 {
     DBG(ErrorF ("\tsrc 0x%x\n", addr));
@@ -249,7 +249,7 @@ chipsSrc (int addr)
 #endif
 }
 
-void
+static void
 chipsDst (int addr)
 {
     DBG(ErrorF ("\tdst 0x%x\n", addr));
@@ -260,7 +260,7 @@ chipsDst (int addr)
 #endif
 }
 
-void
+static void
 chipsWidthHeightGo (int w, int h)
 {
     DBG(ErrorF ("\twidth height %d/%d\n", w, h));
@@ -271,8 +271,8 @@ chipsWidthHeightGo (int w, int h)
 #endif
 }
 
-void
-chipsWaitIdle ()
+static void
+chipsWaitIdle (void)
 {
 #ifdef HIQV
     int	timeout = 0;
@@ -304,8 +304,8 @@ chipsWaitIdle ()
 #endif
 }
 
-Bool
-chipsPrepareSolid (DrawablePtr  pDrawable,
+static Bool
+chipsPrepareSolid (PixmapPtr	pPixmap,
 		   int		alu,
 		   Pixel	pm,
 		   Pixel	fg)
@@ -313,14 +313,14 @@ chipsPrepareSolid (DrawablePtr  pDrawable,
     FbBits  depthMask;
     
     DBG(ErrorF ("PrepareSolid %d 0x%x\n", alu, fg));
-    depthMask = FbFullMask(pDrawable->depth);
+    depthMask = FbFullMask(pPixmap->drawable.depth);
     if ((pm & depthMask) != depthMask)
 	return FALSE;
     else
     {
-	chipsSet (pDrawable->pScreen);
+	chipsSet (pPixmap->drawable.pScreen);
 	chipsWaitIdle ();
-	chipsFillPix(pDrawable->bitsPerPixel,fg);
+	chipsFillPix(pPixmap->drawable.bitsPerPixel,fg);
 	chipsFg (fg);
 	chipsBg (fg);
 	chipsRopSolid (alu);
@@ -329,7 +329,7 @@ chipsPrepareSolid (DrawablePtr  pDrawable,
     }
 }
 
-void
+static void
 chipsSolid (int x1, int y1, int x2, int y2)
 {
     CARD32  dst;
@@ -344,15 +344,16 @@ chipsSolid (int x1, int y1, int x2, int y2)
     chipsWidthHeightGo (w, h);
 }
 
-void
+static void
 chipsDoneSolid (void)
 {
 }
 
 static CARD32	copyOp;
-Bool
-chipsPrepareCopy (DrawablePtr	pSrcDrawable,
-		  DrawablePtr	pDstDrawable,
+
+static Bool
+chipsPrepareCopy (PixmapPtr	pSrcPixmap,
+		  PixmapPtr	pDstPixmap,
 		  int		dx,
 		  int		dy,
 		  int		alu,
@@ -361,7 +362,7 @@ chipsPrepareCopy (DrawablePtr	pSrcDrawable,
     FbBits  depthMask;
     
     DBG(ErrorF ("PrepareSolid %d 0x%x\n", alu, fg));
-    depthMask = FbFullMask(pDstDrawable->depth);
+    depthMask = FbFullMask(pDstPixmap->drawable.depth);
     if ((pm & depthMask) != depthMask)
 	return FALSE;
     else
@@ -375,7 +376,7 @@ chipsPrepareCopy (DrawablePtr	pSrcDrawable,
 	    copyOp |= ctLEFT2RIGHT;
 	else
 	    copyOp |= ctRIGHT2LEFT;
-	chipsSet (pDstDrawable->pScreen);
+	chipsSet (pDstPixmap->drawable.pScreen);
 	chipsWaitIdle ();
 	chipsOp (copyOp);
 	chipsPitch (byteStride, byteStride);
@@ -383,7 +384,7 @@ chipsPrepareCopy (DrawablePtr	pSrcDrawable,
     }
 }
 
-void
+static void
 chipsCopy (int srcX,
 	   int srcY,
 	   int dstX,
@@ -418,12 +419,12 @@ chipsCopy (int srcX,
     chipsWidthHeightGo (w * bytesPerPixel, h);
 }
 
-void
+static void
 chipsDoneCopy (void)
 {
 }
 
-KaaScreenPrivRec    chipsKaa = {
+KaaScreenInfoRec    chipsKaa = {
     chipsPrepareSolid,
     chipsSolid,
     chipsDoneSolid,
@@ -431,13 +432,14 @@ KaaScreenPrivRec    chipsKaa = {
     chipsPrepareCopy,
     chipsCopy,
     chipsDoneCopy,
+
+    0, 0, 0
 };
 
 Bool
 chipsDrawInit (ScreenPtr pScreen)
 {
     KdScreenPriv(pScreen);
-    chipsScreenInfo(pScreenPriv);
     
     switch (pScreenPriv->screen->fb[0].bitsPerPixel) {
     case 8:
@@ -458,7 +460,7 @@ chipsDrawEnable (ScreenPtr pScreen)
 {
     KdScreenPriv(pScreen);
     chipsScreenInfo(pScreenPriv);
-    CARD8   mode;
+    CARD8 mode = 0x00;
     
     switch (pScreenPriv->screen->fb[0].bitsPerPixel) {
     case 8:

@@ -131,10 +131,45 @@ chipsInitScreen (ScreenPtr pScreen)
     return vesaInitScreen (pScreen);
 }
 
+#ifdef RANDR
+static Bool
+chipsRandRSetConfig (ScreenPtr		pScreen,
+		      Rotation		rotation,
+		      int		rate,
+		      RRScreenSizePtr	pSize)
+{
+    KdCheckSync (pScreen);
+
+    if (!vesaRandRSetConfig (pScreen, rotation, rate, pSize))
+	return FALSE;
+    
+    return TRUE;
+}
+
+static void
+chipsRandRInit (ScreenPtr pScreen)
+{
+    rrScrPriv(pScreen);
+
+    pScrPriv->rrSetConfig = chipsRandRSetConfig;
+}
+#endif
+
 Bool
 chipsFinishInitScreen (ScreenPtr pScreen)
 {
-    return vesaFinishInitScreen (pScreen);
+    Bool    ret;
+    ret = vesaFinishInitScreen (pScreen);
+#ifdef RANDR
+    chipsRandRInit (pScreen);
+#endif
+    return ret;
+}
+
+static Bool
+chipsCreateResources (ScreenPtr pScreen)
+{
+    return vesaCreateResources (pScreen);
 }
 
 CARD8
@@ -279,6 +314,8 @@ KdCardFuncs	chipsFuncs = {
     chipsCardInit,	    /* cardinit */
     chipsScreenInit,	    /* scrinit */
     chipsInitScreen,	    /* initScreen */
+    chipsFinishInitScreen,  /* finishInitScreen */
+    chipsCreateResources,   /* createRes */
     chipsPreserve,	    /* preserve */
     chipsEnable,	    /* enable */
     vesaDPMS,		    /* dpms */
@@ -301,5 +338,4 @@ KdCardFuncs	chipsFuncs = {
     
     vesaGetColors,    	    /* getColors */
     vesaPutColors,	    /* putColors */
-    chipsFinishInitScreen /* finishInitScreen */
 };
