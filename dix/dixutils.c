@@ -397,11 +397,7 @@ AlterSaveSetForClient(ClientPtr client,
         else
         {
             xfree(client->saveSet);
-#ifdef XFIXES
 	    client->saveSet = (SaveSetElt *)NULL;
-#else
-	    client->saveSet = (pointer *)NULL;
-#endif
 	}
 	client->numSaved = numnow;
 	return(Success);
