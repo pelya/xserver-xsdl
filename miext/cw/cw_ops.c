@@ -26,10 +26,10 @@
 
 #define SETUP_BACKING_DST(_pDst, _pGC) \
     cwGCPtr pGCPrivate = getCwGC (_pGC); \
-    GCPtr pBackingGC = pGCPrivate->pBackingGC; \
     int dst_off_x, dst_off_y; \
     DrawablePtr pBackingDst = cwGetBackingDrawable(pDst, &dst_off_x, \
-	&dst_off_y)
+	&dst_off_y); \
+    GCPtr pBackingGC = pGCPrivate->pBackingGC ? pGCPrivate->pBackingGC : _pGC
 
 #define SETUP_BACKING_SRC(pSrc, pGC) \
     int src_off_x, src_off_y; \
