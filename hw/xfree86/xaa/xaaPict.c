@@ -190,7 +190,7 @@ XAADoComposite (
     ScreenPtr pScreen = pDst->pDrawable->pScreen;
     XAAInfoRecPtr infoRec = GET_XAAINFORECPTR_FROM_SCREEN(pScreen);
     RegionRec region;
-    CARD32 *formats;
+    CARD32 *formats, *dstformats;
     int flags = 0;
     BoxPtr pbox;
     int nbox, w, h;
@@ -279,7 +279,9 @@ XAADoComposite (
 		return TRUE;
 	  }
 
-	  if(!(formats = infoRec->CPUToScreenAlphaTextureFormats))
+	  formats = infoRec->CPUToScreenAlphaTextureFormats;
+	  dstformats = infoRec->CPUToScreenAlphaTextureDstFormats;
+	  if(!formats || !dstformats)
 		return FALSE;
 
 	  w = pMask->pDrawable->width;
@@ -304,6 +306,11 @@ XAADoComposite (
 		if(!(*formats)) return FALSE;
 		formats++;
           }
+	  while(*dstformats != pDst->format) {
+		if(!(*dstformats))
+		    return FALSE;
+		dstformats++;
+          }
 
 	  if (!miComputeCompositeRegion (&region, pSrc, pMask, pDst,
                                    xSrc, ySrc, xMask, yMask, xDst, yDst,
@@ -318,8 +325,9 @@ XAADoComposite (
 		return TRUE;
 	  }
 
-	  if(!(infoRec->SetupForCPUToScreenAlphaTexture)(infoRec->pScrn,
-			op, red, green, blue, alpha, pMask->format, 
+	  if(!(infoRec->SetupForCPUToScreenAlphaTexture2)(infoRec->pScrn,
+			op, red, green, blue, alpha, pMask->format,
+			pDst->format,
 			((PixmapPtr)(pMask->pDrawable))->devPrivate.ptr,
 			((PixmapPtr)(pMask->pDrawable))->devKind, 
 			w, h, flags))
@@ -343,8 +351,10 @@ XAADoComposite (
 	   REGION_UNINIT(pScreen, &region);
 	   return TRUE;
 	}
-    } else {	
-	if(!(formats = infoRec->CPUToScreenTextureFormats))
+    } else {
+	formats = infoRec->CPUToScreenTextureFormats;
+	dstformats = infoRec->CPUToScreenTextureDstFormats;
+	if(!formats || !dstformats)
 	    return FALSE;
 
         w = pSrc->pDrawable->width;
@@ -361,10 +371,14 @@ XAADoComposite (
               flags |= XAA_RENDER_REPEAT;
         }
 
-
 	while(*formats != pSrc->format) {
 	    if(!(*formats)) return FALSE;
 	    formats++;
+	}
+	while(*dstformats != pDst->format) {
+	    if(!(*dstformats))
+		return FALSE;
+	    dstformats++;
 	}
 
 	if (!miComputeCompositeRegion (&region, pSrc, pMask, pDst,
@@ -380,8 +394,8 @@ XAADoComposite (
              return TRUE;
         }
 
-	if(!(infoRec->SetupForCPUToScreenTexture)(infoRec->pScrn,
-			op, pSrc->format, 
+	if(!(infoRec->SetupForCPUToScreenTexture2)(infoRec->pScrn,
+			op, pSrc->format, pDst->format, 
 			((PixmapPtr)(pSrc->pDrawable))->devPrivate.ptr,
 			((PixmapPtr)(pSrc->pDrawable))->devKind, 
 			w, h, flags))

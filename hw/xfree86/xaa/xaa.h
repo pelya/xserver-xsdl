@@ -1278,6 +1278,10 @@ typedef struct _XAAInfoRec {
         GlyphPtr      *glyphs
    );
 
+   /* The old SetupForCPUToScreenAlphaTexture function is no longer used because
+    * it doesn't pass in enough information to write a conforming
+    * implementation.  See SetupForCPUToScreenAlphaTexture2.
+    */
    Bool (*SetupForCPUToScreenAlphaTexture) (
 	ScrnInfoPtr	pScrn,
 	int		op,
@@ -1304,6 +1308,10 @@ typedef struct _XAAInfoRec {
    int CPUToScreenAlphaTextureFlags;
    CARD32 * CPUToScreenAlphaTextureFormats;
 
+   /* The old SetupForCPUToScreenTexture function is no longer used because
+    * it doesn't pass in enough information to write a conforming
+    * implementation.  See SetupForCPUToScreenTexture2.
+    */
    Bool (*SetupForCPUToScreenTexture) (
 	ScrnInfoPtr	pScrn,
 	int		op,
@@ -1333,6 +1341,38 @@ typedef struct _XAAInfoRec {
    BoxRec SolidLineLimits;
    BoxRec DashedLineLimits;
 
+#ifdef RENDER
+   /* These were added for X.Org 6.8.0 */
+   Bool (*SetupForCPUToScreenAlphaTexture2) (
+	ScrnInfoPtr	pScrn,
+	int		op,
+	CARD16		red,
+	CARD16		green,
+	CARD16		blue,
+	CARD16		alpha,
+	CARD32		maskFormat,
+	CARD32		dstFormat,
+	CARD8		*alphaPtr,
+	int		alphaPitch,
+	int		width,
+	int		height,
+	int		flags
+   );
+   CARD32 *CPUToScreenAlphaTextureDstFormats;
+
+   Bool (*SetupForCPUToScreenTexture2) (
+	ScrnInfoPtr	pScrn,
+	int		op,
+	CARD32		srcFormat,
+	CARD32		dstFormat,
+	CARD8		*texPtr,
+	int		texPitch,
+	int		width,
+	int		height,
+	int		flags
+   );
+   CARD32 *CPUToScreenTextureDstFormats;
+#endif /* RENDER */
 } XAAInfoRec, *XAAInfoRecPtr;
 
 #define SET_SYNC_FLAG(infoRec)	(infoRec)->NeedToSync = TRUE

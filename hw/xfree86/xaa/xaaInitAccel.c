@@ -102,7 +102,7 @@ static XF86ModuleVersionInfo xaaVersRec =
 	MODINFOSTRING1,
 	MODINFOSTRING2,
 	XORG_VERSION_CURRENT,
-	1, 1, 0,
+	1, 2, 0,
 	ABI_CLASS_VIDEODRV,		/* requires the video driver ABI */
 	ABI_VIDEODRV_VERSION,
 	MOD_CLASS_NONE,
@@ -1269,10 +1269,12 @@ XAAInitAccel(ScreenPtr pScreen, XAAInfoRecPtr infoRec)
 #ifdef RENDER
     {
 	Bool haveTexture = infoRec->CPUToScreenTextureFormats &&
-	                   infoRec->SetupForCPUToScreenTexture &&
+			   infoRec->CPUToScreenTextureDstFormats &&
+	                   infoRec->SetupForCPUToScreenTexture2 &&
 	                   infoRec->SubsequentCPUToScreenTexture;
         Bool haveAlphaTexture = infoRec->CPUToScreenAlphaTextureFormats &&
-                                infoRec->SetupForCPUToScreenAlphaTexture &&
+                                infoRec->CPUToScreenAlphaTextureDstFormats &&
+                                infoRec->SetupForCPUToScreenAlphaTexture2 &&
                                 infoRec->SubsequentCPUToScreenAlphaTexture;
 
 	if(!infoRec->Composite && (haveTexture || haveAlphaTexture)) 
