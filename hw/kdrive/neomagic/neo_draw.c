@@ -39,10 +39,30 @@
 #include "miline.h"
 #include "picturestr.h"
 
-NeoMMIO       *mmio;
+NeoMMIO *mmio;
 NeoScreenInfo *screen;
 NeoCardInfo   *card;
-CARD32        fgColor;
+CARD32 fgColor;
+CARD32 rop;
+
+CARD32 neoRop[16] = {
+    0x000000,    /* GXclear */
+    0x080000,    /* GXand */
+    0x040000,    /* GXandReverse */
+    0x0c0000,    /* GXcopy */
+    0x020000,    /* GXandInvert */
+    0x0a0000,    /* GXnoop */
+    0x060000,    /* GXxor */
+    0x0e0000,    /* GXor */
+    0x010000,    /* GXnor */
+    0x090000,    /* GXequiv */
+    0x050000,    /* GXinvert */
+    0x0d0000,    /* GXorReverse */
+    0x030000,    /* GXcopyInvert */
+    0x0b0000,    /* GXorInverted */
+    0x070000,    /* GXnand */
+    0x0f0000     /* GXset */
+};
 
 static  void neoWaitIdle(NeoCardInfo *neoc)
 {
@@ -62,11 +82,12 @@ static Bool neoPrepareSolid(PixmapPtr pPixmap,
                             Pixel fg)
 {
     FbBits depthMask = FbFullMask(pPixmap->drawable.depth);
-	DBGOUT("ROP %i\n", alu);
     if ((pm & depthMask) != depthMask) {
         return FALSE;
     } else {
         fgColor = fg;
+		if (alu!=3) DBGOUT("used ROP %i\n", alu);
+		rop = neoRop[alu];
         return TRUE;
     }
 }
@@ -83,7 +104,7 @@ static void neoSolid (int x1, int y1, int x2, int y2)
 	mmio->bltCntl =
 			NEO_BC3_FIFO_EN      |
 			NEO_BC0_SRC_IS_FG    |
-			NEO_BC3_SKIP_MAPPING | 0x0c0000;		
+			NEO_BC3_SKIP_MAPPING | rop;		
     mmio->dstStart = y * screen->pitch + x * screen->depth;
 
     mmio->xyExt    = (unsigned long)(h << 16) | (w & 0xffff);
@@ -97,6 +118,7 @@ static void neoDoneSolid(void)
 static Bool neoPrepareCopy (PixmapPtr pSrcPixpam, PixmapPtr pDstPixmap,
                      int dx, int dy, int alu, Pixel pm)
 {
+	rop = neoRop[alu];
     return TRUE;
 }
 
@@ -107,7 +129,7 @@ static void neoCopy (int srcX, int srcY, int dstX, int dstY, int w, int h)
     if ((dstY < srcY) || ((dstY == srcY) && (dstX < srcX))) {
 		mmio->bltCntl  = 
 					NEO_BC3_FIFO_EN |
-					NEO_BC3_SKIP_MAPPING |  0x0c0000;
+					NEO_BC3_SKIP_MAPPING |  rop;
 		mmio->srcStart = srcY * screen->pitch + srcX * screen->depth;
 		mmio->dstStart = dstY * screen->pitch + dstX * screen->depth;
 		

@@ -1,6 +1,7 @@
 2004-04-11 Franco Catrin L. <fcatrin@tuxpan.com>
         * Basic bitblt implementation
 	* Fixed width and height calculation in solids
+        * Added ROP (not tested)
 
 2004-04-10 Franco Catrin L. <fcatrin@tuxpan.com>
         * MMIO enabled after switching to new VT
