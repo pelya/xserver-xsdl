@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/dix/main.c,v 1.2 2004/04/23 19:04:44 eich Exp $ */
+/* $XdotOrg: xc/programs/Xserver/dix/main.c,v 1.3 2004/06/30 20:06:53 kem Exp $ */
 /* $XFree86: xc/programs/Xserver/dix/main.c,v 3.43 2003/10/30 21:21:02 herrb Exp $ */
 /***********************************************************
 
@@ -689,7 +689,7 @@ AddScreen(
     if (i == MAXSCREENS)
 	return -1;
 
-    pScreen = (ScreenPtr) xalloc(sizeof(ScreenRec));
+    pScreen = (ScreenPtr) xcalloc(1, sizeof(ScreenRec));
     if (!pScreen)
 	return -1;
 
