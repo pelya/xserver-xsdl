@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/os/utils.c,v 1.1.4.6.2.4.6.3 2004/04/20 03:27:09 gisburn Exp $ */
+/* $XdotOrg: xc/programs/Xserver/os/utils.c,v 1.2 2004/04/23 19:54:28 eich Exp $ */
 /* $Xorg: utils.c,v 1.5 2001/02/09 02:05:24 xorgcvs Exp $ */
 /*
 
@@ -516,6 +516,8 @@ void UseMsg(void)
     ErrorF("nologo                 disable logo in screen saver\n");
 #endif
     ErrorF("-nolisten string       don't listen on protocol\n");
+    ErrorF("-noreset               don't reset after last client exists\n");
+    ErrorF("-reset                 reset after last client exists\n");
     ErrorF("-p #                   screen-saver pattern duration (minutes)\n");
     ErrorF("-pn                    accept failure to listen on all ports\n");
     ErrorF("-nopn                  reject failure to listen on all ports\n");
@@ -822,6 +824,10 @@ ProcessCommandLine(int argc, char *argv[])
 	else if ( strcmp( argv[i], "-noreset") == 0)
 	{
 	    dispatchExceptionAtReset = 0;
+	}
+	else if ( strcmp( argv[i], "-reset") == 0)
+	{
+	    dispatchExceptionAtReset = DE_RESET;
 	}
 	else if ( strcmp( argv[i], "-p") == 0)
 	{

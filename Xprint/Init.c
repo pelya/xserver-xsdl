@@ -295,6 +295,8 @@ static Bool xprintInitGlobalsCalled = FALSE;
  */
 void XprintInitGlobals(void)
 {
+    extern char dispatchExceptionAtReset; /* defined in Xserver/dix/dispatch.c */
+
     xprintInitGlobalsCalled = TRUE;
 
 #ifdef SMART_SCHEDULE
@@ -315,6 +317,10 @@ void XprintInitGlobals(void)
      * Xprt's default BIGREQUESTS extension buffer size should be 8MB")
      */
     maxBigRequestSize = (8*1048576)-1;
+    
+    /* Xprt should not reset by default when the last client exists
+     * (default for Xprt is |0|, video Xservers use |DE_RESET|) */
+    dispatchExceptionAtReset = 0;
 }
 
 /*
