@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/mi/miinitext.c,v 1.13 2004/09/14 00:51:25 gisburn Exp $ */
+/* $XdotOrg: xc/programs/Xserver/mi/miinitext.c,v 1.14 2004/10/25 07:12:21 gisburn Exp $ */
 /* $XFree86: xc/programs/Xserver/mi/miinitext.c,v 3.67 2003/01/12 02:44:27 dawes Exp $ */
 /***********************************************************
 
@@ -438,7 +438,7 @@ static ExtensionToggle ExtensionToggleList[] =
     { "MIT-SCREEN-SAVER", &noScreenSaverExtension },
 #endif
 #ifdef MITSHM
-    { "MIT-SHM", &noMITShmExtension },
+    { SHMNAME, &noMITShmExtension },
 #endif
 #ifdef MITMISC
     { "MIT-SUNDRY-NONSTANDARD", &noMITMiscExtension },
@@ -561,7 +561,7 @@ InitExtensions(argc, argv)
     if (!noTestExtensions) XTestExtension1Init();
 #endif
 #ifdef SHAPE
-    ShapeExtensionInit();
+    if (!noShapeExtension) ShapeExtensionInit();
 #endif
 #ifdef MITSHM
     if (!noMITShmExtension) ShmExtensionInit();
@@ -711,96 +711,37 @@ InitVisualWrap()
 }
 
 #else /* XFree86LOADER */
-#if 0
-/* FIXME:The names here must come from the headers. those with ?? are 
-   not included in X11R6.3 sample implementation, so there's a problem... */
-/* XXX use the correct #ifdefs for symbols not present when an extension
-   is disabled */
-ExtensionModule extension[] =
-{
-    { NULL, "BEZIER", NULL, NULL },	/* ?? */
-    { NULL, "XTEST1", &noTestExtensions, NULL }, /* ?? */
-    { NULL, "SHAPE", NULL, NULL },
-    { NULL, "MIT-SHM", NULL, NULL },
-    { NULL, "X3D-PEX", NULL, NULL },
-    { NULL, "Multi-Buffering", NULL, NULL },
-    { NULL, "XInputExtension", NULL, NULL },
-    { NULL, "XTEST", &noTestExtensions, NULL },
-    { NULL, "BIG-REQUESTS", NULL, NULL },
-    { NULL, "MIT-SUNDRY-NONSTANDARD", NULL, NULL },
-    { NULL, "XIDLE", NULL, NULL },	/* ?? */
-    { NULL, "XTRAP", &noTestExtensions, NULL }, /* ?? */
-    { NULL, "MIT-SCREEN-SAVER", NULL, NULL },
-    { NULL, "XVideo", NULL, NULL },	/* ?? */
-    { NULL, "XIE", NULL, NULL },
-    { NULL, "SYNC", NULL, NULL },
-#ifdef XKB
-    { NULL, "XKEYBOARD", &noXkbExtension, NULL },
-#else
-    { NULL, "NOXKEYBOARD", NULL, NULL },
-#endif
-    { NULL, "XC-MISC", NULL, NULL },
-    { NULL, "RECORD", &noTestExtensions, NULL },
-    { NULL, "LBX", NULL, NULL },
-    { NULL, "DOUBLE-BUFFER", NULL, NULL },
-    { NULL, "XC-APPGROUP", NULL, NULL },
-    { NULL, "SECURITY", NULL, NULL },
-    { NULL, "XpExtension", NULL, NULL },
-    { NULL, "XFree86-VidModeExtension", NULL, NULL },
-    { NULL, "XFree86-Misc", NULL, NULL },
-    { NULL, "XFree86-DGA", NULL, NULL },
-    { NULL, "DPMS", NULL, NULL },
-    { NULL, "GLX", NULL, NULL },
-    { NULL, "TOG-CUP", NULL, NULL },
-    { NULL, "Extended-Visual-Information", NULL, NULL },
-#ifdef PANORAMIX
-    { NULL, "XINERAMA", &noPanoramiXExtension, NULL },
-#else
-    { NULL, "NOXINERAMA", NULL, NULL },
-#endif
-    { NULL, "XFree86-Bigfont", NULL, NULL },
-    { NULL, "XFree86-DRI", NULL, NULL },
-    { NULL, "Adobe-DPS-Extension", NULL, NULL },
-    { NULL, "FontCache", NULL, NULL },
-    { NULL, "RENDER", NULL, NULL },
-    { NULL, "RANDR", NULL, NULL },
-    { NULL, "X-Resource", NULL, NULL },
-    { NULL, "DMX", NULL, NULL },
-    { NULL, NULL, NULL, NULL }
-};
-#endif
-
 /* List of built-in (statically linked) extensions */
 static ExtensionModule staticExtensions[] = {
 #ifdef BEZIER
-    { BezierExtensionInit, "BEZIER", NULL, NULL, NULL },
+    { BezierExtensionInit, "BEZIER", &noBezierExtension, NULL, NULL },
 #endif
 #ifdef XTESTEXT1
     { XTestExtension1Init, "XTEST1", &noTestExtensions, NULL, NULL },
 #endif
 #ifdef MITSHM
-    { ShmExtensionInit, SHMNAME, NULL, NULL, NULL },
+    { ShmExtensionInit, SHMNAME, &noMITShmExtension, NULL, NULL },
 #endif
 #ifdef XINPUT
-    { XInputExtensionInit, "XInputExtension", NULL, NULL, NULL },
+    { XInputExtensionInit, "XInputExtension", &noXInputExtension, NULL, NULL },
 #endif
 #ifdef XTEST
     { XTestExtensionInit, XTestExtensionName, &noTestExtensions, NULL, NULL },
 #endif
 #ifdef XIDLE
-    { XIdleExtensionInit, "XIDLE", NULL, NULL, NULL },
+    { XIdleExtensionInit, "XIDLE", &noXIdleExtension, NULL, NULL },
 #endif
 #ifdef XKB
     { XkbExtensionInit, XkbName, &noXkbExtension, NULL, NULL },
 #endif
 #ifdef LBX
-    { LbxExtensionInit, LBXNAME, NULL, NULL, NULL },
+    { LbxExtensionInit, LBXNAME, &noLbxExtension, NULL, NULL },
 #endif
 #ifdef XAPPGROUP
-    { XagExtensionInit, XAGNAME, NULL, NULL, NULL },
+    { XagExtensionInit, XAGNAME, &noXagExtension, NULL, NULL },
 #endif
 #ifdef XCSECURITY
-    { SecurityExtensionInit, SECURITY_EXTENSION_NAME, NULL, NULL, NULL },
+    { SecurityExtensionInit, SECURITY_EXTENSION_NAME, &noSecurityExtension, NULL, NULL },
 #endif
 #ifdef XPRINT
     { XpExtensionInit, XP_PRINTNAME, NULL, NULL, NULL },
@@ -810,22 +751,22 @@ static ExtensionModule staticExtensions[] = {
 #endif
 #ifdef XFIXES
     /* must be before Render to layer DisplayCursor correctly */
-    { XFixesExtensionInit, "XFIXES", NULL, NULL, NULL },
+    { XFixesExtensionInit, "XFIXES", &noXFixesExtension, NULL, NULL },
 #endif
 #ifdef XF86BIGFONT
-    { XFree86BigfontExtensionInit, XF86BIGFONTNAME, NULL, NULL, NULL },
+    { XFree86BigfontExtensionInit, XF86BIGFONTNAME, &noXFree86BigfontExtension, NULL, NULL },
 #endif
 #ifdef RENDER
     { RenderExtensionInit, "RENDER", &noRenderExtension, NULL, NULL },
 #endif
 #ifdef RANDR
-    { RRExtensionInit, "RANDR", NULL, NULL, NULL },
+    { RRExtensionInit, "RANDR", &noRRExtension, NULL, NULL },
 #endif
 #ifdef COMPOSITE
     { CompositeExtensionInit, "COMPOSITE", &noCompositeExtension, NULL },
 #endif
 #ifdef DAMAGE
-    { DamageExtensionInit, "DAMAGE", NULL, NULL },
+    { DamageExtensionInit, "DAMAGE", &noDamageExtension, NULL },
 #endif
 #ifdef XEVIE
     { XevieExtensionInit, "XEVIE", &noXevieExtension, NULL },
