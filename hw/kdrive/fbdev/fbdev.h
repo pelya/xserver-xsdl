@@ -40,11 +40,11 @@ typedef struct _fbdevPriv {
     int				fd;
     char			*fb;
     char			*fb_base;
-    Bool			rotate;
 } FbdevPriv;
     
 typedef struct _fbdevScrPriv {
     Bool			rotate;
+    Bool			shadow;
 } FbdevScrPriv;
 
 Bool

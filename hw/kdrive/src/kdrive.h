@@ -591,6 +591,9 @@ KdShadowScreenInit (KdScreenInfo *screen);
 Bool
 KdShadowInitScreen (ScreenPtr pScreen, ShadowUpdateProc update, ShadowWindowProc window);
 
+void
+KdShadowScreenFini (KdScreenInfo *screen);
+
 /* ktest.c */
 Bool
 KdFrameBufferValid (CARD8 *base, int size);

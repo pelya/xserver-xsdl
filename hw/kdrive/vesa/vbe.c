@@ -188,6 +188,8 @@ VbeCleanup(VbeInfoPtr vi)
     munmap(vi->magicMem, MAGICMEM_SIZE);
     munmap(vi->loMem, LOMEM_SIZE);
     munmap(vi->hiMem, HIMEM_SIZE);
+    close (vi->devmem);
+    close (vi->devzero);
     xfree(vi);
 }
 

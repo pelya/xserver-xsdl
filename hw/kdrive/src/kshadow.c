@@ -30,6 +30,8 @@ KdShadowScreenInit (KdScreenInfo *screen)
     void    *buf;
 
     buf = shadowAlloc (screen->width, screen->height, screen->fb[0].bitsPerPixel);
+    if (!buf)
+	return FALSE;
     screen->fb[0].frameBuffer = buf;
     screen->fb[0].byteStride = BitmapBytePad (screen->width * screen->fb[0].bitsPerPixel);
     screen->fb[0].pixelStride = screen->fb[0].byteStride * 8 / screen->fb[0].bitsPerPixel;
@@ -43,4 +45,11 @@ KdShadowInitScreen (ScreenPtr pScreen, ShadowUpdateProc update, ShadowWindowProc
     KdScreenPriv(pScreen);
 
     return shadowInit (pScreen, update, window);
+}
+
+void
+KdShadowScreenFini (KdScreenInfo *screen)
+{
+    if (screen->fb[0].frameBuffer)
+	xfree (screen->fb[0].frameBuffer);
 }

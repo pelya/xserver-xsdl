@@ -286,6 +286,9 @@ tridentScreenFini (KdScreenInfo *screen)
 {
     TridentScreenInfo	*tridents = (TridentScreenInfo *) screen->driver;
 
+#ifdef VESA
+    vesaScreenFini (screen);
+#endif
     xfree (tridents);
     screen->driver = 0;
 }

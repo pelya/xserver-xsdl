@@ -136,13 +136,14 @@ fbdevScreenInitialize (KdScreenInfo *screen, FbdevScrPriv *scrpriv)
 	priv->var.bits_per_pixel == 16)
     {
 	fake24 = TRUE;
+	scrpriv->shadow = TRUE;
+	scrpriv->rotate = FALSE;
 	screen->fb[0].redMask = 0xff0000;
 	screen->fb[0].greenMask = 0x00ff00;
 	screen->fb[0].blueMask = 0x0000ff;
 	screen->width = priv->var.xres;
 	screen->height = priv->var.yres;
 	screen->softCursor = TRUE;
-	return KdShadowScreenInit (screen);
     }
     else
 #endif
@@ -164,9 +165,13 @@ fbdevScreenInitialize (KdScreenInfo *screen, FbdevScrPriv *scrpriv)
 	    screen->width = priv->var.yres;
 	    screen->height = priv->var.xres;
 	    screen->softCursor = TRUE;
-	    return KdShadowScreenInit (screen);
 	}
     }
+    if (scrpriv->rotate)
+	scrpriv->shadow = TRUE;
+    if (scrpriv->shadow)
+	return KdShadowScreenInit (screen);
+    return TRUE;
 }
 
 Bool
@@ -293,23 +298,30 @@ fbdevInitScreen (ScreenPtr pScreen)
     ShadowUpdateProc	update;
     ShadowWindowProc	window;
 
+    if (scrpriv->shadow)
+    {
+        window = fbdevWindowLinear;
 #ifdef FAKE24_ON_16
-    if (pScreenPriv->screen->fb[0].bitsPerPixel == 24 && priv->var.bits_per_pixel == 16)
-    {
-	return KdShadowInitScreen (pScreen, fbdevUpdateFake24, fbdevWindowLinear);
-    }
-    else
+	if (pScreenPriv->screen->fb[0].bitsPerPixel == 24 && priv->var.bits_per_pixel == 16)
+	{
+	    update = fbdevUpdateFake24;
+	}
+	else
 #endif /* FAKE24_ON_16 */
-    if (scrpriv->rotate)
-    {
-	window = fbdevWindowLinear;
-	switch (pScreenPriv->screen->fb[0].bitsPerPixel) {
-	case 8:
-	    update = shadowUpdateRotate8; break;
-	case 16:
-	    update = shadowUpdateRotate16; break;
-	case 32:
-	    update = shadowUpdateRotate32; break;
+	{
+	    update = shadowUpdatePacked;
+	    if (scrpriv->rotate)
+	    {
+		window = fbdevWindowLinear;
+		switch (pScreenPriv->screen->fb[0].bitsPerPixel) {
+		case 8:
+		    update = shadowUpdateRotate8; break;
+		case 16:
+		    update = shadowUpdateRotate16; break;
+		case 32:
+		    update = shadowUpdateRotate32; break;
+		}
+	    }
 	}
 	return KdShadowInitScreen (pScreen, update, window);
     }
@@ -405,6 +417,10 @@ fbdevRestore (KdCardInfo *card)
 void
 fbdevScreenFini (KdScreenInfo *screen)
 {
+    FbdevScrPriv	*scrpriv = screen->driver;
+    
+    if (scrpriv->shadow)
+	KdShadowScreenFini (screen);
 }
 
 void

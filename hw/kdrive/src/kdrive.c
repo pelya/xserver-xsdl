@@ -633,11 +633,6 @@ KdScreenInit(int index, ScreenPtr pScreen, int argc, char **argv)
     pScreen->SaveScreen		= KdSaveScreen;
     pScreen->CreateWindow	= KdCreateWindow;
 
-#ifdef RENDER
-    if (!fbPictureInit (pScreen, 0, 0))
-	return FALSE;
-#endif
-    
 #ifdef FB_OLD_SCREEN
     pScreenPriv->BackingStoreFuncs.SaveAreas = fbSaveAreas;
     pScreenPriv->BackingStoreFuncs.RestoreAreas = fbSaveAreas;
@@ -684,6 +679,11 @@ KdScreenInit(int index, ScreenPtr pScreen, int argc, char **argv)
      */
     pScreen->BlockHandler	= KdBlockHandler;
     pScreen->WakeupHandler	= KdWakeupHandler;
+    
+#ifdef RENDER
+    if (!fbPictureInit (pScreen, 0, 0))
+	return FALSE;
+#endif
     
     if (card->cfuncs->initScreen)
 	if (!(*card->cfuncs->initScreen) (pScreen))
