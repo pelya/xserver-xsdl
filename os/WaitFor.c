@@ -76,6 +76,23 @@ SOFTWARE.
 #include "dpmsproc.h"
 #endif
 
+#ifdef WIN32
+/* Error codes from windows sockets differ from fileio error codes  */
+#undef EINTR
+#define EINTR WSAEINTR
+#undef EINVAL
+#define EINVAL WSAEINVAL
+#undef EBADF
+#define EBADF WSAENOTSOCK
+/* Windows select does not set errno. Use GetErrno as wrapper for 
+   WSAGetLastError */
+#define GetErrno WSAGetLastError
+#else
+/* This is just a fallback to errno to hide the differences between unix and
+   Windows in the code */
+#define GetErrno() errno
+#endif
+
 /* modifications by raphael */
 int
 mffs(fd_mask mask)
@@ -222,11 +239,7 @@ WaitForSomething(int *pClientsReady)
 	{
 	    i = Select (MaxClients, &LastSelectMask, NULL, NULL, wt);
 	}
-#ifndef WIN32
-	selecterr = errno;
-#else
-	selecterr = WSAGetLastError();
-#endif
+	selecterr = GetErrno();
 	WakeupHandler(i, (pointer)&LastSelectMask);
 #ifdef XTESTEXT1
 	if (playback_on) {
@@ -248,30 +261,18 @@ WaitForSomething(int *pClientsReady)
 		return 0;
 	    if (i < 0) 
 	    {
-#ifndef WIN32
 		if (selecterr == EBADF)    /* Some client disconnected */
-#else
-		if (selecterr == WSAENOTSOCK)    /* Some client disconnected */
-#endif
 		{
 		    CheckConnections ();
 		    if (! XFD_ANYSET (&AllClients))
 			return 0;
 		}
-#ifndef WIN32
 		else if (selecterr == EINVAL)
-#else
-		else if (selecterr == WSAEINVAL)
-#endif
 		{
 		    FatalError("WaitForSomething(): select: errno=%d\n",
 			selecterr);
             }
-#ifndef WIN32
 		else if (selecterr != EINTR)
-#else
-		else if (selecterr != WSAEINTR)
-#endif
 		{
 		    ErrorF("WaitForSomething(): select: errno=%d\n",
 			selecterr);
