@@ -162,9 +162,16 @@ fbdevScreenInitialize (KdScreenInfo *screen, FbdevScrPriv *scrpriv)
     
     if (!screen->width || !screen->height)
     {
-	screen->width = 1024;
-	screen->height = 768;
-	screen->rate = 72;
+	if (ioctl (priv->fd, FBIOGET_VSCREENINFO, &var) >= 0) {
+	    screen->width = var.xres;
+	    screen->height = var.yres;
+	}
+	else
+	{
+	    screen->width = 1024;
+	    screen->height = 768;
+	}
+	screen->rate = 75;
     }
     if (!screen->fb[0].depth)
 	screen->fb[0].depth = 16;
