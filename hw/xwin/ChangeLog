@@ -1,5 +1,10 @@
 2005-01-11  Alexander Gottwald  <ago at freedesktop dot org>
 
+	* XWin.man:
+	Document the -silent-dup-error switch
+
+2005-01-11  Alexander Gottwald  <ago at freedesktop dot org>
+
 	* winkeyhook.c:
 	Do not grab ALT-TAB when window is in multiwindow mode
 	

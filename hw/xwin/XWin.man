@@ -229,6 +229,9 @@ The \fIAlt-F4\fP key combination is enabled by default.
 .TP 8
 .B \-swcursor
 Disable the usage of the windows cursor and use the X11 software cursor instead.
+.B \-silent-dup-error
+If another instance of XWin is found running, exit silently and don't display 
+the error messge.
 .TP 8
 .B "\-xkblayout \fIlayout\fP"
 .TP 8
