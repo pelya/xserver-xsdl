@@ -1347,14 +1347,30 @@ KdEnqueueKeyboardEvent(unsigned char	scan_code,
  * passed off to MI for enqueueing.
  */
 
-static int
-KdMouseAccelerate (DeviceIntPtr	device, int delta)
+static void
+KdMouseAccelerate (DeviceIntPtr	device, int *dx, int *dy)
 {
     PtrCtrl *pCtrl = &device->ptrfeed->ctrl;
+    double  speed = sqrt (*dx * *dx + *dy * *dy);
+    double  accel;
+    double  m;
 
-    if (abs(delta) > pCtrl->threshold)
-	delta = (delta * pCtrl->num) / pCtrl->den;
-    return delta;
+    /*
+     * Ok, so we want it moving num/den times faster at threshold*2
+     *
+     * accel = m *threshold + b
+     * 1 = m * 0 + b	-> b = 1
+     *
+     * num/den = m * (threshold * 2) + 1
+     *
+     * num / den - 1 = m * threshold * 2
+     * (num / den - 1) / threshold * 2 = m
+     */
+    m = (((double) pCtrl->num / (double) pCtrl->den - 1.0) / 
+	 ((double) pCtrl->threshold * 2.0));
+    accel = m * speed + 1;
+    *dx = accel * *dx;
+    *dy = accel * *dy;
 }
 
 void
@@ -1385,8 +1401,7 @@ KdEnqueueMouseEvent(KdMouseInfo *mi, unsigned long flags, int rx, int ry)
 	    x = rx;
 	    y = ry;
 	}
-	x = KdMouseAccelerate (pKdPointer, x);
-	y = KdMouseAccelerate (pKdPointer, y);
+	KdMouseAccelerate (pKdPointer, &x, &y);
 	xE.u.keyButtonPointer.pad1 = 1;
     }
     else
