@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/linux/lnx_kbd.c,v 1.3 2003/08/19 17:32:34 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/linux/lnx_kbd.c,v 1.4 2003/11/03 05:11:52 tsi Exp $ */
 
 /*
  * Copyright (c) 2002 by The XFree86 Project, Inc.
@@ -27,7 +27,7 @@
 
 static KbdProtocolRec protocols[] = {
    {"standard", PROT_STD },
-   { NULL, PROT_UNKNOWN }
+   { NULL, PROT_UNKNOWN_KBD }
 };
 
 extern Bool VTSwitchEnabled;
@@ -117,7 +117,7 @@ KDKBDREP_ioctl_ok(int rate, int delay) {
    /* don't change, just test */
    kbdrep_s.rate = -1;
    kbdrep_s.delay = -1;
-   if (ioctl( 0, KDKBDREP, &kbdrep_s )) {
+   if (ioctl( xf86Info.consoleFd, KDKBDREP, &kbdrep_s )) {
        return 0;
    }
 
@@ -132,8 +132,8 @@ KDKBDREP_ioctl_ok(int rate, int delay) {
    if (kbdrep_s.delay < 1)
      kbdrep_s.delay = 1;
    
-   if (ioctl( 0, KDKBDREP, &kbdrep_s )) {
-     return 0;
+   if (ioctl( xf86Info.consoleFd, KDKBDREP, &kbdrep_s )) {
+       return 0;
    }
 
    return 1;			/* success! */
@@ -157,8 +157,9 @@ KIOCSRATE_ioctl_ok(int rate, int delay) {
    if (kbdrate_s.rate > 50)
      kbdrate_s.rate = 50;
 
-   if (ioctl( fd, KIOCSRATE, &kbdrate_s ))
-     return 0;
+   if (ioctl( fd, KIOCSRATE, &kbdrate_s )) {
+       return 0;
+   }
 
    close( fd );
 
@@ -355,7 +356,7 @@ Bool SpecialKey(InputInfoPtr pInfo, int key, Bool down, int modifiers)
 
   if ((ModifierSet(ControlMask | AltMask)) ||
       (ModifierSet(ControlMask | AltLangMask))) {
-      if (VTSwitchEnabled && !xf86Info.vtSysreq) {
+      if (VTSwitchEnabled && !xf86Info.vtSysreq && !xf86Info.dontVTSwitch) {
           switch (key) {
              case KEY_F1:
              case KEY_F2:
@@ -381,7 +382,7 @@ Bool SpecialKey(InputInfoPtr pInfo, int key, Bool down, int modifiers)
       }
   }
 #ifdef USE_VT_SYSREQ
-    if (VTSwitchEnabled && xf86Info.vtSysreq) {
+    if (VTSwitchEnabled && xf86Info.vtSysreq && !xf86Info.dontVTSwitch) {
         switch (key) {
             case KEY_F1:
             case KEY_F2:
@@ -446,7 +447,7 @@ OpenKeyboard(InputInfoPtr pInfo)
 {
     KbdDevPtr pKbd = (KbdDevPtr) pInfo->private;
     int i;
-    KbdProtocolId prot = PROT_UNKNOWN;
+    KbdProtocolId prot = PROT_UNKNOWN_KBD;
     char *s;
 
     s = xf86SetStrOption(pInfo->options, "Protocol", NULL);
