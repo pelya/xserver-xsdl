@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/kinput.c,v 1.9 2000/10/06 22:05:53 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/kinput.c,v 1.10 2000/10/08 02:08:39 keithp Exp $ */
 
 #include "kdrive.h"
 #include "inputstr.h"
@@ -1069,16 +1069,16 @@ KdReleaseAllKeys (void)
     xEvent  xE;
     int	    key;
 
+    KdBlockSigio ();
     for (key = 0; key < KD_KEY_COUNT; key++)
 	if (IsKeyDown(key))
 	{
 	    xE.u.keyButtonPointer.time = GetTimeInMillis();
 	    xE.u.u.type = KeyRelease;
 	    xE.u.u.detail = key;
-	    KdBlockSigio ();
 	    KdHandleKeyboardEvent (&xE);
-	    KdUnblockSigio ();
 	}
+    KdUnblockSigio ();
 }
 
 void
@@ -1155,15 +1155,20 @@ KdEnqueueKeyboardEvent(unsigned char	scan_code,
 	    {
 		return;
 	    }
-	}
-#if 0
-	if (xE.u.u.type == KeyRelease && !IsKeyDown (key_code))
-	{
-	    xE.u.u.type = KeyPress;
-	    KdHandleKeyboardEvent (&xE);
+	    /*
+	     * X delivers press/release even for autorepeat
+	     */
 	    xE.u.u.type = KeyRelease;
+	    KdHandleKeyboardEvent (&xE);
+	    xE.u.u.type = KeyPress;
 	}
-#endif
+	/*
+	 * Check released keys which are already up
+	 */
+	else if (!IsKeyDown (key_code) && xE.u.u.type == KeyRelease)
+	{
+	    return;
+	}
 	KdCheckSpecialKeys (&xE);
 	KdHandleKeyboardEvent (&xE);
     }
