@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/Xext/xvdisp.c,v 1.1.4.2 2003/12/18 19:29:12 kaleb Exp $ */
+/* $XdotOrg: xc/programs/Xserver/Xext/xvdisp.c,v 1.1.4.3 2004/02/25 21:46:33 kaleb Exp $ */
 /***********************************************************
 Copyright 1991 by Digital Equipment Corporation, Maynard, Massachusetts,
 and the Massachusetts Institute of Technology, Cambridge, Massachusetts.
@@ -1942,8 +1942,7 @@ XineramaXvShmPutImage(ClientPtr client)
                 client, stuff->port, XvXRTPort, SecurityReadAccess)))
         return _XvBadPort;
  
-    isRoot = (draw->type == XRT_WINDOW) && 
-		(stuff->drawable == WindowTable[0]->drawable.id);
+    isRoot = (draw->type == XRT_WINDOW) && draw->u.win.root;
 
     x = stuff->drw_x;
     y = stuff->drw_y;
@@ -1990,8 +1989,7 @@ XineramaXvPutImage(ClientPtr client)
 		client, stuff->port, XvXRTPort, SecurityReadAccess)))
 	return _XvBadPort;
  
-    isRoot = (draw->type == XRT_WINDOW) &&
-		(stuff->drawable == WindowTable[0]->drawable.id);
+    isRoot = (draw->type == XRT_WINDOW) && draw->u.win.root;
 
     x = stuff->drw_x;
     y = stuff->drw_y;
@@ -2036,8 +2034,7 @@ XineramaXvPutVideo(ClientPtr client)
                 client, stuff->port, XvXRTPort, SecurityReadAccess)))
         return _XvBadPort;
 
-    isRoot = (draw->type == XRT_WINDOW) &&
-		(stuff->drawable == WindowTable[0]->drawable.id);
+    isRoot = (draw->type == XRT_WINDOW) && draw->u.win.root;
 
     x = stuff->drw_x;
     y = stuff->drw_y;

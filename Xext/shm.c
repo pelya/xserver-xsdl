@@ -1,5 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/Xext/shm.c,v 1.1.4.4 2003/12/20 00:28:24 kaleb Exp $ */
-/* $XFree86: xc/programs/Xserver/Xext/shm.c,v 3.42 2003/12/18 10:15:24 alanh Exp $ *
+/* $XFree86: xc/programs/Xserver/Xext/shm.c,v 3.42 2003/12/18 10:15:24 alanh Exp $ */
 /************************************************************
 
 Copyright 1989, 1998  The Open Group
@@ -580,8 +579,7 @@ ProcXineramaShmPutImage(register ClientPtr client)
                 client, stuff->gc, XRT_GC, SecurityReadAccess)))
         return BadGC;
 
-    isRoot = (draw->type == XRT_WINDOW) && 
-		(stuff->drawable == WindowTable[0]->drawable.id);
+    isRoot = (draw->type == XRT_WINDOW) && draw->u.win.root;
 
     orig_x = stuff->dstX;
     orig_y = stuff->dstY;
@@ -641,8 +639,7 @@ ProcXineramaShmGetImage(ClientPtr client)
     format = stuff->format;
     planemask = stuff->planeMask;
 
-    isRoot = (draw->type == XRT_WINDOW) &&
-		(stuff->drawable == WindowTable[0]->drawable.id);
+    isRoot = (draw->type == XRT_WINDOW) && draw->u.win.root;
 
     if(isRoot) {
       if( /* check for being onscreen */
