@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/dix/events.c,v 1.3 2004/06/30 20:06:53 kem Exp $ */
+/* $XdotOrg: xc/programs/Xserver/dix/events.c,v 1.4 2004/07/29 18:43:58 stukreit Exp $ */
 /* $XFree86: xc/programs/Xserver/dix/events.c,v 3.51 2004/01/12 17:04:52 tsi Exp $ */
 /************************************************************
 
@@ -106,6 +106,19 @@ extern Bool XkbFilterEvents(ClientPtr, int, xEvent *);
 #include "security.h"
 #endif
 
+extern WindowPtr *WindowTable;
+extern int       xevieFlag;
+extern int       xevieClientIndex;
+extern DeviceIntPtr     xeviemouse;
+extern DeviceIntPtr     xeviekb;
+extern Mask      xevieMask;
+extern Mask      xevieFilters[128];
+extern int       xevieEventSent;
+extern int       xevieKBEventSent;
+int    xeviegrabState = 0;
+xEvent *xeviexE;
+
+
 #include "XIproto.h"
 #include "exevents.h"
 #include "extnsionst.h"
@@ -201,6 +214,8 @@ static  struct {
     WindowPtr	confineWin;	/* confine window */ 
 #endif
 } sprite;			/* info about the cursor sprite */
+WindowPtr xeviewin;
+HotSpot xeviehot;
 
 static void DoEnterLeaveEvents(
     WindowPtr /*fromWin*/,
@@ -2673,6 +2688,51 @@ ProcessKeyboardEvent (xE, keybd, count)
     GrabPtr         grab = keybd->grab;
     Bool            deactivateGrab = FALSE;
     register KeyClassPtr keyc = keybd->key;
+    static Window           rootWin = 0;
+
+    if(!xeviegrabState && xevieFlag && clients[xevieClientIndex] &&
+          (xevieMask & xevieFilters[xE->u.u.type])) {
+      key = xE->u.u.detail;
+      kptr = &keyc->down[key >> 3];
+      bit = 1 << (key & 7);
+      if((xE->u.u.type == KeyPress &&  (*kptr & bit)) ||
+         (xE->u.u.type == KeyRelease && !(*kptr & bit)))
+      {} else {
+#ifdef XKB
+        if(!noXkbExtension)
+          xevieKBEventSent = 0;
+#endif
+        if(!xevieKBEventSent)
+        {
+          xeviekb = keybd;
+          if(!rootWin) {
+            WindowPtr pWin = xeviewin->parent;
+            while(pWin) {
+              if(!pWin->parent) {
+                rootWin = pWin->drawable.id;
+                break;
+              }
+              pWin = pWin->parent;
+            };
+          }
+          xE->u.keyButtonPointer.event = xeviewin->drawable.id;
+          xE->u.keyButtonPointer.root = rootWin;
+          xE->u.keyButtonPointer.child = (xeviewin->firstChild) ? xeviewin->firstChild->
+drawable.id:0;
+          xE->u.keyButtonPointer.rootX = xeviehot.x;
+          xE->u.keyButtonPointer.rootY = xeviehot.y;
+          xE->u.keyButtonPointer.state = keyc->state;
+          WriteToClient(clients[xevieClientIndex], sizeof(xEvent), (char *)xE);
+#ifdef XKB
+          if(noXkbExtension)
+#endif
+            return;
+        }else {
+          xevieKBEventSent = 0;
+        }
+      }
+    }
+
 
     if (!syncEvents.playingEvents)
     {
@@ -2818,6 +2878,16 @@ ProcessPointerEvent (xE, mouse, count)
 #ifdef XKB
     XkbSrvInfoPtr xkbi= inputInfo.keyboard->key->xkbInfo;
 #endif
+    if(xevieFlag && clients[xevieClientIndex] && !xeviegrabState &&
+       (xevieMask & xevieFilters[xE->u.u.type])) {
+      if(xevieEventSent)
+        xevieEventSent = 0;
+      else {
+        xeviemouse = mouse;
+        WriteToClient(clients[xevieClientIndex], sizeof(xEvent), (char *)xE);
+        return;
+      }
+    }
 
     if (!syncEvents.playingEvents)
 	NoticeTime(xE)
