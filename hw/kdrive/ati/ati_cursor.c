@@ -519,9 +519,6 @@ ATICursorInit(ScreenPtr pScreen)
 
 	pCurPriv->has_cursor = FALSE;
 
-	if (pCurPriv->area == NULL)
-		return FALSE;
-
 	if (atic->reg_base == NULL)
 		return FALSE;
 
@@ -544,7 +541,7 @@ ATIRecolorCursor (ScreenPtr pScreen, int ndef, xColorItem *pdef)
 	if (!atic->is_radeon)
 		ClassicRecolorCursor (pScreen, ndef, pdef);
 }
-	
+
 void  
 ATICursorFini(ScreenPtr pScreen)
 {
