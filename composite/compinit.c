@@ -26,7 +26,6 @@
 #include <config.h>
 #endif
 #include "compint.h"
-#include "cw.h"
 
 int	CompScreenPrivateIndex;
 int	CompWindowPrivateIndex;
@@ -361,8 +360,6 @@ compScreenInit (ScreenPtr pScreen)
 
     cs->CloseScreen = pScreen->CloseScreen;
     pScreen->CloseScreen = compCloseScreen;
-
-    miInitializeCompositeWrapper(pScreen);
 
     pScreen->devPrivates[CompScreenPrivateIndex].ptr = (pointer) cs;
     return TRUE;
