@@ -245,8 +245,14 @@ extern fd_set ClientsWithInput;
 extern fd_set ClientsWriteBlocked;
 extern fd_set OutputPending;
 extern fd_set IgnoredClientsWithInput;
- 
+
+#ifndef WIN32
 extern int *ConnectionTranslation;
+#else
+extern int GetConnectionTranslation(int conn);
+extern void SetConnectionTranslation(int conn, int client);
+extern void ClearConnectionTranslation();
+#endif
  
 extern Bool NewOutputPending;
 extern Bool AnyClientsWriteBlocked;

@@ -864,7 +864,7 @@ FlushAllOutput(void)
     for (base = 0; base < XFD_SETCOUNT(&OutputPending); base++)
     {
 	    index = XFD_FD(&OutputPending, base);
-	    if ((index = ConnectionTranslation[index]) == 0)
+	    if ((index = GetConnectionTranslation(index)) == 0)
 		continue;
 	    client = clients[index];
 	    if (client->clientGone)

@@ -376,7 +376,7 @@ WaitForSomething(int *pClientsReady)
 	    int client_priority, client_index;
 
 	    curclient = XFD_FD(&savedClientsReadable, i);
-	    client_index = ConnectionTranslation[curclient];
+	    client_index = GetConnectionTranslation(curclient);
 #endif
 #ifdef XSYNC
 		/*  We implement "strict" priorities.

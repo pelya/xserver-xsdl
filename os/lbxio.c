@@ -100,8 +100,12 @@ void
 SwitchClientInput (ClientPtr client, Bool pending)
 {
     OsCommPtr oc = (OsCommPtr)client->osPrivate;
-    
+
+#ifndef WIN32    
     ConnectionTranslation[oc->fd] = client->index;
+#else
+    SetConnectionTranslation(oc->fd, client->index);
+#endif
     if (pending)
 	FD_SET(oc->fd, &ClientsWithInput);
     else
