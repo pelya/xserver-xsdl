@@ -35,7 +35,7 @@ of the copyright holder.
 
 */
 
-/* $XFree86: xc/programs/Xserver/hw/kdrive/kxv.c,v 1.2 2001/07/20 19:35:29 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/kxv.c,v 1.3 2001/08/09 09:08:54 keithp Exp $ */
 
 #include "kdrive.h"
 
@@ -197,7 +197,7 @@ KdXVScreenInit(
 	KdXVGeneration = serverGeneration;
   }
 
-  if(!AllocateWindowPrivate(pScreen,KdXVWindowIndex,sizeof(KdXVWindowRec)))
+  if(!AllocateWindowPrivate(pScreen,KdXVWindowIndex,0))
         return FALSE;
 
   if(!XvGetScreenIndexProc || !XvGetRTPortProc || !XvScreenInitProc)
@@ -901,7 +901,12 @@ CLIP_VIDEO_BAILOUT:
 static int
 KdXVReputAllVideo(WindowPtr pWin, pointer data)
 {
-    KdXVWindowPtr WinPriv = GET_KDXV_WINDOW(pWin);
+    KdXVWindowPtr WinPriv;
+    
+    if (pWin->drawable.type != DRAWABLE_WINDOW)
+	return WT_DONTWALKCHILDREN;
+    
+    WinPriv = GET_KDXV_WINDOW(pWin);
 
     while(WinPriv) {
 	if(WinPriv->PortRec->type == XvInputMask)
