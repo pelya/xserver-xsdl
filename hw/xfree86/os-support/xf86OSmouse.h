@@ -254,7 +254,7 @@ typedef struct _MouseDevRec {
     CARD32		emulate3Expires;/* time to fire emulation code */
     Bool		emulateWheel;
     int			wheelInertia;
-    int			wheelButtonMask;
+    int			wheelButton;
     int			negativeX;	/* Button values.  Unlike the Z and */
     int			positiveX;	/* W equivalents, these are button  */
     int			negativeY;	/* values rather than button masks. */
@@ -269,6 +269,12 @@ typedef struct _MouseDevRec {
     int			angleOffset;
     pointer		pDragLock;	/* drag lock area */
     int			xisbscale;	/* buffer size for 1 event */
+    int			wheelButtonTimeout;/* Timeout for the wheel button emulation */
+    CARD32		wheelButtonExpires;
+    int			doubleClickSourceButtonMask;
+    int			doubleClickTargetButton;
+    int			doubleClickTargetButtonMask;
+    int			doubleClickOldSourceState;
 } MouseDevRec, *MouseDevPtr;
 
 /* Z axis mapping */
