@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/mi/miinitext.c,v 1.2 2004/04/23 19:54:26 eich Exp $ */
+/* $XdotOrg: xc/programs/Xserver/mi/miinitext.c,v 1.3 2004/04/26 11:07:03 gisburn Exp $ */
 /* $XFree86: xc/programs/Xserver/mi/miinitext.c,v 3.67 2003/01/12 02:44:27 dawes Exp $ */
 /***********************************************************
 
@@ -91,6 +91,10 @@ extern Bool noPanoramiXExtension;
 extern Bool noTestExtensions;
 #ifdef XKB
 extern Bool noXkbExtension;
+#endif
+
+#ifdef DMXSERVER
+extern Bool dmxNoRender;
 #endif
 
 #ifndef XFree86LOADER
@@ -261,6 +265,9 @@ extern void RRExtensionInit(INITARGS);
 #ifdef RES
 extern void ResExtensionInit(INITARGS);
 #endif
+#ifdef DMXEXT
+extern void DMXExtensionInit(INITARGS);
+#endif
 
 #ifndef XFree86LOADER
 
@@ -390,6 +397,9 @@ InitExtensions(argc, argv)
 #endif
 #endif
 #ifdef RENDER
+#ifdef DMXSERVER
+    if (!dmxNoRender)
+#endif
     RenderExtensionInit();
 #endif
 #ifdef RANDR
@@ -397,6 +407,9 @@ InitExtensions(argc, argv)
 #endif
 #ifdef RES
     ResExtensionInit();
+#endif
+#ifdef DMXEXT
+    DMXExtensionInit();
 #endif
 }
 
@@ -468,6 +481,7 @@ ExtensionModule extension[] =
     { NULL, "RENDER", NULL, NULL },
     { NULL, "RANDR", NULL, NULL },
     { NULL, "X-Resource", NULL, NULL },
+    { NULL, "DMX", NULL, NULL },
     { NULL, NULL, NULL, NULL }
 };
 #endif

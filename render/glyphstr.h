@@ -68,7 +68,19 @@ typedef struct _GlyphSet {
     PictFormatPtr   format;
     int		    fdepth;
     GlyphHashRec    hash;
+    int             maxPrivate;
+    pointer         *devPrivates;
 } GlyphSetRec, *GlyphSetPtr;
+
+#define GlyphSetGetPrivate(pGlyphSet,n)					\
+	((n) > (pGlyphSet)->maxPrivate ?				\
+	 (pointer) 0 :							\
+	 (pGlyphSet)->devPrivates[n])
+
+#define GlyphSetSetPrivate(pGlyphSet,n,ptr)				\
+	((n) > (pGlyphSet)->maxPrivate ?				\
+	 _GlyphSetSetNewPrivate(pGlyphSet, n, ptr) :			\
+	 ((((pGlyphSet)->devPrivates[n] = (ptr)) != 0) || TRUE))
 
 typedef struct _GlyphList {
     INT16	    xOff;
@@ -81,6 +93,15 @@ extern GlyphHashRec	globalGlyphs[GlyphFormatNum];
 
 GlyphHashSetPtr
 FindGlyphHashSet (CARD32 filled);
+
+int
+AllocateGlyphSetPrivateIndex (void);
+
+void
+ResetGlyphSetPrivateIndex (void);
+
+Bool
+_GlyphSetSetNewPrivate (GlyphSetPtr glyphSet, int n, pointer ptr);
 
 Bool
 GlyphInit (ScreenPtr pScreen);

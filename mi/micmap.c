@@ -530,6 +530,7 @@ miDoInitVisuals(VisualPtr *visualp, DepthPtr *depthp, int *nvisualp,
     int		vtype;
     miVisualsPtr   visuals, nextVisuals;
     int		*preferredCVCs, *prefp;
+    int		first_depth;
 
     /* none specified, we'll guess from pixmap formats */
     if (!miVisuals) 
@@ -627,7 +628,24 @@ miDoInitVisuals(VisualPtr *visualp, DepthPtr *depthp, int *nvisualp,
     miVisuals = NULL;
     visual = *visualp;
     depth = *depthp;
-    for (i = 0; i < ndepth; i++)
+
+    /*
+     * if we did not supplyied by a preferred visual class
+     * check if there is a preferred class in one of the depth
+     * structures - if there is, we want to start looking for the
+     * default visual/depth from that depth.
+     */
+    first_depth = 0;
+    if (preferredVis < 0 && defaultColorVisualClass < 0 ) {
+       for (i = 0; i < ndepth; i++) {
+	  if (preferredCVCs[i] >= 0) {
+	     first_depth = i;
+	     break;
+	  }
+       }
+    }
+
+    for (i = first_depth; i < ndepth; i++)
     {
 	int prefColorVisualClass = -1;
 

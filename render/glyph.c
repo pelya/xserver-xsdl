@@ -89,6 +89,50 @@ FindGlyphHashSet (CARD32 filled)
     return 0;
 }
 
+static int _GlyphSetPrivateAllocateIndex = 0;
+
+int
+AllocateGlyphSetPrivateIndex (void)
+{
+    return _GlyphSetPrivateAllocateIndex++;
+}
+
+void
+ResetGlyphSetPrivateIndex (void)
+{
+    _GlyphSetPrivateAllocateIndex = 0;
+}
+
+Bool
+_GlyphSetSetNewPrivate (GlyphSetPtr glyphSet, int n, pointer ptr)
+{
+    pointer *new;
+
+    if (n > glyphSet->maxPrivate) {
+	if (glyphSet->devPrivates &&
+	    glyphSet->devPrivates != (pointer)(&glyphSet[1])) {
+	    new = (pointer *) xrealloc (glyphSet->devPrivates,
+					(n + 1) * sizeof (pointer));
+	    if (!new)
+		return FALSE;
+	} else {
+	    new = (pointer *) xalloc ((n + 1) * sizeof (pointer));
+	    if (!new)
+		return FALSE;
+	    if (glyphSet->devPrivates)
+		memcpy (new,
+			glyphSet->devPrivates,
+			(glyphSet->maxPrivate + 1) * sizeof (pointer));
+	}
+	glyphSet->devPrivates = new;
+	/* Zero out new, uninitialize privates */
+	while (++glyphSet->maxPrivate < n)
+	    glyphSet->devPrivates[glyphSet->maxPrivate] = (pointer)0;
+    }
+    glyphSet->devPrivates[n] = ptr;
+    return TRUE;
+}
+
 Bool
 GlyphInit (ScreenPtr pScreen)
 {
@@ -363,15 +407,24 @@ GlyphSetPtr
 AllocateGlyphSet (int fdepth, PictFormatPtr format)
 {
     GlyphSetPtr	glyphSet;
+    int size;
     
     if (!globalGlyphs[fdepth].hashSet)
     {
 	if (!AllocateGlyphHash (&globalGlyphs[fdepth], &glyphHashSets[0]))
 	    return FALSE;
     }
-    glyphSet = xalloc (sizeof (GlyphSetRec));
+
+    size = (sizeof (GlyphSetRec) +
+	    (sizeof (pointer) * _GlyphSetPrivateAllocateIndex));
+    glyphSet = xalloc (size);
     if (!glyphSet)
 	return FALSE;
+    bzero((char *)glyphSet, size);
+    glyphSet->maxPrivate = _GlyphSetPrivateAllocateIndex - 1;
+    if (_GlyphSetPrivateAllocateIndex)
+	glyphSet->devPrivates = (pointer)(&glyphSet[1]);
+
     if (!AllocateGlyphHash (&glyphSet->hash, &glyphHashSets[0]))
     {
 	xfree (glyphSet);
@@ -410,6 +463,11 @@ FreeGlyphSet (pointer	value,
 	else
 	    ResizeGlyphHash (&globalGlyphs[glyphSet->fdepth], 0, TRUE);
 	xfree (table);
+
+	if (glyphSet->devPrivates &&
+	    glyphSet->devPrivates != (pointer)(&glyphSet[1]))
+	    xfree(glyphSet->devPrivates);
+
 	xfree (glyphSet);
     }
     return Success;

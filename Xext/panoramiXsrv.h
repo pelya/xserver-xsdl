@@ -20,6 +20,8 @@ extern WindowPtr PanoramiXChangeWindow(int, WindowPtr);
 extern Bool XineramaRegisterConnectionBlockCallback(void (*func)(void));
 extern int XineramaDeleteResource(pointer, XID);
 
+extern void XineramaReinitData(ScreenPtr);
+
 extern RegionRec XineramaScreenRegions[MAXSCREENS];
 
 extern unsigned long XRC_DRAWABLE;

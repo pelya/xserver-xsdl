@@ -53,6 +53,12 @@ Equipment Corporation.
 #include "modinit.h"
 
 
+#ifdef GLXPROXY
+extern VisualPtr glxMatchVisual(ScreenPtr pScreen,
+				VisualPtr pVisual,
+				ScreenPtr pMatchScreen);
+#endif
+
 #if 0
 static unsigned char PanoramiXReqCode = 0;
 #endif
@@ -416,6 +422,56 @@ XineramaRegisterConnectionBlockCallback(void (*func)(void))
     return TRUE;
 }
 
+static void XineramaInitData(ScreenPtr pScreen)
+{
+    int i, w, h;
+
+    REGION_NULL(pScreen, &PanoramiXScreenRegion)
+    for (i = 0; i < PanoramiXNumScreens; i++) {
+	BoxRec TheBox;
+
+        pScreen = screenInfo.screens[i];
+
+	panoramiXdataPtr[i].x = dixScreenOrigins[i].x;
+	panoramiXdataPtr[i].y = dixScreenOrigins[i].y;
+	panoramiXdataPtr[i].width = pScreen->width;
+	panoramiXdataPtr[i].height = pScreen->height;
+
+	TheBox.x1 = panoramiXdataPtr[i].x;
+	TheBox.x2 = TheBox.x1 + panoramiXdataPtr[i].width;
+	TheBox.y1 = panoramiXdataPtr[i].y;
+	TheBox.y2 = TheBox.y1 + panoramiXdataPtr[i].height;
+
+	REGION_INIT(pScreen, &XineramaScreenRegions[i], &TheBox, 1);
+	REGION_UNION(pScreen, &PanoramiXScreenRegion, &PanoramiXScreenRegion,
+		     &XineramaScreenRegions[i]);
+    }
+
+    PanoramiXPixWidth = panoramiXdataPtr[0].x + panoramiXdataPtr[0].width;
+    PanoramiXPixHeight = panoramiXdataPtr[0].y + panoramiXdataPtr[0].height;
+
+    for (i = 1; i < PanoramiXNumScreens; i++) {
+	w = panoramiXdataPtr[i].x + panoramiXdataPtr[i].width;
+	h = panoramiXdataPtr[i].y + panoramiXdataPtr[i].height;
+
+	if (PanoramiXPixWidth < w)
+	    PanoramiXPixWidth = w;
+	if (PanoramiXPixHeight < h)
+	    PanoramiXPixHeight = h;
+    }
+}
+
+void XineramaReinitData(ScreenPtr pScreen)
+{
+    int i;
+
+    REGION_UNINIT(pScreen, &PanoramiXScreenRegion);
+    for (i = 0; i < PanoramiXNumScreens; i++)
+	REGION_UNINIT(pScreen, &XineramaScreenRegions[i]);
+
+    XineramaInitData(pScreen);
+}
+
 /*
  *	PanoramiXExtensionInit():
  *		Called from InitExtensions in main().  
@@ -430,8 +486,7 @@ void PanoramiXExtensionInit(int argc, char *argv[])
     ExtensionEntry 	*extEntry;
     ScreenPtr		pScreen = screenInfo.screens[0];
     PanoramiXScreenPtr	pScreenPriv;
-    int			w, h;
-    
+
     if (noPanoramiXExtension) 
 	return;
 
@@ -509,41 +564,7 @@ void PanoramiXExtensionInit(int argc, char *argv[])
 	return;
     }
   
-
-    REGION_NULL(pScreen, &PanoramiXScreenRegion);
-    for (i = 0; i < PanoramiXNumScreens; i++) {
-	BoxRec TheBox;
-
-	pScreen = screenInfo.screens[i];
-
-	panoramiXdataPtr[i].x = dixScreenOrigins[i].x;
-	panoramiXdataPtr[i].y = dixScreenOrigins[i].y;
-	panoramiXdataPtr[i].width = pScreen->width;
-	panoramiXdataPtr[i].height = pScreen->height;
-
-	TheBox.x1 = panoramiXdataPtr[i].x;
-	TheBox.x2 = TheBox.x1 + panoramiXdataPtr[i].width;
-	TheBox.y1 = panoramiXdataPtr[i].y;
-	TheBox.y2 = TheBox.y1 + panoramiXdataPtr[i].height;
-
-	REGION_INIT(pScreen, &XineramaScreenRegions[i], &TheBox, 1);
-	REGION_UNION(pScreen, &PanoramiXScreenRegion, &PanoramiXScreenRegion,
-						&XineramaScreenRegions[i]);
-    }
-    
-
-    PanoramiXPixWidth = panoramiXdataPtr[0].x + panoramiXdataPtr[0].width;	
-    PanoramiXPixHeight = panoramiXdataPtr[0].y + panoramiXdataPtr[0].height;
-
-    for (i = 1; i < PanoramiXNumScreens; i++) {
-	w = panoramiXdataPtr[i].x + panoramiXdataPtr[i].width;
-	h = panoramiXdataPtr[i].y + panoramiXdataPtr[i].height;
-
-	if(PanoramiXPixWidth < w) 
-	    PanoramiXPixWidth = w;	
-	if(PanoramiXPixHeight < h) 
-	    PanoramiXPixHeight = h;	
-    }
+    XineramaInitData(pScreen);
 
     /*
      *	Put our processes into the ProcVector
@@ -789,6 +810,18 @@ void PanoramiXConsolidate(void)
 	/* check if the visual exists on all screens */
 	for (j = 1; j < PanoramiXNumScreens; j++) {
 	    pScreen2 = screenInfo.screens[j];
+
+#ifdef GLXPROXY
+	    pVisual2 = glxMatchVisual(pScreen, pVisual, pScreen2);
+	    if (pVisual2) {
+		PanoramiXVisualTable[(pVisual->vid * MAXSCREENS) + j] =
+		    pVisual2->vid;
+		continue;
+	    } else if (glxMatchVisual(pScreen, pVisual, pScreen)) {
+		PanoramiXVisualTable[(pVisual->vid * MAXSCREENS) + j] = 0;
+		break;
+	    }
+#endif
 	    pVisual2 = pScreen2->visuals;
 
 	    for (k = 0; k < pScreen2->numVisuals; k++, pVisual2++) {

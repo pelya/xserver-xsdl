@@ -95,7 +95,7 @@ extern unsigned long serverGeneration;
 #define MAXCLIENTS	256
 #define MAXDITS		1
 #define MAXEXTENSIONS	128
-#define MAXFORMATS	8
+#define MAXFORMATS	14
 #define MAXVISUALS_PER_SCREEN 50
 
 typedef unsigned long PIXEL;

@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/dix/main.c,v 1.1.4.5.2.4.6.1 2004/04/20 03:27:08 gisburn Exp $ */
+/* $XdotOrg: xc/programs/Xserver/dix/main.c,v 1.2 2004/04/23 19:04:44 eich Exp $ */
 /* $XFree86: xc/programs/Xserver/dix/main.c,v 3.43 2003/10/30 21:21:02 herrb Exp $ */
 /***********************************************************
 
@@ -500,6 +500,21 @@ main(int argc, char *argv[], char *envp[])
     return(0);
 }
 
+static int  VendorRelease = VENDOR_RELEASE;
+static char *VendorString = VENDOR_STRING;
+
+void
+SetVendorRelease(int release)
+{
+    VendorRelease = release;
+}
+
+void
+SetVendorString(char *string)
+{
+    VendorString = string;
+}
+
 static int padlength[4] = {0, 3, 2, 1};
 
 #ifndef PANORAMIX
@@ -523,7 +538,7 @@ CreateConnectionBlock()
     /* Leave off the ridBase and ridMask, these must be sent with 
        connection */
 
-    setup.release = VENDOR_RELEASE;
+    setup.release = VendorRelease;
     /*
      * per-server image and bitmap parameters are defined in Xmd.h
      */
@@ -535,7 +550,7 @@ CreateConnectionBlock()
     setup.bitmapBitOrder = screenInfo.bitmapBitOrder;
     setup.motionBufferSize = NumMotionEvents();
     setup.numRoots = screenInfo.numScreens;
-    setup.nbytesVendor = strlen(VENDOR_STRING); 
+    setup.nbytesVendor = strlen(VendorString); 
     setup.numFormats = screenInfo.numPixmapFormats;
     setup.maxRequestSize = MAX_REQUEST_SIZE;
     QueryMinMaxKeyCodes(&setup.minKeyCode, &setup.maxKeyCode);
@@ -552,7 +567,7 @@ CreateConnectionBlock()
     sizesofar = sizeof(xConnSetup);
     pBuf = ConnectionInfo + sizeof(xConnSetup);
 
-    memmove(pBuf, VENDOR_STRING, (int)setup.nbytesVendor);
+    memmove(pBuf, VendorString, (int)setup.nbytesVendor);
     sizesofar += setup.nbytesVendor;
     pBuf += setup.nbytesVendor;
     i = padlength[setup.nbytesVendor & 3];

@@ -1,4 +1,4 @@
-/* $XdotOrg$ */
+/* $XdotOrg: xc/programs/Xserver/dix/events.c,v 1.2 2004/04/23 19:04:44 eich Exp $ */
 /* $XFree86: xc/programs/Xserver/dix/events.c,v 3.51 2004/01/12 17:04:52 tsi Exp $ */
 /************************************************************
 
@@ -2035,6 +2035,46 @@ WindowsRestructured()
 {
     (void) CheckMotion((xEvent *)NULL);
 }
+
+#ifdef PANORAMIX
+/* This was added to support reconfiguration under Xdmx.  The problem is
+ * that if the 0th screen (i.e., WindowTable[0]) is moved to an origin
+ * other than 0,0, the information in the private sprite structure must
+ * be updated accordingly, or XYToWindow (and other routines) will not
+ * compute correctly. */
+void ReinitializeRootWindow(WindowPtr win, int xoff, int yoff)
+{
+    ScreenPtr pScreen = win->drawable.pScreen;
+    GrabPtr   grab;
+
+    if (noPanoramiXExtension) return;
+    
+    sprite.hot.x        -= xoff;
+    sprite.hot.y        -= yoff;
+
+    sprite.hotPhys.x    -= xoff;
+    sprite.hotPhys.y    -= yoff;
+
+    sprite.hotLimits.x1 -= xoff; 
+    sprite.hotLimits.y1 -= yoff;
+    sprite.hotLimits.x2 -= xoff;
+    sprite.hotLimits.y2 -= yoff;
+
+    if (REGION_NOTEMPTY(sprite.screen, &sprite.Reg1))
+        REGION_TRANSLATE(sprite.screen, &sprite.Reg1,    xoff, yoff);
+    if (REGION_NOTEMPTY(sprite.screen, &sprite.Reg2))
+        REGION_TRANSLATE(sprite.screen, &sprite.Reg2,    xoff, yoff);
+
+    /* FIXME: if we call ConfineCursorToWindow, must we do anything else? */
+    if ((grab = inputInfo.pointer->grab) && grab->confineTo) {
+	if (grab->confineTo->drawable.pScreen != sprite.hotPhys.pScreen)
+	    sprite.hotPhys.x = sprite.hotPhys.y = 0;
+	ConfineCursorToWindow(grab->confineTo, TRUE, TRUE);
+    } else
+	ConfineCursorToWindow(WindowTable[sprite.hotPhys.pScreen->myNum],
+			      TRUE, FALSE);
+}
+#endif
 
 void
 DefineInitialRootWindow(win)

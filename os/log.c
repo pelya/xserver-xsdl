@@ -385,10 +385,10 @@ LogMessage(MessageType type, const char *format, ...)
 }
 
 #ifdef __GNUC__
-static void AbortServer(void) __attribute__((noreturn));
+void AbortServer(void) __attribute__((noreturn));
 #endif
 
-static void
+void
 AbortServer(void)
 {
     OsCleanup(TRUE);
