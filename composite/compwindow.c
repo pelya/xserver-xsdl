@@ -103,7 +103,10 @@ Bool
 compCheckRedirect (WindowPtr pWin)
 {
     CompWindowPtr   cw = GetCompWindow (pWin);
-    Bool	    should = pWin->viewable && (cw != NULL);
+    Bool	    should;
+
+    should = pWin->realized && (pWin->drawable.class != InputOnly) &&
+	     (cw != NULL);
     
     if (should != pWin->redirectDraw)
     {

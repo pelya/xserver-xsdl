@@ -75,8 +75,6 @@ typedef struct _CompSubwindows {
     CompClientWindowPtr	    clients;
 } CompSubwindowsRec, *CompSubwindowsPtr;
 
-extern int  CompPixmapPrivateIndex;
-
 #define NUM_COMP_ALTERNATE_VISUALS  2
 
 typedef struct _CompScreen {
