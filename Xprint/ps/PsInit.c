@@ -262,7 +262,7 @@ InitializePsDriver(ndx, pScreen, argc, argv)
   /* StaticGray, 1bit */
   visuals[nv].vid             = FakeClientID(0);
   visuals[nv].class           = StaticGray;
-  visuals[nv].bitsPerRGBValue = 8;
+  visuals[nv].bitsPerRGBValue = 1;
   visuals[nv].ColormapEntries = 2;
   visuals[nv].nplanes         = 1;
   visuals[nv].redMask         = 0x0;
