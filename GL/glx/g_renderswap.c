@@ -3364,3 +3364,15 @@ void __glXDispSwap_WindowPos3fARB(GLbyte *pc)
 		*(GLfloat *)(pc + 8)
 	);
 }
+
+void __glXDispSwap_SampleCoverageARB(GLbyte *pc)
+{
+	__GLX_DECLARE_SWAP_VARIABLES;
+	__GLX_SWAP_FLOAT(pc + 0);
+	__GLX_SWAP_INT(pc + 4);
+
+	glSampleCoverageARB(
+		*(GLfloat *)(pc + 0),
+		*(GLboolean *)(pc + 4)
+	);
+}

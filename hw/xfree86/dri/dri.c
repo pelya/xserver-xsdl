@@ -113,11 +113,14 @@ Bool
 DRIScreenInit(ScreenPtr pScreen, DRIInfoPtr pDRIInfo, int *pDRMFD)
 {
     DRIScreenPrivPtr    pDRIPriv;
-    drmContextPtr       reserved;
+    drm_context_t *       reserved;
     int                 reserved_count;
     int                 i, fd, drmWasAvailable;
     Bool                xineramaInCore = FALSE;
     int                 err = 0;
+    char                *openbusid;
+    drmVersionPtr       drmlibv;
+    int                 drmlibmajor, drmlibminor, drmdimajor, drmdiminor;
 
     if (DRIGeneration != serverGeneration) {
 	if ((DRIScreenPrivIndex = AllocateScreenPrivateIndex()) < 0)
@@ -148,8 +151,31 @@ DRIScreenInit(ScreenPtr pScreen, DRIInfoPtr pDRIInfo, int *pDRMFD)
 
     drmWasAvailable = drmAvailable();
 
+    /* Check the DRM lib version.
+     * drmGetLibVersion was not supported in version 1.0, so check for
+     * symbol first to avoid possible crash or hang.
+     */
+    drmlibmajor = 1;
+    drmlibminor = 0;
+    if (xf86LoaderCheckSymbol("drmGetLibVersion")) {
+	drmlibv = drmGetLibVersion(-1);
+	if (drmlibv != NULL) {
+	    drmlibmajor = drmlibv->version_major;
+	    drmlibminor = drmlibv->version_minor;
+	    drmFreeVersion(drmlibv);
+	}
+    }
+
+    /* Check if the libdrm can handle falling back to loading based on name
+     * if a busid string is passed.
+     */
+    if (drmlibmajor == 1 && drmlibminor >= 2)
+	openbusid = pDRIInfo->busIdString;
+    else
+	openbusid = NULL;
+
     /* Note that drmOpen will try to load the kernel module, if needed. */
-    fd = drmOpen(pDRIInfo->drmDriverName, NULL );
+    fd = drmOpen(pDRIInfo->drmDriverName, openbusid);
     if (fd < 0) {
         /* failed to open DRM */
         pScreen->devPrivates[DRIScreenPrivIndex].ptr = NULL;
@@ -184,7 +210,40 @@ DRIScreenInit(ScreenPtr pScreen, DRIInfoPtr pDRIInfo, int *pDRMFD)
     pDRIPriv->grabbedDRILock = FALSE;
     pDRIPriv->drmSIGIOHandlerInstalled = FALSE;
 
-    if ((err = drmSetBusid(pDRIPriv->drmFD, pDRIPriv->pDriverInfo->busIdString)) < 0) {
+    if (drmlibmajor == 1 && drmlibminor >= 2) {
+	drmSetVersion sv;
+
+	/* Get the interface version, asking for 1.1. */
+	sv.drm_di_major = 1;
+	sv.drm_di_minor = 1;
+	sv.drm_dd_major = -1;
+	err = drmSetInterfaceVersion(pDRIPriv->drmFD, &sv);
+	if (err == 0) {
+	    drmdimajor = sv.drm_di_major;
+	    drmdiminor = sv.drm_di_minor;
+	} else {
+	    /* failure, so set it to 1.0.0. */
+	    drmdimajor = 1;
+	    drmdiminor = 0;
+	}
+    }
+    else {
+	/* We can't check the DI DRM interface version, so set it to 1.0.0. */
+	drmdimajor = 1;
+	drmdiminor = 0;
+    }
+    DRIDrvMsg(pScreen->myNum, X_INFO,
+              "[drm] DRM interface version %d.%d\n", drmdimajor, drmdiminor);
+
+    /* If the interface minor number is 1.1, then we've opened a DRM device
+     * that already had the busid set through drmOpen.
+     */
+    if (drmdimajor == 1 && drmdiminor >= 1)
+	err = 0;
+    else
+	err = drmSetBusid(pDRIPriv->drmFD, pDRIPriv->pDriverInfo->busIdString);
+
+    if (err < 0) {
 	pDRIPriv->directRenderingSupport = FALSE;
 	pScreen->devPrivates[DRIScreenPrivIndex].ptr = NULL;
 	drmClose(pDRIPriv->drmFD);
@@ -235,7 +294,7 @@ DRIScreenInit(ScreenPtr pScreen, DRIInfoPtr pDRIInfo, int *pDRMFD)
 	      pDRIPriv->hSAREA, pDRIPriv->pSAREA);
 
     if (drmAddMap( pDRIPriv->drmFD,
-		   (drmHandle)pDRIPriv->pDriverInfo->frameBufferPhysicalAddress,
+		   (drm_handle_t)pDRIPriv->pDriverInfo->frameBufferPhysicalAddress,
 		   pDRIPriv->pDriverInfo->frameBufferSize,
 		   DRM_FRAME_BUFFER,
 		   0,
@@ -424,7 +483,7 @@ DRICloseScreen(ScreenPtr pScreen)
 {
     DRIScreenPrivPtr pDRIPriv = DRI_SCREEN_PRIV(pScreen);
     DRIInfoPtr       pDRIInfo;
-    drmContextPtr    reserved;
+    drm_context_t *    reserved;
     int              reserved_count;
 
     if (pDRIPriv && pDRIPriv->directRenderingSupport) {
@@ -575,7 +634,7 @@ DRIQueryDirectRenderingCapable(ScreenPtr pScreen, Bool* isCapable)
 }
 
 Bool
-DRIOpenConnection(ScreenPtr pScreen, drmHandlePtr hSAREA, char **busIdString)
+DRIOpenConnection(ScreenPtr pScreen, drm_handle_t * hSAREA, char **busIdString)
 {
     DRIScreenPrivPtr pDRIPriv = DRI_SCREEN_PRIV(pScreen);
 
@@ -586,7 +645,7 @@ DRIOpenConnection(ScreenPtr pScreen, drmHandlePtr hSAREA, char **busIdString)
 }
 
 Bool
-DRIAuthConnection(ScreenPtr pScreen, drmMagic magic)
+DRIAuthConnection(ScreenPtr pScreen, drm_magic_t magic)
 {
     DRIScreenPrivPtr pDRIPriv = DRI_SCREEN_PRIV(pScreen);
 
@@ -620,18 +679,18 @@ DRIGetClientDriverName(ScreenPtr pScreen,
 /* DRICreateContextPriv and DRICreateContextPrivFromHandle are helper
    functions that layer on drmCreateContext and drmAddContextTag.
 
-   DRICreateContextPriv always creates a kernel drmContext and then calls
+   DRICreateContextPriv always creates a kernel drm_context_t and then calls
    DRICreateContextPrivFromHandle to create a DRIContextPriv structure for
-   DRI tracking.  For the SIGIO handler, the drmContext is associated with
+   DRI tracking.  For the SIGIO handler, the drm_context_t is associated with
    DRIContextPrivPtr.  Any special flags are stored in the DRIContextPriv
    area and are passed to the kernel (if necessary).
 
    DRICreateContextPriv returns a pointer to newly allocated
-   DRIContextPriv, and returns the kernel drmContext in pHWContext. */
+   DRIContextPriv, and returns the kernel drm_context_t in pHWContext. */
 
 DRIContextPrivPtr
 DRICreateContextPriv(ScreenPtr pScreen,
-		     drmContextPtr pHWContext,
+		     drm_context_t * pHWContext,
 		     DRIContextFlags flags)
 {
     DRIScreenPrivPtr  pDRIPriv = DRI_SCREEN_PRIV(pScreen);
@@ -645,7 +704,7 @@ DRICreateContextPriv(ScreenPtr pScreen,
 
 DRIContextPrivPtr
 DRICreateContextPrivFromHandle(ScreenPtr pScreen,
-			       drmContext hHWContext,
+			       drm_context_t hHWContext,
 			       DRIContextFlags flags)
 {
     DRIScreenPrivPtr  pDRIPriv = DRI_SCREEN_PRIV(pScreen);
@@ -721,7 +780,7 @@ DRICreateDummyContext(ScreenPtr pScreen, Bool needCtxPriv)
 {
     DRIScreenPrivPtr pDRIPriv = DRI_SCREEN_PRIV(pScreen);
     __GLXscreenInfo *pGLXScreen = &__glXActiveScreens[pScreen->myNum];
-    __GLXvisualConfig *pGLXVis = pGLXScreen->pGlxVisual;
+    __GLcontextModes *modes = pGLXScreen->modes;
     void **pVisualConfigPriv = pGLXScreen->pVisualPriv;
     DRIContextPrivPtr pDRIContextPriv;
     void *contextStore;
@@ -734,7 +793,7 @@ DRICreateDummyContext(ScreenPtr pScreen, Bool needCtxPriv)
     for (visNum = 0;
 	 visNum < pScreen->numVisuals;
 	 visNum++, visual++) {
-	if (pGLXVis->vid == visual->vid)
+	if (modes->visualID == visual->vid)
 	    break;
     }
     if (visNum == pScreen->numVisuals) return FALSE;
@@ -781,15 +840,14 @@ DRIDestroyDummyContext(ScreenPtr pScreen, Bool hasCtxPriv)
 
 Bool
 DRICreateContext(ScreenPtr pScreen, VisualPtr visual,
-                 XID context, drmContextPtr pHWContext)
+                 XID context, drm_context_t * pHWContext)
 {
     DRIScreenPrivPtr pDRIPriv = DRI_SCREEN_PRIV(pScreen);
     __GLXscreenInfo *pGLXScreen = &__glXActiveScreens[pScreen->myNum];
-    __GLXvisualConfig *pGLXVis = pGLXScreen->pGlxVisual;
+    __GLcontextModes *modes = pGLXScreen->modes;
     void **pVisualConfigPriv = pGLXScreen->pVisualPriv;
     DRIContextPrivPtr pDRIContextPriv;
     void *contextStore;
-    int visNum;
 
     if (pDRIPriv->createDummyCtx && !pDRIPriv->dummyCtxPriv) {
         if (!DRICreateDummyContext(pScreen, pDRIPriv->createDummyCtxPriv)) {
@@ -800,12 +858,13 @@ DRICreateContext(ScreenPtr pScreen, VisualPtr visual,
     }
 
     /* Find the GLX visual associated with the one requested */
-    for (visNum = 0;
-	 visNum < pGLXScreen->numVisuals;
-	 visNum++, pGLXVis++, pVisualConfigPriv++)
-	if (pGLXVis->vid == visual->vid)
+    for (modes = pGLXScreen->modes; modes != NULL; modes = modes->next) {
+	if (modes->visualID == visual->vid)
 	    break;
-    if (visNum == pGLXScreen->numVisuals) {
+	pVisualConfigPriv++;
+    }
+
+    if (modes == NULL) {
 	/* No matching GLX visual found */
 	return FALSE;
     }
@@ -928,7 +987,7 @@ DRITransitionTo2d(ScreenPtr pScreen)
 
 Bool
 DRICreateDrawable(ScreenPtr pScreen, Drawable id,
-                  DrawablePtr pDrawable, drmDrawablePtr hHWDrawable)
+                  DrawablePtr pDrawable, drm_drawable_t * hHWDrawable)
 {
     DRIScreenPrivPtr	pDRIPriv = DRI_SCREEN_PRIV(pScreen);
     DRIDrawablePrivPtr	pDRIDrawablePriv;
@@ -945,7 +1004,7 @@ DRICreateDrawable(ScreenPtr pScreen, Drawable id,
 		return FALSE;
 	    }
 
-	    /* Only create a drmDrawable once */
+	    /* Only create a drm_drawable_t once */
 	    if (drmCreateDrawable(pDRIPriv->drmFD, hHWDrawable)) {
 		xfree(pDRIDrawablePriv);
 		return FALSE;
@@ -1065,11 +1124,11 @@ DRIGetDrawableInfo(ScreenPtr pScreen,
                    int* W,
                    int* H,
                    int* numClipRects,
-                   XF86DRIClipRectPtr* pClipRects,
+                   drm_clip_rect_t ** pClipRects,
                    int* backX,
                    int* backY,
                    int* numBackClipRects,
-                   XF86DRIClipRectPtr* pBackClipRects)
+                   drm_clip_rect_t ** pBackClipRects)
 {
     DRIScreenPrivPtr    pDRIPriv = DRI_SCREEN_PRIV(pScreen);
     DRIDrawablePrivPtr	pDRIDrawablePriv, pOldDrawPriv;
@@ -1165,7 +1224,7 @@ DRIGetDrawableInfo(ScreenPtr pScreen,
 	    *W = (int)(pWin->drawable.width);
 	    *H = (int)(pWin->drawable.height);
 	    *numClipRects = REGION_NUM_RECTS(&pWin->clipList);
-	    *pClipRects = (XF86DRIClipRectPtr)REGION_RECTS(&pWin->clipList);
+	    *pClipRects = (drm_clip_rect_t *)REGION_RECTS(&pWin->clipList);
 
 	    if (!*numClipRects && pDRIPriv->fullscreen) {
 				/* use fake full-screen clip rect */
@@ -1191,8 +1250,8 @@ DRIGetDrawableInfo(ScreenPtr pScreen,
 
 	       if (x0 < 0) x0 = 0;
 	       if (y0 < 0) y0 = 0;
-	       if (x1 > pScreen->width-1) x1 = pScreen->width-1;
-	       if (y1 > pScreen->height-1) y1 = pScreen->height-1;
+	       if (x1 > pScreen->width) x1 = pScreen->width;
+	       if (y1 > pScreen->height) y1 = pScreen->height;
 
 	       pDRIPriv->private_buffer_rect.x1 = x0;
 	       pDRIPriv->private_buffer_rect.y1 = y0;
@@ -1222,7 +1281,7 @@ DRIGetDrawableInfo(ScreenPtr pScreen,
 
 Bool
 DRIGetDeviceInfo(ScreenPtr pScreen,
-                 drmHandlePtr hFrameBuffer,
+                 drm_handle_t * hFrameBuffer,
                  int* fbOrigin,
                  int* fbSize,
                  int* fbStride,
@@ -1870,7 +1929,7 @@ DRIGetSAREAPrivate(ScreenPtr pScreen)
     return (void *)(((char*)pDRIPriv->pSAREA)+sizeof(XF86DRISAREARec));
 }
 
-drmContext
+drm_context_t
 DRIGetContext(ScreenPtr pScreen)
 {
     DRIScreenPrivPtr pDRIPriv = DRI_SCREEN_PRIV(pScreen);
@@ -1967,7 +2026,7 @@ DRIOpenFullScreen(ScreenPtr pScreen, DrawablePtr pDrawable)
     DRIScreenPrivPtr   pDRIPriv    = DRI_SCREEN_PRIV(pScreen);
     ScrnInfoPtr        pScrn       = xf86Screens[pScreen->myNum];
     WindowPtr	       pWin        = (WindowPtr)pDrawable;
-    XF86DRIClipRectPtr pClipRects  = (void *)REGION_RECTS(&pWin->clipList);
+    drm_clip_rect_t * pClipRects  = (void *)REGION_RECTS(&pWin->clipList);
 
     _DRIAdjustFrame(pScrn, pDRIPriv, pScrn->frameX0, pScrn->frameY0);
 
@@ -2114,4 +2173,22 @@ DRIMoveBuffersHelper(
      }
    } else *xdir = 1;
 
+}
+
+char *
+DRICreatePCIBusID(pciVideoPtr PciInfo)
+{
+    char *busID;
+    int domain;
+    PCITAG tag;
+
+    busID = xalloc(20);
+    if (busID == NULL)
+	return NULL;
+
+    tag = pciTag(PciInfo->bus, PciInfo->device, PciInfo->func);
+    domain = xf86GetPciDomain(tag);
+    snprintf(busID, 20, "pci:%04x:%02x:%02x.%d", domain, PciInfo->bus,
+	PciInfo->device, PciInfo->func);
+    return busID;
 }

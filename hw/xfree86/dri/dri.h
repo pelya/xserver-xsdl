@@ -105,11 +105,11 @@ typedef struct {
      */
     Bool	(*CreateContext)(ScreenPtr pScreen,
 				 VisualPtr visual,
-				 drmContext hHWContext,
+				 drm_context_t hHWContext,
 				 void* pVisualConfigPriv,
 				 DRIContextType context);
     void        (*DestroyContext)(ScreenPtr pScreen,
-				  drmContext hHWContext,
+				  drm_context_t hHWContext,
                                   DRIContextType context);
     void	(*SwapContext)(ScreenPtr pScreen,
 			       DRISyncType syncType,
@@ -175,10 +175,10 @@ extern Bool DRIQueryDirectRenderingCapable(ScreenPtr pScreen,
                                            Bool *isCapable);
 
 extern Bool DRIOpenConnection(ScreenPtr pScreen,
-                              drmHandlePtr hSAREA,
+                              drm_handle_t * hSAREA,
                               char **busIdString);
 
-extern Bool DRIAuthConnection(ScreenPtr pScreen, drmMagic magic);
+extern Bool DRIAuthConnection(ScreenPtr pScreen, drm_magic_t magic);
 
 extern Bool DRICloseConnection(ScreenPtr pScreen);
 
@@ -191,7 +191,7 @@ extern Bool DRIGetClientDriverName(ScreenPtr pScreen,
 extern Bool DRICreateContext(ScreenPtr pScreen,
                              VisualPtr visual,
                              XID context,
-                             drmContextPtr pHWContext);
+                             drm_context_t * pHWContext);
 
 extern Bool DRIDestroyContext(ScreenPtr pScreen, XID context);
 
@@ -200,7 +200,7 @@ extern Bool DRIContextPrivDelete(pointer pResource, XID id);
 extern Bool DRICreateDrawable(ScreenPtr pScreen,
                               Drawable id,
                               DrawablePtr pDrawable,
-                              drmDrawablePtr hHWDrawable);
+                              drm_drawable_t * hHWDrawable);
 
 extern Bool DRIDestroyDrawable(ScreenPtr pScreen, 
                                Drawable id,
@@ -218,14 +218,14 @@ extern Bool DRIGetDrawableInfo(ScreenPtr pScreen,
                                int* W,
                                int* H,
                                int* numClipRects,
-                               XF86DRIClipRectPtr* pClipRects,
+                               drm_clip_rect_t ** pClipRects,
                                int* backX,
                                int* backY,
                                int* numBackClipRects,
-                               XF86DRIClipRectPtr* pBackClipRects);
+                               drm_clip_rect_t ** pBackClipRects);
 
 extern Bool DRIGetDeviceInfo(ScreenPtr pScreen,
-                             drmHandlePtr hFrameBuffer,
+                             drm_handle_t * hFrameBuffer,
                              int* fbOrigin,
                              int* fbSize,
                              int* fbStride,
@@ -298,16 +298,16 @@ extern unsigned int DRIGetDrawableStamp(ScreenPtr pScreen,
                                         CARD32 drawable_index);
 
 extern DRIContextPrivPtr DRICreateContextPriv(ScreenPtr pScreen,
-                                              drmContextPtr pHWContext,
+                                              drm_context_t * pHWContext,
                                               DRIContextFlags flags);
 
 extern DRIContextPrivPtr DRICreateContextPrivFromHandle(ScreenPtr pScreen,
-                                                        drmContext hHWContext,
+                                                        drm_context_t hHWContext,
                                                         DRIContextFlags flags);
 
 extern Bool DRIDestroyContextPriv(DRIContextPrivPtr pDRIContextPriv);
 
-extern drmContext DRIGetContext(ScreenPtr pScreen);
+extern drm_context_t DRIGetContext(ScreenPtr pScreen);
 
 extern void DRIQueryVersion(int *majorVersion,
                             int *minorVersion,
@@ -324,6 +324,8 @@ extern void DRIMoveBuffersHelper(ScreenPtr pScreen,
                                  int *xdir, 
                                  int *ydir, 
                                  RegionPtr reg);
+
+extern char *DRICreatePCIBusID(pciVideoPtr PciInfo);
 
 #define _DRI_H_
 

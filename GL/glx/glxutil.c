@@ -44,6 +44,9 @@
 #include "glxutil.h"
 #include "glxbuf.h"
 #include "GL/glx_ansic.h"
+#include "GL/internal/glcore.h"
+#include "GL/glxint.h"
+#include "glcontextmodes.h"
 
 /************************************************************************/
 
@@ -214,53 +217,6 @@ __glXResizeDrawable(__GLdrawablePrivate *glPriv)
 }
 
 
-/************************************************************************/
-
-void
-__glXFormatGLModes(__GLcontextModes *modes, __GLXvisualConfig *config)
-{
-    __glXMemset(modes, 0, sizeof(__GLcontextModes));
-
-    modes->rgbMode = (config->rgba != 0);
-    modes->colorIndexMode = !(modes->rgbMode);
-    modes->doubleBufferMode = (config->doubleBuffer != 0);
-    modes->stereoMode = (config->stereo != 0);
-
-    modes->haveAccumBuffer = ((config->accumRedSize +
-			       config->accumGreenSize +
-			       config->accumBlueSize +
-			       config->accumAlphaSize) > 0);
-    modes->haveDepthBuffer = (config->depthSize > 0);
-    modes->haveStencilBuffer = (config->stencilSize > 0);
-
-    modes->redBits = config->redSize;
-    modes->greenBits = config->greenSize;
-    modes->blueBits = config->blueSize;
-    modes->alphaBits = config->alphaSize;
-    modes->redMask = config->redMask;
-    modes->greenMask = config->greenMask;
-    modes->blueMask = config->blueMask;
-    modes->alphaMask = config->alphaMask;
-#if 0
-    modes->rgbBits = modes->redBits + modes->greenBits + 
-	modes->blueBits + modes->alphaBits;
-#endif
-    assert( !modes->rgbMode || ((config->bufferSize & 0x7) == 0) );
-    modes->rgbBits = config->bufferSize;
-    modes->indexBits = config->bufferSize;
-
-    modes->accumRedBits = config->accumRedSize;
-    modes->accumGreenBits = config->accumGreenSize;
-    modes->accumBlueBits = config->accumBlueSize;
-    modes->accumAlphaBits = config->accumAlphaSize;
-    modes->depthBits = config->depthSize;
-    modes->stencilBits = config->stencilSize;
-
-    modes->numAuxBuffers = 0;	/* XXX: should be picked up from the visual */
-
-    modes->level = config->level;
-}
-
 /*****************************************************************************/
 /* accessing the drawable private */
 
@@ -382,21 +338,13 @@ __glXCreateDrawablePrivate(DrawablePtr pDraw, XID drawId,
 
     pGlxScreen = &__glXActiveScreens[pDraw->pScreen->myNum];
 
-    /* allocate the buffers */
     if (glxPriv->type == DRAWABLE_WINDOW) {
-	int i;
 	VisualID vid = wVisual((WindowPtr)pDraw);
-	__GLXvisualConfig *pGlxVisual = pGlxScreen->pGlxVisual;
 
-	for (i = 0; i < pGlxScreen->numVisuals; i++, pGlxVisual++) {
-	    if (pGlxVisual->vid == vid) {
-		glxPriv->pGlxVisual = pGlxVisual;
-		break;
-	    }
-	}
+	glxPriv->modes = _gl_context_modes_find_visual( pGlxScreen->modes, vid );
 	__glXFBInitDrawable(glxPriv, modes);
     } else {
-	glxPriv->pGlxVisual = glxPriv->pGlxPixmap->pGlxVisual;
+	glxPriv->modes = glxPriv->pGlxPixmap->modes;
 	__glXPixInitDrawable(glxPriv, modes);
     }
 

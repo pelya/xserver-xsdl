@@ -280,5 +280,6 @@ extern int __glXColorTableParameterfvSize(GLenum pname);
 extern int __glXColorTableParameterivSize(GLenum pname);
 
 extern int __glXPointParameterfvARBReqSize(GLbyte *pc, Bool swap);
+extern int __glXPointParameterivReqSize(GLbyte *pc, Bool swap);
 
 #endif /* !__GLX_server_h__ */

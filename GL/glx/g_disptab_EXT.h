@@ -69,6 +69,37 @@ extern void __glXDisp_CopyTexSubImage2D(GLbyte*);
 extern void __glXDisp_CopyTexSubImage3D(GLbyte*);
 extern void __glXDisp_PointParameterfARB(GLbyte*);
 extern void __glXDisp_PointParameterfvARB(GLbyte*);
+
+extern void __glXDisp_FogCoordfv(GLbyte *);
+extern void __glXDisp_FogCoorddv(GLbyte *);
+extern void __glXDispSwap_FogCoordfv(GLbyte *);
+extern void __glXDispSwap_FogCoorddv(GLbyte *);
+
+extern void __glXDisp_SecondaryColor3bv(GLbyte *);
+extern void __glXDisp_SecondaryColor3sv(GLbyte *);
+extern void __glXDisp_SecondaryColor3iv(GLbyte *);
+extern void __glXDisp_SecondaryColor3ubv(GLbyte *);
+extern void __glXDisp_SecondaryColor3usv(GLbyte *);
+extern void __glXDisp_SecondaryColor3uiv(GLbyte *);
+extern void __glXDisp_SecondaryColor3fv(GLbyte *);
+extern void __glXDisp_SecondaryColor3dv(GLbyte *);
+extern void __glXDispSwap_SecondaryColor3bv(GLbyte *);
+extern void __glXDispSwap_SecondaryColor3sv(GLbyte *);
+extern void __glXDispSwap_SecondaryColor3iv(GLbyte *);
+extern void __glXDispSwap_SecondaryColor3ubv(GLbyte *);
+extern void __glXDispSwap_SecondaryColor3usv(GLbyte *);
+extern void __glXDispSwap_SecondaryColor3uiv(GLbyte *);
+extern void __glXDispSwap_SecondaryColor3fv(GLbyte *);
+extern void __glXDispSwap_SecondaryColor3dv(GLbyte *);
+
+extern void __glXDisp_BlendFuncSeparate(GLbyte *);
+extern void __glXDispSwap_BlendFuncSeparate(GLbyte *);
+
+extern void __glXDisp_PointParameteri(GLbyte *);
+extern void __glXDisp_PointParameteriv(GLbyte *);
+extern void __glXDispSwap_PointParameteri(GLbyte *);
+extern void __glXDispSwap_PointParameteriv(GLbyte *);
+
 extern void __glXDisp_ActiveStencilFaceEXT(GLbyte*);
 
 extern int __glXDispSwap_AreTexturesResidentEXT(__GLXclientState*, GLbyte*);
@@ -112,7 +143,7 @@ extern void __glXDispSwap_PointParameterfvARB(GLbyte*);
 extern void __glXDispSwap_ActiveStencilFaceEXT(GLbyte*);
 
 #define __GLX_MIN_RENDER_OPCODE_EXT 2053
-#define __GLX_MAX_RENDER_OPCODE_EXT 4220
+#define __GLX_MAX_RENDER_OPCODE_EXT 4222
 #define __GLX_MIN_VENDPRIV_OPCODE_EXT 11
 #define __GLX_MAX_VENDPRIV_OPCODE_EXT 14
 #define __GLX_VENDPRIV_TABLE_SIZE_EXT (__GLX_MAX_VENDPRIV_OPCODE_EXT - __GLX_MIN_VENDPRIV_OPCODE_EXT + 1)

@@ -45,6 +45,7 @@
 #define XF86_LIBC_H 1
 
 #include "Xfuncs.h"
+#include <stddef.h>
 
 /*
  * The first set of definitions are required both for modules and

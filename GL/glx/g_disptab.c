@@ -54,18 +54,18 @@ __GLXdispatchSingleProcPtr __glXSingleTable[__GLX_SINGLE_TABLE_SIZE] = {
 	__glXQueryExtensionsString,
 	__glXQueryServerString,
 	__glXClientInfo,
-	__glXNoSuchSingleOpcode, /* glXGetFBConfigs */
-	__glXNoSuchSingleOpcode, /* glXCreatePixmap */
-	__glXNoSuchSingleOpcode, /* glXDestroyPixmap */
-	__glXNoSuchSingleOpcode, /* glXCreateNewContext */
+	__glXGetFBConfigs,
+	__glXCreatePixmap,
+	__glXDestroyGLXPixmap, /* glXDestroyPixmap */
+	__glXCreateNewContext,
 	__glXNoSuchSingleOpcode, /* glXQueryContext */
 	__glXMakeContextCurrent,
-	__glXNoSuchSingleOpcode,
-	__glXNoSuchSingleOpcode,
-	__glXNoSuchSingleOpcode,
-	__glXNoSuchSingleOpcode,
-	__glXNoSuchSingleOpcode,
-	__glXNoSuchSingleOpcode,
+	__glXNoSuchSingleOpcode, /* glXCreatePbuffer */
+	__glXNoSuchSingleOpcode, /* glXDestroyPbuffer */
+	__glXNoSuchSingleOpcode, /* glXGetDrawableAttributes */
+	__glXNoSuchSingleOpcode, /* glXChangeDrawableAttributes */
+	__glXNoSuchSingleOpcode, /* glXCreateWindow */
+	__glXNoSuchSingleOpcode, /* glXDestroyWindow */
 	__glXNoSuchSingleOpcode,
 	__glXNoSuchSingleOpcode,
 	__glXNoSuchSingleOpcode,
@@ -425,7 +425,7 @@ __GLXdispatchRenderProcPtr __glXRenderTable[] = {
 	__glXNoSuchRenderOpcode,
 	__glXNoSuchRenderOpcode,
 	__glXNoSuchRenderOpcode,
-	__glXNoSuchRenderOpcode,
+	__glXDisp_SampleCoverageARB,
 	__glXDisp_WindowPos3fARB /* 230 */
 };
 
@@ -451,18 +451,18 @@ __GLXdispatchSingleProcPtr __glXSwapSingleTable[__GLX_SINGLE_TABLE_SIZE] = {
 	__glXSwapQueryExtensionsString,
 	__glXSwapQueryServerString,
 	__glXSwapClientInfo,
-	__glXNoSuchSingleOpcode, /* glXGetFBConfigs */
-	__glXNoSuchSingleOpcode, /* glXCreatePixmap */
-	__glXNoSuchSingleOpcode, /* glXDestroyPixmap */
-	__glXNoSuchSingleOpcode, /* glXCreateNewContext */
+	__glXSwapGetFBConfigs,
+	__glXSwapCreatePixmap,
+	__glXSwapDestroyGLXPixmap, /* glXDestroyPixmap */
+	__glXSwapCreateNewContext,
 	__glXNoSuchSingleOpcode, /* glXQueryContext */
 	__glXSwapMakeContextCurrent,
-	__glXNoSuchSingleOpcode,
-	__glXNoSuchSingleOpcode,
-	__glXNoSuchSingleOpcode,
-	__glXNoSuchSingleOpcode,
-	__glXNoSuchSingleOpcode,
-	__glXNoSuchSingleOpcode,
+	__glXNoSuchSingleOpcode, /* glXCreatePbuffer */
+	__glXNoSuchSingleOpcode, /* glXDestroyPbuffer */
+	__glXNoSuchSingleOpcode, /* glXGetDrawableAttributes */
+	__glXNoSuchSingleOpcode, /* glXChangeDrawableAttributes */
+	__glXNoSuchSingleOpcode, /* glXCreateWindow */
+	__glXNoSuchSingleOpcode, /* glXDestroyWindow */
 	__glXNoSuchSingleOpcode,
 	__glXNoSuchSingleOpcode,
 	__glXNoSuchSingleOpcode,
@@ -822,6 +822,6 @@ __GLXdispatchRenderProcPtr __glXSwapRenderTable[__GLX_RENDER_TABLE_SIZE] = {
 	__glXNoSuchRenderOpcode,
 	__glXNoSuchRenderOpcode,
 	__glXNoSuchRenderOpcode,
-	__glXNoSuchRenderOpcode,
+	__glXDispSwap_SampleCoverageARB,
 	__glXDispSwap_WindowPos3fARB /* 230 */
 };

@@ -184,7 +184,7 @@ ProcXF86DRIOpenConnection(
 )
 {
     xXF86DRIOpenConnectionReply rep;
-    drmHandle			hSAREA;
+    drm_handle_t			hSAREA;
     char*			busIdString;
 
     REQUEST(xXF86DRIOpenConnectionReq);
@@ -340,7 +340,7 @@ ProcXF86DRICreateContext(
     if (!DRICreateContext( pScreen,
 			   visual,
 			   stuff->context,
-			   (drmContextPtr)&rep.hHWContext)) {
+			   (drm_context_t *)&rep.hHWContext)) {
 	return BadValue;
     }
 
@@ -397,7 +397,7 @@ ProcXF86DRICreateDrawable(
     if (!DRICreateDrawable( screenInfo.screens[stuff->screen],
 			    (Drawable)stuff->drawable,
 			    pDrawable,
-			    (drmDrawablePtr)&rep.hHWDrawable)) {
+			    (drm_drawable_t *)&rep.hHWDrawable)) {
 	return BadValue;
     }
 
@@ -442,8 +442,8 @@ ProcXF86DRIGetDrawableInfo(
     xXF86DRIGetDrawableInfoReply	rep;
     DrawablePtr pDrawable;
     int X, Y, W, H;
-    XF86DRIClipRectPtr pClipRects;
-    XF86DRIClipRectPtr pBackClipRects;
+    drm_clip_rect_t * pClipRects;
+    drm_clip_rect_t * pBackClipRects;
     int backX, backY;
 
     REQUEST(xXF86DRIGetDrawableInfoReq);
@@ -492,10 +492,10 @@ ProcXF86DRIGetDrawableInfo(
     rep.backY = backY;
         
     if (rep.numBackClipRects) 
-       rep.length += sizeof(XF86DRIClipRectRec) * rep.numBackClipRects;    
+       rep.length += sizeof(drm_clip_rect_t) * rep.numBackClipRects;    
 
     if (rep.numClipRects) 
-       rep.length += sizeof(XF86DRIClipRectRec) * rep.numClipRects;
+       rep.length += sizeof(drm_clip_rect_t) * rep.numClipRects;
     
     rep.length = ((rep.length + 3) & ~3) >> 2;
 
@@ -503,13 +503,13 @@ ProcXF86DRIGetDrawableInfo(
 
     if (rep.numClipRects) {
 	WriteToClient(client,  
-		      sizeof(XF86DRIClipRectRec) * rep.numClipRects,
+		      sizeof(drm_clip_rect_t) * rep.numClipRects,
 		      (char *)pClipRects);
     }
 
     if (rep.numBackClipRects) {
        WriteToClient(client, 
-		     sizeof(XF86DRIClipRectRec) * rep.numBackClipRects,
+		     sizeof(drm_clip_rect_t) * rep.numBackClipRects,
 		     (char *)pBackClipRects);
     }
 
@@ -522,7 +522,7 @@ ProcXF86DRIGetDeviceInfo(
 )
 {
     xXF86DRIGetDeviceInfoReply	rep;
-    drmHandle hFrameBuffer;
+    drm_handle_t hFrameBuffer;
     void *pDevPrivate;
 
     REQUEST(xXF86DRIGetDeviceInfoReq);

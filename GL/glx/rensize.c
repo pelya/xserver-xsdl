@@ -551,12 +551,14 @@ int __glXDrawArraysSize( GLbyte *pc, Bool swap )
 	  case GL_COLOR_ARRAY:
 	  case GL_TEXTURE_COORD_ARRAY:
 	    break;
+	  case GL_SECONDARY_COLOR_ARRAY:
 	  case GL_NORMAL_ARRAY:
 	    if (numVals != 3) {
 		/* bad size */
 		return -1;
 	    }
 	    break;
+	  case GL_FOG_COORD_ARRAY:
 	  case GL_INDEX_ARRAY:
 	    if (numVals != 1) {
 		/* bad size */
@@ -917,4 +919,10 @@ int __glXPointParameterfvARBReqSize(GLbyte *pc, Bool swap )
 	pname = SWAPL( pname );
     }
     return 4 * __glPointParameterfvARB_size( pname );
+}
+
+int __glXPointParameterivReqSize(GLbyte *pc, Bool swap )
+{
+    /* no difference between fv and iv versions */
+    return __glXPointParameterfvARBReqSize(pc, swap);
 }

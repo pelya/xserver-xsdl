@@ -40,7 +40,7 @@
 typedef struct {
 
     DrawablePtr pDraw;
-    __GLXvisualConfig *pGlxVisual;
+    __GLcontextModes *modes;
     __GLXscreenInfo *pGlxScreen;
     ScreenPtr pScreen;
     Bool idExists;
@@ -69,11 +69,12 @@ struct __GLXdrawablePrivateRec {
     /*
     ** Configuration of the visual to which this drawable was created.
     */
-    __GLXvisualConfig *pGlxVisual;
+    __GLcontextModes *modes;
 
     /*
     ** cached drawable size and origin
     */
+
     GLint xorigin, yorigin;
     GLint width, height;
 

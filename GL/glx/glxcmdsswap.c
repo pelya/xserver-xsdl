@@ -47,6 +47,11 @@
 #include "glxext.h"
 #include "GL/glx_ansic.h"
 
+static int __glXSwapGetFBConfigsSGIX(__GLXclientState *cl, GLbyte *pc);
+static int __glXSwapCreateContextWithConfigSGIX(__GLXclientState *cl, GLbyte *pc);
+static int __glXSwapCreateGLXPixmapWithConfigSGIX(__GLXclientState *cl, GLbyte *pc);
+static int __glXSwapMakeCurrentReadSGI(__GLXclientState *cl, GLbyte *pc);
+
 /************************************************************************/
 
 /*
@@ -67,7 +72,41 @@ int __glXSwapCreateContext(__GLXclientState *cl, GLbyte *pc)
     __GLX_SWAP_INT(&req->screen);
     __GLX_SWAP_INT(&req->shareList);
 
-    return __glXCreateContext(cl, pc);
+    return DoCreateContext( cl, req->context, req->shareList, req->visual,
+			    req->screen, req->isDirect );
+}
+
+int __glXSwapCreateNewContext(__GLXclientState *cl, GLbyte *pc)
+{
+    xGLXCreateNewContextReq *req = (xGLXCreateNewContextReq *) pc;
+    __GLX_DECLARE_SWAP_VARIABLES;
+
+    __GLX_SWAP_SHORT(&req->length);
+    __GLX_SWAP_INT(&req->context);
+    __GLX_SWAP_INT(&req->fbconfig);
+    __GLX_SWAP_INT(&req->screen);
+    __GLX_SWAP_INT(&req->renderType);
+    __GLX_SWAP_INT(&req->shareList);
+
+    return DoCreateContext( cl, req->context, req->shareList, req->fbconfig,
+			    req->screen, req->isDirect );
+}
+
+int __glXSwapCreateContextWithConfigSGIX(__GLXclientState *cl, GLbyte *pc)
+{
+    xGLXCreateContextWithConfigSGIXReq *req =
+	(xGLXCreateContextWithConfigSGIXReq *) pc;
+    __GLX_DECLARE_SWAP_VARIABLES;
+
+    __GLX_SWAP_SHORT(&req->length);
+    __GLX_SWAP_INT(&req->context);
+    __GLX_SWAP_INT(&req->fbconfig);
+    __GLX_SWAP_INT(&req->screen);
+    __GLX_SWAP_INT(&req->renderType);
+    __GLX_SWAP_INT(&req->shareList);
+
+    return DoCreateContext( cl, req->context, req->shareList, req->fbconfig,
+			    req->screen, req->isDirect );
 }
 
 int __glXSwapDestroyContext(__GLXclientState *cl, GLbyte *pc)
@@ -91,7 +130,8 @@ int __glXSwapMakeCurrent(__GLXclientState *cl, GLbyte *pc)
     __GLX_SWAP_INT(&req->context);
     __GLX_SWAP_INT(&req->oldContextTag);
 
-    return __glXMakeCurrent(cl, pc);
+    return DoMakeCurrent( cl, req->drawable, req->drawable,
+			  req->context, req->oldContextTag );
 }
 
 int __glXSwapMakeContextCurrent(__GLXclientState *cl, GLbyte *pc)
@@ -105,7 +145,8 @@ int __glXSwapMakeContextCurrent(__GLXclientState *cl, GLbyte *pc)
     __GLX_SWAP_INT(&req->context);
     __GLX_SWAP_INT(&req->oldContextTag);
 
-    return __glXMakeContextCurrent(cl, pc);
+    return DoMakeCurrent( cl, req->drawable, req->readdrawable,
+			  req->context, req->oldContextTag );
 }
 
 int __glXSwapMakeCurrentReadSGI(__GLXclientState *cl, GLbyte *pc)
@@ -119,7 +160,8 @@ int __glXSwapMakeCurrentReadSGI(__GLXclientState *cl, GLbyte *pc)
     __GLX_SWAP_INT(&req->context);
     __GLX_SWAP_INT(&req->oldContextTag);
 
-    return __glXMakeCurrentReadSGI(cl, pc);
+    return DoMakeCurrent( cl, req->drawable, req->readable,
+			  req->context, req->oldContextTag );
 }
 
 int __glXSwapIsDirect(__GLXclientState *cl, GLbyte *pc)
@@ -182,90 +224,29 @@ int __glXSwapCopyContext(__GLXclientState *cl, GLbyte *pc)
 
 int __glXSwapGetVisualConfigs(__GLXclientState *cl, GLbyte *pc)
 {
-    ClientPtr client = cl->client;
     xGLXGetVisualConfigsReq *req = (xGLXGetVisualConfigsReq *) pc;
-    xGLXGetVisualConfigsReply reply;
-    __GLXscreenInfo *pGlxScreen;
-    __GLXvisualConfig *pGlxVisual;
-    CARD32 buf[__GLX_TOTAL_CONFIG];
-    unsigned int screen;
-    int i, p;
     __GLX_DECLARE_SWAP_VARIABLES;
-    __GLX_DECLARE_SWAP_ARRAY_VARIABLES;
 
     __GLX_SWAP_INT(&req->screen);
-    screen = req->screen;
-    if (screen > screenInfo.numScreens) {
-	/* The client library must send a valid screen number. */
-	client->errorValue = screen;
-	return BadValue;
-    }
-    pGlxScreen = &__glXActiveScreens[screen];
+    return DoGetVisualConfigs( cl, req->screen, GL_TRUE );
+}
 
-    reply.numVisuals = pGlxScreen->numUsableVisuals;
-    reply.numProps = __GLX_TOTAL_CONFIG;
-    reply.length = (pGlxScreen->numUsableVisuals * __GLX_SIZE_CARD32 *
-		    __GLX_TOTAL_CONFIG) >> 2;
-    reply.type = X_Reply;
-    reply.sequenceNumber = client->sequence;
-    
-    __GLX_SWAP_SHORT(&reply.sequenceNumber);
-    __GLX_SWAP_INT(&reply.length);
-    __GLX_SWAP_INT(&reply.numVisuals);
-    __GLX_SWAP_INT(&reply.numProps);
-    WriteToClient(client, sz_xGLXGetVisualConfigsReply, (char *)&reply);
+int __glXSwapGetFBConfigs(__GLXclientState *cl, GLbyte *pc)
+{
+    xGLXGetFBConfigsReq *req = (xGLXGetFBConfigsReq *) pc;
+    __GLX_DECLARE_SWAP_VARIABLES;
 
-    for (i=0; i < pGlxScreen->numVisuals; i++) {
-	pGlxVisual = &pGlxScreen->pGlxVisual[i];
-	if (pGlxVisual->vid == 0) {
-	    /* not a usable visual */
-	    continue;
-	}
-	p = 0;
-	buf[p++] = pGlxVisual->vid;
-	buf[p++] = pGlxVisual->class;
-	buf[p++] = pGlxVisual->rgba;
+    __GLX_SWAP_INT(&req->screen);
+    return DoGetFBConfigs( cl, req->screen, GL_TRUE );
+}
 
-	buf[p++] = pGlxVisual->redSize;
-	buf[p++] = pGlxVisual->greenSize;
-	buf[p++] = pGlxVisual->blueSize;
-	buf[p++] = pGlxVisual->alphaSize;
-	buf[p++] = pGlxVisual->accumRedSize;
-	buf[p++] = pGlxVisual->accumGreenSize;
-	buf[p++] = pGlxVisual->accumBlueSize;
-	buf[p++] = pGlxVisual->accumAlphaSize;
+int __glXSwapGetFBConfigsSGIX(__GLXclientState *cl, GLbyte *pc)
+{
+    xGLXGetFBConfigsSGIXReq *req = (xGLXGetFBConfigsSGIXReq *) pc;
+    __GLX_DECLARE_SWAP_VARIABLES;
 
-	buf[p++] = pGlxVisual->doubleBuffer;
-	buf[p++] = pGlxVisual->stereo;
-
-	buf[p++] = pGlxVisual->bufferSize;
-	buf[p++] = pGlxVisual->depthSize;
-	buf[p++] = pGlxVisual->stencilSize;
-	buf[p++] = pGlxVisual->auxBuffers;
-	buf[p++] = pGlxVisual->level;
-        /*
-        ** Add token/value pairs for extensions.
-        */
-        buf[p++] = GLX_VISUAL_CAVEAT_EXT;
-        buf[p++] = pGlxVisual->visualRating;
-        buf[p++] = GLX_TRANSPARENT_TYPE_EXT;
-        buf[p++] = pGlxVisual->transparentPixel;
-        buf[p++] = GLX_TRANSPARENT_RED_VALUE_EXT;
-        buf[p++] = pGlxVisual->transparentRed;
-        buf[p++] = GLX_TRANSPARENT_GREEN_VALUE_EXT;
-        buf[p++] = pGlxVisual->transparentGreen;
-        buf[p++] = GLX_TRANSPARENT_BLUE_VALUE_EXT;
-        buf[p++] = pGlxVisual->transparentBlue;
-        buf[p++] = GLX_TRANSPARENT_ALPHA_VALUE_EXT;
-        buf[p++] = pGlxVisual->transparentAlpha;
-        buf[p++] = GLX_TRANSPARENT_INDEX_VALUE_EXT;
-        buf[p++] = pGlxVisual->transparentIndex;
-
-	__GLX_SWAP_INT_ARRAY(buf, __GLX_TOTAL_CONFIG);
-	WriteToClient(client, __GLX_SIZE_CARD32 * __GLX_TOTAL_CONFIG, 
-			(char *)buf);
-    }
-    return Success;
+    __GLX_SWAP_INT(&req->screen);
+    return DoGetFBConfigs( cl, req->screen, GL_TRUE );
 }
 
 int __glXSwapCreateGLXPixmap(__GLXclientState *cl, GLbyte *pc)
@@ -279,7 +260,39 @@ int __glXSwapCreateGLXPixmap(__GLXclientState *cl, GLbyte *pc)
     __GLX_SWAP_INT(&req->pixmap);
     __GLX_SWAP_INT(&req->glxpixmap);
 
-    return __glXCreateGLXPixmap(cl, pc);
+    return DoCreateGLXPixmap( cl, req->visual, req->screen,
+			      req->pixmap, req->glxpixmap );
+}
+
+int __glXSwapCreatePixmap(__GLXclientState *cl, GLbyte *pc)
+{
+    xGLXCreatePixmapReq *req = (xGLXCreatePixmapReq *) pc;
+    __GLX_DECLARE_SWAP_VARIABLES;
+
+    __GLX_SWAP_SHORT(&req->length);
+    __GLX_SWAP_INT(&req->screen);
+    __GLX_SWAP_INT(&req->fbconfig);
+    __GLX_SWAP_INT(&req->pixmap);
+    __GLX_SWAP_INT(&req->glxpixmap);
+
+    return DoCreateGLXPixmap( cl, req->fbconfig, req->screen,
+			      req->pixmap, req->glxpixmap );
+}
+
+int __glXSwapCreateGLXPixmapWithConfigSGIX(__GLXclientState *cl, GLbyte *pc)
+{
+    xGLXCreateGLXPixmapWithConfigSGIXReq *req = 
+	(xGLXCreateGLXPixmapWithConfigSGIXReq *) pc;
+    __GLX_DECLARE_SWAP_VARIABLES;
+
+    __GLX_SWAP_SHORT(&req->length);
+    __GLX_SWAP_INT(&req->screen);
+    __GLX_SWAP_INT(&req->fbconfig);
+    __GLX_SWAP_INT(&req->pixmap);
+    __GLX_SWAP_INT(&req->glxpixmap);
+
+    return DoCreateGLXPixmap( cl, req->fbconfig, req->screen,
+			      req->pixmap, req->glxpixmap );
 }
 
 int __glXSwapDestroyGLXPixmap(__GLXclientState *cl, GLbyte *pc)
@@ -357,7 +370,7 @@ int __glXSwapClientInfo(__GLXclientState *cl, GLbyte *pc)
     return __glXClientInfo(cl, pc);
 }
 
-int __glXSwapQueryContextInfoEXT(__GLXclientState *cl, char *pc)
+int __glXSwapQueryContextInfoEXT(__GLXclientState *cl, GLbyte *pc)
 {
     xGLXQueryContextInfoEXTReq *req = (xGLXQueryContextInfoEXTReq *) pc;
     __GLX_DECLARE_SWAP_VARIABLES;
@@ -791,6 +804,20 @@ int __glXSwapVendorPrivate(__GLXclientState *cl, GLbyte *pc)
 
     vendorcode = req->vendorCode;
 
+    switch( vendorcode ) {
+    case X_GLvop_SampleMaskSGIS:
+	__GLX_SWAP_FLOAT(pc + 4);
+	__GLX_SWAP_INT(pc + 8);
+	glSampleMaskSGIS(*(GLfloat *)(pc + 4),
+			 *(GLboolean *)(pc + 8));
+	return Success;
+    case X_GLvop_SamplePatternSGIS:
+	__GLX_SWAP_INT(pc + 4);
+	glSamplePatternSGIS( *(GLenum *)(pc + 4));
+	return Success;
+    }
+
+
     if ((vendorcode >= __GLX_MIN_VENDPRIV_OPCODE_EXT) &&
           (vendorcode <= __GLX_MAX_VENDPRIV_OPCODE_EXT))  {
 	(*__glXSwapVendorPrivTable_EXT[vendorcode-__GLX_MIN_VENDPRIV_OPCODE_EXT])(cl, (GLbyte*)req);
@@ -818,6 +845,12 @@ int __glXSwapVendorPrivateWithReply(__GLXclientState *cl, GLbyte *pc)
 	return __glXSwapQueryContextInfoEXT(cl, pc);
       case X_GLXvop_MakeCurrentReadSGI:
 	return __glXSwapMakeCurrentReadSGI(cl, pc);
+      case X_GLXvop_GetFBConfigsSGIX:
+	return __glXSwapGetFBConfigsSGIX(cl, pc);
+      case X_GLXvop_CreateContextWithConfigSGIX:
+	return __glXSwapCreateContextWithConfigSGIX(cl, pc);
+      case X_GLXvop_CreateGLXPixmapWithConfigSGIX:
+	return __glXSwapCreateGLXPixmapWithConfigSGIX(cl, pc);
       default:
 	break;
     }

@@ -52,6 +52,9 @@ extern int __glXQueryExtensionsString(__GLXclientState*, GLbyte*);
 extern int __glXQueryServerString(__GLXclientState*, GLbyte*);
 extern int __glXClientInfo(__GLXclientState*, GLbyte*);
 extern int __glXMakeContextCurrent(__GLXclientState*, GLbyte*);
+extern int __glXGetFBConfigs(__GLXclientState*, GLbyte*);
+extern int __glXCreateNewContext(__GLXclientState*, GLbyte*);
+extern int __glXCreatePixmap(__GLXclientState*, GLbyte*);
 
 extern int __glXDisp_NewList(__GLXclientState*, GLbyte*);
 extern int __glXDisp_EndList(__GLXclientState*, GLbyte*);
@@ -325,6 +328,7 @@ extern void __glXDisp_MultiTexCoord4dvARB(GLbyte*);
 extern void __glXDisp_MultiTexCoord4fvARB(GLbyte*);
 extern void __glXDisp_MultiTexCoord4ivARB(GLbyte*);
 extern void __glXDisp_MultiTexCoord4svARB(GLbyte*);
+extern void __glXDisp_SampleCoverageARB(GLbyte *);
 extern void __glXDisp_WindowPos3fARB(GLbyte *);
 
 extern int __glXSwapRender(__GLXclientState*, GLbyte*);
@@ -348,6 +352,9 @@ extern int __glXSwapQueryExtensionsString(__GLXclientState*, GLbyte*);
 extern int __glXSwapQueryServerString(__GLXclientState*, GLbyte*);
 extern int __glXSwapClientInfo(__GLXclientState*, GLbyte*);
 extern int __glXSwapMakeContextCurrent(__GLXclientState*, GLbyte*);
+extern int __glXSwapGetFBConfigs(__GLXclientState*, GLbyte*);
+extern int __glXSwapCreateNewContext(__GLXclientState*, GLbyte*);
+extern int __glXSwapCreatePixmap(__GLXclientState*, GLbyte*);
 
 extern int __glXDispSwap_NewList(__GLXclientState*, GLbyte*);
 extern int __glXDispSwap_EndList(__GLXclientState*, GLbyte*);
@@ -621,6 +628,7 @@ extern void __glXDispSwap_MultiTexCoord4dvARB(GLbyte*);
 extern void __glXDispSwap_MultiTexCoord4fvARB(GLbyte*);
 extern void __glXDispSwap_MultiTexCoord4ivARB(GLbyte*);
 extern void __glXDispSwap_MultiTexCoord4svARB(GLbyte*);
+extern void __glXDispSwap_SampleCoverageARB(GLbyte *);
 extern void __glXDispSwap_WindowPos3fARB(GLbyte *);
 
 #define __GLX_MIN_GLXCMD_OPCODE 1

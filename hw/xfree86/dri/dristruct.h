@@ -50,7 +50,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 typedef struct _DRIDrawablePrivRec
 {
-    drmDrawable		hwDrawable;
+    drm_drawable_t		hwDrawable;
     int			drawableIndex;
     ScreenPtr		pScreen;
     int 		refCount;
@@ -58,7 +58,7 @@ typedef struct _DRIDrawablePrivRec
 
 struct _DRIContextPrivRec
 {
-    drmContext		hwContext;
+    drm_context_t		hwContext;
     ScreenPtr		pScreen;
     Bool     		valid3D;
     DRIContextFlags     flags;
@@ -78,19 +78,19 @@ typedef struct _DRIScreenPrivRec
 {
     Bool		directRenderingSupport;
     int			drmFD;	      /* File descriptor for /dev/video/?   */
-    drmHandle   	hSAREA;	      /* Handle to SAREA, for mapping       */
+    drm_handle_t   	hSAREA;	      /* Handle to SAREA, for mapping       */
     XF86DRISAREAPtr	pSAREA;	      /* Mapped pointer to SAREA            */
-    drmHandle   	hFrameBuffer; /* Handle to framebuffer, for mapping */
-    drmContext          myContext;    /* DDX Driver's context               */
+    drm_handle_t   	hFrameBuffer; /* Handle to framebuffer, for mapping */
+    drm_context_t          myContext;    /* DDX Driver's context               */
     DRIContextPrivPtr   myContextPriv;/* Pointer to server's private area   */
     DRIContextPrivPtr   lastPartial3DContext;  /* last one partially saved  */
     void**		hiddenContextStore;    /* hidden X context          */
     void**		partial3DContextStore; /* parital 3D context        */
     DRIInfoPtr		pDriverInfo;
     int                 nrWindows;
-    XF86DRIClipRectRec  private_buffer_rect; /* management of private buffers */
+    drm_clip_rect_t  private_buffer_rect; /* management of private buffers */
     DrawablePtr         fullscreen; /* pointer to fullscreen drawable */
-    XF86DRIClipRectRec  fullscreen_rect; /* fake rect for fullscreen mode */
+    drm_clip_rect_t  fullscreen_rect; /* fake rect for fullscreen mode */
     DRIWrappedFuncsRec	wrap;
     DrawablePtr		DRIDrawables[SAREA_MAX_DRAWABLES];
     DRIContextPrivPtr   dummyCtxPriv; /* Pointer to dummy context */

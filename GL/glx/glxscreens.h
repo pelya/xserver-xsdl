@@ -70,7 +70,11 @@ typedef struct {
     */
     void (*createBuffer)(__GLXdrawablePrivate *glxPriv);
 
-    __GLXvisualConfig *pGlxVisual;
+    /**
+     * Linked list of valid context modes for this screen.
+     */
+    __GLcontextModes *modes;
+
     void **pVisualPriv;
     GLint numVisuals;
     GLint numUsableVisuals;

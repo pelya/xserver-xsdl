@@ -220,6 +220,14 @@ void __glXDisp_DrawArrays(GLbyte *pc)
 	    glEnableClientState(GL_EDGE_FLAG_ARRAY);
 	    glEdgeFlagPointer(stride, (const GLboolean *)pc);
 	    break;
+	  case GL_SECONDARY_COLOR_ARRAY:
+	    glEnableClientState(GL_SECONDARY_COLOR_ARRAY);
+	    glSecondaryColorPointer(numVals, datatype, stride, pc);
+	    break;
+	  case GL_FOG_COORD_ARRAY:
+	    glEnableClientState(GL_FOG_COORD_ARRAY);
+	    glFogCoordPointer(datatype, stride, pc);
+	    break;
 	  default:
 	    break;
 	}
@@ -236,10 +244,11 @@ void __glXDisp_DrawArrays(GLbyte *pc)
     glDisableClientState(GL_INDEX_ARRAY);
     glDisableClientState(GL_TEXTURE_COORD_ARRAY);
     glDisableClientState(GL_EDGE_FLAG_ARRAY);
+    glDisableClientState(GL_SECONDARY_COLOR_ARRAY);
+    glDisableClientState(GL_FOG_COORD_ARRAY);
 }
 
 void __glXDisp_DrawArraysEXT(GLbyte *pc)
 {
-#ifdef XXX_STUB
-#endif /*XXX_STUB*/
+   __glXDisp_DrawArrays(pc);
 }

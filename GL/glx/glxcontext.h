@@ -80,7 +80,6 @@ struct __GLXcontextRec {
     ** This context is created with respect to this visual.
     */
     VisualRec *pVisual;
-    __GLXvisualConfig *pGlxVisual;
 
     /*
     ** The XID of this context.

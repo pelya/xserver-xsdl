@@ -776,7 +776,6 @@ static const char *glcoreSymbols[] = {
     "__glXFogfvReqSize",
     "__glXFogivReqSize",
     "__glXForceCurrent",
-    "__glXFormatGLModes",
     "__glXFree",
     "__glXFreeBuffers",
     "__glXFreeContext",
