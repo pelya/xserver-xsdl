@@ -1106,9 +1106,7 @@ ATIDRIGetBuffer(ATIScreenInfo *atis)
 	ATICardInfo *atic = atis->atic;
 	drmDMAReq dma;
 	drmBufPtr buf = NULL;
-	int indx = 0;
-	int size = 0;
-	int ret;
+	int indx = 0, size = 0, ret = 0;
 	TIMEOUT_LOCALS;
 
 	dma.context = atis->serverContext;
