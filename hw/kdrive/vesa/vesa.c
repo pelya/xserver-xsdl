@@ -19,8 +19,11 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/vesa/vesa.c,v 1.21 2002/10/14 18:01:42 keithp Exp $ */
+/* $Id$ */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 #include "vesa.h"
 #ifdef RANDR
 #include <randrstr.h>

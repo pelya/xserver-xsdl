@@ -68,6 +68,9 @@ THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 #include "kdrive.h"
 #include "kxv.h"
 #include "i810.h"

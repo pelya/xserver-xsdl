@@ -23,6 +23,9 @@
  */
 /* $RCSId: xc/programs/Xserver/hw/kdrive/fbdev/fbdev.c,v 1.31 2002/10/14 18:01:40 keithp Exp $ */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 #include "fbdev.h"
 
 /* this code was used to debug MSB 24bpp code on a 16bpp frame buffer */

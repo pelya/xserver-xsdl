@@ -23,6 +23,9 @@
  */
 /* $RCSId: xc/programs/Xserver/hw/kdrive/fbdev/fbinit.c,v 1.8 2001/05/29 17:47:55 keithp Exp $ */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 #include <fbdev.h>
 
 void

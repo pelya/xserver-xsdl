@@ -24,6 +24,9 @@
  */
 /* $RCSId: xc/programs/Xserver/hw/kdrive/savage/s3reg.c,v 1.3 2000/02/23 20:30:04 dawes Exp $ */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 #include "s3reg.h"
 
 #define CR00 S3_CR+0x00

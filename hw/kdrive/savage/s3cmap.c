@@ -24,6 +24,9 @@
  */
 /* $RCSId: xc/programs/Xserver/hw/kdrive/savage/s3cmap.c,v 1.4 2000/05/06 22:17:45 keithp Exp $ */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 #include "s3.h"
 
 void

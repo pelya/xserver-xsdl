@@ -23,6 +23,9 @@
  */
 /* $RCSId: xc/programs/Xserver/hw/kdrive/itsy/kbd.c,v 1.1 1999/11/19 13:53:53 hohndel Exp $ */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 #include "itsy.h"
 #include "kkeymap.h"
 #include <X11/keysym.h>

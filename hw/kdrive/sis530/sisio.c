@@ -23,6 +23,9 @@
  */
 /* $RCSId: xc/programs/Xserver/hw/kdrive/sis530/sisio.c,v 1.1 1999/11/19 13:54:00 hohndel Exp $ */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 #ifdef linux
 #define extern
 #include <asm/io.h>

@@ -24,6 +24,9 @@
  */
 /* $RCSId: xc/programs/Xserver/hw/kdrive/savage/s3draw.c,v 1.6 2001/05/29 04:54:11 keithp Exp $ */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 #include	"s3.h"
 #include	"s3draw.h"
 

@@ -23,6 +23,9 @@
  */
 /* $RCSId: xc/programs/Xserver/hw/kdrive/itsy/itsy.c,v 1.2 1999/12/30 03:03:09 robin Exp $ */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 #include "itsy.h"
 
 /* struct with LCD characteristics defined in fb_brutus.h  */

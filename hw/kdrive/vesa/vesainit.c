@@ -21,6 +21,9 @@ THE SOFTWARE.
 */
 /* $RCSId: xc/programs/Xserver/hw/kdrive/vesa/vesainit.c,v 1.7 2001/09/05 07:12:43 keithp Exp $ */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 #include "vesa.h"
 
 const KdCardFuncs vesaFuncs = {

@@ -23,6 +23,9 @@
  */
 /* $RCSId: xc/programs/Xserver/hw/kdrive/trio/s3curs.c,v 1.2 1999/12/30 03:03:19 robin Exp $ */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 #include "s3.h"
 #include "s3draw.h"
 #include "cursorstr.h"

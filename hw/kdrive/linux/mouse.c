@@ -22,6 +22,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 #define NEED_EVENTS
 #include <errno.h>
 #include <termios.h>

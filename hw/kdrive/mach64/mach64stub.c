@@ -24,6 +24,9 @@
  */
 /* $RCSId: xc/programs/Xserver/hw/kdrive/mach64/mach64stub.c,v 1.2 2001/10/12 06:33:10 keithp Exp $ */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 #include "mach64.h"
 
 void

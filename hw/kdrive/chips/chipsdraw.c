@@ -23,6 +23,9 @@
  */
 /* $RCSId: xc/programs/Xserver/hw/kdrive/trident/tridentdraw.c,v 1.10 2001/06/03 18:48:19 keithp Exp $ */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 #include "chips.h"
 
 #include	"Xmd.h"

@@ -23,6 +23,9 @@
  */
 /* $RCSId: xc/programs/Xserver/hw/kdrive/pcmcia/pcmciashadow.c,v 1.1 2001/05/23 08:56:09 alanh Exp $ */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 #include    <X11/X.h>
 #include    "scrnintstr.h"
 #include    "windowstr.h"

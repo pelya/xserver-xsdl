@@ -23,6 +23,9 @@
  */
 /* $RCSId: xc/programs/Xserver/hw/kdrive/itsy/ts.c,v 1.1 1999/11/19 13:53:54 hohndel Exp $ */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 #define NEED_EVENTS
 #include "itsy.h"
 #include <X11/Xproto.h>

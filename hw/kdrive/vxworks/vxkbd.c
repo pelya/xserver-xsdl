@@ -6,6 +6,9 @@
  * Author: Keith Packard
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 #include "kdrive.h"
 #include "kkeymap.h"
 #include <X11/keysym.h>

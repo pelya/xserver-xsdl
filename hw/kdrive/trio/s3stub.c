@@ -24,6 +24,9 @@
  */
 /* $RCSId: xc/programs/Xserver/hw/kdrive/trio/s3stub.c,v 1.3 2000/02/23 20:30:13 dawes Exp $ */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 #include "s3.h"
 
 void

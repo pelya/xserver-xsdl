@@ -21,6 +21,9 @@
  */
 /* $RCSId: xc/programs/Xserver/hw/kdrive/trident/trident.c,v 1.18 2001/06/04 09:45:42 keithp Exp $ */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 #include "chips.h"
 #include <sys/io.h>
 

@@ -23,6 +23,9 @@
  */
 /* $RCSId: xc/programs/Xserver/hw/kdrive/sis530/siscurs.c,v 1.1 1999/11/19 13:53:59 hohndel Exp $ */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 #include "sis.h"
 #include "cursorstr.h"
 

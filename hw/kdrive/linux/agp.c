@@ -41,6 +41,9 @@ of the copyright holder.
  * Author: Pontus Lidman <pontus.lidman@nokia.com> (adaption to KDrive) and others
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 #include <X11/X.h>
 
 #include <unistd.h>

@@ -36,6 +36,9 @@ X Window System is a trademark of The Open Group */
    Author: Pontus Lidman <pontus.lidman@nokia.com>
 */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 #include "kdrive.h"
 #include "kxv.h"
 #include "i810.h"

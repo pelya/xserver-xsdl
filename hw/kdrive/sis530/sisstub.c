@@ -24,6 +24,9 @@
  */
 /* $RCSId: xc/programs/Xserver/hw/kdrive/sis530/sisstub.c,v 1.4 2000/08/09 17:52:44 keithp Exp $ */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 #include "sis.h"
 
 static const int   sisCards[] = { 0x6306, 0x0200 };
