@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/kdrive.h,v 1.10 2000/09/27 20:47:37 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/kdrive.h,v 1.11 2000/11/29 08:42:25 keithp Exp $ */
 
 #include <stdio.h>
 #include "X.h"
@@ -104,7 +104,8 @@ typedef struct _KdScreenInfo {
     int		width;
     int		height;
     int		rate;
-    int         dpix, dpiy;
+    int		width_mm;
+    int		height_mm;
     Bool        dumb;
     Bool        softCursor;
     int		mynum;

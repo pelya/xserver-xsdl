@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/kdrive.c,v 1.7 2000/09/15 15:18:59 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/kdrive.c,v 1.10 2000/09/27 20:47:36 keithp Exp $ */
 
 #include "kdrive.h"
 #ifdef PSEUDO8
@@ -304,12 +304,30 @@ ddxGiveUp ()
 Bool	kdDumbDriver;
 Bool	kdSoftCursor;
 
+char *
+KdParseFindNext (char *cur, char *delim, char *save, char *last)
+{
+    while (*cur && !strchr (delim, *cur))
+    {
+	*save++ = *cur++;
+    }
+    *save = 0;
+    *last = *cur;
+    if (*cur)
+	cur++;
+    return cur;
+}
+
 void
 KdParseScreen (KdScreenInfo *screen,
 	       char	    *arg)
 {
     char    *bpp;
+    char    delim;
+    char    save[1024];
     int	    fb;
+    int	    i;
+    int	    pixels, mm;
     
     screen->dumb = kdDumbDriver;
     screen->softCursor = kdSoftCursor;
@@ -317,55 +335,74 @@ KdParseScreen (KdScreenInfo *screen,
     kdSoftCursor = FALSE;
     screen->width = 0;
     screen->height = 0;
+    screen->width_mm = 0;
+    screen->height_mm = 0;
     screen->rate = 0;
     for (fb = 0; fb < KD_MAX_FB; fb++)
 	screen->fb[fb].depth = 0;
     if (!arg)
 	return;
+    if (strlen (arg) > sizeof (save))
+	return;
     
-    screen->width = atoi(arg);
-    arg = strchr (arg, 'x');
-    if (!arg)
-	return;
-    arg++;
-
-    screen->height = atoi(arg);
-    arg = strchr (arg, 'x');
-    if (!arg)
-	return;
-    arg++;
-
+    for (i = 0; i < 2; i++)
+    {
+	arg = KdParseFindNext (arg, "x/", save, &delim);
+	if (!save[0])
+	    return;
+	
+	pixels = atoi(save);
+	mm = 0;
+	
+	if (delim == '/')
+	{
+	    arg = KdParseFindNext (arg, "x", save, &delim);
+	    if (!save[0])
+		return;
+	    mm = atoi(save);
+	}
+	
+	if (i == 0)
+	{
+	    screen->width = pixels;
+	    screen->width_mm = mm;
+	}
+	else
+	{
+	    screen->height = pixels;
+	    screen->height_mm = mm;
+	}
+	if (delim != 'x')
+	    return;
+    }
+    
     fb = 0;
     while (fb < KD_MAX_FB)
     {
-	screen->fb[fb].depth = atoi(arg);
-    
-	bpp = strchr (arg, '/');
-	if (bpp)
+	arg = KdParseFindNext (arg, "x/,", save, &delim);
+	if (!save[0])
+	    break;
+	screen->fb[fb].depth = atoi(save);
+	if (delim == '/')
 	{
-	    bpp++;
-	    screen->fb[fb].bitsPerPixel = atoi(bpp);
-	    arg = bpp;
+	    arg = KdParseFindNext (arg, "x,", save, &delim);
+	    if (!save[0])
+		break;
+	    screen->fb[fb].bitsPerPixel = atoi (save);
 	}
 	else
 	    screen->fb[fb].bitsPerPixel = 0;
-	bpp = strchr (arg, ',');
-	if (!bpp)
+	if (delim != ',')
 	    break;
-	arg = bpp+1;
 	fb++;
     }
 
-    arg = strchr (arg, 'x');
-    if (!arg)
-	return;
-    arg++;
-
-    screen->rate = atoi(arg);
-    arg = strchr (arg, 'x');
-    if (!arg)
-	return;
-    arg++;
+    if (delim == 'x')
+    {
+	arg = KdParseFindNext (arg, "x", save, &delim);
+	if (save[0])
+	    screen->rate = atoi(save);
+    }
 }
 
 int
@@ -615,7 +652,7 @@ KdScreenInit(int index, ScreenPtr pScreen, int argc, char **argv)
     if (!fbSetupScreen (pScreen, 
 			screen->fb[0].frameBuffer, 
 			screen->width, screen->height, 
-			screen->dpix, screen->dpiy, 
+			75, 75, 
 			screen->fb[0].pixelStride,
 			screen->fb[0].bitsPerPixel))
     {
@@ -648,7 +685,7 @@ KdScreenInit(int index, ScreenPtr pScreen, int argc, char **argv)
 					screen->fb[0].frameBuffer, 
 					screen->fb[1].frameBuffer, 
 					screen->width, screen->height, 
-					screen->dpix, screen->dpiy, 
+					75, 75,
 					screen->fb[0].pixelStride,
 					screen->fb[1].pixelStride,
 					screen->fb[0].bitsPerPixel,
@@ -664,14 +701,23 @@ KdScreenInit(int index, ScreenPtr pScreen, int argc, char **argv)
     {
 	if (!fbFinishScreenInit (pScreen, 
 				 screen->fb[0].frameBuffer, 
-				 screen->width, screen->height, 
-				 screen->dpix, screen->dpiy, 
+				 screen->width, screen->height,
+				 75, 75,
 				 screen->fb[0].pixelStride,
 				 screen->fb[0].bitsPerPixel))
 	{
 	    return FALSE;
 	}
     }
+    
+    /*
+     * Fix screen sizes; for some reason mi takes dpi instead of mm.
+     * Rounding errors are annoying
+     */
+    if (screen->width_mm)
+	pScreen->mmWidth = screen->width_mm;
+    if (screen->height_mm)
+	pScreen->mmHeight = screen->height_mm;
     
     /*
      * Plug in our own block/wakeup handlers.
@@ -769,11 +815,6 @@ KdInitScreen (ScreenInfo    *pScreenInfo,
     
     (*card->cfuncs->scrinit) (screen);
     
-    if (!screen->dpix)
-	screen->dpix = 75;
-    
-    if (!screen->dpiy)
-	screen->dpiy = 75;
     if (!card->cfuncs->initAccel)
 	screen->dumb = TRUE;
     if (!card->cfuncs->initCursor)
