@@ -5,7 +5,8 @@
 	* XWin.rc 
 	* winerror.c 
 	* wintrayicon.c 
-	* winvideo.c 
+	* winvideo.c
+	* winshaddd.c       	
 	* winwindow.h:
 	Set PROJECT_NAME in Imakefile to create alternative window titles 
 	for Cygwin/X and Xming

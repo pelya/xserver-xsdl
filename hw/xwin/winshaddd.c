@@ -634,7 +634,7 @@ winShadowUpdateDD (ScreenPtr pScreen,
       ErrorF ("winShadowUpdateProcDD - Memory location of the shadow "
 	      "surface has changed, trying to update the root window "
 	      "pixmap header to point to the new address.  If you get "
-	      "this message and Cygwin/X freezes or crashes "
+	      "this message and "PROJECT_NAME" freezes or crashes "
 	      "after this message then send a problem report and your "
 	      "/tmp/XWin.log file to cygwin-xfree@cygwin.com\n");
 
