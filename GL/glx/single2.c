@@ -42,10 +42,6 @@
 #include "g_disptab.h"
 #include "GL/glx_ansic.h"
 
-#if defined(XFree86LOADER) && !defined(__CYGWIN__) && !defined(__DARWIN__)
-#define atof xf86atof
-#endif
-
 int __glXDisp_FeedbackBuffer(__GLXclientState *cl, GLbyte *pc)
 {
     GLsizei size;
