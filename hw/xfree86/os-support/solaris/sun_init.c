@@ -26,6 +26,9 @@
 #include "xf86.h"
 #include "xf86Priv.h"
 #include "xf86_OSlib.h"
+#ifdef __i386
+# include <sys/kd.h>
+#endif
 
 static Bool KeepTty = FALSE;
 static Bool Protect0 = FALSE;
@@ -34,7 +37,11 @@ static int VTnum = -1;
 static int xf86StartVT = -1;
 #endif
 
+#if defined(__SOL8__) || !defined(__i386)
+static char fb_dev[PATH_MAX] = "/dev/fb";
+#else
 static char fb_dev[PATH_MAX] = "/dev/console";
+#endif
 
 void
 xf86OpenConsole(void)
@@ -162,12 +169,15 @@ xf86OpenConsole(void)
 
 	if (ioctl(xf86Info.consoleFd, VT_SETMODE, &VT) < 0)
 	    FatalError("xf86OpenConsole: VT_SETMODE VT_PROCESS failed\n");
-
+#endif
+#ifdef __i386
 	if (ioctl(xf86Info.consoleFd, KDSETMODE, KD_GRAPHICS) < 0)
 	    FatalError("xf86OpenConsole: KDSETMODE KD_GRAPHICS failed\n");
+#endif
     }
     else /* serverGeneration != 1 */
     {
+#ifdef HAS_USL_VTS
 	/*
 	 * Now re-get the VT
 	 */
@@ -245,6 +255,11 @@ xf86CloseConsole(void)
 
 #endif
 
+#ifdef __i386
+    /* Reset the display back to text mode */
+    ioctl(xf86Info.consoleFd, KDSETMODE, KD_TEXT);
+#endif
+
 #ifdef HAS_USL_VTS
 
     /*
@@ -261,8 +276,6 @@ xf86CloseConsole(void)
      * Did the whole thing similarly to the way linux does it
      */
 
-    /* Reset the display back to text mode */
-    ioctl(xf86Info.consoleFd, KDSETMODE, KD_TEXT);
     if (ioctl(xf86Info.consoleFd, VT_GETMODE, &VT) != -1)
     {
 	VT.mode = VT_AUTO;		/* Set default vt handling */
