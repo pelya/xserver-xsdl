@@ -45,6 +45,7 @@
 #define mfbGetWindowPixmap  xf1bppGetWindowPixmap
 #define mfbGetWindowPrivateIndex  xf1bppGetWindowPrivateIndex
 #define mfbGetmask  xf1bppGetmask
+#define mfbGetpartmasks xf1bppGetpartmasks
 #define mfbGetrmask  xf1bppGetrmask
 #define mfbGetstarttab  xf1bppGetstarttab
 #define mfbGetendtab  xf1bppGetendtab

@@ -18,6 +18,9 @@ unsigned long IBMramdac640CalculateMNPCForClock(unsigned long RefClock,
 void IBMramdac526HWCursorInit(xf86CursorInfoPtr infoPtr);
 void IBMramdac640HWCursorInit(xf86CursorInfoPtr infoPtr);
 
+typedef void IBMramdac526SetBppProc(ScrnInfoPtr, RamDacRegRecPtr);
+IBMramdac526SetBppProc *IBMramdac526SetBppWeak(void);
+
 #define IBM524_RAMDAC		((VENDOR_IBM << 16) | 0x00)
 #define IBM524A_RAMDAC		((VENDOR_IBM << 16) | 0x01)
 #define IBM525_RAMDAC		((VENDOR_IBM << 16) | 0x02)

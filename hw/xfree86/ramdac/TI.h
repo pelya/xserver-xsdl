@@ -19,6 +19,9 @@ void TIramdacHWCursorInit(xf86CursorInfoPtr infoPtr);
 void TIramdacLoadPalette( ScrnInfoPtr pScrn, int numColors, int *indices,
     LOCO *colors, VisualPtr pVisual);
 
+typedef void TIramdacLoadPaletteProc(ScrnInfoPtr, int, int *, LOCO *,
+    VisualPtr);
+TIramdacLoadPaletteProc *TIramdacLoadPaletteWeak(void);
 
 #define TI3030_RAMDAC		(VENDOR_TI << 16) | 0x00
 #define TI3026_RAMDAC		(VENDOR_TI << 16) | 0x01

@@ -15,8 +15,10 @@ static CARD32* StippleOver32_Inverted(CARD32*, CARD32*, int, int, int);
 
 #ifdef TRIPLE_BITS
 #define stipple_scanline_func EXPNAME(XAAStippleScanlineFunc3)
+#define stipple_get_scanline_func EXPNAME(XAAGetStippleScanlineFunc3)
 #else
 #define stipple_scanline_func EXPNAME(XAAStippleScanlineFunc)
+#define stipple_get_scanline_func EXPNAME(XAAGetStippleScanlineFunc)
 #endif
 
 StippleScanlineProcPtr stipple_scanline_func[6] = {
@@ -28,6 +30,9 @@ StippleScanlineProcPtr stipple_scanline_func[6] = {
    StippleOver32_Inverted
 };
 
+StippleScanlineProcPtr *stipple_get_scanline_func(void) {
+   return stipple_scanline_func;
+}
 
 #ifdef FIXEDBASE
 # define DEST(i)	*dest

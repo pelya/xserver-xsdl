@@ -190,11 +190,16 @@ typedef struct _vgaHWRec {
 
 /* vgaHW.c */
 
+typedef void vgaHWProtectProc(ScrnInfoPtr, Bool);
+typedef void vgaHWBlankScreenProc(ScrnInfoPtr, Bool);
+
 void vgaHWSetStdFuncs(vgaHWPtr hwp);
 void vgaHWSetMmioFuncs(vgaHWPtr hwp, CARD8 *base, int offset);
 void vgaHWProtect(ScrnInfoPtr pScrn, Bool on);
+vgaHWProtectProc *vgaHWProtectWeak(void);
 Bool vgaHWSaveScreen(ScreenPtr pScreen, int mode);
 void vgaHWBlankScreen(ScrnInfoPtr pScrn, Bool on);
+vgaHWBlankScreenProc *vgaHWBlankScreenWeak(void);
 void vgaHWSeqReset(vgaHWPtr hwp, Bool start);
 void vgaHWRestoreFonts(ScrnInfoPtr scrninfp, vgaRegPtr restore);
 void vgaHWRestoreMode(ScrnInfoPtr scrninfp, vgaRegPtr restore);

@@ -163,6 +163,13 @@ void
 shadowUpdateRotate32_270 (ScreenPtr    pScreen,
 			  shadowBufPtr pBuf);
 
+typedef void * shadowUpdateProc(ScreenPtr, shadowBufPtr);
+
+shadowUpdateProc *shadowUpdatePackedWeak(void);
+shadowUpdateProc *shadowUpdatePlanar4Weak(void);
+shadowUpdateProc *shadowUpdatePlanar4x8Weak(void);
+shadowUpdateProc *shadowUpdateRotatePackedWeak(void);
+
 void
 shadowWrapGC (GCPtr pGC);
 

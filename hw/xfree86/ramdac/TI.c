@@ -711,3 +711,7 @@ void TIramdacLoadPalette(
     }
 }
 }
+
+TIramdacLoadPaletteProc *TIramdacLoadPaletteWeak(void) {
+    return TIramdacLoadPalette;
+}

@@ -304,3 +304,7 @@ shadowUpdateRotatePacked (ScreenPtr	pScreen,
 	}
     }
 }
+
+shadowUpdateProc *shadowUpdateRotatePackedWeak(void) {
+    return shadowUpdateRotatePacked;
+}

@@ -727,6 +727,11 @@ extern CARD32 *(*XAAGlyphScanlineFuncLSBFirst[32])(
    CARD32 *base, unsigned int **glyphp, int line, int nglyph, int width
 );
 
+GlyphScanlineFuncPtr *XAAGetGlyphScanlineFuncMSBFirstFixedBase(void);
+GlyphScanlineFuncPtr *XAAGetGlyphScanlineFuncMSBFirst(void);
+GlyphScanlineFuncPtr *XAAGetGlyphScanlineFuncLSBFirstFixedBase(void);
+GlyphScanlineFuncPtr *XAAGetGlyphScanlineFuncLSBFirst(void);
+
 void
 XAAFillColorExpandRectsLSBFirst(
    ScrnInfoPtr pScrn,
@@ -1045,6 +1050,11 @@ extern CARD32 *(*XAAStippleScanlineFuncLSBFirstFixedBase[6])(
 extern CARD32 *(*XAAStippleScanlineFuncLSBFirst[6])(
    CARD32* base, CARD32* src, int offset, int width, int dwords
 );
+
+StippleScanlineProcPtr *XAAGetStippleScanlineFuncMSBFirstFixedBase(void);
+StippleScanlineProcPtr *XAAGetStippleScanlineFuncMSBFirst(void);
+StippleScanlineProcPtr *XAAGetStippleScanlineFuncLSBFirstFixedBase(void);
+StippleScanlineProcPtr *XAAGetStippleScanlineFuncLSBFirst(void);
 
 int
 XAAPolyText8TEColorExpansion(
@@ -1505,6 +1515,10 @@ XAACacheMonoStipple(ScrnInfoPtr Scrn, PixmapPtr pPix);
 
 XAACacheInfoPtr
 XAACachePlanarMonoStipple(ScrnInfoPtr Scrn, PixmapPtr pPix);
+
+typedef XAACacheInfoPtr *XAACachePlanarMonoStippleProc(ScrnInfoPtr, PixmapPtr);
+
+XAACachePlanarMonoStippleProc *XAAGetCachePlanarMonoStipple(void);
 
 XAACacheInfoPtr
 XAACacheStipple(ScrnInfoPtr Scrn, PixmapPtr pPix, int fg, int bg);

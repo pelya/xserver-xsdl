@@ -374,6 +374,10 @@ IBMramdac526SetBpp(ScrnInfoPtr pScrn, RamDacRegRecPtr ramdacReg)
     }
 }
 
+IBMramdac526SetBppProc *IBMramdac526SetBppWeak(void) {
+    return IBMramdac526SetBpp;
+}
+
 void
 IBMramdac640SetBpp(ScrnInfoPtr pScrn, RamDacRegRecPtr ramdacReg)
 {
