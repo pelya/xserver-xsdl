@@ -102,7 +102,7 @@ mgaPrepareSolid (PixmapPtr pPixmap, int alu, Pixel pm, Pixel fg)
     cmd = MGA_OPCOD_TRAP | MGA_DWGCTL_SOLID | MGA_DWGCTL_ARZERO | MGA_DWGCTL_SGNZERO |
 	MGA_DWGCTL_SHIFTZERO | mgaRop[alu];
 
-    dst_org = (int)pPixmap->devPrivate.ptr - (int)mgas->screen;
+    dst_org = (int)pPixmap->devPrivate.ptr - (int)pScreenPriv->screen->memory_base;
     
     mgaSetup (pPixmap->drawable.pScreen, 5);
 
@@ -152,8 +152,8 @@ mgaPrepareCopy (PixmapPtr pSrcPixmap, PixmapPtr pDstPixmap,
 
     mgaSetup (pSrcPixmap->drawable.pScreen, 7);
 
-    MGA_OUT32 (mmio, MGA_REG_SRCORG, ((int)pSrcPixmap->devPrivate.ptr - (int)mgas->screen));
-    MGA_OUT32 (mmio, MGA_REG_DSTORG, ((int)pDstPixmap->devPrivate.ptr - (int)mgas->screen));
+    MGA_OUT32 (mmio, MGA_REG_SRCORG, ((int)pSrcPixmap->devPrivate.ptr - (int)pScreenPriv->screen->memory_base));
+    MGA_OUT32 (mmio, MGA_REG_DSTORG, ((int)pDstPixmap->devPrivate.ptr - (int)pScreenPriv->screen->memory_base));
     MGA_OUT32 (mmio, MGA_REG_PITCH, pDstPixmap->devKind / (pDstPixmap->drawable.bitsPerPixel >> 3));
     src_pitch = pSrcPixmap->devKind / (pSrcPixmap->drawable.bitsPerPixel >> 3);
 	

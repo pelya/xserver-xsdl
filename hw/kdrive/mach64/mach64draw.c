@@ -116,7 +116,7 @@ mach64Setup (PixmapPtr pDst, PixmapPtr pSrc, CARD32 combo, int wait)
     if (triple)
 	DST_PITCH *= 3;
     /* bytes / 8 */
-    DST_OFFSET = ((CARD8 *) pDst->devPrivate.ptr - mach64s->screen) >> 3;
+    DST_OFFSET = ((CARD8 *) pDst->devPrivate.ptr - pScreenPriv->screen->memory_base) >> 3;
     
     mach64WaitAvail(reg, wait + (pSrc ? 5 : 4));
     reg->DP_SET_GUI_ENGINE = mach64s->DP_SET_GUI_ENGINE | (combo << 20);
@@ -131,7 +131,7 @@ mach64Setup (PixmapPtr pDst, PixmapPtr pSrc, CARD32 combo, int wait)
 	if (triple)
 	    SRC_PITCH *= 3;
 	/* bytes / 8 */
-	SRC_OFFSET = ((CARD8 *) pSrc->devPrivate.ptr - mach64s->screen) >> 3;
+	SRC_OFFSET = ((CARD8 *) pSrc->devPrivate.ptr - pScreenPriv->screen->memory_base) >> 3;
 	
 	reg->SRC_OFF_PITCH = ((SRC_OFFSET << 0) |
 			      (SRC_PITCH << 22) |

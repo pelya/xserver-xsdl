@@ -135,11 +135,11 @@ kaaPixmapAllocArea (PixmapPtr pPixmap)
     ScreenPtr	pScreen = pPixmap->drawable.pScreen;
     KaaScreenPriv (pScreen);
     KaaPixmapPriv (pPixmap);
+    KdScreenPriv  (pScreen);
     int		bpp = pPixmap->drawable.bitsPerPixel;
     CARD16	h = pPixmap->drawable.height;
     CARD16	w = pPixmap->drawable.width;
     int		pitch = KaaPixmapPitch (w);
-    PixmapPtr	pScreenPixmap = (*pScreen->GetScreenPixmap)(pScreen);
     
     pKaaPixmap->devKind = pPixmap->devKind;
     pKaaPixmap->devPrivate = pPixmap->devPrivate;
@@ -157,7 +157,7 @@ kaaPixmapAllocArea (PixmapPtr pPixmap)
 		  pPixmap->drawable.width,
 		  pPixmap->drawable.height));
     pPixmap->devKind = pitch * (bpp >> 3);
-    pPixmap->devPrivate.ptr = (pointer) ((CARD8 *) pScreenPixmap->devPrivate.ptr + pKaaPixmap->area->offset);
+    pPixmap->devPrivate.ptr = (pointer) ((CARD8 *) pScreenPriv->screen->memory_base + pKaaPixmap->area->offset);
     pPixmap->drawable.serialNumber = NEXT_SERIAL_NUMBER;
     return TRUE;
 }

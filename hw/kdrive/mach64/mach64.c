@@ -70,7 +70,7 @@ mach64ScreenInit (KdScreenInfo *screen)
 	screen->dumb = TRUE;
     if (mach64s->vesa.mapping != VESA_LINEAR)
 	screen->dumb = TRUE;
-    mach64s->screen = mach64s->vesa.fb;
+    screen->memory_base = mach64s->vesa.fb;
     switch (screen->fb[0].depth) {
     case 8:
 	mach64s->colorKey = 0xff;

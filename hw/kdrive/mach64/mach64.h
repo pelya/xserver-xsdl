@@ -560,7 +560,6 @@ Bool mach64InitVideo(ScreenPtr pScreen);
 
 typedef struct _mach64ScreenInfo {
     VesaScreenPrivRec		vesa;
-    CARD8			*screen;
     CARD32			DP_PIX_WIDTH;
     CARD32			DP_SET_GUI_ENGINE;
     Bool			bpp24;

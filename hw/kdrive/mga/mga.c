@@ -74,8 +74,8 @@ mgaScreenInit (KdScreenInfo *screen)
 	screen->dumb = TRUE;
 
     fprintf (stderr, "vesa mapping is %d\n", mgas->vesa.mapping);
-#endif    
-    mgas->screen = mgas->vesa.fb;
+#endif
+    screen->memory_base = mgas->vesa.fb;
 
     memory = mgas->vesa.fb_size;
     screen_size = screen->fb[0].byteStride * screen->height;
