@@ -1,3 +1,5 @@
+.\" $XFree86$
+.\"
 .TH Xkdrive 1
 .SH NAME
 Xkdrive \- tiny X server

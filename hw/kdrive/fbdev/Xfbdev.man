@@ -1,3 +1,5 @@
+.\" $XFree86$
+.\"
 .TH Xfbdev 1
 .SH NAME
 Xvesa \- Linux framebuffer device tiny X server
