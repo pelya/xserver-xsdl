@@ -1,4 +1,4 @@
-/* $XdotOrg$ */
+/* $XdotOrg: xc/programs/Xserver/hw/xfree86/loader/extsym.c,v 1.2 2004/04/23 19:54:06 eich Exp $ */
 /* $XFree86: xc/programs/Xserver/hw/xfree86/loader/extsym.c,v 1.9 2003/10/15 16:29:03 dawes Exp $ */
 
 /*
@@ -32,6 +32,7 @@
 #include "panoramiX.h"
 #endif
 #include "sleepuntil.h"
+#include "renderedge.h"
 
 #ifdef HAS_SHM
 extern int ShmCompletionCode;
@@ -76,6 +77,12 @@ LOOKUP extLookupTab[] = {
     SYMVAR(XRT_COLORMAP)
     SYMVAR(XRC_DRAWABLE)
 #endif
+
+    SYMFUNC(RenderSampleCeilY)
+    SYMFUNC(RenderSampleFloorY)
+    SYMFUNC(RenderEdgeStep)
+    SYMFUNC(RenderEdgeInit)
+    SYMFUNC(RenderLineFixedEdgeInit)
 
     {0, 0}
 };
