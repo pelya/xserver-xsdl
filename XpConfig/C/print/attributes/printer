@@ -16,8 +16,24 @@
 #	Set this attribute for all printers.
 #	Example: "*.document-formats-ready: {pcl 5}"
 
+# Remove this line and replace them with per printer settings
+# if you want to use more than one DDX!!
+*xp-model-identifier: PSdefault
 
-*xp-ddx-identifier: XP-POSTSCRIPT
+
+# Sample entry for the "PSspooldir" model
+# Just add a printer called "xp_ps_spooldir_tmp_Xprintjobs" to "Xprinters"
+# and you will get an extra printer which files the PostScript jobs
+# in the "/tmp/Xprintjobs/" directory.
+xp_ps_spooldir_tmp_Xprintjobs.xp-model-identifier: PSspooldir
+
+# Sample entry for the "PS2PDFspooldir-GS" model
+# Just add a printer called "xp_pdf_spooldir_tmp_Xprintjobs" to "Xprinters"
+# and you will get an extra printer which convertes the PostScript jobs
+# to PDF using "ps2pdf" and files them into the "/tmp/Xprintjobs/" directory.
+# NOTE: Future versions of Xprint will use the PDF DDX instead directly
+# instead of relying on GhostScript/ps2pdf...
+xp_pdf_spooldir_tmp_Xprintjobs.xp-model-identifier: PS2PDFspooldir-GS
 
 
 # IMPORTANT EXAMPLES

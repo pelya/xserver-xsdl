@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/XTrap/xf86XTrapModule.c,v 1.1 2001/11/02 23:29:29 dawes Exp $ */
+/* $XFree86$ */
 /*  This is the xf86 module code for the DEC_XTRAP extension.
  */
 
@@ -27,7 +27,7 @@ static XF86ModuleVersionInfo xtrapVersRec =
     MODULEVENDORSTRING,
     MODINFOSTRING1,
     MODINFOSTRING2,
-    XF86_VERSION_CURRENT,
+    XORG_VERSION_CURRENT,
     1, 0, 0,
     ABI_CLASS_EXTENSION,         /* needs the server extension ABI */
     ABI_EXTENSION_VERSION,

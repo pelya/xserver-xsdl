@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/Xext/xvmcext.h,v 1.2 2003/07/17 16:04:33 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/Xext/xvmcext.h,v 1.1 2001/04/07 11:04:21 alanh Exp $ */
 
 #ifndef _XVMC_H
 #define _XVMC_H

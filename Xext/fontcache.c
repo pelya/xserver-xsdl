@@ -27,7 +27,7 @@
  *
  *	Id: fontcache.c,v 1.12 1999/01/31 13:47:45 akiyama Exp $
  */
-/* $XFree86: xc/programs/Xserver/Xext/fontcache.c,v 1.8 2003/11/17 22:20:26 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/Xext/fontcache.c,v 1.7 2003/10/28 23:08:43 tsi Exp $ */
 
 /* THIS IS NOT AN X CONSORTIUM STANDARD */
 

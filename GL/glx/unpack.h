@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/GL/glx/unpack.h,v 1.6 2004/03/10 18:08:02 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/GL/glx/unpack.h,v 1.4 2002/01/14 22:47:08 tsi Exp $ */
 #ifndef __GLX_unpack_h__
 #define __GLX_unpack_h__
 
@@ -146,9 +146,8 @@ extern xGLXSingleReply __glXReply;
 #define __GLX_DECLARE_SWAP_VARIABLES \
 	GLbyte sw
 
-#define __GLX_DECLARE_SWAP_ARRAY_VARIABLES	\
-	__GLX_DECLARE_SWAP_VARIABLES;		\
-  	GLbyte *swapPC;				\
+#define __GLX_DECLARE_SWAP_ARRAY_VARIABLES \
+  	GLbyte *swapPC;		\
   	GLbyte *swapEnd
 
 

@@ -33,7 +33,7 @@ Equipment Corporation.
  * @(#)RCSfile: dpms.c,v Revision: 1.1.4.5  (DEC) Date: 1996/03/04 15:27:00
  */
 
-/* $XFree86: xc/programs/Xserver/Xext/dpms.c,v 3.12 2004/02/17 15:30:23 eich Exp $ */
+/* $XFree86: xc/programs/Xserver/Xext/dpms.c,v 3.10tsi Exp $ */
 
 #include "X.h"
 #include "Xproto.h"

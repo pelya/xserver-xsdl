@@ -21,7 +21,7 @@ DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE
 OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION  WITH
 THE USE OR PERFORMANCE OF THIS SOFTWARE.
 ********************************************************/
-/* $XFree86: xc/programs/Xserver/Xext/EVIstruct.h,v 3.6 2003/11/17 22:20:26 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/Xext/EVIstruct.h,v 3.5 2003/07/16 01:38:28 dawes Exp $ */
 
 #ifndef EVI_STRUCT_H
 #define EVI_STRUCT_H

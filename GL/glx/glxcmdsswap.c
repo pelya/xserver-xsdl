@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/GL/glx/glxcmdsswap.c,v 1.12 2004/03/10 18:08:02 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/GL/glx/glxcmdsswap.c,v 1.10 2004/01/28 18:11:50 alanh Exp $ */
 /*
 ** License Applicability. Except to the extent portions of this file are
 ** made subject to an alternative license as permitted in the SGI Free
@@ -190,6 +190,7 @@ int __glXSwapGetVisualConfigs(__GLXclientState *cl, GLbyte *pc)
     CARD32 buf[__GLX_TOTAL_CONFIG];
     unsigned int screen;
     int i, p;
+    __GLX_DECLARE_SWAP_VARIABLES;
     __GLX_DECLARE_SWAP_ARRAY_VARIABLES;
 
     __GLX_SWAP_INT(&req->screen);
@@ -404,6 +405,7 @@ void glxSwapQueryExtensionsStringReply(ClientPtr client,
 				       xGLXQueryExtensionsStringReply *reply, char *buf)
 {
     int length = reply->length;
+    __GLX_DECLARE_SWAP_VARIABLES;
     __GLX_DECLARE_SWAP_ARRAY_VARIABLES;
     __GLX_SWAP_SHORT(&reply->sequenceNumber);
     __GLX_SWAP_INT(&reply->length);
@@ -430,6 +432,7 @@ void glxSwapQueryServerStringReply(ClientPtr client,
 void __glXSwapQueryContextInfoEXTReply(ClientPtr client, xGLXQueryContextInfoEXTReply *reply, int *buf)
 {
     int length = reply->length;
+    __GLX_DECLARE_SWAP_VARIABLES;
     __GLX_DECLARE_SWAP_ARRAY_VARIABLES;
     __GLX_SWAP_SHORT(&reply->sequenceNumber);
     __GLX_SWAP_INT(&reply->length);

@@ -35,7 +35,7 @@
 * Description:  Header file for FPU register definitions.
 *
 ****************************************************************************/
-/* $XFree86: xc/extras/x86emu/include/x86emu/fpu_regs.h,v 1.3 2003/10/28 16:01:40 tsi Exp $ */
+/* $XFree86: xc/extras/x86emu/include/x86emu/fpu_regs.h,v 1.2 2003/10/22 20:03:05 tsi Exp $ */
 
 #ifndef __X86EMU_FPU_REGS_H
 #define __X86EMU_FPU_REGS_H

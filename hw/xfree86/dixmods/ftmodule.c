@@ -43,7 +43,7 @@ static XF86ModuleVersionInfo VersRec =
 	MODULEVENDORSTRING " & the After X-TT Project",
 	MODINFOSTRING1,
 	MODINFOSTRING2,
-	XF86_VERSION_CURRENT,
+	XORG_VERSION_CURRENT,
         2, 1, 0,
 	ABI_CLASS_FONT,			/* Font module */
 	ABI_FONT_VERSION,

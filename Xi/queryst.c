@@ -26,7 +26,7 @@ other dealings in this Software without prior written authorization
 from The Open Group.
 
 */
-/* $XFree86: xc/programs/Xserver/Xi/queryst.c,v 3.5 2001/12/14 19:58:58 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/Xi/queryst.c,v 3.4 2001/01/17 22:13:26 dawes Exp $ */
 
 /***********************************************************************
  *

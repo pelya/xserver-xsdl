@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/GL/mesa/GLcore/GLcoremodule.c,v 1.1 2002/02/25 00:45:41 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/GL/mesa/src/GLcoremodule.c,v 1.5 2000/02/23 04:46:55 martin Exp $ */
 /**************************************************************************
 
 Copyright 1998-1999 Precision Insight, Inc., Cedar Park, Texas.
@@ -42,7 +42,7 @@ static XF86ModuleVersionInfo VersRec =
         MODULEVENDORSTRING,
         MODINFOSTRING1,
         MODINFOSTRING2,
-        XF86_VERSION_CURRENT,
+        XORG_VERSION_CURRENT,
         1, 0, 0,
         ABI_CLASS_EXTENSION,
         ABI_EXTENSION_VERSION,

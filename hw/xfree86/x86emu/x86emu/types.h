@@ -36,7 +36,7 @@
 *
 ****************************************************************************/
 
-/* $XFree86: xc/extras/x86emu/include/x86emu/types.h,v 1.7 2003/07/07 15:34:21 eich Exp $ */
+/* $XFree86: xc/extras/x86emu/include/x86emu/types.h,v 1.6 2003/06/12 14:12:26 eich Exp $ */
 
 #ifndef __X86EMU_TYPES_H
 #define __X86EMU_TYPES_H
@@ -76,7 +76,7 @@
     defined(__sparc64__) || \
     defined(__s390x__) || \
     (defined(__hppa__) && defined(__LP64)) || \
-    defined(__AMD64__) || defined(AMD64) || \
+    defined(__amd64__) || defined(amd64) || \
     (defined(__sgi) && (_MIPS_SZLONG == 64))
 #define NUM32 int
 #else

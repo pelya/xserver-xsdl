@@ -1,3 +1,4 @@
+/* $XdotOrg$ */
 /*
  * $XConsortium: saver.c,v 1.12 94/04/17 20:59:36 dpw Exp $
  *
@@ -27,7 +28,7 @@ in this Software without prior written authorization from the X Consortium.
  * Author:  Keith Packard, MIT X Consortium
  */
 
-/* $XFree86: xc/programs/Xserver/Xext/saver.c,v 3.9 2004/03/02 19:43:24 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/Xext/saver.c,v 3.7 2003/10/28 23:08:43 tsi Exp $ */
 
 #define NEED_REPLIES
 #define NEED_EVENTS
@@ -810,7 +811,7 @@ ScreenSaverSetAttributes (ClientPtr client)
     DepthPtr			pDepth;
     WindowOptPtr		ancwopt;
     unsigned long		*pVlist;
-    unsigned long		*values = 0, *save = 0;
+    unsigned long		*values = 0;
     unsigned long		tmask, imask;
     unsigned long		val;
     Pixmap			pixID;
@@ -938,7 +939,6 @@ ScreenSaverSetAttributes (ClientPtr client)
 	ret = BadAlloc;
 	goto bail;
     }
-    save = values;
     pAttr->screen = pScreen;
     pAttr->client = client;
     pAttr->x = stuff->x;
@@ -1167,7 +1167,7 @@ PatchUp:
 bail:
     CheckScreenPrivate (pScreen);
     xfree (pAttr);
-    xfree (save);
+    xfree (values);
     return ret;
 }
 
