@@ -463,7 +463,7 @@ typedef struct _s3ScreenInfo {
 
 Bool	s3CardInit (KdCardInfo *);
 Bool	s3ScreenInit (KdScreenInfo *);
-void	s3Enable (ScreenPtr pScreen);
+Bool	s3Enable (ScreenPtr pScreen);
 void	s3Disable (ScreenPtr pScreen);
 void	s3Fini (ScreenPtr pScreen);
 

@@ -1,0 +1,13 @@
+XCOMM $XFree86$
+
+#include <Server.tmpl>
+
+#if BuildRender
+RENDERINCS=-I$(KDRIVE)/../../render -I$(EXTINCSRC)
+#endif
+
+KDINCS = -I$(KDRIVE) -I$(XBUILDINCDIR) -I$(FONTINCSRC) \
+	 -I$(KDRIVE)/../../fb -I$(KDRIVE)/../../mi \
+	 -I$(KDRIVE)/../../miext/shadow \
+	 -I$(KDRIVE)/../../include -I$(KDRIVE)/../../os \
+         -I$(EXTINCSRC) -I$(XINCLUDESRC) $(RENDERINCS)

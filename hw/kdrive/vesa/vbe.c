@@ -114,7 +114,8 @@ VbeSetup()
                  MAP_SHARED | MAP_FIXED,
                  devmem, HIMEM_BASE);
     if(hiMem == MAP_FAILED) {
-        munmap(magicMem, MAGICMEM_SIZE);
+	ErrorF("Couldn't map high memory\n");
+	munmap(magicMem, MAGICMEM_SIZE);
         munmap(loMem, LOMEM_SIZE);
         goto fail;
     }
@@ -128,7 +129,6 @@ VbeSetup()
     vi->magicMem = magicMem;
     vi->loMem = loMem;
     vi->hiMem = hiMem;
-    vi->fb = NULL;
     vi->brk = LOMEM_BASE;
 
     stack_base = VbeAllocateMemory(vi, STACK_SIZE);
@@ -152,7 +152,10 @@ VbeSetup()
     vi->palette_scratch_base = ~0;
     vi->palette_format = 6;
     vi->palette_wait = 0;
-
+    vi->windowA_offset = vi->windowB_offset = -1;
+    vi->last_window = 1;
+    vi->vga_palette = 1;
+    
     memset(&vi->vms, 0, sizeof(struct vm86_struct));
     vi->vms.flags = 0;
     vi->vms.screen_bitmap = 0;
@@ -181,8 +184,6 @@ VbeSetup()
 void
 VbeCleanup(VbeInfoPtr vi)
 {
-    if(vi->fb)
-        VbeUnmapFramebuffer(vi);
     munmap(vi->magicMem, MAGICMEM_SIZE);
     munmap(vi->loMem, LOMEM_SIZE);
     munmap(vi->hiMem, HIMEM_SIZE);
@@ -233,12 +234,17 @@ VbeGetModeInfo(VbeInfoPtr vi, int mode)
 }
 
 int
-VbeSetMode(VbeInfoPtr vi, int mode)
+VbeSetMode(VbeInfoPtr vi, int mode, int linear)
 {
     int code;
 
+    vi->windowA_offset = vi->windowB_offset = -1;
+    vi->last_window = 1;
+    
     vi->vms.regs.eax = 0x4F02;
-    vi->vms.regs.ebx = (mode & 0xFFFF) | 0xC000;
+    vi->vms.regs.ebx = (mode & 0xFFFF) | 0x8000;
+    if(linear)
+	vi->vms.regs.ebx |= 0x4000;
     code = VbeDoInterrupt10(vi);
     if(code < 0)
         return -1;
@@ -306,11 +312,24 @@ VbeRestoreState(VbeInfoPtr vi)
     return 0;
 }
 
+int
+VbeSetTextMode(VbeInfoPtr vi, int mode)
+{
+    int code;
+    
+    vi->vms.regs.eax = mode & 0x7f;
+    code = VbeDoInterrupt10(vi);
+    if(code < 0)
+        return -1;
+    return 0;
+}
+
 void *
-VbeMapFramebuffer(VbeInfoPtr vi) {
+VbeMapFramebuffer(VbeInfoPtr vi,
+		  VbeModeInfoBlock *vmib)
+{
     U8 *fb;
     VbeInfoBlock *vib = (VbeInfoBlock*)&(LM(vi, vi->vib_base));
-    VbeModeInfoBlock *vmib = (VbeModeInfoBlock*)&(LM(vi, vi->vmib_base));
     int size;
     int pagesize = getpagesize(), before, after;
 
@@ -329,18 +348,28 @@ VbeMapFramebuffer(VbeInfoPtr vi) {
         return NULL;
     }
 
-    vi->fb = fb;
-    vi->fb_size = before + size + after;
     return fb + before;
 }
 
 int 
-VbeUnmapFramebuffer(VbeInfoPtr vi)
+VbeUnmapFramebuffer(VbeInfoPtr vi,
+		    VbeModeInfoBlock *vmib, 
+		    void *fb)
 {
     int code;
-    if(!vi->fb)
-        ErrorF("Unmapping frambuffer not mapped\n");
-    code = munmap(vi->fb, vi->fb_size);
+    VbeInfoBlock *vib = (VbeInfoBlock*)&(LM(vi, vi->vib_base));
+    int size;
+    int pagesize = getpagesize(), before, after;
+
+    size = 1024 * 64L * vib->TotalMemory;
+
+    before = vmib->PhysBasePtr % pagesize;
+    after = pagesize - ((vmib->PhysBasePtr + size) % pagesize);
+    if(after == pagesize)
+        after = 0;
+
+    fb = (void *) ((char *) fb - before);
+    code = munmap(fb, before + size + after);
     if(code) {
         ErrorF("Couldn't unmap framebuffer: %d\n", errno);
         return -1;
@@ -375,7 +404,7 @@ int
 VbeSetPalette(VbeInfoPtr vi, int first, int number, U8 *entries)
 {
     U8 *palette_scratch;
-    int i, code;
+    int i, j, code;
 
     if(number == 0)
         return 0;
@@ -395,21 +424,41 @@ VbeSetPalette(VbeInfoPtr vi, int first, int number, U8 *entries)
         return -1;
     }
 
-    for(i=0; i<number*4; i++)
-        palette_scratch[i] = entries[i] >> (8 - vi->palette_format);
-
-    vi->vms.regs.eax = 0x4F09;
-    if(vi->palette_wait)
-        vi->vms.regs.ebx = 0x80;
+    if (vi->vga_palette)
+    {
+	vi->vms.regs.eax = 0x1012;
+	vi->vms.regs.ebx = first;
+	vi->vms.regs.ecx = number;
+	vi->vms.regs.es = POINTER_SEGMENT(vi->palette_scratch_base);
+	vi->vms.regs.edx = POINTER_OFFSET(vi->palette_scratch_base);
+	j = 0;
+	i = 0;
+	while (number--)
+	{
+	    palette_scratch[j++] = entries[i++] >> (8-vi->palette_format);
+	    palette_scratch[j++] = entries[i++] >> (8-vi->palette_format);
+	    palette_scratch[j++] = entries[i++] >> (8-vi->palette_format);
+	    i++;
+	}
+    }
     else
-        vi->vms.regs.ebx = 0x00;
-    vi->vms.regs.ecx = number;
-    vi->vms.regs.edx = first;
-    vi->vms.regs.es = POINTER_SEGMENT(vi->palette_scratch_base);
-    vi->vms.regs.edi = POINTER_OFFSET(vi->palette_scratch_base);
+    {
+	for(i=0; i<number*4; i++)
+	    palette_scratch[i] = entries[i] >> (8 - vi->palette_format);
+    
+	vi->vms.regs.eax = 0x4F09;
+	if(vi->palette_wait)
+	    vi->vms.regs.ebx = 0x80;
+	else
+	    vi->vms.regs.ebx = 0x00;
+	vi->vms.regs.ecx = number;
+	vi->vms.regs.edx = first;
+	vi->vms.regs.es = POINTER_SEGMENT(vi->palette_scratch_base);
+	vi->vms.regs.edi = POINTER_OFFSET(vi->palette_scratch_base);
+    }
     code = VbeDoInterrupt10(vi);
     if(code < 0)
-        return -1;
+	return -1;
     return 0;
 }   
         
@@ -417,7 +466,7 @@ int
 VbeGetPalette(VbeInfoPtr vi, int first, int number, U8 *entries)
 {
     U8 *palette_scratch;
-    int i, code;
+    int i, j, code;
 
     code = PreparePalette(vi);
     if(code < 0)
@@ -434,18 +483,45 @@ VbeGetPalette(VbeInfoPtr vi, int first, int number, U8 *entries)
         return -1;
     }
 
-    vi->vms.regs.eax = 0x4F09;
-    vi->vms.regs.ebx = 0x01;
-    vi->vms.regs.ecx = number;
-    vi->vms.regs.edx = first;
-    vi->vms.regs.es = POINTER_SEGMENT(vi->palette_scratch_base);
-    vi->vms.regs.edi = POINTER_OFFSET(vi->palette_scratch_base);
-    code = VbeDoInterrupt10(vi);
-    if(code < 0)
-        return -1;
-
-    for(i=0; i<number*4; i++)
-         entries[i] = palette_scratch[i] << (8-vi->palette_format);
+retry:
+    if (vi->vga_palette)
+    {
+	vi->vms.regs.eax = 0x1017;
+	vi->vms.regs.ebx = first;
+	vi->vms.regs.ecx = number;
+	vi->vms.regs.es = POINTER_SEGMENT(vi->palette_scratch_base);
+	vi->vms.regs.edx = POINTER_OFFSET(vi->palette_scratch_base);
+	code = VbeDoInterrupt10(vi);
+	if(code < 0)
+	    return -1;
+	j = 0;
+	i = 0;
+	while (number--)
+	{
+	    entries[i++] = palette_scratch[j++] << (8-vi->palette_format);
+	    entries[i++] = palette_scratch[j++] << (8-vi->palette_format);
+	    entries[i++] = palette_scratch[j++] << (8-vi->palette_format);
+	    entries[i++] = 0;
+	}
+    }
+    else
+    {
+	vi->vms.regs.eax = 0x4F09;
+	vi->vms.regs.ebx = 0x01;
+	vi->vms.regs.ecx = number;
+	vi->vms.regs.edx = first;
+	vi->vms.regs.es = POINTER_SEGMENT(vi->palette_scratch_base);
+	vi->vms.regs.edi = POINTER_OFFSET(vi->palette_scratch_base);
+	code = VbeDoInterrupt10(vi);
+	if(code < 0)
+	{
+	    vi->vga_palette = TRUE;
+	    goto retry;
+	}
+    
+	for(i=0; i<number*4; i++)
+	     entries[i] = palette_scratch[i] << (8-vi->palette_format);
+    }
 
     return 0;
 }   
@@ -458,7 +534,6 @@ VbeSetPaletteOptions(VbeInfoPtr vi, U8 bits, int wait)
         ErrorF("Impossible palette format %d\n", vi->palette_format);
         return -1;
     }
-    ErrorF("Setting palette format to %d\n", vi->palette_format);
     if(bits != vi->palette_format) {
         vi->palette_format = 0;
         vi->vms.regs.eax = 0x4F08;
@@ -470,6 +545,94 @@ VbeSetPaletteOptions(VbeInfoPtr vi, U8 bits, int wait)
     }
     vi->palette_wait = wait;
     return 0;
+}
+
+static int
+VbeReallySetWindow(VbeInfoPtr vi, U8 window, U16 winnum)
+{
+    int code;
+    vi->vms.regs.eax = 0x4F05;
+    vi->vms.regs.ebx = window;
+    vi->vms.regs.edx = winnum;
+    code = VbeDoInterrupt10(vi);
+    if(code < 0)
+        return -1;
+    return 0;
+}
+
+void *
+VbeSetWindow(VbeInfoPtr vi, int offset, int purpose, int *size_return)
+{
+    VbeModeInfoBlock *vmib = (VbeModeInfoBlock*)&(LM(vi, vi->vmib_base));
+    int window_size = vmib->WinSize * 1024;
+    int code;
+    int winnum;
+
+    if(vi->windowA_offset >= 0)
+        if(vi->windowA_offset <= offset && vi->windowA_offset + window_size > offset)
+            if(vmib->WinAAttributes & purpose)
+                goto windowA;
+
+    if(vi->windowB_offset >= 0)
+        if(vi->windowB_offset <= offset && vi->windowB_offset + window_size > offset)
+            if(vmib->WinBAttributes & purpose)
+                goto windowB;
+
+    if(!(vmib->WinBAttributes & purpose) || 
+       !(vmib->WinBAttributes & VBE_WINDOW_RELOCATE))
+        goto set_windowA;
+
+    if(!(vmib->WinAAttributes & purpose) || 
+       !(vmib->WinAAttributes & VBE_WINDOW_RELOCATE))
+        goto set_windowB;
+
+    if(vi->last_window)
+        goto set_windowA;
+    else
+        goto set_windowB;
+
+  set_windowA:
+    winnum = offset / (vmib->WinGranularity * 1024);
+    code = VbeReallySetWindow(vi, 0, winnum);
+    if(code < 0) {
+        ErrorF("Couldn't set window A to %d*%d\n", 
+               (int)winnum, (int)vmib->WinGranularity);
+        return NULL;
+    }
+    vi->windowA_offset = winnum * vmib->WinGranularity * 1024;
+  windowA:
+    vi->last_window = 0;
+    *size_return = vmib->WinSize * 1024 - (offset - vi->windowA_offset);
+    return ((U8*)&(LM(vi, MAKE_POINTER(vmib->WinASegment, 0)))) + 
+        offset - vi->windowA_offset;
+
+  set_windowB:
+    winnum = offset / (vmib->WinGranularity * 1024);
+    code = VbeReallySetWindow(vi, 1, winnum);
+    if(code < 0) {
+        ErrorF("Couldn't set window B to %d*%d\n", 
+               (int)winnum, (int)vmib->WinGranularity);
+        return NULL;
+    }
+    vi->windowB_offset = winnum * vmib->WinGranularity * 1024;
+  windowB:
+    vi->last_window = 1;
+    *size_return = vmib->WinSize * 1024 - (offset - vi->windowB_offset);
+    return ((U8*)&(LM(vi, MAKE_POINTER(vmib->WinBSegment, 0)))) + offset - vi->windowB_offset;
+}
+
+int
+VbeSetWritePlaneMask(VbeInfoPtr vi, int mask)
+{
+    asm volatile ("outb %b0,%w1" : : "a" (2), "d" (0x3c4));
+    asm volatile ("outb %b0,%w1" : : "a" (mask), "d" (0x3c5));
+}
+
+int
+VbeSetReadPlaneMap(VbeInfoPtr vi, int map)
+{
+    asm volatile ("outb %b0,%w1" : : "a" (4), "d" (0x3ce));
+    asm volatile ("outb %b0,%w1" : : "a" (map), "d" (0x3cf));
 }
 
 int 
@@ -496,12 +659,12 @@ VbeReportInfo(VbeInfoPtr vi, VbeInfoBlock *vib)
            (vib->Capabilities[0]&1)?"fixed":"switchable",
            (vib->Capabilities[0]&2)?"not ":"",
            (vib->Capabilities[0]&3)?", RAMDAC causes snow":"");
-    ErrorF("Total memory: %lu bytes\n", 64L*vib->TotalMemory);
+    ErrorF("Total memory: %lu kilobytes\n", 64L*vib->TotalMemory);
     if(error)
         return -1;
     return 0;
 }
-    
+
 int 
 VbeReportModeInfo(VbeInfoPtr vi, U16 mode, VbeModeInfoBlock *vmib)
 {
@@ -572,7 +735,7 @@ VbeDoInterrupt10(VbeInfoPtr vi)
     if(code < 0)
         return -1;
 
-    if((vi->vms.regs.eax & 0xFFFF) != 0x4F) {
+    if((vi->vms.regs.eax & 0xFFFF) != 0x4F && (oldax & 0xFF00) == 0x4F00) {
         ErrorF("Int 10h (0x%04X) failed: 0x%04X",
                oldax, vi->vms.regs.eax & 0xFFFF);
         if((oldax & 0xFF00) == 0x4F00) {
@@ -627,7 +790,9 @@ VbeDoInterrupt(VbeInfoPtr vi, int num)
     PUSHW(vi, POINTER_OFFSET(vi->ret_code));
     vi->vms.regs.cs = seg;
     vi->vms.regs.eip = off;
+    OsBlockSignals ();
     code = vm86_loop(vi);
+    OsReleaseSignals ();
     if(code < 0) {
         perror("vm86 failed");
         return -1;
@@ -873,6 +1038,7 @@ static int
 vm86_loop(VbeInfoPtr vi)
 {
     int code;
+    
     while(1) {
         code = vm86old(&vi->vms);
         switch(VM86_TYPE(code)) {
@@ -1030,18 +1196,20 @@ static int
 vm86old(struct vm86_struct *vm)
 {
     int res;
+    
     asm volatile (
-        "pushl %%ebx\n\t"
-        "movl %2, %%ebx\n\t"
-        "movl %1,%%eax\n\t"
-        "int $0x80\n\t"
-        "popl %%ebx"
-        : "=a" (res)  : "n" (113), "r" (vm));
+	"pushl %%ebx\n\t"
+	"movl %2, %%ebx\n\t"
+	"movl %1,%%eax\n\t"
+	"int $0x80\n\t"
+	"popl %%ebx"
+	: "=a" (res)  : "n" (113), "r" (vm));
     if(res < 0) {
-        errno = -res;
-        res = -1;
+	errno = -res;
+	res = -1;
     } else 
-        errno = 0;
+	errno = 0;
+    OsReleaseSignals ();
     return res;
 }
 

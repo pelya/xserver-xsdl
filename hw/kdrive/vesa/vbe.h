@@ -23,6 +23,10 @@ THE SOFTWARE.
 #ifndef _VBE_H
 #define _VBE_H
 
+#define VBE_WINDOW_RELOCATE 1
+#define VBE_WINDOW_READ 2
+#define VBE_WINDOW_WRITE 4
+
 #ifndef U8
 #define U8 unsigned char
 #define U16 unsigned short
@@ -61,13 +65,16 @@ THE SOFTWARE.
 
 typedef struct _VbeInfoRec {
     int devmem, devzero;
-    void *magicMem, *loMem, *hiMem, *fb;
-    U32 fb_size;
+    void *magicMem, *loMem, *hiMem;
     U32 brk;
     struct vm86_struct vms;
     U32 ret_code, stack_base, vib_base, vmib_base, statebuffer_base, palette_scratch_base;
     U8 palette_format;
     int palette_wait;
+    int windowA_offset;
+    int windowB_offset;
+    int last_window;
+    int vga_palette;
 } VbeInfoRec, *VbeInfoPtr;
 
 typedef struct _VbeInfoBlock {
@@ -143,15 +150,16 @@ VbeInfoPtr VbeSetup(void);
 void VbeCleanup(VbeInfoPtr vi);
 VbeInfoBlock *VbeGetInfo(VbeInfoPtr vi);
 VbeModeInfoBlock *VbeGetModeInfo(VbeInfoPtr vi, int mode);
-int VbeSetMode(VbeInfoPtr vi, int mode);
+int VbeSetMode(VbeInfoPtr vi, int mode, int linear);
 int  VbeGetMode(VbeInfoPtr vi, int *mode);
 int VbeSetupStateBuffer(VbeInfoPtr vi);
 int VbeSaveState(VbeInfoPtr vi);
 int VbeRestoreState(VbeInfoPtr vi);
-void *VbeMapFramebuffer(VbeInfoPtr vi);
-int VbeUnmapFrambuffer(VbeInfoPtr vi);
+void *VbeMapFramebuffer(VbeInfoPtr vi, VbeModeInfoBlock *vmib);
+int VbeUnmapFrambuffer(VbeInfoPtr vi, VbeModeInfoBlock *vmib, void *fb);
 int VbeSetPalette(VbeInfoPtr vi, int first, int number, U8 *entries);
 int VbeSetPaletteOptions(VbeInfoPtr vi, U8 bits, int wait);
+void *VbeSetWindow(VbeInfoPtr vi, int offset, int purpose, int *size_return);
 int VbeReportInfo(VbeInfoPtr, VbeInfoBlock *);
 int VbeReportModeInfo(VbeInfoPtr, U16 mode, VbeModeInfoBlock *);
 

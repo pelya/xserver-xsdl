@@ -530,7 +530,7 @@ sisPreserve (KdCardInfo *card)
     memcpy (sisc->save.text_save, sisc->frameBuffer, SIS_TEXT_SAVE);
 }
 
-void
+Bool
 sisEnable (ScreenPtr pScreen)
 {
     KdScreenPriv(pScreen);
@@ -827,6 +827,7 @@ sisEnable (ScreenPtr pScreen)
 #endif
     
     _sisSetCrtc (sisc, &crtc);
+    return TRUE;
 }
 
 Bool

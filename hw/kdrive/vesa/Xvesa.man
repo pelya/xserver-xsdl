@@ -7,8 +7,12 @@ Xvesa \- VESA VBE tiny X server
 .RI [ :display ] 
 .RI [ option ...]
 .SH DESCRIPTION
-Xvesa is an X server for Linux on the x86 platform.  Xvesa manipulates
-the video hardware by running the VESA BIOS in VM86 mode.  It
+.B Xvesa
+is a generic X server for Linux on the x86 platform.  
+.B Xvesa
+doesn't know about any particular hardware, and sets the video mode by
+running the video BIOS in VM86 mode.  
+.B Xvesa
 therefore runs untrusted code with full priviledges, and is one of the
 most insecure X servers available.
 .B Run at your own risk.
@@ -23,11 +27,10 @@ specifies the VESA video mode to use.  If mode
 .I n
 is not supported by your BIOS and hardware,
 .B Xvesa
-will fail, hang your system, or make your monitor explode.  You are on
-your own.  The list of video modes that your BIOS claims to support
-can be obtained by using the 
-.B -listmodes
-option.
+will fail, hang your system, or make your monitor explode; you are on
+your own.  This option is ignored if the
+.B -screen
+option was used.
 .TP 8
 .B -listmodes
 tells the server to list all supported video modes.  If
@@ -40,8 +43,20 @@ the
 server won't be able to use.
 .TP 8
 .B -force
-tells the server to disable some sanity checks and use the specified
-mode even if the BIOS claims not to support it.
+disables some sanity checks and use the specified mode even if the
+BIOS claims not to support it.
+.TP 8
+.B -shadow
+use a shadow framebuffer even if it is not strictly necessary.  This
+may dramatically improve performance on some machines.
+.TP 8
+.B -nolinear
+don't use a linear framebuffer even if one is available.  You don't
+want to use this option.
+.TP 8
+.B -swaprgb
+pass RGB values in the order that works on my machine.  Use this if
+the colours are wrong in PseudoColor modes.
 .SH KEYBOARD
 Xvesa handles the keyboard in the same manner as the
 .B Xfbdev

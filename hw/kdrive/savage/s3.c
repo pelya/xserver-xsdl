@@ -964,7 +964,7 @@ s3SetGlobalBitmap (ScreenPtr pScreen, int ma)
     }
 }
 
-void
+Bool
 s3Enable (ScreenPtr pScreen)
 {
     KdScreenPriv(pScreen);
@@ -1667,6 +1667,7 @@ s3Enable (ScreenPtr pScreen)
 	}
     }
 #endif
+    return TRUE;
 }
 
 void

@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/trident/tridentcurs.c,v 1.4 2000/05/06 22:17:51 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/trident/tridentcurs.c,v 1.5 2000/08/29 17:20:15 keithp Exp $ */
 
 #include "trident.h"
 #include "cursorstr.h"
@@ -221,7 +221,7 @@ tridentLoadCursor (ScreenPtr pScreen, int x, int y)
     }
     
     /* Set address for cursor bits */
-    offset = tridents->cursor_base - (CARD8 *) tridentc->screen;
+    offset = tridents->cursor_base - (CARD8 *) tridents->screen;
     offset >>= 10;
     tridentWriteIndex (tridentc, 0x3d4, 0x44, (CARD8) (offset & 0xff));
     tridentWriteIndex (tridentc, 0x3d4, 0x45, (CARD8) (offset >> 8));

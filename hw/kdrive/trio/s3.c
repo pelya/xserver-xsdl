@@ -636,7 +636,7 @@ s3Preserve (KdCardInfo *card)
  * Enable the card for rendering.  Manipulate the initial settings
  * of the card here.
  */
-void
+Bool
 s3Enable (ScreenPtr pScreen)
 {
     KdScreenPriv(pScreen);
@@ -904,6 +904,7 @@ s3Enable (ScreenPtr pScreen)
     LockS3 (s3c);
     _s3SetDepth (s3c->s3, crtc);
     UnlockS3 (s3c);
+    return TRUE;
 }
 
 void

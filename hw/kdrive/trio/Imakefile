@@ -1,14 +1,13 @@
 XCOMM $XConsortium: Imakefile /main/10 1996/12/02 10:20:33 lehors $
 XCOMM $XFree86: xc/programs/Xserver/hw/nvfb/Imakefile,v 3.8 1996/12/23 06:30:19 dawes Exp $
-#include <Server.tmpl>
+KDRIVE=..
+#include "../Kdrive.tmpl"
 
 SRCS = 	s3.c s3clock.c s3cmap.c s3curs.c s3draw.c s3gc.c s3stub.c
 
 OBJS = 	s3.o s3clock.o s3cmap.o s3curs.o s3draw.o s3gc.o s3stub.o
 
-INCLUDES = -I.. -I. -I$(XBUILDINCDIR) -I$(FONTINCSRC) \
-	   -I../../../fb -I../../../mi -I../../../include -I../../../os  \
-           -I$(EXTINCSRC) -I$(XINCLUDESRC)
+INCLUDES = -I. $(KDINCS)
 
 DEFINES = -DS3_TRIO
 

@@ -1,5 +1,5 @@
 /*
- * $XFree86: xc/programs/Xserver/hw/kdrive/igs/igs.c,v 1.1 2000/05/06 22:17:43 keithp Exp $
+ * $XFree86: xc/programs/Xserver/hw/kdrive/igs/igs.c,v 1.2 2000/05/24 23:52:47 keithp Exp $
  *
  * Copyright © 1999 SuSE, Inc.
  *
@@ -331,7 +331,7 @@ igsGetClock (int target, int *Mp, int *Np, int *Pp, int maxM, int maxN, int maxP
     *Pp = P;
 }
 
-void
+Bool
 igsEnable (ScreenPtr pScreen)
 {
     KdScreenPriv(pScreen);
@@ -562,6 +562,7 @@ igsEnable (ScreenPtr pScreen)
 		    VgaFetch (&igsvga->card, reg));
     }
 #endif
+    return TRUE;
 }
 
 Bool

@@ -1,6 +1,7 @@
 XCOMM $XConsortium: Imakefile /main/10 1996/12/02 10:20:33 lehors $
-XCOMM $XFree86: xc/programs/Xserver/hw/nvfb/Imakefile,v 3.8 1996/12/23 06:30:19 dawes Exp $
-#include <Server.tmpl>
+XCOMM $XFree86: xc/programs/Xserver/hw/kdrive/trident/Imakefile,v 1.2 2000/08/29 17:20:15 keithp Exp $
+KDRIVE=..
+#include "../Kdrive.tmpl"
 
 SRCS = 	trident.c tridentdraw.c tridentcurs.c tridentstub.c
 
@@ -8,9 +9,7 @@ OBJS = 	trident.o tridentdraw.o tridentcurs.o tridentstub.o
 
 DEFINES = -DVESA
 
-INCLUDES = -I.. -I../fbdev -I../vesa -I. -I$(XBUILDINCDIR) -I$(FONTINCSRC) \
-	   -I../../../fb -I../../../mi -I../../../include -I../../../os  \
-           -I$(EXTINCSRC) -I$(XINCLUDESRC)
+INCLUDES = -I. $(KDINCS) -I$(KDRIVE)/fbdev -I$(KDRIVE)/vesa
 
 NormalLibraryObjectRule()
 NormalLibraryTarget(trident,$(OBJS))

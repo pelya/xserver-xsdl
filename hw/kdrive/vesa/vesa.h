@@ -27,24 +27,42 @@ THE SOFTWARE.
 #include <sys/vm86.h>
 #include "vbe.h"
 
-typedef struct _VesaPriv {
+#define VESA_TEXT_SAVE	(64*1024)
+
+typedef struct _VesaMode {
     int mode;
+    VbeModeInfoBlock vmib;
+} VesaModeRec, *VesaModePtr;
+
+typedef struct _VesaCardPriv {
     VbeInfoPtr vi;
     VbeInfoBlock *vib;
-    VbeModeInfoBlock *vmib;
+    VesaModePtr modes;
+    int	nmode;
+    char text[VESA_TEXT_SAVE];
+} VesaCardPrivRec, *VesaCardPrivPtr;
+
+#define VESA_LINEAR	0
+#define VESA_WINDOWED	1
+#define VESA_PLANAR	2
+typedef struct _VesaScreenPriv {
+    VesaModePtr mode;
+    Bool	shadow;
+    int		mapping;
     void *fb;
-} VesaPrivRec, *VesaPrivPtr;
+} VesaScreenPrivRec, *VesaScreenPrivPtr;
 
 extern int vesa_video_mode;
 extern Bool vesa_force_mode;
 
 Bool vesaListModes(void);
-Bool vesaInitialize(KdCardInfo *card, VesaPrivPtr priv);
+Bool vesaInitialize(KdCardInfo *card, VesaCardPrivPtr priv);
 Bool vesaCardInit(KdCardInfo *card);
-Bool vesaInitialize (KdCardInfo *card, VesaPrivPtr priv);
-Bool vesaScreenInit(KdScreenInfo *screen);
+Bool vesaInitialize (KdCardInfo *card, VesaCardPrivPtr priv);
+Bool vesaScreenInitialize (KdScreenInfo *screen, VesaScreenPrivPtr pscr);
+Bool vesaScreenInit(KdScreenInfo *screen);    
 Bool vesaInitScreen(ScreenPtr pScreen);
-void vesaEnable(ScreenPtr pScreen);
+Bool vesaEnable(ScreenPtr pScreen);
 void vesaDisable(ScreenPtr pScreen);
 void vesaPreserve(KdCardInfo *card);
 void vesaRestore(KdCardInfo *card);

@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/trident/trident.c,v 1.6 2000/08/26 00:17:50 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/trident/trident.c,v 1.7 2000/08/29 17:20:15 keithp Exp $ */
 
 #include "trident.h"
 #define extern
@@ -72,7 +72,7 @@ tridentScreenInit (KdScreenInfo *screen)
 	return FALSE;
     memset (tridents, '\0', sizeof (TridentScreenInfo));
 #ifdef VESA
-    if (!vesaScreenInit (screen))
+    if (!vesaScreenInitialize (screen, &tridents->vesa))
 #else
     if (!fbdevScreenInit (screen))
 #endif
@@ -83,14 +83,16 @@ tridentScreenInit (KdScreenInfo *screen)
     if (!tridentc->cop)
 	screen->dumb = TRUE;
 #ifdef VESA
-    tridentc->screen = tridentc->vesa.fb;
+    if (tridents->vesa.mapping != VESA_LINEAR)
+	screen->dumb = TRUE;
+    tridents->screen = tridents->vesa.fb;
 #else
-    tridentc->screen = tridentc->fb.fb;
+    tridents->screen = tridentc->fb.fb;
 #endif
     screen_size = screen->fb[0].byteStride * screen->height;
     memory = (2048 + 512) * 1024;
-    if (memory >= screen_size + 2048)
-	tridents->cursor_base = tridentc->screen + memory - 2048;
+    if (tridents->screen && memory >= screen_size + 2048)
+	tridents->cursor_base = tridents->screen + memory - 2048;
     else
 	tridents->cursor_base = 0;
     screen->driver = tridents;
@@ -100,7 +102,11 @@ tridentScreenInit (KdScreenInfo *screen)
 Bool
 tridentInitScreen (ScreenPtr pScreen)
 {
+#ifdef VESA
+    return vesaInitScreen (pScreen);
+#else
     return fbdevInitScreen (pScreen);
+#endif
 }
 
 CARD8
@@ -215,18 +221,21 @@ tridentResetMMIO (TridentCardInfo *tridentc)
     tridentPause ();
 }
 
-void
+Bool
 tridentEnable (ScreenPtr pScreen)
 {
     KdScreenPriv(pScreen);
     TridentCardInfo	*tridentc = pScreenPriv->card->driver;
 
 #ifdef VESA
-    vesaEnable (pScreen);
+    if (!vesaEnable (pScreen))
+	return FALSE;
 #else
-    fbdevEnable (pScreen);
+    if (!fbdevEnable (pScreen))
+	return FALSE;
 #endif
     tridentSetMMIO (tridentc);
+    return TRUE;
 }
 
 void

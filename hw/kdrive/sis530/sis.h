@@ -1149,7 +1149,7 @@ typedef struct _sisScreenInfo {
 
 Bool	sisCardInit (KdCardInfo *);
 Bool	sisScreenInit (KdScreenInfo *);
-void	sisEnable (ScreenPtr pScreen);
+Bool	sisEnable (ScreenPtr pScreen);
 void	sisDisable (ScreenPtr pScreen);
 void	sisFini (ScreenPtr pScreen);
 

@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/trio/s3.h,v 1.2 1999/12/30 03:03:19 robin Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/trio/s3.h,v 1.4 2000/05/06 22:17:53 keithp Exp $ */
 
 #ifndef _S3_H_
 #define _S3_H_
@@ -1126,7 +1126,7 @@ typedef struct _s3ScreenInfo {
 
 Bool	s3CardInit (KdCardInfo *);
 Bool	s3ScreenInit (KdScreenInfo *);
-void	s3Enable (ScreenPtr pScreen);
+Bool	s3Enable (ScreenPtr pScreen);
 void	s3Disable (ScreenPtr pScreen);
 void	s3Fini (ScreenPtr pScreen);
 

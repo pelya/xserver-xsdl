@@ -1,14 +1,13 @@
 XCOMM $XConsortium: Imakefile /main/10 1996/12/02 10:20:33 lehors $
 XCOMM $XFree86: xc/programs/Xserver/hw/nvfb/Imakefile,v 3.8 1996/12/23 06:30:19 dawes Exp $
-#include <Server.tmpl>
+KDRIVE=..
+#include "../Kdrive.tmpl"
 
 SRCS = 	fbdev.c fbinit.c
 
 OBJS = 	fbdev.o fbinit.o
 
-INCLUDES = -I.. -I. -I$(XBUILDINCDIR) -I$(FONTINCSRC) \
-	   -I../../../fb -I../../../mi -I../../../include -I../../../os  \
-           -I$(EXTINCSRC) -I$(XINCLUDESRC)
+INCLUDES = $(KDINCS) -I.
 
 NormalLibraryObjectRule()
 NormalLibraryTarget(fbdev,$(OBJS))
