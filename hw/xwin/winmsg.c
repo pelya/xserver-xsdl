@@ -103,6 +103,15 @@ winDebug (const char *format, ...)
 }
 
 void
+winTrace (const char *format, ...)
+{
+  va_list ap;
+  va_start (ap, format);
+  LogVMessageVerb(X_NONE, 10, format, ap);
+  va_end (ap);
+}
+
+void
 winW32Error(int verb, const char *msg)
 {
     winW32ErrorEx(verb, msg, GetLastError());

@@ -1,3 +1,11 @@
+2005-01-12  Alexander Gottwald  <ago at freedesktop dot org>
+
+	* winmsg.c
+	* winmsg.h:
+	Introduce function winTrace which prints log message with verbosity 10
+	* winmultiwindowwindow.c:
+	Use winTrace for 3 heavily called functions
+
 2005-01-11  Alexander Gottwald  <ago at freedesktop dot org>
 
 	* XWin.man:

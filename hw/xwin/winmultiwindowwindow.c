@@ -91,7 +91,7 @@ winCreateWindowMultiWindow (WindowPtr pWin)
   winWindowPriv(pWin);
 
 #if CYGMULTIWINDOW_DEBUG
-  ErrorF ("winCreateWindowMultiWindow - pWin: %p\n", pWin);
+  winTrace ("winCreateWindowMultiWindow - pWin: %p\n", pWin);
 #endif
   
   /* Call any wrapped CreateWindow function */
@@ -161,7 +161,7 @@ winPositionWindowMultiWindow (WindowPtr pWin, int x, int y)
   DWORD dwStyle;
 
 #if CYGMULTIWINDOW_DEBUG
-  ErrorF ("winPositionWindowMultiWindow - pWin: %p\n", pWin);
+  winTrace ("winPositionWindowMultiWindow - pWin: %p\n", pWin);
 #endif
   
   /* Call any wrapped PositionWindow function */
@@ -381,7 +381,7 @@ winRestackWindowMultiWindow (WindowPtr pWin, WindowPtr pOldNextSib)
   winWindowPriv(pWin);
 
 #if CYGMULTIWINDOW_DEBUG || CYGWINDOWING_DEBUG
-  ErrorF ("winRestackMultiWindow - %08x\n", pWin);
+  winTrace ("winRestackMultiWindow - %08x\n", pWin);
 #endif
   
   /* Call any wrapped RestackWindow function */
@@ -756,7 +756,7 @@ winReorderWindowsMultiWindow (void)
   DWORD dwWindowProcessID = 0;
 
 #if CYGMULTIWINDOW_DEBUG || CYGWINDOWING_DEBUG
-  ErrorF ("winReorderWindowsMultiWindow\n");
+  winTrace ("winReorderWindowsMultiWindow\n");
 #endif
 
   if (fRestacking)
