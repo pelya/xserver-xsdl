@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/hw/xfree86/os-support/xf86_libc.h,v 1.2 2004/04/23 19:54:07 eich Exp $ */
+/* $XdotOrg: xc/programs/Xserver/hw/xfree86/os-support/xf86_libc.h,v 1.3 2005/03/02 11:20:29 gisburn Exp $ */
 /* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/xf86_libc.h,v 3.63 2003/12/08 21:46:55 alanh Exp $ */
 /*
  * Copyright (c) 1997-2003 by The XFree86 Project, Inc.
@@ -185,6 +185,20 @@ typedef int xf86jmp_buf[1024];
 #define xf86_EBUSY		1022
 #define xf86_ENODEV		1023
 #define xf86_EIO		1024
+
+#define xf86_ESRCH		1025
+#define xf86_ENXIO		1026
+#define xf86_E2BIG		1027
+#define xf86_ENOEXEC		1028
+#define xf86_ECHILD		1029
+#define xf86_ENOTBLK		1030
+#define xf86_EXDEV		1031
+#define xf86_EFBIG		1032
+#define xf86_ESPIPE		1033
+#define xf86_EMLINK		1034
+#define xf86_EDOM		1035
+#define xf86_ERANGE		1036
+ 
 
 /* sysv IPV */
 /* xf86shmget() */

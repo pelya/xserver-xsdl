@@ -429,6 +429,7 @@ xf86open(const char *path, int flags, ...)
     }
     va_end(ap);
     xf86errno = xf86GetErrno();
+
     return fd;
 }
 
@@ -917,9 +918,48 @@ xf86strerror(int n)
 		mapnum (ETXTBSY);	/* not POSIX 1 */
 #endif
 		mapnum (ENOTTY);
+#ifdef ENOSYS
+		mapnum (ENOSYS);
+#endif
 		mapnum (EBUSY);
 		mapnum (ENODEV);
 		mapnum (EIO);
+#ifdef ESRCH
+		mapnum (ESRCH);
+#endif
+#ifdef ENXIO
+		mapnum (ENXIO);  
+#endif
+#ifdef E2BIG
+		mapnum (E2BIG);    
+#endif
+#ifdef ENOEXEC
+		mapnum (ENOEXEC);
+#endif
+#ifdef ECHILD
+		mapnum (ECHILD);
+#endif
+#ifdef ENOTBLK
+		mapnum (ENOTBLK);
+#endif
+#ifdef EXDEV
+		mapnum (EXDEV); 
+#endif
+#ifdef EFBIG
+		mapnum (EFBIG);
+#endif
+#ifdef ESPIPE
+		mapnum (ESPIPE);
+#endif
+#ifdef EMLINK
+		mapnum (EMLINK);
+#endif
+#ifdef EDOM
+		mapnum (EDOM);
+#endif
+#ifdef ERANGE
+		mapnum (ERANGE);
+#endif
 
 		default:
 			err = 999;
@@ -1865,11 +1905,49 @@ xf86GetErrno ()
 		mapnum (ETXTBSY);	/* not POSIX 1 */
 #endif
 		mapnum (ENOTTY);
+#ifdef ENOSYS
+		mapnum (ENOSYS);
+#endif
 		mapnum (EBUSY);
 		mapnum (ENODEV);
 		mapnum (EIO);
-
-		default:
+#ifdef ESRCH
+		mapnum (ESRCH);
+#endif
+#ifdef ENXIO
+		mapnum (ENXIO);  
+#endif
+#ifdef E2BIG
+		mapnum (E2BIG);    
+#endif
+#ifdef ENOEXEC
+		mapnum (ENOEXEC);
+#endif
+#ifdef ECHILD
+		mapnum (ECHILD);
+#endif
+#ifdef ENOTBLK
+		mapnum (ENOTBLK);
+#endif
+#ifdef EXDEV
+		mapnum (EXDEV); 
+#endif
+#ifdef EFBIG
+		mapnum (EFBIG);
+#endif
+#ifdef ESPIPE
+		mapnum (ESPIPE);
+#endif
+#ifdef EMLINK
+		mapnum (EMLINK);
+#endif
+#ifdef EDOM
+		mapnum (EDOM);
+#endif
+#ifdef ERANGE
+		mapnum (ERANGE);
+#endif
+     		default:
 			return (xf86_UNKNOWN);
 	}
 }
