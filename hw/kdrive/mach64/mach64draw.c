@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/mach64/mach64draw.c,v 1.2 2001/06/04 09:45:42 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/mach64/mach64draw.c,v 1.3 2001/06/16 05:48:49 keithp Exp $ */
 
 #include "mach64.h"
 #include "mach64draw.h"
@@ -69,8 +69,8 @@ static CARD32	combo;
 
 #define IDX(reg,n)  (&(reg)->n - &(reg)->CRTC_H_TOTAL_DISP)
 
-static void
-WAIT_AVAIL(Reg *reg, int n)
+void
+mach64WaitAvail(Reg *reg, int n)
 {
     if (avail < n)
     {
@@ -80,8 +80,8 @@ WAIT_AVAIL(Reg *reg, int n)
     avail -= n;
 }
 
-static void
-WAIT_IDLE (Reg *reg)
+void
+mach64WaitIdle (Reg *reg)
 {
     while (reg->GUI_STAT & 1)
 	;
@@ -98,7 +98,7 @@ mach64Setup (ScreenPtr	pScreen, CARD32 combo, int wait)
     triple = mach64s->bpp24;
     
     avail = 0;
-    WAIT_AVAIL(reg, wait + 3);
+    mach64WaitAvail(reg, wait + 3);
     reg->DP_PIX_WIDTH = mach64s->DP_PIX_WIDTH;
     reg->USR1_DST_OFF_PITCH = mach64s->USR1_DST_OFF_PITCH;
     reg->DP_SET_GUI_ENGINE = mach64s->DP_SET_GUI_ENGINE | (combo << 20);
@@ -133,10 +133,10 @@ mach64Solid (int x1, int y1, int x2, int y2)
 		DST_Y_DIR |
 		DST_24_ROT_EN | 
 		DST_24_ROT((x1 / 4) % 6));
-	WAIT_AVAIL (reg, 1);
+	mach64WaitAvail (reg, 1);
 	reg->GUI_TRAJ_CNTL = traj;
     }
-    WAIT_AVAIL(reg,2);
+    mach64WaitAvail(reg,2);
     reg->DST_X_Y = MACH64_XY(x1,y1);
     reg->DST_WIDTH_HEIGHT = MACH64_XY(x2-x1,y2-y1);
 }
@@ -194,7 +194,7 @@ mach64Copy (int srcX,
 	if (copyDy > 0)
 	    traj |= 2;
 	
-	WAIT_AVAIL (reg, 1);
+	mach64WaitAvail (reg, 1);
 	reg->GUI_TRAJ_CNTL = traj;
     }
     if (copyDx <= 0)
@@ -207,7 +207,7 @@ mach64Copy (int srcX,
 	srcY += h - 1;
 	dstY += h - 1;
     }
-    WAIT_AVAIL (reg, 4);
+    mach64WaitAvail (reg, 4);
     reg->SRC_Y_X = MACH64_YX(srcX, srcY);
     reg->SRC_WIDTH1 = w;
     reg->DST_Y_X = MACH64_YX(dstX, dstY);
@@ -414,5 +414,5 @@ mach64DrawSync (ScreenPtr pScreen)
     mach64CardInfo(pScreenPriv);
     reg = mach64c->reg;
     
-    WAIT_IDLE (reg);
+    mach64WaitIdle (reg);
 }

@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/mach64/mach64.h,v 1.2 2001/06/04 09:45:42 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/mach64/mach64.h,v 1.3 2001/06/16 05:48:48 keithp Exp $ */
 
 #ifndef _MACH64_H_
 #define _MACH64_H_
@@ -349,6 +349,8 @@ typedef struct _Reg {
 #define SCALE_OVERLAY_EN    (1 << 30)
 #define SCALE_EN	    (1 << 31)
 
+#define VIDEO_IN_VYUY422    (0xb)
+#define VIDEO_IN_YVYU422    (0xc)
 #define SCALER_IN_15bpp	    (0x3 << 16)
 #define SCALER_IN_16bpp	    (0x4 << 16)
 #define SCALER_IN_32bpp	    (0x6 << 16)
@@ -428,14 +430,15 @@ typedef struct _MediaReg {
     VOL32	TVO_CNTL;		/* 0x140 */
     VOL32	unused_141[15];
     VOL32	unused_150;		/* 0x150 */
-    VOL32	CRT_HORZ_VERT_LOAD;
-    VOL32	AGP_BASE_AGP_CNTL;
-    VOL32	SCALER_COLOUR_CNTL;
-    VOL32	SCALER_H_COEFF0;
-    VOL32	SCALER_H_COEFF1;
-    VOL32	SCALER_H_COEFF2;
-    VOL32	SCALER_H_COEFF3;
-    VOL32	SCALER_H_COEFF4;
+    VOL32	CRT_HORZ_VERT_LOAD;	/* 0x151 */
+    VOL32	AGP_BASE;		/* 0x152 */
+    VOL32	AGP_CNTL;		/* 0x153 */
+    VOL32	SCALER_COLOUR_CNTL;	/* 0x154 */
+    VOL32	SCALER_H_COEFF0;	/* 0x155 */
+    VOL32	SCALER_H_COEFF1;	/* 0x156 */
+    VOL32	SCALER_H_COEFF2;	/* 0x157 */
+    VOL32	SCALER_H_COEFF3;	/* 0x158 */
+    VOL32	SCALER_H_COEFF4;	/* 0x159 */
     VOL32	unused_15a;
     VOL32	unused_15b;
     VOL32	GUI_CMDFIFO_DEBUG;
@@ -504,8 +507,8 @@ typedef struct _mach64PortPriv {
 
     CARD8	currentBuf;
 
-    CARD8	brightness;
-    CARD8	contrast;
+    int		brightness;
+    int		saturation;
 
     RegionRec   clip;
     CARD32      colorKey;
@@ -542,6 +545,12 @@ mach64ReadLCD (Reg *reg, int id);
 
 void
 mach64WriteLCD (Reg *reg, int id, CARD32 data);
+    
+void
+mach64WaitAvail(Reg *reg, int n);
+
+void
+mach64WaitIdle (Reg *reg);
     
 Bool
 mach64DrawSetup (ScreenPtr pScreen);

@@ -26,7 +26,7 @@
 
 #define MAKE_ATOM(a) MakeAtom(a, sizeof(a) - 1, TRUE)
 
-static Atom xvBrightness, xvContrast, xvColorKey;
+static Atom xvBrightness, xvSaturation, xvColorKey;
 
 #define IMAGE_MAX_WIDTH		720
 #define IMAGE_MAX_HEIGHT	576
@@ -41,12 +41,19 @@ mach64StopVideo(KdScreenInfo *screen, pointer data, Bool exit)
     Mach64ScreenInfo	*mach64s = (Mach64ScreenInfo *) screen->driver;
     Mach64CardInfo	*mach64c = (Mach64CardInfo *) card->driver;
     Mach64PortPrivPtr	pPortPriv = mach64s->pAdaptor->pPortPrivates[0].ptr;
+    Reg			*reg = mach64c->reg;
     MediaReg		*media = mach64c->media_reg;
 
     REGION_EMPTY(screen->pScreen, &pPortPriv->clip);   
 
     if(pPortPriv->videoOn)
     {
+	mach64WaitIdle (reg);
+    
+	media->OVERLAY_Y_X_START = 0x80000000;
+	media->OVERLAY_Y_X_END = 0;
+	media->OVERLAY_SCALE_CNTL = 0;
+	media->OVERLAY_Y_X_START = 0;
 	pPortPriv->videoOn = FALSE;
     }
 }
@@ -67,15 +74,19 @@ mach64SetPortAttribute(KdScreenInfo *screen,
 
     if(attribute == xvBrightness) 
     {
-	if((value < -128) || (value > 127))
-	    return BadValue;
+	if(value < -1000)
+	    value = -1000;
+	if (value > 1000)
+	    value = 1000;
 	pPortPriv->brightness = value;
     }
-    else if(attribute == xvContrast) 
+    else if(attribute == xvSaturation) 
     {
-	    if((value < 0) || (value > 255))
-		return BadValue;
-	    pPortPriv->contrast = value;
+	if (value < -1000)
+	    value = -1000;
+	if (value > 1000)
+	    value = 1000;
+	pPortPriv->saturation = value;
     }
     else if(attribute == xvColorKey) 
     {
@@ -98,8 +109,8 @@ mach64GetPortAttribute(KdScreenInfo *screen,
 
     if(attribute == xvBrightness) 
 	*value = pPortPriv->brightness;
-    else if(attribute == xvContrast)
-	*value = pPortPriv->contrast;
+    else if(attribute == xvSaturation)
+	*value = pPortPriv->saturation;
     else if(attribute == xvColorKey)
 	*value = pPortPriv->colorKey;
     else
@@ -162,6 +173,7 @@ static void
 mach64CopyPlanarData(KdScreenInfo   *screen, 
 		     unsigned char  *buf,
 		     int	    srcPitch,
+		     int	    srcPitch2,
 		     int	    dstPitch,  /* of chroma */
 		     int	    srcH,
 		     int	    top,
@@ -176,68 +188,101 @@ mach64CopyPlanarData(KdScreenInfo   *screen,
     Mach64ScreenInfo	*mach64s = (Mach64ScreenInfo *) screen->driver;
     Mach64CardInfo	*mach64c = (Mach64CardInfo *) card->driver;
     Mach64PortPrivPtr	pPortPriv = mach64s->pAdaptor->pPortPrivates[0].ptr;
-    int			i;
-    CARD8		*src1, *src2, *src3, *dst1, *dst2, *dst3;
+    int			i, j;
+    CARD8		*src1, *src2, *src3, *dst1;
 
-    /* Copy Y data */
-    src1 = buf + (top*srcPitch) + left;
+    /* compute source data pointers */
+    src1 = buf;
+    src2 = src1 + srcH * srcPitch;
+    src3 = src2 + (srcH >> 1) * srcPitch2;
+    
+    /* adjust for origin */
+    src1 += top * srcPitch + left;
+    src2 += (top >> 1) * srcPitch2 + (left >> 1);
+    src3 += (top >> 1) * srcPitch2 + (left >> 1);
+    
+    if (id == FOURCC_I420)
+    {
+	CARD8	*srct = src2;
+	src2 = src3;
+	src3 = srct;
+    }
+    
     if (pPortPriv->currentBuf == 0)
 	dst1 = (CARD8 *) mach64s->vesa.fb + pPortPriv->YBuf0Offset;
     else
 	dst1 = (CARD8 *) mach64s->vesa.fb + pPortPriv->YBuf1Offset;
 
-    for (i = 0; i < h; i++) 
+    w >>= 1;
+    for (j = 0; j < h; j++) 
     {
-	memcpy(dst1, src1, w);
+	CARD32	*dst = (CARD32 *) dst1;
+	CARD8	*s1 = src1;
+	CARD8	*s2 = src2;
+	CARD8	*s3 = src3;
+
+	for (i = 0; i < w; i++)
+	{
+	    *dst++ = s1[0] | (s1[1] << 16) | (s3[0] << 8) | (s2[0] << 24);
+	    s1 += 2;
+	    s2++;
+	    s3++;
+	}
 	src1 += srcPitch;
-	dst1 += dstPitch << 1;
+	dst1 += dstPitch;
+	if (j & 1)
+	{
+	    src2 += srcPitch2;
+	    src3 += srcPitch2;
+	}
+    }
+}
+
+/* I really should stick this in miregion */
+static Bool
+RegionsEqual(RegionPtr A, RegionPtr B)
+{
+    int *dataA, *dataB;
+    int num;
+
+    num = REGION_NUM_RECTS(A);
+    if(num != REGION_NUM_RECTS(B))
+	return FALSE;
+
+    if((A->extents.x1 != B->extents.x1) ||
+       (A->extents.x2 != B->extents.x2) ||
+       (A->extents.y1 != B->extents.y1) ||
+       (A->extents.y2 != B->extents.y2))
+	return FALSE;
+
+    dataA = (int*)REGION_RECTS(A);
+    dataB = (int*)REGION_RECTS(B);
+
+    while(num--) {
+	if((dataA[0] != dataB[0]) || (dataA[1] != dataB[1]))
+	   return FALSE;
+	dataA += 2;
+	dataB += 2;
     }
 
-    /* Copy V data for YV12, or U data for I420 */
-    src2 = buf + (srcH*srcPitch) + ((top*srcPitch)>>2) + (left>>1);
-    if (pPortPriv->currentBuf == 0) 
-    {
-	if (id == FOURCC_I420)
-	    dst2 = (CARD8 *) mach64s->vesa.fb + pPortPriv->UBuf0Offset;
-	else
-	    dst2 = (CARD8 *) mach64s->vesa.fb + pPortPriv->VBuf0Offset;
-    } else {
-	if (id == FOURCC_I420)
-	    dst2 = (CARD8 *) mach64s->vesa.fb + pPortPriv->UBuf1Offset;
-	else
-	    dst2 = (CARD8 *) mach64s->vesa.fb + pPortPriv->VBuf1Offset;
-    }
+    return TRUE;
+}
 
-    for (i = 0; i < h/2; i++) 
-    {
-	memcpy(dst2, src2, w/2);
-	src2 += srcPitch>>1;
-	dst2 += dstPitch;
-    }
+static void
+mach64PaintRegion (ScreenPtr pScreen, RegionPtr pRgn, Pixel fg)
+{
+    WindowPtr	pRoot = WindowTable[pScreen->myNum];
+    unsigned	backgroundState;
+    PixUnion	background;
 
-    /* Copy U data for YV12, or V data for I420 */
-    src3 = buf + (srcH*srcPitch) + ((srcH*srcPitch)>>2) + ((top*srcPitch)>>2) + (left>>1);
-    if (pPortPriv->currentBuf == 0) 
-    {
-	if (id == FOURCC_I420) 
-	    dst3 = (CARD8 *) mach64s->vesa.fb + pPortPriv->VBuf0Offset;
-	else
-	    dst3 = (CARD8 *) mach64s->vesa.fb + pPortPriv->UBuf0Offset;
-    }
-    else 
-    {
-	if (id == FOURCC_I420) 
-	    dst3 = (CARD8 *) mach64s->vesa.fb + pPortPriv->VBuf1Offset;
-	else
-	    dst3 = (CARD8 *) mach64s->vesa.fb + pPortPriv->UBuf1Offset;
-    }
-    
-    for (i = 0; i < h/2; i++) 
-    {
-	memcpy(dst3, src3, w/2);
-	src3 += srcPitch>>1;
-	dst3 += dstPitch;
-    }
+    /* XXX use window background painting routine XXX */
+    backgroundState = pRoot->backgroundState;
+    background = pRoot->background;
+    pRoot->backgroundState = BackgroundPixel;
+    pRoot->background.pixel = fg;
+    (*pScreen->PaintWindowBackground) (pRoot, pRgn, PW_BACKGROUND);
+    pRoot->backgroundState = backgroundState;
+    pRoot->background = background;
 }
 
 /* Mach64ClipVideo -  
@@ -335,102 +380,90 @@ mach64DisplayVideo(KdScreenInfo *screen,
     Mach64ScreenInfo	*mach64s = (Mach64ScreenInfo *) screen->driver;
     Mach64CardInfo	*mach64c = (Mach64CardInfo *) card->driver;
     Mach64PortPrivPtr	pPortPriv = mach64s->pAdaptor->pPortPrivates[0].ptr;
+    Reg			*reg = mach64c->reg;
     MediaReg		*media = mach64c->media_reg;
     int			xscaleInt, xscaleFract, yscaleInt, yscaleFract;
     int			xscaleIntUV = 0, xscaleFractUV = 0;
     int			yscaleIntUV = 0, yscaleFractUV = 0;
     int			HORZ_INC, VERT_INC;
-    unsigned int	swidth;
     CARD32		SCALER_IN;
+    int			tmp;
+    int			left;
+    int			bright;
+    int			sat;
 
+    mach64WaitIdle (reg);
+    
     /* lock registers to prevent non-atomic update */
     media->OVERLAY_Y_X_START = 0x80000000;
     /* ending screen coordinate */
-    media->OVERLAY_Y_X_END = MACH64_YX (x2, y2);
+    media->OVERLAY_Y_X_END = MACH64_YX (dstBox->x2, dstBox->y2);
     /* color key */
     media->OVERLAY_GRAPHICS_KEY_CLR = mach64s->colorKey;
     media->OVERLAY_GRAPHICS_KEY_MSK = (1 << screen->fb[0].depth) - 1;
-    /* XXX always display video for now */
-    media->OVERLAY_KEY_CNTL = 1;    
+    /* set key control to obey only graphics color key */
+    media->OVERLAY_KEY_CNTL = 0x50;
     /* no exclusive video region */
     media->OVERLAY_EXCLUSIVE_HORZ = 0;
-
+    media->OVERLAY_EXCLUSIVE_VERT = 0;
+    /* scaling coefficients */
+    media->SCALER_H_COEFF0 = 0x00002000;
+    media->SCALER_H_COEFF1 = 0x0D06200D;
+    media->SCALER_H_COEFF2 = 0x0D0A1C0D;
+    media->SCALER_H_COEFF3 = 0x0C0E1A0C;
+    media->SCALER_H_COEFF4 = 0x0C14140C;
+    
     VERT_INC = (src_h << 12) / drw_h;
     HORZ_INC = (src_w << 12) / drw_w;
 
     media->OVERLAY_SCALE_INC = MACH64_YX(HORZ_INC, VERT_INC);
 
     media->OVERLAY_SCALE_CNTL = (SCALE_PIX_EXPAND |
-				 SCALE_GAMMA_22 |
+				 SCALE_GAMMA_BRIGHT |
+				 SCALE_BANDWIDTH |
+				 SCALE_OVERLAY_EN |
 				 SCALE_EN);
     media->SCALER_BUF0_OFFSET = pPortPriv->YBuf0Offset;
     media->SCALER_BUF1_OFFSET = pPortPriv->YBuf0Offset;
-    media->SCALER_BUF0_OFFSET_U = pPortPriv->UBuf0Offset;
-    media->SCALER_BUF1_OFFSET_U = pPortPriv->UBuf1Offset;
-    media->SCALER_BUF0_OFFSET_V = pPortPriv->VBuf0Offset;
-    media->SCALER_BUF1_OFFSET_V = pPortPriv->VBuf1Offset;
-    media->SCALER_BUF_PITCH = src_w;
-    media->SCALER_HEIGHT_WIDTH = MACH64_YX(src_w, src_h);
-    media->SCALER_TEST + 0;
+    media->SCALER_BUF0_OFFSET_U = pPortPriv->YBuf0Offset;
+    media->SCALER_BUF1_OFFSET_U = pPortPriv->YBuf1Offset;
+    media->SCALER_BUF0_OFFSET_V = pPortPriv->YBuf0Offset;
+    media->SCALER_BUF1_OFFSET_V = pPortPriv->YBuf1Offset;
+    media->SCALER_BUF_PITCH = dstPitch >> 1;
+    media->SCALER_HEIGHT_WIDTH = MACH64_YX(src_w - (x1 >> 16), src_h - (y1 >> 16));
+    media->SCALER_TEST = 0;
 
-    media->SCALER_COLOUR_CNTL = ((0 << 0) |	/* BRIGHTNESS */
-				 (0x10 << 8) |	/* SATURATION_U */
-				 (0x10 << 16) |	/* SATURATION_V */
+    bright = (pPortPriv->brightness * 64 / 1000);
+    if (bright < -0x40)
+	bright = -0x40;
+    if (bright > 0x3f)
+	bright = 0x3f;
+    bright = bright & 0x7f;
+    sat = ((pPortPriv->saturation * 31 + 31000) / 2000);
+    if (sat > 0x1f)
+	sat = 0x1f;
+    if (sat < 0)
+	sat = 0;
+    media->SCALER_COLOUR_CNTL = ((bright << 0) |	/* BRIGHTNESS */
+				 (sat << 8) |	/* SATURATION_U */
+				 (sat << 16) |	/* SATURATION_V */
 				 (0 << 21) |	/* SCALER_VERT_ADJ_UV */
 				 (0 << 28));	/* SCALER_HORZ_ADJ_UV */
 
 
-    switch(id) {
-    case FOURCC_YV12:
-    case FOURCC_I420:
-	SCALER_IN = SCALER_IN_YUV_12;
-	swidth = (width + 7) & ~7;
-	break;
-	break;
-    case FOURCC_UYVY:
-	SCALER_IN = SCALER_IN_VYUY422;
-	break;
-    case FOURCC_YUY2:
+    if (id == FOURCC_UYVY)
 	SCALER_IN = SCALER_IN_YVYU422;
-	break;
-    }
+    else
+	SCALER_IN = SCALER_IN_VYUY422;
 
-    media->VIDEO_FORMAT = SCALER_IN;
+    media->VIDEO_FORMAT = SCALER_IN | VIDEO_IN_VYUY422;
+
     media->CAPTURE_CONFIG = (OVL_BUF_MODE |
 			     (pPortPriv->currentBuf == 0 ? 
 			      0 : OVL_BUF_NEXT));
     
-#if 0
-    switch(id) {
-    case FOURCC_YV12:
-    case FOURCC_I420:
-	overlay->OV0STRIDE = (dstPitch << 1) | (dstPitch << 16);
-	overlay->OV0CMD &= ~SOURCE_FORMAT;
-	overlay->OV0CMD |= YUV_420;
-	break;
-    case FOURCC_UYVY:
-    case FOURCC_YUY2:
-    default:
-	overlay->OV0STRIDE = dstPitch;
-	overlay->OV0CMD &= ~SOURCE_FORMAT;
-	overlay->OV0CMD |= YUV_422;
-	overlay->OV0CMD &= ~OV_BYTE_ORDER;
-	if (id == FOURCC_UYVY)
-	    overlay->OV0CMD |= Y_SWAP;
-	break;
-    }
-
-    overlay->OV0CMD &= ~BUFFER_AND_FIELD;
-    if (pPriv->currentBuf == 0)
-	overlay->OV0CMD |= BUFFER0_FIELD0;
-    else
-	overlay->OV0CMD |= BUFFER1_FIELD0;
-
-    OVERLAY_UPDATE(i810c->OverlayPhysical);
-#endif
-    
     /* set XY location and unlock */
-    media->OVERLAY_Y_X_START = MACH64_YX (x1, y1);
+    media->OVERLAY_Y_X_START = MACH64_YX (dstBox->x1, dstBox->y1);
 }
 
 static int
@@ -455,7 +488,7 @@ mach64PutImage(KdScreenInfo	    *screen,
     Mach64ScreenInfo	*mach64s = (Mach64ScreenInfo *) screen->driver;
     Mach64PortPrivPtr	pPortPriv = (Mach64PortPrivPtr)data;
     INT32		x1, x2, y1, y2;
-    int			srcPitch, dstPitch;
+    int			srcPitch, srcPitch2, dstPitch;
     int			top, left, npixels, nlines, size;
     BoxRec		dstBox;
 
@@ -479,16 +512,17 @@ mach64PutImage(KdScreenInfo	    *screen,
     switch(id) {
     case FOURCC_YV12:
     case FOURCC_I420:
+	dstPitch = ((width << 1) + 15) & ~15;
 	srcPitch = (width + 3) & ~3;
-	dstPitch = ((width >> 1) + 7) & ~7;  /* of chroma */
-	size =  dstPitch * height * 3;	
+	srcPitch2 = ((width >> 1) + 3) & ~3;
+	size =  dstPitch * height;
 	break;
     case FOURCC_UYVY:
     case FOURCC_YUY2:
     default:
-	srcPitch = (width << 1);
-	dstPitch = (srcPitch + 7) & ~7;
+	dstPitch = ((width << 1) + 15) & ~15;
 	size = dstPitch * height;
+	srcPitch = (width << 1);
 	break;
     }  
 
@@ -508,9 +542,11 @@ mach64PutImage(KdScreenInfo	    *screen,
 #endif
 
     /* buffer swap */
+#if 0
     if (pPortPriv->currentBuf == 0)
 	pPortPriv->currentBuf = 1;
     else
+#endif
 	pPortPriv->currentBuf = 0;
 
     /* copy data */
@@ -523,7 +559,7 @@ mach64PutImage(KdScreenInfo	    *screen,
     case FOURCC_I420:
 	top &= ~1;
 	nlines = ((((y2 + 0xffff) >> 16) + 1) & ~1) - top;
-	mach64CopyPlanarData(screen, buf, srcPitch, dstPitch,  height, top, left, 
+	mach64CopyPlanarData(screen, buf, srcPitch, srcPitch2, dstPitch,  height, top, left, 
 			   nlines, npixels, id);
 	break;
     case FOURCC_UYVY:
@@ -535,23 +571,14 @@ mach64PutImage(KdScreenInfo	    *screen,
 	break;
     }
 
-#if 0
     /* update cliplist */
-    if(!RegionsEqual(&pPortPriv->clip, clipBoxes)) {
-	REGION_COPY(pScreen, &pPortPriv->clip, clipBoxes);
-	mach64FillBoxSolid(screen, REGION_NUM_RECTS(clipBoxes),
-			 REGION_RECTS(clipBoxes),
-			 pPortPriv->colorKey, GXcopy, ~0);
-	/*
-	 XAAFillSolidRects(screen, pPortPriv->colorKey, GXcopy, ~0, 
-			   REGION_NUM_RECTS(clipBoxes),
-			   REGION_RECTS(clipBoxes));
-	 */
+    if (!RegionsEqual (&pPortPriv->clip, clipBoxes))
+    {
+	REGION_COPY (screen->pScreen, &pPortPriv->clip, clipBoxes);
+	mach64PaintRegion (screen->pScreen, &pPortPriv->clip, pPortPriv->colorKey);
     }
-#endif
-
     mach64DisplayVideo(screen, id, width, height, dstPitch, 
-		     x1, y1, x2, y2, &dstBox, src_w, src_h, drw_w, drw_h);
+		       x1, y1, x2, y2, &dstBox, src_w, src_h, drw_w, drw_h);
 
     pPortPriv->videoOn = TRUE;
 
@@ -631,9 +658,9 @@ static KdVideoFormatRec Formats[NUM_FORMATS] =
 
 static KdAttributeRec Attributes[NUM_ATTRIBUTES] =
 {
-   {XvSettable | XvGettable, 0, (1 << 24) - 1, "XV_COLORKEY"},
-   {XvSettable | XvGettable, -128, 127, "XV_BRIGHTNESS"},
-   {XvSettable | XvGettable, 0, 255, "XV_CONTRAST"}
+   {XvSettable | XvGettable, 0, ~0, "XV_COLORKEY"},
+   {XvSettable | XvGettable, -1000, 1000, "XV_BRIGHTNESS"},
+   {XvSettable | XvGettable, -1000, 1000, "XV_SATURATION"}
 };
 
 #define NUM_IMAGES 4
@@ -718,7 +745,7 @@ mach64SetupImageVideo(ScreenPtr pScreen)
     pPortPriv->colorKey = mach64s->colorKey & ((1 << screen->fb[0].depth) - 1);
     pPortPriv->videoOn = FALSE;
     pPortPriv->brightness = 0;
-    pPortPriv->contrast = 128;
+    pPortPriv->saturation = 0;
     pPortPriv->currentBuf = 0;
 
     /* gotta uninit this someplace */
@@ -727,7 +754,7 @@ mach64SetupImageVideo(ScreenPtr pScreen)
     mach64s->pAdaptor = adapt;
 
     xvBrightness = MAKE_ATOM("XV_BRIGHTNESS");
-    xvContrast   = MAKE_ATOM("XV_CONTRAST");
+    xvSaturation = MAKE_ATOM("XV_SATURATION");
     xvColorKey   = MAKE_ATOM("XV_COLORKEY");
 
     mach64ResetVideo(screen);

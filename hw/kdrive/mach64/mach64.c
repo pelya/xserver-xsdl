@@ -19,7 +19,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/mach64/mach64.c,v 1.2 2001/06/04 09:45:41 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/mach64/mach64.c,v 1.3 2001/06/16 05:48:48 keithp Exp $ */
 
 #include "mach64.h"
 #include <sys/io.h>
@@ -78,6 +78,21 @@ mach64ScreenInit (KdScreenInfo *screen)
     if (mach64s->vesa.mapping != VESA_LINEAR)
 	screen->dumb = TRUE;
     mach64s->screen = mach64s->vesa.fb;
+    switch (screen->fb[0].depth) {
+    case 8:
+	mach64s->colorKey = 0xff;
+	break;
+    case 15:
+    case 16:
+	mach64s->colorKey = 0x001e;
+	break;
+    case 24:
+	mach64s->colorKey = 0x0000fe;
+	break;
+    default:
+	mach64s->colorKey = 1;
+	break;
+    }
     mach64s->colorKey = 1;
     memory = mach64s->vesa.fb_size;
     screen_size = screen->fb[0].byteStride * screen->height;
@@ -108,7 +123,10 @@ Bool
 mach64InitScreen (ScreenPtr pScreen)
 {
 #ifdef XV
-    mach64InitVideo(pScreen);
+    KdScreenPriv(pScreen);
+    Mach64CardInfo	*mach64c = pScreenPriv->screen->card->driver;
+    if (mach64c->media_reg && mach64c->reg)
+	mach64InitVideo(pScreen);
 #endif
     return vesaInitScreen (pScreen);
 }
