@@ -22,7 +22,7 @@
  *
  * Author:  Keith Packard, SuSE, Inc.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/mach64/mach64stub.c,v 1.1 2001/06/03 18:48:19 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/mach64/mach64stub.c,v 1.2 2001/10/12 06:33:10 keithp Exp $ */
 
 #include "mach64.h"
 
@@ -32,6 +32,8 @@ InitCard (char *name)
     KdCardAttr	attr;
 
     if (LinuxFindPci (0x1002, 0x4c4d, 0, &attr))
+	KdCardInfoAdd (&mach64Funcs, &attr, 0);
+    else if (LinuxFindPci (0x1002, 0x4c49, 0, &attr))
 	KdCardInfoAdd (&mach64Funcs, &attr, 0);
 }
 
