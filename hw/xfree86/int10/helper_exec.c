@@ -23,10 +23,8 @@
 #include "int10Defines.h"
 #include "xf86int10.h"
 
-#if !defined (_PC) && !defined (_PC_PCI)
 static int pciCfg1in(CARD16 addr, CARD32 *val);
 static int pciCfg1out(CARD16 addr, CARD32 val);
-#endif
 #if defined (_PC)
 static void SetResetBIOSVars(xf86Int10InfoPtr pInt, Bool set);
 #endif
@@ -399,10 +397,8 @@ x_inl(CARD16 port)
 {
     CARD32 val;
 
-#if !defined(_PC) && !defined(_PC_PCI)
     if (!pciCfg1in(port, &val))
-#endif
-    val = inl(Int10Current->ioBase + port);
+	val = inl(Int10Current->ioBase + port);
 
 #ifdef PRINT_PORT
     ErrorF(" inl(%#x) = %8.8x\n", port, val);
@@ -417,10 +413,8 @@ x_outl(CARD16 port, CARD32 val)
     ErrorF(" outl(%#x, %8.8x)\n", port, val);
 #endif
 
-#if !defined(_PC) && !defined(_PC_PCI)
     if (!pciCfg1out(port, val))
-#endif
-    outl(Int10Current->ioBase + port, val);
+	outl(Int10Current->ioBase + port, val);
 }
 
 CARD8
@@ -459,7 +453,6 @@ Mem_wl(CARD32 addr, CARD32 val)
     (*Int10Current->mem->wl)(Int10Current, addr, val);
 }
 
-#if !defined(_PC) && !defined(_PC_PCI)
 static CARD32 PciCfg1Addr = 0;
 
 #define TAG(Cfg1Addr) (Cfg1Addr & 0xffff00)
@@ -492,7 +485,6 @@ pciCfg1out(CARD16 addr, CARD32 val)
     }
     return 0;
 }
-#endif
 
 CARD8
 bios_checksum(CARD8 *start, int size)
