@@ -19,7 +19,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/vesa/vesa.c,v 1.12 2001/06/03 21:52:46 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/vesa/vesa.c,v 1.13 2001/06/04 09:45:42 keithp Exp $ */
 
 #include "vesa.h"
 #ifdef RANDR
@@ -992,7 +992,7 @@ vesaRandRGetInfo (ScreenPtr pScreen, Rotation *rotations)
     RRGroupOfVisualGroupPtr pGroupOfVisualGroup;
     RRScreenSizePtr	    pSize;
     
-    *rotations = RR_Rotate_0;
+    *rotations = RR_Rotate_0|RR_Rotate_90|RR_Rotate_180|RR_Rotate_270;
     /*
      * Get mode information from BIOS -- every time in case
      * something changes, like an external monitor is plugged in
