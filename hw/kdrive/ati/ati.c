@@ -157,15 +157,50 @@ ATICardInit(KdCardInfo *card)
 {
 	ATICardInfo *atic;
 	int i;
+	Bool initialized = FALSE;
 
-	atic = xalloc(sizeof(ATICardInfo));
+	atic = xcalloc(sizeof(ATICardInfo), 1);
 	if (atic == NULL)
 		return FALSE;
 
-	ATIMapReg(card, atic);
+#ifdef KDRIVEFBDEV
+	if (!initialized && fbdevInitialize(card, &atic->backend_priv.fbdev)) {
+		atic->use_fbdev = TRUE;
+		initialized = TRUE;
+		atic->backend_funcs.cardfini = fbdevCardFini;
+		atic->backend_funcs.scrfini = fbdevScreenFini;
+		atic->backend_funcs.initScreen = fbdevInitScreen;
+		atic->backend_funcs.finishInitScreen = fbdevFinishInitScreen;
+		atic->backend_funcs.createRes = fbdevCreateResources;
+		atic->backend_funcs.preserve = fbdevPreserve;
+		atic->backend_funcs.restore = fbdevRestore;
+		atic->backend_funcs.dpms = fbdevDPMS;
+		atic->backend_funcs.enable = fbdevEnable;
+		atic->backend_funcs.disable = fbdevDisable;
+		atic->backend_funcs.getColors = fbdevGetColors;
+		atic->backend_funcs.putColors = fbdevPutColors;
+	}
+#endif
+#ifdef KDRIVEVESA
+	if (!initialized && vesaInitialize(card, &atic->backend_priv.vesa)) {
+		atic->use_vesa = TRUE;
+		initialized = TRUE;
+		atic->backend_funcs.cardfini = vesaCardFini;
+		atic->backend_funcs.scrfini = vesaScreenFini;
+		atic->backend_funcs.initScreen = vesaInitScreen;
+		atic->backend_funcs.finishInitScreen = vesaFinishInitScreen;
+		atic->backend_funcs.createRes = vesaCreateResources;
+		atic->backend_funcs.preserve = vesaPreserve;
+		atic->backend_funcs.restore = vesaRestore;
+		atic->backend_funcs.dpms = vesaDPMS;
+		atic->backend_funcs.enable = vesaEnable;
+		atic->backend_funcs.disable = vesaDisable;
+		atic->backend_funcs.getColors = vesaGetColors;
+		atic->backend_funcs.putColors = vesaPutColors;
+	}
+#endif
 
-	if (!vesaInitialize(card, &atic->vesa))
-	{
+	if (!initialized || !ATIMapReg(card, atic)) {
 		xfree(atic);
 		return FALSE;
 	}
@@ -185,39 +220,51 @@ ATICardFini(KdCardInfo *card)
 	ATICardInfo *atic = (ATICardInfo *)card->driver;
 
 	ATIUnmapReg(card, atic);
-	vesaCardFini(card);
+	atic->backend_funcs.cardfini(card);
 }
 
 static Bool
 ATIScreenInit(KdScreenInfo *screen)
 {
 	ATIScreenInfo *atis;
-	int screen_size, memory;
+	ATICardInfo *atic = screen->card->driver;
+	int success = FALSE;
 
-	atis = xalloc(sizeof(ATIScreenInfo));
+	atis = xcalloc(sizeof(ATIScreenInfo), 1);
 	if (atis == NULL)
 		return FALSE;
-	memset(atis, '\0', sizeof(ATIScreenInfo));
 
-	if (!vesaScreenInitialize(screen, &atis->vesa))
-	{
+	if (screen->fb[0].depth == 0)
+		screen->fb[0].depth = 16;
+
+	screen->driver = atis;
+
+#ifdef KDRIVEFBDEV
+	if (atic->use_fbdev) {
+		success = fbdevScreenInitialize(screen,
+						&atis->backend_priv.fbdev);
+		screen->memory_size = min(atic->backend_priv.fbdev.fix.smem_len,
+		    8192 * screen->fb[0].byteStride);
+		/*screen->memory_size = atic->backend_priv.fbdev.fix.smem_len;*/
+		screen->off_screen_base =
+		    atic->backend_priv.fbdev.var.yres_virtual *
+		    screen->fb[0].byteStride;
+	}
+#endif
+#ifdef KDRIVEVESA
+	if (atic->use_vesa) {
+		if (screen->fb[0].depth == 0)
+			screen->fb[0].depth = 16;
+		success = vesaScreenInitialize(screen,
+		    &atis->backend_priv.vesa);
+	}
+#endif
+	if (!success) {
+		screen->driver = NULL;
 		xfree(atis);
 		return FALSE;
 	}
-	atis->screen = atis->vesa.fb;
 
-	memory = atis->vesa.fb_size;
-	screen_size = screen->fb[0].byteStride * screen->height;
-
-	memory -= screen_size;
-	if (memory > screen->fb[0].byteStride) {
-		atis->off_screen = atis->screen + screen_size;
-		atis->off_screen_size = memory;
-	} else {
-		atis->off_screen = 0;
-		atis->off_screen_size = 0;
-	}
-	screen->driver = atis;
 	return TRUE;
 }
 
@@ -225,8 +272,9 @@ static void
 ATIScreenFini(KdScreenInfo *screen)
 {
 	ATIScreenInfo *atis = (ATIScreenInfo *)screen->driver;
+	ATICardInfo *atic = screen->card->driver;
 
-	vesaScreenFini(screen);
+	atic->backend_funcs.scrfini(screen);
 	xfree(atis);
 	screen->driver = 0;
 }
@@ -257,25 +305,58 @@ ATIUnmapReg(KdCardInfo *card, ATICardInfo *atic)
 	}
 }
 
-void
-ATISetMMIO(KdCardInfo *card, ATICardInfo *atic)
+static Bool
+ATIInitScreen(ScreenPtr pScreen)
 {
-	if (atic->reg_base == NULL)
-		ATIMapReg(card, atic);
+	KdScreenPriv(pScreen);
+	ATICardInfo(pScreenPriv);
+
+	return atic->backend_funcs.initScreen(pScreen);
 }
 
-void
-ATIResetMMIO(KdCardInfo *card, ATICardInfo *atic)
+static Bool
+ATIFinishInitScreen(ScreenPtr pScreen)
 {
+	KdScreenPriv(pScreen);
+	ATICardInfo(pScreenPriv);
+
+	return atic->backend_funcs.finishInitScreen(pScreen);
+}
+
+static Bool
+ATICreateResources(ScreenPtr pScreen)
+{
+	KdScreenPriv(pScreen);
+	ATICardInfo(pScreenPriv);
+
+	return atic->backend_funcs.createRes(pScreen);
+}
+
+static void
+ATIPreserve(KdCardInfo *card)
+{
+	ATICardInfo *atic = card->driver;
+
+	atic->backend_funcs.preserve(card);
+}
+
+static void
+ATIRestore(KdCardInfo *card)
+{
+	ATICardInfo *atic = card->driver;
+
 	ATIUnmapReg(card, atic);
-}
 
+	atic->backend_funcs.restore(card);
+}
 
 static Bool
 ATIDPMS(ScreenPtr pScreen, int mode)
 {
-	/* XXX */
-	return TRUE;
+	KdScreenPriv(pScreen);
+	ATICardInfo(pScreenPriv);
+
+	return atic->backend_funcs.dpms(pScreen, mode);
 }
 
 static Bool
@@ -284,10 +365,13 @@ ATIEnable(ScreenPtr pScreen)
 	KdScreenPriv(pScreen);
 	ATICardInfo(pScreenPriv);
 
-	if (!vesaEnable(pScreen))
+	if (!atic->backend_funcs.enable(pScreen))
 		return FALSE;
 
-	ATISetMMIO(pScreenPriv->card, atic);
+	if ((atic->reg_base == NULL) && !ATIMapReg(pScreenPriv->screen->card,
+	    atic))
+		return FALSE;
+
 	ATIDPMS(pScreen, KD_DPMS_NORMAL);
 
 	return TRUE;
@@ -299,26 +383,36 @@ ATIDisable(ScreenPtr pScreen)
 	KdScreenPriv(pScreen);
 	ATICardInfo(pScreenPriv);
 
-	ATIResetMMIO(pScreenPriv->card, atic);
-	vesaDisable(pScreen);
+	ATIUnmapReg(pScreenPriv->card, atic);
+
+	atic->backend_funcs.disable(pScreen);
 }
 
 static void
-ATIRestore(KdCardInfo *card)
+ATIGetColors(ScreenPtr pScreen, int fb, int n, xColorItem *pdefs)
 {
-	ATICardInfo *atic = card->driver;
+	KdScreenPriv(pScreen);
+	ATICardInfo(pScreenPriv);
 
-	ATIResetMMIO(card, atic);
-	vesaRestore(card);
+	atic->backend_funcs.getColors(pScreen, fb, n, pdefs);
+}
+
+static void
+ATIPutColors(ScreenPtr pScreen, int fb, int n, xColorItem *pdefs)
+{
+	KdScreenPriv(pScreen);
+	ATICardInfo(pScreenPriv);
+
+	atic->backend_funcs.putColors(pScreen, fb, n, pdefs);
 }
 
 KdCardFuncs ATIFuncs = {
 	ATICardInit,		/* cardinit */
 	ATIScreenInit,		/* scrinit */
-	vesaInitScreen,		/* initScreen */
-	vesaFinishInitScreen,	/* finishInitScreen */
-	vesaCreateResources,	/* createRes */
-	vesaPreserve,		/* preserve */
+	ATIInitScreen,		/* initScreen */
+	ATIFinishInitScreen,	/* finishInitScreen */
+	ATICreateResources,	/* createRes */
+	ATIPreserve,		/* preserve */
 	ATIEnable,		/* enable */
 	ATIDPMS,		/* dpms */
 	ATIDisable,		/* disable */
@@ -338,7 +432,6 @@ KdCardFuncs ATIFuncs = {
 	ATIDrawDisable,		/* disableAccel */
 	ATIDrawFini,		/* finiAccel */
 
-	vesaGetColors,		/* getColors */
-	vesaPutColors,		/* putColors */
+	ATIGetColors,		/* getColors */
+	ATIPutColors,		/* putColors */
 };
-

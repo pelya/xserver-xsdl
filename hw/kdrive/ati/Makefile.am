@@ -1,6 +1,18 @@
+if KDRIVEFBDEV
+FBDEV_INCLUDES =-I$(top_srcdir)/hw/kdrive/fbdev
+FBDEV_LIBS = $(top_builddir)/hw/kdrive/fbdev/libfbdev.a
+endif
+
+if KDRIVEVESA
+VESA_INCLUDES = -I$(top_srcdir)/hw/kdrive/vesa
+VESA_LIBS = $(top_builddir)/hw/kdrive/vesa/libvesa.a
+endif
+
+
 INCLUDES = 					\
 	@KDRIVE_INCS@				\
-	-I$(top_srcdir)/hw/kdrive/vesa		\
+	$(FBDEV_INCLUDES)			\
+	$(VESA_INCLUDES)			\
 	@XSERVER_CFLAGS@
 
 bin_PROGRAMS = Xati
@@ -22,7 +34,8 @@ Xati_SOURCES = \
 
 Xati_LDADD = \
 	libati.a 				\
-	$(top_builddir)/hw/kdrive/vesa/libvesa.a \
+	$(FBDEV_LIBS)				\
+	$(VESA_LIBS)				\
 	@KDRIVE_LIBS@				\
 	@XSERVER_LIBS@                          \
 	$(TSLIB_FLAG)

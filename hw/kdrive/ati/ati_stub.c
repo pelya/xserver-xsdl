@@ -73,7 +73,9 @@ void
 ddxUseMsg (void)
 {
 	KdUseMsg();
+#ifdef KDRIVEVESA
 	vesaUseMsg();
+#endif
 }
 
 int
@@ -81,7 +83,10 @@ ddxProcessArgument(int argc, char **argv, int i)
 {
 	int	ret;
     
+#ifdef KDRIVEVESA
 	if (!(ret = vesaProcessArgument (argc, argv, i)))
+#endif
 		ret = KdProcessArgument(argc, argv, i);
+
 	return ret;
 }

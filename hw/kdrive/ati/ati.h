@@ -25,13 +25,51 @@
 
 #ifndef _ATI_H_
 #define _ATI_H_
+
+#include "config.h"
+
+#ifdef KDRIVEFBDEV
+#include <fbdev.h>
+#endif
+#ifdef KDRIVEVESA
 #include <vesa.h>
+#endif
 
 #define RADEON_REG_BASE(c)		((c)->attr.address[1])
 #define RADEON_REG_SIZE(c)		(0x10000)
 
+#ifdef __powerpc__
+
+static __inline__ void
+MMIO_OUT32(__volatile__ void *base, const unsigned long offset,
+	   const unsigned int val)
+{
+	__asm__ __volatile__(
+			"stwbrx %1,%2,%3\n\t"
+			"eieio"
+			: "=m" (*((volatile unsigned char *)base+offset))
+			: "r" (val), "b" (base), "r" (offset));
+}
+
+static __inline__ CARD32
+MMIO_IN32(__volatile__ void *base, const unsigned long offset)
+{
+	register unsigned int val;
+	__asm__ __volatile__(
+			"lwbrx %0,%1,%2\n\t"
+			"eieio"
+			: "=r" (val)
+			: "b" (base), "r" (offset),
+			"m" (*((volatile unsigned char *)base+offset)));
+	return val;
+}
+
+#else
+
 #define MMIO_OUT32(mmio, a, v)		(*(VOL32 *)((mmio) + (a)) = (v))
 #define MMIO_IN32(mmio, a)		(*(VOL32 *)((mmio) + (a)))
+
+#endif
 
 typedef volatile CARD8	VOL8;
 typedef volatile CARD16	VOL16;
@@ -43,20 +81,49 @@ struct pci_id_list {
 	char *name;
 };
 
+struct backend_funcs {
+	void    (*cardfini)(KdCardInfo *);
+	void    (*scrfini)(KdScreenInfo *);
+	Bool    (*initScreen)(ScreenPtr);
+	Bool    (*finishInitScreen)(ScreenPtr pScreen);
+	Bool	(*createRes)(ScreenPtr);
+	void    (*preserve)(KdCardInfo *);
+	void    (*restore)(KdCardInfo *);
+	Bool    (*dpms)(ScreenPtr, int);
+	Bool    (*enable)(ScreenPtr);
+	void    (*disable)(ScreenPtr);
+	void    (*getColors)(ScreenPtr, int, int, xColorItem *);
+	void    (*putColors)(ScreenPtr, int, int, xColorItem *);
+};
+
 typedef struct _ATICardInfo {
-	VesaCardPrivRec vesa;
+	union {
+#ifdef KDRIVEFBDEV
+		FbdevPriv fbdev;
+#endif
+#ifdef KDRIVEVESA
+		VesaCardPrivRec vesa;
+#endif
+	} backend_priv;
+	struct backend_funcs backend_funcs;
+
 	CARD8 *reg_base;
 	Bool is_radeon;
+	Bool use_fbdev, use_vesa;
 } ATICardInfo;
 
 #define getATICardInfo(kd)	((ATICardInfo *) ((kd)->card->driver))
 #define ATICardInfo(kd)		ATICardInfo *atic = getATICardInfo(kd)
 
 typedef struct _ATIScreenInfo {
-	VesaScreenPrivRec vesa;
-	CARD8 *screen;
-	CARD8 *off_screen;
-	int off_screen_size;
+	union {
+#ifdef KDRIVEFBDEV
+		FbdevScrPriv fbdev;
+#endif
+#ifdef KDRIVEVESA
+		VesaScreenPrivRec vesa;
+#endif
+	} backend_priv;
 
 	int datatype;
 	int dp_gui_master_cntl;
@@ -70,12 +137,6 @@ ATIMapReg(KdCardInfo *card, ATICardInfo *atic);
 
 void
 ATIUnmapReg(KdCardInfo *card, ATICardInfo *atic);
-
-void
-ATISetMMIO(KdCardInfo *card, ATICardInfo *atic);
-
-void
-ATIResetMMIO(KdCardInfo *card, ATICardInfo *atic);
 
 Bool
 ATIDrawSetup(ScreenPtr pScreen);

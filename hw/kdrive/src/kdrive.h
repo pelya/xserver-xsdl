@@ -23,6 +23,9 @@
  */
 /* $RCSId: xc/programs/Xserver/hw/kdrive/kdrive.h,v 1.29 2002/11/13 16:37:39 keithp Exp $ */
 
+#ifndef _KDRIVE_H_
+#define _KDRIVE_H_
+
 #include <stdio.h>
 #include <X11/X.h>
 #define NEED_EVENTS
@@ -851,3 +854,5 @@ KdOffscreenFini (ScreenPtr pScreen);
 /* function prototypes to be implemented by the drivers */
 void
 InitCard (char *name);
+
+#endif /* _KDRIVE_H_ */

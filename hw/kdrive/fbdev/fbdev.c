@@ -37,7 +37,7 @@ fbdevInitialize (KdCardInfo *card, FbdevPriv *priv)
     int		    k;
     unsigned long   off;
     if ((priv->fd = open("/dev/fb0", O_RDWR)) < 0) {
-	perror("Error opening /dev/fb0\n");
+	perror("Error opening /dev/fb0");
 	return FALSE;
     }
     /* quiet valgrind */

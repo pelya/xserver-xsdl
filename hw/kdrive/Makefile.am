@@ -1,10 +1,14 @@
 if KDRIVEVESA
-VESA_SUBDIRS = vesa ati mach64 mga nvidia r128 smi
+VESA_SUBDIRS = vesa mach64 mga nvidia r128 smi
 endif
 
-SUBDIRS =	\
-	src	\
-	linux	\
-	fbdev	\
-	$(VESA_SUBDIRS)
+if KDRIVEFBDEV
+FBDEV_SUBDIRS = fbdev
+endif
 
+SUBDIRS =			\
+	src			\
+	linux			\
+	$(FBDEV_SUBDIRS)	\
+	$(VESA_SUBDIRS)		\
+	ati
