@@ -30,33 +30,17 @@
  * Authors:	Harold L Hunt II
  */
 
-#undef MINSHORT
-#undef MAXSHORT
-#undef CARD8
-#undef INT32
-#undef ATOM
-
 #define NONAMELESSUNION
 #define DIRECTDRAW_VERSION	0x0300
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
 #endif
 
-#ifndef XFree86Server
-#define XFree86Server
-#endif
-#include <windows.h>
+#include <Xwindows.h>
 #include <windowsx.h>
 
-#include "obj_base.h"
 #include "ddraw.h"
 
-/*
- * Undefine unneeded Windows symbols that conflict
- * with X symbols
- */
-
 #undef CreateWindow
-#undef FreeResource
 
 #endif /* _WINMS_H_ */

@@ -30,8 +30,6 @@
  * Authors:	Harold L Hunt II
  */
 
-#include "winms.h"
-
 
 /*
  * Local defines

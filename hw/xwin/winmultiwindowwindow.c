@@ -91,7 +91,7 @@ winCreateWindowMultiWindow (WindowPtr pWin)
   winWindowPriv(pWin);
 
 #if CYGMULTIWINDOW_DEBUG
-  ErrorF ("winCreateWindowMultiWindow - pWin: %08x\n", pWin);
+  ErrorF ("winCreateWindowMultiWindow - pWin: %p\n", pWin);
 #endif
   
   /* Call any wrapped CreateWindow function */
@@ -119,7 +119,7 @@ winDestroyWindowMultiWindow (WindowPtr pWin)
   winWindowPriv(pWin);
 
 #if CYGMULTIWINDOW_DEBUG
-  ErrorF ("winDestroyWindowMultiWindow - pWin: %08x\n", pWin);
+  ErrorF ("winDestroyWindowMultiWindow - pWin: %p\n", pWin);
 #endif
   
   /* Call any wrapped DestroyWindow function */
@@ -161,7 +161,7 @@ winPositionWindowMultiWindow (WindowPtr pWin, int x, int y)
   DWORD dwStyle;
 
 #if CYGMULTIWINDOW_DEBUG
-  ErrorF ("winPositionWindowMultiWindow - pWin: %08x\n", pWin);
+  ErrorF ("winPositionWindowMultiWindow - pWin: %p\n", pWin);
 #endif
   
   /* Call any wrapped PositionWindow function */
@@ -952,12 +952,28 @@ winAdjustXWindow (WindowPtr pWin, HWND hwnd)
   x = pDraw->x + GetSystemMetrics (SM_XVIRTUALSCREEN);
   y = pDraw->y + GetSystemMetrics (SM_YVIRTUALSCREEN);
   SetRect (&rcDraw, x, y, x + pDraw->width, y + pDraw->height);
+#ifdef CYGMULTIWINDOW_DEBUG
+          winDebug("\tDrawable extend {%d, %d, %d, %d}, {%d, %d}\n", 
+              rcDraw.left, rcDraw.top, rcDraw.right, rcDraw.bottom,
+              rcDraw.right - rcDraw.left, rcDraw.bottom - rcDraw.top);
+#endif
   dwExStyle = GetWindowLongPtr (hwnd, GWL_EXSTYLE);
   dwStyle = GetWindowLongPtr (hwnd, GWL_STYLE);
+#ifdef CYGMULTIWINDOW_DEBUG
+          winDebug("\tWindowStyle: %08x %08x\n", dwStyle, dwExStyle);
+#endif
   AdjustWindowRectEx (&rcDraw, dwStyle, FALSE, dwExStyle);
 
   /* The source of adjust */
   GetWindowRect (hwnd, &rcWin);
+#ifdef CYGMULTIWINDOW_DEBUG
+          winDebug("\tWindow extend {%d, %d, %d, %d}, {%d, %d}\n", 
+              rcWin.left, rcWin.top, rcWin.right, rcWin.bottom,
+              rcWin.right - rcWin.left, rcWin.bottom - rcWin.top);
+          winDebug("\tDraw extend {%d, %d, %d, %d}, {%d, %d}\n", 
+              rcDraw.left, rcDraw.top, rcDraw.right, rcDraw.bottom,
+              rcDraw.right - rcDraw.left, rcDraw.bottom - rcDraw.top);
+#endif
 
   if (EqualRect (&rcDraw, &rcWin)) {
     /* Bail if no adjust is needed */

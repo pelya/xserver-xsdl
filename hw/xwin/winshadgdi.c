@@ -46,10 +46,10 @@ extern HWND			g_hDlgExit;
  */
 
 #ifdef XWIN_MULTIWINDOW
-static BOOL CALLBACK
+static wBOOL CALLBACK
 winRedrawAllProcShadowGDI (HWND hwnd, LPARAM lParam);
 
-static BOOL CALLBACK
+static wBOOL CALLBACK
 winRedrawDamagedWindowShadowGDI (HWND hwnd, LPARAM lParam);
 #endif
 
@@ -293,7 +293,7 @@ winQueryRGBBitsAndMasks (ScreenPtr pScreen)
  * Redraw all ---?
  */
 
-static BOOL CALLBACK
+static wBOOL CALLBACK
 winRedrawAllProcShadowGDI (HWND hwnd, LPARAM lParam)
 {
   if (hwnd == (HWND)lParam)
@@ -303,7 +303,7 @@ winRedrawAllProcShadowGDI (HWND hwnd, LPARAM lParam)
   return TRUE;
 }
 
-static BOOL CALLBACK
+static wBOOL CALLBACK
 winRedrawDamagedWindowShadowGDI (HWND hwnd, LPARAM lParam)
 {
   BoxPtr pDamage = (BoxPtr)lParam;

@@ -106,10 +106,10 @@ winMWExtWMReorderWindows (ScreenPtr pScreen)
 void
 winMWExtWMMoveXWindow (WindowPtr pWin, int x, int y)
 {
-  XID *vlist = malloc(sizeof(long)*2);
+  CARD32 *vlist = malloc(sizeof(CARD32)*2);
 
-  (CARD32*)vlist[0] = x;
-  (CARD32*)vlist[1] = y;
+  vlist[0] = x;
+  vlist[1] = y;
   ConfigureWindow (pWin, CWX | CWY, vlist, wClient(pWin));
   free(vlist);
 }
@@ -122,10 +122,10 @@ winMWExtWMMoveXWindow (WindowPtr pWin, int x, int y)
 void
 winMWExtWMResizeXWindow (WindowPtr pWin, int w, int h)
 {
-  XID *vlist = malloc(sizeof(long)*2);
+  CARD32 *vlist = malloc(sizeof(CARD32)*2);
 
-  (CARD32*)vlist[0] = w;
-  (CARD32*)vlist[1] = h;
+  vlist[0] = w;
+  vlist[1] = h;
   ConfigureWindow (pWin, CWWidth | CWHeight, vlist, wClient(pWin));
   free(vlist);
 }
@@ -138,12 +138,12 @@ winMWExtWMResizeXWindow (WindowPtr pWin, int w, int h)
 void
 winMWExtWMMoveResizeXWindow (WindowPtr pWin, int x, int y, int w, int h)
 {
-  XID *vlist = malloc(sizeof(long)*4);
+  CARD32 *vlist = malloc(sizeof(long)*4);
 
-  (CARD32*)vlist[0] = x;
-  (CARD32*)vlist[1] = y;
-  (CARD32*)vlist[2] = w;
-  (CARD32*)vlist[3] = h;
+  vlist[0] = x;
+  vlist[1] = y;
+  vlist[2] = w;
+  vlist[3] = h;
 
   ConfigureWindow (pWin, CWX | CWY | CWWidth | CWHeight, vlist, wClient(pWin));
   free(vlist);
@@ -272,12 +272,22 @@ winMWExtWMUpdateWindowDecoration (win32RootlessWindowPtr pRLWinPriv,
 		   pRLWinPriv->pFrame->x + pRLWinPriv->pFrame->width,
 		   pRLWinPriv->pFrame->y + pRLWinPriv->pFrame->height);
 
+#ifdef CYGMULTIWINDOW_DEBUG
+          winDebug("\tWindow extend {%d, %d, %d, %d}, {%d, %d}\n", 
+              rcNew.left, rcNew.top, rcNew.right, rcNew.bottom,
+              rcNew.right - rcNew.left, rcNew.bottom - rcNew.top);
+#endif
 	  /* */
 	  AdjustWindowRectEx (&rcNew,
 			      WS_POPUP | WS_SIZEBOX | WS_OVERLAPPEDWINDOW,
 			      FALSE,
 			      WS_EX_APPWINDOW);
 
+#ifdef CYGMULTIWINDOW_DEBUG
+          winDebug("\tAdjusted {%d, %d, %d, %d}, {%d, %d}\n", 
+              rcNew.left, rcNew.top, rcNew.right, rcNew.bottom,
+              rcNew.right - rcNew.left, rcNew.bottom - rcNew.top);
+#endif
 	  /* Calculate position deltas */
 	  iDx = pRLWinPriv->pFrame->x - rcNew.left;
 	  iDy = pRLWinPriv->pFrame->y - rcNew.top;
@@ -295,11 +305,22 @@ winMWExtWMUpdateWindowDecoration (win32RootlessWindowPtr pRLWinPriv,
 	  SetWindowLongPtr (pRLWinPriv->hWnd, GWL_STYLE,
 			    WS_POPUP | WS_SIZEBOX | WS_OVERLAPPEDWINDOW);
 
+#ifdef CYGMULTIWINDOW_DEBUG
+          winDebug("\tWindowStyle: %08x %08x\n",
+              WS_POPUP | WS_SIZEBOX | WS_OVERLAPPEDWINDOW,
+              WS_EX_APPWINDOW);
+#endif
 	  /* Position the Windows window */
+#ifdef CYGMULTIWINDOW_DEBUG
+          winDebug("\tMoved {%d, %d, %d, %d}, {%d, %d}\n", 
+              rcNew.left, rcNew.top, rcNew.right, rcNew.bottom,
+              rcNew.right - rcNew.left, rcNew.bottom - rcNew.top);
+#endif
 	  SetWindowPos (pRLWinPriv->hWnd, NULL,
 			rcNew.left, rcNew.top,
 			rcNew.right - rcNew.left, rcNew.bottom - rcNew.top,
 			showCmd);
+            
 
 	  wmMsg.hwndWindow = pRLWinPriv->hWnd;
 	  wmMsg.iWindow	= (Window)pRLWinPriv->pFrame->win->drawable.id;

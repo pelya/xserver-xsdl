@@ -58,7 +58,7 @@
 #endif
 
 /* Local headers */
-#include "obj_base.h"
+#include "objbase.h"
 #include "ddraw.h"
 #include "winwindow.h"
 #include "windowswmstr.h"

@@ -56,15 +56,15 @@ extern Bool			g_fSoftwareCursor;
  * Local function prototypes
  */
 
-static BOOL CALLBACK
+static wBOOL CALLBACK
 winExitDlgProc (HWND hDialog, UINT message,
 		WPARAM wParam, LPARAM lParam);
 
-static BOOL CALLBACK
+static wBOOL CALLBACK
 winChangeDepthDlgProc (HWND hDialog, UINT message,
 		       WPARAM wParam, LPARAM lParam);
 
-static BOOL CALLBACK
+static wBOOL CALLBACK
 winAboutDlgProc (HWND hDialog, UINT message,
 		 WPARAM wParam, LPARAM lParam);
 
@@ -295,7 +295,7 @@ winDisplayExitDialog (winPrivScreenPtr pScreenPriv)
  * Exit dialog window procedure
  */
 
-static BOOL CALLBACK
+static wBOOL CALLBACK
 winExitDlgProc (HWND hDialog, UINT message,
 		WPARAM wParam, LPARAM lParam)
 {
@@ -439,7 +439,7 @@ winDisplayDepthChangeDialog (winPrivScreenPtr pScreenPriv)
  * disruptive screen depth changes. 
  */
 
-static BOOL CALLBACK
+static wBOOL CALLBACK
 winChangeDepthDlgProc (HWND hwndDialog, UINT message,
 		       WPARAM wParam, LPARAM lParam)
 {
@@ -594,7 +594,7 @@ winDisplayAboutDialog (winPrivScreenPtr pScreenPriv)
  * Process messages for the about dialog.
  */
 
-static BOOL CALLBACK
+static wBOOL CALLBACK
 winAboutDlgProc (HWND hwndDialog, UINT message,
 		 WPARAM wParam, LPARAM lParam)
 {

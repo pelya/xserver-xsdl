@@ -36,9 +36,7 @@
 #endif
 #include "win.h"
 
-/* Fixups to prevent collisions between Windows and X headers */
-#define ATOM DWORD
-#include <windows.h>
+#include <Xwindows.h>
 #include <shellapi.h>
 
 #include "winprefs.h"
@@ -51,6 +49,8 @@
 #ifdef XWIN_MULTIWINDOW
 extern DWORD g_dwCurrentThreadID;
 #endif
+
+extern const char *winGetBaseDir(void);
 
 /* From winmultiwindowflex.l, the real parser */
 extern void parse_file (FILE *fp);
@@ -171,7 +171,7 @@ MakeMenu (char *name,
  * Callback routine that is executed once per window class.
  * Removes or creates custom window settings depending on LPARAM
  */
-static BOOL CALLBACK
+static wBOOL CALLBACK
 ReloadEnumWindowsProc (HWND hwnd, LPARAM lParam)
 {
   HICON   hicon;
@@ -734,10 +734,16 @@ LoadPreferences ()
   /* No home file found, check system default */
   if (!prefFile)
     {
-      prefFile = fopen (PROJECTROOT"/lib/X11/system.XWinrc", "r");
+      char buffer[MAX_PATH];
+#ifdef RELOCATE_PROJECTROOT
+      snprintf(buffer, sizeof(buffer), "%s\\system.XWinrc", winGetBaseDir());
+#else
+      strncpy(buffer, PROJECTROOT"/lib/X11/system.XWinrc", sizeof(buffer));
+#endif
+      buffer[sizeof(buffer)-1] = 0;
+      prefFile = fopen (buffer, "r");
       if (prefFile)
-	ErrorF ("winPrefsLoadPreferences: %s\n",
-		PROJECTROOT"/lib/X11/system.XWinrc");
+	ErrorF ("winPrefsLoadPreferences: %s\n", buffer);
     }
 
   /* If we could open it, then read the settings and close it */

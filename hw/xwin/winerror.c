@@ -93,7 +93,6 @@ OsVendorFatalError (void)
 void
 winMessageBoxF (const char *pszError, UINT uType, ...)
 {
-  int		i;
   char *	pszErrorF = NULL;
   char *	pszMsgBox = NULL;
   va_list	args;

@@ -41,6 +41,9 @@ from The Open Group.
 #if defined(XKB) && defined(WIN32)
 #include "XKBsrv.h"
 #endif
+#ifdef RELOCATE_PROJECTROOT
+#include <shlobj.h>
+#endif
 
 
 /*
@@ -621,6 +624,14 @@ winFixupPaths (void)
                 basedir);
         buffer[sizeof(buffer)-1] = 0;
         putenv(buffer);
+    }
+    if (getenv("HOME") == NULL)
+    {
+        char buffer[MAX_PATH + 5];
+        strncpy(buffer, "HOME=", 5);
+        if(SHGetFolderPath(NULL, CSIDL_APPDATA|CSIDL_FLAG_CREATE, NULL, 0, 
+                        buffer + 5) == 0) 
+            putenv(buffer);
     }
     if (!g_fLogFileChanged) {
         static char buffer[MAX_PATH];

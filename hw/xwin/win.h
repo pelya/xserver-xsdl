@@ -140,10 +140,6 @@
 #include <sys/stat.h>
 #include <stdio.h>
 
-#ifndef __CYGWIN__
-#define sleep(x) Sleep(1000 * (x))
-#endif
-
 #include <errno.h>
 #if defined(XWIN_MULTIWINDOWEXTWM) || defined(XWIN_CLIPBOARD) || defined(XWIN_MULTIWINDOW) 
 #include <pthread.h>

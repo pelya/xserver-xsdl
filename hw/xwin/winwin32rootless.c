@@ -53,7 +53,6 @@
 #define ULW_OPAQUE	0x00000004
 #define AC_SRC_ALPHA	0x01
 
-
 /*
  * Local function
  */
@@ -455,16 +454,29 @@ winMWExtWMMoveFrame (RootlessFrameID wid, ScreenPtr pScreen, int iNewX, int iNew
   /* Store the origin, height, and width in a rectangle structure */
   SetRect (&rcNew, iX, iY, iX + iWidth, iY + iHeight);
 
+#ifdef CYGMULTIWINDOW_DEBUG
+          winDebug("\tWindow {%d, %d, %d, %d}, {%d, %d}\n", 
+              rcNew.left, rcNew.top, rcNew.right, rcNew.bottom,
+              rcNew.right - rcNew.left, rcNew.bottom - rcNew.top);
+#endif
   /*
    * Calculate the required size of the Windows window rectangle,
    * given the size of the Windows window client area.
    */
   AdjustWindowRectEx (&rcNew, dwStyle, FALSE, dwExStyle);
 
+#ifdef CYGMULTIWINDOW_DEBUG
+          winDebug("\tAdjusted {%d, %d, %d, %d}, {%d, %d}\n", 
+              rcNew.left, rcNew.top, rcNew.right, rcNew.bottom,
+              rcNew.right - rcNew.left, rcNew.bottom - rcNew.top);
+#endif
   g_fNoConfigureWindow = TRUE;
   SetWindowPos (pRLWinPriv->hWnd, NULL, rcNew.left, rcNew.top, 0, 0,
 		SWP_NOACTIVATE | SWP_NOSIZE | SWP_NOZORDER);
   g_fNoConfigureWindow = FALSE;
+#if CYGMULTIWINDOW_DEBUG
+  winDebug ("winMWExtWMMoveFrame (%08x) done\n", (int) pRLWinPriv);
+#endif
 }
 
 void
@@ -646,7 +658,7 @@ winMWExtWMReshapeFrame (RootlessFrameID wid, RegionPtr pShape)
 #endif
 
   hRgn = winMWExtWMCreateRgnFromRegion (pShape);
-
+  
   /* Create region for non-client area */
   GetWindowRect (pRLWinPriv->hWnd, &rcWindow);
   GetClientRect (pRLWinPriv->hWnd, &rcClient);
@@ -708,7 +720,7 @@ winMWExtWMStartDrawing (RootlessFrameID wid, char **pixelData, int *bytesPerRow)
       winDebug ("\tpScreenPriv %08X\n", (int) pScreenPriv);
       winDebug ("\tpScreenInfo %08X\n", (int) pScreenInfo);
       winDebug ("\t(%d, %d)\n", (int)pRLWinPriv->pFrame->width,
-		(int) -pRLWinPriv->pFrame->height);
+		(int) pRLWinPriv->pFrame->height);
 #endif
       if (pRLWinPriv->hdcScreen == NULL)
 	{
@@ -796,10 +808,11 @@ winMWExtWMStartDrawing (RootlessFrameID wid, char **pixelData, int *bytesPerRow)
 	  if (dibsection.dsBmih.biHeight < 0)
 	    {
 	      /* FIXME: Figure out why biHeight is sometimes negative */
-	      ErrorF ("winMWExtWMStartDrawing - WEIRDNESS - biHeight "
-		      "still negative: %d\n"
-		      "winAllocateFBShadowGDI - WEIRDNESS - Flipping biHeight sign\n",
-		      (int) dibsection.dsBmih.biHeight);
+	      ErrorF ("winMWExtWMStartDrawing - WEIRDNESS - "
+                  "biHeight still negative: %d\n", 
+                  (int) dibsection.dsBmih.biHeight);
+	      ErrorF ("winMWExtWMStartDrawing - WEIRDNESS - "
+                  "Flipping biHeight sign\n");
 	      dibsection.dsBmih.biHeight = -dibsection.dsBmih.biHeight;
 	    }
 	  
@@ -829,8 +842,8 @@ winMWExtWMStartDrawing (RootlessFrameID wid, char **pixelData, int *bytesPerRow)
     {
       ErrorF ("winMWExtWMStartDrawing - Already window was destroyed \n"); 
     }
-#if CYGMULTIWINDOW_DEBUG && FALSE
-  winDebug ("winMWExtWMStartDrawing - done (0x08%x) 0x%08x %d\n",
+#if CYGMULTIWINDOW_DEBUG
+  winDebug ("winMWExtWMStartDrawing - done (0x%08x) 0x%08x %d\n",
 	    (int) pRLWinPriv,
 	    (unsigned int)pRLWinPriv->pfb, (unsigned int)pRLWinPriv->dwWidthBytes);
 #endif

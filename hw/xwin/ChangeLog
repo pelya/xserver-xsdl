@@ -1,3 +1,43 @@
+2004-12-05  Alexander Gottwald  <ago at freedesktop dot org>
+
+	* ddraw.h:
+	redone ddraw.h to be able to mix it with w32api style COM header 
+	files. 
+	
+	* winmultiwindowwm.c:
+	* obj_base.h:
+	* ddraw.h:
+	obj_base.h is not needed anymore. Using <objbase.h> instead.
+
+	* winms.h:
+	Use Xwindows.h instead of windows.h
+
+	* winresource.h:
+	do not include win_ms.h
+	
+	* win.h:
+	remove extra definition of sleep()
+
+	* InitOutput.c:
+	Set HOME to Documents and Settings/username if not set
+	
+	* winprefs.c:
+	Use Xming basedir instead of ProjectRoot for system.XWinrc
+
+	* windialogs.c:
+	* winshadgdi.c:
+	* winprefs.c:
+	Fix callback functions to use wBOOL instead of BOOL
+
+	* winmultiwindowwindow.c:
+	* winwin32rootless.c:
+	* winwin32rootlesswindow.c:
+	* winerror.c:
+	Fix compiler warnings. Added debug output.
+
+	* winconfig.c:
+	Fix warning about undefined macro max
+	
 2004-12-03  Alexander Gottwald  <ago at freedesktop dot org>
 
 	* windialogs.c:
@@ -314,4 +354,4 @@
 	to prevent our window appearing twice in the clipboard chain.  Also 
 	detect loops when they occur and try to behave in a reasonable way.
 
-# vim:ts=8:noexpandtab        
+# vim:ts=8:noexpandtab:encoding=utf8        
