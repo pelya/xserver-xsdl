@@ -663,17 +663,11 @@ SetDPMSTimers(void)
     if (!DPMSEnabled)
         return;
 
-    if (DPMSStandbyTime > 0) {
-        DPMSStandbyTimer = TimerSet(DPMSStandbyTimer, 0, DPMSStandbyTime,
-                                    DPMSStandbyTimerExpire, NULL);
-    }
-    if (DPMSSuspendTime > 0) {
-        DPMSSuspendTimer = TimerSet(DPMSSuspendTimer, 0, DPMSSuspendTime,
-                                    DPMSSuspendTimerExpire, NULL);
-    }
-    if (DPMSOffTime > 0) {
-        DPMSOffTimer = TimerSet(DPMSOffTimer, 0, DPMSOffTime,
-                                DPMSOffTimerExpire, NULL);
-    }
+    DPMSStandbyTimer = TimerSet(DPMSStandbyTimer, 0, DPMSStandbyTime,
+				DPMSStandbyTimerExpire, NULL);
+    DPMSSuspendTimer = TimerSet(DPMSSuspendTimer, 0, DPMSSuspendTime,
+				DPMSSuspendTimerExpire, NULL);
+    DPMSOffTimer = TimerSet(DPMSOffTimer, 0, DPMSOffTime,
+			    DPMSOffTimerExpire, NULL);
 }
 #endif
