@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/bus/linuxPci.c,v 1.10 2002/11/17 18:42:01 alanh Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/bus/linuxPci.c,v 1.9 2002/09/24 16:14:16 tsi Exp $ */
 /*
  * Copyright 1998 by Concurrent Computer Corporation
  *
@@ -104,6 +104,7 @@ linuxPciOpenFile(PCITAG tag)
 	static int	lbus,ldev,lfunc,fd = -1;
 	int		bus, dev, func;
 	char		file[32];
+	struct stat	ignored;
 
 	bus  = PCI_BUS_FROM_TAG(tag);
 	dev  = PCI_DEV_FROM_TAG(tag);
@@ -111,12 +112,21 @@ linuxPciOpenFile(PCITAG tag)
 	if (fd == -1 || bus != lbus || dev != ldev || func != lfunc) {
 		if (fd != -1)
 			close(fd);
-		if (bus < 256)
-			sprintf(file, "/proc/bus/pci/%02x/%02x.%1x",
-				bus, dev, func);
-		else
-			sprintf(file, "/proc/bus/pci/%04x/%02x.%1x",
-				bus, dev, func);
+		if (bus < 256) {
+			if (stat("/proc/bus/pci/00", &ignored) < 0)
+				sprintf(file, "/proc/bus/pci/0000:%02x/%02x.%1x",
+					bus, dev, func);
+			else
+				sprintf(file, "/proc/bus/pci/%02x/%02x.%1x",
+					bus, dev, func);
+		} else {
+			if (stat("/proc/bus/pci/00", &ignored) < 0)
+				sprintf(file, "/proc/bus/pci/0000:%04x/%02x.%1x",
+					bus, dev, func);
+			else
+				sprintf(file, "/proc/bus/pci/%04x/%02x.%1x",
+					bus, dev, func);
+		}
 		fd = open(file,O_RDWR);
 		lbus  = bus;
 		ldev  = dev;

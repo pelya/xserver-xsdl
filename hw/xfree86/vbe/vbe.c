@@ -57,8 +57,11 @@ VBEExtendedInit(xf86Int10InfoPtr pInt, int entityIndex, int Flags)
     vbeControllerInfoPtr vbe = NULL;
     Bool init_int10 = FALSE;
     vbeInfoPtr vip = NULL;
-    int screen = pScrn->scrnIndex;
+    int screen;
 
+    if (!pScrn) return NULL;
+    screen = pScrn->scrnIndex;
+    
     if (!pInt) {
 	if (!xf86LoadSubModule(pScrn, "int10"))
 	    goto error;
@@ -336,6 +339,8 @@ vbeDoEDID(vbeInfoPtr pVbe, pointer pDDCModule)
     return pMonitor;
 }
 
+#define GET_UNALIGNED2(x) \
+            ((*(CARD16*)(x)) | (*(((CARD16*)(x) + 1))) << 16)
 
 VbeInfoBlock *
 VBEGetVBEInfo(vbeInfoPtr pVbe)
@@ -381,7 +386,7 @@ VBEGetVBEInfo(vbeInfoPtr pVbe)
     block->VESAVersion = *(CARD16*)(((char*)pVbe->memory) + 4);
     major = (unsigned)block->VESAVersion >> 8;
 
-    pStr = *(CARD32*)(((char*)pVbe->memory) + 6);
+    pStr = GET_UNALIGNED2((((char*)pVbe->memory) + 6));
     str = xf86int10Addr(pVbe->pInt10, FARP(pStr));
     block->OEMStringPtr = strdup(str);
 
@@ -390,7 +395,7 @@ VBEGetVBEInfo(vbeInfoPtr pVbe)
     block->Capabilities[2] = ((char*)pVbe->memory)[12];
     block->Capabilities[3] = ((char*)pVbe->memory)[13];
 
-    pModes = *(CARD32*)(((char*)pVbe->memory) + 14);
+    pModes = GET_UNALIGNED2((((char*)pVbe->memory) + 14));
     modes = xf86int10Addr(pVbe->pInt10, FARP(pModes));
     i = 0;
     while (modes[i] != 0xffff)
@@ -405,13 +410,13 @@ VBEGetVBEInfo(vbeInfoPtr pVbe)
 	memcpy(&block->OemSoftwareRev, ((char*)pVbe->memory) + 20, 236);
     else {
 	block->OemSoftwareRev = *(CARD16*)(((char*)pVbe->memory) + 20);
-	pStr = *(CARD32*)(((char*)pVbe->memory) + 22);
+	pStr = GET_UNALIGNED2((((char*)pVbe->memory) + 22));
 	str = xf86int10Addr(pVbe->pInt10, FARP(pStr));
 	block->OemVendorNamePtr = strdup(str);
-	pStr = *(CARD32*)(((char*)pVbe->memory) + 26);
+	pStr = GET_UNALIGNED2((((char*)pVbe->memory) + 26));
 	str = xf86int10Addr(pVbe->pInt10, FARP(pStr));
 	block->OemProductNamePtr = strdup(str);
-	pStr = *(CARD32*)(((char*)pVbe->memory) + 30);
+	pStr = GET_UNALIGNED2((((char*)pVbe->memory) + 30));
 	str = xf86int10Addr(pVbe->pInt10, FARP(pStr));
 	block->OemProductRevPtr = strdup(str);
 	memcpy(&block->Reserved, ((char*)pVbe->memory) + 34, 222);

@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/bus/ix86Pci.c,v 1.24 2003/08/29 20:49:03 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/bus/ix86Pci.c,v 1.25 2003/09/24 02:43:34 dawes Exp $ */
 /*
  * ix86Pci.c - x86 PCI driver
  *
@@ -272,10 +272,16 @@ void ix86PciSelectCfgmech(void)
      */
     switch (xf86Info.pciFlags) {
 
-    case PCIProbe1: /* { */
+	case PCIOsConfig:
+#if ARCH_PCI_OS_INIT
+	    return;
+#endif
+	    
+	case PCIProbe1:
 
-      xf86MsgVerb(X_INFO, 2, "PCI: Probing config type using method 1\n");
-      oldVal1 = inl(PCI_CFGMECH1_ADDRESS_REG);
+	    xf86MsgVerb(X_INFO, 2,
+			"PCI: Probing config type using method 1\n");
+	    oldVal1 = inl(PCI_CFGMECH1_ADDRESS_REG);
 
 #ifdef DEBUGPCI
       if (xf86Verbose > 2) {
@@ -345,8 +351,9 @@ void ix86PciSelectCfgmech(void)
 
 		xf86MsgVerb(X_INFO, 2, "PCI: Config type is 1\n");
 		xf86MsgVerb(X_INFO, 3,
-			"PCI: stages = 0x%02x, oldVal1 = 0x%08x, mode1Res1"
-			" = 0x%08x\n", stages, oldVal1, mode1Res1);
+			"PCI: stages = 0x%02x, oldVal1 = 0x%08lx, mode1Res1"
+			" = 0x%08lx\n", stages, (unsigned long)oldVal1,
+			(unsigned long)mode1Res1);
 		return;
 	    }
 
@@ -399,9 +406,10 @@ void ix86PciSelectCfgmech(void)
 
 		xf86MsgVerb(X_INFO, 2, "PCI: Config type is 1\n");
 		xf86MsgVerb(X_INFO, 3,
-			"PCI: stages = 0x%02x, oldVal1 = 0x%08x,\n"
-			"\tmode1Res1 = 0x%08x, mode1Res2 = 0x%08x\n",
-			stages, oldVal1, mode1Res1, mode1Res2);
+			"PCI: stages = 0x%02x, oldVal1 = 0x%08lx,\n"
+			"\tmode1Res1 = 0x%08lx, mode1Res2 = 0x%08lx\n",
+			stages, (unsigned long)oldVal1,
+			(unsigned long)mode1Res1, (unsigned long)mode1Res2);
 		return;
 	    }
 
@@ -415,9 +423,10 @@ void ix86PciSelectCfgmech(void)
       }
 
       xf86MsgVerb(X_INFO, 3, "PCI: Standard check for type 1 failed.\n");
-      xf86MsgVerb(X_INFO, 3, "PCI: stages = 0x%02x, oldVal1 = 0x%08x,\n"
-	       "\tmode1Res1 = 0x%08x, mode1Res2 = 0x%08x\n",
-	       stages, oldVal1, mode1Res1, mode1Res2);
+      xf86MsgVerb(X_INFO, 3, "PCI: stages = 0x%02x, oldVal1 = 0x%08lx,\n"
+	       "\tmode1Res1 = 0x%08lx, mode1Res2 = 0x%08lx\n",
+	       stages, (unsigned long)oldVal1, (unsigned long)mode1Res1,
+	       (unsigned long)mode1Res2);
 
       /* Try config type 2 */
       oldVal2 = inb(PCI_CFGMECH2_ENABLE_REG);
@@ -488,9 +497,6 @@ void ix86PciSelectCfgmech(void)
       ix86Pci0.numDevices = PCI_CFGMECH2_MAXDEV;
       ix86Pci0.funcs = &ix86Funcs2;
       return;
-
-    case PCIOsConfig:
-	return;
 
     case PCIForceNone:
 	break;

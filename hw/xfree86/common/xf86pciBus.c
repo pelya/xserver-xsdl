@@ -3230,10 +3230,14 @@ pciVideoPtr
 xf86GetPciInfoForEntity(int entityIndex)
 {
     pciVideoPtr *ppPci;
-    EntityPtr p = xf86Entities[entityIndex];
+    EntityPtr p;
     
-    if (entityIndex >= xf86NumEntities
-	|| p->busType != BUS_PCI) return NULL;
+    if (entityIndex >= xf86NumEntities)
+	return NULL;
+
+    p = xf86Entities[entityIndex];
+    if (p->busType != BUS_PCI)
+	return NULL;
     
     for (ppPci = xf86PciVideoInfo; *ppPci != NULL; ppPci++) {
 	if (p->pciBusId.bus == (*ppPci)->bus &&

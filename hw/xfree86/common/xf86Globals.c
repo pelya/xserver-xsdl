@@ -157,7 +157,7 @@ xf86InfoRec xf86Info = {
 	FALSE,		/* vidModeAllowNonLocal */
 	TRUE,		/* miscModInDevEnabled */
 	FALSE,		/* miscModInDevAllowNonLocal */
-	PCIProbe1,	/* pciFlags */
+	PCIOsConfig,	/* pciFlags */
 	Pix24DontCare,	/* pixmap24 */
 	X_DEFAULT,	/* pix24From */
 #if defined(i386) || defined(__i386__)
