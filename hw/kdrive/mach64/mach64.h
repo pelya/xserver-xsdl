@@ -21,11 +21,12 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/mach64/mach64.h,v 1.1 2001/06/03 18:48:19 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/mach64/mach64.h,v 1.2 2001/06/04 09:45:42 keithp Exp $ */
 
 #ifndef _MACH64_H_
 #define _MACH64_H_
 #include <vesa.h>
+#include "kxv.h"
 
 /*
  * offset from ioport beginning 
@@ -331,6 +332,34 @@ typedef struct _Reg {
 #define HOST_BYTE_ALIGN		(1 << 28)
 #define HOST_BIG_ENDIAN_EN	(1 << 29)
 
+#define SCALE_PIX_EXPAND    (1 << 0)
+#define SCALE_Y2R_TEMP	    (1 << 1)
+#define SCALE_HORZ_MODE	    (1 << 2)
+#define SCALE_VERT_MODE	    (1 << 3)
+#define SCALE_SIGNED_UV	    (1 << 4)
+#define SCALE_GAMMA_SEL	    (3 << 5)
+#define SCALE_GAMMA_BRIGHT  (0 << 5)
+#define SCALE_GAMMA_22	    (1 << 5)
+#define SCALE_GAMMA_18	    (2 << 5)
+#define SCALE_GAMMA_14	    (3 << 5)
+#define SCALE_DISP_SEL	    (1 << 7)
+#define SCALE_BANDWIDTH	    (1 << 26)
+#define SCALE_DIS_LIMIT	    (1 << 27)
+#define SCALE_CLK_FORCE_ON  (1 << 29)
+#define SCALE_OVERLAY_EN    (1 << 30)
+#define SCALE_EN	    (1 << 31)
+
+#define SCALER_IN_15bpp	    (0x3 << 16)
+#define SCALER_IN_16bpp	    (0x4 << 16)
+#define SCALER_IN_32bpp	    (0x6 << 16)
+#define SCALER_IN_YUV_9	    (0x9 << 16)
+#define SCALER_IN_YUV_12    (0xa << 16)
+#define SCALER_IN_VYUY422   (0xb << 16)
+#define SCALER_IN_YVYU422   (0xc << 16)
+
+#define OVL_BUF_MODE	    (1 << 28)
+#define OVL_BUF_NEXT	    (1 << 29)
+
 typedef struct _MediaReg {
     VOL32	OVERLAY_Y_X_START;	/* 0x100 */
     VOL32	OVERLAY_Y_X_END;
@@ -431,10 +460,11 @@ typedef struct _MediaReg {
     VOL32	dvd_subpicture[0x30];	/* 0x1d0 */
 } MediaReg;
 
-#define TRI_XY(x,y) ((y) << 16 | (x))
+#define MACH64_XY(x,y)	    (((x) & 0x7fff) | (((y) & 0x7fff) << 16))
+#define MACH64_YX(x,y)	    (((y) & 0x7fff) | (((x) & 0x7fff) << 16))
 
 typedef struct _mach64Save {
-    CARD32	POWER_MANAGEMENT;
+    CARD32	LCD_GEN_CTRL;
 } Mach64Save;
 
 typedef struct _mach64CardInfo {
@@ -443,6 +473,7 @@ typedef struct _mach64CardInfo {
     Reg			*reg;
     MediaReg		*media_reg;
     Mach64Save		save;
+    Bool		lcdEnabled;
 } Mach64CardInfo;
     
 #define getMach64CardInfo(kd)	((Mach64CardInfo *) ((kd)->card->driver))
@@ -459,17 +490,48 @@ typedef struct _mach64Cursor {
 #define MACH64_CURSOR_WIDTH	64
 #define MACH64_CURSOR_HEIGHT	64
 
+/*
+ * Xv information, optional
+ */
+typedef struct _mach64PortPriv {
+    CARD32      YBuf0Offset;
+    CARD32      UBuf0Offset;
+    CARD32      VBuf0Offset;
+
+    CARD32      YBuf1Offset;
+    CARD32      UBuf1Offset;
+    CARD32      VBuf1Offset;
+
+    CARD8	currentBuf;
+
+    CARD8	brightness;
+    CARD8	contrast;
+
+    RegionRec   clip;
+    CARD32      colorKey;
+
+    Bool	videoOn;
+    Time        offTime;
+    Time        freeTime;
+    CARD32	size;
+    CARD32	offset;
+} Mach64PortPrivRec, *Mach64PortPrivPtr;
+
+Bool mach64InitVideo(ScreenPtr pScreen);
+
 typedef struct _mach64ScreenInfo {
-    VesaScreenPrivRec	vesa;
-    CARD8	    *cursor_base;
-    CARD8	    *screen;
-    CARD8	    *off_screen;
-    int		    off_screen_size;
-    CARD32	    DP_PIX_WIDTH;
-    CARD32	    DP_SET_GUI_ENGINE;
-    CARD32	    USR1_DST_OFF_PITCH;
-    Bool	    bpp24;
-    Mach64Cursor    cursor;
+    VesaScreenPrivRec		vesa;
+    CARD8			*cursor_base;
+    CARD8			*screen;
+    CARD8			*off_screen;
+    int				off_screen_size;
+    CARD32			DP_PIX_WIDTH;
+    CARD32			DP_SET_GUI_ENGINE;
+    CARD32			USR1_DST_OFF_PITCH;
+    Bool			bpp24;
+    Mach64Cursor		cursor;
+    CARD32			colorKey;
+    KdVideoAdaptorPtr		pAdaptor;
 } Mach64ScreenInfo;
 
 #define getMach64ScreenInfo(kd) ((Mach64ScreenInfo *) ((kd)->screen->driver))

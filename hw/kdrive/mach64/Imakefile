@@ -1,12 +1,17 @@
-XCOMM $XFree86: xc/programs/Xserver/hw/kdrive/mach64/Imakefile,v 1.6 2000/10/20 00:19:51 keithp Exp $
+XCOMM $XFree86: xc/programs/Xserver/hw/kdrive/mach64/Imakefile,v 1.1 2001/06/03 18:48:19 keithp Exp $
 KDRIVE=..
 #include "../Kdrive.tmpl"
 
-SRCS = 	mach64.c mach64draw.c mach64stub.c
+#if BuildXvExt
+XVSRCS=mach64video.c
+XVOBJS=mach64video.o
+#endif
 
-OBJS = 	mach64.o mach64draw.o mach64stub.o
+SRCS = 	mach64.c mach64draw.c mach64stub.c $(XVSRCS)
 
-DEFINES = -DVESA /* -DUSE_PCI*/
+OBJS = 	mach64.o mach64draw.o mach64stub.o $(XVOBJS)
+
+DEFINES = XvExtensionDefines -DVESA /* -DUSE_PCI*/
 
 INCLUDES = -I. $(KDINCS) -I$(KDRIVE)/vesa
 

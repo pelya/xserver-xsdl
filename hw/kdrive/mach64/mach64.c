@@ -19,7 +19,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/mach64/mach64.c,v 1.1 2001/06/03 18:48:19 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/mach64/mach64.c,v 1.2 2001/06/04 09:45:41 keithp Exp $ */
 
 #include "mach64.h"
 #include <sys/io.h>
@@ -44,6 +44,7 @@ mach64CardInit (KdCardInfo *card)
     }
     mach64c->reg = (Reg *) (mach64c->reg_base + MACH64_REG_OFF(card));
     mach64c->media_reg = (MediaReg *) (mach64c->reg_base + MACH64_MEDIA_REG_OFF(card));
+    mach64c->lcdEnabled = FALSE;
     
     if (!vesaInitialize (card, &mach64c->vesa))
     {
@@ -77,6 +78,7 @@ mach64ScreenInit (KdScreenInfo *screen)
     if (mach64s->vesa.mapping != VESA_LINEAR)
 	screen->dumb = TRUE;
     mach64s->screen = mach64s->vesa.fb;
+    mach64s->colorKey = 1;
     memory = mach64s->vesa.fb_size;
     screen_size = screen->fb[0].byteStride * screen->height;
     if (mach64s->screen && memory >= screen_size + 2048)
@@ -105,6 +107,9 @@ mach64ScreenInit (KdScreenInfo *screen)
 Bool
 mach64InitScreen (ScreenPtr pScreen)
 {
+#ifdef XV
+    mach64InitVideo(pScreen);
+#endif
     return vesaInitScreen (pScreen);
 }
 
@@ -172,7 +177,7 @@ mach64Preserve (KdCardInfo *card)
 
     vesaPreserve(card);
     if (reg)
-	mach64c->save.POWER_MANAGEMENT = mach64ReadLCD (reg, 0x8);
+	mach64c->save.LCD_GEN_CTRL = mach64ReadLCD (reg, 1);
 }
 
 void
@@ -216,6 +221,36 @@ const CARD8	mach64DPMSModes[4] = {
 /*    0xbc,	    /* KD_DPMS_POWERDOWN */
 };
 
+#define PWR_MGT_ON		    (1 << 0)
+#define PWR_MGT_MODE		    (3 << 1)
+#define  PWR_MGT_MODE_PIN	    (0 << 1)
+#define  PWR_MGT_MODE_REG	    (1 << 1)
+#define  PWR_MGT_MODE_TIMER	    (2 << 1)
+#define  PWR_MGR_MODE_PCI	    (3 << 1)
+#define AUTO_PWRUP_EN		    (1 << 3)
+#define ACTIVITY_PIN_ON		    (1 << 4)
+#define STANDBY_POL		    (1 << 5)
+#define SUSPEND_POL		    (1 << 6)
+#define SELF_REFRESH		    (1 << 7)
+#define ACTIVITY_PIN_EN		    (1 << 8)
+#define KEYBD_SNOOP		    (1 << 9)
+#define DONT_USE_F32KHZ		    (1 << 10)
+#define TRISTATE_MEM_EN		    (1 << 11)
+#define LCDENG_TEST_MODE	    (0xf << 12)
+#define STANDBY_COUNT		    (0xf << 16)
+#define SUSPEND_COUNT		    (0xf << 20)
+#define BIASON			    (1 << 24)
+#define BLON			    (1 << 25)
+#define DIGON			    (1 << 26)
+#define PM_D3_RST_ENB		    (1 << 27)
+#define STANDBY_NOW		    (1 << 28)
+#define SUSPEND_NOW		    (1 << 29)
+#define PWR_MGT_STATUS		    (3 << 30)
+#define  PWR_MGT_STATUS_ON	    (0 << 30)
+#define  PWR_MGT_STATUS_STANDBY	    (1 << 30)
+#define  PWR_MGT_STATUS_SUSPEND	    (2 << 30)
+#define  PWR_MGT_STATUS_TRANSITION  (3 << 30)
+
 Bool
 mach64DPMS (ScreenPtr pScreen, int mode)
 {
@@ -223,25 +258,15 @@ mach64DPMS (ScreenPtr pScreen, int mode)
     Mach64CardInfo	*mach64c = pScreenPriv->card->driver;
     int			hsync_off, vsync_off, blank;
     CARD32		CRTC_GEN_CNTL;
-    CARD32		POWER_MANAGEMENT;
+    CARD32		LCD_GEN_CTRL;
     Reg			*reg = mach64c->reg;
 
     if (!reg)
 	return FALSE;
     
     CRTC_GEN_CNTL = reg->CRTC_GEN_CNTL;
-    POWER_MANAGEMENT = mach64ReadLCD (reg, 8);
+    LCD_GEN_CTRL = mach64ReadLCD (reg, 1);
 
-    /*
-     * Select register mode
-     */
-    POWER_MANAGEMENT = (POWER_MANAGEMENT & ~(3 << 1)) | (1 << 1);
-    /*
-     * Switch back to ON mode
-     */
-    POWER_MANAGEMENT &= ~(1 << 28);
-    POWER_MANAGEMENT &= ~(1 << 29);
-    
     switch (mode) {
     case KD_DPMS_NORMAL:
 	hsync_off = 0;
@@ -251,31 +276,18 @@ mach64DPMS (ScreenPtr pScreen, int mode)
     case KD_DPMS_STANDBY:
 	hsync_off = 1;
 	vsync_off = 0;
-	/*
-	 * Standby
-	 */
-	POWER_MANAGEMENT |= (1 << 28);
 	blank = 1;
 	break;
     case KD_DPMS_SUSPEND:
 	hsync_off = 0;
 	vsync_off = 1;
 	blank = 1;
-	/*
-	 * Suspend
-	 */
-	POWER_MANAGEMENT |= (1 << 28);
 	break;
     case KD_DPMS_POWERDOWN:
 	hsync_off = 1;
 	vsync_off = 1;
-	/*
-	 * Suspend
-	 */
-	POWER_MANAGEMENT |= (1 << 28);
 	blank = 1;
     }
-
     
     if (hsync_off)
 	CRTC_GEN_CNTL |= (1 << 2);
@@ -286,10 +298,22 @@ mach64DPMS (ScreenPtr pScreen, int mode)
     else
 	CRTC_GEN_CNTL &= ~(1 << 3);
     if (blank)
+    {
+	mach64c->lcdEnabled = (LCD_GEN_CTRL & (1 << 1)) != 0;
+	LCD_GEN_CTRL &= ~(1 << 1);
 	CRTC_GEN_CNTL |= (1 << 6);
+	
+    }
     else
+    {
+	if (!(LCD_GEN_CTRL & 3) || mach64c->lcdEnabled)
+	    LCD_GEN_CTRL |= (1 << 1);
 	CRTC_GEN_CNTL &= ~(1 << 6);
-    mach64WriteLCD (reg, 8, POWER_MANAGEMENT);
+    }
+    
+    KdCheckSync (pScreen);
+
+    mach64WriteLCD (reg, 1, LCD_GEN_CTRL);
     
     reg->CRTC_GEN_CNTL = CRTC_GEN_CNTL;
     return TRUE;
@@ -302,7 +326,7 @@ mach64Restore (KdCardInfo *card)
     Reg			*reg = mach64c->reg;
 
     if (reg)
-	mach64WriteLCD (reg, 8, mach64c->save.POWER_MANAGEMENT);
+	mach64WriteLCD (reg, 1, mach64c->save.LCD_GEN_CTRL);
     mach64ResetMMIO (mach64c);
     vesaRestore (card);
 }

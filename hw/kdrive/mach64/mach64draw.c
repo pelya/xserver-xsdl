@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/mach64/mach64draw.c,v 1.1 2001/06/03 18:48:19 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/mach64/mach64draw.c,v 1.2 2001/06/04 09:45:42 keithp Exp $ */
 
 #include "mach64.h"
 #include "mach64draw.h"
@@ -87,15 +87,13 @@ WAIT_IDLE (Reg *reg)
 	;
 }
 
-#define MACH64_XY(x,y)	    (((x) & 0x7fff) | (((y) & 0x7fff) << 16))
-#define MACH64_YX(x,y)	    (((y) & 0x7fff) | (((x) & 0x7fff) << 16))
-
-static void
+static Bool
 mach64Setup (ScreenPtr	pScreen, CARD32 combo, int wait)
 {
     KdScreenPriv(pScreen);
     mach64ScreenInfo(pScreenPriv);
     mach64CardInfo(pScreenPriv);
+
     reg = mach64c->reg;
     triple = mach64s->bpp24;
     
@@ -104,6 +102,7 @@ mach64Setup (ScreenPtr	pScreen, CARD32 combo, int wait)
     reg->DP_PIX_WIDTH = mach64s->DP_PIX_WIDTH;
     reg->USR1_DST_OFF_PITCH = mach64s->USR1_DST_OFF_PITCH;
     reg->DP_SET_GUI_ENGINE = mach64s->DP_SET_GUI_ENGINE | (combo << 20);
+    return TRUE;
 }
 
 Bool
@@ -112,7 +111,8 @@ mach64PrepareSolid (DrawablePtr    pDrawable,
 		     Pixel	    pm,
 		     Pixel	    fg)
 {
-    mach64Setup (pDrawable->pScreen, 1, 3);
+    if (!mach64Setup (pDrawable->pScreen, 1, 3))
+	return FALSE;
     reg->DP_MIX = (mach64Rop[alu] << 16) | 0;
     reg->DP_WRITE_MSK = pm;
     reg->DP_FRGD_CLR = fg;
@@ -163,7 +163,9 @@ mach64PrepareCopy (DrawablePtr	pSrcDrawable,
 	combo |= 1;
     if ((copyDy = dy) > 0)
 	combo |= 2;
-    mach64Setup (pDstDrawable->pScreen, combo, 2);
+    if (!mach64Setup (pDstDrawable->pScreen, combo, 2))
+	return FALSE;
+    
     reg->DP_MIX = (mach64Rop[alu] << 16) | 0;
     reg->DP_WRITE_MSK = pm;
     return TRUE;
