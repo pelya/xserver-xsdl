@@ -26,7 +26,9 @@
 #ifndef _ATI_H_
 #define _ATI_H_
 
-#include "config.h"
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #ifdef KDRIVEFBDEV
 #include <fbdev.h>
@@ -34,6 +36,8 @@
 #ifdef KDRIVEVESA
 #include <vesa.h>
 #endif
+
+#include "kxv.h"
 
 #ifdef XF86DRI
 #define USE_DRI
@@ -46,8 +50,8 @@
 #endif
 #endif
 
-#define RADEON_REG_BASE(c)		((c)->attr.address[1])
-#define RADEON_REG_SIZE(c)		(0x4000)
+#define ATI_REG_BASE(c)		((c)->attr.address[1])
+#define ATI_REG_SIZE(c)		(0x4000)
 
 #ifdef __powerpc__
 
@@ -81,6 +85,18 @@ MMIO_IN32(__volatile__ void *base, const unsigned long offset)
 #define MMIO_IN32(mmio, a)		(*(VOL32 *)((mmio) + (a)))
 
 #endif
+
+#define MMIO_OUT8(mmio, a, v)		(*(VOL8 *)((mmio) + (a)) = (v))
+#define MMIO_IN8(mmio, a, v)		(*(VOL8 *)((mmio) + (a)))
+
+#define INPLL(mmio, addr) \
+	(MMIO_OUT8(mmio, ATI_REG_CLOCK_CNTL_INDEX, addr),		\
+	 MMIO_IN32(mmio, ATI_REG_CLOCK_CNTL_DATA))
+
+#define OUTPLL(mmio, addr, val) do {					\
+	MMIO_OUT8(mmio, ATI_REG_CLOCK_CNTL_INDEX, (addr) | ATI_PLL_WR_EN); \
+	MMIO_OUT32(mmio, ATI_REG_CLOCK_CNTL_DATA, val);			\
+} while (0)
 
 typedef volatile CARD8	VOL8;
 typedef volatile CARD16	VOL16;
@@ -125,6 +141,7 @@ typedef struct _ATICardInfo {
 	Bool is_r100;
 	Bool is_r200;
 	Bool is_r300;
+	Bool is_agp;
 	char *busid;
 #ifdef USE_DRI
 	int drmFd;
@@ -134,6 +151,48 @@ typedef struct _ATICardInfo {
 
 #define getATICardInfo(kd)	((ATICardInfo *) ((kd)->card->driver))
 #define ATICardInfo(kd)		ATICardInfo *atic = getATICardInfo(kd)
+
+typedef struct _ATICursor {
+	int		width, height;
+	int		xhot, yhot;
+	
+	Bool		has_cursor;
+	CursorPtr	pCursor;
+	Pixel		source, mask;
+	KdOffscreenArea	*area;
+	CARD32		offset;
+} ATICursor;
+
+typedef struct _ATIPortPriv {
+	int brightness;
+	int saturation;
+	RegionRec clip;
+	Bool videoOn;
+	Time offTime;
+	Time freeTime;
+	CARD32 size;
+	KdOffscreenArea *off_screen;
+	DrawablePtr pDraw;
+	PixmapPtr pPixmap;
+
+	CARD32 src_offset;
+	CARD32 src_pitch;
+	CARD8 *src_addr;
+
+	int id;
+	int src_x1, src_y1, src_x2, src_y2;
+	int dst_x1, dst_y1, dst_x2, dst_y2;
+	int src_w, src_h, dst_w, dst_h;
+} ATIPortPrivRec, *ATIPortPrivPtr;
+
+typedef struct _dmaBuf {
+	int size;
+	int used;
+	void *address;
+#ifdef USE_DRI
+	drmBufPtr drmBuf;
+#endif
+} dmaBuf;
 
 typedef struct _ATIScreenInfo {
 	union {
@@ -145,20 +204,52 @@ typedef struct _ATIScreenInfo {
 #endif
 	} backend_priv;
 	KaaScreenInfoRec kaa;
+
 	ATICardInfo *atic;
+	KdScreenInfo *screen;
 
-	Bool using_dri;
-	Bool using_dma;
+	void (*save_blockhandler)(int screen, pointer blockData,
+	    pointer timeout, pointer readmask);
 
-	int scratch_offset;
-	int scratch_size;
+	int		scratch_offset;
+	int		scratch_next;
+	int		scratch_size;
+
+	ATICursor	cursor;
+
+	KdVideoAdaptorPtr pAdaptor;
+	int		num_texture_ports;
+
+	Bool		using_pio;	/* If we use decode DMA packets to MMIO. */
+	Bool		using_pseudo;	/* If we use MMIO to submit DMA packets. */
+	Bool		using_dma;	/* If we use non-DRI DMA to submit packets. */
+	Bool		using_dri;	/* If we use the DRM for DMA. */
+	Bool		using_agp;	/* If we are using AGP or not for DMA. */
+
+	KdOffscreenArea *dma_space;	/* For "DMA" from framebuffer. */
+	void		*agp_addr;	/* Mapped AGP aperture */
+	int		agp_size;
+	int		agp_key;	/* Key of AGP memory for DMA */
+	CARD32		*ring_addr;	/* Beginning of ring buffer. */
+	int		ring_write;	/* Index of write ptr in ring. */
+	int		ring_read;	/* Index of read ptr in ring. */
+	int		ring_len;
+
+
+	dmaBuf		*indirectBuffer;
+	int		indirectStart;
+
+	int		mmio_avail;
+	int		cce_pri_size;
+	int		cce_pri_avail;
 
 #ifdef USE_DRI
+	Bool		dma_started;
+
 	drmSize         registerSize;
 	drmHandle       registerHandle;
 	drmHandle       fbHandle;
 
-	int		IsAGP;
 	drmSize		gartSize;
 	drmHandle	agpMemHandle;		/* Handle from drmAgpAlloc */
 	unsigned long	gartOffset;
@@ -196,23 +287,9 @@ typedef struct _ATIScreenInfo {
 	unsigned char	*gartTex;		/* Map */
 	int		log2GARTTexGran;
 
-	int		CCEMode;          /* CCE mode that server/clients use */
-	int		CPMode;           /* CP mode that server/clients use */
-	int		CCEFifoSize;      /* Size of the CCE command FIFO */
 	int		DMAusecTimeout;   /* CCE timeout in usecs */
 
-	/* DMA 2D accleration */
-	drmBufPtr	indirectBuffer;
-	int		indirectStart;
-
-	/* DRI screen private data */
-	int		fbX;
-	int		fbY;
-	int		backX;
-	int		backY;
-	int		depthX;
-	int		depthY;
-	
+	/* DRI screen private data */	
 	int		frontOffset;
 	int		frontPitch;
 	int		backOffset;
@@ -240,13 +317,18 @@ typedef struct _ATIScreenInfo {
 #define getATIScreenInfo(kd)	((ATIScreenInfo *) ((kd)->screen->driver))
 #define ATIScreenInfo(kd)	ATIScreenInfo *atis = getATIScreenInfo(kd)
 
+/* ati.c */
 Bool
 ATIMapReg(KdCardInfo *card, ATICardInfo *atic);
 
 void
 ATIUnmapReg(KdCardInfo *card, ATICardInfo *atic);
 
-Bool
+void
+R300CGWorkaround(ATIScreenInfo *atis);
+
+/* ati_draw.c */
+void
 ATIDrawSetup(ScreenPtr pScreen);
 
 Bool
@@ -264,16 +346,53 @@ ATIDrawDisable(ScreenPtr pScreen);
 void
 ATIDrawFini(ScreenPtr pScreen);
 
+/* ati_dri.c */
 #ifdef USE_DRI
 Bool
 ATIDRIScreenInit(ScreenPtr pScreen);
 
 void
 ATIDRICloseScreen(ScreenPtr pScreen);
+
+void
+ATIDRIDMAStart(ScreenPtr pScreen);
+
+void
+ATIDRIDMAStop(ScreenPtr pScreen);
+
+void
+ATIDRIDispatchIndirect(ATIScreenInfo *atis, Bool discard);
+
+drmBufPtr
+ATIDRIGetBuffer(ATIScreenInfo *atis);
+
 #endif /* USE_DRI */
+
+/* ati_cursor.c */
+Bool
+ATICursorInit(ScreenPtr pScreen);
+
+void
+ATICursorEnable(ScreenPtr pScreen);
+
+void
+ATICursorDisable(ScreenPtr pScreen);
+
+void
+ATICursorFini(ScreenPtr pScreen);
+
+void
+ATIRecolorCursor(ScreenPtr pScreen, int ndef, xColorItem *pdef);
 
 int
 ATILog2(int val);
+
+/* ati_video.c */
+Bool
+ATIInitVideo(ScreenPtr pScreen);
+
+void
+ATIFiniVideo(ScreenPtr pScreen);
 
 extern KdCardFuncs ATIFuncs;
 

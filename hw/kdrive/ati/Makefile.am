@@ -9,7 +9,6 @@ DRI_SOURCES =	ati_dri.c	\
 		r128_common.h	\
 		r128_sarea.h	\
 		radeon_common.h	\
-		radeon_composite.c \
 		radeon_sarea.h
 endif
 
@@ -39,13 +38,18 @@ endif
 noinst_LIBRARIES = libati.a
 
 libati_a_SOURCES = 	\
+	ati_cursor.c	\
+	ati_dma.c	\
+	ati_dma.h	\
 	ati_draw.c	\
 	ati_draw.h	\
-	ati_drawtmp.h	\
+	ati_microcode.c	\
 	ati.c		\
 	ati.h		\
 	ati_reg.h	\
-	r128_blendtmp.h	\
+	r128_composite.c \
+	ati_video.c	\
+	radeon_composite.c \
 	$(DRI_SOURCES)
 
 Xati_SOURCES = \

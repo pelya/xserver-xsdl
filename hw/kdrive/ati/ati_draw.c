@@ -28,12 +28,8 @@
 #endif
 #include "ati.h"
 #include "ati_reg.h"
+#include "ati_dma.h"
 #include "ati_draw.h"
-#ifdef USE_DRI
-#include "radeon_common.h"
-#include "r128_common.h"
-#include "ati_sarea.h"
-#endif /* USE_DRI */
 
 CARD8 ATISolidRop[16] = {
     /* GXclear      */      0x00,         /* 0 */
@@ -73,334 +69,523 @@ CARD8 ATIBltRop[16] = {
     /* GXset        */      0xff,         /* 1 */
 };
 
-static CARD32 R128BlendOp[] = {
-	/* Clear */
-	R128_ALPHA_BLEND_SRC_ZERO	 | R128_ALPHA_BLEND_DST_ZERO,
-	/* Src */
-	R128_ALPHA_BLEND_SRC_ONE	 | R128_ALPHA_BLEND_DST_ZERO,
-	/* Dst */
-	R128_ALPHA_BLEND_SRC_ZERO	 | R128_ALPHA_BLEND_DST_ONE,
-	/* Over */
-	R128_ALPHA_BLEND_SRC_ONE	 | R128_ALPHA_BLEND_DST_INVSRCALPHA,
-	/* OverReverse */
-	R128_ALPHA_BLEND_SRC_INVDSTALPHA | R128_ALPHA_BLEND_DST_ONE,
-	/* In */
-	R128_ALPHA_BLEND_SRC_DSTALPHA	 | R128_ALPHA_BLEND_DST_ZERO,
-	/* InReverse */
-	R128_ALPHA_BLEND_SRC_ZERO	 | R128_ALPHA_BLEND_DST_SRCALPHA,
-	/* Out */
-	R128_ALPHA_BLEND_SRC_INVDSTALPHA | R128_ALPHA_BLEND_DST_ZERO,
-	/* OutReverse */
-	R128_ALPHA_BLEND_SRC_ZERO	 | R128_ALPHA_BLEND_DST_INVSRCALPHA,
-	/* Atop */
-	R128_ALPHA_BLEND_SRC_DSTALPHA	 | R128_ALPHA_BLEND_DST_INVSRCALPHA,
-	/* AtopReverse */
-	R128_ALPHA_BLEND_SRC_INVDSTALPHA | R128_ALPHA_BLEND_DST_SRCALPHA,
-	/* Xor */
-	R128_ALPHA_BLEND_SRC_INVDSTALPHA | R128_ALPHA_BLEND_DST_INVSRCALPHA,
-	/* Add */
-	R128_ALPHA_BLEND_SRC_ONE	 | R128_ALPHA_BLEND_DST_ONE,
-};
-
 int copydx, copydy;
-int fifo_size;
 ATIScreenInfo *accel_atis;
-int src_pitch;
-int src_offset;
-int src_bpp;
 /* If is_24bpp is set, then we are using the accelerator in 8-bit mode due
  * to it being broken for 24bpp, so coordinates have to be multiplied by 3.
  */
 Bool is_24bpp;
-/* For r128 Blend, tells whether to force src x/y offset to (0,0). */
-Bool is_repeat;
+CARD32 settings, color, src_pitch_offset, dst_pitch_offset;
 
-static void
-ATIWaitAvailMMIO(int n)
+#define DRAW_USING_PACKET3 0
+
+void
+ATIDrawSetup(ScreenPtr pScreen)
 {
-	ATICardInfo *atic = accel_atis->atic;
+	KdScreenPriv(pScreen);
+	ATIScreenInfo(pScreenPriv);
+	ATICardInfo(pScreenPriv);
 	char *mmio = atic->reg_base;
+	RING_LOCALS;
 
-	if (fifo_size >= n) {
-		fifo_size -= n;
-		return;
+	/* XXX: this shouldn't be necessary, but fixes some R128 composite
+	 * issues.
+	 */
+	/*if (!atic->is_radeon) {
+		ATIWaitIdle(atis);
+		MMIO_OUT32(mmio, R128_REG_PC_GUI_MODE,
+		    R128_PC_BYPASS_EN);
+	}*/
+
+	BEGIN_DMA(2);
+	OUT_REG(ATI_REG_DEFAULT_SC_BOTTOM_RIGHT,
+	    ATI_DEFAULT_SC_RIGHT_MAX | ATI_DEFAULT_SC_BOTTOM_MAX);
+	END_DMA();
+
+	if (!atic->is_radeon) {
+		/* Setup for R128 Composite */
+		BEGIN_DMA(12);
+		OUT_REG(R128_REG_SCALE_3D_CNTL,
+		    R128_SCALE_3D_TEXMAP_SHADE |
+		    R128_SCALE_PIX_REPLICATE |
+		    R128_TEX_CACHE_SPLIT |
+		    R128_TEX_MAP_ALPHA_IN_TEXTURE |
+		    R128_TEX_CACHE_LINE_SIZE_4QW);
+		OUT_REG(R128_REG_SETUP_CNTL,
+		    R128_COLOR_SOLID_COLOR |
+		    R128_PRIM_TYPE_TRI |
+		    R128_TEXTURE_ST_MULT_W |
+		    R128_STARTING_VERTEX_1 |
+		    R128_ENDING_VERTEX_3 |
+		    R128_SUB_PIX_4BITS);
+		OUT_REG(R128_REG_PM4_VC_FPU_SETUP,
+		    R128_FRONT_DIR_CCW |
+		    R128_BACKFACE_CULL |
+		    R128_FRONTFACE_SOLID |
+		    R128_FPU_COLOR_SOLID |
+		    R128_FPU_SUB_PIX_4BITS |
+		    R128_FPU_MODE_3D |
+		    R128_TRAP_BITS_DISABLE |
+		    R128_XFACTOR_2 |
+		    R128_YFACTOR_2 |
+		    R128_FLAT_SHADE_VERTEX_OGL |
+		    R128_FPU_ROUND_TRUNCATE |
+		    R128_WM_SEL_8DW);
+		OUT_REG(R128_REG_PLANE_3D_MASK_C, 0xffffffff);
+		OUT_REG(R128_REG_CONSTANT_COLOR_C, 0xff000000);
+		OUT_REG(R128_REG_WINDOW_XY_OFFSET, 0x00000000);
+		END_DMA();
+	} else {
+		/* Setup for R100/R200 Composite */
+		BEGIN_DMA(8);
+		OUT_REG(RADEON_REG_RE_TOP_LEFT, 0);
+		OUT_REG(RADEON_REG_RE_WIDTH_HEIGHT, 0xffffffff);
+		OUT_REG(RADEON_REG_RB3D_PLANEMASK, 0xffffffff);
+		OUT_REG(RADEON_REG_SE_CNTL,
+		    RADEON_FFACE_CULL_CCW |
+		    RADEON_FFACE_SOLID |
+		    RADEON_VTX_PIX_CENTER_OGL);
+		END_DMA();
+
+		if (atic->is_r100) {
+			BEGIN_DMA(4);
+			OUT_REG(RADEON_REG_SE_CNTL_STATUS, RADEON_TCL_BYPASS);
+			OUT_REG(RADEON_REG_SE_COORD_FMT,
+			    RADEON_VTX_XY_PRE_MULT_1_OVER_W0 |
+			    RADEON_VTX_ST0_NONPARAMETRIC |
+			    RADEON_VTX_ST1_NONPARAMETRIC |
+			    RADEON_TEX1_W_ROUTING_USE_W0);
+			END_DMA();
+		} else {
+			BEGIN_DMA(12);
+			OUT_REG(R200_REG_RE_CNTL, 0);
+			OUT_REG(R200_REG_SE_VTE_CNTL, R200_VTX_XY_FMT);
+			OUT_REG(R200_REG_SE_VTX_FMT_0, R200_VTX_XY);
+			OUT_REG(R200_REG_SE_VTX_FMT_1,
+			    (4 << R200_VTX_TEX0_COMP_CNT_SHIFT) |
+			    (4 << R200_VTX_TEX1_COMP_CNT_SHIFT));
+			OUT_REG(R200_REG_SE_VAP_CNTL, 0);
+			OUT_REG(R200_REG_RE_AUX_SCISSOR_CNTL, 0);
+			END_DMA();
+		}
 	}
+}
+
+void
+RadeonSwitchTo2D(ATIScreenInfo *atis)
+{
+	RING_LOCALS;
+
+	BEGIN_DMA(2);
+	OUT_REG(ATI_REG_WAIT_UNTIL,
+	    RADEON_WAIT_HOST_IDLECLEAN | RADEON_WAIT_3D_IDLECLEAN);
+	END_DMA();
+}
+
+void
+RadeonSwitchTo3D(ATIScreenInfo *atis)
+{
+	RING_LOCALS;
+
+	BEGIN_DMA(2);
+	OUT_REG(ATI_REG_WAIT_UNTIL,
+	    RADEON_WAIT_HOST_IDLECLEAN | RADEON_WAIT_2D_IDLECLEAN);
+	END_DMA();
+}
+
+/* Assumes that depth 15 and 16 can be used as depth 16, which is okay since we
+ * require src and dest datatypes to be equal.
+ */
+static Bool
+ATIGetDatatypeBpp(int bpp, CARD32 *type)
+{
+	switch (bpp) {
+	case 8:
+		*type = R128_DATATYPE_CI8;
+		return TRUE;
+	case 16:
+		*type = R128_DATATYPE_RGB565;
+		return TRUE;
+	case 24:
+		*type = R128_DATATYPE_CI8;
+		return TRUE;
+	case 32:
+		*type = R128_DATATYPE_ARGB8888;
+		return TRUE;
+	default:
+		ATI_FALLBACK(("Unsupported bpp: %d\n", bpp));
+		return FALSE;
+	}
+}
+
+Bool
+ATIGetOffsetPitch(ATIScreenInfo *atis, int bpp, CARD32 *pitch_offset,
+    int offset, int pitch)
+{
+	ATICardInfo *atic = atis->atic;
+
+	/* On the R128, depending on the bpp the screen can be set up so that it
+	 * doesn't meet the offscreenPitch requirement but can still be
+	 * accelerated, so we check the specific pitch requirement of alignment
+	 * to 8 pixels.
+	 */
 	if (atic->is_radeon) {
-		do {
-			fifo_size = MMIO_IN32(mmio, RADEON_REG_RBBM_STATUS) &
-			    RADEON_RBBM_FIFOCNT_MASK;
-		} while (fifo_size < n);
+		if (pitch % atis->kaa.offscreenPitch != 0)
+			ATI_FALLBACK(("Bad pitch 0x%08x\n", pitch));
+		*pitch_offset = ((pitch >> 6) << 22) | (offset >> 10);
+
 	} else {
-		do {
-			fifo_size = MMIO_IN32(mmio, R128_REG_GUI_STAT) & 0xfff;
-		} while (fifo_size < n);
+		if (pitch % bpp != 0)
+			ATI_FALLBACK(("Bad pitch 0x%08x\n", pitch));
+		*pitch_offset = ((pitch / bpp) << 21) | (offset >> 5);
 	}
-	fifo_size -= n;
+
+	if (offset % atis->kaa.offscreenByteAlign != 0)
+		ATI_FALLBACK(("Bad offset 0x%08x\n", offset));
+
+	return TRUE;
+}
+
+Bool
+ATIGetPixmapOffsetPitch(PixmapPtr pPix, CARD32 *pitch_offset)
+{
+	KdScreenPriv(pPix->drawable.pScreen);
+	ATIScreenInfo(pScreenPriv);
+	CARD32 pitch, offset;
+	int bpp;
+
+	bpp = pPix->drawable.bitsPerPixel;
+	if (bpp == 24)
+		bpp = 8;
+
+	offset = ((CARD8 *)pPix->devPrivate.ptr -
+	    pScreenPriv->screen->memory_base);
+	pitch = pPix->devKind;
+
+	return ATIGetOffsetPitch(atis, bpp, pitch_offset, offset, pitch);
+}
+
+static Bool
+ATIPrepareSolid(PixmapPtr pPix, int alu, Pixel pm, Pixel fg)
+{
+	KdScreenPriv(pPix->drawable.pScreen);
+	ATIScreenInfo(pScreenPriv);
+	ATICardInfo(pScreenPriv);
+	CARD32 datatype;
+	RING_LOCALS;
+
+	is_24bpp = (pPix->drawable.bitsPerPixel == 24);
+	accel_atis = atis;
+
+	if (is_24bpp) {
+		/* Solid fills in fake-24bpp mode only work if the pixel color
+		 * and planemask are all the same byte.
+		 */
+		if ((fg & 0xffffff) != (((fg & 0xff) << 16) | ((fg >> 8) &
+		    0xffff)))
+			ATI_FALLBACK(("Can't do solid color 0x%08x in 24bpp\n",
+			    fg));
+		if ((pm & 0xffffff) != (((pm & 0xff) << 16) | ((pm >> 8) &
+		    0xffff)))
+			ATI_FALLBACK(("Can't do planemask 0x%08x in 24bpp\n",
+			    pm));
+	}
+
+	if (!ATIGetDatatypeBpp(pPix->drawable.bitsPerPixel, &datatype))
+		return FALSE;
+	if (!ATIGetPixmapOffsetPitch(pPix, &dst_pitch_offset))
+		return FALSE;
+
+	if (atic->is_radeon)
+		RadeonSwitchTo2D(atis);
+
+	settings =
+	    ATI_GMC_DST_PITCH_OFFSET_CNTL |
+	    ATI_GMC_BRUSH_SOLID_COLOR |
+	    (datatype << 8) |
+	    ATI_GMC_SRC_DATATYPE_COLOR |
+	    (ATISolidRop[alu] << 16) |
+	    ATI_GMC_CLR_CMP_CNTL_DIS |
+	    R128_GMC_AUX_CLIP_DIS;
+	color = fg;
+
+#if DRAW_USING_PACKET3
+	BEGIN_DMA(6);
+	OUT_REG(ATI_REG_DEFAULT_SC_BOTTOM_RIGHT,
+	    ATI_DEFAULT_SC_RIGHT_MAX | ATI_DEFAULT_SC_BOTTOM_MAX);
+	OUT_REG(ATI_REG_DP_WRITE_MASK, pm);
+	OUT_REG(ATI_REG_DP_CNTL, ATI_DST_X_LEFT_TO_RIGHT |
+	    ATI_DST_Y_TOP_TO_BOTTOM);
+	END_DMA();
+#else
+	BEGIN_DMA(12);
+	OUT_REG(ATI_REG_DEFAULT_SC_BOTTOM_RIGHT,
+	    ATI_DEFAULT_SC_RIGHT_MAX | ATI_DEFAULT_SC_BOTTOM_MAX);
+	OUT_REG(ATI_REG_DST_PITCH_OFFSET, dst_pitch_offset);
+	OUT_REG(ATI_REG_DP_GUI_MASTER_CNTL, settings);
+	OUT_REG(ATI_REG_DP_BRUSH_FRGD_CLR, fg);
+	OUT_REG(ATI_REG_DP_WRITE_MASK, pm);
+	OUT_REG(ATI_REG_DP_CNTL, ATI_DST_X_LEFT_TO_RIGHT |
+	    ATI_DST_Y_TOP_TO_BOTTOM);
+	END_DMA();
+#endif
+
+	return TRUE;
 }
 
 static void
-RadeonWaitIdle(void)
+ATISolid(int x1, int y1, int x2, int y2)
 {
 	ATIScreenInfo *atis = accel_atis;
-	ATICardInfo *atic = atis->atic;
-	char *mmio = atic->reg_base;
-	CARD32 temp;
-
-#ifdef USE_DRI
-	if (atis->using_dma) {
-		int ret;
-
-		do {
-			ret = drmCommandNone(atic->drmFd, DRM_RADEON_CP_IDLE);
-		} while (ret == -EBUSY);
-		if (ret != 0)
-			ErrorF("Failed to idle DMA, returned %d\n", ret);
+	RING_LOCALS;
+	
+	if (is_24bpp) {
+		x1 *= 3;
+		x2 *= 3;
 	}
-#endif /* USE_DRI */
-
-	/* Wait for the engine to go idle */
-	ATIWaitAvailMMIO(64);
-
-	while ((MMIO_IN32(mmio, RADEON_REG_RBBM_STATUS) &
-	    RADEON_RBBM_ACTIVE) != 0)
-		;
-
-	/* Flush pixel cache */
-	temp = MMIO_IN32(mmio, RADEON_REG_RB2D_DSTCACHE_CTLSTAT);
-	temp |= RADEON_RB2D_DC_FLUSH_ALL;
-	MMIO_OUT32(mmio, RADEON_REG_RB2D_DSTCACHE_CTLSTAT, temp);
-
-	while ((MMIO_IN32(mmio, RADEON_REG_RB2D_DSTCACHE_CTLSTAT) &
-	    RADEON_RB2D_DC_BUSY) != 0)
-		;
+#if DRAW_USING_PACKET3
+	BEGIN_DMA(6);
+	OUT_RING(DMA_PACKET3(ATI_CCE_PACKET3_PAINT_MULTI, 5));
+	OUT_RING(settings);
+	OUT_RING(dst_pitch_offset);
+	OUT_RING(color);
+	OUT_RING((x1 << 16) | y1);
+	OUT_RING(((x2 - x1) << 16) | (y2 - y1));
+	END_DMA();
+#else
+	BEGIN_DMA(3);
+	OUT_RING(DMA_PACKET0(ATI_REG_DST_Y_X, 2));
+	OUT_RING((y1 << 16) | x1);
+	OUT_RING(((y2 - y1) << 16) | (x2 - x1));
+	END_DMA();
+#endif
 }
 
 static void
-R128WaitIdle(void)
+ATIDoneSolid(void)
 {
-	ATIScreenInfo *atis = accel_atis;
-	ATICardInfo *atic = atis->atic;
-	char *mmio = atic->reg_base;
-	CARD32 temp;
-	int tries;
-
-#ifdef USE_DRI
-	if (atis->using_dma) {
-		int ret;
-
-		do {
-			ret = drmCommandNone(atic->drmFd, DRM_R128_CCE_IDLE);
-		} while (ret == -EBUSY);
-		if (ret != 0)
-			ErrorF("Failed to idle DMA, returned %d\n", ret);
-	}
-#endif /* USE_DRI */
-
-	ATIWaitAvailMMIO(64);
-
-	tries = 1000000;
-	while (tries--) {
-		if ((MMIO_IN32(mmio, R128_REG_GUI_STAT) & R128_GUI_ACTIVE) == 0)
-			break;
-	}
-
-	temp = MMIO_IN32(mmio, R128_REG_PC_NGUI_CTLSTAT);
-	MMIO_OUT32(mmio, R128_REG_PC_NGUI_CTLSTAT, temp | 0xff);
-
-	tries = 1000000;
-	while (tries--) {
-		if ((MMIO_IN32(mmio, R128_REG_PC_NGUI_CTLSTAT) & R128_PC_BUSY) !=
-		    R128_PC_BUSY)
-			break;
-	}
 }
 
-void
-ATIWaitIdle(void)
+static Bool
+ATIPrepareCopy(PixmapPtr pSrc, PixmapPtr pDst, int dx, int dy, int alu, Pixel pm)
 {
-	ATIScreenInfo *atis = accel_atis;
-	ATICardInfo *atic = atis->atic;
+	KdScreenPriv(pDst->drawable.pScreen);
+	ATIScreenInfo(pScreenPriv);
+	ATICardInfo(pScreenPriv);
+	CARD32 datatype;
+	RING_LOCALS;
 
-#ifdef USE_DRI
-	/* Dispatch any accumulated commands first. */
-	if (atis->using_dma && atis->indirectBuffer != NULL)
-		ATIDMAFlushIndirect(0);
-#endif /* USE_DRI */
+	copydx = dx;
+	copydy = dy;
+	is_24bpp = pDst->drawable.bitsPerPixel == 24;
+	accel_atis = atis;
+
+	if (is_24bpp && ((pm & 0xffffff) != (((pm & 0xff) << 16) | ((pm >> 8) &
+	    0xffff))))
+		ATI_FALLBACK(("Can't do planemask 0x%08x in 24bpp\n", pm));
+
+	if (!ATIGetDatatypeBpp(pDst->drawable.bitsPerPixel, &datatype))
+		return FALSE;
+	if (!ATIGetPixmapOffsetPitch(pSrc, &src_pitch_offset))
+		return FALSE;
+	if (!ATIGetPixmapOffsetPitch(pDst, &dst_pitch_offset))
+		return FALSE;
 
 	if (atic->is_radeon)
-		RadeonWaitIdle();
-	else
-		R128WaitIdle();
+		RadeonSwitchTo2D(atis);
+
+	settings =
+	    ATI_GMC_SRC_PITCH_OFFSET_CNTL |
+	    ATI_GMC_DST_PITCH_OFFSET_CNTL |
+	    ATI_GMC_BRUSH_NONE |
+	    (datatype << 8) |
+	    ATI_GMC_SRC_DATATYPE_COLOR |
+	    (ATIBltRop[alu] << 16) |
+	    ATI_DP_SRC_SOURCE_MEMORY |
+	    ATI_GMC_CLR_CMP_CNTL_DIS |
+	    R128_GMC_AUX_CLIP_DIS;
+
+#if DRAW_USING_PACKET3
+	BEGIN_DMA(6);
+	OUT_REG(ATI_REG_DEFAULT_SC_BOTTOM_RIGHT,
+	    ATI_DEFAULT_SC_RIGHT_MAX | ATI_DEFAULT_SC_BOTTOM_MAX);
+	OUT_REG(ATI_REG_DP_WRITE_MASK, pm);
+	OUT_REG(ATI_REG_DP_CNTL,
+	    (dx >= 0 ? ATI_DST_X_LEFT_TO_RIGHT : 0) |
+	    (dy >= 0 ? ATI_DST_Y_TOP_TO_BOTTOM : 0));
+	END_DMA();
+
+#else
+	BEGIN_DMA(12);
+	OUT_REG(ATI_REG_DEFAULT_SC_BOTTOM_RIGHT,
+	    ATI_DEFAULT_SC_RIGHT_MAX | ATI_DEFAULT_SC_BOTTOM_MAX);
+	OUT_REG(ATI_REG_SRC_PITCH_OFFSET, src_pitch_offset);
+	OUT_REG(ATI_REG_DST_PITCH_OFFSET, dst_pitch_offset);
+	OUT_REG(ATI_REG_DP_GUI_MASTER_CNTL, settings);
+	OUT_REG(ATI_REG_DP_WRITE_MASK, pm);
+	OUT_REG(ATI_REG_DP_CNTL,
+	    (dx >= 0 ? ATI_DST_X_LEFT_TO_RIGHT : 0) |
+	    (dy >= 0 ? ATI_DST_Y_TOP_TO_BOTTOM : 0));
+	END_DMA();
+#endif
+
+	return TRUE;
 }
 
-#ifdef USE_DRI
-void ATIDMAStart(ScreenPtr pScreen)
-{
-	KdScreenPriv(pScreen);
-	ATICardInfo(pScreenPriv);
-	ATIScreenInfo(pScreenPriv);
-	int ret;
-
-	if (atic->is_radeon)
-		ret = drmCommandNone(atic->drmFd, DRM_RADEON_CP_START);
-	else
-		ret = drmCommandNone(atic->drmFd, DRM_R128_CCE_START);
-
-	if (ret == 0)
-		atis->using_dma = TRUE;
-	else
-		ErrorF("%s: DMA start returned %d\n", __FUNCTION__, ret);
-}
-
-/* Attempts to idle the DMA engine, and stops it.  Note that the ioctl is the
- * same for both R128 and Radeon, so we can just use the name of one of them.
- */
-void ATIDMAStop(ScreenPtr pScreen)
-{
-	KdScreenPriv(pScreen);
-	ATICardInfo(pScreenPriv);
-	ATIScreenInfo(pScreenPriv);
-	drmRadeonCPStop stop;
-	int ret;
-
-	stop.flush = 1;
-	stop.idle  = 1;
-	ret = drmCommandWrite(atic->drmFd, DRM_RADEON_CP_STOP, &stop, 
-	    sizeof(drmRadeonCPStop));
-
-	if (ret != 0 && errno == EBUSY) {
-		ErrorF("Failed to idle the DMA engine\n");
-
-		stop.idle = 0;
-		ret = drmCommandWrite(atic->drmFd, DRM_RADEON_CP_STOP, &stop,
-		    sizeof(drmRadeonCPStop));
-	}
-	atis->using_dma = FALSE;
-}
-
-/* The R128 and Radeon Indirect ioctls differ only in the ioctl number */
-void ATIDMADispatchIndirect(Bool discard)
-{
-	ATIScreenInfo *atis = accel_atis;
-	ATICardInfo *atic = atis->atic;
-	drmBufPtr buffer = atis->indirectBuffer;
-	drmR128Indirect indirect;
-	int cmd;
-
-	indirect.idx = buffer->idx;
-	indirect.start = atis->indirectStart;
-	indirect.end = buffer->used;
-	indirect.discard = discard;
-	cmd = atic->is_radeon ? DRM_RADEON_INDIRECT : DRM_R128_INDIRECT;
-	drmCommandWriteRead(atic->drmFd, cmd, &indirect,
-	    sizeof(drmR128Indirect));
-}
-
-/* Flush the indirect buffer to the kernel for submission to the card */
-void ATIDMAFlushIndirect(Bool discard)
-{
-	ATIScreenInfo *atis = accel_atis;
-	drmBufPtr buffer = atis->indirectBuffer;
-
-	if (buffer == NULL)
-		return;
-	if ((atis->indirectStart == buffer->used) && !discard)
-		return;
-
-	ATIDMADispatchIndirect(discard);
-
-	if (discard) {
-		atis->indirectBuffer = ATIDMAGetBuffer();
-		atis->indirectStart = 0;
-	} else {
-		/* Start on a double word boundary */
-		atis->indirectStart = buffer->used = (buffer->used + 7) & ~7;
-	}
-}
-
-/* Get an indirect buffer for the DMA 2D acceleration commands  */
-drmBufPtr ATIDMAGetBuffer()
-{
-	ATIScreenInfo *atis = accel_atis;
-	ATICardInfo *atic = atis->atic;
-	drmDMAReq dma;
-	drmBufPtr buf = NULL;
-	int indx = 0;
-	int size = 0;
-	int ret;
-
-	dma.context = atis->serverContext;
-	dma.send_count = 0;
-	dma.send_list = NULL;
-	dma.send_sizes = NULL;
-	dma.flags = 0;
-	dma.request_count = 1;
-	if (atis->atic->is_radeon)
-		dma.request_size = RADEON_BUFFER_SIZE;
-	else
-		dma.request_size = R128_BUFFER_SIZE;
-	dma.request_list = &indx;
-	dma.request_sizes = &size;
-	dma.granted_count = 0;
-
-	do {
-		ret = drmDMA(atic->drmFd, &dma);
-	} while (ret != 0);
-
-	buf = &atis->buffers->list[indx];
-	buf->used = 0;
-	return buf;
-}
-
-/* The hardware has a cache on the memory controller for writes to the
- * destination, which I guess is separate for 2d and 3d.  So, when switching
- * between 2d and 3d you need to wait for idle and for the cache to clean.
- */
-void
-RadeonSwitchTo2D(void)
+static void
+ATICopy(int srcX, int srcY, int dstX, int dstY, int w, int h)
 {
 	ATIScreenInfo *atis = accel_atis;
 	RING_LOCALS;
 
-	BEGIN_RING(2);
-	OUT_RING(DMA_PACKET0(RADEON_REG_WAIT_UNTIL, 0));
-	OUT_RING(RADEON_WAIT_HOST_IDLECLEAN | RADEON_WAIT_3D_IDLECLEAN);
-	ADVANCE_RING();
+	if (is_24bpp) {
+		srcX *= 3;
+		dstX *= 3;
+		w *= 3;
+	}
+
+#if !DRAW_USING_PACKET3
+	if (copydx < 0) {
+		srcX += w - 1;
+		dstX += w - 1;
+	}
+
+	if (copydy < 0)  {
+		srcY += h - 1;
+		dstY += h - 1;
+	}
+#endif
+
+#if DRAW_USING_PACKET3
+	BEGIN_DMA(7);
+	OUT_RING(DMA_PACKET3(ATI_CCE_PACKET3_BITBLT_MULTI, 6));
+	OUT_RING(settings);
+	OUT_RING(src_pitch_offset);
+	OUT_RING(dst_pitch_offset);
+	OUT_RING((srcX << 16) | srcY);
+	OUT_RING((dstX << 16) | dstY);
+	OUT_RING((w << 16) | h);
+	END_DMA();
+#else
+	BEGIN_DMA(4);
+	OUT_RING(DMA_PACKET0(ATI_REG_SRC_Y_X, 3));
+	OUT_RING((srcY << 16) | srcX);
+	OUT_RING((dstY << 16) | dstX);
+	OUT_RING((h << 16) | w);
+	END_DMA();
+#endif
 }
 
-void
-RadeonSwitchTo3D(void)
+static void
+ATIDoneCopy(void)
 {
-	ATIScreenInfo *atis = accel_atis;
-	RING_LOCALS;
-
-	BEGIN_RING(2);
-	OUT_RING(DMA_PACKET0(RADEON_REG_WAIT_UNTIL, 0));
-	OUT_RING(RADEON_WAIT_HOST_IDLECLEAN | RADEON_WAIT_2D_IDLECLEAN);
-	ADVANCE_RING();
 }
-
-#endif /* USE_DRI */
 
 static Bool
 ATIUploadToScreen(PixmapPtr pDst, char *src, int src_pitch)
 {
-	int i;
-	char *dst;
-	int dst_pitch;
-	int bytes;
+	ScreenPtr pScreen = pDst->drawable.pScreen;
+	KdScreenPriv(pScreen);
+	ATIScreenInfo(pScreenPriv);
+	ATICardInfo(pScreenPriv);
+	int width, height, bpp, i, dwords;
+	int dst_pitch, dst_offset;
+	CARD32 dst_pitch_offset, datatype;
+	Bool success;
+	RING_LOCALS;
 
-	dst = pDst->devPrivate.ptr;
+	dst_offset = ((CARD8 *)pDst->devPrivate.ptr -
+	    pScreenPriv->screen->memory_base);
 	dst_pitch = pDst->devKind;
-	bytes = src_pitch < dst_pitch ? src_pitch : dst_pitch;
+	width = pDst->drawable.width;
+	height = pDst->drawable.height;
+	bpp =  pDst->drawable.bitsPerPixel;
 
-	KdCheckSync(pDst->drawable.pScreen);
+	success = ATIGetDatatypeBpp(bpp, &datatype);
 
-	for (i = 0; i < pDst->drawable.height; i++) {
-		memcpy(dst, src, bytes);
-		dst += dst_pitch;
-		src += src_pitch;
+	if (bpp == 24) {
+		is_24bpp = TRUE;
+		bpp = 8;
+	} else
+		is_24bpp = FALSE;
+
+	if (!ATIGetOffsetPitch(atis, bpp, &dst_pitch_offset, dst_offset,
+	    dst_pitch))
+		return FALSE;
+
+	if (src_pitch != (width * bpp / 8))
+		return FALSE;
+
+	/* No PACKET3 packets when in PIO mode. */
+	if (atis->using_pio)
+		return FALSE;
+
+	/* XXX: Hostdata uploads aren't working yet. */
+	return FALSE;
+
+	dwords = (width * height * (bpp / 8) + 3) / 4;
+
+	/* Flush pixel cache so nothing being written to the destination
+	 * previously gets mixed up with the hostdata blit.
+	 */
+	if (atic->is_radeon) {
+		BEGIN_DMA(4);
+		OUT_REG(RADEON_REG_RB2D_DSTCACHE_CTLSTAT,
+		    RADEON_RB2D_DC_FLUSH);
+		OUT_REG(ATI_REG_WAIT_UNTIL,
+		    RADEON_WAIT_2D_IDLECLEAN |
+		    RADEON_WAIT_3D_IDLECLEAN |
+		    RADEON_WAIT_HOST_IDLECLEAN);
+		END_DMA();
+	} else {
+		BEGIN_DMA(2);
+		OUT_REG(R128_REG_PC_GUI_CTLSTAT,
+		    R128_PC_FLUSH_GUI | R128_PC_RI_GUI);
+		END_DMA();
 	}
+
+	BEGIN_DMA(8);
+	OUT_RING(DMA_PACKET3(ATI_CCE_PACKET3_HOSTDATA_BLT, 7 + dwords));
+	OUT_RING(ATI_GMC_DST_PITCH_OFFSET_CNTL |
+	    ATI_GMC_BRUSH_NONE |
+	    (datatype << 8) |
+	    ATI_GMC_SRC_DATATYPE_COLOR |
+	    (ATISolidRop[GXcopy] << 16) |
+	    ATI_DP_SRC_SOURCE_HOST_DATA |
+	    ATI_GMC_CLR_CMP_CNTL_DIS |
+	    R128_GMC_AUX_CLIP_DIS |
+	    ATI_GMC_WR_MSK_DIS);
+	OUT_RING(dst_pitch_offset);
+	OUT_RING(0xffffffff);
+	OUT_RING(0xffffffff);
+	OUT_RING((0 << 16) | 0);
+	OUT_RING((height << 16) | width);
+	OUT_RING(dwords);
+	END_DMA();
+
+	for (i = 0; i < dwords; i++) {
+		BEGIN_DMA(1);
+		OUT_RING(((CARD32 *)src)[i]);
+		END_DMA();
+	}
+
+	if (atic->is_radeon) {
+		BEGIN_DMA(4);
+		OUT_REG(RADEON_REG_RB2D_DSTCACHE_CTLSTAT,
+		    RADEON_RB2D_DC_FLUSH);
+		OUT_REG(ATI_REG_WAIT_UNTIL,
+		    RADEON_WAIT_2D_IDLECLEAN |
+		    RADEON_WAIT_HOST_IDLECLEAN);
+		END_DMA();
+	} else {
+		BEGIN_DMA(2);
+		OUT_REG(R128_REG_PC_GUI_CTLSTAT, R128_PC_FLUSH_GUI);
+		END_DMA();
+	}
+
+	KdMarkSync(pScreen);
+
+	ErrorF("hostdata upload %d,%d %dbpp\n", width, height, bpp);
 
 	return TRUE;
 }
@@ -410,87 +595,76 @@ static Bool
 ATIUploadToScratch(PixmapPtr pSrc, PixmapPtr pDst)
 {
 	KdScreenPriv(pSrc->drawable.pScreen);
+	ATICardInfo(pScreenPriv);
 	ATIScreenInfo(pScreenPriv);
-	int dst_pitch;
+	int dst_pitch, src_pitch, w, i, size, bytes;
+	unsigned char *dst, *src;
+	RING_LOCALS;
 
-	dst_pitch = (pSrc->drawable.width * pSrc->drawable.bitsPerPixel / 8 +
+	/* Align width to log 2, useful for R128 composite.  This should be a
+	 * KAA flag we check for (and supported in kaa.c in general) since many
+	 * older bits of hardware are going to want POT pitches.
+	 */
+	w = 1 << (ATILog2(pSrc->drawable.width - 1) + 1);
+	dst_pitch = (w * pSrc->drawable.bitsPerPixel / 8 +
 	    atis->kaa.offscreenPitch - 1) & ~(atis->kaa.offscreenPitch - 1);
-	
-	if (dst_pitch * pSrc->drawable.height > atis->scratch_size)
+
+	size = dst_pitch * pSrc->drawable.height;
+	if (size > atis->scratch_size)
 		ATI_FALLBACK(("Pixmap too large for scratch (%d,%d)\n",
 		    pSrc->drawable.width, pSrc->drawable.height));
 
+	if (atis->scratch_next + size > atis->scratch_offset +
+	    atis->scratch_size) {
+		/* Only sync when we've used all of the scratch area. */
+		KdCheckSync(pSrc->drawable.pScreen);
+		atis->scratch_next = atis->scratch_offset;
+	}
 	memcpy(pDst, pSrc, sizeof(*pDst));
 	pDst->devKind = dst_pitch;
-	pDst->devPrivate.ptr = atis->scratch_offset +
+	pDst->devPrivate.ptr = atis->scratch_next +
 	    pScreenPriv->screen->memory_base;
+	atis->scratch_next += size;
 
-	return ATIUploadToScreen(pDst, pSrc->devPrivate.ptr, pSrc->devKind);
-}
+	src = pSrc->devPrivate.ptr;
+	src_pitch = pSrc->devKind;
+	dst = pDst->devPrivate.ptr;
+	bytes = src_pitch < dst_pitch ? src_pitch : dst_pitch;
 
-static Bool
-R128GetDatatypePict(CARD32 format, CARD32 *type)
-{
-	switch (format) {
-	case PICT_a8r8g8b8:
-		*type = R128_DATATYPE_ARGB_8888;
-		return TRUE;
-	case PICT_r5g6b5:
-		*type = R128_DATATYPE_RGB_565;
-		return TRUE;
+	i = pSrc->drawable.height;
+	while (i--) {
+		memcpy(dst, src, bytes);
+		dst += dst_pitch;
+		src += src_pitch;
 	}
 
-	ATI_FALLBACK(("Unsupported format: %x\n", format));
-
-	return FALSE;
-}
-
-/* Assumes that depth 15 and 16 can be used as depth 16, which is okay since we
- * require src and dest datatypes to be equal.
- */
-static Bool
-ATIGetDatatypeBpp(int bpp, CARD32 *type)
-{
-	is_24bpp = FALSE;
-
-	switch (bpp) {
-	case 8:
-		*type = R128_DATATYPE_C8;
-		return TRUE;
-	case 16:
-		*type = R128_DATATYPE_RGB_565;
-		return TRUE;
-	case 24:
-		*type = R128_DATATYPE_C8;
-		is_24bpp = TRUE;
-		return TRUE;
-	case 32:
-		*type = R128_DATATYPE_ARGB_8888;
-		return TRUE;
-	default:
-		ATI_FALLBACK(("Unsupported bpp: %x\n", bpp));
-		return FALSE;
+	/* Flush the pixel cache */
+	if (atic->is_radeon) {
+		BEGIN_DMA(2);
+		OUT_REG(RADEON_REG_RB2D_DSTCACHE_CTLSTAT,
+		    RADEON_RB2D_DC_FLUSH_ALL);
+		END_DMA();
+	} else {
+		BEGIN_DMA(2);
+		OUT_REG(R128_REG_PC_GUI_CTLSTAT, R128_PC_FLUSH_ALL);
+		END_DMA();
 	}
-}
 
-#ifdef USE_DRI
-#define USE_DMA
-#include "ati_drawtmp.h"
-#include "r128_blendtmp.h"
-#endif /* USE_DRI */
-
-#undef USE_DMA
-#include "ati_drawtmp.h"
-#include "r128_blendtmp.h"
-
-static void
-ATIDoneSolid(void)
-{
+	return TRUE;
 }
 
 static void
-ATIDoneCopy(void)
+ATIBlockHandler (int screen, pointer blockData, pointer timeout,
+    pointer readmask)
 {
+	ScreenPtr pScreen = screenInfo.screens[screen];
+	KdScreenPriv(pScreen);
+	ATIScreenInfo(pScreenPriv);
+
+	/* When the server is going to sleep, make sure that all DMA data has
+	 * been flushed.
+	 */
+	ATIFlushIndirect(atis, 1);
 }
 
 Bool
@@ -502,64 +676,36 @@ ATIDrawInit(ScreenPtr pScreen)
 
 	ErrorF("Screen: %d/%d depth/bpp\n", pScreenPriv->screen->fb[0].depth,
 	    pScreenPriv->screen->fb[0].bitsPerPixel);
+
 #ifdef USE_DRI
-	if (atis->using_dri)
-		ATIDMAStart(pScreen);
-	else {
-		if (!atic->is_r300 && ATIDRIScreenInit(pScreen))
-			atis->using_dri = TRUE;
-	}
+	atis->using_dri = ATIDRIScreenInit(pScreen);
 #endif /* USE_DRI */
 
 	memset(&atis->kaa, 0, sizeof(KaaScreenInfoRec));
-#ifdef USE_DRI
-	if (atis->using_dma) {
-		atis->kaa.PrepareSolid = ATIPrepareSolidDMA;
-		atis->kaa.Solid = ATISolidDMA;
-		atis->kaa.PrepareCopy = ATIPrepareCopyDMA;
-		atis->kaa.Copy = ATICopyDMA;
-		if (!atic->is_radeon) {
-			atis->kaa.PrepareBlend = R128PrepareBlendDMA;
-			atis->kaa.Blend = R128BlendDMA;
-			atis->kaa.DoneBlend = R128DoneBlendDMA;
-		} else if (!atic->is_r200) {
-			atis->kaa.PrepareBlend = RadeonPrepareBlend;
-			atis->kaa.Blend = RadeonBlend;
-			atis->kaa.DoneBlend = RadeonDoneBlend;
-			atis->kaa.PrepareComposite = RadeonPrepareComposite;
-			atis->kaa.Composite = RadeonComposite;
-			atis->kaa.DoneComposite = RadeonDoneComposite;
-		}
-	} else {
-#else
-	{
-#endif /* USE_DRI */
-		atis->kaa.PrepareSolid = ATIPrepareSolidMMIO;
-		atis->kaa.Solid = ATISolidMMIO;
-		atis->kaa.PrepareCopy = ATIPrepareCopyMMIO;
-		atis->kaa.Copy = ATICopyMMIO;
-		if (!atic->is_radeon) {
-			atis->kaa.PrepareBlend = R128PrepareBlendMMIO;
-			atis->kaa.Blend = R128BlendMMIO;
-			atis->kaa.DoneBlend = R128DoneBlendMMIO;
-		}
-	}
-	atis->kaa.UploadToScreen = ATIUploadToScreen;
-	if (atis->scratch_size != 0)
-		atis->kaa.UploadToScratch = ATIUploadToScratch;
+	atis->kaa.PrepareSolid = ATIPrepareSolid;
+	atis->kaa.Solid = ATISolid;
 	atis->kaa.DoneSolid = ATIDoneSolid;
+	atis->kaa.PrepareCopy = ATIPrepareCopy;
+	atis->kaa.Copy = ATICopy;
 	atis->kaa.DoneCopy = ATIDoneCopy;
+	/* Other acceleration will be hooked in in DrawEnable depending on
+	 * what type of DMA gets initialized.
+	 */
+
 	atis->kaa.flags = KAA_OFFSCREEN_PIXMAPS;
 	if (atic->is_radeon) {
 		atis->kaa.offscreenByteAlign = 1024;
 		atis->kaa.offscreenPitch = 64;
 	} else {
+		/* Rage 128 compositing wants power-of-two pitches. */
+		atis->kaa.flags |= KAA_OFFSCREEN_ALIGN_POT;
 		atis->kaa.offscreenByteAlign = 32;
 		/* Pitch alignment is in sets of 8 pixels, and we need to cover
 		 * 32bpp, so 32 bytes.
 		 */
 		atis->kaa.offscreenPitch = 32;
 	}
+
 	if (!kaaDrawInit(pScreen, &atis->kaa))
 		return FALSE;
 
@@ -569,26 +715,81 @@ ATIDrawInit(ScreenPtr pScreen)
 void
 ATIDrawEnable(ScreenPtr pScreen)
 {
+	KdScreenPriv(pScreen);
+	ATIScreenInfo(pScreenPriv);
+	ATICardInfo(pScreenPriv);
+
+	ATIDMASetup(pScreen);
+	ATIDrawSetup(pScreen);
+
+	atis->kaa.PrepareBlend = NULL;
+	atis->kaa.Blend = NULL;
+	atis->kaa.DoneBlend = NULL;
+	atis->kaa.CheckComposite = NULL;
+	atis->kaa.PrepareComposite = NULL;
+	atis->kaa.Composite = NULL;
+	atis->kaa.DoneComposite = NULL;
+	/* XXX: The R128 Blend code has several issues, according to
+	 * rendercheck.  Source coordinates are sometimes wrong it appears, and
+	 * in some cases the blending results are wrong.
+	 */
+	if (0 && !atic->is_radeon) {
+		atis->kaa.PrepareBlend = R128PrepareBlend;
+		atis->kaa.Blend = R128Blend;
+		atis->kaa.DoneBlend = R128DoneBlend;
+	}
+
+	/* We can't dispatch 3d commands in PIO mode. */
+	if (!atis->using_pio) {
+		if (0 && !atic->is_radeon) { /* XXX */
+			atis->kaa.CheckComposite = R128CheckComposite;
+			atis->kaa.PrepareComposite = R128PrepareComposite;
+			atis->kaa.Composite = R128Composite;
+			atis->kaa.DoneComposite = R128DoneComposite;
+		} else if (0 && atic->is_r100) { /* XXX */
+			atis->kaa.CheckComposite = R100CheckComposite;
+			atis->kaa.PrepareComposite = R100PrepareComposite;
+			atis->kaa.Composite = RadeonComposite;
+			atis->kaa.DoneComposite = RadeonDoneComposite;
+		} else if (0 && atic->is_r200) { /* XXX */
+			atis->kaa.CheckComposite = R200CheckComposite;
+			atis->kaa.PrepareComposite = R200PrepareComposite;
+			atis->kaa.Composite = RadeonComposite;
+			atis->kaa.DoneComposite = RadeonDoneComposite;
+		}
+	}
+
+	atis->kaa.UploadToScreen = ATIUploadToScreen;
+	atis->kaa.UploadToScratch = ATIUploadToScratch;
+
+	atis->save_blockhandler = pScreen->BlockHandler;
+	pScreen->BlockHandler = ATIBlockHandler;
+
 	KdMarkSync(pScreen);
 }
 
 void
 ATIDrawDisable(ScreenPtr pScreen)
 {
+	KdScreenPriv(pScreen);
+	ATIScreenInfo(pScreenPriv);
+
+	ATIDMATeardown(pScreen);
+
+	pScreen->BlockHandler = atis->save_blockhandler;
 }
 
 void
 ATIDrawFini(ScreenPtr pScreen)
 {
-#ifdef USE_DRI
 	KdScreenPriv(pScreen);
 	ATIScreenInfo(pScreenPriv);
 
-	if (atis->using_dma)
-		ATIDMAStop(pScreen);
-
-	if (atis->using_dri)
+#ifdef USE_DRI
+	if (atis->using_dri) {
 		ATIDRICloseScreen(pScreen);
+		atis->using_dri = FALSE;
+	}
 #endif /* USE_DRI */
 
 	kaaDrawFini(pScreen);
@@ -600,7 +801,5 @@ ATIDrawSync(ScreenPtr pScreen)
 	KdScreenPriv(pScreen);
 	ATIScreenInfo(pScreenPriv);
 
-	accel_atis = atis;
-
-	ATIWaitIdle();
+	ATIWaitIdle(atis);
 }

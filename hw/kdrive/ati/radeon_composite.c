@@ -28,99 +28,368 @@
 #endif
 #include "ati.h"
 #include "ati_reg.h"
+#include "ati_dma.h"
 #include "ati_draw.h"
-#include "radeon_common.h"
-#include "r128_common.h"
-#include "ati_sarea.h"
-
-#define TAG(x)		x##DMA
-#define LOCALS		RING_LOCALS; \
-			(void)atic;
-#define BEGIN(x)	BEGIN_RING(x * 2)
-#define OUT_REG(reg, val) OUT_RING_REG(reg, val)
-#define END()		ADVANCE_RING()
 
 extern ATIScreenInfo *accel_atis;
 
-static CARD32 RadeonBlendOp[] = {
-	/* Clear */
-	RADEON_SRC_BLEND_GL_ZERO		| RADEON_DST_BLEND_GL_ZERO,
-	/* Src */
-	RADEON_SRC_BLEND_GL_ONE			| RADEON_DST_BLEND_GL_ZERO,
-	/* Dst */
-	RADEON_SRC_BLEND_GL_ZERO		| RADEON_DST_BLEND_GL_ONE,
-	/* Over */
-	RADEON_SRC_BLEND_GL_ONE			| RADEON_DST_BLEND_GL_ONE_MINUS_SRC_ALPHA,
-	/* OverReverse */
-	RADEON_SRC_BLEND_GL_ONE_MINUS_DST_ALPHA	| RADEON_DST_BLEND_GL_ONE,
-	/* In */
-	RADEON_SRC_BLEND_GL_DST_ALPHA		| RADEON_DST_BLEND_GL_ZERO,
-	/* InReverse */
-	RADEON_SRC_BLEND_GL_ZERO		| RADEON_DST_BLEND_GL_SRC_ALPHA,
-	/* Out */
-	RADEON_SRC_BLEND_GL_ONE_MINUS_DST_ALPHA	| RADEON_DST_BLEND_GL_ZERO,
-	/* OutReverse */
-	RADEON_SRC_BLEND_GL_ZERO		| RADEON_DST_BLEND_GL_ONE_MINUS_SRC_ALPHA,
-	/* Atop */
-	RADEON_SRC_BLEND_GL_DST_ALPHA		| RADEON_DST_BLEND_GL_ONE_MINUS_SRC_ALPHA,
-	/* AtopReverse */
-	RADEON_SRC_BLEND_GL_ONE_MINUS_DST_ALPHA	| RADEON_DST_BLEND_GL_SRC_ALPHA,
-	/* Xor */
-	RADEON_SRC_BLEND_GL_ONE_MINUS_DST_ALPHA	| RADEON_DST_BLEND_GL_ONE_MINUS_SRC_ALPHA,
-	/* Add */
-	RADEON_SRC_BLEND_GL_ONE			| RADEON_DST_BLEND_GL_ONE,
-	/* Saturate */
-	RADEON_SRC_BLEND_GL_SRC_ALPHA_SATURATE	| RADEON_DST_BLEND_GL_ONE,
-	/* DisjointClear */
-	RADEON_SRC_BLEND_GL_ZERO		| RADEON_DST_BLEND_GL_ZERO,
-	/* DisjointSrc */
-	RADEON_SRC_BLEND_GL_ONE			| RADEON_DST_BLEND_GL_ZERO,
-	/* DisjointDst */
-	RADEON_SRC_BLEND_GL_ZERO		| RADEON_DST_BLEND_GL_ONE,
+struct blendinfo {
+	Bool dst_alpha;
+	Bool src_alpha;
+	CARD32 blend_cntl;
 };
 
+static struct blendinfo RadeonBlendOp[] = {
+	/* Clear */
+	{0, 0, RADEON_SBLEND_GL_ZERO	      | RADEON_DBLEND_GL_ZERO},
+	/* Src */
+	{0, 0, RADEON_SBLEND_GL_ONE	      | RADEON_DBLEND_GL_ZERO},
+	/* Dst */
+	{0, 0, RADEON_SBLEND_GL_ZERO	      | RADEON_DBLEND_GL_ONE},
+	/* Over */
+	{0, 1, RADEON_SBLEND_GL_ONE	      | RADEON_DBLEND_GL_INV_SRC_ALPHA},
+	/* OverReverse */
+	{1, 0, RADEON_SBLEND_GL_INV_DST_ALPHA | RADEON_DBLEND_GL_ONE},
+	/* In */
+	{1, 0, RADEON_SBLEND_GL_DST_ALPHA     | RADEON_DBLEND_GL_ZERO},
+	/* InReverse */
+	{0, 1, RADEON_SBLEND_GL_ZERO	      | RADEON_DBLEND_GL_SRC_ALPHA},
+	/* Out */
+	{1, 0, RADEON_SBLEND_GL_INV_DST_ALPHA | RADEON_DBLEND_GL_ZERO},
+	/* OutReverse */
+	{0, 1, RADEON_SBLEND_GL_ZERO	      | RADEON_DBLEND_GL_INV_SRC_ALPHA},
+	/* Atop */
+	{1, 1, RADEON_SBLEND_GL_DST_ALPHA     | RADEON_DBLEND_GL_INV_SRC_ALPHA},
+	/* AtopReverse */
+	{1, 1, RADEON_SBLEND_GL_INV_DST_ALPHA | RADEON_DBLEND_GL_SRC_ALPHA},
+	/* Xor */
+	{1, 1, RADEON_SBLEND_GL_INV_DST_ALPHA | RADEON_DBLEND_GL_INV_SRC_ALPHA},
+	/* Add */
+	{0, 0, RADEON_SBLEND_GL_ONE	      | RADEON_DBLEND_GL_ONE},
+};
+
+struct formatinfo {
+	int fmt;
+	CARD32 card_fmt;
+};
+
+/* Note on texture formats:
+ * TXFORMAT_Y8 expands to (Y,Y,Y,1).  TXFORMAT_I8 expands to (I,I,I,I)
+ */
+static struct formatinfo R100TexFormats[] = {
+	{PICT_a8r8g8b8,	RADEON_TXFORMAT_ARGB8888 | RADEON_TXFORMAT_ALPHA_IN_MAP},
+	{PICT_x8r8g8b8,	RADEON_TXFORMAT_ARGB8888},
+	{PICT_r5g6b5,	RADEON_TXFORMAT_RGB565},
+	{PICT_a1r5g5b5,	RADEON_TXFORMAT_ARGB1555 | RADEON_TXFORMAT_ALPHA_IN_MAP},
+	{PICT_x1r5g5b5,	RADEON_TXFORMAT_ARGB1555},
+	{PICT_a8,	RADEON_TXFORMAT_I8 | RADEON_TXFORMAT_ALPHA_IN_MAP},
+};
+
+static struct formatinfo R200TexFormats[] = {
+	{PICT_a8r8g8b8,	R200_TXFORMAT_ARGB8888 | R200_TXFORMAT_ALPHA_IN_MAP},
+	{PICT_x8r8g8b8,	R200_TXFORMAT_ARGB8888},
+	{PICT_r5g6b5,	R200_TXFORMAT_RGB565},
+	{PICT_a1r5g5b5,	R200_TXFORMAT_ARGB1555 | R200_TXFORMAT_ALPHA_IN_MAP},
+	{PICT_x1r5g5b5,	R200_TXFORMAT_ARGB1555},
+	{PICT_a8,	R200_TXFORMAT_I8 | R200_TXFORMAT_ALPHA_IN_MAP},
+};
+
+/* Common Radeon setup code */
+
 static Bool
-RadeonTextureSetup(PicturePtr pPict, PixmapPtr pPix, int unit)
+RadeonGetDestFormat(PicturePtr pDstPicture, CARD32 *dst_format)
 {
-	ATIScreenInfo *atis = accel_atis;
-	ATICardInfo *atic = atis->atic;
-	KdScreenPriv(pPix->drawable.pScreen);
-	CARD32 txformat, txoffset, txpitch;
+	switch (pDstPicture->format) {
+	case PICT_a8r8g8b8:
+	case PICT_x8r8g8b8:
+		*dst_format = RADEON_COLOR_FORMAT_ARGB8888;
+		break;
+	case PICT_r5g6b5:
+		*dst_format = RADEON_COLOR_FORMAT_RGB565;
+		break;
+	case PICT_a1r5g5b5:
+	case PICT_x1r5g5b5:
+		*dst_format = RADEON_COLOR_FORMAT_ARGB1555;
+		break;
+	case PICT_a8:
+		*dst_format = RADEON_COLOR_FORMAT_RGB8;
+		break;
+	default:
+		ATI_FALLBACK(("Unsupported dest format 0x%x\n",
+		    pDstPicture->format));
+	}
+
+	return TRUE;
+}
+
+/* R100-specific code */
+
+static Bool
+R100CheckCompositeTexture(PicturePtr pPict, int unit)
+{
 	int w = pPict->pDrawable->width;
 	int h = pPict->pDrawable->height;
-	LOCALS;
+	int i;
 
 	if ((w > 0x7ff) || (h > 0x7ff))
 		ATI_FALLBACK(("Picture w/h too large (%dx%d)\n", w, h));
 
-	switch (pPict->format) {
-	case PICT_a8r8g8b8:
-		txformat = RADEON_TXFORMAT_ARGB8888 |
-		    RADEON_TXFORMAT_ALPHA_IN_MAP;
-		break;
-	case PICT_x8r8g8b8:
-		txformat = RADEON_TXFORMAT_ARGB8888;
-		break;
-	case PICT_r5g6b5:
-		txformat = RADEON_TXFORMAT_RGB565;
-		break;
-	case PICT_a8:
-		txformat = RADEON_TXFORMAT_I8 | RADEON_TXFORMAT_ALPHA_IN_MAP;
-		break;
-	default:
+	for (i = 0; i < sizeof(R100TexFormats) / sizeof(R100TexFormats[0]); i++)
+	{
+		if (R100TexFormats[i].fmt == pPict->format)
+			break;
+	}
+	if (i == sizeof(R100TexFormats) / sizeof(R100TexFormats[0]))
 		ATI_FALLBACK(("Unsupported picture format 0x%x\n",
 		    pPict->format));
-	}
-	if (pPict->repeat) {
-		if ((w & (w - 1)) != 0 || (h & (h - 1)) != 0)
-			ATI_FALLBACK(("NPOT repeat unsupported (%dx%d)\n", w,
-			    h));
 
-		txformat |= (ATILog2(w) - 1) << RADEON_TXFORMAT_WIDTH_SHIFT;
-		txformat |= (ATILog2(h) - 1) << RADEON_TXFORMAT_HEIGHT_SHIFT;
+	if (pPict->repeat && ((w & (w - 1)) != 0 || (h & (h - 1)) != 0))
+		ATI_FALLBACK(("NPOT repeat unsupported (%dx%d)\n", w, h));
+
+	return TRUE;
+}
+
+static Bool
+R100TextureSetup(PicturePtr pPict, PixmapPtr pPix, int unit)
+{
+	ATIScreenInfo *atis = accel_atis;
+	KdScreenPriv(pPix->drawable.pScreen);
+	CARD32 txformat, txoffset, txpitch;
+	int w = pPict->pDrawable->width;
+	int h = pPict->pDrawable->height;
+	int i;
+	RING_LOCALS;
+
+	for (i = 0; i < sizeof(R100TexFormats) / sizeof(R100TexFormats[0]); i++)
+	{
+		if (R100TexFormats[i].fmt == pPict->format)
+			break;
+	}
+	txformat = R100TexFormats[i].card_fmt;
+
+	if (pPict->repeat) {
+		txformat |= ATILog2(w) << RADEON_TXFORMAT_WIDTH_SHIFT;
+		txformat |= ATILog2(h) << RADEON_TXFORMAT_HEIGHT_SHIFT;
 	} else 
 		txformat |= RADEON_TXFORMAT_NON_POWER2;
 	txformat |= unit << 24; /* RADEON_TXFORMAT_ST_ROUTE_STQX */
+
+	txpitch = pPix->devKind;
+	txoffset = ((CARD8 *)pPix->devPrivate.ptr -
+	    pScreenPriv->screen->memory_base);
+ 
+	if ((txoffset & 0x1f) != 0)
+		ATI_FALLBACK(("Bad texture offset 0x%x\n", txoffset));
+	if ((txpitch & 0x1f) != 0)
+		ATI_FALLBACK(("Bad texture pitch 0x%x\n", txpitch));
+
+	/* RADEON_REG_PP_TXFILTER_0,
+	 * RADEON_REG_PP_TXFORMAT_0,
+	 * RADEON_REG_PP_TXOFFSET_0
+	 */
+	BEGIN_DMA(4);
+	OUT_RING(DMA_PACKET0(RADEON_REG_PP_TXFILTER_0 + 0x18 * unit, 3));
+	OUT_RING(0);
+	OUT_RING(txformat);
+	OUT_RING(txoffset);
+	END_DMA();
+
+	/* RADEON_REG_PP_TEX_SIZE_0,
+	 * RADEON_REG_PP_TEX_PITCH_0
+	 */
+	BEGIN_DMA(3);
+	OUT_RING(DMA_PACKET0(RADEON_REG_PP_TEX_SIZE_0 + 0x8 * unit, 2));
+	OUT_RING((pPix->drawable.width - 1) |
+	    ((pPix->drawable.height - 1) << RADEON_TEX_VSIZE_SHIFT));
+	OUT_RING(txpitch - 32);
+	END_DMA();
+
+	return TRUE;
+}
+
+Bool
+R100CheckComposite(int op, PicturePtr pSrcPicture, PicturePtr pMaskPicture,
+    PicturePtr pDstPicture)
+{
+	CARD32 tmp1;
+
+	/* Check for unsupported compositing operations. */
+	if (op >= sizeof(RadeonBlendOp) / sizeof(RadeonBlendOp[0]))
+		ATI_FALLBACK(("Unsupported Composite op 0x%x\n", op));
+	if (pSrcPicture->transform)
+		ATI_FALLBACK(("Source transform unsupported.\n"));
+	if (pMaskPicture != NULL && pMaskPicture->transform)
+		ATI_FALLBACK(("Mask transform unsupported.\n"));
+	if (pMaskPicture != NULL && pMaskPicture->componentAlpha &&
+	    RadeonBlendOp[op].src_alpha)
+		ATI_FALLBACK(("Component alpha not supported with source "
+		    "alpha blending.\n"));
+	if (pDstPicture->pDrawable->width >= (1 << 11) ||
+	    pDstPicture->pDrawable->height >= (1 << 11))
+		ATI_FALLBACK(("Dest w/h too large (%d,%d).\n",
+		    pDstPicture->pDrawable->width,
+		    pDstPicture->pDrawable->height));
+
+	if (!R100CheckCompositeTexture(pSrcPicture, 0))
+		return FALSE;
+	if (pMaskPicture != NULL && !R100CheckCompositeTexture(pMaskPicture, 1))
+		return FALSE;
+
+	if (!RadeonGetDestFormat(pDstPicture, &tmp1))
+		return FALSE;
+
+	return TRUE;
+}
+
+Bool
+R100PrepareComposite(int op, PicturePtr pSrcPicture, PicturePtr pMaskPicture,
+    PicturePtr pDstPicture, PixmapPtr pSrc, PixmapPtr pMask, PixmapPtr pDst)
+{
+	KdScreenPriv(pDst->drawable.pScreen);
+	ATIScreenInfo(pScreenPriv);
+	CARD32 dst_format, dst_offset, dst_pitch;
+	CARD32 pp_cntl, blendcntl, cblend, ablend;
+	int pixel_shift;
+	RING_LOCALS;
+
+	accel_atis = atis;
+
+	RadeonGetDestFormat(pDstPicture, &dst_format);
+	pixel_shift = pDst->drawable.bitsPerPixel >> 4;
+
+	dst_offset = ((CARD8 *)pDst->devPrivate.ptr -
+	    pScreenPriv->screen->memory_base);
+	dst_pitch = pDst->devKind;
+	if ((dst_offset & 0x0f) != 0)
+		ATI_FALLBACK(("Bad destination offset 0x%x\n", dst_offset));
+	if (((dst_pitch >> pixel_shift) & 0x7) != 0)
+		ATI_FALLBACK(("Bad destination pitch 0x%x\n", dst_pitch));
+
+	if (!R100TextureSetup(pSrcPicture, pSrc, 0))
+		return FALSE;
+	pp_cntl = RADEON_TEX_0_ENABLE | RADEON_TEX_BLEND_0_ENABLE;
+
+	if (pMask != NULL) {
+		if (!R100TextureSetup(pMaskPicture, pMask, 1))
+			return FALSE;
+		pp_cntl |= RADEON_TEX_1_ENABLE;
+	}
+
+	BEGIN_DMA(14);
+	OUT_REG(ATI_REG_WAIT_UNTIL,
+		RADEON_WAIT_HOST_IDLECLEAN | RADEON_WAIT_2D_IDLECLEAN);
+
+	/* RADEON_REG_PP_CNTL,
+	 * RADEON_REG_RB3D_CNTL, 
+	 * RADEON_REG_RB3D_COLOROFFSET
+	 */
+	OUT_RING(DMA_PACKET0(RADEON_REG_PP_CNTL, 3));
+	OUT_RING(pp_cntl);
+	OUT_RING(dst_format | RADEON_ALPHA_BLEND_ENABLE);
+	OUT_RING(dst_offset);
+
+	OUT_REG(RADEON_REG_RB3D_COLORPITCH, dst_pitch >> pixel_shift);
+
+	/* IN operator: Multiply src by mask components or mask alpha.
+	 * BLEND_CTL_ADD is A * B + C.
+	 * If a picture is a8, we have to explicitly zero its color values.
+	 * If the destination is a8, we have to route the alpha to red, I think.
+	 */
+	cblend = RADEON_BLEND_CTL_ADD | RADEON_CLAMP_TX |
+	    RADEON_COLOR_ARG_C_ZERO;
+	ablend = RADEON_BLEND_CTL_ADD | RADEON_CLAMP_TX |
+	    RADEON_ALPHA_ARG_C_ZERO;
+
+	if (pDstPicture->format == PICT_a8)
+		cblend |= RADEON_COLOR_ARG_A_T0_ALPHA;
+	else if (pSrcPicture->format == PICT_a8)
+		cblend |= RADEON_COLOR_ARG_A_ZERO;
+	else
+		cblend |= RADEON_COLOR_ARG_A_T0_COLOR;
+	ablend |= RADEON_ALPHA_ARG_A_T0_ALPHA;
+
+	if (pMask) {
+		if (pMaskPicture->componentAlpha &&
+		    pDstPicture->format != PICT_a8)
+			cblend |= RADEON_COLOR_ARG_B_T1_COLOR;
+		else
+			cblend |= RADEON_COLOR_ARG_B_T1_ALPHA;
+		ablend |= RADEON_ALPHA_ARG_B_T1_ALPHA;
+	} else {
+		cblend |= RADEON_COLOR_ARG_B_ZERO | RADEON_COMP_ARG_B;
+		ablend |= RADEON_ALPHA_ARG_B_ZERO | RADEON_COMP_ARG_B;
+	}
+
+	OUT_REG(RADEON_REG_PP_TXCBLEND_0, cblend);
+	OUT_REG(RADEON_REG_PP_TXABLEND_0, ablend);
+
+	/* Op operator. */
+	blendcntl = RadeonBlendOp[op].blend_cntl;
+	if (PICT_FORMAT_A(pDstPicture->format) == 0 &&
+	    RadeonBlendOp[op].dst_alpha) {
+		if ((blendcntl & RADEON_SBLEND_MASK) ==
+		    RADEON_SBLEND_GL_DST_ALPHA)
+			blendcntl = (blendcntl & ~RADEON_SBLEND_MASK) |
+			    RADEON_SBLEND_GL_ONE;
+		else if ((blendcntl & RADEON_SBLEND_MASK) ==
+		    RADEON_SBLEND_GL_INV_DST_ALPHA)
+			blendcntl = (blendcntl & ~RADEON_SBLEND_MASK) |
+			    RADEON_SBLEND_GL_ZERO;
+	}
+	OUT_REG(RADEON_REG_RB3D_BLENDCNTL, blendcntl);
+	END_DMA();
+
+	return TRUE;
+}
+
+static Bool
+R200CheckCompositeTexture(PicturePtr pPict, int unit)
+{
+	int w = pPict->pDrawable->width;
+	int h = pPict->pDrawable->height;
+	int i;
+
+	if ((w > 0x7ff) || (h > 0x7ff))
+		ATI_FALLBACK(("Picture w/h too large (%dx%d)\n", w, h));
+
+	for (i = 0; i < sizeof(R200TexFormats) / sizeof(R200TexFormats[0]); i++)
+	{
+		if (R200TexFormats[i].fmt == pPict->format)
+			break;
+	}
+	if (i == sizeof(R200TexFormats) / sizeof(R200TexFormats[0]))
+		ATI_FALLBACK(("Unsupported picture format 0x%x\n",
+		    pPict->format));
+
+	if (pPict->repeat && ((w & (w - 1)) != 0 || (h & (h - 1)) != 0))
+		ATI_FALLBACK(("NPOT repeat unsupported (%dx%d)\n", w, h));
+
+	return TRUE;
+}
+static Bool
+R200TextureSetup(PicturePtr pPict, PixmapPtr pPix, int unit)
+{
+	ATIScreenInfo *atis = accel_atis;
+	KdScreenPriv(pPix->drawable.pScreen);
+	CARD32 txformat, txoffset, txpitch;
+	int w = pPict->pDrawable->width;
+	int h = pPict->pDrawable->height;
+	int i;
+	RING_LOCALS;
+
+	for (i = 0; i < sizeof(R200TexFormats) / sizeof(R200TexFormats[0]); i++)
+	{
+		if (R200TexFormats[i].fmt == pPict->format)
+			break;
+	}
+	txformat = R200TexFormats[i].card_fmt;
+
+	if (pPict->repeat) {
+		txformat |= ATILog2(w) << R200_TXFORMAT_WIDTH_SHIFT;
+		txformat |= ATILog2(h) << R200_TXFORMAT_HEIGHT_SHIFT;
+	} else 
+		txformat |= R200_TXFORMAT_NON_POWER2;
+	txformat |= unit << R200_TXFORMAT_ST_ROUTE_SHIFT;
 
 	txpitch = pPix->devKind;
 	txoffset = ((CARD8 *)pPix->devPrivate.ptr -
@@ -131,149 +400,154 @@ RadeonTextureSetup(PicturePtr pPict, PixmapPtr pPix, int unit)
 	if ((txpitch & 0x1f) != 0)
 		ATI_FALLBACK(("Bad texture pitch 0x%x\n", txpitch));
 
-	/* RADEON_REG_PP_TXFILTER_0, RADEON_REG_PP_TXFORMAT_0,
-	 * RADEON_REG_PP_TXOFFSET_0
+	/* R200_REG_PP_TXFILTER_0,
+	 * R200_REG_PP_TXFORMAT_0,
+	 * R200_REG_PP_TXFORMAT_X_0,
+	 * R200_REG_PP_TXSIZE_0,
+	 * R200_REG_PP_TXPITCH_0
 	 */
-	BEGIN_RING(4);
-	OUT_RING(DMA_PACKET0(RADEON_REG_PP_TXFILTER_0 + 0x18 * unit, 2));
+	BEGIN_DMA(6);
+	OUT_RING(DMA_PACKET0(R200_REG_PP_TXFILTER_0 + 0x20 * unit, 5));
 	OUT_RING(0);
 	OUT_RING(txformat);
-	OUT_RING(txoffset);
-	ADVANCE_RING();
-
-	/* RADEON_REG_PP_TEX_SIZE_0, RADEON_REG_PP_TEX_PITCH_0 */
-	BEGIN_RING(3);
-	OUT_RING(DMA_PACKET0(RADEON_REG_PP_TEX_SIZE_0 + 0x8 * unit, 1));
+	OUT_RING(0);
 	OUT_RING((pPix->drawable.width - 1) |
-	    ((pPix->drawable.height - 1) << RADEON_TEX_VSIZE_SHIFT));
-	OUT_RING(txpitch - 32);
-	ADVANCE_RING();
+	    ((pPix->drawable.height - 1) << RADEON_TEX_VSIZE_SHIFT)); /* XXX */
+	OUT_RING(txpitch - 32); /* XXX */
+	END_DMA();
+
+	BEGIN_DMA(2);
+	OUT_REG(R200_PP_TXOFFSET_0 + 0x18 * unit, txoffset);
+	END_DMA();
 
 	return TRUE;
 }
 
 Bool
-RadeonPrepareComposite(int op, PicturePtr pSrcPicture, PicturePtr pMaskPicture,
-    PicturePtr pDstPicture, PixmapPtr pSrc, PixmapPtr pMask, PixmapPtr pDst)
+R200CheckComposite(int op, PicturePtr pSrcPicture, PicturePtr pMaskPicture,
+    PicturePtr pDstPicture)
 {
-	KdScreenPriv(pDst->drawable.pScreen);
-	ATIScreenInfo(pScreenPriv);
-	ATICardInfo(pScreenPriv);
-	CARD32 dst_format, dst_offset, dst_pitch;
-	CARD32 pp_cntl;
-	int pixel_shift;
-	LOCALS;
+	CARD32 tmp1;
 
-	/*ErrorF("RadeonPrepareComposite\n");*/
-	
 	/* Check for unsupported compositing operations. */
 	if (op >= sizeof(RadeonBlendOp) / sizeof(RadeonBlendOp[0]))
 		ATI_FALLBACK(("Unsupported Composite op 0x%x\n", op));
 	if (pSrcPicture->transform)
 		ATI_FALLBACK(("Source transform unsupported.\n"));
-	if (pMaskPicture && pMaskPicture->transform)
+	if (pMaskPicture != NULL && pMaskPicture->transform)
 		ATI_FALLBACK(("Mask transform unsupported.\n"));
+	if (pMaskPicture != NULL && pMaskPicture->componentAlpha &&
+	    RadeonBlendOp[op].src_alpha)
+		ATI_FALLBACK(("Component alpha not supported with source "
+		    "alpha blending.\n"));
+
+	if (!R200CheckCompositeTexture(pSrcPicture, 0))
+		return FALSE;
+	if (pMaskPicture != NULL && !R200CheckCompositeTexture(pMaskPicture, 1))
+		return FALSE;
+
+	if (!RadeonGetDestFormat(pDstPicture, &tmp1))
+		return FALSE;
+
+	return TRUE;
+}
+
+Bool
+R200PrepareComposite(int op, PicturePtr pSrcPicture, PicturePtr pMaskPicture,
+    PicturePtr pDstPicture, PixmapPtr pSrc, PixmapPtr pMask, PixmapPtr pDst)
+{
+	KdScreenPriv(pDst->drawable.pScreen);
+	ATIScreenInfo(pScreenPriv);
+	CARD32 dst_format, dst_offset, dst_pitch;
+	CARD32 pp_cntl, blendcntl, cblend, ablend;
+	int pixel_shift;
+	RING_LOCALS;
+
+	RadeonGetDestFormat(pDstPicture, &dst_format);
+	pixel_shift = pDst->drawable.bitsPerPixel >> 4;
 
 	accel_atis = atis;
-
-	switch (pDstPicture->format) {
-	case PICT_r5g6b5:
-		dst_format = RADEON_COLOR_FORMAT_RGB565;
-		pixel_shift = 1;
-		break;
-	case PICT_a1r5g5b5:
-		dst_format = RADEON_COLOR_FORMAT_ARGB1555;
-		pixel_shift = 1;
-		break;
-	case PICT_a8r8g8b8:
-	case PICT_x8r8g8b8:
-		dst_format = RADEON_COLOR_FORMAT_ARGB8888;
-		pixel_shift = 2;
-		break;
-	default:
-		ATI_FALLBACK(("Unsupported dest format 0x%x\n",
-		    pDstPicture->format));
-	}
 
 	dst_offset = ((CARD8 *)pDst->devPrivate.ptr -
 	    pScreenPriv->screen->memory_base);
 	dst_pitch = pDst->devKind;
-	if ((dst_offset & 0xff) != 0)
+	if ((dst_offset & 0x0f) != 0)
 		ATI_FALLBACK(("Bad destination offset 0x%x\n", dst_offset));
 	if (((dst_pitch >> pixel_shift) & 0x7) != 0)
 		ATI_FALLBACK(("Bad destination pitch 0x%x\n", dst_pitch));
 
-	if (!RadeonTextureSetup(pSrcPicture, pSrc, 0))
+	if (!R200TextureSetup(pSrcPicture, pSrc, 0))
 		return FALSE;
 	pp_cntl = RADEON_TEX_0_ENABLE | RADEON_TEX_BLEND_0_ENABLE;
 
 	if (pMask != NULL) {
-		if (!RadeonTextureSetup(pMaskPicture, pMask, 1))
+		if (!R200TextureSetup(pMaskPicture, pMask, 1))
 			return FALSE;
 		pp_cntl |= RADEON_TEX_1_ENABLE;
 	}
 
-	BEGIN(2);
-	OUT_REG(RADEON_REG_RE_TOP_LEFT, 0);
-	OUT_REG(RADEON_REG_RE_WIDTH_HEIGHT, 0xffffffff);
-	END();
+	BEGIN_DMA(34);
+	OUT_REG(ATI_REG_WAIT_UNTIL,
+		RADEON_WAIT_HOST_IDLECLEAN | RADEON_WAIT_2D_IDLECLEAN);
 
-	BEGIN(11);
-	OUT_REG(RADEON_REG_PP_CNTL, pp_cntl);
-	OUT_REG(RADEON_REG_RB3D_CNTL, dst_format | RADEON_ALPHA_BLEND_ENABLE);
-	/* COLORPITCH is multiples of 8 pixels, but located at the 3rd bit */
-	OUT_REG(RADEON_REG_RB3D_COLORPITCH, (dst_pitch >> pixel_shift));
-	OUT_REG(RADEON_REG_RB3D_COLOROFFSET, dst_offset);
-	OUT_REG(RADEON_REG_RB3D_PLANEMASK, 0xffffffff);
-	OUT_REG(RADEON_REG_SE_CNTL, RADEON_FFACE_CULL_CCW | RADEON_FFACE_SOLID |
-	    RADEON_VTX_PIX_CENTER_OGL);
-	OUT_REG(RADEON_REG_SE_CNTL_STATUS, RADEON_TCL_BYPASS);
-	OUT_REG(RADEON_REG_SE_COORD_FMT,
-	    RADEON_VTX_XY_PRE_MULT_1_OVER_W0 |
-	    RADEON_VTX_ST0_NONPARAMETRIC |
-	    RADEON_VTX_ST1_NONPARAMETRIC |
-	    RADEON_TEX1_W_ROUTING_USE_W0);
-	if (pMask != NULL) {
-		/* IN operator: Multiply src by mask components or mask alpha.
-		 * BLEND_CTL_ADD is A * B + C
-		 */
-		if (pMaskPicture->componentAlpha)
-			OUT_REG(RADEON_REG_PP_TXCBLEND_0,
-			    RADEON_COLOR_ARG_A_T0_COLOR |
-			    RADEON_COLOR_ARG_B_T1_COLOR |
-			    RADEON_COLOR_ARG_C_ZERO |
-			    RADEON_BLEND_CTL_ADD |
-			    RADEON_CLAMP_TX);
+	/* RADEON_REG_PP_CNTL,
+	 * RADEON_REG_RB3D_CNTL, 
+	 * RADEON_REG_RB3D_COLOROFFSET
+	 */
+	OUT_RING(DMA_PACKET0(RADEON_REG_PP_CNTL, 3));
+	OUT_RING(pp_cntl);
+	OUT_RING(dst_format | RADEON_ALPHA_BLEND_ENABLE);
+	OUT_RING(dst_offset);
+
+	OUT_REG(RADEON_REG_RB3D_COLORPITCH, dst_pitch >> pixel_shift);
+
+	/* IN operator: Multiply src by mask components or mask alpha.
+	 * BLEND_CTL_ADD is A * B + C.
+	 * If a picture is a8, we have to explicitly zero its color values.
+	 * If the destination is a8, we have to route the alpha to red, I think.
+	 */
+	cblend = R200_TXC_OP_MADD | R200_TXC_ARG_C_ZERO;
+	ablend = R200_TXA_OP_MADD | R200_TXA_ARG_C_ZERO;
+
+	if (pDstPicture->format == PICT_a8)
+		cblend |= R200_TXC_ARG_A_R0_ALPHA;
+	else if (pSrcPicture->format == PICT_a8)
+		cblend |= R200_TXC_ARG_A_ZERO;
+	else
+		cblend |= R200_TXC_ARG_A_R0_COLOR;
+	ablend |= R200_TXA_ARG_B_R0_ALPHA;
+
+	if (pMask) {
+		if (pMaskPicture->componentAlpha &&
+		    pDstPicture->format != PICT_a8)
+			cblend |= R200_TXC_ARG_B_R1_COLOR;
 		else
-			OUT_REG(RADEON_REG_PP_TXCBLEND_0,
-			    RADEON_COLOR_ARG_A_T0_COLOR |
-			    RADEON_COLOR_ARG_B_T1_ALPHA |
-			    RADEON_COLOR_ARG_C_ZERO |
-			    RADEON_BLEND_CTL_ADD |
-			    RADEON_CLAMP_TX);
-		OUT_REG(RADEON_REG_PP_TXABLEND_0,
-		    RADEON_ALPHA_ARG_A_T0_ALPHA |
-		    RADEON_ALPHA_ARG_B_T1_ALPHA |
-		    RADEON_ALPHA_ARG_C_ZERO |
-		    RADEON_BLEND_CTL_ADD);
+			cblend |= R200_TXC_ARG_B_R1_ALPHA;
+		ablend |= R200_TXA_ARG_B_R1_ALPHA;
 	} else {
-		OUT_REG(RADEON_REG_PP_TXCBLEND_0,
-		    RADEON_COLOR_ARG_A_ZERO |
-		    RADEON_COLOR_ARG_B_ZERO |
-		    RADEON_COLOR_ARG_C_T0_COLOR |
-		    RADEON_BLEND_CTL_ADD |
-		    RADEON_CLAMP_TX);
-		OUT_REG(RADEON_REG_PP_TXABLEND_0,
-		    RADEON_ALPHA_ARG_A_ZERO |
-		    RADEON_ALPHA_ARG_B_ZERO |
-		    RADEON_ALPHA_ARG_C_T0_ALPHA |
-		    RADEON_BLEND_CTL_ADD);
+		cblend |= R200_TXC_ARG_B_ZERO | R200_TXC_COMP_ARG_B;
+		ablend |= R200_TXA_ARG_B_ZERO | R200_TXA_COMP_ARG_B;
 	}
-	/* Op operator. */
-	OUT_REG(RADEON_RB3D_BLENDCNTL, RadeonBlendOp[op]);
-	END();
 
-	RadeonSwitchTo3D();
+	OUT_REG(R200_REG_PP_TXCBLEND_0, cblend);
+	OUT_REG(R200_REG_PP_TXABLEND_0, ablend);
+	OUT_REG(R200_REG_PP_TXCBLEND2_0, 0);
+	OUT_REG(R200_REG_PP_TXABLEND2_0, 0);
+
+	/* Op operator. */
+	blendcntl = RadeonBlendOp[op].blend_cntl;
+	if (PICT_FORMAT_A(pDstPicture->format) == 0 &&
+	    RadeonBlendOp[op].dst_alpha) {
+		blendcntl &= ~RADEON_SBLEND_MASK;
+		if ((blendcntl & RADEON_SBLEND_MASK) ==
+		    RADEON_SBLEND_GL_DST_ALPHA)
+			blendcntl |= RADEON_SBLEND_GL_ONE;
+		else if ((blendcntl & RADEON_SBLEND_MASK) ==
+		    RADEON_SBLEND_GL_INV_DST_ALPHA)
+			blendcntl |= RADEON_SBLEND_GL_ZERO;
+	}
+	OUT_REG(RADEON_REG_RB3D_BLENDCNTL, blendcntl);
+	END_DMA();
 
 	return TRUE;
 }
@@ -289,7 +563,7 @@ struct blend_vertex {
 	union intfloat s1, t1;
 };
 
-#define VTX_REG_COUNT 6
+#define VTX_DWORD_COUNT 6
 
 #define VTX_OUT(vtx)		\
 do {				\
@@ -299,8 +573,6 @@ do {				\
 	OUT_RING(vtx.t0.i);	\
 	OUT_RING(vtx.s1.i);	\
 	OUT_RING(vtx.t1.i);	\
-	/*ErrorF("%f,%f %f,%f %f,%f\n", vtx.x.f, vtx.y.f, vtx.s0.f, \
-	    vtx.t0.f, vtx.s1.f, vtx.t1.f);*/ \
 } while (0)
 
 void
@@ -310,21 +582,10 @@ RadeonComposite(int srcX, int srcY, int maskX, int maskY, int dstX, int dstY,
 	ATIScreenInfo *atis = accel_atis;
 	ATICardInfo *atic = atis->atic;
 	struct blend_vertex vtx[4];
-	LOCALS;
+	RING_LOCALS;
 
-	/*ErrorF("RadeonComposite %d %d %d %d %d %d\n", srcX, srcY, maskX, maskY,
-	    dstX, dstY, w, h);*/
-	BEGIN_RING(3 + 4 * VTX_REG_COUNT);
-	OUT_RING(RADEON_CP_PACKET3_3D_DRAW_IMMD |
-	    ((4 * VTX_REG_COUNT + 1) << 16));
-	OUT_RING(RADEON_CP_VC_FRMT_XY |
-	    RADEON_CP_VC_FRMT_ST0 |
-	    RADEON_CP_VC_FRMT_ST1);
-	OUT_RING(RADEON_CP_VC_CNTL_PRIM_TYPE_TRI_FAN |
-	    RADEON_CP_VC_CNTL_PRIM_WALK_RING |
-	    RADEON_CP_VC_CNTL_MAOS_ENABLE |
-	    RADEON_CP_VC_CNTL_VTX_FMT_RADEON_MODE |
-	    (4 << RADEON_CP_VC_CNTL_NUM_SHIFT));
+	/*ErrorF("RadeonComposite (%d,%d) (%d,%d) (%d,%d) (%d,%d)\n",
+	    srcX, srcY, maskX, maskY,dstX, dstY, w, h);*/
 
 	vtx[0].x.f = dstX;
 	vtx[0].y.f = dstY;
@@ -354,36 +615,36 @@ RadeonComposite(int srcX, int srcY, int maskX, int maskY, int dstX, int dstY,
 	vtx[3].s1.f = maskX + w;
 	vtx[3].t1.f = maskY;
 
+	if (atic->is_r100) {
+		BEGIN_DMA(4 * VTX_DWORD_COUNT + 3);
+		OUT_RING(DMA_PACKET3(RADEON_CP_PACKET3_3D_DRAW_IMMD,
+		    4 * VTX_DWORD_COUNT + 2));
+		OUT_RING(RADEON_CP_VC_FRMT_XY |
+		    RADEON_CP_VC_FRMT_ST0 |
+		    RADEON_CP_VC_FRMT_ST1);
+		OUT_RING(RADEON_CP_VC_CNTL_PRIM_TYPE_TRI_FAN |
+		    RADEON_CP_VC_CNTL_PRIM_WALK_RING |
+		    RADEON_CP_VC_CNTL_MAOS_ENABLE |
+		    RADEON_CP_VC_CNTL_VTX_FMT_RADEON_MODE |
+		    (4 << RADEON_CP_VC_CNTL_NUM_SHIFT));
+	} else {
+		BEGIN_DMA(4 * VTX_DWORD_COUNT + 2);
+		OUT_RING(DMA_PACKET3(R200_CP_PACKET3_3D_DRAW_IMMD_2,
+		    4 * VTX_DWORD_COUNT + 1));
+		OUT_RING(RADEON_CP_VC_CNTL_PRIM_TYPE_TRI_FAN |
+		    RADEON_CP_VC_CNTL_PRIM_WALK_RING |
+		    (4 << RADEON_CP_VC_CNTL_NUM_SHIFT));
+	}
+
 	VTX_OUT(vtx[0]);
 	VTX_OUT(vtx[1]);
 	VTX_OUT(vtx[2]);
 	VTX_OUT(vtx[3]);
 
-	ADVANCE_RING();
+	END_DMA();
 }
 
 void
 RadeonDoneComposite(void)
 {
-	/*ErrorF("RadeonDoneComposite\n");*/
-}
-
-Bool
-RadeonPrepareBlend(int op, PicturePtr pSrcPicture, PicturePtr pDstPicture,
-    PixmapPtr pSrc, PixmapPtr pDst)
-{
-	return RadeonPrepareComposite(op, pSrcPicture, NULL, pDstPicture, pSrc,
-	    NULL, pDst);
-}
-
-void
-RadeonBlend(int srcX, int srcY, int dstX, int dstY, int width, int height)
-{
-	RadeonComposite(srcX, srcY, 0, 0, dstX, dstY, width, height);
-}
-
-void
-RadeonDoneBlend(void)
-{
-	RadeonDoneComposite();
 }

@@ -32,10 +32,16 @@
 #include "ati_sarea.h"
 #endif
 
-#define CAP_R128	0x1	/* If it's a Rage 128 */
-#define CAP_R100	0x2	/* If it's an r100 series radeon. */
-#define CAP_R200	0x3	/* If it's an r200 series radeon. */
-#define CAP_R300	0x4	/* If it's an r300 series radeon. */
+static Bool ATIIsAGP(ATICardInfo *atic);
+
+#define CAP_SERIESMASK		0xf
+#define CAP_R128		0x1	/* If it's a Rage 128 */
+#define CAP_R100		0x2	/* If it's an r100 series radeon. */
+#define CAP_R200		0x3	/* If it's an r200 series radeon. */
+#define CAP_R300		0x4	/* If it's an r300 series radeon. */
+
+#define CAP_FEATURESMASK	0xf0
+#define CAP_NOAGP		0x10	/* If it's a PCI-only card. */
 
 struct pci_id_entry ati_pci_ids[] = {
 	{0x1002, 0x4136, 0x2, "ATI Radeon RS100"},
@@ -63,13 +69,13 @@ struct pci_id_entry ati_pci_ids[] = {
 	{0x1002, 0x4964, 0x2, "ATI Radeon RV250 Id"},
 	{0x1002, 0x4965, 0x2, "ATI Radeon RV250 Ie"},
 	{0x1002, 0x4966, 0x2, "ATI Radeon RV250 If"},
-	{0x1002, 0x4967, 0x2, "ATI Radeon RV250 Ig"},
-	{0x1002, 0x4c45, 0x1, "ATI Rage 128 LE"},
+	{0x1002, 0x4967, 0x2, "ATI Radeon R250 Ig"},
+	{0x1002, 0x4c45, 0x11, "ATI Rage 128 LE"},
 	{0x1002, 0x4c46, 0x1, "ATI Rage 128 LF"},
-	{0x1002, 0x4c57, 0x2, "ATI Radeon RV200 LW"},
-	{0x1002, 0x4c58, 0x2, "ATI Radeon RV200 LX"},
+	{0x1002, 0x4c57, 0x2, "ATI Radeon Mobiliy M7 RV200 LW (7500)"},
+	{0x1002, 0x4c58, 0x2, "ATI Radeon Mobiliy M7 RV200 LX (7500)"},
 	{0x1002, 0x4c59, 0x2, "ATI Radeon Mobility M6 LY"},
-	{0x1002, 0x4c5a, 0x2, "ATI Radeon Mobility LZ"},
+	{0x1002, 0x4c5a, 0x2, "ATI Radeon Mobility M6 LZ"},
 	{0x1002, 0x4c64, 0x3, "ATI Radeon RV250 Ld"},
 	{0x1002, 0x4c65, 0x3, "ATI Radeon RV250 Le"},
 	{0x1002, 0x4c66, 0x3, "ATI Radeon Mobility M9 RV250 Lf"},
@@ -93,7 +99,7 @@ struct pci_id_entry ati_pci_ids[] = {
 	{0x1002, 0x5041, 0x1, "ATI Rage 128 PA"},
 	{0x1002, 0x5042, 0x1, "ATI Rage 128 PB"},
 	{0x1002, 0x5043, 0x1, "ATI Rage 128 PC"},
-	{0x1002, 0x5044, 0x1, "ATI Rage 128 PD"},
+	{0x1002, 0x5044, 0x11, "ATI Rage 128 PD"},
 	{0x1002, 0x5045, 0x1, "ATI Rage 128 PE"},
 	{0x1002, 0x5046, 0x1, "ATI Rage 128 PF"},
 	{0x1002, 0x5047, 0x1, "ATI Rage 128 PG"},
@@ -105,9 +111,9 @@ struct pci_id_entry ati_pci_ids[] = {
 	{0x1002, 0x504d, 0x1, "ATI Rage 128 PM"},
 	{0x1002, 0x504e, 0x1, "ATI Rage 128 PN"},
 	{0x1002, 0x504f, 0x1, "ATI Rage 128 PO"},
-	{0x1002, 0x5050, 0x1, "ATI Rage 128 PP"},
+	{0x1002, 0x5050, 0x11, "ATI Rage 128 PP"},
 	{0x1002, 0x5051, 0x1, "ATI Rage 128 PQ"},
-	{0x1002, 0x5052, 0x1, "ATI Rage 128 PR"},
+	{0x1002, 0x5052, 0x11, "ATI Rage 128 PR"},
 	{0x1002, 0x5053, 0x1, "ATI Rage 128 PS"},
 	{0x1002, 0x5054, 0x1, "ATI Rage 128 PT"},
 	{0x1002, 0x5055, 0x1, "ATI Rage 128 PU"},
@@ -121,14 +127,14 @@ struct pci_id_entry ati_pci_ids[] = {
 	{0x1002, 0x5148, 0x3, "ATI Radeon R200 QH"},
 	{0x1002, 0x514c, 0x3, "ATI Radeon R200 QL"},
 	{0x1002, 0x514d, 0x3, "ATI Radeon R200 QM"},
-	{0x1002, 0x5157, 0x2, "ATI Radeon RV200 QW"},
-	{0x1002, 0x5158, 0x2, "ATI Radeon RV200 QX"},
+	{0x1002, 0x5157, 0x2, "ATI Radeon RV200 QW (7500)"},
+	{0x1002, 0x5158, 0x2, "ATI Radeon RV200 QX (7500)"},
 	{0x1002, 0x5159, 0x2, "ATI Radeon RV100 QY"},
 	{0x1002, 0x515a, 0x2, "ATI Radeon RV100 QZ"},
-	{0x1002, 0x5245, 0x1, "ATI Rage 128 RE"},
+	{0x1002, 0x5245, 0x11, "ATI Rage 128 RE"},
 	{0x1002, 0x5246, 0x1, "ATI Rage 128 RF"},
 	{0x1002, 0x5247, 0x1, "ATI Rage 128 RG"},
-	{0x1002, 0x524b, 0x1, "ATI Rage 128 RK"},
+	{0x1002, 0x524b, 0x11, "ATI Rage 128 RK"},
 	{0x1002, 0x524c, 0x1, "ATI Rage 128 RL"},
 	{0x1002, 0x5345, 0x1, "ATI Rage 128 SE"},
 	{0x1002, 0x5346, 0x1, "ATI Rage 128 SF"},
@@ -233,7 +239,7 @@ ATICardInit(KdCardInfo *card)
 	/* We demand identification by busid, not driver name */
 	atic->drmFd = drmOpen(NULL, atic->busid);
 	if (atic->drmFd < 0)
-		ErrorF("Failed to open DRM.  DMA won't be used.\n");
+		ErrorF("Failed to open DRM, DRI disabled.\n");
 #endif /* USE_DRI */
 
 	card->driver = atic;
@@ -244,17 +250,20 @@ ATICardInit(KdCardInfo *card)
 			break;
 		}
 	}
-		
-	if (atic->pci_id->caps != CAP_R128)
+
+	if ((atic->pci_id->caps & CAP_SERIESMASK) != CAP_R128)
 		atic->is_radeon = TRUE;
-	if (atic->pci_id->caps == CAP_R100)
+	if ((atic->pci_id->caps & CAP_SERIESMASK) == CAP_R100)
 		atic->is_r100 = TRUE;
-	if (atic->pci_id->caps == CAP_R200)
+	if ((atic->pci_id->caps & CAP_SERIESMASK) == CAP_R200)
 		atic->is_r200 = TRUE;
-	if (atic->pci_id->caps == CAP_R300)
+	if ((atic->pci_id->caps & CAP_SERIESMASK) == CAP_R300)
 		atic->is_r300 = TRUE;
 
-	ErrorF("Using ATI card: %s at %s\n", atic->pci_id->name, atic->busid);
+	atic->is_agp = ATIIsAGP(atic);
+
+	ErrorF("Using ATI card: %s (%s) at %s\n", atic->pci_id->name,
+	    atic->is_agp ? "AGP" : "PCI", atic->busid);
 
 	return TRUE;
 }
@@ -284,7 +293,7 @@ ATIScreenInit(KdScreenInfo *screen)
 		return FALSE;
 
 	atis->atic = atic;
-
+	atis->screen = screen;
 	screen->driver = atis;
 
 #ifdef KDRIVEFBDEV
@@ -313,11 +322,20 @@ ATIScreenInit(KdScreenInfo *screen)
 	}
 
 	screen->off_screen_base = screen_size;
+
+	/* Reserve the area for the monochrome cursor. */
+	if (screen->off_screen_base +
+	    ATI_CURSOR_HEIGHT * ATI_CURSOR_PITCH * 3 <= screen->memory_size) {
+		atis->cursor.offset = screen->off_screen_base;
+		screen->off_screen_base += ATI_CURSOR_HEIGHT * ATI_CURSOR_PITCH * 2;
+	}
+
 #if defined(USE_DRI) && defined(GLXEXT)
 	/* Reserve a static area for the back buffer the same size as the
 	 * visible screen.  XXX: This would be better initialized in ati_dri.c
-	 * when GLX is set up, but I'm not sure when the offscreen memory
-	 * manager gets set up.
+	 * when GLX is set up, but the offscreen memory manager's allocations
+	 * don't last through VT switches, while the kernel's understanding of
+	 * offscreen locations does.
 	 */
 	atis->frontOffset = 0;
 	atis->frontPitch = screen->fb[0].byteStride;
@@ -365,11 +383,12 @@ ATIScreenInit(KdScreenInfo *screen)
 	 * Composite operations, because glyphs aren't in real pixmaps and thus
 	 * can't be migrated.
 	 */
-	atis->scratch_size = 65536;	/* big enough for 128x128@32bpp */
+	atis->scratch_size = 131072;	/* big enough for 128x128@32bpp */
 	if (screen->off_screen_base + atis->scratch_size <= screen->memory_size)
 	{
 		atis->scratch_offset = screen->off_screen_base;
 		screen->off_screen_base += atis->scratch_size;
+		atis->scratch_next = atis->scratch_offset;
 	} else {
 		atis->scratch_size = 0;
 	}
@@ -383,6 +402,10 @@ ATIScreenFini(KdScreenInfo *screen)
 	ATIScreenInfo *atis = (ATIScreenInfo *)screen->driver;
 	ATICardInfo *atic = screen->card->driver;
 
+#ifdef XV
+	ATIFiniVideo(screen->pScreen);
+#endif
+
 	atic->backend_funcs.scrfini(screen);
 	xfree(atis);
 	screen->driver = 0;
@@ -391,13 +414,13 @@ ATIScreenFini(KdScreenInfo *screen)
 Bool
 ATIMapReg(KdCardInfo *card, ATICardInfo *atic)
 {
-	atic->reg_base = (CARD8 *)KdMapDevice(RADEON_REG_BASE(card),
-	    RADEON_REG_SIZE(card));
+	atic->reg_base = (CARD8 *)KdMapDevice(ATI_REG_BASE(card),
+	    ATI_REG_SIZE(card));
 
 	if (atic->reg_base == NULL)
 		return FALSE;
 
-	KdSetMappedMode(RADEON_REG_BASE(card), RADEON_REG_SIZE(card),
+	KdSetMappedMode(ATI_REG_BASE(card), ATI_REG_SIZE(card),
 	    KD_MAPPED_MODE_REGISTERS);
 
 	return TRUE;
@@ -407,9 +430,9 @@ void
 ATIUnmapReg(KdCardInfo *card, ATICardInfo *atic)
 {
 	if (atic->reg_base) {
-		KdResetMappedMode(RADEON_REG_BASE(card), RADEON_REG_SIZE(card),
+		KdResetMappedMode(ATI_REG_BASE(card), ATI_REG_SIZE(card),
 		    KD_MAPPED_MODE_REGISTERS);
-		KdUnmapDevice((void *)atic->reg_base, RADEON_REG_SIZE(card));
+		KdUnmapDevice((void *)atic->reg_base, ATI_REG_SIZE(card));
 		atic->reg_base = 0;
 	}
 }
@@ -420,6 +443,9 @@ ATIInitScreen(ScreenPtr pScreen)
 	KdScreenPriv(pScreen);
 	ATICardInfo(pScreenPriv);
 
+#ifdef XV
+	ATIInitVideo(pScreen);
+#endif
 	return atic->backend_funcs.initScreen(pScreen);
 }
 
@@ -525,7 +551,55 @@ ATILog2(int val)
 		return 1;
 	for (bits = 0; val != 0; val >>= 1, ++bits)
 		;
-	return bits;
+	return bits - 1;
+}
+
+static Bool
+ATIIsAGP(ATICardInfo *atic)
+{
+	char *mmio = atic->reg_base;
+	CARD32 agp_command;
+	Bool is_agp = FALSE;
+
+	if (mmio == NULL)
+		return FALSE;
+
+	if (atic->is_radeon) {
+		/* XXX: Apparently this doesn't work.  Maybe it needs to be done
+		 * through the PCI config aperture then.
+		 */
+		agp_command = MMIO_IN32(mmio, RADEON_REG_AGP_COMMAND);
+		MMIO_OUT32(mmio, RADEON_REG_AGP_COMMAND, agp_command |
+		    RADEON_AGP_ENABLE);
+		if (MMIO_IN32(mmio, RADEON_REG_AGP_COMMAND) & RADEON_AGP_ENABLE)
+			is_agp = TRUE;
+		MMIO_OUT32(mmio, RADEON_REG_AGP_COMMAND, agp_command);
+	} else {
+		/* Don't know any way to detect R128 AGP automatically, so
+		 * assume AGP for all cards not marked as PCI-only by XFree86.
+		 */
+		if ((atic->pci_id->caps & CAP_FEATURESMASK) != CAP_NOAGP)
+			is_agp = TRUE;
+	}
+
+	return is_agp;
+}
+
+/* This function is required to work around a hardware bug in some (all?)
+ * revisions of the R300.  This workaround should be called after every
+ * CLOCK_CNTL_INDEX register access.  If not, register reads afterward
+ * may not be correct.
+ */
+void R300CGWorkaround(ATIScreenInfo *atis) {
+	ATICardInfo *atic = atis->atic;
+	char *mmio = atic->reg_base;
+	CARD32 save;
+
+	save = MMIO_IN32(mmio, ATI_REG_CLOCK_CNTL_INDEX);
+	MMIO_OUT32(mmio, ATI_REG_CLOCK_CNTL_INDEX, save & ~(0x3f |
+	    ATI_PLL_WR_EN));
+	MMIO_IN32(mmio, ATI_REG_CLOCK_CNTL_INDEX);
+	MMIO_OUT32(mmio, ATI_REG_CLOCK_CNTL_INDEX, save);
 }
 
 KdCardFuncs ATIFuncs = {
@@ -542,11 +616,11 @@ KdCardFuncs ATIFuncs = {
 	ATIScreenFini,		/* scrfini */
 	ATICardFini,		/* cardfini */
 
-	0,			/* initCursor */
-	0,			/* enableCursor */
-	0,			/* disableCursor */
-	0,			/* finiCursor */
-	0,			/* recolorCursor */
+	ATICursorInit,		/* initCursor */
+	ATICursorEnable,	/* enableCursor */
+	ATICursorDisable,	/* disableCursor */
+	ATICursorFini,		/* finiCursor */
+	ATIRecolorCursor,	/* recolorCursor */
 
 	ATIDrawInit,		/* initAccel */
 	ATIDrawEnable,		/* enableAccel */

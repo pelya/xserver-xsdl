@@ -28,6 +28,7 @@
 #endif
 #include "ati.h"
 #include "ati_reg.h"
+#include "ati_dma.h"
 #include "ati_dri.h"
 #include "ati_dripriv.h"
 #include "sarea.h"
@@ -67,8 +68,6 @@ static Bool ATIInitVisualConfigs(ScreenPtr pScreen)
 	if (depth != 16 && (depth != 24 || bpp != 32))
 		ErrorF("DRI GLX unsupported at %d/%d depth/bpp\n", depth, bpp);
 
-	/* Same number of configs for 16 and 24bpp, so I factored this part out.
-	 */
 	if (atis->depthOffset != 0)
 		use_db = 1;
 	else
@@ -89,15 +88,15 @@ static Bool ATIInitVisualConfigs(ScreenPtr pScreen)
 	}
 
 	i = 0;
-	if (depth == 16) {
-		for (db = 0; db <= use_db; db++) {
-		  for (accum = 0; accum <= 1; accum++) {
-		    for (stencil = 0; stencil <= 1; stencil++) {
-			pATIConfigPtrs[i] = &pATIConfigs[i];
-	
-			pConfigs[i].vid                = (VisualID)(-1);
-			pConfigs[i].class              = -1;
-			pConfigs[i].rgba               = TRUE;
+	for (db = 0; db <= use_db; db++) {
+	  for (accum = 0; accum <= 1; accum++) {
+	    for (stencil = 0; stencil <= 1; stencil++) {
+		pATIConfigPtrs[i] = &pATIConfigs[i];
+
+		pConfigs[i].vid                = (VisualID)(-1);
+		pConfigs[i].class              = -1;
+		pConfigs[i].rgba               = TRUE;
+		if (depth == 16) {
 			pConfigs[i].redSize            = 5;
 			pConfigs[i].greenSize          = 6;
 			pConfigs[i].blueSize           = 5;
@@ -106,54 +105,7 @@ static Bool ATIInitVisualConfigs(ScreenPtr pScreen)
 			pConfigs[i].greenMask          = 0x000007E0;
 			pConfigs[i].blueMask           = 0x0000001F;
 			pConfigs[i].alphaMask          = 0x00000000;
-			if (accum) { /* Simulated in software */
-			    pConfigs[i].accumRedSize   = 16;
-			    pConfigs[i].accumGreenSize = 16;
-			    pConfigs[i].accumBlueSize  = 16;
-			    pConfigs[i].accumAlphaSize = 0;
-			} else {
-			    pConfigs[i].accumRedSize   = 0;
-			    pConfigs[i].accumGreenSize = 0;
-			    pConfigs[i].accumBlueSize  = 0;
-			    pConfigs[i].accumAlphaSize = 0;
-			}
-			if (db)
-			    pConfigs[i].doubleBuffer   = TRUE;
-			else
-			    pConfigs[i].doubleBuffer   = FALSE;
-			pConfigs[i].stereo             = FALSE;
-			pConfigs[i].bufferSize         = 16;
-			pConfigs[i].depthSize          = 16;
-			if (stencil)
-			    pConfigs[i].stencilSize    = 8;
-			else
-			    pConfigs[i].stencilSize    = 0;
-			pConfigs[i].auxBuffers         = 0;
-			pConfigs[i].level              = 0;
-			if (accum) {
-			   pConfigs[i].visualRating    = GLX_SLOW_CONFIG;
-			} else {
-			   pConfigs[i].visualRating    = GLX_NONE;
-			}
-			pConfigs[i].transparentPixel   = GLX_NONE;
-			pConfigs[i].transparentRed     = 0;
-			pConfigs[i].transparentGreen   = 0;
-			pConfigs[i].transparentBlue    = 0;
-			pConfigs[i].transparentAlpha   = 0;
-			pConfigs[i].transparentIndex   = 0;
-			i++;
-		    }
-		  }
-		}
-	} else {
-		for (db = 0; db <= use_db; db++) {
-		  for (accum = 0; accum <= 1; accum++) {
-		    for (stencil = 0; stencil <= 1; stencil++) {
-			pATIConfigPtrs[i] = &pATIConfigs[i];
-	
-			pConfigs[i].vid                = (VisualID)(-1);
-			pConfigs[i].class              = -1;
-			pConfigs[i].rgba               = TRUE;
+		} else {
 			pConfigs[i].redSize            = 8;
 			pConfigs[i].greenSize          = 8;
 			pConfigs[i].blueSize           = 8;
@@ -162,22 +114,34 @@ static Bool ATIInitVisualConfigs(ScreenPtr pScreen)
 			pConfigs[i].greenMask          = 0x0000FF00;
 			pConfigs[i].blueMask           = 0x000000FF;
 			pConfigs[i].alphaMask          = 0xFF000000;
-			if (accum) { /* Simulated in software */
-			    pConfigs[i].accumRedSize   = 16;
-			    pConfigs[i].accumGreenSize = 16;
-			    pConfigs[i].accumBlueSize  = 16;
-			    pConfigs[i].accumAlphaSize = 16;
-			} else {
-			    pConfigs[i].accumRedSize   = 0;
-			    pConfigs[i].accumGreenSize = 0;
-			    pConfigs[i].accumBlueSize  = 0;
-			    pConfigs[i].accumAlphaSize = 0;
-			}
-			if (db)
-			    pConfigs[i].doubleBuffer   = TRUE;
+		}
+		if (accum) { /* Simulated in software */
+			pConfigs[i].accumRedSize   = 16;
+			pConfigs[i].accumGreenSize = 16;
+			pConfigs[i].accumBlueSize  = 16;
+			if (depth == 16)
+				pConfigs[i].accumAlphaSize = 0;
 			else
-			    pConfigs[i].doubleBuffer   = FALSE;
-			pConfigs[i].stereo             = FALSE;
+				pConfigs[i].accumAlphaSize = 16;
+		} else {
+		    pConfigs[i].accumRedSize   = 0;
+		    pConfigs[i].accumGreenSize = 0;
+		    pConfigs[i].accumBlueSize  = 0;
+		    pConfigs[i].accumAlphaSize = 0;
+		}
+		if (db)
+		    pConfigs[i].doubleBuffer   = TRUE;
+		else
+		    pConfigs[i].doubleBuffer   = FALSE;
+		pConfigs[i].stereo             = FALSE;
+		if (depth == 16) {
+			pConfigs[i].bufferSize         = 16;
+			pConfigs[i].depthSize          = 16;
+			if (stencil)
+			    pConfigs[i].stencilSize    = 8;
+			else
+			    pConfigs[i].stencilSize    = 0;
+		} else {
 			pConfigs[i].bufferSize         = 32;
 			if (stencil) {
 			    pConfigs[i].depthSize      = 24;
@@ -186,23 +150,23 @@ static Bool ATIInitVisualConfigs(ScreenPtr pScreen)
 			    pConfigs[i].depthSize      = 24;
 			    pConfigs[i].stencilSize    = 0;
 			}
-			pConfigs[i].auxBuffers         = 0;
-			pConfigs[i].level              = 0;
-			if (accum) {
-			   pConfigs[i].visualRating    = GLX_SLOW_CONFIG;
-			} else {
-			   pConfigs[i].visualRating    = GLX_NONE;
-			}
-			pConfigs[i].transparentPixel   = GLX_NONE;
-			pConfigs[i].transparentRed     = 0;
-			pConfigs[i].transparentGreen   = 0;
-			pConfigs[i].transparentBlue    = 0;
-			pConfigs[i].transparentAlpha   = 0;
-			pConfigs[i].transparentIndex   = 0;
-			i++;
-		    }
-		  }
 		}
+		pConfigs[i].auxBuffers         = 0;
+		pConfigs[i].level              = 0;
+		if (accum) {
+		   pConfigs[i].visualRating    = GLX_SLOW_CONFIG;
+		} else {
+		   pConfigs[i].visualRating    = GLX_NONE;
+		}
+		pConfigs[i].transparentPixel   = GLX_NONE;
+		pConfigs[i].transparentRed     = 0;
+		pConfigs[i].transparentGreen   = 0;
+		pConfigs[i].transparentBlue    = 0;
+		pConfigs[i].transparentAlpha   = 0;
+		pConfigs[i].transparentIndex   = 0;
+		i++;
+	    }
+	  }
 	}
 
 	atis->numVisualConfigs = numConfigs;
@@ -224,18 +188,18 @@ ATIDRIInitGARTValues(ScreenPtr pScreen)
 
 	/* Initialize the ring buffer data */
 	atis->ringStart       = atis->gartOffset;
-	atis->ringMapSize     = atis->ringSize*1024*1024 + DRM_PAGE_SIZE;
+	atis->ringMapSize     = atis->ringSize * 1024 * 1024 + DRM_PAGE_SIZE;
 
 	atis->ringReadOffset  = atis->ringStart + atis->ringMapSize;
 	atis->ringReadMapSize = DRM_PAGE_SIZE;
 
 	/* Reserve space for vertex/indirect buffers */
 	atis->bufStart        = atis->ringReadOffset + atis->ringReadMapSize;
-	atis->bufMapSize      = atis->bufSize*1024*1024;
+	atis->bufMapSize      = atis->bufSize * 1024 * 1024;
 
 	/* Reserve the rest for GART textures */
 	atis->gartTexStart     = atis->bufStart + atis->bufMapSize;
-	s = (atis->gartSize*1024*1024 - atis->gartTexStart);
+	s = (atis->gartSize * 1024 * 1024 - atis->gartTexStart);
 	l = ATILog2((s-1) / ATI_NR_TEX_REGIONS);
 	if (l < ATI_LOG_TEX_GRANULARITY) l = ATI_LOG_TEX_GRANULARITY;
 	atis->gartTexMapSize   = (s >> l) << l;
@@ -258,10 +222,10 @@ ATIDRIAddAndMap(int fd, drmHandle offset, drmSize size,
 	ErrorF("[%s] %s handle = 0x%08lx\n", name, desc, *handle);
 
 	if (drmMap(fd, *handle, size, address) < 0) {
-		ErrorF("[agp] Could not map %s\n", name, desc);
+		ErrorF("[%s] Could not map %s\n", name, desc);
 		return FALSE;
 	}
-	ErrorF("[%s] %s mapped at 0x%08lx\n", name, desc, address);
+	ErrorF("[%s] %s mapped at 0x%08lx\n", name, desc, *address);
 
 	return TRUE;
 }
@@ -279,6 +243,10 @@ ATIDRIAgpInit(ScreenPtr pScreen)
 	int           ret;
 	unsigned long agpBase;
 	CARD32        cntl, chunk;
+
+	/* AGP DRI seems broken on my R128, not sure why. */
+	if (!atic->is_radeon)
+		return FALSE;
 
 	if (drmAgpAcquire(atic->drmFd) < 0) {
 		ErrorF("[agp] AGP not available\n");
@@ -306,20 +274,20 @@ ATIDRIAgpInit(ScreenPtr pScreen)
 	}
 
 	/* Workaround for some hardware bugs */
-	/* XXX: Magic numbers */
-	if (!atic->is_r200) {
-		cntl = MMIO_IN32(mmio, RADEON_REG_AGP_CNTL) | 0x000e0000;
-		MMIO_OUT32(mmio, RADEON_REG_AGP_CNTL, cntl);
+	if (atic->is_r100) {
+		cntl = MMIO_IN32(mmio, ATI_REG_AGP_CNTL);
+		MMIO_OUT32(mmio, ATI_REG_AGP_CNTL, cntl |
+		    RADEON_PENDING_SLOTS_VAL | RADEON_PENDING_SLOTS_SEL);
 	}
 
-	if ((ret = drmAgpAlloc(atic->drmFd, atis->gartSize*1024*1024, 0, NULL,
-	    &atis->agpMemHandle)) < 0) {
+	if ((ret = drmAgpAlloc(atic->drmFd, atis->gartSize * 1024 * 1024, 0,
+	    NULL, &atis->agpMemHandle)) < 0) {
 		ErrorF("[agp] Out of memory (%d)\n", ret);
 		drmAgpRelease(atic->drmFd);
 		return FALSE;
 	}
 	ErrorF("[agp] %d kB allocated with handle 0x%08lx\n",
-	    atis->gartSize*1024, (long)atis->agpMemHandle);
+	    atis->gartSize * 1024, (long)atis->agpMemHandle);
 
 	if (drmAgpBind(atic->drmFd, atis->agpMemHandle, atis->gartOffset) < 0) {
 		ErrorF("[agp] Could not bind\n");
@@ -350,30 +318,31 @@ ATIDRIAgpInit(ScreenPtr pScreen)
 		return FALSE;
 
 	/* Initialize radeon/r128 AGP registers */
-	cntl = MMIO_IN32(mmio, RADEON_REG_AGP_CNTL);
-	cntl &= ~RADEON_AGP_APER_SIZE_MASK;
+	cntl = MMIO_IN32(mmio, ATI_REG_AGP_CNTL);
+	cntl &= ~ATI_AGP_APER_SIZE_MASK;
 	switch (atis->gartSize) {
-	case 256: cntl |= RADEON_AGP_APER_SIZE_256MB; break;
-	case 128: cntl |= RADEON_AGP_APER_SIZE_128MB; break;
-	case  64: cntl |= RADEON_AGP_APER_SIZE_64MB;  break;
-	case  32: cntl |= RADEON_AGP_APER_SIZE_32MB;  break;
-	case  16: cntl |= RADEON_AGP_APER_SIZE_16MB;  break;
-	case   8: cntl |= RADEON_AGP_APER_SIZE_8MB;   break;
-	case   4: cntl |= RADEON_AGP_APER_SIZE_4MB;   break;
+	case 256: cntl |= ATI_AGP_APER_SIZE_256MB; break;
+	case 128: cntl |= ATI_AGP_APER_SIZE_128MB; break;
+	case  64: cntl |= ATI_AGP_APER_SIZE_64MB;  break;
+	case  32: cntl |= ATI_AGP_APER_SIZE_32MB;  break;
+	case  16: cntl |= ATI_AGP_APER_SIZE_16MB;  break;
+	case   8: cntl |= ATI_AGP_APER_SIZE_8MB;   break;
+	case   4: cntl |= ATI_AGP_APER_SIZE_4MB;   break;
 	default:
-		ErrorF("[agp] Illegal aperture size %d kB\n", atis->gartSize*1024);
+		ErrorF("[agp] Illegal aperture size %d kB\n", atis->gartSize *
+		    1024);
 		return FALSE;
 	}
 	agpBase = drmAgpBase(atic->drmFd);
-	MMIO_OUT32(mmio, RADEON_REG_AGP_BASE, agpBase); 
-	MMIO_OUT32(mmio, RADEON_REG_AGP_CNTL, cntl);
+	MMIO_OUT32(mmio, ATI_REG_AGP_BASE, agpBase); 
+	MMIO_OUT32(mmio, ATI_REG_AGP_CNTL, cntl);
 
 	if (!atic->is_radeon) {
 		/* Disable Rage 128 PCIGART registers */
 		chunk = MMIO_IN32(mmio, R128_REG_BM_CHUNK_0_VAL);
 		chunk &= ~(R128_BM_PTR_FORCE_TO_PCI |
-		R128_BM_PM4_RD_FORCE_TO_PCI |
-		R128_BM_GLOBAL_FORCE_TO_PCI);
+		    R128_BM_PM4_RD_FORCE_TO_PCI |
+		    R128_BM_GLOBAL_FORCE_TO_PCI);
 		MMIO_OUT32(mmio, R128_REG_BM_CHUNK_0_VAL, chunk);
 
 		/* Ensure AGP GART is used (for now) */
@@ -395,14 +364,14 @@ ATIDRIPciInit(ScreenPtr pScreen)
 
 	ATIDRIInitGARTValues(pScreen);
 
-	ret = drmScatterGatherAlloc(atic->drmFd, atis->gartSize*1024*1024,
+	ret = drmScatterGatherAlloc(atic->drmFd, atis->gartSize * 1024 * 1024,
 	    &atis->pciMemHandle);
 	if (ret < 0) {
 		ErrorF("[pci] Out of memory (%d)\n", ret);
 		return FALSE;
 	}
 	ErrorF("[pci] %d kB allocated with handle 0x%08lx\n",
-	    atis->gartSize*1024, (long)atis->pciMemHandle);
+	    atis->gartSize * 1024, (long)atis->pciMemHandle);
 
 	if (!ATIDRIAddAndMap(atic->drmFd, atis->ringStart, atis->ringMapSize,
 	    DRM_SCATTER_GATHER, DRM_READ_ONLY | DRM_LOCKED | DRM_KERNEL,
@@ -432,7 +401,8 @@ ATIDRIPciInit(ScreenPtr pScreen)
 		chunk |= (R128_BM_PTR_FORCE_TO_PCI |
 		    R128_BM_PM4_RD_FORCE_TO_PCI | R128_BM_GLOBAL_FORCE_TO_PCI);
 		MMIO_OUT32(mmio, R128_REG_BM_CHUNK_0_VAL, chunk);
-		MMIO_OUT32(mmio, R128_REG_PCI_GART_PAGE, 0); /* Ensure PCI GART is used */
+		/* Ensure PCI GART is used */
+		MMIO_OUT32(mmio, R128_REG_PCI_GART_PAGE, 0);
 	}
 	return TRUE;
 }
@@ -446,29 +416,28 @@ R128DRIKernelInit(ScreenPtr pScreen)
 	ATIScreenInfo(pScreenPriv);
 	ATICardInfo(pScreenPriv);
 	drmR128Init drmInfo;
+	int bpp = pScreenPriv->screen->fb[0].bitsPerPixel;
 
 	memset(&drmInfo, 0, sizeof(drmR128Init) );
 
 	drmInfo.func                = DRM_R128_INIT_CCE;
 	drmInfo.sarea_priv_offset   = sizeof(XF86DRISAREARec);
-	drmInfo.is_pci              = !atis->IsAGP;
-	drmInfo.cce_mode            = atis->CCEMode;
+	drmInfo.is_pci              = !atic->is_agp;
+	drmInfo.cce_mode            = R128_PM4_64BM_64VCBM_64INDBM;
 	drmInfo.cce_secure          = TRUE;
-	drmInfo.ring_size           = atis->ringSize*1024*1024;
+	drmInfo.ring_size           = atis->ringSize * 1024 * 1024;
 	drmInfo.usec_timeout        = atis->DMAusecTimeout;
 
-	drmInfo.fb_bpp              = pScreenPriv->screen->fb[0].bitsPerPixel;
-	drmInfo.depth_bpp           = pScreenPriv->screen->fb[0].bitsPerPixel;
-
-	/* XXX: pitches are in pixels on r128. */
 	drmInfo.front_offset        = atis->frontOffset;
-	drmInfo.front_pitch         = atis->frontPitch;
-
+	drmInfo.front_pitch         = atis->frontPitch / (bpp / 8);
 	drmInfo.back_offset         = atis->backOffset;
-	drmInfo.back_pitch          = atis->backPitch;
+	drmInfo.back_pitch          = atis->backPitch / (bpp / 8);
+	drmInfo.fb_bpp              = bpp;
 
 	drmInfo.depth_offset        = atis->depthOffset;
-	drmInfo.depth_pitch         = atis->depthPitch;
+	drmInfo.depth_pitch         = atis->depthPitch / (bpp / 8);
+	drmInfo.depth_bpp           = bpp;
+
 	drmInfo.span_offset         = atis->spanOffset;
 
 	drmInfo.fb_offset           = atis->fbHandle;
@@ -502,21 +471,20 @@ RadeonDRIKernelInit(ScreenPtr pScreen)
 	    drmInfo.func             = DRM_RADEON_INIT_CP;
 
 	drmInfo.sarea_priv_offset   = sizeof(XF86DRISAREARec);
-	drmInfo.is_pci              = !atis->IsAGP;
-	drmInfo.cp_mode             = atis->CPMode;
-	drmInfo.gart_size           = atis->gartSize*1024*1024;
-	drmInfo.ring_size           = atis->ringSize*1024*1024;
+	drmInfo.is_pci              = !atic->is_agp;
+	drmInfo.cp_mode             = RADEON_CSQ_PRIBM_INDBM;
+	drmInfo.gart_size           = atis->gartSize * 1024 * 1024;
+	drmInfo.ring_size           = atis->ringSize * 1024 * 1024;
 	drmInfo.usec_timeout        = atis->DMAusecTimeout;
-
-	drmInfo.fb_bpp              = pScreenPriv->screen->fb[0].bitsPerPixel;
-	drmInfo.depth_bpp           = pScreenPriv->screen->fb[0].bitsPerPixel;
 
 	drmInfo.front_offset        = atis->frontOffset;
 	drmInfo.front_pitch         = atis->frontPitch;
 	drmInfo.back_offset         = atis->backOffset;
 	drmInfo.back_pitch          = atis->backPitch;
+	drmInfo.fb_bpp              = pScreenPriv->screen->fb[0].bitsPerPixel;
 	drmInfo.depth_offset        = atis->depthOffset;
 	drmInfo.depth_pitch         = atis->depthPitch;
+	drmInfo.depth_bpp           = pScreenPriv->screen->fb[0].bitsPerPixel;
 
 	drmInfo.fb_offset           = atis->fbHandle;
 	drmInfo.mmio_offset         = atis->registerHandle;
@@ -547,7 +515,7 @@ ATIDRIBufInit(ScreenPtr pScreen)
 	else
 		size = R128_BUFFER_SIZE;
 
-	if (atis->IsAGP)
+	if (atic->is_agp)
 		type = DRM_AGP_BUFFER;
 	else
 		type = DRM_SG_BUFFER;
@@ -607,14 +575,14 @@ static void ATIDRISwapContext(ScreenPtr pScreen, DRISyncType syncType,
 	if ((syncType==DRI_2D_SYNC) && (oldContextType==DRI_NO_CONTEXT) &&
 	    (newContextType==DRI_2D_CONTEXT)) {
 		/* Exiting from Block Handler */
-		if (atis->using_dma)
-			ATIDMAFlushIndirect(1);
+		if (atis->dma_started)
+			ATIFlushIndirect(atis, 1);
 	}
 }
 
 static Bool ATIDRIFinishScreenInit(ScreenPtr pScreen);
 
-/* Initialize the screen-specific data structures for the DRI and the
+/* Initialize the screen-specific data structures for the Radeon or
    Rage 128.  This is the main entry point to the device-specific
    initialization code.  It calls device-independent DRI functions to
    create the DRI data structures and initialize the DRI state. */
@@ -630,17 +598,12 @@ ATIDRIScreenInit(ScreenPtr pScreen)
 	int devSareaSize;
 	drmSetVersion sv;
 
-	/* XXX: Disable DRI clients for unsupported depths */
-
-	if (atic->is_radeon) {
-		atis->CPMode = RADEON_CSQ_PRIBM_INDBM;
-	}
-	else {
-		atis->CCEMode = R128_PM4_64BM_64VCBM_64INDBM;
-		atis->CCEFifoSize = 64;
+	if (pScreenPriv->screen->fb[0].depth < 16 ||
+	    pScreenPriv->screen->fb[0].bitsPerPixel == 24) {
+		ErrorF("DRI unsupported at this depth/bpp, disabling.\n");
+		return FALSE;
 	}
 
-	atis->IsAGP = FALSE;	/* XXX */
 	atis->agpMode = 1;
 	atis->gartSize = 8;
 	atis->ringSize = 1;
@@ -674,7 +637,7 @@ ATIDRIScreenInit(ScreenPtr pScreen)
 	 * DRIScreenInit().
 	 */
 	pDRIInfo = DRICreateInfoRec();
-	if (!pDRIInfo)
+	if (pDRIInfo == NULL)
 		return FALSE;
 
 	atis->pDRIInfo = pDRIInfo;
@@ -692,9 +655,8 @@ ATIDRIScreenInit(ScreenPtr pScreen)
 	pDRIInfo->ddxDriverMajorVersion = 4;
 	pDRIInfo->ddxDriverMinorVersion = 0;
 	pDRIInfo->ddxDriverPatchVersion = 0;
-	/* XXX: RADEON_FB_BASE(pScreenPriv->card); */
 	pDRIInfo->frameBufferPhysicalAddress =
-	    (unsigned long)pScreenPriv->screen->memory_base;
+	    pScreenPriv->card->attr.address[0] & 0xfc000000;
 	pDRIInfo->frameBufferSize = pScreenPriv->screen->memory_size;
 	pDRIInfo->frameBufferStride = pScreenPriv->screen->fb[0].byteStride;
 	pDRIInfo->ddxDrawableTableEntry = SAREA_MAX_DRAWABLES;
@@ -705,12 +667,12 @@ ATIDRIScreenInit(ScreenPtr pScreen)
 	 */
 	pDRIInfo->SAREASize = SAREA_MAX;
 
-	if (!atic->is_radeon) {
-		pDRIInfo->devPrivateSize = sizeof(R128DRIRec);
-		devSareaSize = sizeof(R128SAREAPriv);
-	} else {
+	if (atic->is_radeon) {
 		pDRIInfo->devPrivateSize = sizeof(RADEONDRIRec);
 		devSareaSize = sizeof(RADEONSAREAPriv);
+	} else {
+		pDRIInfo->devPrivateSize = sizeof(R128DRIRec);
+		devSareaSize = sizeof(R128SAREAPriv);
 	}
 
 	if (sizeof(XF86DRISAREARec) + devSareaSize > SAREA_MAX) {
@@ -751,8 +713,8 @@ ATIDRIScreenInit(ScreenPtr pScreen)
 	/* Add a map for the MMIO registers that will be accessed by any
 	 * DRI-based clients.
 	 */
-	atis->registerSize = RADEON_REG_SIZE(atic);
-	if (drmAddMap(atic->drmFd, RADEON_REG_BASE(pScreenPriv->screen->card),
+	atis->registerSize = ATI_REG_SIZE(pScreenPriv->screen->card);
+	if (drmAddMap(atic->drmFd, ATI_REG_BASE(pScreenPriv->screen->card),
 	    atis->registerSize, DRM_REGISTERS, DRM_READ_ONLY,
 	    &atis->registerHandle) < 0) {
 		ATIDRICloseScreen(pScreen);
@@ -765,14 +727,14 @@ ATIDRIScreenInit(ScreenPtr pScreen)
 	    &scratch_int, &scratch_int, &scratch_ptr);
 
 	/* Initialize AGP */
-	if (atis->IsAGP && !ATIDRIAgpInit(pScreen)) {
-		atis->IsAGP = FALSE;
+	if (atic->is_agp && !ATIDRIAgpInit(pScreen)) {
+		atic->is_agp = FALSE;
 		ErrorF("[agp] AGP failed to initialize; falling back to PCI mode.\n");
-		ErrorF("[agp] Make sure your kernel's AGP support is loaded and functioning.");
+		ErrorF("[agp] Make sure your kernel's AGP support is loaded and functioning.\n");
 	}
 
 	/* Initialize PCIGART */
-	if (!atis->IsAGP && !ATIDRIPciInit(pScreen)) {
+	if (!atic->is_agp && !ATIDRIPciInit(pScreen)) {
 		ATIDRICloseScreen(pScreen);
 		return FALSE;
 	}
@@ -797,9 +759,11 @@ static Bool
 R128DRIFinishScreenInit(ScreenPtr pScreen)
 {
 	KdScreenPriv(pScreen);
+	ATICardInfo(pScreenPriv);
 	ATIScreenInfo(pScreenPriv);
 	R128SAREAPrivPtr pSAREAPriv;
 	R128DRIPtr       pR128DRI;
+	int bpp = pScreenPriv->screen->fb[0].bitsPerPixel;
 
 	/* Initialize the kernel data structures */
 	if (!R128DRIKernelInit(pScreen)) {
@@ -816,9 +780,6 @@ R128DRIFinishScreenInit(ScreenPtr pScreen)
 	/* Initialize IRQ */
 	ATIDRIIrqInit(pScreen);
 
-	/* Initialize and start the CCE if required */
-	ATIDMAStart(pScreen);
-
 	pSAREAPriv = (R128SAREAPrivPtr)DRIGetSAREAPrivate(pScreen);
 	memset(pSAREAPriv, 0, sizeof(*pSAREAPriv));
 
@@ -830,15 +791,15 @@ R128DRIFinishScreenInit(ScreenPtr pScreen)
 	pR128DRI->depth             = pScreenPriv->screen->fb[0].depth;
 	pR128DRI->bpp               = pScreenPriv->screen->fb[0].bitsPerPixel;
 
-	pR128DRI->IsPCI             = !atis->IsAGP;
+	pR128DRI->IsPCI             = !atic->is_agp;
 	pR128DRI->AGPMode           = atis->agpMode;
 
 	pR128DRI->frontOffset       = atis->frontOffset;
-	pR128DRI->frontPitch        = atis->frontPitch;
+	pR128DRI->frontPitch        = atis->frontPitch / (bpp / 8);
 	pR128DRI->backOffset        = atis->backOffset;
-	pR128DRI->backPitch         = atis->backPitch;
+	pR128DRI->backPitch         = atis->backPitch / (bpp / 8);
 	pR128DRI->depthOffset       = atis->depthOffset;
-	pR128DRI->depthPitch        = atis->depthPitch;
+	pR128DRI->depthPitch        = atis->depthPitch / (bpp / 8);
 	pR128DRI->spanOffset        = atis->spanOffset;
 	pR128DRI->textureOffset     = atis->textureOffset;
 	pR128DRI->textureSize       = atis->textureSize;
@@ -894,8 +855,6 @@ RadeonDRIFinishScreenInit(ScreenPtr pScreen)
 		ErrorF("[drm] Failed to initialize GART heap manager\n");
 	}
 
-	ATIDMAStart(pScreen);
-
 	/* Initialize the SAREA private data structure */
 	pSAREAPriv = (RADEONSAREAPrivPtr)DRIGetSAREAPrivate(pScreen);
 	memset(pSAREAPriv, 0, sizeof(*pSAREAPriv));
@@ -908,7 +867,7 @@ RadeonDRIFinishScreenInit(ScreenPtr pScreen)
 	pRADEONDRI->depth             = pScreenPriv->screen->fb[0].depth;
 	pRADEONDRI->bpp               = pScreenPriv->screen->fb[0].bitsPerPixel;
 
-	pRADEONDRI->IsPCI             = !atis->IsAGP;
+	pRADEONDRI->IsPCI             = !atic->is_agp;
 	pRADEONDRI->AGPMode           = atis->agpMode;
 
 	pRADEONDRI->frontOffset       = atis->frontOffset;
@@ -968,8 +927,6 @@ ATIDRIFinishScreenInit(ScreenPtr pScreen)
 		}
 	}
 
-	atis->using_dri = TRUE;
-
 	return TRUE;
 }
 
@@ -985,11 +942,17 @@ ATIDRICloseScreen(ScreenPtr pScreen)
 	drmRadeonInit drmRadeonInfo;
 
 	if (atis->indirectBuffer != NULL) {
-		ATIDMADispatchIndirect(1);
+		/* Flush any remaining commands and free indirect buffers.
+		 * Two steps are used because ATIFlushIndirect gets a
+		 * new buffer after discarding.
+		 */
+		ATIFlushIndirect(atis, 1);
+		ATIDRIDispatchIndirect(atis, 1);
+		xfree(atis->indirectBuffer);
 		atis->indirectBuffer = NULL;
 		atis->indirectStart = 0;
 	}
-	ATIDMAStop(pScreen);
+	ATIDRIDMAStop(pScreen);
 
 	if (atis->irqEnabled) {
 		drmCtlUninstHandler(atic->drmFd);
@@ -1055,7 +1018,7 @@ ATIDRICloseScreen(ScreenPtr pScreen)
 		DRIDestroyInfoRec(atis->pDRIInfo);
 		atis->pDRIInfo = NULL;
 	}
-	atis->using_dri = FALSE;
+
 #ifdef GLXEXT
 	if (atis->pVisualConfigs) {
 		xfree(atis->pVisualConfigs);
@@ -1067,4 +1030,102 @@ ATIDRICloseScreen(ScreenPtr pScreen)
 	}
 #endif /* GLXEXT */
 	atic->drmFd = -1;
+}
+
+void
+ATIDRIDMAStart(ScreenPtr pScreen)
+{
+	KdScreenPriv(pScreen);
+	ATICardInfo(pScreenPriv);
+	ATIScreenInfo(pScreenPriv);
+	int ret;
+
+	if (atic->is_radeon)
+		ret = drmCommandNone(atic->drmFd, DRM_RADEON_CP_START);
+	else
+		ret = drmCommandNone(atic->drmFd, DRM_R128_CCE_START);
+
+	if (ret == 0)
+		atis->dma_started = TRUE;
+	else
+		ErrorF("%s: DMA start returned %d\n", __FUNCTION__, ret);
+}
+
+/* Attempts to idle the DMA engine and stops it.  Note that the ioctl is the
+ * same for both R128 and Radeon, so we can just use the name of one of them.
+ */
+void
+ATIDRIDMAStop(ScreenPtr pScreen)
+{
+	KdScreenPriv(pScreen);
+	ATICardInfo(pScreenPriv);
+	ATIScreenInfo(pScreenPriv);
+	drmRadeonCPStop stop;
+	int ret;
+
+	stop.flush = 1;
+	stop.idle  = 1;
+	ret = drmCommandWrite(atic->drmFd, DRM_RADEON_CP_STOP, &stop, 
+	    sizeof(drmRadeonCPStop));
+
+	if (ret != 0 && errno == EBUSY) {
+		ErrorF("Failed to idle the DMA engine\n");
+
+		stop.idle = 0;
+		ret = drmCommandWrite(atic->drmFd, DRM_RADEON_CP_STOP, &stop,
+		    sizeof(drmRadeonCPStop));
+	}
+	atis->dma_started = FALSE;
+}
+
+/* The R128 and Radeon Indirect ioctls differ only in the ioctl number */
+void
+ATIDRIDispatchIndirect(ATIScreenInfo *atis, Bool discard)
+{
+	ATICardInfo *atic = atis->atic;
+	drmBufPtr buffer = atis->indirectBuffer->drmBuf;
+	drmR128Indirect indirect;
+	int cmd;
+
+	indirect.idx = buffer->idx;
+	indirect.start = atis->indirectStart;
+	indirect.end = buffer->used;
+	indirect.discard = discard;
+	cmd = atic->is_radeon ? DRM_RADEON_INDIRECT : DRM_R128_INDIRECT;
+	drmCommandWriteRead(atic->drmFd, cmd, &indirect,
+	    sizeof(drmR128Indirect));
+}
+
+/* Get an indirect buffer for the DMA 2D acceleration commands  */
+drmBufPtr
+ATIDRIGetBuffer(ATIScreenInfo *atis)
+{
+	ATICardInfo *atic = atis->atic;
+	drmDMAReq dma;
+	drmBufPtr buf = NULL;
+	int indx = 0;
+	int size = 0;
+	int ret;
+
+	dma.context = atis->serverContext;
+	dma.send_count = 0;
+	dma.send_list = NULL;
+	dma.send_sizes = NULL;
+	dma.flags = 0;
+	dma.request_count = 1;
+	if (atis->atic->is_radeon)
+		dma.request_size = RADEON_BUFFER_SIZE;
+	else
+		dma.request_size = R128_BUFFER_SIZE;
+	dma.request_list = &indx;
+	dma.request_sizes = &size;
+	dma.granted_count = 0;
+
+	do {
+		ret = drmDMA(atic->drmFd, &dma);
+	} while (ret != 0);
+
+	buf = &atis->buffers->list[indx];
+	buf->used = 0;
+	return buf;
 }

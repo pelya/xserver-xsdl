@@ -1,7 +1,5 @@
 /*
- * $Id$
- *
- * Copyright © 2003 Eric Anholt
+ * Copyright © 2004 Eric Anholt
  *
  * Permission to use, copy, modify, distribute, and sell this software and its
  * documentation for any purpose is hereby granted without fee, provided that
@@ -26,63 +24,69 @@
 #ifndef _ATI_DRAW_H_
 #define _ATI_DRAW_H_
 
-#ifdef USE_DRI
+Bool
+ATIGetOffsetPitch(ATIScreenInfo *atis, int bpp, CARD32 *pitch_offset,
+    int offset, int pitch);
 
-#define DMA_PACKET0( reg, n )						\
-	(RADEON_CP_PACKET0 | ((n) << 16) | ((reg) >> 2))
+Bool
+ATIGetPixmapOffsetPitch(PixmapPtr pPix, CARD32 *pitch_offset);
 
-#define RING_LOCALS	CARD32 *__head; int __count;
-
-#define BEGIN_RING( n )							\
-do {									\
-	if (atis->indirectBuffer == NULL) {				\
-		atis->indirectBuffer = ATIDMAGetBuffer();		\
-		atis->indirectStart = 0;				\
-	} else if ((atis->indirectBuffer->used + 4*(n)) >		\
-	    atis->indirectBuffer->total) {				\
-		ATIDMAFlushIndirect(1);					\
-	}								\
-	__head = (pointer)((char *)atis->indirectBuffer->address +	\
-	    atis->indirectBuffer->used);				\
-	__count = 0;							\
-} while (0)
-
-#define ADVANCE_RING() do {						\
-	atis->indirectBuffer->used += __count * (int)sizeof(CARD32);	\
-} while (0)
-
-#define OUT_RING(x) do {						\
-	MMIO_OUT32(&__head[__count++], 0, (x));				\
-} while (0)
-
-#define OUT_RING_REG(reg, val)						\
-do {									\
-	OUT_RING(DMA_PACKET0(reg, 0));					\
-	OUT_RING(val);							\
-} while (0)
-
-drmBufPtr ATIDMAGetBuffer(void);
-void ATIDMAFlushIndirect(Bool discard);
-void ATIDMADispatchIndirect(Bool discard);
-void ATIDMAStart(ScreenPtr pScreen);
-void ATIDMAStop(ScreenPtr pScreen);
-
-Bool RadeonPrepareBlend(int op, PicturePtr pSrcPicture, PicturePtr pDstPicture,
+Bool
+R128PrepareBlend(int op, PicturePtr pSrcPicture, PicturePtr pDstPicture,
     PixmapPtr pSrc, PixmapPtr pDst);
-void RadeonBlend(int srcX, int srcY, int dstX, int dstY, int width, int height);
-Bool RadeonPrepareComposite(int op, PicturePtr pSrcPicture, PicturePtr pMaskPicture,
-    PicturePtr pDstPicture, PixmapPtr pSrc, PixmapPtr pMask, PixmapPtr pDst);
-void RadeonDoneBlend(void);
-void RadeonComposite(int srcX, int srcY, int maskX, int maskY, int dstX,
-    int dstY, int w, int h);
-void RadeonDoneComposite(void);
-void RadeonSwitchTo2D(void);
-void RadeonSwitchTo3D(void);
-
-#endif /* USE_DRI */
 
 void
-ATIWaitIdle(void);
+R128Blend(int srcX, int srcY, int dstX, int dstY, int width, int height);
+
+void
+R128DoneBlend(void);
+
+Bool
+R128CheckComposite(int op, PicturePtr pSrcPicture, PicturePtr pMaskPicture,
+    PicturePtr pDstPicture);
+
+Bool
+R128PrepareComposite(int op, PicturePtr pSrcPicture, PicturePtr pMaskPicture,
+    PicturePtr pDstPicture, PixmapPtr pSrc, PixmapPtr pMask, PixmapPtr pDst);
+
+void
+R128Composite(int srcX, int srcY, int maskX, int maskY, int dstX, int dstY,
+    int w, int h);
+
+void
+R128DoneComposite(void);
+
+Bool
+R100CheckComposite(int op, PicturePtr pSrcPicture, PicturePtr pMaskPicture,
+    PicturePtr pDstPicture);
+
+Bool
+R100PrepareComposite(int op, PicturePtr pSrcPicture, PicturePtr pMaskPicture,
+    PicturePtr pDstPicture, PixmapPtr pSrc, PixmapPtr pMask, PixmapPtr pDst);
+
+Bool
+R200CheckComposite(int op, PicturePtr pSrcPicture, PicturePtr pMaskPicture,
+    PicturePtr pDstPicture);
+
+Bool
+R200PrepareComposite(int op, PicturePtr pSrcPicture, PicturePtr pMaskPicture,
+    PicturePtr pDstPicture, PixmapPtr pSrc, PixmapPtr pMask, PixmapPtr pDst);
+
+void
+RadeonComposite(int srcX, int srcY, int maskX, int maskY, int dstX,
+    int dstY, int w, int h);
+
+void
+RadeonDoneComposite(void);
+
+void
+RadeonSwitchTo2D(ATIScreenInfo *atis);
+
+void
+RadeonSwitchTo3D(ATIScreenInfo *atis);
+
+void
+ATIWaitIdle(ATIScreenInfo *atis);
 
 #if 0
 #define ATI_FALLBACK(x)		\
