@@ -171,11 +171,6 @@ TAG(ATIPrepareCopy)(PixmapPtr pSrc, PixmapPtr pDst, int dx, int dy, int alu, Pix
 	CARD32 datatype;
 	LOCALS;
 
-	/* No acceleration between different formats */
-	if (pSrc->drawable.bitsPerPixel != pDst->drawable.bitsPerPixel)
-		ATI_FALLBACK(("src bpp != dst bpp (%d vs %d)\n",
-		    pSrc->drawable.bitsPerPixel, pDst->drawable.bitsPerPixel));
-
 	copydx = dx;
 	copydy = dy;
 
