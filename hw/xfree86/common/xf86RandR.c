@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/hw/xfree86/common/xf86RandR.c,v 1.5 2004/08/13 18:24:07 sandmann Exp $ */
+/* $XdotOrg: xc/programs/Xserver/hw/xfree86/common/xf86RandR.c,v 1.6 2004/12/04 00:42:52 kuhn Exp $ */
 /*
  * $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86RandR.c,v 1.7tsi Exp $
  *
@@ -104,11 +104,11 @@ xf86RandRGetInfo (ScreenPtr pScreen, Rotation *rotations)
     }
 
     /* If there is driver support for randr, let it set our supported rotations */
-    if(scrp->RRFunc) {
+    if(scrp->DriverFunc) {
 	xorgRRRotation RRRotation;
 	
 	RRRotation.RRRotations = *rotations;
-	if (!(*scrp->RRFunc)(scrp, RR_GET_INFO, &RRRotation))
+	if (!(*scrp->DriverFunc)(scrp, RR_GET_INFO, &RRRotation))
 	    return FALSE;
 	*rotations = RRRotation.RRRotations;
     }
@@ -216,14 +216,14 @@ xf86RandRSetConfig (ScreenPtr		pScreen,
     }
 
     /* Have the driver do its thing. */
-    if (scrp->RRFunc) {
+    if (scrp->DriverFunc) {
 	xorgRRRotation RRRotation;
 	RRRotation.RRConfig.rotation = rotation;
 	RRRotation.RRConfig.rate = rate;
 	RRRotation.RRConfig.width = pSize->width;
 	RRRotation.RRConfig.height = pSize->height;
 	
-        if (!(*scrp->RRFunc)(scrp, RR_SET_CONFIG, &RRRotation))
+        if (!(*scrp->DriverFunc)(scrp, RR_SET_CONFIG, &RRRotation))
 			  return FALSE;
     }
 

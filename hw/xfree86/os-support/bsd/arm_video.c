@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/bsd/arm_video.c,v 1.2 2003/03/14 13:46:03 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/bsd/arm_video.c,v 1.1tsi Exp $ */
 /*
  * Copyright 1992 by Rich Murphey <Rich@Rice.edu>
  * Copyright 1993 by David Wexelblat <dwex@goblin.org>
@@ -449,18 +449,19 @@ armUnmapVidMem(int ScreenNum, pointer Base, unsigned long Size)
 #ifdef USE_DEV_IO
 static int IoFd = -1;
 
-void
+Bool
 xf86EnableIO()
 {
 	if (IoFd >= 0)
-		return;
+		return TRUE;
 
 	if ((IoFd = open("/dev/io", O_RDWR)) == -1)
 	{
-		FatalError("xf86EnableIO: "
+		xf86Msg(X_WARNING,"xf86EnableIO: "
 				"Failed to open /dev/io for extended I/O\n");
+		return FALSE;
 	}
-	return;
+	return TRUE;
 }
 
 void
@@ -478,14 +479,14 @@ xf86DisableIO()
 
 #if defined(USE_ARC_MMAP) || defined(__arm32__)
 
-void
+Bool
 xf86EnableIO()
 {
 	int fd;
 	pointer base;
 
 	if (ExtendedEnabled)
-		return;
+		return TRUE;
 
 	if ((fd = open("/dev/ttyC0", O_RDWR)) >= 0) {
 		/* Try to map a page at the pccons I/O space */
@@ -496,18 +497,20 @@ xf86EnableIO()
 			IOPortBase = base;
 		}
 		else {
-			FatalError("EnableIO: failed to mmap %s (%s)\n",
+			xf86Msg(X_WARNING,"EnableIO: failed to mmap %s (%s)\n",
 				"/dev/ttyC0", strerror(errno));
+			return FALSE;
 		}
 	}
 	else {
-		FatalError("EnableIO: failed to open %s (%s)\n",
+		xf86Msg("EnableIO: failed to open %s (%s)\n",
 			"/dev/ttyC0", strerror(errno));
+		return FALSE;
 	}
 	
 	ExtendedEnabled = TRUE;
 
-	return;
+	return TRUE;
 }
 
 void
@@ -554,7 +557,7 @@ static Bool ScreenEnabled[MAXSCREENS];
 static Bool ExtendedEnabled = FALSE;
 static Bool InitDone = FALSE;
 
-void
+Bool
 xf86EnableIOPorts(ScreenNum)
 int ScreenNum;
 {
@@ -570,7 +573,7 @@ int ScreenNum;
 	ScreenEnabled[ScreenNum] = TRUE;
 
 	if (ExtendedEnabled)
-		return;
+		return TRUE;
 
 #ifdef USE_ARC_MMAP
 	if ((fd = open("/dev/ttyC0", O_RDWR)) >= 0) {
@@ -610,7 +613,7 @@ int ScreenNum;
 						      (caddr_t)0x0, 0L) 
 		- memInfoP->memInfo.u.map_info_mmap.internal_offset;
 	    ExtendedEnabled = TRUE;
-	    return;
+	    return TRUE;
 	}
 #ifdef USE_ARM32_MMAP
 	checkDevMem(TRUE);
@@ -626,19 +629,21 @@ int ScreenNum;
 
         if (IOPortBase == (unsigned int)-1)
 	{	
-	    FatalError("xf86EnableIOPorts: failed to open mem device or map IO base. \n\
+	    xf86Msg(X_WARNING,"xf86EnableIOPorts: failed to open mem device or map IO base. \n\
 Make sure you have the Aperture Driver installed, or a kernel built with the INSECURE option\n");
+	    return FALSE;
 	}
 #else
 	/* We don't have the IOBASE, so we can't map the address */
-	FatalError("xf86EnableIOPorts: failed to open mem device or map IO base. \n\
+	xf86Msg(X_WARNING,"xf86EnableIOPorts: failed to open mem device or map IO base. \n\
 Try building the server with USE_ARM32_MMAP defined\n");
+	return FALSE;
 #endif
 #endif
 	
 	ExtendedEnabled = TRUE;
 
-	return;
+	return TRUE;
 }
 
 void

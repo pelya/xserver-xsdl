@@ -490,7 +490,7 @@ volatile unsigned char *ioBase = NULL;
 
 #endif
 
-void
+Bool
 xf86EnableIO(void)
 {
 #if defined(__powerpc__)
@@ -499,7 +499,7 @@ xf86EnableIO(void)
 #endif
 
 	if (ExtendedEnabled)
-		return;
+		return TRUE;
 
 #if defined(__powerpc__)
 	ioBase_phys = syscall(__NR_pciconfig_iobase, 2, 0, 0);
@@ -512,16 +512,20 @@ xf86EnableIO(void)
 /* Should this be fatal or just a warning? */
 #if 0
 		if (ioBase == MAP_FAILED) {
-			FatalError(
+		    xf86Msg(X_WARNING,
 			    "xf86EnableIOPorts: Failed to map iobase (%s)\n",
 			    strerror(errno));
+		    return FALSE;
 		}
 #endif
 	}
 	close(fd);
 #elif !defined(__mc68000__) && !defined(__sparc__) && !defined(__mips__) && !defined(__sh__) && !defined(__hppa__)
-	if (ioperm(0, 1024, 1) || iopl(3))
-		FatalError("xf86EnableIOPorts: Failed to set IOPL for I/O\n");
+	if (ioperm(0, 1024, 1) || iopl(3)) {
+		xf86Msg(X_WARNING,
+			"xf86EnableIOPorts: Failed to set IOPL for I/O\n");
+		return FALSE;
+	}
 # if !defined(__alpha__)
 	ioperm(0x40,4,0); /* trap access to the timer chip */
 	ioperm(0x60,4,0); /* trap access to the keyboard controller */
@@ -529,7 +533,7 @@ xf86EnableIO(void)
 #endif
 	ExtendedEnabled = TRUE;
 
-	return;
+	return TRUE;
 }
 
 void

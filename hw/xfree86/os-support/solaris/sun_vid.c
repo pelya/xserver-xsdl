@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/sunos/sun_vid.c,v 1.3 2002/10/03 02:04:19 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/sunos/sun_vid.c,v 1.2 2001/10/28 03:34:03 tsi Exp $ */
 /*
  * Copyright 1990,91 by Thomas Roell, Dinkelscherben, Germany
  * Copyright 1993 by David Wexelblat <dwex@goblin.org>
@@ -147,18 +147,20 @@ xf86UnMapVidMem(int ScreenNum, pointer Base, unsigned long Size)
 static Bool ExtendedEnabled = FALSE;
 #endif
 
-void
+Bool
 xf86EnableIO(void)
 {
 #ifdef i386
 	if (ExtendedEnabled)
-		return;
+		return TRUE;
 
-	if (sysi86(SI86V86, V86SC_IOPL, PS_IOPL) < 0)
-		FatalError("xf86EnableIOPorts: Failed to set IOPL for I/O\n");
-
+	if (sysi86(SI86V86, V86SC_IOPL, PS_IOPL) < 0) {
+		xf86Msg(X_WARNING,"xf86EnableIOPorts: Failed to set IOPL for I/O\n");
+		return FALSE;
+	}
 	ExtendedEnabled = TRUE;
 #endif /* i386 */
+	return TRUE;
 }
 
 void

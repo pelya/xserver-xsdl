@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/sysv/sysv_video.c,v 3.21 2003/03/14 13:46:08 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/sysv/sysv_video.c,v 3.20tsi Exp $ */
 /*
  * Copyright 1990,91 by Thomas Roell, Dinkelscherben, Germany
  * Copyright 1993 by David Wexelblat <dwex@goblin.org>
@@ -281,22 +281,23 @@ xf86OSInitVidMem(VidMemInfoPtr pVidMem)
 static Bool ExtendedEnabled = FALSE;
 static Bool InitDone = FALSE;
 
-void
+Bool
 xf86EnableIO()
 {
 	int i;
 
 	if (ExtendedEnabled)
-		return;
+		return TRUE;
 
 	if (SET_IOPL() < 0)
 	{
-		FatalError(
+	    xf86Msg(X_WARNING,
 			"xf86EnableIO: Failed to set IOPL for extended I/O\n");
+	    return FALSE;
 	}
 	ExtendedEnabled = TRUE;
 
-	return;
+	return TRUE;
 }
 	
 void

@@ -378,9 +378,6 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
 
     xf86OpenConsole();
 
-    /* Enable full I/O access */
-    xf86EnableIO();
-
     /* Do a general bus probe.  This will be a PCI probe for x86 platforms */
     xf86BusProbe();
 
@@ -446,20 +443,37 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
     }
 
     /*
-     * Call each of the Identify functions.  The Identify functions print
-     * out some identifying information, and anything else that might be
+     * Call each of the Identify functions and call the driverFunc to check
+     * if HW access is required.  The Identify functions print out some
+     * identifying information, and anything else that might be
      * needed at this early stage.
      */
 
-    for (i = 0; i < xf86NumDrivers; i++)
+    for (i = 0; i < xf86NumDrivers; i++) {
+	xorgHWFlags flags;
       /* The Identify function is mandatory, but if it isn't there continue */
-      if (xf86DriverList[i]->Identify != NULL)
-	xf86DriverList[i]->Identify(0);
-      else {
-        xf86Msg(X_WARNING, "Driver `%s' has no Identify function\n",
-	       xf86DriverList[i]->driverName ? xf86DriverList[i]->driverName
+	if (xf86DriverList[i]->Identify != NULL)
+	    xf86DriverList[i]->Identify(0);
+	else {
+	    xf86Msg(X_WARNING, "Driver `%s' has no Identify function\n",
+		  xf86DriverList[i]->driverName ? xf86DriverList[i]->driverName
 					     : "noname");
-      }
+	}
+	if (!xorgHWAccess
+	    && (!xf86DriverList[i]->driverFunc
+		|| !xf86DriverList[i]->driverFunc(NULL,
+						  GET_REQUIRED_HW_INTERFACES,
+						  &flags)
+		|| NEED_IO_ENABLED(flags)))
+	    xorgHWAccess = TRUE;
+    }
+
+    /* Enable full I/O access */
+    if (xorgHWAccess) {
+	if(!xf86EnableIO())
+	    /* oops, we have failed */
+	    xorgHWAccess = FALSE;
+    }
 
     /*
      * Locate bus slot that had register IO enabled at server startup
@@ -475,15 +489,25 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
      */
 
     for (i = 0; i < xf86NumDrivers; i++) {
-      if (xf86DriverList[i]->Probe != NULL)
-	xf86DriverList[i]->Probe(xf86DriverList[i], PROBE_DEFAULT);
-      else {
-        xf86MsgVerb(X_WARNING, 0,
-		"Driver `%s' has no Probe function (ignoring)\n",
-		xf86DriverList[i]->driverName ? xf86DriverList[i]->driverName
-					     : "noname");
-      }
-      xf86SetPciVideo(NULL,NONE);
+	xorgHWFlags flags;
+	if (!xorgHWAccess) {
+	    if (!xf86DriverList[i]->driverFunc
+		|| !xf86DriverList[i]->driverFunc(NULL,
+						 GET_REQUIRED_HW_INTERFACES,
+						  &flags)
+		|| NEED_IO_ENABLED(flags)) 
+		continue;
+	}
+	    
+	if (xf86DriverList[i]->Probe != NULL)
+	    xf86DriverList[i]->Probe(xf86DriverList[i], PROBE_DEFAULT);
+	else {
+	    xf86MsgVerb(X_WARNING, 0,
+			"Driver `%s' has no Probe function (ignoring)\n",
+			xf86DriverList[i]->driverName
+			? xf86DriverList[i]->driverName : "noname");
+	}
+	xf86SetPciVideo(NULL,NONE);
     }
 
     /*
@@ -814,7 +838,8 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
 	xf86MsgVerb(X_INFO, 3, "APM registered successfully\n");
 
     /* Make sure full I/O access is enabled */
-    xf86EnableIO();
+    if (xorgHWAccess)
+	xf86EnableIO();
   }
 
 #if 0
@@ -896,7 +921,7 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
 	xf86Screens[i]->DPMSSet = NULL;
 	xf86Screens[i]->LoadPalette = NULL; 
 	xf86Screens[i]->SetOverscan = NULL;
-	xf86Screens[i]->RRFunc = NULL;
+	xf86Screens[i]->DriverFunc = NULL;
 	xf86Screens[i]->pScreen = NULL;
 	scr_index = AddScreen(xf86Screens[i]->ScreenInit, argc, argv);
       if (scr_index == i) {
@@ -1330,7 +1355,7 @@ ddxProcessArgument(int argc, char **argv, int i)
    */
 
   /* First the options that are only allowed for root */
-  if (getuid() == 0)
+  if (getuid() == 0 || geteuid != 0)
   {
     if (!strcmp(argv[i], "-modulepath"))
     {
@@ -1636,7 +1661,7 @@ ddxProcessArgument(int argc, char **argv, int i)
   }
   if (!strcmp(argv[i], "-configure"))
   {
-    if (getuid() != 0) {
+    if (getuid() != 0 && geteuid == 0) {
 	ErrorF("The '-configure' option can only be used by root.\n");
 	exit(1);
     }
@@ -1665,7 +1690,7 @@ ddxUseMsg()
   ErrorF("\n");
   ErrorF("\n");
   ErrorF("Device Dependent Usage\n");
-  if (getuid() == 0)
+  if (getuid() == 0 || geteuid() != 0)
   {
     ErrorF("-modulepath paths      specify the module search path\n");
     ErrorF("-logfile file          specify a log file name\n");

@@ -238,6 +238,7 @@ Bool xf86MiscModInDevAllowNonLocal = FALSE;
 #endif
 RootWinPropPtr *xf86RegisteredPropertiesTable = NULL;
 Bool xf86inSuspend = FALSE;
+Bool xorgHWAccess = FALSE;
 
 #ifdef DLOPEN_HACK
 /*

@@ -1431,7 +1431,8 @@ xf86VTSwitch()
 	    xf86Screens[i]->access = NULL;
 	    xf86Screens[i]->busAccess = NULL;
 	}
-      xf86DisableIO();
+	if (xorgHWAccess)
+	    xf86DisableIO();
     }
   } else {
 
@@ -1443,7 +1444,8 @@ xf86VTSwitch()
     prevSIGIO = xf86BlockSIGIO();
     xf86OSPMClose = xf86OSPMOpen();
 
-    xf86EnableIO();
+    if (xorgHWAccess)
+	xf86EnableIO();
     xf86AccessEnter();
     xf86EnterServerState(SETUP);
     for (i = 0; i < xf86NumScreens; i++) {

@@ -40,6 +40,7 @@
 #include "loaderProcs.h"
 #include "xf86Config.h"
 #endif /* XFree86LOADER */
+#include "xf86_OSlib.h"
 #include "xf86.h"
 #include "xf86Priv.h"
 
@@ -53,7 +54,8 @@ DoProbe()
 {
     int i;
     Bool probeResult;
-
+    Bool ioEnableFailed = FALSE;
+    
 #ifdef XFree86LOADER
     /* Find the list of video driver modules. */
     char **list = xf86DriverlistFromCompile();
@@ -76,6 +78,24 @@ DoProbe()
 
     /* Call all of the probe functions, reporting the results. */
     for (i = 0; i < xf86NumDrivers; i++) {
+
+	if (!xorgHWAccess) {
+	    xorgHWFlags flags;
+	    if (!xf86DriverList[i]->driverFunc
+		|| !xf86DriverList[i]->driverFunc(NULL,
+						  GET_REQUIRED_HW_INTERFACES,
+						  &flags)
+		|| NEED_IO_ENABLED(flags)) {
+		if (ioEnableFailed)
+		    continue;
+		if (!xf86EnableIO()) {
+		    ioEnableFailed = TRUE;
+		    continue;
+		}
+		xorgHWAccess = TRUE;
+	    }
+	}
+	    
 	if (xf86DriverList[i]->Probe == NULL) continue;
 
 	xf86MsgVerb(X_INFO, 3, "Probing in driver %s\n",

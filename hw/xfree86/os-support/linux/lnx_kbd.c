@@ -215,6 +215,13 @@ SetKbdRepeat(InputInfoPtr pInfo, char rad)
 
 #if defined(__alpha__) || defined (__i386__) || defined(__ia64__)
 
+  if (!xorgHWAccess) {
+      if (xf86EnableIO())
+	  xorgHWAccess = TRUE;
+      else 
+	  return;
+  }
+      
   /* The ioport way */
 
   for (i = 0; i < RATE_COUNT; i++)

@@ -38,6 +38,7 @@
 #endif
 #include "xf86.h"
 #include "xf86Config.h"
+#include "xf86_OSlib.h"
 #include "xf86Priv.h"
 #include "xf86PciData.h"
 #define IN_XSERVER
@@ -789,6 +790,24 @@ DoConfigure()
 
     xfree(vlist);
 
+    for (i = 0; i < xf86NumDrivers; i++) {
+	xorgHWFlags flags;
+	if (!xf86DriverList[i]->driverFunc
+	    || !xf86DriverList[i]->driverFunc(NULL,
+					      GET_REQUIRED_HW_INTERFACES,
+					      &flags)
+	    || NEED_IO_ENABLED(flags)) {
+	    xorgHWAccess = TRUE;
+	    break;
+	}
+    }
+    /* Enable full I/O access */
+    if (xorgHWAccess) {
+	if(!xf86EnableIO())
+	    /* oops, we have failed */
+	    xorgHWAccess = FALSE;
+    }
+
     /* Disable PCI devices */
     xf86ResourceBrokerInit();
     xf86AccessInit();
@@ -803,6 +822,16 @@ DoConfigure()
 
     /* Call all of the probe functions, reporting the results. */
     for (CurrentDriver = 0;  CurrentDriver < xf86NumDrivers;  CurrentDriver++) {
+	xorgHWFlags flags;
+	
+	if (!xorgHWAccess) {
+	    if (!xf86DriverList[CurrentDriver]->driverFunc
+		|| !xf86DriverList[CurrentDriver]->driverFunc(NULL,
+						GET_REQUIRED_HW_INTERFACES,
+						&flags)
+		|| NEED_IO_ENABLED(flags)) 
+		continue;
+	}
 	
 	if (xf86DriverList[CurrentDriver]->Probe == NULL) continue;
 

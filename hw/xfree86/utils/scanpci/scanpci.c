@@ -195,7 +195,6 @@ main(int argc, char *argv[])
 	    break;
 	}
 
-    xf86EnableIO();
     pcrpp = xf86scanpci(0);
 
     if (!pcrpp) {

@@ -125,6 +125,7 @@ extern void xf86WrapperInit(void);
 #define xf86FatalError(a, b) \
 	if (dispatchException & DE_TERMINATE) { \
 		ErrorF(a, b); \
+		ErrorF("\n"); \
 		return; \
 	} else FatalError(a, b)
 
@@ -144,7 +145,7 @@ extern pointer xf86MapVidMem(int, int, unsigned long, unsigned long);
 extern void xf86UnMapVidMem(int, pointer, unsigned long);
 extern void xf86MapReadSideEffects(int, int, pointer, unsigned long);
 extern int xf86ReadBIOS(unsigned long, unsigned long, unsigned char *, int);
-extern void xf86EnableIO(void);
+extern Bool xf86EnableIO(void);
 extern void xf86DisableIO(void);
 extern Bool xf86DisableInterrupts(void);
 extern void xf86EnableInterrupts(void);

@@ -83,7 +83,12 @@ xf86AddDriver(DriverPtr driver, pointer module, int flags)
     xf86DriverList = xnfrealloc(xf86DriverList,
 				xf86NumDrivers * sizeof(DriverPtr));
     xf86DriverList[xf86NumDrivers - 1] = xnfalloc(sizeof(DriverRec));
-    *xf86DriverList[xf86NumDrivers - 1] = *driver;
+    if (flags & HaveDriverFuncs)
+	*xf86DriverList[xf86NumDrivers - 1] = *driver;
+    else {
+	memcpy(xf86DriverList[xf86NumDrivers - 1], driver, sizeof(DriverRec1));
+	xf86DriverList[xf86NumDrivers - 1]->driverFunc = NULL;
+    }
     xf86DriverList[xf86NumDrivers - 1]->module = module;
     xf86DriverList[xf86NumDrivers - 1]->refCount = 0;
 }
@@ -209,6 +214,8 @@ xf86AllocateScreen(DriverPtr drv, int flags)
     }
 #endif
 
+    xf86Screens[i]->DriverFunc = drv->driverFunc;
+    
     return xf86Screens[i];
 }
 

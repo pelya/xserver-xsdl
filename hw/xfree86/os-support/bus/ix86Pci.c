@@ -140,6 +140,7 @@
 #include "compiler.h"
 #include "xf86.h"
 #include "xf86Priv.h"
+#include "xf86_OSlib.h"
 #include "Pci.h"
 
 #ifdef PC98
@@ -278,6 +279,8 @@ void ix86PciSelectCfgmech(void)
 #endif
 	    
 	case PCIProbe1:
+	    if (!xf86EnableIO())
+		return;
 
 	    xf86MsgVerb(X_INFO, 2,
 			"PCI: Probing config type using method 1\n");
@@ -449,6 +452,8 @@ void ix86PciSelectCfgmech(void)
       break; /* } */
 
     case PCIProbe2: /* { */
+	if (!xf86EnableIO())
+	    return;
 
       /* The scanpci-style detection method */
 
@@ -481,6 +486,8 @@ void ix86PciSelectCfgmech(void)
       break; /* } */
 
     case PCIForceConfig1:
+	if (!xf86EnableIO())
+	    return;
 
       xf86MsgVerb(X_INFO, 2, "PCI: Forcing config type 1\n");
 
@@ -490,6 +497,8 @@ void ix86PciSelectCfgmech(void)
       return;
 
     case PCIForceConfig2:
+	if (!xf86EnableIO())
+	    return;
 
       xf86MsgVerb(X_INFO, 2, "PCI: Forcing config type 2\n");
 

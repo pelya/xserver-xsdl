@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/sco/sco_iop.c,v 1.1 2002/06/03 21:22:10 dawes Exp $ */
+/* $XFree86$ */
 /*
  * Copyright 2001 by J. Kean Johnston <jkj@caldera.com>
  *
@@ -62,14 +62,18 @@ extern long sysi86 (int cmd, ...);
 
 static Bool IOEnabled = FALSE;
 
-void xf86EnableIO(void)
+Bool xf86EnableIO(void)
 {
 	if (IOEnabled)
-		return;
+		return TRUE;
 
-	if (sysi86(SI86V86, V86SC_IOPL, PS_IOPL) < 0)
-		FatalError("Failed to set IOPL for extended I/O\n");
+	if (sysi86(SI86V86, V86SC_IOPL, PS_IOPL) < 0) {
+		xf86Msg(X_WARNING,"Failed to set IOPL for extended I/O\n");
+		return FALSE;
+	}
+	
 	IOEnabled = TRUE;
+	return TRUE;
 }
 
 void xf86DisableIO(void)

@@ -236,9 +236,59 @@ typedef struct x_ClockRanges {
 } ClockRanges, *ClockRangesPtr;
 
 /*
+ * The driverFunc. xorgDriverFuncOp specifies the action driver should
+ * perform. If requested option is not supported function should return
+ * FALSE. pointer can be used to pass arguments to the function or
+ * to return data to the caller.
+ */
+typedef struct _ScrnInfoRec *ScrnInfoPtr;
+
+/* do not change order */
+typedef enum {
+    RR_GET_INFO,
+    RR_SET_CONFIG,
+    GET_REQUIRED_HW_INTERFACES = 10
+} xorgDriverFuncOp;
+
+typedef Bool xorgDriverFuncProc		  (ScrnInfoPtr, xorgDriverFuncOp,
+					   pointer);
+
+/* RR_GET_INFO, RR_SET_CONFIG */
+typedef struct {
+    int rotation;
+    int rate;
+    int width;
+    int height;
+} xorgRRConfig;
+
+typedef union {
+    short RRRotations;
+    xorgRRConfig RRConfig;
+} xorgRRRotation, *xorgRRRotationPtr;
+
+/* GET_REQUIRED_HW_INTERFACES */
+#define HW_IO 1
+#define HW_MMIO 2
+#define NEED_IO_ENABLED(x) (x & HW_IO)
+
+typedef CARD32 xorgHWFlags;
+
+/*
  * The driver list struct.  This contains the information required for each
  * driver before a ScrnInfoRec has been allocated.
  */
+struct _DriverRec;
+
+typedef struct {
+    int			driverVersion;
+    char *		driverName;
+    void		(*Identify)(int flags);
+    Bool		(*Probe)(struct _DriverRec *drv, int flags);
+    const OptionInfoRec * (*AvailableOptions)(int chipid, int bustype);
+    pointer		module;
+    int			refCount;
+} DriverRec1;
+
 typedef struct _DriverRec {
     int			driverVersion;
     char *		driverName;
@@ -247,7 +297,14 @@ typedef struct _DriverRec {
     const OptionInfoRec * (*AvailableOptions)(int chipid, int bustype);
     pointer		module;
     int			refCount;
+    xorgDriverFuncProc  *driverFunc;
 } DriverRec, *DriverPtr;
+
+/*
+ *  AddDriver flags
+ */
+#define HaveDriverFuncs 1
+
 
 #ifdef XFree86LOADER
 /*
@@ -737,24 +794,6 @@ typedef struct {
    PixmapPtr pPix;
 } DGADeviceRec, *DGADevicePtr;
 
-typedef enum {
-    RR_GET_INFO,
-    RR_SET_CONFIG
-} xorgRRFuncFlags;
-
-typedef struct {
-    int rotation;
-    int rate;
-    int width;
-    int height;
-} xorgRRConfig;
-
-typedef union {
-    short RRRotations;
-    xorgRRConfig RRConfig;
-} xorgRRRotation, *xorgRRRotationPtr;
-
-
 /*
  * Flags for driver Probe() functions.
  */
@@ -765,7 +804,6 @@ typedef union {
 /*
  * Driver entry point types
  */
-typedef struct _ScrnInfoRec *ScrnInfoPtr;
 
 typedef Bool xf86ProbeProc                (DriverPtr, int);
 typedef Bool xf86PreInitProc              (ScrnInfoPtr, int);
@@ -785,8 +823,6 @@ typedef int  xf86HandleMessageProc     (int, const char*, const char*, char**);
 typedef void xf86DPMSSetProc		  (ScrnInfoPtr, int, int);
 typedef void xf86LoadPaletteProc   (ScrnInfoPtr, int, int *, LOCO *, VisualPtr);
 typedef void xf86SetOverscanProc          (ScrnInfoPtr, int);
-typedef Bool xorgRRFuncProc		  (ScrnInfoPtr, xorgRRFuncFlags,
-					   xorgRRRotationPtr);
 
 
 /*
@@ -942,7 +978,7 @@ typedef struct _ScrnInfoRec {
     xf86DPMSSetProc			*DPMSSet;
     xf86LoadPaletteProc			*LoadPalette;
     xf86SetOverscanProc			*SetOverscan;
-    xorgRRFuncProc			*RRFunc;
+    xorgDriverFuncProc			*DriverFunc;
     
     /*
      * This can be used when the minor ABI version is incremented.

@@ -99,9 +99,9 @@ linuxPciInit()
 }
 
 static int
-linuxPciOpenFile(PCITAG tag)
+linuxPciOpenFile(PCITAG tag, Bool write)
 {
-	static int	lbus,ldev,lfunc,fd = -1;
+	static int	lbus,ldev,lfunc,fd = -1,is_write = 0;
 	int		bus, dev, func;
 	char		file[32];
 	struct stat	ignored;
@@ -109,7 +109,8 @@ linuxPciOpenFile(PCITAG tag)
 	bus  = PCI_BUS_FROM_TAG(tag);
 	dev  = PCI_DEV_FROM_TAG(tag);
 	func = PCI_FUNC_FROM_TAG(tag);
-	if (fd == -1 || bus != lbus || dev != ldev || func != lfunc) {
+	if (fd == -1 || (write && (!is_write))
+	    || bus != lbus || dev != ldev || func != lfunc) {
 		if (fd != -1)
 			close(fd);
 		if (bus < 256) {
@@ -129,7 +130,19 @@ linuxPciOpenFile(PCITAG tag)
 				sprintf(file, "/proc/bus/pci/%04x/%02x.%1x",
 					bus, dev, func);
 		}
-		fd = open(file,O_RDWR);
+		if (write) {
+		    fd = open(file,O_RDWR);
+		    if (fd != -1) is_write = TRUE;
+		} else switch (is_write) {
+			case TRUE:
+			    fd = open(file,O_RDWR);
+			    if (fd > -1)
+				break;
+			default:
+			    fd = open(file,O_RDONLY);
+			    is_write = FALSE;
+		}
+		
 		lbus  = bus;
 		ldev  = dev;
 		lfunc = func;
@@ -143,7 +156,7 @@ linuxPciCfgRead(PCITAG tag, int off)
 	int	fd;
 	CARD32	val = 0xffffffff;
 
-	if (-1 != (fd = linuxPciOpenFile(tag))) {
+	if (-1 != (fd = linuxPciOpenFile(tag,FALSE))) {
 		lseek(fd,off,SEEK_SET);
 		read(fd,&val,4);
 	}
@@ -155,7 +168,7 @@ linuxPciCfgWrite(PCITAG tag, int off, CARD32 val)
 {
 	int	fd;
 
-	if (-1 != (fd = linuxPciOpenFile(tag))) {
+	if (-1 != (fd = linuxPciOpenFile(tag,TRUE))) {
 		lseek(fd,off,SEEK_SET);
 		val = PCI_CPU(val);
 		write(fd,&val,4);
@@ -168,7 +181,7 @@ linuxPciCfgSetBits(PCITAG tag, int off, CARD32 mask, CARD32 bits)
 	int	fd;
 	CARD32	val = 0xffffffff;
 
-	if (-1 != (fd = linuxPciOpenFile(tag))) {
+	if (-1 != (fd = linuxPciOpenFile(tag,TRUE))) {
 		lseek(fd,off,SEEK_SET);
 		read(fd,&val,4);
 		val = PCI_CPU(val);
@@ -336,7 +349,7 @@ xf86GetPciDomain(PCITAG Tag)
     if (pPCI && (result = PCI_DOM_FROM_BUS(pPCI->busnum)))
 	return result;
 
-    if ((fd = linuxPciOpenFile(pPCI ? pPCI->tag : 0)) < 0)
+    if ((fd = linuxPciOpenFile(pPCI ? pPCI->tag : 0,FALSE)) < 0)
 	return 0;
 
     if ((result = ioctl(fd, PCIIOC_CONTROLLER, 0)) < 0)
@@ -359,7 +372,7 @@ linuxMapPci(int ScreenNum, int Flags, PCITAG Tag,
 
 	pPCI = xf86GetPciHostConfigFromTag(Tag);
 
-	if (((fd = linuxPciOpenFile(pPCI ? pPCI->tag : 0)) < 0) ||
+	if (((fd = linuxPciOpenFile(pPCI ? pPCI->tag : 0,FALSE)) < 0) ||
 	    (ioctl(fd, mmap_ioctl, 0) < 0))
 	    break;
 

@@ -3030,7 +3030,7 @@ void
 xf86FindPrimaryDevice()
 {
     /* if no VGA device is found check for primary PCI device */
-    if (primaryBus.type == BUS_NONE)
+    if (primaryBus.type == BUS_NONE && xorgHWAccess)
         CheckGenericGA();
     if (primaryBus.type != BUS_NONE) {
 	char *bus;
