@@ -1,3 +1,4 @@
+/* $XFree86$ */
 /* COPYRIGHT AND PERMISSION NOTICE
 
 Copyright (c) 2000, 2001 Nokia Home Communications
