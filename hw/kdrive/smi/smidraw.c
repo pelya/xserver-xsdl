@@ -86,18 +86,6 @@ CARD8 smiSolidRop[16] = {
 #define ENGINE_IDLE_EMPTY(smic) ((GET_STATUS(smic) & 0x18) == 0x10)
 #define FIFO_EMPTY(smic)	((GET_STATUS(smic) & 0x10) == 0x10)
 
-static void
-smiSleep (int ms)
-{
-    struct timespec req;
-    
-    req.tv_sec = ms / 1000;
-    req.tv_nsec = (ms % 1000) * 1000000;
-    while (req.tv_sec || req.tv_nsec)
-	if (nanosleep (&req, &req) == 0) 
-	    break;
-}
-
 #define MAX_FIFO    16
 
 void
@@ -126,7 +114,7 @@ static DPR		*dpr;
 static CARD32		accel_cmd;
 
 static Bool
-smiSetup (ScreenPtr	pScreen, int wait)
+smiSetup (ScreenPtr pScreen, int wait)
 {
     KdScreenPriv(pScreen);
 
@@ -259,13 +247,29 @@ Bool
 smiDrawInit (ScreenPtr pScreen)
 {
     KdScreenPriv(pScreen);
+    smiCardInfo (pScreenPriv);
+    smiScreenInfo (pScreenPriv);
     
+    ENTER ();
     if (pScreenPriv->screen->fb[0].depth == 4)
+    {
+	LEAVE ();
 	return FALSE;
+    }
     
-    if (!kaaDrawInit (pScreen, &smiKaa))
+    if (!smic->dpr)
+    {
+	LEAVE ();
 	return FALSE;
+    }
 
+    if (!kaaDrawInit (pScreen, &smiKaa))
+    {
+	LEAVE ();
+	return FALSE;
+    }
+
+    LEAVE ();
     return TRUE;
 }
 
@@ -276,9 +280,12 @@ smiDrawEnable (ScreenPtr pScreen)
     int i;
     static const int xyAddress[] = { 320, 400, 512, 640, 800, 1024, 1280, 1600, 2048 };
     
+    ENTER ();
     smis = getSmiScreenInfo (pScreenPriv);
     smic = getSmiCardInfo(pScreenPriv);
     dpr = smic->dpr;
+    
+    iopl(3);
     
     smis->stride = pScreenPriv->screen->fb[0].byteStride;
     smis->dpr_vpr_enable = smiGetIndex (smic, VGA_SEQ_INDEX, 
@@ -310,23 +317,27 @@ smiDrawEnable (ScreenPtr pScreen)
 	}
     }
     
-    smiSetup (pScreen, 0);
-
     KdMarkSync (pScreen);
+    LEAVE ();
 }
 
 void
 smiDrawDisable (ScreenPtr pScreen)
 {
+    ENTER ();
     smic = 0;
     smis = 0;
     dpr = 0;
     accel_cmd = 0;
+    iopl (0);
+    LEAVE ();
 }
 
 void
 smiDrawFini (ScreenPtr pScreen)
 {
+    ENTER ();
+    LEAVE ();
 }
 
 void

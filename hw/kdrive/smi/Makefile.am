@@ -1,7 +1,7 @@
 INCLUDES = 					\
 	-I$(top_srcdir)/fb			\
 	-I$(top_srcdir)/hw/kdrive/src		\
-	-I$(top_srcdir)/hw/kdrive/vesa		\
+	-I$(top_srcdir)/hw/kdrive/fbdev		\
 	-I$(top_srcdir)/mi			\
 	-I$(top_srcdir)/miext/layer		\
 	-I$(top_srcdir)/miext/shadow		\
@@ -24,7 +24,7 @@ Xsmi_SOURCES = \
 
 Xsmi_LDADD = \
 	$(top_builddir)/hw/kdrive/smi/libsmi.a \
-	$(top_builddir)/hw/kdrive/vesa/libvesa.a \
+	$(top_builddir)/hw/kdrive/fbdev/libfbdev.a \
 	$(top_builddir)/dix/libdix.a		\
 	$(top_builddir)/os/libos.a		\
 	$(top_builddir)/miext/layer/liblayer.a	\

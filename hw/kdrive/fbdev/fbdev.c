@@ -192,6 +192,7 @@ fbdevScreenInitialize (KdScreenInfo *screen, FbdevScrPriv *scrpriv)
     }
     screen->rate = 72;
     scrpriv->randr = screen->randr;
+    scrpriv->layerKind = LAYER_FB;
     
 #ifdef FAKE24_ON_16
     if (screen->fb[0].depth == 24 && screen->fb[0].bitsPerPixel == 24 &&
@@ -339,18 +340,13 @@ fbdevUpdateFake24 (ScreenPtr pScreen,
 }
 #endif /* FAKE24_ON_16 */
 
-LayerPtr
-fbdevLayerCreate (ScreenPtr pScreen)
+void
+fbdevConfigureScreen (ScreenPtr pScreen)
 {
     KdScreenPriv(pScreen);
     KdScreenInfo	*screen = pScreenPriv->screen;
     FbdevPriv		*priv = pScreenPriv->card->driver;
     FbdevScrPriv	*scrpriv = screen->driver;
-    LayerPtr		pLayer;
-    ShadowUpdateProc	update;
-    ShadowWindowProc	window;
-    PixmapPtr		pPixmap;
-    int			kind;
     KdMouseMatrix	m;
 
 #ifdef FAKE24_ON_16
@@ -385,7 +381,22 @@ fbdevLayerCreate (ScreenPtr pScreen)
 	pScreen->mmHeight = screen->width_mm;
     }
     KdSetMouseMatrix (&m);
-    
+}
+
+LayerPtr
+fbdevLayerCreate (ScreenPtr pScreen)
+{
+    KdScreenPriv(pScreen);
+    KdScreenInfo	*screen = pScreenPriv->screen;
+    FbdevPriv		*priv = pScreenPriv->card->driver;
+    FbdevScrPriv	*scrpriv = screen->driver;
+    LayerPtr		pLayer;
+    ShadowUpdateProc	update;
+    ShadowWindowProc	window;
+    PixmapPtr		pPixmap;
+    int			kind;
+    KdMouseMatrix	m;
+
     if (scrpriv->shadow)
     {
         window = fbdevWindowLinear;
@@ -410,7 +421,7 @@ fbdevLayerCreate (ScreenPtr pScreen)
     }
     else
     {
-	kind = LAYER_FB;
+	kind = scrpriv->layerKind;
 	pPixmap = LAYER_SCREEN_PIXMAP;
 	update = 0;
 	window = 0;
@@ -486,55 +497,76 @@ fbdevRandRSetConfig (ScreenPtr		pScreen,
     KdScreenInfo	*screen = pScreenPriv->screen;
     FbdevPriv		*priv = pScreenPriv->card->driver;
     FbdevScrPriv	*scrpriv = screen->driver;
-    int			rotate;
-    int			reflect;
     Bool		wasEnabled = pScreenPriv->enabled;
+    FbdevScrPriv	oldscr;
+    int			oldwidth;
+    int			oldheight;
+    int			oldmmwidth;
+    int			oldmmheight;
+    LayerPtr		pNewLayer;
+    int			newwidth, newheight;
 
-    /*
-     * The only thing that can change is rotation
-     */
-    randr = KdAddRotation (randr, screen->randr);
-
-    if (scrpriv->randr != randr)
+    if (screen->randr & (RR_Rotate_0|RR_Rotate_180))
     {
-	LayerPtr	pNewLayer;
-	int		kind;
-	int		oldrandr = scrpriv->randr;
-	int		oldshadow = scrpriv->shadow;
-	int		oldwidth = pScreen->width;
-	int		oldheight = pScreen->height;
-	PixmapPtr	pPixmap;
-
-	if (wasEnabled)
-	    KdDisableScreen (pScreen);
-	
-	scrpriv->randr = randr;
-	pNewLayer = fbdevLayerCreate (pScreen);
-	if (!pNewLayer)
-	{
-	    scrpriv->shadow = oldshadow;
-	    scrpriv->randr = oldrandr;
-	}
-	if (WalkTree (pScreen, fbdevLayerAdd, (pointer) pNewLayer) == WT_STOPWALKING)
-	{
-	    WalkTree (pScreen, fbdevLayerRemove, (pointer) pNewLayer);
-	    LayerDestroy (pScreen, pNewLayer);
-	    scrpriv->randr = oldrandr;
-	    scrpriv->shadow = oldshadow;
-	    pScreen->width = oldwidth;
-	    pScreen->height = oldheight;
-	    if (wasEnabled)
-		KdEnableScreen (pScreen);
-	    return FALSE;
-	}
-        WalkTree (pScreen, fbdevLayerRemove, (pointer) scrpriv->pLayer);
-	LayerDestroy (pScreen, scrpriv->pLayer);
-	scrpriv->pLayer = pNewLayer;
-	KdSetSubpixelOrder (pScreen, scrpriv->randr);
-	if (wasEnabled)
-	    KdEnableScreen (pScreen);
+	newwidth = pSize->width;
+	newheight = pSize->height;
     }
+    else
+    {
+	newwidth = pSize->height;
+	newheight = pSize->width;
+    }
+
+    if (wasEnabled)
+	KdDisableScreen (pScreen);
+
+    oldscr = *scrpriv;
+    
+    oldwidth = screen->width;
+    oldheight = screen->height;
+    oldmmwidth = pScreen->mmWidth;
+    oldmmheight = pScreen->mmHeight;
+    
+    /*
+     * Set new configuration
+     */
+    
+    scrpriv->randr = KdAddRotation (screen->randr, randr);
+
+    fbdevConfigureScreen (pScreen);
+
+    pNewLayer = fbdevLayerCreate (pScreen);
+    if (!pNewLayer)
+	goto bail4;
+    if (WalkTree (pScreen, fbdevLayerAdd, (pointer) pNewLayer) == WT_STOPWALKING)
+	goto bail5;
+
+    WalkTree (pScreen, fbdevLayerRemove, (pointer) scrpriv->pLayer);
+    LayerDestroy (pScreen, scrpriv->pLayer);
+
+    scrpriv->pLayer = pNewLayer;
+
+    KdSetSubpixelOrder (pScreen, scrpriv->randr);
+    if (wasEnabled)
+	KdEnableScreen (pScreen);
+
     return TRUE;
+
+bail5:
+    WalkTree (pScreen, fbdevLayerRemove, (pointer) pNewLayer);
+    LayerDestroy (pScreen, pNewLayer);
+bail4:
+    pScreen->width = oldwidth;
+    pScreen->height = oldheight;
+    pScreen->mmWidth = oldmmwidth;
+    pScreen->mmHeight = oldmmheight;
+bail2:
+    *scrpriv = oldscr;
+bail1:
+    if (wasEnabled)
+	KdEnableScreen (pScreen);
+bail0:
+    return FALSE;
 }
 
 Bool
@@ -590,10 +622,6 @@ Bool
 fbdevInitScreen (ScreenPtr pScreen)
 {
     KdScreenPriv(pScreen);
-    FbdevPriv		*priv = pScreenPriv->card->driver;
-    FbdevScrPriv	*scrpriv = pScreenPriv->screen->driver;
-    ShadowUpdateProc	update;
-    ShadowWindowProc	window;
 
 #ifdef TOUCHSCREEN
     KdTsPhyScreen = pScreen->myNum;
@@ -603,15 +631,30 @@ fbdevInitScreen (ScreenPtr pScreen)
 
     if (!LayerStartInit (pScreen))
 	return FALSE;
+    return TRUE;
+}
+
+Bool
+fbdevFinishInitScreen (ScreenPtr pScreen)
+{
+    KdScreenPriv(pScreen);
+    FbdevPriv		*priv = pScreenPriv->card->driver;
+    FbdevScrPriv	*scrpriv = pScreenPriv->screen->driver;
+    
+    scrpriv->layerKind = LayerNewKind (pScreen);
+
     if (!LayerFinishInit (pScreen))
 	return FALSE;
+
     scrpriv->pLayer = fbdevLayerCreate (pScreen);
     if (!scrpriv->pLayer)
 	return FALSE;
+    
 #ifdef RANDR
     if (!fbdevRandRInit (pScreen))
 	return FALSE;
 #endif
+    
     return TRUE;
 }
 
@@ -789,32 +832,3 @@ fbdevPutColors (ScreenPtr pScreen, int fb, int n, xColorItem *pdefs)
     cmap.transp = 0;
     ioctl (priv->fd, FBIOPUTCMAP, &cmap);
 }
-
-
-KdCardFuncs	fbdevFuncs = {
-    fbdevCardInit,	    /* cardinit */
-    fbdevScreenInit,	    /* scrinit */
-    fbdevInitScreen,	    /* initScreen */
-    fbdevPreserve,	    /* preserve */
-    fbdevEnable,	    /* enable */
-    fbdevDPMS,		    /* dpms */
-    fbdevDisable,	    /* disable */
-    fbdevRestore,	    /* restore */
-    fbdevScreenFini,	    /* scrfini */
-    fbdevCardFini,	    /* cardfini */
-    
-    0,			    /* initCursor */
-    0,			    /* enableCursor */
-    0,			    /* disableCursor */
-    0,			    /* finiCursor */
-    0,			    /* recolorCursor */
-    
-    0,			    /* initAccel */
-    0,			    /* enableAccel */
-    0,			    /* syncAccel */
-    0,			    /* disableAccel */
-    0,			    /* finiAccel */
-    
-    fbdevGetColors,    	    /* getColors */
-    fbdevPutColors,	    /* putColors */
-};

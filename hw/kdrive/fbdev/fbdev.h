@@ -50,6 +50,7 @@ typedef struct _fbdevPriv {
 typedef struct _fbdevScrPriv {
     Rotation			randr;
     Bool			shadow;
+    int				layerKind;
     LayerPtr			pLayer;
 } FbdevScrPriv;
 
@@ -97,5 +98,7 @@ fbdevGetColors (ScreenPtr pScreen, int fb, int n, xColorItem *pdefs);
 void
 fbdevPutColors (ScreenPtr pScreen, int fb, int n, xColorItem *pdefs);
 
+Bool
+fbdevFinishInitScreen (ScreenPtr pScreen);
 
 #endif /* _FBDEV_H_ */

@@ -56,3 +56,35 @@ ddxProcessArgument (int argc, char **argv, int i)
 {
     return KdProcessArgument (argc, argv, i);
 }
+
+
+
+KdCardFuncs	fbdevFuncs = {
+    fbdevCardInit,	    /* cardinit */
+    fbdevScreenInit,	    /* scrinit */
+    fbdevInitScreen,	    /* initScreen */
+    fbdevPreserve,	    /* preserve */
+    fbdevEnable,	    /* enable */
+    fbdevDPMS,		    /* dpms */
+    fbdevDisable,	    /* disable */
+    fbdevRestore,	    /* restore */
+    fbdevScreenFini,	    /* scrfini */
+    fbdevCardFini,	    /* cardfini */
+    
+    0,			    /* initCursor */
+    0,			    /* enableCursor */
+    0,			    /* disableCursor */
+    0,			    /* finiCursor */
+    0,			    /* recolorCursor */
+    
+    0,			    /* initAccel */
+    0,			    /* enableAccel */
+    0,			    /* syncAccel */
+    0,			    /* disableAccel */
+    0,			    /* finiAccel */
+    
+    fbdevGetColors,    	    /* getColors */
+    fbdevPutColors,	    /* putColors */
+
+    fbdevFinishInitScreen,  /* finishInitScreen */
+};

@@ -27,18 +27,6 @@
 #include "smi.h"
 #include <sys/io.h>
 
-#define DEBUG
-#ifdef DEBUG
-#define DBGOUT(fmt,a...) fprintf (stderr, fmt, ##a)
-#else
-#define DBGOUT(fmt,a...)
-#endif
-
-#define ENTER()	DBGOUT("Enter %s\n", __FUNCTION__)
-#define LEAVE() DBGOUT("Leave %s\n", __FUNCTION__)
-
-
-
 Bool
 smiCardInit (KdCardInfo *card)
 {
@@ -48,10 +36,11 @@ smiCardInit (KdCardInfo *card)
     smic = (SmiCardInfo *) xalloc (sizeof (SmiCardInfo));
     if (!smic)
 	return FALSE;
+    memset (smic, '\0', sizeof (SmiCardInfo));
     
     (void) smiMapReg (card, smic);
 
-    if (!vesaInitialize (card, &smic->vesa))
+    if (!fbdevInitialize (card, &smic->fbdev))
     {
 	xfree (smic);
 	return FALSE;
@@ -67,37 +56,21 @@ smiScreenInit (KdScreenInfo *screen)
 {
     SmiCardInfo		*smic = screen->card->driver;
     SmiScreenInfo	*smis;
-    int			screen_size, memory;
 
     ENTER();
     smis = (SmiScreenInfo *) xalloc (sizeof (SmiScreenInfo));
     if (!smis)
 	return FALSE;
     memset (smis, '\0', sizeof (SmiScreenInfo));
-    if (!vesaScreenInitialize (screen, &smis->vesa))
+    if (!fbdevScreenInitialize (screen, &smis->fbdev))
     {
 	xfree (smis);
 	return FALSE;
     }
     if (!smic->reg_base)
 	screen->dumb = TRUE;
-    if (smis->vesa.mapping != VESA_LINEAR)
-	screen->dumb = TRUE;
-    smis->screen = smis->vesa.fb;
-    memory = smis->vesa.fb_size;
-    screen_size = screen->fb[0].byteStride * screen->height;
     screen->softCursor = TRUE;
-    memory -= screen_size;
-    if (memory > screen->fb[0].byteStride)
-    {
-	smis->off_screen = smis->screen + screen_size;
-	smis->off_screen_size = memory;
-    }
-    else
-    {
-	smis->off_screen = 0;
-	smis->off_screen_size = 0;
-    }
+    smis->screen = smic->fbdev.fb;
     screen->driver = smis;
     LEAVE();
     return TRUE;
@@ -116,8 +89,9 @@ smiInitScreen (ScreenPtr pScreen)
 	smiInitVideo(pScreen);
 #endif
 #endif
-    ret = vesaInitScreen (pScreen);
+    ret = fbdevInitScreen (pScreen);
     LEAVE();
+    return ret;
 }
 
 #ifdef RANDR
@@ -132,7 +106,7 @@ smiRandRSetConfig (ScreenPtr		pScreen,
     ENTER ();
     KdCheckSync (pScreen);
 
-    ret = vesaRandRSetConfig (pScreen, randr, rate, pSize);
+    ret = fbdevRandRSetConfig (pScreen, randr, rate, pSize);
     LEAVE();
     return ret;
 }
@@ -152,15 +126,12 @@ smiRandRInit (ScreenPtr pScreen)
 Bool
 smiFinishInitScreen (ScreenPtr pScreen)
 {
-    ENTER ();
-    if (!vesaFinishInitScreen (pScreen))
-	return FALSE;
+    Bool    ret;
+    ret = fbdevFinishInitScreen (pScreen);
 #ifdef RANDR
-    if (!smiRandRInit (pScreen))
-	return FALSE;
+    smiRandRInit (pScreen);
 #endif
-    LEAVE ();
-    return TRUE;
+    return ret;
 }
 
 void
@@ -169,7 +140,7 @@ smiPreserve (KdCardInfo *card)
     SmiCardInfo	*smic = card->driver;
 
     ENTER ();
-    vesaPreserve(card);
+    fbdevPreserve(card);
     LEAVE();
 }
 
@@ -261,7 +232,7 @@ smiEnable (ScreenPtr pScreen)
     SmiCardInfo	*smic = pScreenPriv->card->driver;
 
     ENTER ();
-    if (!vesaEnable (pScreen))
+    if (!fbdevEnable (pScreen))
 	return FALSE;
     
     smiSetMMIO (pScreenPriv->card, smic);
@@ -286,7 +257,7 @@ smiDisable (ScreenPtr pScreen)
     KdXVDisable (pScreen);
 #endif
     smiResetMMIO (pScreenPriv->card, smic);
-    vesaDisable (pScreen);
+    fbdevDisable (pScreen);
     LEAVE ();
 }
 
@@ -295,7 +266,7 @@ smiDPMS (ScreenPtr pScreen, int mode)
 {
     Bool    ret;
     ENTER ();
-    ret = vesaDPMS (pScreen, mode);
+    ret = fbdevDPMS (pScreen, mode);
     LEAVE ();
     return ret;
 }
@@ -306,7 +277,7 @@ smiRestore (KdCardInfo *card)
     SmiCardInfo	*smic = card->driver;
     
     ENTER ();
-    vesaRestore (card);
+    fbdevRestore (card);
     LEAVE();
 }
 
@@ -316,7 +287,7 @@ smiScreenFini (KdScreenInfo *screen)
     SmiScreenInfo	*smis = (SmiScreenInfo *) screen->driver;
 
     ENTER ();
-    vesaScreenFini (screen);
+    fbdevScreenFini (screen);
     xfree (smis);
     screen->driver = 0;
     LEAVE ();
@@ -329,7 +300,7 @@ smiCardFini (KdCardInfo *card)
 
     ENTER ();
     smiUnmapReg (card, smic);
-    vesaCardFini (card);
+    fbdevCardFini (card);
     LEAVE ();
 }
 
@@ -363,8 +334,8 @@ KdCardFuncs	smiFuncs = {
     smiDrawDisable,	    /* disableAccel */
     smiDrawFini,	    /* finiAccel */
     
-    vesaGetColors,    	    /* getColors */
-    vesaPutColors,	    /* putColors */
+    fbdevGetColors,    	    /* getColors */
+    fbdevPutColors,	    /* putColors */
 
     smiFinishInitScreen,    /* finishInitScreen */
 };

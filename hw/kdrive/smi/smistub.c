@@ -55,7 +55,7 @@ ddxProcessArgument (int argc, char **argv, int i)
 {
     int	ret;
     
-    if (!(ret = vesaProcessArgument (argc, argv, i)))
+/*    if (!(ret = vesaProcessArgument (argc, argv, i))) */
 	ret = KdProcessArgument(argc, argv, i);
     return ret;
 }

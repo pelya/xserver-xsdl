@@ -25,8 +25,18 @@
 
 #ifndef _SMI_H_
 #define _SMI_H_
-#include <vesa.h>
+#include <fbdev.h>
 #include "kxv.h"
+
+#define DEBUG
+#ifdef DEBUG
+#define DBGOUT(fmt,a...) fprintf (stderr, fmt, ##a)
+#else
+#define DBGOUT(fmt,a...)
+#endif
+
+#define ENTER()	DBGOUT("Enter %s\n", __FUNCTION__)
+#define LEAVE() DBGOUT("Leave %s\n", __FUNCTION__)
 
 /*
  * offset from ioport beginning 
@@ -114,7 +124,7 @@ typedef struct _DPR {
 #define VGA_SEQ_DATA		0x3C5
 
 typedef struct _smiCardInfo {
-    VesaCardPrivRec	vesa;
+    FbdevPriv		fbdev;
     CARD16		io_base;
     CARD8		*reg_base;
     DPR			*dpr;
@@ -125,13 +135,11 @@ typedef struct _smiCardInfo {
 #define smiCardInfo(kd)	SmiCardInfo	*smic = getSmiCardInfo(kd)
 
 typedef struct _smiScreenInfo {
-    VesaScreenPrivRec		vesa;
-    CARD8			*screen;
-    CARD8			*off_screen;
-    int				off_screen_size;
-    CARD32			stride;
-    CARD32			data_format;
-    CARD8			dpr_vpr_enable;
+    FbdevScrPriv	fbdev;
+    CARD8		*screen;
+    CARD32		stride;
+    CARD32		data_format;
+    CARD8		dpr_vpr_enable;
 } SmiScreenInfo;
 
 #define getSmiScreenInfo(kd) ((SmiScreenInfo *) ((kd)->screen->driver))
