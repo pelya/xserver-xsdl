@@ -354,11 +354,7 @@ AlterSaveSetForClient(ClientPtr client,
 		      Bool  remap)
 {
     int numnow;
-#ifdef XFIXES
     SaveSetElt *pTmp = NULL;
-#else
-    pointer *pTmp = NULL;
-#endif
     int j;
 
     numnow = client->numSaved;
@@ -374,11 +370,7 @@ AlterSaveSetForClient(ClientPtr client,
 	if (j < numnow)         /* duplicate */
 	   return(Success);
 	numnow++;
-#ifdef XFIXES
-	pTmp = (SaveSetElt *)xrealloc(client->saveSet, sizeof(SaveSetElt) * numnow);
-#else
-	pTmp = (pointer *)xrealloc(client->saveSet, sizeof(pointer) * numnow);
-#endif
+	pTmp = (SaveSetElt *)xrealloc(client->saveSet, sizeof(*pTmp) * numnow);
 	if (!pTmp)
 	    return(BadAlloc);
 	client->saveSet = pTmp;
@@ -398,11 +390,7 @@ AlterSaveSetForClient(ClientPtr client,
 	numnow--;
         if (numnow)
 	{
-#ifdef XFIXES
-	    pTmp = (SaveSetElt *)xrealloc(client->saveSet, sizeof(SaveSetElt) * numnow);
-#else
-	    pTmp = (pointer *)xrealloc(client->saveSet, sizeof(pointer) * numnow);
-#endif
+	    pTmp = (SaveSetElt *)xrealloc(client->saveSet, sizeof(*pTmp) * numnow);
 	    if (pTmp)
 		client->saveSet = pTmp;
 	}

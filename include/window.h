@@ -252,10 +252,14 @@ void ResizeChildrenWinSize(
     int /*dw*/,
     int /*dh*/);
 
-RegionPtr
-CreateBoundingShape (WindowPtr pWin);
+extern void SendShapeNotify(
+    WindowPtr /* pWin */,
+    int /* which */ );
 
-RegionPtr
-CreateClipShape (WindowPtr pWin);
+extern RegionPtr CreateBoundingShape(
+    WindowPtr /* pWin */ );
+
+extern RegionPtr CreateClipShape(
+    WindowPtr /* pWin */ );
 
 #endif /* WINDOW_H */

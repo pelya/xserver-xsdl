@@ -303,6 +303,15 @@ extern RESTYPE		GlyphSetType;
     } \
 } \
 
+void
+ResetPicturePrivateIndex (void);
+
+int
+AllocatePicturePrivateIndex (void);
+
+Bool
+AllocatePicturePrivate (ScreenPtr pScreen, int index2, unsigned int amount);
+
 Bool
 PictureDestroyWindow (WindowPtr pWindow);
 

@@ -433,14 +433,14 @@ extern ClientPtr LookupClient(
 
 extern void NoopDDA(void);
 
-int AlterSaveSetForClient(
+extern int AlterSaveSetForClient(
     ClientPtr /*client*/,
     WindowPtr /*pWin*/,
     unsigned /*mode*/,
     Bool /*toRoot*/,
     Bool /*remap*/);
   
-void DeleteWindowFromAnySaveSet(
+extern void DeleteWindowFromAnySaveSet(
     WindowPtr /*pWin*/);
 
 extern void BlockHandler(

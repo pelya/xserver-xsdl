@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/dix/window.c,v 1.2 2004/04/23 19:04:44 eich Exp $ */
+/* $XdotOrg: xc/programs/Xserver/dix/window.c,v 1.3 2004/07/29 18:43:58 stukreit Exp $ */
 /* $Xorg: window.c,v 1.4 2001/02/09 02:04:41 xorgcvs Exp $ */
 /*
 
@@ -3179,11 +3179,7 @@ HandleSaveSet(client)
     }
     xfree(client->saveSet);
     client->numSaved = 0;
-#ifdef XFIXES
     client->saveSet = (SaveSetElt *)NULL;
-#else
-    client->saveSet = (pointer *)NULL;
-#endif
 }
 
 Bool

@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/Xext/shape.c,v 1.2 2004/04/23 18:44:41 eich Exp $ */
+/* $XdotOrg: xc/programs/Xserver/Xext/shape.c,v 1.3 2004/07/29 18:46:37 stukreit Exp $ */
 /* $XFree86: xc/programs/Xserver/Xext/shape.c,v 3.18 2003/10/28 23:08:43 tsi Exp $ */
 /************************************************************
 
@@ -61,10 +61,6 @@ static int ShapeFreeEvents(
 	pointer /* data */,
 	XID /* id */
 	);
-void SendShapeNotify(
-	WindowPtr /* pWin */,
-	int /* which */
-	);
 static void ShapeResetProc(
 	ExtensionEntry * /* extEntry */
 	);
@@ -85,12 +81,9 @@ RegionOperate (
 	CreateDftPtr /* create */
 	);
 
-#define CREATE_PROC(func) RegionPtr func(WindowPtr /* pWin */)
-
-CREATE_PROC(CreateBoundingShape);
-CREATE_PROC(CreateClipShape);
-
-#undef CREATE_PROC
+/* SendShapeNotify, CreateBoundingShape and CreateClipShape are used
+ * externally by the Xfixes extension and are now defined in window.h
+ */
 
 static DISPATCH_PROC(ProcShapeCombine);
 static DISPATCH_PROC(ProcShapeDispatch);

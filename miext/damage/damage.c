@@ -274,7 +274,7 @@ damageCreateGC(GCPtr pGC)
     return ret;
 }
 
-#if NOTUSED
+#ifdef NOTUSED
 static void
 damageWrapGC (GCPtr pGC)
 {
