@@ -64,6 +64,7 @@
 #define CONSOLE_FG_COLOR "black"
 #define CONSOLE_SCREEN_BG_COLOR "white"
 #define CONSOLE_SCREEN_FG_COLOR "black"
+#define CONSOLE_SCREEN_DET_COLOR "gray75"
 #define CONSOLE_SCREEN_CUR_COLOR "red"
 
 #if DMX_CONSOLE_DEBUG
@@ -101,7 +102,7 @@ typedef struct _myPrivate {
     int                     consHeight;
     double                  xScale;
     double                  yScale;
-    XlibGC                  gc, gcRev, gcCur;
+    XlibGC                  gc, gcDet, gcRev, gcCur;
     int                     grabbed, fine, captured;
     Cursor                  cursorNormal, cursorGrabbed, cursorEmpty;
     Pixmap                  pixmap;
@@ -201,8 +202,8 @@ static void dmxConsoleDrawWindows(pointer private)
     XUnionRectWithRegion(&rect, whole, whole);
     
     for (i = 0; i < dmxNumScreens; i++) {
-        WindowPtr pRoot = WindowTable[i];
-        WindowPtr pChild;
+        WindowPtr     pRoot       = WindowTable[i];
+        WindowPtr     pChild;
 
 #if DMX_WINDOW_DEBUG
         dmxLog(dmxDebug, "%lu %p %p %p 2\n",
@@ -257,14 +258,16 @@ static void dmxConsoleDraw(myPrivate *priv, int updateCursor, int update)
                    priv->consWidth, priv->consHeight);
 
     for (i = 0; i < dmxNumScreens; i++) {
-	XFillRectangle(dpy, priv->pixmap, priv->gcRev,
+        DMXScreenInfo *dmxScreen = &dmxScreens[i];
+	XFillRectangle(dpy, priv->pixmap,
+                       dmxScreen->beDisplay ? priv->gcRev : priv->gcDet,
                        scalex(priv, dixScreenOrigins[i].x),
                        scaley(priv, dixScreenOrigins[i].y),
                        scalex(priv, screenInfo.screens[i]->width),
                        scaley(priv, screenInfo.screens[i]->height));
     }
     for (i = 0; i < dmxNumScreens; i++) {
-	XDrawRectangle(dpy, priv->pixmap, priv->gc,
+        XDrawRectangle(dpy, priv->pixmap, priv->gc,
                        scalex(priv, dixScreenOrigins[i].x),
                        scaley(priv, dixScreenOrigins[i].y),
                        scalex(priv, screenInfo.screens[i]->width),
@@ -289,9 +292,11 @@ static void dmxConsoleClearCursor(myPrivate *priv, int x, int y,
     rect->width  = cw;
     rect->height = ch;
     XSetClipRectangles(priv->display, priv->gc, 0, 0, rect, 1, Unsorted);
+    XSetClipRectangles(priv->display, priv->gcDet, 0, 0, rect, 1, Unsorted);
     XSetClipRectangles(priv->display, priv->gcRev, 0, 0, rect, 1, Unsorted);
     dmxConsoleDraw(priv, 0, 0);
     XSetClipMask(priv->display, priv->gc, None);
+    XSetClipMask(priv->display, priv->gcDet, None);
     XSetClipMask(priv->display, priv->gcRev, None);
 }
 
@@ -485,9 +490,11 @@ void dmxConsoleCollectEvents(DevicePtr pDev,
             XUnionRectWithRegion(&rect, r, r);
 	    if (X.xexpose.count == 0) {
                 XSetRegion(dpy, priv->gc, r);
+                XSetRegion(dpy, priv->gcDet, r);
                 XSetRegion(dpy, priv->gcRev, r);
                 dmxConsoleDraw(priv, 1, 1);
                 XSetClipMask(dpy, priv->gc, None);
+                XSetClipMask(dpy, priv->gcDet, None);
                 XSetClipMask(dpy, priv->gcRev, None);
                 XDestroyRegion(r);
                 rInitialized = 0;
@@ -590,7 +597,9 @@ static void dmxCloseConsole(myPrivate *priv)
     dmxCommonRestoreState(priv);
     if (priv->display) {
         XFreeGC(priv->display, priv->gc);
+        XFreeGC(priv->display, priv->gcDet);
         XFreeGC(priv->display, priv->gcRev);
+        XFreeGC(priv->display, priv->gcCur);
         if (!dmxInput->console) XCloseDisplay(priv->display);
     }
     priv->display = NULL;
@@ -808,6 +817,15 @@ void dmxConsoleInit(DevicePtr pDev)
     gcvals.graphics_exposures = False;
     
     priv->gc = XCreateGC(dpy, win, mask, &gcvals);
+
+    tmp               = gcvals.foreground;
+    if (XParseColor(dpy, attribs.colormap, CONSOLE_SCREEN_DET_COLOR, &color)
+        && XAllocColor(dpy, attribs.colormap, &color)) {
+        gcvals.foreground = color.pixel;
+    } else
+        gcvals.foreground = BlackPixel(dpy, screen);
+    priv->gcDet = XCreateGC(dpy, win, mask, &gcvals);
+    gcvals.foreground = tmp;
 
     tmp               = gcvals.background;
     gcvals.background = gcvals.foreground;

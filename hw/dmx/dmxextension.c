@@ -1486,5 +1486,8 @@ int dmxDetachScreen(int idx)
     /* Free the remaining screen resources and close the screen */
     dmxBECloseScreen(screenInfo.screens[idx]);
 
+    /* Adjust the cursor boundaries (paints detached console window) */
+    dmxAdjustCursorBoundaries();
+
     return 0; /* Success */
 }
