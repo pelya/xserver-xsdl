@@ -197,9 +197,25 @@ ProcessInputEvents(void)
 }
 
 #ifdef __DARWIN__
+#include "micmap.h"
+
+void GlxExtensionInit(void);
+void GlxWrapInitVisuals(miInitVisualsProcPtr *procPtr);
+
 void
 DarwinHandleGUI(int argc, char *argv[])
 {
+}
+
+void DarwinGlxExtensionInit(void)
+{
+    GlxExtensionInit();
+}
+
+void DarwinGlxWrapInitVisuals(
+    miInitVisualsProcPtr *procPtr)
+{
+    GlxWrapInitVisuals(procPtr);
 }
 #endif
 
