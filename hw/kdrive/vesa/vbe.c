@@ -210,7 +210,7 @@ VbeSetMode (Vm86InfoPtr vi, VbeInfoPtr vbe, int mode, int linear, int direct)
     if (code < 0)
 	return -1;
     
-    mode = (mode & 0xffff) | 0x8000;
+    mode = (mode & 0xffff) &~ 0x8000;
     if (linear)
 	mode |= 0x4000;
     
