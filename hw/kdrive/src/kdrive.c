@@ -43,9 +43,22 @@
 #include "dpmsproc.h"
 #endif
 
-CARD8	kdBpp[] = { 1, 4, 8, 16, 24, 32 };
+typedef struct _kdDepths {
+    CARD8   depth;
+    CARD8   bpp;
+} KdDepths;
 
-#define NUM_KD_BPP (sizeof (kdBpp) / sizeof (kdBpp[0]))
+KdDepths    kdDepths[] = {
+    { 1, 1 },
+    { 4, 4 },
+    { 8, 8 },
+    { 15, 16 },
+    { 16, 16 },
+    { 24, 32 },
+    { 32, 32 }
+};
+
+#define NUM_KD_DEPTHS (sizeof (kdDepths) / sizeof (kdDepths[0]))
 
 int                 kdScreenPrivateIndex;
 unsigned long       kdGeneration;
@@ -1320,9 +1333,9 @@ KdSetPixmapFormats (ScreenInfo	*pScreenInfo)
     /*
      * Fill in additional formats
      */
-    for (i = 0; i < NUM_KD_BPP; i++)
-	if (!depthToBpp[kdBpp[i]])
-	    depthToBpp[kdBpp[i]] = kdBpp[i];
+    for (i = 0; i < NUM_KD_DEPTHS; i++)
+	if (!depthToBpp[kdDepths[i].depth])
+	    depthToBpp[kdDepths[i].depth] = kdDepths[i].bpp;
 	
     pScreenInfo->imageByteOrder     = IMAGE_BYTE_ORDER;
     pScreenInfo->bitmapScanlineUnit = BITMAP_SCANLINE_UNIT;
