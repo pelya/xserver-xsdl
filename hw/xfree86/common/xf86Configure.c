@@ -1003,7 +1003,7 @@ DoConfigure()
     }
 
     ErrorF("\nYour %s file is %s\n\n", XF86CONFIGFILE ,filename);
-    ErrorF("To test the server, run 'X -xf86config %s'\n\n", filename);
+    ErrorF("To test the server, run 'X -config %s'\n\n", filename);
 
 bail:
     OsCleanup(TRUE);
