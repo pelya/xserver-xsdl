@@ -72,6 +72,8 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #define	POST_ERROR_MSG2 "\"End of messages from xkbcomp\""
 
 #ifdef WIN32
+
+#include <Xwindows.h>
 static const char* 
 Win32TempDir()
 {
@@ -82,6 +84,38 @@ Win32TempDir()
 	else
         return "/tmp";
 }
+
+static int 
+Win32System(const char *cmdline)
+{
+    STARTUPINFO si;
+    PROCESS_INFORMATION pi;
+    DWORD dwExitCode;
+    char *cmd = xstrdup(cmdline);
+
+    ZeroMemory( &si, sizeof(si) );
+    si.cb = sizeof(si);
+    ZeroMemory( &pi, sizeof(pi) );
+
+    if (!CreateProcess(NULL, cmd, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi)) 
+    {
+        xfree(cmd);
+        return -1;
+    }
+    // Wait until child process exits.
+    WaitForSingleObject( pi.hProcess, INFINITE );
+
+    GetExitCodeProcess( pi.hProcess, &dwExitCode);
+    
+    // Close process and thread handles. 
+    CloseHandle( pi.hProcess );
+    CloseHandle( pi.hThread );
+    xfree(cmd);
+
+    return dwExitCode;
+}
+#undef System
+#define System(x) Win32System(x)
 #endif
 
 static void
@@ -284,12 +318,10 @@ int i;
 #endif
 #else
 	sprintf(buf,
-      "%s/xkbcomp -w %d -R%s -xkm - -em1 %s -emp %s -eml %s \"%s%s.xkm\" < %s",
+      "\"%s\\xkbcomp\" -w %d \"-R%s\" -xkm \"%s\" \"%s%s.xkm\"",
 		XkbBaseDirectory,
 		((xkbDebugFlags<2)?1:((xkbDebugFlags>10)?10:(int)xkbDebugFlags)),
-		XkbBaseDirectory,
-		PRE_ERROR_MSG,ERROR_PREFIX,POST_ERROR_MSG1,
-		xkm_output_dir,keymap,tmpname);
+		XkbBaseDirectory, tmpname, xkm_output_dir,keymap);
 #endif
     }
     else {
