@@ -173,9 +173,6 @@ ATISetup(ScreenPtr pScreen)
 	}
 	MMIO_OUT32(mmio, RADEON_REG_DEFAULT_SC_BOTTOM_RIGHT,
 	    (RADEON_DEFAULT_SC_RIGHT_MAX | RADEON_DEFAULT_SC_BOTTOM_MAX));
-	MMIO_OUT32(mmio, RADEON_REG_SC_TOP_LEFT, 0);
-	MMIO_OUT32(mmio, RADEON_REG_SC_BOTTOM_RIGHT,
-	    RADEON_DEFAULT_SC_RIGHT_MAX | RADEON_DEFAULT_SC_BOTTOM_MAX);
 }
 
 static Bool
@@ -271,6 +268,44 @@ KaaScreenInfoRec ATIKaa = {
 Bool
 ATIDrawInit(ScreenPtr pScreen)
 {
+	KdScreenPriv(pScreen);
+	ATIScreenInfo(pScreenPriv);
+
+	switch (pScreenPriv->screen->fb[0].depth)
+	{
+	case 8:
+		atis->datatype = 2;
+		break;
+	case 15:
+		atis->datatype = 3;
+		break;
+	case 16:
+		atis->datatype = 4;
+		break;
+	case 24:
+		if (pScreenPriv->screen->fb[0].bitsPerPixel == 24) {
+			atis->datatype = 5;
+			ErrorF("[ati]: framebuffers at 24bpp not supported, "
+			    "disabling acceleration\n");
+			return FALSE;
+		} else {
+			atis->datatype = 6;
+		}
+		break;
+	case 32:
+		atis->datatype = 6;
+		break;
+	default:
+		ErrorF("[ati]: acceleration unsupported at depth %d\n",
+		    pScreenPriv->screen->fb[0].depth);
+		return FALSE;
+	}
+
+
+	if (pScreenPriv->screen->fb[0].bitsPerPixel == 24) {
+		
+	}
+	
 	if (!kaaDrawInit(pScreen, &ATIKaa))
 		return FALSE;
 
@@ -285,31 +320,9 @@ ATIDrawEnable(ScreenPtr pScreen)
 	ATICardInfo(pScreenPriv);
 
 	is_radeon = atic->is_radeon;
-	atis->pitch = pScreenPriv->screen->width *
-	    pScreenPriv->screen->fb[0].bitsPerPixel/8;
-	
-	/*ErrorF("depth=%d pitch=%d radeon=%d\n",
-	    pScreenPriv->screen->fb[0].depth, atis->pitch, is_radeon);*/
-	switch (pScreenPriv->screen->fb[0].depth)
-	{
-	case 8:
-		atis->datatype = 2;
-		break;
-	case 15:
-		atis->datatype = 3;
-		break;
-	case 16:
-		atis->datatype = 4;
-		break;
-	case 24:
-		atis->datatype = 5;
-		break;
-	case 32:
-		atis->datatype = 6;
-		break;
-	default:
-		ErrorF("Bad depth %d\n", pScreenPriv->screen->fb[0].depth);
-	}
+
+	atis->pitch = (pScreenPriv->screen->fb[0].byteStride + 0x3f) & ~0x3f;
+
 	atis->dp_gui_master_cntl = (atis->datatype << 8) |
 	    RADEON_GMC_CLR_CMP_CNTL_DIS | RADEON_GMC_AUX_CLIP_DIS;
 	KdMarkSync(pScreen);
