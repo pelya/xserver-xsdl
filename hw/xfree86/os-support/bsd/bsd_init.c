@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/bsd/bsd_init.c,v 3.21 2003/09/24 02:43:34 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/bsd/bsd_init.c,v 3.20 2003/06/30 16:52:57 eich Exp $ */
 /*
  * Copyright 1992 by Rich Murphey <Rich@Rice.edu>
  * Copyright 1993 by David Wexelblat <dwex@goblin.org>
@@ -160,7 +160,7 @@ xf86OpenConsole()
 	/* check if we are run with euid==0 */
 	if (geteuid() != 0)
 	{
-	    FatalError("xf86OpenConsole: Server must be suid root");
+	    FatalError("xf86OpenConsole: Server must be suid root\n");
 	}
 
 	if (!KeepTty)
@@ -198,7 +198,7 @@ xf86OpenConsole()
 		strcat(cons_drivers, supported_drivers[i]);
 	    }
 	    FatalError(
-		"%s: No console driver found\n\tSupported drivers: %s\n\t%s",
+		"%s: No console driver found\n\tSupported drivers: %s\n\t%s\n",
 		"xf86OpenConsole", cons_drivers, CHECK_DRIVER_MSG);
 	}
 #if 0 /* stdin is already closed in OsInit() */
@@ -213,7 +213,7 @@ xf86OpenConsole()
 	case PCCONS:
 	    if (ioctl (xf86Info.consoleFd, CONSOLE_X_MODE_ON, 0) < 0)
 	    {
-		FatalError("%s: CONSOLE_X_MODE_ON failed (%s)\n%s",
+		FatalError("%s: CONSOLE_X_MODE_ON failed (%s)\n%s\n", 
 			   "xf86OpenConsole", strerror(errno),
 			   CHECK_DRIVER_MSG);
 	    }
@@ -282,18 +282,18 @@ acquire_vt:
 	    vtmode.frsig = SIGUSR1;
 	    if (ioctl(xf86Info.consoleFd, VT_SETMODE, &vtmode) < 0) 
 	    {
-	        FatalError("xf86OpenConsole: VT_SETMODE VT_PROCESS failed");
+	        FatalError("xf86OpenConsole: VT_SETMODE VT_PROCESS failed\n");
 	    }
 #if !defined(USE_DEV_IO) && !defined(USE_I386_IOPL)
 	    if (ioctl(xf86Info.consoleFd, KDENABIO, 0) < 0)
 	    {
-	        FatalError("xf86OpenConsole: KDENABIO failed (%s)",
+	        FatalError("xf86OpenConsole: KDENABIO failed (%s)\n",
 		           strerror(errno));
 	    }
 #endif
 	    if (ioctl(xf86Info.consoleFd, KDSETMODE, KD_GRAPHICS) < 0)
 	    {
-	        FatalError("xf86OpenConsole: KDSETMODE KD_GRAPHICS failed");
+	        FatalError("xf86OpenConsole: KDSETMODE KD_GRAPHICS failed\n");
 	    }
    	    break; 
 #endif /* SYSCONS_SUPPORT || PCVT_SUPPORT */
@@ -337,7 +337,7 @@ xf86OpenPccons()
 	if (ioctl(fd, CONSOLE_X_MODE_OFF, 0) < 0)
 	{
 	    FatalError(
-		"%s: CONSOLE_X_MODE_OFF failed (%s)\n%s\n%s",
+		"%s: CONSOLE_X_MODE_OFF failed (%s)\n%s\n%s\n",
 		"xf86OpenPccons",
 		strerror(errno),
 		"Was expecting pccons driver with X support",
@@ -427,11 +427,11 @@ xf86OpenSyscons()
 		    {
 			if (syscons_version >= 0x100)
 			{
-			    FatalError("%s: Cannot find a free VT",
+			    FatalError("%s: Cannot find a free VT\n",
 				       "xf86OpenSyscons");
 			}
 			/* Should no longer reach here */
-			FatalError("%s: %s %s\n\t%s %s",
+			FatalError("%s: %s %s\n\t%s %s\n",
 				   "xf86OpenSyscons",
 				   "syscons versions prior to 1.0 require",
 				   "either the",
@@ -450,18 +450,18 @@ xf86OpenSyscons()
 #endif	    
 	    if ((fd = open(vtname, SYSCONS_CONSOLE_MODE, 0)) < 0)
 	    {
-		FatalError("xf86OpenSyscons: Cannot open %s (%s)",
+		FatalError("xf86OpenSyscons: Cannot open %s (%s)\n",
 			   vtname, strerror(errno));
 	    }
 	    if (ioctl(fd, VT_GETMODE, &vtmode) < 0)
 	    {
-		FatalError("xf86OpenSyscons: VT_GETMODE failed");
+		FatalError("xf86OpenSyscons: VT_GETMODE failed\n");
 	    }
 	    xf86Info.consType = SYSCONS;
 	    xf86Msg(X_PROBED, "Using syscons driver with X support");
 	    if (syscons_version >= 0x100)
 	    {
-		xf86ErrorF(" (version %ld.%ld)\n", syscons_version >> 8,
+		xf86ErrorF(" (version %d.%d)\n", syscons_version >> 8,
 			   syscons_version & 0xFF);
 	    }
 	    else
@@ -515,7 +515,7 @@ xf86OpenPcvt()
 	{
 	    if(ioctl(fd, VT_GETMODE, &vtmode) < 0)
 	    {
-		FatalError("%s: VT_GETMODE failed\n%s%s\n%s",
+		FatalError("%s: VT_GETMODE failed\n%s%s\n%s\n",
 			   "xf86OpenPcvt",
 			   "Found pcvt driver but X11 seems to be",
 			   " not supported.", CHECK_DRIVER_MSG);
@@ -554,7 +554,7 @@ xf86OpenPcvt()
 		    }
 		    else
 		    {
-			FatalError("%s: Cannot find a free VT",
+			FatalError("%s: Cannot find a free VT\n",
 				   "xf86OpenPcvt");
 		    }
 		}
@@ -564,12 +564,12 @@ xf86OpenPcvt()
             sprintf(vtname, "%s%01x", vtprefix, xf86Info.vtno - 1);
 	    if ((fd = open(vtname, PCVT_CONSOLE_MODE, 0)) < 0)
 	    {
-		FatalError("xf86OpenPcvt: Cannot open %s (%s)",
+		FatalError("xf86OpenPcvt: Cannot open %s (%s)\n",
 			   vtname, strerror(errno));
 	    }
 	    if (ioctl(fd, VT_GETMODE, &vtmode) < 0)
 	    {
-		FatalError("xf86OpenPcvt: VT_GETMODE failed");
+		FatalError("xf86OpenPcvt: VT_GETMODE failed\n");
 	    }
 	    xf86Info.consType = PCVT;
 #ifdef WSCONS_SUPPORT
@@ -616,7 +616,7 @@ xf86OpenWScons()
     }
     if (fd != -1) {
 	if (ioctl(fd, WSDISPLAYIO_SMODE, &mode) < 0) {
-	    FatalError("%s: WSDISPLAYIO_MODE_MAPPED failed (%s)\n%s",
+	    FatalError("%s: WSDISPLAYIO_MODE_MAPPED failed (%s)\n%s\n", 
 		       "xf86OpenConsole", strerror(errno),
 		       CHECK_DRIVER_MSG);
 	}
@@ -654,7 +654,7 @@ xf86CloseConsole()
 #if !defined(USE_DEV_IO) && !defined(USE_I386_IOPL)
         if (ioctl(xf86Info.consoleFd, KDDISABIO, 0) < 0)
         {
-            xf86FatalError("xf86CloseConsole: KDDISABIO failed (%s)",
+            xf86FatalError("xf86CloseConsole: KDDISABIO failed (%s)\n",
 	                   strerror(errno));
         }
 #endif
@@ -678,7 +678,7 @@ xf86CloseConsole()
 	close(xf86Info.consoleFd);
 	if ((xf86Info.consoleFd = open("/dev/console",O_RDONLY,0)) <0)
 	{
-	    xf86FatalError("xf86CloseConsole: Cannot open /dev/console (%s)",
+	    xf86FatalError("xf86CloseConsole: Cannot open /dev/console (%s)\n",
 			   strerror(errno));
 	}
     }

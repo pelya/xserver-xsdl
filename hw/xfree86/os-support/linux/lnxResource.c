@@ -190,8 +190,7 @@ xf86AccResFromOS(resPtr ret)
       defined(__s390__) || \
       defined(__hppa__)
 
- /*
-  * XXX this isn't exactly correct but it will get the server working 
+ /* XXX this isn't exactly correct but it will get the server working 
   * for now until we get something better.
   */
   
@@ -204,7 +203,7 @@ xf86BusAccWindowsFromOS(void)
     RANGE(range, 0x00000000, 0xffffffff, ResExcMemBlock);
     ret = xf86AddResToList(ret, &range, -1);
 
-#if defined(__sparc__) || defined(__powerpc__)
+#ifdef __sparc__
     RANGE(range, 0x00000000, 0x00ffffff, ResExcIoBlock);
 #else
     RANGE(range, 0x00000000, 0x0000ffff, ResExcIoBlock);
@@ -222,7 +221,7 @@ xf86PciBusAccWindowsFromOS(void)
     RANGE(range, 0x00000000, 0xffffffff, ResExcMemBlock);
     ret = xf86AddResToList(ret, &range, -1);
 
-#if defined(__sparc__) || defined(__powerpc__)
+#ifdef __sparc__
     RANGE(range, 0x00000000, 0x00ffffff, ResExcIoBlock);
 #else
     RANGE(range, 0x00000000, 0x0000ffff, ResExcIoBlock);
@@ -231,7 +230,7 @@ xf86PciBusAccWindowsFromOS(void)
     return ret;
 }
 
-#ifdef INCLUDE_UNUSED
+#ifdef INCLUDE_UNUSED */
 
 resPtr
 xf86IsaBusAccWindowsFromOS(void)
@@ -242,7 +241,7 @@ xf86IsaBusAccWindowsFromOS(void)
     RANGE(range, 0x00000000, 0xffffffff, ResExcMemBlock);
     ret = xf86AddResToList(ret, &range, -1);
 
-#if defined(__sparc__) || defined(__powerpc__)
+#ifdef __sparc__
     RANGE(range, 0x00000000, 0x00ffffff, ResExcIoBlock);
 #else
     RANGE(range, 0x00000000, 0x0000ffff, ResExcIoBlock);
@@ -268,7 +267,7 @@ xf86AccResFromOS(resPtr ret)
     ret = xf86AddResToList(ret, &range, -1);
     RANGE(range, 0x00000000, 0x00000000, ResExcIoBlock);
     ret = xf86AddResToList(ret, &range, -1);
-#if defined(__sparc__) || defined(__powerpc__)
+#ifdef __sparc__
     RANGE(range, 0x00ffffff, 0x00ffffff, ResExcIoBlock);
 #else
     RANGE(range, 0x0000ffff, 0x0000ffff, ResExcIoBlock);

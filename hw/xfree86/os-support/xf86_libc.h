@@ -1,5 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/hw/xfree86/os-support/xf86_libc.h,v 1.1.4.2 2003/12/06 13:24:26 kaleb Exp $ */
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/xf86_libc.h,v 3.63 2003/12/08 21:46:55 alanh Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/xf86_libc.h,v 3.57 2003/08/24 17:37:03 dawes Exp $ */
 /*
  * Copyright (c) 1997-2003 by The XFree86 Project, Inc.
  *
@@ -46,7 +45,6 @@
 #define XF86_LIBC_H 1
 
 #include "Xfuncs.h"
-#include <stddef.h>
 
 /*
  * The first set of definitions are required both for modules and
@@ -97,11 +95,7 @@ struct xf86stat {
 typedef int xf86key_t;
 
 /* setjmp/longjmp */
-#if defined(__ia64__)
-typedef int xf86jmp_buf[1024] __attribute__ ((aligned (16))); /* guarantees 128-bit alignment! */
-#else
 typedef int xf86jmp_buf[1024];
-#endif
 
 /* for setvbuf */
 #define XF86_IONBF    1
@@ -378,10 +372,6 @@ typedef int xf86jmp_buf[1024];
 #define strcspn(ccp1,ccp2)	xf86strcspn(ccp1,ccp2)
 #undef strerror
 #define strerror(i)		xf86strerror(i)
-#undef strlcat
-#define strlcat(cp,ccp,I)	xf86strlcat(cp,ccp,I)
-#undef strlcpy
-#define strlcpy(cp,ccp,I)	xf86strlcpy(cp,ccp,I)
 #undef strlen
 #define strlen(ccp)		xf86strlen(ccp)
 #undef strncmp
@@ -419,11 +409,11 @@ typedef int xf86jmp_buf[1024];
 #undef ungetc
 #define ungetc(i,FP)		xf86ungetc(i,FP)
 #undef vfprinf
-#define vfprintf(p,f,a)		xf86vfprintf(p,f,a)
+#define vfprintf		xf86vfprintf
 #undef vsnprintf
-#define vsnprintf(s,n,f,a)	xf86vsnprintf(s,n,f,a)
+#define vsnprintf		xf86vsnprintf
 #undef vsprintf
-#define vsprintf(s,f,a)		xf86vsprintf(s,f,a)
+#define vsprintf		xf86vsprintf
 /* XXX Disable assert as if NDEBUG was defined */
 /* Some X headers defined this away too */
 #undef assert

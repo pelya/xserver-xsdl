@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/GL/glx/single2.c,v 1.8 2004/02/10 22:54:15 alanh Exp $ */
+/* $XFree86: xc/programs/Xserver/GL/glx/single2.c,v 1.6 2001/06/06 19:00:15 dawes Exp $ */
 /*
 ** License Applicability. Except to the extent portions of this file are
 ** made subject to an alternative license as permitted in the SGI Free
@@ -296,24 +296,15 @@ char *__glXcombine_strings(const char *cext_string, const char *sext_string)
    return combo_string;
 }
 
-int DoGetString(__GLXclientState *cl, GLbyte *pc, GLboolean need_swap)
+int __glXDisp_GetString(__GLXclientState *cl, GLbyte *pc)
 {
     ClientPtr client;
     __GLXcontext *cx;
     GLenum name;
     const char *string;
-    __GLX_DECLARE_SWAP_VARIABLES;
     int error;
     char *buf = NULL, *buf1 = NULL;
     GLint length = 0;
-
-    /* If the client has the opposite byte order, swap the contextTag and
-     * the name.
-     */
-    if ( need_swap ) {
-	__GLX_SWAP_INT(pc + 4);
-	__GLX_SWAP_INT(pc + __GLX_SINGLE_HDR_SIZE);
-    }
 
     cx = __glXForceCurrent(cl, __GLX_GET_SINGLE_CONTEXT_TAG(pc), &error);
     if (!cx) {
@@ -340,43 +331,18 @@ int DoGetString(__GLXclientState *cl, GLbyte *pc, GLboolean need_swap)
 	}
 	string = buf;
     }
-    else if ( name == GL_VERSION ) {
-	if ( atof( string ) > atof( GLServerVersion ) ) {
-	    buf = __glXMalloc( __glXStrlen( string ) 
-			       + __glXStrlen( GLServerVersion )
-			       + 4 );
-	    if ( buf == NULL ) {
-		string = GLServerVersion;
-	    }
-	    else {
-		__glXSprintf( buf, "%s (%s)", GLServerVersion, string );
-		string = buf;
-	    }
-	}
-    }
     if (string) {
 	length = __glXStrlen((const char *) string) + 1;
     }
 
     __GLX_BEGIN_REPLY(length);
     __GLX_PUT_SIZE(length);
-
-    if ( need_swap ) {
-	__GLX_SWAP_REPLY_SIZE();
-	__GLX_SWAP_REPLY_HEADER();
-    }
-
     __GLX_SEND_HEADER();
     WriteToClient(client, length, (char *) string); 
     if (buf != NULL) {
 	__glXFree(buf);
     }
     return Success;
-}
-
-int __glXDisp_GetString(__GLXclientState *cl, GLbyte *pc)
-{
-    return DoGetString(cl, pc, GL_FALSE);
 }
 
 int __glXDisp_GetClipPlane(__GLXclientState *cl, GLbyte *pc)

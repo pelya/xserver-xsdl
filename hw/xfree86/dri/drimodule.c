@@ -1,4 +1,3 @@
-/* $XdotOrg$ */
 /**************************************************************************
 
 Copyright 1999 Precision Insight, Inc., Cedar Park, Texas.
@@ -25,7 +24,7 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 **************************************************************************/
-/* $XFree86: xc/programs/Xserver/GL/dri/drimodule.c,v 1.5 2001/06/15 21:22:39 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/GL/dri/drimodule.c,v 1.6 2001/12/10 19:07:19 dawes Exp $ */
 
 /*
  * Authors:
@@ -44,7 +43,7 @@ static XF86ModuleVersionInfo VersRec =
         MODULEVENDORSTRING,
         MODINFOSTRING1,
         MODINFOSTRING2,
-        XORG_VERSION_CURRENT,
+        XF86_VERSION_CURRENT,
         1, 0, 0,
         ABI_CLASS_EXTENSION,
         ABI_EXTENSION_VERSION,

@@ -1222,7 +1222,7 @@ static XF86ModuleVersionInfo VersRec =
         MODULEVENDORSTRING,
         MODINFOSTRING1,
         MODINFOSTRING2,
-        XORG_VERSION_CURRENT,
+        XF86_VERSION_CURRENT,
         1, 0, 0,
         ABI_CLASS_EXTENSION,
         ABI_EXTENSION_VERSION,

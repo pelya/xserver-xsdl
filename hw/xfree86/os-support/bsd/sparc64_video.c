@@ -1,4 +1,4 @@
-/* $XFree86: sparc64_video.c,v 1.2 2003/03/14 13:46:04 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/bsd/sparc64_video.c,v 1.2 2003/03/14 13:46:04 tsi Exp $ */
 /*
  * Copyright 1992 by Rich Murphey <Rich@Rice.edu>
  * Copyright 1993 by David Wexelblat <dwex@goblin.org>
@@ -71,7 +71,7 @@ sparc64MapVidMem(int ScreenNum, unsigned long Base, unsigned long Size,
 		     PROT_READ : (PROT_READ | PROT_WRITE),
 		    MAP_SHARED, fd, Base);
 	if (base == MAP_FAILED)
-		FatalError("%s: could not mmap screen [s=%x,a=%x] (%s)",
+		FatalError("%s: could not mmap screen [s=%x,a=%x] (%s)\n",
 			   "xf86MapVidMem", Size, Base, strerror(errno));
 	return base;
 }

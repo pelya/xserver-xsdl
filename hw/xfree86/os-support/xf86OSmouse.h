@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/xf86OSmouse.h,v 1.24 2003/11/03 05:11:51 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/xf86OSmouse.h,v 1.22 2003/08/24 19:58:06 dawes Exp $ */
 /*
  * Copyright (c) 1999-2003 by The XFree86 Project, Inc.
  *
@@ -44,36 +44,6 @@
 					 * specific protocol names that are
 					 * supported for this class. */
 
-/* Mouse Protocol IDs. */
-typedef enum {
-    PROT_UNKNOWN = -2,
-    PROT_UNSUP = -1,		/* protocol is not supported */
-    PROT_MS = 0,
-    PROT_MSC,
-    PROT_MM,
-    PROT_LOGI,
-    PROT_LOGIMAN,
-    PROT_MMHIT,
-    PROT_GLIDE,
-    PROT_IMSERIAL,
-    PROT_THINKING,
-    PROT_ACECAD,
-    PROT_VALUMOUSESCROLL,
-    PROT_PS2,
-    PROT_GENPS2,
-    PROT_IMPS2,
-    PROT_EXPPS2,
-    PROT_THINKPS2,
-    PROT_MMPS2,
-    PROT_GLIDEPS2,
-    PROT_NETPS2,
-    PROT_NETSCPS2,
-    PROT_BM,
-    PROT_AUTO,
-    PROT_SYSMOUSE,
-    PROT_NUMPROTOS	/* This must always be last. */
-} MouseProtocolID;
-
 struct _MouseDevRec;
 
 typedef int (*GetInterfaceTypesProc)(void);
@@ -85,9 +55,10 @@ typedef const char *(*DefaultProtocolProc)(void);
 typedef const char *(*SetupAutoProc)(InputInfoPtr pInfo, int *protoPara);
 typedef void (*SetResProc)(InputInfoPtr pInfo, const char* protocol, int rate,
 			   int res);
-typedef const char *(*FindDeviceProc)(InputInfoPtr pInfo, const char *protocol,
-				      int flags);
-typedef const char *(*GuessProtocolProc)(InputInfoPtr pInfo, int flags);
+typedef void (*checkMovementsProc)(InputInfoPtr,int, int);
+typedef void (*autoProbeProc)(InputInfoPtr, Bool, Bool);
+typedef Bool (*collectDataProc)(struct _MouseDevRec *, unsigned char);
+typedef Bool (*dataGoodProc)(struct _MouseDevRec *);
 
 /*
  * OSMouseInfoRec is used to pass information from the OSMouse layer to the
@@ -103,8 +74,6 @@ typedef struct {
 	SetResProc		SetPS2Res;
 	SetResProc		SetBMRes;
 	SetResProc		SetMiscRes;
-	FindDeviceProc		FindDevice;
-	GuessProtocolProc	GuessProtocol;
 } OSMouseInfoRec, *OSMouseInfoPtr;
 
 /*
@@ -131,11 +100,7 @@ typedef struct {
  *		auto-detection.  It returns the name of the detected protocol,
  *		or NULL when detection fails.  It may also adjust one or more
  *		of the "protoPara" values for the detected protocol by setting
- *		then to something other than -1.  SetupAuto gets called in two
- *		ways.  The first is before any devices have been opened.  This
- *		can be used when the protocol "Auto" always maps to a single
- *		protocol type.  The second is with the device open, allowing
- *		OS-specific probing to be done.
+ *		then to something other than -1.
  *
  * SetPS2Res:	Set the resolution and sample rate for MSE_PS2 and MSE_XPS2
  *		protocol types.
@@ -143,21 +108,6 @@ typedef struct {
  * SetBMRes:	Set the resolution and sample rate for MSE_BM protocol types.
  *
  * SetMiscRes:	Set the resolution and sample rate for MSE_MISC protocol types.
- *
- * FindDevice:	This function gets called when no Device has been specified
- *		in the config file.  OS-specific methods may be used to guess
- * 		which input device to use.  This function is called after the
- *		pre-open attempts at protocol discovery are done, but before
- * 		the device is open.  I.e., after the first SetupAuto() call,
- *		after the DefaultProtocol() call, but before the PreInit()
- *		call.  Available protocol information may be used in locating
- *		the default input device.
- *
- * GuessProtocol: A last resort attempt at guessing the mouse protocol by
- *		whatever OS-specific means might be available.  OS-independent
- *		things should be in the mouse driver.  This function gets
- *		called after the mouse driver's OS-independent methods have
- *		failed.
  */
 
 extern OSMouseInfoPtr xf86OSMouseInit(int flags);
@@ -168,12 +118,11 @@ extern OSMouseInfoPtr xf86OSMouseInit(int flags);
  * History:
  *
  *  1.0.0 - Everything up to when versioning was started.
- *  1.1.0 - FindDevice and GuessProtocol added to OSMouseInfoRec
  *
  */
 
 #define OS_MOUSE_VERSION_MAJOR 1
-#define OS_MOUSE_VERSION_MINOR 1
+#define OS_MOUSE_VERSION_MINOR 0
 #define OS_MOUSE_VERSION_PATCH 0
 
 #define OS_MOUSE_VERSION_CURRENT					\
@@ -181,23 +130,10 @@ extern OSMouseInfoPtr xf86OSMouseInit(int flags);
 					  OS_MOUSE_VERSION_MINOR,	\
 					  OS_MOUSE_VERSION_PATCH)
 
-#define HAVE_GUESS_PROTOCOL \
-	(xf86GetBuiltinInterfaceVersion(BUILTIN_IF_OSMOUSE, 0) >= \
-                BUILTIN_INTERFACE_VERSION_NUMERIC(1, 1, 0))
-
-#define HAVE_FIND_DEVICE \
-	(xf86GetBuiltinInterfaceVersion(BUILTIN_IF_OSMOUSE, 0) >= \
-                BUILTIN_INTERFACE_VERSION_NUMERIC(1, 1, 0))
-
 /*
  * Mouse device record.  This is shared by the mouse driver and the OSMouse
  * layer.
  */
-
-typedef void (*checkMovementsProc)(InputInfoPtr,int, int);
-typedef void (*autoProbeProc)(InputInfoPtr, Bool, Bool);
-typedef Bool (*collectDataProc)(struct _MouseDevRec *, unsigned char);
-typedef Bool (*dataGoodProc)(struct _MouseDevRec *);
 
 typedef void (*PostMseEventProc)(InputInfoPtr pInfo, int buttons,
 			      int dx, int dy, int dz, int dw);
@@ -210,8 +146,8 @@ typedef struct _MouseDevRec {
     DeviceIntPtr	device;
     const char *	mseDevice;
     const char *	protocol;
-    MouseProtocolID	protocolID;
-    MouseProtocolID	oldProtocolID; /* hack */
+    int			protocolID;
+    int                 oldProtocolID; /* hack */
     int			class;
     int			mseModel;
     int			baudRate;

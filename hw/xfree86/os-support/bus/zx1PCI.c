@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/bus/zx1PCI.c,v 1.8 2004/01/16 15:39:38 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/bus/zx1PCI.c,v 1.3 2003/07/17 15:08:22 tsi Exp $ */
 /*
  * Copyright (C) 2002-2003 The XFree86 Project, Inc.  All Rights Reserved.
  *
@@ -97,10 +97,9 @@
 #define LBA_PORT5_CNTRL		0x1228U
 #define LBA_PORT6_CNTRL		0x1230U
 #define LBA_PORT7_CNTRL		0x1238U
-#define LBA_RESET_FUNCTION	  0x0000000001UL
-#define LBA_CLEAR_ERROR		  0x0000000010UL
-#define LBA_HARD_FAIL		  0x0000000040UL
-#define LBA_RESET_COMPLETE	  0x0100000000UL
+#define LBA_ROPE_RESET		  0x01UL
+#define LBA_CLEAR_ERROR		  0x10UL
+#define LBA_HARD_FAIL		  0x40UL
 
 #define ROPE_PAGE_CONTROL	0x1418U
 
@@ -118,11 +117,8 @@
 #define IOA_SUBORDINATE_BUS	0x0059U
 
 #define IOA_CONTROL		0x0108U
-#define IOA_RESET_FUNCTION	  0x0000000001UL
-#define IOA_FORWARD_VGA		  0x0000000008UL
-#define IOA_CLEAR_ERROR		  0x0000000010UL
-#define IOA_HARD_FAIL		  0x0000000040UL
-#define IOA_RESET_COMPLETE	  0x0100000000UL
+#define IOA_FORWARD_VGA		  0x08UL
+#define IOA_HARD_FAIL		  0x40UL
 
 #define IOA_LMMIO_BASE		0x0200U
 #define IOA_LMMIO_MASK		0x0208U
@@ -138,32 +134,11 @@
 #define IOA_ELMMIO_MASK		0x0258U
 #define IOA_EIOS_BASE		0x0260U
 #define IOA_EIOS_MASK		0x0268U
-#define IOA_GLOBAL_MASK		0x0270U
+
 #define IOA_SLAVE_CONTROL	0x0278U
 #define IOA_VGA_PEER_ENABLE	  0x2000UL
 #define IOA_MSI_BASE		0x0280U
 #define IOA_MSI_MASK		0x0288U
-
-#define IOA_DMA_BASE		0x02B0U
-#define IOA_DMA_MASK		0x02B8U
-
-#define IOA_ERROR_CONFIG	0x0680U
-#define IOA_ERROR_PIOWRITE	  0x0001UL
-#define IOA_ERROR_PIOREAD	  0x0002UL
-#define IOA_ERROR_DMAWRITE	  0x0004UL
-#define IOA_ERROR_DMAREAD	  0x0008UL
-#define IOA_ERROR_CONFIG_MASTER	  0x0010UL
-#define IOA_ERROR_SMART		  0x0020UL
-#define IOA_ERROR_FATAL_SERR	  0x0040UL
-#define IOA_ERROR_ASSERT_SERR	  0x0080UL
-/*	?			  0x0100UL */
-#define IOA_ERROR_LOOPBACK	  0x0200UL
-#define IOA_ERROR_CONFIG_TARGET	  0x0400UL
-#define IOA_ERROR_IO_MASTER	  0x0800UL
-#define IOA_ERROR_IO_TARGET	  0x1000UL
-#define IOA_ERROR_MEM_MASTER	  0x2000UL
-#define IOA_ERROR_MEM_TARGET	  0x4000UL
-#define IOA_ERROR_HF_IO_FATAL	  0x8000UL
 
 #define RANGE_ENABLE		0x01UL		/* In various base registers */
 
@@ -181,14 +156,9 @@
 static CARD8 *pZX1mio = NULL,
 	     *pZX1ioa = NULL;
 
-/* Per-rope data */
-static INT8   zx1_ropemap[8];
-static CARD32 zx1_pciids[8];
-static CARD64 zx1_lbacntl[8];
+static INT8   zx1_ropemap[8];		/* One for each (potential) rope */
+static CARD64 zx1_lbacntl[8];		/*  "   "   "        "       "   */
 static int    zx1_busno[8], zx1_subno[8];
-
-/* Array of Booleans for non-empty buses */
-static INT8   zx1_busnmpt[MAX_PCI_BUSES];
 
 static pciBusFuncs_t zx1BusFuncs;
 static int           zx1_fakebus = -1;
@@ -322,8 +292,7 @@ ControlZX1Bridge(int bus, CARD16 mask, CARD16 value)
 	 * SLAVE_CONTROL register.
 	 */
 	tmp1 = MIO_QUAD(VGA_ROUTE);
-	tmp2 = IOA_QUAD(ropenum, IOA_CONTROL) &
-	    ~(IOA_RESET_FUNCTION | IOA_CLEAR_ERROR);
+	tmp2 = IOA_QUAD(ropenum, IOA_CONTROL);
 	if ((tmp1 & VGA_ENABLE) && ((tmp1 & 0x07UL) == ropenum)) {
 	    current |= PCI_PCI_BRIDGE_VGA_EN;
 	    if ((mask & PCI_PCI_BRIDGE_VGA_EN) &&
@@ -346,9 +315,8 @@ ControlZX1Bridge(int bus, CARD16 mask, CARD16 value)
 		    MIO_QUAD(VGA_ROUTE) = 0UL;
 		    tmp3 = IOA_QUAD(tmp1 & 0x07UL, IOA_CONTROL);
 		    if (tmp3 & IOA_FORWARD_VGA)
-			IOA_QUAD(tmp1 & 0x07UL, IOA_CONTROL) = tmp3 &
-			    ~(IOA_RESET_FUNCTION | IOA_FORWARD_VGA |
-			      IOA_CLEAR_ERROR);
+			IOA_QUAD(tmp1 & 0x07UL, IOA_CONTROL) =
+			    tmp3 & ~IOA_FORWARD_VGA;
 		}
 		if (!(tmp2 & IOA_FORWARD_VGA)) {
 		    tmp2 |= IOA_FORWARD_VGA;
@@ -361,7 +329,7 @@ ControlZX1Bridge(int bus, CARD16 mask, CARD16 value)
 
 	/* Move on to master abort failure enablement */
 	tmp1 = MIO_QUAD((ropenum << 3) + LBA_PORT0_CNTRL) &
-	       ~(LBA_RESET_FUNCTION | LBA_CLEAR_ERROR);
+	       ~(LBA_ROPE_RESET | LBA_CLEAR_ERROR);
 	if ((tmp1 & LBA_HARD_FAIL) || (tmp2 & IOA_HARD_FAIL)) {
 	    current |= PCI_PCI_BRIDGE_MASTER_ABORT_EN;
 	    if ((mask & PCI_PCI_BRIDGE_MASTER_ABORT_EN) &&
@@ -423,15 +391,14 @@ GetZX1BridgeResources(int bus,
 static CARD32
 zx1FakeReadLong(PCITAG tag, int offset)
 {
-    FatalError("zx1FakeReadLong(0x%lX, 0x%X) called\n",
-	       (unsigned long)tag, offset);
+    FatalError("zx1FakeReadLong(0x%X, 0x%X) called\n", tag, offset);
 }
 
 static void
 zx1FakeWriteLong(PCITAG tag, int offset, CARD32 val)
 {
-    FatalError("zx1FakeWriteLong(0x%lX, 0x%X, 0x%08X) called\n",
-	       (unsigned long)tag, offset, val);
+    FatalError("zx1FakeWriteLong(0x%X, 0x%X, 0x%08X) called\n",
+	       tag, offset, val);
 }
 
 static void
@@ -477,13 +444,13 @@ xf86PreScanZX1(void)
     resRange range;
     unsigned long mapSize = xf86getpagesize();
     unsigned long tmp, base, ioaaddr;
-    unsigned long flagsd, based, lastd, maskd, routed;
-    unsigned long flags0, base0, last0, mask0, route0;
-    unsigned long flags1, base1, last1, mask1, route1;
-    unsigned long flags2, base2, last2, mask2, route2;
-    unsigned long flags3, base3, last3, mask3, route3;
-    unsigned long flagsg, baseg, lastg, maskg, routeg;
-    unsigned long flagsl, basel, lastl;
+    unsigned long flagsd = 0, based = 0, lastd = 0, maskd = 0, routed = 0;
+    unsigned long flags0 = 0, base0 = 0, last0 = 0, mask0 = 0, route0 = 0;
+    unsigned long flags1 = 0, base1 = 0, last1 = 0, mask1 = 0, route1 = 0;
+    unsigned long flags2 = 0, base2 = 0, last2 = 0, mask2 = 0, route2 = 0;
+    unsigned long flags3 = 0, base3 = 0, last3 = 0, mask3 = 0, route3 = 0;
+    unsigned long flagsg = 0, baseg = 0, lastg = 0, maskg = 0, routeg = 0;
+    unsigned long flagsl = 0, basel = 0, lastl = 0;
     int i, rope;
 
     /* Map mio registers (minimum 8k) */
@@ -493,7 +460,7 @@ xf86PreScanZX1(void)
     if (!(pZX1mio = xf86MapVidMem(-1, VIDMEM_MMIO, MIO_BASE, mapSize)))
 	return FALSE;
 
-    /* Look for ZX1's SBA and IOC */	/* XXX What about Dino? */
+    /* Look for ZX1's SBA and IOC */
     if ((MIO_LONG(MIO_FUNCTION0 + PCI_ID_REG) !=
 	 DEVID(VENDOR_HP, CHIP_ZX1_SBA)) ||
 	(MIO_LONG(MIO_FUNCTION1 + PCI_ID_REG) !=
@@ -552,17 +519,16 @@ xf86PreScanZX1(void)
 
 	    /* Prevent hard-fails */
 	    zx1_lbacntl[i] = MIO_QUAD((i << 3) + LBA_PORT0_CNTRL) &
-		~(LBA_RESET_FUNCTION | LBA_CLEAR_ERROR);
+		~(LBA_ROPE_RESET | LBA_CLEAR_ERROR);
 	    if (zx1_lbacntl[i] & LBA_HARD_FAIL)
 		MIO_QUAD((i << 3) + LBA_PORT0_CNTRL) =
 		    zx1_lbacntl[i] & ~LBA_HARD_FAIL;
 
 	    /* Poke for an ioa */
-	    zx1_pciids[i] = IOA_LONG(i, PCI_ID_REG);
-	    switch (zx1_pciids[i]) {
+	    tmp = IOA_LONG(i, PCI_ID_REG);
+	    switch ((CARD32)tmp) {
 	    case DEVID(VENDOR_HP, CHIP_ELROY):
-	    case DEVID(VENDOR_HP, CHIP_ZX1_LBA):	/* Mercury */
-	    case DEVID(VENDOR_HP, CHIP_ZX1_AGP8):	/* QuickSilver */
+	    case DEVID(VENDOR_HP, CHIP_ZX1_LBA):
 		/* Expected vendor/device IDs */
 		zx1_busno[i] =
 		    (unsigned int)IOA_BYTE(i, IOA_SECONDARY_BUS);
@@ -571,10 +537,10 @@ xf86PreScanZX1(void)
 		break;
 
 	    default:
-		if ((CARD16)(zx1_pciids[i] + 1U) > (CARD16)1U)
+		if ((CARD16)(tmp + 1U) > (CARD16)1U)
 		    xf86MsgVerb(X_NOTICE, 0,
 			"HP ZX1:  Unexpected vendor/device id 0x%08X"
-			" on rope %d\n", zx1_pciids[i], i);
+			" on rope %d\n", (CARD32)tmp, i);
 		/* Nobody home, or not the "right" kind of rope guest */
 
 		/*
@@ -620,14 +586,6 @@ xf86PreScanZX1(void)
      * consequence of the fact that high-order mask bits are zeroes instead of
      * ones.
      */
-
-    flagsd = 0; based = 0; lastd = 0; maskd = 0; routed = 0;
-    flags0 = 0; base0 = 0; last0 = 0; mask0 = 0; route0 = 0;
-    flags1 = 0; base1 = 0; last1 = 0; mask1 = 0; route1 = 0;
-    flags2 = 0; base2 = 0; last2 = 0; mask2 = 0; route2 = 0;
-    flags3 = 0; base3 = 0; last3 = 0; mask3 = 0; route3 = 0;
-    flagsg = 0; baseg = 0; lastg = 0; maskg = 0; routeg = 0;
-    flagsl = 0; basel = 0; lastl = 0;
 
     if ((tmp = MIO_QUAD(IOS_DIST_BASE)) & RANGE_ENABLE) {
 	flagsd = RANGE_ENABLE;
@@ -938,9 +896,6 @@ xf86PostScanZX1(void)
     if (!pZX1mio)
 	return;
 
-    (void)memset(zx1_busnmpt, FALSE, sizeof(zx1_busnmpt));
-    pBusInfo = pciBusInfo[0];
-
     /*
      * Certain 2.4 & 2.5 Linux kernels add fake PCI devices.  Remove them to
      * prevent any possible interference with our PCI validation.
@@ -952,19 +907,15 @@ xf86PostScanZX1(void)
     ppPCI = ppPCI2 = xf86scanpci(0);	/* Recursion is only apparent */
     while ((pPCI = *ppPCI2++)) {
 	switch (pPCI->pci_device_vendor) {
-	case DEVID(VENDOR_HP, CHIP_ELROY):
-	case DEVID(VENDOR_HP, CHIP_ZX1_SBA):	/* Pluto function 0 */
-	case DEVID(VENDOR_HP, CHIP_ZX1_IOC):	/* Pluto function 1 */
-	case DEVID(VENDOR_HP, CHIP_ZX1_LBA):	/* Mercury */
-	case DEVID(VENDOR_HP, CHIP_ZX1_AGP8):	/* QuickSilver */
+	case DEVID(VENDOR_HP, CHIP_ZX1_SBA):
+	case DEVID(VENDOR_HP, CHIP_ZX1_IOC):
+	case DEVID(VENDOR_HP, CHIP_ZX1_LBA):
 	    xfree(pPCI);		/* Remove it */
 	    continue;
 
 	default:
 	    *ppPCI++ = pPCI;
 	    idx++;
-
-	    zx1_busnmpt[pPCI->busnum] = TRUE;
 
 	    if (zx1_hasvga)
 		continue;
@@ -990,8 +941,8 @@ xf86PostScanZX1(void)
     }
 
     /*
-     * Restore hard-fail settings and figure out the actual secondary and
-     * subordinate bus numbers.
+     * Restore hard-fail settings and figure out the actual subordinate bus
+     * numbers.
      */
     for (i = 0;  i < 8;  i++) {
 	if (zx1_ropemap[i] != i)
@@ -1005,14 +956,6 @@ xf86PostScanZX1(void)
 
 	if (zx1_fakebus <= zx1_subno[i])
 	    zx1_fakebus = zx1_subno[i] + 1;
-
-	while (!zx1_busnmpt[zx1_busno[i]]) {
-	    if (zx1_busno[i])	/* Info for bus zero is in static storage */
-		xfree(pciBusInfo[zx1_busno[i]]);
-	    pciBusInfo[zx1_busno[i]++] = NULL;
-	    if (zx1_busno[i] > zx1_subno[i])
-		break;
-	}
     }
 
     if (zx1_fakebus >= pciNumBuses) {
@@ -1022,13 +965,13 @@ xf86PostScanZX1(void)
     }
 
     /* Set up our extra bus functions */
-    zx1BusFuncs = *(pBusInfo->funcs);
+    zx1BusFuncs = *(pciBusInfo[0]->funcs);
     zx1BusFuncs.pciControlBridge = ControlZX1Bridge;
     zx1BusFuncs.pciGetBridgeResources = GetZX1BridgeResources;
 
     /* Set up our own fake bus to act as the root segment */
-    zx1FakeBus.configMech = pBusInfo->configMech;
-    zx1FakeBus.numDevices = pBusInfo->numDevices;
+    zx1FakeBus.configMech = pciBusInfo[0]->configMech;
+    zx1FakeBus.numDevices = pciBusInfo[0]->numDevices;
     zx1FakeBus.primary_bus = zx1_fakebus;
     pciBusInfo[zx1_fakebus] = &zx1FakeBus;
 
@@ -1063,8 +1006,7 @@ xf86PostScanZX1(void)
 
     /* Add a fake PCI-to-PCI bridge to represent each active rope */
     for (i = 0;  i < 8;  i++) {
-	if ((zx1_ropemap[i] != i) || (zx1_busno[i] > zx1_subno[i]) ||
-	    !(pBusInfo = pciBusInfo[zx1_busno[i]]))
+	if ((zx1_ropemap[i] != i) || !(pBusInfo = pciBusInfo[zx1_busno[i]]))
 	    continue;
 
 	if (++idx >= MAX_PCI_DEVICES)
@@ -1074,7 +1016,7 @@ xf86PostScanZX1(void)
 	pPCI->devnum = i | 0x10;
      /* pPCI->funcnum = 0; */
 	pPCI->tag = PCI_MAKE_TAG(zx1_fakebus, pPCI->devnum, 0);
-	pPCI->pci_device_vendor = zx1_pciids[i];
+	pPCI->pci_device_vendor = DEVID(VENDOR_HP, CHIP_ZX1_LBA);
 	pPCI->pci_base_class = PCI_CLASS_BRIDGE;
 	pPCI->pci_sub_class = PCI_SUBCLASS_BRIDGE_PCI;
 	pPCI->pci_header_type = 1;
@@ -1089,9 +1031,6 @@ xf86PostScanZX1(void)
 
 	/* Plug in chipset routines */
 	pBusInfo->funcs = &zx1BusFuncs;
-
-	/* Set bridge control register for scanpci utility */
-	pPCI->pci_bridge_control = ControlZX1Bridge(zx1_busno[i], 0, 0);
 
 #ifdef OLD_FORMAT
 	xf86MsgVerb(X_INFO, 2, "PCI: BusID 0x%.2x,0x%02x,0x%1x "

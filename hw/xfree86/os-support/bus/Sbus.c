@@ -20,7 +20,7 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/bus/Sbus.c,v 1.2tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/bus/Sbus.c,v 1.3 2003/06/10 20:48:01 tsi Exp $ */
 
 #include <fcntl.h>
 #include <stdio.h>
@@ -170,8 +170,6 @@ promIsP1275(void)
 	promP1275 = TRUE;
     else
 	promP1275 = FALSE;
-#elif defined(__FreeBSD__)
-    promP1275 = TRUE;
 #else
 #error Missing promIsP1275() function for this OS
 #endif

@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/bsd/i386_video.c,v 1.4 2003/09/24 02:43:34 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/bsd/i386_video.c,v 1.3 2003/03/14 13:46:03 tsi Exp $ */
 /*
  * Copyright 1992 by Rich Murphey <Rich@Rice.edu>
  * Copyright 1993 by David Wexelblat <dwex@goblin.org>
@@ -62,11 +62,11 @@
 #ifdef __OpenBSD__
 #define SYSCTL_MSG "\tCheck that you have set 'machdep.allowaperture=1'\n"\
 		   "\tin /etc/sysctl.conf and reboot your machine\n" \
-		   "\trefer to xf86(4) for details"
+		   "\trefer to xf86(4) for details\n"
 #define SYSCTL_MSG2 \
 		"Check that you have set 'machdep.allowaperture=2'\n" \
 		"\tin /etc/sysctl.conf and reboot your machine\n" \
-		"\trefer to xf86(4) for details"
+		"\trefer to xf86(4) for details\n"
 #endif
 
 /***************************************************************************/
@@ -220,7 +220,7 @@ mapVidMem(int ScreenNum, unsigned long Base, unsigned long Size, int flags)
 	{
 	    if (devMemFd < 0) 
 	    {
-		FatalError("xf86MapVidMem: failed to open %s (%s)",
+		FatalError("xf86MapVidMem: failed to open %s (%s)\n",
 			   DEV_MEM, strerror(errno));
 	    }
 	    base = mmap((caddr_t)0, Size,
@@ -229,7 +229,7 @@ mapVidMem(int ScreenNum, unsigned long Base, unsigned long Size, int flags)
 			MAP_FLAGS, devMemFd, (off_t)Base);
 	    if (base == MAP_FAILED)
 	    {
-		FatalError("%s: could not mmap %s [s=%lx,a=%lx] (%s)",
+		FatalError("%s: could not mmap %s [s=%x,a=%x] (%s)\n",
 			   "xf86MapVidMem", DEV_MEM, Size, Base, 
 			   strerror(errno));
 	    }
@@ -239,7 +239,7 @@ mapVidMem(int ScreenNum, unsigned long Base, unsigned long Size, int flags)
 	/* else, mmap /dev/vga */
 	if ((unsigned long)Base < 0xA0000 || (unsigned long)Base >= 0xC0000)
 	{
-		FatalError("%s: Address 0x%lx outside allowable range",
+		FatalError("%s: Address 0x%x outside allowable range\n",
 			   "xf86MapVidMem", Base);
 	}
 	base = mmap(0, Size,
@@ -250,7 +250,7 @@ mapVidMem(int ScreenNum, unsigned long Base, unsigned long Size, int flags)
 	    );
 	if (base == MAP_FAILED)
 	{
-	    FatalError("xf86MapVidMem: Could not mmap /dev/vga (%s)",
+	    FatalError("xf86MapVidMem: Could not mmap /dev/vga (%s)\n",
 		       strerror(errno));
 	}
 	return(base);
@@ -288,7 +288,7 @@ xf86ReadBIOS(unsigned long Base, unsigned long Offset, unsigned char *Buf,
 	if ((long)ptr == -1)
 	{
 		xf86Msg(X_WARNING, 
-			"xf86ReadBIOS: %s mmap[s=%x,a=%lx,o=%lx] failed (%s)\n",
+			"xf86ReadBIOS: %s mmap[s=%x,a=%x,o=%x] failed (%s)\n",
 			DEV_MEM, Len, Base, Offset, strerror(errno));
 #ifdef __OpenBSD__
 		if (Base < 0xa0000) {
@@ -328,7 +328,7 @@ xf86EnableIO()
 	if (i386_iopl(TRUE) < 0)
 	{
 #ifndef __OpenBSD__
-		FatalError("%s: Failed to set IOPL for extended I/O",
+		FatalError("%s: Failed to set IOPL for extended I/O\n",
 			   "xf86EnableIO");
 #else
 		FatalError("%s: Failed to set IOPL for extended I/O\n%s",
@@ -366,7 +366,7 @@ xf86EnableIO()
 	if ((IoFd = open("/dev/io", O_RDWR)) == -1)
 	{
 		FatalError("xf86EnableIO: "
-				"Failed to open /dev/io for extended I/O");
+				"Failed to open /dev/io for extended I/O\n");
 	}
 	return;
 }
@@ -439,7 +439,7 @@ xf86SetTVOut(int mode)
 #endif /* PCCONS_SUPPORT */
 
 	default:
-	    FatalError("Xf86SetTVOut: Unsupported console");
+	    FatalError("Xf86SetTVOut: Unsupported console\n");
 	    break; 
     }
     return;
@@ -464,7 +464,7 @@ xf86SetRGBOut()
 #endif /* PCCONS_SUPPORT */
 
 	default:
-	    FatalError("Xf86SetTVOut: Unsupported console");
+	    FatalError("Xf86SetTVOut: Unsupported console\n");
 	    break; 
     }
     return;

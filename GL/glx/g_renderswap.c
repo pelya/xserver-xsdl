@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/GL/glx/g_renderswap.c,v 1.8 2004/01/28 18:11:50 alanh Exp $ */
+/* $XFree86: xc/programs/Xserver/GL/glx/g_renderswap.c,v 1.5 2002/01/14 22:47:08 tsi Exp $ */
 /*
 ** License Applicability. Except to the extent portions of this file are
 ** made subject to an alternative license as permitted in the SGI Free
@@ -1570,9 +1570,7 @@ void __glXDispSwap_TexGend(GLbyte *pc)
 void __glXDispSwap_TexGendv(GLbyte *pc)
 {
 	GLenum pname;
-#ifdef __GLX_ALIGN64
 	GLint cmdlen;
-#endif
 	GLint compsize;
 	__GLX_DECLARE_SWAP_VARIABLES;
 	__GLX_DECLARE_SWAP_ARRAY_VARIABLES;
@@ -1581,9 +1579,9 @@ void __glXDispSwap_TexGendv(GLbyte *pc)
 	pname = *(GLenum *)(pc + 4);
 	compsize = __glTexGendv_size(pname);
 	if (compsize < 0) compsize = 0;
+	cmdlen = __GLX_PAD(8+compsize*8);
 
 #ifdef __GLX_ALIGN64
-	cmdlen = __GLX_PAD(8+compsize*8);
 	if ((unsigned long)(pc) & 7) {
 	    __GLX_MEM_COPY(pc-4, pc, cmdlen);
 	    pc -= 4;
@@ -3313,8 +3311,6 @@ void __glXDispSwap_MultiTexCoord4svARB(GLbyte *pc)
  * Extensions
  */
 
-#ifndef MISSING_GL_EXTS
-
 void __glXDispSwap_PointParameterfARB(GLbyte *pc)
 {
 	__GLX_DECLARE_SWAP_VARIABLES;
@@ -3366,19 +3362,5 @@ void __glXDispSwap_WindowPos3fARB(GLbyte *pc)
 		*(GLfloat *)(pc + 0),
 		*(GLfloat *)(pc + 4),
 		*(GLfloat *)(pc + 8)
-	);
-}
-
-#endif /* !MISSING_GL_EXTS */
-
-void __glXDispSwap_SampleCoverageARB(GLbyte *pc)
-{
-	__GLX_DECLARE_SWAP_VARIABLES;
-	__GLX_SWAP_FLOAT(pc + 0);
-	__GLX_SWAP_INT(pc + 4);
-
-	glSampleCoverageARB(
-		*(GLfloat *)(pc + 0),
-		*(GLboolean *)(pc + 4)
 	);
 }

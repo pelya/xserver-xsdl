@@ -386,5 +386,6 @@ void __glXDispSwap_DrawArrays(GLbyte *pc)
 
 void __glXDispSwap_DrawArraysEXT(GLbyte *pc)
 {
-   __glXDispSwap_DrawArrays(pc);
+#ifdef XXX_STUB
+#endif /*XXX_STUB*/
 }

@@ -241,7 +241,7 @@ ProcXF86DRIAuthConnection(
     rep.authenticated = 1;
 
     if (!DRIAuthConnection( screenInfo.screens[stuff->screen], stuff->magic)) {
-        ErrorF("Failed to authenticate %lu\n", (unsigned long)stuff->magic);
+        ErrorF("Failed to authenticate %u\n", stuff->magic);
 	rep.authenticated = 0;
     }
     WriteToClient(client, sizeof(xXF86DRIAuthConnectionReply), (char *)&rep);

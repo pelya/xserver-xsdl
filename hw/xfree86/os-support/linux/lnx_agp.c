@@ -263,14 +263,14 @@ xf86BindGARTMemory(int screenNum, int key, unsigned long offset)
 
 	if (offset % AGP_PAGE_SIZE != 0) {
 		xf86DrvMsg(screenNum, X_WARNING, "xf86BindGARTMemory: "
-			   "offset (0x%lx) is not page-aligned (%d)\n",
+			   "offset (0x%x) is not page-aligned (%d)\n",
 			   offset, AGP_PAGE_SIZE);
 		return FALSE;
 	}
 	pageOffset = offset / AGP_PAGE_SIZE;
 
 	xf86DrvMsgVerb(screenNum, X_INFO, 3,
-		       "xf86BindGARTMemory: bind key %d at 0x%08lx "
+		       "xf86BindGARTMemory: bind key %d at 0x%08x "
 		       "(pgoffset %d)\n", key, offset, pageOffset);
 
 	bind.pg_start = pageOffset;
@@ -279,7 +279,7 @@ xf86BindGARTMemory(int screenNum, int key, unsigned long offset)
 	if (ioctl(gartFd, AGPIOC_BIND, &bind) != 0) {
 		xf86DrvMsg(screenNum, X_WARNING, "xf86BindGARTMemory: "
 			   "binding of gart memory with key %d\n"
-			   "\tat offset 0x%lx failed (%s)\n",
+			   "\tat offset 0x%x failed (%s)\n",
 			   key, offset, strerror(errno));
 		return FALSE;
 	}
@@ -332,8 +332,8 @@ xf86EnableAGP(int screenNum, CARD32 mode)
 	setup.agp_mode = mode;
 	if (ioctl(gartFd, AGPIOC_SETUP, &setup) != 0) {
 		xf86DrvMsg(screenNum, X_WARNING, "xf86EnableAGP: "
-			   "AGPIOC_SETUP with mode %ld failed (%s)\n",
-			   (unsigned long)mode, strerror(errno));
+			   "AGPIOC_SETUP with mode %d failed (%s)\n",
+			   mode, strerror(errno));
 		return FALSE;
 	}
 

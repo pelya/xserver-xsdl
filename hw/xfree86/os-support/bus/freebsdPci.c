@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/bus/freebsdPci.c,v 1.4 2002/07/24 19:06:52 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/bus/freebsdPci.c,v 1.5 2002/08/27 22:07:07 tsi Exp $ */
 /*
  * Copyright 1998 by Concurrent Computer Corporation
  *
@@ -84,7 +84,7 @@ static pciBusInfo_t freebsdPci0 = {
 /* bridge      */	NULL
 };
 
-#if !defined(__OpenBSD__) && !defined(__FreeBSD__)
+#if !defined(__OpenBSD__)
 #if X_BYTE_ORDER == X_BIG_ENDIAN
 #ifdef __sparc__
 #ifndef ASI_PL

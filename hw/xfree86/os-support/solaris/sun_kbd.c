@@ -23,15 +23,12 @@
  * OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XdotOrg:$ */
 
-#include "xf86.h"
 #include "xf86Priv.h"
 #include "xf86_OSlib.h"
 
 static int sun_otranslation = -1;
 static int sun_odirect = -1;
-int sun_ktype;
 
 int
 xf86GetKbdLeds()
@@ -56,8 +53,7 @@ xf86SetKbdRepeat(char rad)
 void
 xf86KbdInit()
 {
-	int	klayout;
-	const char *ktype_name;
+	int	ktype, klayout;
 
 	if (xf86Info.kbdFd < 0) {
 		xf86Info.kbdFd = open("/dev/kbd", O_RDWR|O_NONBLOCK);
@@ -66,11 +62,11 @@ xf86KbdInit()
 	}
 
 	/*
-	 * None of the following should ever fail.  If it does, something is
+	 * None of the followin should ever fail.  If it does, something is
 	 * broken (IMO) - DWH 8/21/99
 	 */
 
-	if (ioctl(xf86Info.kbdFd, KIOCTYPE, &sun_ktype) < 0)
+	if (ioctl(xf86Info.kbdFd, KIOCTYPE, &ktype) < 0)
 		FatalError("Unable to determine keyboard type: %d\n", errno);
 
 	if (ioctl(xf86Info.kbdFd, KIOCLAYOUT, &klayout) < 0)
@@ -81,21 +77,6 @@ xf86KbdInit()
 
 	if (ioctl(xf86Info.kbdFd, KIOCGDIRECT, &sun_odirect) < 0)
 		FatalError("Unable to determine keyboard direct setting\n");
-
-	switch (sun_ktype) {
-	case KB_SUN3:
-	    ktype_name = "Sun Type 3"; break;
-	case KB_SUN4:
-	    ktype_name = "Sun Type 4/5/6"; break;
-	case KB_USB:
-	    ktype_name = "USB"; break;
-	case KB_PC:
-	    ktype_name = "PC"; break;
-	default:
-	    ktype_name = "Unknown"; break;
-	}
-	xf86Msg(X_PROBED, "Keyboard type: %s (%d)\n", ktype_name, sun_ktype);
-	xf86Msg(X_PROBED, "Keyboard layout: %d\n", klayout);
 }
 
 int

@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/xf86OSKbd.h,v 1.5tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/xf86OSKbd.h,v 1.5 2003/08/24 19:58:06 dawes Exp $ */
 /*
  * Copyright (c) 2002-2003 by The XFree86 Project, Inc.
  *
@@ -104,7 +104,7 @@ typedef enum {
     PROT_XQUEUE,
     PROT_WSCONS,
     PROT_USB,
-    PROT_UNKNOWN_KBD
+    PROT_UNKNOWN
 } KbdProtocolId;
 
 typedef struct {
