@@ -296,6 +296,7 @@ kaaTryDriverSolidFill(PicturePtr	pSrc,
 
     (*pKaaScr->info->DoneSolid) ();
     KdMarkSync(pDst->pDrawable->pScreen);
+    kaaDrawableDirty (pDst->pDrawable);
 
     REGION_UNINIT(pDst->pDrawable->pScreen, &region);
     return 1;
@@ -382,6 +383,7 @@ kaaTryDriverBlend(CARD8		op,
     
     (*pKaaScr->info->DoneBlend) ();
     KdMarkSync(pDst->pDrawable->pScreen);
+    kaaDrawableDirty (pDst->pDrawable);
 
     REGION_UNINIT(pDst->pDrawable->pScreen, &region);
     return 1;
@@ -503,6 +505,7 @@ kaaTryDriverComposite(CARD8		op,
 
     (*pKaaScr->info->DoneComposite) ();
     KdMarkSync(pDst->pDrawable->pScreen);
+    kaaDrawableDirty (pDst->pDrawable);
 
     REGION_UNINIT(pDst->pDrawable->pScreen, &region);
     return 1;

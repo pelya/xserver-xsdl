@@ -45,6 +45,7 @@ KdCheckComposite (CARD8      op,
 		  CARD16     height)
 {
     KdCheckSync (pDst->pDrawable->pScreen);
+    kaaDrawableDirty (pDst->pDrawable);
     fbComposite (op,
 		 pSrc,
 		 pMask,
@@ -66,6 +67,7 @@ KdCheckRasterizeTrapezoid(PicturePtr	pMask,
 			  int		y_off)
 {
     KdCheckSync (pMask->pDrawable->pScreen);
+    kaaDrawableDirty (pMask->pDrawable);
     fbRasterizeTrapezoid (pMask, trap, x_off, y_off);
 }
 

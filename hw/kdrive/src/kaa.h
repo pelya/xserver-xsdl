@@ -43,6 +43,7 @@ typedef struct {
     int		    score;
     int		    devKind;
     DevUnion	    devPrivate;
+    Bool	    dirty;
 } KaaPixmapPrivRec, *KaaPixmapPrivPtr;
 
 extern int kaaScreenPrivateIndex;
@@ -54,6 +55,9 @@ kaaPixmapUseScreen (PixmapPtr pPixmap);
 
 void
 kaaPixmapUseMemory (PixmapPtr pPixmap);
+
+void
+kaaDrawableDirty(DrawablePtr pDrawable);
 
 Bool
 kaaDrawableIsOffscreen (DrawablePtr pDrawable);

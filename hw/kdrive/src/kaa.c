@@ -57,6 +57,21 @@ int kaaPixmapPrivateIndex;
 #define KAA_PIXMAP_SCORE_PINNED	    1000
 
 #define MIN_OFFPIX_SIZE		(4096)
+void
+kaaDrawableDirty (DrawablePtr pDrawable)
+{
+    PixmapPtr pPixmap;
+    KaaPixmapPrivPtr pKaaPixmap;
+
+    if (pDrawable->type == DRAWABLE_WINDOW)
+	pPixmap = (*pDrawable->pScreen->GetWindowPixmap)((WindowPtr) pDrawable);
+    else
+	pPixmap = (PixmapPtr)pDrawable;
+
+    pKaaPixmap = KaaGetPixmapPriv(pPixmap);
+    if (pKaaPixmap != NULL)
+	pKaaPixmap->dirty = TRUE;
+}
 
 static void
 kaaPixmapSave (ScreenPtr pScreen, KdOffscreenArea *area)
@@ -74,8 +89,6 @@ kaaPixmapSave (ScreenPtr pScreen, KdOffscreenArea *area)
 		  pPixmap->drawable.width,
 		  pPixmap->drawable.height));
 		  
-    KdCheckSync (pPixmap->drawable.pScreen);
-
     src_pitch = pPixmap->devKind;
     dst_pitch = pKaaPixmap->devKind;
 
@@ -86,7 +99,12 @@ kaaPixmapSave (ScreenPtr pScreen, KdOffscreenArea *area)
     pPixmap->devPrivate.ptr = dst;
     pPixmap->drawable.serialNumber = NEXT_SERIAL_NUMBER;
     pKaaPixmap->area = NULL;
-    
+
+    if (!pKaaPixmap->dirty)
+	return;
+
+    KdCheckSync (pPixmap->drawable.pScreen);
+
     bytes = src_pitch < dst_pitch ? src_pitch : dst_pitch;
 
     i = pPixmap->drawable.height;
@@ -152,6 +170,7 @@ kaaMoveInPixmap (PixmapPtr pPixmap)
 {
     ScreenPtr	pScreen = pPixmap->drawable.pScreen;
     KaaScreenPriv (pScreen);
+    KaaPixmapPriv (pPixmap);
     int dst_pitch, src_pitch, bytes;
     unsigned char *dst, *src;
     int i;
@@ -168,7 +187,9 @@ kaaMoveInPixmap (PixmapPtr pPixmap)
     
     if (!kaaPixmapAllocArea (pPixmap))
 	return;
-    
+
+    pKaaPixmap->dirty = FALSE;
+
     if (pKaaScr->info->UploadToScreen)
     {
 	if (pKaaScr->info->UploadToScreen(pPixmap, src, src_pitch))
@@ -301,6 +322,8 @@ kaaCreatePixmap(ScreenPtr pScreen, int w, int h, int depth)
     if (pKaaPixmap->score != KAA_PIXMAP_SCORE_PINNED &&
 	(pPixmap->devKind * h) >= MIN_OFFPIX_SIZE)
 	kaaPixmapAllocArea (pPixmap);
+    pKaaPixmap->dirty = FALSE;
+
     return pPixmap;
 }
 
@@ -437,6 +460,7 @@ kaaFillSpans(DrawablePtr pDrawable, GCPtr pGC, int n,
 	}
     }
     (*pKaaScr->info->DoneSolid) ();
+    kaaDrawableDirty (pDrawable);
     KdMarkSync(pDrawable->pScreen);
 }
 
@@ -496,6 +520,7 @@ kaaCopyNtoN (DrawablePtr    pSrcDrawable,
 		    pbox, nbox, dx, dy, reverse, upsidedown, 
 		    bitplane, closure);
     }
+    kaaDrawableDirty (pDstDrawable);
 }
 
 static RegionPtr
@@ -605,6 +630,7 @@ kaaPolyFillRect(DrawablePtr pDrawable,
 	}
     }
     (*pKaaScr->info->DoneSolid) ();
+    kaaDrawableDirty (pDrawable);
     KdMarkSync(pDrawable->pScreen);
 }
     
@@ -635,6 +661,7 @@ kaaSolidBoxClipped (DrawablePtr	pDrawable,
 	fbSolidBoxClipped (pDrawable, pClip, x1, y1, x2, y2,
 			   fbAnd (GXcopy, fg, pm),
 			   fbXor (GXcopy, fg, pm));
+	kaaDrawableDirty (pDrawable);
 	return;
     }
     for (nbox = REGION_NUM_RECTS(pClip), pbox = REGION_RECTS(pClip); 
@@ -667,6 +694,7 @@ kaaSolidBoxClipped (DrawablePtr	pDrawable,
 				 partX2 + xoff, partY2 + yoff);
     }
     (*pKaaScr->info->DoneSolid) ();
+    kaaDrawableDirty (pDrawable);
     KdMarkSync(pDrawable->pScreen);
 }
 
@@ -754,6 +782,7 @@ kaaImageGlyphBlt (DrawablePtr	pDrawable,
     }
 
     KdCheckSync (pDrawable->pScreen);
+    kaaDrawableDirty (pDrawable);
     
     ppci = ppciInit;
     while (nglyph--)
@@ -919,6 +948,7 @@ kaaFillRegionSolid (DrawablePtr	pDrawable,
 	fbFillRegionSolid (pDrawable, pRegion, 0,
 			   fbReplicatePixel (pixel, pDrawable->bitsPerPixel));
     }
+    kaaDrawableDirty (pDrawable);
 }
 
 static void
