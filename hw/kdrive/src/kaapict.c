@@ -214,6 +214,245 @@ kaaGetRGBAFromPixel(CARD32	pixel,
     return TRUE;
 }
 
+static int
+kaaTryDriverSolidFill(PicturePtr	pSrc,
+		      PicturePtr	pDst,
+		      INT16		xSrc,
+		      INT16		ySrc,
+		      INT16		xDst,
+		      INT16		yDst,
+		      CARD16		width,
+		      CARD16		height)
+{
+    KaaScreenPriv (pDst->pDrawable->pScreen);
+    RegionRec region;
+    BoxPtr pbox;
+    int nbox;
+    int dst_off_x, dst_off_y;
+    PixmapPtr pSrcPix, pDstPix;
+    CARD32 pixel;
+    CARD16 red, green, blue, alpha;
+
+    xDst += pDst->pDrawable->x;
+    yDst += pDst->pDrawable->y;
+    xSrc += pSrc->pDrawable->x;
+    ySrc += pSrc->pDrawable->y;
+
+    if (!miComputeCompositeRegion (&region, pSrc, NULL, pDst,
+				   xSrc, ySrc, 0, 0, xDst, yDst,
+				   width, height))
+	return 1;
+
+    if (pSrc->pDrawable->type == DRAWABLE_PIXMAP)
+	kaaPixmapUseMemory ((PixmapPtr) pSrc->pDrawable);
+    if (pDst->pDrawable->type == DRAWABLE_PIXMAP)
+	kaaPixmapUseScreen ((PixmapPtr) pDst->pDrawable);
+
+    pDstPix = kaaGetOffscreenPixmap (pDst->pDrawable, &dst_off_x,
+				 &dst_off_y);
+    if (!pDstPix)
+	return 0;
+
+    if (pSrc->pDrawable->type == DRAWABLE_WINDOW)
+	pSrcPix = (*pSrc->pDrawable->pScreen->GetWindowPixmap)(
+	    (WindowPtr) (pSrc->pDrawable));
+    else
+	pSrcPix = (PixmapPtr) (pSrc->pDrawable);
+
+    /* If source is offscreen, we need to sync the accelerator
+     * before accessing it.  We'd prefer for it to be in memory.
+     */
+    if (kaaPixmapIsOffscreen(pSrcPix)) {
+	KdCheckSync(pDst->pDrawable->pScreen);
+    }
+
+    pixel = *(CARD32 *)(pSrcPix->devPrivate.ptr);
+    if (!kaaGetRGBAFromPixel(pixel, &red, &green, &blue, &alpha,
+			 pSrc->format))
+	return -1;
+    kaaGetPixelFromRGBA(&pixel, red, green, blue, alpha,
+			pDst->format);
+
+    if (!(*pKaaScr->info->PrepareSolid) (pDstPix, GXcopy, 0xffffff,
+					 pixel))
+	return -1;
+
+    nbox = REGION_NUM_RECTS(&region);
+    pbox = REGION_RECTS(&region);
+    while (nbox--)
+    {
+	(*pKaaScr->info->Solid) (pbox->x1 + dst_off_x,
+				 pbox->y1 + dst_off_y,
+				 pbox->x2 + dst_off_x,
+				 pbox->y2 + dst_off_y);
+	pbox++;
+    }
+
+    (*pKaaScr->info->DoneSolid) ();
+    KdMarkSync(pDst->pDrawable->pScreen);
+
+    return 1;
+}
+
+static int
+kaaTryDriverBlend(CARD8		op,
+		  PicturePtr	pSrc,
+		  PicturePtr	pDst,
+		  INT16		xSrc,
+		  INT16		ySrc,
+		  INT16		xDst,
+		  INT16		yDst,
+		  CARD16	width,
+		  CARD16	height)
+{
+    KaaScreenPriv (pDst->pDrawable->pScreen);
+    RegionRec region;
+    BoxPtr pbox;
+    int nbox;
+    int src_off_x, src_off_y, dst_off_x, dst_off_y;
+    PixmapPtr pSrcPix, pDstPix;
+
+    xDst += pDst->pDrawable->x;
+    yDst += pDst->pDrawable->y;
+
+    xSrc += pSrc->pDrawable->x;
+    ySrc += pSrc->pDrawable->y;
+
+    if (!miComputeCompositeRegion (&region, pSrc, NULL, pDst,
+				   xSrc, ySrc, 0, 0, xDst, yDst,
+				   width, height))
+	return 1;
+
+
+    if (pSrc->pDrawable->type == DRAWABLE_PIXMAP)
+	kaaPixmapUseScreen ((PixmapPtr) pSrc->pDrawable);
+    if (pDst->pDrawable->type == DRAWABLE_PIXMAP)
+	kaaPixmapUseScreen ((PixmapPtr) pDst->pDrawable);
+    
+    pSrcPix = kaaGetOffscreenPixmap (pSrc->pDrawable, &src_off_x,
+				     &src_off_y);
+    pDstPix = kaaGetOffscreenPixmap (pDst->pDrawable, &dst_off_x,
+				     &dst_off_y);
+    if (!pSrcPix || !pDstPix)
+	return 0;
+
+    if (!(*pKaaScr->info->PrepareBlend) (op, pSrc, pDst, pSrcPix,
+					 pDstPix))
+	return -1;
+    
+    nbox = REGION_NUM_RECTS(&region);
+    pbox = REGION_RECTS(&region);
+
+    xSrc -= xDst;
+    ySrc -= yDst;
+
+    while (nbox--)
+    {
+	(*pKaaScr->info->Blend) (pbox->x1 + xSrc + src_off_x,
+				 pbox->y1 + ySrc + src_off_y,
+				 pbox->x1 + dst_off_x,
+				 pbox->y1 + dst_off_y,
+				 pbox->x2 - pbox->x1,
+				 pbox->y2 - pbox->y1);
+	pbox++;
+    }
+    
+    (*pKaaScr->info->DoneBlend) ();
+    KdMarkSync(pDst->pDrawable->pScreen);
+
+    return 1;
+}
+
+static int
+kaaTryDriverComposite(CARD8		op,
+		      PicturePtr	pSrc,
+		      PicturePtr	pMask,
+		      PicturePtr	pDst,
+		      INT16		xSrc,
+		      INT16		ySrc,
+		      INT16		xMask,
+		      INT16		yMask,
+		      INT16		xDst,
+		      INT16		yDst,
+		      CARD16		width,
+		      CARD16		height)
+{
+    KaaScreenPriv (pDst->pDrawable->pScreen);
+    RegionRec region;
+    BoxPtr pbox;
+    int nbox;
+    int src_off_x, src_off_y, mask_off_x, mask_off_y, dst_off_x, dst_off_y;
+    PixmapPtr pSrcPix, pMaskPix = NULL, pDstPix;
+
+    xDst += pDst->pDrawable->x;
+    yDst += pDst->pDrawable->y;
+
+    if (pMask) {
+	xMask += pMask->pDrawable->x;
+	yMask += pMask->pDrawable->y;
+    }
+
+    xSrc += pSrc->pDrawable->x;
+    ySrc += pSrc->pDrawable->y;
+
+    if (!miComputeCompositeRegion (&region, pSrc, pMask, pDst,
+				   xSrc, ySrc, xMask, yMask, xDst, yDst,
+				   width, height))
+	return 1;
+
+
+    if (pSrc->pDrawable->type == DRAWABLE_PIXMAP)
+	kaaPixmapUseScreen ((PixmapPtr) pSrc->pDrawable);
+    if (pMask && pMask->pDrawable->type == DRAWABLE_PIXMAP)
+	kaaPixmapUseScreen ((PixmapPtr) pMask->pDrawable);
+    if (pDst->pDrawable->type == DRAWABLE_PIXMAP)
+	kaaPixmapUseScreen ((PixmapPtr) pDst->pDrawable);
+
+    pSrcPix = kaaGetOffscreenPixmap (pSrc->pDrawable, &src_off_x,
+				     &src_off_y);
+    pDstPix = kaaGetOffscreenPixmap (pDst->pDrawable, &dst_off_x,
+				     &dst_off_y);
+    if (!pSrcPix || !pDstPix)
+	return 0;
+    if (pMask) {
+	pMaskPix = kaaGetOffscreenPixmap (pMask->pDrawable, &mask_off_x,
+					  &mask_off_y);
+	if (!pMaskPix)
+	    return 0;
+    }
+
+    if (!(*pKaaScr->info->PrepareComposite) (op, pSrc, pMask, pDst, pSrcPix,
+					     pMaskPix, pDstPix))
+	return -1;
+
+    nbox = REGION_NUM_RECTS(&region);
+    pbox = REGION_RECTS(&region);
+
+    xMask -= xDst;
+    yMask -= yDst;
+
+    xSrc -= xDst;
+    ySrc -= yDst;
+
+    while (nbox--)
+    {
+	(*pKaaScr->info->Composite) (pbox->x1 + xSrc + src_off_x,
+				     pbox->y1 + ySrc + src_off_y,
+				     pbox->x1 + xMask + mask_off_x,
+				     pbox->y1 + yMask + mask_off_y,
+				     pbox->x1 + dst_off_x,
+				     pbox->y1 + dst_off_y,
+				     pbox->x2 - pbox->x1,
+				     pbox->y2 - pbox->y1);
+	pbox++;
+    }
+
+    (*pKaaScr->info->DoneBlend) ();
+    KdMarkSync(pDst->pDrawable->pScreen);
+    return 1;
+}
+
+
 void
 kaaComposite(CARD8	op,
 	     PicturePtr pSrc,
@@ -230,90 +469,24 @@ kaaComposite(CARD8	op,
 {
     KdScreenPriv (pDst->pDrawable->pScreen);
     KaaScreenPriv (pDst->pDrawable->pScreen);
-    
+    int ret = -1;
+
     if (!pMask)
     {
 	if (op == PictOpSrc)
 	{
-	    if (pSrc->pDrawable->width == 1 && pSrc->pDrawable->height == 1 &&
-		pSrc->repeat)
+	    if (pScreenPriv->enabled && pSrc->pDrawable->width == 1 &&
+		pSrc->pDrawable->height == 1 && pSrc->repeat)
 	    {
-		/* Solid fill case */
-		RegionRec region;
-		BoxPtr pbox;
-		int nbox;
-		int dst_off_x, dst_off_y;
-		PixmapPtr pSrcPix, pDstPix;
-		CARD32 pixel;
-		CARD16 red, green, blue, alpha;
-
-		xDst += pDst->pDrawable->x;
-		yDst += pDst->pDrawable->y;
-		xSrc += pSrc->pDrawable->x;
-		ySrc += pSrc->pDrawable->y;
-
-		if (!miComputeCompositeRegion (&region, pSrc, pMask, pDst,
-					       xSrc, ySrc, xMask, yMask, xDst, yDst,
-					       width, height))
+		ret = kaaTryDriverSolidFill(pSrc, pDst, xSrc, ySrc, xDst, yDst,
+					    width, height);
+		if (ret == 1)
 		    return;
-
-		if (pSrc->pDrawable->type == DRAWABLE_PIXMAP)
-		    kaaPixmapUseMemory ((PixmapPtr) pSrc->pDrawable);
-		if (pDst->pDrawable->type == DRAWABLE_PIXMAP)
-		    kaaPixmapUseScreen ((PixmapPtr) pDst->pDrawable);
-
-		pDstPix = kaaGetOffscreenPixmap (pDst->pDrawable, &dst_off_x,
-						 &dst_off_y);
-		if (!pDstPix)
-		   goto software2;
-		
-		if (pSrc->pDrawable->type == DRAWABLE_WINDOW)
-		    pSrcPix = (*pSrc->pDrawable->pScreen->GetWindowPixmap)(
-			(WindowPtr) (pSrc->pDrawable));
-		else
-		    pSrcPix = (PixmapPtr) (pSrc->pDrawable);
-
-		/* If source is offscreen, we need to sync the accelerator
-		 * before accessing it.  We'd prefer for it to be in memory.
-		 */
-		if (kaaPixmapIsOffscreen(pSrcPix)) {
-		    KdCheckSync(pDst->pDrawable->pScreen);
-		}
-
-		pixel = *(CARD32 *)(pSrcPix->devPrivate.ptr);
-		if (!kaaGetRGBAFromPixel(pixel, &red, &green, &blue, &alpha,
-					 pSrc->format))
-		    goto software;
-		kaaGetPixelFromRGBA(&pixel, red, green, blue, alpha,
-				    pDst->format);
-
-		if (!(*pKaaScr->info->PrepareSolid) (pDstPix, GXcopy, 0xffffff,
-		                                    pixel))
-		{
-		    goto software;
-		}
-
-		nbox = REGION_NUM_RECTS(&region);
-		pbox = REGION_RECTS(&region);
-		while (nbox--)
-		{
-		    (*pKaaScr->info->Solid) (pbox->x1 + dst_off_x,
-					     pbox->y1 + dst_off_y,
-					     pbox->x2 + dst_off_x,
-					     pbox->y2 + dst_off_y);
-		    pbox++;
-		}
-	    
-		(*pKaaScr->info->DoneSolid) ();
-		KdMarkSync(pDst->pDrawable->pScreen);
-
-		return;
 	    }
 	    else if (!pSrc->repeat && pSrc->format == pDst->format)
 	    {
-		/* Copy area case */
 		RegionRec	region;
-		
+
 		xDst += pDst->pDrawable->x;
 		yDst += pDst->pDrawable->y;
 		xSrc += pSrc->pDrawable->x;
@@ -323,8 +496,8 @@ kaaComposite(CARD8	op,
 					       xSrc, ySrc, xMask, yMask, xDst,
 					       yDst, width, height))
 		    return;
-		
-		
+
+
 		kaaCopyNtoN (pSrc->pDrawable, pDst->pDrawable, 0,
 			     REGION_RECTS(&region), REGION_NUM_RECTS(&region),
 			     xSrc - xDst, ySrc - yDst,
@@ -336,159 +509,34 @@ kaaComposite(CARD8	op,
 	if (pScreenPriv->enabled && pKaaScr->info->PrepareBlend &&
 	    !pSrc->alphaMap && !pDst->alphaMap)
 	{
-	    /* Blend case */
-	    RegionRec region;
-	    BoxPtr pbox;
-	    int nbox;
-	    int src_off_x, src_off_y, dst_off_x, dst_off_y;
-	    PixmapPtr pSrcPix, pDstPix;
-
-	    xDst += pDst->pDrawable->x;
-	    yDst += pDst->pDrawable->y;
-
-	    xSrc += pSrc->pDrawable->x;
-	    ySrc += pSrc->pDrawable->y;
-
-	    if (!miComputeCompositeRegion (&region, pSrc, pMask, pDst,
-					   xSrc, ySrc, xMask, yMask, xDst, yDst,
-					   width, height))
-		return;
-
-
-	    /* Migrate pixmaps to same place as destination */
-	    if (pSrc->pDrawable->type == DRAWABLE_PIXMAP)
-		kaaPixmapUseScreen ((PixmapPtr) pSrc->pDrawable);
-	    if (pDst->pDrawable->type == DRAWABLE_PIXMAP)
-		kaaPixmapUseScreen ((PixmapPtr) pDst->pDrawable);
-	    
-	    pSrcPix = kaaGetOffscreenPixmap (pSrc->pDrawable, &src_off_x,
-					     &src_off_y);
-	    pDstPix = kaaGetOffscreenPixmap (pDst->pDrawable, &dst_off_x,
-					     &dst_off_y);
-	    if (!pSrcPix || !pDstPix)
-		goto software2;
-	    if (!(*pKaaScr->info->PrepareBlend) (op, pSrc, pDst, pSrcPix,
-						 pDstPix))
-	    {
-		goto software;
-	    }
-	    
-	    nbox = REGION_NUM_RECTS(&region);
-	    pbox = REGION_RECTS(&region);
-
-	    xSrc -= xDst;
-	    ySrc -= yDst;
-	
-	    while (nbox--)
-	    {
-		(*pKaaScr->info->Blend) (pbox->x1 + xSrc + src_off_x,
-					 pbox->y1 + ySrc + src_off_y,
-					 pbox->x1 + dst_off_x,
-					 pbox->y1 + dst_off_y,
-					 pbox->x2 - pbox->x1,
-					 pbox->y2 - pbox->y1);
-		pbox++;
-	    }
-	    
-	    (*pKaaScr->info->DoneBlend) ();
-	    KdMarkSync(pDst->pDrawable->pScreen);
-
+	ret = kaaTryDriverBlend(op, pSrc, pDst, xSrc, ySrc, xDst, yDst, width,
+				height);
+	if (ret == 1)
 	    return;
 	}
     }
+
     if (pScreenPriv->enabled && pKaaScr->info->PrepareComposite &&
 	!pSrc->alphaMap && (!pMask || !pMask->alphaMap) && !pDst->alphaMap)
     {
-	/* Catch-all Composite case */
-	RegionRec region;
-	BoxPtr pbox;
-	int nbox;
-	int src_off_x, src_off_y, mask_off_x, mask_off_y, dst_off_x, dst_off_y;
-	PixmapPtr pSrcPix, pMaskPix = NULL, pDstPix;
-
-	xDst += pDst->pDrawable->x;
-	yDst += pDst->pDrawable->y;
-
-	if (pMask) {
-	    xMask += pMask->pDrawable->x;
-	    yMask += pMask->pDrawable->y;
-	}
-
-	xSrc += pSrc->pDrawable->x;
-	ySrc += pSrc->pDrawable->y;
-
-	if (!miComputeCompositeRegion (&region, pSrc, pMask, pDst,
-				       xSrc, ySrc, xMask, yMask, xDst, yDst,
-				       width, height))
-		return;
-
-
-	/* Migrate pixmaps to same place as destination */
-	if (pSrc->pDrawable->type == DRAWABLE_PIXMAP)
-		kaaPixmapUseScreen ((PixmapPtr) pSrc->pDrawable);
-	if (pMask && pMask->pDrawable->type == DRAWABLE_PIXMAP)
-		kaaPixmapUseScreen ((PixmapPtr) pMask->pDrawable);
-	if (pDst->pDrawable->type == DRAWABLE_PIXMAP)
-		kaaPixmapUseScreen ((PixmapPtr) pDst->pDrawable);
-
-	pSrcPix = kaaGetOffscreenPixmap (pSrc->pDrawable, &src_off_x,
-				    	 &src_off_y);
-	pDstPix = kaaGetOffscreenPixmap (pDst->pDrawable, &dst_off_x,
-				    	 &dst_off_y);
-	if (!pSrcPix || !pDstPix)
-		goto software2;
-	if (pMask) {
-	    pMaskPix = kaaGetOffscreenPixmap (pMask->pDrawable, &mask_off_x,
-				    	     &mask_off_y);
-	    if (!pMaskPix)
-		goto software2;
-	}
-
-    	if (!(*pKaaScr->info->PrepareComposite) (op, pSrc, pMask, pDst, pSrcPix,
-						 pMaskPix, pDstPix))
-    	{
-		goto software;
-	}
-    	
-    	nbox = REGION_NUM_RECTS(&region);
-    	pbox = REGION_RECTS(&region);
-
-    	xMask -= xDst;
-    	yMask -= yDst;
-
-    	xSrc -= xDst;
-    	ySrc -= yDst;
-	
-    	while (nbox--)
-    	{
-		(*pKaaScr->info->Composite) (pbox->x1 + xSrc + src_off_x,
-					     pbox->y1 + ySrc + src_off_y,
-					     pbox->x1 + mask_off_x,
-					     pbox->y1 + mask_off_y,
-					     pbox->x1 + dst_off_x,
-					     pbox->y1 + dst_off_y,
-					     pbox->x2 - pbox->x1,
-					     pbox->y2 - pbox->y1);
-		pbox++;
-    	}
-    	
-    	(*pKaaScr->info->DoneBlend) ();
-    	KdMarkSync(pDst->pDrawable->pScreen);
-
-    	return;
+	ret = kaaTryDriverComposite(op, pSrc, pMask, pDst, xSrc, ySrc, xMask,
+				    yMask, xDst, yDst, width, height);
+	if (ret == 1)
+	    return;
     }
 
-software:
-    if (pSrc->pDrawable->type == DRAWABLE_PIXMAP)
-	kaaPixmapUseMemory ((PixmapPtr) pSrc->pDrawable);
-    if (pMask && pMask->pDrawable->type == DRAWABLE_PIXMAP)
-	kaaPixmapUseMemory ((PixmapPtr) pMask->pDrawable);
-#if 0
-    if (pDst->pDrawable->type == DRAWABLE_PIXMAP)
-	kaaPixmapUseMemory ((PixmapPtr) pDst->pDrawable);
-#endif
+    if (ret != 0) {
+	/* failure to accelerate was not due to pixmaps being in the wrong
+	 * locations.
+	 */
+	if (pSrc->pDrawable->type == DRAWABLE_PIXMAP)
+	    kaaPixmapUseMemory ((PixmapPtr) pSrc->pDrawable);
+	if (pMask && pMask->pDrawable->type == DRAWABLE_PIXMAP)
+	    kaaPixmapUseMemory ((PixmapPtr) pMask->pDrawable);
+	if (pDst->pDrawable->type == DRAWABLE_PIXMAP)
+	    kaaPixmapUseMemory ((PixmapPtr) pDst->pDrawable);
+    }
 
-software2:
 #if KAA_DEBUG_FALLBACKS
     kaaPrintCompositeFallback (op, pSrc, pMask, pDst);
 #endif
