@@ -415,7 +415,12 @@ SetPictureClipRegion (PicturePtr    pPicture,
 int
 SetPictureTransform (PicturePtr	    pPicture,
 		     PictTransform  *transform);
-		     
+
+void
+CopyPicture (PicturePtr	pSrc,
+	     Mask	mask,
+	     PicturePtr	pDst);
+
 void
 ValidatePicture(PicturePtr pPicture);
 

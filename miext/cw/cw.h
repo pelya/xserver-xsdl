@@ -44,15 +44,7 @@ extern int cwGCIndex;
 #define getCwGC(pGC)	((cwGCPtr)(pGC)->devPrivates[cwGCIndex].ptr)
 #define setCwGC(pGC,p)	((pGC)->devPrivates[cwGCIndex].ptr = (pointer) (p))
 
-typedef struct {
-    PicturePtr	    pBackingPicture;
-    unsigned long   serialNumber;   /* clientClip computed time */
-    unsigned long   stateChanges;   /* changes in parent picture since last copy */
-} cwPictureRec, *cwPicturePtr;
-
 extern int  cwPictureIndex;
-
-#define getCwPicture(pPicture)	    ((cwPicturePtr)(pPicture)->devPrivates[cwPictureIndex].ptr)
 
 #define cwDrawableIsRedirWindow(pDraw)					\
 	((pDraw)->type == DRAWABLE_WINDOW &&				\
@@ -142,7 +134,7 @@ cwGetBackingDrawable(DrawablePtr pDrawable, int *x_off, int *y_off);
 
 /* cw_render.c */
 
-Bool
+void
 cwInitializeRender (ScreenPtr pScreen);
 
 /* cw.c */

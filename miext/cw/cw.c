@@ -659,6 +659,10 @@ miInitializeCompositeWrapper(ScreenPtr pScreen)
     }
     if (!AllocateGCPrivate(pScreen, cwGCIndex, 0))
 	return;
+#ifdef RENDER
+    if (!AllocatePicturePrivate(pScreen, cwPictureIndex, 0))
+	return;
+#endif
     pScreenPriv = (cwScreenPtr)xalloc(sizeof(cwScreenRec));
     if (!pScreenPriv)
 	return;
@@ -681,13 +685,8 @@ miInitializeCompositeWrapper(ScreenPtr pScreen)
 
 #ifdef RENDER
     if (GetPictureScreen (pScreen))
-    {
-	if (!cwInitializeRender (pScreen))
-	    /* FIXME */;
-    }
+	cwInitializeRender(pScreen)
 #endif
-
-    ErrorF("Initialized composite wrapper\n");
 }
 
 static Bool

@@ -1180,6 +1180,85 @@ SetPictureTransform (PicturePtr	    pPicture,
     return Success;
 }
 
+void
+CopyPicture (PicturePtr	pSrc,
+	     Mask	mask,
+	     PicturePtr	pDst)
+{
+    PictureScreenPtr ps = GetPictureScreen(pSrc->pDrawable->pScreen);
+
+    pDst->stateChanges |= mask;
+
+    while (mask) {
+	Mask bit = lowbit(mask);
+
+	switch (bit)
+	{
+	case CPRepeat:
+	    pDst->repeat = pSrc->repeat;
+	    break;
+	case CPAlphaMap:
+	    if (pSrc->alphaMap && pSrc->alphaMap->pDrawable->type == DRAWABLE_PIXMAP)
+		pSrc->alphaMap->refcnt++;
+	    if (pDst->alphaMap)
+		FreePicture ((pointer) pDst->alphaMap, (XID) 0);
+	    pDst->alphaMap = pSrc->alphaMap;
+	    break;
+	case CPAlphaXOrigin:
+	    pDst->alphaOrigin.x = pSrc->alphaOrigin.y;
+	    break;
+	case CPAlphaYOrigin:
+	    pDst->alphaOrigin.y = pSrc->alphaOrigin.y;
+	    break;
+	case CPClipXOrigin:
+	    pDst->clipOrigin.x = pSrc->clipOrigin.y;
+	    break;
+	case CPClipYOrigin:
+	    pDst->clipOrigin.y = pSrc->clipOrigin.y;
+	    break;
+	case CPClipMask:
+	    switch (pSrc->clientClipType) {
+	    case CT_NONE:
+		(*ps->ChangePictureClip)(pDst, CT_NONE, NULL, 0);
+		break;
+	    case CT_REGION:
+		if (!pSrc->clientClip) {
+		    (*ps->ChangePictureClip)(pDst, CT_NONE, NULL, 0);
+		} else {
+		    RegionPtr clientClip;
+		    RegionPtr srcClientClip = (RegionPtr)pSrc->clientClip;
+
+		    clientClip = REGION_CREATE(pSrc->pDrawable->pScreen,
+			REGION_EXTENTS(pSrc->pDrawable->pScreen, srcClientClip),
+			REGION_NUM_RECTS(srcClientClip));
+		    (*ps->ChangePictureClip)(pDst, CT_REGION, clientClip, 0);
+		}
+		break;
+	    default:
+		/* XXX: CT_PIXMAP unimplemented */
+		break;
+	    }
+	    break;
+	case CPGraphicsExposure:
+	    pDst->graphicsExposures = pSrc->graphicsExposures;
+	    break;
+	case CPPolyEdge:
+	    pDst->polyEdge = pSrc->polyEdge;
+	    break;
+	case CPPolyMode:
+	    pDst->polyMode = pSrc->polyMode;
+	    break;
+	case CPDither:
+	    pDst->dither = pSrc->dither;
+	    break;
+	case CPComponentAlpha:
+	    pDst->componentAlpha = pSrc->componentAlpha;
+	    break;
+	}
+	mask &= ~bit;
+    }
+}
+
 static void
 ValidateOnePicture (PicturePtr pPicture)
 {
