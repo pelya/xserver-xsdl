@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/os/utils.c,v 1.4 2004/07/31 04:23:21 kem Exp $ */
+/* $XdotOrg: xc/programs/Xserver/os/utils.c,v 1.5 2004/07/31 09:14:06 kem Exp $ */
 /* $Xorg: utils.c,v 1.5 2001/02/09 02:05:24 xorgcvs Exp $ */
 /*
 
@@ -1898,16 +1898,24 @@ enum BadCode {
     InternalError
 };
 
+#if defined(VENDORSUPPORT)
+#define BUGADDRESS VENDORSUPPORT
+#elif defined(BUILDERADDR)
+#define BUGADDRESS BUILDERADDR
+#else
+#define BUGADDRESS "xorg@freedesktop.org"
+#endif
+
 #define ARGMSG \
     "\nIf the arguments used are valid, and have been rejected incorrectly\n" \
       "please send details of the arguments and why they are valid to\n" \
-      "&&&&&@X.org.  In the meantime, you can start the Xserver as\n" \
+      "%s.  In the meantime, you can start the Xserver as\n" \
       "the \"super user\" (root).\n"   
 
 #define ENVMSG \
     "\nIf the environment is valid, and have been rejected incorrectly\n" \
       "please send details of the environment and why it is valid to\n" \
-      "&&&&&@X.org.  In the meantime, you can start the Xserver as\n" \
+      "%s.  In the meantime, you can start the Xserver as\n" \
       "the \"super user\" (root).\n"
 
 void
@@ -2015,20 +2023,20 @@ CheckUserParameters(int argc, char **argv, char **envp)
 	return;
     case UnsafeArg:
 	ErrorF("Command line argument number %d is unsafe\n", i);
-	ErrorF(ARGMSG);
+	ErrorF(ARGMSG, BUGADDRESS);
 	break;
     case ArgTooLong:
 	ErrorF("Command line argument number %d is too long\n", i);
-	ErrorF(ARGMSG);
+	ErrorF(ARGMSG, BUGADDRESS);
 	break;
     case UnprintableArg:
 	ErrorF("Command line argument number %d contains unprintable"
 		" characters\n", i);
-	ErrorF(ARGMSG);
+	ErrorF(ARGMSG, BUGADDRESS);
 	break;
     case EnvTooLong:
 	ErrorF("Environment variable `%s' is too long\n", e);
-	ErrorF(ENVMSG);
+	ErrorF(ENVMSG, BUGADDRESS);
 	break;
     case OutputIsPipe:
 	ErrorF("Stdout and/or stderr is a pipe\n");
@@ -2038,8 +2046,8 @@ CheckUserParameters(int argc, char **argv, char **envp)
 	break;
     default:
 	ErrorF("Unknown error\n");
-	ErrorF(ARGMSG);
-	ErrorF(ENVMSG);
+	ErrorF(ARGMSG, BUGADDRESS);
+	ErrorF(ENVMSG, BUGADDRESS);
 	break;
     }
     FatalError("X server aborted because of unsafe environment\n");
