@@ -1,5 +1,5 @@
 /*
- * $XFree86: xc/programs/Xserver/hw/kdrive/linux/keyboard.c,v 1.8 2001/09/29 04:16:39 keithp Exp $
+ * $XFree86: xc/programs/Xserver/hw/kdrive/linux/keyboard.c,v 1.9 2001/10/12 06:33:10 keithp Exp $
  *
  * Copyright © 1999 Keith Packard
  *
@@ -104,8 +104,8 @@ static unsigned char tbl[KD_MAX_WIDTH] =
 {
     0,
     1 << KG_SHIFT,
-    (1 << KG_ALT),
-    (1 << KG_ALT) | (1 << KG_SHIFT)
+    (1 << KG_ALTGR),
+    (1 << KG_ALTGR) | (1 << KG_SHIFT)
 };
 
 static void
@@ -289,7 +289,7 @@ readKernelMapping()
 		switch (kbe.kb_value)
 		{
 		case K_ALTGR:
-		    k[j] = XK_Alt_R;
+		    k[j] = XK_Mode_switch;
 		    break;
 		case K_ALT:
 		    k[j] = (kbe.kb_index == 0x64 ?
