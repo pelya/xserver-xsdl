@@ -1,5 +1,5 @@
 /*
- * $XFree86: xc/programs/Xserver/hw/kdrive/linux/ts.c,v 1.4 2001/06/29 14:00:41 keithp Exp $
+ * $XFree86: xc/programs/Xserver/hw/kdrive/linux/ts.c,v 1.7 2002/08/02 16:11:35 keithp Exp $
  *
  * Derived from ps2.c by Jim Gettys
  *
@@ -172,10 +172,11 @@ TsInit (void)
 	    fd = open (mi->name, 0);
 	if (fd >= 0)
 	{
+	    struct h3600_ts_calibration cal;
 	    /*
 	     * Check to see if this is a touch screen
 	     */
-	    if (ioctl (fd, TS_GET_RATE, 0) != -1)
+	    if (ioctl (fd, TS_GET_CAL, &cal) != -1)
 	    {
 		mi->driver = (void *) fd;
 		mi->inputType = TsInputType;
