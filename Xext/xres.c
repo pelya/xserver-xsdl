@@ -2,6 +2,7 @@
    Copyright (c) 2002  XFree86 Inc
 */
 /* $XFree86: xc/programs/Xserver/Xext/xres.c,v 1.8 2003/10/28 23:08:44 tsi Exp $ */
+/* $XdotOrg$ */
 
 #define NEED_EVENTS
 #define NEED_REPLIES
@@ -52,22 +53,23 @@ ProcXResQueryClients (ClientPtr client)
     /* REQUEST(xXResQueryClientsReq); */
     xXResQueryClientsReply rep;
     int *current_clients;
-    int i;
+    int i, num_clients;
 
     REQUEST_SIZE_MATCH(xXResQueryClientsReq);
 
     current_clients = ALLOCATE_LOCAL((currentMaxClients - 1) * sizeof(int));
 
-    rep.num_clients = 0;
+    num_clients = 0;
     for(i = 1; i < currentMaxClients; i++) {
        if(clients[i]) {
-           current_clients[rep.num_clients] = i;
-           rep.num_clients++;   
+           current_clients[num_clients] = i;
+           num_clients++;   
        }
     }
 
     rep.type = X_Reply;
     rep.sequenceNumber = client->sequence;
+    rep.num_clients = num_clients;
     rep.length = rep.num_clients * sz_xXResClient >> 2;
     if (client->swapped) {
         int n;
@@ -77,10 +79,10 @@ ProcXResQueryClients (ClientPtr client)
     }   
     WriteToClient (client, sizeof (xXResQueryClientsReply), (char *) &rep);
 
-    if(rep.num_clients) {
+    if(num_clients) {
         xXResClient scratch;
 
-        for(i = 0; i < rep.num_clients; i++) {
+        for(i = 0; i < num_clients; i++) {
             scratch.resource_base = clients[current_clients[i]]->clientAsMask;
             scratch.resource_mask = RESOURCE_ID_MASK;
         
@@ -112,7 +114,7 @@ ProcXResQueryClientResources (ClientPtr client)
 {
     REQUEST(xXResQueryClientResourcesReq);
     xXResQueryClientResourcesReply rep;
-    int i, clientID;
+    int i, clientID, num_types;
     int *counts;
 
     REQUEST_SIZE_MATCH(xXResQueryClientResourcesReq);
@@ -132,14 +134,15 @@ ProcXResQueryClientResources (ClientPtr client)
 
     FindAllClientResources(clients[clientID], ResFindAllRes, counts);
 
-    rep.num_types = 0;
+    num_types = 0;
 
     for(i = 0; i <= lastResourceType; i++) {
-       if(counts[i]) rep.num_types++;
+       if(counts[i]) num_types++;
     }
 
     rep.type = X_Reply;
     rep.sequenceNumber = client->sequence;
+    rep.num_types = num_types;
     rep.length = rep.num_types * sz_xXResType >> 2;
     if (client->swapped) {
         int n;
@@ -149,7 +152,7 @@ ProcXResQueryClientResources (ClientPtr client)
     }   
     WriteToClient (client,sizeof(xXResQueryClientResourcesReply),(char*)&rep);
 
-    if(rep.num_types) {
+    if(num_types) {
         xXResType scratch;
 
         for(i = 0; i < lastResourceType; i++) {
