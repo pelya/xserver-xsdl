@@ -1,5 +1,5 @@
 if KDRIVEVESA
-VESA_SUBDIRS = vesa mach64 mga nvidia r128 smi chips pm2 via
+VESA_SUBDIRS = vesa mach64 mga nvidia r128 smi chips pm2 via neomagic
 endif
 
 if KDRIVEFBDEV
