@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/kinput.c,v 1.13 2001/03/30 02:15:20 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/kinput.c,v 1.14 2001/05/23 08:56:08 alanh Exp $ */
 
 #include "kdrive.h"
 #include "inputstr.h"
@@ -1453,14 +1453,18 @@ KdCrossScreen(ScreenPtr pScreen, Bool entering)
 #endif
 }
 
+#ifdef TOUCHSCREEN
 /* HACK! */
 extern int TsScreen;
+#endif
 
 static void
 KdWarpCursor (ScreenPtr pScreen, int x, int y)
 {
     KdBlockSigio ();
+#ifdef TOUCHSCREEN
     TsScreen = pScreen->myNum;
+#endif
     miPointerWarpCursor (pScreen, x, y);
     KdUnblockSigio ();
 }
