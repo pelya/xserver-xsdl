@@ -1,3 +1,4 @@
+/* $XdotOrg$ */
 /* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/bus/Pci.h,v 1.44 2003/11/07 23:57:47 dawes Exp $ */
 /*
  * Copyright 1998 by Concurrent Computer Corporation
@@ -261,7 +262,7 @@
 #  define INCLUDE_XF86_NO_DOMAIN
 # endif
 # define XF86SCANPCI_WRAPPER ia64ScanPCIWrapper
-#elif defined(__i386__)
+#elif defined(__i386__) || defined(__i386)
 # define ARCH_PCI_INIT ix86PciInit
 # define INCLUDE_XF86_MAP_PCI_MEM
 # define INCLUDE_XF86_NO_DOMAIN
