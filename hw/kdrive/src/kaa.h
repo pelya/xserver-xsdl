@@ -104,4 +104,8 @@ kaaRasterizeTrapezoid(PicturePtr pPict,
 		      int xoff,
 		      int yoff);
 
+void
+kaaInitTrapOffsets(int grid_order, float *x_offsets, float *y_offsets,
+		   float x_offset, float y_offset);
+
 #endif /* _KAA_H_ */

@@ -637,6 +637,13 @@ miLineFixedX (xLineFixed *l, xFixed y, Bool ceil)
  */
 #define XFIXED_TO_FLOAT(x) (((float)((x) & 0xffffff00)) / 65536.0)
 
+/* This is just to allow us to work on the hardware side of the problem while
+ * waiting for cairo to get a new tesselator.  We may not be able to support
+ * RasterizeTrapezoid at all due to the abutting edges requirement, but it might
+ * be technically legal if we widened the trap by some epsilon, so that alpha
+ * values at abutting edges were a little too big and capped at one, rather than
+ * a little too small and looked bad.
+ */
 void kaaRasterizeTrapezoid(PicturePtr pDst,
 			   xTrapezoid *trap,
 			   int xoff,
@@ -651,7 +658,6 @@ void kaaRasterizeTrapezoid(PicturePtr pDst,
     if (!pScreenPriv->enabled ||
 	!pKaaScr->info->PrepareTrapezoids ||
 	pDst->pDrawable->type != DRAWABLE_PIXMAP ||
-	pDst->polyMode == PolyModePrecise ||
         pDst->alphaMap || pDst->format != PICT_a8)
     {
 	KdCheckRasterizeTrapezoid (pDst, trap, xoff, yoff);
@@ -688,3 +694,26 @@ void kaaRasterizeTrapezoid(PicturePtr pDst,
     (*pKaaScr->info->Trapezoids) (&ktrap, 1);
     (*pKaaScr->info->DoneTrapezoids) ();
 }
+
+void
+kaaInitTrapOffsets(int grid_order, float *x_offsets, float *y_offsets,
+		   float x_offset, float y_offset)
+{
+    int i = 0;
+    float x, y, x_count, y_count;
+
+    x_count = (1 << (grid_order / 2)) + 1;
+    y_count = (1 << (grid_order / 2)) - 1;
+
+    x_offset += 1.0 / x_count / 2.0;
+    y_offset += 1.0 / y_count / 2.0;
+
+    for (x = 0; x < x_count; x++) {
+	for (y = 0; y < y_count; y++) {
+	    x_offsets[i] = x / x_count + x_offset;
+	    y_offsets[i] = y / y_count + y_offset;
+	    i++;
+	}
+    }
+}
+
