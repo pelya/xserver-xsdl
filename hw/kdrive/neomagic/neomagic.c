@@ -27,10 +27,33 @@
 #include "neomagic.h"
 #include <sys/io.h>
 
+struct NeoChipInfo neoChips[] = {
+    {NEO_VENDOR, 0x0001, CAP_NM2070, "MagicGraph 128 (NM2070)",
+     896, 65000, 2048, 0x100, 1024, 1024, 1024},
+    {NEO_VENDOR, 0x0002, CAP_NM2090, "MagicGraph 128V (NM2090)",
+     1152, 80000, 2048, 0x100, 2048, 1024, 1024},
+    {NEO_VENDOR, 0x0003, CAP_NM2090, "MagicGraph 128ZV (NM2093)",
+     1152, 80000, 2048, 0x100, 2048, 1024, 1024},
+    {NEO_VENDOR, 0x0083, CAP_NM2097, "MagicGraph 128ZV+ (NM2097)",
+     1152, 80000, 1024, 0x100, 2048, 1024, 1024},
+    {NEO_VENDOR, 0x0004, CAP_NM2097, "MagicGraph 128XD (NM2160)",
+     2048, 90000, 1024, 0x100, 2048, 1024, 1024},
+    {NEO_VENDOR, 0x0005, CAP_NM2200, "MagicGraph 256AV (NM2200)",
+     2560, 110000, 1024, 0x1000, 4096, 1280, 1024},
+    {NEO_VENDOR, 0x0025, CAP_NM2200, "MagicGraph 256AV+ (NM2230)",
+     3008, 110000, 1024, 0x1000, 4096, 1280, 1024},
+    {NEO_VENDOR, 0x0006, CAP_NM2200, "MagicGraph 256ZX (NM2360)",
+     4096, 110000, 1024, 0x1000, 4096, 1280, 1024},
+    {NEO_VENDOR, 0x0016, CAP_NM2200, "MagicGraph 256XL+ (NM2380)",
+     6144, 110000, 1024, 0x1000, 8192, 1280, 1024},
+    {0, 0, 0, NULL},
+};
+
 static Bool
 neoCardInit (KdCardInfo *card)
 {
 	NeoCardInfo	*neoc;
+    struct NeoChipInfo *chip;
 	
 	neoc = (NeoCardInfo *) xalloc (sizeof (NeoCardInfo));
 	if (!neoc)
@@ -41,6 +64,15 @@ neoCardInit (KdCardInfo *card)
 		xfree (neoc);
 		return FALSE;
 	}
+
+    for (chip = neoChips; chip->name != NULL; ++chip) {
+        if (chip->device == card->attr.deviceID) {
+            neoc->chip = chip;
+            break;
+        }
+    }
+
+    ErrorF("Using Neomagic card: %s\n", neoc->chip->name);
 
     iopl (3);
 	neoMapReg (card, neoc);

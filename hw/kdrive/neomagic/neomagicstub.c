@@ -26,13 +26,20 @@
 #endif
 #include "neomagic.h"
 
+extern struct NeoChipInfo neoChips[];
+
 void
 InitCard (char *name)
 {
     KdCardAttr	attr;
-	// NM2230 MagicGraph 256AV+ the only card I have for testing
-    if (LinuxFindPci (NEOMAGIC_VENDOR, NEOMAGIC_NM2230, 0, &attr)) 
-	KdCardInfoAdd (&neoFuncs, &attr, 0);
+    struct NeoChipInfo *chip;
+
+    for (chip = neoChips; chip->name != NULL; ++chip) {
+        int j = 0;
+        while (LinuxFindPci(chip->vendor, chip->device, j++, &attr)) {
+            KdCardInfoAdd(&neoFuncs, &attr, 0);
+        }
+    }
 }
 
 void
@@ -45,6 +52,9 @@ void
 InitInput (int argc, char **argv)
 {
     KdInitInput (&LinuxMouseFuncs, &LinuxKeyboardFuncs);
+#ifdef TOUCHSCREEN
+    KdInitTouchScreen (&TsFuncs);
+#endif
 }
 
 void

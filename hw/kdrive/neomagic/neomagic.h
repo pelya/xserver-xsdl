@@ -38,8 +38,11 @@
 #define ENTER()	DBGOUT("Enter %s\n", __FUNCTION__)
 #define LEAVE() DBGOUT("Leave %s\n", __FUNCTION__)
 
-#define NEOMAGIC_VENDOR 0x10c8
-#define NEOMAGIC_NM2230 0x0025
+#define NEO_VENDOR 0x10c8
+#define CAP_NM2070  0x01 /* If it's a NM2070 series */
+#define CAP_NM2090  0x02 /* If it's a NM2090 series */
+#define CAP_NM2097  0x03 /* If it's a NM2097 series */
+#define CAP_NM2200  0x04 /* If it's a NM2200 series */
 
 #define NEO_BS0_BLT_BUSY        0x00000001
 #define NEO_BS0_FIFO_AVAIL      0x00000002
@@ -106,7 +109,6 @@ typedef volatile struct {
   CARD32 dataPtr;
 } NeoMMIO;
 
-
 typedef struct _neoCardInfo {
 	VesaCardPrivRec	vesa;
 	CARD32		reg_base;
@@ -118,10 +120,26 @@ typedef struct _neoCardInfo {
 	int srcOrg;
 	int srcPitch;
 	int srcPixelWidth;
+
+    struct NeoChipInfo *chip;
 	
 	CARD32 bltCntl;
 
 } NeoCardInfo;
+
+struct NeoChipInfo {
+    CARD16 vendor;
+    CARD16 device;
+    CARD8 caps;
+    char *name;
+    int videoRam;
+    int maxClock;
+    int cursorMem;
+    int cursorOff;
+    int linearSize;
+    int maxWidth;
+    int maxHeight;
+};
     
 #define getNeoCardInfo(kd)	((NeoCardInfo *) ((kd)->card->driver))
 #define neoCardInfo(kd)	NeoCardInfo	*neoc = getNeoCardInfo(kd)
