@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/hw/darwin/quartz/xpr/xprScreen.c,v 1.1.4.1 2003/12/06 13:24:23 kaleb Exp $ */
+/* $XdotOrg: xc/programs/Xserver/hw/darwin/quartz/xpr/xprScreen.c,v 1.1.4.2 2003/12/18 19:29:13 kaleb Exp $ */
 /*
  * Xplugin rootless implementation screen functions
  */
@@ -143,7 +143,7 @@ displayScreenBounds(CGDirectDisplayID id)
  *  Add a physical screen with Pseudorama.
  */
 static void
-addPseudoramaScreens(int *x, int *y, int *width, int *height)
+addPseudoramiXScreens(int *x, int *y, int *width, int *height)
 {
     CGDisplayCount i, displayCount;
     CGDirectDisplayID *displayList = NULL;
@@ -185,7 +185,7 @@ addPseudoramaScreens(int *x, int *y, int *width, int *height)
         ErrorF("Pseudorama screen %d placed at X11 coordinate (%d,%d).\n",
                i, (int)frame.origin.x, (int)frame.origin.y);
 
-        PseudoramaAddScreen(frame.origin.x, frame.origin.y,
+        PseudoramiXAddScreen(frame.origin.x, frame.origin.y,
                              frame.size.width, frame.size.height);
     }
 
@@ -209,7 +209,7 @@ xprDisplayInit(void)
     /* With Pseudorama, the X server only sees one screen; only Pseudorama
        itself knows about all of the screens. */
 
-    if (noPseudoramaExtension)
+    if (noPseudoramiXExtension)
         darwinScreensFound = displayCount;
     else
         darwinScreensFound =  1;
@@ -270,7 +270,7 @@ xprAddScreen(int index, ScreenPtr pScreen)
         dfb->colorBitsPerPixel = 8;
     }
 
-    if (noPseudoramaExtension)
+    if (noPseudoramiXExtension)
     {
         CGDirectDisplayID dpy;
         CGRect frame;
@@ -286,7 +286,7 @@ xprAddScreen(int index, ScreenPtr pScreen)
     }
     else
     {
-        addPseudoramaScreens(&dfb->x, &dfb->y, &dfb->width, &dfb->height);
+        addPseudoramiXScreens(&dfb->x, &dfb->y, &dfb->width, &dfb->height);
     }
 
     /* Passing zero width (pitch) makes miCreateScreenResources set the

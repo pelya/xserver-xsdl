@@ -69,9 +69,11 @@ const static struct {
     {57,  XK_Caps_Lock},
     {58,  XK_Alt_L},
     {59,  XK_Control_L},
+
     {60,  XK_Shift_R},
     {61,  XK_Alt_R},
     {62,  XK_Control_R},
+    {63,  XK_Meta_R},
 
     {122, XK_F1},
     {120, XK_F2},

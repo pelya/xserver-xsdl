@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/hw/darwin/quartz/cr/crScreen.m,v 1.1.4.1 2003/12/06 13:24:23 kaleb Exp $ */
+/* $XdotOrg: xc/programs/Xserver/hw/darwin/quartz/cr/crScreen.m,v 1.1.4.2 2003/12/18 19:29:13 kaleb Exp $ */
 /*
  * Cocoa rootless implementation initialization
  */
@@ -68,7 +68,7 @@ CRDisplayInit(void)
 {
     ErrorF("Display mode: Rootless Quartz -- Cocoa implementation\n");
 
-    if (noPseudoramaExtension) {
+    if (noPseudoramiXExtension) {
         darwinScreensFound = [[NSScreen screens] count];
     } else {
         darwinScreensFound = 1; // only Pseudorama knows about the rest
@@ -89,7 +89,7 @@ CRScreenParams(int index, DarwinFramebufferPtr dfb)
     dfb->bitsPerPixel = CGDisplayBitsPerPixel(kCGDirectMainDisplay);
     dfb->colorBitsPerPixel = 3 * dfb->bitsPerComponent;
 
-    if (noPseudoramaExtension) {
+    if (noPseudoramiXExtension) {
         NSScreen *screen = [[NSScreen screens] objectAtIndex:index];
         NSRect frame = [screen frame];
 
@@ -169,7 +169,7 @@ CRScreenParams(int index, DarwinFramebufferPtr dfb)
             ErrorF("Pseudorama screen %d placed at X11 coordinate (%d,%d).\n",
                    i, (int)frame.origin.x, (int)frame.origin.y);
 
-            PseudoramaAddScreen(frame.origin.x, frame.origin.y,
+            PseudoramiXAddScreen(frame.origin.x, frame.origin.y,
                                  frame.size.width, frame.size.height);
         }
     }
