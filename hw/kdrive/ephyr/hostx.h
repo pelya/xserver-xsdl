@@ -104,12 +104,23 @@ int
 hostx_get_depth (void);
 
 int
+hostx_get_server_depth (void);
+
+void
+hostx_set_server_depth(int depth);
+
+int
 hostx_get_bpp(void);
 
 void
 hostx_get_visual_masks (unsigned long *rmsk, 
 			unsigned long *gmsk, 
 			unsigned long *bmsk);
+void
+hostx_set_cmap_entry(unsigned char idx, 
+		     unsigned char r, 
+		     unsigned char g, 
+		     unsigned char b);
 
 void*
 hostx_screen_init (int width, int height);

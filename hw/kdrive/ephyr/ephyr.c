@@ -85,9 +85,18 @@ ephyrScreenInitialize (KdScreenInfo *screen, EphyrScrPriv *scrpriv)
 
 
   if (screen->fb[0].depth && screen->fb[0].depth != hostx_get_depth())
-      ErrorF("\nXephyr screen depth must match hosts, ignoring.\n");
+    {
+      if (screen->fb[0].depth < hostx_get_depth()
+	  && (screen->fb[0].depth == 24 || screen->fb[0].depth == 16
+	      || screen->fb[0].depth == 8))
+	{
+	    hostx_set_server_depth(screen->fb[0].depth);
+	}
+      else 
+	ErrorF("\nXephyr: requested screen depth not supported, setting to match hosts.\n");
+    }
 
-  screen->fb[0].depth = hostx_get_depth();
+  screen->fb[0].depth = hostx_get_server_depth();
   screen->rate = 72;
 
   if (screen->fb[0].depth <= 8)
@@ -98,6 +107,13 @@ ephyrScreenInitialize (KdScreenInfo *screen, EphyrScrPriv *scrpriv)
 			       (1 << PseudoColor) |
 			       (1 << TrueColor) |
 			       (1 << DirectColor));
+
+      screen->fb[0].redMask   = 0x00;
+      screen->fb[0].greenMask = 0x00;
+      screen->fb[0].blueMask  = 0x00;
+      screen->fb[0].depth        = 8;
+      screen->fb[0].bitsPerPixel = 8;
+
     }
   else 
     {
@@ -601,18 +617,44 @@ ephyrCardFini (KdCardInfo *card)
 void
 ephyrGetColors (ScreenPtr pScreen, int fb, int n, xColorItem *pdefs)
 {
-    while (n--)
+  /* XXX Not sure if this is right */
+
+  EPHYR_DBG("mark");
+
+  while (n--)
     {
-	pdefs->red = 0;
-	pdefs->green = 0;
-	pdefs->blue = 0;
-	pdefs++;
+      pdefs->red = 0;
+      pdefs->green = 0;
+      pdefs->blue = 0;
+      pdefs++;
     }
+
 }
 
 void
 ephyrPutColors (ScreenPtr pScreen, int fb, int n, xColorItem *pdefs)
 {
+  int min, max, p;
+
+  /* XXX Not sure if this is right */
+
+  min = 256;
+  max = 0;
+  
+  while (n--)
+    {
+      p = pdefs->pixel;
+      if (p < min)
+	min = p;
+      if (p > max)
+	max = p;
+
+      hostx_set_cmap_entry(p, 		
+			   pdefs->red >> 8,
+			   pdefs->green >> 8,
+			   pdefs->blue >> 8);
+      pdefs++;
+    }
 }
 
 /* Mouse calls */

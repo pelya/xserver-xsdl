@@ -55,16 +55,20 @@ struct EphyrHostXVars
   Window          win_pre_existing; 	/* Set via -parent option like xnest */
   GC              gc;
   int             depth;
+  int             server_depth;
   XImage         *ximg;
   int             win_width, win_height;
   Bool            use_host_cursor;
   Bool            have_shm;
   long            damage_debug_msec;
 
+  unsigned char  *fb_data;   	/* only used when host bpp != server bpp */
+  unsigned long   cmap[256];
+
   XShmSegmentInfo shminfo;
 };
 
-static EphyrHostXVars HostX = { 0,0,0,0,0,0,0,0,0,0,0,0,0,0 }; /* defaults */
+static EphyrHostXVars HostX = { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}; /* memset? */
 
 static int            HostXWantDamageDebug = 0;
 
@@ -82,6 +86,9 @@ extern int            monitorResolution;
 
 static int trapped_error_code = 0;
 static int (*old_error_handler) (Display *d, XErrorEvent *e);
+
+#define host_depth_matches_server() (HostX.depth == HostX.server_depth)
+
 
 static int
 error_handler(Display     *display,
@@ -187,15 +194,9 @@ hostx_init(void)
   HostX.gc      = XCreateGC(HostX.dpy, HostX.winroot, 0, NULL);
   HostX.depth   = DefaultDepth(HostX.dpy, HostX.screen);
   HostX.visual  = DefaultVisual(HostX.dpy, HostX.screen); 
+
+  HostX.server_depth = HostX.depth;
  
-  /* old way of getting dpi 
-  HostX.mm_per_pixel_vertical = (double)DisplayHeightMM(HostX.dpy, HostX.screen)
-                                 / DisplayHeight(HostX.dpy, HostX.screen);
-
-  HostX.mm_per_pixel_horizontal = (double)DisplayWidthMM(HostX.dpy, HostX.screen)
-                                  / DisplayWidth(HostX.dpy, HostX.screen);
-  */
-
   if (HostX.win_pre_existing != None)
     {
       Status            result;
@@ -226,7 +227,7 @@ hostx_init(void)
 				HostX.winroot,
 				0,0,100,100, /* will resize  */
 				0,
-				CopyFromParent,
+			        CopyFromParent,
 				CopyFromParent,
 				CopyFromParent,
 				CWEventMask,
@@ -235,7 +236,6 @@ hostx_init(void)
       XStoreName(HostX.dpy, HostX.win, "Xephyr");
     }
 
-  HostX.gc = XCreateGC(HostX.dpy, HostX.winroot, 0, NULL);
 
   XParseColor(HostX.dpy, DefaultColormap(HostX.dpy,HostX.screen), "red", &col);
   XAllocColor(HostX.dpy, DefaultColormap(HostX.dpy, HostX.screen), &col);
@@ -310,21 +310,61 @@ hostx_get_depth (void)
 }
 
 int
+hostx_get_server_depth (void)
+{
+  return HostX.server_depth;
+}
+
+void
+hostx_set_server_depth(int depth)
+{
+  HostX.server_depth = depth;
+}
+
+int
 hostx_get_bpp(void)
 {
-  return  HostX.visual->bits_per_rgb;
+  if (host_depth_matches_server())
+    return  HostX.visual->bits_per_rgb;
+  else
+    return HostX.server_depth; 	/* XXX correct ? */
 }
 
 void
 hostx_get_visual_masks (unsigned long *rmsk, 
-		     unsigned long *gmsk, 
-		     unsigned long *bmsk)
+			unsigned long *gmsk, 
+			unsigned long *bmsk)
 {
-  *rmsk = HostX.visual->red_mask;
-  *gmsk = HostX.visual->green_mask;
-  *bmsk = HostX.visual->blue_mask;
+  if (host_depth_matches_server())
+    {
+      *rmsk = HostX.visual->red_mask;
+      *gmsk = HostX.visual->green_mask;
+      *bmsk = HostX.visual->blue_mask;
+    }
+  else if (HostX.server_depth == 16)
+    {
+      /* Assume 16bpp 565 */
+      *rmsk = 0xf800;
+      *gmsk = 0x07e0;
+      *bmsk = 0x001f;
+    }
+  else
+    {
+      *rmsk = 0x0;
+      *gmsk = 0x0;
+      *bmsk = 0x0;
+    }
 }
 
+void
+hostx_set_cmap_entry(unsigned char idx, 
+		     unsigned char r, 
+		     unsigned char g, 
+		     unsigned char b)
+{
+  /* XXX Will likely break for 8 on 16, not sure if this is correct */
+  HostX.cmap[idx] = (r << 16) | (g << 8) | (b);
+}
 
 void*
 hostx_screen_init (int width, int height)
@@ -422,7 +462,17 @@ hostx_screen_init (int width, int height)
   HostX.win_width  = width;
   HostX.win_height = height;
 
-  return HostX.ximg->data;
+  if (host_depth_matches_server())
+    {
+      EPHYR_DBG("Host matches server");
+      return HostX.ximg->data;
+    }
+  else
+    {
+      EPHYR_DBG("server bpp %i", HostX.server_depth>>3);
+      HostX.fb_data = malloc(width*height*(HostX.server_depth>>3));
+      return HostX.fb_data;
+    }
 }
 
 void
@@ -440,10 +490,60 @@ hostx_paint_rect(int sx,    int sy,
       hostx_paint_debug_rect(dx, dy, width, height);
     }
 
+  /* 
+   * If the depth of the ephyr server is less than that of the host,
+   * the kdrive fb does not point to the ximage data but to a buffer
+   * ( fb_data ), we shift the various bits from this onto the XImage
+   * so they match the host.
+   *
+   * Note, This code is pretty new ( and simple ) so may break on 
+   *       endian issues, 32 bpp host etc. 
+   *       Not sure if 8bpp case is right either. 
+   *       ... and it will be slower than the matching depth case.
+   */
+
+  if (!host_depth_matches_server())
+    {
+      int            x,y,idx, bytes_per_pixel = (HostX.server_depth>>3);
+      unsigned char  r,g,b;
+      unsigned long  host_pixel;
+
+      for (x=sx; x<sx+width; x++)
+	for (y=sy; y<sy+height; y++)
+	  {
+	    idx = (HostX.win_width*y*bytes_per_pixel)+(x*bytes_per_pixel);
+	    
+	    switch (HostX.server_depth)
+	      {
+	      case 16:
+		{
+		  unsigned short pixel = *(unsigned short*)(HostX.fb_data+idx);
+
+		  r = ((pixel & 0xf800) >> 8);
+		  g = ((pixel & 0x07e0) >> 3);
+		  b = ((pixel & 0x001f) << 3);
+
+		  host_pixel = (r << 16) | (g << 8) | (b);
+		  
+		  XPutPixel(HostX.ximg, x, y, host_pixel);
+		  break;
+		}
+	      case 8:
+		{
+		  unsigned char pixel = *(unsigned char*)(HostX.fb_data+idx);
+		  XPutPixel(HostX.ximg, x, y, HostX.cmap[pixel]);
+		  break;
+		}
+	      default:
+		break;
+	      }
+	  }
+    }
+
   if (HostX.have_shm)
     {
       XShmPutImage(HostX.dpy, HostX.win, HostX.gc, HostX.ximg, 
-		   sx, sy, dx, dy, width, height, False);
+		       sx, sy, dx, dy, width, height, False);
     }
   else
     {
