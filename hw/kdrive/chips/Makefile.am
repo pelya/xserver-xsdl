@@ -19,10 +19,14 @@ libchips_a_SOURCES = 	\
 Xchips_SOURCES = \
 	chipsstub.c
 
-Xchips_LDADD = \
+CHIPS_LIBS =					\
 	libchips.a 				\
 	$(top_builddir)/hw/kdrive/vesa/libvesa.a \
-	@KDRIVE_LIBS@				\
+	@KDRIVE_LIBS@
+
+Xchips_LDADD = \
+	$(CHIPS_LIBS)				\
 	@XSERVER_LIBS@                          \
 	$(TSLIB_FLAG)
 
+Xchips_DEPENDENCIES = $(CHIPS_LIBS) @KDRIVE_LIBS@

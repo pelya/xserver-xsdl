@@ -50,12 +50,17 @@ libati_a_SOURCES = 	\
 Xati_SOURCES = \
 	ati_stub.c
 
+ATI_LIBS =				\
+	libati.a 			\
+	$(FBDEV_LIBS)			\
+	$(VESA_LIBS)			\
+	$(DRI_LIBS)			\
+	@KDRIVE_LIBS@
+
 Xati_LDADD = \
-	libati.a 				\
-	$(DRI_LIBS)				\
-	$(FBDEV_LIBS)				\
-	$(VESA_LIBS)				\
-	@KDRIVE_LIBS@				\
-	@XSERVER_LIBS@                          \
+	$(ATI_LIBS)			\
+	@XSERVER_LIBS@			\
 	$(TSLIB_FLAG)
 
+
+Xati_DEPENDENCIES = $(ATI_LIBS) @KDRIVE_LIBS@

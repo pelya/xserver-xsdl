@@ -19,10 +19,14 @@ libr128_a_SOURCES = 	\
 Xr128_SOURCES = \
 	r128stub.c
 
-Xr128_LDADD = \
+R128_LIBS =					\
 	libr128.a 				\
 	$(top_builddir)/hw/kdrive/vesa/libvesa.a \
-	@KDRIVE_LIBS@				\
+	@KDRIVE_LIBS@
+
+Xr128_LDADD = \
+	$(R128_LIBS)				\
 	@XSERVER_LIBS@                          \
 	$(TSLIB_FLAG)
 
+Xr128_DEPENDENCIES = $(R128_LIBS) @KDRIVE_LIBS@

@@ -19,10 +19,14 @@ libmga_a_SOURCES = 	\
 Xmga_SOURCES = \
 	mgastub.c
 
-Xmga_LDADD = \
+MGA_LIBS =						\
 	libmga.a 					\
-	$(top_builddir)/hw/kdrive/vesa/libvesa.a 	\
-	@KDRIVE_LIBS@					\
+	$(top_builddir)/hw/kdrive/vesa/libvesa.a	\
+	@KDRIVE_LIBS@
+
+Xmga_LDADD = \
+	$(MGA_LIBS)					\
 	@XSERVER_LIBS@                                  \
 	$(TSLIB_FLAG)
 
+Xmga_DEPENDENCIES = $(MGA_LIBS) @KDRIVE_LIBS@

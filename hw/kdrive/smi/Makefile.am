@@ -23,10 +23,15 @@ libsmi_a_SOURCES = 	\
 Xsmi_SOURCES = \
 	smistub.c
 
-Xsmi_LDADD = \
+SMI_LIBS =					\
 	libsmi.a 				\
 	$(top_builddir)/hw/kdrive/fbdev/libfbdev.a \
 	$(top_builddir)/hw/kdrive/vesa/libvesa.a \
-	@KDRIVE_LIBS@				\
+	@KDRIVE_LIBS@
+
+Xsmi_LDADD = \
+	$(SMI_LIBS)				\
 	@XSERVER_LIBS@                          \
 	$(TSLIB_FLAG)
+
+Xsmi_DEPENDENCIES = $(SMI_LIBS) @KDRIVE_LIBS@

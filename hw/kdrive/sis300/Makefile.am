@@ -32,11 +32,15 @@ libsis_a_SOURCES = 	\
 Xsis_SOURCES = \
 	sis_stub.c
 
+SIS_LIBS =				\
+	libsis.a 			\
+	$(FBDEV_LIBS)			\
+	$(VESA_LIBS)			\
+	@KDRIVE_LIBS@
+
 Xsis_LDADD = \
-	libsis.a 				\
-	$(FBDEV_LIBS)				\
-	$(VESA_LIBS)				\
-	@KDRIVE_LIBS@				\
+	$(SIS_LIBS)				\
 	@XSERVER_LIBS@                          \
 	$(TSLIB_FLAG)
 
+Xsis_DEPENDENCIES = $(SIS_LIBS) @KDRIVE_LIBS@

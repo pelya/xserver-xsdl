@@ -16,12 +16,17 @@ libnvidia_a_SOURCES = 	\
 	nvidia.h	\
 	nvidiadraw.h
 
-	
 Xnvidia_SOURCES = \
 	nvidiastub.c
 
-Xnvidia_LDADD = \
+NVIDIA_LIBS =					\
 	libnvidia.a 				\
 	$(top_builddir)/hw/kdrive/vesa/libvesa.a \
+	@KDRIVE_LIBS@
+
+Xnvidia_LDADD = \
+	$(NVIDIA_LIBS)				\
 	@KDRIVE_LIBS@				\
 	@XSERVER_LIBS@
+
+Xnvidia_DEPENDENCIES = $(NVIDIA_LIBS) @KDRIVE_LIBS@
