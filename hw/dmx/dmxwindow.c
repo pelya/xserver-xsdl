@@ -379,13 +379,6 @@ Bool dmxCreateWindow(WindowPtr pWindow)
     return ret;
 }
 
-#ifndef RENDER
-static Bool dmxDestroyPictureList(WindowPtr pWindow)
-{
-    return TRUE;
-}
-#endif
-
 /** Destroy \a pWindow on the back-end server. */
 Bool dmxBEDestroyWindow(WindowPtr pWindow)
 {
@@ -409,16 +402,21 @@ Bool dmxDestroyWindow(WindowPtr pWindow)
     ScreenPtr      pScreen = pWindow->drawable.pScreen;
     DMXScreenInfo *dmxScreen = &dmxScreens[pScreen->myNum];
     Bool           ret = TRUE;
+    Bool           needSync = FALSE;
 #ifdef GLXEXT
     dmxWinPrivPtr  pWinPriv = DMX_GET_WINDOW_PRIV(pWindow);
 #endif
 
     DMX_UNWRAP(DestroyWindow, dmxScreen, pScreen);
 
+#ifdef RENDER
+    /* Destroy any picture list associated with this window */
+    needSync |= dmxDestroyPictureList(pWindow);
+#endif
+
     /* Destroy window on back-end server */
-    if (dmxDestroyPictureList(pWindow) || dmxBEDestroyWindow(pWindow)) {
-	dmxSync(dmxScreen, FALSE);
-    }
+    needSync |= dmxBEDestroyWindow(pWindow);
+    if (needSync) dmxSync(dmxScreen, FALSE);
 
 #ifdef GLXEXT
     if (pWinPriv->swapGroup && pWinPriv->windowDestroyed)

@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/mi/miinitext.c,v 1.5 2004/07/29 18:49:42 stukreit Exp $ */
+/* $XdotOrg: xc/programs/Xserver/mi/miinitext.c,v 1.6 2004/07/31 01:37:47 stukreit Exp $ */
 /* $XFree86: xc/programs/Xserver/mi/miinitext.c,v 3.67 2003/01/12 02:44:27 dawes Exp $ */
 /***********************************************************
 
@@ -95,9 +95,11 @@ extern Bool noTestExtensions;
 #ifdef XKB
 extern Bool noXkbExtension;
 #endif
-
-#ifdef DMXSERVER
-extern Bool dmxNoRender;
+#ifdef RENDER
+extern Bool noRenderExtension;
+#endif
+#ifdef XEVIE
+extern Bool noXevieExtension;
 #endif
 
 #ifndef XFree86LOADER
@@ -281,6 +283,52 @@ extern void XFixesExtensionInit(INITARGS);
 extern void DamageExtensionInit(INITARGS);
 #endif
 
+/* The following is only a small first step towards run-time
+ * configurable extensions.
+ */
+typedef struct {
+    char *name;
+    Bool *disablePtr;
+} ExtensionToggle;
+
+static ExtensionToggle ExtensionToggleList[] =
+{
+    { "XTEST", &noTestExtensions },
+#ifdef PANORAMIX
+    { "XINERAMA", &noPanoramiXExtension },
+#endif
+#ifdef RENDER
+    { "RENDER", &noRenderExtension },
+#endif
+#ifdef XKB
+    { "XKEYBOARD", &noXkbExtension },
+#endif
+#ifdef XEVIE
+    { "XEVIE", &noXevieExtension },
+#endif
+    { NULL, NULL }
+};
+
+Bool EnableDisableExtension(char *name, Bool enable)
+{
+    ExtensionToggle *ext = &ExtensionToggleList[0];
+
+    for (ext = &ExtensionToggleList[0]; ext->name != NULL; ext++) {
+	if (strcmp(name, ext->name) == 0) {
+	    *ext->disablePtr = !enable;
+	    return TRUE;
+	}
+    }
+
+    ErrorF("Extension \"%s\" is not recognized\n", name);
+    ErrorF("Only the following extensions can be run-time %s:\n",
+	   enable ? "enabled" : "disabled");
+    for (ext = &ExtensionToggleList[0]; ext->name != NULL; ext++)
+	ErrorF("    %s\n", ext->name);
+
+    return FALSE;
+}
+
 #ifndef XFree86LOADER
 
 /*ARGSUSED*/
@@ -409,10 +457,7 @@ InitExtensions(argc, argv)
 #endif
 #endif
 #ifdef RENDER
-#ifdef DMXSERVER
-    if (!dmxNoRender)
-#endif
-    RenderExtensionInit();
+    if (!noRenderExtension) RenderExtensionInit();
 #endif
 #ifdef RANDR
     RRExtensionInit();
@@ -424,7 +469,7 @@ InitExtensions(argc, argv)
     DMXExtensionInit();
 #endif
 #ifdef XEVIE
-    XevieExtensionInit();
+    if (!noXevieExtension) XevieExtensionInit();
 #endif
 #ifdef XFIXES
     XFixesExtensionInit();
@@ -549,7 +594,7 @@ static ExtensionModule staticExtensions[] = {
     { XFree86BigfontExtensionInit, XF86BIGFONTNAME, NULL, NULL, NULL },
 #endif
 #ifdef RENDER
-    { RenderExtensionInit, "RENDER", NULL, NULL, NULL },
+    { RenderExtensionInit, "RENDER", &noRenderExtension, NULL, NULL },
 #endif
 #ifdef RANDR
     { RRExtensionInit, "RANDR", NULL, NULL, NULL },
@@ -561,7 +606,7 @@ static ExtensionModule staticExtensions[] = {
     { XFixesExtensionInit, "XFIXES", NULL, NULL },
 #endif 
 #ifdef XEVIE
-    { XevieExtensionInit, "XEVIE", NULL, NULL },
+    { XevieExtensionInit, "XEVIE", &noXevieExtension, NULL },
 #endif 
     { NULL, NULL, NULL, NULL, NULL }
 };

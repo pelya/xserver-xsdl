@@ -101,8 +101,6 @@ Bool            dmxUseXKB = TRUE;
 
 int             dmxDepth = 0;
 
-Bool            dmxNoRender = FALSE;
-
 #ifndef GLXEXT
 static Bool     dmxGLXProxy = FALSE;
 #else
@@ -625,7 +623,7 @@ void InitOutput(ScreenInfo *pScreenInfo, int argc, char *argv[])
     }
 
     /* Make sure that the command-line arguments are sane. */
-    if (dmxAddRemoveScreens && (!dmxNoRender || dmxGLXProxy)) {
+    if (dmxAddRemoveScreens && (!noRenderExtension || dmxGLXProxy)) {
 	/* Currently it is not possible to support GLX and Render
 	 * extensions with dynamic screen addition/removal due to the
 	 * state that each extension keeps, which cannot be restored. */
@@ -804,7 +802,7 @@ void InitOutput(ScreenInfo *pScreenInfo, int argc, char *argv[])
 
 #ifdef RENDER
     /* Initialize the render extension */
-    if (!dmxNoRender)
+    if (!noRenderExtension)
 	dmxInitRender();
 #endif
 
@@ -939,7 +937,7 @@ int ddxProcessArgument(int argc, char *argv[], int i)
         if (++i < argc) dmxDepth = atoi(argv[i]);
         retval = 2;
     } else if (!strcmp(argv[i], "-norender")) {
-	dmxNoRender = TRUE;
+	noRenderExtension = TRUE;
         retval = 1;
 #ifdef GLXEXT
     } else if (!strcmp(argv[i], "-noglxproxy")) {

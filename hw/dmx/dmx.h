@@ -283,9 +283,6 @@ extern Bool             dmxUseXKB;              /**< True if the XKB
                                                  * servers */
 extern int              dmxDepth;               /**< Requested depth if
                                                  * non-zero */
-extern Bool             dmxNoRender;            /**< True if the RENDER
-                                                 * extension should be
-                                                 * disabled */
 #ifdef GLXEXT
 extern Bool             dmxGLXProxy;            /**< True if glxProxy
 						 * support is enabled */

@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/os/utils.c,v 1.2 2004/04/23 19:54:28 eich Exp $ */
+/* $XdotOrg: xc/programs/Xserver/os/utils.c,v 1.3 2004/06/19 21:56:01 gisburn Exp $ */
 /* $Xorg: utils.c,v 1.5 2001/02/09 02:05:24 xorgcvs Exp $ */
 /*
 
@@ -119,6 +119,7 @@ OR PERFORMANCE OF THIS SOFTWARE.
 
 #ifdef RENDER
 #include "picture.h"
+Bool noRenderExtension = FALSE;
 #endif
 
 #define X_INCLUDE_NETDB_H
@@ -135,6 +136,10 @@ Bool PanoramiXVisibilityNotifySent = FALSE;
 Bool PanoramiXMapped = FALSE;
 Bool PanoramiXWindowExposureSent = FALSE;
 Bool PanoramiXOneExposeRequest = FALSE;
+#endif
+
+#ifdef XEVIE
+Bool noXevieExtension = TRUE;
 #endif
 
 int auditTrailLevel = 1;
@@ -169,6 +174,9 @@ int userdefinedfontpath = 0;
 char *dev_tty_from_init = NULL;		/* since we need to parse it anyway */
 
 extern char dispatchExceptionAtReset;
+
+/* Extension enable/disable in miinitext.c */
+extern Bool EnableDisableExtension(char *name, Bool enable);
 
 OsSigHandlerPtr
 OsSignal(sig, handler)
@@ -549,6 +557,8 @@ void UseMsg(void)
     ErrorF("-dumbSched             Disable smart scheduling, enable old behavior\n");
     ErrorF("-schedInterval int     Set scheduler interval in msec\n");
 #endif
+    ErrorF("+extension name        Enable extension\n");
+    ErrorF("-extension name        Disable extension\n");
 #ifdef XDMCP
     XdmcpUseMsg();
 #endif
@@ -999,6 +1009,16 @@ ProcessCommandLine(int argc, char *argv[])
 		UseMsg ();
 	}
 #endif
+	else if ( strcmp( argv[i], "+extension") == 0)
+	{
+	    if (++i >= argc || !EnableDisableExtension(argv[i], TRUE))
+		UseMsg();
+	}
+	else if ( strcmp( argv[i], "-extension") == 0)
+	{
+	    if (++i >= argc || !EnableDisableExtension(argv[i], FALSE))
+		UseMsg();
+	}
  	else
  	{
 	    ErrorF("Unrecognized option: %s\n", argv[i]);
