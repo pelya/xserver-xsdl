@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/itsy/kbd.c,v 1.1 1999/11/19 13:53:53 hohndel Exp $ */
+/* $RCSId: xc/programs/Xserver/hw/kdrive/itsy/kbd.c,v 1.1 1999/11/19 13:53:53 hohndel Exp $ */
 
 #include "itsy.h"
 #include "kkeymap.h"

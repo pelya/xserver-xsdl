@@ -1,5 +1,5 @@
 /*
- * $XFree86: xc/programs/Xserver/hw/kdrive/linux/tslib.c,v 1.1 2002/11/01 22:27:49 keithp Exp $
+ * $RCSId: xc/programs/Xserver/hw/kdrive/linux/tslib.c,v 1.1 2002/11/01 22:27:49 keithp Exp $
  * TSLIB based touchscreen driver for TinyX
  * Derived from ts.c by Keith Packard
  * Derived from ps2.c by Jim Gettys

@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/trio/s3.h,v 1.4 2000/05/06 22:17:53 keithp Exp $ */
+/* $RCSId: xc/programs/Xserver/hw/kdrive/trio/s3.h,v 1.4 2000/05/06 22:17:53 keithp Exp $ */
 
 #ifndef _S3_H_
 #define _S3_H_

@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/kdrive.h,v 1.28 2002/11/05 05:28:34 keithp Exp $ */
+/* $RCSId: xc/programs/Xserver/hw/kdrive/kdrive.h,v 1.29 2002/11/13 16:37:39 keithp Exp $ */
 
 #include <stdio.h>
 #include "X.h"
@@ -204,6 +204,7 @@ typedef struct _KdMouseInfo {
     unsigned char	buttonState;
     int			emulationDx, emulationDy;
     int			inputType;
+    Bool		transformCoordinates;
 } KdMouseInfo;
 
 extern KdMouseInfo	*kdMouseInfo;

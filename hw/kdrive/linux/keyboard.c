@@ -1,5 +1,5 @@
 /*
- * $XFree86: xc/programs/Xserver/hw/kdrive/linux/keyboard.c,v 1.9 2001/10/12 06:33:10 keithp Exp $
+ * $RCSId: xc/programs/Xserver/hw/kdrive/linux/keyboard.c,v 1.10 2001/11/08 10:26:24 keithp Exp $
  *
  * Copyright © 1999 Keith Packard
  *
@@ -397,12 +397,13 @@ static int		LinuxKbdTrans;
 static struct termios	LinuxTermios;
 static int		LinuxKbdType;
 
-void
+int
 LinuxKeyboardEnable (int fd, void *closure)
 {
     struct termios nTty;
     unsigned char   buf[256];
     int		    n;
+    int		    flags;
 
     ioctl (fd, KDGKBMODE, &LinuxKbdTrans);
     tcgetattr (fd, &LinuxTermios);
@@ -423,6 +424,7 @@ LinuxKeyboardEnable (int fd, void *closure)
      */
     while ((n = read (fd, buf, sizeof (buf))) > 0)
 	;
+    return fd;
 }
 
 void

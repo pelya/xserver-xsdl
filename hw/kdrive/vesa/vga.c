@@ -1,7 +1,7 @@
 /*
- * $XFree86: xc/programs/Xserver/hw/kdrive/vesa/vga.c,v 1.1 2000/10/20 00:19:51 keithp Exp $
+ * $RCSId: xc/programs/Xserver/hw/kdrive/vesa/vga.c,v 1.1 2000/10/20 00:19:51 keithp Exp $
  *
- * Copyright © 2000 Keith Packard, member of The XFree86 Project, Inc.
+ * Copyright © 2000 Keith Packard
  *
  * Permission to use, copy, modify, distribute, and sell this software and its
  * documentation for any purpose is hereby granted without fee, provided that

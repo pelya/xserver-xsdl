@@ -1,5 +1,5 @@
 /*
- * $XFree86: xc/programs/Xserver/hw/kdrive/linux/ts.c,v 1.9 2002/08/15 18:07:48 keithp Exp $
+ * $RCSId: xc/programs/Xserver/hw/kdrive/linux/ts.c,v 1.9 2002/08/15 18:07:48 keithp Exp $
  *
  * Derived from ps2.c by Jim Gettys
  *

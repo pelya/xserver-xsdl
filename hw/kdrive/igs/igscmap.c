@@ -1,5 +1,5 @@
 /*
- * $XFree86$
+ * $RCSId: $
  *
  * Copyright © 2000 Keith Packard
  *

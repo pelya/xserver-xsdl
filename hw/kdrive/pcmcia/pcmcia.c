@@ -27,7 +27,7 @@
  *
  * Tested running under a Compaq IPAQ Pocket PC running Linux
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/pcmcia/pcmcia.c,v 1.6 2002/10/14 18:01:41 keithp Exp $ */
+/* $RCSId: xc/programs/Xserver/hw/kdrive/pcmcia/pcmcia.c,v 1.6 2002/10/14 18:01:41 keithp Exp $ */
 
 #include "pcmcia.h"
 #define extern

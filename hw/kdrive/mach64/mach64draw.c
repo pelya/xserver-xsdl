@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/mach64/mach64draw.c,v 1.6 2001/07/23 03:44:17 keithp Exp $ */
+/* $RCSId: xc/programs/Xserver/hw/kdrive/mach64/mach64draw.c,v 1.6 2001/07/23 03:44:17 keithp Exp $ */
 
 #include "mach64.h"
 #include "mach64draw.h"

@@ -1,4 +1,4 @@
-XCOMM $XFree86$
+XCOMM $RCSId: $
 KDRIVE=..
 #include "../Kdrive.tmpl"
 

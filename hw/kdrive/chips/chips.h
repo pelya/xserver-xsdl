@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/chips/chips.h,v 1.9 2000/11/29 08:42:25 keithp Exp $ */
+/* $RCSId: xc/programs/Xserver/hw/kdrive/chips/chips.h,v 1.9 2000/11/29 08:42:25 keithp Exp $ */
 
 #ifndef _CHIPS_H_
 #define _CHIPS_H_

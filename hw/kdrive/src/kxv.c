@@ -35,7 +35,7 @@ of the copyright holder.
 
 */
 
-/* $XFree86: xc/programs/Xserver/hw/kdrive/kxv.c,v 1.3 2001/08/09 09:08:54 keithp Exp $ */
+/* $RCSId: xc/programs/Xserver/hw/kdrive/kxv.c,v 1.3 2001/08/09 09:08:54 keithp Exp $ */
 
 #include "kdrive.h"
 

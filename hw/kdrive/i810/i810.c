@@ -32,7 +32,7 @@ of the copyright holder.
 X Window System is a trademark of The Open Group */
 
 
-/* $XFree86: xc/programs/Xserver/hw/kdrive/i810/i810.c,v 1.1 2001/03/30 02:18:41 keithp Exp $ */
+/* $RCSId: xc/programs/Xserver/hw/kdrive/i810/i810.c,v 1.1 2001/03/30 02:18:41 keithp Exp $ */
 
 /*
  * i810.c - KDrive driver for the i810 chipset

@@ -19,7 +19,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/vesa/vesa.h,v 1.13 2002/09/29 23:39:47 keithp Exp $ */
+/* $RCSId: xc/programs/Xserver/hw/kdrive/vesa/vesa.h,v 1.13 2002/09/29 23:39:47 keithp Exp $ */
 
 #ifndef _VESA_H_
 #define _VESA_H_

@@ -1,4 +1,4 @@
-XCOMM $XFree86: xc/programs/Xserver/hw/kdrive/igs/Imakefile,v 1.2 2000/05/24 23:52:47 keithp Exp $
+XCOMM $RCSId: xc/programs/Xserver/hw/kdrive/igs/Imakefile,v 1.2 2000/05/24 23:52:47 keithp Exp $
 KDRIVE=..
 #include "../Kdrive.tmpl"
 

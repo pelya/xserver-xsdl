@@ -1,5 +1,5 @@
 /*
- * $XFree86: xc/programs/Xserver/hw/kdrive/kdrive.c,v 1.28 2002/10/08 21:28:04 keithp Exp $ 
+ * $RCSId: xc/programs/Xserver/hw/kdrive/kdrive.c,v 1.29 2002/10/31 18:29:50 keithp Exp $ 
  *
  * Copyright © 1999 Keith Packard
  *
@@ -50,6 +50,7 @@ unsigned long       kdGeneration;
 Bool                kdVideoTest;
 unsigned long       kdVideoTestTime;
 Bool		    kdEmulateMiddleButton;
+Bool		    kdRawPointerCoordinates;
 Bool		    kdDisableZaphod;
 Bool		    kdEnabled;
 int		    kdSubpixelOrder;
@@ -338,6 +339,7 @@ ddxUseMsg()
   ErrorF("-zaphod		Disable cursor screen switching\n");
   ErrorF("-2button	Emulate 3 button mouse\n");
   ErrorF("-3button	Disable 3 button mouse emulation\n");
+  ErrorF("-rawcoord	Don't transform pointer coordinates on rotation\n");
   ErrorF("-dumb 		Disable hardware acceleration\n");
   ErrorF("-softCursor	Force software cursor\n");
   ErrorF("-videoTest	Start the server, pause momentarily and exit\n");
@@ -562,6 +564,7 @@ KdParseMouse (char *arg)
     mi->name = 0;
     mi->prot = 0;
     mi->emulateMiddleButton = kdEmulateMiddleButton;
+    mi->transformCoordinates = !kdRawPointerCoordinates;
     mi->nbutton = 3;
     for (i = 0; i < KD_MAX_BUTTON; i++)
 	mi->map[i] = i + 1;
@@ -619,6 +622,10 @@ KdParseMouse (char *arg)
 	    mi->emulateMiddleButton = TRUE;
 	else if (!strcmp (save, "3button"))
 	    mi->emulateMiddleButton = FALSE;
+	else if (!strcmp (save, "rawcoord"))
+	    mi->transformCoordinates = FALSE;
+	else if (!strcmp (save, "transform"))
+	    mi->transformCoordinates = TRUE;
 	else
 	    UseMsg ();
     }
@@ -688,6 +695,11 @@ KdProcessArgument (int argc, char **argv, int i)
     if (!strcmp (argv[i], "-2button"))
     {
 	kdEmulateMiddleButton = TRUE;
+	return 1;
+    }
+    if (!strcmp (argv[i], "-rawcoord"))
+    {
+	kdRawPointerCoordinates = 1;
 	return 1;
     }
     if (!strcmp (argv[i], "-dumb"))

@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/trident/tridentdraw.c,v 1.10 2001/06/03 18:48:19 keithp Exp $ */
+/* $RCSId: xc/programs/Xserver/hw/kdrive/trident/tridentdraw.c,v 1.10 2001/06/03 18:48:19 keithp Exp $ */
 
 #include "chips.h"
 

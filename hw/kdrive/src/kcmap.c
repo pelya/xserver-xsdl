@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/kcmap.c,v 1.4 2000/05/24 23:57:56 keithp Exp $ */
+/* $RCSId: xc/programs/Xserver/hw/kdrive/kcmap.c,v 1.4 2000/05/24 23:57:56 keithp Exp $ */
 
 #include "kdrive.h"
 

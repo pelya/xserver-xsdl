@@ -22,7 +22,7 @@
  *
  * Author:  Keith Packard, SuSE, Inc.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/savage/s3.c,v 1.4 2000/05/06 22:17:44 keithp Exp $ */
+/* $RCSId: xc/programs/Xserver/hw/kdrive/savage/s3.c,v 1.4 2000/05/06 22:17:44 keithp Exp $ */
 
 #include "s3.h"
 

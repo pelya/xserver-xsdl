@@ -22,7 +22,7 @@
  * Adapted from ts300.c by Alan Hourihane <alanh@fairlite.demon.co.uk>
  * For the Compaq IPAQ handheld, with the HP VGA Out Card (F1252A).
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/ipaq/ipaq.c,v 1.2 2001/05/29 17:47:55 keithp Exp $ */
+/* $RCSId: xc/programs/Xserver/hw/kdrive/ipaq/ipaq.c,v 1.2 2001/05/29 17:47:55 keithp Exp $ */
 
 #include "pcmcia.h"
 

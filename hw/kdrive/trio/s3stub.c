@@ -22,7 +22,7 @@
  *
  * Author:  Keith Packard, SuSE, Inc.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/trio/s3stub.c,v 1.3 2000/02/23 20:30:13 dawes Exp $ */
+/* $RCSId: xc/programs/Xserver/hw/kdrive/trio/s3stub.c,v 1.3 2000/02/23 20:30:13 dawes Exp $ */
 
 #include "s3.h"
 

@@ -21,7 +21,7 @@
  *
  * Authors:  Alan Hourihane, <alanh@fairlite.demon.co.uk>
  */
-/* $XFree86$ */
+/* $RCSId: $ */
 
 #include "pcmcia.h"
 #include "cursorstr.h"

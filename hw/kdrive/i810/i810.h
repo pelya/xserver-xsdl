@@ -31,7 +31,7 @@ of the copyright holder.
 
 X Window System is a trademark of The Open Group */
 
-/* $XFree86$ */
+/* $RCSId: $ */
 
 /*
  * Author:

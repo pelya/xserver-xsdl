@@ -1,5 +1,5 @@
 /*
- * $XFree86: xc/programs/Xserver/hw/kdrive/kcurscol.c,v 1.4 2000/05/11 18:14:13 tsi Exp $
+ * $RCSId: xc/programs/Xserver/hw/kdrive/kcurscol.c,v 1.4 2000/05/11 18:14:13 tsi Exp $
  *
  * Copyright © 1999 Keith Packard
  *

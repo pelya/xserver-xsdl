@@ -22,7 +22,7 @@
  *
  * Author:  Keith Packard, SuSE, Inc.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/sis530/sisstub.c,v 1.4 2000/08/09 17:52:44 keithp Exp $ */
+/* $RCSId: xc/programs/Xserver/hw/kdrive/sis530/sisstub.c,v 1.4 2000/08/09 17:52:44 keithp Exp $ */
 
 #include "sis.h"
 

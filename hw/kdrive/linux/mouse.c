@@ -1,7 +1,7 @@
 /*
- * $XFree86: xc/programs/Xserver/hw/kdrive/linux/mouse.c,v 1.4 2001/12/07 02:18:19 keithp Exp $
+ * $RCSId: xc/programs/Xserver/hw/kdrive/linux/mouse.c,v 1.6 2002/08/02 16:11:35 keithp Exp $
  *
- * Copyright © 2001 Keith Packard, member of The XFree86 Project, Inc.
+ * Copyright © 2001 Keith Packard
  *
  * Permission to use, copy, modify, distribute, and sell this software and its
  * documentation for any purpose is hereby granted without fee, provided that
@@ -279,6 +279,7 @@ static Bool ps2Parse (KdMouseInfo *mi, unsigned char *ev, int ne)
     Kmouse	    *km = mi->driver;
     int		    dx, dy, dz;
     unsigned long   flags;
+    unsigned long   flagsrelease = 0;
     
     flags = KD_MOUSE_DELTA;
     if (ev[0] & 4)
@@ -291,10 +292,16 @@ static Bool ps2Parse (KdMouseInfo *mi, unsigned char *ev, int ne)
     if (ne > 3)
     {
 	dz = (int) (signed char) ev[3];
-	if (dz > 0)
+	if (dz < 0)
+	{
 	    flags |= KD_BUTTON_4;
-	else if (dz < 0)
+	    flagsrelease = KD_BUTTON_4;
+	}
+	else if (dz > 0)
+	{
 	    flags |= KD_BUTTON_5;
+	    flagsrelease = KD_BUTTON_5;
+	}
     }
 	
     dx = ev[1];
@@ -307,7 +314,14 @@ static Bool ps2Parse (KdMouseInfo *mi, unsigned char *ev, int ne)
     if (!MouseReasonable (mi, flags, dx, dy))
 	return FALSE;
     if (km->stage == MouseWorking)
+    {
 	KdEnqueueMouseEvent (mi, flags, dx, dy);
+	if (flagsrelease)
+	{
+	    flags &= ~flagsrelease;
+	    KdEnqueueMouseEvent (mi, flags, dx, dy);
+	}
+    }
     return TRUE;
 }
 

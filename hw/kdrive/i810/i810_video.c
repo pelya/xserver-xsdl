@@ -58,8 +58,6 @@ THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 **************************************************************************/
 
 
-/* $XFree86: xc/programs/Xserver/hw/kdrive/i810/i810_video.c,v 1.1tsi Exp $ */
-
 /*
  * i810_video.c: i810 KDrive Xv driver. 
  *               Based on the XFree86 i810 Xv driver by Jonathan Bian.

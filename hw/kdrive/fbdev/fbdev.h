@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/fbdev/fbdev.h,v 1.11 2001/06/03 21:52:45 keithp Exp $ */
+/* $RCSId: xc/programs/Xserver/hw/kdrive/fbdev/fbdev.h,v 1.11 2001/06/03 21:52:45 keithp Exp $ */
 
 #ifndef _FBDEV_H_
 #define _FBDEV_H_

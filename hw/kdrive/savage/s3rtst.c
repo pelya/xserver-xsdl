@@ -22,7 +22,7 @@
  *
  * Author:  Keith Packard, SuSE, Inc.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/savage/s3rtst.c,v 1.1 1999/11/19 13:53:57 hohndel Exp $ */
+/* $RCSId: xc/programs/Xserver/hw/kdrive/savage/s3rtst.c,v 1.1 1999/11/19 13:53:57 hohndel Exp $ */
 
 #include <stdio.h>
 #include "s3reg.h"

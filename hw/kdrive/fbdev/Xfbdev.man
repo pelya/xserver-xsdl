@@ -1,4 +1,4 @@
-.\" $XFree86: xc/programs/Xserver/hw/kdrive/fbdev/Xfbdev.man,v 1.4 2001/01/27 18:20:40 dawes Exp $
+.\" $RCSId: xc/programs/Xserver/hw/kdrive/fbdev/Xfbdev.man,v 1.4 2001/01/27 18:20:40 dawes Exp $
 .\"
 .TH Xfbdev 1 __vendorversion__
 .SH NAME

@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/trident/tridentcurs.c,v 1.5 2000/08/29 17:20:15 keithp Exp $ */
+/* $RCSId: xc/programs/Xserver/hw/kdrive/trident/tridentcurs.c,v 1.5 2000/08/29 17:20:15 keithp Exp $ */
 
 #include "trident.h"
 #include "cursorstr.h"

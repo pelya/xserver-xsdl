@@ -1,7 +1,7 @@
 /*
- * $XFree86: xc/programs/Xserver/miext/shadow/shrotate.c,v 1.3 2001/07/21 04:13:26 keithp Exp $
+ * $RCSId: xc/programs/Xserver/miext/shadow/shrotate.c,v 1.3 2001/07/21 04:13:26 keithp Exp $
  *
- * Copyright © 2001 Keith Packard, member of The XFree86 Project, Inc.
+ * Copyright © 2001 Keith Packard
  *
  * Permission to use, copy, modify, distribute, and sell this software and its
  * documentation for any purpose is hereby granted without fee, provided that

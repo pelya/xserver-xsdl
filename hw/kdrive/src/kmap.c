@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/kmap.c,v 1.9 2001/06/29 13:57:45 keithp Exp $ */
+/* $RCSId: xc/programs/Xserver/hw/kdrive/kmap.c,v 1.10 2001/07/24 21:26:17 keithp Exp $ */
 
 #include "kdrive.h"
 
@@ -121,8 +121,12 @@ KdSetMappedMode (CARD32 addr, CARD32 size, int mode)
 	mtrr = open ("/proc/mtrr", 2);
     if (mtrr > 0)
     {
+	unsigned long nsize;
 	base = addr & ~((1<<22)-1);
 	bound = ((addr + size) + ((1<<22) - 1)) & ~((1<<22) - 1);
+	nsize = 1;
+	while (nsize < (bound - base))
+	    nsize <<= 1;
 	switch (mode) {
 	case KD_MAPPED_MODE_REGISTERS:
 	    type = MTRR_TYPE_UNCACHABLE;
@@ -132,7 +136,7 @@ KdSetMappedMode (CARD32 addr, CARD32 size, int mode)
 	    break;
 	}
 	sentry.base = base;
-	sentry.size = bound - base;
+	sentry.size = nsize;
 	sentry.type = type;
 	
 	if (ioctl (mtrr, MTRRIOC_ADD_ENTRY, &sentry) < 0)
@@ -156,8 +160,12 @@ KdResetMappedMode (CARD32 addr, CARD32 size, int mode)
 	mtrr = open ("/proc/mtrr", 2);
     if (mtrr > 0)
     {
+	unsigned long	nsize;
 	base = addr & ~((1<<22)-1);
 	bound = ((addr + size) + ((1<<22) - 1)) & ~((1<<22) - 1);
+	nsize = 1;
+	while (nsize < (bound - base))
+	    nsize <<= 1;
 	switch (mode) {
 	case KD_MAPPED_MODE_REGISTERS:
 	    type = MTRR_TYPE_UNCACHABLE;
@@ -167,7 +175,7 @@ KdResetMappedMode (CARD32 addr, CARD32 size, int mode)
 	    break;
 	}
 	sentry.base = base;
-	sentry.size = bound - base;
+	sentry.size = nsize;
 	sentry.type = type;
 	
 	if (ioctl (mtrr, MTRRIOC_DEL_ENTRY, &sentry) < 0)

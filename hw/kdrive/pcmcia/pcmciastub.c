@@ -21,7 +21,7 @@
  *
  * Authors:  Alan Hourihane, <alanh@fairlite.demon.co.uk>
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/pcmcia/pcmciastub.c,v 1.1 2001/05/23 08:56:09 alanh Exp $ */
+/* $RCSId: xc/programs/Xserver/hw/kdrive/pcmcia/pcmciastub.c,v 1.1 2001/05/23 08:56:09 alanh Exp $ */
 
 #include "pcmcia.h"
 

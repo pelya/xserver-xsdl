@@ -19,7 +19,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/mach64/mach64video.c,v 1.9tsi Exp $ */
+/* $RCSId: xc/programs/Xserver/hw/kdrive/mach64/mach64video.c,v 1.9tsi Exp $ */
 #include "mach64.h"
 
 #include "Xv.h"

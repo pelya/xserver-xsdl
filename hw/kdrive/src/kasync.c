@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/kasync.c,v 1.8 2001/03/30 02:15:19 keithp Exp $ */
+/* $RCSId: xc/programs/Xserver/hw/kdrive/kasync.c,v 1.8 2001/03/30 02:15:19 keithp Exp $ */
 
 #include "kdrive.h"
 

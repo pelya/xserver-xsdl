@@ -22,7 +22,7 @@
  *
  * Author:  Keith Packard, SuSE, Inc.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/chips/chipsstub.c,v 1.1 2001/09/05 07:12:42 keithp Exp $ */
+/* $RCSId: xc/programs/Xserver/hw/kdrive/chips/chipsstub.c,v 1.1 2001/09/05 07:12:42 keithp Exp $ */
 
 #include "chips.h"
 

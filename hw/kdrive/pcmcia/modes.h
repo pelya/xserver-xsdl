@@ -21,7 +21,7 @@
  *
  * Authors:  Alan Hourihane, <alanh@fairlite.demon.co.uk>
  */
-/* $XFree86$ */
+/* $RCSId: $ */
 
 #define V_NHSYNC 0x01
 #define V_NVSYNC 0x02

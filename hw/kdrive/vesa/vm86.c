@@ -1,7 +1,7 @@
 /*
- * $XFree86: xc/programs/Xserver/hw/kdrive/vesa/vm86.c,v 1.2 2002/02/19 00:18:05 keithp Exp $
+ * $RCSId: xc/programs/Xserver/hw/kdrive/vesa/vm86.c,v 1.2 2002/02/19 00:18:05 keithp Exp $
  *
- * Copyright © 2000 Keith Packard, member of The XFree86 Project, Inc.
+ * Copyright © 2000 Keith Packard
  *
  * Permission to use, copy, modify, distribute, and sell this software and its
  * documentation for any purpose is hereby granted without fee, provided that

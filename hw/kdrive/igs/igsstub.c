@@ -1,5 +1,5 @@
 /*
- * $XFree86: xc/programs/Xserver/hw/kdrive/igs/igsstub.c,v 1.2 2000/05/24 23:52:48 keithp Exp $
+ * $RCSId: xc/programs/Xserver/hw/kdrive/igs/igsstub.c,v 1.2 2000/05/24 23:52:48 keithp Exp $
  *
  * Copyright © 2000 Keith Packard
  *

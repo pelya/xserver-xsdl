@@ -1,5 +1,5 @@
 XCOMM $XConsortium: Imakefile /main/10 1996/12/02 10:20:33 lehors $
-XCOMM $XFree86: xc/programs/Xserver/hw/nvfb/Imakefile,v 3.8 1996/12/23 06:30:19 dawes Exp $
+XCOMM $RCSId: xc/programs/Xserver/hw/nvfb/Imakefile,v 3.8 1996/12/23 06:30:19 dawes Exp $
 KDRIVE=..
 #include "../Kdrive.tmpl"
 

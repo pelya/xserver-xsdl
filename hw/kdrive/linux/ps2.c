@@ -1,5 +1,5 @@
 /*
- * $XFree86: xc/programs/Xserver/hw/kdrive/linux/ps2.c,v 1.6 2001/10/12 06:33:10 keithp Exp $
+ * $RCSId: xc/programs/Xserver/hw/kdrive/linux/ps2.c,v 1.6 2001/10/12 06:33:10 keithp Exp $
  *
  * Copyright © 1999 Keith Packard
  *

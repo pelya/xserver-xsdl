@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/sis530/sis.h,v 1.4 2000/05/06 22:17:49 keithp Exp $ */
+/* $RCSId: xc/programs/Xserver/hw/kdrive/sis530/sis.h,v 1.4 2000/05/06 22:17:49 keithp Exp $ */
 
 #ifndef _SIS_H_
 #define _SIS_H_

@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/sis530/siscurs.c,v 1.1 1999/11/19 13:53:59 hohndel Exp $ */
+/* $RCSId: xc/programs/Xserver/hw/kdrive/sis530/siscurs.c,v 1.1 1999/11/19 13:53:59 hohndel Exp $ */
 
 #include "sis.h"
 #include "cursorstr.h"

@@ -35,7 +35,7 @@ of the copyright holder.
 
  */
 
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/linux/lnx_agp.c,v 3.4 2000/08/28 18:12:56 dawes Exp $ */
+/* $RCSId: xc/programs/Xserver/hw/xfree86/os-support/linux/lnx_agp.c,v 3.4 2000/08/28 18:12:56 dawes Exp $ */
 
 /*
  * Author: Pontus Lidman <pontus.lidman@nokia.com> (adaption to KDrive) and others

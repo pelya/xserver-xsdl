@@ -22,7 +22,7 @@
  *
  * Author:  Keith Packard, SuSE, Inc.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/trident/tridentstub.c,v 1.5 2000/11/29 08:42:25 keithp Exp $ */
+/* $RCSId: xc/programs/Xserver/hw/kdrive/trident/tridentstub.c,v 1.5 2000/11/29 08:42:25 keithp Exp $ */
 
 #include "trident.h"
 

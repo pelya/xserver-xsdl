@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/kinput.c,v 1.29 2002/11/05 05:28:34 keithp Exp $ */
+/* $RCSId: xc/programs/Xserver/hw/kdrive/kinput.c,v 1.30 2002/11/13 16:37:39 keithp Exp $ */
 
 #include "kdrive.h"
 #include "inputstr.h"
@@ -146,6 +146,15 @@ static int  kdnFds;
 #define NOBLOCK FNDELAY
 #endif
 
+static void
+KdNonBlockFd (int fd)
+{
+    int	flags;
+    flags = fcntl (fd, F_GETFL);
+    flags |= FASYNC|NOBLOCK;
+    fcntl (fd, F_SETFL, flags);
+}
+
 void
 KdAddFd (int fd)
 {
@@ -155,9 +164,7 @@ KdAddFd (int fd)
     
     kdnFds++;
     fcntl (fd, F_SETOWN, getpid());
-    flags = fcntl (fd, F_GETFL);
-    flags |= FASYNC|NOBLOCK;
-    fcntl (fd, F_SETFL, flags);
+    KdNonBlockFd (fd);
     AddEnabledDevice (fd);
     memset (&act, '\0', sizeof act);
     act.sa_handler = KdSigio;
@@ -232,7 +239,7 @@ KdRegisterFdEnableDisable (int fd,
 void
 KdUnregisterFds (int type, Bool do_close)
 {
-    int	i;
+    int	i, j;
 
     for (i = 0; i < kdNumInputFds;)
     {
@@ -243,8 +250,8 @@ KdUnregisterFds (int type, Bool do_close)
 	    if (do_close)
 		close (kdInputFds[i].fd);
 	    --kdNumInputFds;
-	    for (; i < kdNumInputFds; i++)
-		kdInputFds[i] = kdInputFds[i+1];
+	    for (j = i; j < kdNumInputFds; j++)
+		kdInputFds[j] = kdInputFds[j+1];
 	}
 	else
 	    i++;
@@ -274,6 +281,7 @@ KdEnableInput (void)
     kdInputEnabled = TRUE;
     for (i = 0; i < kdNumInputFds; i++)
     {
+	KdNonBlockFd (kdInputFds[i].fd);
 	if (kdInputFds[i].enable)
 	    kdInputFds[i].fd = (*kdInputFds[i].enable) (kdInputFds[i].fd, kdInputFds[i].closure);
 	KdAddFd (kdInputFds[i].fd);
@@ -1361,16 +1369,32 @@ KdEnqueueMouseEvent(KdMouseInfo *mi, unsigned long flags, int rx, int ry)
     
     if (flags & KD_MOUSE_DELTA)
     {
-	x = matrix[0][0] * rx + matrix[0][1] * ry;
-	y = matrix[1][0] * rx + matrix[1][1] * ry;
+	if (mi->transformCoordinates)
+	{
+	    x = matrix[0][0] * rx + matrix[0][1] * ry;
+	    y = matrix[1][0] * rx + matrix[1][1] * ry;
+	}
+	else
+	{
+	    x = rx;
+	    y = ry;
+	}
 	x = KdMouseAccelerate (pKdPointer, x);
 	y = KdMouseAccelerate (pKdPointer, y);
 	xE.u.keyButtonPointer.pad1 = 1;
     }
     else
     {
-	x = matrix[0][0] * rx + matrix[0][1] * ry + matrix[0][2];
-	y = matrix[1][0] * rx + matrix[1][1] * ry + matrix[1][2];
+	if (mi->transformCoordinates)
+	{
+	    x = matrix[0][0] * rx + matrix[0][1] * ry + matrix[0][2];
+	    y = matrix[1][0] * rx + matrix[1][1] * ry + matrix[1][2];
+	}
+	else
+	{
+	    x = rx;
+	    y = ry;
+	}
 	xE.u.keyButtonPointer.pad1 = 0;
     }
     xE.u.keyButtonPointer.time = ms;

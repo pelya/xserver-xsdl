@@ -22,7 +22,7 @@
  *
  * Author:  Keith Packard, SuSE, Inc.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/savage/s3reg.h,v 1.3 2000/02/23 20:30:05 dawes Exp $ */
+/* $RCSId: xc/programs/Xserver/hw/kdrive/savage/s3reg.h,v 1.3 2000/02/23 20:30:05 dawes Exp $ */
 
 #ifndef _S3REG_H_
 #define _S3REG_H_

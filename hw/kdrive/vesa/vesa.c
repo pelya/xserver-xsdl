@@ -19,7 +19,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/vesa/vesa.c,v 1.19 2002/09/29 23:39:47 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/vesa/vesa.c,v 1.21 2002/10/14 18:01:42 keithp Exp $ */
 
 #include "vesa.h"
 #ifdef RANDR
@@ -34,6 +34,7 @@ Bool vesa_linear_fb = TRUE;
 Bool vesa_restore = FALSE;
 Bool vesa_verbose = FALSE;
 Bool vesa_force_text = FALSE;
+Bool vesa_restore_font = TRUE;
 
 #define VesaPriv(scr)	((VesaScreenPrivPtr) (scr)->driver)
 
@@ -251,6 +252,58 @@ vesaListModes (void)
 	}
 	Vm86Cleanup (vi);
     }
+}
+
+void
+vesaTestMode (void)
+{
+    Vm86InfoPtr	vi;
+    VesaModePtr	modes;
+    VesaModePtr	mode;
+    VbeInfoPtr	vbeInfo;
+    int		nmode;
+    int		n;
+
+    vi = Vm86Setup ();
+    if (!vi)
+    {
+	ErrorF ("Can't setup vm86\n");
+	return;
+    }
+    modes = vesaGetModes (vi, &nmode);
+    if (!modes)
+    {
+	ErrorF ("No modes available\n");
+	return;
+    }
+    VbeReportInfo (vi);
+    vbeInfo = VbeInit (vi);
+    for (n = 0; n < nmode; n++)
+    {
+	if (modes[n].mode == vesa_video_mode)
+	    break;
+    }
+    if (n == nmode)
+    {
+	ErrorF ("no mode specified\n");
+	return;
+    }
+    mode = &modes[n];
+    if (mode->vbe)
+    {
+	ErrorF ("Enable VBE mode 0x%x\n", mode->mode);
+	VbeSetMode(vi, vbeInfo, mode->mode, FALSE, FALSE);
+    }
+    else
+    {
+	ErrorF ("Enable BIOS mode 0x%x\n", mode->mode);
+	VgaSetMode (vi, mode->mode);
+    }
+    sleep (2);
+    ErrorF ("Restore BIOS mode 0x%x\n", 3);
+    VgaSetMode (vi, 3);
+    xfree (modes);
+    Vm86Cleanup (vi);
 }
 
 Bool
@@ -1404,28 +1457,35 @@ vesaEnable(ScreenPtr pScreen)
 						screen->fb[0].frameBuffer);
 	    }
 	}
-	memcpy (priv->text, pscr->fb, VESA_TEXT_SAVE);
+	if (vesa_restore_font)
+	    memcpy (priv->text, pscr->fb, VESA_TEXT_SAVE);
 	break;
     case VESA_WINDOWED:
-	for (i = 0; i < VESA_TEXT_SAVE;) 
+	if (vesa_restore_font)
 	{
-	    p = vesaSetWindowWindowed (pScreen, 0, i, VBE_WINDOW_READ, &size);
-            if(!p) {
-                ErrorF("Couldn't set window for saving VGA font\n");
-                break;
-            }
-            if(i + size > VESA_TEXT_SAVE)
-                size = VESA_TEXT_SAVE - i;
-            memcpy(((char*)priv->text) + i, p, size);
-            i += size;
-        }
+	    for (i = 0; i < VESA_TEXT_SAVE;) 
+	    {
+		p = vesaSetWindowWindowed (pScreen, 0, i, VBE_WINDOW_READ, &size);
+		if(!p) {
+		    ErrorF("Couldn't set window for saving VGA font\n");
+		    break;
+		}
+		if(i + size > VESA_TEXT_SAVE)
+		    size = VESA_TEXT_SAVE - i;
+		memcpy(((char*)priv->text) + i, p, size);
+		i += size;
+	    }
+	}
 	break;
     case VESA_PLANAR:
-	for (i = 0; i < 4; i++)
+	if (vesa_restore_font)
 	{
-	    p = vesaSetWindowPlanar (pScreen, 0, i, VBE_WINDOW_READ, &size);
-	    memcpy (((char *)priv->text) + i * (VESA_TEXT_SAVE/4), p,
-		    (VESA_TEXT_SAVE/4));
+	    for (i = 0; i < 4; i++)
+	    {
+		p = vesaSetWindowPlanar (pScreen, 0, i, VBE_WINDOW_READ, &size);
+		memcpy (((char *)priv->text) + i * (VESA_TEXT_SAVE/4), p,
+			(VESA_TEXT_SAVE/4));
+	    }
 	}
 	break;
     }
@@ -1514,33 +1574,35 @@ vesaDisable(ScreenPtr pScreen)
     CARD32		size;
     char		*p;
 
-    switch (pscr->mapping) {
-    case VESA_LINEAR:
-    case VESA_MONO:
-        memcpy(pscr->fb, priv->text, VESA_TEXT_SAVE);
-	break;
-    case VESA_WINDOWED:
-        while(i < VESA_TEXT_SAVE) {
-	    p = vesaSetWindowWindowed (pScreen, 0, i, VBE_WINDOW_WRITE, &size);
-            if(!p) {
-                ErrorF("Couldn't set window for restoring VGA font\n");
-                break;
-            }
-            if(i + size > VESA_TEXT_SAVE)
-                size = VESA_TEXT_SAVE - i;
-            memcpy(p, ((char*)priv->text) + i, size);
-            i += size;
-        }
-	break;
-    case VESA_PLANAR:
-	for (i = 0; i < 4; i++)
-	{
-	    p = vesaSetWindowPlanar (pScreen, 0, i, VBE_WINDOW_WRITE, &size);
-	    memcpy (p,
-		    ((char *)priv->text) + i * (VESA_TEXT_SAVE/4),
-		    (VESA_TEXT_SAVE/4));
+    if (vesa_restore_font) {
+	switch (pscr->mapping) {
+	case VESA_LINEAR:
+	case VESA_MONO:
+	    memcpy(pscr->fb, priv->text, VESA_TEXT_SAVE);
+	    break;
+	case VESA_WINDOWED:
+	    while(i < VESA_TEXT_SAVE) {
+		p = vesaSetWindowWindowed (pScreen, 0, i, VBE_WINDOW_WRITE, &size);
+		if(!p) {
+		    ErrorF("Couldn't set window for restoring VGA font\n");
+		    break;
+		}
+		if(i + size > VESA_TEXT_SAVE)
+		    size = VESA_TEXT_SAVE - i;
+		memcpy(p, ((char*)priv->text) + i, size);
+		i += size;
+	    }
+	    break;
+	case VESA_PLANAR:
+	    for (i = 0; i < 4; i++)
+	    {
+		p = vesaSetWindowPlanar (pScreen, 0, i, VBE_WINDOW_WRITE, &size);
+		memcpy (p,
+			((char *)priv->text) + i * (VESA_TEXT_SAVE/4),
+			(VESA_TEXT_SAVE/4));
+	    }
+	    break;
 	}
-	break;
     }
     vesaUnmapFramebuffer (screen);
 }
@@ -1771,6 +1833,9 @@ vesaProcessArgument (int argc, char **argv, int i)
     } else if(!strcmp(argv[i], "-listmodes")) {
         vesaListModes();
         exit(0);
+    } else if(!strcmp(argv[i], "-vesatest")) {
+	vesaTestMode();
+	exit (0);
     } else if(!strcmp(argv[i], "-swaprgb")) {
 	vesa_swap_rgb = TRUE;
 	return 1;
@@ -1785,6 +1850,9 @@ vesaProcessArgument (int argc, char **argv, int i)
 	return 1;
     } else if(!strcmp(argv[i], "-force-text")) {
 	vesa_force_text = TRUE;
+	return 1;
+    } else if(!strcmp(argv[i], "-trash-font")) {
+	vesa_restore_font = FALSE;
 	return 1;
     }
     

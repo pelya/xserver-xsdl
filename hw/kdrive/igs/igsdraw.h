@@ -1,5 +1,5 @@
 /*
- * $XFree86: xc/programs/Xserver/hw/kdrive/igs/igsdraw.h,v 1.1 2000/05/06 22:17:43 keithp Exp $
+ * $RCSId: xc/programs/Xserver/hw/kdrive/igs/igsdraw.h,v 1.1 2000/05/06 22:17:43 keithp Exp $
  *
  * Copyright © 2000 Keith Packard
  *
