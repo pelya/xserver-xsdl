@@ -19,7 +19,6 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
-/* $XFree86$ */
 
 #include <stdlib.h>
 #include <errno.h>
@@ -58,12 +57,15 @@ static U8 rev_ints[32] =
 static U8 retcode_data[2] =
 { 0xCD, 0xFF };
 
-#define LM(vi,i) ((char*)vi->loMem)[i-LOMEM_BASE]
+#define LM(vi,i) (((char*)vi->loMem)[i-LOMEM_BASE])
 #define LMW(vi,i) (*(U16*)(&LM(vi,i)))
-#define MM(vi,i) ((char*)vi->magicMem)[i-MAGICMEM_BASE]
+#define LML(vi,i) (*(U32*)(&LM(vi,i)))
+#define MM(vi,i) (((char*)vi->magicMem)[i-MAGICMEM_BASE])
 #define MMW(vi,i) (*(U16*)(&MM(vi,i)))
-#define HM(vi,i) ((char*)vi->hiMem)[i-HIMEM_BASE]
+#define MML(vi,i) (*(U32*)(&MM(vi,i)))
+#define HM(vi,i) (((char*)vi->hiMem)[i-HIMEM_BASE])
 #define HMW(vi,i) (*(U16*)(&MM(vi,i)))
+#define HML(vi,i) (*(U32*)(&MM(vi,i)))
 
 #define PUSHW(vi, i) \
 { vi->vms.regs.esp -= 2;\
@@ -307,11 +309,12 @@ VbeRestoreState(VbeInfoPtr vi)
 void *
 VbeMapFramebuffer(VbeInfoPtr vi) {
     U8 *fb;
+    VbeInfoBlock *vib = (VbeInfoBlock*)&(LM(vi, vi->vib_base));
     VbeModeInfoBlock *vmib = (VbeModeInfoBlock*)&(LM(vi, vi->vmib_base));
     int size;
     int pagesize = getpagesize(), before, after;
 
-    size = vmib->BytesPerScanLine * vmib->YResolution;
+    size = 1024 * 64L * vib->TotalMemory;
 
     before = vmib->PhysBasePtr % pagesize;
     after = pagesize - ((vmib->PhysBasePtr + size) % pagesize);
@@ -635,6 +638,237 @@ VbeDoInterrupt(VbeInfoPtr vi, int num)
         return 0;
 }
 
+static inline U8 
+vm86_inb(U16 port)
+{
+    U8 value;
+    asm volatile ("inb %w1,%b0" : "=a" (value) : "d" (port));
+    return value;
+}
+
+static inline U16
+vm86_inw(U16 port)
+{
+    U16 value;
+    asm volatile ("inw %w1,%w0" : "=a" (value) : "d" (port));
+    return value;
+}
+
+static inline U32
+vm86_inl(U16 port)
+{
+    U32 value;
+    asm volatile ("inl %w1,%0" : "=a" (value) : "d" (port));
+    return value;
+}
+
+static inline void
+vm86_outb(U16 port, U8 value)
+{
+    asm volatile ("outb %b0,%w1" : : "a" (value), "d" (port));
+}
+
+static inline void
+vm86_outw(U16 port, U16 value)
+{
+    asm volatile ("outw %w0,%w1" : : "a" (value), "d" (port));
+}
+
+static inline void
+vm86_outl(U16 port, U32 value)
+{
+    asm volatile ("outl %0,%w1" : : "a" (value), "d" (port));
+}
+
+#define SEG_CS 1
+#define SEG_DS 2
+#define SEG_ES 3
+#define SEG_SS 4
+#define SEG_GS 5
+#define SEG_FS 6
+#define REP 1
+#define REPNZ 2
+#define SET_8(_x, _y) (_x) = (_x & ~0xFF) | (_y & 0xFF);
+#define SET_16(_x, _y) (_x) = (_x & ~0xFFFF) | (_y & 0xFFFF);
+#define INC_IP(_i) SET_16(regs->eip, (regs->eip + _i))
+#define AGAIN INC_IP(1); goto again;
+
+static int
+vm86_emulate(VbeInfoPtr vi)
+{
+    struct vm86_regs *regs = &vi->vms.regs;
+    U8 opcode;
+    int size;
+    int pref_seg = 0, pref_rep = 0, pref_66 = 0, pref_67 = 0;
+    U32 count;
+    int code;
+
+  again:
+    if(!VbeIsMemory(vi, MAKE_POINTER(regs->cs, regs->eip))) {
+        ErrorF("Trying to execute unmapped memory\n");
+        return -1;
+    }
+    opcode = VbeMemory(vi, MAKE_POINTER(regs->cs, regs->eip));
+    switch(opcode) {
+    case 0x2E: pref_seg = SEG_CS; AGAIN;
+    case 0x3E: pref_seg = SEG_DS; AGAIN;
+    case 0x26: pref_seg = SEG_ES; AGAIN;
+    case 0x36: pref_seg = SEG_SS; AGAIN;
+    case 0x65: pref_seg = SEG_GS; AGAIN;
+    case 0x64: pref_seg = SEG_FS; AGAIN;
+    case 0x66: pref_66 = 1; AGAIN;
+    case 0x67: pref_67 = 1; AGAIN;
+    case 0xF2: pref_rep = REPNZ; AGAIN;
+    case 0xF3: pref_rep = REP; AGAIN;
+
+    case 0xEC:                  /* IN AL, DX */
+        SET_8(regs->eax, vm86_inb(regs->edx & 0xFFFF));
+        INC_IP(1);
+        break;
+    case 0xED:                  /* IN AX, DX */
+        if(pref_66)
+            regs->eax = vm86_inl(regs->edx & 0xFFFF);
+        else
+            SET_16(regs->eax, vm86_inw(regs->edx & 0xFFFF));
+	INC_IP(1);
+        break;
+    case 0xE4:                  /* IN AL, imm8 */
+        SET_8(regs->eax, 
+              vm86_inb(VbeMemory(vi, MAKE_POINTER(regs->cs, regs->eip+1))));
+        INC_IP(2);
+        break;
+    case 0xE5:                  /* IN AX, imm8 */
+        if(pref_66)
+            regs->eax =
+                vm86_inl(VbeMemory(vi, MAKE_POINTER(regs->cs, regs->eip+1)));
+        else
+            SET_16(regs->eax, 
+                   vm86_inw(VbeMemory(vi, MAKE_POINTER(regs->cs, regs->eip+1))));
+        INC_IP(2);
+        break;
+    case 0x6C:                  /* INSB */
+    case 0x6D:                  /* INSW */
+        if(opcode == 0x6C) {
+            VbeWriteMemory(vi, MAKE_POINTER(regs->es, regs->edi),
+                vm86_inb(regs->edx & 0xFFFF));
+            size = 1;
+        } else if(pref_66) {
+            VbeWriteMemoryL(vi, MAKE_POINTER(regs->es, regs->edi),
+                vm86_inl(regs->edx & 0xFFFF));
+            size = 4;
+        } else {
+            VbeWriteMemoryW(vi, MAKE_POINTER(regs->es, regs->edi),
+                vm86_inw(regs->edx & 0xFFFF));
+            size = 2;
+        }
+        if(regs->eflags & (1<<10))
+            regs->edi -= size;
+        else
+            regs->edi += size;
+        if(pref_rep) {
+            if(pref_66) {
+                regs->ecx--;
+                if(regs->ecx != 0) {
+                    goto again;
+                } else {
+                    SET_16(regs->ecx, regs->ecx - 1);
+                    if(regs->ecx & 0xFFFF != 0)
+                        goto again;
+                }
+            }
+        }
+        INC_IP(1);
+        break;
+
+    case 0xEE:                  /* OUT DX, AL */
+        vm86_outb(regs->edx & 0xFFFF, regs->eax & 0xFF);
+        INC_IP(1);
+        break;
+    case 0xEF:                  /* OUT DX, AX */
+        if(pref_66)
+            vm86_outl(regs->edx & 0xFFFF, regs->eax);
+        else
+            vm86_outw(regs->edx & 0xFFFF, regs->eax & 0xFFFF);
+        INC_IP(1);
+        break;
+    case 0xE6:                  /* OUT imm8, AL */
+        vm86_outb(VbeMemory(vi, MAKE_POINTER(regs->cs, regs->eip+1)),
+             regs->eax & 0xFF);
+        INC_IP(2);
+        break;
+    case 0xE7:                  /* OUT imm8, AX */
+        if(pref_66)
+            vm86_outl(VbeMemory(vi, MAKE_POINTER(regs->cs, regs->eip+1)),
+                  regs->eax);
+        else
+            vm86_outw(VbeMemory(vi, MAKE_POINTER(regs->cs, regs->eip+1)),
+                 regs->eax & 0xFFFF);
+        INC_IP(2);
+        break;
+    case 0x6E:                  /* OUTSB */
+    case 0x6F:                  /* OUTSW */
+        if(opcode == 0x6E) {
+            vm86_outb(regs->edx & 0xFFFF, 
+                 VbeMemory(vi, MAKE_POINTER(regs->es, regs->edi)));
+            size = 1;
+        } else if(pref_66) {
+            vm86_outl(regs->edx & 0xFFFF, 
+                 VbeMemory(vi, MAKE_POINTER(regs->es, regs->edi)));
+            size = 4;
+        } else {
+            vm86_outw(regs->edx & 0xFFFF, 
+                 VbeMemory(vi, MAKE_POINTER(regs->es, regs->edi)));
+            size = 2;
+        }
+        if(regs->eflags & (1<<10))
+            regs->edi -= size;
+        else
+            regs->edi += size;
+        if(pref_rep) {
+            if(pref_66) {
+                regs->ecx--;
+                if(regs->ecx != 0) {
+                    goto again;
+                } else {
+                    SET_16(regs->ecx, regs->ecx - 1);
+                    if(regs->ecx & 0xFFFF != 0)
+                        goto again;
+                }
+            }
+        }
+        INC_IP(1);
+        break;
+
+    case 0x0F:
+        ErrorF("Hit 0F trap in VM86 code\n");
+        return -1;
+    case 0xF0:
+        ErrorF("Hit lock prefix in VM86 code\n");
+        return -1;
+    case 0xF4:
+        ErrorF("Hit HLT in VM86 code\n");
+        return -1;
+
+    default:
+        ErrorF("Unhandled GP fault in VM86 code (opcode = 0x%02X)\n",
+               opcode);
+        return -1;
+    }
+    return 0;
+}
+#undef SEG_CS
+#undef SEG_DS
+#undef SEG_ES
+#undef SEG_SS
+#undef SEG_GS
+#undef SEG_FS
+#undef REP
+#undef REPNZ
+#undef SET_8
+#undef SET_16
+#undef INC_IP
+#undef AGAIN
+
 static int
 vm86_loop(VbeInfoPtr vi)
 {
@@ -645,9 +879,11 @@ vm86_loop(VbeInfoPtr vi)
         case VM86_SIGNAL:
             continue;
         case VM86_UNKNOWN:
-            ErrorF("Unhandled GP fault in VM86 code\n",
-                    VM86_ARG(code));
-            return -1;
+            code = vm86_emulate(vi);
+            if(code < 0) {
+                VbeDebug(vi);
+                return -1;
+            }
             break;
         case VM86_INTx:
             if(VM86_ARG(code) == 0xFF)
@@ -662,9 +898,12 @@ vm86_loop(VbeInfoPtr vi)
             break;
         case VM86_STI:
             ErrorF("VM86 code enabled interrupts\n");
+            VbeDebug(vi);
             return -1;
         default:
             ErrorF("Unexpected result code 0x%X from vm86\n", code);
+            VbeDebug(vi);
+            return -1;
         }
     }
 }
@@ -711,6 +950,21 @@ VbeMemoryW(VbeInfoPtr vi, U32 i)
     }
 }
 
+U32
+VbeMemoryL(VbeInfoPtr vi, U32 i)
+{
+    if(i >= MAGICMEM_BASE && i< MAGICMEM_BASE + MAGICMEM_SIZE)
+        return MML(vi, i);
+    else if(i >= LOMEM_BASE && i< LOMEM_BASE + LOMEM_SIZE)
+        return LML(vi, i);
+    else if(i >= HIMEM_BASE && i< HIMEM_BASE + HIMEM_SIZE)
+        return HML(vi, i);
+    else {
+        ErrorF("Reading unmapped memory at 0x%08X\n", i);
+        return 0;
+    }
+}
+
 void
 VbeWriteMemory(VbeInfoPtr vi, U32 i, U8 val)
 {
@@ -720,6 +974,34 @@ VbeWriteMemory(VbeInfoPtr vi, U32 i, U8 val)
         LM(vi, i) = val;
     else if(i >= HIMEM_BASE && i< HIMEM_BASE + HIMEM_SIZE)
         HM(vi, i) = val;
+    else {
+        ErrorF("Writing unmapped memory at 0x%08X\n", i);
+    }
+}
+
+void
+VbeWriteMemoryW(VbeInfoPtr vi, U32 i, U16 val)
+{
+    if(i >= MAGICMEM_BASE && i< MAGICMEM_BASE + MAGICMEM_SIZE)
+        MMW(vi, i) = val;
+    else if(i >= LOMEM_BASE && i< LOMEM_BASE + LOMEM_SIZE)
+        LMW(vi, i) = val;
+    else if(i >= HIMEM_BASE && i< HIMEM_BASE + HIMEM_SIZE)
+        HMW(vi, i) = val;
+    else {
+        ErrorF("Writing unmapped memory at 0x%08X\n", i);
+    }
+}
+
+void
+VbeWriteMemoryL(VbeInfoPtr vi, U32 i, U32 val)
+{
+    if(i >= MAGICMEM_BASE && i< MAGICMEM_BASE + MAGICMEM_SIZE)
+        MML(vi, i) = val;
+    else if(i >= LOMEM_BASE && i< LOMEM_BASE + LOMEM_SIZE)
+        LML(vi, i) = val;
+    else if(i >= HIMEM_BASE && i< HIMEM_BASE + HIMEM_SIZE)
+        HML(vi, i) = val;
     else {
         ErrorF("Writing unmapped memory at 0x%08X\n", i);
     }
@@ -761,6 +1043,28 @@ vm86old(struct vm86_struct *vm)
     } else 
         errno = 0;
     return res;
+}
+
+void
+VbeDebug(VbeInfoPtr vi)
+{
+    struct vm86_regs *regs = &vi->vms.regs;
+    int i;
+
+    ErrorF("eax=0x%08lX ebx=0x%08lX ecx=0x%08lX edx=0x%08lX\n",
+           regs->eax, regs->ebx, regs->ecx, regs->edx);
+    ErrorF("esi=0x%08lX edi=0x%08lX ebp=0x%08lX\n",
+           regs->esi, regs->edi, regs->ebp);
+    ErrorF("eip=0x%08lX esp=0x%08lX eflags=0x%08lX\n",
+           regs->eip, regs->esp, regs->eflags);
+    ErrorF("cs=0x%04lX      ds=0x%04lX      es=0x%04lX      fs=0x%04lX      gs=0x%04lX\n",
+           regs->cs, regs->ds, regs->es, regs->fs, regs->gs);
+    for(i=-7; i<8; i++) {
+        ErrorF(" %s%02X",
+               i==0?"->":"",
+               VbeMemory(vi, MAKE_POINTER(regs->cs, regs->eip + i)));
+    }
+    ErrorF("\n");
 }
 
 #ifdef NOT_IN_X_SERVER

@@ -19,7 +19,6 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
-/* $XFree86$ */
 
 #include "vesa.h"
 
@@ -27,6 +26,7 @@ THE SOFTWARE.
 
 int vesa_video_mode = DEFAULT_MODE;
 Bool vesa_force_mode = FALSE;
+Bool vesa_swap_rgb = FALSE;
 
 static Bool
 vesaModeSupported(VbeInfoPtr vi, VbeModeInfoBlock *vmib, Bool complain)
@@ -92,15 +92,10 @@ vesaListModes()
 }
 
 Bool
-vesaCardInit(KdCardInfo *card)
+vesaInitialize (KdCardInfo *card, VesaPrivPtr priv)
 {
-    VesaPrivPtr priv;
     int code;
-
-    priv = xalloc(sizeof(VesaPrivRec));
-    if(!priv)
-        goto fail;
-
+    
     priv->mode = vesa_video_mode;
 
     priv->vi = VbeSetup();
@@ -135,12 +130,27 @@ vesaCardInit(KdCardInfo *card)
     return TRUE;
 
   fail:
-    if(priv) {
-        if(priv->vi)
-            VbeCleanup(priv->vi);
-        xfree(priv);
-    }
+    if(priv->vi)
+	VbeCleanup(priv->vi);
     return FALSE;
+}
+
+Bool
+vesaCardInit(KdCardInfo *card)
+{
+    VesaPrivPtr priv;
+
+    priv = xalloc(sizeof(VesaPrivRec));
+    if(!priv)
+        return FALSE;
+
+    if (!vesaInitialize (card, priv))
+    {
+        xfree(priv);
+	return FALSE;
+    }
+    
+    return TRUE;
 }
 
 Bool
@@ -277,6 +287,20 @@ vesaPutColors (ScreenPtr pScreen, int fb, int n, xColorItem *pdefs)
     VesaPrivPtr priv = pScreenPriv->card->driver;
     int i, j, k;
     CARD8 scratch[4*256];
+    int	red, green, blue;
+
+    if (vesa_swap_rgb)
+    {
+	red = 2;
+	green = 1;
+	blue = 0;
+    }
+    else
+    {
+	red = 0;
+	green = 1;
+	blue = 2;
+    }
 
     i = 0;
     while(i < n) {
@@ -285,11 +309,10 @@ vesaPutColors (ScreenPtr pScreen, int fb, int n, xColorItem *pdefs)
         while(j < n && pdefs[j].pixel == pdefs[j-1].pixel + 1 && j - i < 1)
             j++;
         for(k=0; k<(j - i); k++) {
-            /* The opposite of what the spec says? */
+            scratch[k+red] = pdefs[i+k].red >> 8;
+            scratch[k+green] = pdefs[i+k].green >> 8;
+            scratch[k+blue] = pdefs[i+k].blue >> 8;
             scratch[k+3] = 0;
-            scratch[k+2] = pdefs[i+k].red >> 8;
-            scratch[k+1] = pdefs[i+k].green >> 8;
-            scratch[k+0] = pdefs[i+k].blue >> 8;
         }
         VbeSetPalette(priv->vi, pdefs[i].pixel, j - i, scratch);
         i = j;
@@ -303,11 +326,48 @@ vesaGetColors (ScreenPtr pScreen, int fb, int n, xColorItem *pdefs)
     VesaPrivPtr priv = pScreenPriv->card->driver;
     int first, i, j, k;
     CARD8 scratch[4];
+    int	red, green, blue;
 
+    if (vesa_swap_rgb)
+    {
+	red = 2;
+	green = 1;
+	blue = 0;
+    }
+    else
+    {
+	red = 0;
+	green = 1;
+	blue = 2;
+    }
+    
     for(i = 0; i<n; i++) {
         VbeGetPalette(priv->vi, pdefs[i].pixel, 1, scratch);
-        pdefs[i].red = scratch[2]<<8;
-        pdefs[i].green = scratch[1]<<8;
-        pdefs[i].blue = scratch[0]<<8;
+        pdefs[i].red = scratch[red]<<8;
+        pdefs[i].green = scratch[green]<<8;
+        pdefs[i].blue = scratch[blue]<<8;
     }
+}
+
+int
+vesaProcessArgument (int argc, char **argv, int i)
+{
+    if(!strcmp(argv[i], "-mode")) {
+        if(i+1 < argc) {
+            vesa_video_mode = strtol(argv[i+1], NULL, 0);
+        } else
+            UseMsg();
+        return 2;
+    } else if(!strcmp(argv[i], "-force")) {
+        vesa_force_mode = TRUE;
+        return 1;
+    } else if(!strcmp(argv[i], "-listmodes")) {
+        vesaListModes();
+        exit(0);
+    } else if(!strcmp(argv[i], "-swaprgb")) {
+	vesa_swap_rgb = TRUE;
+	return 1;
+    }
+    
+    return 0;
 }

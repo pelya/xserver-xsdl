@@ -19,7 +19,6 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
-/* $XFree86$ */
 
 #ifndef _VBE_H
 #define _VBE_H
@@ -161,6 +160,10 @@ int VbeDoInterrupt10(VbeInfoPtr vi);
 int  VbeIsMemory(VbeInfoPtr vi, U32 i);
 U8 VbeMemory(VbeInfoPtr, U32);
 U16 VbeMemoryW(VbeInfoPtr, U32);
+U32 VbeMemoryL(VbeInfoPtr, U32);
 void VbeWriteMemory(VbeInfoPtr, U32, U8);
+void VbeWriteMemoryW(VbeInfoPtr, U32, U16);
+void VbeWriteMemoryL(VbeInfoPtr, U32, U32);
 int VbeAllocateMemory(VbeInfoPtr, int);
+void VbeDebug(VbeInfoPtr vi);
 #endif

@@ -19,7 +19,6 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
-/* $XFree86$ */
 
 #include "vesa.h"
 
@@ -73,19 +72,9 @@ InitInput (int argc, char **argv)
 int
 ddxProcessArgument (int argc, char **argv, int i)
 {
-    if(!strcmp(argv[i], "-mode")) {
-        if(i+1 < argc) {
-            vesa_video_mode = strtol(argv[i+1], NULL, 0);
-        } else
-            UseMsg();
-        return 2;
-    } else if(!strcmp(argv[i], "-force")) {
-        vesa_force_mode = TRUE;
-        return 1;
-    } else if(!strcmp(argv[i], "-listmodes")) {
-        vesaListModes();
-        exit(0);
-    }
-
-    return KdProcessArgument(argc, argv, i);
+    int	ret;
+    
+    if (!(ret = vesaProcessArgument (argc, argv, i)))
+	ret = KdProcessArgument(argc, argv, i);
+    return ret;
 }

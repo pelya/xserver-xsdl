@@ -19,7 +19,6 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
-/* $XFree86$ */
 
 #ifndef _VESA_H_
 #define _VESA_H_
@@ -42,6 +41,7 @@ extern Bool vesa_force_mode;
 Bool vesaListModes(void);
 Bool vesaInitialize(KdCardInfo *card, VesaPrivPtr priv);
 Bool vesaCardInit(KdCardInfo *card);
+Bool vesaInitialize (KdCardInfo *card, VesaPrivPtr priv);
 Bool vesaScreenInit(KdScreenInfo *screen);
 Bool vesaInitScreen(ScreenPtr pScreen);
 void vesaEnable(ScreenPtr pScreen);
@@ -52,5 +52,6 @@ void vesaCardFini(KdCardInfo *card);
 void vesaScreenFini(KdScreenInfo *screen);
 void vesaPutColors (ScreenPtr pScreen, int fb, int n, xColorItem *pdefs);
 void vesaGetColors (ScreenPtr pScreen, int fb, int n, xColorItem *pdefs);
+int vesaProcessArgument (int argc, char **argv, int i);
 
 #endif _VESA_H_
