@@ -36,6 +36,10 @@
 	compiled with CFB_NEED_SCREEN_PRIVATE */
 
 int cfb8_32WidScreenPrivateIndex;
+int cfb8_32WidGetScreenPrivateIndex(void)
+{
+    return cfb8_32WidScreenPrivateIndex;
+}
 
 static unsigned long cfb8_32WidGeneration = 0;
 extern WindowPtr *WindowTable;

@@ -1003,6 +1003,12 @@ PixelType rmask[] =
 
 #undef _1_
 
+PixelType mfbGetmask(int i) { return mask[i]; }
+PixelType mfbGetrmask(int i) { return rmask[i]; }
+PixelType mfbGetstarttab(int i) { return starttab[i]; }
+PixelType mfbGetendtab(int i) { return endtab[i]; }
+PixelType mfbGetpartmasks(int i, int j) { return partmasks[i][j]; }
+
 /*
  * Merge raster ops for full src + dest + plane mask
  *

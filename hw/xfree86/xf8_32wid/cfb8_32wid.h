@@ -27,7 +27,8 @@ typedef struct {
 	cfb8_32WidOps		*WIDOps;
 } cfb8_32WidScreenRec, *cfb8_32WidScreenPtr;
 
-extern int cfb8_32WidScreenPrivateIndex;
+extern int cfb8_32WidScreenPrivateIndex; /* XXX */
+extern int cfb8_32WidGetScreenPrivateIndex(void);
 
 Bool
 cfb8_32WidScreenInit (
@@ -88,6 +89,6 @@ Bool
 cfb8_32WidGenericOpsInit(cfb8_32WidScreenPtr pScreenPriv);
 
 #define CFB8_32WID_GET_SCREEN_PRIVATE(pScreen)\
-   (cfb8_32WidScreenPtr)((pScreen)->devPrivates[cfb8_32WidScreenPrivateIndex].ptr)
+   (cfb8_32WidScreenPtr)((pScreen)->devPrivates[cfb8_32WidGetScreenPrivateIndex()].ptr)
 
 #endif /* _CFB8_32WID_H */

@@ -23,13 +23,18 @@
  * Author:  Keith Packard, SuSE, Inc.
  */
 
-/* $XdotOrg: $ */
+/* $XdotOrg: xc/programs/Xserver/fb/fboverlay.c,v 1.3 2004/05/16 05:08:39 alanc Exp $ */
 
 #include "fb.h"
 #include "fboverlay.h"
 
 int	fbOverlayGeneration;
 int	fbOverlayScreenPrivateIndex = -1;
+
+int fbOverlayGetScreenPrivateIndex(void)
+{
+    return fbOverlayScreenPrivateIndex;
+}
 
 /*
  * Replace this if you want something supporting

@@ -128,6 +128,6 @@ register int len;	/* length of line */
 	len = -len;
     }
  
-    bitmask = mask[x1 & PIM];
+    bitmask = mfbGetmask(x1 & PIM);
     Duff(len, UPDRW(addrl,bitmask); addrl += nlwidth);
 }

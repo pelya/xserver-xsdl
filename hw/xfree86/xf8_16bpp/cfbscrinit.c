@@ -34,6 +34,8 @@
 
 int cfb8_16ScreenPrivateIndex;
 
+int cfb8_16GetScreenPrivateIndex(void) { return cfb8_16ScreenPrivateIndex; }
+
 static unsigned long cfb8_16Generation = 0;
 
 static PixmapPtr cfb8_16GetWindowPixmap(WindowPtr pWin);

@@ -466,9 +466,9 @@ DoV16LineSS (pDrawable, pGC, mode, npt, pptInit)
 	PixelType _mask;
 
 	if (alu == RROP_BLACK)
-		_mask = rmask[x2 & PIM];
+		_mask = mfbGetrmask(x2 & PIM);
 	else
-		_mask = mask[x2 & PIM];
+		_mask = mfbGetmask(x2 & PIM);
 
 	nbox = nboxInit;
 	pbox = pboxInit;
@@ -797,7 +797,7 @@ dontStep:	;
 	    {
 		unsigned long _mask;
 
-		_mask = mask[x2 & PIM];
+		_mask = mfbGetmask(x2 & PIM);
 		addrl = mfbScanline(addrl, x2, y2, nlwidth);
 		UPDRW(addrl,_mask);
 		break;

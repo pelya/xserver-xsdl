@@ -79,8 +79,8 @@ int len;                /* length of line */
     register PixelType *addrl;                        /* bitmask long pointer 
                                         *dont*         * cast to char pointer */
     register PixelType bit;        /* current bit being set/cleared/etc.  */
-    PixelType leftbit = mask[0]; /* leftmost bit to process in new word */
-    PixelType rightbit = mask[PPW-1]; /* rightmost bit to process in new word */
+    PixelType leftbit = mfbGetmask(0); /* leftmost bit to process in new word */
+    PixelType rightbit = mfbGetmask(PPW-1); /* rightmost bit to process in new word */
 
     register int e3 = e2-e1;
 
@@ -88,7 +88,7 @@ int len;                /* length of line */
     addrl = mfbScanline(addrlbase, x1, y1, nlwidth);
     yinc = signdy * nlwidth;
     e = e-e1;                        /* to make looping easier */
-    bit = mask[x1 & PIM];
+    bit = mfbGetmask(x1 & PIM);
 
     if (!len)
         return;

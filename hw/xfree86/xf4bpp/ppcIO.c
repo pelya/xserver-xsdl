@@ -209,22 +209,16 @@ xf4bppScreenInit( pScreen, pbits, virtx, virty, dpix, dpiy, width )
   pScreen-> CreateWindow = xf4bppCreateWindowForXYhardware;
   pScreen-> DestroyWindow = xf4bppDestroyWindow;
   pScreen-> PositionWindow = xf4bppPositionWindow;
-  pScreen-> ChangeWindowAttributes = mfbChangeWindowAttributes;
-  pScreen-> RealizeWindow = mfbMapWindow;
-  pScreen-> UnrealizeWindow = mfbUnmapWindow;
   pScreen-> PaintWindowBackground = xf4bppPaintWindow;
   pScreen-> PaintWindowBorder = xf4bppPaintWindow;
   pScreen-> CopyWindow = xf4bppCopyWindow;
   pScreen-> CreatePixmap = xf4bppCreatePixmap;
-  pScreen-> DestroyPixmap = mfbDestroyPixmap;
   pScreen-> SaveDoomedAreas = (SaveDoomedAreasProcPtr)NoopDDA;
   pScreen-> RestoreAreas = (RestoreAreasProcPtr)NoopDDA;
   pScreen-> ExposeCopy = (ExposeCopyProcPtr)NoopDDA;
   pScreen-> TranslateBackingStore = (TranslateBackingStoreProcPtr)NoopDDA;
   pScreen-> ClearBackingStore = (ClearBackingStoreProcPtr)NoopDDA;
   pScreen-> DrawGuarantee = (DrawGuaranteeProcPtr)NoopDDA;
-  pScreen-> RealizeFont = mfbRealizeFont;
-  pScreen-> UnrealizeFont = mfbUnrealizeFont;
   pScreen-> CreateGC = xf4bppCreateGC;
   pScreen-> CreateColormap = xf4bppInitializeColormap;
   pScreen-> DestroyColormap = (DestroyColormapProcPtr)NoopDDA;
@@ -233,7 +227,7 @@ xf4bppScreenInit( pScreen, pbits, virtx, virty, dpix, dpiy, width )
   pScreen-> ListInstalledColormaps = miListInstalledColormaps;
   pScreen-> StoreColors = (StoreColorsProcPtr)NoopDDA;
   pScreen-> ResolveColor = xf4bppResolveColor;
-  pScreen-> BitmapToRegion = mfbPixmapToRegion;
+  mfbFillInScreen(pScreen);
 
   if (!mfbAllocatePrivates(pScreen, (int*)NULL, (int*)NULL))
 	return FALSE;

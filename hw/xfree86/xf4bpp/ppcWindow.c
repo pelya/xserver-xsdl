@@ -214,7 +214,7 @@ register WindowPtr pWin ;
 
     TRACE(("xf4bppCreateWindowForXYhardware (pWin= 0x%x)\n", pWin));
 
-    pPrivWin = (mfbPrivWin *)(pWin->devPrivates[mfbWindowPrivateIndex].ptr);
+    pPrivWin = (mfbPrivWin *)(pWin->devPrivates[mfbGetWindowPrivateIndex()].ptr);
     pPrivWin->pRotatedBorder = NullPixmap;
     pPrivWin->pRotatedBackground = NullPixmap;
     pPrivWin->fastBackground = 0;

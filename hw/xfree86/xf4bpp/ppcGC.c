@@ -184,7 +184,7 @@ register GCPtr pGC ;
          * a pointer to a ppcPrivGC in its slot.
          */
 	*pPriv = vgaPrototypeGCPriv;
-	(pGC->devPrivates[mfbGCPrivateIndex].ptr) = (pointer) pPriv;
+	(pGC->devPrivates[mfbGetGCPrivateIndex()].ptr) = (pointer) pPriv;
 
 	/* Set the vgaGCOps */
 	*pOps = vgaGCOps;
@@ -210,7 +210,7 @@ xf4bppDestroyGC( pGC )
     if ( pGC->freeCompClip && pGC->pCompositeClip )
 	REGION_DESTROY(pGC->pScreen, pGC->pCompositeClip);
     if(pGC->ops->devPrivate.val) xfree( pGC->ops );
-    xfree( pGC->devPrivates[mfbGCPrivateIndex].ptr ) ;
+    xfree( pGC->devPrivates[mfbGetGCPrivateIndex()].ptr ) ;
     return ;
 }
 
@@ -221,7 +221,7 @@ ppcChangePixmapGC
 	register Mask changes
 )
 {
-register ppcPrivGCPtr devPriv = (ppcPrivGCPtr) (pGC->devPrivates[mfbGCPrivateIndex].ptr ) ;
+register ppcPrivGCPtr devPriv = (ppcPrivGCPtr) (pGC->devPrivates[mfbGetGCPrivateIndex()].ptr ) ;
 register unsigned long int idx ; /* used for stepping through bitfields */
 
 #define LOWBIT( x ) ( x & - x ) /* Two's complement */
@@ -303,7 +303,7 @@ xf4bppValidateGC( pGC, changes, pDrawable )
     register ppcPrivGCPtr devPriv ;
     WindowPtr pWin ;
 
-    devPriv = (ppcPrivGCPtr) (pGC->devPrivates[mfbGCPrivateIndex].ptr ) ;
+    devPriv = (ppcPrivGCPtr) (pGC->devPrivates[mfbGetGCPrivateIndex()].ptr ) ;
 
     if ( pDrawable->type != devPriv->lastDrawableType ) {
 	devPriv->lastDrawableType = pDrawable->type ;

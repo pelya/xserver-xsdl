@@ -299,9 +299,15 @@
 int XAAHelpSolidROP(ScrnInfoPtr pScrn, int *fg, int pm, int *rop);
 int XAAHelpPatternROP(ScrnInfoPtr pScrn, int *fg, int *bg, int pm, int *rop);
 
+/* XXX These four should be static, but it breaks the 6.7.0 ABI. */
 extern int XAACopyROP[16];
 extern int XAACopyROP_PM[16];
 extern int XAAPatternROP[16];
 extern int XAAPatternROP_PM[16];
+
+extern int XAAGetCopyROP(int i);
+extern int XAAGetCopyROP_PM(int i);
+extern int XAAGetPatternROP(int i);
+extern int XAAGetPatternROP_PM(int i);
 
 #endif /* _XAAROP_H */

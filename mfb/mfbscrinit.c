@@ -65,9 +65,12 @@ SOFTWARE.
 
 #ifdef PIXMAP_PER_WINDOW
 int frameWindowPrivateIndex;
+int frameGetWindowPrivateIndex(void) { return frameWindowPrivateIndex; }
 #endif
 int mfbWindowPrivateIndex;
+int mfbGetWindowPrivateIndex(void) { return mfbWindowPrivateIndex; }
 int mfbGCPrivateIndex;
+int mfbGetGCPrivateIndex(void) { return mfbGCPrivateIndex; }
 static unsigned long mfbGeneration = 0;
 
 static VisualRec visual = {
@@ -195,3 +198,13 @@ mfbSetWindowPixmap(pWin, pPix)
 #endif
 }
 
+void mfbFillInScreen(ScreenPtr pScreen)
+{
+    pScreen->ChangeWindowAttributes = mfbChangeWindowAttributes;
+    pScreen->RealizeWindow = mfbMapWindow;
+    pScreen->UnrealizeWindow = mfbUnmapWindow;
+    pScreen->DestroyPixmap = mfbDestroyPixmap;
+    pScreen->RealizeFont = mfbRealizeFont;
+    pScreen->UnrealizeFont = mfbUnrealizeFont;
+    pScreen->BitmapToRegion = mfbPixmapToRegion;
+}

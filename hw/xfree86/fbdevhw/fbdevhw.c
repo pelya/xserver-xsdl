@@ -880,3 +880,12 @@ fbdevHWSaveScreen(ScreenPtr pScreen, int mode)
 
 	return TRUE;
 }
+
+void
+fbdevHWFillInScreenInfo(ScrnInfoPtr pScrn) {
+	pScrn->SwitchMode	= fbdevHWSwitchMode;
+	pScrn->AdjustFrame	= fbdevHWAdjustFrame;
+	pScrn->EnterVT		= fbdevHWEnterVT;
+	pScrn->LeaveVT		= fbdevHWLeaveVT;
+	pScrn->ValidMode	= fbdevHWValidMode;
+}

@@ -14,7 +14,8 @@ typedef struct {
    unsigned char	key;
 } cfb8_16ScreenRec, *cfb8_16ScreenPtr;
 
-extern int cfb8_16ScreenPrivateIndex;
+extern int cfb8_16ScreenPrivateIndex; /* XXX */
+extern int cfb8_16GetScreenPrivateIndex(void);
 
 Bool
 cfb8_16ScreenInit (
@@ -64,6 +65,6 @@ cfb8_16WindowExposures(
 );
 
 #define CFB8_16_GET_SCREEN_PRIVATE(pScreen)\
-   (cfb8_16ScreenPtr)((pScreen)->devPrivates[cfb8_16ScreenPrivateIndex].ptr)
+   (cfb8_16ScreenPtr)((pScreen)->devPrivates[cfb8_16GetScreenPrivateIndex()].ptr)
 
 #endif /* _CFB8_16_H */

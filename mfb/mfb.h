@@ -713,6 +713,8 @@ extern void mfbSetWindowPixmap(
     PixmapPtr /*pPix*/
 );
 
+extern void mfbFillInScreen(ScreenPtr pScreen);
+
 /* mfbseg.c */
 
 extern void mfbSegmentSS(
@@ -874,10 +876,14 @@ typedef struct {
 typedef mfbPrivGC	*mfbPrivGCPtr;
 #endif
 
+/* XXX these should be static, but it breaks the ABI */
 extern int  mfbGCPrivateIndex;		/* index into GC private array */
+extern int  mfbGetGCPrivateIndex(void);
 extern int  mfbWindowPrivateIndex;	/* index into Window private array */
+extern int  mfbGetWindowPrivateIndex(void);
 #ifdef PIXMAP_PER_WINDOW
 extern int  frameWindowPrivateIndex;	/* index into Window private array */
+extern int  frameGetWindowPrivateIndex(void);
 #endif
 
 #ifndef MFB_PROTOTYPES_ONLY

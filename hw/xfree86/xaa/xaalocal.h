@@ -1623,13 +1623,17 @@ XAAGetPixelFromRGBA (
 );
 
 #endif
-    
 
+/* XXX should be static */
 extern GCOps XAAFallbackOps;
+extern GCOps *XAAGetFallbackOps(void);
 extern GCFuncs XAAGCFuncs;
-extern int XAAScreenIndex;
-extern int XAAGCIndex;
-extern int XAAPixmapIndex;
+extern int XAAScreenIndex;	/* XXX DONTUSE */
+extern int XAAGCIndex;		/* XXX DONTUSE */
+extern int XAAPixmapIndex;	/* XXX DONTUSE */
+extern int XAAGetScreenIndex(void);
+extern int XAAGetGCIndex(void);
+extern int XAAGetPixmapIndex(void);
 
 extern unsigned int XAAShiftMasks[32];
 
@@ -1638,28 +1642,28 @@ extern unsigned int byte_expand3[256], byte_reversed_expand3[256];
 CARD32 XAAReverseBitOrder(CARD32 data);
 
 #define GET_XAASCREENPTR_FROM_SCREEN(pScreen)\
-	(pScreen)->devPrivates[XAAScreenIndex].ptr
+	(pScreen)->devPrivates[XAAGetScreenIndex()].ptr
 
 #define GET_XAASCREENPTR_FROM_GC(pGC)\
-	(pGC)->pScreen->devPrivates[XAAScreenIndex].ptr
+	(pGC)->pScreen->devPrivates[XAAGetScreenIndex()].ptr
 
 #define GET_XAASCREENPTR_FROM_DRAWABLE(pDraw)\
-	(pDraw)->pScreen->devPrivates[XAAScreenIndex].ptr
+	(pDraw)->pScreen->devPrivates[XAAGetScreenIndex()].ptr
 
 #define GET_XAAINFORECPTR_FROM_SCREEN(pScreen)\
-   ((XAAScreenPtr)((pScreen)->devPrivates[XAAScreenIndex].ptr))->AccelInfoRec
+   ((XAAScreenPtr)((pScreen)->devPrivates[XAAGetScreenIndex()].ptr))->AccelInfoRec
 
 #define GET_XAAINFORECPTR_FROM_GC(pGC)\
-((XAAScreenPtr)((pGC)->pScreen->devPrivates[XAAScreenIndex].ptr))->AccelInfoRec
+((XAAScreenPtr)((pGC)->pScreen->devPrivates[XAAGetScreenIndex()].ptr))->AccelInfoRec
 
 #define GET_XAAINFORECPTR_FROM_DRAWABLE(pDraw)\
-((XAAScreenPtr)((pDraw)->pScreen->devPrivates[XAAScreenIndex].ptr))->AccelInfoRec
+((XAAScreenPtr)((pDraw)->pScreen->devPrivates[XAAGetScreenIndex()].ptr))->AccelInfoRec
 
 #define GET_XAAINFORECPTR_FROM_SCRNINFOPTR(pScrn)\
-((XAAScreenPtr)((pScrn)->pScreen->devPrivates[XAAScreenIndex].ptr))->AccelInfoRec
+((XAAScreenPtr)((pScrn)->pScreen->devPrivates[XAAGetScreenIndex()].ptr))->AccelInfoRec
 
 #define XAA_GET_PIXMAP_PRIVATE(pix)\
-	(XAAPixmapPtr)((pix)->devPrivates[XAAPixmapIndex].ptr)
+	(XAAPixmapPtr)((pix)->devPrivates[XAAGetPixmapIndex()].ptr)
 
 #define CHECK_RGB_EQUAL(c) (!((((c) >> 8) ^ (c)) & 0xffff))
 

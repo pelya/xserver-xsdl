@@ -148,7 +148,7 @@ xf4bppImageGlyphBlt(pDrawable, pGC, x, y, nglyph, ppci, pglyphBase)
        backrect.height = FONTASCENT(pGC->font) + FONTDESCENT(pGC->font);
 
 
-       pPrivGC = pGC->devPrivates[mfbGCPrivateIndex].ptr;
+       pPrivGC = pGC->devPrivates[mfbGetGCPrivateIndex()].ptr;
        oldfillStyle = pPrivGC->colorRrop.fillStyle; /* GJA */
        oldfg = pPrivGC->colorRrop.fgPixel; /* GJA */
        oldalu = pPrivGC->colorRrop.alu; /* GJA */
@@ -243,7 +243,7 @@ doImageGlyphBlt(pDrawable, pGC, x, y, nglyph, ppci, pglyphBase,infop)
 
     /* UNCLEAN CODE
        we know the mfbPolyFillRect uses only three fields in
-       devPrivate[mfbGCPrivateIndex].ptr, two of which (the rotated
+       devPrivate[mfbGetGCPrivateIndex()].ptr, two of which (the rotated
        tile/stipple and the ropFillArea) are 
        irrelevant for solid filling, so we just poke the FillArea
        field.  the GC is now in an inconsistent state, but we'll fix
@@ -253,7 +253,7 @@ doImageGlyphBlt(pDrawable, pGC, x, y, nglyph, ppci, pglyphBase,infop)
     NOTE:
        if you are not using the standard mfbFillRectangle code, you
        need to poke any fields in the GC the rectangle stuff need
-       (probably alu, fgPixel, and fillStyle) and in devPrivate[mfbGCPrivateIndex].ptr
+       (probably alu, fgPixel, and fillStyle) and in devPrivate[mfbGetGCPrivateIndex()].ptr
        (probably rop or ropFillArea.)  You could just call ValidateGC,
        but that is usually not a cheap thing to do.
     */

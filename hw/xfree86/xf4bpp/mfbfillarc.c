@@ -252,7 +252,7 @@ xf4bppPolyFillArcSolid
     mfbPrivGC *priv;
     int rop;
 
-    priv = (mfbPrivGC *) pGC->devPrivates[mfbGCPrivateIndex].ptr;
+    priv = (mfbPrivGC *) pGC->devPrivates[mfbGetGCPrivateIndex()].ptr;
     rop = priv->rop;
     if ((rop == RROP_NOP) || !(pGC->planemask & 1))
 #else

@@ -122,7 +122,7 @@ xf4bppSolidPixmapFS( pDrawable, pGC, nInit, pptInit, pwidthInit, fSorted )
 	return ;
     }
 
-    if ( ( alu = ( (ppcPrivGC *) pGC->devPrivates[mfbGCPrivateIndex].ptr )->colorRrop.alu ) == GXnoop )
+    if ( ( alu = ( (ppcPrivGC *) pGC->devPrivates[mfbGetGCPrivateIndex()].ptr )->colorRrop.alu ) == GXnoop )
 	return ;
 
     n = nInit * miFindMaxBand(pGC->pCompositeClip) ;
@@ -140,8 +140,8 @@ xf4bppSolidPixmapFS( pDrawable, pGC, nInit, pptInit, pwidthInit, fSorted )
     n = miClipSpans( pGC->pCompositeClip, pptInit, pwidthInit, nInit,
 	ppt, pwidth, fSorted ) ;
 
-    pm = ( (ppcPrivGC *) pGC->devPrivates[mfbGCPrivateIndex].ptr )->colorRrop.planemask ;
-    fg = ( (ppcPrivGC *) pGC->devPrivates[mfbGCPrivateIndex].ptr )->colorRrop.fgPixel ;
+    pm = ( (ppcPrivGC *) pGC->devPrivates[mfbGetGCPrivateIndex()].ptr )->colorRrop.planemask ;
+    fg = ( (ppcPrivGC *) pGC->devPrivates[mfbGetGCPrivateIndex()].ptr )->colorRrop.fgPixel ;
     npm = ( ~ pm ) & ( ( 1 << pDrawable->depth ) - 1 ) ;
 
     for ( ; n-- ; ppt++, pwidth++ ) {
@@ -257,14 +257,14 @@ int fSorted ;
 	return ;
     }
 
-    if ( ( alu = ( (ppcPrivGC *) pGC->devPrivates[mfbGCPrivateIndex].ptr )->colorRrop.alu ) == GXnoop )
+    if ( ( alu = ( (ppcPrivGC *) pGC->devPrivates[mfbGetGCPrivateIndex()].ptr )->colorRrop.alu ) == GXnoop )
 	return ;
 
     SETSPANPTRS( nInit, n, pwidthInit, pwidthFree, pptInit,
 		pptFree, pwidth, ppt, fSorted ) ;
 
-    pm = ( (ppcPrivGC *) pGC->devPrivates[mfbGCPrivateIndex].ptr )->colorRrop.planemask ;
-    fg = ( (ppcPrivGC *) pGC->devPrivates[mfbGCPrivateIndex].ptr )->colorRrop.fgPixel ;
+    pm = ( (ppcPrivGC *) pGC->devPrivates[mfbGetGCPrivateIndex()].ptr )->colorRrop.planemask ;
+    fg = ( (ppcPrivGC *) pGC->devPrivates[mfbGetGCPrivateIndex()].ptr )->colorRrop.fgPixel ;
 
     pTile = pGC->stipple ;
     tlwidth = pTile->devKind ;
@@ -356,15 +356,15 @@ int fSorted ;
 	return ;
     }
 
-    if ( ( alu = ( (ppcPrivGC *) pGC->devPrivates[mfbGCPrivateIndex].ptr )->colorRrop.alu ) == GXnoop )
+    if ( ( alu = ( (ppcPrivGC *) pGC->devPrivates[mfbGetGCPrivateIndex()].ptr )->colorRrop.alu ) == GXnoop )
 	return ;
 
     SETSPANPTRS( nInit, n, pwidthInit, pwidthFree, pptInit,
 		 pptFree, pwidth, ppt, fSorted ) ;
 
-    fg = ( (ppcPrivGC *) pGC->devPrivates[mfbGCPrivateIndex].ptr )->colorRrop.fgPixel ;
-    bg = ( (ppcPrivGC *) pGC->devPrivates[mfbGCPrivateIndex].ptr )->colorRrop.bgPixel ;
-    pm = ( (ppcPrivGC *) pGC->devPrivates[mfbGCPrivateIndex].ptr )->colorRrop.planemask ;
+    fg = ( (ppcPrivGC *) pGC->devPrivates[mfbGetGCPrivateIndex()].ptr )->colorRrop.fgPixel ;
+    bg = ( (ppcPrivGC *) pGC->devPrivates[mfbGetGCPrivateIndex()].ptr )->colorRrop.bgPixel ;
+    pm = ( (ppcPrivGC *) pGC->devPrivates[mfbGetGCPrivateIndex()].ptr )->colorRrop.planemask ;
     npm = ( ~ pm ) & ( ( 1 << pDrawable->depth ) - 1 ) ;
 
     pTile = pGC->stipple ;
@@ -459,14 +459,14 @@ int fSorted ;
 	return ;
     }
 
-    if ( ( alu = ( (ppcPrivGC *) pGC->devPrivates[mfbGCPrivateIndex].ptr )->colorRrop.alu ) == GXnoop )
+    if ( ( alu = ( (ppcPrivGC *) pGC->devPrivates[mfbGetGCPrivateIndex()].ptr )->colorRrop.alu ) == GXnoop )
 	return ;
 
     SETSPANPTRS( nInit, n, pwidthInit, pwidthFree, pptInit,
 		 pptFree, pwidth, ppt, fSorted ) ;
 
     /* the following code is for 8 bits per pixel addressable memory only */
-    pm = ( (ppcPrivGC *) pGC->devPrivates[mfbGCPrivateIndex].ptr )->colorRrop.planemask ;
+    pm = ( (ppcPrivGC *) pGC->devPrivates[mfbGetGCPrivateIndex()].ptr )->colorRrop.planemask ;
     npm = ( ~ pm ) & ( ( 1 << pDrawable->depth ) - 1 ) ;
     pTile = pGC->tile.pixmap ;
     tileWidth = pTile->drawable.width ;

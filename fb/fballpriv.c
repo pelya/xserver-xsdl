@@ -27,10 +27,22 @@
 
 #ifdef FB_SCREEN_PRIVATE
 int fbScreenPrivateIndex;
+int fbGetScreenPrivateIndex(void)
+{
+    return fbScreenPrivateIndex;
+}
 #endif
 int fbGCPrivateIndex;
+int fbGetGCPrivateIndex(void)
+{
+    return fbGCPrivateIndex;
+}
 #ifndef FB_NO_WINDOW_PIXMAPS
 int fbWinPrivateIndex;
+int fbGetWinPrivateIndex(void)
+{
+    return fbWinPrivateIndex;
+}
 #endif
 int fbGeneration;
 

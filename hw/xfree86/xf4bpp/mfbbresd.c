@@ -102,8 +102,8 @@ int len;		/* length of line */
     register PixelType *addrl;
     register int e3 = e2-e1;
     register unsigned long bit;
-    PixelType leftbit = mask[0]; /* leftmost bit to process in new word */
-    PixelType rightbit = mask[PPW-1]; /* rightmost bit to process in new word */
+    PixelType leftbit = mfbGetmask(0); /* leftmost bit to process in new word */
+    PixelType rightbit = mfbGetmask(PPW-1); /* rightmost bit to process in new word */
     int dashIndex;
     int dashOffset;
     int dashRemaining;
@@ -125,7 +125,7 @@ int len;		/* length of line */
     addrl = mfbScanline(addrlbase, x1, y1, nlwidth);
     yinc = signdy * nlwidth;
     e = e-e1;			/* to make looping easier */
-    bit = mask[x1 & PIM];
+    bit = mfbGetmask(x1 & PIM);
     if (axis == X_AXIS)
     {
 	if (signdx > 0)

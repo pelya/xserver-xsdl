@@ -94,6 +94,25 @@ int XAAPatternROP_PM[16] =
    ROP_DPo
 };
 
+int XAAGetCopyROP(int i)
+{
+    return XAACopyROP[i];
+}
+
+int XAAGetCopyROP_PM(int i)
+{
+    return XAACopyROP_PM[i];
+}
+
+int XAAGetPatternROP(int i)
+{
+    return XAAPatternROP[i];
+}
+
+int XAAGetPatternROP_PM(int i)
+{
+    return XAAPatternROP_PM[i];
+}
 
 int
 XAAHelpPatternROP(ScrnInfoPtr pScrn, int *fg, int *bg, int pm, int *rop)

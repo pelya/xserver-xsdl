@@ -19,8 +19,10 @@ typedef struct {
 } cfb8_32ScreenRec, *cfb8_32ScreenPtr;
 
 
-extern int cfb8_32GCPrivateIndex;
-extern int cfb8_32ScreenPrivateIndex;
+extern int cfb8_32GCPrivateIndex;	/* XXX */
+extern int cfb8_32GetGCPrivateIndex(void);
+extern int cfb8_32ScreenPrivateIndex;	/* XXX */
+extern int cfb8_32GetScreenPrivateIndex(void);
 
 void
 cfb8_32SaveAreas(
@@ -212,10 +214,10 @@ cfb8_32ChangeWindowAttributes(
 
 
 #define CFB8_32_GET_GC_PRIVATE(pGC)\
-   (cfb8_32GCPtr)((pGC)->devPrivates[cfb8_32GCPrivateIndex].ptr)
+   (cfb8_32GCPtr)((pGC)->devPrivates[cfb8_32GetGCPrivateIndex()].ptr)
 
 #define CFB8_32_GET_SCREEN_PRIVATE(pScreen)\
-   (cfb8_32ScreenPtr)((pScreen)->devPrivates[cfb8_32ScreenPrivateIndex].ptr)
+   (cfb8_32ScreenPtr)((pScreen)->devPrivates[cfb8_32GetScreenPrivateIndex()].ptr)
 
 Bool xf86Overlay8Plus32Init (ScreenPtr pScreen);
 

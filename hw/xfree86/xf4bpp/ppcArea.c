@@ -47,7 +47,7 @@ int alu ;
 unsigned long int fg, bg, pm ;
 int xSrc, ySrc ;
 PixmapPtr pPixmap ;
-ppcPrivGC *pPrivGC = pGC->devPrivates[mfbGCPrivateIndex].ptr;
+ppcPrivGC *pPrivGC = pGC->devPrivates[mfbGetGCPrivateIndex()].ptr;
 
 TRACE( ( "xf4bppFillArea(0x%x,%d,0x%x,0x%x)\n", pWin, nboxes, pBox, pGC ) ) ;
 

@@ -347,6 +347,7 @@ GCOps XAAFallbackOps = {
     {NULL}		/* devPrivate */
 };
 
-
-
-
+GCOps *XAAGetFallbackOps(void)
+{
+    return &XAAFallbackOps;
+}

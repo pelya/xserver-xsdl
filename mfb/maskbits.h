@@ -224,11 +224,18 @@ getshiftedleftbits(psrc, offset, w, dst)
 #define MFB_PWSH 5
 #endif /* MFB_PPW == 32 */
 
+/* XXX don't use these five */
 extern PixelType starttab[];
 extern PixelType endtab[];
 extern PixelType partmasks[MFB_PPW][MFB_PPW];
 extern PixelType rmask[];
 extern PixelType mask[];
+/* XXX use these five */
+extern PixelType mfbGetstarttab(int);
+extern PixelType mfbGetendtab(int);
+extern PixelType mfbGetpartmasks(int, int);
+extern PixelType mfbGetrmask(int);
+extern PixelType mfbGetmask(int);
 
 #ifndef MFB_CONSTS_ONLY
 
@@ -304,19 +311,19 @@ extern PixelType mask[];
 }
 
 #define maskbits(x, w, startmask, endmask, nlw) \
-    startmask = starttab[(x) & PIM]; \
-    endmask = endtab[((x)+(w)) & PIM]; \
+    startmask = mfbGetstarttab((x) & PIM); \
+    endmask = mfbGetendtab(((x)+(w)) & PIM); \
     if (startmask) \
 	nlw = (((w) - (PPW - ((x) & PIM))) >> PWSH); \
     else \
 	nlw = (w) >> PWSH;
 
 #define maskpartialbits(x, w, mask) \
-    mask = partmasks[(x) & PIM][(w) & PIM];
+    mask = mfbGetpartmasks((x) & PIM, (w) & PIM);
 
 #define maskPPWbits(x, w, startmask, endmask) \
-    startmask = starttab[(x) & PIM]; \
-    endmask = endtab[((x)+(w)) & PIM];
+    startmask = mfbGetstarttab((x) & PIM); \
+    endmask = mfbGetendtab(((x)+(w)) & PIM);
 
 #ifdef __GNUC__ /* XXX don't want for Alpha? */
 #ifdef vax
@@ -390,8 +397,8 @@ extern PixelType mask[];
     { \
 	register int d = PPW-(x); \
 	*(pdst) = (*(pdst) & endtab[x]) | (SCRRIGHT((src), x)); \
-	(pdst)[1] = ((pdst)[1] & starttab[n]) | \
-		(SCRLEFT(src, d) & endtab[n]); \
+	(pdst)[1] = ((pdst)[1] & mfbGetstarttab(n)) | \
+		(SCRLEFT(src, d) & mfbGetendtab(n)); \
     } \
 }
 
@@ -440,10 +447,10 @@ extern PixelType mask[];
     else \
     { \
 	int m = PPW-(x); \
-	*(pdst) = (*(pdst) & endtab[x]) | (t2 & starttab[x]); \
+	*(pdst) = (*(pdst) & mfbGetendtab(x)) | (t2 & mfbGetstarttab(x)); \
 	t1 = SCRLEFT((src), m); \
 	DoRop(t2, rop, t1, (pdst)[1]); \
-	(pdst)[1] = ((pdst)[1] & starttab[n]) | (t2 & endtab[n]); \
+	(pdst)[1] = ((pdst)[1] & mfbGetstarttab(n)) | (t2 & mfbGetendtab(n)); \
     } \
 }
 
@@ -514,10 +521,10 @@ extern PixelType mask[];
     else \
     { \
 	int m = PPW-(x); \
-	*(pdst) = (*(pdst) & endtab[x]) | (t2 & starttab[x]); \
+	*(pdst) = (*(pdst) & mfbGetendtab(x)) | (t2 & mfbGetstarttab(x)); \
 	t1 = SCRLEFT((src), m); \
 	t2 = DoRRop(rop, t1, (pdst)[1]); \
-	(pdst)[1] = ((pdst)[1] & starttab[n]) | (t2 & endtab[n]); \
+	(pdst)[1] = ((pdst)[1] & mfbGetstarttab(n)) | (t2 & mfbGetendtab(n)); \
     } \
 }
 #endif
@@ -645,7 +652,7 @@ extern PixelType mask[];
     if ((width) > _flag) \
 	_src |=  SCRRIGHT (*((psrc) + 1), _flag); \
  \
-    *(pdst) = (*(pdst) & starttab[(width)]) | (_src & endtab[(width)]); \
+    *(pdst) = (*(pdst) & mfbGetstarttab((width))) | (_src & mfbGetendtab((width))); \
 }
 
 
@@ -659,7 +666,7 @@ extern PixelType mask[];
 	_src |=  SCRRIGHT (*((psrc) + 1), _flag); \
     DoRop(_src, rop, _src, *(pdst)); \
  \
-    *(pdst) = (*(pdst) & starttab[(width)]) | (_src & endtab[(width)]); \
+    *(pdst) = (*(pdst) & mfbGetstarttab((width))) | (_src & mfbGetendtab((width))); \
 }
 
 #define getandputrrop0(psrc, sbindex, width, pdst, rop) \
@@ -672,7 +679,7 @@ extern PixelType mask[];
 	_src |=  SCRRIGHT (*((psrc) + 1), _flag); \
     _src = DoRRop(rop, _src, *(pdst)); \
  \
-    *(pdst) = (*(pdst) & starttab[(width)]) | (_src & endtab[(width)]); \
+    *(pdst) = (*(pdst) & mfbGetstarttab((width))) | (_src & mfbGetendtab((width))); \
 }
 
 #endif  /* FASTGETBITS && FASTPUTBITS */

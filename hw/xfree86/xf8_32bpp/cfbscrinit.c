@@ -38,7 +38,9 @@ static BSFuncRec cfb8_32BSFuncRec = {
 
 
 int cfb8_32GCPrivateIndex;
+int cfb8_32GetGCPrivateIndex(void) { return cfb8_32GCPrivateIndex; }
 int cfb8_32ScreenPrivateIndex;
+int cfb8_32GetScreenPrivateIndex(void) { return cfb8_32ScreenPrivateIndex; }
 static unsigned long cfb8_32Generation = 0;
 
 static Bool

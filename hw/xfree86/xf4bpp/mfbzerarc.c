@@ -108,7 +108,7 @@ v16ZeroArcSS
     int pmask;
     register int *paddr;
 
-    if (((mfbPrivGC *)(pGC->devPrivates[mfbGCPrivateIndex].ptr))->rop ==
+    if (((mfbPrivGC *)(pGC->devPrivates[mfbGetGCPrivateIndex()].ptr))->rop ==
 	RROP_BLACK)
 	pixel = 0;
     else

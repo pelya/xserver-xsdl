@@ -49,4 +49,6 @@ void  fbdevHWDPMSSet(ScrnInfoPtr pScrn, int mode, int flags);
 
 Bool  fbdevHWSaveScreen(ScreenPtr pScreen, int mode);
 
+void  fbdevHWFillInScreenInfo(ScrnInfoPtr pScrn);
+
 #endif

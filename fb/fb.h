@@ -22,7 +22,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $XdotOrg$ */
+/* $XdotOrg: xc/programs/Xserver/fb/fb.h,v 1.4 2004/06/21 13:51:57 ago Exp $ */
 
 #ifndef _FB_H_
 #define _FB_H_
@@ -564,9 +564,13 @@ extern void fbSetBits (FbStip *bits, int stride, FbStip data);
     }							    \
 }
 
+/* XXX fb*PrivateIndex should be static, but it breaks the ABI */
+
 extern int	fbGCPrivateIndex;
+extern int	fbGetGCPrivateIndex(void);
 #ifndef FB_NO_WINDOW_PIXMAPS
 extern int	fbWinPrivateIndex;
+extern int	fbGetWinPrivateIndex(void);
 #endif
 extern const GCOps	fbGCOps;
 extern const GCFuncs	fbGCFuncs;
@@ -587,6 +591,7 @@ extern WindowPtr    *WindowTable;
 
 #ifdef FB_SCREEN_PRIVATE
 extern int	fbScreenPrivateIndex;
+extern int	fbGetScreenPrivateIndex(void);
 
 /* private field of a screen */
 typedef struct {
@@ -595,7 +600,7 @@ typedef struct {
 } FbScreenPrivRec, *FbScreenPrivPtr;
 
 #define fbGetScreenPrivate(pScreen) ((FbScreenPrivPtr) \
-				     (pScreen)->devPrivates[fbScreenPrivateIndex].ptr)
+				     (pScreen)->devPrivates[fbGetScreenPrivateIndex()].ptr)
 #endif
 
 /* private field of GC */
@@ -619,7 +624,7 @@ typedef struct {
 } FbGCPrivRec, *FbGCPrivPtr;
 
 #define fbGetGCPrivate(pGC)	((FbGCPrivPtr)\
-	(pGC)->devPrivates[fbGCPrivateIndex].ptr)
+	(pGC)->devPrivates[fbGetGCPrivateIndex()].ptr)
 
 #ifdef FB_OLD_GC
 #define fbGetCompositeClip(pGC) (fbGetGCPrivate(pGC)->pCompositeClip)
@@ -638,7 +643,7 @@ typedef struct {
 #define fbGetWindowPixmap(d)	fbGetScreenPixmap(((DrawablePtr) (d))->pScreen)
 #else
 #define fbGetWindowPixmap(pWin)	((PixmapPtr)\
-	((WindowPtr) (pWin))->devPrivates[fbWinPrivateIndex].ptr)
+	((WindowPtr) (pWin))->devPrivates[fbGetWinPrivateIndex()].ptr)
 #endif
 
 #if defined(__DARWIN__)||defined(__CYGWIN__)
