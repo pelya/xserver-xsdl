@@ -272,5 +272,6 @@ SetPictureFilter (PicturePtr pPicture, char *name, int len, xFixed *params, int 
     for (i = 0; i < nparams; i++)
 	pPicture->filter_params[i] = params[i];
     pPicture->filter = pFilter->id;
+    pPicture->serialNumber |= GC_CHANGE_SERIAL_BIT;
     return Success;
 }

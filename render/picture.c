@@ -1177,6 +1177,8 @@ SetPictureTransform (PicturePtr	    pPicture,
 	    pPicture->transform = 0;
 	}
     }
+    pPicture->serialNumber |= GC_CHANGE_SERIAL_BIT;
+
     return Success;
 }
 
@@ -1188,6 +1190,7 @@ CopyPicture (PicturePtr	pSrc,
     PictureScreenPtr ps = GetPictureScreen(pSrc->pDrawable->pScreen);
     Mask origMask = mask;
 
+    pDst->serialNumber |= GC_CHANGE_SERIAL_BIT;
     pDst->stateChanges |= mask;
 
     while (mask) {

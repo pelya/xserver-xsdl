@@ -207,8 +207,22 @@ cwValidatePicture (PicturePtr pPicture,
 
 	pBackingPicture = pPicturePrivate->pBackingPicture;
 
+	/*
+	 * Always copy transform and filters because there's no
+	 * indication of when they've changed
+	 */
 	SetPictureTransform(pBackingPicture, pPicture->transform);
-	/* XXX Set filters */
+	
+	if (pBackingPicture->filter != pPicture->filter ||
+	    pPicture->filter_nparams > 0)
+	{
+	    char    *filter = PictureGetFilterName (pPicture->filter);
+	    
+	    SetPictureFilter(pBackingPicture,
+			     filter, strlen (filter),
+			     pPicture->filter_params,
+			     pPicture->filter_nparams);
+	}
 
 	pPicturePrivate->stateChanges |= mask;
 

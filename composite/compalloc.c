@@ -418,24 +418,58 @@ compUnredirectOneSubwindow (WindowPtr pParent, WindowPtr pWin)
     return Success;
 }
 
+static PixmapPtr
+compNewPixmap (WindowPtr pWin, int x, int y, int w, int h)
+{
+    ScreenPtr	    pScreen = pWin->drawable.pScreen;
+    WindowPtr	    pParent = pWin->parent;
+    PixmapPtr	    pPixmap;
+    GCPtr	    pGC;
+
+    pPixmap = (*pScreen->CreatePixmap) (pScreen, w, h, pWin->drawable.depth);
+
+    if (!pPixmap)
+	return 0;
+    
+    pPixmap->screen_x = x;
+    pPixmap->screen_y = y;
+    
+    pGC = GetScratchGC (pWin->drawable.depth, pScreen);
+    
+    /*
+     * Copy bits from the parent into the new pixmap so that it will
+     * have "reasonable" contents in case for background None areas.
+     */
+    if (pGC)
+    {
+	XID val = IncludeInferiors;
+	
+	ValidateGC(&pPixmap->drawable, pGC);
+	dixChangeGC (serverClient, pGC, GCSubwindowMode, &val, NULL);
+	(*pGC->ops->CopyArea) (&pParent->drawable,
+			       &pPixmap->drawable,
+			       pGC,
+			       x - pParent->drawable.x,
+			       y - pParent->drawable.y,
+			       w, h, 0, 0);
+	FreeScratchGC (pGC);
+    }
+    return pPixmap;
+}
+
 Bool
 compAllocPixmap (WindowPtr pWin)
 {
-    ScreenPtr	    pScreen = pWin->drawable.pScreen;
-    PixmapPtr	    pPixmap;
     int		    bw = (int) pWin->borderWidth;
-    int		    x, y, w, h;
+    int		    x = pWin->drawable.x - bw;
+    int		    y = pWin->drawable.y - bw;
+    int		    w = pWin->drawable.width + (bw << 1);
+    int		    h = pWin->drawable.height + (bw << 1);
+    PixmapPtr	    pPixmap = compNewPixmap (pWin, x, y, w, h);
     CompWindowPtr   cw = GetCompWindow (pWin);
 
-    x = pWin->drawable.x - bw;
-    y = pWin->drawable.y - bw;
-    w = pWin->drawable.width + (bw << 1);
-    h = pWin->drawable.height + (bw << 1);
-    pPixmap = (*pScreen->CreatePixmap) (pScreen, w, h, pWin->drawable.depth);
     if (!pPixmap)
 	return FALSE;
-    pPixmap->screen_x = x;
-    pPixmap->screen_y = y;
     pWin->redirectDraw = TRUE;
     compSetPixmap (pWin, pPixmap);
     cw->oldx = COMP_ORIGIN_INVALID;
@@ -490,42 +524,22 @@ compReallocPixmap (WindowPtr pWin, int draw_x, int draw_y,
     PixmapPtr	    pNew;
     CompWindowPtr   cw = GetCompWindow (pWin);
     int		    pix_x, pix_y;
-    unsigned int    pix_w, pix_h;
+    int		    pix_w, pix_h;
 
     assert (cw && pWin->redirectDraw);
+    cw->oldx = pOld->screen_x;
+    cw->oldy = pOld->screen_y;
     pix_x = draw_x - bw;
     pix_y = draw_y - bw;
     pix_w = w + (bw << 1);
     pix_h = h + (bw << 1);
-    cw->oldx = pOld->screen_x;
-    cw->oldy = pOld->screen_y;
-    if (pix_w != pOld->drawable.width ||
-	pix_h != pOld->drawable.height)
+    if (pix_w != pOld->drawable.width || pix_h != pOld->drawable.height)
     {
-	GCPtr	pGC;
-	
-	pNew = (*pScreen->CreatePixmap) (pScreen, pix_w, pix_h, pWin->drawable.depth);
+	pNew = compNewPixmap (pWin, pix_x, pix_y, pix_w, pix_h);
 	if (!pNew)
 	    return FALSE;
 	cw->pOldPixmap = pOld;
 	compSetPixmap (pWin, pNew);
-	/*
-	 * Copy new bits to align at same place on the screen.  CopyWindow
-	 * calls will patch up any differences
-	 */
-	pGC = GetScratchGC (pNew->drawable.depth, pScreen);
-	if (pGC)
-	{
-	    ValidateGC(&pNew->drawable, pGC);
-	    (*pGC->ops->CopyArea) (&pOld->drawable,
-				   &pNew->drawable,
-				   pGC,
-				   pWin->drawable.x - draw_x,
-				   pWin->drawable.y - draw_y,
-				   pix_w, pix_h,
-				   0, 0);
-	    FreeScratchGC (pGC);
-	}
     }
     else
     {
