@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/kinput.c,v 1.5 2000/08/26 00:24:38 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/kinput.c,v 1.8 2000/10/06 05:54:09 keithp Exp $ */
 
 #include "kdrive.h"
 #include "inputstr.h"
@@ -1380,7 +1380,10 @@ KdCursorOffScreen(ScreenPtr *ppScreen, int *x, int *y)
 	if (n < 0)
 	    n = screenInfo.numScreens - 1;
 	pScreen = screenInfo.screens[n];
-	*x += pScreen->width;
+	if (*x < 0)
+	    *x += pScreen->width;
+	if (*y < 0)
+	    *y += pScreen->height;
 	*ppScreen = pScreen;
 	return TRUE;
     }
@@ -1389,7 +1392,10 @@ KdCursorOffScreen(ScreenPtr *ppScreen, int *x, int *y)
 	n = pScreen->myNum + 1;
 	if (n >= screenInfo.numScreens)
 	    n = 0;
-	*x -= pScreen->width;
+	if (*x >= pScreen->width)
+	    *x -= pScreen->width;
+	if (*y >= pScreen->height)
+	    *y -= pScreen->height;
 	pScreen = screenInfo.screens[n];
 	*ppScreen = pScreen;
 	return TRUE;
