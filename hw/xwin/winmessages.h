@@ -1,3 +1,5 @@
+#ifndef __WINMESSAGES_H__
+#define __WINMESSAGES_H__
 static const unsigned MESSAGE_NAMES_LEN =1024;
 static const char *MESSAGE_NAMES[1024] = {
 	"WM_NULL",
@@ -1025,3 +1027,4 @@ static const char *MESSAGE_NAMES[1024] = {
 	"1022",
 	"1023"
 };
+#endif

@@ -37,9 +37,7 @@
 #include <commctrl.h>
 #include "winprefs.h"
 #include "winconfig.h"
-#if CYGDEBUG
-#include "winmessages.h"
-#endif
+#include "winmsg.h"
 
 /*
  * Global variables
@@ -58,6 +56,7 @@ extern Bool			g_fKeyboardHookLL;
 extern HWND			g_hwndKeyboardFocus;
 extern Bool			g_fSoftwareCursor;
 extern DWORD			g_dwCurrentThreadID;
+
 
 /*
  * Called by winWakeupHandler
@@ -80,16 +79,7 @@ winWindowProc (HWND hwnd, UINT message,
   int				i;
 
 #if CYGDEBUG
-  if (message >= WM_USER)
-    {
-      winDebug("winWindowProc - Message WM_USER + %d", message - WM_USER);
-      winDebug(" wParam 0x%x lParam 0x%x\n", wParam, lParam);
-    }
-  else if (message < MESSAGE_NAMES_LEN && MESSAGE_NAMES[message])
-    {  
-      winDebug("winWindowProc - Message %s", MESSAGE_NAMES[message]);
-      winDebug(" wParam 0x%x lParam 0x%x\n", wParam, lParam);
-    }
+  winDebugWin32Message("winWindowProc", hwnd, message, wParam, lParam);
 #endif
   
   /* Watch for server regeneration */

@@ -35,9 +35,7 @@
 #include "dixevents.h"
 #include "winmultiwindowclass.h"
 #include "winprefs.h"
-#if CYGDEBUG
-#include "winmessages.h"
-#endif
+#include "winmsg.h"
 
 /*
  * External global variables
@@ -292,16 +290,7 @@ winTopLevelWindowProc (HWND hwnd, UINT message,
   static Bool		s_fTracking = FALSE;
 
 #if CYGDEBUG
-  if (message >= WM_USER)
-    {
-      winDebug("winTopLevelWindowProc - Message WM_USER + %d", message - WM_USER);
-      winDebug(" wParam 0x%x lParam 0x%x\n", wParam, lParam);
-    }
-  else if (message < MESSAGE_NAMES_LEN && MESSAGE_NAMES[message])
-    {  
-      winDebug("winTopLevelWindowProc - Message %s", MESSAGE_NAMES[message]);
-      winDebug(" wParam 0x%x lParam 0x%x\n", wParam, lParam);
-    }
+  winDebugWin32Message("winTopLevelWindowProc", hwnd, message, wParam, lParam);
 #endif
   
   /* Check if the Windows window property for our X window pointer is valid */

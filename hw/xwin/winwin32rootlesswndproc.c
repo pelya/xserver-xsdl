@@ -37,9 +37,7 @@
 #include "propertyst.h"
 #include "Xatom.h"
 #include "winmultiwindowclass.h"
-#if CYGDEBUG
-#include "winmessages.h"
-#endif
+#include "winmsg.h"
 
 
 /*
@@ -436,19 +434,8 @@ winMWExtWMWindowProc (HWND hwnd, UINT message,
       wmMsg.iHeight	= pRLWinPriv->pFrame->height;
 
       fWMMsgInitialized = TRUE;
-#if 0
-      if (message >= WM_USER)
-	{
-	  winDebug("winMWExtWMWindowProc - Message WM_USER + %d",
-		   message - WM_USER);
-	  winDebug(" wParam 0x%x lParam 0x%x\n", wParam, lParam);
-	}
-      else if (message < MESSAGE_NAMES_LEN && MESSAGE_NAMES[message])
-	{
-	  winDebug("winMWExtWMWindowProc - Message %s",
-		   MESSAGE_NAMES[message]);
-	  winDebug(" wParam 0x%x lParam 0x%x\n", wParam, lParam);
-	}
+#if CYGDEBUG
+      winDebugWin32Message("winMWExtWMWindowProc", hwnd, message, wParam, lParam);
 
       winDebug ("\thWnd %08X\n", hwnd);
       winDebug ("\tpScreenPriv %08X\n", pScreenPriv);
