@@ -39,6 +39,7 @@
 extern CARD32 r128_cce_microcode[];
 extern CARD32 radeon_cp_microcode[][2];
 extern CARD32 r200_cp_microcode[][2];
+extern CARD32 r300_cp_microcode[][2];
 
 #if DEBUG_FIFO
 static void
@@ -77,7 +78,14 @@ ATIUploadMicrocode(ATIScreenInfo *atis)
 	int i;
 
 	MMIO_OUT32(mmio, ATI_REG_MICROCODE_RAM_ADDR, 0);
-	if (atic->is_radeon && atic->is_r200) {
+	if (atic->is_radeon && atic->is_r300) {
+		for (i = 0; i < 256; i++) {
+			MMIO_OUT32(mmio, ATI_REG_MICROCODE_RAM_DATAH,
+			    r300_cp_microcode[i][1]);
+			MMIO_OUT32(mmio, ATI_REG_MICROCODE_RAM_DATAL,
+			    r300_cp_microcode[i][0]);
+		}
+	} else if (atic->is_radeon && atic->is_r200) {
 		for (i = 0; i < 256; i++) {
 			MMIO_OUT32(mmio, ATI_REG_MICROCODE_RAM_DATAH,
 			    r200_cp_microcode[i][1]);
@@ -100,6 +108,7 @@ ATIUploadMicrocode(ATIScreenInfo *atis)
 		}
 	}
 }
+
 /* Required when reading from video memory after acceleration to make sure all
  * data has been flushed to video memory from the pixel cache.
  */
@@ -742,10 +751,6 @@ ATIPseudoDMAInit(ScreenPtr pScreen)
 	ATIScreenInfo(pScreenPriv);
 	ATICardInfo(pScreenPriv);
 	char *mmio = atic->reg_base;
-
-	/* XXX: The Radeon pseudo-dma code is untested. */
-	if (0 && atic->is_radeon)
-		return FALSE;
 
 	ATIUploadMicrocode(atis);
 	ATIEngineReset(atis);
