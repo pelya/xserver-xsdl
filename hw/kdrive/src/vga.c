@@ -32,7 +32,7 @@
 #ifdef linux
 #ifdef __i386__
 #define extern static
-#include <asm/io.h>
+#include <sys/io.h>
 #undef extern
 
 #define _VgaInb(r)	inb(r)

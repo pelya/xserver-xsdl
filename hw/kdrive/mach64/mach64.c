@@ -25,7 +25,6 @@
 #include <config.h>
 #endif
 #include "mach64.h"
-#include <sys/io.h>
 
 static Bool
 mach64CardInit (KdCardInfo *card)
