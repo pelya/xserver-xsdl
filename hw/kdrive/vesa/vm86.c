@@ -81,7 +81,7 @@ Vm86Setup(int mapHoles)
     }
 
     devzero = open("/dev/zero", O_RDWR);
-    if(devmem < 0) {
+    if(devzero < 0) {
 	perror("open /dev/zero");
 	goto fail;
     }
@@ -180,9 +180,9 @@ Vm86Setup(int mapHoles)
 
 unmapfail:
     if(magicMem != MAP_FAILED) munmap(magicMem, MAGICMEM_SIZE);
-    if(hole1 != MAP_FAILED) munmap(magicMem, HOLE1_SIZE);
+    if(hole1 != MAP_FAILED) munmap(hole1, HOLE1_SIZE);
     if(loMem != MAP_FAILED) munmap(loMem, LOMEM_SIZE);
-    if(hole2 != MAP_FAILED) munmap(magicMem, HOLE2_SIZE);
+    if(hole2 != MAP_FAILED) munmap(hole2, HOLE2_SIZE);
     if(hiMem != MAP_FAILED) munmap(hiMem, HIMEM_SIZE);
 fail:
     if(devmem >= 0)
@@ -198,9 +198,9 @@ void
 Vm86Cleanup(Vm86InfoPtr vi)
 {
     if(vi->magicMem != MAP_FAILED) munmap(vi->magicMem, MAGICMEM_SIZE);
-    if(vi->hole1 != MAP_FAILED) munmap(vi->magicMem, HOLE1_SIZE);
+    if(vi->hole1 != MAP_FAILED) munmap(vi->hole1, HOLE1_SIZE);
     if(vi->loMem != MAP_FAILED) munmap(vi->loMem, LOMEM_SIZE);
-    if(vi->hole2 != MAP_FAILED) munmap(vi->magicMem, HOLE2_SIZE);
+    if(vi->hole2 != MAP_FAILED) munmap(vi->hole2, HOLE2_SIZE);
     if(vi->hiMem != MAP_FAILED) munmap(vi->hiMem, HIMEM_SIZE);
     xfree(vi);
 }
