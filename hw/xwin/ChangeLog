@@ -1,3 +1,8 @@
+2005-01-08  Alexander Gottwald  <ago at freedesktop dot org>
+
+	* winblock.c:
+	Fix a possible null-pointer dereference	(Keishi Suenaga)
+
 2005-01-06  Alexander Gottwald  <ago at freedesktop dot org>
 
 	* Imakefile 

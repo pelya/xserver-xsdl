@@ -54,8 +54,11 @@ winBlockHandler (int nScreen,
   MSG			msg;
 #ifndef HAS_DEVWINDOWS
   struct timeval **tvp = pTimeout;
-  (*tvp)->tv_sec = 0;
-  (*tvp)->tv_usec = 100;
+  if (*tvp != NULL) 
+  {
+    (*tvp)->tv_sec = 0;
+    (*tvp)->tv_usec = 100;
+  }
 #endif
 
 #if defined(XWIN_CLIPBOARD) || defined(XWIN_MULTIWINDOW)
