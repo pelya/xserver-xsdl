@@ -35,8 +35,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  */
 
-#ifdef XFree86LOADER
 #include "xf86.h"
+#ifdef XFree86LOADER
 #include "xf86_ansic.h"
 #endif
 
