@@ -1186,6 +1186,7 @@ CopyPicture (PicturePtr	pSrc,
 	     PicturePtr	pDst)
 {
     PictureScreenPtr ps = GetPictureScreen(pSrc->pDrawable->pScreen);
+    Mask origMask = mask;
 
     pDst->stateChanges |= mask;
 
@@ -1257,6 +1258,8 @@ CopyPicture (PicturePtr	pSrc,
 	}
 	mask &= ~bit;
     }
+
+    (*ps->ChangePicture)(pDst, origMask);
 }
 
 static void
