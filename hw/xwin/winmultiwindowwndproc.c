@@ -265,6 +265,15 @@ ValidateSizing (HWND hwnd, WindowPtr pWin,
   return TRUE;
 }
 
+static void winRaiseWindow(WindowPtr pWin)
+{
+    /* Call configure window directly to make sure it gets processed 
+     * in time
+     */
+    XID vlist[1] = { 0 }; 
+    ConfigureWindow(pWin, CWStackMode, vlist, NULL); 
+}
+
 
 /*
  * winTopLevelWindowProc - Window procedure for all top-level Windows windows.
@@ -687,7 +696,6 @@ winTopLevelWindowProc (HWND hwnd, UINT message,
 		      pRect->bottom - pRect->top);
 	    }
 	  ErrorF ("\n");
-	  return 0;
 	}
 #endif
       
@@ -717,9 +725,12 @@ winTopLevelWindowProc (HWND hwnd, UINT message,
       if (LOWORD(wParam) != WA_INACTIVE)
 	{
 	  /* Raise the window to the top in Z order */
+          /* ago: Activate does not mean putting it to front! */
+          /*
 	  wmMsg.msg = WM_WM_RAISE;
 	  if (fWMMsgInitialized)
 	    winSendMessageToWM (s_pScreenPriv->pWMInfo, &wmMsg);
+          */
 	  
 	  /* Tell our Window Manager thread to activate the window */
 	  wmMsg.msg = WM_WM_ACTIVATE;
@@ -880,46 +891,6 @@ winTopLevelWindowProc (HWND hwnd, UINT message,
       /* for applications like xterm */
       return ValidateSizing (hwnd, pWin, wParam, lParam);
 
-    case WM_WINDOWPOSCHANGING:  
-#if 0
-      if (lParam != 0)
-        {
-          WINDOWPOS *windowpos = (WINDOWPOS *)lParam;
-          HWND hwndprev = GetNextWindow(hwnd, GW_HWNDPREV);
-          HWND hwndafter = windowpos->hwndInsertAfter;
-#if CYGDEBUG
-          char buffer[1024];
-          char buffer2[1024];
-          GetWindowText(hwndafter, buffer, sizeof(buffer));
-          GetWindowText(hwndprev, buffer2, sizeof(buffer2));
-          winDebug("%s - hwndInsertAfter = %x (%s), hwndPrev = %x (%s)\n",
-                  __FUNCTION__, hwndafter,
-                  (hwndafter==HWND_TOP?"HWND_TOP":
-                  (hwndafter==HWND_BOTTOM?"HWND_BOTTOM":
-                  (hwndafter==HWND_NOTOPMOST?"HWND_NOTOPMOST":
-                  (hwndafter==HWND_TOPMOST?"HWND_TOPMOST":
-                   buffer)))),
-                  hwndprev,
-                  (hwndprev==HWND_TOP?"HWND_TOP":
-                  (hwndprev==HWND_BOTTOM?"HWND_BOTTOM":
-                  (hwndprev==HWND_NOTOPMOST?"HWND_NOTOPMOST":
-                  (hwndprev==HWND_TOPMOST?"HWND_TOPMOST":
-                   buffer2)))));
-          winDebug("%s - flags: %s\n", __FUNCTION__, 
-                  (windowpos->flags & SWP_NOZORDER?"NOZORDER":""));
-  
-#endif
-          if (windowpos->flags & SWP_NOZORDER)
-              break;
-          if (TRUE || hwndafter == HWND_TOP || hwndafter != hwndprev) 
-            {
-              wmMsg.msg = WM_WM_RAISE;
-              //if (fWMMsgInitialized)
-                winSendMessageToWM (s_pScreenPriv->pWMInfo, &wmMsg);
-            }
-        }
-#endif
-      break;
     case WM_WINDOWPOSCHANGED:
       {
 	LPWINDOWPOS pWinPos = (LPWINDOWPOS) lParam;
@@ -937,9 +908,7 @@ winTopLevelWindowProc (HWND hwnd, UINT message,
 		winDebug ("\traise to top\n");
 #endif
 		/* Raise the window to the top in Z order */
-		wmMsg.msg = WM_WM_RAISE;
-		if (fWMMsgInitialized)
-		  winSendMessageToWM (s_pScreenPriv->pWMInfo, &wmMsg);
+		winRaiseWindow(pWin);
 	      }
 	    else if (pWinPos->hwndInsertAfter == HWND_BOTTOM)
 	      {
@@ -971,10 +940,7 @@ winTopLevelWindowProc (HWND hwnd, UINT message,
 #if CYGWINDOWING_DEBUG
 		    winDebug ("\traise to top\n");
 #endif
-		    /* Raise the window to the top in Z order */
-		    wmMsg.msg = WM_WM_RAISE;
-		    if (fWMMsgInitialized)
-		      winSendMessageToWM (s_pScreenPriv->pWMInfo, &wmMsg);
+		    winRaiseWindow(pWin);
 		  }
 	      }
 	  }

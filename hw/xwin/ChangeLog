@@ -1,3 +1,13 @@
+2005-02-24  Alexander Gottwald  <ago at freedesktop dot org>
+
+	* winmultiwindowwndproc.c:
+	on WM_WINDOWPOSCHANGED raise window directly and in sync without 
+	utilizing the async windowmanager thread. Fixes some restacking 
+	problems occuring which were timing dependent
+	Do not raise the window on WM_ACTIVATE
+	Removed unused code for WM_WINDOWPOSCHANGING
+	ESC is debug key. Print status but do not abort processing the message
+	
 2005-02-12  Alexander Gottwald  <ago at freedesktop dot org>
 
 	* winmultiwindowwindow.c
