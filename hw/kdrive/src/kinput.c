@@ -1323,30 +1323,34 @@ KdBlockHandler (int		screen,
 void
 KdWakeupHandler (int		screen, 
 		 pointer    	data,
-		 unsigned long	result,
+		 unsigned long	lresult,
 		 pointer	readmask)
 {
+    int	    result = (int) lresult;
     fd_set  *pReadmask = (fd_set *) readmask;
     
-    if (kdMouseFd >= 0 && FD_ISSET (kdMouseFd, pReadmask))
+    if (kdInputEnabled && result > 0)
     {
-	KdBlockSigio ();
-	(*kdMouseFuncs->Read) (kdMouseFd);
-	KdUnblockSigio ();
-    }
+	if (kdMouseFd >= 0 && FD_ISSET (kdMouseFd, pReadmask))
+	{
+	    KdBlockSigio ();
+	    (*kdMouseFuncs->Read) (kdMouseFd);
+	    KdUnblockSigio ();
+	}
 #ifdef TOUCHSCREEN
-    if (kdTsFd >= 0 && FD_ISSET (kdTsFd, pReadmask))
-    {
-	KdBlockSigio ();
-	(*kdTsFuncs->Read) (kdTsFd);
-	KdUnblockSigio ();
-    }
+	if (kdTsFd >= 0 && FD_ISSET (kdTsFd, pReadmask))
+	{
+	    KdBlockSigio ();
+	    (*kdTsFuncs->Read) (kdTsFd);
+	    KdUnblockSigio ();
+	}
 #endif
-    if (kdKeyboardFd >= 0 && FD_ISSET (kdKeyboardFd, pReadmask))
-    {
-	KdBlockSigio ();
-	(*kdKeyboardFuncs->Read) (kdKeyboardFd);
-	KdUnblockSigio ();
+	if (kdKeyboardFd >= 0 && FD_ISSET (kdKeyboardFd, pReadmask))
+	{
+	    KdBlockSigio ();
+	    (*kdKeyboardFuncs->Read) (kdKeyboardFd);
+	    KdUnblockSigio ();
+	}
     }
     if (kdTimeoutPending)
     {
@@ -1370,7 +1374,7 @@ KdCursorOffScreen(ScreenPtr *ppScreen, int *x, int *y)
     
     if (kdDisableZaphod || screenInfo.numScreens <= 1)
 	return FALSE;
-    if (*x < 0)
+    if (*x < 0 || *y < 0)
     {
 	n = pScreen->myNum - 1;
 	if (n < 0)
@@ -1380,7 +1384,7 @@ KdCursorOffScreen(ScreenPtr *ppScreen, int *x, int *y)
 	*ppScreen = pScreen;
 	return TRUE;
     }
-    else if (*x >= pScreen->width)
+    else if (*x >= pScreen->width || *y >= pScreen->height)
     {
 	n = pScreen->myNum + 1;
 	if (n >= screenInfo.numScreens)
