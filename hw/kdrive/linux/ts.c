@@ -1,5 +1,5 @@
 /*
- * $XFree86: xc/programs/Xserver/hw/kdrive/linux/ts.c,v 1.8 2002/08/02 16:30:50 keithp Exp $
+ * $XFree86: xc/programs/Xserver/hw/kdrive/linux/ts.c,v 1.9 2002/08/15 18:07:48 keithp Exp $
  *
  * Derived from ps2.c by Jim Gettys
  *
@@ -46,8 +46,6 @@ typedef struct {
 #endif
 
 static long lastx = 0, lasty = 0;
-int TsScreen;
-extern int TsFbdev;
 
 int
 TsReadBytes (int fd, char *buf, int len, int min)
@@ -103,7 +101,7 @@ TsRead (int tsPort, void *closure)
 	     * touch screen, if it is we send absolute coordinates. If not,
 	     * then we send delta's so that we can track the entire vga screen.
 	     */
-	    if (TsScreen == TsFbdev) {
+	    if (KdTsCurScreen == KdTsPhyScreen) {
 	    	flags = KD_BUTTON_1;
 	    	x = event.x;
 	    	y = event.y;
