@@ -280,7 +280,7 @@
 #  define INCLUDE_XF86_MAP_PCI_MEM
 #  define INCLUDE_XF86_NO_DOMAIN
 # endif
-#elif defined(__powerpc__)
+#elif defined(__powerpc__) || defined(__powerpc64__)
 # if defined(linux)
 #  define ARCH_PCI_INIT linuxPciInit
 #  define INCLUDE_XF86_MAP_PCI_MEM

@@ -22,7 +22,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $XdotOrg: xc/programs/Xserver/fb/fb.h,v 1.4 2004/06/21 13:51:57 ago Exp $ */
+/* $XdotOrg: xc/programs/Xserver/fb/fb.h,v 1.5 2004/07/30 20:30:51 ajax Exp $ */
 
 #ifndef _FB_H_
 #define _FB_H_
@@ -108,6 +108,7 @@ typedef unsigned __int64    FbBits;
       defined(__sparc64__) || defined(_LP64) || \
       defined(__s390x__) || \
       defined(amd64) || defined (__amd64__) || \
+      defined (__powerpc64__) || \
       (defined(sgi) && (_MIPS_SZLONG == 64))
 typedef unsigned long	    FbBits;
 #  else

@@ -185,6 +185,7 @@ extern Bool Must_have_memory;
     defined(__sparc64__) || \
     defined(__s390x__) || \
     defined(__amd64__) || defined(amd64) || \
+    defined(__powerpc64__) || \
     (defined(sgi) && _MIPS_SZLONG == 64))
 #define MAGIC			0x1404196414071968
 #define MAGIC_FREE              0x1506196615061966
