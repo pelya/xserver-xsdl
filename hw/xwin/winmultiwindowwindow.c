@@ -394,7 +394,8 @@ winRestackWindowMultiWindow (WindowPtr pWin, WindowPtr pOldNextSib)
    * Calling winReorderWindowsMultiWindow here means our window manager
    * (i.e. Windows Explorer) has initiative to determine Z order.
    */
-  winReorderWindowsMultiWindow ();
+  if (pWin->nextSib != pOldNextSib)
+    winReorderWindowsMultiWindow ();
 #else
   /* Bail out if no window privates or window handle is invalid */
   if (!pWinPriv || !pWinPriv->hWnd)

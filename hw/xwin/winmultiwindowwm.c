@@ -48,7 +48,14 @@
 #include <X11/cursorfont.h>
 
 /* Windows headers */
+#ifdef __CYGWIN__
+/* Fixups to prevent collisions between Windows and X headers */
+#define ATOM DWORD
+
+#include <windows.h>
+#else
 #include <Xwindows.h>
+#endif
 
 /* Local headers */
 #include "obj_base.h"
