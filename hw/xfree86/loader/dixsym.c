@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/hw/xfree86/loader/dixsym.c,v 1.5 2004/08/19 04:08:40 kem Exp $ */
+/* $XdotOrg: xc/programs/Xserver/hw/xfree86/loader/dixsym.c,v 1.6 2004/09/14 00:51:24 gisburn Exp $ */
 /* $XFree86: xc/programs/Xserver/hw/xfree86/loader/dixsym.c,v 1.63 2003/12/03
  * 17:11:29 tsi Exp $ */
 
@@ -493,7 +493,6 @@ LOOKUP dixLookupTab[] = {
     /* xkb/xkbInit.c */
     SYMFUNC(XkbInitKeyboardDeviceStruct)
     SYMFUNC(XkbSetRulesDflts)
-    SYMVAR(noXkbExtension)
 #endif
 
 #ifdef XINPUT

@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/hw/xfree86/loader/extsym.c,v 1.3 2004/08/08 17:02:19 krh Exp $ */
+/* $XdotOrg: xc/programs/Xserver/hw/xfree86/loader/extsym.c,v 1.4 2004/08/09 03:40:50 krh Exp $ */
 /* $XFree86: xc/programs/Xserver/hw/xfree86/loader/extsym.c,v 1.9 2003/10/15 16:29:03 dawes Exp $ */
 
 /*
@@ -66,7 +66,6 @@ LOOKUP extLookupTab[] = {
 #ifdef PANORAMIX
     SYMFUNC(XineramaRegisterConnectionBlockCallback)
     SYMFUNC(XineramaDeleteResource)
-    SYMVAR(noPanoramiXExtension)
     SYMVAR(PanoramiXNumScreens)
     SYMVAR(panoramiXdataPtr)
     SYMVAR(PanoramiXVisualTable)
