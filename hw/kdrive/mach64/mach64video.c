@@ -19,7 +19,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/mach64/mach64video.c,v 1.5 2001/06/23 03:41:24 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/mach64/mach64video.c,v 1.6 2001/07/24 19:06:03 keithp Exp $ */
 #include "mach64.h"
 
 #include "Xv.h"
@@ -148,8 +148,11 @@ mach64QueryBestSize(KdScreenInfo    *screen,
 static void
 mach64CopyPackedData(KdScreenInfo   *screen, 
 		     unsigned char  *buf,
+		     int	    rotate,
 		     int	    srcPitch,
 		     int	    dstPitch,
+		     int	    srcW,
+		     int	    srcH,
 		     int	    top,
 		     int	    left,
 		     int	    h,
@@ -162,18 +165,52 @@ mach64CopyPackedData(KdScreenInfo   *screen,
     Mach64CardInfo	*mach64c = (Mach64CardInfo *) card->driver;
     Mach64PortPrivPtr	pPortPriv = mach64s->pAdaptor->pPortPrivates[0].ptr;
     CARD8		*src, *dst;
+    int			srcDown, srcRight, srcNext;
+    int			p;
 
-    src = buf + (top*srcPitch) + (left<<1);
+    switch (rotate) {
+    case 0:
+	src = buf;
+	srcDown = srcPitch;
+	srcRight = 2;
+	break;
+    case 90:
+	src = src + (srcH - 1) * 2;
+	srcDown = -2;
+	srcRight = srcPitch;
+	break;
+    case 180:
+	src = src + srcPitch * (srcH - 1) + (srcW - 1) * 2;
+	srcDown = -srcPitch;
+	srcRight = -2;
+	break;
+    case 270:
+	src = src + srcPitch * (srcW - 1);
+	srcDown = 2;
+	srcRight = -srcPitch;
+	break;
+    }
+
+    src = src + top*srcDown + left*srcRight;
 
     if (pPortPriv->currentBuf == 0)
 	dst = (CARD8 *) mach64s->vesa.fb + pPortPriv->YBuf0Offset;
     else
 	dst = (CARD8 *) mach64s->vesa.fb + pPortPriv->YBuf1Offset;
 
-    w <<= 1;
+    w >>= 1;
+    srcRight >>= 1;
+    srcNext = srcRight >> 1;
     while(h--) 
     {
-	memcpy(dst, src, w);
+	CARD16	*s = (CARD16 *) src;
+	CARD32	*d = (CARD32 *) dst;
+	p = w;
+	while (p--)
+	{
+	    *d++ = s[0] | (s[srcNext] << 16);
+	    s += srcRight;
+	}
 	src += srcPitch;
 	dst += dstPitch;
     }
@@ -182,10 +219,13 @@ mach64CopyPackedData(KdScreenInfo   *screen,
 static void
 mach64CopyPlanarData(KdScreenInfo   *screen, 
 		     unsigned char  *buf,
+		     int	    rotate,
 		     int	    srcPitch,
 		     int	    srcPitch2,
 		     int	    dstPitch,  /* of chroma */
+		     int	    srcW,
 		     int	    srcH,
+		     int	    height,
 		     int	    top,
 		     int	    left,
 		     int	    h,
@@ -200,16 +240,56 @@ mach64CopyPlanarData(KdScreenInfo   *screen,
     Mach64PortPrivPtr	pPortPriv = mach64s->pAdaptor->pPortPrivates[0].ptr;
     int			i, j;
     CARD8		*src1, *src2, *src3, *dst1;
+    int			srcDown, srcDown2, srcRight, srcRight2, srcNext;
 
     /* compute source data pointers */
     src1 = buf;
-    src2 = src1 + srcH * srcPitch;
-    src3 = src2 + (srcH >> 1) * srcPitch2;
+    src2 = src1 + height * srcPitch;
+    src3 = src2 + (height >> 1) * srcPitch2;
+    switch (rotate) {
+    case 0:
+	srcDown = srcPitch;
+	srcDown2 = srcPitch2;
+	srcRight = 2;
+	srcRight2 = 1;
+	srcNext = 1;
+	break;
+    case 90:
+	src1 = src1 + srcH - 1;
+	src2 = src2 + (srcH >> 1) - 1;
+	src3 = src3 + (srcH >> 1) - 1;
+	srcDown = -1;
+	srcDown2 = -1;
+	srcRight = srcPitch * 2;
+	srcRight2 = srcPitch2;
+	srcNext = srcPitch;
+	break;
+    case 180:
+	src1 = src1 + srcPitch * (srcH - 1) + (srcW - 1);
+	src2 = src2 + srcPitch2 * ((srcH >> 1) - 1) + ((srcW >> 1) - 1);
+	src3 = src3 + srcPitch2 * ((srcH >> 1) - 1) + ((srcW >> 1) - 1);
+	srcDown = -srcPitch;
+	srcDown2 = -srcPitch2;
+	srcRight = -2;
+	srcRight2 = -1;
+	srcNext = -1;
+	break;
+    case 270:
+	src1 = src1 + srcPitch * (srcW - 1);
+	src2 = src2 + srcPitch2 * ((srcW >> 1) - 1);
+	src3 = src3 + srcPitch2 * ((srcW >> 1) - 1);
+	srcDown = 1;
+	srcDown2 = 1;
+	srcRight = -srcPitch * 2;
+	srcRight2 = -srcPitch2;
+	srcNext = -srcPitch;
+	break;
+    }
     
     /* adjust for origin */
-    src1 += top * srcPitch + left;
-    src2 += (top >> 1) * srcPitch2 + (left >> 1);
-    src3 += (top >> 1) * srcPitch2 + (left >> 1);
+    src1 += top * srcDown + left * srcNext;
+    src2 += (top >> 1) * srcDown2 + (left >> 1) * srcRight2;
+    src3 += (top >> 1) * srcDown2 + (left >> 1) * srcRight2;
     
     if (id == FOURCC_I420)
     {
@@ -227,23 +307,25 @@ mach64CopyPlanarData(KdScreenInfo   *screen,
     for (j = 0; j < h; j++) 
     {
 	CARD32	*dst = (CARD32 *) dst1;
-	CARD8	*s1 = src1;
+	CARD8	*s1l = src1;
+	CARD8	*s1r = src1 + srcNext;
 	CARD8	*s2 = src2;
 	CARD8	*s3 = src3;
 
 	for (i = 0; i < w; i++)
 	{
-	    *dst++ = s1[0] | (s1[1] << 16) | (s3[0] << 8) | (s2[0] << 24);
-	    s1 += 2;
-	    s2++;
-	    s3++;
+	    *dst++ = *s1l | (*s1r << 16) | (*s3 << 8) | (*s2 << 24);
+	    s1l += srcRight;
+	    s1r += srcRight;
+	    s2 += srcRight2;
+	    s3 += srcRight2;
 	}
-	src1 += srcPitch;
+	src1 += srcDown;
 	dst1 += dstPitch;
 	if (j & 1)
 	{
-	    src2 += srcPitch2;
-	    src3 += srcPitch2;
+	    src2 += srcDown2;
+	    src3 += srcDown2;
 	}
     }
 }
@@ -398,14 +480,15 @@ Mach64ClipVideo(BoxPtr dst,
 static void
 mach64DisplayVideo(KdScreenInfo *screen,
 		   int		id,
-		   short	width,
-		   short	height,
 		   int		dstPitch,  /* of chroma for 4:2:0 */
 		   int		x1,
 		   int		y1,
 		   int		x2,
 		   int		y2,
-		   BoxPtr	dstBox,
+		   int		dst_x1,
+		   int		dst_y1,
+		   int		dst_x2,
+		   int		dst_y2,
 		   short	src_w,
 		   short	src_h,
 		   short	drw_w, 
@@ -422,6 +505,7 @@ mach64DisplayVideo(KdScreenInfo *screen,
     int			xscaleInt, xscaleFract, yscaleInt, yscaleFract;
     int			xscaleIntUV = 0, xscaleFractUV = 0;
     int			yscaleIntUV = 0, yscaleFractUV = 0;
+    int			rotate = mach64s->vesa.rotate;
     int			HORZ_INC, VERT_INC;
     CARD32		SCALER_IN;
     CARD32		OVERLAY_SCALE_CNTL;
@@ -489,9 +573,9 @@ mach64DisplayVideo(KdScreenInfo *screen,
     mach64WaitAvail (reg, 13);
 
     /* lock registers to prevent non-atomic update */
-    media->OVERLAY_Y_X_START = 0x80000000 | MACH64_YX (dstBox->x1, dstBox->y1);
+    media->OVERLAY_Y_X_START = 0x80000000 | MACH64_YX (dst_x1, dst_y1);
     /* ending screen coordinate */
-    media->OVERLAY_Y_X_END = 0x80000000 | MACH64_YX (dstBox->x2, dstBox->y2);
+    media->OVERLAY_Y_X_END = 0x80000000 | MACH64_YX (dst_x2, dst_y2);
     
     media->OVERLAY_SCALE_INC = MACH64_YX(HORZ_INC, VERT_INC);
 
@@ -510,7 +594,7 @@ mach64DisplayVideo(KdScreenInfo *screen,
     media->CAPTURE_CONFIG = pPortPriv->currentBuf << 28;
 
     /* set XY location and unlock */
-    media->OVERLAY_Y_X_START = MACH64_YX (dstBox->x1, dstBox->y1);
+    media->OVERLAY_Y_X_START = MACH64_YX (dst_x1, dst_y1);
 }
 
 static int
@@ -523,7 +607,7 @@ mach64PutImage(KdScreenInfo	    *screen,
 	       short		    src_h,
 	       short		    drw_w,
 	       short		    drw_h,
-	       int		    id,
+	       int		     id,
 	       unsigned char	    *buf,
 	       short		    width,
 	       short		    height,
@@ -538,9 +622,14 @@ mach64PutImage(KdScreenInfo	    *screen,
     Reg			*reg = mach64c->reg;
     MediaReg		*media = mach64c->media_reg;
     INT32		x1, x2, y1, y2;
+    int			rotate = mach64s->vesa.rotate;
     int			srcPitch, srcPitch2, dstPitch;
     int			top, left, npixels, nlines, size;
     BoxRec		dstBox;
+    int			dst_width = width, dst_height = height;
+    int			rot_x1, rot_y1, rot_x2, rot_y2;
+    int			dst_x1, dst_y1, dst_x2, dst_y2;
+    int			rot_src_w, rot_src_h, rot_drw_w, rot_drw_h;
 
     /* Clip */
     x1 = src_x;
@@ -562,20 +651,85 @@ mach64PutImage(KdScreenInfo	    *screen,
     if (!media)
 	return BadAlloc;
 
+    switch (rotate) {
+    case 0:
+    case 180:
+	dst_width = width;
+	dst_height = height;
+	rot_src_w = src_w;
+	rot_src_h = src_h;
+	rot_drw_w = drw_w;
+	rot_drw_h = drw_h;
+	break;
+    case 90:
+    case 270:
+	dst_width = height;
+	dst_height = width;
+	rot_src_w = src_h;
+	rot_src_h = src_w;
+	rot_drw_w = drw_h;
+	rot_drw_h = drw_w;
+	break;
+    }
+	
+    switch (rotate) {
+    case 0:
+	dst_x1 = dstBox.x1;
+	dst_y1 = dstBox.y1;
+	dst_x2 = dstBox.x2;
+	dst_y2 = dstBox.y2;
+	rot_x1 = x1;
+	rot_y1 = y1;
+	rot_x2 = x2;
+	rot_y2 = y2;
+	break;
+    case 90:
+	dst_x1 = dstBox.y1;
+	dst_y1 = screen->height - dstBox.x2;
+	dst_x2 = dstBox.y2;
+	dst_y2 = screen->height - dstBox.x1;
+	
+	rot_x1 = y1;
+	rot_y1 = (src_w << 16) - x2;
+	rot_x2 = y2;
+	rot_y2 = (src_w << 16) - x1;
+	break;
+    case 180:
+	dst_x1 = screen->width - dstBox.x2;
+	dst_y1 = screen->height - dstBox.y2;
+	dst_x2 = screen->width - dstBox.x1;
+	dst_y2 = screen->height - dstBox.y1;
+	rot_x1 = (src_w << 16) - x2;
+	rot_y1 = (src_h << 16) - y2;
+	rot_x2 = (src_w << 16) - x1;
+	rot_y2 = (src_h << 16) - y1;
+	break;
+    case 270:
+	dst_x1 = screen->width - dstBox.y2;
+	dst_y1 = dstBox.x1;
+	dst_x2 = screen->width - dstBox.y1;
+	dst_y2 = dstBox.x2;
+	rot_x1 = (src_h << 16) - y2;
+	rot_y1 = x1;
+	rot_x2 = (src_h << 16) - y1;
+	rot_y2 = x2;
+	break;
+    }
+
     switch(id) {
     case FOURCC_YV12:
     case FOURCC_I420:
-	dstPitch = ((width << 1) + 15) & ~15;
+	dstPitch = ((dst_width << 1) + 15) & ~15;
 	srcPitch = (width + 3) & ~3;
 	srcPitch2 = ((width >> 1) + 3) & ~3;
-	size =  dstPitch * (int) height;
+	size =  dstPitch * (int) dst_height;
 	break;
     case FOURCC_UYVY:
     case FOURCC_YUY2:
     default:
-	dstPitch = ((width << 1) + 15) & ~15;
-	size = dstPitch * (int) height;
+	dstPitch = ((dst_width << 1) + 15) & ~15;
 	srcPitch = (width << 1);
+	size = dstPitch * (int) dst_height;
 	break;
     }  
 
@@ -601,29 +755,37 @@ mach64PutImage(KdScreenInfo	    *screen,
     pPortPriv->currentBuf = 1 - pPortPriv->currentBuf;
     
     /* copy data */
-    top = y1 >> 16;
-    left = (x1 >> 16) & ~1;
-    npixels = ((((x2 + 0xffff) >> 16) + 1) & ~1) - left;
+    top = rot_y1 >> 16;
+    left = (rot_x1 >> 16) & ~1;
+    npixels = ((((rot_x2 + 0xffff) >> 16) + 1) & ~1) - left;
 
     switch(id) {
     case FOURCC_YV12:
     case FOURCC_I420:
 	top &= ~1;
-	nlines = ((((y2 + 0xffff) >> 16) + 1) & ~1) - top;
-	mach64CopyPlanarData(screen, buf, srcPitch, srcPitch2, dstPitch,  height, top, left, 
-			   nlines, npixels, id);
+	nlines = ((((rot_y2 + 0xffff) >> 16) + 1) & ~1) - top;
+	mach64CopyPlanarData(screen, buf, rotate,
+			     srcPitch, srcPitch2, dstPitch,  
+			     rot_src_w, rot_src_h, height,
+			     top, left, nlines, npixels, id);
 	break;
     case FOURCC_UYVY:
     case FOURCC_YUY2:
     default:
-	nlines = ((y2 + 0xffff) >> 16) - top;
-	mach64CopyPackedData(screen, buf, srcPitch, dstPitch, top, left, nlines, 
-			   npixels);
+	nlines = ((rot_y2 + 0xffff) >> 16) - top;
+	mach64CopyPackedData(screen, buf, rotate,
+			     srcPitch, dstPitch,
+			     rot_src_w, rot_src_h,
+			     top, left, nlines, 
+			     npixels);
 	break;
     }
 
-    mach64DisplayVideo(screen, id, width, height, dstPitch, 
-		       x1, y1, x2, y2, &dstBox, src_w, src_h, drw_w, drw_h);
+    mach64DisplayVideo(screen, id, dstPitch, 
+		       rot_x1, rot_y1, rot_x2, rot_y2, 
+		       dst_x1, dst_y1,
+		       dst_x2, dst_y2,
+		       rot_src_w, rot_src_h, rot_drw_w, rot_drw_h);
 
     /* update cliplist */
     if (!RegionsEqual (&pPortPriv->clip, clipBoxes))

@@ -35,7 +35,7 @@ of the copyright holder.
 
 */
 
-/* $XFree86: xc/programs/Xserver/hw/kdrive/kxv.c,v 1.1 2001/03/30 02:18:41 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/kxv.c,v 1.2 2001/07/20 19:35:29 keithp Exp $ */
 
 #include "kdrive.h"
 
@@ -1654,8 +1654,8 @@ KdXVPutImage(
 
      VPBox.x1 = 0;
      VPBox.y1 = 0;
-     VPBox.x2 = screen->width;
-     VPBox.y2 = screen->height;
+     VPBox.x2 = pScreen->width;
+     VPBox.y2 = pScreen->height;
 
      REGION_INIT(pScreen, &VPReg, &VPBox, 1);
      REGION_INTERSECT(Screen, &ClipRegion, &ClipRegion, &VPReg); 
