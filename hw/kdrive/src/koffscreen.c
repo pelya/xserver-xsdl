@@ -76,6 +76,7 @@ KdOffscreenAlloc (ScreenPtr pScreen, int size, int align,
 	    {
 		area->area.screen = pScreen;
 		area->area.privData = privData;
+		area->area.swappedOut = FALSE;		
 		area->locked = locked;
 		area->moveIn = moveIn;
 		area->moveOut = moveOut;
@@ -88,6 +89,10 @@ KdOffscreenAlloc (ScreenPtr pScreen, int size, int align,
 	    new_area->area.offset = area->area.offset + area->area.size - real_size;
 	    new_area->area.size = real_size;
 	    new_area->area.screen = pScreen;
+	    new_area->area.swappedOut = FALSE;
+	    new_area->locked = locked;
+	    new_area->moveIn = moveIn;
+	    new_area->moveOut = moveOut;
 	    
 	    area->area.size -= real_size;
 
@@ -116,7 +121,10 @@ KdOffscreenSwapOut (ScreenPtr pScreen)
 
     while (area)
     {
-	(*area->moveOut) ((KdOffscreenArea *)area);
+	fprintf (stderr, "area is: %p\n", area);
+	
+	if (area->area.screen && area->moveOut)
+	    (*area->moveOut) ((KdOffscreenArea *)area);
 
 	area->area.swappedOut = TRUE;
 
@@ -132,9 +140,10 @@ KdOffscreenSwapIn (ScreenPtr pScreen)
 
     while (area)
     {
-	(*area->moveOut) ((KdOffscreenArea *)area);
+	if (area->area.screen && area->moveIn)
+	    (*area->moveIn) ((KdOffscreenArea *)area);
 
-	area->area.swappedOut = TRUE;
+	area->area.swappedOut = FALSE;
 	area = area->next;
     }    
 }
@@ -189,6 +198,7 @@ KdOffscreenInit (ScreenPtr pScreen)
     area->area.screen = NULL;
     area->area.offset = pScreenPriv->screen->off_screen_base;
     area->area.size = pScreenPriv->screen->off_screen_size;
+    area->area.swappedOut = FALSE;
     area->next = NULL;
     area->prev = NULL;
     
