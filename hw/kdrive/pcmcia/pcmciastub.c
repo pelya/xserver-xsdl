@@ -50,6 +50,12 @@ InitInput (int argc, char **argv)
 
 extern pcmciaDisplayModeRec pcmciaDefaultModes[];
 
+void
+ddxUseMsg (void)
+{
+    KdUseMsg();
+}
+
 int
 ddxProcessArgument (int argc, char **argv, int i)
 {

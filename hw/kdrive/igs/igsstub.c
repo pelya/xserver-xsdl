@@ -59,6 +59,12 @@ InitInput (int argc, char **argv)
     KdInitInput (&LinuxMouseFuncs, &LinuxKeyboardFuncs);
 }
 
+void
+ddxUseMsg (void)
+{
+    KdUseMsg ();
+}
+
 int
 ddxProcessArgument (int argc, char **argv, int i)
 {

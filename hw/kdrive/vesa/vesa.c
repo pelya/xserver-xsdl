@@ -1734,6 +1734,23 @@ vesaGetColors (ScreenPtr pScreen, int fb, int n, xColorItem *pdefs)
     }
 }
 
+void
+vesaUseMsg (void)
+{
+    ErrorF("\nTinyX VESA Usage:\n");
+    ErrorF("-mode         VESA video mode to use (Be careful!)\n");
+    ErrorF("-listmodes    List supported video modes\n");
+    ErrorF("-force        Attempt even unsupported modes\n");
+    ErrorF("-shadow       Always use shadow framebuffer (May increase performance)\n");
+    ErrorF("-nolinear     Never use linear framebuffer (Not useful)\n");
+    ErrorF("-swaprgb      Use if colors are wrong in PseudoColor and 16 color modes\n");
+    ErrorF("-map-holes    Use contiguous memory map (For seg fault with rare BIOS)\n");
+    ErrorF("-verbose      Emit diagnostic messages during BIOS initialization\n");
+    ErrorF("-force-text   Always use standard 25x80 text mode on server exit or VT switch\n");
+    /* XXX: usage for -vesatest, -no-map-holes (don't need?),
+     * XXX: and -trash-font. Also in man page. */
+}
+
 int
 vesaProcessArgument (int argc, char **argv, int i)
 {

@@ -47,6 +47,7 @@
 #define subDisable vesaDisable
 #define SubCardPrivRec	VesaCardPrivRec
 #define SubScreenPrivRec    VesaScreenPrivRec
+#define subUseMsg() vesaUseMsg()
 #define subProcessArgument(c,v,i) vesaProcessArgument(c,v,i)
 #else
 #include <fbdev.h>
@@ -67,6 +68,7 @@
 #define subDisable fbdevDisable
 #define SubCardPrivRec	FbdevPriv
 #define SubScreenPrivRec    FbdevScrPriv
+#define subUseMsg()
 #define subProcessArgument(c,v,i) 0
 #endif
 

@@ -275,6 +275,9 @@ vesaPutColors (ScreenPtr pScreen, int fb, int n, xColorItem *pdefs);
 void
 vesaGetColors (ScreenPtr pScreen, int fb, int n, xColorItem *pdefs);
 
+void
+vesaUseMsg (void);
+
 int
 vesaProcessArgument (int argc, char **argv, int i);
 

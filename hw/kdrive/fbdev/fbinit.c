@@ -51,6 +51,12 @@ InitInput (int argc, char **argv)
 #endif
 }
 
+void
+ddxUseMsg (void)
+{
+    KdUseMsg();
+}
+
 int
 ddxProcessArgument (int argc, char **argv, int i)
 {

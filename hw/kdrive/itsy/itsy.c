@@ -314,6 +314,12 @@ OsVendorInit (void)
     KdOsInit (&ItsyOsFuncs);
 }
 
+void
+ddxUseMsg (void)
+{
+    KdUseMsg();
+}
+
 int
 ddxProcessArgument (int argc, char **argv, int i)
 {

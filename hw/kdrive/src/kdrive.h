@@ -578,6 +578,9 @@ KdParseMouse (char *arg);
 void
 KdParseRgba (char *rgba);
 
+void
+KdUseMsg (void);
+
 int
 KdProcessArgument (int argc, char **argv, int i);
 

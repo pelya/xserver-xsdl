@@ -52,6 +52,20 @@ InitInput (int argc, char **argv)
     KdInitInput (&LinuxMouseFuncs, &LinuxKeyboardFuncs);
 }
 
+void
+ddxUseMsg (void)
+{
+#if 0
+    ErrorF("\nTrident Driver Options:\n");
+    ErrorF("-clk    XXX: what's this?\n");
+    ErrorF("-mclk  XXX: what's this?\n");
+#endif
+    KdUseMsg();
+#ifdef VESA
+    vesaUseMsg()
+#endif
+}
+
 int
 ddxProcessArgument (int argc, char **argv, int i)
 {

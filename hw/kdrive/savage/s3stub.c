@@ -71,6 +71,16 @@ InitInput (int argc, char **argv)
 extern int	s3CpuTimeout;
 extern int	s3AccelTimeout;
 
+void
+ddxUseMsg (void)
+{
+    ErrorF("\nSavage Driver Options:\n");
+    ErrorF("-cpu    Sets CPU timout\n");
+    ErrorF("-accel  Sets acceleration timout\n");
+
+    KdUseMsg();
+}
+
 int
 ddxProcessArgument (int argc, char **argv, int i)
 {

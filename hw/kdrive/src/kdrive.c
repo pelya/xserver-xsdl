@@ -354,26 +354,6 @@ AbortDDX(void)
 }
 
 void
-ddxUseMsg()
-{
-  ErrorF("\nTinyX Device Dependent Usage:\n");
-  ErrorF("-card pcmcia	Use PCMCIA card as additional screen\n");
-  ErrorF("-screen WIDTH[/WIDTHMM]xHEIGHT[/HEIGHTMM][@ROTATION][X][Y][xDEPTH/BPP{,DEPTH/BPP}[xFREQ]]	Specify screen characteristics\n");
-  ErrorF("-zaphod		Disable cursor screen switching\n");
-  ErrorF("-2button	Emulate 3 button mouse\n");
-  ErrorF("-3button	Disable 3 button mouse emulation\n");
-  ErrorF("-rawcoord	Don't transform pointer coordinates on rotation\n");
-  ErrorF("-dumb 		Disable hardware acceleration\n");
-  ErrorF("-softCursor	Force software cursor\n");
-  ErrorF("-videoTest	Start the server, pause momentarily and exit\n");
-  ErrorF("-origin X,Y	Locates the next screen in the the virtual screen (Xinerama)\n");
-  ErrorF("-mouse path[,n]	Filename of mouse device, n is number of buttons\n");
-  ErrorF("-switchCmd	Command to execute on vt switch\n");
-  ErrorF("vtxx		Use virtual terminal xx instead of the next available\n");
-  ErrorF("\n");
-}
-
-void
 ddxGiveUp ()
 {
     AbortDDX ();
@@ -669,6 +649,29 @@ KdParseRgba (char *rgba)
 	kdSubpixelOrder = SubPixelNone;
     else
 	kdSubpixelOrder = SubPixelUnknown;
+}
+
+void
+KdUseMsg (void)
+{
+    ErrorF("\nTinyX Device Dependent Usage:\n");
+    ErrorF("-card pcmcia     Use PCMCIA card as additional screen\n");
+    ErrorF("-screen WIDTH[/WIDTHMM]xHEIGHT[/HEIGHTMM][@ROTATION][X][Y][xDEPTH/BPP{,DEPTH/BPP}[xFREQ]]  Specify screen characteristics\n");
+    ErrorF("-zaphod          Disable cursor screen switching\n");
+    ErrorF("-2button         Emulate 3 button mouse\n");
+    ErrorF("-3button         Disable 3 button mouse emulation\n");
+    ErrorF("-rawcoord        Don't transform pointer coordinates on rotation\n");
+    ErrorF("-dumb            Disable hardware acceleration\n");
+    ErrorF("-softCursor      Force software cursor\n");
+    ErrorF("-videoTest       Start the server, pause momentarily and exit\n");
+    ErrorF("-origin X,Y      Locates the next screen in the the virtual screen (Xinerama)\n");
+    ErrorF("-mouse path[,n]  Filename of mouse device, n is number of buttons\n");
+    ErrorF("-switchCmd       Command to execute on vt switch\n");
+    ErrorF("vtxx             Use virtual terminal xx instead of the next available\n");
+    /* XXX: what does -rgba do? */
+#ifdef PSEUDO8
+    p8UseMsg ();
+#endif
 }
 
 int

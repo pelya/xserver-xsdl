@@ -67,6 +67,10 @@ violation with some rare BIOSes that violate the VESA specification,
 but may cause slightly higher memory usage on systems that overcommit
 memory.
 .TP 8
+.B -force-text
+ignore saved video mode and switch back to regular 25x80 text mode
+on server exit or VT switch.
+.TP 8
 .B -verbose
 emit diagnostic messages during BIOS initialization and teardown.
 .SH KEYBOARD
