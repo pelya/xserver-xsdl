@@ -695,6 +695,9 @@ ATIDrawInit(ScreenPtr pScreen)
 	ErrorF("Screen: %d/%d depth/bpp\n", pScreenPriv->screen->fb[0].depth,
 	    pScreenPriv->screen->fb[0].bitsPerPixel);
 
+	RegisterBlockAndWakeupHandlers(ATIBlockHandler, ATIWakeupHandler,
+	    pScreen);
+
 #ifdef USE_DRI
 	atis->using_dri = ATIDRIScreenInit(pScreen);
 #endif /* USE_DRI */
@@ -799,9 +802,6 @@ ATIDrawEnable(ScreenPtr pScreen)
 		atis->kaa.UploadToScratch = ATIUploadToScratch;
 	} else
 		atis->kaa.UploadToScratch = NULL;
-
-	RegisterBlockAndWakeupHandlers (ATIBlockHandler, ATIWakeupHandler,
-				       pScreen);
 
 	KdMarkSync(pScreen);
 }
