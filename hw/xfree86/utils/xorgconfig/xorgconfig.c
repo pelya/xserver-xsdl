@@ -94,7 +94,7 @@
  *  Chisato Yamauchi(cyamauch@phyas.aichi-edu.ac.jp)
  */
 /* $XConsortium: xf86config.c /main/21 1996/10/28 05:43:57 kaleb $ */
-/* $XdotOrg: xc/programs/Xserver/hw/xfree86/xf86config/xorgconfig.c,v 1.4 2004/07/28 03:57:19 alanc Exp $ */
+/* $XdotOrg: xc/programs/Xserver/hw/xfree86/xf86config/xorgconfig.c,v 1.5 2004/08/11 20:25:13 krh Exp $ */
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -1886,7 +1886,7 @@ static char *XF86Config_firstchunk_text =
 "# THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\n"
 "# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\n"
 "# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL\n"
-"# THE XFREE86 PROJECT BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,\n"
+"# "XVENDORNAME" BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,\n"
 "# WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF\n"
 "# OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\n"
 "# SOFTWARE.\n"
@@ -1919,9 +1919,17 @@ static char *XF86Config_firstchunk_text =
 "      Option    \"omit xfree86-dga\"   # don't initialise the DGA extension\n"
 "    EndSubSection\n"
 "\n"
-"# This loads the Type1 and FreeType font modules\n"
+"# This loads the font modules\n"
+#ifdef HAS_TYPE1
 "    Load        \"type1\"\n"
+#else
+"#    Load        \"type1\"\n"
+#endif
+#ifdef HAS_SPEEDO
 "    Load        \"speedo\"\n"
+#else
+"#    Load        \"speedo\"\n"
+#endif
 "    Load        \"freetype\"\n"
 "#    Load        \"xtt\"\n"
 "\n"

@@ -1,3 +1,4 @@
+/* $XdotOrg: $ */
 /* $XConsortium: cards.c /main/9 1996/10/19 18:15:32 kaleb $ */
 
 
@@ -15,6 +16,19 @@
 #include <string.h>
 
 #include "cards.h"
+
+/* Some vars to make path names in texts more flexible. */
+#ifndef PROJECTROOT
+# define PROJECTROOT		"/usr/X11R6"
+#endif
+#define TREEROOT		PROJECTROOT
+#define TREEROOTLX		TREEROOT "/lib/X11"
+#define TREEROOTCFG		TREEROOT "/etc/X11"
+#ifdef XDOCDIR
+# define TREEROOTDOC		XDOCDIR
+#else
+# define TREEROOTDOC		TREEROOTLX "/doc"
+#endif
 
 /*
  * Database format:
@@ -92,12 +106,12 @@ static char *s3_comment =
 "# (this avoids the linear framebuffer probe). If that fails try\n"
 "# option \"nomemaccess\".\n"
 "#\n"
-"# Refer to /usr/X11R6/lib/doc/README.S3, and the XF86_S3 man page.\n";
+"# Refer to " TREEROOTDOC "/README.S3, and the XF86_S3 man page.\n";
 
 static char *cirrus_comment =
 "# Use Option \"no_bitblt\" if you have graphics problems. If that fails\n"
 "# try Option \"noaccel\".\n"
-"# Refer to /usr/X11R6/lib/doc/README.cirrus.\n"
+"# Refer to " TREEROOTDOC "/README.cirrus.\n"
 "# To allow linear addressing, uncomment the Option line and the\n"
 "# address that the card maps the framebuffer to.\n";
 
