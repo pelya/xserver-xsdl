@@ -96,6 +96,8 @@ int DoCreateContext(__GLXclientState *cl, GLXContextID gcId,
     __GLXscreenInfo *pGlxScreen;
     __GLinterface *shareGC;
     GLint i;
+
+    LEGAL_NEW_RESOURCE(gcId, client);
     
     /*
     ** Check if screen exists.
@@ -1129,6 +1131,8 @@ int DoCreateGLXPixmap(__GLXclientState *cl, VisualID visual,
     __GLcontextModes *modes;
     int i;
 
+    LEGAL_NEW_RESOURCE(glxpixmapId, client);
+    
     pDraw = (DrawablePtr) LookupDrawable(pixmapId, client);
     if (!pDraw || pDraw->type != DRAWABLE_PIXMAP) {
 	client->errorValue = pixmapId;
