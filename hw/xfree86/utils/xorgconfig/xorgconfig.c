@@ -94,7 +94,7 @@
  *  Chisato Yamauchi(cyamauch@phyas.aichi-edu.ac.jp)
  */
 /* $XConsortium: xf86config.c /main/21 1996/10/28 05:43:57 kaleb $ */
-/* $XdotOrg: xc/programs/Xserver/hw/xfree86/xf86config/xorgconfig.c,v 1.6 2004/08/13 23:57:38 alanc Exp $ */
+/* $XdotOrg: xc/programs/Xserver/hw/xfree86/xf86config/xorgconfig.c,v 1.7 2004/10/05 17:28:15 alanc Exp $ */
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -2002,18 +2002,18 @@ static char *XF86Config_fontpathchunk_text =
 "\n"
 "#    Option \"NoTrapSignals\"\n"
 "\n"
-"# Uncomment this to disable the <Crtl><Alt><Fn> VT switch sequence\n"
+"# Uncomment this to disable the <Ctrl><Alt><Fn> VT switch sequence\n"
 "# (where n is 1 through 12).  This allows clients to receive these key\n"
 "# events.\n"
 "\n"
 "#    Option \"DontVTSwitch\"\n"
 "\n"
-"# Uncomment this to disable the <Crtl><Alt><BS> server abort sequence\n"
+"# Uncomment this to disable the <Ctrl><Alt><BS> server abort sequence\n"
 "# This allows clients to receive this key event.\n"
 "\n"
 "#    Option \"DontZap\"\n"
 "\n"
-"# Uncomment this to disable the <Crtl><Alt><KP_+>/<KP_-> mode switching\n"
+"# Uncomment this to disable the <Ctrl><Alt><KP_+>/<KP_-> mode switching\n"
 "# sequences.  This allows clients to receive these key events.\n"
 "\n"
 "#    Option \"Dont Zoom\"\n"
