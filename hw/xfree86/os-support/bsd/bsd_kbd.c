@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/bsd/bsd_kbd.c,v 1.6 2003/06/30 16:52:57 eich Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/bsd/bsd_kbd.c,v 1.8 2003/11/04 03:16:58 tsi Exp $ */
 
 /*
  * Copyright (c) 2002 by The XFree86 Project, Inc.
@@ -33,7 +33,7 @@ static KbdProtocolRec protocols[] = {
 #ifdef WSCONS_SUPPORT
    {"wskbd", PROT_WSCONS },
 #endif
-   { NULL, PROT_UNKNOWN }
+   { NULL, PROT_UNKNOWN_KBD }
 };
 
 typedef struct {
@@ -143,7 +143,7 @@ static int
 KbdOn(InputInfoPtr pInfo, int what)
 {
     KbdDevPtr pKbd = (KbdDevPtr) pInfo->private;
-#if defined(SYSCONS_SUPPORT) || defined(PCCONS_SUPPORT) || defined(PCVT_SUPPORT)
+#if defined(SYSCONS_SUPPORT) || defined(PCCONS_SUPPORT) || defined(PCVT_SUPPORT) || defined(WSCONS_SUPPORT)
     BsdKbdPrivPtr priv = (BsdKbdPrivPtr) pKbd->private;
     struct termios nTty;
 #endif
@@ -154,7 +154,7 @@ KbdOn(InputInfoPtr pInfo, int what)
     if (pKbd->isConsole) {
         switch (pKbd->consType) {
 
-#if defined(SYSCONS_SUPPORT) || defined(PCCONS_SUPPORT) || defined(PCVT_SUPPORT)
+#if defined(SYSCONS_SUPPORT) || defined(PCCONS_SUPPORT) || defined(PCVT_SUPPORT) || defined(WSCONS_SUPPORT)
 	    case SYSCONS:
 	    case PCCONS:
 	    case PCVT:
@@ -170,7 +170,10 @@ KbdOn(InputInfoPtr pInfo, int what)
 		 nTty.c_cc[VMIN] = 1;
 		 cfsetispeed(&nTty, 9600);
 		 cfsetospeed(&nTty, 9600);
-		 tcsetattr(pInfo->fd, TCSANOW, &nTty);
+		 if (tcsetattr(pInfo->fd, TCSANOW, &nTty) < 0) {
+			 xf86Msg(X_ERROR, "KbdOn: tcsetattr: %s\n",
+			     strerror(errno));
+		 }
                  break; 
 #endif 
         }
@@ -197,7 +200,7 @@ KbdOn(InputInfoPtr pInfo, int what)
 				    "or use for example:\n\n"
 				    "Option \"Protocol\" \"wskbd\"\n"
 				    "Option \"Device\" \"/dev/wskbd0\"\n"
-				    "\nin your XF86Config(5) file\n");
+				    "\nin your xorg.conf(5) file\n");
 		 }
 		 break;
 #endif
@@ -232,7 +235,7 @@ KbdOff(InputInfoPtr pInfo, int what)
             case WSCONS:
                  option = WSKBD_TRANSLATED;
                  ioctl(xf86Info.consoleFd, WSKBDIO_SETMODE, &option);
-                 tcsetattr(xf86Info.consoleFd, TCSANOW, &(priv->kbdtty));
+                 tcsetattr(pInfo->fd, TCSANOW, &(priv->kbdtty));
 	         break;
 #endif
         }
@@ -380,22 +383,30 @@ stdReadInput(InputInfoPtr pInfo)
 }
 
 #ifdef WSCONS_SUPPORT
+
 static void
 WSReadInput(InputInfoPtr pInfo)
 {
     KbdDevPtr pKbd = (KbdDevPtr) pInfo->private;
     struct wscons_event events[64];
-    int n, i;
+    int type;
+    int blocked, n, i;
+
     if ((n = read( pInfo->fd, events, sizeof(events))) > 0) {
         n /=  sizeof(struct wscons_event);
-        for (i = 0; i < n; i++)
-           pKbd->PostEvent(pInfo, events[i].value,
-	             events[i].type == WSCONS_EVENT_KEY_DOWN ? TRUE : FALSE);
-	}
+        for (i = 0; i < n; i++) {
+	    type = events[i].type;
+	    if (type == WSCONS_EVENT_KEY_UP || type == WSCONS_EVENT_KEY_DOWN) {
+		/* It seems better to block SIGIO there */
+		blocked = xf86BlockSIGIO();
+		pKbd->PostEvent(pInfo, (unsigned int)(events[i].value),
+				type == WSCONS_EVENT_KEY_DOWN ? TRUE : FALSE);
+		xf86UnblockSIGIO(blocked);
+	    }
+	} /* for */
+    }
 }
-#endif
 
-#ifdef WSCONS_SUPPORT
 static void
 printWsType(char *type, char *devname)
 {
@@ -408,7 +419,7 @@ OpenKeyboard(InputInfoPtr pInfo)
 {
     KbdDevPtr pKbd = (KbdDevPtr) pInfo->private;
     int i;
-    KbdProtocolId prot = PROT_UNKNOWN;
+    KbdProtocolId prot = PROT_UNKNOWN_KBD;
     char *s;
 
     s = xf86SetStrOption(pInfo->options, "Protocol", NULL);
@@ -448,15 +459,14 @@ OpenKeyboard(InputInfoPtr pInfo)
            pKbd->consType = xf86Info.consType;
        }
     } else {
-       pInfo->fd = open(s, O_RDONLY | O_NONBLOCK | O_EXCL);
+	pInfo->fd = open(s, O_RDONLY | O_NONBLOCK | O_EXCL);
        if (pInfo->fd == -1) {
            xf86Msg(X_ERROR, "%s: cannot open \"%s\"\n", pInfo->name, s);
            xfree(s);
            return FALSE;
        }
        pKbd->isConsole = FALSE;
-       /* XXX What is consType here? */
-       pKbd->consType = SYSCONS;
+       pKbd->consType = xf86Info.consType;
        xfree(s);
     }
 
@@ -495,9 +505,14 @@ OpenKeyboard(InputInfoPtr pInfo)
                printWsType("Sun", pInfo->name);
                break;
 #endif
+#ifdef WSKBD_TYPE_SUN5
+     case WSKBD_TYPE_SUN5:
+	     xf86Msg(X_PROBED, "Keyboard type: Sun5\n");
+	     break;
+#endif
            default:
                xf86Msg(X_ERROR, "%s: Unsupported wskbd type \"%d\"",
-                                pKbd->wsKbdType, pInfo->name);
+                                pInfo->name, pKbd->wsKbdType);
                close(pInfo->fd);
                return FALSE;
        }
@@ -535,4 +550,3 @@ xf86OSKbdPreInit(InputInfoPtr pInfo)
     }
     return TRUE;
 }
-

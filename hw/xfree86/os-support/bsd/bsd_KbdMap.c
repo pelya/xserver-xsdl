@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/bsd/bsd_KbdMap.c,v 1.1 2002/10/11 01:40:34 dawes Exp $ */
+/* $XFree86$ */
 
 /*
  * Slightly modified xf86KbdBSD.c which is
@@ -677,11 +677,11 @@ TransMapRec wsAdb = {
 };
 
 static CARD8 wsSunMap[] = {
-	/* 0x00 */ KEY_NOTUSED,
-	/* 0x01 */ KEY_NOTUSED,		/* stop */
-	/* 0x02 */ KEY_NOTUSED,		/* BrightnessDown / S-VolumeDown */
-	/* 0x03 */ KEY_NOTUSED,		/* again */
-	/* 0x04 */ KEY_NOTUSED,		/* BridgtnessUp / S-VolumeUp */
+	/* 0x00 */ KEY_Help,
+	/* 0x01 */ KEY_L1,		/* stop */
+	/* 0x02 */ KEY_AudioLower,	/* BrightnessDown / S-VolumeDown */
+	/* 0x03 */ KEY_L2,		/* again */
+	/* 0x04 */ KEY_AudioRaise,	/* BridgtnessUp / S-VolumeUp */
 	/* 0x05 */ KEY_F1,
 	/* 0x06 */ KEY_F2,
 	/* 0x07 */ KEY_F10,
@@ -700,10 +700,10 @@ static CARD8 wsSunMap[] = {
 	/* 0x14 */ KEY_Up,
 	/* 0x15 */ KEY_Pause,
 	/* 0x16 */ KEY_Print,
-	/* 0x17 */ KEY_NOTUSED,		/* props */
+	/* 0x17 */ KEY_ScrollLock,
 	/* 0x18 */ KEY_Left,
-	/* 0x19 */ KEY_ScrollLock,
-	/* 0x1a */ KEY_NOTUSED,		/* undo */
+	/* 0x19 */ KEY_L3,		/* props */
+	/* 0x1a */ KEY_L4,		/* undo */
 	/* 0x1b */ KEY_Down,
 	/* 0x1c */ KEY_Right,
 	/* 0x1d */ KEY_Escape,
@@ -722,13 +722,13 @@ static CARD8 wsSunMap[] = {
 	/* 0x2a */ KEY_Tilde,
 	/* 0x2b */ KEY_BackSpace,
 	/* 0x2c */ KEY_Insert,
-	/* 0x2d */ KEY_KP_Equal,
+	/* 0x2d */ KEY_Mute,		/* Audio Mute */
 	/* 0x2e */ KEY_KP_Divide,
 	/* 0x2f */ KEY_KP_Multiply,
 	/* 0x30 */ KEY_NOTUSED,
-	/* 0x31 */ KEY_NOTUSED,		/* front */
+	/* 0x31 */ KEY_L5,		/* front */
 	/* 0x32 */ KEY_KP_Decimal,
-	/* 0x33 */ KEY_NOTUSED,		/* copy */
+	/* 0x33 */ KEY_L6,		/* copy */
 	/* 0x34 */ KEY_Home,
 	/* 0x35 */ KEY_Tab,
 	/* 0x36 */ KEY_Q,
@@ -744,13 +744,13 @@ static CARD8 wsSunMap[] = {
 	/* 0x40 */ KEY_LBrace,
 	/* 0x41 */ KEY_RBrace,
 	/* 0x42 */ KEY_Delete,
-	/* 0x43 */ KEY_NOTUSED,		/* compose */
+	/* 0x43 */ KEY_Menu,		/* compose */
 	/* 0x44 */ KEY_KP_7,
 	/* 0x45 */ KEY_KP_8,
 	/* 0x46 */ KEY_KP_9,
 	/* 0x47 */ KEY_KP_Minus,
-	/* 0x48 */ KEY_NOTUSED,		/* open */
-	/* 0x49 */ KEY_NOTUSED,		/* paste */
+	/* 0x48 */ KEY_L7,		/* open */
+	/* 0x49 */ KEY_L8,		/* paste */
 	/* 0x4a */ KEY_End,
 	/* 0x4b */ KEY_NOTUSED,
 	/* 0x4c */ KEY_LCtrl,
@@ -772,9 +772,9 @@ static CARD8 wsSunMap[] = {
 	/* 0x5c */ KEY_KP_5,
 	/* 0x5d */ KEY_KP_6,
 	/* 0x5e */ KEY_KP_0,
-	/* 0x5f */ KEY_NOTUSED,		/* find */
+	/* 0x5f */ KEY_L9,		/* find */
 	/* 0x60 */ KEY_PgUp,
-	/* 0x61 */ KEY_NOTUSED,		/* cut */
+	/* 0x61 */ KEY_L10,		/* cut */
 	/* 0x62 */ KEY_NumLock,
 	/* 0x63 */ KEY_ShiftL,
 	/* 0x64 */ KEY_Z,
@@ -801,7 +801,7 @@ static CARD8 wsSunMap[] = {
 	/* 0x79 */ KEY_Space,
 	/* 0x7a */ KEY_RMeta,
 	/* 0x7b */ KEY_PgDown,
-	/* 0x7c */ KEY_NOTUSED,
+	/* 0x7c */ KEY_Less,		/* < > on some keyboards */
 	/* 0x7d */ KEY_KP_Plus,
 	/* 0x7e */ KEY_NOTUSED,
 	/* 0x7f */ KEY_NOTUSED
@@ -1047,6 +1047,7 @@ KbdGetMapping (InputInfoPtr pInfo, KeySymsPtr pKeySyms, CARD8 *pModMap)
 #endif
 #ifdef WSCONS_SUPPORT
       case WSCONS:
+	if (pKbd->isConsole) {
            switch (pKbd->wsKbdType) {
 	       case WSKBD_TYPE_PC_XT:
 	       case WSKBD_TYPE_PC_AT:
@@ -1061,6 +1062,9 @@ KbdGetMapping (InputInfoPtr pInfo, KeySymsPtr pKeySyms, CARD8 *pModMap)
                     break;
 #endif
 #ifdef WSKBD_TYPE_SUN
+#ifdef WSKBD_TYPE_SUN5
+	       case WSKBD_TYPE_SUN5:
+#endif
 	       case WSKBD_TYPE_SUN:
                     pKbd->scancodeMap = &wsSun;
                     break;
@@ -1068,6 +1072,7 @@ KbdGetMapping (InputInfoPtr pInfo, KeySymsPtr pKeySyms, CARD8 *pModMap)
 	       default:
 		    ErrorF("Unknown wskbd type %d\n", pKbd->wsKbdType);
            }
+	} 
       break;
 #endif
   }

@@ -300,7 +300,7 @@ main(int argc, char *argv[])
     
     startedx = startx();
     if (XF86Config_path == NULL)
-	XF86Config_path = XtNewString(__XCONFIGFILE__"-4");
+	XF86Config_path = XtNewString(__XCONFIGFILE__);
     if (XkbConfig_path == NULL) {
 	XmuSnprintf(XkbConfig_path_static, sizeof(XkbConfig_path_static),
 		    "%s/%s%s", XFree86Dir, XkbConfigDir, XkbConfigFile);
@@ -536,9 +536,9 @@ main(int argc, char *argv[])
 # endif
 #else
 # ifdef XF86CONFIGDIR
-	XF86Config_path = XtNewString(XF86CONFIGDIR "/"__XCONFIGFILE__"-4");
+	XF86Config_path = XtNewString(XF86CONFIGDIR "/"__XCONFIGFILE__);
 # else
-	XF86Config_path = XtNewString("/etc/X11/"__XCONFIGFILE__"-4");
+	XF86Config_path = XtNewString("/etc/X11/"__XCONFIGFILE__);
 # endif
 #endif
     }
