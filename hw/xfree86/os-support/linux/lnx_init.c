@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/linux/lnx_init.c,v 3.14 2001/10/31 22:50:30 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/linux/lnx_init.c,v 3.15 2003/12/02 20:45:13 dawes Exp $ */
 /*
  * Copyright 1992 by Orest Zborowski <obz@Kodak.com>
  * Copyright 1993 by David Wexelblat <dwex@goblin.org>
@@ -7,19 +7,19 @@
  * documentation for any purpose is hereby granted without fee, provided that
  * the above copyright notice appear in all copies and that both that
  * copyright notice and this permission notice appear in supporting
- * documentation, and that the names of Orest Zborowski and David Wexelblat 
- * not be used in advertising or publicity pertaining to distribution of 
+ * documentation, and that the names of Orest Zborowski and David Wexelblat
+ * not be used in advertising or publicity pertaining to distribution of
  * the software without specific, written prior permission.  Orest Zborowski
- * and David Wexelblat make no representations about the suitability of this 
- * software for any purpose.  It is provided "as is" without express or 
+ * and David Wexelblat make no representations about the suitability of this
+ * software for any purpose.  It is provided "as is" without express or
  * implied warranty.
  *
- * OREST ZBOROWSKI AND DAVID WEXELBLAT DISCLAIMS ALL WARRANTIES WITH REGARD 
- * TO THIS SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND 
- * FITNESS, IN NO EVENT SHALL OREST ZBOROWSKI OR DAVID WEXELBLAT BE LIABLE 
- * FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES 
- * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN 
- * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF 
+ * OREST ZBOROWSKI AND DAVID WEXELBLAT DISCLAIMS ALL WARRANTIES WITH REGARD
+ * TO THIS SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND
+ * FITNESS, IN NO EVENT SHALL OREST ZBOROWSKI OR DAVID WEXELBLAT BE LIABLE
+ * FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+ * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *
  */
@@ -35,6 +35,8 @@
 #include "xf86_OSlib.h"
 #include "lnx.h"
 
+#include <sys/stat.h>
+
 #ifdef USE_DEV_FB
 extern char *getenv(const char *);
 #include <linux/fb.h>
@@ -45,13 +47,44 @@ static Bool KeepTty = FALSE;
 static int VTnum = -1;
 static int activeVT = -1;
 
+static int vtPermSave[4];
+static char vtname[11];
+
+static int
+saveVtPerms(void)
+{
+    /* We need to use stat to get permissions. */
+    struct stat svtp;
+
+    /* Do them numerically ordered, hard coded tty0 first. */
+    if (stat("/dev/tty0", &svtp) != 0)
+	return 0;
+    vtPermSave[0] = (int)svtp.st_uid;
+    vtPermSave[1] = (int)svtp.st_gid;
+
+    /* Now check the console we are dealing with. */
+    if (stat(vtname, &svtp) != 0)
+	return 0;
+    vtPermSave[2] = (int)svtp.st_uid;
+    vtPermSave[3] = (int)svtp.st_gid;
+
+    return 1;
+}
+
+static void
+restoreVtPerms(void)
+{
+    /* Set the terminal permissions back to before we started. */
+    chown("/dev/tty0", vtPermSave[0], vtPermSave[1]);
+    chown(vtname, vtPermSave[2], vtPermSave[3]);
+}
+
 void
 xf86OpenConsole(void)
 {
     int i, fd = -1;
     int result;
     struct vt_mode VT;
-    char vtname[11];
     struct vt_stat vts;
     MessageType from = X_PROBED;
 #ifdef USE_DEV_FB
@@ -61,7 +94,7 @@ xf86OpenConsole(void)
     char *tty0[] = { "/dev/tty0", "/dev/vc/0", NULL };
     char *vcs[] = { "/dev/vc/%d", "/dev/tty%d", NULL };
 
-    if (serverGeneration == 1) 
+    if (serverGeneration == 1)
     {
 	/* check if we're run with euid==0 */
 	if (geteuid() != 0)
@@ -124,6 +157,15 @@ xf86OpenConsole(void)
 		       xf86Info.vtno, strerror(errno));
 	}
 
+	/*
+	 * Grab the vt ownership before we overwrite it.
+	 * Hard coded /dev/tty0 into this function as well for below.
+	 */
+	if (!saveVtPerms()){
+	  xf86Msg(X_WARNING,
+		  "xf86OpenConsole: Could not save ownership of VT\n");
+	}
+
 	/* change ownership of the vt */
 	chown(vtname, getuid(), getgid());
 
@@ -171,7 +213,7 @@ xf86OpenConsole(void)
 	    xf86Msg(X_WARNING, "xf86OpenConsole: VT_WAITACTIVE failed\n");
 	}
 	SYSCALL(result = ioctl(xf86Info.consoleFd, VT_GETMODE, &VT));
-	if (result < 0) 
+	if (result < 0)
 	{
 	    FatalError("xf86OpenConsole: VT_GETMODE failed\n");
 	}
@@ -181,7 +223,7 @@ xf86OpenConsole(void)
 	VT.mode = VT_PROCESS;
 	VT.relsig = SIGUSR1;
 	VT.acqsig = SIGUSR1;
-	if (ioctl(xf86Info.consoleFd, VT_SETMODE, &VT) < 0) 
+	if (ioctl(xf86Info.consoleFd, VT_SETMODE, &VT) < 0)
 	{
 	    FatalError("xf86OpenConsole: VT_SETMODE VT_PROCESS failed\n");
 	}
@@ -202,7 +244,7 @@ xf86OpenConsole(void)
 	close(fbfd);
 #endif
     }
-    else 
+    else
     {
 	/* serverGeneration != 1 */
 	/*
@@ -247,6 +289,9 @@ xf86CloseConsole()
 	activeVT = -1;
     }
     close(xf86Info.consoleFd);                /* make the vt-manager happy */
+
+    restoreVtPerms();		/* restore the permissions */
+
     return;
 }
 
@@ -254,7 +299,7 @@ int
 xf86ProcessArgument(int argc, char *argv[], int i)
 {
 	/*
-	 * Keep server from detaching from controlling tty.  This is useful 
+	 * Keep server from detaching from controlling tty.  This is useful
 	 * when debugging (so the server can receive keyboard signals.
 	 */
 	if (!strcmp(argv[i], "-keeptty"))

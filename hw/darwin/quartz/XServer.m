@@ -34,7 +34,7 @@
  * sale, use or other dealings in this Software without prior written
  * authorization.
  */
-/* $XFree86: xc/programs/Xserver/hw/darwin/quartz/XServer.m,v 1.17 2003/11/14 20:27:58 torrey Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/darwin/quartz/XServer.m,v 1.20 2003/11/27 01:59:53 torrey Exp $ */
 
 #include "quartzCommon.h"
 
@@ -126,6 +126,7 @@ static io_connect_t root_port;
     rootlessMenuBarVisible = YES;
     queueShowServer = YES;
     quartzServerQuitting = NO;
+    pendingAppQuitReply = NO;
     mouseState = 0;
 
     // set up a port to safely send messages to main thread from server thread
@@ -140,11 +141,6 @@ static io_connect_t root_port;
                                 forMode:NSDefaultRunLoopMode];
     [[NSRunLoop currentRunLoop] addPort:signalPort
                                 forMode:NSModalPanelRunLoopMode];
-
-    [[NSNotificationCenter defaultCenter] addObserver:self
-                                          selector:@selector(windowBecameKey:)
-                                          name:NSWindowDidBecomeKeyNotification
-                                          object:nil];
 
     return self;
 }
@@ -191,6 +187,7 @@ static io_connect_t root_port;
     // At this point the X server is either running or starting.
     if (serverState == server_Starting) {
         // Quit will be queued later when server is running
+        pendingAppQuitReply = YES;
         return NSTerminateLater;
     } else if (serverState == server_Running) {
         [self quitServer];
@@ -490,6 +487,15 @@ static io_connect_t root_port;
     if (![self loadDisplayBundle])
         [NSApp terminate:nil];
 
+    // In rootless mode register to receive notification of key window changes
+    if (quartzRootless) {
+        [[NSNotificationCenter defaultCenter]
+                addObserver:self
+                selector:@selector(windowBecameKey:)
+                name:NSWindowDidBecomeKeyNotification
+                object:nil];
+    }
+
     // Start the X server thread
     serverState = server_Starting;
     [NSThread detachNewThreadSelector:@selector(run) toTarget:self
@@ -537,7 +543,7 @@ static io_connect_t root_port;
 
 // Finish starting the X server thread
 // This includes anything that must be done after the X server is
-// ready to process events.
+// ready to process events after the first or subsequent generations.
 - (void)finishStartX
 {
     sendServerEvents = YES;
@@ -551,7 +557,8 @@ static io_connect_t root_port;
 
     if (quartzServerQuitting) {
         [self quitServer];
-        [NSApp replyToApplicationShouldTerminate:YES];
+        if (pendingAppQuitReply)
+            [NSApp replyToApplicationShouldTerminate:YES];
         return;
     }
 
@@ -1001,21 +1008,6 @@ static io_connect_t root_port;
     // This field should be filled in for every event
     xe->u.keyButtonPointer.time = GetTimeInMillis();
 
-#if 0
-    // FIXME: Really?
-    if (quartzRootless  &&
-        (ev->type == NSLeftMouseDown  ||  ev->type == NSLeftMouseUp  ||
-        (ev->type == NSSystemDefined && ev->data.compound.subType == 7)))
-    {
-        // mouse button event - send mouseMoved to this position too
-        // X gets confused if it gets a click that isn't at the last
-        // reported mouse position.
-        xEvent moveEvent = *ev;
-        xe.u.u.type = NSMouseMoved;
-        [self sendXEvent:&moveEvent];
-    }
-#endif
-
     DarwinEQEnqueue(xe);
 }
 
@@ -1194,8 +1186,10 @@ static io_connect_t root_port;
 }
 
 // Some NSWindow became the key window
-- (void)windowBecameKey:(NSWindow *)window
+- (void)windowBecameKey:(NSNotification *)notification
 {
+    NSWindow *window = [notification object];
+
     if (quartzProcs->IsX11Window(window, [window windowNumber])) {
         if (!x11Active)
             [self activateX11:YES];
@@ -1322,7 +1316,8 @@ static io_connect_t root_port;
         QuartzMessageServerThread(kXDarwinControllerNotify, 1,
                                   AppleWMHideAll);
     } else {
-        // FIXME: We need to hide Xplugin windows here
+        if (quartzProcs->HideWindows)
+            quartzProcs->HideWindows(YES);
     }
 }
 
@@ -1332,7 +1327,8 @@ static io_connect_t root_port;
         QuartzMessageServerThread(kXDarwinControllerNotify, 1,
                                   AppleWMShowAll);
     } else {
-        [NSApp arrangeInFront:nil];
+        if (quartzProcs->HideWindows)
+            quartzProcs->HideWindows(NO);
     }
 }
 

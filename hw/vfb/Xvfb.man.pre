@@ -23,7 +23,7 @@
 .\" other dealings in this Software without prior written authorization
 .\" from The Open Group.
 .\"
-.\" $XFree86: xc/programs/Xserver/hw/vfb/Xvfb.man,v 1.9 2001/12/14 19:59:45 dawes Exp $
+.\" $XFree86: xc/programs/Xserver/hw/vfb/Xvfb.man,v 1.10 2003/11/23 05:40:36 dawes Exp $
 .\"
 .TH XVFB 1 __xorgversion__
 .SH NAME
@@ -49,7 +49,7 @@ that don't really need an X server but insist on having one anyway.
 .SH BUILDING
 To build \fIXvfb\fP, put the following in your host.def and remake.
 .PP
-\&#define BuildServer YES /* if you aren't already building other servers */
+\&#define BuildServer YES /\(** if you aren't already building other servers */
 .br
 \&#define XVirtualFramebufferServer YES
 

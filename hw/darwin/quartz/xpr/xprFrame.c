@@ -27,10 +27,10 @@
  * holders shall not be used in advertising or otherwise to promote the sale,
  * use or other dealings in this Software without prior written authorization.
  */
-/* $XFree86: xc/programs/Xserver/hw/darwin/quartz/xpr/xprFrame.c,v 1.4 2003/11/12 20:21:52 torrey Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/darwin/quartz/xpr/xprFrame.c,v 1.5 2003/11/27 01:59:53 torrey Exp $ */
 
 #include "xpr.h"
-#include "rootless.h"
+#include "rootlessCommon.h"
 #include "Xplugin.h"
 #include "x-hash.h"
 #include "x-list.h"
@@ -436,4 +436,46 @@ xprIsX11Window(void *nsWindow, int windowNumber)
     pthread_mutex_unlock(&window_hash_mutex);
 
     return ret;
+}
+
+
+/*
+ * xprHideWindows
+ *  Hide or unhide all top level windows. This is called for application hide/
+ *  unhide events if the window manager is not Apple-WM aware. Xplugin windows
+ *  do not hide or unhide themselves.
+ */
+void
+xprHideWindows(Bool hide)
+{
+    int screen;
+    WindowPtr pRoot, pWin;
+
+    for (screen = 0; screen < screenInfo.numScreens; screen++) {
+        pRoot = WindowTable[screenInfo.screens[screen]->myNum];
+        RootlessFrameID prevWid = NULL;
+
+        for (pWin = pRoot->firstChild; pWin; pWin = pWin->nextSib) {
+            RootlessWindowRec *winRec = WINREC(pWin);
+
+            if (winRec != NULL) {
+                if (hide) {
+                    xprUnmapFrame(winRec->wid);
+                } else {
+                    BoxRec box;
+
+                    xprRestackFrame(winRec->wid, prevWid);
+                    prevWid = winRec->wid;
+
+                    box.x1 = 0;
+                    box.y1 = 0;
+                    box.x2 = winRec->width;
+                    box.y2 = winRec->height;
+
+                    xprDamageRects(winRec->wid, 1, &box, 0, 0);
+                    RootlessQueueRedisplay(screenInfo.screens[screen]);
+                }
+            }
+        }
+    }
 }

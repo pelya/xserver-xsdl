@@ -1,4 +1,99 @@
-XFree86 4.3.99.17 (xx November 2003)
+XFree86 4.3.99.902 (xx December 2003)
+
+XFree86 4.3.99.901 ( 2 December 2003)
+ 645. Update xterm's checking of modifiers to match change 635, and handle
+      the case of keys like Meta_L being in more than one modifier.  This
+      addresses an issue arising from Bugzilla #924 (David Dawes).
+ 644. When XDM-AUTHORIZATION-1 is used with IPv6 IPv4-mapped addresses,
+      (which should not happen with change 643, but can be done with other 
+      xdm implementations) send the IPv4 address in the auth data; otherwise
+      send fake data for alignement purposes. (Matthieu Herrb).
+ 643. Don't generate XDM-AUTHORIZATION-1 authentification data for 
+      IPv6 connections (Matthieu Herrb).
+ 642. Fix fontconfig timestamp checking problem that shows up on JFS
+      (Bugzilla #932, Frank Giessler).
+ 641. Restore VT ownership at XFree86 server exit on Linux.  Should do the
+      same for other platforms that change change VT ownership at startup
+      (Bugzilla #927, Andrew Bevitt).
+ 640. Fix Mesa/GL problem on Linux with -mcpu=ultrasparc (reported by
+      Ferris McCormick).
+ 639. Fix a problem connecting to an IPv4-only X server running on a
+      machine which happens to have an AAAA DNS record from a NetBSD or
+      OpenBSD host with IPv6 configured (Matthieu Herrb).
+ 638. Don't use IPv6 sockets with IPv4-mapped addresses (::FFFF:w.x.y.z)
+      when making IPv4 connections with the "tcp" transport type.  This
+      fixes problems on platforms (such as FreeBSD 5.1) which disable
+      IPv4-mapped addresses by default.  It also fixes a problem with
+      XDM-AUTHORIZATION-1 for IPv4 connections with the default "tcp"
+      transport as reported in Bugzilla #903 (David Dawes).
+ 637. Fix backward compatibility of Xlib+IPv6 for apps linked against a libc
+      without IPv6 support (David Dawes).
+ 636. Restore the behaviour of scalable fonts.dir entries in directories with
+      the ":unscaled" attribute (Chisato Yamauchi, David Dawes, reported by
+      Mike Fabian).
+ 635. Fix xmodmap's output of the modifiers map when the first column keysym
+      is empty (Ivan Pascal).
+ 634. Fixes for XKB keyboard maps:
+      - fix Meta, Super, Hyper keysyms interpretation
+      - fix typo in rules/xfree86.xml (Ivan Pascal).
+ 633. DRI updates.
+      - Latest kernel drivers from the DRI trunk.
+      - Fix FB_LOCATION in radeon driver (Michel Daenzer).
+      - Texture managment code consolidation (Ian Romanick)
+      - i830 stencil fix (Keith Whitwell)
+      - mga blend fixes (Ville Syrjala)
+ 632. Fix a problem that prevented the i810 driver from using dot clocks less
+      than 12MHz (which appear to work) (Bugzilla #925, Richard Dengler).
+ 631. Fix a server crash that can happen when loading some CID fonts
+      (Bugzilla #906, David Dawes).
+ 630. Restructured version of the wacom driver, with support for TwinView,
+      fixed bugs and added filters (Bugzilla #537, Ping Cheng).
+ 629. Fix libfontenc link failure on OS/2 (Bugzilla #921, Frank Giessler).
+ 628. OS/2 fixes:
+       - Unable to connect to a font server.
+       - SIGFPE in GLX.
+      (Bugzila #920, Frank Giessler).
+ 627. Add a missing entry to big5hkscs-0.enc (Bugzilla #917, Jungshik Shin).
+ 626. Update libfreetype-xtt2 to version 1.1a:
+       - Fixed erroneous method of making up italic bitmap.
+      (Chisato Yamauchi, After X-TT Project).
+ 625. OS/2 build fixes:
+       - Cleanup of bootstrap leftovers in xc/config/imake.
+       - Explicitly define int32_t and int64_t in Mesa.
+       - Missing Xft/Imakefile patch.
+      (Bugzilla #915, Frank Giessler).
+ 624. Fix hide/unhide of XDarwin application with xpr when an AppleWM-aware
+      window manager is not present (Torrey T. Lyons).
+ 623. Fix generic rootless code bug which caused the wrong region to be
+      damaged on window resize (Torrey T. Lyons).
+ 622. Fix server crash when doing 'listwithinfo' of an outline font in
+      a directory marked ":unscaled" (Bugzilla #911, David Dawes).
+ 621. Fix a key truncation problem with 'xauth add' (Bugzilla #903,
+      David Dawes).
+ 620. With AppleDRI, don't use APPLE_fence as a replacement for NV_fence
+      calls (John Harper).
+ 619. Fix intermittent XDarwin crash when quitting (Torrey T. Lyons).
+ 618. Build fixes and updates for GNU/Hurd and GNU/K*BSD systems (Bugzilla
+      #907, #908, Robert Millan).
+ 617. Xterm fixes (Bugzilla #893, #905, Thomas Dickey).
+ 616. XDarwin fixes:
+       - Fix intermittent crash on XDarwin startup.
+       - Fix failure to redraw after resizing with cr implementation.
+       - Fix install failure when DESTDIR is specified (Reported by
+         Benjamin Reed).
+      (Torrey T. Lyons).
+ 615. Add command line options to mkfontscale to enable/disable generation
+      of iso10646-1 lines (Bugzilla #885, Roland Mainz).
+ 614. Add a more complete set of the encodings we support to mkfontscale
+      (Bugzilla #884, Roland Mainz).
+ 613. Add ansi-1251 encoding file (Bugzilla #884, Roland Mainz).
+ 612. Update XDMCP to use the IPv6 multicast address that has been assigned
+      by IANA.  Draft XDMCP 1.1 specs updated accordingly (Bugzilla #895,
+      Alan Coopersmith).
+ 611. Add 'defined(VT_ACTIVATE)' to the test for platforms that support VT
+      switching (based on Bugzilla #894, Robert Millan).
+ 610. Make several tests for glibc features glibc-specific rather than
+      specific to the underlying OS (Bugzila #890, 891, Robert Millan).
 
 XFree86 4.3.99.16 (20 November 2003)
  609. Fix 'constype' for modern framebuffers on Solaris (Bugzilla #890,
@@ -461,7 +556,8 @@ XFree86 4.3.99.14 (10 October 2003)
       Frank Giessler).
  458. Import Mesa 5.0.2 (Alan Hourihane).
  457. DRI merge (DRI Project)
-      * details to follow..........
+      - Update the SiS driver to use Mesa 5.0
+      - 
  456. Fixes and updates for XKB keyboard maps:
       - Update xkb geometry files (Alexander Pohoyda).
       - Fix German-Romanian maps (Manfred Pohler).
@@ -18230,7 +18326,7 @@ XFree86 3.0a (28 April 1994)
 XFree86 3.0 (26 April 1994)
 
 
-$XFree86: xc/programs/Xserver/hw/xfree86/CHANGELOG,v 3.2982 2003/11/21 06:01:42 dawes Exp $
+$XFree86: xc/programs/Xserver/hw/xfree86/CHANGELOG,v 3.3014 2003/12/03 05:05:57 dawes Exp $
 
 
 

@@ -27,7 +27,7 @@
  * holders shall not be used in advertising or otherwise to promote the sale,
  * use or other dealings in this Software without prior written authorization.
  */
-/* $XFree86: xc/programs/Xserver/hw/darwin/quartz/cr/crFrame.m,v 1.5 2003/11/13 20:26:31 torrey Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/darwin/quartz/cr/crFrame.m,v 1.7 2003/11/27 01:53:39 torrey Exp $ */
 
 #include "quartzCommon.h"
 #include "cr.h"
@@ -163,7 +163,7 @@ CRResizeFrame(RootlessFrameID wid, ScreenPtr pScreen,
 {
     CRWindowPtr crWinPtr = (CRWindowPtr) wid;
     NSRect bounds = NSMakeRect(newX, NSHeight([[NSScreen mainScreen] frame]) -
-                              newY - newH, newW, newH);
+                               newY - newH, newW, newH);
 
     [crWinPtr->window setFrame:bounds display:NO];
 }

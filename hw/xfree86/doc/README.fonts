@@ -269,8 +269,8 @@ structure should be as follows:
      CID/fonts.scale
 
 After creating this directory structure and copying the relevant files, you
-should create a <`tt/fonts.scale/' file.  This file has the same format as in
-the case of (non-CID) scalable fonts, except that its first column contains
+should create a `fonts.scale' file.  This file has the same format as in the
+case of (non-CID) scalable fonts, except that its first column contains
 PostScript font names with the extension `.cid' appended rather than actual
 filenames:
 
@@ -1176,7 +1176,7 @@ The IANA RFC documents, available from a number of sites throughout the
 world, often provide interesting information about character set issues; see
 for example RFC 373.
 
-     Generated from XFree86: xc/programs/Xserver/hw/xfree86/doc/sgml/fonts.sgml,v 1.22 dawes Exp $
+     Generated from XFree86: xc/programs/Xserver/hw/xfree86/doc/sgml/fonts.sgml,v 1.23 dawes Exp $
 
 
-$XFree86: xc/programs/Xserver/hw/xfree86/doc/README.fonts,v 1.26 2003/11/19 01:44:58 dawes Exp $
+$XFree86: xc/programs/Xserver/hw/xfree86/doc/README.fonts,v 1.27 2003/11/24 01:57:56 dawes Exp $

@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86Events.c,v 3.158 2003/11/03 05:11:02 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86Events.c,v 3.159 2003/11/22 04:22:11 dawes Exp $ */
 /*
  * Copyright 1990,91 by Thomas Roell, Dinkelscherben, Germany.
  *
@@ -347,7 +347,7 @@ xf86ProcessActionEvent(ActionEvent action, void *arg)
 	}
 	break;
 #if !defined(__SOL8__) && !defined(__UNIXOS2__) && !defined(sgi) && \
-    (!defined(sun) || defined(i386))
+    (!defined(sun) || defined(i386)) && defined(VT_ACTIVATE)
     case ACTION_SWITCHSCREEN:
 	if (VTSwitchEnabled && !xf86Info.dontVTSwitch && arg) {
 	    int vtno = *((int *) arg);
