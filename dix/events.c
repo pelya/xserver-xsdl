@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/dix/events.c,v 1.4 2004/07/29 18:43:58 stukreit Exp $ */
+/* $XdotOrg: xc/programs/Xserver/dix/events.c,v 1.5 2004/07/31 01:33:40 stukreit Exp $ */
 /* $XFree86: xc/programs/Xserver/dix/events.c,v 3.51 2004/01/12 17:04:52 tsi Exp $ */
 /************************************************************
 
@@ -106,6 +106,7 @@ extern Bool XkbFilterEvents(ClientPtr, int, xEvent *);
 #include "security.h"
 #endif
 
+#ifdef XEVIE
 extern WindowPtr *WindowTable;
 extern int       xevieFlag;
 extern int       xevieClientIndex;
@@ -117,7 +118,7 @@ extern int       xevieEventSent;
 extern int       xevieKBEventSent;
 int    xeviegrabState = 0;
 xEvent *xeviexE;
-
+#endif
 
 #include "XIproto.h"
 #include "exevents.h"
@@ -214,8 +215,11 @@ static  struct {
     WindowPtr	confineWin;	/* confine window */ 
 #endif
 } sprite;			/* info about the cursor sprite */
+
+#ifdef XEVIE
 WindowPtr xeviewin;
 HotSpot xeviehot;
+#endif
 
 static void DoEnterLeaveEvents(
     WindowPtr /*fromWin*/,
@@ -2688,6 +2692,7 @@ ProcessKeyboardEvent (xE, keybd, count)
     GrabPtr         grab = keybd->grab;
     Bool            deactivateGrab = FALSE;
     register KeyClassPtr keyc = keybd->key;
+#ifdef XEVIE
     static Window           rootWin = 0;
 
     if(!xeviegrabState && xevieFlag && clients[xevieClientIndex] &&
@@ -2732,7 +2737,7 @@ drawable.id:0;
         }
       }
     }
-
+#endif
 
     if (!syncEvents.playingEvents)
     {
@@ -2878,6 +2883,7 @@ ProcessPointerEvent (xE, mouse, count)
 #ifdef XKB
     XkbSrvInfoPtr xkbi= inputInfo.keyboard->key->xkbInfo;
 #endif
+#ifdef XEVIE
     if(xevieFlag && clients[xevieClientIndex] && !xeviegrabState &&
        (xevieMask & xevieFilters[xE->u.u.type])) {
       if(xevieEventSent)
@@ -2888,6 +2894,7 @@ ProcessPointerEvent (xE, mouse, count)
         return;
       }
     }
+#endif
 
     if (!syncEvents.playingEvents)
 	NoticeTime(xE)

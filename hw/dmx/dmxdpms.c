@@ -44,7 +44,9 @@
 #include "dmxdpms.h"
 #include "dmxlog.h"
 #include "dmxsync.h"
+#ifdef DPMSExtension
 #include "dpmsproc.h"
+#endif
 #include "windowstr.h"          /* For screenIsSaved */
 #include "X11/extensions/dpms.h"
 
@@ -64,7 +66,9 @@ static void _dmxDPMSInit(DMXScreenInfo *dmxScreen)
         dpmsGeneration = serverGeneration;
     }
 
+#ifdef DPMSExtension
     if (DPMSDisabledSwitch) dpmsSupported = FALSE; /* -dpms turns off */
+#endif
 
     dmxScreen->dpmsCapable = 0;
     

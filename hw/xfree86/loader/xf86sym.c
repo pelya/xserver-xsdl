@@ -75,7 +75,9 @@
 #include "xf86cmap.h"
 #include "xf86fbman.h"
 #include "dgaproc.h"
+#ifdef DPMSExtension
 #include "dpmsproc.h"
+#endif
 #include "vidmodeproc.h"
 #include "xf86miscproc.h"
 #include "loader.h"
@@ -695,9 +697,11 @@ LOOKUP xfree86LookupTab[] = {
     SYMFUNC(xf86XInputSetSendCoreEvents)
 /* End merged segment */
 #endif
+#ifdef DPMSExtension
     SYMFUNC(DPMSGet)
     SYMFUNC(DPMSSet)
     SYMFUNC(DPMSSupported)
+#endif
 /* xf86Debug.c */
 #ifdef BUILDDEBUG
     SYMFUNC(xf86Break1)

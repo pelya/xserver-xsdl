@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/hw/xfree86/common/xf86Config.c,v 1.2 2004/04/23 19:20:32 eich Exp $ */
+/* $XdotOrg: xc/programs/Xserver/hw/xfree86/common/xf86Config.c,v 1.3 2004/07/31 09:14:06 kem Exp $ */
 /* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86Config.c,v 3.276 2003/10/08 14:58:26 dawes Exp $ */
 
 
@@ -2406,28 +2406,44 @@ configExtensions(XF86ConfExtensionsPtr conf_ext)
 
     if (conf_ext && conf_ext->ext_option_lst) {
 	for (o = conf_ext->ext_option_lst; o; o = xf86NextOption(o)) {
-	    char *name = xf86OptionName(o);
-	    char *val  = xf86OptionValue(o);
-	    if (xf86NameCmp(val, "enable") == 0) {
-		if (EnableDisableExtension(name, TRUE)) {
-		    xf86Msg(X_CONFIG, "Extension \"%s\" is enabled\n", name);
-		} else {
-		    xf86Msg(X_ERROR,
-			    "Extension \"%s\" is unrecognized\n", name);
-		    return FALSE;
-		}
-	    } else if (xf86NameCmp(val, "disable") == 0) {
-		if (EnableDisableExtension(name, FALSE)) {
-		    xf86Msg(X_CONFIG, "Extension \"%s\" is disabled\n", name);
-		} else {
-		    xf86Msg(X_ERROR,
-			    "Extension \"%s\" is unrecognized\n", name);
-		    return FALSE;
-		}
+	    char *name   = xf86OptionName(o);
+	    char *val    = xf86OptionValue(o);
+	    char *n;
+	    Bool  enable = TRUE;
+
+	    /* Handle "No<ExtensionName>" */
+	    n = xf86NormalizeName(name);
+	    if (strncmp(n, "no", 2) == 0) {
+		name += 2;
+		enable = FALSE;
+	    }
+
+	    if (!val ||
+		xf86NameCmp(val, "enable") == 0 ||
+		xf86NameCmp(val, "on") == 0 ||
+		xf86NameCmp(val, "1") == 0 ||
+		xf86NameCmp(val, "yes") == 0 ||
+		xf86NameCmp(val, "true") == 0) {
+		/* NOTHING NEEDED -- enabling is handled below */
+	    } else if (xf86NameCmp(val, "disable") == 0 ||
+		       xf86NameCmp(val, "off") == 0 ||
+		       xf86NameCmp(val, "0") == 0 ||
+		       xf86NameCmp(val, "no") == 0 ||
+		       xf86NameCmp(val, "false") == 0) {
+		enable = !enable;
 	    } else {
 		xf86Msg(X_ERROR,
 			"%s is not a valid value for the Extension option\n",
 			val);
+		return FALSE;
+	    }
+
+	    if (EnableDisableExtension(name, enable)) {
+		xf86Msg(X_CONFIG, "Extension \"%s\" is %s\n",
+			name, enable ? "enabled" : "disabled");
+	    } else {
+		xf86Msg(X_ERROR,
+			    "Extension \"%s\" is unrecognized\n", name);
 		return FALSE;
 	    }
 	}
