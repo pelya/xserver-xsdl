@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/kmap.c,v 1.2 1999/12/30 03:03:06 robin Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/kmap.c,v 1.5 2000/12/08 23:04:56 keithp Exp $ */
 
 #include "kdrive.h"
 
@@ -31,10 +31,10 @@
 #endif
 #endif
 
-#ifdef HAS_MTRR
 #include <errno.h>
 #include <unistd.h>
 #include <sys/mman.h>
+#ifdef HAS_MTRR
 #include <asm/mtrr.h>
 #endif
 
