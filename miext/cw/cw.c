@@ -344,8 +344,7 @@ cwCheapValidateGC(GCPtr pGC, unsigned long stateChanges, DrawablePtr pDrawable)
      * cwCreateGCPrivate will wrap with the backing-pixmap GC funcs and we won't
      * re-wrap on return.
      */
-    if (pDrawable->type == DRAWABLE_WINDOW &&
-	cwDrawableIsRedirWindow(pDrawable) &&
+    if (cwDrawableIsRedirWindow(pDrawable) &&
 	cwCreateGCPrivate(pGC, pDrawable))
     {
 	(*pGC->funcs->ValidateGC)(pGC, stateChanges, pDrawable);
@@ -427,11 +426,11 @@ cwCheapDestroyClip(GCPtr pGC)
  */
 
 #define SCREEN_PROLOGUE(pScreen, field)\
-  ((pScreen)->field = ((cwScreenPtr) \
-    (pScreen)->devPrivates[cwScreenIndex].ptr)->field)
+  ((pScreen)->field = getCwScreen(pScreen)->field)
 
 #define SCREEN_EPILOGUE(pScreen, field, wrapper)\
-    ((pScreen)->field = wrapper)
+    ((getCwScreen(pScreen)->field = (pScreen)->field), \
+     ((pScreen)->field = (wrapper)))
 
 static Bool
 cwCreateGC(GCPtr pGC)
@@ -667,21 +666,14 @@ miInitializeCompositeWrapper(ScreenPtr pScreen)
     if (!pScreenPriv)
 	return;
 
-    pScreenPriv->CloseScreen = pScreen->CloseScreen;
-    pScreenPriv->GetImage = pScreen->GetImage;
-    pScreenPriv->GetSpans = pScreen->GetSpans;
-    pScreenPriv->CreateGC = pScreen->CreateGC;
-    pScreenPriv->PaintWindowBackground = pScreen->PaintWindowBackground;
-    pScreenPriv->PaintWindowBorder = pScreen->PaintWindowBorder;
-
-    pScreen->CloseScreen = cwCloseScreen;
-    pScreen->GetImage = cwGetImage;
-    pScreen->GetSpans = cwGetSpans;
-    pScreen->CreateGC = cwCreateGC;
-    pScreen->PaintWindowBackground = cwPaintWindowBackground;
-    pScreen->PaintWindowBorder = cwPaintWindowBorder;
-
     pScreen->devPrivates[cwScreenIndex].ptr = (pointer)pScreenPriv;
+    
+    SCREEN_EPILOGUE(pScreen, CloseScreen, cwCloseScreen);
+    SCREEN_EPILOGUE(pScreen, GetImage, cwGetImage);
+    SCREEN_EPILOGUE(pScreen, GetSpans, cwGetSpans);
+    SCREEN_EPILOGUE(pScreen, CreateGC, cwCreateGC);
+    SCREEN_EPILOGUE(pScreen, PaintWindowBackground, cwPaintWindowBackground);
+    SCREEN_EPILOGUE(pScreen, PaintWindowBorder, cwPaintWindowBorder);
 
 #ifdef RENDER
     if (GetPictureScreen (pScreen))
