@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/fbdev/fbdev.c,v 1.22 2001/06/21 00:58:51 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/fbdev/fbdev.c,v 1.24 2001/07/11 16:42:17 keithp Exp $ */
 
 #include "fbdev.h"
 
@@ -668,6 +668,8 @@ fbdevCreateColormap (ColormapPtr pmap)
 	pdefs = ALLOCATE_LOCAL (nent * sizeof (xColorItem));
 	if (!pdefs)
 	    return FALSE;
+	for (i = 0; i < nent; i++)
+	    pdefs[i].pixel = i;
 	fbdevGetColors (pScreen, 0, nent, pdefs);
 	for (i = 0; i < nent; i++)
 	{
