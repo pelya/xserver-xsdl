@@ -1360,6 +1360,7 @@ vesaEnable(ScreenPtr pScreen)
 	    if (!pscr->fb)
 		return FALSE;
 	    screen->fb[0].frameBuffer = (CARD8 *)(pscr->fb);
+	    screen->memory_base = pscr->fb;
 	    /*
 	     * Set frame buffer mapping
 	     */

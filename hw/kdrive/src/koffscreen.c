@@ -259,6 +259,7 @@ KdOffscreenFree (ScreenPtr pScreen, KdOffscreenArea *area)
     KdOffscreenValidate (pScreen);
 
     area->state = KdOffscreenAvail;
+    area->save = 0;
 
     /*
      * Find previous area
