@@ -728,6 +728,12 @@ damageCopyArea(DrawablePtr   pSrc,
     RegionPtr ret;
     DAMAGE_GC_OP_PROLOGUE(pGC, pDst);
     
+    /* The driver will only call SourceValidate() when pSrc != pDst,
+     * but the software sprite (misprite.c) always need to know when a
+     * drawable is copied so it can remove the sprite. See #1030. */
+    if ((pSrc == pDst) && pSrc->pScreen->SourceValidate)
+        (*pSrc->pScreen->SourceValidate) (pSrc, srcx, srcy, width, height);
+
     if (checkGCDamage (pDst, pGC))
     {
 	BoxRec box;
@@ -762,6 +768,13 @@ damageCopyPlane(DrawablePtr	pSrc,
 {
     RegionPtr ret;
     DAMAGE_GC_OP_PROLOGUE(pGC, pDst);
+
+    /* The driver will only call SourceValidate() when pSrc != pDst,
+     * but the software sprite (misprite.c) always need to know when a
+     * drawable is copied so it can remove the sprite. See #1030. */
+    if ((pSrc == pDst) && pSrc->pScreen->SourceValidate)
+        (*pSrc->pScreen->SourceValidate) (pSrc, srcx, srcy, width, height);
+
     if (checkGCDamage (pDst, pGC))
     {
 	BoxRec box;
