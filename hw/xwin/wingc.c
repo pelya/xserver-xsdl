@@ -1,5 +1,5 @@
 /*
- *Copyright (C) 1994-2000 The XFree86 Project, Inc. All Rights Reserved.
+ *Copyright (C) 2001-2004 Harold L Hunt II All Rights Reserved.
  *
  *Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -15,23 +15,57 @@
  *THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  *EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  *MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- *NONINFRINGEMENT. IN NO EVENT SHALL THE XFREE86 PROJECT BE LIABLE FOR
+ *NONINFRINGEMENT. IN NO EVENT SHALL HAROLD L HUNT II BE LIABLE FOR
  *ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
  *CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
  *WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
- *Except as contained in this notice, the name of the XFree86 Project
+ *Except as contained in this notice, the name of Harold L Hunt II
  *shall not be used in advertising or otherwise to promote the sale, use
  *or other dealings in this Software without prior written authorization
- *from the XFree86 Project.
+ *from Harold L Hunt II.
  *
  * Authors:	Harold L Hunt II
  */
-/* $XFree86: xc/programs/Xserver/hw/xwin/wingc.c,v 1.10 2001/10/30 15:39:09 alanh Exp $ */
 
 #include "win.h"
+
 void
-winPushPixels(GCPtr pGC, PixmapPtr pBitMap, DrawablePtr pDrawable, int dx, int dy, int xOrg, int yOrg);
+winPushPixels (GCPtr pGC, PixmapPtr pBitMap, DrawablePtr pDrawable, int dx, int dy, int xOrg, int yOrg);
+
+
+/*
+ * Local prototypes
+ */
+
+#if 0
+static void
+winChangeGCNativeGDI (GCPtr pGC, unsigned long ulChanges);
+#endif
+
+static void
+winValidateGCNativeGDI (GCPtr pGC,
+			unsigned long changes,
+			DrawablePtr pDrawable);
+
+#if 0
+static void
+winCopyGCNativeGDI (GCPtr pGCsrc, unsigned long ulMask, GCPtr pGCdst);
+#endif
+
+static void
+winDestroyGCNativeGDI (GCPtr pGC);
+
+#if 0
+static void
+winChangeClipNativeGDI (GCPtr pGC, int nType, pointer pValue, int nRects);
+
+static void
+winDestroyClipNativeGDI (GCPtr pGC);
+
+static void
+winCopyClipNativeGDI (GCPtr pGCdst, GCPtr pGCsrc);
+#endif
 
 #if 0
 /* GC Handling Routines */
@@ -133,17 +167,19 @@ winCreateGCNativeGDI (GCPtr pGC)
 }
 
 
+#if 0
 /* See Porting Layer Definition - p. 45 */
-void
+static void
 winChangeGCNativeGDI (GCPtr pGC, unsigned long ulChanges)
 {
 #if 0
   ErrorF ("winChangeGCNativeGDI () - Doing nothing\n");
 #endif
 }
+#endif
 
 
-void
+static void
 winValidateGCNativeGDI (GCPtr pGC,
 			unsigned long ulChanges,
 			DrawablePtr pDrawable)
@@ -156,16 +192,18 @@ winValidateGCNativeGDI (GCPtr pGC,
 }
 
 
+#if 0
 /* See Porting Layer Definition - p. 46 */
-void
+static void
 winCopyGCNativeGDI (GCPtr pGCsrc, unsigned long ulMask, GCPtr pGCdst)
 {
 
 }
+#endif
 
 
 /* See Porting Layer Definition - p. 46 */
-void
+static void
 winDestroyGCNativeGDI (GCPtr pGC)
 {
   winGCPriv(pGC);
@@ -193,8 +231,9 @@ winDestroyGCNativeGDI (GCPtr pGC)
 }
 
 
+#if 0
 /* See Porting Layer Definition - p. 46 */
-void
+static void
 winChangeClipNativeGDI (GCPtr pGC, int nType, pointer pValue, int nRects)
 {
 
@@ -202,7 +241,7 @@ winChangeClipNativeGDI (GCPtr pGC, int nType, pointer pValue, int nRects)
 
 
 /* See Porting Layer Definition - p. 47 */
-void
+static void
 winDestroyClipNativeGDI (GCPtr pGC)
 {
 
@@ -210,8 +249,9 @@ winDestroyClipNativeGDI (GCPtr pGC)
 
 
 /* See Porting Layer Definition - p. 47 */
-void
+static void
 winCopyClipNativeGDI (GCPtr pGCdst, GCPtr pGCsrc)
 {
 
 }
+#endif

@@ -32,6 +32,31 @@
 
 #include "win.h"
 
+
+/*
+ * References to external symbols
+ */
+
+extern int			g_iPixmapPrivateIndex;
+
+
+/*
+ * Local prototypes
+ */
+
+#if 0
+static void
+winXRotatePixmapNativeGDI (PixmapPtr pPix, int rw);
+
+static void
+winYRotatePixmapNativeGDI (PixmapPtr pPix, int rh);
+
+static void
+winCopyRotatePixmapNativeGDI (PixmapPtr psrcPix, PixmapPtr *ppdstPix,
+			      int xrot, int yrot);
+#endif
+
+
 /* See Porting Layer Definition - p. 34 */
 /* See mfb/mfbpixmap.c - mfbCreatePixmap() */
 PixmapPtr
@@ -51,7 +76,7 @@ winCreatePixmapNativeGDI (ScreenPtr pScreen,
     }
 
 #if CYGDEBUG
-  ErrorF ("winCreatePixmap () - w %d h %d d %d bw %d\n",
+  winDebug ("winCreatePixmap () - w %d h %d d %d bw %d\n",
 	  iWidth, iHeight, iDepth,
 	  PixmapBytePad (iWidth, iDepth));
 #endif
@@ -94,7 +119,7 @@ winCreatePixmapNativeGDI (ScreenPtr pScreen,
 						(BITMAPINFO **) &pPixmapPriv->pbmih);
 
 #if CYGDEBUG
-  ErrorF ("winCreatePixmap () - Created a pixmap %08x, %dx%dx%d, for " \
+  winDebug ("winCreatePixmap () - Created a pixmap %08x, %dx%dx%d, for " \
 	  "screen: %08x\n",
 	  pPixmapPriv->hBitmap, iWidth, iHeight, iDepth, pScreen);
 #endif
@@ -115,7 +140,7 @@ winDestroyPixmapNativeGDI (PixmapPtr pPixmap)
   winPrivPixmapPtr		pPixmapPriv = NULL;
   
 #if CYGDEBUG
-  ErrorF ("winDestroyPixmapNativeGDI ()\n");
+  winDebug ("winDestroyPixmapNativeGDI ()\n");
 #endif
 
   /* Bail early if there is not a pixmap to destroy */
@@ -129,7 +154,7 @@ winDestroyPixmapNativeGDI (PixmapPtr pPixmap)
   pPixmapPriv = winGetPixmapPriv (pPixmap);
 
 #if CYGDEBUG
-  ErrorF ("winDestroyPixmapNativeGDI - pPixmapPriv->hBitmap: %08x\n",
+  winDebug ("winDestroyPixmapNativeGDI - pPixmapPriv->hBitmap: %08x\n",
 	  pPixmapPriv->hBitmap);
 #endif
 
@@ -173,12 +198,13 @@ winModifyPixmapHeaderNativeGDI (PixmapPtr pPixmap,
 }
 
 
+#if 0
 /* 
  * Not used yet.
  * See cfb/cfbpixmap.c
  */
 
-void
+static void
 winXRotatePixmapNativeGDI (PixmapPtr pPix, int rw)
 {
   ErrorF ("winXRotatePixmap()\n");
@@ -190,7 +216,7 @@ winXRotatePixmapNativeGDI (PixmapPtr pPix, int rw)
  * Not used yet.
  * See cfb/cfbpixmap.c
  */
-void
+static void
 winYRotatePixmapNativeGDI (PixmapPtr pPix, int rh)
 {
   ErrorF ("winYRotatePixmap()\n");
@@ -203,10 +229,11 @@ winYRotatePixmapNativeGDI (PixmapPtr pPix, int rh)
  * See cfb/cfbpixmap.c
  */
 
-void
+static void
 winCopyRotatePixmapNativeGDI (PixmapPtr psrcPix, PixmapPtr *ppdstPix,
 			      int xrot, int yrot)
 {
   ErrorF ("winCopyRotatePixmap()\n");
   /* fill in this function, look at CFB */
 }
+#endif

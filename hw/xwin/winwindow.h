@@ -1,3 +1,5 @@
+#if !defined(_WINWINDOW_H_)
+#define _WINWINDOW_H_
 /*
  *Copyright (C) 1994-2000 The XFree86 Project, Inc. All Rights Reserved.
  *
@@ -29,10 +31,6 @@
  */
 /* $XFree86: xc/programs/Xserver/hw/xwin/winwindow.h,v 1.3 2003/10/02 13:30:11 eich Exp $ */
 
-
-#ifndef _WINWINDOW_H_
-#define _WINWINDOW_H_
-
 #ifndef NO
 #define NO			0
 #endif
@@ -49,11 +47,15 @@
 #define WINDOW_TITLE_X		"Cygwin/X X"
 #define WIN_WINDOW_PROP		"cyg_window_prop_rl"
 #define WIN_MSG_QUEUE_FNAME	"/dev/windows"
-#define WIN_LOG_FNAME		"/tmp/XWin.log"
 #define WIN_WID_PROP		"cyg_wid_prop_rl"
 #define WIN_NEEDMANAGE_PROP	"cyg_override_redirect_prop_rl"
-#define WIN_HWND_CACHE          "cyg_privmap_rl"
+#define WIN_HWND_CACHE		"cyg_privmap_rl"
+#ifndef CYGMULTIWINDOW_DEBUG
 #define CYGMULTIWINDOW_DEBUG    NO
+#endif
+#ifndef CYGWINDOWING_DEBUG
+#define CYGWINDOWING_DEBUG	NO
+#endif
 
 typedef struct _winPrivScreenRec *winPrivScreenPtr;
 
@@ -68,15 +70,19 @@ typedef struct
   HRGN			hRgn;
   HWND			hWnd;
   winPrivScreenPtr	pScreenPriv;
-  int			iX;
-  int			iY;
-  int			iWidth;
-  int			iHeight;
   Bool			fXKilled;
-  Bool                  fNeedRestore;
-  POINT                 ptRestore;
+
+  /* Privates used by primary fb DirectDraw server */
+  LPDDSURFACEDESC	pddsdPrimary;
+
+  /* Privates used by shadow fb DirectDraw Nonlocking server */
+  LPDIRECTDRAWSURFACE4	pddsPrimary4;
+
+  /* Privates used by both shadow fb DirectDraw servers */
+  LPDIRECTDRAWCLIPPER	pddcPrimary;
 } winPrivWinRec, *winPrivWinPtr;
 
+#ifdef XWIN_MULTIWINDOW
 typedef struct _winWMMessageRec{
   DWORD			dwID;
   DWORD			msg;
@@ -88,7 +94,7 @@ typedef struct _winWMMessageRec{
 
 
 /*
- * winrootlesswm.c
+ * winmultiwindowwm.c
  */
 
 #define		WM_WM_MOVE		(WM_USER + 1)
@@ -103,11 +109,6 @@ typedef struct _winWMMessageRec{
 #define	        WM_WM_HINTS_EVENT	(WM_USER + 10)
 #define		WM_WM_CHANGE_STATE	(WM_USER + 11)
 
-
-/*
- * winmultiwindowwm.c
- */
-
 void
 winSendMessageToWM (void *pWMInfo, winWMMessagePtr msg);
 
@@ -119,7 +120,7 @@ winInitWM (void **ppWMInfo,
 	   int dwScreen);
 
 void
-winDeinitMultiWindowWM ();
+winDeinitMultiWindowWM (void);
 
 void
 winMinimizeWindow (Window id);
@@ -132,4 +133,11 @@ winMinimizeWindow (Window id);
 void
 winUpdateIcon (Window id);
 
+void 
+winInitGlobalIcons (void);
+
+void 
+winDestroyIcon(HICON hIcon);
+
+#endif /* XWIN_MULTIWINDOW */
 #endif

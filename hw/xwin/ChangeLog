@@ -1,0 +1,64 @@
+2004-05-27  Alexander Gottwald  <ago@freedesktop.org>
+
+	* winpriv.c: Create win32 window if not already created
+	* winmultiwindowwindow.c: Export winCreateWindowWindow
+
+2004-05-27  Alexander Gottwald  <ago@freedesktop.org>
+
+	* win.h: Allow CYGDEBUG to defined in the Makefile
+	* winwindow.h: Allow CYGWINDOWING_DEBUG to defined in the Makefile
+
+2004-05-19  Alexander Gottwald  <ago@freedesktop.org>
+	
+	* winmultiwindowicons.c (winInitGlobalIcons): Load the small default
+	icon too
+	* winprefs.h, winprefs.c (winOverrideDefaultIcon): Takes the iconsize
+	as parameter
+
+2004-05-19  Alexander Gottwald  <ago@freedesktop.org>
+
+	* win.h, winmultiwindowicons.c (winXIconToHICON): Takes iconsize
+	as parameter 
+	* winglobals.c, winmultiwindowicons.c: Rename g_hiconX to g_hIconX.
+	Added new variable g_hSmallIconX for 16x16 icon.
+	* winwindow.h, winmultiwindowicons.c (winInitGlobalIcons): Inits the 
+	global g_hIconX handles.
+	* winwindow.h, winmultiwindowicons.c (winDestroyIcon): Free the icon
+	without messing with the global icon handle. 
+	* winmultiwindowicons.c (winSelectIcons): Generate a custom icon from
+	window settigns or set them to globals.
+	* winmultiwindowshape.c, winmultiwindowwindow.c, winwin32rootless.c,
+	  winwin32rootlesswindow.c, winwin32rootlesswndproc.c: Remove 
+	declaration of g_hiconX;
+	* winmultiwindowwindow.c (winCreateWindowsWindow),
+	  winwin32rootless.c (winMWExtWMCreateFrame): Use winSelectIcons 
+	to get the window icons. Set the small icon too.
+	* winmultiwindowwindow.c (winDestroyWindowsWindow),
+	  winmultiwindowicons.c (winUpdateIcon), 
+	  winprefs.c (ReloadEnumWindowsProc),
+	  winwin32rootlesswindow.c (winMWExtWMUpdateIcon),
+	  winwin32rootless.c (winMWExtWMDestroyFrame): Use winDestroyIcon
+	to free the icon without destroying the global icon.  
+	  
+2004-05-17  Alexander Gottwald  <ago@freedesktop.org>
+
+	* windialogs.c (winExitDlgProc, winAboutDlgProc),
+	  winmultiwindowwndproc.c (winTopLevelWindowProc),
+	  winwndproc.c (winWindowProc): Check if g_fSoftwareCursor is set 
+	before calling ShowCursor.  
+
+2004-05-09  Dan Wilks  <Dan_Wilks@intuit.com>
+    
+	* winclipboard.h: Add extern prototypes for winDebug, winErrorFVerb
+	copied from winmsg.h.
+	* winclipboardinit.c (winFixClipboardChain): Post rather than send the
+	reinit message to the clipboard window.  Sending the message caused,
+	or possibly just exacerbated an existing, race condition that would
+	cause the X server to hang when coming back from a remote desktop
+	session.
+	* winclipboardwndproc.c (winProcessXEventsTimeout): switch to new
+	logging api's.
+	* winclipboardwindproc.c (winClipboardWindowProc): switch to new 
+	logging api's.  Add some additional debug logging.  Make best effort 
+	to prevent our window appearing twice in the clipboard chain.  Also 
+	detect loops when they occur and try to behave in a reasonable way.

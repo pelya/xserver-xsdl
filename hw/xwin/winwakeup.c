@@ -34,6 +34,16 @@
 
 #include "win.h"
 
+
+/*
+ * References to external symbols
+ */
+
+extern HWND			g_hDlgDepthChange;
+extern HWND			g_hDlgExit;
+extern HWND			g_hDlgAbout;
+
+
 /* See Porting Layer Definition - p. 7 */
 void
 winWakeupHandler (int nScreen,
@@ -41,9 +51,7 @@ winWakeupHandler (int nScreen,
 		  unsigned long ulResult,
 		  pointer pReadmask)
 {
-#if 0
   winScreenPriv((ScreenPtr)pWakeupData);
-#endif
   MSG			msg;
 
   /* Process all messages on our queue */
@@ -52,12 +60,11 @@ winWakeupHandler (int nScreen,
       if ((g_hDlgDepthChange == 0
 	   || !IsDialogMessage (g_hDlgDepthChange, &msg))
 	  && (g_hDlgExit == 0
-	      || !IsDialogMessage (g_hDlgExit, &msg)))
+	      || !IsDialogMessage (g_hDlgExit, &msg))
+	  && (g_hDlgAbout == 0
+	      || !IsDialogMessage (g_hDlgAbout, &msg)))
 	{
 	  DispatchMessage (&msg);
 	}
     }
-  winReorderWindowsMultiWindow ((ScreenPtr)pWakeupData);
 }
-
-

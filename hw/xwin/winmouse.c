@@ -34,7 +34,23 @@
 
 #include "win.h"
 
-void
+#if defined(XFree86Server) && defined(XINPUT)
+#include "inputstr.h"
+
+/* Peek the internal button mapping */
+static CARD8 const *g_winMouseButtonMap = NULL;
+#endif
+
+
+/*
+ * Local prototypes
+ */
+
+static void
+winMouseCtrl (DeviceIntPtr pDevice, PtrCtrl *pCtrl);
+
+
+static void
 winMouseCtrl (DeviceIntPtr pDevice, PtrCtrl *pCtrl)
 {
 }
@@ -65,6 +81,10 @@ winMouseProc (DeviceIntPtr pDeviceInt, int iState)
 			       miPointerGetMotionEvents,
 			       winMouseCtrl,
 			       miPointerGetMotionBufferSize ());
+
+#if defined(XFree86Server) && defined(XINPUT)
+      g_winMouseButtonMap = pDeviceInt->button->map;
+#endif
       break;
 
     case DEVICE_ON:
@@ -72,6 +92,9 @@ winMouseProc (DeviceIntPtr pDeviceInt, int iState)
       break;
 
     case DEVICE_CLOSE:
+#if defined(XFree86Server) && defined(XINPUT)
+      g_winMouseButtonMap = NULL;
+#endif
     case DEVICE_OFF:
       pDevice->on = FALSE;
       break;
@@ -85,7 +108,7 @@ int
 winMouseWheel (ScreenPtr pScreen, int iDeltaZ)
 {
   winScreenPriv(pScreen);
-  xEvent		xCurrentEvent;
+  int button; /* Button4 or Button5 */
 
   /* Button4 = WheelUp */
   /* Button5 = WheelDown */
@@ -136,11 +159,11 @@ winMouseWheel (ScreenPtr pScreen, int iDeltaZ)
   /* Set the button to indicate up or down wheel delta */
   if (iDeltaZ > 0)
     {
-      xCurrentEvent.u.u.detail = Button4;
+      button = Button4;
     }
   else
     {
-      xCurrentEvent.u.u.detail = Button5;
+      button = Button5;
     }
 
   /*
@@ -157,16 +180,10 @@ winMouseWheel (ScreenPtr pScreen, int iDeltaZ)
   while (iDeltaZ--)
     {
       /* Push the wheel button */
-      xCurrentEvent.u.u.type = ButtonPress;
-      xCurrentEvent.u.keyButtonPointer.time
-	= g_c32LastInputEventTime = GetTickCount ();
-      mieqEnqueue (&xCurrentEvent);
+      winMouseButtonsSendEvent (ButtonPress, button);
 
       /* Release the wheel button */
-      xCurrentEvent.u.u.type = ButtonRelease;
-      xCurrentEvent.u.keyButtonPointer.time
-	= g_c32LastInputEventTime = GetTickCount ();
-      mieqEnqueue (&xCurrentEvent);
+      winMouseButtonsSendEvent (ButtonRelease, button);
     }
 
   return 0;
@@ -184,6 +201,11 @@ winMouseButtonsSendEvent (int iEventType, int iButton)
 
   /* Load an xEvent and enqueue the event */
   xCurrentEvent.u.u.type = iEventType;
+#if defined(XFree86Server) && defined(XINPUT)
+  if (g_winMouseButtonMap)
+    xCurrentEvent.u.u.detail = g_winMouseButtonMap[iButton];
+  else
+#endif
   xCurrentEvent.u.u.detail = iButton;
   xCurrentEvent.u.keyButtonPointer.time
     = g_c32LastInputEventTime = GetTickCount ();

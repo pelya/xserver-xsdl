@@ -29,9 +29,40 @@
 /* $XFree86: xc/programs/Xserver/hw/xwin/InitInput.c,v 1.11 2002/07/05 09:19:25 alanh Exp $ */
 
 #include "win.h"
-#include "../../Xext/xf86miscproc.h"
+#ifdef XWIN_CLIPBOARD
+# include "../../Xext/xf86miscproc.h"
+#endif
+#include "dixstruct.h"
 
-CARD32		g_c32LastInputEventTime = 0;
+
+/*
+ * Local function prototypes
+ */
+
+#ifdef XWIN_CLIPBOARD
+DISPATCH_PROC(winProcEstablishConnection);
+DISPATCH_PROC(winProcQueryTree);
+DISPATCH_PROC(winProcSetSelectionOwner);
+#endif
+
+
+/*
+ * Local global declarations
+ */
+
+CARD32				g_c32LastInputEventTime = 0;
+
+
+/*
+ * References to external symbols
+ */
+
+extern int			g_fdMessageQueue;
+extern Bool			g_fXdmcpEnabled;
+#ifdef XWIN_CLIPBOARD
+extern winDispatchProcPtr	winProcEstablishConnectionOrig;
+extern winDispatchProcPtr	winProcQueryTreeOrig;
+#endif
 
 
 /* Called from dix/devices.c */
@@ -87,7 +118,24 @@ InitInput (int argc, char *argv[])
   DeviceIntPtr		pMouse, pKeyboard;
 
 #if CYGDEBUG
-  ErrorF ("InitInput\n");
+  winDebug ("InitInput\n");
+#endif
+
+#ifdef XWIN_CLIPBOARD
+  /*
+   * Wrap some functions at every generation of the server.
+   */
+  if (InitialVector[2] != winProcEstablishConnection)
+    {
+      winProcEstablishConnectionOrig = InitialVector[2];
+      InitialVector[2] = winProcEstablishConnection;
+    }
+  if (g_fXdmcpEnabled
+      && ProcVector[X_QueryTree] != winProcQueryTree)
+    {
+      winProcQueryTreeOrig = ProcVector[X_QueryTree];
+      ProcVector[X_QueryTree] = winProcQueryTree;
+    }
 #endif
 
   pMouse = AddInputDevice (winMouseProc, TRUE);
@@ -118,36 +166,8 @@ InitInput (int argc, char *argv[])
       AddEnabledDevice (g_fdMessageQueue);
     }
 
-#if 0
-  {
-    MiscExtReturn ret;
-    pointer kbd;
-    
-#if 0
-    if ((kbd = MiscExtCreateStruct(MISC_KEYBOARD)) == (pointer) 0)
-      return BadAlloc;
-#else
-    kbd = MiscExtCreateStruct (MISC_KEYBOARD);
-#endif
-    
-    MiscExtSetKbdValue(kbd, MISC_KBD_TYPE,	        0);
-    MiscExtSetKbdValue(kbd, MISC_KBD_RATE,		0);
-    MiscExtSetKbdValue(kbd, MISC_KBD_DELAY,		0);
-    MiscExtSetKbdValue(kbd, MISC_KBD_SERVNUMLOCK,	0);
-    
-    switch ((ret = MiscExtApply (kbd, MISC_KEYBOARD)))
-      {
-      case MISC_RET_SUCCESS:      break;
-      case MISC_RET_BADVAL:
-      case MISC_RET_BADKBDTYPE:
-      default:
-	ErrorF ("Unexpected return from MiscExtApply(KEYBOARD) = %d\n", ret);
-      }
-  }
-#endif
-
 #if CYGDEBUG
-  ErrorF ("InitInput - returning\n");
+  winDebug ("InitInput - returning\n");
 #endif
 }
 

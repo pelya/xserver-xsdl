@@ -1,3 +1,5 @@
+#ifndef __WIN_MSG_H__
+#define __WIN_MSG_H__
 /*
  *Copyright (C) 1994-2000 The XFree86 Project, Inc. All Rights Reserved.
  *
@@ -29,8 +31,6 @@
  */
 /* $XFree86$ */
 
-#ifndef __WIN_MSG_H__
-#define __WIN_MSG_H__
 
 /*
  * Function prototypes
@@ -41,7 +41,10 @@ void winDrvMsgVerb (int scrnIndex,
 void winDrvMsg (int scrnIndex, MessageType type, const char *format, ...);
 void winMsgVerb (MessageType type, int verb, const char *format, ...);
 void winMsg (MessageType type, const char *format, ...);
+void winDebug (const char *format, ...);
 
 void winErrorFVerb (int verb, const char *format, ...);
+void winW32Error(int verb, const char *message);
+void winW32ErrorEx(int verb, const char *message, DWORD errorcode);
 
 #endif

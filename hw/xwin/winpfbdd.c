@@ -36,17 +36,41 @@
 
 
 /*
- * External global variables
+ * External symbols
  */
 
-extern const GUID _IID_IDirectDraw2;
+extern const GUID		_IID_IDirectDraw2;
+extern HWND			g_hDlgExit;
+
+
+/*
+ * Local function prototypes
+ */
+
+static Bool
+winAllocateFBPrimaryDD (ScreenPtr pScreen);
+
+static Bool
+winCloseScreenPrimaryDD (int nIndex, ScreenPtr pScreen);
+
+static Bool
+winInitVisualsPrimaryDD (ScreenPtr pScreen);
+
+static Bool
+winAdjustVideoModePrimaryDD (ScreenPtr pScreen);
+
+static Bool
+winActivateAppPrimaryDD (ScreenPtr pScreen);
+
+static Bool
+winHotKeyAltTabPrimaryDD (ScreenPtr pScreen);
 
 
 /*
  * Create a DirectDraw primary surface 
  */
 
-Bool
+static Bool
 winAllocateFBPrimaryDD (ScreenPtr pScreen)
 {
   winScreenPriv(pScreen);
@@ -77,7 +101,7 @@ winAllocateFBPrimaryDD (ScreenPtr pScreen)
   if (FAILED (ddrval))
     {
       ErrorF ("winAllocateFBShadowDD - Failed DD2 query: %08x\n",
-	      ddrval);
+	      (unsigned int) ddrval);
       return FALSE;
     }
 
@@ -131,7 +155,7 @@ winAllocateFBPrimaryDD (ScreenPtr pScreen)
 				       NULL);
   if (FAILED (ddrval))
        FatalError ("winAllocateFBPrimaryDD - Could not create primary "
-		  "surface %08x\n", ddrval);
+		  "surface %08x\n", (unsigned int) ddrval);
 
   ErrorF ("winAllocateFBPrimaryDD - Created primary\n");
 
@@ -222,7 +246,7 @@ winAllocateFBPrimaryDD (ScreenPtr pScreen)
  * Free our resources and private structures.
  */
 
-Bool
+static Bool
 winCloseScreenPrimaryDD (int nIndex, ScreenPtr pScreen)
 {
   winScreenPriv(pScreen);
@@ -305,7 +329,7 @@ winCloseScreenPrimaryDD (int nIndex, ScreenPtr pScreen)
  * to verify that last sentence.
  */
 
-Bool
+static Bool
 winInitVisualsPrimaryDD (ScreenPtr pScreen)
 {
   winScreenPriv(pScreen);
@@ -326,10 +350,10 @@ winInitVisualsPrimaryDD (ScreenPtr pScreen)
     pScreenPriv->dwBitsPerRGB = dwBlueBits;
   
   ErrorF ("winInitVisualsPrimaryDD - Masks: %08x %08x %08x bpRGB: %d\n",
-	  pScreenPriv->dwRedMask,
-	  pScreenPriv->dwGreenMask,
-	  pScreenPriv->dwBlueMask,
-	  pScreenPriv->dwBitsPerRGB);
+	  (unsigned int) pScreenPriv->dwRedMask,
+	  (unsigned int) pScreenPriv->dwGreenMask,
+	  (unsigned int) pScreenPriv->dwBlueMask,
+	  (int) pScreenPriv->dwBitsPerRGB);
 
   /* Create a single visual according to the Windows screen depth */
   switch (pScreenInfo->dwDepth)
@@ -353,7 +377,7 @@ winInitVisualsPrimaryDD (ScreenPtr pScreen)
 
     case 8:
 #if CYGDEBUG
-      ErrorF ("winInitVisuals - Calling miSetVisualTypesAndMasks\n");
+      winDebug ("winInitVisuals - Calling miSetVisualTypesAndMasks\n");
 #endif /* CYGDEBUG */
       if (!miSetVisualTypesAndMasks (pScreenInfo->dwDepth,
 				     PseudoColorMask,
@@ -368,7 +392,7 @@ winInitVisualsPrimaryDD (ScreenPtr pScreen)
 	  return FALSE;
 	}
 #if CYGDEBUG
-      ErrorF ("winInitVisualsPrimaryDD - Returned from "
+      winDebug ("winInitVisualsPrimaryDD - Returned from "
 	      "miSetVisualTypesAndMasks\n");
 #endif /* CYGDEBUG */
       break;
@@ -384,7 +408,7 @@ winInitVisualsPrimaryDD (ScreenPtr pScreen)
 }
 
 
-Bool
+static Bool
 winAdjustVideoModePrimaryDD (ScreenPtr pScreen)
 {
   winScreenPriv(pScreen);
@@ -408,7 +432,7 @@ winAdjustVideoModePrimaryDD (ScreenPtr pScreen)
     {
       /* No -depth parameter passed, let the user know the depth being used */
       ErrorF ("winAdjustVideoModePrimaryDD - Using Windows display "
-	      "depth of %d bits per pixel\n", dwBPP);
+	      "depth of %d bits per pixel\n", (int) dwBPP);
 
       /* Use GDI's depth */
       pScreenInfo->dwBPP = dwBPP;
@@ -418,14 +442,14 @@ winAdjustVideoModePrimaryDD (ScreenPtr pScreen)
     {
       /* FullScreen, and GDI depth differs from -depth parameter */
       ErrorF ("winAdjustVideoModePrimaryDD - FullScreen, using command "
-	      "line depth: %d\n", pScreenInfo->dwBPP);
+	      "line depth: %d\n", (int) pScreenInfo->dwBPP);
     }
   else if (dwBPP != pScreenInfo->dwBPP)
     {
       /* Windowed, and GDI depth differs from -depth parameter */
       ErrorF ("winAdjustVideoModePrimaryDD - Windowed, command line "
 	      "depth: %d, using depth: %d\n",
-	      pScreenInfo->dwBPP, dwBPP);
+	      (int) pScreenInfo->dwBPP, (int) dwBPP);
 
       /* We'll use GDI's depth */
       pScreenInfo->dwBPP = dwBPP;
@@ -444,7 +468,7 @@ winAdjustVideoModePrimaryDD (ScreenPtr pScreen)
  * the fb code back to the primary surface memory.
  */
 
-Bool
+static Bool
 winActivateAppPrimaryDD (ScreenPtr pScreen)
 {
   winScreenPriv(pScreen);
@@ -498,7 +522,7 @@ winActivateAppPrimaryDD (ScreenPtr pScreen)
 				    NULL);
   if (ddrval != DD_OK)
     FatalError ("winActivateAppPrimaryDD () - Failed blitting offscreen "
-		"surface to primary surface %08x\n", ddrval);
+		"surface to primary surface %08x\n", (unsigned int) ddrval);
   
   /* Lock the primary surface */
   ddrval = IDirectDrawSurface2_Lock (pScreenPriv->pddsPrimary,
@@ -533,7 +557,7 @@ winActivateAppPrimaryDD (ScreenPtr pScreen)
  * fb for the duration of the deactivation.
  */
 
-Bool
+static Bool
 winHotKeyAltTabPrimaryDD (ScreenPtr pScreen)
 {
   winScreenPriv(pScreen);
@@ -596,12 +620,12 @@ winHotKeyAltTabPrimaryDD (ScreenPtr pScreen)
       if (FAILED (ddrval))
 	FatalError ("winHotKeyAltTabPrimaryDD - Failed blitting primary "
 		    "surface to offscreen surface: %08x\n",
-		    ddrval);
+		    (unsigned int) ddrval);
     }
   else
     {
       FatalError ("winHotKeyAltTabPrimaryDD - Unknown error from "
-		  "Blt: %08dx\n", ddrval);
+		  "Blt: %08dx\n", (unsigned int) ddrval);
     }
 
   /* Lock the offscreen surface */
@@ -636,7 +660,7 @@ winSetEngineFunctionsPrimaryDD (ScreenPtr pScreen)
   /* Set our pointers */
   pScreenPriv->pwinAllocateFB = winAllocateFBPrimaryDD;
   pScreenPriv->pwinShadowUpdate
-    = (winShadowUpdateProcPtr) (void (*)())NoopDDA;
+    = (winShadowUpdateProcPtr) (void (*)(void))NoopDDA;
   pScreenPriv->pwinCloseScreen = winCloseScreenPrimaryDD;
   pScreenPriv->pwinInitVisuals = winInitVisualsPrimaryDD;
   pScreenPriv->pwinAdjustVideoMode = winAdjustVideoModePrimaryDD;
@@ -646,9 +670,13 @@ winSetEngineFunctionsPrimaryDD (ScreenPtr pScreen)
     pScreenPriv->pwinCreateBoundingWindow = winCreateBoundingWindowWindowed;
   pScreenPriv->pwinFinishScreenInit = winFinishScreenInitFB;
   pScreenPriv->pwinBltExposedRegions
-    = (winBltExposedRegionsProcPtr) (void (*)())NoopDDA;
+    = (winBltExposedRegionsProcPtr) (void (*)(void))NoopDDA;
   pScreenPriv->pwinActivateApp = winActivateAppPrimaryDD;
   pScreenPriv->pwinHotKeyAltTab = winHotKeyAltTabPrimaryDD;
+#ifdef XWIN_MULTIWINDOW
+  pScreenPriv->pwinFinishCreateWindowsWindow =
+    (winFinishCreateWindowsWindowProcPtr) (void (*)(void))NoopDDA;
+#endif
 
   return TRUE;
 }

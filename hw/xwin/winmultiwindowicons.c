@@ -39,7 +39,8 @@
  * External global variables
  */
 
-extern HICON		g_hiconX;
+extern HICON		g_hIconX;
+extern HICON		g_hSmallIconX;
 
 
 /*
@@ -71,26 +72,39 @@ winScaleXBitmapToWindows (int iconSize,
   unsigned int		zero;
   unsigned int		color;
 
+  effXBPP = BitsPerPixel(pixmap->drawable.depth);
+  effXDepth = pixmap->drawable.depth;
 
   if (pixmap->drawable.bitsPerPixel == 15)
     effXBPP = 16;
-  else
-    effXBPP = pixmap->drawable.bitsPerPixel;
   
   if (pixmap->drawable.depth == 15)
     effXDepth = 16;
-  else
-    effXDepth = pixmap->drawable.depth;
 
   /* Need 32-bit aligned rows */
   stride = ((iconSize * effBPP + 31) & (~31)) / 8;
-  xStride  = ((pixmap->drawable.width * effXBPP + 31) & (~31)) / 8;
-  
+  xStride = PixmapBytePad (pixmap->drawable.width, pixmap->drawable.depth);
+  if (stride == 0 || xStride == 0)
+    {
+      ErrorF ("winScaleXBitmapToWindows - stride or xStride is zero.  "
+	      "Bailing.\n");
+      return;
+    }
+
+  /* Allocate memory for icon data */
   iconData = malloc (xStride * pixmap->drawable.height);
+  if (!iconData)
+    {
+      ErrorF ("winScaleXBitmapToWindows - malloc failed for iconData.  "
+	      "Bailing.\n");
+      return;
+    }
+
+  /* Get icon data */
   miGetImage ((DrawablePtr) &(pixmap->drawable), 0, 0,
 	      pixmap->drawable.width, pixmap->drawable.height,
 	      ZPixmap, 0xffffffff, iconData);
-  
+
   /* Keep aspect ratio */
   factX = ((float)pixmap->drawable.width) / ((float)iconSize);
   factY = ((float)pixmap->drawable.height) / ((float)iconSize);
@@ -250,13 +264,13 @@ winScaleXBitmapToWindows (int iconSize,
  */
 
 HICON
-winXIconToHICON (WindowPtr pWin)
+winXIconToHICON (WindowPtr pWin, int iconSize)
 {
   unsigned char		*mask, *image, *imageMask;
   unsigned char		*dst, *src;
   PixmapPtr		iconPtr;
   PixmapPtr		maskPtr;
-  int			iconSize, planes, bpp, effBPP, stride, maskStride, i;
+  int			planes, bpp, effBPP, stride, maskStride, i;
   HDC			hDC;
   ICONINFO		ii;
   WinXWMHints		hints;
@@ -268,8 +282,6 @@ winXIconToHICON (WindowPtr pWin)
   iconPtr = LookupIDByType (hints.icon_pixmap, RT_PIXMAP);
   
   if (!iconPtr) return NULL;
-  
-  iconSize = 32;
   
   hDC = GetDC (GetDesktopWindow ());
   planes = GetDeviceCaps (hDC, PLANES);
@@ -357,7 +369,7 @@ winUpdateIcon (Window id)
   hIcon = (HICON)winOverrideIcon ((unsigned long)pWin);
 
   if (!hIcon)
-    hIcon = winXIconToHICON (pWin);
+    hIcon = winXIconToHICON (pWin, GetSystemMetrics(SM_CXICON));
 
   if (hIcon)
     {
@@ -370,9 +382,92 @@ winUpdateIcon (Window id)
 					   (int) hIcon);
 	  
 	  /* Delete the icon if its not the default */
-	  if (hiconOld != g_hiconX &&
-	      !winIconIsOverride((unsigned long)hiconOld))
-	    DeleteObject (hiconOld);
+	  winDestroyIcon(hiconOld);
 	}
     }
+ 
+  hIcon = winXIconToHICON (pWin, GetSystemMetrics(SM_CXSMICON));
+  if (hIcon)
+    {
+      winWindowPriv(pWin);
+
+      if (pWinPriv->hWnd)
+	{
+	  hiconOld = (HICON) SetClassLong (pWinPriv->hWnd,
+					   GCL_HICONSM,
+					   (int) hIcon);
+	  winDestroyIcon (hiconOld);
+	}
+    }
+}
+
+void winInitGlobalIcons (void)
+{
+  int sm_cx = GetSystemMetrics(SM_CXICON);
+  int sm_cxsm = GetSystemMetrics(SM_CXSMICON);
+  /* Load default X icon in case it's not ready yet */
+  if (!g_hIconX) 
+    {  
+      g_hIconX = (HICON)winOverrideDefaultIcon(sm_cx);
+      g_hSmallIconX = (HICON)winOverrideDefaultIcon(sm_cxsm);
+    }
+  
+  if (!g_hIconX)
+    {   
+      g_hIconX = (HICON)LoadImage (g_hInstance,
+	      MAKEINTRESOURCE(IDI_XWIN),
+	      IMAGE_ICON,
+	      GetSystemMetrics(SM_CXICON),
+	      GetSystemMetrics(SM_CYICON),
+	      0);
+      g_hSmallIconX = (HICON)LoadImage (g_hInstance,
+	      MAKEINTRESOURCE(IDI_XWIN),
+	      IMAGE_ICON,
+	      GetSystemMetrics(SM_CXSMICON),
+	      GetSystemMetrics(SM_CYSMICON),
+	      LR_DEFAULTSIZE);
+    }
+}
+
+void winSelectIcons(WindowPtr pWin, HICON *pIcon, HICON *pSmallIcon)
+{
+  HICON hIcon, hSmallIcon;
+  
+  winInitGlobalIcons();  
+  
+  /* Try and get the icon from WM_HINTS */
+  hIcon = winXIconToHICON (pWin, GetSystemMetrics(SM_CXICON));
+  hSmallIcon = winXIconToHICON (pWin, GetSystemMetrics(SM_CXSMICON));
+
+  /* If we got the small, but not the large one swap them */
+  if (!hIcon && hSmallIcon) 
+  {
+      hIcon = hSmallIcon;
+      hSmallIcon = NULL;
+  }
+  
+  /* Use default X icon if no icon loaded from WM_HINTS */
+  if (!hIcon) {
+    hIcon = g_hIconX;
+    hSmallIcon = g_hSmallIconX;
+  }
+
+  if (pIcon)
+    *pIcon = hIcon;
+  else
+    winDestroyIcon(hIcon);
+  if (pSmallIcon)
+    *pSmallIcon = hSmallIcon;
+  else
+    winDestroyIcon(hSmallIcon);
+}
+
+void winDestroyIcon(HICON hIcon)
+{
+  /* Delete the icon if its not the default */
+  if (hIcon &&
+      hIcon != g_hIconX &&
+      hIcon != g_hSmallIconX &&
+      !winIconIsOverride((unsigned long)hIcon))
+    DestroyIcon (hIcon);
 }

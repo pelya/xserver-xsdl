@@ -34,6 +34,62 @@
 /* $XFree86: xc/programs/Xserver/hw/xwin/winscrinit.c,v 1.27 2003/07/29 21:25:18 dawes Exp $ */
 
 #include "win.h"
+#include "winmsg.h"
+#include "safeAlpha.h"	
+
+
+#ifdef XWIN_MULTIWINDOWEXTWM
+static RootlessFrameProcsRec
+winMWExtWMProcs = {	
+  winMWExtWMCreateFrame,
+  winMWExtWMDestroyFrame,
+  
+  winMWExtWMMoveFrame,
+  winMWExtWMResizeFrame,
+  winMWExtWMRestackFrame,
+  winMWExtWMReshapeFrame,
+  winMWExtWMUnmapFrame,
+  
+  winMWExtWMStartDrawing,
+  winMWExtWMStopDrawing,
+  winMWExtWMUpdateRegion,
+#ifndef ROOTLESS_TRACK_DAMAGE
+  winMWExtWMDamageRects,
+#endif
+  winMWExtWMRootlessSwitchWindow,
+  
+  NULL,//winMWExtWMCopyBytes,
+  NULL,//winMWExtWMFillBytes,
+  NULL,//winMWExtWMCompositePixels,
+  winMWExtWMCopyWindow
+};
+#endif
+
+
+/*
+ * References to external symbols
+ */
+
+extern winScreenInfo		g_ScreenInfo[];
+extern miPointerScreenFuncRec	g_winPointerCursorFuncs;
+extern int			g_iScreenPrivateIndex;
+extern Bool                     g_fSoftwareCursor;
+
+
+/*
+ * Prototypes
+ */
+
+Bool
+winRandRInit (ScreenPtr pScreen);
+
+
+/*
+ * Local functions
+ */
+
+static Bool
+winSaveScreen (ScreenPtr pScreen, int on);
 
 
 /*
@@ -51,8 +107,8 @@ winScreenInit (int index,
   winPrivScreenPtr	pScreenPriv;
   HDC			hdc;
 
-#if CYGDEBUG
-  ErrorF ("winScreenInit - dwWidth: %d dwHeight: %d\n",
+#if CYGDEBUG || YES
+  winDebug ("winScreenInit - dwWidth: %ld dwHeight: %ld\n",
 	  pScreenInfo->dwWidth, pScreenInfo->dwHeight);
 #endif
 
@@ -98,7 +154,7 @@ winScreenInit (int index,
       ErrorF ("winScreenInit - Unsupported display depth: %d\n" \
 	      "Change your Windows display depth to 15, 16, 24, or 32 bits "
 	      "per pixel.\n",
-	      pScreenInfo->dwBPP);
+	      (int) pScreenInfo->dwBPP);
       ErrorF ("winScreenInit - Supported depths: %08x\n",
 	      WIN_SUPPORTED_BPPS);
 #if WIN_CHECK_DEPTH
@@ -177,8 +233,13 @@ winScreenInit (int index,
       return FALSE;
     }
 
+  if (!g_fSoftwareCursor)
+    winInitCursor(pScreen);
+  else
+    winErrorFVerb(2, "winScreenInit - Using software cursor\n");  
+
 #if CYGDEBUG || YES
-  ErrorF ("winScreenInit - returning\n");
+  winDebug ("winScreenInit - returning\n");
 #endif
 
   return TRUE;
@@ -197,10 +258,6 @@ winFinishScreenInitFB (int index,
   char			*pbits = NULL;
   int			iReturn;
 
-#if WIN_LAYER_SUPPORT
-  pScreenPriv->dwLayerKind = LAYER_SHADOW;
-#endif
-
   /* Create framebuffer */
   if (!(*pScreenPriv->pwinAllocateFB) (pScreen))
     {
@@ -218,9 +275,10 @@ winFinishScreenInitFB (int index,
       + winCountBits (pScreenPriv->dwGreenMask)
       + winCountBits (pScreenPriv->dwBlueMask);
   
-  ErrorF ("winFinishScreenInitFB - Masks: %08x %08x %08x\n",
-	  pScreenPriv->dwRedMask, pScreenPriv->dwGreenMask,
-	  pScreenPriv->dwBlueMask);
+  winErrorFVerb (2, "winFinishScreenInitFB - Masks: %08x %08x %08x\n",
+	  (unsigned int) pScreenPriv->dwRedMask,
+	  (unsigned int) pScreenPriv->dwGreenMask,
+	  (unsigned int) pScreenPriv->dwBlueMask);
 
   /* Init visuals */
   if (!(*pScreenPriv->pwinInitVisuals) (pScreen))
@@ -255,13 +313,7 @@ winFinishScreenInitFB (int index,
 	  || (pScreenInfo->dwEngine == WIN_SERVER_SHADOW_DD
 	      && pScreenInfo->fFullScreen)))
     {
-      pScreen->CreateColormap = winCreateColormap;
-      pScreen->DestroyColormap = winDestroyColormap;
-      pScreen->InstallColormap = winInstallColormap;
-      pScreen->UninstallColormap = winUninstallColormap;
-      pScreen->ListInstalledColormaps = winListInstalledColormaps;
-      pScreen->StoreColors = winStoreColors;
-      pScreen->ResolveColor = winResolveColor;
+      winSetColormapFunctions (pScreen);
 
       /*
        * NOTE: Setting whitePixel to 255 causes Magic 7.1 to allocate its
@@ -322,44 +374,13 @@ winFinishScreenInitFB (int index,
     }
 #endif
 
-#if WIN_LAYER_SUPPORT
-  /* KDrive does LayerStartInit right after fbPictureInit */
-  if (!LayerStartInit (pScreen))
-    {
-      ErrorF ("winFinishScreenInitFB - LayerStartInit () failed\n");
-      return FALSE;
-    }
-
-  /* Not sure what we're adding to shadow, but add it anyway */
-  if (!shadowAdd (pScreen, 0, pScreenPriv->pwinShadowUpdate, NULL, 0, 0))
-    {
-      ErrorF ("winFinishScreenInitFB - shadowAdd () failed\n");
-      return FALSE;
-    }
-
-  /* KDrive does LayerFinishInit right after LayerStartInit */
-  if (!LayerFinishInit (pScreen))
-    {
-      ErrorF ("winFinishScreenInitFB - LayerFinishInit () failed\n");
-      return FALSE;
-    }
-
-  /* KDrive does LayerCreate right after LayerFinishInit */
-  pScreenPriv->pLayer = winLayerCreate (pScreen);
-  if (!pScreenPriv->pLayer)
-    {
-      ErrorF ("winFinishScreenInitFB - winLayerCreate () failed\n");
-      return FALSE;
-    }
-  
-  /* KDrive does RandRInit right after LayerCreate */
 #ifdef RANDR
-  if (pScreenInfo->dwDepth != 8 && !winRandRInit (pScreen))
+  /* Initialize resize and rotate support */
+  if (!winRandRInit (pScreen))
     {
       ErrorF ("winFinishScreenInitFB - winRandRInit () failed\n");
       return FALSE;
     }
-#endif
 #endif
 
   /*
@@ -371,14 +392,14 @@ winFinishScreenInitFB (int index,
   /* KDrive does miDCInitialize right after miInitializeBackingStore */
   /* Setup the cursor routines */
 #if CYGDEBUG
-  ErrorF ("winFinishScreenInitFB - Calling miDCInitialize ()\n");
+  winDebug ("winFinishScreenInitFB - Calling miDCInitialize ()\n");
 #endif
   miDCInitialize (pScreen, &g_winPointerCursorFuncs);
 
   /* KDrive does winCreateDefColormap right after miDCInitialize */
   /* Create a default colormap */
 #if CYGDEBUG
-  ErrorF ("winFinishScreenInitFB - Calling winCreateDefColormap ()\n");
+  winDebug ("winFinishScreenInitFB - Calling winCreateDefColormap ()\n");
 #endif
   if (!winCreateDefColormap (pScreen))
     {
@@ -386,14 +407,17 @@ winFinishScreenInitFB (int index,
       return FALSE;
     }
 
-#if !WIN_LAYER_SUPPORT
   /* Initialize the shadow framebuffer layer */
-  if (pScreenInfo->dwEngine == WIN_SERVER_SHADOW_GDI
-      || pScreenInfo->dwEngine == WIN_SERVER_SHADOW_DD
-      || pScreenInfo->dwEngine == WIN_SERVER_SHADOW_DDNL)
+  if ((pScreenInfo->dwEngine == WIN_SERVER_SHADOW_GDI
+       || pScreenInfo->dwEngine == WIN_SERVER_SHADOW_DD
+       || pScreenInfo->dwEngine == WIN_SERVER_SHADOW_DDNL)
+#ifdef XWIN_MULTIWINDOWEXTWM
+      && !pScreenInfo->fMWExtWM
+#endif
+      )
     {
 #if CYGDEBUG
-      ErrorF ("winFinishScreenInitFB - Calling shadowInit ()\n");
+      winDebug ("winFinishScreenInitFB - Calling shadowInit ()\n");
 #endif
       if (!shadowInit (pScreen,
 		       pScreenPriv->pwinShadowUpdate,
@@ -403,10 +427,28 @@ winFinishScreenInitFB (int index,
 	  return FALSE;
 	}
     }
+
+#ifdef XWIN_MULTIWINDOWEXTWM
+  /* Handle multi-window external window manager mode */
+  if (pScreenInfo->fMWExtWM)
+    {
+      winDebug ("winScreenInit - MultiWindowExtWM - Calling RootlessInit\n");
+      
+      RootlessInit(pScreen, &winMWExtWMProcs);
+      
+      winDebug ("winScreenInit - MultiWindowExtWM - RootlessInit returned\n");
+      
+      rootless_CopyBytes_threshold = 0;
+      rootless_FillBytes_threshold = 0;
+      rootless_CompositePixels_threshold = 0;
+      /* FIXME: How many? Profiling needed? */
+      rootless_CopyWindow_threshold = 1;
+
+      winWindowsWMExtensionInit ();
+    }
 #endif
 
-
-  /* Handle pseudo-rootless mode */
+  /* Handle rootless mode */
   if (pScreenInfo->fRootless)
     {
       /* Define the WRAP macro temporarily for local use */
@@ -429,20 +471,23 @@ winFinishScreenInitFB (int index,
       WRAP(SetShape);
 #endif
 
-      /* Assign pseudo-rootless window procedures to be top level procedures */
-      pScreen->CreateWindow = winCreateWindowPRootless;
-      pScreen->DestroyWindow = winDestroyWindowPRootless;
-      pScreen->PositionWindow = winPositionWindowPRootless;
-      pScreen->ChangeWindowAttributes = winChangeWindowAttributesPRootless;
-      pScreen->RealizeWindow = winMapWindowPRootless;
-      pScreen->UnrealizeWindow = winUnmapWindowPRootless;
+      /* Assign rootless window procedures to be top level procedures */
+      pScreen->CreateWindow = winCreateWindowRootless;
+      pScreen->DestroyWindow = winDestroyWindowRootless;
+      pScreen->PositionWindow = winPositionWindowRootless;
+      pScreen->ChangeWindowAttributes = winChangeWindowAttributesRootless;
+      pScreen->RealizeWindow = winMapWindowRootless;
+      pScreen->UnrealizeWindow = winUnmapWindowRootless;
 #ifdef SHAPE
-      pScreen->SetShape = winSetShapePRootless;
+      pScreen->SetShape = winSetShapeRootless;
 #endif
 
       /* Undefine the WRAP macro, as it is not needed elsewhere */
 #undef WRAP
     }
+
+
+#ifdef XWIN_MULTIWINDOW
   /* Handle multi window mode */
   else if (pScreenInfo->fMultiWindow)
     {
@@ -464,6 +509,9 @@ winFinishScreenInitFB (int index,
       WRAP(ChangeWindowAttributes);
       WRAP(ReparentWindow);
       WRAP(RestackWindow);
+      WRAP(ResizeWindow);
+      WRAP(MoveWindow);
+      WRAP(CopyWindow);
 #ifdef SHAPE
       WRAP(SetShape);
 #endif
@@ -477,6 +525,9 @@ winFinishScreenInitFB (int index,
       pScreen->UnrealizeWindow = winUnmapWindowMultiWindow;
       pScreen->ReparentWindow = winReparentWindowMultiWindow;
       pScreen->RestackWindow = winRestackWindowMultiWindow;
+      pScreen->ResizeWindow = winResizeWindowMultiWindow;
+      pScreen->MoveWindow = winMoveWindowMultiWindow;
+      pScreen->CopyWindow = winCopyWindowMultiWindow;
 #ifdef SHAPE
       pScreen->SetShape = winSetShapeMultiWindow;
 #endif
@@ -484,12 +535,14 @@ winFinishScreenInitFB (int index,
       /* Undefine the WRAP macro, as it is not needed elsewhere */
 #undef WRAP
     }
+#endif
 
   /* Wrap either fb's or shadow's CloseScreen with our CloseScreen */
   pScreenPriv->CloseScreen = pScreen->CloseScreen;
   pScreen->CloseScreen = pScreenPriv->pwinCloseScreen;
 
-  /* Create a mutex for modules in seperate threads to wait for */
+#if defined(XWIN_CLIPBOARD) || defined(XWIN_MULTIWINDOW)
+  /* Create a mutex for modules in separate threads to wait for */
   iReturn = pthread_mutex_init (&pScreenPriv->pmServerStarted, NULL);
   if (iReturn != 0)
     {
@@ -498,7 +551,7 @@ winFinishScreenInitFB (int index,
       return FALSE;
     }
 
-  /* Own the mutex for modules in seperate threads */
+  /* Own the mutex for modules in separate threads */
   iReturn = pthread_mutex_lock (&pScreenPriv->pmServerStarted);
   if (iReturn != 0)
     {
@@ -509,15 +562,16 @@ winFinishScreenInitFB (int index,
 
   /* Set the ServerStarted flag to false */
   pScreenPriv->fServerStarted = FALSE;
+#endif
 
-  /* Set the WindowOrderChanged flag to false */
-  pScreenPriv->fWindowOrderChanged = FALSE;
-
+#ifdef XWIN_MULTIWINDOWEXTWM
   pScreenPriv->fRestacking = FALSE;
+#endif
 
+#ifdef XWIN_MULTIWINDOW
 #if CYGDEBUG || YES
   if (pScreenInfo->fMultiWindow)
-    ErrorF ("winFinishScreenInitFB - Calling winInitWM.\n");
+    winDebug ("winFinishScreenInitFB - Calling winInitWM.\n");
 #endif
 
   /* Initialize multi window mode */
@@ -531,21 +585,7 @@ winFinishScreenInitFB (int index,
       ErrorF ("winFinishScreenInitFB - winInitWM () failed.\n");
       return FALSE;
     }
-
-#if CYGDEBUG || YES
-  if (pScreenInfo->fClipboard)
-    ErrorF ("winFinishScreenInitFB - Calling winInitClipboard.\n");
 #endif
-
-  /* Initialize the clipboard manager */
-  if (pScreenInfo->fClipboard
-      && !winInitClipboard (&pScreenPriv->ptClipboardProc,
-			    &pScreenPriv->pmServerStarted,
-			    pScreenInfo->dwScreen))
-    {
-      ErrorF ("winFinishScreenInitFB - winClipboardInit () failed.\n");
-      return FALSE;
-    }
 
   /* Tell the server that we are enabled */
   pScreenPriv->fEnabled = TRUE;
@@ -554,27 +594,13 @@ winFinishScreenInitFB (int index,
   pScreenPriv->fBadDepth = FALSE;
 
 #if CYGDEBUG || YES
-  ErrorF ("winFinishScreenInitFB - returning\n");
+  winDebug ("winFinishScreenInitFB - returning\n");
 #endif
 
   return TRUE;
 }
 
-
-/*
- *
- *
- *
- *
- * TEST CODE BELOW - NOT USED IN NORMAL COMPILATION
- *
- *
- *
- *
- *
- */
-
-
+#ifdef XWIN_NATIVEGDI
 /* See Porting Layer Definition - p. 20 */
 
 Bool
@@ -677,11 +703,11 @@ winFinishScreenInitNativeGDI (int index,
 
   /* Colormap Routines */
   pScreen->CreateColormap = miInitializeColormap;
-  pScreen->DestroyColormap = (DestroyColormapProcPtr) (void (*)()) NoopDDA;
+  pScreen->DestroyColormap = (DestroyColormapProcPtr) (void (*)(void)) NoopDDA;
   pScreen->InstallColormap = miInstallColormap;
   pScreen->UninstallColormap = miUninstallColormap;
   pScreen->ListInstalledColormaps = miListInstalledColormaps;
-  pScreen->StoreColors = (StoreColorsProcPtr) (void (*)()) NoopDDA;
+  pScreen->StoreColors = (StoreColorsProcPtr) (void (*)(void)) NoopDDA;
   pScreen->ResolveColor = miResolveColor;
 
   /* Bitmap */
@@ -718,30 +744,16 @@ winFinishScreenInitNativeGDI (int index,
 
   ErrorF ("winFinishScreenInitNativeGDI - Successful addition of "
 	  "screen %08x\n",
-	  pScreen);
+	  (unsigned int) pScreen);
 
   return TRUE;
 }
+#endif
 
 
 /* See Porting Layer Definition - p. 33 */
-Bool
+static Bool
 winSaveScreen (ScreenPtr pScreen, int on)
 {
   return TRUE;
-}
-
-
-PixmapPtr
-winGetWindowPixmap (WindowPtr pwin)
-{
-  ErrorF ("winGetWindowPixmap ()\n");
-  return NULL;
-}
-
-
-void
-winSetWindowPixmap (WindowPtr pwin, PixmapPtr pPix)
-{
-  ErrorF ("winSetWindowPixmap ()\n");
 }

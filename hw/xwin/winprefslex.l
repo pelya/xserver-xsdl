@@ -37,7 +37,7 @@
 
 extern YYSTYPE yylval;
 extern char *yytext;
-extern int yyparse();
+extern int yyparse(void);
 
 extern void ErrorF (const char* /*f*/, ...);
 
@@ -62,31 +62,33 @@ static char *makestr(char *str)
 %option yylineno
 
 %%
-\#.*[\r\n]                                               { /* comment */ return NEWLINE; }
-\/\/.*[\r\n]                                             { /* comment */ return NEWLINE; }
-[\r\n]	                                             	 { return NEWLINE; }
-[ \t]+	                                             	 { /* ignore whitespace */ }
-[mM][eE][nN][uU]                                         { return MENU; }
-[iI][cC][oO][nN][dD][iI][rR][eE][cC][tT][oO][rR][yY]	 { return ICONDIRECTORY; }
-[dD][eE][fF][aA][uU][lL][tT][iI][cC][oO][nN]             { return DEFAULTICON; }
-[iI][cC][oO][nN][sS]                              	 { return ICONS; }
-[rR][oO][oO][tT][mM][eE][nN][uU]                         { return ROOTMENU; }
-[dD][eE][fF][aA][uU][lL][tT][sS][yY][sS][mM][eE][nN][uU] { return DEFAULTSYSMENU; }
-[sS][yY][sS][mM][eE][nN][uU]                             { return SYSMENU; }
-[sS][eE][pP][aA][rR][aA][tT][oO][rR]                     { return SEPARATOR; }
-[aA][tT][sS][tT][aA][rR][tT]                             { return ATSTART; }
-[aA][tT][eE][nN][dD]                                     { return ATEND; }
-[eE][xX][eE][cC]                                         { return EXEC; }
-[aA][lL][wW][aA][yY][sS][oO][nN][tT][oO][pP]             { return ALWAYSONTOP; }
-[dD][eE][bB][uU][gG]                                     { return DEBUG; }
-[rR][eE][lL][oO][aA][dD]                                 { return RELOAD; }
-"{"		                                         { return LB; }
-"}"		                                         { return RB; }
-"\""[^\"\r\n]+"\""                                       { yylval.sVal = makestr(yytext+1); \
-                                                           yylval.sVal[strlen(yylval.sVal)-1] = 0; \
-                                                           return STRING; }
-[^ \t\r\n]+                                              { yylval.sVal = makestr(yytext); \
-                                                           return STRING; }
+\#.*[\r\n]              { /* comment */ return NEWLINE; }
+\/\/.*[\r\n]            { /* comment */ return NEWLINE; }
+[\r\n]                  { return NEWLINE; }
+[ \t]+                  { /* ignore whitespace */ }
+MENU                    { return MENU; }
+ICONDIRECTORY           { return ICONDIRECTORY; }
+DEFAULTICON             { return DEFAULTICON; }
+ICONS                   { return ICONS; }
+ROOTMENU                { return ROOTMENU; }
+DEFAULTSYSMENU          { return DEFAULTSYSMENU; }
+SYSMENU                 { return SYSMENU; }
+SEPARATOR               { return SEPARATOR; }
+ATSTART                 { return ATSTART; }
+ATEND                   { return ATEND; }
+EXEC                    { return EXEC; }
+ALWAYSONTOP             { return ALWAYSONTOP; }
+DEBUG                   { return DEBUG; }
+RELOAD                  { return RELOAD; }
+TRAYICON                { return TRAYICON; }
+SILENTEXIT		{ return SILENTEXIT; }
+"{"                     { return LB; }
+"}"                     { return RB; }
+"\""[^\"\r\n]+"\""      { yylval.sVal = makestr(yytext+1); \
+                          yylval.sVal[strlen(yylval.sVal)-1] = 0; \
+                          return STRING; }
+[^ \t\r\n]+             { yylval.sVal = makestr(yytext); \
+                          return STRING; }
 %%
 
 /*
@@ -111,3 +113,4 @@ parse_file (FILE *file)
   yyin = file;
   yyparse ();
 }
+

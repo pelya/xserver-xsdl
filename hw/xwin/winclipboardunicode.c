@@ -1,5 +1,5 @@
 /*
- *Copyright (C) 1994-2000 The XFree86 Project, Inc. All Rights Reserved.
+ *Copyright (C) 2003-2004 Harold L Hunt II All Rights Reserved.
  *
  *Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -15,21 +15,20 @@
  *THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  *EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  *MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- *NONINFRINGEMENT. IN NO EVENT SHALL THE XFREE86 PROJECT BE LIABLE FOR
+ *NONINFRINGEMENT. IN NO EVENT SHALL HAROLD L HUNT II BE LIABLE FOR
  *ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
  *CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
  *WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
- *Except as contained in this notice, the name of the XFree86 Project
+ *Except as contained in this notice, the name of Harold L Hunt II
  *shall not be used in advertising or otherwise to promote the sale, use
  *or other dealings in this Software without prior written authorization
- *from the XFree86 Project.
+ *from Harold L Hunt II.
  *
  * Authors:	Harold L Hunt II
  */
-/* $XFree86: xc/programs/Xserver/hw/xwin/winclip.c,v 1.2 2001/06/04 13:04:41 alanh Exp $ */
 
-#include "win.h"
+#include "winclipboard.h"
 
 
 /*
@@ -38,13 +37,12 @@
  */
 
 Bool
-winClipboardDetectUnicodeSupport ()
+winClipboardDetectUnicodeSupport (void)
 {
   Bool			fReturn = FALSE;
-  OSVERSIONINFO		osvi;
+  OSVERSIONINFO		osvi = {0};
   
   /* Get operating system version information */
-  ZeroMemory (&osvi, sizeof (osvi));
   osvi.dwOSVersionInfoSize = sizeof (osvi);
   GetVersionEx (&osvi);
 
@@ -52,13 +50,13 @@ winClipboardDetectUnicodeSupport ()
   switch (osvi.dwPlatformId)
     {
     case VER_PLATFORM_WIN32_NT:
-      /* Engine 4 is supported on NT only */
+      /* Unicode supported on NT only */
       ErrorF ("DetectUnicodeSupport - Windows NT/2000/XP\n");
       fReturn = TRUE;
       break;
 
     case VER_PLATFORM_WIN32_WINDOWS:
-      /* Engine 4 is supported on NT only */
+      /* Unicode is not supported on non-NT */
       ErrorF ("DetectUnicodeSupport - Windows 95/98/Me\n");
       fReturn = FALSE;
       break;

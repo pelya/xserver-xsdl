@@ -40,8 +40,24 @@
 #	...
 # }
 
+# When specifying an ICONFILE in the following commands several different
+# formats are allowed:
+# 1. Name of a regular Windows .ico format file
+#    (ex:  "cygwin.ico", "apple.ico")
+# 2. Name and index into a Windows .DLL
+#    (ex: "c:\windows\system32\shell32.dll,4" gives the default folder icon
+#         "c:\windows\system32\shell32.dll,5" gives the floppy drive icon)
+# 3. Index into XWin.EXE internal ICON resource
+#    (ex: ",101" is the 1st icon inside XWin.exe)
+
 # To define where ICO files live (** Windows path**)
 # ICONDIRECTORY	<windows-path i.e. c:\cygwin\usr\icons>
+# NOTE: If you specify a fully qualified path to an ICON below
+#             (i.e. "c:\xxx" or "d:\xxxx")
+#       this ICONDIRECTORY will not be prepended
+
+# To change the taskbar icon use...
+# TRAYICON       <name-of-windows-ico-file-in-icondirectory>
 
 # To define a replacement for the standard X icon for apps w/o specified icons
 # DEFAULTICON	<name-of-windows-ico-file-in-icondirectory>
@@ -53,6 +69,8 @@
 # }
 # In the case where multiple matches occur, the first listed in the ICONS
 # section will be chosen.
+
+# To disable exit confirmation dialog add the line containing SilentExit
 
 # DEBUG <string> prints out the string to the XWin.log file
 
@@ -100,6 +118,8 @@ SysMenu {
 # Icons {
 # 	"xterm"	"uninstall.ico"
 # }
+
+# SilentExit
 
 DEBUG "Done parsing the configuration file..."
 

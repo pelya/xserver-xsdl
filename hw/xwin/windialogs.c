@@ -1,5 +1,5 @@
 /*
- *Copyright (C) 1994-2000 The XFree86 Project, Inc. All Rights Reserved.
+ *Copyright (C) 2003-2004 Harold L Hunt II All Rights Reserved.
  *
  *Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -15,31 +15,192 @@
  *THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  *EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  *MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- *NONINFRINGEMENT. IN NO EVENT SHALL THE XFREE86 PROJECT BE LIABLE FOR
+ *NONINFRINGEMENT. IN NO EVENT SHALL HAROLD L HUNT II BE LIABLE FOR
  *ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
  *CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
  *WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
- *Except as contained in this notice, the name of the XFree86 Project
+ *Except as contained in this notice, the name of Harold L Hunt II
  *shall not be used in advertising or otherwise to promote the sale, use
  *or other dealings in this Software without prior written authorization
- *from the XFree86 Project.
+ *from Harold L Hunt II.
  *
  * Authors:	Harold L Hunt II
+ *              Earle F. Philhower III
  */
-/* $XFree86: $ */
 
 #include "win.h"
+#include <sys/cygwin.h>
+#include <shellapi.h>
+#include "winprefs.h"
+
+
+/*
+ * References to external globals
+ */
 
 extern Bool			g_fCursor;
+extern HWND			g_hDlgDepthChange;
+extern HWND			g_hDlgExit;
+extern HWND			g_hDlgAbout;
+extern WINPREFS			pref;
+extern Bool			g_fClipboardStarted;
+extern Bool			g_fSoftwareCursor;
 
-BOOL CALLBACK
+
+/*
+ * Local function prototypes
+ */
+
+static BOOL CALLBACK
 winExitDlgProc (HWND hDialog, UINT message,
 		WPARAM wParam, LPARAM lParam);
 
-BOOL CALLBACK
+static BOOL CALLBACK
 winChangeDepthDlgProc (HWND hDialog, UINT message,
 		       WPARAM wParam, LPARAM lParam);
+
+static BOOL CALLBACK
+winAboutDlgProc (HWND hDialog, UINT message,
+		 WPARAM wParam, LPARAM lParam);
+
+
+static void
+winDrawURLWindow (LPARAM lParam);
+
+static LRESULT CALLBACK
+winURLWndProc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
+
+static void
+winOverrideURLButton (HWND hdlg, int id);
+
+static void
+winUnoverrideURLButton (HWND hdlg, int id);
+
+
+/*
+ * Owner-draw a button as a URL
+ */
+
+static void
+winDrawURLWindow (LPARAM lParam)
+{
+  DRAWITEMSTRUCT *draw;
+  char str[256];
+  RECT rect;
+  HFONT font;
+  COLORREF crText;
+  
+  draw = (DRAWITEMSTRUCT *) lParam;
+  GetWindowText (draw->hwndItem, str, sizeof(str));
+  str[255] = 0;
+  GetClientRect (draw->hwndItem, &rect);
+  
+  /* Color the button depending upon its state */
+  if (draw->itemState & ODS_SELECTED)
+    crText = RGB(128+64,0,0);
+  else if (draw->itemState & ODS_FOCUS)
+    crText = RGB(0,128+64,0);
+  else
+    crText = RGB(0,0,128+64);
+  SetTextColor (draw->hDC, crText);
+  
+  /* Create underlined font 14 high, standard dialog font */
+  font = CreateFont (-14, 0, 0, 0, FW_NORMAL, FALSE, TRUE, FALSE,
+		     0, 0, 0, 0, 0, "MS Sans Serif");
+  if (!font)
+    {
+      ErrorF ("winDrawURLWindow: Unable to create URL font, bailing.\n");
+      return;
+    }
+  /* Draw it */
+  SetBkMode (draw->hDC, OPAQUE);
+  SelectObject (draw->hDC, font);
+  DrawText (draw->hDC, str, strlen (str),&rect,DT_CENTER | DT_VCENTER);
+  /* Delete the created font, replace it with stock font */
+  DeleteObject (SelectObject (draw->hDC, GetStockObject (ANSI_VAR_FONT)));
+}
+
+
+/*
+ * WndProc for overridden buttons
+ */
+
+static LRESULT CALLBACK
+winURLWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+  WNDPROC origCB = NULL;
+  HCURSOR cursor;
+  
+  /* If it's a SetCursor message, tell it to the hand */
+  if (msg==WM_SETCURSOR) {
+    cursor = LoadCursor (NULL, IDC_HAND);
+    if (cursor)
+      SetCursor (cursor);
+    return TRUE;
+  }
+  origCB = (WNDPROC)GetWindowLong (hwnd, GWL_USERDATA);
+  /* Otherwise fall through to original WndProc */
+  if (origCB)
+    return CallWindowProc (origCB, hwnd, msg, wParam, lParam);
+  else
+    return FALSE;
+}
+
+
+/*
+ * Register and unregister the custom WndProc
+ */
+
+static void
+winOverrideURLButton (HWND hwnd, int id)
+{
+  WNDPROC origCB;
+  origCB = (WNDPROC)SetWindowLong (GetDlgItem (hwnd, id),
+				   GWL_WNDPROC, (LONG)winURLWndProc);
+  SetWindowLong (GetDlgItem (hwnd, id), GWL_USERDATA, (LONG)origCB);
+}
+
+static void
+winUnoverrideURLButton (HWND hwnd, int id)
+{
+  WNDPROC origCB;
+  origCB = (WNDPROC)SetWindowLong (GetDlgItem (hwnd, id),
+				   GWL_USERDATA, 0);
+  if (origCB)
+    SetWindowLong (GetDlgItem (hwnd, id), GWL_WNDPROC, (LONG)origCB);
+}
+
+
+/*
+ * Center a dialog window in the desktop window
+ */
+
+static void
+winCenterDialog (HWND hwndDlg)
+{
+  HWND hwndDesk; 
+  RECT rc, rcDlg, rcDesk; 
+ 
+  hwndDesk = GetParent (hwndDlg);
+  if (!hwndDesk || IsIconic (hwndDesk))
+    hwndDesk = GetDesktopWindow (); 
+  
+  GetWindowRect (hwndDesk, &rcDesk); 
+  GetWindowRect (hwndDlg, &rcDlg); 
+  CopyRect (&rc, &rcDesk); 
+  
+  OffsetRect (&rcDlg, -rcDlg.left, -rcDlg.top); 
+  OffsetRect (&rc, -rc.left, -rc.top); 
+  OffsetRect (&rc, -rcDlg.right, -rcDlg.bottom); 
+  
+  SetWindowPos (hwndDlg, 
+		HWND_TOP, 
+		rcDesk.left + (rc.right / 2), 
+		rcDesk.top + (rc.bottom / 2), 
+		0, 0,
+		SWP_NOSIZE | SWP_NOZORDER); 
+}
 
 
 /*
@@ -49,6 +210,37 @@ winChangeDepthDlgProc (HWND hDialog, UINT message,
 void
 winDisplayExitDialog (winPrivScreenPtr pScreenPriv)
 {
+  int i;
+  int liveClients = 0;
+
+  /* Count up running clinets (clients[0] is serverClient) */
+  for (i = 1; i < currentMaxClients; i++)
+    if (clients[i] != NullClient)	
+      liveClients++;
+  /* Count down server internal clients */
+  if (pScreenPriv->pScreenInfo->fMultiWindow)
+    liveClients -= 2; /* multiwindow window manager & XMsgProc  */
+  if (g_fClipboardStarted)
+    liveClients--; /* clipboard manager */
+
+  /* A user reported that this sometimes drops below zero. just eye-candy. */ 
+  if (liveClients < 0)
+    liveClients = 0;      
+
+  /* Don't show the exit confirmation dialog if SilentExit is enabled */
+  if (pref.fSilentExit && liveClients <= 0)
+    {
+      if (g_hDlgExit != NULL)
+	{
+	  DestroyWindow (g_hDlgExit);
+	  g_hDlgExit = NULL;
+	}
+      PostMessage (pScreenPriv->hwndScreen, WM_GIVEUP, 0, 0);
+      return;
+    }
+
+  pScreenPriv->iConnectedClients = liveClients;
+  
   /* Check if dialog already exists */
   if (g_hDlgExit != NULL)
     {
@@ -74,8 +266,8 @@ winDisplayExitDialog (winPrivScreenPtr pScreenPriv)
 		 & ~(WS_MAXIMIZEBOX | WS_MINIMIZEBOX));
   SetWindowLong (g_hDlgExit, GWL_EXSTYLE,
 		 GetWindowLong (g_hDlgExit, GWL_EXSTYLE) & ~WS_EX_APPWINDOW );
-  SetWindowPos (g_hDlgExit, 0, 0, 0, 0, 0,
-		SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOZORDER | SWP_NOSIZE); 
+  SetWindowPos (g_hDlgExit, HWND_TOPMOST, 0, 0, 0, 0,
+		SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE); 
  
   /* Show the dialog box */
   ShowWindow (g_hDlgExit, SW_SHOW);
@@ -83,38 +275,60 @@ winDisplayExitDialog (winPrivScreenPtr pScreenPriv)
   /* Needed to get keyboard controls (tab, arrows, enter, esc) to work */
   SetForegroundWindow (g_hDlgExit);
   
-  /* Set focus to the Cancel buton */
+  /* Set focus to the Cancel button */
   PostMessage (g_hDlgExit, WM_NEXTDLGCTL,
 	       (int) GetDlgItem (g_hDlgExit, IDCANCEL), TRUE);
 }
+
+#define CONNECTED_CLIENTS_FORMAT	"There are currently %d clients connected."
 
 
 /*
  * Exit dialog window procedure
  */
 
-BOOL CALLBACK
+static BOOL CALLBACK
 winExitDlgProc (HWND hDialog, UINT message,
 		WPARAM wParam, LPARAM lParam)
 {
   static winPrivScreenPtr	s_pScreenPriv = NULL;
-  static winScreenInfo		*s_pScreenInfo = NULL;
-  static ScreenPtr		s_pScreen = NULL;
 
   /* Branch on message type */
   switch (message)
     {
     case WM_INITDIALOG:
-      /* Store pointers to private structures for future use */
-      s_pScreenPriv = (winPrivScreenPtr) lParam;
-      s_pScreenInfo = s_pScreenPriv->pScreenInfo;
-      s_pScreen = s_pScreenInfo->pScreen;
+      {
+	char			*pszConnectedClients;
+	int			iReturn;
 
-      /* Set icon to standard app icon */
-      PostMessage (hDialog,
-		   WM_SETICON,
-		   ICON_SMALL,
-		   (LPARAM) LoadIcon (g_hInstance, MAKEINTRESOURCE(IDI_XWIN)));
+	/* Store pointers to private structures for future use */
+	s_pScreenPriv = (winPrivScreenPtr) lParam;
+	
+	winCenterDialog (hDialog);
+	
+	/* Set icon to standard app icon */
+	PostMessage (hDialog,
+		     WM_SETICON,
+		     ICON_SMALL,
+		     (LPARAM) LoadIcon (g_hInstance,
+					MAKEINTRESOURCE(IDI_XWIN)));
+
+	/* Format the connected clients string */
+	iReturn = sprintf (NULL, CONNECTED_CLIENTS_FORMAT,
+			   s_pScreenPriv->iConnectedClients);
+	if (iReturn <= 0)
+	  return TRUE;
+	pszConnectedClients = malloc (iReturn + 1);
+	if (!pszConnectedClients)
+	  return TRUE;
+	snprintf (pszConnectedClients, iReturn + 1, CONNECTED_CLIENTS_FORMAT,
+		  s_pScreenPriv->iConnectedClients);
+	
+	/* Set the number of connected clients */
+	SetWindowText (GetDlgItem (hDialog, IDC_CLIENTS_CONNECTED),
+		       pszConnectedClients);
+	free (pszConnectedClients);
+      }
       return TRUE;
 
     case WM_COMMAND:
@@ -143,7 +357,7 @@ winExitDlgProc (HWND hDialog, UINT message,
     case WM_MOUSEMOVE:
     case WM_NCMOUSEMOVE:
       /* Show the cursor if it is hidden */
-      if (!g_fCursor)
+      if (g_fSoftwareCursor && !g_fCursor)
 	{
 	  g_fCursor = TRUE;
 	  ShowCursor (TRUE);
@@ -207,8 +421,9 @@ winDisplayDepthChangeDialog (winPrivScreenPtr pScreenPriv)
   ShowWindow (g_hDlgDepthChange, SW_SHOW);
   
   ErrorF ("winDisplayDepthChangeDialog - DialogBox returned: %d\n",
-	  g_hDlgDepthChange);
-  ErrorF ("winDisplayDepthChangeDialog - GetLastError: %d\n", GetLastError ());
+	  (int) g_hDlgDepthChange);
+  ErrorF ("winDisplayDepthChangeDialog - GetLastError: %d\n",
+	  (int) GetLastError ());
 	      
   /* Minimize the display window */
   ShowWindow (pScreenPriv->hwndScreen, SW_MINIMIZE);
@@ -220,7 +435,7 @@ winDisplayDepthChangeDialog (winPrivScreenPtr pScreenPriv)
  * disruptive screen depth changes. 
  */
 
-BOOL CALLBACK
+static BOOL CALLBACK
 winChangeDepthDlgProc (HWND hwndDialog, UINT message,
 		       WPARAM wParam, LPARAM lParam)
 {
@@ -229,7 +444,7 @@ winChangeDepthDlgProc (HWND hwndDialog, UINT message,
   static ScreenPtr		s_pScreen = NULL;
 
 #if CYGDEBUG
-  ErrorF ("winChangeDepthDlgProc\n");
+  winDebug ("winChangeDepthDlgProc\n");
 #endif
 
   /* Branch on message type */
@@ -237,7 +452,7 @@ winChangeDepthDlgProc (HWND hwndDialog, UINT message,
     {
     case WM_INITDIALOG:
 #if CYGDEBUG
-      ErrorF ("winChangeDepthDlgProc - WM_INITDIALOG\n");
+      winDebug ("winChangeDepthDlgProc - WM_INITDIALOG\n");
 #endif
 
       /* Store pointers to private structures for future use */
@@ -246,17 +461,19 @@ winChangeDepthDlgProc (HWND hwndDialog, UINT message,
       s_pScreen = s_pScreenInfo->pScreen;
 
 #if CYGDEBUG
-      ErrorF ("winChangeDepthDlgProc - WM_INITDIALG - s_pScreenPriv: %08x, "
+      winDebug ("winChangeDepthDlgProc - WM_INITDIALOG - s_pScreenPriv: %08x, "
 	      "s_pScreenInfo: %08x, s_pScreen: %08x\n",
 	      s_pScreenPriv, s_pScreenInfo, s_pScreen);
 #endif
 
 #if CYGDEBUG
-      ErrorF ("winChangeDepthDlgProc - WM_INITDIALOG - orig bpp: %d, "
+      winDebug ("winChangeDepthDlgProc - WM_INITDIALOG - orig bpp: %d, "
 	      "last bpp: %d\n",
 	      s_pScreenInfo->dwBPP,
 	      s_pScreenPriv->dwLastWindowsBitsPixel);
 #endif
+      
+      winCenterDialog( hwndDialog );
 
       /* Set icon to standard app icon */
       PostMessage (hwndDialog,
@@ -268,7 +485,7 @@ winChangeDepthDlgProc (HWND hwndDialog, UINT message,
 
     case WM_DISPLAYCHANGE:
 #if CYGDEBUG
-      ErrorF ("winChangeDepthDlgProc - WM_DISPLAYCHANGE - orig bpp: %d, "
+      winDebug ("winChangeDepthDlgProc - WM_DISPLAYCHANGE - orig bpp: %d, "
 	      "last bpp: %d, new bpp: %d\n",
 	      s_pScreenInfo->dwBPP,
 	      s_pScreenPriv->dwLastWindowsBitsPixel,
@@ -308,11 +525,250 @@ winChangeDepthDlgProc (HWND hwndDialog, UINT message,
     case WM_CLOSE:
       ErrorF ("winChangeDepthDlgProc - WM_CLOSE\n");
 
-      /* 
-       * User dismissed the dialog, hide it until the
-       * display mode is restored.
-       */
-      ShowWindow (g_hDlgDepthChange, SW_HIDE);
+      DestroyWindow (g_hDlgAbout);
+      g_hDlgAbout = NULL;
+
+      /* Fix to make sure keyboard focus isn't trapped */
+      PostMessage (s_pScreenPriv->hwndScreen, WM_NULL, 0, 0);
+      return TRUE;
+    }
+
+  return FALSE;
+}
+
+
+/*
+ * Display the About dialog box
+ */
+
+void
+winDisplayAboutDialog (winPrivScreenPtr pScreenPriv)
+{
+  /* Check if dialog already exists */
+  if (g_hDlgAbout != NULL)
+    {
+      /* Dialog box already exists, display it */
+      ShowWindow (g_hDlgAbout, SW_SHOWDEFAULT);
+
+      /* User has lost the dialog.  Show them where it is. */
+      SetForegroundWindow (g_hDlgAbout);
+
+      return;
+    }
+
+  /*
+   * Display the about box
+   */
+  g_hDlgAbout = CreateDialogParam (g_hInstance,
+				   "ABOUT_BOX",
+				   pScreenPriv->hwndScreen,
+				   winAboutDlgProc,
+				   (int) pScreenPriv);
+ 
+  /* Drop minimize and maximize buttons */
+  SetWindowLong (g_hDlgAbout, GWL_STYLE,
+		 GetWindowLong (g_hDlgAbout, GWL_STYLE)
+		 & ~(WS_MAXIMIZEBOX | WS_MINIMIZEBOX));
+  SetWindowLong (g_hDlgAbout, GWL_EXSTYLE,
+		 GetWindowLong (g_hDlgAbout, GWL_EXSTYLE) & ~WS_EX_APPWINDOW);
+  SetWindowPos (g_hDlgAbout, 0, 0, 0, 0, 0,
+		SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE); 
+
+  /* Show the dialog box */
+  ShowWindow (g_hDlgAbout, SW_SHOW);
+
+  /* Needed to get keyboard controls (tab, arrows, enter, esc) to work */
+  SetForegroundWindow (g_hDlgAbout);
+  
+  /* Set focus to the OK button */
+  PostMessage (g_hDlgAbout, WM_NEXTDLGCTL,
+	       (int) GetDlgItem (g_hDlgAbout, IDOK), TRUE);
+}
+
+
+/*
+ * Process messages for the about dialog.
+ */
+
+static BOOL CALLBACK
+winAboutDlgProc (HWND hwndDialog, UINT message,
+		 WPARAM wParam, LPARAM lParam)
+{
+  static winPrivScreenPtr	s_pScreenPriv = NULL;
+  static winScreenInfo		*s_pScreenInfo = NULL;
+  static ScreenPtr		s_pScreen = NULL;
+
+#if CYGDEBUG
+  winDebug ("winAboutDlgProc\n");
+#endif
+
+  /* Branch on message type */
+  switch (message)
+    {
+    case WM_INITDIALOG:
+#if CYGDEBUG
+      winDebug ("winAboutDlgProc - WM_INITDIALOG\n");
+#endif
+
+      /* Store pointers to private structures for future use */
+      s_pScreenPriv = (winPrivScreenPtr) lParam;
+      s_pScreenInfo = s_pScreenPriv->pScreenInfo;
+      s_pScreen = s_pScreenInfo->pScreen;
+
+      winCenterDialog (hwndDialog);
+
+      /* Set icon to standard app icon */
+      PostMessage (hwndDialog,
+		   WM_SETICON,
+		   ICON_SMALL,
+		   (LPARAM) LoadIcon (g_hInstance, MAKEINTRESOURCE(IDI_XWIN)));
+
+      /* Override the URL buttons */
+      winOverrideURLButton (hwndDialog, ID_ABOUT_CHANGELOG);
+      winOverrideURLButton (hwndDialog, ID_ABOUT_WEBSITE);
+      winOverrideURLButton (hwndDialog, ID_ABOUT_UG);
+      winOverrideURLButton (hwndDialog, ID_ABOUT_FAQ);
+
+      return TRUE;
+
+    case WM_DRAWITEM:
+      /* Draw the URL buttons as needed */
+      winDrawURLWindow (lParam);
+      return TRUE;
+
+    case WM_MOUSEMOVE:
+    case WM_NCMOUSEMOVE:
+      /* Show the cursor if it is hidden */
+      if (g_fSoftwareCursor && !g_fCursor)
+	{
+	  g_fCursor = TRUE;
+	  ShowCursor (TRUE);
+	}
+      return TRUE;
+
+    case WM_COMMAND:
+      switch (LOWORD (wParam))
+	{
+	case IDOK:
+	case IDCANCEL:
+	  ErrorF ("winAboutDlgProc - WM_COMMAND - IDOK or IDCANCEL\n");
+
+	  DestroyWindow (g_hDlgAbout);
+	  g_hDlgAbout = NULL;
+
+	  /* Fix to make sure keyboard focus isn't trapped */
+	  PostMessage (s_pScreenPriv->hwndScreen, WM_NULL, 0, 0);
+
+	  /* Restore window procedures for URL buttons */
+	  winUnoverrideURLButton (hwndDialog, ID_ABOUT_CHANGELOG);
+	  winUnoverrideURLButton (hwndDialog, ID_ABOUT_WEBSITE);
+	  winUnoverrideURLButton (hwndDialog, ID_ABOUT_UG);
+	  winUnoverrideURLButton (hwndDialog, ID_ABOUT_FAQ);
+
+	  return TRUE;
+
+	case ID_ABOUT_CHANGELOG:
+	  {
+	    const char *	pszCygPath = "/usr/X11R6/share/doc/"
+	      "xorg-x11-xwin/changelog.html";
+	    char		pszWinPath[MAX_PATH + 1];
+	    int			iReturn;
+
+	    /* Convert the POSIX path to a Win32 path */
+	    cygwin_conv_to_win32_path (pszCygPath, pszWinPath);
+	    
+	    iReturn = (int) ShellExecute (NULL,
+					  "open",
+					  pszWinPath,
+					  NULL,
+					  NULL,
+					  SW_MAXIMIZE);
+	    if (iReturn < 32)
+	      {
+		ErrorF ("winAboutDlgProc - WM_COMMAND - ID_ABOUT_CHANGELOG - "
+			"ShellExecute failed: %d\n",
+			iReturn);
+	      }	    
+	  }
+	  return TRUE;
+
+	case ID_ABOUT_WEBSITE:
+	  {
+	    const char *	pszPath = "http://x.cygwin.com/";
+	    int			iReturn;
+	    
+	    iReturn = (int) ShellExecute (NULL,
+					  "open",
+					  pszPath,
+					  NULL,
+					  NULL,
+					  SW_MAXIMIZE);
+	    if (iReturn < 32)
+	      {
+		ErrorF ("winAboutDlgProc - WM_COMMAND - ID_ABOUT_WEBSITE - "
+			"ShellExecute failed: %d\n",
+			iReturn);
+	      }	    
+	  }
+	  return TRUE;
+
+	case ID_ABOUT_UG:
+	  {
+	    const char *	pszPath = "http://x.cygwin.com/docs/ug/";
+	    int			iReturn;
+	    
+	    iReturn = (int) ShellExecute (NULL,
+					  "open",
+					  pszPath,
+					  NULL,
+					  NULL,
+					  SW_MAXIMIZE);
+	    if (iReturn < 32)
+	      {
+		ErrorF ("winAboutDlgProc - WM_COMMAND - ID_ABOUT_UG - "
+			"ShellExecute failed: %d\n",
+			iReturn);
+	      }	    
+	  }
+	  return TRUE;
+
+	case ID_ABOUT_FAQ:
+	  {
+	    const char *	pszPath = "http://x.cygwin.com/docs/faq/";
+	    int			iReturn;
+	    
+	    iReturn = (int) ShellExecute (NULL,
+					  "open",
+					  pszPath,
+					  NULL,
+					  NULL,
+					  SW_MAXIMIZE);
+	    if (iReturn < 32)
+	      {
+		ErrorF ("winAboutDlgProc - WM_COMMAND - ID_ABOUT_FAQ - "
+			"ShellExecute failed: %d\n",
+			iReturn);
+	      }	    
+	  }
+	  return TRUE;
+	}
+      break;
+
+    case WM_CLOSE:
+      ErrorF ("winAboutDlgProc - WM_CLOSE\n");
+
+      DestroyWindow (g_hDlgAbout);
+      g_hDlgAbout = NULL;
+
+      /* Fix to make sure keyboard focus isn't trapped */
+      PostMessage (s_pScreenPriv->hwndScreen, WM_NULL, 0, 0);
+
+      /* Restore window procedures for URL buttons */
+      winUnoverrideURLButton (hwndDialog, ID_ABOUT_CHANGELOG);
+      winUnoverrideURLButton (hwndDialog, ID_ABOUT_WEBSITE);
+      winUnoverrideURLButton (hwndDialog, ID_ABOUT_UG);
+      winUnoverrideURLButton (hwndDialog, ID_ABOUT_FAQ);
+
       return TRUE;
     }
 

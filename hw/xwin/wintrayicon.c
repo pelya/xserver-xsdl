@@ -49,12 +49,7 @@ winInitNotifyIcon (winPrivScreenPtr pScreenPriv)
   nid.uID = pScreenInfo->dwScreen;
   nid.uFlags = NIF_ICON | NIF_MESSAGE | NIF_TIP;
   nid.uCallbackMessage = WM_TRAYICON;
-  nid.hIcon = LoadImage (g_hInstance,
-			 MAKEINTRESOURCE(IDI_XWIN),
-			 IMAGE_ICON,
-			 GetSystemMetrics (SM_CXSMICON),
-			 GetSystemMetrics (SM_CYSMICON),
-			 0);
+  nid.hIcon = (HICON)winTaskbarIcon ();
 
   /* Save handle to the icon so it can be freed later */
   pScreenPriv->hiconNotifyIcon = nid.hIcon;
@@ -143,41 +138,33 @@ winHandleIconMessage (HWND hwnd, UINT message,
 	/* Get actual tray icon menu */
 	hmenuTray = GetSubMenu (hmenuPopup, 0);
 
+#ifdef XWIN_MULTIWINDOW
 	/* Check for MultiWindow mode */
 	if (pScreenInfo->fMultiWindow)
 	  {
-	    /* Check if root window is shown or hidden */
+	    MENUITEMINFO		mii = {0};
+	    
+	    /* Root is shown, remove the check box */
+	    
+	    /* Setup menu item info structure */
+	    mii.cbSize = sizeof (MENUITEMINFO);
+	    mii.fMask = MIIM_STATE;
+	    mii.fState = MFS_CHECKED;
+	    
+	    /* Unheck box if root is shown */
 	    if (pScreenPriv->fRootWindowShown)
-	      {
-		/* Remove Show Root Window button */
-		RemoveMenu (hmenuTray,
-			    ID_APP_SHOW_ROOT,
-			    MF_BYCOMMAND);
-	      }
-	    else
-	      {
-		/* Remove Hide Root Window button */
-		RemoveMenu (hmenuTray,
-			    ID_APP_HIDE_ROOT,
-			    MF_BYCOMMAND);
-	      }
+	      mii.fState = MFS_UNCHECKED;
+
+	    /* Set menu state */
+	    SetMenuItemInfo (hmenuTray, ID_APP_HIDE_ROOT, FALSE, &mii);
 	  }
 	else
+#endif
 	  {
-	    /* Remove Show Root Window button */
-	    RemoveMenu (hmenuTray,
-			ID_APP_SHOW_ROOT,
-			MF_BYCOMMAND);
-	    
 	    /* Remove Hide Root Window button */
 	    RemoveMenu (hmenuTray,
 			ID_APP_HIDE_ROOT,
 			MF_BYCOMMAND);
-
-	    /* Remove separator */
-	    RemoveMenu (hmenuTray,
-			0,
-			MF_BYPOSITION);
 	  }
 
 	SetupRootMenu ((unsigned long)hmenuTray);

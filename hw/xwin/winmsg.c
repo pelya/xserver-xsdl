@@ -33,13 +33,7 @@
 #include "winmsg.h"
 #include <stdarg.h>
 
-#ifndef VERBOSE_LEVEL
-#define VERBOSE_LEVEL 4
-#endif
-
-
 void winVMsg (int, MessageType, int verb, const char *, va_list);
-
 
 void
 winVMsg (int scrnIndex, MessageType type, int verb, const char *format,
@@ -64,7 +58,7 @@ winMsg (MessageType type, const char *format, ...)
 {
   va_list ap;
   va_start (ap, format);
-  LogVMessageVerb(type, 0, format, ap);
+  LogVMessageVerb(type, 1, format, ap);
   va_end (ap);
 }
 
@@ -97,4 +91,43 @@ winErrorFVerb (int verb, const char *format, ...)
   va_start (ap, format);
   LogVMessageVerb(X_NONE, verb, format, ap);
   va_end (ap);
+}
+
+void
+winDebug (const char *format, ...)
+{
+  va_list ap;
+  va_start (ap, format);
+  LogVMessageVerb(X_NONE, 3, format, ap);
+  va_end (ap);
+}
+
+void
+winW32Error(int verb, const char *msg)
+{
+    winW32ErrorEx(verb, msg, GetLastError());
+}
+
+void
+winW32ErrorEx(int verb, const char *msg, DWORD errorcode)
+{
+    LPVOID buffer;
+    if (!FormatMessage( 
+                FORMAT_MESSAGE_ALLOCATE_BUFFER | 
+                FORMAT_MESSAGE_FROM_SYSTEM | 
+                FORMAT_MESSAGE_IGNORE_INSERTS,
+                NULL,
+                errorcode,
+                MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+                (LPTSTR) &buffer,
+                0,
+                NULL ))
+    {
+        winErrorFVerb(verb, "Unknown error in FormatMessage!\n"); 
+    }
+    else
+    {
+        winErrorFVerb(verb, "%s %s", msg, (char *)buffer); 
+        LocalFree(buffer);
+    }
 }

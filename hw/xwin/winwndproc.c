@@ -36,14 +36,27 @@
 #include "win.h"
 #include <commctrl.h>
 #include "winprefs.h"
+#include "winconfig.h"
+#if CYGDEBUG
+#include "winmessages.h"
+#endif
 
 /*
  * Global variables
  */
 
-Bool			g_fCursor = TRUE;
+Bool				g_fCursor = TRUE;
 
 
+/*
+ * References to external symbols
+ */
+
+extern Bool			g_fClipboard;
+extern HWND			g_hDlgDepthChange;
+extern Bool			g_fKeyboardHookLL;
+extern HWND			g_hwndKeyboardFocus;
+extern Bool                     g_fSoftwareCursor;
 
 /*
  * Called by winWakeupHandler
@@ -61,9 +74,23 @@ winWindowProc (HWND hwnd, UINT message,
   static HINSTANCE		s_hInstance;
   static Bool			s_fTracking = FALSE;
   static unsigned long		s_ulServerGeneration = 0;
+  static UINT			s_uTaskbarRestart = 0;
   int				iScanCode;
   int				i;
 
+#if CYGDEBUG
+  if (message >= WM_USER)
+    {
+      winDebug("winWindowProc - Message WM_USER + %d", message - WM_USER);
+      winDebug(" wParam 0x%x lParam 0x%x\n", wParam, lParam);
+    }
+  else if (message < MESSAGE_NAMES_LEN && MESSAGE_NAMES[message])
+    {  
+      winDebug("winWindowProc - Message %s", MESSAGE_NAMES[message]);
+      winDebug(" wParam 0x%x lParam 0x%x\n", wParam, lParam);
+    }
+#endif
+  
   /* Watch for server regeneration */
   if (g_ulServerGeneration != s_ulServerGeneration)
     {
@@ -76,7 +103,7 @@ winWindowProc (HWND hwnd, UINT message,
       && (s_pScreenPriv = GetProp (hwnd, WIN_SCR_PROP)) != NULL)
     {
 #if CYGDEBUG
-      ErrorF ("winWindowProc - Setting privates handle\n");
+      winDebug ("winWindowProc - Setting privates handle\n");
 #endif
       s_pScreenInfo = s_pScreenPriv->pScreenInfo;
       s_pScreen = s_pScreenInfo->pScreen;
@@ -99,7 +126,7 @@ winWindowProc (HWND hwnd, UINT message,
 
     case WM_CREATE:
 #if CYGDEBUG
-      ErrorF ("winWindowProc - WM_CREATE\n");
+      winDebug ("winWindowProc - WM_CREATE\n");
 #endif
       
       /*
@@ -116,10 +143,8 @@ winWindowProc (HWND hwnd, UINT message,
       s_pScreenInfo = s_pScreenPriv->pScreenInfo;
       s_pScreen = s_pScreenInfo->pScreen;
       s_hwndLastPrivates = hwnd;
+      s_uTaskbarRestart = RegisterWindowMessage(TEXT("TaskbarCreated"));
       SetProp (hwnd, WIN_SCR_PROP, s_pScreenPriv);
-
-      /* Store the mode key states so restore doesn't try to restore them */
-      winStoreModeKeyStates (s_pScreen);
 
       /* Setup tray icon */
       if (!s_pScreenInfo->fNoTrayIcon)
@@ -154,7 +179,10 @@ winWindowProc (HWND hwnd, UINT message,
       if (s_pScreenInfo->fFullScreen
 	  && (s_pScreenInfo->dwEngine == WIN_SERVER_SHADOW_DD
 	      || s_pScreenInfo->dwEngine == WIN_SERVER_SHADOW_DDNL
-	      || s_pScreenInfo->dwEngine == WIN_SERVER_PRIMARY_DD))
+#ifdef XWIN_PRIMARYFB
+	      || s_pScreenInfo->dwEngine == WIN_SERVER_PRIMARY_DD
+#endif
+	      ))
 	{
 	  /* 
 	   * Store the new display dimensions and depth.
@@ -170,8 +198,8 @@ winWindowProc (HWND hwnd, UINT message,
       
       ErrorF ("winWindowProc - WM_DISPLAYCHANGE - orig bpp: %d, last bpp: %d, "
 	      "new bpp: %d\n",
-	      s_pScreenInfo->dwBPP,
-	      s_pScreenPriv->dwLastWindowsBitsPixel,
+	      (int) s_pScreenInfo->dwBPP,
+	      (int) s_pScreenPriv->dwLastWindowsBitsPixel,
 	      wParam);
 
       ErrorF ("winWindowProc - WM_DISPLAYCHANGE - new width: %d "
@@ -208,7 +236,10 @@ winWindowProc (HWND hwnd, UINT message,
       if ((s_pScreenInfo->dwBPP != wParam)
 	  && (s_pScreenInfo->dwEngine == WIN_SERVER_SHADOW_DD
 	      || s_pScreenInfo->dwEngine == WIN_SERVER_SHADOW_DDNL
-	      || s_pScreenInfo->dwEngine == WIN_SERVER_PRIMARY_DD))
+#ifdef XWIN_PRIMARYFB
+	      || s_pScreenInfo->dwEngine == WIN_SERVER_PRIMARY_DD
+#endif
+	      ))
 	{
 	  /* Cannot display the visual until the depth is restored */
 	  ErrorF ("winWindowProc - Disruptive change in depth\n");
@@ -245,14 +276,14 @@ winWindowProc (HWND hwnd, UINT message,
 	   */
 
 #if CYGDEBUG
-	  ErrorF ("winWindowProc - WM_DISPLAYCHANGE - Dimensions changed\n");
+	  winDebug ("winWindowProc - WM_DISPLAYCHANGE - Dimensions changed\n");
 #endif
 	  
 	  /* Release the old primary surface */
 	  (*s_pScreenPriv->pwinReleasePrimarySurface) (s_pScreen);
 
 #if CYGDEBUG
-	  ErrorF ("winWindowProc - WM_DISPLAYCHANGE - Released "
+	  winDebug ("winWindowProc - WM_DISPLAYCHANGE - Released "
 		  "primary surface\n");
 #endif
 
@@ -260,21 +291,41 @@ winWindowProc (HWND hwnd, UINT message,
 	  (*s_pScreenPriv->pwinCreatePrimarySurface) (s_pScreen);
 
 #if CYGDEBUG
-	  ErrorF ("winWindowProc - WM_DISPLAYCHANGE - Recreated "
+	  winDebug ("winWindowProc - WM_DISPLAYCHANGE - Recreated "
 		  "primary surface\n");
+#endif
+
+#if 0
+	  /* Multi-Window mode uses RandR for resizes */
+	  if (s_pScreenInfo->fMultiWindow)
+	    {
+	      RRSetScreenConfig ();
+	    }
 #endif
 	}
       else
 	{
 #if CYGDEBUG
-	  ErrorF ("winWindowProc - WM_DISPLAYCHANGE - Dimensions did not "
+	  winDebug ("winWindowProc - WM_DISPLAYCHANGE - Dimensions did not "
 		  "change\n");
 #endif
 	}
 
       /* Store the new display dimensions and depth */
-      s_pScreenPriv->dwLastWindowsWidth = GetSystemMetrics (SM_CXSCREEN);
-      s_pScreenPriv->dwLastWindowsHeight = GetSystemMetrics (SM_CYSCREEN);
+      if (s_pScreenInfo->fMultipleMonitors)
+	{
+	  s_pScreenPriv->dwLastWindowsWidth
+	    = GetSystemMetrics (SM_CXVIRTUALSCREEN);
+	  s_pScreenPriv->dwLastWindowsHeight
+	    = GetSystemMetrics (SM_CYVIRTUALSCREEN);
+	}
+      else
+	{
+	  s_pScreenPriv->dwLastWindowsWidth
+	    = GetSystemMetrics (SM_CXSCREEN);
+	  s_pScreenPriv->dwLastWindowsHeight
+	    = GetSystemMetrics (SM_CYSCREEN);
+	}
       s_pScreenPriv->dwLastWindowsBitsPixel
 	= GetDeviceCaps (s_pScreenPriv->hdcScreen, BITSPIXEL);
       break;
@@ -286,14 +337,19 @@ winWindowProc (HWND hwnd, UINT message,
 	int			iWidth, iHeight;
 
 #if CYGDEBUG
-	ErrorF ("winWindowProc - WM_SIZE\n");
+	winDebug ("winWindowProc - WM_SIZE\n");
 #endif
 
 	/* Break if we do not use scrollbars */
 	if (!s_pScreenInfo->fScrollbars
 	    || !s_pScreenInfo->fDecoration
+#ifdef XWIN_MULTIWINDOWEXTWM
+	    || s_pScreenInfo->fMWExtWM
+#endif
 	    || s_pScreenInfo->fRootless
+#ifdef XWIN_MULTIWINDOW
 	    || s_pScreenInfo->fMultiWindow
+#endif
 	    || s_pScreenInfo->fFullScreen)
 	  break;
 
@@ -383,7 +439,7 @@ winWindowProc (HWND hwnd, UINT message,
 	int			iVertPos;
 
 #if CYGDEBUG
-	ErrorF ("winWindowProc - WM_VSCROLL\n");
+	winDebug ("winWindowProc - WM_VSCROLL\n");
 #endif
       
 	/* Get vertical scroll bar info */
@@ -468,7 +524,7 @@ winWindowProc (HWND hwnd, UINT message,
 	int			iHorzPos;
 
 #if CYGDEBUG
-	ErrorF ("winWindowProc - WM_HSCROLL\n");
+	winDebug ("winWindowProc - WM_HSCROLL\n");
 #endif
       
 	/* Get horizontal scroll bar info */
@@ -554,7 +610,7 @@ winWindowProc (HWND hwnd, UINT message,
 	int			iBorderHeight, iBorderWidth;
 
 #if CYGDEBUG	
-	ErrorF ("winWindowProc - WM_GETMINMAXINFO - pScreenInfo: %08x\n",
+	winDebug ("winWindowProc - WM_GETMINMAXINFO - pScreenInfo: %08x\n",
 		s_pScreenInfo);
 #endif
 
@@ -563,8 +619,14 @@ winWindowProc (HWND hwnd, UINT message,
 	    || !s_pScreenInfo->fScrollbars
 	    || s_pScreenInfo->fFullScreen
 	    || !s_pScreenInfo->fDecoration
+#ifdef XWIN_MULTIWINDOWEXTWM
+	    || s_pScreenInfo->fMWExtWM
+#endif
 	    || s_pScreenInfo->fRootless
-	    || s_pScreenInfo->fMultiWindow)
+#ifdef XWIN_MULTIWINDOW
+	    || s_pScreenInfo->fMultiWindow
+#endif
+	    )
 	  break;
 
 	/*
@@ -594,7 +656,7 @@ winWindowProc (HWND hwnd, UINT message,
 
     case WM_ERASEBKGND:
 #if CYGDEBUG
-      ErrorF ("winWindowProc - WM_ERASEBKGND\n");
+      winDebug ("winWindowProc - WM_ERASEBKGND\n");
 #endif
       /*
        * Pretend that we did erase the background but we don't care,
@@ -605,7 +667,7 @@ winWindowProc (HWND hwnd, UINT message,
 
     case WM_PAINT:
 #if CYGDEBUG
-      ErrorF ("winWindowProc - WM_PAINT\n");
+      winDebug ("winWindowProc - WM_PAINT\n");
 #endif
       /* Only paint if we have privates and the server is enabled */
       if (s_pScreenPriv == NULL
@@ -628,7 +690,7 @@ winWindowProc (HWND hwnd, UINT message,
     case WM_PALETTECHANGED:
       {
 #if CYGDEBUG
-	ErrorF ("winWindowProc - WM_PALETTECHANGED\n");
+	winDebug ("winWindowProc - WM_PALETTECHANGED\n");
 #endif
 	/*
 	 * Don't process if we don't have privates or a colormap,
@@ -686,13 +748,13 @@ winWindowProc (HWND hwnd, UINT message,
 	}
 
       /* Hide or show the Windows mouse cursor */
-      if (g_fCursor && (s_pScreenPriv->fActive || s_pScreenInfo->fLessPointer))
+      if (g_fSoftwareCursor && g_fCursor && (s_pScreenPriv->fActive || s_pScreenInfo->fLessPointer))
 	{
 	  /* Hide Windows cursor */
 	  g_fCursor = FALSE;
 	  ShowCursor (FALSE);
 	}
-      else if (!g_fCursor && !s_pScreenPriv->fActive
+      else if (g_fSoftwareCursor && !g_fCursor && !s_pScreenPriv->fActive
 	       && !s_pScreenInfo->fLessPointer)
 	{
 	  /* Show Windows cursor */
@@ -721,7 +783,7 @@ winWindowProc (HWND hwnd, UINT message,
 	break;
       
       /* Non-client mouse movement, show Windows cursor */
-      if (!g_fCursor)
+      if (g_fSoftwareCursor && !g_fCursor)
 	{
 	  g_fCursor = TRUE;
 	  ShowCursor (TRUE);
@@ -735,7 +797,7 @@ winWindowProc (HWND hwnd, UINT message,
       s_fTracking = FALSE;
 
       /* Show the mouse cursor, if necessary */
-      if (!g_fCursor)
+      if (g_fSoftwareCursor && !g_fCursor)
 	{
 	  g_fCursor = TRUE;
 	  ShowCursor (TRUE);
@@ -746,39 +808,69 @@ winWindowProc (HWND hwnd, UINT message,
     case WM_LBUTTONDOWN:
       if (s_pScreenPriv == NULL || s_pScreenInfo->fIgnoreInput)
 	break;
-      if (s_pScreenInfo->fRootless) SetCapture (hwnd);
+      if (s_pScreenInfo->fRootless
+#ifdef XWIN_MULTIWINDOWEXTWM
+	  || s_pScreenInfo->fMWExtWM
+#endif
+	  )
+	SetCapture (hwnd);
       return winMouseButtonsHandle (s_pScreen, ButtonPress, Button1, wParam);
       
     case WM_LBUTTONUP:
       if (s_pScreenPriv == NULL || s_pScreenInfo->fIgnoreInput)
 	break;
-      if (s_pScreenInfo->fRootless) ReleaseCapture ();
+      if (s_pScreenInfo->fRootless
+#ifdef XWIN_MULTIWINDOWEXTWM
+	  || s_pScreenInfo->fMWExtWM
+#endif
+	  )
+	ReleaseCapture ();
       return winMouseButtonsHandle (s_pScreen, ButtonRelease, Button1, wParam);
 
     case WM_MBUTTONDBLCLK:
     case WM_MBUTTONDOWN:
       if (s_pScreenPriv == NULL || s_pScreenInfo->fIgnoreInput)
 	break;
-      if (s_pScreenInfo->fRootless) SetCapture (hwnd);
+      if (s_pScreenInfo->fRootless
+#ifdef XWIN_MULTIWINDOWEXTWM
+	  || s_pScreenInfo->fMWExtWM
+#endif
+	  )
+	SetCapture (hwnd);
       return winMouseButtonsHandle (s_pScreen, ButtonPress, Button2, wParam);
       
     case WM_MBUTTONUP:
       if (s_pScreenPriv == NULL || s_pScreenInfo->fIgnoreInput)
 	break;
-      if (s_pScreenInfo->fRootless) ReleaseCapture ();
+      if (s_pScreenInfo->fRootless
+#ifdef XWIN_MULTIWINDOWEXTWM
+	  || s_pScreenInfo->fMWExtWM
+#endif
+	  )
+	ReleaseCapture ();
       return winMouseButtonsHandle (s_pScreen, ButtonRelease, Button2, wParam);
       
     case WM_RBUTTONDBLCLK:
     case WM_RBUTTONDOWN:
       if (s_pScreenPriv == NULL || s_pScreenInfo->fIgnoreInput)
 	break;
-      if (s_pScreenInfo->fRootless) SetCapture (hwnd);
+      if (s_pScreenInfo->fRootless
+#ifdef XWIN_MULTIWINDOWEXTWM
+	  || s_pScreenInfo->fMWExtWM
+#endif
+	  )
+	SetCapture (hwnd);
       return winMouseButtonsHandle (s_pScreen, ButtonPress, Button3, wParam);
       
     case WM_RBUTTONUP:
       if (s_pScreenPriv == NULL || s_pScreenInfo->fIgnoreInput)
 	break;
-      if (s_pScreenInfo->fRootless) ReleaseCapture ();
+      if (s_pScreenInfo->fRootless
+#ifdef XWIN_MULTIWINDOWEXTWM
+	  || s_pScreenInfo->fMWExtWM
+#endif
+	  )
+	ReleaseCapture ();
       return winMouseButtonsHandle (s_pScreen, ButtonRelease, Button3, wParam);
 
     case WM_TIMER:
@@ -827,7 +919,7 @@ winWindowProc (HWND hwnd, UINT message,
       if (s_pScreenPriv == NULL || s_pScreenInfo->fIgnoreInput)
 	break;
 #if CYGDEBUG
-      ErrorF ("winWindowProc - WM_MOUSEWHEEL\n");
+      winDebug ("winWindowProc - WM_MOUSEWHEEL\n");
 #endif
       winMouseWheel (s_pScreen, GET_WHEEL_DELTA_WPARAM(wParam));
       break;
@@ -836,41 +928,31 @@ winWindowProc (HWND hwnd, UINT message,
       if (s_pScreenPriv == NULL || s_pScreenInfo->fIgnoreInput)
 	break;
 
+      /* Save handle of our main window that last received focus */
+      g_hwndKeyboardFocus = hwnd;
+
       /* Restore the state of all mode keys */
-      winRestoreModeKeyStates (s_pScreen);
+      winRestoreModeKeyStates ();
+
+      /* Add the keyboard hook if possible */
+      if (g_fKeyboardHookLL)
+	g_fKeyboardHookLL = winInstallKeyboardHookLL ();
       return 0;
 
     case WM_KILLFOCUS:
       if (s_pScreenPriv == NULL || s_pScreenInfo->fIgnoreInput)
 	break;
 
-      /* Store the state of all mode keys */
-      winStoreModeKeyStates (s_pScreen);
+      /* Clear handle of our main window that last received focus */
+      g_hwndKeyboardFocus = NULL;
 
       /* Release any pressed keys */
       winKeybdReleaseKeys ();
+
+      /* Remove our keyboard hook if it is installed */
+      winRemoveKeyboardHookLL ();
       return 0;
 
-#if WIN_NEW_KEYBOARD_SUPPORT
-    case WM_SYSKEYDOWN:
-    case WM_KEYDOWN:
-    case WM_SYSKEYUP:
-    case WM_KEYUP:
-      if (s_pScreenPriv == NULL || s_pScreenInfo->fIgnoreInput)
-	break;
-
-      /* Don't process keys if we are not active */
-      if (!s_pScreenPriv->fActive)
-	return 0;
-
-      winProcessKeyEvent ((DWORD)wParam, (DWORD) lParam);
-      return 0;
-
-    case WM_DEADCHAR:
-    case WM_SYSDEADCHAR:
-      return 0;
-
-#else /* WIN_NEW_KEYBOARD_SUPPORT */
     case WM_SYSKEYDOWN:
     case WM_KEYDOWN:
       if (s_pScreenPriv == NULL || s_pScreenInfo->fIgnoreInput)
@@ -911,12 +993,30 @@ winWindowProc (HWND hwnd, UINT message,
       if (wParam == VK_LWIN || wParam == VK_RWIN)
 	break;
 
+#ifdef XKB
+      /* 
+       * Discard presses generated from Windows auto-repeat
+       * ago: Only discard them if XKB is not disabled 
+       */
+      if (!g_winInfo.xkb.disable) 
+        {  
+          if (lParam & (1<<30))
+	    return 0;
+        } 
+#endif 
+      
       /* Discard fake Ctrl_L presses that precede AltGR on non-US keyboards */
       if (winIsFakeCtrl_L (message, wParam, lParam))
 	return 0;
       
-      /* Send the key event(s) */
+      /* Translate Windows key code to X scan code */
       winTranslateKey (wParam, lParam, &iScanCode);
+
+      /* Ignore repeats for CapsLock */
+      if (wParam == VK_CAPITAL)
+	lParam = 1;
+
+      /* Send the key event(s) */
       for (i = 0; i < LOWORD(lParam); ++i)
 	winSendKeyEvent (iScanCode, TRUE);
       return 0;
@@ -942,7 +1042,6 @@ winWindowProc (HWND hwnd, UINT message,
       winTranslateKey (wParam, lParam, &iScanCode);
       winSendKeyEvent (iScanCode, FALSE);
       return 0;
-#endif /* WIN_NEW_KEYBOARD_SUPPORT */
 
     case WM_HOTKEY:
       if (s_pScreenPriv == NULL)
@@ -983,7 +1082,7 @@ winWindowProc (HWND hwnd, UINT message,
 	}
 
 #if CYGDEBUG
-      ErrorF ("winWindowProc - WM_ACTIVATE\n");
+      winDebug ("winWindowProc - WM_ACTIVATE\n");
 #endif
 
       /*
@@ -996,7 +1095,7 @@ winWindowProc (HWND hwnd, UINT message,
       s_pScreenPriv->iDeltaZ = 0;
 
       /* Reshow the Windows mouse cursor if we are being deactivated */
-      if (LOWORD(wParam) == WA_INACTIVE
+      if (g_fSoftwareCursor && LOWORD(wParam) == WA_INACTIVE
 	  && !g_fCursor)
 	{
 	  /* Show Windows cursor */
@@ -1011,20 +1110,23 @@ winWindowProc (HWND hwnd, UINT message,
 	break;
 
 #if CYGDEBUG
-      ErrorF ("winWindowProc - WM_ACTIVATEAPP\n");
+      winDebug ("winWindowProc - WM_ACTIVATEAPP\n");
 #endif
 
       /* Activate or deactivate */
       s_pScreenPriv->fActive = wParam;
 
       /* Reshow the Windows mouse cursor if we are being deactivated */
-      if (!s_pScreenPriv->fActive
+      if (g_fSoftwareCursor && !s_pScreenPriv->fActive
 	  && !g_fCursor)
 	{
 	  /* Show Windows cursor */
 	  g_fCursor = TRUE;
 	  ShowCursor (TRUE);
 	}
+
+      /* Make sure the clipboard chain is ok. */
+      winFixClipboardChain ();
 
       /* Call engine specific screen activation/deactivation function */
       (*s_pScreenPriv->pwinActivateApp) (s_pScreen);
@@ -1038,27 +1140,35 @@ winWindowProc (HWND hwnd, UINT message,
 	  winDisplayExitDialog (s_pScreenPriv);
 	  return 0;
 
+#ifdef XWIN_MULTIWINDOW
 	case ID_APP_HIDE_ROOT:
-	  ShowWindow (s_pScreenPriv->hwndScreen, SW_HIDE);
-	  s_pScreenPriv->fRootWindowShown = FALSE;
+	  if (s_pScreenPriv->fRootWindowShown)
+	    ShowWindow (s_pScreenPriv->hwndScreen, SW_HIDE);
+	  else
+	    ShowWindow (s_pScreenPriv->hwndScreen, SW_SHOW);
+	  s_pScreenPriv->fRootWindowShown = !s_pScreenPriv->fRootWindowShown;
 	  return 0;
+#endif
 
-	case ID_APP_SHOW_ROOT:
-	  ShowWindow (s_pScreenPriv->hwndScreen, SW_SHOW);
-	  s_pScreenPriv->fRootWindowShown = TRUE;
+	case ID_APP_ABOUT:
+	  /* Display the About box */
+	  winDisplayAboutDialog (s_pScreenPriv);
 	  return 0;
 
 	default:
 	  /* It's probably one of the custom menus... */
-	  return HandleCustomWM_COMMAND (0, LOWORD (wParam));
-	  
+	  if (HandleCustomWM_COMMAND (0, LOWORD (wParam)))
+	    return 0;
 	}
       break;
 
+    case WM_ENDSESSION:
     case WM_GIVEUP:
-       /* Tell X that we are giving up */
-      winDeinitClipboard ();
-      winDeinitMultiWindowWM ();
+      /* Tell X that we are giving up */
+#ifdef XWIN_MULTIWINDOW
+      if (s_pScreenInfo->fMultiWindow)
+	winDeinitMultiWindowWM ();
+#endif
       GiveUp (0);
       return 0;
 
@@ -1066,6 +1176,21 @@ winWindowProc (HWND hwnd, UINT message,
       /* Display Exit dialog */
       winDisplayExitDialog (s_pScreenPriv);
       return 0;
+
+    case WM_SETCURSOR:
+      if (LOWORD(lParam) == HTCLIENT)
+	{
+	  if (!g_fSoftwareCursor) SetCursor (s_pScreenPriv->cursor.handle);
+	  return TRUE;
+	}
+      break;
+
+    default:
+      if(message == s_uTaskbarRestart)
+	{
+	  winInitNotifyIcon (s_pScreenPriv);
+	}
+      break;
     }
 
   return DefWindowProc (hwnd, message, wParam, lParam);

@@ -33,7 +33,6 @@
 #include "win.h"
 
 
-
 /* See Porting Layer Definition - p. 58 */
 /*
  * Allocate indexes for the privates that we use.
@@ -48,7 +47,7 @@ winAllocatePrivates (ScreenPtr pScreen)
   winPrivScreenPtr	pScreenPriv;
 
 #if CYGDEBUG
-  ErrorF ("winAllocateScreenPrivates - g_ulServerGeneration: %d "
+  winDebug ("winAllocateScreenPrivates - g_ulServerGeneration: %d "
 	  "serverGeneration: %d\n",
 	  g_ulServerGeneration, serverGeneration);
 #endif
@@ -120,7 +119,7 @@ Bool
 winInitCmapPrivates (ColormapPtr pcmap)
 {
 #if CYGDEBUG
-  ErrorF ("winInitCmapPrivates\n");
+  winDebug ("winInitCmapPrivates\n");
 #endif
   
   /*
@@ -146,7 +145,7 @@ winAllocateCmapPrivates (ColormapPtr pCmap)
   static unsigned long		s_ulPrivateGeneration = 0;
 
 #if CYGDEBUG
-  ErrorF ("winAllocateCmapPrivates\n");
+  winDebug ("winAllocateCmapPrivates\n");
 #endif
 
   /* Get a new privates index when the server generation changes */
@@ -174,7 +173,7 @@ winAllocateCmapPrivates (ColormapPtr pCmap)
   winSetCmapPriv (pCmap, pCmapPriv);
 
 #if CYGDEBUG
-  ErrorF ("winAllocateCmapPrivates - Returning\n");
+  winDebug ("winAllocateCmapPrivates - Returning\n");
 #endif
 
   return TRUE;

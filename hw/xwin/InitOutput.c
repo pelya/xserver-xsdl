@@ -29,54 +29,79 @@ from The Open Group.
 /* $XFree86: xc/programs/Xserver/hw/xwin/InitOutput.c,v 1.34 2003/10/02 13:30:09 eich Exp $ */
 
 #include "win.h"
+#include "winmsg.h"
+#ifdef XWIN_XF86CONFIG
 #include "winconfig.h"
-#include "winprefs.h"
-
-/*
- * General global variables
- */
-
-int		g_iNumScreens = 0;
-winScreenInfo	g_ScreenInfo[MAXSCREENS];
-int		g_iLastScreen = -1;
-int		g_fdMessageQueue = WIN_FD_INVALID;
-int		g_iScreenPrivateIndex = -1;
-int		g_iCmapPrivateIndex = -1;
-int		g_iGCPrivateIndex = -1;
-int		g_iPixmapPrivateIndex = -1;
-int		g_iWindowPrivateIndex = -1;
-unsigned long	g_ulServerGeneration = 0;
-Bool		g_fInitializedDefaultScreens = FALSE;
-DWORD		g_dwEnginesSupported = 0;
-HINSTANCE	g_hInstance = 0;
-HWND		g_hDlgDepthChange = NULL;
-HWND		g_hDlgExit = NULL;
-Bool		g_fCalledSetLocale = FALSE;
-Bool		g_fCalledXInitThreads = FALSE;
-int		g_iLogVerbose = 4;
-char *		g_pszLogFile = WIN_LOG_FNAME;
-Bool		g_fLogInited = FALSE;
-const char *	g_pszQueryHost = NULL;
-
-
-/*
- * Global variables for dynamically loaded libraries and
- * their function pointers
- */
-
-HMODULE		g_hmodDirectDraw = NULL;
-FARPROC		g_fpDirectDrawCreate = NULL;
-FARPROC		g_fpDirectDrawCreateClipper = NULL;
-
-HMODULE		g_hmodCommonControls = NULL;
-FARPROC		g_fpTrackMouseEvent = (FARPROC) (void (*)())NoopDDA;
-
-
-/* Function prototypes */
-
-#ifdef DDXOSVERRORF
-void OsVendorVErrorF (const char *pszFormat, va_list va_args);
 #endif
+#include "winprefs.h"
+#include "X11/Xlocale.h"
+
+
+/*
+ * References to external symbols
+ */
+
+extern int			g_iNumScreens;
+extern winScreenInfo		g_ScreenInfo[];
+extern int			g_iLastScreen;
+extern char *			g_pszCommandLine;
+extern Bool			g_fUseMsg;
+
+extern char *			g_pszLogFile;
+extern int			g_iLogVerbose;
+Bool				g_fLogInited;
+
+extern Bool			g_fXdmcpEnabled;
+extern int			g_fdMessageQueue;
+extern const char *		g_pszQueryHost;
+extern HINSTANCE		g_hInstance;
+
+#ifdef XWIN_CLIPBOARD
+extern Bool			g_fUnicodeClipboard;
+extern Bool			g_fClipboardLaunched;
+extern Bool			g_fClipboardStarted;
+extern pthread_t		g_ptClipboardProc;
+extern HWND			g_hwndClipboard;
+extern Bool			g_fClipboard;
+#endif
+
+extern HMODULE			g_hmodDirectDraw;
+extern FARPROC			g_fpDirectDrawCreate;
+extern FARPROC			g_fpDirectDrawCreateClipper;
+  
+extern HMODULE			g_hmodCommonControls;
+extern FARPROC			g_fpTrackMouseEvent;
+extern Bool			g_fNoHelpMessageBox;                     
+  
+  
+/*
+ * Function prototypes
+ */
+
+#ifdef XWIN_CLIPBOARD
+static void
+winClipboardShutdown (void);
+#endif
+
+#if defined(DDXOSVERRORF)
+void
+OsVendorVErrorF (const char *pszFormat, va_list va_args);
+#endif
+
+void
+winInitializeDefaultScreens (void);
+
+static Bool
+winCheckDisplayNumber (void);
+
+void
+winLogCommandLine (int argc, char *argv[]);
+
+void
+winLogVersionInfo (void);
+
+Bool
+winValidateArgs (void);
 
 
 /*
@@ -106,86 +131,80 @@ static PixmapFormatRec g_PixmapFormats[] = {
 
 const int NUMFORMATS = sizeof (g_PixmapFormats) / sizeof (g_PixmapFormats[0]);
 
+#ifdef XWIN_CLIPBOARD
+static void
+winClipboardShutdown (void)
+{
+  /* Close down clipboard resources */
+  if (g_fClipboard && g_fClipboardLaunched && g_fClipboardStarted)
+    {
+      /* Synchronously destroy the clipboard window */
+      if (g_hwndClipboard != NULL)
+	{
+	  SendMessage (g_hwndClipboard, WM_DESTROY, 0, 0);
+	  /* NOTE: g_hwndClipboard is set to NULL in winclipboardthread.c */
+	}
+      else
+	return;
+      
+      /* Wait for the clipboard thread to exit */
+      if (g_ptClipboardProc)
+	{
+	  pthread_join (g_ptClipboardProc, NULL);
+	  g_ptClipboardProc = 0;
+	}
+      else
+	return;
+
+      g_fClipboardLaunched = FALSE;
+      g_fClipboardStarted = FALSE;
+
+      winDebug ("winClipboardShutdown - Clipboard thread has exited.\n");
+    }
+}
+#endif
+
+
+#if defined(DDXBEFORERESET)
+/*
+ * Called right before KillAllClients when the server is going to reset,
+ * allows us to shutdown our seperate threads cleanly.
+ */
 
 void
-winInitializeDefaultScreens (void)
+ddxBeforeReset (void)
 {
-  int                   i;
-  DWORD			dwWidth, dwHeight;
+  winDebug ("ddxBeforeReset - Hello\n");
 
-  /* Bail out early if default screens have already been initialized */
-  if (g_fInitializedDefaultScreens)
-    return;
-
-  /* Zero the memory used for storing the screen info */
-  ZeroMemory (g_ScreenInfo, MAXSCREENS * sizeof (winScreenInfo));
-
-  /* Get default width and height */
-  /*
-   * NOTE: These defaults will cause the window to cover only
-   * the primary monitor in the case that we have multiple monitors.
-   */
-  dwWidth = GetSystemMetrics (SM_CXSCREEN);
-  dwHeight = GetSystemMetrics (SM_CYSCREEN);
-
-  ErrorF ("winInitializeDefaultScreens - w %d h %d\n", dwWidth, dwHeight);
-
-  /* Set a default DPI, if no parameter was passed */
-  if (monitorResolution == 0)
-    monitorResolution = WIN_DEFAULT_DPI;
-
-  for (i = 0; i < MAXSCREENS; ++i)
-    {
-      g_ScreenInfo[i].dwScreen = i;
-      g_ScreenInfo[i].dwWidth  = dwWidth;
-      g_ScreenInfo[i].dwHeight = dwHeight;
-      g_ScreenInfo[i].dwUserWidth  = dwWidth;
-      g_ScreenInfo[i].dwUserHeight = dwHeight;
-      g_ScreenInfo[i].fUserGaveHeightAndWidth
-	=  WIN_DEFAULT_USER_GAVE_HEIGHT_AND_WIDTH;
-      g_ScreenInfo[i].dwBPP = WIN_DEFAULT_BPP;
-      g_ScreenInfo[i].dwClipUpdatesNBoxes = WIN_DEFAULT_CLIP_UPDATES_NBOXES;
-      g_ScreenInfo[i].fEmulatePseudo = WIN_DEFAULT_EMULATE_PSEUDO;
-      g_ScreenInfo[i].dwRefreshRate = WIN_DEFAULT_REFRESH;
-      g_ScreenInfo[i].pfb = NULL;
-      g_ScreenInfo[i].fFullScreen = FALSE;
-      g_ScreenInfo[i].fDecoration = TRUE;
-      g_ScreenInfo[i].fRootless = FALSE;
-      g_ScreenInfo[i].fMultiWindow = FALSE;
-      g_ScreenInfo[i].fMultipleMonitors = FALSE;
-      g_ScreenInfo[i].fClipboard = FALSE;
-      g_ScreenInfo[i].fLessPointer = FALSE;
-      g_ScreenInfo[i].fScrollbars = FALSE;
-      g_ScreenInfo[i].fNoTrayIcon = FALSE;
-      g_ScreenInfo[i].iE3BTimeout = WIN_E3B_OFF;
-      g_ScreenInfo[i].dwWidth_mm = (dwWidth / WIN_DEFAULT_DPI)
-	* 25.4;
-      g_ScreenInfo[i].dwHeight_mm = (dwHeight / WIN_DEFAULT_DPI)
-	* 25.4;
-      g_ScreenInfo[i].fUseWinKillKey = WIN_DEFAULT_WIN_KILL;
-      g_ScreenInfo[i].fUseUnixKillKey = WIN_DEFAULT_UNIX_KILL;
-      g_ScreenInfo[i].fIgnoreInput = FALSE;
-      g_ScreenInfo[i].fExplicitScreen = FALSE;
-    }
-
-  /* Signal that the default screens have been initialized */
-  g_fInitializedDefaultScreens = TRUE;
-
-  ErrorF ("winInitializeDefaultScreens - Returning\n");
+#ifdef XWIN_CLIPBOARD
+  winClipboardShutdown ();
+#endif
 }
+#endif
 
 
 /* See Porting Layer Definition - p. 57 */
 void
-ddxGiveUp()
+ddxGiveUp (void)
 {
+  int		i;
+
 #if CYGDEBUG
-  ErrorF ("ddxGiveUp\n");
+  winDebug ("ddxGiveUp\n");
 #endif
 
+  /* Perform per-screen deinitialization */
+  for (i = 0; i < g_iNumScreens; ++i)
+    {
+      /* Delete the tray icon */
+      if (!g_ScreenInfo[i].fNoTrayIcon && g_ScreenInfo[i].pScreen)
+ 	winDeleteNotifyIcon (winGetScreenPriv (g_ScreenInfo[i].pScreen));
+    }
+
+#ifdef XWIN_MULTIWINDOW
   /* Notify the worker threads we're exiting */
-  winDeinitClipboard ();
   winDeinitMultiWindowWM ();
+#endif
 
   /* Close our handle to our message queue */
   if (g_fdMessageQueue != WIN_FD_INVALID)
@@ -198,10 +217,10 @@ ddxGiveUp()
     }
 
   if (!g_fLogInited) {
-    LogInit(g_pszLogFile, NULL);
+    LogInit (g_pszLogFile, NULL);
     g_fLogInited = TRUE;
   }  
-  LogClose();
+  LogClose ();
 
   /*
    * At this point we aren't creating any new screens, so
@@ -220,9 +239,19 @@ ddxGiveUp()
     {
       FreeLibrary (g_hmodCommonControls);
       g_hmodCommonControls = NULL;
-      g_fpTrackMouseEvent = (FARPROC) (void (*)())NoopDDA;
+      g_fpTrackMouseEvent = (FARPROC) (void (*)(void))NoopDDA;
     }
   
+  /* Free concatenated command line */
+  if (g_pszCommandLine)
+    {
+      free (g_pszCommandLine);
+      g_pszCommandLine = NULL;
+    }
+
+  /* Remove our keyboard hook if it is installed */
+  winRemoveKeyboardHookLL ();
+
   /* Tell Windows that we want to end the app */
   PostQuitMessage (0);
 }
@@ -233,7 +262,7 @@ void
 AbortDDX (void)
 {
 #if CYGDEBUG
-  ErrorF ("AbortDDX\n");
+  winDebug ("AbortDDX\n");
 #endif
   ddxGiveUp ();
 }
@@ -242,22 +271,35 @@ AbortDDX (void)
 void
 OsVendorInit (void)
 {
+  /* Re-initialize global variables on server reset */
+  winInitializeGlobals ();
+
 #ifdef DDXOSVERRORF
   if (!OsVendorVErrorFProc)
     OsVendorVErrorFProc = OsVendorVErrorF;
 #endif
 
   if (!g_fLogInited) {
-    LogInit(g_pszLogFile, NULL);
+    /* keep this order. If LogInit fails it calls Abort which then calls
+     * ddxGiveUp where LogInit is called again and creates an infinite 
+     * recursion. If we set g_fLogInited to TRUE before the init we 
+     * avoid the second call 
+     */  
     g_fLogInited = TRUE;
+    LogInit (g_pszLogFile, NULL);
   }  
-  LogSetParameter(XLOG_FLUSH, 1);
-  LogSetParameter(XLOG_VERBOSITY, g_iLogVerbose);
+  LogSetParameter (XLOG_FLUSH, 1);
+  LogSetParameter (XLOG_VERBOSITY, g_iLogVerbose);
+  LogSetParameter (XLOG_FILE_VERBOSITY, 1);
+
+  /* Log the version information */
+  if (serverGeneration == 1)
+    winLogVersionInfo ();
 
   /* Add a default screen if no screens were specified */
   if (g_iNumScreens == 0)
     {
-      ErrorF ("OsVendorInit - Creating bogus screen 0\n");
+      winDebug ("OsVendorInit - Creating bogus screen 0\n");
 
       /* 
        * We need to initialize default screens if no arguments
@@ -280,9 +322,8 @@ OsVendorInit (void)
 }
 
 
-/* See Porting Layer Definition - p. 57 */
 void
-ddxUseMsg (void)
+winUseMsg (void)
 {
   ErrorF ("-depth bits_per_pixel\n"
 	  "\tSpecify an optional bitdepth to use in fullscreen mode\n"
@@ -297,7 +338,10 @@ ddxUseMsg (void)
 	  "\t\t1 - Shadow GDI\n"
 	  "\t\t2 - Shadow DirectDraw\n"
 	  "\t\t4 - Shadow DirectDraw4 Non-Locking\n"
-	  "\t\t16 - Native GDI - experimental\n");
+#ifdef XWIN_NATIVEGDI
+	  "\t\t16 - Native GDI - experimental\n"
+#endif
+	  );
 
   ErrorF ("-fullscreen\n"
 	  "\tRun the server in fullscreen mode.\n");
@@ -312,25 +356,38 @@ ddxUseMsg (void)
 
   ErrorF ("-lesspointer\n"
 	  "\tHide the windows mouse pointer when it is over an inactive\n"
-          "\tX window.  This prevents ghost cursors appearing where\n"
+          "\tCygwin/X window.  This prevents ghost cursors appearing where\n"
 	  "\tthe Windows cursor is drawn overtop of the X cursor\n");
 
   ErrorF ("-nodecoration\n"
           "\tDo not draw a window border, title bar, etc.  Windowed\n"
 	  "\tmode only.\n");
 
-  ErrorF ("-rootless\n"
-	  "\tEXPERIMENTAL: Run the server in pseudo-rootless mode.\n");
+#ifdef XWIN_MULTIWINDOWEXTWM
+  ErrorF ("-mwextwm\n"
+	  "\tRun the server in multi-window external window manager mode.\n");
+#endif
 
+  ErrorF ("-rootless\n"
+	  "\tRun the server in rootless mode.\n");
+
+#ifdef XWIN_MULTIWINDOW
   ErrorF ("-multiwindow\n"
-	  "\tEXPERIMENTAL: Run the server in multi-window mode.\n");
+	  "\tRun the server in multi-window mode.\n");
+#endif
 
   ErrorF ("-multiplemonitors\n"
 	  "\tEXPERIMENTAL: Use the entire virtual screen if multiple\n"
 	  "\tmonitors are present.\n");
 
+#ifdef XWIN_CLIPBOARD
   ErrorF ("-clipboard\n"
-	  "\tEXPERIMENTAL: Run the clipboard integration module.\n");
+	  "\tRun the clipboard integration module.\n"
+	  "\tDo not use at the same time as 'xwinclip'.\n");
+
+  ErrorF ("-nounicodeclipboard\n"
+	  "\tDo not use Unicode clipboard even if NT-based platform.\n");
+#endif
 
   ErrorF ("-scrollbars\n"
 	  "\tIn windowed mode, allow screens bigger than the Windows desktop.\n"
@@ -348,12 +405,14 @@ ddxUseMsg (void)
 	  "\tthe updated region when num_boxes, or more, are in the\n"
 	  "\tupdated region.  Currently supported only by `-engine 1'.\n");
 
+#ifdef XWIN_EMULATEPSEUDO
   ErrorF ("-emulatepseudo\n"
 	  "\tCreate a depth 8 PseudoColor visual when running in\n"
 	  "\tdepths 15, 16, 24, or 32, collectively known as TrueColor\n"
 	  "\tdepths.  The PseudoColor visual does not have correct colors,\n"
 	  "\tand it may crash, but it at least allows you to run your\n"
 	  "\tapplication in TrueColor modes.\n");
+#endif
 
   ErrorF ("-[no]unixkill\n"
           "\tCtrl+Alt+Backspace exits the X Server.\n");
@@ -361,893 +420,81 @@ ddxUseMsg (void)
   ErrorF ("-[no]winkill\n"
           "\tAlt+F4 exits the X Server.\n");
 
+#ifdef XWIN_XF86CONFIG
   ErrorF ("-config\n"
           "\tSpecify a configuration file.\n");
 
   ErrorF ("-keyboard\n"
 	  "\tSpecify a keyboard device from the configuration file.\n");
+#endif
+
+#ifdef XKB
+  ErrorF ("-xkbrules XKBRules\n"
+	  "\tEquivalent to XKBRules in XF86Config files.\n");
+
+  ErrorF ("-xkbmodel XKBModel\n"
+	  "\tEquivalent to XKBModel in XF86Config files.\n");
+
+  ErrorF ("-xkblayout XKBLayout\n"
+	  "\tEquivalent to XKBLayout in XF86Config files.\n"
+	  "\tFor example: -xkblayout de\n");
+
+  ErrorF ("-xkbvariant XKBVariant\n"
+	  "\tEquivalent to XKBVariant in XF86Config files.\n"
+	  "\tFor example: -xkbvariant nodeadkeys\n");
+
+  ErrorF ("-xkboptions XKBOptions\n"
+	  "\tEquivalent to XKBOptions in XF86Config files.\n");
+#endif
+
+  ErrorF ("-logfile filename\n"
+	  "\tWrite logmessages to <filename> instead of /tmp/Xwin.log.\n");
+
+  ErrorF ("-logverbose verbosity\n"
+	  "\tSet the verbosity of logmessages. [NOTE: Only a few messages\n"
+	  "\trespect the settings yet]\n"
+	  "\t\t0 - only print fatal error.\n"
+	  "\t\t1 - print additional configuration information.\n"
+	  "\t\t2 - print additional runtime information [default].\n"
+	  "\t\t3 - print debugging and tracing information.\n");
+
+  ErrorF ("-[no]keyhook\n"
+	  "\tGrab special windows key combinations like Alt-Tab or the Menu "
+          "key.\n These keys are discarded by default.\n");
+
+  ErrorF ("-swcursor\n"
+	  "\tDisable the usage of the windows cursor and use the X11 software "
+	  "cursor instead\n");
 }
 
-
 /* See Porting Layer Definition - p. 57 */
-/*
- * INPUT
- * argv: pointer to an array of null-terminated strings, one for
- *   each token in the X Server command line; the first token
- *   is 'XWin.exe', or similar.
- * argc: a count of the number of tokens stored in argv.
- * i: a zero-based index into argv indicating the current token being
- *   processed.
- *
- * OUTPUT
- * return: return the number of tokens processed correctly.
- *
- * NOTE
- * When looking for n tokens, check that i + n is less than argc.  Or,
- *   you may check if i is greater than or equal to argc, in which case
- *   you should display the UseMsg () and return 0.
- */
+void
+ddxUseMsg(void)
+{
+  /* Set a flag so that FatalError won't give duplicate warning message */
+  g_fUseMsg = TRUE;
+  
+  winUseMsg();  
 
-/* Check if enough arguments are given for the option */
-#define CHECK_ARGS(count) if (i + count >= argc) { UseMsg (); return 0; }
+  /* Log file will not be opened for UseMsg unless we open it now */
+  if (!g_fLogInited) {
+    LogInit (g_pszLogFile, NULL);
+    g_fLogInited = TRUE;
+  }  
+  LogClose ();
 
-/* Compare the current option with the string. */ 
-#define IS_OPTION(name) (strcmp (argv[i], name) == 0)
+  /* Notify user where UseMsg text can be found.*/
+  if (!g_fNoHelpMessageBox)
+    winMessageBoxF ("The Cygwin/X help text has been printed to "
+		  "/tmp/XWin.log.\n"
+		  "Please open /tmp/XWin.log to read the help text.\n",
+		  MB_ICONINFORMATION);
+}
 
 /* ddxInitGlobals - called by |InitGlobals| from os/util.c */
 void ddxInitGlobals(void)
 {
 }
-
-int
-ddxProcessArgument (int argc, char *argv[], int i)
-{
-  static Bool		s_fBeenHere = FALSE;
-
-  /* Initialize once */
-  if (!s_fBeenHere)
-    {
-#ifdef DDXOSVERRORF
-      /*
-       * This initialises our hook into VErrorF () for catching log messages
-       * that are generated before OsInit () is called.
-       */
-      OsVendorVErrorFProc = OsVendorVErrorF;
-#endif
-
-      s_fBeenHere = TRUE;
-
-      /*
-       * Initialize default screen settings.  We have to do this before
-       * OsVendorInit () gets called, otherwise we will overwrite
-       * settings changed by parameters such as -fullscreen, etc.
-       */
-      ErrorF ("ddxProcessArgument - Initializing default screens\n");
-      winInitializeDefaultScreens ();
-    }
-
-#if CYGDEBUG
-  ErrorF ("ddxProcessArgument - arg: %s\n", argv[i]);
-#endif
-  
-  /*
-   * Look for the '-screen scr_num [width height]' argument
-   */
-  if (strcmp (argv[i], "-screen") == 0)
-    {
-      int		iArgsProcessed = 1;
-      int		nScreenNum;
-      int		iWidth, iHeight;
-
-#if CYGDEBUG
-      ErrorF ("ddxProcessArgument - screen - argc: %d i: %d\n",
-	      argc, i);
-#endif
-
-      /* Display the usage message if the argument is malformed */
-      if (i + 1 >= argc)
-	{
-	  return 0;
-	}
-      
-      /* Grab screen number */
-      nScreenNum = atoi (argv[i + 1]);
-
-      /* Validate the specified screen number */
-      if (nScreenNum < 0 || nScreenNum >= MAXSCREENS)
-        {
-          ErrorF ("ddxProcessArgument - screen - Invalid screen number %d\n",
-		  nScreenNum);
-          UseMsg ();
-	  return 0;
-        }
-
-      /* Look for 'WxD' or 'W D' */
-      if (i + 2 < argc
-	  && 2 == sscanf (argv[i + 2], "%dx%d",
-			  (int *) &iWidth,
-			  (int *) &iHeight))
-	{
-	  ErrorF ("ddxProcessArgument - screen - Found ``WxD'' arg\n");
-	  iArgsProcessed = 3;
-	  g_ScreenInfo[nScreenNum].fUserGaveHeightAndWidth = TRUE;
-	  g_ScreenInfo[nScreenNum].dwWidth = iWidth;
-	  g_ScreenInfo[nScreenNum].dwHeight = iHeight;
-	  g_ScreenInfo[nScreenNum].dwUserWidth = iWidth;
-	  g_ScreenInfo[nScreenNum].dwUserHeight = iHeight;
-	}
-      else if (i + 3 < argc
-	       && 1 == sscanf (argv[i + 2], "%d",
-			       (int *) &iWidth)
-	       && 1 == sscanf (argv[i + 3], "%d",
-			       (int *) &iHeight))
-	{
-	  ErrorF ("ddxProcessArgument - screen - Found ``W D'' arg\n");
-	  iArgsProcessed = 4;
-	  g_ScreenInfo[nScreenNum].fUserGaveHeightAndWidth = TRUE;
-	  g_ScreenInfo[nScreenNum].dwWidth = iWidth;
-	  g_ScreenInfo[nScreenNum].dwHeight = iHeight;
-	  g_ScreenInfo[nScreenNum].dwUserWidth = iWidth;
-	  g_ScreenInfo[nScreenNum].dwUserHeight = iHeight;
-	}
-      else
-	{
-	  ErrorF ("ddxProcessArgument - screen - Did not find size arg. "
-		  "dwWidth: %d dwHeight: %d\n",
-		  g_ScreenInfo[nScreenNum].dwWidth,
-		  g_ScreenInfo[nScreenNum].dwHeight);
-	  iArgsProcessed = 2;
-	  g_ScreenInfo[nScreenNum].fUserGaveHeightAndWidth = FALSE;
-	}
-
-      /* Calculate the screen width and height in millimeters */
-      if (g_ScreenInfo[nScreenNum].fUserGaveHeightAndWidth)
-	{
-	  g_ScreenInfo[nScreenNum].dwWidth_mm
-	    = (g_ScreenInfo[nScreenNum].dwWidth
-	       / monitorResolution) * 25.4;
-	  g_ScreenInfo[nScreenNum].dwHeight_mm
-	    = (g_ScreenInfo[nScreenNum].dwHeight
-	       / monitorResolution) * 25.4;
-	}
-
-      /* Flag that this screen was explicity specified by the user */
-      g_ScreenInfo[nScreenNum].fExplicitScreen = TRUE;
-
-      /*
-       * Keep track of the last screen number seen, as parameters seen
-       * before a screen number apply to all screens, whereas parameters
-       * seen after a screen number apply to that screen number only.
-       */
-      g_iLastScreen = nScreenNum;
-
-      /* Keep a count of the number of screens */
-      ++g_iNumScreens;
-
-      return iArgsProcessed;
-    }
-
-  /*
-   * Look for the '-engine n' argument
-   */
-  if (strcmp (argv[i], "-engine") == 0)
-    {
-      DWORD		dwEngine = 0;
-      CARD8		c8OnBits = 0;
-      
-      /* Display the usage message if the argument is malformed */
-      if (++i >= argc)
-	{
-	  UseMsg ();
-	  return 0;
-	}
-
-      /* Grab the argument */
-      dwEngine = atoi (argv[i]);
-
-      /* Count the one bits in the engine argument */
-      c8OnBits = winCountBits (dwEngine);
-
-      /* Argument should only have a single bit on */
-      if (c8OnBits != 1)
-	{
-	  UseMsg ();
-	  return 0;
-	}
-
-      /* Is this parameter attached to a screen or global? */
-      if (-1 == g_iLastScreen)
-	{
-	  int		j;
-
-	  /* Parameter is for all screens */
-	  for (j = 0; j < MAXSCREENS; j++)
-	    {
-	      g_ScreenInfo[j].dwEnginePreferred = dwEngine;
-	    }
-	}
-      else
-	{
-	  /* Parameter is for a single screen */
-	  g_ScreenInfo[g_iLastScreen].dwEnginePreferred = dwEngine;
-	}
-      
-      /* Indicate that we have processed the argument */
-      return 2;
-    }
-
-  /*
-   * Look for the '-fullscreen' argument
-   */
-  if (strcmp (argv[i], "-fullscreen") == 0)
-    {
-      /* Is this parameter attached to a screen or is it global? */
-      if (-1 == g_iLastScreen)
-	{
-	  int			j;
-
-	  /* Parameter is for all screens */
-	  for (j = 0; j < MAXSCREENS; j++)
-	    {
-	      g_ScreenInfo[j].fFullScreen = TRUE;
-
-	      /*
-	       * No scrollbars in fullscreen mode. Later, we may want to have
-	       * a fullscreen with a bigger virtual screen?
-	       */
-	      g_ScreenInfo[j].fScrollbars = FALSE;
-	    }
-	}
-      else
-	{
-	  /* Parameter is for a single screen */
-	  g_ScreenInfo[g_iLastScreen].fFullScreen = TRUE;
-
-	  /*
-	   * No scrollbars in fullscreen mode. Later, we may want to have
-	   * a fullscreen with a bigger virtual screen?
-	   */
-	  g_ScreenInfo[g_iLastScreen].fScrollbars = FALSE;
-	}
-
-      /* Indicate that we have processed this argument */
-      return 1;
-    }
-
-  /*
-   * Look for the '-lesspointer' argument
-   */
-  if (strcmp (argv[i], "-lesspointer") == 0)
-    {
-      /* Is this parameter attached to a screen or is it global? */
-      if (-1 == g_iLastScreen)
-	{
-	  int			j;
-
-	  /* Parameter is for all screens */
-	  for (j = 0; j < MAXSCREENS; j++)
-	    {
-	      g_ScreenInfo[j].fLessPointer = TRUE;
-	    }
-	}
-      else
-	{
-	  /* Parameter is for a single screen */
-          g_ScreenInfo[g_iLastScreen].fLessPointer = TRUE;
-	}
-
-      /* Indicate that we have processed this argument */
-      return 1;
-    }
-
-  /*
-   * Look for the '-nodecoration' argument
-   */
-  if (strcmp (argv[i], "-nodecoration") == 0)
-    {
-      /* Is this parameter attached to a screen or is it global? */
-      if (-1 == g_iLastScreen)
-	{
-	  int			j;
-
-	  /* Parameter is for all screens */
-	  for (j = 0; j < MAXSCREENS; j++)
-	    {
-	      g_ScreenInfo[j].fDecoration = FALSE;
-	    }
-	}
-      else
-	{
-	  /* Parameter is for a single screen */
-	  g_ScreenInfo[g_iLastScreen].fDecoration = FALSE;
-	}
-
-      /* Indicate that we have processed this argument */
-      return 1;
-    }
-
-  /*
-   * Look for the '-rootless' argument
-   */
-  if (strcmp (argv[i], "-rootless") == 0)
-    {
-      /* Is this parameter attached to a screen or is it global? */
-      if (-1 == g_iLastScreen)
-	{
-	  int			j;
-
-	  /* Parameter is for all screens */
-	  for (j = 0; j < MAXSCREENS; j++)
-	    {
-	      g_ScreenInfo[j].fRootless = TRUE;
-	    }
-	}
-      else
-	{
-	  /* Parameter is for a single screen */
-	  g_ScreenInfo[g_iLastScreen].fRootless = TRUE;
-	}
-
-      /* Indicate that we have processed this argument */
-      return 1;
-    }
-
-  /*
-   * Look for the '-multiwindow' argument
-   */
-  if (strcmp (argv[i], "-multiwindow") == 0)
-    {
-      /* Is this parameter attached to a screen or is it global? */
-      if (-1 == g_iLastScreen)
-	{
-	  int			j;
-
-	  /* Parameter is for all screens */
-	  for (j = 0; j < MAXSCREENS; j++)
-	    {
-	      g_ScreenInfo[j].fMultiWindow = TRUE;
-	    }
-	}
-      else
-	{
-	  /* Parameter is for a single screen */
-	  g_ScreenInfo[g_iLastScreen].fMultiWindow = TRUE;
-	}
-
-      /* Indicate that we have processed this argument */
-      return 1;
-    }
-
-  /*
-   * Look for the '-multiplemonitors' argument
-   */
-  if (strcmp (argv[i], "-multiplemonitors") == 0
-      || strcmp (argv[i], "-multimonitors") == 0)
-    {
-      /* Is this parameter attached to a screen or is it global? */
-      if (-1 == g_iLastScreen)
-	{
-	  int			j;
-
-	  /* Parameter is for all screens */
-	  for (j = 0; j < MAXSCREENS; j++)
-	    {
-	      g_ScreenInfo[j].fMultipleMonitors = TRUE;
-	    }
-	}
-      else
-	{
-	  /* Parameter is for a single screen */
-	  g_ScreenInfo[g_iLastScreen].fMultipleMonitors = TRUE;
-	}
-
-      /* Indicate that we have processed this argument */
-      return 1;
-    }
-
-  /*
-   * Look for the '-scrollbars' argument
-   */
-  if (strcmp (argv[i], "-scrollbars") == 0)
-    {
-      /* Is this parameter attached to a screen or is it global? */
-      if (-1 == g_iLastScreen)
-	{
-	  int			j;
-
-	  /* Parameter is for all screens */
-	  for (j = 0; j < MAXSCREENS; j++)
-	    {
-	      /* No scrollbar in fullscreen mode */
-	      if (!g_ScreenInfo[j].fFullScreen)
-		g_ScreenInfo[j].fScrollbars = TRUE;
-	    }
-	}
-      else
-	{
-	  /* Parameter is for a single screen */
-	  if (!g_ScreenInfo[g_iLastScreen].fFullScreen)
-	    {
-	      /* No scrollbar in fullscreen mode */
-	      g_ScreenInfo[g_iLastScreen].fScrollbars = TRUE;
-	    }
-	}
-
-      /* Indicate that we have processed this argument */
-      return 1;
-    }
-
-
-
-  /*
-   * Look for the '-clipboard' argument
-   */
-  if (strcmp (argv[i], "-clipboard") == 0)
-    {
-      /* Is this parameter attached to a screen or is it global? */
-      if (-1 == g_iLastScreen)
-	{
-	  int			j;
-
-	  /* Parameter is for all screens */
-	  for (j = 0; j < MAXSCREENS; j++)
-	    {
-	      g_ScreenInfo[j].fClipboard = TRUE;
-	    }
-	}
-      else
-	{
-	  /* Parameter is for a single screen */
-	  g_ScreenInfo[g_iLastScreen].fClipboard = TRUE;
-	}
-
-      /* Indicate that we have processed this argument */
-      return 1;
-    }
-
-  /*
-   * Look for the '-ignoreinput' argument
-   */
-  if (strcmp (argv[i], "-ignoreinput") == 0)
-    {
-      /* Is this parameter attached to a screen or is it global? */
-      if (-1 == g_iLastScreen)
-	{
-	  int			j;
-
-	  /* Parameter is for all screens */
-	  for (j = 0; j < MAXSCREENS; j++)
-	    {
-	      g_ScreenInfo[j].fIgnoreInput = TRUE;
-	    }
-	}
-      else
-	{
-	  /* Parameter is for a single screen */
-	  g_ScreenInfo[g_iLastScreen].fIgnoreInput = TRUE;
-	}
-
-      /* Indicate that we have processed this argument */
-      return 1;
-    }
-
-  /*
-   * Look for the '-emulate3buttons' argument
-   */
-  if (strcmp (argv[i], "-emulate3buttons") == 0)
-    {
-      int	iArgsProcessed = 1;
-      int	iE3BTimeout = WIN_DEFAULT_E3B_TIME;
-
-      /* Grab the optional timeout value */
-      if (i + 1 < argc
-	  && 1 == sscanf (argv[i + 1], "%d",
-			  &iE3BTimeout))
-        {
-	  /* Indicate that we have processed the next argument */
-	  iArgsProcessed++;
-        }
-      else
-	{
-	  /*
-	   * sscanf () won't modify iE3BTimeout if it doesn't find
-	   * the specified format; however, I want to be explicit
-	   * about setting the default timeout in such cases to
-	   * prevent some programs (me) from getting confused.
-	   */
-	  iE3BTimeout = WIN_DEFAULT_E3B_TIME;
-	}
-
-      /* Is this parameter attached to a screen or is it global? */
-      if (-1 == g_iLastScreen)
-	{
-	  int			j;
-
-	  /* Parameter is for all screens */
-	  for (j = 0; j < MAXSCREENS; j++)
-	    {
-	      g_ScreenInfo[j].iE3BTimeout = iE3BTimeout;
-	    }
-	}
-      else
-	{
-	  /* Parameter is for a single screen */
-	  g_ScreenInfo[g_iLastScreen].iE3BTimeout = iE3BTimeout;
-	}
-
-      /* Indicate that we have processed this argument */
-      return iArgsProcessed;
-    }
-
-  /*
-   * Look for the '-depth n' argument
-   */
-  if (strcmp (argv[i], "-depth") == 0)
-    {
-      DWORD		dwBPP = 0;
-      
-      /* Display the usage message if the argument is malformed */
-      if (++i >= argc)
-	{
-	  UseMsg ();
-	  return 0;
-	}
-
-      /* Grab the argument */
-      dwBPP = atoi (argv[i]);
-
-      /* Is this parameter attached to a screen or global? */
-      if (-1 == g_iLastScreen)
-	{
-	  int		j;
-
-	  /* Parameter is for all screens */
-	  for (j = 0; j < MAXSCREENS; j++)
-	    {
-	      g_ScreenInfo[j].dwBPP = dwBPP;
-	    }
-	}
-      else
-	{
-	  /* Parameter is for a single screen */
-	  g_ScreenInfo[g_iLastScreen].dwBPP = dwBPP;
-	}
-      
-      /* Indicate that we have processed the argument */
-      return 2;
-    }
-
-  /*
-   * Look for the '-refresh n' argument
-   */
-  if (strcmp (argv[i], "-refresh") == 0)
-    {
-      DWORD		dwRefreshRate = 0;
-      
-      /* Display the usage message if the argument is malformed */
-      if (++i >= argc)
-	{
-	  UseMsg ();
-	  return 0;
-	}
-
-      /* Grab the argument */
-      dwRefreshRate = atoi (argv[i]);
-
-      /* Is this parameter attached to a screen or global? */
-      if (-1 == g_iLastScreen)
-	{
-	  int		j;
-
-	  /* Parameter is for all screens */
-	  for (j = 0; j < MAXSCREENS; j++)
-	    {
-	      g_ScreenInfo[j].dwRefreshRate = dwRefreshRate;
-	    }
-	}
-      else
-	{
-	  /* Parameter is for a single screen */
-	  g_ScreenInfo[g_iLastScreen].dwRefreshRate = dwRefreshRate;
-	}
-      
-      /* Indicate that we have processed the argument */
-      return 2;
-    }
-
-  /*
-   * Look for the '-clipupdates num_boxes' argument
-   */
-  if (strcmp (argv[i], "-clipupdates") == 0)
-    {
-      DWORD		dwNumBoxes = 0;
-      
-      /* Display the usage message if the argument is malformed */
-      if (++i >= argc)
-	{
-	  UseMsg ();
-	  return 0;
-	}
-
-      /* Grab the argument */
-      dwNumBoxes = atoi (argv[i]);
-
-      /* Is this parameter attached to a screen or global? */
-      if (-1 == g_iLastScreen)
-	{
-	  int		j;
-
-	  /* Parameter is for all screens */
-	  for (j = 0; j < MAXSCREENS; j++)
-	    {
-	      g_ScreenInfo[j].dwClipUpdatesNBoxes = dwNumBoxes;
-	    }
-	}
-      else
-	{
-	  /* Parameter is for a single screen */
-	  g_ScreenInfo[g_iLastScreen].dwClipUpdatesNBoxes = dwNumBoxes;
-	}
-      
-      /* Indicate that we have processed the argument */
-      return 2;
-    }
-
-  /*
-   * Look for the '-emulatepseudo' argument
-   */
-  if (strcmp (argv[i], "-emulatepseudo") == 0)
-    {
-      /* Is this parameter attached to a screen or is it global? */
-      if (-1 == g_iLastScreen)
-	{
-	  int			j;
-
-	  /* Parameter is for all screens */
-	  for (j = 0; j < MAXSCREENS; j++)
-	    {
-	      g_ScreenInfo[j].fEmulatePseudo = TRUE;
-	    }
-	}
-      else
-	{
-	  /* Parameter is for a single screen */
-          g_ScreenInfo[g_iLastScreen].fEmulatePseudo = TRUE;
-	}
-
-      /* Indicate that we have processed this argument */
-      return 1;
-    }
-
-  /*
-   * Look for the '-nowinkill' argument
-   */
-  if (strcmp (argv[i], "-nowinkill") == 0)
-    {
-      /* Is this parameter attached to a screen or is it global? */
-      if (-1 == g_iLastScreen)
-	{
-	  int			j;
-
-	  /* Parameter is for all screens */
-	  for (j = 0; j < MAXSCREENS; j++)
-	    {
-	      g_ScreenInfo[j].fUseWinKillKey = FALSE;
-	    }
-	}
-      else
-	{
-	  /* Parameter is for a single screen */
-	  g_ScreenInfo[g_iLastScreen].fUseWinKillKey = FALSE;
-	}
-
-      /* Indicate that we have processed this argument */
-      return 1;
-    }
-
-  /*
-   * Look for the '-winkill' argument
-   */
-  if (strcmp (argv[i], "-winkill") == 0)
-    {
-      /* Is this parameter attached to a screen or is it global? */
-      if (-1 == g_iLastScreen)
-	{
-	  int			j;
-
-	  /* Parameter is for all screens */
-	  for (j = 0; j < MAXSCREENS; j++)
-	    {
-	      g_ScreenInfo[j].fUseWinKillKey = TRUE;
-	    }
-	}
-      else
-	{
-	  /* Parameter is for a single screen */
-	  g_ScreenInfo[g_iLastScreen].fUseWinKillKey = TRUE;
-	}
-
-      /* Indicate that we have processed this argument */
-      return 1;
-    }
-
-  /*
-   * Look for the '-nounixkill' argument
-   */
-  if (strcmp (argv[i], "-nounixkill") == 0)
-    {
-      /* Is this parameter attached to a screen or is it global? */
-      if (-1 == g_iLastScreen)
-	{
-	  int			j;
-
-	  /* Parameter is for all screens */
-	  for (j = 0; j < MAXSCREENS; j++)
-	    {
-	      g_ScreenInfo[j].fUseUnixKillKey = FALSE;
-	    }
-	}
-      else
-	{
-	  /* Parameter is for a single screen */
-	  g_ScreenInfo[g_iLastScreen].fUseUnixKillKey = FALSE;
-	}
-
-      /* Indicate that we have processed this argument */
-      return 1;
-    }
-
-  /*
-   * Look for the '-unixkill' argument
-   */
-  if (strcmp (argv[i], "-unixkill") == 0)
-    {
-      /* Is this parameter attached to a screen or is it global? */
-      if (-1 == g_iLastScreen)
-	{
-	  int			j;
-
-	  /* Parameter is for all screens */
-	  for (j = 0; j < MAXSCREENS; j++)
-	    {
-	      g_ScreenInfo[j].fUseUnixKillKey = TRUE;
-	    }
-	}
-      else
-	{
-	  /* Parameter is for a single screen */
-	  g_ScreenInfo[g_iLastScreen].fUseUnixKillKey = TRUE;
-	}
-
-      /* Indicate that we have processed this argument */
-      return 1;
-    }
-
-  /*
-   * Look for the '-notrayicon' argument
-   */
-  if (strcmp (argv[i], "-notrayicon") == 0)
-    {
-      /* Is this parameter attached to a screen or is it global? */
-      if (-1 == g_iLastScreen)
-	{
-	  int			j;
-
-	  /* Parameter is for all screens */
-	  for (j = 0; j < MAXSCREENS; j++)
-	    {
-	      g_ScreenInfo[j].fNoTrayIcon = TRUE;
-	    }
-	}
-      else
-	{
-	  /* Parameter is for a single screen */
-	  g_ScreenInfo[g_iLastScreen].fNoTrayIcon = TRUE;
-	}
-
-      /* Indicate that we have processed this argument */
-      return 1;
-    }
-
-  /*
-   * Look for the '-trayicon' argument
-   */
-  if (strcmp (argv[i], "-trayicon") == 0)
-    {
-      /* Is this parameter attached to a screen or is it global? */
-      if (-1 == g_iLastScreen)
-	{
-	  int			j;
-
-	  /* Parameter is for all screens */
-	  for (j = 0; j < MAXSCREENS; j++)
-	    {
-	      g_ScreenInfo[j].fNoTrayIcon = FALSE;
-	    }
-	}
-      else
-	{
-	  /* Parameter is for a single screen */
-	  g_ScreenInfo[g_iLastScreen].fNoTrayIcon = FALSE;
-	}
-
-      /* Indicate that we have processed this argument */
-      return 1;
-    }
-
-  /*
-   * Look for the '-fp' argument
-   */
-  if (IS_OPTION ("-fp"))
-    {
-      CHECK_ARGS (1);
-      g_cmdline.fontPath = argv[++i];
-      return 0; /* Let DIX parse this again */
-    }
-
-  /*
-   * Look for the '-co' argument
-   */
-  if (IS_OPTION ("-co"))
-    {
-      CHECK_ARGS (1);
-      g_cmdline.rgbPath = argv[++i];
-      return 0; /* Let DIX parse this again */
-    }
-
-  /*
-   * Look for the '-query' argument
-   */
-  if (IS_OPTION ("-query"))
-    {
-      CHECK_ARGS (1);
-      g_pszQueryHost = argv[++i];
-      return 0; /* Let DIX parse this again */
-    }
-
-  /*
-   * Look for the '-config' argument.  Accept -xf86config as an alias
-   */
-  if (IS_OPTION ("-config") || IS_OPTION ("-xf86config"))
-    {
-      CHECK_ARGS (1);
-      g_cmdline.configFile = argv[++i];
-      return 2;
-    }
-
-  /*
-   * Look for the '-keyboard' argument
-   */
-  if (IS_OPTION ("-keyboard"))
-    {
-      CHECK_ARGS (1);
-      g_cmdline.keyboard = argv[++i];
-      return 2;
-    }
-
-  /*
-   * Look for the '-logfile' argument
-   */
-  if (IS_OPTION ("-logfile"))
-    {
-      CHECK_ARGS (1);
-      g_pszLogFile = argv[++i];
-      return 2;
-    }
-
-  /*
-   * Look for the '-logverbose' argument
-   */
-  if (IS_OPTION ("-logverbose"))
-    {
-      CHECK_ARGS (1);
-      g_iLogVerbose = atoi(argv[++i]);
-      return 2;
-    }
-
-  return 0;
-}
-
 
 #ifdef DDXTIME /* from ServerOSDefines */
 CARD32
@@ -1269,15 +516,40 @@ void
 InitOutput (ScreenInfo *screenInfo, int argc, char *argv[])
 {
   int		i;
-  int		iMaxConsecutiveScreen = 0;
+
+  /* Log the command line */
+  winLogCommandLine (argc, argv);
 
 #if CYGDEBUG
-  ErrorF ("InitOutput\n");
+  winDebug ("InitOutput\n");
 #endif
 
+  /* Validate command-line arguments */
+  if (serverGeneration == 1 && !winValidateArgs ())
+    {
+      FatalError ("InitOutput - Invalid command-line arguments found.  "
+		  "Exiting.\n");
+    }
+
+  /* Check for duplicate invocation on same display number.*/
+  if (serverGeneration == 1 && !winCheckDisplayNumber ())
+    {
+      FatalError ("InitOutput - Duplicate invocation on display "
+		  "number: %s.  Exiting.\n", display);
+    }
+
+#ifdef XWIN_XF86CONFIG
   /* Try to read the xorg.conf-style configuration file */
   if (!winReadConfigfile ())
-    ErrorF ("InitOutput - Error reading config file\n");
+    winErrorFVerb (1, "InitOutput - Error reading config file\n");
+#else
+  winMsg(X_INFO, "XF86Config is not supported\n");
+  winMsg(X_INFO, "See http://x.cygwin.com/docs/faq/cygwin-x-faq.html "
+         "for more information\n");
+#endif
+
+  /* Load preferences from XWinrc file */
+  LoadPreferences();
 
   /* Setup global screen info parameters */
   screenInfo->imageByteOrder = IMAGE_BYTE_ORDER;
@@ -1306,7 +578,7 @@ InitOutput (ScreenInfo *screenInfo, int argc, char *argv[])
 					 "_TrackMouseEvent");
   if (g_fpTrackMouseEvent == NULL)
     {
-      ErrorF ("InitOutput - Could not get pointer to function\n"
+      winErrorFVerb (1, "InitOutput - Could not get pointer to function\n"
 	      "\t_TrackMouseEvent in comctl32.dll.  Try installing\n"
 	      "\tInternet Explorer 3.0 or greater if you have not\n"
 	      "\talready.\n");
@@ -1316,37 +588,14 @@ InitOutput (ScreenInfo *screenInfo, int argc, char *argv[])
       g_hmodCommonControls = NULL;
 
       /* Set function pointer to point to no operation function */
-      g_fpTrackMouseEvent = (FARPROC) (void (*)())NoopDDA;
+      g_fpTrackMouseEvent = (FARPROC) (void (*)(void))NoopDDA;
     }
-
-  /*
-   * Check for a malformed set of -screen parameters.
-   * Examples of malformed parameters:
-   *	XWin -screen 1
-   *	XWin -screen 0 -screen 2
-   *	XWin -screen 1 -screen 2
-   */
-  for (i = 0; i < MAXSCREENS; i++)
-    {
-      if (g_ScreenInfo[i].fExplicitScreen)
-	iMaxConsecutiveScreen = i + 1;
-    }
-  ErrorF ("InitOutput - g_iNumScreens: %d iMaxConsecutiveScreen: %d\n",
-	  g_iNumScreens, iMaxConsecutiveScreen);
-  if (g_iNumScreens < iMaxConsecutiveScreen)
-    FatalError ("InitOutput - Malformed set of screen parameter(s).  "
-		"Screens must be specified consecutively starting with "
-		"screen 0.  That is, you cannot have only a screen 1, nor "
-		"could you have screen 0 and screen 2.  You instead must have "
-		"screen 0, or screen 0 and screen 1, respectively.  Of "
-		"you can specify as many screens as you want from 0 up to "
-		"%d.\n", MAXSCREENS - 1);
 
   /* Store the instance handle */
   g_hInstance = GetModuleHandle (NULL);
 
   /* Initialize each screen */
-  for (i = 0; i < g_iNumScreens; i++)
+  for (i = 0; i < g_iNumScreens; ++i)
     {
       /* Initialize the screen */
       if (-1 == AddScreen (winScreenInit, argc, argv))
@@ -1355,9 +604,101 @@ InitOutput (ScreenInfo *screenInfo, int argc, char *argv[])
 	}
     }
 
-  LoadPreferences();
+#if defined(XWIN_CLIPBOARD) || defined(XWIN_MULTIWINDOW)
+
+#if defined(XCSECURITY)
+  /* Generate a cookie used by internal clients for authorization */
+  if (g_fXdmcpEnabled)
+    winGenerateAuthorization ();
+#endif
+
+  /* Perform some one time initialization */
+  if (1 == serverGeneration)
+    {
+      /*
+       * setlocale applies to all threads in the current process.
+       * Apply locale specified in LANG environment variable.
+       */
+      setlocale (LC_ALL, "");
+    }
+#endif
 
 #if CYGDEBUG || YES
-  ErrorF ("InitOutput - Returning.\n");
+  winDebug ("InitOutput - Returning.\n");
 #endif
+}
+
+
+/*
+ * winCheckDisplayNumber - Check if another instance of Cygwin/X is
+ * already running on the same display number.  If no one exists,
+ * make a mutex to prevent new instances from running on the same display.
+ *
+ * return FALSE if the display number is already used.
+ */
+
+static Bool
+winCheckDisplayNumber ()
+{
+  int			nDisp;
+  HANDLE		mutex;
+  char			name[MAX_PATH];
+  char *		pszPrefix = '\0';
+  OSVERSIONINFO		osvi = {0};
+
+  /* Check display range */
+  nDisp = atoi (display);
+  if (nDisp < 0 || nDisp > 65535)
+    {
+      ErrorF ("winCheckDisplayNumber - Bad display number: %d\n", nDisp);
+      return FALSE;
+    }
+
+  /* Set first character of mutex name to null */
+  name[0] = '\0';
+
+  /* Get operating system version information */
+  osvi.dwOSVersionInfoSize = sizeof (osvi);
+  GetVersionEx (&osvi);
+
+  /* Want a mutex shared among all terminals on NT > 4.0 */
+  if (osvi.dwPlatformId == VER_PLATFORM_WIN32_NT
+      && osvi.dwMajorVersion >= 5)
+    {
+      pszPrefix = "Global\\";
+    }
+
+  /* Setup Cygwin/X specific part of name */
+  sprintf (name, "%sCYGWINX_DISPLAY:%d", pszPrefix, nDisp);
+
+  /* Windows automatically releases the mutex when this process exits */
+  mutex = CreateMutex (NULL, FALSE, name);
+  if (!mutex)
+    {
+      LPVOID lpMsgBuf;
+
+      /* Display a fancy error message */
+      FormatMessage (FORMAT_MESSAGE_ALLOCATE_BUFFER | 
+		     FORMAT_MESSAGE_FROM_SYSTEM | 
+		     FORMAT_MESSAGE_IGNORE_INSERTS,
+		     NULL,
+		     GetLastError (),
+		     MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+		     (LPTSTR) &lpMsgBuf,
+		     0, NULL);
+      ErrorF ("winCheckDisplayNumber - CreateMutex failed: %s\n",
+	      (LPSTR)lpMsgBuf);
+      LocalFree (lpMsgBuf);
+
+      return FALSE;
+    }
+  if (GetLastError () == ERROR_ALREADY_EXISTS)
+    {
+      ErrorF ("winCheckDisplayNumber - "
+	      "Cygwin/X is already running on display %d\n",
+	      nDisp);
+      return FALSE;
+    }
+
+  return TRUE;
 }

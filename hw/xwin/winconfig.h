@@ -1,3 +1,5 @@
+#ifndef __WIN_CONFIG_H__
+#define __WIN_CONFIG_H__
 /*
  *Copyright (C) 1994-2000 The XFree86 Project, Inc. All Rights Reserved.
  *
@@ -27,11 +29,12 @@
  *
  * Authors: Alexander Gottwald	
  */
-#ifndef __WIN_CONFIG_H__
-#define __WIN_CONFIG_H__
+/* $Id$ */
 
 #include "win.h"
+#ifdef XWIN_XF86CONFIG
 #include "../xfree86/parser/xf86Parser.h"
+#endif
 
 
 /* These are taken from hw/xfree86/common/xf86str.h */
@@ -184,14 +187,23 @@ serverLayoutRec, *serverLayoutPtr;
 typedef struct
 {
   /* Files */
+#ifdef XWIN_XF86CONFIG
   char *configFile;
+#endif
   char *fontPath;
   char *rgbPath;
   /* input devices - keyboard */
+#ifdef XWIN_XF86CONFIG
   char *keyboard;
+#endif
 #ifdef XKB
   Bool noXkbExtension;
   char *xkbMap;
+  char *xkbRules; 
+  char *xkbModel;
+  char *xkbLayout;
+  char *xkbVariant;
+  char *xkbOptions;
 #endif
   /* layout */
   char *screenname;
@@ -204,8 +216,9 @@ WinCmdlineRec, *WinCmdlinePtr;
 
 
 extern WinCmdlineRec g_cmdline;
-
+#ifdef XWIN_XF86CONFIG
 extern XF86ConfigPtr g_xf86configptr;
+#endif
 extern serverLayoutRec g_winConfigLayout;
 
 
@@ -281,9 +294,10 @@ char *winSetStrOption (pointer optlist, const char *name, char *deflt);
 int winSetBoolOption (pointer optlist, const char *name, int deflt);
 int winSetIntOption (pointer optlist, const char *name, int deflt);
 double winSetRealOption (pointer optlist, const char *name, double deflt);
-
+#ifdef XWIN_XF86CONFIG
 XF86OptionPtr winFindOption (XF86OptionPtr list, const char *name);
 char *winFindOptionValue (XF86OptionPtr list, const char *name);
+#endif
 int winNameCompare (const char *s1, const char *s2);
 char *winNormalizeName (const char *s);
 

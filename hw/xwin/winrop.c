@@ -34,6 +34,9 @@
  */
 #include "win.h"
 
+void
+ROP16 (HDC hdc, int rop);
+
 int g_copyROP[16] = { 	0xFF0062, /* GXclear 		- 0 */
 		 	0x8800C6, /* GXand 		- S & D */
 		 	0x440328, /* GXandReverse  	- S & !D */

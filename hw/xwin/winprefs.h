@@ -1,3 +1,5 @@
+#if !defined(WINPREFS_H)
+#define WINPREFS_H
 /*
  * Copyright (C) 1994-2000 The XFree86 Project, Inc. All Rights Reserved.
  *
@@ -29,6 +31,11 @@
  */
 /* $XFree86: $ */
 
+/* Need Bool */
+#include "Xdefs.h"
+/* Need TURE */
+#include "misc.h"
+
 /* Need to know how long paths can be... */
 #include <limits.h>
 
@@ -36,7 +43,7 @@
 #define NAME_MAX PATH_MAX
 #endif
 #define MENU_MAX 128   /* Maximum string length of a menu name or item */
-#define PARAM_MAX (4*PATH_MAX)  /* Maximim length of a parameter to a MENU */
+#define PARAM_MAX (4*PATH_MAX)  /* Maximum length of a parameter to a MENU */
 
 
 /* Supported commands in a MENU {} statement */
@@ -89,7 +96,7 @@ typedef struct ICONITEM
   unsigned long hicon;                /* LoadImage() result */
 } ICONITEM;
 
-typedef struct WINMULTIWINDOWPREFS
+typedef struct WINPREFS
 {
   /* Menu information */
   MENUPARSED *menu; /* Array of created menus */
@@ -109,18 +116,22 @@ typedef struct WINMULTIWINDOWPREFS
   /* Icon information */
   char iconDirectory[PATH_MAX+1]; /* Where do the .icos lie? (Win32 path) */
   char defaultIconName[NAME_MAX+1];   /* Replacement for x.ico */
+  char trayIconName[NAME_MAX+1]; /* Replacement for tray icon */
 
   ICONITEM *icon;
   int iconItems;
 
-} WINMULTIWINDOWPREFS;
+  /* Silent exit flag */
+  Bool fSilentExit;
+
+} WINPREFS;
 
 
 
 
 /* Functions */
 void
-LoadPreferences();
+LoadPreferences(void);
 
 void
 SetupRootMenu (unsigned long hmenuRoot);
@@ -132,7 +143,7 @@ void
 HandleCustomWM_INITMENU(unsigned long hwndIn,
 			unsigned long hmenuIn);
 
-int
+Bool
 HandleCustomWM_COMMAND (unsigned long hwndIn,
 			int           command);
 
@@ -143,5 +154,8 @@ unsigned long
 winOverrideIcon (unsigned long longpWin);
 
 unsigned long
-winOverrideDefaultIcon();
+winTaskbarIcon(void);
 
+unsigned long
+winOverrideDefaultIcon(int size);
+#endif

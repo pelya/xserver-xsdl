@@ -29,10 +29,18 @@
  */
 /* $XFree86$ */
 
-#include <Xatom.h>
+#include "X11/Xatom.h"
 #include "propertyst.h"
 #include "windowstr.h"
 #include "winmultiwindowclass.h"
+#include "win.h"
+
+/*
+ * Local function
+ */
+
+DEFINE_ATOM_HELPER(AtmWmWindowRole, "WM_WINDOW_ROLE")
+
 
 int
 winMultiWindowGetClassHint (WindowPtr pWin, char **res_name, char **res_class)
@@ -148,14 +156,9 @@ winMultiWindowGetWindowRole (WindowPtr pWin, char **res_role)
   struct _Window	*pwin;
   struct _Property	*prop;
   int			len_role;
-  static Atom		atmWmWindowRole = 0;
 
   if (!pWin || !res_role) 
     return 0; 
-
-  /* Initialize the window role atom, not in XAtom.h */
-  if (!atmWmWindowRole)
-    atmWmWindowRole = MakeAtom ("WM_WINDOW_ROLE", 14, 1);
 
   pwin = (struct _Window*) pWin;
   
@@ -167,7 +170,7 @@ winMultiWindowGetWindowRole (WindowPtr pWin, char **res_role)
   *res_role = NULL;
   while (prop)
     {
-      if (prop->propertyName == atmWmWindowRole
+      if (prop->propertyName == AtmWmWindowRole ()
 	  && prop->type == XA_STRING
 	  && prop->format == 8
 	  && prop->data)
@@ -226,10 +229,46 @@ winMultiWindowGetWMNormalHints (WindowPtr pWin, WinXSizeHints *hints)
       else
 	prop = prop->next;
     }
-  
+
   return 0;
 }
 
+int
+winMultiWindowGetTransientFor (WindowPtr pWin, WindowPtr *ppDaddy)
+{
+  struct _Window        *pwin;
+  struct _Property      *prop;
+
+  if (!pWin)
+    {
+      ErrorF ("winMultiWindowGetTransientFor - pWin was NULL\n");
+      return 0;
+    }
+
+  pwin = (struct _Window*) pWin;
+
+  if (pwin->optional)
+    prop = (struct _Property *) pwin->optional->userProps;
+  else
+    prop = NULL;
+
+  if (ppDaddy)
+    *ppDaddy = NULL;
+
+  while (prop)
+    {
+      if (prop->propertyName == XA_WM_TRANSIENT_FOR)
+        {
+          if (ppDaddy)
+            memcpy (*ppDaddy, prop->data, sizeof (WindowPtr *));
+          return 1;
+        }
+      else
+        prop = prop->next;
+    }
+
+  return 0;
+}
 
 int
 winMultiWindowGetWMName (WindowPtr pWin, char **wmName)
@@ -281,4 +320,3 @@ winMultiWindowGetWMName (WindowPtr pWin, char **wmName)
   
   return 0;
 }
-

@@ -32,6 +32,16 @@
 
 #include "win.h"
 
+
+/*
+ * References to external symbols
+ */
+
+extern int			g_iPixmapPrivateIndex;
+extern int			g_iGCPrivateIndex;
+extern int                      g_copyROP[];
+
+
 extern void ROP16(HDC hdc, int rop);
 
 #define TRANSLATE_COLOR(color)						\
@@ -118,7 +128,7 @@ winFillSpansNativeGDI (DrawablePtr	pDrawable,
       if (hbmpOrig == NULL)
 	FatalError ("winFillSpans - DRAWABLE_PIXMAP - "
 		    "SelectObject () failed on\n\tpPixmapPriv->hBitmap: "
-		    "%08x\n", pPixmapPriv->hBitmap);
+		    "%08x\n", (unsigned int) pPixmapPriv->hBitmap);
       
       /* Branch on the fill type */
       switch (pGC->fillStyle)
