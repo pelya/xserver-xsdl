@@ -38,8 +38,18 @@ xglCopy (DrawablePtr pSrc,
     int		    srcXoff, srcYoff;
     int		    dstXoff, dstYoff;
 
+    XGL_DRAWABLE_PIXMAP_PRIV (pSrc);
+
     if (!nBox)
 	return TRUE;
+
+    /* source is all in software and damaged, fall-back is probably more
+       efficient */
+    if (pPixmapPriv->allBits &&
+	pPixmapPriv->pDamage &&
+	REGION_NOTEMPTY (pDrawable->pScreen,
+			 DamageRegion (pPixmapPriv->pDamage)))
+	return FALSE;
 
     if (xglPrepareTarget (pDst))
     {
@@ -52,11 +62,7 @@ xglCopy (DrawablePtr pSrc,
 
 	/* blit to screen */
 	if (dst == pScreenPriv->surface)
-	{
-	    XGL_DRAWABLE_PIXMAP_PRIV (pSrc);
-	    
 	    XGL_INCREMENT_PIXMAP_SCORE (pPixmapPriv, 5000);
-	}
     }
     else
     {
