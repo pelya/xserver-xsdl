@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/os/xdmcp.c,v 1.1.4.4 2003/12/06 13:24:29 kaleb Exp $ */
+/* $XdotOrg: xc/programs/Xserver/os/xdmcp.c,v 1.1.4.5 2004/02/23 21:37:27 kaleb Exp $ */
 /* $Xorg: xdmcp.c,v 1.4 2001/01/31 13:37:19 pookie Exp $ */
 /*
  * Copyright 1989 Network Computing Devices, Inc., Mountain View, California.
@@ -280,8 +280,7 @@ XdmcpOptions(int argc, char **argv, int i)
     }
     if (strcmp(argv[i], "-port") == 0) {
         if (++i == argc)  {
-	    ErrorF("Xserver: missing port number in command line\n");
-	    exit(1);
+	    FatalError("Xserver: missing port number in command line\n");
 	}
 	xdm_udp_port = (unsigned short) atoi(argv[i]);
 	return (i + 1);
@@ -296,8 +295,7 @@ XdmcpOptions(int argc, char **argv, int i)
     }
     if (strcmp(argv[i], "-class") == 0) {
         if (++i == argc)  {
-	    ErrorF("Xserver: missing class name in command line\n");
-	    exit(1);
+	    FatalError("Xserver: missing class name in command line\n");
 	}
 	defaultDisplayClass = argv[i];
 	return (i + 1);
@@ -305,8 +303,7 @@ XdmcpOptions(int argc, char **argv, int i)
 #ifdef HASXDMAUTH
     if (strcmp(argv[i], "-cookie") == 0) {
         if (++i == argc)  {
-	    ErrorF("Xserver: missing cookie data in command line\n");
-	    exit(1);
+	    FatalError("Xserver: missing cookie data in command line\n");
 	}
 	xdmAuthCookie = argv[i];
 	return (i + 1);
@@ -314,8 +311,7 @@ XdmcpOptions(int argc, char **argv, int i)
 #endif
     if (strcmp(argv[i], "-displayID") == 0) {
         if (++i == argc)  {
-	    ErrorF("Xserver: missing displayID in command line\n");
-	    exit(1);
+	    FatalError("Xserver: missing displayID in command line\n");
 	}
 	XdmcpRegisterManufacturerDisplayID (argv[i], strlen (argv[i]));
 	return (i + 1);
@@ -1062,8 +1058,7 @@ get_xdmcp_sock(void)
     if (xdmcpSocket >= 0 && xdm_from != NULL) {
 	if (bind(xdmcpSocket, (struct sockaddr *)&FromAddress, 
 		 FromAddressLen) < 0) {
-	    ErrorF("Xserver: failed to bind to -from address: %s\n", xdm_from);
-	    exit(1);
+	    FatalError("Xserver: failed to bind to -from address: %s\n", xdm_from);
 	}
     }
 #endif /* STREAMSCONN */
@@ -1524,8 +1519,7 @@ get_addr_by_name(
     } else if (port > 0 && port < 65535) {
 	sprintf(portstr, "%d", port);
     } else {
-	ErrorF("Xserver: port out of range: %d\n", port);
-	exit(1);
+	FatalError("Xserver: port out of range: %d\n", port);
     }
 
     if (*aifirstp != NULL) {
@@ -1539,17 +1533,15 @@ get_addr_by_name(
 		break;
 	}
 	if ((ai == NULL) || (ai->ai_addrlen > sizeof(SOCKADDR_TYPE))) {
-	    ErrorF ("Xserver: %s host %s not on supported network type\n", 
+	    FatalError ("Xserver: %s host %s not on supported network type\n", 
 	      argtype, namestr);
-	    exit (1);
 	} else {
 	    *aip = ai;
 	    *addrlen = ai->ai_addrlen;
 	    memcpy(addr, ai->ai_addr, ai->ai_addrlen);
 	}
     } else {
-	ErrorF("Xserver: %s: %s %s\n", gai_strerror(gaierr), argtype, namestr);
-	exit(1);
+	FatalError("Xserver: %s: %s %s\n", gai_strerror(gaierr), argtype, namestr);
     }    
 #else
     struct hostent *hep;
@@ -1559,8 +1551,7 @@ get_addr_by_name(
 
     if (!(hep = _XGethostbyname(namestr, hparams)))
     {
-	ErrorF("Xserver: %s unknown host: %s\n", argtype, namestr);
-	exit(1);
+	FatalError("Xserver: %s unknown host: %s\n", argtype, namestr);
     }
     if (hep->h_length == sizeof (struct in_addr))
     {
@@ -1571,8 +1562,7 @@ get_addr_by_name(
     }
     else
     {
-	ErrorF ("Xserver: %s host on strange network %s\n", argtype, namestr);
-	exit (1);
+	FatalError("Xserver: %s host on strange network %s\n", argtype, namestr);
     }
 #endif
 }
@@ -1586,8 +1576,7 @@ get_manager_by_name(
 
     if ((i + 1) == argc)
     {
-	ErrorF("Xserver: missing %s host name in command line\n", argv[i]);
-	exit(1);
+	FatalError("Xserver: missing %s host name in command line\n", argv[i]);
     }
 
     get_addr_by_name(argv[i], argv[i+1], xdm_udp_port, SOCK_DGRAM, 
@@ -1611,8 +1600,7 @@ get_fromaddr_by_name(
 #endif
     if (i == argc)
     {
-	ErrorF("Xserver: missing -from host name in command line\n");
-	exit(1);
+	FatalError("Xserver: missing -from host name in command line\n");
     }
     get_addr_by_name("-from", argv[i], 0, 0, &FromAddress, &FromAddressLen
 #if defined(IPv6) && defined(AF_INET6)
@@ -1641,9 +1629,8 @@ get_mcast_options(argc, argv, i)
 	if ((i < argc) && (argv[i][0] != '-') && (argv[i][0] != '+')) {
 	    hopcount = strtol(argv[i++], NULL, 10);
 	    if ((hopcount < 1) || (hopcount > 255)) {
-		ErrorF("Xserver: multicast hop count out of range: %d\n",
+		FatalError("Xserver: multicast hop count out of range: %d\n",
 		  hopcount);
-		exit(1);
 	    }
 	}
     }
@@ -1651,8 +1638,7 @@ get_mcast_options(argc, argv, i)
     if (xdm_udp_port > 0 && xdm_udp_port < 65535) {
 	sprintf(portstr, "%d", xdm_udp_port);
     } else {
-	ErrorF("Xserver: port out of range: %d\n", xdm_udp_port);
-	exit(1);
+	FatalError("Xserver: port out of range: %d\n", xdm_udp_port);
     }
     bzero(&hints, sizeof(hints));
     hints.ai_socktype = SOCK_DGRAM;
@@ -1668,9 +1654,8 @@ get_mcast_options(argc, argv, i)
 		break;
 	}
 	if (ai == NULL) {
-	    ErrorF ("Xserver: address not supported multicast type %s\n", 
+	    FatalError ("Xserver: address not supported multicast type %s\n", 
 	      address);
-	    exit (1);
 	} else {
 	    struct multicastinfo	*mcastinfo, *mcl;
 	    
@@ -1689,8 +1674,7 @@ get_mcast_options(argc, argv, i)
 	    }
 	}
     } else {
-	ErrorF("Xserver: %s: %s\n", gai_strerror(gaierr), address);
-	exit(1);
+	FatalError("Xserver: %s: %s\n", gai_strerror(gaierr), address);
     }    
     return i;
 }

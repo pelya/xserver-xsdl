@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/os/utils.c,v 1.1.4.5 2004/02/23 21:37:27 kaleb Exp $ */
+/* $XdotOrg: xc/programs/Xserver/os/utils.c,v 1.1.4.6 2004/02/25 21:47:04 kaleb Exp $ */
 /* $Xorg: utils.c,v 1.5 2001/02/09 02:05:24 xorgcvs Exp $ */
 /*
 
@@ -608,7 +608,7 @@ ProcessCommandLine(int argc, char *argv[])
             if( ! VerifyDisplayName( display ) ) {
                 ErrorF("Bad display name: %s\n", display);
                 UseMsg();
-                exit(1);
+		FatalError("Bad display name, exiting: %s\n", display);
             }
 	}
 	else if ( strcmp( argv[i], "-a") == 0)
@@ -986,7 +986,7 @@ ProcessCommandLine(int argc, char *argv[])
  	{
 	    ErrorF("Unrecognized option: %s\n", argv[i]);
 	    UseMsg();
-	    exit (1);
+	    FatalError("Unrecognized option: %s\n", argv[i]);
         }
     }
 }
