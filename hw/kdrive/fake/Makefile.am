@@ -6,6 +6,10 @@ noinst_LIBRARIES = libfake.a
 
 bin_PROGRAMS = Xfake
 
+if TSLIB
+TSLIB_FLAG = -lts
+endif
+
 libfake_a_SOURCES =	\
 	fake.c		\
 	kbd.c		\
