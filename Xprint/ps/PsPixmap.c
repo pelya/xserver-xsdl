@@ -114,13 +114,15 @@ PsCreatePixmap(
   return pPixmap;
 }
 
-Bool
-PsDestroyPixmap(PixmapPtr pPixmap)
+/* PsScrubPixmap: Remove all content from a pixmap (used by
+ * |PsPolyFillRect()| when the "solid fill" operation covers
+ * the whole pixmap) */
+void
+PsScrubPixmap(PixmapPtr pPixmap)
 {
   PsPixmapPrivPtr priv = (PsPixmapPrivPtr)pPixmap->devPrivate.ptr;
   DisplayListPtr  disp = priv->dispList;
 
-  if( --pPixmap->refcnt ) return TRUE;
   while( disp )
   {
     int            i;
@@ -177,6 +179,20 @@ PsDestroyPixmap(PixmapPtr pPixmap)
     }
     xfree(oldDisp);
   }
+
+  priv->dispList = NULL;
+}
+
+Bool
+PsDestroyPixmap(PixmapPtr pPixmap)
+{
+  PsPixmapPrivPtr priv = (PsPixmapPrivPtr)pPixmap->devPrivate.ptr;
+  DisplayListPtr  disp = priv->dispList;
+
+  if( --pPixmap->refcnt ) return TRUE;
+
+  PsScrubPixmap(pPixmap);
+
   xfree(priv);
   xfree(pPixmap);
   return TRUE;

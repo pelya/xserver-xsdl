@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/mi/miinitext.c,v 1.12 2004/08/12 08:45:33 anholt Exp $ */
+/* $XdotOrg: xc/programs/Xserver/mi/miinitext.c,v 1.13 2004/09/14 00:51:25 gisburn Exp $ */
 /* $XFree86: xc/programs/Xserver/mi/miinitext.c,v 3.67 2003/01/12 02:44:27 dawes Exp $ */
 /***********************************************************
 
@@ -74,7 +74,6 @@ SOFTWARE.
 #undef SCREENSAVER
 #undef XIDLE
 #undef XRECORD
-#undef DBE
 #undef XF86VIDMODE
 #undef XF86MISC
 #undef XFreeXDGA

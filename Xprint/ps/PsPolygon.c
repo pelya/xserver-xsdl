@@ -203,6 +203,31 @@ PsPolyFillRect(
     DisplayListPtr  disp;
     GCPtr           gc;
 
+#ifdef DBE
+    /* Remove previous pixmap content if we render one single rect which
+     * covers the whole pixmap surface (this optimisation was added for
+     * the double-buffer extension ("DBE") which uses |PolyFillRect()|
+     * to clear the buffer - but it makes sense in other cases, too).
+     */    
+    if (nRects == 1)
+    {
+      extern Bool noDbeExtension;
+
+      if ( (pRects[0].x==0) && (pRects[0].y==0) &&
+           (pRects[0].width==pDrawable->width) && (pRects[0].height==pDrawable->height) &&
+           (pGC->fillStyle == FillSolid) &&
+           (noDbeExtension == False))
+      {
+#ifdef DEBUG_gismobile
+        ErrorF("PsPolyFillRect: scrubbing pixmap...\n");
+#endif /* DEBUG_gismobile */
+        /* Remove all content from the pixmap as it would be covered
+         * by the whole rect anyway */
+        PsScrubPixmap(pDrawable);
+      }
+    }
+#endif /* DBE */
+
     if ((gc = PsCreateAndCopyGC(pDrawable, pGC)) == NULL) return;
 
     disp = PsGetFreeDisplayBlock(priv);
