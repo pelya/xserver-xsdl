@@ -121,8 +121,6 @@ KdOffscreenSwapOut (ScreenPtr pScreen)
 
     while (area)
     {
-	fprintf (stderr, "area is: %p\n", area);
-	
 	if (area->area.screen && area->moveOut)
 	    (*area->moveOut) ((KdOffscreenArea *)area);
 

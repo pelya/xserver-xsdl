@@ -239,7 +239,8 @@ KaaScreenInfoRec mgaKaa = {
     mgaDoneCopy,
 
     192, /* Offscreen byte alignment */
-    64, /* Offset pitch */ 
+    64, /* Offset pitch */
+    KAA_OFFSCREEN_PIXMAPS, /* Flags */
 };
 
 Bool

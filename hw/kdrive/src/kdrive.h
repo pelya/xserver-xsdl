@@ -301,8 +301,10 @@ typedef struct _KaaScreenInfo {
 
     int	        offscreenByteAlign;
     int         offscreenPitch;
+    int		flags;
 } KaaScreenInfoRec, *KaaScreenInfoPtr;
 
+#define KAA_OFFSCREEN_PIXMAPS (1 << 0)
 
 /*
  * This is the only completely portable way to
