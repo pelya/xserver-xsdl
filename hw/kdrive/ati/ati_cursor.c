@@ -63,7 +63,8 @@ ATIMoveCursor(ScreenPtr pScreen, int x, int y)
 	    (xoff << 16) | yoff);
 	MMIO_OUT32(mmio, ATI_REG_CUR_HORZ_VERT_POSN, ATI_CUR_LOCK |
 	    (x << 16) | y);
-	MMIO_OUT32(mmio, ATI_REG_CUR_OFFSET, (pCurPriv->offset + yoff * stride));
+	MMIO_OUT32(mmio, ATI_REG_CUR_OFFSET, (pCurPriv->area->offset + yoff *
+	    stride));
 }
 
 static void
@@ -163,7 +164,7 @@ ClassicLoadCursor(ScreenPtr pScreen)
 
 	/* Stick new image into cursor memory */
 	ram = (CARD32 *)(pScreenPriv->screen->memory_base +
-	    pCurPriv->offset);
+	    pCurPriv->area->offset);
 	mskLine = (CARD32 *)bits->mask;
 	srcLine = (CARD32 *)bits->source;
 
@@ -261,7 +262,7 @@ RadeonLoadCursor(ScreenPtr pScreen)
 
 	/* Stick new image into cursor memory */
 	ram = (CARD32 *)(pScreenPriv->screen->memory_base +
-	    pCurPriv->offset);
+	    pCurPriv->area->offset);
 	if (pCursor->bits->argb)
 	{
 		srcLine = pCursor->bits->argb;
@@ -445,6 +446,16 @@ ATIQueryBestSize(int class, unsigned short *pwidth, unsigned short *pheight,
 	}
 }
 
+static void
+ATICursorSave(ScreenPtr pScreen, KdOffscreenArea *area)
+{
+	KdScreenPriv(pScreen);
+	ATIScreenInfo(pScreenPriv);
+	ATICursor *pCurPriv = &atis->cursor;
+
+	pCurPriv->area = NULL;
+}
+
 void
 ATICursorEnable(ScreenPtr pScreen)
 {
@@ -455,6 +466,19 @@ ATICursorEnable(ScreenPtr pScreen)
 
 	if (!pCurPriv->has_cursor)
 		return;
+
+	if (pCurPriv->area == NULL) {
+		if (atic->is_radeon)
+			pCurPriv->area = KdOffscreenAlloc(pScreen,
+			    ATI_CURSOR_HEIGHT * ATI_CURSOR_WIDTH * 4,
+			    1, TRUE, ATICursorSave, atis);
+		else
+			pCurPriv->area = KdOffscreenAlloc(pScreen,
+			    ATI_CURSOR_HEIGHT * ATI_CURSOR_PITCH * 2,
+			    1, TRUE, ATICursorSave, atis);
+	}
+	if (pCurPriv->area == NULL)
+		FatalError("Couldn't allocate offscreen memory for cursor.\n");
 
 	if (pCurPriv->pCursor) {
 		int x, y;
@@ -495,7 +519,7 @@ ATICursorInit(ScreenPtr pScreen)
 
 	pCurPriv->has_cursor = FALSE;
 
-	if (pCurPriv->cursor_size == 0)
+	if (pCurPriv->area == NULL)
 		return FALSE;
 
 	if (atic->reg_base == NULL)

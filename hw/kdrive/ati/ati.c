@@ -291,23 +291,14 @@ ATICardFini(KdCardInfo *card)
 static void
 ATISetOffscreen (KdScreenInfo *screen)
 {
+#if defined(USE_DRI) && defined(GLXEXT)
 	ATICardInfo(screen);
 	ATIScreenInfo *atis = (ATIScreenInfo *)screen->driver;
-	int screen_size = screen->fb[0].byteStride * screen->height;
-#if defined(USE_DRI) && defined(GLXEXT)
 	int l;
 #endif
+	int screen_size = screen->fb[0].byteStride * screen->height;
 
 	screen->off_screen_base = screen_size;
-
-	if (atic->is_radeon)
-		atis->cursor.cursor_size = ATI_CURSOR_HEIGHT * ATI_CURSOR_WIDTH * 4;
-	else
-		atis->cursor.cursor_size = ATI_CURSOR_HEIGHT * ATI_CURSOR_PITCH * 3;
-
-	atis->cursor.offset = screen->off_screen_base;
-
-	screen->off_screen_base += atis->cursor.cursor_size;
 
 #if defined(USE_DRI) && defined(GLXEXT)
 	/* Reserve a static area for the back buffer the same size as the
@@ -357,22 +348,6 @@ ATISetOffscreen (KdScreenInfo *screen)
 		atis->textureSize = 0;
 	}
 #endif /* USE_DRI && GLXEXT */
-
-	/* Reserve a scratch area.  It'll be used for storing glyph data during
-	 * Composite operations, because glyphs aren't in real pixmaps and thus
-	 * can't be migrated.
-	 */
-	atis->scratch_size = 131072;	/* big enough for 128x128@32bpp */
-	if (screen->off_screen_base + atis->scratch_size <= screen->memory_size)
-	{
-		atis->scratch_offset = screen->off_screen_base;
-		screen->off_screen_base += atis->scratch_size;
-		atis->scratch_next = atis->scratch_offset;
-	}
-	else 
-	{
-		atis->scratch_size = 0;
-	}
 }
 
 static Bool
@@ -574,6 +549,9 @@ static void
 ATIDisable(ScreenPtr pScreen)
 {
 	KdScreenPriv(pScreen);
+#if defined(USE_DRI) && defined(GLXEXT)
+	ATIScreenInfo(pScreenPriv);
+#endif /* USE_DRI && GLXEXT */
 	ATICardInfo(pScreenPriv);
 
 	ATIUnmapReg(pScreenPriv->card, atic);
@@ -605,8 +583,6 @@ ATILog2(int val)
 {
 	int bits;
 
-	if (!val)
-		return 1;
 	for (bits = 0; val != 0; val >>= 1, ++bits)
 		;
 	return bits - 1;

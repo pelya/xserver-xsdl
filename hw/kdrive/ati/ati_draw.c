@@ -91,6 +91,7 @@ ATIDrawSetup(ScreenPtr pScreen)
 	 * issues.
 	 */
 	/*if (!atic->is_radeon) {
+		char *mmio = atic->reg_base;
 		ATIWaitIdle(atis);
 		MMIO_OUT32(mmio, R128_REG_PC_GUI_MODE,
 		    R128_PC_BYPASS_EN);
@@ -615,23 +616,23 @@ ATIUploadToScratch(PixmapPtr pSrc, PixmapPtr pDst)
 	    atis->kaa.offscreenPitch - 1) & ~(atis->kaa.offscreenPitch - 1);
 
 	size = dst_pitch * pSrc->drawable.height;
-	if (size > atis->scratch_size)
+	if (size > atis->scratch_area->size)
 		ATI_FALLBACK(("Pixmap too large for scratch (%d,%d)\n",
 		    pSrc->drawable.width, pSrc->drawable.height));
 
 	atis->scratch_next = (atis->scratch_next +
 	    atis->kaa.offscreenByteAlign - 1) &
 	    ~(atis->kaa.offscreenByteAlign - 1);
-	if (atis->scratch_next + size > atis->scratch_offset +
-	    atis->scratch_size) {
+	if (atis->scratch_next + size > atis->scratch_area->offset +
+	    atis->scratch_area->size) {
 		/* Only sync when we've used all of the scratch area. */
 		KdCheckSync(pSrc->drawable.pScreen);
-		atis->scratch_next = atis->scratch_offset;
+		atis->scratch_next = atis->scratch_area->offset;
 	}
 	memcpy(pDst, pSrc, sizeof(*pDst));
 	pDst->devKind = dst_pitch;
-	pDst->devPrivate.ptr = atis->scratch_next +
-	    pScreenPriv->screen->memory_base;
+	pDst->devPrivate.ptr = pScreenPriv->screen->memory_base +
+	    atis->scratch_next;
 	atis->scratch_next += size;
 
 	src = pSrc->devPrivate.ptr;
@@ -662,7 +663,7 @@ ATIUploadToScratch(PixmapPtr pSrc, PixmapPtr pDst)
 }
 
 static void
-ATIBlockHandler (pointer blockData, OSTimePtr timeout, pointer readmask)
+ATIBlockHandler(pointer blockData, OSTimePtr timeout, pointer readmask)
 {
 	ScreenPtr pScreen = (ScreenPtr) blockData;
 	KdScreenPriv(pScreen);
@@ -675,7 +676,7 @@ ATIBlockHandler (pointer blockData, OSTimePtr timeout, pointer readmask)
 }
 
 static void
-ATIWakeupHandler (pointer blockData, int result, pointer readmask)
+ATIWakeupHandler(pointer blockData, int result, pointer readmask)
 {
 }
 
@@ -685,7 +686,6 @@ ATIDrawInit(ScreenPtr pScreen)
 	KdScreenPriv(pScreen);
 	ATIScreenInfo(pScreenPriv);
 	ATICardInfo(pScreenPriv);
-	int align_scratch;
 
 	ErrorF("Screen: %d/%d depth/bpp\n", pScreenPriv->screen->fb[0].depth,
 	    pScreenPriv->screen->fb[0].bitsPerPixel);
@@ -719,17 +719,19 @@ ATIDrawInit(ScreenPtr pScreen)
 		atis->kaa.offscreenPitch = 32;
 	}
 
-	/* Align the scratch area to what offscreenByteAlign requires. */
-	align_scratch = (atis->scratch_offset +
-	    atis->kaa.offscreenByteAlign - 1) &
-	    ~(atis->kaa.offscreenByteAlign - 1);
-	atis->scratch_size -= align_scratch - atis->scratch_offset;
-	atis->scratch_offset = align_scratch;
-
 	if (!kaaDrawInit(pScreen, &atis->kaa))
 		return FALSE;
 
 	return TRUE;
+}
+
+static void
+ATIScratchSave(ScreenPtr pScreen, KdOffscreenArea *area)
+{
+	KdScreenPriv(pScreen);
+	ATIScreenInfo(pScreenPriv);
+
+	atis->scratch_area = NULL;
 }
 
 void
@@ -780,7 +782,18 @@ ATIDrawEnable(ScreenPtr pScreen)
 	}
 
 	atis->kaa.UploadToScreen = ATIUploadToScreen;
-	atis->kaa.UploadToScratch = ATIUploadToScratch;
+
+	/* Reserve a scratch area.  It'll be used for storing glyph data during
+	 * Composite operations, because glyphs aren't in real pixmaps and thus
+	 * can't be migrated.
+	 */
+	atis->scratch_area = KdOffscreenAlloc(pScreen, 131072,
+	    atis->kaa.offscreenByteAlign, TRUE, ATIScratchSave, atis);
+	if (atis->scratch_area != NULL) {
+		atis->scratch_next = atis->scratch_area->offset;
+		atis->kaa.UploadToScratch = ATIUploadToScratch;
+	} else
+		atis->kaa.UploadToScratch = NULL;
 
 	RegisterBlockAndWakeupHandlers (ATIBlockHandler, ATIWakeupHandler,
 				       pScreen);
@@ -791,10 +804,10 @@ ATIDrawEnable(ScreenPtr pScreen)
 void
 ATIDrawDisable(ScreenPtr pScreen)
 {
-	ATIDMATeardown(pScreen);
-
 	RemoveBlockAndWakeupHandlers (ATIBlockHandler, ATIWakeupHandler,
 				      pScreen);
+
+	ATIDMATeardown(pScreen);
 }
 
 void

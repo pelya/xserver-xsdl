@@ -162,10 +162,7 @@ typedef struct _ATICursor {
 	Bool		has_cursor;
 	CursorPtr	pCursor;
 	Pixel		source, mask;
-	KdOffscreenArea	*area;
-	CARD32		offset;
-	
-	int		cursor_size;
+	KdOffscreenArea *area;
 } ATICursor;
 
 typedef struct _ATIPortPriv {
@@ -213,12 +210,10 @@ typedef struct _ATIScreenInfo {
 	ATICardInfo *atic;
 	KdScreenInfo *screen;
 
-	void (*save_blockhandler)(int screen, pointer blockData,
-	    pointer timeout, pointer readmask);
-
 	int		scratch_offset;
 	int		scratch_next;
 	int		scratch_size;
+	KdOffscreenArea *scratch_area;
 
 	ATICursor	cursor;
 

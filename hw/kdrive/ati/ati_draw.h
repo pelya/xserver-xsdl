@@ -89,10 +89,11 @@ void
 ATIWaitIdle(ATIScreenInfo *atis);
 
 #if 0
-#define ATI_FALLBACK(x)		\
-do {				\
-	ErrorF x;		\
-	return FALSE;		\
+#define ATI_FALLBACK(x)			\
+do {					\
+	ErrorF("%s: ", __FUNCTION__);	\
+	ErrorF x;			\
+	return FALSE;			\
 } while (0)
 #else
 #define ATI_FALLBACK(x) return FALSE
