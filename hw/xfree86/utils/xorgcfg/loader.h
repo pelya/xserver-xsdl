@@ -75,7 +75,7 @@ typedef union {
     unsigned long       num;
     char *              str;
     double              realnum;
-    Bool		bool;
+    Bool		xbool;
     OptFrequency	freq;
 } ValueUnion;
 
