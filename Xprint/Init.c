@@ -1217,9 +1217,9 @@ AugmentFontPath(void)
  * calling XpContextOfClient (in Xserver/Xext/xprint.c) to determine
  * the context associated with the client, and then queries the context's
  * attributes to determine whether the bitmap fonts should be visible.
- * It looks at the value of the xp-listfonts-mode document/page attribute to 
+ * It looks at the value of the xp-listfonts-modes document/page attribute to 
  * see if xp-list-glyph-fonts has been left out of the mode list. Only
- * if the xp-listfonts-mode attribute exists, and it does not contain
+ * if the xp-listfonts-modes attribute exists, and it does not contain
  * xp-list-glyph-fonts does this function return FALSE. In any other
  * case the funtion returns TRUE, indicating that the bitmap fonts 
  * should be visible to the client.
@@ -1238,10 +1238,10 @@ XpClientIsBitmapClient(
      * Check the page attributes, and if it's not defined there, then
      * check the document attributes.
      */
-    mode = XpGetOneAttribute(pContext, XPPageAttr, "xp-listfonts-mode");
+    mode = XpGetOneAttribute(pContext, XPPageAttr, "xp-listfonts-modes");
     if(!mode || !strlen(mode))
     {
-        mode = XpGetOneAttribute(pContext, XPDocAttr, "xp-listfonts-mode");
+        mode = XpGetOneAttribute(pContext, XPDocAttr, "xp-listfonts-modes");
         if(!mode || !strlen(mode))
 	    return TRUE;
     }
@@ -1251,14 +1251,21 @@ XpClientIsBitmapClient(
 
     return TRUE;
 }
+
 /*
  * XpClientIsPrintClient is called by the font code to find out if
  * a particular client has set a context which references a printer
- * which utilizes a particular font path.  This function works by
- * calling XpContextOfClient (in Xserver/Xext/xprint.c) to determine
- * the context associated with the client, and then looks up the
- * font directory for the context.  The font directory is then compared
- * with the directory specified in the FontPathElement which is passed in.
+ * which utilizes a particular font path.
+ * This function works by calling XpContextOfClient
+ * (in Xserver/Xext/xprint.c) to determine the context associated with
+ * the client and then looks at the value of the xp-listfonts-modes
+ * document/page attribute to see if xp-list-internal-printer-fonts has
+ * been left out of the mode list.
+ * If the xp-listfonts-modes attribute exists, and it does not contain
+ * xp-list-internal-printer-fonts this function returns FALSE. 
+ * Otherwise it looks up the font directory for the context.  The font
+ * directory is then compared with the directory specified in the
+ * FontPathElement which is passed in.
  */
 Bool
 XpClientIsPrintClient(
@@ -1266,10 +1273,27 @@ XpClientIsPrintClient(
     FontPathElementPtr fpe)
 {
     XpContextPtr pContext;
+    char *mode;
     char *modelID, *fontDir;
 
     if(!(pContext = XpContextOfClient(client)))
 	return FALSE;
+
+    /*
+     * Check the page attributes, and if it's not defined there, then
+     * check the document attributes.
+     */
+    mode = XpGetOneAttribute(pContext, XPPageAttr, "xp-listfonts-modes");
+    if(!mode || !strlen(mode))
+    {
+        mode = XpGetOneAttribute(pContext, XPDocAttr, "xp-listfonts-modes");
+    }
+    
+    if(mode && strlen(mode))
+    {
+        if(!strstr(mode, "xp-list-internal-printer-fonts"))
+            return FALSE;    
+    }
 
     if (!fpe)
 	return TRUE;

@@ -282,12 +282,12 @@ AllocatePsPrivates(ScreenPtr pScreen)
  */
 
 static char DOC_ATT_SUPP[]="document-attributes-supported";
-static char DOC_ATT_VAL[]="document-format";
+static char DOC_ATT_VAL[]="document-format xp-listfonts-modes";
 static char JOB_ATT_SUPP[]="job-attributes-supported";
 static char JOB_ATT_VAL[]="";
 static char PAGE_ATT_SUPP[]="xp-page-attributes-supported";
 static char PAGE_ATT_VAL[]="content-orientation default-printer-resolution \
-default-input-tray default-medium plex";
+default-input-tray default-medium plex xp-listfonts-modes";
 
 static int
 PsInitContext(pCon)
