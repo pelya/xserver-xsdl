@@ -99,11 +99,11 @@ static int FontShmdescIndex;
 
 static unsigned int pagesize;
 
+static Bool badSysCall = FALSE;
+
 #if defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__) || defined(__CYGWIN__)
 
 #include <sys/signal.h>
-
-static Bool badSysCall = FALSE;
 
 static void
 SigSysHandler(
