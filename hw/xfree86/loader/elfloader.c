@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/hw/xfree86/loader/elfloader.c,v 1.3 2004/10/30 20:33:43 alanc Exp $ */
+/* $XdotOrg: xc/programs/Xserver/hw/xfree86/loader/elfloader.c,v 1.4 2004/11/09 15:58:41 ajax Exp $ */
 /* $XFree86: xc/programs/Xserver/hw/xfree86/loader/elfloader.c,v 1.61tsi Exp $ */
 
 /*
@@ -2799,6 +2799,14 @@ ELFCollectSections(ELFModulePtr elffile, int pass, int *totalsize,
 		mprotect( (char *)elffile->lsection[j].saddr - round,
 			 SecSize(i) + round, PROT_READ | PROT_WRITE | PROT_EXEC);
 	    }
+#ifdef __ia64__
+	    {
+		int k;
+		for (k = 0; k < SecSize(i); k += 32)
+		    ia64_flush_cache(elffile->lsection[j].saddr+k);
+		ia64_flush_cache(elffile->lsection[j].saddr+SecSize(i)-1);
+	    }
+#endif
 	    break;
 #endif
 	case SHT_SYMTAB:

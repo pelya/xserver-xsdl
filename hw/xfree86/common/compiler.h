@@ -478,7 +478,7 @@ __ustw (unsigned long r5, unsigned short * r11)
 #    ifndef __INTEL_COMPILER
 #       define ia64_flush_cache(Addr) \
 	__asm__ __volatile__ ( \
-		"fc %0;;;" \
+		"fc.i %0;;;" \
 		"sync.i;;;" \
 		"mf;;;" \
 		"srlz.i;;;" \
