@@ -75,6 +75,10 @@ typedef struct _Visual {
 				 * it may have more or fewer */
     unsigned long	redMask, greenMask, blueMask;
     int			offsetRed, offsetGreen, offsetBlue;
+#ifdef COMPOSITE
+    unsigned long	alphaMask;
+    int			offsetAlpha;
+#endif
   } VisualRec;
 
 typedef struct _Depth {

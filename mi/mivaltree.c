@@ -1,5 +1,5 @@
 /* $Xorg: mivaltree.c,v 1.4 2001/02/09 02:05:22 xorgcvs Exp $ */
-/* $XdotOrg$ */
+/* $XdotOrg: xc/programs/Xserver/mi/mivaltree.c,v 1.2.2.1 2004/07/30 06:54:42 anholt Exp $ */
 /*
  * mivaltree.c --
  *	Functions for recalculating window clip lists. Main function
@@ -167,6 +167,17 @@ miShapedWindowIn (pScreen, universe, bounding, rect, x, y)
 }
 #endif
 
+static GetRedirectBorderClipProcPtr	miGetRedirectBorderClipProc;
+static SetRedirectBorderClipProcPtr	miSetRedirectBorderClipProc;
+
+void
+miRegisterRedirectBorderClipProc (SetRedirectBorderClipProcPtr setBorderClip,
+				  GetRedirectBorderClipProcPtr getBorderClip)
+{
+    miSetRedirectBorderClipProc = setBorderClip;
+    miGetRedirectBorderClipProc = getBorderClip;
+}
+
 #define HasParentRelativeBorder(w) (!(w)->borderIsPixel && \
 				    HasBorder(w) && \
 				    (w)->backgroundState == ParentRelative)
@@ -263,6 +274,18 @@ miComputeClips (
     if (oldVis != newVis &&
 	((pParent->eventMask | wOtherEventMasks(pParent)) & VisibilityChangeMask))
 	SendVisibilityNotify(pParent);
+
+#ifdef COMPOSITE
+    /*
+     * In redirected drawing case, reset universe to borderSize
+     */
+    if (pParent->redirectDraw)
+    {
+	if (miSetRedirectBorderClipProc)
+	    (*miSetRedirectBorderClipProc) (pParent, universe);
+	REGION_COPY(pScreen, universe, &pParent->borderSize);
+    }
+#endif
 
     dx = pParent->drawable.x - pParent->valdata->before.oldAbsCorner.x;
     dy = pParent->drawable.y - pParent->valdata->before.oldAbsCorner.y;
@@ -640,7 +663,12 @@ miValidateTree (pParent, pChild, kind)
 	    {
 		if (pWin->valdata)
 		{
-		    REGION_APPEND( pScreen, &totalClip, &pWin->borderClip);
+		    RegionPtr	pBorderClip = &pWin->borderClip;
+#ifdef COMPOSITE
+		    if (pWin->redirectDraw && miGetRedirectBorderClipProc)
+			pBorderClip = (*miGetRedirectBorderClipProc)(pWin);
+#endif
+		    REGION_APPEND( pScreen, &totalClip, pBorderClip );
 		    if (pWin->viewable)
 			viewvals++;
 		}
@@ -654,7 +682,12 @@ miValidateTree (pParent, pChild, kind)
 	    {
 		if (pWin->valdata)
 		{
-		    REGION_APPEND( pScreen, &totalClip, &pWin->borderClip);
+		    RegionPtr	pBorderClip = &pWin->borderClip;
+#ifdef COMPOSITE
+		    if (pWin->redirectDraw && miGetRedirectBorderClipProc)
+			pBorderClip = (*miGetRedirectBorderClipProc)(pWin);
+#endif
+		    REGION_APPEND( pScreen, &totalClip, pBorderClip );
 		    if (pWin->viewable)
 			viewvals++;
 		}

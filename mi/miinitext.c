@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/mi/miinitext.c,v 1.6 2004/07/31 01:37:47 stukreit Exp $ */
+/* $XdotOrg: xc/programs/Xserver/mi/miinitext.c,v 1.7 2004/07/31 04:23:21 kem Exp $ */
 /* $XFree86: xc/programs/Xserver/mi/miinitext.c,v 3.67 2003/01/12 02:44:27 dawes Exp $ */
 /***********************************************************
 
@@ -282,6 +282,9 @@ extern void XFixesExtensionInit(INITARGS);
 #ifdef DAMAGE
 extern void DamageExtensionInit(INITARGS);
 #endif
+#ifdef COMPOSITE
+extern void CompositeExtensionInit(INITARGS);
+#endif
 
 /* The following is only a small first step towards run-time
  * configurable extensions.
@@ -456,6 +459,10 @@ InitExtensions(argc, argv)
     DPSExtensionInit();
 #endif
 #endif
+#ifdef XFIXES
+    /* must be before Render to layer DisplayCursor correctly */
+    XFixesExtensionInit();
+#endif
 #ifdef RENDER
     if (!noRenderExtension) RenderExtensionInit();
 #endif
@@ -471,11 +478,11 @@ InitExtensions(argc, argv)
 #ifdef XEVIE
     if (!noXevieExtension) XevieExtensionInit();
 #endif
-#ifdef XFIXES
-    XFixesExtensionInit();
-#endif
 #ifdef DAMAGE
     DamageExtensionInit();
+#endif
+#ifdef COMPOSITE
+    CompositeExtensionInit ();
 #endif
 }
 
@@ -590,6 +597,10 @@ static ExtensionModule staticExtensions[] = {
 #ifdef PANORAMIX
     { PanoramiXExtensionInit, PANORAMIX_PROTOCOL_NAME, &noPanoramiXExtension, NULL, NULL },
 #endif
+#ifdef XFIXES
+    /* must be before Render to layer DisplayCursor correctly */
+    { XFixesExtensionInit, "XFIXES", NULL, NULL, NULL },
+#endif
 #ifdef XF86BIGFONT
     { XFree86BigfontExtensionInit, XF86BIGFONTNAME, NULL, NULL, NULL },
 #endif
@@ -602,9 +613,9 @@ static ExtensionModule staticExtensions[] = {
 #ifdef DAMAGE
     { DamageExtensionInit, "DAMAGE", NULL, NULL },
 #endif
-#ifdef XFIXES
-    { XFixesExtensionInit, "XFIXES", NULL, NULL },
-#endif 
+#ifdef COMPOSITE
+    { CompositeExtensionInit, "COMPOSITE", NULL, NULL },
+#endif
 #ifdef XEVIE
     { XevieExtensionInit, "XEVIE", &noXevieExtension, NULL },
 #endif 

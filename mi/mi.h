@@ -495,6 +495,16 @@ extern int miShapedWindowIn(
     int /*y*/
 );
 
+typedef void 
+(*SetRedirectBorderClipProcPtr) (WindowPtr pWindow, RegionPtr pRegion);
+
+typedef RegionPtr
+(*GetRedirectBorderClipProcPtr) (WindowPtr pWindow);
+
+void
+miRegisterRedirectBorderClipProc (SetRedirectBorderClipProcPtr setBorderClip,
+				  GetRedirectBorderClipProcPtr getBorderClip);
+
 extern int miValidateTree(
     WindowPtr /*pParent*/,
     WindowPtr /*pChild*/,

@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/dix/window.c,v 1.4 2004/07/29 23:43:39 kem Exp $ */
+/* $XdotOrg: xc/programs/Xserver/dix/window.c,v 1.4.2.1 2004/07/30 06:54:41 anholt Exp $ */
 /* $Xorg: window.c,v 1.4 2001/02/09 02:04:41 xorgcvs Exp $ */
 /*
 
@@ -290,6 +290,9 @@ SetWindowToDefaults(register WindowPtr pWin)
 #ifdef NEED_DBE_BUF_BITS
     pWin->srcBuffer = DBE_FRONT_BUFFER;
     pWin->dstBuffer = DBE_FRONT_BUFFER;
+#endif
+#ifdef COMPOSITE
+    pWin->redirectDraw = 0;
 #endif
 }
 
@@ -1661,6 +1664,19 @@ void
 SetWinSize (pWin)
     register WindowPtr pWin;
 {
+#ifdef COMPOSITE
+    if (pWin->redirectDraw)
+    {
+	BoxRec	box;
+
+	box.x1 = pWin->drawable.x;
+	box.y1 = pWin->drawable.y;
+	box.x2 = pWin->drawable.x + pWin->drawable.width;
+	box.y2 = pWin->drawable.y + pWin->drawable.height;
+	REGION_RESET (pScreen, &pWin->winSize, &box);
+    }
+    else
+#endif
     ClippedRegionFromBox(pWin->parent, &pWin->winSize,
 			 pWin->drawable.x, pWin->drawable.y,
 			 (int)pWin->drawable.width,
@@ -1691,6 +1707,19 @@ SetBorderSize (pWin)
 
     if (HasBorder (pWin)) {
 	bw = wBorderWidth (pWin);
+#ifdef COMPOSITE
+	if (pWin->redirectDraw)
+	{
+	    BoxRec	box;
+
+	    box.x1 = pWin->drawable.x - bw;
+	    box.y1 = pWin->drawable.y - bw;
+	    box.x2 = pWin->drawable.x + pWin->drawable.width + bw;
+	    box.y2 = pWin->drawable.y + pWin->drawable.height + bw;
+	    REGION_RESET (pScreen, &pWin->borderSize, &box);
+	}
+	else
+#endif
 	ClippedRegionFromBox(pWin->parent, &pWin->borderSize,
 		pWin->drawable.x - bw, pWin->drawable.y - bw,
 		(int)(pWin->drawable.width + (bw<<1)),
