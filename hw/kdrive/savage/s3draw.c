@@ -22,7 +22,7 @@
  *
  * Author:  Keith Packard, SuSE, Inc.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/savage/s3draw.c,v 1.5 2000/08/09 17:52:41 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/savage/s3draw.c,v 1.6 2001/05/29 04:54:11 keithp Exp $ */
 
 #include	"s3.h"
 #include	"s3draw.h"
@@ -1682,14 +1682,15 @@ s3PolyTEGlyphBlt (DrawablePtr pDrawable, GCPtr pGC,
     s3ImageTEGlyphBlt (pDrawable, pGC, x, y, nglyph, ppci, (pointer) 1);
 }
 
-void
+Bool
 _s3Segment (DrawablePtr	pDrawable,
 	    GCPtr	pGC,
 	    int		x1,
 	    int		y1,
 	    int		x2,
 	    int		y2,
-	    Bool	drawLast)
+	    Bool	drawLast,
+	    Bool	s3Set)
 {
     SetupS3(pDrawable->pScreen);
     FbGCPrivPtr	pPriv = fbGetGCPrivate(pGC);
@@ -1709,19 +1710,11 @@ _s3Segment (DrawablePtr	pDrawable,
     unsigned int oc1;	/* outcode of point 1 */
     unsigned int oc2;	/* outcode of point 2 */
 
-    s3SetGlobalBitmap (pDrawable->pScreen, s3GCMap (pGC));
-    nBox = REGION_NUM_RECTS (pClip);
-    pBox = REGION_RECTS (pClip);
     CalcLineDeltas(x1, y1, x2, y2, adx, ady, signdx, signdy,
 		   1, 1, octant);
-
+    
     cmd = LASTPIX;
     
-    if (signdx > 0)
-	cmd |= INC_X;
-    if (signdy > 0)
-	cmd |= INC_Y;
-	
     if (adx > ady)
     {
 	axis = X_AXIS;
@@ -1741,8 +1734,26 @@ _s3Segment (DrawablePtr	pDrawable,
 	len = ady;
     }
 
+    /* S3 line drawing hardware has limited resolution for error terms */
+    if (len >= 4096)
+    {
+	int dashOff = 0;
+	
+	KdCheckSync (pDrawable->pScreen);
+	fbSegment (pDrawable, pGC, x1, y1, x2, y2, drawLast, &dashOff);
+	return FALSE;
+    }
+
     FIXUP_ERROR (e, octant, bias);
     
+    nBox = REGION_NUM_RECTS (pClip);
+    pBox = REGION_RECTS (pClip);
+
+    if (signdx > 0)
+	cmd |= INC_X;
+    if (signdy > 0)
+	cmd |= INC_Y;
+	
     /* we have bresenham parameters and two points.
        all we have to do now is clip and draw.
     */
@@ -1757,6 +1768,12 @@ _s3Segment (DrawablePtr	pDrawable,
 	OUTCODES(oc2, x2, y2, pBox);
 	if ((oc1 | oc2) == 0)
 	{
+	    if (!s3Set)
+	    {
+		s3SetGlobalBitmap (pDrawable->pScreen, s3GCMap (pGC));
+		_s3SetSolidFill (s3, pGC->fgPixel, pGC->alu, pGC->planemask);
+		s3Set = TRUE;
+	    }
 	    _s3SetCur (s3, x1, y1);
 	    _s3ClipLine (s3, cmd, e1, e2, e, len);
 	    break;
@@ -1801,12 +1818,19 @@ _s3Segment (DrawablePtr	pDrawable,
 		    else
 			err  += (e2 - e1) * clipdx + e1 * clipdy;
 		}
+		if (!s3Set)
+		{
+		    s3SetGlobalBitmap (pDrawable->pScreen, s3GCMap (pGC));
+		    _s3SetSolidFill (s3, pGC->fgPixel, pGC->alu, pGC->planemask);
+		    s3Set = TRUE;
+		}
 		_s3SetCur (s3, new_x1, new_y1);
 		_s3ClipLine (s3, cmd, e1, e2, err, len);
 	    }
 	    pBox++;
 	}
     } /* while (nBox--) */
+    return s3Set;
 }
 
 void
@@ -1816,11 +1840,11 @@ s3Polylines (DrawablePtr pDrawable, GCPtr pGC,
     SetupS3(pDrawable->pScreen);
     int		x, y, nx, ny;
     int		ox = pDrawable->x, oy = pDrawable->y;
+    Bool	s3Set = FALSE;
     
     if (!npt)
 	return;
     
-    _s3SetSolidFill (s3, pGC->fgPixel, pGC->alu, pGC->planemask);
     x = ppt->x + ox;
     y = ppt->y + oy;
     while (--npt)
@@ -1836,12 +1860,14 @@ s3Polylines (DrawablePtr pDrawable, GCPtr pGC,
 	    nx = ppt->x + ox;
 	    ny = ppt->y + oy;
 	}
-	_s3Segment (pDrawable, pGC, x, y, nx, ny,
-		    npt == 1 && pGC->capStyle != CapNotLast);
+	s3Set = _s3Segment (pDrawable, pGC, x, y, nx, ny,
+			    npt == 1 && pGC->capStyle != CapNotLast, 
+			    s3Set);
 	x = nx;
 	y = ny;
     }
-    MarkSyncS3 (pDrawable->pScreen);
+    if (s3Set)
+	MarkSyncS3 (pDrawable->pScreen);
 }
 
 void
@@ -1862,17 +1888,18 @@ s3PolySegment (DrawablePtr pDrawable, GCPtr pGC,
     CARD32	cmd;
     CARD32	init_cmd;
     Bool	drawLast;
+    Bool	s3Set = FALSE;
     
     drawLast = pGC->capStyle != CapNotLast;
-    _s3SetSolidFill (s3, pGC->fgPixel, pGC->alu, pGC->planemask);
     
     for (nseg = nsegInit, pSeg = pSegInit; nseg--; pSeg++)
     {
-	_s3Segment (pDrawable, pGC, pSeg->x1 + ox, pSeg->y1 + oy,
-		    pSeg->x2 + ox, pSeg->y2 + oy, drawLast);
+	s3Set = _s3Segment (pDrawable, pGC, pSeg->x1 + ox, pSeg->y1 + oy,
+			    pSeg->x2 + ox, pSeg->y2 + oy, drawLast, s3Set);
 		    
     }
-    MarkSyncS3 (pDrawable->pScreen);
+    if (s3Set)
+	MarkSyncS3 (pDrawable->pScreen);
 }
 
 /*
