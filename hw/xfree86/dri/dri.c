@@ -71,6 +71,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 extern Bool noPanoramiXExtension;
 #endif
 
+extern Bool noXFree86DRIExtension;
+
 static int DRIScreenPrivIndex = -1;
 static int DRIWindowPrivIndex = -1;
 static unsigned long DRIGeneration = 0;
@@ -127,6 +129,13 @@ DRIScreenInit(ScreenPtr pScreen, DRIInfoPtr pDRIInfo, int *pDRMFD)
 	if ((DRIScreenPrivIndex = AllocateScreenPrivateIndex()) < 0)
 	    return FALSE;
 	DRIGeneration = serverGeneration;
+    }
+
+    /* If the DRI extension is disabled, do not initialize the DRI */
+    if (noXFree86DRIExtension) {
+	DRIDrvMsg(pScreen->myNum, X_WARNING,
+		  "Direct rendering has been disabled.\n");
+	return FALSE;
     }
 
     /*
