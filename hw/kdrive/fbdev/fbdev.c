@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/fbdev/fbdev.c,v 1.7 2000/09/22 06:25:08 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/fbdev/fbdev.c,v 1.9 2000/09/27 20:46:36 keithp Exp $ */
 
 #include "fbdev.h"
 
@@ -182,6 +182,7 @@ fbdevScreenInit (KdScreenInfo *screen)
     scrpriv = xalloc (sizeof (FbdevScrPriv));
     if (!scrpriv)
 	return FALSE;
+    memset (scrpriv, '\0', sizeof (FbdevScrPriv));
     if (!fbdevScreenInitialize (screen, scrpriv))
     {
 	xfree (scrpriv);
