@@ -90,11 +90,11 @@
  *  - Load "speedo" module.
  *  - Ready to DRI.
  *  - Load xtt module instead of freetype module.
- *  - Add font path "/fonts/TrueType/" and "/fonts/freefont/".
+ *  - Add font path "/TrueType/" and "/freefont/".
  *  Chisato Yamauchi(cyamauch@phyas.aichi-edu.ac.jp)
  */
 /* $XConsortium: xf86config.c /main/21 1996/10/28 05:43:57 kaleb $ */
-/* $XdotOrg: xc/programs/Xserver/hw/xfree86/xf86config/xorgconfig.c,v 1.10 2005/01/04 00:16:20 alanc Exp $ */
+/* $XdotOrg: xc/programs/Xserver/hw/xfree86/xf86config/xorgconfig.c,v 1.11 2005/01/30 21:18:46 alanc Exp $ */
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -174,6 +174,11 @@ static int getuid() { return 0; }
 # define TREEROOTDOC		XDOCDIR
 #else
 # define TREEROOTDOC		TREEROOTLX "/doc"
+#endif
+#ifdef XFONTDIR
+# define TREEROOTFONT		XFONTDIR
+#else
+# define TREEROOTFONT		TREEROOTLX "/fonts"
 #endif
 #define MODULEPATH		TREEROOT "/lib/modules"
 
@@ -1966,17 +1971,17 @@ static char *XF86Config_firstchunk_text =
 
 static char *XF86Config_fontpaths[] = 
 {
-/*	"    FontPath	\"" TREEROOTLX "/fonts/75dpi/\"\n"*/
-    "/fonts/local/",
-	"/fonts/misc/",
-	"/fonts/75dpi/:unscaled",
-	"/fonts/100dpi/:unscaled",
-	"/fonts/Speedo/",
-	"/fonts/Type1/",
-	"/fonts/TrueType/",
-	"/fonts/freefont/",
-	"/fonts/75dpi/",
-	"/fonts/100dpi/",
+/*	"    FontPath	\"" TREEROOTFONT "/75dpi/\"\n"*/
+    "/local/",
+	"/misc/",
+	"/75dpi/:unscaled",
+	"/100dpi/:unscaled",
+	"/Speedo/",
+	"/Type1/",
+	"/TrueType/",
+	"/freefont/",
+	"/75dpi/",
+	"/100dpi/",
 	0 /* end of fontpaths */
 };
 
@@ -2505,7 +2510,7 @@ write_fontpath_section(FILE *f)
 #endif
 
 	for (i=0; XF86Config_fontpaths[i]; i++) {
-		strcpy(cur,TREEROOTLX);
+		strcpy(cur,TREEROOTFONT);
 		strcat(cur,XF86Config_fontpaths[i]);
 		/* remove a ':' */
 		colon = strchr(cur+2,':'); /* OS/2: C:/...:scaled */
@@ -2518,7 +2523,7 @@ write_fontpath_section(FILE *f)
 		hash = exists_dir(cur) ? "" : "#";
 		fprintf(f,"%s    FontPath   \"%s%s\"\n",
 			hash,
-			TREEROOTLX,
+			TREEROOTFONT,
 			XF86Config_fontpaths[i]);
 	}
 }
