@@ -1,5 +1,5 @@
 /*
- * $XFree86: xc/programs/Xserver/fb/fboverlay.c,v 1.6tsi Exp $
+ * $XFree86: xc/programs/Xserver/fb/fboverlay.c,v 1.7 2003/11/10 18:21:47 tsi Exp $
  *
  * Copyright © 2000 SuSE, Inc.
  *
@@ -22,6 +22,8 @@
  *
  * Author:  Keith Packard, SuSE, Inc.
  */
+
+/* $XdotOrg: $ */
 
 #include "fb.h"
 #include "fboverlay.h"
@@ -402,7 +404,7 @@ fbOverlayFinishScreenInit(ScreenPtr	pScreen,
     if (! miScreenInit(pScreen, 0, xsize, ysize, dpix, dpiy, 0,
 			depth1, ndepths, depths,
 			defaultVisual, nvisuals, visuals
-#ifdef FB_OLD_SCREEN
+#ifdef FB_OLD_MISCREENINIT
 		       , (miBSFuncPtr) 0
 #endif
 		       ))

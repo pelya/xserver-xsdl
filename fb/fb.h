@@ -22,6 +22,8 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
+/* $XdotOrg: $ */
+
 #ifndef _FB_H_
 #define _FB_H_
 
@@ -103,7 +105,7 @@ typedef unsigned __int64    FbBits;
 # else
 #  if defined(__alpha__) || defined(__alpha) || \
       defined(ia64) || defined(__ia64__) || \
-      defined(__sparc64__) || \
+      defined(__sparc64__) || defined(_LP64) || \
       defined(__s390x__) || \
       defined(amd64) || defined (__amd64__) || \
       (defined(sgi) && (_MIPS_SZLONG == 64))
@@ -575,6 +577,7 @@ extern const GCFuncs	fbGCFuncs;
 #endif
 
 #ifdef FB_OLD_SCREEN
+# define FB_OLD_MISCREENINIT	/* miScreenInit requires 14 args, not 13 */
 extern WindowPtr    *WindowTable;
 #endif
 

@@ -1,4 +1,4 @@
-/*
+/* $XdotOrg: $
  * Id: fbscreen.c,v 1.1 1999/11/02 03:54:45 keithp Exp $
  *
  * Copyright © 1998 Keith Packard
@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/fb/fbscreen.c,v 1.11 2000/09/03 05:09:47 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/fb/fbscreen.c,v 1.13 2001/05/29 04:54:09 keithp Exp $ */
 
 #include "fb.h"
 
@@ -229,7 +229,7 @@ fbFinishScreenInit(ScreenPtr	pScreen,
     if (! miScreenInit(pScreen, pbits, xsize, ysize, dpix, dpiy, width,
 			rootdepth, ndepths, depths,
 			defaultVisual, nvisuals, visuals
-#ifdef FB_OLD_SCREEN
+#ifdef FB_OLD_MISCREENINIT
 		       , (miBSFuncPtr) 0
 #endif
 		       ))
