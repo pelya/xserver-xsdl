@@ -44,7 +44,7 @@ RenderSampleCeilY (xFixed y, int n)
     return (i | f);
 }
 
-#define div(a,b)    ((a) >= 0 ? (a) / (b) : -((-(a) + (b) - 1) / (b)))
+#define _div(a,b)    ((a) >= 0 ? (a) / (b) : -((-(a) + (b) - 1) / (b)))
 
 /*
  * Compute the largest value no greater than y which is on a
@@ -56,7 +56,7 @@ RenderSampleFloorY (xFixed y, int n)
     xFixed   f = xFixedFrac(y);
     xFixed   i = xFixedFloor (y);
     
-    f = div(f - Y_FRAC_FIRST(n), STEP_Y_SMALL(n)) * STEP_Y_SMALL(n) + Y_FRAC_FIRST(n);
+    f = _div(f - Y_FRAC_FIRST(n), STEP_Y_SMALL(n)) * STEP_Y_SMALL(n) + Y_FRAC_FIRST(n);
     if (f < Y_FRAC_FIRST(n))
     {
 	f = Y_FRAC_LAST(n);

@@ -79,7 +79,7 @@ in this Software without prior written authorization from The Open Group.
 
 #include "Ps.h"
 
-#define BitsPerPixel(d) (\
+#define _BitsPerPixel(d) (\
   (1 << PixmapWidthPaddingInfo[d].padBytesLog2) * 8 / \
   (PixmapWidthPaddingInfo[d].padRoundUp+1))
 
@@ -98,7 +98,7 @@ PsCreatePixmap(
   pPixmap->drawable.class        = 0;
   pPixmap->drawable.pScreen      = pScreen;
   pPixmap->drawable.depth        = depth;
-  pPixmap->drawable.bitsPerPixel = BitsPerPixel(depth);
+  pPixmap->drawable.bitsPerPixel = _BitsPerPixel(depth);
   pPixmap->drawable.id           = 0;
   pPixmap->drawable.serialNumber = NEXT_SERIAL_NUMBER;
   pPixmap->drawable.x            = 0;

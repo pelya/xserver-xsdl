@@ -1747,8 +1747,7 @@ xf86PrintBanner()
 #if PRE_RELEASE
   ErrorF("\n"
     "This is a pre-release version of the " XVENDORNAME " X11.\n"
-    "Portions of this release are based on XFree86 4.4RC2 and selected\n"
-    "files from XFree86 4.4RC3. It is not supported in any way.\n"
+    "It is not supported in any way.\n"
     "Bugs may be filed in the bugzilla at http://bugs.freedesktop.org/.\n"
     "Select the \"xorg\" product for bugs you find in this release.\n"
     "Before reporting bugs in pre-release versions please check the\n"
