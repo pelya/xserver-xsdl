@@ -85,8 +85,6 @@ LinuxInit ()
     }
     close(fd);
 
-/*    ErrorF("(using VT number %d)\n\n", vtno); */
-
     sprintf(vtname,"/dev/tty%d",vtno); /* /dev/tty1-64 */
 
     if ((LinuxConsoleFd = open(vtname, O_RDWR|O_NDELAY, 0)) < 0)
@@ -184,11 +182,49 @@ LinuxFindPci (CARD16 vendor, CARD16 device, CARD32 count, KdCardAttr *attr)
 }
 
 void
-LinuxEnable (void)
+LinuxSetSwitchMode (int mode)
 {
     struct sigaction	act;
     struct vt_mode	VT;
     
+    if (ioctl(LinuxConsoleFd, VT_GETMODE, &VT) < 0) 
+    {
+	FatalError ("LinuxInit: VT_GETMODE failed\n");
+    }
+
+    if (mode == VT_PROCESS)
+    {
+	act.sa_handler = LinuxVTRequest;
+	sigemptyset (&act.sa_mask);
+	act.sa_flags = 0;
+	act.sa_restorer = 0;
+	sigaction (SIGUSR1, &act, 0);
+    
+	VT.mode = mode;
+	VT.relsig = SIGUSR1;
+	VT.acqsig = SIGUSR1;
+    }
+    else
+    {
+	act.sa_handler = SIG_IGN;
+	sigemptyset (&act.sa_mask);
+	act.sa_flags = 0;
+	act.sa_restorer = 0;
+	sigaction (SIGUSR1, &act, 0);
+    
+	VT.mode = mode;
+	VT.relsig = 0;
+	VT.acqsig = 0;
+    }
+    if (ioctl(LinuxConsoleFd, VT_SETMODE, &VT) < 0) 
+    {
+	FatalError("LinuxInit: VT_SETMODE failed\n");
+    }
+}
+
+void
+LinuxEnable (void)
+{
     if (enabled)
 	return;
     if (kdSwitchPending)
@@ -199,32 +235,16 @@ LinuxEnable (void)
     /*
      * now get the VT
      */
+    LinuxSetSwitchMode (VT_AUTO);
     if (ioctl(LinuxConsoleFd, VT_ACTIVATE, vtno) != 0)
     {
-	ErrorF("LinuxInit: VT_ACTIVATE failed\n");
+	FatalError("LinuxInit: VT_ACTIVATE failed\n");
     }
     if (ioctl(LinuxConsoleFd, VT_WAITACTIVE, vtno) != 0)
     {
-	ErrorF("LinuxInit: VT_WAITACTIVE failed\n");
+	FatalError("LinuxInit: VT_WAITACTIVE failed\n");
     }
-    if (ioctl(LinuxConsoleFd, VT_GETMODE, &VT) < 0) 
-    {
-	FatalError ("LinuxInit: VT_GETMODE failed\n");
-    }
-
-    act.sa_handler = LinuxVTRequest;
-    sigemptyset (&act.sa_mask);
-    act.sa_flags = 0;
-    act.sa_restorer = 0;
-    sigaction (SIGUSR1, &act, 0);
-
-    VT.mode = VT_PROCESS;
-    VT.relsig = SIGUSR1;
-    VT.acqsig = SIGUSR1;
-    if (ioctl(LinuxConsoleFd, VT_SETMODE, &VT) < 0) 
-    {
-	FatalError("LinuxInit: VT_SETMODE VT_PROCESS failed\n");
-    }
+    LinuxSetSwitchMode (VT_PROCESS);
     if (ioctl(LinuxConsoleFd, KDSETMODE, KD_GRAPHICS) < 0)
     {
 	FatalError("LinuxInit: KDSETMODE KD_GRAPHICS failed\n");

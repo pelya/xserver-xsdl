@@ -300,6 +300,9 @@ ddxGiveUp ()
     AbortDDX ();
 }
 
+Bool	kdDumbDriver;
+Bool	kdSoftCursor;
+
 void
 KdParseScreen (KdScreenInfo *screen,
 	       char	    *arg)
@@ -307,6 +310,10 @@ KdParseScreen (KdScreenInfo *screen,
     char    *bpp;
     int	    fb;
     
+    screen->dumb = kdDumbDriver;
+    screen->softCursor = kdSoftCursor;
+    kdDumbDriver = FALSE;
+    kdSoftCursor = FALSE;
     screen->width = 0;
     screen->height = 0;
     screen->rate = 0;
@@ -360,9 +367,6 @@ KdParseScreen (KdScreenInfo *screen,
     arg++;
 }
 
-Bool	kdDumbDriver;
-Bool	kdSoftCursor;
-
 int
 KdProcessArgument (int argc, char **argv, int i)
 {
@@ -389,10 +393,6 @@ KdProcessArgument (int argc, char **argv, int i)
 	    }
 	    screen = KdScreenInfoAdd (card);
 	    KdParseScreen (screen, argv[i+1]);
-	    screen->dumb = kdDumbDriver;
-	    screen->softCursor = kdSoftCursor;
-	    kdDumbDriver = FALSE;
-	    kdSoftCursor = FALSE;
 	}
 	else
 	    UseMsg ();
@@ -493,11 +493,14 @@ KdCloseScreen (int index, ScreenPtr pScreen)
      * Restore video hardware when last screen is closed
      */
     if (screen == card->screenList)
-	(*card->cfuncs->restore) (card);
-    
+    {
+	if (kdEnabled)
+	    (*card->cfuncs->restore) (card);
+    }
+	
     if (!pScreenPriv->screen->dumb)
 	(*card->cfuncs->finiAccel) (pScreen);
-    
+
     if (!pScreenPriv->screen->softCursor)
 	(*card->cfuncs->finiCursor) (pScreen);
 
@@ -686,11 +689,17 @@ KdScreenInit(int index, ScreenPtr pScreen, int argc, char **argv)
     (void) p8Init (pScreen, PSEUDO8_USE_DEFAULT);
 #endif
     
+#if 0
+    fbInitValidateTree (pScreen);
+#endif
+    
+#if 0
     pScreen->backingStoreSupport = Always;
 #ifdef FB_OLD_SCREEN
     miInitializeBackingStore (pScreen, &pScreenPriv->BackingStoreFuncs);
 #else
     miInitializeBackingStore (pScreen);
+#endif
 #endif
     /* 
      * Wrap CloseScreen, the order now is:
@@ -710,6 +719,9 @@ KdScreenInit(int index, ScreenPtr pScreen, int argc, char **argv)
 	miDCInitialize(pScreen, &kdPointerScreenFuncs);
     }
 
+    if (!KdPictureInit (pScreen, 0, 0))
+	return FALSE;
+    
     if (!fbCreateDefColormap (pScreen))
     {
 	return FALSE;

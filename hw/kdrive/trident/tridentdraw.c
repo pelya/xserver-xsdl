@@ -636,7 +636,7 @@ static const GCOps	tridentOps = {
     KdCheckPolyArc,
     miFillPolygon,
     tridentPolyFillRect,
-    KdCheckPolyFillArc,
+    miPolyFillArc,
     miPolyText8,
     miPolyText16,
     miImageText8,

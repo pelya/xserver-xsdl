@@ -297,7 +297,9 @@ void
 KdCheckPolyFillRect (DrawablePtr pDrawable, GCPtr pGC,
 		     int nrect, xRectangle *prect);
 
-#define KdCheckPolyFillArc	miPolyFillArc
+void
+KdCheckPolyFillArc (DrawablePtr pDrawable, GCPtr pGC, 
+		    int narcs, xArc *pArcs);
 
 void
 KdCheckImageGlyphBlt (DrawablePtr pDrawable, GCPtr pGC,

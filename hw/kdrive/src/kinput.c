@@ -42,6 +42,7 @@ static Bool		kdTimeoutPending;
 static int		kdBellPitch;
 static int		kdBellDuration;
 static int		kdLeds;
+static Bool		kdInputEnabled;
 
 int		kdMinScanCode;
 int		kdMaxScanCode;
@@ -172,15 +173,22 @@ KdDisableInput (void)
 	KdRemoveFd (kdMouseFd);
     if (kdKeyboardFd >= 0)
 	KdRemoveFd (kdKeyboardFd);
+    kdInputEnabled = FALSE;
 }
 
 void
 KdEnableInput (void)
 {
+    xEvent	xE;
+    
+    kdInputEnabled = TRUE;
     if (kdMouseFd >= 0)
 	KdAddFd (kdMouseFd);
     if (kdKeyboardFd >= 0)
 	KdAddFd (kdKeyboardFd);
+    /* reset screen saver */
+    xE.u.keyButtonPointer.time = GetTimeInMillis ();
+    NoticeEventTime (&xE);
 }
 
 static int
@@ -210,7 +218,7 @@ KdMouseProc(DeviceIntPtr pDevice, int onoff)
 	if (kdMouseFuncs)
 	{
 	    kdMouseFd = (*kdMouseFuncs->Init) ();
-	    if (kdMouseFd >= 0)
+	    if (kdMouseFd >= 0 && kdInputEnabled)
 		KdAddFd (kdMouseFd);
 	}
 	break;
@@ -222,7 +230,8 @@ KdMouseProc(DeviceIntPtr pDevice, int onoff)
 	    pKdPointer = 0;
 	    if (kdMouseFd >= 0)
 	    {
-		KdRemoveFd (kdMouseFd);
+		if (kdInputEnabled)
+		    KdRemoveFd (kdMouseFd);
 		(*kdMouseFuncs->Fini) (kdMouseFd);
 		kdMouseFd = -1;
 	    }
@@ -241,14 +250,16 @@ LegalModifier(unsigned int key, DevicePtr pDev)
 static void
 KdBell (int volume, DeviceIntPtr pDev, pointer ctrl, int something)
 {
-    (*kdKeyboardFuncs->Bell) (volume, kdBellPitch, kdBellDuration);
+    if (kdInputEnabled)
+	(*kdKeyboardFuncs->Bell) (volume, kdBellPitch, kdBellDuration);
 }
 
 
 static void
 KdSetLeds (void)
 {
-    (*kdKeyboardFuncs->Leds) (kdLeds);
+    if (kdInputEnabled)
+	(*kdKeyboardFuncs->Leds) (kdLeds);
 }
 
 void
@@ -297,7 +308,7 @@ KdKeybdProc(DeviceIntPtr pDevice, int onoff)
 	if (kdKeyboardFuncs)
 	{
 	    kdKeyboardFd = (*kdKeyboardFuncs->Init) ();
-	    if (kdKeyboardFd >= 0)
+	    if (kdKeyboardFd >= 0 && kdInputEnabled)
 		KdAddFd (kdKeyboardFd);
 	}
 	break;
@@ -309,7 +320,8 @@ KdKeybdProc(DeviceIntPtr pDevice, int onoff)
 	    pDev->on = FALSE;
 	    if (kdKeyboardFd >= 0)
 	    {
-		KdRemoveFd (kdKeyboardFd);
+		if (kdInputEnabled)
+		    KdRemoveFd (kdKeyboardFd);
 		(*kdKeyboardFuncs->Fini) (kdKeyboardFd);
 		kdKeyboardFd = -1;
 	    }
@@ -413,6 +425,7 @@ KdInitInput(KdMouseFuncs    *pMouseFuncs,
     kdLeds = 0;
     kdBellPitch = 1000;
     kdBellDuration = 200;
+    kdInputEnabled = TRUE;
     KdInitModMap ();
     KdInitAutoRepeats ();
     KdResetInputMachine ();
@@ -710,7 +723,7 @@ xEvent		kdHeldEvent;
 int		kdEmulationDx, kdEmulationDy;
 
 #define EMULATION_WINDOW    10
-#define EMULATION_TIMEOUT   30
+#define EMULATION_TIMEOUT   100
 
 #define EventX(e)   ((e)->u.keyButtonPointer.rootX)
 #define EventY(e)   ((e)->u.keyButtonPointer.rootY)
@@ -1003,7 +1016,9 @@ KdReleaseAllKeys (void)
 	    xE.u.keyButtonPointer.time = GetTimeInMillis();
 	    xE.u.u.type = KeyRelease;
 	    xE.u.u.detail = key;
+	    KdBlockSigio ();
 	    KdHandleKeyboardEvent (&xE);
+	    KdUnblockSigio ();
 	}
 }
 
@@ -1082,12 +1097,14 @@ KdEnqueueKeyboardEvent(unsigned char	scan_code,
 		return;
 	    }
 	}
+#if 0
 	if (xE.u.u.type == KeyRelease && !IsKeyDown (key_code))
 	{
 	    xE.u.u.type = KeyPress;
 	    KdHandleKeyboardEvent (&xE);
 	    xE.u.u.type = KeyRelease;
 	}
+#endif
 	KdCheckSpecialKeys (&xE);
 	KdHandleKeyboardEvent (&xE);
     }

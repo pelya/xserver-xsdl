@@ -3,13 +3,13 @@ XCOMM $XFree86: xc/programs/Xserver/hw/kdrive/Imakefile,v 1.1 1999/11/19 13:53:4
 #include <Server.tmpl>
 
 SRCS = kcmap.c kcolor.c kdrive.c kinfo.c kinput.c kmap.c knoop.c ktest.c \
-	vga.c kasync.c kmode.c kcurscol.c
+	vga.c kasync.c kmode.c kcurscol.c kpict.c
 
 OBJS = kcmap.o kcolor.o kdrive.o kinfo.o kinput.o kmap.o knoop.o ktest.o \
-	vga.o kasync.o kmode.o kcurscol.o
+	vga.o kasync.o kmode.o kcurscol.o kpict.o
 
 INCLUDES = -I. -I$(XBUILDINCDIR) -I$(FONTINCSRC) \
-	   -I../../fb -I../../mi -I../../include -I../../os  \
+	   -I../../fb -I../../mi -I../../render -I../../include -I../../os  \
            -I$(EXTINCSRC) -I$(XINCLUDESRC)
 
 NormalLibraryObjectRule()

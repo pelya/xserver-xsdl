@@ -1,5 +1,5 @@
 /*
- * Id: trident.c,v 1.2 1999/11/02 08:17:24 keithp Exp $
+ * $Id$
  *
  * Copyright © 1999 Keith Packard
  *
@@ -115,7 +115,7 @@ tridentPause ()
     struct timeval  tv;
 
     tv.tv_sec = 0;
-    tv.tv_usec = 200 * 1000;
+    tv.tv_usec = 50 * 1000;
     select (1, 0, 0, 0, &tv);
 }
 
@@ -125,6 +125,7 @@ tridentPreserve (KdCardInfo *card)
     TridentCardInfo	*tridentc = card->driver;
 
     fbdevPreserve (card);
+    tridentPause ();
     tridentc->save.reg_3c4_0e = tridentReadIndex (tridentc, 0x3c4, 0x0e);
     tridentc->save.reg_3d4_36 = tridentReadIndex (tridentc, 0x3d4, 0x36);
     tridentc->save.reg_3d4_39 = tridentReadIndex (tridentc, 0x3d4, 0x39);
@@ -189,7 +190,9 @@ tridentResetMMIO (TridentCardInfo *tridentc)
 #ifdef TRI_DEBUG
     fprintf (stderr, "Reset MMIO\n");
 #endif
+    tridentPause ();
     tridentWriteIndex (tridentc, 0x3ce, 0x21, tridentc->save.reg_3ce_21);
+    tridentPause ();
     tridentWriteIndex (tridentc, 0x3d4, 0x62, tridentc->save.reg_3d4_62);
     tridentWriteIndex (tridentc, 0x3d4, 0x39, tridentc->save.reg_3d4_39);
     tridentWriteIndex (tridentc, 0x3d4, 0x36, tridentc->save.reg_3d4_36);
@@ -229,6 +232,7 @@ tridentDPMS (ScreenPtr pScreen, int mode)
     TridentCardInfo	*tridentc = pScreenPriv->card->driver;
 
     tridentWriteIndex (tridentc, 0x3ce, 0x21, tridentDPMSModes[mode]);
+    tridentPause ();
     return TRUE;
 }
 

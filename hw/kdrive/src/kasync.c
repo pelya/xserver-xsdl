@@ -141,7 +141,6 @@ KdCheckPolyFillRect (DrawablePtr pDrawable, GCPtr pGC,
     fbPolyFillRect (pDrawable, pGC, nrect, prect);
 }
 
-#if 0
 void
 KdCheckPolyFillArc (DrawablePtr pDrawable, GCPtr pGC, 
 		    int narcs, xArc *pArcs)
@@ -149,7 +148,6 @@ KdCheckPolyFillArc (DrawablePtr pDrawable, GCPtr pGC,
     KdCheckSync(pDrawable->pScreen);
     fbPolyFillArc (pDrawable, pGC, narcs, pArcs);
 }
-#endif
 
 void
 KdCheckImageGlyphBlt (DrawablePtr pDrawable, GCPtr pGC,
