@@ -425,7 +425,10 @@ GetWindowName (Display *pDisplay, Window iWin, char **ppName)
       /* */
       if (xtpName.value)
 	{
-	  *ppName = strdup ((char*)xtpName.value);
+	  int size = xtpName.nitems * (xtpName.format >> 3);
+	  *ppName = malloc(size + 1);
+	  strncpy(*ppName, xtpName.value, size);
+	  (*ppName)[size] = 0;
 	  XFree (xtpName.value);
 	}
 

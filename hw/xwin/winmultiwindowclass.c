@@ -175,7 +175,7 @@ winMultiWindowGetWindowRole (WindowPtr pWin, char **res_role)
 	  && prop->format == 8
 	  && prop->data)
 	{
-	  len_role= strlen ((char *) prop->data);
+	  len_role= prop->size;
 
 	  (*res_role) = malloc (len_role + 1);
 
@@ -185,7 +185,8 @@ winMultiWindowGetWindowRole (WindowPtr pWin, char **res_role)
 	      return 0; 
 	    }
 
-	  strcpy ((*res_role), prop->data);
+	  strncpy ((*res_role), prop->data, len_role);
+	  (*res_role)[len_role] = 0;
 
 	  return 1;
 	}
@@ -299,7 +300,7 @@ winMultiWindowGetWMName (WindowPtr pWin, char **wmName)
 	  && prop->type == XA_STRING
 	  && prop->data)
 	{
-	  len_name = strlen ((char *) prop->data);
+	  len_name = prop->size;
 
 	  (*wmName) = malloc (len_name + 1);
 	  
@@ -309,8 +310,8 @@ winMultiWindowGetWMName (WindowPtr pWin, char **wmName)
 	      return 0;
 	    }
 
-	  /* Add one to len_name to allow copying of trailing 0 */
-	  strncpy ((*wmName), prop->data, len_name+1);
+	  strncpy ((*wmName), prop->data, len_name);
+	  (*wmName)[len_name] = 0;
 
 	  return 1;
 	}
