@@ -72,6 +72,7 @@ static struct blendinfo RadeonBlendOp[] = {
 
 struct formatinfo {
 	int fmt;
+	Bool byte_swap;
 	CARD32 card_fmt;
 };
 
@@ -79,21 +80,25 @@ struct formatinfo {
  * TXFORMAT_Y8 expands to (Y,Y,Y,1).  TXFORMAT_I8 expands to (I,I,I,I)
  */
 static struct formatinfo R100TexFormats[] = {
-	{PICT_a8r8g8b8,	RADEON_TXFORMAT_ARGB8888 | RADEON_TXFORMAT_ALPHA_IN_MAP},
-	{PICT_x8r8g8b8,	RADEON_TXFORMAT_ARGB8888},
-	{PICT_r5g6b5,	RADEON_TXFORMAT_RGB565},
-	{PICT_a1r5g5b5,	RADEON_TXFORMAT_ARGB1555 | RADEON_TXFORMAT_ALPHA_IN_MAP},
-	{PICT_x1r5g5b5,	RADEON_TXFORMAT_ARGB1555},
-	{PICT_a8,	RADEON_TXFORMAT_I8 | RADEON_TXFORMAT_ALPHA_IN_MAP},
+	{PICT_a8r8g8b8,	0, RADEON_TXFORMAT_ARGB8888 | RADEON_TXFORMAT_ALPHA_IN_MAP},
+	{PICT_x8r8g8b8,	0, RADEON_TXFORMAT_ARGB8888},
+	{PICT_a8b8g8r8,	1, RADEON_TXFORMAT_RGBA8888 | RADEON_TXFORMAT_ALPHA_IN_MAP},
+	{PICT_x8b8g8r8,	1, RADEON_TXFORMAT_RGBA8888},
+	{PICT_r5g6b5,	0, RADEON_TXFORMAT_RGB565},
+	{PICT_a1r5g5b5,	0, RADEON_TXFORMAT_ARGB1555 | RADEON_TXFORMAT_ALPHA_IN_MAP},
+	{PICT_x1r5g5b5,	0, RADEON_TXFORMAT_ARGB1555},
+	{PICT_a8,	0, RADEON_TXFORMAT_I8 | RADEON_TXFORMAT_ALPHA_IN_MAP},
 };
 
 static struct formatinfo R200TexFormats[] = {
-	{PICT_a8r8g8b8,	R200_TXFORMAT_ARGB8888 | R200_TXFORMAT_ALPHA_IN_MAP},
-	{PICT_x8r8g8b8,	R200_TXFORMAT_ARGB8888},
-	{PICT_r5g6b5,	R200_TXFORMAT_RGB565},
-	{PICT_a1r5g5b5,	R200_TXFORMAT_ARGB1555 | R200_TXFORMAT_ALPHA_IN_MAP},
-	{PICT_x1r5g5b5,	R200_TXFORMAT_ARGB1555},
-	{PICT_a8,	R200_TXFORMAT_I8 | R200_TXFORMAT_ALPHA_IN_MAP},
+	{PICT_a8r8g8b8,	0, R200_TXFORMAT_ARGB8888 | R200_TXFORMAT_ALPHA_IN_MAP},
+	{PICT_x8r8g8b8,	0, R200_TXFORMAT_ARGB8888},
+	{PICT_a8r8g8b8,	1, R200_TXFORMAT_RGBA8888 | R200_TXFORMAT_ALPHA_IN_MAP},
+	{PICT_x8r8g8b8,	1, R200_TXFORMAT_RGBA8888},
+	{PICT_r5g6b5,	0, R200_TXFORMAT_RGB565},
+	{PICT_a1r5g5b5,	0, R200_TXFORMAT_ARGB1555 | R200_TXFORMAT_ALPHA_IN_MAP},
+	{PICT_x1r5g5b5,	0, R200_TXFORMAT_ARGB1555},
+	{PICT_a8,	0, R200_TXFORMAT_I8 | R200_TXFORMAT_ALPHA_IN_MAP},
 };
 
 /* Common Radeon setup code */
@@ -162,12 +167,18 @@ R100TextureSetup(PicturePtr pPict, PixmapPtr pPix, int unit)
 	int i;
 	RING_LOCALS;
 
+	txpitch = pPix->devKind;
+	txoffset = ((CARD8 *)pPix->devPrivate.ptr -
+	    pScreenPriv->screen->memory_base);
+
 	for (i = 0; i < sizeof(R100TexFormats) / sizeof(R100TexFormats[0]); i++)
 	{
 		if (R100TexFormats[i].fmt == pPict->format)
 			break;
 	}
 	txformat = R100TexFormats[i].card_fmt;
+	if (R100TexFormats[i].byte_swap)
+		txoffset |= RADEON_TXO_ENDIAN_BYTE_SWAP;
 
 	if (pPict->repeat) {
 		txformat |= ATILog2(w) << RADEON_TXFORMAT_WIDTH_SHIFT;
@@ -176,9 +187,6 @@ R100TextureSetup(PicturePtr pPict, PixmapPtr pPix, int unit)
 		txformat |= RADEON_TXFORMAT_NON_POWER2;
 	txformat |= unit << 24; /* RADEON_TXFORMAT_ST_ROUTE_STQX */
 
-	txpitch = pPix->devKind;
-	txoffset = ((CARD8 *)pPix->devPrivate.ptr -
-	    pScreenPriv->screen->memory_base);
  
 	if ((txoffset & 0x1f) != 0)
 		ATI_FALLBACK(("Bad texture offset 0x%x\n", txoffset));
@@ -384,12 +392,18 @@ R200TextureSetup(PicturePtr pPict, PixmapPtr pPix, int unit)
 	int i;
 	RING_LOCALS;
 
+	txpitch = pPix->devKind;
+	txoffset = ((CARD8 *)pPix->devPrivate.ptr -
+	    pScreenPriv->screen->memory_base);
+
 	for (i = 0; i < sizeof(R200TexFormats) / sizeof(R200TexFormats[0]); i++)
 	{
 		if (R200TexFormats[i].fmt == pPict->format)
 			break;
 	}
 	txformat = R200TexFormats[i].card_fmt;
+	if (R100TexFormats[i].byte_swap)
+		txoffset |= RADEON_TXO_ENDIAN_BYTE_SWAP;
 
 	if (pPict->repeat) {
 		txformat |= ATILog2(w) << R200_TXFORMAT_WIDTH_SHIFT;
@@ -397,10 +411,6 @@ R200TextureSetup(PicturePtr pPict, PixmapPtr pPix, int unit)
 	} else 
 		txformat |= R200_TXFORMAT_NON_POWER2;
 	txformat |= unit << R200_TXFORMAT_ST_ROUTE_SHIFT;
-
-	txpitch = pPix->devKind;
-	txoffset = ((CARD8 *)pPix->devPrivate.ptr -
-	    pScreenPriv->screen->memory_base);
 
 	if ((txoffset & 0x1f) != 0)
 		ATI_FALLBACK(("Bad texture offset 0x%x\n", txoffset));
