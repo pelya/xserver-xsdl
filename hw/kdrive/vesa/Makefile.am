@@ -18,7 +18,7 @@ libvesa_la_SOURCES = \
 	vbe.c		\
 	vga.c		\
 	vm86.c
-	
+
 Xvesa_SOURCES = \
 	vesainit.c
 
