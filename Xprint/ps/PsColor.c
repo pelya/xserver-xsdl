@@ -84,7 +84,7 @@ in this Software without prior written authorization from The Open Group.
 Bool
 PsCreateColormap(ColormapPtr pColor)
 {
-  miInitializeColormap(pColor);
+  return miInitializeColormap(pColor);
 }
 
 void
