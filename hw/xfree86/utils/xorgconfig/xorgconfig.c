@@ -94,7 +94,7 @@
  *  Chisato Yamauchi(cyamauch@phyas.aichi-edu.ac.jp)
  */
 /* $XConsortium: xf86config.c /main/21 1996/10/28 05:43:57 kaleb $ */
-/* $XdotOrg: xc/programs/Xserver/hw/xfree86/xf86config/xorgconfig.c,v 1.9 2005/01/03 15:39:35 eich Exp $ */
+/* $XdotOrg: xc/programs/Xserver/hw/xfree86/xf86config/xorgconfig.c,v 1.10 2005/01/04 00:16:20 alanc Exp $ */
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -854,8 +854,7 @@ static char *monitorintro_text =
 "which is the rate at which scanlines are displayed.\n"
 "\n"
 "The valid range for horizontal sync and vertical sync should be documented\n"
-"in the manual of your monitor. If in doubt, check the monitor database\n"
-TREEROOTDOC "/Monitors to see if your monitor is there.\n"
+"in the manual of your monitor.\n"
 "\n";
 
 static char *hsyncintro_text =
