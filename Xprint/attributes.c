@@ -1515,6 +1515,8 @@ XpSubmitJob(fileName, pContext)
 
     FreeVector(vector);
     xfree(cmdNam);
+    
+    return Success;
 }
 
 /*
