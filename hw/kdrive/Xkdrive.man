@@ -1,4 +1,4 @@
-.\" $XFree86$
+.\" $XFree86: xc/programs/Xserver/hw/kdrive/Xkdrive.man,v 1.2 2000/12/04 21:01:00 dawes Exp $
 .\"
 .TH Xkdrive 1
 .SH NAME
@@ -71,7 +71,7 @@ not documented.
 .B -standalone
 not documented.
 .SH SEE ALSO
-X(1), Xserver(1), xdm(1), xinit(1), Xvesa(1), Xfbdev(1).
+X(__miscmansuffix__), Xserver(1), xdm(1), xinit(1), Xvesa(1), Xfbdev(1).
 .SH AUTHORS
 The Xkdrive common core was written by Keith Packard, based on XFree86
 which, in turn, is based on the Sample Implementation of X.
