@@ -27,8 +27,29 @@
 #endif
 #include "mga.h"
 
+CARD32 mgaRop[16] = {
+    /* GXclear        */  MGA_ATYPE_RPL  | 0x00000000,	/* 0 */
+    /* GXand          */  MGA_ATYPE_RSTR | 0x00080000,	/* src AND dst */
+    /* GXandReverse   */  MGA_ATYPE_RSTR | 0x00040000,	/* src AND NOT dst */
+    /* GXcopy         */  MGA_ATYPE_RSTR | 0x000c0000,	/* src */
+    /* GXandInverted  */  MGA_ATYPE_RSTR | 0x00020000,	/* NOT src AND dst */
+    /* GXnoop         */  MGA_ATYPE_RSTR | 0x000a0000,	/* dst */
+    /* GXxor          */  MGA_ATYPE_RSTR | 0x00060000,	/* src XOR dst */
+    /* GXor           */  MGA_ATYPE_RSTR | 0x000e0000,	/* src OR dst */
+    /* GXnor          */  MGA_ATYPE_RSTR | 0x00010000,	/* NOT src AND NOT dst */
+    /* GXequiv        */  MGA_ATYPE_RSTR | 0x00090000,	/* NOT src XOR dst */
+    /* GXinvert       */  MGA_ATYPE_RSTR | 0x00050000,	/* NOT dst */
+    /* GXorReverse    */  MGA_ATYPE_RSTR | 0x000d0000,	/* src OR NOT dst */
+    /* GXcopyInverted */  MGA_ATYPE_RPL  | 0x00030000,	/* NOT src */
+    /* GXorInverted   */  MGA_ATYPE_RSTR | 0x000b0000,	/* NOT src OR dst */
+    /* GXnand         */  MGA_ATYPE_RSTR | 0x00070000,	/* NOT src OR NOT dst */
+    /* GXset          */  MGA_ATYPE_RPL  | 0x000f0000	/* 1 */
+};
+
 static VOL8 *mmio;
 int fifo_size;
+int pitch;
+int dir;
 
 void
 mgaWaitAvail (int n)
@@ -58,12 +79,14 @@ mgaSetup (ScreenPtr pScreen, int wait)
 
   fifo_size = 0;
   mmio = mgac->reg_base;
-
+  pitch = mgas->pitch;
+  
   if (!mmio)
     return FALSE;
 
-  mgaWaitAvail (wait + 6);
+  mgaWaitAvail (wait + 7);
   MGA_OUT32 (mmio, MGA_REG_PITCH, mgas->pitch);
+  MGA_OUT32 (mmio, MGA_REG_SRCORG, 0);
   MGA_OUT32 (mmio, MGA_REG_DSTORG, 0);
   MGA_OUT32 (mmio, MGA_REG_MACCESS, mgas->pw);
   MGA_OUT32 (mmio, MGA_REG_CXBNDRY, 0xffff0000);
@@ -77,14 +100,13 @@ mgaPrepareSolid (DrawablePtr pDrawable, int alu, Pixel pm, Pixel fg)
     int cmd;
 
     cmd = MGA_OPCOD_TRAP | MGA_DWGCTL_SOLID | MGA_DWGCTL_ARZERO | MGA_DWGCTL_SGNZERO |
-	MGA_DWGCTL_SHIFTZERO;
-    /* XXX */
-    cmd |= (12 << 16);
+	MGA_DWGCTL_SHIFTZERO | mgaRop[alu];
 
-    mgaSetup (pDrawable->pScreen, 4);
+    mgaSetup (pDrawable->pScreen, 3);
     MGA_OUT32 (mmio, MGA_REG_DWGCTL, cmd);
     MGA_OUT32 (mmio, MGA_REG_FCOL, fg);
     MGA_OUT32 (mmio, MGA_REG_PLNWT, pm);
+    
     return TRUE;
 }
 
@@ -101,15 +123,58 @@ mgaDoneSolid (void)
 {
 }
 
+#define BLIT_LEFT	1
+#define BLIT_UP		4
+
 Bool
 mgaPrepareCopy (DrawablePtr pSrcDrawable, DrawablePtr pDstDrawable, int	dx, int dy, int alu, Pixel pm)
 {
-    return FALSE;
+    int cmd;
+
+    cmd = MGA_OPCOD_BITBLT | MGA_DWGCTL_BFCOL | MGA_DWGCTL_SHIFTZERO | mgaRop[alu];
+
+    dir = 0;
+
+    if (dy < 0)
+	dir |= BLIT_UP;
+    if (dx < 0)
+	dir |= BLIT_LEFT;
+    
+    mgaSetup (pDstDrawable->pScreen, 4);
+
+    MGA_OUT32 (mmio, MGA_REG_DWGCTL, cmd);
+    MGA_OUT32 (mmio, MGA_REG_SGN, dir);
+    MGA_OUT32 (mmio, MGA_REG_PLNWT, pm);
+    MGA_OUT32 (mmio, MGA_REG_AR5, pitch * (dy < 0 ? -1 : 1) );
+
+    return TRUE;
 }
 
 void
 mgaCopy (int srcX, int srcY, int dstX, int dstY, int w, int h)
 {
+    int start, end;
+    
+    if (dir & BLIT_UP)
+    {
+	srcY += h - 1;
+	dstY += h - 1;
+    }
+
+    w--;
+    start = end = srcY * pitch + srcX;
+
+    if (dir & BLIT_LEFT)
+	start += w;
+    else
+	end += w;
+
+    mgaWaitAvail (4);
+    MGA_OUT32 (mmio, MGA_REG_AR0, end);
+    MGA_OUT32 (mmio, MGA_REG_AR3, start);
+    MGA_OUT32 (mmio, MGA_REG_FXBNDRY, ((dstX + w) << 16) | (dstX & 0xffff));
+
+    MGA_OUT32 (mmio, MGA_REG_YDSTLEN | MGA_REG_EXEC, (dstY << 16) | h);
 }
 
 void

@@ -38,6 +38,15 @@
 #define MGA_REG_PLNWT		(0x1c1c)
 #define MGA_REG_FCOL		(0x1c24)
 #define MGA_REG_MACCESS 	(0x1c04)
+#define MGA_REG_SGN		(0x1c58)
+#define MGA_REG_AR0		(0x1c60)
+#define MGA_REG_AR1		(0x1c64)
+#define MGA_REG_AR2		(0x1c68)
+#define MGA_REG_AR3		(0x1c6C)
+#define MGA_REG_AR4		(0x1c70)
+#define MGA_REG_AR5		(0x1c74)
+#define MGA_REG_AR6		(0x1c78)
+
 #define MGA_REG_CXBNDRY		(0x1c80)
 #define MGA_REG_FXBNDRY		(0x1c84)
 #define MGA_REG_YDSTLEN		(0x1c88)
@@ -46,6 +55,7 @@
 #define MGA_REG_YBOT		(0x1c9c)
 #define MGA_REG_FIFOSTATUS 	(0x1e10)
 #define MGA_REG_STATUS	 	(0x1e14)
+#define MGA_REG_SRCORG 		(0x2cb4)
 #define MGA_REG_DSTORG 		(0x2cb8)
 
 #define MGA_PW8 	(0)
@@ -54,13 +64,21 @@
 #define MGA_PW32 	(3)
 
 /* Drawing opcodes */
-#define MGA_OPCOD_TRAP	(4)
+#define MGA_OPCOD_TRAP	 (4)
+#define MGA_OPCOD_BITBLT (8)
 
 #define MGA_DWGCTL_SOLID	(1 << 11)
 #define MGA_DWGCTL_ARZERO	(1 << 12)
 #define MGA_DWGCTL_SGNZERO	(1 << 13)
 #define MGA_DWGCTL_SHIFTZERO	(1 << 14)
 
+#define MGA_DWGCTL_BFCOL        (2 << 25)
+
+#define MGA_ATYPE_RPL		(0 << 4)
+#define MGA_ATYPE_RSTR		(1 << 4)
+#define MGA_ATYPE_ZI		(3 << 4)
+#define MGA_ATYPE_BLK 		(4 << 4)
+#define MGA_ATYPE_I		(7 << 4)
 
 typedef volatile CARD8	VOL8;
 typedef volatile CARD16	VOL16;
