@@ -43,8 +43,8 @@ in this Software without prior written authorization from The Open Group.
 #include "mibstore.h"
 
 #if 1 || PSZ==8
-int cfbWindowPrivateIndex;
-int cfbGCPrivateIndex;
+int cfbWindowPrivateIndex = -1;
+int cfbGCPrivateIndex = -1;
 #endif
 #ifdef CFB_NEED_SCREEN_PRIVATE
 int cfbScreenPrivateIndex = -1;
