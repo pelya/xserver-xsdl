@@ -98,4 +98,10 @@ kaaComposite(CARD8	op,
 	     CARD16	width,
 	     CARD16	height);
 
+void
+kaaRasterizeTrapezoid(PicturePtr pPict,
+		      xTrapezoid *trap,
+		      int xoff,
+		      int yoff);
+
 #endif /* _KAA_H_ */

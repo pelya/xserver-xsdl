@@ -62,6 +62,9 @@ static void kaaCompositeFallbackPictDesc(PicturePtr pict, char *string, int n)
     case PICT_a8:
 	snprintf(format, 20, "A8      ");
 	break;
+    case PICT_a1:
+	snprintf(format, 20, "A1      ");
+	break;
     default:
 	snprintf(format, 20, "0x%x", (int)pict->format);
 	break;
@@ -83,7 +86,6 @@ kaaPrintCompositeFallback(CARD8 op,
 			  PicturePtr pDst)
 {
     char sop[20];
-
     char srcdesc[40], maskdesc[40], dstdesc[40];
 
     switch(op)
@@ -108,6 +110,19 @@ kaaPrintCompositeFallback(CARD8 op,
 	   "                    mask %s, \n"
 	   "                    dst  %s, \n", 
 	   sop, srcdesc, maskdesc, dstdesc);
+}
+
+static void
+kaaPrintTrapezoidFallback(PicturePtr pDst)
+{
+    char dstdesc[40];
+
+    kaaCompositeFallbackPictDesc(pDst, dstdesc, 40);
+
+    ErrorF("Trapezoid fallback: dst  %s, %c/%s\n", 
+	   dstdesc,
+	   (pDst->polyMode == PolyModePrecise) ? 'p' : 'i',
+	   (pDst->polyEdge == PolyEdgeSharp) ? "a" : "aa");
 }
 #endif
 
@@ -605,3 +620,71 @@ kaaComposite(CARD8	op,
 		      xMask, yMask, xDst, yDst, width, height);
 }
 #endif
+
+static xFixed
+miLineFixedX (xLineFixed *l, xFixed y, Bool ceil)
+{
+    xFixed	    dx = l->p2.x - l->p1.x;
+    xFixed_32_32    ex = (xFixed_32_32) (y - l->p1.y) * dx;
+    xFixed	    dy = l->p2.y - l->p1.y;
+    if (ceil)
+	ex += (dy - 1);
+    return l->p1.x + (xFixed) (ex / dy);
+}
+
+/* Need to decide just how much to trim, to maintain translation independence
+ * when converted to floating point.
+ */
+#define XFIXED_TO_FLOAT(x) (((float)((x) & 0xffffff00)) / 65536.0)
+
+void kaaRasterizeTrapezoid(PicturePtr pDst,
+			   xTrapezoid *trap,
+			   int xoff,
+			   int yoff)
+{
+    KdScreenPriv (pDst->pDrawable->pScreen);
+    KaaScreenPriv (pDst->pDrawable->pScreen);
+    KaaTrapezoid ktrap;
+    PixmapPtr pPix;
+    xFixed x1, x2;
+
+    if (!pScreenPriv->enabled ||
+	!pKaaScr->info->PrepareTrapezoids ||
+	pDst->pDrawable->type != DRAWABLE_PIXMAP ||
+	pDst->polyMode == PolyModePrecise ||
+        pDst->alphaMap || pDst->format != PICT_a8)
+    {
+	KdCheckRasterizeTrapezoid (pDst, trap, xoff, yoff);
+#if KAA_DEBUG_FALLBACKS
+	kaaPrintTrapezoidFallback (pDst);
+#endif
+	return;
+    }
+    pPix = (PixmapPtr)pDst->pDrawable;
+
+    kaaPixmapUseScreen (pPix);
+
+    if (!kaaPixmapIsOffscreen (pPix) ||
+	!(*pKaaScr->info->PrepareTrapezoids) (pDst, pPix))
+    {
+#if KAA_DEBUG_FALLBACKS
+	kaaPrintTrapezoidFallback (pDst);
+#endif
+	KdCheckRasterizeTrapezoid (pDst, trap, xoff, yoff);
+	return;
+    }
+
+    ktrap.ty = XFIXED_TO_FLOAT(trap->top) + yoff;
+    x1 = miLineFixedX (&trap->left, trap->top, FALSE);
+    x2 = miLineFixedX (&trap->right, trap->top, TRUE);
+    ktrap.tl = XFIXED_TO_FLOAT(x1) + xoff;
+    ktrap.tr = XFIXED_TO_FLOAT(x2) + xoff;
+    ktrap.by = XFIXED_TO_FLOAT(trap->bottom) + yoff;
+    x1 = miLineFixedX (&trap->left, trap->bottom, FALSE);
+    x2 = miLineFixedX (&trap->right, trap->bottom, TRUE);
+    ktrap.bl = XFIXED_TO_FLOAT(x1) + xoff;
+    ktrap.br = XFIXED_TO_FLOAT(x2) + xoff;
+
+    (*pKaaScr->info->Trapezoids) (&ktrap, 1);
+    (*pKaaScr->info->DoneTrapezoids) ();
+}

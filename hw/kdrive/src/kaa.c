@@ -1029,8 +1029,10 @@ kaaDrawInit (ScreenPtr		pScreen,
     pScreen->PaintWindowBackground = kaaPaintWindow;
     pScreen->PaintWindowBorder = kaaPaintWindow;
 #ifdef RENDER
-    if (ps)
+    if (ps) {
 	ps->Composite = kaaComposite;
+	ps->RasterizeTrapezoid = kaaRasterizeTrapezoid;
+    }
 #endif
 
     /*

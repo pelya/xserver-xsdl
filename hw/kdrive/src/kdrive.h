@@ -310,6 +310,11 @@ typedef struct _KdMouseMatrix {
     int	    matrix[2][3];
 } KdMouseMatrix;
 
+typedef struct _KaaTrapezoid {
+    float tl, tr, ty;
+    float bl, br, by;
+} KaaTrapezoid;
+
 typedef struct _KaaScreenInfo {
     Bool	(*PrepareSolid) (PixmapPtr	pPixmap,
 				 int		alu,
@@ -369,6 +374,12 @@ typedef struct _KaaScreenInfo {
 			     int	width,
 			     int	height);
     void	(*DoneComposite) (void);
+
+    Bool	(*PrepareTrapezoids) (PicturePtr pDstPicture,
+				      PixmapPtr pDst);
+    void	(*Trapezoids) (KaaTrapezoid	 *traps,
+			       int		 ntraps);
+    void	(*DoneTrapezoids) (void);
 
     Bool        (*UploadToScreen) (PixmapPtr		pDst,
 				   char			*src,
