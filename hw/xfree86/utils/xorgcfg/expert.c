@@ -326,7 +326,7 @@ ExpertConfigureStart(void)
     XtPopup(shell, XtGrabExclusive);
     if (optionsShell == NULL)
 	CreateOptionsShell();
-    XtVaSetValues(optionsShell, XtNtransientFor, shell, NULL, 0);
+    XtVaSetValues(optionsShell, XtNtransientFor, shell, NULL);
 }
 
 void
@@ -336,7 +336,7 @@ ExpertConfigureEnd(void)
     Widget sme, layopt, layoutsme = NULL;
     XF86ConfLayoutPtr lay;
 
-    XtVaSetValues(optionsShell, XtNtransientFor, toplevel, NULL, 0);
+    XtVaSetValues(optionsShell, XtNtransientFor, toplevel, NULL);
     XtPopdown(shell);
 
     /* Need to do this to avoid all code elsewhere needing to update the
@@ -403,7 +403,7 @@ ExpertConfigureEnd(void)
 				      XtNlabel, lay->lay_identifier,
 				      XtNmenuName, lay->lay_identifier,
 				      XtNleftBitmap, menuPixmap,
-				      NULL, 0);
+				      NULL);
 	XtAddCallback(sme, XtNcallback, SelectLayoutCallback, (XtPointer)lay);
 	if (layoutsme == NULL)
 	    layoutsme = sme;
@@ -483,13 +483,13 @@ CreateFiles(TreeNode *files)
     CreateFilesField(node, "RgbPath", value);
 
     w = XtVaCreateManagedWidget("ModulePath", toggleWidgetClass, tree,
-				XtNtreeParent, files->node, NULL, 0);
+				XtNtreeParent, files->node, NULL);
     node->next = modulepath = NewNode(files, w, w, files->node, NULL);
     node = node->next;
     CreateModulePath(modulepath, NULL);
 
     w = XtVaCreateManagedWidget("FontPath", toggleWidgetClass, tree,
-				XtNtreeParent, files->node, NULL, 0);
+				XtNtreeParent, files->node, NULL);
     node->next = fontpath = NewNode(files, w, w, files->node, NULL);
     node = node->next;
     CreateFontPath(fontpath, NULL);
@@ -501,13 +501,13 @@ CreateFilesField(TreeNode *node, char *name, char *value)
     Widget box, text;
 
     box = XtVaCreateManagedWidget(name, boxWidgetClass, tree,
-				  XtNtreeParent, node->node, NULL, 0);
+				  XtNtreeParent, node->node, NULL);
     node->node = box;
     (void) XtVaCreateManagedWidget("label", labelWidgetClass, box,
-				    XtNlabel, name, NULL, 0);
+				    XtNlabel, name, NULL);
     text = XtVaCreateManagedWidget("value", asciiTextWidgetClass, box,
 				   XtNeditType, XawtextEdit, XtNstring, value,
-				   NULL, 0);
+				   NULL);
     node->data->files.text = text;
 }
 
@@ -518,7 +518,7 @@ UpdateFiles(TreeNode *files)
 
     /* LogFile */
     files = files->child;
-    XtVaGetValues(files->data->files.text, XtNstring, &str, NULL, 0);
+    XtVaGetValues(files->data->files.text, XtNstring, &str, NULL);
     XtFree(XF86Config->conf_files->file_logfile);
     if (*str)
 	XF86Config->conf_files->file_logfile = XtNewString(str);
@@ -527,7 +527,7 @@ UpdateFiles(TreeNode *files)
 
     /* LogFile */
     files = files->next;
-    XtVaGetValues(files->data->files.text, XtNstring, &str, NULL, 0);
+    XtVaGetValues(files->data->files.text, XtNstring, &str, NULL);
     XtFree(XF86Config->conf_files->file_rgbpath);
     if (*str)
 	XF86Config->conf_files->file_rgbpath = XtNewString(str);
@@ -592,7 +592,7 @@ CreateFontPathField(TreeNode *fontpath, char *value, Bool addnew)
     TreeData *data;
 
     box = XtVaCreateWidget("fontpath", formWidgetClass, tree,
-			   XtNtreeParent, fontpath->treeParent, NULL, 0);
+			   XtNtreeParent, fontpath->treeParent, NULL);
     fontpath->node = box;
     if (!addnew) {
 	command = XtCreateManagedWidget("remove", commandWidgetClass, box,
@@ -607,7 +607,7 @@ CreateFontPathField(TreeNode *fontpath, char *value, Bool addnew)
 		      (XtPointer)fontpath);
 	text = XtVaCreateManagedWidget("value", asciiTextWidgetClass, box,
 				       XtNeditType, XawtextEdit,
-				       XtNstring, value, NULL, 0);
+				       XtNstring, value, NULL);
     }
     else {
 	command = XtCreateManagedWidget("new", commandWidgetClass, box, NULL, 0);
@@ -615,7 +615,7 @@ CreateFontPathField(TreeNode *fontpath, char *value, Bool addnew)
 		      (XtPointer)fontpath);
 	text = XtVaCreateManagedWidget("valueNew", asciiTextWidgetClass, box,
 				       XtNeditType, XawtextEdit,
-				       XtNstring, value, NULL, 0);
+				       XtNstring, value, NULL);
     }
     data = (TreeData*)XtCalloc(1, sizeof(TreeData));
     data->files.text = text;
@@ -768,7 +768,7 @@ CreateModulePathField(TreeNode *modulepath, char *value, Bool addnew)
     TreeData *data;
 
     box = XtVaCreateWidget("modulepath", formWidgetClass, tree,
-			   XtNtreeParent, modulepath->treeParent, NULL, 0);
+			   XtNtreeParent, modulepath->treeParent, NULL);
     modulepath->node = box;
     if (!addnew) {
 	command = XtCreateManagedWidget("remove", commandWidgetClass, box,
@@ -777,7 +777,7 @@ CreateModulePathField(TreeNode *modulepath, char *value, Bool addnew)
 		      (XtPointer)modulepath);
 	text = XtVaCreateManagedWidget("value", asciiTextWidgetClass, box,
 				       XtNeditType, XawtextEdit,
-				       XtNstring, value, NULL, 0);
+				       XtNstring, value, NULL);
     }
     else {
 	command = XtCreateManagedWidget("new", commandWidgetClass, box, NULL, 0);
@@ -785,7 +785,7 @@ CreateModulePathField(TreeNode *modulepath, char *value, Bool addnew)
 		      (XtPointer)modulepath);
 	text = XtVaCreateManagedWidget("valueNew", asciiTextWidgetClass, box,
 				       XtNeditType, XawtextEdit,
-				       XtNstring, value, NULL, 0);
+				       XtNstring, value, NULL);
     }
     data = (TreeData*)XtCalloc(1, sizeof(TreeData));
     data->files.text = text;
@@ -883,7 +883,7 @@ CreateModuleField(TreeNode *node, Bool addnew)
     Widget box, command, label;
 
     box = XtVaCreateWidget("module", formWidgetClass, tree,
-			   XtNtreeParent, node->treeParent, NULL, 0);
+			   XtNtreeParent, node->treeParent, NULL);
     node->node = box;
 
     if (!addnew) {
@@ -898,7 +898,7 @@ CreateModuleField(TreeNode *node, Bool addnew)
 					NULL, 0);
 	XtAddCallback(command, XtNcallback, OptionsCallback, (XtPointer)options);
 	label = XtVaCreateManagedWidget("label", labelWidgetClass, box,
-					XtNlabel, load->load_name, NULL, 0);
+					XtNlabel, load->load_name, NULL);
     }
     else {
 	command = XtCreateManagedWidget("new", commandWidgetClass, box,
@@ -906,7 +906,7 @@ CreateModuleField(TreeNode *node, Bool addnew)
 	XtAddCallback(command, XtNcallback, NewModuleCallback, (XtPointer)node);
 	label = XtVaCreateManagedWidget("value", asciiTextWidgetClass, box,
 					XtNeditType, XawtextEdit,
-					NULL, 0);
+					NULL);
 	node->data->module.text = label;
     }
     if (XtIsRealized(node->treeParent))
@@ -988,7 +988,7 @@ CreateModesField(TreeNode *node, Bool addnew)
     Widget box, command, label;
 
     box = XtVaCreateWidget("modes", formWidgetClass, tree,
-			   XtNtreeParent, node->treeParent, NULL, 0);
+			   XtNtreeParent, node->treeParent, NULL);
     node->node = box;
 
     if (!addnew) {
@@ -1000,7 +1000,7 @@ CreateModesField(TreeNode *node, Bool addnew)
 	label = XtVaCreateManagedWidget("mode", toggleWidgetClass, box,
 					XtNlabel, modes->modes_identifier,
 					XtNstate, True,
-					NULL, 0);
+					NULL);
 	node->toggle = label;
 	XtAddCallback(label, XtNcallback, ToggleCallback, (XtPointer)node);
 	CreateModesModeLine(node, node->data->modes.modes->mon_modeline_lst);
@@ -1011,7 +1011,7 @@ CreateModesField(TreeNode *node, Bool addnew)
 	XtAddCallback(command, XtNcallback, NewModesCallback, (XtPointer)node);
 	label = XtVaCreateManagedWidget("value", asciiTextWidgetClass, box,
 					XtNeditType, XawtextEdit,
-					NULL, 0);
+					NULL);
 	node->data->modes.text = label;
     }
     if (XtIsRealized(node->treeParent))
@@ -1147,7 +1147,7 @@ CreateModeLineField(TreeNode *node, Bool addnew, Bool monitor)
     char buf[512], tmp[32];
 
     box = XtVaCreateWidget("modeline", formWidgetClass, tree,
-			   XtNtreeParent, node->treeParent, NULL, 0);
+			   XtNtreeParent, node->treeParent, NULL);
     node->node = box;
 
     if (!addnew) {
@@ -1157,7 +1157,7 @@ CreateModeLineField(TreeNode *node, Bool addnew, Bool monitor)
 					box, NULL, 0);
 	XtAddCallback(command, XtNcallback, DestroyCallback, (XtPointer)node);
 	XtVaCreateManagedWidget("label", labelWidgetClass, box,
-				XtNlabel, mod->ml_identifier, NULL, 0);
+				XtNlabel, mod->ml_identifier, NULL);
 
 	XmuSnprintf(buf, sizeof(buf), "%g %d %d %d %d %d %d %d %d",
 	    mod->ml_clock / 1000., mod->ml_hdisplay, mod->ml_hsyncstart,
@@ -1196,7 +1196,7 @@ CreateModeLineField(TreeNode *node, Bool addnew, Bool monitor)
 	node->data->modeline.value =
 	    XtVaCreateManagedWidget("modeline", asciiTextWidgetClass, box,
 				    XtNeditType, XawtextEdit,
-				    XtNstring, buf, NULL, 0);
+				    XtNstring, buf, NULL);
     }
     else {
 	*buf = '\0';
@@ -1207,10 +1207,10 @@ CreateModeLineField(TreeNode *node, Bool addnew, Bool monitor)
 		      (XtPointer)node);
 	node->data->modeline.text =
 		XtVaCreateManagedWidget("value", asciiTextWidgetClass, box,
-					XtNeditType, XawtextEdit, NULL, 0);
+					XtNeditType, XawtextEdit, NULL);
 	node->data->modeline.value =
 		XtVaCreateManagedWidget("modelineNew", asciiTextWidgetClass, box,
-					XtNeditType, XawtextEdit, NULL, 0);
+					XtNeditType, XawtextEdit, NULL);
     }
     if (XtIsRealized(node->treeParent))
 	XtRealizeWidget(box);
@@ -1407,7 +1407,7 @@ CreateVideoAdaptorField(TreeNode *node, Bool addnew)
     Widget box, command, label;
 
     box = XtVaCreateWidget("video", formWidgetClass, tree,
-			   XtNtreeParent, node->treeParent, NULL, 0);
+			   XtNtreeParent, node->treeParent, NULL);
     node->node = box;
 
     if (!addnew) {
@@ -1424,7 +1424,7 @@ CreateVideoAdaptorField(TreeNode *node, Bool addnew)
 		      (XtPointer)&(video->va_option_lst));
 	label = XtVaCreateManagedWidget("adaptor", labelWidgetClass, box,
 					XtNlabel, video->va_identifier,
-					NULL, 0);
+					NULL);
 
 	XtCreateManagedWidget("vendorL", labelWidgetClass, box, NULL, 0);
 	str = video->va_vendor ? video->va_vendor : "";
@@ -1432,7 +1432,7 @@ CreateVideoAdaptorField(TreeNode *node, Bool addnew)
 		XtVaCreateManagedWidget("vendor", asciiTextWidgetClass, box,
 					XtNeditType, XawtextEdit,
 					XtNstring, str,
-					NULL, 0);
+					NULL);
 
 	XtCreateManagedWidget("boardL", labelWidgetClass, box, NULL, 0);
 	str = video->va_board ? video->va_board : "";
@@ -1440,7 +1440,7 @@ CreateVideoAdaptorField(TreeNode *node, Bool addnew)
 		XtVaCreateManagedWidget("board", asciiTextWidgetClass, box,
 					XtNeditType, XawtextEdit,
 					XtNstring, str,
-					NULL, 0);
+					NULL);
 
 	XtCreateManagedWidget("busidL", labelWidgetClass, box, NULL, 0);
 	str = video->va_busid ? video->va_busid : "";
@@ -1448,7 +1448,7 @@ CreateVideoAdaptorField(TreeNode *node, Bool addnew)
 		XtVaCreateManagedWidget("busid", asciiTextWidgetClass, box,
 					XtNeditType, XawtextEdit,
 					XtNstring, str,
-					NULL, 0);
+					NULL);
 
 	XtCreateManagedWidget("driverL", labelWidgetClass, box, NULL, 0);
 	str = video->va_driver ? video->va_driver : "";
@@ -1456,12 +1456,12 @@ CreateVideoAdaptorField(TreeNode *node, Bool addnew)
 		XtVaCreateManagedWidget("driver", asciiTextWidgetClass, box,
 					XtNeditType, XawtextEdit,
 					XtNstring, str,
-					NULL, 0);
+					NULL);
 
 	label = XtVaCreateManagedWidget("VideoPort", toggleWidgetClass, tree,
 					XtNstate, True,
 					XtNtreeParent, box,
-					NULL, 0);
+					NULL);
 	port = NewNode(node, label, label, node->node, NULL);
 	node->child = port;
 	CreateVideoPort(port, video->va_port_lst);
@@ -1473,7 +1473,7 @@ CreateVideoAdaptorField(TreeNode *node, Bool addnew)
 		      (XtPointer)node);
 	label = XtVaCreateManagedWidget("value", asciiTextWidgetClass, box,
 					XtNeditType, XawtextEdit,
-					NULL, 0);
+					NULL);
 	node->data->video.text = label;
     }
     if (XtIsRealized(node->treeParent))
@@ -1571,7 +1571,7 @@ VideoAdaptorUpdate(TreeNode *node)
     char *str;
 
     /* vendor */
-    XtVaGetValues(node->data->video.vendor, XtNstring, &str, NULL, 0);
+    XtVaGetValues(node->data->video.vendor, XtNstring, &str, NULL);
     XtFree(node->data->video.video->va_vendor);
     if (*str)
 	node->data->video.video->va_vendor = XtNewString(str);
@@ -1579,7 +1579,7 @@ VideoAdaptorUpdate(TreeNode *node)
 	node->data->video.video->va_vendor = NULL;
 
     /* board */
-    XtVaGetValues(node->data->video.board, XtNstring, &str, NULL, 0);
+    XtVaGetValues(node->data->video.board, XtNstring, &str, NULL);
     XtFree(node->data->video.video->va_board);
     if (*str)
 	node->data->video.video->va_board = XtNewString(str);
@@ -1587,7 +1587,7 @@ VideoAdaptorUpdate(TreeNode *node)
 	node->data->video.video->va_board = NULL;
 
     /* busid */
-    XtVaGetValues(node->data->video.busid, XtNstring, &str, NULL, 0);
+    XtVaGetValues(node->data->video.busid, XtNstring, &str, NULL);
     XtFree(node->data->video.video->va_busid);
     if (*str)
 	node->data->video.video->va_busid = XtNewString(str);
@@ -1595,7 +1595,7 @@ VideoAdaptorUpdate(TreeNode *node)
 	node->data->video.video->va_busid = NULL;
 
     /* driver */
-    XtVaGetValues(node->data->video.driver, XtNstring, &str, NULL, 0);
+    XtVaGetValues(node->data->video.driver, XtNstring, &str, NULL);
     XtFree(node->data->video.video->va_driver);
     if (*str)
 	node->data->video.video->va_driver = XtNewString(str);
@@ -1642,7 +1642,7 @@ CreateVideoPortField(TreeNode *node, Bool addnew)
     Widget box, command, label;
 
     box = XtVaCreateWidget("port", formWidgetClass, tree,
-			   XtNtreeParent, node->treeParent, NULL, 0);
+			   XtNtreeParent, node->treeParent, NULL);
     node->node = box;
 
     if (!addnew) {
@@ -1657,7 +1657,7 @@ CreateVideoPortField(TreeNode *node, Bool addnew)
 					NULL, 0);
 	XtAddCallback(command, XtNcallback, OptionsCallback, (XtPointer)options);
 	label = XtVaCreateManagedWidget("label", labelWidgetClass, box,
-					XtNlabel, port->vp_identifier, NULL, 0);
+					XtNlabel, port->vp_identifier, NULL);
     }
     else {
 	command = XtCreateManagedWidget("new", commandWidgetClass, box,
@@ -1665,7 +1665,7 @@ CreateVideoPortField(TreeNode *node, Bool addnew)
 	XtAddCallback(command, XtNcallback, NewVideoPortCallback, (XtPointer)node);
 	label = XtVaCreateManagedWidget("value", asciiTextWidgetClass, box,
 					XtNeditType, XawtextEdit,
-					NULL, 0);
+					NULL);
 	node->data->port.text = label;
     }
     if (XtIsRealized(node->treeParent))
@@ -1748,7 +1748,7 @@ CreateMonitorField(TreeNode *node, Bool addnew)
     Widget box, command, label;
 
     box = XtVaCreateWidget("monitor", formWidgetClass, tree,
-			   XtNtreeParent, node->treeParent, NULL, 0);
+			   XtNtreeParent, node->treeParent, NULL);
     node->node = box;
 
     if (!addnew) {
@@ -1766,7 +1766,7 @@ CreateMonitorField(TreeNode *node, Bool addnew)
 					NULL, 0);
 	XtAddCallback(command, XtNcallback, OptionsCallback, (XtPointer)options);
 	label = XtVaCreateManagedWidget("label", labelWidgetClass, box,
-					XtNlabel, mon->mon_identifier, NULL, 0);
+					XtNlabel, mon->mon_identifier, NULL);
 
 	XtCreateManagedWidget("vendorL", labelWidgetClass, box, NULL, 0);
 	str = mon->mon_vendor ? mon->mon_vendor : "";
@@ -1774,7 +1774,7 @@ CreateMonitorField(TreeNode *node, Bool addnew)
 		XtVaCreateManagedWidget("vendor", asciiTextWidgetClass, box,
 					XtNeditType, XawtextEdit,
 					XtNstring, str,
-					NULL, 0);
+					NULL);
 
 	XtCreateManagedWidget("modelnameL", labelWidgetClass, box, NULL, 0);
 	str = mon->mon_modelname ? mon->mon_modelname : "";
@@ -1782,7 +1782,7 @@ CreateMonitorField(TreeNode *node, Bool addnew)
 		XtVaCreateManagedWidget("modelname", asciiTextWidgetClass, box,
 					XtNeditType, XawtextEdit,
 					XtNstring, str,
-					NULL, 0);
+					NULL);
 
 	XtCreateManagedWidget("widthL", labelWidgetClass, box, NULL, 0);
 	if (mon->mon_width)
@@ -1793,7 +1793,7 @@ CreateMonitorField(TreeNode *node, Bool addnew)
 		XtVaCreateManagedWidget("width", asciiTextWidgetClass, box,
 					XtNeditType, XawtextEdit,
 					XtNstring, buf,
-					NULL, 0);
+					NULL);
 
 	XtCreateManagedWidget("heightL", labelWidgetClass, box, NULL, 0);
 	if (mon->mon_height)
@@ -1804,7 +1804,7 @@ CreateMonitorField(TreeNode *node, Bool addnew)
 		XtVaCreateManagedWidget("height", asciiTextWidgetClass, box,
 					XtNeditType, XawtextEdit,
 					XtNstring, buf,
-					NULL, 0);
+					NULL);
 
 	XtCreateManagedWidget("hsyncL", labelWidgetClass, box, NULL, 0);
 	if (mon->mon_n_hsync > 0)
@@ -1816,7 +1816,7 @@ CreateMonitorField(TreeNode *node, Bool addnew)
 		XtVaCreateManagedWidget("hsync", asciiTextWidgetClass, box,
 					XtNeditType, XawtextEdit,
 					XtNstring, buf,
-					NULL, 0);
+					NULL);
 
 	XtCreateManagedWidget("vrefreshL", labelWidgetClass, box, NULL, 0);
 	if (mon->mon_n_vrefresh > 0)
@@ -1828,7 +1828,7 @@ CreateMonitorField(TreeNode *node, Bool addnew)
 		XtVaCreateManagedWidget("vrefresh", asciiTextWidgetClass, box,
 					XtNeditType, XawtextEdit,
 					XtNstring, buf,
-					NULL, 0);
+					NULL);
 
 	XtCreateManagedWidget("gammaRedL", labelWidgetClass, box, NULL, 0);
 	if (mon->mon_gamma_red)	
@@ -1839,7 +1839,7 @@ CreateMonitorField(TreeNode *node, Bool addnew)
 		XtVaCreateManagedWidget("gammaRed", asciiTextWidgetClass, box,
 					XtNeditType, XawtextEdit,
 					XtNstring, buf,
-					NULL, 0);
+					NULL);
 
 	XtCreateManagedWidget("gammaGreenL", labelWidgetClass, box, NULL, 0);
 	if (mon->mon_gamma_green)
@@ -1850,7 +1850,7 @@ CreateMonitorField(TreeNode *node, Bool addnew)
 		XtVaCreateManagedWidget("gammaGreen", asciiTextWidgetClass, box,
 					XtNeditType, XawtextEdit,
 					XtNstring, buf,
-					NULL, 0);
+					NULL);
 
 	XtCreateManagedWidget("gammaBlueL", labelWidgetClass, box, NULL, 0);
 	if (mon->mon_gamma_blue)
@@ -1861,14 +1861,14 @@ CreateMonitorField(TreeNode *node, Bool addnew)
 		XtVaCreateManagedWidget("gammaBlue", asciiTextWidgetClass, box,
 					XtNeditType, XawtextEdit,
 					XtNstring, buf,
-					NULL, 0);
+					NULL);
 
 	if ((prev = node->child) != NULL)
 	    while (prev->next)
 		prev = prev->next;
 	command = XtVaCreateManagedWidget("ModeLine", toggleWidgetClass, tree,
 					  XtNstate, True,
-					  XtNtreeParent, box, NULL, 0);
+					  XtNtreeParent, box, NULL);
 	modeline = NewNode(node, command, command, node->node, NULL);
 	CreateMonitorModeLine(modeline,
 			      node->data->monitor.monitor->mon_modeline_lst);
@@ -1881,7 +1881,7 @@ CreateMonitorField(TreeNode *node, Bool addnew)
 
 	useModes = XtVaCreateManagedWidget("UseModes", toggleWidgetClass, tree,
 					   XtNstate, True,
-					   XtNtreeParent, box, NULL, 0);
+					   XtNtreeParent, box, NULL);
 	prev->next = modes = NewNode(node, useModes, useModes, node->node, NULL);
 	CreateMonitorModes(modes,
 			   node->data->monitor.monitor->mon_modes_sect_lst);
@@ -1892,7 +1892,7 @@ CreateMonitorField(TreeNode *node, Bool addnew)
 	XtAddCallback(command, XtNcallback, NewMonitorCallback, (XtPointer)node);
 	label = XtVaCreateManagedWidget("value", asciiTextWidgetClass, box,
 					XtNeditType, XawtextEdit,
-					NULL, 0);
+					NULL);
 	node->data->monitor.text = label;
     }
     if (XtIsRealized(node->treeParent))
@@ -1973,7 +1973,7 @@ MonitorUpdate(TreeNode *node)
     char *str;
 
     /* vendor */
-    XtVaGetValues(node->data->monitor.vendor, XtNstring, &str, NULL, 0);
+    XtVaGetValues(node->data->monitor.vendor, XtNstring, &str, NULL);
     XtFree(node->data->monitor.monitor->mon_vendor);
     if (*str)
 	node->data->monitor.monitor->mon_vendor = XtNewString(str);
@@ -1981,7 +1981,7 @@ MonitorUpdate(TreeNode *node)
 	node->data->monitor.monitor->mon_vendor = NULL;
 
     /* model */
-    XtVaGetValues(node->data->monitor.model, XtNstring, &str, NULL, 0);
+    XtVaGetValues(node->data->monitor.model, XtNstring, &str, NULL);
     XtFree(node->data->monitor.monitor->mon_modelname);
     if (*str)
 	node->data->monitor.monitor->mon_modelname = XtNewString(str);
@@ -1989,37 +1989,37 @@ MonitorUpdate(TreeNode *node)
 	node->data->monitor.monitor->mon_modelname = NULL;
 
     /* width */
-    XtVaGetValues(node->data->monitor.width, XtNstring, &str, NULL, 0);
+    XtVaGetValues(node->data->monitor.width, XtNstring, &str, NULL);
     node->data->monitor.monitor->mon_width = strtoul(str, NULL, 0);
 
     /* height */
-    XtVaGetValues(node->data->monitor.height, XtNstring, &str, NULL, 0);
+    XtVaGetValues(node->data->monitor.height, XtNstring, &str, NULL);
     node->data->monitor.monitor->mon_height = strtoul(str, NULL, 0);
 
     /* hsync */
-    XtVaGetValues(node->data->monitor.hsync, XtNstring, &str, NULL, 0);
+    XtVaGetValues(node->data->monitor.hsync, XtNstring, &str, NULL);
     node->data->monitor.monitor->mon_n_hsync =
 	string_to_parser_range(str,
 			       &(node->data->monitor.monitor->mon_hsync[0]),
 			       CONF_MAX_HSYNC);
 
     /* vrefresh */
-    XtVaGetValues(node->data->monitor.vrefresh, XtNstring, &str, NULL, 0);
+    XtVaGetValues(node->data->monitor.vrefresh, XtNstring, &str, NULL);
     node->data->monitor.monitor->mon_n_vrefresh =
 	string_to_parser_range(str,
 			       &(node->data->monitor.monitor->mon_vrefresh[0]),
 			       CONF_MAX_VREFRESH);
 
     /* gammaRed */
-    XtVaGetValues(node->data->monitor.gammaRed, XtNstring, &str, NULL, 0);
+    XtVaGetValues(node->data->monitor.gammaRed, XtNstring, &str, NULL);
     node->data->monitor.monitor->mon_gamma_red = strtod(str, NULL);
 
     /* gammaGreen */
-    XtVaGetValues(node->data->monitor.gammaGreen, XtNstring, &str, NULL, 0);
+    XtVaGetValues(node->data->monitor.gammaGreen, XtNstring, &str, NULL);
     node->data->monitor.monitor->mon_gamma_green = strtod(str, NULL);
 
     /* gammaBlue */
-    XtVaGetValues(node->data->monitor.gammaBlue, XtNstring, &str, NULL, 0);
+    XtVaGetValues(node->data->monitor.gammaBlue, XtNstring, &str, NULL);
     node->data->monitor.monitor->mon_gamma_blue = strtod(str, NULL);
 }
 
@@ -2131,7 +2131,7 @@ CreateMonitorModesField(TreeNode *node, Bool addnew)
     Widget box, command;
 
     box = XtVaCreateWidget("modes", formWidgetClass, tree,
-			   XtNtreeParent, node->treeParent, NULL, 0);
+			   XtNtreeParent, node->treeParent, NULL);
     node->node = box;
 
     if (!addnew) {
@@ -2141,19 +2141,19 @@ CreateMonitorModesField(TreeNode *node, Bool addnew)
 					NULL, 0);
 	XtAddCallback(command, XtNcallback, DestroyCallback, (XtPointer)node);
 	(void) XtVaCreateManagedWidget("mode", labelWidgetClass, box,
-					XtNlabel, lnk->ml_modes_str, NULL, 0);
+					XtNlabel, lnk->ml_modes_str, NULL);
     }
     else {
 	Widget sme;
 	XF86ConfModesPtr ptr = XF86Config->conf_modes_lst;
 
 	command = XtVaCreateManagedWidget("new", menuButtonWidgetClass, box,
-					  XtNmenuName, "modesMenu", NULL, 0);
+					  XtNmenuName, "modesMenu", NULL);
 	node->data->modeslink.menu =
 	    XtVaCreatePopupShell("modesMenu", simpleMenuWidgetClass, box,
 				 XtNleftMargin, 1, XtNrightMargin, 1,
 				 XtNtopMargin, 1, XtNbottomMargin, 1,
-				 NULL, 0);
+				 NULL);
 	while (ptr) {
 	    sme = XtCreateManagedWidget(ptr->modes_identifier, smeBSBObjectClass,
 					node->data->modeslink.menu, NULL, 0);
@@ -2237,7 +2237,7 @@ CreateDeviceField(TreeNode *node, Bool addnew)
     Widget box, command, label;
 
     box = XtVaCreateWidget("device", formWidgetClass, tree,
-			   XtNtreeParent, node->treeParent, NULL, 0);
+			   XtNtreeParent, node->treeParent, NULL);
     node->node = box;
 
     if (!addnew) {
@@ -2254,7 +2254,7 @@ CreateDeviceField(TreeNode *node, Bool addnew)
 					NULL, 0);
 	XtAddCallback(command, XtNcallback, OptionsCallback, (XtPointer)options);
 	label = XtVaCreateManagedWidget("label", labelWidgetClass, box,
-					XtNlabel, dev->dev_identifier, NULL, 0);
+					XtNlabel, dev->dev_identifier, NULL);
 
 	XtCreateManagedWidget("vendorL", labelWidgetClass, box, NULL, 0);
 	str = dev->dev_vendor ? dev->dev_vendor : "";
@@ -2262,7 +2262,7 @@ CreateDeviceField(TreeNode *node, Bool addnew)
 		XtVaCreateManagedWidget("vendor", asciiTextWidgetClass, box,
 					XtNeditType, XawtextEdit,
 					XtNstring, str,
-					NULL, 0);
+					NULL);
 
 	XtCreateManagedWidget("boardL", labelWidgetClass, box, NULL, 0);
 	str = dev->dev_board ? dev->dev_board : "";
@@ -2270,7 +2270,7 @@ CreateDeviceField(TreeNode *node, Bool addnew)
 		XtVaCreateManagedWidget("board", asciiTextWidgetClass, box,
 					XtNeditType, XawtextEdit,
 					XtNstring, str,
-					NULL, 0);
+					NULL);
 
 	XtCreateManagedWidget("chipsetL", labelWidgetClass, box, NULL, 0);
 	str = dev->dev_chipset ? dev->dev_chipset : "";
@@ -2278,7 +2278,7 @@ CreateDeviceField(TreeNode *node, Bool addnew)
 		XtVaCreateManagedWidget("chipset", asciiTextWidgetClass, box,
 					XtNeditType, XawtextEdit,
 					XtNstring, str,
-					NULL, 0);
+					NULL);
 
 	XtCreateManagedWidget("busidL", labelWidgetClass, box, NULL, 0);
 	str = dev->dev_busid ? dev->dev_busid : "";
@@ -2286,7 +2286,7 @@ CreateDeviceField(TreeNode *node, Bool addnew)
 		XtVaCreateManagedWidget("busid", asciiTextWidgetClass, box,
 					XtNeditType, XawtextEdit,
 					XtNstring, str,
-					NULL, 0);
+					NULL);
 
 	XtCreateManagedWidget("cardL", labelWidgetClass, box, NULL, 0);
 	str = dev->dev_card ? dev->dev_card : "";
@@ -2294,7 +2294,7 @@ CreateDeviceField(TreeNode *node, Bool addnew)
 		XtVaCreateManagedWidget("card", asciiTextWidgetClass, box,
 					XtNeditType, XawtextEdit,
 					XtNstring, str,
-					NULL, 0);
+					NULL);
 
 	XtCreateManagedWidget("driverL", labelWidgetClass, box, NULL, 0);
 	str = dev->dev_driver ? dev->dev_driver : "";
@@ -2302,7 +2302,7 @@ CreateDeviceField(TreeNode *node, Bool addnew)
 		XtVaCreateManagedWidget("driver", asciiTextWidgetClass, box,
 					XtNeditType, XawtextEdit,
 					XtNstring, str,
-					NULL, 0);
+					NULL);
 
 	XtCreateManagedWidget("ramdacL", labelWidgetClass, box, NULL, 0);
 	str = dev->dev_ramdac ? dev->dev_ramdac : "";
@@ -2310,7 +2310,7 @@ CreateDeviceField(TreeNode *node, Bool addnew)
 		XtVaCreateManagedWidget("ramdac", asciiTextWidgetClass, box,
 					XtNeditType, XawtextEdit,
 					XtNstring, str,
-					NULL, 0);
+					NULL);
 
 	XtCreateManagedWidget("dacSpeedL", labelWidgetClass, box, NULL, 0);
 	if (dev->dev_dacSpeeds[0] > 0) {
@@ -2327,7 +2327,7 @@ CreateDeviceField(TreeNode *node, Bool addnew)
 		XtVaCreateManagedWidget("dacSpeed", asciiTextWidgetClass, box,
 					XtNeditType, XawtextEdit,
 					XtNstring, buf,
-					NULL, 0);
+					NULL);
 
 	XtCreateManagedWidget("videoRamL", labelWidgetClass, box, NULL, 0);
 	if (dev->dev_videoram)
@@ -2338,7 +2338,7 @@ CreateDeviceField(TreeNode *node, Bool addnew)
 		XtVaCreateManagedWidget("videoRam", asciiTextWidgetClass, box,
 					XtNeditType, XawtextEdit,
 					XtNstring, buf,
-					NULL, 0);
+					NULL);
 
 	XtCreateManagedWidget("textClockFreqL", labelWidgetClass, box, NULL, 0);
 	if (dev->dev_textclockfreq)
@@ -2350,7 +2350,7 @@ CreateDeviceField(TreeNode *node, Bool addnew)
 		XtVaCreateManagedWidget("textClockFreq", asciiTextWidgetClass, box,
 					XtNeditType, XawtextEdit,
 					XtNstring, buf,
-					NULL, 0);
+					NULL);
 
 	XtCreateManagedWidget("biosBaseL", labelWidgetClass, box, NULL, 0);
 	if (dev->dev_bios_base)
@@ -2361,7 +2361,7 @@ CreateDeviceField(TreeNode *node, Bool addnew)
 		XtVaCreateManagedWidget("biosBase", asciiTextWidgetClass, box,
 					XtNeditType, XawtextEdit,
 					XtNstring, buf,
-					NULL, 0);
+					NULL);
 
 	XtCreateManagedWidget("memBaseL", labelWidgetClass, box, NULL, 0);
 	if (dev->dev_mem_base)
@@ -2372,7 +2372,7 @@ CreateDeviceField(TreeNode *node, Bool addnew)
 		XtVaCreateManagedWidget("memBase", asciiTextWidgetClass, box,
 					XtNeditType, XawtextEdit,
 					XtNstring, buf,
-					NULL, 0);
+					NULL);
 
 	XtCreateManagedWidget("ioBaseL", labelWidgetClass, box, NULL, 0);
 	if (dev->dev_io_base)
@@ -2383,7 +2383,7 @@ CreateDeviceField(TreeNode *node, Bool addnew)
 		XtVaCreateManagedWidget("ioBase", asciiTextWidgetClass, box,
 					XtNeditType, XawtextEdit,
 					XtNstring, buf,
-					NULL, 0);
+					NULL);
 
 	XtCreateManagedWidget("clockChipL", labelWidgetClass, box, NULL, 0);
 	str = dev->dev_clockchip ? dev->dev_clockchip : "";
@@ -2391,7 +2391,7 @@ CreateDeviceField(TreeNode *node, Bool addnew)
 		XtVaCreateManagedWidget("clockChip", asciiTextWidgetClass, box,
 					XtNeditType, XawtextEdit,
 					XtNstring, str,
-					NULL, 0);
+					NULL);
 
 	*buf = '\0';
 	for (i = len = 0; i < dev->dev_clocks; i++) {
@@ -2404,7 +2404,7 @@ CreateDeviceField(TreeNode *node, Bool addnew)
 		XtVaCreateManagedWidget("devClock", asciiTextWidgetClass, box,
 					XtNeditType, XawtextEdit,
 					XtNstring, buf,
-					NULL, 0);
+					NULL);
 
 	XtCreateManagedWidget("chipIdL", labelWidgetClass, box, NULL, 0);
 	if (dev->dev_chipid != -1)
@@ -2415,7 +2415,7 @@ CreateDeviceField(TreeNode *node, Bool addnew)
 		XtVaCreateManagedWidget("chipId", asciiTextWidgetClass, box,
 					XtNeditType, XawtextEdit,
 					XtNstring, buf,
-					NULL, 0);
+					NULL);
 
 	XtCreateManagedWidget("chipRevL", labelWidgetClass, box, NULL, 0);
 	if (dev->dev_chiprev != -1)
@@ -2426,7 +2426,7 @@ CreateDeviceField(TreeNode *node, Bool addnew)
 		XtVaCreateManagedWidget("chipRev", asciiTextWidgetClass, box,
 					XtNeditType, XawtextEdit,
 					XtNstring, buf,
-					NULL, 0);
+					NULL);
 
 	XtCreateManagedWidget("irqL", labelWidgetClass, box, NULL, 0);
 	if (dev->dev_irq != -1)
@@ -2437,7 +2437,7 @@ CreateDeviceField(TreeNode *node, Bool addnew)
 		XtVaCreateManagedWidget("irq", asciiTextWidgetClass, box,
 					XtNeditType, XawtextEdit,
 					XtNstring, buf,
-					NULL, 0);
+					NULL);
 
 	XtCreateManagedWidget("screenL", labelWidgetClass, box, NULL, 0);
 	if (dev->dev_screen > 0)
@@ -2448,7 +2448,7 @@ CreateDeviceField(TreeNode *node, Bool addnew)
 		XtVaCreateManagedWidget("screen", asciiTextWidgetClass, box,
 					XtNeditType, XawtextEdit,
 					XtNstring, buf,
-					NULL, 0);
+					NULL);
     }
     else {
 	command = XtCreateManagedWidget("new", commandWidgetClass, box,
@@ -2456,7 +2456,7 @@ CreateDeviceField(TreeNode *node, Bool addnew)
 	XtAddCallback(command, XtNcallback, NewDeviceCallback, (XtPointer)node);
 	label = XtVaCreateManagedWidget("value", asciiTextWidgetClass, box,
 					XtNeditType, XawtextEdit,
-					NULL, 0);
+					NULL);
 	node->data->device.text = label;
     }
     if (XtIsRealized(node->treeParent))
@@ -2542,7 +2542,7 @@ DeviceUpdate(TreeNode *node)
     char *str, *tmp;
 
     /* vendor */
-    XtVaGetValues(node->data->device.vendor, XtNstring, &str, NULL, 0);
+    XtVaGetValues(node->data->device.vendor, XtNstring, &str, NULL);
     XtFree(node->data->device.device->dev_vendor);
     if (*str)
 	node->data->device.device->dev_vendor = XtNewString(str);
@@ -2550,7 +2550,7 @@ DeviceUpdate(TreeNode *node)
 	node->data->device.device->dev_vendor = NULL;
 
     /* board */
-    XtVaGetValues(node->data->device.board, XtNstring, &str, NULL, 0);
+    XtVaGetValues(node->data->device.board, XtNstring, &str, NULL);
     XtFree(node->data->device.device->dev_board);
     if (*str)
 	node->data->device.device->dev_board = XtNewString(str);
@@ -2558,7 +2558,7 @@ DeviceUpdate(TreeNode *node)
 	node->data->device.device->dev_board = NULL;
 
     /* chipset */
-    XtVaGetValues(node->data->device.chipset, XtNstring, &str, NULL, 0);
+    XtVaGetValues(node->data->device.chipset, XtNstring, &str, NULL);
     XtFree(node->data->device.device->dev_chipset);
     if (*str)
 	node->data->device.device->dev_chipset = XtNewString(str);
@@ -2566,7 +2566,7 @@ DeviceUpdate(TreeNode *node)
 	node->data->device.device->dev_chipset = NULL;
 
     /* busid */
-    XtVaGetValues(node->data->device.busid, XtNstring, &str, NULL, 0);
+    XtVaGetValues(node->data->device.busid, XtNstring, &str, NULL);
     XtFree(node->data->device.device->dev_busid);
     if (*str)
 	node->data->device.device->dev_busid = XtNewString(str);
@@ -2574,7 +2574,7 @@ DeviceUpdate(TreeNode *node)
 	node->data->device.device->dev_busid = NULL;
 
     /* card */
-    XtVaGetValues(node->data->device.card, XtNstring, &str, NULL, 0);
+    XtVaGetValues(node->data->device.card, XtNstring, &str, NULL);
     XtFree(node->data->device.device->dev_card);
     if (*str)
 	node->data->device.device->dev_card = XtNewString(str);
@@ -2582,7 +2582,7 @@ DeviceUpdate(TreeNode *node)
 	node->data->device.device->dev_card = NULL;
 
     /* driver */
-    XtVaGetValues(node->data->device.driver, XtNstring, &str, NULL, 0);
+    XtVaGetValues(node->data->device.driver, XtNstring, &str, NULL);
     XtFree(node->data->device.device->dev_driver);
     if (*str)
 	node->data->device.device->dev_driver = XtNewString(str);
@@ -2590,7 +2590,7 @@ DeviceUpdate(TreeNode *node)
 	node->data->device.device->dev_driver = NULL;
 
     /* ramdac */
-    XtVaGetValues(node->data->device.ramdac, XtNstring, &str, NULL, 0);
+    XtVaGetValues(node->data->device.ramdac, XtNstring, &str, NULL);
     XtFree(node->data->device.device->dev_ramdac);
     if (*str)
 	node->data->device.device->dev_ramdac = XtNewString(str);
@@ -2599,7 +2599,7 @@ DeviceUpdate(TreeNode *node)
 
     /* dacSpeed */
     tmp = NULL;
-    XtVaGetValues(node->data->device.dacSpeed, XtNstring, &str, NULL, 0);
+    XtVaGetValues(node->data->device.dacSpeed, XtNstring, &str, NULL);
     for (i = 0; i < CONF_MAXDACSPEEDS && str != tmp; i++) {
 	if ((node->data->device.device->dev_dacSpeeds[i] =
 	    (strtod(str, &tmp) * 1000. + .5)) == 0)
@@ -2610,28 +2610,28 @@ DeviceUpdate(TreeNode *node)
     }
 
     /* videoRam */
-    XtVaGetValues(node->data->device.videoRam, XtNstring, &str, NULL, 0);
+    XtVaGetValues(node->data->device.videoRam, XtNstring, &str, NULL);
     node->data->device.device->dev_videoram = strtoul(str, NULL, 0);
 
     /* textClockFreq */
-    XtVaGetValues(node->data->device.textClockFreq, XtNstring, &str, NULL, 0);
+    XtVaGetValues(node->data->device.textClockFreq, XtNstring, &str, NULL);
     node->data->device.device->dev_textclockfreq =
 	strtod(str, NULL) * 1000. + .5;
 
     /* biosBase */
-    XtVaGetValues(node->data->device.biosBase, XtNstring, &str, NULL, 0);
+    XtVaGetValues(node->data->device.biosBase, XtNstring, &str, NULL);
     node->data->device.device->dev_bios_base = strtoul(str, NULL, 0);
 
     /* memBase */
-    XtVaGetValues(node->data->device.memBase, XtNstring, &str, NULL, 0);
+    XtVaGetValues(node->data->device.memBase, XtNstring, &str, NULL);
     node->data->device.device->dev_mem_base = strtoul(str, NULL, 0);
 
     /* ioBase */
-    XtVaGetValues(node->data->device.ioBase, XtNstring, &str, NULL, 0);
+    XtVaGetValues(node->data->device.ioBase, XtNstring, &str, NULL);
     node->data->device.device->dev_io_base = strtoul(str, NULL, 0);
 
     /* clockChip */
-    XtVaGetValues(node->data->device.clockChip, XtNstring, &str, NULL, 0);
+    XtVaGetValues(node->data->device.clockChip, XtNstring, &str, NULL);
     XtFree(node->data->device.device->dev_clockchip);
     if (*str)
 	node->data->device.device->dev_clockchip = XtNewString(str);
@@ -2640,7 +2640,7 @@ DeviceUpdate(TreeNode *node)
 
     /* devSpeed */
     tmp = NULL;
-    XtVaGetValues(node->data->device.devClock, XtNstring, &str, NULL, 0);
+    XtVaGetValues(node->data->device.devClock, XtNstring, &str, NULL);
     for (i = 0; i < CONF_MAXCLOCKS && str != tmp; i++) {
 	if ((node->data->device.device->dev_clock[i] =
 	     (strtod(str, &tmp) * 1000. + .5)) == 0)
@@ -2652,28 +2652,28 @@ DeviceUpdate(TreeNode *node)
     node->data->device.device->dev_clocks = i;
 
     /* chipId */
-    XtVaGetValues(node->data->device.chipId, XtNstring, &str, NULL, 0);
+    XtVaGetValues(node->data->device.chipId, XtNstring, &str, NULL);
     if (*str)
 	node->data->device.device->dev_chipid = strtoul(str, NULL, 0);
     else
 	node->data->device.device->dev_chipid = -1;
 
     /* chipRev */
-    XtVaGetValues(node->data->device.chipRev, XtNstring, &str, NULL, 0);
+    XtVaGetValues(node->data->device.chipRev, XtNstring, &str, NULL);
     if (*str)
 	node->data->device.device->dev_chiprev = strtoul(str, NULL, 0);
     else
 	node->data->device.device->dev_chiprev = -1;
 
     /* irq */
-    XtVaGetValues(node->data->device.irq, XtNstring, &str, NULL, 0);
+    XtVaGetValues(node->data->device.irq, XtNstring, &str, NULL);
     if (*str)
 	node->data->device.device->dev_irq = strtoul(str, NULL, 0);
     else
 	node->data->device.device->dev_irq = -1;
 
     /* screen */
-    XtVaGetValues(node->data->device.screen, XtNstring, &str, NULL, 0);
+    XtVaGetValues(node->data->device.screen, XtNstring, &str, NULL);
     if (*str)
 	node->data->device.device->dev_screen = strtoul(str, NULL, 0);
     else
@@ -2721,7 +2721,7 @@ CreateScreenField(TreeNode *node, Bool addnew)
     Widget box, command, label;
 
     box = XtVaCreateWidget("screen", formWidgetClass, tree,
-			   XtNtreeParent, node->treeParent, NULL, 0);
+			   XtNtreeParent, node->treeParent, NULL);
     node->node = box;
 
     if (!addnew) {
@@ -2738,7 +2738,7 @@ CreateScreenField(TreeNode *node, Bool addnew)
 					NULL, 0);
 	XtAddCallback(command, XtNcallback, OptionsCallback, (XtPointer)options);
 	label = XtVaCreateManagedWidget("label", labelWidgetClass, box,
-					XtNlabel, scrn->scrn_identifier, NULL, 0);
+					XtNlabel, scrn->scrn_identifier, NULL);
 
 	XtCreateManagedWidget("defaultDepthL", labelWidgetClass, box, NULL, 0);
 	if (scrn->scrn_defaultdepth)
@@ -2749,7 +2749,7 @@ CreateScreenField(TreeNode *node, Bool addnew)
 		XtVaCreateManagedWidget("defaultDepth", asciiTextWidgetClass, box,
 					XtNeditType, XawtextEdit,
 					XtNstring, buf,
-					NULL, 0);
+					NULL);
 
 	XtCreateManagedWidget("defaultBppL", labelWidgetClass, box, NULL, 0);
 	if (scrn->scrn_defaultbpp)
@@ -2760,7 +2760,7 @@ CreateScreenField(TreeNode *node, Bool addnew)
 		XtVaCreateManagedWidget("defaultBpp", asciiTextWidgetClass, box,
 					XtNeditType, XawtextEdit,
 					XtNstring, buf,
-					NULL, 0);
+					NULL);
 
 	XtCreateManagedWidget("defaultFbBppL", labelWidgetClass, box, NULL, 0);
 	if (scrn->scrn_defaultfbbpp)
@@ -2771,7 +2771,7 @@ CreateScreenField(TreeNode *node, Bool addnew)
 		XtVaCreateManagedWidget("defaultFbBpp", asciiTextWidgetClass, box,
 					XtNeditType, XawtextEdit,
 					XtNstring, buf,
-					NULL, 0);
+					NULL);
 
 	XtCreateManagedWidget("monitorL", labelWidgetClass, box, NULL, 0);
 	str = scrn->scrn_monitor_str ? scrn->scrn_monitor_str : "";
@@ -2779,7 +2779,7 @@ CreateScreenField(TreeNode *node, Bool addnew)
 		XtVaCreateManagedWidget("monitor", asciiTextWidgetClass, box,
 					XtNeditType, XawtextEdit,
 					XtNstring, str,
-					NULL, 0);
+					NULL);
 
 	XtCreateManagedWidget("deviceL", labelWidgetClass, box, NULL, 0);
 	str = scrn->scrn_device_str ? scrn->scrn_device_str : "";
@@ -2787,18 +2787,18 @@ CreateScreenField(TreeNode *node, Bool addnew)
 		XtVaCreateManagedWidget("device", asciiTextWidgetClass, box,
 					XtNeditType, XawtextEdit,
 					XtNstring, str,
-					NULL, 0);
+					NULL);
 
 	command = XtVaCreateManagedWidget("videoAdaptor", toggleWidgetClass,
 					  tree, XtNstate, True,
-					  XtNtreeParent, box, NULL, 0);
+					  XtNtreeParent, box, NULL);
 	adaptor = NewNode(node, command, command, node->node, NULL);
 	CreateScreenAdaptor(adaptor, scrn->scrn_adaptor_lst);
 	node->child = adaptor;
 
 	command = XtVaCreateManagedWidget("Display", toggleWidgetClass,
 					  tree, XtNstate, True,
-					  XtNtreeParent, box, NULL, 0);
+					  XtNtreeParent, box, NULL);
 	display = NewNode(node, command, command, node->node, NULL);
 	CreateScreenDisplay(display, scrn->scrn_display_lst);
 	adaptor->next = display;
@@ -2809,7 +2809,7 @@ CreateScreenField(TreeNode *node, Bool addnew)
 	XtAddCallback(command, XtNcallback, NewScreenCallback, (XtPointer)node);
 	label = XtVaCreateManagedWidget("value", asciiTextWidgetClass, box,
 					XtNeditType, XawtextEdit,
-					NULL, 0);
+					NULL);
 	node->data->screen.text = label;
     }
     if (XtIsRealized(node->treeParent))
@@ -2914,21 +2914,21 @@ ScreenUpdate(TreeNode *node)
     char *str;
 
     /* defautDepth */
-    XtVaGetValues(node->data->screen.defaultDepth, XtNstring, &str, NULL, 0);
+    XtVaGetValues(node->data->screen.defaultDepth, XtNstring, &str, NULL);
     node->data->screen.screen->scrn_defaultdepth = strtoul(str, NULL, 0);
 
         /* defautBpp */
-    XtVaGetValues(node->data->screen.defaultBpp, XtNstring, &str, NULL, 0);
+    XtVaGetValues(node->data->screen.defaultBpp, XtNstring, &str, NULL);
     node->data->screen.screen->scrn_defaultbpp = strtoul(str, NULL, 0);
 
     /* defautFbBpp */
-    XtVaGetValues(node->data->screen.defaultFbBpp, XtNstring, &str, NULL, 0);
+    XtVaGetValues(node->data->screen.defaultFbBpp, XtNstring, &str, NULL);
     node->data->screen.screen->scrn_defaultfbbpp = strtoul(str, NULL, 0);
 
 
     /* XXX Monitor and Device should be changed to a menu interface */
     /* monitor */
-    XtVaGetValues(node->data->screen.monitor, XtNstring, &str, NULL, 0);
+    XtVaGetValues(node->data->screen.monitor, XtNstring, &str, NULL);
     XtFree(node->data->screen.screen->scrn_monitor_str);
     if (*str)
 	node->data->screen.screen->scrn_monitor_str = XtNewString(str);
@@ -2937,7 +2937,7 @@ ScreenUpdate(TreeNode *node)
 
     /* XXX Monitor and Device should be changed to a menu interface */
     /* device */
-    XtVaGetValues(node->data->screen.device, XtNstring, &str, NULL, 0);
+    XtVaGetValues(node->data->screen.device, XtNstring, &str, NULL);
     XtFree(node->data->screen.screen->scrn_device_str);
     if (*str)
 	node->data->screen.screen->scrn_device_str = XtNewString(str);
@@ -2984,7 +2984,7 @@ CreateScreenAdaptorField(TreeNode *node, Bool addnew)
     Widget box, command;
 
     box = XtVaCreateWidget("adaptor", formWidgetClass, tree,
-			   XtNtreeParent, node->treeParent, NULL, 0);
+			   XtNtreeParent, node->treeParent, NULL);
     node->node = box;
 
     if (!addnew) {
@@ -2994,19 +2994,19 @@ CreateScreenAdaptorField(TreeNode *node, Bool addnew)
 					NULL, 0);
 	XtAddCallback(command, XtNcallback, DestroyCallback, (XtPointer)node);
 	(void) XtVaCreateManagedWidget("label", labelWidgetClass, box,
-					XtNlabel, lnk->al_adaptor_str, NULL, 0);
+					XtNlabel, lnk->al_adaptor_str, NULL);
     }
     else {
 	Widget sme;
 	XF86ConfVideoAdaptorPtr ptr = XF86Config->conf_videoadaptor_lst;
 
 	command = XtVaCreateManagedWidget("new", menuButtonWidgetClass, box,
-					  XtNmenuName, "adaptorMenu", NULL, 0);
+					  XtNmenuName, "adaptorMenu", NULL);
 	node->data->adaptorlink.menu =
 	    XtVaCreatePopupShell("adaptorMenu", simpleMenuWidgetClass, box,
 				 XtNleftMargin, 1, XtNrightMargin, 1,
 				 XtNtopMargin, 1, XtNbottomMargin, 1,
-				 NULL, 0);
+				 NULL);
 	while (ptr) {
 	    sme = XtCreateManagedWidget(ptr->va_identifier, smeBSBObjectClass,
 					node->data->adaptorlink.menu, NULL, 0);
@@ -3088,7 +3088,7 @@ CreateScreenDisplayField(TreeNode *node, Bool addnew)
     Widget box, command;
 
     box = XtVaCreateWidget("display", formWidgetClass, tree,
-			   XtNtreeParent, node->treeParent, NULL, 0);
+			   XtNtreeParent, node->treeParent, NULL);
     node->node = box;
 
     if (!addnew) {
@@ -3113,7 +3113,7 @@ CreateScreenDisplayField(TreeNode *node, Bool addnew)
 	node->data->display.viewport =
 		XtVaCreateManagedWidget("viewport", asciiTextWidgetClass, box,
 					XtNeditType, XawtextEdit,
-					XtNstring, buf, NULL, 0);
+					XtNstring, buf, NULL);
 
 	XtCreateManagedWidget("virtualL", labelWidgetClass, box, NULL, 0);
 	if (dsp->disp_virtualX != 0 || dsp->disp_virtualY != 0)
@@ -3123,7 +3123,7 @@ CreateScreenDisplayField(TreeNode *node, Bool addnew)
 	node->data->display.c_virtual =
 		XtVaCreateManagedWidget("virtual", asciiTextWidgetClass, box,
 					XtNeditType, XawtextEdit,
-					XtNstring, buf, NULL, 0);
+					XtNstring, buf, NULL);
 
 	XtCreateManagedWidget("depthL", labelWidgetClass, box, NULL, 0);
 	if (dsp->disp_depth != 0)
@@ -3133,7 +3133,7 @@ CreateScreenDisplayField(TreeNode *node, Bool addnew)
 	node->data->display.depth =
 		XtVaCreateManagedWidget("depth", asciiTextWidgetClass, box,
 					XtNeditType, XawtextEdit,
-					XtNstring, buf, NULL, 0);
+					XtNstring, buf, NULL);
 
 	XtCreateManagedWidget("bppL", labelWidgetClass, box, NULL, 0);
 	if (dsp->disp_bpp != 0)
@@ -3143,14 +3143,14 @@ CreateScreenDisplayField(TreeNode *node, Bool addnew)
 	node->data->display.bpp =
 		XtVaCreateManagedWidget("bpp", asciiTextWidgetClass, box,
 					XtNeditType, XawtextEdit,
-					XtNstring, buf, NULL, 0);
+					XtNstring, buf, NULL);
 
 	XtCreateManagedWidget("visualL", labelWidgetClass, box, NULL, 0);
 	str = dsp->disp_visual != NULL ? dsp->disp_visual : "";
 	node->data->display.visual =
 		XtVaCreateManagedWidget("visual", asciiTextWidgetClass, box,
 					XtNeditType, XawtextEdit,
-					XtNstring, str, NULL, 0);
+					XtNstring, str, NULL);
 
 	XtCreateManagedWidget("weightL", labelWidgetClass, box, NULL, 0);
 	if (dsp->disp_weight.red > 0)
@@ -3161,7 +3161,7 @@ CreateScreenDisplayField(TreeNode *node, Bool addnew)
 	node->data->display.weight =
 		XtVaCreateManagedWidget("weight", asciiTextWidgetClass, box,
 					XtNeditType, XawtextEdit,
-					XtNstring, buf, NULL, 0);
+					XtNstring, buf, NULL);
 
 	XtCreateManagedWidget("blackL", labelWidgetClass, box, NULL, 0);
 	if (dsp->disp_black.red >= 0)
@@ -3172,7 +3172,7 @@ CreateScreenDisplayField(TreeNode *node, Bool addnew)
 	node->data->display.black =
 		XtVaCreateManagedWidget("black", asciiTextWidgetClass, box,
 					XtNeditType, XawtextEdit,
-					XtNstring, buf, NULL, 0);
+					XtNstring, buf, NULL);
 
 	XtCreateManagedWidget("whiteL", labelWidgetClass, box, NULL, 0);
 	if (dsp->disp_white.red >= 0)
@@ -3183,11 +3183,11 @@ CreateScreenDisplayField(TreeNode *node, Bool addnew)
 	node->data->display.white =
 		XtVaCreateManagedWidget("white", asciiTextWidgetClass, box,
 					XtNeditType, XawtextEdit,
-					XtNstring, buf, NULL, 0);
+					XtNstring, buf, NULL);
 
 	command = XtVaCreateManagedWidget("Modes", toggleWidgetClass, tree,
 					  XtNstate, True, XtNtreeParent, box,
-					  NULL, 0);
+					  NULL);
 	modes = NewNode(node, command, command, node->node, NULL);
 	node->child = modes;
 	CreateDisplayMode(modes, dsp->disp_mode_lst);
@@ -3237,29 +3237,29 @@ ScreenDisplayUpdate(TreeNode *node)
     int x, y;
 
     /* viewport */
-    XtVaGetValues(node->data->display.viewport, XtNstring, &str, NULL, 0);
+    XtVaGetValues(node->data->display.viewport, XtNstring, &str, NULL);
     if (sscanf(str, "%d %d", &x, &y) == 2) {
 	node->data->display.display->disp_frameX0 = x;
 	node->data->display.display->disp_frameY0 = y;
     }
 
     /* virtual */
-    XtVaGetValues(node->data->display.c_virtual, XtNstring, &str, NULL, 0);
+    XtVaGetValues(node->data->display.c_virtual, XtNstring, &str, NULL);
     if (sscanf(str, "%d %d", &x, &y) == 2) {
 	node->data->display.display->disp_virtualX = x;
 	node->data->display.display->disp_virtualY = y;
     }
 
     /* depth */
-    XtVaGetValues(node->data->display.depth, XtNstring, &str, NULL, 0);
+    XtVaGetValues(node->data->display.depth, XtNstring, &str, NULL);
     node->data->display.display->disp_depth = strtoul(str, NULL, 0);
 
     /* bpp */
-    XtVaGetValues(node->data->display.bpp, XtNstring, &str, NULL, 0);
+    XtVaGetValues(node->data->display.bpp, XtNstring, &str, NULL);
     node->data->display.display->disp_bpp = strtoul(str, NULL, 0);
 
     /* visual */
-    XtVaGetValues(node->data->display.visual, XtNstring, &str, NULL, 0);
+    XtVaGetValues(node->data->display.visual, XtNstring, &str, NULL);
     XtFree(node->data->display.display->disp_visual);
     if (*str)
 	node->data->display.display->disp_visual = XtNewString(str);
@@ -3267,7 +3267,7 @@ ScreenDisplayUpdate(TreeNode *node)
 	node->data->display.display->disp_visual = NULL;
 
     /* weight */
-    XtVaGetValues(node->data->display.weight, XtNstring, &str, NULL, 0);
+    XtVaGetValues(node->data->display.weight, XtNstring, &str, NULL);
     node->data->display.display->disp_weight.red = strtoul(str, &tmp, 0);
     if (str == tmp)
 	node->data->display.display->disp_weight.red = 0;
@@ -3285,7 +3285,7 @@ ScreenDisplayUpdate(TreeNode *node)
     }
 
     /* black */
-    XtVaGetValues(node->data->display.black, XtNstring, &str, NULL, 0);
+    XtVaGetValues(node->data->display.black, XtNstring, &str, NULL);
     node->data->display.display->disp_black.red = strtoul(str, &tmp, 0);
     if (str == tmp)
 	node->data->display.display->disp_black.red = -1;
@@ -3303,7 +3303,7 @@ ScreenDisplayUpdate(TreeNode *node)
     }
 
     /* white */
-    XtVaGetValues(node->data->display.white, XtNstring, &str, NULL, 0);
+    XtVaGetValues(node->data->display.white, XtNstring, &str, NULL);
     node->data->display.display->disp_white.red = strtoul(str, &tmp, 0);
     if (str == tmp)
 	node->data->display.display->disp_white.red = -1;
@@ -3360,7 +3360,7 @@ CreateDisplayModeField(TreeNode *node, Bool addnew)
     Widget box, command, text;
 
     box = XtVaCreateWidget("mode", formWidgetClass, tree,
-			   XtNtreeParent, node->treeParent, NULL, 0);
+			   XtNtreeParent, node->treeParent, NULL);
     node->node = box;
     if (!addnew) {
 	XF86ModePtr mode = node->data->mode.mode;
@@ -3370,14 +3370,14 @@ CreateDisplayModeField(TreeNode *node, Bool addnew)
 	XtAddCallback(command, XtNcallback, DestroyCallback,
 		      (XtPointer)node);
 	text = XtVaCreateManagedWidget("label", labelWidgetClass, box,
-				       XtNlabel, mode->mode_name, NULL, 0);
+				       XtNlabel, mode->mode_name, NULL);
     }
     else {
 	command = XtCreateManagedWidget("new", commandWidgetClass, box, NULL, 0);
 	XtAddCallback(command, XtNcallback, NewDisplayModeCallback,
 		      (XtPointer)node);
 	text = XtVaCreateManagedWidget("value", asciiTextWidgetClass, box,
-				       XtNeditType, XawtextEdit, NULL, 0);
+				       XtNeditType, XawtextEdit, NULL);
     }
     node->data->mode.text = text;
     if (node->treeParent && XtIsRealized(node->treeParent))
@@ -3461,7 +3461,7 @@ CreateInputField(TreeNode *node, Bool addnew)
     Widget box, command;
 
     box = XtVaCreateWidget("input", formWidgetClass, tree,
-			   XtNtreeParent, node->treeParent, NULL, 0);
+			   XtNtreeParent, node->treeParent, NULL);
     node->node = box;
 
     if (!addnew) {
@@ -3477,14 +3477,14 @@ CreateInputField(TreeNode *node, Bool addnew)
 					NULL, 0);
 	XtAddCallback(command, XtNcallback, OptionsCallback, (XtPointer)options);
 	XtVaCreateManagedWidget("label", labelWidgetClass, box,
-				XtNlabel, inp->inp_identifier, NULL, 0);
+				XtNlabel, inp->inp_identifier, NULL);
 
 	XtCreateManagedWidget("driverL", labelWidgetClass, box, NULL, 0);
 	str = inp->inp_driver != NULL ? inp->inp_driver : "";
 	node->data->input.text =
 		XtVaCreateManagedWidget("driver", asciiTextWidgetClass, box,
 					XtNeditType, XawtextEdit,
-					XtNstring, str, NULL, 0);
+					XtNstring, str, NULL);
     }
     else {
 	command = XtCreateManagedWidget("new", commandWidgetClass, box, NULL, 0);
@@ -3492,7 +3492,7 @@ CreateInputField(TreeNode *node, Bool addnew)
 		     (XtPointer)node);
 	node->data->input.text =
 		XtVaCreateManagedWidget("value", asciiTextWidgetClass, box,
-					XtNeditType, XawtextEdit, NULL, 0);
+					XtNeditType, XawtextEdit, NULL);
     }
     if (XtIsRealized(node->treeParent))
 	XtRealizeWidget(box);
@@ -3591,7 +3591,7 @@ InputUpdate(TreeNode *node)
     char *str;
 
     /* vendor */
-    XtVaGetValues(node->data->input.text, XtNstring, &str, NULL, 0);
+    XtVaGetValues(node->data->input.text, XtNstring, &str, NULL);
     XtFree(node->data->input.input->inp_driver);
     if (*str)
 	node->data->input.input->inp_driver = XtNewString(str);
@@ -3639,7 +3639,7 @@ CreateLayoutField(TreeNode *node, Bool addnew)
     Widget box, command, label;
 
     box = XtVaCreateWidget("layout", formWidgetClass, tree,
-			   XtNtreeParent, node->treeParent, NULL, 0);
+			   XtNtreeParent, node->treeParent, NULL);
     node->node = box;
 
     if (!addnew) {
@@ -3655,18 +3655,18 @@ CreateLayoutField(TreeNode *node, Bool addnew)
 					NULL, 0);
 	XtAddCallback(command, XtNcallback, OptionsCallback, (XtPointer)options);
 	label = XtVaCreateManagedWidget("label", labelWidgetClass, box,
-					XtNlabel, lay->lay_identifier, NULL, 0);
+					XtNlabel, lay->lay_identifier, NULL);
 
 	command = XtVaCreateManagedWidget("Adjacency", toggleWidgetClass, tree,
 					  XtNstate, True, XtNtreeParent, box,
-					  NULL, 0);
+					  NULL);
 	adjacency = NewNode(node, command, command, box, NULL);
 	node->child = adjacency;
 	CreateAdjacency(adjacency, lay->lay_adjacency_lst);
 
 	command = XtVaCreateManagedWidget("Inputref", toggleWidgetClass, tree,
 					  XtNstate, True, XtNtreeParent, box,
-					  NULL, 0);
+					  NULL);
 	inputref = NewNode(node, command, command, box, NULL);
 	adjacency->next = inputref;
 	CreateInputref(inputref, lay->lay_input_lst);
@@ -3677,7 +3677,7 @@ CreateLayoutField(TreeNode *node, Bool addnew)
 	XtAddCallback(command, XtNcallback, NewLayoutCallback, (XtPointer)node);
 	label = XtVaCreateManagedWidget("value", asciiTextWidgetClass, box,
 					XtNeditType, XawtextEdit,
-					NULL, 0);
+					NULL);
 	node->data->layout.text = label;
     }
     if (XtIsRealized(node->treeParent))
@@ -3758,14 +3758,14 @@ CreateAdjacencyField(TreeNode *node, Bool addnew)
     XF86ConfScreenPtr ptr = XF86Config->conf_screen_lst;
 
     box = XtVaCreateWidget("adjacency", formWidgetClass, tree,
-			   XtNtreeParent, node->treeParent, NULL, 0);
+			   XtNtreeParent, node->treeParent, NULL);
     node->node = box;
 
     node->data->adjacency.menu =
 	XtVaCreatePopupShell("screenMenu", simpleMenuWidgetClass, box,
 			     XtNleftMargin, 1, XtNrightMargin, 1,
 			     XtNtopMargin, 1, XtNbottomMargin, 1,
-			     NULL, 0);
+			     NULL);
     while (ptr) {
 	sme = XtCreateManagedWidget(ptr->scrn_identifier, smeBSBObjectClass,
 				    node->data->adjacency.menu, NULL, 0);
@@ -3786,7 +3786,7 @@ CreateAdjacencyField(TreeNode *node, Bool addnew)
 	XtAddCallback(command, XtNcallback, DestroyCallback, (XtPointer)node);
 	(void) XtVaCreateManagedWidget("label", labelWidgetClass, box,
 					XtNlabel, adj->adj_screen->scrn_identifier,
-					NULL, 0);
+					NULL);
 
 	XtCreateManagedWidget("scrnumL", labelWidgetClass, box, NULL, 0);
 	if (adj->adj_scrnum >= 0)
@@ -3796,40 +3796,40 @@ CreateAdjacencyField(TreeNode *node, Bool addnew)
 	node->data->adjacency.scrnum =
 		XtVaCreateManagedWidget("scrnum", asciiTextWidgetClass, box,
 					XtNeditType, XawtextEdit,
-					XtNstring, buf, NULL, 0);
+					XtNstring, buf, NULL);
 	above = XtVaCreateManagedWidget("above", toggleWidgetClass, box,
 				XtNstate, adj->adj_where == CONF_ADJ_ABOVE ?
-				True : False, NULL, 0);
+				True : False, NULL);
 	XtAddCallback(above, XtNcallback, AdjacencyToggleCallback, (XtPointer)node);
 	left = XtVaCreateManagedWidget("leftOf", toggleWidgetClass, box,
 				XtNradioGroup, above,
 				XtNstate, adj->adj_where == CONF_ADJ_LEFTOF ?
-				True : False, NULL, 0);
+				True : False, NULL);
 	XtAddCallback(left, XtNcallback, AdjacencyToggleCallback, (XtPointer)node);
 
 	node->data->adjacency.button =
 	    XtVaCreateManagedWidget("screen", menuButtonWidgetClass, box,
-				    XtNmenuName, "screenMenu", NULL, 0);
+				    XtNmenuName, "screenMenu", NULL);
 
 	right = XtVaCreateManagedWidget("rightOf", toggleWidgetClass, box,
 				XtNradioGroup, left,
 				XtNstate, adj->adj_where == CONF_ADJ_RIGHTOF ?
-				True : False, NULL, 0);
+				True : False, NULL);
 	XtAddCallback(right, XtNcallback, AdjacencyToggleCallback, (XtPointer)node);
 	below = XtVaCreateManagedWidget("below", toggleWidgetClass, box,
 				XtNradioGroup, right,
 				XtNstate, adj->adj_where == CONF_ADJ_BELOW ?
-				True : False, NULL, 0);
+				True : False, NULL);
 	XtAddCallback(below, XtNcallback, AdjacencyToggleCallback, (XtPointer)node);
 	relative = XtVaCreateManagedWidget("relative", toggleWidgetClass, box,
 				XtNradioGroup, below,
 				XtNstate, adj->adj_where == CONF_ADJ_RELATIVE ?
-				True : False, NULL, 0);
+				True : False, NULL);
 	XtAddCallback(relative, XtNcallback, AdjacencyToggleCallback, (XtPointer)node);
 	absolute = XtVaCreateManagedWidget("absolute", toggleWidgetClass, box,
 				XtNradioGroup, relative,
 				XtNstate, adj->adj_where == CONF_ADJ_ABSOLUTE ?
-				True : False, NULL, 0);
+				True : False, NULL);
 	XtAddCallback(absolute, XtNcallback, AdjacencyToggleCallback, (XtPointer)node);
 
 	XtCreateManagedWidget("adjxL", labelWidgetClass, box, NULL, 0);
@@ -3837,29 +3837,29 @@ CreateAdjacencyField(TreeNode *node, Bool addnew)
 	node->data->adjacency.adjx =
 		XtVaCreateManagedWidget("adjx", asciiTextWidgetClass, box,
 					XtNeditType, XawtextEdit,
-					XtNstring, buf, NULL, 0);
+					XtNstring, buf, NULL);
 
 	XtCreateManagedWidget("adjyL", labelWidgetClass, box, NULL, 0);
 	XmuSnprintf(buf, sizeof(buf), "%d", adj->adj_y);
 	node->data->adjacency.adjy =
 		XtVaCreateManagedWidget("adjy", asciiTextWidgetClass, box,
 					XtNeditType, XawtextEdit,
-					XtNstring, buf, NULL, 0);
+					XtNstring, buf, NULL);
 
 	XtVaGetValues(node->data->adjacency.button, XtNwidth, &width,
-		      XtNheight, &height, NULL, 0);
+		      XtNheight, &height, NULL);
 	if (adj->adj_where > CONF_ADJ_ABSOLUTE &&
 	    adj->adj_where <= CONF_ADJ_RELATIVE)
 	    XtVaSetValues(node->data->adjacency.button, XtNlabel,
 			  adj->adj_refscreen, XtNwidth, width,
-			  XtNheight, height, NULL, 0);
+			  XtNheight, height, NULL);
 	else
 	    XtVaSetValues(node->data->adjacency.button, XtNlabel, "",
-			  XtNwidth, width, XtNheight, height, NULL, 0);
+			  XtNwidth, width, XtNheight, height, NULL);
     }
     else
 	XtVaCreateManagedWidget("new", menuButtonWidgetClass, box,
-				XtNmenuName, "screenMenu", NULL, 0);
+				XtNmenuName, "screenMenu", NULL);
 
     if (XtIsRealized(node->treeParent))
 	XtRealizeWidget(box);
@@ -3905,7 +3905,7 @@ AdjacencyMenuCallback(Widget w, XtPointer user_data, XtPointer call_data)
 
     XtFree(adj->adj_refscreen);
     adj->adj_refscreen = XtNewString(XtName(w));
-    XtVaSetValues(node->data->adjacency.button, XtNlabel, XtName(w), NULL, 0);
+    XtVaSetValues(node->data->adjacency.button, XtNlabel, XtName(w), NULL);
 }
 
 static void
@@ -3918,14 +3918,14 @@ AdjacencyToggleCallback(Widget w, XtPointer user_data, XtPointer call_data)
     if ((Bool)(long)call_data == False)
 	return;
 
-    XtVaGetValues(node->data->adjacency.adjx, XtNstring, &x, NULL, 0);
-    XtVaGetValues(node->data->adjacency.adjy, XtNstring, &y, NULL, 0);
+    XtVaGetValues(node->data->adjacency.adjx, XtNstring, &x, NULL);
+    XtVaGetValues(node->data->adjacency.adjy, XtNstring, &y, NULL);
 
     adj->adj_x = strtol(x, NULL, 0);
     adj->adj_y = strtol(y, NULL, 0);
 
     if (strcmp(XtName(w), "absolute") == 0) {
-    XtVaSetValues(node->data->adjacency.button, XtNlabel, "", NULL, 0);
+    XtVaSetValues(node->data->adjacency.button, XtNlabel, "", NULL);
 	adj->adj_where = CONF_ADJ_ABSOLUTE;
 	return;
     }
@@ -3981,7 +3981,7 @@ CreateInputrefField(TreeNode *node, Bool addnew)
     Widget box, command;
 
     box = XtVaCreateWidget("inputref", formWidgetClass, tree,
-			   XtNtreeParent, node->treeParent, NULL, 0);
+			   XtNtreeParent, node->treeParent, NULL);
     node->node = box;
 
     if (!addnew) {
@@ -3996,19 +3996,19 @@ CreateInputrefField(TreeNode *node, Bool addnew)
 					NULL, 0);
 	XtAddCallback(command, XtNcallback, OptionsCallback, (XtPointer)options);
 	XtVaCreateManagedWidget("label", labelWidgetClass, box,
-				XtNlabel, inp->iref_inputdev_str, NULL, 0);
+				XtNlabel, inp->iref_inputdev_str, NULL);
     }
     else {
 	Widget sme;
 	XF86ConfInputPtr ptr = XF86Config->conf_input_lst;
 
 	XtVaCreateManagedWidget("new", menuButtonWidgetClass, box,
-				XtNmenuName, "inputMenu", NULL, 0);
+				XtNmenuName, "inputMenu", NULL);
 	node->data->inputref.menu =
 	    XtVaCreatePopupShell("inputMenu", simpleMenuWidgetClass, box,
 				 XtNleftMargin, 1, XtNrightMargin, 1,
 				 XtNtopMargin, 1, XtNbottomMargin, 1,
-				 NULL, 0);
+				 NULL);
 
 	while (ptr) {
 	    sme = XtCreateManagedWidget(ptr->inp_identifier, smeBSBObjectClass,
@@ -4090,7 +4090,7 @@ CreateVendorField(TreeNode *node, Bool addnew)
     Widget box, command;
 
     box = XtVaCreateWidget("vendor", formWidgetClass, tree,
-			   XtNtreeParent, node->treeParent, NULL, 0);
+			   XtNtreeParent, node->treeParent, NULL);
     node->node = box;
 
     if (!addnew) {
@@ -4106,12 +4106,12 @@ CreateVendorField(TreeNode *node, Bool addnew)
 					NULL, 0);
 	XtAddCallback(command, XtNcallback, OptionsCallback, (XtPointer)options);
 	XtVaCreateManagedWidget("label", labelWidgetClass, box,
-				XtNlabel, vendor->vnd_identifier, NULL, 0);
+				XtNlabel, vendor->vnd_identifier, NULL);
 
 	command = XtVaCreateManagedWidget("VendSub", toggleWidgetClass, tree,
 					  XtNstate, True,
 					  XtNtreeParent, box,
-					  NULL, 0);
+					  NULL);
 	sub = NewNode(node, command, command, box, NULL);
 	node->child = sub;
 	CreateVendorSub(sub, vendor->vnd_sub_lst);
@@ -4122,7 +4122,7 @@ CreateVendorField(TreeNode *node, Bool addnew)
 	XtAddCallback(command, XtNcallback, NewVendorCallback, (XtPointer)node);
 	node->data->vendor.text =
 	    XtVaCreateManagedWidget("value", asciiTextWidgetClass, box,
-				    XtNeditType, XawtextEdit, NULL, 0);
+				    XtNeditType, XawtextEdit, NULL);
     }
     if (XtIsRealized(node->treeParent))
 	XtRealizeWidget(box);
@@ -4200,7 +4200,7 @@ CreateVendorSubField(TreeNode *node, Bool addnew)
     Widget box, command;
 
     box = XtVaCreateWidget("vendorSub", formWidgetClass, tree,
-			   XtNtreeParent, node->treeParent, NULL, 0);
+			   XtNtreeParent, node->treeParent, NULL);
     node->node = box;
 
     if (!addnew) {
@@ -4215,14 +4215,14 @@ CreateVendorSubField(TreeNode *node, Bool addnew)
 					NULL, 0);
 	XtAddCallback(command, XtNcallback, OptionsCallback, (XtPointer)options);
 	XtVaCreateManagedWidget("label", labelWidgetClass, box,
-				XtNlabel, vendor->vs_identifier, NULL, 0);
+				XtNlabel, vendor->vs_identifier, NULL);
 
 	XtCreateManagedWidget("nameL", labelWidgetClass, box, NULL, 0);
 	node->data->vendsub.text =
 	    XtVaCreateManagedWidget("name", asciiTextWidgetClass, box,
 				    XtNeditType, XawtextEdit, XtNstring,
 				    vendor->vs_name ? vendor->vs_name : "",
-				    NULL, 0);
+				    NULL);
     }
     else {
 	command = XtCreateManagedWidget("new", commandWidgetClass, box,
@@ -4230,7 +4230,7 @@ CreateVendorSubField(TreeNode *node, Bool addnew)
 	XtAddCallback(command, XtNcallback, NewVendorSubCallback, (XtPointer)node);
 	node->data->vendsub.text =
 	    XtVaCreateManagedWidget("value", asciiTextWidgetClass, box,
-				    XtNeditType, XawtextEdit, NULL, 0);
+				    XtNeditType, XawtextEdit, NULL);
     }
     if (XtIsRealized(node->treeParent))
 	XtRealizeWidget(box);
@@ -4250,7 +4250,7 @@ VendorSubUpdate(TreeNode *node)
 {
     char *str;
 
-    XtVaGetValues(node->data->vendsub.text, XtNstring, &str, NULL, 0);
+    XtVaGetValues(node->data->vendsub.text, XtNstring, &str, NULL);
     XtFree(node->data->vendsub.vendsub->vs_name);
     if (*str)
 	node->data->vendsub.vendsub->vs_name = XtNewString(str);
@@ -4306,14 +4306,14 @@ CreateDRIField(TreeNode *node)
     char buf[32];
 
     box = XtVaCreateWidget("dri", formWidgetClass, tree,
-			   XtNtreeParent, node->treeParent, NULL, 0);
+			   XtNtreeParent, node->treeParent, NULL);
     node->node = box;
     XtCreateManagedWidget("nameL", labelWidgetClass, box, NULL, 0);
     node->data->dri.name =
 	XtVaCreateManagedWidget("name", asciiTextWidgetClass, box,
 				XtNeditType, XawtextEdit, XtNstring,
 				dri->dri_group_name ? dri->dri_group_name : "",
-				NULL, 0);
+				NULL);
 
     XtCreateManagedWidget("groupL", labelWidgetClass, box, NULL, 0);
     if (dri->dri_group >= 0)
@@ -4323,7 +4323,7 @@ CreateDRIField(TreeNode *node)
     node->data->dri.group =
 	XtVaCreateManagedWidget("group", asciiTextWidgetClass, box,
 				XtNeditType, XawtextEdit, XtNstring, buf,
-				NULL, 0);
+				NULL);
 
     XtCreateManagedWidget("modeL", labelWidgetClass, box, NULL, 0);
     if (dri->dri_mode > 0)
@@ -4333,11 +4333,11 @@ CreateDRIField(TreeNode *node)
     node->data->dri.mode =
 	XtVaCreateManagedWidget("mode", asciiTextWidgetClass, box,
 				XtNeditType, XawtextEdit, XtNstring, buf,
-				NULL, 0);
+				NULL);
 
     toggle = XtVaCreateManagedWidget("Buffers", toggleWidgetClass, tree,
 				     XtNstate, True, XtNtreeParent, box,
-				     NULL, 0);
+				     NULL);
     buffers = NewNode(node, toggle, toggle, box, NULL);
     node->child = buffers;
     CreateBuffers(buffers, dri->dri_buffers_lst);
@@ -4353,7 +4353,7 @@ DRIUpdate(TreeNode *node)
     char *str;
 
     /* name */
-    XtVaGetValues(node->data->dri.name, XtNstring, &str, NULL, 0);
+    XtVaGetValues(node->data->dri.name, XtNstring, &str, NULL);
     XtFree(node->data->dri.dri->dri_group_name);
     if (*str)
 	node->data->dri.dri->dri_group_name = XtNewString(str);
@@ -4361,14 +4361,14 @@ DRIUpdate(TreeNode *node)
 	node->data->dri.dri->dri_group_name = NULL;
 
     /* group */
-    XtVaGetValues(node->data->dri.group, XtNstring, &str, NULL, 0);
+    XtVaGetValues(node->data->dri.group, XtNstring, &str, NULL);
     if (*str)
 	node->data->dri.dri->dri_group = strtoul(str, NULL, 0);
     else
 	node->data->dri.dri->dri_group = -1;
 
     /* mode */
-    XtVaGetValues(node->data->dri.mode, XtNstring, &str, NULL, 0);
+    XtVaGetValues(node->data->dri.mode, XtNstring, &str, NULL);
     node->data->dri.dri->dri_mode = strtoul(str, NULL, 0);
 }
 
@@ -4412,7 +4412,7 @@ CreateBuffersField(TreeNode *node, Bool addnew)
     Widget box, command;
 
     box = XtVaCreateWidget("buffers", formWidgetClass, tree,
-			   XtNtreeParent, node->treeParent, NULL, 0);
+			   XtNtreeParent, node->treeParent, NULL);
     node->node = box;
 
     if (!addnew) {
@@ -4428,21 +4428,21 @@ CreateBuffersField(TreeNode *node, Bool addnew)
 	node->data->buffers.count =
 	    XtVaCreateManagedWidget("count", asciiTextWidgetClass, box,
 				    XtNeditType, XawtextEdit, XtNstring, str,
-				    NULL, 0);
+				    NULL);
 
 	XtCreateManagedWidget("sizeL", labelWidgetClass, box, NULL, 0);
 	XmuSnprintf(str, sizeof(str), "%d", buf->buf_size);
 	node->data->buffers.size =
 	    XtVaCreateManagedWidget("size", asciiTextWidgetClass, box,
 				    XtNeditType, XawtextEdit, XtNstring, str,
-				    NULL, 0);
+				    NULL);
 
 	XtCreateManagedWidget("flagsL", labelWidgetClass, box, NULL, 0);
 	node->data->buffers.flags =
 	    XtVaCreateManagedWidget("flags", asciiTextWidgetClass, box,
 				    XtNeditType, XawtextEdit, XtNstring,
 				    buf->buf_flags ? buf->buf_flags : "",
-				    NULL, 0);
+				    NULL);
     }
     else {
 	command = XtCreateManagedWidget("new", commandWidgetClass, box,
@@ -4485,15 +4485,15 @@ BuffersUpdate(TreeNode *node)
     char *str;
 
     /* count */
-    XtVaGetValues(node->data->buffers.count, XtNstring, &str, NULL, 0);
+    XtVaGetValues(node->data->buffers.count, XtNstring, &str, NULL);
     node->data->buffers.buffers->buf_count = strtoul(str, NULL, 0);
 
     /* size */
-    XtVaGetValues(node->data->buffers.size, XtNstring, &str, NULL, 0);
+    XtVaGetValues(node->data->buffers.size, XtNstring, &str, NULL);
     node->data->buffers.buffers->buf_size = strtoul(str, NULL, 0);
 
     /* flags */
-    XtVaGetValues(node->data->buffers.flags, XtNstring, &str, NULL, 0);
+    XtVaGetValues(node->data->buffers.flags, XtNstring, &str, NULL);
     if (*str)
 	node->data->buffers.buffers->buf_flags = XtNewString(str);
     else
@@ -4546,7 +4546,7 @@ DeleteNode(TreeNode *node)
     /* sets treeParent to NULL so that RelayoutTree works correctly,
      * as the tree will properly calculate it's new size.
      */
-    XtVaSetValues(node->node, XtNtreeParent, NULL, NULL, 0);
+    XtVaSetValues(node->node, XtNtreeParent, NULL, NULL);
 
     XtDestroyWidget(node->node);
     XtFree((XtPointer)node);
@@ -4568,7 +4568,7 @@ ToggleNodeRecursive(TreeNode *node)
     while (node) {
 	if (!XtIsRealized(node->node))
 	    XtRealizeWidget(node->node);
-	XtVaSetValues(node->node, XtNtreeParent, node->treeParent, NULL, 0);
+	XtVaSetValues(node->node, XtNtreeParent, node->treeParent, NULL);
 	XtManageChild(node->node);
 
 	if (node->child && !node->toggle)
@@ -4585,7 +4585,7 @@ ToggleNode(TreeNode *node, Bool toggle)
 	if (toggle) {
 	    if (!XtIsRealized(node->node))
 		XtRealizeWidget(node->node);
-	    XtVaSetValues(node->node, XtNtreeParent, node->treeParent, NULL, 0);
+	    XtVaSetValues(node->node, XtNtreeParent, node->treeParent, NULL);
 	    XtManageChild(node->node);
 
 	    if (node->child && !node->toggle)
@@ -4594,10 +4594,10 @@ ToggleNode(TreeNode *node, Bool toggle)
 	else {
 	    if (node->child)
 		ToggleNode(node->child, False);
-	    XtVaSetValues(node->node, XtNtreeParent, NULL, NULL, 0);
+	    XtVaSetValues(node->node, XtNtreeParent, NULL, NULL);
 	    XtUnmanageChild(node->node);
 	    if (node->toggle)
-		XtVaSetValues(node->toggle, XtNstate, False, NULL, 0);
+		XtVaSetValues(node->toggle, XtNstate, False, NULL);
 	}
 	node = node->next;
     }
@@ -4731,7 +4731,7 @@ ExpertInitialize(void)
     shell = XtCreatePopupShell("Expert", transientShellWidgetClass,
 			       toplevel, NULL, 0);
     paned = XtVaCreateManagedWidget("paned", panedWidgetClass, shell,
-				    XtNorientation, XtorientHorizontal, NULL, 0);
+				    XtNorientation, XtorientHorizontal, NULL);
     vpane = XtCreateManagedWidget("vpane", panedWidgetClass, paned, NULL, 0);
     panner = XtCreateManagedWidget ("panner", pannerWidgetClass, vpane, NULL, 0);
     close = XtCreateManagedWidget("close", commandWidgetClass, vpane, NULL, 0);
@@ -4743,24 +4743,24 @@ ExpertInitialize(void)
     tree = XtCreateManagedWidget("tree", treeWidgetClass, expert, NULL, 0);
 
     config = XtVaCreateManagedWidget(__XCONFIGFILE__, toggleWidgetClass, tree,
-				     XtNstate, True, NULL, 0);
+				     XtNstate, True, NULL);
     mainNode = NewNode(NULL, config, config, NULL, NULL);
 
     files = XtVaCreateManagedWidget("Files", toggleWidgetClass, tree,
-				    XtNtreeParent, config, NULL, 0);
+				    XtNtreeParent, config, NULL);
     node = NewNode(mainNode, files, files, config, NULL);
     mainNode->child = node;
     CreateFiles(node);
 
     modules = XtVaCreateManagedWidget("Module", toggleWidgetClass, tree,
-				      XtNtreeParent, config, NULL, 0);
+				      XtNtreeParent, config, NULL);
     node->next = NewNode(mainNode, modules, modules, config, NULL);
     node = node->next;
     CreateModule(node, XF86Config->conf_modules ?
 		 XF86Config->conf_modules->mod_load_lst : NULL);
 
     flags = XtVaCreateManagedWidget("ServerFlags", commandWidgetClass, tree,
-				    XtNtreeParent, config, NULL, 0);
+				    XtNtreeParent, config, NULL);
     node->next = NewNode(mainNode, flags, NULL, config, NULL);
     node = node->next;
     if (XF86Config->conf_flags == NULL)
@@ -4770,55 +4770,55 @@ ExpertInitialize(void)
 		  (XtPointer)&(XF86Config->conf_flags->flg_option_lst));
 
     video = XtVaCreateManagedWidget("VideoAdaptor", toggleWidgetClass, tree,
-				     XtNtreeParent, config, NULL, 0);
+				     XtNtreeParent, config, NULL);
     node->next = NewNode(mainNode, video, video, config, NULL);
     node = node->next;
     CreateVideoAdaptor(node, XF86Config->conf_videoadaptor_lst);
 
     modes = XtVaCreateManagedWidget("Mode", toggleWidgetClass, tree,
-				    XtNtreeParent, config, NULL, 0);
+				    XtNtreeParent, config, NULL);
     node->next = NewNode(mainNode, modes, modes, config, NULL);
     node = node->next;
     CreateModes(node, XF86Config->conf_modes_lst);
 
     monitor = XtVaCreateManagedWidget("Monitor", toggleWidgetClass, tree,
-				      XtNtreeParent, config, NULL, 0);
+				      XtNtreeParent, config, NULL);
     node->next = NewNode(mainNode, monitor, monitor, config, NULL);
     node = node->next;
     CreateMonitor(monitorTree = node, XF86Config->conf_monitor_lst);
 
     device = XtVaCreateManagedWidget("Device", toggleWidgetClass, tree,
-				     XtNtreeParent, config, NULL, 0);
+				     XtNtreeParent, config, NULL);
     node->next = NewNode(mainNode, device, device, config, NULL);
     node = node->next;
     CreateDevice(node, XF86Config->conf_device_lst);
 
     screen = XtVaCreateManagedWidget("Screen", toggleWidgetClass, tree,
-				     XtNtreeParent, config, NULL, 0);
+				     XtNtreeParent, config, NULL);
     node->next = NewNode(mainNode, screen, screen, config, NULL);
     node = node->next;
     CreateScreen(screenTree = node, XF86Config->conf_screen_lst);
 
     input = XtVaCreateManagedWidget("Input", toggleWidgetClass, tree,
-				    XtNtreeParent, config, NULL, 0);
+				    XtNtreeParent, config, NULL);
     node->next = NewNode(mainNode, input, input, config, NULL);
     node = node->next;
     CreateInput(node, XF86Config->conf_input_lst);
 
     layout = XtVaCreateManagedWidget("Layout", toggleWidgetClass, tree,
-				     XtNtreeParent, config, NULL, 0);
+				     XtNtreeParent, config, NULL);
     node->next = NewNode(mainNode, layout, layout, config, NULL);
     node = node->next;
     CreateLayout(layoutTree = node, XF86Config->conf_layout_lst);
 
     vendor = XtVaCreateManagedWidget("Vendor", toggleWidgetClass, tree,
-				     XtNtreeParent, config, NULL, 0);
+				     XtNtreeParent, config, NULL);
     node->next = NewNode(mainNode, vendor, vendor, config, NULL);
     node = node->next;
     CreateVendor(node, XF86Config->conf_vendor_lst);
 
     dri = XtVaCreateManagedWidget("DRI", toggleWidgetClass, tree,
-				  XtNtreeParent, config, NULL, 0);
+				  XtNtreeParent, config, NULL);
     node->next = NewNode(mainNode, dri, dri, config, NULL);
     node = node->next;
     if (XF86Config->conf_dri == NULL)

@@ -136,7 +136,7 @@ ModuleOptionsPopup(Widget w, XtPointer user_data, XtPointer call_data)
 	modList = XtVaCreateManagedWidget("modL", listWidgetClass,
 					  viewport, XtNlist, ops,
 					  XtNnumberStrings, nops,
-					  NULL, 0);
+					  NULL);
 	XtAddCallback(modList, XtNcallback, SelectModuleCallback, NULL);
 	XtCreateManagedWidget("option", labelWidgetClass, form, NULL, 0);
 	viewport = XtCreateManagedWidget("viewO", viewportWidgetClass,
@@ -145,16 +145,16 @@ ModuleOptionsPopup(Widget w, XtPointer user_data, XtPointer call_data)
 	ops[0] = XtNewString("");
 	optList = XtVaCreateManagedWidget("optL", listWidgetClass,
 					  viewport, XtNlist, ops,
-					  XtNnumberStrings, 1, NULL, 0);
+					  XtNnumberStrings, 1, NULL);
 	XtAddCallback(optList, XtNcallback, SelectModuleOptionCallback, NULL);
 	desc = XtVaCreateManagedWidget("desc", asciiTextWidgetClass,
 				       form, XtNeditType, XawtextRead,
-				       NULL, 0);
+				       NULL);
 
 	bottom = XtCreateManagedWidget("bottom", formWidgetClass,
 				       pane, NULL, 0);
 	popdown = XtVaCreateManagedWidget("popdown", commandWidgetClass,
-					bottom, NULL, 0);
+					bottom, NULL);
 	XtAddCallback(popdown, XtNcallback, ModuleOptionsPopdown, NULL);
 	XtRealizeWidget(modOptionsShell);
 	XSetWMProtocols(DPY, XtWindow(modOptionsShell), &wm_delete_window, 1);
@@ -282,20 +282,20 @@ OptionsPopup(XF86OptionPtr *opts)
 				     pane, NULL, 0);
 	XtVaCreateManagedWidget("label1", labelWidgetClass, form,
 				XtNlabel, " Option \"",
-				NULL, 0);
+				NULL);
 	name = XtVaCreateManagedWidget("name", asciiTextWidgetClass, form,
 				       XtNeditType, XawtextEdit,
-				       NULL, 0);
+				       NULL);
 	XtVaCreateManagedWidget("label2", labelWidgetClass,
 				form,
 				XtNlabel, "\" \"",
-				NULL, 0);
+				NULL);
 	value = XtVaCreateManagedWidget("value", asciiTextWidgetClass, form,
 					XtNeditType, XawtextEdit,
-					NULL, 0);
+					NULL);
 	XtVaCreateManagedWidget("label3", labelWidgetClass, form,
 				XtNlabel, "\" ",
-				NULL, 0);
+				NULL);
 	viewport = XtCreateManagedWidget("viewport", viewportWidgetClass,
 					 form, NULL, 0);
 	list = XtCreateManagedWidget("list", listWidgetClass,
@@ -309,10 +309,10 @@ OptionsPopup(XF86OptionPtr *opts)
 					    bottom, NULL, 0);
 #endif
 	popdown = XtVaCreateManagedWidget("popdown", commandWidgetClass,
-					bottom, NULL, 0);
+					bottom, NULL);
 #ifdef USE_MODULES
 	if (!nomodules)
-	    XtVaSetValues(popdown, XtNfromHoriz, button, NULL, 0);
+	    XtVaSetValues(popdown, XtNfromHoriz, button, NULL);
 #endif
 
 	XtAddCallback(popdown, XtNcallback, PopdownCallback, NULL);
@@ -338,7 +338,7 @@ OptionsPopup(XF86OptionPtr *opts)
 	menuN = !menuN;
 	menu = XtCreatePopupShell(menuName, simpleMenuWidgetClass, button,
 				  NULL, 0);
-	XtVaSetValues(button, XtNmenuName, menuName, NULL, 0);
+	XtVaSetValues(button, XtNmenuName, menuName, NULL);
 	if (drv_opts) {
 	    int len, longest = 0;
 	    char fmt[32];
@@ -359,7 +359,7 @@ OptionsPopup(XF86OptionPtr *opts)
 
 		XmuSnprintf(buf, sizeof(buf), fmt, drv_opts->name, type);
 		sme = XtVaCreateManagedWidget(drv_opts->name, smeBSBObjectClass,
-					      menu, XtNlabel, buf, NULL, 0);
+					      menu, XtNlabel, buf, NULL);
 		XtAddCallback(sme, XtNcallback, AddDriverOption, (XtPointer)drv_opts);
 	    }
 	}

@@ -149,7 +149,7 @@ StartConfig(void)
     ident_widget = XtVaCreateManagedWidget("identifier", asciiTextWidgetClass,
 					   top,
 					   XtNeditType, XawtextEdit,
-					   NULL, 0);
+					   NULL);
     configp = XtCreateManagedWidget("work", formWidgetClass,
 				    pane, NULL, 0);
     current = XtCreateManagedWidget("wellcome", labelWidgetClass,

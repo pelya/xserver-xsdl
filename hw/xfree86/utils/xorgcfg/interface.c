@@ -333,7 +333,7 @@ main(int argc, char *argv[])
     pane = XtCreateManagedWidget("pane", panedWidgetClass,
 				 toplevel, NULL, 0);
     hpane = XtVaCreateManagedWidget("hpane", panedWidgetClass, pane,
-				    XtNorientation, XtorientHorizontal, NULL, 0);
+				    XtNorientation, XtorientHorizontal, NULL);
     topMenu = XtCreateManagedWidget("topM", menuButtonWidgetClass,
 				 hpane, NULL, 0);
     expert = XtCreateManagedWidget("expert", commandWidgetClass, hpane, NULL, 0);
@@ -361,7 +361,7 @@ main(int argc, char *argv[])
 				     pane, NULL, 0);
 
     mouse = XtVaCreateManagedWidget("mouse", menuButtonWidgetClass,
-				    commands, XtNmenuName, "mouseP", NULL, 0);
+				    commands, XtNmenuName, "mouseP", NULL);
     popup = XtCreatePopupShell("mouseP", simpleMenuWidgetClass,
 			       mouse, NULL, 0);
     sme = XtCreateManagedWidget("new", smeBSBObjectClass,
@@ -373,7 +373,7 @@ main(int argc, char *argv[])
 		  (XtPointer)MOUSE);
 
     keyboard = XtVaCreateManagedWidget("keyboard", menuButtonWidgetClass,
-				       commands, XtNmenuName, "keyboardP", NULL, 0);
+				       commands, XtNmenuName, "keyboardP", NULL);
     popup = XtCreatePopupShell("keyboardP", simpleMenuWidgetClass,
 			       keyboard, NULL, 0);
     sme = XtCreateManagedWidget("new", smeBSBObjectClass,
@@ -385,7 +385,7 @@ main(int argc, char *argv[])
 		  (XtPointer)KEYBOARD);
 
     card = XtVaCreateManagedWidget("card", menuButtonWidgetClass,
-				   commands, XtNmenuName, "cardP", NULL, 0);
+				   commands, XtNmenuName, "cardP", NULL);
     popup = XtCreatePopupShell("cardP", simpleMenuWidgetClass,
 			       card, NULL, 0);
     sme = XtCreateManagedWidget("new", smeBSBObjectClass,
@@ -397,7 +397,7 @@ main(int argc, char *argv[])
 		  (XtPointer)CARD);
 
     monitor = XtVaCreateManagedWidget("monitor", menuButtonWidgetClass,
-				      commands, XtNmenuName, "monitorP", NULL, 0);
+				      commands, XtNmenuName, "monitorP", NULL);
     popup = XtCreatePopupShell("monitorP", simpleMenuWidgetClass,
 			       monitor, NULL, 0);
     sme = XtCreateManagedWidget("new", smeBSBObjectClass,
@@ -418,7 +418,7 @@ main(int argc, char *argv[])
     layout = XtVaCreateManagedWidget("layout", asciiTextWidgetClass,
 				     bottom,
 				     XtNeditType, XawtextEdit,
-				     NULL, 0);
+				     NULL);
     layoutp = XtCreatePopupShell("menu", simpleMenuWidgetClass,
 				 bottom, NULL, 0);
     sme = XtCreateManagedWidget("new", smeBSBObjectClass, layoutp,
@@ -480,7 +480,7 @@ main(int argc, char *argv[])
 				      XtNlabel, lay->lay_identifier,
 				      XtNmenuName, lay->lay_identifier,
 				      XtNleftBitmap, menuPixmap,
-				      NULL, 0);
+				      NULL);
 	XtAddCallback(sme, XtNcallback, SelectLayoutCallback, (XtPointer)lay);
 	if (layoutsme == NULL)
 	    layoutsme = sme;
@@ -594,7 +594,7 @@ AskConfig(void)
 	shell_cf = XtCreatePopupShell("quit", transientShellWidgetClass,
 				      toplevel, NULL, 0);
 	dialog = XtVaCreateManagedWidget("ask", dialogWidgetClass, shell_cf,
-					 XtNvalue, XF86Config_path, NULL, 0);
+					 XtNvalue, XF86Config_path, NULL);
 	XawDialogAddButton(dialog, "yes", WriteConfig, (XtPointer)1);
 	XawDialogAddButton(dialog, "no", WriteConfig, (XtPointer)0);
 	XawDialogAddButton(dialog, "cancel", WriteConfig, (XtPointer)-1);
@@ -718,7 +718,7 @@ QuitCallback(Widget w, XtPointer user_data, XtPointer call_data)
 			dialog = XtVaCreateManagedWidget("notice",
 				 dialogWidgetClass,
 				 shell, XtNvalue, NULL,
-				 NULL, 0);
+				 NULL);
 			XawDialogAddButton(dialog, "ok", PopdownErrorCallback,
 					   (XtPointer)shell);
 			XtRealizeWidget(shell);
@@ -900,7 +900,7 @@ AddDevice(int type, XtPointer config, int x, int y)
 					XtNx, x,
 					XtNy, y,
 					XtNtip, NULL,
-					NULL, 0);
+					NULL);
 	    computer.devices[computer.num_devices]->type = type;
 	    computer.devices[computer.num_devices]->state = UNUSED;
 	    computer.devices[computer.num_devices]->refcount = 0;
@@ -1062,7 +1062,7 @@ SelectLayoutCallback(Widget w, XtPointer user_data, XtPointer call_data)
 					    XtNlabel, name,
 					    XtNmenuName, l->lay_identifier,
 					    XtNleftBitmap, menuPixmap,
-					    NULL, 0);
+					    NULL);
 	XtAddCallback(layoutsme, XtNcallback,
 		      SelectLayoutCallback, (XtPointer)l);
 
@@ -1177,7 +1177,7 @@ DefaultLayoutCallback(Widget w, XtPointer user_data, XtPointer call_data)
 				      XtNlabel, lay->lay_identifier,
 				      XtNmenuName, lay->lay_identifier,
 				      XtNleftBitmap, menuPixmap,
-				      NULL, 0);
+				      NULL);
 	XtAddCallback(sme, XtNcallback, SelectLayoutCallback, (XtPointer)lay);
 	if (layoutsme == NULL)
 	    layoutsme = sme;

@@ -280,7 +280,7 @@ CardModelCallback(Widget w, XtPointer user_data, XtPointer call_data)
 	if (!nomodules) {
 	    XtFree(driver_str);
 	    driver_str = XtNewString(card_entry->driver);
-	    XtVaSetValues(driver, XtNlabel, driver_str, NULL, 0);
+	    XtVaSetValues(driver, XtNlabel, driver_str, NULL);
 	}
 #endif
 	len += XmuSnprintf(tip + len, sizeof(tip) - len,
@@ -381,14 +381,14 @@ CardModel(XF86SetupInfo *info)
 	filter = XtVaCreateManagedWidget("filter", asciiTextWidgetClass,
 					 model,
 					 XtNeditType, XawtextEdit,
-					 NULL, 0);
+					 NULL);
 	viewport = XtCreateManagedWidget("viewport", viewportWidgetClass,
 					 model, NULL, 0);
 	list = XtVaCreateManagedWidget("list", listWidgetClass,
 				       viewport,
 				       XtNlist, cards,
 				       XtNnumberStrings, ncards,
-				       NULL, 0);
+				       NULL);
 	XtAddCallback(list, XtNcallback, CardModelCallback,
 		      (XtPointer)info);
 	XtCreateManagedWidget("driverL", labelWidgetClass, model, NULL, 0);
@@ -397,7 +397,7 @@ CardModel(XF86SetupInfo *info)
 	    driver = XtVaCreateManagedWidget("driver", menuButtonWidgetClass,
 					     model,
 					     XtNmenuName, "driverM",
-					     NULL, 0);
+					     NULL);
 	    {
 		Widget menu, sme;
 		xf86cfgModuleOptions *opts = module_options;
@@ -419,13 +419,13 @@ CardModel(XF86SetupInfo *info)
 	    driver = XtVaCreateManagedWidget("driver", asciiTextWidgetClass,
 					     model,
 					     XtNeditType, XawtextEdit,
-					     NULL, 0);
+					     NULL);
 
 	XtCreateManagedWidget("busidL", labelWidgetClass, model, NULL, 0);
 	busid = XtVaCreateManagedWidget("busid", asciiTextWidgetClass,
 					 model,
 					 XtNeditType, XawtextEdit,
-					 NULL, 0);
+					 NULL);
 
 	XtRealizeWidget(model);
     }

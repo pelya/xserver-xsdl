@@ -382,25 +382,25 @@ MonitorLayout(XF86SetupInfo *info)
 	XtCreateManagedWidget("hlabel", labelWidgetClass, layout, NULL, 0);
 	hsync = XtVaCreateManagedWidget("hsync", asciiTextWidgetClass, layout,
 					XtNeditType, XawtextEdit,
-					NULL, 0);
+					NULL);
 	viewport = XtCreateManagedWidget("hviewport", viewportWidgetClass,
 					 layout, NULL, 0);
 	hlist = XtVaCreateManagedWidget("hlist", listWidgetClass, viewport,
 					XtNlist, hmodes,
 					XtNnumberStrings, sizeof(hmodes) /
-					sizeof(hmodes[0]), NULL, 0);
+					sizeof(hmodes[0]), NULL);
 	XtAddCallback(hlist, XtNcallback, MonitorHsyncCallback, NULL);
 
 	XtCreateManagedWidget("vlabel", labelWidgetClass, layout, NULL, 0);
 	vsync = XtVaCreateManagedWidget("vsync", asciiTextWidgetClass, layout,
 					XtNeditType, XawtextEdit,
-					NULL, 0);
+					NULL);
 	viewport = XtCreateManagedWidget("vviewport", viewportWidgetClass,
 					 layout, NULL, 0);
 	vlist = XtVaCreateManagedWidget("vlist", listWidgetClass, viewport,
 					XtNlist, vmodes,
 					XtNnumberStrings, sizeof(vmodes) /
-					sizeof(vmodes[0]), NULL, 0);
+					sizeof(vmodes[0]), NULL);
 	XtAddCallback(vlist, XtNcallback, MonitorVsyncCallback, NULL);
 
 	XtCreateManagedWidget("clabel", labelWidgetClass, layout, NULL, 0);
@@ -424,7 +424,7 @@ MonitorLayout(XF86SetupInfo *info)
     XtSetValues(cmenu, args, 1);
     ++men;
     sme = XtVaCreateManagedWidget("none", smeBSBObjectClass, menu,
-				  NULL, 0);
+				  NULL);
     XtAddCallback(sme, XtNcallback, MonitorSelectCardCallback, NULL);
 
     while (device != NULL) {

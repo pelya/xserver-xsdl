@@ -449,7 +449,7 @@ VideoModeInitialize(void)
 			   work, NULL, 0);
 
     (void) XtVaCreateManagedWidget("vesaB", menuButtonWidgetClass, vtune,
-				    XtNmenuName, "vesaP", NULL, 0);
+				    XtNmenuName, "vesaP", NULL);
     vesap = XtCreatePopupShell("vesaP", simpleMenuWidgetClass, vtune, NULL, 0);
     for (i = 0; i < sizeof(vesamodes) / sizeof(vesamodes[0]); i++) {
 	rep = XtCreateManagedWidget(vesamodes[i].ident, smeBSBObjectClass,
@@ -487,7 +487,7 @@ VideoModeInitialize(void)
 					      vtune,
 					      XtNmenuName, "screenP",
 					      XtNlabel, name,
-					      NULL, 0);
+					      NULL);
 	}
     }
     XtRealizeWidget(screenp);
@@ -568,7 +568,7 @@ VideoModeInitialize(void)
 				     NULL, 0);
     XtCreateManagedWidget("as", labelWidgetClass, vtune, NULL, 0);
     text = XtVaCreateManagedWidget("text", asciiTextWidgetClass, vtune,
-				   XtNeditType, XawtextEdit, NULL, 0);
+				   XtNeditType, XawtextEdit, NULL);
 
     XtRealizeWidget(vtune);
 
@@ -626,7 +626,7 @@ VideoModeConfigureStart(void)
 	menuN = !menuN;
 	monitor = XtCreatePopupShell(menuName, simpleMenuWidgetClass,
 				     vtune, NULL, 0);
-	XtVaSetValues(monitorb, XtNmenuName, menuName, NULL, 0);
+	XtVaSetValues(monitorb, XtNmenuName, menuName, NULL);
 
 	mon = XF86Config->conf_monitor_lst;
 	while (mon != NULL) {
@@ -1138,7 +1138,7 @@ GetModes(void)
     if (menu)
 	XtDestroyWidget(menu);
     menu = XtCreatePopupShell(menuName, simpleMenuWidgetClass, vtune, NULL, 0);
-    XtVaSetValues(mode, XtNmenuName, menuName, NULL, 0);
+    XtVaSetValues(mode, XtNmenuName, menuName, NULL);
     for (i = 0; i < vidtune->num_infos; i++) {
 	Widget sme;
 
@@ -1190,7 +1190,7 @@ ForceAddMode(void)
 	forceshell = XtCreatePopupShell("force", transientShellWidgetClass,
 					toplevel, NULL, 0);
 	dialog = XtVaCreateManagedWidget("dialog", dialogWidgetClass,
-					 forceshell, XtNvalue, NULL, NULL, 0);
+					 forceshell, XtNvalue, NULL, NULL);
 	XawDialogAddButton(dialog, "yes", PopdownForce, (XtPointer)True);
 	XawDialogAddButton(dialog, "no", PopdownForce, (XtPointer)False);
 	XtRealizeWidget(forceshell);
@@ -1235,7 +1235,7 @@ AddMode(void)
 	addshell = XtCreatePopupShell("addMode", transientShellWidgetClass,
 				      toplevel, NULL, 0);
 	dialog = XtVaCreateManagedWidget("dialog", dialogWidgetClass,
-					 addshell, XtNvalue, NULL, NULL, 0);
+					 addshell, XtNvalue, NULL, NULL);
 	XawDialogAddButton(dialog, "yes", PopdownAdd, (XtPointer)True);
 	XawDialogAddButton(dialog, "no", PopdownAdd, (XtPointer)False);
 	XtRealizeWidget(addshell);
@@ -1331,7 +1331,7 @@ TestCallback(Widget w, XtPointer call_data, XtPointer client_data)
 	testshell = XtCreatePopupShell("test", transientShellWidgetClass,
 					toplevel, NULL, 0);
 	dialog = XtVaCreateManagedWidget("dialog", dialogWidgetClass,
-					 testshell, XtNvalue, NULL, NULL, 0);
+					 testshell, XtNvalue, NULL, NULL);
 	XawDialogAddButton(dialog, "stop", StopTestCallback, NULL);
 	XtRealizeWidget(testshell);
 	XSetWMProtocols(DPY, XtWindow(testshell), &wm_delete_window, 1);

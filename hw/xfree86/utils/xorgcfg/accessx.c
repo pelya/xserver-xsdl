@@ -122,7 +122,7 @@ CreateAccessXHelpDialog()
 
     shell = XtVaCreatePopupShell("accessx", transientShellWidgetClass, toplevel,
 				 XtNx, toplevel->core.x + toplevel->core.width,
-				 XtNy, toplevel->core.y, NULL, 0);
+				 XtNy, toplevel->core.y, NULL);
     form = XtCreateManagedWidget("form", formWidgetClass, shell, NULL, 0);
     XtCreateManagedWidget("label", labelWidgetClass, form, NULL, 0);
     XtCreateManagedWidget("lock", labelWidgetClass, form, NULL, 0);
@@ -181,7 +181,7 @@ AccessXInitialize(void)
 				     XtNstate,
 				     (xkb_info->xkb->ctrls->enabled_ctrls &
 				      (XkbAccessXKeysMask | XkbStickyKeysMask |
-				       XkbSlowKeysMask | XkbBounceKeysMask)) != 0, NULL, 0);
+				       XkbSlowKeysMask | XkbBounceKeysMask)) != 0, NULL);
 
     apply = XtCreateManagedWidget("apply", commandWidgetClass, accessx, NULL, 0);
     XtAddCallback(apply, XtNcallback, ApplyCallback, NULL);
@@ -191,7 +191,7 @@ AccessXInitialize(void)
 					    form, XtNstate,
 					    xkb_info->xkb->ctrls->ax_timeout > 60
 					    && xkb_info->xkb->ctrls->ax_timeout
-					    < 30000, NULL, 0);
+					    < 30000, NULL);
     XtAddCallback(timeoutToggle, XtNcallback, ScaleEnableCallback,
 		  (XtPointer)timeout);
     timeout->label = XtCreateManagedWidget("timeoutLabel", labelWidgetClass,
@@ -211,24 +211,24 @@ AccessXInitialize(void)
     sticky = XtVaCreateManagedWidget("sticky", toggleWidgetClass, form,
 				     XtNstate,
 				     (xkb_info->xkb->ctrls->enabled_ctrls &
-				      XkbStickyKeysMask) != 0, NULL, 0);
+				      XkbStickyKeysMask) != 0, NULL);
     stickyForm = XtCreateManagedWidget("stickyForm", formWidgetClass,
 				       form, NULL, 0);
     XtAddCallback(sticky, XtNcallback, EnableCallback, (XtPointer)stickyForm);
     stickyAuto = XtVaCreateManagedWidget("auto", toggleWidgetClass, stickyForm,
 					 XtNstate,
 					 (xkb_info->xkb->ctrls->ax_options &
-					  XkbAX_LatchToLockMask) == 0, NULL, 0);
+					  XkbAX_LatchToLockMask) == 0, NULL);
     stickyBeep = XtVaCreateManagedWidget("beep", toggleWidgetClass, stickyForm,
 					 XtNstate,
 					 (xkb_info->xkb->ctrls->ax_options &
-					  XkbAX_StickyKeysFBMask) != 0, NULL, 0);
+					  XkbAX_StickyKeysFBMask) != 0, NULL);
 
     mouse = XtVaCreateManagedWidget("mouseKeys", toggleWidgetClass, form,
 				    XtNstate,
 				    (xkb_info->xkb->ctrls->enabled_ctrls &
 				     (XkbMouseKeysMask | XkbMouseKeysAccelMask))
-				    != 0, NULL, 0);
+				    != 0, NULL);
     mouseForm = XtCreateManagedWidget("mouseForm", formWidgetClass,
 				      form, NULL, 0);
     XtAddCallback(mouse, XtNcallback, EnableCallback, (XtPointer)mouseForm);
@@ -278,7 +278,7 @@ AccessXInitialize(void)
     repeat = XtVaCreateManagedWidget("repeatKeys", toggleWidgetClass, form,
 				     XtNstate,
 				    (xkb_info->xkb->ctrls->enabled_ctrls &
-				     XkbRepeatKeysMask) != 0, NULL, 0);
+				     XkbRepeatKeysMask) != 0, NULL);
     repeatForm = XtCreateManagedWidget("repeatForm", formWidgetClass,
 				       form, NULL, 0);
     XtAddCallback(repeat, XtNcallback, EnableCallback, (XtPointer)repeatForm);
@@ -314,7 +314,7 @@ AccessXInitialize(void)
     slowToggle = XtVaCreateManagedWidget("slow", toggleWidgetClass,
 					 form, XtNstate,
 					 (xkb_info->xkb->ctrls->enabled_ctrls &
-					 XkbSlowKeysMask) != 0, NULL, 0);
+					 XkbSlowKeysMask) != 0, NULL);
     slowForm = XtCreateManagedWidget("slowForm", formWidgetClass,
 				     form, NULL, 0);
     XtAddCallback(slowToggle, XtNcallback, EnableCallback, (XtPointer)slowForm);
@@ -323,12 +323,12 @@ AccessXInitialize(void)
 					  slowForm, XtNstate,
 					  (xkb_info->xkb->ctrls->ax_options &
 					  XkbAX_SKPressFBMask) != 0,
-					  NULL, 0);
+					  NULL);
     slowAccepted = XtVaCreateManagedWidget("accepted", toggleWidgetClass,
 					   slowForm, XtNstate,
 					   (xkb_info->xkb->ctrls->ax_options &
 					   XkbAX_SKAcceptFBMask) != 0,
-					   NULL, 0);
+					   NULL);
     slow = XtNew(Scale);
     slow->label = XtCreateManagedWidget("slowLabel", labelWidgetClass,
 					slowForm, NULL, 0);
@@ -348,7 +348,7 @@ AccessXInitialize(void)
 					   form, XtNstate,
 					   (xkb_info->xkb->ctrls->enabled_ctrls &
 					   XkbBounceKeysMask) != 0,
-					   NULL, 0);
+					   NULL);
     bounceForm = XtCreateManagedWidget("bounceForm", formWidgetClass,
 				     form, NULL, 0);
     XtAddCallback(bounceToggle, XtNcallback, EnableCallback, (XtPointer)bounceForm);

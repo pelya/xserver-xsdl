@@ -444,16 +444,16 @@ ScreenDialog(XF86SetupInfo *info)
 	d1 = XtCreateManagedWidget("1", toggleWidgetClass, dialog, NULL, 0);
 	XtAddCallback(d1, XtNcallback, DepthCallback, (XtPointer)1);
 	d4 = XtVaCreateManagedWidget("4", toggleWidgetClass, dialog,
-				     XtNradioGroup, d1, NULL, 0);
+				     XtNradioGroup, d1, NULL);
 	XtAddCallback(d4, XtNcallback, DepthCallback, (XtPointer)4);
 	d8 = XtVaCreateManagedWidget("8", toggleWidgetClass, dialog,
-				      XtNradioGroup, d4, NULL, 0);
+				      XtNradioGroup, d4, NULL);
 	XtAddCallback(d8, XtNcallback, DepthCallback, (XtPointer)8);
 	d16 = XtVaCreateManagedWidget("16", toggleWidgetClass, dialog,
-				      XtNradioGroup, d8, NULL, 0);
+				      XtNradioGroup, d8, NULL);
 	XtAddCallback(d16, XtNcallback, DepthCallback, (XtPointer)16);
 	d24 = XtVaCreateManagedWidget("24", toggleWidgetClass, dialog,
-				      XtNradioGroup, d16, NULL, 0);
+				      XtNradioGroup, d16, NULL);
 	XtAddCallback(d24, XtNcallback, DepthCallback, (XtPointer)24);
 
 	XtCreateManagedWidget("modeL", labelWidgetClass, dialog, NULL, 0);
@@ -485,7 +485,7 @@ ScreenDialog(XF86SetupInfo *info)
 	cw = XtCreateManagedWidget("CW", toggleWidgetClass, dialog, NULL, 0);
 	XtAddCallback(cw, XtNcallback, RotateCallback, (XtPointer)CW);
 	ccw = XtVaCreateManagedWidget("CCW", toggleWidgetClass, dialog,
-				      XtNradioGroup, cw, NULL, 0);
+				      XtNradioGroup, cw, NULL);
 	XtAddCallback(ccw, XtNcallback, RotateCallback, (XtPointer)CCW);
 
 	XtRealizeWidget(dialog);
@@ -525,16 +525,16 @@ ScreenDialog(XF86SetupInfo *info)
     (void)labelRotate;
 #endif
     if (rotate == CW) {
-	XtVaSetValues(cw, XtNstate, True, NULL, 0);
-	XtVaSetValues(ccw, XtNstate, False, NULL, 0);
+	XtVaSetValues(cw, XtNstate, True, NULL);
+	XtVaSetValues(ccw, XtNstate, False, NULL);
     }
     else if (rotate == CCW) {
-	XtVaSetValues(cw, XtNstate, False, NULL, 0);
-	XtVaSetValues(ccw, XtNstate, True, NULL, 0);
+	XtVaSetValues(cw, XtNstate, False, NULL);
+	XtVaSetValues(ccw, XtNstate, True, NULL);
     }
     else {
-	XtVaSetValues(cw, XtNstate, False, NULL, 0);
-	XtVaSetValues(ccw, XtNstate, False, NULL, 0);
+	XtVaSetValues(cw, XtNstate, False, NULL);
+	XtVaSetValues(ccw, XtNstate, False, NULL);
     }
 
     XtSetArg(args[0], XtNlist, modes);

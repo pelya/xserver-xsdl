@@ -95,7 +95,7 @@ Help(char *topic)
 	str = XtMalloc(len  = strlen(topic) + strlen(def_text) + 1);
 	XmuSnprintf(str, len, def_text, topic);
     }
-    XtVaSetValues(text, XtNstring, str, NULL, 0);
+    XtVaSetValues(text, XtNstring, str, NULL);
     if (error)
 	XtFree(str);
 
@@ -128,7 +128,7 @@ StartHelp(void)
 	pane = XtCreateManagedWidget("pane", panedWidgetClass,
 				     shell, NULL, 0);
 	text = XtVaCreateManagedWidget("text", asciiTextWidgetClass,
-				       pane, XtNeditType, XawtextRead, NULL, 0);
+				       pane, XtNeditType, XawtextRead, NULL);
 	commands = XtCreateManagedWidget("commands", formWidgetClass, pane,
 					 NULL, 0);
 	close = XtCreateManagedWidget("close", commandWidgetClass,
@@ -142,7 +142,7 @@ StartHelp(void)
 					       toplevel->core.screen,
 					       toplevel->core.colormap,
 					       toplevel->core.depth);
-	XtVaSetValues(XawTextGetSink(text), XawNtextProperties, propl, NULL, 0);
+	XtVaSetValues(XawTextGetSink(text), XawNtextProperties, propl, NULL);
     }
 }
 
@@ -428,7 +428,7 @@ Html_ModeStart(Widget src)
     else
 	parser->alink = 0L;
 
-    XtVaSetValues(src, XtNeditType, XawtextEdit, NULL, 0);
+    XtVaSetValues(src, XtNeditType, XawtextEdit, NULL);
 
     Html_ModeInit();
 
@@ -512,7 +512,7 @@ Html_ModeStart(Widget src)
     }
     XmuDestroyScanline(parser->mask);
 
-    XtVaSetValues(src, XtNeditType, XawtextRead, NULL, 0);
+    XtVaSetValues(src, XtNeditType, XawtextRead, NULL);
 
     XtFree((XtPointer)parser);
 
@@ -534,9 +534,9 @@ Html_ModeEnd(Widget src)
 	return;
 
     XawTextSourceClearEntities(src, 0, info->last);
-    XtVaSetValues(src, XtNeditType, XawtextEdit, NULL, 0);
+    XtVaSetValues(src, XtNeditType, XawtextEdit, NULL);
     XawTextSourceReplace(src, 0, info->last, &info->block);
-    XtVaSetValues(src, XtNeditType, XawtextRead, NULL, 0);
+    XtVaSetValues(src, XtNeditType, XawtextRead, NULL);
 
     if (info == source_info)
 	source_info = source_info->next;

@@ -367,7 +367,7 @@ MouseDeviceAndProtocol(XF86SetupInfo *info)
 	text = XtVaCreateManagedWidget("device", asciiTextWidgetClass,
 				       mouse_dp,
 				       XtNeditType, XawtextEdit,
-				       NULL, 0);
+				       NULL);
 	viewport = XtCreateManagedWidget("viewportD", viewportWidgetClass,
 					 mouse_dp, NULL, 0);
 
@@ -375,7 +375,7 @@ MouseDeviceAndProtocol(XF86SetupInfo *info)
 					viewport,
 					XtNlist, devices,
 					XtNnumberStrings, ndevices,
-					NULL, 0);
+					NULL);
 	XtAddCallback(listD, XtNcallback, MouseDeviceCallback, (XtPointer)text);
 
 	/* PROTOCOL */
@@ -392,11 +392,11 @@ MouseDeviceAndProtocol(XF86SetupInfo *info)
 					viewport,
 					XtNlist, list,
 					XtNnumberStrings, count,
-					NULL, 0);
+					NULL);
 	XtAddCallback(listP, XtNcallback, MouseProtocolCallback, NULL);
 
 	emul3 = XtVaCreateManagedWidget("emulate3", toggleWidgetClass,
-					mouse_dp, XtNstate, True, NULL, 0);
+					mouse_dp, XtNstate, True, NULL);
 	XtAddCallback(emul3, XtNcallback, MouseEmulateCallback, NULL);
 	apply = XtCreateManagedWidget("apply", commandWidgetClass,
 				      mouse_dp, NULL, 0);
