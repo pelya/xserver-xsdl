@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/kinput.c,v 1.8 2000/10/06 05:54:09 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/kinput.c,v 1.9 2000/10/06 22:05:53 keithp Exp $ */
 
 #include "kdrive.h"
 #include "inputstr.h"
@@ -45,6 +45,8 @@ static int		kdBellPitch;
 static int		kdBellDuration;
 static int		kdLeds;
 static Bool		kdInputEnabled;
+static Bool		kdOffScreen;
+static unsigned long	kdOffScreenTime;
 static KdMouseMatrix	kdMouseMatrix = {
     1, 0, 0,
     0, 1, 0
@@ -1371,11 +1373,18 @@ KdCursorOffScreen(ScreenPtr *ppScreen, int *x, int *y)
 {
     ScreenPtr	pScreen  = *ppScreen;
     int		n;
+    CARD32	ms;
     
     if (kdDisableZaphod || screenInfo.numScreens <= 1)
 	return FALSE;
     if (*x < 0 || *y < 0)
     {
+        ms = GetTimeInMillis ();
+	if (kdOffScreen && (int) (ms - kdOffScreenTime) < 1000)
+	    return FALSE;
+	kdOffScreen = TRUE;
+	kdOffScreenTime = ms;
+	
 	n = pScreen->myNum - 1;
 	if (n < 0)
 	    n = screenInfo.numScreens - 1;
@@ -1389,6 +1398,12 @@ KdCursorOffScreen(ScreenPtr *ppScreen, int *x, int *y)
     }
     else if (*x >= pScreen->width || *y >= pScreen->height)
     {
+        ms = GetTimeInMillis ();
+	if (kdOffScreen && (int) (ms - kdOffScreenTime) < 1000)
+	    return FALSE;
+	kdOffScreen = TRUE;
+	kdOffScreenTime = ms;
+	
 	n = pScreen->myNum + 1;
 	if (n >= screenInfo.numScreens)
 	    n = 0;
