@@ -956,8 +956,6 @@ vesaMapFramebuffer (KdScreenInfo    *screen)
 	pscr->mapping = VESA_WINDOWED;
 	pscr->shadow = TRUE;
     }
-    
-    screen->softCursor = TRUE;
 
     switch (pscr->mapping) {
     case VESA_MONO:
