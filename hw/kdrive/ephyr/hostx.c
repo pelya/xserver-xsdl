@@ -596,6 +596,8 @@ hostx_paint_debug_rect(int x,     int y,
   EPHYR_DBG("msec: %li tv_sec %li, tv_msec %li", 
 	    HostX.damage_debug_msec, tspec.tv_sec, tspec.tv_nsec);
 
+  /* fprintf(stderr, "Xephyr updating: %i+%i %ix%i\n", x, y, width, height); */
+
   XFillRectangle(HostX.dpy, HostX.win, HostX.gc, x, y, width,height); 
   XSync(HostX.dpy, False);
 
@@ -608,6 +610,7 @@ hostx_load_keymap(void)
 {
   KeySym          *keymap;
   int              mapWidth, min_keycode, max_keycode;
+  int              i,j;
 
   XDisplayKeycodes(HostX.dpy, &min_keycode, &max_keycode);
 
@@ -618,8 +621,21 @@ hostx_load_keymap(void)
 			       max_keycode - min_keycode + 1,
 			       &mapWidth);
 
-  memcpy (kdKeymap, keymap, 
-	  (max_keycode - min_keycode + 1)*mapWidth*sizeof(KeySym));
+  /* Try and copy the hosts keymap into our keymap to avoid loads
+   * of messing around.
+   *
+   * kdrive cannot can have more than 4 keysyms per keycode
+   * so we only copy the first 4 ( xorg has 6 per keycode )
+   */
+
+  for (i=0; i<(max_keycode - min_keycode+1); i++)
+    for (j=0; j<4; j++)
+      kdKeymap[ (i*4)+j ] = keymap[ (i*mapWidth) + j ];
+
+  /* old way
+    memcpy (kdKeymap, keymap, 
+    (max_keycode - min_keycode + 1)*mapWidth*sizeof(KeySym));
+  */
 
   EPHYR_DBG("keymap width: %d", mapWidth);
   
@@ -629,7 +645,7 @@ hostx_load_keymap(void)
   kdMaxScanCode = max_keycode;
   kdMinKeyCode  = min_keycode;
   kdMaxKeyCode  = max_keycode;
-  kdKeymapWidth = mapWidth;
+  kdKeymapWidth = (mapWidth > 4) ? 4 : mapWidth;
 
   XFree(keymap);
 }
