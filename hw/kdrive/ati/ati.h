@@ -214,7 +214,6 @@ typedef struct _ATIScreenInfo {
 
 	int		scratch_offset;
 	int		scratch_next;
-	int		scratch_size;
 	KdOffscreenArea *scratch_area;
 
 	ATICursor	cursor;
