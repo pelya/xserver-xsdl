@@ -3,6 +3,7 @@
  */
 /*
 Copyright (c) 2002 Torrey T. Lyons. All Rights Reserved.
+Copyright 2004 Kaleb S. KEITHLEY. All Rights Reserved.
 
 This file is based on mieq.c by Keith Packard,
 which contains the following copyright:
@@ -108,16 +109,20 @@ static void DarwinUpdateModifiers(
         DarwinPressModifierMask(xe, NX_ALPHASHIFTMASK);
     }
     if (flags & NX_COMMANDMASK) {
-        DarwinPressModifierMask(xe, NX_COMMANDMASK);
+        DarwinPressModifierMask(xe, 
+	    flags & (NX_DEVICELCMDKEYMASK|NX_DEVICERCMDKEYMASK));
     }
     if (flags & NX_CONTROLMASK) {
-        DarwinPressModifierMask(xe, NX_CONTROLMASK);
+        DarwinPressModifierMask(xe, 
+	    flags & (NX_DEVICELCTLKEYMASK|NX_DEVICERCTLKEYMASK));
     }
     if (flags & NX_ALTERNATEMASK) {
-        DarwinPressModifierMask(xe, NX_ALTERNATEMASK);
+        DarwinPressModifierMask(xe, 
+	    flags & (NX_DEVICELALTKEYMASK|NX_DEVICERALTKEYMASK));
     }
     if (flags & NX_SHIFTMASK) {
-        DarwinPressModifierMask(xe, NX_SHIFTMASK);
+        DarwinPressModifierMask(xe, 
+	    flags & (NX_DEVICELSHIFTKEYMASK|NX_DEVICERSHIFTKEYMASK));
     }
     if (flags & NX_SECONDARYFNMASK) {
         DarwinPressModifierMask(xe, NX_SECONDARYFNMASK);
