@@ -23,6 +23,9 @@
  * Author:  Keith Packard, SuSE, Inc.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 #include "misc.h"
 #include "scrnintstr.h"
 #include "os.h"
@@ -420,12 +423,27 @@ PictureCreateDefaultFormats (ScreenPtr pScreen, int *nformatp)
 	case PICT_TYPE_COLOR:
 	case PICT_TYPE_GRAY:
 	    pFormats[f].type = PictTypeIndexed;
-	    pFormats[f].index.pVisual = &pScreen->visuals[PICT_FORMAT_VIS(format)];
+	    pFormats[f].index.vid = pScreen->visuals[PICT_FORMAT_VIS(format)].vid;
 	    break;
 	}
     }
     *nformatp = nformats;
     return pFormats;
+}
+
+static VisualPtr
+PictureFindVisual (ScreenPtr pScreen, VisualID visual)
+{
+    int         i;
+    VisualPtr   pVisual;
+    for (i = 0, pVisual = pScreen->visuals;
+         i < pScreen->numVisuals;
+         i++, pVisual++)
+    {
+        if (pVisual->vid == visual)
+            return pVisual;
+    }
+    return 0;
 }
 
 Bool
@@ -443,13 +461,16 @@ PictureInitIndexedFormats (ScreenPtr pScreen)
     {
 	if (format->type == PictTypeIndexed && !format->index.pColormap)
 	{
-	    if (format->index.pVisual->vid == pScreen->rootVisual)
+	    if (format->index.vid == pScreen->rootVisual)
 		format->index.pColormap = (ColormapPtr) LookupIDByType(pScreen->defColormap,
 								       RT_COLORMAP);
 	    else
 	    {
+                VisualPtr   pVisual;
+
+                pVisual = PictureFindVisual (pScreen, format->index.vid);
 		if (CreateColormap (FakeClientID (0), pScreen,
-				    format->index.pVisual,
+				    pVisual,
 				    &format->index.pColormap, AllocNone,
 				    0) != Success)
 		{
@@ -533,7 +554,7 @@ PictureMatchVisual (ScreenPtr pScreen, int depth, VisualPtr pVisual)
 	{
 	    if (type == PictTypeIndexed)
 	    {
-		if (format->index.pVisual == pVisual)
+		if (format->index.vid == pVisual->vid)
 		    return format;
 	    }
 	    else
@@ -638,7 +659,8 @@ PictureInit (ScreenPtr pScreen, PictFormatPtr formats, int nformats)
 	}
 	if (formats[n].type == PictTypeIndexed)
 	{
-	    if ((formats[n].index.pVisual->class | DynamicClass) == PseudoColor)
+            VisualPtr   pVisual = PictureFindVisual (pScreen, formats[n].index.vid);
+	    if ((pVisual->class | DynamicClass) == PseudoColor)
 		type = PICT_TYPE_COLOR;
 	    else
 		type = PICT_TYPE_GRAY;
@@ -1078,6 +1100,51 @@ SetPictureClipRects (PicturePtr	pPicture,
     }
     return result;
 }
+
+int
+SetPictureClipRegion (PicturePtr    pPicture,
+                      int           xOrigin,
+                      int           yOrigin,
+                      RegionPtr     pRegion)
+{
+    ScreenPtr           pScreen = pPicture->pDrawable->pScreen;
+    PictureScreenPtr    ps = GetPictureScreen(pScreen);
+    RegionPtr           clientClip;
+    int                 result;
+    int                 type;
+
+    if (pRegion)
+    {
+        type = CT_REGION;
+        clientClip = REGION_CREATE (pScreen,
+                                    REGION_EXTENTS(pScreen, pRegion),
+                                    REGION_NUM_RECTS(pRegion));
+        if (!clientClip)
+            return BadAlloc;
+        if (!REGION_COPY (pSCreen, clientClip, pRegion))
+        {
+            REGION_DESTROY (pScreen, clientClip);
+            return BadAlloc;
+        }
+    }
+    else
+    {
+        type = CT_NONE;
+        clientClip = 0;
+    }
+
+    result =(*ps->ChangePictureClip) (pPicture, type,
+                                      (pointer) clientClip, 0);
+    if (result == Success)
+    {
+        pPicture->clipOrigin.x = xOrigin;
+        pPicture->clipOrigin.y = yOrigin;
+        pPicture->stateChanges |= CPClipXOrigin|CPClipYOrigin|CPClipMask;
+        pPicture->serialNumber |= GC_CHANGE_SERIAL_BIT;
+    }
+    return result;
+}
+
 
 int
 SetPictureTransform (PicturePtr	    pPicture,

@@ -1,7 +1,7 @@
 /*
- * $XFree86$
+ * $Id$
  *
- * Copyright © 2002 Keith Packard, member of The XFree86 Project, Inc.
+ * Copyright © 2002 Keith Packard
  *
  * Permission to use, copy, modify, distribute, and sell this software and its
  * documentation for any purpose is hereby granted without fee, provided that
@@ -22,6 +22,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 #include "misc.h"
 #include "scrnintstr.h"
 #include "os.h"
@@ -40,6 +43,12 @@
 static char **filterNames;
 static int  nfilterNames;
 
+/*
+ * standard but not required filters don't have constant indices
+ */
+
+int pictFilterConvolution;
+
 int
 PictureGetFilterId (char *filter, int len, Bool makeit)
 {
@@ -50,15 +59,14 @@ PictureGetFilterId (char *filter, int len, Bool makeit)
     if (len < 0)
 	len = strlen (filter);
     for (i = 0; i < nfilterNames; i++)
-	if (len == strlen (filterNames[i]) && 
-	    !strncmp (filterNames[i], filter, len))
+	if (!CompareISOLatin1Lowered ((unsigned char *) filterNames[i], -1, (unsigned char *) filter, len))
 	    return i;
     if (!makeit)
 	return -1;
-    name = xalloc (strlen (filter) + 1);
+    name = xalloc (len + 1);
     if (!name)
 	return -1;
-    strncpy (name, filter, len);
+    memcpy (name, filter, len);
     name[len] = '\0';
     if (filterNames)
 	names = xrealloc (filterNames, (nfilterNames + 1) * sizeof (char *));
@@ -116,7 +124,9 @@ PictureFreeFilterIds (void)
 }
 
 int
-PictureAddFilter (ScreenPtr pScreen, char *filter, xFixed *params, int nparams)
+PictureAddFilter (ScreenPtr			    pScreen,
+		  char				    *filter,
+		  PictFilterValidateParamsProcPtr   ValidateParams)
 {
     PictureScreenPtr    ps = GetPictureScreen(pScreen);
     int			id = PictureGetFilterId (filter, -1,  TRUE);
@@ -140,9 +150,8 @@ PictureAddFilter (ScreenPtr pScreen, char *filter, xFixed *params, int nparams)
     ps->filters = filters;
     i = ps->nfilters++;
     ps->filters[i].name = PictureGetFilterName (id);
-    ps->filters[i].params = params;
-    ps->filters[i].nparams = nparams;
     ps->filters[i].id = id;
+    ps->filters[i].ValidateParams = ValidateParams;
     return id;
 }
 
@@ -209,9 +218,9 @@ PictureSetDefaultFilters (ScreenPtr pScreen)
     if (!filterNames)
 	if (!PictureSetDefaultIds ())
 	    return FALSE;
-    if (PictureAddFilter (pScreen, FilterNearest, 0, 0) < 0)
+    if (PictureAddFilter (pScreen, FilterNearest, 0) < 0)
 	return FALSE;
-    if (PictureAddFilter (pScreen, FilterBilinear, 0, 0) < 0)
+    if (PictureAddFilter (pScreen, FilterBilinear, 0) < 0)
 	return FALSE;
 
     if (!PictureSetFilterAlias (pScreen, FilterNearest, FilterFast))
@@ -243,21 +252,25 @@ SetPictureFilter (PicturePtr pPicture, char *name, int len, xFixed *params, int 
 
     if (!pFilter)
 	return BadName;
-    if (nparams > pFilter->nparams)
-	return BadMatch;
-    if (pFilter->nparams != pPicture->filter_nparams)
+    if (pFilter->ValidateParams)
     {
-	new_params = xalloc (pFilter->nparams * sizeof (xFixed));
+	if (!(*pFilter->ValidateParams) (pPicture, pFilter->id, params, nparams))
+	    return BadMatch;
+    }
+    else if (nparams)
+	return BadMatch;
+
+    if (nparams != pPicture->filter_nparams)
+    {
+	new_params = xalloc (nparams * sizeof (xFixed));
 	if (!new_params)
 	    return BadAlloc;
 	xfree (pPicture->filter_params);
 	pPicture->filter_params = new_params;
-	pPicture->filter_nparams = pFilter->nparams;
+	pPicture->filter_nparams = nparams;
     }
     for (i = 0; i < nparams; i++)
 	pPicture->filter_params[i] = params[i];
-    for (; i < pFilter->nparams; i++)
-	pPicture->filter_params[i] = pFilter->params[i];
     pPicture->filter = pFilter->id;
     return Success;
 }

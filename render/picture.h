@@ -160,6 +160,9 @@ extern int  PictureCmapPolicy;
 
 int	PictureParseCmapPolicy (const char *name);
 
+extern int	RenderErrBase;
+extern int	RenderClientPrivateIndex;
+
 /* Fixed point updates from Carl Worth, USC, Information Sciences Institute */
 
 #ifdef WIN32
