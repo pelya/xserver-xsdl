@@ -2104,16 +2104,16 @@ const char* XpOidNotifyString(XpOidNotify notify)
 {
     switch(notify)
     {
-    case XPOID_NOTIFY_UNSUPPORTED:
-	return (const char*)NULL;
-	break;
-    case XPOID_NOTIFY_NONE:
-	return NOTIFY_NONE_STR;
-	break;
-    case XPOID_NOTIFY_EMAIL:
-	return NOTIFY_EMAIL_STR;
-	break;
+       case XPOID_NOTIFY_NONE:
+           return NOTIFY_NONE_STR;
+       case XPOID_NOTIFY_EMAIL:
+           return NOTIFY_EMAIL_STR;
+       case XPOID_NOTIFY_UNSUPPORTED:
+           return (const char *)NULL;
     }
+
+    ErrorF("XpOidNotifyString: Unsupported notify=%ld\n", (long)notify);
+    return (const char *)NULL;
 }
 
 /*
