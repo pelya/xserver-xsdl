@@ -28,91 +28,171 @@
 #endif
 #include "kdrive.h"
 
+#define DEBUG_OFFSCREEN 0
+#if DEBUG_OFFSCREEN
+#define DBG_OFFSCREEN(a) ErrorF a
+#else
+#define DBG_OFFSCREEN(a)
+#endif
+
 typedef struct _RealOffscreenArea {
     KdOffscreenArea area;
 
-    KdOffscreenMoveDataProc moveIn;
-    KdOffscreenMoveDataProc moveOut;
+    KdOffscreenSaveProc save;
 
     Bool locked;
     
-    struct _RealOffscreenArea *next;
     struct _RealOffscreenArea *prev;
+    struct _RealOffscreenArea *next;
 } RealOffscreenArea;
+
+#if DEBUG_OFFSCREEN
+static void
+KdOffscreenValidate (ScreenPtr pScreen)
+{
+    KdScreenPriv (pScreen);
+    RealOffscreenArea *prev = 0, *area;
+
+    assert (pScreenPriv->screen->off_screen_areas->area.offset == 0);
+    for (area = pScreenPriv->screen->off_screen_areas; area; area = area->next)
+    {
+	if (prev)
+	    assert (prev->area.offset + prev->area.size == area->area.offset);
+	    
+	prev = area;
+    }
+    assert (prev->area.offset + prev->area.size == pScreenPriv->screen->off_screen_size);
+}
+#else
+#define KdOffscreenValidate(s)
+#endif
+
+static void
+KdOffscreenKickOut (KdOffscreenArea *area)
+{
+    RealOffscreenArea *real_area = (RealOffscreenArea *) area;
+    KdCheckSync (area->screen);
+    if (real_area->save)
+	(*real_area->save) (area);
+    KdOffscreenFree (area);
+}
 
 KdOffscreenArea *
 KdOffscreenAlloc (ScreenPtr pScreen, int size, int align,
 		  Bool locked,
-		  KdOffscreenMoveDataProc moveIn,
-		  KdOffscreenMoveDataProc moveOut,
+		  KdOffscreenSaveProc save,
 		  pointer privData)
 {
-    RealOffscreenArea *area;
+    RealOffscreenArea *area, **prev;
     KdScreenPriv (pScreen);
     int tmp, real_size;
 
-
+    KdOffscreenValidate (pScreen);
     if (!align)
 	align = 1;
 
-    /* Go through the areas */
-    area = pScreenPriv->screen->off_screen_areas;
-    while (area != NULL)
+    if (!size)
     {
-	if (area->area.screen != NULL)
-	{
-	    area = area->next;
+	DBG_OFFSCREEN (("Alloc 0x%x -> EMPTY\n", size));
+	return NULL;
+    }
+
+    /* throw out requests that cannot fit */
+    if (size > pScreenPriv->screen->off_screen_size)
+    {
+	DBG_OFFSCREEN (("Alloc 0x%x -> TOBIG\n", size));
+	return NULL;
+    }
+    
+retry:
+
+    /* Go through the areas */
+    for (area = pScreenPriv->screen->off_screen_areas; area; area = area->next)
+    {
+	/* skip allocated areas */
+	if (area->area.screen)
 	    continue;
-	}
 
+	/* adjust size to match alignment requirement */
 	real_size = size;
-	tmp = (area->area.offset + area->area.size - size) % align;
-
+	tmp = area->area.offset % align;
 	if (tmp)
 	    real_size += (align - tmp);
 	
+	/* does it fit? */
 	if (real_size <= area->area.size)
 	{
 	    RealOffscreenArea *new_area;
 
-	    if (real_size == area->area.size)
+	    /* save extra space in new area */
+	    if (real_size < area->area.size)
 	    {
-		area->area.screen = pScreen;
-		area->area.privData = privData;
-		area->area.swappedOut = FALSE;		
-		area->locked = locked;
-		area->moveIn = moveIn;
-		area->moveOut = moveOut;
-
-		return (KdOffscreenArea *)area;
+		new_area = xalloc (sizeof (RealOffscreenArea));
+		if (!new_area)
+		    return NULL;
+		new_area->area.offset = area->area.offset + real_size;
+		new_area->area.size = area->area.size - real_size;
+		new_area->area.screen = 0;
+		new_area->locked = FALSE;
+		new_area->save = 0;
+		if ((new_area->next = area->next))
+		    new_area->next->prev = new_area;
+		new_area->prev = area;
+		area->next = new_area;
+		area->area.size = real_size;
 	    }
+	    area->area.screen = pScreen;
+	    area->area.privData = privData;
+	    area->locked = locked;
+	    area->save = save;
+
+	    KdOffscreenValidate (pScreen);
 	    
-	    /* Create a new area */
-	    new_area = xalloc (sizeof (RealOffscreenArea));
-	    new_area->area.offset = area->area.offset + area->area.size - real_size;
-	    new_area->area.size = real_size;
-	    new_area->area.screen = pScreen;
-	    new_area->area.swappedOut = FALSE;
-	    new_area->locked = locked;
-	    new_area->moveIn = moveIn;
-	    new_area->moveOut = moveOut;
-	    
-	    area->area.size -= real_size;
-
-	    new_area->prev = area;
-	    new_area->next = area->next;
-
-	    if (area->next)
-		area->next->prev = new_area;
-	    area->next = new_area;
-
-	    return (KdOffscreenArea *)new_area;
+	    DBG_OFFSCREEN (("Alloc 0x%x -> 0x%x\n", size, area->area.offset));
+	    return &area->area;
 	}
-	
-	area = area->next;
     }
+    
+    /* 
+     * Kick out existing users.  This is pretty simplistic; it just
+     * keeps deleting areas until the first area is free and has enough room
+     */
+    
+    prev = (RealOffscreenArea **) &pScreenPriv->screen->off_screen_areas;
+    while ((area = *prev))
+    {
+	if (area->area.screen && !area->locked)
+	{
+	    KdOffscreenKickOut (&area->area);
+	    continue;
+	}
+	/* adjust size to match alignment requirement */
+	real_size = size;
+	tmp = area->area.offset % align;
+	if (tmp)
+	    real_size += (align - tmp);
+	
+	/* does it fit? */
+	if (real_size <= area->area.size)
+	    goto retry;
 
+	/* kick out the next area */
+	area = area->next;
+	if (!area)
+	    break;
+	/* skip over locked areas */
+	if (area->locked)
+	{
+	    prev = &area->next;
+	    continue;
+	}
+	assert (area->area.screen);
+	KdOffscreenKickOut (&area->area);
+    }
+    
+    DBG_OFFSCREEN (("Alloc 0x%x -> NOSPACE\n", size));
     /* Could not allocate memory */
+    KdOffscreenValidate (pScreen);
     return NULL;
 }
 
@@ -120,68 +200,73 @@ void
 KdOffscreenSwapOut (ScreenPtr pScreen)
 {
     KdScreenPriv (pScreen);
-    RealOffscreenArea *area = pScreenPriv->screen->off_screen_areas;
 
-    while (area)
+    KdOffscreenValidate (pScreen);
+    /* loop until a single free area spans the space */
+    for (;;)
     {
-	if (area->area.screen && area->moveOut)
-	    (*area->moveOut) ((KdOffscreenArea *)area);
-
-	area->area.swappedOut = TRUE;
-
+	RealOffscreenArea *area = pScreenPriv->screen->off_screen_areas;
+	
+	if (!area)
+	    break;
+	if (area->area.screen)
+	{
+	    KdOffscreenKickOut (&area->area);
+	    continue;
+	}
 	area = area->next;
+	if (!area)
+	    break;
+	assert (area->area.screen);
+	KdOffscreenKickOut (&area->area);
+	KdOffscreenValidate (pScreen);
     }    
+    KdOffscreenValidate (pScreen);
 }
 
 void
 KdOffscreenSwapIn (ScreenPtr pScreen)
 {
-    KdScreenPriv (pScreen);
-    RealOffscreenArea *area = pScreenPriv->screen->off_screen_areas;    
+    /* nothing to do here; page in on usage */
+}
 
-    while (area)
-    {
-	if (area->area.screen && area->moveIn)
-	    (*area->moveIn) ((KdOffscreenArea *)area);
+/* merge the next free area into this one */
+static void
+KdOffscreenMerge (KdOffscreenArea *area)
+{
+    RealOffscreenArea	*real_area = (RealOffscreenArea *) area;
+    RealOffscreenArea	*next = real_area->next;
 
-	area->area.swappedOut = FALSE;
-	area = area->next;
-    }    
+    /* account for space */
+    real_area->area.size += next->area.size;
+    /* frob pointers */
+    if ((real_area->next = next->next))
+	real_area->next->prev = real_area;
+    xfree (next);
 }
 
 void
 KdOffscreenFree (KdOffscreenArea *area)
 {
-    RealOffscreenArea *real_area = (RealOffscreenArea *)area;
+    ScreenPtr		pScreen = area->screen;
+    RealOffscreenArea	*real_area = (RealOffscreenArea *) area;
+    RealOffscreenArea	*next = real_area->next;
+    RealOffscreenArea	*prev = real_area->prev;
     
-    real_area->area.screen = NULL;
+    DBG_OFFSCREEN (("Free 0x%x -> 0x%x\n", area->size, area->offset));
+    KdOffscreenValidate (pScreen);
 
-    if (real_area && real_area->next && !real_area->next->area.screen)
-    {
-	RealOffscreenArea *tmp;
-	
-	real_area->next->prev = real_area->prev;
-	if (real_area->prev)
-	    real_area->prev->next = real_area->next;
+    area->screen = NULL;
 
-	real_area->next->area.size += real_area->area.size;
-	real_area->next->area.offset = real_area->area.offset;
-
-	tmp = real_area->next;
-	xfree (real_area);
-	real_area = tmp;
-    }
+    /* link with next area if free */
+    if (next && !next->area.screen)
+	KdOffscreenMerge (&real_area->area);
     
-    if (real_area->prev && !real_area->prev->area.screen)
-    {
-	real_area->prev->next = real_area->next;
-	if (real_area->next)
-	    real_area->next->prev = real_area->prev;
-	
-	real_area->prev->area.size += real_area->area.size;
-	
-	xfree (real_area);
-    }
+    /* link with prev area if free */
+    if (prev && !prev->area.screen)
+	KdOffscreenMerge (&prev->area);
+
+    KdOffscreenValidate (pScreen);
 }
 
 Bool
@@ -199,13 +284,29 @@ KdOffscreenInit (ScreenPtr pScreen)
     area->area.screen = NULL;
     area->area.offset = pScreenPriv->screen->off_screen_base;
     area->area.size = pScreenPriv->screen->off_screen_size;
-    area->area.swappedOut = FALSE;
+    area->save = 0;
+    area->locked = FALSE;
     area->next = NULL;
     area->prev = NULL;
     
     /* Add it to the free areas */
     pScreenPriv->screen->off_screen_areas = area;
     
+    KdOffscreenValidate (pScreen);
+
     return TRUE;
 }
 
+void
+KdOffscreenFini (ScreenPtr pScreen)
+{
+    KdScreenPriv (pScreen);
+    RealOffscreenArea *area;
+    
+    /* just free all of the area records */
+    while ((area = pScreenPriv->screen->off_screen_areas))
+    {
+	pScreenPriv->screen->off_screen_areas = area->next;
+	xfree (area);
+    }
+}

@@ -63,8 +63,7 @@ RegionPtr
 KdCheckCopyArea (DrawablePtr pSrc, DrawablePtr pDst, GCPtr pGC,
 		 int srcx, int srcy, int w, int h, int dstx, int dsty)
 {
-    if (pSrc->type == DRAWABLE_WINDOW || pDst->type == DRAWABLE_WINDOW)
-	KdCheckSync (pSrc->pScreen);
+    KdCheckSync (pSrc->pScreen);
     return fbCopyArea (pSrc, pDst, pGC, srcx, srcy, w, h, dstx, dsty);
 }
 
@@ -73,8 +72,7 @@ KdCheckCopyPlane (DrawablePtr pSrc, DrawablePtr pDst, GCPtr pGC,
 		  int srcx, int srcy, int w, int h, int dstx, int dsty,
 		  unsigned long bitPlane)
 {
-    if (pSrc->type == DRAWABLE_WINDOW || pDst->type == DRAWABLE_WINDOW)
-	KdCheckSync (pSrc->pScreen);
+    KdCheckSync (pSrc->pScreen);
     return fbCopyPlane (pSrc, pDst, pGC, srcx, srcy, w, h, dstx, dsty,
 			bitPlane);
 }
@@ -199,8 +197,7 @@ KdCheckGetSpans (DrawablePtr pDrawable,
 		 int nspans,
 		 char *pdstStart)
 {
-    if (pDrawable->type != DRAWABLE_PIXMAP)
-	KdCheckSync(pDrawable->pScreen);
+    KdCheckSync(pDrawable->pScreen);
     fbGetSpans (pDrawable, wMax, ppt, pwidth, nspans, pdstStart);
 }
 
@@ -308,3 +305,11 @@ const GCOps kdAsyncPixmapGCOps = {
     ,NULL
 #endif
 };
+
+void
+KdAssertSync (ScreenPtr pScreen)
+{
+    KdScreenPriv(pScreen);
+    KdCardInfo	*card = pScreenPriv->card;
+    assert (!card->needSync);
+}

@@ -267,7 +267,6 @@ typedef struct _KdOffscreenArea {
     int 	offset;
     int		size;
     pointer	privData;
-    Bool    	swappedOut;
 } KdOffscreenArea;
 
 extern const KdMonitorTiming	kdMonitorTimings[];
@@ -753,6 +752,22 @@ KdRandRGetTiming (ScreenPtr	    pScreen,
 void
 KdPictureInitAsync (ScreenPtr pScreen);
 
+#ifdef RENDER
+void
+KdCheckComposite (CARD8      op,
+		  PicturePtr pSrc,
+		  PicturePtr pMask,
+		  PicturePtr pDst,
+		  INT16      xSrc,
+		  INT16      ySrc,
+		  INT16      xMask,
+		  INT16      yMask,
+		  INT16      xDst,
+		  INT16      yDst,
+		  CARD16     width,
+		  CARD16     height);
+#endif
+
 /* kshadow.c */
 Bool
 KdShadowScreenInit (KdScreenInfo *screen);
@@ -771,7 +786,7 @@ int
 KdFrameBufferSize (CARD8 *base, int max);
 
 /* koffscreen.c */
-typedef void (*KdOffscreenMoveDataProc) (KdOffscreenArea *area);
+typedef void (*KdOffscreenSaveProc) (KdOffscreenArea *area);
 
 Bool
 KdOffscreenInit (ScreenPtr pScreen);
@@ -779,8 +794,7 @@ KdOffscreenInit (ScreenPtr pScreen);
 KdOffscreenArea *
 KdOffscreenAlloc (ScreenPtr pScreen, int size, int align,
 		  Bool locked,
-		  KdOffscreenMoveDataProc moveIn,
-		  KdOffscreenMoveDataProc moveOut,
+		  KdOffscreenSaveProc save,
 		  pointer privData);
 
 void
@@ -791,6 +805,9 @@ KdOffscreenSwapOut (ScreenPtr pScreen);
 
 void
 KdOffscreenSwapIn (ScreenPtr pScreen);
+
+void
+KdOffscreenFini (ScreenPtr pScreen);
 
 /* function prototypes to be implemented by the drivers */
 void

@@ -844,6 +844,9 @@ KdCloseScreen (int index, ScreenPtr pScreen)
     pScreen->CloseScreen = pScreenPriv->CloseScreen;
     ret = (*pScreen->CloseScreen) (index, pScreen);
     
+    if (screen->off_screen_size > 0)
+	KdOffscreenFini (pScreen);
+    
     if (pScreenPriv->dpmsState != KD_DPMS_NORMAL)
 	(*card->cfuncs->dpms) (pScreen, KD_DPMS_NORMAL);
     
