@@ -138,8 +138,7 @@ KdColormapFb (ColormapPtr   pCmap)
     KdScreenInfo    *screen = pScreenPriv->screen;
     int		d;
     DepthPtr	depth;
-    int		v, vi;
-    VisualPtr	visual;
+    int		v;
     VisualID	vid = pCmap->pVisual->vid;
     int		fb;
 

@@ -42,8 +42,6 @@ static DeviceIntPtr	pKdKeyboard, pKdPointer;
 
 static KdMouseFuncs	*kdMouseFuncs;
 static KdKeyboardFuncs	*kdKeyboardFuncs;
-static unsigned long	kdEmulationTimeout;
-static Bool		kdTimeoutPending;
 static int		kdBellPitch;
 static int		kdBellDuration;
 static int		kdLeds;
@@ -163,7 +161,6 @@ KdNonBlockFd (int fd)
 void
 KdAddFd (int fd)
 {
-    int	flags;
     struct sigaction	act;
     sigset_t		set;
     
@@ -303,7 +300,6 @@ KdMouseProc(DeviceIntPtr pDevice, int onoff)
     BYTE	map[KD_MAX_BUTTON];
     DevicePtr	pDev = (DevicePtr)pDevice;
     int		i;
-    KdMouseInfo	*mi;
     
     if (!pDev)
 	return BadImplementation;
@@ -1263,7 +1259,6 @@ KdEnqueueKeyboardEvent(unsigned char	scan_code,
 {
     unsigned char   key_code;
     xEvent	    xE;
-    int		    e;
     KeyClassPtr	    keyc;
 
     if (!pKdKeyboard)

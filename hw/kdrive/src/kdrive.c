@@ -77,8 +77,8 @@ KdSetRootClip (ScreenPtr pScreen, BOOL enable)
     WindowPtr	pWin = WindowTable[pScreen->myNum];
     WindowPtr	pChild;
     Bool	WasViewable;
-    Bool	anyMarked;
-    RegionPtr	pOldClip, bsExposed;
+    Bool	anyMarked = FALSE;
+    RegionPtr	pOldClip = 0, bsExposed;
 #ifdef DO_SAVE_UNDERS
     Bool	dosave = FALSE;
 #endif
@@ -323,9 +323,6 @@ KdResume (void)
 void
 KdEnableScreens (void)
 {
-    KdCardInfo	    *card;
-    KdScreenInfo    *screen;
-
     if (!kdEnabled)
     {
 	kdEnabled = TRUE;
@@ -425,7 +422,6 @@ void
 KdParseScreen (KdScreenInfo *screen,
 	       char	    *arg)
 {
-    char    *bpp;
     char    delim;
     char    save[1024];
     int	    fb;

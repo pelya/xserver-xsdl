@@ -93,7 +93,7 @@ VGA8
 VgaFetch (VgaCard *card, VGA16 reg)
 {
     VgaMap	map;
-    VGA8	value;
+    VGA8	value = 0;
 
     (*card->map) (card, reg, &map, VGAFALSE);
     switch (map.access) {
@@ -235,7 +235,7 @@ VgaSet (VgaCard *card, VgaReg *reg, VGA32 value)
 	    mask <<= reg->base;
 	    new <<= reg->base;
 	    v = card->values[reg->id].cur;
-	    v = v & ~mask | new;
+	    v = (v & ~mask) | new;
 	    card->values[reg->id].cur = v;
 	    card->values[reg->id].flags |= VGA_VALUE_MODIFIED|VGA_VALUE_DIRTY;
 	}

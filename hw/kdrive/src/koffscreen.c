@@ -52,6 +52,9 @@ KdOffscreenAlloc (ScreenPtr pScreen, int size, int align,
     int tmp, real_size;
 
 
+    if (!align)
+	align = 1;
+
     /* Go through the areas */
     area = pScreenPriv->screen->off_screen_areas;
     while (area != NULL)

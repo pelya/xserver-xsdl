@@ -299,7 +299,7 @@ KdTuneMode (KdScreenInfo    *screen,
 	    Bool	    (*supported) (KdScreenInfo *,
 					  const KdMonitorTiming *))
 {
-    const KdMonitorTiming   *t, *new;
+    const KdMonitorTiming   *t;
     
     while (!(*usable) (screen))
     {
@@ -369,8 +369,6 @@ KdRandRGetTiming (ScreenPtr	    pScreen,
 		  int		    rate,
 		  RRScreenSizePtr   pSize)
 {
-    KdScreenPriv(pScreen);
-    KdScreenInfo	    *screen = pScreenPriv->screen;
     int			    i;
     const KdMonitorTiming   *t;
     

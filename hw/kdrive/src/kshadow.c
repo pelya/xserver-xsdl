@@ -45,8 +45,6 @@ KdShadowScreenInit (KdScreenInfo *screen)
 Bool
 KdShadowInitScreen (ScreenPtr pScreen, ShadowUpdateProc update, ShadowWindowProc window)
 {
-    KdScreenPriv(pScreen);
-
     return shadowInit (pScreen, update, window);
 }
 

@@ -188,7 +188,6 @@ KdXVScreenInit(
    KdVideoAdaptorPtr *adaptors,
    int num
 ){
-    KdScreenPriv(pScreen);
   KdXVScreenPtr ScreenPriv;
   XvScreenPtr pxvs;
 
@@ -669,7 +668,6 @@ KdXVRegetVideo(XvPortRecPrivatePtr portPriv)
   RegionRec WinRegion;
   RegionRec ClipRegion;
   BoxRec WinBox;
-  ScreenPtr pScreen = portPriv->pDraw->pScreen;
   int ret = Success;
   Bool clippedAway = FALSE;
 
@@ -682,18 +680,18 @@ KdXVRegetVideo(XvPortRecPrivatePtr portPriv)
   WinBox.y2 = WinBox.y1 + portPriv->drw_h;
   
   /* clip to the window composite clip */
-  REGION_INIT(pScreen, &WinRegion, &WinBox, 1);
-  REGION_INIT(pScreen, &ClipRegion, NullBox, 1);
-  REGION_INTERSECT(Screen, &ClipRegion, &WinRegion, portPriv->pCompositeClip); 
+  REGION_INIT(portPriv->pDraw->pScreen, &WinRegion, &WinBox, 1);
+  REGION_INIT(portPriv->pDraw->pScreen, &ClipRegion, NullBox, 1);
+  REGION_INTERSECT(portPriv->pDraw->pScreen, &ClipRegion, &WinRegion, portPriv->pCompositeClip); 
   
   /* that's all if it's totally obscured */
-  if(!REGION_NOTEMPTY(pScreen, &ClipRegion)) {
+  if(!REGION_NOTEMPTY(portPriv->pDraw->pScreen, &ClipRegion)) {
 	clippedAway = TRUE;
 	goto CLIP_VIDEO_BAILOUT;
   }
 
   if(portPriv->AdaptorRec->flags & VIDEO_INVERT_CLIPLIST) {
-     REGION_SUBTRACT(pScreen, &ClipRegion, &WinRegion, &ClipRegion);
+     REGION_SUBTRACT(portPriv->pDraw->pScreen, &ClipRegion, &WinRegion, &ClipRegion);
   }
 
   ret = (*portPriv->AdaptorRec->GetVideo)(portPriv->screen, 
@@ -718,8 +716,8 @@ CLIP_VIDEO_BAILOUT:
   if(!portPriv->FreeCompositeClip)
      portPriv->pCompositeClip = NULL;
 
-  REGION_UNINIT(pScreen, &WinRegion);
-  REGION_UNINIT(pScreen, &ClipRegion);
+  REGION_UNINIT(portPriv->pDraw->pScreen, &WinRegion);
+  REGION_UNINIT(portPriv->pDraw->pScreen, &ClipRegion);
 
   return ret;
 }
@@ -1149,8 +1147,6 @@ KdXVClipNotify(WindowPtr pWin, int dx, int dy)
 static Bool
 KdXVCloseScreen(int i, ScreenPtr pScreen)
 {
-    KdScreenPriv(pScreen);
-    KdScreenInfo *screen=pScreenPriv->screen;
   XvScreenPtr pxvs = GET_XV_SCREEN(pScreen);
   KdXVScreenPtr ScreenPriv = GET_KDXV_SCREEN(pScreen);
   XvAdaptorPtr pa;
@@ -1203,8 +1199,6 @@ KdXVRunning (ScreenPtr pScreen)
 Bool
 KdXVEnable(ScreenPtr pScreen)
 {
-    KdXVScreenPtr ScreenPriv;
-    
     if (!KdXVRunning (pScreen))
 	return TRUE;
     
@@ -1635,7 +1629,6 @@ KdXVPutImage(
   XvPortRecPrivatePtr portPriv = (XvPortRecPrivatePtr)(pPort->devPriv.ptr);
   ScreenPtr pScreen = pDraw->pScreen;
   KdScreenPriv(pScreen);
-  KdScreenInfo *screen=pScreenPriv->screen;
   RegionRec WinRegion;
   RegionRec ClipRegion;
   BoxRec WinBox;

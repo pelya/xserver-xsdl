@@ -65,6 +65,7 @@ typedef struct {
 
 #define KaaPixmapPitch(w) (((w) + (pKaaScr->info->offscreenPitch - 1)) & ~(pKaaScr->info->offscreenPitch - 1))
 #define KaaDrawableIsOffscreenPixmap(d) (d->type == DRAWABLE_PIXMAP && \
+                                        KaaGetPixmapPriv ((PixmapPtr)(d)) != NULL && \
                                         KaaGetPixmapPriv ((PixmapPtr)(d))->offscreenArea != NULL && \
 				        !KaaGetPixmapPriv ((PixmapPtr)(d))->offscreenArea->swappedOut)
 
@@ -372,11 +373,6 @@ kaaCopyNtoN (DrawablePtr    pSrcDrawable,
     KdScreenPriv (pDstDrawable->pScreen);
     KaaScreenPriv (pDstDrawable->pScreen);
     PixmapPtr pSrcPixmap, pDstPixmap;
-    int	    srcX, srcY, dstX, dstY;
-    int	    w, h;
-    CARD32  flags;
-    CARD32  cmd;
-    CARD8   alu;
 
     if (pScreenPriv->enabled &&
 	(pSrcPixmap = kaaGetDrawingPixmap (pSrcDrawable, NULL, NULL)) &&
@@ -401,8 +397,6 @@ kaaCopyNtoN (DrawablePtr    pSrcDrawable,
     }
     else
     {
-	KdScreenPriv (pDstDrawable->pScreen);
-
 	KdCheckSync (pDstDrawable->pScreen);
 	fbCopyNtoN (pSrcDrawable, pDstDrawable, pGC, 
 		    pbox, nbox, dx, dy, reverse, upsidedown, 
@@ -531,7 +525,6 @@ kaaSolidBoxClipped (DrawablePtr	pDrawable,
     BoxPtr	pbox;
     int		nbox;
     int		partX1, partX2, partY1, partY2;
-    CARD32	cmd;
 
     if (!pScreenPriv->enabled ||
 	!(pPixmap = kaaGetDrawingPixmap (pDrawable, NULL, NULL)) ||
@@ -585,7 +578,6 @@ kaaImageGlyphBlt (DrawablePtr	pDrawable,
 		  CharInfoPtr	*ppciInit,
 		  pointer	pglyphBase)
 {
-    KaaScreenPriv (pDrawable->pScreen);
     FbGCPrivPtr	    pPriv = fbGetGCPrivate(pGC);
     CharInfoPtr	    *ppci;
     CharInfoPtr	    pci;
@@ -737,8 +729,6 @@ static const GCOps	kaaOps = {
 void
 kaaValidateGC (GCPtr pGC, Mask changes, DrawablePtr pDrawable)
 {
-    FbGCPrivPtr fbPriv = fbGetGCPrivate(pGC);
-    
     fbValidateGC (pGC, changes, pDrawable);
 
     if (pDrawable->type == DRAWABLE_WINDOW ||
@@ -773,8 +763,6 @@ kaaCreateGC (GCPtr pGC)
 void
 kaaCopyWindow(WindowPtr pWin, DDXPointRec ptOldOrg, RegionPtr prgnSrc)
 {
-    ScreenPtr	pScreen = pWin->drawable.pScreen;
-    KaaScreenPriv (pScreen);
     RegionRec	rgnDst;
     int		dx, dy;
     WindowPtr	pwinRoot;
@@ -831,7 +819,6 @@ kaaFillRegionSolid (DrawablePtr	pDrawable,
 void
 kaaPaintWindow(WindowPtr pWin, RegionPtr pRegion, int what)
 {
-    PixmapPtr	pTile;
 
     if (!REGION_NUM_RECTS(pRegion)) 
 	return;
@@ -877,9 +864,6 @@ kaaDrawInit (ScreenPtr		pScreen,
 	kaaGeneration = serverGeneration;
     }
 
-    if (!AllocatePixmapPrivate(pScreen, kaaPixmapPrivateIndex, sizeof(KaaPixmapPrivRec)))
-	return FALSE;
-
     pKaaScr = xalloc (sizeof (KaaScreenPrivRec));
 
     if (!pKaaScr)
@@ -908,10 +892,18 @@ kaaDrawInit (ScreenPtr		pScreen,
     if ((pKaaScr->info->flags & KAA_OFFSCREEN_PIXMAPS) &&
 	screen->off_screen_size > 0)
     {
+	if (!AllocatePixmapPrivate(pScreen, kaaPixmapPrivateIndex, sizeof(KaaPixmapPrivRec)))
+	    return FALSE;
+
 	pKaaScr->CreatePixmap = pScreen->CreatePixmap;
 	pScreen->CreatePixmap = kaaCreatePixmap;
 	pKaaScr->DestroyPixmap = pScreen->DestroyPixmap;
 	pScreen->DestroyPixmap = kaaDestroyPixmap;
+    }
+    else
+    {
+	if (!AllocatePixmapPrivate(pScreen, kaaPixmapPrivateIndex, 0))
+	    return FALSE;
     }
 
     return TRUE;

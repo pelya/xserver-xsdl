@@ -218,7 +218,7 @@ KdMouseInfo *KdMouseInfoAdd (void);
 void	    KdParseMouse (char *);
 
 typedef struct _KdMouseFuncs {
-    int		    (*Init) (void);
+    Bool    	    (*Init) (void);
     void	    (*Fini) (void);
 } KdMouseFuncs;
 
@@ -551,6 +551,12 @@ KdSaveString (char *str);
 
 void
 KdParseMouse (char *arg);
+
+void
+KdParseRgba (char *rgba);
+
+int
+KdProcessArgument (int argc, char **argv, int i);
 
 void
 KdOsInit (KdOsFuncs *pOsFuncs);

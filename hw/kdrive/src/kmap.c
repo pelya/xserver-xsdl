@@ -108,7 +108,7 @@ KdSetMappedMode (CARD32 addr, CARD32 size, int mode)
 #ifdef HAVE_ASM_MTRR_H
     struct mtrr_sentry  sentry;
     unsigned long    	base, bound;
-    unsigned int	type;
+    unsigned int	type = MTRR_TYPE_WRBACK;
 
     if (addr < 0x100000)
 	return;
@@ -147,7 +147,7 @@ KdResetMappedMode (CARD32 addr, CARD32 size, int mode)
 #ifdef HAVE_ASM_MTRR_H
     struct mtrr_sentry  sentry;
     unsigned long    	base, bound;
-    unsigned int	type;
+    unsigned int	type = MTRR_TYPE_WRBACK;
 
     if (addr < 0x100000)
 	return;

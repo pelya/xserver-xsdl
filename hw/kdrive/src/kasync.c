@@ -262,7 +262,6 @@ KdCheckOverlayCopyWindow  (WindowPtr pWin, DDXPointRec ptOldOrg, RegionPtr prgnS
 void
 KdScreenInitAsync (ScreenPtr pScreen)
 {
-    KdScreenPriv(pScreen);
     pScreen->GetImage = KdCheckGetImage;
     pScreen->GetSpans = KdCheckGetSpans;
     pScreen->PaintWindowBackground = KdCheckPaintWindow;

@@ -26,7 +26,9 @@
 #include <config.h>
 #endif
 #include "kdrive.h"
-#include "picturestr.h"
+#include <picturestr.h>
+#include <mipict.h>
+#include <fbpict.h>
 
 void
 KdCheckComposite (CARD8      op,
