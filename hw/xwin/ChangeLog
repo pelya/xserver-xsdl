@@ -1,8 +1,14 @@
-2004-07-30  Egbert Eich  <set EMAIL_ADDRESS environment variable>
+2004-07-31  Alexander Gottwald  <ago@freedesktop.org>
 
-	reviewed by: <delete if not using a buddy>
+	* win.h:
+	adjust prototype for winInitCmapPrivates to match Egberts change.	
+
+2004-07-30  Egbert Eich  <eich@freedesktop.org>
 
 	* winallpriv.c: (winInitCmapPrivates):
+	test if colormap with index really exists in the list of
+	installed maps before using it.
+
 
 2004-07-09  Alexander Gottwald  <ago@freedesktop.org>
 
