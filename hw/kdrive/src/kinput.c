@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/kinput.c,v 1.18 2001/07/11 02:58:19 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/kinput.c,v 1.19 2001/07/20 19:35:29 keithp Exp $ */
 
 #include "kdrive.h"
 #include "inputstr.h"
@@ -117,7 +117,7 @@ KdUnblockSigio (void)
     sigprocmask (SIG_UNBLOCK, &set, 0);
 }
 
-#define VERIFY_SIGIO
+#undef VERIFY_SIGIO
 #ifdef VERIFY_SIGIO
 
 void
@@ -133,7 +133,7 @@ KdAssertSigioBlocked (char *where)
 
 #else
 
-#define KdVerifySigioBlocked(s)
+#define KdAssertSigioBlocked(s)
 
 #endif
 
