@@ -171,7 +171,12 @@ XpGetConfigDir(Bool useLocale)
     if(useLocale == False) langDir = "/C";
     else 
     {
-	if((langName = getenv("LANG")) == (char *)NULL)
+        langName = getenv("LC_ALL");
+        if (langName == NULL) {
+            langName = getenv("LANG");
+        }
+        
+	if(langName == (char *)NULL)
 	    return (char *)NULL;
 	else
 	{
