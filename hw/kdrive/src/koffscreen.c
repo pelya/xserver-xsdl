@@ -71,7 +71,6 @@ static void
 KdOffscreenKickOut (KdOffscreenArea *area)
 {
     RealOffscreenArea *real_area = (RealOffscreenArea *) area;
-    KdCheckSync (area->screen);
     if (real_area->save)
 	(*real_area->save) (area);
     KdOffscreenFree (area);
@@ -209,14 +208,12 @@ KdOffscreenSwapOut (ScreenPtr pScreen)
 	
 	if (!area)
 	    break;
-	if (area->area.screen)
+	if (!area->area.screen)
 	{
-	    KdOffscreenKickOut (&area->area);
-	    continue;
+	    area = area->next;
+	    if (!area)
+		break;
 	}
-	area = area->next;
-	if (!area)
-	    break;
 	assert (area->area.screen);
 	KdOffscreenKickOut (&area->area);
 	KdOffscreenValidate (pScreen);

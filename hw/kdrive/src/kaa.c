@@ -262,7 +262,6 @@ kaaDestroyPixmap (PixmapPtr pPixmap)
 			 pPixmap->drawable.width,
 			 pPixmap->drawable.height));
 	    /* Free the offscreen area */
-	    KdCheckSync (pScreen);
 	    KdOffscreenFree (pKaaPixmap->area);
 	    pPixmap->devPrivate = pKaaPixmap->devPrivate;
 	    pPixmap->devKind = pKaaPixmap->devKind;
