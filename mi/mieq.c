@@ -123,6 +123,8 @@ mieqEnqueue (e)
 	miEventQueue.events[oldtail].event.u.keyButtonPointer.time =
 	    miEventQueue.lastEventTime;
     }
+    miEventQueue.lastEventTime =
+	miEventQueue.events[oldtail].event.u.keyButtonPointer.time;
     miEventQueue.events[oldtail].pScreen = miEventQueue.pEnqueueScreen;
 }
 

@@ -32,58 +32,68 @@ in this Software without prior written authorization from The Open Group.
 */
 /* $XFree86: xc/programs/Xserver/mi/mispritest.h,v 1.4 2001/01/17 22:37:07 dawes Exp $ */
 
+#ifndef _MISPRITEST_H_
+#define _MISPRITEST_H_
+
 # include   "misprite.h"
 #ifdef RENDER
 # include   "picturestr.h"
 #endif
+# include   "damage.h"
 
 /*
  * per screen information
  */
 
 typedef struct {
+    /* screen procedures */
     CloseScreenProcPtr			CloseScreen;
     GetImageProcPtr			GetImage;
     GetSpansProcPtr			GetSpans;
     SourceValidateProcPtr		SourceValidate;
-    CreateGCProcPtr			CreateGC;
-    ScreenBlockHandlerProcPtr		BlockHandler;
+    
+    /* window procedures */
+    CopyWindowProcPtr			CopyWindow;
+    
+    /* backing store procedures */
+    SaveDoomedAreasProcPtr		SaveDoomedAreas;
+    
+    /* colormap procedures */
     InstallColormapProcPtr		InstallColormap;
     StoreColorsProcPtr			StoreColors;
-    PaintWindowBackgroundProcPtr	PaintWindowBackground;
-    PaintWindowBorderProcPtr		PaintWindowBorder;
-    CopyWindowProcPtr			CopyWindow;
-    ClearToBackgroundProcPtr		ClearToBackground;
-    SaveDoomedAreasProcPtr		SaveDoomedAreas;
-    RestoreAreasProcPtr			RestoreAreas;
-#ifdef RENDER
-    CompositeProcPtr			Composite;
-    GlyphsProcPtr			Glyphs;
-#endif
+    
+    /* os layer procedures */
+    ScreenBlockHandlerProcPtr		BlockHandler;
 
     CursorPtr	    pCursor;
-    int		    x;
+    int		    x;			/* cursor hotspot */
     int		    y;
-    BoxRec	    saved;
-    Bool	    isUp;
-    Bool	    shouldBeUp;
-    WindowPtr	    pCacheWin;
+    BoxRec	    saved;		/* saved area from the screen */
+    Bool	    isUp;		/* cursor in frame buffer */
+    Bool	    shouldBeUp;		/* cursor should be displayed */
+    WindowPtr	    pCacheWin;		/* window the cursor last seen in */
     Bool	    isInCacheWin;
-    Bool	    checkPixels;
+    Bool	    checkPixels;	/* check colormap collision */
     xColorItem	    colors[2];
     ColormapPtr	    pInstalledMap;
     ColormapPtr	    pColormap;
     VisualPtr	    pVisual;
     miSpriteCursorFuncPtr    funcs;
+    DamagePtr	    pDamage;		/* damage tracking structure */
 } miSpriteScreenRec, *miSpriteScreenPtr;
 
 #define SOURCE_COLOR	0
 #define MASK_COLOR	1
 
-typedef struct {
-    GCFuncs		*wrapFuncs;
-    GCOps		*wrapOps;
-} miSpriteGCRec, *miSpriteGCPtr;
+#define miSpriteIsUpTRUE(pScreen, pScreenPriv) if (!pScreenPriv->isUp) { \
+    pScreenPriv->isUp = TRUE; \
+    DamageRegister (&(*pScreen->GetScreenPixmap) (pScreen)->drawable, pScreenPriv->pDamage); \
+}
+
+#define miSpriteIsUpFALSE(pScreen, pScreenPriv) if (pScreenPriv->isUp) { \
+    DamageUnregister (&(*pScreen->GetScreenPixmap) (pScreen)->drawable, pScreenPriv->pDamage); \
+    pScreenPriv->isUp = FALSE; \
+}
 
 /*
  * Overlap BoxPtr and Box elements
@@ -116,3 +126,5 @@ typedef struct {
 
 #define LINE_OVERLAP(pCbox,x1,y1,x2,y2,lw2) \
     BOX_OVERLAP((pCbox), (x1)-(lw2), (y1)-(lw2), (x2)+(lw2), (y2)+(lw2))
+
+#endif /* _MISPRITEST_H_ */
