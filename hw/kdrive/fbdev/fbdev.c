@@ -93,20 +93,43 @@ fbdevScreenInitialize (KdScreenInfo *screen, FbdevScrPriv *scrpriv)
     Pixel	allbits;
     int		depth;
     Bool	shadow;
+    Bool	gray;
 #ifdef FAKE24_ON_16
     Bool	fake24;
 #endif
 
     depth = priv->var.bits_per_pixel;
+    gray = priv->var.grayscale;
     
     switch (priv->fix.visual) {
     case FB_VISUAL_PSEUDOCOLOR:
-	screen->fb[0].visuals = ((1 << StaticGray) |
-			   (1 << GrayScale) |
-			   (1 << StaticColor) |
-			   (1 << PseudoColor) |
-			   (1 << TrueColor) |
-			   (1 << DirectColor));
+	if (gray)
+	{
+	    screen->fb[0].visuals = ((1 << StaticGray) |
+				     (1 << GrayScale));
+	}
+	else
+	{
+	    screen->fb[0].visuals = ((1 << StaticGray) |
+			       (1 << GrayScale) |
+			       (1 << StaticColor) |
+			       (1 << PseudoColor) |
+			       (1 << TrueColor) |
+			       (1 << DirectColor));
+	}
+	screen->fb[0].blueMask  = 0x00;
+	screen->fb[0].greenMask = 0x00;
+	screen->fb[0].redMask   = 0x00;
+	break;
+    case FB_VISUAL_STATIC_PSEUDOCOLOR:
+	if (gray)
+	{
+	    screen->fb[0].visuals = (1 << StaticGray);
+	}
+	else
+	{
+	    screen->fb[0].visuals = (1 << StaticColor);
+	}
 	screen->fb[0].blueMask  = 0x00;
 	screen->fb[0].greenMask = 0x00;
 	screen->fb[0].redMask   = 0x00;
@@ -557,6 +580,39 @@ fbdevRandRInit (ScreenPtr pScreen)
 }
 #endif
 
+Bool
+fbdevCreateColormap (ColormapPtr pmap)
+{
+    ScreenPtr		pScreen = pmap->pScreen;
+    KdScreenPriv(pScreen);
+    FbdevPriv		*priv = pScreenPriv->card->driver;
+    VisualPtr		pVisual;
+    int			i;
+    int			nent;
+    xColorItem		*pdefs;
+    
+    switch (priv->fix.visual) {
+    case FB_VISUAL_STATIC_PSEUDOCOLOR:
+	pVisual = pmap->pVisual;
+	nent = pVisual->ColormapEntries;
+	pdefs = ALLOCATE_LOCAL (nent * sizeof (xColorItem));
+	if (!pdefs)
+	    return FALSE;
+	fbdevGetColors (pScreen, 0, nent, pdefs);
+	for (i = 0; i < nent; i++)
+	{
+	    pmap->red[i].co.local.red = pdefs[i].red;
+	    pmap->red[i].co.local.green = pdefs[i].green;
+	    pmap->red[i].co.local.blue = pdefs[i].blue;
+	    break;
+	}
+	DEALLOCATE_LOCAL (pdefs);
+	return TRUE;
+    default:
+	return fbInitializeColormap (pmap);
+    }
+}
+
 #ifdef TOUCHSCREEN
 int TsFbdev = -1;
 #endif
@@ -573,6 +629,8 @@ fbdevInitScreen (ScreenPtr pScreen)
 #ifdef TOUCHSCREEN
     TsFbdev = pScreen->myNum;
 #endif
+
+    pScreen->CreateColormap = fbdevCreateColormap;
 
     if (!LayerStartInit (pScreen))
 	return FALSE;
