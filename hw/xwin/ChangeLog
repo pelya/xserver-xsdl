@@ -1,4 +1,9 @@
-2005-01-10  Alexander Gottwald  <ago at freedesktop dot org>
+2005-01-11  Alexander Gottwald  <ago at freedesktop dot org>
+
+	* winkeyhook.c:
+	Do not grab ALT-TAB when window is in multiwindow mode
+	
+2005-01-11  Alexander Gottwald  <ago at freedesktop dot org>
 
 	* winprefs.h:
 	Fix crash with not matching definitions of PATH_MAX

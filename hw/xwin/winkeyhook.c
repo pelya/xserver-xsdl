@@ -64,8 +64,29 @@ static LRESULT CALLBACK
 winKeyboardMessageHookLL (int iCode, WPARAM wParam, LPARAM lParam)
 {
   BOOL			fPassKeystroke = FALSE;
+  BOOL			fPassAltTab = TRUE;
   PKBDLLHOOKSTRUCT	p = (PKBDLLHOOKSTRUCT) lParam;
   HWND			hwnd = GetActiveWindow(); 
+#ifdef XWIN_MULTIWINDOW
+  WindowPtr		pWin = NULL;
+  winPrivWinPtr	        pWinPriv = NULL;
+  winPrivScreenPtr	pScreenPriv = NULL;
+  winScreenInfo		*pScreenInfo = NULL;
+
+  /* Check if the Windows window property for our X window pointer is valid */
+  if ((pWin = GetProp (hwnd, WIN_WINDOW_PROP)) != NULL)
+    {
+      /* Get a pointer to our window privates */
+      pWinPriv		= winGetWindowPriv(pWin);
+
+      /* Get pointers to our screen privates and screen info */
+      pScreenPriv	= pWinPriv->pScreenPriv;
+      pScreenInfo	= pScreenPriv->pScreenInfo;
+
+      if (pScreenInfo->fMultiWindow)
+          fPassAltTab = FALSE;
+    }
+#endif
 
   /* Pass keystrokes on to our main message loop */
   if (iCode == HC_ACTION)
@@ -79,7 +100,8 @@ winKeyboardMessageHookLL (int iCode, WPARAM wParam, LPARAM lParam)
 	case WM_KEYDOWN:  case WM_SYSKEYDOWN:
 	case WM_KEYUP:    case WM_SYSKEYUP: 
 	  fPassKeystroke = 
-	    ((p->vkCode == VK_TAB) && ((p->flags & LLKHF_ALTDOWN) != 0))
+	    (fPassAltTab && 
+                (p->vkCode == VK_TAB) && ((p->flags & LLKHF_ALTDOWN) != 0))
 	    || (p->vkCode == VK_LWIN) || (p->vkCode == VK_RWIN)
 	    ;
 	  break;
