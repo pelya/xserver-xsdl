@@ -163,19 +163,28 @@ cwDestroyGCPrivate(GCPtr pGC)
 	FreeGC(pPriv->pBackingGC, (XID)0);
     setCwGC (pGC, pPriv->wrapFuncs);
     xfree((pointer)pPriv);
+    /* The ChangeGC and ValidateGCs on the window haven't been passed down the
+     * stack, so report all state being changed.
+     */
+    pGC->stateChanges |= (1 << (GCLastBit + 1)) - 1;
+    (*pGC->funcs->ChangeGC)(pGC, (1 << (GCLastBit + 1)) - 1);
 }
 
 /* GCFuncs wrappers.  These only get used when the drawable is a window with a
  * backing pixmap, to avoid the overhead in the non-window-backing-pixmap case.
  */
 
-#define FUNC_PROLOGUE(pGC, pPriv) \
-    ((pGC)->funcs = pPriv->wrapFuncs), \
-    ((pGC)->ops = pPriv->wrapOps)
+#define FUNC_PROLOGUE(pGC, pPriv) do {					\
+    (pGC)->funcs = (pPriv)->wrapFuncs;					\
+    (pGC)->ops = (pPriv)->wrapOps;					\
+} while (0)
 
-#define FUNC_EPILOGUE(pGC, pPriv) \
-    ((pGC)->funcs = &cwGCFuncs), \
-    ((pGC)->ops = &cwGCOps)
+#define FUNC_EPILOGUE(pGC, pPriv) do {					\
+    (pPriv)->wrapFuncs = (pGC)->funcs;					\
+    (pPriv)->wrapOps = (pGC)->ops;					\
+    (pGC)->funcs = &cwGCFuncs;						\
+    (pGC)->ops = &cwGCOps;						\
+} while (0)
 
 static void
 cwValidateGC(GCPtr pGC, unsigned long stateChanges, DrawablePtr pDrawable)
@@ -199,13 +208,6 @@ cwValidateGC(GCPtr pGC, unsigned long stateChanges, DrawablePtr pDrawable)
 	(*pGC->funcs->ValidateGC)(pGC, stateChanges, pDrawable);
 	return;
     }
-    (*pGC->funcs->ValidateGC)(pGC, stateChanges, pDrawable);
-
-    /*
-     * rewrap funcs and ops as Validate may have changed them
-     */
-    pPriv->wrapFuncs = pGC->funcs;
-    pPriv->wrapOps = pGC->ops;
 
     pBackingGC = pPriv->pBackingGC;
     pBackingDrawable = cwGetBackingDrawable(pDrawable, &x_off, &y_off);
@@ -332,8 +334,10 @@ cwDestroyClip(GCPtr pGC)
 #define CHEAP_FUNC_PROLOGUE(pGC) \
     ((pGC)->funcs = (GCFuncs *)(pGC)->devPrivates[cwGCIndex].ptr)
 
-#define CHEAP_FUNC_EPILOGUE(pGC) \
-    ((pGC)->funcs = &cwCheapGCFuncs)
+#define CHEAP_FUNC_EPILOGUE(pGC) do {					\
+    (pGC)->devPrivates[cwGCIndex].ptr = (pointer)(pGC)->funcs;		\
+    (pGC)->funcs = &cwCheapGCFuncs;					\
+} while (0)
 
 static void
 cwCheapValidateGC(GCPtr pGC, unsigned long stateChanges, DrawablePtr pDrawable)
@@ -425,12 +429,13 @@ cwCheapDestroyClip(GCPtr pGC)
  * GC validation on BackingStore windows.
  */
 
-#define SCREEN_PROLOGUE(pScreen, field)\
+#define SCREEN_PROLOGUE(pScreen, field)				\
   ((pScreen)->field = getCwScreen(pScreen)->field)
 
-#define SCREEN_EPILOGUE(pScreen, field, wrapper)\
-    ((getCwScreen(pScreen)->field = (pScreen)->field), \
-     ((pScreen)->field = (wrapper)))
+#define SCREEN_EPILOGUE(pScreen, field, wrapper) do {		\
+    getCwScreen(pScreen)->field = (pScreen)->field;		\
+    (pScreen)->field = (wrapper);				\
+} while (0)
 
 static Bool
 cwCreateGC(GCPtr pGC)

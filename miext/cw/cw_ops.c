@@ -26,7 +26,6 @@
 
 #define SETUP_BACKING_DST(_pDst, _pGC) \
     cwGCPtr pGCPrivate = getCwGC (_pGC); \
-    GCFuncs *oldFuncs = (_pGC)->funcs; \
     GCPtr pBackingGC = pGCPrivate->pBackingGC; \
     int dst_off_x, dst_off_y; \
     DrawablePtr pBackingDst = cwGetBackingDrawable(pDst, &dst_off_x, \
@@ -39,13 +38,11 @@
 
 #define PROLOGUE(pGC) do { \
     pGC->ops = pGCPrivate->wrapOps;\
-    pGC->funcs = pGCPrivate->wrapFuncs; \
 } while (0)
 
 #define EPILOGUE(pGC) do { \
     pGCPrivate->wrapOps = (pGC)->ops; \
     (pGC)->ops = &cwGCOps; \
-    (pGC)->funcs = oldFuncs; \
 } while (0)
 
 /*

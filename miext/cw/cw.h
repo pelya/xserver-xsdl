@@ -64,7 +64,6 @@ typedef struct {
     PaintWindowBorderProcPtr	PaintWindowBorder;
 
 #ifdef RENDER
-    CreatePictureProcPtr	CreatePicture;
     DestroyPictureProcPtr	DestroyPicture;
     ChangePictureClipProcPtr	ChangePictureClip;
     DestroyPictureClipProcPtr	DestroyPictureClip;
@@ -82,9 +81,6 @@ typedef struct {
     TriFanProcPtr		TriFan;
 
     RasterizeTrapezoidProcPtr	RasterizeTrapezoid;
-#if 0
-    AddTrapsProcPtr		AddTraps;
-#endif
 #endif
 } cwScreenRec, *cwScreenPtr;
 

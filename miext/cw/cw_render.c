@@ -74,6 +74,8 @@ cwCreateBackingPicture (PicturePtr pPicture)
 
     pBackingPicture = CreatePicture (0, &pPixmap->drawable, pPicture->pFormat,
 				     0, 0, serverClient, &error);
+    if (!pBackingPicture)
+	return NULL;
 
     pPicture->devPrivates[cwPictureIndex].ptr = pBackingPicture;
 
@@ -117,19 +119,6 @@ cwGetBackingPicture (PicturePtr pPicture, int *x_off, int *y_off)
 	return pPicture;
     }
 }
-
-static int
-cwCreatePicture (PicturePtr pPicture)
-{
-    int			ret;
-    ScreenPtr		pScreen = pPicture->pDrawable->pScreen;
-    cwPsDecl(pScreen);
-
-    cwPsUnwrap (CreatePicture);
-    ret = (*ps->CreatePicture) (pPicture);
-    cwPsWrap (CreatePicture, cwCreatePicture);
-    return ret;
-}
     
 static void
 cwDestroyPicture (PicturePtr pPicture)
@@ -141,6 +130,11 @@ cwDestroyPicture (PicturePtr pPicture)
     cwDestroyBackingPicture (pPicture);
     (*ps->DestroyPicture) (pPicture);
     cwPsWrap(DestroyPicture, cwDestroyPicture);
+    /* The ChangePicture and ValidatePictures on the window haven't been passed
+     * down the stack, so report all state being changed.
+     */
+    pPicture->stateChanges |= (1 << (CPLastBit + 1)) - 1;
+    (*ps->ChangePicture) (pPicture, (1 << (CPLastBit + 1)) - 1);
 }
 
 static void
@@ -173,21 +167,21 @@ cwValidatePicture (PicturePtr pPicture,
     cwPictureDecl;
     
     cwPsUnwrap(ValidatePicture);
-    (*ps->ValidatePicture) (pPicture, mask);
     if (!cwDrawableIsRedirWindow (pPicture->pDrawable))
     {
 	if (pBackingPicture)
 	    cwDestroyBackingPicture (pPicture);
+	(*ps->ValidatePicture) (pPicture, mask);
     }
     else
     {
-	DrawablePtr pDrawable = pPicture->pDrawable;
-	WindowPtr   pWin = (WindowPtr) (pDrawable);
 	DrawablePtr pBackingDrawable;
 	int	    x_off, y_off;
 	
-	if (pBackingPicture && pBackingPicture->pDrawable != 
-	    &(*pScreen->GetWindowPixmap) ((WindowPtr) pPicture->pDrawable)->drawable)
+	pBackingDrawable = cwGetBackingDrawable(pPicture->pDrawable, &x_off,
+						&y_off);
+
+	if (pBackingPicture && pBackingPicture->pDrawable != pBackingDrawable)
 	{
 	    cwDestroyBackingPicture (pPicture);
 	    pBackingPicture = 0;
@@ -198,12 +192,11 @@ cwValidatePicture (PicturePtr pPicture,
 	    pBackingPicture = cwCreateBackingPicture (pPicture);
 	    if (!pBackingPicture)
 	    {
+		(*ps->ValidatePicture) (pPicture, mask);
 		cwPsWrap(ValidatePicture, cwValidatePicture);
 		return;
 	    }
 	}
-
-	pBackingDrawable = cwGetBackingDrawable (&pWin->drawable, &x_off,&y_off);
 
 	SetPictureTransform(pBackingPicture, pPicture->transform);
 	/* XXX Set filters */
@@ -442,7 +435,6 @@ cwInitializeRender (ScreenPtr pScreen)
 {
     cwPsDecl (pScreen);
 
-    cwPsWrap(CreatePicture, cwCreatePicture);
     cwPsWrap(DestroyPicture, cwDestroyPicture);
     cwPsWrap(ChangePicture, cwChangePicture);
     cwPsWrap(ValidatePicture, cwValidatePicture);
@@ -453,6 +445,10 @@ cwInitializeRender (ScreenPtr pScreen)
     cwPsWrap(Triangles, cwTriangles);
     cwPsWrap(TriStrip, cwTriStrip);
     cwPsWrap(TriFan, cwTriFan);
+    /* There is no need to wrap AddTraps as far as we can tell.  AddTraps can
+     * only be done on alpha-only pictures, and we won't be getting
+     * alpha-only window pictures, so there's no need to translate.
+     */
 }
 
 void
@@ -460,7 +456,6 @@ cwFiniRender (ScreenPtr pScreen)
 {
     cwPsDecl (pScreen);
 
-    cwPsUnwrap(CreatePicture);
     cwPsUnwrap(DestroyPicture);
     cwPsUnwrap(ChangePicture);
     cwPsUnwrap(ValidatePicture);
