@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * Copyright © 1999 Keith Packard
  *
  * Permission to use, copy, modify, distribute, and sell this software and its
@@ -21,7 +19,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/trident/trident.c,v 1.14 2000/10/20 00:19:51 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/trident/trident.c,v 1.15 2000/11/29 08:42:25 keithp Exp $ */
 
 #include "trident.h"
 #define extern
