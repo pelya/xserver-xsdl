@@ -243,7 +243,6 @@ RadeonPrepareComposite(int op, PicturePtr pSrcPicture, PicturePtr pMaskPicture,
 	OUT_REG(RADEON_REG_SE_CNTL_STATUS, RADEON_TCL_BYPASS);
 	OUT_REG(RADEON_REG_SE_COORD_FMT,
 	    RADEON_VTX_XY_PRE_MULT_1_OVER_W0 |
-	    RADEON_VTX_Z_PRE_MULT_1_OVER_W0 |
 	    RADEON_VTX_ST0_NONPARAMETRIC |
 	    RADEON_VTX_ST1_NONPARAMETRIC |
 	    RADEON_TEX1_W_ROUTING_USE_W0);
@@ -298,23 +297,22 @@ union intfloat {
 };
 
 struct blend_vertex {
-	union intfloat x, y, z;
+	union intfloat x, y;
 	union intfloat s0, t0;
 	union intfloat s1, t1;
 };
 
-#define VTX_REG_COUNT 7
+#define VTX_REG_COUNT 6
 
 #define VTX_OUT(vtx)		\
 do {				\
 	OUT_RING(vtx.x.i);	\
 	OUT_RING(vtx.y.i);	\
-	OUT_RING(vtx.z.i);	\
 	OUT_RING(vtx.s0.i);	\
 	OUT_RING(vtx.t0.i);	\
 	OUT_RING(vtx.s1.i);	\
 	OUT_RING(vtx.t1.i);	\
-	/*ErrorF("%f,%f,%f %f,%f %f,%f\n", vtx.x.f, vtx.y.f, vtx.z.f, vtx.s0.f, \
+	/*ErrorF("%f,%f %f,%f %f,%f\n", vtx.x.f, vtx.y.f, vtx.s0.f, \
 	    vtx.t0.f, vtx.s1.f, vtx.t1.f);*/ \
 } while (0)
 
@@ -329,22 +327,20 @@ RadeonComposite(int srcX, int srcY, int maskX, int maskY, int dstX, int dstY,
 
 	/*ErrorF("RadeonComposite %d %d %d %d %d %d\n", srcX, srcY, maskX, maskY,
 	    dstX, dstY, w, h);*/
-	BEGIN_RING(3 + 6 * VTX_REG_COUNT);
+	BEGIN_RING(3 + 4 * VTX_REG_COUNT);
 	OUT_RING(RADEON_CP_PACKET3_3D_DRAW_IMMD |
-	    ((6 * VTX_REG_COUNT + 1) << 16));
+	    ((4 * VTX_REG_COUNT + 1) << 16));
 	OUT_RING(RADEON_CP_VC_FRMT_XY |
-	    RADEON_CP_VC_FRMT_Z |
 	    RADEON_CP_VC_FRMT_ST0 |
 	    RADEON_CP_VC_FRMT_ST1);
-	OUT_RING(RADEON_CP_VC_CNTL_PRIM_TYPE_TRI_LIST |
+	OUT_RING(RADEON_CP_VC_CNTL_PRIM_TYPE_TRI_FAN |
 	    RADEON_CP_VC_CNTL_PRIM_WALK_RING |
 	    RADEON_CP_VC_CNTL_MAOS_ENABLE |
 	    RADEON_CP_VC_CNTL_VTX_FMT_RADEON_MODE |
-	    (6 << RADEON_CP_VC_CNTL_NUM_SHIFT));
+	    (4 << RADEON_CP_VC_CNTL_NUM_SHIFT));
 
 	vtx[0].x.f = dstX;
 	vtx[0].y.f = dstY;
-	vtx[0].z.f = 0.5;
 	vtx[0].s0.f = srcX;
 	vtx[0].t0.f = srcY;
 	vtx[0].s1.f = maskX;
@@ -352,7 +348,6 @@ RadeonComposite(int srcX, int srcY, int maskX, int maskY, int dstX, int dstY,
 
 	vtx[1].x.f = dstX;
 	vtx[1].y.f = dstY + h;
-	vtx[1].z.f = 0.5;
 	vtx[1].s0.f = srcX;
 	vtx[1].t0.f = srcY + h;
 	vtx[1].s1.f = maskX;
@@ -360,7 +355,6 @@ RadeonComposite(int srcX, int srcY, int maskX, int maskY, int dstX, int dstY,
 
 	vtx[2].x.f = dstX + w;
 	vtx[2].y.f = dstY + h;
-	vtx[2].z.f = 0.5;
 	vtx[2].s0.f = srcX + w;
 	vtx[2].t0.f = srcY + h;
 	vtx[2].s1.f = maskX + w;
@@ -368,7 +362,6 @@ RadeonComposite(int srcX, int srcY, int maskX, int maskY, int dstX, int dstY,
 
 	vtx[3].x.f = dstX + w;
 	vtx[3].y.f = dstY;
-	vtx[3].z.f = 0.5;
 	vtx[3].s0.f = srcX + w;
 	vtx[3].t0.f = srcY;
 	vtx[3].s1.f = maskX + w;
@@ -376,8 +369,6 @@ RadeonComposite(int srcX, int srcY, int maskX, int maskY, int dstX, int dstY,
 
 	VTX_OUT(vtx[0]);
 	VTX_OUT(vtx[1]);
-	VTX_OUT(vtx[2]);
-	VTX_OUT(vtx[0]);
 	VTX_OUT(vtx[2]);
 	VTX_OUT(vtx[3]);
 
