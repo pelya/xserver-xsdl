@@ -1516,9 +1516,8 @@ XAACacheMonoStipple(ScrnInfoPtr Scrn, PixmapPtr pPix);
 XAACacheInfoPtr
 XAACachePlanarMonoStipple(ScrnInfoPtr Scrn, PixmapPtr pPix);
 
-typedef XAACacheInfoPtr *XAACachePlanarMonoStippleProc(ScrnInfoPtr, PixmapPtr);
-
-XAACachePlanarMonoStippleProc *XAAGetCachePlanarMonoStipple(void);
+typedef XAACacheInfoPtr (*XAACachePlanarMonoStippleProc)(ScrnInfoPtr, PixmapPtr);
+XAACachePlanarMonoStippleProc XAAGetCachePlanarMonoStipple(void);
 
 XAACacheInfoPtr
 XAACacheStipple(ScrnInfoPtr Scrn, PixmapPtr pPix, int fg, int bg);
