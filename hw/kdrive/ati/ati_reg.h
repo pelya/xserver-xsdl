@@ -104,16 +104,16 @@
 #define ATI_REG_AGP_BASE			0x0170
 
 #define ATI_REG_AGP_CNTL			0x0174
-# define ATI_AGP_APER_SIZE_256MB		(0x00 << 0)
-# define ATI_AGP_APER_SIZE_128MB		(0x20 << 0)
-# define ATI_AGP_APER_SIZE_64MB			(0x30 << 0)
-# define ATI_AGP_APER_SIZE_32MB			(0x38 << 0)
-# define ATI_AGP_APER_SIZE_16MB			(0x3c << 0)
-# define ATI_AGP_APER_SIZE_8MB			(0x3e << 0)
-# define ATI_AGP_APER_SIZE_4MB			(0x3f << 0)
-# define ATI_AGP_APER_SIZE_MASK			(0x3f << 0)
-#define RADEON_PENDING_SLOTS_VAL		0x00060000
-#define RADEON_PENDING_SLOTS_SEL		0x00080000
+# define R128_AGP_APER_SIZE_256MB		(0x00 << 0)
+# define R128_AGP_APER_SIZE_128MB		(0x20 << 0)
+# define R128_AGP_APER_SIZE_64MB		(0x30 << 0)
+# define R128_AGP_APER_SIZE_32MB		(0x38 << 0)
+# define R128_AGP_APER_SIZE_16MB		(0x3c << 0)
+# define R128_AGP_APER_SIZE_8MB			(0x3e << 0)
+# define R128_AGP_APER_SIZE_4MB			(0x3f << 0)
+# define R128_AGP_APER_SIZE_MASK		(0x3f << 0)
+# define RADEON_PENDING_SLOTS_VAL		0x00060000
+# define RADEON_PENDING_SLOTS_SEL		0x00080000
 
 #define R128_REG_PCI_GART_PAGE			0x017c
 
@@ -294,8 +294,21 @@
 # define ATI_CAP_ID_NULL			0x0000 /* End of capability list */
 # define ATI_CAP_ID_AGP				0x0002 /* AGP capability ID */
 
+#define R128_REG_AGP_STATUS			0x0f54 /* PCI */
+# define R128_AGP_1X_MODE			0x01
+# define R128_AGP_2X_MODE			0x02
+# define R128_AGP_4X_MODE			0x04
+# define R128_AGP_MODE_MASK			0x07
+
 #define R128_REG_AGP_COMMAND			0x0f58
 # define R128_AGP_ENABLE			(1 << 8)
+
+#define RADEON_REG_AGP_STATUS			0x0f5c /* PCI */
+# define RADEON_AGP_1X_MODE			0x01
+# define RADEON_AGP_2X_MODE			0x02
+# define RADEON_AGP_4X_MODE			0x04
+# define RADEON_AGP_FW_MODE			0x10
+# define RADEON_AGP_MODE_MASK			0x17
 
 #define RADEON_REG_AGP_COMMAND			0x0f60
 # define RADEON_AGP_ENABLE			(1 << 8)

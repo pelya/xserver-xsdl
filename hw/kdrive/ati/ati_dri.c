@@ -241,12 +241,7 @@ ATIDRIAgpInit(ScreenPtr pScreen)
 	unsigned char *mmio = atic->reg_base;
 	unsigned long mode;
 	int           ret;
-	unsigned long agpBase;
 	CARD32        cntl, chunk;
-
-	/* AGP DRI seems broken on my R128, not sure why. */
-	if (!atic->is_radeon)
-		return FALSE;
 
 	if (drmAgpAcquire(atic->drmFd) < 0) {
 		ErrorF("[agp] AGP not available\n");
@@ -255,30 +250,21 @@ ATIDRIAgpInit(ScreenPtr pScreen)
 
 	ATIDRIInitGARTValues(pScreen);
 
-	/* Modify the mode if the default mode is not appropriate for this
-	 * particular combination of graphics card and AGP chipset.
-	 */
-
-	/* XXX: Disable fast writes? */
-
 	mode = drmAgpGetMode(atic->drmFd);
-	if (mode > 4)
-		mode = 4;
-	/* Set all mode bits below the chosen one so fallback can happen */
-	mode = (mode * 2) - 1;
+	if (atic->is_radeon) {
+		mode &= ~RADEON_AGP_MODE_MASK;
+		mode |= RADEON_AGP_1X_MODE;
+	} else {
+		mode &= ~R128_AGP_MODE_MASK;
+		mode |= R128_AGP_1X_MODE;
+	}
 
 	if (drmAgpEnable(atic->drmFd, mode) < 0) {
 		ErrorF("[agp] AGP not enabled\n");
 		drmAgpRelease(atic->drmFd);
 		return FALSE;
 	}
-
-	/* Workaround for some hardware bugs */
-	if (atic->is_r100) {
-		cntl = MMIO_IN32(mmio, ATI_REG_AGP_CNTL);
-		MMIO_OUT32(mmio, ATI_REG_AGP_CNTL, cntl |
-		    RADEON_PENDING_SLOTS_VAL | RADEON_PENDING_SLOTS_SEL);
-	}
+	ErrorF("[agp] Mode 0x%08x selected\n", drmAgpGetMode(atic->drmFd));
 
 	if ((ret = drmAgpAlloc(atic->drmFd, atis->gartSize * 1024 * 1024, 0,
 	    NULL, &atis->agpMemHandle)) < 0) {
@@ -317,27 +303,29 @@ ATIDRIAgpInit(ScreenPtr pScreen)
 	    (drmAddressPtr)&atis->gartTex, "AGP texture map"))
 		return FALSE;
 
-	/* Initialize radeon/r128 AGP registers */
-	cntl = MMIO_IN32(mmio, ATI_REG_AGP_CNTL);
-	cntl &= ~ATI_AGP_APER_SIZE_MASK;
-	switch (atis->gartSize) {
-	case 256: cntl |= ATI_AGP_APER_SIZE_256MB; break;
-	case 128: cntl |= ATI_AGP_APER_SIZE_128MB; break;
-	case  64: cntl |= ATI_AGP_APER_SIZE_64MB;  break;
-	case  32: cntl |= ATI_AGP_APER_SIZE_32MB;  break;
-	case  16: cntl |= ATI_AGP_APER_SIZE_16MB;  break;
-	case   8: cntl |= ATI_AGP_APER_SIZE_8MB;   break;
-	case   4: cntl |= ATI_AGP_APER_SIZE_4MB;   break;
-	default:
-		ErrorF("[agp] Illegal aperture size %d kB\n", atis->gartSize *
-		    1024);
+	if (atic->is_r100) {
+		/* Workaround for some hardware bugs */
+		cntl = MMIO_IN32(mmio, ATI_REG_AGP_CNTL);
+		MMIO_OUT32(mmio, ATI_REG_AGP_CNTL, cntl |
+		    RADEON_PENDING_SLOTS_VAL | RADEON_PENDING_SLOTS_SEL);
+	} else if (!atic->is_radeon) {
+		cntl = MMIO_IN32(mmio, ATI_REG_AGP_CNTL);
+		cntl &= ~R128_AGP_APER_SIZE_MASK;
+		switch (atis->gartSize) {
+		case 256: cntl |= R128_AGP_APER_SIZE_256MB; break;
+		case 128: cntl |= R128_AGP_APER_SIZE_128MB; break;
+		case  64: cntl |= R128_AGP_APER_SIZE_64MB;  break;
+		case  32: cntl |= R128_AGP_APER_SIZE_32MB;  break;
+		case  16: cntl |= R128_AGP_APER_SIZE_16MB;  break;
+		case   8: cntl |= R128_AGP_APER_SIZE_8MB;   break;
+		case   4: cntl |= R128_AGP_APER_SIZE_4MB;   break;
+		default:
+			ErrorF("[agp] Illegal aperture size %d kB\n", atis->gartSize *
+			    1024);
 		return FALSE;
-	}
-	agpBase = drmAgpBase(atic->drmFd);
-	MMIO_OUT32(mmio, ATI_REG_AGP_BASE, agpBase); 
-	MMIO_OUT32(mmio, ATI_REG_AGP_CNTL, cntl);
+		}
+		MMIO_OUT32(mmio, ATI_REG_AGP_CNTL, cntl);
 
-	if (!atic->is_radeon) {
 		/* Disable Rage 128 PCIGART registers */
 		chunk = MMIO_IN32(mmio, R128_REG_BM_CHUNK_0_VAL);
 		chunk &= ~(R128_BM_PTR_FORCE_TO_PCI |
@@ -348,6 +336,8 @@ ATIDRIAgpInit(ScreenPtr pScreen)
 		/* Ensure AGP GART is used (for now) */
 		MMIO_OUT32(mmio, R128_REG_PCI_GART_PAGE, 1);
 	}
+
+	MMIO_OUT32(mmio, ATI_REG_AGP_BASE, drmAgpBase(atic->drmFd)); 
 
 	return TRUE;
 }
