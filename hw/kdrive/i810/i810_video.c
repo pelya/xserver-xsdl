@@ -75,9 +75,9 @@ THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "kxv.h"
 #include "i810.h"
 
-#include "Xv.h"
+#include <X11/extensions/Xv.h>
 
-#include "../../xfree86/common/fourcc.h"
+#include "fourcc.h"
 
 typedef struct {
     CARD32 size;

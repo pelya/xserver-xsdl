@@ -49,7 +49,7 @@ X Window System is a trademark of The Open Group */
 #include "kxv.h"
 
 #include "i810.h"
-#include "linux/agp.h"
+#include "agp.h"
 
 #include "i810draw.h"
 

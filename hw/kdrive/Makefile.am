@@ -17,4 +17,5 @@ SUBDIRS =			\
 	$(FBDEV_SUBDIRS)	\
 	$(VESA_SUBDIRS)		\
 	ati			\
-	fake
+	fake			\
+	i810

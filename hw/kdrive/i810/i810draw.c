@@ -45,7 +45,7 @@ X Window System is a trademark of The Open Group */
 #include "i810.h"
 #include "i810_reg.h"
 
-#include	"Xmd.h"
+//#include	"Xmd.h"
 #include	"gcstruct.h"
 #include	"scrnintstr.h"
 #include	"pixmapstr.h"
