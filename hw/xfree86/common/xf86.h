@@ -219,6 +219,7 @@ int xf86RemoveInputHandler(pointer handler);
 void xf86DisableInputHandler(pointer handler);
 void xf86EnableInputHandler(pointer handler);
 void xf86InterceptSignals(int *signo);
+void xf86InterceptSigIll(void (*sigillhandler)(void));
 Bool xf86EnableVTSwitch(Bool new);
 Bool xf86CommonSpecialKey(int key, Bool down, int modifiers);
 void xf86ProcessActionEvent(ActionEvent action, void *arg);

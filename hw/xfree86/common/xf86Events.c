@@ -49,7 +49,7 @@
  */
 
 /* $XConsortium: xf86Events.c /main/46 1996/10/25 11:36:30 kaleb $ */
-/* $XdotOrg: xc/programs/Xserver/hw/xfree86/common/xf86Events.c,v 1.3 2004/07/30 20:56:53 eich Exp $ */
+/* $XdotOrg: xc/programs/Xserver/hw/xfree86/common/xf86Events.c,v 1.4 2004/10/11 09:58:04 eich Exp $ */
 
 /* [JCH-96/01/21] Extended std reverse map to four buttons. */
 
@@ -1265,6 +1265,14 @@ xf86InterceptSignals(int *signo)
 	*signo = -1;
 }
 
+static void (*xf86SigIllHandler)(void) = NULL;
+
+void 
+xf86InterceptSigIll(void (*sigillhandler)(void))
+{
+    xf86SigIllHandler = sigillhandler;
+}
+
 /*
  * xf86SigHandler --
  *    Catch unexpected signals and exit or continue cleanly.
@@ -1272,6 +1280,13 @@ xf86InterceptSignals(int *signo)
 void
 xf86SigHandler(int signo)
 {
+  if ((signo == SIGILL) && xf86SigIllHandler) {
+    (*xf86SigIllHandler)();
+    /* Re-arm handler just in case we unexpectedly return here */
+    (void) signal(signo, xf86SigHandler);
+    return;
+  }
+  
   if (xf86SignalIntercept && (*xf86SignalIntercept < 0)) {
     /* Re-arm handler just in case */
     (void) signal(signo, xf86SigHandler);
