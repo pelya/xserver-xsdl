@@ -4,8 +4,6 @@
 #include <glxserver.h>
 #include <glxext.h>
 
-#include <mipointrst.h>
-#include <miscstruct.h>
 #include <windowstr.h>
 #include <resource.h>
 #include <GL/glxint.h>
