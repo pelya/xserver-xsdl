@@ -731,7 +731,7 @@ fbdevHWLoadPalette(ScrnInfoPtr pScrn, int numColors, int *indices,
 	unsigned short red,green,blue;
 	int i;
 
-	TRACE_ENTER("ModeInit");
+	TRACE_ENTER("LoadPalette");
 	cmap.len   = 1;
 	cmap.red   = &red;
 	cmap.green = &green;
@@ -796,7 +796,6 @@ fbdevHWAdjustFrame(int scrnIndex, int x, int y, int flags)
 	fbdevHWPtr fPtr = FBDEVHWPTR(pScrn);
 
 	TRACE_ENTER("AdjustFrame");
-
 	if ( x < 0 || x + fPtr->var.xres > fPtr->var.xres_virtual || 
 	     y < 0 || y + fPtr->var.yres > fPtr->var.yres_virtual )
 		return;
@@ -835,6 +834,7 @@ fbdevHWDPMSSet(ScrnInfoPtr pScrn, int mode, int flags)
 	fbdevHWPtr fPtr = FBDEVHWPTR(pScrn);
 	unsigned long fbmode;
 
+	TRACE_ENTER("DPMSSet");
 	if (!pScrn->vtSema)
 		return;
 
@@ -867,6 +867,7 @@ fbdevHWSaveScreen(ScreenPtr pScreen, int mode)
 	fbdevHWPtr fPtr = FBDEVHWPTR(pScrn);
 	unsigned long unblank;
 
+	TRACE_ENTER("HWSaveScreen");
 	if (!pScrn->vtSema)
 		return TRUE;
 
