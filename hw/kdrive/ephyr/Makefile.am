@@ -4,6 +4,11 @@ INCLUDES = 					\
 
 noinst_LIBRARIES = libxephyr.a libxephyr-hostx.a
 
+if TSLIB
+TSLIB_LIBS = -lts
+endif
+
+
 bin_PROGRAMS = Xephyr
 
 libxephyr_a_SOURCES =	\
@@ -26,7 +31,9 @@ Xephyr_LDADD = 						\
 	libxephyr-hostx.a			        \
 	@KDRIVE_LIBS@					\
 	@XSERVER_LIBS@					\
+        $(TSLIB_LIBS)                                   \
         @XEPHYR_LIBS@
+	
 
 Xephyr_DEPENDENCIES =					\
 	libxephyr.a					\
