@@ -92,6 +92,17 @@ typedef void (*ProcessInputProc)(
     DeviceIntPtr /*device*/,
     int /*count*/);
 
+typedef Bool (*DeviceHandleProc)(
+    DeviceIntPtr /*device*/,
+    void* /*data*/
+    );
+
+typedef void (*DeviceUnwrapProc)(
+    DeviceIntPtr /*device*/,
+    DeviceHandleProc /*proc*/,
+    void* /*data*/
+    );
+
 typedef struct _DeviceRec {
     pointer	devicePrivate;
     ProcessInputProc processInputProc;	/* current */
@@ -144,6 +155,10 @@ typedef struct {
     Mask        led_mask;
     unsigned char id;
 } LedCtrl;
+
+extern int AllocateDevicePrivateIndex(void);
+extern Bool AllocateDevicePrivate(DeviceIntPtr device, int index);
+extern void ResetDevicePrivateIndex(void);
 
 extern KeybdCtrl	defaultKeyboardControl;
 extern PtrCtrl		defaultPointerControl;

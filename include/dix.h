@@ -379,6 +379,12 @@ extern void CopyISOLatin1Lowered(
     unsigned char * /*source*/,
     int /*length*/);
 
+extern int CompareISOLatin1Lowered(
+    unsigned char * /*a*/,
+    int alen,
+    unsigned char * /*b*/,
+    int blen);
+
 #ifdef XCSECURITY
 
 extern WindowPtr SecurityLookupWindow(
@@ -423,12 +429,14 @@ extern ClientPtr LookupClient(
 
 extern void NoopDDA(void);
 
-extern int AlterSaveSetForClient(
+int AlterSaveSetForClient(
     ClientPtr /*client*/,
     WindowPtr /*pWin*/,
-    unsigned /*mode*/);
-
-extern void DeleteWindowFromAnySaveSet(
+    unsigned /*mode*/,
+    Bool /*toRoot*/,
+    Bool /*remap*/);
+  
+void DeleteWindowFromAnySaveSet(
     WindowPtr /*pWin*/);
 
 extern void BlockHandler(
@@ -784,5 +792,22 @@ typedef struct {
     xEventPtr events;
     int count;
 } DeviceEventInfoRec;
+
+/*
+ * SelectionCallback stuff
+ */
+
+extern CallbackListPtr SelectionCallback;
+
+typedef enum {
+    SelectionSetOwner,
+    SelectionWindowDestroy,
+    SelectionClientClose
+} SelectionCallbackKind;
+
+typedef struct {
+    struct _Selection	    *selection;
+    SelectionCallbackKind   kind;
+} SelectionInfoRec;
 
 #endif /* DIX_H */

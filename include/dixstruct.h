@@ -68,6 +68,28 @@ typedef enum {ClientStateInitial,
 	      ClientStateCheckingSecurity,
 	      ClientStateCheckedSecurity} ClientState;
 
+#ifdef XFIXES
+typedef struct _saveSet {
+    struct _Window  *windowPtr;
+    Bool	    toRoot;
+    Bool	    remap;
+} SaveSetElt;
+#define SaveSetWindow(ss)   ((ss).windowPtr)
+#define SaveSetToRoot(ss)   ((ss).toRoot)
+#define SaveSetRemap(ss)    ((ss).remap)
+#define SaveSetAssignWindow(ss,w)   ((ss).windowPtr = (w))
+#define SaveSetAssignToRoot(ss,tr)  ((ss).toRoot = (tr))
+#define SaveSetAssignRemap(ss,rm)  ((ss).remap = (rm))
+#else
+typedef struct _Window *SaveSetElt;
+#define SaveSetWindow(ss)   (ss)
+#define SaveSetToRoot(ss)   FALSE
+#define SaveSetRemap(ss)    TRUE
+#define SaveSetAssignWindow(ss,w)   ((ss) = (w))
+#define SaveSetAssignToRoot(ss,tr)
+#define SaveSetAssignRemap(ss,rm)
+#endif
+
 typedef struct _Client {
     int         index;
     Mask        clientAsMask;
@@ -85,7 +107,7 @@ typedef struct _Client {
     Drawable    lastDrawableID;
     GCPtr       lastGC;
     GContext    lastGCID;
-    pointer    *saveSet;
+    SaveSetElt	*saveSet;
     int         numSaved;
     pointer     screenPrivate[MAXSCREENS];
     int         (**requestVector) (
@@ -148,8 +170,8 @@ extern Bool SmartScheduleDisable;
 extern Bool SmartScheduleIdle;
 extern Bool SmartScheduleTimerStopped;
 extern Bool SmartScheduleStartTimer(void);
-#define SMART_MAX_PRIORITY  (20)
-#define SMART_MIN_PRIORITY  (-20)
+#define SMART_MAX_PRIORITY  20
+#define SMART_MIN_PRIORITY  -20
 
 extern Bool SmartScheduleInit(void);
 

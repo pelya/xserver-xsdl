@@ -61,7 +61,7 @@ static int ShapeFreeEvents(
 	pointer /* data */,
 	XID /* id */
 	);
-static void SendShapeNotify(
+void SendShapeNotify(
 	WindowPtr /* pWin */,
 	int /* which */
 	);
@@ -87,8 +87,8 @@ RegionOperate (
 
 #define CREATE_PROC(func) RegionPtr func(WindowPtr /* pWin */)
 
-static CREATE_PROC(CreateBoundingShape);
-static CREATE_PROC(CreateClipShape);
+CREATE_PROC(CreateBoundingShape);
+CREATE_PROC(CreateClipShape);
 
 #undef CREATE_PROC
 
@@ -261,7 +261,7 @@ RegionOperate (client, pWin, kind, destRgnp, srcRgn, op, xoff, yoff, create)
     return Success;
 }
 
-static RegionPtr
+RegionPtr
 CreateBoundingShape (pWin)
     WindowPtr	pWin;
 {
@@ -274,7 +274,7 @@ CreateBoundingShape (pWin)
     return REGION_CREATE(pWin->drawable.pScreen, &extents, 1);
 }
 
-static RegionPtr
+RegionPtr
 CreateClipShape (pWin)
     WindowPtr	pWin;
 {
@@ -880,7 +880,7 @@ ProcShapeSelectInput (client)
  * deliver the event
  */
 
-static void
+void
 SendShapeNotify (pWin, which)
     WindowPtr	pWin;
     int		which;

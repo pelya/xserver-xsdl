@@ -238,6 +238,12 @@ extern void RRExtensionInit(INITARGS);
 #ifdef RES
 extern void ResExtensionInit(INITARGS);
 #endif
+#ifdef DAMAGE
+extern void DamageExtensionInit(INITARGS);
+#endif
+#ifdef XFIXES
+extern void XFixesExtensionInit(INITARGS);
+#endif
 
 #ifndef XFree86LOADER
 
@@ -377,6 +383,12 @@ InitExtensions(argc, argv)
 #ifdef RES
     ResExtensionInit();
 #endif
+#ifdef DAMAGE
+    DamageExtensionInit();
+#endif
+#ifdef XFIXES
+    XFixesExtensionInit();
+#endif
 }
 
 void
@@ -448,7 +460,15 @@ ExtensionModule extension[] =
     { NULL, "FontCache", NULL, NULL },
     { NULL, "RENDER", NULL, NULL },
     { NULL, "RANDR", NULL, NULL },
+#ifdef RES
     { NULL, "X-Resource", NULL, NULL },
+#endif
+#ifdef DAMAGE
+    { NULL, "DAMAGE", NULL, NULL },
+#endif
+#ifdef XFIXES
+    { NULL, "XFIXES", NULL, NULL },
+#endif 
     { NULL, NULL, NULL, NULL }
 };
 #endif
