@@ -10,8 +10,10 @@ libkdrive_a_SOURCES =	\
 	kcmap.c		\
 	kcurscol.c	\
 	kdrive.c	\
+	kdrive.h	\
 	kinfo.c		\
 	kinput.c	\
+	kkeymap.h	\
 	kmap.c		\
 	kmode.c		\
 	knoop.c		\
@@ -20,4 +22,6 @@ libkdrive_a_SOURCES =	\
 	kshadow.c	\
 	ktest.c		\
 	kxv.c		\
-	vga.c
+	kxv.h		\
+	vga.c		\
+	vga.h

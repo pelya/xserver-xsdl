@@ -10,8 +10,9 @@ if TSLIB
 TSLIB_FLAG = -lts
 endif
 
-libfbdev_a_SOURCES = \
-	fbdev.c
+libfbdev_a_SOURCES =	\
+	fbdev.c		\
+	fbdev.h
 
 Xfbdev_SOURCES = \
 	fbinit.c

@@ -13,9 +13,13 @@ endif
 
 libvesa_a_SOURCES = \
 	vesa.c		\
+	vesa.h		\
 	vbe.c		\
+	vbe.h		\
 	vga.c		\
-	vm86.c
+	vga.h		\
+	vm86.c		\
+	vm86.h
 
 Xvesa_SOURCES = \
 	vesainit.c

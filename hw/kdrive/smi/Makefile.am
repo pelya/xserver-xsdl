@@ -13,11 +13,13 @@ endif
 noinst_LIBRARIES = libsmi.a
 
 #	smivideo.c	# not ready yet
-	
+
 libsmi_a_SOURCES = 	\
-	smi.c	\
-	smidraw.c
-	
+	smi.c		\
+	smi.h		\
+	smidraw.c	\
+	smidraw.h
+
 Xsmi_SOURCES = \
 	smistub.c
 

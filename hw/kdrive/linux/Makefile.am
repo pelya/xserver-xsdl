@@ -15,8 +15,10 @@ endif
 
 liblinux_a_SOURCES = 	\
 	agp.c		\
+	agp.h		\
 	bus.c		\
 	keyboard.c	\
+	klinux.h	\
 	linux.c		\
 	mouse.c		\
 	ms.c		\
