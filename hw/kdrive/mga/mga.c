@@ -134,7 +134,7 @@ mgaUnmapReg (KdCardInfo *card, MgaCardInfo *mgac)
 			   KD_MAPPED_MODE_REGISTERS);
 	KdUnmapDevice ((void *) mgac->reg_base, MGA_REG_SIZE (card));
 	mgac->reg_base = 0;
-	// mgac->reg = 0;
+	/* mgac->reg = 0; */
     }
 }
 

@@ -85,7 +85,7 @@ mgaSetup (ScreenPtr pScreen, int dest_bpp, int wait)
     return FALSE;
 
   mgaWaitAvail (wait + 4);
-  // Set the format of the destination pixmap
+  /* Set the format of the destination pixmap */
   switch (dest_bpp) {
   case 8:
     MGA_OUT32 (mmio, MGA_REG_MACCESS, MGA_PW8);
@@ -112,7 +112,9 @@ mgaPrepareSolid (PixmapPtr pPixmap, int alu, Pixel pm, Pixel fg)
     KdScreenPriv(pPixmap->drawable.pScreen);
     int cmd;
     int dst_org;
-    // We must pad pm and fg depending on the format of the destination pixmap
+    /* We must pad pm and fg depending on the format of the
+     * destination pixmap 
+     */
     switch (pPixmap->drawable.bitsPerPixel) {
     case 16:
         fg |= fg << 16;
@@ -226,7 +228,7 @@ mgaDoneCopy (void)
 
 static Bool
 mgaUploadToScreen(PixmapPtr pDst, char *src, int src_pitch) {
-  //fprintf(stderr,"Upload to Screen %p [%d]\n",src,src_pitch);
+  /* fprintf(stderr,"Upload to Screen %p [%d]\n",src,src_pitch); */
   return TRUE;
 }
 
@@ -259,7 +261,7 @@ mgaDrawInit (ScreenPtr pScreen)
 	mgaKaa.Composite=mgaComposite;
 	mgaKaa.DoneComposite=mgaDoneComposite;
     }
-    //mgaKaa.UploadToScreen=mgaUploadToScreen;
+    /*mgaKaa.UploadToScreen=mgaUploadToScreen;*/
         
     if (!kaaDrawInit (pScreen, &mgaKaa))
 	return FALSE;
