@@ -123,6 +123,7 @@ winInitializeDefaultScreens (void)
       g_ScreenInfo[i].fDecoration = TRUE;
 #ifdef XWIN_MULTIWINDOWEXTWM
       g_ScreenInfo[i].fMWExtWM = FALSE;
+      g_ScreenInfo[i].fInternalWM = FALSE;
 #endif
       g_ScreenInfo[i].fRootless = FALSE;
 #ifdef XWIN_MULTIWINDOW
@@ -500,6 +501,33 @@ ddxProcessArgument (int argc, char *argv[], int i)
           if (!g_ScreenInfo[g_iLastScreen].fMultiMonitorOverride)
             g_ScreenInfo[g_iLastScreen].fMultipleMonitors = TRUE;
 	  g_ScreenInfo[g_iLastScreen].fMWExtWM = TRUE;
+	}
+
+      /* Indicate that we have processed this argument */
+      return 1;
+    }
+  /*
+   * Look for the '-internalwm' argument
+   */
+  if (IS_OPTION ("-internalwm"))
+    {
+      /* Is this parameter attached to a screen or is it global? */
+      if (-1 == g_iLastScreen)
+	{
+	  int			j;
+
+	  /* Parameter is for all screens */
+	  for (j = 0; j < MAXSCREENS; j++)
+	    {
+	      g_ScreenInfo[j].fMWExtWM = TRUE;
+	      g_ScreenInfo[j].fInternalWM = TRUE;
+	    }
+	}
+      else
+	{
+	  /* Parameter is for a single screen */
+	  g_ScreenInfo[g_iLastScreen].fMWExtWM = TRUE;
+	  g_ScreenInfo[g_iLastScreen].fInternalWM = TRUE;
 	}
 
       /* Indicate that we have processed this argument */

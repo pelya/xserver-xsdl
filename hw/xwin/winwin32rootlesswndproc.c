@@ -37,6 +37,9 @@
 #include "propertyst.h"
 #include "Xatom.h"
 #include "winmultiwindowclass.h"
+#if CYGDEBUG
+#include "winmessages.h"
+#endif
 
 
 /*
@@ -46,7 +49,6 @@
 #define MOUSE_POLLING_INTERVAL		500
 #define MOUSE_ACTIVATE_DEFAULT		TRUE
 #define RAISE_ON_CLICK_DEFAULT		FALSE
-
 
 
 /*
@@ -412,7 +414,8 @@ winMWExtWMWindowProc (HWND hwnd, UINT message,
   PAINTSTRUCT		ps;
   LPWINDOWPOS		pWinPos = NULL;
   RECT			rcClient;
-  XID			vlist[2];
+  winWMMessageRec	wmMsg;
+  Bool			fWMMsgInitialized = FALSE;
 
   /* Check if the Windows window property for our X window pointer is valid */
   if ((pRLWinPriv = (win32RootlessWindowPtr)GetProp (hwnd, WIN_WINDOW_PROP)) != NULL)
@@ -422,11 +425,35 @@ winMWExtWMWindowProc (HWND hwnd, UINT message,
       if (pScreen) pScreenPriv		= winGetScreenPriv(pScreen);
       if (pScreenPriv) pScreenInfo	= pScreenPriv->pScreenInfo;
       if (pScreenPriv) hwndScreen	= pScreenPriv->hwndScreen;
+
+      wmMsg.msg		= 0;
+      wmMsg.hwndWindow	= hwnd;
+      wmMsg.iWindow	= (Window)pWin->drawable.id;
+
+      wmMsg.iX		= pRLWinPriv->pFrame->x;
+      wmMsg.iY		= pRLWinPriv->pFrame->y;
+      wmMsg.iWidth	= pRLWinPriv->pFrame->width;
+      wmMsg.iHeight	= pRLWinPriv->pFrame->height;
+
+      fWMMsgInitialized = TRUE;
 #if 0
-      winDebug ("hWnd %08X\n", hwnd);
-      winDebug ("pScreenPriv %08X\n", pScreenPriv);
-      winDebug ("pScreenInfo %08X\n", pScreenInfo);
-      winDebug ("hwndScreen %08X\n", hwndScreen);
+      if (message >= WM_USER)
+	{
+	  winDebug("winMWExtWMWindowProc - Message WM_USER + %d",
+		   message - WM_USER);
+	  winDebug(" wParam 0x%x lParam 0x%x\n", wParam, lParam);
+	}
+      else if (message < MESSAGE_NAMES_LEN && MESSAGE_NAMES[message])
+	{
+	  winDebug("winMWExtWMWindowProc - Message %s",
+		   MESSAGE_NAMES[message]);
+	  winDebug(" wParam 0x%x lParam 0x%x\n", wParam, lParam);
+	}
+
+      winDebug ("\thWnd %08X\n", hwnd);
+      winDebug ("\tpScreenPriv %08X\n", pScreenPriv);
+      winDebug ("\tpScreenInfo %08X\n", pScreenInfo);
+      winDebug ("\thwndScreen %08X\n", hwndScreen);
       winDebug ("winMWExtWMWindowProc (%08x) %08x %08x %08x\n",
 	      pRLWinPriv, message, wParam, lParam);
 #endif
@@ -455,7 +482,14 @@ winMWExtWMWindowProc (HWND hwnd, UINT message,
 	}
       else
 	{
-          winWindowsWMSendEvent(WindowsWMControllerNotify,
+	  if (winIsInternalWMRunning(pScreenInfo))
+	    {
+	      /* Tell our Window Manager thread to kill the window */
+	      wmMsg.msg = WM_WM_KILL;
+	      if (fWMMsgInitialized)
+		winSendMessageToWM (pScreenPriv->pWMInfo, &wmMsg);
+	    }
+	  winWindowsWMSendEvent(WindowsWMControllerNotify,
 				WindowsWMControllerNotifyMask,
 				1,
 				WindowsWMCloseWindow,
@@ -677,9 +711,9 @@ winMWExtWMWindowProc (HWND hwnd, UINT message,
 #if CYGMULTIWINDOW_DEBUG
       winDebug ("winMWExtWMWindowProc - WM_MOUSEACTIVATE\n");
 #endif
-#if 0
+#if 1
       /* Check if this window needs to be made active when clicked */
-      if (pWin->overrideRedirect)
+      if (winIsInternalWMRunning(pScreenInfo) && pWin->overrideRedirect)
 	{
 #if CYGMULTIWINDOW_DEBUG
 	  winDebug ("winMWExtWMWindowProc - WM_MOUSEACTIVATE - "
@@ -690,10 +724,11 @@ winMWExtWMWindowProc (HWND hwnd, UINT message,
 	  return MA_NOACTIVATE;
 	}
 #endif
-      if (!IsMouseActive (pWin)) return MA_NOACTIVATE;
+      if (!winIsInternalWMRunning(pScreenInfo) && !IsMouseActive (pWin))
+	return MA_NOACTIVATE;
 
       break;
-      
+
     case WM_KILLFOCUS:
       /* Pop any pressed keys since we are losing keyboard focus */
       winKeybdReleaseKeys ();
@@ -795,6 +830,20 @@ winMWExtWMWindowProc (HWND hwnd, UINT message,
 #endif
       if (LOWORD(wParam) != WA_INACTIVE)
 	{
+	  if (winIsInternalWMRunning(pScreenInfo))
+	    {
+#if 0
+	      /* Raise the window to the top in Z order */
+	      wmMsg.msg = WM_WM_RAISE;
+	      if (fWMMsgInitialized)
+		winSendMessageToWM (pScreenPriv->pWMInfo, &wmMsg);
+#endif
+	      /* Tell our Window Manager thread to activate the window */
+	      wmMsg.msg = WM_WM_ACTIVATE;
+	      if (fWMMsgInitialized)
+		if (!pWin || !pWin->overrideRedirect) /* for OOo menus */
+		  winSendMessageToWM (pScreenPriv->pWMInfo, &wmMsg);
+	    }
 	  winWindowsWMSendEvent(WindowsWMControllerNotify,
 				WindowsWMControllerNotifyMask,
 				1,
@@ -804,13 +853,13 @@ winMWExtWMWindowProc (HWND hwnd, UINT message,
 				0, 0);
 	}
       return 0;
-      
+
 #if 1
     case WM_WINDOWPOSCHANGING:
       pWinPos = (LPWINDOWPOS)lParam;
       if (!(pWinPos->flags & SWP_NOZORDER))
 	{
-	  if (pRLWinPriv->fRestackingNow)
+	  if (pRLWinPriv->fRestackingNow || pScreenPriv->fRestacking)
 	    {
 #if CYGMULTIWINDOW_DEBUG
 	      winDebug ("Win %08x is now restacking.\n", (unsigned int)pRLWinPriv);
@@ -818,7 +867,7 @@ winMWExtWMWindowProc (HWND hwnd, UINT message,
 	      break;
 	    }
 
-	  if (IsRaiseOnClick (pWin))
+	  if (winIsInternalWMRunning(pScreenInfo) || IsRaiseOnClick (pWin))
 	    {
 #if CYGMULTIWINDOW_DEBUG
 	      winDebug ("Win %08x has WINDOWSWM_RAISE_ON_CLICK.\n", (unsigned int)pRLWinPriv);
@@ -867,19 +916,52 @@ winMWExtWMWindowProc (HWND hwnd, UINT message,
 #endif
       if (!pRLWinPriv->fMovingOrSizing)
 	{
+	  if (winIsInternalWMRunning(pScreenInfo))
+	    winAdjustXWindow (pWin, hwnd);
+
 	  winMWExtWMMoveXWindow (pWin,
-				       (LOWORD(lParam) - wBorderWidth (pWin)
-					- GetSystemMetrics (SM_XVIRTUALSCREEN)),
-				       (HIWORD(lParam) - wBorderWidth (pWin)
-					- GetSystemMetrics (SM_YVIRTUALSCREEN)));
+				 (LOWORD(lParam) - wBorderWidth (pWin)
+				  - GetSystemMetrics (SM_XVIRTUALSCREEN)),
+				 (HIWORD(lParam) - wBorderWidth (pWin)
+				  - GetSystemMetrics (SM_YVIRTUALSCREEN)));
 	}
       return 0;
 
     case WM_SHOWWINDOW:
-#if CYGMULTIWINDOW_DEBUG
+#if CYGMULTIWINDOW_DEBUG || TRUE
       winDebug ("winMWExtWMWindowProc - WM_SHOWWINDOW - %d ms\n",
 		(unsigned int)GetTickCount ());
 #endif
+      /* Bail out if the window is being hidden */
+      if (!wParam)
+	return 0;
+
+      if (!pScreenInfo->fInternalWM)//XXXX
+	return 0;
+
+      winMWExtWMUpdateWindowDecoration (pRLWinPriv, pScreenInfo);
+
+      if (winIsInternalWMRunning(pScreenInfo))
+	{
+#if CYGMULTIWINDOW_DEBUG || TRUE
+	  winDebug ("\tMapWindow\n");
+#endif
+	  /* Tell X to map the window */
+	   MapWindow (pWin, wClient(pWin));
+
+	  if (!pRLWinPriv->pFrame->win->overrideRedirect)
+	    /* Bring the Windows window to the foreground */
+	    SetForegroundWindow (hwnd);
+
+	  /* Setup the Window Manager message */
+	  wmMsg.msg = WM_WM_MAP;
+	  wmMsg.iWidth = pRLWinPriv->pFrame->width;
+	  wmMsg.iHeight = pRLWinPriv->pFrame->height;
+
+	  /* Tell our Window Manager thread to map the window */
+	  if (fWMMsgInitialized)
+	    winSendMessageToWM (pScreenPriv->pWMInfo, &wmMsg);
+	}
       break;
 
     case WM_SIZING:
@@ -914,15 +996,23 @@ winMWExtWMWindowProc (HWND hwnd, UINT message,
 	/* Reorder if window z order was changed */
 	if ((pScreenPriv != NULL)
 	    && !(pWinPos->flags & SWP_NOZORDER)
-	    && !(pWinPos->flags & SWP_SHOWWINDOW))
+	    && !(pWinPos->flags & SWP_SHOWWINDOW)
+	    && winIsInternalWMRunning(pScreenInfo))
 	  {
+#if CYGMULTIWINDOW_DEBUG
+	    winDebug ("\twindow z order was changed\n");
+#endif
 	    if (pWinPos->hwndInsertAfter == HWND_TOP
 		||pWinPos->hwndInsertAfter == HWND_TOPMOST
 		||pWinPos->hwndInsertAfter == HWND_NOTOPMOST)
 	      {
-		vlist[0] = Above;
-		ConfigureWindow (pWin, CWStackMode,
-				 vlist, wClient(pWin));
+#if CYGMULTIWINDOW_DEBUG
+		winDebug ("\traise to top\n");
+#endif
+		/* Raise the window to the top in Z order */
+		wmMsg.msg = WM_WM_RAISE;
+		if (fWMMsgInitialized)
+		  winSendMessageToWM (pScreenPriv->pWMInfo, &wmMsg);
 	      }
 #if 1
 	    else if (pWinPos->hwndInsertAfter == HWND_BOTTOM)
@@ -943,7 +1033,8 @@ winMWExtWMWindowProc (HWND hwnd, UINT message,
 		    GetWindowThreadProcessId (hWndAbove, &dwWindowProcessID);
 
 		    if ((dwWindowProcessID == dwCurrentProcessID)
-			&& GetProp (Above, WIN_WINDOW_PROP)
+			&& GetProp (hWndAbove, WIN_WINDOW_PROP)
+			&& !IsWindowVisible (hWndAbove)
 			&& !IsIconic (hWndAbove) ) /* ignore minimized windows */
 		      break;
 		  }
@@ -951,9 +1042,13 @@ winMWExtWMWindowProc (HWND hwnd, UINT message,
 		   raise it in X stack. */
 		if (hWndAbove == NULL)
 		  {
-		    vlist[0] = Above;
-		    ConfigureWindow (pWin, CWStackMode,
-				     vlist, wClient(pWin));
+#if CYGMULTIWINDOW_DEBUG
+		    winDebug ("\traise to top\n");
+#endif
+		    /* Raise the window to the top in Z order */
+		    wmMsg.msg = WM_WM_RAISE;
+		    if (fWMMsgInitialized)
+		      winSendMessageToWM (pScreenPriv->pWMInfo, &wmMsg);
 		  }
 	      }
 #endif
@@ -964,6 +1059,13 @@ winMWExtWMWindowProc (HWND hwnd, UINT message,
 #if CYGMULTIWINDOW_DEBUG
 	    winDebug ("\tIconic -> MINIMIZED\n");
 #endif
+	    if (winIsInternalWMRunning(pScreenInfo))
+	      {
+	      /* Raise the window to the top in Z order */
+		wmMsg.msg = WM_WM_LOWER;
+		if (fWMMsgInitialized)
+		  winSendMessageToWM (pScreenPriv->pWMInfo, &wmMsg);
+	      }
 	    winWindowsWMSendEvent(WindowsWMControllerNotify,
 				  WindowsWMControllerNotifyMask,
 				  1,
@@ -1004,33 +1106,42 @@ winMWExtWMWindowProc (HWND hwnd, UINT message,
 #if CYGMULTIWINDOW_DEBUG
 	      winDebug ("\tmove & resize\n");
 #endif
+	      if (winIsInternalWMRunning(pScreenInfo))
+		winAdjustXWindow (pWin, hwnd);
+
 	      winMWExtWMMoveResizeXWindow (pWin,
-						 rcClient.left - wBorderWidth (pWin)
-						 - GetSystemMetrics (SM_XVIRTUALSCREEN),
-						 rcClient.top - wBorderWidth (pWin)
-						 - GetSystemMetrics (SM_YVIRTUALSCREEN),
-						 rcClient.right - rcClient.left
-						 - wBorderWidth (pWin)*2,
-						 rcClient.bottom - rcClient.top
-						 - wBorderWidth (pWin)*2);
+					   rcClient.left - wBorderWidth (pWin)
+					   - GetSystemMetrics (SM_XVIRTUALSCREEN),
+					   rcClient.top - wBorderWidth (pWin)
+					   - GetSystemMetrics (SM_YVIRTUALSCREEN),
+					   rcClient.right - rcClient.left
+					   - wBorderWidth (pWin)*2,
+					   rcClient.bottom - rcClient.top
+					   - wBorderWidth (pWin)*2);
 	    } else if (!(pWinPos->flags & SWP_NOMOVE)) {
 #if CYGMULTIWINDOW_DEBUG
 	      winDebug ("\tmove\n");
 #endif
+	      if (winIsInternalWMRunning(pScreenInfo))
+		winAdjustXWindow (pWin, hwnd);
+
 	      winMWExtWMMoveXWindow (pWin,
-					   rcClient.left - wBorderWidth (pWin)
-					   - GetSystemMetrics (SM_XVIRTUALSCREEN),
-					   rcClient.top - wBorderWidth (pWin)
-					   - GetSystemMetrics (SM_YVIRTUALSCREEN));
+				     rcClient.left - wBorderWidth (pWin)
+				     - GetSystemMetrics (SM_XVIRTUALSCREEN),
+				     rcClient.top - wBorderWidth (pWin)
+				     - GetSystemMetrics (SM_YVIRTUALSCREEN));
 	    } else if (!(pWinPos->flags & SWP_NOSIZE)) {
 #if CYGMULTIWINDOW_DEBUG
 	      winDebug ("\tresize\n");
 #endif
+	      if (winIsInternalWMRunning(pScreenInfo))
+		winAdjustXWindow (pWin, hwnd);
+
 	      winMWExtWMResizeXWindow (pWin,
-					     rcClient.right - rcClient.left
-					     - wBorderWidth (pWin)*2,
-					     rcClient.bottom - rcClient.top
-					     - wBorderWidth (pWin)*2);
+				       rcClient.right - rcClient.left
+				       - wBorderWidth (pWin)*2,
+				       rcClient.bottom - rcClient.top
+				       - wBorderWidth (pWin)*2);
 	    }
 	  }
 	}
@@ -1059,6 +1170,13 @@ winMWExtWMWindowProc (HWND hwnd, UINT message,
 #if CYGMULTIWINDOW_DEBUG
 	  winDebug ("\tSIZE_MINIMIZED\n");
 #endif
+	  if (winIsInternalWMRunning(pScreenInfo))
+	    {
+	      /* Raise the window to the top in Z order */
+	      wmMsg.msg = WM_WM_LOWER;
+	      if (fWMMsgInitialized)
+		winSendMessageToWM (pScreenPriv->pWMInfo, &wmMsg);
+	    }
 	  winWindowsWMSendEvent(WindowsWMControllerNotify,
 				WindowsWMControllerNotifyMask,
 				1,
@@ -1098,17 +1216,30 @@ winMWExtWMWindowProc (HWND hwnd, UINT message,
       /* Perform the resize and notify the X client */
       if (!pRLWinPriv->fMovingOrSizing)
 	{
+	  if (winIsInternalWMRunning(pScreenInfo))
+	    winAdjustXWindow (pWin, hwnd);
+
 	  winMWExtWMResizeXWindow (pWin,
-					 (short) LOWORD(lParam)
-					 - wBorderWidth (pWin)*2,
-					 (short) HIWORD(lParam)
-					 - wBorderWidth (pWin)*2);
+				   (short) LOWORD(lParam)
+				   - wBorderWidth (pWin)*2,
+				   (short) HIWORD(lParam)
+				   - wBorderWidth (pWin)*2);
 	}
       break;
 
     case WM_ACTIVATEAPP:
+#if CYGMULTIWINDOW_DEBUG
+      winDebug ("winMWExtWMWindowProc - WM_ACTIVATEAPP - %d ms\n",
+		(unsigned int)GetTickCount ());
+#endif
       if (wParam)
 	{
+	  if (winIsInternalWMRunning(pScreenInfo))
+	    {
+	    }
+	  else
+	    {
+	    }
 	  winWindowsWMSendEvent(WindowsWMActivationNotify,
 				WindowsWMActivationNotifyMask,
 				1,
@@ -1155,15 +1286,27 @@ winMWExtWMWindowProc (HWND hwnd, UINT message,
       GetClientRect (hwnd, &rcClient);
 
       MapWindowPoints (hwnd, HWND_DESKTOP, (LPPOINT)&rcClient, 2);
+
+      if (winIsInternalWMRunning(pScreenInfo))
+	winAdjustXWindow (pWin, hwnd);
+
       winMWExtWMMoveResizeXWindow (pWin,
-					 rcClient.left - wBorderWidth (pWin)
-					 - GetSystemMetrics (SM_XVIRTUALSCREEN),
-					 rcClient.top - wBorderWidth (pWin)
-					 - GetSystemMetrics (SM_YVIRTUALSCREEN),
-					 rcClient.right - rcClient.left
-					 - wBorderWidth (pWin)*2,
-					 rcClient.bottom - rcClient.top
-					 - wBorderWidth (pWin)*2);
+				   rcClient.left - wBorderWidth (pWin)
+				   - GetSystemMetrics (SM_XVIRTUALSCREEN),
+				   rcClient.top - wBorderWidth (pWin)
+				   - GetSystemMetrics (SM_YVIRTUALSCREEN),
+				   rcClient.right - rcClient.left
+				   - wBorderWidth (pWin)*2,
+				   rcClient.bottom - rcClient.top
+				   - wBorderWidth (pWin)*2);
+      break;
+
+    case WM_MANAGE:
+      ErrorF ("winMWExtWMWindowProc - WM_MANAGE\n");
+      break;
+
+    case WM_UNMANAGE:
+      ErrorF ("winMWExtWMWindowProc - WM_UNMANAGE\n");
       break;
 
     default:

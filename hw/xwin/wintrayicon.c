@@ -115,6 +115,14 @@ winHandleIconMessage (HWND hwnd, UINT message,
 
   switch (lParam)
     {
+    case WM_LBUTTONUP:
+      /* Restack and bring all windows to top */
+      SetForegroundWindow (hwnd);
+
+      if (pScreenInfo->fMWExtWM)
+	winMWExtWMRestackWindows (pScreenInfo->pScreen);
+      break;
+
     case WM_LBUTTONDBLCLK:
       /* Display Exit dialog box */
       winDisplayExitDialog (pScreenPriv);

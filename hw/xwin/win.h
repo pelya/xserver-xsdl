@@ -420,6 +420,8 @@ typedef struct
   Bool			fDecoration;
 #ifdef XWIN_MULTIWINDOWEXTWM
   Bool			fMWExtWM;
+  Bool			fInternalWM;
+  Bool			fAnotherWMRunning;
 #endif
   Bool			fRootless;
 #ifdef XWIN_MULTIWINDOW
@@ -1391,6 +1393,19 @@ winMWExtWMMoveResizeXWindow (WindowPtr pWin, int x, int y, int w, int h);
 
 void
 winMWExtWMUpdateIcon (Window id);
+
+void
+winMWExtWMUpdateWindowDecoration (win32RootlessWindowPtr pRLWinPriv,
+				  winScreenInfoPtr pScreenInfo);
+
+BOOL CALLBACK
+winMWExtWMDecorateWindow (HWND hwnd, LPARAM lParam);
+
+Bool
+winIsInternalWMRunning (winScreenInfoPtr pScreenInfo);
+
+void
+winMWExtWMRestackWindows (ScreenPtr pScreen);
 #endif
 
 

@@ -49,7 +49,6 @@
 #define WIN_MSG_QUEUE_FNAME	"/dev/windows"
 #define WIN_WID_PROP		"cyg_wid_prop_rl"
 #define WIN_NEEDMANAGE_PROP	"cyg_override_redirect_prop_rl"
-#define WIN_HWND_CACHE		"cyg_privmap_rl"
 #ifndef CYGMULTIWINDOW_DEBUG
 #define CYGMULTIWINDOW_DEBUG    NO
 #endif
@@ -105,9 +104,11 @@ typedef struct _winWMMessageRec{
 #define		WM_WM_UNMAP		(WM_USER + 6)
 #define		WM_WM_KILL		(WM_USER + 7)
 #define		WM_WM_ACTIVATE		(WM_USER + 8)
-#define	        WM_WM_NAME_EVENT	(WM_USER + 9)
-#define	        WM_WM_HINTS_EVENT	(WM_USER + 10)
+#define		WM_WM_NAME_EVENT	(WM_USER + 9)
+#define		WM_WM_HINTS_EVENT	(WM_USER + 10)
 #define		WM_WM_CHANGE_STATE	(WM_USER + 11)
+#define		WM_MANAGE		(WM_USER + 100)
+#define		WM_UNMANAGE		(WM_USER + 102)
 
 void
 winSendMessageToWM (void *pWMInfo, winWMMessagePtr msg);
@@ -117,7 +118,8 @@ winInitWM (void **ppWMInfo,
 	   pthread_t *ptWMProc,
 	   pthread_t *ptXMsgProc,
 	   pthread_mutex_t *ppmServerStarted,
-	   int dwScreen);
+	   int dwScreen,
+	   HWND hwndScreen);
 
 void
 winDeinitMultiWindowWM (void);

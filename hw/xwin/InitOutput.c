@@ -451,6 +451,9 @@ winUseMsg (void)
 #ifdef XWIN_MULTIWINDOWEXTWM
   ErrorF ("-mwextwm\n"
 	  "\tRun the server in multi-window external window manager mode.\n");
+
+  ErrorF ("-internalwm\n"
+	  "\tRun the internal window manager.\n");
 #endif
 
   ErrorF ("-rootless\n"

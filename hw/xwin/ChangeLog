@@ -1,3 +1,28 @@
+2004-11-04  Kensuke Matsuzaki  <zakki@peppermint.jp>
+
+	* InitOutput.c: (winUseMsg):
+	* win.h:
+	* winmultiwindowwindow.c: (winMinimizeWindow):
+	* winmultiwindowwm.c: (PushMessage), (UpdateName),
+	(PreserveWin32Stack), (winMultiWindowWMProc),
+	(winMultiWindowXMsgProc), (winInitWM), (winInitMultiWindowWM),
+	(CheckAnotherWindowManager):
+	* winprocarg.c: (winInitializeDefaultScreens),
+	(ddxProcessArgument):
+	* winscrinit.c: (winFinishScreenInitFB):
+	* wintrayicon.c: (winHandleIconMessage):
+	* winwin32rootless.c: (InitWin32RootlessEngine),
+	(winMWExtWMResizeFrame), (winMWExtWMRestackFrame),
+	(winMWExtWMStartDrawing), (winMWExtWMRootlessSwitchWindow),
+	(winMWExtWMSetNativeProperty):
+	* winwin32rootlesswindow.c: (winMWExtWMReorderWindows),
+	(winMWExtWMDecorateWindow), (winMWExtWMUpdateWindowDecoration),
+	(winIsInternalWMRunning), (winMWExtWMRestackWindows):
+	* winwin32rootlesswndproc.c: (winMWExtWMWindowProc):
+	* winwindow.h:
+	* winwndproc.c: (winWindowProc):
+	Add internalwm mode.
+
 2004-10-28  Alexander Gottwald  <ago at freedesktop dot org>
 
 	* win.h:

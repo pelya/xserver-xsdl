@@ -56,7 +56,8 @@ extern Bool			g_fClipboard;
 extern HWND			g_hDlgDepthChange;
 extern Bool			g_fKeyboardHookLL;
 extern HWND			g_hwndKeyboardFocus;
-extern Bool                     g_fSoftwareCursor;
+extern Bool			g_fSoftwareCursor;
+extern DWORD			g_dwCurrentThreadID;
 
 /*
  * Called by winWakeupHandler
@@ -1131,7 +1132,7 @@ winWindowProc (HWND hwnd, UINT message,
 	  || s_pScreenInfo->fIgnoreInput)
 	break;
 
-#if CYGDEBUG
+#if CYGDEBUG || TRUE
       winDebug ("winWindowProc - WM_ACTIVATEAPP\n");
 #endif
 
@@ -1152,6 +1153,14 @@ winWindowProc (HWND hwnd, UINT message,
 
       /* Call engine specific screen activation/deactivation function */
       (*s_pScreenPriv->pwinActivateApp) (s_pScreen);
+
+      if (s_pScreenPriv->fActive)
+	{
+	  /* Restack all window unless using built-in wm. */
+	  if (s_pScreenInfo->fInternalWM && s_pScreenInfo->fAnotherWMRunning)
+	    winMWExtWMRestackWindows (s_pScreen);
+	}
+
       return 0;
 
     case WM_COMMAND:
@@ -1161,9 +1170,9 @@ winWindowProc (HWND hwnd, UINT message,
 	  /* Display Exit dialog */
 	  winDisplayExitDialog (s_pScreenPriv);
 	  return 0;
-    case ID_APP_SHOWCURSOR:
-      winDebug("ShowCursor: %d\n", ShowCursor(TRUE));
-      return 0;
+	case ID_APP_SHOWCURSOR:
+	  winDebug("ShowCursor: %d\n", ShowCursor(TRUE));
+	  return 0;
 
 #ifdef XWIN_MULTIWINDOW
 	case ID_APP_HIDE_ROOT:
@@ -1207,6 +1216,28 @@ winWindowProc (HWND hwnd, UINT message,
 	{
 	  if (!g_fSoftwareCursor) SetCursor (s_pScreenPriv->cursor.handle);
 	  return TRUE;
+	}
+      break;
+
+    case WM_MANAGE:
+      ErrorF ("winWindowProc - WM_MANAGE\n");
+      s_pScreenInfo->fAnotherWMRunning = FALSE;
+
+      if (s_pScreenInfo->fInternalWM)
+	{
+	  EnumThreadWindows (g_dwCurrentThreadID, winMWExtWMDecorateWindow, 0);
+	  //RootlessRepositionWindows (s_pScreen);
+	}
+      break;
+
+    case WM_UNMANAGE:
+      ErrorF ("winWindowProc - WM_UNMANAGE\n");
+      s_pScreenInfo->fAnotherWMRunning = TRUE;
+
+      if (s_pScreenInfo->fInternalWM)
+	{
+	  EnumThreadWindows (g_dwCurrentThreadID, winMWExtWMDecorateWindow, 0);
+	  winMWExtWMRestackWindows (s_pScreen);
 	}
       break;
 

@@ -592,12 +592,13 @@ winFinishScreenInitFB (int index,
 #endif
 
   /* Initialize multi window mode */
-  if (pScreenInfo->fMultiWindow
+  if ((pScreenInfo->fMultiWindow || pScreenInfo->fInternalWM)
       && !winInitWM (&pScreenPriv->pWMInfo,
 		     &pScreenPriv->ptWMProc,
 		     &pScreenPriv->ptXMsgProc,
 		     &pScreenPriv->pmServerStarted,
-		     pScreenInfo->dwScreen))
+		     pScreenInfo->dwScreen,
+		     (HWND)&pScreenPriv->hwndScreen))
     {
       ErrorF ("winFinishScreenInitFB - winInitWM () failed.\n");
       return FALSE;

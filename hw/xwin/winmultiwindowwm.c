@@ -54,10 +54,11 @@
 #include "obj_base.h"
 #include "ddraw.h"
 #include "winwindow.h"
+#include "windowswmstr.h"
 
 extern void winDebug(const char *format, ...);
 
-#ifndef CYGDEBUG 
+#ifndef CYGDEBUG
 #define CYGDEBUG NO
 #endif
 
@@ -108,6 +109,7 @@ typedef struct _XMsgProcArgRec {
   DWORD			dwScreen;
   WMInfoPtr		pWMInfo;
   pthread_mutex_t	*ppmServerStarted;
+  HWND			hwndScreen;
 } XMsgProcArgRec, *XMsgProcArgPtr;
 
 
@@ -170,6 +172,9 @@ static void
 PreserveWin32Stack(WMInfoPtr pWMInfo, Window iWindow, UINT direction);
 #endif
 
+static Bool
+CheckAnotherWindowManager (Display *pDisplay, DWORD dwScreen);
+
 
 /*
  * Local globals
@@ -177,8 +182,9 @@ PreserveWin32Stack(WMInfoPtr pWMInfo, Window iWindow, UINT direction);
 
 static jmp_buf			g_jmpWMEntry;
 static jmp_buf			g_jmpXMsgProcEntry;
-static Bool                     g_shutdown = FALSE;
+static Bool			g_shutdown = FALSE;
 static Bool			redirectError = FALSE;
+static Bool			g_fAnotherWMRunnig = FALSE;
 
 
 /*
@@ -212,11 +218,14 @@ PushMessage (WMMsgQueuePtr pQueue, WMMsgNodePtr pNode)
     case WM_WM_MOVE:
       ErrorF ("\tWM_WM_MOVE\n");
       break;
+    case WM_WM_SIZE:
+      ErrorF ("\tWM_WM_SIZE\n");
+      break;
     case WM_WM_RAISE:
       ErrorF ("\tWM_WM_RAISE\n");
       break;
     case WM_WM_LOWER:
-      ErrorF ("\tWM_WM_RAISE\n");
+      ErrorF ("\tWM_WM_LOWER\n");
       break;
     case WM_WM_MAP:
       ErrorF ("\tWM_WM_MAP\n");
@@ -227,8 +236,11 @@ PushMessage (WMMsgQueuePtr pQueue, WMMsgNodePtr pNode)
     case WM_WM_KILL:
       ErrorF ("\tWM_WM_KILL\n");
       break;
+    case WM_WM_ACTIVATE:
+      ErrorF ("\tWM_WM_ACTIVATE\n");
+      break;
     default:
-      ErrorF ("Unknown Message.\n");
+      ErrorF ("\tUnknown Message.\n");
       break;
     }
 #endif
@@ -482,7 +494,7 @@ UpdateName (WMInfoPtr pWMInfo, Window iWindow)
 			  0,
 			  1,
 			  False,
-			  pWMInfo->atmPrivMap,
+			  XA_INTEGER,//pWMInfo->atmPrivMap,
 			  &atmType,
 			  &fmtRet,
 			  &items,
@@ -499,7 +511,7 @@ UpdateName (WMInfoPtr pWMInfo, Window iWindow)
   /* Some sanity checks */
   if (!hWnd) return;
   if (!IsWindow (hWnd)) return;
-  
+
   /* Set the Windows window name */
   GetWindowName (pWMInfo->pDisplay, iWindow, &pszName);
   if (pszName)
@@ -543,7 +555,7 @@ PreserveWin32Stack(WMInfoPtr pWMInfo, Window iWindow, UINT direction)
 			  0,
 			  1,
 			  False,
-			  pWMInfo->atmPrivMap,
+			  XA_INTEGER,//pWMInfo->atmPrivMap,
 			  &atmType,
 			  &fmtRet,
 			  &items,
@@ -609,6 +621,12 @@ winMultiWindowWMProc (void *pArg)
     {
       WMMsgNodePtr	pNode;
 
+      if(g_fAnotherWMRunnig)/* Another Window manager exists. */
+	{
+	  Sleep (1000);
+	  continue;
+	}
+
       /* Pop a message off of our queue */
       pNode = PopMessage (&pWMInfo->wmMsgQueue, pWMInfo);
       if (pNode == NULL)
@@ -623,7 +641,7 @@ winMultiWindowWMProc (void *pArg)
       ErrorF ("winMultiWindowWMProc - %d ms MSG: %d ID: %d\n",
 	      GetTickCount (), (int)pNode->msg.msg, (int)pNode->msg.dwID);
 #endif
-      
+
       /* Branch on the message type */
       switch (pNode->msg.msg)
 	{
@@ -665,7 +683,7 @@ winMultiWindowWMProc (void *pArg)
 	  XChangeProperty (pWMInfo->pDisplay,
 			   pNode->msg.iWindow,
 			   pWMInfo->atmPrivMap,
-			   pWMInfo->atmPrivMap,
+			   XA_INTEGER,//pWMInfo->atmPrivMap,
 			   32,
 			   PropModeReplace,
 			   (unsigned char *) &(pNode->msg.hwndWindow),
@@ -897,19 +915,7 @@ winMultiWindowXMsgProc (void *pArg)
 	  "successfully opened the display.\n");
 
   /* Check if another window manager is already running */
-  redirectError = FALSE;
-  XSetErrorHandler (winRedirectErrorHandler);
-  XSelectInput(pProcArg->pDisplay,
-	       RootWindow (pProcArg->pDisplay, pProcArg->dwScreen),
-	       SubstructureNotifyMask | ButtonPressMask);
-  XSync (pProcArg->pDisplay, 0);
-  XSetErrorHandler (winMultiWindowXMsgProcErrorHandler);
-  if (redirectError)
-    {
-      ErrorF ("winMultiWindowXMsgProc - "
-	      "another window manager is running.  Exiting.\n");
-      pthread_exit (NULL);
-    }
+  g_fAnotherWMRunnig = CheckAnotherWindowManager (pProcArg->pDisplay, pProcArg->dwScreen);
   
   /* Set up the supported icon sizes */
   xis = XAllocIconSize ();
@@ -938,15 +944,49 @@ winMultiWindowXMsgProc (void *pArg)
   /* Loop until we explicitly break out */
   while (1)
     {
+      if (!XPending (pProcArg->pDisplay))
+	{
+	  if (CheckAnotherWindowManager (pProcArg->pDisplay, pProcArg->dwScreen))
+	    {
+	      if (!g_fAnotherWMRunnig)
+		{
+		  g_fAnotherWMRunnig = TRUE;
+		  SendMessage(*(HWND*)pProcArg->hwndScreen, WM_UNMANAGE, 0, 0);
+		}
+	    }
+	  else
+	    {
+	      if (g_fAnotherWMRunnig)
+		{
+		  g_fAnotherWMRunnig = FALSE;
+		  SendMessage(*(HWND*)pProcArg->hwndScreen, WM_MANAGE, 0, 0);
+		}
+	    }
+	  Sleep (500);
+	  continue;
+	}
+
       /* Fetch next event */
       XNextEvent (pProcArg->pDisplay, &event);
 
       /* Branch on event type */
       if (event.type == CreateNotify)
 	{
+	  XWindowAttributes	attr;
+
 	  XSelectInput (pProcArg->pDisplay,
 			event.xcreatewindow.window,
 			PropertyChangeMask);
+
+	  /* Get the window attributes */
+	  XGetWindowAttributes (pProcArg->pDisplay,
+				event.xcreatewindow.window,
+				&attr);
+
+	  if (!attr.override_redirect)
+	    XSetWindowBorderWidth(pProcArg->pDisplay,
+				  event.xcreatewindow.window,
+				  0);
 	}
       else if (event.type == PropertyNotify
 	       && event.xproperty.atom == atmWmName)
@@ -998,7 +1038,8 @@ winInitWM (void **ppWMInfo,
 	   pthread_t *ptWMProc,
 	   pthread_t *ptXMsgProc,
 	   pthread_mutex_t *ppmServerStarted,
-	   int dwScreen)
+	   int dwScreen,
+	   HWND hwndScreen)
 {
   WMProcArgPtr		pArg = (WMProcArgPtr) malloc (sizeof(WMProcArgRec));
   WMInfoPtr		pWMInfo = (WMInfoPtr) malloc (sizeof(WMInfoRec));
@@ -1043,6 +1084,7 @@ winInitWM (void **ppWMInfo,
   pXMsgArg->dwScreen = dwScreen;
   pXMsgArg->pWMInfo = pWMInfo;
   pXMsgArg->ppmServerStarted = ppmServerStarted;
+  pXMsgArg->hwndScreen = hwndScreen;
   if (pthread_create (ptXMsgProc, NULL, winMultiWindowXMsgProc, pXMsgArg))
     {
       /* Bail if thread creation failed */
@@ -1182,7 +1224,7 @@ winInitMultiWindowWM (WMInfoPtr pWMInfo, WMProcArgPtr pProcArg)
 				      "WM_DELETE_WINDOW",
 				      False);
   pWMInfo->atmPrivMap  = XInternAtom (pWMInfo->pDisplay,
-				      WIN_HWND_CACHE,
+				      WINDOWSWM_NATIVE_HWND,
 				      False);
 }
 
@@ -1298,6 +1340,36 @@ winRedirectErrorHandler (Display *pDisplay, XErrorEvent *pErr)
   return 0;
 }
 
+
+/*
+ * Check if another window manager is running
+ */
+
+static Bool
+CheckAnotherWindowManager (Display *pDisplay, DWORD dwScreen)
+{
+  redirectError = FALSE;
+  XSetErrorHandler (winRedirectErrorHandler);
+  XSelectInput(pDisplay, RootWindow (pDisplay, dwScreen),
+	       // SubstructureNotifyMask | ButtonPressMask
+	       ColormapChangeMask | EnterWindowMask | PropertyChangeMask |
+	       SubstructureRedirectMask | KeyPressMask |
+	       ButtonPressMask | ButtonReleaseMask);
+  XSync (pDisplay, 0);
+  XSetErrorHandler (winMultiWindowXMsgProcErrorHandler);
+  XSelectInput(pDisplay, RootWindow (pDisplay, dwScreen),
+	       SubstructureNotifyMask);
+  XSync (pDisplay, 0);
+  if (redirectError)
+    {
+      //ErrorF ("CheckAnotherWindowManager() - another window manager is running.  Exiting.\n");
+      return TRUE;
+    }
+  else
+    {
+      return FALSE;
+    }
+}
 
 /*
  * Notify the MWM thread we're exiting and not to reconnect

@@ -813,16 +813,34 @@ winMinimizeWindow (Window id)
 {
   WindowPtr		pWin;
   winPrivWinPtr	pWinPriv;
+  win32RootlessWindowPtr pRLWinPriv;
+  HWND hWnd;
+  ScreenPtr pScreen = NULL;
+  winPrivScreenPtr pScreenPriv = NULL;
+  winScreenInfo *pScreenInfo = NULL;
 
 #if CYGWINDOWING_DEBUG
   ErrorF ("winMinimizeWindow\n");
 #endif
-  
+
   pWin = LookupIDByType (id, RT_WINDOW);
-  
-  pWinPriv = winGetWindowPriv (pWin);
-  
-  ShowWindow (pWinPriv->hWnd, SW_MINIMIZE);
+
+  pScreen = pWin->drawable.pScreen;
+  if (pScreen) pScreenPriv = winGetScreenPriv(pScreen);
+  if (pScreenPriv) pScreenInfo = pScreenPriv->pScreenInfo;
+
+  if (pScreenPriv && pScreenInfo->fInternalWM)
+    {
+      pRLWinPriv  = (win32RootlessWindowPtr) RootlessFrameForWindow (pWin, FALSE);
+      hWnd = pRLWinPriv->hWnd;
+    }
+  else
+    {
+      pWinPriv = winGetWindowPriv (pWin);
+      hWnd = pWinPriv->hWnd;
+    }
+
+  ShowWindow (hWnd, SW_MINIMIZE);
 }
 
 
