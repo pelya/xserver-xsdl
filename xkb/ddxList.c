@@ -131,7 +131,7 @@ XkbDDXListComponent(	DeviceIntPtr 		dev,
 			XkbSrvListInfoPtr	list,
 			ClientPtr		client)
 {
-char 	*file,*map,*tmp,buf[PATH_MAX*4];
+char 	*file,*map,*tmp,*buf=NULL;
 FILE 	*in;
 Status	status;
 int	rval;
@@ -162,19 +162,15 @@ char	tmpname[PATH_MAX];
     (void) mktemp(tmpname);
 #endif
     if (XkbBaseDirectory!=NULL) {
-	if (strlen(XkbBaseDirectory)+strlen(componentDirs[what])+6 > PATH_MAX)
-	    return BadImplementation;
 	if ((list->pattern[what][0]=='*')&&(list->pattern[what][1]=='\0')) {
-	    sprintf(buf,"%s/%s.dir",XkbBaseDirectory,componentDirs[what]);
+	    buf = Xprintf("%s/%s.dir",XkbBaseDirectory,componentDirs[what]);
 	    in= fopen(buf,"r");
+	    xfree (buf);
+	    buf = NULL;
 	}
 	if (!in) {
 	    haveDir= False;
-	    if (strlen(XkbBaseDirectory)*2+strlen(componentDirs[what])
-		    +W32_tmplen
-		    +(xkbDebugFlags>9?2:1)+strlen(file)+35 > PATH_MAX)
-		return BadImplementation;
-	    sprintf(buf,
+	    buf = Xprintf(
 		"'%s/xkbcomp' '-R%s/%s' -w %ld -l -vlfhpR '%s'" W32_tmparg,
                 XkbBaseDirectory,XkbBaseDirectory,componentDirs[what],(long)
 		((xkbDebugFlags<2)?1:((xkbDebugFlags>10)?10:xkbDebugFlags)),
@@ -183,18 +179,15 @@ char	tmpname[PATH_MAX];
 	}
     }
     else {
-	if (strlen(XkbBaseDirectory)+strlen(componentDirs[what])+6 > PATH_MAX)
-	    return BadImplementation;
 	if ((list->pattern[what][0]=='*')&&(list->pattern[what][1]=='\0')) {
-	    sprintf(buf,"%s.dir",componentDirs[what]);
+	    buf = Xprintf("%s.dir",componentDirs[what]);
 	    in= fopen(buf,"r");
+	    xfree (buf);
+	    buf = NULL;
 	}
 	if (!in) {
 	    haveDir= False;
-	    if (strlen(componentDirs[what]) + W32_tmplen
-		    +(xkbDebugFlags>9?2:1)+strlen(file)+29 > PATH_MAX)
-		return BadImplementation;
-	    sprintf(buf,
+	    buf = Xprintf(
 		"xkbcomp -R%s -w %ld -l -vlfhpR '%s'" W32_tmparg,
                 componentDirs[what],(long)
 		((xkbDebugFlags<2)?1:((xkbDebugFlags>10)?10:xkbDebugFlags)),
@@ -218,7 +211,14 @@ char	tmpname[PATH_MAX];
 #endif
     }
     if (!in)
+    {
+        if (buf != NULL)
+	    xfree (buf);
+#ifdef WIN32
+	unlink(tmpname);
+#endif
 	return BadImplementation;
+    }
     list->nFound[what]= 0;
     while ((status==Success)&&((tmp=fgets(buf,PATH_MAX,in))!=NULL)) {
 	unsigned flags;
@@ -272,6 +272,8 @@ char	tmpname[PATH_MAX];
     fclose(in);
     unlink(tmpname);
 #endif
+    if (buf != NULL)
+        xfree (buf);
     return status;
 }
 

@@ -193,7 +193,7 @@ XkbDDXCompileNamedKeymap(	XkbDescPtr		xkb,
 				char *			nameRtrn,
 				int			nameRtrnLen)
 {
-char 	cmd[PATH_MAX*4],file[PATH_MAX],xkm_output_dir[PATH_MAX],*map,*outFile;
+char 	*cmd = NULL,file[PATH_MAX],xkm_output_dir[PATH_MAX],*map,*outFile;
 
     if (names->keymap==NULL)
 	return False;
@@ -225,17 +225,7 @@ char 	cmd[PATH_MAX*4],file[PATH_MAX],xkm_output_dir[PATH_MAX],*map,*outFile;
             if (xkbbasedir[i]=='/') xkbbasedir[i]='\\';
 #endif
 
-	if (strlen(xkbbasedir)*2+(xkbDebugFlags>9?2:1)
-		+(map?strlen(map)+3:0)+strlen(PRE_ERROR_MSG)
-		+strlen(ERROR_PREFIX)+strlen(POST_ERROR_MSG1)
-		+strlen(file)+strlen(xkm_output_dir)
-		+strlen(outFile)+59 > PATH_MAX)
-	{
-	    ErrorF("compiler command for keymap (%s) exceeds max length\n",
-								names->keymap);
-	    return False;
-	}
-	sprintf(cmd,"\"%s" PATHSEPARATOR "xkbcomp\" -w %d \"-R%s\" -xkm %s%s -em1 %s -emp %s -eml %s keymap/%s \"%s%s.xkm\"",
+	cmd = Xprintf("\"%s" PATHSEPARATOR "xkbcomp\" -w %d \"-R%s\" -xkm %s%s -em1 %s -emp %s -eml %s keymap/%s \"%s%s.xkm\"",
 		xkbbasedir,
 		((xkbDebugFlags<2)?1:((xkbDebugFlags>10)?10:(int)xkbDebugFlags)),
 		xkbbasedir,(map?"-m ":""),(map?map:""),
@@ -243,16 +233,7 @@ char 	cmd[PATH_MAX*4],file[PATH_MAX],xkm_output_dir[PATH_MAX],*map,*outFile;
 		xkm_output_dir,outFile);
     }
     else {
-	if ((xkbDebugFlags>9?2:1)+(map?strlen(map)+3:0)+strlen(PRE_ERROR_MSG)
-		+strlen(ERROR_PREFIX)+strlen(POST_ERROR_MSG1)
-		+strlen(file)+strlen(xkm_output_dir)
-		+strlen(outFile)+51 > PATH_MAX)
-	{
-            ErrorF("compiler command for keymap (%s) exceeds max length\n",
-							names->keymap);
-	    return False;
-	}
-	sprintf(cmd,"xkbcomp -w %d -xkm %s%s -em1 %s -emp %s -eml %s keymap/%s \"%s%s.xkm\"",
+	cmd = Xprintf("xkbcomp -w %d -xkm %s%s -em1 %s -emp %s -eml %s keymap/%s \"%s%s.xkm\"",
 		((xkbDebugFlags<2)?1:((xkbDebugFlags>10)?10:(int)xkbDebugFlags)),
 		(map?"-m ":""),(map?map:""),
 		PRE_ERROR_MSG,ERROR_PREFIX,POST_ERROR_MSG1,file,
@@ -274,6 +255,8 @@ char 	cmd[PATH_MAX*4],file[PATH_MAX],xkm_output_dir[PATH_MAX],*map,*outFile;
 	}
 	if (outFile!=NULL)
 	    _XkbFree(outFile);
+        if (cmd!=NULL)
+            xfree(cmd);
 	return True;
     } 
 #ifdef DEBUG
@@ -281,6 +264,8 @@ char 	cmd[PATH_MAX*4],file[PATH_MAX],xkm_output_dir[PATH_MAX],*map,*outFile;
 #endif
     if (outFile!=NULL)
 	_XkbFree(outFile);
+    if (cmd!=NULL)
+        xfree(cmd);
     return False;
 }
 
@@ -293,7 +278,8 @@ XkbDDXCompileKeymapByNames(	XkbDescPtr		xkb,
 				int			nameRtrnLen)
 {
 FILE *	out;
-char	buf[PATH_MAX*4],keymap[PATH_MAX],xkm_output_dir[PATH_MAX];
+char	*buf = NULL, keymap[PATH_MAX],xkm_output_dir[PATH_MAX];
+
 #ifdef WIN32
 char tmpname[PATH_MAX];
 #endif    
@@ -332,17 +318,7 @@ char tmpname[PATH_MAX];
             if (xkbbasedir[i]=='/') xkbbasedir[i]='\\';
 #endif
         
-	if (strlen(xkbbasedir)*2+(xkbDebugFlags>9?2:1)
-		+strlen(PRE_ERROR_MSG)+strlen(ERROR_PREFIX)
-		+strlen(POST_ERROR_MSG1)+strlen(xkm_output_dir)
-                +strlen(xkmfile)
-		+strlen(keymap)+53 > PATH_MAX)
-	{
-            ErrorF("compiler command for keymap (%s) exceeds max length\n",
-							names->keymap);
-	    return False;
-	}
-	sprintf(buf,
+	buf = Xprintf(
 	   "\"%s" PATHSEPARATOR "xkbcomp\" -w %d \"-R%s\" -xkm \"%s\" -em1 %s -emp %s -eml %s \"%s%s.xkm\"",
 		xkbbasedir,
 		((xkbDebugFlags<2)?1:((xkbDebugFlags>10)?10:(int)xkbDebugFlags)),
@@ -356,16 +332,7 @@ char tmpname[PATH_MAX];
 #else
         char *xkmfile = tmpname;
 #endif
-	if ((xkbDebugFlags>9?2:1)+strlen(PRE_ERROR_MSG)
-		+strlen(ERROR_PREFIX)+strlen(POST_ERROR_MSG1)
-                +strlen(xkmfile)
-		+strlen(xkm_output_dir)+strlen(keymap)+45 > PATH_MAX)
-	{
-            ErrorF("compiler command for keymap (%s) exceeds max length\n",
-							names->keymap);
-	    return False;
-	}
-	sprintf(buf,
+	buf = Xprintf(
 		"xkbcomp -w %d -xkm \"%s\" -em1 %s -emp %s -eml %s \"%s%s.xkm\"",
 		((xkbDebugFlags<2)?1:((xkbDebugFlags>10)?10:(int)xkbDebugFlags)),
                 xkmfile,
@@ -427,6 +394,8 @@ char tmpname[PATH_MAX];
 #endif
 	    }
 #endif
+            if (buf != NULL)
+                xfree (buf);
 	    return True;
 	}
 #ifdef DEBUG
@@ -449,6 +418,8 @@ char tmpname[PATH_MAX];
 #endif
     if (nameRtrn)
 	nameRtrn[0]= '\0';
+    if (buf != NULL)
+        xfree (buf);
     return False;
 }
 
