@@ -254,7 +254,7 @@ xf86DeleteScreen(int scrnIndex, int flags)
     if (pScrn->drv)
 	pScrn->drv->refCount--;
 
-    if (pScrn->privates);
+    if (pScrn->privates)
 	xfree(pScrn->privates);
 
     xf86ClearEntityListForScreen(scrnIndex);
@@ -346,7 +346,7 @@ xf86DeleteInput(InputInfoPtr pInp, int flags)
     if (pInp->drv)
 	pInp->drv->refCount--;
 
-    if (pInp->private);
+    if (pInp->private)
 	xfree(pInp->private);
 
     /* Remove the entry from the list. */
