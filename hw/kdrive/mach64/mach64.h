@@ -559,11 +559,14 @@ typedef struct _mach64PortPriv {
 Bool mach64InitVideo(ScreenPtr pScreen);
 void mach64FiniVideo(ScreenPtr pScreen);
 
+/*
+ * These values are per-format, which is essentially per-depth/per-bpp.
+ * Because bpp is fixed for the screen by depth, they're computed
+ * per-screen per-depth.
+ */
+
 typedef struct _mach64ScreenInfo {
     VesaScreenPrivRec		vesa;
-    CARD32			DP_PIX_WIDTH;
-    CARD32			DP_SET_GUI_ENGINE;
-    Bool			bpp24;
     Mach64Cursor		cursor;
     CARD32			colorKey;
     KdVideoAdaptorPtr		pAdaptor;
