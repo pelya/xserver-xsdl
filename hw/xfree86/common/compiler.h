@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/hw/xfree86/common/compiler.h,v 3.105 2003/12/18 21:56:37 dawes Exp $ */
+/* $XdotOrg: xc/programs/Xserver/hw/xfree86/common/compiler.h,v 1.1.4.3 2003/12/20 00:28:26 kaleb Exp $ */
 /* $XFree86: xc/programs/Xserver/hw/xfree86/common/compiler.h,v 3.105 2003/12/18 21:56:37 dawes Exp $ */
 /*
  * Copyright 1990,91 by Thomas Roell, Dinkelscherben, Germany.
@@ -111,6 +111,10 @@ extern int ffs(unsigned long);
         __modify [eax edx]      \
         __value [eax]           \
         ;
+# endif
+
+# if defined(__SUNPRO_C)
+#  define DO_PROTOTYPES
 # endif
 
 # if defined(NO_INLINE) || defined(DO_PROTOTYPES)
@@ -1537,7 +1541,7 @@ extern void outl(unsigned int a, unsigned int l);
 #if 0
 #     include <sys/types.h>
 #endif
-#     ifndef __HIGHC__
+#     if !defined(__HIGHC__) && !defined(__SUNPRO_C)
 #      ifndef __USLC__
 #       define __USLC__
 #      endif
@@ -1563,7 +1567,8 @@ extern void outl(unsigned int a, unsigned int l);
 #    else
 #     include "scoasm.h"
 #    endif
-#    if !defined(__HIGHC__) && !defined(SCO325) && !defined(sgi)
+#    if !defined(__HIGHC__) && !defined(SCO325) && !defined(sgi) && \
+	!defined(__SUNPRO_C)
 #     pragma asm partial_optimization outl
 #     pragma asm partial_optimization outw
 #     pragma asm partial_optimization outb
