@@ -72,6 +72,9 @@ extern void __glXCacheDrawableSize(__GLXdrawablePrivate *glxPriv);
 /* context helper routines */
 extern __GLXcontext *__glXLookupContextByTag(__GLXclientState*, GLXContextTag);
 
+/* init helper routines */
+extern void *__glXglDDXScreenInfo(void);
+extern void *__glXglDDXExtensionInfo(void);
 
 #endif /* _glxcmds_h_ */
 

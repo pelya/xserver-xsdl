@@ -76,7 +76,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * struct.  In particular, the contextCreate, pGlxVisual, numVisuals,
  * and numUsableVisuals fields must be initialized.
  */
-__GLXscreenInfo __glDDXScreenInfo = {
+static __GLXscreenInfo __glDDXScreenInfo = {
     __MESA_screenProbe,   /* Must be generic and handle all screens */
     __MESA_createContext, /* Substitute screen's createContext routine */
     __MESA_createBuffer,  /* Substitute screen's createBuffer routine */
@@ -90,12 +90,20 @@ __GLXscreenInfo __glDDXScreenInfo = {
     NULL                  /* WrappedPositionWindow is overwritten */
 };
 
-__GLXextensionInfo __glDDXExtensionInfo = {
+void *__glXglDDXScreenInfo(void) {
+    return &__glDDXScreenInfo;
+}
+
+static __GLXextensionInfo __glDDXExtensionInfo = {
     GL_CORE_MESA,
     __MESA_resetExtension,
     __MESA_initVisuals,
     __MESA_setVisualConfigs
 };
+
+void *__glXglDDXExtensionInfo(void) {
+    return &__glDDXExtensionInfo;
+}
 
 static __MESA_screen  MESAScreens[MAXSCREENS];
 static __GLcontext   *MESA_CC        = NULL;

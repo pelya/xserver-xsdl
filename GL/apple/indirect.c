@@ -109,7 +109,7 @@ static void glAquaResetExtension(void);
  * struct.  In particular, the contextCreate, pGlxVisual, numVisuals,
  * and numUsableVisuals fields must be initialized.
  */
-__GLXscreenInfo __glDDXScreenInfo = {
+static __GLXscreenInfo __glDDXScreenInfo = {
     glAquaScreenProbe,   /* Must be generic and handle all screens */
     glAquaCreateContext, /* Substitute screen's createContext routine */
     glAquaCreateBuffer,  /* Substitute screen's createBuffer routine */
@@ -123,12 +123,20 @@ __GLXscreenInfo __glDDXScreenInfo = {
     NULL                  /* WrappedPositionWindow is overwritten */
 };
 
-__GLXextensionInfo __glDDXExtensionInfo = {
+void *__glXglDDXScreenInfo(void) {
+    return &__glDDXScreenInfo;
+}
+
+static __GLXextensionInfo __glDDXExtensionInfo = {
     GL_CORE_APPLE,
     glAquaResetExtension,
     glAquaInitVisuals,
     glAquaSetVisualConfigs
 };
+
+void *__glXglDDXExtensionInfo(void) {
+    return &__glDDXExtensionInfo;
+}
 
 // prototypes
 

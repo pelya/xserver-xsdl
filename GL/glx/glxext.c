@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/GL/glx/glxext.c,v 1.8 2001/08/23 18:25:40 alanh Exp $
+/* $XFree86: xc/programs/Xserver/GL/glx/glxext.c,v 1.9 2003/09/28 20:15:43 alanh Exp $
 ** The contents of this file are subject to the GLX Public License Version 1.0
 ** (the "License"). You may not use this file except in compliance with the
 ** License. You may obtain a copy of the License at Silicon Graphics, Inc.,
@@ -30,12 +30,11 @@
 #include "micmap.h"
 
 
-extern __GLXextensionInfo __glDDXExtensionInfo;
 void GlxWrapInitVisuals(miInitVisualsProcPtr *);
 void GlxSetVisualConfigs(int nconfigs, 
                          __GLXvisualConfig *configs, void **privates);
 
-__GLXextensionInfo *__glXExt = &__glDDXExtensionInfo;
+static __GLXextensionInfo *__glXExt /* = &__glDDXExtensionInfo */;
 
 /*
 ** Forward declarations.
@@ -314,6 +313,8 @@ GlxWrapInitVisuals(miInitVisualsProcPtr *initVisProc)
 {
     saveInitVisualsProc = *initVisProc;
     *initVisProc = GlxInitVisuals;
+    /* HACK: this shouldn't be done here but it's the earliest time */
+    __glXExt = __glXglDDXExtensionInfo();       /* from GLcore */
 }
 
 /************************************************************************/

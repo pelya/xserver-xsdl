@@ -172,7 +172,7 @@ static void glWinResetExtension(void);
  * struct.  In particular, the contextCreate, pGlxVisual, numVisuals,
  * and numUsableVisuals fields must be initialized.
  */
-__GLXscreenInfo __glDDXScreenInfo = {
+static __GLXscreenInfo __glDDXScreenInfo = {
     glWinScreenProbe,   /* Must be generic and handle all screens */
     glWinCreateContext, /* Substitute screen's createContext routine */
     glWinCreateBuffer,  /* Substitute screen's createBuffer routine */
@@ -186,12 +186,20 @@ __GLXscreenInfo __glDDXScreenInfo = {
     NULL                  /* WrappedPositionWindow is overwritten */
 };
 
-__GLXextensionInfo __glDDXExtensionInfo = {
+void *__glXglDDXScreenInfo(void) {
+    return &__glDDXScreenInfo;
+}
+
+static __GLXextensionInfo __glDDXExtensionInfo = {
     GL_CORE_WINDOWS,
     glWinResetExtension,
     glWinInitVisuals,
     glWinSetVisualConfigs
 };
+
+void *__glXglDDXExtensionInfo(void) {
+    return &__glDDXExtensionInfo;
+}
 
 /* prototypes */
 

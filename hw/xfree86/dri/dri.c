@@ -779,7 +779,7 @@ static Bool
 DRICreateDummyContext(ScreenPtr pScreen, Bool needCtxPriv)
 {
     DRIScreenPrivPtr pDRIPriv = DRI_SCREEN_PRIV(pScreen);
-    __GLXscreenInfo *pGLXScreen = &__glXActiveScreens[pScreen->myNum];
+    __GLXscreenInfo *pGLXScreen = __glXgetActiveScreen(pScreen->myNum);
     __GLcontextModes *modes = pGLXScreen->modes;
     void **pVisualConfigPriv = pGLXScreen->pVisualPriv;
     DRIContextPrivPtr pDRIContextPriv;
@@ -843,7 +843,7 @@ DRICreateContext(ScreenPtr pScreen, VisualPtr visual,
                  XID context, drm_context_t * pHWContext)
 {
     DRIScreenPrivPtr pDRIPriv = DRI_SCREEN_PRIV(pScreen);
-    __GLXscreenInfo *pGLXScreen = &__glXActiveScreens[pScreen->myNum];
+    __GLXscreenInfo *pGLXScreen = __glXgetActiveScreen(pScreen->myNum);
     __GLcontextModes *modes = pGLXScreen->modes;
     void **pVisualConfigPriv = pGLXScreen->pVisualPriv;
     DRIContextPrivPtr pDRIContextPriv;

@@ -113,6 +113,8 @@ static const char *glcoreSymbols[] = {
     "__glTexGeniv_size",
     "__glTexParameterfv_size",
     "__glTexParameteriv_size",
+    "__glXglDDXExtensionInfo",
+    "__glXglDDXScreenInfo",
     "__glXActiveScreens",
     "__glXAssociateContext",
     "__glXBadContext",

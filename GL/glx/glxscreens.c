@@ -142,22 +142,25 @@ static char GLXServerExtensions[] =
 			;
 
 /*
-** This comes from the GL library that the server will link with.  Right
-** now, that is the DDX Sample OpenGL.
-*/
-extern __GLXscreenInfo __glDDXScreenInfo;
-
-__GLXscreenInfo *__glXScreens[] = {
-    &__glDDXScreenInfo,
+ * __glDDXScreenInfo comes from GLcore, so we can't resolve this symbol at
+ * module open time.  Leave a placeholder, and fill this in when we first
+ * need it (in __glXScreenInit).  XXX Why make this an array?
+ */
+static __GLXscreenInfo *__glXScreens[] = {
+    NULL /* &__glDDXScreenInfo */ ,
 };
 
-GLint __glXNumStaticScreens = (sizeof __glXScreens / sizeof __glXScreens[0]);
+static GLint __glXNumStaticScreens =
+	(sizeof __glXScreens / sizeof __glXScreens[0]);
 
 __GLXscreenInfo *__glXActiveScreens;
 GLint __glXNumActiveScreens;
 
 RESTYPE __glXDrawableRes;
 
+__GLXscreenInfo *__glXgetActiveScreen(int num) {
+	return &__glXActiveScreens[num];
+}
 
 /*
 ** Destroy routine that gets called when a drawable is freed.  A drawable
@@ -272,6 +275,8 @@ static void wrapPositionWindow(int screen)
 void __glXScreenInit(GLint numscreens)
 {
     GLint i,j;
+
+    __glXScreens[0] = __glXglDDXScreenInfo(); /* from GLcore */
 
     /*
     ** This alloc has to work or else the server might as well core dump.
