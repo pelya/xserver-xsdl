@@ -22,7 +22,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $XdotOrg: xc/programs/Xserver/fb/fb.h,v 1.5 2004/07/30 20:30:51 ajax Exp $ */
+/* $XdotOrg: xc/programs/Xserver/fb/fb.h,v 1.6 2004/08/11 21:14:17 kem Exp $ */
 
 #ifndef _FB_H_
 #define _FB_H_
@@ -647,7 +647,7 @@ typedef struct {
 	((WindowPtr) (pWin))->devPrivates[fbGetWinPrivateIndex()].ptr)
 #endif
 
-#if defined(__DARWIN__)||defined(__CYGWIN__)
+#ifdef ROOTLESS
 #define __fbPixOriginX(pPix)	((pPix)->drawable.x)
 #define __fbPixOriginY(pPix)	((pPix)->drawable.y)
 #else
