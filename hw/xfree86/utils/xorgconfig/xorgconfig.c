@@ -94,7 +94,7 @@
  *  Chisato Yamauchi(cyamauch@phyas.aichi-edu.ac.jp)
  */
 /* $XConsortium: xf86config.c /main/21 1996/10/28 05:43:57 kaleb $ */
-/* $XdotOrg: xc/programs/Xserver/hw/xfree86/xf86config/xorgconfig.c,v 1.7 2004/10/05 17:28:15 alanc Exp $ */
+/* $XdotOrg: xc/programs/Xserver/hw/xfree86/xf86config/xorgconfig.c,v 1.8 2004/11/14 17:29:56 alanc Exp $ */
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -1738,7 +1738,7 @@ skipclockprobing:
 	 * For vga driver, no further configuration is required.
 	 */
 	if (card_selected == -1 || (card[card_selected].flags & UNSUPPORTED))
-		return;
+		return (0);
 	
 	/*
 	 * Configure the modes order.
