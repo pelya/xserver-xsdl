@@ -248,10 +248,11 @@ kaaTryDriverSolidFill(PicturePtr	pSrc,
     if (pDst->pDrawable->type == DRAWABLE_PIXMAP)
 	kaaPixmapUseScreen ((PixmapPtr) pDst->pDrawable);
 
-    pDstPix = kaaGetOffscreenPixmap (pDst->pDrawable, &dst_off_x,
-				 &dst_off_y);
-    if (!pDstPix)
+    pDstPix = kaaGetOffscreenPixmap (pDst->pDrawable, &dst_off_x, &dst_off_y);
+    if (!pDstPix) {
+	REGION_UNINIT(pDst->pDrawable->pScreen, &region);
 	return 0;
+    }
 
     if (pSrc->pDrawable->type == DRAWABLE_WINDOW)
 	pSrcPix = (*pSrc->pDrawable->pScreen->GetWindowPixmap)(
@@ -269,13 +270,19 @@ kaaTryDriverSolidFill(PicturePtr	pSrc,
     pixel = *(CARD32 *)(pSrcPix->devPrivate.ptr);
     if (!kaaGetRGBAFromPixel(pixel, &red, &green, &blue, &alpha,
 			 pSrc->format))
+    {
+	REGION_UNINIT(pDst->pDrawable->pScreen, &region);
 	return -1;
+    }
     kaaGetPixelFromRGBA(&pixel, red, green, blue, alpha,
 			pDst->format);
 
     if (!(*pKaaScr->info->PrepareSolid) (pDstPix, GXcopy, 0xffffff,
 					 pixel))
+    {
+	REGION_UNINIT(pDst->pDrawable->pScreen, &region);
 	return -1;
+    }
 
     nbox = REGION_NUM_RECTS(&region);
     pbox = REGION_RECTS(&region);
@@ -291,6 +298,7 @@ kaaTryDriverSolidFill(PicturePtr	pSrc,
     (*pKaaScr->info->DoneSolid) ();
     KdMarkSync(pDst->pDrawable->pScreen);
 
+    REGION_UNINIT(pDst->pDrawable->pScreen, &region);
     return 1;
 }
 
@@ -329,16 +337,19 @@ kaaTryDriverBlend(CARD8		op,
     if (pDst->pDrawable->type == DRAWABLE_PIXMAP)
 	kaaPixmapUseScreen ((PixmapPtr) pDst->pDrawable);
     
-    pSrcPix = kaaGetOffscreenPixmap (pSrc->pDrawable, &src_off_x,
-				     &src_off_y);
-    pDstPix = kaaGetOffscreenPixmap (pDst->pDrawable, &dst_off_x,
-				     &dst_off_y);
-    if (!pSrcPix || !pDstPix)
+    pSrcPix = kaaGetOffscreenPixmap (pSrc->pDrawable, &src_off_x, &src_off_y);
+    pDstPix = kaaGetOffscreenPixmap (pDst->pDrawable, &dst_off_x, &dst_off_y);
+    if (!pSrcPix || !pDstPix) {
+	REGION_UNINIT(pDst->pDrawable->pScreen, &region);
 	return 0;
+    }
 
     if (!(*pKaaScr->info->PrepareBlend) (op, pSrc, pDst, pSrcPix,
 					 pDstPix))
+    {
+	REGION_UNINIT(pDst->pDrawable->pScreen, &region);
 	return -1;
+    }
     
     nbox = REGION_NUM_RECTS(&region);
     pbox = REGION_RECTS(&region);
@@ -360,6 +371,7 @@ kaaTryDriverBlend(CARD8		op,
     (*pKaaScr->info->DoneBlend) ();
     KdMarkSync(pDst->pDrawable->pScreen);
 
+    REGION_UNINIT(pDst->pDrawable->pScreen, &region);
     return 1;
 }
 
@@ -408,22 +420,22 @@ kaaTryDriverComposite(CARD8		op,
     if (pDst->pDrawable->type == DRAWABLE_PIXMAP)
 	kaaPixmapUseScreen ((PixmapPtr) pDst->pDrawable);
 
-    pSrcPix = kaaGetOffscreenPixmap (pSrc->pDrawable, &src_off_x,
-				     &src_off_y);
-    pDstPix = kaaGetOffscreenPixmap (pDst->pDrawable, &dst_off_x,
-				     &dst_off_y);
-    if (!pSrcPix || !pDstPix)
-	return 0;
-    if (pMask) {
+    pSrcPix = kaaGetOffscreenPixmap (pSrc->pDrawable, &src_off_x, &src_off_y);
+    if (pMask)
 	pMaskPix = kaaGetOffscreenPixmap (pMask->pDrawable, &mask_off_x,
 					  &mask_off_y);
-	if (!pMaskPix)
-	    return 0;
+    pDstPix = kaaGetOffscreenPixmap (pDst->pDrawable, &dst_off_x, &dst_off_y);
+    if (!pSrcPix || (pMask && !pMaskPix) || !pDstPix) {
+	REGION_UNINIT(pDst->pDrawable->pScreen, &region);
+	return 0;
     }
 
     if (!(*pKaaScr->info->PrepareComposite) (op, pSrc, pMask, pDst, pSrcPix,
 					     pMaskPix, pDstPix))
+    {
+	REGION_UNINIT(pDst->pDrawable->pScreen, &region);
 	return -1;
+    }
 
     nbox = REGION_NUM_RECTS(&region);
     pbox = REGION_RECTS(&region);
@@ -449,6 +461,8 @@ kaaTryDriverComposite(CARD8		op,
 
     (*pKaaScr->info->DoneComposite) ();
     KdMarkSync(pDst->pDrawable->pScreen);
+
+    REGION_UNINIT(pDst->pDrawable->pScreen, &region);
     return 1;
 }
 
