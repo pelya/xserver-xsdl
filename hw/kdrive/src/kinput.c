@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/kinput.c,v 1.25 2002/10/03 22:09:04 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/kinput.c,v 1.26 2002/10/04 01:44:20 keithp Exp $ */
 
 #include "kdrive.h"
 #include "inputstr.h"
@@ -403,6 +403,8 @@ KdComputeMouseMatrix (KdMouseMatrix *m, Rotation randr, int width, int height)
 	for (j = 0 ; j < 2; j++)
 	    if (m->matrix[i][j] < 0)
 		m->matrix[i][2] = size[j] - 1;
+	    else
+		m->matrix[i][2] = 0;
 }
 
 static void
