@@ -343,6 +343,22 @@ ATIUnmapReg(KdCardInfo *card, ATICardInfo *atic);
 void
 R300CGWorkaround(ATIScreenInfo *atis);
 
+#define ATI_TRACE 0
+
+#if ATI_TRACE
+#define ENTER_DRAW(pix) ATIEnterDraw(pix, __FUNCTION__)
+#define LEAVE_DRAW(pix) ATILeaveDraw(pix, __FUNCTION__)
+
+void
+ATIEnterDraw (PixmapPtr pPixmap, char *function);
+
+void
+ATILeaveDraw (PixmapPtr pPixmap, char *function);
+#else
+#define ENTER_DRAW(pix)
+#define LEAVE_DRAW(pix)
+#endif
+
 /* ati_draw.c */
 void
 ATIDrawSetup(ScreenPtr pScreen);

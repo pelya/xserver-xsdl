@@ -251,6 +251,9 @@ R100CheckComposite(int op, PicturePtr pSrcPicture, PicturePtr pMaskPicture,
 	if (pMaskPicture != NULL && !R100CheckCompositeTexture(pMaskPicture, 1))
 		return FALSE;
 
+	if (pDstPicture->componentAlpha)
+		return FALSE;
+
 	if (!RadeonGetDestFormat(pDstPicture, &tmp1))
 		return FALSE;
 
@@ -293,6 +296,8 @@ R100PrepareComposite(int op, PicturePtr pSrcPicture, PicturePtr pMaskPicture,
 		is_transform[1] = FALSE;
 	}
 
+	ENTER_DRAW(pDst);
+	
 	RadeonSwitchTo3D(atis);
 
 	BEGIN_DMA(12);
@@ -356,6 +361,8 @@ R100PrepareComposite(int op, PicturePtr pSrcPicture, PicturePtr pMaskPicture,
 	}
 	OUT_REG(RADEON_REG_RB3D_BLENDCNTL, blendcntl);
 	END_DMA();
+
+	LEAVE_DRAW(pDst);
 
 	return TRUE;
 }
@@ -621,6 +628,8 @@ RadeonComposite(int srcX, int srcY, int maskX, int maskY, int dstX, int dstY,
 	RING_LOCALS;
 	PictVector v;
 
+	ENTER_DRAW(0);
+	
 	/*ErrorF("RadeonComposite (%d,%d) (%d,%d) (%d,%d) (%d,%d)\n",
 	    srcX, srcY, maskX, maskY,dstX, dstY, w, h);*/
 
@@ -683,12 +692,16 @@ RadeonComposite(int srcX, int srcY, int maskX, int maskY, int dstX, int dstY,
 	VTX_OUT(dstX + w, dstY + h, srcXend, srcYend, maskXend, maskYend);
 	VTX_OUT(dstX + w, dstY,     srcXend, srcY,    maskXend, maskY);
 
+	LEAVE_DRAW(0);
+
 	END_DMA();
 }
 
 void
 RadeonDoneComposite(void)
 {
+	ENTER_DRAW(0);
+	LEAVE_DRAW(0);
 }
 
 Bool
