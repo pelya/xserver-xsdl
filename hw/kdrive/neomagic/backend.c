@@ -66,6 +66,7 @@ backendScreenInitialize(KdScreenInfo *screen, BackendScreen *backendScreen,
 
 #ifdef KDRIVEFBDEV
     if (backendCard->type == FBDEV) {
+        screen->card->driver = &backendCard->priv.fbdev;
         success = fbdevScreenInitialize(screen, &backendScreen->fbdev);
         screen->memory_size = backendCard->priv.fbdev.fix.smem_len;
         screen->off_screen_base = backendCard->priv.fbdev.var.yres_virtual

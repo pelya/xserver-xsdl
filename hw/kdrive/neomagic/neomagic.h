@@ -143,7 +143,7 @@ struct NeoChipInfo {
 };
 
 #define getNeoCardInfo(kd) ((NeoCardInfo *) ((kd)->card->driver))
-#define neoCardInfo(kd) NeoCardInfo    *neoc = getNeoCardInfo(kd)
+#define neoCardInfo(kd) NeoCardInfo *neoc = getNeoCardInfo(kd)
 
 typedef struct _neoScreenInfo {
     BackendScreen backendScreen;
