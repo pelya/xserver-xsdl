@@ -1448,14 +1448,16 @@ PsOut_EndImage(PsOutPtr  self)
     self->RevImage    = 0;
     return;
   }
-
+  /*
+   * Bug 4639307: Move flush before "> im" to get all of bitmap into ps file.
+   */
+  S_Flush(self);
 #ifdef BM_CACHE
   if(self->start_image)
     S_OutTok(self, "> im", 1);       /* new */
 #endif
   self->ImageFormat = 0;
   self->RevImage    = 0;
-  S_Flush(self);
 #ifdef BM_CACHE
   if(self->start_image)
   {
