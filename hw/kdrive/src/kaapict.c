@@ -104,9 +104,9 @@ kaaPrintCompositeFallback(CARD8 op,
     kaaCompositeFallbackPictDesc(pDst, dstdesc, 40);
 
     ErrorF("Composite fallback: op %s, \n"
-           "                    src  %s, \n"
-           "                    mask %s, \n"
-           "                    dst  %s, \n", 
+	   "                    src  %s, \n"
+	   "                    mask %s, \n"
+	   "                    dst  %s, \n", 
 	   sop, srcdesc, maskdesc, dstdesc);
 }
 #endif
@@ -447,7 +447,7 @@ kaaTryDriverComposite(CARD8		op,
 	pbox++;
     }
 
-    (*pKaaScr->info->DoneBlend) ();
+    (*pKaaScr->info->DoneComposite) ();
     KdMarkSync(pDst->pDrawable->pScreen);
     return 1;
 }
@@ -483,7 +483,8 @@ kaaComposite(CARD8	op,
 		if (ret == 1)
 		    return;
 	    }
-	    else if (!pSrc->repeat && pSrc->format == pDst->format)
+	    else if (!pSrc->repeat && !pSrc->transform &&
+		     pSrc->format == pDst->format)
 	    {
 		RegionRec	region;
 
@@ -509,10 +510,10 @@ kaaComposite(CARD8	op,
 	if (pScreenPriv->enabled && pKaaScr->info->PrepareBlend &&
 	    !pSrc->alphaMap && !pDst->alphaMap)
 	{
-	ret = kaaTryDriverBlend(op, pSrc, pDst, xSrc, ySrc, xDst, yDst, width,
-				height);
-	if (ret == 1)
-	    return;
+	    ret = kaaTryDriverBlend(op, pSrc, pDst, xSrc, ySrc, xDst, yDst,
+				    width, height);
+	    if (ret == 1)
+		return;
 	}
     }
 
