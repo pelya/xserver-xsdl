@@ -300,8 +300,7 @@ RadeonDisplayVideo(KdScreenInfo *screen, ATIPortPrivPtr pPortPriv)
 	BoxPtr pBox = REGION_RECTS(&pPortPriv->clip);
 	int nBox = REGION_NUM_RECTS(&pPortPriv->clip);
 
-	switch (pPixmap->drawable.bitsPerPixel)
-	{
+	switch (pPixmap->drawable.bitsPerPixel) {
 	case 16:
 		if (pPixmap->drawable.depth == 15)
 			dst_format = RADEON_COLOR_FORMAT_ARGB1555;
@@ -329,6 +328,7 @@ RadeonDisplayVideo(KdScreenInfo *screen, ATIPortPrivPtr pPortPriv)
 	dstyoff = 0;
 #endif
 
+	/* Same for R100/R200 */
 	if (pPortPriv->id == FOURCC_UYVY)
 		txformat = RADEON_TXFORMAT_YVYU422;
 	else
@@ -336,30 +336,9 @@ RadeonDisplayVideo(KdScreenInfo *screen, ATIPortPrivPtr pPortPriv)
 
 	txformat |= RADEON_TXFORMAT_NON_POWER2;
 
-	/* RADEON_REG_PP_TXFILTER_0,
-	 * RADEON_REG_PP_TXFORMAT_0,
-	 * RADEON_REG_PP_TXOFFSET_0
-	 */
-	BEGIN_DMA(4);
-	OUT_RING(DMA_PACKET0(RADEON_REG_PP_TXFILTER_0, 3));
-	OUT_RING(RADEON_YUV_TO_RGB);
-	OUT_RING(txformat);
-	OUT_RING(pPortPriv->src_offset);
-	END_DMA();
+	RadeonSwitchTo3D(atis);
 
-	/* RADEON_REG_PP_TEX_SIZE_0,
-	 * RADEON_REG_PP_TEX_PITCH_0
-	 */
-	BEGIN_DMA(3);
-	OUT_RING(DMA_PACKET0(RADEON_REG_PP_TEX_SIZE_0, 2));
-	OUT_RING((pPixmap->drawable.width - 1) |
-	    ((pPixmap->drawable.height - 1) << RADEON_TEX_VSIZE_SHIFT));
-	OUT_RING(pPortPriv->src_pitch - 32);
-	END_DMA();
-
-	BEGIN_DMA(14);
-	OUT_REG(ATI_REG_WAIT_UNTIL,
-		RADEON_WAIT_HOST_IDLECLEAN | RADEON_WAIT_2D_IDLECLEAN);
+	BEGIN_DMA(8);
 
 	/* RADEON_REG_PP_CNTL,
 	 * RADEON_REG_RB3D_CNTL, 
@@ -372,23 +351,93 @@ RadeonDisplayVideo(KdScreenInfo *screen, ATIPortPrivPtr pPortPriv)
 
 	OUT_REG(RADEON_REG_RB3D_COLORPITCH, dst_pitch >> pixel_shift);
 
-	OUT_REG(RADEON_REG_PP_TXCBLEND_0,
-	    RADEON_COLOR_ARG_A_ZERO |
-	    RADEON_COLOR_ARG_B_ZERO |
-	    RADEON_COLOR_ARG_C_T0_COLOR |
-	    RADEON_BLEND_CTL_ADD |
-	    RADEON_CLAMP_TX);
-	OUT_REG(RADEON_REG_PP_TXABLEND_0,
-	    RADEON_ALPHA_ARG_A_ZERO |
-	    RADEON_ALPHA_ARG_B_ZERO |
-	    RADEON_ALPHA_ARG_C_T0_ALPHA |
-	    RADEON_BLEND_CTL_ADD |
-	    RADEON_CLAMP_TX);
-
 	OUT_REG(RADEON_REG_RB3D_BLENDCNTL,
 	    RADEON_SBLEND_GL_ONE | RADEON_DBLEND_GL_ZERO);
 
 	END_DMA();
+
+	if (atic->is_r200) {
+		BEGIN_DMA(17);
+
+		OUT_REG(R200_REG_SE_VTX_FMT_0, R200_VTX_XY);
+		OUT_REG(R200_REG_SE_VTX_FMT_1,
+		    (2 << R200_VTX_TEX0_COMP_CNT_SHIFT));
+
+		/* R200_REG_PP_TXFILTER_0,
+		 * R200_REG_PP_TXFORMAT_0,
+		 * R200_REG_PP_TXFORMAT_X_0,
+		 * R200_REG_PP_TXSIZE_0,
+		 * R200_REG_PP_TXPITCH_0
+		 */
+		OUT_RING(DMA_PACKET0(R200_REG_PP_TXFILTER_0, 5));
+		OUT_RING(R200_MAG_FILTER_LINEAR |
+		    R200_MIN_FILTER_LINEAR |
+		    R200_YUV_TO_RGB);
+		OUT_RING(txformat);
+		OUT_RING(0);
+		OUT_RING((pPixmap->drawable.width - 1) |
+		    ((pPixmap->drawable.height - 1) << RADEON_TEX_VSIZE_SHIFT));
+		OUT_RING(pPortPriv->src_pitch - 32);
+
+		OUT_REG(R200_PP_TXOFFSET_0, pPortPriv->src_offset);
+
+		/* R200_REG_PP_TXCBLEND_0,
+		 * R200_REG_PP_TXCBLEND2_0
+		 * R200_REG_PP_TXABLEND_0
+		 * R200_REG_PP_TXABLEND2_0
+		 */
+		OUT_RING(DMA_PACKET0(R200_REG_PP_TXCBLEND_0, 4));
+		OUT_RING(
+		    R200_TXC_ARG_A_ZERO |
+		    R200_TXC_ARG_B_ZERO |
+		    R200_TXC_ARG_C_R0_COLOR |
+		    R200_TXC_OP_MADD);
+		OUT_RING(R200_TXC_CLAMP_0_1 | R200_TXC_OUTPUT_REG_R0);
+		OUT_RING(
+		    R200_TXA_ARG_A_ZERO |
+		    R200_TXA_ARG_B_ZERO |
+		    R200_TXA_ARG_C_R0_ALPHA |
+		    R200_TXA_OP_MADD);
+		OUT_RING(R200_TXA_CLAMP_0_1 | R200_TXA_OUTPUT_REG_R0);
+
+		END_DMA();
+	} else {
+		BEGIN_DMA(11);
+
+		/* RADEON_REG_PP_TXFILTER_0,
+		 * RADEON_REG_PP_TXFORMAT_0,
+		 * RADEON_REG_PP_TXOFFSET_0
+		 */
+		OUT_RING(DMA_PACKET0(RADEON_REG_PP_TXFILTER_0, 3));
+		OUT_RING(RADEON_MAG_FILTER_LINEAR |
+		    RADEON_MIN_FILTER_LINEAR |
+		    RADEON_YUV_TO_RGB);
+		OUT_RING(txformat);
+		OUT_RING(pPortPriv->src_offset);
+
+		/* RADEON_REG_PP_TEX_SIZE_0,
+		 * RADEON_REG_PP_TEX_PITCH_0
+		 */
+		OUT_RING(DMA_PACKET0(RADEON_REG_PP_TEX_SIZE_0, 2));
+		OUT_RING((pPixmap->drawable.width - 1) |
+		    ((pPixmap->drawable.height - 1) << RADEON_TEX_VSIZE_SHIFT));
+		OUT_RING(pPortPriv->src_pitch - 32);
+
+		OUT_REG(RADEON_REG_PP_TXCBLEND_0,
+		    RADEON_COLOR_ARG_A_ZERO |
+		    RADEON_COLOR_ARG_B_ZERO |
+		    RADEON_COLOR_ARG_C_T0_COLOR |
+		    RADEON_BLEND_CTL_ADD |
+		    RADEON_CLAMP_TX);
+		OUT_REG(RADEON_REG_PP_TXABLEND_0,
+		    RADEON_ALPHA_ARG_A_ZERO |
+		    RADEON_ALPHA_ARG_B_ZERO |
+		    RADEON_ALPHA_ARG_C_T0_ALPHA |
+		    RADEON_BLEND_CTL_ADD |
+		    RADEON_CLAMP_TX);
+
+		END_DMA();
+	}
 
 	while (nBox--) {
 		float srcX, srcY, dstX, dstY, srcw, srch, dstw, dsth;
@@ -896,7 +945,7 @@ Bool ATIInitVideo(ScreenPtr pScreen)
 
 	if (atic->reg_base == NULL)
 		return FALSE;
-	if (atic->is_r200 || atic->is_r300)
+	if (atic->is_r300)
 		return FALSE;
 
 	num_adaptors = KdXVListGenericAdaptors(screen, &adaptors);
