@@ -29,6 +29,8 @@
 #include "fbdev.h"
 #include <sys/ioctl.h>
 
+#include <errno.h>
+
 extern int KdTsPhyScreen;
 
 Bool
@@ -108,6 +110,45 @@ fbdevMakeContig (Pixel orig, Pixel others)
 }
 #endif
 
+static Bool
+fbdevModeSupported (KdScreenInfo		*screen,
+		    const KdMonitorTiming	*t)
+{
+    /* XXX: Remove this */
+    if (t->rate > 75)
+	return FALSE;
+    
+    return TRUE;
+}
+
+static void
+fbdevConvertMonitorTiming (const KdMonitorTiming *t, struct fb_var_screeninfo *var)
+{
+    memset (var, 0, sizeof (struct fb_var_screeninfo));
+    
+    var->xres = t->horizontal;
+    var->yres = t->vertical;
+    var->xres_virtual = t->horizontal;
+    var->yres_virtual = t->vertical;
+    var->xoffset = 0;
+    var->yoffset = 0;
+    var->pixclock = t->clock ? 1000000000 / t->clock : 0;
+    var->left_margin = t->hbp;
+    var->right_margin = t->hfp;
+    var->upper_margin = t->vbp;
+    var->lower_margin = t->vfp;
+    var->hsync_len = t->hblank - t->hfp - t->hbp;
+    var->vsync_len = t->vblank - t->vfp - t->vbp;
+
+    var->sync = 0;
+    var->vmode = 0;
+
+    if (t->hpol == KdSyncPositive)
+      var->sync |= FB_SYNC_HOR_HIGH_ACT;
+    if (t->vpol == KdSyncPositive)
+      var->sync |= FB_SYNC_VERT_HIGH_ACT;
+}
+
 Bool
 fbdevScreenInitialize (KdScreenInfo *screen, FbdevScrPriv *scrpriv)
 {
@@ -115,7 +156,42 @@ fbdevScreenInitialize (KdScreenInfo *screen, FbdevScrPriv *scrpriv)
     Pixel	allbits;
     int		depth;
     Bool	gray;
+    struct fb_var_screeninfo var;
+    const KdMonitorTiming *t;
+    int k;
+    
+    if (!screen->width || !screen->height)
+    {
+	screen->width = 1024;
+	screen->height = 768;
+	screen->rate = 72;
+    }
+    if (!screen->fb[0].depth)
+	screen->fb[0].depth = 16;
 
+    t = KdFindMode (screen, fbdevModeSupported);
+    screen->rate = t->rate;
+    screen->width = t->horizontal;
+    screen->height = t->vertical;
+
+    /* Now try setting the mode */
+    fbdevConvertMonitorTiming (t, &var);
+
+    var.activate = FB_ACTIVATE_NOW;
+    var.bits_per_pixel = screen->fb[0].depth;
+    var.nonstd = 0;
+    var.grayscale = 0;
+
+    k = ioctl (priv->fd, FBIOPUT_VSCREENINFO, &var);
+
+    if (k < 0)
+    {
+	fprintf (stderr, "error: %s\n", strerror (errno));
+	return FALSE;
+    }
+
+    /* Now get the new screeninfo */
+    ioctl (priv->fd, FBIOGET_VSCREENINFO, &priv->var);
     depth = priv->var.bits_per_pixel;
     gray = priv->var.grayscale;
     
@@ -188,9 +264,9 @@ fbdevScreenInitialize (KdScreenInfo *screen, FbdevScrPriv *scrpriv)
     }
     screen->fb[0].depth = depth;
     screen->fb[0].bitsPerPixel = priv->var.bits_per_pixel;
-    screen->rate = 72;
+
     scrpriv->randr = screen->randr;
-    
+
     return fbdevMapFramebuffer (screen);
 }
 
@@ -544,7 +620,7 @@ fbdevEnable (ScreenPtr pScreen)
 	perror ("FBIOPUT_VSCREENINFO");
 	return FALSE;
     }
-	    
+    
     if (priv->fix.visual == FB_VISUAL_DIRECTCOLOR)
     {
 	struct fb_cmap	cmap;
