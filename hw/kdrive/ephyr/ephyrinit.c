@@ -37,11 +37,6 @@ InitCard (char *name)
 
     EPHYR_DBG("mark");
 
-    if (hostx_want_host_cursor())
-      {
-	ephyrFuncs.initCursor   = &ephyrCursorInit;
-	ephyrFuncs.enableCursor = &ephyrCursorEnable;
-      }
 
     KdCardInfoAdd (&ephyrFuncs, &attr, 0);
 }
@@ -100,6 +95,13 @@ void
 OsVendorInit (void)
 {
   EPHYR_DBG("mark");
+
+  if (hostx_want_host_cursor())
+    {
+      ephyrFuncs.initCursor   = &ephyrCursorInit;
+      ephyrFuncs.enableCursor = &ephyrCursorEnable;
+    }
+
   KdOsInit (&EphyrOsFuncs);
 }
 

@@ -492,12 +492,8 @@ ephyrCreateColormap (ColormapPtr pmap)
 Bool
 ephyrInitScreen (ScreenPtr pScreen)
 {
-#ifdef TOUCHSCREEN
-    KdTsPhyScreen = pScreen->myNum;
-#endif
-
-    pScreen->CreateColormap = ephyrCreateColormap;
-    return TRUE;
+  pScreen->CreateColormap = ephyrCreateColormap;
+  return TRUE;
 }
 
 Bool
