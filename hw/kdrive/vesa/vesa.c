@@ -38,6 +38,7 @@ Bool vesa_restore = FALSE;
 Bool vesa_verbose = FALSE;
 Bool vesa_force_text = FALSE;
 Bool vesa_restore_font = TRUE;
+Bool vesa_map_holes = TRUE;
 
 #define VesaPriv(scr)	((VesaScreenPrivPtr) (scr)->driver)
 
@@ -202,7 +203,7 @@ vesaInitialize (KdCardInfo *card, VesaCardPrivPtr priv)
 {
     int code;
 
-    priv->vi = Vm86Setup();
+    priv->vi = Vm86Setup(vesa_map_holes);
     if(!priv->vi)
 	goto fail;
 
@@ -231,7 +232,7 @@ vesaListModes (void)
     int		nmode;
     int		n;
 
-    vi = Vm86Setup ();
+    vi = Vm86Setup (vesa_map_holes);
     if (!vi)
     {
 	ErrorF ("Can't setup vm86\n");
@@ -267,7 +268,7 @@ vesaTestMode (void)
     int		nmode;
     int		n;
 
-    vi = Vm86Setup ();
+    vi = Vm86Setup (vesa_map_holes);
     if (!vi)
     {
 	ErrorF ("Can't setup vm86\n");
@@ -1853,6 +1854,12 @@ vesaProcessArgument (int argc, char **argv, int i)
 	return 1;
     } else if(!strcmp(argv[i], "-force-text")) {
 	vesa_force_text = TRUE;
+	return 1;
+    } else if(!strcmp(argv[i], "-map-holes")) {
+	vesa_map_holes = TRUE;
+	return 1;
+    } else if(!strcmp(argv[i], "-no-map-holes")) {
+	vesa_map_holes = FALSE;
 	return 1;
     } else if(!strcmp(argv[i], "-trash-font")) {
 	vesa_restore_font = FALSE;

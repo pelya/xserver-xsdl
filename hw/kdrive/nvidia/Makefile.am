@@ -9,24 +9,25 @@ INCLUDES = 					\
 	-I$(top_srcdir)/render			\
 	$(XSERVER_CFLAGS)
 
-bin_PROGRAMS = Xmach64
+bin_PROGRAMS = Xnvidia
 
-noinst_LIBRARIES = libmach64.a
+noinst_LIBRARIES = libnvidia.a
 
-libmach64_a_SOURCES = 	\
-	mach64.c	\
-	mach64draw.c	\
-	mach64video.c	\
+#	nvidiavideo.c
+	
+libnvidia_a_SOURCES = 	\
+	nvidia.c	\
+	nvidiadraw.c	\
 	fourcc.h	\
-	mach64.h	\
-	mach64draw.h
+	nvidia.h	\
+	nvidiadraw.h
 
 	
-Xmach64_SOURCES = \
-	mach64stub.c
+Xnvidia_SOURCES = \
+	nvidiastub.c
 
-Xmach64_LDADD = \
-	$(top_builddir)/hw/kdrive/mach64/libmach64.a \
+Xnvidia_LDADD = \
+	$(top_builddir)/hw/kdrive/nvidia/libnvidia.a \
 	$(top_builddir)/hw/kdrive/vesa/libvesa.a \
 	$(top_builddir)/dix/libdix.a		\
 	$(top_builddir)/os/libos.a		\

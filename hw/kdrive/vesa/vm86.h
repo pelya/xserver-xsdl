@@ -91,6 +91,12 @@ typedef unsigned int	U32;
 #define HIMEM_BASE 0xA0000
 #define HIMEM_SIZE (SYSMEM_BASE + SYSMEM_SIZE - HIMEM_BASE)
 
+#define HOLE1_BASE (MAGICMEM_BASE + MAGICMEM_SIZE)
+#define HOLE1_SIZE (LOMEM_BASE - HOLE1_BASE)
+
+#define HOLE2_BASE (LOMEM_BASE + LOMEM_SIZE)
+#define HOLE2_SIZE (HIMEM_BASE - HOLE2_BASE)
+
 /* The BIOS ROM */
 #define ROM_BASE 0xC0000
 #define ROM_SIZE 0x30000
@@ -105,6 +111,7 @@ typedef unsigned int	U32;
 
 typedef struct _Vm86InfoRec {
     void		*magicMem, *loMem, *hiMem;
+    void                *hole1, *hole2;
     U32			brk;
     struct vm86_struct	vms;
     U32			ret_code, stack_base;
@@ -121,7 +128,7 @@ typedef struct _Vm86InfoRec {
 #define HML(vi,i) (*(U32*)(&MM(vi,i)))
 
 Vm86InfoPtr
-Vm86Setup(void);
+Vm86Setup(int);
     
 void
 Vm86Cleanup(Vm86InfoPtr vi);

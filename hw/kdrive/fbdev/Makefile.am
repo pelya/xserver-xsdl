@@ -8,9 +8,9 @@ INCLUDES = 					\
 	-I$(top_srcdir)/render			\
 	$(XSERVER_CFLAGS)
 
-bin_PROGRAMS = Xfbdev
-
 noinst_LIBRARIES = libfbdev.a
+
+bin_PROGRAMS = Xfbdev
 
 libfbdev_a_SOURCES = \
 	fbdev.c
@@ -28,11 +28,13 @@ Xfbdev_LDADD = \
 	$(top_builddir)/miext/shadow/libshadow.a 	\
 	$(top_builddir)/randr/librandr.a		\
 	$(top_builddir)/render/librender.a		\
+	$(top_builddir)/xfixes/libxfixes.a		\
 	$(top_builddir)/fb/libfb.a			\
 	$(top_builddir)/mi/libmi.a			\
 	$(top_builddir)/Xext/libXext.a			\
 	$(top_builddir)/randr/librandr.a		\
 	$(top_builddir)/render/librender.a		\
+	$(top_builddir)/xfixes/libxfixes.a		\
 	$(top_builddir)/dix/libxpstubs.a		\
 	$(XSERVER_LIBS)					\
 	-lm -lz
