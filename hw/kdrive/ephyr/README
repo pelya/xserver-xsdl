@@ -40,7 +40,7 @@ Send a SIGUSR1 to the server ( eg kill -USR1 `pidof Xephyr` ) to
 toggle the debugging mode. In this mode red rectangles are painted to
 screen areas getting painted before painting the actual content. The
 delay between this can be altered by setting a XEPHYR_PAUSE env var to
-a value in nano seconds.
+a value in micro seconds.
 
 
 Caveats

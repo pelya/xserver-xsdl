@@ -59,7 +59,7 @@ struct EphyrHostXVars
   int             win_width, win_height;
   Bool            use_host_cursor;
   Bool            have_shm;
-  long            damage_debug_nsec;
+  long            damage_debug_msec;
 
   XShmSegmentInfo shminfo;
 };
@@ -292,10 +292,13 @@ hostx_init(void)
 
   /* Setup the pause time between paints when debugging updates */
 
-  HostX.damage_debug_nsec = 10^8;
+  HostX.damage_debug_msec = 20000; /* 1/50 th of a second */
 
   if (getenv("XEPHYR_PAUSE"))
-    HostX.damage_debug_nsec = strtol(getenv("XEPHYR_PAUSE"), NULL, 0);
+    {
+      HostX.damage_debug_msec = strtol(getenv("XEPHYR_PAUSE"), NULL, 0);
+      EPHYR_DBG("pause is %li\n", HostX.damage_debug_msec);
+    }
 
   return 1;
 }
@@ -457,12 +460,16 @@ hostx_paint_debug_rect(int x,     int y,
 {
   struct timespec tspec;
 
-  tspec.tv_sec  = 0;
-  tspec.tv_nsec = HostX.damage_debug_nsec;
+  tspec.tv_sec  = HostX.damage_debug_msec / (10e6);
+  tspec.tv_nsec = (HostX.damage_debug_msec % 1000000) * 1000;
+
+  EPHYR_DBG("msec: %li tv_sec %li, tv_msec %li", 
+	    HostX.damage_debug_msec, tspec.tv_sec, tspec.tv_nsec);
 
   XFillRectangle(HostX.dpy, HostX.win, HostX.gc, x, y, width,height); 
   XSync(HostX.dpy, False);
 
+  /* nanosleep seems to work better than usleep for me... */
   nanosleep(&tspec, NULL);
 }
 
