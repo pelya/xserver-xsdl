@@ -702,15 +702,15 @@ compWindowUpdateAutomatic (WindowPtr pWin)
     REGION_INTERSECT (pScreen, pRegion, pRegion, &cw->borderClip);
 
     /*
-     * Now translate from screen to pixmap coordinates
+     * Now translate from screen to dest coordinates
      */
     REGION_TRANSLATE (pScreen, pRegion, 
-		      -pSrcPixmap->screen_x, -pSrcPixmap->screen_y);
+		      -pParent->drawable.x, -pParent->drawable.y);
     
     /*
      * Clip the picture
      */
-    SetPictureClipRegion (pSrcPicture, 0, 0, pRegion);
+    SetPictureClipRegion (pDstPicture, 0, 0, pRegion);
     
     /*
      * And paint
@@ -719,9 +719,8 @@ compWindowUpdateAutomatic (WindowPtr pWin)
 		      pSrcPicture,
 		      0,
 		      pDstPicture,
-		      0,
-		      0,
-		      0, 0,
+		      0, 0, /* src_x, src_y */
+		      0, 0, /* msk_x, msk_y */
 		      pSrcPixmap->screen_x - pParent->drawable.x,
 		      pSrcPixmap->screen_y - pParent->drawable.y,
 		      pSrcPixmap->drawable.width,

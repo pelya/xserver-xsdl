@@ -120,8 +120,39 @@ cwGetBackingDrawable(DrawablePtr pDrawable, int *x_off, int *y_off)
     }
 }
 
+/* GCFuncs wrappers.  These only get used when the drawable is a window with a
+ * backing pixmap, to avoid the overhead in the non-window-backing-pixmap case.
+ */
+
+#define FUNC_PROLOGUE(pGC, pPriv) do {					\
+    (pGC)->funcs = (pPriv)->wrapFuncs;					\
+    (pGC)->ops = (pPriv)->wrapOps;					\
+} while (0)
+
+#define FUNC_EPILOGUE(pGC, pPriv) do {					\
+    (pPriv)->wrapFuncs = (pGC)->funcs;					\
+    (pPriv)->wrapOps = (pGC)->ops;					\
+    (pGC)->funcs = &cwGCFuncs;						\
+    (pGC)->ops = &cwGCOps;						\
+} while (0)
+
 /*
- * create the full func/op wrappers for a GC
+ * Cheap GC func wrappers.  Pass everything through unless we find a window with
+ * a backing pixmap, then turn on the real wrappers.
+ */
+
+#define CHEAP_FUNC_PROLOGUE(pGC) \
+    ((pGC)->funcs = (GCFuncs *)getCwGC(pGC))
+
+#define CHEAP_FUNC_EPILOGUE(pGC) do {					\
+    setCwGC(pGC,(pGC)->funcs);						\
+    (pGC)->funcs = &cwCheapGCFuncs;					\
+} while (0)
+
+/*
+ * create the full func/op wrappers for a GC.
+ * This enters with the GC unwrapped.  If successful, it must leave
+ * with the GC wrapped.  If unsuccessful, it leaves the GC alone
  */
 
 static Bool
@@ -144,13 +175,20 @@ cwCreateGCPrivate(GCPtr pGC, DrawablePtr pDrawable)
     }
     pPriv->serialNumber = 0;
     pPriv->stateChanges = (1 << (GCLastBit + 1)) - 1;
-    pPriv->wrapOps = pGC->ops;
-    pPriv->wrapFuncs = pGC->funcs;
-    pGC->funcs = &cwGCFuncs;
-    pGC->ops = &cwGCOps;
-    setCwGC (pGC, pPriv);
+    
+    setCwGC(pGC,pPriv);
+
+    FUNC_EPILOGUE(pGC,pPriv);
+    
     return TRUE;
 }
+
+/*
+ * Destroy the full func/op wrappers for a GC and
+ * switch backto the cheap ones
+ * This enters with the GC unwrapped and must leave
+ * with the GC cheap wrapped
+ */
 
 static void
 cwDestroyGCPrivate(GCPtr pGC)
@@ -158,29 +196,14 @@ cwDestroyGCPrivate(GCPtr pGC)
     cwGCPtr pPriv;
 
     pPriv = (cwGCPtr) getCwGC (pGC);
-    pGC->funcs = &cwCheapGCFuncs;
-    pGC->ops = pPriv->wrapOps;
+
     if (pPriv->pBackingGC)
 	FreeGC(pPriv->pBackingGC, (XID)0);
-    setCwGC (pGC, pPriv->wrapFuncs);
+    
     xfree((pointer)pPriv);
+
+    CHEAP_FUNC_EPILOGUE (pGC);
 }
-
-/* GCFuncs wrappers.  These only get used when the drawable is a window with a
- * backing pixmap, to avoid the overhead in the non-window-backing-pixmap case.
- */
-
-#define FUNC_PROLOGUE(pGC, pPriv) do {					\
-    (pGC)->funcs = (pPriv)->wrapFuncs;					\
-    (pGC)->ops = (pPriv)->wrapOps;					\
-} while (0)
-
-#define FUNC_EPILOGUE(pGC, pPriv) do {					\
-    (pPriv)->wrapFuncs = (pGC)->funcs;					\
-    (pPriv)->wrapOps = (pGC)->ops;					\
-    (pGC)->funcs = &cwGCFuncs;						\
-    (pGC)->ops = &cwGCOps;						\
-} while (0)
 
 static void
 cwValidateGC(GCPtr pGC, unsigned long stateChanges, DrawablePtr pDrawable)
@@ -343,42 +366,26 @@ cwDestroyClip(GCPtr pGC)
     FUNC_EPILOGUE(pGC, pPriv);
 }
 
-/*
- * Cheap GC func wrappers.  Pass everything through unless we find a window with
- * a backing pixmap, then turn on the real wrappers.
- */
-
-#define CHEAP_FUNC_PROLOGUE(pGC) \
-    ((pGC)->funcs = (GCFuncs *)(pGC)->devPrivates[cwGCIndex].ptr)
-
-#define CHEAP_FUNC_EPILOGUE(pGC) do {					\
-    (pGC)->devPrivates[cwGCIndex].ptr = (pointer)(pGC)->funcs;		\
-    (pGC)->funcs = &cwCheapGCFuncs;					\
-} while (0)
 
 static void
 cwCheapValidateGC(GCPtr pGC, unsigned long stateChanges, DrawablePtr pDrawable)
 {
     CHEAP_FUNC_PROLOGUE(pGC);
 
-    /* Check if the drawable is a window with backing pixmap.  If so,
-     * cwCreateGCPrivate will wrap with the backing-pixmap GC funcs and we won't
-     * re-wrap on return.
+    /*
+     * If the drawable is a redirected window, switch the GC
+     * around and revalidate with cwValidateGC.
      */
-    if (cwDrawableIsRedirWindow(pDrawable) &&
-	cwCreateGCPrivate(pGC, pDrawable))
+    if (cwDrawableIsRedirWindow(pDrawable) && 
+	cwCreateGCPrivate (pGC, pDrawable))
     {
-	(*pGC->funcs->ValidateGC)(pGC, stateChanges, pDrawable);
+	cwValidateGC (pGC, stateChanges, pDrawable);
+	return;
     }
-    else
-    {
-	(*pGC->funcs->ValidateGC)(pGC, stateChanges, pDrawable);
-
-	/* rewrap funcs as Validate may have changed them */
-	pGC->devPrivates[cwGCIndex].ptr = (pointer) pGC->funcs;
-
-	CHEAP_FUNC_EPILOGUE(pGC);
-    }
+	
+    (*pGC->funcs->ValidateGC)(pGC, stateChanges, pDrawable);
+	
+    CHEAP_FUNC_EPILOGUE(pGC);
 }
 
 static void
