@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/mi/miinitext.c,v 1.14 2004/10/25 07:12:21 gisburn Exp $ */
+/* $XdotOrg: xc/programs/Xserver/mi/miinitext.c,v 1.15 2004/12/08 05:48:16 gisburn Exp $ */
 /* $XFree86: xc/programs/Xserver/mi/miinitext.c,v 3.67 2003/01/12 02:44:27 dawes Exp $ */
 /***********************************************************
 
@@ -81,7 +81,6 @@ SOFTWARE.
 #undef DPMSExtension
 #undef DPSEXT
 #undef FONTCACHE
-#undef RENDER /* not yet */
 #undef DAMAGE
 #undef XFIXES
 #undef XEVIE
