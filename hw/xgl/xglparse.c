@@ -105,6 +105,9 @@ xglUseMsg (void)
     ErrorF ("-vertextype [short|float] set vertex data type\n");
     ErrorF ("-vbostream             "
 	    "use vertex buffer objects for streaming of vertex data\n");
+    ErrorF ("-yinverted             Y is upside-down\n");
+    ErrorF ("-pbomask [1|4|8|16|32] "
+	    "set bpp's to use with pixel buffer objects\n");
 }
 
 int
@@ -147,6 +150,22 @@ xglProcessArgument (xglScreenInfoPtr pScreenInfo,
     {
 	pScreenInfo->geometryUsage = GEOMETRY_USAGE_STREAM;
 	return 1;
+    }
+    else if (!strcmp (argv[i], "-yinverted"))
+    {
+	pScreenInfo->yInverted = TRUE;
+	return 1;
+    }
+    else if (!strcmp (argv[i], "-pbomask"))
+    {
+	if ((i + 1) < argc)
+	{
+	    pScreenInfo->pboMask = atoi (argv[i + 1]);
+	}
+	else
+	    return 1;
+	
+	return 2;
     }
     
     return 0;

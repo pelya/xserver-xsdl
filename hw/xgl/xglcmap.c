@@ -157,8 +157,8 @@ xglSetVisualTypesAndMasks (ScreenInfo	           *pScreenInfo,
 	    if (xglPbufferVisuals)
 	    {
 		xglPbufferVisuals[nxglPbufferVisuals].format  = format;
-		xglPbufferVisuals[nxglPbufferVisuals].pPixel  = pPixelFormat;
-		xglPbufferVisuals[nxglPbufferVisuals].visuals = visuals;
+		xglPbufferVisuals[nxglPbufferVisuals].pPixel  = NULL;
+		xglPbufferVisuals[nxglPbufferVisuals].visuals = 0;
 		nxglPbufferVisuals++;
 	    }
 	}
@@ -217,23 +217,6 @@ xglInitVisuals (ScreenInfo *pScreenInfo)
 				      rm, gm, bm);
 	}
     }
-
-#if 1
-    {
-	for (j = 0; j < nxglVisuals; j++)
-	{
-	    ErrorF ("Visual: 0x%x (%c) - r/g/b/a: %d/%d/%d/%d  db: %d\n",
-		    (int) xglVisuals[j].format->id,
-		    xglVisuals[j].format->types.pbuffer? 'y' : 'n',
-		    xglVisuals[j].format->color.red_size,
-		    xglVisuals[j].format->color.green_size,
-		    xglVisuals[j].format->color.blue_size,
-		    xglVisuals[j].format->color.alpha_size,
-		    xglVisuals[j].format->doublebuffer);
-	}
-    }
-#endif
-
 }
 
 void

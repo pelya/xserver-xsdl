@@ -135,6 +135,7 @@ xglScreenInit (ScreenPtr        pScreen,
 	       xglScreenInfoPtr pScreenInfo)
 {
     xglScreenPtr pScreenPriv;
+    int		 depth;
     
 #ifdef RENDER
     PictureScreenPtr pPictureScreen;
@@ -152,15 +153,19 @@ xglScreenInit (ScreenPtr        pScreen,
     pScreenPriv->features =
 	glitz_drawable_get_features (pScreenInfo->drawable);
 
+    depth = pScreenPriv->pVisual->pPixel->depth;
+
     if (!xglInitOffscreen (pScreen, pScreenInfo))
 	return FALSE;
     
     xglInitPixmapFormats (pScreen);
-    if (!pScreenPriv->pixmapFormats[32].format)
+    if (!pScreenPriv->pixmapFormats[depth].format)
 	return FALSE;
     
     pScreenPriv->geometryDataType = pScreenInfo->geometryDataType;
     pScreenPriv->geometryUsage    = pScreenInfo->geometryUsage;
+    pScreenPriv->yInverted	  = pScreenInfo->yInverted;
+    pScreenPriv->pboMask	  = pScreenInfo->pboMask;
 
     GEOMETRY_INIT (pScreen, &pScreenPriv->scratchGeometry,
 		   GLITZ_GEOMETRY_TYPE_VERTEX,
@@ -168,7 +173,7 @@ xglScreenInit (ScreenPtr        pScreen,
     
     pScreenPriv->surface =
 	glitz_surface_create (pScreenPriv->drawable,
-			      pScreenPriv->pixmapFormats[32].format,
+			      pScreenPriv->pixmapFormats[depth].format,
 			      pScreenInfo->width, pScreenInfo->height,
 			      0, NULL);
     if (!pScreenPriv->surface)
@@ -283,7 +288,9 @@ xglFinishScreenInit (ScreenPtr pScreen)
 
     XGL_SCREEN_PRIV (pScreen);
 	
-    miInitializeBackingStore (pScreen);
+    /* Do we want to use BackingStore?
+       miInitializeBackingStore (pScreen);
+    */
 
     if (!fbCreateDefColormap (pScreen))
 	return FALSE;
@@ -348,7 +355,8 @@ xglCloseScreen (int	  index,
 		ScreenPtr pScreen)
 {
     XGL_SCREEN_PRIV (pScreen);
-
+    XGL_PIXMAP_PRIV (pScreenPriv->pScreenPixmap);
+    
 #ifdef RENDER
     int i;
     
@@ -361,6 +369,10 @@ xglCloseScreen (int	  index,
     if (pScreenPriv->trapInfo.mask)
 	glitz_surface_destroy (pScreenPriv->trapInfo.mask);
 #endif
+
+    xglFiniPixmap (pScreenPriv->pScreenPixmap);
+    if (pPixmapPriv->pDamage)
+	DamageDestroy (pPixmapPriv->pDamage);
 
     if (pScreenPriv->solid)
 	glitz_surface_destroy (pScreenPriv->solid);

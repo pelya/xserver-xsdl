@@ -54,6 +54,8 @@ typedef struct _GCFuncs *GCFuncsPtr;
 
 extern WindowPtr *WindowTable;
 
+#define XGL_DEFAULT_PBO_MASK 0 /* don't use PBO as default */
+
 typedef struct _xglScreenInfo {
     glitz_drawable_t *drawable;
     unsigned int     width;
@@ -63,6 +65,8 @@ typedef struct _xglScreenInfo {
     Bool	     fullscreen;
     int		     geometryDataType;
     int		     geometryUsage;
+    Bool	     yInverted;
+    int		     pboMask;
 } xglScreenInfoRec, *xglScreenInfoPtr;
 
 typedef struct _xglPixelFormat {
@@ -217,6 +221,8 @@ typedef struct _xglScreen {
     int				  nOffscreen;
     int				  geometryUsage;
     int				  geometryDataType;
+    Bool			  yInverted;
+    int				  pboMask;
     xglGeometryRec		  scratchGeometry;
     
 #ifdef RENDER
@@ -830,11 +836,26 @@ xglSetGeometry (xglGeometryPtr 	pGeometry,
 
 /* xglpixmap.c */
 
+#define XGL_PIXMAP_USAGE_HINT_STREAM_DRAW  1
+#define XGL_PIXMAP_USAGE_HINT_STREAM_READ  2
+#define XGL_PIXMAP_USAGE_HINT_STREAM_COPY  3
+#define XGL_PIXMAP_USAGE_HINT_STATIC_DRAW  4
+#define XGL_PIXMAP_USAGE_HINT_STATIC_READ  5
+#define XGL_PIXMAP_USAGE_HINT_STATIC_COPY  6
+#define XGL_PIXMAP_USAGE_HINT_DYNAMIC_DRAW 7
+#define XGL_PIXMAP_USAGE_HINT_DYNAMIC_READ 8
+#define XGL_PIXMAP_USAGE_HINT_DYNAMIC_COPY 9
+
+#define XGL_PIXMAP_USAGE_HINT_DEFAULT XGL_PIXMAP_USAGE_HINT_STREAM_DRAW
+
 PixmapPtr
 xglCreatePixmap (ScreenPtr  pScreen,
 		 int	    width,
 		 int	    height, 
 		 int	    depth);
+
+void
+xglFiniPixmap (PixmapPtr pPixmap);
 
 Bool
 xglDestroyPixmap (PixmapPtr pPixmap);
@@ -860,7 +881,7 @@ Bool
 xglCreatePixmapSurface (PixmapPtr pPixmap);
 
 Bool
-xglAllocatePixmapBits (PixmapPtr pPixmap);
+xglAllocatePixmapBits (PixmapPtr pPixmap, int hint);
 
 Bool
 xglMapPixmapBits (PixmapPtr pPixmap);

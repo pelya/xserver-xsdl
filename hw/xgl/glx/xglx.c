@@ -67,7 +67,9 @@ ScreenPtr	 currentScreen = NULL;
 xglScreenInfoRec xglScreenInfo = {
     NULL, 0, 0, 0, 0, FALSE,
     DEFAULT_GEOMETRY_DATA_TYPE,
-    DEFAULT_GEOMETRY_USAGE
+    DEFAULT_GEOMETRY_USAGE,
+    FALSE,
+    XGL_DEFAULT_PBO_MASK
 };
 
 static Bool

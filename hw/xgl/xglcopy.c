@@ -158,12 +158,6 @@ xglCopyProc (DrawablePtr pSrc,
 
 	    pBox++;
 	}
-
-	if (pPixmapPriv->target == xglPixmapTargetIn)
-	{
-	    if (!xglSyncSurface (pDst))
-		FatalError (XGL_SW_FAILURE_STRING);
-	}
     } else
 	xglAddCurrentBitDamage (pDst);
 }

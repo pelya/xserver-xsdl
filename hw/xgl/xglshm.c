@@ -64,7 +64,8 @@ xglShmPutImage (DrawablePtr  pDrawable,
 
 	    XGL_PIXMAP_PRIV (pPixmap);
 
-	    if (!xglAllocatePixmapBits (pPixmap))
+	    if (!xglAllocatePixmapBits (pPixmap,
+					XGL_PIXMAP_USAGE_HINT_DEFAULT))
 	    {
 		(*pScreen->DestroyPixmap) (pPixmap);
 		return;

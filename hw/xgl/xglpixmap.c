@@ -26,6 +26,24 @@
 #include "xgl.h"
 #include "fb.h"
 
+static glitz_buffer_hint_t xglPixmapUsageHints[] = {
+    (glitz_buffer_hint_t) 0,	    /* reserved for system memory */
+    GLITZ_BUFFER_HINT_STREAM_DRAW,
+    GLITZ_BUFFER_HINT_STREAM_READ,
+    GLITZ_BUFFER_HINT_STREAM_COPY,
+    GLITZ_BUFFER_HINT_STATIC_DRAW,
+    GLITZ_BUFFER_HINT_STATIC_READ,
+    GLITZ_BUFFER_HINT_STATIC_COPY,
+    GLITZ_BUFFER_HINT_DYNAMIC_DRAW,
+    GLITZ_BUFFER_HINT_DYNAMIC_READ,
+    GLITZ_BUFFER_HINT_DYNAMIC_COPY
+};
+
+#define NUM_XGL_PIXMAP_USAGE_HINTS				     \
+    (sizeof (xglPixmapUsageHints) / sizeof (xglPixmapUsageHints[0]))
+
+#define XGL_PIXMAP_USAGE_HINT(hint) (xglPixmapUsageHints[hint])
+
 static void
 xglPixmapDamageReport (DamagePtr pDamage,
 		       RegionPtr pRegion,
@@ -187,14 +205,11 @@ xglCreatePixmap (ScreenPtr  pScreen,
     return pPixmap;
 }
 
-Bool
-xglDestroyPixmap (PixmapPtr pPixmap)
+void
+xglFiniPixmap (PixmapPtr pPixmap)
 {
     XGL_PIXMAP_PRIV (pPixmap);
-	    
-    if (--pPixmap->refcnt)
-	return TRUE;
-
+        
     if (pPixmapPriv->pArea)
 	xglWithdrawArea (pPixmapPriv->pArea);
 	
@@ -215,6 +230,15 @@ xglDestroyPixmap (PixmapPtr pPixmap)
     
     if (pPixmapPriv->surface)
 	glitz_surface_destroy (pPixmapPriv->surface);
+}
+
+Bool
+xglDestroyPixmap (PixmapPtr pPixmap)
+{
+    if (--pPixmap->refcnt)
+	return TRUE;
+
+    xglFiniPixmap (pPixmap);
 
     xfree (pPixmap);
     
@@ -362,7 +386,6 @@ xglModifyPixmapHeader (PixmapPtr pPixmap,
 	glitz_surface_reference (pScreenPriv->surface);
 	
 	pPixmapPriv->surface = pScreenPriv->surface;
-	pPixmapPriv->pPixel  = pScreenPriv->pVisual[0].pPixel;
 	pPixmapPriv->target  = xglPixmapTargetIn;
 	
 	pScreenPriv->pScreenPixmap = pPixmap;
@@ -405,7 +428,8 @@ xglPixmapToGeometry (PixmapPtr pPixmap,
 	
 	if (!pPixmapPriv->buffer)
 	{
-	    if (!xglAllocatePixmapBits (pPixmap))
+	    if (!xglAllocatePixmapBits (pPixmap,
+					XGL_PIXMAP_USAGE_HINT_DEFAULT))
 		return NULL;
 	}
 	
@@ -476,11 +500,12 @@ xglCreatePixmapSurface (PixmapPtr pPixmap)
 }
 
 Bool
-xglAllocatePixmapBits (PixmapPtr pPixmap)
+xglAllocatePixmapBits (PixmapPtr pPixmap, int hint)
 {
     int width, height, bpp, stride;
     
     XGL_PIXMAP_PRIV (pPixmap);
+    XGL_SCREEN_PRIV (pPixmap->drawable.pScreen);
 
     width  = pPixmap->drawable.width;
     height = pPixmap->drawable.height;
@@ -490,22 +515,37 @@ xglAllocatePixmapBits (PixmapPtr pPixmap)
 
     if (stride)
     {
-	pPixmapPriv->bits = xalloc (height * stride);
-	if (!pPixmapPriv->bits)
-	    return FALSE;
-
-	pPixmapPriv->buffer =
-	    glitz_buffer_create_for_data (pPixmapPriv->bits);
-	if (!pPixmapPriv->buffer)
+	glitz_buffer_t *buffer;
+	
+	if ((pScreenPriv->pboMask & bpp) && hint)
 	{
-	    xfree (pPixmapPriv->bits);
+	    buffer = glitz_pixel_buffer_create (pScreenPriv->drawable,
+						NULL, height * stride,
+						XGL_PIXMAP_USAGE_HINT (hint));
+	}
+	else
+	{
+	    pPixmapPriv->bits = xalloc (height * stride);
+	    if (!pPixmapPriv->bits)
+		return FALSE;
+
+	    buffer = glitz_buffer_create_for_data (pPixmapPriv->bits);
+	}
+
+	if (!buffer)
+	{
+	    if (pPixmapPriv->bits)
+		xfree (pPixmapPriv->bits);
 	    pPixmapPriv->bits = NULL;
 	    return FALSE;
-	}	
+	}
+	pPixmapPriv->buffer = buffer;
     }
 
-    /* XXX: pPixmapPriv->stride = -stride */
-    pPixmapPriv->stride = stride;
+    if (pScreenPriv->yInverted)
+	pPixmapPriv->stride = stride;
+    else
+	pPixmapPriv->stride = -stride;
     
     return TRUE;
 }
@@ -520,7 +560,8 @@ xglMapPixmapBits (PixmapPtr pPixmap)
 	XGL_PIXMAP_PRIV (pPixmap);
 	
 	if (!pPixmapPriv->buffer)
-	    if (!xglAllocatePixmapBits (pPixmap))
+	    if (!xglAllocatePixmapBits (pPixmap,
+					XGL_PIXMAP_USAGE_HINT_DEFAULT))
 		return FALSE;
 	
 	bits = glitz_buffer_map (pPixmapPriv->buffer,

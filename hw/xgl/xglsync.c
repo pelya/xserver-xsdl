@@ -80,7 +80,7 @@ xglSyncBits (DrawablePtr pDrawable,
 
     pBitBox = &pPixmapPriv->bitBox;
 
-    if (pExtents)
+    if (pPixmapPriv->target == xglPixmapTargetIn && pExtents)
     {
 	box.x1 = MAX (0, pExtents->x1);
 	box.y1 = MAX (0, pExtents->y1);
@@ -150,7 +150,7 @@ xglSyncBits (DrawablePtr pDrawable,
     }
 
     if (!pPixmapPriv->buffer)
-	if (!xglAllocatePixmapBits (pPixmap))
+	if (!xglAllocatePixmapBits (pPixmap, XGL_PIXMAP_USAGE_HINT_DEFAULT))
 	    return FALSE;
 
     if (pPixmapPriv->pDamage)
@@ -176,23 +176,24 @@ xglSyncBits (DrawablePtr pDrawable,
 	nBox = REGION_NUM_RECTS (&region);
 
 	format.masks = pPixmapPriv->pPixel->masks;
-
-	if (pPixmapPriv->stride < 0)
-	{
-	    format.bytes_per_line = -pPixmapPriv->stride;
-	    format.scanline_order = GLITZ_PIXEL_SCANLINE_ORDER_BOTTOM_UP;
-	}
-	else
-	{
-	    format.bytes_per_line = pPixmapPriv->stride;
-	    format.scanline_order = GLITZ_PIXEL_SCANLINE_ORDER_TOP_DOWN;
-	}
 	
 	while (nBox--)
 	{
-	    format.xoffset    = pBox->x1;
-	    format.skip_lines = pBox->y1;
-	    
+	    format.xoffset = pBox->x1;
+
+	    if (pPixmapPriv->stride < 0)
+	    {
+		format.skip_lines     = pPixmap->drawable.height - pBox->y2;
+		format.bytes_per_line = -pPixmapPriv->stride;
+		format.scanline_order = GLITZ_PIXEL_SCANLINE_ORDER_BOTTOM_UP;
+	    }
+	    else
+	    {
+		format.skip_lines     = pBox->y1;
+		format.bytes_per_line = pPixmapPriv->stride;
+		format.scanline_order = GLITZ_PIXEL_SCANLINE_ORDER_TOP_DOWN;
+	    }
+
 	    glitz_get_pixels (pPixmapPriv->surface,
 			      pBox->x1,
 			      pBox->y1,
@@ -254,17 +255,18 @@ xglSyncSurface (DrawablePtr pDrawable)
 	pBox = REGION_RECTS (pRegion);
 	pExt = REGION_EXTENTS (pDrawable->pScreen, pRegion);
 
-	format.masks	  = pPixmapPriv->pPixel->masks;
-	format.xoffset    = pExt->x1;
-	format.skip_lines = pExt->y1;
-	
+	format.masks   = pPixmapPriv->pPixel->masks;
+	format.xoffset = pExt->x1;
+
 	if (pPixmapPriv->stride < 0)
 	{
+	    format.skip_lines	  = pPixmap->drawable.height - pExt->y2;
 	    format.bytes_per_line = -pPixmapPriv->stride;
 	    format.scanline_order = GLITZ_PIXEL_SCANLINE_ORDER_BOTTOM_UP;
 	}
 	else
 	{
+	    format.skip_lines	  = pExt->y1;
 	    format.bytes_per_line = pPixmapPriv->stride;
 	    format.scanline_order = GLITZ_PIXEL_SCANLINE_ORDER_TOP_DOWN;
 	}
