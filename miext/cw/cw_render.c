@@ -1,5 +1,5 @@
 /*
- * Copyright © 2004 Eric Anholt
+ * Copyright Â© 2004 Eric Anholt
  *
  * Permission to use, copy, modify, distribute, and sell this software and its
  * documentation for any purpose is hereby granted without fee, provided that

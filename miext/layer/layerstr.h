@@ -1,7 +1,7 @@
 /*
  * $XFree86: xc/programs/Xserver/miext/layer/layerstr.h,v 1.2 2001/06/04 09:45:41 keithp Exp $
  *
- * Copyright © 2001 Keith Packard, member of The XFree86 Project, Inc.
+ * Copyright Â© 2001 Keith Packard, member of The XFree86 Project, Inc.
  *
  * Permission to use, copy, modify, distribute, and sell this software and its
  * documentation for any purpose is hereby granted without fee, provided that

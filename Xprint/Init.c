@@ -871,7 +871,7 @@ BuildPrinterDb(void)
             curr_spooler_type = XpSpoolerNameToXpSpoolerType(spname);
             if(!curr_spooler_type)
             {
-                FatalError("BuildPrinterDb: No spooler type entry found for '%s'.\n", spname);
+                FatalError("BuildPrinterDb: No spooler type entry found for '%s'.\n", spname);
             }
             
             if(curr_spooler_type->list_queues_command == NULL ||

@@ -1,7 +1,7 @@
 /*
  * This code is largely copied from fbfillrect.c.
  *
- * Copyright © 1998 Keith Packard
+ * Copyright Â© 1998 Keith Packard
  * Copyright (c) 2003 Torrey T. Lyons. All Rights Reserved.
  *
  * Permission to use, copy, modify, distribute, and sell this software and its

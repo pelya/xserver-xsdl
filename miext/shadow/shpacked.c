@@ -1,7 +1,7 @@
 /*
  * $XFree86: xc/programs/Xserver/miext/shadow/shpacked.c,v 1.4 2001/05/29 04:54:13 keithp Exp $
  *
- * Copyright © 2000 Keith Packard
+ * Copyright Â© 2000 Keith Packard
  *
  * Permission to use, copy, modify, distribute, and sell this software and its
  * documentation for any purpose is hereby granted without fee, provided that

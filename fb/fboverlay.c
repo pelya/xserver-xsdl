@@ -1,7 +1,7 @@
 /*
  * $XFree86: xc/programs/Xserver/fb/fboverlay.c,v 1.7 2003/11/10 18:21:47 tsi Exp $
  *
- * Copyright © 2000 SuSE, Inc.
+ * Copyright Â© 2000 SuSE, Inc.
  *
  * Permission to use, copy, modify, distribute, and sell this software and its
  * documentation for any purpose is hereby granted without fee, provided that
@@ -23,7 +23,7 @@
  * Author:  Keith Packard, SuSE, Inc.
  */
 
-/* $XdotOrg: xc/programs/Xserver/fb/fboverlay.c,v 1.3 2004/05/16 05:08:39 alanc Exp $ */
+/* $XdotOrg: xc/programs/Xserver/fb/fboverlay.c,v 1.4 2004/07/30 20:30:51 ajax Exp $ */
 
 #include "fb.h"
 #include "fboverlay.h"

@@ -7,7 +7,7 @@
  * The mode query/save/set/restore functions from the vesa driver 
  * have been moved here.
  * Copyright (c) 2000 by Conectiva S.A. (http://www.conectiva.com)
- * Authors: Paulo César Pereira de Andrade <pcpa@conectiva.com.br> 
+ * Authors: Paulo CÃ©sar Pereira de Andrade <pcpa@conectiva.com.br> 
  */
 
 #include "xf86.h"

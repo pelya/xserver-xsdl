@@ -71,9 +71,9 @@ XFree86 4.3.99.903 (15 February 2004)
  787. Increase PCI I/O space size on Linux/PowerPC (Bugzilla #1143,
       Paul Mackerras).
  786. Fix DRI cleanup at exit and re-enabling on reset for the via driver
-      (Bugzilla #998, Thomas Hellström).
+      (Bugzilla #998, Thomas HellstrÃ¶m).
  785. Fix Xv error propagation to the client for the via driver (Bugzilla #998,
-      Thomas Hellström).
+      Thomas HellstrÃ¶m).
  784. Fix a problem when utilizing DrawArrays when indirect rendering
       (Bugzilla #1142, DRI Project).
  783. Xterm followup fix for Bugzilla #981 (Thomas Dickey).
@@ -83,7 +83,7 @@ XFree86 4.3.99.903 (15 February 2004)
       libdri.a (Keith Whitwell)
  780. Don't do the MGAISBUSY() loop in MGAStormSync() for Mystique cards
       because this reportedly results in an infinite loop (Bugzila #85,
-      David Dawes, reported by Phil ??? and Stéphane VOLTZ).
+      David Dawes, reported by Phil ??? and StÃ©phane VOLTZ).
  779. Make sure the r128 driver enables the hsync and vsync signals after
       programming a video mode (Bugzilla #935, Kevin Martin).
  778. Fix Multitexture problems with vertex arrays and indirect rendering
@@ -94,13 +94,13 @@ XFree86 4.3.99.903 (15 February 2004)
  775. Fix a timing problem in the nsc driver that prevents the display from
       working in some cases (Bugzilla #840, Hansruedi Glauser, Alan Hourihane).
  774. Via driver workaround to handle setting WC for the video memory when
-      initially only part of it has WC set (Bugzilla #1010 Thomas Hellström).
+      initially only part of it has WC set (Bugzilla #1010 Thomas HellstrÃ¶m).
  773. Fix the XAA clipping flags for the via driver, which fixes a line
       drawing problem seen with OpenOffice Calc (Bugzilla #1026,
-      Thomas Hellström).
+      Thomas HellstrÃ¶m).
  772. HKSCS and GB18030 support for luit (Bugzilla #1048, Zarick Lau).
  771. Fix some remaining memory allocation related problems with the via
-      driver (Bugzilla #998, Thomas Hellström).
+      driver (Bugzilla #998, Thomas HellstrÃ¶m).
  770. Add a UseRpath build switch to allow the use of -rpath to be enabled
       or disabled from the host.def file.  Implemented for *BSD, Hurd, Linux.
       The default settings remains as before (David Dawes).
@@ -141,7 +141,7 @@ XFree86 4.3.99.903 (15 February 2004)
  757. Allocate pBIOSInfo->UserSetting in the via driver, which fixes a crash
       (James Harris).
  756. Fix Linux drm kernel modules to handle the nopage() prototype change in
-      Linux 2.6.1 (Michel Dänzer, from DRI CVS).
+      Linux 2.6.1 (Michel DÃ¤nzer, from DRI CVS).
  755. Fix use of dynamic xcursors on OS/2 (Bugzilla #1087, Frank Giessler).
  754. Fix the fbdev driver so that it allows 24-bit pixel size, and disable
       the RandR extension when rotation is enabled (Jonathan Thambidurai).
@@ -198,9 +198,9 @@ XFree86 4.3.99.903 (15 February 2004)
  733. VIA driver fixes:
        - Restructure the via driver's cache allocation to work with both
 	 the VIA and new open DRI module, and remove the now unneeded
-	 version check (Thomas Hellström, Alan Cox, bugzilla #998).
+	 version check (Thomas HellstrÃ¶m, Alan Cox, bugzilla #998).
        - Remove special case lindvd hack (Alan Cox)
-       - Add support for Xv when unaccelerated (Thomas Hellström)
+       - Add support for Xv when unaccelerated (Thomas HellstrÃ¶m)
       (Bugzilla #998, #1020, #1021).
  732. Check for a NULL argument in XSetICFocus() before dereferencing it.
       This fixes crashes with some XIM software (see
@@ -223,7 +223,7 @@ XFree86 4.3.99.903 (15 February 2004)
       entries get left out (David Dawes).
  722. Add the Bitstream Vera fonts (Bitstream, Inc and The Gnome Project).
  721. Xterm patches #183, #184 (Thomas Dickey).
- 720. Build fix for the Chips driver on Linux/arm (#6011, Michel Dänzer and
+ 720. Build fix for the Chips driver on Linux/arm (#6011, Michel DÃ¤nzer and
       Othmar Pasteka).
  719. Change v4l "norm" names to the bttv versions (#5993,
       Marco Antonio Alvarez).
@@ -306,7 +306,7 @@ XFree86 4.3.99.902 (18 December 2003)
       (Bugzilla #990, James Su).
  667. Fixes and updates for XKB keyboard maps:
       - Add to 'us' keymap backslash key that can be rewritten in other layouts
-        (Bugzilla #976, Børre Gaup).
+        (Bugzilla #976, BÃ¸rre Gaup).
       - Fix some keys in Georgian latin keymap (Bugzilla #985, Vano Beridze).
       - Add Korean keymap (Jungshik Shin).
       - Add French variant of 'dvorak' keymap (Josselin Mouette).
@@ -939,7 +939,7 @@ XFree86 4.3.99.13 (25 September 2003)
       (John Harper).
  449. Improve the contrast of the whiteglass xterm cursor, and fix the
       hotspot of the whiteglass right_ptr cursor and add transparency
-      to it (#5867, René Rebe).
+      to it (#5867, RenÃ© Rebe).
  448. Fix a problem with the "pl2" (Polish qwertz) map where the order in
       which the Alt_R and Shift keys are pressed affects the results
       (Tom Pala).
@@ -1056,7 +1056,7 @@ XFree86 4.3.99.12 (10 September 2003)
       Jungshik Shin).
  405. Don't call FBIOPAN_DISPLAY ioctl with arguments that will cause a
       confusing if harmless error; make an fbdevhw internal function static to
-      fix a warning. (Michel Dänzer)
+      fix a warning. (Michel DÃ¤nzer)
  404. Passing correct virtual screen size to xf86ValidateModes() in VIA driver
       (Luc Verhaegen).
  403. Added RGB overlays to i810 driver (Bugzilla# 625, Alastair M. Robinson).
@@ -1555,8 +1555,8 @@ XFree86 4.3.99.7 (25 June 2003)
  236. Fixed warnings when building Palmex touchscreen driver statically
       (Bugzilla #405, Jason L. Wright).
  235. Fixes and updates for XKB keyboard maps:
-      - add programmers variant to the Turkish keyboard map (Nilgün Belma
-        Bugüner)
+      - add programmers variant to the Turkish keyboard map (NilgÃ¼n Belma
+        BugÃ¼ner)
       - add a variant of the Romanian keyboard map for German keyboard
         (Manfred Pohler)
       - add layout for BTC 9001AH keyboard (Nick Kurshev)
@@ -1733,7 +1733,7 @@ XFree86 4.3.99.5 (25 May 2003)
 
 XFree86 4.3.99.4 (10 May 2003)
  168. Prevent a SIGFPE with the glint/pm3 driver when attempting to display
-      an XVideo image less than 8 pixels wide (Måns Rullgård).
+      an XVideo image less than 8 pixels wide (MÃ¥ns RullgÃ¥rd).
  167. Support for building a DRI enabled server on OpenBSD (Wilbern Cobb,
       Matthieu Herrb).
  166. Fix double free bug when a Mac-specific font fails to load with
@@ -1759,7 +1759,7 @@ XFree86 4.3.99.4 (10 May 2003)
  159. Make freetype-config more useful on NetBSD (#5693, Thomas Klausner).
  158. Small fixes in keyboard maps:
       - add an explicit type declaration in level3(ralt_switch)
-        (Bugzilla #225, Séamus Ó Ciardhuáin);
+        (Bugzilla #225, SÃ©amus Ã“ CiardhuÃ¡in);
       - fix wrong group number in Russian keyboard map (Ivan Pascal).
  157. Add rootless implementation for XDarwin using Apple's Xplugin API
       (John Harper, Torrey T. Lyons).
@@ -1770,7 +1770,7 @@ XFree86 4.3.99.4 (10 May 2003)
  154. Fix a memory leak caused by the data allocated in XGetDefault() never
       being freed (Jim Radford).
  153. Update keysym capitalization rules in XConvertCase() with unicode
-      keysyms and some missed charsets (Bugzilla #209, Séamus Ó Ciardhuáin).
+      keysyms and some missed charsets (Bugzilla #209, SÃ©amus Ã“ CiardhuÃ¡in).
  152. Use C89 style function prototypes in manual pages (Bugzilla #208,
       Aidan Kehoe).
  151. Fix small memory leaks in XvQueryAdaptors() and __driUtilCreateScreen()
@@ -1835,7 +1835,7 @@ XFree86 4.3.99.3 (25 April 2003)
       and Radeon XVideo displays (Marc La France).
  129. Initialise v4l's XVideo adaptors last (Marc La France).
  128. Reduce cut&paste effects by adding more helpers to Xv
-      (derived from #5645, Björn Augustsson, Marc La France).
+      (derived from #5645, BjÃ¶rn Augustsson, Marc La France).
  127. Centralise a region comparison primitive into 'mi' and use it instead of
       local definitions throughout the server (Marc La France).
  126. DPMSExtension & XvExtension driver cleanups (Marc La France).
@@ -2008,13 +2008,13 @@ XFree86 4.3.99.2 (10 April 2003)
       fonts cannot be rendered (Egbert Eich).
   69. Fixed B&H bdf fonts: AVERAGE_WIDTH is not a string but an int (Mike Fabian).
   68. Fixed type in radeon driver which caused display to go into
-      powersaving mode when Xcursor is disabled (Bugz: 90, Michel Dänzer).
+      powersaving mode when Xcursor is disabled (Bugz: 90, Michel DÃ¤nzer).
   67. Fixed typo in XKB-Config.sgml (Bugz: 53, Hiroyuki Bessho).
   66. Fix SiliconMotion driver for mode switching and SEGV problem when
       initializing Xv functionality (Bugzilla #50, Alan Hourihane).
   65. Add Radeon DRI suspend/resume support (Charl Botha, #A.1431).
   64. Rage 128 Xv fix for high resolution displays (Rik Faith).
-  63. PPC updates for Radeon (Michel Dänzer, Hui Yu@ATI).
+  63. PPC updates for Radeon (Michel DÃ¤nzer, Hui Yu@ATI).
   62. Radeon patch from ATI (Hui Yu@ATI).
       - IGP320/330/340 support (2D only)
       - RV280 (9200/M9+) support
@@ -2036,7 +2036,7 @@ XFree86 4.3.99.2 (10 April 2003)
       directory with white space in its path name (#A.1690, Eric Branlund).
   56. Allow AGPGART support to be enabled for OpenBSD (#A.1684, Brian Feldman).
   55. Make the mouse driver check the SendDragEvents option (based on #A.1682,
-      Juuso Åberg).
+      Juuso Ã…berg).
   54. Fix a double allocation in _XTextPropertyToTextList() (#A.1681,
       Lubos Lunak).
   53. Fix a typo that causes the 'yu' keymap to emit a lower case 'L' in
@@ -2094,7 +2094,7 @@ XFree86 4.3.99.2 (10 April 2003)
   32. Fix drag lock when using a mouse button greater than 4
       (Bugzilla #51, Paul Elliott)
   31. Fix lockup on server shutdown/restart with the radeon driver
-      (Bugzilla #94, Michel Dänzer).
+      (Bugzilla #94, Michel DÃ¤nzer).
   30. Add missing symbols to reference list that show up when DRI is not
       loaded in r128 driver (Bugzilla #83, Leif Delgass).
   29. Add missing symbols to reference list that show up when DRI is not
@@ -2189,10 +2189,10 @@ XFree86 4.3.0 (27 February 2003)
        - Update the man page to synchronise with Tomohiro's work on XTerm.
       (#5643, Juliusz Chroboczek).
  946. Fix some endianness bugs in the r200 DRI driver, and guard a debugging
-      print message (Michel Dänzer).
+      print message (Michel DÃ¤nzer).
  945. Fix radeon HW cursor artifacts when switching between 2-color and
-      ARGB cursors by always using the ARGB mode (#A.1639, Michel Dänzer and
-      Fredrik Höglund).
+      ARGB cursors by always using the ARGB mode (#A.1639, Michel DÃ¤nzer and
+      Fredrik HÃ¶glund).
  944. Fix rootless XDarwin crash when trying to GetImage with a rectangle
       bigger then the associated top level window (John Harper).
  943. Add support for multi-head on ZX1-based Itanium2 systems  (Marc La France
@@ -2201,7 +2201,7 @@ XFree86 4.3.0 (27 February 2003)
       and r200 DRI drivers (Keith Whitwell).
  941. Fix a problem where a malformed Ximage can cause Xcursor to step
       outside the image data (#A.1636, Keith Packard, reported by
-      Michel Dänzer).
+      Michel DÃ¤nzer).
  940. Allow xf86setjmp/xf86setlongjmp to work with platforms where
       setjmp() isn't directly available as a function, specifically Linux
       platforms that use glibc 2.0 and 2.1. (David Dawes, Keith Packard).
@@ -2255,7 +2255,7 @@ XFree86 4.3.0 (27 February 2003)
       bounds check failures (Keith Packard).
  918. Check that the HW cursor has been setup before calling
       xf86ForceHWCursor() in the radeon (and r128) driver.  This fixes
-      crashes when using only the SW cursor (#5628, Michel Dänzer).
+      crashes when using only the SW cursor (#5628, Michel DÃ¤nzer).
  917. Fix duplicate arguments for xf86MatchPciInstances() in the DESIGN doc
       (#5627, Guido Guenther).
  916. Miscellaneous 64-bit and warning fixes to mfb, xf1bpp and xf4bpp
@@ -2298,7 +2298,7 @@ XFree86 4.2.99.902 (17 February 2003)
  900. Add the numeric keys row to the pc/us symbols map (#5622, Ivan Pascal).
  899. Resync with DRI mesa-4-0-4 branch:
        - Fix DOT3 texture combine env in the r200 driver (Ian Romanick).
-       - Fix SW TCL path in the radeon driver (Felix Kühling).
+       - Fix SW TCL path in the radeon driver (Felix KÃ¼hling).
        - Don't assert for FLUSH_STORED_VERTICES if a glBegin hasn't been
          emitted (Alan Hourihane).
  898. Another update to the fix for the client-side DRI cleanup code that
@@ -2308,7 +2308,7 @@ XFree86 4.2.99.902 (17 February 2003)
       but not the server.  This fixes an xtest XRebindKeysym() failure
       (David Dawes).
  896. Added radeon driver options documentation to the Options file
-      (#5621, Michel Dänzer).
+      (#5621, Michel DÃ¤nzer).
  895. Fix the return value of SetFontPath() when a font path element is bad
       (David Dawes).
  894. Add some more HP keyboard layouts (Peter Soos).
@@ -2386,7 +2386,7 @@ XFree86 4.2.99.902 (17 February 2003)
        - Correct RADEON_MAX_TCL_VERTSIZE and set MaxArrayLockSize
          (Keith Whitwell).
        - Fix EAGAIN handling in radeon_cp_dispatch_texture(), which fixes
-         corruption of large textures (Michel Dänzer).
+         corruption of large textures (Michel DÃ¤nzer).
        - Fix bufferSize and alphaMask for DRI in several drivers (Brian Paul,
          Leif Delgass).
        - Avoid a loop on validating destroyed drawable (Keith Whitwell).
@@ -2404,9 +2404,9 @@ XFree86 4.2.99.902 (17 February 2003)
       away for the 830M and later (David Dawes).
  858. Update Rage 128 and Radeon PCI IDs (Mike Harris).
  857. Fix vertical retrace to not interfere with interrupt handling
-      (#5608, Michel Dänzer).
+      (#5608, Michel DÃ¤nzer).
  856. Add M9 DRI support (Hui Yu@ATI).
- 855. Update Radeon man page (Michel Dänzer).
+ 855. Update Radeon man page (Michel DÃ¤nzer).
  854. Add Radeon man page (Hui Yu@ATI).
  853. Use strtol instead of atoi in xf86cfg 'expert' mode. Make pauses
       when printing keyboard models in xf86config (#5609, Chisato Yamauchi).
@@ -2434,17 +2434,17 @@ XFree86 4.2.99.901 (4 February 2003)
       (Chisato Yamauchi).
  840. Change the default cursor theme to "core".
  839. Fix some keys in the Slovenian (si) XKB map (David Balazic,
-      Henrik Nordström).
+      Henrik NordstrÃ¶m).
  838. Add a check to xset for a NULL return from XkbGetKeyboard()
       (Tapani Utriainen).
  837. Resync with DRI mesa-4-0-4 branch:
        - radeon DRM: only acknowledge interrupts we handle -- others could
-         be used outside the DRM (Michel Dänzer).
+         be used outside the DRM (Michel DÃ¤nzer).
        - Fix PCI and AGP posting problems (based on testing by Chris Ison
          and suggestions by Benjamin Herrenschmidt and Arjan van de Ven).
        - Remove radeon_flush_write_combine() which has been unused for a while
-         (Michel Dänzer).
-       - Disable strict aliasing when building the DRM (Michel Dänzer).
+         (Michel DÃ¤nzer).
+       - Disable strict aliasing when building the DRM (Michel DÃ¤nzer).
  836. Fix xfs crash on Darwin by making libXfont a flat namespace image
       (Torrey T. Lyons).
  835. Avoid endless loop when initializing an PS/2 mouse behind a 
@@ -2458,7 +2458,7 @@ XFree86 4.2.99.901 (4 February 2003)
       XkbGetMapChanges() (Jose Luu).
  831. Resync with DRI mesa-4-0-4 branch:
        - Don't inflate relative vblank sequence numbers on repeated calls
-         (e.g., when interrupted by a signal) (Michel Dänzer).
+         (e.g., when interrupted by a signal) (Michel DÃ¤nzer).
        - Fix size of VERTEX2 ioctl struct (Egbert Eich).
  830. SiS driver fixes:
        - Mode restoration fix.
@@ -2506,7 +2506,7 @@ XFree86 4.2.99.901 (4 February 2003)
          (Leif Delgass).
        - Fix __FUNCTION__ usage in the ffb 3D driver (Leif Delgass).
        - Limit the number of pending vblank signals to 100 to prevent
-         a DoS (Michel Dänzer).
+         a DoS (Michel DÃ¤nzer).
        - Fix a void * arithmetic warning in the radeon DRM driver
          (Leif Delgass).
  812. Fix a typo in the "pl2" XKB map (#A.1553, Piotr Xurek).
@@ -2526,12 +2526,12 @@ XFree86 4.2.99.901 (4 February 2003)
  803. Include list_for_each_safe define for kernels that do not have it
       (Kevin Martin).
  802. Fix 2D corruption around 3D window, when 3D window is moving and using
-      Radeon page flipping code (Michel Dänzer).
+      Radeon page flipping code (Michel DÃ¤nzer).
  801. Big endian fixes for Rage 128 and Radeon video and Radeon cursor code
-      (Michel Dänzer).
+      (Michel DÃ¤nzer).
  800. Enable PCI GART for all architectures (still gated by ForcePCIMode, if
-      on an AGP card) (Michel Dänzer).
- 799. Fix for Radeon's CP accelerated 2D sync routine (Michel Dänzer).
+      on an AGP card) (Michel DÃ¤nzer).
+ 799. Fix for Radeon's CP accelerated 2D sync routine (Michel DÃ¤nzer).
  798. SiS driver fixes:
 	- Fix for SiS730+LVDS machines (display modes restricted due to 
 	  hardware limits; LCD text mode restoration fixed)
@@ -2664,7 +2664,7 @@ XFree86 4.2.99.4 (20 January 2003)
          byte swapping on big endian machines; doesn't work with R200 and
          later chips.
        - Improve AGP workaround for pre-R200 chips.
-      (Michel Dänzer).
+      (Michel DÃ¤nzer).
  729. Remove inappropriate __linux__ ifdef in the tdfx client-side DRI driver
       (#5579, Eric Anholt).
  728. Allow makedepend handle whitespace in front of the '#' in preprocessor
@@ -2742,10 +2742,10 @@ XFree86 4.2.99.4 (20 January 2003)
  699. Add extended symbols for the "Logitech Cordless Desktop Navigator"
       keyboard (#A.1480, Gilbert Fridgen).
  698. Fix xdm resource's font references to match actual bitmap fonts (#A.1477,
-      Göran Uddeborg).
+      GÃ¶ran Uddeborg).
  697. Update the xcursorgen man page (#A.1475, Keith Packard).
  696. Add a Mongolian XKB map (#5557, Sanlig Badral).
- 695. Fixes for the Turkish XKB map (#5556, Nilgün Belma Bugüner).
+ 695. Fixes for the Turkish XKB map (#5556, NilgÃ¼n Belma BugÃ¼ner).
  694. Thai XIM fixes:
        - Fix the arguments in calling to StringConversionCallback in Thai XIM
          filter, according to Hideki Hiura's explanation on the protocol.
@@ -2754,7 +2754,7 @@ XFree86 4.2.99.4 (20 January 2003)
       (#5553, Theppitak Karoonboonyanan).
  693. Resync the pc/fi XKB map with the previous map (#5552, Marko Myllynen).
  692. Workaround for parsing of Layout sections caused by recent changes
-      (#5558, Andrew Aitchison, Paulo César Pereira de Andrade).
+      (#5558, Andrew Aitchison, Paulo CÃ©sar Pereira de Andrade).
  691. Fix the enabling of the Glint Gamma for use on an Appian Graphics
       Jeronimo 2000 board which uses two Permedia3's (#5448, Sven Luther).
  690. Fix a problem in the trident driver for older chipsets and using
@@ -2770,7 +2770,7 @@ XFree86 4.2.99.4 (20 January 2003)
       and change zh_HK to point to zh_HK.big5hkscs which conforms to
       glibc's default for zh_HK (#A.1457, Leon Ho).
  684. Updates for the Irish and Ogham XKB maps (#5549, 5550,
-      Séamus Ó Ciardhuáin).
+      SÃ©amus Ã“ CiardhuÃ¡in).
  683. Xterm patch #172 (Thomas Dickey).
 
 XFree86 4.2.99.3 (21 December 2002)
@@ -2800,7 +2800,7 @@ XFree86 4.2.99.3 (21 December 2002)
       keysym generated in this case is NoSymbol such events can confuse
       some applications (#5546, Ivan Pascal).
  673. Fix some remaining memory leaks in xkb initialization code
-      (Paulo César Pereira de Andrade).
+      (Paulo CÃ©sar Pereira de Andrade).
  672. Temporarily enable the hard-coded Ctrl-Alt-Backspace terminate sequence
       until a better fallback mechanism is implemented (Egbert Eich).
  671. Allow XKB-remappable hot keys to work with the "kbd" driver
@@ -2820,23 +2820,23 @@ XFree86 4.2.99.3 (21 December 2002)
  668. Add an alternative French XKB layout (fr-latin9) (#A.1446, Guylhem Aznar,
       Rene Cougnenc, Nicolas Mailhot).
  667. Add bar and brokenbar to default <LSGT> definition for pc102 and
-      pc105 xkb maps (based on #A.1445, Göran Uddeborg).
+      pc105 xkb maps (based on #A.1445, GÃ¶ran Uddeborg).
  666. Change the keypad "decimal" key to KP_Separator in the dk, fi, no, se
       xkb maps (#A.1440, Robin Rosenberg).
  665. Fixes and cleanups for the ISO8859-14 Compose table (#5543, 
-      Séamus Ó Ciardhuáin).
+      SÃ©amus Ã“ CiardhuÃ¡in).
  664. Update the Ogham xkb map, including full support for the IS434 standard
-      and laptops (#5542, Séamus Ó Ciardhuáin).
+      and laptops (#5542, SÃ©amus Ã“ CiardhuÃ¡in).
  663. Update the Irish xkb map, including adding support for laptops (#5541,
-      Séamus Ó Ciardhuáin).
+      SÃ©amus Ã“ CiardhuÃ¡in).
  662. Add "Inet" key definitions for the Honeywell Euroboard keyboard (#A.810,
       Scott Penrose).
  661. Add "Inet" key definitions for the Trust Direct Access keyboard (#A.897,
-      Raphaël Poss).
+      RaphaÃ«l Poss).
  660. Add draglock support to the mouse driver, for aiding trackball use
       by people with low dexterity (#A.1224, Paul Elliott).
  659. Fix bad includes in the xkb "level3" symbols file (A.1444,
-      Göran Uddeborg).
+      GÃ¶ran Uddeborg).
  658. Fix atimisc panel support bug that occurs when the mode on server entry
       is a VGA mode with large horizontal and/or vertical blanking pulses
       (Marc La France).
@@ -2899,7 +2899,7 @@ XFree86 4.2.99.3 (21 December 2002)
  628. Add validation for the screen number parameter received over the wire
       by the X server's DRI extension code, and fix some similar checks in
       the GLX code.  This fixes X server segfaults when an invalid screen
-      value is provided (#A.1434, Felix Kühling)..
+      value is provided (#A.1434, Felix KÃ¼hling)..
  627. Fix some bugs in the Iranian xkb layout (#A.1135, Roozbeh Pournader).
  626. Add a Bosnian xkb layout (#A.1398, Amila Akagic).
  625. Fix for Hungarian xkb layout (#A.1175, Peter Soos).
@@ -2930,16 +2930,16 @@ XFree86 4.2.99.3 (21 December 2002)
       David Monniaux).
  610. Updates/fixes for the Korean font encoding file (#5525, Jungshik Shin).
  609. Fix some problems with the multilayout version of the Turkish layout
-      (#5521, Nilgün Belma Bugüner).
+      (#5521, NilgÃ¼n Belma BugÃ¼ner).
  608. DRM vertical blank ioctl can send a signal as an alternative to
-      blocking (r200 and radeon only so far) (#5523, Michel Dänzer).
+      blocking (r200 and radeon only so far) (#5523, Michel DÃ¤nzer).
  607. Build fix for Linux/Alpha (#5515, Mike Harris).
  606. Change CppCmd on Linux to /usr/bin/cpp (#5514, Mike Harris).
  605. Fix an incorrect check for the "StrangeLockups" option in the
       neomagic driver (#5505, Mike Harris).
  604. Rename geode driver to nsc and add GX2 support (Sarma Kolluru, NatSemi).
  603. Add the missing XKB definition for keysym "ISO_Level3_Lock" (#5526,
-      Séamus Ó Ciardhuáin).
+      SÃ©amus Ã“ CiardhuÃ¡in).
  602. XkbSetControls should return True when successful, not False (#A.1385,
       Stephen Montgomery-Smith).
  601. The functions XGetXlibControls and XSetXlibControls must work even if
@@ -2989,7 +2989,7 @@ XFree86 4.2.99.3 (21 December 2002)
  585. Don't change the authorization data (and in particular, don't
       enable local host access) if the X server's authority file
       is removed or becomes unreadable while the server is running
-      (David Dawes, reported by Dietmar Schröter).
+      (David Dawes, reported by Dietmar SchrÃ¶ter).
  584. Xterm patch #171 (Thomas Dickey).
  583. Fix uninitialized buffer-count in luit (Semen A. Ustimenko).
  582. Various xdm updates from Debian and Suse (#5358, Branden Robinson, 
@@ -3023,7 +3023,7 @@ XFree86 4.2.99.3 (21 December 2002)
  567. xprop updates (Mihael Hategan).
  566. Fix SEGV in ICE library (Petter Reinholdtsen).
  565. Fix interaction between backing store and miext/shadow (adapted from
-      Paulo César Pereira de Andrade).
+      Paulo CÃ©sar Pereira de Andrade).
  564. Add new key descriptions for XFree86 special keys (i.e. for terminating
       and VT switching the Xserver) (#5510, Ivan Pascal).
  563. #define DEALLOCATE_LOCAL as "do {} while(0)" instead of nothing to
@@ -3315,7 +3315,7 @@ XFree86 4.2.99.2 (21 October 2002)
  414. Use INSTDATFLAGS when installing X server modules (#5292,
       Branden Robinson).
  413. Fix the iso8859-15 Compose map -- there is no diaeresis codepoint
-      in iso8859-15 (#5389, Wolfgang Sourdeau, Rüdiger Kuhlman).
+      in iso8859-15 (#5389, Wolfgang Sourdeau, RÃ¼diger Kuhlman).
  412. Acute/apostrophe fix for nodeadkeys section of XKB German symbols
       (#5388, Andreas Metzler).
  411. Fix Cards file typo (#5387, Branden Robinson).
@@ -3481,7 +3481,7 @@ XFree86 4.2.99.2 (21 October 2002)
       anymore the builtin C mode, but a new version using the xedit lisp
       interpreter, as well as several new modes, including Lisp/Scheme,
       Imakefile, X Resource files, Makefile, Manpage source, Sgml and
-      Html (Paulo César Pereira de Andrade).
+      Html (Paulo CÃ©sar Pereira de Andrade).
  338. Print a warning if more than one renderer is registered for a font type
       (#5305, Juliusz Chroboczek).
  337. Fix a double free() that can cause a crash in XCloseIM() (based one
@@ -3502,15 +3502,15 @@ XFree86 4.2.99.2 (21 October 2002)
       fails to load (Kevin Martin)
  328. Add LINE_LIMIT_COORDS option to XAA to work around limited coordinate
       space for lines on Radeons (Kevin Martin)
- 327. Fix Radeon DGA code to use XAA sync function (Michel Dänzer)
+ 327. Fix Radeon DGA code to use XAA sync function (Michel DÃ¤nzer)
  326. Major rework of Radeon accel code:
-      - Merge CP and MMIO code (Kevin Martin and Michel Dänzer)
-      - Fix indirect buffer CP code (Kevin Martin and Michel Dänzer)
+      - Merge CP and MMIO code (Kevin Martin and Michel DÃ¤nzer)
+      - Fix indirect buffer CP code (Kevin Martin and Michel DÃ¤nzer)
       - Add CP support for scanline color expansion and image writes
-        (Michel Dänzer)
-      - Fix Mono8x8 problems (Kevin Martin and Michel Dänzer)
+        (Michel DÃ¤nzer)
+      - Fix Mono8x8 problems (Kevin Martin and Michel DÃ¤nzer)
       - Fix clipping routine to properly set transparency and
-        dp_gui_master_cntl reg (Kevin Martin and Michel Dänzer)
+        dp_gui_master_cntl reg (Kevin Martin and Michel DÃ¤nzer)
       - Fix clipping calculation errors (Kevin Martin)
       - Properly set line bias so that sw rendered solid and dashed lines
         match the accel TwoPoint lines (Kevin Martin)
@@ -3787,13 +3787,13 @@ XFree86 4.2.99.1 (7 June 2002)
       (#A.1024, Christoph Koulen).
  186. Add Peritek Borealis support to the I128 driver (Robin Cutshaw).
  185. Modify the r128 and radeon drivers to use fbdev's DPMS support when
-      fbdev is enabled (#5219, Michel Dänzer).
+      fbdev is enabled (#5219, Michel DÃ¤nzer).
  184. Add support for the composite sync mode flag to the radeon driver
-      (#5219, Michel Dänzer).
+      (#5219, Michel DÃ¤nzer).
  183. Add a mkfontscale utility for creating fonts.scale files (#5213, 5214,
       Juliusz Chroboczek).
  182. Add a 1152x768 mode suitable for Titanium PowerBooks to the set of
-      build-in modes (#5212, Michel Dänzer).
+      build-in modes (#5212, Michel DÃ¤nzer).
  181. Add support to xkbcomp and libxkbfile for composing multi-layout
       keyboard maps from partial "single layout" files.  This allows
       the XkbLayout to be specified as a comma-separated list of single
@@ -3807,7 +3807,7 @@ XFree86 4.2.99.1 (7 June 2002)
        - minor white space/comment cleanups
       (#5197, Marko Myllynen).
  178. Add an option to the r128 driver for enabling DMA for Xv image transfers
-      (#5195, Michel Dänzer).
+      (#5195, Michel DÃ¤nzer).
  177. Make the 'distclean' target remove depend files (#5194,
       Carlos A M dos Santos).
  176. Fix bad usage of "UseInstalled" in FreeBSD.cf (#5192,
@@ -3841,7 +3841,7 @@ XFree86 4.2.99.1 (7 June 2002)
       after a single shift for keyboard input (#5170-5172, Tomohiro Kubota
       and Juliusz Chroboczek).
  164. Fix an fbdev driver crash when the VT isn't active (#5169,
-      Michel Dänzer).
+      Michel DÃ¤nzer).
  163. Fix a bug that resulted in XwcTextPropertyToTextList() storing an
       incomplete list (#5168, Tassia St. Germain, for X.Org).
  162. Add "ISO8859-16" to the registry (#5167, Tassia St. Germain, for X.Org).
@@ -3893,14 +3893,14 @@ XFree86 4.2.99.1 (7 June 2002)
       and find common format for both videocard and kernel.(#5196, Gerd Knorr).
  132. Savage driver updates (#5203, Tim Roberts).
  131. Drop the indirect buffer after ScreenInit, fixes corruption and
-      kernel error messages. (#5199, Michel Dänzer).
+      kernel error messages. (#5199, Michel DÃ¤nzer).
  130. Add Polygon support to Render extension (Carl Worth, Keith Packard)
  129. Add Intel i845G 2D support to the i8x0 driver, DRI is disabled. 
       (#A.1062, Graeme Fisher, 2D3D).
  128. Fix RGB/BGR inversion problem and screen blanking in the glint
       driver (Alan Hourihane).
  127. Add MIT-SCREEN-SAVER extension docs (Alan Coopersmith).
- 126. Fix problems opening /dev/fb0 in fbdevhw layer (#5229, Michel Dänzer).
+ 126. Fix problems opening /dev/fb0 in fbdevhw layer (#5229, Michel DÃ¤nzer).
  125. Update the apm driver (#5227, Loic Grenie).
  124. Update the Japanese localization of XDarwin (Toshimitsu Tanaka).
  123. Symbol table cleanup, leaving xf86GetPointerScreenFuncs() as the only
@@ -4074,7 +4074,7 @@ XFree86 4.2.99.1 (7 June 2002)
        - Add XDarwinStartup man page.
       (Torrey T. Lyons).
   26. Localize XDarwin credits in French (Olivier Verdier) and Portuguese
-      (Fabr’cio L. de Castro).
+      (FabrÂ’cio L. de Castro).
   25. Turn off XFree86-Misc and VidMode extensions for XDarwin
       (Torrey T. Lyons).
   24. Localize a few missing strings in XDarwin preferences (Torrey T. Lyons).
@@ -4097,7 +4097,7 @@ XFree86 4.2.99.1 (7 June 2002)
   17. Fix Emulate3Buttons for wsmouse protocol on NetBSD and OpenBSD
       (Matthieu Herrb).
   16. Add Portuguese localization of XDarwin front end
-      (Fabr’cio L. de Castro).
+      (FabrÂ’cio L. de Castro).
   15. Fix mouse Protocol "Auto" for SunOS (Marc La France).
   14. Relocate all driver low memory accesses (atimisc module not yet done)
       (Marc La France).
@@ -4340,7 +4340,7 @@ XFree86 4.1.99.3 (19 December 2001)
       Chris Bare, from X11R6.6).
  577. Fix some doc typos, and remove references to the non-existent
       shadowfb(4) man page (#5076, David Krause).
- 576. Pitch calculation updates for the r128 driver (#5074, Michel Dänzer).
+ 576. Pitch calculation updates for the r128 driver (#5074, Michel DÃ¤nzer).
  575. Updates for VMware SVGA programming documentation (#5073,
       Jeremy (VMware)).
  574. Fix cases where makedepend reports the wrong line number and file when
@@ -4369,12 +4369,12 @@ XFree86 4.1.99.2 (12 December 2001)
  563. Fix acceleration, hw cursor and console restoration in the "nv" driver
       on PowerPC (Mark Vojkovich).
  562. Fix console switching on r128 & radeon drivers using FBDev (#5075,
-      Benjamin Herrenschmidt (radeon), Michel Dänzer (r128) ).
+      Benjamin Herrenschmidt (radeon), Michel DÃ¤nzer (r128) ).
  561. Implement double buffering for XVputimage in the mga driver (#A.601,
       Didier Gautheron).
  560. Fix a wheel emulation problem that prevented delivery of button
       events when the wheel button was the same as one of the emulated
-      button (#A.600, Antonio Larrosa Jiménez).
+      button (#A.600, Antonio Larrosa JimÃ©nez).
  559. Fix some 'make install.sdk' problems (#A.586, Stanislav Brabec).
  558. Fix mga DGA when UseFBDev is enabled (#A.584, Wayne Whitney).
  557. Fix dri module build when BuildXinerama is set to NO (David Dawes,
@@ -4467,7 +4467,7 @@ XFree86 4.1.99.2 (12 December 2001)
       REFCNT_TRANSLATIONS is defined (#5044, Chris Bare, from X11R6.6).
  513. Fix XPrint memory leak (#5042, Chris Bare, from X11R6.6).
  512. Local Authorization Fix (#5041, Chris Bare, from X11R6.6).
- 511. Add locale entries for Sami (#5055, Børre Gaup).
+ 511. Add locale entries for Sami (#5055, BÃ¸rre Gaup).
  510. Fix XProcessInternalConnection man page duplication (#5040, Chris Bare,
       from X11R6.6).
  509. Minor xrx Imakefile fix (#5038, Chris Bare, from X11R6.6).
@@ -4496,14 +4496,14 @@ XFree86 4.1.99.2 (12 December 2001)
  499. Add new Luxi fonts from Bigelow & Holmes (#5010, Charles Bigelow and
       Kris Holmes, integrated by Juliusz Chroboczek).
  498. Update the ClearlyU fonts to version 1.8 (#5009, Mark Leisher).
- 497. Add XKB symbols for Saami (#5006, 5059, Børre Gaup).
+ 497. Add XKB symbols for Saami (#5006, 5059, BÃ¸rre Gaup).
  496. Change the mapping of the JIS reverse solidus to what most Japanese
       users expect (#5002, Juliusz Chroboczek).
  495. Fix hiding/showing of mouse cursor under Windows on Cygwin/XFree86
       (#5056, Harold Hunt).
  494. Fix Permedia3 SDRAM based boards planemask problems (Jay Estabrook).
  493. Don't use int10 in glint driver when using fbdev interface (#5039,
-      Michel Dänzer).
+      Michel DÃ¤nzer).
  492. Fix SlowBCopy for MIPS and PowerPCs (Marc La France).
  491. Fix XF86Config overrides for I/O base, framebuffer address and video
       memory size in cyrix driver (Marc La France).
@@ -4568,7 +4568,7 @@ XFree86 4.1.99.2 (12 December 2001)
  456. Fix advertised surfaces for the i810 Motion Compensation driver and
       make use of new XVMC_INTRA_UNSIGNED surface flag (#5003, Matthew Sottek).
  455. Fix r128 driver to call wrapped screen functions when using the
-      fbdevhw layer (#5004, Michel Dänzer).
+      fbdevhw layer (#5004, Michel DÃ¤nzer).
  454. Add Rage128 Pro PP detection to ati driver (#5025, Alfred Perlstein,
       Mike Harris).
  453. Add CyberBladeXPAi1 recognition to the trident driver (#A.658,
@@ -4592,7 +4592,7 @@ XFree86 4.1.99.2 (12 December 2001)
  441. Bypass startup VT #1 switching hack for FreeBSD/syscons unless running
       on a pre-3.1 version of FreeBSD (#4926, Huver).
  440. Catch bogus flat panel dimensions in the ati/r128 driver (#4907,
-      Michel Dänzer).
+      Michel DÃ¤nzer).
  439. Fix Maltese entry in xkbcomp/keymap/xfree86 (#4921, Nerijus Baliunas).
  438. Fix a locale.alias typo (#4920, Nerijus Baliunas).
  437. Documents Options for the Matrox and Neomagic drivers, and makes
@@ -4717,10 +4717,10 @@ XFree86 4.1.99.2 (12 December 2001)
  353. Use the -no-cpp-precomp compiler option on Darwin, rather than the
       deprecated -traditional-cpp (Christoph Pfisterer).
  352. Reverting patch #340, fixing type (Egbert Eich).
- 351. Fix rotation in fbdev driver (#4958, #4959, Michel Dänzer).
+ 351. Fix rotation in fbdev driver (#4958, #4959, Michel DÃ¤nzer).
  350. Resync with DRI CVS trunk (DRI Project).
  349. Move ati driver out of DevelDrivers on PPC platforms (#4952,
-      Michel Dänzer).
+      Michel DÃ¤nzer).
  348. SECURITY: set default value of authComplain resource in xdm to true.
       This closes a hole where anyone can connect to the X server if
       the xdm auth dir doesn't exist (Galen Hancock).
@@ -4760,7 +4760,7 @@ XFree86 4.1.99.2 (12 December 2001)
       - fixed register settings to prevent flickering during video playback.
        (Egbert Eich).
  334. Fixed bug in C&T driver that caused interlaced mode not to work
-      (Claus Hulstrøm).
+      (Claus HulstrÃ¸m).
  333. Added full MMIO support for C&T 69030 chips (Gregg H. Burman).
  332. Fixed MMIO accel code in Cirrus Alpine driver, got PIO accel code to
       work (Egbert Eich).
@@ -4957,7 +4957,7 @@ XFree86 4.1.99.1 (20 August 2001)
  232. Fix xf86PostMotionEvent() to handle first_valuator values other than
       zero (#A.468, Joe Krahn).
  231. Change the Swedish xkb map to map AltGr+Space to space (#A.467,
-      David Härdeman).
+      David HÃ¤rdeman).
  230. Fix the return value information in the Xv library man pages (#A.458,
       Tommi Vainikainen).
  229. Fix the DGA client library so that it can map the video memory on
@@ -5043,14 +5043,14 @@ XFree86 4.1.99.1 (20 August 2001)
  189. Fix a non-standard character set bug in Xlib (#4792, Ivan Pascal).
  188. Fix for the savage driver on 64-bit platforms (#4788, Jay Estabrook).
  187. Xv fix for the r128 driver on big-endian architectures (#4781,
-      Michel Dänzer).
+      Michel DÃ¤nzer).
  186. Fix an Xlib bug that affects conversion from CTEXT to multibyte /
       wide character (#4780, Tomohiro KUBOTA, #4783, Bruno Haible).
  185. Release notes (4.1.0) and Status doc fixes (#4778, 4779,
       Branden Robinson).
  184. 64-bit fix for lib/X11/ImUtil.c (#4773, Mike Harris).
  183. Fix dashed lines for the r128 driver on big-endian architectures
-      (#4769, Michel Dänzer).
+      (#4769, Michel DÃ¤nzer).
  182. Fix Xlib's parsing of CTEXT with multi-byte characters in GR (#4761,
       Juliusz Chroboczek).
  181. Fixes for the Romanian (ro) XKB map (#4746, Marius Andreiana).
@@ -5255,9 +5255,9 @@ XFree86 4.1.99.1 (20 August 2001)
   66. Remove duplicate XineramaLibrary section in X11.tmpl (#4731,
       Mike Harris).
   65. Enable building DRI for Linux/ppc, and fix a drm-related bug
-      for Linux/ppc (#4728, 4730, Michel Dänzer).
+      for Linux/ppc (#4728, 4730, Michel DÃ¤nzer).
   64. Document Options for the r128 and fbdev drivers (#4727, 4729,
-      Michel Dänzer).
+      Michel DÃ¤nzer).
   63. Add a BuildBindist switch which causes a file containing the XFree86
       version number to be installed in ProjectRoot, include this in
       the Xbin bindist tarballs, and turn on this switch in the bindist
@@ -5342,9 +5342,9 @@ XFree86 4.1.99.1 (20 August 2001)
   22. Add an lv entry to XKB's keymap/xfree86 file (#4685, Nerijus Baliunas).
   21. Fix some typos in XKB's xfree86.lst file (#4684, Nerijus Baliunas).
   20. Add DDXOSVERRORF ifdefs to the XFree86 ddx code that make use of the
-      OsVendorVErrorFProc feature (#4678, Michel Dänzer).
+      OsVendorVErrorFProc feature (#4678, Michel DÃ¤nzer).
   19. Convert the r128 driver's "UseBIOSDisplay" option into a more general
-      "Display" option (#4678, Michel Dänzer).
+      "Display" option (#4678, Michel DÃ¤nzer).
   18. Treat GL_POINT like GL_POINTS and GL_LINE like GL_LINES in the sunffb
       DRI driver (#4677, David S. Miller).
   17. Some doc updates related to cross compiling (#A.413, Scott A McConnell).
@@ -5352,7 +5352,7 @@ XFree86 4.1.99.1 (20 August 2001)
       X11ProjectRoot is defined (#4676, Johnny C. Lam).
   15. Fix Trident XVideo colorkey at depth 15, 24 (Alan Hourihane).
   14. Fix some apm driver bugs, including one that prevented acceleration
-      from working (#4674, Loïc Grenié).
+      from working (#4674, LoÃ¯c GreniÃ©).
   13. Fix 555 (depth 15) palette handling in the i810 driver (#4673,
       Andrew C. Aitchison).
   12. [SECURITY] Fix authentication issues with mmap() on drm devices
@@ -5394,7 +5394,7 @@ XFree86 4.0.99.900 (18 May 2001)
  555. New XKB keymaps for cz and sk (#4634, 4637, Kamil Toman).
  554. Updates for the iso8859-2 Compose file (#4634, Kamil Toman).
  553. Check V_CSYNC in the r128 driver, and fix building with R128_DEBUG
-      enabled (#4631, Michel Dänzer).
+      enabled (#4631, Michel DÃ¤nzer).
  552. Mesa 3.4.2 (and later) import.
  551. More build & warning fixes (Marc La France).
  550. Fix bug that caused hardware cursors to be temporarily moved during mode
@@ -5642,7 +5642,7 @@ XFree86 4.0.99.3 (26 April 2001)
  419. Fix line numbers in error messages when parsing .twmrc files (#4580,
       Topi Miettinen).
  418. Fix backwards font glyphs in the ati/Mach64 driver for big endian
-      platforms (#4579, Michael Dänzer).
+      platforms (#4579, Michael DÃ¤nzer).
  417. Add a build-time option to xf86config to make it append the major version
       number to the config file name (David Dawes, prompted by #4577,
       Branden Robinson).
@@ -5792,7 +5792,7 @@ XFree86 4.0.99.2 (6 April 2001)
        - Fix SaveScreen function
        - Blank screen in ScreenInit so the former framebuffer contents aren't
          visible
-      (#4544, Michel Dänzer).
+      (#4544, Michel DÃ¤nzer).
  359. Remove references to th_TH compose file from compose.dir (#4543,
       Theppitak Karoonboonyanan).
  358. Fix for improper setting of the maxHValue limit in the tseng driver.
@@ -5936,7 +5936,7 @@ XFree86 4.0.99.2 (6 April 2001)
  291. Fix problems in Xnest when MouseKeys is enabled and patched it to
       use XKB to allow clients to change keyboard description and
       configuration whithout interfering with the "real" X server
-      (Paulo César Pereira de Andrade).
+      (Paulo CÃ©sar Pereira de Andrade).
  290. Dvorak keymap fix (#A.343, J Phillips).
  289. Some vesa driver updates, including:
        - Wrap CloseScreen().
@@ -7268,7 +7268,7 @@ XFree86 4.0.1e (6 November 2000)
  861. Add support for SubSection in the Vendor Section of the config file
       (Stuart Anderson)
  860. Fix a typo introduced in a recent update to the 'no' xkb symbols
-      file (#4218, Pablo Saratxaga, 4219, Harald Nordgård-Hansen).
+      file (#4218, Pablo Saratxaga, 4219, Harald NordgÃ¥rd-Hansen).
  859. Parser symbol update (#4217, Paulo Cesar Pereira de Andrade).
  858. Updates to iso8859-9e, microsoft_cp1251 charset handling, and
       add real support for microsoft_cp1255 and microsoft_cp1256 (#4214, 4215,
@@ -8555,7 +8555,7 @@ XFree86 4.0a (6 April 2000)
   57. Fix the Linux APM code so that the X server doesn't hang the machine
       on suspend (#3820, Keith Packard and Egbert Eich).
   56. Fix problems that break Overlay support in the glint driver (#3818,
-      Michel Dänzer).
+      Michel DÃ¤nzer).
   55. Possible fix for AvailableOptions function and submodule loading
       for the cirrus driver (David Dawes).
   54. Add an entry for the GeForce to the Cards file (#A.6, Oliver Lau).
@@ -8683,9 +8683,9 @@ XFree86 3.9.18Za (7 March 2000)
       (#3799, Markus Kuhn).
 3957. Make sure the fbdevhw module is loaded by the glint driver when it
       is needed, and add some memory barriers to some register access macros
-      (#3804, Michel Dänzer).
+      (#3804, Michel DÃ¤nzer).
 3956. Update the glint driver man page and release notes (#3804,
-      Michel Dänzer).
+      Michel DÃ¤nzer).
 3955. Remove some noisy messages from the mga driver (#3803, Mark Vojkovich).
 3954. The last segment in any zero-width polysegment drawing request to
       a window with more than one clipping rectangle gets dropped in the
@@ -8864,7 +8864,7 @@ XFree86 3.9.18a (25 February 2000)
          obsolete hacks)
        - fixed setting of mode sync flags
        - fixed PolySegmentThinSolidWrapper functions
-      (#3742, Michel Dänzer).
+      (#3742, Michel DÃ¤nzer).
 3861. Change the positioning of $(XF86INT10LIB) to fix some static server
       linking problems (#3741, Kevin Brosius).
 3860. Make xclock's -brief option off by default, and document it in the
@@ -8880,7 +8880,7 @@ XFree86 3.9.18a (25 February 2000)
 3857. Add a "showCurrent" resource for Xaw, which makes the list widget
       always show the selected item (#3728, Paulo Cesar Pereira de Andrade).
 3856. Use fb for the fbdev driver, and check if the fbdev modes are suitable
-      for the monitor (#3709, Michel Dänzer).
+      for the monitor (#3709, Michel DÃ¤nzer).
 3855. Add support for finding VT devices for Linux kernels compiled with
       devfs (#3692, Christopher Sekiya).
 3854. Implmenent the Font Type font properties for the Speedo, Type 1 and
@@ -8897,7 +8897,7 @@ XFree86 3.9.18a (25 February 2000)
 3848. Add some missing cfbDrawableEnabled checks to the 8+32 and 24+32
       framebuffers (Mark Vojkovich).
 3847. Fix a segfault introduced by the workaround in 3546 below.
-3846. Fix big endian problems in XAA stipple code (Michel Dänzer).
+3846. Fix big endian problems in XAA stipple code (Michel DÃ¤nzer).
 3845. Fix xf86MatchPciInstances() to not cause r128 to report detection of
       other ATI adapters to -probe (Marc La France).
 3844. Fix bug in xf86MatchDevices() with -probe or -configure (Marc La France).
@@ -9622,7 +9622,7 @@ XFree86 3.9.16d (19 November 1999)
 3330. Xterm patch #121 (#3402, Thomas Dickey).
 3329. Rendition driver bugfixes and alpha related cleanups (#3400,
       Dejan Ilic, Marc Langenbach, Egbert Eich).
-3328. Add void input device (ä3392, Frederic Lepied).
+3328. Add void input device (Ã¤3392, Frederic Lepied).
 3327. Changed the Xon serial option to be able to select xon/xoff for input,
       output or both. Add support for Graphire models. Change wacom init
       phase to use new Xoff option (#3391, Frederic Lepied).
@@ -10003,8 +10003,8 @@ XFree86 3.9.16a (6 September 1999)
 
 XFree86 3.9.16 (31 August 1999)
 3127. Potential fix for a server crash when connecting from a byte-swapped
-      client in Xinerama mode (based on #3196, Attila Fülöp).
-3126. Build xterm/resize with -lncurses on Debian (#3197, Attila Fülöp).
+      client in Xinerama mode (based on #3196, Attila FÃ¼lÃ¶p).
+3126. Build xterm/resize with -lncurses on Debian (#3197, Attila FÃ¼lÃ¶p).
 3125. Allow inclusion of Xvlib.h into C++ code (#3195, Vladimir Dergachev).
 3124. Modify the ISO-8859-{6,7,10} to Unicode tables so that they agree with
       the tables found on ftp.unicode.org (#3172, Bruno Haible).
@@ -17699,7 +17699,7 @@ XFree86 3.1.0Cd (21 January 1995)
 232. Fix #9 GXE64Pro problems introduced in 3.1.0Cc (Hans Nasten).
 231. SPEA auto-detection for their Trio64 cards (Norbert Distler).
 230. Possible fix for keymap problems with 84-key keyboards.
-229. Internationalisation support for xterm (Martin Forssén).
+229. Internationalisation support for xterm (Martin ForssÃ©n).
 228. Remove the need for a Virtual entry in the XF86Config for the Mach64
      server.
 
@@ -17818,7 +17818,7 @@ XFree86 3.1.0Ba (8 January 1995)
 166. Avoid use of the threads lib for SolX86 (David Holland).
 
 XFree86 3.1.0B (4 January 1995)
-165. Support for C&T 65540/45 added to the SVGA server (Régis Cridlig).
+165. Support for C&T 65540/45 added to the SVGA server (RÃ©gis Cridlig).
 164. Change cirrus programmable clock code to use a tested set of clock
      parameters when there is one close to the requested clock frequency
      (Harm Hanemaayer).
@@ -18004,7 +18004,7 @@ XFree86 3.1.0c (6 November 1994)
      clock when one of these is detected (Harald Koenig).
  59. Fixes for S3 RAMDAC detection (STG1700 and SDAC) (Harald Koenig).
  58. Fix ICD2061A code for clocks between 110MHz and 120MHz (Harald Koenig).
- 57. Chips & Technology SVGA driver (Jon Block, Mike Hollick, Régis Cridlig).
+ 57. Chips & Technology SVGA driver (Jon Block, Mike Hollick, RÃ©gis Cridlig).
  56. 16/32bpp support for #9 boards with Ti3020 ramdac (Robin Cutshaw).
  55. Fix bsdi.cf problems with gcc options (Hans Nasten).
 

@@ -4,7 +4,7 @@
 /*
  * This code is largely copied from fbsolid.c.
  *
- * Copyright © 1998 Keith Packard
+ * Copyright Â© 1998 Keith Packard
  * Copyright (c) 2002 Apple Computer, Inc. All Rights Reserved.
  * Copyright (c) 2003 Torrey T. Lyons. All Rights Reserved.
  *

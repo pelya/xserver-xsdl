@@ -1,7 +1,7 @@
 /*
  * $XFree86: xc/programs/Xserver/hw/xfree86/xaa/xaaPict.c,v 1.18 2003/04/23 18:35:34 eich Exp $
  *
- * Copyright © 2000 Keith Packard, member of The XFree86 Project, Inc.
+ * Copyright Â© 2000 Keith Packard, member of The XFree86 Project, Inc.
  *
  * Permission to use, copy, modify, distribute, and sell this software and its
  * documentation for any purpose is hereby granted without fee, provided that

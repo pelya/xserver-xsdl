@@ -24,7 +24,7 @@
  * dealings in this Software without prior written authorization from
  * Conectiva Linux.
  *
- * Author: Paulo César Pereira de Andrade <pcpa@conectiva.com.br>
+ * Author: Paulo CÃ©sar Pereira de Andrade <pcpa@conectiva.com.br>
  *
  * $XFree86: xc/programs/Xserver/hw/xfree86/xf86cfg/help.c,v 1.7tsi Exp $
  */
@@ -192,7 +192,7 @@ HelpCancelAction(Widget w, XEvent *event, String *params, Cardinal *num_params)
  * dealings in this Software without prior written authorization from the
  * XFree86 Project.
  *
- * Author: Paulo César Pereira de Andrade
+ * Author: Paulo CÃ©sar Pereira de Andrade
  */
 
 #define Html_Peek(parser)	((parser)->next)
@@ -1051,62 +1051,62 @@ Html_Parse1(Html_Parser *parser)
 	    }
 	    else if (strcmp(buf + 1, "acute") == 0) {
 		switch (*buf) {
-		    case 'a': idx = 'á'; break;	case 'e': idx = 'é'; break;
-		    case 'i': idx = 'í'; break;	case 'o': idx = 'ó'; break;
-		    case 'u': idx = 'ú'; break;	case 'A': idx = 'Á'; break;
-		    case 'E': idx = 'É'; break;	case 'I': idx = 'Í'; break;
-		    case 'O': idx = 'Ó'; break;	case 'U': idx = 'Ú'; break;
-		    case 'y': idx = 'ý'; break;	case 'Y': idx = 'Ý'; break;
+		    case 'a': idx = 0xe1; break;	case 'e': idx = 0xe9; break;
+		    case 'i': idx = 0xed; break;	case 'o': idx = 0xf3; break;
+		    case 'u': idx = 0xfa; break;	case 'A': idx = 0xc1; break;
+		    case 'E': idx = 0xc9; break;	case 'I': idx = 0xcd; break;
+		    case 'O': idx = 0xd3; break;	case 'U': idx = 0xda; break;
+		    case 'y': idx = 0xfd; break;	case 'Y': idx = 0xdd; break;
 		}
 	    }
 	    else if (strcmp(buf + 1, "grave") == 0) {
 		switch (*buf) {
-		    case 'a': idx = 'à'; break;	case 'e': idx = 'è'; break;
-		    case 'i': idx = 'ì'; break;	case 'o': idx = 'ò'; break;
-		    case 'u': idx = 'ù'; break;	case 'A': idx = 'À'; break;
-		    case 'E': idx = 'È'; break;	case 'I': idx = 'Ì'; break;
-		    case 'O': idx = 'Ò'; break;	case 'U': idx = 'Ù'; break;
+		    case 'a': idx = 0xe0; break;	case 'e': idx = 0xe8; break;
+		    case 'i': idx = 0xec; break;	case 'o': idx = 0xf2; break;
+		    case 'u': idx = 0xf9; break;	case 'A': idx = 0xc0; break;
+		    case 'E': idx = 0xc8; break;	case 'I': idx = 0xcc; break;
+		    case 'O': idx = 0xd2; break;	case 'U': idx = 0xd9; break;
 		}
 	    }
 	    else if (strcmp(buf + 1, "tilde") == 0) {
 		switch (*buf) {
-		    case 'a': idx = 'ã'; break;	case 'o': idx = 'õ'; break;
-		    case 'n': idx = 'ñ'; break;	case 'A': idx = 'Ã'; break;
-		    case 'O': idx = 'Õ'; break;	case 'N': idx = 'Ñ'; break;
+		    case 'a': idx = 0xe3; break;	case 'o': idx = 0xf5; break;
+		    case 'n': idx = 0xf1; break;	case 'A': idx = 0xc3; break;
+		    case 'O': idx = 0xd5; break;	case 'N': idx = 0xd1; break;
 		}
 	    }
 	    else if (strcmp(buf + 1, "circ") == 0) {
 		switch (*buf) {
-		    case 'a': idx = 'â'; break;	case 'e': idx = 'ê'; break;
-		    case 'i': idx = 'î'; break;	case 'o': idx = 'ô'; break;
-		    case 'u': idx = 'û'; break;	case 'A': idx = 'Â'; break;
-		    case 'E': idx = 'Ê'; break;	case 'I': idx = 'Î'; break;
-		    case 'O': idx = 'Ô'; break;	case 'U': idx = 'Û'; break;
+		    case 'a': idx = 0xe2; break;	case 'e': idx = 0xea; break;
+		    case 'i': idx = 0xee; break;	case 'o': idx = 0xf4; break;
+		    case 'u': idx = 0xfb; break;	case 'A': idx = 0xc2; break;
+		    case 'E': idx = 0xca; break;	case 'I': idx = 0xce; break;
+		    case 'O': idx = 0xd4; break;	case 'U': idx = 0xdb; break;
 		}
 	    }
 	    else if (strcmp(buf + 1, "uml") == 0) {
 		switch (*buf) {
-		    case 'a': idx = 0xe4;break;	case 'e': idx = 0xeb;break;
-		    case 'i': idx = 0xef;break;	case 'o': idx = 0xf6;break;
-		    case 'u': idx = 'ü'; break;	case 'A': idx = 0xc4;break;
-		    case 'E': idx = 0xcb;break;	case 'I': idx = 0xfc;break;
-		    case 'O': idx = 0xd6;break;	case 'U': idx = 'Ü'; break;
-		    case 'y': idx = 0xff;break;
+		    case 'a': idx = 0xe4; break;	case 'e': idx = 0xeb; break;
+		    case 'i': idx = 0xef; break;	case 'o': idx = 0xf6; break;
+		    case 'u': idx = 0xfc; break;	case 'A': idx = 0xc4; break;
+		    case 'E': idx = 0xcb; break;	case 'I': idx = 0xfc; break;
+		    case 'O': idx = 0xd6; break;	case 'U': idx = 0xdc; break;
+		    case 'y': idx = 0xff; break;
 		}
 	    }
 	    else if (strcmp(buf + 1, "cedil") == 0) {
 		switch (*buf) {
-		    case 'c': idx = 'ç'; break;	case 'C': idx = 'Ç'; break;
+		    case 'c': idx = 0xe7; break;	case 'C': idx = 0xc7; break;
 		}
 	    }
 	    else if (strcmp(buf + 1, "slash") == 0) {
 		switch (*buf) {
-		    case 'o': idx = 0xf8; break;case 'O': idx = 0xd8; break;
+		    case 'o': idx = 0xf8; break;	case 'O': idx = 0xd8; break;
 		}
 	    }
 	    else if (strcmp(buf + 1, "ring") == 0) {
 		switch (*buf) {
-		    case 'a': idx = 0xe5; break;case 'A': idx = 0xc5; break;
+		    case 'a': idx = 0xe5; break;	case 'A': idx = 0xc5; break;
 		}
 	    }
 	    else if (strcasecmp(buf, "iexcl") == 0)
@@ -1128,7 +1128,7 @@ Html_Parse1(Html_Parser *parser)
 	    else if (strcasecmp(buf, "copy") == 0)
 		idx = 0xa9;
 	    else if (strcasecmp(buf, "ordf") == 0)
-		idx = 'ª';
+		idx = 0xaa;
 	    else if (strcasecmp(buf, "laquo") == 0)
 		idx = 0xab;
 	    else if (strcasecmp(buf, "not") == 0)
@@ -1140,13 +1140,13 @@ Html_Parse1(Html_Parser *parser)
 	    else if (strcasecmp(buf, "macr") == 0)
 		idx = 0xaf;
 	    else if (strcasecmp(buf, "deg") == 0)
-		idx = '°';
+		idx = 0xb0;
 	    else if (strcasecmp(buf, "plusmn") == 0)
 		idx = 0xb1;
 	    else if (strcasecmp(buf, "sup2") == 0)
-		idx = '²';
+		idx = 0xb2;
 	    else if (strcasecmp(buf, "sup3") == 0)
-		idx = '³';
+		idx = 0xb3;
 	    else if (strcasecmp(buf, "acute") == 0)
 		idx = 0xb4;
 	    else if (strcasecmp(buf, "micro") == 0)
@@ -1158,9 +1158,9 @@ Html_Parse1(Html_Parser *parser)
 	    else if (strcasecmp(buf, "cedil") == 0)
 		idx = 0xb8;
 	    else if (strcasecmp(buf, "supl") == 0)
-		idx = '¹';
+		idx = 0xb9;
 	    else if (strcasecmp(buf, "ordm") == 0)
-		idx = 'º';
+		idx = 0xba;
 	    else if (strcasecmp(buf, "raquo") == 0)
 		idx = 0xbb;
 	    else if (strcasecmp(buf, "frac14") == 0)

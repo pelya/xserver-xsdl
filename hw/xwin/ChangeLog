@@ -149,7 +149,7 @@
 	* win.h:
 	Make multiple monitors default for -multiwindow and -mwextwm.
 	Added a flag to indicate if the user has overridden the multimonitor
-	settings. (Øyvind Harboe, Alexander Gottwald)
+	settings. (Ã˜yvind Harboe, Alexander Gottwald)
 
 2004-10-07  Torrey Lyons  <torrey at freedesktop dot org>
 

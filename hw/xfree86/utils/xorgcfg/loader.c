@@ -24,9 +24,9 @@
  * dealings in this Software without prior written authorization from
  * Conectiva Linux.
  *
- * Author: Paulo César Pereira de Andrade <pcpa@conectiva.com.br>
+ * Author: Paulo CÃ©sar Pereira de Andrade <pcpa@conectiva.com.br>
  *
- * $XdotOrg$
+ * $XdotOrg: xc/programs/Xserver/hw/xfree86/xf86cfg/loader.c,v 1.2 2004/04/23 19:54:18 eich Exp $
  * $XFree86: xc/programs/Xserver/hw/xfree86/xf86cfg/loader.c,v 1.19 2002/06/06 21:03:32 paulo Exp $
  */
 

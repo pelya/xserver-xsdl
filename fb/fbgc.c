@@ -1,7 +1,7 @@
 /*
  * Id: fbgc.c,v 1.1 1999/11/02 03:54:45 keithp Exp $
  *
- * Copyright © 1998 Keith Packard
+ * Copyright Â© 1998 Keith Packard
  *
  * Permission to use, copy, modify, distribute, and sell this software and its
  * documentation for any purpose is hereby granted without fee, provided that
@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XdotOrg: xc/programs/Xserver/fb/fbgc.c,v 1.15 2003/12/18 15:25:41 alanh Exp $ */
+/* $XdotOrg: xc/programs/Xserver/fb/fbgc.c,v 1.2 2004/04/23 19:05:14 eich Exp $ */
 /* $XFree86: xc/programs/Xserver/fb/fbgc.c,v 1.14 2003/12/18 15:22:32 alanh Exp $ */
 
 #include "fb.h"

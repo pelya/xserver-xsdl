@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/hw/xfree86/common/xf86cmap.c,v 1.2 2004/04/23 19:20:32 eich Exp $ */
+/* $XdotOrg: xc/programs/Xserver/hw/xfree86/common/xf86cmap.c,v 1.3 2004/07/30 21:10:46 eich Exp $ */
 /* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86cmap.c,v 1.25 2003/10/17 20:02:12 alanh Exp $ */
 /*
  * Copyright (c) 1998-2001 by The XFree86 Project, Inc.
@@ -689,7 +689,7 @@ CMapSetOverscan(ColormapPtr pmap, int defs, int *indices)
     /*
      * Search for a new overscan index in the following cases:
      *
-     *   - The index hasn't yet been initialised.  In this case search
+     *   - The index hasn't yet been initialised.Â  In this case search
      *     for an index that is black or a close match to black.
      *
      *   - The colour of the old index is changed.  In this case search

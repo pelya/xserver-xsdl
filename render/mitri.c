@@ -1,7 +1,7 @@
 /*
  * $XFree86: xc/programs/Xserver/render/mitri.c,v 1.5 2002/05/31 16:48:52 keithp Exp $
  *
- * Copyright © 2002 Keith Packard, member of The XFree86 Project, Inc.
+ * Copyright Â© 2002 Keith Packard, member of The XFree86 Project, Inc.
  *
  * Permission to use, copy, modify, distribute, and sell this software and its
  * documentation for any purpose is hereby granted without fee, provided that

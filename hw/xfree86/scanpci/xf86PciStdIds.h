@@ -11,7 +11,7 @@
  */
 
 /*
- * Copyright © 2002 by the XFree86 Project, Inc.
+ * Copyright Â© 2002 by the XFree86 Project, Inc.
  *
  * The pci.ids file and the data it contains are from the Linux PCI ID's
  * Project (http://pciids.sf.net/).  It is maintained by Martin Mares
@@ -5967,7 +5967,7 @@ static const char pci_vendor_10fa[] = "Truevision";
 static const char pci_device_10fa_000c[] = "TARGA 1000";
 #endif
 #ifdef VENDOR_INCLUDE_NONVIDEO
-static const char pci_vendor_10fb[] = "Thesys Gesellschaft für Mikroelektronik mbH";
+static const char pci_vendor_10fb[] = "Thesys Gesellschaft fÃ¼r Mikroelektronik mbH";
 static const char pci_device_10fb_186f[] = "TH 6255";
 #endif
 #ifdef VENDOR_INCLUDE_NONVIDEO
@@ -14235,7 +14235,7 @@ static const char pci_vendor_5851[] = "Exacq Technologies";
 static const char pci_vendor_6356[] = "UltraStor";
 #endif
 #ifdef VENDOR_INCLUDE_NONVIDEO
-static const char pci_vendor_6374[] = "c't Magazin für Computertechnik";
+static const char pci_vendor_6374[] = "c't Magazin fÃ¼r Computertechnik";
 static const char pci_device_6374_6773[] = "GPPCI";
 #endif
 #ifdef VENDOR_INCLUDE_NONVIDEO
