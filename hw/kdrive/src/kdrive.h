@@ -99,6 +99,28 @@ typedef struct _KdFrameBuffer {
     void	*closure;
 } KdFrameBuffer;
 
+typedef struct _KdOffscreenArea KdOffscreenArea;
+
+typedef void (*KdOffscreenSaveProc) (ScreenPtr pScreen, KdOffscreenArea *area);
+
+typedef enum _KdOffscreenState {
+    KdOffscreenAvail,
+    KdOffscreenRemovable,
+    KdOffscreenLocked,
+} KdOffscreenState;
+
+struct _KdOffscreenArea {
+    int			offset;
+    int			size;
+    pointer		privData;
+    
+    KdOffscreenSaveProc save;
+
+    KdOffscreenState	state;
+    
+   KdOffscreenArea	*next;
+};
+
 #define RR_Rotate_All	(RR_Rotate_0|RR_Rotate_90|RR_Rotate_180|RR_Rotate_270)
 #define RR_Reflect_All	(RR_Reflect_X|RR_Reflect_Y)
 
@@ -122,7 +144,6 @@ typedef struct _KdScreenInfo {
     CARD8	*memory_base;
     unsigned long   memory_size;
     unsigned long   off_screen_base;
-    struct _RealOffscreenArea	*off_screen_areas;
 } KdScreenInfo;
 
 typedef struct _KdCardFuncs {
@@ -169,6 +190,8 @@ typedef struct {
 
     int		    dpmsState;
     
+    KdOffscreenArea *off_screen_areas;
+
     ColormapPtr     pInstalledmap[KD_MAX_FB];         /* current colormap */
     xColorItem      systemPalette[KD_MAX_PSEUDO_SIZE];/* saved windows colors */
 
@@ -266,13 +289,6 @@ typedef struct _KdMonitorTiming {
     int		    vblank; /* blanking */
     KdSyncPolarity  vpol;   /* polarity */
 } KdMonitorTiming;
-
-typedef struct _KdOffscreenArea {
-    ScreenPtr 	screen;
-    int 	offset;
-    int		size;
-    pointer	privData;
-} KdOffscreenArea;
 
 extern const KdMonitorTiming	kdMonitorTimings[];
 extern const int		kdNumMonitorTimings;
@@ -800,7 +816,6 @@ int
 KdFrameBufferSize (CARD8 *base, int max);
 
 /* koffscreen.c */
-typedef void (*KdOffscreenSaveProc) (KdOffscreenArea *area);
 
 Bool
 KdOffscreenInit (ScreenPtr pScreen);
@@ -812,7 +827,7 @@ KdOffscreenAlloc (ScreenPtr pScreen, int size, int align,
 		  pointer privData);
 
 void
-KdOffscreenFree (KdOffscreenArea *area);
+KdOffscreenFree (ScreenPtr pScreen, KdOffscreenArea *area);
 
 void
 KdOffscreenSwapOut (ScreenPtr pScreen);

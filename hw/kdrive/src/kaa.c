@@ -75,7 +75,7 @@ typedef struct {
 #define MIN_OFFPIX_SIZE		(4096)
 
 static void
-kaaPixmapSave (KdOffscreenArea *area)
+kaaPixmapSave (ScreenPtr pScreen, KdOffscreenArea *area)
 {
     PixmapPtr pPixmap = area->privData;
     KaaPixmapPriv(pPixmap);
@@ -196,8 +196,8 @@ kaaMoveOutPixmap (PixmapPtr pPixmap)
 		  pPixmap->drawable.height));
     if (area)
     {
-	kaaPixmapSave (area);
-	KdOffscreenFree (area);
+	kaaPixmapSave (pPixmap->drawable.pScreen, area);
+	KdOffscreenFree (pPixmap->drawable.pScreen, area);
     }
 }
 
@@ -243,7 +243,7 @@ kaaDestroyPixmap (PixmapPtr pPixmap)
 			 pPixmap->drawable.width,
 			 pPixmap->drawable.height));
 	    /* Free the offscreen area */
-	    KdOffscreenFree (pKaaPixmap->area);
+	    KdOffscreenFree (pPixmap->drawable.pScreen, pKaaPixmap->area);
 	    pPixmap->devPrivate = pKaaPixmap->devPrivate;
 	    pPixmap->devKind = pKaaPixmap->devKind;
 	}

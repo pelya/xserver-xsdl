@@ -68,7 +68,7 @@ mach64StopVideo(KdScreenInfo *screen, pointer data, Bool exit)
     }
     if (pPortPriv->off_screen)
     {
-	KdOffscreenFree (pPortPriv->off_screen);
+	KdOffscreenFree (pScreen, pPortPriv->off_screen);
 	pPortPriv->off_screen = 0;
     }
 }
@@ -556,9 +556,8 @@ mach64DisplayVideo(KdScreenInfo *screen,
 }
 
 static void
-mach64VideoSave (KdOffscreenArea *area)
+mach64VideoSave (ScreenPtr pScreen, KdOffscreenArea *area)
 {
-    ScreenPtr		pScreen = area->screen;
     KdScreenPriv(pScreen);
     KdScreenInfo	*screen = pScreenPriv->screen;
     Mach64ScreenInfo	*mach64s = (Mach64ScreenInfo *) screen->driver;
@@ -706,7 +705,7 @@ mach64PutImage(KdScreenInfo	    *screen,
 
     if (pPortPriv->off_screen && size != pPortPriv->size)
     {
-	KdOffscreenFree (pPortPriv->off_screen);
+	KdOffscreenFree (screen->pScreen, pPortPriv->off_screen);
 	pPortPriv->off_screen = 0;
     }
 
