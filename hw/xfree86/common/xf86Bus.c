@@ -1430,12 +1430,16 @@ xf86ResourceBrokerInit(void)
  * At resource broker initialization this is no problem as this
  * only deals with exclusive resources.
  */
+#if 0
 void
 RemoveOverlaps(resPtr target, resPtr list, Bool pow2Alignment, Bool useEstimated)
 {
     resPtr pRes;
     memType size, newsize, adjust;
 
+    if (!target)
+	return;
+    
     for (pRes = list; pRes; pRes = pRes->next) {
 	if (pRes != target
 	    && ((pRes->res_type & ResTypeMask) ==
@@ -1493,6 +1497,88 @@ RemoveOverlaps(resPtr target, resPtr list, Bool pow2Alignment, Bool useEstimated
 	}
     }
 }
+#else
+
+void
+RemoveOverlaps(resPtr target, resPtr list, Bool pow2Alignment, Bool useEstimated)
+{
+    resPtr pRes;
+    memType size, newsize, adjust;
+
+    if (!target)
+	return;
+    
+    if (!(target->res_type & ResEstimated)   /* Don't touch sure resources */
+	&& !(target->res_type & ResOverlap)) /* Unless they may overlap    */
+	return;
+
+    for (pRes = list; pRes; pRes = pRes->next) {
+	if (pRes == target
+	    || ((pRes->res_type & ResTypeMask) !=
+		(target->res_type & ResTypeMask))
+	    || pRes->block_begin > target->block_end
+	    || pRes->block_end < target->block_begin)
+	    continue;
+
+	if (pRes->block_begin <= target->block_begin) {
+	    /* Possibly ignore estimated resources */
+	    if (!useEstimated && (pRes->res_type & ResEstimated))
+		continue;
+	    
+	    /* Special cases */
+	    if (pRes->block_end >= target->block_end) {
+		/*
+		 * If pRes fully contains target, don't do anything
+		 * unless target can overlap.
+		 */
+		if (target->res_type & ResOverlap) {
+		    /* Nullify range but keep its ResOverlap bit on */
+		    target->block_end = target->block_begin - 1;
+		    return;
+		} else
+		    continue;
+	    } else {
+#if 0 /* Don't trim start address - we trust what we got */
+		/*
+		 * If !pow2Alignment trim start address: !pow2Alingment
+		 * is only set when estimated OS addresses are handled.
+		 * In cases where the target and pRes have the same
+		 * starting address, reduce the size of the target
+		 * (given it's an estimate).
+		 */
+		if (!pow2Alignment)
+		    target->block_begin = pRes->block_end + 1;
+		else 
+#endif
+		if (pRes->block_begin == target->block_begin)
+		    target->block_end = pRes->block_end;
+		else
+		    continue;
+	    }
+	} else {
+	    /* Trim target to remove the overlap */
+		target->block_end = pRes->block_begin - 1;
+	}
+	if (pow2Alignment) {
+	    /*
+	     * Align to a power of two.  This requires finding the
+	     * largest power of two that is smaller than the adjusted
+	     * size.
+	     */
+	    size = target->block_end - target->block_begin + 1;
+	    newsize = 1UL << (sizeof(memType) * 8 - 1);
+	    while (!(newsize & size))
+		newsize >>= 1;
+	    target->block_end = target->block_begin + newsize - 1;
+	} else if (target->block_end > MEM_ALIGN) {
+	    /* Align the end to MEM_ALIGN */
+	    if ((adjust = (target->block_end + 1) % MEM_ALIGN))
+		target->block_end -= adjust;
+	}
+    }
+}
+
+#endif
 
 /*
  * Resource request code
