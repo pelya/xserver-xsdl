@@ -42,7 +42,7 @@ static long lastx = 0, lasty = 0;
 
 int KdTsPhyScreen = 0;
 
-int
+static int
 TsReadBytes (int fd, char *buf, int len, int min)
 {
     int		    n, tot;
@@ -72,18 +72,14 @@ TsReadBytes (int fd, char *buf, int len, int min)
     return tot;
 }
 
-void
+static void
 TsRead (int tsPort, void *closure)
 {
     KdMouseInfo	    *mi = closure;
-    int		    fd = (int) mi->driver;
     TS_EVENT	    event;
-    long	    buf[3];
     int		    n;
-    long	    pressure;
     long	    x, y;
     unsigned long   flags;
-    unsigned long   buttons;
 
     n = TsReadBytes (tsPort, (char *) &event, sizeof (event), sizeof (event));
     if (n == sizeof (event))  
@@ -135,7 +131,7 @@ char	*TsNames[] = {
 
 int TsInputType;
 
-int
+static int
 TsInit (void)
 {
     int		i;
@@ -182,9 +178,11 @@ TsInit (void)
 		close (fd);
 	}
     }
+
+    return 0;
 }
 
-void
+static void
 TsFini (void)
 {
     KdMouseInfo	*mi;
