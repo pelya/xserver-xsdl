@@ -1,5 +1,5 @@
 /*
- * $XFree86: xc/programs/Xserver/hw/kdrive/linux/ts.c,v 1.3 2001/05/23 08:56:08 alanh Exp $
+ * $XFree86: xc/programs/Xserver/hw/kdrive/linux/ts.c,v 1.4 2001/06/29 14:00:41 keithp Exp $
  *
  * Derived from ps2.c by Jim Gettys
  *
@@ -40,7 +40,7 @@ int TsScreen;
 extern int TsFbdev;
 
 void
-TsRead (int tsPort)
+TsRead (int tsPort, void *closure)
 {
     TS_EVENT	    event;
     long	    buf[3];
@@ -112,7 +112,7 @@ TsInit (void)
 	TsPort = open (TsNames[i], 0);
 	if (TsPort >= 0) 
 	{
-	    if (KdRegisterFd (TsInputType, TsPort, TsRead))
+	    if (KdRegisterFd (TsInputType, TsPort, TsRead, 0))
 		return 1;
 	}
     }
@@ -126,7 +126,7 @@ TsFini (void)
     KdUnregisterFds (TsInputType, TRUE);
 }
 
-KdTsFuncs TsFuncs = {
+KdMouseFuncs TsFuncs = {
     TsInit,
     TsFini
 };

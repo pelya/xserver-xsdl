@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/kdrive.h,v 1.15 2001/06/04 09:45:41 keithp Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/kdrive.h,v 1.16 2001/06/29 14:00:40 keithp Exp $ */
 
 #include <stdio.h>
 #include "X.h"
@@ -543,7 +543,7 @@ KdUnregisterFds (int type, Bool do_close);
 
 #ifdef TOUCHSCREEN
 void
-KdInitTouchScreen(KdTsFuncs *pTsFuncs);
+KdInitTouchScreen(KdMouseFuncs *pTsFuncs);
 #endif
 
 void
@@ -594,7 +594,7 @@ ProcessInputEvents ();
 extern KdMouseFuncs	Ps2MouseFuncs;
 extern KdMouseFuncs	BusMouseFuncs;
 #ifdef TOUCHSCREEN
-extern KdTsFuncs	TsFuncs;
+extern KdMouseFuncs	TsFuncs;
 #endif
 extern KdKeyboardFuncs	LinuxKeyboardFuncs;
 extern KdOsFuncs	LinuxFuncs;

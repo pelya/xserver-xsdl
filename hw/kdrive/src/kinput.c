@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/kinput.c,v 1.16 2001/05/25 18:40:59 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/kdrive/kinput.c,v 1.17 2001/06/29 14:00:40 keithp Exp $ */
 
 #include "kdrive.h"
 #include "inputstr.h"
@@ -51,7 +51,7 @@ static KdMouseMatrix	kdMouseMatrix = {
 };
 
 #ifdef TOUCHSCREEN
-static KdTsFuncs	*kdTsFuncs;
+static KdMouseFuncs	*kdTsFuncs;
 #endif
 
 int		kdMinScanCode;
@@ -511,7 +511,7 @@ KdInitInput(KdMouseFuncs    *pMouseFuncs,
 
 #ifdef TOUCHSCREEN
 void
-KdInitTouchScreen(KdTsFuncs *pTsFuncs)
+KdInitTouchScreen(KdMouseFuncs *pTsFuncs)
 {
     kdTsFuncs = pTsFuncs;
 }
