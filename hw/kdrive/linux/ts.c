@@ -1,5 +1,5 @@
 /*
- * Id: ts.c,v 1.1 1999/11/02 03:54:46 keithp Exp $
+ * $XFree86$
  *
  * Derived from ps2.c by Jim Gettys
  *
