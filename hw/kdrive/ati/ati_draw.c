@@ -162,7 +162,11 @@ ATIDrawSetup(ScreenPtr pScreen)
 			    RADEON_TEX1_W_ROUTING_USE_W0);
 			END_DMA();
 		} else {
-			BEGIN_DMA(8);
+			BEGIN_DMA(16);
+			OUT_REG(R200_REG_SE_VAP_CNTL_STATUS, 0 /*RADEON_TCL_BYPASS*/);
+			OUT_REG(R200_REG_PP_CNTL_X, 0);
+			OUT_REG(R200_REG_PP_TXMULTI_CTL_0, 0);
+			OUT_REG(R200_REG_SE_VTX_STATE_CNTL, 0);
 			OUT_REG(R200_REG_RE_CNTL, 0);
 			/* XXX: VTX_ST_DENORMALIZED is illegal for the case of
 			 * repeating textures.

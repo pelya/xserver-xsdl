@@ -407,7 +407,7 @@ R200TextureSetup(PicturePtr pPict, PixmapPtr pPix, int unit)
 	}
 	txformat = R200TexFormats[i].card_fmt;
 	if (R200TexFormats[i].byte_swap)
-		txoffset |= RADEON_TXO_ENDIAN_BYTE_SWAP;
+		txoffset |= R200_TXO_ENDIAN_BYTE_SWAP;
 
 	if (pPict->repeat) {
 		txformat |= ATILog2(w) << R200_TXFORMAT_WIDTH_SHIFT;
@@ -433,8 +433,8 @@ R200TextureSetup(PicturePtr pPict, PixmapPtr pPix, int unit)
 	OUT_RING(txformat);
 	OUT_RING(0);
 	OUT_RING((pPix->drawable.width - 1) |
-	    ((pPix->drawable.height - 1) << RADEON_TEX_VSIZE_SHIFT)); /* XXX */
-	OUT_RING(txpitch - 32); /* XXX */
+	    ((pPix->drawable.height - 1) << RADEON_TEX_VSIZE_SHIFT));
+	OUT_RING(txpitch - 32);
 	END_DMA();
 
 	BEGIN_DMA(2);
@@ -528,7 +528,7 @@ R200PrepareComposite(int op, PicturePtr pSrcPicture, PicturePtr pMaskPicture,
 	OUT_REG(R200_REG_SE_VTX_FMT_0, R200_VTX_XY);
 	OUT_REG(R200_REG_SE_VTX_FMT_1,
 	    (2 << R200_VTX_TEX0_COMP_CNT_SHIFT) |
-	    (pMask != NULL) ? (2 << R200_VTX_TEX1_COMP_CNT_SHIFT) : 0);
+	    (2 << R200_VTX_TEX1_COMP_CNT_SHIFT));
 
 	OUT_REG(RADEON_REG_RB3D_COLORPITCH, dst_pitch >> pixel_shift);
 
@@ -546,7 +546,7 @@ R200PrepareComposite(int op, PicturePtr pSrcPicture, PicturePtr pMaskPicture,
 		cblend |= R200_TXC_ARG_A_ZERO;
 	else
 		cblend |= R200_TXC_ARG_A_R0_COLOR;
-	ablend |= R200_TXA_ARG_B_R0_ALPHA;
+	ablend |= R200_TXA_ARG_A_R0_ALPHA;
 
 	if (pMask) {
 		if (pMaskPicture->componentAlpha &&
@@ -562,20 +562,25 @@ R200PrepareComposite(int op, PicturePtr pSrcPicture, PicturePtr pMaskPicture,
 
 	OUT_REG(R200_REG_PP_TXCBLEND_0, cblend);
 	OUT_REG(R200_REG_PP_TXABLEND_0, ablend);
-	OUT_REG(R200_REG_PP_TXCBLEND2_0, 0);
-	OUT_REG(R200_REG_PP_TXABLEND2_0, 0);
+	OUT_REG(R200_REG_PP_TXCBLEND2_0,
+	    R200_TXC_CLAMP_0_1 |
+	    R200_TXC_OUTPUT_REG_R0);
+	OUT_REG(R200_REG_PP_TXABLEND2_0,
+	    R200_TXA_CLAMP_0_1 |
+	    R200_TXA_OUTPUT_REG_R0);
 
 	/* Op operator. */
 	blendcntl = RadeonBlendOp[op].blend_cntl;
 	if (PICT_FORMAT_A(pDstPicture->format) == 0 &&
 	    RadeonBlendOp[op].dst_alpha) {
-		blendcntl &= ~RADEON_SBLEND_MASK;
 		if ((blendcntl & RADEON_SBLEND_MASK) ==
 		    RADEON_SBLEND_GL_DST_ALPHA)
-			blendcntl |= RADEON_SBLEND_GL_ONE;
+			blendcntl = (blendcntl & ~RADEON_SBLEND_MASK) |
+			    RADEON_SBLEND_GL_ONE;
 		else if ((blendcntl & RADEON_SBLEND_MASK) ==
 		    RADEON_SBLEND_GL_INV_DST_ALPHA)
-			blendcntl |= RADEON_SBLEND_GL_ZERO;
+			blendcntl = (blendcntl & ~RADEON_SBLEND_MASK) |
+			    RADEON_SBLEND_GL_ZERO;
 	}
 	OUT_REG(RADEON_REG_RB3D_BLENDCNTL, blendcntl);
 	END_DMA();
@@ -742,15 +747,15 @@ RadeonPrepareTrapezoids(PicturePtr pDstPicture, PixmapPtr pDst)
 		OUT_RING(0x01000000);
 		END_DMA();
 	} else if (atic->is_r200) {
-		BEGIN_DMA(12);
+		BEGIN_DMA(14);
 		OUT_REG(R200_REG_SE_VTX_FMT_0, R200_VTX_XY);
 		OUT_REG(R200_REG_SE_VTX_FMT_1, 0);
 		OUT_REG(R200_REG_PP_TXCBLEND_0,
 		    R200_TXC_ARG_C_TFACTOR_COLOR);
 		OUT_REG(R200_REG_PP_TXABLEND_0,
 		    R200_TXA_ARG_C_TFACTOR_ALPHA);
-		OUT_REG(R200_REG_PP_TXCBLEND2_0, 0);
-		OUT_REG(R200_REG_PP_TXABLEND2_0, 0);
+		OUT_REG(R200_REG_PP_TXCBLEND2_0, R200_TXC_OUTPUT_REG_R0);
+		OUT_REG(R200_REG_PP_TXABLEND2_0, R200_TXA_OUTPUT_REG_R0);
 		OUT_REG(RADEON_REG_PP_TFACTOR_0, 0x01000000);
 		END_DMA();
 	}
