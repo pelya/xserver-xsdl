@@ -1592,17 +1592,17 @@ checkCoreInputDevices(serverLayoutPtr servlayoutp, Bool implicitLayout)
 	confInput = xf86findInput(CONF_IMPLICIT_KEYBOARD,
 				  xf86configptr->conf_input_lst);
 	if (!confInput) {
-	    confInput = xf86findInputByDriver("keyboard",
+	    confInput = xf86findInputByDriver("kbd",
 					      xf86configptr->conf_input_lst);
 	}
 	if (!confInput) {
-	    confInput = xf86findInputByDriver("kbd",
+	    confInput = xf86findInputByDriver("keyboard",
 					      xf86configptr->conf_input_lst);
 	}
 	if (confInput) {
 	    foundKeyboard = TRUE;
 	    from = X_DEFAULT;
-	    pointerMsg = "first keyboard device";
+	    keyboardMsg = "first keyboard device";
 	}
     }
 
@@ -1610,7 +1610,7 @@ checkCoreInputDevices(serverLayoutPtr servlayoutp, Bool implicitLayout)
     if (!foundKeyboard) {
 	bzero(&defKbd, sizeof(defKbd));
 	defKbd.inp_identifier = "<default keyboard>";
-	defKbd.inp_driver = "keyboard";
+	defKbd.inp_driver = "kbd";
 	confInput = &defKbd;
 	foundKeyboard = TRUE;
 	keyboardMsg = "default keyboard configuration";
