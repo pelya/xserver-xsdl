@@ -460,7 +460,7 @@ hostx_paint_debug_rect(int x,     int y,
 {
   struct timespec tspec;
 
-  tspec.tv_sec  = HostX.damage_debug_msec / (10e6);
+  tspec.tv_sec  = HostX.damage_debug_msec / (1000000);
   tspec.tv_nsec = (HostX.damage_debug_msec % 1000000) * 1000;
 
   EPHYR_DBG("msec: %li tv_sec %li, tv_msec %li", 
