@@ -23,10 +23,13 @@
  */
 /* $XFree86: xc/programs/Xserver/hw/kdrive/smi/smidraw.c,v 1.7 2001/07/24 19:06:03 keithp Exp $ */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 #include "smi.h"
 #include "smidraw.h"
 
-#include	"Xmd.h"
+#include	<X11/Xmd.h>
 #include	"gcstruct.h"
 #include	"scrnintstr.h"
 #include	"pixmapstr.h"

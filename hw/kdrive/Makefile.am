@@ -4,4 +4,5 @@ SUBDIRS =	\
 	vesa	\
 	mach64	\
 	fbdev	\
-	mga
+	mga	\
+	smi
