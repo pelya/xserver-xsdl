@@ -27,6 +27,7 @@ typedef struct _I2CBusRec {
 
     /* Look at the generic routines to see how these functions should behave. */
 
+    Bool        	(*I2CStart)  (I2CBusPtr b, int timeout);
     Bool        	(*I2CAddress)(I2CDevPtr d, I2CSlaveAddr);
     void        	(*I2CStop)   (I2CDevPtr d);
     Bool		(*I2CPutByte)(I2CDevPtr d, I2CByte data);

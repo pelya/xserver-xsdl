@@ -818,6 +818,7 @@ xf86I2CBusInit(I2CBusPtr b)
 	    if (b->I2CPutByte == NULL ||
 	        b->I2CGetByte == NULL ||
 	        b->I2CAddress == NULL ||
+	        b->I2CStart   == NULL ||
 	        b->I2CStop    == NULL)
 	        return FALSE;
         } else { 
@@ -825,6 +826,7 @@ xf86I2CBusInit(I2CBusPtr b)
 	    b->I2CGetByte = I2CGetByte;
 	    b->I2CAddress = I2CAddress;
 	    b->I2CStop    = I2CStop;
+	    b->I2CStart   = I2CStart;
         }
      }
 
