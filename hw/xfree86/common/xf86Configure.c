@@ -257,7 +257,12 @@ configureInputSection (void)
     parsePrologue (XF86ConfInputPtr, XF86ConfInputRec)
 
     ptr->inp_identifier = "Keyboard0";
+#ifdef USE_DEPRECATED_KEYBOARD_DRIVER
+#error hat
     ptr->inp_driver = "keyboard";
+#else
+    ptr->inp_driver = "kbd";
+#endif
     ptr->list.next = NULL;
 
     /* Crude mechanism to auto-detect mouse (os dependent) */
