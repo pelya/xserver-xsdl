@@ -1,3 +1,4 @@
+/* $XFree86: xc/programs/Xserver/mi/mibitblt.c,v 3.11 2001/12/14 20:00:20 dawes Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -268,19 +269,26 @@ miCopyArea(pSrcDrawable, pDstDrawable,
  * No clever strategy here, we grab a scanline at a time, pull out the
  * bits and then stuff them in a 1 bit deep map.
  */
+/*
+ * This should be replaced with something more general.  mi shouldn't have to
+ * care about such things as scanline padding et alia.
+ */
 static
-unsigned long	*
-miGetPlane(pDraw, planeNum, sx, sy, w, h, result)
-    DrawablePtr		pDraw;
-    int			planeNum;	/* number of the bitPlane */
-    int			sx, sy, w, h;
-    unsigned long	*result;
+MiBits	*
+miGetPlane(
+    DrawablePtr		pDraw,
+    int			planeNum,	/* number of the bitPlane */
+    int			sx,
+    int			sy,
+    int			w,
+    int			h,
+    MiBits	*result)
 {
     int			i, j, k, width, bitsPerPixel, widthInBytes;
-    DDXPointRec 	pt;
-    unsigned long	pixel;
-    unsigned long	bit;
-    unsigned char	*pCharsOut;
+    DDXPointRec 	pt = {0, 0};
+    MiBits	pixel;
+    MiBits	bit;
+    unsigned char	*pCharsOut = NULL;
 
 #if BITMAP_SCANLINE_UNIT == 8
 #define OUT_TYPE unsigned char
@@ -296,15 +304,15 @@ miGetPlane(pDraw, planeNum, sx, sy, w, h, result)
 #endif
 
     OUT_TYPE		*pOut;
-    int			delta;
+    int			delta = 0;
 
     sx += pDraw->x;
     sy += pDraw->y;
     widthInBytes = BitmapBytePad(w);
     if(!result)
-        result = (unsigned long *)xalloc(h * widthInBytes);
+        result = (MiBits *)xalloc(h * widthInBytes);
     if (!result)
-	return (unsigned long *)NULL;
+	return (MiBits *)NULL;
     bitsPerPixel = pDraw->bitsPerPixel;
     bzero((char *)result, h * widthInBytes);
     pOut = (OUT_TYPE *) result;
@@ -344,11 +352,22 @@ miGetPlane(pDraw, planeNum, sx, sy, w, h, result)
 		 * Now get the bit and insert into a bitmap in XY format.
 		 */
 		bit = (pixel >> planeNum) & 1;
+#ifndef XFree86Server
 		/* XXX assuming bit order == byte order */
 #if BITMAP_BIT_ORDER == LSBFirst
 		bit <<= k;
 #else
 		bit <<= ((BITMAP_SCANLINE_UNIT - 1) - k);
+#endif
+#else
+		/* XXX assuming byte order == LSBFirst */
+		if (screenInfo.bitmapBitOrder == LSBFirst)
+			bit <<= k;
+		else
+			bit <<= ((screenInfo.bitmapScanlineUnit - 1) -
+				 (k % screenInfo.bitmapScanlineUnit)) +
+				((k / screenInfo.bitmapScanlineUnit) *
+				 screenInfo.bitmapScanlineUnit);
 #endif
 		*pOut |= (OUT_TYPE) bit;
 		k++;
@@ -380,7 +399,7 @@ miOpqStipDrawable(pDraw, pGC, prgnSrc, pbits, srcx, w, h, dstx, dsty)
     DrawablePtr pDraw;
     GCPtr	pGC;
     RegionPtr	prgnSrc;
-    unsigned long	*pbits;
+    MiBits	*pbits;
     int		srcx, w, h, dstx, dsty;
 {
     int		oldfill, i;
@@ -537,7 +556,7 @@ miCopyPlane(pSrcDrawable, pDstDrawable,
     int 		dstx, dsty;
     unsigned long	bitPlane;
 {
-    unsigned long	*ptile;
+    MiBits	*ptile;
     BoxRec 		box;
     RegionPtr		prgnSrc, prgnExposed;
 
@@ -589,7 +608,7 @@ miCopyPlane(pSrcDrawable, pDstDrawable,
 	ptile = miGetPlane(pSrcDrawable, ffs(bitPlane) - 1,
 			   box.x1, box.y1,
 			   box.x2 - box.x1, box.y2 - box.y1,
-			   (unsigned long *) NULL);
+			   (MiBits *) NULL);
 	if (ptile)
 	{
 	    miOpqStipDrawable(pDstDrawable, pGC, prgnSrc, ptile, 0,
@@ -630,10 +649,10 @@ miGetImage(pDraw, sx, sy, w, h, format, planeMask, pDst)
 {
     unsigned char	depth;
     int			i, linelength, width, srcx, srcy;
-    DDXPointRec		pt;
+    DDXPointRec		pt = {0, 0};
     XID			gcv[2];
     PixmapPtr		pPixmap = (PixmapPtr)NULL;
-    GCPtr		pGC;
+    GCPtr		pGC = NULL;
 
     depth = pDraw->depth;
     if(format == ZPixmap)
@@ -697,10 +716,9 @@ miGetImage(pDraw, sx, sy, w, h, format, planeMask, pDst)
     else
     {
 	(void) miGetPlane(pDraw, ffs(planeMask) - 1, sx, sy, w, h,
-			  (unsigned long *)pDst);
+			  (MiBits *)pDst);
     }
 }
-
 
 /* MIPUTIMAGE -- public entry for the PutImage request
  * Here we benefit from knowing the format of the bits pointed to by pImage,
@@ -752,7 +770,7 @@ miPutImage(pDraw, pGC, depth, x, y, w, h, leftPad, format, pImage)
 	box.y2 = h;
 	prgnSrc = REGION_CREATE(pGC->pScreen, &box, 1);
 
-        miOpqStipDrawable(pDraw, pGC, prgnSrc, (unsigned long *) pImage,
+        miOpqStipDrawable(pDraw, pGC, prgnSrc, (MiBits *) pImage,
 			  leftPad, w, h, x, y);
 	REGION_DESTROY(pGC->pScreen, prgnSrc);
 	break;
@@ -782,6 +800,7 @@ miPutImage(pDraw, pGC, depth, x, y, w, h, leftPad, format, pImage)
 	gcv[1] = (XID)oldFg;
 	gcv[2] = (XID)oldBg;
 	DoChangeGC(pGC, GCPlaneMask | GCForeground | GCBackground, gcv, 0);
+	ValidateGC(pDraw, pGC);
 	break;
 
       case ZPixmap:

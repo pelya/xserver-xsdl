@@ -12,6 +12,8 @@ the suitability of this software for any purpose.  It is provided "as
 is" without express or implied warranty.
 
 */
+/* $XFree86: xc/programs/Xserver/hw/xnest/Events.c,v 1.2 2001/08/01 00:44:57 tsi Exp $ */
+
 #include "X.h"
 #define NEED_EVENTS
 #include "Xproto.h"
@@ -22,8 +24,11 @@ is" without express or implied warranty.
 #include "windowstr.h"
 #include "servermd.h"
 
+#include "mi.h"
+
 #include "Xnest.h"
 
+#include "Color.h"
 #include "Display.h"
 #include "Screen.h"
 #include "XNWindow.h"

@@ -46,6 +46,9 @@ SOFTWARE.
 
 ******************************************************************/
 
+
+/* $XFree86: xc/programs/Xserver/include/gcstruct.h,v 1.6 2001/12/14 19:59:54 dawes Exp $ */
+
 #ifndef GCSTRUCT_H
 #define GCSTRUCT_H
 
@@ -371,7 +374,9 @@ typedef struct _GC {
     unsigned int	clientClipType : 2; /* CT_<kind> */
     unsigned int	miTranslate:1; /* should mi things translate? */
     unsigned int	tileIsPixel:1; /* tile is solid pixel */
-    unsigned int	unused:16; /* see comment above */
+    unsigned int	fExpose:1;     /* Call exposure handling */
+    unsigned int	freeCompClip:1;  /* Free composite clip */
+    unsigned int	unused:14; /* see comment above */
     unsigned long	planemask;
     unsigned long	fgPixel;
     unsigned long	bgPixel;
@@ -391,6 +396,14 @@ typedef struct _GC {
     GCFuncs		*funcs;
     GCOps		*ops;
     DevUnion		*devPrivates;
+    /*
+     * The following were moved here from private storage to allow device-
+     * independent access to them from screen wrappers.
+     * --- 1997.11.03  Marc Aurele La France (tsi@xfree86.org)
+     */
+    PixmapPtr		pRotatedPixmap; /* tile/stipple rotated for alignment */
+    RegionPtr		pCompositeClip;
+    /* fExpose & freeCompClip defined above */
 } GC;
 
 #endif /* GCSTRUCT_H */

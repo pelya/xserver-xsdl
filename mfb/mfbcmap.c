@@ -1,3 +1,4 @@
+/* $XFree86: xc/programs/Xserver/mfb/mfbcmap.c,v 1.8 2003/02/18 21:30:01 tsi Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -49,6 +50,8 @@ SOFTWARE.
 #include "scrnintstr.h"
 #include "colormapst.h"
 #include "resource.h"
+#include "micmap.h"
+#include "mfb.h"
 
 /* A monochrome frame buffer is a static gray colormap with two entries.
  * We have a "required list" of length 1.  Because we can only support 1
@@ -63,17 +66,13 @@ SOFTWARE.
  * The required list concept is pretty much irrelevant when you can only
  * have one map installed at a time.  
  */
-static ColormapPtr InstalledMaps[MAXSCREENS];
 
 int
 mfbListInstalledColormaps(pScreen, pmaps)
     ScreenPtr	pScreen;
     Colormap	*pmaps;
 {
-    /* By the time we are processing requests, we can guarantee that there
-     * is always a colormap installed */
-    *pmaps = InstalledMaps[pScreen->myNum]->mid;
-    return (1);
+    return miListInstalledColormaps(pScreen, pmaps);
 }
 
 
@@ -81,38 +80,14 @@ void
 mfbInstallColormap(pmap)
     ColormapPtr	pmap;
 {
-    int index = pmap->pScreen->myNum;
-    ColormapPtr oldpmap = InstalledMaps[index];
-
-    if(pmap != oldpmap)
-    {
-	/* Uninstall pInstalledMap. No hardware changes required, just
-	 * notify all interested parties. */
-	if(oldpmap != (ColormapPtr)None)
-	    WalkTree(pmap->pScreen, TellLostMap, (pointer)&oldpmap->mid);
-	/* Install pmap */
-	InstalledMaps[index] = pmap;
-	WalkTree(pmap->pScreen, TellGainedMap, (pointer)&pmap->mid);
-
-    }
+    miInstallColormap(pmap);
 }
 
 void
 mfbUninstallColormap(pmap)
     ColormapPtr	pmap;
 {
-    int index = pmap->pScreen->myNum;
-    ColormapPtr curpmap = InstalledMaps[index];
-
-    if(pmap == curpmap)
-    {
-	if (pmap->mid != pmap->pScreen->defColormap)
-	{
-	    curpmap = (ColormapPtr) LookupIDByType(pmap->pScreen->defColormap,
-						   RT_COLORMAP);
-	    (*pmap->pScreen->InstallColormap)(curpmap);
-	}
-    }
+    miUninstallColormap(pmap);
 }
 
 /*ARGSUSED*/
@@ -181,18 +156,5 @@ Bool
 mfbCreateDefColormap (pScreen)
     ScreenPtr	pScreen;
 {
-    VisualPtr	pVisual;
-    ColormapPtr	pColormap;
-    
-    for (pVisual = pScreen->visuals;
-	 pVisual->vid != pScreen->rootVisual;
-	 pVisual++)
-	;
-    if (CreateColormap (pScreen->defColormap, pScreen, pVisual,
-			&pColormap, AllocNone, 0) != Success)
-    {
-	return FALSE;
-    }
-    (*pScreen->InstallColormap) (pColormap);
-    return TRUE;
+    return miCreateDefColormap(pScreen);
 }

@@ -1,3 +1,4 @@
+/* $XFree86: xc/programs/Xserver/dix/globals.c,v 1.10 2002/10/08 23:55:18 dawes Exp $ */
 /************************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -90,18 +91,22 @@ CARD32 ScreenSaverInterval;
 int  ScreenSaverBlanking;
 int  ScreenSaverAllowExposures;
 
+#ifdef DPMSExtension
 #define DEFAULT_STANDBY_TIME DEFAULT_SCREEN_SAVER_TIME * 2
 #define DEFAULT_SUSPEND_TIME DEFAULT_SCREEN_SAVER_TIME * 3
 #define DEFAULT_OFF_TIME DEFAULT_SCREEN_SAVER_TIME * 4
-#ifdef DPMSExtension
-CARD32 DPMSStandbyTime = DEFAULT_STANDBY_TIME;
-CARD32 DPMSSuspendTime = DEFAULT_SUSPEND_TIME;
-CARD32 DPMSOffTime = DEFAULT_OFF_TIME;
+CARD32 defaultDPMSStandbyTime = DEFAULT_STANDBY_TIME;
+CARD32 defaultDPMSSuspendTime = DEFAULT_SUSPEND_TIME;
+CARD32 defaultDPMSOffTime = DEFAULT_OFF_TIME;
 CARD16 DPMSPowerLevel = 0;
-BOOL DPMSEnabled = FALSE;
-BOOL DPMSEnabledSwitch = FALSE;	  /* these denote the DPMS command line */
-BOOL DPMSDisabledSwitch = FALSE;  /*                      switch states */
-BOOL DPMSCapableFlag = FALSE;
+Bool defaultDPMSEnabled = FALSE;
+Bool DPMSEnabledSwitch = FALSE;	  /* these denote the DPMS command line */
+Bool DPMSDisabledSwitch = FALSE;  /*                      switch states */
+Bool DPMSCapableFlag = FALSE;
+CARD32 DPMSStandbyTime;
+CARD32 DPMSSuspendTime;
+CARD32 DPMSOffTime;
+Bool DPMSEnabled;
 #endif
 
 CARD32 defaultScreenSaverTime = DEFAULT_SCREEN_SAVER_TIME;
@@ -119,7 +124,9 @@ char *rgbPath = RGB_DB;
 char *defaultDisplayClass = COMPILEDDISPLAYCLASS;
 FontPtr defaultFont;   /* not declared in dix.h to avoid including font.h in
 			every compilation of dix code */
+Bool loadableFonts = FALSE;
 CursorPtr rootCursor;
+Bool blackRoot=FALSE;
 ClientPtr requestingClient;	/* XXX this should be obsolete now, remove? */
 
 TimeStamp currentTime;
@@ -137,3 +144,5 @@ char *display;
 CARD32 TimeOutValue = DEFAULT_TIMEOUT * MILLI_PER_SECOND;
 int	argcGlobal;
 char	**argvGlobal;
+
+DDXPointRec dixScreenOrigins[MAXSCREENS];

@@ -21,11 +21,13 @@
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *
  */
+/* $XFree86: xc/programs/Xserver/lbx/lbxtables.c,v 1.3 2001/01/17 22:37:00 dawes Exp $ */
+#include "dix.h"
 
-extern int ProcInitialConnection();
-extern int ProcLbxEstablishConnection();
+extern int ProcInitialConnection(ClientPtr client);
+extern int ProcLbxEstablishConnection(ClientPtr client);
 
-int (* LbxInitialVector[3]) () =
+int (* LbxInitialVector[3]) (ClientPtr) =
 {
     0,
     ProcInitialConnection,

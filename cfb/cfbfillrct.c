@@ -1,6 +1,7 @@
 /*
  * Fill rectangles.
  */
+/* $XFree86: xc/programs/Xserver/cfb/cfbfillrct.c,v 3.8 2001/12/14 19:59:22 dawes Exp $ */
 
 /*
 
@@ -37,7 +38,7 @@ in this Software without prior written authorization from The Open Group.
 #include "pixmapstr.h"
 #include "scrnintstr.h"
 #include "windowstr.h"
-
+#include "mi.h"
 #include "cfb.h"
 #include "cfbmskbits.h"
 #include "mergerop.h"
@@ -51,7 +52,11 @@ cfbFillBoxTileOdd (pDrawable, n, rects, tile, xrot, yrot)
     PixmapPtr	tile;
     int		xrot, yrot;
 {
+#if PSZ == 24
+    if (tile->drawable.width & 3)
+#else
     if (tile->drawable.width & PIM)
+#endif
 	cfbFillBoxTileOddCopy (pDrawable, n, rects, tile, xrot, yrot, GXcopy, ~0L);
     else
 	cfbFillBoxTile32sCopy (pDrawable, n, rects, tile, xrot, yrot, GXcopy, ~0L);
@@ -65,11 +70,15 @@ cfbFillRectTileOdd (pDrawable, pGC, nBox, pBox)
     BoxPtr	pBox;
 {
     int	xrot, yrot;
-    void    (*fill)();
+    void    (*fill)(DrawablePtr, int, BoxPtr, PixmapPtr, int, int, int, unsigned long);
 
     xrot = pDrawable->x + pGC->patOrg.x;
     yrot = pDrawable->y + pGC->patOrg.y;
+#if PSZ == 24
+    if (pGC->tile.pixmap->drawable.width & 3)
+#else
     if (pGC->tile.pixmap->drawable.width & PIM)
+#endif
     {
     	fill = cfbFillBoxTileOddGeneral;
     	if ((pGC->planemask & PMSK) == PMSK)
@@ -108,12 +117,20 @@ cfbPolyFillRect(pDrawable, pGC, nrectFill, prectInit)
     BoxRec	    stackRects[NUM_STACK_RECTS];
     cfbPrivGC	    *priv;
     int		    numRects;
-    void	    (*BoxFill)();
+    void	    (*BoxFill)(DrawablePtr, GCPtr, int, BoxPtr);
     int		    n;
     int		    xorg, yorg;
 
+#if PSZ != 8
+    if ((pGC->fillStyle == FillStippled) ||
+	(pGC->fillStyle == FillOpaqueStippled)) {
+       miPolyFillRect(pDrawable, pGC, nrectFill, prectInit);
+       return;
+    }
+#endif
+
     priv = cfbGetGCPrivate(pGC);
-    prgnClip = priv->pCompositeClip;
+    prgnClip = pGC->pCompositeClip;
 
     BoxFill = 0;
     switch (pGC->fillStyle)
@@ -132,7 +149,7 @@ cfbPolyFillRect(pDrawable, pGC, nrectFill, prectInit)
 	}
 	break;
     case FillTiled:
-	if (!cfbGetGCPrivate(pGC)->pRotatedPixmap)
+	if (!pGC->pRotatedPixmap)
 	    BoxFill = cfbFillRectTileOdd;
 	else
 	{
@@ -144,13 +161,13 @@ cfbPolyFillRect(pDrawable, pGC, nrectFill, prectInit)
 	break;
 #if PSZ == 8
     case FillStippled:
-	if (!cfbGetGCPrivate(pGC)->pRotatedPixmap)
+	if (!pGC->pRotatedPixmap)
 	    BoxFill = cfb8FillRectStippledUnnatural;
 	else
 	    BoxFill = cfb8FillRectTransparentStippled32;
 	break;
     case FillOpaqueStippled:
-	if (!cfbGetGCPrivate(pGC)->pRotatedPixmap)
+	if (!pGC->pRotatedPixmap)
 	    BoxFill = cfb8FillRectStippledUnnatural;
 	else
 	    BoxFill = cfb8FillRectOpaqueStippled32;

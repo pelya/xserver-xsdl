@@ -45,6 +45,7 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ********************************************************/
+/* $XFree86: xc/programs/Xserver/Xi/chgfctl.c,v 3.4 2001/12/14 19:58:54 dawes Exp $ */
 
 /********************************************************************
  *
@@ -60,11 +61,13 @@ SOFTWARE.
 #include "XI.h"
 #include "XIproto.h"			/* control constants */
 
-#define DO_ALL    (-1)
+#include "extnsionst.h"
+#include "extinit.h"			/* LookupDeviceIntRec */
+#include "exglobals.h"
 
-extern	int 	IReqCode;
-extern	int	BadDevice;
-DeviceIntPtr	LookupDeviceIntRec();
+#include "chgfctl.h"
+
+#define DO_ALL    (-1)
 
 /***********************************************************************
  *
@@ -92,10 +95,11 @@ SProcXChangeFeedbackControl(client)
  *
  */
 
+int
 ProcXChangeFeedbackControl(client)
     ClientPtr client;
     {
-    int len;
+    unsigned len;
     DeviceIntPtr dev;
     KbdFeedbackPtr k;
     PtrFeedbackPtr p;
@@ -128,7 +132,7 @@ ProcXChangeFeedbackControl(client)
 	    for (k=dev->kbdfeed; k; k=k->next)
 		if (k->ctrl.id == ((xKbdFeedbackCtl *) &stuff[1])->id)
 		    {
-		    ChangeKbdFeedback (client, dev, stuff->mask, k, &stuff[1]);
+		    ChangeKbdFeedback (client, dev, stuff->mask, k, (xKbdFeedbackCtl *)&stuff[1]);
 		    return Success;
 		    }
 	    break;
@@ -142,7 +146,7 @@ ProcXChangeFeedbackControl(client)
 	    for (p=dev->ptrfeed; p; p=p->next)
 		if (p->ctrl.id == ((xPtrFeedbackCtl *) &stuff[1])->id)
 		    {
-		    ChangePtrFeedback (client, dev, stuff->mask, p, &stuff[1]);
+		    ChangePtrFeedback (client, dev, stuff->mask, p, (xPtrFeedbackCtl *)&stuff[1]);
 		    return Success;
 		    }
 	    break;
@@ -163,7 +167,7 @@ ProcXChangeFeedbackControl(client)
 	    for (s=dev->stringfeed; s; s=s->next)
 		if (s->ctrl.id == ((xStringFeedbackCtl *) &stuff[1])->id)
 		    {
-		    ChangeStringFeedback (client, dev, stuff->mask,s,&stuff[1]);
+		    ChangeStringFeedback (client, dev, stuff->mask,s,(xStringFeedbackCtl *)&stuff[1]);
 		    return Success;
 		    }
 	    break;
@@ -178,7 +182,7 @@ ProcXChangeFeedbackControl(client)
 	    for (i=dev->intfeed; i; i=i->next)
 		if (i->ctrl.id == ((xIntegerFeedbackCtl *) &stuff[1])->id)
 		    {
-		    ChangeIntegerFeedback (client, dev,stuff->mask,i,&stuff[1]);
+		    ChangeIntegerFeedback (client, dev,stuff->mask,i,(xIntegerFeedbackCtl *)&stuff[1]);
 		    return Success;
 		    }
 	    break;
@@ -192,7 +196,7 @@ ProcXChangeFeedbackControl(client)
 	    for (l=dev->leds; l; l=l->next)
 		if (l->ctrl.id == ((xLedFeedbackCtl *) &stuff[1])->id)
 		    {
-		    ChangeLedFeedback (client, dev, stuff->mask, l, &stuff[1]);
+		    ChangeLedFeedback (client, dev, stuff->mask, l, (xLedFeedbackCtl *)&stuff[1]);
 		    return Success;
 		    }
 	    break;
@@ -206,7 +210,7 @@ ProcXChangeFeedbackControl(client)
 	    for (b=dev->bell; b; b=b->next)
 		if (b->ctrl.id == ((xBellFeedbackCtl *) &stuff[1])->id)
 		    {
-		    ChangeBellFeedback (client, dev, stuff->mask, b, &stuff[1]);
+		    ChangeBellFeedback (client, dev, stuff->mask, b, (xBellFeedbackCtl *)&stuff[1]);
 		    return Success;
 		    }
 	    break;
@@ -224,6 +228,7 @@ ProcXChangeFeedbackControl(client)
  *
  */
 
+int
 ChangeKbdFeedback (client, dev, mask, k, f)
     ClientPtr client;
     DeviceIntPtr dev;
@@ -332,7 +337,7 @@ ChangeKbdFeedback (client, dev, mask, k, f)
 
     if (mask & DvAutoRepeatMode)
 	{
-	int index = (key >> 3);
+	int inx = (key >> 3);
 	int kmask = (1 << (key & 7));
 	t = (CARD8) f->auto_repeat_mode;
 	if (t == AutoRepeatModeOff)
@@ -340,24 +345,24 @@ ChangeKbdFeedback (client, dev, mask, k, f)
 	    if (key == DO_ALL)
 		kctrl.autoRepeat = FALSE;
 	    else
-		kctrl.autoRepeats[index] &= ~kmask;
+		kctrl.autoRepeats[inx] &= ~kmask;
 	    }
 	else if (t == AutoRepeatModeOn)
 	    {
 	    if (key == DO_ALL)
 		kctrl.autoRepeat = TRUE;
 	    else
-		kctrl.autoRepeats[index] |= kmask;
+		kctrl.autoRepeats[inx] |= kmask;
 	    }
 	else if (t == AutoRepeatModeDefault)
 	    {
 	    if (key == DO_ALL)
 		kctrl.autoRepeat = defaultKeyboardControl.autoRepeat;
 	    else
-		kctrl.autoRepeats[index] &= ~kmask;
-		kctrl.autoRepeats[index] =
-			(kctrl.autoRepeats[index] & ~kmask) |
-			(defaultKeyboardControl.autoRepeats[index] & kmask);
+		kctrl.autoRepeats[inx] &= ~kmask;
+		kctrl.autoRepeats[inx] =
+			(kctrl.autoRepeats[inx] & ~kmask) |
+			(defaultKeyboardControl.autoRepeats[inx] & kmask);
 	    }
 	else
 	    {
@@ -379,6 +384,7 @@ ChangeKbdFeedback (client, dev, mask, k, f)
  *
  */
 
+int
 ChangePtrFeedback (client, dev, mask, p, f)
     ClientPtr 		client;
     DeviceIntPtr 	dev;
@@ -460,6 +466,7 @@ ChangePtrFeedback (client, dev, mask, p, f)
  *
  */
 
+int
 ChangeIntegerFeedback (client, dev, mask, i, f)
     ClientPtr 			client;
     DeviceIntPtr 		dev;
@@ -486,6 +493,7 @@ ChangeIntegerFeedback (client, dev, mask, i, f)
  *
  */
 
+int
 ChangeStringFeedback (client, dev, mask, s, f)
     ClientPtr 		client;
     DeviceIntPtr 	dev;
@@ -495,7 +503,7 @@ ChangeStringFeedback (client, dev, mask, s, f)
     {
     register char n;
     register long *p;
-    int		i, j, len;
+    int		i, j;
     KeySym	*syms, *sup_syms;
 
     syms = (KeySym *) (f+1);
@@ -543,6 +551,7 @@ ChangeStringFeedback (client, dev, mask, s, f)
  *
  */
 
+int
 ChangeBellFeedback (client, dev, mask, b, f)
     ClientPtr 		client;
     DeviceIntPtr 	dev;
@@ -617,6 +626,7 @@ ChangeBellFeedback (client, dev, mask, b, f)
  *
  */
 
+int
 ChangeLedFeedback (client, dev, mask, l, f)
     ClientPtr 		client;
     DeviceIntPtr 	dev;

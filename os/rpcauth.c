@@ -26,6 +26,7 @@ other dealings in this Software without prior written authorization
 from The Open Group.
 
 */
+/* $XFree86: xc/programs/Xserver/os/rpcauth.c,v 3.7 2001/12/14 20:00:35 dawes Exp $ */
 
 /*
  * SUN-DES-1 authentication mechanism
@@ -42,6 +43,16 @@ from The Open Group.
 #include "dixstruct.h"
 
 #include <rpc/rpc.h>
+
+#ifdef sun
+/* <rpc/auth.h> only includes this if _KERNEL is #defined... */
+extern bool_t xdr_opaque_auth(XDR *, struct opaque_auth *);
+#endif
+
+#if defined(DGUX)
+#include <time.h>
+#include <rpc/auth_des.h>
+#endif /* DGUX */
 
 #ifdef ultrix
 #include <time.h>
@@ -104,7 +115,7 @@ int  len;
     return (((struct authdes_cred *) r.rq_clntcred)->adc_fullname.name); 
 
 bad2:
-    Xfree(r.rq_clntcred);
+    xfree(r.rq_clntcred);
 bad1:
     return ((char *)0); /* ((struct authdes_cred *) NULL); */
 }
@@ -112,10 +123,11 @@ bad1:
 static XID  rpc_id = (XID) ~0L;
 
 static Bool
-CheckNetName (addr, len, closure)
-    unsigned char    *addr;
-    int		    len;
-    pointer	    closure;
+CheckNetName (
+    unsigned char    *addr,
+    short	    len,
+    pointer	    closure
+)
 {
     return (len == strlen ((char *) closure) &&
 	    strncmp ((char *) addr, (char *) closure, len) == 0);
@@ -140,21 +152,18 @@ SecureRPCCheck (data_length, data, client, reason)
 	    sprintf(rpc_error, "Unable to authenticate secure RPC client (why=%d)", why);
 	    *reason = rpc_error;
 	} else {
-	    if (ForEachHostInFamily (FamilyNetname, CheckNetName,
-				     (pointer) fullname))
+	    if (ForEachHostInFamily (FamilyNetname, CheckNetName, fullname))
 		return rpc_id;
-	    else {
-		sprintf(rpc_error, "Principal \"%s\" is not authorized to connect",
+	    sprintf(rpc_error, "Principal \"%s\" is not authorized to connect",
 			fullname);
-		*reason = rpc_error;
-	    }
+	    *reason = rpc_error;
 	}
     }
     return (XID) ~0L;
 }
     
-
-SecureRPCInit ()
+void
+SecureRPCInit (void)
 {
     if (rpc_id == ~0L)
 	AddAuthorization (9, "SUN-DES-1", 0, (char *) 0);
@@ -169,12 +178,14 @@ XID	id;
     if (data_length)
 	AddHost ((pointer) 0, FamilyNetname, data_length, data);
     rpc_id = id;
+    return 1;
 }
 
 int
-SecureRPCReset ()
+SecureRPCReset (void)
 {
     rpc_id = (XID) ~0L;
+    return 1;
 }
 
 XID
@@ -185,6 +196,7 @@ SecureRPCToID (data_length, data)
     return rpc_id;
 }
 
+int
 SecureRPCFromID (id, data_lenp, datap)
      XID id;
      unsigned short	*data_lenp;
@@ -193,6 +205,7 @@ SecureRPCFromID (id, data_lenp, datap)
     return 0;
 }
 
+int
 SecureRPCRemove (data_length, data)
      unsigned short	data_length;
      char	*data;

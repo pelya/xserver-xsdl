@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86KbdMach.c,v 3.7 1996/12/23 06:43:32 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86KbdMach.c,v 3.8 1998/07/25 16:55:09 dawes Exp $ */
 /*
  *****************************************************************************
  * HISTORY
@@ -35,7 +35,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  *
  */
-/* $Xorg: xf86KbdMach.c,v 1.3 2000/08/17 19:50:30 cpqbld Exp $ */
+/* $XConsortium: xf86KbdMach.c /main/9 1996/02/21 17:38:43 kaleb $ */
 
 #include "X.h"
 #include "Xmd.h"
@@ -44,10 +44,11 @@
 
 #include "compiler.h"
 
-#include "xf86Procs.h"
+#include "xf86.h"
+#include "xf86Priv.h"
 #include "xf86_OSlib.h"
 #include "atKeynames.h"
-#include "xf86_Config.h"
+#include "xf86Config.h"
 
 #include "xf86Keymap.h"
 

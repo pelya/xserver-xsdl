@@ -12,6 +12,8 @@ the suitability of this software for any purpose.  It is provided "as
 is" without express or implied warranty.
 
 */
+/* $XFree86: xc/programs/Xserver/hw/xnest/GC.c,v 3.6 2001/10/28 03:34:11 tsi Exp $ */
+
 #include "X.h"
 #include "Xproto.h"
 #include "gcstruct.h"
@@ -130,11 +132,12 @@ void xnestChangeGC(pGC, mask)
   if (mask & GCFillRule)
     values.fill_rule = pGC->fillRule;
   
-  if (mask & GCTile)
+  if (mask & GCTile) {
     if (pGC->tileIsPixel)
       mask &= ~GCTile;
     else
       values.tile = xnestPixmap(pGC->tile.pixmap);
+  }
 
   if (mask & GCStipple)
     values.stipple = xnestPixmap(pGC->stipple);
@@ -279,9 +282,8 @@ void xnestChangeClip(pGC, type, pValue, nRects)
        * other parts of server can only deal with CT_NONE,
        * CT_PIXMAP and CT_REGION client clips.
        */
-      pGC->clientClip = (pointer) (*pGC->pScreen->RectsToRegion)(nRects,
-						    (xRectangle *)pValue,
-						    type);
+      pGC->clientClip = (pointer) RECTS_TO_REGION(pGC->pScreen, nRects,
+						  (xRectangle *)pValue, type);
       xfree(pValue);
       pValue = pGC->clientClip;
       type = CT_REGION;
@@ -326,8 +328,6 @@ void xnestCopyClip(pGCDst, pGCSrc)
      GCPtr pGCDst;
 {
   RegionPtr pRgn;
-  int nRects, size;
-  xRectangle *pRects;
 
   switch (pGCSrc->clientClipType)
     {

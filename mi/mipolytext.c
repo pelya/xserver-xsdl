@@ -1,3 +1,4 @@
+/* $XFree86: xc/programs/Xserver/mi/mipolytext.c,v 1.3 2001/12/14 20:00:26 dawes Exp $ */
 /*******************************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -61,6 +62,7 @@ SOFTWARE.
 #include	"gcstruct.h"
 #include	"fontstruct.h"
 #include	"dixfontstr.h"
+#include	"mi.h"
 
 int
 miPolyText(pDraw, pGC, x, y, count, chars, fontEncoding)

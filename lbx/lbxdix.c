@@ -46,6 +46,7 @@ in this Software without prior written authorization from The Open Group.
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *
  */
+/* $XFree86: xc/programs/Xserver/lbx/lbxdix.c,v 1.8 2001/12/14 19:59:59 dawes Exp $ */
 
 /* various bits of DIX-level mangling */
 
@@ -72,18 +73,15 @@ in this Software without prior written authorization from The Open Group.
 #include "lbxtags.h"
 #include "lbxdata.h"
 #include "Xfuncproto.h"
+#ifdef XAPPGROUP
+#include "Xagsrv.h"
+#endif
+#include "swaprep.h"
 
-extern void CopySwap32Write();
-extern int  (*ProcVector[256]) ();
-extern int  (*SwappedProcVector[256]) ();
-extern void (*ReplySwapVector[256]) ();
-
-extern void LbxWriteSConnSetupPrefix();
-
-int         lbx_font_private;
+int         lbx_font_private = -1;
 
 void
-LbxDixInit()
+LbxDixInit(void)
 {
     TagInit();
     lbx_font_private = AllocateFontPrivateIndex();
@@ -91,23 +89,20 @@ LbxDixInit()
 
 /* ARGSUSED */
 void
-LbxAllowMotion(client, num)
-    ClientPtr	client;
-    int		num;
+LbxAllowMotion(ClientPtr       	client,
+	       int		num)
 {
     LbxProxyPtr proxy = LbxProxy(client);
     proxy->motion_allowed_events += num;
 }
 
-extern WindowPtr *WindowTable;
 extern xConnSetupPrefix connSetupPrefix;
 extern char *ConnectionInfo;
 extern int  connBlockScreenStart;
 
 int
-LbxSendConnSetup(client, reason)
-    ClientPtr   client;
-    char       *reason;
+LbxSendConnSetup(ClientPtr   client,
+		 char       *reason)
 {
     int		dlength;
     int         i, ndex, lim, wndex;
@@ -190,13 +185,10 @@ LbxSendConnSetup(client, reason)
     return client->noClientException;
 }
 
-extern InputInfo inputInfo;
-
 static XID modifier_map_tag;
 
 int
-LbxGetModifierMapping(client)
-    ClientPtr   client;
+LbxGetModifierMapping(ClientPtr   client)
 {
     TagData     td;
     pointer     tagdata;
@@ -245,7 +237,7 @@ LbxGetModifierMapping(client)
 }
 
 void
-LbxFlushModifierMapTag()
+LbxFlushModifierMapTag(void)
 {
 
     if (modifier_map_tag)
@@ -255,8 +247,7 @@ LbxFlushModifierMapTag()
 static XID keyboard_map_tag;
 
 int
-LbxGetKeyboardMapping(client)
-    ClientPtr   client;
+LbxGetKeyboardMapping(ClientPtr   client)
 {
     TagData     td;
     pointer     tagdata;
@@ -318,7 +309,7 @@ LbxGetKeyboardMapping(client)
     WriteToClient(client, sizeof(xLbxGetKeyboardMappingReply), (char *)&rep);
 
     if (send_data) {
-	client->pSwapReplyFunc = CopySwap32Write;
+	client->pSwapReplyFunc = (ReplySwapPtr)CopySwap32Write;
 	WriteSwappedDataToClient(client,
 			curKeySyms->mapWidth * stuff->count * sizeof(KeySym),
 	    &curKeySyms->map[(stuff->firstKeyCode - curKeySyms->minKeyCode) *
@@ -328,7 +319,7 @@ LbxGetKeyboardMapping(client)
 }
 
 void
-LbxFlushKeyboardMapTag()
+LbxFlushKeyboardMapTag(void)
 {
     if (keyboard_map_tag)
 	TagDeleteTag(keyboard_map_tag);
@@ -336,8 +327,7 @@ LbxFlushKeyboardMapTag()
 
 /* counts number of bits needed to hold value */
 static int
-_bitsize(val)
-    int         val;
+_bitsize(int val)
 {
     int         bits = 1;  /* always need one for sign bit */
 
@@ -364,10 +354,9 @@ _bitsize(val)
 int  _lbx_fi_junklen = sizeof(BYTE) * 2 + sizeof(CARD16) + sizeof(CARD32);
 
 static int
-squish_font_info(qfr, rlen, sqrep)
-    xQueryFontReply *qfr;
-    int         rlen;
-    xLbxFontInfo **sqrep;
+squish_font_info(xQueryFontReply *qfr,
+		 int             rlen,
+		 xLbxFontInfo    **sqrep)
 {
     int         len,
                 hlen;
@@ -459,8 +448,7 @@ squish_font_info(qfr, rlen, sqrep)
 }
 
 int
-LbxQueryFont(client)
-    ClientPtr   client;
+LbxQueryFont(ClientPtr   client)
 {
     xQueryFontReply *reply;
     xLbxQueryFontReply lbxrep;
@@ -596,8 +584,7 @@ LbxQueryFont(client)
 }
 
 void
-LbxFreeFontTag(pfont)
-    FontPtr     pfont;
+LbxFreeFontTag(FontPtr     pfont)
 {
     FontTagInfoPtr ftip;
 
@@ -606,19 +593,18 @@ LbxFreeFontTag(pfont)
 	TagDeleteTag(ftip->tid);
 }
 
-LbxInvalidateTag(client, tag)
-    ClientPtr   client;
-    XID         tag;
+int
+LbxInvalidateTag(ClientPtr   client,
+		 XID         tag)
 {
     TagClearProxy(tag, LbxProxyID(client));
     return client->noClientException;
 }
 
 void
-LbxSendInvalidateTag(client, tag, tagtype)
-    ClientPtr   client;
-    XID         tag;
-    int         tagtype;
+LbxSendInvalidateTag(ClientPtr   client,
+		     XID         tag,
+		     int         tagtype)
 {
     xLbxInvalidateTagEvent ev;
     int         n;
@@ -641,10 +627,9 @@ LbxSendInvalidateTag(client, tag, tagtype)
 }
 
 static void
-LbxSendSendTagData(pid, tag, tagtype)
-    int         pid;
-    XID         tag;
-    int         tagtype;
+LbxSendSendTagData(int         pid,
+		   XID         tag,
+		   int         tagtype)
 {
     xLbxSendTagDataEvent ev;
     int         n;
@@ -693,16 +678,15 @@ static SendTagQPtr queried_tags = NULL;
 #define	LbxSendTagAlreadySent	1
 
 static Bool
-LbxQueueSendTag(client, tag)
-    ClientPtr   client;
-    XID         tag;
+LbxQueueSendTag(ClientPtr   client,
+		XID         tag)
 {
     SendTagQPtr stqp, *prev, new;
     ClientPtr  *newlist;
 
 
     /* see if we're asking for one already in the pipeline */
-    for (prev = &queried_tags; stqp = *prev; prev = &stqp->next) {
+    for (prev = &queried_tags; (stqp = *prev); prev = &stqp->next) {
 	if (stqp->tag == tag) {
 	    /* add new client to list */
 	    newlist = (ClientPtr *) xrealloc(stqp->stalled_clients,
@@ -735,9 +719,8 @@ LbxQueueSendTag(client, tag)
     return LbxSendTagSendIt;
 }
 
-SendTagQPtr
-LbxFindQTag(tag)
-    XID tag;
+static SendTagQPtr
+LbxFindQTag(XID tag)
 {
     SendTagQPtr stqp;
 
@@ -749,20 +732,18 @@ LbxFindQTag(tag)
 }
 
 static void
-LbxFreeQTag(stqp)
-    SendTagQPtr stqp;
+LbxFreeQTag(SendTagQPtr stqp)
 {
     xfree(stqp->stalled_clients);
     xfree(stqp);
 }
 
 static void
-LbxRemoveQTag(tag)
-    XID	tag;
+LbxRemoveQTag(XID	tag)
 {
     SendTagQPtr stqp, *prev;
 
-    for (prev = &queried_tags; stqp = *prev; prev = &stqp->next) {
+    for (prev = &queried_tags; (stqp = *prev); prev = &stqp->next) {
 	if (stqp->tag == tag) {
 	    *prev = stqp->next;
 	    LbxFreeQTag(stqp);
@@ -772,8 +753,7 @@ LbxRemoveQTag(tag)
 }
 
 Bool
-LbxFlushQTag(tag)
-    XID tag;
+LbxFlushQTag(XID tag)
 {
     SendTagQPtr stqp;
     ClientPtr *cp;
@@ -788,7 +768,7 @@ LbxFlushQTag(tag)
 }
 
 void
-ProcessQTagZombies()
+ProcessQTagZombies(void)
 {
     SendTagQPtr stqp;
     ClientPtr *out, *in;
@@ -810,11 +790,10 @@ ProcessQTagZombies()
  */
 
 void
-LbxQueryTagData(client, owner_pid, tag, tagtype)
-    ClientPtr   client;
-    int         owner_pid;
-    XID         tag;
-    int         tagtype;
+LbxQueryTagData(ClientPtr   client,
+		int         owner_pid,
+		XID         tag,
+		int         tagtype)
 {
     /* save the info and the client being stalled */
     if (LbxQueueSendTag(client, tag) == LbxSendTagSendIt)
@@ -825,11 +804,10 @@ LbxQueryTagData(client, owner_pid, tag, tagtype)
  * server recieves this
  */
 int
-LbxTagData(client, tag, len, data)
-    ClientPtr   client;
-    XID         tag;
-    unsigned long len;
-    pointer     data;
+LbxTagData(ClientPtr     client,
+	   XID           tag,
+	   unsigned long len,
+	   pointer       data)
 {
     TagData     td;
     PropertyPtr pProp;
@@ -872,7 +850,7 @@ LbxTagData(client, tag, len, data)
 
 /* when server resets, need to reset global tags */
 void
-LbxResetTags()
+LbxResetTags(void)
 {
     SendTagQPtr stqp;
 
@@ -880,7 +858,7 @@ LbxResetTags()
     keyboard_map_tag = 0;
 
     /* clean out any pending tag requests */
-    while (stqp = queried_tags) {
+    while ((stqp = queried_tags)) {
 	queried_tags = stqp->next;
 	LbxFreeQTag(stqp);
     }

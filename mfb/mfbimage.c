@@ -1,3 +1,4 @@
+/* $XFree86: xc/programs/Xserver/mfb/mfbimage.c,v 1.6 2001/12/14 20:00:08 dawes Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -109,14 +110,14 @@ mfbPutImage(dst, pGC, depth, x, y, w, h, leftPad, format, pImage)
     if (!pPixmap)
 	return;
 
-    ((mfbPrivGC *)(pGC->devPrivates[mfbGCPrivateIndex].ptr))->fExpose = FALSE;
+    pGC->fExpose = FALSE;
     if (format != XYBitmap)
 	(*pGC->ops->CopyArea)((DrawablePtr)pPixmap, dst, pGC, leftPad, 0,
 			      w, h, x, y);
     else
 	(*pGC->ops->CopyPlane)((DrawablePtr)pPixmap, dst, pGC, leftPad, 0,
 			       w, h, x, y, 1);
-    ((mfbPrivGC*)(pGC->devPrivates[mfbGCPrivateIndex].ptr))->fExpose = TRUE;
+    pGC->fExpose = TRUE;
     FreeScratchPixmapHeader(pPixmap);
 }
 
@@ -139,7 +140,6 @@ mfbGetImage( pDrawable, sx, sy, w, h, format, planeMask, pdstLine)
     unsigned long planeMask;
     char	*pdstLine;
 {
-    PixmapPtr pPixmap;
     BoxRec box;
     DDXPointRec ptSrc;
     RegionRec rgnDst;

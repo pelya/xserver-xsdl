@@ -71,33 +71,35 @@ in this Software without prior written authorization from The Open Group.
 **    *  Copyright:	Copyright 1996 The Open Group, Inc.
 **    *
 **    *********************************************************
-** 
+**
 ********************************************************************/
+/* $XFree86: xc/programs/Xserver/Xprint/ps/PsInit.c,v 1.13 2002/10/16 21:13:33 dawes Exp $ */
 
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
 
 #include "Ps.h"
+#include "mi.h"
 #include "AttrValid.h"
 #include "../../mfb/mfb.h"
 
 #include "windowstr.h"
+#include "DiPrint.h"
 
 static void AllocatePsPrivates(ScreenPtr pScreen);
 static int PsInitContext(XpContextPtr pCon);
+static int PsDestroyContext(XpContextPtr pCon);
 
-extern Bool _XpBoolNoop();
-extern void _XpVoidNoop();
 extern Bool cfbCreateDefColormap(ScreenPtr pScreen);
 
 int PsScreenPrivateIndex;
 int PsContextPrivateIndex;
 int PsPixmapPrivateIndex;
 int PsWindowPrivateIndex;
-int PsGCPrivateIndex;
 
 Bool
 InitializePsDriver(ndx, pScreen, argc, argv)
@@ -106,11 +108,7 @@ InitializePsDriver(ndx, pScreen, argc, argv)
   int         argc;
   char      **argv;
 {
-  int               maxXres, maxYres, maxWidth, maxHeight;
-  int               maxRes, maxDim, numBytes;
   PsScreenPrivPtr   pPriv;
-  char            **printerNames;
-  int               numPrinters;
   int               nVisuals;
   int               nDepths;
   VisualPtr         visuals;
@@ -134,9 +132,9 @@ InitializePsDriver(ndx, pScreen, argc, argv)
   pScreen->blackPixel             = 1;
   pScreen->whitePixel             = 0;
   pScreen->QueryBestSize          = (QueryBestSizeProcPtr)PsQueryBestSize;
-  pScreen->SaveScreen             = _XpBoolNoop;
-  pScreen->GetImage               = _XpVoidNoop;
-  pScreen->GetSpans               = _XpVoidNoop;
+  pScreen->SaveScreen             = (SaveScreenProcPtr)_XpBoolNoop;
+  pScreen->GetImage               = (GetImageProcPtr)_XpVoidNoop;
+  pScreen->GetSpans               = (GetSpansProcPtr)_XpVoidNoop;
   pScreen->CreateWindow           = PsCreateWindow;
   pScreen->DestroyWindow          = PsDestroyWindow;
   pScreen->PositionWindow         = PsPositionWindow;
@@ -207,18 +205,18 @@ InitializePsDriver(ndx, pScreen, argc, argv)
 /*  THE FOLLOWING CAUSES SERVER DEFAULT VISUAL TO BE 24 BIT  */
 /*  miScreenInit(pScreen, (pointer)0,
 	       pScreen->width, pScreen->height,
-	       pScreen->width / (pScreen->mmWidth / 25.40), 
+	       pScreen->width / (pScreen->mmWidth / 25.40),
 	       pScreen->height / (pScreen->mmHeight / 25.40),
 	       0, 24, nDepths,
-               depths, visuals[1].vid, nVisuals, visuals, (miBSFuncPtr)0); */
+               depths, visuals[1].vid, nVisuals, visuals); */
 
 /*  THE FOLLOWING CAUSES SERVER DEFAULT VISUAL TO BE 8 BIT  */
   miScreenInit(pScreen, (pointer)0,
 	       pScreen->width, pScreen->height,
-	       (int) (pScreen->width / (pScreen->mmWidth / 25.40)), 
+	       (int) (pScreen->width / (pScreen->mmWidth / 25.40)),
 	       (int) (pScreen->height / (pScreen->mmHeight / 25.40)),
 	       0, 8, nDepths,
-               depths, visuals[1].vid, nVisuals, visuals, (miBSFuncPtr)0);
+               depths, visuals[1].vid, nVisuals, visuals);
 
   if( cfbCreateDefColormap(pScreen)==FALSE ) return FALSE;
 
@@ -230,9 +228,9 @@ InitializePsDriver(ndx, pScreen, argc, argv)
 static void
 AllocatePsPrivates(ScreenPtr pScreen)
 {
-  static int PsGeneration = -1;
+  static unsigned long PsGeneration = 0;
 
-  if(PsGeneration != serverGeneration)
+  if((unsigned long)PsGeneration != serverGeneration)
   {
     PsScreenPrivateIndex = AllocateScreenPrivateIndex();
 
@@ -241,12 +239,8 @@ AllocatePsPrivates(ScreenPtr pScreen)
                           sizeof(PsWindowPrivRec));
 
     PsContextPrivateIndex = XpAllocateContextPrivateIndex();
-    XpAllocateContextPrivate(PsContextPrivateIndex, 
+    XpAllocateContextPrivate(PsContextPrivateIndex,
                              sizeof(PsContextPrivRec));
-
-    PsGCPrivateIndex = AllocateGCPrivateIndex();
-    AllocateGCPrivate(pScreen, PsGCPrivateIndex,
-                      sizeof(PsGCPrivRec));
 
     PsPixmapPrivateIndex = AllocatePixmapPrivateIndex();
     AllocatePixmapPrivate(pScreen, PsPixmapPrivateIndex,
@@ -280,8 +274,7 @@ PsInitContext(pCon)
   XpDriverFuncsPtr pFuncs;
   PsContextPrivPtr pConPriv;
   char *server, *attrStr;
-  extern XpValidatePoolsRec PsValidatePoolsRec;
-    
+
   /*
    * Initialize the attribute store for this printer.
    */
@@ -299,15 +292,15 @@ PsInitContext(pCon)
   pFuncs->EndPage           = PsEndPage;
   pFuncs->PutDocumentData   = PsDocumentData;
   pFuncs->GetDocumentData   = PsGetDocumentData;
-  pFuncs->GetAttributes     = (char *(*)())PsGetAttributes;
-  pFuncs->SetAttributes     = (int   (*)())PsSetAttributes;
-  pFuncs->AugmentAttributes = (int   (*)())PsAugmentAttributes;
-  pFuncs->GetOneAttribute   = (char *(*)())PsGetOneAttribute;
+  pFuncs->GetAttributes     = PsGetAttributes;
+  pFuncs->SetAttributes     = PsSetAttributes;
+  pFuncs->AugmentAttributes = PsAugmentAttributes;
+  pFuncs->GetOneAttribute   = PsGetOneAttribute;
   pFuncs->DestroyContext    = PsDestroyContext;
   pFuncs->GetMediumDimensions = PsGetMediumDimensions;
   pFuncs->GetReproducibleArea = PsGetReproducibleArea;
   pFuncs->SetImageResolution = PsSetImageResolution;
-    
+
   /*
    * Set up the context privates
    */
@@ -326,15 +319,15 @@ PsInitContext(pCon)
   server = XpGetOneAttribute( pCon, XPServerAttr, DOC_ATT_SUPP );
   if ((attrStr = (char *) xalloc(strlen(server) +
 				strlen(DOC_ATT_SUPP) + strlen(DOC_ATT_VAL)
-				+ strlen(PAGE_ATT_VAL) + 6)) == NULL) 
+				+ strlen(PAGE_ATT_VAL) + 6)) == NULL)
   {
       return BadAlloc;
   }
-  sprintf(attrStr, "*%s:\t%s %s %s", 
+  sprintf(attrStr, "*%s:\t%s %s %s",
 	  DOC_ATT_SUPP, server, DOC_ATT_VAL, PAGE_ATT_VAL);
   XpAugmentAttributes( pCon, XPPrinterAttr, attrStr);
   xfree(attrStr);
-    
+
   /*
    * job-attributes-supported
    */
@@ -347,7 +340,7 @@ PsInitContext(pCon)
   sprintf(attrStr, "*%s:\t%s %s", JOB_ATT_SUPP, server, JOB_ATT_VAL);
   XpAugmentAttributes(pCon, XPPrinterAttr, attrStr);
   xfree(attrStr);
-    
+
   /*
    * xp-page-attributes-supported
    */
@@ -378,7 +371,7 @@ PsDestroyContext(pCon)
 {
   PsContextPrivPtr pConPriv =
       (PsContextPrivPtr)pCon->devPrivates[PsContextPrivateIndex].ptr;
-    
+
   if( pConPriv->pJobFile!=(FILE *)NULL )
   {
     fclose(pConPriv->pJobFile);

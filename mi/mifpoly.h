@@ -45,6 +45,10 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ******************************************************************/
+/* $XFree86: xc/programs/Xserver/mi/mifpoly.h,v 1.4 2001/12/14 20:00:22 dawes Exp $ */
+
+#ifndef __MIFPOLY_H__
+#define __MIFPOLY_H__
 
 #define EPSILON	0.000001
 #define ISEQUAL(a,b) (Fabs((a) - (b)) <= EPSILON)
@@ -68,8 +72,7 @@ SOFTWARE.
 #define ICEIL(x) ((int)ceil(x))
 #else
 #ifdef __GNUC__
-static __inline int ICEIL(x)
-    double x;
+static __inline int ICEIL(double x)
 {
     int _cTmp = x;
     return ((x == _cTmp) || (x < 0.0)) ? _cTmp : _cTmp+1;
@@ -95,7 +98,6 @@ typedef struct _SppArc {
 /* mifpolycon.c */
 
 extern void miFillSppPoly(
-#if NeedFunctionPrototypes
     DrawablePtr /*dst*/,
     GCPtr /*pgc*/,
     int /*count*/,
@@ -104,5 +106,6 @@ extern void miFillSppPoly(
     int /*yTrans*/,
     double /*xFtrans*/,
     double /*yFtrans*/
-#endif
 );
+
+#endif /* __MIFPOLY_H__ */

@@ -26,6 +26,7 @@ other dealings in this Software without prior written authorization
 from The Open Group.
 
 */
+/* $XFree86: xc/programs/Xserver/os/mitauth.c,v 1.5 2001/12/14 20:00:34 dawes Exp $ */
 
 /*
  * MIT-MAGIC-COOKIE-1 authorization scheme
@@ -34,6 +35,7 @@ from The Open Group.
 
 #include "X.h"
 #include "os.h"
+#include "osdep.h"
 #include "dixstruct.h"
 
 static struct auth {
@@ -44,10 +46,10 @@ static struct auth {
 } *mit_auth;
 
 int
-MitAddCookie (data_length, data, id)
-unsigned short	data_length;
-char	*data;
-XID	id;
+MitAddCookie (
+    unsigned short	data_length,
+    char		*data,
+    XID			id)
 {
     struct auth	*new;
 
@@ -68,11 +70,11 @@ XID	id;
 }
 
 XID
-MitCheckCookie (data_length, data, client, reason)
-    unsigned short	data_length;
-    char	*data;
-    ClientPtr client;
-    char	**reason;
+MitCheckCookie (
+    unsigned short	data_length,
+    char		*data,
+    ClientPtr		client,
+    char		**reason)
 {
     struct auth	*auth;
 
@@ -86,7 +88,7 @@ MitCheckCookie (data_length, data, client, reason)
 }
 
 int
-MitResetCookie ()
+MitResetCookie (void)
 {
     struct auth	*auth, *next;
 
@@ -100,9 +102,9 @@ MitResetCookie ()
 }
 
 XID
-MitToID (data_length, data)
-unsigned short	data_length;
-char	*data;
+MitToID (
+	unsigned short	data_length,
+	char		*data)
 {
     struct auth	*auth;
 
@@ -115,10 +117,10 @@ char	*data;
 }
 
 int
-MitFromID (id, data_lenp, datap)
-XID id;
-unsigned short	*data_lenp;
-char	**datap;
+MitFromID (
+	XID		id,
+	unsigned short	*data_lenp,
+	char		**datap)
 {
     struct auth	*auth;
 
@@ -133,9 +135,9 @@ char	**datap;
 }
 
 int
-MitRemoveCookie (data_length, data)
-unsigned short	data_length;
-char	*data;
+MitRemoveCookie (
+	unsigned short	data_length,
+	char		*data)
 {
     struct auth	*auth, *prev;
 
@@ -161,12 +163,12 @@ char	*data;
 static char cookie[16]; /* 128 bits */
 
 XID
-MitGenerateCookie (data_length, data, id, data_length_return, data_return)
-    unsigned int data_length;
-    char *data;
-    XID id;
-    unsigned int *data_length_return;
-    char	**data_return;
+MitGenerateCookie (
+    unsigned	data_length,
+    char	*data,
+    XID		id,
+    unsigned	*data_length_return,
+    char	**data_return)
 {
     int i = 0;
     int status;

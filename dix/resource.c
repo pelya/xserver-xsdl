@@ -47,6 +47,9 @@ SOFTWARE.
 
 /* $Xorg: resource.c,v 1.5 2001/02/09 02:04:40 xorgcvs Exp $ */
 
+
+/* $TOG: resource.c /main/41 1998/02/09 14:20:31 kaleb $ */
+
 /*	Routines to manage various kinds of resources:
  *
  *	CreateNewResourceType, CreateNewResourceClass, InitClientResources,
@@ -69,7 +72,9 @@ SOFTWARE.
  *      1, and an otherwise arbitrary ID in the low 22 bits, we can create a
  *      resource "owned" by the client.
  */
+/* $XFree86: xc/programs/Xserver/dix/resource.c,v 3.12 2002/03/06 21:13:38 mvojkovi Exp $ */
 
+#define NEED_EVENTS
 #include "X.h"
 #include "misc.h"
 #include "os.h"
@@ -77,9 +82,17 @@ SOFTWARE.
 #include "dixstruct.h" 
 #include "opaque.h"
 #include "windowstr.h"
+#include "dixfont.h"
+#include "colormap.h"
+#include "inputstr.h"
+#include "dixevents.h"
+#include "dixgrabs.h"
+#include "cursor.h"
+#ifdef PANORAMIX
+#include "panoramiX.h"
+#include "panoramiXsrv.h"
+#endif
 #include <assert.h>
-
-extern WindowPtr *WindowTable;
 
 static void RebuildTable(
 #if NeedFunctionPrototypes
@@ -111,11 +124,22 @@ typedef struct _ClientResource {
     XID		expectID;
 } ClientResourceRec;
 
-static RESTYPE lastResourceType;
+RESTYPE lastResourceType;
 static RESTYPE lastResourceClass;
-static RESTYPE TypeMask;
+RESTYPE TypeMask;
 
 static DeleteType *DeleteFuncs = (DeleteType *)NULL;
+
+#ifdef XResExtension
+
+Atom * ResourceNames = NULL;
+
+void RegisterResourceName (RESTYPE type, char *name)
+{
+    ResourceNames[type & TypeMask] =  MakeAtom(name, strlen(name), TRUE);
+}
+
+#endif
 
 RESTYPE
 CreateNewResourceType(deleteFunc)
@@ -130,6 +154,18 @@ CreateNewResourceType(deleteFunc)
 				   (next + 1) * sizeof(DeleteType));
     if (!funcs)
 	return 0;
+
+#ifdef XResExtension
+    {
+       Atom *newnames;
+       newnames = xrealloc(ResourceNames, (next + 1) * sizeof(Atom));
+       if(!newnames)
+           return 0;
+       ResourceNames = newnames;
+       ResourceNames[next] = 0;
+    }
+#endif
+
     lastResourceType = next;
     DeleteFuncs = funcs;
     DeleteFuncs[next] = deleteFunc;
@@ -164,11 +200,6 @@ InitClientResources(client)
  
     if (client == serverClient)
     {
-	extern int DeleteWindow(), dixDestroyPixmap(), FreeGC();
-	extern int CloseFont(), FreeCursor();
-	extern int FreeColormap(), FreeClientPixels();
-	extern int OtherClientGone(), DeletePassiveGrab();
-
 	lastResourceType = RT_LASTPREDEF;
 	lastResourceClass = RC_LASTPREDEF;
 	TypeMask = RC_LASTPREDEF - 1;
@@ -188,6 +219,14 @@ InitClientResources(client)
 	DeleteFuncs[RT_CMAPENTRY & TypeMask] = FreeClientPixels;
 	DeleteFuncs[RT_OTHERCLIENT & TypeMask] = OtherClientGone;
 	DeleteFuncs[RT_PASSIVEGRAB & TypeMask] = DeletePassiveGrab;
+
+#ifdef XResExtension
+        if(ResourceNames)
+            xfree(ResourceNames);
+        ResourceNames = xalloc((lastResourceType + 1) * sizeof(Atom));
+        if(!ResourceNames)
+           return FALSE;
+#endif
     }
     clientTable[i = client->index].resources =
 	(ResourcePtr *)xalloc(INITBUCKETS*sizeof(ResourcePtr));
@@ -212,10 +251,15 @@ InitClientResources(client)
     return TRUE;
 }
 
+
 static int
+#if NeedFunctionPrototypes
+Hash(int client, register XID id)
+#else
 Hash(client, id)
     int client;
     register XID id;
+#endif
 {
     id &= RESOURCE_ID_MASK;
     switch (clientTable[client].hashsize)
@@ -237,9 +281,17 @@ Hash(client, id)
 }
 
 static XID
+#if NeedFunctionPrototypes
+AvailableID(
+    register int client,
+    register XID id,
+    register XID maxid,
+    register XID goodid)
+#else
 AvailableID(client, id, maxid, goodid)
     register int client;
     register XID id, maxid, goodid;
+#endif
 {
     register ResourcePtr res;
 
@@ -507,7 +559,6 @@ FreeResourceByType(id, type, skipFree)
     int		cid;
     register    ResourcePtr res;
     register	ResourcePtr *prev, *head;
-
     if (((cid = CLIENT_ID(id)) < MAXCLIENTS) && clientTable[cid].buckets)
     {
 	head = &clientTable[cid].resources[Hash(cid, id)];
@@ -574,12 +625,12 @@ ChangeResourceValue (id, rtype, value)
  */
 
 void
-FindClientResourcesByType(client, type, func, cdata)
-    ClientPtr client;
-    RESTYPE type;
-    FindResType func;
-    pointer cdata;
-{
+FindClientResourcesByType(
+    ClientPtr client,
+    RESTYPE type,
+    FindResType func,
+    pointer cdata
+){
     register ResourcePtr *resources;
     register ResourcePtr this, next;
     int i, elements;
@@ -606,8 +657,64 @@ FindClientResourcesByType(client, type, func, cdata)
 }
 
 void
-FreeClientNeverRetainResources(client)
-    ClientPtr client;
+FindAllClientResources(
+    ClientPtr client,
+    FindAllRes func,
+    pointer cdata
+){
+    register ResourcePtr *resources;
+    register ResourcePtr this, next;
+    int i, elements;
+    register int *eltptr;
+
+    if (!client)
+        client = serverClient;
+
+    resources = clientTable[client->index].resources;
+    eltptr = &clientTable[client->index].elements;
+    for (i = 0; i < clientTable[client->index].buckets; i++)
+    {
+        for (this = resources[i]; this; this = next)
+        {
+            next = this->next;
+            elements = *eltptr;
+            (*func)(this->value, this->id, this->type, cdata);
+            if (*eltptr != elements)
+                next = resources[i]; /* start over */
+        }
+    }
+}
+
+
+pointer
+LookupClientResourceComplex(
+    ClientPtr client,
+    RESTYPE type,
+    FindComplexResType func,
+    pointer cdata
+){
+    ResourcePtr *resources;
+    ResourcePtr this;
+    int i;
+
+    if (!client)
+	client = serverClient;
+
+    resources = clientTable[client->index].resources;
+    for (i = 0; i < clientTable[client->index].buckets; i++) {
+        for (this = resources[i]; this; this = this->next) {
+	    if (!type || this->type == type) {
+		if((*func)(this->value, this->id, cdata))
+		    return this->value;
+	    }
+	}
+    }
+    return NULL;
+}
+
+
+void
+FreeClientNeverRetainResources(ClientPtr client)
 {
     ResourcePtr *resources;
     ResourcePtr this;
@@ -681,6 +788,7 @@ FreeClientResources(client)
 	}
     }
     xfree(clientTable[client->index].resources);
+    clientTable[client->index].resources = NULL;
     clientTable[client->index].buckets = 0;
 }
 
@@ -701,7 +809,19 @@ LegalNewID(id, client)
     XID id;
     register ClientPtr client;
 {
-    return ((client->clientAsMask == (id & ~RESOURCE_ID_MASK)) &&
+
+#ifdef PANORAMIX
+    XID 	minid, maxid;
+
+	if (!noPanoramiXExtension) { 
+	    minid = client->clientAsMask | (client->index ? 
+			                    SERVER_BIT : SERVER_MINID);
+	    maxid = (clientTable[client->index].fakeID | RESOURCE_ID_MASK) + 1;
+            if ((id >= minid) && (id <= maxid))
+	        return TRUE;
+	}
+#endif /* PANORAMIX */
+	return ((client->clientAsMask == (id & ~RESOURCE_ID_MASK)) &&
 	    ((clientTable[client->index].expectID <= id) ||
 	     !LookupIDByClass(id, RC_ANY)));
 }
@@ -757,7 +877,7 @@ SecurityLookupIDByClass(client, id, classes, mode)
     Mask mode;
 {
     int    cid;
-    register    ResourcePtr res;
+    register ResourcePtr res = NULL;
     pointer retval = NULL;
 
     assert(client == NullClient ||

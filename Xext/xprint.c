@@ -1,4 +1,4 @@
-/* $Xorg: xprint.c,v 1.5 2001/03/05 20:42:36 pookie Exp $ */
+/* $Xorg: xprint.c,v 1.5 2001/03/05 20:42:26 pookie Exp $ */
 /*
 (c) Copyright 1996 Hewlett-Packard Company
 (c) Copyright 1996 International Business Machines Corp.
@@ -64,8 +64,11 @@ copyright holders.
 **    *********************************************************
 **
 ********************************************************************/
+/* $XFree86: xc/programs/Xserver/Xext/xprint.c,v 1.13 2001/11/23 19:21:31 dawes Exp $ */
 
+#define _XP_PRINT_SERVER_
 #include "X.h"
+#include "Xos.h"
 #define NEED_EVENTS
 #include "Xproto.h"
 #undef NEED_EVENTS
@@ -76,105 +79,90 @@ copyright holders.
 #include "extnsionst.h"
 #include "dixstruct.h"
 #include "Xatom.h"
-#define _XP_PRINT_SERVER_
 #include "Print.h"
 #include "Printstr.h"
-#undef _XP_PRINT_SERVER_
 #include "../Xprint/DiPrint.h"
+#include "../Xprint/attributes.h"
 
-extern WindowPtr *WindowTable; /* declared in dix:globals.c */
+static void XpResetProc(ExtensionEntry *);
 
-extern WindowPtr XpDiValidatePrinter();
-extern char *XpDiGetDriverName();
-extern char *XpGetAttributes();
-extern char *XpGetOneAttribute();
-extern int XpRehashPrinterList();
-extern void XpSetFontResFunc();
+static int ProcXpDispatch(ClientPtr);
+static int ProcXpSwappedDispatch(ClientPtr);
 
-static void XpResetProc();
+static int ProcXpQueryVersion(ClientPtr);
+static int ProcXpGetPrinterList(ClientPtr);
+static int ProcXpCreateContext(ClientPtr);
+static int ProcXpSetContext(ClientPtr);
+static int ProcXpGetContext(ClientPtr);
+static int ProcXpDestroyContext(ClientPtr);
+static int ProcXpGetContextScreen(ClientPtr);
+static int ProcXpStartJob(ClientPtr);
+static int ProcXpEndJob(ClientPtr);
+static int ProcXpStartDoc(ClientPtr);
+static int ProcXpEndDoc(ClientPtr);
+static int ProcXpStartPage(ClientPtr);
+static int ProcXpEndPage(ClientPtr);
+static int ProcXpSelectInput(ClientPtr);
+static int ProcXpInputSelected(ClientPtr);
+static int ProcXpPutDocumentData(ClientPtr);
+static int ProcXpGetDocumentData(ClientPtr);
+static int ProcXpGetAttributes(ClientPtr);
+static int ProcXpGetOneAttribute(ClientPtr);
+static int ProcXpSetAttributes(ClientPtr);
+static int ProcXpRehashPrinterList(ClientPtr);
+static int ProcXpQueryScreens(ClientPtr);
+static int ProcXpGetPageDimensions(ClientPtr);
+static int ProcXpSetImageResolution(ClientPtr);
+static int ProcXpGetImageResolution(ClientPtr);
 
-static int ProcXpDispatch();
-static int ProcXpSwappedDispatch();
+static void SwapXpNotifyEvent(xPrintPrintEvent *, xPrintPrintEvent *);
+static void SwapXpAttributeEvent(xPrintAttributeEvent *, xPrintAttributeEvent *);
 
-static int ProcXpQueryVersion();
-static int ProcXpGetPrinterList();
-static int ProcXpCreateContext();
-static int ProcXpSetContext();
-static int ProcXpGetContext();
-static int ProcXpDestroyContext();
-static int ProcXpGetContextScreen();
-static int ProcXpStartJob();
-static int ProcXpEndJob();
-static int ProcXpStartDoc();
-static int ProcXpEndDoc();
-static int ProcXpStartPage();
-static int ProcXpEndPage();
-static int ProcXpSelectInput();
-static int ProcXpInputSelected();
-static int ProcXpPutDocumentData();
-static int ProcXpGetDocumentData();
-static int ProcXpGetAttributes();
-static int ProcXpGetOneAttribute();
-static int ProcXpSetAttributes();
-static int ProcXpRehashPrinterList();
-static int ProcXpQueryScreens();
-static int ProcXpGetPageDimensions();
-static int ProcXpSetImageResolution();
-static int ProcXpGetImageResolution();
+static int SProcXpGetPrinterList(ClientPtr);
+static int SProcXpCreateContext(ClientPtr);
+static int SProcXpSetContext(ClientPtr);
+static int SProcXpGetContext(ClientPtr);
+static int SProcXpDestroyContext(ClientPtr);
+static int SProcXpGetContextScreen(ClientPtr);
+static int SProcXpStartJob(ClientPtr);
+static int SProcXpEndJob(ClientPtr);
+static int SProcXpStartDoc(ClientPtr);
+static int SProcXpEndDoc(ClientPtr);
+static int SProcXpStartPage(ClientPtr);
+static int SProcXpEndPage(ClientPtr);
+static int SProcXpSelectInput(ClientPtr);
+static int SProcXpInputSelected(ClientPtr);
+static int SProcXpPutDocumentData(ClientPtr);
+static int SProcXpGetDocumentData(ClientPtr);
+static int SProcXpGetAttributes(ClientPtr);
+static int SProcXpGetOneAttribute(ClientPtr);
+static int SProcXpSetAttributes(ClientPtr);
+static int SProcXpRehashPrinterList(ClientPtr);
+static int SProcXpGetPageDimensions(ClientPtr);
+static int SProcXpSetImageResolution(ClientPtr);
+static int SProcXpGetImageResolution(ClientPtr);
 
-static void SwapXpNotifyEvent();
-static void SwapXpAttributeEvent();
-
-static int SProcXpGetPrinterList();
-static int SProcXpCreateContext();
-static int SProcXpSetContext();
-static int SProcXpGetContext();
-static int SProcXpDestroyContext();
-static int SProcXpGetContextScreen();
-static int SProcXpStartJob();
-static int SProcXpEndJob();
-static int SProcXpStartDoc();
-static int SProcXpEndDoc();
-static int SProcXpStartPage();
-static int SProcXpEndPage();
-static int SProcXpSelectInput();
-static int SProcXpInputSelected();
-static int SProcXpPutDocumentData();
-static int SProcXpGetDocumentData();
-static int SProcXpGetAttributes();
-static int SProcXpGetOneAttribute();
-static int SProcXpSetAttributes();
-static int SProcXpRehashPrinterList();
-static int SProcXpGetPageDimensions();
-static int SProcXpSetImageResolution();
-static int SProcXpGetImageResolution();
-
-static void SendXpNotify();
-static void SendAttributeNotify();
-static int XpFreeClient();
-static int XpFreeContext();
-static int XpFreePage();
-static int XpFreeEvents();
-static Bool XpCloseScreen();
-static CARD32 GetAllEventMasks();
-static struct _XpEvent *AddEventRec();
-static void DeleteEventRec();
-static struct _XpEvent *FindEventRec();
-static struct _XpClient *CreateXpClient();
-static void FreeXpClient();
-static void InitContextPrivates();
-static void ResetContextPrivates();
-static struct _XpClient *FindClient();
-static struct _XpClient *AcquireClient();
+static void SendXpNotify(XpContextPtr, int, int);
+static void SendAttributeNotify(XpContextPtr, int);
+static int XpFreeClient(pointer, XID);
+static int XpFreeContext(pointer, XID);
+static int XpFreePage(pointer, XID);
+static Bool XpCloseScreen(int, ScreenPtr);
+static CARD32 GetAllEventMasks(XpContextPtr);
+static struct _XpClient *CreateXpClient(ClientPtr);
+static void InitContextPrivates(XpContextPtr);
+static void ResetContextPrivates(void);
+static struct _XpClient *FindClient(XpContextPtr, ClientPtr);
+static struct _XpClient *AcquireClient(XpContextPtr, ClientPtr);
 
 typedef struct _driver {
     struct _driver *next;
     char *name;
-    int (* CreateContext)();
+    int (* CreateContext)(XpContextPtr);
 } XpDriverRec, *XpDriverPtr;
 
 typedef struct  _xpScreen {
-    Bool (* CloseScreen)();
+    Bool (* CloseScreen)(int, ScreenPtr);
     struct _driver *drivers;
 } XpScreenRec, *XpScreenPtr;
 
@@ -195,6 +183,8 @@ typedef struct _XpClient {
 	CARD32		eventMask;
 	XID		contextClientID; /* unneeded sanity check? */
 } XpClientRec, *XpClientPtr;
+
+static void FreeXpClient(XpClientPtr, Bool);
 
 /*
  * Each StartPage request specifies a window which forms the top level
@@ -240,8 +230,7 @@ static XpScreenPtr XpScreens[MAXSCREENS];
 static unsigned char XpReqCode;
 static int XpEventBase;
 static int XpErrorBase;
-static int XpGeneration = 0;
-static int XpWindowPrivateIndex;
+static unsigned long XpGeneration = 0;
 static int XpClientPrivateIndex;
 
 /* Variables for the context private machinery. 
@@ -293,9 +282,9 @@ static CARD32 allEvents = XPPrintMask | XPAttributeMask;
  */
 
 void
-XpExtensionInit()
+XpExtensionInit(void)
 {
-    ExtensionEntry *extEntry, *AddExtension();
+    ExtensionEntry *extEntry;
     int i;
 
     RTclient = CreateNewResourceType(XpFreeClient);
@@ -309,8 +298,8 @@ XpExtensionInit()
         XpReqCode = (unsigned char)extEntry->base;
         XpEventBase = extEntry->eventBase;
         XpErrorBase = extEntry->errorBase;
-        EventSwapVector[XpEventBase] = SwapXpNotifyEvent;
-        EventSwapVector[XpEventBase+1] = SwapXpAttributeEvent;
+        EventSwapVector[XpEventBase] = (EventSwapPtr) SwapXpNotifyEvent;
+        EventSwapVector[XpEventBase+1] = (EventSwapPtr) SwapXpAttributeEvent;
     }
 
     if(XpGeneration != serverGeneration)
@@ -347,15 +336,15 @@ XpExtensionInit()
 }
 
 static void
-XpResetProc(extEntry)
-    ExtensionEntry extEntry;
+XpResetProc(ExtensionEntry *extEntry)
 {
-    int i;
-
     /*
      * We can't free up the XpScreens recs here, because extensions are
      * closed before screens, and our CloseScreen function uses the XpScreens
      * recs.
+
+    int i;
+
     for(i = 0; i < MAXSCREENS; i++)
     {
 	if(XpScreens[i] != (XpScreenPtr)NULL)
@@ -366,11 +355,9 @@ XpResetProc(extEntry)
 }
 
 static Bool
-XpCloseScreen(index, pScreen)
-    int index;
-    ScreenPtr pScreen;
+XpCloseScreen(int index, ScreenPtr pScreen)
 {
-    Bool (* CloseScreen)();
+    Bool (* CloseScreen)(int, ScreenPtr);
 
     CloseScreen = XpScreens[index]->CloseScreen;
     if(XpScreens[index] != (XpScreenPtr)NULL)
@@ -399,9 +386,9 @@ XpCloseScreen(index, pScreen)
     return (*CloseScreen)(index, pScreen);
 }
 
+#if 0 /* NOT USED */
 static void
-FreeScreenEntry(pScreenEntry)
-    XpScreenPtr pScreenEntry;
+FreeScreenEntry(XpScreenPtr pScreenEntry)
 {
     XpDriverPtr pDriver;
 
@@ -416,6 +403,7 @@ FreeScreenEntry(pScreenEntry)
     }
     xfree(pScreenEntry);
 }
+#endif
 
 /*
  * XpRegisterInitFunc tells the print extension which screens
@@ -426,24 +414,20 @@ FreeScreenEntry(pScreenEntry)
  * whenever a context gets created for a particular driver on this screen.
  */
 void
-XpRegisterInitFunc(pScreen, driverName, initContext)
-    ScreenPtr pScreen;
-    char *driverName;
-    int (*initContext)();
+XpRegisterInitFunc(ScreenPtr pScreen, char *driverName, int (*initContext)(struct _XpContext *))
 {
     XpDriverPtr pDriver;
 
-    if(XpScreens[pScreen->myNum] == (XpScreenPtr)NULL)
+    if(XpScreens[pScreen->myNum] == 0)
     {
         if((XpScreens[pScreen->myNum] =
-           (XpScreenPtr) Xalloc(sizeof(XpScreenRec))) == (XpScreenPtr)NULL)
+           (XpScreenPtr) Xalloc(sizeof(XpScreenRec))) == 0)
             return;
-	XpScreens[pScreen->myNum]->CloseScreen = (Bool(*)())NULL;
-	XpScreens[pScreen->myNum]->drivers = (XpDriverPtr)NULL;
+	XpScreens[pScreen->myNum]->CloseScreen = 0;
+	XpScreens[pScreen->myNum]->drivers = 0;
     }
 
-    if((pDriver = (XpDriverPtr)Xalloc(sizeof(XpDriverRec))) == 
-       (XpDriverPtr)NULL)
+    if((pDriver = (XpDriverPtr)Xalloc(sizeof(XpDriverRec))) == 0)
 	return;
     pDriver->next = XpScreens[pScreen->myNum]->drivers;
     pDriver->name = driverName;
@@ -452,8 +436,7 @@ XpRegisterInitFunc(pScreen, driverName, initContext)
 }
 
 static int 
-ProcXpDispatch(client)
-    ClientPtr client;
+ProcXpDispatch(ClientPtr client)
 {
     REQUEST(xReq);
 
@@ -515,8 +498,7 @@ ProcXpDispatch(client)
 }
 
 static int 
-ProcXpSwappedDispatch(client)
-    ClientPtr client;
+ProcXpSwappedDispatch(ClientPtr client)
 {
     int temp;
     REQUEST(xReq);
@@ -581,10 +563,9 @@ ProcXpSwappedDispatch(client)
 }
 
 static int
-ProcXpQueryVersion(client)
-    ClientPtr client;
+ProcXpQueryVersion(ClientPtr client)
 {
-    REQUEST(xPrintQueryVersionReq);
+    /* REQUEST(xPrintQueryVersionReq); */
     xPrintQueryVersionReply rep;
     register int n;
     long l;
@@ -614,12 +595,12 @@ ProcXpQueryVersion(client)
  ******************************************************************************/
 
 static int
-ProcXpGetPrinterList(client)
-    ClientPtr client;
+ProcXpGetPrinterList(ClientPtr client)
 {
     REQUEST(xPrintGetPrinterListReq);
-    int totalSize, numEntries;
-    XpDiListEntry **pList, *pEntry;
+    int totalSize;
+    int numEntries;
+    XpDiListEntry **pList;
     xPrintGetPrinterListReply *rep;
     int n, i, totalBytes;
     long l;
@@ -699,10 +680,9 @@ ProcXpGetPrinterList(client)
  ******************************************************************************/
 
 static int
-ProcXpQueryScreens(client)
-    ClientPtr client;
+ProcXpQueryScreens(ClientPtr client)
 {
-    REQUEST(xPrintQueryScreensReq);
+    /* REQUEST(xPrintQueryScreensReq); */
     int i, numPrintScreens, totalSize;
     WINDOW *pWinId;
     xPrintQueryScreensReply *rep;
@@ -752,8 +732,7 @@ ProcXpQueryScreens(client)
 }
 
 static int 
-ProcXpGetPageDimensions(client)
-    ClientPtr client;
+ProcXpGetPageDimensions(ClientPtr client)
 {
     REQUEST(xPrintGetPageDimensionsReq);
     CARD16 width, height;
@@ -774,12 +753,12 @@ ProcXpGetPageDimensions(client)
         return XpErrorBase+XPBadContext;
     }
 
-    if(pContext->funcs.GetMediumDimensions != (int (*)())NULL)
+    if(pContext->funcs.GetMediumDimensions != 0)
         result = pContext->funcs.GetMediumDimensions(pContext, &width, &height);
     else
         return BadImplementation;
 
-    if(pContext->funcs.GetReproducibleArea != (int (*)())NULL)
+    if(pContext->funcs.GetReproducibleArea != 0)
         result = pContext->funcs.GetReproducibleArea(pContext, &rect);
     else
         return BadImplementation;
@@ -814,8 +793,7 @@ ProcXpGetPageDimensions(client)
 }
 
 static int 
-ProcXpSetImageResolution(client)
-    ClientPtr client;
+ProcXpSetImageResolution(ClientPtr client)
 {
     REQUEST(xPrintSetImageResolutionReq);
     xPrintSetImageResolutionReply rep;
@@ -836,7 +814,7 @@ ProcXpSetImageResolution(client)
     }
 
     rep.prevRes = pContext->imageRes;
-    if(pContext->funcs.SetImageResolution != (int (*)())NULL)
+    if(pContext->funcs.SetImageResolution != 0)
         result = pContext->funcs.SetImageResolution(pContext,
 						    (int)stuff->imageRes,
 						    &status);
@@ -863,14 +841,11 @@ ProcXpSetImageResolution(client)
 }
 
 static int 
-ProcXpGetImageResolution(client)
-    ClientPtr client;
+ProcXpGetImageResolution(ClientPtr client)
 {
     REQUEST(xPrintGetImageResolutionReq);
     xPrintGetImageResolutionReply rep;
     XpContextPtr pContext;
-    Bool status;
-    int result;
 
     REQUEST_SIZE_MATCH(xPrintGetImageResolutionReq);
 
@@ -912,10 +887,9 @@ ProcXpGetImageResolution(client)
  ******************************************************************************/
 
 static int
-ProcXpRehashPrinterList(client)
-    ClientPtr client;
+ProcXpRehashPrinterList(ClientPtr client)
 {
-    REQUEST(xPrintRehashPrinterListReq);
+    /* REQUEST(xPrintRehashPrinterListReq); */
 
     REQUEST_SIZE_MATCH(xPrintRehashPrinterListReq);
 
@@ -950,15 +924,13 @@ ProcXpRehashPrinterList(client)
  * is then called.
  */
 static int
-ProcXpCreateContext(client)
-    ClientPtr client;
+ProcXpCreateContext(ClientPtr client)
 {
     REQUEST(xPrintCreateContextReq);
     XpScreenPtr pPrintScreen;
     WindowPtr pRoot;
-    char *printerName, *driverName;
+    char *driverName;
     XpContextPtr pContext;
-    XpClientPtr pNewPrintClient;
     int result = Success;
     XpDriverPtr pDriver;
 
@@ -969,7 +941,7 @@ ProcXpCreateContext(client)
     /*
      * Check to see if the printer name is valid.
      */
-    if((pRoot = XpDiValidatePrinter(stuff + 1, stuff->printerNameLen)) == 
+    if((pRoot = XpDiValidatePrinter((char *)(stuff + 1), stuff->printerNameLen)) == 
        (WindowPtr)NULL)
 	return BadMatch;
 
@@ -998,22 +970,22 @@ ProcXpCreateContext(client)
     pContext->clientSlept = (ClientPtr)NULL;
     pContext->imageRes = 0;
 
-    pContext->funcs.DestroyContext = (int (*)())NULL;
-    pContext->funcs.StartJob = (int (*)())NULL;
-    pContext->funcs.EndJob = (int (*)())NULL;
-    pContext->funcs.StartDoc = (int (*)())NULL;
-    pContext->funcs.EndDoc = (int (*)())NULL;
-    pContext->funcs.StartPage = (int (*)())NULL;
-    pContext->funcs.EndPage = (int (*)())NULL;
-    pContext->funcs.PutDocumentData = (int (*)())NULL;
-    pContext->funcs.GetDocumentData = (int (*)())NULL;
-    pContext->funcs.GetAttributes = (char * (*)())NULL;
-    pContext->funcs.GetOneAttribute = (char * (*)())NULL;
-    pContext->funcs.SetAttributes = (int (*)())NULL;
-    pContext->funcs.AugmentAttributes = (int (*)())NULL;
-    pContext->funcs.GetMediumDimensions = (int (*)())NULL;
-    pContext->funcs.GetReproducibleArea = (int (*)())NULL;
-    pContext->funcs.SetImageResolution = (int (*)())NULL;
+    pContext->funcs.DestroyContext = 0;
+    pContext->funcs.StartJob = 0;
+    pContext->funcs.EndJob = 0;
+    pContext->funcs.StartDoc = 0;
+    pContext->funcs.EndDoc = 0;
+    pContext->funcs.StartPage = 0;
+    pContext->funcs.EndPage = 0;
+    pContext->funcs.PutDocumentData = 0;
+    pContext->funcs.GetDocumentData = 0;
+    pContext->funcs.GetAttributes = 0;
+    pContext->funcs.GetOneAttribute = 0;
+    pContext->funcs.SetAttributes = 0;
+    pContext->funcs.AugmentAttributes = 0;
+    pContext->funcs.GetMediumDimensions = 0;
+    pContext->funcs.GetReproducibleArea = 0;
+    pContext->funcs.SetImageResolution = 0;
 
     if((pContext->printerName = (char *)xalloc(stuff->printerNameLen + 1)) == 
        (char *)NULL)
@@ -1034,7 +1006,7 @@ ProcXpCreateContext(client)
     {
 	if(!strcmp(driverName, pDriver->name))
 	{
-	    if(pDriver->CreateContext != (Bool (*)())NULL)
+	    if(pDriver->CreateContext != 0)
 	        pDriver->CreateContext(pContext);
 	    else
 	        return BadImplementation;
@@ -1053,8 +1025,7 @@ ProcXpCreateContext(client)
  * and stashes the contextID in the client's devPrivate.
  */
 static int
-ProcXpSetContext(client)
-    ClientPtr client;
+ProcXpSetContext(ClientPtr client)
 {
     REQUEST(xPrintSetContextReq);
 
@@ -1111,22 +1082,18 @@ ProcXpSetContext(client)
 }
 
 XpContextPtr
-XpGetPrintContext(client)
-    ClientPtr client;
+XpGetPrintContext(ClientPtr client)
 {
     return (client->devPrivates[XpClientPrivateIndex].ptr);
 }
 
 static int
-ProcXpGetContext(client)
-    ClientPtr client;
+ProcXpGetContext(ClientPtr client)
 {
-    REQUEST(xPrintGetContextReq);
+    /* REQUEST(xPrintGetContextReq); */
     xPrintGetContextReply rep;
 
     XpContextPtr pContext;
-    XpClientPtr pNewPrintClient;
-    int result = Success;
     register int n;
     register long l;
 
@@ -1156,14 +1123,11 @@ ProcXpGetContext(client)
  * to be called.
  */
 static int
-ProcXpDestroyContext(client)
-    ClientPtr client;
+ProcXpDestroyContext(ClientPtr client)
 {
     REQUEST(xPrintDestroyContextReq);
 
     XpContextPtr pContext;
-    XpClientPtr pXpClient;
-    ClientPtr curClient;
 
     REQUEST_SIZE_MATCH(xPrintDestroyContextReq);
 
@@ -1185,8 +1149,7 @@ ProcXpDestroyContext(client)
 }
 
 static int
-ProcXpGetContextScreen(client)
-    ClientPtr client;
+ProcXpGetContextScreen(ClientPtr client)
 {
     REQUEST(xPrintGetContextScreenReq);
     xPrintGetContextScreenReply rep;
@@ -1229,9 +1192,7 @@ ProcXpGetContextScreen(client)
  * itself.
  */
 static int
-XpFreeContext(data, id)
-    pointer data;
-    XID id;
+XpFreeContext(pointer data, XID id)
 {
     XpContextPtr pContext = (XpContextPtr)data;
 
@@ -1245,7 +1206,7 @@ XpFreeContext(data, id)
 	    XpPagePtr pPage = (XpPagePtr)LookupIDByType(
 				       pContext->pageWin, RTpage);
 
-	    pContext->funcs.EndPage(pContext, pWin, TRUE);
+	    pContext->funcs.EndPage(pContext, pWin);
 	    SendXpNotify(pContext, XPEndPageNotify, TRUE);
 	    pContext->state &= ~PAGE_STARTED;
 	    if(pPage)
@@ -1259,7 +1220,7 @@ XpFreeContext(data, id)
 	    pContext->state &= ~DOC_RAW_STARTED;
 	    pContext->state &= ~DOC_COOKED_STARTED;
 	}
-	if(pContext->funcs.EndJob != (int (*)())NULL)
+	if(pContext->funcs.EndJob != 0)
 	{
 	    pContext->funcs.EndJob(pContext, TRUE);
 	    SendXpNotify(pContext, XPEndJobNotify, TRUE);
@@ -1272,7 +1233,7 @@ XpFreeContext(data, id)
      * Tell the driver we're destroying the context
      * This allows the driver to free and ContextPrivate data
      */
-    if(pContext->funcs.DestroyContext != (int (*)())NULL)
+    if(pContext->funcs.DestroyContext != 0)
 	pContext->funcs.DestroyContext(pContext);
 
     /* Free up all the XpClientRecs */
@@ -1291,11 +1252,10 @@ XpFreeContext(data, id)
  * is freed.  It simply calls the FreeXpClient routine to do the work.
  */
 static int
-XpFreeClient(data, id)
-    pointer data;
-    XID id;
+XpFreeClient(pointer data, XID id)
 {
     FreeXpClient((XpClientPtr)data, TRUE);
+    return Success;
 }
 
 /*
@@ -1309,9 +1269,7 @@ XpFreeClient(data, id)
  * XpClientRec's XID).
  */
 static void
-FreeXpClient(pXpClient, freeResource)
-    XpClientPtr pXpClient;
-    Bool freeResource;
+FreeXpClient(XpClientPtr pXpClient, Bool freeResource)
 {
     XpClientPtr pCurrent, pPrev;
     XpContextPtr pContext = pXpClient->context;
@@ -1355,8 +1313,7 @@ FreeXpClient(pXpClient, freeResource)
  * freeing of the Rec when the client's connection is closed.
  */
 static XpClientPtr
-CreateXpClient(client)
-    ClientPtr client;
+CreateXpClient(ClientPtr client)
 {
     XpClientPtr pNewPrintClient;
     XID clientResource;
@@ -1389,9 +1346,7 @@ CreateXpClient(client)
  * the page resource.
  */
 static int
-XpFreePage(data, id)
-    pointer data;
-    XID id;
+XpFreePage(pointer data, XID id)
 {
     XpPagePtr page = (XpPagePtr)data;
     int result = Success;
@@ -1401,9 +1356,8 @@ XpFreePage(data, id)
     if(page->context != (XpContextPtr)NULL && 
        page->context->state & PAGE_STARTED)
     {
-	XpScreenPtr pPrintScreen = XpScreens[page->context->screenNum];
-	if(page->context->funcs.EndPage != (int (*)())NULL)
-	    result = page->context->funcs.EndPage(page->context, pWin, TRUE);
+	if(page->context->funcs.EndPage != 0)
+	    result = page->context->funcs.EndPage(page->context, pWin);
         SendXpNotify(page->context, XPEndPageNotify, (int)TRUE);
 	page->context->pageWin = 0; /* None, NULL??? XXX */
     }
@@ -1420,8 +1374,7 @@ XpFreePage(data, id)
  */
 
 static void
-InitContextPrivates(context)
-    XpContextPtr context;
+InitContextPrivates(XpContextPtr context)
 {
     register char *ptr;
     DevUnion *ppriv;
@@ -1450,7 +1403,7 @@ InitContextPrivates(context)
 }
 
 static void
-ResetContextPrivates()
+ResetContextPrivates(void)
 {
     contextPrivateCount = 0;
     contextPrivateLen = 0;
@@ -1461,15 +1414,13 @@ ResetContextPrivates()
 }
 
 int
-XpAllocateContextPrivateIndex()
+XpAllocateContextPrivateIndex(void)
 {
     return contextPrivateCount++;
 }
 
 Bool
-XpAllocateContextPrivate(index, amount)
-    int index;
-    unsigned amount;
+XpAllocateContextPrivate(int index, unsigned amount)
 {
     unsigned oldamount;
 
@@ -1497,9 +1448,7 @@ XpAllocateContextPrivate(index, amount)
 }
 
 static XpClientPtr
-AcquireClient(pContext, client)
-    XpContextPtr pContext;
-    ClientPtr client;
+AcquireClient(XpContextPtr pContext, ClientPtr client)
 {
     XpClientPtr pXpClient;
 
@@ -1517,9 +1466,7 @@ AcquireClient(pContext, client)
 }
 
 static XpClientPtr
-FindClient(pContext, client)
-    XpContextPtr pContext;
-    ClientPtr client;
+FindClient(XpContextPtr pContext, ClientPtr client)
 {
     XpClientPtr pXpClient;
 
@@ -1539,8 +1486,7 @@ FindClient(pContext, client)
  ******************************************************************************/
 
 static int
-ProcXpStartJob(client)
-    ClientPtr client;
+ProcXpStartJob(ClientPtr client)
 {
     REQUEST(xPrintStartJobReq);
     XpContextPtr pContext;
@@ -1564,9 +1510,10 @@ ProcXpStartJob(client)
     }
 
     pPrintScreen = XpScreens[pContext->screenNum];
-    if(pContext->funcs.StartJob != (int (*)())NULL)
+    if(pContext->funcs.StartJob != 0)
         result = pContext->funcs.StartJob(pContext, 
-			 (stuff->saveData == XPGetData)? TRUE:FALSE);
+			 (stuff->saveData == XPGetData)? TRUE:FALSE,
+			 client);
     else
         return BadImplementation;
 
@@ -1583,12 +1530,10 @@ ProcXpStartJob(client)
 }
 
 static int
-ProcXpEndJob(client)
-    ClientPtr client;
+ProcXpEndJob(ClientPtr client)
 {
     REQUEST(xPrintEndJobReq);
     XpScreenPtr pPrintScreen;
-    WindowPtr pWin;
     int result = Success;
     XpContextPtr pContext;
 
@@ -1617,8 +1562,8 @@ ProcXpEndJob(client)
 	    if(stuff->cancel != TRUE)
 	        return XpErrorBase+XPBadSequence;
 
-            if(pContext->funcs.EndPage != (int (*)())NULL)
-                result = pContext->funcs.EndPage(pContext, pWin, TRUE);
+            if(pContext->funcs.EndPage != 0)
+                result = pContext->funcs.EndPage(pContext, pWin);
             else
 	        return BadImplementation;
 
@@ -1632,7 +1577,7 @@ ProcXpEndJob(client)
 	    if(result != Success) return result;
 	}
 
-        if(pContext->funcs.EndDoc != (int (*)())NULL)
+        if(pContext->funcs.EndDoc != 0)
             result = pContext->funcs.EndDoc(pContext, stuff->cancel);
         else
 	    return BadImplementation;
@@ -1640,7 +1585,7 @@ ProcXpEndJob(client)
         SendXpNotify(pContext, XPEndDocNotify, stuff->cancel);
     }
 
-    if(pContext->funcs.EndJob != (int (*)())NULL)
+    if(pContext->funcs.EndJob != 0)
         result = pContext->funcs.EndJob(pContext, stuff->cancel);
     else
 	return BadImplementation;
@@ -1656,9 +1601,7 @@ ProcXpEndJob(client)
 }
 
 static Bool
-DoStartDoc(client, c)
-    ClientPtr client;
-    XpStDocPtr c;
+DoStartDoc(ClientPtr client, XpStDocPtr c)
 {
     XpScreenPtr pPrintScreen;
     int result = Success;
@@ -1670,7 +1613,7 @@ DoStartDoc(client, c)
 	if(!c->slept)
 	{
 	    c->slept = TRUE;
-	    ClientSleep(client, DoStartDoc, (pointer) c);
+	    ClientSleep(client, (ClientSleepProcPtr)DoStartDoc, (pointer) c);
 	    c->pContext->clientSlept = client;
 	}
 	return TRUE;
@@ -1678,7 +1621,7 @@ DoStartDoc(client, c)
     
     pPrintScreen = XpScreens[pContext->screenNum];
 
-    if(pContext->funcs.StartDoc != (int (*)())NULL)
+    if(pContext->funcs.StartDoc != 0)
         result = pContext->funcs.StartDoc(pContext, c->type);
     else
     {
@@ -1699,11 +1642,9 @@ DoStartDoc(client, c)
 }
 
 static int
-ProcXpStartDoc(client)
-    ClientPtr client;
+ProcXpStartDoc(ClientPtr client)
 {
     REQUEST(xPrintStartDocReq);
-    XpScreenPtr pPrintScreen;
     int result = Success;
     XpContextPtr pContext;
     XpStDocPtr c;
@@ -1738,8 +1679,7 @@ ProcXpStartDoc(client)
 }
 
 static int
-ProcXpEndDoc(client)
-    ClientPtr client;
+ProcXpEndDoc(ClientPtr client)
 {
     REQUEST(xPrintEndDocReq);
     XpScreenPtr pPrintScreen;
@@ -1767,8 +1707,8 @@ ProcXpEndDoc(client)
 	    XpPagePtr pPage = (XpPagePtr)LookupIDByType(
 				       pContext->pageWin, RTpage);
 
-            if(pContext->funcs.EndPage != (int (*)())NULL)
-                result = pContext->funcs.EndPage(pContext, pWin, TRUE);
+            if(pContext->funcs.EndPage != 0)
+                result = pContext->funcs.EndPage(pContext, pWin);
             else
 	        return BadImplementation;
 
@@ -1783,7 +1723,7 @@ ProcXpEndDoc(client)
 	    return result;
     }
 
-    if(pContext->funcs.EndDoc != (int (*)())NULL)
+    if(pContext->funcs.EndDoc != 0)
         result = pContext->funcs.EndDoc(pContext, stuff->cancel);
     else
 	return BadImplementation;
@@ -1800,9 +1740,9 @@ ProcXpEndDoc(client)
 }
 
 static Bool
-DoStartPage(client, c)
-    ClientPtr client;
-    XpStPagePtr c;
+DoStartPage(
+    ClientPtr client,
+    XpStPagePtr c)
 {
     XpScreenPtr pPrintScreen;
     WindowPtr pWin = c->pWin;
@@ -1816,7 +1756,7 @@ DoStartPage(client, c)
 	if(!c->slept)
 	{
 	    c->slept = TRUE;
-	    ClientSleep(client, DoStartPage, (pointer) c);
+	    ClientSleep(client, (ClientSleepProcPtr)DoStartPage, (pointer) c);
 	    c->pContext->clientSlept = client;
 	}
 	return TRUE;
@@ -1825,7 +1765,7 @@ DoStartPage(client, c)
     if(!(pContext->state & DOC_COOKED_STARTED))
     {
 	/* Implied StartDoc if it was omitted */
-        if(pContext->funcs.StartDoc != (int (*)())NULL)
+        if(pContext->funcs.StartDoc != 0)
             result = pContext->funcs.StartDoc(pContext, XPDocNormal);
         else
 	{
@@ -1878,7 +1818,7 @@ DoStartPage(client, c)
     pPrintScreen = XpScreens[pContext->screenNum];
 
 
-    if(pContext->funcs.StartPage != (int (*)())NULL)
+    if(pContext->funcs.StartPage != 0)
         result = pContext->funcs.StartPage(pContext, pWin);
     else
     {
@@ -1897,15 +1837,12 @@ DoStartPage(client, c)
 }
 
 static int
-ProcXpStartPage(client)
-    ClientPtr client;
+ProcXpStartPage(ClientPtr client)
 {
     REQUEST(xPrintStartPageReq);
-    XpScreenPtr pPrintScreen;
     WindowPtr pWin;
     int result = Success;
     XpContextPtr pContext;
-    XpPagePtr pPage;
     XpStPagePtr c;
 
     REQUEST_SIZE_MATCH(xPrintStartPageReq);
@@ -1944,8 +1881,7 @@ ProcXpStartPage(client)
 }
 
 static int
-ProcXpEndPage(client)
-    ClientPtr client;
+ProcXpEndPage(ClientPtr client)
 {
     REQUEST(xPrintEndPageReq);
     XpScreenPtr pPrintScreen;
@@ -1967,8 +1903,8 @@ ProcXpEndPage(client)
     pWin = (WindowPtr )LookupIDByType(pContext->pageWin, RT_WINDOW);
 
     /* Call the ddx's EndPage proc. */
-    if(pContext->funcs.EndPage != (int (*)())NULL)
-        result = pContext->funcs.EndPage(pContext, pWin, stuff->cancel);
+    if(pContext->funcs.EndPage != 0)
+        result = pContext->funcs.EndPage(pContext, pWin);
     else
 	return BadImplementation;
 
@@ -1996,14 +1932,13 @@ ProcXpEndPage(client)
  ******************************************************************************/
 
 static int
-ProcXpPutDocumentData(client)
-    ClientPtr client;
+ProcXpPutDocumentData(ClientPtr client)
 {
     REQUEST(xPrintPutDocumentDataReq);
     XpContextPtr pContext;
     DrawablePtr pDraw;
     int result = Success;
-    int len, totalSize;
+    unsigned totalSize;
     char *pData, *pDoc_fmt, *pOptions;
 
     REQUEST_AT_LEAST_SIZE(xPrintPutDocumentDataReq);
@@ -2040,7 +1975,7 @@ ProcXpPutDocumentData(client)
     if((totalSize + (sz_xPrintPutDocumentDataReq >> 2)) != client->req_len)
 	 return BadLength;
     
-    if(pContext->funcs.PutDocumentData != (int (*)())NULL)
+    if(pContext->funcs.PutDocumentData != 0)
     {
         result = (*pContext->funcs.PutDocumentData)(pContext, pDraw,
 					  pData, stuff->len_data,
@@ -2058,12 +1993,10 @@ ProcXpPutDocumentData(client)
 }
 
 static int
-ProcXpGetDocumentData(client)
-    ClientPtr client;
+ProcXpGetDocumentData(ClientPtr client)
 {
     REQUEST(xPrintGetDocumentDataReq);
     xPrintGetDocumentDataReply rep;
-    XpScreenPtr pPrintScreen;
     XpContextPtr pContext;
     int result = Success;
 
@@ -2079,7 +2012,7 @@ ProcXpGetDocumentData(client)
         return XpErrorBase+XPBadContext;
     }
 
-    if(pContext->funcs.GetDocumentData == (int (*)())NULL)
+    if(pContext->funcs.GetDocumentData == 0)
 	return BadImplementation;
 
     if(!(pContext->state & JOB_GET_DATA) || 
@@ -2132,8 +2065,7 @@ ProcXpGetDocumentData(client)
  ******************************************************************************/
 
 static int 
-ProcXpGetAttributes(client)
-    ClientPtr client;
+ProcXpGetAttributes(ClientPtr client)
 {
     REQUEST(xPrintGetAttributesReq);
     XpContextPtr pContext;
@@ -2163,7 +2095,7 @@ ProcXpGetAttributes(client)
             return XpErrorBase+XPBadContext;
         }
 
-        if(pContext->funcs.GetAttributes == (char *(*)())NULL)
+        if(pContext->funcs.GetAttributes == 0)
 	    return BadImplementation;
         if((attrs = (*pContext->funcs.GetAttributes)(pContext, stuff->type)) == 
            (char *)NULL) 
@@ -2203,8 +2135,7 @@ ProcXpGetAttributes(client)
 }
 
 static int 
-ProcXpSetAttributes(client)
-    ClientPtr client;
+ProcXpSetAttributes(ClientPtr client)
 {
     REQUEST(xPrintSetAttributesReq);
     int result = Success;
@@ -2236,7 +2167,7 @@ ProcXpSetAttributes(client)
         return XpErrorBase+XPBadContext;
     }
 
-    if(pContext->funcs.SetAttributes == (int (*)())NULL)
+    if(pContext->funcs.SetAttributes == 0)
 	return BadImplementation;
     
     /* 
@@ -2275,14 +2206,14 @@ ProcXpSetAttributes(client)
 }
 
 static int 
-ProcXpGetOneAttribute(client)
-    ClientPtr client;
+ProcXpGetOneAttribute(ClientPtr client)
 {
     REQUEST(xPrintGetOneAttributeReq);
     XpContextPtr pContext;
     char *value, *attrName;
     xPrintGetOneAttributeReply *pRep;
-    int totalSize, n;
+    int totalSize;
+    int n;
     unsigned long l;
 
     REQUEST_AT_LEAST_SIZE(xPrintGetOneAttributeReq);
@@ -2316,7 +2247,7 @@ ProcXpGetOneAttribute(client)
             return XpErrorBase+XPBadContext;
         }
 
-        if(pContext->funcs.GetOneAttribute == (char *(*)())NULL)
+        if(pContext->funcs.GetOneAttribute == 0)
 	    return BadImplementation;
         if((value = (*pContext->funcs.GetOneAttribute)(pContext, stuff->type,
            attrName)) == (char *)NULL) 
@@ -2364,8 +2295,7 @@ ProcXpGetOneAttribute(client)
 
 
 static int
-ProcXpSelectInput(client)
-    ClientPtr client;
+ProcXpSelectInput(ClientPtr client)
 {
     REQUEST(xPrintSelectInputReq);
     int result = Success;
@@ -2403,14 +2333,12 @@ ProcXpSelectInput(client)
 }
 
 static int
-ProcXpInputSelected(client)
-    ClientPtr client;
+ProcXpInputSelected(ClientPtr client)
 {
     REQUEST(xPrintInputSelectedReq);
     xPrintInputSelectedReply rep;
     register int n;
-    long l, allMask;
-    WindowPtr pWin;
+    long l;
     XpClientPtr pXpClient;
     XpContextPtr pContext;
 
@@ -2446,9 +2374,7 @@ ProcXpInputSelected(client)
 }
 
 static void
-SendAttributeNotify(pContext, which)
-    XpContextPtr pContext;
-    int which;
+SendAttributeNotify(XpContextPtr pContext, int which)
 {
     XpClientPtr        pXpClient;
     xPrintAttributeEvent   ae;
@@ -2473,11 +2399,9 @@ SendAttributeNotify(pContext, which)
         WriteEventsToClient (client, 1, (xEvent *) &ae);
     }
 }
+
 static void
-SendXpNotify(pContext, which, val)
-    XpContextPtr pContext;
-    int which;
-    int val;
+SendXpNotify(XpContextPtr pContext, int which, int val)
 {
     XpClientPtr        pXpClient;
     xPrintPrintEvent   pe;
@@ -2505,8 +2429,7 @@ SendXpNotify(pContext, which, val)
 }
 
 static CARD32
-GetAllEventMasks(pContext)
-    XpContextPtr pContext;
+GetAllEventMasks(XpContextPtr pContext)
 {
     XpClientPtr pPrintClient;
     CARD32 totalMask = (CARD32)0;
@@ -2526,11 +2449,8 @@ GetAllEventMasks(pContext)
  * does not currently have a context set.
  */
 XpContextPtr
-XpContextOfClient(client)
-    ClientPtr client;
+XpContextOfClient(ClientPtr client)
 {
-    XpContextPtr pContext;
-
     return (XpContextPtr)client->devPrivates[XpClientPrivateIndex].ptr;
 }
 
@@ -2542,8 +2462,7 @@ XpContextOfClient(client)
  ******************************************************************************/
 
 static int
-SProcXpCreateContext(client)
-    ClientPtr client;
+SProcXpCreateContext(ClientPtr client)
 {
     int i;
     long n;
@@ -2558,8 +2477,7 @@ SProcXpCreateContext(client)
 }
 
 static int
-SProcXpGetPrinterList(client)
-    ClientPtr client;
+SProcXpGetPrinterList(ClientPtr client)
 {
     int i;
     long n;
@@ -2573,11 +2491,9 @@ SProcXpGetPrinterList(client)
 }
 
 static int
-SProcXpRehashPrinterList(client)
-    ClientPtr client;
+SProcXpRehashPrinterList(ClientPtr client)
 {
     int i;
-    long n;
 
     REQUEST(xPrintRehashPrinterListReq);
     swaps(&stuff->length, i);
@@ -2585,11 +2501,9 @@ SProcXpRehashPrinterList(client)
 }
 
 static int
-SProcXpSetContext(client)
-    ClientPtr client;
+SProcXpSetContext(ClientPtr client)
 {
     int i;
-    long n;
 
     REQUEST(xPrintSetContextReq);
     swaps(&stuff->length, i);
@@ -2598,8 +2512,7 @@ SProcXpSetContext(client)
 }
 
 static int
-SProcXpGetContext(client)
-    ClientPtr client;
+SProcXpGetContext(ClientPtr client)
 {
     int i;
 
@@ -2609,8 +2522,7 @@ SProcXpGetContext(client)
 }
 
 static int
-SProcXpDestroyContext(client)
-    ClientPtr client;
+SProcXpDestroyContext(ClientPtr client)
 {
     int i;
     long n;
@@ -2622,8 +2534,7 @@ SProcXpDestroyContext(client)
 }
 
 static int
-SProcXpGetContextScreen(client)
-    ClientPtr client;
+SProcXpGetContextScreen(ClientPtr client)
 {
     int i;
     long n;
@@ -2635,8 +2546,7 @@ SProcXpGetContextScreen(client)
 }
 
 static int
-SProcXpInputSelected(client)
-    ClientPtr client;
+SProcXpInputSelected(ClientPtr client)
 {
     int i;
     long n;
@@ -2648,8 +2558,7 @@ SProcXpInputSelected(client)
 }
 
 static int
-SProcXpStartJob(client)
-    ClientPtr client;
+SProcXpStartJob(ClientPtr client)
 {
     int i;
 
@@ -2659,8 +2568,7 @@ SProcXpStartJob(client)
 }
 
 static int
-SProcXpEndJob(client)
-    ClientPtr client;
+SProcXpEndJob(ClientPtr client)
 {
     int i;
 
@@ -2670,8 +2578,7 @@ SProcXpEndJob(client)
 }
 
 static int
-SProcXpStartDoc(client)
-    ClientPtr client;
+SProcXpStartDoc(ClientPtr client)
 {
     int i;
 
@@ -2681,8 +2588,7 @@ SProcXpStartDoc(client)
 }
 
 static int
-SProcXpEndDoc(client)
-    ClientPtr client;
+SProcXpEndDoc(ClientPtr client)
 {
     int i;
 
@@ -2692,8 +2598,7 @@ SProcXpEndDoc(client)
 }
 
 static int
-SProcXpStartPage(client)
-    ClientPtr client;
+SProcXpStartPage(ClientPtr client)
 {
     int i;
     long n;
@@ -2705,8 +2610,7 @@ SProcXpStartPage(client)
 }
 
 static int
-SProcXpEndPage(client)
-    ClientPtr client;
+SProcXpEndPage(ClientPtr client)
 {
     int i;
 
@@ -2716,8 +2620,7 @@ SProcXpEndPage(client)
 }
 
 static int
-SProcXpPutDocumentData(client)
-    ClientPtr client;
+SProcXpPutDocumentData(ClientPtr client)
 {
     long n;
     int i;
@@ -2732,8 +2635,7 @@ SProcXpPutDocumentData(client)
 }
 
 static int
-SProcXpGetDocumentData(client)
-    ClientPtr client;
+SProcXpGetDocumentData(ClientPtr client)
 {
     long n;
     int i;
@@ -2746,8 +2648,7 @@ SProcXpGetDocumentData(client)
 }
 
 static int
-SProcXpGetAttributes(client)
-    ClientPtr client;
+SProcXpGetAttributes(ClientPtr client)
 {
     long n;
     int i;
@@ -2759,8 +2660,7 @@ SProcXpGetAttributes(client)
 }
 
 static int
-SProcXpSetAttributes(client)
-    ClientPtr client;
+SProcXpSetAttributes(ClientPtr client)
 {
     long n;
     int i;
@@ -2773,8 +2673,7 @@ SProcXpSetAttributes(client)
 }
 
 static int
-SProcXpGetOneAttribute(client)
-    ClientPtr client;
+SProcXpGetOneAttribute(ClientPtr client)
 {
     long n;
     int i;
@@ -2787,8 +2686,7 @@ SProcXpGetOneAttribute(client)
 }
 
 static int
-SProcXpSelectInput(client)
-    ClientPtr client;
+SProcXpSelectInput(ClientPtr client)
 {
     long n;
     int i;
@@ -2799,9 +2697,9 @@ SProcXpSelectInput(client)
     swapl(&stuff->printContext, n);
     return ProcXpSelectInput(client);
 }
+
 static int 
-SProcXpGetPageDimensions(client)
-    ClientPtr client;
+SProcXpGetPageDimensions(ClientPtr client)
 {
     long n;
     int i;
@@ -2811,9 +2709,9 @@ SProcXpGetPageDimensions(client)
     swapl(&stuff->printContext, n);
     return ProcXpGetPageDimensions(client);
 }
+
 static int 
-SProcXpSetImageResolution(client)
-    ClientPtr client;
+SProcXpSetImageResolution(ClientPtr client)
 {
     long n;
     int i;
@@ -2824,9 +2722,9 @@ SProcXpSetImageResolution(client)
     swaps(&stuff->imageRes, i);
     return ProcXpSetImageResolution(client);
 }
+
 static int 
-SProcXpGetImageResolution(client)
-    ClientPtr client;
+SProcXpGetImageResolution(ClientPtr client)
 {
     long n;
     int i;
@@ -2838,8 +2736,7 @@ SProcXpGetImageResolution(client)
 }
 
 static void
-SwapXpNotifyEvent(src, dst)
-    xPrintPrintEvent *src, *dst;
+SwapXpNotifyEvent(xPrintPrintEvent *src, xPrintPrintEvent *dst)
 {
     /*
      * Swap the sequence number and context fields.
@@ -2856,8 +2753,7 @@ SwapXpNotifyEvent(src, dst)
 }
 
 static void
-SwapXpAttributeEvent(src, dst)
-    xPrintAttributeEvent *src, *dst;
+SwapXpAttributeEvent(xPrintAttributeEvent *src, xPrintAttributeEvent *dst)
 {
     /*
      * Swap the sequence number and context fields.

@@ -45,6 +45,8 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ******************************************************************/
+/* $XFree86: xc/programs/Xserver/include/regionstr.h,v 1.7 2001/12/14 19:59:56 dawes Exp $ */
+
 #ifndef REGIONSTRUCT_H
 #define REGIONSTRUCT_H
 
@@ -75,8 +77,11 @@ typedef struct _Region {
 
 extern BoxRec miEmptyBox;
 extern RegDataRec miEmptyData;
+extern RegDataRec miBrokenData;
 
 #define REGION_NIL(reg) ((reg)->data && !(reg)->data->numRects)
+/* not a region */
+#define REGION_NAR(reg)	((reg)->data == &miBrokenData)
 #define REGION_NUM_RECTS(reg) ((reg)->data ? (reg)->data->numRects : 1)
 #define REGION_SIZE(reg) ((reg)->data ? (reg)->data->size : 0)
 #define REGION_RECTS(reg) ((reg)->data ? (BoxPtr)((reg)->data + 1) \
@@ -130,6 +135,12 @@ extern RegDataRec miEmptyData;
 
 #define REGION_NOTEMPTY(_pScreen, _pReg) \
     (*(_pScreen)->RegionNotEmpty)(_pReg)
+
+#define REGION_BROKEN(_pScreen, _pReg) \
+    (*(_pScreen)->RegionBroken)(_pReg)
+
+#define REGION_BREAK(_pScreen, _pReg) \
+    (*(_pScreen)->RegionBreak)(_pReg)
 
 #define REGION_EMPTY(_pScreen, _pReg) \
     (*(_pScreen)->RegionEmpty)(_pReg)
@@ -193,6 +204,9 @@ extern RegDataRec miEmptyData;
 #define RECTS_TO_REGION(_pScreen, nrects, prect, ctype) \
     miRectsToRegion(nrects, prect, ctype)
 
+#define REGION_BREAK(_pScreen, _pReg) \
+    miRegionBreak(_pReg)
+
 #ifdef DONT_INLINE_REGION_OPS
 
 #define REGION_INIT(_pScreen, _pReg, _rect, _size) \
@@ -206,6 +220,9 @@ extern RegDataRec miEmptyData;
 
 #define REGION_NOTEMPTY(_pScreen, _pReg) \
     miRegionNotEmpty(_pReg)
+
+#define REGION_BROKEN(_pScreen, _pReg) \
+    miRegionBroken(_pReg)
 
 #define REGION_EMPTY(_pScreen, _pReg) \
     miRegionEmpty(_pReg)
@@ -238,7 +255,10 @@ extern RegDataRec miEmptyData;
 
 #define REGION_UNINIT(_pScreen, _pReg) \
 { \
-    if ((_pReg)->data && (_pReg)->data->size) xfree((_pReg)->data); \
+    if ((_pReg)->data && (_pReg)->data->size) { \
+	xfree((_pReg)->data); \
+	(_pReg)->data = NULL; \
+    } \
 }
 
 #define REGION_RESET(_pScreen, _pReg, _pBox) \
@@ -250,6 +270,9 @@ extern RegDataRec miEmptyData;
 
 #define REGION_NOTEMPTY(_pScreen, _pReg) \
     !REGION_NIL(_pReg)
+
+#define REGION_BROKEN(_pScreen, _pReg) \
+    REGION_NAR(_pReg)
 
 #define REGION_EMPTY(_pScreen, _pReg) \
 { \
@@ -375,6 +398,12 @@ extern void miRegionReset(
 #if NeedFunctionPrototypes
     RegionPtr /*pReg*/,
     BoxPtr /*pBox*/
+#endif
+);
+
+extern Bool miRegionBreak(
+#if NeedFunctionPrototypes
+    RegionPtr /*pReg*/
 #endif
 );
 

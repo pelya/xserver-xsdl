@@ -1,23 +1,33 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/xf86Version.h,v 3.236.2.50 1998/03/02 09:58:21 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/xf86Version.h,v 3.543.2.1 2003/05/10 01:10:10 dawes Exp $ */
 
-#define XF86_VERSION " 3.3.2 "
+#ifndef XF86_VERSION_CURRENT
 
-/* The finer points in versions... */
-#define XF86_VERSION_MAJOR	3
+#define XF86_VERSION_MAJOR	4
 #define XF86_VERSION_MINOR	3
-#define XF86_VERSION_SUBMINOR	2
-#define XF86_VERSION_BETA	0	/* 0="", 1="A", 2="B", etc... */
-#define XF86_VERSION_ALPHA	0	/* 0="", 1="a", 2="b", etc... */
+#define XF86_VERSION_PATCH	0
+#define XF86_VERSION_SNAP	1
 
-#define XF86_VERSION_NUMERIC(major,minor,subminor,beta,alpha)	\
-   ((((((((major << 7) | minor) << 7) | subminor) << 5) | beta) << 5) | alpha)
+/* This has five arguments for compatibilty reasons */
+#define XF86_VERSION_NUMERIC(major,minor,patch,snap,dummy) \
+	(((major) * 10000000) + ((minor) * 100000) + ((patch) * 1000) + snap)
+
+#define XF86_GET_MAJOR_VERSION(vers)	((vers) / 10000000)
+#define XF86_GET_MINOR_VERSION(vers)	(((vers) % 10000000) / 100000)
+#define XF86_GET_PATCH_VERSION(vers)	(((vers) % 100000) / 1000)
+#define XF86_GET_SNAP_VERSION(vers)	((vers) % 1000)
+
+/* Define these for compatibility.  They'll be removed at some point. */
+#define XF86_VERSION_SUBMINOR	XF86_VERSION_PATCH
+#define XF86_VERSION_BETA	0
+#define XF86_VERSION_ALPHA	XF86_VERSION_SNAP
+
 #define XF86_VERSION_CURRENT					\
    XF86_VERSION_NUMERIC(XF86_VERSION_MAJOR,			\
 			XF86_VERSION_MINOR,			\
-			XF86_VERSION_SUBMINOR,			\
-			XF86_VERSION_BETA,			\
-			XF86_VERSION_ALPHA)
+			XF86_VERSION_PATCH,			\
+			XF86_VERSION_SNAP,			\
+			0)
 
-#define XF86_DATE	"March 2 1998"
+#endif
 
-/* $Xorg: xf86Version.h,v 1.3 2000/08/17 19:48:48 cpqbld Exp $ */
+/* $XConsortium: xf86Version.h /main/78 1996/10/28 05:42:10 kaleb $ */

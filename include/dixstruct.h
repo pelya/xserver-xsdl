@@ -1,3 +1,4 @@
+/* $XFree86: xc/programs/Xserver/include/dixstruct.h,v 3.18 2003/01/12 02:44:27 dawes Exp $ */
 /***********************************************************
 Copyright 1987 by Digital Equipment Corporation, Maynard, Massachusetts.
 
@@ -49,6 +50,22 @@ typedef struct {
     xConnSetup  	*setup;
 } NewClientInfoRec;
 
+typedef void (*ReplySwapPtr) (
+#if NeedNestedPrototypes
+		ClientPtr	/* pClient */,
+		int		/* size */,
+		void *		/* pbuf */
+#endif
+);
+
+extern void ReplyNotSwappd (
+#if NeedNestedPrototypes
+		ClientPtr	/* pClient */,
+		int		/* size */,
+		void *		/* pbuf */
+#endif
+);
+
 typedef enum {ClientStateInitial,
 	      ClientStateAuthenticating,
 	      ClientStateRunning,
@@ -63,13 +80,7 @@ typedef struct _Client {
     pointer     requestBuffer;
     pointer     osPrivate;	/* for OS layer, including scheduler */
     Bool        swapped;
-    void        (*pSwapReplyFunc) (
-#if NeedNestedPrototypes
-		ClientPtr	/* pClient */,
-		int		/* size */,
-		void *		/* pbuf */
-#endif
-);
+    ReplySwapPtr pSwapReplyFunc;
     XID         errorValue;
     int         sequence;
     int         closeDownMode;
@@ -135,8 +146,44 @@ typedef struct _Client {
 		int *		/* num */
 #endif
 );
+#ifdef SMART_SCHEDULE
+    int	    smart_priority;
+    long    smart_start_tick;
+    long    smart_stop_tick;
+    long    smart_check_tick;
+#endif
 }           ClientRec;
 
+#ifdef SMART_SCHEDULE
+/*
+ * Scheduling interface
+ */
+extern long SmartScheduleTime;
+extern long SmartScheduleInterval;
+extern long SmartScheduleSlice;
+extern long SmartScheduleMaxSlice;
+extern unsigned long SmartScheduleIdleCount;
+extern Bool SmartScheduleDisable;
+extern Bool SmartScheduleIdle;
+extern Bool SmartScheduleTimerStopped;
+extern Bool SmartScheduleStartTimer(void);
+#define SMART_MAX_PRIORITY  20
+#define SMART_MIN_PRIORITY  -20
+
+extern Bool SmartScheduleInit(
+#ifdef NeedFunctionPrototypes
+    void
+#endif
+);
+
+#endif
+
+/* This prototype is used pervasively in Xext, dix */
+#if NeedFunctionPrototypes
+#define DISPATCH_PROC(func) int func(ClientPtr /* client */)
+#else
+#define DISPATCH_PROC(func) int func(/* ClientPtr client */)
+#endif
 
 typedef struct _WorkQueue {
     struct _WorkQueue *next;
@@ -209,7 +256,7 @@ extern int (*k5_Vector[256])() =
 );
 #endif
 
-extern void (* ReplySwapVector[256]) ();
+extern ReplySwapPtr ReplySwapVector[256];
 
 extern int ProcBadRequest(
 #if NeedFunctionPrototypes

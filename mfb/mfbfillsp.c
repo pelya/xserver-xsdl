@@ -1,3 +1,4 @@
+/* $XFree86: xc/programs/Xserver/mfb/mfbfillsp.c,v 1.9 2001/12/14 20:00:06 dawes Exp $ */
 /* Combined Purdue/PurduePlus patches, level 2.0, 1/17/89 */
 /***********************************************************
 
@@ -107,7 +108,7 @@ mfbBlackSolidFS(pDrawable, pGC, nInit, pptInit, pwidthInit, fSorted)
     if (!(pGC->planemask & 1))
 	return;
 
-    n = nInit * miFindMaxBand(((mfbPrivGC *)(pGC->devPrivates[mfbGCPrivateIndex].ptr))->pCompositeClip);
+    n = nInit * miFindMaxBand(pGC->pCompositeClip);
     pwidthFree = (int *)ALLOCATE_LOCAL(n * sizeof(int));
     pptFree = (DDXPointRec *)ALLOCATE_LOCAL(n * sizeof(DDXPointRec));
     if(!pptFree || !pwidthFree)
@@ -118,8 +119,7 @@ mfbBlackSolidFS(pDrawable, pGC, nInit, pptInit, pwidthInit, fSorted)
     }
     pwidth = pwidthFree;
     ppt = pptFree;
-    n = miClipSpans(((mfbPrivGC *)(pGC->devPrivates[mfbGCPrivateIndex].ptr))->pCompositeClip,
-		    pptInit, pwidthInit, nInit,
+    n = miClipSpans(pGC->pCompositeClip, pptInit, pwidthInit, nInit,
 		    ppt, pwidth, fSorted);
 
     mfbGetPixelWidthAndPointer(pDrawable, nlwidth, addrlBase);
@@ -180,7 +180,7 @@ mfbWhiteSolidFS(pDrawable, pGC, nInit, pptInit, pwidthInit, fSorted)
     if (!(pGC->planemask & 1))
 	return;
 
-    n = nInit * miFindMaxBand(((mfbPrivGC *)(pGC->devPrivates[mfbGCPrivateIndex].ptr))->pCompositeClip);
+    n = nInit * miFindMaxBand(pGC->pCompositeClip);
     pwidthFree = (int *)ALLOCATE_LOCAL(n * sizeof(int));
     pptFree = (DDXPointRec *)ALLOCATE_LOCAL(n * sizeof(DDXPointRec));
     if(!pptFree || !pwidthFree)
@@ -191,8 +191,7 @@ mfbWhiteSolidFS(pDrawable, pGC, nInit, pptInit, pwidthInit, fSorted)
     }
     pwidth = pwidthFree;
     ppt = pptFree;
-    n = miClipSpans(((mfbPrivGC *)(pGC->devPrivates[mfbGCPrivateIndex].ptr))->pCompositeClip,
-		    pptInit, pwidthInit, nInit,
+    n = miClipSpans(pGC->pCompositeClip, pptInit, pwidthInit, nInit,
 		    ppt, pwidth, fSorted);
 
     mfbGetPixelWidthAndPointer(pDrawable, nlwidth, addrlBase);
@@ -253,7 +252,7 @@ mfbInvertSolidFS(pDrawable, pGC, nInit, pptInit, pwidthInit, fSorted)
     if (!(pGC->planemask & 1))
 	return;
 
-    n = nInit * miFindMaxBand(((mfbPrivGC *)(pGC->devPrivates[mfbGCPrivateIndex].ptr))->pCompositeClip);
+    n = nInit * miFindMaxBand(pGC->pCompositeClip);
     pwidthFree = (int *)ALLOCATE_LOCAL(n * sizeof(int));
     pptFree = (DDXPointRec *)ALLOCATE_LOCAL(n * sizeof(DDXPointRec));
     if(!pptFree || !pwidthFree)
@@ -264,8 +263,7 @@ mfbInvertSolidFS(pDrawable, pGC, nInit, pptInit, pwidthInit, fSorted)
     }
     pwidth = pwidthFree;
     ppt = pptFree;
-    n = miClipSpans(((mfbPrivGC *)(pGC->devPrivates[mfbGCPrivateIndex].ptr))->pCompositeClip,
-		    pptInit, pwidthInit, nInit,
+    n = miClipSpans(pGC->pCompositeClip, pptInit, pwidthInit, nInit,
 		    ppt, pwidth, fSorted);
 
     mfbGetPixelWidthAndPointer(pDrawable, nlwidth, addrlBase);
@@ -329,7 +327,7 @@ mfbWhiteStippleFS(pDrawable, pGC, nInit, pptInit, pwidthInit, fSorted)
     if (!(pGC->planemask & 1))
 	return;
 
-    n = nInit * miFindMaxBand(((mfbPrivGC *)(pGC->devPrivates[mfbGCPrivateIndex].ptr))->pCompositeClip);
+    n = nInit * miFindMaxBand(pGC->pCompositeClip);
     pwidthFree = (int *)ALLOCATE_LOCAL(n * sizeof(int));
     pptFree = (DDXPointRec *)ALLOCATE_LOCAL(n * sizeof(DDXPointRec));
     if(!pptFree || !pwidthFree)
@@ -340,13 +338,12 @@ mfbWhiteStippleFS(pDrawable, pGC, nInit, pptInit, pwidthInit, fSorted)
     }
     pwidth = pwidthFree;
     ppt = pptFree;
-    n = miClipSpans(((mfbPrivGC *)(pGC->devPrivates[mfbGCPrivateIndex].ptr))->pCompositeClip,
-		    pptInit, pwidthInit, nInit, 
+    n = miClipSpans(pGC->pCompositeClip, pptInit, pwidthInit, nInit, 
 		    ppt, pwidth, fSorted);
 
     mfbGetPixelWidthAndPointer(pDrawable, nlwidth, addrlBase);
 
-    pStipple = ((mfbPrivGC *)(pGC->devPrivates[mfbGCPrivateIndex].ptr))->pRotatedPixmap;
+    pStipple = pGC->pRotatedPixmap;
     tileHeight = pStipple->drawable.height;
     psrc = (PixelType *)(pStipple->devPrivate.ptr);
 
@@ -407,7 +404,7 @@ mfbBlackStippleFS(pDrawable, pGC, nInit, pptInit, pwidthInit, fSorted)
     if (!(pGC->planemask & 1))
 	return;
 
-    n = nInit * miFindMaxBand(((mfbPrivGC *)(pGC->devPrivates[mfbGCPrivateIndex].ptr))->pCompositeClip);
+    n = nInit * miFindMaxBand(pGC->pCompositeClip);
     pwidthFree = (int *)ALLOCATE_LOCAL(n * sizeof(int));
     pptFree = (DDXPointRec *)ALLOCATE_LOCAL(n * sizeof(DDXPointRec));
     if(!pptFree || !pwidthFree)
@@ -418,13 +415,12 @@ mfbBlackStippleFS(pDrawable, pGC, nInit, pptInit, pwidthInit, fSorted)
     }
     pwidth = pwidthFree;
     ppt = pptFree;
-    n = miClipSpans(((mfbPrivGC *)(pGC->devPrivates[mfbGCPrivateIndex].ptr))->pCompositeClip,
-		    pptInit, pwidthInit, nInit, 
+    n = miClipSpans(pGC->pCompositeClip, pptInit, pwidthInit, nInit, 
 		    ppt, pwidth, fSorted);
 
     mfbGetPixelWidthAndPointer(pDrawable, nlwidth, addrlBase);
 
-    pStipple = ((mfbPrivGC *)(pGC->devPrivates[mfbGCPrivateIndex].ptr))->pRotatedPixmap;
+    pStipple = pGC->pRotatedPixmap;
     tileHeight = pStipple->drawable.height;
     psrc = (PixelType *)(pStipple->devPrivate.ptr);
 
@@ -485,7 +481,7 @@ mfbInvertStippleFS(pDrawable, pGC, nInit, pptInit, pwidthInit, fSorted)
     if (!(pGC->planemask & 1))
 	return;
 
-    n = nInit * miFindMaxBand(((mfbPrivGC *)(pGC->devPrivates[mfbGCPrivateIndex].ptr))->pCompositeClip);
+    n = nInit * miFindMaxBand(pGC->pCompositeClip);
     pwidthFree = (int *)ALLOCATE_LOCAL(n * sizeof(int));
     pptFree = (DDXPointRec *)ALLOCATE_LOCAL(n * sizeof(DDXPointRec));
     if(!pptFree || !pwidthFree)
@@ -496,13 +492,12 @@ mfbInvertStippleFS(pDrawable, pGC, nInit, pptInit, pwidthInit, fSorted)
     }
     pwidth = pwidthFree;
     ppt = pptFree;
-    n = miClipSpans(((mfbPrivGC *)(pGC->devPrivates[mfbGCPrivateIndex].ptr))->pCompositeClip,
-		    pptInit, pwidthInit, nInit, 
+    n = miClipSpans(pGC->pCompositeClip, pptInit, pwidthInit, nInit, 
 		    ppt, pwidth, fSorted);
 
     mfbGetPixelWidthAndPointer(pDrawable, nlwidth, addrlBase);
 
-    pStipple = ((mfbPrivGC *)(pGC->devPrivates[mfbGCPrivateIndex].ptr))->pRotatedPixmap;
+    pStipple = pGC->pRotatedPixmap;
     tileHeight = pStipple->drawable.height;
     psrc = (PixelType *)(pStipple->devPrivate.ptr);
 
@@ -599,13 +594,13 @@ mfbTileFS(pDrawable, pGC, nInit, pptInit, pwidthInit, fSorted)
     int rop;
     int *pwidthFree;		/* copies of the pointers to free */
     DDXPointPtr pptFree;
-    unsigned long   flip;
+    MfbBits   flip;
 
 
     if (!(pGC->planemask & 1))
 	return;
 
-    n = nInit * miFindMaxBand(((mfbPrivGC *)(pGC->devPrivates[mfbGCPrivateIndex].ptr))->pCompositeClip);
+    n = nInit * miFindMaxBand(pGC->pCompositeClip);
     pwidthFree = (int *)ALLOCATE_LOCAL(n * sizeof(int));
     pptFree = (DDXPointRec *)ALLOCATE_LOCAL(n * sizeof(DDXPointRec));
     if(!pptFree || !pwidthFree)
@@ -616,13 +611,12 @@ mfbTileFS(pDrawable, pGC, nInit, pptInit, pwidthInit, fSorted)
     }
     pwidth = pwidthFree;
     ppt = pptFree;
-    n = miClipSpans(((mfbPrivGC *)(pGC->devPrivates[mfbGCPrivateIndex].ptr))->pCompositeClip,
-		    pptInit, pwidthInit, nInit, 
+    n = miClipSpans(pGC->pCompositeClip, pptInit, pwidthInit, nInit, 
 		    ppt, pwidth, fSorted);
 
     mfbGetPixelWidthAndPointer(pDrawable, nlwidth, addrlBase);
 
-    pTile = ((mfbPrivGC *)(pGC->devPrivates[mfbGCPrivateIndex].ptr))->pRotatedPixmap;
+    pTile = pGC->pRotatedPixmap;
     tileHeight = pTile->drawable.height;
     psrc = (PixelType *)(pTile->devPrivate.ptr);
     if (pGC->fillStyle == FillTiled)
@@ -638,7 +632,7 @@ mfbTileFS(pDrawable, pGC, nInit, pptInit, pwidthInit, fSorted)
       case GXcopy:
 	{
 
-#define DoMaskCopyRop(src,dst,mask)	((dst) & ~(mask) | (src) & (mask))
+#define DoMaskCopyRop(src,dst,mask)	(((dst) & ~(mask)) | ((src) & (mask)))
 
 	    while (n--)
 	    {
@@ -749,7 +743,7 @@ mfbUnnaturalTileFS(pDrawable, pGC, nInit, pptInit, pwidthInit, fSorted)
     if (!(pGC->planemask & 1))
 	return;
 
-    n = nInit * miFindMaxBand(((mfbPrivGC *)(pGC->devPrivates[mfbGCPrivateIndex].ptr))->pCompositeClip);
+    n = nInit * miFindMaxBand(pGC->pCompositeClip);
     pwidthFree = (int *)ALLOCATE_LOCAL(n * sizeof(int));
     pptFree = (DDXPointRec *)ALLOCATE_LOCAL(n * sizeof(DDXPointRec));
     if(!pptFree || !pwidthFree)
@@ -760,8 +754,7 @@ mfbUnnaturalTileFS(pDrawable, pGC, nInit, pptInit, pwidthInit, fSorted)
     }
     pwidth = pwidthFree;
     ppt = pptFree;
-    n = miClipSpans(((mfbPrivGC *)(pGC->devPrivates[mfbGCPrivateIndex].ptr))->pCompositeClip,
-		    pptInit, pwidthInit, nInit, 
+    n = miClipSpans(pGC->pCompositeClip, pptInit, pwidthInit, nInit, 
 		    ppt, pwidth, fSorted);
 
     if (pGC->fillStyle == FillTiled)
@@ -848,8 +841,16 @@ mfbUnnaturalTileFS(pDrawable, pGC, nInit, pptInit, pwidthInit, fSorted)
 		    {
 			putbitsrop(*psrc, (x & PIM), nstart, pdst, rop);
 			pdst++;
+#if defined(__alpha__) || defined(__alpha)
+			/*
+			 * XXX workaround an egcs 1.1.2 code generation
+			 * bug. This version might actually be faster.
+			 */
+			psrc += srcStartOver;
+#else
 			if(srcStartOver)
 			    psrc++;
+#endif
 		    }
 		     
 		    while(nlMiddle--)
@@ -908,7 +909,7 @@ mfbUnnaturalStippleFS(pDrawable, pGC, nInit, pptInit, pwidthInit, fSorted)
     if (!(pGC->planemask & 1))
 	return;
 
-    n = nInit * miFindMaxBand(((mfbPrivGC *)(pGC->devPrivates[mfbGCPrivateIndex].ptr))->pCompositeClip);
+    n = nInit * miFindMaxBand(pGC->pCompositeClip);
     pwidthFree = (int *)ALLOCATE_LOCAL(n * sizeof(int));
     pptFree = (DDXPointRec *)ALLOCATE_LOCAL(n * sizeof(DDXPointRec));
     if(!pptFree || !pwidthFree)
@@ -919,8 +920,7 @@ mfbUnnaturalStippleFS(pDrawable, pGC, nInit, pptInit, pwidthInit, fSorted)
     }
     pwidth = pwidthFree;
     ppt = pptFree;
-    n = miClipSpans(((mfbPrivGC *)(pGC->devPrivates[mfbGCPrivateIndex].ptr))->pCompositeClip,
-		    pptInit, pwidthInit, nInit, 
+    n = miClipSpans(pGC->pCompositeClip, pptInit, pwidthInit, nInit, 
 		    ppt, pwidth, fSorted);
 
     pTile = pGC->stipple;

@@ -1,3 +1,4 @@
+/* $XFree86: xc/programs/Xserver/mi/miglblt.c,v 1.6 2001/12/14 20:00:23 dawes Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -58,6 +59,7 @@ SOFTWARE.
 #include	"scrnintstr.h"
 #include	"pixmap.h"
 #include	"servermd.h"
+#include        "mi.h"
 
 /*
     machine-independent glyph blt.
@@ -81,10 +83,10 @@ void
 miPolyGlyphBlt(pDrawable, pGC, x, y, nglyph, ppci, pglyphBase)
     DrawablePtr pDrawable;
     GC 		*pGC;
-    int 	x, y;
+    int 	 x, y;
     unsigned int nglyph;
     CharInfoPtr *ppci;		/* array of character info */
-    unsigned char *pglyphBase;	/* start of array of glyphs */
+    pointer      pglyphBase;	/* start of array of glyphs */
 {
     int width, height;
     PixmapPtr pPixmap;
@@ -194,10 +196,10 @@ void
 miImageGlyphBlt(pDrawable, pGC, x, y, nglyph, ppci, pglyphBase)
     DrawablePtr pDrawable;
     GC 		*pGC;
-    int 	x, y;
+    int 	 x, y;
     unsigned int nglyph;
     CharInfoPtr *ppci;		/* array of character info */
-    unsigned char *pglyphBase;	/* start of array of glyphs */
+    pointer      pglyphBase;	/* start of array of glyphs */
 {
     ExtentInfoRec info;		/* used by QueryGlyphExtents() */
     XID gcvals[3];
@@ -237,12 +239,13 @@ miImageGlyphBlt(pDrawable, pGC, x, y, nglyph, ppci, pglyphBase)
     DoChangeGC(pGC, GCForeground, gcvals, 0);
     ValidateGC(pDrawable, pGC);
     (*pGC->ops->PolyGlyphBlt)(pDrawable, pGC, x, y, nglyph, ppci,
-			      (char *)pglyphBase);
+			      pglyphBase);
 
     /* put all the toys away when done playing */
     gcvals[0] = oldAlu;
     gcvals[1] = oldFG;
     gcvals[2] = oldFS;
     DoChangeGC(pGC, GCFunction|GCForeground|GCFillStyle, gcvals, 0);
+    ValidateGC(pDrawable, pGC);
 
 }

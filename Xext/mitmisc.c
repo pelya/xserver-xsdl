@@ -1,3 +1,4 @@
+/* $XFree86: xc/programs/Xserver/Xext/mitmisc.c,v 3.4 2001/12/14 19:58:49 dawes Exp $ */
 /************************************************************
 
 Copyright 1989, 1998  The Open Group
@@ -28,6 +29,7 @@ in this Software without prior written authorization from The Open Group.
 
 /* $Xorg: mitmisc.c,v 1.4 2001/02/09 02:04:32 xorgcvs Exp $ */
 
+#define NEED_EVENTS
 #include "X.h"
 #include "Xproto.h"
 #include "misc.h"
@@ -40,17 +42,28 @@ in this Software without prior written authorization from The Open Group.
 extern Bool permitOldBugs;
 
 static unsigned char MITReqCode;
-static int ProcMITDispatch(), SProcMITDispatch();
-static void MITResetProc();
+
+static void MITResetProc(
+#if NeedFunctionPrototypes
+    ExtensionEntry * /* extEntry */
+#endif
+);
+
+static DISPATCH_PROC(ProcMITDispatch);
+static DISPATCH_PROC(ProcMITGetBugMode);
+static DISPATCH_PROC(ProcMITSetBugMode);
+static DISPATCH_PROC(SProcMITDispatch);
+static DISPATCH_PROC(SProcMITGetBugMode);
+static DISPATCH_PROC(SProcMITSetBugMode);
 
 void
 MITMiscExtensionInit()
 {
-    ExtensionEntry *extEntry, *AddExtension();
+    ExtensionEntry *extEntry;
 
-    if (extEntry = AddExtension(MITMISCNAME, 0, 0,
+    if ((extEntry = AddExtension(MITMISCNAME, 0, 0,
 				 ProcMITDispatch, SProcMITDispatch,
-				 MITResetProc, StandardMinorOpcode))
+				 MITResetProc, StandardMinorOpcode)) != 0)
 	MITReqCode = (unsigned char)extEntry->base;
 }
 
@@ -81,7 +94,6 @@ static int
 ProcMITGetBugMode(client)
     register ClientPtr client;
 {
-    REQUEST(xMITGetBugModeReq);
     xMITGetBugModeReply rep;
     register int n;
 

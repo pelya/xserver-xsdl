@@ -24,6 +24,7 @@ OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION  WITH
 THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 ********************************************************/
+/* $XFree86: xc/programs/Xserver/xkb/ddxBeep.c,v 3.9 2002/12/05 21:59:00 paulo Exp $ */
 
 #include <stdio.h>
 #define	NEED_EVENTS 1
@@ -59,7 +60,7 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #define	HIGH_PITCH	2000
 #define CLICK_PITCH	1500
 
-static	unsigned long	atomGeneration= -1;
+static	unsigned long	atomGeneration= 0;
 static	Atom	featureOn;
 static	Atom	featureOff;
 static	Atom	featureChange;
@@ -138,6 +139,10 @@ _XkbDDXBeepInitAtoms()
 	    (strcmp(keyboard,"LK443") == 0))
 	    doesPitch = 0;
     }
+#else
+#if defined(sun)
+    doesPitch = 0;
+#endif
 #endif
     return;
 }
@@ -317,7 +322,10 @@ Atom		name;
 		next = SHORT_DELAY;	    
 	    break;
     }
-    if (duration>0) {
+    if (timer == NULL && duration>0) {
+	CARD32		starttime = GetTimeInMillis();
+	CARD32		elapsedtime;
+
 	ctrl->bell_duration= duration;
 	ctrl->bell_pitch= pitch;
 	if (xkbInfo->beepCount==0) {
@@ -330,6 +338,23 @@ Atom		name;
 	ctrl->bell_duration= oldDuration;
 	ctrl->bell_pitch= oldPitch;
 	xkbInfo->beepCount++;
+
+	/* Some DDX schedule the beep and return immediately, others don't
+	   return until the beep is completed.  We measure the time and if
+	   it's less than the beep duration, make sure not to schedule the
+	   next beep until after the current one finishes. */
+
+	elapsedtime = GetTimeInMillis();
+	if (elapsedtime > starttime) { /* watch out for millisecond counter
+					  overflow! */
+	    elapsedtime -= starttime;
+	} else {
+	    elapsedtime = 0;
+	}
+	if (elapsedtime < duration) {
+	    next += duration - elapsedtime;
+	}
+
     }
     return next;
 }

@@ -24,6 +24,7 @@ OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION  WITH
 THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 ********************************************************/
+/* $XFree86: xc/programs/Xserver/xkb/xkb.c,v 3.18 2002/12/20 20:18:35 paulo Exp $ */
 
 #include <stdio.h>
 #include "X.h"
@@ -231,7 +232,7 @@ ProcXkbSelectEvents(client)
 	client->mapNotifyMask&= ~stuff->affectMap;
 	client->mapNotifyMask|= (stuff->affectMap&stuff->map);
     }
-    if (stuff->affectWhich&(~XkbMapNotifyMask)==0) 
+    if ((stuff->affectWhich&(~XkbMapNotifyMask))==0) 
 	return client->noClientException;
 
     masks = XkbFindClientResource((DevicePtr)dev,client);
@@ -1946,7 +1947,7 @@ register XkbServerMapPtr	server = xkb->server;
 register unsigned	 	i;
 unsigned			first,last;
 
-    if ((req->present&XkbKeyBehaviorsMask==0)||(req->nKeyBehaviors<1)) {
+    if (((req->present&XkbKeyBehaviorsMask)==0)||(req->nKeyBehaviors<1)) {
 	req->present&= ~XkbKeyBehaviorsMask;
 	req->nKeyBehaviors= 0;
 	return 1;
@@ -2396,21 +2397,21 @@ unsigned	 first,last;
 	    server->behaviors[wire->key].type= wire->type;
 	    server->behaviors[wire->key].data= wire->data;
 	    if ((wire->type==XkbKB_RadioGroup)&&(((int)wire->data)>maxRG))
-		maxRG= wire->data;
+		maxRG= wire->data + 1;
 	}
 	wire++;
     }
 
     if (maxRG>(int)xkbi->nRadioGroups) {
-        int sz = (maxRG+1)*sizeof(XkbRadioGroupRec);
+        int sz = maxRG*sizeof(XkbRadioGroupRec);
         if (xkbi->radioGroups)
-             xkbi->radioGroups=(XkbRadioGroupPtr)Xrealloc(xkbi->radioGroups,sz);
-        else xkbi->radioGroups= (XkbRadioGroupPtr)Xcalloc(sz);
+             xkbi->radioGroups=(XkbRadioGroupPtr)_XkbRealloc(xkbi->radioGroups,sz);
+        else xkbi->radioGroups= (XkbRadioGroupPtr)_XkbCalloc(1, sz);
         if (xkbi->radioGroups) {
              if (xkbi->nRadioGroups)
                 bzero(&xkbi->radioGroups[xkbi->nRadioGroups],
                         (maxRG-xkbi->nRadioGroups)*sizeof(XkbRadioGroupRec));
-             xkbi->nRadioGroups= maxRG+1;
+             xkbi->nRadioGroups= maxRG;
         }
         else xkbi->nRadioGroups= 0;
         /* should compute members here */
@@ -3323,9 +3324,9 @@ ProcXkbGetNamedIndicator(client)
 {
     DeviceIntPtr 		dev;
     xkbGetNamedIndicatorReply 	rep;
-    register int		i;
+    register int		i = 0;
     XkbSrvLedInfoPtr		sli;
-    XkbIndicatorMapPtr		map;
+    XkbIndicatorMapPtr		map = NULL;
     Bool			supported;
 
     REQUEST(xkbGetNamedIndicatorReq);
@@ -3436,7 +3437,7 @@ ProcXkbSetNamedIndicator(client)
     DeviceIntPtr 		dev,kbd;
     XkbIndicatorMapPtr		map;
     XkbSrvLedInfoPtr 		sli;
-    register int		led;
+    register int		led = 0;
     unsigned			extDevReason;
     unsigned			statec,namec,mapc;
     XkbEventCauseRec		cause;
@@ -4224,7 +4225,7 @@ ProcXkbSetNames(client)
 	names->phys_symbols= *tmp++;
     if (stuff->which&XkbTypesNameMask)
 	names->types= *tmp++;
-    if (stuff->which&XkbCompatNameMask)
+    if (stuff->which&XkbCompatNameMask) 
 	names->compat= *tmp++;
     if ((stuff->which&XkbKeyTypeNamesMask)&&(stuff->nTypes>0)) {
 	register unsigned i;
@@ -4310,7 +4311,7 @@ ProcXkbSetNames(client)
 	    tmp+= stuff->nRadioGroups;
 	}
 	else if (names->radio_groups) {
-	    Xfree(names->radio_groups);
+	    _XkbFree(names->radio_groups);
 	    names->radio_groups= NULL;
 	    names->num_rg= 0;
 	}
@@ -5597,7 +5598,7 @@ ProcXkbPerClientFlags(client)
 /* all latin-1 alphanumerics, plus parens, minus, underscore, slash */
 /* and wildcards */
 static unsigned char componentSpecLegal[] = {
-        0x00, 0x00, 0x00, 0x00, 0x00, 0xa7, 0xff, 0x83,
+        0x00, 0x00, 0x00, 0x00, 0x00, 0xa7, 0xff, 0x87,
         0xfe, 0xff, 0xff, 0x87, 0xfe, 0xff, 0xff, 0x07,
         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
         0xff, 0xff, 0x7f, 0xff, 0xff, 0xff, 0x7f, 0xff
@@ -5605,7 +5606,7 @@ static unsigned char componentSpecLegal[] = {
 
 /* same as above but accepts percent, plus and bar too */
 static unsigned char componentExprLegal[] = {
-        0x00, 0x00, 0x00, 0x00, 0x20, 0xaf, 0xff, 0x83,
+        0x00, 0x00, 0x00, 0x00, 0x20, 0xaf, 0xff, 0x87,
         0xfe, 0xff, 0xff, 0x87, 0xfe, 0xff, 0xff, 0x17,
         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
         0xff, 0xff, 0x7f, 0xff, 0xff, 0xff, 0x7f, 0xff
@@ -5631,7 +5632,7 @@ unsigned char	*wire,*str,*tmp,*legal;
     wire= *pWire;
     len= (*(unsigned char *)wire++);
     if (len>0) {
-	str= (unsigned char *)Xcalloc(len+1);
+	str= (unsigned char *)_XkbCalloc(1, len+1);
 	if (str) {
 	    tmp= str;
 	    for (i=0;i<len;i++) {
@@ -5642,7 +5643,7 @@ unsigned char	*wire,*str,*tmp,*legal;
 	    if (tmp!=str)
 		*tmp++= '\0';
 	    else {
-		Xfree(str);
+		_XkbFree(str);
 		str= NULL;
 	    }
 	}
@@ -6018,10 +6019,6 @@ ProcXkbGetKbdByName(client)
 	dev->key->xkbInfo->desc= xkb;
 	finfo.xkb= old_xkb; /* so it'll get freed automatically */
 
-	if (dev->kbdfeed && dev->kbdfeed->xkb_sli) {
-	    XkbFreeSrvLedInfo(dev->kbdfeed->xkb_sli);
-	    dev->kbdfeed->xkb_sli= NULL;
-	}
 	*xkb->ctrls= *old_xkb->ctrls;
 	for (nG=nTG=0,i=xkb->min_key_code;i<=xkb->max_key_code;i++) {
 	    nG= XkbKeyNumGroups(xkb,i);
@@ -6037,6 +6034,20 @@ ProcXkbGetKbdByName(client)
 
 	memcpy(dev->key->modifierMap,xkb->map->modmap,xkb->max_key_code+1);
 	XkbUpdateCoreDescription(dev,True);
+
+	if (dev->kbdfeed && dev->kbdfeed->xkb_sli) {
+            XkbSrvLedInfoPtr	old_sli;
+            XkbSrvLedInfoPtr	sli;
+            old_sli = dev->kbdfeed->xkb_sli;
+            dev->kbdfeed->xkb_sli = NULL;
+	    sli = XkbAllocSrvLedInfo(dev,dev->kbdfeed,NULL,0);
+            if (sli) {
+               sli->explicitState = old_sli->explicitState;
+               sli->effectiveState = old_sli->effectiveState;
+            }
+            dev->kbdfeed->xkb_sli = sli;
+	    XkbFreeSrvLedInfo(old_sli);
+	}
 
 	nkn.deviceID= nkn.oldDeviceID= dev->id;
 	nkn.minKeyCode= finfo.xkb->min_key_code;
@@ -6054,12 +6065,12 @@ ProcXkbGetKbdByName(client)
 	XkbFreeKeyboard(finfo.xkb,XkbAllComponentsMask,True);
 	finfo.xkb= NULL;
     }
-    if (names.keymap)	{ Xfree(names.keymap); names.keymap= NULL; }
-    if (names.keycodes)	{ Xfree(names.keycodes); names.keycodes= NULL; }
-    if (names.types)	{ Xfree(names.types); names.types= NULL; }
-    if (names.compat)	{ Xfree(names.compat); names.compat= NULL; }
-    if (names.symbols)	{ Xfree(names.symbols); names.symbols= NULL; }
-    if (names.geometry)	{ Xfree(names.geometry); names.geometry= NULL; }
+    if (names.keymap)	{ _XkbFree(names.keymap); names.keymap= NULL; }
+    if (names.keycodes)	{ _XkbFree(names.keycodes); names.keycodes= NULL; }
+    if (names.types)	{ _XkbFree(names.types); names.types= NULL; }
+    if (names.compat)	{ _XkbFree(names.compat); names.compat= NULL; }
+    if (names.symbols)	{ _XkbFree(names.symbols); names.symbols= NULL; }
+    if (names.geometry)	{ _XkbFree(names.geometry); names.geometry= NULL; }
     return client->noClientException;
 }
 
@@ -6914,9 +6925,9 @@ XkbExtensionInit()
 {
     ExtensionEntry *extEntry;
 
-    if (extEntry = AddExtension(XkbName, XkbNumberEvents, XkbNumberErrors,
+    if ((extEntry = AddExtension(XkbName, XkbNumberEvents, XkbNumberErrors,
 				 ProcXkbDispatch, SProcXkbDispatch,
-				 XkbResetProc, StandardMinorOpcode)) {
+				 XkbResetProc, StandardMinorOpcode))) {
 	XkbReqCode = (unsigned char)extEntry->base;
 	XkbEventBase = (unsigned char)extEntry->eventBase;
 	XkbErrorBase = (unsigned char)extEntry->errorBase;

@@ -57,6 +57,7 @@ in this Software without prior written authorization from The Open Group.
  * or other dealings in this Software without prior written authorization
  * from said copyright holders.
  */
+/* $XFree86: xc/programs/Xserver/Xprint/ps/PsFonts.c,v 1.6 2001/12/19 21:55:59 dawes Exp $ */
 
 /*******************************************************************
 **
@@ -109,7 +110,7 @@ PsGetFontName(FontPtr pFont)
 
   for( i=0 ; i<nprops ; i++ )
   {
-    if( props[i].name==name )
+    if( (Atom)props[i].name == name )
       { value = props[i].value; break; }
   }
   if( !value ) return (char *)0;
@@ -149,7 +150,7 @@ PsGetPSFontName(FontPtr pFont)
 
   for( i=0 ; i<nprops ; i++ )
   {
-    if( props[i].name==name )
+    if( (Atom)props[i].name == name )
       { value = props[i].value; break; }
   }
   if( !value ) return (char *)0; 
@@ -170,8 +171,8 @@ PsIsISOLatin1Encoding(FontPtr pFont)
 
   for( i=0 ; i<nprops ; i++ )
   {
-    if( props[i].name==reg ) rv = props[i].value;
-    if( props[i].name==enc ) ev = props[i].value;
+    if( (Atom)props[i].name == reg ) rv = props[i].value;
+    if( (Atom)props[i].name == enc ) ev = props[i].value;
   }
   if( rv ) rp = NameForAtom(rv);
   if( ev ) ep = NameForAtom(ev);

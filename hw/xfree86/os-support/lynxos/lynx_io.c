@@ -21,25 +21,20 @@
  *
  */
 
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/lynxos/lynx_io.c,v 3.3 1996/08/10 13:07:36 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/lynxos/lynx_io.c,v 3.10 2003/02/17 15:11:57 dawes Exp $ */
 
-#define NEED_EVENTS
 #include "X.h"
-#include "Xproto.h"
-#include "inputstr.h"
-#include "scrnintstr.h"
 
 #include "compiler.h"
 
-#include "xf86Procs.h"
+#include "xf86.h"
+#include "xf86Priv.h"
 #include "xf86_OSlib.h"
 
 #if defined(KDMKTONE) || defined(KIOCSOUND)
 /* Lynx 2.2.1 has sophisticated atc stuff.... */
-void xf86SoundKbdBell(loudness, pitch, duration)
-int loudness;
-int pitch;
-int duration;
+void
+xf86SoundKbdBell(int loudness, int pitch, int duration)
 {
 	if (loudness && pitch)
 	{
@@ -73,10 +68,8 @@ int duration;
 #define	FREQ_LO(f)	((TIMER_CONSTANT / (f)) % 256)
 #define	FREQ_HI(f)	((TIMER_CONSTANT / (f)) / 256)
 
-void xf86SoundKbdBell(loudness, pitch, duration)
-int loudness;
-int pitch;
-int duration;
+void
+xf86SoundKbdBell(int loudness, int pitch, int duration)
 {
 	int	flo = FREQ_LO(pitch);
 	int	fhi = FREQ_HI(pitch);
@@ -93,28 +86,43 @@ int duration;
 }
 #endif
 
-void xf86SetKbdLeds(leds)
-int leds;
+void
+xf86SetKbdLeds(int leds)
 {
+#ifdef KBD_SET_LEDS
+	ioctl(xf86Info.consoleFd, KBD_SET_LEDS, &leds);
+#endif
 }
 
-int xf86GetKbdLeds()
+int
+xf86GetKbdLeds()
 {
+#ifdef KBD_SET_LEDS
+	int leds;
+
+	if (ioctl(xf86Info.consoleFd, KBD_SET_LEDS, &leds) < 0)
+		return 0;
+
+	return leds;
+#endif
 	return 0;
 }
 
-void xf86SetKbdRepeat(char rad)
+void
+xf86SetKbdRepeat(char rad)
 {
 }
 
 static struct termio kbdtty;
 
-void xf86KbdInit()
+void
+xf86KbdInit()
 {
 	ioctl(xf86Info.consoleFd, TCGETA, &kbdtty);
 }
 
-int xf86KbdOn()
+int
+xf86KbdOn()
 {
 	struct termio nTty;
 
@@ -136,7 +144,8 @@ int xf86KbdOn()
 	return(xf86Info.consoleFd);
 }
 
-int xf86KbdOff()
+int
+xf86KbdOff()
 {
 	/* disable scan mode */
 	ioctl(xf86Info.consoleFd, TIO_DISSCANMODE, NULL);
@@ -144,29 +153,10 @@ int xf86KbdOff()
 	return(xf86Info.consoleFd);
 }
 
-void xf86MouseInit(mouse)
-MouseDevPtr mouse;
+#include "xf86OSKbd.h"
+
+Bool
+xf86OSKbdPreInit(InputInfoPtr pInfo)
 {
-	return;
-}
-
-int xf86MouseOn(mouse)
-MouseDevPtr mouse;
-{
-	if ((mouse->mseFd = open(mouse->mseDevice, O_RDWR | O_NDELAY)) < 0)
-	{
-		if (xf86AllowMouseOpenFail) {
-			ErrorF("Cannot open mouse (%s) - Continuing...\n",
-				strerror(errno));
-			return(-2);
-		}
-		FatalError("Cannot open mouse (%s)\n", strerror(errno));
-	}
-
-	/* assert DTR */
-	ioctl(mouse->mseFd, TIOCSDTR, NULL);
-
-	xf86SetupMouse(mouse);
-
-	return(mouse->mseFd);
+    return FALSE;
 }

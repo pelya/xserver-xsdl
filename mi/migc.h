@@ -27,87 +27,48 @@ from The Open Group.
 
 */
 
-/* This structure has to line up with the mfb and cfb gc private structures so
- * that when it is superimposed on them, the three fields that migc.c needs to
- * see will be accessed correctly.  I know this is not beautiful, but it seemed
- * better than all the code duplication in cfb and mfb.
- */
-typedef struct {
-    unsigned char       pad1;
-    unsigned char       pad2;
-    unsigned char       pad3;
-    unsigned		pad4:1;
-    unsigned		freeCompClip:1;
-    PixmapPtr		pRotatedPixmap;
-    RegionPtr		pCompositeClip;
-} miPrivGC;
-
-extern int miGCPrivateIndex;
-
-extern void miRegisterGCPrivateIndex(
-#if NeedFunctionPrototypes
-    int /*gcindex*/
-#endif
-);
+/* $XFree86: xc/programs/Xserver/mi/migc.h,v 1.8 2001/12/14 20:00:23 dawes Exp $ */
 
 extern void miChangeGC(
-#if NeedFunctionPrototypes
     GCPtr  /*pGC*/,
     unsigned long /*mask*/
-#endif
 );
 
 extern void miDestroyGC(
-#if NeedFunctionPrototypes
     GCPtr  /*pGC*/
-#endif
 );
 
 extern GCOpsPtr miCreateGCOps(
-#if NeedFunctionPrototypes
     GCOpsPtr /*prototype*/
-#endif
 );
 
 extern void miDestroyGCOps(
-#if NeedFunctionPrototypes
     GCOpsPtr /*ops*/
-#endif
 );
 
 extern void miDestroyClip(
-#if NeedFunctionPrototypes
     GCPtr /*pGC*/
-#endif
 );
 
 extern void miChangeClip(
-#if NeedFunctionPrototypes
     GCPtr   /*pGC*/,
     int     /*type*/,
     pointer /*pvalue*/,
     int     /*nrects*/
-#endif
 );
 
 extern void miCopyClip(
-#if NeedFunctionPrototypes
     GCPtr /*pgcDst*/,
     GCPtr /*pgcSrc*/
-#endif
 );
 
 extern void miCopyGC(
-#if NeedFunctionPrototypes
     GCPtr /*pGCSrc*/,
     unsigned long /*changes*/,
     GCPtr /*pGCDst*/
-#endif
 );
 
 extern void miComputeCompositeClip(
-#if NeedFunctionPrototypes
     GCPtr       /*pGC*/,
     DrawablePtr /*pDrawable*/
-#endif
 );

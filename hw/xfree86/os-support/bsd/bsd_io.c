@@ -1,7 +1,7 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/bsd/bsd_io.c,v 3.12 1996/12/23 06:49:37 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/bsd/bsd_io.c,v 3.23 2002/10/21 20:38:04 herrb Exp $ */
 /*
  * Copyright 1992 by Rich Murphey <Rich@Rice.edu>
- * Copyright 1993 by David Dawes <dawes@physics.su.oz.au>
+ * Copyright 1993 by David Dawes <dawes@xfree86.org>
  *
  * Permission to use, copy, modify, distribute, and sell this software and its
  * documentation for any purpose is hereby granted without fee, provided that
@@ -23,29 +23,30 @@
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *
  */
-/* $Xorg: bsd_io.c,v 1.3 2000/08/17 19:51:21 cpqbld Exp $ */
+/* $XConsortium: bsd_io.c /main/11 1996/10/19 18:06:07 kaleb $ */
 
 #define NEED_EVENTS
 #include "X.h"
-#include "Xproto.h"
-#include "inputstr.h"
-#include "scrnintstr.h"
 
 #include "compiler.h"
 
-#include "xf86Procs.h"
+#include "xf86.h"
+#include "xf86Priv.h"
 #include "xf86_OSlib.h"
 
-void xf86SoundKbdBell(loudness, pitch, duration)
-int loudness;
-int pitch;
-int duration;
+#ifdef WSCONS_SUPPORT
+#define KBD_FD(i) ((i).kbdFd != -1 ? (i).kbdFd : (i).consoleFd)
+#endif
+
+void
+xf86SoundKbdBell(int loudness, int pitch, int duration)
 {
+#ifdef WSCONS_SUPPORT
+	struct wskbd_bell_data wsb;
+#endif
+
     	if (loudness && pitch)
 	{
-#ifdef CODRV_SUPPORT
-		struct kbd_sound s;
-#endif
 #ifdef PCCONS_SUPPORT
 		int data[2];
 #endif
@@ -59,14 +60,6 @@ int duration;
 		    	ioctl(xf86Info.consoleFd, CONSOLE_X_BELL, data);
 			break;
 #endif
-#ifdef CODRV_SUPPORT
-	    	case CODRV011:
-	    	case CODRV01X:
-		    	s.pitch = pitch;
-		    	s.duration = (duration * loudness) / 50;
-		    	ioctl(xf86Info.consoleFd, KBDSETBELL, &s);
-			break;
-#endif
 #if defined (SYSCONS_SUPPORT) || defined (PCVT_SUPPORT)
 	    	case SYSCONS:
 		case PCVT:
@@ -75,34 +68,43 @@ int duration;
 			      (((unsigned long)duration*loudness/50)<<16));
 			break;
 #endif
+#if defined (WSCONS_SUPPORT)
+		case WSCONS:
+			wsb.which = WSKBD_BELL_DOALL;
+			wsb.pitch = pitch;
+			wsb.period = duration;
+			wsb.volume = loudness;
+			ioctl(KBD_FD(xf86Info), WSKBDIO_COMPLEXBELL, 
+				      &wsb);
+			break;
+#endif
 	    	}
 	}
 }
 
-void xf86SetKbdLeds(leds)
-int leds;
+void
+xf86SetKbdLeds(int leds)
 {
 	switch (xf86Info.consType) {
 
 	case PCCONS:
 		break;
-#ifdef CODRV_SUPPORT
-	case CODRV011:
-	case CODRV01X:
-	        leds = (leds&0x01)<<2 | leds&0x02 | (leds&0x04)>>2;
-		ioctl(xf86Info.consoleFd, KBDSLEDS, &leds);
-		break;
-#endif
 #if defined (SYSCONS_SUPPORT) || defined (PCVT_SUPPORT)
 	case SYSCONS:
 	case PCVT:
 		ioctl(xf86Info.consoleFd, KDSETLED, leds);
 		break;
 #endif
+#if defined(WSCONS_SUPPORT)
+	case WSCONS:
+		ioctl(KBD_FD(xf86Info), WSKBDIO_SETLEDS, &leds);
+		break;
+#endif
 	}
 }
 
-int xf86GetKbdLeds()
+int
+xf86GetKbdLeds()
 {
 	int leds = 0;
 
@@ -110,40 +112,28 @@ int xf86GetKbdLeds()
 
 	case PCCONS:
 		break;
-#ifdef CODRV_SUPPORT
-	case CODRV011:
-	case CODRV01X:
-		ioctl(xf86Info.consoleFd, KBDGLEDS, &leds);
-	        leds = (leds&0x01)<<2 | leds&0x02 | (leds&0x04)>>2;
-		break;
-#endif
 #if defined (SYSCONS_SUPPORT) || defined (PCVT_SUPPORT)
 	case SYSCONS:
 	case PCVT:
 		ioctl(xf86Info.consoleFd, KDGETLED, &leds);
 		break;
 #endif
+#if defined(WSCONS_SUPPORT)
+	  case WSCONS:
+		  ioctl(KBD_FD(xf86Info), WSKBDIO_GETLEDS, &leds);
+		  break;
+#endif
 	}
 	return(leds);
 }
 
-#if NeedFunctionPrototypes
-void xf86SetKbdRepeat(char rad)
-#else
-void xf86SetKbdRepeat(rad)
-char rad;
-#endif
+void
+xf86SetKbdRepeat(char rad)
 {
 	switch (xf86Info.consType) {
 
 	case PCCONS:
 		break;
-#ifdef CODRV_SUPPORT
-	case CODRV011:
-	case CODRV01X:
-		ioctl(xf86Info.consoleFd, KBDSTPMAT, &rad);
-		break;
-#endif
 #if defined (SYSCONS_SUPPORT) || defined (PCVT_SUPPORT)
 	case SYSCONS:
 	case PCVT:
@@ -153,15 +143,15 @@ char rad;
 	}
 }
 
+#if defined(SYSCONS_SUPPORT) || defined(PCCONS_SUPPORT) || defined(PCVT_SUPPORT) || defined(WSCONS_SUPPORT)
 static struct termio kbdtty;
+#endif
 
-void xf86KbdInit()
+void
+xf86KbdInit()
 {
 	switch (xf86Info.consType) {
 
-	case CODRV011:
-	case CODRV01X:
-		break;
 #if defined(PCCONS_SUPPORT) || defined(SYSCONS_SUPPORT) || defined (PCVT_SUPPORT)
 	case PCCONS:
 	case SYSCONS:
@@ -169,18 +159,27 @@ void xf86KbdInit()
 		tcgetattr(xf86Info.consoleFd, &kbdtty);
 		break;
 #endif
+#if defined WSCONS_SUPPORT
+	case WSCONS:
+		if (xf86Info.kbdFd != -1) 
+			xf86FlushInput(xf86Info.kbdFd);
+		else
+			tcgetattr(xf86Info.consoleFd, &kbdtty);
+		break;
+#endif
 	}
 }
 
-int xf86KbdOn()
+int
+xf86KbdOn()
 {
 	struct termios nTty;
+#ifdef WSCONS_SUPPORT
+	int option;
+#endif
+
 
 	switch (xf86Info.consType) {
-
-	case CODRV011:
-	case CODRV01X:
-		break;
 
 #if defined(SYSCONS_SUPPORT) || defined(PCCONS_SUPPORT) || defined(PCVT_SUPPORT)
 	case SYSCONS:
@@ -202,17 +201,44 @@ int xf86KbdOn()
 #endif
 		break;
 #endif
+#ifdef WSCONS_SUPPORT
+	case WSCONS:
+		if (xf86Info.kbdFd == -1) {
+			nTty = kbdtty;
+			nTty.c_iflag = IGNPAR | IGNBRK;
+			nTty.c_oflag = 0;
+			nTty.c_cflag = CREAD | CS8;
+			nTty.c_lflag = 0;
+			nTty.c_cc[VTIME] = 0;
+			nTty.c_cc[VMIN] = 1;
+			cfsetispeed(&nTty, 9600);
+			cfsetospeed(&nTty, 9600);
+			tcsetattr(xf86Info.consoleFd, TCSANOW, &nTty);
+			option = WSKBD_RAW;
+			if (ioctl(xf86Info.consoleFd, WSKBDIO_SETMODE,
+					&option) == -1)
+				FatalError("can't switch keyboard to raw mode. "
+					"Enable support for it in the kernel\n"
+					"or use for example:\n\n"
+					"Option \"Protocol\" \"wskbd\"\n"
+					"Option \"Device\" \"/dev/wskbd0\"\n"
+					"\nin your XF86Config(5) file\n");
+		} else {
+			return xf86Info.kbdFd;
+		}
+#endif
 	}
 	return(xf86Info.consoleFd);
 }
 
-int xf86KbdOff()
+int
+xf86KbdOff()
 {
-	switch (xf86Info.consType) {
+#ifdef WSCONS_SUPPORT
+	int option;
+#endif
 
-	case CODRV011:
-	case CODRV01X:
-		break;
+	switch (xf86Info.consType) {
 
 #if defined (SYSCONS_SUPPORT) || defined (PCVT_SUPPORT)
 	case SYSCONS:
@@ -225,33 +251,39 @@ int xf86KbdOff()
 		tcsetattr(xf86Info.consoleFd, TCSANOW, &kbdtty);
 		break;
 #endif
-	}
+#ifdef WSCONS_SUPPORT
+	case WSCONS:
+		if (xf86Info.kbdFd != -1) {
+			return xf86Info.kbdFd;
+		} else {
+			option = WSKBD_TRANSLATED;
+			ioctl(xf86Info.consoleFd, WSKBDIO_SETMODE, &option);
+			tcsetattr(xf86Info.consoleFd, TCSANOW, &kbdtty);
+		}
+		break;
+#endif
+	}	
 	return(xf86Info.consoleFd);
 }
 
-void xf86MouseInit(mouse)
-MouseDevPtr mouse;
+#ifdef WSCONS_SUPPORT
+
+#define NUMEVENTS 64
+
+void
+xf86WSKbdEvents(void)
 {
+    static struct wscons_event events[NUMEVENTS];
+    int n, i;
+
+    n = read(xf86Info.kbdFd, events, sizeof events);
+    if (n <= 0)
 	return;
+    n /= sizeof(struct wscons_event);
+    for (i = 0; i < n; i++)
+	xf86PostWSKbdEvent(&events[i]);
 }
 
-int xf86MouseOn(mouse)
-MouseDevPtr mouse;
-{
-	if ((mouse->mseFd = open(mouse->mseDevice, O_RDWR | O_NDELAY)) < 0)
-	{
-		if (xf86AllowMouseOpenFail) {
-			ErrorF("Cannot open mouse (%s) - Continuing...\n",
-				strerror(errno));
-			return(-2);
-		}
-		FatalError("Cannot open mouse (%s)\n", strerror(errno));
-	}
+#endif /* WSCONS_SUPPORT */
 
-	xf86SetupMouse(mouse);
 
-	/* Flush any pending input */
-	tcflush(mouse->mseFd, TCIFLUSH);
-
-	return(mouse->mseFd);
-}

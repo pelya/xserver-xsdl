@@ -1,3 +1,4 @@
+/* $XFree86: xc/programs/Xserver/Xi/getselev.c,v 3.6 2001/12/14 19:58:57 dawes Exp $ */
 /************************************************************
 
 Copyright 1989, 1998  The Open Group
@@ -60,10 +61,13 @@ SOFTWARE.
 #include "XIproto.h"
 #include "inputstr.h"			/* DeviceIntPtr	     */
 #include "windowstr.h"			/* window struct     */
+#include "extnsionst.h"
+#include "extinit.h"			/* LookupDeviceIntRec */
+#include "exglobals.h"
+#include "swaprep.h"
 
-extern	int 		IReqCode;
-extern	void		(* ReplySwapVector[256]) ();
-DeviceIntPtr		LookupDeviceIntRec();
+#include "getprop.h"
+#include "getselev.h"
 
 /***********************************************************************
  *
@@ -99,11 +103,9 @@ ProcXGetSelectedExtensionEvents(client)
     int					total_length = 0;
     xGetSelectedExtensionEventsReply	rep;
     WindowPtr				pWin;
-    XEventClass				*buf;
+    XEventClass				*buf = NULL;
     XEventClass				*tclient;
     XEventClass				*aclient;
-    XEventClass 			*ClassFromMask ();
-    void				Swap32Write();
     OtherInputMasks			*pOthers;
     InputClientsPtr			others;
 
@@ -124,7 +126,7 @@ ProcXGetSelectedExtensionEvents(client)
 	return Success;
         }
 
-    if (pOthers=wOtherInputMasks(pWin))
+    if ((pOthers = wOtherInputMasks(pWin)) != 0)
 	{
 	for (others = pOthers->inputClients; others; others=others->next)
 	    for (i=0; i<EMASKSIZE; i++)
@@ -143,7 +145,7 @@ ProcXGetSelectedExtensionEvents(client)
 	total_length = (rep.all_clients_count + rep.this_client_count) * 
 	    sizeof (XEventClass);
 	rep.length = (total_length + 3) >> 2;
-	buf = (XEventClass *) Xalloc (total_length);
+	buf = (XEventClass *) xalloc (total_length);
 
 	tclient = buf;
 	aclient = buf + rep.this_client_count;
@@ -160,9 +162,9 @@ ProcXGetSelectedExtensionEvents(client)
 
     if (total_length)
 	{
-	client->pSwapReplyFunc = Swap32Write;
+	client->pSwapReplyFunc = (ReplySwapPtr) Swap32Write;
 	WriteSwappedDataToClient( client, total_length, buf);
-	Xfree (buf);
+	xfree (buf);
 	}
     return Success;
     }
@@ -174,6 +176,7 @@ ProcXGetSelectedExtensionEvents(client)
  *
  */
 
+void
 SRepXGetSelectedExtensionEvents (client, size, rep)
     ClientPtr	client;
     int		size;

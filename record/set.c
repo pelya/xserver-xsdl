@@ -27,6 +27,7 @@ other dealings in this Software without prior written authorization
 from The Open Group.
 
 */
+/* $XFree86: xc/programs/Xserver/record/set.c,v 1.7 2001/12/14 20:00:37 dawes Exp $ */
 
 /*
 
@@ -87,6 +88,11 @@ void *Xcalloc(size)
 #endif /* TESTING */
 
 #include "set.h"
+
+#ifdef XFree86LOADER
+#include "xf86_libc.h"
+#include "xf86_ansic.h"
+#endif
 
 static int
 maxMemberInInterval(pIntervals, nIntervals)
@@ -197,7 +203,7 @@ BitVectorIterateSet(pSet, pIter, pInterval)
     RecordSetIteratePtr pIter;
     RecordSetInterval *pInterval;
 {
-    int iterbit = (int)pIter;
+    int iterbit = (int)(long)pIter;
     int b;
 
     b = BitVectorFindBit(pSet, iterbit, TRUE);
@@ -206,7 +212,7 @@ BitVectorIterateSet(pSet, pIter, pInterval)
 
     b = BitVectorFindBit(pSet, b, FALSE);
     pInterval->last = (b < 0) ? ((BitVectorSetPtr)pSet)->maxMember : b - 1;
-    return (RecordSetIteratePtr)(pInterval->last + 1);
+    return (RecordSetIteratePtr)(long)(pInterval->last + 1);
 }
 
 RecordSetOperations BitVectorSetOperations = {
@@ -515,7 +521,7 @@ RecordCreateSet(pIntervals, nIntervals, pMem, memsize)
 					&pCreateSet);
     if (pMem)
     {
-	if ( ((int)pMem & (alignment-1) ) || memsize < size)
+	if ( ((long)pMem & (alignment-1) ) || memsize < size)
 	    return NULL;
     }
     return (*pCreateSet)(pIntervals, nIntervals, pMem, size);

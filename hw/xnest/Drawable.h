@@ -12,12 +12,13 @@ the suitability of this software for any purpose.  It is provided "as
 is" without express or implied warranty.
 
 */
+/* $XFree86: xc/programs/Xserver/hw/xnest/Drawable.h,v 1.3 2002/11/23 19:27:50 tsi Exp $ */
 
 #ifndef XNESTDRAWABLE_H
 #define XNESTDRAWABLE_H
 
 #include "XNWindow.h"
-#include "Pixmap.h"
+#include "XNPixmap.h"
 
 #define xnestDrawable(pDrawable) \
   ((pDrawable)->type == DRAWABLE_WINDOW ? \

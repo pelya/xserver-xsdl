@@ -27,21 +27,13 @@ from The Open Group.
 
 */
 
+/* $XFree86: xc/programs/Xserver/mi/migc.c,v 1.9 2001/12/14 20:00:23 dawes Exp $ */
 
 #include "scrnintstr.h"
 #include "gcstruct.h"
 #include "pixmapstr.h"
 #include "windowstr.h"
 #include "migc.h"
-
-int miGCPrivateIndex;
-
-void
-miRegisterGCPrivateIndex(gcindex)
-    int gcindex;
-{
-    miGCPrivateIndex = gcindex;
-}
 
 /* ARGSUSED */
 void
@@ -56,13 +48,10 @@ void
 miDestroyGC(pGC)
     GCPtr           pGC;
 {
-    miPrivGC       *pPriv;
-
-    pPriv = (miPrivGC *) (pGC->devPrivates[miGCPrivateIndex].ptr);
-    if (pPriv->pRotatedPixmap)
-	(*pGC->pScreen->DestroyPixmap) (pPriv->pRotatedPixmap);
-    if (pPriv->freeCompClip)
-	REGION_DESTROY(pGC->pScreen, pPriv->pCompositeClip);
+    if (pGC->pRotatedPixmap)
+	(*pGC->pScreen->DestroyPixmap) (pGC->pRotatedPixmap);
+    if (pGC->freeCompClip)
+	REGION_DESTROY(pGC->pScreen, pGC->pCompositeClip);
     miDestroyGCOps(pGC->ops);
 }
 
@@ -75,7 +64,6 @@ miCreateGCOps(prototype)
     GCOpsPtr        prototype;
 {
     GCOpsPtr        ret;
-    extern Bool     Must_have_memory;
 
      /* XXX */ Must_have_memory = TRUE;
     ret = (GCOpsPtr) xalloc(sizeof(GCOps));
@@ -188,8 +176,10 @@ miComputeCompositeClip(pGC, pDrawable)
     GCPtr           pGC;
     DrawablePtr     pDrawable;
 {
-    ScreenPtr       pScreen = pGC->pScreen;
-    miPrivGC *devPriv = (miPrivGC *) (pGC->devPrivates[miGCPrivateIndex].ptr);
+    ScreenPtr       pScreen;
+
+    /* This prevents warnings about pScreen not being used. */
+    pGC->pScreen = pScreen = pGC->pScreen;
 
     if (pDrawable->type == DRAWABLE_WINDOW)
     {
@@ -207,7 +197,7 @@ miComputeCompositeClip(pGC, pDrawable)
 	    pregWin = &pWin->clipList;
 	    freeTmpClip = FALSE;
 	}
-	freeCompClip = devPriv->freeCompClip;
+	freeCompClip = pGC->freeCompClip;
 
 	/*
 	 * if there is no client clip, we can get by with just keeping the
@@ -219,9 +209,9 @@ miComputeCompositeClip(pGC, pDrawable)
 	if (pGC->clientClipType == CT_NONE)
 	{
 	    if (freeCompClip)
-		REGION_DESTROY(pScreen, devPriv->pCompositeClip);
-	    devPriv->pCompositeClip = pregWin;
-	    devPriv->freeCompClip = freeTmpClip;
+		REGION_DESTROY(pScreen, pGC->pCompositeClip);
+	    pGC->pCompositeClip = pregWin;
+	    pGC->freeCompClip = freeTmpClip;
 	}
 	else
 	{
@@ -240,7 +230,7 @@ miComputeCompositeClip(pGC, pDrawable)
 
 	    if (freeCompClip)
 	    {
-		REGION_INTERSECT(pGC->pScreen, devPriv->pCompositeClip,
+		REGION_INTERSECT(pGC->pScreen, pGC->pCompositeClip,
 					    pregWin, pGC->clientClip);
 		if (freeTmpClip)
 		    REGION_DESTROY(pScreen, pregWin);
@@ -248,15 +238,15 @@ miComputeCompositeClip(pGC, pDrawable)
 	    else if (freeTmpClip)
 	    {
 		REGION_INTERSECT(pScreen, pregWin, pregWin, pGC->clientClip);
-		devPriv->pCompositeClip = pregWin;
+		pGC->pCompositeClip = pregWin;
 	    }
 	    else
 	    {
-		devPriv->pCompositeClip = REGION_CREATE(pScreen, NullBox, 0);
-		REGION_INTERSECT(pScreen, devPriv->pCompositeClip,
+		pGC->pCompositeClip = REGION_CREATE(pScreen, NullBox, 0);
+		REGION_INTERSECT(pScreen, pGC->pCompositeClip,
 				       pregWin, pGC->clientClip);
 	    }
-	    devPriv->freeCompClip = TRUE;
+	    pGC->freeCompClip = TRUE;
 	    REGION_TRANSLATE(pScreen, pGC->clientClip,
 					 -(pDrawable->x + pGC->clipOrg.x),
 					 -(pDrawable->y + pGC->clipOrg.y));
@@ -267,29 +257,41 @@ miComputeCompositeClip(pGC, pDrawable)
 	BoxRec          pixbounds;
 
 	/* XXX should we translate by drawable.x/y here ? */
-	pixbounds.x1 = 0;
-	pixbounds.y1 = 0;
-	pixbounds.x2 = pDrawable->width;
-	pixbounds.y2 = pDrawable->height;
+	/* If you want pixmaps in offscreen memory, yes */
+	pixbounds.x1 = pDrawable->x;
+	pixbounds.y1 = pDrawable->y;
+	pixbounds.x2 = pDrawable->x + pDrawable->width;
+	pixbounds.y2 = pDrawable->y + pDrawable->height;
 
-	if (devPriv->freeCompClip)
+	if (pGC->freeCompClip)
 	{
-	    REGION_RESET(pScreen, devPriv->pCompositeClip, &pixbounds);
+	    REGION_RESET(pScreen, pGC->pCompositeClip, &pixbounds);
 	}
 	else
 	{
-	    devPriv->freeCompClip = TRUE;
-	    devPriv->pCompositeClip = REGION_CREATE(pScreen, &pixbounds, 1);
+	    pGC->freeCompClip = TRUE;
+	    pGC->pCompositeClip = REGION_CREATE(pScreen, &pixbounds, 1);
 	}
 
 	if (pGC->clientClipType == CT_REGION)
 	{
-	    REGION_TRANSLATE(pScreen, devPriv->pCompositeClip,
+	    if(pDrawable->x || pDrawable->y) {
+	        REGION_TRANSLATE(pScreen, pGC->clientClip,
+					  pDrawable->x + pGC->clipOrg.x, 
+					  pDrawable->y + pGC->clipOrg.y);
+	        REGION_INTERSECT(pScreen, pGC->pCompositeClip,
+				pGC->pCompositeClip, pGC->clientClip);
+	        REGION_TRANSLATE(pScreen, pGC->clientClip,
+					  -(pDrawable->x + pGC->clipOrg.x), 
+					  -(pDrawable->y + pGC->clipOrg.y));
+	    } else {
+	        REGION_TRANSLATE(pScreen, pGC->pCompositeClip,
 					 -pGC->clipOrg.x, -pGC->clipOrg.y);
-	    REGION_INTERSECT(pScreen, devPriv->pCompositeClip,
-				devPriv->pCompositeClip, pGC->clientClip);
-	    REGION_TRANSLATE(pScreen, devPriv->pCompositeClip,
+	        REGION_INTERSECT(pScreen, pGC->pCompositeClip,
+				pGC->pCompositeClip, pGC->clientClip);
+	        REGION_TRANSLATE(pScreen, pGC->pCompositeClip,
 					 pGC->clipOrg.x, pGC->clipOrg.y);
+	    }
 	}
     }	/* end of composite clip for pixmap */
 } /* end miComputeCompositeClip */

@@ -1,3 +1,4 @@
+/* $XFree86: xc/programs/Xserver/cfb/cfbscrinit.c,v 1.19 2001/01/17 22:36:36 dawes Exp $ */
 /************************************************************
 Copyright 1987 by Sun Microsystems, Inc. Mountain View, CA.
 
@@ -43,13 +44,12 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include "cfbmskbits.h"
 #include "mibstore.h"
 
-
-miBSFuncRec cfbBSFuncRec = {
+BSFuncRec cfbBSFuncRec = {
     cfbSaveAreas,
     cfbRestoreAreas,
-    (void (*)()) 0,
-    (PixmapPtr (*)()) 0,
-    (PixmapPtr (*)()) 0,
+    (BackingStoreSetClipmaskRgnProcPtr) 0,
+    (BackingStoreGetImagePixmapProcPtr) 0,
+    (BackingStoreGetSpansPixmapProcPtr) 0,
 };
 
 Bool
@@ -80,9 +80,6 @@ cfbSetupScreen(pScreen, pbits, xsize, ysize, dpix, dpiy, width)
     int dpix, dpiy;		/* dots per inch */
     int width;			/* pixel width of frame buffer */
 {
-    int	i;
-    extern RegionPtr	(*cfbPuntCopyPlane)();
-
     if (!cfbAllocatePrivates(pScreen, (int *) 0, (int *) 0))
 	return FALSE;
     pScreen->defColormap = FakeClientID(0);
@@ -108,12 +105,10 @@ cfbSetupScreen(pScreen, pbits, xsize, ysize, dpix, dpiy, width)
     pScreen->CreateGC = cfbCreateGC;
     pScreen->CreateColormap = cfbInitializeColormap;
     pScreen->DestroyColormap = (void (*)())NoopDDA;
-#ifdef	STATIC_COLOR
     pScreen->InstallColormap = cfbInstallColormap;
     pScreen->UninstallColormap = cfbUninstallColormap;
     pScreen->ListInstalledColormaps = cfbListInstalledColormaps;
     pScreen->StoreColors = (void (*)())NoopDDA;
-#endif
     pScreen->ResolveColor = cfbResolveColor;
     pScreen->BitmapToRegion = mfbPixmapToRegion;
 
@@ -137,6 +132,7 @@ cfbCreateScreenResources(pScreen)
 }
 #endif
 
+Bool
 cfbFinishScreenInit(pScreen, pbits, xsize, ysize, dpix, dpiy, width)
     register ScreenPtr pScreen;
     pointer pbits;		/* pointer to screen bitmap */
@@ -144,7 +140,6 @@ cfbFinishScreenInit(pScreen, pbits, xsize, ysize, dpix, dpiy, width)
     int dpix, dpiy;		/* dots per inch */
     int width;			/* pixel width of frame buffer */
 {
-    int	i, j;
 #ifdef CFB_NEED_SCREEN_PRIVATE
     pointer oldDevPrivate;
 #endif
@@ -164,19 +159,18 @@ cfbFinishScreenInit(pScreen, pbits, xsize, ysize, dpix, dpiy, width)
 #endif
     if (! miScreenInit(pScreen, pbits, xsize, ysize, dpix, dpiy, width,
 			rootdepth, ndepths, depths,
-			defaultVisual, nvisuals, visuals,
-			(miBSFuncPtr) 0))
+			defaultVisual, nvisuals, visuals))
 	return FALSE;
     /* overwrite miCloseScreen with our own */
     pScreen->CloseScreen = cfbCloseScreen;
-    /* init backing store here so we can overwrite CloseScreen without stepping
-     * on the backing store wrapped version */
-    miInitializeBackingStore (pScreen, &cfbBSFuncRec);
 #ifdef CFB_NEED_SCREEN_PRIVATE
     pScreen->CreateScreenResources = cfbCreateScreenResources;
     pScreen->devPrivates[cfbScreenPrivateIndex].ptr = pScreen->devPrivate;
     pScreen->devPrivate = oldDevPrivate;
 #endif
+    pScreen->BackingStoreFuncs = cfbBSFuncRec;
+    pScreen->GetScreenPixmap = cfbGetScreenPixmap;
+    pScreen->SetScreenPixmap = cfbSetScreenPixmap;
     return TRUE;
 }
 
@@ -192,4 +186,29 @@ cfbScreenInit(pScreen, pbits, xsize, ysize, dpix, dpiy, width)
     if (!cfbSetupScreen(pScreen, pbits, xsize, ysize, dpix, dpiy, width))
 	return FALSE;
     return cfbFinishScreenInit(pScreen, pbits, xsize, ysize, dpix, dpiy, width);
+}
+
+PixmapPtr
+cfbGetScreenPixmap(pScreen)
+    ScreenPtr pScreen;
+{
+#ifdef CFB_NEED_SCREEN_PRIVATE
+    return (PixmapPtr)pScreen->devPrivates[cfbScreenPrivateIndex].ptr;
+#else
+    return (PixmapPtr)pScreen->devPrivate;
+#endif
+}
+
+void
+cfbSetScreenPixmap(pPix)
+    PixmapPtr pPix;
+{
+#ifdef CFB_NEED_SCREEN_PRIVATE
+    if (pPix)
+	pPix->drawable.pScreen->devPrivates[cfbScreenPrivateIndex].ptr =
+	    (pointer)pPix;
+#else
+    if (pPix)
+	pPix->drawable.pScreen->devPrivate = (pointer)pPix;
+#endif
 }

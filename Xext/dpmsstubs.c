@@ -26,23 +26,23 @@ dealings in this Software without prior written authorization from Digital
 Equipment Corporation.
 
 ******************************************************************/
+/* $XFree86: xc/programs/Xserver/Xext/dpmsstubs.c,v 3.4 2001/01/17 22:13:15 dawes Exp $ */
 
 typedef int Bool;
 
 #define FALSE 0
 
-Bool DPMSSupported()
+Bool DPMSSupported(void)
 {
     return FALSE;
 }
 
-int DPSMGet(level)
-    int *level;
+int DPSMGet(int *level)
 {
     return -1;
 }
 
-void DPMSSet(level)
+void DPMSSet(int level)
 {
 
 }

@@ -45,6 +45,7 @@ in this Software without prior written authorization from The Open Group.
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *
  */
+/* $XFree86: xc/programs/Xserver/lbx/lbxswap.c,v 1.4 2001/12/14 20:00:01 dawes Exp $ */
 
 #include <sys/types.h>
 #define NEED_REPLIES
@@ -58,6 +59,8 @@ in this Software without prior written authorization from The Open Group.
 #include "pixmapstr.h"
 #include "scrnintstr.h"
 #include "servermd.h"
+#include "swaprep.h"
+#include "propertyst.h"
 #define _XLBX_SERVER_
 #include "lbxstr.h"
 #include "lbxserve.h"
@@ -66,8 +69,7 @@ in this Software without prior written authorization from The Open Group.
 #include <stdio.h>
 
 static int
-SProcLbxQueryVersion(client)
-    register ClientPtr client;
+SProcLbxQueryVersion(ClientPtr client)
 {
     register int n;
 
@@ -78,8 +80,7 @@ SProcLbxQueryVersion(client)
 }
 
 static int
-SProcLbxStartProxy(client)
-    register ClientPtr client;
+SProcLbxStartProxy(ClientPtr client)
 {
     register int n;
 
@@ -90,8 +91,7 @@ SProcLbxStartProxy(client)
 }
 
 static int
-SProcLbxStopProxy(client)
-    register ClientPtr client;
+SProcLbxStopProxy(ClientPtr client)
 {
     register int n;
 
@@ -102,8 +102,7 @@ SProcLbxStopProxy(client)
 }
 
 int
-SProcLbxSwitch(client)
-    register ClientPtr client;
+SProcLbxSwitch(ClientPtr client)
 {
     register int n;
 
@@ -115,8 +114,7 @@ SProcLbxSwitch(client)
 }
 
 int
-SProcLbxBeginLargeRequest (client)
-    register ClientPtr client;
+SProcLbxBeginLargeRequest (ClientPtr client)
 {
     register int n;
 
@@ -128,8 +126,7 @@ SProcLbxBeginLargeRequest (client)
 }
 
 int
-SProcLbxLargeRequestData (client)
-    register ClientPtr client;
+SProcLbxLargeRequestData (ClientPtr client)
 {
     register int n;
 
@@ -140,8 +137,7 @@ SProcLbxLargeRequestData (client)
 }
 
 int
-SProcLbxEndLargeRequest (client)
-    register ClientPtr client;
+SProcLbxEndLargeRequest (ClientPtr client)
 {
     register int n;
 
@@ -152,8 +148,7 @@ SProcLbxEndLargeRequest (client)
 }
 
 static int
-SProcLbxNewClient(client)
-    register ClientPtr client;
+SProcLbxNewClient(ClientPtr client)
 {
     register int n;
 
@@ -165,8 +160,7 @@ SProcLbxNewClient(client)
 }
 
 static int
-SProcLbxCloseClient(client)
-    register ClientPtr client;
+SProcLbxCloseClient(ClientPtr client)
 {
     register int n;
 
@@ -178,8 +172,7 @@ SProcLbxCloseClient(client)
 }
 
 static int
-SProcLbxModifySequence(client)
-    register ClientPtr client;
+SProcLbxModifySequence(ClientPtr client)
 {
     register int n;
 
@@ -191,8 +184,7 @@ SProcLbxModifySequence(client)
 }
 
 static int
-SProcLbxAllowMotion(client)
-    register ClientPtr client;
+SProcLbxAllowMotion(ClientPtr client)
 {
     register int n;
 
@@ -204,8 +196,7 @@ SProcLbxAllowMotion(client)
 }
 
 static int
-SProcLbxIncrementPixel(client)
-    register ClientPtr client;
+SProcLbxIncrementPixel(ClientPtr client)
 {
     register int n;
 
@@ -218,8 +209,7 @@ SProcLbxIncrementPixel(client)
 }
 
 static int
-SProcLbxGrabCmap(client)
-    register ClientPtr client;
+SProcLbxGrabCmap(ClientPtr client)
 {
     register int n;
 
@@ -232,8 +222,7 @@ SProcLbxGrabCmap(client)
 }
 
 static int
-SProcLbxReleaseCmap(client)
-    register ClientPtr client;
+SProcLbxReleaseCmap(ClientPtr client)
 {
     register int n;
 
@@ -246,8 +235,7 @@ SProcLbxReleaseCmap(client)
 }
 
 static int
-SProcLbxAllocColor(client)
-    register ClientPtr client;
+SProcLbxAllocColor(ClientPtr client)
 {
     register int n;
 
@@ -264,8 +252,7 @@ SProcLbxAllocColor(client)
 }
 
 static int
-SProcLbxGetModifierMapping(client)
-    register ClientPtr client;
+SProcLbxGetModifierMapping(ClientPtr client)
 {
     register int n;
 
@@ -276,8 +263,7 @@ SProcLbxGetModifierMapping(client)
 }
 
 static int
-SProcLbxGetKeyboardMapping(client)
-    register ClientPtr client;
+SProcLbxGetKeyboardMapping(ClientPtr client)
 {
     register int n;
 
@@ -288,8 +274,7 @@ SProcLbxGetKeyboardMapping(client)
 }
 
 static int
-SProcLbxQueryFont(client)
-    register ClientPtr client;
+SProcLbxQueryFont(ClientPtr client)
 {
     register int n;
 
@@ -301,8 +286,7 @@ SProcLbxQueryFont(client)
 }
 
 static int
-SProcLbxChangeProperty(client)
-    register ClientPtr client;
+SProcLbxChangeProperty(ClientPtr client)
 {
     register int n;
 
@@ -328,8 +312,7 @@ SProcLbxChangeProperty(client)
 }
 
 static int
-SProcLbxGetProperty(client)
-    register ClientPtr client;
+SProcLbxGetProperty(ClientPtr client)
 {
     register int n;
 
@@ -345,8 +328,7 @@ SProcLbxGetProperty(client)
 }
 
 static int
-SProcLbxTagData(client)
-    register ClientPtr client;
+SProcLbxTagData(ClientPtr client)
 {
     register int n;
 
@@ -359,8 +341,7 @@ SProcLbxTagData(client)
 }
 
 static int
-SProcLbxInvalidateTag(client)
-    register ClientPtr client;
+SProcLbxInvalidateTag(ClientPtr client)
 {
     register int n;
 
@@ -372,8 +353,7 @@ SProcLbxInvalidateTag(client)
 }
 
 static int
-SProcLbxPoly(client)
-    register ClientPtr client;
+SProcLbxPoly(ClientPtr client)
 {
     register int n;
 
@@ -393,8 +373,7 @@ SProcLbxPoly(client)
 }
 
 static int
-SProcLbxFillPoly(client)
-    register ClientPtr client;
+SProcLbxFillPoly(ClientPtr client)
 {
     register int n;
 
@@ -414,10 +393,9 @@ SProcLbxFillPoly(client)
 }
 
 static int
-SProcLbxCopyArea (client)
-    register ClientPtr	client;
+SProcLbxCopyArea(ClientPtr client)
 {
-    register int    n;
+    int    n;
 
     REQUEST(xLbxCopyAreaReq);
     char *after;
@@ -440,10 +418,9 @@ SProcLbxCopyArea (client)
 }
 
 static int
-SProcLbxCopyPlane (client)
-    register ClientPtr	client;
+SProcLbxCopyPlane(ClientPtr client)
 {
-    register int    n;
+    int    n;
 
     REQUEST(xLbxCopyPlaneReq);
     char *after;
@@ -467,8 +444,7 @@ SProcLbxCopyPlane (client)
 }
 
 static int
-SProcLbxPolyText(client)
-    register ClientPtr client;
+SProcLbxPolyText(ClientPtr client)
 {
     register int n;
 
@@ -488,8 +464,7 @@ SProcLbxPolyText(client)
 }
 
 static int
-SProcLbxImageText(client)
-    register ClientPtr client;
+SProcLbxImageText(ClientPtr client)
 {
     register int n;
 
@@ -510,8 +485,7 @@ SProcLbxImageText(client)
 
 
 static int
-SProcLbxPutImage(client)
-    register ClientPtr client;
+SProcLbxPutImage(ClientPtr client)
 {
     register int n;
 
@@ -522,8 +496,7 @@ SProcLbxPutImage(client)
 }
 
 static int
-SProcLbxGetImage(client)
-    register ClientPtr client;
+SProcLbxGetImage(ClientPtr client)
 {
     register int n;
 
@@ -540,8 +513,7 @@ SProcLbxGetImage(client)
 }
 
 static int
-SProcLbxInternAtoms(client)
-    register ClientPtr client;
+SProcLbxInternAtoms(ClientPtr client)
 {
     register int n;
     char *ptr;
@@ -569,8 +541,7 @@ SProcLbxInternAtoms(client)
 
 
 static int
-SProcLbxGetWinAttrAndGeom(client)
-    ClientPtr	client;
+SProcLbxGetWinAttrAndGeom(ClientPtr client)
 {
     int	n;
 
@@ -585,8 +556,7 @@ SProcLbxGetWinAttrAndGeom(client)
 
 
 static int
-SProcLbxQueryExtension(client)
-    ClientPtr	client;
+SProcLbxQueryExtension(ClientPtr client)
 {
     int	n;
 
@@ -598,8 +568,7 @@ SProcLbxQueryExtension(client)
 }
 
 int
-SProcLbxDispatch(client)
-    register ClientPtr client;
+SProcLbxDispatch(ClientPtr client)
 {
     REQUEST(xReq);
     switch (stuff->data) {
@@ -682,10 +651,9 @@ SProcLbxDispatch(client)
 
 #ifdef notyet
 void
-LbxWriteSConnectionInfo(pClient, size, pInfo)
-    ClientPtr		pClient;
-    unsigned long	size;
-    char 		*pInfo;
+LbxWriteSConnectionInfo(ClientPtr	pClient,
+			unsigned long	size,
+			char 		*pInfo)
 {
     int		i, j, k;
     ScreenPtr	pScreen;
@@ -741,8 +709,8 @@ LbxWriteSConnectionInfo(pClient, size, pInfo)
 }
 
 void
-SwapConnSetup(pConnSetup, pConnSetupT)
-    xConnSetup 	*pConnSetup, *pConnSetupT;
+SwapConnSetup(xConnSetup *pConnSetup, 
+	      xConnSetup *pConnSetupT)
 {
     cpswapl(pConnSetup->release, pConnSetupT->release);
     cpswapl(pConnSetup->ridBase, pConnSetupT->ridBase);
@@ -761,8 +729,8 @@ SwapConnSetup(pConnSetup, pConnSetupT)
 }
 
 void
-SwapWinRoot(pRoot, pRootT)
-    xWindowRoot	*pRoot, *pRootT;
+SwapWinRoot(xWindowRoot	*pRoot, 
+	    xWindowRoot *pRootT)
 {
     cpswapl(pRoot->windowId, pRootT->windowId);
     cpswapl(pRoot->defaultColormap, pRootT->defaultColormap);
@@ -783,8 +751,8 @@ SwapWinRoot(pRoot, pRootT)
 }
 
 void
-SwapVisual(pVis, pVisT)
-    xVisualType 	*pVis, *pVisT;
+SwapVisual(xVisualType *pVis, 
+	   xVisualType *pVisT;
 {
     cpswapl(pVis->visualID, pVisT->visualID);
     pVisT->class = pVis->class;
@@ -797,9 +765,8 @@ SwapVisual(pVis, pVisT)
 #endif
 
 void
-LbxWriteSConnSetupPrefix(pClient, pcsp)
-    ClientPtr		pClient;
-    xLbxConnSetupPrefix	*pcsp;
+LbxWriteSConnSetupPrefix(ClientPtr		pClient,
+			 xLbxConnSetupPrefix	*pcsp)
 {
     xLbxConnSetupPrefix	cspT;
 
@@ -814,9 +781,8 @@ LbxWriteSConnSetupPrefix(pClient, pcsp)
 }
 
 void
-LbxSwapFontInfo(pr, compressed)
-    xLbxFontInfo	*pr;
-    Bool	compressed;
+LbxSwapFontInfo(xLbxFontInfo	*pr,
+		Bool		compressed)
 {
     unsigned    i;
     xCharInfo  *pxci;

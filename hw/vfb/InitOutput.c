@@ -26,8 +26,9 @@ other dealings in this Software without prior written authorization
 from The Open Group.
 
 */
+/* $XFree86: xc/programs/Xserver/hw/vfb/InitOutput.c,v 3.22 2003/01/15 02:34:07 torrey Exp $ */
 
-#ifdef WIN32
+#if defined(WIN32)
 #include <X11/Xwinsock.h>
 #endif
 #include <stdio.h>
@@ -38,7 +39,7 @@ from The Open Group.
 #include "scrnintstr.h"
 #include "servermd.h"
 #define PSZ 8
-#include "cfb.h"
+#include "fb.h"
 #include "mibstore.h"
 #include "colormapst.h"
 #include "gcstruct.h"
@@ -63,6 +64,7 @@ from The Open Group.
 #endif /* HAS_SHM */
 #include "dix.h"
 #include "miline.h"
+#include "mfb.h"
 
 extern char *display;
 
@@ -104,11 +106,14 @@ typedef struct
 static int vfbNumScreens;
 static vfbScreenInfo vfbScreens[MAXSCREENS];
 static Bool vfbPixmapDepths[33];
+#ifdef HAS_MMAP
 static char *pfbdir = NULL;
+#endif
 typedef enum { NORMAL_MEMORY_FB, SHARED_MEMORY_FB, MMAPPED_FILE_FB } fbMemType;
 static fbMemType fbmemtype = NORMAL_MEMORY_FB;
 static char needswap = 0;
 static int lastScreen = -1;
+static Bool Render = TRUE;
 
 #define swapcopy16(_dst, _src) \
     if (needswap) { CARD16 _s = _src; cpswaps(_s, _dst); } \
@@ -178,6 +183,9 @@ ddxGiveUp()
 	    }
 	}
 	break;
+#else /* HAS_MMAP */
+    case MMAPPED_FILE_FB:
+        break;
 #endif /* HAS_MMAP */
 	
 #ifdef HAS_SHM
@@ -191,6 +199,9 @@ ddxGiveUp()
 	    }
 	}
 	break;
+#else /* HAS_SHM */
+    case SHARED_MEMORY_FB:
+        break;
 #endif /* HAS_SHM */
 	
     case NORMAL_MEMORY_FB:
@@ -208,8 +219,36 @@ AbortDDX()
     ddxGiveUp();
 }
 
+#ifdef __DARWIN__
+void
+DarwinHandleGUI(int argc, char *argv[])
+{
+}
+
+void GlxExtensionInit();
+void GlxWrapInitVisuals(void *procPtr);
+
+void
+DarwinGlxExtensionInit()
+{
+    GlxExtensionInit();
+}
+
+void
+DarwinGlxWrapInitVisuals(
+    void *procPtr)
+{
+    GlxWrapInitVisuals(procPtr);
+}
+#endif
+
 void
 OsVendorInit()
+{
+}
+
+void
+OsVendorFatalError()
 {
 }
 
@@ -218,6 +257,10 @@ ddxUseMsg()
 {
     ErrorF("-screen scrn WxHxD     set screen's width, height, depth\n");
     ErrorF("-pixdepths list-of-int support given pixmap depths\n");
+#ifdef RENDER
+    ErrorF("+/-render		   turn on/of RENDER extension support"
+	   "(default on)\n");
+#endif
     ErrorF("-linebias n            adjust thin line pixelization\n");
     ErrorF("-blackpixel n          pixel value for black\n");
     ErrorF("-whitepixel n          pixel value for white\n");
@@ -287,6 +330,18 @@ ddxProcessArgument (argc, argv, i)
 	    ret++;
 	}
 	return ret;
+    }
+
+    if (strcmp (argv[i], "+render") == 0)	/* +render */
+    {
+	Render = TRUE;
+	return 1;
+    }
+
+    if (strcmp (argv[i], "-render") == 0)	/* -render */
+    {
+	Render = FALSE;
+	return 1;
     }
 
     if (strcmp (argv[i], "-blackpixel") == 0)	/* -blackpixel n */
@@ -389,9 +444,9 @@ vfbMultiDepthCreateGC(pGC)
     switch (vfbBitsPerPixel(pGC->depth))
     {
     case 1:  return mfbCreateGC (pGC);
-    case 8:  return cfbCreateGC (pGC);
-    case 16: return cfb16CreateGC (pGC);
-    case 32: return cfb32CreateGC (pGC);
+    case 8:  
+    case 16: 
+    case 32: return fbCreateGC (pGC);
     default: return FALSE;
     }
 }
@@ -410,13 +465,9 @@ vfbMultiDepthGetSpans(pDrawable, wMax, ppt, pwidth, nspans, pdstStart)
 	mfbGetSpans(pDrawable, wMax, ppt, pwidth, nspans, pdstStart);
 	break;
     case 8:
-	cfbGetSpans(pDrawable, wMax, ppt, pwidth, nspans, pdstStart);
-	break;
     case 16:
-	cfb16GetSpans(pDrawable, wMax, ppt, pwidth, nspans, pdstStart);
-	break;
     case 32:
-	cfb32GetSpans(pDrawable, wMax, ppt, pwidth, nspans, pdstStart);
+	fbGetSpans(pDrawable, wMax, ppt, pwidth, nspans, pdstStart);
 	break;
     }
     return;
@@ -436,13 +487,9 @@ vfbMultiDepthGetImage(pDrawable, sx, sy, w, h, format, planeMask, pdstLine)
 	mfbGetImage(pDrawable, sx, sy, w, h, format, planeMask, pdstLine);
 	break;
     case 8:
-	cfbGetImage(pDrawable, sx, sy, w, h, format, planeMask, pdstLine);
-	break;
     case 16:
-	cfb16GetImage(pDrawable, sx, sy, w, h, format, planeMask, pdstLine);
-	break;
     case 32:
-	cfb32GetImage(pDrawable, sx, sy, w, h, format, planeMask, pdstLine);
+	fbGetImage(pDrawable, sx, sy, w, h, format, planeMask, pdstLine);
 	break;
     }
 }
@@ -546,21 +593,32 @@ vfbStoreColors(pmap, ndef, pdefs)
     XWDColor *pXWDCmap;
     int i;
 
-    if (pmap != InstalledMaps[pmap->pScreen->myNum]) return;
+    if (pmap != InstalledMaps[pmap->pScreen->myNum])
+    {
+	return;
+    }
 
     pXWDCmap = vfbScreens[pmap->pScreen->myNum].pXWDCmap;
 
     if ((pmap->pVisual->class | DynamicClass) == DirectColor)
+    {
 	return;
+    }
 
     for (i = 0; i < ndef; i++)
     {
 	if (pdefs[i].flags & DoRed)
+	{
 	    swapcopy16(pXWDCmap[pdefs[i].pixel].red, pdefs[i].red);
+	}
 	if (pdefs[i].flags & DoGreen)
+	{
 	    swapcopy16(pXWDCmap[pdefs[i].pixel].green, pdefs[i].green);
+	}
 	if (pdefs[i].flags & DoBlue)
+	{
 	    swapcopy16(pXWDCmap[pdefs[i].pixel].blue, pdefs[i].blue);
+	}
     }
 }
 
@@ -649,7 +707,7 @@ vfbAllocateMmappedFramebuffer(pvfb)
 				    PROT_READ|PROT_WRITE,
 				    MAP_FILE|MAP_SHARED,
 				    pvfb->mmap_fd, 0);
-    if (-1 == (int)pvfb->pXWDHeader)
+    if (-1 == (long)pvfb->pXWDHeader)
     {
 	perror("mmap");
 	ErrorF("mmap %s failed, errno %d", pvfb->mmap_file, errno);
@@ -684,7 +742,7 @@ vfbAllocateSharedMemoryFramebuffer(pvfb)
     /* try to attach it */
 
     pvfb->pXWDHeader = (XWDFileHeader *)shmat(pvfb->shmid, 0, 0);
-    if (-1 == (int)pvfb->pXWDHeader)
+    if (-1 == (long)pvfb->pXWDHeader)
     {
 	perror("shmat");
 	ErrorF("shmat failed, errno %d", errno);
@@ -735,10 +793,14 @@ vfbAllocateFramebufferMemory(pvfb)
     {
 #ifdef HAS_MMAP
     case MMAPPED_FILE_FB:  vfbAllocateMmappedFramebuffer(pvfb); break;
+#else
+    case MMAPPED_FILE_FB: break;
 #endif
 
 #ifdef HAS_SHM
     case SHARED_MEMORY_FB: vfbAllocateSharedMemoryFramebuffer(pvfb); break;
+#else
+    case SHARED_MEMORY_FB: break;
 #endif
 
     case NORMAL_MEMORY_FB:
@@ -751,6 +813,7 @@ vfbAllocateFramebufferMemory(pvfb)
 	pvfb->pXWDCmap = (XWDColor *)((char *)pvfb->pXWDHeader
 				+ SIZEOF(XWDheader) + XWD_WINDOW_NAME_LEN);
 	pvfb->pfbMemory = (char *)(pvfb->pXWDCmap + pvfb->ncolors);
+
 	return pvfb->pfbMemory;
     }
     else
@@ -765,7 +828,6 @@ vfbWriteXWDFileHeader(pScreen)
     vfbScreenInfoPtr pvfb = &vfbScreens[pScreen->myNum];
     XWDFileHeader *pXWDHeader = pvfb->pXWDHeader;
     char hostname[XWD_WINDOW_NAME_LEN];
-    VisualPtr	pVisual;
     unsigned long swaptest = 1;
     int i;
 
@@ -867,6 +929,8 @@ vfbScreenInit(index, pScreen, argc, argv)
     pbits = vfbAllocateFramebufferMemory(pvfb);
     if (!pbits) return FALSE;
 
+    /*    miSetPixmapDepths ();*/
+
     switch (pvfb->bitsPerPixel)
     {
     case 1:
@@ -874,16 +938,14 @@ vfbScreenInit(index, pScreen, argc, argv)
 			    dpix, dpiy, pvfb->paddedWidth * 8);
 	break;
     case 8:
-	ret = cfbScreenInit(pScreen, pbits, pvfb->width, pvfb->height,
-			    dpix, dpiy, pvfb->paddedWidth);
-	break;
     case 16:
-	ret = cfb16ScreenInit(pScreen, pbits, pvfb->width, pvfb->height,
-			      dpix, dpiy, pvfb->paddedWidth);
-	break;
     case 32:
-	ret = cfb32ScreenInit(pScreen, pbits, pvfb->width, pvfb->height,
-			      dpix, dpiy, pvfb->paddedWidth);
+	ret = fbScreenInit(pScreen, pbits, pvfb->width, pvfb->height,
+			      dpix, dpiy, pvfb->paddedWidth,pvfb->bitsPerPixel);
+#ifdef RENDER
+	if (ret && Render) 
+	    fbPictureInit (pScreen, 0, 0);
+#endif
 	break;
     default:
 	return FALSE;
@@ -891,6 +953,12 @@ vfbScreenInit(index, pScreen, argc, argv)
 
     if (!ret) return FALSE;
 
+    miInitializeBackingStore(pScreen);
+
+    /*
+     * Circumvent the backing store that was just initialised.  This amounts
+     * to a truely bizarre way of initialising SaveDoomedAreas and friends.
+     */
     pScreen->CreateGC = vfbMultiDepthCreateGC;
     pScreen->GetImage = vfbMultiDepthGetImage;
     pScreen->GetSpans = vfbMultiDepthGetSpans;
@@ -915,7 +983,7 @@ vfbScreenInit(index, pScreen, argc, argv)
     }
     else
     {
-	ret = cfbCreateDefColormap(pScreen);
+	ret = fbCreateDefColormap(pScreen);
     }
 
     miSetZeroLineBias(pScreen, pvfb->lineBias);
@@ -933,7 +1001,6 @@ InitOutput(screenInfo, argc, argv)
 {
     int i;
     int NumFormats = 0;
-    FILE *pf = stderr;
 
     /* initialize pixmap formats */
 
@@ -942,6 +1009,10 @@ InitOutput(screenInfo, argc, argv)
     {
 	vfbPixmapDepths[vfbScreens[i].depth] = TRUE;
     }
+
+    /* for RENDER we need 32bpp */
+    if (Render)
+	vfbPixmapDepths[32] = TRUE;
 
     for (i = 1; i <= 32; i++)
     {

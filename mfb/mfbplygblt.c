@@ -1,3 +1,4 @@
+/* $XFree86: xc/programs/Xserver/mfb/mfbplygblt.c,v 3.4 2001/12/14 20:00:10 dawes Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -154,8 +155,7 @@ MFBPOLYGLYPHBLT(pDrawable, pGC, x, y, nglyph, ppci, pglyphBase)
     bbox.y1 = y - info.overallAscent;
     bbox.y2 = y + info.overallDescent;
 
-    switch (RECT_IN_REGION(pGC->pScreen, 
-           ((mfbPrivGC *)(pGC->devPrivates[mfbGCPrivateIndex].ptr))->pCompositeClip, &bbox))
+    switch (RECT_IN_REGION(pGC->pScreen, pGC->pCompositeClip, &bbox))
     {
       case rgnOUT:
 	break;
@@ -172,7 +172,7 @@ MFBPOLYGLYPHBLT(pDrawable, pGC, x, y, nglyph, ppci, pglyphBase)
 	    widthGlyph = GLYPHWIDTHBYTESPADDED(pci);
 
 	    /* start at top scanline of glyph */
-	    pdst = mfbScanlineDelta(pdstBase, -pci->metrics.ascent, widthDst);
+	    pdst = pdstBase;
 
 	    /* find correct word in scanline and x offset within it
 	       for left edge of glyph
@@ -188,6 +188,8 @@ MFBPOLYGLYPHBLT(pDrawable, pGC, x, y, nglyph, ppci, pglyphBase)
 	        xoff += PPW;
 	        pdst--;
 	    }
+
+	    pdst = mfbScanlineDelta(pdst, -pci->metrics.ascent, widthDst);
 
 	    if ((xoff + w) <= PPW)
 	    {
@@ -282,7 +284,7 @@ MFBPOLYGLYPHBLT(pDrawable, pGC, x, y, nglyph, ppci, pglyphBase)
 	    }
 	}
 
-	cclip = ((mfbPrivGC *)(pGC->devPrivates[mfbGCPrivateIndex].ptr))->pCompositeClip;
+	cclip = pGC->pCompositeClip;
 	pbox = REGION_RECTS(cclip);
 	nbox = REGION_NUM_RECTS(cclip);
 
@@ -335,7 +337,7 @@ MFBPOLYGLYPHBLT(pDrawable, pGC, x, y, nglyph, ppci, pglyphBase)
 		pglyph = FONTGLYPHBITS(pglyphBase, pci);
 		pglyph += (glyphRow * widthGlyph);
 
-		pdst = mfbScanlineDelta(ppos[i].pdstBase, -(y-topEdge), widthDst);
+		pdst = ppos[i].pdstBase;
 
 		glyphCol = (leftEdge - ppos[i].xpos) -
 			   (pci->metrics.leftSideBearing);
@@ -351,6 +353,8 @@ MFBPOLYGLYPHBLT(pDrawable, pGC, x, y, nglyph, ppci, pglyphBase)
 		    xoff += PPW;
 		    pdst--;
 		}
+
+		pdst = mfbScanlineDelta(pdst, -(y-topEdge), widthDst);
 
 		if ((xoff + w) <= PPW)
 		{

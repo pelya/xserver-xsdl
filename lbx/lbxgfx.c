@@ -21,6 +21,7 @@
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *
  */
+/* $XFree86: xc/programs/Xserver/lbx/lbxgfx.c,v 1.4 2001/08/23 14:46:57 alanh Exp $ */
 
 /* various bits of DIX-level mangling */
 
@@ -48,21 +49,17 @@
 #define DrawableCache(client)	(LbxClient(client)->drawableCache)
 #define GContextCache(client)	(LbxClient(client)->gcontextCache)
 
-extern int (*ProcVector[256])();
-
 static void
-push (cache, xid)
-    XID	    cache[GFX_CACHE_SIZE];
-    XID	    xid;
+push (XID	    cache[GFX_CACHE_SIZE],
+      XID	    xid)
 {
     memmove (cache+1, cache, (GFX_CACHE_SIZE - 1) * sizeof (cache[0]));
     cache[0] = xid;
 }
 
 static XID
-use (cache, i)
-    XID	    cache[GFX_CACHE_SIZE];
-    int	    i;
+use (XID	    cache[GFX_CACHE_SIZE],
+     int	    i)
 {
     XID	tmp;
 
@@ -77,13 +74,12 @@ use (cache, i)
 
 extern char *ConnectionInfo;
 
-int
-LbxDecodeGFXCache(client, cacheEnts, after, drawp, gcp)
-    ClientPtr		client;
-    CARD8		cacheEnts;
-    char		*after;
-    Drawable		*drawp;
-    GContext		*gcp;
+static int
+LbxDecodeGFXCache(ClientPtr	client,
+		  CARD8		cacheEnts,
+		  char		*after,
+		  Drawable	*drawp,
+		  GContext	*gcp)
 {
     int	skip;
     int	dcache, gcache;
@@ -111,12 +107,11 @@ LbxDecodeGFXCache(client, cacheEnts, after, drawp, gcp)
     return skip;
 }
 
-int
-LbxDecodeDrawableCache(client, cacheEnts, after, drawp)
-    ClientPtr		client;
-    CARD8		cacheEnts;
-    char		*after;
-    Drawable		*drawp;
+static int
+LbxDecodeDrawableCache(ClientPtr	client,
+		       CARD8		cacheEnts,
+		       char		*after,
+		       Drawable		*drawp)
 {
     int	skip;
     int	dcache;
@@ -135,12 +130,12 @@ LbxDecodeDrawableCache(client, cacheEnts, after, drawp)
     return skip;
 }
 
-int
-LbxDecodeGCCache(client, cacheEnts, after, gcp)
-    ClientPtr		client;
-    CARD8		cacheEnts;
-    char		*after;
-    GContext		*gcp;
+#ifdef notyet
+static int
+LbxDecodeGCCache(ClientPtr	client,
+		 CARD8		cacheEnts,
+		 char		*after,
+		 GContext	*gcp)
 {
     int	skip;
     int	gcache;
@@ -158,6 +153,7 @@ LbxDecodeGCCache(client, cacheEnts, after, gcp)
 	*gcp = use (GContextCache(client), gcache);
     return skip;
 }
+#endif
 
 #define GFX_GET_DRAWABLE_AND_GC(type,in,len) {\
     int	    skip;   \
@@ -203,10 +199,9 @@ LbxDecodeGCCache(client, cacheEnts, after, gcp)
 }
 
 int
-LbxDecodePoly(client, xreqtype, decode_rtn)
-    register ClientPtr  client;
-    CARD8		xreqtype;
-    int			(*decode_rtn)();
+LbxDecodePoly(ClientPtr client,
+	      CARD8	xreqtype,
+	      int 	(*decode_rtn)(char *, char *, short *))
 {
     REQUEST(xLbxPolyPointReq);
     char		*in;
@@ -220,7 +215,7 @@ LbxDecodePoly(client, xreqtype, decode_rtn)
     if ((xreq = (xPolyPointReq *) 
 	    xalloc(sizeof(xPolyPointReq) + (len << 1))) == NULL)
 	return BadAlloc;
-    len = (*decode_rtn)(in, in + len - stuff->padBytes, &xreq[1]);
+    len = (*decode_rtn)(in, in + len - stuff->padBytes, (short *)(&xreq[1]));
     xreq->reqType = xreqtype;
     xreq->coordMode = 1;
     xreq->drawable = drawable;
@@ -234,8 +229,7 @@ LbxDecodePoly(client, xreqtype, decode_rtn)
 }
 
 int
-LbxDecodeFillPoly(client)
-    register ClientPtr  client;
+LbxDecodeFillPoly(ClientPtr  client)
 {
     REQUEST(xLbxFillPolyReq);
     char		*in;
@@ -314,10 +308,9 @@ LbxDecodeFillPoly(client)
     }
 
 int
-LbxDecodePoints(in, inend, out)
-    register char  *in;
-    char	   *inend;
-    register short *out;
+LbxDecodePoints(char  	*in,
+		char	*inend,
+		short 	*out)
 {
     char	   *start_out = (char *)out;
 
@@ -331,12 +324,11 @@ LbxDecodePoints(in, inend, out)
 }
 
 int
-LbxDecodeSegment(in, inend, out)
-    register char  *in;
-    char	   *inend;
-    register short *out;
+LbxDecodeSegment(char	*in,
+		 char	*inend,
+		 short	*out)
 {
-    register short diff;
+    short 	   diff;
     short	   last_x = 0;
     short	   last_y = 0;
     char	   *start_out = (char *)out;
@@ -362,12 +354,11 @@ LbxDecodeSegment(in, inend, out)
 }
 
 int
-LbxDecodeRectangle(in, inend, out)
-    register char  *in;
-    char	   *inend;
-    register short *out;
+LbxDecodeRectangle(char	 *in,
+		   char	 *inend,
+		   short *out)
 {
-    register short diff;
+    short	   diff;
     short	   last_x = 0;
     short	   last_y = 0;
     char	   *start_out = (char *)out;
@@ -391,12 +382,11 @@ LbxDecodeRectangle(in, inend, out)
 }
 
 int
-LbxDecodeArc(in, inend, out)
-    register char  *in;
-    char	   *inend;
-    register short *out;
+LbxDecodeArc(char  *in,
+	     char  *inend,
+	     short *out)
 {
-    register short diff;
+    short 	   diff;
     short	   last_x = 0;
     short	   last_y = 0;
     char	   *start_out = (char *)out;
@@ -425,8 +415,7 @@ LbxDecodeArc(in, inend, out)
 }
 
 int
-LbxDecodeCopyArea (client)
-    ClientPtr	client;
+LbxDecodeCopyArea (ClientPtr	client)
 {
     REQUEST(xLbxCopyAreaReq);
     char		*in;
@@ -452,8 +441,7 @@ LbxDecodeCopyArea (client)
 }
 
 int
-LbxDecodeCopyPlane (client)
-    ClientPtr	client;
+LbxDecodeCopyPlane (ClientPtr	client)
 {
     REQUEST(xLbxCopyPlaneReq);
     char		*in;
@@ -480,9 +468,8 @@ LbxDecodeCopyPlane (client)
 }
 
 static pointer
-get_gfx_buffer(client, len)
-    ClientPtr	client;
-    int		len;
+get_gfx_buffer(ClientPtr	client,
+	       int		len)
 {
     LbxClientPtr    lbxClient = LbxClient(client);
     pointer	tmp;
@@ -499,8 +486,7 @@ get_gfx_buffer(client, len)
 }
 
 int
-LbxDecodePolyText (client)
-    ClientPtr	client;
+LbxDecodePolyText (ClientPtr	client)
 {
     REQUEST(xLbxPolyTextReq);
     char		*in, *pos;
@@ -527,8 +513,7 @@ LbxDecodePolyText (client)
 }
 
 int
-LbxDecodeImageText (client)
-    ClientPtr	client;
+LbxDecodeImageText (ClientPtr	client)
 {
     REQUEST(xLbxImageTextReq);
     char		*in, *pos;
@@ -556,8 +541,7 @@ LbxDecodeImageText (client)
 }
 
 int
-LbxDecodePutImage (client)
-    register ClientPtr  client;
+LbxDecodePutImage (ClientPtr  client)
 {
     REQUEST		(xLbxPutImageReq);
     char		*in, *data;
@@ -698,13 +682,12 @@ LbxDecodePutImage (client)
 }
 
 int
-LbxDecodeGetImage (client)
-    register ClientPtr  client;
+LbxDecodeGetImage (ClientPtr  client)
 {
     REQUEST		(xLbxGetImageReq);
     xLbxGetImageReply	*reply = NULL;
     int			lbxLen, xLen, n;
-    int			method, bytes, status;
+    int			method = 0, bytes, status;
     xGetImageReply	*theImage;
 
     REQUEST_SIZE_MATCH(xLbxGetImageReq);

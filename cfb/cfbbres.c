@@ -1,3 +1,4 @@
+/* $XFree86: xc/programs/Xserver/cfb/cfbbres.c,v 3.5 2001/12/14 19:59:21 dawes Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -61,8 +62,8 @@ void
 cfbBresS(rop, and, xor, addrl, nlwidth, signdx, signdy, axis, x1, y1, e, e1,
 	 e2, len)
     int		    rop;
-    unsigned long   and, xor;
-    unsigned long   *addrl;		/* pointer to base of bitmap */
+    CfbBits   and, xor;
+    CfbBits   *addrl;		/* pointer to base of bitmap */
     int		    nlwidth;		/* width in longwords of bitmap */
     register int    signdx;
     int		    signdy;		/* signs of directions */
@@ -74,6 +75,11 @@ cfbBresS(rop, and, xor, addrl, nlwidth, signdx, signdy, axis, x1, y1, e, e1,
     int		    len;		/* length of line */
 {
     register int	e3 = e2-e1;
+#if PSZ == 24
+    CfbBits piQxelXor[3],piQxelAnd[3];
+    char *addrb;
+    int nlwidth3, signdx3;
+#endif
 #ifdef PIXEL_ADDR
     register PixelType	*addrp;		/* Pixel pointer */
 
@@ -81,10 +87,26 @@ cfbBresS(rop, and, xor, addrl, nlwidth, signdx, signdy, axis, x1, y1, e, e1,
     	return;
     /* point to first point */
     nlwidth <<= PWSH;
+#if PSZ == 24
+    addrp = (PixelType *)(addrl) + (y1 * nlwidth);
+    addrb = (char *)addrp + x1 * 3;
+
+    piQxelXor[0] = (xor << 24) | xor;
+    piQxelXor[1] = (xor << 16)| (xor >> 8);
+    piQxelXor[2] = (xor << 8) | (xor >> 16);
+    piQxelAnd[0] = (and << 24) | and;
+    piQxelAnd[1] = (and << 16)| (and >> 8);
+    piQxelAnd[2] = (and << 8) | (and >> 16);
+#else
     addrp = (PixelType *)(addrl) + (y1 * nlwidth) + x1;
+#endif
     if (signdy < 0)
     	nlwidth = -nlwidth;
     e = e-e1;			/* to make looping easier */
+#if PSZ == 24
+    nlwidth3 = nlwidth * sizeof (CfbBits);
+    signdx3 = signdx * 3;
+#endif
     
     if (axis == Y_AXIS)
     {
@@ -93,10 +115,45 @@ cfbBresS(rop, and, xor, addrl, nlwidth, signdx, signdy, axis, x1, y1, e, e1,
 	t = nlwidth;
 	nlwidth = signdx;
 	signdx = t;
+#if PSZ == 24
+	t = nlwidth3;
+	nlwidth3 = signdx3;
+	signdx3 = t;
+#endif
     }
     if (rop == GXcopy)
     {
 	--len;
+#if PSZ == 24
+#define body_copy \
+	    addrp = (PixelType *)((unsigned long)addrb & ~0x03); \
+	    switch((unsigned long)addrb & 3){ \
+	    case 0: \
+	      *addrp = ((*addrp)&0xFF000000)|(piQxelXor[0] & 0xFFFFFF); \
+	      break; \
+	    case 1: \
+	      *addrp = ((*addrp)&0xFF)|(piQxelXor[2] & 0xFFFFFF00); \
+	      break; \
+	    case 3: \
+	      *addrp = ((*addrp)&0xFFFFFF)|(piQxelXor[0] & 0xFF000000); \
+	      *(addrp+1) = ((*(addrp+1))&0xFFFF0000)|(piQxelXor[1] & 0xFFFF); \
+	      break; \
+	    case 2: \
+	      *addrp = ((*addrp)&0xFFFF)|(piQxelXor[1] & 0xFFFF0000); \
+	      *(addrp+1) = ((*(addrp+1))&0xFFFFFF00)|(piQxelXor[2] & 0xFF); \
+	      break; \
+	    }
+#define body {\
+	    body_copy \
+	    addrb += signdx3; \
+	    e += e1; \
+	    if (e >= 0) \
+	    { \
+		addrb += nlwidth3; \
+		e += e3; \
+	     } \
+	    }
+#else /* PSZ == 24 */
 #define body {\
 	    *addrp = xor; \
 	    addrp += signdx; \
@@ -107,6 +164,7 @@ cfbBresS(rop, and, xor, addrl, nlwidth, signdx, signdy, axis, x1, y1, e, e1,
 		e += e3; \
 	    } \
 	}
+#endif /* PSZ == 24 */
 	while (len >= 4)
 	{
 	    body body body body
@@ -117,12 +175,49 @@ cfbBresS(rop, and, xor, addrl, nlwidth, signdx, signdy, axis, x1, y1, e, e1,
 	case  3: body case  2: body case  1: body
 	}
 #undef body
+#if PSZ == 24
+	body_copy
+# undef body_copy
+#else
 	*addrp = xor;
+#endif
     }
     else /* not GXcopy */
     {
 	while(len--)
 	{ 
+#if PSZ == 24
+	    addrp = (PixelType *)((unsigned long)addrb & ~0x03);
+	    switch((unsigned long)addrb & 3){
+	    case 0:
+	      *addrp = (*addrp & (piQxelAnd[0]|0xFF000000))
+			^ (piQxelXor[0] & 0xFFFFFF);
+	      break;
+	    case 1:
+	      *addrp = (*addrp & (piQxelAnd[2]|0xFF))
+			^ (piQxelXor[2] & 0xFFFFFF00);
+	      break;
+	    case 3:
+	      *addrp = (*addrp & (piQxelAnd[0]|0xFFFFFF))
+			^ (piQxelXor[0] & 0xFF000000);
+	      *(addrp+1) = (*(addrp+1) & (piQxelAnd[1]|0xFFFF0000))
+			^ (piQxelXor[1] & 0xFFFF);
+	      break;
+	    case 2:
+	      *addrp = (*addrp & (piQxelAnd[1]|0xFFFF))
+			^ (piQxelXor[1] & 0xFFFF0000);
+	      *(addrp+1) = (*(addrp+1) & (piQxelAnd[2]|0xFFFFFF00))
+			^ (piQxelXor[2] & 0xFF);
+	      break;
+	    }
+	    e += e1;
+	    if (e >= 0)
+	    {
+		addrb += nlwidth3;
+		e += e3;
+	    }
+	    addrb += signdx3;
+#else /* PSZ == 24 */
 	    *addrp = DoRRop (*addrp, and, xor);
 	    e += e1;
 	    if (e >= 0)
@@ -131,21 +226,31 @@ cfbBresS(rop, and, xor, addrl, nlwidth, signdx, signdy, axis, x1, y1, e, e1,
 		e += e3;
 	    }
 	    addrp += signdx;
+#endif /* PSZ == 24 */
 	}
     }
 #else /* !PIXEL_ADDR */
-    register unsigned long   tmp, bit;
-    unsigned long leftbit, rightbit;
+    register CfbBits   tmp, bit;
+    CfbBits leftbit, rightbit;
 
     /* point to longword containing first point */
+#if PSZ == 24
+    addrl = (addrl + (y1 * nlwidth) + ((x1 * 3) >>2);
+#else
     addrl = (addrl + (y1 * nlwidth) + (x1 >> PWSH));
+#endif
     if (signdy < 0)
 	    nlwidth = -nlwidth;
     e = e-e1;			/* to make looping easier */
 
     leftbit = cfbmask[0];
+#if PSZ == 24
+    rightbit = cfbmask[(PPW-1)<<1];
+    bit = cfbmask[(x1 & 3)<<1];
+#else
     rightbit = cfbmask[PPW-1];
     bit = cfbmask[x1 & PIM];
+#endif
 
     if (axis == X_AXIS)
     {

@@ -45,6 +45,7 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ********************************************************/
+/* $XFree86: xc/programs/Xserver/Xi/gtmotion.c,v 3.7 2001/12/14 19:58:57 dawes Exp $ */
 
 /***********************************************************************
  *
@@ -59,11 +60,12 @@ SOFTWARE.
 #include "inputstr.h"			/* DeviceIntPtr	     */
 #include "XI.h"
 #include "XIproto.h"
+#include "extnsionst.h"
+#include "extinit.h"			/* LookupDeviceIntRec */
+#include "exevents.h"
+#include "exglobals.h"
 
-extern	int 		IReqCode;
-extern	int		BadDevice;
-extern	void		(* ReplySwapVector[256]) ();
-DeviceIntPtr		LookupDeviceIntRec();
+#include "gtmotion.h"
 
 /***********************************************************************
  *
@@ -97,11 +99,11 @@ ProcXGetDeviceMotionEvents(client)
 {
     INT32 *coords = NULL, *bufptr;
     xGetDeviceMotionEventsReply rep;
-    int     i, j, num_events, axes, size, tsize;
+    unsigned long i;
+    int     num_events, axes, size = 0, tsize;
     unsigned long nEvents;
     DeviceIntPtr dev;
     TimeStamp start, stop;
-    void XSwapTimeCoordWrite();
     int	length = 0;
     ValuatorClassPtr 	v;
 
@@ -192,6 +194,7 @@ ProcXGetDeviceMotionEvents(client)
  *
  */
 
+void
 SRepXGetDeviceMotionEvents (client, size, rep)
     ClientPtr	client;
     int		size;

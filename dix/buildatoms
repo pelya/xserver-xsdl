@@ -1,5 +1,5 @@
 #!/bin/sh
-hfile=../../X11/Xatom.h
+hfile=../../../include/Xatom.h
 cfile=initatoms.c
 rm -f $hfile $cfile
 umask 222
@@ -21,8 +21,9 @@ BEGIN {
 	printf(" */\n\n") > cfile;
 	printf("#include \"X.h\"\n") > cfile;
 	printf("#include \"Xatom.h\"\n") > cfile;
-	printf("extern Atom MakeAtom();\n") > cfile;
-	printf("MakePredeclaredAtoms()\n") > cfile;
+	printf("#include \"misc.h\"\n") > cfile;
+	printf("#include \"dix.h\"\n") > cfile;
+	printf("void MakePredeclaredAtoms()\n") > cfile;
 	printf("{\n") > cfile;
 
 	}

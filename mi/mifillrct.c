@@ -1,3 +1,4 @@
+/* $XFree86: xc/programs/Xserver/mi/mifillrct.c,v 1.3 2001/12/14 20:00:22 dawes Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -51,7 +52,7 @@ SOFTWARE.
 #include "gcstruct.h"
 #include "windowstr.h"
 #include "pixmap.h"
-
+#include "mi.h"
 #include "misc.h"
 
 /* mi rectangles

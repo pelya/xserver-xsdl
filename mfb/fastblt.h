@@ -26,6 +26,7 @@ other dealings in this Software without prior written authorization
 from The Open Group.
 
 */
+/* $XFree86: xc/programs/Xserver/mfb/fastblt.h,v 1.5 2001/12/14 20:00:03 dawes Exp $ */
 
 /*
  * Fast bitblt macros for certain hardware.  If your machine has an addressing
@@ -77,7 +78,6 @@ from The Open Group.
     }
 #endif
 
-#if PPW == 32
 #define DuffL(counter,label,body) \
     switch (counter & 3) { \
     label: \
@@ -92,27 +92,3 @@ from The Open Group.
 	if ((counter -= 4) >= 0) \
 	    goto label; \
     }
-#else /* PPW == 64 */
-#define DuffL(counter,label,body) \
-    switch (counter & 7) { \
-    label: \
-        body \
-    case 7: \
-	body \
-    case 6: \
-	body \
-    case 5: \
-	body \
-    case 4: \
-	body \
-    case 3: \
-	body \
-    case 2: \
-	body \
-    case 1: \
-	body \
-    case 0: \
-	if ((counter -= 8) >= 0) \
-	    goto label; \
-    }
-#endif /* PPW */

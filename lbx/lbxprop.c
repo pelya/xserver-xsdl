@@ -46,6 +46,7 @@ in this Software without prior written authorization from The Open Group.
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *
  */
+/* $XFree86: xc/programs/Xserver/lbx/lbxprop.c,v 1.5 2001/12/14 20:00:00 dawes Exp $ */
 
 /* various bits of DIX-level mangling */
 
@@ -61,6 +62,7 @@ in this Software without prior written authorization from The Open Group.
 #include "resource.h"
 #include "servermd.h"
 #include "propertyst.h"
+#include "colormapst.h"
 #include "windowstr.h"
 #define _XLBX_SERVER_
 #include "lbxstr.h"
@@ -71,15 +73,11 @@ in this Software without prior written authorization from The Open Group.
 #define _SECURITY_SERVER
 #include "extensions/security.h"
 #endif
-
-extern int  (*ProcVector[256]) ();
-extern void (*ReplySwapVector[256]) ();
-extern void CopySwap16Write(), CopySwap32Write(), Swap32Write();
+#include "swaprep.h"
 
 void
-LbxStallPropRequest(client, pProp)
-    ClientPtr   client;
-    PropertyPtr pProp;
+LbxStallPropRequest(ClientPtr   client,
+		    PropertyPtr pProp)
 {
     xReq *req = (xReq *) client->requestBuffer;
     register char n;
@@ -139,19 +137,17 @@ LbxStallPropRequest(client, pProp)
 }
 
 int
-LbxChangeWindowProperty(client, pWin, property, type, format, mode, len,
-			have_data, value, sendevent, tag)
-    ClientPtr   client;
-    WindowPtr   pWin;
-    Atom        property,
-                type;
-    int         format,
-                mode;
-    unsigned long len;
-    Bool        have_data;
-    pointer     value;
-    Bool        sendevent;
-    XID        *tag;
+LbxChangeWindowProperty(ClientPtr   	client,
+			WindowPtr   	pWin,
+			Atom        	property,
+			Atom	    	type,
+			int         	format,
+			int	    	mode,
+			unsigned long	len,
+			Bool        	have_data,
+			pointer     	value,
+			Bool        	sendevent,
+			XID            *tag)
 {
     PropertyPtr pProp;
     xEvent      event;
@@ -288,8 +284,7 @@ LbxChangeWindowProperty(client, pWin, property, type, format, mode, len,
 }
 
 int
-LbxChangeProperty(client)
-    ClientPtr   client;
+LbxChangeProperty(ClientPtr client)
 {
     WindowPtr   pWin;
     char        format,
@@ -370,9 +365,8 @@ LbxChangeProperty(client)
 }
 
 static void
-LbxWriteGetpropReply(client, rep)
-    ClientPtr   client;
-    xLbxGetPropertyReply *rep;
+LbxWriteGetpropReply(ClientPtr   	   client,
+		     xLbxGetPropertyReply *rep)
 {
     int         n;
 
@@ -388,8 +382,7 @@ LbxWriteGetpropReply(client, rep)
 }
 
 int
-LbxGetProperty(client)
-    ClientPtr   client;
+LbxGetProperty(ClientPtr client)
 {
     PropertyPtr pProp,
                 prevProp;
@@ -525,13 +518,13 @@ LbxGetProperty(client)
     if (len) {
 	switch (reply.format) {
 	case 32:
-	    client->pSwapReplyFunc = CopySwap32Write;
+	    client->pSwapReplyFunc = (ReplySwapPtr)CopySwap32Write;
 	    break;
 	case 16:
-	    client->pSwapReplyFunc = CopySwap16Write;
+	    client->pSwapReplyFunc = (ReplySwapPtr)CopySwap16Write;
 	    break;
 	default:
-	    client->pSwapReplyFunc = (void (*) ()) WriteToClient;
+	    client->pSwapReplyFunc = (ReplySwapPtr) WriteToClient;
 	    break;
 	}
 	WriteSwappedDataToClient(client, len,

@@ -1,4 +1,4 @@
-/* XFree86: $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/sco/VTsw_sco.c,v 1.3 2001/06/30 22:41:49 tsi Exp $ */
 /*
  * Copyright 1993 by David Wexelblat <dwex@goblin.org>
  * Copyright 1993 by David McCullough <davidm@stallion.oz.au>
@@ -22,15 +22,17 @@
  * PERFORMANCE OF THIS SOFTWARE.
  *
  */
-/* $Xorg: VTsw_sco.c,v 1.3 2000/08/17 19:51:28 cpqbld Exp $ */
+/* $XConsortium: VTsw_sco.c /main/2 1995/11/13 06:08:36 kaleb $ */
 
 #include "X.h"
-#include "input.h"
-#include "scrnintstr.h"
 
 #include "xf86.h"
 #include "xf86Priv.h"
 #include "xf86_OSlib.h"
+
+/* For the event driver prototypes */
+#include <sys/event.h>
+#include <mouse.h>
 
 /*
  * Handle the VT-switching interface for SCO
@@ -38,57 +40,75 @@
 
 /*
  * This function is the signal handler for the VT-switching signal.  It
- * is only referenced inside the OS-support layer.
+ * is only referenced inside the OS-support layer. NOTE: we do NOT need
+ * to re-arm the signal here, since we used sigaction() to set the signal
+ * disposition in sco_init.c. If we had used signal(), we would need to
+ * re-arm the signal here. All we need to do now is record the fact that
+ * we got the signal. XFree86 handles the rest.
  */
-void xf86VTRequest(sig)
-int sig;
+void
+xf86VTRequest(int sig)
 {
-	signal(sig, (void(*)())xf86VTRequest);
-	xf86Info.vtRequestsPending = TRUE;
-	return;
+  xf86Info.vtRequestsPending = TRUE;
+  return;
 }
 
-Bool xf86VTSwitchPending()
+Bool
+xf86VTSwitchPending()
 {
-	return(xf86Info.vtRequestsPending ? TRUE : FALSE);
+  return(xf86Info.vtRequestsPending ? TRUE : FALSE);
 }
 
-Bool xf86VTSwitchAway()
+/*
+ * When we switch away, we need to flush and suspend the event driver
+ * before the VT_RELDISP. We also need to get the current LED status
+ * and preserve it, so that we can restore it when we come back.
+ */
+static int sco_ledstatus = -1;
+static unsigned int sco_ledstate = 0;
+
+Bool
+xf86VTSwitchAway()
 {
-	xf86Info.vtRequestsPending = FALSE;
-	if (ioctl(xf86Info.consoleFd, VT_RELDISP, 1) < 0)
-	{
-		return(FALSE);
-	}
-	else
-	{
-		return(TRUE);
-	}
+  ev_flush();
+  ev_suspend();
+  sco_ledstatus = ioctl(xf86Info.consoleFd, KDGETLED, &sco_ledstate);
+
+  xf86Info.vtRequestsPending = FALSE;
+  if (ioctl(xf86Info.consoleFd, VT_RELDISP, VT_TRUE) < 0) {
+    return(FALSE);
+  } else {
+    return(TRUE);
+  }
 }
 
-Bool xf86VTSwitchTo()
+/*
+ * When we come back to the X server, we need to resume the event driver,
+ * and we need to restore the LED settings to what they were when we
+ * switched away.
+ */
+Bool
+xf86VTSwitchTo()
 {
-	xf86Info.vtRequestsPending = FALSE;
-	if (ioctl(xf86Info.consoleFd, VT_RELDISP, VT_ACKACQ) < 0)
-	{
-		return(FALSE);
-	}
-	else
-	{
-		/*
-		 * make sure the console driver thinks the console is in
-		 * graphics mode.  Under mono we have to do the two as the
-		 * console driver only allows valid modes for the current
-		 * video card and Herc or vga are the only devices currently
-		 * supported.
-		 */
-		if (ioctl(xf86Info.consoleFd, SW_VGA12, 0) < 0)
-			if (ioctl(xf86Info.consoleFd, SW_HGC_P0, 0) < 0)
-			{
-				ErrorF("Failed to set graphics mode : %s\n",
-				       strerror(errno));
-			}
+  ev_resume();
 
-		return(TRUE);
-	}
+  xf86Info.vtRequestsPending = FALSE;
+  if (ioctl(xf86Info.consoleFd, VT_RELDISP, VT_ACKACQ) < 0) {
+    return(FALSE);
+  } else {
+    if (sco_ledstatus >= 0) {
+      ioctl (xf86Info.consoleFd, KDSETLED, &sco_ledstate);
+    }
+    sco_ledstatus = -1;
+
+    /*
+     * Convince the console driver this screen is in graphics mode,
+     * otherwise it assumes it can do more to the screen than it should.
+     */
+    if (ioctl(xf86Info.consoleFd, KDSETMODE, KD_GRAPHICS) < 0) {
+        ErrorF("Failed to set graphics mode (%s)\n", strerror(errno));
+    }
+
+    return TRUE;
+  }
 }

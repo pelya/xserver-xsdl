@@ -24,6 +24,7 @@ Except as contained in this notice, the name of The Open Group shall not be
 used in advertising or otherwise to promote the sale, use or other dealings
 in this Software without prior written authorization from The Open Group.
 */
+/* $XFree86: xc/programs/Xserver/include/validate.h,v 1.5 2001/12/14 19:59:56 dawes Exp $ */
 
 #ifndef VALIDATE_H
 #define VALIDATE_H
@@ -31,7 +32,7 @@ in this Software without prior written authorization from The Open Group.
 #include "miscstruct.h"
 #include "regionstr.h"
 
-typedef enum { VTOther, VTStack, VTMove, VTUnmap, VTMap } VTKind;
+typedef enum { VTOther, VTStack, VTMove, VTUnmap, VTMap, VTBroken } VTKind;
 
 /* union _Validate is now device dependent; see mivalidate.h for an example */
 typedef union _Validate *ValidatePtr;

@@ -45,6 +45,8 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ******************************************************************/
+/* $XFree86: xc/programs/Xserver/include/resource.h,v 1.11 2002/03/06 21:14:04 mvojkovi Exp $ */
+
 #ifndef RESOURCE_H
 #define RESOURCE_H 1
 #include "misc.h"
@@ -74,6 +76,8 @@ typedef unsigned long RESTYPE;
 #define RT_WINDOW	((RESTYPE)1|RC_CACHED|RC_DRAWABLE)
 #define RT_PIXMAP	((RESTYPE)2|RC_CACHED|RC_DRAWABLE)
 #define RT_GC		((RESTYPE)3|RC_CACHED)
+#undef RT_FONT
+#undef RT_CURSOR
 #define RT_FONT		((RESTYPE)4)
 #define RT_CURSOR	((RESTYPE)5)
 #define RT_COLORMAP	((RESTYPE)6)
@@ -84,11 +88,30 @@ typedef unsigned long RESTYPE;
 #define RT_NONE		((RESTYPE)0)
 
 /* bits and fields within a resource id */
-#define CLIENTOFFSET 22					/* client field */
-#define RESOURCE_ID_MASK	0x3FFFFF		/* low 22 bits */
-#define CLIENT_BITS(id) ((id) & 0x3fc00000)		/* next 8 bits */
+#define RESOURCE_AND_CLIENT_COUNT   29			/* 29 bits for XIDs */
+#if MAXCLIENTS == 64
+#define RESOURCE_CLIENT_BITS	6
+#endif
+#if MAXCLIENTS == 128
+#define RESOURCE_CLIENT_BITS	7
+#endif
+#if MAXCLIENTS == 256
+#define RESOURCE_CLIENT_BITS	8
+#endif
+#if MAXCLIENTS == 512
+#define RESOURCE_CLIENT_BITS	9
+#endif
+/* client field offset */
+#define CLIENTOFFSET	    (RESOURCE_AND_CLIENT_COUNT - RESOURCE_CLIENT_BITS)
+/* resource field */
+#define RESOURCE_ID_MASK	((1 << CLIENTOFFSET) - 1)
+/* client field */
+#define RESOURCE_CLIENT_MASK	(((1 << RESOURCE_CLIENT_BITS) - 1) << CLIENTOFFSET)
+/* extract the client mask from an XID */
+#define CLIENT_BITS(id) ((id) & RESOURCE_CLIENT_MASK)
+/* extract the client id from an XID */
 #define CLIENT_ID(id) ((int)(CLIENT_BITS(id) >> CLIENTOFFSET))
-#define SERVER_BIT		0x40000000		/* use illegal bit */
+#define SERVER_BIT		(Mask)0x40000000	/* use illegal bit */
 
 #ifdef INVALID
 #undef INVALID	/* needed on HP/UX */
@@ -107,6 +130,23 @@ typedef int (*DeleteType)(
 );
 
 typedef void (*FindResType)(
+#if NeedNestedPrototypes
+    pointer /*value*/,
+    XID /*id*/,
+    pointer /*cdata*/
+#endif
+);
+
+typedef void (*FindAllRes)(
+#if NeedNestedPrototypes
+    pointer /*value*/,
+    XID /*id*/,
+    RESTYPE /*type*/,
+    pointer /*cdata*/
+#endif
+);
+
+typedef Bool (*FindComplexResType)(
 #if NeedNestedPrototypes
     pointer /*value*/,
     XID /*id*/,
@@ -138,6 +178,11 @@ extern XID FakeClientID(
 #endif
 );
 
+/* Quartz support on Mac OS X uses the CarbonCore
+   framework whose AddResource function conflicts here. */
+#ifdef __DARWIN__
+#define AddResource Darwin_X_AddResource
+#endif
 extern Bool AddResource(
 #if NeedFunctionPrototypes
     XID /*id*/,
@@ -178,6 +223,14 @@ extern void FindClientResourcesByType(
 #endif
 );
 
+extern void FindAllClientResources(
+#if NeedFunctionPrototypes
+    ClientPtr /*client*/,
+    FindAllRes /*func*/,
+    pointer /*cdata*/
+#endif
+);
+
 extern void FreeClientNeverRetainResources(
 #if NeedFunctionPrototypes
     ClientPtr /*client*/
@@ -214,6 +267,15 @@ extern pointer LookupIDByClass(
 #if NeedFunctionPrototypes
     XID /*id*/,
     RESTYPE /*classes*/
+#endif
+);
+
+extern pointer LookupClientResourceComplex(
+#if NeedFunctionPrototypes
+    ClientPtr client,
+    RESTYPE type,
+    FindComplexResType func,
+    pointer cdata
 #endif
 );
 
@@ -276,6 +338,14 @@ extern unsigned int GetXIDList(
     XID * /*pids*/
 #endif
 );
+
+extern RESTYPE lastResourceType;
+extern RESTYPE TypeMask;
+
+#ifdef XResExtension
+extern Atom *ResourceNames;
+void RegisterResourceName(RESTYPE type, char* name);
+#endif
 
 #endif /* RESOURCE_H */
 

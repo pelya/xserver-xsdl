@@ -30,10 +30,12 @@
  *     DIX DBE code
  *
  *****************************************************************************/
+/* $XFree86: xc/programs/Xserver/dbe/dbe.c,v 3.11 2001/10/28 03:33:04 tsi Exp $ */
 
 
 /* INCLUDES */
 
+#define NEED_EVENTS
 #include "X.h"
 #include "Xproto.h"
 #include "scrnintstr.h"
@@ -44,6 +46,9 @@
 #include "dbestruct.h"
 #include "midbe.h"
 
+#ifdef XFree86LOADER
+#include "xf86_ansic.h"
+#endif
 
 /* GLOBALS */
 
@@ -172,7 +177,7 @@ DbeAllocWinPriv(pScreen)
         ptr = (char *)(ppriv + pDbeScreenPriv->winPrivPrivLen);
         for (i = pDbeScreenPriv->winPrivPrivLen; --i >= 0; ppriv++, sizes++)
         {
-            if (size = *sizes)
+            if ((size = *sizes))
             {
                 ppriv->ptr = (pointer)ptr;
                 ptr += size;
@@ -197,13 +202,14 @@ DbeAllocWinPriv(pScreen)
  *
  *****************************************************************************/
 
+#if 0 /* NOT USED */
 static DbeWindowPrivPtr
 DbeFallbackAllocWinPriv(pScreen)
     ScreenPtr	pScreen;
 {
     return (NULL);
-
 } /* DbeFallbackAllocWinPriv() */
+#endif
 
 
 /******************************************************************************
@@ -345,7 +351,7 @@ static int
 ProcDbeGetVersion(client)
     ClientPtr client;
 {
-    REQUEST(xDbeGetVersionReq);
+    /* REQUEST(xDbeGetVersionReq); */
     xDbeGetVersionReply	rep;
     register int	n;
 
@@ -829,7 +835,7 @@ static int
 ProcDbeBeginIdiom(client)
     ClientPtr client;
 {
-    REQUEST(xDbeBeginIdiomReq);
+    /* REQUEST(xDbeBeginIdiomReq); */
     DbeScreenPrivPtr	pDbeScreenPriv;
     register int	i;
 
@@ -957,7 +963,7 @@ ProcDbeGetVisualInfo(client)
 
     rep.type           = X_Reply;
     rep.sequenceNumber = client->sequence;
-    rep.length         = length;
+    rep.length         = length >> 2;
     rep.m              = count;
 
     if (client->swapped)
@@ -1499,8 +1505,8 @@ DbeSetupBackgroundPainter(pWin, pGC)
         case BackgroundPixmap:
             gcvalues[0] = (pointer)FillTiled;
             gcvalues[1] = (pointer)background.pixmap;
-            gcvalues[2] = (pointer)ts_x_origin;
-            gcvalues[3] = (pointer)ts_y_origin;
+            gcvalues[2] = (pointer)(long)ts_x_origin;
+            gcvalues[3] = (pointer)(long)ts_y_origin;
             gcmask = GCFillStyle|GCTile|GCTileStipXOrigin|GCTileStipYOrigin;
             break;
 
@@ -1750,7 +1756,7 @@ DbeDestroyWindow(pWin)
      **************************************************************************
      */
 
-    if (pDbeWindowPriv = DBE_WINDOW_PRIV(pWin))
+    if ((pDbeWindowPriv = DBE_WINDOW_PRIV(pWin)))
     {
         while (pDbeWindowPriv)
         {
@@ -1809,11 +1815,14 @@ DbeExtensionInit()
 {
     ExtensionEntry	*extEntry;
     register int	i, j;
-    ScreenPtr		pScreen;
+    ScreenPtr		pScreen = NULL;
     DbeScreenPrivPtr	pDbeScreenPriv;
     int			nStubbedScreens = 0;
     Bool		ddxInitSuccess;
 
+#ifdef PANORAMIX
+    if(!noPanoramiXExtension) return;
+#endif
 
     /* Allocate private pointers in windows and screens. */
 
@@ -1973,5 +1982,4 @@ DbeExtensionInit()
     dbeErrorBase = extEntry->errorBase;
 
 } /* DbeExtensionInit() */
-
 

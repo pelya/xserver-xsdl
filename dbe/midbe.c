@@ -30,13 +30,13 @@
  *     Machine-independent DBE code
  *
  *****************************************************************************/
+/* $XFree86: xc/programs/Xserver/dbe/midbe.c,v 3.5 2001/08/23 14:19:24 alanh Exp $ */
 
 
 /* INCLUDES */
 
 #define NEED_REPLIES
 #define NEED_EVENTS
-#include <stdio.h>
 #include "X.h"
 #include "Xproto.h"
 #include "misc.h"
@@ -54,6 +54,11 @@
 #include "gcstruct.h"
 #include "inputstr.h"
 
+#ifndef IN_MODULE
+#include <stdio.h>
+#else
+#include "xf86_ansic.h"
+#endif
 
 /* DEFINES */
 
@@ -65,7 +70,6 @@
 
 static int	miDbePrivPrivGeneration  =  0;
 static int	miDbeWindowPrivPrivIndex = -1;
-static int      miDbeScreenPrivPrivIndex = -1;
 RESTYPE		dbeDrawableResType;
 RESTYPE		dbeWindowPrivResType;
 int		dbeScreenPrivIndex = -1;
@@ -303,7 +307,6 @@ miDbeSwapBuffers(client, pNumWindows, swapInfo)
     DbeScreenPrivPtr		pDbeScreenPriv;
     GCPtr		    	pGC;
     WindowPtr		    	pWin;
-    register int		i;
     MiDbeWindowPrivPrivPtr	pDbeWindowPrivPriv; 
     PixmapPtr			pTmpBuffer;
     xRectangle			clearRect;
@@ -816,16 +819,16 @@ miDbeInit(pScreen, pDbeScreenPriv)
 
         miDbeWindowPrivPrivIndex = (*pDbeScreenPriv->AllocWinPrivPrivIndex)();
 
-        if (!(*pDbeScreenPriv->AllocWinPrivPriv)(pScreen,
-            miDbeWindowPrivPrivIndex, sizeof(MiDbeWindowPrivPrivRec)))
-        {
-            return(FALSE);
-        }
-
         /* Make sure we only do this code once. */
 	miDbePrivPrivGeneration = serverGeneration;
 
     } /* if -- Reset priv privs. */
+
+    if (!(*pDbeScreenPriv->AllocWinPrivPriv)(pScreen,
+        miDbeWindowPrivPrivIndex, sizeof(MiDbeWindowPrivPrivRec)))
+    {
+        return(FALSE);
+    }
 
     /* Wrap functions. */
     pDbeScreenPriv->PositionWindow = pScreen->PositionWindow;

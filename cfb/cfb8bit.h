@@ -7,6 +7,7 @@
  * are used for depths other than 8.  Perhaps the file should be
  * renamed.  dpw
  */
+/* $XFree86: xc/programs/Xserver/cfb/cfb8bit.h,v 3.7 2001/12/14 19:59:20 dawes Exp $ */
 
 /*
 
@@ -168,13 +169,11 @@ extern int		cfb8StippleRRop;
 
 #define RRopBitGroup(dst,bits)					\
     {								\
-    register PixelGroup    _bitsTmp = (bits);			\
     *(dst) = RRopPixels(*(dst),bits);				\
     }
 
 #define MaskRRopBitGroup(dst,bits,mask)				\
     {								\
-    register PixelGroup   _bitsTmp = (bits);			\
     *(dst) = MaskRRopPixels(*(dst),bits,mask);			\
     }
 #endif /* PSZ == 8 */
@@ -203,17 +202,39 @@ extern int		cfb8StippleRRop;
 #define SinglePixel1	2
 #define SinglePixel2	1
 #define SinglePixel3	0
+#define SinglePixel4	7
+#define SinglePixel5	6
+#define SinglePixel6	5
+#define SinglePixel7	4
+#define SinglePixel8	0xB
+#define SinglePixel9	0xA
 #define DoublePixel0	1
 #define DoublePixel1	0
+#define DoublePixel2	3
+#define DoublePixel3	2
+#define DoublePixel4	5
+#define DoublePixel5	4
 #else
 #define SinglePixel0	0
 #define SinglePixel1	1
 #define SinglePixel2	2
 #define SinglePixel3	3
+#define SinglePixel4	4
+#define SinglePixel5	5
+#define SinglePixel6	6
+#define SinglePixel7	7
+#define SinglePixel8	8
+#define SinglePixel9	9
 #define DoublePixel0	0
 #define DoublePixel1	1
+#define DoublePixel2	2
+#define DoublePixel3	3
+#define DoublePixel4	4
+#define DoublePixel5	5
 #endif
 #define QuadPixel0	0
+#define QuadPixel1	1
+#define QuadPixel2	2
 #else /* PGSZ == 64 */
 #if (BITMAP_BIT_ORDER == MSBFirst)
 #define SinglePixel0	7
@@ -393,7 +414,7 @@ extern int		cfb8StippleRRop;
 	        break;						\
 	    case 6:						\
 	        ((CARD8 *) (dst))[SinglePixel5] = (pixel);	\
-	        ((CARD8 *) (dst))[SinglePixel7] = (pixel);	\
+	        ((CARD8 *) (dst))[SinglePixel6] = (pixel);	\
 	        break;						\
 	    case 7:						\
 	        ((CARD16 *) (dst))[DoublePixel2] = (pixel);	\
@@ -872,6 +893,363 @@ extern int		cfb8StippleRRop;
 
 #endif /* PSZ == 16 */
 
+#if PSZ == 24
+/* 32 000011112222*/
+/* 24 000111222333*/
+/* 16 001122334455*/
+/*  8 0123456789AB*/
+#if PGSZ == 32
+#define WriteBitGroup(dst,pixel,bits) \
+	{ \
+	register CARD32 reg_pixel = (pixel); \
+	switch (bits) {			\
+	case 0:				\
+	    break;			\
+	case 1:				\
+	    ((CARD16 *) (dst))[DoublePixel0] = reg_pixel;	\
+	    ((CARD8 *) (dst))[SinglePixel2] = ((reg_pixel>>16)&0xFF);	\
+	    break;			\
+	case 2:				\
+	    ((CARD8 *) (dst))[SinglePixel3] = reg_pixel&0xFF;	\
+	    ((CARD16 *) (dst))[DoublePixel2] = (reg_pixel>>8)&0xFFFF;	\
+	    break;			\
+	case 3:				\
+	    ((CARD8 *) (dst))[SinglePixel3] = reg_pixel & 0xFF;	\
+	    ((CARD16 *) (dst))[DoublePixel0] = reg_pixel;	\
+	    ((CARD16 *) (dst))[DoublePixel2] = (reg_pixel>>8)&0xFFFF;	\
+	    ((CARD8 *) (dst))[SinglePixel2] = (reg_pixel>>16&0xFF);	\
+	    break;			\
+	case 4:				\
+	    ((CARD16 *) (dst))[DoublePixel3] = reg_pixel;	\
+	    ((CARD8 *) (dst))[SinglePixel8] = (reg_pixel>>16)&0xFF; \
+	    break;			\
+	case 5:				\
+	    ((CARD16 *) (dst))[DoublePixel0] = \
+	    ((CARD16 *) (dst))[DoublePixel3] = reg_pixel;	\
+	    reg_pixel >>= 16;	\
+	    ((CARD8 *) (dst))[SinglePixel2] = \
+	    ((CARD8 *) (dst))[SinglePixel8] = reg_pixel&0xFF; \
+	    break;			\
+	case 6:				\
+	    ((CARD8 *) (dst))[SinglePixel3] = reg_pixel;	\
+	    ((CARD16 *) (dst))[DoublePixel3] = reg_pixel;	\
+	    reg_pixel >>= 8;	\
+	    ((CARD16 *) (dst))[DoublePixel2] = reg_pixel;	\
+	    reg_pixel >>= 8;	\
+	    ((CARD8 *) (dst))[SinglePixel8] = reg_pixel&0xFF; \
+	    break;			\
+	case 7:				\
+	    ((CARD16 *) (dst))[DoublePixel0] = \
+	    ((CARD16 *) (dst))[DoublePixel3] = reg_pixel;	\
+	    ((CARD8 *) (dst))[SinglePixel3] = reg_pixel&0xFF;	\
+	    reg_pixel >>= 8;	\
+	    ((CARD16 *) (dst))[DoublePixel2] = reg_pixel;	\
+	    reg_pixel >>= 8;	\
+	    ((CARD8 *) (dst))[SinglePixel2] = \
+	    ((CARD8 *) (dst))[SinglePixel8] = reg_pixel&0xFF; \
+	    break;			\
+	case 8:				\
+	    ((CARD8 *) (dst))[SinglePixel9] = reg_pixel&0xFF;	\
+	    ((CARD16 *) (dst))[DoublePixel5] = (reg_pixel>>8);	\
+	    break;			\
+	case 9:				\
+	    ((CARD16 *) (dst))[DoublePixel0] = reg_pixel;	\
+	    ((CARD8 *) (dst))[SinglePixel9] = reg_pixel&0xFF;	\
+	    reg_pixel >>= 8;	\
+	    ((CARD16 *) (dst))[DoublePixel5] = reg_pixel;	\
+	    reg_pixel >>= 8;	\
+	    ((CARD8 *) (dst))[SinglePixel2] = reg_pixel&0xFF;	\
+	    break;			\
+	case 10:			\
+	    ((CARD8 *) (dst))[SinglePixel3] = \
+	    ((CARD8 *) (dst))[SinglePixel9] = reg_pixel&0xFF;	\
+	    reg_pixel >>= 8;	\
+	    ((CARD16 *) (dst))[DoublePixel2] = \
+	    ((CARD16 *) (dst))[DoublePixel5] = reg_pixel;	\
+	    break;			\
+	case 11:			\
+	    ((CARD8 *) (dst))[SinglePixel3] = \
+	    ((CARD8 *) (dst))[SinglePixel9] = reg_pixel;	\
+	    ((CARD16 *) (dst))[DoublePixel0] = reg_pixel;	\
+	    reg_pixel >>= 8;	\
+	    ((CARD16 *) (dst))[DoublePixel2] = \
+	    ((CARD16 *) (dst))[DoublePixel5] = reg_pixel;	\
+	    reg_pixel >>= 8;	\
+	    ((CARD8 *) (dst))[SinglePixel2] = reg_pixel;	\
+	    break;			\
+	case 12:			\
+	    ((CARD16 *) (dst))[DoublePixel3] = reg_pixel;	\
+	    ((CARD8 *) (dst))[SinglePixel9] = reg_pixel;	\
+	    reg_pixel >>= 8;	\
+	    ((CARD16 *) (dst))[DoublePixel5] = reg_pixel;	\
+	    reg_pixel >>= 8;	\
+	    ((CARD8 *) (dst))[SinglePixel8] = reg_pixel; \
+	    break;			\
+	case 13:			\
+	    ((CARD16 *) (dst))[DoublePixel0] = \
+	    ((CARD16 *) (dst))[DoublePixel3] = reg_pixel;	\
+	    ((CARD8 *) (dst))[SinglePixel9] = reg_pixel;	\
+	    reg_pixel >>= 8;	\
+	    ((CARD16 *) (dst))[DoublePixel5] = reg_pixel;	\
+	    reg_pixel >>= 8;	\
+	    ((CARD8 *) (dst))[SinglePixel2] = \
+	    ((CARD8 *) (dst))[SinglePixel8] = reg_pixel; \
+	    break;			\
+	case 14:			\
+	    ((CARD8 *) (dst))[SinglePixel3] = \
+	    ((CARD8 *) (dst))[SinglePixel9] = reg_pixel;	\
+	    ((CARD16 *) (dst))[DoublePixel3] = reg_pixel;	\
+	    reg_pixel >>= 8;	\
+	    ((CARD16 *) (dst))[DoublePixel2] = \
+	    ((CARD16 *) (dst))[DoublePixel5] = reg_pixel;	\
+	    reg_pixel >>= 8;	\
+	    ((CARD8 *) (dst))[SinglePixel8] = reg_pixel; \
+	    break;			\
+	case 15:			\
+	    ((CARD16 *) (dst))[DoublePixel0] = \
+	    ((CARD16 *) (dst))[DoublePixel3] = reg_pixel;	\
+	    ((CARD8 *) (dst))[SinglePixel3] = \
+	    ((CARD8 *) (dst))[SinglePixel9] = reg_pixel;	\
+	    reg_pixel >>= 8;	\
+	    ((CARD16 *) (dst))[DoublePixel2] = \
+	    ((CARD16 *) (dst))[DoublePixel5] = reg_pixel;	\
+	    reg_pixel >>= 8;	\
+	    ((CARD8 *) (dst))[SinglePixel8] = \
+	    ((CARD8 *) (dst))[SinglePixel2] = reg_pixel;	\
+	    break;			\
+	} \
+      }
+#else /* PGSZ == 64 */
+#define WriteBitGroup(dst,pixel,bits) \
+    if ( bits == 0xff )	 {				   \
+	((PixelGroup *) (dst))[DoublePixel0] = (pixel);	   \
+	((PixelGroup *) (dst))[DoublePixel1] = (pixel);	   \
+	((PixelGroup *) (dst))[DoublePixel2] = (pixel);	   \
+	((PixelGroup *) (dst))[DoublePixel3] = (pixel);	   \
+    }							   \
+    else {						   \
+	switch (bits & 0x0f) {	 			   \
+	case 0:				\
+	    break;			\
+	case 1:				\
+	    ((CARD32 *) (dst))[SinglePixel0] = (pixel);	\
+	    break;			\
+	case 2:				\
+	    ((CARD32 *) (dst))[SinglePixel1] = (pixel);	\
+	    break;			\
+	case 3:				\
+	    ((CARD32 *) (dst))[SinglePixel0] = (pixel);	\
+	    ((CARD32 *) (dst))[SinglePixel1] = (pixel);	\
+	    break;			\
+	case 4:				\
+	    ((CARD32 *) (dst))[SinglePixel2] = (pixel);	\
+	    break;			\
+	case 5:				\
+	    ((CARD32 *) (dst))[SinglePixel0] = (pixel);	\
+	    ((CARD32 *) (dst))[SinglePixel2] = (pixel);	\
+	    break;			\
+	case 6:				\
+	    ((CARD32 *) (dst))[SinglePixel1] = (pixel);	\
+	    ((CARD32 *) (dst))[SinglePixel2] = (pixel);	\
+	    break;			\
+	case 7:				\
+	    ((CARD32 *) (dst))[SinglePixel0] = (pixel);	\
+	    ((CARD32 *) (dst))[SinglePixel1] = (pixel);	\
+	    ((CARD32 *) (dst))[SinglePixel2] = (pixel);	\
+	    break;			\
+	case 8:				\
+	    ((CARD32 *) (dst))[SinglePixel3] = (pixel);	\
+	    break;			\
+	case 9:				\
+	    ((CARD32 *) (dst))[SinglePixel0] = (pixel);	\
+	    ((CARD32 *) (dst))[SinglePixel3] = (pixel);	\
+	    break;			\
+	case 10:			\
+	    ((CARD32 *) (dst))[SinglePixel1] = (pixel);	\
+	    ((CARD32 *) (dst))[SinglePixel3] = (pixel);	\
+	    break;			\
+	case 11:			\
+	    ((CARD32 *) (dst))[SinglePixel0] = (pixel);	\
+	    ((CARD32 *) (dst))[SinglePixel1] = (pixel);	\
+	    ((CARD32 *) (dst))[SinglePixel3] = (pixel);	\
+	    break;			\
+	case 12:			\
+	    ((CARD32 *) (dst))[SinglePixel2] = (pixel);	\
+	    ((CARD32 *) (dst))[SinglePixel3] = (pixel);	\
+	    break;			\
+	case 13:			\
+	    ((CARD32 *) (dst))[SinglePixel0] = (pixel);	\
+	    ((CARD32 *) (dst))[SinglePixel2] = (pixel);	\
+	    ((CARD32 *) (dst))[SinglePixel3] = (pixel);	\
+	    break;			\
+	case 14:			\
+	    ((CARD32 *) (dst))[SinglePixel1] = (pixel);	\
+	    ((CARD32 *) (dst))[SinglePixel2] = (pixel);	\
+	    ((CARD32 *) (dst))[SinglePixel3] = (pixel);	\
+	    break;			\
+	case 15:			\
+	    ((CARD32 *) (dst))[SinglePixel0] = (pixel);	\
+	    ((CARD32 *) (dst))[SinglePixel1] = (pixel);	\
+	    ((CARD32 *) (dst))[SinglePixel2] = (pixel);	\
+	    ((CARD32 *) (dst))[SinglePixel3] = (pixel);	\
+	    break;			\
+	}				\
+	switch ((bits & 0xf0) >> 4) {	\
+	case 0:				\
+	    break;			\
+	case 1:				\
+	    ((CARD32 *) (dst))[SinglePixel4] = (pixel);	\
+	    break;			\
+	case 2:				\
+	    ((CARD32 *) (dst))[SinglePixel5] = (pixel);	\
+	    break;			\
+	case 3:				\
+	    ((CARD32 *) (dst))[SinglePixel4] = (pixel);	\
+	    ((CARD32 *) (dst))[SinglePixel5] = (pixel);	\
+	    break;			\
+	case 4:				\
+	    ((CARD32 *) (dst))[SinglePixel6] = (pixel);	\
+	    break;			\
+	case 5:				\
+	    ((CARD32 *) (dst))[SinglePixel4] = (pixel);	\
+	    ((CARD32 *) (dst))[SinglePixel6] = (pixel);	\
+	    break;			\
+	case 6:				\
+	    ((CARD32 *) (dst))[SinglePixel5] = (pixel);	\
+	    ((CARD32 *) (dst))[SinglePixel6] = (pixel);	\
+	    break;			\
+	case 7:				\
+	    ((CARD32 *) (dst))[SinglePixel4] = (pixel);	\
+	    ((CARD32 *) (dst))[SinglePixel5] = (pixel);	\
+	    ((CARD32 *) (dst))[SinglePixel6] = (pixel);	\
+	    break;			\
+	case 8:				\
+	    ((CARD32 *) (dst))[SinglePixel7] = (pixel);	\
+	    break;			\
+	case 9:				\
+	    ((CARD32 *) (dst))[SinglePixel4] = (pixel);	\
+	    ((CARD32 *) (dst))[SinglePixel7] = (pixel);	\
+	    break;			\
+	case 10:			\
+	    ((CARD32 *) (dst))[SinglePixel5] = (pixel);	\
+	    ((CARD32 *) (dst))[SinglePixel7] = (pixel);	\
+	    break;			\
+	case 11:			\
+	    ((CARD32 *) (dst))[SinglePixel4] = (pixel);	\
+	    ((CARD32 *) (dst))[SinglePixel5] = (pixel);	\
+	    ((CARD32 *) (dst))[SinglePixel7] = (pixel);	\
+	    break;			\
+	case 12:			\
+	    ((CARD32 *) (dst))[SinglePixel6] = (pixel);	\
+	    ((CARD32 *) (dst))[SinglePixel7] = (pixel);	\
+	    break;			\
+	case 13:			\
+	    ((CARD32 *) (dst))[SinglePixel4] = (pixel);	\
+	    ((CARD32 *) (dst))[SinglePixel6] = (pixel);	\
+	    ((CARD32 *) (dst))[SinglePixel7] = (pixel);	\
+	    break;			\
+	case 14:			\
+	    ((CARD32 *) (dst))[SinglePixel5] = (pixel);	\
+	    ((CARD32 *) (dst))[SinglePixel6] = (pixel);	\
+	    ((CARD32 *) (dst))[SinglePixel7] = (pixel);	\
+	    break;			\
+	case 15:			\
+	    ((CARD32 *) (dst))[SinglePixel4] = (pixel);	\
+	    ((CARD32 *) (dst))[SinglePixel5] = (pixel);	\
+	    ((CARD32 *) (dst))[SinglePixel6] = (pixel);	\
+	    ((CARD32 *) (dst))[SinglePixel7] = (pixel);	\
+	    break;			\
+	}				\
+    }
+#endif /* PGSZ */
+
+#if PGSZ == 32
+#define SwitchBitGroup(dst,pixel,bits) { \
+	switch (bits) { \
+	case 0: \
+       	    break; \
+	case 1: \
+	    SwitchBitsLoop (((CARD16 *) (dst))[DoublePixel0] = (pixel); \
+			    ((CARD8 *) (dst))[SinglePixel2] = (pixel);) \
+	    break; \
+	case 2: \
+	    SwitchBitsLoop (((CARD8 *) (dst))[SinglePixel3] = (pixel); \
+			    ((CARD16 *) (dst))[DoublePixel2] = (pixel);) \
+	    break; \
+	case 3: \
+	    SwitchBitsLoop (((CARD32 *) (dst))[QuadPixel0] = (pixel); \
+			    ((CARD16 *) (dst))[DoublePixel2] = (pixel);) \
+	    break; \
+	case 4: \
+	    SwitchBitsLoop (((CARD16 *) (dst))[DoublePixel3] = (pixel); \
+			    ((CARD8 *) (dst))[SinglePixel8] = (pixel);) \
+	    break; \
+	case 5: \
+	    SwitchBitsLoop (((CARD16 *) (dst))[DoublePixel0] = (pixel); \
+			    ((CARD8 *) (dst))[SinglePixel2] = (pixel); \
+			    ((CARD16 *) (dst))[DoublePixel3] = (pixel); \
+			    ((CARD8 *) (dst))[SinglePixel8] = (pixel);) \
+	    break; \
+	case 6: \
+	    SwitchBitsLoop (((CARD8 *) (dst))[SinglePixel3] = (pixel); \
+			    ((CARD32 *) (dst))[QuadPixel2] = (pixel); \
+			    ((CARD8 *) (dst))[SinglePixel8] = (pixel);) \
+	    break; \
+	case 7: \
+	    SwitchBitsLoop (((CARD32 *) (dst))[QuadPixel0] = (pixel); \
+			    ((CARD32 *) (dst))[QuadPixel1] = (pixel); \
+			    ((CARD8 *) (dst))[SinglePixel8] = (pixel);) \
+	    break; \
+	case 8: \
+	    SwitchBitsLoop (((CARD8 *) (dst))[SinglePixel9] = (pixel); \
+			    ((CARD16 *) (dst))[DoublePixel5] = (pixel);) \
+	    break; \
+	case 9: \
+	    SwitchBitsLoop (((CARD16 *) (dst))[DoublePixel0] = (pixel); \
+			    ((CARD8 *) (dst))[SinglePixel2] = (pixel); \
+			    ((CARD8 *) (dst))[SinglePixel9] = (pixel); \
+			    ((CARD16 *) (dst))[DoublePixel5] = (pixel);) \
+	    break; \
+	case 10: \
+	    SwitchBitsLoop (((CARD8 *) (dst))[SinglePixel3] = (pixel); \
+			    ((CARD16 *) (dst))[DoublePixel2] = (pixel); \
+			    ((CARD8 *) (dst))[SinglePixel9] = (pixel); \
+			    ((CARD16 *) (dst))[DoublePixel5] = (pixel);) \
+	    break; \
+	case 11: \
+	    SwitchBitsLoop (((CARD32 *) (dst))[QuadPixel0] = (pixel); \
+			    ((CARD16 *) (dst))[DoublePixel3] = (pixel);) \
+			    ((CARD8 *) (dst))[SinglePixel9] = (pixel); \
+			    ((CARD16 *) (dst))[DoublePixel5] = (pixel);) \
+	    break; \
+	case 12: \
+	    SwitchBitsLoop (((CARD16 *) (dst))[DoublePixel3] = (pixel); \
+			    ((CARD32 *) (dst))[QuadPixel2] = (pixel);) \
+	    break; \
+	case 13: \
+	    SwitchBitsLoop (((CARD16 *) (dst))[SinglePixel0] = (pixel); \
+			    ((CARD8 *) (dst))[SinglePixel2] = (pixel); \
+			    ((CARD16 *) (dst))[DoublePixel3] = (pixel); \
+			    ((CARD32 *) (dst))[QuadPixel2] = (pixel);) \
+	    break; \
+	case 14: \
+	    SwitchBitsLoop (((CARD8 *) (dst))[SinglePixel3] = (pixel); \
+			    ((CARD32 *) (dst))[QuadPixel1] = (pixel); \
+			    ((CARD32 *) (dst))[QuadPixel2] = (pixel);) \
+	    break; \
+	case 15: \
+	    SwitchBitsLoop (((CARD32 *) (dst))[QuadPixel0] = (pixel); \
+			    ((CARD32 *) (dst))[QuadPixel1] = (pixel); \
+			    ((CARD32 *) (dst))[QuadPixel2] = (pixel);) \
+	    break; \
+	} \
+}
+#else /* PGSZ == 64 */
+#define SwitchBitGroup(dst,pixel,bits) { \
+	cfb cannot hack 64-bit SwitchBitGroup psz=PSZ
+#endif /* PGSZ */
+
+#endif /* PSZ == 24 */
 
 #if PSZ == 32
 
@@ -1169,17 +1547,17 @@ extern PixelGroup cfb8BitLenMasks[PGSZ];
 extern int cfb8SetStipple (
 #if NeedFunctionPrototypes
     int	/*alu*/,
-    unsigned long /*fg*/,
-    unsigned long /*planemask*/
+    CfbBits /*fg*/,
+    CfbBits /*planemask*/
 #endif
 );
 
 extern int cfb8SetOpaqueStipple (
 #if NeedFunctionPrototypes
     int /*alu*/,
-    unsigned long /*fg*/,
-    unsigned long /*bg*/,
-    unsigned long /*planemask*/
+    CfbBits /*fg*/,
+    CfbBits /*bg*/,
+    CfbBits /*planemask*/
 #endif
 );
 

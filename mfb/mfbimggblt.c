@@ -1,3 +1,4 @@
+/* $XFree86: xc/programs/Xserver/mfb/mfbimggblt.c,v 3.5 2003/02/18 21:30:01 tsi Exp $ */
 /* Combined Purdue/PurduePlus patches, level 2.0, 1/17/89 */
 /***********************************************************
 
@@ -138,7 +139,8 @@ MFBIMAGEGLYPHBLT(pDrawable, pGC, x, y, nglyph, ppci, pglyphBase)
     register PixelType endmask;
 
     register int nFirst;/* bits of glyph in current longword */
-    void (* oldFillArea)();
+    mfbPrivGC *pPrivGC;
+    mfbFillAreaProcPtr oldFillArea;
 			/* we might temporarily usurp this
 			   field in devPriv */
 
@@ -165,9 +167,8 @@ MFBIMAGEGLYPHBLT(pDrawable, pGC, x, y, nglyph, ppci, pglyphBase)
     bbox.y2 = y + info.overallDescent;
 
     /* UNCLEAN CODE
-       we know the mfbPolyFillRect uses only three fields in
-       devPrivate[mfbGCPrivateIndex].ptr, two of which (the rotated
-       tile/stipple and the ropFillArea) are 
+       we know the mfbPolyFillRect uses only two fields in
+       devPrivate[mfbGCPrivateIndex].ptr, one of which (ropFillArea) is
        irrelevant for solid filling, so we just poke the FillArea
        field.  the GC is now in an inconsistent state, but we'll fix
        it as soon as PolyFillRect returns.  fortunately, the server
@@ -181,27 +182,23 @@ MFBIMAGEGLYPHBLT(pDrawable, pGC, x, y, nglyph, ppci, pglyphBase)
        but that is usually not a cheap thing to do.
     */
 
-    oldFillArea = ((mfbPrivGC *)(pGC->devPrivates[mfbGCPrivateIndex].ptr))->FillArea;
+    pPrivGC = pGC->devPrivates[mfbGCPrivateIndex].ptr;
+    oldFillArea = pPrivGC->FillArea;
 
-/* pcc doesn't like this.  why?
-    ((mfbPrivGC *)(pGC->devPrivates[mfbGCPrivateIndex].ptr))->FillArea = 
-			((pGC->bgPixel & 1) ? mfbSolidWhiteArea : mfbSolidBlackArea);
-*/
     if (pGC->bgPixel & 1)
-        ((mfbPrivGC *)(pGC->devPrivates[mfbGCPrivateIndex].ptr))->FillArea = mfbSolidWhiteArea;
+        pPrivGC->FillArea = mfbSolidWhiteArea;
     else
-        ((mfbPrivGC *)(pGC->devPrivates[mfbGCPrivateIndex].ptr))->FillArea = mfbSolidBlackArea;
+        pPrivGC->FillArea = mfbSolidBlackArea;
 
 #ifndef LOWMEMFTPT
     mfbPolyFillRect(pDrawable, pGC, 1, &backrect);
 #else
     miPolyFillRect(pDrawable, pGC, 1, &backrect);
 #endif
-    ((mfbPrivGC *)(pGC->devPrivates[mfbGCPrivateIndex].ptr))->FillArea = oldFillArea;
+    pPrivGC->FillArea = oldFillArea;
 
     /* the faint-hearted can open their eyes now */
-    switch (RECT_IN_REGION(pGC->pScreen, 
-	((mfbPrivGC *)(pGC->devPrivates[mfbGCPrivateIndex].ptr))->pCompositeClip, &bbox))
+    switch (RECT_IN_REGION(pGC->pScreen, pGC->pCompositeClip, &bbox))
     {
       case rgnOUT:
 	break;
@@ -218,7 +215,7 @@ MFBIMAGEGLYPHBLT(pDrawable, pGC, x, y, nglyph, ppci, pglyphBase)
 	    widthGlyph = GLYPHWIDTHBYTESPADDED(pci);
 
 	    /* start at top scanline of glyph */
-	    pdst = mfbScanlineDelta(pdstBase, -pci->metrics.ascent, widthDst);
+	    pdst = pdstBase;
 
 	    /* find correct word in scanline and x offset within it
 	       for left edge of glyph
@@ -234,6 +231,8 @@ MFBIMAGEGLYPHBLT(pDrawable, pGC, x, y, nglyph, ppci, pglyphBase)
 	        xoff += PPW;
 	        pdst--;
 	    }
+
+	    pdst = mfbScanlineDelta(pdst, -pci->metrics.ascent, widthDst);
 
 	    if ((xoff + w) <= PPW)
 	    {
@@ -328,7 +327,7 @@ MFBIMAGEGLYPHBLT(pDrawable, pGC, x, y, nglyph, ppci, pglyphBase)
 	    }
 	}
 
-	cclip = ((mfbPrivGC *)(pGC->devPrivates[mfbGCPrivateIndex].ptr))->pCompositeClip;
+	cclip = pGC->pCompositeClip;
 	pbox = REGION_RECTS(cclip);
 	nbox = REGION_NUM_RECTS(cclip);
 
@@ -388,7 +387,7 @@ MFBIMAGEGLYPHBLT(pDrawable, pGC, x, y, nglyph, ppci, pglyphBase)
 		pglyph = FONTGLYPHBITS(pglyphBase, pci);
 		pglyph += (glyphRow * widthGlyph);
 
-		pdst = mfbScanlineDelta(ppos[i].pdstBase, -(y-topEdge), widthDst);
+		pdst = ppos[i].pdstBase;
 
 		glyphCol = (leftEdge - ppos[i].xpos) -
 			   (pci->metrics.leftSideBearing);
@@ -404,6 +403,8 @@ MFBIMAGEGLYPHBLT(pDrawable, pGC, x, y, nglyph, ppci, pglyphBase)
 		    xoff += PPW;
 		    pdst--;
 		}
+
+		pdst = mfbScanlineDelta(pdst, -(y-topEdge), widthDst);
 
 		if ((xoff + w) <= PPW)
 		{

@@ -1,3 +1,4 @@
+/* $XFree86: xc/programs/Xserver/mi/mispans.h,v 1.3 2001/12/14 20:00:26 dawes Exp $ */
 /***********************************************************
 
 Copyright 1989, 1998  The Open Group
@@ -62,60 +63,45 @@ typedef struct {
 
 /* Initialize SpanGroup.  MUST BE DONE before use. */
 extern void miInitSpanGroup(
-#if NeedFunctionPrototypes
     SpanGroup * /*spanGroup*/
-#endif
 );
 
 /* Add a Spans to a SpanGroup. The spans MUST BE in y-sorted order */
 extern void miAppendSpans(
-#if NeedFunctionPrototypes
     SpanGroup * /*spanGroup*/,
     SpanGroup * /*otherGroup*/,
     Spans * /*spans*/
-#endif
 );
 
 /* Paint a span group, possibly with some overlap */
 extern void miFillSpanGroup(
-#if NeedFunctionPrototypes
     DrawablePtr /*pDraw*/,
     GCPtr /*pGC*/,
     SpanGroup * /*spanGroup*/
-#endif
 );
 
 /* Paint a span group, insuring that each pixel is painted at most once */
 extern void miFillUniqueSpanGroup(
-#if NeedFunctionPrototypes
     DrawablePtr /*pDraw*/,
     GCPtr /*pGC*/,
     SpanGroup * /*spanGroup*/
-#endif
 );
 
 /* Free up data in a span group.  MUST BE DONE or you'll suffer memory leaks */
 extern void miFreeSpanGroup(
-#if NeedFunctionPrototypes
     SpanGroup * /*spanGroup*/
-#endif
 );
 
 extern void miSubtractSpans(
-#if NeedFunctionPrototypes
     SpanGroup * /*spanGroup*/,
     Spans * /*sub*/
-#endif
 );
 
 extern void miDisposeSpanGroup(
-#if NeedFunctionPrototypes
     SpanGroup * /*spanGroup*/
-#endif
 );
 
 extern int miClipSpans(
-#if NeedFunctionPrototypes
     RegionPtr /*prgnDst*/,
     DDXPointPtr /*ppt*/,
     int * /*pwidth*/,
@@ -123,7 +109,6 @@ extern int miClipSpans(
     DDXPointPtr /*pptNew*/,
     int * /*pwidthNew*/,
     int /*fSorted*/
-#endif
 );
 
 /* Rops which must use span groups */

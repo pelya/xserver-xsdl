@@ -12,6 +12,8 @@ the suitability of this software for any purpose.  It is provided "as
 is" without express or implied warranty.
 
 */
+/* $XFree86: xc/programs/Xserver/hw/xnest/Handlers.c,v 1.2 2001/08/01 00:44:57 tsi Exp $ */
+
 #include "X.h"
 #include "Xproto.h"
 #include "screenint.h"
@@ -24,6 +26,7 @@ is" without express or implied warranty.
 #include "Xnest.h"
 
 #include "Display.h"
+#include "Events.h"
 #include "Handlers.h"
 
 void xnestBlockHandler(blockData, pTimeout, pReadMask)

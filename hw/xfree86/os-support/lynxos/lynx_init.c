@@ -22,36 +22,33 @@
  */
 
 
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/lynxos/lynx_init.c,v 3.1.6.1 1998/02/06 22:36:51 hohndel Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/lynxos/lynx_init.c,v 3.3 1998/08/29 05:43:58 dawes Exp $ */
 
 #include "X.h"
 #include "Xmd.h"
-#include "input.h"
-#include "scrnintstr.h"
 
 #include "compiler.h"
 
 #include "xf86.h"
-#include "xf86Procs.h"
+#include "xf86Priv.h"
 #include "xf86_OSlib.h"
 
 static int VTnum = -1;
 
-void xf86OpenConsole()
+void
+xf86OpenConsole()
 {
     struct vt_mode VT;
     char vtname1[11];
-    int i, fd, pgrp;
+    int fd, pgrp;
+    MessageType from = X_PROBED;
 
     if (serverGeneration == 1) 
     {
 	/* check if we're run with euid==0 */
 	if (geteuid() != 0)
 	{
-	    FatalError("xf86OpenConsole: Server must be running with root "
-	        "permissions\n"
-		"You should be using Xwrapper to start the server or xdm.\n"
-		"We strongly advise against making the server SUID root!\n");
+	    FatalError("xf86OpenConsole: Server must be suid root\n");
 	}
 
     	/*
@@ -67,6 +64,7 @@ void xf86OpenConsole()
     	if (VTnum != -1) 
 	{
       	    xf86Info.vtno = VTnum;
+	    from = X_CMDLINE;
     	}
     	else 
 	{
@@ -88,7 +86,7 @@ void xf86OpenConsole()
 	    }
            close(fd);
         }
-	ErrorF("(using VT number %d)\n\n", xf86Info.vtno);
+	xf86Msg(from, "using VT number %d\n", xf86Info.vtno);
 
 	sprintf(vtname1,"/dev/atc%d",xf86Info.vtno);
 
@@ -104,19 +102,12 @@ void xf86OpenConsole()
 	/* change ownership of the vt */
 	chown(vtname1, getuid(), getgid());
 
-	/* Reading Config after opening the VT get's rid of	*/
-	/* problems with LynxOS VT handling (i.e. VT_OPENQUERY	*/
-	/* without open() leaves the vtxx busy until next 	*/
-	/* open/close)						*/
-
-	xf86Config(FALSE); /* Read XF86Config */
-
 	/*
 	 * now get the VT
 	 */
 	if (ioctl(xf86Info.consoleFd, VT_ACTIVATE, xf86Info.vtno) != 0)
 	{
-    	    ErrorF("xf86OpenConsole: VT_ACTIVATE failed\n");
+    	    xf86Msg(X_WARNING, "xf86OpenConsole: VT_ACTIVATE failed\n");
 	}
 	if (ioctl(xf86Info.consoleFd, VT_GETMODE, &VT) < 0) 
 	{
@@ -142,20 +133,21 @@ void xf86OpenConsole()
 	 */
 	if (ioctl(xf86Info.consoleFd, VT_ACTIVATE, xf86Info.vtno) != 0)
 	{
-	    ErrorF("xf86OpenConsole: VT_ACTIVATE failed\n");
+	    xf86Msg(X_WARNING, "xf86OpenConsole: VT_ACTIVATE failed\n");
 	}
 	/*
 	 * If the server doesn't have the VT when the reset occurs,
 	 * this is to make sure we don't continue until the activate
 	 * signal is received.
 	 */
-	if (!xf86VTSema)
+	if (!xf86Screens[0]->vtSema)
 	    sleep(5);
     }
     return;
 }
 
-void xf86CloseConsole()
+void
+xf86CloseConsole()
 {
     struct vt_mode   VT;
 
@@ -172,10 +164,8 @@ void xf86CloseConsole()
     return;
 }
 
-int xf86ProcessArgument (argc, argv, i)
-int argc;
-char *argv[];
-int i;
+int
+xf86ProcessArgument(int argc, char *argv[], int i)
 {
 	if ((argv[i][0] == 'v') && (argv[i][1] == 't'))
 	{
@@ -190,7 +180,8 @@ int i;
 	return(0);
 }
 
-void xf86UseMsg()
+void
+xf86UseMsg()
 {
 	ErrorF("vtXX                   use the specified VT number\n");
 	return;

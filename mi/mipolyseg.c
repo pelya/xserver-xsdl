@@ -1,3 +1,4 @@
+/* $XFree86: xc/programs/Xserver/mi/mipolyseg.c,v 1.3 2001/12/14 20:00:26 dawes Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -50,6 +51,7 @@ SOFTWARE.
 #include "miscstruct.h"
 #include "gcstruct.h"
 #include "pixmap.h"
+#include "mi.h"
 
 /*****************************************************************
  * miPolySegment

@@ -1,3 +1,4 @@
+/* $XFree86: xc/programs/Xserver/cfb/cfbimage.c,v 1.13 2001/12/14 19:59:23 dawes Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -54,10 +55,7 @@ SOFTWARE.
 #include "cfb.h"
 #include "cfbmskbits.h"
 #include "servermd.h"
-
-#ifdef LOWMEMFTPT
 #include "mi.h"
-#endif /* ifdef LOWMEMFTPT */
 
 void
 cfbPutImage(pDraw, pGC, depth, x, y, w, h, leftPad, format, pImage)
@@ -68,7 +66,6 @@ cfbPutImage(pDraw, pGC, depth, x, y, w, h, leftPad, format, pImage)
     int		format;
     char 	*pImage;
 {
-    int		bitsPerPixel;
     PixmapPtr   pPixmap;
 
     if ((w == 0) || (h == 0))
@@ -82,21 +79,21 @@ cfbPutImage(pDraw, pGC, depth, x, y, w, h, leftPad, format, pImage)
 	if (!pPixmap)
 	    return;
 	
-    	cfbGetGCPrivate(pGC)->fExpose = FALSE;
+    	pGC->fExpose = FALSE;
 	if (format == ZPixmap)
 	    (void)(*pGC->ops->CopyArea)((DrawablePtr)pPixmap, pDraw, pGC,
 					leftPad, 0, w, h, x, y);
 	else
 	    (void)(*pGC->ops->CopyPlane)((DrawablePtr)pPixmap, pDraw, pGC,
 					 leftPad, 0, w, h, x, y, 1);
-	cfbGetGCPrivate(pGC)->fExpose = TRUE;
+	pGC->fExpose = TRUE;
         FreeScratchPixmapHeader(pPixmap);
     }
     else
     {
-	unsigned long	oldFg, oldBg;
+	CfbBits	oldFg, oldBg;
 	XID		gcv[3];
-	unsigned long	oldPlanemask;
+	CfbBits	oldPlanemask;
 	unsigned long	i;
 	long		bytesPer;
 
@@ -124,6 +121,7 @@ cfbPutImage(pDraw, pGC, depth, x, y, w, h, leftPad, format, pImage)
 	gcv[1] = oldFg;
 	gcv[2] = oldBg;
 	DoChangeGC(pGC, GCPlaneMask | GCForeground | GCBackground, gcv, 0);
+	ValidateGC(pDraw, pGC);
     }
 }
 
@@ -153,6 +151,12 @@ cfbGetImage(pDrawable, sx, sy, w, h, format, planeMask, pdstLine)
 	return;
     }
     pScreen = pDrawable->pScreen;
+    /*
+     * XFree86 DDX empties the root borderClip when the VT is
+     * switched away; this checks for that case
+     */
+    if (!cfbDrawableEnabled (pDrawable))
+	return;
     if (format == ZPixmap)
     {
 	pPixmap = GetScratchPixmapHeader(pScreen, w, h, 
@@ -176,7 +180,9 @@ cfbGetImage(pDrawable, sx, sy, w, h, format, planeMask, pdstLine)
     }
     else
     {
-#if PSZ == 8
+
+#if IMAGE_BYTE_ORDER == LSBFirst
+
 	pPixmap = GetScratchPixmapHeader(pScreen, w, h,  /*depth*/ 1,
 			/*bpp*/ 1, BitmapBytePad(w), (pointer)pdstLine);
 	if (!pPixmap)

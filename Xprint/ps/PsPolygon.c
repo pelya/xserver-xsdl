@@ -73,6 +73,7 @@ in this Software without prior written authorization from The Open Group.
 **    *********************************************************
 ** 
 ********************************************************************/
+/* $XFree86: xc/programs/Xserver/Xprint/ps/PsPolygon.c,v 1.7 2001/12/14 19:59:17 dawes Exp $ */
 
 #include "Ps.h"
 #include "gcstruct.h"
@@ -175,7 +176,7 @@ PsFillPolygon(
     }
     else
     {
-      pts[0].x = pPoints[i].x; pts[0].y = pPoints[i].y;
+      pts[0].x = pPoints[0].x; pts[0].y = pPoints[0].y;
       for( i=1 ; i<nPoints ;  i++ )
       {
         pts[i].x = pts[i-1].x+pPoints[i].x;

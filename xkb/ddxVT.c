@@ -24,6 +24,7 @@ OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION  WITH
 THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 ********************************************************/
+/* $XFree86: xc/programs/Xserver/xkb/ddxVT.c,v 1.3 2002/11/23 19:27:50 tsi Exp $ */
 
 #include <stdio.h>
 #define	NEED_EVENTS 1
@@ -36,6 +37,10 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include "XKBsrv.h"
 #include "XI.h"
 
+#ifdef XF86DDXACTIONS
+#include "xf86.h"
+#endif
+
 int
 #if NeedFunctionPrototypes
 XkbDDXSwitchScreen(DeviceIntPtr dev,KeyCode key,XkbAction *act)
@@ -46,5 +51,21 @@ XkbDDXSwitchScreen(dev,key,act)
     XkbAction	 *act;
 #endif
 {
+#ifdef XF86DDXACTIONS
+    {
+	int scrnnum = XkbSAScreen(&act->screen);
+
+	if (act->screen.flags & XkbSA_SwitchApplication) {
+	    if (act->screen.flags & XkbSA_SwitchAbsolute)
+		xf86ProcessActionEvent(ACTION_SWITCHSCREEN,(void *) &scrnnum);
+	    else {
+		if (scrnnum < 0)
+		    xf86ProcessActionEvent(ACTION_SWITCHSCREEN_PREV,NULL);
+		else
+		    xf86ProcessActionEvent(ACTION_SWITCHSCREEN_NEXT,NULL);
+	    }
+	}
+    }
+#endif
     return 1;
 }

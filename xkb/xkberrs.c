@@ -24,15 +24,11 @@
  THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
  ********************************************************/
+/* $XFree86: xc/lib/xkbfile/xkberrs.c,v 3.5 2002/11/08 13:35:43 alanh Exp $ */
 
 #include <stdio.h>
 #include <ctype.h>
-#ifndef X_NOT_STDC_ENV
 #include <stdlib.h>
-#endif
-#include <X11/Xlib.h>
-#include <X11/XKBlib.h>
-#include <X11/extensions/XKBfile.h>
 
 char *		_XkbErrMessages[] = {
 	"success",				/* _XkbSuccess		     */

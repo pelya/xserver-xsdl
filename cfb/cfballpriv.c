@@ -25,6 +25,7 @@ in this Software without prior written authorization from The Open Group.
  *
  * Author:  Keith Packard, MIT X Consortium
  */
+/* $XFree86: xc/programs/Xserver/cfb/cfballpriv.c,v 1.12 2001/12/14 19:59:21 dawes Exp $ */
 
 #include "X.h"
 #include "Xmd.h"
@@ -41,13 +42,15 @@ in this Software without prior written authorization from The Open Group.
 #include "cfbmskbits.h"
 #include "mibstore.h"
 
+#if PSZ==8
 int cfbWindowPrivateIndex;
 int cfbGCPrivateIndex;
+#endif
 #ifdef CFB_NEED_SCREEN_PRIVATE
-int cfbScreenPrivateIndex;
+int cfbScreenPrivateIndex = -1;
+static unsigned long cfbGeneration = 0;
 #endif
 
-extern RegionPtr (*cfbPuntCopyPlane)();
 
 Bool
 cfbAllocatePrivates(pScreen, window_index, gc_index)
@@ -55,7 +58,7 @@ cfbAllocatePrivates(pScreen, window_index, gc_index)
     int		*window_index, *gc_index;
 {
     if (!window_index || !gc_index ||
-	*window_index == -1 && *gc_index == -1)
+	(*window_index == -1 && *gc_index == -1))
     {
     	if (!mfbAllocatePrivates(pScreen,
 			     	 &cfbWindowPrivateIndex, &cfbGCPrivateIndex))
@@ -74,9 +77,12 @@ cfbAllocatePrivates(pScreen, window_index, gc_index)
 			       sizeof(cfbPrivWin)) ||
 	!AllocateGCPrivate(pScreen, cfbGCPrivateIndex, sizeof(cfbPrivGC)))
 	return FALSE;
-    cfbPuntCopyPlane = miCopyPlane;
 #ifdef CFB_NEED_SCREEN_PRIVATE
-    cfbScreenPrivateIndex = AllocateScreenPrivateIndex ();
+    if (cfbGeneration != serverGeneration)
+    {
+      cfbScreenPrivateIndex = AllocateScreenPrivateIndex ();
+      cfbGeneration = serverGeneration;
+    }
     if (cfbScreenPrivateIndex == -1)
 	return FALSE;
 #endif

@@ -24,6 +24,7 @@
  THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
  ********************************************************/
+/* $XFree86: xc/lib/xkbfile/xkmread.c,v 1.6 2002/02/13 22:09:42 herrb Exp $ */
 
 #include <stdio.h>
 
@@ -32,9 +33,7 @@
 
 #ifndef XKB_IN_SERVER
 
-#ifndef X_NOT_STDC_ENV
 #include <stdlib.h>
-#endif
 #include <X11/Xlib.h>
 #include <X11/keysym.h>
 
@@ -172,7 +171,7 @@ XkmGetCARD32(file,pNRead)
     int *	pNRead;
 #endif
 {
-unsigned long	val;
+CARD32	val;
 
     if ((fread(&val,4,1,file)==1)&&(pNRead))
 	(*pNRead)+= 4;
@@ -797,13 +796,13 @@ XkbDescPtr		xkb;
 	    xkb->server->explicit[i]|= XkbExplicitAutoRepeatMask;
 	}
 	xkb->map->modmap[i]= wireMap.modifier_map;
-	if (wireMap.num_groups>0) {
+	if (XkbNumGroups(wireMap.num_groups)>0) {
 	    KeySym	*sym;
 	    int		 nSyms;
 	
-	    if (wireMap.num_groups>xkb->ctrls->num_groups)
+	    if (XkbNumGroups(wireMap.num_groups)>xkb->ctrls->num_groups)
 		xkb->ctrls->num_groups= wireMap.num_groups;
-	    nSyms= wireMap.num_groups*wireMap.width;
+	    nSyms= XkbNumGroups(wireMap.num_groups)*wireMap.width;
 	    sym= XkbResizeKeySyms(xkb,i,nSyms);
 	    if (!sym)
 		return -1;
@@ -820,7 +819,7 @@ XkbDescPtr		xkb;
 		xkb->server->explicit[i]|= XkbExplicitInterpretMask;
 	    }
 	}
-	for (g=0;g<wireMap.num_groups;g++) {
+	for (g=0;g<XkbNumGroups(wireMap.num_groups);g++) {
 	    if (((xkb->server->explicit[i]&(1<<g))==0)||(type[g]==NULL)) {
 		KeySym *tmpSyms;
 		tmpSyms= XkbKeySymsPtr(xkb,i)+(wireMap.width*g);

@@ -45,6 +45,8 @@ dealings in this Software without prior written authorization from said
 copyright holders.
 */
 
+/* $XFree86: xc/programs/Xserver/Xprint/pcl/PclArc.c,v 1.5 2001/01/17 22:36:30 dawes Exp $ */
+
 #include <stdio.h>
 #include <math.h>
 #include <errno.h>
@@ -52,14 +54,15 @@ copyright holders.
 #include "Pcl.h"
 #include "gcstruct.h"
 #include "windowstr.h"
+#include "attributes.h"
 
 static void
-PclDoArc( pDrawable, pGC, nArcs, pArcs, DoIt )
-     DrawablePtr pDrawable;
-     GCPtr pGC;
-     int nArcs;
-     xArc *pArcs;
-     void (*DoIt)();
+PclDoArc(
+     DrawablePtr pDrawable,
+     GCPtr pGC,
+     int nArcs,
+     xArc *pArcs,
+     void (*DoIt)(FILE *, PclContextPrivPtr, double, double, xArc))
 {
     char t[80];
     FILE *outFile;
@@ -140,7 +143,7 @@ PclDoArc( pDrawable, pGC, nArcs, pArcs, DoIt )
 	  r.y1 = -Arc.height / 2 - fudge;
 	  r.x2 = Arc.width / 2 + fudge;
 	  r.y2 = Arc.height / 2 + fudge;
-	  drawRegion = miRegionCreate( &r, 0 );
+	  drawRegion = REGION_CREATE( pGC->pScreen, &r, 0 );
 
 	  SAVE_PCL( outFile, pConPriv, "\033%0A" );
 	  MACRO_END( outFile );
@@ -148,14 +151,13 @@ PclDoArc( pDrawable, pGC, nArcs, pArcs, DoIt )
 	  /*
 	   * Intersect the bounding box with the clip region.
 	   */
-	  region = miRegionCreate( NULL, 0 );
-    	  transClip = miRegionCreate( NULL, 0 );
-	  miRegionCopy( transClip,
-		       ((PclGCPrivPtr)pGC->devPrivates[PclGCPrivateIndex].ptr)
-		       ->pCompositeClip );
-	  miTranslateRegion( transClip, -(xoffset + Arc.x + Arc.width / 2),
+	  region = REGION_CREATE( pGC->pScreen, NULL, 0 );
+    	  transClip = REGION_CREATE( pGC->pScreen, NULL, 0 );
+	  REGION_COPY( pGC->pScreen, transClip, pGC->pCompositeClip );
+	  REGION_TRANSLATE( pGC->pScreen, transClip,
+			    -(xoffset + Arc.x + Arc.width / 2),
 			    -(yoffset + Arc.y + Arc.height / 2) );
-	  miIntersect( region, drawRegion, transClip );
+	  REGION_INTERSECT( pGC->pScreen, region, drawRegion, transClip );
 
 	  /*
 	   * For each rectangle in the clip region, set the HP-GL/2 "input
@@ -177,9 +179,9 @@ PclDoArc( pDrawable, pGC, nArcs, pArcs, DoIt )
 	  /*
 	   * Clean up the temporary regions
 	   */
-	  miRegionDestroy( drawRegion );
-	  miRegionDestroy( region );
-	  miRegionDestroy( transClip );
+	  REGION_DESTROY( pGC->pScreen, drawRegion );
+	  REGION_DESTROY( pGC->pScreen, region );
+	  REGION_DESTROY( pGC->pScreen, transClip );
       }
 }
 
@@ -202,11 +204,11 @@ DrawArc(FILE *outFile,
 }
 
 void
-PclPolyArc( pDrawable, pGC, nArcs, pArcs )
-     DrawablePtr pDrawable;
-     GCPtr pGC;
-     int nArcs;
-     xArc *pArcs;
+PclPolyArc(
+     DrawablePtr pDrawable,
+     GCPtr pGC,
+     int nArcs,
+     xArc *pArcs)
 {
     PclDoArc( pDrawable, pGC, nArcs, pArcs, DrawArc );
 }
@@ -246,11 +248,11 @@ DoChord(FILE *outFile,
 
 
 void
-PclPolyFillArc( pDrawable, pGC, nArcs, pArcs )
-     DrawablePtr pDrawable;
-     GCPtr pGC;
-     int nArcs;
-     xArc *pArcs;
+PclPolyFillArc(
+     DrawablePtr pDrawable,
+     GCPtr pGC,
+     int nArcs,
+     xArc *pArcs)
 {
     switch( pGC->arcMode )
       {

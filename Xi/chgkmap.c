@@ -45,6 +45,7 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ********************************************************/
+/* $XFree86: xc/programs/Xserver/Xi/chgkmap.c,v 3.3 2001/12/14 19:58:55 dawes Exp $ */
 
 /********************************************************************
  *
@@ -59,11 +60,12 @@ SOFTWARE.
 #include "inputstr.h"			/* DeviceIntPtr	     */
 #include "XI.h"
 #include "XIproto.h"
+#include "extnsionst.h"
+#include "extinit.h"			/* LookupDeviceIntRec */
+#include "exevents.h"
+#include "exglobals.h"
 
-extern	int 	IReqCode;
-extern	int	BadDevice;
-extern	int	DeviceMappingNotify;
-DeviceIntPtr	LookupDeviceIntRec();
+#include "chgkmap.h"
 
 /***********************************************************************
  *
@@ -99,6 +101,7 @@ SProcXChangeDeviceKeyMapping(client)
  *
  */
 
+int
 ProcXChangeDeviceKeyMapping(client)
     register ClientPtr client;
     {
@@ -120,7 +123,7 @@ ProcXChangeDeviceKeyMapping(client)
 
     ret = ChangeKeyMapping (client, dev, len, DeviceMappingNotify, 
 	stuff->firstKeyCode, stuff->keyCodes, stuff->keySymsPerKeyCode, 
-	&stuff[1]);
+	(KeySym *)&stuff[1]);
 
     if (ret != Success)
 	SendErrorToClient (client, IReqCode, X_ChangeDeviceKeyMapping, 0, 

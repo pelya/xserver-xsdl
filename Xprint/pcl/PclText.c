@@ -44,6 +44,7 @@ not be used in advertising or otherwise to promote the sale, use or other
 dealings in this Software without prior written authorization from said
 copyright holders.
 */
+/* $XFree86: xc/programs/Xserver/Xprint/pcl/PclText.c,v 1.10 2001/12/19 21:55:58 dawes Exp $ */
 
 #ifdef DO_TWO_BYTE_PCL
 #include "iconv.h"
@@ -81,13 +82,13 @@ static void             code_conv(PclSoftFontInfoPtr, FontPtr, char *, char *);
 #define INTERNAL_FONT 1
 
 int
-PclPolyText8( pDrawable, pGC, x, y, count, string )
-     DrawablePtr pDrawable;
-     GCPtr pGC;
-     int x;
-     int y;
-     int count;
-     char *string;
+PclPolyText8(
+     DrawablePtr pDrawable,
+     GCPtr pGC,
+     int x,
+     int y,
+     int count,
+     char *string)
 {
 XpContextPtr pCon;
 PclContextPrivPtr pConPriv;
@@ -181,8 +182,6 @@ char font_type;
 	MACRO_END( outFile );
 
     } else {
-	char *internalFont;
-	int pixel_size;
 	int fid = 0;
 
 	pin = makeInternalFont(pGC->font, pSoftFontInfo);
@@ -231,9 +230,7 @@ char font_type;
 
     drawRegion = miRegionCreate( &box, 0 );
     region = miRegionCreate( NULL, 0 );
-    miIntersect( region, drawRegion,
-		((PclGCPrivPtr)pGC->devPrivates[PclGCPrivateIndex].ptr)
-		->pCompositeClip );
+    miIntersect( region, drawRegion, pGC->pCompositeClip );
 
     /*
      * For each rectangle in the clip region, set the HP-GL/2 "input
@@ -247,20 +244,20 @@ char font_type;
     /*
      * Clean up the temporary regions
      */
-    miRegionDestroy( drawRegion );
-    miRegionDestroy( region );
+    REGION_DESTROY( pGC->pScreen, drawRegion );
+    REGION_DESTROY( pGC->pScreen, region );
 
     return x+w;
 }
 
 int
-PclPolyText16( pDrawable, pGC, x, y, count, string )
-     DrawablePtr pDrawable;
-     GCPtr pGC;
-     int x;
-     int y;
-     int count;
-     unsigned short *string;
+PclPolyText16(
+     DrawablePtr pDrawable,
+     GCPtr pGC,
+     int x,
+     int y,
+     int count,
+     unsigned short *string)
 {
 XpContextPtr pCon;
 PclContextPrivPtr pConPriv;
@@ -271,7 +268,6 @@ CharInfoPtr charinfo[255], *chinfo;
 FILE *outFile;
 PclSoftFontInfoPtr pSoftFontInfo;
 PclFontHead16Ptr pfh16 = (PclFontHead16Ptr)NULL;
-PclInternalFontPtr pin = (PclInternalFontPtr)NULL;
 PclCharDataRec cd;
 FontInfoPtr pfi;
 unsigned char row, col;
@@ -321,8 +317,8 @@ char font_type;
 		col = col - pfi->firstCol;
 	    } else {
 		def = pfi->defaultCh;
-		row = (def>>8)&0xff - pfi->firstRow;
-		col = def&0xff - pfi->firstCol;
+		row = ((def>>8)&0xff) - pfi->firstRow;
+		col = (def&0xff) - pfi->firstCol;
 	    }
 	    if ( !pfh16->index[row][col].fid ) {
 		fillCharDescData(&cd, *chinfo);
@@ -356,8 +352,8 @@ char font_type;
 		col = col - pfi->firstCol;
 	    } else {
 		def = pfi->defaultCh;
-		row = (def>>8)&0xff - pfi->firstRow;
-		col = def&0xff - pfi->firstCol;
+		row = ((def>>8)&0xff) - pfi->firstRow;
+		col = (def&0xff) - pfi->firstCol;
 	    }
 	    if ( last_fid != pfh16->index[row][col].fid ) {
 		sprintf(t, "%cFI%d;SS;LB",
@@ -380,8 +376,7 @@ char font_type;
 
     } else {
 #ifdef DO_TWO_BYTE_PCL
-	char *internalFont;
-	int pixel_size;
+	PclInternalFontPtr pin;
 	int fid = 0;
 
 	pin = makeInternalFont(pGC->font, pSoftFontInfo);
@@ -432,9 +427,7 @@ char font_type;
 
     drawRegion = miRegionCreate( &box, 0 );
     region = miRegionCreate( NULL, 0 );
-    miIntersect( region, drawRegion,
-		((PclGCPrivPtr)pGC->devPrivates[PclGCPrivateIndex].ptr)
-		->pCompositeClip );
+    miIntersect( region, drawRegion, pGC->pCompositeClip );
 
     /*
      * For each rectangle in the clip region, set the HP-GL/2 "input
@@ -448,52 +441,52 @@ char font_type;
     /*
      * Clean up the temporary regions
      */
-    miRegionDestroy( drawRegion );
-    miRegionDestroy( region );
+    REGION_DESTROY( pGC->pScreen, drawRegion );
+    REGION_DESTROY( pGC->pScreen, region );
 
     return x+w;
 }
 
 void
-PclImageText8( pDrawable, pGC, x, y, count, string )
-     DrawablePtr pDrawable;
-     GCPtr pGC; 
-     int x, y;
-     int count;
-     char *string;
+PclImageText8(
+     DrawablePtr pDrawable,
+     GCPtr pGC, 
+     int x, int y,
+     int count,
+     char *string)
 {
 }
 
 void
-PclImageText16( pDrawable, pGC, x, y, count, string )
-     DrawablePtr pDrawable;
-     GCPtr pGC;
-     int x;
-     int y;
-     int count;
-     unsigned short *string;
+PclImageText16(
+     DrawablePtr pDrawable,
+     GCPtr pGC,
+     int x,
+     int y,
+     int count,
+     unsigned short *string)
 {
 }
 
 void
-PclImageGlyphBlt( pDrawable, pGC, x, y, nGlyphs, pCharInfo, pGlyphBase )
-     DrawablePtr pDrawable;
-     GCPtr pGC;
-     int x, y;
-     unsigned int nGlyphs;
-     CharInfoPtr *pCharInfo;
-     pointer pGlyphBase;
+PclImageGlyphBlt(
+     DrawablePtr pDrawable,
+     GCPtr pGC,
+     int x, int y,
+     unsigned int nGlyphs,
+     CharInfoPtr *pCharInfo,
+     pointer pGlyphBase)
 {
 }
 
 void
-PclPolyGlyphBlt( pDrawable, pGC, x, y, nGlyphs, pCharInfo, pGlyphBase )
-     DrawablePtr pDrawable;
-     GCPtr pGC;
-     int x, y;
-     unsigned int nGlyphs;
-     CharInfoPtr *pCharInfo;
-     pointer pGlyphBase;
+PclPolyGlyphBlt(
+     DrawablePtr pDrawable,
+     GCPtr pGC,
+     int x, int y,
+     unsigned int nGlyphs,
+     CharInfoPtr *pCharInfo,
+     pointer pGlyphBase)
 {
 }
 
@@ -509,7 +502,7 @@ PclFontHead8Ptr prev = (PclFontHead8Ptr)NULL;
 FontInfoPtr pfi;
 char *fontname;
 unsigned char nindex;
-int i, j;
+int i;
 unsigned long n;
 CharInfoPtr charinfo[1];
 unsigned int space_width;
@@ -680,7 +673,7 @@ FontPropPtr props;
 FontInfoPtr pfi;
 char *fontname;
 Atom xa_pcl_font_name, xa_res, xa_ave_width, xa_spacing;
-int res, width;
+int res, width = 1;
 int mask;
 int i;
 
@@ -723,19 +716,19 @@ int i;
 
     mask = 0;
     for (i=0; i<pfi->nprops; i++, props++) {
-	if ( props->name == xa_pcl_font_name ) {
+	if ( (Atom) props->name == xa_pcl_font_name ) {
 	    pin->pcl_font_name = NameForAtom(props->value);
 	    mask |= 0x1;
 	} else if ( props->name == XA_POINT_SIZE ) {
 	    pin->height = (float) props->value / 10.0;
 	    mask |= 0x2;
-	} else if ( props->name == xa_res ) {
+	} else if ( (Atom) props->name == xa_res ) {
 	    res = (int) props->value;
 	    mask |= 0x4;
-	} else if ( props->name == xa_ave_width ) {
+	} else if ( (Atom) props->name == xa_ave_width ) {
 	    width = (int) props->value / 10;
 	    mask |= 0x8;
-	} else if ( props->name == xa_spacing ) {
+	} else if ( (Atom) props->name == xa_spacing ) {
 	    pin->spacing = NameForAtom(props->value);
 	    mask |= 0x10;
 	}
@@ -746,8 +739,11 @@ int i;
 	return (PclInternalFontPtr) NULL;
     }
 
-    if ( *pin->spacing != 'P' || *pin->spacing != 'p' )
+    if ( *pin->spacing != 'P' || *pin->spacing != 'p' ) {
+	if (width == 0)
+	    width = 1;
 	pin->pitch = (float) 300.0 / width;  /* Hard-Code: Resolution is 300 */
+    }
 
     pin->next = (PclInternalFontPtr)NULL;
     if ( prev == (PclInternalFontPtr) NULL)
@@ -791,7 +787,7 @@ unsigned int byte_width;
 unsigned char *p;
 register int nbyGlyphWidth;
 unsigned char *pglyph, *pg;
-int i, j;
+unsigned int i, j;
 
     pcd->h_offset   = pci->metrics.leftSideBearing;
     pcd->v_offset   = pci->metrics.ascent;
@@ -868,7 +864,7 @@ Atom dest;
     pfi = (FontInfoRec *)&pfont->info;
     props = pfi->props;
     for (i=0; i<pfi->nprops; i++, props++) {
-        if ( props->name == dest && props->value == 2 )
+        if ( (Atom) props->name == dest && props->value == 2 )
 		return INTERNAL_FONT;
     }
     return DOWNLOAD_FONT;

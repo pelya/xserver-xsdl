@@ -1,3 +1,4 @@
+/* $XFree86: xc/programs/Xserver/include/inputstr.h,v 1.5 2001/12/14 19:59:54 dawes Exp $ */
 /************************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -59,7 +60,7 @@ SOFTWARE.
 #define SameClient(obj,client) \
 	(CLIENT_BITS((obj)->resource) == (client)->clientAsMask)
 
-#define MAX_DEVICES	9
+#define MAX_DEVICES	20
 
 #define EMASKSIZE	MAX_DEVICES
 

@@ -1,6 +1,7 @@
 /*
  * mfb copy area
  */
+/* $XFree86: xc/programs/Xserver/mfb/mfbblt.c,v 3.4 2001/12/14 20:00:04 dawes Exp $ */
 
 /*
 
@@ -82,14 +83,7 @@ MROP_NAME(mfbDoBitblt)(pSrc, pDst, alu, prgnDst, pptSrc)
     register PixelType bits;
     register PixelType bits1;
     register int nl;		/* temp copy of nlMiddle */
-
-				/* place to store full source word */
-    int nstart;			/* number of ragged bits at start of dst */
-    int nend;			/* number of ragged bits at end of dst */
-    int srcStartOver;		/* pulling nstart bits from src
-				   overflows into the next word? */
     int careful;
-    int tmpSrc;
 
     MROP_INITIALIZE(alu,0);
 
@@ -336,8 +330,10 @@ psrc += UNROLL;
 		    if (startmask)
 		    {
 			bits1 = BitLeft(bits,leftShift);
-			bits = *psrc++;
-			bits1 |= BitRight(bits,rightShift);
+			if (BitLeft(startmask, rightShift)) {
+				bits = *psrc++;
+				bits1 |= BitRight(bits,rightShift);
+			}
 			*pdst = MROP_MASK(bits1, *pdst, startmask);
 			pdst++;
 		    }
@@ -500,8 +496,10 @@ psrc -= UNROLL;
 		    if (endmask)
 		    {
 			bits1 = BitRight(bits, rightShift);
-			bits = *--psrc;
-			bits1 |= BitLeft(bits, leftShift);
+			if (BitRight(endmask, leftShift)) {
+				bits = *--psrc;
+				bits1 |= BitLeft(bits, leftShift);
+			}
 			pdst--;
 			*pdst = MROP_MASK(bits1, *pdst, endmask);
 		    }

@@ -24,6 +24,7 @@ OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION  WITH
 THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 ********************************************************/
+/* $XFree86: xc/programs/Xserver/xkb/ddxCtrls.c,v 1.3 2001/01/17 22:37:14 dawes Exp $ */
 
 #include <stdio.h>
 #define	NEED_EVENTS 1
@@ -104,7 +105,8 @@ XkbDDXChangeControls(dev,old,new)
     XkbControlsPtr new;
 #endif
 {
-unsigned	changed;
+unsigned	changed, i;
+unsigned 	char *rep_old, *rep_new, *rep_fb;
 
     changed= new->enabled_ctrls^old->enabled_ctrls;
 #ifdef NOTDEF
@@ -124,6 +126,16 @@ unsigned	changed;
 	}
     }
 #endif
+    for (rep_old = old->per_key_repeat,
+         rep_new = new->per_key_repeat,
+	 rep_fb  = dev->kbdfeed->ctrl.autoRepeats,
+         i = 0; i < XkbPerKeyBitArraySize; i++) {
+        if (rep_old[i] != rep_new[i]) {
+            rep_fb[i] = rep_new[i];
+            changed &= XkbPerKeyRepeatMask;
+        }
+    }
+
     if (changed&XkbPerKeyRepeatMask) {
 	if (dev->kbdfeed->CtrlProc)
 	    (*dev->kbdfeed->CtrlProc)(dev,&dev->kbdfeed->ctrl);

@@ -73,6 +73,7 @@ in this Software without prior written authorization from The Open Group.
 **    *********************************************************
 ** 
 ********************************************************************/
+/* $XFree86: xc/programs/Xserver/Xprint/ps/PsPrint.c,v 1.11 2001/12/21 21:02:06 dawes Exp $ */
 
 #include <stdio.h>
 #include <string.h>
@@ -90,7 +91,6 @@ in this Software without prior written authorization from The Open Group.
 #include "Ps.h"
 
 #include "windowstr.h"
-#include "attributes.h"
 #include "Oid.h"
 
 /* static utility function to get document/page attributes */
@@ -268,7 +268,7 @@ PsEndJob(
 #ifdef BM_CACHE
   PsBmClearImageCache();
 #endif
-
+        
   return r;
 }
 
@@ -281,13 +281,10 @@ PsStartPage(
 {
   int                iorient, iplex, icount, ires;
   unsigned short     iwd, iht;
-  register WindowPtr pChild;
   PsContextPrivPtr   pConPriv =
      (PsContextPrivPtr)pCon->devPrivates[PsContextPrivateIndex].ptr;
   PsWindowPrivPtr    pWinPriv =
      (PsWindowPrivPtr)pWin->devPrivates[PsWindowPrivateIndex].ptr;
-  char               s[80];
-  xEvent event;
 
 /*
  * Put a pointer to the context in the window private structure

@@ -26,18 +26,21 @@ other dealings in this Software without prior written authorization
 from The Open Group.
 
 */
+/* $XFree86: xc/programs/Xserver/mi/miclipn.c,v 1.4 2001/12/14 20:00:21 dawes Exp $ */
 
 #include "X.h"
 #include "windowstr.h"
 #include "scrnintstr.h"
+#include "mi.h"
 
-static void	(*clipNotify)() = 0;
-static void	(*ClipNotifies[MAXSCREENS])();
+static void	(*clipNotify)(WindowPtr,int,int) = 0;
+static void	(*ClipNotifies[MAXSCREENS])(WindowPtr,int,int);
 
 static void
-miClipNotifyWrapper(pWin, dx, dy)
-    WindowPtr pWin;
-    int dx, dy;
+miClipNotifyWrapper(
+    WindowPtr pWin,
+    int dx, 
+    int dy )
 {
     if (clipNotify)
 	(*clipNotify)(pWin, dx, dy);
@@ -55,8 +58,12 @@ miClipNotifyWrapper(pWin, dx, dy)
 static unsigned long clipGeneration = 0;
 
 void
-miClipNotify (func)
-    void (*func)();
+miClipNotify (
+    void (*func)(
+        WindowPtr /* pWin */,
+        int /* dx */,
+        int /* dy */
+		) )
 {
     int i;
 

@@ -26,6 +26,7 @@ other dealings in this Software without prior written authorization
 from The Open Group.
 
 */
+/* $XFree86: xc/programs/Xserver/dix/privates.c,v 3.8 2001/12/14 19:59:32 dawes Exp $ */
 
 #include "X.h"
 #include "scrnintstr.h"
@@ -61,8 +62,8 @@ ResetClientPrivates()
     clientPrivateLen = 0;
     xfree(clientPrivateSizes);
     clientPrivateSizes = (unsigned *)NULL;
-    totalClientSize = sizeof(ClientRec);
-
+    totalClientSize =
+	((sizeof(ClientRec) + sizeof(long) - 1) / sizeof(long)) * sizeof(long);
 }
 
 int
@@ -72,30 +73,33 @@ AllocateClientPrivateIndex()
 }
 
 Bool
-AllocateClientPrivate(index, amount)
-    int index;
+AllocateClientPrivate(index2, amount)
+    int index2;
     unsigned amount;
 {
     unsigned oldamount;
 
-    if (index >= clientPrivateLen)
+    /* Round up sizes for proper alignment */
+    amount = ((amount + (sizeof(long) - 1)) / sizeof(long)) * sizeof(long);
+
+    if (index2 >= clientPrivateLen)
     {
 	unsigned *nsizes;
 	nsizes = (unsigned *)xrealloc(clientPrivateSizes,
-				      (index + 1) * sizeof(unsigned));
+				      (index2 + 1) * sizeof(unsigned));
 	if (!nsizes)
 	    return FALSE;
-	while (clientPrivateLen <= index)
+	while (clientPrivateLen <= index2)
 	{
 	    nsizes[clientPrivateLen++] = 0;
 	    totalClientSize += sizeof(DevUnion);
 	}
 	clientPrivateSizes = nsizes;
     }
-    oldamount = clientPrivateSizes[index];
+    oldamount = clientPrivateSizes[index2];
     if (amount > oldamount)
     {
-	clientPrivateSizes[index] = amount;
+	clientPrivateSizes[index2] = amount;
 	totalClientSize += (amount - oldamount);
     }
     return TRUE;
@@ -119,12 +123,12 @@ ResetScreenPrivates()
 int
 AllocateScreenPrivateIndex()
 {
-    int		index;
+    int		idx;
     int		i;
     ScreenPtr	pScreen;
     DevUnion	*nprivs;
 
-    index = screenPrivateCount++;
+    idx = screenPrivateCount++;
     for (i = 0; i < screenInfo.numScreens; i++)
     {
 	pScreen = screenInfo.screens[i];
@@ -135,9 +139,11 @@ AllocateScreenPrivateIndex()
 	    screenPrivateCount--;
 	    return -1;
 	}
+	/* Zero the new private */
+	bzero(&nprivs[idx], sizeof(DevUnion));
 	pScreen->devPrivates = nprivs;
     }
-    return index;
+    return idx;
 }
 
 
@@ -160,31 +166,34 @@ AllocateWindowPrivateIndex()
 }
 
 Bool
-AllocateWindowPrivate(pScreen, index, amount)
+AllocateWindowPrivate(pScreen, index2, amount)
     register ScreenPtr pScreen;
-    int index;
+    int index2;
     unsigned amount;
 {
     unsigned oldamount;
 
-    if (index >= pScreen->WindowPrivateLen)
+    /* Round up sizes for proper alignment */
+    amount = ((amount + (sizeof(long) - 1)) / sizeof(long)) * sizeof(long);
+
+    if (index2 >= pScreen->WindowPrivateLen)
     {
 	unsigned *nsizes;
 	nsizes = (unsigned *)xrealloc(pScreen->WindowPrivateSizes,
-				      (index + 1) * sizeof(unsigned));
+				      (index2 + 1) * sizeof(unsigned));
 	if (!nsizes)
 	    return FALSE;
-	while (pScreen->WindowPrivateLen <= index)
+	while (pScreen->WindowPrivateLen <= index2)
 	{
 	    nsizes[pScreen->WindowPrivateLen++] = 0;
 	    pScreen->totalWindowSize += sizeof(DevUnion);
 	}
 	pScreen->WindowPrivateSizes = nsizes;
     }
-    oldamount = pScreen->WindowPrivateSizes[index];
+    oldamount = pScreen->WindowPrivateSizes[index2];
     if (amount > oldamount)
     {
-	pScreen->WindowPrivateSizes[index] = amount;
+	pScreen->WindowPrivateSizes[index2] = amount;
 	pScreen->totalWindowSize += (amount - oldamount);
     }
     return TRUE;
@@ -210,31 +219,34 @@ AllocateGCPrivateIndex()
 }
 
 Bool
-AllocateGCPrivate(pScreen, index, amount)
+AllocateGCPrivate(pScreen, index2, amount)
     register ScreenPtr pScreen;
-    int index;
+    int index2;
     unsigned amount;
 {
     unsigned oldamount;
 
-    if (index >= pScreen->GCPrivateLen)
+    /* Round up sizes for proper alignment */
+    amount = ((amount + (sizeof(long) - 1)) / sizeof(long)) * sizeof(long);
+
+    if (index2 >= pScreen->GCPrivateLen)
     {
 	unsigned *nsizes;
 	nsizes = (unsigned *)xrealloc(pScreen->GCPrivateSizes,
-				      (index + 1) * sizeof(unsigned));
+				      (index2 + 1) * sizeof(unsigned));
 	if (!nsizes)
 	    return FALSE;
-	while (pScreen->GCPrivateLen <= index)
+	while (pScreen->GCPrivateLen <= index2)
 	{
 	    nsizes[pScreen->GCPrivateLen++] = 0;
 	    pScreen->totalGCSize += sizeof(DevUnion);
 	}
 	pScreen->GCPrivateSizes = nsizes;
     }
-    oldamount = pScreen->GCPrivateSizes[index];
+    oldamount = pScreen->GCPrivateSizes[index2];
     if (amount > oldamount)
     {
-	pScreen->GCPrivateSizes[index] = amount;
+	pScreen->GCPrivateSizes[index2] = amount;
 	pScreen->totalGCSize += (amount - oldamount);
     }
     return TRUE;
@@ -260,33 +272,37 @@ AllocatePixmapPrivateIndex()
 }
 
 Bool
-AllocatePixmapPrivate(pScreen, index, amount)
+AllocatePixmapPrivate(pScreen, index2, amount)
     register ScreenPtr pScreen;
-    int index;
+    int index2;
     unsigned amount;
 {
     unsigned oldamount;
 
-    if (index >= pScreen->PixmapPrivateLen)
+    /* Round up sizes for proper alignment */
+    amount = ((amount + (sizeof(long) - 1)) / sizeof(long)) * sizeof(long);
+
+    if (index2 >= pScreen->PixmapPrivateLen)
     {
 	unsigned *nsizes;
 	nsizes = (unsigned *)xrealloc(pScreen->PixmapPrivateSizes,
-				      (index + 1) * sizeof(unsigned));
+				      (index2 + 1) * sizeof(unsigned));
 	if (!nsizes)
 	    return FALSE;
-	while (pScreen->PixmapPrivateLen <= index)
+	while (pScreen->PixmapPrivateLen <= index2)
 	{
 	    nsizes[pScreen->PixmapPrivateLen++] = 0;
 	    pScreen->totalPixmapSize += sizeof(DevUnion);
 	}
 	pScreen->PixmapPrivateSizes = nsizes;
     }
-    oldamount = pScreen->PixmapPrivateSizes[index];
+    oldamount = pScreen->PixmapPrivateSizes[index2];
     if (amount > oldamount)
     {
-	pScreen->PixmapPrivateSizes[index] = amount;
+	pScreen->PixmapPrivateSizes[index2] = amount;
 	pScreen->totalPixmapSize += (amount - oldamount);
     }
+    pScreen->totalPixmapSize = BitmapBytePad(pScreen->totalPixmapSize * 8);
     return TRUE;
 }
 #endif
@@ -335,15 +351,18 @@ InitCmapPrivFunc initPrivFunc;
 	pColormap = (ColormapPtr) LookupIDByType (
 	    pScreen->defColormap, RT_COLORMAP);
 
-	privs = (DevUnion *) xrealloc (pColormap->devPrivates,
-	    colormapPrivateCount * sizeof(DevUnion));
-
-	pColormap->devPrivates = privs;
-
-	if (!privs || !(*initPrivFunc)(pColormap))
+	if (pColormap)
 	{
-	    colormapPrivateCount--;
-	    return -1;
+	    privs = (DevUnion *) xrealloc (pColormap->devPrivates,
+		colormapPrivateCount * sizeof(DevUnion));
+    
+	    pColormap->devPrivates = privs;
+    
+	    if (!privs || !(*initPrivFunc)(pColormap))
+	    {
+		colormapPrivateCount--;
+		return -1;
+	    }
 	}
     }
 

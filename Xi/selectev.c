@@ -45,6 +45,7 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ********************************************************/
+/* $XFree86: xc/programs/Xserver/Xi/selectev.c,v 3.3 2001/12/14 19:58:58 dawes Exp $ */
 
 /***********************************************************************
  *
@@ -61,12 +62,16 @@ SOFTWARE.
 #include "windowstr.h"			/* window structure  */
 #include "XI.h"
 #include "XIproto.h"
+#include "extnsionst.h"
+#include "extinit.h"			/* LookupDeviceIntRec */
+#include "exevents.h"
+#include "exglobals.h"
 
-extern	int 		IReqCode;
+#include "grabdev.h"
+#include "selectev.h"
+
 extern	Mask		ExtExclusiveMasks[];
 extern	Mask		ExtValidMasks[];
-extern	void		(* ReplySwapVector[256]) ();
-DeviceIntPtr		LookupDeviceIntRec();
 
 /***********************************************************************
  *
@@ -137,7 +142,7 @@ ProcXSelectExtensionEvent (client)
     for (i=0; i<EMASKSIZE; i++)
 	if (tmp[i].dev != NULL)
 	    {
-	    if ((ret = SelectForWindow(tmp[i].dev, pWin, client, tmp[i].mask, 
+	    if ((ret = SelectForWindow((DeviceIntPtr)tmp[i].dev, pWin, client, tmp[i].mask, 
 		ExtExclusiveMasks[i], ExtValidMasks[i])) != Success)
 		{
 		SendErrorToClient(client, IReqCode, X_SelectExtensionEvent, 0, 

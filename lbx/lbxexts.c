@@ -21,13 +21,17 @@
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *
  */
+/* $XFree86: xc/programs/Xserver/lbx/lbxexts.c,v 1.4 2001/02/16 13:24:10 eich Exp $ */
 
 #include "X.h"
 #include "Xproto.h"
 #include "misc.h"
 #include "dixstruct.h"
+#include "colormapst.h"
+#include "propertyst.h"
 #define _XLBX_SERVER_
 #include "lbxstr.h"
+#include "lbxserve.h"
 #ifdef XCSECURITY
 #define _SECURITY_SERVER
 #include "extensions/security.h"
@@ -54,15 +58,14 @@ static int  num_exts = 0;
 
 
 Bool
-LbxAddExtension(name, opcode, ev_base, err_base)
-    char       *name;
-    int         opcode;
-    int         ev_base,
-                err_base;
+LbxAddExtension(char       *name,
+		int         opcode,
+		int         ev_base,
+                int	    err_base)
 {
     int         i;
-    register LbxExtensionEntry *ext,
-              **newexts;
+    LbxExtensionEntry *ext,
+	**newexts;
 
     ext = (LbxExtensionEntry *) xalloc(sizeof(LbxExtensionEntry));
     if (!ext)
@@ -102,9 +105,8 @@ LbxAddExtension(name, opcode, ev_base, err_base)
 }
 
 Bool
-LbxAddExtensionAlias(idx, alias)
-    int         idx;
-    char       *alias;
+LbxAddExtensionAlias(int         idx,
+		     char       *alias)
 {
     char       *name;
     char      **aliases;
@@ -125,9 +127,8 @@ LbxAddExtensionAlias(idx, alias)
 }
 
 static int
-LbxFindExtension(extname, len)
-    char *extname;
-    int len;
+LbxFindExtension(char *extname,
+		 int len)
 {
     int i, j;
 
@@ -145,9 +146,8 @@ LbxFindExtension(extname, len)
 }
 
 void
-LbxDeclareExtensionSecurity(extname, secure)
-    char *extname;
-    Bool secure;
+LbxDeclareExtensionSecurity(char *extname,
+			    Bool secure)
 {
 #ifdef XCSECURITY
     int i = LbxFindExtension(extname, strlen(extname));
@@ -157,11 +157,10 @@ LbxDeclareExtensionSecurity(extname, secure)
 }
 
 Bool
-LbxRegisterExtensionGenerationMasks(idx, num_reqs, rep_mask, ev_mask)
-    int         idx;
-    int         num_reqs;
-    char       *rep_mask,
-               *ev_mask;
+LbxRegisterExtensionGenerationMasks(int         idx,
+				    int         num_reqs,
+				    char       *rep_mask,
+				    char       *ev_mask)
 {
     LbxExtensionEntry *ext = lbx_extensions[idx];
     CARD8      *nrm,
@@ -186,10 +185,9 @@ LbxRegisterExtensionGenerationMasks(idx, num_reqs, rep_mask, ev_mask)
 }
 
 int
-LbxQueryExtension(client, ename, nlen)
-    ClientPtr   client;
-    char       *ename;
-    int         nlen;
+LbxQueryExtension(ClientPtr   client,
+		  char       *ename,
+		  int         nlen)
 {
     xLbxQueryExtensionReply rep;
     int         i;
@@ -237,12 +235,15 @@ LbxQueryExtension(client, ename, nlen)
     return Success;
 }
 
-LbxCloseDownExtensions()
+void
+LbxCloseDownExtensions(void)
 {
-    int         i;
+    int         i,j;
 
     for (i = 0; i < num_exts; i++) {
 	xfree(lbx_extensions[i]->name);
+	for (j = 0; j < lbx_extensions[i]->num_aliases; j++)
+	  xfree(lbx_extensions[i]->aliases[j]);
 	xfree(lbx_extensions[i]->aliases);
 	xfree(lbx_extensions[i]->rep_mask);
 	xfree(lbx_extensions[i]->ev_mask);
@@ -251,13 +252,13 @@ LbxCloseDownExtensions()
     xfree(lbx_extensions);
     lbx_extensions = NULL;
     num_exts = 0;
+
 }
 
 void
-LbxSetReqMask(mask, req, on)
-    CARD8      *mask;
-    int         req;
-    Bool        on;
+LbxSetReqMask(CARD8      *mask,
+	      int         req,
+	      Bool        on)
 {
     int         mword = req / (8 * sizeof(CARD8));
 

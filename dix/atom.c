@@ -1,3 +1,4 @@
+/* $XFree86: xc/programs/Xserver/dix/atom.c,v 3.4 2002/02/19 11:09:21 alanh Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -51,6 +52,7 @@ SOFTWARE.
 #include "Xatom.h"
 #include "misc.h"
 #include "resource.h"
+#include "dix.h"
 
 #define InitialTableSize 100
 
@@ -65,6 +67,8 @@ static Atom lastAtom = None;
 static NodePtr atomRoot = (NodePtr)NULL;
 static unsigned long tableLength;
 static NodePtr *nodeTable;
+
+void FreeAtom(NodePtr patom);
 
 Atom 
 MakeAtom(string, len, makeit)
@@ -170,8 +174,7 @@ AtomError()
 }
 
 void
-FreeAtom(patom)
-    NodePtr patom;
+FreeAtom(NodePtr patom)
 {
     if(patom->left)
 	FreeAtom(patom->left);

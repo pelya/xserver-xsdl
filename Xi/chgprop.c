@@ -45,6 +45,7 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ********************************************************/
+/* $XFree86: xc/programs/Xserver/Xi/chgprop.c,v 3.3 2001/12/14 19:58:55 dawes Exp $ */
 
 /***********************************************************************
  *
@@ -60,11 +61,14 @@ SOFTWARE.
 #include "windowstr.h"
 #include "XI.h"
 #include "XIproto.h"
+#include "extnsionst.h"
+#include "extinit.h"			/* LookupDeviceIntRec */
 
-extern	int 	BadMode;
-extern	int 	BadClass;
-extern	int 	IReqCode;
-DeviceIntPtr	LookupDeviceIntRec();
+#include "exevents.h"
+#include "exglobals.h"
+
+#include "chgprop.h"
+#include "grabdev.h"
 
 /***********************************************************************
  *
@@ -100,6 +104,7 @@ SProcXChangeDeviceDontPropagateList(client)
  *
  */
 
+int
 ProcXChangeDeviceDontPropagateList (client)
     register ClientPtr client;
     {

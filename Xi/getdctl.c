@@ -45,6 +45,7 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ********************************************************/
+/* $XFree86: xc/programs/Xserver/Xi/getdctl.c,v 3.4 2001/12/14 19:58:56 dawes Exp $ */
 
 /********************************************************************
  *
@@ -59,12 +60,11 @@ SOFTWARE.
 #include "inputstr.h"			/* DeviceIntPtr	     */
 #include "XI.h"
 #include "XIproto.h"
+#include "extnsionst.h"
+#include "extinit.h"			/* LookupDeviceIntRec */
+#include "exglobals.h"
 
-extern	int 	IReqCode;
-extern	int	BadDevice;
-extern	void	(* ReplySwapVector[256]) ();
-DeviceIntPtr	LookupDeviceIntRec();
-void		CopySwapDeviceResolution();
+#include "getdctl.h"
 
 /***********************************************************************
  *
@@ -92,6 +92,7 @@ SProcXGetDeviceControl(client)
  *
  */
 
+int
 ProcXGetDeviceControl(client)
     ClientPtr client;
     {
@@ -134,7 +135,7 @@ ProcXGetDeviceControl(client)
 	    return Success;
 	}
 
-    buf = (char *) Xalloc (total_length);
+    buf = (char *) xalloc (total_length);
     if (!buf)
 	{
 	SendErrorToClient(client, IReqCode, X_GetDeviceControl, 0, 
@@ -156,7 +157,7 @@ ProcXGetDeviceControl(client)
     rep.length = (total_length+3) >> 2;
     WriteReplyToClient(client, sizeof(xGetDeviceControlReply), &rep);
     WriteToClient(client, total_length, savbuf);
-    Xfree (savbuf);
+    xfree (savbuf);
     return Success;
     }
 
@@ -210,6 +211,7 @@ CopySwapDeviceResolution (client, v, buf, length)
  *
  */
 
+void
 SRepXGetDeviceControl (client, size, rep)
     ClientPtr	client;
     int		size;

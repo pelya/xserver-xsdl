@@ -1,3 +1,4 @@
+/* $XFree86: xc/programs/Xserver/dix/devices.c,v 3.20 2001/12/14 19:59:30 dawes Exp $ */
 /************************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -66,27 +67,28 @@ SOFTWARE.
 #endif
 #ifdef XCSECURITY
 #define _SECURITY_SERVER
-#include "extensions/security.h"
+#include "security.h"
+#endif
+#ifdef LBX
+#include "lbxserve.h"
 #endif
 
-extern void CopySwap32Write(), SwapTimeCoordWrite();
-extern void ActivatePointerGrab(), DeactivatePointerGrab();
-extern void ActivateKeyboardGrab(), DeactivateKeyboardGrab();
-extern Mask EventMaskForClient();
-extern void EnqueueEvent();
+#include "dispatch.h"
+#include "swaprep.h"
+#include "dixevents.h"
 
-DevicePtr
-AddInputDevice(deviceProc, autoStart)
+DeviceIntPtr
+_AddInputDevice(deviceProc, autoStart)
     DeviceProc deviceProc;
     Bool autoStart;
 {
     register DeviceIntPtr dev;
 
     if (inputInfo.numDevices >= MAX_DEVICES)
-	return (DevicePtr)NULL;
+	return (DeviceIntPtr)NULL;
     dev = (DeviceIntPtr) xalloc(sizeof(DeviceIntRec));
     if (!dev)
-	return (DevicePtr)NULL;
+	return (DeviceIntPtr)NULL;
     dev->name = (char *)NULL;
     dev->type = 0;
     dev->id = inputInfo.numDevices;
@@ -121,7 +123,7 @@ AddInputDevice(deviceProc, autoStart)
     dev->xkb_interest= NULL;
 #endif
     inputInfo.off_devices = dev;
-    return &dev->public;
+    return dev;
 }
 
 Bool
@@ -179,20 +181,28 @@ InitAndStartDevices()
 	 dev && (dev != inputInfo.keyboard);
 	 dev = dev->next)
 	;
-    if (!dev || (dev != inputInfo.keyboard))
+    if (!dev || (dev != inputInfo.keyboard)) {
+	ErrorF("No core keyboard\n");
 	return BadImplementation;
+    }
     for (dev = inputInfo.devices;
 	 dev && (dev != inputInfo.pointer);
 	 dev = dev->next)
 	;
-    if (!dev || (dev != inputInfo.pointer))
+    if (!dev || (dev != inputInfo.pointer)) {
+	ErrorF("No core pointer\n");
 	return BadImplementation;
+    }
     return Success;
 }
 
 static void
+#if NeedFunctionPrototypes
+CloseDevice(register DeviceIntPtr dev)
+#else
 CloseDevice(dev)
     register DeviceIntPtr dev;
+#endif
 {
     KbdFeedbackPtr k, knext;
     PtrFeedbackPtr p, pnext;
@@ -290,6 +300,10 @@ CloseDownDevices()
 	next = dev->next;
 	CloseDevice(dev);
     }
+    inputInfo.devices = NULL;
+    inputInfo.off_devices = NULL;
+    inputInfo.keyboard = NULL;
+    inputInfo.pointer = NULL;
 }
 
 void
@@ -308,6 +322,10 @@ RemoveDevice(dev)
 	    else
 		prev->next = next;
 	    inputInfo.numDevices--;
+	    if (inputInfo.keyboard == tmp)
+	        inputInfo.keyboard = NULL;
+	    else if (inputInfo.pointer == tmp)
+	        inputInfo.pointer = NULL;
 	    return;
 	}
     }
@@ -322,6 +340,10 @@ RemoveDevice(dev)
 	    else
 		prev->next = next;
 	    inputInfo.numDevices--;
+	    if (inputInfo.keyboard == tmp)
+	        inputInfo.keyboard = NULL;
+	    else if (inputInfo.pointer == tmp)
+	        inputInfo.pointer = NULL;
 	    return;
 	}
     }
@@ -336,71 +358,69 @@ NumMotionEvents()
 }
 
 void
-RegisterPointerDevice(device)
-    DevicePtr device;
+_RegisterPointerDevice(device)
+    DeviceIntPtr device;
 {
-    DeviceIntPtr dev = (DeviceIntPtr)device;
-    inputInfo.pointer = dev;
+    inputInfo.pointer = device;
 #ifdef XKB
     if (noXkbExtension) {
-	device->processInputProc = CoreProcessPointerEvent;
-	device->realInputProc = CoreProcessPointerEvent;
+	device->public.processInputProc = CoreProcessPointerEvent;
+	device->public.realInputProc = CoreProcessPointerEvent;
     } else {
-	device->processInputProc = ProcessPointerEvent;
-	device->realInputProc = ProcessPointerEvent;
+	device->public.processInputProc = ProcessPointerEvent;
+	device->public.realInputProc = ProcessPointerEvent;
     }
 #else
-    device->processInputProc = ProcessPointerEvent;
-    device->realInputProc = ProcessPointerEvent;
+    device->public.processInputProc = ProcessPointerEvent;
+    device->public.realInputProc = ProcessPointerEvent;
 #endif
-    dev->ActivateGrab = ActivatePointerGrab;
-    dev->DeactivateGrab = DeactivatePointerGrab;
-    if (!dev->name)
+    device->ActivateGrab = ActivatePointerGrab;
+    device->DeactivateGrab = DeactivatePointerGrab;
+    if (!device->name)
     {
 	char *p = "pointer";
-	dev->name = (char *)xalloc(strlen(p) + 1);
-	strcpy(dev->name, p);
+	device->name = (char *)xalloc(strlen(p) + 1);
+	strcpy(device->name, p);
     }
 }
 
 void
-RegisterKeyboardDevice(device)
-    DevicePtr device;
+_RegisterKeyboardDevice(device)
+    DeviceIntPtr device;
 {
-    DeviceIntPtr dev = (DeviceIntPtr)device;
-    inputInfo.keyboard = dev;
+    inputInfo.keyboard = device;
 #ifdef XKB
     if (noXkbExtension) {
-	device->processInputProc = CoreProcessKeyboardEvent;
-	device->realInputProc = CoreProcessKeyboardEvent;
+	device->public.processInputProc = CoreProcessKeyboardEvent;
+	device->public.realInputProc = CoreProcessKeyboardEvent;
     } else {
-	device->processInputProc = ProcessKeyboardEvent;
-	device->realInputProc = ProcessKeyboardEvent;
+	device->public.processInputProc = ProcessKeyboardEvent;
+	device->public.realInputProc = ProcessKeyboardEvent;
     }
 #else
-    device->processInputProc = ProcessKeyboardEvent;
-    device->realInputProc = ProcessKeyboardEvent;
+    device->public.processInputProc = ProcessKeyboardEvent;
+    device->public.realInputProc = ProcessKeyboardEvent;
 #endif
-    dev->ActivateGrab = ActivateKeyboardGrab;
-    dev->DeactivateGrab = DeactivateKeyboardGrab;
-    if (!dev->name)
+    device->ActivateGrab = ActivateKeyboardGrab;
+    device->DeactivateGrab = DeactivateKeyboardGrab;
+    if (!device->name)
     {
 	char *k = "keyboard";
-	dev->name = (char *)xalloc(strlen(k) + 1);
-	strcpy(dev->name, k);
+	device->name = (char *)xalloc(strlen(k) + 1);
+	strcpy(device->name, k);
     }
 }
 
 DevicePtr
 LookupKeyboardDevice()
 {
-    return &inputInfo.keyboard->public;
+    return inputInfo.keyboard ? &inputInfo.keyboard->public : NULL;
 }
 
 DevicePtr
 LookupPointerDevice()
 {
-    return &inputInfo.pointer->public;
+    return inputInfo.pointer ? &inputInfo.pointer->public : NULL;
 }
 
 DevicePtr
@@ -481,8 +501,12 @@ SetKeySymsMap(dst, src)
 }
 
 static Bool
+#if NeedFunctionPrototypes
+InitModMap(register KeyClassPtr keyc)
+#else
 InitModMap(keyc)
     register KeyClassPtr keyc;
+#endif
 {
     int i, j;
     CARD8 keysPerModifier[8];
@@ -656,7 +680,7 @@ InitKbdFeedbackClassDeviceStruct(dev, bellProc, controlProc)
 #endif
     feedc->ctrl = defaultKeyboardControl;
     feedc->ctrl.id = 0;
-    if (feedc->next = dev->kbdfeed)
+    if ((feedc->next = dev->kbdfeed) != 0)
 	feedc->ctrl.id = dev->kbdfeed->ctrl.id + 1;
     dev->kbdfeed = feedc;
 #ifdef XKB
@@ -1068,7 +1092,6 @@ ProcGetModifierMapping(client)
     ClientPtr client;
 {
     xGetModifierMappingReply rep;
-    REQUEST(xReq);
     register KeyClassPtr keyc = inputInfo.keyboard->key;
 
     REQUEST_SIZE_MATCH(xReq);
@@ -1201,7 +1224,7 @@ ProcGetKeyboardMapping(client)
     /* length is a count of 4 byte quantities and KeySyms are 4 bytes */
     rep.length = (curKeySyms->mapWidth * stuff->count);
     WriteReplyToClient(client, sizeof(xGetKeyboardMappingReply), &rep);
-    client->pSwapReplyFunc = CopySwap32Write;
+    client->pSwapReplyFunc = (ReplySwapPtr) CopySwap32Write;
     WriteSwappedDataToClient(
 	client,
 	curKeySyms->mapWidth * stuff->count * sizeof(KeySym),
@@ -1216,7 +1239,6 @@ ProcGetPointerMapping(client)
     ClientPtr client;
 {
     xGetPointerMappingReply rep;
-    REQUEST(xReq);
     ButtonClassPtr butc = inputInfo.pointer->button;
 
     REQUEST_SIZE_MATCH(xReq);
@@ -1264,7 +1286,7 @@ ProcChangeKeyboardControl (client)
     int t;
     int led = DO_ALL;
     int key = DO_ALL;
-    BITS32 vmask, index;
+    BITS32 vmask, index2;
     int mask, i;
     REQUEST(xChangeKeyboardControlReq);
 
@@ -1280,9 +1302,9 @@ ProcChangeKeyboardControl (client)
     ctrl = keybd->kbdfeed->ctrl;
     while (vmask)
     {
-	index = (BITS32) lowbit (vmask);
-	vmask &= ~index;
-	switch (index)
+	index2 = (BITS32) lowbit (vmask);
+	vmask &= ~index2;
+	switch (index2)
 	{
 	case KBKeyClickPercent: 
 	    t = (INT8)*vlist;
@@ -1369,9 +1391,9 @@ ProcChangeKeyboardControl (client)
 	    if (!noXkbExtension) {
 		XkbEventCauseRec	cause;
 		XkbSetCauseCoreReq(&cause,X_ChangeKeyboardControl,client);
-		keybd->kbdfeed->ctrl.leds = ctrl.leds;
 		XkbSetIndicators(keybd,((led == DO_ALL) ? ~0L : (1L<<(led-1))),
 				 			ctrl.leds, &cause);
+		ctrl.leds = keybd->kbdfeed->ctrl.leds;
 	    }
 #endif
 	    break;
@@ -1451,7 +1473,6 @@ ProcGetKeyboardControl (client)
     int i;
     register KeybdCtrl *ctrl = &inputInfo.keyboard->kbdfeed->ctrl;
     xGetKeyboardControlReply rep;
-    REQUEST(xReq);
 
     REQUEST_SIZE_MATCH(xReq);
     rep.type = X_Reply;
@@ -1559,7 +1580,6 @@ ProcGetPointerControl(client)
     ClientPtr client;
 {
     register PtrCtrl *ctrl = &inputInfo.pointer->ptrfeed->ctrl;
-    REQUEST(xReq);
     xGetPointerControlReply rep;
 
     REQUEST_SIZE_MATCH(xReq);
@@ -1650,7 +1670,7 @@ ProcGetMotionEvents(client)
     WriteReplyToClient(client, sizeof(xGetMotionEventsReply), &rep);
     if (nEvents)
     {
-	client->pSwapReplyFunc = SwapTimeCoordWrite;
+	client->pSwapReplyFunc = (ReplySwapPtr) SwapTimeCoordWrite;
 	WriteSwappedDataToClient(client, nEvents * sizeof(xTimecoord),
 				 (char *)coords);
     }
@@ -1663,7 +1683,6 @@ int
 ProcQueryKeymap(client)
     ClientPtr client;
 {
-    REQUEST(xReq);
     xQueryKeymapReply rep;
     int i;
     CARD8 *down = inputInfo.keyboard->key->down;
@@ -1685,3 +1704,58 @@ ProcQueryKeymap(client)
     return Success;
 }
 
+/******************************************************************************
+ * The following entrypoints are provided for binary compatibility with
+ * previous versions (they make casts, where the current version changes types
+ * for more stringent prototype checking).
+ ******************************************************************************/
+#ifdef AddInputDevice
+#undef AddInputDevice
+
+#if NeedFunctionPrototypes
+DevicePtr
+AddInputDevice(
+    DeviceProc deviceProc,
+    Bool autoStart)
+#else
+DevicePtr
+AddInputDevice(deviceProc, autoStart)
+    DeviceProc deviceProc;
+    Bool autoStart;
+#endif
+{
+    return (DevicePtr)_AddInputDevice(deviceProc, autoStart);
+}
+#endif /* AddInputDevice */
+
+#ifdef RegisterPointerDevice
+#undef RegisterPointerDevice
+
+#if NeedFunctionPrototypes
+void
+RegisterPointerDevice(DevicePtr device)
+#else
+void
+RegisterPointerDevice(device)
+    DevicePtr device;
+#endif
+{
+    _RegisterPointerDevice((DeviceIntPtr)device);
+}
+#endif /* RegisterPointerDevice */
+
+#ifdef RegisterKeyboardDevice
+#undef RegisterKeyboardDevice
+
+#if NeedFunctionPrototypes
+void
+RegisterKeyboardDevice(DevicePtr device)
+#else
+void
+RegisterKeyboardDevice(device)
+    DevicePtr device;
+#endif
+{
+    _RegisterKeyboardDevice((DeviceIntPtr)device);
+}
+#endif /* RegisterKeyboardDevice */

@@ -1,3 +1,4 @@
+/* $XFree86: xc/programs/Xserver/cfb/cfbfillarc.c,v 3.5 2001/12/14 19:59:22 dawes Exp $ */
 /************************************************************
 
 Copyright 1989, 1998  The Open Group
@@ -39,7 +40,7 @@ in this Software without prior written authorization from The Open Group.
 #include "mi.h"
 
 /* gcc 1.35 is stupid */
-#if defined(__GNUC__) && defined(mc68020)
+#if defined(__GNUC__) && __GNUC__ < 2 && defined(mc68020)
 #define STUPID volatile
 #else
 #define STUPID
@@ -54,17 +55,29 @@ RROP_NAME(cfbFillEllipseSolid) (pDraw, pGC, arc)
     STUPID int x, y, e;
     STUPID int yk, xk, ym, xm, dx, dy, xorg, yorg;
     miFillArcRec info;
-    unsigned long *addrlt, *addrlb;
-    register unsigned long *addrl;
+#if PSZ == 24
+    unsigned char *addrlt, *addrlb;
+#else
+    CfbBits *addrlt, *addrlb;
+#endif
+    register CfbBits *addrl;
     register int n;
     int nlwidth;
     RROP_DECLARE
     register int xpos;
     register int slw;
-    unsigned long startmask, endmask;
+    CfbBits startmask, endmask;
     int	nlmiddle;
+#if PSZ == 24
+    register int pidx;
+    int xpos3;
+#endif
 
+#if PSZ == 24
+    cfbGetByteWidthAndPointer (pDraw, nlwidth, addrlt)
+#else
     cfbGetLongWidthAndPointer (pDraw, nlwidth, addrlt)
+#endif
 
     RROP_FETCH_GC(pGC);
     miFillArcSetup(arc, &info);
@@ -82,6 +95,55 @@ RROP_NAME(cfbFillEllipseSolid) (pDraw, pGC, arc)
 	if (!slw)
 	    continue;
 	xpos = xorg - x;
+#if PSZ == 24
+	xpos3 = (xpos * 3) & ~0x03;
+	addrl = (CfbBits *)((char *)addrlt + xpos3);
+	if (slw == 1){
+	  RROP_SOLID24(addrl, xpos);
+	  if (miFillArcLower(slw)){
+	    addrl = (CfbBits *)((char *)addrlb + xpos3);
+	    RROP_SOLID24(addrl, xpos);
+          }
+	  continue;
+	}
+	maskbits(xpos, slw, startmask, endmask, nlmiddle);
+	xpos &= 3;
+	pidx = xpos;
+	if (startmask){
+	  RROP_SOLID_MASK(addrl, startmask, pidx-1);
+	  addrl++;
+	  if (pidx == 3)
+	    pidx = 0;
+	}
+	n = nlmiddle;
+	while (--n >= 0){
+	  RROP_SOLID(addrl, pidx);
+	  addrl++;
+	  if (++pidx == 3)
+	    pidx = 0;
+	}
+	if (endmask)
+	  RROP_SOLID_MASK(addrl, endmask, pidx);
+	if (!miFillArcLower(slw))
+	  continue;
+	addrl = (CfbBits *)((char *)addrlb + xpos3);
+	pidx = xpos;
+	if (startmask){
+	  RROP_SOLID_MASK(addrl, startmask, pidx-1);
+	  addrl++;
+	  if (pidx == 3)
+	    pidx = 0;
+	}
+	n = nlmiddle;
+	while (--n >= 0){
+	  RROP_SOLID(addrl, pidx);
+	  addrl++;
+	  if (++pidx == 3)
+	    pidx = 0;
+	}
+	if (endmask)
+	  RROP_SOLID_MASK(addrl, endmask, pidx);
+#else /* PSZ == 24 */
 	addrl = addrlt + (xpos >> PWSH);
 	if (((xpos & PIM) + slw) <= PPW)
 	{
@@ -117,9 +179,38 @@ RROP_NAME(cfbFillEllipseSolid) (pDraw, pGC, arc)
 	RROP_SPAN(addrl, n);
 	if (endmask)
 	    RROP_SOLID_MASK(addrl, endmask);
+#endif /* PSZ == 24 */
     }
 }
 
+#if PSZ == 24
+#define FILLSPAN(xl,xr,addr) \
+    if (xr >= xl){ \
+	n = xr - xl + 1; \
+	addrl = (CfbBits *)((char *)addr + ((xl * 3) & ~0x03)); \
+	if (n <= 1){ \
+          if (n) \
+            RROP_SOLID24(addrl, xl); \
+	} else { \
+	  maskbits(xl, n, startmask, endmask, n); \
+          pidx = xl & 3; \
+	  if (startmask){ \
+	    RROP_SOLID_MASK(addrl, startmask, pidx-1); \
+	    addrl++; \
+	    if (pidx == 3) \
+	      pidx = 0; \
+	  } \
+	  while (--n >= 0){ \
+	    RROP_SOLID(addrl, pidx); \
+	    addrl++; \
+	    if (++pidx == 3) \
+	      pidx = 0; \
+	  } \
+	  if (endmask) \
+	    RROP_SOLID_MASK(addrl, endmask, pidx); \
+	} \
+    }
+#else /* PSZ == 24 */
 #define FILLSPAN(xl,xr,addr) \
     if (xr >= xl) \
     { \
@@ -147,6 +238,7 @@ RROP_NAME(cfbFillEllipseSolid) (pDraw, pGC, arc)
 		RROP_SOLID_MASK(addrl, endmask); \
 	} \
     }
+#endif /* PSZ == 24 */
 
 #define FILLSLICESPANS(flip,addr) \
     if (!flip) \
@@ -172,14 +264,25 @@ RROP_NAME(cfbFillArcSliceSolid)(pDraw, pGC, arc)
     miFillArcRec info;
     miArcSliceRec slice;
     int xl, xr, xc;
-    unsigned long *addrlt, *addrlb;
-    register unsigned long *addrl;
+#if PSZ == 24
+    unsigned char *addrlt, *addrlb;
+#else
+    CfbBits *addrlt, *addrlb;
+#endif
+    register CfbBits *addrl;
     register int n;
     int nlwidth;
     RROP_DECLARE
-    unsigned long startmask, endmask;
+    CfbBits startmask, endmask;
+#if PSZ == 24
+    register int pidx;
+#endif /* PSZ == 24 */
 
+#if PSZ == 24
+    cfbGetByteWidthAndPointer (pDraw, nlwidth, addrlt)
+#else
     cfbGetLongWidthAndPointer (pDraw, nlwidth, addrlt)
+#endif
 
     RROP_FETCH_GC(pGC);
     miFillArcSetup(arc, &info);

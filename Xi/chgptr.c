@@ -45,6 +45,7 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ********************************************************/
+/* $XFree86: xc/programs/Xserver/Xi/chgptr.c,v 3.7 2001/12/14 19:58:55 dawes Exp $ */
 
 /***********************************************************************
  *
@@ -56,21 +57,21 @@ SOFTWARE.
 #define	 NEED_REPLIES
 #include "X.h"				/* for inputstr.h    */
 #include "Xproto.h"			/* Request macro     */
+#include "inputstr.h"			/* DeviceIntPtr	     */
 #include "XI.h"
 #include "XIproto.h"
-#include "inputstr.h"			/* DeviceIntPtr	     */
+#include "XIstubs.h"
 #include "windowstr.h"			/* window structure  */
 #include "scrnintstr.h"			/* screen structure  */
 
-extern	int 		IReqCode;
-extern	int 		BadDevice;
-extern	int 		ChangeDeviceNotify;
-extern	Mask		ChangeDeviceNotifyMask;
-extern	InputInfo	inputInfo;
-extern	ScreenInfo	screenInfo;
-extern	WindowPtr	*WindowTable;
-extern	void		(* ReplySwapVector[256]) ();
-DeviceIntPtr		LookupDeviceIntRec();
+#include "extnsionst.h"
+#include "extinit.h"			/* LookupDeviceIntRec */
+
+#include "dixevents.h"
+#include "exevents.h"
+#include "exglobals.h"
+
+#include "chgptr.h"
 
 /***********************************************************************
  *
@@ -97,6 +98,7 @@ SProcXChangePointerDevice(client)
  *
  */
 
+int
 ProcXChangePointerDevice (client)
     register ClientPtr client;
     {
@@ -157,14 +159,14 @@ ProcXChangePointerDevice (client)
 	if (!dev->ptrfeed)
 	   InitPtrFeedbackClassDeviceStruct(dev, (PtrCtrlProcPtr)NoopDDA);
 	RegisterOtherDevice (xptr);
-	RegisterPointerDevice ((DevicePtr)dev);
+	RegisterPointerDevice (dev);
 
 	ev.type = ChangeDeviceNotify;
 	ev.deviceid = stuff->deviceid;
 	ev.time = currentTime.milliseconds;
 	ev.request = NewPointer;
 
-	SendEventToAllWindows (dev, ChangeDeviceNotifyMask, &ev, 1);
+	SendEventToAllWindows (dev, ChangeDeviceNotifyMask, (xEvent *)&ev, 1);
 	SendMappingNotify (MappingPointer, 0, 0, client);
 
 	rep.status = 0;
@@ -175,6 +177,7 @@ ProcXChangePointerDevice (client)
     return Success;
     }
 
+void
 DeleteFocusClassDeviceStruct(dev)
     DeviceIntPtr dev;
     {
@@ -189,6 +192,7 @@ DeleteFocusClassDeviceStruct(dev)
  *
  */
 
+void
 SendEventToAllWindows (dev, mask, ev, count)
     DeviceIntPtr dev;
     Mask mask;
@@ -214,6 +218,7 @@ SendEventToAllWindows (dev, mask, ev, count)
  *
  */
 
+void
 FindInterestedChildren (dev, p1, mask, ev, count)
     DeviceIntPtr	dev;
     WindowPtr 		p1;
@@ -239,6 +244,7 @@ FindInterestedChildren (dev, p1, mask, ev, count)
  *
  */
 
+void
 SRepXChangePointerDevice (client, size, rep)
     ClientPtr	client;
     int		size;

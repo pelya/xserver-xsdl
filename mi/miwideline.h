@@ -26,10 +26,12 @@ other dealings in this Software without prior written authorization
 from The Open Group.
 
 */
+/* $XFree86: xc/programs/Xserver/mi/miwideline.h,v 1.12 2001/12/14 20:00:28 dawes Exp $ */
 
 /* Author:  Keith Packard, MIT X Consortium */
 
 #include "mispans.h"
+#include "mifpoly.h" /* for ICEIL */
 
 /* 
  * interface data to span-merging polygon filler
@@ -153,24 +155,7 @@ typedef struct _LineFace {
     } \
 }
 
-#ifdef NOINLINEICEIL
-#define ICEIL(x) ((int)ceil(x))
-#else
-#ifdef __GNUC__
-static __inline int ICEIL(x)
-    double x;
-{
-    int _cTmp = x;
-    return ((x == _cTmp) || (x < 0.0)) ? _cTmp : _cTmp+1;
-}
-#else
-#define ICEIL(x) ((((x) == (_cTmp = (x))) || ((x) < 0.0)) ? _cTmp : _cTmp+1)
-#define ICEILTEMPDECL static int _cTmp;
-#endif
-#endif
-
 extern void miFillPolyHelper(
-#if NeedFunctionPrototypes
     DrawablePtr /*pDrawable*/,
     GCPtr /*pGC*/,
     unsigned long /*pixel*/,
@@ -181,18 +166,14 @@ extern void miFillPolyHelper(
     PolyEdgePtr /*right*/,
     int /*left_count*/,
     int /*right_count*/
-#endif
 );
 extern int miRoundJoinFace(
-#if NeedFunctionPrototypes
     LineFacePtr /*face*/,
     PolyEdgePtr /*edge*/,
     Bool * /*leftEdge*/
-#endif
 );
 
 extern void miRoundJoinClip(
-#if NeedFunctionPrototypes
     LineFacePtr /*pLeft*/,
     LineFacePtr /*pRight*/,
     PolyEdgePtr /*edge1*/,
@@ -201,20 +182,16 @@ extern void miRoundJoinClip(
     int * /*y2*/,
     Bool * /*left1*/,
     Bool * /*left2*/
-#endif
 );
 
 extern int miRoundCapClip(
-#if NeedFunctionPrototypes
     LineFacePtr /*face*/,
     Bool /*isInt*/,
     PolyEdgePtr /*edge*/,
     Bool * /*leftEdge*/
-#endif
 );
 
 extern void miLineProjectingCap(
-#if NeedFunctionPrototypes
     DrawablePtr /*pDrawable*/,
     GCPtr /*pGC*/,
     unsigned long /*pixel*/,
@@ -224,21 +201,24 @@ extern void miLineProjectingCap(
     double /*xorg*/,
     double /*yorg*/,
     Bool /*isInt*/
-#endif
 );
 
 extern SpanDataPtr miSetupSpanData(
-#if NeedFunctionPrototypes
     GCPtr /*pGC*/,
     SpanDataPtr /*spanData*/,
     int /*npt*/
-#endif
 );
 
 extern void miCleanupSpanData(
-#if NeedFunctionPrototypes
     DrawablePtr /*pDrawable*/,
     GCPtr /*pGC*/,
     SpanDataPtr /*spanData*/
-#endif
 );
+
+extern int miPolyBuildEdge(double x0, double y0, double k, int dx, int dy,
+				int xi, int yi, int left, PolyEdgePtr edge);
+extern int miPolyBuildPoly(PolyVertexPtr vertices, PolySlopePtr slopes,
+				int count, int xi, int yi, PolyEdgePtr left,
+				PolyEdgePtr right, int *pnleft, int *pnright,
+				int *h);
+

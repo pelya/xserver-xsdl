@@ -45,6 +45,7 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ******************************************************************/
+/* $XFree86: xc/programs/Xserver/cfb/cfbgetsp.c,v 3.9 2001/12/14 19:59:22 dawes Exp $ */
 
 #include "X.h"
 #include "Xmd.h"
@@ -82,12 +83,18 @@ cfbGetSpans(pDrawable, wMax, ppt, pwidth, nspans, pchardstStart)
     int			widthSrc;	/* width of pixmap in bytes */
     register DDXPointPtr pptLast;	/* one past last point to get */
     int         	xEnd;		/* last pixel to copy from */
+    int			nl, srcBit;
+    int			w;
+    PixelGroup		*pdstNext;
+#if PSZ == 24
+    register char *psrcb, *pdstb;
+    register int xIndex = 0;
+#else
     register int	nstart; 
     int	 		nend; 
     PixelGroup		startmask, endmask;
-    int			nlMiddle, nl, srcBit;
-    int			w;
-    PixelGroup		*pdstNext;
+    int			nlMiddle;
+#endif
 
     switch (pDrawable->bitsPerPixel) {
 	case 1:
@@ -99,35 +106,70 @@ cfbGetSpans(pDrawable, wMax, ppt, pwidth, nspans, pchardstStart)
 	    FatalError("cfbGetSpans: invalid depth\n");
     }
 
+    /*
+     * XFree86 DDX empties the root borderClip when the VT is
+     * switched away; this checks for that case
+     */
+    if (!cfbDrawableEnabled(pDrawable))
+	return;
     
     cfbGetLongWidthAndPointer (pDrawable, widthSrc, psrcBase)
 
 #ifdef PIXEL_ADDR
+# if PSZ != 24
     if ((nspans == 1) && (*pwidth == 1))
     {
 	tmpSrc = *((PixelType *)(psrcBase + (ppt->y * widthSrc))
 		   + ppt->x);
 #if BITMAP_BIT_ORDER == MSBFirst
-	tmpSrc <<= (sizeof (unsigned long) - sizeof (PixelType)) * 8;
+	tmpSrc <<= (sizeof (CfbBits) - sizeof (PixelType)) * 8;
 #endif
 	*pdstStart = tmpSrc;
 	return;
     }
+# endif /* PSZ != 24 */
 #endif
     pdst = pdstStart;
     pptLast = ppt + nspans;
     while(ppt < pptLast)
     {
-	xEnd = min(ppt->x + *pwidth, widthSrc << PWSH);
-	psrc = psrcBase + ppt->y * widthSrc + (ppt->x >> PWSH); 
+#if PSZ == 24
+	xEnd = min(ppt->x + *pwidth, widthSrc * sizeof(CfbBits) / 3);
 	w = xEnd - ppt->x;
+	psrc = psrcBase + ppt->y * widthSrc;
+	srcBit = ppt->x;
+	psrcb = (char *)psrc + (ppt->x * 3);
+	xIndex = 0;
+	pdstb = (char *)pdst;
+    	pdstNext = pdst + ((w * 3 + 3) >> 2);
+#else
+	xEnd = min(ppt->x + *pwidth, widthSrc << PWSH);
+	w = xEnd - ppt->x;
+	psrc = psrcBase + ppt->y * widthSrc + (ppt->x >> PWSH); 
 	srcBit = ppt->x & PIM;
     	pdstNext = pdst + ((w + PPW - 1) >> PWSH);
+#endif
 
+#if PSZ == 24
+	if (w < 0)
+	  FatalError("cfb24GetSpans: Internal error (w < 0)\n");
+	nl = w;
+	while (nl--){ 
+	  psrc = (PixelGroup *)((unsigned long)psrcb & ~0x03);
+	  getbits24(psrc, tmpSrc, srcBit);
+	  pdst = (PixelGroup *)((unsigned long)pdstb & ~0x03);
+	  putbits24(tmpSrc, nstart, PPW, pdst, ~((CfbBits)0), xIndex);
+	  srcBit++;
+	  psrcb += 3;
+	  xIndex++;
+	  pdstb += 3;
+	} 
+	pdst = pdstNext;
+#else /* PSZ == 24 */
 	if (srcBit + w <= PPW) 
 	{ 
 	    getbits(psrc, srcBit, w, tmpSrc);
-	    putbits(tmpSrc, 0, w, pdst, ~((unsigned long)0)); 
+	    putbits(tmpSrc, 0, w, pdst, ~((CfbBits)0)); 
 	    pdst++;
 	} 
 	else 
@@ -138,7 +180,7 @@ cfbGetSpans(pDrawable, wMax, ppt, pwidth, nspans, pchardstStart)
 	    { 
 		nstart = PPW - srcBit; 
 		getbits(psrc, srcBit, nstart, tmpSrc);
-		putbits(tmpSrc, 0, nstart, pdst, ~((unsigned long)0));
+		putbits(tmpSrc, 0, nstart, pdst, ~((CfbBits)0));
 		if(srcBit + nstart >= PPW)
 		    psrc++;
 	    } 
@@ -146,7 +188,7 @@ cfbGetSpans(pDrawable, wMax, ppt, pwidth, nspans, pchardstStart)
 	    while (nl--) 
 	    { 
 		tmpSrc = *psrc;
-		putbits(tmpSrc, nstart, PPW, pdst, ~((unsigned long)0));
+		putbits(tmpSrc, nstart, PPW, pdst, ~((CfbBits)0));
 		psrc++;
 		pdst++;
 	    } 
@@ -154,10 +196,11 @@ cfbGetSpans(pDrawable, wMax, ppt, pwidth, nspans, pchardstStart)
 	    { 
 		nend = xEnd & PIM; 
 		getbits(psrc, 0, nend, tmpSrc);
-		putbits(tmpSrc, nstart, nend, pdst, ~((unsigned long)0));
+		putbits(tmpSrc, nstart, nend, pdst, ~((CfbBits)0));
 	    } 
 	    pdst = pdstNext;
 	} 
+#endif /* PSZ == 24 */
         ppt++;
 	pwidth++;
     }

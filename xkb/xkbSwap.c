@@ -24,6 +24,7 @@ OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION  WITH
 THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 ********************************************************/
+/* $XFree86: xc/programs/Xserver/xkb/xkbSwap.c,v 3.2 2001/08/23 14:33:26 alanh Exp $ */
 
 #include "stdio.h"
 #include "X.h"
@@ -111,7 +112,7 @@ register int n;
     swaps(&stuff->selectAll,n);
     swaps(&stuff->affectMap,n);
     swaps(&stuff->map,n);
-    if (stuff->affectWhich&(~XkbMapNotifyMask)!=0)  {
+    if ((stuff->affectWhich&(~XkbMapNotifyMask))!=0)  {
 	union {
 	    BOOL	*b;
 	    CARD8	*c8;
@@ -158,8 +159,8 @@ register int n;
 		swaps(&from.c16[1],n);
 	    }
 	    else if (size==4) {
-		swapl(from.c32[0],n);
-		swapl(from.c32[1],n);
+		swapl(&from.c32[0],n);
+		swapl(&from.c32[1],n);
 	    }
 	    else {
 		size= 2;

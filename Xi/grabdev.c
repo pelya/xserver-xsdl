@@ -45,6 +45,7 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ********************************************************/
+/* $XFree86: xc/programs/Xserver/Xi/grabdev.c,v 3.3 2001/12/14 19:58:57 dawes Exp $ */
 
 /***********************************************************************
  *
@@ -61,13 +62,15 @@ SOFTWARE.
 #include "windowstr.h"			/* window structure  */
 #include "XI.h"
 #include "XIproto.h"
+#include "extnsionst.h"
+#include "extinit.h"			/* LookupDeviceIntRec */
+#include "exglobals.h"
+#include "dixevents.h"			/* GrabDevice */
 
-extern	int 		IReqCode;
-extern	int		BadDevice;
-extern	int		BadClass;
+#include "grabdev.h"
+
 extern	XExtEventInfo	EventInfo[];
-extern	void		(* ReplySwapVector[256]) ();
-DeviceIntPtr		LookupDeviceIntRec();
+extern int		ExtEventIndex;
 
 /***********************************************************************
  *
@@ -171,7 +174,6 @@ CreateMaskFromList (client, list, count, mask, dev, req)
     int			i,j;
     int			device;
     DeviceIntPtr	tdev;
-    extern int		ExtEventIndex;
 
     for (i=0; i<EMASKSIZE; i++)
 	{
@@ -212,6 +214,7 @@ CreateMaskFromList (client, list, count, mask, dev, req)
  *
  */
 
+void
 SRepXGrabDevice (client, size, rep)
     ClientPtr	client;
     int		size;

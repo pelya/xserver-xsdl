@@ -45,10 +45,12 @@ not be used in advertising or otherwise to promote the sale, use or other
 dealings in this Software without prior written authorization from said
 copyright holders.
 */
+/* $XFree86: xc/programs/Xserver/Xprint/pcl/PclColor.c,v 1.9 2001/10/28 03:32:54 tsi Exp $ */
 
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
 #include <math.h>
@@ -58,18 +60,7 @@ copyright holders.
 #include "resource.h"
 
 #include "Pcl.h"
-
-PclPaletteMapPtr PclFindPaletteMap(PclContextPrivPtr cPriv,
-				   ColormapPtr cmap,
-				   GCPtr gc);
-
-unsigned char *PclReadMap(char *, int *);
-
-void PclLookUp( ColormapPtr cmap,
-		PclContextPrivPtr cPriv,
-		unsigned short *r,
-		unsigned short *g,
-		unsigned short *b);
+#include "cfb.h"
 
 static void lookup(unsigned char *src,
 		unsigned char *dst,
@@ -166,7 +157,7 @@ void
 PclDestroyColormap(ColormapPtr pColor)
 {
     PclScreenPrivPtr sPriv;
-    PclCmapToContexts *pCmap, *tCmap;
+    PclCmapToContexts *pCmap, *tCmap = 0;
     PclContextListPtr con, tCon;
     PclContextPrivPtr cPriv;
     PclPaletteMapPtr pPal;
@@ -263,7 +254,7 @@ PclStoreColors(ColormapPtr pColor,
     PclContextListPtr con;
     PclContextPrivPtr cPriv;
     PclPaletteMapPtr pMap;
-    char t[80], t2[30];
+    char t[80];
     int i;
 
     sPriv = (PclScreenPrivPtr)pColor->pScreen
@@ -425,7 +416,7 @@ PclUpdateColormap(DrawablePtr pDrawable,
        * If the requested colormap is already active, nothing needs to
        * be done.
        */
-      return;
+      return FALSE;
 
     /*
      * Now we activate the palette in the printer
@@ -478,10 +469,10 @@ PclUpdateColormap(DrawablePtr pDrawable,
 		SEND_PCL_COUNT( cPriv->pPageFile, t, 6 );
 		
 		/* Now program the two colors */
-		sprintf( t, "\033*v0a0b0c%dI", cmap->pScreen->blackPixel );
+		sprintf( t, "\033*v0a0b0c%ldI", (long) cmap->pScreen->blackPixel );
 		SEND_PCL( cPriv->pPageFile, t );
-		sprintf( t, "\033*v32767a32767b32767c%dI",
-			cmap->pScreen->whitePixel );
+		sprintf( t, "\033*v32767a32767b32767c%ldI",
+			(long) cmap->pScreen->whitePixel );
 		SEND_PCL( cPriv->pPageFile, t );
 #endif /* XP_PCL_COLOR */
 	    }
@@ -637,6 +628,7 @@ PclUpdateColormap(DrawablePtr pDrawable,
 	    }
 	  pMap->downloaded = 1;
       }
+      return TRUE;
     
 }    
 
@@ -725,7 +717,7 @@ unsigned char *PclReadMap(char *name, int *dim)
 
     fseek(fp, 0, SEEK_SET);
 
-    if (fread(data, sizeof(char), size, fp) != size) {
+    if (fread(data, sizeof(char), size, fp) != (unsigned) size) {
 	fclose(fp);
 	free(data);
 	return(NULL);
@@ -746,11 +738,11 @@ unsigned char *PclReadMap(char *name, int *dim)
 static void lookup(unsigned char *src, unsigned char *dst, int num, unsigned char *map, int dim)
 {
     int i;
-    unsigned char *p1, *p2, *p3;
-    int shift, offset;
 
 #define _INTERPOLATE
 #ifndef _INTERPOLATE
+    unsigned char *p1, *p2, *p3;
+
     for (i=0; i<num; i++) {
 	p1 = map + (SCL(src[0])*dim*dim + SCL(src[1])*dim + SCL(src[2])) * 3;
 	*dst++ = *p1++;
@@ -794,7 +786,7 @@ static void trilinear(unsigned char *p, unsigned char *out, unsigned char *d, in
 	d000, d001, d010, d011,
 	d100, d101, d110, d111,
 	dx00, dx01, dx10, dx11,
-	dxy0, dxy1, dxyz;
+	dxy0, dxy1;
     float scale;
     
     scale = 255.0 / (dim-1);

@@ -25,6 +25,7 @@ not be used in advertising or otherwise to promote the sale, use or
 other dealings in this Software without prior written authorization
 from The Open Group.
 */
+/* $XFree86: xc/programs/Xserver/lbx/lbxcmap.c,v 1.10 2001/12/14 19:59:59 dawes Exp $ */
 
 #include <sys/types.h>
 #define NEED_REPLIES
@@ -38,6 +39,7 @@ from The Open Group.
 #include "resource.h"
 #include "scrnintstr.h"
 #include "colormapst.h"
+#include "propertyst.h"
 #define _XLBX_SERVER_
 #include "lbxstr.h"
 #include "lbxserve.h"
@@ -50,6 +52,7 @@ static int lbxColormapPrivIndex;	/* lbx colormap private index */
 typedef struct {			/* lbx screen private */
     CreateColormapProcPtr CreateColormap;
     DestroyColormapProcPtr DestroyColormap;
+  CloseScreenProcPtr CloseScreen;
 } LbxScreenPriv;
 
 typedef struct _LbxStalled {
@@ -70,8 +73,7 @@ typedef struct _LbxColormapPriv {	/* lbx colormap private */
 #define CMAP_GRABBED		1
 #define CMAP_WAITING_FOR_UNGRAB	2
 
-static int LbxUnstallClient();
-void LbxReleaseCmap();
+static int LbxUnstallClient(pointer data, XID id);
 
 static RESTYPE StalledResType;
 
@@ -80,8 +82,7 @@ static RESTYPE StalledResType;
  */
 
 static LbxColormapPriv *
-LbxColormapPrivInit (pmap)
-    ColormapPtr pmap;
+LbxColormapPrivInit (ColormapPtr pmap)
 {
     LbxColormapPriv *cmapPriv;
 
@@ -103,16 +104,18 @@ LbxColormapPrivInit (pmap)
 
 
 static int
-LbxDefCmapPrivInit (pmap)
-    ColormapPtr pmap;
+LbxDefCmapPrivInit (ColormapPtr pmap)
 {
+#if 0
+    /* BUG: You can't do that. lbxColormapPrivIndex hasn't 
+	been initialized yet.  */
     pmap->devPrivates[lbxColormapPrivIndex].ptr = NULL;
+#endif
     return 1;
 }
 
 static Bool
-LbxCreateColormap (pmap)
-    ColormapPtr pmap;
+LbxCreateColormap (ColormapPtr pmap)
 {
     ScreenPtr pScreen = pmap->pScreen;
     Bool ret;
@@ -129,8 +132,7 @@ LbxCreateColormap (pmap)
 }
 
 static void
-LbxDestroyColormap (pmap)
-    ColormapPtr pmap;
+LbxDestroyColormap (ColormapPtr pmap)
 {
     ScreenPtr pScreen = pmap->pScreen;
 
@@ -143,15 +145,30 @@ LbxDestroyColormap (pmap)
     pScreen->DestroyColormap = LbxDestroyColormap;
 }
 
+static Bool
+LbxCloseScreen(int i, ScreenPtr pScreen)
+{
+    LbxScreenPriv* pLbxScrPriv = ((LbxScreenPriv *) 
+			     (pScreen->devPrivates[lbxScreenPrivIndex].ptr));
+    
+    pScreen->CloseScreen = pLbxScrPriv->CloseScreen;
+
+    xfree(pScreen->devPrivates[lbxScreenPrivIndex].ptr);
+    pScreen->devPrivates[lbxScreenPrivIndex].ptr = NULL;
+
+    return pScreen->CloseScreen(i, pScreen);
+}
+
 /*
  * Initialize LBX colormap private.
  */
 
 int
-LbxCmapInit ()
+LbxCmapInit (void)
 
 {
     LbxScreenPriv *pScreenPriv;
+    ColormapPtr defMap;
     ScreenPtr pScreen;
     int i;
 
@@ -169,6 +186,12 @@ LbxCmapInit ()
     {
 	pScreen = screenInfo.screens[i];
 
+        defMap = (ColormapPtr) LookupIDByType(
+			pScreen->defColormap, RT_COLORMAP);
+
+	/* now lbxColormapPrivIndex exists */
+        defMap->devPrivates[lbxColormapPrivIndex].ptr = NULL;
+
 	pScreenPriv = (LbxScreenPriv *) xalloc (sizeof (LbxScreenPriv));
 	if (!pScreenPriv)
 	    return 0;
@@ -177,21 +200,21 @@ LbxCmapInit ()
 	pScreen->CreateColormap = LbxCreateColormap;
 	pScreenPriv->DestroyColormap = pScreen->DestroyColormap;
 	pScreen->DestroyColormap = LbxDestroyColormap;
+	pScreenPriv->CloseScreen = pScreen->CloseScreen;
+	pScreen->CloseScreen = LbxCloseScreen;
 	pScreen->devPrivates[lbxScreenPrivIndex].ptr = (pointer) pScreenPriv;
     }
 
     return 1;
 }
 
-
 /*
  * Return the number of allocated cells in the PSEUDO colormap.
  */
 
 static int
-NumAllocatedCells (pent, size)
-    EntryPtr pent;
-    int size;
+NumAllocatedCells (EntryPtr pent,
+		   int size)
 {
     Pixel pixel;
     int count = 0;
@@ -222,13 +245,12 @@ NumAllocatedCells (pent, size)
  */
 
 static CARD8 *
-OutputChannel(pmap, chan, size, ptr, flags, channels)
-    ColormapPtr pmap;
-    EntryPtr chan;
-    int size;
-    CARD8 *ptr;
-    CARD8 flags;
-    CARD8 channels;
+OutputChannel(ColormapPtr pmap,
+	      EntryPtr chan,
+	      int size,
+	      CARD8 *ptr,
+	      CARD8 flags,
+	      CARD8 channels)
 {
     Bool	px2;
     Bool	rgb2;
@@ -247,7 +269,7 @@ OutputChannel(pmap, chan, size, ptr, flags, channels)
     else
 	shift = 15 - (flags & LBX_RGB_BITS_MASK);
     rgb_sz = rgb2 + 1;
-    if (channels == DoRed|DoGreen|DoBlue)
+    if (channels == (DoRed|DoGreen|DoBlue))
 	rgb_sz *= 3;
     /* kinda gross, but ddxen use AllocAll on static maps */
     allocpriv = (pmap->pVisual->class & DynamicClass) ? AllocPrivate : 0;
@@ -332,11 +354,10 @@ OutputChannel(pmap, chan, size, ptr, flags, channels)
 }
 
 static void
-GetAllocatedCells (pmap, flags, buf, bytes)
-    ColormapPtr pmap;
-    CARD8 *flags;
-    CARD8 *buf;
-    int *bytes;
+GetAllocatedCells (ColormapPtr pmap,
+		   CARD8 *flags,
+		   CARD8 *buf,
+		   int *bytes)
 {
     CARD8	*ptr;
 
@@ -368,9 +389,8 @@ GetAllocatedCells (pmap, flags, buf, bytes)
  */
 
 static void
-SendReleaseCmapEvent (proxy, cmap)
-    LbxProxyPtr proxy;
-    Colormap cmap;
+SendReleaseCmapEvent (LbxProxyPtr proxy,
+		      Colormap cmap)
 {
     xLbxReleaseCmapEvent ev;
     ClientPtr client;
@@ -413,9 +433,8 @@ SendReleaseCmapEvent (proxy, cmap)
  */
 
 static Bool
-WaitForServerCmapControl (client, pmap)
-    register ClientPtr client;
-    register ColormapPtr pmap;
+WaitForServerCmapControl (ClientPtr client,
+			  ColormapPtr pmap)
 {
     LbxColormapPriv *cmapPriv = (LbxColormapPriv *)
 	(pmap->devPrivates[lbxColormapPrivIndex].ptr);
@@ -449,10 +468,9 @@ WaitForServerCmapControl (client, pmap)
  */
 
 Bool
-LbxCheckColorRequest (client, pmap, req)
-    ClientPtr client;
-    ColormapPtr pmap;
-    xReq *req;
+LbxCheckColorRequest (ClientPtr client,
+		      ColormapPtr pmap,
+		      xReq *req)
 {
     LbxColormapPriv *cmapPriv = (LbxColormapPriv *)
 	(pmap->devPrivates[lbxColormapPrivIndex].ptr);
@@ -543,9 +561,8 @@ LbxCheckColorRequest (client, pmap, req)
 }
 
 static Bool
-LbxGrabbedByClient (client, pmap)
-    ClientPtr client;
-    ColormapPtr pmap;
+LbxGrabbedByClient (ClientPtr client,
+		    ColormapPtr pmap)
 {
     LbxColormapPriv *cmapPriv = (LbxColormapPriv *)
 	(pmap->devPrivates[lbxColormapPrivIndex].ptr);
@@ -559,8 +576,7 @@ LbxGrabbedByClient (client, pmap)
  */
 
 int
-LbxCheckCmapGrabbed (pmap)
-    ColormapPtr pmap;
+LbxCheckCmapGrabbed (ColormapPtr pmap)
 {
     LbxColormapPriv *cmapPriv = (LbxColormapPriv *)
 	(pmap->devPrivates[lbxColormapPrivIndex].ptr);
@@ -574,8 +590,7 @@ LbxCheckCmapGrabbed (pmap)
  */
 
 void
-LbxDisableSmartGrab (pmap)
-    ColormapPtr pmap;
+LbxDisableSmartGrab (ColormapPtr pmap)
 {
     LbxColormapPriv *cmapPriv = (LbxColormapPriv *)
 	(pmap->devPrivates[lbxColormapPrivIndex].ptr);
@@ -590,11 +605,10 @@ LbxDisableSmartGrab (pmap)
  */
 
 static void
-SendFreeCellsEvent (proxy, cmap, pixel_start, pixel_end)
-    LbxProxyPtr proxy;
-    Colormap cmap;
-    Pixel pixel_start;
-    Pixel pixel_end;
+SendFreeCellsEvent (LbxProxyPtr proxy,
+		    Colormap cmap,
+		    Pixel pixel_start,
+		    Pixel pixel_end)
 {
     xLbxFreeCellsEvent ev;
     ClientPtr client;
@@ -643,8 +657,7 @@ static long pixel_end;
 
 /*ARGSUSED*/
 void
-LbxBeginFreeCellsEvent (pmap)
-    ColormapPtr pmap;
+LbxBeginFreeCellsEvent (ColormapPtr pmap)
 {
     pixel_start = -1;
     pixel_end = -1;
@@ -652,9 +665,8 @@ LbxBeginFreeCellsEvent (pmap)
 
 
 void
-LbxAddFreeCellToEvent (pmap, pixel)
-    ColormapPtr pmap;
-    Pixel pixel;
+LbxAddFreeCellToEvent (ColormapPtr pmap,
+		       Pixel pixel)
 {
     /*
      * We must notify the proxy that has this colormap
@@ -688,8 +700,7 @@ LbxAddFreeCellToEvent (pmap, pixel)
 }
 
 void
-LbxEndFreeCellsEvent (pmap)
-    ColormapPtr pmap;
+LbxEndFreeCellsEvent (ColormapPtr pmap)
 {
     /*
      * Check if there is an LbxFreeCellEvent we need to write.
@@ -713,9 +724,8 @@ LbxEndFreeCellsEvent (pmap)
  */
 
 void
-LbxSortPixelList (pixels, count)
-    Pixel *pixels;
-    int count;
+LbxSortPixelList (Pixel *pixels,
+		  int count)
 {
      int i, j;
 
@@ -735,8 +745,7 @@ LbxSortPixelList (pixels, count)
  */
 
 int
-ProcLbxGrabCmap(client)
-    register ClientPtr client;
+ProcLbxGrabCmap(ClientPtr client)
 {
     REQUEST(xLbxGrabCmapReq);
     xLbxGrabCmapReply *reply;
@@ -928,9 +937,8 @@ ProcLbxGrabCmap(client)
 }
 
 static int
-LbxUnstallClient(data, id)
-    pointer     data;
-    XID         id;
+LbxUnstallClient(pointer     data,
+		 XID         id)
 {
     LbxColormapPriv *cmapPriv = (LbxColormapPriv *)data;
     LbxStalled **prev;
@@ -946,9 +954,8 @@ LbxUnstallClient(data, id)
 }
 
 void
-LbxReleaseCmap(pmap, smart)
-    ColormapPtr pmap;
-    Bool smart;
+LbxReleaseCmap(ColormapPtr pmap,
+	       Bool smart)
 {
     LbxColormapPriv *cmapPriv;
     ColormapPtr *prev;
@@ -980,8 +987,7 @@ LbxReleaseCmap(pmap, smart)
  */
 
 int
-ProcLbxReleaseCmap(client)
-    register ClientPtr	client;
+ProcLbxReleaseCmap(ClientPtr	client)
 {
     REQUEST(xLbxReleaseCmapReq);
     ColormapPtr pmap;
@@ -1014,8 +1020,7 @@ ProcLbxReleaseCmap(client)
  */
 
 int
-ProcLbxAllocColor(client)
-    register ClientPtr	client;
+ProcLbxAllocColor(ClientPtr	client)
 {
     REQUEST(xLbxAllocColorReq);
     ColormapPtr pmap;
@@ -1074,8 +1079,7 @@ ProcLbxAllocColor(client)
  */
 
 int
-ProcLbxIncrementPixel(client)
-    register ClientPtr	client;
+ProcLbxIncrementPixel(ClientPtr	client)
 {
     REQUEST(xLbxIncrementPixelReq);
     ColormapPtr pmap;

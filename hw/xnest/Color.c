@@ -30,8 +30,6 @@ is" without express or implied warranty.
 #include "XNWindow.h"
 #include "Args.h"
 
-#define lowbit(x) ((x) & (~(x) + 1))
-
 static ColormapPtr InstalledMaps[MAXSCREENS];
 
 Bool xnestCreateColormap(pCmap)

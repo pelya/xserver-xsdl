@@ -45,6 +45,7 @@ in this Software without prior written authorization from The Open Group.
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *
  */
+/* $XFree86: xc/programs/Xserver/lbx/lbxmain.c,v 1.13 2001/12/14 20:00:00 dawes Exp $ */
  
 #include <sys/types.h>
 #define NEED_REPLIES
@@ -62,18 +63,20 @@ in this Software without prior written authorization from The Open Group.
 #include "gcstruct.h"
 #include "extnsionst.h"
 #include "servermd.h"
-#include "lbxdeltastr.h"
 #define _XLBX_SERVER_
 #include "lbxstr.h"
+#include "lbxdeltastr.h"
 #include "lbxserve.h"
 #include "lbximage.h"
 #include "lbxsrvopts.h"
+#include "lbxtags.h"
 #include "Xfuncproto.h"
 #include <errno.h>
-#ifdef X_NOT_STDC_ENV
-extern int errno;
-#endif
+#ifndef Lynx
 #include <sys/uio.h>
+#else
+#include <uio.h>
+#endif
 #include <stdio.h>
 
 #ifndef X_NOT_POSIX
@@ -84,26 +87,17 @@ extern int errno;
 
 #define MAXBYTESDIFF	8
 
-extern void	LbxAllowMotion();
-extern int	LbxDecodePoints();
-extern int	LbxDecodeSegment();
-extern int	LbxDecodeRectangle();
-extern int	LbxDecodeArc();
-
-extern int	GrabInProgress;
-
 int LbxWhoAmI = 1;		/*
 				 * for lbx zlib library to know who we are
 				 * server = 1
 				 * proxy = 0
 				 */
 
-int ProcLbxDispatch();
-extern int SProcLbxDispatch();
-static void LbxResetProc();
-static int DecodeLbxDelta();
-static void LbxFreeClient ();
-static void LbxShutdownProxy ();
+
+static void LbxResetProc ( ExtensionEntry *extEntry );
+static void LbxFreeClient ( ClientPtr client );
+static void LbxShutdownProxy ( LbxProxyPtr proxy );
+static int DecodeLbxDelta ( ClientPtr client );
 
 static LbxProxyPtr proxyList;
 unsigned char LbxReqCode;
@@ -117,7 +111,7 @@ LbxClientPtr	lbxClients[MAXCLIENTS];
 
 extern xConnSetupPrefix connSetupPrefix;
 extern char *ConnectionInfo;
-extern int  (*LbxInitialVector[3])();
+extern int  (*LbxInitialVector[3])(ClientPtr);
 
 #ifdef DEBUG
 int lbxDebug = 0;
@@ -125,7 +119,7 @@ int lbxDebug = 0;
 
 
 void
-LbxExtensionInit()
+LbxExtensionInit(void)
 {
     ExtensionEntry *extEntry;
 
@@ -148,16 +142,14 @@ LbxExtensionInit()
 
 /*ARGSUSED*/
 static void
-LbxResetProc (extEntry)
-ExtensionEntry	*extEntry;
+LbxResetProc (ExtensionEntry	*extEntry)
 {
    LbxResetTags();
    uid_seed = 0;
 }
 
 void
-LbxCloseClient (client)
-    ClientPtr	client;
+LbxCloseClient (ClientPtr	client)
 {
     xLbxCloseEvent  closeEvent;
     ClientPtr	    master;
@@ -204,10 +196,9 @@ LbxCloseClient (client)
 }
 
 static int
-LbxReencodeEvent(client, proxy, buf)
-    ClientPtr	client;
-    LbxProxyPtr	proxy;
-    char *buf;
+LbxReencodeEvent(ClientPtr	client,
+		 LbxProxyPtr	proxy,
+		 char 		*buf)
 {
     xEvent *ev = (xEvent *)buf;
     int n;
@@ -366,27 +357,26 @@ LbxReencodeEvent(client, proxy, buf)
 }
 
 static int
-LbxComposeDelta(proxy, reply, len, buf)
-    LbxProxyPtr	 proxy;
-    char	 *reply;
-    int		 len;
-    char	 *buf;
+LbxComposeDelta(LbxProxyPtr	 proxy,
+		char	 	*reply,
+		int		 len,
+		char	 	*buf)
 {
     int		 diffs;
     int		 cindex;
     int		 n;
     xLbxDeltaReq *p = (xLbxDeltaReq *)buf;
 
-    diffs = LBXDeltaMinDiffs(&proxy->outdeltas, reply, len,
+    diffs = LBXDeltaMinDiffs(&proxy->outdeltas, (unsigned char *)reply, len,
 			     min(MAXBYTESDIFF, (len - sz_xLbxDeltaReq) >> 1),
 			     &cindex);
     if (diffs < 0) {
-	LBXAddDeltaOut(&proxy->outdeltas, reply, len);
+	LBXAddDeltaOut(&proxy->outdeltas, (unsigned char *)reply, len);
 	return 0;
     }
-    LBXEncodeDelta(&proxy->outdeltas, reply, diffs, cindex,
-		   &buf[sz_xLbxDeltaReq]);
-    LBXAddDeltaOut(&proxy->outdeltas, reply, len);
+    LBXEncodeDelta(&proxy->outdeltas, (unsigned char *)reply, diffs, cindex,
+		   (unsigned char *)(&buf[sz_xLbxDeltaReq]));
+    LBXAddDeltaOut(&proxy->outdeltas, (unsigned char *)reply, len);
     p->reqType = LbxEventCode;
     p->lbxReqType = LbxDeltaEvent;
     p->diffs = diffs;
@@ -400,12 +390,11 @@ LbxComposeDelta(proxy, reply, len, buf)
 }
 
 void
-LbxReencodeOutput(client, pbuf, pcount, cbuf, ccount)
-    ClientPtr client;
-    char *pbuf;
-    int *pcount;
-    char *cbuf;
-    int *ccount;
+LbxReencodeOutput(ClientPtr 	 client,
+		  char 		*pbuf,
+		  int 		*pcount,
+		  char 		*cbuf,
+		  int 		*ccount)
 {
     LbxClientPtr lbxClient = LbxClient(client);
     LbxProxyPtr proxy = lbxClient->proxy;
@@ -497,10 +486,9 @@ LbxReencodeOutput(client, pbuf, pcount, cbuf, ccount)
 
 /*ARGSUSED*/
 static void
-LbxReplyCallback(pcbl, nulldata, calldata)
-    CallbackListPtr *pcbl;
-    pointer nulldata;
-    pointer calldata;
+LbxReplyCallback(CallbackListPtr *pcbl,
+		 pointer 	  nulldata,
+		 pointer 	  calldata)
 {
     ReplyInfoRec *pri = (ReplyInfoRec *)calldata;
     ClientPtr client = pri->client;
@@ -520,9 +508,8 @@ LbxReplyCallback(pcbl, nulldata, calldata)
  */
 /* ARGSUSED */
 static Bool
-LbxCheckCompressInput (dummy1, dummy2)
-    ClientPtr dummy1;
-    pointer dummy2;
+LbxCheckCompressInput (ClientPtr dummy1,
+		       pointer   dummy2)
 {
     LbxProxyPtr	    proxy;
 
@@ -538,8 +525,7 @@ LbxCheckCompressInput (dummy1, dummy2)
 }
 
 static Bool
-LbxIsClientBlocked (lbxClient)
-    LbxClientPtr	lbxClient;
+LbxIsClientBlocked (LbxClientPtr lbxClient)
 {
     LbxProxyPtr		proxy = lbxClient->proxy;
     
@@ -549,9 +535,8 @@ LbxIsClientBlocked (lbxClient)
 }
 
 static void
-LbxSwitchRecv (proxy, lbxClient)
-    LbxProxyPtr		proxy;
-    LbxClientPtr	lbxClient;
+LbxSwitchRecv (LbxProxyPtr  proxy,
+	       LbxClientPtr lbxClient)
 {
     ClientPtr	client;
     
@@ -572,9 +557,8 @@ LbxSwitchRecv (proxy, lbxClient)
 
 /* ARGSUSED */
 static Bool
-LbxWaitForUnblocked (client, closure)
-    ClientPtr	client;
-    pointer	closure;
+LbxWaitForUnblocked (ClientPtr	client,
+		     pointer	closure)
 {
     LbxClientPtr    lbxClient;
     LbxProxyPtr	    proxy;
@@ -598,8 +582,7 @@ LbxWaitForUnblocked (client, closure)
 }
 
 void
-LbxSetForBlock(lbxClient)
-    LbxClientPtr lbxClient;
+LbxSetForBlock(LbxClientPtr lbxClient)
 {
     lbxClient->reqs_pending++;
     if (!lbxClient->input_blocked)
@@ -611,9 +594,8 @@ LbxSetForBlock(lbxClient)
 
 /* ARGSUSED */
 static int
-LbxWaitForUngrab (client, closure)
-    ClientPtr	client;
-    pointer	closure;
+LbxWaitForUngrab (ClientPtr	client,
+		  pointer	closure)
 {
     LbxClientPtr lbxClient = LbxClient(client);
     LbxProxyPtr  proxy;
@@ -637,8 +619,7 @@ LbxWaitForUngrab (client, closure)
 }
 
 static void
-LbxServerGrab(proxy)
-    LbxProxyPtr proxy;
+LbxServerGrab(LbxProxyPtr proxy)
 {
     LbxClientPtr	grabbingLbxClient;
     xLbxListenToOneEvent grabEvent;
@@ -722,8 +703,7 @@ static Bool lbxCacheable[] = {
 #define NUM(a)	(sizeof (a) / sizeof (a[0]))
 
 static int
-LbxReadRequestFromClient (client)
-    ClientPtr	client;
+LbxReadRequestFromClient (ClientPtr	client)
 {
     int		    ret;
     LbxClientPtr    lbxClient = LbxClient(client);
@@ -801,10 +781,9 @@ LbxReadRequestFromClient (client)
 }
 
 static LbxClientPtr
-LbxInitClient (proxy, client, id)
-    LbxProxyPtr	proxy;
-    ClientPtr	client;
-    CARD32	id;
+LbxInitClient (LbxProxyPtr	proxy,
+	       ClientPtr	client,
+	       CARD32		id)
 {
     LbxClientPtr lbxClient;
     int i;
@@ -836,8 +815,7 @@ LbxInitClient (proxy, client, id)
 }
 
 static void
-LbxFreeClient (client)
-    ClientPtr	client;
+LbxFreeClient (ClientPtr client)
 {
     LbxClientPtr    lbxClient = LbxClient(client);
     LbxProxyPtr	    proxy = lbxClient->proxy;
@@ -866,8 +844,7 @@ LbxFreeClient (client)
 }
 
 static void
-LbxFreeProxy (proxy)
-    LbxProxyPtr proxy;
+LbxFreeProxy (LbxProxyPtr proxy)
 {
     LbxProxyPtr *p;
 
@@ -907,8 +884,7 @@ LbxFreeProxy (proxy)
 }
 
 LbxProxyPtr
-LbxPidToProxy(pid)
-    int         pid;
+LbxPidToProxy(int pid)
 {
     LbxProxyPtr proxy;
 
@@ -920,8 +896,7 @@ LbxPidToProxy(pid)
 }
 
 static void
-LbxShutdownProxy (proxy)
-    LbxProxyPtr	proxy;
+LbxShutdownProxy (LbxProxyPtr proxy)
 {
     int		    i;
     ClientPtr	    client;
@@ -945,10 +920,9 @@ LbxShutdownProxy (proxy)
 
 
 int
-ProcLbxQueryVersion(client)
-    register ClientPtr client;
+ProcLbxQueryVersion (ClientPtr client)
 {
-    REQUEST(xLbxQueryVersionReq);
+    /* REQUEST(xLbxQueryVersionReq); */
     xLbxQueryVersionReply rep;
     register int n;
 
@@ -971,7 +945,7 @@ ProcLbxQueryVersion(client)
 }
 
 static int
-NextProxyID()
+NextProxyID (void)
 {
     LbxProxyPtr proxy;
     int         id;
@@ -986,8 +960,7 @@ NextProxyID()
 }
 
 int
-ProcLbxStartProxy(client)
-    register ClientPtr	client;
+ProcLbxStartProxy (ClientPtr	client)
 {
     REQUEST(xLbxStartProxyReq);
     LbxProxyPtr	    proxy;
@@ -1036,9 +1009,9 @@ ProcLbxStartProxy(client)
     LbxOptionInit(&negopt);
 
     replylen = LbxOptionParse(&negopt,
-			      &stuff[1],
+			      (unsigned char *)&stuff[1],
 			      reqlen - sz_xLbxStartProxyReq,
-			      &replybuf->optDataStart);
+			      (unsigned char *)&replybuf->optDataStart);
     if (replylen < 0) {
 	/*
 	 * Didn't understand option format, so we'll just end up
@@ -1136,10 +1109,9 @@ ProcLbxStartProxy(client)
 }
 
 int
-ProcLbxStopProxy(client)
-    register ClientPtr	client;
+ProcLbxStopProxy(ClientPtr client)
 {
-    REQUEST(xLbxStopProxyReq);
+    /* REQUEST(xLbxStopProxyReq); */
     LbxProxyPtr	    proxy;
     LbxClientPtr    lbxClient = LbxClient(client);
 
@@ -1157,8 +1129,7 @@ ProcLbxStopProxy(client)
 }
     
 int
-ProcLbxSwitch(client)
-    register ClientPtr	client;
+ProcLbxSwitch(ClientPtr	client)
 {
     REQUEST(xLbxSwitchReq);
     LbxProxyPtr	proxy = LbxMaybeProxy(client);
@@ -1180,8 +1151,7 @@ ProcLbxSwitch(client)
 }
 
 int
-ProcLbxBeginLargeRequest(client)
-    register ClientPtr	client;
+ProcLbxBeginLargeRequest(ClientPtr client)
 {
     REQUEST(xLbxBeginLargeRequestReq);
 
@@ -1194,8 +1164,7 @@ ProcLbxBeginLargeRequest(client)
 
 
 int
-ProcLbxLargeRequestData(client)
-    register ClientPtr	client;
+ProcLbxLargeRequestData(ClientPtr client)
 {
     REQUEST(xLbxLargeRequestDataReq);
 
@@ -1209,10 +1178,9 @@ ProcLbxLargeRequestData(client)
 
 
 int
-ProcLbxEndLargeRequest(client)
-    register ClientPtr	client;
+ProcLbxEndLargeRequest(ClientPtr client)
 {
-    REQUEST(xReq);
+    /* REQUEST(xReq); */
 
     client->sequence--;
     REQUEST_SIZE_MATCH(xReq);
@@ -1221,8 +1189,7 @@ ProcLbxEndLargeRequest(client)
 
 
 int
-ProcLbxInternAtoms(client)
-    register ClientPtr	client;
+ProcLbxInternAtoms(ClientPtr client)
 {
     REQUEST(xLbxInternAtomsReq);
     LbxClientPtr lbxClient = LbxClient(client);
@@ -1288,8 +1255,7 @@ ProcLbxInternAtoms(client)
 
 
 int
-ProcLbxGetWinAttrAndGeom(client)
-    register ClientPtr	client;
+ProcLbxGetWinAttrAndGeom(ClientPtr client)
 {
     REQUEST(xLbxGetWinAttrAndGeomReq);
     xGetWindowAttributesReply wa;
@@ -1368,8 +1334,7 @@ ProcLbxGetWinAttrAndGeom(client)
 }
 
 int
-ProcLbxNewClient(client)
-    register ClientPtr client;
+ProcLbxNewClient(ClientPtr client)
 {
     REQUEST(xLbxNewClientReq);
     ClientPtr	    newClient;
@@ -1417,8 +1382,7 @@ ProcLbxNewClient(client)
 }
 
 int
-ProcLbxEstablishConnection(client)
-    register ClientPtr client;
+ProcLbxEstablishConnection(ClientPtr client)
 {
     char *reason = NULL;
     char *auth_proto, *auth_string;
@@ -1445,8 +1409,7 @@ ProcLbxEstablishConnection(client)
 }
 
 int
-ProcLbxCloseClient (client)
-    register ClientPtr	client;
+ProcLbxCloseClient (ClientPtr client)
 {
     REQUEST(xLbxCloseClientReq);
     LbxClientPtr lbxClient = LbxClient(client);
@@ -1460,8 +1423,7 @@ ProcLbxCloseClient (client)
 }
 
 int
-ProcLbxModifySequence (client)
-    register ClientPtr	client;
+ProcLbxModifySequence (ClientPtr client)
 {
     REQUEST(xLbxModifySequenceReq);
 
@@ -1471,8 +1433,7 @@ ProcLbxModifySequence (client)
 }
 
 int
-ProcLbxAllowMotion (client)
-    register ClientPtr	client;
+ProcLbxAllowMotion (ClientPtr client)
 {
     REQUEST(xLbxAllowMotionReq);
 
@@ -1484,17 +1445,17 @@ ProcLbxAllowMotion (client)
 
 
 static int
-DecodeLbxDelta(client)
-    register ClientPtr	client;
+DecodeLbxDelta (ClientPtr client)
 {
     REQUEST(xLbxDeltaReq);
     LbxClientPtr    lbxClient = LbxClient(client);
     LbxProxyPtr	    proxy = lbxClient->proxy;
     int		    len;
-    char	    *buf;
+    unsigned char  *buf;
 
     /* Note that LBXDecodeDelta decodes and adds current msg to the cache */
-    len = LBXDecodeDelta(&proxy->indeltas, ((char *)stuff) + sz_xLbxDeltaReq,
+    len = LBXDecodeDelta(&proxy->indeltas, 
+			 (xLbxDiffItem *)(((char *)stuff) + sz_xLbxDeltaReq),
 			 stuff->diffs, stuff->cindex, &buf);
     /*
      * Some requests, such as FillPoly, result in the protocol input
@@ -1511,58 +1472,52 @@ DecodeLbxDelta(client)
 }
 
 int
-ProcLbxGetModifierMapping(client)
-    ClientPtr	client;
+ProcLbxGetModifierMapping(ClientPtr client)
 {
-    REQUEST(xLbxGetModifierMappingReq);
+    /* REQUEST(xLbxGetModifierMappingReq); */
 
     REQUEST_SIZE_MATCH(xLbxGetModifierMappingReq);
     return LbxGetModifierMapping(client);
 }
 
 int
-ProcLbxGetKeyboardMapping(client)
-    ClientPtr	client;
+ProcLbxGetKeyboardMapping(ClientPtr client)
 {
-    REQUEST(xLbxGetKeyboardMappingReq);
+    /* REQUEST(xLbxGetKeyboardMappingReq); */
 
     REQUEST_SIZE_MATCH(xLbxGetKeyboardMappingReq);
     return LbxGetKeyboardMapping(client);
 }
 
 int
-ProcLbxQueryFont(client)
-    ClientPtr	client;
+ProcLbxQueryFont(ClientPtr client)
 {
-    REQUEST(xLbxQueryFontReq);
+    /* REQUEST(xLbxQueryFontReq); */
 
     REQUEST_SIZE_MATCH(xLbxQueryFontReq);
     return LbxQueryFont(client);
 }
 
 int
-ProcLbxChangeProperty(client)
-    ClientPtr	client;
+ProcLbxChangeProperty(ClientPtr	client)
 {
-    REQUEST(xLbxChangePropertyReq);
+    /* REQUEST(xLbxChangePropertyReq); */
 
     REQUEST_SIZE_MATCH(xLbxChangePropertyReq);
     return LbxChangeProperty(client);
 }
 
 int
-ProcLbxGetProperty(client)
-    ClientPtr	client;
+ProcLbxGetProperty(ClientPtr client)
 {
-    REQUEST(xLbxGetPropertyReq);
+    /* REQUEST(xLbxGetPropertyReq); */
 
     REQUEST_SIZE_MATCH(xLbxGetPropertyReq);
     return LbxGetProperty(client);
 }
 
 int
-ProcLbxTagData(client)
-    ClientPtr	client;
+ProcLbxTagData(ClientPtr client)
 {
     REQUEST(xLbxTagDataReq);
 
@@ -1574,8 +1529,7 @@ ProcLbxTagData(client)
 }
 
 int
-ProcLbxInvalidateTag(client)
-    ClientPtr	client;
+ProcLbxInvalidateTag(ClientPtr client)
 {
     REQUEST(xLbxInvalidateTagReq);
 
@@ -1585,93 +1539,80 @@ ProcLbxInvalidateTag(client)
 }
 
 int
-ProcLbxPolyPoint(client)
-    register ClientPtr	client;
+ProcLbxPolyPoint(ClientPtr client)
 {
     return LbxDecodePoly(client, X_PolyPoint, LbxDecodePoints);
 }
 
 int
-ProcLbxPolyLine(client)
-    register ClientPtr	client;
+ProcLbxPolyLine(ClientPtr client)
 {
     return LbxDecodePoly(client, X_PolyLine, LbxDecodePoints);
 }
 
 int
-ProcLbxPolySegment(client)
-    register ClientPtr	client;
+ProcLbxPolySegment(ClientPtr client)
 {
     return LbxDecodePoly(client, X_PolySegment, LbxDecodeSegment);
 }
 
 int
-ProcLbxPolyRectangle(client)
-    register ClientPtr	client;
+ProcLbxPolyRectangle(ClientPtr client)
 {
     return LbxDecodePoly(client, X_PolyRectangle, LbxDecodeRectangle);
 }
 
 int
-ProcLbxPolyArc(client)
-    register ClientPtr	client;
+ProcLbxPolyArc(ClientPtr client)
 {
     return LbxDecodePoly(client, X_PolyArc, LbxDecodeArc);
 }
 
 int
-ProcLbxFillPoly(client)
-    register ClientPtr	client;
+ProcLbxFillPoly(ClientPtr client)
 {
     return LbxDecodeFillPoly(client);
 }
 
 int
-ProcLbxPolyFillRectangle(client)
-    register ClientPtr	client;
+ProcLbxPolyFillRectangle(ClientPtr client)
 {
     return LbxDecodePoly(client, X_PolyFillRectangle, LbxDecodeRectangle);
 }
 
 int
-ProcLbxPolyFillArc(client)
-    register ClientPtr	client;
+ProcLbxPolyFillArc(ClientPtr client)
 {
     return LbxDecodePoly(client, X_PolyFillArc, LbxDecodeArc);
 }
 
 int
-ProcLbxCopyArea (client)
-    register ClientPtr	client;
+ProcLbxCopyArea(ClientPtr client)
 {
     return LbxDecodeCopyArea(client);
 }
 
 int
-ProcLbxCopyPlane (client)
-    register ClientPtr	client;
+ProcLbxCopyPlane(ClientPtr client)
 {
     return LbxDecodeCopyPlane(client);
 }
 
 
 int
-ProcLbxPolyText (client)
-    register ClientPtr	client;
+ProcLbxPolyText(ClientPtr client)
 {
     return LbxDecodePolyText(client);
 }
 
 int
-ProcLbxImageText (client)
-    register ClientPtr	client;
+ProcLbxImageText(ClientPtr client)
 {
     return LbxDecodeImageText(client);
 }
 
 int
-ProcLbxQueryExtension(client)
-    ClientPtr	client;
+ProcLbxQueryExtension(ClientPtr	client)
 {
     REQUEST(xLbxQueryExtensionReq);
     char	*ename;
@@ -1682,23 +1623,20 @@ ProcLbxQueryExtension(client)
 }
 
 int
-ProcLbxPutImage(client)
-    register ClientPtr	client;
+ProcLbxPutImage(ClientPtr client)
 {
     return LbxDecodePutImage(client);
 }
 
 int
-ProcLbxGetImage(client)
-    register ClientPtr	client;
+ProcLbxGetImage(ClientPtr client)
 {
     return LbxDecodeGetImage(client);
 }
 
 
 int
-ProcLbxSync(client)
-    register ClientPtr	client;
+ProcLbxSync(ClientPtr client)
 {
     xLbxSyncReply reply;
 
@@ -1727,8 +1665,7 @@ ProcLbxSync(client)
 
 
 int
-ProcLbxDispatch (client)
-    register ClientPtr	client;
+ProcLbxDispatch(ClientPtr client)
 {
     REQUEST(xReq);
     switch (stuff->data)

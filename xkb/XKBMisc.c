@@ -24,6 +24,7 @@ OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION  WITH
 THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 ********************************************************/
+/* $XFree86: xc/lib/X11/XKBMisc.c,v 3.5 2001/10/28 03:32:33 tsi Exp $ */
 
 #ifndef XKB_IN_SERVER
 
@@ -54,12 +55,12 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 #define	mapSize(m)	(sizeof(m)/sizeof(XkbKTMapEntryRec))
 static  XkbKTMapEntryRec map2Level[]= { 
-	{ True, ShiftMask, 1, ShiftMask, 0 }
+  { True, ShiftMask, {1, ShiftMask, 0} }
 };
 
 static  XkbKTMapEntryRec mapAlpha[]= { 
-	{ True, ShiftMask, 1, ShiftMask, 0 },
-	{ True,	LockMask,  0,  LockMask, 0 }
+  { True, ShiftMask, { 1, ShiftMask, 0 } },
+  { True, LockMask,  { 0,  LockMask, 0 } }
 };
 
 static	XkbModsRec preAlpha[]= {
@@ -69,8 +70,8 @@ static	XkbModsRec preAlpha[]= {
 
 #define	NL_VMOD_MASK	0
 static  XkbKTMapEntryRec mapKeypad[]= { 
-	{ True,	ShiftMask, 1, ShiftMask,            0 },
-	{ False,        0, 1,         0, NL_VMOD_MASK }
+	{ True,	ShiftMask, { 1, ShiftMask,            0 } },
+	{ False,        0, { 1,         0, NL_VMOD_MASK } }
 };
 
 static	XkbKeyTypeRec	canonicalTypes[XkbNumRequiredTypes] = {
@@ -564,7 +565,7 @@ unsigned		changed,tmp;
 	if (((explicit&XkbExplicitAutoRepeatMask)==0)&&(xkb->ctrls)) {
 	    CARD8 old;
 	    old= xkb->ctrls->per_key_repeat[key/8];
-#if RETURN_SHOULD_REPEAT
+#ifdef RETURN_SHOULD_REPEAT
 	    if (*XkbKeySymsPtr(xkb,key) != XK_Return)
 #endif
 		xkb->ctrls->per_key_repeat[key/8]|= (1<<(key%8));
@@ -968,7 +969,7 @@ XkbApplyVirtualModChanges(xkb,changed,changes)
 #endif
 {
 register int	i;
-unsigned	checkState;
+unsigned int	checkState = 0;
 
     if ((!xkb) || (!xkb->map) || (changed==0))
 	return False;
@@ -1035,8 +1036,7 @@ unsigned	checkState;
 	}
     }
     if (xkb->map && xkb->server) {
-	int	highChange,lowChange;
-	lowChange= -1;
+	int highChange = 0, lowChange = -1;
 	for (i=xkb->min_key_code;i<=xkb->max_key_code;i++) {
 	    if (XkbKeyHasActions(xkb,i)) {
 		register XkbAction *pAct;

@@ -25,6 +25,7 @@ in this Software without prior written authorization from The Open Group.
  *
  * Author:  Keith Packard, MIT X Consortium
  */
+/* $XFree86: xc/programs/Xserver/cfb/stipsparc.s,v 1.5 2001/12/14 19:59:26 dawes Exp $ */
 
 /*
  * SPARC assembly code for optimized text rendering.
@@ -84,7 +85,7 @@ in this Software without prior written authorization from The Open Group.
 #define ForEachBits	LY4
 #define NextBits	LY5
 
-#ifdef SVR4
+#if defined(SVR4) || defined(__ELF__)
 #ifdef TETEXT
 #define	_cfbStippleStack	cfbStippleStackTE
 #else

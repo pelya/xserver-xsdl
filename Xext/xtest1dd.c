@@ -52,6 +52,7 @@ Telephone and Telegraph Company or of the Regents of the
 University of California.
 
 */
+/* $XFree86: xc/programs/Xserver/Xext/xtest1dd.c,v 3.5 2001/12/14 19:58:52 dawes Exp $ */
 
 /***************************************************************
  * include files
@@ -69,6 +70,8 @@ University of California.
 #include "dixstruct.h"
 #define  XTestSERVER_SIDE
 #include "xtestext1.h"	
+
+#include "xtest1dd.h"
 
 /***************************************************************
  * defines
@@ -96,8 +99,6 @@ extern int			XTestFakeAckType;
 /*
  * used in the WriteReplyToClient macro
  */
-extern void			(* ReplySwapVector[256]) ();
-
 extern int			exclusive_steal;
 
 /***************************************************************
@@ -286,24 +287,62 @@ KeyCode			xtest_command_key = 0;
  * function declarations
  ***************************************************************/
 
-void	flush_input_actions();
-void	XTestStealJumpData();
-void	XTestGenerateEvent();
-void	XTestGetPointerPos();
-void	XTestJumpPointer();
+static void	parse_key_fake(
+#if NeedFunctionPrototypes
+			XTestKeyInfo	* /* fkey */
+#endif
+			);
+static void	parse_motion_fake(
+#if NeedFunctionPrototypes
+			XTestMotionInfo	* /* fmotion */
+#endif
+			);
+static void	parse_jump_fake(
+#if NeedFunctionPrototypes
+			XTestJumpInfo	* /* fjump */
+#endif
+			);
+static void	parse_delay_fake(
+#if NeedFunctionPrototypes
+			XTestDelayInfo	* /* tevent */
+#endif
+			);
+static void	send_ack(
+#if NeedFunctionPrototypes
+			ClientPtr	 /* client */
+#endif
+			);
+static void	start_play_clock(
+#if NeedFunctionPrototypes
+			void
+#endif
+			);
+static void	compute_action_time(
+#if NeedFunctionPrototypes
+			struct timeval	* /* rtime */
+#endif
+			);
+static int	find_residual_time(
+#if NeedFunctionPrototypes
+			struct timeval	* /* rtime */
+#endif
+			);
 
-static void	parse_key_fake();
-static void	parse_motion_fake();
-static void	parse_jump_fake();
-static void	parse_delay_fake();
-static void	send_ack();
-static void	start_play_clock();
-static void	compute_action_time();
-static int	find_residual_time();
-
-static CARD16	check_time_event();
-static CARD32	current_ms();
-static int	there_is_room();
+static CARD16	check_time_event(
+#if NeedFunctionPrototypes
+			void
+#endif
+			);
+static CARD32	current_ms(
+#if NeedFunctionPrototypes
+			struct timeval	* /* otime */
+#endif
+			);
+static int	there_is_room(
+#if NeedFunctionPrototypes
+			int	/* actsize */
+#endif
+			);
 
 /******************************************************************************
  *
@@ -450,8 +489,8 @@ XTestStealJumpData(jx, jy, dev_type)
 /*
  * the x and y coordinates to jump to
  */
-short	jx;
-short	jy;
+int	jx;
+int	jy;
 /*
  * which device caused the jump
  */
@@ -527,7 +566,7 @@ current_ms(otime)
 struct timeval	*otime;
 {	
 	struct timeval	tval;
-	unsigned long	ctime;
+	unsigned long	the_ms;
 	unsigned long	sec;
 	unsigned long	usec;
 
@@ -556,8 +595,8 @@ struct timeval	*otime;
 	 * compute the number of milliseconds contained in
 	 * 'sec' seconds and 'usec' microseconds
 	 */
-	ctime = (sec * 1000000 + usec) / 1000;
-	return (ctime);
+	the_ms = (sec * 1000000L + usec) / 1000L;
+	return (the_ms);
 }
 
 /******************************************************************************
@@ -673,8 +712,8 @@ XTestStealMotionData(dx, dy, dev_type, mx, my)
 /*
  * the x and y delta motion of the locator
  */
-short	dx;
-short	dy;
+int	dx;
+int	dy;
 /*
  * which locator did the moving
  */
@@ -682,8 +721,8 @@ int	dev_type;
 /*
  * the x and y position of the locator before the delta motion
  */
-short	mx;
-short	my;
+int	mx;
+int	my;
 {
 	/*
 	 * pointer to a XTestMOTION_ACTION input action
@@ -791,20 +830,20 @@ XTestStealKeyData(keycode, keystate, dev_type, locx, locy)
 /*
  * which key/button moved
  */
-CARD8	keycode;
+unsigned	keycode;
 /*
  * whether the key/button was pressed or released
  */
-char	keystate;
+int		keystate;
 /*
  * which device caused the input action
  */
-int	dev_type;
+int		dev_type;
 /*
  * the x and y coordinates of the locator when the action happenned
  */
-short	locx;
-short	locy;
+int		locx;
+int		locy;
 {
 	/*
 	 * pointer to key/button motion input action
@@ -814,7 +853,7 @@ short	locy;
 	 * time delta from previous event
 	 */
 	CARD16			tchar;
-	char		keytrans;
+	char		keytrans = 0;
 
 	/*
 	 * update the logical position of the locator if the physical position
@@ -1445,8 +1484,8 @@ struct timeval	*rtime;
  *	the current time.
  */
 static int
-find_residual_time(rtime)
-struct timeval	*rtime;
+find_residual_time(the_residual)
+struct timeval	*the_residual;
 {
 	/*
 	 * if > 0, there is time to wait.  If < 0, then don't wait
@@ -1507,8 +1546,8 @@ struct timeval	*rtime;
 			}
 			else
 			{ 
-				rtime->tv_usec = pusec - busec;
-				rtime->tv_sec = 0;
+				the_residual->tv_usec = pusec - busec;
+				the_residual->tv_sec = 0;
 			}
 		}
 		else	
@@ -1519,14 +1558,14 @@ struct timeval	*rtime;
 				 * 'borrow' a second's worth of microseconds
 				 * from the seconds left to wait
 				 */
-				rtime->tv_usec = 1000000 - busec + pusec;
+				the_residual->tv_usec = 1000000 - busec + pusec;
 				psec--;
-				rtime->tv_sec = psec - bsec;
+				the_residual->tv_sec = psec - bsec;
 			}
 			else
 			{ 
-				rtime->tv_sec = psec - bsec;
-				rtime->tv_usec = pusec - busec;
+				the_residual->tv_sec = psec - bsec;
+				the_residual->tv_usec = pusec - busec;
 			}
 		}
 	}
@@ -1540,8 +1579,8 @@ struct timeval	*rtime;
 		/*
 		 * set the time to wait to 0
 		 */
-		rtime->tv_sec = 0;
-		rtime->tv_usec = 0;
+		the_residual->tv_sec = 0;
+		the_residual->tv_usec = 0;
 	}
 	return(wait);
 }

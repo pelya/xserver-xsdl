@@ -46,6 +46,9 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ******************************************************************/
+
+/* $XFree86: xc/programs/Xserver/mfb/mfbtegblt.c,v 1.8 2001/12/14 20:00:12 dawes Exp $ */
+
 #include	"X.h"
 #include	"Xmd.h"
 #include	"Xproto.h"
@@ -100,83 +103,42 @@ two times:
 #endif
 
 /*
+ * XXX XXX XXX There is something horribly, massively wrong here. There are
+ * hardcoded shifts by 64 below; these cannot work on any present-day
+ * architecture.
+ */
+
+/*
  * Note: for BITMAP_BIT_ORDER != IMAGE_BYTE_ORDER, SCRRIGHT() evaluates its
  * first argument more than once.  Thus the imbedded char++ have to be moved.
  * (DHD)
  */
 #if BITMAP_BIT_ORDER == IMAGE_BYTE_ORDER
-#if PPW == 32
 #define GetBits4    c = (*char1++ << ShiftAmnt) | \
 			SCRRIGHT (*char2++ << ShiftAmnt, xoff2) | \
 			SCRRIGHT (*char3++ << ShiftAmnt, xoff3) | \
 			SCRRIGHT (*char4++ << ShiftAmnt, xoff4);
-#else /* PPW */
-#define GetBits4    c = ((unsigned long)(*char1++ << ShiftAmnt) << 32 )  | \
-			(SCRRIGHT (*char2++ << ShiftAmnt, xoff2) << 32 ) | \
-			(SCRRIGHT (*char3++ << ShiftAmnt, xoff3) << 32 ) | \
-			(SCRRIGHT (*char4++ << ShiftAmnt, xoff4) << 32 ) | \
-			(*char5++ << ShiftAmnt) 			 | \
-			SCRRIGHT (*char6++ << ShiftAmnt, xoff6) 	 | \
-			SCRRIGHT (*char7++ << ShiftAmnt, xoff7) 	 | \
-			SCRRIGHT (*char8++ << ShiftAmnt, xoff8);
-#endif /* PPW */
 #else /* BITMAP_BIT_ORDER != IMAGE_BYTE_ORDER */
-#if PPW == 32
 #define GetBits4    c = (*char1++ << ShiftAmnt) | \
 			SCRRIGHT (*char2 << ShiftAmnt, xoff2) | \
 			SCRRIGHT (*char3 << ShiftAmnt, xoff3) | \
 			SCRRIGHT (*char4 << ShiftAmnt, xoff4); \
 			char2++; char3++; char4++;
-#else /* PPW == 64 */
-#define GetBits4    c = ((unsigned long)(*char1++ << ShiftAmnt) << 32 )  | \
-			(SCRRIGHT (*char2 << ShiftAmnt, xoff2) << 32 ) | \
-			(SCRRIGHT (*char3 << ShiftAmnt, xoff3) << 32 ) | \
-			(SCRRIGHT (*char4 << ShiftAmnt, xoff4) << 32 ) | \
-			(*char5++ << ShiftAmnt) 			 | \
-			SCRRIGHT (*char6 << ShiftAmnt, xoff6) 	 | \
-			SCRRIGHT (*char7 << ShiftAmnt, xoff7) 	 | \
-			SCRRIGHT (*char8 << ShiftAmnt, xoff8); \
-			char2++; char3++; char4++; char6++; char7++; char8++;
-#endif /* PPW */
 #endif /* BITMAP_BIT_ORDER == IMAGE_BYTE_ORDER */
 
 #else /* (BITMAP_BIT_ORDER != MSBFirst) || (GLYPHPADBYTES == 4) */
 
 #if BITMAP_BIT_ORDER == IMAGE_BYTE_ORDER
-#if PPW == 32
 #define GetBits4    c = *char1++ | \
 			SCRRIGHT (*char2++, xoff2) | \
 			SCRRIGHT (*char3++, xoff3) | \
 			SCRRIGHT (*char4++, xoff4);
-#else /* PPW == 64 */
-#define GetBits4    c = (unsigned long)(((*char1++) << 64 ) | \
-                        (SCRRIGHT (*char2++, xoff2) << 64 ) | \
-                        (SCRRIGHT (*char3++, xoff3) << 64 ) | \
-                        (SCRRIGHT (*char4++, xoff4) << 64 ) | \
-                        SCRRIGHT (*char5++, xoff5)          | \
-                        SCRRIGHT (*char6++, xoff6)          | \
-                        SCRRIGHT (*char7++, xoff7)          | \
-                        SCRRIGHT (*char8++, xoff8));
-#endif /* PPW */
 #else /* BITMAP_BIT_ORDER != IMAGE_BYTE_ORDER */
-#if PPW == 32
 #define GetBits4    c = *char1++ | \
 			SCRRIGHT (*char2, xoff2) | \
 			SCRRIGHT (*char3, xoff3) | \
 			SCRRIGHT (*char4, xoff4); \
 			char2++; char3++; char4++;
-#else /* PPW == 64 */
-#define GetBits4    c = (unsigned long)(((*char1++) << 64 ) | \
-                        (SCRRIGHT (*char2, xoff2) << 64 ) | \
-                        (SCRRIGHT (*char3, xoff3) << 64 ) | \
-                        (SCRRIGHT (*char4, xoff4) << 64 ) | \
-                        SCRRIGHT (*char5, xoff5)          | \
-                        SCRRIGHT (*char6, xoff6)          | \
-                        SCRRIGHT (*char7, xoff7)          | \
-                        SCRRIGHT (*char8, xoff8)); \
-			char2++; char3++; char4++; \
-			char5++; char6++; char7++; char8++;
-#endif /* PPW */
 #endif /* BITMAP_BIT_ORDER == IMAGE_BYTE_ORDER */
 
 #endif /* BITMAP_BIT_ORDER && GLYPHPADBYTES */
@@ -232,10 +194,6 @@ MFBTEGLYPHBLT(pDrawable, pGC, x, y, nglyph, ppci, pglyphBase)
     register PixelType  c;
     register int	    xoff1, xoff2, xoff3, xoff4;
     register glyphPointer   char1, char2, char3, char4;
-#if PPW == 64
-    register int	    xoff5, xoff6, xoff7, xoff8;
-    register glyphPointer   char5, char6, char7, char8;
-#endif /* PPW */
 
 #ifdef USE_LEFTBITS
     register PixelType  glyphMask;
@@ -262,8 +220,7 @@ MFBTEGLYPHBLT(pDrawable, pGC, x, y, nglyph, ppci, pglyphBase)
     bbox.y1 = ypos;
     bbox.y2 = ypos + h;
 
-    switch (RECT_IN_REGION(pGC->pScreen, 
-           ((mfbPrivGC *)(pGC->devPrivates[mfbGCPrivateIndex].ptr))->pCompositeClip, &bbox))
+    switch (RECT_IN_REGION(pGC->pScreen, pGC->pCompositeClip, &bbox))
     {
       case rgnPART:
 	/* this is the WRONG thing to do, but it works.
@@ -307,22 +264,10 @@ MFBTEGLYPHBLT(pDrawable, pGC, x, y, nglyph, ppci, pglyphBase)
 	    xoff2 = widthGlyph;
 	    xoff3 = xoff2 + widthGlyph;
 	    xoff4 = xoff3 + widthGlyph;
-#if PPW == 64
-	    xoff5 = xoff4 + widthGlyph;
-	    xoff6 = xoff5 + widthGlyph;
-	    xoff7 = xoff6 + widthGlyph;
-	    xoff8 = xoff7 + widthGlyph;
-#endif /* PPW */
 	    char1 = (glyphPointer) FONTGLYPHBITS(pglyphBase,(*ppci++));
 	    char2 = (glyphPointer) FONTGLYPHBITS(pglyphBase,(*ppci++));
 	    char3 = (glyphPointer) FONTGLYPHBITS(pglyphBase,(*ppci++));
 	    char4 = (glyphPointer) FONTGLYPHBITS(pglyphBase,(*ppci++));
-#if PPW == 64
-	    char5 = (glyphPointer) FONTGLYPHBITS(pglyphBase,(*ppci++));
-	    char6 = (glyphPointer) FONTGLYPHBITS(pglyphBase,(*ppci++));
-	    char7 = (glyphPointer) FONTGLYPHBITS(pglyphBase,(*ppci++));
-	    char8 = (glyphPointer) FONTGLYPHBITS(pglyphBase,(*ppci++));
-#endif /* PPW */
 
 	    hTmp = h;
 	    dst = mfbScanlineOffset(pdstBase, (xpos >> PWSH)); /* switch now */
@@ -341,7 +286,7 @@ MFBTEGLYPHBLT(pDrawable, pGC, x, y, nglyph, ppci, pglyphBase)
 # endif
 		    FASTPUTBITS(OP(c), xoff1, widthGlyphs, dst);
 #else
-		    *(dst) = (*dst) & ~startmask | OP(SCRRIGHT(c, xoff1)) & startmask;
+		    *(dst) = ((*dst) & ~startmask) | (OP(SCRRIGHT(c, xoff1)) & startmask);
 #endif
 		    mfbScanlineInc(dst, widthDst);
 		}
@@ -354,10 +299,10 @@ MFBTEGLYPHBLT(pDrawable, pGC, x, y, nglyph, ppci, pglyphBase)
 		while (hTmp--)
 		{
 		    GetBits4
-		    dst[0] = dst[0] & ~startmask |
-			     OP(SCRRIGHT(c,xoff1)) & startmask;
-		    dst[1] = dst[1] & ~endmask |
-			     OP(SCRLEFT(c,nfirst)) & endmask;
+		    dst[0] = (dst[0] & ~startmask) |
+			     (OP(SCRRIGHT(c,xoff1)) & startmask);
+		    dst[1] = (dst[1] & ~endmask) |
+			     (OP(SCRLEFT(c,nfirst)) & endmask);
 		    mfbScanlineInc(dst, widthDst);
 		}
 	    }
@@ -393,7 +338,7 @@ MFBTEGLYPHBLT(pDrawable, pGC, x, y, nglyph, ppci, pglyphBase)
 		FASTPUTBITS (OP(c),xoff1,widthGlyph,dst);
 #else
 		GetBits1
-		(*dst) = (*dst) & ~startmask | OP(SCRRIGHT(c, xoff1)) & startmask;
+		(*dst) = ((*dst) & ~startmask) | (OP(SCRRIGHT(c, xoff1)) & startmask);
 #endif
 		mfbScanlineInc(dst, widthDst);
 	    }
@@ -406,10 +351,10 @@ MFBTEGLYPHBLT(pDrawable, pGC, x, y, nglyph, ppci, pglyphBase)
 	    while (hTmp--)
 	    {
 		GetBits1
-		dst[0] = dst[0] & ~startmask |
-			 OP(SCRRIGHT(c,xoff1)) & startmask;
-		dst[1] = dst[1] & ~endmask |
-			 OP(SCRLEFT(c,nfirst)) & endmask;
+		dst[0] = (dst[0] & ~startmask) |
+			 (OP(SCRRIGHT(c,xoff1)) & startmask);
+		dst[1] = (dst[1] & ~endmask) |
+			 (OP(SCRLEFT(c,nfirst)) & endmask);
 		mfbScanlineInc(dst, widthDst);
 	    }
 	}

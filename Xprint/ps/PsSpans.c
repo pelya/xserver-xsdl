@@ -73,6 +73,7 @@ in this Software without prior written authorization from The Open Group.
 **    *********************************************************
 ** 
 ********************************************************************/
+/* $XFree86: xc/programs/Xserver/Xprint/ps/PsSpans.c,v 1.9 2001/12/14 19:59:17 dawes Exp $ */
 
 #include "Ps.h"
 #include "gcstruct.h"
@@ -87,11 +88,10 @@ PsFillSpans(
   int         *pWidths,
   int          fSorted)
 {
-  char        t[80];
   PsOutPtr    psOut;
   int         xoffset, yoffset;
   xRectangle *rects, *r;
-  RegionPtr   fillRegion, region;
+  RegionPtr   fillRegion, region = 0;
   int         i;
   int         nbox;
   BoxPtr      pbox;
@@ -113,14 +113,14 @@ PsFillSpans(
     r->width = pWidths[i];
     r->height = 1;
   }
-  fillRegion = miRectsToRegion(nSpans, rects,
+  fillRegion = RECTS_TO_REGION(pGC->pScreen, nSpans, rects,
                                (fSorted)?CT_YSORTED:CT_UNSORTED);
 
   /*
    * Intersect this region with the clip region.  Whatever's left,
    * should be filled.
    */
-/*miIntersect(region, fillRegion, pGC->clientClip);*/
+/*REGION_INTERSECT(pGC->pScreen, region, fillRegion, pGC->clientClip);*/
 
   pbox = REGION_RECTS(region);
   nbox = REGION_NUM_RECTS(region);
@@ -144,8 +144,8 @@ PsFillSpans(
   /*
    * Clean up the temporary regions
    */
-  miRegionDestroy(fillRegion);
-  miRegionDestroy(region);
+  REGION_DESTROY(pGC->pScreen, fillRegion);
+  REGION_DESTROY(pGC->pScreen, region);
   xfree(rects);
 }
 

@@ -45,12 +45,17 @@ in this Software without prior written authorization from The Open Group.
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *
  */
+/* $XFree86: xc/programs/Xserver/lbx/lbxserve.h,v 1.5 2001/12/14 20:00:00 dawes Exp $ */
 
 #ifndef _LBXSERVE_H_
+
+#include "colormap.h"
+#include "property.h"
+
 #define _LBXSERVE_H_
-#include "lbxdeltastr.h"
 #define _XLBX_SERVER_
 #include "lbxstr.h"
+#include "lbxdeltastr.h"
 #include "lbxopts.h"
 
 #define MAX_LBX_CLIENTS	MAXCLIENTS
@@ -104,9 +109,9 @@ typedef struct _LbxProxy {
     LbxStreamOpts streamOpts;
 
     int		numBitmapCompMethods;
-    char	*bitmapCompMethods;   /* array of indices */
+    unsigned char	*bitmapCompMethods;   /* array of indices */
     int		numPixmapCompMethods;
-    char	*pixmapCompMethods;   /* array of indices */
+    unsigned char	*pixmapCompMethods;   /* array of indices */
     int		**pixmapCompDepths;   /* depths supported from each method */
 
     struct _ColormapRec *grabbedCmaps; /* chained via lbx private */
@@ -126,48 +131,155 @@ extern LbxClientPtr lbxClients[MAXCLIENTS];
 
 extern int LbxEventCode;
 
-extern void LbxDixInit(
-#if NeedFunctionPrototypes
-    void
-#endif
-);
 
-extern LbxProxyPtr LbxPidToProxy(
-#if NeedFunctionPrototypes
-    int /* pid */
-#endif
-);
+/* os/connection.c */
+extern ClientPtr AllocLbxClientConnection ( ClientPtr client, 
+					    LbxProxyPtr proxy );
+extern void LbxProxyConnection ( ClientPtr client, LbxProxyPtr proxy );
 
-extern void LbxReencodeOutput(
-#if NeedFunctionPrototypes
-    ClientPtr /*client*/,
-    char* /*pbuf*/,
-    int* /*pcount*/,
-    char* /*cbuf*/,
-    int* /*ccount*/
-#endif
-);
+/* os/libxio.c */
+extern int UncompressedWriteToClient ( ClientPtr who, int count, char *buf );
+extern void LbxForceOutput ( LbxProxyPtr proxy );
+extern void SwitchClientInput ( ClientPtr client, Bool pending );
+extern int PrepareLargeReqBuffer ( ClientPtr client );
+extern Bool AppendFakeRequest ( ClientPtr client, char *data, int count );
+extern void LbxFreeOsBuffers ( LbxProxyPtr proxy );
+extern Bool AllocateLargeReqBuffer ( ClientPtr client, int size );
+extern Bool AddToLargeReqBuffer ( ClientPtr client, char *data, int size );
+extern void LbxPrimeInput ( ClientPtr client, LbxProxyPtr proxy );
 
-extern int UncompressedWriteToClient(
-#if NeedFunctionPrototypes
-    ClientPtr /*who*/,
-    int /*count*/,
-    char* /*buf*/
-#endif
-);
+/* lbxcmap.c */
+extern int LbxCmapInit ( void );
+extern Bool LbxCheckColorRequest ( ClientPtr client, ColormapPtr pmap, 
+				   xReq *req );
+extern int LbxCheckCmapGrabbed ( ColormapPtr pmap );
+extern void LbxDisableSmartGrab ( ColormapPtr pmap );
+extern void LbxBeginFreeCellsEvent ( ColormapPtr pmap );
+extern void LbxAddFreeCellToEvent ( ColormapPtr pmap, Pixel pixel );
+extern void LbxEndFreeCellsEvent ( ColormapPtr pmap );
+extern void LbxSortPixelList ( Pixel *pixels, int count );
+extern int ProcLbxGrabCmap ( ClientPtr client );
+extern void LbxReleaseCmap ( ColormapPtr pmap, Bool smart );
+extern int ProcLbxReleaseCmap ( ClientPtr client );
+extern int ProcLbxAllocColor ( ClientPtr client );
+extern int ProcLbxIncrementPixel ( ClientPtr client );
 
-extern ClientPtr AllocLbxClientConnection(
-#if NeedFunctionPrototypes
-    ClientPtr /* client */,
-    LbxProxyPtr /* proxy */
-#endif
-);
+/* lbxdix.h */
+extern void LbxDixInit ( void );
+extern void LbxResetTags ( void );
+extern int LbxSendConnSetup ( ClientPtr client, char *reason );
+extern int LbxGetModifierMapping ( ClientPtr client );
+extern int LbxGetKeyboardMapping ( ClientPtr client );
+extern int LbxQueryFont ( ClientPtr client );
+extern int LbxTagData ( ClientPtr client, XID tag, unsigned long len, 
+			pointer data );
+extern int LbxInvalidateTag ( ClientPtr client, XID tag );
+extern void LbxAllowMotion ( ClientPtr client, int num );
+extern void LbxFlushModifierMapTag ( void );
+extern void LbxFlushKeyboardMapTag ( void );
+extern void LbxFreeFontTag ( FontPtr pfont );
+extern void LbxSendInvalidateTag ( ClientPtr client, XID tag, int tagtype );
+extern Bool LbxFlushQTag ( XID tag );
+extern void ProcessQTagZombies ( void );
+extern void LbxQueryTagData ( ClientPtr client, int owner_pid, XID tag, 
+			      int tagtype );
 
-extern void LbxProxyConnection(
-#if NeedFunctionPrototypes
-    ClientPtr /* client */,
-    LbxProxyPtr /* proxy */
-#endif
-);
+/* lbxexts.c */
+extern Bool LbxAddExtension ( char *name, int opcode, int ev_base, 
+			      int err_base );
+extern Bool LbxAddExtensionAlias ( int idx, char *alias );
+extern void LbxDeclareExtensionSecurity ( char *extname, Bool secure );
+extern Bool LbxRegisterExtensionGenerationMasks ( int idx, int num_reqs, 
+						  char *rep_mask, 
+						  char *ev_mask );
+extern int LbxQueryExtension ( ClientPtr client, char *ename, int nlen );
+extern void LbxCloseDownExtensions ( void );
+extern void LbxSetReqMask ( CARD8 *mask, int req, Bool on );
+
+/* lbxgfx.c */
+extern int LbxDecodePoly( ClientPtr client, CARD8 xreqtype,
+			  int (*decode_rtn)(char *, char *, short *) );
+extern int LbxDecodeFillPoly ( ClientPtr client );
+extern int LbxDecodeCopyArea ( ClientPtr client );
+extern int LbxDecodeCopyPlane ( ClientPtr client );
+extern int LbxDecodePolyText ( ClientPtr client );
+extern int LbxDecodeImageText ( ClientPtr client );
+extern int LbxDecodePutImage ( ClientPtr client );
+extern int LbxDecodeGetImage ( ClientPtr client );
+extern int LbxDecodePoints ( char *in, char *inend, short *out );
+extern int LbxDecodeSegment ( char *in, char *inend, short *out );
+extern int LbxDecodeRectangle ( char *in, char *inend, short *out );
+extern int LbxDecodeArc ( char *in, char *inend, short *out );
+
+/* lbxmain.c */
+extern LbxProxyPtr LbxPidToProxy ( int pid );
+extern void LbxReencodeOutput ( ClientPtr client, char *pbuf, int *pcount,
+				char *cbuf, int *ccount );
+extern void LbxExtensionInit ( void );
+extern void LbxCloseClient ( ClientPtr client );
+extern void LbxSetForBlock ( LbxClientPtr lbxClient );
+extern int ProcLbxDispatch ( ClientPtr client );
+extern int ProcLbxSwitch ( ClientPtr client );
+extern int ProcLbxQueryVersion ( ClientPtr client );
+extern int ProcLbxStartProxy ( ClientPtr client );
+extern int ProcLbxStopProxy ( ClientPtr client );
+extern int ProcLbxBeginLargeRequest ( ClientPtr client );
+extern int ProcLbxLargeRequestData ( ClientPtr client );
+extern int ProcLbxEndLargeRequest ( ClientPtr client );
+extern int ProcLbxInternAtoms ( ClientPtr client );
+extern int ProcLbxGetWinAttrAndGeom ( ClientPtr client );
+extern int ProcLbxNewClient ( ClientPtr client );
+extern int ProcLbxEstablishConnection ( ClientPtr client );
+extern int ProcLbxCloseClient ( ClientPtr client );
+extern int ProcLbxModifySequence ( ClientPtr client );
+extern int ProcLbxAllowMotion ( ClientPtr client );
+extern int ProcLbxGetModifierMapping ( ClientPtr client );
+extern int ProcLbxGetKeyboardMapping ( ClientPtr client );
+extern int ProcLbxQueryFont ( ClientPtr client );
+extern int ProcLbxChangeProperty ( ClientPtr client );
+extern int ProcLbxGetProperty ( ClientPtr client );
+extern int ProcLbxTagData ( ClientPtr client );
+extern int ProcLbxInvalidateTag ( ClientPtr client );
+extern int ProcLbxPolyPoint ( ClientPtr client );
+extern int ProcLbxPolyLine ( ClientPtr client );
+extern int ProcLbxPolySegment ( ClientPtr client );
+extern int ProcLbxPolyRectangle ( ClientPtr client );
+extern int ProcLbxPolyArc ( ClientPtr client );
+extern int ProcLbxFillPoly ( ClientPtr client );
+extern int ProcLbxPolyFillRectangle ( ClientPtr client );
+extern int ProcLbxPolyFillArc ( ClientPtr client );
+extern int ProcLbxCopyArea ( ClientPtr client );
+extern int ProcLbxCopyPlane ( ClientPtr client );
+extern int ProcLbxPolyText ( ClientPtr client );
+extern int ProcLbxImageText ( ClientPtr client );
+extern int ProcLbxQueryExtension ( ClientPtr client );
+extern int ProcLbxPutImage ( ClientPtr client );
+extern int ProcLbxGetImage ( ClientPtr client );
+extern int ProcLbxSync ( ClientPtr client );
+
+/* lbxprop.c */
+extern int LbxChangeProperty ( ClientPtr client );
+extern int LbxGetProperty ( ClientPtr client );
+extern void LbxStallPropRequest ( ClientPtr client, PropertyPtr pProp );
+extern int LbxChangeWindowProperty ( ClientPtr client, WindowPtr pWin, 
+				     Atom property, Atom type, int format, 
+				     int mode, unsigned long len, 
+				     Bool have_data, pointer value, 
+				     Bool sendevent, XID *tag );
+/* lbxsquish.c */
+extern int LbxSquishEvent ( char *buf );
+
+/* lbwswap.c */
+extern int SProcLbxDispatch( ClientPtr client );
+extern int SProcLbxSwitch ( ClientPtr client );
+extern int SProcLbxBeginLargeRequest ( ClientPtr client );
+extern int SProcLbxLargeRequestData ( ClientPtr client );
+extern int SProcLbxEndLargeRequest ( ClientPtr client );
+extern void LbxWriteSConnSetupPrefix ( ClientPtr pClient, 
+				       xLbxConnSetupPrefix *pcsp );
+extern void LbxSwapFontInfo ( xLbxFontInfo *pr, Bool compressed );
+
+/* lbxzerorep.c */
+extern void ZeroReplyPadBytes ( char *buf, int reqType );
 
 #endif				/* _LBXSERVE_H_ */

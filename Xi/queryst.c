@@ -26,6 +26,7 @@ other dealings in this Software without prior written authorization
 from The Open Group.
 
 */
+/* $XFree86: xc/programs/Xserver/Xi/queryst.c,v 3.5 2001/12/14 19:58:58 dawes Exp $ */
 
 /***********************************************************************
  *
@@ -41,11 +42,12 @@ from The Open Group.
 #include "windowstr.h"			/* window structure  */
 #include "XI.h"
 #include "XIproto.h"
+#include "extnsionst.h"
+#include "extinit.h"			/* LookupDeviceIntRec */
+#include "exevents.h"
+#include "exglobals.h"
 
-extern	int 		IReqCode;
-extern	int 		BadDevice;
-extern	void		(* ReplySwapVector[256]) ();
-DeviceIntPtr		LookupDeviceIntRec();
+#include "queryst.h"
 
 /***********************************************************************
  *
@@ -129,7 +131,7 @@ ProcXQueryDeviceState(client)
 			(v->numAxes * sizeof(int)));
 	num_classes++;
 	}
-    buf = (char *) Xalloc (total_length);
+    buf = (char *) xalloc (total_length);
     if (!buf)
 	{
 	SendErrorToClient(client, IReqCode, X_QueryDeviceState, 0, 
@@ -184,7 +186,7 @@ ProcXQueryDeviceState(client)
     WriteReplyToClient (client, sizeof(xQueryDeviceStateReply), &rep);
     if (total_length > 0)
 	WriteToClient (client, total_length, savbuf);
-    Xfree (savbuf);
+    xfree (savbuf);
     return Success;
     }
 
@@ -195,6 +197,7 @@ ProcXQueryDeviceState(client)
  *
  */
 
+void
 SRepXQueryDeviceState (client, size, rep)
     ClientPtr	client;
     int		size;

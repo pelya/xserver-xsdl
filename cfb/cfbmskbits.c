@@ -1,3 +1,4 @@
+/* $XFree86: xc/programs/Xserver/cfb/cfbmskbits.c,v 3.2 2001/01/17 22:36:35 dawes Exp $ */
 /************************************************************
 Copyright 1987 by Sun Microsystems, Inc. Mountain View, CA.
 
@@ -215,6 +216,38 @@ PixelGroup cfbendtab[] =
 #endif /* PGSZ */
 #endif
 
+#if PSZ == 24
+#if PGSZ == 32
+PixelGroup cfbstarttab[] =
+    {
+	cfbBits(0x00000000),
+	cfbBits(0x000000FF),
+	cfbBits(0x0000FFFF),
+	cfbBits(0x00FFFFFF),
+    };
+PixelGroup cfbendtab[] = 
+    {
+	cfbBits(0x00000000),
+	cfbBits(0xFFFFFF00),
+	cfbBits(0xFFFF0000),
+	cfbBits(0xFF000000),
+    };
+#else /* PGSZ == 64 */
+PixelGroup cfbstarttab[] =
+    {
+	cfbBits(0x0000000000000000),
+	cfbBits(0x000000FFFFFFFFFF),
+	cfbBits(0x000000000000FFFF),
+    };
+PixelGroup cfbendtab[] = 
+    {
+	cfbBits(0x0000000000000000),
+	cfbBits(0xFFFFFFFFFF000000),
+	cfbBits(0xFFFF000000000000),
+    };
+#endif /* PGSZ */
+#endif /* PSZ == 24 */
+
 #if PSZ == 32
 #if PGSZ == 32
 PixelGroup cfbstarttab[] =
@@ -388,6 +421,48 @@ PixelGroup cfbendpartial[] =
 #endif /* PGSZ */
 #endif /* PSZ == 16 */
 
+#if PSZ == 24
+#if PGSZ == 32
+PixelGroup cfbstartpartial[] =
+    {
+	cfbBits(0xFFFFFFFF),
+	cfbBits(0x000000FF),
+	cfbBits(0x0000FFFF),
+	cfbBits(0x00FFFFFF),
+    };
+
+PixelGroup cfbendpartial[] =
+    {
+	cfbBits(0xFFFFFFFF),
+	cfbBits(0xFFFFFF00),
+	cfbBits(0xFFFF0000),
+	cfbBits(0xFF000000),
+    };
+#else /* PGSZ == 64 */
+PixelGroup cfbstartpartial[] =
+    {
+	cfbBits(0xFFFFFFFFFFFFFFFF),
+	cfbBits(0x0000FFFFFFFFFFFF),
+	cfbBits(0x000000FFFFFFFFFF),
+	cfbBits(0x00000000FFFFFFFF),
+	cfbBits(0x0000000000FFFFFF),
+	cfbBits(0x000000000000FFFF),
+	cfbBits(0x00000000000000FF),
+    };
+
+PixelGroup cfbendpartial[] =
+    {
+	cfbBits(0xFFFFFFFFFFFFFFFF),
+	cfbBits(0xFFFFFFFFFFFF0000),
+	cfbBits(0xFFFFFFFFFF000000),
+	cfbBits(0xFFFFFFFF00000000),
+	cfbBits(0xFFFFFF0000000000),
+	cfbBits(0xFFFF000000000000),
+	cfbBits(0xFF00000000000000),
+    };
+#endif /* PGSZ */
+#endif /* PSZ == 24 */
+
 #if PSZ == 32
 #if PGSZ == 32
 PixelGroup cfbstartpartial[] =
@@ -559,6 +634,58 @@ PixelGroup cfbrmask[] =
 #endif /* PGSZ */
 #endif /* PSZ == 16 */
 
+#if PSZ == 24
+#if PGSZ == 32
+PixelGroup cfbmask[] =
+    {
+ 	cfbBits(0xFFFFFF00),
+	cfbBits(0x00000000),
+	cfbBits(0x000000FF),
+ 	cfbBits(0xFFFF0000),
+	cfbBits(0x0000FFFF),
+	cfbBits(0xFF000000),
+	cfbBits(0x00FFFFFF),
+	cfbBits(0x00000000),
+    }; 
+PixelGroup cfbrmask[] = 
+    {
+	cfbBits(0x000000FF),
+ 	cfbBits(0xFFFFFFFF),
+ 	cfbBits(0xFFFFFF00),
+	cfbBits(0x0000FFFF),
+	cfbBits(0xFFFF0000),
+	cfbBits(0x00FFFFFF),
+	cfbBits(0xFF000000),
+ 	cfbBits(0xFFFFFFFF),
+    };
+#else /* PGSZ == 64 */
+PixelGroup cfbmask[] =
+    {
+	cfbBits(0xFFFFFF0000000000),
+ 	cfbBits(0x000000FFFFFF0000),
+ 	cfbBits(0x000000000000FFFF),
+    }; 
+PixelGroup cfbmask2[] =
+    {
+ 	cfbBits(0x0000000000000000),
+ 	cfbBits(0x0000000000000000),
+	cfbBits(0xFF00000000000000),
+    }; 
+PixelGroup cfbrmask[] = 
+    {
+ 	cfbBits(0x000000FFFFFFFFFF),
+ 	cfbBits(0xFFFFFF000000FFFF),
+ 	cfbBits(0xFFFFFFFFFFFF0000),
+    };
+PixelGroup cfbrmask2[] = 
+    {
+ 	cfbBits(0x0000000000000000),
+ 	cfbBits(0x0000000000000000),
+ 	cfbBits(0x00FFFFFFFFFFFFFF),
+    };
+#endif /* PGSZ */
+#endif /* PSZ == 24 */
+
 #if PSZ == 32
 #if PGSZ == 32
 PixelGroup cfbmask[] =
@@ -725,6 +852,30 @@ PixelGroup QuartetBitsTable[] = {
 #endif /* PGSZ */
 };
 #endif /* PSZ == 16 */
+
+#if PSZ == 24
+PixelGroup QuartetBitsTable[] = {
+#if PGSZ == 32
+#if (BITMAP_BIT_ORDER == MSBFirst)
+    0x00000000,                         /* 0 - 0 */
+    0x00000001,                         /* 1 - 1 */
+#else /* (BITMAP_BIT_ORDER == LSBFirst */
+    0x00000000,                         /* 0 - 0 */
+    0x00000001,                         /* 1 - 1 */
+#endif /* (BITMAP_BIT_ORDER == MSBFirst) */
+#else /* PGSZ == 64 */
+#if (BITMAP_BIT_ORDER == MSBFirst)
+    0x00000000,                         /* 0 - 00 */
+    0x00000002,                         /* 1 - 10 */
+    0x00000003,                         /* 2 - 11*/
+#else /* (BITMAP_BIT_ORDER == LSBFirst */
+    0x00000000,                         /* 0 - 00 */
+    0x00000001,                         /* 1 - 01 */
+    0x00000003,                         /* 2 - 11 */
+#endif /* (BITMAP_BIT_ORDER == MSBFirst) */
+#endif /* PGSZ */
+};
+#endif /* PSZ == 24 */
 
 #if PSZ == 32
 PixelGroup QuartetBitsTable[] = {
@@ -1195,6 +1346,34 @@ PixelGroup QuartetPixelMaskTable[] = {
 };
 #endif /* PSZ == 16 */
 
+#if PSZ == 24
+PixelGroup QuartetPixelMaskTable[] = {
+#if PGSZ == 32
+/* Four pixels consist three pixel groups....*/
+    0x00000000, 0x00FFFFFF, /*0x00000000, *//*0*/
+/*    0x00000000, 0x00000000, 0x00000000,*/ /*0*/
+/*    0x00FFFFFF, 0x00000000, 0x00000000,*/ /*1*/
+/*    0xFF000000, 0x0000FFFF, 0x00000000,*/ /*2*/
+/*    0xFFFFFFFF, 0x0000FFFF, 0x00000000,*/ /*3*/
+/*    0x00000000, 0xFFFF0000, 0x000000FF,*/ /*4*/
+/*    0x00FFFFFF, 0xFFFF0000, 0x000000FF,*/ /*5*/
+/*    0xFF000000, 0xFFFFFFFF, 0x000000FF,*/ /*6*/
+/*    0xFFFFFFFF, 0xFFFFFFFF, 0x000000FF,*/ /*7*/
+/*    0x00000000, 0x00000000, 0xFFFFFF00,*/ /*8*/
+/*    0x00FFFFFF, 0x00000000, 0xFFFFFF00,*/ /*9*/
+/*    0xFF000000, 0x0000FFFF, 0xFFFFFF00,*/ /*10*/
+/*    0xFFFFFFFF, 0x0000FFFF, 0xFFFFFF00,*/ /*11*/
+/*    0x00000000, 0xFFFF0000, 0xFFFFFFFF,*/ /*12*/
+/*    0x00FFFFFF, 0xFFFF0000, 0xFFFFFFFF,*/ /*13*/
+/*    0xFF000000, 0xFFFFFFFF, 0xFFFFFFFF,*/ /*14*/
+/*    0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF,*/ /*15*/
+#else /* PGSZ == 64 */
+    0x0000000000000000,    0x0000000000FFFFFF,
+    0x0000FFFFFF000000,    0xFFFFFFFFFFFFFFFF
+#endif /* PGSZ */
+};
+#endif /* PSZ == 24 */
+
 #if PSZ == 32
 PixelGroup QuartetPixelMaskTable[] = {
 #if PGSZ == 32
@@ -1208,3 +1387,12 @@ PixelGroup QuartetPixelMaskTable[] = {
 #endif /* PGSZ */
 };
 #endif /* PSZ == 32 */
+
+#if PSZ == 24
+int cfb24Shift[] = 
+#if	(BITMAP_BIT_ORDER == MSBFirst)
+{8,0,16,16,8,24,0,0};
+#else	/* (BITMAP_BIT_ORDER == LSBFirst) */
+{0,0,24,8,16,16,8,0};
+#endif	/* (BITMAP_BIT_ORDER == MSBFirst) */
+#endif

@@ -1,3 +1,4 @@
+/* $XFree86: xc/programs/Xserver/mi/mipolycon.c,v 1.4 2001/12/14 20:00:25 dawes Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -45,11 +46,13 @@ SOFTWARE.
 
 ******************************************************************/
 /* $Xorg: mipolycon.c,v 1.4 2001/02/09 02:05:21 xorgcvs Exp $ */
+
 #include "gcstruct.h"
 #include "pixmap.h"
+#include "mi.h"
 #include "miscanfill.h"
 
-static int getPolyYBounds();
+static int getPolyYBounds(DDXPointPtr pts, int n, int *by, int *ty);
 
 /*
  *     convexpoly.c
@@ -73,21 +76,21 @@ miFillConvexPoly(dst, pgc, count, ptsIn)
     int		count;                /* number of points        */
     DDXPointPtr ptsIn;                /* the points              */
 {
-    register int xl, xr;        /* x vals of left and right edges */
-    register int dl, dr;        /* decision variables             */
-    register int ml, m1l;       /* left edge slope and slope+1    */
-    int mr, m1r;                /* right edge slope and slope+1   */
-    int incr1l, incr2l;         /* left edge error increments     */
-    int incr1r, incr2r;         /* right edge error increments    */
-    int dy;                     /* delta y                        */
-    int y;                      /* current scanline               */
-    int left, right;            /* indices to first endpoints     */
-    int i;                      /* loop counter                   */
-    int nextleft, nextright;    /* indices to second endpoints    */
+    register int xl = 0, xr = 0; /* x vals of left and right edges */
+    register int dl = 0, dr = 0; /* decision variables             */
+    register int ml = 0, m1l = 0;/* left edge slope and slope+1    */
+    int mr = 0, m1r = 0;         /* right edge slope and slope+1   */
+    int incr1l = 0, incr2l = 0;  /* left edge error increments     */
+    int incr1r = 0, incr2r = 0;  /* right edge error increments    */
+    int dy;                      /* delta y                        */
+    int y;                       /* current scanline               */
+    int left, right;             /* indices to first endpoints     */
+    int i;                       /* loop counter                   */
+    int nextleft, nextright;     /* indices to second endpoints    */
     DDXPointPtr ptsOut, FirstPoint; /* output buffer               */
-    int *width, *FirstWidth;    /* output buffer                  */
-    int imin;                   /* index of smallest vertex (in y) */
-    int ymin;                   /* y-extents of polygon            */
+    int *width, *FirstWidth;     /* output buffer                  */
+    int imin;                    /* index of smallest vertex (in y) */
+    int ymin;                    /* y-extents of polygon            */
     int ymax;
 
     /*
@@ -213,12 +216,8 @@ miFillConvexPoly(dst, pgc, count, ptsIn)
 /*
  *     Find the index of the point with the smallest y.
  */
-static
-int
-getPolyYBounds(pts, n, by, ty)
-    DDXPointPtr pts;
-    int n;
-    int *by, *ty;
+static int
+getPolyYBounds(DDXPointPtr pts, int n, int *by, int *ty)
 {
     register DDXPointPtr ptMin;
     int ymin, ymax;

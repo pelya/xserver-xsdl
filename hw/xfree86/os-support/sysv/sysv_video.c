@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/sysv/sysv_video.c,v 3.9 1996/12/23 06:51:27 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/sysv/sysv_video.c,v 3.20 2000/10/28 01:42:29 mvojkovi Exp $ */
 /*
  * Copyright 1990,91 by Thomas Roell, Dinkelscherben, Germany
  * Copyright 1993 by David Wexelblat <dwex@goblin.org>
@@ -23,16 +23,19 @@
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *
  */
-/* $Xorg: sysv_video.c,v 1.3 2000/08/17 19:51:33 cpqbld Exp $ */
+/* $XConsortium: sysv_video.c /main/8 1996/10/25 11:38:09 kaleb $ */
 
 #include "X.h"
-#include "input.h"
-#include "scrnintstr.h"
 
 #define _NEED_SYSI86
 #include "xf86.h"
 #include "xf86Priv.h"
 #include "xf86_OSlib.h"
+#include "xf86OSpriv.h"
+
+#ifndef MAP_FAILED
+#define MAP_FAILED ((void *)-1)
+#endif
 
 #ifndef SI86IOPL
 #define SET_IOPL() sysi86(SI86V86,V86SC_IOPL,PS_IOPL)
@@ -46,53 +49,96 @@
 /* Video Memory Mapping section                                            */
 /***************************************************************************/
 
-struct kd_memloc MapDSC[MAXSCREENS][NUM_REGIONS];
-pointer AllocAddress[MAXSCREENS][NUM_REGIONS];
-#ifndef SVR4
-static int mmapFd = -2;
-#endif
-#if 0
-/* inserted for DGA support Tue Dec  5 21:33:00 MET 1995 mr */
-#if defined(SVR4) || defined(HAS_SVR3_MMAPDRV)
-static struct xf86memMap {
-  int offset;
-  int memSize;
-} xf86memMaps[MAXSCREENS];
-#endif
+/*
+ * XXX Support for SVR3 will need to be reworked if needed.  In particular
+ * the Region parameter is no longer passed, and will need to be dealt
+ * with internally if required.
+ * OK, i'll rework that thing ... (clean it up a lot)
+ * SVR3 Support only with SVR3_MMAPDRV (mr)
+ * 
+ */
+
+#ifdef HAS_SVR3_MMAPDRV
+#ifndef MMAP_DEBUG
+#define MMAP_DEBUG	3
 #endif
 
-Bool xf86LinearVidMem()
+struct kd_memloc MapDSC;
+int mmapFd = -2;
+
+static int
+mmapStat(pointer Base, unsigned long Size) {
+
+	int nmmreg,i=0,region=-1;
+	mmapinfo_t *ibuf;
+
+	nmmreg = ioctl(mmapFd, GETNMMREG);
+
+	if(nmmreg <= 0)
+	   xf86MsgVerb(X_INFO, MMAP_DEBUG,
+			  "\nNo physical memory mapped currently.\n\n");
+	else {
+	  if((ibuf = (mmapinfo_t *)malloc(nmmreg*sizeof(mmapinfo_t))) == NULL) 
+		xf86Msg(X_WARNING,
+			  "Couldn't allocate memory 4 mmapinfo_t\n");
+	  else {
+	     if(ioctl(mmapFd, GETMMREG, ibuf) != -1)
+		{ 
+		   xf86MsgVerb(X_INFO, MMAP_DEBUG,
+				"# mmapStat: [Size=%x,Base=%x]\n", Size, Base);
+		   xf86MsgVerb(X_INFO, MMAP_DEBUG,
+		     "#      Physical Address     Size      Reference Count\n");
+		for(i = 0; i < nmmreg; i++) {
+		   xf86MsgVerb(X_INFO, MMAP_DEBUG,
+                      "%-4d   0x%08X         %5dk                %5d	",
+          	      i, ibuf[i].physaddr, ibuf[i].length/1024, ibuf[i].refcnt);
+		   if (ibuf[i].physaddr == Base || ibuf[i].length == Size ) {
+			xf86MsgVerb(X_INFO, MMAP_DEBUG,"MATCH !!!");
+			if (region==-1) region=i;
+                      }
+		   xf86ErrorFVerb(MMAP_DEBUG, "\n");
+		}
+		xf86ErrorFVerb(MMAP_DEBUG, "\n");
+		}
+	     free(ibuf);
+	   }
+	}
+	if (region == -1 && nmmreg > 0) region=region * i;
+	return(region);
+}
+#endif
+
+
+static Bool
+linearVidMem()
 {
 #ifdef SVR4
 	return TRUE;
-#else
-#ifdef HAS_SVR3_MMAPDRV
-	if(mmapFd >= 0)
-	{
-		return TRUE;
-	}
+#elif defined(HAS_SVR3_MMAPDRV)
+	xf86MsgVerb(X_INFO, MMAP_DEBUG,
+		    "# xf86LinearVidMem: MMAP 2.2.2 called\n");
+
+	if(mmapFd >= 0) return TRUE;
+
 	if ((mmapFd = open("/dev/mmap", O_RDWR)) != -1)
 	{
 	    if(ioctl(mmapFd, GETVERSION) < 0x0222) {
-		ErrorF("xf86LinearVidMem: MMAP 2.2.2 or above required\n");
-		ErrorF(" linear memory access disabled\n");
+		xf86Msg(X_WARNING,
+			"xf86LinearVidMem: MMAP 2.2.2 or above required\n");
+		xf86ErrorF("\tlinear memory access disabled\n");
 		return FALSE;
 	    }
 	    return TRUE;
 	}
-	ErrorF("xf86LinearVidMem: failed to open /dev/mmap (%s)\n",
-	       strerror(errno));
-	ErrorF(" linear memory access disabled\n");
-#endif
+	xf86Msg(X_WARNING, "xf86LinearVidMem: failed to open /dev/mmap (%s)\n",
+	        strerror(errno));
+	xf86ErrorF("\tlinear memory access disabled\n");
 	return FALSE;
 #endif
 }
 
-pointer xf86MapVidMem(ScreenNum, Region, Base, Size)
-int ScreenNum;
-int Region;
-pointer Base;
-unsigned long Size;
+static pointer
+mapVidMem(int ScreenNum, unsigned long Base, unsigned long Size, int flags)
 {
 	pointer base;
 	int fd;
@@ -103,47 +149,40 @@ unsigned long Size;
 		FatalError("xf86MapVidMem: failed to open %s (%s)\n",
 			   DEV_MEM, strerror(errno));
 	}
-	base = (pointer)mmap((caddr_t)0, Size, PROT_READ|PROT_WRITE,
-			     MAP_SHARED, fd, (off_t)Base);
+	base = mmap((caddr_t)0, Size, PROT_READ|PROT_WRITE,
+		     MAP_SHARED, fd, (off_t)Base);
 	close(fd);
-	if ((long)base == -1)
+	if (base == MAP_FAILED)
 	{
 		FatalError("%s: Could not mmap framebuffer [s=%x,a=%x] (%s)\n",
 			   "xf86MapVidMem", Size, Base, strerror(errno));
 	}
 #else /* SVR4 */
 #ifdef HAS_SVR3_MMAPDRV
-	if (mmapFd == -2)
-	{
-		mmapFd = open("/dev/mmap", O_RDWR);
-	}
-#endif
-	if (mmapFd >= 0)
-	{
-		/* To force the MMAP driver to provide the address */
-		base = (pointer)0;
-	}
-	else
-	{
-	    AllocAddress[ScreenNum][Region] = (pointer)xalloc(Size + 0x1000);
-	    if (AllocAddress[ScreenNum][Region] == (pointer)0)
-	    {
-		FatalError("xf86MapVidMem: can't alloc framebuffer space\n");
-		/* NOTREACHED */
-	    }
-	    base = (pointer)(((unsigned int)AllocAddress[ScreenNum][Region]
-			      & ~0xFFF) + 0x1000);
-	}
-	MapDSC[ScreenNum][Region].vaddr    = (char *)base;
-	MapDSC[ScreenNum][Region].physaddr = (char *)Base;
-	MapDSC[ScreenNum][Region].length   = Size;
-	MapDSC[ScreenNum][Region].ioflg    = 1;
 
-#ifdef HAS_SVR3_MMAPDRV
+	xf86MsgVerb(X_INFO, MMAP_DEBUG, "# xf86MapVidMem: MMAP 2.2.2 called\n");
+	xf86MsgVerb(X_INFO, MMAP_DEBUG,
+			"MMAP_VERSION: 0x%x\n",ioctl(mmapFd, GETVERSION));
+	if (ioctl(mmapFd, GETVERSION) == -1)
+	{
+		xf86LinearVidMem();
+	}
+	xf86MsgVerb(X_INFO, MMAP_DEBUG,
+			"MMAP_VERSION: 0x%x\n",ioctl(mmapFd, GETVERSION));
+	xf86MsgVerb(X_INFO, MMAP_DEBUG,
+		"xf86MapVidMem: Screen: %d\n", ScreenNum);
+	mmapStat(Base,Size);
+	/* To force the MMAP driver to provide the address */
+	base = (pointer)0;
+	xf86MsgVerb(X_INFO, MMAP_DEBUG,
+			"xf86MapVidMem: [s=%x,a=%x]\n", Size, Base);
+	MapDSC.vaddr    = (char *)base;
+	MapDSC.physaddr = (char *)Base;
+	MapDSC.length   = Size;
+	MapDSC.ioflg    = 1;
 	if(mmapFd >= 0)
 	{
-	    if((base = (pointer)ioctl(mmapFd, MAP,
-			   &(MapDSC[ScreenNum][Region]))) == (pointer)-1)
+	    if((base = (pointer)ioctl(mmapFd, MAP, &MapDSC)) == (pointer)-1)
 	    {
 		FatalError("%s: Could not mmap framebuffer [s=%x,a=%x] (%s)\n",
 			   "xf86MapVidMem", Size, Base, strerror(errno));
@@ -151,152 +190,106 @@ unsigned long Size;
 	    }
 
 	    /* Next time we want the same address! */
-	    MapDSC[ScreenNum][Region].vaddr    = (char *)base;
-#if 0
-/* inserted for DGA support Tue Dec  5 21:33:00 MET 1995 mr */
-	    xf86memMaps[ScreenNum].offset = (int) Base;
-	    xf86memMaps[ScreenNum].memSize = Size;
-#endif
-	    return((pointer)base);
+	    MapDSC.vaddr    = (char *)base;
 	}
-#endif
-	if (ioctl(xf86Info.consoleFd, KDMAPDISP,
-		  &(MapDSC[ScreenNum][Region])) < 0)
-	{
-	    FatalError("xf86MapVidMem: Failed to map video mem (%x,%x) (%s)\n",
-		        Base, Size, strerror(errno));
-	    /* NOTREACHED */
-	}
+
+	xf86MsgVerb(X_INFO, MMAP_DEBUG,
+			"MapDSC.vaddr   : 0x%x\n", MapDSC.vaddr);
+	xf86MsgVerb(X_INFO, MMAP_DEBUG,
+			"MapDSC.physaddr: 0x%x\n", MapDSC.physaddr);
+	xf86MsgVerb(X_INFO, MMAP_DEBUG,
+			"MapDSC.length  : %d\n", MapDSC.length);
+	mmapStat(Base,Size);
+	xf86MsgVerb(X_INFO, MMAP_DEBUG,
+			"xf86MapVidMem: [s=%x,a=%x,b=%x]\n", Size, Base, base);
+	xf86MsgVerb(X_INFO, MMAP_DEBUG,
+			"xf86MapVidMem: SUCCEED Mapping FrameBuffer \n");
+#endif /* HAS_SVR3_MMAPDRV */
 #endif /* SVR4 */
-#if 0
-	xf86memMaps[ScreenNum].offset = (int) Base;
-	xf86memMaps[ScreenNum].memSize = Size;
-#endif
-	return((pointer)base);
+	return(base);
 }
 
-#if 0
-/* inserted for DGA support Tue Dec  5 21:33:00 MET 1995 mr */
-#if defined(SVR4) || defined(HAS_SVR3_MMAPDRV)
-void xf86GetVidMemData(ScreenNum, Base, Size)
-int ScreenNum;
-int *Base;
-int *Size;
-{
-   *Base = xf86memMaps[ScreenNum].offset;
-   *Size = xf86memMaps[ScreenNum].memSize;
-}
-
-#endif
-#endif
 /* ARGSUSED */
-void xf86UnMapVidMem(ScreenNum, Region, Base, Size)
-int ScreenNum;
-int Region;
-pointer Base;
-unsigned long Size;
+static void
+unmapVidMem(int ScreenNum, pointer Base, unsigned long Size)
 {
 #if defined (SVR4)
 	munmap(Base, Size);
 #else /* SVR4 */
 #ifdef HAS_SVR3_MMAPDRV
-	if(mmapFd >= 0)
-	{
-		ioctl(mmapFd, UNMAPRM, MapDSC[ScreenNum][Region].vaddr);
-		return;
-	}
-#endif
-	/* XXXX This is a problem because it unmaps all regions */
-	ioctl(xf86Info.consoleFd, KDUNMAPDISP, 0);
-	xfree(AllocAddress[ScreenNum][Region]);
-#endif /* SVR4 */
-}
-
-/* ARGSUSED */
-void xf86MapDisplay(ScreenNum, Region)
-int ScreenNum;
-int Region;
-{
-#if !defined(SVR4)
-#ifdef HAS_SVR3_MMAPDRV
-	if(mmapFd >= 0)
-	{
-		ioctl(mmapFd, MAP, &(MapDSC[ScreenNum][Region]));
-		return;
-	}
-#endif
-	ioctl(xf86Info.consoleFd, KDMAPDISP, &(MapDSC[ScreenNum][Region]));
+	xf86MsgVerb(X_INFO, MMAP_DEBUG,
+	        "# xf86UnMapVidMem: UNMapping FrameBuffer\n");
+	mmapStat(Base,Size);
+	ioctl(mmapFd, UNMAPRM , Base);
+	mmapStat(Base,Size);
+	xf86MsgVerb(X_INFO, MMAP_DEBUG,
+		"# xf86UnMapVidMem: Screen: %d [v=%x]\n", ScreenNum, Base);
+#endif /* HAS_SVR3_MMAPDRV */
 #endif /* SVR4 */
 	return;
 }
 
-/* ARGSUSED */
-void xf86UnMapDisplay(ScreenNum, Region)
-int ScreenNum;
-int Region;
-{
-#if !defined(SVR4)
-#ifdef HAS_SVR3_MMAPDRV
-	if(mmapFd > 0)
-	{
-		ioctl(mmapFd, UNMAP, MapDSC[ScreenNum][Region].vaddr);
-		return;
-	}
-#endif
-	ioctl(xf86Info.consoleFd, KDUNMAPDISP, 0);
-#endif /* SVR4 */
-	return;
-}
+#if defined(SVR4) && defined(i386) && !defined(sun)
+/*
+ * For some SVR4 versions, a 32-bit read is done for the first location
+ * in each page when the page is first mapped.  If this is done while
+ * memory access is enabled for regions that have read side-effects,
+ * this can cause unexpected results, including lockups on some hardware.
+ * This function is called to make sure each page is mapped while it is
+ * safe to do so.
+ */
 
+/*
+ * XXX Should get this the correct way (see os/xalloc.c), but since this is
+ * for one platform I'll be lazy.
+ */
+#define X_PAGE_SIZE 4096
+
+static void
+readSideEffects(int ScreenNum, pointer Base, unsigned long Size)
+{
+	unsigned long base, end, addr;
+	CARD32 val;
+
+	base = (unsigned long)Base;
+	end = base + Size;
+
+	for (addr = base; addr < end; addr += X_PAGE_SIZE)
+		val = *(volatile CARD32 *)addr;
+}
+#endif
+
+void
+xf86OSInitVidMem(VidMemInfoPtr pVidMem)
+{
+	pVidMem->linearSupported = linearVidMem();
+	pVidMem->mapMem = mapVidMem;
+	pVidMem->unmapMem = unmapVidMem;
+#if defined(SVR4) && defined(i386) && !defined(sun)
+	pVidMem->readSideEffects = readSideEffects;
+#endif
+	pVidMem->initialised = TRUE;
+}
+	
 /***************************************************************************/
 /* I/O Permissions section                                                 */
 /***************************************************************************/
 
-#define ALWAYS_USE_EXTENDED
-#ifdef ALWAYS_USE_EXTENDED
-
-static Bool ScreenEnabled[MAXSCREENS];
 static Bool ExtendedEnabled = FALSE;
 static Bool InitDone = FALSE;
 
 void
-xf86ClearIOPortList(ScreenNum)
-int ScreenNum;
-{
-	if (!InitDone)
-	{
-		int i;
-		for (i = 0; i < MAXSCREENS; i++)
-			ScreenEnabled[i] = FALSE;
-		InitDone = TRUE;
-	}
-	return;
-}
-
-void
-xf86AddIOPorts(ScreenNum, NumPorts, Ports)
-int ScreenNum;
-int NumPorts;
-unsigned *Ports;
-{
-	return;
-}
-
-void
-xf86EnableIOPorts(ScreenNum)
-int ScreenNum;
+xf86EnableIO()
 {
 	int i;
-
-	ScreenEnabled[ScreenNum] = TRUE;
 
 	if (ExtendedEnabled)
 		return;
 
 	if (SET_IOPL() < 0)
 	{
-		FatalError("%s: Failed to set IOPL for extended I/O\n",
-			   "xf86EnableIOPorts");
+		FatalError(
+			"xf86EnableIO: Failed to set IOPL for extended I/O\n");
 	}
 	ExtendedEnabled = TRUE;
 
@@ -304,19 +297,10 @@ int ScreenNum;
 }
 	
 void
-xf86DisableIOPorts(ScreenNum)
-int ScreenNum;
+xf86DisableIO()
 {
-	int i;
-
-	ScreenEnabled[ScreenNum] = FALSE;
-
 	if (!ExtendedEnabled)
 		return;
-
-	for (i = 0; i < MAXSCREENS; i++)
-		if (ScreenEnabled[i])
-			return;
 
 	RESET_IOPL();
 	ExtendedEnabled = FALSE;
@@ -324,225 +308,12 @@ int ScreenNum;
 	return;
 }
 
-#else /* !ALWAYS_USE_EXTENDED */
-
-#define DISABLED	0
-#define NON_EXTENDED	1
-#define EXTENDED	2
-
-static unsigned *EnabledPorts[MAXSCREENS];
-static int NumEnabledPorts[MAXSCREENS];
-static Bool ScreenEnabled[MAXSCREENS];
-static Bool ExtendedPorts[MAXSCREENS];
-static Bool ExtendedEnabled = FALSE;
-static Bool InitDone = FALSE;
-static struct kd_disparam OrigParams;
-
-void xf86ClearIOPortList(ScreenNum)
-int ScreenNum;
-{
-	if (!InitDone)
-	{
-		xf86InitPortLists(EnabledPorts, NumEnabledPorts, ScreenEnabled,
-				  ExtendedPorts, MAXSCREENS);
-		if (ioctl(xf86Info.consoleFd, KDDISPTYPE, &OrigParams) < 0)
-		{
-			FatalError("%s: Could not get display parameters\n",
-				   "xf86ClearIOPortList");
-		}
-		InitDone = TRUE;
-		return;
-	}
-	ExtendedPorts[ScreenNum] = FALSE;
-	if (EnabledPorts[ScreenNum] != (unsigned *)NULL)
-		xfree(EnabledPorts[ScreenNum]);
-	EnabledPorts[ScreenNum] = (unsigned *)NULL;
-	NumEnabledPorts[ScreenNum] = 0;
-}
-
-void xf86AddIOPorts(ScreenNum, NumPorts, Ports)
-int ScreenNum;
-int NumPorts;
-unsigned *Ports;
-{
-	int i;
-
-	if (!InitDone)
-	{
-	    FatalError("xf86AddIOPorts: I/O control lists not initialised\n");
-	}
-	EnabledPorts[ScreenNum] = (unsigned *)xrealloc(EnabledPorts[ScreenNum], 
-			(NumEnabledPorts[ScreenNum]+NumPorts)*sizeof(unsigned));
-	for (i = 0; i < NumPorts; i++)
-	{
-		EnabledPorts[ScreenNum][NumEnabledPorts[ScreenNum] + i] =
-								Ports[i];
-		if (Ports[i] > 0x3FF)
-			ExtendedPorts[ScreenNum] = TRUE;
-	}
-	NumEnabledPorts[ScreenNum] += NumPorts;
-}
-
-void xf86EnableIOPorts(ScreenNum)
-int ScreenNum;
-{
-	struct kd_disparam param;
-	int i, j;
-
-	if (ScreenEnabled[ScreenNum])
-		return;
-
-	for (i = 0; i < MAXSCREENS; i++)
-	{
-		if (ExtendedPorts[i] && (ScreenEnabled[i] || i == ScreenNum))
-		{
-		    if (SET_IOPL() < 0)
-		    {
-			FatalError("%s: Failed to set IOPL for extended I/O\n",
-				   "xf86EnableIOPorts");
-		    }
-		    ExtendedEnabled = TRUE;
-		    break;
-		}
-	}
-	/* If extended I/O was used, but isn't any more */
-	if (ExtendedEnabled && i == MAXSCREENS)
-	{
-		RESET_IOPL();
-		ExtendedEnabled = FALSE;
-	}
-	/*
-	 * Turn on non-extended ports even when using extended I/O
-	 * so they are there if extended I/O gets turned off when it's no
-	 * longer needed.
-	 */
-	if (ioctl(xf86Info.consoleFd, KDDISPTYPE, &param) < 0)
-	{
-		FatalError("%s: Could not get display parameters\n",
-			   "xf86EnableIOPorts");
-	}
-	for (i = 0; i < NumEnabledPorts[ScreenNum]; i++)
-	{
-		unsigned port = EnabledPorts[ScreenNum][i];
-
-		if (port > 0x3FF)
-			continue;
-
-		if (!xf86CheckPorts(port, EnabledPorts, NumEnabledPorts,
-				    ScreenEnabled, MAXSCREENS))
-		{
-			continue;
-		}
-		for (j=0; j < MKDIOADDR; j++)
-		{
-			if (param.ioaddr[j] == port)
-			{
-				break;
-			}
-		}
-		if (j == MKDIOADDR)
-		{
-			if (ioctl(xf86Info.consoleFd, KDADDIO, port) < 0)
-			{
-				FatalError("%s: Failed to enable port 0x%x\n",
-					   "xf86EnableIOPorts", port);
-			}
-		}
-	}
-	if (ioctl(xf86Info.consoleFd, KDENABIO, 0) < 0)
-	{
-		FatalError("xf86EnableIOPorts: I/O port enable failed (%s)\n",
-			   strerror(errno));
-	}
-	ScreenEnabled[ScreenNum] = TRUE;
-	return;
-}
-
-void xf86DisableIOPorts(ScreenNum)
-int ScreenNum;
-{
-	struct kd_disparam param;
-	int i, j;
-
-	if (!ScreenEnabled[ScreenNum])
-		return;
-
-	ScreenEnabled[ScreenNum] = FALSE;
-	for (i = 0; i < MAXSCREENS; i++)
-	{
-		if (ScreenEnabled[i] && ExtendedPorts[i])
-			break;
-	}
-	if (ExtendedEnabled && i == MAXSCREENS)
-	{
-		RESET_IOPL();
-		ExtendedEnabled = FALSE;
-	}
-	/* Turn off I/O before changing the access list */
-	ioctl(xf86Info.consoleFd, KDDISABIO, 0);
-	if (ioctl(xf86Info.consoleFd, KDDISPTYPE, &param) < 0)
-	{
-		ErrorF("%s: Could not get display parameters\n",
-		       "xf86DisableIOPorts");
-		return;
-	}
-
-	for (i=0; i < MKDIOADDR; i++)
-	{
-		/* 0 indicates end of list */
-		if (param.ioaddr[i] == 0)
-		{
-			break;
-		}
-		if (!xf86CheckPorts(param.ioaddr[i], EnabledPorts,
-				    NumEnabledPorts, ScreenEnabled, MAXSCREENS))
-		{
-			continue;
-		}
-		for (j=0; j < MKDIOADDR; j++)
-		{
-			if (param.ioaddr[i] == OrigParams.ioaddr[j])
-			{
-				/*
-				 * Port was one of the original ones; don't
-				 * touch it.
-				 */
-				break;
-			}
-		}
-		if (j == MKDIOADDR)
-		{
-			/*
-			 * We added this port, so remove it.
-			 */
-			ioctl(xf86Info.consoleFd, KDDELIO, param.ioaddr[i]);
-		}
-	}
-	/* If any other screens are enabled, turn I/O back on */
-	for (i = 0; i < MAXSCREENS; i++)
-	{
-		if (ScreenEnabled[i])
-		{
-			ioctl(xf86Info.consoleFd, KDENABIO, 0);
-			break;
-		}
-	}
-	return;
-}
-#endif /* ALWAYS_USE_EXTENDED */
-
-void xf86DisableIOPrivs()
-{
-	if (ExtendedEnabled)
-		RESET_IOPL();
-	return;
-}
-
 /***************************************************************************/
 /* Interrupt Handling section                                              */
 /***************************************************************************/
 
-Bool xf86DisableInterrupts()
+Bool
+xf86DisableInterrupts()
 {
 	if (!ExtendedEnabled)
 	{
@@ -565,7 +336,8 @@ Bool xf86DisableInterrupts()
 	return(TRUE);
 }
 
-void xf86EnableInterrupts()
+void
+xf86EnableInterrupts()
 {
 	if (!ExtendedEnabled)
 	{

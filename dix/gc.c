@@ -1,3 +1,4 @@
+/* $XFree86: xc/programs/Xserver/dix/gc.c,v 3.9 2001/12/14 19:59:32 dawes Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -62,6 +63,7 @@ SOFTWARE.
 #include <assert.h>
 
 extern XID clientErrorValue;
+extern FontPtr defaultFont;
 
 static Bool CreateDefaultTile(
 #if NeedFunctionPrototypes
@@ -97,14 +99,16 @@ ValidateGC(pDraw, pGC)
  * or pUnion, but not both; one of them must be NULL.  If you don't need
  * to pass any pointers, you can use either one:
  * 
- *     /* example calling dixChangeGC using pC32 parameter
+ *     example calling dixChangeGC using pC32 parameter
+ *
  *     CARD32 v[2];
  *     v[0] = foreground;
  *     v[1] = background;
  *     dixChangeGC(client, pGC, GCForeground|GCBackground, v, NULL);
  * 
- *     /* example calling dixChangeGC using pUnion parameter;
- *     /* same effect as above
+ *     example calling dixChangeGC using pUnion parameter;
+ *     same effect as above
+ *
  *     ChangeGCVal v[2];
  *     v[0].val = foreground;
  *     v[1].val = background;
@@ -113,10 +117,12 @@ ValidateGC(pDraw, pGC)
  * However, if you need to pass a pointer to a pixmap or font, you MUST
  * use the pUnion parameter.
  * 
- *     /* example calling dixChangeGC passing pointers in the value list
+ *     example calling dixChangeGC passing pointers in the value list
+ *     v[1].ptr is a pointer to a pixmap
+ *
  *     ChangeGCVal v[2];
  *     v[0].val = FillTiled;
- *     v[1].ptr = pPixmap; /* pointer to a pixmap
+ *     v[1].ptr = pPixmap;
  *     dixChangeGC(client, pGC, GCFillStyle|GCTile, NULL, v);
  * 
  * Note: we could have gotten by with just the pUnion parameter, but on
@@ -149,7 +155,7 @@ dixChangeGC(client, pGC, mask, pC32, pUnion)
     CARD32		*pC32;
     ChangeGCValPtr	pUnion;
 {
-    register BITS32 	index;
+    register BITS32 	index2;
     register int 	error = 0;
     PixmapPtr 		pPixmap;
     BITS32		maskQ;
@@ -160,10 +166,10 @@ dixChangeGC(client, pGC, mask, pC32, pUnion)
     maskQ = mask;	/* save these for when we walk the GCque */
     while (mask && !error) 
     {
-	index = (BITS32) lowbit (mask);
-	mask &= ~index;
-	pGC->stateChanges |= index;
-	switch (index)
+	index2 = (BITS32) lowbit (mask);
+	mask &= ~index2;
+	pGC->stateChanges |= index2;
+	switch (index2)
 	{
 	    case GCFunction:
 	    {
@@ -402,8 +408,8 @@ dixChangeGC(client, pGC, mask, pC32, pUnion)
 		break;
 	    case GCClipMask:
 	    {
-		Pixmap pid;
-		int    clipType;
+		Pixmap pid = 0;
+		int    clipType = 0;
 
 		if (pUnion)
 		{
@@ -562,9 +568,9 @@ DoChangeGC(pGC, mask, pval, fPointer)
 {
     if (fPointer)
     /* XXX might be a problem on 64 bit big-endian servers */
-	dixChangeGC(NullClient, pGC, mask, NULL, (ChangeGCValPtr)pval);
+	return dixChangeGC(NullClient, pGC, mask, NULL, (ChangeGCValPtr)pval);
     else
-	dixChangeGC(NullClient, pGC, mask, pval, NULL);
+	return dixChangeGC(NullClient, pGC, mask, pval, NULL);
 }
 
 
@@ -579,8 +585,12 @@ BUG:
 */
 
 static GCPtr
+#if NeedFunctionPrototypes
+AllocateGC(ScreenPtr pScreen)
+#else
 AllocateGC(pScreen)
     ScreenPtr pScreen;
+#endif
 {
     GCPtr pGC;
     register char *ptr;
@@ -618,7 +628,6 @@ CreateGC(pDrawable, mask, pval, pStatus)
     int		*pStatus;
 {
     register GCPtr pGC;
-    extern FontPtr defaultFont;
 
     pGC = AllocateGC(pDrawable->pScreen);
     if (!pGC)
@@ -678,7 +687,7 @@ CreateGC(pDrawable, mask, pval, pStatus)
     pGC->stipple = pGC->pScreen->PixmapPerDepth[0];
     pGC->stipple->refcnt++;
 
-    pGC->stateChanges = (1 << GCLastBit+1) - 1;
+    pGC->stateChanges = (1 << (GCLastBit+1)) - 1;
     if (!(*pGC->pScreen->CreateGC)(pGC))
 	*pStatus = BadAlloc;
     else if (mask)
@@ -746,7 +755,7 @@ CopyGC(pgcSrc, pgcDst, mask)
     register GC		*pgcDst;
     register BITS32	mask;
 {
-    register BITS32	index;
+    register BITS32	index2;
     BITS32		maskQ;
     int 		error = 0;
 
@@ -757,9 +766,9 @@ CopyGC(pgcSrc, pgcDst, mask)
     maskQ = mask;
     while (mask)
     {
-	index = (BITS32) lowbit (mask);
-	mask &= ~index;
-	switch (index)
+	index2 = (BITS32) lowbit (mask);
+	mask &= ~index2;
+	switch (index2)
 	{
 	    case GCFunction:
 		pgcDst->alu = pgcSrc->alu;
@@ -963,7 +972,6 @@ CreateScratchGC(pScreen, depth)
     unsigned depth;
 {
     register GCPtr pGC;
-    extern FontPtr defaultFont;
 
     pGC = AllocateGC(pScreen);
     if (!pGC)
@@ -1003,7 +1011,7 @@ CreateScratchGC(pScreen, depth)
     pGC->lastWinOrg.x = 0;
     pGC->lastWinOrg.y = 0;
 
-    pGC->stateChanges = (1 << GCLastBit+1) - 1;
+    pGC->stateChanges = (1 << (GCLastBit+1)) - 1;
     if (!(*pScreen->CreateGC)(pGC))
     {
 	FreeGC(pGC, (XID)0);
@@ -1296,7 +1304,7 @@ GetScratchGC(depth, pScreen)
 	    pGC->clipOrg.y = 0;
 	    if (pGC->clientClipType != CT_NONE)
 		(*pGC->funcs->ChangeClip) (pGC, CT_NONE, NULL, 0);
-	    pGC->stateChanges = (1 << GCLastBit+1) - 1;
+	    pGC->stateChanges = (1 << (GCLastBit+1)) - 1;
 	    return pGC;
 	}
     /* if we make it this far, need to roll our own */

@@ -1,3 +1,4 @@
+/* $XFree86: xc/programs/Xserver/dix/colormap.c,v 3.10 2002/04/14 00:45:54 mvojkovi Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -57,8 +58,12 @@ SOFTWARE.
 #include "scrnintstr.h"
 #include "resource.h"
 #include "windowstr.h"
+#ifdef LBX
+#include "lbxserve.h"
+#endif
 
 extern XID clientErrorValue;
+extern int colormapPrivateCount;
 
 static Pixel FindBestPixel(
 #if NeedFunctionPrototypes
@@ -280,7 +285,6 @@ CreateColormap (mid, pScreen, pVisual, ppcmap, alloc, client)
     register	EntryPtr	pent;
     int		i;
     register	Pixel	*ppix, **pptr;
-    extern int colormapPrivateCount;
 
     class = pVisual->class;
     if(!(class & DynamicClass) && (alloc != AllocNone) && (client != SERVER_ID))
@@ -499,6 +503,7 @@ TellNoMap (pwin, pmid)
     Colormap 	*pmid;
 {
     xEvent 	xE;
+
     if (wColormap(pwin) == *pmid)
     {
 	/* This should be call to DeliverEvent */
@@ -507,7 +512,10 @@ TellNoMap (pwin, pmid)
 	xE.u.colormap.colormap = None;
 	xE.u.colormap.new = TRUE;
 	xE.u.colormap.state = ColormapUninstalled;
-	DeliverEvents(pwin, &xE, 1, (WindowPtr)NULL);
+#ifdef PANORAMIX
+        if(noPanoramiXExtension || !pwin->drawable.pScreen->myNum)
+#endif
+	   DeliverEvents(pwin, &xE, 1, (WindowPtr)NULL);
 	if (pwin->optional) {
 	    pwin->optional->colormap = None;
 	    CheckWindowOptionalNeed (pwin);
@@ -525,6 +533,11 @@ TellLostMap (pwin, value)
 {
     Colormap 	*pmid = (Colormap *)value;
     xEvent 	xE;
+
+#ifdef PANORAMIX
+    if(!noPanoramiXExtension && pwin->drawable.pScreen->myNum)
+	return WT_STOPWALKING;
+#endif
     if (wColormap(pwin) == *pmid)
     {
 	/* This should be call to DeliverEvent */
@@ -547,6 +560,11 @@ TellGainedMap (pwin, value)
 {
     Colormap 	*pmid = (Colormap *)value;
     xEvent 	xE;
+
+#ifdef PANORAMIX
+    if(!noPanoramiXExtension && pwin->drawable.pScreen->myNum)
+	return WT_STOPWALKING;
+#endif
     if (wColormap (pwin) == *pmid)
     {
 	/* This should be call to DeliverEvent */
@@ -625,6 +643,7 @@ CopyFree (channel, client, pmapSrc, pmapDst)
 
     switch(channel)
     {
+      default:	/* so compiler can see that everything gets initialized */
       case REDMAP:
 	ppix = (pmapSrc->clientPixelsRed)[client];
 	npix = (pmapSrc->numPixelsRed)[client];
@@ -715,6 +734,7 @@ FreeCell (pmap, i, channel)
 
     switch (channel)
     {
+      default:	/* so compiler can see that everything gets initialized */
       case PSEUDOMAP:
       case REDMAP:
           pent = (EntryPtr) &pmap->red[i];
@@ -1116,8 +1136,8 @@ typedef struct _bignum {
     BigNumLower	lower;
 } BigNumRec, *BigNumPtr;
 
-#define BigNumGreater(x,y) ((x)->upper > (y)->upper ||\
-			    (x)->upper == (y)->upper && (x)->lower > (y)->lower)
+#define BigNumGreater(x,y) (((x)->upper > (y)->upper) ||\
+			    ((x)->upper == (y)->upper && (x)->lower > (y)->lower))
 
 #define UnsignedToBigNum(u,r)	(((r)->upper = UPPERPART(u)), \
 				 ((r)->lower = LOWERPART(u)))
@@ -1126,8 +1146,12 @@ typedef struct _bignum {
 				 ((r)->lower = BIGNUMLOWER-1))
 
 static void
+#if NeedFunctionPrototypes
+BigNumAdd (BigNumPtr x, BigNumPtr y, BigNumPtr r)
+#else
 BigNumAdd (x, y, r)
     BigNumPtr	x, y, r;
+#endif
 {
     BigNumLower	lower, carry = 0;
 
@@ -1248,9 +1272,9 @@ FindColor (pmap, pentFirst, size, prgb, pPixel, channel, client, comp)
 {
     EntryPtr	pent;
     Bool	foundFree;
-    Pixel	pixel, Free;
-    int		npix, count, *nump;
-    Pixel	**pixp, *ppix;
+    Pixel	pixel, Free = 0;
+    int		npix, count, *nump = NULL;
+    Pixel	**pixp = NULL, *ppix;
     xColorItem	def;
 
     foundFree = FALSE;
@@ -1844,7 +1868,7 @@ AllocDirect (client, pmap, c, r, g, b, contig, pixels, prmask, pgmask, pbmask)
     Pixel	*ppix, *pDst, *p;
     int		npix, npixR, npixG, npixB;
     Bool	okR, okG, okB;
-    Pixel	*rpix, *gpix, *bpix;
+    Pixel	*rpix = 0, *gpix = 0, *bpix = 0;
 
     npixR = c << r;
     npixG = c << g;
@@ -2426,6 +2450,7 @@ FreeCo (pmap, client, color, npixIn, ppixIn, mask)
 	ppixClient = pmap->clientPixelsBlue[client];
 	npixClient = pmap->numPixelsBlue[client];
 	break;
+      default:	/* so compiler can see that everything gets initialized */
       case PSEUDOMAP:
 	cmask = ~((Pixel)0);
 	rgbbad = 0;

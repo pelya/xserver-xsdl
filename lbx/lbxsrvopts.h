@@ -21,6 +21,7 @@
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *
  */
+/* $XFree86: xc/programs/Xserver/lbx/lbxsrvopts.h,v 1.3 2001/01/17 22:37:00 dawes Exp $ */
 
 #ifndef _LBX_SRVOPTS_H_
 #define _LBX_SRVOPTS_H_
@@ -35,9 +36,9 @@ typedef struct _LbxNegOpts {
     short	serverDeltaMaxLen;
     LbxStreamOpts streamOpts;
     int		numBitmapCompMethods;
-    char	*bitmapCompMethods;   /* array of indices */
+    unsigned char	*bitmapCompMethods;   /* array of indices */
     int		numPixmapCompMethods;
-    char	*pixmapCompMethods;   /* array of indices */
+    unsigned char	*pixmapCompMethods;   /* array of indices */
     int		**pixmapCompDepths;   /* depths supported from each method */
     Bool	squish;
     Bool	useTags;
@@ -46,33 +47,17 @@ typedef struct _LbxNegOpts {
 typedef LbxNegOptsRec *LbxNegOptsPtr;
 
 
-extern LbxBitmapCompMethod *LbxSrvrLookupBitmapCompMethod (
-#if NeedFunctionPrototypes
-	LbxProxyPtr,	/* proxy */
-	int		/* methodOpCode */
-#endif
-);
-
-extern LbxPixmapCompMethod *LbxSrvrLookupPixmapCompMethod (
-#if NeedFunctionPrototypes
-	LbxProxyPtr,	/* proxy */
-	int		/* methodOpCode */
-#endif
-);
-
-extern LbxBitmapCompMethod *LbxSrvrFindPreferredBitmapCompMethod (
-#if NeedFunctionPrototypes
-	LbxProxyPtr	/* proxy */
-#endif
-);
-
-extern LbxPixmapCompMethod *LbxSrvrFindPreferredPixmapCompMethod (
-#if NeedFunctionPrototypes
-	LbxProxyPtr,	/* proxy */
-	int,		/* format */
-	int		/* depth */
-#endif
-);
+extern void LbxOptionInit ( LbxNegOptsPtr pno );
+extern int LbxOptionParse ( LbxNegOptsPtr pno, unsigned char *popt, 
+			    int optlen, unsigned char *preply );
+extern LbxBitmapCompMethod * 
+LbxSrvrLookupBitmapCompMethod ( LbxProxyPtr proxy, int methodOpCode );
+extern LbxPixmapCompMethod * 
+LbxSrvrLookupPixmapCompMethod ( LbxProxyPtr proxy, int methodOpCode );
+extern LbxBitmapCompMethod * 
+LbxSrvrFindPreferredBitmapCompMethod ( LbxProxyPtr proxy );
+extern LbxPixmapCompMethod * 
+LbxSrvrFindPreferredPixmapCompMethod ( LbxProxyPtr proxy, int format, int depth );
 
 
 #endif /* _LBX_SRVOPTS_H_ */

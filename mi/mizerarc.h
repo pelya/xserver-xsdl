@@ -1,3 +1,4 @@
+/* $XFree86: xc/programs/Xserver/mi/mizerarc.h,v 1.3 2001/12/14 20:00:28 dawes Exp $ */
 /************************************************************
 
 Copyright 1989, 1998  The Open Group
@@ -121,17 +122,13 @@ typedef struct {
 /* mizerarc.c */
 
 extern Bool miZeroArcSetup(
-#if NeedFunctionPrototypes
     xArc * /*arc*/,
     miZeroArcRec * /*info*/,
     Bool /*ok360*/
-#endif
 );
 
 extern DDXPointPtr miZeroArcPts(
-#if NeedFunctionPrototypes
     xArc * /*arc*/,
     DDXPointPtr /*pts*/
-#endif
 );
 

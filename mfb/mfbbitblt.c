@@ -1,3 +1,4 @@
+/* $XFree86: xc/programs/Xserver/mfb/mfbbitblt.c,v 1.6 2001/12/14 20:00:04 dawes Exp $ */
 /* Combined Purdue/PurduePlus patches, level 2.0, 1/17/89 */
 /***********************************************************
 
@@ -132,7 +133,7 @@ int srcx, srcy;
 int width, height;
 int dstx, dsty;
 {
-    RegionPtr prgnSrcClip;	/* may be a new region, or just a copy */
+    RegionPtr prgnSrcClip = NULL; /* may be a new region, or just a copy */
     Bool freeSrcClip = FALSE;
 
     RegionPtr prgnExposed;
@@ -192,7 +193,7 @@ int dstx, dsty;
 	if ((pSrcDrawable == pDstDrawable) &&
 	    (pGC->clientClipType == CT_NONE))
 	{
-	    prgnSrcClip = ((mfbPrivGC *)(pGC->devPrivates[mfbGCPrivateIndex].ptr))->pCompositeClip;
+	    prgnSrcClip = pGC->pCompositeClip;
 	}
 	else
 	{
@@ -214,7 +215,7 @@ int dstx, dsty;
 	    else if ((pSrcDrawable == pDstDrawable) &&
 		(pGC->clientClipType == CT_NONE))
 	    {
-		prgnSrcClip = ((mfbPrivGC *)(pGC->devPrivates[mfbGCPrivateIndex].ptr))->pCompositeClip;
+		prgnSrcClip = pGC->pCompositeClip;
 	    }
 	    else
 	    {
@@ -300,7 +301,7 @@ int dstx, dsty;
 	/* If the destination composite clip is one rectangle we can
 	   do the clip directly.  Otherwise we have to create a full
 	   blown region and call intersect */
-	cclip = ((mfbPrivGC *)(pGC->devPrivates[mfbGCPrivateIndex].ptr))->pCompositeClip;
+	cclip = pGC->pCompositeClip;
         if (REGION_NUM_RECTS(cclip) == 1)
         {
 	    BoxPtr pBox = REGION_RECTS(cclip);
@@ -336,8 +337,7 @@ int dstx, dsty;
 
     if (!fastClip)
     {
-	REGION_INTERSECT(pGC->pScreen, &rgnDst, &rgnDst,
-	 ((mfbPrivGC *)(pGC->devPrivates[mfbGCPrivateIndex].ptr))->pCompositeClip);
+	REGION_INTERSECT(pGC->pScreen, &rgnDst, &rgnDst, pGC->pCompositeClip);
     }
 
     /* Do bit blitting */
@@ -367,7 +367,7 @@ int dstx, dsty;
     }
 
     prgnExposed = NULL;
-    if (((mfbPrivGC *)(pGC->devPrivates[mfbGCPrivateIndex].ptr))->fExpose) 
+    if (pGC->fExpose) 
     {
         /* Pixmap sources generate a NoExposed (we return NULL to do this) */
         if (!fastExpose)

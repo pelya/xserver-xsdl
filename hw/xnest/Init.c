@@ -12,6 +12,8 @@ the suitability of this software for any purpose.  It is provided "as
 is" without express or implied warranty.
 
 */
+/* $XFree86: xc/programs/Xserver/hw/xnest/Init.c,v 3.24 2003/01/15 02:34:14 torrey Exp $ */
+
 #include "X.h"
 #include "Xproto.h"
 #include "screenint.h"
@@ -20,6 +22,8 @@ is" without express or implied warranty.
 #include "scrnintstr.h"
 #include "windowstr.h"
 #include "servermd.h"
+#include "mi.h"
+#include "fontstruct.h"
 
 #include "Xnest.h"
 
@@ -53,7 +57,8 @@ void InitOutput(screenInfo, argc, argv)
   screenInfo->numPixmapFormats = 0;
   for (i = 0; i < xnestNumPixmapFormats; i++) 
     for (j = 0; j < xnestNumDepths; j++)
-      if (xnestPixmapFormats[i].depth == xnestDepths[j]) {
+      if ((xnestPixmapFormats[i].depth == 1) ||
+          (xnestPixmapFormats[i].depth == xnestDepths[j])) {
 	screenInfo->formats[screenInfo->numPixmapFormats].depth = 
 	  xnestPixmapFormats[i].depth;
 	screenInfo->formats[screenInfo->numPixmapFormats].bitsPerPixel = 
@@ -61,6 +66,7 @@ void InitOutput(screenInfo, argc, argv)
 	screenInfo->formats[screenInfo->numPixmapFormats].scanlinePad = 
 	  xnestPixmapFormats[i].scanline_pad;
 	screenInfo->numPixmapFormats++;
+	break;
       }
   
   xnestWindowPrivateIndex = AllocateWindowPrivateIndex();
@@ -81,8 +87,8 @@ void InitInput(argc, argv)
      int argc;
      char *argv[];
 {
-  DevicePtr ptr, kbd;
-    
+  pointer ptr, kbd;
+
   ptr = AddInputDevice(xnestPointerProc, TRUE);
   kbd = AddInputDevice(xnestKeyboardProc, TRUE);
 
@@ -111,7 +117,35 @@ void ddxGiveUp()
   AbortDDX();
 }
 
+#ifdef __DARWIN__
+void
+DarwinHandleGUI(int argc, char *argv[])
+{
+}
+
+void GlxExtensionInit();
+void GlxWrapInitVisuals(void *procPtr);
+
+void
+DarwinGlxExtensionInit()
+{
+    GlxExtensionInit();
+}
+
+void
+DarwinGlxWrapInitVisuals(
+    void *procPtr)
+{
+    GlxWrapInitVisuals(procPtr);
+}
+#endif
+
 void OsVendorInit()
+{
+    return;
+}
+
+void OsVendorFatalError()
 {
     return;
 }

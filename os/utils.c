@@ -49,8 +49,14 @@ OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE
 OR PERFORMANCE OF THIS SOFTWARE.
 
 */
+/* $XFree86: xc/programs/Xserver/os/utils.c,v 3.85 2002/12/24 17:43:00 tsi Exp $ */
 
-#ifdef WIN32
+#ifdef __CYGWIN__
+#include <stdlib.h>
+#include <signal.h>
+#endif
+
+#if defined(WIN32) && !defined(__CYGWIN__)
 #include <X11/Xwinsock.h>
 #endif
 #include "Xos.h"
@@ -58,7 +64,8 @@ OR PERFORMANCE OF THIS SOFTWARE.
 #include "misc.h"
 #include "X.h"
 #include "input.h"
-#include "opaque.h"
+#include "dixfont.h"
+#include "osdep.h"
 #ifdef X_POSIX_C_SOURCE
 #define _POSIX_C_SOURCE X_POSIX_C_SOURCE
 #include <signal.h>
@@ -72,74 +79,69 @@ OR PERFORMANCE OF THIS SOFTWARE.
 #undef _POSIX_SOURCE
 #endif
 #endif
-#ifndef WIN32
-#ifndef SYSV
+#include <sys/wait.h>
+#if !defined(SYSV) && !defined(WIN32) && !defined(Lynx) && !defined(QNX4)
 #include <sys/resource.h>
-#endif
 #endif
 #include <time.h>
 #include <sys/stat.h>
 #include <ctype.h>    /* for isspace */
-#if NeedVarargsPrototypes
 #include <stdarg.h>
+
+#if defined(DGUX)
+#include <sys/resource.h>
+#include <netdb.h>
 #endif
+
+#include <stdlib.h>	/* for malloc() */
+
 #if defined(TCPCONN) || defined(STREAMSCONN)
 # ifndef WIN32
 #  include <netdb.h>
 # endif
 #endif
 
+#include "opaque.h"
+
+#ifdef SMART_SCHEDULE
+#include "dixstruct.h"
+#endif
+
+#ifdef XKB
+#include "XKBsrv.h"
+#endif
+#ifdef XCSECURITY
+#define _SECURITY_SERVER
+#include "security.h"
+#endif
+
+#ifdef RENDER
+#include "picture.h"
+#endif
+
 #define X_INCLUDE_NETDB_H
 #include <X11/Xos_r.h>
 
-extern char *display;
-
-extern CARD32 defaultScreenSaverTime;	/* for parsing command line */
-extern CARD32 defaultScreenSaverInterval;
-extern int defaultScreenSaverBlanking;
-extern int defaultBackingStore;
-extern Bool disableBackingStore;
-extern Bool disableSaveUnders;
-extern Bool PartialNetwork;
-#ifndef NOLOGOHACK
-extern int logoScreenSaver;
-#endif
-#ifdef RLIMIT_DATA
-extern int limitDataSpace;
-#endif
-#ifdef RLIMIT_STACK
-extern int limitStackSpace;
-#endif
-#ifdef RLIMIT_NOFILE
-extern int limitNoFile;
-#endif
-extern int defaultColorVisualClass;
-extern Bool permitOldBugs;
-extern int monitorResolution;
-extern Bool defeatAccessControl;
-
-#ifdef DPMSExtension
-extern BOOL DPMSEnabledSwitch;
-extern BOOL DPMSDisabledSwitch;
-#endif
+#include <errno.h>
 
 Bool CoreDump;
 Bool noTestExtensions;
 
-Bool noPanoramiXExtension = TRUE;
 #ifdef PANORAMIX
+Bool noPanoramiXExtension = TRUE;
 Bool PanoramiXVisibilityNotifySent = FALSE;
 Bool PanoramiXMapped = FALSE;
 Bool PanoramiXWindowExposureSent = FALSE;
 Bool PanoramiXOneExposeRequest = FALSE;
 #endif
 
+#ifdef DDXOSVERRORF
+void (*OsVendorVErrorFProc)(const char *, va_list args) = NULL;
+#endif
+
 int auditTrailLevel = 1;
 
-void ddxUseMsg();
-#if NeedVarargsPrototypes
-void VErrorF(char*, va_list);
-#endif
+Bool Must_have_memory = FALSE;
 
 #ifdef AIXV3
 int SyncOn  = 0;
@@ -155,14 +157,12 @@ extern int SelectWaitTime;
 #ifdef MEMBUG
 #define MEM_FAIL_SCALE 100000
 long Memory_fail = 0;
-
+#include <stdlib.h>  /* for random() */
 #endif
 
 #ifdef sgi
 int userdefinedfontpath = 0;
 #endif /* sgi */
-
-Bool Must_have_memory = FALSE;
 
 char *dev_tty_from_init = NULL;		/* since we need to parse it anyway */
 
@@ -185,6 +185,206 @@ OsSignal(sig, handler)
     return oact.sa_handler;
 #endif
 }
+	
+#ifdef SERVER_LOCK
+/*
+ * Explicit support for a server lock file like the ones used for UUCP.
+ * For architectures with virtual terminals that can run more than one
+ * server at a time.  This keeps the servers from stomping on each other
+ * if the user forgets to give them different display numbers.
+ */
+#ifndef __UNIXOS2__
+#define LOCK_DIR "/tmp"
+#endif
+#define LOCK_TMP_PREFIX "/.tX"
+#define LOCK_PREFIX "/.X"
+#define LOCK_SUFFIX "-lock"
+
+#if defined(DGUX)
+#include <limits.h>
+#include <sys/param.h>
+#endif
+
+#ifdef __UNIXOS2__
+#define link rename
+#endif
+
+#ifndef PATH_MAX
+#ifndef Lynx
+#include <sys/param.h>
+#else
+#include <param.h>
+#endif
+#ifndef PATH_MAX
+#ifdef MAXPATHLEN
+#define PATH_MAX MAXPATHLEN
+#else
+#define PATH_MAX 1024
+#endif
+#endif
+#endif
+
+static Bool StillLocking = FALSE;
+static char LockFile[PATH_MAX];
+static Bool nolock = FALSE;
+
+/*
+ * LockServer --
+ *      Check if the server lock file exists.  If so, check if the PID
+ *      contained inside is valid.  If so, then die.  Otherwise, create
+ *      the lock file containing the PID.
+ */
+void
+LockServer()
+{
+  char tmp[PATH_MAX], pid_str[12];
+  int lfd, i, haslock, l_pid, t;
+  char *tmppath = NULL;
+  int len;
+
+  if (nolock) return;
+  /*
+   * Path names
+   */
+#ifndef __UNIXOS2__
+  tmppath = LOCK_DIR;
+#else
+  /* OS/2 uses TMP directory, must also prepare for 8.3 names */
+  tmppath = getenv("TMP");
+  if (!tmppath)
+    FatalError("No TMP dir found\n");
+#endif
+
+  len = strlen(LOCK_PREFIX) > strlen(LOCK_TMP_PREFIX) ? strlen(LOCK_PREFIX) :
+						strlen(LOCK_TMP_PREFIX);
+  len += strlen(tmppath) + strlen(display) + strlen(LOCK_SUFFIX) + 1;
+  if (len > sizeof(LockFile))
+    FatalError("Display name `%s' is too long\n");
+  (void)sprintf(tmp, "%s" LOCK_TMP_PREFIX "%s" LOCK_SUFFIX, tmppath, display);
+  (void)sprintf(LockFile, "%s" LOCK_PREFIX "%s" LOCK_SUFFIX, tmppath, display);
+
+  /*
+   * Create a temporary file containing our PID.  Attempt three times
+   * to create the file.
+   */
+  StillLocking = TRUE;
+  i = 0;
+  do {
+    i++;
+    lfd = open(tmp, O_CREAT | O_EXCL | O_WRONLY, 0644);
+    if (lfd < 0)
+       sleep(2);
+    else
+       break;
+  } while (i < 3);
+  if (lfd < 0) {
+    unlink(tmp);
+    i = 0;
+    do {
+      i++;
+      lfd = open(tmp, O_CREAT | O_EXCL | O_WRONLY, 0644);
+      if (lfd < 0)
+         sleep(2);
+      else
+         break;
+    } while (i < 3);
+  }
+  if (lfd < 0)
+    FatalError("Could not create lock file in %s\n", tmp);
+  (void) sprintf(pid_str, "%10ld\n", (long)getpid());
+  (void) write(lfd, pid_str, 11);
+#ifndef __UNIXOS2__
+#ifndef USE_CHMOD
+  (void) fchmod(lfd, 0444);
+#else
+  (void) chmod(tmp, 0444);
+#endif
+#endif
+  (void) close(lfd);
+
+  /*
+   * OK.  Now the tmp file exists.  Try three times to move it in place
+   * for the lock.
+   */
+  i = 0;
+  haslock = 0;
+  while ((!haslock) && (i++ < 3)) {
+    haslock = (link(tmp,LockFile) == 0);
+    if (haslock) {
+      /*
+       * We're done.
+       */
+      break;
+    }
+    else {
+      /*
+       * Read the pid from the existing file
+       */
+      lfd = open(LockFile, O_RDONLY);
+      if (lfd < 0) {
+        unlink(tmp);
+        FatalError("Can't read lock file %s\n", LockFile);
+      }
+      pid_str[0] = '\0';
+      if (read(lfd, pid_str, 11) != 11) {
+        /*
+         * Bogus lock file.
+         */
+        unlink(LockFile);
+        close(lfd);
+        continue;
+      }
+      pid_str[11] = '\0';
+      sscanf(pid_str, "%d", &l_pid);
+      close(lfd);
+
+      /*
+       * Now try to kill the PID to see if it exists.
+       */
+      errno = 0;
+      t = kill(l_pid, 0);
+      if ((t< 0) && (errno == ESRCH)) {
+        /*
+         * Stale lock file.
+         */
+        unlink(LockFile);
+        continue;
+      }
+      else if (((t < 0) && (errno == EPERM)) || (t == 0)) {
+        /*
+         * Process is still active.
+         */
+        unlink(tmp);
+	FatalError("Server is already active for display %s\n%s %s\n%s\n",
+		   display, "\tIf this server is no longer running, remove",
+		   LockFile, "\tand start again.");
+      }
+    }
+  }
+  unlink(tmp);
+  if (!haslock)
+    FatalError("Could not create server lock file: %s\n", LockFile);
+  StillLocking = FALSE;
+}
+
+/*
+ * UnlockServer --
+ *      Remove the server lock file.
+ */
+void
+UnlockServer()
+{
+  if (nolock) return;
+
+  if (!StillLocking){
+
+#ifdef __UNIXOS2__
+  (void) chmod(LockFile,S_IREAD|S_IWRITE);
+#endif /* __UNIXOS2__ */
+  (void) unlink(LockFile);
+  }
+}
+#endif /* SERVER_LOCK */
 
 /* Force connections to close on SIGHUP from init */
 
@@ -193,6 +393,8 @@ SIGVAL
 AutoResetServer (sig)
     int sig;
 {
+    int olderrno = errno;
+
     dispatchException |= DE_RESET;
     isItTimeToYield = TRUE;
 #ifdef GPROF
@@ -202,6 +404,7 @@ AutoResetServer (sig)
 #if defined(SYSV) && defined(X_NOT_POSIX)
     OsSignal (SIGHUP, AutoResetServer);
 #endif
+    errno = olderrno;
 }
 
 /* Force connections to close and then exit on SIGTERM, SIGINT */
@@ -211,20 +414,25 @@ SIGVAL
 GiveUp(sig)
     int sig;
 {
+    int olderrno = errno;
+
     dispatchException |= DE_TERMINATE;
     isItTimeToYield = TRUE;
 #if defined(SYSV) && defined(X_NOT_POSIX)
     if (sig)
 	OsSignal(sig, SIG_IGN);
 #endif
+    errno = olderrno;
 }
 
+#ifdef __GNUC__
+static void AbortServer() __attribute__((noreturn));
+#endif
 
 static void
 AbortServer()
 {
-    extern void AbortDDX();
-
+    OsCleanup();
     AbortDDX();
     fflush(stderr);
     if (CoreDump)
@@ -250,6 +458,7 @@ GetTimeInMillis()
 }
 #endif
 
+void
 AdjustWaitForDelay (waitTime, newdelay)
     pointer	    waitTime;
     unsigned long   newdelay;
@@ -287,6 +496,8 @@ void UseMsg()
     ErrorF("-audit int             set audit trail level\n");	
     ErrorF("-auth file             select authorization file\n");	
     ErrorF("bc                     enable bug compatibility\n");
+    ErrorF("-br                    create root window with black background\n");
+    ErrorF("+bs                    enable any backing store support\n");
     ErrorF("-bs                    disable any backing store support\n");
     ErrorF("-c                     turns off key-click\n");
     ErrorF("c #                    key-click volume (0-100)\n");
@@ -317,14 +528,22 @@ void UseMsg()
 #ifdef RLIMIT_STACK
     ErrorF("-ls int                limit stack space to N Kb\n");
 #endif
+#ifdef SERVER_LOCK
+    ErrorF("-nolock                disable the locking mechanism\n");
+#endif
 #ifndef NOLOGOHACK
     ErrorF("-logo                  enable logo in screen saver\n");
     ErrorF("nologo                 disable logo in screen saver\n");
 #endif
+    ErrorF("-nolisten string       don't listen on protocol\n");
     ErrorF("-p #                   screen-saver pattern duration (minutes)\n");
     ErrorF("-pn                    accept failure to listen on all ports\n");
+    ErrorF("-nopn                  reject failure to listen on all ports\n");
     ErrorF("-r                     turns off auto-repeat\n");
     ErrorF("r                      turns on auto-repeat \n");
+#ifdef RENDER
+    ErrorF("-render [default|mono|gray|color] set render color alloc policy\n");
+#endif
     ErrorF("-s #                   screen-saver timeout (minutes)\n");
 #ifdef XCSECURITY
     ErrorF("-sp file               security policy file\n");
@@ -338,11 +557,11 @@ void UseMsg()
     ErrorF("v                      video blanking for screen-saver\n");
     ErrorF("-v                     screen-saver without video blanking\n");
     ErrorF("-wm                    WhenMapped default backing-store\n");
+    ErrorF("-x string              loads named extension at init time \n");
 #ifdef PANORAMIX
     ErrorF("+xinerama              Enable XINERAMA extension\n");
     ErrorF("-xinerama              Disable XINERAMA extension\n");
 #endif
-    ErrorF("-x string              loads named extension at init time \n");
 #ifdef XDMCP
     XdmcpUseMsg();
 #endif
@@ -351,6 +570,24 @@ void UseMsg()
     XkbUseMsg();
 #endif
     ddxUseMsg();
+}
+
+/*  This function performs a rudimentary sanity check
+ *  on the display name passed in on the command-line,
+ *  since this string is used to generate filenames.
+ *  It is especially important that the display name
+ *  not contain a "/" and not start with a "-".
+ *                                            --kvajk
+ */
+int VerifyDisplayName( d )
+char *d;
+{
+    if ( d == (char *)0 ) return( 0 );  /*  null  */
+    if ( *d == '\0' ) return( 0 );  /*  empty  */
+    if ( *d == '-' ) return( 0 );  /*  could be confused for an option  */
+    if ( *d == '.' ) return( 0 );  /*  must not equal "." or ".."  */
+    if ( strchr(d, '/') != (char *)0 ) return( 0 );  /*  very important!!!  */
+    return( 1 );
 }
 
 /*
@@ -368,10 +605,14 @@ char	*argv[];
 
     defaultKeyboardControl.autoRepeat = TRUE;
 
+#ifdef PART_NET
+	PartialNetwork = TRUE;
+#endif
+
     for ( i = 1; i < argc; i++ )
     {
 	/* call ddx first, so it can peek/override if it wants */
-        if(skip = ddxProcessArgument(argc, argv, i))
+        if((skip = ddxProcessArgument(argc, argv, i)))
 	{
 	    i += (skip - 1);
 	}
@@ -380,6 +621,11 @@ char	*argv[];
 	    /* initialize display */
 	    display = argv[i];
 	    display++;
+            if( ! VerifyDisplayName( display ) ) {
+                ErrorF("Bad display name: %s\n", display);
+                UseMsg();
+                exit(1);
+            }
 	}
 	else if ( strcmp( argv[i], "-a") == 0)
 	{
@@ -417,6 +663,10 @@ char	*argv[];
 	}
 	else if ( strcmp( argv[i], "bc") == 0)
 	    permitOldBugs = TRUE;
+	else if ( strcmp( argv[i], "-br") == 0)
+	    blackRoot = TRUE;
+	else if ( strcmp( argv[i], "+bs") == 0)
+	    enableBackingStore = TRUE;
 	else if ( strcmp( argv[i], "-bs") == 0)
 	    disableBackingStore = TRUE;
 	else if ( strcmp( argv[i], "c") == 0)
@@ -544,6 +794,17 @@ char	*argv[];
 		UseMsg();
 	}
 #endif
+#ifdef SERVER_LOCK
+	else if ( strcmp ( argv[i], "-nolock") == 0)
+	{
+#if !defined(WIN32) && !defined(__UNIXOS2__) && !defined(__CYGWIN__)
+	  if (getuid() != 0)
+	    ErrorF("Warning: the -nolock option can only be used by root\n");
+	  else
+#endif
+	    nolock = TRUE;
+	}
+#endif
 #ifndef NOLOGOHACK
 	else if ( strcmp( argv[i], "-logo") == 0)
 	{
@@ -554,6 +815,19 @@ char	*argv[];
 	    logoScreenSaver = 0;
 	}
 #endif
+	else if ( strcmp( argv[i], "-nolisten") == 0)
+	{
+            if(++i < argc)
+	        protNoListen = argv[i];
+	    else
+		UseMsg();
+	}
+	else if ( strcmp( argv[i], "-noreset") == 0)
+	{
+	    extern char dispatchExceptionAtReset;
+
+	    dispatchExceptionAtReset = 0;
+	}
 	else if ( strcmp( argv[i], "-p") == 0)
 	{
 	    if(++i < argc)
@@ -564,6 +838,8 @@ char	*argv[];
 	}
 	else if ( strcmp( argv[i], "-pn") == 0)
 	    PartialNetwork = TRUE;
+	else if ( strcmp( argv[i], "-nopn") == 0)
+	    PartialNetwork = FALSE;
 	else if ( strcmp( argv[i], "r") == 0)
 	    defaultKeyboardControl.autoRepeat = TRUE;
 	else if ( strcmp( argv[i], "-r") == 0)
@@ -587,9 +863,9 @@ char	*argv[];
 	}
 	else if ( strcmp( argv[i], "-terminate") == 0)
 	{
-	    extern Bool terminateAtReset;
+	    extern char dispatchExceptionAtReset;
 	    
-	    terminateAtReset = TRUE;
+	    dispatchExceptionAtReset = DE_TERMINATE;
 	}
 	else if ( strcmp( argv[i], "-to") == 0)
 	{
@@ -665,8 +941,50 @@ char	*argv[];
             SyncOn++;
         }
 #endif
+#ifdef SMART_SCHEDULE
+	else if ( strcmp( argv[i], "-dumbSched") == 0)
+	{
+	    SmartScheduleDisable = TRUE;
+	}
+	else if ( strcmp( argv[i], "-schedInterval") == 0)
+	{
+	    if (++i < argc)
+	    {
+		SmartScheduleInterval = atoi(argv[i]);
+		SmartScheduleSlice = SmartScheduleInterval;
+	    }
+	    else
+		UseMsg();
+	}
+	else if ( strcmp( argv[i], "-schedMax") == 0)
+	{
+	    if (++i < argc)
+	    {
+		SmartScheduleMaxSlice = atoi(argv[i]);
+	    }
+	    else
+		UseMsg();
+	}
+#endif
+#ifdef RENDER
+	else if ( strcmp( argv[i], "-render" ) == 0)
+	{
+	    if (++i < argc)
+	    {
+		int policy = PictureParseCmapPolicy (argv[i]);
+
+		if (policy != PictureCmapPolicyInvalid)
+		    PictureCmapPolicy = policy;
+		else
+		    UseMsg ();
+	    }
+	    else
+		UseMsg ();
+	}
+#endif
  	else
  	{
+	    ErrorF("Unrecognized option: %s\n", argv[i]);
 	    UseMsg();
 	    exit (1);
         }
@@ -771,6 +1089,12 @@ ExpandCommandLine(pargc, pargv)
     char ***pargv;
 {
     int i;
+
+#if !defined(WIN32) && !defined(__UNIXOS2__) && !defined(__CYGWIN__)
+    if (getuid() != geteuid())
+	return;
+#endif
+
     for (i = 1; i < *pargc; i++)
     {
 	if ( (0 == strcmp((*pargv)[i], "-config")) && (i < (*pargc - 1)) )
@@ -803,7 +1127,9 @@ pointer client;
 	char hname[1024], *hnameptr;
 	struct hostent *host;
 	int len;
+#ifdef XTHREADS_NEEDS_BYNAMEPARAMS
 	_Xgethostbynameparams hparams;
+#endif
 
 	gethostname(hname, 1024);
 	host = _XGethostbyname(hname, hparams);
@@ -843,15 +1169,17 @@ pointer client;
  * expectations of malloc, but this makes lint happier.
  */
 
-unsigned long * 
+#ifndef INTERNAL_MALLOC
+
+void * 
 Xalloc (amount)
     unsigned long amount;
 {
-    char		*malloc();
     register pointer  ptr;
 	
-    if ((long)amount <= 0)
+    if ((long)amount <= 0) {
 	return (unsigned long *)NULL;
+    }
     /* aligned extra on long word boundary */
     amount = (amount + (sizeof(long) - 1)) & ~(sizeof(long) - 1);
 #ifdef MEMBUG
@@ -859,8 +1187,9 @@ Xalloc (amount)
 	((random() % MEM_FAIL_SCALE) < Memory_fail))
 	return (unsigned long *)NULL;
 #endif
-    if (ptr = (pointer)malloc(amount))
+    if ((ptr = (pointer)malloc(amount))) {
 	return (unsigned long *)ptr;
+    }
     if (Must_have_memory)
 	FatalError("Out of memory");
     return (unsigned long *)NULL;
@@ -871,11 +1200,10 @@ Xalloc (amount)
  * "no failure" realloc, alternate interface to Xalloc w/o Must_have_memory
  *****************/
 
-unsigned long *
+void *
 XNFalloc (amount)
     unsigned long amount;
 {
-    char             *malloc();
     register pointer ptr;
 
     if ((long)amount <= 0)
@@ -896,7 +1224,7 @@ XNFalloc (amount)
  * Xcalloc
  *****************/
 
-unsigned long *
+void *
 Xcalloc (amount)
     unsigned long   amount;
 {
@@ -909,17 +1237,32 @@ Xcalloc (amount)
 }
 
 /*****************
+ * XNFcalloc
+ *****************/
+
+void *
+XNFcalloc (amount)
+    unsigned long   amount;
+{
+    unsigned long   *ret;
+
+    ret = Xalloc (amount);
+    if (ret)
+	bzero ((char *) ret, (int) amount);
+    else if ((long)amount > 0)
+        FatalError("Out of memory");
+    return ret;
+}
+
+/*****************
  * Xrealloc
  *****************/
 
-unsigned long *
+void *
 Xrealloc (ptr, amount)
     register pointer ptr;
     unsigned long amount;
 {
-    char *malloc();
-    char *realloc();
-
 #ifdef MEMBUG
     if (!Must_have_memory && Memory_fail &&
 	((random() % MEM_FAIL_SCALE) < Memory_fail))
@@ -948,14 +1291,15 @@ Xrealloc (ptr, amount)
  * "no failure" realloc, alternate interface to Xrealloc w/o Must_have_memory
  *****************/
 
-unsigned long *
+void *
 XNFrealloc (ptr, amount)
     register pointer ptr;
     unsigned long amount;
 {
     if (( ptr = (pointer)Xrealloc( ptr, amount ) ) == NULL)
     {
-        FatalError( "Out of memory" );
+	if ((long)amount > 0)
+            FatalError( "Out of memory" );
     }
     return ((unsigned long *)ptr);
 }
@@ -973,6 +1317,7 @@ Xfree(ptr)
 	free((char *)ptr); 
 }
 
+void
 OsInitAllocator ()
 {
 #ifdef MEMBUG
@@ -985,24 +1330,51 @@ OsInitAllocator ()
 	been_here = 1;
 #endif
 }
+#endif /* !INTERNAL_MALLOC */
+
+
+char *
+Xstrdup(const char *s)
+{
+    char *sd;
+
+    if (s == NULL)
+	return NULL;
+
+    sd = (char *)Xalloc(strlen(s) + 1);
+    if (sd != NULL)
+	strcpy(sd, s);
+    return sd;
+}
+
+
+char *
+XNFstrdup(const char *s)
+{
+    char *sd;
+
+    if (s == NULL)
+	return NULL;
+
+    sd = (char *)XNFalloc(strlen(s) + 1);
+    strcpy(sd, s);
+    return sd;
+}
+
 
 void
 AuditPrefix(f)
-    char *f;
+    const char *f;
 {
-#ifdef X_NOT_STDC_ENV
-    long tm;
-#else
     time_t tm;
-#endif
     char *autime, *s;
     if (*f != ' ')
     {
 	time(&tm);
 	autime = ctime(&tm);
-	if (s = strchr(autime, '\n'))
+	if ((s = strchr(autime, '\n')))
 	    *s = '\0';
-	if (s = strrchr(argvGlobal[0], '/'))
+	if ((s = strrchr(argvGlobal[0], '/')))
 	    s++;
 	else
 	    s = argvGlobal[0];
@@ -1010,96 +1382,669 @@ AuditPrefix(f)
     }
 }
 
-/*VARARGS1*/
 void
-AuditF(
-#if NeedVarargsPrototypes
-    char * f, ...)
-#else
-    f, s0, s1, s2, s3, s4, s5, s6, s7, s8, s9) /* limit of ten args */
-    char *f;
-    char *s0, *s1, *s2, *s3, *s4, *s5, *s6, *s7, *s8, *s9;
-#endif
+AuditF(const char * f, ...)
 {
-#if NeedVarargsPrototypes
     va_list args;
-#endif
 
     AuditPrefix(f);
 
-#if NeedVarargsPrototypes
     va_start(args, f);
     VErrorF(f, args);
     va_end(args);
-#else
-    ErrorF(f, s0, s1, s2, s3, s4, s5, s6, s7, s8, s9);
-#endif
 }
 
-/*VARARGS1*/
 void
-FatalError(
-#if NeedVarargsPrototypes
-    char *f, ...)
-#else
-f, s0, s1, s2, s3, s4, s5, s6, s7, s8, s9) /* limit of ten args */
-    char *f;
-    char *s0, *s1, *s2, *s3, *s4, *s5, *s6, *s7, *s8, *s9;
-#endif
+FatalError(const char *f, ...)
 {
-#if NeedVarargsPrototypes
     va_list args;
-#endif
-    ErrorF("\nFatal server error:\n");
-#if NeedVarargsPrototypes
+    static Bool beenhere = FALSE;
+
+    if (beenhere)
+	ErrorF("\nFatalError re-entered, aborting\n");
+    else
+	ErrorF("\nFatal server error:\n");
+
     va_start(args, f);
     VErrorF(f, args);
     va_end(args);
-#else
-    ErrorF(f, s0, s1, s2, s3, s4, s5, s6, s7, s8, s9);
-#endif
     ErrorF("\n");
+#ifdef DDXOSFATALERROR
+    if (!beenhere)
+	OsVendorFatalError();
+#endif
+#ifdef ABORTONFATALERROR
+    abort();
+#endif
+    if (!beenhere) {
+	beenhere = TRUE;
+	AbortServer();
+    } else
+	abort();
+    /*NOTREACHED*/
+}
+
+void
+VErrorF(f, args)
+    const char *f;
+    va_list args;
+{
+#ifdef AIXV3
+    if (SyncOn)
+        sync();
+#else
+#ifdef DDXOSVERRORF
+    if (OsVendorVErrorFProc)
+	OsVendorVErrorFProc(f, args);
+    else
+	vfprintf(stderr, f, args);
+#else
+    vfprintf(stderr, f, args);
+#endif
+#endif /* AIXV3 */
+}
+
+void
+VFatalError(const char *msg, va_list args)
+{
+    VErrorF(msg, args);
+    ErrorF("\n");
+#ifdef DDXOSFATALERROR
+    OsVendorFatalError();
+#endif
     AbortServer();
     /*NOTREACHED*/
 }
 
-#if NeedVarargsPrototypes
 void
-VErrorF(f, args)
-    char *f;
-    va_list args;
+ErrorF(const char * f, ...)
 {
-#ifdef AIXV3
-    if (SyncOn)
-        sync();
-#else
-    vfprintf(stderr, f, args);
-#endif /* AIXV3 */
-}
-#endif
-
-/*VARARGS1*/
-void
-ErrorF(
-#if NeedVarargsPrototypes
-    char * f, ...)
-#else
- f, s0, s1, s2, s3, s4, s5, s6, s7, s8, s9) /* limit of ten args */
-    char *f;
-    char *s0, *s1, *s2, *s3, *s4, *s5, *s6, *s7, *s8, *s9;
-#endif
-{
-#if NeedVarargsPrototypes
     va_list args;
     va_start(args, f);
     VErrorF(f, args);
     va_end(args);
+}
+
+#ifdef SMART_SCHEDULE
+
+unsigned long	SmartScheduleIdleCount;
+Bool		SmartScheduleIdle;
+Bool		SmartScheduleTimerStopped;
+
+#ifdef SIGVTALRM
+#define SMART_SCHEDULE_POSSIBLE
+#endif
+
+#ifdef SMART_SCHEDULE_POSSIBLE
+#define SMART_SCHEDULE_SIGNAL		SIGALRM
+#define SMART_SCHEDULE_TIMER		ITIMER_REAL
+#endif
+
+void
+SmartScheduleStopTimer (void)
+{
+#ifdef SMART_SCHEDULE_POSSIBLE
+    struct itimerval	timer;
+    
+    timer.it_interval.tv_sec = 0;
+    timer.it_interval.tv_usec = 0;
+    timer.it_value.tv_sec = 0;
+    timer.it_value.tv_usec = 0;
+    (void) setitimer (ITIMER_REAL, &timer, 0);
+    SmartScheduleTimerStopped = TRUE;
+#endif
+}
+
+Bool
+SmartScheduleStartTimer (void)
+{
+#ifdef SMART_SCHEDULE_POSSIBLE
+    struct itimerval	timer;
+    
+    SmartScheduleTimerStopped = FALSE;
+    timer.it_interval.tv_sec = 0;
+    timer.it_interval.tv_usec = SmartScheduleInterval * 1000;
+    timer.it_value.tv_sec = 0;
+    timer.it_value.tv_usec = SmartScheduleInterval * 1000;
+    return setitimer (ITIMER_REAL, &timer, 0) >= 0;
+#endif
+    return FALSE;
+}
+
+#ifdef SMART_SCHEDULE_POSSIBLE
+void
+SmartScheduleTimer (int sig)
+{
+    int olderrno = errno;
+
+    SmartScheduleTime += SmartScheduleInterval;
+    if (SmartScheduleIdle)
+    {
+	SmartScheduleStopTimer ();
+    }
+    errno = olderrno;
+}
+#endif
+
+Bool
+SmartScheduleInit (void)
+{
+#ifdef SMART_SCHEDULE_POSSIBLE
+    struct sigaction	act;
+
+    if (SmartScheduleDisable)
+	return TRUE;
+    
+    bzero ((char *) &act, sizeof(struct sigaction));
+
+    /* Set up the timer signal function */
+    act.sa_handler = SmartScheduleTimer;
+    sigemptyset (&act.sa_mask);
+    sigaddset (&act.sa_mask, SMART_SCHEDULE_SIGNAL);
+    if (sigaction (SMART_SCHEDULE_SIGNAL, &act, 0) < 0)
+    {
+	perror ("sigaction for smart scheduler");
+	return FALSE;
+    }
+    /* Set up the virtual timer */
+    if (!SmartScheduleStartTimer ())
+    {
+	perror ("scheduling timer");
+	return FALSE;
+    }
+    /* stop the timer and wait for WaitForSomething to start it */
+    SmartScheduleStopTimer ();
+    return TRUE;
 #else
-#ifdef AIXV3
-    if (SyncOn)
-        sync();
-#else /* not AIXV3 */
-    fprintf( stderr, f, s0, s1, s2, s3, s4, s5, s6, s7, s8, s9);
-#endif /* AIXV3 */
+    return FALSE;
+#endif
+}
+#endif
+
+#ifdef SIG_BLOCK
+static sigset_t	PreviousSignalMask;
+static int	BlockedSignalCount;
+#endif
+
+void
+OsBlockSignals (void)
+{
+#ifdef SIG_BLOCK
+    if (BlockedSignalCount++ == 0)
+    {
+	sigset_t    set;
+	
+	sigemptyset (&set);
+#ifdef SIGALRM
+	sigaddset (&set, SIGALRM);
+#endif
+#ifdef SIGVTALRM
+	sigaddset (&set, SIGVTALRM);
+#endif
+#ifdef SIGWINCH
+	sigaddset (&set, SIGWINCH);
+#endif
+#ifdef SIGIO
+	sigaddset (&set, SIGIO);
+#endif
+#ifdef SIGTSTP
+	sigaddset (&set, SIGTSTP);
+#endif
+#ifdef SIGTTIN
+	sigaddset (&set, SIGTTIN);
+#endif
+#ifdef SIGTTOU
+	sigaddset (&set, SIGTTOU);
+#endif
+	sigprocmask (SIG_BLOCK, &set, &PreviousSignalMask);
+    }
+#endif
+}
+
+void
+OsReleaseSignals (void)
+{
+#ifdef SIG_BLOCK
+    if (--BlockedSignalCount == 0)
+    {
+	sigprocmask (SIG_SETMASK, &PreviousSignalMask, 0);
+    }
+#endif
+}
+
+#if !defined(WIN32) && !defined(__UNIXOS2__)
+/*
+ * "safer" versions of system(3), popen(3) and pclose(3) which give up
+ * all privs before running a command.
+ *
+ * This is based on the code in FreeBSD 2.2 libc.
+ *
+ * XXX It'd be good to redirect stderr so that it ends up in the log file
+ * as well.  As it is now, xkbcomp messages don't end up in the log file.
+ */
+
+int
+System(command)
+    char *command;
+{
+    int pid, p;
+#ifdef SIGCHLD
+    void (*csig)(int);
+#endif
+    int status;
+
+    if (!command)
+	return(1);
+
+#ifdef SIGCHLD
+    csig = signal(SIGCHLD, SIG_DFL);
+#endif
+
+#ifdef DEBUG
+    ErrorF("System: `%s'\n", command);
+#endif
+
+    switch (pid = fork()) {
+    case -1:	/* error */
+	p = -1;
+    case 0:	/* child */
+	setgid(getgid());
+	setuid(getuid());
+	execl("/bin/sh", "sh", "-c", command, (char *)NULL);
+	_exit(127);
+    default:	/* parent */
+	do {
+	    p = waitpid(pid, &status, 0);
+	} while (p == -1 && errno == EINTR);
+	
+    }
+
+#ifdef SIGCHLD
+    signal(SIGCHLD, csig);
+#endif
+
+    return p == -1 ? -1 : status;
+}
+
+static struct pid {
+    struct pid *next;
+    FILE *fp;
+    int pid;
+} *pidlist;
+
+pointer
+Popen(command, type)
+    char *command;
+    char *type;
+{
+    struct pid *cur;
+    FILE *iop;
+    int pdes[2], pid;
+
+    if (command == NULL || type == NULL)
+	return NULL;
+
+    if ((*type != 'r' && *type != 'w') || type[1])
+	return NULL;
+
+    if ((cur = (struct pid *)xalloc(sizeof(struct pid))) == NULL)
+	return NULL;
+
+    if (pipe(pdes) < 0) {
+	xfree(cur);
+	return NULL;
+    }
+
+    switch (pid = fork()) {
+    case -1: 	/* error */
+	close(pdes[0]);
+	close(pdes[1]);
+	xfree(cur);
+	return NULL;
+    case 0:	/* child */
+	setgid(getgid());
+	setuid(getuid());
+	if (*type == 'r') {
+	    if (pdes[1] != 1) {
+		/* stdout */
+		dup2(pdes[1], 1);
+		close(pdes[1]);
+	    }
+	    close(pdes[0]);
+	} else {
+	    if (pdes[0] != 0) {
+		/* stdin */
+		dup2(pdes[0], 0);
+		close(pdes[0]);
+	    }
+	    close(pdes[1]);
+	}
+	execl("/bin/sh", "sh", "-c", command, (char *)NULL);
+	_exit(127);
+    }
+
+    /* Avoid EINTR during stdio calls */
+    OsBlockSignals ();
+    
+    /* parent */
+    if (*type == 'r') {
+	iop = fdopen(pdes[0], type);
+	close(pdes[1]);
+    } else {
+	iop = fdopen(pdes[1], type);
+	close(pdes[0]);
+    }
+
+    cur->fp = iop;
+    cur->pid = pid;
+    cur->next = pidlist;
+    pidlist = cur;
+
+#ifdef DEBUG
+    ErrorF("Popen: `%s', fp = %p\n", command, iop);
+#endif
+
+    return iop;
+}
+
+int
+Pclose(iop)
+    pointer iop;
+{
+    struct pid *cur, *last;
+    int pstat;
+    int pid;
+
+#ifdef DEBUG
+    ErrorF("Pclose: fp = %p\n", iop);
+#endif
+
+    fclose(iop);
+
+    for (last = NULL, cur = pidlist; cur; last = cur, cur = cur->next)
+	if (cur->fp == iop)
+	    break;
+    if (cur == NULL)
+	return -1;
+
+    do {
+	pid = waitpid(cur->pid, &pstat, 0);
+    } while (pid == -1 && errno == EINTR);
+
+    if (last == NULL)
+	pidlist = cur->next;
+    else
+	last->next = cur->next;
+    xfree(cur);
+
+    /* allow EINTR again */
+    OsReleaseSignals ();
+    
+    return pid == -1 ? -1 : pstat;
+}
+#endif /* !WIN32 && !__UNIXOS2__ */
+
+
+/*
+ * CheckUserParameters: check for long command line arguments and long
+ * environment variables.  By default, these checks are only done when
+ * the server's euid != ruid.  In 3.3.x, these checks were done in an
+ * external wrapper utility.
+ */
+
+/* Consider LD* variables insecure? */
+#ifndef REMOVE_ENV_LD
+#define REMOVE_ENV_LD 1
+#endif
+
+/* Remove long environment variables? */
+#ifndef REMOVE_LONG_ENV
+#define REMOVE_LONG_ENV 1
+#endif
+
+/*
+ * Disallow stdout or stderr as pipes?  It's possible to block the X server
+ * when piping stdout+stderr to a pipe.
+ *
+ * Don't enable this because it looks like it's going to cause problems.
+ */
+#ifndef NO_OUTPUT_PIPES
+#define NO_OUTPUT_PIPES 0
+#endif
+
+
+/* Check args and env only if running setuid (euid == 0 && euid != uid) ? */
+#ifndef CHECK_EUID
+#define CHECK_EUID 1
+#endif
+
+/*
+ * Maybe the locale can be faked to make isprint(3) report that everything
+ * is printable?  Avoid it by default.
+ */
+#ifndef USE_ISPRINT
+#define USE_ISPRINT 0
+#endif
+
+#define MAX_ARG_LENGTH          128
+#define MAX_ENV_LENGTH          256
+#define MAX_ENV_PATH_LENGTH     2048	/* Limit for *PATH and TERMCAP */
+
+#if USE_ISPRINT
+#include <ctype.h>
+#define checkPrintable(c) isprint(c)
+#else
+#define checkPrintable(c) (((c) & 0x7f) >= 0x20 && ((c) & 0x7f) != 0x7f)
+#endif
+
+enum BadCode {
+    NotBad = 0,
+    UnsafeArg,
+    ArgTooLong,
+    UnprintableArg,
+    EnvTooLong,
+    OutputIsPipe,
+    InternalError
+};
+
+#define ARGMSG \
+    "\nIf the arguments used are valid, and have been rejected incorrectly\n" \
+      "please send details of the arguments and why they are valid to\n" \
+      "XFree86@XFree86.org.  In the meantime, you can start the Xserver as\n" \
+      "the \"super user\" (root).\n"   
+
+#define ENVMSG \
+    "\nIf the environment is valid, and have been rejected incorrectly\n" \
+      "please send details of the environment and why it is valid to\n" \
+      "XFree86@XFree86.org.  In the meantime, you can start the Xserver as\n" \
+      "the \"super user\" (root).\n"
+
+void
+CheckUserParameters(int argc, char **argv, char **envp)
+{
+    enum BadCode bad = NotBad;
+    int i = 0, j;
+    char *a, *e = NULL;
+#if defined(__QNX__) && !defined(__QNXNTO__)
+    char cmd_name[64];
+#endif
+
+#if CHECK_EUID
+    if (geteuid() == 0 && getuid() != geteuid())
+#endif
+    {
+	/* Check each argv[] */
+	for (i = 1; i < argc; i++) {
+	    if (strlen(argv[i]) > MAX_ARG_LENGTH) {
+		bad = ArgTooLong;
+		break;
+	    }
+	    a = argv[i];
+	    while (*a) {
+		if (checkPrintable(*a) == 0) {
+		    bad = UnprintableArg;
+		    break;
+		}
+		a++;
+	    }
+	    if (bad)
+		break;
+	}
+	if (!bad) {
+	    /* Check each envp[] */
+	    for (i = 0; envp[i]; i++) {
+
+		/* Check for bad environment variables and values */
+#if REMOVE_ENV_LD
+		while (envp[i] && (strncmp(envp[i], "LD", 2) == 0)) {
+#ifdef ENVDEBUG
+		    ErrorF("CheckUserParameters: removing %s from the "
+			   "environment\n", strtok(envp[i], "="));
+#endif
+		    for (j = i; envp[j]; j++) {
+			envp[j] = envp[j+1];
+		    }
+		}
+#endif   
+		if (envp[i] && (strlen(envp[i]) > MAX_ENV_LENGTH)) {
+#if REMOVE_LONG_ENV
+#ifdef ENVDEBUG
+		    ErrorF("CheckUserParameters: removing %s from the "
+			   "environment\n", strtok(envp[i], "="));
+#endif
+		    for (j = i; envp[j]; j++) {
+			envp[j] = envp[j+1];
+		    }
+		    i--;
+#else
+		    char *eq;
+		    int len;
+
+		    eq = strchr(envp[i], '=');
+		    if (!eq)
+			continue;
+		    len = eq - envp[i];
+		    e = malloc(len + 1);
+		    if (!e) {
+			bad = InternalError;
+			break;
+		    }
+		    strncpy(e, envp[i], len);
+		    e[len] = 0;
+		    if (len >= 4 &&
+			(strcmp(e + len - 4, "PATH") == 0 ||
+			 strcmp(e, "TERMCAP") == 0)) {
+			if (strlen(envp[i]) > MAX_ENV_PATH_LENGTH) {
+			    bad = EnvTooLong;
+			    break;
+			} else {
+			    free(e);
+			}
+		    } else {
+			bad = EnvTooLong;
+			break;
+		    }
+#endif
+		}
+	    }
+	}
+#if NO_OUTPUT_PIPES
+	if (!bad) {
+	    struct stat buf;
+
+	    if (fstat(fileno(stdout), &buf) == 0 && S_ISFIFO(buf.st_mode))
+		bad = OutputIsPipe;
+	    if (fstat(fileno(stderr), &buf) == 0 && S_ISFIFO(buf.st_mode))
+		bad = OutputIsPipe;
+	}
+#endif
+    }
+    switch (bad) {
+    case NotBad:
+	return;
+    case UnsafeArg:
+	ErrorF("Command line argument number %d is unsafe\n", i);
+	ErrorF(ARGMSG);
+	break;
+    case ArgTooLong:
+	ErrorF("Command line argument number %d is too long\n", i);
+	ErrorF(ARGMSG);
+	break;
+    case UnprintableArg:
+	ErrorF("Command line argument number %d contains unprintable"
+		" characters\n", i);
+	ErrorF(ARGMSG);
+	break;
+    case EnvTooLong:
+	ErrorF("Environment variable `%s' is too long\n", e);
+	ErrorF(ENVMSG);
+	break;
+    case OutputIsPipe:
+	ErrorF("Stdout and/or stderr is a pipe\n");
+	break;
+    case InternalError:
+	ErrorF("Internal Error\n");
+	break;
+    default:
+	ErrorF("Unknown error\n");
+	ErrorF(ARGMSG);
+	ErrorF(ENVMSG);
+	break;
+    }
+    FatalError("X server aborted because of unsafe environment\n");
+}
+
+/*
+ * CheckUserAuthorization: check if the user is allowed to start the
+ * X server.  This usually means some sort of PAM checking, and it is
+ * usually only done for setuid servers (uid != euid).
+ */
+
+#ifdef USE_PAM
+#include <security/pam_appl.h>
+#include <security/pam_misc.h>
+#include <pwd.h>
+#endif /* USE_PAM */
+
+void
+CheckUserAuthorization()
+{
+#ifdef USE_PAM
+    static struct pam_conv conv = {
+	misc_conv,
+	NULL
+    };
+
+    pam_handle_t *pamh = NULL;
+    struct passwd *pw;
+    int retval;
+
+    if (getuid() != geteuid()) {
+	pw = getpwuid(getuid());
+	if (pw == NULL)
+	    FatalError("getpwuid() failed for uid %d\n", getuid());
+
+	retval = pam_start("xserver", pw->pw_name, &conv, &pamh);
+	if (retval != PAM_SUCCESS)
+	    FatalError("pam_start() failed.\n"
+			"\tMissing or mangled PAM config file or module?\n");
+
+	retval = pam_authenticate(pamh, 0);
+	if (retval != PAM_SUCCESS) {
+	    pam_end(pamh, retval);
+	    FatalError("PAM authentication failed, cannot start X server.\n"
+			"\tPerhaps you do not have console ownership?\n");
+	}
+
+	retval = pam_acct_mgmt(pamh, 0);
+	if (retval != PAM_SUCCESS) {
+	    pam_end(pamh, retval);
+	    FatalError("PAM authentication failed, cannot start X server.\n"
+			"\tPerhaps you do not have console ownership?\n");
+	}
+
+	/* this is not a session, so do not do session management */
+	pam_end(pamh, PAM_SUCCESS);
+    }
 #endif
 }

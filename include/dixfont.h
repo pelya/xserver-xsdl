@@ -21,311 +21,135 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ******************************************************************/
+/* $XFree86: xc/programs/Xserver/include/dixfont.h,v 3.8 2001/04/05 17:42:35 dawes Exp $ */
 
 #ifndef DIXFONT_H
 #define DIXFONT_H 1
 
-#include <dix.h>
-#include <font.h>
-#include <closure.h>
+#include "dix.h"
+#include "font.h"
+#include "closure.h"
+#include "fontstruct.h"
 
 #define NullDIXFontProp ((DIXFontPropPtr)0)
 
 typedef struct _DIXFontProp *DIXFontPropPtr;
 
-extern int FontToXError(
-#if NeedFunctionPrototypes
-    int /*err*/
-#endif
-);
+extern FPEFunctions *fpe_functions;
 
-extern Bool SetDefaultFont(
-#if NeedFunctionPrototypes
-    char * /*defaultfontname*/
-#endif
-);
+extern int FontToXError(int /*err*/);
 
-extern void QueueFontWakeup(
-#if NeedFunctionPrototypes
-    FontPathElementPtr /*fpe*/
-#endif
-);
+extern Bool SetDefaultFont(char * /*defaultfontname*/);
 
-extern void RemoveFontWakeup(
-#if NeedFunctionPrototypes
-    FontPathElementPtr /*fpe*/
-#endif
-);
+extern void QueueFontWakeup(FontPathElementPtr /*fpe*/);
 
-extern void FontWakeup(
-#if NeedFunctionPrototypes
-    pointer /*data*/,
-    int /*count*/,
-    pointer /*LastSelectMask*/
-#endif
-);
+extern void RemoveFontWakeup(FontPathElementPtr /*fpe*/);
 
-extern int OpenFont(
-#if NeedFunctionPrototypes
-    ClientPtr /*client*/,
-    XID /*fid*/,
-    Mask /*flags*/,
-    unsigned /*lenfname*/,
-    char * /*pfontname*/
-#endif
-);
+extern void FontWakeup(pointer /*data*/,
+		       int /*count*/,
+		       pointer /*LastSelectMask*/);
 
-extern int CloseFont(
-#if NeedFunctionPrototypes
-    pointer /*pfont*/,
-    XID /*fid*/
-#endif
-);
+extern int OpenFont(ClientPtr /*client*/,
+		    XID /*fid*/,
+		    Mask /*flags*/,
+		    unsigned /*lenfname*/,
+		    char * /*pfontname*/);
+
+extern int CloseFont(pointer /*pfont*/,
+		     XID /*fid*/);
 
 typedef struct _xQueryFontReply *xQueryFontReplyPtr;
 
-extern void QueryFont(
-#if NeedFunctionPrototypes
-    FontPtr /*pFont*/,
-    xQueryFontReplyPtr /*pReply*/,
-    int /*nProtoCCIStructs*/
-#endif
+extern void QueryFont(FontPtr /*pFont*/,
+		      xQueryFontReplyPtr /*pReply*/,
+		      int /*nProtoCCIStructs*/);
+
+extern int ListFonts(ClientPtr /*client*/,
+		     unsigned char * /*pattern*/,
+		     unsigned int /*length*/,
+		     unsigned int /*max_names*/);
+
+int
+doListFontsWithInfo(ClientPtr /*client*/,
+		    LFWIclosurePtr /*c*/);
+
+extern int doPolyText(ClientPtr /*client*/,
+		      PTclosurePtr /*c*/
 );
 
-extern int ListFonts(
-#if NeedFunctionPrototypes
-    ClientPtr /*client*/,
-    unsigned char * /*pattern*/,
-    unsigned int /*length*/,
-    unsigned int /*max_names*/
-#endif
-);
+extern int PolyText(ClientPtr /*client*/,
+		    DrawablePtr /*pDraw*/,
+		    GCPtr /*pGC*/,
+		    unsigned char * /*pElt*/,
+		    unsigned char * /*endReq*/,
+		    int /*xorg*/,
+		    int /*yorg*/,
+		    int /*reqType*/,
+		    XID /*did*/);
 
-extern int doPolyText(
-#if NeedFunctionPrototypes
-    ClientPtr /*client*/,
-    PTclosurePtr /*c*/
-#endif
-);
+extern int doImageText(ClientPtr /*client*/,
+		       ITclosurePtr /*c*/);
 
-extern int PolyText(
-#if NeedFunctionPrototypes
-    ClientPtr /*client*/,
-    DrawablePtr /*pDraw*/,
-    GCPtr /*pGC*/,
-    unsigned char * /*pElt*/,
-    unsigned char * /*endReq*/,
-    int /*xorg*/,
-    int /*yorg*/,
-    int /*reqType*/,
-    XID /*did*/
-#endif
-);
+extern int ImageText(ClientPtr /*client*/,
+		     DrawablePtr /*pDraw*/,
+		     GCPtr /*pGC*/,
+		     int /*nChars*/,
+		     unsigned char * /*data*/,
+		     int /*xorg*/,
+		     int /*yorg*/,
+		     int /*reqType*/,
+		     XID /*did*/);
 
-extern int doImageText(
-#if NeedFunctionPrototypes
-    ClientPtr /*client*/,
-    ITclosurePtr /*c*/
-#endif
-);
+extern int SetFontPath(ClientPtr /*client*/,
+		       int /*npaths*/,
+		       unsigned char * /*paths*/,
+		       int * /*error*/);
 
-extern int ImageText(
-#if NeedFunctionPrototypes
-    ClientPtr /*client*/,
-    DrawablePtr /*pDraw*/,
-    GCPtr /*pGC*/,
-    int /*nChars*/,
-    unsigned char * /*data*/,
-    int /*xorg*/,
-    int /*yorg*/,
-    int /*reqType*/,
-    XID /*did*/
-#endif
-);
+extern int SetDefaultFontPath(char * /*path*/);
 
-extern int SetFontPath(
-#if NeedFunctionPrototypes
-    ClientPtr /*client*/,
-    int /*npaths*/,
-    unsigned char * /*paths*/,
-    int * /*error*/
-#endif
-);
+extern unsigned char *GetFontPath(int * /*count*/,
+				  int * /*length*/);
 
-extern int SetDefaultFontPath(
-#if NeedFunctionPrototypes
-    char * /*path*/
-#endif
-);
+extern int LoadGlyphs(ClientPtr /*client*/,
+		      FontPtr /*pfont*/,
+		      unsigned /*nchars*/,
+		      int /*item_size*/,
+		      unsigned char * /*data*/);
 
-extern unsigned char *GetFontPath(
-#if NeedFunctionPrototypes
-    int * /*count*/,
-    int * /*length*/
-#endif
-);
+extern void DeleteClientFontStuff(ClientPtr /*client*/);
 
-extern int LoadGlyphs(
-#if NeedFunctionPrototypes
-    ClientPtr /*client*/,
-    FontPtr /*pfont*/,
-    unsigned /*nchars*/,
-    int /*item_size*/,
-    unsigned char * /*data*/
+/* Quartz support on Mac OS X pulls in the QuickDraw
+   framework whose InitFonts function conflicts here. */
+#ifdef __DARWIN__
+#define InitFonts Darwin_X_InitFonts
 #endif
-);
+extern void InitFonts(void);
 
-extern void DeleteClientFontStuff(
-#if NeedFunctionPrototypes
-    ClientPtr /*client*/
-#endif
-);
+extern void FreeFonts(void);
 
-extern void InitFonts(
-#if NeedFunctionPrototypes
-    void
-#endif
-);
+extern FontPtr find_old_font(XID /*id*/);
 
-extern int GetDefaultPointSize(
-#if NeedFunctionPrototypes
-    void
-#endif
-);
+extern void GetGlyphs(FontPtr     /*font*/,
+		      unsigned long /*count*/,
+		      unsigned char * /*chars*/,
+		      FontEncoding /*fontEncoding*/,
+		      unsigned long * /*glyphcount*/,
+		      CharInfoPtr * /*glyphs*/);
 
-extern FontResolutionPtr GetClientResolutions(
-#if NeedFunctionPrototypes
-    int * /*num*/
-#endif
-);
+extern void QueryGlyphExtents(FontPtr     /*pFont*/,
+			      CharInfoPtr * /*charinfo*/,
+			      unsigned long /*count*/,
+			      ExtentInfoPtr /*info*/);
 
-/* XXX leave these unprototyped for now -- need to do groundwork in 
- * fonts/include/fontstruct.h before we do these
- */
-extern int RegisterFPEFunctions(
-#if NeedFunctionPrototypes
-    Bool (* /*name_func*/)(),
-    int (* /*init_func*/)(),
-    int (* /*free_func*/)(),
-    int (* /*reset_func*/)(),
-    int (* /*open_func*/)(),
-    int (* /*close_func*/)(),
-    int (* /*list_func*/)(),
-    int (* /*start_lfwi_func*/)(),
-    int (* /*next_lfwi_func*/)(),
-    int (* /*wakeup_func*/)(),
-    int (* /*client_died*/)(),
-    int (* /*load_glyphs*/)(),
-    int (* /*start_list_alias_func*/)(),
-    int (* /*next_list_alias_func*/)(),
-    void (* /* set_path_func*/) ()
-#endif
-);
+extern Bool QueryTextExtents(FontPtr     /*pFont*/,
+			     unsigned long /*count*/,
+			     unsigned char * /*chars*/,
+			     ExtentInfoPtr /*info*/);
 
-extern void FreeFonts(
-#if NeedFunctionPrototypes
-    void
-#endif
-);
+extern Bool ParseGlyphCachingMode(char * /*str*/);
 
-extern FontPtr find_old_font(
-#if NeedFunctionPrototypes
-    XID /*id*/
-#endif
-);
+extern void InitGlyphCaching(void);
 
-extern Font GetNewFontClientID(
-#if NeedFunctionPrototypes
-    void
-#endif
-);
-
-extern int StoreFontClientFont(
-#if NeedFunctionPrototypes
-    FontPtr /*pfont*/,
-    Font /*id*/
-#endif
-);
-
-extern void DeleteFontClientID(
-#if NeedFunctionPrototypes
-    Font /*id*/
-#endif
-);
-
-extern int client_auth_generation(
-#if NeedFunctionPrototypes
-    ClientPtr /*client*/
-#endif
-);
-
-extern int init_fs_handlers(
-#if NeedFunctionPrototypes
-    FontPathElementPtr /*fpe*/,
-    BlockHandlerProcPtr /*block_handler*/
-#endif
-);
-
-extern void remove_fs_handlers(
-#if NeedFunctionPrototypes
-    FontPathElementPtr /*fpe*/,
-    BlockHandlerProcPtr /*block_handler*/,
-    Bool /*all*/
-#endif
-);
-
-extern void GetGlyphs(
-#if NeedFunctionPrototypes
-    FontPtr     /*font*/,
-    unsigned long /*count*/,
-    unsigned char * /*chars*/,
-    FontEncoding /*fontEncoding*/,
-    unsigned long * /*glyphcount*/,
-    CharInfoPtr * /*glyphs*/
-#endif
-);
-
-extern void QueryGlyphExtents(
-#if NeedFunctionPrototypes
-    FontPtr     /*pFont*/,
-    CharInfoPtr * /*charinfo*/,
-    unsigned long /*count*/,
-    ExtentInfoPtr /*info*/
-#endif
-);
-
-extern Bool QueryTextExtents(
-#if NeedFunctionPrototypes
-    FontPtr     /*pFont*/,
-    unsigned long /*count*/,
-    unsigned char * /*chars*/,
-    ExtentInfoPtr /*info*/
-#endif
-);
-
-extern Bool ParseGlyphCachingMode(
-#if NeedFunctionPrototypes
-    char * /*str*/
-#endif
-);
-
-extern void InitGlyphCaching(
-#if NeedFunctionPrototypes
-    void
-#endif
-);
-
-extern void SetGlyphCachingMode(
-#if NeedFunctionPrototypes
-    int /*newmode*/
-#endif
-);
-
-void
-ResetFontPrivateIndex(
-#if NeedFunctionPrototypes
-    void
-#endif
-);
+extern void SetGlyphCachingMode(int /*newmode*/);
 
 #endif				/* DIXFONT_H */

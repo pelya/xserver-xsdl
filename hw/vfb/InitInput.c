@@ -26,9 +26,11 @@ other dealings in this Software without prior written authorization
 from The Open Group.
 
 */
+/* $XFree86: xc/programs/Xserver/hw/vfb/InitInput.c,v 3.9 2001/12/14 19:59:45 dawes Exp $ */
 
 #include "X11/X.h"
 #define NEED_EVENTS
+#include "mi.h"
 #include "X11/Xproto.h"
 #include "scrnintstr.h"
 #include "inputstr.h"
@@ -261,7 +263,6 @@ vfbKeybdProc(pDevice, onoff)
 {
     KeySymsRec		keySyms;
     CARD8 		modMap[MAP_LENGTH];
-    int i;
     DevicePtr pDev = (DevicePtr)pDevice;
 
     switch (onoff)
@@ -320,13 +321,13 @@ InitInput(argc, argv)
     int argc;
     char *argv[];
 {
-    DevicePtr p, k;
+    DeviceIntPtr p, k;
     p = AddInputDevice(vfbMouseProc, TRUE);
     k = AddInputDevice(vfbKeybdProc, TRUE);
     RegisterPointerDevice(p);
     RegisterKeyboardDevice(k);
     miRegisterPointerDevice(screenInfo.screens[0], p);
-    (void)mieqInit (k, p);
+    (void)mieqInit ((DevicePtr) k, (DevicePtr) p);
 }
 
 #ifdef XTESTEXT1

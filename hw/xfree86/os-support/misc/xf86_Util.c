@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/misc/xf86_Util.c,v 3.4 1996/12/23 06:50:25 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/misc/xf86_Util.c,v 3.8 2001/10/28 03:34:02 tsi Exp $ */
 /*
  * Copyright 1993 by David Wexelblat <dwex@goblin.org>
  *
@@ -21,7 +21,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  *
  */
-/* $Xorg: xf86_Util.c,v 1.3 2000/08/17 19:51:26 cpqbld Exp $ */
+/* $XConsortium: xf86_Util.c /main/5 1996/10/23 13:13:10 kaleb $ */
 
 /*
  * This file is for utility functions that will be shared by other pieces
@@ -31,69 +31,33 @@
 
 #include <ctype.h>
 
-/*
- * A portable hack at implementing strcasecmp()
- * The characters '_', ' ', and '\t' are ignored in the comparison
- */
-int StrCaseCmp(s1, s2)
-const char *s1, *s2;
-{
-	char c1, c2;
+/* To prevent empty source file warnings */
+int _xf86misc;
 
-	if (*s1 == 0)
-		if (*s2 == 0)
-			return(0);
-		else
-			return(1);
-
-	while (*s1 == '_' || *s1 == ' ' || *s1 == '\t')
-		s1++;
-	while (*s2 == '_' || *s2 == ' ' || *s2 == '\t')
-		s2++;
-	c1 = (isupper(*s1) ? tolower(*s1) : *s1);
-	c2 = (isupper(*s2) ? tolower(*s2) : *s2);
-	while (c1 == c2)
-	{
-		if (c1 == '\0')
-			return(0);
-		s1++; s2++;
-		while (*s1 == '_' || *s1 == ' ' || *s1 == '\t')
-			s1++;
-		while (*s2 == '_' || *s2 == ' ' || *s2 == '\t')
-			s2++;
-		c1 = (isupper(*s1) ? tolower(*s1) : *s1);
-		c2 = (isupper(*s2) ? tolower(*s2) : *s2);
-	}
-	return(c1 - c2);
-}
-
-
+#if 0
 /* For use only with gcc */
 #ifdef __GNUC__
 
 #include "os.h"
 
-char *debug_alloca(file, line, size)
-char *file;
-int line;
-int size;
+char *
+debug_alloca(char *file, int line, int size)
 {
 	char *ptr;
 
-	ptr = (char *)Xalloc(size);
+	ptr = Xalloc(size);
 	ErrorF("Alloc: %s line %d; ptr = 0x%x, length = %d\n", file, line,
 	       ptr, size);
 	return ptr;
 }
 
-void debug_dealloca(file, line, ptr)
-char *file;
-int line;
-char *ptr;
+void
+debug_dealloca(char *file, int line, char *ptr)
 {
 	ErrorF("Dealloc: %s line %d; ptr = 0x%x\n", file, line, ptr);
 	Xfree(ptr);
 }
+#endif
 #endif
 
 #if defined(ISC) || defined(Lynx)
@@ -103,13 +67,15 @@ char *ptr;
 /* Needed for apm_driver.c */
 /* These functions are modeled after the functions inside gnu's libc */
 
-static double copysign(double x, double y)
+static double
+copysign(double x, double y)
 {
 	x = fabs(x);
 	return y < 0 ? - x : x;
 }
 
-double RInt(double x)
+double
+RInt(double x)
 {
 	double s,t;
 	const double one = 1.0;

@@ -45,12 +45,15 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ******************************************************************/
+/* $XFree86: xc/programs/Xserver/mfb/mfbscrclse.c,v 1.4 2003/02/18 21:30:01 tsi Exp $ */
 
+#include "mfb.h"
 #include "scrnintstr.h"
 
 /*ARGSUSED*/
 Bool
 mfbCloseScreen(index, pScreen)
+    int	index;
     register ScreenPtr pScreen;
 {
     xfree(pScreen->devPrivate);

@@ -1,3 +1,4 @@
+/* $XFree86: xc/programs/Xserver/include/colormap.h,v 1.5 2001/12/14 19:59:53 dawes Exp $ */
 /*
 
 Copyright 1987, 1998  The Open Group
@@ -45,6 +46,7 @@ SOFTWARE.
 
 */
 /* $Xorg: colormap.h,v 1.4 2001/02/09 02:05:14 xorgcvs Exp $ */
+
 #ifndef CMAP_H
 #define CMAP_H 1
 
@@ -73,7 +75,7 @@ SOFTWARE.
 
 typedef CARD32 Pixel;
 typedef struct _CMEntry *EntryPtr;
-typedef struct _ColormapRec *ColormapPtr;
+/* moved to screenint.h: typedef struct _ColormapRec *ColormapPtr */
 typedef struct _colorResource *colorResourcePtr;
 
 extern int CreateColormap(

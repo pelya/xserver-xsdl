@@ -1,4 +1,4 @@
-/* $Xorg: xkbLEDs.c,v 1.3 2000/08/17 19:53:47 cpqbld Exp $ */
+/* $Xorg: xkbLEDs.c,v 1.4 2001/05/10 19:54:01 steve Exp $ */
 /************************************************************
 Copyright (c) 1995 by Silicon Graphics Computer Systems, Inc.
 
@@ -24,6 +24,7 @@ OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION  WITH
 THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 ********************************************************/
+/* $XFree86: xc/programs/Xserver/xkb/xkbLEDs.c,v 3.6 2001/11/23 19:21:36 dawes Exp $ */
 
 #include <stdio.h>
 #include <ctype.h>
@@ -36,8 +37,6 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 #include "XI.h"
 #include "XKBsrv.h"
-
-extern InputInfo	inputInfo;
 
 /***====================================================================***/
 
@@ -240,11 +239,10 @@ unsigned 			side_affected;
 	XkbUpdateLedAutoState(dev,sli,side_affected,&ed,&changes,cause);
 	affect|= side_affected;
     }
-    XkbSendNotification(dev,&changes,cause);
-    if (ed.reason)
-	XkbSendExtensionDeviceNotify(dev,cause->client,&ed);
     if (changes.state_changes || changes.ctrls.enabled_ctrls_changes)
 	XkbUpdateAllDeviceIndicators(NULL,cause);
+
+    XkbFlushLedEvents(dev,dev,sli,&ed,&changes,cause);
     return;
 }
 
@@ -701,6 +699,14 @@ XkbFlushLedEvents(dev,kbd,sli,ed,changes,cause)
 	    XkbDDXUpdateDeviceIndicators(dev,sli,sli->effectiveState);
 	XkbSendNotification(kbd,changes,cause);
 	bzero((char *)changes,sizeof(XkbChangesRec));
+
+	if (XkbAX_NeedFeedback(kbd->key->xkbInfo->desc->ctrls, XkbAX_IndicatorFBMask)) {
+		if (sli->effectiveState)
+			/* it appears that the which parameter is not used */
+			XkbDDXAccessXBeep(dev, _BEEP_LED_ON, XkbAccessXFeedbackMask);
+		else
+			XkbDDXAccessXBeep(dev, _BEEP_LED_OFF, XkbAccessXFeedbackMask);
+	}
     }
     if (ed && (ed->reason)) {
 	if ((dev!=kbd)&&(ed->reason&XkbXI_IndicatorStateMask))

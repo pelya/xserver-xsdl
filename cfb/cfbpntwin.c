@@ -45,6 +45,7 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ******************************************************************/
+/* $XFree86: xc/programs/Xserver/cfb/cfbpntwin.c,v 3.7 2002/09/16 18:05:31 eich Exp $ */
 
 #include "X.h"
 
@@ -57,6 +58,11 @@ SOFTWARE.
 #include "cfbmskbits.h"
 #include "mi.h"
 
+#ifdef PANORAMIX
+#include "panoramiX.h"
+#include "panoramiXsrv.h"
+#endif
+
 void
 cfbPaintWindow(pWin, pRegion, what)
     WindowPtr	pWin;
@@ -67,6 +73,7 @@ cfbPaintWindow(pWin, pRegion, what)
     WindowPtr	pBgWin;
 
     pPrivWin = cfbGetWindowPrivate(pWin);
+
 
     switch (what) {
     case PW_BACKGROUND:
@@ -90,11 +97,22 @@ cfbPaintWindow(pWin, pRegion, what)
 	    }
 	    else
 	    {
+		int xorg = pWin->drawable.x;
+		int yorg = pWin->drawable.y;
+#ifdef PANORAMIX
+		if(!noPanoramiXExtension) {
+		    int index = pWin->drawable.pScreen->myNum;
+		    if(WindowTable[index] == pWin) {
+			xorg -= panoramiXdataPtr[index].x;
+			yorg -= panoramiXdataPtr[index].y;
+		    }
+		}
+#endif
 		cfbFillBoxTileOdd ((DrawablePtr)pWin,
 				   (int)REGION_NUM_RECTS(pRegion),
 				   REGION_RECTS(pRegion),
 				   pWin->background.pixmap,
-				   (int) pWin->drawable.x, (int) pWin->drawable.y);
+				   xorg, yorg);
 	    }
 	    break;
 	case BackgroundPixel:
@@ -122,16 +140,30 @@ cfbPaintWindow(pWin, pRegion, what)
 	}
 	else
 	{
+	    int xorg, yorg;
+
 	    for (pBgWin = pWin;
 		 pBgWin->backgroundState == ParentRelative;
 		 pBgWin = pBgWin->parent);
+
+	    xorg = pBgWin->drawable.x;
+	    yorg = pBgWin->drawable.y;
+
+#ifdef PANORAMIX
+	    if(!noPanoramiXExtension) {
+		int index = pWin->drawable.pScreen->myNum;
+		if(WindowTable[index] == pBgWin) {
+		    xorg -= panoramiXdataPtr[index].x;
+		    yorg -= panoramiXdataPtr[index].y;
+		}
+	    }
+#endif
 
 	    cfbFillBoxTileOdd ((DrawablePtr)pWin,
 			       (int)REGION_NUM_RECTS(pRegion),
 			       REGION_RECTS(pRegion),
 			       pWin->border.pixmap,
-			       (int) pBgWin->drawable.x,
- 			       (int) pBgWin->drawable.y);
+			       xorg, yorg);
 	}
 	break;
     }
@@ -191,15 +223,24 @@ cfbFillBoxSolid (pDrawable, nBox, pBox, pixel)
     BoxPtr	    pBox;
     unsigned long   pixel;
 {
-    unsigned long   *pdstBase;
+    CfbBits   *pdstBase;
     int		    widthDst;
     register int    h;
-    register unsigned long   rrop_xor;
-    register unsigned long   *pdst;
-    register unsigned long   leftMask, rightMask;
+    register CfbBits   rrop_xor;
+    register CfbBits   *pdst;
     int		    nmiddle;
-    register int    m;
     int		    w;
+#if PSZ == 24
+    int leftIndex, rightIndex;
+    CfbBits piQxelArray[3], *pdstULC; /*upper left corner*/
+
+    piQxelArray[0] = (pixel&0xFFFFFF) | ((pixel&0xFF)<<24);
+    piQxelArray[1] = ((pixel&0xFFFF00)>>8) | ((pixel&0xFFFF)<<16);
+    piQxelArray[2] = ((pixel&0xFFFFFF)<<8) | ((pixel&0xFF0000)>>16);
+#else
+    register CfbBits   leftMask, rightMask;
+    register int    m;
+#endif
 
     cfbGetLongWidthAndPointer(pDrawable, widthDst, pdstBase);
 
@@ -224,6 +265,168 @@ cfbFillBoxSolid (pDrawable, nBox, pBox, pixel)
 	else
 	{
 #endif
+#if PSZ == 24
+/* _Box has x1, y1, x2, y2*/
+	  leftIndex = pBox->x1 & 3;
+	  rightIndex = ((leftIndex+w)<5)?0:(pBox->x2 &3);
+	  nmiddle = w - rightIndex;
+	  if(leftIndex){
+	      nmiddle -= (4 - leftIndex);
+	  }
+	  nmiddle >>= 2;
+	  if(nmiddle < 0)
+	    nmiddle = 0;
+
+	  pdst = pdstBase + pBox->y1 * widthDst + ((pBox->x1*3) >> 2);
+
+	  switch(leftIndex+w){
+	  case 4:
+	    switch(leftIndex){
+	    case 0:
+	      while(h--){
+		*pdst++ = piQxelArray[0];
+		*pdst++ = piQxelArray[1];
+		*pdst   = piQxelArray[2];
+		pdst -=2;
+		pdst += widthDst;
+	      }
+	      break;
+	    case 1:
+	      while(h--){
+		*pdst = ((*pdst) & 0xFFFFFF) | (piQxelArray[0] & 0xFF000000);
+		pdst++;
+		*pdst++ = piQxelArray[1];
+		*pdst   = piQxelArray[2];
+		pdst -=2;
+		pdst += widthDst;
+	      }
+	      break;
+	    case 2:
+	      while(h--){
+		*pdst = ((*pdst) & 0xFFFF) | (piQxelArray[1] & 0xFFFF0000);
+		pdst++;
+		*pdst-- = piQxelArray[2];
+		pdst += widthDst;
+	      }
+	      break;
+	    case 3:
+	      while(h--){
+		*pdst = ((*pdst) & 0xFF) | (piQxelArray[2] & 0xFFFFFF00);
+		pdst += widthDst;
+	      }
+	      break;
+	    }
+	    break;
+	  case 3:
+	    switch(leftIndex){
+	    case 0:
+	      while(h--){
+		*pdst++ = piQxelArray[0];
+		*pdst++ = piQxelArray[1];
+		*pdst = ((*pdst) & 0xFFFFFF00) | (piQxelArray[2] & 0xFF);
+		pdst--;
+		pdst--;
+		pdst += widthDst;
+	      }
+	      break;
+	    case 1:
+	      while(h--){
+		*pdst = ((*pdst) & 0xFFFFFF) | (piQxelArray[0] & 0xFF000000);
+		pdst++;
+		*pdst++ = piQxelArray[1];
+		*pdst = ((*pdst) & 0xFFFFFF00) | (piQxelArray[2] & 0xFF);
+		pdst--;
+		pdst--;
+		pdst += widthDst;
+	      }
+	      break;
+	    case 2:
+	      while(h--){
+		*pdst = ((*pdst) & 0xFFFF) | (piQxelArray[1] & 0xFFFF0000);
+		pdst++;
+		*pdst = ((*pdst) & 0xFFFFFF00) | (piQxelArray[2] & 0xFF);
+		pdst--;
+		pdst += widthDst;
+	      }
+	      break;
+	    }
+	    break;
+	  case 2:
+	    while(h--){
+	      if(leftIndex){
+		*pdst = ((*pdst) & 0xFFFFFF) | (piQxelArray[0] & 0xFF000000);
+		pdst++;
+	      }
+	      else{
+		*pdst++ = piQxelArray[0];
+	      }
+		*pdst = ((*pdst) & 0xFFFF0000) | (piQxelArray[1] & 0xFFFF);
+		pdst--;
+		pdst += widthDst;
+	    }
+	    break;
+	  case 1: /*only if leftIndex = 0 and w = 1*/
+	    while(h--){
+		*pdst = ((*pdst) & 0xFF000000) | (piQxelArray[0] & 0xFFFFFF);
+		pdst += widthDst;
+	      }
+	    break;
+	  case 0: /*never*/
+	    break;
+	  default:
+	  {
+	    w = nmiddle;
+	    pdstULC = pdst;
+/*	    maskbits (pBox->x1, w, leftMask, rightMask, nmiddle);*/
+	    while(h--){
+	      nmiddle = w;
+	      pdst = pdstULC;
+	      switch(leftIndex){
+	      case 0:
+		break;
+	      case 1:
+		*pdst = ((*pdst) & 0xFFFFFF) | (piQxelArray[0] & 0xFF000000);
+		pdst++;
+		*pdst++ = piQxelArray[1];
+		*pdst++ = piQxelArray[2];
+	        break;
+	      case 2:
+		*pdst = ((*pdst) & 0xFFFF) | (piQxelArray[1] & 0xFFFF0000);
+		pdst++;
+		*pdst++ = piQxelArray[2];
+	        break;
+	      case 3:
+		*pdst = ((*pdst) & 0xFF) | (piQxelArray[2] & 0xFFFFFF00);
+		pdst++;
+	        break;
+	      }
+	      while(nmiddle--){
+		*pdst++ = piQxelArray[0];
+		*pdst++ = piQxelArray[1];
+		*pdst++ = piQxelArray[2];
+	      }
+	      switch(rightIndex){
+	      case 0:
+		break;
+	      case 1:
+		*pdst = ((*pdst) & 0xFF000000) | (piQxelArray[0] & 0xFFFFFF);
+	        break;
+	      case 2:
+		*pdst++ = piQxelArray[0];
+		*pdst = ((*pdst) & 0xFFFF0000) | (piQxelArray[1] & 0xFFFF);
+	        break;
+	      case 3:
+		*pdst++ = piQxelArray[0];
+		*pdst++ = piQxelArray[1];
+		*pdst = ((*pdst) & 0xFFFFFF00) | (piQxelArray[2] & 0xFF);
+	        break;
+	    }
+	    pdstULC += widthDst;
+	    }
+
+	  }
+	}
+#else
 	pdst += (pBox->x1 >> PWSH);
 	if ((pBox->x1 & PIM) + w <= PPW)
 	{
@@ -267,6 +470,7 @@ cfbFillBoxSolid (pDrawable, nBox, pBox, pixel)
 		}
 	    }
 	}
+#endif
 #if PSZ == 8
 	}
 #endif
@@ -280,30 +484,219 @@ cfbFillBoxTile32 (pDrawable, nBox, pBox, tile)
     BoxPtr 	    pBox;	/* pointer to list of boxes to fill */
     PixmapPtr	    tile;	/* rotated, expanded tile */
 {
-    register unsigned long  rrop_xor;	
-    register unsigned long  *pdst;
-    register int	    m;
-    unsigned long	    *psrc;
+    register CfbBits  *pdst;
+    CfbBits	    *psrc;
     int			    tileHeight;
 
     int			    widthDst;
     int			    w;
     int			    h;
-    register unsigned long  leftMask;
-    register unsigned long  rightMask;
     int			    nmiddle;
     int			    y;
     int			    srcy;
 
-    unsigned long	    *pdstBase;
+    CfbBits	    *pdstBase;
+#if PSZ == 24
+    int			    leftIndex, rightIndex;
+    CfbBits piQxelArray[3], *pdstULC;
+#else
+    register CfbBits  rrop_xor;	
+    register CfbBits  leftMask;
+    register CfbBits  rightMask;
+    register int      m;
+#endif
 
     tileHeight = tile->drawable.height;
-    psrc = (unsigned long *)tile->devPrivate.ptr;
+    psrc = (CfbBits *)tile->devPrivate.ptr;
 
     cfbGetLongWidthAndPointer (pDrawable, widthDst, pdstBase);
 
     while (nBox--)
     {
+#if PSZ == 24
+	w = pBox->x2 - pBox->x1;
+	h = pBox->y2 - pBox->y1;
+	y = pBox->y1;
+	leftIndex = pBox->x1 & 3;
+/*	rightIndex = ((leftIndex+w)<5)?0:pBox->x2 &3;*/
+	rightIndex = pBox->x2 &3;
+	nmiddle = w - rightIndex;
+	if(leftIndex){
+	  nmiddle -= (4 - leftIndex);
+	}
+	nmiddle >>= 2;
+	if(nmiddle < 0)
+	  nmiddle = 0;
+
+	pdst = pdstBase + ((pBox->x1 *3)>> 2) +  pBox->y1 * widthDst;
+	srcy = y % tileHeight;
+
+#define StepTile    piQxelArray[0] = (psrc[srcy] & 0xFFFFFF) | ((psrc[srcy] & 0xFF)<<24); \
+		    piQxelArray[1] = (psrc[srcy] & 0xFFFF00) | ((psrc[srcy] & 0xFFFF)<<16); \
+		    piQxelArray[2] = ((psrc[srcy] & 0xFF0000)>>16) | \
+		    		     ((psrc[srcy] & 0xFFFFFF)<<8); \
+		    /*rrop_xor = psrc[srcy];*/ \
+		    ++srcy; \
+		    if (srcy == tileHeight) \
+		        srcy = 0;
+
+	  switch(leftIndex+w){
+	  case 4:
+	    switch(leftIndex){
+	    case 0:
+	      while(h--){
+		  StepTile
+		*pdst++ = piQxelArray[0];
+		*pdst++ = piQxelArray[1];
+		*pdst   = piQxelArray[2];
+		pdst-=2;
+		pdst += widthDst;
+	      }
+	      break;
+	    case 1:
+	      while(h--){
+		  StepTile
+		*pdst = ((*pdst) & 0xFFFFFF) | (piQxelArray[0] & 0xFF000000);
+		pdst++;
+		*pdst++ = piQxelArray[1];
+		*pdst   = piQxelArray[2];
+		pdst-=2;
+		pdst += widthDst;
+	      }
+	      break;
+	    case 2:
+	      while(h--){
+		  StepTile
+		*pdst = ((*pdst) & 0xFFFF) | (piQxelArray[1] & 0xFFFF0000);
+		pdst++;
+		*pdst--   = piQxelArray[2];
+		pdst += widthDst;
+	      }
+	      break;
+	    case 3:
+	      while(h--){
+		  StepTile
+		*pdst = ((*pdst) & 0xFF) | (piQxelArray[2] & 0xFFFFFF00);
+		pdst += widthDst;
+	      }
+	      break;
+	    }
+	    break;
+	  case 3:
+	    switch(leftIndex){
+	    case 0:
+	      while(h--){
+		  StepTile
+		*pdst++ = piQxelArray[0];
+		*pdst++ = piQxelArray[1];
+		*pdst = ((*pdst) & 0xFFFFFF00) | (piQxelArray[2] & 0xFF);
+		pdst--;
+		pdst--;
+		pdst += widthDst;
+	      }
+	      break;
+	    case 1:
+	      while(h--){
+		  StepTile
+		*pdst = ((*pdst) & 0xFFFFFF) | (piQxelArray[0] & 0xFF000000);
+		pdst++;
+		*pdst++ = piQxelArray[1];
+		*pdst = ((*pdst) & 0xFFFFFF00) | (piQxelArray[2] & 0xFF);
+		pdst--;
+		pdst--;
+		pdst += widthDst;
+	      }
+	      break;
+	    case 2:
+	      while(h--){
+		  StepTile
+		*pdst = ((*pdst) & 0xFFFF) | (piQxelArray[1] & 0xFFFF0000);
+		pdst++;
+		*pdst = ((*pdst) & 0xFFFFFF00) | (piQxelArray[2] & 0xFF);
+		pdst--;
+		pdst += widthDst;
+	      }
+	      break;
+	    }
+	    break;
+	  case 2:
+	    while(h--){
+		  StepTile
+	      if(leftIndex){
+		*pdst = ((*pdst) & 0xFFFFFF) | (piQxelArray[0] & 0xFF000000);
+		pdst++;
+	      }
+	      else{
+		*pdst++ = piQxelArray[0];
+	      }
+		*pdst = ((*pdst) & 0xFFFF0000) | (piQxelArray[1] & 0xFFFF);
+		pdst--;
+		pdst += widthDst;
+	    }
+	    break;
+	  case 1: /*only if leftIndex = 0 and w = 1*/
+	    while(h--){
+		  StepTile
+		*pdst = ((*pdst) & 0xFF000000) | (piQxelArray[0] & 0xFFFFFF);
+		pdst += widthDst;
+	      }
+	    break;
+	  case 0: /*never*/
+	    break;
+	  default:
+	  {
+	    w = nmiddle;
+	    pdstULC = pdst;
+
+	    while(h--){
+	      StepTile
+	      nmiddle = w;
+	      pdst = pdstULC;
+	      switch(leftIndex){
+	      case 0:
+		break;
+	      case 1:
+		*pdst = ((*pdst) & 0xFFFFFF) | (piQxelArray[0] & 0xFF000000);
+		pdst++;
+		*pdst++ = piQxelArray[1];
+		*pdst++ = piQxelArray[2];
+	        break;
+	      case 2:
+		*pdst = ((*pdst) & 0xFFFF) | (piQxelArray[1] & 0xFFFF0000);
+		pdst++;
+		*pdst++ = piQxelArray[2];
+	        break;
+	      case 3:
+		*pdst = ((*pdst) & 0xFF) | (piQxelArray[2] & 0xFFFFFF00);
+		pdst++;
+	        break;
+	      }
+	      while(nmiddle--){
+		*pdst++ = piQxelArray[0];
+		*pdst++ = piQxelArray[1];
+		*pdst++ = piQxelArray[2];
+	      }
+	      switch(rightIndex){
+	      case 0:
+		break;
+	      case 1:
+		*pdst = ((*pdst) & 0xFF000000) | (piQxelArray[0] & 0xFFFFFF);
+		break;
+	      case 2:
+		*pdst++ = piQxelArray[0];
+		*pdst = ((*pdst) & 0xFFFF0000) | (piQxelArray[1] & 0xFFFF);
+		break;
+	      case 3:
+		*pdst++ = piQxelArray[0];
+		*pdst++ = piQxelArray[1];
+		*pdst = ((*pdst) & 0xFFFFFF00) | (piQxelArray[2] & 0xFF);
+		break;
+	      }
+	      pdstULC += widthDst;
+	    }
+	  }
+	  }
+#else
 	w = pBox->x2 - pBox->x1;
 	h = pBox->y2 - pBox->y1;
 	y = pBox->y1;
@@ -365,6 +758,7 @@ cfbFillBoxTile32 (pDrawable, nBox, pBox, tile)
 		}
 	    }
 	}
+#endif
         pBox++;
     }
 }
