@@ -222,7 +222,7 @@ xf86SwitchMode(ScreenPtr pScreen, DisplayModePtr mode)
   if (mode == pScr->currentMode)
     return TRUE;
 
-  if (mode->HDisplay > pScreen->width || mode->VDisplay > pScreen->height)
+  if (mode->HDisplay > pScr->virtualX || mode->VDisplay > pScr->virtualY)
     return FALSE;
 
   pCursorScreen = miPointerCurrentScreen();

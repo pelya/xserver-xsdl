@@ -476,7 +476,7 @@ typedef struct _confdrirec {
 /* These values should be adjusted when new fields are added to ScrnInfoRec */
 #define NUM_RESERVED_INTS		16
 #define NUM_RESERVED_POINTERS		15
-#define NUM_RESERVED_FUNCS		12
+#define NUM_RESERVED_FUNCS		10
 
 typedef pointer (*funcPointer)(void);
 
@@ -767,6 +767,8 @@ typedef int  xf86HandleMessageProc     (int, const char*, const char*, char**);
 typedef void xf86DPMSSetProc		  (ScrnInfoPtr, int, int);
 typedef void xf86LoadPaletteProc   (ScrnInfoPtr, int, int *, LOCO *, VisualPtr);
 typedef void xf86SetOverscanProc          (ScrnInfoPtr, int);
+typedef Bool xf86RRGetInfoProc            (ScrnInfoPtr, unsigned short *);
+typedef Bool xf86RRSetConfigProc          (ScrnInfoPtr, int, int, int, int);
 
 /*
  * ScrnInfoRec
@@ -921,6 +923,8 @@ typedef struct _ScrnInfoRec {
     xf86DPMSSetProc			*DPMSSet;
     xf86LoadPaletteProc			*LoadPalette;
     xf86SetOverscanProc			*SetOverscan;
+    xf86RRGetInfoProc			*RRGetInfo;
+    xf86RRSetConfigProc			*RRSetConfig;
     
     /*
      * This can be used when the minor ABI version is incremented.

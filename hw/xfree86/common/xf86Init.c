@@ -902,6 +902,8 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
 	xf86Screens[i]->DPMSSet = NULL;
 	xf86Screens[i]->LoadPalette = NULL; 
 	xf86Screens[i]->SetOverscan = NULL;
+	xf86Screens[i]->RRGetInfo = NULL;
+	xf86Screens[i]->RRSetConfig = NULL;
 	scr_index = AddScreen(xf86Screens[i]->ScreenInit, argc, argv);
       if (scr_index == i) {
 	/*
