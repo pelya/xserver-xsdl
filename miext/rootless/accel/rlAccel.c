@@ -26,7 +26,14 @@
  * holders shall not be used in advertising or otherwise to promote the sale,
  * use or other dealings in this Software without prior written authorization.
  */
-/* $XdotOrg: $ */
+/* $XdotOrg: xc/programs/Xserver/miext/rootless/accel/rlAccel.c,v 1.1 2004/09/18 00:38:29 torrey Exp $ */
+
+/*
+ * The accelerated rootless code replaces some GC operations from fb with
+ * versions that call the rootless acceleration functions where appropriate.
+ * To work properly, this must be wrapped directly on top of fb. Nothing
+ * underneath this layer besides fb will get called.
+ */
 
 #include "rootless.h"
 #include "rlAccel.h"
@@ -39,6 +46,33 @@ static int rlAccelScreenPrivateIndex = -1;
 
 #define RLACCELREC(pScreen) \
    ((rlAccelScreenRec *)(pScreen)->devPrivates[rlAccelScreenPrivateIndex].ptr)
+
+/* This is mostly identical to fbGCOps. */
+static GCOps rlAccelOps = {
+    rlFillSpans,
+    fbSetSpans,
+    fbPutImage,
+    rlCopyArea,
+    fbCopyPlane,
+    fbPolyPoint,
+    fbPolyLine,
+    fbPolySegment,
+    fbPolyRectangle,
+    fbPolyArc,
+    miFillPolygon,
+    rlPolyFillRect,
+    fbPolyFillArc,
+    miPolyText8,
+    miPolyText16,
+    miImageText8,
+    miImageText16,
+    rlImageGlyphBlt,
+    fbPolyGlyphBlt,
+    fbPushPixels
+#ifdef NEED_LINEHELPER
+    ,NULL
+#endif
+};
 
 
 /*
@@ -55,11 +89,8 @@ rlCreateGC(GCPtr pGC)
     pScreen->CreateGC = s->CreateGC;
     result = s->CreateGC(pGC);
 
-    // Accelerated GC ops replace some ops
-    pGC->ops->FillSpans = rlFillSpans;
-    pGC->ops->CopyArea = rlCopyArea;
-    pGC->ops->PolyFillRect = rlPolyFillRect;
-    pGC->ops->ImageGlyphBlt = rlImageGlyphBlt;
+    // Accelerated GC ops replace some fb GC ops
+    pGC->ops = &rlAccelOps;
 
     // Rewrap
     s->CreateGC = pScreen->CreateGC;
