@@ -810,7 +810,7 @@ ScreenSaverSetAttributes (ClientPtr client)
     Bool			fOK;
     DepthPtr			pDepth;
     WindowOptPtr		ancwopt;
-    unsigned long		*pVlist;
+    unsigned int		*pVlist;
     unsigned long		*values = 0;
     unsigned long		tmask, imask;
     unsigned long		val;
@@ -960,7 +960,7 @@ ScreenSaverSetAttributes (ClientPtr client)
      * to them.
      */
     pAttr->mask = tmask = stuff->mask | CWOverrideRedirect;
-    pVlist = (unsigned long *) (stuff + 1);
+    pVlist = (unsigned int *) (stuff + 1);
     while (tmask) {
 	imask = lowbit (tmask);
 	tmask &= ~imask;
