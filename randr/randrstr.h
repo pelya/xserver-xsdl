@@ -113,7 +113,13 @@ RRSetCurrentConfig (ScreenPtr		pScreen,
 		    RRScreenSizePtr	pSize);
 
 Bool RRScreenInit(ScreenPtr pScreen);
-    
+
+int
+RRSetScreenConfig (ScreenPtr		pScreen,
+		   Rotation		rotation,
+		   int			rate,
+		   RRScreenSizePtr	pSize);
+
 Bool
 miRandRInit (ScreenPtr pScreen);
 

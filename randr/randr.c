@@ -719,7 +719,7 @@ ProcRRSetScreenConfig (ClientPtr client)
 
     pScreen = pDraw->pScreen;
 
-    pScrPriv= rrGetScrPriv(pScreen);
+    pScrPriv = rrGetScrPriv(pScreen);
     
     time = ClientTimeToServerTime(stuff->timestamp);
     configTime = ClientTimeToServerTime(stuff->configTimestamp);
@@ -898,6 +898,109 @@ sendReply:
     WriteToClient(client, sizeof(xRRSetScreenConfigReply), (char *)&rep);
 
     return (client->noClientException);
+}
+
+int
+RRSetScreenConfig (ScreenPtr		pScreen,
+		   Rotation		rotation,
+		   int			rate,
+		   RRScreenSizePtr	pSize)
+{
+    rrScrPrivPtr	    pScrPriv;
+    int			    i;
+    short		    oldWidth, oldHeight;
+
+    pScrPriv = rrGetScrPriv(pScreen);
+    
+    oldWidth = pScreen->width;
+    oldHeight = pScreen->height;
+    
+    if (!RRGetInfo (pScreen))
+	return BadAlloc;
+    
+    /*
+     * Validate requested rotation
+     */
+
+    /* test the rotation bits only! */
+    switch (rotation & 0xf) {
+    case RR_Rotate_0:
+    case RR_Rotate_90:
+    case RR_Rotate_180:
+    case RR_Rotate_270:
+	break;
+    default:
+	/*
+	 * Invalid rotation
+	 */
+	return BadValue;
+    }
+
+    if ((~pScrPriv->rotations) & rotation)
+    {
+	/*
+	 * requested rotation or reflection not supported by screen
+	 */
+	return BadMatch;
+    }
+
+    /*
+     * Validate requested refresh
+     */
+    if (rate)
+    {
+	for (i = 0; i < pSize->nRates; i++)
+	{
+	    RRScreenRatePtr pRate = &pSize->pRates[i];
+	    if (pRate->referenced && pRate->rate == rate)
+		break;
+	}
+	if (i == pSize->nRates)
+	{
+	    /*
+	     * Invalid rate
+	     */
+	    return BadValue;
+	}
+    }
+
+    /*
+     * call out to ddx routine to effect the change
+     */
+    if (!(*pScrPriv->rrSetConfig) (pScreen, rotation, rate,
+				   pSize))
+    {
+	/*
+	 * unknown DDX failure, report to client
+	 */
+        return BadImplementation;
+    }
+    
+    /*
+     * set current extension configuration pointers
+     */
+    RRSetCurrentConfig (pScreen, rotation, rate, pSize);
+    
+    /*
+     * Deliver ScreenChangeNotify events whenever
+     * the configuration is updated
+     */
+    WalkTree (pScreen, TellChanged, (pointer) pScreen);
+    
+    /*
+     * Deliver ConfigureNotify events when root changes
+     * pixel size
+     */
+    if (oldWidth != pScreen->width || oldHeight != pScreen->height)
+	RRSendConfigNotify (pScreen);
+    RREditConnectionInfo (pScreen);
+    
+    /*
+     * Fix pointer bounds and location
+     */
+    ScreenRestructured (pScreen);
+    
+    return Success;
 }
 
 static int
