@@ -1,5 +1,5 @@
 /*
- * $XFree86$
+ * $XFree86: xc/programs/Xserver/miext/shadow/shrot16pack_90.c,v 1.1 2001/05/29 04:54:13 keithp Exp $
  *
  * Copyright © 2000 Keith Packard
  *

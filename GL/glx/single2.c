@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/GL/glx/single2.c,v 1.8 2004/02/10 22:54:15 alanh Exp $ */
+/* $XFree86: xc/programs/Xserver/GL/glx/single2.c,v 1.10 2004/03/04 19:22:20 dawes Exp $ */
 /*
 ** License Applicability. Except to the extent portions of this file are
 ** made subject to an alternative license as permitted in the SGI Free
@@ -344,7 +344,7 @@ int DoGetString(__GLXclientState *cl, GLbyte *pc, GLboolean need_swap)
 	if ( atof( string ) > atof( GLServerVersion ) ) {
 	    buf = __glXMalloc( __glXStrlen( string ) 
 			       + __glXStrlen( GLServerVersion )
-			       + 3 );
+			       + 4 );
 	    if ( buf == NULL ) {
 		string = GLServerVersion;
 	    }

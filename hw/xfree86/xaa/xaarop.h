@@ -1,4 +1,4 @@
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/xaa/xaarop.h,v 1.1 1999/03/21 07:35:31 dawes Exp $ */
 
 /*
 

@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/include/cursor.h,v 1.6 2002/09/17 01:15:14 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/include/cursor.h,v 1.7 2003/04/27 21:31:04 herrb Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group

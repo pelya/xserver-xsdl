@@ -1,4 +1,4 @@
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/bsd/bsd_KbdMap.c,v 1.1 2002/10/11 01:40:34 dawes Exp $ */
 
 /*
  * Slightly modified xf86KbdBSD.c which is

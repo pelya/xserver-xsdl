@@ -30,7 +30,7 @@
  *		Peter Busch
  *		Harold L Hunt II
  */
-/* $XFree86: xc/programs/Xserver/hw/xwin/wincmap.c,v 1.9 2002/07/05 09:19:26 alanh Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xwin/wincmap.c,v 1.10 2002/10/17 08:18:22 alanh Exp $ */
 
 #include "win.h"
 

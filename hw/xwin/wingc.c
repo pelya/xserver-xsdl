@@ -27,7 +27,7 @@
  *
  * Authors:	Harold L Hunt II
  */
-/* $XFree86: xc/programs/Xserver/hw/xwin/wingc.c,v 1.10 2001/10/30 15:39:09 alanh Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xwin/wingc.c,v 1.11 2003/08/07 23:47:58 alanh Exp $ */
 
 #include "win.h"
 void

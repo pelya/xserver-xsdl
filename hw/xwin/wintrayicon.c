@@ -28,7 +28,7 @@
  * Authors:	Early Ehlinger
  *		Harold L Hunt II
  */
-/* $XFree86: $ */
+/* $XFree86: xc/programs/Xserver/hw/xwin/wintrayicon.c,v 1.2 2003/10/02 13:30:11 eich Exp $ */
 
 #include "win.h"
 #include <shellapi.h>

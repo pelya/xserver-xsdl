@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/GL/dri/dri.c,v 1.39 2003/11/10 18:21:41 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/GL/dri/dri.c,v 1.40 2004/01/30 14:31:58 alanh Exp $ */
 /**************************************************************************
 
 Copyright 1998-1999 Precision Insight, Inc., Cedar Park, Texas.

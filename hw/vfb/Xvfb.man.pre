@@ -23,7 +23,7 @@
 .\" other dealings in this Software without prior written authorization
 .\" from The Open Group.
 .\"
-.\" $XFree86: xc/programs/Xserver/hw/vfb/Xvfb.man,v 1.9 2001/12/14 19:59:45 dawes Exp $
+.\" $XFree86: xc/programs/Xserver/hw/vfb/Xvfb.man,v 1.11 2004/03/05 03:20:48 dawes Exp $
 .\"
 .TH XVFB 1 __xorgversion__
 .SH NAME
@@ -58,30 +58,32 @@ To build \fIXvfb\fP, put the following in your host.def and remake.
 In addition to the normal server options described in the \fIXserver(1)\fP
 manual page, \fIXvfb\fP accepts the following command line switches:
 .TP 4
-.B "\-screen \fIscreennum\fP \fIWxHxD\fP"
+.B "\-screen \fIscreennum\fP \fIW\fPx\fIH\fPx\fID\fP\fR[\fP@\fIx\fP,\fIy\fP\fR]\fP"
 This option creates screen \fIscreennum\fP and sets its width, height,
-and depth to W, H, and D respectively.  By default, only screen 0 exists
-and has the dimensions 1280x1024x8.
+and depth to W, H, and D respectively, and optionally the screen origin
+(for Xinerama purposes) to (x,y).  By default, only screen 0 exists and
+has the dimensions 1280x1024x8.  If a screen origin is not specified
+when using Xinerama, the default is for screen
+.I N
+to be positioned to the right of screen
+.IR N\-1 .
 .TP 4
 .B "\-pixdepths \fIlist-of-depths\fP"
 This option specifies a list of pixmap depths that the server should
 support in addition to the depths implied by the supported screens.
-\fIlist-of-depths\fP is a space-separated list of integers that can
-have values from 1 to 32.
+\fIlist-of-depths\fP is a space-separated list of integers that can have
+values from 1 to 32.
 .TP 4
 .B "\-fbdir \fIframebuffer-directory\fP"
 This option specifies the directory in which the memory mapped files
-containing the framebuffer memory should be created.
-See FILES. 
-This option only exists on machines that have the mmap and msync system
-calls.
+containing the framebuffer memory should be created.  See FILES.  This
+option only exists on machines that have the mmap and msync system calls.
 .TP 4
 .B "\-shmem"
-This option specifies that the framebuffer should be put in shared memory.
-The shared memory ID for each screen will be printed by the server.
-The shared memory is in xwd format.
-This option only exists on machines that support the System V shared memory
-interface.
+This option specifies that the framebuffer should be put in shared
+memory.  The shared memory ID for each screen will be printed by the
+server.  The shared memory is in xwd format.  This option only exists
+on machines that support the System V shared memory interface.
 .PP
 If neither \fB\-shmem\fP nor \fB\-fbdir\fP is specified,
 the framebuffer memory will be allocated with malloc().

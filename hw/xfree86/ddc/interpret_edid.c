@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/ddc/interpret_edid.c,v 1.7 2000/04/17 16:29:55 eich Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/ddc/interpret_edid.c,v 1.8 2000/07/13 21:31:37 tsi Exp $ */
 
 /* interpret_edid.c: interpret a primary EDID block
  * 

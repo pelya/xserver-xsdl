@@ -28,7 +28,7 @@
  * Authors:	Keith Packard, MIT X Consortium
  *		Harold L Hunt II
  */
-/* $XFree86: xc/programs/Xserver/hw/xwin/winallpriv.c,v 1.11 2002/10/17 08:18:21 alanh Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xwin/winallpriv.c,v 1.12 2002/10/31 23:04:39 alanh Exp $ */
 
 #include "win.h"
 

@@ -27,7 +27,7 @@
  *
  * Authors:	Harold L Hunt II
  */
-/* $XFree86: xc/programs/Xserver/hw/xwin/XWin.rc,v 1.1 2002/10/17 08:18:21 alanh Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xwin/XWin.rc,v 1.2 2003/07/29 21:25:15 dawes Exp $ */
 
 #include "resource.h"
 

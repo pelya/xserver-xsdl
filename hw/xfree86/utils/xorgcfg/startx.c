@@ -26,7 +26,7 @@
  *
  * Author: Paulo César Pereira de Andrade <pcpa@conectiva.com.br>
  *
- * $XFree86: xc/programs/Xserver/hw/xfree86/xf86cfg/startx.c,v 1.7 2002/01/07 20:38:29 dawes Exp $
+ * $XFree86: xc/programs/Xserver/hw/xfree86/xf86cfg/startx.c,v 1.8 2002/10/19 20:04:21 herrb Exp $
  */
 
 #include "config.h"

@@ -1,4 +1,4 @@
-/* $XFree86$ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/xf8_32wid/cfb8_32widmodule.c,v 1.1 2000/05/21 01:02:43 mvojkovi Exp $ */
 
 #ifdef XFree86LOADER
 

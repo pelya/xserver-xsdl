@@ -57,7 +57,7 @@ in this Software without prior written authorization from The Open Group.
  * or other dealings in this Software without prior written authorization
  * from said copyright holders.
  */
-/* $XFree86: xc/programs/Xserver/Xprint/ps/PsAttr.c,v 1.4 2001/01/17 22:36:32 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/Xprint/ps/PsAttr.c,v 1.5 2001/12/14 19:59:15 dawes Exp $ */
 
 /*******************************************************************
 **

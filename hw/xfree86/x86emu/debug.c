@@ -36,7 +36,7 @@
 *				emulator.
 *
 ****************************************************************************/
-/* $XFree86: xc/extras/x86emu/src/x86emu/debug.c,v 1.2 2000/04/05 18:13:14 dawes Exp $ */
+/* $XFree86: xc/extras/x86emu/src/x86emu/debug.c,v 1.4 2000/04/17 16:29:45 eich Exp $ */
 
 #include "x86emu/x86emui.h"
 #ifdef IN_MODULE

@@ -1,5 +1,5 @@
 /*
- * $XFree86$
+ * $XFree86: xc/programs/Xserver/miext/layer/laymodule.c,v 1.1 2002/11/08 22:19:55 keithp Exp $
  *
  * Copyright © 2000 Keith Packard
  *

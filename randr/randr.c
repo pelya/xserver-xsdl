@@ -1,5 +1,5 @@
 /*
- * $XFree86: xc/programs/Xserver/randr/randr.c,v 1.21tsi Exp $
+ * $XFree86: xc/programs/Xserver/randr/randr.c,v 1.22 2003/11/06 18:38:15 tsi Exp $
  *
  * Copyright © 2000, Compaq Computer Corporation, 
  * Copyright © 2002, Hewlett Packard, Inc.

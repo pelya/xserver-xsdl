@@ -27,7 +27,7 @@
  *
  * Authors:	Harold L Hunt II
  */
-/* $XFree86: xc/programs/Xserver/hw/xwin/winblock.c,v 1.5 2002/10/17 08:18:22 alanh Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xwin/winblock.c,v 1.7 2003/07/29 21:25:16 dawes Exp $ */
 
 #include "win.h"
 

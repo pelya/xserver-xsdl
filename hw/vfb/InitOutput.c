@@ -26,7 +26,17 @@ other dealings in this Software without prior written authorization
 from The Open Group.
 
 */
-/* $XFree86: xc/programs/Xserver/hw/vfb/InitOutput.c,v 3.25 2003/11/15 04:01:56 dawes Exp $ */
+
+/*
+ * The screen origin code is:
+ *
+ * Copyright (c) 2004 by The XFree86 Project, Inc
+ * Rights as per the XFree86 1.1 licence
+ * (http://www.xfree86.org/legal/licenses.html).
+ *
+ */
+
+/* $XFree86: xc/programs/Xserver/hw/vfb/InitOutput.c,v 3.27 2004/03/05 03:20:48 dawes Exp $ */
 
 #if defined(WIN32)
 #include <X11/Xwinsock.h>
@@ -80,7 +90,9 @@ typedef struct
     int width;
     int paddedBytesWidth;
     int paddedWidth;
+    int xOrigin;
     int height;
+    int yOrigin;
     int depth;
     int bitsPerPixel;
     int sizeInBytes;
@@ -254,7 +266,7 @@ OsVendorFatalError()
 void
 ddxUseMsg()
 {
-    ErrorF("-screen scrn WxHxD     set screen's width, height, depth\n");
+    ErrorF("-screen n WxHxD[@x,y]  set screen's width, height, depth, origin\n");
     ErrorF("-pixdepths list-of-int support given pixmap depths\n");
 #ifdef RENDER
     ErrorF("+/-render		   turn on/of RENDER extension support"
@@ -288,6 +300,7 @@ ddxProcessArgument(int argc, char *argv[], int i)
     if (strcmp (argv[i], "-screen") == 0)	/* -screen n WxHxD */
     {
 	int screenNum;
+ 	char *s;
 	if (i + 2 >= argc) UseMsg();
 	screenNum = atoi(argv[i+1]);
 	if (screenNum < 0 || screenNum >= MAXSCREENS)
@@ -295,13 +308,30 @@ ddxProcessArgument(int argc, char *argv[], int i)
 	    ErrorF("Invalid screen number %d\n", screenNum);
 	    UseMsg();
 	}
-	if (3 != sscanf(argv[i+2], "%dx%dx%d",
+	s = strtok(argv[i+2], "@");
+	if (3 != sscanf(s, "%dx%dx%d",
 			&vfbScreens[screenNum].width,
 			&vfbScreens[screenNum].height,
 			&vfbScreens[screenNum].depth))
 	{
-	    ErrorF("Invalid screen configuration %s\n", argv[i+2]);
+	    ErrorF("Invalid screen configuration %s\n", s);
 	    UseMsg();
+	}
+	s = strtok(NULL, "@");
+	if (s)
+	{
+	    if (2 != sscanf(s, "%d,%d",
+			    &vfbScreens[screenNum].xOrigin,
+			    &vfbScreens[screenNum].yOrigin))
+	    {
+		ErrorF("Invalid screen position %s\n", s);
+		UseMsg();
+	    }
+	}
+	else
+	{
+	    vfbScreens[screenNum].xOrigin = -1;
+	    vfbScreens[screenNum].yOrigin = -1;
 	}
 
 	if (screenNum >= vfbNumScreens)
@@ -1030,6 +1060,35 @@ InitOutput(ScreenInfo *screenInfo, int argc, char **argv)
 	if (-1 == AddScreen(vfbScreenInit, argc, argv))
 	{
 	    FatalError("Couldn't add screen %d", i);
+	}
+    }
+
+    /*
+     * Setup the Xinerama Layout.  If the screen origins are not specified
+     * explicitly, assume that screen n is to the right of screen n - 1.
+     * It is safe to set this up even when Xinerama is not used.
+     */
+
+    for (i = 0; i < vfbNumScreens; i++)
+    {
+	if (vfbScreens[i].xOrigin < 0 || vfbScreens[i].yOrigin < 0)
+	{
+	    if (i == 0)
+	    {
+		dixScreenOrigins[i].x = 0;
+		dixScreenOrigins[i].y = 0;
+	    }
+	    else
+	    {
+		dixScreenOrigins[i].x = dixScreenOrigins[i - 1].x +
+						vfbScreens[i - 1].width;
+		dixScreenOrigins[i].y = dixScreenOrigins[i - 1].y;
+	    }
+	}
+	else
+	{
+	    dixScreenOrigins[i].x = vfbScreens[i].xOrigin;
+	    dixScreenOrigins[i].y = vfbScreens[i].yOrigin;
 	}
     }
 

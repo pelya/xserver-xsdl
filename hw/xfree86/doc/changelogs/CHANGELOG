@@ -1,3 +1,41 @@
+XFree86 4.4.99.2 (xx March 2004)
+
+XFree86 4.4.99.1 (12 March 2004)
+  18. IRIX allows for a relatively low number of command arguments, so break up
+      font clean rules accordingly (Marc La France).
+  17. Change radeon driver to save/restore colour lookup tables
+      (Marc La France).
+  16. Fix ix86 pre-Solaris8 mmap() problems by deleting obsolete code
+      (Marc La France).
+  15. Fix build glitch on SunOS SPARC (Marc La France).
+  14. Clean up constype utility used on SPARC's (Marc La France).
+  13. Experimental changes to recognise parameterised macros in makedepend
+      (From #6003, Alexander Stohr).
+  12. Change scanpci utility to optionally display PCI bus linkages
+      (Marc La France).
+  11. Fixes for building on Solaris/sparc with Sun's compiler (Mark Kandianis).
+  10. Add support for specifying the screen origins for Xvfb, which is
+      useful when Xinerama is enabled (David Dawes).
+   9. Fix X-Resource extension server crash when the client and server hosts
+      have different endianness (Bugzilla #1242, Alan Coopersmith).
+   8. Fix an off-by-one error that can lead to malloc problems (Bugzilla #512,
+      Kyle Bateman).
+   7. Xterm patch #185 (Thomas Dickey).
+   6. Do the Linux KDKBDREP ioctl on the correct fd.  This prevents the
+      fallback that tries to directly program the keyboard repeat rate,
+      and the related warning messages that recent Linux kernels generate
+      (David Dawes).
+   5. Turn off the DAC for Radeon DPMS modes.  Without this some monitors
+      can be badly affected. (Bugzilla #1221, Hui Yu@ATI, reported by
+      Paul Shupak).
+   4. VeraIt.ttf wasn't getting installed (Bugzilla #1226, Matthieu Herrb).
+   3. Fix an attempted free of an invalid pointer in ScreenSaverSetAttributes()
+      (Bugzilla #1224, Matthieu Herrb, David Dawes).
+   2. Fix a build problem when build server side GL libraries on a system
+      with no installed X headers (Alan Hourihane).
+   1. Fix HTML man page index generation to handle recent rman changes
+      (David Dawes).
+
 XFree86 4.4.0 (29 February 2004)
  821. Fix Radeon secondary head register initialization (Hui Yu@ATI,
       Benjamin Herrenschmidt).
@@ -18683,7 +18721,7 @@ XFree86 3.0a (28 April 1994)
 XFree86 3.0 (26 April 1994)
 
 
-$XFree86: xc/programs/Xserver/hw/xfree86/CHANGELOG,v 3.3156 2004/02/29 04:25:24 martin Exp $
+$XFree86: xc/programs/Xserver/hw/xfree86/CHANGELOG,v 3.3173 2004/03/12 12:09:11 dawes Exp $
 
 
 

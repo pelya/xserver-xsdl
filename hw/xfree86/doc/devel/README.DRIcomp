@@ -554,4 +554,4 @@ trouble shooting and how to use the DRI-enabled X server for 3D applications.
      Generated from XFree86: xc/programs/Xserver/hw/xfree86/doc/sgml/DRIcomp.sgml,v 1.20 dawes Exp $
 
 
-$XFree86: $
+$XFree86: xc/programs/Xserver/hw/xfree86/doc/README.DRIcomp,v 3.17 2003/07/15 02:28:28 dawes Exp $

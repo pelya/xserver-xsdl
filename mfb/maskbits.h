@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/mfb/maskbits.h,v 3.8tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/mfb/maskbits.h,v 3.9 2003/02/18 21:30:00 tsi Exp $ */
 /* Combined Purdue/PurduePlus patches, level 2.1, 1/24/89 */
 /***********************************************************
 Copyright 1987 by Digital Equipment Corporation, Maynard, Massachusetts.

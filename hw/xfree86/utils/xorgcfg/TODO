@@ -1,4 +1,4 @@
-$XFree86$
+$XFree86: xc/programs/Xserver/hw/xfree86/xf86cfg/TODO,v 1.1 2001/07/04 16:09:14 paulo Exp $
 
 o Have code to fetch the SymTabRec chipset list from a video driver.
   This is mostly useful for the testing tool/interface, so that the

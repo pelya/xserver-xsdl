@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/mi/miregion.c,v 1.9 2003/04/23 21:51:53 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/mi/miregion.c,v 1.10 2003/07/16 01:38:57 dawes Exp $ */
 /***********************************************************
 
 Copyright 1987, 1988, 1989, 1998  The Open Group

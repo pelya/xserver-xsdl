@@ -27,7 +27,7 @@
  *
  * Authors:	Harold Hunt
  */
-/* $XFree86: xc/programs/Xserver/hw/xwin/winwindow.c,v 1.5 2002/11/07 10:31:32 alanh Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xwin/winclipboard.h,v 1.3 2003/10/02 13:30:10 eich Exp $ */
 
 
 #ifndef _WINCLIPBOARD_H_

@@ -15,7 +15,7 @@
  * OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86$ */
+/* $XFree86: xc/lib/misc/strlcat.c,v 1.1 2003/10/26 12:17:14 herrb Exp $ */
 
 
 #include <sys/types.h>

@@ -37,7 +37,7 @@
 *               include this header
 *
 ****************************************************************************/
-/* $XFree86$ */
+/* $XFree86: xc/extras/x86emu/include/x86emu.h,v 1.3 2002/09/16 18:05:17 eich Exp $ */
 
 #ifndef __X86EMU_X86EMU_H
 #define __X86EMU_X86EMU_H

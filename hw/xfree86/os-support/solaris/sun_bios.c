@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/sunos/sun_bios.c,v 1.2tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/sunos/sun_bios.c,v 1.4 2004/03/08 15:37:12 tsi Exp $ */
 /*
  * Copyright 1990,91 by Thomas Roell, Dinkelscherben, Germany
  * Copyright 1993 by David Wexelblat <dwex@goblin.org>
@@ -45,49 +45,31 @@ xf86ReadBIOS(unsigned long Base, unsigned long Offset, unsigned char *Buf,
 {
 	int fd;
 	unsigned char *ptr;
-	char solx86_vtname[20];
 	int psize;
 	int mlen;
 
-	/*
-	 * Solaris 2.1 x86 SVR4 (10/27/93)
-	 *	The server must treat the virtual terminal device file
-	 *	as the standard SVR4 /dev/pmem. By default, then used VT
-	 *	is considered the "default" file to open.
-	 *
-	 * Solaris 2.8 x86 (7/26/99) - DWH
-	 *
-	 *	Use /dev/xsvc for everything.
-	 */
 	psize = xf86getpagesize();
 	Offset += Base & (psize - 1);
 	Base &= ~(psize - 1);
 	mlen = (Offset + Len + psize - 1) & ~(psize - 1);
-#if defined(i386) && !defined(__SOL8__)
-	if (Base >= 0xA0000 && Base + mlen < 0xFFFFF && xf86Info.vtno >= 0)
-		sprintf(solx86_vtname, "/dev/vt%02d", xf86Info.vtno);
-	else
-#endif
-	{
-		if (!xf86LinearVidMem())
-			FatalError("xf86ReadBIOS: Could not mmap BIOS"
-				   " [a=%lx]\n", Base);
-		sprintf(solx86_vtname, apertureDevName);
-	}
 
-	if ((fd = open(solx86_vtname, O_RDONLY)) < 0)
+	if (!xf86LinearVidMem())
+		FatalError("xf86ReadBIOS: Could not mmap BIOS [a=%lx]\n", Base);
+
+	if ((fd = open(apertureDevName, O_RDONLY)) < 0)
 	{
 		xf86Msg(X_WARNING, "xf86ReadBIOS: Failed to open %s (%s)\n",
-			solx86_vtname, strerror(errno));
+			apertureDevName, strerror(errno));
 		return(-1);
 	}
+
 	ptr = (unsigned char *)mmap((caddr_t)0, mlen, PROT_READ,
 					MAP_SHARED, fd, (off_t)Base);
 	if (ptr == MAP_FAILED)
 	{
 		xf86Msg(X_WARNING, "xf86ReadBIOS: %s mmap failed "
 			"[0x%08lx, 0x%04x]\n",
-			solx86_vtname, Base, mlen);
+			apertureDevName, Base, mlen);
 		close(fd);
 		return -1;
 	}

@@ -27,7 +27,7 @@
  * holders shall not be used in advertising or otherwise to promote the sale,
  * use or other dealings in this Software without prior written authorization.
  */
-/* $XFree86: xc/programs/Xserver/hw/darwin/quartz/cr/crScreen.m,v 1.5 2003/11/12 20:21:52 torrey Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/darwin/quartz/cr/crScreen.m,v 1.6 2003/11/27 01:59:53 torrey Exp $ */
 
 #include "quartzCommon.h"
 #include "cr.h"

@@ -27,7 +27,7 @@
  *
  * Authors:	Harold L Hunt II
  */
-/* $XFree86: xc/programs/Xserver/hw/xwin/wincreatewnd.c,v 1.4 2002/10/17 08:18:22 alanh Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xwin/wincreatewnd.c,v 1.7 2003/10/08 11:13:03 eich Exp $ */
 
 #include "win.h"
 #include "shellapi.h"

@@ -27,7 +27,7 @@
  *
  * Authors:	Harold L Hunt II
  */
-/* $XFree86: xc/programs/Xserver/hw/xwin/winkeybd.h,v 1.1 2001/09/26 13:00:34 alanh Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xwin/winkeybd.h,v 1.3 2002/07/05 09:19:26 alanh Exp $ */
 
 /*
  * We need symbols for the scan codes of keys.

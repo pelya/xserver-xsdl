@@ -27,7 +27,7 @@
  *
  * Authors:	Harold L Hunt II
  */
-/* $XFree86: xc/programs/Xserver/hw/xwin/winerror.c,v 1.3 2001/10/23 22:22:47 alanh Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xwin/winerror.c,v 1.6 2003/10/02 13:30:10 eich Exp $ */
 
 #include "win.h"
 

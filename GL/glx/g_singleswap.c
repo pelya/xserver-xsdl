@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/GL/glx/g_singleswap.c,v 1.4tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/GL/glx/g_singleswap.c,v 1.6 2004/03/10 18:08:02 tsi Exp $ */
 /*
 ** License Applicability. Except to the extent portions of this file are
 ** made subject to an alternative license as permitted in the SGI Free
@@ -234,7 +234,6 @@ int __glXDispSwap_GetDoublev(__GLXclientState *cl, GLbyte *pc)
 	int error;
 	GLdouble answerBuffer[200];
 	char *answer;
-	__GLX_DECLARE_SWAP_VARIABLES;
 	__GLX_DECLARE_SWAP_ARRAY_VARIABLES;
 
 	__GLX_SWAP_INT(&((xGLXSingleReq *)pc)->contextTag);
@@ -312,7 +311,6 @@ int __glXDispSwap_GetFloatv(__GLXclientState *cl, GLbyte *pc)
 	int error;
 	GLfloat answerBuffer[200];
 	char *answer;
-	__GLX_DECLARE_SWAP_VARIABLES;
 	__GLX_DECLARE_SWAP_ARRAY_VARIABLES;
 
 	__GLX_SWAP_INT(&((xGLXSingleReq *)pc)->contextTag);
@@ -365,7 +363,6 @@ int __glXDispSwap_GetIntegerv(__GLXclientState *cl, GLbyte *pc)
 	int error;
 	GLint answerBuffer[200];
 	char *answer;
-	__GLX_DECLARE_SWAP_VARIABLES;
 	__GLX_DECLARE_SWAP_ARRAY_VARIABLES;
 
 	__GLX_SWAP_INT(&((xGLXSingleReq *)pc)->contextTag);
@@ -418,7 +415,6 @@ int __glXDispSwap_GetLightfv(__GLXclientState *cl, GLbyte *pc)
 	int error;
 	GLfloat answerBuffer[200];
 	char *answer;
-	__GLX_DECLARE_SWAP_VARIABLES;
 	__GLX_DECLARE_SWAP_ARRAY_VARIABLES;
 
 	__GLX_SWAP_INT(&((xGLXSingleReq *)pc)->contextTag);
@@ -473,7 +469,6 @@ int __glXDispSwap_GetLightiv(__GLXclientState *cl, GLbyte *pc)
 	int error;
 	GLint answerBuffer[200];
 	char *answer;
-	__GLX_DECLARE_SWAP_VARIABLES;
 	__GLX_DECLARE_SWAP_ARRAY_VARIABLES;
 
 	__GLX_SWAP_INT(&((xGLXSingleReq *)pc)->contextTag);
@@ -529,7 +524,6 @@ int __glXDispSwap_GetMapdv(__GLXclientState *cl, GLbyte *pc)
 	int error;
 	GLdouble answerBuffer[200];
 	char *answer;
-	__GLX_DECLARE_SWAP_VARIABLES;
 	__GLX_DECLARE_SWAP_ARRAY_VARIABLES;
 
 	__GLX_SWAP_INT(&((xGLXSingleReq *)pc)->contextTag);
@@ -586,7 +580,6 @@ int __glXDispSwap_GetMapfv(__GLXclientState *cl, GLbyte *pc)
 	int error;
 	GLfloat answerBuffer[200];
 	char *answer;
-	__GLX_DECLARE_SWAP_VARIABLES;
 	__GLX_DECLARE_SWAP_ARRAY_VARIABLES;
 
 	__GLX_SWAP_INT(&((xGLXSingleReq *)pc)->contextTag);
@@ -643,7 +636,6 @@ int __glXDispSwap_GetMapiv(__GLXclientState *cl, GLbyte *pc)
 	int error;
 	GLint answerBuffer[200];
 	char *answer;
-	__GLX_DECLARE_SWAP_VARIABLES;
 	__GLX_DECLARE_SWAP_ARRAY_VARIABLES;
 
 	__GLX_SWAP_INT(&((xGLXSingleReq *)pc)->contextTag);
@@ -699,7 +691,6 @@ int __glXDispSwap_GetMaterialfv(__GLXclientState *cl, GLbyte *pc)
 	int error;
 	GLfloat answerBuffer[200];
 	char *answer;
-	__GLX_DECLARE_SWAP_VARIABLES;
 	__GLX_DECLARE_SWAP_ARRAY_VARIABLES;
 
 	__GLX_SWAP_INT(&((xGLXSingleReq *)pc)->contextTag);
@@ -754,7 +745,6 @@ int __glXDispSwap_GetMaterialiv(__GLXclientState *cl, GLbyte *pc)
 	int error;
 	GLint answerBuffer[200];
 	char *answer;
-	__GLX_DECLARE_SWAP_VARIABLES;
 	__GLX_DECLARE_SWAP_ARRAY_VARIABLES;
 
 	__GLX_SWAP_INT(&((xGLXSingleReq *)pc)->contextTag);
@@ -809,7 +799,6 @@ int __glXDispSwap_GetPixelMapfv(__GLXclientState *cl, GLbyte *pc)
 	int error;
 	GLfloat answerBuffer[200];
 	char *answer;
-	__GLX_DECLARE_SWAP_VARIABLES;
 	__GLX_DECLARE_SWAP_ARRAY_VARIABLES;
 
 	__GLX_SWAP_INT(&((xGLXSingleReq *)pc)->contextTag);
@@ -862,7 +851,6 @@ int __glXDispSwap_GetPixelMapuiv(__GLXclientState *cl, GLbyte *pc)
 	int error;
 	GLuint answerBuffer[200];
 	char *answer;
-	__GLX_DECLARE_SWAP_VARIABLES;
 	__GLX_DECLARE_SWAP_ARRAY_VARIABLES;
 
 	__GLX_SWAP_INT(&((xGLXSingleReq *)pc)->contextTag);
@@ -915,7 +903,6 @@ int __glXDispSwap_GetPixelMapusv(__GLXclientState *cl, GLbyte *pc)
 	int error;
 	GLushort answerBuffer[200];
 	char *answer;
-	__GLX_DECLARE_SWAP_VARIABLES;
 	__GLX_DECLARE_SWAP_ARRAY_VARIABLES;
 
 	__GLX_SWAP_INT(&((xGLXSingleReq *)pc)->contextTag);
@@ -968,7 +955,6 @@ int __glXDispSwap_GetTexEnvfv(__GLXclientState *cl, GLbyte *pc)
 	int error;
 	GLfloat answerBuffer[200];
 	char *answer;
-	__GLX_DECLARE_SWAP_VARIABLES;
 	__GLX_DECLARE_SWAP_ARRAY_VARIABLES;
 
 	__GLX_SWAP_INT(&((xGLXSingleReq *)pc)->contextTag);
@@ -1023,7 +1009,6 @@ int __glXDispSwap_GetTexEnviv(__GLXclientState *cl, GLbyte *pc)
 	int error;
 	GLint answerBuffer[200];
 	char *answer;
-	__GLX_DECLARE_SWAP_VARIABLES;
 	__GLX_DECLARE_SWAP_ARRAY_VARIABLES;
 
 	__GLX_SWAP_INT(&((xGLXSingleReq *)pc)->contextTag);
@@ -1078,7 +1063,6 @@ int __glXDispSwap_GetTexGendv(__GLXclientState *cl, GLbyte *pc)
 	int error;
 	GLdouble answerBuffer[200];
 	char *answer;
-	__GLX_DECLARE_SWAP_VARIABLES;
 	__GLX_DECLARE_SWAP_ARRAY_VARIABLES;
 
 	__GLX_SWAP_INT(&((xGLXSingleReq *)pc)->contextTag);
@@ -1133,7 +1117,6 @@ int __glXDispSwap_GetTexGenfv(__GLXclientState *cl, GLbyte *pc)
 	int error;
 	GLfloat answerBuffer[200];
 	char *answer;
-	__GLX_DECLARE_SWAP_VARIABLES;
 	__GLX_DECLARE_SWAP_ARRAY_VARIABLES;
 
 	__GLX_SWAP_INT(&((xGLXSingleReq *)pc)->contextTag);
@@ -1188,7 +1171,6 @@ int __glXDispSwap_GetTexGeniv(__GLXclientState *cl, GLbyte *pc)
 	int error;
 	GLint answerBuffer[200];
 	char *answer;
-	__GLX_DECLARE_SWAP_VARIABLES;
 	__GLX_DECLARE_SWAP_ARRAY_VARIABLES;
 
 	__GLX_SWAP_INT(&((xGLXSingleReq *)pc)->contextTag);
@@ -1243,7 +1225,6 @@ int __glXDispSwap_GetTexParameterfv(__GLXclientState *cl, GLbyte *pc)
 	int error;
 	GLfloat answerBuffer[200];
 	char *answer;
-	__GLX_DECLARE_SWAP_VARIABLES;
 	__GLX_DECLARE_SWAP_ARRAY_VARIABLES;
 
 	__GLX_SWAP_INT(&((xGLXSingleReq *)pc)->contextTag);
@@ -1298,7 +1279,6 @@ int __glXDispSwap_GetTexParameteriv(__GLXclientState *cl, GLbyte *pc)
 	int error;
 	GLint answerBuffer[200];
 	char *answer;
-	__GLX_DECLARE_SWAP_VARIABLES;
 	__GLX_DECLARE_SWAP_ARRAY_VARIABLES;
 
 	__GLX_SWAP_INT(&((xGLXSingleReq *)pc)->contextTag);
@@ -1353,7 +1333,6 @@ int __glXDispSwap_GetTexLevelParameterfv(__GLXclientState *cl, GLbyte *pc)
 	int error;
 	GLfloat answerBuffer[200];
 	char *answer;
-	__GLX_DECLARE_SWAP_VARIABLES;
 	__GLX_DECLARE_SWAP_ARRAY_VARIABLES;
 
 	__GLX_SWAP_INT(&((xGLXSingleReq *)pc)->contextTag);
@@ -1410,7 +1389,6 @@ int __glXDispSwap_GetTexLevelParameteriv(__GLXclientState *cl, GLbyte *pc)
 	int error;
 	GLint answerBuffer[200];
 	char *answer;
-	__GLX_DECLARE_SWAP_VARIABLES;
 	__GLX_DECLARE_SWAP_ARRAY_VARIABLES;
 
 	__GLX_SWAP_INT(&((xGLXSingleReq *)pc)->contextTag);
@@ -1523,7 +1501,6 @@ int __glXDispSwap_AreTexturesResident(__GLXclientState *cl, GLbyte *pc)
 	int error;
 	GLboolean answerBuffer[200];
 	char *answer;
-	__GLX_DECLARE_SWAP_VARIABLES;
 	__GLX_DECLARE_SWAP_ARRAY_VARIABLES;
 
 	__GLX_SWAP_INT(&((xGLXSingleReq *)pc)->contextTag);
@@ -1557,7 +1534,6 @@ int __glXDispSwap_DeleteTextures(__GLXclientState *cl, GLbyte *pc)
 	GLsizei n;
 	__GLXcontext *cx;
 	int error;
-	__GLX_DECLARE_SWAP_VARIABLES;
 	__GLX_DECLARE_SWAP_ARRAY_VARIABLES;
 
 	__GLX_SWAP_INT(&((xGLXSingleReq *)pc)->contextTag);
@@ -1585,7 +1561,6 @@ int __glXDispSwap_GenTextures(__GLXclientState *cl, GLbyte *pc)
 	int error;
 	GLuint answerBuffer[200];
 	char *answer;
-	__GLX_DECLARE_SWAP_VARIABLES;
 	__GLX_DECLARE_SWAP_ARRAY_VARIABLES;
 
 	__GLX_SWAP_INT(&((xGLXSingleReq *)pc)->contextTag);
@@ -1647,7 +1622,6 @@ int __glXDispSwap_GetColorTableParameterfv(__GLXclientState *cl, GLbyte *pc)
 	int error;
 	GLfloat answerBuffer[200];
 	char *answer;
-	__GLX_DECLARE_SWAP_VARIABLES;
 	__GLX_DECLARE_SWAP_ARRAY_VARIABLES;
 
 	__GLX_SWAP_INT(&((xGLXSingleReq *)pc)->contextTag);
@@ -1702,7 +1676,6 @@ int __glXDispSwap_GetColorTableParameteriv(__GLXclientState *cl, GLbyte *pc)
 	int error;
 	GLint answerBuffer[200];
 	char *answer;
-	__GLX_DECLARE_SWAP_VARIABLES;
 	__GLX_DECLARE_SWAP_ARRAY_VARIABLES;
 
 	__GLX_SWAP_INT(&((xGLXSingleReq *)pc)->contextTag);
@@ -1757,7 +1730,6 @@ int __glXDispSwap_GetConvolutionParameterfv(__GLXclientState *cl, GLbyte *pc)
 	int error;
 	GLfloat answerBuffer[200];
 	char *answer;
-	__GLX_DECLARE_SWAP_VARIABLES;
 	__GLX_DECLARE_SWAP_ARRAY_VARIABLES;
 
 	__GLX_SWAP_INT(&((xGLXSingleReq *)pc)->contextTag);
@@ -1812,7 +1784,6 @@ int __glXDispSwap_GetConvolutionParameteriv(__GLXclientState *cl, GLbyte *pc)
 	int error;
 	GLint answerBuffer[200];
 	char *answer;
-	__GLX_DECLARE_SWAP_VARIABLES;
 	__GLX_DECLARE_SWAP_ARRAY_VARIABLES;
 
 	__GLX_SWAP_INT(&((xGLXSingleReq *)pc)->contextTag);
@@ -1867,7 +1838,6 @@ int __glXDispSwap_GetHistogramParameterfv(__GLXclientState *cl, GLbyte *pc)
 	int error;
 	GLfloat answerBuffer[200];
 	char *answer;
-	__GLX_DECLARE_SWAP_VARIABLES;
 	__GLX_DECLARE_SWAP_ARRAY_VARIABLES;
 
 	__GLX_SWAP_INT(&((xGLXSingleReq *)pc)->contextTag);
@@ -1922,7 +1892,6 @@ int __glXDispSwap_GetHistogramParameteriv(__GLXclientState *cl, GLbyte *pc)
 	int error;
 	GLint answerBuffer[200];
 	char *answer;
-	__GLX_DECLARE_SWAP_VARIABLES;
 	__GLX_DECLARE_SWAP_ARRAY_VARIABLES;
 
 	__GLX_SWAP_INT(&((xGLXSingleReq *)pc)->contextTag);
@@ -1977,7 +1946,6 @@ int __glXDispSwap_GetMinmaxParameterfv(__GLXclientState *cl, GLbyte *pc)
 	int error;
 	GLfloat answerBuffer[200];
 	char *answer;
-	__GLX_DECLARE_SWAP_VARIABLES;
 	__GLX_DECLARE_SWAP_ARRAY_VARIABLES;
 
 	__GLX_SWAP_INT(&((xGLXSingleReq *)pc)->contextTag);
@@ -2032,7 +2000,6 @@ int __glXDispSwap_GetMinmaxParameteriv(__GLXclientState *cl, GLbyte *pc)
 	int error;
 	GLint answerBuffer[200];
 	char *answer;
-	__GLX_DECLARE_SWAP_VARIABLES;
 	__GLX_DECLARE_SWAP_ARRAY_VARIABLES;
 
 	__GLX_SWAP_INT(&((xGLXSingleReq *)pc)->contextTag);
@@ -2087,7 +2054,6 @@ int __glXDispSwap_AreTexturesResidentEXT(__GLXclientState *cl, GLbyte *pc)
 	int error;
 	GLboolean answerBuffer[200];
 	char *answer;
-	__GLX_DECLARE_SWAP_VARIABLES;
 	__GLX_DECLARE_SWAP_ARRAY_VARIABLES;
 
 	__GLX_SWAP_INT(&((xGLXVendorPrivateReq *)pc)->contextTag);
@@ -2121,7 +2087,6 @@ int __glXDispSwap_DeleteTexturesEXT(__GLXclientState *cl, GLbyte *pc)
 	GLsizei n;
 	__GLXcontext *cx;
 	int error;
-	__GLX_DECLARE_SWAP_VARIABLES;
 	__GLX_DECLARE_SWAP_ARRAY_VARIABLES;
 
 	__GLX_SWAP_INT(&((xGLXVendorPrivateReq *)pc)->contextTag);
@@ -2149,7 +2114,6 @@ int __glXDispSwap_GenTexturesEXT(__GLXclientState *cl, GLbyte *pc)
 	int error;
 	GLuint answerBuffer[200];
 	char *answer;
-	__GLX_DECLARE_SWAP_VARIABLES;
 	__GLX_DECLARE_SWAP_ARRAY_VARIABLES;
 
 	__GLX_SWAP_INT(&((xGLXVendorPrivateReq *)pc)->contextTag);

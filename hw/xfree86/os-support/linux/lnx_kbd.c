@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/linux/lnx_kbd.c,v 1.4 2003/11/03 05:11:52 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/linux/lnx_kbd.c,v 1.6 2004/03/03 18:53:41 dawes Exp $ */
 
 /*
  * Copyright (c) 2002 by The XFree86 Project, Inc.
@@ -108,7 +108,7 @@ GetKbdLeds(InputInfoPtr pInfo)
 #endif
 
 static int
-KDKBDREP_ioctl_ok(int rate, int delay) {
+KDKBDREP_ioctl_ok(int fd, int rate, int delay) {
 #if defined(KDKBDREP) && !defined(__sparc__)
      /* This ioctl is defined in <linux/kd.h> but is not
 	implemented anywhere - must be in some m68k patches. */
@@ -117,7 +117,7 @@ KDKBDREP_ioctl_ok(int rate, int delay) {
    /* don't change, just test */
    kbdrep_s.rate = -1;
    kbdrep_s.delay = -1;
-   if (ioctl( 0, KDKBDREP, &kbdrep_s )) {
+   if (ioctl( fd, KDKBDREP, &kbdrep_s )) {
        return 0;
    }
 
@@ -132,7 +132,7 @@ KDKBDREP_ioctl_ok(int rate, int delay) {
    if (kbdrep_s.delay < 1)
      kbdrep_s.delay = 1;
    
-   if (ioctl( 0, KDKBDREP, &kbdrep_s )) {
+   if (ioctl( fd, KDKBDREP, &kbdrep_s )) {
      return 0;
    }
 
@@ -200,7 +200,7 @@ SetKbdRepeat(InputInfoPtr pInfo, char rad)
   if (pKbd->delay >= 0)
     delay = pKbd->delay;
 
-  if(KDKBDREP_ioctl_ok(rate, delay)) 	/* m68k? */
+  if(KDKBDREP_ioctl_ok(pInfo->fd, rate, delay)) 	/* m68k? */
     return;
 
   if(KIOCSRATE_ioctl_ok(rate, delay))	/* sparc? */

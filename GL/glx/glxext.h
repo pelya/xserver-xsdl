@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/GL/glx/glxext.h,v 1.7 2003/11/17 22:20:26 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/GL/glx/glxext.h,v 1.8 2004/02/09 23:46:31 alanh Exp $ */
 #ifndef _glxext_h_
 #define _glxext_h_
 

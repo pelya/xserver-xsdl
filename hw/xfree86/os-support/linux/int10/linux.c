@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/linux/int10/linux.c,v 1.32 2004/02/05 18:24:59 eich Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/linux/int10/linux.c,v 1.33 2004/02/25 12:53:15 eich Exp $ */
 /*
  * linux specific part of the int10 module
  * Copyright 1999 Egbert Eich

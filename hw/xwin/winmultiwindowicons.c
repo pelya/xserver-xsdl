@@ -27,7 +27,7 @@
  *
  * Authors:	Earle F. Philhower, III
  */
-/* $XFree86: xc/programs/Xserver/hw/xwin/winwindow.c,v 1.5 2002/11/07 10:31:32 alanh Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xwin/winmultiwindowicons.c,v 1.2 2003/10/02 13:30:10 eich Exp $ */
 
 #include "win.h"
 #include "dixevents.h"

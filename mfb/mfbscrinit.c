@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/mfb/mfbscrinit.c,v 3.8tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/mfb/mfbscrinit.c,v 3.9 2003/02/18 21:30:01 tsi Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group

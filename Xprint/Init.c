@@ -50,7 +50,7 @@ copyright holders.
 **    *********************************************************
 ** 
 ********************************************************************/
-/* $XFree86: xc/programs/Xserver/Xprint/Init.c,v 1.14tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/Xprint/Init.c,v 1.15 2003/10/29 22:11:54 tsi Exp $ */
 
 #include <unistd.h>
 #include <stdlib.h>

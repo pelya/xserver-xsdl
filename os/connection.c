@@ -45,7 +45,7 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ******************************************************************/
-/* $XFree86: xc/programs/Xserver/os/connection.c,v 3.64 2003/10/07 22:50:42 herrb Exp $ */
+/* $XFree86: xc/programs/Xserver/os/connection.c,v 3.65 2003/10/30 21:21:10 herrb Exp $ */
 /*****************************************************************
  *  Stuff to create connections --- OS dependent
  *
