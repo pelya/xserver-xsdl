@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/xf4bpp/ppcClip.c,v 1.5 1999/09/25 14:38:16 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/xf4bpp/ppcClip.c,v 1.4 1999/06/06 08:48:58 dawes Exp $ */
 /*
 
 Copyright (c) 1987  X Consortium

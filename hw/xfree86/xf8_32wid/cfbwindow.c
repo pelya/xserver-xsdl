@@ -7,7 +7,7 @@
    Mark Vojkovich's work.
 */
 
-/* $XFree86: xc/programs/Xserver/hw/xfree86/xf8_32wid/cfbwindow.c,v 1.3 2003/11/10 18:22:43 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/xf8_32wid/cfbwindow.c,v 1.2tsi Exp $ */
 
 #include "X.h"
 #include "scrnintstr.h"

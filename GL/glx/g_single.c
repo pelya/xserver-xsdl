@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/GL/glx/g_single.c,v 1.6 2003/10/28 22:50:17 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/GL/glx/g_single.c,v 1.5tsi Exp $ */
 /*
 ** License Applicability. Except to the extent portions of this file are
 ** made subject to an alternative license as permitted in the SGI Free

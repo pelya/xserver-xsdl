@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/ramdac/xf86HWCurs.c,v 1.13 2003/03/04 21:21:15 mvojkovi Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/ramdac/xf86HWCurs.c,v 1.12 2003/02/13 20:28:41 tsi Exp $ */
 
 #include "misc.h"
 #include "xf86.h"

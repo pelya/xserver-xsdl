@@ -117,6 +117,8 @@ has_bwx(void)
 #endif
 }
 #else /* __NetBSD__ */
+static unsigned long hae_thresh = (1UL << 24);
+static unsigned long hae_mask = 0xf8000000UL; /* XXX - should use xf86AXP.c */
 static struct alpha_bus_window *abw;
 static int abw_count = -1;
 
@@ -448,9 +450,7 @@ xf86EnableInterrupts()
 
 #define vuip    volatile unsigned int *
 
-#ifndef __NetBSD__
 static unsigned long msb_set = 0;
-#endif
 static pointer memSBase = 0;
 static pointer memBase = 0;
 
@@ -558,22 +558,20 @@ static int
 readSparse8(pointer Base, register unsigned long Offset)
 {
     register unsigned long result, shift;
-#ifndef __NetBSD__
     register unsigned long msb;
-#endif
     mem_barrier();
     Offset += (unsigned long)Base - (unsigned long)memBase;
     shift = (Offset & 0x3) << 3;
-#ifndef __NetBSD__
       if (Offset >= (hae_thresh)) {
         msb = Offset & hae_mask;
         Offset -= msb;
 	if (msb_set != msb) {
+#ifndef __NetBSD__
 	sethae(msb);
+#endif
 	msb_set = msb;
 	}
       }
-#endif
     result = *(vuip) ((unsigned long)memSBase + (Offset << 5));
     result >>= shift;
     return 0xffUL & result;
@@ -583,23 +581,21 @@ static int
 readSparse16(pointer Base, register unsigned long Offset)
 {
     register unsigned long result, shift;
-#ifndef __NetBSD__
     register unsigned long msb;
-#endif
 
     mem_barrier();
     Offset += (unsigned long)Base - (unsigned long)memBase;
     shift = (Offset & 0x2) << 3;
-#ifndef __NetBSD__
     if (Offset >= (hae_thresh)) {
         msb = Offset & hae_mask;
         Offset -= msb;
       if (msb_set != msb) {
+#ifndef __NetBSD__
 	sethae(msb);
+#endif
 	msb_set = msb;
       }
     }
-#endif
     result = *(vuip)((unsigned long)memSBase+(Offset<<5)+(1<<(5-2)));
     result >>= shift;
     return 0xffffUL & result;
@@ -615,46 +611,42 @@ readSparse32(pointer Base, register unsigned long Offset)
 static void
 writeSparse8(int Value, pointer Base, register unsigned long Offset)
 {
-#ifndef __NetBSD__
     register unsigned long msb;
-#endif
     register unsigned int b = Value & 0xffU;
 
     write_mem_barrier();
     Offset += (unsigned long)Base - (unsigned long)memBase;
-#ifndef __NetBSD__
     if (Offset >= (hae_thresh)) {
       msb = Offset & hae_mask;
       Offset -= msb;
       if (msb_set != msb) {
+#ifndef __NetBSD__
 	sethae(msb);
+#endif
 	msb_set = msb;
       }
     }
-#endif
     *(vuip) ((unsigned long)memSBase + (Offset << 5)) = b * 0x01010101;
 }
 
 static void
 writeSparse16(int Value, pointer Base, register unsigned long Offset)
 {
-#ifndef __NetBSD__
     register unsigned long msb;
-#endif
     register unsigned int w = Value & 0xffffU;
 
     write_mem_barrier();
     Offset += (unsigned long)Base - (unsigned long)memBase;
-#ifndef __NetBSD__
     if (Offset >= (hae_thresh)) {
       msb = Offset & hae_mask;
       Offset -= msb;
       if (msb_set != msb) {
+#ifndef __NetBSD__
 	sethae(msb);
+#endif
 	msb_set = msb;
       }
     }
-#endif
     *(vuip)((unsigned long)memSBase+(Offset<<5)+(1<<(5-2))) =
       w * 0x00010001;
 
@@ -671,44 +663,40 @@ writeSparse32(int Value, pointer Base, register unsigned long Offset)
 static void
 writeSparseNB8(int Value, pointer Base, register unsigned long Offset)
 {
-#ifndef __NetBSD__
     register unsigned long msb;
-#endif
     register unsigned int b = Value & 0xffU;
 
     Offset += (unsigned long)Base - (unsigned long)memBase;
-#ifndef __NetBSD__
     if (Offset >= (hae_thresh)) {
       msb = Offset & hae_mask;
       Offset -= msb;
       if (msb_set != msb) {
+#ifndef __NetBSD__
 	sethae(msb);
+#endif
 	msb_set = msb;
       }
     }
-#endif
     *(vuip) ((unsigned long)memSBase + (Offset << 5)) = b * 0x01010101;
 }
 
 static void
 writeSparseNB16(int Value, pointer Base, register unsigned long Offset)
 {
-#ifndef __NetBSD__
     register unsigned long msb;
-#endif
     register unsigned int w = Value & 0xffffU;
 
     Offset += (unsigned long)Base - (unsigned long)memBase;
-#ifndef __NetBSD__
     if (Offset >= (hae_thresh)) {
       msb = Offset & hae_mask ;
       Offset -= msb;
       if (msb_set != msb) {
+#ifndef __NetBSD__
 	sethae(msb);
+#endif
 	msb_set = msb;
       }
     }
-#endif
     *(vuip)((unsigned long)memSBase+(Offset<<5)+(1<<(5-2))) =
       w * 0x00010001;
 }

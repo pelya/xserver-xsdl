@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/mi/mioverlay.c,v 3.16 2003/11/10 18:22:49 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/mi/mioverlay.c,v 3.15tsi Exp $ */
 
 #include "X.h"
 #include "scrnintstr.h"

@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/afb/afbscrinit.c,v 3.5 1998/11/22 10:36:59 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/afb/afbscrinit.c,v 3.4 1998/07/25 08:50:27 dawes Exp $ */
 /***********************************************************
 
 Copyright (c) 1987  X Consortium

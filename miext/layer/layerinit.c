@@ -1,5 +1,5 @@
 /*
- * $XFree86: xc/programs/Xserver/miext/layer/layerinit.c,v 1.7 2003/11/10 18:22:49 tsi Exp $
+ * $XFree86: xc/programs/Xserver/miext/layer/layerinit.c,v 1.6tsi Exp $
  *
  * Copyright © 2001 Keith Packard, member of The XFree86 Project, Inc.
  *

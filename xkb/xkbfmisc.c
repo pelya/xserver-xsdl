@@ -24,7 +24,7 @@
  THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
  ********************************************************/
-/* $XFree86: xc/lib/xkbfile/xkbmisc.c,v 1.8 2003/11/17 22:20:24 dawes Exp $ */
+/* $XFree86: xc/lib/xkbfile/xkbmisc.c,v 1.7 2003/07/16 02:31:10 dawes Exp $ */
 
 #include <stdio.h>
 #include <ctype.h>

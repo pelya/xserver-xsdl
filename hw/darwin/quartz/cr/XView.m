@@ -29,7 +29,7 @@
  * holders shall not be used in advertising or otherwise to promote the sale,
  * use or other dealings in this Software without prior written authorization.
  */
-/* $XFree86: xc/programs/Xserver/hw/darwin/quartz/cr/XView.m,v 1.2 2003/10/16 23:50:16 torrey Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/darwin/quartz/cr/XView.m,v 1.1 2003/06/07 05:49:07 torrey Exp $ */
 
 #import "XView.h"
 

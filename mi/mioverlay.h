@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/mi/mioverlay.h,v 3.4 2001/04/14 21:15:26 mvojkovi Exp $ */
+/* $XFree86: xc/programs/Xserver/mi/mioverlay.h,v 3.3 2000/02/29 00:16:03 mvojkovi Exp $ */
 
 #ifndef __MIOVERLAY_H
 #define __MIOVERLAY_H

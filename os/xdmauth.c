@@ -26,7 +26,7 @@ other dealings in this Software without prior written authorization
 from The Open Group.
 
 */
-/* $XFree86: xc/programs/Xserver/os/xdmauth.c,v 1.9 2003/06/24 15:44:48 eich Exp $ */
+/* $XFree86: xdmauth.c,v 1.7 2002/11/05 05:50:34 keithp Exp $ */
 
 /*
  * XDM-AUTHENTICATION-1 (XDMCP authentication) and

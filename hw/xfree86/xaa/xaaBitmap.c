@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/xaa/xaaBitmap.c,v 1.10 2000/09/01 05:49:45 mvojkovi Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/xaa/xaaBitmap.c,v 1.9 2000/06/29 10:55:41 alanh Exp $ */
 
 
 #include "xaa.h"

@@ -44,7 +44,7 @@ copyright holders.
 **    *********************************************************
 ** 
 ********************************************************************/
-/* $XFree86: xc/programs/Xserver/Xprint/attributes.c,v 1.21 2003/12/19 02:05:38 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/Xprint/attributes.c,v 1.20 2003/10/29 22:11:54 tsi Exp $ */
 
 #include <X11/Xproto.h>
 #include <string.h>

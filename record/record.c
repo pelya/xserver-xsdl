@@ -32,7 +32,7 @@ This work benefited from earlier work done by Martha Zimet of NCD
 and Jim Haggerty of Metheus.
 
 */
-/* $XFree86: xc/programs/Xserver/record/record.c,v 1.12 2003/11/17 22:20:44 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/record/record.c,v 1.11 2003/11/03 05:12:01 tsi Exp $ */
 
 #define NEED_EVENTS
 #include "dixstruct.h"

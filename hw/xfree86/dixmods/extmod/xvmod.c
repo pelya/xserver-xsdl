@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/Xext/xvmod.c,v 1.2 2001/03/05 04:51:55 mvojkovi Exp $ */
+/* $XFree86: xc/programs/Xserver/Xext/xvmod.c,v 1.1 1998/08/13 14:45:36 dawes Exp $ */
 
 #include "X.h"
 #include "misc.h"

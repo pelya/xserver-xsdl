@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/mi/midash.c,v 1.5 2003/07/16 01:38:56 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/mi/midash.c,v 1.4 2001/12/14 20:00:21 dawes Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group

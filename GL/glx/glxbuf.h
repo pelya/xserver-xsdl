@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/GL/glx/glxbuf.h,v 1.3 2001/03/21 16:29:36 dawes Exp $ */
+/* $XFree86$ */
 #ifndef _glxbuf_h_
 #define _glxbuf_h_
 

@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/shared/xf86Axp.h,v 1.3 2001/02/15 19:46:03 eich Exp $ */
+/* $XFree86$ */
 
 #ifndef _XF86_AXP_H_
 #define _XF86_AXP_H_

@@ -26,7 +26,7 @@ other dealings in this Software without prior written authorization
 from The Open Group.
 
 */
-/* $XFree86: xc/programs/Xserver/mi/cbrt.c,v 3.4 2001/12/14 20:00:19 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/mi/cbrt.c,v 3.3 2001/05/29 22:24:06 dawes Exp $ */
 
 /* simple cbrt, in case your math library doesn't have a good one */
 

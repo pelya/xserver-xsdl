@@ -341,4 +341,4 @@ XF86_AL,XF86_BL,XF86_CL,XF86_DL  to  access  the  lower  byte  of  the
 AX,BX,CX and DX register.
 
 
-$XFree86: xc/programs/Xserver/hw/xfree86/int10/INT10.HOWTO,v 1.3 2001/04/30 14:34:57 tsi Exp $
+$XFree86: xc/programs/Xserver/hw/xfree86/int10/INT10.HOWTO,v 1.2 2000/02/08 13:13:22 eich Exp $

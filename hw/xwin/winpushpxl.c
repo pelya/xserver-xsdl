@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xwin/winpushpxl.c,v 1.1 2003/08/07 23:47:58 alanh Exp $ */
+/* $XFree86: xc/programs/Xserver/mi/mipushpxl.c,v 3.11 2001/01/17 22:37:07 dawes Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group

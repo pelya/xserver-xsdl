@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/include/XIstubs.h,v 3.2 2003/04/27 21:31:04 herrb Exp $ */
+/* $XFree86: xc/programs/Xserver/include/XIstubs.h,v 3.1 1996/04/15 11:34:22 dawes Exp $ */
 /************************************************************
 
 Copyright 1996 by Thomas E. Dickey <dickey@clark.net>

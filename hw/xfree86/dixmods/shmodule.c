@@ -1,5 +1,5 @@
 /*
- * $XFree86: xc/programs/Xserver/miext/shadow/shmodule.c,v 1.1 2000/09/03 05:07:24 keithp Exp $
+ * $XFree86$
  *
  * Copyright © 2000 Keith Packard
  *

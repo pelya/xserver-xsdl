@@ -33,7 +33,7 @@ Equipment Corporation.
  * @(#)RCSfile: dpms.c,v Revision: 1.1.4.5  (DEC) Date: 1996/03/04 15:27:00
  */
 
-/* $XFree86: xc/programs/Xserver/Xext/dpms.c,v 3.11 2003/10/28 23:08:43 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/Xext/dpms.c,v 3.10tsi Exp $ */
 
 #include "X.h"
 #include "Xproto.h"
@@ -189,7 +189,8 @@ ProcDPMSSetTimeouts(client)
     DPMSStandbyTime = stuff->standby * MILLI_PER_SECOND;
     DPMSSuspendTime = stuff->suspend * MILLI_PER_SECOND;
     DPMSOffTime = stuff->off * MILLI_PER_SECOND;
-
+    SetDPMSTimers();
+    
     return(client->noClientException);
 }
 

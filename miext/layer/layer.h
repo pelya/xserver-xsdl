@@ -1,5 +1,5 @@
 /*
- * $XFree86: xc/programs/Xserver/miext/layer/layer.h,v 1.5 2002/10/03 22:50:21 keithp Exp $
+ * $XFree86: xc/programs/Xserver/miext/layer/layer.h,v 1.4 2001/08/01 00:44:58 tsi Exp $
  *
  * Copyright © 2001 Keith Packard, member of The XFree86 Project, Inc.
  *

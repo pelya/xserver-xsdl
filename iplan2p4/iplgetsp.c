@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/iplan2p4/iplgetsp.c,v 3.0 1996/08/18 01:54:47 dawes Exp $ */
+/* $XFree86$ */
 /* $XConsortium: iplgetsp.c,v 5.14 94/04/17 20:28:50 dpw Exp $ */
 /***********************************************************
 

@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/bsd/bsd_apm.c,v 1.1 2000/02/29 03:09:25 dawes Exp $ */
+/* $XFree86$ */
 
 #include "X.h"
 #include "os.h"

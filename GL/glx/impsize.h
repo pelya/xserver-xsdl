@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/GL/glx/impsize.h,v 1.5 2004/01/28 18:11:50 alanh Exp $ */
+/* $XFree86: xc/programs/Xserver/GL/glx/impsize.h,v 1.4 2003/09/28 20:15:43 alanh Exp $ */
 #ifndef _impsize_h_
 #define _impsize_h_
 

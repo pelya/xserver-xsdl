@@ -30,7 +30,7 @@
  *     Header file for DIX-related DBE
  *
  *****************************************************************************/
-/* $XFree86: xc/programs/Xserver/dbe/dbestruct.h,v 3.2 2003/11/17 22:20:32 dawes Exp $ */
+/* $XFree86$ */
 
 
 #ifndef DBE_STRUCT_H

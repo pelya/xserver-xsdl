@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/GL/glx/glxpix.h,v 1.3 2001/03/21 16:29:36 dawes Exp $ */
+/* $XFree86$ */
 #ifndef _glxpix_h_
 #define _glxpix_h_
 

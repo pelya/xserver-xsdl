@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/ilbm/ilbmline.c,v 3.1 1998/03/20 21:08:02 hohndel Exp $ */
+/* $XFree86: xc/programs/Xserver/ilbm/ilbmline.c,v 3.0 1996/08/18 01:53:58 dawes Exp $ */
 /***********************************************************
 
 Copyright (c) 1987  X Consortium

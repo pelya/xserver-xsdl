@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/os/oscolor.c,v 3.11 2003/09/24 02:43:36 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/os/oscolor.c,v 3.10 2003/07/16 01:39:03 dawes Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group

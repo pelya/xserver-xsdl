@@ -26,7 +26,7 @@
  *
  */
 
-/* $XFree86: xc/programs/Xserver/hw/xnest/os2Stub.c,v 3.2 2003/11/06 03:25:46 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xnest/os2Stub.c,v 3.1 2002/05/31 18:46:04 dawes Exp $ */
 
 /* This below implements select() for calls in xnest. It has been         */
 /* somewhat optimized for improved performance, but assumes a few */

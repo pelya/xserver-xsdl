@@ -1,4 +1,4 @@
-.\" $XFree86: xc/programs/Xserver/hw/xfree86/getconfig/cfg.man,v 1.1 2003/11/12 04:52:15 dawes Exp $
+.\" $XFree86$
 .TH getconfig __filemansuffix__  __vendorversion__
 .SH NAME
 getconfig - meta configuration files for getconfig(1)

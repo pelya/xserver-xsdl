@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/afb/afb.h,v 3.11 2003/11/17 22:20:32 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/afb/afb.h,v 3.10 2003/10/29 22:15:19 tsi Exp $ */
 /* Combined Purdue/PurduePlus patches, level 2.0, 1/17/89 */
 /***********************************************************
 

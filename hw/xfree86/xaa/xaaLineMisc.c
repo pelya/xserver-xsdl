@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/xaa/xaaLineMisc.c,v 1.5 1999/01/14 13:05:27 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/xaa/xaaLineMisc.c,v 1.4 1998/09/27 04:43:45 dawes Exp $ */
 
 #include "misc.h"
 #include "xf86.h"

@@ -1,7 +1,7 @@
 /*
  * mfb copy area
  */
-/* $XFree86: xc/programs/Xserver/mfb/mfbblt.c,v 3.4 2001/12/14 20:00:04 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/mfb/mfbblt.c,v 3.3 2001/10/28 03:34:14 tsi Exp $ */
 
 /*
 

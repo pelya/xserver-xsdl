@@ -28,7 +28,7 @@
  * holders shall not be used in advertising or otherwise to promote the sale,
  * use or other dealings in this Software without prior written authorization.
  */
-/* $XFree86: xc/programs/Xserver/hw/darwin/iokit/xfIOKitStartup.c,v 1.2 2003/11/01 08:13:08 torrey Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/darwin/iokit/xfIOKitStartup.c,v 1.1 2003/05/14 05:27:56 torrey Exp $ */
 
 #include "darwin.h"
 #include "darwinKeyboard.h"

@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/ilbm/ilbmply1rct.c,v 3.1 1998/03/20 21:08:03 hohndel Exp $ */
+/* $XFree86: xc/programs/Xserver/ilbm/ilbmply1rct.c,v 3.0 1996/08/18 01:54:02 dawes Exp $ */
 /*
  * $XConsortium: ilbmply1rct.c,v 1.9 94/04/17 20:28:28 dpw Exp $
  *

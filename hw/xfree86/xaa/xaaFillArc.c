@@ -21,7 +21,7 @@
  * 
  * Written by Harm Hanemaayer (H.Hanemaayer@inter.nl.net).
  */
-/* $XFree86: xc/programs/Xserver/hw/xfree86/xaa/xaaFillArc.c,v 1.4 1999/05/30 03:03:31 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/xaa/xaaFillArc.c,v 1.3 1998/10/25 07:12:12 dawes Exp $ */
  
 /*
  * Filled solid arcs, based on cfbfillarc.c.

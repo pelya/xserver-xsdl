@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/ramdac/xf86RamDacPriv.h,v 1.4 1999/07/18 03:27:02 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/ramdac/xf86RamDacPriv.h,v 1.3 1998/12/06 06:08:37 dawes Exp $ */
 
 #include "xf86RamDac.h"
 #include "xf86cmap.h"

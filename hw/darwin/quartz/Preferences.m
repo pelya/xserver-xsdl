@@ -30,7 +30,7 @@
  * sale, use or other dealings in this Software without prior written
  * authorization.
  */
-/* $XFree86: xc/programs/Xserver/hw/darwin/quartz/Preferences.m,v 1.4 2003/09/16 00:36:12 torrey Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/darwin/quartz/Preferences.m,v 1.3 2003/05/14 05:27:56 torrey Exp $ */
 
 #import "quartzCommon.h"
 

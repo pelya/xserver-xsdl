@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/GL/glx/g_renderswap.c,v 1.9 2004/02/12 02:25:01 torrey Exp $ */
+/* $XFree86: xc/programs/Xserver/GL/glx/g_renderswap.c,v 1.8 2004/01/28 18:11:50 alanh Exp $ */
 /*
 ** License Applicability. Except to the extent portions of this file are
 ** made subject to an alternative license as permitted in the SGI Free

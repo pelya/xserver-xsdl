@@ -27,7 +27,7 @@
  *
  * Authors:	Kensuke Matsuzaki
  */
-/* $XFree86: xc/programs/Xserver/hw/xwin/winwindow.h,v 1.4 2003/10/08 11:13:03 eich Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xwin/winwindow.h,v 1.3 2003/10/02 13:30:11 eich Exp $ */
 
 
 #ifndef _WINWINDOW_H_

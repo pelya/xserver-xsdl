@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/Xext/mbufpx.c,v 3.4 2001/12/14 19:58:49 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/Xext/mbufpx.c,v 3.3 2001/07/23 13:15:44 dawes Exp $ */
 /************************************************************
 
 Copyright 1989, 1998  The Open Group

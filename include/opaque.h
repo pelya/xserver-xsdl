@@ -26,7 +26,7 @@ other dealings in this Software without prior written authorization
 from The Open Group.
 
 */
-/* $XFree86: xc/programs/Xserver/include/opaque.h,v 1.14 2003/09/09 03:20:41 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/include/opaque.h,v 1.13 2003/07/24 13:50:25 eich Exp $ */
 
 #ifndef OPAQUE_H
 #define OPAQUE_H

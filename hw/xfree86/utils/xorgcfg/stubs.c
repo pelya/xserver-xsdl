@@ -26,7 +26,7 @@
  *
  * Author: Paulo César Pereira de Andrade <pcpa@conectiva.com.br>
  *
- * $XFree86: xc/programs/Xserver/hw/xfree86/xf86cfg/stubs.c,v 1.4 2003/03/25 04:18:25 dawes Exp $
+ * $XFree86: xc/programs/Xserver/hw/xfree86/xf86cfg/stubs.c,v 1.3 2002/11/09 11:12:53 herrb Exp $
  */
 
 #include <stdio.h>

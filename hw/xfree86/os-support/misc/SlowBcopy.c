@@ -4,7 +4,7 @@
   for Alpha Linux
 *******************************************************************************/
 
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/misc/SlowBcopy.c,v 1.7 2004/02/11 22:06:21 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/misc/SlowBcopy.c,v 1.6tsi Exp $ */
  
 /* 
  *   Create a dependency that should be immune from the effect of register

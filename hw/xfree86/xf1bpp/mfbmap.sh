@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# $XFree86: xc/programs/Xserver/hw/xfree86/xf1bpp/mfbmap.sh,v 1.2 1998/07/25 16:59:24 dawes Exp $
+# $XFree86: xc/programs/Xserver/hw/xfree86/xf1bpp/mfbmap.sh,v 1.1.2.3 1998/06/27 14:48:23 dawes Exp $
 #
 # This script recreates the mapping list that maps the mfb external
 #  symbols * to xf1bpp* (without "mfb")

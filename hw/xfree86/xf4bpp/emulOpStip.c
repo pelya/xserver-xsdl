@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/xf4bpp/emulOpStip.c,v 1.3 1999/06/06 08:48:54 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/xf4bpp/emulOpStip.c,v 1.2 1998/07/25 16:59:27 dawes Exp $ */
 /*
  * Copyright IBM Corporation 1987,1988,1989
  *

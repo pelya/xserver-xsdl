@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/shadowfb/shadowfb.h,v 1.4 2003/02/18 19:10:35 alanh Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/shadowfb/shadowfb.h,v 1.3 2002/10/16 22:12:54 alanh Exp $ */
 
 #ifndef _SHADOWFB_H
 #define _SHADOWFB_H

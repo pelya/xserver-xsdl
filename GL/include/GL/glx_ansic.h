@@ -1,7 +1,7 @@
 #ifndef _glx_ansic_h_
 #define _glx_ansic_h_
 
-/* $XFree86: xc/programs/Xserver/GL/include/GL/glx_ansic.h,v 1.7 2002/04/04 14:05:36 eich Exp $ */
+/* $XFree86: xc/programs/Xserver/GL/include/GL/glx_ansic.h,v 1.5 2001/03/21 20:49:08 dawes Exp $ */
 /*
 ** License Applicability. Except to the extent portions of this file are
 ** made subject to an alternative license as permitted in the SGI Free

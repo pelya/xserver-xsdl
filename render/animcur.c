@@ -1,5 +1,5 @@
 /*
- * $XFree86: xc/programs/Xserver/render/animcur.c,v 1.6 2003/11/03 05:12:01 tsi Exp $
+ * $XFree86: xc/programs/Xserver/render/animcur.c,v 1.5tsi Exp $
  *
  * Copyright © 2002 Keith Packard, member of The XFree86 Project, Inc.
  *

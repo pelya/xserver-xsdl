@@ -22,7 +22,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/miext/rootless/accel/rlCopy.c,v 1.1 2003/10/24 00:33:15 torrey Exp $ */
+/* $XFree86: xc/programs/Xserver/fb/fbcopy.c,v 1.12 2001/07/16 05:04:05 keithp Exp $ */
 
 #include "fb.h"
 #include "rlAccel.h"

@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/afb/afbfillsp.c,v 3.4 2001/10/28 03:32:58 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/afb/afbfillsp.c,v 3.3 2000/11/22 00:58:12 tsi Exp $ */
 /* Combined Purdue/PurduePlus patches, level 2.0, 1/17/89 */
 /***********************************************************
 

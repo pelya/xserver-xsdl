@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/fb/fbrop.h,v 1.4 2000/02/23 20:29:46 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/fb/fbrop.h,v 1.3 2000/02/14 19:20:30 dawes Exp $ */
 
 #ifndef _FBROP_H_
 #define _FBROP_H_

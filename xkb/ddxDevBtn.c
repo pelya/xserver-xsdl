@@ -24,7 +24,7 @@ OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION  WITH
 THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 ********************************************************/
-/* $XFree86: xc/programs/Xserver/xkb/ddxDevBtn.c,v 3.4 2003/11/17 22:20:45 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/xkb/ddxDevBtn.c,v 3.3 2001/08/23 21:49:51 tsi Exp $ */
 
 #include <stdio.h>
 #define	NEED_EVENTS 1

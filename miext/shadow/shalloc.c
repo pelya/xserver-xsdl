@@ -1,5 +1,5 @@
 /*
- * $XFree86: xc/programs/Xserver/miext/shadow/shalloc.c,v 1.1 2000/09/07 23:12:15 keithp Exp $
+ * $XFree86$
  *
  * Copyright © 2000 Keith Packard
  *

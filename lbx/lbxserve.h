@@ -45,7 +45,7 @@ in this Software without prior written authorization from The Open Group.
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *
  */
-/* $XFree86: xc/programs/Xserver/lbx/lbxserve.h,v 1.5 2001/12/14 20:00:00 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/lbx/lbxserve.h,v 1.4 2001/08/01 00:44:58 tsi Exp $ */
 
 #ifndef _LBXSERVE_H_
 

@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/dummylib/xf86opt.c,v 1.2 2001/05/04 19:05:50 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/dummylib/xf86opt.c,v 1.1 2000/02/13 03:06:42 dawes Exp $ */
 
 #include "X.h"
 #include "os.h"

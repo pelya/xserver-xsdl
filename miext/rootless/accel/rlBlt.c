@@ -26,7 +26,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/miext/rootless/accel/rlBlt.c,v 1.1 2003/10/24 00:33:15 torrey Exp $ */
+/* $XFree86: xc/programs/Xserver/fb/fbblt.c,v 1.8 2000/09/28 00:47:22 keithp Exp $ */
 
 #include "fb.h"
 #include "rootlessCommon.h"

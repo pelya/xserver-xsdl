@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/ramdac/TIPriv.h,v 1.2 2000/03/21 21:15:28 alanh Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/ramdac/TIPriv.h,v 1.2 1998/07/25 16:57:19 dawes Exp $ */
 
 #include "TI.h"
 

@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/Xext/mbufbf.c,v 3.6 2003/11/10 18:21:42 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/Xext/mbufbf.c,v 3.5tsi Exp $ */
 /*
 
 Copyright 1989, 1998  The Open Group

@@ -30,7 +30,7 @@ not be used in advertising or otherwise to promote the sale, use or other
 dealings in this Software without prior written authorization from said
 copyright holders.
 */
-/* $XFree86: xc/programs/Xserver/Xprint/attributes.h,v 1.6 2001/12/21 21:02:05 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/Xprint/attributes.h,v 1.5 2001/08/01 00:44:45 tsi Exp $ */
 
 #ifndef _Xp_attributes_h
 #define _Xp_attributes_h 1

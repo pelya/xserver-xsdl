@@ -27,7 +27,7 @@ from The Open Group.
 
 */
 
-/* $XFree86: xc/programs/Xserver/mi/migc.h,v 1.8 2001/12/14 20:00:23 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/mi/migc.h,v 1.7 2001/08/06 20:51:18 dawes Exp $ */
 
 extern void miChangeGC(
     GCPtr  /*pGC*/,

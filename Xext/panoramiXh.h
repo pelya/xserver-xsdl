@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/Xext/panoramiXh.h,v 1.3 2003/11/17 22:20:26 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/Xext/panoramiXh.h,v 1.2 2003/09/13 21:33:03 dawes Exp $ */
 
 /*
  *	Server dispatcher function replacements

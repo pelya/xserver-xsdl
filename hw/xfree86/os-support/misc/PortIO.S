@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/misc/PortIO.S,v 1.1 2004/02/02 03:55:32 dawes Exp $ */
+/* $XFree86$ */
 
 /* Port I/O functions for platforms with no inlining. */
 

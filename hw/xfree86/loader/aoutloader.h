@@ -19,7 +19,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $XFree86: xc/programs/Xserver/hw/xfree86/loader/aoutloader.h,v 1.4 2003/10/15 16:29:02 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/loader/aoutloader.h,v 1.3 1998/09/20 14:41:03 dawes Exp $ */
 
 #ifndef _AOUTLOADER_H
 #define _AOUTLOADER_H

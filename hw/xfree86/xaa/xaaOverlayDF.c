@@ -3,7 +3,7 @@
 
    Written by Mark Vojkovich
 */
-/* $XFree86: xc/programs/Xserver/hw/xfree86/xaa/xaaOverlayDF.c,v 1.2 2003/11/10 18:22:41 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/xaa/xaaOverlayDF.c,v 1.1tsi Exp $ */
 
 
 #include "misc.h"

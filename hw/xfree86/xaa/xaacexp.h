@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/xaa/xaacexp.h,v 1.5 2000/06/13 02:51:25 mvojkovi Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/xaa/xaacexp.h,v 1.3 2000/01/21 02:30:06 dawes Exp $ */
 
 
 #include "Xarch.h"

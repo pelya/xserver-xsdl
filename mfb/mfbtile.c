@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/mfb/mfbtile.c,v 1.4 2003/07/16 01:38:55 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/mfb/mfbtile.c,v 1.3 2003/02/18 21:30:01 tsi Exp $ */
 /* Combined Purdue/PurduePlus patches, level 2.0, 1/17/89 */
 /***********************************************************
 

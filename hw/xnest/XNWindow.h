@@ -12,7 +12,7 @@ the suitability of this software for any purpose.  It is provided "as
 is" without express or implied warranty.
 
 */
-/* $XFree86: xc/programs/Xserver/hw/xnest/XNWindow.h,v 1.4 2003/11/16 05:05:20 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xnest/XNWindow.h,v 1.3 2003/11/03 05:36:34 tsi Exp $ */
 
 #ifndef XNESTWINDOW_H
 #define XNESTWINDOW_H

@@ -64,7 +64,7 @@ copyright holders.
 **    *********************************************************
 **
 ********************************************************************/
-/* $XFree86: xc/programs/Xserver/Xext/xprint.c,v 1.15 2003/10/28 23:08:44 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/Xext/xprint.c,v 1.14tsi Exp $ */
 
 #define _XP_PRINT_SERVER_
 #include "X.h"

@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/ramdac/xf86Cursor.c,v 1.20 2003/02/24 20:43:54 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/ramdac/xf86Cursor.c,v 1.19tsi Exp $ */
 
 #include "xf86.h"
 #include "xf86_ansic.h"

@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/ddc/print_vdif.c,v 1.5 2003/11/06 18:37:58 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/ddc/print_vdif.c,v 1.4tsi Exp $ */
 
 #include "vdif.h"
 #include "misc.h"

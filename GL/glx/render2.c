@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/GL/glx/render2.c,v 1.9 2004/02/12 02:25:01 torrey Exp $ */
+/* $XFree86: xc/programs/Xserver/GL/glx/render2.c,v 1.8 2004/02/03 23:04:08 alanh Exp $ */
 /*
 ** License Applicability. Except to the extent portions of this file are
 ** made subject to an alternative license as permitted in the SGI Free

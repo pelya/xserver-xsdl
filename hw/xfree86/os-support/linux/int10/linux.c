@@ -389,7 +389,7 @@ xf86ExtendedInitInt10(int entityIndex, int Flags)
     return pInt;
 
 error4:
-    xf86DrvMsg(screen, X_ERROR, "shmat() call retruned errno %d\n", errno);
+    xf86DrvMsg(screen, X_ERROR, "shmat() call returned errno %d\n", errno);
 error3:
     if (base_high)
 	shmdt(base_high);

@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/parser/cpconfig.c,v 1.7 2003/02/17 16:08:29 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/parser/cpconfig.c,v 1.6 2000/10/20 14:59:03 alanh Exp $ */
 /* 
  * 
  * Copyright (c) 1997  Metro Link Incorporated
