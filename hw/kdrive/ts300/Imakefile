@@ -1,0 +1,15 @@
+XCOMM $XConsortium: Imakefile /main/10 1996/12/02 10:20:33 lehors $
+XCOMM $XFree86: xc/programs/Xserver/hw/nvfb/Imakefile,v 3.8 1996/12/23 06:30:19 dawes Exp $
+#include <Server.tmpl>
+
+SRCS = 	ts300.c
+
+OBJS = 	ts300.o
+
+INCLUDES = -I../trio -I../sis530 -I.. -I. -I$(XBUILDINCDIR) -I$(FONTINCSRC) \
+	   -I../../../fb -I../../../mi -I../../../include -I../../../os  \
+           -I$(EXTINCSRC) -I$(XINCLUDESRC)
+
+NormalLibraryObjectRule()
+NormalLibraryTarget(ts300,$(OBJS))
+DependTarget()
