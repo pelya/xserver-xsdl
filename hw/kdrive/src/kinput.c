@@ -1209,7 +1209,8 @@ KdCheckSpecialKeys(xEvent *xE)
 	 * Set the dispatch exception flag so the server will terminate the
 	 * next time through the dispatch loop.
 	 */
-	dispatchException |= DE_TERMINATE;
+	if (kdDontZap == FALSE)
+	    dispatchException |= DE_TERMINATE;
 	break;
     }
 }
