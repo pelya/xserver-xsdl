@@ -487,6 +487,15 @@ VAuditF(const char *f, va_list args)
     prefix = AuditPrefix();
     len = vsnprintf(buf, sizeof(buf), f, args);
 
+#if 1
+    /* XXX Compressing duplicated messages is temporarily disabled to
+     * work around bugzilla 964:
+     *     https://freedesktop.org/bugzilla/show_bug.cgi?id=964
+     */
+    ErrorF("%s%s", prefix != NULL ? prefix : "", buf);
+    oldlen = -1;
+    nrepeat = 0;
+#else
     if (len == oldlen && strcmp(buf, oldbuf) == 0) {
 	/* Message already seen */
 	nrepeat++;
@@ -500,6 +509,7 @@ VAuditF(const char *f, va_list args)
 	nrepeat = 0;
 	auditTimer = TimerSet(auditTimer, 0, AUDIT_TIMEOUT, AuditFlush, NULL);
     }
+#endif
     if (prefix != NULL)
 	free(prefix);
 }
