@@ -19,24 +19,6 @@ backendInitialize(KdCardInfo *card, BackendInfo *backend)
 {
     Bool success = FALSE;
 
-#ifdef KDRIVEFBDEV
-    if (!success && fbdevInitialize(card, &backend->priv.fbdev)) {
-        success = TRUE;
-        backend->type = FBDEV;
-        backend->cardfini = fbdevCardFini;
-        backend->scrfini = fbdevScreenFini;
-        backend->initScreen = fbdevInitScreen;
-        backend->finishInitScreen = fbdevFinishInitScreen;
-        backend->createRes = fbdevCreateResources;
-        backend->preserve = fbdevPreserve;
-        backend->restore = fbdevRestore;
-        backend->dpms = fbdevDPMS;
-        backend->enable = fbdevEnable;
-        backend->disable = fbdevDisable;
-        backend->getColors = fbdevGetColors;
-        backend->putColors = fbdevPutColors;
-    }
-#endif
 #ifdef KDRIVEVESA
     if (!success && vesaInitialize(card, &backend->priv.vesa)) {
         success = TRUE;
@@ -53,6 +35,24 @@ backendInitialize(KdCardInfo *card, BackendInfo *backend)
         backend->disable = vesaDisable;
         backend->getColors = vesaGetColors;
         backend->putColors = vesaPutColors;
+    }
+#endif
+#ifdef KDRIVEFBDEV
+    if (!success && fbdevInitialize(card, &backend->priv.fbdev)) {
+        success = TRUE;
+        backend->type = FBDEV;
+        backend->cardfini = fbdevCardFini;
+        backend->scrfini = fbdevScreenFini;
+        backend->initScreen = fbdevInitScreen;
+        backend->finishInitScreen = fbdevFinishInitScreen;
+        backend->createRes = fbdevCreateResources;
+        backend->preserve = fbdevPreserve;
+        backend->restore = fbdevRestore;
+        backend->dpms = fbdevDPMS;
+        backend->enable = fbdevEnable;
+        backend->disable = fbdevDisable;
+        backend->getColors = fbdevGetColors;
+        backend->putColors = fbdevPutColors;
     }
 #endif
     return success;
@@ -75,6 +75,7 @@ backendScreenInitialize(KdScreenInfo *screen, BackendScreen *backendScreen,
 #endif
 #ifdef KDRIVEVESA
     if (backendCard->type == VESA) {
+		screen->card->driver = &backendCard->priv.vesa;
         if (screen->fb[0].depth == 0) {
             screen->fb[0].depth = 16;
         }
