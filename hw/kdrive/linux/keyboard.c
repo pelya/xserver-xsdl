@@ -26,6 +26,7 @@
 #include "kkeymap.h"
 #include <linux/keyboard.h>
 #include <linux/kd.h>
+#define XK_PUBLISHING
 #include <X11/keysym.h>
 #include <termios.h>
 
@@ -330,6 +331,20 @@ readKernelMapping()
 		    k[j] = XK_Shift_Lock;
 		break;
 
+#ifdef KT_X
+	    case KT_X:
+		/* depends on new keyboard symbols in file linux/keyboard.h */
+		if(kbe.kb_value == K_XMENU) k[j] = XK_Menu;
+		if(kbe.kb_value == K_XTELEPHONE) k[j] = XK_telephone;
+		break;
+#endif
+#ifdef KT_XF
+	    case KT_XF:
+		/* special linux keysyms which map directly to XF86 keysyms */
+		k[j] = (kbe.kb_value & 0xFF) + 0x1008FF00;
+		break;
+#endif
+		
 	    default:
 		break;
 	    }
