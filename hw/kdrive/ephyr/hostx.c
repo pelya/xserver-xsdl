@@ -225,8 +225,6 @@ hostx_init(void)
 
       /* Get screen size from existing window */
 
-      HostX.win = HostX.win_pre_existing;
-
       hostx_errors_trap();
 
       result = XGetWindowAttributes(HostX.dpy, 
