@@ -575,4 +575,12 @@ extern PsElmPtr PsCreateFillElementList(PixmapPtr pix, int *nElms);
 extern PsElmPtr PsCloneFillElementList(int nElms, PsElmPtr elms);
 extern void PsDestroyFillElementList(int nElms, PsElmPtr elms);
 
+/*
+ *  Functions in PsImageUtil.c
+ */
+
+extern unsigned long
+PsGetImagePixel(char *pImage, int depth, int w, int h, int leftPad, int format,
+                int px, int py);
+
 #endif  /* _PS_H_ */

@@ -164,6 +164,8 @@ PixmapFormatRec	PSPixmapFormats[] = {
     {  1,  1, BITMAP_SCANLINE_PAD },
     {  8,  8, BITMAP_SCANLINE_PAD },
     { 12, 16, BITMAP_SCANLINE_PAD },
+    { 15, 16, BITMAP_SCANLINE_PAD },
+    { 16, 16, BITMAP_SCANLINE_PAD },
     { 24, 32, BITMAP_SCANLINE_PAD }
 };
 

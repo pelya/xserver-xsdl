@@ -121,12 +121,17 @@ InitializePsDriver(ndx, pScreen, argc, argv)
                     nv_1bit,  /* number of 8bit visuals */
                     nv_8bit,  /* number of 8bit visuals */
                     nv_12bit, /* number of 12bit visuals */
+                    nv_15bit, /* number of 15bit visuals */
+                    nv_16bit, /* number of 16bit visuals */
                     nv_24bit, /* number of 24bit visuals*/
                     nv_30bit; /* number of 30bit visuals*/
   int               nd;       /* number of depths */
+  int               defaultVisualIndex = -1;
   VisualID         *vids_1bit,
                    *vids_8bit,
                    *vids_12bit,
+                   *vids_15bit,
+                   *vids_16bit,
                    *vids_24bit,
                    *vids_30bit;
   VisualPtr         visuals;
@@ -187,15 +192,40 @@ InitializePsDriver(ndx, pScreen, argc, argv)
     /* Will BitmapToRegion make any difference at all? */
   pScreen->BitmapToRegion         = mfbPixmapToRegion;
 
-  visuals    = (VisualPtr) xalloc(8*sizeof(VisualRec));
-  depths     = (DepthPtr)  xalloc(8*sizeof(DepthRec));
-  vids_1bit  = (VisualID *)xalloc(8*sizeof(VisualID));
-  vids_8bit  = (VisualID *)xalloc(8*sizeof(VisualID));
-  vids_12bit = (VisualID *)xalloc(8*sizeof(VisualID));
-  vids_24bit = (VisualID *)xalloc(8*sizeof(VisualID));
-  vids_30bit = (VisualID *)xalloc(8*sizeof(VisualID));
+  visuals    = (VisualPtr) xalloc(16*sizeof(VisualRec));
+  depths     = (DepthPtr)  xalloc(16*sizeof(DepthRec));
+  vids_1bit  = (VisualID *)xalloc(16*sizeof(VisualID));
+  vids_8bit  = (VisualID *)xalloc(16*sizeof(VisualID));
+  vids_12bit = (VisualID *)xalloc(16*sizeof(VisualID));
+  vids_15bit = (VisualID *)xalloc(16*sizeof(VisualID));
+  vids_16bit = (VisualID *)xalloc(16*sizeof(VisualID));
+  vids_24bit = (VisualID *)xalloc(16*sizeof(VisualID));
+  vids_30bit = (VisualID *)xalloc(16*sizeof(VisualID));
 
-  nv = nv_1bit = nv_8bit = nv_12bit = nv_24bit = nv_30bit = nd = 0;
+  nv = nv_1bit = nv_8bit = nv_12bit = nv_15bit = nv_16bit = nv_24bit = nv_30bit = nd = 0;
+
+#ifdef PSOUT_USE_DEEPCOLOR
+/* gisburn: 30bit TrueColor has been disabled for now since it causes problems
+ * with GLX - see https://bugs.freedesktop.org/show_bug.cgi?id=2868 ("Mesa
+ * seems to be unable to handle 30bit TrueColor visuals") for details... 
+ */
+#ifdef DISABLED_FOR_NOW
+  /* TrueColor, 30bit, 10bit per R-,G-,B-gun */
+  visuals[nv].vid             = FakeClientID(0);
+  visuals[nv].class           = TrueColor;
+  visuals[nv].bitsPerRGBValue = 10;
+  visuals[nv].ColormapEntries = 1024;
+  visuals[nv].nplanes         = 30;
+  visuals[nv].redMask         = 0X3FF00000;
+  visuals[nv].greenMask       = 0X000FFC00;
+  visuals[nv].blueMask        = 0X000003FF;
+  visuals[nv].offsetRed       = 20;
+  visuals[nv].offsetGreen     = 10;
+  visuals[nv].offsetBlue      = 0;
+  vids_30bit[nv_30bit] = visuals[nv].vid;
+  nv++; nv_30bit++;
+#endif /* DISABLED_FOR_NOW */
+#endif /* PSOUT_USE_DEEPCOLOR */
 
   /* TrueColor, 24bit */
   visuals[nv].vid             = FakeClientID(0);
@@ -212,6 +242,86 @@ InitializePsDriver(ndx, pScreen, argc, argv)
   vids_24bit[nv_24bit] = visuals[nv].vid;
   nv++; nv_24bit++;
 
+  /* TrueColor, 16bit */
+  visuals[nv].vid             = FakeClientID(0);
+  visuals[nv].class           = TrueColor;
+  visuals[nv].bitsPerRGBValue = 6;
+  visuals[nv].ColormapEntries = 64;
+  visuals[nv].nplanes         = 16;
+  visuals[nv].redMask         = 0x0000f800;
+  visuals[nv].greenMask       = 0x000007e0;
+  visuals[nv].blueMask        = 0x0000001f;
+  visuals[nv].offsetRed       = 11;
+  visuals[nv].offsetGreen     = 5;
+  visuals[nv].offsetBlue      = 0;
+  vids_16bit[nv_16bit] = visuals[nv].vid;
+  nv++; nv_16bit++;
+  
+#ifdef PSOUT_USE_DEEPCOLOR
+  /* PostScript Level 2 and above, colors can have 12 bits per component
+   * (36 bit for RGB) */
+  /* PseudoColor, 15bit */
+  visuals[nv].vid             = FakeClientID(0);
+  visuals[nv].class           = PseudoColor;
+  visuals[nv].bitsPerRGBValue = 12;
+  visuals[nv].ColormapEntries = 32768;
+  visuals[nv].nplanes         = 15;
+  visuals[nv].redMask         = 0x0;
+  visuals[nv].greenMask       = 0x0;
+  visuals[nv].blueMask        = 0x0;
+  visuals[nv].offsetRed       = 0x0;
+  visuals[nv].offsetGreen     = 0x0;
+  visuals[nv].offsetBlue      = 0x0;
+  vids_15bit[nv_15bit] = visuals[nv].vid;
+  nv++; nv_15bit++;
+
+  /* PseudoColor, 12bit */
+  visuals[nv].vid             = FakeClientID(0);
+  visuals[nv].class           = PseudoColor;
+  visuals[nv].bitsPerRGBValue = 12;
+  visuals[nv].ColormapEntries = 4096;
+  visuals[nv].nplanes         = 12;
+  visuals[nv].redMask         = 0x0;
+  visuals[nv].greenMask       = 0x0;
+  visuals[nv].blueMask        = 0x0;
+  visuals[nv].offsetRed       = 0x0;
+  visuals[nv].offsetGreen     = 0x0;
+  visuals[nv].offsetBlue      = 0x0;
+  vids_12bit[nv_12bit] = visuals[nv].vid;
+  defaultVisualIndex = nv;
+  nv++; nv_12bit++;
+
+  /* GrayScale, 12bit, 12bit per R-,G-,B-gun */
+  visuals[nv].vid             = FakeClientID(0);
+  visuals[nv].class           = GrayScale;
+  visuals[nv].bitsPerRGBValue = 12;
+  visuals[nv].ColormapEntries = 4096;
+  visuals[nv].nplanes         = 12;
+  visuals[nv].redMask         = 0x0;
+  visuals[nv].greenMask       = 0x0;
+  visuals[nv].blueMask        = 0x0;
+  visuals[nv].offsetRed       = 0x0;
+  visuals[nv].offsetGreen     = 0x0;
+  visuals[nv].offsetBlue      = 0x0;
+  vids_12bit[nv_12bit] = visuals[nv].vid;
+  nv++; nv_12bit++;
+
+  /* StaticGray, 12bit, 12bit per R-,G-,B-gun */
+  visuals[nv].vid             = FakeClientID(0);
+  visuals[nv].class           = StaticGray;
+  visuals[nv].bitsPerRGBValue = 12;
+  visuals[nv].ColormapEntries = 4096;
+  visuals[nv].nplanes         = 12;
+  visuals[nv].redMask         = 0x0;
+  visuals[nv].greenMask       = 0x0;
+  visuals[nv].blueMask        = 0x0;
+  visuals[nv].offsetRed       = 0x0;
+  visuals[nv].offsetGreen     = 0x0;
+  visuals[nv].offsetBlue      = 0x0;
+  vids_12bit[nv_12bit] = visuals[nv].vid;
+  nv++; nv_12bit++;
+#endif /* PSOUT_USE_DEEPCOLOR */
+
   /* PseudoColor, 8bit */
   visuals[nv].vid             = FakeClientID(0);
   visuals[nv].class           = PseudoColor;
@@ -225,6 +335,9 @@ InitializePsDriver(ndx, pScreen, argc, argv)
   visuals[nv].offsetGreen     = 0x0;
   visuals[nv].offsetBlue      = 0x0;
   vids_8bit[nv_8bit] = visuals[nv].vid;
+#ifndef PSOUT_USE_DEEPCOLOR
+  defaultVisualIndex = nv;
+#endif /* !PSOUT_USE_DEEPCOLOR */
   nv++; nv_8bit++;
 
   /* GrayScale, 8bit */
@@ -272,56 +385,6 @@ InitializePsDriver(ndx, pScreen, argc, argv)
   vids_1bit[nv_1bit] = visuals[nv].vid;
   nv++; nv_1bit++;
 
-#ifdef PSOUT_USE_DEEPCOLOR
-  /* TrueColor, 30bit, 10bit per R-,G-,B-gun */
-  visuals[nv].vid             = FakeClientID(0);
-  visuals[nv].class           = TrueColor;
-  visuals[nv].bitsPerRGBValue = 10;
-  visuals[nv].ColormapEntries = 1024;
-  visuals[nv].nplanes         = 30;
-  visuals[nv].redMask         = 0X3FF00000;
-  visuals[nv].greenMask       = 0X000FFC00;
-  visuals[nv].blueMask        = 0X000003FF;
-  visuals[nv].offsetRed       = 20;
-  visuals[nv].offsetGreen     = 10;
-  visuals[nv].offsetBlue      = 0;
-  vids_30bit[nv_30bit] = visuals[nv].vid;
-  nv++; nv_30bit++;
-
-  /* PostScript Level 2 and above, colors can have 12 bits per component
-   * (36 bit for RGB) */
-
-  /* GrayScale, 12bit, 12bit per R-,G-,B-gun */
-  visuals[nv].vid             = FakeClientID(0);
-  visuals[nv].class           = GrayScale;
-  visuals[nv].bitsPerRGBValue = 12;
-  visuals[nv].ColormapEntries = 4096;
-  visuals[nv].nplanes         = 12;
-  visuals[nv].redMask         = 0x0;
-  visuals[nv].greenMask       = 0x0;
-  visuals[nv].blueMask        = 0x0;
-  visuals[nv].offsetRed       = 0x0;
-  visuals[nv].offsetGreen     = 0x0;
-  visuals[nv].offsetBlue      = 0x0;
-  vids_12bit[nv_12bit] = visuals[nv].vid;
-  nv++; nv_12bit++;
-
-  /* StaticGray, 12bit, 12bit per R-,G-,B-gun */
-  visuals[nv].vid             = FakeClientID(0);
-  visuals[nv].class           = StaticGray;
-  visuals[nv].bitsPerRGBValue = 12;
-  visuals[nv].ColormapEntries = 4096;
-  visuals[nv].nplanes         = 12;
-  visuals[nv].redMask         = 0x0;
-  visuals[nv].greenMask       = 0x0;
-  visuals[nv].blueMask        = 0x0;
-  visuals[nv].offsetRed       = 0x0;
-  visuals[nv].offsetGreen     = 0x0;
-  visuals[nv].offsetBlue      = 0x0;
-  vids_12bit[nv_12bit] = visuals[nv].vid;
-  nv++; nv_12bit++;
-#endif /* PSOUT_USE_DEEPCOLOR */
-
   if( nv_30bit > 0 )
   {
     depths[nd].depth   = 30;
@@ -338,6 +401,22 @@ InitializePsDriver(ndx, pScreen, argc, argv)
     nd++;
   }
 
+  if( nv_16bit > 0 )
+  {
+    depths[nd].depth   = 16;
+    depths[nd].numVids = nv_16bit;
+    depths[nd].vids    = vids_16bit;
+    nd++;
+  }
+
+  if( nv_15bit > 0 )
+  {
+    depths[nd].depth   = 15;
+    depths[nd].numVids = nv_15bit;
+    depths[nd].vids    = vids_15bit;
+    nd++;
+  }
+  
   if( nv_12bit > 0 )
   {
     depths[nd].depth   = 12;
@@ -362,9 +441,9 @@ InitializePsDriver(ndx, pScreen, argc, argv)
     nd++;
   }
 
-  /* Defaul visual is 8bit PseudoColor */
-  defaultVisual = visuals[1].vid;
-  rootDepth = visuals[1].nplanes;
+  /* Defaul visual is 12bit PseudoColor */
+  defaultVisual = visuals[defaultVisualIndex].vid;
+  rootDepth = visuals[defaultVisualIndex].nplanes;
 
 #ifdef GLXEXT
   {

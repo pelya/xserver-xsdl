@@ -153,8 +153,28 @@ typedef enum PsFTDownloadFontType_
   PsFontType3
 } PsFTDownloadFontType;
 
+/* Define |PsOutColor| color type which can hold one RGB value
+ * (note: this needs to be |signed| long/long long to represent
+ * special values such as |PSOUTCOLOR_NOCOLOR|)
+ */
 #ifdef PSOUT_USE_DEEPCOLOR
-typedef long long PsOutColor;
+/* 64bit |PsOutColor| which can hold 16bit R-,G-,B-values */
+#ifdef WIN32
+typedef signed __int64    PsOutColor;
+#else
+# if defined(__alpha__) || defined(__alpha) || \
+     defined(ia64) || defined(__ia64__) || \
+     defined(__sparc64__) || defined(_LP64) || \
+     defined(__s390x__) || \
+     defined(amd64) || defined (__amd64__) || \
+     defined (__powerpc64__) || \
+     (defined(sgi) && (_MIPS_SZLONG == 64))
+typedef signed long       PsOutColor;
+# else
+typedef signed long long  PsOutColor;
+# endif /* native 64bit platform */
+#endif /* WIN32 */
+
 #define PSOUTCOLOR_TO_REDBITS(clr)    ((clr) >> 32)
 #define PSOUTCOLOR_TO_GREENBITS(clr)  (((clr) >> 16) & 0xFFFF)
 #define PSOUTCOLOR_TO_BLUEBITS(clr)   ((clr) & 0xFFFF)
@@ -165,7 +185,8 @@ typedef long long PsOutColor;
                                        ((PSOUTCOLOR_TO_GREENBITS(clr) >> 8) << 8)  | \
                                        ((PSOUTCOLOR_TO_BLUEBITS(clr)  >> 8) << 0))
 #else
-typedef long PsOutColor;
+/* 32bit |PsOutColor| which can hold 8bit R-,G-,B-values */
+typedef signed long PsOutColor;
 #define PSOUTCOLOR_TO_REDBITS(clr)    ((clr) >> 16)
 #define PSOUTCOLOR_TO_GREENBITS(clr)  (((clr) >> 8) & 0xFF)
 #define PSOUTCOLOR_TO_BLUEBITS(clr)   ((clr) & 0xFF)

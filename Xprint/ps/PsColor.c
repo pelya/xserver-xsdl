@@ -151,19 +151,22 @@ PsGetPixelColor(ColormapPtr cMap, int pixval)
     {
         PsOutColor p = pixval;       
         PsOutColor r, g, b;
-#ifdef PSOUT_USE_DEEPCOLOR
-        int shift = 16 - v->bitsPerRGBValue;
-#else
-        int shift =  8 - v->bitsPerRGBValue;
-#endif /* PSOUT_USE_DEEPCOLOR */
 
-        r = ((p & v->redMask)   >> v->offsetRed)   << shift;
-        g = ((p & v->greenMask) >> v->offsetGreen) << shift;
-        b = ((p & v->blueMask)  >> v->offsetBlue)  << shift;
+        r = (p & v->redMask)   >> v->offsetRed;
+        g = (p & v->greenMask) >> v->offsetGreen;
+        b = (p & v->blueMask)  >> v->offsetBlue;
 
+        r = cMap->red[r].co.local.red;
+        g = cMap->green[g].co.local.green;
+        b = cMap->blue[b].co.local.blue;
+                
 #ifdef PSOUT_USE_DEEPCOLOR
         return((r<<32)|(g<<16)|b);
 #else
+        r >>= 8;
+        g >>= 8;
+        b >>= 8;
+
         return((r<<16)|(g<<8)|b);
 #endif /* PSOUT_USE_DEEPCOLOR */
     }

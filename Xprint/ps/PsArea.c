@@ -78,6 +78,7 @@ in this Software without prior written authorization from The Open Group.
 #include "gcstruct.h"
 #include "windowstr.h"
 
+
 void
 PsPutScaledImage(DrawablePtr pDrawable, GCPtr pGC, int depth, int x, int y,
            int w, int h, int leftPad, int format, int imageRes, char *pImage)
@@ -113,7 +114,6 @@ PsPutScaledImage(DrawablePtr pDrawable, GCPtr pGC, int depth, int x, int y,
   {
     int          i, j;
     int          r, c;
-    int          swap;
     char        *pt;
     PsOutPtr     psOut;
     ColormapPtr  cMap;
@@ -129,139 +129,66 @@ PsPutScaledImage(DrawablePtr pDrawable, GCPtr pGC, int depth, int x, int y,
 	sh = (float)h * (float)pageRes / (float)imageRes + 0.5;
     }
     PsOut_Offset(psOut, pDrawable->x, pDrawable->y);
-    pt = (char *)(&i); i = 1; if( pt[0]=='\001' ) swap = 1; else swap = 0;
 
-#ifdef PSOUT_USE_DEEPCOLOR
-    if( depth==30 )
-    {
-      ErrorF("PsPutScaledImage: Not implemented yet for 30bit\m");
-    }
-    else
-#endif /* PSOUT_USE_DEEPCOLOR */
-    if( depth==24 )
+    if( depth!=1 )
     {
       PsOut_BeginImage(psOut, 0, 0, x, y, w, h, sw, sh, 3);
-      if( format==XYPixmap )
-      {
-        int   rowsiz = PixmapBytePad(w, depth);
-        char *planes[3];
-        planes[0] = pImage;
-        planes[1] = &pImage[rowsiz*h];
-        planes[2] = &pImage[rowsiz*h*2];
-        for( r=0 ; r<h ; r++ )
-        {
-          char *pt[3];
-          for( i=0 ; i<3 ;  i++ ) pt[i] = &planes[i][rowsiz*r];
-          for( c=0 ; c<w ; c++ )
-          {
-            for( i=0 ; i<3 ; i++ )
-              { PsOut_OutImageBytes(psOut, 1, &pt[i][c]); pt[i]++; }
-          }
-        }
-      }
-      else if( format==ZPixmap )
-      {
-        int  rowsiz = PixmapBytePad(w, depth);
-        for( r=0 ; r<h ; r++ )
-        {
-          char *pt = &pImage[rowsiz*r];
-          for( c=0 ; c<w ; c++,pt+=4 )
-          {
-            if( swap )
-            {
-              char tmp[4];
-              tmp[0] = pt[3]; tmp[1] = pt[2]; tmp[2] = pt[1]; tmp[3] = pt[0];
-              PsOut_OutImageBytes(psOut, 3, &tmp[1]);
-            }
-            else
-              PsOut_OutImageBytes(psOut, 3, &pt[1]);
-          }
-        }
-      }
-      else goto error;
-      PsOut_EndImage(psOut);
-    }
-#ifdef PSOUT_USE_DEEPCOLOR
-    else if( (depth > 8) && (depth < 16) )
-    {
-      int  rowsiz = PixmapBytePad(w, depth);
-      PsOut_BeginImage(psOut, 0, 0, x, y, w, h, sw, sh, 3);
+
       for( r=0 ; r<h ; r++ )
       {
-        short *pt = (short *)&pImage[rowsiz*r];
-        for( c=0 ; c<w ; c++,pt++ )
-        {
-          PsOutColor clr = PsGetPixelColor(cMap, (int)(*pt)&0xFFFF);
+        for( c=0 ; c<w ; c++ )
+        {         
+          unsigned long pv = PsGetImagePixel(pImage, depth, w, h, leftPad, format, c, r);
+          PsOutColor clr = PsGetPixelColor(cMap, pv);
           /* XXX: This needs to be fixed for endian swapping and to support
            * depths deeper than 8bit per R-,G-,B-gun... */
-          int        val = PSOUTCOLOR_TO_RGB24BIT(clr);
+          unsigned long val = PSOUTCOLOR_TO_RGB24BIT(clr);
           char      *ipt = (char *)&val;
-          if( swap )
+/* XXX: Is this the right way to detect the platform endianess ? */
+#if IMAGE_BYTE_ORDER == LSBFirst
           {
-            char tmp[4];
-            tmp[0] = ipt[3]; tmp[1] = ipt[2]; tmp[2] = ipt[1]; tmp[3] = ipt[0];
-            PsOut_OutImageBytes(psOut, 3, &tmp[1]);
+            long l;
+            swapl(&val, l);
           }
-          else
-            PsOut_OutImageBytes(psOut, 3, &ipt[1]);
+#elif IMAGE_BYTE_ORDER == MSBFirst
+#else
+#error Unsupported byte order
+#endif
+          PsOut_OutImageBytes(psOut, 3, &ipt[1]);
         }
       }
+
       PsOut_EndImage(psOut);
     }
-#endif /* PSOUT_USE_DEEPCOLOR */
-    else if( depth==8 )
+    else
     {
-      int  rowsiz = PixmapBytePad(w, depth);
-      PsOut_BeginImage(psOut, 0, 0, x, y, w, h, sw, sh, 3);
+      int  rowsiz = BitmapBytePad(w);
+      int  psrsiz = (w+7)/8;
+      PsOut_BeginImage(psOut, PsGetPixelColor(cMap, pGC->bgPixel),
+                       PsGetPixelColor(cMap, pGC->fgPixel),
+                       x, y, w, h, sw, sh, 1);
       for( r=0 ; r<h ; r++ )
       {
         char *pt = &pImage[rowsiz*r];
-        for( c=0 ; c<w ; c++,pt++ )
+        for( i=0 ; i<psrsiz ; i++ )
         {
-          PsOutColor clr = PsGetPixelColor(cMap, (int)(*pt)&0xFF);
-          int        val = PSOUTCOLOR_TO_RGB24BIT(clr);
-          char      *ipt = (char *)&val;
-          if( swap )
-          {
-            char tmp[4];
-            tmp[0] = ipt[3]; tmp[1] = ipt[2]; tmp[2] = ipt[1]; tmp[3] = ipt[0];
-            PsOut_OutImageBytes(psOut, 3, &tmp[1]);
-          }
-          else
-            PsOut_OutImageBytes(psOut, 3, &ipt[1]);
+          int  iv_, iv = (int)pt[i]&0xFF;
+          char c;
+/* XXX: Is this the right way to detect the platform endianess ? */
+#if IMAGE_BYTE_ORDER == LSBFirst
+          { for( j=0,iv_=0 ; j<8 ; j++ ) iv_ |= (((iv>>j)&1)<<(7-j)); }
+#elif IMAGE_BYTE_ORDER == MSBFirst
+          iv_ = iv;
+#else
+#error Unsupported byte order
+#endif
+          c = iv_;
+          PsOut_OutImageBytes(psOut, 1, &c);
         }
       }
       PsOut_EndImage(psOut);
     }
-    else if( depth==1 )
-    {
-      {
-        int  rowsiz = BitmapBytePad(w);
-        int  psrsiz = (w+7)/8;
-        PsOut_BeginImage(psOut, PsGetPixelColor(cMap, pGC->bgPixel),
-                         PsGetPixelColor(cMap, pGC->fgPixel),
-			 x, y, w, h, sw, sh, 1);
-        for( r=0 ; r<h ; r++ )
-        {
-          char *pt = &pImage[rowsiz*r];
-          for( i=0 ; i<psrsiz ; i++ )
-          {
-            int  iv_, iv = (int)pt[i]&0xFF;
-            char c;
-            if( swap )
-              { for( j=0,iv_=0 ; j<8 ; j++ ) iv_ |= (((iv>>j)&1)<<(7-j)); }
-            else
-              iv_ = iv;
-            c = iv_;
-            PsOut_OutImageBytes(psOut, 1, &c);
-          }
-        }
-        PsOut_EndImage(psOut);
-      }
-    }
   }
-error:
-  return;
 }
 
 void
@@ -299,7 +226,6 @@ PsPutScaledImageIM(DrawablePtr pDrawable, GCPtr pGC, int depth, int x, int y,
   {
     int          i, j;
     int          r, c;
-    int          swap;
     char        *pt;
     PsOutPtr     psOut;
     ColormapPtr  cMap;
@@ -318,7 +244,6 @@ PsPutScaledImageIM(DrawablePtr pDrawable, GCPtr pGC, int depth, int x, int y,
         sh = (float)h * (float)pageRes / (float)imageRes + 0.5;
     }
     PsOut_Offset(psOut, pDrawable->x, pDrawable->y);
-    pt = (char *)(&i); i = 1; if( pt[0]=='\001' ) swap = 1; else swap = 0;
 
 #ifdef BM_CACHE
     cache_id = PsBmIsImageCached(w, h, pImage);
@@ -332,134 +257,63 @@ PsPutScaledImageIM(DrawablePtr pDrawable, GCPtr pGC, int depth, int x, int y,
 
       PsOut_BeginImageCache(psOut, cache_id);
 #endif
+      if( depth!=1 )
+      {
+        PsOut_BeginImageIM(psOut, 0, 0, x, y, w, h, sw, sh, 3);
 
-#ifdef PSOUT_USE_DEEPCOLOR
-      if( depth==30 )
-      {
-        ErrorF("PsPutScaledImageIM: Not implemented yet for 30bit\m");
-      }
-      else
-#endif /* PSOUT_USE_DEEPCOLOR */
-      if( depth==24 )
-      {
-        PsOut_BeginImageIM(psOut, 0, 0, x, y, w, h, sw, sh, 3);
-        if( format==XYPixmap )
-        {
-          int   rowsiz = PixmapBytePad(w, depth);
-          char *planes[3];
-          planes[0] = pImage;
-          planes[1] = &pImage[rowsiz*h];
-          planes[2] = &pImage[rowsiz*h*2];
-          for( r=0 ; r<h ; r++ )
-          {
-            char *pt[3];
-            for( i=0 ; i<3 ;  i++ ) pt[i] = &planes[i][rowsiz*r];
-            for( c=0 ; c<w ; c++ )
-            {
-              for( i=0 ; i<3 ; i++ )
-                { PsOut_OutImageBytes(psOut, 1, &pt[i][c]); pt[i]++; }
-            }
-          }
-        }
-        else if( format==ZPixmap )
-        {
-          int  rowsiz = PixmapBytePad(w, depth);
-          for( r=0 ; r<h ; r++ )
-          {
-            char *pt = &pImage[rowsiz*r];
-            for( c=0 ; c<w ; c++,pt+=4 )
-            {
-              if( swap )
-              {
-                char tmp[4];
-                tmp[0] = pt[3]; tmp[1] = pt[2]; tmp[2] = pt[1]; tmp[3] = pt[0];
-                PsOut_OutImageBytes(psOut, 3, &tmp[1]);
-              }
-              else
-                PsOut_OutImageBytes(psOut, 3, &pt[1]);
-            }
-          }
-        }
-        else goto error;
-        PsOut_EndImage(psOut);
-      }
-#ifdef PSOUT_USE_DEEPCOLOR
-      else if( (depth > 8) && (depth < 16) )
-      {
-        int  rowsiz = PixmapBytePad(w, depth);
-        PsOut_BeginImageIM(psOut, 0, 0, x, y, w, h, sw, sh, 3);
         for( r=0 ; r<h ; r++ )
         {
-          short *pt = (short *)&pImage[rowsiz*r];
-          for( c=0 ; c<w ; c++,pt++ )
-          {
-            PsOutColor clr = PsGetPixelColor(cMap, (int)(*pt)&0xFFFF);
-            int        val = PSOUTCOLOR_TO_RGB24BIT(clr);
+          for( c=0 ; c<w ; c++ )
+          {         
+            unsigned long pv = PsGetImagePixel(pImage, depth, w, h, leftPad, format, c, r);
+            PsOutColor clr = PsGetPixelColor(cMap, pv);
+            /* XXX: This needs to be fixed for endian swapping and to support
+             * depths deeper than 8bit per R-,G-,B-gun... */
+            unsigned long val = PSOUTCOLOR_TO_RGB24BIT(clr);
             char      *ipt = (char *)&val;
-            if( swap )
-            {
-              char tmp[4];
-              tmp[0] = ipt[3]; tmp[1] = ipt[2]; tmp[2] = ipt[1]; tmp[3] = ipt[0];
-              PsOut_OutImageBytes(psOut, 3, &tmp[1]);
-            }
-            else
-              PsOut_OutImageBytes(psOut, 3, &ipt[1]);
+/* XXX: Is this the right way to detect the platform endianess ? */
+#if IMAGE_BYTE_ORDER == LSBFirst
+          {
+            long l;
+            swapl(&val, l);
+          }
+#elif IMAGE_BYTE_ORDER == MSBFirst
+#else
+#error Unsupported byte order
+#endif
+            PsOut_OutImageBytes(psOut, 3, &ipt[1]);
           }
         }
+
         PsOut_EndImage(psOut);
       }
-#endif /* PSOUT_USE_DEEPCOLOR */
-      else if( depth==8 )
+      else
       {
-        int  rowsiz = PixmapBytePad(w, depth);
-        PsOut_BeginImageIM(psOut, 0, 0, x, y, w, h, sw, sh, 3);
+        int  rowsiz = BitmapBytePad(w);
+        int  psrsiz = (w+7)/8;
+        PsOut_BeginImageIM(psOut, PsGetPixelColor(cMap, pGC->bgPixel),
+                           PsGetPixelColor(cMap, pGC->fgPixel),
+                           x, y, w, h, sw, sh, 1);
         for( r=0 ; r<h ; r++ )
         {
           char *pt = &pImage[rowsiz*r];
-          for( c=0 ; c<w ; c++,pt++ )
+          for( i=0 ; i<psrsiz ; i++ )
           {
-            PsOutColor clr = PsGetPixelColor(cMap, (int)(*pt)&0xFF);
-            /* XXX: This needs to be fixed for endian swapping and to support
-             * depths deeper than 8bit per R-,G-,B-gun... */
-            int        val = PSOUTCOLOR_TO_RGB24BIT(clr);
-            char      *ipt = (char *)&val;
-            if( swap )
-            {
-              char tmp[4];
-              tmp[0] = ipt[3]; tmp[1] = ipt[2]; tmp[2] = ipt[1]; tmp[3] = ipt[0];
-              PsOut_OutImageBytes(psOut, 3, &tmp[1]);
-            }
-            else
-              PsOut_OutImageBytes(psOut, 3, &ipt[1]);
+            int  iv_, iv = (int)pt[i]&0xFF;
+            char c;
+/* XXX: Is this the right way to detect the platform endianess ? */
+#if IMAGE_BYTE_ORDER == LSBFirst
+            { for( j=0,iv_=0 ; j<8 ; j++ ) iv_ |= (((iv>>j)&1)<<(7-j)); }
+#elif IMAGE_BYTE_ORDER == MSBFirst
+            iv_ = iv;
+#else
+#error Unsupported byte order
+#endif
+            c = iv_;
+            PsOut_OutImageBytes(psOut, 1, &c);
           }
         }
         PsOut_EndImage(psOut);
-      }
-      else if( depth==1 )
-      {
-        {
-          int  rowsiz = BitmapBytePad(w);
-          int  psrsiz = (w+7)/8;
-          PsOut_BeginImageIM(psOut, PsGetPixelColor(cMap, pGC->bgPixel),
-                           PsGetPixelColor(cMap, pGC->fgPixel),
-                           x, y, w, h, sw, sh, 1);
-          for( r=0 ; r<h ; r++ )
-          {
-            char *pt = &pImage[rowsiz*r];
-            for( i=0 ; i<psrsiz ; i++ )
-            {
-              int  iv_, iv = (int)pt[i]&0xFF;
-              char c;
-              if( swap )
-                { for( j=0,iv_=0 ; j<8 ; j++ ) iv_ |= (((iv>>j)&1)<<(7-j)); }
-              else
-                iv_ = iv;
-              c = iv_;
-              PsOut_OutImageBytes(psOut, 1, &c);
-            }
-          }
-          PsOut_EndImage(psOut);
-        }
       }
 #ifdef BM_CACHE
       PsOut_EndImageCache(psOut);
@@ -468,8 +322,6 @@ PsPutScaledImageIM(DrawablePtr pDrawable, GCPtr pGC, int depth, int x, int y,
                            PsGetPixelColor(cMap, pGC->fgPixel));
 #endif
   }
-error:
-  return;
 }
 void
 PsPutImage(DrawablePtr pDrawable, GCPtr pGC, int depth, int x, int y,
