@@ -125,7 +125,7 @@ copyright holders.
     "| sort -u` " \
   "| nawk -F: ' NF == 2 { name=$1 } " \
              " NF == 1 { sub(\"^.*description\\( - undefined|=\\)\",\"\"); " \
-                        " printf \"%sxp-printerattr.descriptor=%s\\n\",  name, $1 } '"
+                        " printf \"%s\txp-printerattr.descriptor=%s\\n\",  name, $1 } '"
 
 #define LIST_QUEUES_OTHER \
   "LANG=C lpstat -v | " \
