@@ -311,7 +311,7 @@ winConfigKeyboard (DeviceIntPtr pDevice)
             default:
             case 3:  g_winInfo.keyboard.delay = 1000; break;
           }
-        g_winInfo.keyboard.rate = max(1,kbd_speed);
+        g_winInfo.keyboard.rate = (kbd_speed>0)?kbd_speed:1;
         winMsgVerb(X_PROBED, 1, "Setting autorepeat to delay=%d, rate=%d\n",
                 g_winInfo.keyboard.delay, g_winInfo.keyboard.rate);
       }
