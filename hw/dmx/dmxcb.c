@@ -42,9 +42,12 @@
 
 extern char    *ConnectionInfo;
 extern int     connBlockScreenStart;
+
+#ifdef PANORAMIX
 extern int     PanoramiXPixWidth;
 extern int     PanoramiXPixHeight;
 extern int     PanoramiXNumScreens;
+#endif
 
        int     dmxGlobalWidth, dmxGlobalHeight;
 
@@ -115,6 +118,7 @@ void dmxConnectionBlockCallback(void)
         dmxLog(dmxFatal, "dmxConnectionBlockCallback: out of memory\n");
 
     dmxLog(dmxInfo, "===== Start of Summary =====\n");
+#ifdef PANORAMIX
     if (!noPanoramiXExtension) {
         if (dmxGlobalWidth && dmxGlobalHeight
             && (dmxGlobalWidth != PanoramiXPixWidth
@@ -133,6 +137,7 @@ void dmxConnectionBlockCallback(void)
                PanoramiXNumScreens, PanoramiXPixWidth, PanoramiXPixHeight);
 	for (i = 0; i < PanoramiXNumScreens; i++) found[i] = FALSE;
     } else {
+#endif
                                 /* This never happens because we're
                                  * either called from a Xinerama
                                  * callback or during reconfiguration
@@ -140,7 +145,9 @@ void dmxConnectionBlockCallback(void)
                                  * In any case, be reasonable. */
         dmxLog(dmxInfo, "%d screens configured (%d %d)\n",
                screenInfo.numScreens, root->pixWidth, root->pixHeight);
+#ifdef PANORAMIX
     }
+#endif
 
     for (i = 0; i < root->nDepths; i++) {
         xDepth      *depth  = (xDepth *)(ConnectionInfo + offset);
@@ -165,6 +172,7 @@ void dmxConnectionBlockCallback(void)
             vi.bits_per_rgb  = visual->bitsPerRGB;
             dmxLogVisual(NULL, &vi, 0);
 
+#ifdef PANORAMIX
 	    if (!noPanoramiXExtension) {
 		int  k;
 		for (k = 0; k < PanoramiXNumScreens; k++) {
@@ -182,6 +190,7 @@ void dmxConnectionBlockCallback(void)
 		    }
 		}
 	    }
+#endif
         }
         offset = voffset + depth->nVisuals * sizeof(xVisualType);
     }
@@ -189,6 +198,7 @@ void dmxConnectionBlockCallback(void)
     dmxInputLogDevices();
     dmxLog(dmxInfo, "===== End of Summary =====\n");
 
+#ifdef PANORAMIX
     if (!noPanoramiXExtension) {
 	Bool fatal = FALSE;
 	for (i = 0; i < PanoramiXNumScreens; i++) {
@@ -205,5 +215,6 @@ void dmxConnectionBlockCallback(void)
             dmxLog(dmxFatal,
                    "dmxConnectionBlockCallback: invalid screen(s) found");
     }
+#endif
     MAXSCREENSFREE(found);
 }

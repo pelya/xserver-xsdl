@@ -289,35 +289,6 @@ void dmxFlushPendingSyncs(void)
     dmxSync(NULL, TRUE);
 }
 
-#ifdef PANORAMIX
-#include "panoramiXsrv.h"
-
-/* Defined in dix/events.c */
-extern void ReinitializeRootWindow(WindowPtr win, int xoff, int yoff);
-
-/** Change the "screen" window attributes by resizing the actual window
- *  on the back-end display (if necessary). */
-static void dmxConfigureScreenWindow(int idx,
-				     int x, int y, int w, int h)
-{
-    DMXScreenInfo *dmxScreen = &dmxScreens[idx];
-    ScreenPtr      pScreen   = screenInfo.screens[idx];
-
-    /* Resize "screen" window */
-    if (dmxScreen->scrnX      != x ||
-	dmxScreen->scrnY      != y ||
-	dmxScreen->scrnWidth  != w ||
-	dmxScreen->scrnHeight != h) {
-	dmxResizeScreenWindow(pScreen, x, y, w, h);
-    }
-
-    /* Change "screen" window values */
-    dmxScreen->scrnX      = x;
-    dmxScreen->scrnY      = y;
-    dmxScreen->scrnWidth  = w;
-    dmxScreen->scrnHeight = h;
-}
-				     
 /** Update DMX's screen resources to match those of the newly moved
  *  and/or resized "root" window. */
 void dmxUpdateScreenResources(ScreenPtr pScreen, int x, int y, int w, int h)
@@ -396,6 +367,35 @@ void dmxUpdateScreenResources(ScreenPtr pScreen, int x, int y, int w, int h)
     }
 }
 
+#ifdef PANORAMIX
+#include "panoramiXsrv.h"
+
+/* Defined in dix/events.c */
+extern void ReinitializeRootWindow(WindowPtr win, int xoff, int yoff);
+
+/** Change the "screen" window attributes by resizing the actual window
+ *  on the back-end display (if necessary). */
+static void dmxConfigureScreenWindow(int idx,
+				     int x, int y, int w, int h)
+{
+    DMXScreenInfo *dmxScreen = &dmxScreens[idx];
+    ScreenPtr      pScreen   = screenInfo.screens[idx];
+
+    /* Resize "screen" window */
+    if (dmxScreen->scrnX      != x ||
+	dmxScreen->scrnY      != y ||
+	dmxScreen->scrnWidth  != w ||
+	dmxScreen->scrnHeight != h) {
+	dmxResizeScreenWindow(pScreen, x, y, w, h);
+    }
+
+    /* Change "screen" window values */
+    dmxScreen->scrnX      = x;
+    dmxScreen->scrnY      = y;
+    dmxScreen->scrnWidth  = w;
+    dmxScreen->scrnHeight = h;
+}
+				     
 /** Change the "root" window position and size by resizing the actual
  *  window on the back-end display (if necessary) and updating all of
  *  DMX's resources by calling #dmxUpdateScreenResources. */

@@ -432,10 +432,12 @@ static int ProcDMXChangeScreensAttributes(ClientPtr client)
         value_list += count;
     }
 
+#if PANORAMIX
     status = dmxConfigureScreenWindows(stuff->screenCount,
 				       screen_list,
 				       attribs,
 				       &errorScreen);
+#endif
 
     DEALLOCATE_LOCAL(attribs);
 
@@ -733,7 +735,9 @@ static int ProcDMXChangeDesktopAttributes(ClientPtr client)
     dmxGetDesktopAttributes(&attr);
     dmxFetchDesktopAttributes(stuff->valueMask, &attr, value_list);
 
+#if PANORAMIX
     status = dmxConfigureDesktop(&attr);
+#endif
     if (status == BadValue) return status;
 
   noxinerama:
