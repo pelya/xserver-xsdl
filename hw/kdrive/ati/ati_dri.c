@@ -322,7 +322,7 @@ ATIDRIAgpInit(ScreenPtr pScreen)
 		default:
 			ErrorF("[agp] Illegal aperture size %d kB\n", atis->gartSize *
 			    1024);
-		return FALSE;
+			return FALSE;
 		}
 		MMIO_OUT32(mmio, ATI_REG_AGP_CNTL, cntl);
 
