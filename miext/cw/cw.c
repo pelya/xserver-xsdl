@@ -685,7 +685,7 @@ miInitializeCompositeWrapper(ScreenPtr pScreen)
 
 #ifdef RENDER
     if (GetPictureScreen (pScreen))
-	cwInitializeRender(pScreen)
+	cwInitializeRender(pScreen);
 #endif
 }
 
@@ -707,10 +707,8 @@ cwCloseScreen (int i, ScreenPtr pScreen)
     pScreen->PaintWindowBorder = pScreenPriv->PaintWindowBorder;
 
 #ifdef RENDER
-    if (ps) {
-	ps->Composite = pScreenPriv->Composite;
-	ps->Glyphs = pScreenPriv->Glyphs;
-    }
+    if (ps)
+	cwFiniRender(pScreen);
 #endif
 
     xfree((pointer)pScreenPriv);

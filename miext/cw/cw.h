@@ -137,6 +137,9 @@ cwGetBackingDrawable(DrawablePtr pDrawable, int *x_off, int *y_off);
 void
 cwInitializeRender (ScreenPtr pScreen);
 
+void
+cwFiniRender (ScreenPtr pScreen);
+
 /* cw.c */
 void
 miInitializeCompositeWrapper(ScreenPtr pScreen);

@@ -455,4 +455,22 @@ cwInitializeRender (ScreenPtr pScreen)
     cwPsWrap(TriFan, cwTriFan);
 }
 
+void
+cwFiniRender (ScreenPtr pScreen)
+{
+    cwPsDecl (pScreen);
+
+    cwPsUnwrap(CreatePicture);
+    cwPsUnwrap(DestroyPicture);
+    cwPsUnwrap(ChangePicture);
+    cwPsUnwrap(ValidatePicture);
+    cwPsUnwrap(Composite);
+    cwPsUnwrap(Glyphs);
+    cwPsUnwrap(CompositeRects);
+    cwPsUnwrap(Trapezoids);
+    cwPsUnwrap(Triangles);
+    cwPsUnwrap(TriStrip);
+    cwPsUnwrap(TriFan);
+}
+
 #endif /* RENDER */
