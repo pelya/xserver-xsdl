@@ -3,4 +3,5 @@ SUBDIRS =	\
 	linux	\
 	vesa	\
 	mach64	\
-	fbdev
+	fbdev	\
+	mga
