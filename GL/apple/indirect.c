@@ -71,6 +71,7 @@ extern void GlxSetVisualConfigs(int nconfigs, __GLXvisualConfig *configs, void *
 #define GLAQUA_DEBUG_MSG(a, ...)
 #endif
 
+
 // The following GL functions don't have an EXT suffix in OpenGL.framework.
 GLboolean glAreTexturesResidentEXT(GLsizei a, const GLuint *b, GLboolean *c) {
     return glAreTexturesResident(a, b, c);
@@ -213,7 +214,8 @@ static GLboolean glAquaDestroyContext(__GLcontext *gc)
 {
     x_list *lst;
 
-    GLAQUA_DEBUG_MSG("glAquaDestroyContext (ctx 0x%x)\n", gc->ctx);
+    GLAQUA_DEBUG_MSG("glAquaDestroyContext (ctx 0x%x)\n",
+                     (unsigned int) gc->ctx);
 
     if (gc != NULL)
     {
@@ -240,7 +242,7 @@ static GLboolean glAquaLoseCurrent(__GLcontext *gc)
 {
     CGLError gl_err;
 
-    GLAQUA_DEBUG_MSG("glAquaLoseCurrent (ctx 0x%x)\n", gc->ctx);
+    GLAQUA_DEBUG_MSG("glAquaLoseCurrent (ctx 0x%x)\n", (unsigned int) gc->ctx);
 
     gl_err = CGLSetCurrentContext(NULL);
     if (gl_err != 0)
@@ -276,8 +278,8 @@ static void surface_notify(void *_arg, void *data)
             lst = x_hash_table_lookup(surface_hash, (void *) arg->id, NULL);
             for (; lst != NULL; lst = lst->next)
             {
-            gc = lst->data;
-            xp_update_gl_context(gc->ctx);
+                gc = lst->data;
+                xp_update_gl_context(gc->ctx);
             }
         }
         break;
@@ -308,62 +310,54 @@ static void unattach(__GLcontext *gc)
 static void attach(__GLcontext *gc, __GLdrawablePrivate *glPriv)
 {
     __GLXdrawablePrivate *glxPriv;
+    GLAquaDrawableRec *aquaPriv;
+    DrawablePtr pDraw;
 
     glxPriv = (__GLXdrawablePrivate *)glPriv->other;
+    aquaPriv = (GLAquaDrawableRec *)glPriv->private;
+    pDraw = glxPriv->pDraw;
 
-    if (glxPriv->type == DRAWABLE_WINDOW)
+    if (aquaPriv->sid == 0)
     {
-        WindowPtr pWin = (WindowPtr) glxPriv->pDraw;
-        GLAquaDrawableRec *aquaPriv = (GLAquaDrawableRec *)glPriv->private;
+        if (!quartzProcs->CreateSurface(pDraw->pScreen, pDraw->id, pDraw,
+                                        0, &aquaPriv->sid, NULL,
+                                        surface_notify, aquaPriv))
+        {
+            return;
+        }
+        aquaPriv->pDraw = pDraw;
+    }
+
+    if (!gc->isAttached || gc->sid != aquaPriv->sid)
+    {
         x_list *lst;
 
-        if (aquaPriv->sid == 0)
+        if (xp_attach_gl_context(gc->ctx, aquaPriv->sid) != Success)
         {
-            if (!quartzProcs->CreateSurface(pWin->drawable.pScreen,
-                                  pWin->drawable.id, &pWin->drawable,
-                                  0, &aquaPriv->sid, NULL,
-                                  surface_notify, aquaPriv))
-            {
-            return;
-            }
-            aquaPriv->pDraw = &pWin->drawable;
-        }
-
-        if (!gc->isAttached || gc->sid != aquaPriv->sid)
-        {
-            if (xp_attach_gl_context(gc->ctx, aquaPriv->sid) != Success)
-            {
-            quartzProcs->DestroySurface(pWin->drawable.pScreen,
-                                        pWin->drawable.id, &pWin->drawable, 
+            quartzProcs->DestroySurface(pDraw->pScreen, pDraw->id, pDraw,
                                         surface_notify, aquaPriv);
-
             if (surface_hash != NULL)
                 x_hash_table_remove(surface_hash, (void *) aquaPriv->sid);
 
             aquaPriv->sid = 0;
             return;
-            }
-
-            gc->isAttached = TRUE;
-            gc->sid = aquaPriv->sid;
-
-            if (surface_hash == NULL)
-                surface_hash = x_hash_table_new(NULL, NULL, NULL, NULL);
-
-            lst = x_hash_table_lookup(surface_hash, (void *) gc->sid, NULL);
-            if (x_list_find(lst, gc) == NULL)
-            {
-                lst = x_list_prepend(lst, gc);
-                x_hash_table_insert(surface_hash, (void *) gc->sid, lst);
-            }
-
-            GLAQUA_DEBUG_MSG("attached 0x%x to 0x%x\n", pWin->drawable.id,
-                             aquaPriv->sid);
         }
-    } else {
-        GLAQUA_DEBUG_MSG("attach: attach to non-window unimplemented\n");
-        CGLClearDrawable(gc->ctx);
-        gc->isAttached = FALSE;
+
+        gc->isAttached = TRUE;
+        gc->sid = aquaPriv->sid;
+
+        if (surface_hash == NULL)
+            surface_hash = x_hash_table_new(NULL, NULL, NULL, NULL);
+
+        lst = x_hash_table_lookup(surface_hash, (void *) gc->sid, NULL);
+        if (x_list_find(lst, gc) == NULL)
+        {
+            lst = x_list_prepend(lst, gc);
+            x_hash_table_insert(surface_hash, (void *) gc->sid, lst);
+        }
+
+        GLAQUA_DEBUG_MSG("attached 0x%x to 0x%x\n", (unsigned int) pDraw->id,
+                         (unsigned int) aquaPriv->sid);
     }
 }
 
@@ -372,7 +366,7 @@ static GLboolean glAquaMakeCurrent(__GLcontext *gc)
     __GLdrawablePrivate *glPriv = gc->interface.imports.getDrawablePrivate(gc);
     CGLError gl_err;
 
-    GLAQUA_DEBUG_MSG("glAquaMakeCurrent (ctx 0x%x)\n", gc->ctx);
+    GLAQUA_DEBUG_MSG("glAquaMakeCurrent (ctx 0x%x)\n", (unsigned int) gc->ctx);
 
     attach(gc, glPriv);
 
@@ -408,7 +402,8 @@ static GLboolean glAquaForceCurrent(__GLcontext *gc)
 {
     CGLError gl_err;
 
-    GLAQUA_DEBUG_MSG("glAquaForceCurrent (ctx 0x%x)\n", gc->ctx);
+    GLAQUA_DEBUG_MSG("glAquaForceCurrent (ctx 0x%x)\n",
+                     (unsigned int) gc->ctx);
 
     gl_err = CGLSetCurrentContext(gc->ctx);
     if (gl_err != 0)
@@ -518,7 +513,7 @@ static CGLPixelFormatObj makeFormat(__GLcontextModes *mode)
     if (gl_err != 0)
         ErrorF("CGLChoosePixelFormat error: %s\n", CGLErrorString(gl_err));
 
-    GLAQUA_DEBUG_MSG("makeFormat done (0x%x)\n", result);
+    GLAQUA_DEBUG_MSG("makeFormat done (0x%x)\n", (unsigned int) result);
 
     return result;
 }
@@ -782,6 +777,7 @@ static __GLXvisualConfig NullConfig = {
     0                   /* transparentIndex */
 };
 
+
 static inline int count_bits(uint32_t x)
 {
     x = x - ((x >> 1) & 0x55555555);
@@ -866,9 +862,9 @@ static Bool init_visuals(int *nvisualp, VisualPtr *visualp,
     for (i = 0; i < numVisuals; i++) {
         int count;
 
-        count = ((pVisual[i].class == TrueColor
-              || pVisual[i].class == DirectColor)
-             ? numRGBconfigs : numCIconfigs);
+        count = ((pVisual[i].class == TrueColor ||
+                  pVisual[i].class == DirectColor)
+                ? numRGBconfigs : numCIconfigs);
         if (count == 0)
             count = 1;          /* preserve the existing visual */
 
@@ -1162,8 +1158,8 @@ static Bool glAquaInitVisuals(VisualPtr *visualp, DepthPtr *depthp,
 {
     GLAQUA_DEBUG_MSG("glAquaInitVisuals\n");
     
-    if (0 == numConfigs) /* if no configs */
-        glAquaInitVisualConfigs(); /* ensure the visula configs are setup */
+    if (numConfigs == 0) /* if no configs */
+        glAquaInitVisualConfigs(); /* ensure the visual configs are setup */
 
     /*
      * Setup the visuals supported by this particular screen.

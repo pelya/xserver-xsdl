@@ -66,12 +66,15 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "x-hash.h"
 #include "x-hook.h"
 
+#include <AvailabilityMacros.h>
+
 static int DRIScreenPrivIndex = -1;
 static int DRIWindowPrivIndex = -1;
+static int DRIPixmapPrivIndex = -1;
 
 static RESTYPE DRIDrawablePrivResType;
 
-static x_hash_table *surface_hash;	/* maps surface ids -> drawablePrivs */
+static x_hash_table *surface_hash;      /* maps surface ids -> drawablePrivs */
 
 /* FIXME: don't hardcode this? */
 #define CG_INFO_FILE "/System/Library/Frameworks/ApplicationServices.framework/Frameworks/CoreGraphics.framework/Resources/Info-macos.plist"
@@ -264,11 +267,14 @@ DRIExtensionInit(void)
         DRIGeneration = serverGeneration;
     }
 
-    /* Allocate a window private index with a zero sized private area for
+    /*
+     * Allocate a window private index with a zero sized private area for
      * each window, then should a window become a DRI window, we'll hang
-     * a DRIWindowPrivateRec off of this private index.
+     * a DRIWindowPrivateRec off of this private index. Do same for pixmaps.
      */
     if ((DRIWindowPrivIndex = AllocateWindowPrivateIndex()) < 0)
+        return FALSE;
+    if ((DRIPixmapPrivIndex = AllocatePixmapPrivateIndex()) < 0)
         return FALSE;
 
     DRIDrawablePrivResType = CreateNewResourceType(DRIDrawablePrivDelete);
@@ -315,50 +321,66 @@ DRIAuthConnection(ScreenPtr pScreen, unsigned int magic)
 }
 
 static void
-DRIUpdateSurface(DRIDrawablePrivPtr pDRIDrawablePriv, WindowPtr pWin)
+DRIUpdateSurface(DRIDrawablePrivPtr pDRIDrawablePriv, DrawablePtr pDraw)
 {
-    WindowPtr pTopWin;
     xp_window_changes wc;
+    unsigned int flags = 0;
 
     if (pDRIDrawablePriv->sid == 0)
         return;
 
-    pTopWin = TopLevelParent(pWin);
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1030
+    wc.depth = (pDraw->bitsPerPixel == 32 ? XP_DEPTH_ARGB8888
+                : pDraw->bitsPerPixel == 16 ? XP_DEPTH_RGB555 : XP_DEPTH_NIL);
+    if (wc.depth != XP_DEPTH_NIL)
+        flags |= XP_DEPTH;
+#endif
 
-    wc.x = pWin->drawable.x - (pTopWin->drawable.x - pTopWin->borderWidth);
-    wc.y = pWin->drawable.y - (pTopWin->drawable.y - pTopWin->borderWidth);
-    wc.width = pWin->drawable.width + 2 * pWin->borderWidth;
-    wc.height = pWin->drawable.height + 2 * pWin->borderWidth;
-    wc.bit_gravity = XP_GRAVITY_NONE;
+    if (pDraw->type == DRAWABLE_WINDOW) {
+        WindowPtr pWin = (WindowPtr) pDraw;
+        WindowPtr pTopWin = TopLevelParent(pWin);
 
-    wc.shape_nrects = REGION_NUM_RECTS(&pWin->clipList);
-    wc.shape_rects = REGION_RECTS(&pWin->clipList);
-    wc.shape_tx = - (pTopWin->drawable.x - pTopWin->borderWidth);
-    wc.shape_ty = - (pTopWin->drawable.y - pTopWin->borderWidth);
+        wc.x = pWin->drawable.x - (pTopWin->drawable.x - pTopWin->borderWidth);
+        wc.y = pWin->drawable.y - (pTopWin->drawable.y - pTopWin->borderWidth);
+        wc.width = pWin->drawable.width + 2 * pWin->borderWidth;
+        wc.height = pWin->drawable.height + 2 * pWin->borderWidth;
+        wc.bit_gravity = XP_GRAVITY_NONE;
 
-    xp_configure_surface(pDRIDrawablePriv->sid, XP_BOUNDS | XP_SHAPE, &wc);
+        wc.shape_nrects = REGION_NUM_RECTS(&pWin->clipList);
+        wc.shape_rects = REGION_RECTS(&pWin->clipList);
+        wc.shape_tx = - (pTopWin->drawable.x - pTopWin->borderWidth);
+        wc.shape_ty = - (pTopWin->drawable.y - pTopWin->borderWidth);
+
+        flags |= XP_BOUNDS | XP_SHAPE;
+
+    } else if (pDraw->type == DRAWABLE_PIXMAP) {
+        wc.x = 0;
+        wc.y = 0;
+        wc.width = pDraw->width;
+        wc.height = pDraw->height;
+        wc.bit_gravity = XP_GRAVITY_NONE;
+        flags |= XP_BOUNDS;
+    }
+
+    xp_configure_surface(pDRIDrawablePriv->sid, flags, &wc);
 }
 
 Bool
-DRICreateSurface (ScreenPtr pScreen, Drawable id,
-                  DrawablePtr pDrawable, xp_client_id client_id,
-                  xp_surface_id *surface_id, unsigned int ret_key[2],
-                  void (*notify) (void *arg, void *data), void *notify_data)
+DRICreateSurface(ScreenPtr pScreen, Drawable id,
+                 DrawablePtr pDrawable, xp_client_id client_id,
+                 xp_surface_id *surface_id, unsigned int ret_key[2],
+                 void (*notify) (void *arg, void *data), void *notify_data)
 {
-    DRIScreenPrivPtr	pDRIPriv = DRI_SCREEN_PRIV(pScreen);
-    DRIDrawablePrivPtr	pDRIDrawablePriv;
-    WindowPtr		pWin;
+    DRIScreenPrivPtr    pDRIPriv = DRI_SCREEN_PRIV(pScreen);
+    DRIDrawablePrivPtr  pDRIDrawablePriv;
+    xp_window_id        wid = 0;
 
     if (pDrawable->type == DRAWABLE_WINDOW) {
-        pWin = (WindowPtr)pDrawable;
-        if ((pDRIDrawablePriv = DRI_DRAWABLE_PRIV_FROM_WINDOW(pWin))) {
-            pDRIDrawablePriv->refCount++;
-        }
-        else {
-            xp_window_id wid;
-            xp_surface_id sid;
+        WindowPtr pWin = (WindowPtr)pDrawable;
+
+        pDRIDrawablePriv = DRI_DRAWABLE_PRIV_FROM_WINDOW(pWin);
+        if (pDRIDrawablePriv == NULL) {
             xp_error err;
-            unsigned int key[2];
             xp_window_changes wc;
 
             /* allocate a DRI Window Private record */
@@ -366,87 +388,128 @@ DRICreateSurface (ScreenPtr pScreen, Drawable id,
                 return FALSE;
             }
 
+            pDRIDrawablePriv->pDraw = pDrawable;
+            pDRIDrawablePriv->pScreen = pScreen;
+            pDRIDrawablePriv->refCount = 0;
+            pDRIDrawablePriv->drawableIndex = -1;
+            pDRIDrawablePriv->notifiers = NULL;
+
             /* find the physical window */
-            wid = (xp_window_id) RootlessFrameForWindow (pWin, TRUE);
+            wid = (xp_window_id) RootlessFrameForWindow(pWin, TRUE);
             if (wid == 0) {
-                xfree (pDRIDrawablePriv);
+                xfree(pDRIDrawablePriv);
                 return FALSE;
             }
 
             /* allocate the physical surface */
-            err = xp_create_surface (wid, &sid);
+            err = xp_create_surface(wid, &pDRIDrawablePriv->sid);
             if (err != Success) {
-                xfree (pDRIDrawablePriv);
+                xfree(pDRIDrawablePriv);
                 return FALSE;
-            }
-
-            /* try to give the client access to the surface */
-            if (client_id != 0)
-            {
-                err = xp_export_surface (wid, sid, client_id, key);
-                if (err != Success) {
-                    xp_destroy_surface (sid);
-                    xfree (pDRIDrawablePriv);
-                    return FALSE;
-                }
             }
 
             /* Make it visible */
             wc.stack_mode = XP_MAPPED_ABOVE;
             wc.sibling = 0;
-            err = xp_configure_surface (sid, XP_STACKING, &wc);
+            err = xp_configure_surface(pDRIDrawablePriv->sid, XP_STACKING, &wc);
             if (err != Success)
             {
-                xp_destroy_surface (sid);
-                xfree (pDRIDrawablePriv);
+                xp_destroy_surface(pDRIDrawablePriv->sid);
+                xfree(pDRIDrawablePriv);
                 return FALSE;
             }
 
-            /* add it to the list of DRI drawables for this screen */
-            pDRIDrawablePriv->sid = sid;
-            pDRIDrawablePriv->pDraw = pDrawable;
-            pDRIDrawablePriv->pScreen = pScreen;
-            pDRIDrawablePriv->refCount = 1;
-            pDRIDrawablePriv->drawableIndex = -1;
-            pDRIDrawablePriv->key[0] = key[0];
-            pDRIDrawablePriv->key[1] = key[1];
-            pDRIDrawablePriv->notifiers = NULL;
-
             /* save private off of preallocated index */
-            pWin->devPrivates[DRIWindowPrivIndex].ptr =
-                                                (pointer)pDRIDrawablePriv;
-
-            ++pDRIPriv->nrWindows;
-
-            /* and stash it by surface id */
-            if (surface_hash == NULL)
-                surface_hash = x_hash_table_new (NULL, NULL, NULL, NULL);
-            x_hash_table_insert (surface_hash, (void *) sid, pDRIDrawablePriv);
-
-            /* track this in case this window is destroyed */
-            AddResource(id, DRIDrawablePrivResType, (pointer)pWin);
-
-            /* Initialize shape */
-            DRIUpdateSurface (pDRIDrawablePriv, pWin);
-        }
-
-        if (notify != NULL) {
-            pDRIDrawablePriv->notifiers
-                = x_hook_add (pDRIDrawablePriv->notifiers,
-                              notify, notify_data);
-        }
-
-        *surface_id = pDRIDrawablePriv->sid;
-
-        if (ret_key != NULL)
-        {
-            ret_key[0] = pDRIDrawablePriv->key[0];
-            ret_key[1] = pDRIDrawablePriv->key[1];
+            pWin->devPrivates[DRIWindowPrivIndex].ptr = (pointer)pDRIDrawablePriv;
         }
     }
-    else { /* pixmap (or for GLX 1.3, a PBuffer) */
+
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1030
+    else if (pDrawable->type == DRAWABLE_PIXMAP) {
+        PixmapPtr pPix = (PixmapPtr)pDrawable;
+
+        pDRIDrawablePriv = DRI_DRAWABLE_PRIV_FROM_PIXMAP(pPix);
+        if (pDRIDrawablePriv == NULL) {
+            xp_error err;
+
+            /* allocate a DRI Window Private record */
+            if (!(pDRIDrawablePriv = xcalloc(1, sizeof(DRIDrawablePrivRec)))) {
+                return FALSE;
+            }
+
+            pDRIDrawablePriv->pDraw = pDrawable;
+            pDRIDrawablePriv->pScreen = pScreen;
+            pDRIDrawablePriv->refCount = 0;
+            pDRIDrawablePriv->drawableIndex = -1;
+            pDRIDrawablePriv->notifiers = NULL;
+
+            /* Passing a null window id to Xplugin in 10.3+ asks for
+               an accelerated offscreen surface. */
+
+            err = xp_create_surface(0, &pDRIDrawablePriv->sid);
+            if (err != Success) {
+                xfree(pDRIDrawablePriv);
+                return FALSE;
+            }
+
+            /* save private off of preallocated index */
+            pPix->devPrivates[DRIPixmapPrivIndex].ptr = (pointer)pDRIDrawablePriv;
+        }
+    }
+#endif
+
+    else { /* for GLX 1.3, a PBuffer */
         /* NOT_DONE */
         return FALSE;
+    }
+
+    /* Finish initialization of new surfaces */
+    if (pDRIDrawablePriv->refCount == 0) {
+        unsigned int key[2] = {0};
+        xp_error err;
+
+        /* try to give the client access to the surface */
+        if (client_id != 0 && wid != 0)
+        {
+            err = xp_export_surface(wid, pDRIDrawablePriv->sid,
+                                    client_id, key);
+            if (err != Success) {
+                xp_destroy_surface(pDRIDrawablePriv->sid);
+                xfree(pDRIDrawablePriv);
+                return FALSE;
+            }
+        }
+
+        pDRIDrawablePriv->key[0] = key[0];
+        pDRIDrawablePriv->key[1] = key[1];
+
+        ++pDRIPriv->nrWindows;
+
+        /* and stash it by surface id */
+        if (surface_hash == NULL)
+            surface_hash = x_hash_table_new(NULL, NULL, NULL, NULL);
+        x_hash_table_insert(surface_hash,
+                            (void *) pDRIDrawablePriv->sid, pDRIDrawablePriv);
+
+        /* track this in case this window is destroyed */
+        AddResource(id, DRIDrawablePrivResType, (pointer)pDrawable);
+
+        /* Initialize shape */
+        DRIUpdateSurface(pDRIDrawablePriv, pDrawable);
+    }
+
+    pDRIDrawablePriv->refCount++;
+
+    *surface_id = pDRIDrawablePriv->sid;
+
+    if (ret_key != NULL) {
+        ret_key[0] = pDRIDrawablePriv->key[0];
+        ret_key[1] = pDRIDrawablePriv->key[1];
+    }
+
+    if (notify != NULL) {
+        pDRIDrawablePriv->notifiers = x_hook_add(pDRIDrawablePriv->notifiers,
+                                                 notify, notify_data);
     }
 
     return TRUE;
@@ -456,29 +519,26 @@ Bool
 DRIDestroySurface(ScreenPtr pScreen, Drawable id, DrawablePtr pDrawable,
                   void (*notify) (void *, void *), void *notify_data)
 {
-    DRIDrawablePrivPtr	pDRIDrawablePriv;
-    WindowPtr		pWin;
+    DRIDrawablePrivPtr  pDRIDrawablePriv;
 
     if (pDrawable->type == DRAWABLE_WINDOW) {
-        pWin = (WindowPtr)pDrawable;
-        pDRIDrawablePriv = DRI_DRAWABLE_PRIV_FROM_WINDOW(pWin);
-        if (pDRIDrawablePriv != NULL) {
-            if (notify != NULL)
-            {
-                pDRIDrawablePriv->notifiers
-                    = x_hook_remove (pDRIDrawablePriv->notifiers,
-                                     notify, notify_data);
-            }
-            if (--pDRIDrawablePriv->refCount <= 0) {
-                /* This calls back to DRIDrawablePrivDelete
-                   which frees the private area */
-                FreeResourceByType(id, DRIDrawablePrivResType, FALSE);
-            }
-        }
-    }
-    else { /* pixmap (or for GLX 1.3, a PBuffer) */
-        /* NOT_DONE */
+        pDRIDrawablePriv = DRI_DRAWABLE_PRIV_FROM_WINDOW((WindowPtr)pDrawable);
+    } else if (pDrawable->type == DRAWABLE_PIXMAP) {
+        pDRIDrawablePriv = DRI_DRAWABLE_PRIV_FROM_PIXMAP((PixmapPtr)pDrawable);
+    } else {
         return FALSE;
+    }
+
+    if (pDRIDrawablePriv != NULL) {
+        if (notify != NULL) {
+            pDRIDrawablePriv->notifiers = x_hook_remove(pDRIDrawablePriv->notifiers,
+                                                        notify, notify_data);
+        }
+        if (--pDRIDrawablePriv->refCount <= 0) {
+            /* This calls back to DRIDrawablePrivDelete
+               which frees the private area */
+            FreeResourceByType(id, DRIDrawablePrivResType, FALSE);
+        }
     }
 
     return TRUE;
@@ -487,37 +547,45 @@ DRIDestroySurface(ScreenPtr pScreen, Drawable id, DrawablePtr pDrawable,
 Bool
 DRIDrawablePrivDelete(pointer pResource, XID id)
 {
-    DrawablePtr		pDrawable = (DrawablePtr)pResource;
-    DRIScreenPrivPtr	pDRIPriv = DRI_SCREEN_PRIV(pDrawable->pScreen);
-    DRIDrawablePrivPtr	pDRIDrawablePriv;
-    WindowPtr		pWin;
+    DrawablePtr         pDrawable = (DrawablePtr)pResource;
+    DRIScreenPrivPtr    pDRIPriv = DRI_SCREEN_PRIV(pDrawable->pScreen);
+    DRIDrawablePrivPtr  pDRIDrawablePriv = NULL;
+    WindowPtr           pWin = NULL;
+    PixmapPtr           pPix = NULL;
 
     if (pDrawable->type == DRAWABLE_WINDOW) {
         pWin = (WindowPtr)pDrawable;
         pDRIDrawablePriv = DRI_DRAWABLE_PRIV_FROM_WINDOW(pWin);
-
-        if (pDRIDrawablePriv->drawableIndex != -1) {
-            /* release drawable table entry */
-            pDRIPriv->DRIDrawables[pDRIDrawablePriv->drawableIndex] = NULL;
-        }
-
-        if (pDRIDrawablePriv->sid != 0) {
-            xp_destroy_surface (pDRIDrawablePriv->sid);
-            x_hash_table_remove (surface_hash, (void *) pDRIDrawablePriv->sid);
-        }
-
-        if (pDRIDrawablePriv->notifiers != NULL)
-            x_hook_free (pDRIDrawablePriv->notifiers);
-
-        xfree(pDRIDrawablePriv);
-        pWin->devPrivates[DRIWindowPrivIndex].ptr = NULL;
-
-        --pDRIPriv->nrWindows;
+    } else if (pDrawable->type == DRAWABLE_PIXMAP) {
+        pPix = (PixmapPtr)pDrawable;
+        pDRIDrawablePriv = DRI_DRAWABLE_PRIV_FROM_PIXMAP(pPix);
     }
-    else { /* pixmap (or for GLX 1.3, a PBuffer) */
-        /* NOT_DONE */
+
+    if (pDRIDrawablePriv == NULL)
         return FALSE;
+
+    if (pDRIDrawablePriv->drawableIndex != -1) {
+        /* release drawable table entry */
+        pDRIPriv->DRIDrawables[pDRIDrawablePriv->drawableIndex] = NULL;
     }
+
+    if (pDRIDrawablePriv->sid != 0) {
+        xp_destroy_surface(pDRIDrawablePriv->sid);
+        x_hash_table_remove(surface_hash, (void *) pDRIDrawablePriv->sid);
+    }
+
+    if (pDRIDrawablePriv->notifiers != NULL)
+        x_hook_free(pDRIDrawablePriv->notifiers);
+
+    xfree(pDRIDrawablePriv);
+
+    if (pDrawable->type == DRAWABLE_WINDOW) {
+        pWin->devPrivates[DRIWindowPrivIndex].ptr = NULL;
+    } else if (pDrawable->type == DRAWABLE_PIXMAP) {
+        pPix->devPrivates[DRIPixmapPrivIndex].ptr = NULL;
+    }
+
+    --pDRIPriv->nrWindows;
 
     return TRUE;
 }
@@ -529,7 +597,7 @@ DRIWindowExposures(WindowPtr pWin, RegionPtr prgn, RegionPtr bsreg)
     DRIScreenPrivPtr pDRIPriv = DRI_SCREEN_PRIV(pScreen);
     DRIDrawablePrivPtr pDRIDrawablePriv = DRI_DRAWABLE_PRIV_FROM_WINDOW(pWin);
 
-    if(pDRIDrawablePriv) {
+    if (pDRIDrawablePriv) {
         /* FIXME: something? */
     }
 
@@ -539,7 +607,6 @@ DRIWindowExposures(WindowPtr pWin, RegionPtr prgn, RegionPtr bsreg)
 
     pDRIPriv->wrap.WindowExposures = pScreen->WindowExposures;
     pScreen->WindowExposures = DRIWindowExposures;
-
 }
 
 void
@@ -550,9 +617,9 @@ DRICopyWindow(WindowPtr pWin, DDXPointRec ptOldOrg, RegionPtr prgnSrc)
     DRIDrawablePrivPtr pDRIDrawablePriv;
 
     if (pDRIPriv->nrWindows > 0) {
-       pDRIDrawablePriv = DRI_DRAWABLE_PRIV_FROM_WINDOW (pWin);
+       pDRIDrawablePriv = DRI_DRAWABLE_PRIV_FROM_WINDOW(pWin);
        if (pDRIDrawablePriv != NULL) {
-            DRIUpdateSurface (pDRIDrawablePriv, pWin);
+            DRIUpdateSurface(pDRIDrawablePriv, &pWin->drawable);
        }
     }
 
@@ -618,13 +685,13 @@ DRIClipNotify(WindowPtr pWin, int dx, int dy)
 {
     ScreenPtr pScreen = pWin->drawable.pScreen;
     DRIScreenPrivPtr pDRIPriv = DRI_SCREEN_PRIV(pScreen);
-    DRIDrawablePrivPtr	pDRIDrawablePriv;
+    DRIDrawablePrivPtr  pDRIDrawablePriv;
 
     if ((pDRIDrawablePriv = DRI_DRAWABLE_PRIV_FROM_WINDOW(pWin))) {
-        DRIUpdateSurface (pDRIDrawablePriv, pWin);
+        DRIUpdateSurface(pDRIDrawablePriv, &pWin->drawable);
     }
 
-    if(pDRIPriv->wrap.ClipNotify) {
+    if (pDRIPriv->wrap.ClipNotify) {
         pScreen->ClipNotify = pDRIPriv->wrap.ClipNotify;
 
         (*pScreen->ClipNotify)(pWin, dx, dy);
@@ -655,7 +722,7 @@ DRIQueryVersion(int *majorVersion,
 }
 
 void
-DRISurfaceNotify (xp_surface_id id, int kind)
+DRISurfaceNotify(xp_surface_id id, int kind)
 {
     DRIDrawablePrivPtr pDRIDrawablePriv = NULL;
     DRISurfaceNotifyArg arg;
@@ -665,8 +732,8 @@ DRISurfaceNotify (xp_surface_id id, int kind)
 
     if (surface_hash != NULL)
     {
-        pDRIDrawablePriv = x_hash_table_lookup (surface_hash,
-                                                (void *) id, NULL);
+        pDRIDrawablePriv = x_hash_table_lookup(surface_hash,
+                                               (void *) id, NULL);
     }
 
     if (pDRIDrawablePriv == NULL)
@@ -675,16 +742,16 @@ DRISurfaceNotify (xp_surface_id id, int kind)
     if (kind == AppleDRISurfaceNotifyDestroyed)
     {
         pDRIDrawablePriv->sid = 0;
-        x_hash_table_remove (surface_hash, (void *) id);
+        x_hash_table_remove(surface_hash, (void *) id);
     }
 
-    x_hook_run (pDRIDrawablePriv->notifiers, &arg);
+    x_hook_run(pDRIDrawablePriv->notifiers, &arg);
 
     if (kind == AppleDRISurfaceNotifyDestroyed)
     {
         /* Kill off the handle. */
 
-        FreeResourceByType (pDRIDrawablePriv->pDraw->id,
-                            DRIDrawablePrivResType, FALSE);
+        FreeResourceByType(pDRIDrawablePriv->pDraw->id,
+                           DRIDrawablePrivResType, FALSE);
     }
 }

@@ -36,6 +36,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 /* Prototypes for AppleDRI functions */
 
 #ifndef _DRI_H_
+#define _DRI_H_
 
 #include "Xdefs.h"
 #include "scrnintstr.h"
@@ -124,7 +125,5 @@ extern void DRISurfaceNotify (xp_surface_id id, int kind);
 extern void DRIQueryVersion(int *majorVersion,
                             int *minorVersion,
                             int *patchVersion);
-
-#define _DRI_H_
 
 #endif
