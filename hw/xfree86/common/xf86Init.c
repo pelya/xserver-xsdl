@@ -1765,7 +1765,11 @@ xf86PrintBanner()
   {
     struct utsname name;
 
-    if (uname(&name) == 0) {
+    /* Linux & BSD state that 0 is success, SysV (including Solaris, HP-UX,
+       and Irix) and Single Unix Spec 3 just say that non-negative is success.
+       All agree that failure is represented by a negative number.
+     */
+    if (uname(&name) >= 0) {
       ErrorF("Current Operating System: %s %s %s %s %s\n",
 	name.sysname, name.nodename, name.release, name.version, name.machine);
     }
