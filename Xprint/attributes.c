@@ -1149,11 +1149,17 @@ SendFileToCommand(
     
     if((childPid = fork()) == 0)
     {
-        close(pipefd[1]);      
+        close(pipefd[1]);
+
+        /* Replace current stdin with input from the pipe */
 	close(0);
 	dup(pipefd[0]);
 	close(pipefd[0]);
 
+        /* Close current stdout and redirect it to stderr */
+        close(1);
+        dup(2);
+        
 	/*
 	 * If a user name is specified, try to set our uid to match that
 	 * user name.  This is to allow e.g. a banner page to show the
