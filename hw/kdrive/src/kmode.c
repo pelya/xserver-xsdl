@@ -23,6 +23,9 @@
  * Author:  Keith Packard, SuSE, Inc.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 #include "kdrive.h"
 
 const KdMonitorTiming  kdMonitorTimings[] = {

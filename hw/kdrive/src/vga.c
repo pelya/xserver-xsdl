@@ -23,6 +23,9 @@
  */
 /* $RCSId: xc/programs/Xserver/hw/kdrive/vga.c,v 1.2 1999/12/30 03:03:07 robin Exp $ */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 #include "vga.h"
 #include <stdio.h>
 

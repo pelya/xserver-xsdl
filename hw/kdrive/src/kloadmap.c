@@ -23,6 +23,9 @@
  */
 /* $RCSId: xc/programs/Xserver/hw/kdrive/kloadmap.c,v 1.1 1999/11/19 13:53:50 hohndel Exp $ */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 #include "kdrive.h"
 #include "kkeymap.h"
 

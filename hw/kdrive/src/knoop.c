@@ -27,6 +27,9 @@
  * GC ops that don't do anything
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 #include "kdrive.h"
 #include <gcstruct.h>
 

@@ -23,6 +23,9 @@
  */
 /* $RCSId: xc/programs/Xserver/hw/kdrive/kkeymap.c,v 1.1 1999/11/19 13:53:49 hohndel Exp $ */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 #include "kdrive.h"
 #include <X11/keysym.h>
 #include "kkeymap.h"
