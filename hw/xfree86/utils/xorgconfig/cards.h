@@ -1,10 +1,10 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/xf86config/cards.h,v 3.3 1996/12/23 07:04:44 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/xf86config/cards.h,v 3.5 1999/07/05 12:12:06 dawes Exp $ */
 
 
 
 
 
-/* $Xorg: cards.h,v 1.3 2000/08/17 19:53:05 cpqbld Exp $ */
+/* $XConsortium: cards.h /main/3 1996/02/21 18:12:53 kaleb $ */
 
 #ifndef CARD_DATABASE_FILE
 #define CARD_DATABASE_FILE "Cards"
@@ -16,7 +16,8 @@ typedef struct {
 	char *name;		/* Name of the card. */
 	char *chipset;		/* Chipset (decriptive). */
 	char *server;		/* Server identifier. */
-	char *ramdac;		/* Ramdac identifier. */
+        char *driver;		/* Driver identifier. */
+        char *ramdac;		/* Ramdac identifier. */
 	char *clockchip;	/* Clockchip identifier. */
 	char *dacspeed;		/* DAC speed rating. */
 	int flags;
@@ -31,6 +32,7 @@ extern int lastcard;
 
 extern Card card[MAX_CARDS];
 
-
-int parse_database();
-
+extern int lookupcard ( char *name );
+extern int parse_database ( void );
+extern void sort_database ( void );
+extern void keypress ( void );

@@ -31,6 +31,8 @@ used in advertising or otherwise to promote the sale, use or other dealings
 in this Software without prior written authorization from The Open Group.
 */
 
+/* $XFree86: xc/programs/Xserver/mi/mibstorest.h,v 1.5 2001/12/14 20:00:21 dawes Exp $ */
+
 #include "mibstore.h"
 #include "regionstr.h"
 
@@ -84,8 +86,4 @@ typedef struct {
     ChangeWindowAttributesProcPtr ChangeWindowAttributes;
     CreateGCProcPtr	CreateGC;
     DestroyWindowProcPtr DestroyWindow;
-    /*
-     * pointer to vector of device-specific backing store functions
-     */
-    miBSFuncPtr	    funcs;
 } miBSScreenRec, *miBSScreenPtr;

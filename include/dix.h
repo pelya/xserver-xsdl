@@ -1,3 +1,4 @@
+/* $XFree86: xc/programs/Xserver/include/dix.h,v 3.26 2003/01/12 02:44:27 dawes Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -269,11 +270,11 @@ SOFTWARE.
 	ValidateGC(pDraw, pGC);
 
 
-#define WriteReplyToClient(pClient, size, pReply) \
+#define WriteReplyToClient(pClient, size, pReply) { \
    if ((pClient)->swapped) \
       (*ReplySwapVector[((xReq *)(pClient)->requestBuffer)->reqType]) \
            (pClient, (int)(size), pReply); \
-      else (void) WriteToClient(pClient, (int)(size), (char *)(pReply));
+      else (void) WriteToClient(pClient, (int)(size), (char *)(pReply)); }
 
 #define WriteSwappedDataToClient(pClient, size, pbuf) \
    if ((pClient)->swapped) \
@@ -289,17 +290,12 @@ typedef struct _Client *ClientPtr; /* also in misc.h */
 
 typedef struct _WorkQueue	*WorkQueuePtr;
 
-
 extern ClientPtr requestingClient;
 extern ClientPtr *clients;
 extern ClientPtr serverClient;
 extern int currentMaxClients;
 
-#ifndef __alpha
-typedef long HWEventQueueType;
-#else
 typedef int HWEventQueueType;
-#endif
 typedef HWEventQueueType* HWEventQueuePtr;
 
 extern HWEventQueuePtr checkForInput[2];
@@ -404,6 +400,36 @@ extern int GetGeometry(
 #endif
 );
 
+extern int SendConnSetup(
+#if NeedFunctionPrototypes
+    ClientPtr /*client*/,
+    char* /*reason*/
+#endif
+);
+
+extern int
+DoGetImage(
+#if NeedFunctionPrototypes
+    ClientPtr	/*client*/,
+    int /*format*/,
+    Drawable /*drawable*/,
+    int /*x*/, 
+    int /*y*/, 
+    int /*width*/, 
+    int /*height*/,
+    Mask /*planemask*/,
+    xGetImageReply **/*im_return*/
+#endif
+);
+
+#ifdef LBX
+extern void IncrementClientCount(
+#if NeedFunctionPrototypes
+    void
+#endif
+);
+#endif /* LBX */
+
 /* dixutils.c */
 
 extern void CopyISOLatin1Lowered(
@@ -478,9 +504,8 @@ extern ClientPtr LookupClient(
 );
 
 extern void NoopDDA(
-#if NeedVarargsPrototypes
-    void *,
-    ...
+#if NeedFunctionPrototypes
+    void
 #endif
 );
 
@@ -509,16 +534,6 @@ extern void WakeupHandler(
 #if NeedFunctionPrototypes
     int /*result*/,
     pointer /*pReadmask*/
-#endif
-);
-
-typedef struct timeval ** OSTimePtr;
-
-typedef void (* BlockHandlerProcPtr)(
-#if NeedNestedPrototypes
-    pointer /* blockData */,
-    OSTimePtr /* pTimeout */,
-    pointer /* pReadmask */
 #endif
 );
 
@@ -558,9 +573,27 @@ extern void ProcessWorkQueue(
 #endif
 );
 
+extern void ProcessWorkQueueZombies(
+#if NeedFunctionPrototypes
+    void
+#endif
+);
+
 extern Bool QueueWorkProc(
 #if NeedFunctionPrototypes
-    Bool (* /*function*/)(),
+    Bool (* /*function*/)(
+#if NeedNestedPrototypes
+        ClientPtr /*clientUnused*/,
+        pointer /*closure*/
+#endif
+        ),
+    ClientPtr /*client*/,
+    pointer /*closure*/
+#endif
+);
+
+typedef Bool (* ClientSleepProcPtr)(
+#if NeedFunctionPrototypes
     ClientPtr /*client*/,
     pointer /*closure*/
 #endif
@@ -569,16 +602,19 @@ extern Bool QueueWorkProc(
 extern Bool ClientSleep(
 #if NeedFunctionPrototypes
     ClientPtr /*client*/,
-    Bool (* /*function*/)(),
+    ClientSleepProcPtr /* function */,
     pointer /*closure*/
 #endif
 );
 
+#ifndef ___CLIENTSIGNAL_DEFINED___
+#define ___CLIENTSIGNAL_DEFINED___
 extern Bool ClientSignal(
 #if NeedFunctionPrototypes
     ClientPtr /*client*/
 #endif
 );
+#endif /* ___CLIENTSIGNAL_DEFINED___ */
 
 extern void ClientWakeup(
 #if NeedFunctionPrototypes
@@ -641,11 +677,6 @@ extern void SetMaskForEvent(
 #endif
 );
 
-extern Bool PointerConfinedToScreen(
-#if NeedFunctionPrototypes
-    void
-#endif
-);
 
 extern Bool IsParent(
 #if NeedFunctionPrototypes
@@ -666,12 +697,6 @@ extern WindowPtr GetSpriteWindow(
 #endif
 );
 
-extern void GetSpritePosition(
-#if NeedFunctionPrototypes
-    int * /* px */,
-    int * /* py */
-#endif
-);
 
 extern void NoticeEventTime(
 #if NeedFunctionPrototypes
@@ -807,6 +832,15 @@ extern void DeliverGrabbedEvent(
 #endif
 );
 
+#ifdef XKB
+extern void FixKeyState(
+#if NeedFunctionPrototypes
+    xEvent * /* xE */,
+    DeviceIntPtr /* keybd */
+#endif
+);
+#endif /* XKB */
+
 extern void RecalculateDeliverableEvents(
 #if NeedFunctionPrototypes
     WindowPtr /* pWin */
@@ -834,7 +868,7 @@ extern int SetInputFocus(
     ClientPtr /* client */,
     DeviceIntPtr /* dev */,
     Window /* focusID */,
-    int /* revertTo */,
+    CARD8 /* revertTo */,
     Time /* ctime */,
     Bool /* followOK */
 #endif
@@ -860,6 +894,8 @@ extern void InitEvents(
 #endif
 );
 
+extern void CloseDownEvents(void);
+
 extern void DeleteWindowFromAnyEvents(
 #if NeedFunctionPrototypes
     WindowPtr	/* pWin */,
@@ -867,11 +903,6 @@ extern void DeleteWindowFromAnyEvents(
 #endif
 );
 
-extern void CheckCursorConfinement(
-#if NeedFunctionPrototypes
-    WindowPtr /* pWin */
-#endif
-);
 
 extern Mask EventMaskForClient(
 #if NeedFunctionPrototypes
@@ -890,6 +921,7 @@ extern int DeliverEvents(
     WindowPtr /*otherParent*/
 #endif
 );
+
 
 extern void WriteEventsToClient(
 #if NeedFunctionPrototypes
@@ -910,38 +942,17 @@ extern int TryClientEvents(
 #endif
 );
 
-extern int EventSelectForWindow(
-#if NeedFunctionPrototypes
-    WindowPtr /*pWin*/,
-    ClientPtr /*client*/,
-    Mask /*mask*/
-#endif
-);
-
-extern int EventSuppressForWindow(
-#if NeedFunctionPrototypes
-    WindowPtr /*pWin*/,
-    ClientPtr /*client*/,
-    Mask /*mask*/,
-    Bool * /*checkOptional*/
-#endif
-);
-
-extern int MaybeDeliverEventsToClient(
-#if NeedFunctionPrototypes
-    WindowPtr /*pWin*/,
-    xEventPtr /*pEvents*/,
-    int /*count*/,
-    Mask /*filter*/,
-    ClientPtr /*dontClient*/
-#endif
-);
-
 extern void WindowsRestructured(
 #if NeedFunctionPrototypes
     void
 #endif
 );
+
+
+#ifdef RANDR
+void
+ScreenRestructured (ScreenPtr pScreen);
+#endif
 
 extern void ResetClientPrivates(
 #if NeedFunctionPrototypes

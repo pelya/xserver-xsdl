@@ -24,6 +24,7 @@ used in advertising or otherwise to promote the sale, use or other dealings
 in this Software without prior written authorization from The Open Group.
 
 */
+/* $XFree86: xc/programs/Xserver/Xext/security.c,v 1.11 2002/05/31 18:45:53 dawes Exp $ */
 
 #include "dixstruct.h"
 #include "extnsionst.h"
@@ -50,7 +51,7 @@ extern unsigned char LbxReqCode;
 #ifndef DEFAULTPOLICYFILE
 # define DEFAULTPOLICYFILE NULL
 #endif
-#ifdef WIN32
+#if defined(WIN32) || defined(__CYGWIN__)
 #include <X11/Xos.h>
 #undef index
 #endif
@@ -81,9 +82,6 @@ int (*SwappedUntrustedProcVector[256])(
     ClientPtr /*client*/
 #endif
 );
-
-extern int ProcBadRequest();
-
 
 /* SecurityAudit
  *
@@ -150,7 +148,7 @@ SecurityDeleteAuthorization(value, id)
 
     /* send revoke events */
 
-    while (pEventClient = pAuth->eventClients)
+    while ((pEventClient = pAuth->eventClients))
     {
 	/* send revocation event event */
 	ClientPtr client = rClient(pEventClient);
@@ -318,7 +316,7 @@ static int
 ProcSecurityQueryVersion(client)
     ClientPtr client;
 {
-    REQUEST(xSecurityQueryVersionReq);
+    /* REQUEST(xSecurityQueryVersionReq); */
     xSecurityQueryVersionReply 	rep;
 
     /* paranoia: this "can't happen" because this extension is hidden
@@ -395,7 +393,6 @@ ProcSecurityGenerateAuthorization(client)
     Bool removeAuth = FALSE;	/* if bailout, call RemoveAuthorization? */
     SecurityAuthorizationPtr pAuth = NULL;  /* auth we are creating */
     int err;			/* error to return from this function */
-    int status;			/* return value from os functions */
     XID authId;			/* authorization ID assigned by os layer */
     xSecurityGenerateAuthorizationReply rep; /* reply struct */
     unsigned int trustLevel;    /* trust level of new auth */
@@ -788,7 +785,7 @@ SecurityCheckDeviceAccess(client, dev, fromRequest)
     Bool untrusted_got_event;
     Bool found_event_window;
     Mask eventmask;
-    int reqtype;
+    int reqtype = 0;
 
     /* trusted clients always allowed to do anything */
     if (client->trustLevel == XSecurityClientTrusted)
@@ -1361,8 +1358,11 @@ SecurityFreePropertyAccessList()
     }
 } /* SecurityFreePropertyAccessList */
 
-
+#ifndef __UNIXOS2__
 #define SecurityIsWhitespace(c) ( (c == ' ') || (c == '\t') || (c == '\n') )
+#else
+#define SecurityIsWhitespace(c) ( (c == ' ') || (c == '\t') || (c == '\n') || (c == '\r') )
+#endif
 
 static char *
 SecuritySkipWhitespace(p)
@@ -1441,7 +1441,6 @@ SecurityParsePropertyAccessRule(p)
     char action = SecurityDefaultAction;
     char readAction, writeAction, destroyAction;
     PropertyAccessPtr pacl, prev, cur;
-    ATOM atom;
     char *mustHaveProperty = NULL;
     char *mustHaveValue = NULL;
     Bool invalid;
@@ -1641,7 +1640,11 @@ SecurityLoadPropertyAccessList()
     if (!SecurityPolicyFile)
 	return;
 
+#ifndef __UNIXOS2__
     f = fopen(SecurityPolicyFile, "r");
+#else
+    f = fopen((char*)__XOS2RedirRoot(SecurityPolicyFile), "r");
+#endif    
     if (!f)
     {
 	ErrorF("error opening security policy file %s\n",
@@ -1969,7 +1972,7 @@ SecurityExtensionInit()
     SecurityEventBase = extEntry->eventBase;
 
     EventSwapVector[SecurityEventBase + XSecurityAuthorizationRevoked] =
-	SwapSecurityAuthorizationRevokedEvent;
+	(EventSwapPtr)SwapSecurityAuthorizationRevokedEvent;
 
     /* initialize untrusted proc vectors */
 

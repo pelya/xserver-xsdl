@@ -1,3 +1,4 @@
+/* $XFree86: xc/programs/Xserver/mfb/maskbits.h,v 3.9 2003/02/18 21:30:00 tsi Exp $ */
 /* Combined Purdue/PurduePlus patches, level 2.1, 1/24/89 */
 /***********************************************************
 Copyright 1987 by Digital Equipment Corporation, Maynard, Massachusetts.
@@ -22,6 +23,7 @@ SOFTWARE.
 
 ******************************************************************/
 /* $Xorg: maskbits.h,v 1.3 2000/08/17 19:53:34 cpqbld Exp $ */
+
 #include "X.h"
 #include "Xmd.h"
 #include "servermd.h"
@@ -196,18 +198,21 @@ getshiftedleftbits(psrc, offset, w, dst)
  *
  * The MFB_ versions are here so that cfb can include maskbits.h to get
  * the bitmap constants without conflicting with its own P* constants.
+ * 
+ * Keith Packard (keithp@suse.com):
+ * Note mfb64 is no longer supported; it requires DIX support
+ * for realigning images which costs too much
  */	    
 
 /* warning: PixelType definition duplicated in mfb.h */
 #ifndef PixelType
-#define PixelType unsigned long
+#define PixelType CARD32
 #endif /* PixelType */
+#ifndef MfbBits
+#define MfbBits CARD32
+#endif
 
-#ifdef LONG64
-#define MFB_PGSZB 8
-#else
 #define MFB_PGSZB 4
-#endif /* LONG64 */
 #define MFB_PPW		(MFB_PGSZB<<3) /* assuming 8 bits per byte */
 #define MFB_PGSZ	MFB_PPW
 #define MFB_PLST	(MFB_PPW-1)
@@ -217,10 +222,6 @@ getshiftedleftbits(psrc, offset, w, dst)
 
 #if MFB_PPW == 32
 #define MFB_PWSH 5
-#else
-#if MFB_PPW == 64
-#define MFB_PWSH 6
-#endif /* MFB_PPW == 64 */
 #endif /* MFB_PPW == 32 */
 
 extern PixelType starttab[];
@@ -241,29 +242,25 @@ extern PixelType mask[];
 #define BitLeft(b,s)	SCRLEFT(b,s)
 #define BitRight(b,s)	SCRRIGHT(b,s)
 
+#ifdef XFree86Server
+#define LONG2CHARSSAMEORDER(x) ((MfbBits)(x))
+#define LONG2CHARSDIFFORDER( x ) ( ( ( ( x ) & (MfbBits)0x000000FF ) << 0x18 ) \
+                        | ( ( ( x ) & (MfbBits)0x0000FF00 ) << 0x08 ) \
+                        | ( ( ( x ) & (MfbBits)0x00FF0000 ) >> 0x08 ) \
+                        | ( ( ( x ) & (MfbBits)0xFF000000 ) >> 0x18 ) )
+#endif /* XFree86Server */
+
 #if (BITMAP_BIT_ORDER == IMAGE_BYTE_ORDER)
-#define LONG2CHARS(x) (x)
+#define LONG2CHARS(x) ((MfbBits)(x))
 #else
 /*
  *  the unsigned case below is for compilers like
  *  the Danbury C and i386cc
  */
-#if PPW == 32
-#define LONG2CHARS( x ) ( ( ( ( x ) & 0x000000FF ) << 0x18 ) \
-                      | ( ( ( x ) & 0x0000FF00 ) << 0x08 ) \
-                      | ( ( ( x ) & 0x00FF0000 ) >> 0x08 ) \
-                      | ( ( ( x ) & (unsigned long)0xFF000000 ) >> 0x18 ) )
-#else /* PPW == 64 */
-#define LONG2CHARS( x ) \
-      ( ( ( ( x ) & 0x000000FF) << 0x18 ) \
-      | ( ( ( x ) & 0x0000FF00) << 0x08 ) \
-      | ( ( ( x ) & 0x00FF0000) >> 0x08 ) \
-      | ( ( ( x ) & (unsigned long)0xFF000000) >> 0x18 ) \
-      | ( ( ( x ) & 0x000000FF00000000) << 0x18 ) \
-      | ( ( ( x ) & 0x0000FF0000000000) << 0x08 ) \
-      | ( ( ( x ) & 0x00FF000000000000) >> 0x08 ) \
-      | ( ( ( x ) & (unsigned long)0xFF00000000000000) >> 0x18 ) )
-#endif /* PPW */
+#define LONG2CHARS( x ) ( ( ( ( x ) & (MfbBits)0x000000FF ) << 0x18 ) \
+                        | ( ( ( x ) & (MfbBits)0x0000FF00 ) << 0x08 ) \
+                        | ( ( ( x ) & (MfbBits)0x00FF0000 ) >> 0x08 ) \
+                        | ( ( ( x ) & (MfbBits)0xFF000000 ) >> 0x18 ) )
 #endif /* BITMAP_BIT_ORDER */
 
 #ifdef STRICT_ANSI_SHIFT
@@ -288,7 +285,6 @@ extern PixelType mask[];
  ((alu) == RROP_INVERT) ? ((dst) ^ (src)) : \
   (dst))
 
-#if PPW == 32
 /* A generalized form of a x4 Duff's Device */
 #define Duff(counter, block) { \
   while (counter >= 4) {\
@@ -306,34 +302,6 @@ extern PixelType mask[];
      counter = 0; \
    } \
 }
-#else /* PPW == 64 */
-/* A generalized form of a x8 Duff's Device */
-#define Duff(counter, block) { \
-  while (counter >= 8) {\
-     { block; } \
-     { block; } \
-     { block; } \
-     { block; } \
-     { block; } \
-     { block; } \
-     { block; } \
-     { block; } \
-     counter -= 8; \
-  } \
-     switch (counter & 7) { \
-     case 7:	{ block; } \
-     case 6:	{ block; } \
-     case 5:	{ block; } \
-     case 4:	{ block; } \
-     case 3:	{ block; } \
-     case 2:	{ block; } \
-     case 1:	{ block; } \
-     case 0: \
-     counter = 0; \
-   } \
-}
-#endif /* PPW */
-
 
 #define maskbits(x, w, startmask, endmask, nlw) \
     startmask = starttab[(x) & PIM]; \
@@ -420,9 +388,10 @@ extern PixelType mask[];
     } \
     else \
     { \
+	register int d = PPW-(x); \
 	*(pdst) = (*(pdst) & endtab[x]) | (SCRRIGHT((src), x)); \
 	(pdst)[1] = ((pdst)[1] & starttab[n]) | \
-		(SCRLEFT(src, PPW-(x)) & endtab[n]); \
+		(SCRLEFT(src, d) & endtab[n]); \
     } \
 }
 
@@ -554,7 +523,7 @@ extern PixelType mask[];
 #endif
 
 #if GETLEFTBITS_ALIGNMENT == 1
-#define getleftbits(psrc, w, dst)	dst = *((CARD32 *) psrc)
+#define getleftbits(psrc, w, dst)	dst = *((CARD32 *)(pointer) psrc)
 #endif /* GETLEFTBITS_ALIGNMENT == 1 */
 
 #if GETLEFTBITS_ALIGNMENT == 2
@@ -588,7 +557,7 @@ extern PixelType mask[];
  * getbits and putbits, but they work if used together.
  *
  * On a MSBFirst machine, a cpu bitfield extract instruction (like bfextu)
- * could normally assign its result to a long word register in the screen
+ * could normally assign its result to a 32-bit word register in the screen
  * right position.  This saves canceling register shifts by not fighting the
  * natural cpu byte order.
  *

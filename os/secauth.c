@@ -1,6 +1,6 @@
-/* $Xorg: secauth.c,v 1.5 2001/02/15 02:06:01 coskrey Exp $ */
+/* $Xorg: secauth.c,v 1.4 2001/02/09 02:05:23 xorgcvs Exp $ */
 /*
-Copyright 1996, 1998, 2001  The Open Group
+Copyright 1996, 1998  The Open Group
 
 Permission to use, copy, modify, distribute, and sell this software and its
 documentation for any purpose is hereby granted without fee, provided that
@@ -24,11 +24,13 @@ not be used in advertising or otherwise to promote the sale, use or
 other dealings in this Software without prior written authorization
 from The Open Group.
 */
+/* $XFree86: xc/programs/Xserver/os/secauth.c,v 1.11 2001/12/14 20:00:35 dawes Exp $ */
 
 #include "X.h"
 #include "os.h"
 #include "osdep.h"
 #include "dixstruct.h"
+#include "swaprep.h"
 
 #ifdef XCSECURITY
 #define _SECURITY_SERVER
@@ -39,11 +41,11 @@ static char InvalidPolicyReason[] = "invalid policy specification";
 static char PolicyViolationReason[] = "policy violation";
 
 static Bool
-AuthCheckSitePolicy(data_lengthP, dataP, client, reason)
-    unsigned short *data_lengthP;
-    char	**dataP;
-    ClientPtr	client;
-    char	**reason;
+AuthCheckSitePolicy(
+    unsigned short *data_lengthP,
+    char	**dataP,
+    ClientPtr	client,
+    char	**reason)
 {
     CARD8	*policy = *(CARD8 **)dataP;
     int		length;
@@ -65,7 +67,7 @@ AuthCheckSitePolicy(data_lengthP, dataP, client, reason)
 
     sitePolicies = SecurityGetSitePolicyStrings(&nSitePolicies);
 
-    while (nPolicies > 0) {
+    while (nPolicies) {
 	int strLen, sitePolicy;
 
 	if (length == 0) {
@@ -110,15 +112,13 @@ AuthCheckSitePolicy(data_lengthP, dataP, client, reason)
 }
 
 XID
-AuthSecurityCheck (data_length, data, client, reason)
-    unsigned short	data_length;
-    char	*data;
-    ClientPtr client;
-    char	**reason;
+AuthSecurityCheck (
+    unsigned short	data_length,
+    char		*data,
+    ClientPtr		client,
+    char		**reason)
 {
 #ifdef XCSECURITY
-    OsCommPtr oc = (OsCommPtr)client->osPrivate;
-    register ConnectionInputPtr oci = oc->input;
     xConnSetupPrefix csp;
     xReq freq;
 

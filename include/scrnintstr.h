@@ -45,18 +45,17 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ******************************************************************/
+/* $XFree86: xc/programs/Xserver/include/scrnintstr.h,v 1.10 2001/12/14 19:59:56 dawes Exp $ */
+
 #ifndef SCREENINTSTRUCT_H
 #define SCREENINTSTRUCT_H
 
 #include "screenint.h"
 #include "miscstruct.h"
-#include "region.h"
-#include "pixmap.h"
-#include "gc.h"
+#include "bstore.h"
 #include "colormap.h"
 #include "cursor.h"
 #include "validate.h"
-#include "window.h"
 #include "X11/Xproto.h"
 #include "dix.h"
 
@@ -194,6 +193,13 @@ typedef    Bool (* UnrealizeWindowProcPtr)(
 #endif
 );
 
+typedef    void (* RestackWindowProcPtr)(
+#if NeedNestedPrototypes
+	WindowPtr /*pWindow*/,
+	WindowPtr /*pOldNextSib*/
+#endif
+);
+
 typedef    int  (* ValidateTreeProcPtr)(
 #if NeedNestedPrototypes
 	WindowPtr /*pParent*/,
@@ -218,7 +224,7 @@ typedef    void (* WindowExposuresProcPtr)(
 #endif
 );
 
-typedef    void (* PaintWindowBackgroundProcPtr)(
+typedef    void (* PaintWindowProcPtr)(
 #if NeedNestedPrototypes
 	WindowPtr /*pWindow*/,
 	RegionPtr /*pRegion*/,
@@ -226,13 +232,8 @@ typedef    void (* PaintWindowBackgroundProcPtr)(
 #endif
 );
 
-typedef    void (* PaintWindowBorderProcPtr)(
-#if NeedNestedPrototypes
-	WindowPtr /*pWindow*/,
-	RegionPtr /*pRegion*/,
-	int /*what*/
-#endif
-);
+typedef PaintWindowProcPtr PaintWindowBackgroundProcPtr;
+typedef PaintWindowProcPtr PaintWindowBorderProcPtr;
 
 typedef    void (* CopyWindowProcPtr)(
 #if NeedNestedPrototypes
@@ -458,6 +459,8 @@ typedef    void (* ResolveColorProcPtr)(
 #endif
 );
 
+#ifdef NEED_SCREEN_REGIONS
+
 typedef    RegionPtr (* RegionCreateProcPtr)(
 #if NeedNestedPrototypes
 	BoxPtr /*rect*/,
@@ -561,6 +564,18 @@ typedef    Bool (* RegionNotEmptyProcPtr)(
 #endif
 );
 
+typedef    Bool (* RegionBrokenProcPtr)(
+#if NeedNestedPrototypes
+	RegionPtr /*pReg*/
+#endif
+);
+
+typedef    Bool (* RegionBreakProcPtr)(
+#if NeedNestedPrototypes
+	RegionPtr /*pReg*/
+#endif
+);
+
 typedef    void (* RegionEmptyProcPtr)(
 #if NeedNestedPrototypes
 	RegionPtr /*pReg*/
@@ -587,11 +602,15 @@ typedef    Bool (* RegionValidateProcPtr)(
 #endif
 );
 
+#endif /* NEED_SCREEN_REGIONS */
+
 typedef    RegionPtr (* BitmapToRegionProcPtr)(
 #if NeedNestedPrototypes
 	PixmapPtr /*pPix*/
 #endif
 );
+
+#ifdef NEED_SCREEN_REGIONS
 
 typedef    RegionPtr (* RectsToRegionProcPtr)(
 #if NeedNestedPrototypes
@@ -600,6 +619,8 @@ typedef    RegionPtr (* RectsToRegionProcPtr)(
 	int /*ctype*/
 #endif
 );
+
+#endif /* NEED_SCREEN_REGIONS */
 
 typedef    void (* SendGraphicsExposeProcPtr)(
 #if NeedNestedPrototypes
@@ -615,7 +636,7 @@ typedef    void (* ScreenBlockHandlerProcPtr)(
 #if NeedNestedPrototypes
 	int /*screenNum*/,
 	pointer /*blockData*/,
-	struct timeval ** /*pTimeout*/,
+	pointer /*pTimeout*/,
 	pointer /*pReadmask*/
 #endif
 );
@@ -644,6 +665,31 @@ typedef    Bool (* ModifyPixmapHeaderProcPtr)(
 	int /*bitsPerPixel*/,
 	int /*devKind*/,
 	pointer /*pPixData*/
+#endif
+);
+
+typedef    PixmapPtr (* GetWindowPixmapProcPtr)(
+#if NeedNestedPrototypes
+	WindowPtr /*pWin*/
+#endif
+);
+
+typedef    void (* SetWindowPixmapProcPtr)(
+#if NeedNestedPrototypes
+	WindowPtr /*pWin*/,
+	PixmapPtr /*pPix*/
+#endif
+);
+
+typedef    PixmapPtr (* GetScreenPixmapProcPtr)(
+#if NeedNestedPrototypes
+	ScreenPtr /*pScreen*/
+#endif
+);
+
+typedef    void (* SetScreenPixmapProcPtr)(
+#if NeedNestedPrototypes
+	PixmapPtr /*pPix*/
 #endif
 );
 
@@ -797,6 +843,7 @@ typedef struct _Screen {
     CopyWindowProcPtr		CopyWindow;
     ClearToBackgroundProcPtr	ClearToBackground;
     ClipNotifyProcPtr		ClipNotify;
+    RestackWindowProcPtr	RestackWindow;
 
     /* Pixmap procedures */
 
@@ -811,6 +858,11 @@ typedef struct _Screen {
     TranslateBackingStoreProcPtr TranslateBackingStore;
     ClearBackingStoreProcPtr	ClearBackingStore;
     DrawGuaranteeProcPtr	DrawGuarantee;
+    /*
+     * A read/write copy of the lower level backing store vector is needed now
+     * that the functions can be wrapped.
+     */
+    BSFuncRec			BackingStoreFuncs;
     
     /* Font procedures */
 
@@ -843,6 +895,7 @@ typedef struct _Screen {
 
     /* Region procedures */
 
+#ifdef NEED_SCREEN_REGIONS
     RegionCreateProcPtr		RegionCreate;
     RegionInitProcPtr		RegionInit;
     RegionCopyProcPtr		RegionCopy;
@@ -857,12 +910,17 @@ typedef struct _Screen {
     RectInProcPtr		RectIn;
     PointInRegionProcPtr	PointInRegion;
     RegionNotEmptyProcPtr	RegionNotEmpty;
+    RegionBrokenProcPtr		RegionBroken;
+    RegionBreakProcPtr		RegionBreak;
     RegionEmptyProcPtr		RegionEmpty;
     RegionExtentsProcPtr	RegionExtents;
     RegionAppendProcPtr		RegionAppend;
     RegionValidateProcPtr	RegionValidate;
+#endif /* NEED_SCREEN_REGIONS */
     BitmapToRegionProcPtr	BitmapToRegion;
+#ifdef NEED_SCREEN_REGIONS
     RectsToRegionProcPtr	RectsToRegion;
+#endif /* NEED_SCREEN_REGIONS */
     SendGraphicsExposeProcPtr	SendGraphicsExpose;
 
     /* os layer procedures */
@@ -879,12 +937,17 @@ typedef struct _Screen {
     CreateScreenResourcesProcPtr CreateScreenResources;
     ModifyPixmapHeaderProcPtr	ModifyPixmapHeader;
 
+    GetWindowPixmapProcPtr	GetWindowPixmap;
+    SetWindowPixmapProcPtr	SetWindowPixmap;
+    GetScreenPixmapProcPtr	GetScreenPixmap;
+    SetScreenPixmapProcPtr	SetScreenPixmap;
+
     PixmapPtr pScratchPixmap;		/* scratch pixmap "pool" */
 
 #ifdef PIXPRIV
     int			PixmapPrivateLen;
-    unsigned		*PixmapPrivateSizes;
-    unsigned		totalPixmapSize;
+    unsigned int		*PixmapPrivateSizes;
+    unsigned int		totalPixmapSize;
 #endif
 
     MarkWindowProcPtr		MarkWindow;

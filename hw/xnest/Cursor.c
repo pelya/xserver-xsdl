@@ -12,6 +12,8 @@ the suitability of this software for any purpose.  It is provided "as
 is" without express or implied warranty.
 
 */
+/* $XFree86: xc/programs/Xserver/hw/xnest/Cursor.c,v 1.3 2002/11/23 19:27:50 tsi Exp $ */
+
 #include "X.h"
 #include "Xproto.h"
 #include "screenint.h"
@@ -26,7 +28,7 @@ is" without express or implied warranty.
 
 #include "Display.h"
 #include "Screen.h"
-#include "Cursor.h"
+#include "XNCursor.h"
 #include "Visual.h"
 #include "Keyboard.h"
 #include "Args.h"

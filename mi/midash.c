@@ -1,3 +1,4 @@
+/* $XFree86: xc/programs/Xserver/mi/midash.c,v 1.4 2001/12/14 20:00:21 dawes Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -49,7 +50,7 @@ SOFTWARE.
 #include "mistruct.h"
 #include "mifpoly.h"
 
-static miDashPtr CheckDashStorage();
+static miDashPtr CheckDashStorage(miDashPtr *ppseg, int nseg, int *pnsegMax);
 
 /* return a list of DashRec.  there will be an extra
 entry at the end holding the last point of the polyline.
@@ -250,10 +251,10 @@ necessary.  this interface seems unnecessarily cumbersome.
 
 static
 miDashPtr
-CheckDashStorage(ppseg, nseg, pnsegMax)
-miDashPtr *ppseg;		/* base pointer */
-int nseg;			/* number of segment we want to write to */
-int *pnsegMax;			/* size (in segments) of list so far */
+CheckDashStorage(
+    miDashPtr *ppseg,		/* base pointer */
+    int nseg,			/* number of segment we want to write to */
+    int *pnsegMax)		/* size (in segments) of list so far */
 {
     if (nseg > *pnsegMax)
     {

@@ -1,175 +1,265 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/sco/sco_mouse.c,v 3.8 1996/12/23 06:50:50 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/sco/sco_mouse.c,v 3.13 2002/11/20 23:07:50 dawes Exp $ */
+/*
+ * Copyright 2001 by J. Kean Johnston <jkj@sco.com>
+ *
+ * Permission to use, copy, modify, distribute, and sell this software and its
+ * documentation for any purpose is hereby granted without fee, provided that
+ * the above copyright notice appear in all copies and that both that
+ * copyright notice and this permission notice appear in supporting
+ * documentation, and that the name J. Kean Johnston not be used in
+ * advertising or publicity pertaining to distribution of the software without
+ * specific, written prior permission.  J. Kean Johnston makes no
+ * representations about the suitability of this software for any purpose.
+ * It is provided "as is" without express or implied warranty.
+ *
+ * J. KEAN JOHNSTON DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
+ * INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO
+ * EVENT SHALL J. KEAN JOHNSTON BE LIABLE FOR ANY SPECIAL, INDIRECT OR
+ * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF
+ * USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+ * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+ * PERFORMANCE OF THIS SOFTWARE.
+ */
 
+/* $XConsortium$ */
 
-
-
-
-/* $Xorg: sco_mouse.c,v 1.3 2000/08/17 19:51:29 cpqbld Exp $ */
-
-/******************************************************************************/
-
-#define NEED_EVENTS
 #include "X.h"
-#include "Xproto.h"
-#include "inputstr.h"
-#include "scrnintstr.h"
 #include "compiler.h"
 
 #include "xf86.h"
-#include "xf86Procs.h"
+#include "xf86Priv.h"
 #include "xf86_OSlib.h"
+#include "xf86Xinput.h"
+#include "xf86OSmouse.h"
+#include "mipointer.h"
+#include <sys/event.h>
+#include <mouse.h>
 
-/******************************************************************************/
-#ifdef USE_OSMOUSE
-/******************************************************************************/
-
-#include	<sys/event.h>
-#include	<mouse.h>
-#include	"xf86_Config.h"
-
-static dmask_t		real_mask = (dmask_t) (D_REL | D_BUTTON);
-static int		config_buttons = 0;
-
-extern int miPointerGetMotionEvents(DeviceIntPtr pPtr, xTimecoord *coords,
-				    unsigned long start, unsigned long stop,
-				    ScreenPtr pScreen);
-
-/******************************************************************************/
-/*
- *	Handle any XF86Config options for "OsMouse", How you treat errors
- *	is up to you, they may or may not be Fatal
- */
-
-void
-xf86OsMouseOption(lt, lp)
-	int		lt;	/* type returned by gettoken */
-	pointer	lp;	/* The lexical return symbol */
+static int
+SupportedInterfaces (void)
 {
-	if (lt != NUMBER) {
-		ErrorF("%s: Invalid Argument to OsMouse, %s\n",
-		       "xf86OsMouseOption", "Number of buttons expected");
-		return;
-	}
-	config_buttons = ((LexPtr)lp)->num;
+  /* FIXME: Is this correct? Should we just return MSE_MISC? */
+  return MSE_SERIAL | MSE_BUS | MSE_PS2 | MSE_XPS2 | MSE_MISC | MSE_AUTO;
 }
 
-/******************************************************************************/
-/*
- * xf86OsMouseProc --
- *      Handle the initialization, etc. of a mouse
- */
+static const char *internalNames[] = {
+  "OSMouse",
+  NULL
+};
 
-int
-xf86OsMouseProc(pPointer, what)
-     DeviceIntPtr	 pPointer;
-     int		 what;
+static const char **
+BuiltinNames (void)
 {
-  unchar		*map;
-  int			 i, err, buttons;
-  struct devinfo	*dip;
-  dmask_t		 dmask;
+  return internalNames;
+}
+
+static Bool
+CheckProtocol (const char *protocol)
+{
+  int i;
+
+  for (i = 0; internalNames[i]; i++) {
+    if (xf86NameCmp (protocol, internalNames[i]) == 0)
+      return TRUE;
+  }
+
+  return FALSE;
+}
+
+static const char *
+DefaultProtocol (void)
+{
+  return "OSMouse";
+}
+
+static const char *
+evtErrStr (int evterr)
+{
+  switch (evterr) {
+  case -1: return "error in config files";
+  case -2: return "no mouse devices to attach";
+  case -3: return "unable to open device";
+  case -4: return "unable to open event queue";
+  case -999: return "unable to initialize event driver";
+  default: return "unknown event driver error";
+  }
+}
+
+static int
+OsMouseProc (DeviceIntPtr pPointer, int what)
+{
+  InputInfoPtr pInfo;
+  MouseDevPtr pMse;
+  unsigned char map[9];
+  dmask_t dmask;
+  MessageType from = X_CONFIG;
+  int evi;
+
+  pInfo = pPointer->public.devicePrivate;
+  pMse = pInfo->private;
+  pMse->device = pPointer;
 
   switch (what) {
-    case DEVICE_INIT: 
-      
-      pPointer->public.on = FALSE;
+  case DEVICE_INIT: 
+    pPointer->public.on = FALSE;
 
-      if (ev_init() < 0)
-	ErrorF("ev_init: Failed to initialize event driver\n");
-
-      dmask = real_mask;
-      xf86Info.mouseDev->mseFd = ev_open(&dmask);
-      switch (xf86Info.mouseDev->mseFd) {
-	case -1: FatalError("ev_open: Error in Configuration files\n");
-	case -2: FatalError("ev_open: No mouse devices to attach\n");
-	case -3: FatalError("ev_open: Unable to open a found device\n");
-	case -4: FatalError("ev_open: unable to open an event queue\n");
-	default:
-	  if (xf86Info.mouseDev->mseFd < 0)
-	    FatalError("ev_open: Failed to open device, reason unkown\n");
-	  break;
-      }
-      if (dmask != real_mask)
-	FatalError("Could not attach the mouse device (0x%x)\n", dmask);
-	
-      dip = (struct devinfo *) NULL;
-      if ((dip = ev_getdev(D_REL, dip)) == (struct devinfo *) NULL)
-	FatalError("Could not find info on mouse device\n");
-	
-      buttons = config_buttons > 0 ? config_buttons : ((int) dip->buttons);
-      buttons = buttons > 0 ? buttons : 3; /* just in case */
-	
-      ErrorF("%s OsMouse has %d buttons\n",
-	     buttons == config_buttons ? XCONFIG_GIVEN : XCONFIG_PROBED,
-	     buttons);
-
-      map = (unchar *) xalloc(buttons + 1);
-      if (map == (unchar *) NULL)
-	FatalError("Failed to allocate OsMouse map structure\n");
-
-      for (i = 1; i <= buttons; i++)
-	map[i] = i;
-
-      InitPointerDeviceStruct((DevicePtr)pPointer, 
-			      map, 
-			      buttons,
-			      miPointerGetMotionEvents, 
-			      (PtrCtrlProcPtr)xf86MseCtrl, 
-			      0);
-      xfree(map);
-      ev_suspend(); /* suspend device until its turned on */
-      break;
-      
-    case DEVICE_ON:
-      ev_resume();
-      AddEnabledDevice(xf86Info.mouseDev->mseFd);
-      xf86Info.mouseDev->lastButtons = 0;
-      xf86Info.mouseDev->emulateState = 0;
-      pPointer->public.on = TRUE;
-      break;
-      
-    case DEVICE_CLOSE:
-    case DEVICE_OFF:
-      pPointer->public.on = FALSE;
-      RemoveEnabledDevice(xf86Info.mouseDev->mseFd);
-      if (what == DEVICE_CLOSE) {
-	ev_close();
-	xf86Info.mouseDev->mseFd = -1;
-      } else
-	ev_suspend();
-      break;
+    dmask = D_REL | D_BUTTON;
+    if ((evi = ev_init()) < 0) {
+      FatalError ("OsMouseProc: Event driver initialization failed (%s)\n",
+          evtErrStr(evi));
     }
-  
+    pInfo->fd = ev_open (&dmask);
+    if (pInfo->fd < 0) {
+      FatalError ("OsMouseProc: DEVICE_INIT failed (%s)\n", evtErrStr(pInfo->fd));
+    }
+
+    pMse->buttons = xf86SetIntOption (pInfo->options, "Buttons", 0);
+    if (pMse->buttons == 0) {
+      pMse->buttons = 8;
+      from = X_DEFAULT;
+    }
+    xf86Msg (from, "%s: Buttons: %d\n", pInfo->name, pMse->buttons);
+
+    map[1] = 1;
+    map[2] = 2;
+    map[3] = 3;
+    map[4] = 6;
+    map[5] = 7;
+    map[6] = 8;
+    map[7] = 4;
+    map[8] = 5; /* Compatibile with SCO X server */
+
+    InitPointerDeviceStruct((DevicePtr)pPointer, map, 8,
+        miPointerGetMotionEvents, pMse->Ctrl,
+        miPointerGetMotionBufferSize());
+
+    /* X valuator */
+    xf86InitValuatorAxisStruct(pPointer, 0, 0, -1, 1, 0, 1);
+    xf86InitValuatorDefaults(pPointer, 0);
+
+    /* Y valuator */
+    xf86InitValuatorAxisStruct(pPointer, 1, 0, -1, 1, 0, 1);
+    xf86InitValuatorDefaults(pPointer, 1);
+
+    xf86MotionHistoryAllocate(pInfo);
+
+    ev_flush();
+    ev_suspend();
+    break;
+
+  case DEVICE_ON:
+    pMse->lastButtons = 0;
+    pMse->emulateState = 0;
+    pPointer->public.on = TRUE;
+    ev_resume();
+    AddEnabledDevice (pInfo->fd);
+    break;
+
+  case DEVICE_OFF:
+  case DEVICE_CLOSE:
+    pPointer->public.on = TRUE;
+    RemoveEnabledDevice (pInfo->fd);
+    if (what == DEVICE_CLOSE) {
+      ev_close();
+      pInfo->fd = -1;
+    } else {
+      ev_suspend();
+    }
+    break;
+  }
+
   return Success;
 }
 
-/******************************************************************************/
-/*
- * xf86OsMouseEvents --
- *      Get some events from our queue.  Process all outstanding events now.
- */
-
-void
-xf86OsMouseEvents()
+static void
+OsMouseReadInput (InputInfoPtr pInfo)
 {
-	EVENT *evp;
-	static long time = -1;
+  MouseDevPtr pMse;
+  EVENT *evp;
 
-	while ((evp = ev_read()) != (EVENT *) NULL ) {
-#if DEBUG
-		if (time == -1)
-			time = EV_TIME(*evp);
-		ErrorF("sco_event time(%ld) tag(%d) butts(%d) x(%ld) y(%ld)\n",
-			EV_TIME(*evp) - time, EV_TAG(*evp), EV_BUTTONS(*evp),
-			EV_DX(*evp), EV_DY(*evp));
-#endif
-		xf86PostMseEvent(xf86Info.pMouse,EV_BUTTONS(*evp), EV_DX(*evp), -(EV_DY(*evp)));
-		ev_pop();
-	}
+  pMse = pInfo->private;
 
-	xf86Info.inputPending = TRUE;
+  while ((evp = ev_read()) != (EVENT *)0) {
+    int buttons = EV_BUTTONS(*evp);
+    int dx = EV_DX(*evp), dy = -(EV_DY(*evp)), dz = 0, dw = 0;
+
+    if (EV_TAG(*evp) & T_WHEEL) {
+      dz = (dy & 0x08) ? (dy & 0x0f) - 16 : (dy & 0x0f);
+      dx = dy = 0;
+      pMse->PostEvent (pInfo, buttons, dx, dy, dz, dw);
+      /* Simulate button release */
+      dz = 0;
+      buttons &= ~(WHEEL_FWD | WHEEL_BACK);
+    }
+
+    pMse->PostEvent (pInfo, buttons, dx, dy, dz, dw);
+    ev_pop();
+  }
 }
 
-/******************************************************************************/
-#endif /* USE_OSMOUSE */
-/******************************************************************************/
+static Bool
+OsMousePreInit(InputInfoPtr pInfo, const char *protocol, int flags)
+{
+  MouseDevPtr pMse;
+
+  /* This is called when the protocol is "OSMouse". */
+
+  pMse = pInfo->private;
+  pMse->protocol = protocol;
+  xf86Msg(X_CONFIG, "%s: Protocol: %s\n", pInfo->name, protocol);
+
+  /* Collect the options, and process the common options. */
+  xf86CollectInputOptions(pInfo, NULL, NULL);
+  xf86ProcessCommonOptions(pInfo, pInfo->options);
+
+  /* Check if the device can be opened. */
+  pInfo->fd = ev_init();
+  if (pInfo->fd != -1) {
+    dmask_t dmask = (D_REL | D_BUTTON);
+    pInfo->fd = ev_open(&dmask);
+  } else {
+    pInfo->fd = -999;
+  }
+
+  if (pInfo->fd < 0) {
+    if (xf86GetAllowMouseOpenFail())
+      xf86Msg(X_WARNING, "%s: cannot open event manager (%s)\n",
+          pInfo->name, evtErrStr(pInfo->fd));
+    else {
+      xf86Msg(X_ERROR, "%s: cannot open event manager (%s)\n",
+          pInfo->name, evtErrStr(pInfo->fd));
+      xfree(pMse);
+      return FALSE;
+    }
+  }
+  ev_close();
+  pInfo->fd = -1;
+
+  /* Process common mouse options (like Emulate3Buttons, etc). */
+  pMse->CommonOptions(pInfo);
+
+  /* Setup the local procs. */
+  pInfo->device_control = OsMouseProc;
+  pInfo->read_input = OsMouseReadInput;
+    
+  pInfo->flags |= XI86_CONFIGURED;
+  return TRUE;
+}
+
+OSMouseInfoPtr
+xf86OSMouseInit (int flags)
+{
+  OSMouseInfoPtr p;
+
+  p = xcalloc(sizeof(OSMouseInfoRec), 1);
+  if (!p)
+    return NULL;
+
+  p->SupportedInterfaces        = SupportedInterfaces;
+  p->BuiltinNames               = BuiltinNames;
+  p->DefaultProtocol            = DefaultProtocol;
+  p->CheckProtocol              = CheckProtocol;
+  p->PreInit                    = OsMousePreInit;
+
+  return p;
+}

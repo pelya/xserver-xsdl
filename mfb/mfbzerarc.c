@@ -1,3 +1,4 @@
+/* $XFree86: xc/programs/Xserver/mfb/mfbzerarc.c,v 3.7 2002/09/27 01:57:47 dawes Exp $ */
 /************************************************************
 
 Copyright 1989, 1998  The Open Group
@@ -49,7 +50,7 @@ in this Software without prior written authorization from The Open Group.
  * LONG2CHARS() takes care of the re-ordering as required. (DHD)
  */
 #if (BITMAP_BIT_ORDER == MSBFirst)
-#define LEFTMOST	((PixelType) LONG2CHARS((1 << PLST)))
+#define LEFTMOST	((PixelType) LONG2CHARS(((MfbBits)1 << PLST)))
 #else
 #define LEFTMOST	((PixelType) LONG2CHARS(1))
 #endif
@@ -217,9 +218,9 @@ mfbZeroPolyArcSS(pDraw, pGC, narcs, parcs)
     int x2, y2;
     RegionPtr cclip;
 
-    if (!pGC->planemask & 1)
+    if (!(pGC->planemask & 1))
 	return;
-    cclip = ((mfbPrivGC *)(pGC->devPrivates[mfbGCPrivateIndex].ptr))->pCompositeClip;
+    cclip = pGC->pCompositeClip;
     for (arc = parcs, i = narcs; --i >= 0; arc++)
     {
 	if (miCanZeroArc(arc))

@@ -1,3 +1,4 @@
+/* $XFree86: xc/programs/Xserver/mfb/mfbhrzvert.c,v 1.5 2001/12/14 20:00:08 dawes Exp $ */
 /* Combined Purdue/PurduePlus patches, level 2.0, 1/17/89 */
 /***********************************************************
 
@@ -59,6 +60,7 @@ SOFTWARE.
 /* horizontal solid line
    abs(len) > 1
 */
+void
 mfbHorzS(rop, addrl, nlwidth, x1, y1, len)
 int rop;		/* a reduced rasterop */
 register PixelType *addrl;	/* pointer to base of bitmap */
@@ -137,6 +139,7 @@ int len;		/* length of line */
    it's OK to use it.
 */
 
+void
 mfbVertS(rop, addrl, nlwidth, x1, y1, len)
 int rop;		/* a reduced rasterop */
 register PixelType *addrl;	/* pointer to base of bitmap */

@@ -1,3 +1,4 @@
+/* $XFree86: xc/programs/Xserver/dix/main.c,v 3.40 2003/02/17 16:55:31 dawes Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -46,6 +47,31 @@ SOFTWARE.
 ******************************************************************/
 /* $Xorg: main.c,v 1.4 2001/02/09 02:04:40 xorgcvs Exp $ */
 
+/* The panoramix components contained the following notice */
+/****************************************************************
+*                                                               *
+*    Copyright (c) Digital Equipment Corporation, 1991, 1997    *
+*                                                               *
+*   All Rights Reserved.  Unpublished rights  reserved  under   *
+*   the copyright laws of the United States.                    *
+*                                                               *
+*   The software contained on this media  is  proprietary  to   *
+*   and  embodies  the  confidential  technology  of  Digital   *
+*   Equipment Corporation.  Possession, use,  duplication  or   *
+*   dissemination of the software and media is authorized only  *
+*   pursuant to a valid written license from Digital Equipment  *
+*   Corporation.                                                *
+*                                                               *
+*   RESTRICTED RIGHTS LEGEND   Use, duplication, or disclosure  *
+*   by the U.S. Government is subject to restrictions  as  set  *
+*   forth in Subparagraph (c)(1)(ii)  of  DFARS  252.227-7013,  *
+*   or  in  FAR 52.227-19, as applicable.                       *
+*                                                               *
+*****************************************************************/
+
+/* $TOG: main.c /main/86 1998/02/09 14:20:03 kaleb $ */
+
+#define NEED_EVENTS
 #include "X.h"
 #include "Xos.h"   /* for unistd.h  */
 #include "Xproto.h"
@@ -65,19 +91,19 @@ SOFTWARE.
 #include "servermd.h"
 #include "site.h"
 #include "dixfont.h"
-
-extern CARD32 defaultScreenSaverTime;
-extern CARD32 defaultScreenSaverInterval;
-extern int defaultScreenSaverBlanking;
-extern int defaultScreenSaverAllowExposures;
-
-#ifdef DPMSExtension
-#include "dpms.h"
-extern BOOL DPMSCapableFlag;
-extern BOOL DPMSEnabled;
+#include "extnsionst.h"
+#ifdef PANORAMIX
+#include "panoramiXsrv.h"
+#else
+#include "dixevents.h"		/* InitEvents() */
+#include "dispatch.h"		/* InitProcVectors() */
 #endif
 
-void ddxGiveUp();
+#ifdef DPMSExtension
+#define DPMS_SERVER
+#include "dpms.h"
+#include "dpmsproc.h"
+#endif
 
 extern int InitClientPrivates(
 #if NeedFunctionPrototypes
@@ -91,47 +117,46 @@ extern void Dispatch(
 #endif
 );
 
-extern char *display;
 char *ConnectionInfo;
 xConnSetupPrefix connSetupPrefix;
 
-extern WindowPtr *WindowTable;
 extern FontPtr defaultFont;
 extern int screenPrivateCount;
 
-extern void InitProcVectors();
-extern void InitEvents();
-extern void DefineInitialRootWindow();
-extern Bool CreateGCperDepthArray();
+extern void InitProcVectors(void);
+extern Bool CreateGCperDepthArray(void);
 
-static Bool CreateConnectionBlock(
-#if NeedFunctionPrototypes
-    void
+#ifndef PANORAMIX
+static
 #endif
-);
+Bool CreateConnectionBlock(void);
 
-static void FreeScreen(
-#if NeedFunctionPrototypes
-    ScreenPtr /*pScreen*/
-#endif
-);
+static void FreeScreen(ScreenPtr);
 
 PaddingInfo PixmapWidthPaddingInfo[33];
-
-#ifdef INTERNAL_VS_EXTERNAL_PADDING
-/* add padding info for 32-bit interface. PutImage and GetImage will
- * work on 32-bit padding while the rest of the server will work
- * on 64-bit padding (Alpha).
- */
-PaddingInfo PixmapWidthPaddingInfoProto[33];
-#endif
 
 int connBlockScreenStart;
 
 static int restart = 0;
 
 void
-NotImplemented()
+NotImplemented(xEvent *from, xEvent *to)
+{
+    FatalError("Not implemented");
+}
+
+/*
+ * Dummy entry for ReplySwapVector[]
+ */
+/*ARGSUSED*/
+void
+ReplyNotSwappd(
+#if NeedNestedPrototypes
+	ClientPtr pClient ,
+	int size ,
+	void * pbuf
+#endif
+	)
 {
     FatalError("Not implemented");
 }
@@ -171,6 +196,22 @@ static int indexForBitsPerPixel[ 33 ] = {
 };
 
 /*
+ * This array gives the bytesperPixel value for cases where the number
+ * of bits per pixel is a multiple of 8 but not a power of 2.
+ */
+static int answerBytesPerPixel[ 33 ] = {
+	~0, 0, ~0, ~0,	/* 1 bit per pixel */
+	0, ~0, ~0, ~0,	/* 4 bits per pixel */
+	0, ~0, ~0, ~0,	/* 8 bits per pixel */
+	~0,~0, ~0, ~0,
+	0, ~0, ~0, ~0,	/* 16 bits per pixel */
+	~0,~0, ~0, ~0,
+	3, ~0, ~0, ~0,	/* 24 bits per pixel */
+	~0,~0, ~0, ~0,
+	0		/* 32 bits per pixel */
+};
+
+/*
  * This array gives the answer to the question "what is the second index for
  * the answer array above given the number of bits per scanline pad unit?"
  * Note that ~0 is an invalid entry (mostly for the benefit of the reader).
@@ -200,37 +241,47 @@ static int indexForScanlinePad[ 65 ] = {
 #endif
 
 int
-main(argc, argv)
-    int		argc;
-    char	*argv[];
+main(int argc, char *argv[], char *envp[])
 {
-    int		i, j, k;
+    int		i, j, k, error;
+    char	*xauthfile;
     HWEventQueueType	alwaysCheckForInput[2];
 
-    /* Notice if we're restart.  Probably this is because we jumped through
-     * uninitialized pointer */
+    display = "0";
+
+    /* Quartz support on Mac OS X requires that the Cocoa event loop be in
+     * the main thread. This allows the X server main to be called again
+     * from another thread. */
+#if defined(__DARWIN__) && defined(DARWIN_WITH_QUARTZ)
+    DarwinHandleGUI(argc, argv, envp);
+#endif
+
+    /* Notice if we're restarted.  Probably this is because we jumped through
+     * an uninitialized pointer */
     if (restart)
 	FatalError("server restarted. Jumped through uninitialized pointer?\n");
     else
 	restart = 1;
 
+    CheckUserParameters(argc, argv, envp);
+
+    CheckUserAuthorization();
+
 #ifdef COMMANDLINE_CHALLENGED_OPERATING_SYSTEMS
     ExpandCommandLine(&argc, &argv);
 #endif
 
-#ifdef _SC_OPEN_MAX
-    /* if sysconf(_SC_OPEN_MAX) is supported, at runtime MaxClients will be
-     * reassigned instead of using MAXSOCKS */
-    if (MaxClients == 0)
-        MaxClients = MIN(MAXCLIENTS, sysconf(_SC_OPEN_MAX));
-#endif
+    InitConnectionLimits();
 
     /* These are needed by some routines which are called from interrupt
      * handlers, thus have no direct calling path back to main and thus
      * can't be passed argc, argv as parameters */
     argcGlobal = argc;
     argvGlobal = argv;
-    display = "0";
+    /* prep X authority file from environment; this can be overriden by a
+     * command line option */
+    xauthfile = getenv("XAUTHORITY");
+    if (xauthfile) InitAuthorization (xauthfile);
     ProcessCommandLine(argc, argv);
 
     alwaysCheckForInput[0] = 0;
@@ -238,10 +289,17 @@ main(argc, argv)
     while(1)
     {
 	serverGeneration++;
-        ScreenSaverTime = defaultScreenSaverTime;
+	ScreenSaverTime = defaultScreenSaverTime;
 	ScreenSaverInterval = defaultScreenSaverInterval;
 	ScreenSaverBlanking = defaultScreenSaverBlanking;
 	ScreenSaverAllowExposures = defaultScreenSaverAllowExposures;
+#ifdef DPMSExtension
+	DPMSStandbyTime = defaultDPMSStandbyTime;
+	DPMSSuspendTime = defaultDPMSSuspendTime;
+	DPMSOffTime = defaultDPMSOffTime;
+	DPMSEnabled = defaultDPMSEnabled;
+	DPMSPowerLevel = 0;
+#endif
 	InitBlockAndWakeupHandlers();
 	/* Perform any operating system dependent initializations you'd like */
 	OsInit();		
@@ -284,18 +342,7 @@ main(argc, argv)
 	PixmapWidthPaddingInfo[1].padPixelsLog2 = answer[j][k];
  	j = indexForBitsPerPixel[8]; /* bits per byte */
  	PixmapWidthPaddingInfo[1].padBytesLog2 = answer[j][k];
-
-#ifdef INTERNAL_VS_EXTERNAL_PADDING
-	/* Fake out protocol interface to make them believe we support
-	 * a different padding than the actual internal padding.
-	 */
-	j = indexForBitsPerPixel[ 1 ];
-	k = indexForScanlinePad[ BITMAP_SCANLINE_PAD_PROTO ];
-	PixmapWidthPaddingInfoProto[1].padRoundUp = BITMAP_SCANLINE_PAD_PROTO-1;
-	PixmapWidthPaddingInfoProto[1].padPixelsLog2 = answer[j][k];
- 	j = indexForBitsPerPixel[8]; /* bits per byte */
- 	PixmapWidthPaddingInfoProto[1].padBytesLog2 = answer[j][k];
-#endif /* INTERNAL_VS_EXTERNAL_PADDING */
+	PixmapWidthPaddingInfo[1].bitsPerPixel = 1;
 
 	InitAtoms();
 	InitEvents();
@@ -310,6 +357,7 @@ main(argc, argv)
 	ResetColormapPrivates();
 	ResetFontPrivateIndex();
 	InitCallbackManager();
+	InitVisualWrap();
 	InitOutput(&screenInfo, argc, argv);
 	if (screenInfo.numScreens < 1)
 	    FatalError("no screens found");
@@ -341,8 +389,13 @@ main(argc, argv)
 	    FatalError("failed to initialize core devices");
 
 	InitFonts();
-	if (SetDefaultFontPath(defaultFontPath) != Success)
-	    ErrorF("failed to set default font path '%s'", defaultFontPath);
+	if (loadableFonts) {
+	    SetFontPath(0, 0, (unsigned char *)defaultFontPath, &error);
+	} else {
+	    if (SetDefaultFontPath(defaultFontPath) != Success)
+		ErrorF("failed to set default font path '%s'",
+			defaultFontPath);
+	}
 	if (!SetDefaultFont(defaultTextFont))
 	    FatalError("could not open default font '%s'", defaultTextFont);
 	if (!(rootCursor = CreateRootCursor(defaultCursorFont, 0)))
@@ -354,12 +407,30 @@ main(argc, argv)
 	if (!DPMSCapableFlag)
      	    DPMSEnabled = FALSE;
 #endif
+
+#ifdef PANORAMIX
+	/*
+	 * Consolidate window and colourmap information for each screen
+	 */
+	if (!noPanoramiXExtension)
+	    PanoramiXConsolidate();
+#endif
+
 	for (i = 0; i < screenInfo.numScreens; i++)
 	    InitRootWindow(WindowTable[i]);
         DefineInitialRootWindow(WindowTable[0]);
+	SaveScreens(SCREEN_SAVER_FORCER, ScreenSaverReset);
 
-	if (!CreateConnectionBlock())
-	    FatalError("could not create connection block info");
+#ifdef PANORAMIX
+	if (!noPanoramiXExtension) {
+	    if (!PanoramiXCreateConnectionBlock())
+		FatalError("could not create connection block info");
+	} else
+#endif
+	{
+	    if (!CreateConnectionBlock())
+	    	FatalError("could not create connection block info");
+	}
 
 	Dispatch();
 
@@ -367,7 +438,18 @@ main(argc, argv)
 	if (screenIsSaved == SCREEN_SAVER_ON)
 	    SaveScreens(SCREEN_SAVER_OFF, ScreenSaverReset);
 	CloseDownExtensions();
+
+#ifdef PANORAMIX
+	{
+	    Bool remember_it = noPanoramiXExtension;
+	    noPanoramiXExtension = TRUE;
+	    FreeAllResources();
+	    noPanoramiXExtension = remember_it;
+	}
+#else
 	FreeAllResources();
+#endif
+
 	CloseDownDevices();
 	for (i = screenInfo.numScreens - 1; i >= 0; i--)
 	{
@@ -378,24 +460,34 @@ main(argc, argv)
 	    FreeScreen(screenInfo.screens[i]);
 	    screenInfo.numScreens = i;
 	}
+  	CloseDownEvents();
 	xfree(WindowTable);
+	WindowTable = NULL;
 	FreeFonts ();
+
 	xfree(serverClient->devPrivates);
+	serverClient->devPrivates = NULL;
 
 	if (dispatchException & DE_TERMINATE)
 	{
+	    CloseWellKnownConnections();
+	    OsCleanup();
 	    ddxGiveUp();
 	    break;
 	}
 
 	xfree(ConnectionInfo);
+	ConnectionInfo = NULL;
     }
     return(0);
 }
 
 static int padlength[4] = {0, 3, 2, 1};
 
-static Bool
+#ifndef PANORAMIX
+static
+#endif
+Bool
 CreateConnectionBlock()
 {
     xConnSetup setup;
@@ -419,18 +511,8 @@ CreateConnectionBlock()
      */
     setup.imageByteOrder = screenInfo.imageByteOrder;
 
-#ifdef INTERNAL_VS_EXTERNAL_PADDING
-    if ( screenInfo.bitmapScanlineUnit > 32 )
-    	setup.bitmapScanlineUnit  = 32;
-    else
-#endif 
-    	setup.bitmapScanlineUnit  = screenInfo.bitmapScanlineUnit;
-#ifdef INTERNAL_VS_EXTERNAL_PADDING
-    if ( screenInfo.bitmapScanlinePad > 32 )
-    	setup.bitmapScanlinePad = 32;
-    else
-#endif 
-	setup.bitmapScanlinePad = screenInfo.bitmapScanlinePad;
+    setup.bitmapScanlineUnit = screenInfo.bitmapScanlineUnit;
+    setup.bitmapScanlinePad = screenInfo.bitmapScanlinePad;
 
     setup.bitmapBitOrder = screenInfo.bitmapBitOrder;
     setup.motionBufferSize = NumMotionEvents();
@@ -464,12 +546,7 @@ CreateConnectionBlock()
     {
 	format.depth = screenInfo.formats[i].depth;
 	format.bitsPerPixel = screenInfo.formats[i].bitsPerPixel;
-#ifdef INTERNAL_VS_EXTERNAL_PADDING
-	if ( screenInfo.formats[i].scanlinePad > 32 )
-	    format.scanLinePad = 32;
-	else
-#endif
-	    format.scanLinePad = screenInfo.formats[i].scanlinePad;
+	format.scanLinePad = screenInfo.formats[i].scanlinePad;
 	memmove(pBuf, (char *)&format, sizeof(xPixmapFormat));
 	pBuf += sizeof(xPixmapFormat);
 	sizesofar += sizeof(xPixmapFormat);
@@ -557,10 +634,24 @@ with its screen number, a pointer to its ScreenRec, argc, and argv.
 */
 
 int
+#if NeedFunctionPrototypes
+AddScreen(
+    Bool	(* pfnInit)(
+#if NeedNestedPrototypes
+	int /*index*/,
+	ScreenPtr /*pScreen*/,
+	int /*argc*/,
+	char ** /*argv*/
+#endif
+		),
+    int argc,
+    char **argv)
+#else
 AddScreen(pfnInit, argc, argv)
     Bool	(* pfnInit)();
     int argc;
     char **argv;
+#endif
 {
 
     int i;
@@ -578,8 +669,8 @@ AddScreen(pfnInit, argc, argv)
     if (!pScreen)
 	return -1;
 
-    pScreen->devPrivates = (DevUnion *)xalloc(screenPrivateCount *
-					      sizeof(DevUnion));
+    pScreen->devPrivates = (DevUnion *)xcalloc(sizeof(DevUnion),
+						screenPrivateCount);
     if (!pScreen->devPrivates && screenPrivateCount)
     {
 	xfree(pScreen);
@@ -588,17 +679,19 @@ AddScreen(pfnInit, argc, argv)
     pScreen->myNum = i;
     pScreen->WindowPrivateLen = 0;
     pScreen->WindowPrivateSizes = (unsigned *)NULL;
-    pScreen->totalWindowSize = sizeof(WindowRec);
+    pScreen->totalWindowSize =
+        ((sizeof(WindowRec) + sizeof(long) - 1) / sizeof(long)) * sizeof(long);
     pScreen->GCPrivateLen = 0;
     pScreen->GCPrivateSizes = (unsigned *)NULL;
-    pScreen->totalGCSize = sizeof(GC);
+    pScreen->totalGCSize =
+        ((sizeof(GC) + sizeof(long) - 1) / sizeof(long)) * sizeof(long);
 #ifdef PIXPRIV
     pScreen->PixmapPrivateLen = 0;
     pScreen->PixmapPrivateSizes = (unsigned *)NULL;
-    pScreen->totalPixmapSize = sizeof(PixmapRec);
+    pScreen->totalPixmapSize = BitmapBytePad(sizeof(PixmapRec)*8);
 #endif
-    pScreen->ClipNotify = (void (*)())NULL; /* for R4 ddx compatibility */
-    pScreen->CreateScreenResources = (Bool (*)())NULL;
+    pScreen->ClipNotify = 0;	/* for R4 ddx compatibility */
+    pScreen->CreateScreenResources = 0;
     
 #ifdef DEBUG
     for (jNI = &pScreen->QueryBestSize; 
@@ -628,19 +721,17 @@ AddScreen(pfnInit, argc, argv)
  	    (scanlinepad/bitsPerPixel) - 1;
  	j = indexForBitsPerPixel[ 8 ]; /* bits per byte */
  	PixmapWidthPaddingInfo[ depth ].padBytesLog2 = answer[j][k];
-
-#ifdef INTERNAL_VS_EXTERNAL_PADDING
-	/* Fake out protocol interface to make them believe we support
-	 * a different padding than the actual internal padding.
-	 */
- 	j = indexForBitsPerPixel[ bitsPerPixel ];
-  	k = indexForScanlinePad[ BITMAP_SCANLINE_PAD_PROTO ];
- 	PixmapWidthPaddingInfoProto[ depth ].padPixelsLog2 = answer[j][k];
- 	PixmapWidthPaddingInfoProto[ depth ].padRoundUp =
- 	    (BITMAP_SCANLINE_PAD_PROTO/bitsPerPixel) - 1;
- 	j = indexForBitsPerPixel[ 8 ]; /* bits per byte */
- 	PixmapWidthPaddingInfoProto[ depth ].padBytesLog2 = answer[j][k];
-#endif /* INTERNAL_VS_EXTERNAL_PADDING */
+	PixmapWidthPaddingInfo[ depth ].bitsPerPixel = bitsPerPixel;
+	if (answerBytesPerPixel[bitsPerPixel])
+	{
+	    PixmapWidthPaddingInfo[ depth ].notPower2 = 1;
+	    PixmapWidthPaddingInfo[ depth ].bytesPerPixel =
+		answerBytesPerPixel[bitsPerPixel];
+	}
+	else
+	{
+	    PixmapWidthPaddingInfo[ depth ].notPower2 = 0;
+	}
     }
   
     /* This is where screen specific stuff gets initialized.  Load the

@@ -30,6 +30,9 @@ not be used in advertising or otherwise to promote the sale, use or other
 dealings in this Software without prior written authorization from said
 copyright holders.
 */
+
+/* $XFree86: xc/programs/Xserver/Xprint/raster/Raster.c,v 1.11 2001/12/21 21:02:06 dawes Exp $ */
+
 /*******************************************************************
 **
 **    *********************************************************
@@ -45,6 +48,7 @@ copyright holders.
 ** 
 ********************************************************************/
 
+#include <errno.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/stat.h>
@@ -66,14 +70,15 @@ copyright holders.
 #include "windowstr.h"
 #include "propertyst.h"
 #include "servermd.h"	/* needed for IMAGE_BUFSIZE */
+#include "mfb.h"
+#include "mi.h"
 
-#define _XP_PRINT_SERVER_
-#include "extensions/Print.h"
-#undef  _XP_PRINT_SERVER_
+#include <X11/extensions/Print.h>
 #include "Raster.h"
 
 #include "attributes.h"
 #include "AttrValid.h"
+#include "DiPrint.h"
 
 static void AllocateRasterPrivates(
     ScreenPtr pScreen);
@@ -82,12 +87,14 @@ static Bool RasterChangeWindowAttributes(
     unsigned long   mask);
 static int StartJob(
     XpContextPtr pCon,
-    Bool sendClientData);
+    Bool sendClientData,
+    ClientPtr client);
 static int StartPage(
     XpContextPtr pCon,
     WindowPtr pWin);
 static int StartDoc(
-    XpContextPtr pCon);
+    XpContextPtr pCon,
+    XPDocumentType type);
 static int EndDoc(
     XpContextPtr pCon,
     Bool cancel);
@@ -96,8 +103,7 @@ static int EndJob(
     Bool cancel);
 static int EndPage(
     XpContextPtr pCon,
-    WindowPtr pWin,
-    Bool cancel);
+    WindowPtr pWin);
 static int DocumentData(
     XpContextPtr pCon,
     DrawablePtr pDraw,
@@ -127,10 +133,10 @@ static char *RasterGetAttributes(
 static char *RasterGetOneAttribute(XpContextPtr pCon,
 			   XPAttributes class, 
 			   char *attribute);
-static void RasterSetAttributes(XpContextPtr pCon,
+static int RasterSetAttributes(XpContextPtr pCon,
 			  XPAttributes class,
 			  char *attributes);
-static void RasterAugmentAttributes(XpContextPtr pCon,
+static int RasterAugmentAttributes(XpContextPtr pCon,
 			      XPAttributes class,
 			      char *attributes);
 static int RasterMediumDimensions(XpContextPtr pCon,
@@ -142,17 +148,6 @@ static int RasterReproducibleArea(XpContextPtr pCon,
 #define MAX(a,b) (((a) > (b)) ? (a) : (b))
 #define DOC_PCL		1
 #define DOC_RASTER	2
-
-extern Bool _XpBoolNoop();
-extern void _XpVoidNoop();
-extern void XpDestroyAttributes();
-extern char *ReplaceFileString(
-    char *string,
-    char *inFileName,
-    char *outFileName);
-extern char *XpGetConfigDir();
-
-extern XpValidatePoolsRec RasterValidatePoolsRec; /* From RasterAttVal.c */
 
 static int RasterScreenPrivateIndex, RasterContextPrivateIndex;
 static int RasterGeneration = 0;
@@ -189,13 +184,9 @@ InitializeRasterDriver(
      int argc,
      char **argv)
 {
-    char specifier[MAX_TOKEN_LEN];
-    int xRes, yRes, maxWidth, maxHeight;
+    int xRes, yRes;
     int maxRes, maxDim, numBytes;
     RasterScreenPrivPtr pPriv;
-    XpDriverFuncsPtr pFuncs;
-    char **printerNames, *printDescFile;
-    int numPrinters;
     
     /*
      * Register this driver's InitContext function with the print extension.
@@ -229,6 +220,7 @@ InitializeRasterDriver(
      */
     mfbScreenInit(pScreen, pPriv->pBits, maxDim, maxDim, maxRes,
 		  maxRes, maxDim);
+    miInitializeBackingStore(pScreen);
     pScreen->blackPixel = 1;
     pScreen->whitePixel = 0;
     if(mfbCreateDefColormap(pScreen) == FALSE)
@@ -237,10 +229,11 @@ InitializeRasterDriver(
     /*
     cfbScreenInit(pScreen, pPriv->pBits, maxWidth, maxHeight, maxXres,
 		  maxYres, maxWidth);
+    miInitializeBackingStore(pScreen);
     scalingScreenInit(pScreen);
     */
 
-    pScreen->SaveScreen = _XpBoolNoop;
+    pScreen->SaveScreen = (SaveScreenProcPtr)_XpBoolNoop;
     pPriv->ChangeWindowAttributes = pScreen->ChangeWindowAttributes;
     pScreen->ChangeWindowAttributes = RasterChangeWindowAttributes;
     pPriv->CloseScreen = pScreen->CloseScreen;
@@ -379,11 +372,11 @@ SetDocumentType(
 static int
 StartJob(
      XpContextPtr pCon,
-     Bool sendClientData)
+     Bool sendClientData,
+     ClientPtr client)
 {
     RasterContextPrivPtr pConPriv = (RasterContextPrivPtr)
 			 pCon->devPrivates[RasterContextPrivateIndex].ptr;
-    char *jobHeader;
 
     SetDocumentType( pCon );
 
@@ -424,7 +417,8 @@ StartJob(
 
 static int 
 StartDoc(
-     XpContextPtr pCon)
+     XpContextPtr pCon,
+     XPDocumentType type)
 {
     return Success;
 }
@@ -435,6 +429,10 @@ static int EndDoc(
 {
     return Success;
 }
+
+#if 0
+
+/* XXX Not used. */
 
 /*
  * BuidArgVector takes a pointer to a comma-separated list of command
@@ -453,7 +451,6 @@ BuildArgVector(
     int argCount)
 {
     char *curArg, *lastChar, *endArg;
-    int optionLen;
 
     curArg = optionList;
     lastChar = optionList + strlen(optionList); /* includes final NULL */
@@ -488,6 +485,7 @@ BuildArgVector(
 
     return argVector;
 }
+#endif
 
 static int
 EndJob(
@@ -555,11 +553,8 @@ StartPage(
      XpContextPtr pCon,
      WindowPtr pWin)
 {
-    register WindowPtr pChild;
     RasterContextPrivPtr pConPriv = (RasterContextPrivPtr)
 			 pCon->devPrivates[RasterContextPrivateIndex].ptr;
-    unsigned short width, height;
-    xEvent event;
 
     if(pConPriv->pPageFile != (FILE *)NULL)
     {
@@ -652,7 +647,7 @@ Get_XWDColors(
     return(colors);
 }
 
-static
+static void
 _swapshort (
     register char *bp,
     register unsigned n)
@@ -668,7 +663,7 @@ _swapshort (
     }
 }
 
-static
+static void
 _swaplong (
     register char *bp,
     register unsigned n)
@@ -879,19 +874,14 @@ SendPage( XpContextPtr pCon )
 static int
 EndPage(
      XpContextPtr pCon,
-     WindowPtr pWin,
-     Bool cancel)
+     WindowPtr pWin)
 {
     RasterContextPrivPtr pConPriv = (RasterContextPrivPtr)
 			 pCon->devPrivates[RasterContextPrivateIndex].ptr;
     struct stat statBuf;
-    char *rasterFileName = (char *)NULL, *pCommand = (char *)NULL, 
-	 *pHeader = (char *)NULL, *pTrailer = (char *)NULL;
+    char *rasterFileName = (char *)NULL, *pCommand = (char *)NULL;
     FILE *pRasterFile = (FILE *)NULL;
 
-    if( cancel == True )
-      return Success;
-    
     if(pConPriv->pageFileName == (char *)NULL)
     {
 	/*
@@ -1194,14 +1184,13 @@ RasterChangeWindowAttributes(
 	mask |= CWBackingStore;
     }
 
-    if(pScreenPriv->ChangeWindowAttributes != (Bool (*)())NULL)
+    if(pScreenPriv->ChangeWindowAttributes != NULL)
     {
         pScreen->ChangeWindowAttributes = pScreenPriv->ChangeWindowAttributes;
         status = pScreen->ChangeWindowAttributes(pWin, mask);
         pScreen->ChangeWindowAttributes = RasterChangeWindowAttributes;
     }
-    if(status != TRUE)
-	return status;
+    return status;
 }
 
 /*
@@ -1275,12 +1264,12 @@ RasterInitContext(
     pFuncs->PutDocumentData = DocumentData;
     pFuncs->GetDocumentData = GetDocumentData;
     pFuncs->DestroyContext = RasterDestroyContext;
-    pFuncs->GetAttributes = (char *(*)())RasterGetAttributes;
-    pFuncs->GetOneAttribute = (char *(*)())RasterGetOneAttribute;
-    pFuncs->SetAttributes = (int(*)())RasterSetAttributes;
-    pFuncs->AugmentAttributes = (int(*)())RasterAugmentAttributes;
-    pFuncs->GetMediumDimensions = (int(*)())RasterMediumDimensions;
-    pFuncs->GetReproducibleArea = (int(*)())RasterReproducibleArea;
+    pFuncs->GetAttributes = RasterGetAttributes;
+    pFuncs->GetOneAttribute = RasterGetOneAttribute;
+    pFuncs->SetAttributes = RasterSetAttributes;
+    pFuncs->AugmentAttributes = RasterAugmentAttributes;
+    pFuncs->GetMediumDimensions = RasterMediumDimensions;
+    pFuncs->GetReproducibleArea = RasterReproducibleArea;
     
     /*
      * Set up the context privates
@@ -1415,21 +1404,21 @@ RasterGetOneAttribute(
     return XpGetOneAttribute( pContext, class, attr );
 }
 
-static void 
+static int 
 RasterSetAttributes(XpContextPtr pCon,
     XPAttributes class,
     char *attributes)
 {
-    XpSetAttributes( pCon, class, attributes );
+    return XpSetAttributes( pCon, class, attributes );
 }
 
-static void
+static int
 RasterAugmentAttributes(
      XpContextPtr pCon,
      XPAttributes class,
      char *attributes)
 {
-    XpAugmentAttributes( pCon, class, attributes );
+    return XpAugmentAttributes( pCon, class, attributes );
 }
 
 static void
@@ -1498,7 +1487,7 @@ RasterCloseScreen(
     /*
      * Call any wrapped CloseScreen proc.
      */
-    if(pScreenPriv->CloseScreen != (Bool (*)())NULL)
+    if(pScreenPriv->CloseScreen != NULL)
     {
         pScreen->CloseScreen = pScreenPriv->CloseScreen;
         status = pScreen->CloseScreen(index, pScreen);
@@ -1517,6 +1506,7 @@ RasterCloseScreen(
 static void SigchldHndlr (int dummy)
 {
     int   status, w;
+    int   olderrno = errno;
     struct sigaction act;
     sigfillset(&act.sa_mask);
     act.sa_flags = 0;
@@ -1528,6 +1518,7 @@ static void SigchldHndlr (int dummy)
      * Is this really necessary?
      */
     sigaction(SIGCHLD, &act, (struct sigaction *)NULL);
+    errno = olderrno;
 }
 
 /*

@@ -44,6 +44,7 @@ not be used in advertising or otherwise to promote the sale, use or other
 dealings in this Software without prior written authorization from said
 copyright holders.
 */
+/* $XFree86: xc/programs/Xserver/Xprint/pcl/PclCursor.c,v 1.4 2001/01/17 22:36:30 dawes Exp $ */
 
 #include <stdio.h>
 
@@ -52,59 +53,59 @@ copyright holders.
 #include "windowstr.h"
 
 void
-PclConstrainCursor( pScreen, pBox )
-     ScreenPtr pScreen;
-     BoxPtr pBox;
+PclConstrainCursor(
+     ScreenPtr pScreen,
+     BoxPtr pBox)
 {
 }
 
 void
-PclCursorLimits( pScreen, pCursor, pHotBox, pTopLeftBox )
-     ScreenPtr pScreen;
-     CursorPtr pCursor;
-     BoxPtr pHotBox;
-     BoxPtr pTopLeftBox;
+PclCursorLimits(
+     ScreenPtr pScreen,
+     CursorPtr pCursor,
+     BoxPtr pHotBox,
+     BoxPtr pTopLeftBox)
 {
 }
 
 Bool
-PclDisplayCursor( pScreen, pCursor )
-     ScreenPtr pScreen;
-     CursorPtr pCursor;
-{
-    return True;
-}
-
-Bool
-PclRealizeCursor( pScreen, pCursor )
-     ScreenPtr pScreen;
-     CursorPtr pCursor;
+PclDisplayCursor(
+     ScreenPtr pScreen,
+     CursorPtr pCursor)
 {
     return True;
 }
 
 Bool
-PclUnrealizeCursor( pScreen, pCursor )
-     ScreenPtr pScreen;
-     CursorPtr pCursor;
+PclRealizeCursor(
+     ScreenPtr pScreen,
+     CursorPtr pCursor)
+{
+    return True;
+}
+
+Bool
+PclUnrealizeCursor(
+     ScreenPtr pScreen,
+     CursorPtr pCursor)
 {
     return True;
 }
 
 void
-PclRecolorCursor( pScreen, pCursor, displayed )
-     ScreenPtr pScreen;
-     CursorPtr pCursor;
-     Bool displayed;
+PclRecolorCursor(
+     ScreenPtr pScreen,
+     CursorPtr pCursor,
+     Bool displayed)
 {
 }
 
 Bool
-PclSetCursorPosition( pScreen, x, y, generateEvent )
-     ScreenPtr pScreen;
-     int x;
-     int y;
-     Bool generateEvent;
+PclSetCursorPosition(
+     ScreenPtr pScreen,
+     int x,
+     int y,
+     Bool generateEvent)
 {
     return True;
 }

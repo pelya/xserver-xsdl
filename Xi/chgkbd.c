@@ -45,6 +45,7 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ********************************************************/
+/* $XFree86: xc/programs/Xserver/Xi/chgkbd.c,v 3.6 2001/12/14 19:58:54 dawes Exp $ */
 
 /***********************************************************************
  *
@@ -59,14 +60,16 @@ SOFTWARE.
 #include "inputstr.h"			/* DeviceIntPtr	     */
 #include "XI.h"
 #include "XIproto.h"
+#include "XIstubs.h"
+#include "globals.h"
+#include "extnsionst.h"
+#include "extinit.h"			/* LookupDeviceIntRec */
 
-extern	int 		IReqCode;
-extern	int 		BadDevice;
-extern	int 		ChangeDeviceNotify;
-extern	Mask		ChangeDeviceNotifyMask;
-extern	InputInfo	inputInfo;
-extern	void		(* ReplySwapVector[256]) ();
-DeviceIntPtr		LookupDeviceIntRec();
+#include "exevents.h"
+#include "exglobals.h"
+
+#include "chgkbd.h"
+#include "chgptr.h"
 
 /***********************************************************************
  *
@@ -93,6 +96,7 @@ SProcXChangeKeyboardDevice(client)
  *
  */
 
+int
 ProcXChangeKeyboardDevice (client)
     register ClientPtr client;
     {
@@ -104,7 +108,6 @@ ProcXChangeKeyboardDevice (client)
     KeyClassPtr 		k;
     xChangeKeyboardDeviceReply	rep;
     changeDeviceNotify		ev;
-    extern Bool Must_have_memory;
 
     REQUEST(xChangeKeyboardDeviceReq);
     REQUEST_SIZE_MATCH(xChangeKeyboardDeviceReq);
@@ -169,14 +172,14 @@ ProcXChangeKeyboardDevice (client)
 	for (i=0; i<df->traceSize; i++)
 	    df->trace[i] = xf->trace[i];
 	RegisterOtherDevice (xkbd);
-	RegisterKeyboardDevice ((DevicePtr)dev);
+	RegisterKeyboardDevice (dev);
 
 	ev.type = ChangeDeviceNotify;
 	ev.deviceid = stuff->deviceid;
 	ev.time = currentTime.milliseconds;
 	ev.request = NewKeyboard;
 
-	SendEventToAllWindows (dev, ChangeDeviceNotifyMask, &ev, 1);
+	SendEventToAllWindows (dev, ChangeDeviceNotifyMask, (xEvent *)&ev, 1);
 	SendMappingNotify (MappingKeyboard, k->curKeySyms.minKeyCode, 
 	    k->curKeySyms.maxKeyCode - k->curKeySyms.minKeyCode + 1,client);
 
@@ -195,6 +198,7 @@ ProcXChangeKeyboardDevice (client)
  *
  */
 
+void
 SRepXChangeKeyboardDevice (client, size, rep)
     ClientPtr	client;
     int		size;

@@ -45,6 +45,7 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ********************************************************/
+/* $XFree86: xc/programs/Xserver/Xi/getkmap.c,v 3.4 2001/12/14 19:58:56 dawes Exp $ */
 
 /********************************************************************
  *
@@ -59,11 +60,12 @@ SOFTWARE.
 #include "inputstr.h"			/* DeviceIntPtr	     */
 #include "XI.h"
 #include "XIproto.h"
+#include "extnsionst.h"
+#include "extinit.h"			/* LookupDeviceIntRec */
+#include "exglobals.h"
+#include "swaprep.h"
 
-extern	int 	IReqCode;
-extern	int	BadDevice;
-extern	void	(* ReplySwapVector[256]) ();
-DeviceIntPtr	LookupDeviceIntRec();
+#include "getkmap.h"
 
 /***********************************************************************
  *
@@ -89,10 +91,10 @@ SProcXGetDeviceKeyMapping(client)
  *
  */
 
+int
 ProcXGetDeviceKeyMapping(client)
     register ClientPtr client;
     {
-    extern	void	CopySwap32Write();
     xGetDeviceKeyMappingReply rep;
     DeviceIntPtr dev;
     KeySymsPtr	k;
@@ -140,7 +142,7 @@ ProcXGetDeviceKeyMapping(client)
     rep.length = (k->mapWidth * stuff->count); /* KeySyms are 4 bytes */
     WriteReplyToClient(client, sizeof(xGetDeviceKeyMappingReply), &rep);
 
-    client->pSwapReplyFunc = CopySwap32Write;
+    client->pSwapReplyFunc = (ReplySwapPtr)CopySwap32Write;
     WriteSwappedDataToClient(
 	client,
 	k->mapWidth * stuff->count * sizeof(KeySym),
@@ -157,6 +159,7 @@ ProcXGetDeviceKeyMapping(client)
  *
  */
 
+void
 SRepXGetDeviceKeyMapping (client, size, rep)
     ClientPtr	client;
     int		size;

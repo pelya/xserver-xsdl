@@ -1,3 +1,4 @@
+/* $XFree86: xc/programs/Xserver/dix/swapreq.c,v 3.5 2002/02/19 11:09:22 alanh Exp $ */
 /************************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -53,9 +54,8 @@ SOFTWARE.
 #include "Xprotostr.h"
 #include "misc.h"
 #include "dixstruct.h"
-
-extern int (* ProcVector[256]) ();
-extern void (* EventSwapVector[128]) ();  /* for SendEvent */
+#include "extnsionst.h"	/* for SendEvent */
+#include "swapreq.h"
 
 /* Thanks to Jack Palevich for testing and subsequently rewriting all this */
 
@@ -326,7 +326,7 @@ SProcSendEvent(client)
 {
     register char n;
     xEvent eventT;
-    void (*proc)(), NotImplemented();
+    EventSwapPtr proc;
     REQUEST(xSendEventReq);
     swaps(&stuff->length, n);
     REQUEST_SIZE_MATCH(xSendEventReq);
@@ -335,7 +335,7 @@ SProcSendEvent(client)
 
     /* Swap event */
     proc = EventSwapVector[stuff->event.u.u.type & 0177];
-    if (!proc || (int (*)()) proc == (int (*)()) NotImplemented)    /* no swapping proc; invalid event type? */
+    if (!proc ||  proc == NotImplemented)    /* no swapping proc; invalid event type? */
        return (BadValue);
     (*proc)(&stuff->event, &eventT);
     stuff->event = eventT;

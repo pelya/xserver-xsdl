@@ -11,7 +11,7 @@
 **    *  Created:	10/11/95
 **    *
 **    *********************************************************
-** 
+**
 ********************************************************************/
 /*
 (c) Copyright 1996 Hewlett-Packard Company
@@ -44,6 +44,7 @@ not be used in advertising or otherwise to promote the sale, use or other
 dealings in this Software without prior written authorization from said
 copyright holders.
 */
+/* $XFree86: xc/programs/Xserver/Xprint/pcl/PclLine.c,v 1.7 2001/01/17 22:36:30 dawes Exp $ */
 
 #include "Pcl.h"
 #include "gcstruct.h"
@@ -80,16 +81,16 @@ copyright holders.
  */
 
 void
-PclPolyLine( pDrawable, pGC, mode, nPoints, pPoints )
-     DrawablePtr pDrawable;
-     GCPtr pGC;
-     int mode;
-     int nPoints;
-     xPoint *pPoints;
+PclPolyLine(
+     DrawablePtr pDrawable,
+     GCPtr pGC,
+     int mode,
+     int nPoints,
+     xPoint *pPoints)
 {
-    char t[80], window[80];
+    char t[80];
     FILE *outFile;
-    int xoffset, yoffset;
+    int xoffset = 0, yoffset = 0;
     int nbox;
     BoxPtr pbox;
     xRectangle *drawRects, *r;
@@ -98,7 +99,7 @@ PclPolyLine( pDrawable, pGC, mode, nPoints, pPoints )
     int i;
     XpContextPtr pCon;
     PclContextPrivPtr pConPriv;
-    
+
     if( PclUpdateDrawableGC( pGC, pDrawable, &outFile ) == FALSE )
       return;
 
@@ -110,7 +111,7 @@ PclPolyLine( pDrawable, pGC, mode, nPoints, pPoints )
      * Allocate the storage required to deal with the clipping
      * regions.
      */
-    region = miRegionCreate( NULL, 0 );
+    region = REGION_CREATE( pGC->pScreen, NULL, 0 );
     drawRects = (xRectangle *)
       xalloc( ( nPoints - 1 ) * sizeof( xRectangle ) );
 
@@ -120,7 +121,7 @@ PclPolyLine( pDrawable, pGC, mode, nPoints, pPoints )
      * XXX I need to think of a way to test this.
      */
     fudge = 3 * pGC->lineWidth + 1;
-    
+
     /*
      * Generate the PCL code to draw the polyline, by defining it as a
      * macro which uses the HP-GL/2 line drawing function.
@@ -132,20 +133,20 @@ PclPolyLine( pDrawable, pGC, mode, nPoints, pPoints )
     sprintf( t, "PU%d,%dPD\n", pPoints[0].x + pDrawable->x,
 	    pPoints[0].y + pDrawable->y );
     SAVE_PCL( outFile, pConPriv, t ); /* Move to the start of the polyline */
-    
+
     switch( mode )
       {
 	case CoordModeOrigin:
 	  xoffset = pDrawable->x;
 	  yoffset = pDrawable->y;
-	  SAVE_PCL( outFile, pConPriv, "PA" ); 
+	  SAVE_PCL( outFile, pConPriv, "PA" );
 	  break;
 	case CoordModePrevious:
 	  xoffset = yoffset = 0;
-	  SAVE_PCL( outFile, pConPriv, "PR" ); 
+	  SAVE_PCL( outFile, pConPriv, "PR" );
 	  break;
       }
-    
+
     /*
      * Build the "drawing region" as we build the PCL to draw the
      * line.
@@ -154,13 +155,13 @@ PclPolyLine( pDrawable, pGC, mode, nPoints, pPoints )
       {
 	  if( i != 1 )
 	    SAVE_PCL( outFile, pConPriv, "," );
-	  
+
 	  sprintf( t, "%d,%d", pPoints[i].x + xoffset,
 		  pPoints[i].y + yoffset );
 	  SAVE_PCL( outFile, pConPriv, t );
 
 	  r->x = MIN( pPoints[i-1].x, pPoints[i].x ) + xoffset - fudge;
-	  r->y = MIN( pPoints[i-1].y, pPoints[i].y ) + yoffset - fudge; 
+	  r->y = MIN( pPoints[i-1].y, pPoints[i].y ) + yoffset - fudge;
 	  r->width = abs( pPoints[i-1].x - pPoints[i].x ) + 2 * fudge;
 	  r->height = abs( pPoints[i-1].y - pPoints[i].y ) + 2 * fudge;
       }
@@ -171,36 +172,35 @@ PclPolyLine( pDrawable, pGC, mode, nPoints, pPoints )
      * Convert the collection of rectangles into a proper region, then
      * intersect it with the clip region.
      */
-    drawRegion = miRectsToRegion( nPoints - 1, drawRects, CT_UNSORTED );
+    drawRegion = RECTS_TO_REGION( pGC->pScreen, nPoints - 1,
+				  drawRects, CT_UNSORTED );
     if( mode == CoordModePrevious )
-      miTranslateRegion( drawRegion, pPoints[0].x, pPoints[0].y );
-    miIntersect( region, drawRegion,
-		((PclGCPrivPtr)pGC->devPrivates[PclGCPrivateIndex].ptr)
-		->pCompositeClip );
-    
+      REGION_TRANSLATE( pGC->pScreen, drawRegion, pPoints[0].x, pPoints[0].y );
+    REGION_INTERSECT( pGC->pScreen, region, drawRegion, pGC->pCompositeClip );
+
     /*
      * For each rectangle in the clip region, set the HP-GL/2 "input
      * window" and render the entire polyline to it.
      */
     pbox = REGION_RECTS( region );
     nbox = REGION_NUM_RECTS( region );
-    
+
     PclSendData(outFile, pConPriv, pbox, nbox, 1.0);
 
     /*
      * Clean up the temporary regions
      */
-    miRegionDestroy( drawRegion );
-    miRegionDestroy( region );
+    REGION_DESTROY( pGC->pScreen, drawRegion );
+    REGION_DESTROY( pGC->pScreen, region );
     xfree( drawRects );
 }
 
 void
-PclPolySegment( pDrawable, pGC, nSegments, pSegments )
-     DrawablePtr pDrawable;
-     GCPtr pGC;
-     int nSegments;
-     xSegment *pSegments;
+PclPolySegment(
+     DrawablePtr pDrawable,
+     GCPtr pGC,
+     int nSegments,
+     xSegment *pSegments)
 {
     FILE *outFile, *dummy;
     char t[80];
@@ -214,8 +214,8 @@ PclPolySegment( pDrawable, pGC, nSegments, pSegments )
     XpContextPtr pCon;
     PclContextPrivPtr pConPriv;
     GC cacheGC;
-    
-    
+
+
     if( PclUpdateDrawableGC( pGC, pDrawable, &outFile ) == FALSE )
       return;
 
@@ -226,7 +226,7 @@ PclPolySegment( pDrawable, pGC, nSegments, pSegments )
     /*
      * Allocate the storage for the temporary regions.
      */
-    region = miRegionCreate( NULL, 0 );
+    region = REGION_CREATE( pGC->pScreen, NULL, 0 );
     drawRects = (xRectangle *)
       xalloc( nSegments * sizeof( xRectangle ) );
 
@@ -234,12 +234,12 @@ PclPolySegment( pDrawable, pGC, nSegments, pSegments )
      * Calculate the fudge factor, based on the line width
      */
     fudge = pGC->lineWidth * 3 + 1;
-    
+
     /*
      * Turn off line joining.
      */
     SEND_PCL( outFile, "\033%0BLA2,6;\033%0A" );
-    
+
     /*
      * Generate the PCL code to draw the segments, by defining them as
      * a macro which uses the HP-GL/2 line drawing function.
@@ -254,7 +254,7 @@ PclPolySegment( pDrawable, pGC, nSegments, pSegments )
 
     xoffset = pDrawable->x;
     yoffset = pDrawable->y;
-    
+
     for( i = 0, r = drawRects; i < nSegments; i++, r++ )
       {
 	  r->x = MIN( pSegments[i].x1, pSegments[i].x2 ) + xoffset;
@@ -279,18 +279,17 @@ PclPolySegment( pDrawable, pGC, nSegments, pSegments )
      * Convert the collection of rectangles into a proper region, then
      * intersect it with the clip region.
      */
-    drawRegion = miRectsToRegion( nSegments, drawRects, CT_UNSORTED );
-    miIntersect( region, drawRegion, 
-		((PclGCPrivPtr)pGC->devPrivates[PclGCPrivateIndex].ptr)
-		->pCompositeClip );
-    
+    drawRegion = RECTS_TO_REGION( pGC->pScreen, nSegments,
+				  drawRects, CT_UNSORTED );
+    REGION_INTERSECT( pGC->pScreen, region, drawRegion, pGC->pCompositeClip );
+
     /*
      * For each rectangle in the clip region, set the HP-GL/2 "input
      * window" and render the entire set of segments to it.
      */
     pbox = REGION_RECTS( region );
     nbox = REGION_NUM_RECTS( region );
-    
+
     PclSendData(outFile, pConPriv, pbox, nbox, 1.0);
 
     /*
@@ -303,12 +302,11 @@ PclPolySegment( pDrawable, pGC, nSegments, pSegments )
     cacheGC.joinStyle = !cacheGC.joinStyle;
     PclSetDrawablePrivateGC( pDrawable, cacheGC );
     PclUpdateDrawableGC( pGC, pDrawable, &outFile );
-    
+
     /*
-     * Clean up 
+     * Clean up
      */
-    miRegionDestroy( drawRegion );
-    miRegionDestroy( region );
+    REGION_DESTROY( pGC->pScreen, drawRegion );
+    REGION_DESTROY( pGC->pScreen, region );
     xfree( drawRects );
 }
-

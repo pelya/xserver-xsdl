@@ -1,3 +1,4 @@
+/* $XFree86: xc/programs/Xserver/mfb/mfbline.c,v 1.7 2001/12/14 20:00:09 dawes Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -115,7 +116,9 @@ mfbLineSS (pDrawable, pGC, mode, npt, pptInit)
     unsigned int oc2;		/* outcode of point 2 */
 
     PixelType *addrlBase;	/* pointer to start of drawable */
+#ifndef POLYSEGMENT
     PixelType *addrl;		/* address of destination pixmap */
+#endif
     int nlwidth;		/* width in longwords of destination pixmap */
     int xorg, yorg;		/* origin of window */
 
@@ -138,7 +141,7 @@ mfbLineSS (pDrawable, pGC, mode, npt, pptInit)
     if (!(pGC->planemask & 1))
 	return;
 
-    cclip = ((mfbPrivGC *)(pGC->devPrivates[mfbGCPrivateIndex].ptr))->pCompositeClip;
+    cclip = pGC->pCompositeClip;
     alu = ((mfbPrivGC *)(pGC->devPrivates[mfbGCPrivateIndex].ptr))->rop;
     pboxInit = REGION_RECTS(cclip);
     nboxInit = REGION_NUM_RECTS(cclip);
@@ -505,7 +508,7 @@ mfbLineSD( pDrawable, pGC, mode, npt, pptInit)
     unsigned int bias = miGetZeroLineBias(pDrawable->pScreen);
     int x1, x2, y1, y2;
     RegionPtr cclip;
-    int		    fgrop, bgrop;
+    int		    fgrop = 0, bgrop = 0;
     unsigned char   *pDash;
     int		    dashOffset;
     int		    numInDashList;
@@ -517,7 +520,7 @@ mfbLineSD( pDrawable, pGC, mode, npt, pptInit)
     if (!(pGC->planemask & 1))
 	return;
 
-    cclip = ((mfbPrivGC *)(pGC->devPrivates[mfbGCPrivateIndex].ptr))->pCompositeClip;
+    cclip = pGC->pCompositeClip;
     fgrop = ((mfbPrivGC *)(pGC->devPrivates[mfbGCPrivateIndex].ptr))->rop;
     pboxInit = REGION_RECTS(cclip);
     nboxInit = REGION_NUM_RECTS(cclip);
@@ -723,7 +726,7 @@ dontStep:	;
 		(x2 <  pbox->x2) &&
 		(y2 <  pbox->y2))
 	    {
-		unsigned long _mask;
+		MfbBits _mask;
 		int rop;
 
 		rop = fgrop;

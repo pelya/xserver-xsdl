@@ -25,9 +25,11 @@ in this Software without prior written authorization from The Open Group.
  *
  * Author:  Keith Packard, MIT X Consortium
  */
+/* $XFree86: xc/programs/Xserver/Xext/sleepuntil.c,v 3.5 2001/12/14 19:58:51 dawes Exp $ */
 
 /* dixsleep.c - implement millisecond timeouts for X clients */
 
+#include "sleepuntil.h"
 #include "X.h"
 #include "Xmd.h"
 #include "misc.h"
@@ -41,7 +43,13 @@ typedef struct _Sertafied {
     TimeStamp		revive;
     ClientPtr		pClient;
     XID			id;
-    void		(*notifyFunc)();
+    void		(*notifyFunc)(
+#if NeedNestedPrototypes
+			ClientPtr /* client */,
+			pointer /* closure */
+#endif
+			);
+
     pointer		closure;
 } SertafiedRec, *SertafiedPtr;
 
@@ -49,11 +57,35 @@ static SertafiedPtr pPending;
 static RESTYPE	    SertafiedResType;
 static Bool	    BlockHandlerRegistered;
 static int	    SertafiedGeneration;
-static void	    ClientAwaken();
-static int	    SertafiedDelete();
-static void	    SertafiedBlockHandler();
-static void	    SertafiedWakeupHandler();
 
+static void	    ClientAwaken(
+#if NeedFunctionPrototypes
+    ClientPtr /* client */,
+    pointer /* closure */
+#endif
+);
+static int	    SertafiedDelete(
+#if NeedFunctionPrototypes
+    pointer /* value */,
+    XID /* id */
+#endif
+);
+static void	    SertafiedBlockHandler(
+#if NeedFunctionPrototypes
+    pointer /* data */,
+    OSTimePtr /* wt */,
+    pointer /* LastSelectMask */
+#endif
+);
+static void	    SertafiedWakeupHandler(
+#if NeedFunctionPrototypes
+    pointer /* data */,
+    int /* i */,
+    pointer /* LastSelectMask */
+#endif
+);
+
+int
 ClientSleepUntil (client, revive, notifyFunc, closure)
     ClientPtr	client;
     TimeStamp	*revive;
@@ -152,7 +184,7 @@ SertafiedBlockHandler (data, wt, LastSelectMask)
     pointer	    LastSelectMask;
 {
     SertafiedPtr	    pReq, pNext;
-    unsigned long	    newdelay, olddelay;
+    unsigned long	    delay;
     TimeStamp		    now;
 
     if (!pPending)
@@ -177,8 +209,8 @@ SertafiedBlockHandler (data, wt, LastSelectMask)
     pReq = pPending;
     if (!pReq)
 	return;
-    newdelay = pReq->revive.milliseconds - now.milliseconds;
-    AdjustWaitForDelay (wt, newdelay);
+    delay = pReq->revive.milliseconds - now.milliseconds;
+    AdjustWaitForDelay (wt, delay);
 }
 
 static void

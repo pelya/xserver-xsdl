@@ -3,6 +3,7 @@
  * 8 bit displays, in Copy mode with no clipping.
  */
 
+/* $XFree86: xc/programs/Xserver/cfb/cfbteblt8.c,v 1.6 2001/12/14 19:59:25 dawes Exp $ */
 /*
 
 Copyright 1989, 1998  The Open Group
@@ -159,7 +160,7 @@ typedef unsigned int	*glyphPointer;
 #endif
 
 #ifdef USE_LEFTBITS
-extern unsigned long endtab[];
+extern CfbBits endtab[];
 
 #define IncChar(c)  (c = (glyphPointer) (((char *) c) + glyphBytes))
 
@@ -313,7 +314,7 @@ extern unsigned long endtab[];
 #define StoreBits(o)	StorePixels(o,cfb8Pixels[(c) & PGSZBMSK]);
 #define FirstStep	Step
 #else /* PGSZ == 32 */
-#define StoreBits(o)	StorePixels(o,*((unsigned long *) (((char *) cfb8Pixels) + (c & 0x3c))));
+#define StoreBits(o)	StorePixels(o,*((CfbBits *) (((char *) cfb8Pixels) + (c & 0x3c))));
 #define FirstStep	c = BitLeft (c, 2);
 #endif /* PGSZ */
 #endif /* BITMAP_BIT_ORDER */
@@ -328,9 +329,9 @@ CFBTEGBLT8 (pDrawable, pGC, xInit, yInit, nglyph, ppci, pglyphBase)
     CharInfoPtr *ppci;		/* array of character info */
     pointer	pglyphBase;	/* start of array of glyphs */
 {
-    register unsigned long  c;
-    register unsigned long  *dst;
-    register unsigned long  leftMask, rightMask;
+    register CfbBits  c;
+    register CfbBits  *dst;
+    register CfbBits  leftMask, rightMask;
     register int	    hTmp;
     register int	    xoff1;
     register glyphPointer   char1;
@@ -349,11 +350,14 @@ CFBTEGBLT8 (pDrawable, pGC, xInit, yInit, nglyph, ppci, pglyphBase)
 #endif
 
     FontPtr		pfont = pGC->font;
-    unsigned long	*dstLine;
+    CfbBits	*dstLine;
     glyphPointer	oldRightChar;
-    unsigned long	*pdstBase;
+    CfbBits	*pdstBase;
     glyphPointer	leftChar;
-    int			widthDst, widthLeft;
+    int			widthDst;
+#ifndef FAST_CONSTANT_OFFSET_MODE
+    int			widthLeft;
+#endif
     int			widthGlyph;
     int			h;
     int			ew;
@@ -362,8 +366,8 @@ CFBTEGBLT8 (pDrawable, pGC, xInit, yInit, nglyph, ppci, pglyphBase)
     int			lshift;
     int			widthGlyphs;
 #ifdef USE_LEFTBITS
-    register unsigned long  glyphMask;
-    register unsigned long  tmpSrc;
+    register CfbBits  glyphMask;
+    register CfbBits  tmpSrc;
     register int	    glyphBytes;
 #endif
 
@@ -454,8 +458,8 @@ CFBTEGBLT8 (pDrawable, pGC, xInit, yInit, nglyph, ppci, pglyphBase)
 		    leftMask = cfbendtab[xoff1];
 		    rightMask = cfbstarttab[xoff1];
 
-#define StoreBits0	StorePixels (0,dst[0] & leftMask | \
-				       GetPixelGroup(c) & rightMask);
+#define StoreBits0	StorePixels (0, (dst[0] & leftMask) | \
+					(GetPixelGroup(c) & rightMask));
 #define GetBits GetBitsNS
 
 		    SwitchEm
@@ -520,7 +524,8 @@ CFBTEGBLT8 (pDrawable, pGC, xInit, yInit, nglyph, ppci, pglyphBase)
 		leftMask = cfbendtab[xoff1];
 		rightMask = cfbstarttab[xoff1];
 
-#define StoreBits0	StorePixels (0,dst[0] & leftMask | GetPixelGroup(c) & rightMask);
+#define StoreBits0	StorePixels (0, (dst[0] & leftMask) | \
+					(GetPixelGroup(c) & rightMask));
 #define GetBits	WGetBits1S
 
 		SwitchEm

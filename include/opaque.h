@@ -26,16 +26,17 @@ other dealings in this Software without prior written authorization
 from The Open Group.
 
 */
+/* $XFree86: xc/programs/Xserver/include/opaque.h,v 1.11 2002/10/08 23:55:22 dawes Exp $ */
 
 #ifndef OPAQUE_H
 #define OPAQUE_H
 
 #include <X11/Xmd.h>
 
-extern char *defaultFontPath;
+#include "globals.h"
+
 extern char *defaultTextFont;
 extern char *defaultCursorFont;
-extern char *rgbPath;
 extern int MaxClients;
 extern char isItTimeToYield;
 extern char dispatchException;
@@ -46,11 +47,36 @@ extern char dispatchException;
 #define DE_PRIORITYCHANGE 4  /* set when a client's priority changes */
 
 extern CARD32 TimeOutValue;
-extern CARD32 ScreenSaverTime;
-extern CARD32 ScreenSaverInterval;
-extern int  ScreenSaverBlanking;
-extern int  ScreenSaverAllowExposures;
+extern int ScreenSaverBlanking;
+extern int ScreenSaverAllowExposures;
+extern int defaultScreenSaverBlanking;
+extern int defaultScreenSaverAllowExposures;
 extern int argcGlobal;
 extern char **argvGlobal;
+extern char *display;
+
+extern int defaultBackingStore;
+extern Bool disableBackingStore;
+extern Bool enableBackingStore;
+extern Bool disableSaveUnders;
+extern Bool PartialNetwork;
+#ifndef NOLOGOHACK
+extern int logoScreenSaver;
+#endif
+#ifdef RLIMIT_DATA
+extern int limitDataSpace;
+#endif
+#ifdef RLIMIT_STACK
+extern int limitStackSpace;
+#endif
+#ifdef RLIMIT_NOFILE
+extern int limitNoFile;
+#endif
+extern Bool permitOldBugs;
+extern Bool defeatAccessControl;
+extern char* protNoListen;
+extern Bool blackRoot;
+
+
 
 #endif /* OPAQUE_H */

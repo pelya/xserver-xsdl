@@ -24,6 +24,7 @@ OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION  WITH
 THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 ********************************************************/
+/* $XFree86: xc/programs/Xserver/xkb/ddxKillSrv.c,v 1.3 2002/11/23 19:27:50 tsi Exp $ */
 
 #include <stdio.h>
 #define	NEED_EVENTS 1
@@ -36,6 +37,10 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include "XKBsrv.h"
 #include "XI.h"
 
+#ifdef XF86DDXACTIONS
+#include "xf86.h"
+#endif
+
 int
 #if NeedFunctionPrototypes
 XkbDDXTerminateServer(DeviceIntPtr dev,KeyCode key,XkbAction *act)
@@ -46,6 +51,10 @@ XkbDDXTerminateServer(dev,key,act)
     XkbAction	 *act;
 #endif
 {
+#ifdef XF86DDXACTIONS
+    xf86ProcessActionEvent(ACTION_TERMINATE, NULL);
+#else
     GiveUp(1);
+#endif
     return 0;
 }

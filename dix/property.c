@@ -1,3 +1,4 @@
+/* $XFree86: xc/programs/Xserver/dix/property.c,v 3.12 2002/02/19 11:09:22 alanh Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -53,12 +54,23 @@ SOFTWARE.
 #include "windowstr.h"
 #include "propertyst.h"
 #include "dixstruct.h"
+#include "dispatch.h"
+#include "swaprep.h"
 #ifdef XCSECURITY
 #define _SECURITY_SERVER
-#include "extensions/security.h"
+#include "security.h"
+#endif
+#ifdef LBX
+#include "lbxserve.h"
+#include "lbxtags.h"
 #endif
 
-extern void CopySwap16Write(), CopySwap32Write(), Swap32Write();
+#if defined(LBX) || defined(LBX_COMPAT)
+int fWriteToClient(ClientPtr client, int len, char *buf)
+{
+    return WriteToClient(client, len, buf);
+}
+#endif
 
 /*****************************************************************
  * Property Stuff
@@ -609,9 +621,9 @@ ProcGetProperty(client)
     if (len)
     {
 	switch (reply.format) {
-	case 32: client->pSwapReplyFunc = CopySwap32Write; break;
-	case 16: client->pSwapReplyFunc = CopySwap16Write; break;
-	default: client->pSwapReplyFunc = (void (*) ())WriteToClient; break;
+	case 32: client->pSwapReplyFunc = (ReplySwapPtr)CopySwap32Write; break;
+	case 16: client->pSwapReplyFunc = (ReplySwapPtr)CopySwap16Write; break;
+	default: client->pSwapReplyFunc = (ReplySwapPtr)WriteToClient; break;
 	}
 	WriteSwappedDataToClient(client, len,
 				 (char *)pProp->data + ind);
@@ -640,7 +652,7 @@ int
 ProcListProperties(client)
     ClientPtr client;
 {
-    Atom *pAtoms, *temppAtoms;
+    Atom *pAtoms = NULL, *temppAtoms;
     xListPropertiesReply xlpr;
     int	numProps = 0;
     WindowPtr pWin;
@@ -677,7 +689,7 @@ ProcListProperties(client)
     WriteReplyToClient(client, sizeof(xGenericReply), &xlpr);
     if (numProps)
     {
-        client->pSwapReplyFunc = Swap32Write;
+        client->pSwapReplyFunc = (ReplySwapPtr)Swap32Write;
         WriteSwappedDataToClient(client, numProps * sizeof(Atom), pAtoms);
         DEALLOCATE_LOCAL(pAtoms);
     }

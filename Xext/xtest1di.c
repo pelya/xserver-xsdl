@@ -52,6 +52,7 @@ Telephone and Telegraph Company or of the Regents of the
 University of California.
 
 */
+/* $XFree86: xc/programs/Xserver/Xext/xtest1di.c,v 3.3 2001/12/14 19:58:52 dawes Exp $ */
 
 /*****************************************************************************
  * include files
@@ -72,6 +73,8 @@ University of California.
 #define  XTestSERVER_SIDE
 #include "xtestext1.h"
 
+#include "xtest1dd.h"
+
 /*****************************************************************************
  * defines
  ****************************************************************************/
@@ -80,10 +83,6 @@ University of California.
  * externals
  ****************************************************************************/
 
-/*
- * holds the addresses of the routines that handle byte-swapping of replys
- */
-extern void		(* ReplySwapVector[256]) ();
 /*
  * id of client using XTestGetInput
  *
@@ -137,31 +136,44 @@ static XID		current_client_id;
  * function declarations
  ****************************************************************************/
 
-static int	ProcXTestDispatch();
-static int	SProcXTestDispatch();
-static void	XTestResetProc();
-static int	ProcTestFakeInput();
-static int	SProcTestFakeInput();
-static int	ProcTestGetInput();
-static int	SProcTestGetInput();
-static int	ProcTestStopInput();
-static int	SProcTestStopInput();
-static int	ProcTestReset();
-static int	SProcTestReset();
-static int	ProcTestQueryInputSize();
-static int	SProcTestQueryInputSize();
-static void	SReplyXTestDispatch();
-static void	SEventXTestDispatch();
-void	NotImplemented();
+static DISPATCH_PROC(ProcXTestDispatch);
+static DISPATCH_PROC(SProcXTestDispatch);
+static DISPATCH_PROC(ProcTestFakeInput);
+static DISPATCH_PROC(SProcTestFakeInput);
+static DISPATCH_PROC(ProcTestGetInput);
+static DISPATCH_PROC(SProcTestGetInput);
+static DISPATCH_PROC(ProcTestStopInput);
+static DISPATCH_PROC(SProcTestStopInput);
+static DISPATCH_PROC(ProcTestReset);
+static DISPATCH_PROC(SProcTestReset);
+static DISPATCH_PROC(ProcTestQueryInputSize);
+static DISPATCH_PROC(SProcTestQueryInputSize);
 
-void	abort_play_back();
-void	return_input_array_size();
-void	steal_input();
-void	stop_stealing_input();
-void	flush_input_actions();
-void	parse_fake_input();
+static void	XTestResetProc(
+#if NeedFunctionPrototypes
+	ExtensionEntry *	/* unused */
+#endif
+	);
+static void	SReplyXTestDispatch(
+#if NeedFunctionPrototypes
+	ClientPtr		/* client_ptr */,
+	int			/* size */,
+	char *			/* reply_ptr */
+#endif
+	);
+static void	SEventXTestDispatch(
+#if NeedFunctionPrototypes
+	xEvent *		/* from */,
+	xEvent *		/* to */
+#endif
+	);
 
-static int	XTestCurrentClientGone();
+static int	XTestCurrentClientGone(
+#if NeedFunctionPrototypes
+	pointer			/* value */,
+	XID			/* id */
+#endif
+	);
 
 /*****************************************************************************
  *
@@ -180,10 +192,6 @@ XTestExtension1Init()
 	 * holds the pointer to the extension entry structure
 	 */
 	ExtensionEntry	*extEntry;
-	/*
-	 * This routine adds the extension to the server extension table.
-	 */
-	ExtensionEntry	*AddExtension();
 
 	extEntry = AddExtension(XTestEXTENSION_NAME,
 				XTestEVENT_COUNT,
@@ -213,7 +221,7 @@ XTestExtension1Init()
 		 * install the routine to handle byte-swapping the replies
 		 * for this extension in the ReplySwapVector table
 		 */
-		ReplySwapVector[XTestReqCode] = SReplyXTestDispatch;
+		ReplySwapVector[XTestReqCode] = (ReplySwapPtr) SReplyXTestDispatch;
 		/*
 		 * install the routine to handle byte-swapping the events
 		 * for this extension in the EventSwapVector table
@@ -647,7 +655,6 @@ static int
 ProcTestStopInput(client)
 	register ClientPtr	client;
 {
-	REQUEST(xTestStopInputReq);
 	REQUEST_SIZE_MATCH(xTestStopInputReq);
 	if (on_steal_input && (current_xtest_client == client)) 
 	{ 
@@ -686,7 +693,6 @@ static int
 ProcTestReset(client)
 	register ClientPtr	client;
 {
-	REQUEST(xTestResetReq);
 	REQUEST_SIZE_MATCH(xTestResetReq);
 	on_steal_input = FALSE;
 	exclusive_steal = FALSE;
@@ -711,7 +717,6 @@ static int
 ProcTestQueryInputSize(client)
 	register ClientPtr	client;
 {
-	REQUEST(xTestQueryInputSizeReq);
 	REQUEST_SIZE_MATCH(xTestQueryInputSizeReq);
 	/*
 	 * defined in xtest1dd.c
@@ -728,14 +733,16 @@ ProcTestQueryInputSize(client)
  *	connected to it.  It must put eveything back the way it was before
  *	this extension was installed.
  */
+/*ARGSUSED*/
 static void
-XTestResetProc()
+XTestResetProc(unused)
+	ExtensionEntry * unused;
 {
 	/*
 	 * remove the routine to handle byte-swapping the replies
 	 * for this extension in the ReplySwapVector table
 	 */
-	ReplySwapVector[XTestReqCode] = NotImplemented;
+	ReplySwapVector[XTestReqCode] = ReplyNotSwappd;
 	/*
 	 * remove the routine to handle byte-swapping the events
 	 * for this extension in the EventSwapVector table
@@ -755,7 +762,7 @@ XTestResetProc()
 
 /*****************************************************************************
  *
- *	ProcTestQueryInputSize
+ *	PXTestCurrentClientGone
  *
  *	This routine is called when a client that has asked for input actions
  *	to be sent to it "goes away".  This routine must clean up the 

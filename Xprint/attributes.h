@@ -30,13 +30,32 @@ not be used in advertising or otherwise to promote the sale, use or other
 dealings in this Software without prior written authorization from said
 copyright holders.
 */
+/* $XFree86: xc/programs/Xserver/Xprint/attributes.h,v 1.6 2001/12/21 21:02:05 dawes Exp $ */
 
-#include "Oid.h"
+#ifndef _Xp_attributes_h
+#define _Xp_attributes_h 1
+
+#include "scrnintstr.h"
+#include "AttrValid.h"
+
+#define BFuncArgs int ndx, ScreenPtr pScreen, int argc, char **argv
+typedef Bool (*pBFunc)(BFuncArgs);
+
+#define VFuncArgs char *name, XpValidatePoolsRec *pValRec, float *width, float *height, int *res
+typedef void (*pVFunc)(VFuncArgs);
 
 /*
  * attributes.c
  */
 void XpInitAttributes(XpContextPtr pContext);
+void XpBuildAttributeStore(char *printerName,
+			   char *qualifierName);
+void XpAddPrinterAttribute(char *printerName,
+			   char *printerQualifier,
+			   char *attributeName,
+			   char *attributeValue);
+void XpDestroyAttributes(XpContextPtr pContext);
+char *XpGetConfigDir(Bool useLocale);
 char *XpGetOneAttribute(XpContextPtr pContext,
 			XPAttributes class,
 			char *attributeName);
@@ -44,6 +63,7 @@ void XpPutOneAttribute(XpContextPtr pContext,
 		       XPAttributes class,
 		       const char* attributeName,
 		       const char* value);
+int XpRehashAttributes(void);
 char *XpGetAttributes(XpContextPtr pContext,
 		      XPAttributes class);
 int XpAugmentAttributes(XpContextPtr pContext,
@@ -57,6 +77,7 @@ const char *XpGetPrinterAttribute(const char *printerName,
 void XpGetTrayMediumFromContext(XpContextPtr pCon,
 				char **medium,
 				char **tray);
+int XpSubmitJob(char *fileName, XpContextPtr pContext);
 
 /*
  * mediaSizes.c
@@ -76,3 +97,34 @@ void XpGetMediumDimensions(XpContextPtr pContext,
 			   unsigned short *height);
 void XpGetReproductionArea(XpContextPtr pContext,
 			   xRectangle *pRect);
+void XpGetMaxWidthHeightRes(const char *printer_name,
+			   const XpValidatePoolsRec* vpr,
+			   float *width,
+			   float *height,
+			   int* resolution);
+
+/* Util.c */
+char * ReplaceAnyString(char *string, 
+			char *target, 
+			char *replacement);
+char * ReplaceFileString(char *string,
+			 char *inFileName,
+			 char *outFileName);
+void ExecCommand(char *pCommand,
+		 char **argVector);
+int TransferBytes(FILE *pSrcFile,
+		  FILE *pDstFile,
+		  int numBytes);
+Bool CopyContentsAndDelete(FILE **ppSrcFile,
+			   char **pSrcFileName,
+			   FILE *pDstFile);
+int XpSendDocumentData(ClientPtr client,
+		       FILE *fp,
+		       int fileLen,
+		       int maxBufSize);
+int XpFinishDocData(ClientPtr client);
+Bool XpOpenTmpFile(char *mode,
+		   char **fname,
+		   FILE **stream);
+
+#endif /* _Xp_attributes_h */

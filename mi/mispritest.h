@@ -30,8 +30,12 @@ Except as contained in this notice, the name of The Open Group shall not be
 used in advertising or otherwise to promote the sale, use or other dealings
 in this Software without prior written authorization from The Open Group.
 */
+/* $XFree86: xc/programs/Xserver/mi/mispritest.h,v 1.5 2001/12/14 20:00:27 dawes Exp $ */
 
 # include   "misprite.h"
+#ifdef RENDER
+# include   "picturestr.h"
+#endif
 
 /*
  * per screen information
@@ -52,6 +56,10 @@ typedef struct {
     ClearToBackgroundProcPtr		ClearToBackground;
     SaveDoomedAreasProcPtr		SaveDoomedAreas;
     RestoreAreasProcPtr			RestoreAreas;
+#ifdef RENDER
+    CompositeProcPtr			Composite;
+    GlyphsProcPtr			Glyphs;
+#endif
 
     CursorPtr	    pCursor;
     int		    x;

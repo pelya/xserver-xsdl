@@ -45,6 +45,7 @@ not be used in advertising or otherwise to promote the sale, use or other
 dealings in this Software without prior written authorization from said
 copyright holders.
 */
+/* $XFree86: xc/programs/Xserver/Xprint/pcl/PclSFonts.c,v 1.6 2001/10/28 03:32:55 tsi Exp $ */
 
 
 #include <stdio.h>
@@ -75,8 +76,7 @@ PclDownloadSoftFont8(
     PclSoftFontInfoPtr pSoftFontInfo,
     PclFontHead8Ptr pfh,
     PclCharDataPtr pcd,
-    unsigned char *code,
-    int flag
+    unsigned char *code
 )
 {
     /*
@@ -103,8 +103,7 @@ PclDownloadSoftFont16(
     PclFontHead16Ptr pfh,
     PclCharDataPtr pcd,
     unsigned char row,
-    unsigned char col,
-    int flag
+    unsigned char col
 )
 {
     /*
@@ -129,8 +128,7 @@ PclDownloadSoftFont16(
  * of the downloaded soft font.
  * **************************************************************************/
 PclSoftFontInfoPtr
-PclCreateSoftFontInfo(
-)
+PclCreateSoftFontInfo(void)
 {
 PclSoftFontInfoPtr pSoftFontInfo;
 
@@ -154,7 +152,7 @@ PclFontHead8Ptr  pfh8,  pfh8_next;
 PclFontHead16Ptr pfh16, pfh16_next;
 PclInternalFontPtr pin, pin_next;
 unsigned char nindex_row, nindex_col;
-int i, j;
+int i;
 
     if ( pSoftFontInfo == (PclSoftFontInfoPtr) NULL )
 	return;

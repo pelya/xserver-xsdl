@@ -1,3 +1,4 @@
+/* $XFree86: xc/programs/Xserver/os/WaitFor.c,v 3.38 2002/05/31 18:46:05 dawes Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -59,48 +60,42 @@ SOFTWARE.
 #include <X11/Xwinsock.h>
 #endif
 #include "Xos.h"			/* for strings, fcntl, time */
-
 #include <errno.h>
-#ifdef X_NOT_STDC_ENV
-extern int errno;
-#endif
-
 #include <stdio.h>
 #include "X.h"
 #include "misc.h"
 
-#include <X11/Xpoll.h>
+#ifdef __UNIXOS2__
+#define select(n,r,w,x,t) os2PseudoSelect(n,r,w,x,t)
+#endif
 #include "osdep.h"
+#include <X11/Xpoll.h>
 #include "dixstruct.h"
 #include "opaque.h"
-
 #ifdef DPMSExtension
-#include "dpms.h"
-extern void DPMSSet();
-extern void DPMSGet();
-extern CARD32 DPMSStandbyTime;
-extern CARD32 DPMSSuspendTime;
-extern CARD32 DPMSOffTime;
-extern BOOL DPMSEnabled;
-extern CARD16 DPMSPowerLevel;
+#include "dpmsproc.h"
 #endif
 
-extern fd_set AllSockets;
-extern fd_set AllClients;
-extern fd_set LastSelectMask;
-extern fd_set WellKnownConnections;
-extern fd_set EnabledDevices;
-extern fd_set ClientsWithInput;
-extern fd_set ClientsWriteBlocked;
-extern fd_set OutputPending;
+/* modifications by raphael */
+int
+mffs(fd_mask mask)
+{
+    int i;
 
-extern int ConnectionTranslation[];
+    if (!mask) return 0;
+    i = 1;
+    while (!(mask & 1))
+    {
+	i++;
+	mask >>= 1;
+    }
+    return i;
+}
 
-extern Bool NewOutputPending;
-extern Bool AnyClientsWriteBlocked;
-
-extern WorkQueuePtr workQueue;
-
+#ifdef DPMSExtension
+#define DPMS_SERVER
+#include "dpms.h"
+#endif
 
 #ifdef XTESTEXT1
 /*
@@ -116,7 +111,7 @@ struct _OsTimerRec {
     pointer		arg;
 };
 
-static void DoTimer();
+static void DoTimer(OsTimerPtr timer, CARD32 now, OsTimerPtr *prev);
 static OsTimerPtr timers;
 
 /*****************
@@ -144,9 +139,9 @@ WaitForSomething(pClientsReady)
 {
     int i;
     struct timeval waittime, *wt;
-    INT32 timeout;
+    INT32 timeout = 0;
 #ifdef DPMSExtension
-    INT32 standbyTimeout, suspendTimeout, offTimeout;
+    INT32 standbyTimeout = 0, suspendTimeout = 0, offTimeout = 0;
 #endif
     fd_set clientsReadable;
     fd_set clientsWritable;
@@ -154,7 +149,10 @@ WaitForSomething(pClientsReady)
     int selecterr;
     int nready;
     fd_set devicesReadable;
-    CARD32 now;
+    CARD32 now = 0;
+#ifdef SMART_SCHEDULE
+    Bool    someReady = FALSE;
+#endif
 
     FD_ZERO(&clientsReadable);
 
@@ -165,12 +163,32 @@ WaitForSomething(pClientsReady)
 	/* deal with any blocked jobs */
 	if (workQueue)
 	    ProcessWorkQueue();
-
 	if (XFD_ANYSET (&ClientsWithInput))
 	{
-	    XFD_COPYSET (&ClientsWithInput, &clientsReadable);
-	    break;
+#ifdef SMART_SCHEDULE
+	    if (!SmartScheduleDisable)
+	    {
+		someReady = TRUE;
+		waittime.tv_sec = 0;
+		waittime.tv_usec = 0;
+		wt = &waittime;
+	    }
+	    else
+#endif
+	    {
+		XFD_COPYSET (&ClientsWithInput, &clientsReadable);
+		break;
+	    }
 	}
+#ifdef SMART_SCHEDULE
+	if (someReady)
+	{
+	    XFD_COPYSET(&AllSockets, &LastSelectMask);
+	    XFD_UNSET(&LastSelectMask, &ClientsWithInput);
+	}
+	else
+	{
+#endif
 #ifdef DPMSExtension
 	if (ScreenSaverTime > 0 || DPMSEnabled || timers)
 #else
@@ -180,7 +198,7 @@ WaitForSomething(pClientsReady)
 	wt = NULL;
 	if (timers)
 	{
-	    while (timers && timers->expires <= now)
+	    while (timers && (int) (timers->expires - now) <= 0)
 		DoTimer(timers, now, &timers);
 	    if (timers)
 	    {
@@ -193,8 +211,8 @@ WaitForSomething(pClientsReady)
 	}
 	if (ScreenSaverTime > 0
 #ifdef DPMSExtension
-	     || (DPMSEnabled &&
-	      (DPMSStandbyTime > 0 || DPMSSuspendTime > 0 || DPMSOffTime > 0))
+	    || (DPMSEnabled &&
+	     (DPMSStandbyTime > 0 || DPMSSuspendTime > 0 || DPMSOffTime > 0))
 #endif
 	) {
 #ifdef DPMSExtension
@@ -214,11 +232,12 @@ WaitForSomething(pClientsReady)
 			      (now - lastDeviceEventTime.milliseconds));
 #endif /* DPMSExtension */
 
-	    if (timeout <= 0
+	    if (
+		timeout <= 0
 #ifdef DPMSExtension
 		 && ScreenSaverTime > 0
 #endif /* DPMSExtension */
-	   ) {
+	    ) {
 		INT32 timeSinceSave;
 
 		timeSinceSave = -timeout;
@@ -250,15 +269,18 @@ WaitForSomething(pClientsReady)
 #ifdef DPMSExtension
 	    if (DPMSEnabled)
 	    {
-		if (standbyTimeout > 0 && timeout > standbyTimeout)
+		if (standbyTimeout > 0 
+		    && (timeout <= 0 || timeout > standbyTimeout))
 		    timeout = standbyTimeout;
-		if (suspendTimeout > 0 && timeout > suspendTimeout)
+		if (suspendTimeout > 0 
+		    && (timeout <= 0 || timeout > suspendTimeout))
 		    timeout = suspendTimeout;
-		if (offTimeout > 0 && timeout > offTimeout)
+		if (offTimeout > 0 
+		    && (timeout <= 0 || timeout > offTimeout))
 		    timeout = offTimeout;
 	    }
 #endif
-	    if (timeout > 0 && (!wt || timeout < (timers->expires - now)))
+	    if (timeout > 0 && (!wt || timeout < (int) (timers->expires - now)))
 	    {
 		waittime.tv_sec = timeout / MILLI_PER_SECOND;
 		waittime.tv_usec = (timeout % MILLI_PER_SECOND) *
@@ -301,6 +323,10 @@ WaitForSomething(pClientsReady)
 #endif
 	}
 	XFD_COPYSET(&AllSockets, &LastSelectMask);
+#ifdef SMART_SCHEDULE
+	}
+	SmartScheduleIdle = TRUE;
+#endif
 	BlockHandler((pointer)&wt, (pointer)&LastSelectMask);
 	if (NewOutputPending)
 	    FlushAllOutput();
@@ -317,10 +343,12 @@ WaitForSomething(pClientsReady)
 	else if (AnyClientsWriteBlocked)
 	{
 	    XFD_COPYSET(&ClientsWriteBlocked, &clientsWritable);
-	    i = Select (MAXSOCKS, &LastSelectMask, &clientsWritable, NULL, wt);
+	    i = Select (MaxClients, &LastSelectMask, &clientsWritable, NULL, wt);
 	}
-	else
-	    i = Select (MAXSOCKS, &LastSelectMask, NULL, NULL, wt);
+	else 
+	{
+	    i = Select (MaxClients, &LastSelectMask, NULL, NULL, wt);
+	}
 	selecterr = errno;
 	WakeupHandler(i, (pointer)&LastSelectMask);
 #ifdef XTESTEXT1
@@ -328,13 +356,21 @@ WaitForSomething(pClientsReady)
 	    i = XTestProcessInputAction (i, &waittime);
 	}
 #endif /* XTESTEXT1 */
+#ifdef SMART_SCHEDULE
+	if (i >= 0)
+	{
+	    SmartScheduleIdle = FALSE;
+	    SmartScheduleIdleCount = 0;
+	    if (SmartScheduleTimerStopped)
+		(void) SmartScheduleStartTimer ();
+	}
+#endif
 	if (i <= 0) /* An error or timeout occurred */
 	{
-
 	    if (dispatchException)
 		return 0;
-	    FD_ZERO(&clientsWritable);
 	    if (i < 0) 
+	    {
 		if (selecterr == EBADF)    /* Some client disconnected */
 		{
 		    CheckConnections ();
@@ -351,10 +387,22 @@ WaitForSomething(pClientsReady)
 		    ErrorF("WaitForSomething(): select: errno=%d\n",
 			selecterr);
 		}
+	    }
+#ifdef SMART_SCHEDULE
+	    else if (someReady)
+	    {
+		/*
+		 * If no-one else is home, bail quickly
+		 */
+		XFD_COPYSET(&ClientsWithInput, &LastSelectMask);
+		XFD_COPYSET(&ClientsWithInput, &clientsReadable);
+		break;
+	    }
+#endif
 	    if (timers)
 	    {
 		now = GetTimeInMillis();
-		while (timers && timers->expires <= now)
+		while (timers && (int) (timers->expires - now) <= 0)
 		    DoTimer(timers, now, &timers);
 	    }
 	    if (*checkForInput[0] != *checkForInput[1])
@@ -362,9 +410,11 @@ WaitForSomething(pClientsReady)
 	}
 	else
 	{
-#ifdef WIN32
 	    fd_set tmp_set;
-#endif
+#ifdef SMART_SCHEDULE
+	    if (someReady)
+		XFD_ORSET(&LastSelectMask, &ClientsWithInput, &LastSelectMask);
+#endif	    
 	    if (AnyClientsWriteBlocked && XFD_ANYSET (&clientsWritable))
 	    {
 		NewOutputPending = TRUE;
@@ -376,12 +426,8 @@ WaitForSomething(pClientsReady)
 
 	    XFD_ANDSET(&devicesReadable, &LastSelectMask, &EnabledDevices);
 	    XFD_ANDSET(&clientsReadable, &LastSelectMask, &AllClients); 
-#ifndef WIN32
-	    if (LastSelectMask.fds_bits[0] & WellKnownConnections.fds_bits[0]) 
-#else
 	    XFD_ANDSET(&tmp_set, &LastSelectMask, &WellKnownConnections);
 	    if (XFD_ANYSET(&tmp_set))
-#endif
 		QueueWorkProc(EstablishNewConnections, NULL,
 			      (pointer)&LastSelectMask);
 #ifdef DPMSExtension
@@ -399,16 +445,17 @@ WaitForSomething(pClientsReady)
 #ifndef WIN32
 	for (i=0; i<howmany(XFD_SETSIZE, NFDBITS); i++)
 	{
-	    int highest_priority;
+	    int highest_priority = 0;
 
 	    while (clientsReadable.fds_bits[i])
 	    {
 	        int client_priority, client_index;
 
 		curclient = ffs (clientsReadable.fds_bits[i]) - 1;
-		client_index = ConnectionTranslation[curclient + (i << 5)];
+		client_index = /* raphael: modified */
+			ConnectionTranslation[curclient + (i * (sizeof(fd_mask) * 8))];
 #else
-	int highest_priority;
+	int highest_priority = 0;
 	fd_set savedClientsReadable;
 	XFD_COPYSET(&clientsReadable, &savedClientsReadable);
 	for (i = 0; i < XFD_SETCOUNT(&savedClientsReadable); i++)
@@ -450,7 +497,7 @@ WaitForSomething(pClientsReady)
 		    pClientsReady[nready++] = client_index;
 		}
 #ifndef WIN32
-		clientsReadable.fds_bits[i] &= ~(((fd_mask)1) << curclient);
+		clientsReadable.fds_bits[i] &= ~(((fd_mask)1L) << curclient);
 	    }
 #else
 	    FD_CLR(curclient, &clientsReadable);
@@ -476,11 +523,9 @@ ANYSET(src)
 }
 #endif
 
+
 static void
-DoTimer(timer, now, prev)
-    register OsTimerPtr timer;
-    CARD32 now;
-    OsTimerPtr *prev;
+DoTimer(OsTimerPtr timer, CARD32 now, OsTimerPtr *prev)
 {
     CARD32 newTime;
 
@@ -536,7 +581,7 @@ TimerSet(timer, flags, millis, func, arg)
 	    return timer;
     }
     for (prev = &timers;
-	 *prev && millis > (*prev)->expires;
+	 *prev && (int) ((*prev)->expires - millis) <= 0;
 	 prev = &(*prev)->next)
 	;
     timer->next = *prev;
@@ -549,7 +594,6 @@ TimerForce(timer)
     register OsTimerPtr timer;
 {
     register OsTimerPtr *prev;
-    register CARD32 newTime;
 
     for (prev = &timers; *prev; prev = &(*prev)->next)
     {
@@ -596,7 +640,7 @@ TimerCheck()
 {
     register CARD32 now = GetTimeInMillis();
 
-    while (timers && timers->expires <= now)
+    while (timers && (int) (timers->expires - now) <= 0)
 	DoTimer(timers, now, &timers);
 }
 
@@ -605,7 +649,7 @@ TimerInit()
 {
     OsTimerPtr timer;
 
-    while (timer = timers)
+    while ((timer = timers))
     {
 	timers = timer->next;
 	xfree(timer);

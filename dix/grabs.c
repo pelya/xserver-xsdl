@@ -46,6 +46,7 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 */
+/* $XFree86: xc/programs/Xserver/dix/grabs.c,v 3.4 2002/02/19 11:09:22 alanh Exp $ */
 
 #include "X.h"
 #include "misc.h"
@@ -54,8 +55,7 @@ SOFTWARE.
 #include "windowstr.h"
 #include "inputstr.h"
 #include "cursorstr.h"
-
-extern InputInfo inputInfo;
+#include "dixgrabs.h"
 
 #define BITMASK(i) (((Mask)1) << ((i) & 31))
 #define MASKIDX(i) ((i) >> 5)
@@ -65,6 +65,20 @@ extern InputInfo inputInfo;
 #define GETBIT(buf, i) (MASKWORD(buf, i) & BITMASK(i))
 
 GrabPtr
+#if NeedFunctionPrototypes
+CreateGrab(
+    int client,
+    DeviceIntPtr device,
+    WindowPtr window,
+    Mask eventMask,
+    Bool ownerEvents, Bool keyboardMode, Bool pointerMode,
+    DeviceIntPtr modDevice,
+    unsigned short modifiers,
+    int type,
+    KeyCode keybut,	/* key or button */
+    WindowPtr confineTo,
+    CursorPtr cursor)
+#else
 CreateGrab(client, device, window, eventMask, ownerEvents, keyboardMode,
 	   pointerMode, modDevice, modifiers, type, keybut, confineTo, cursor)
     int client;
@@ -78,6 +92,7 @@ CreateGrab(client, device, window, eventMask, ownerEvents, keyboardMode,
     KeyCode keybut;	/* key or button */
     WindowPtr confineTo;
     CursorPtr cursor;
+#endif
 {
     GrabPtr grab;
 
@@ -110,8 +125,12 @@ CreateGrab(client, device, window, eventMask, ownerEvents, keyboardMode,
 }
 
 static void
+#if NeedFunctionPrototypes
+FreeGrab(GrabPtr pGrab)
+#else
 FreeGrab(pGrab)
     GrabPtr pGrab;
+#endif
 {
     if (pGrab->modifiersDetail.pMask != NULL)
 	xfree(pGrab->modifiersDetail.pMask);
@@ -154,9 +173,13 @@ DeletePassiveGrab(value, id)
 }
 
 static Mask *
+#if NeedFunctionPrototypes
+DeleteDetailFromMask(Mask *pDetailMask, unsigned short detail)
+#else
 DeleteDetailFromMask(pDetailMask, detail)
     Mask *pDetailMask;
     unsigned short detail;
+#endif
 {
     register Mask *mask;
     register int i;
@@ -176,9 +199,16 @@ DeleteDetailFromMask(pDetailMask, detail)
 }
 
 static Bool
+#if NeedFunctionPrototypes
+IsInGrabMask(
+    DetailRec firstDetail,
+    DetailRec secondDetail,
+    unsigned short exception)
+#else
 IsInGrabMask(firstDetail, secondDetail, exception)
     DetailRec firstDetail, secondDetail;
     unsigned short exception;
+#endif
 {
     if (firstDetail.exact == exception)
     {
@@ -197,8 +227,15 @@ IsInGrabMask(firstDetail, secondDetail, exception)
 }
 
 static Bool 
+#if NeedFunctionPrototypes
+IdenticalExactDetails(
+    unsigned short firstExact,
+    unsigned short secondExact,
+    unsigned short exception)
+#else
 IdenticalExactDetails(firstExact, secondExact, exception)
     unsigned short firstExact, secondExact, exception;
+#endif
 {
     if ((firstExact == exception) || (secondExact == exception))
 	return FALSE;
@@ -210,9 +247,16 @@ IdenticalExactDetails(firstExact, secondExact, exception)
 }
 
 static Bool 
+#if NeedFunctionPrototypes
+DetailSupersedesSecond(
+    DetailRec firstDetail,
+    DetailRec secondDetail,
+    unsigned short exception)
+#else
 DetailSupersedesSecond(firstDetail, secondDetail, exception)
     DetailRec firstDetail, secondDetail;
     unsigned short exception;
+#endif
 {
     if (IsInGrabMask(firstDetail, secondDetail, exception))
 	return TRUE;
@@ -225,8 +269,12 @@ DetailSupersedesSecond(firstDetail, secondDetail, exception)
 }
 
 static Bool
+#if NeedFunctionPrototypes
+GrabSupersedesSecond(GrabPtr pFirstGrab, GrabPtr pSecondGrab)
+#else
 GrabSupersedesSecond(pFirstGrab, pSecondGrab)
     GrabPtr pFirstGrab, pSecondGrab;
+#endif
 {
     if (!DetailSupersedesSecond(pFirstGrab->modifiersDetail,
 				pSecondGrab->modifiersDetail, 

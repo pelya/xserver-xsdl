@@ -24,6 +24,7 @@ OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION  WITH
 THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 ********************************************************/
+/* $XFree86: xc/programs/Xserver/xkb/ddxList.c,v 3.7 2001/10/28 03:34:19 tsi Exp $ */
 
 #include <stdio.h>
 #include <ctype.h>
@@ -173,13 +174,13 @@ char tmpname[32];
 		    +(xkbDebugFlags>9?2:1)+strlen(file)+31 > PATH_MAX)
 		return BadImplementation;
 #ifndef WIN32
-	    sprintf(buf,"%s/xkbcomp -R%s/%s -w %d -l -vlfhpR '%s'",
-		XkbBaseDirectory,XkbBaseDirectory,componentDirs[what],
+	    sprintf(buf,"%s/xkbcomp -R%s/%s -w %ld -l -vlfhpR '%s'",
+		XkbBaseDirectory,XkbBaseDirectory,componentDirs[what],(long)
 		((xkbDebugFlags<2)?1:((xkbDebugFlags>10)?10:xkbDebugFlags)),
 		file);
 #else
-	    sprintf(buf,"%s/xkbcomp -R%s/%s -w %d -l -vlfhpR '%s' %s",
-		XkbBaseDirectory,XkbBaseDirectory,componentDirs[what],
+	    sprintf(buf,"%s/xkbcomp -R%s/%s -w %ld -l -vlfhpR '%s' %s",
+		XkbBaseDirectory,XkbBaseDirectory,componentDirs[what],(long)
 		((xkbDebugFlags<2)?1:((xkbDebugFlags>10)?10:xkbDebugFlags)),
 		file, tmpname);
 #endif
@@ -198,13 +199,13 @@ char tmpname[32];
 		    +(xkbDebugFlags>9?2:1)+strlen(file)+29 > PATH_MAX)
 		return BadImplementation;
 #ifndef WIN32
-	    sprintf(buf,"xkbcomp -R%s -w %d -l -vlfhpR '%s'",
-		componentDirs[what],
+	    sprintf(buf,"xkbcomp -R%s -w %ld -l -vlfhpR '%s'",
+		componentDirs[what],(long)
 		((xkbDebugFlags<2)?1:((xkbDebugFlags>10)?10:xkbDebugFlags)),
 		file);
 #else
-	    sprintf(buf,"xkbcomp -R%s -w %d -l -vlfhpR '%s' %s",
-		componentDirs[what],
+	    sprintf(buf,"xkbcomp -R%s -w %ld -l -vlfhpR '%s' %s",
+		componentDirs[what],(long)
 		((xkbDebugFlags<2)?1:((xkbDebugFlags>10)?10:xkbDebugFlags)),
 		file, tmpname);
 #endif
@@ -213,10 +214,10 @@ char tmpname[32];
     status= Success;
     if (!haveDir)
 #ifndef WIN32
-	in= popen(buf,"r");
+	in= Popen(buf,"r");
 #else
     {
-	if (system(buf) < 0)
+	if (System(buf) < 0)
 	    ErrorF("Could not invoke keymap compiler\n");
 	else
 	    in= fopen(tmpname, "r");

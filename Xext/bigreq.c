@@ -26,7 +26,9 @@ other dealings in this Software without prior written authorization
 from The Open Group.
 
 */
+/* $XFree86: xc/programs/Xserver/Xext/bigreq.c,v 3.5 2001/12/14 19:58:48 dawes Exp $ */
 
+#define NEED_EVENTS
 #include "X.h"
 #include "Xproto.h"
 #include "misc.h"
@@ -36,17 +38,23 @@ from The Open Group.
 #include "bigreqstr.h"
 
 static unsigned char XBigReqCode;
-static int ProcBigReqDispatch();
-static void BigReqResetProc();
+
+static void BigReqResetProc(
+#if NeedFunctionPrototypes
+    ExtensionEntry * /* extEntry */
+#endif
+);
+
+static DISPATCH_PROC(ProcBigReqDispatch);
 
 void
 BigReqExtensionInit()
 {
-    ExtensionEntry *extEntry, *AddExtension();
+    ExtensionEntry *extEntry;
 
-    if (extEntry = AddExtension(XBigReqExtensionName, 0, 0,
+    if ((extEntry = AddExtension(XBigReqExtensionName, 0, 0,
 				 ProcBigReqDispatch, ProcBigReqDispatch,
-				 BigReqResetProc, StandardMinorOpcode))
+				 BigReqResetProc, StandardMinorOpcode)) != 0)
 	XBigReqCode = (unsigned char)extEntry->base;
     DeclareExtensionSecurity(XBigReqExtensionName, TRUE);
 }

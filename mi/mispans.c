@@ -1,3 +1,4 @@
+/* $XFree86: xc/programs/Xserver/mi/mispans.c,v 3.4 2001/12/14 20:00:26 dawes Exp $ */
 /***********************************************************
 
 Copyright 1989, 1998  The Open Group
@@ -222,10 +223,10 @@ void miFreeSpanGroup(spanGroup)
     if (spanGroup->group != NULL) xfree(spanGroup->group);
 }
 
-static void QuickSortSpansX(points, widths, numSpans)
-    register DDXPointRec    points[];
-    register int	    widths[];
-    register int	    numSpans;
+static void QuickSortSpansX(
+    register DDXPointRec    points[],
+    register int	    widths[],
+    register int	    numSpans )
 {
     register int	    x;
     register int	    i, j, m;
@@ -309,10 +310,10 @@ static void QuickSortSpansX(points, widths, numSpans)
 } /* QuickSortSpans */
 
 
-static int UniquifySpansX(spans, newPoints, newWidths)
-    Spans		    *spans;
-    register DDXPointRec    *newPoints;
-    register int	    *newWidths;
+static int UniquifySpansX(
+    Spans		    *spans,
+    register DDXPointRec    *newPoints,
+    register int	    *newWidths )
 {
     register int newx1, newx2, oldpt, i, y;
     register DDXPointRec    *oldPoints;
@@ -418,8 +419,10 @@ void miFillUniqueSpanGroup(pDraw, pGC, spanGroup)
 
 	if (!yspans || !ysizes)
 	{
-	    xfree (yspans);
-	    xfree (ysizes);
+	    if (yspans)
+		xfree (yspans);
+	    if (ysizes)
+		xfree (ysizes);
 	    miDisposeSpanGroup (spanGroup);
 	    return;
 	}
@@ -496,10 +499,12 @@ void miFillUniqueSpanGroup(pDraw, pGC, spanGroup)
 		xfree (yspans[i].points);
 		xfree (yspans[i].widths);
 	    }
-	    xfree (points);
-	    xfree (widths);
 	    xfree (yspans);
 	    xfree (ysizes);
+	    if (points)
+		xfree (points);
+	    if (widths)
+		xfree (widths);
 	    return;
 	}
 	count = 0;
@@ -524,7 +529,7 @@ void miFillUniqueSpanGroup(pDraw, pGC, spanGroup)
 	xfree(points);
 	xfree(widths);
 	xfree(yspans);
-	xfree(ysizes);
+	xfree(ysizes);		/* use (DE)ALLOCATE_LOCAL for these? */
     }
 
     spanGroup->count = 0;

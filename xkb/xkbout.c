@@ -24,12 +24,11 @@
  THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
  ********************************************************/
+/* $XFree86: xc/lib/xkbfile/xkbout.c,v 3.9 2001/10/28 03:32:47 tsi Exp $ */
 
 #include <stdio.h>
 #include <ctype.h>
-#ifndef X_NOT_STDC_ENV
 #include <stdlib.h>
-#endif
 #include <X11/Xfuncs.h>
 
 #ifndef XKB_IN_SERVER
@@ -849,7 +848,7 @@ WriteXKBSection(file,dpy,s,geom)
 {
 register int	i;
 XkbRowPtr	row;
-int		dfltKeyColor;
+int		dfltKeyColor = 0;
 
     fprintf(file,"    section \"%s\" {\n",
 				XkbAtomText(dpy,s->name,XkbXKBFile));
@@ -1100,6 +1099,7 @@ XkbDescPtr	xkb;
     xkb= result->xkb;
     fprintf(file,"xkb_layout {\n");
     ok= XkbWriteXKBKeycodes(file,result,False,showImplicit,addOn,priv);
+    ok= ok&&XkbWriteXKBKeyTypes(file,result,False,showImplicit,addOn,priv);
     ok= ok&&XkbWriteXKBSymbols(file,result,False,showImplicit,addOn,priv);
     if (xkb->geom)
 	ok= ok&&XkbWriteXKBGeometry(file,result,False,showImplicit,addOn,priv);
@@ -1157,7 +1157,7 @@ XkbWriteXKBFile(out,result,showImplicit,addOn,priv)
     void *		priv;
 #endif
 {
-Bool	 		ok;
+Bool	 		ok = False;
 Bool			(*func)(
 #if NeedFunctionPrototypes
     FILE *		/* file */,
@@ -1167,7 +1167,7 @@ Bool			(*func)(
     XkbFileAddOnFunc	/* addOn */,
     void *		/* priv */
 #endif
-);
+) = NULL;
 
     switch (result->type) {
 	case XkmSemanticsFile:
@@ -1205,12 +1205,8 @@ Bool			(*func)(
 	_XkbLibError(_XkbErrFileCannotOpen,"XkbWriteXkbFile",0);
 	ok= False;
     }
-    else {
+    else if (func) {
 	ok= (*func)(out,result,True,showImplicit,addOn,priv);
     }
-    if (!ok) {
-	return False;
-    }
-    return True;
+    return ok;
 }
-

@@ -26,6 +26,7 @@ other dealings in this Software without prior written authorization
 from The Open Group.
 
 */
+/* $XFree86: xc/programs/Xserver/Xext/xtest.c,v 3.7 2001/12/14 19:58:51 dawes Exp $ */
 
 #include "X.h"
 #define NEED_EVENTS
@@ -37,6 +38,8 @@ from The Open Group.
 #include "windowstr.h"
 #include "inputstr.h"
 #include "scrnintstr.h"
+#include "dixevents.h"
+#include "sleepuntil.h"
 #define _XTEST_SERVER_
 #include "XTest.h"
 #include "xteststr.h"
@@ -44,27 +47,49 @@ from The Open Group.
 #include "XI.h"
 #include "XIproto.h"
 #define EXTENSION_EVENT_BASE	64
+#include "extinit.h"		/* LookupDeviceIntRec */
 #endif /* XINPUT */
+#ifdef EXTMODULE
+#include "xf86_ansic.h"
+#endif
 
 static unsigned char XTestReqCode;
-static int ProcXTestDispatch(), SProcXTestDispatch();
-static void XTestResetProc();
-static int XTestSwapFakeInput();
-CursorPtr GetSpriteCursor();
-WindowPtr GetCurrentRootWindow();
+
 #ifdef XINPUT
 extern int DeviceValuator;
-DeviceIntPtr LookupDeviceIntRec();
 #endif /* XINPUT */
+
+static void XTestResetProc(
+#if NeedFunctionPrototypes
+    ExtensionEntry * /* extEntry */
+#endif
+);
+static int XTestSwapFakeInput(
+#if NeedFunctionPrototypes
+    ClientPtr /* client */,
+    xReq * /* req */
+#endif
+);
+
+static DISPATCH_PROC(ProcXTestCompareCursor);
+static DISPATCH_PROC(ProcXTestDispatch);
+static DISPATCH_PROC(ProcXTestFakeInput);
+static DISPATCH_PROC(ProcXTestGetVersion);
+static DISPATCH_PROC(ProcXTestGrabControl);
+static DISPATCH_PROC(SProcXTestCompareCursor);
+static DISPATCH_PROC(SProcXTestDispatch);
+static DISPATCH_PROC(SProcXTestFakeInput);
+static DISPATCH_PROC(SProcXTestGetVersion);
+static DISPATCH_PROC(SProcXTestGrabControl);
 
 void
 XTestExtensionInit()
 {
-    ExtensionEntry *extEntry, *AddExtension();
+    ExtensionEntry *extEntry;
 
-    if (extEntry = AddExtension(XTestExtensionName, 0, 0,
+    if ((extEntry = AddExtension(XTestExtensionName, 0, 0,
 				 ProcXTestDispatch, SProcXTestDispatch,
-				 XTestResetProc, StandardMinorOpcode))
+				 XTestResetProc, StandardMinorOpcode)) != 0)
 	XTestReqCode = (unsigned char)extEntry->base;
 }
 
@@ -79,7 +104,6 @@ static int
 ProcXTestGetVersion(client)
     register ClientPtr client;
 {
-    REQUEST(xXTestGetVersionReq);
     xXTestGetVersionReply rep;
     register int n;
 
@@ -142,12 +166,12 @@ ProcXTestFakeInput(client)
     int nev;
     int	n;
     xEvent *ev;
-    DeviceIntPtr dev;
+    DeviceIntPtr dev = NULL;
     WindowPtr root;
     int type;
 #ifdef XINPUT
     Bool extension = FALSE;
-    deviceValuator *dv;
+    deviceValuator *dv = NULL;
     int base;
     int *values;
 #endif /* XINPUT */
@@ -468,7 +492,7 @@ XTestSwapFakeInput(client, req)
     register int nev;
     register xEvent *ev;
     xEvent sev;
-    void (*proc)(), NotImplemented();
+    EventSwapPtr proc;
 
     nev = ((req->length << 2) - sizeof(xReq)) / sizeof(xEvent);
     for (ev = (xEvent *)&req[1]; --nev >= 0; ev++)
@@ -476,7 +500,7 @@ XTestSwapFakeInput(client, req)
     	/* Swap event */
     	proc = EventSwapVector[ev->u.u.type & 0177];
 	/* no swapping proc; invalid event type? */
-    	if (!proc || (int (*)()) proc == (int (*)()) NotImplemented) {
+    	if (!proc ||  proc ==  NotImplemented) {
 	    client->errorValue = ev->u.u.type;
 	    return BadValue;
 	}

@@ -24,6 +24,7 @@ OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION  WITH
 THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 ********************************************************/
+/* $XFree86: xc/lib/X11/XKBGAlloc.c,v 3.4 2001/01/17 19:41:48 dawes Exp $ */
 
 #define	NEED_EVENTS
 #define	NEED_REPLIES

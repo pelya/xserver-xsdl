@@ -1,3 +1,4 @@
+/* $XFree86: xc/programs/Xserver/Xext/mbufbf.c,v 3.4 2001/12/14 19:58:49 dawes Exp $ */
 /*
 
 Copyright 1989, 1998  The Open Group

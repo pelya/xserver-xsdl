@@ -1,3 +1,4 @@
+/* $XFree86: xc/programs/Xserver/dix/cursor.c,v 3.8 2003/01/12 02:44:26 dawes Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -68,13 +69,20 @@ typedef struct _GlyphShare {
 static GlyphSharePtr sharedGlyphs = (GlyphSharePtr)NULL;
 
 static void
+#if NeedFunctionPrototypes
+FreeCursorBits(CursorBitsPtr bits)
+#else
 FreeCursorBits(bits)
     CursorBitsPtr bits;
+#endif
 {
     if (--bits->refcnt > 0)
 	return;
     xfree(bits->source);
     xfree(bits->mask);
+#ifdef ARGB_CURSOR
+    xfree(bits->argb);
+#endif
     if (bits->refcnt == 0)
     {
 	register GlyphSharePtr *prev, this;
@@ -120,15 +128,41 @@ FreeCursor(value, cid)
     return(Success);
 }
 
+
+/*
+ * We check for empty cursors so that we won't have to display them
+ */
+static void
+CheckForEmptyMask(CursorBitsPtr bits)
+{
+    register unsigned char *msk = bits->mask;
+    int n = BitmapBytePad(bits->width) * bits->height;
+
+    bits->emptyMask = FALSE;
+    while(n--) 
+	if(*(msk++) != 0) return;
+#ifdef ARGB_CURSOR
+    if (bits->argb)
+    {
+	CARD32 *argb = bits->argb;
+	int n = bits->width * bits->height;
+	while (n--)
+	    if (*argb++ & 0xff000000) return;
+    }
+#endif
+    bits->emptyMask = TRUE;
+}
+
 /*
  * does nothing about the resource table, just creates the data structure.
  * does not copy the src and mask bits
  */
 CursorPtr 
-AllocCursor(psrcbits, pmaskbits, cm,
+AllocCursorARGB(psrcbits, pmaskbits, argb, cm,
 	    foreRed, foreGreen, foreBlue, backRed, backGreen, backBlue)
     unsigned char *	psrcbits;		/* server-defined padding */
     unsigned char *	pmaskbits;		/* server-defined padding */
+    CARD32 *		argb;			/* no padding */
     CursorMetricPtr	cm;
     unsigned		foreRed, foreGreen, foreBlue;
     unsigned		backRed, backGreen, backBlue;
@@ -148,11 +182,15 @@ AllocCursor(psrcbits, pmaskbits, cm,
     bits = (CursorBitsPtr)((char *)pCurs + sizeof(CursorRec));
     bits->source = psrcbits;
     bits->mask = pmaskbits;
+#ifdef ARGB_CURSOR
+    bits->argb = argb;
+#endif
     bits->width = cm->width;
     bits->height = cm->height;
     bits->xhot = cm->xhot;
     bits->yhot = cm->yhot;
     bits->refcnt = -1;
+    CheckForEmptyMask(bits);
 
     pCurs->bits = bits;
     pCurs->refcnt = 1;		
@@ -184,6 +222,20 @@ AllocCursor(psrcbits, pmaskbits, cm,
 	}
     }
     return pCurs;
+}
+
+CursorPtr 
+AllocCursor(psrcbits, pmaskbits, cm,
+	    foreRed, foreGreen, foreBlue, backRed, backGreen, backBlue)
+    unsigned char *	psrcbits;		/* server-defined padding */
+    unsigned char *	pmaskbits;		/* server-defined padding */
+    CursorMetricPtr	cm;
+    unsigned		foreRed, foreGreen, foreBlue;
+    unsigned		backRed, backGreen, backBlue;
+{
+    return AllocCursorARGB (psrcbits, pmaskbits, (CARD32 *) 0, cm,
+			    foreRed, foreGreen, foreBlue,
+			    backRed, backGreen, backBlue);
 }
 
 int
@@ -253,14 +305,14 @@ AllocGlyphCursor(source, sourceChar, mask, maskChar,
 	if (!maskfont)
 	{
 	    register long n;
-	    register unsigned char *bits;
+	    register unsigned char *mskptr;
 
 	    n = BitmapBytePad(cm.width)*(long)cm.height;
-	    bits = mskbits = (unsigned char *)xalloc(n);
-	    if (!bits)
+	    mskptr = mskbits = (unsigned char *)xalloc(n);
+	    if (!mskptr)
 		return BadAlloc;
 	    while (--n >= 0)
-		*bits++ = ~0;
+		*mskptr++ = ~0;
 	}
 	else
 	{
@@ -269,10 +321,10 @@ AllocGlyphCursor(source, sourceChar, mask, maskChar,
 		client->errorValue = maskChar;
 		return BadValue;
 	    }
-	    if (res = ServerBitsFromGlyph(maskfont, maskChar, &cm, &mskbits))
+	    if ((res = ServerBitsFromGlyph(maskfont, maskChar, &cm, &mskbits)) != 0)
 		return res;
 	}
-	if (res = ServerBitsFromGlyph(sourcefont, sourceChar, &cm, &srcbits))
+	if ((res = ServerBitsFromGlyph(sourcefont, sourceChar, &cm, &srcbits)) != 0)
 	{
 	    xfree(mskbits);
 	    return res;
@@ -302,6 +354,9 @@ AllocGlyphCursor(source, sourceChar, mask, maskChar,
 	}
 	bits->source = srcbits;
 	bits->mask = mskbits;
+#ifdef ARGB_CURSOR
+	bits->argb = 0;
+#endif
 	bits->width = cm.width;
 	bits->height = cm.height;
 	bits->xhot = cm.xhot;
@@ -326,6 +381,7 @@ AllocGlyphCursor(source, sourceChar, mask, maskChar,
 	    sharedGlyphs = pShare;
 	}
     }
+    CheckForEmptyMask(bits);
     pCurs->bits = bits;
     pCurs->refcnt = 1;
 

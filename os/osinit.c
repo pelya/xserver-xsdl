@@ -1,3 +1,4 @@
+/* $XFree86: xc/programs/Xserver/os/osinit.c,v 3.27 2002/06/17 08:04:18 alanh Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -52,6 +53,10 @@ SOFTWARE.
 #include "osdep.h"
 #include "Xos.h"
 
+#ifdef SMART_SCHEDULE
+#include "dixstruct.h"
+#endif
+
 #ifndef PATH_MAX
 #ifdef MAXPATHLEN
 #define PATH_MAX MAXPATHLEN
@@ -60,10 +65,12 @@ SOFTWARE.
 #endif
 #endif
 
-#ifndef WIN32
-#ifndef SYSV
-#include <sys/resource.h>
+#if defined(Lynx) || defined(SCO) || defined(SCO325)
+#include <sys/wait.h>
 #endif
+
+#if !defined(SYSV) && !defined(WIN32) && !defined(Lynx) && !defined(QNX4)
+#include <sys/resource.h>
 #endif
 
 #ifndef ADMPATH
@@ -83,6 +90,10 @@ int limitNoFile = -1;
 
 Bool OsDelayInitColors = FALSE;
 
+#ifdef XFree86LOADER
+extern void xf86WrapperInit(void);
+#endif
+
 void
 OsInit()
 {
@@ -96,8 +107,13 @@ OsInit()
 #endif
 
     if (!been_here) {
+#ifdef XFree86LOADER
+	xf86WrapperInit();
+#endif
+#if !defined(SCO) && !defined(__CYGWIN__)
 	fclose(stdin);
 	fclose(stdout);
+#endif
 	/* 
 	 * If a write of zero bytes to stderr returns non-zero, i.e. -1, 
 	 * then writing to stderr failed, and we'll write somewhere else 
@@ -122,7 +138,7 @@ OsInit()
 		dup2 (fileno (err), 2);
 		fclose (err);
 	    }
-#if defined(SYSV) || defined(SVR4) || defined(WIN32)
+#if defined(SYSV) || defined(SVR4) || defined(__UNIXOS2__) || defined(WIN32) || defined(__CYGWIN__)
 	    {
 	    static char buf[BUFSIZ];
 	    setvbuf (stderr, buf, _IOLBF, BUFSIZ);
@@ -183,11 +199,16 @@ OsInit()
 		    rlim.rlim_cur = limitNoFile;
 		else
 		    rlim.rlim_cur = rlim.rlim_max;
+#if 0
 		if (rlim.rlim_cur > MAXSOCKS)
 		    rlim.rlim_cur = MAXSOCKS;
+#endif
 		(void)setrlimit(RLIMIT_NOFILE, &rlim);
 	    }
 	}
+#endif
+#ifdef SERVER_LOCK
+	LockServer();
 #endif
 	been_here = TRUE;
     }
@@ -195,6 +216,19 @@ OsInit()
 #ifdef DDXOSINIT
     OsVendorInit();
 #endif
+#ifdef SMART_SCHEDULE
+    if (!SmartScheduleDisable)
+	if (!SmartScheduleInit ())
+	    SmartScheduleDisable = TRUE;
+#endif
     OsInitAllocator();
     if (!OsDelayInitColors) OsInitColors();
+}
+
+void
+OsCleanup()
+{
+#ifdef SERVER_LOCK
+    UnlockServer();
+#endif
 }

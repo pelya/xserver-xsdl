@@ -26,6 +26,7 @@ other dealings in this Software without prior written authorization
 from The Open Group.
 
 */
+/* $XFree86: xc/programs/Xserver/mi/miwideline.c,v 1.12 2001/12/14 20:00:28 dawes Exp $ */
 
 /* Author:  Keith Packard, MIT X Consortium */
 
@@ -53,7 +54,12 @@ from The Open Group.
 ICEILTEMPDECL
 #endif
 
-static void miLineArc();
+static void miLineArc(DrawablePtr pDraw, register GCPtr pGC,
+		      unsigned long pixel, SpanDataPtr spanData,
+		      register LineFacePtr leftFace,
+		      register LineFacePtr rightFace,
+		      double xorg, double yorg, Bool isInt);
+
 
 /*
  * spans-based polygon filler
@@ -71,23 +77,23 @@ miFillPolyHelper (pDrawable, pGC, pixel, spanData, y, overall_height,
     PolyEdgePtr	left, right;
     int		left_count, right_count;
 {
-    register int left_x, left_e;
-    int	left_stepx;
-    int	left_signdx;
-    int	left_dy, left_dx;
+    register int left_x = 0, left_e = 0;
+    int	left_stepx = 0;
+    int	left_signdx = 0;
+    int	left_dy = 0, left_dx = 0;
 
-    register int right_x, right_e;
-    int	right_stepx;
-    int	right_signdx;
-    int	right_dy, right_dx;
+    register int right_x = 0, right_e = 0;
+    int	right_stepx = 0;
+    int	right_signdx = 0;
+    int	right_dy = 0, right_dx = 0;
 
-    int	height;
-    int	left_height, right_height;
+    int	height = 0;
+    int	left_height = 0, right_height = 0;
 
     register DDXPointPtr ppt;
-    DDXPointPtr pptInit;
+    DDXPointPtr pptInit = NULL;
     register int *pwidth;
-    int *pwidthInit;
+    int *pwidthInit = NULL;
     XID		oldPixel;
     int		xorg;
     Spans	spanRec;
@@ -184,12 +190,15 @@ miFillPolyHelper (pDrawable, pGC, pixel, spanData, y, overall_height,
 }
 
 static void
-miFillRectPolyHelper (pDrawable, pGC, pixel, spanData, x, y, w, h)
-    DrawablePtr	pDrawable;
-    GCPtr	pGC;
-    unsigned long   pixel;
-    SpanDataPtr	spanData;
-    int		x, y, w, h;
+miFillRectPolyHelper (
+    DrawablePtr	pDrawable,
+    GCPtr	pGC,
+    unsigned long   pixel,
+    SpanDataPtr	spanData,
+    int		x,
+    int		y,
+    int		w,
+    int		h)
 {
     register DDXPointPtr ppt;
     register int *pwidth;
@@ -325,7 +334,7 @@ miPolyBuildPoly (vertices, slopes, count, xi, yi, left, right, pnleft, pnright, 
     int	    slopeoff;
     register int s;
     register int nright, nleft;
-    int	    y, lasty, bottomy, topy;
+    int	    y, lasty = 0, bottomy, topy = 0;
 
     /* find the top of the polygon */
     maxy = miny = vertices[0].y;
@@ -418,12 +427,13 @@ miPolyBuildPoly (vertices, slopes, count, xi, yi, left, right, pnleft, pnright, 
 }
 
 static void
-miLineOnePoint (pDrawable, pGC, pixel, spanData, x, y)
-    DrawablePtr	    pDrawable;
-    GCPtr	    pGC;
-    unsigned long   pixel;
-    SpanDataPtr	    spanData;
-    int		    x, y;
+miLineOnePoint (
+    DrawablePtr	    pDrawable,
+    GCPtr	    pGC,
+    unsigned long   pixel,
+    SpanDataPtr	    spanData,
+    int		    x,
+    int		    y)
 {
     DDXPointRec pt;
     int	    wid;
@@ -452,15 +462,16 @@ miLineOnePoint (pDrawable, pGC, pixel, spanData, x, y)
 }
 
 static void
-miLineJoin (pDrawable, pGC, pixel, spanData, pLeft, pRight)
-    DrawablePtr	    pDrawable;
-    GCPtr	    pGC;
-    unsigned long   pixel;
-    SpanDataPtr	    spanData;
-    register LineFacePtr pLeft, pRight;
+miLineJoin (
+    DrawablePtr	    pDrawable,
+    GCPtr	    pGC,
+    unsigned long   pixel,
+    SpanDataPtr	    spanData,
+    register LineFacePtr pLeft,
+    register LineFacePtr pRight)
 {
-    double	    mx, my;
-    double	    denom;
+    double	    mx = 0, my = 0;
+    double	    denom = 0.0;
     PolyVertexRec   vertices[4];
     PolySlopeRec    slopes[4];
     int		    edgecount;
@@ -472,8 +483,10 @@ miLineJoin (pDrawable, pGC, pixel, spanData, pLeft, pRight)
     int		    lw = pGC->lineWidth;
 
     if (lw == 1 && !spanData) {
-	/* Lines going in the same direction have no join */
-	if (pLeft->dx >= 0 == pRight->dx <= 0)
+	/* See if one of the lines will draw the joining pixel */
+	if (pLeft->dx > 0 || (pLeft->dx == 0 && pLeft->dy > 0))
+	    return;
+	if (pRight->dx > 0 || (pRight->dx == 0 && pRight->dy > 0))
 	    return;
 	if (joinStyle != JoinRound) {
     	    denom = - pLeft->dx * (double)pRight->dy + pRight->dx * (double)pLeft->dy;
@@ -599,12 +612,13 @@ miLineJoin (pDrawable, pGC, pixel, spanData, pLeft, pRight)
 }
 
 static int
-miLineArcI (pDraw, pGC, xorg, yorg, points, widths)
-    DrawablePtr	    pDraw;
-    GCPtr	    pGC;
-    int		    xorg, yorg;
-    DDXPointPtr	    points;
-    int		    *widths;
+miLineArcI (
+    DrawablePtr	    pDraw,
+    GCPtr	    pGC,
+    int		    xorg,
+    int		    yorg,
+    DDXPointPtr	    points,
+    int		    *widths)
 {
     register DDXPointPtr tpts, bpts;
     register int *twids, *bwids;
@@ -685,16 +699,19 @@ miLineArcI (pDraw, pGC, xorg, yorg, points, widths)
     }
 
 static int
-miLineArcD (pDraw, pGC, xorg, yorg, points, widths,
-	    edge1, edgey1, edgeleft1, edge2, edgey2, edgeleft2)
-    DrawablePtr	    pDraw;
-    GCPtr	    pGC;
-    double	    xorg, yorg;
-    DDXPointPtr	    points;
-    int		    *widths;
-    PolyEdgePtr	    edge1, edge2;
-    int		    edgey1, edgey2;
-    Bool	    edgeleft1, edgeleft2;
+miLineArcD (
+    DrawablePtr	    pDraw,
+    GCPtr	    pGC,
+    double	    xorg,
+    double	    yorg,
+    DDXPointPtr	    points,
+    int		    *widths,
+    PolyEdgePtr	    edge1,
+    int		    edgey1,
+    Bool	    edgeleft1,
+    PolyEdgePtr	    edge2,
+    int		    edgey2,
+    Bool	    edgeleft2)
 {
     register DDXPointPtr pts;
     register int *wids;
@@ -873,7 +890,7 @@ miRoundJoinFace (face, edge, leftEdge)
 	ya = 0.0;
 	xa = 0.0;
     }
-    if (dy < 0 || dy == 0 && dx > 0)
+    if (dy < 0 || (dy == 0 && dx > 0))
     {
 	dx = -dx;
 	dy = -dy;
@@ -946,7 +963,7 @@ miRoundCapClip (face, isInt, edge, leftEdge)
     if (!isInt)
 	k = face->k;
     left = 1;
-    if (dy < 0 || dy == 0 && dx > 0)
+    if (dy < 0 || (dy == 0 && dx > 0))
     {
 	dx = -dx;
 	dy = -dy;
@@ -977,18 +994,20 @@ miRoundCapClip (face, isInt, edge, leftEdge)
 }
 
 static void
-miLineArc (pDraw, pGC, pixel, spanData, leftFace, rightFace, xorg, yorg, isInt)
-    DrawablePtr	    pDraw;
-    register GCPtr  pGC;
-    unsigned long   pixel;
-    SpanDataPtr	    spanData;
-    register LineFacePtr leftFace, rightFace;
-    double	    xorg, yorg;
-    Bool	    isInt;
+miLineArc (
+    DrawablePtr	    pDraw,
+    register GCPtr  pGC,
+    unsigned long   pixel,
+    SpanDataPtr	    spanData,
+    register LineFacePtr leftFace,
+    register LineFacePtr rightFace,
+    double	    xorg,
+    double          yorg,
+    Bool	    isInt)
 {
     DDXPointPtr points;
     int *widths;
-    int xorgi, yorgi;
+    int xorgi = 0, yorgi = 0;
     XID		oldPixel;
     Spans spanRec;
     int n;
@@ -1010,8 +1029,8 @@ miLineArc (pDraw, pGC, pixel, spanData, leftFace, rightFace, xorg, yorg, isInt)
     edgeleft1 = FALSE;
     edgeleft2 = FALSE;
     if ((pGC->lineStyle != LineSolid || pGC->lineWidth > 2) &&
-	(pGC->capStyle == CapRound && pGC->joinStyle != JoinRound ||
-	 pGC->joinStyle == JoinRound && pGC->capStyle == CapButt))
+	((pGC->capStyle == CapRound && pGC->joinStyle != JoinRound) ||
+	 (pGC->joinStyle == JoinRound && pGC->capStyle == CapButt)))
     {
 	if (isInt)
 	{
@@ -1101,7 +1120,7 @@ miLineProjectingCap (pDrawable, pGC, pixel, spanData, face, isLeft, xorg, yorg, 
     double	    xorg, yorg;
     Bool	    isInt;
 {
-    int	xorgi, yorgi;
+    int	xorgi = 0, yorgi = 0;
     int	lw;
     PolyEdgeRec	lefts[2], rights[2];
     int		lefty, righty, topy, bottomy;
@@ -1138,7 +1157,7 @@ miLineProjectingCap (pDrawable, pGC, pixel, spanData, face, isLeft, xorg, yorg, 
 	rights[0].height = lw;
 	rights[0].x = xorgi;
 	if (!isLeft)
-	    rights[0].x += (lw + 1 >> 1);
+	    rights[0].x += ((lw + 1) >> 1);
 	rights[0].stepx = 0;
 	rights[0].signdx = 1;
 	rights[0].e = -lw;
@@ -1257,19 +1276,23 @@ miLineProjectingCap (pDrawable, pGC, pixel, spanData, face, isLeft, xorg, yorg, 
 }
 
 static void
-miWideSegment (pDrawable, pGC, pixel, spanData,
-	       x1, y1, x2, y2, projectLeft, projectRight, leftFace, rightFace)
-    DrawablePtr	    pDrawable;
-    GCPtr	    pGC;
-    unsigned long   pixel;
-    SpanDataPtr	    spanData;
-    register int    x1, y1, x2, y2;
-    Bool	    projectLeft, projectRight;
-    register LineFacePtr leftFace, rightFace;
+miWideSegment (
+    DrawablePtr	    pDrawable,
+    GCPtr	    pGC,
+    unsigned long   pixel,
+    SpanDataPtr	    spanData,
+    register int    x1,
+    register int    y1,
+    register int    x2,
+    register int    y2,
+    Bool	    projectLeft,
+    Bool	    projectRight,
+    register LineFacePtr leftFace,
+    register LineFacePtr rightFace)
 {
     double	l, L, r;
     double	xa, ya;
-    double	projectXoff, projectYoff;
+    double	projectXoff = 0.0, projectYoff = 0.0;
     double	k;
     double	maxy;
     int		x, y;
@@ -1284,7 +1307,7 @@ miWideSegment (pDrawable, pGC, pixel, spanData,
     int		lw = pGC->lineWidth;
 
     /* draw top-to-bottom always */
-    if (y2 < y1 || y2 == y1 && x2 < x1)
+    if (y2 < y1 || (y2 == y1 && x2 < x1))
     {
 	x = x1;
 	x1 = x2;
@@ -1333,7 +1356,7 @@ miWideSegment (pDrawable, pGC, pixel, spanData,
 	y = y1 - (lw >> 1);
 	dx = x2 - x;
 	if (projectRight)
-	    dx += (lw + 1 >> 1);
+	    dx += ((lw + 1) >> 1);
 	dy = lw;
 	miFillRectPolyHelper (pDrawable, pGC, pixel, spanData,
 			      x, y, dx, dy);
@@ -1352,7 +1375,7 @@ miWideSegment (pDrawable, pGC, pixel, spanData,
 	x = x1 - (lw >> 1);
 	dy = y2 - y;
 	if (projectRight)
-	    dy += (lw + 1 >> 1);
+	    dy += ((lw + 1) >> 1);
 	dx = lw;
 	miFillRectPolyHelper (pDrawable, pGC, pixel, spanData,
 			      x, y, dx, dy);
@@ -1480,7 +1503,7 @@ miSetupSpanData (pGC, spanData, npt)
     SpanDataPtr	spanData;
     int		npt;
 {
-    if (npt < 3 && pGC->capStyle != CapRound || miSpansEasyRop(pGC->alu))
+    if ((npt < 3 && pGC->capStyle != CapRound) || miSpansEasyRop(pGC->alu))
 	return (SpanDataPtr) NULL;
     if (pGC->lineStyle == LineDoubleDash)
 	miInitSpanGroup (&spanData->bgGroup);
@@ -1659,15 +1682,20 @@ miWideLine (pDrawable, pGC, mode, npt, pPts)
 #define V_LEFT	    3
 
 static void
-miWideDashSegment (pDrawable, pGC, spanData, pDashOffset, pDashIndex,
-	   x1, y1, x2, y2, projectLeft, projectRight, leftFace, rightFace)
-    DrawablePtr	    pDrawable;
-    register GCPtr  pGC;
-    int		    *pDashOffset, *pDashIndex;
-    SpanDataPtr	    spanData;
-    int		    x1, y1, x2, y2;
-    Bool	    projectLeft, projectRight;
-    LineFacePtr	    leftFace, rightFace;
+miWideDashSegment (
+    DrawablePtr	    pDrawable,
+    register GCPtr  pGC,
+    SpanDataPtr	    spanData,
+    int		    *pDashOffset,
+    int		    *pDashIndex,
+    int		    x1,
+    int		    y1,
+    int		    x2,
+    int		    y2,
+    Bool	    projectLeft,
+    Bool	    projectRight,
+    LineFacePtr	    leftFace,
+    LineFacePtr	    rightFace)
 {
     int		    dashIndex, dashRemain;
     unsigned char   *pDash;
@@ -1687,9 +1715,9 @@ miWideDashSegment (pDrawable, pGC, spanData, pDashOffset, pDashIndex,
     double	    r;
     double	    rdx, rdy;
     double	    dashDx, dashDy;
-    double	    saveK;
+    double	    saveK = 0.0;
     Bool	    first = TRUE;
-    double	    lcenterx, lcentery, rcenterx, rcentery;
+    double	    lcenterx, lcentery, rcenterx = 0.0, rcentery = 0.0;
     unsigned long   fgPixel, bgPixel;
     
     dx = x2 - x1;
@@ -2030,14 +2058,17 @@ miWideDash (pDrawable, pGC, mode, npt, pPts)
     SpanDataPtr	    spanData;
     Bool	    somethingDrawn = FALSE;
     Bool	    selfJoin;
-    Bool	    endIsFg, startIsFg, firstIsFg = FALSE, prevIsFg;
+    Bool	    endIsFg = FALSE, startIsFg = FALSE;
+    Bool            firstIsFg = FALSE, prevIsFg = FALSE;
 
+#ifndef XFree86Server
     /* XXX backward compatibility */
     if (pGC->lineWidth == 0)
     {
 	miZeroDashLine (pDrawable, pGC, mode, npt, pPts);
 	return;
     }
+#endif
     if (pGC->lineStyle == LineDoubleDash && 
 	(pGC->fillStyle == FillOpaqueStippled || pGC->fillStyle == FillTiled))
     {

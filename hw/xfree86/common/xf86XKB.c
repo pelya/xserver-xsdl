@@ -1,4 +1,4 @@
-/* $Xorg: xf86XKB.c,v 1.3 2000/08/17 19:50:31 cpqbld Exp $ */
+/* $XConsortium: xf86XKB.c /main/4 1996/02/04 09:28:04 kaleb $ */
 /************************************************************
 Copyright (c) 1993 by Silicon Graphics Computer Systems, Inc.
 
@@ -24,7 +24,7 @@ OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION  WITH
 THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 ********************************************************/
-/* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86XKB.c,v 3.6 1996/12/28 11:14:43 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86XKB.c,v 3.11 2002/10/11 01:40:31 dawes Exp $ */
 
 #include <stdio.h>
 #define	NEED_EVENTS 1
@@ -38,81 +38,14 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 #include "compiler.h"
 
-#include "xf86Procs.h"
+#include "xf86.h"
+#include "xf86Priv.h"
+#define XF86_OS_PRIVS
 #include "xf86_OSlib.h"
-#include "xf86_Config.h"
 
 #include "XKBsrv.h"
 
-#ifdef AMOEBA
-#define LED_CAP	IOP_LED_CAP
-#define LED_NUM	IOP_LED_NUM
-#define LED_SCR	IOP_LED_SCROLL
-#endif
-
-#ifdef MINIX
-#define LED_CAP KBD_LEDS_CAPS
-#define LED_NUM KBD_LEDS_NUM
-#define LED_SCR KBD_LEDS_SCROLL
-#endif
-
 void
-xf86InitXkb()
+xf86InitXkb(void)
 {
-}
-
-void
-#if NeedFunctionPrototypes
-XkbDDXUpdateIndicators(DeviceIntPtr pXDev,CARD32 new)
-#else
-XkbDDXUpdateIndicators(pXDev,new)
-    DeviceIntPtr  pXDev;
-    CARD32 new;
-#endif
-{
-    CARD32 old;
-#ifdef DEBUG
-/*    if (xkbDebugFlags)*/
-        ErrorF("XkbDDXUpdateIndicators(...,0x%x) -- XFree86 version\n",new);
-#endif
-#ifdef LED_CAP
-    old= new;
-    new= 0;
-    if (old&XLED1)	new|= LED_CAP;
-    if (old&XLED2)	new|= LED_NUM;
-    if (old&XLED3)	new|= LED_SCR;
-#endif
-    xf86SetKbdLeds(new);
-    return;
-}
-
-void
-#if NeedFunctionPrototypes
-XkbDDXUpdateDeviceIndicators(	DeviceIntPtr		dev,
-				XkbSrvLedInfoPtr 	sli,
-				CARD32 			new)
-#else
-XkbDDXUpdateDeviceIndicators(dev,sli,new)
-    DeviceIntPtr  	dev;
-    XkbSrvLedInfoPtr	sli;
-    CARD32 		new;
-#endif
-{
-    if (sli->fb.kf==dev->kbdfeed)
-	XkbDDXUpdateIndicators(dev,new);
-    else if (sli->class==KbdFeedbackClass) {
-	KbdFeedbackPtr	kf;
-	kf= sli->fb.kf;
-	if (kf && kf->CtrlProc) {
-	    (*kf->CtrlProc)(dev,&kf->ctrl);
-	}
-    }
-    else if (sli->class==LedFeedbackClass) {
-	LedFeedbackPtr	lf;
-	lf= sli->fb.lf;
-	if (lf && lf->CtrlProc) {
-	    (*lf->CtrlProc)(dev,&lf->ctrl);
-	}
-    }
-    return;
 }

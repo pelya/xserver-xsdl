@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86KbdLnx.c,v 3.12 1996/12/23 06:43:31 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86KbdLnx.c,v 3.16 2001/03/05 20:18:20 dawes Exp $ */
 /*
  * Linux version of keymapping setup. The kernel (since 0.99.14) has support
  * for fully remapping the keyboard, but there are some differences between
@@ -28,7 +28,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  *
  */
-/* $Xorg: xf86KbdLnx.c,v 1.3 2000/08/17 19:50:30 cpqbld Exp $ */
+/* $XConsortium: xf86KbdLnx.c /main/7 1996/10/19 17:59:00 kaleb $ */
 
 #include "X.h"
 #include "Xmd.h"
@@ -37,10 +37,10 @@
 
 #include "compiler.h"
 
-#include "xf86Procs.h"
+#include "xf86.h"
+#include "xf86Priv.h"
 #include "xf86_OSlib.h"
 #include "atKeynames.h"
-#include "xf86_Config.h"
 
 #include "xf86Keymap.h"
 #include "DECkeysym.h"
@@ -71,61 +71,9 @@ xf86KbdGetMapping (KeySymsPtr pKeySyms, CARD8 *pModMap)
 {
   KeySym        *k;
   char          type;
-  int           i, j;
+  int           i;
 
   readKernelMapping(pKeySyms, pModMap);
-
-  /*
-   * Apply the special key mapping specified in XF86Config 
-   */
-  for (k = map, i = MIN_KEYCODE;
-       i < (NUM_KEYCODES + MIN_KEYCODE);
-       i++, k += 4) {
-    switch (k[0]) {
-      case XK_Alt_L:
-        j = K_INDEX_LEFTALT;
-        break;
-      case XK_Alt_R:
-        j = K_INDEX_RIGHTALT;
-        break;
-      case XK_Scroll_Lock:
-        j = K_INDEX_SCROLLLOCK;
-        break;
-      case XK_Control_R:
-        j = K_INDEX_RIGHTCTL;
-        break;
-      default:
-        j = -1;
-    }
-    if (j >= 0)
-      switch (xf86Info.specialKeyMap[j]) {
-        case KM_META:
-          if (k[0] == XK_Alt_R)
-            k[1] = XK_Meta_R;
-          else {
-            k[0] = XK_Alt_L;
-            k[1] = XK_Meta_L;
-          }
-          break;
-        case KM_COMPOSE:
-          k[0] = XK_Multi_key;
-          break;
-        case KM_MODESHIFT:
-          k[0] = XK_Mode_switch;
-          k[1] = NoSymbol;
-          break;
-        case KM_MODELOCK:
-          k[0] = XK_Mode_switch;
-          k[1] = XF86XK_ModeLock;
-          break;
-        case KM_SCROLLLOCK:
-          k[0] = XK_Scroll_Lock;
-          break;
-        case KM_CONTROL:
-          k[0] = XK_Control_R;
-          break;
-      }
-  }
 
   /*
    * compute the modifier map
@@ -159,7 +107,7 @@ xf86KbdGetMapping (KeySymsPtr pKeySyms, CARD8 *pModMap)
       break;
       
     case XK_Num_Lock:
-      if (!xf86Info.serverNumLock) pModMap[i] = NumLockMask;
+      pModMap[i] = NumLockMask;
       break;
 
     case XK_Scroll_Lock:
@@ -185,11 +133,7 @@ xf86KbdGetMapping (KeySymsPtr pKeySyms, CARD8 *pModMap)
   pKeySyms->map        = map;
   pKeySyms->mapWidth   = GLYPHS_PER_KEY;
   pKeySyms->minKeyCode = MIN_KEYCODE;
-  if (xf86Info.serverNumLock)
-    pKeySyms->maxKeyCode = MAX_KEYCODE; 
-  else
-    pKeySyms->maxKeyCode = MAX_STD_KEYCODE;
-
+  pKeySyms->maxKeyCode = MAX_KEYCODE; 
 }
 
 #include <linux/keyboard.h>
@@ -226,7 +170,7 @@ static KeySym linux_to_x[256] = {
 	XK_p,		XK_q,		XK_r,		XK_s,
 	XK_t,		XK_u,		XK_v,		XK_w,
 	XK_x,		XK_y,		XK_z,		XK_braceleft,
-	XK_bar,		XK_braceright,	XK_asciitilde,	XK_Delete,
+	XK_bar,		XK_braceright,	XK_asciitilde,	XK_BackSpace,
 	NoSymbol,	NoSymbol,	NoSymbol,	NoSymbol,
 	NoSymbol,	NoSymbol,	NoSymbol,	NoSymbol,
 	NoSymbol,	NoSymbol,	NoSymbol,	NoSymbol,
@@ -261,12 +205,10 @@ static KeySym linux_to_x[256] = {
 	XK_udiaeresis,	XK_yacute,	XK_thorn,	XK_ydiaeresis
 };
 
-#ifndef ASSUME_CUSTOM_KEYCODES
-
 /*
  * Maps the AT keycodes to Linux keycodes
  */
-static unsigned char at2lnx[] =
+static unsigned char at2lnx[NUM_KEYCODES] =
 {
 	0x01,	/* KEY_Escape */	0x02,	/* KEY_1 */
 	0x03,	/* KEY_2 */		0x04,	/* KEY_3 */
@@ -332,34 +274,19 @@ static unsigned char at2lnx[] =
 	0x5E,	/* FOCUS_PF7 */		0x5F,	/* FOCUS_PF8 */
 	0x7C,	/* JAP_86 */		0x79,	/* FOCUS_PF10 */
 	0x00,	/* 0x7f */
-	/* the following are for ServerNumLock handling */
-	0x47,	/* KEY_SN_KP_7 */	0x48,	/* KEY_SN_KP_8 */
-	0x49,	/* KEY_SN_KP_9 */	0x4b,	/* KEY_SN_KP_4 */
-	0x4c,	/* KEY_SN_KP_5 */	0x4d,	/* KEY_SN_KP_6 */
-	0x4f,	/* KEY_SN_KP_1 */	0x50,	/* KEY_SN_KP_2 */
-	0x51,	/* KEY_SN_KP_3 */	0x52,	/* KEY_SN_KP_0 */
-	0x53,	/* KEY_SN_KP_Decimal */	0x66,	/* KEY_SN_Home */
-	0x67,	/* KEY_SN_Up */		0x68,	/* KEY_SN_Prior */
-	0x69,	/* KEY_SN_Left */	0x5d,	/* KEY_SN_Begin */
-	0x6a,	/* KEY_SN_Right */	0x6b,	/* KEY_SN_End */
-	0x6c,	/* KEY_SN_Down */	0x6d,	/* KEY_SN_Next */
-	0x6e,	/* KEY_SN_Ins */	0x6f	/* KEY_SN_Del */
 };
 #define NUM_AT2LNX (sizeof(at2lnx) / sizeof(at2lnx[0]))
 
-#else /* !ASSUME_CUSTOM_KEYCODES */
+#define NUM_CUSTOMKEYS	NR_KEYS
 
-#define NUM_AT2LNX	NR_KEYS
-
-u_char SpecialServerMap[NR_KEYS];
-
-#endif /* !ASSUME_CUSTOM_KEYCODES */
+u_char SpecialServerMap[NUM_CUSTOMKEYS];
 
 static void
 readKernelMapping(KeySymsPtr pKeySyms, CARD8 *pModMap)
 {
   KeySym        *k;
   int           i;
+  int           maxkey;
   static unsigned char tbl[GLYPHS_PER_KEY] =
   {
 	0,	/* unshifted */
@@ -377,30 +304,27 @@ readKernelMapping(KeySymsPtr pKeySyms, CARD8 *pModMap)
    * First, figure out which tables to use for the modeswitch columns
    * above, from the XF86Config fields.
    */
-  if (xf86Info.specialKeyMap[K_INDEX_RIGHTCTL] == KM_MODESHIFT ||
-      xf86Info.specialKeyMap[K_INDEX_RIGHTCTL] == KM_MODELOCK)
-    tbl[2] = 4;	/* control */
-  else if (xf86Info.specialKeyMap[K_INDEX_RIGHTALT] == KM_MODESHIFT ||
-           xf86Info.specialKeyMap[K_INDEX_RIGHTALT] == KM_MODELOCK)
-    tbl[2] = 2;	/* AltGr */
-  else
-    tbl[2] = 8;	/* alt */
+  tbl[2] = 8;	/* alt */
   tbl[3] = tbl[2] | 1;
 
-#ifndef ASSUME_CUSTOM_KEYCODES
-  for (i = 0, k = map+GLYPHS_PER_KEY; i < NUM_AT2LNX; ++i)
-#else /* !ASSUME_CUSTOM_KEYCODES */
-  for (i = 0, k = map; i < NUM_AT2LNX; ++i)
-#endif /* !ASSUME_CUSTOM_KEYCODES */
+  if (xf86Info.kbdCustomKeycodes) {
+    k = map;
+    maxkey = NUM_CUSTOMKEYS;
+  }
+  else {
+    k = map+GLYPHS_PER_KEY;
+    maxkey = NUM_AT2LNX;
+  }
+
+  for (i = 0; i < maxkey; ++i)
   {
     struct kbentry kbe;
     int j;
 
-#ifndef ASSUME_CUSTOM_KEYCODES
-    kbe.kb_index = at2lnx[i];
-#else /* !ASSUME_CUSTOM_KEYCODES */
-    kbe.kb_index = i;
-#endif /* !ASSUME_CUSTOM_KEYCODES */
+    if (xf86Info.kbdCustomKeycodes)
+      kbe.kb_index = i;
+    else
+      kbe.kb_index = at2lnx[i];
 
     for (j = 0; j < GLYPHS_PER_KEY; ++j, ++k)
     {
@@ -410,9 +334,7 @@ readKernelMapping(KeySymsPtr pKeySyms, CARD8 *pModMap)
 
       kbe.kb_table = tbl[j];
       if (
-#ifndef ASSUME_CUSTOM_KEYCODES
-	  kbe.kb_index == 0 ||
-#endif /* !ASSUME_CUSTOM_KEYCODES */
+	  (!xf86Info.kbdCustomKeycodes && kbe.kb_index == 0) ||
 	  ioctl(xf86Info.consoleFd, KDGKBENT, &kbe))
 	continue;
 
@@ -624,11 +546,14 @@ readKernelMapping(KeySymsPtr pKeySyms, CARD8 *pModMap)
     if (k[-4] == k[-2] && k[-3] == k[-1]) k[-2] = k[-1] = NoSymbol;
     if (k[-1] == k[-4] && k[-2] == k[-3] && k[-2] == NoSymbol) k[-1] =NoSymbol;
   }
-#ifdef ASSUME_CUSTOM_KEYCODES
+
+  if (!xf86Info.kbdCustomKeycodes)
+    return;
+
   /*
    * Find the Mapping for the special server functions
    */
-  for (i = 0; i < NR_KEYS; ++i) {
+  for (i = 0; i < NUM_CUSTOMKEYS; ++i) {
     struct kbentry kbe;
     int special = 0;
 
@@ -693,5 +618,4 @@ readKernelMapping(KeySymsPtr pKeySyms, CARD8 *pModMap)
       }
     SpecialServerMap[i] = special;
   }
-#endif /* ASSUME_CUSTOM_KEYCODES */
 }

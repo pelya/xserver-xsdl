@@ -1,10 +1,10 @@
-/* $Xorg: cards.c,v 1.3 2000/08/17 19:53:05 cpqbld Exp $ */
+/* $XConsortium: cards.c /main/9 1996/10/19 18:15:32 kaleb $ */
 
 
 
 
 
-/* $XFree86: xc/programs/Xserver/hw/xfree86/xf86config/cards.c,v 3.11.2.1 1998/01/18 10:35:45 hohndel Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/xf86config/cards.c,v 3.17 2002/05/31 18:46:04 dawes Exp $ */
 
 /*
  *  Functions to manipulate card database.
@@ -22,6 +22,7 @@
  * NAME <name of card>
  * CHIPSET <chipset description>
  * SERVER <server name>	
+ * DRIVER <driver name>
  *
  * Optional keywords:
  * RAMDAC <ramdac identifier>
@@ -47,16 +48,13 @@ int lastcard;
 
 Card card[MAX_CARDS];
 
-void sort_database();
 
-
-static int getline(f, l)
-FILE *f;
-char *l;
+static int
+getnextline(FILE *f, char *l)
 {
 	if (fgets(l, 128, f) == NULL)
 		return -1;
-#ifdef __EMX__
+#ifdef __UNIXOS2__
 	{
 		char *p = strchr(l,'\r');
 		if (p) {
@@ -68,9 +66,8 @@ char *l;
 	return 0;
 }
 
-static void appendstring(destp, src)
-	char **destp;
-	char *src;
+static void
+appendstring(char **destp, char *src)
 {
 	char *newstr;
 	newstr = malloc(strlen(*destp) + strlen(src) + 1);
@@ -81,7 +78,8 @@ static void appendstring(destp, src)
 	*destp = newstr;
 }
 
-int lookupcard( char *name ) {
+int
+lookupcard(char *name) {
 	int i;
 	for (i = 0; i <= lastcard; i++)
 		if (strcmp(name, card[i].name) == 0)
@@ -109,7 +107,7 @@ int parse_database() {
 	int i, lineno;
 	char filename[128];
 
-#ifndef __EMX__
+#ifndef __UNIXOS2__
 	strcpy(filename, CARD_DATABASE_FILE);
 #else
 	strcpy(filename, (char*)__XOS2RedirRoot(CARD_DATABASE_FILE));
@@ -122,7 +120,7 @@ int parse_database() {
 	lineno = 0;
 
 	for (;;) {
-		if (getline(f, buf))
+		if (getnextline(f, buf))
 			break;
 		lineno++;
 		if (buf[0] == '#')
@@ -133,7 +131,6 @@ int parse_database() {
 			break;
 		if (strncmp(buf, "LINE", 4) == 0 && lastcard>=0) {
 			/* Line of Device comment. */
-			char *lines;
 			/* Append to existing lines. */
 			appendstring(&card[lastcard].lines, buf + 5);
 			continue;
@@ -158,7 +155,9 @@ int parse_database() {
 			card[lastcard].name = malloc(strlen(buf + 5) + 1);
 			strcpy(card[lastcard].name, buf + 5);
 			card[lastcard].chipset = NULL;
-			card[lastcard].ramdac = NULL;
+		        card[lastcard].server = NULL;
+			card[lastcard].driver = NULL;
+		        card[lastcard].ramdac = NULL;
 			card[lastcard].clockchip = NULL;
 			card[lastcard].dacspeed = NULL;
 			card[lastcard].flags = 0;
@@ -182,6 +181,8 @@ int parse_database() {
 				card[lastcard].chipset = card[i].chipset;
 			if (card[lastcard].server == NULL)
 				card[lastcard].server = card[i].server;
+			if (card[lastcard].driver == NULL)
+				card[lastcard].driver = card[i].driver;
 			if (card[lastcard].ramdac == NULL)
 				card[lastcard].ramdac = card[i].ramdac;
 			if (card[lastcard].clockchip == NULL)
@@ -202,6 +203,12 @@ int parse_database() {
 			/* Server identifier. */
 			card[lastcard].server = malloc(strlen(buf + 7) + 1);
 			strcpy(card[lastcard].server, buf + 7);
+			continue;
+		}
+		if (strncmp(buf, "DRIVER", 6) == 0) {
+			/* Driver identifier. */
+			card[lastcard].driver = malloc(strlen(buf + 7) + 1);
+			strcpy(card[lastcard].driver, buf + 7);
 			continue;
 		}
 		if (strncmp(buf, "RAMDAC", 6) == 0) {
@@ -232,12 +239,12 @@ int parse_database() {
 			continue;
 		}
 		/* test for missing required fields */
-		if (card[lastcard].server == NULL) {
-		    fprintf(stderr, "Warning SERVER specification missing "
+		if (card[lastcard].driver == NULL) {
+		    fprintf(stderr, "Warning DRIVER specification missing "
 			    "in Card database entry %s (line %d).\n", 
 			    card[lastcard].name, lineno);
 		    keypress();
-		       card[lastcard].server = "unknown";
+		       card[lastcard].driver = "unknown";
 		}
 		if (card[lastcard].chipset == NULL) {
 		    fprintf(stderr, "Warning CHIPSET specification missing "
@@ -266,20 +273,14 @@ int parse_database() {
 	return 0;
 }
 
-#ifdef __STDC__
-#define CONST const
-#else
-#define CONST
-#endif
-
-static int compare_card(e1, e2)
-	CONST void *e1;
-	CONST void *e2;
+static int
+compare_card(const void *e1, const void *e2)
 {
 	return strcmp(((Card *)e1)->name, ((Card *)e2)->name);
 }
 
-void sort_database() {
+void
+sort_database() {
 	/* Each element is a bunch of words, but nothing too bad. */
 	qsort(card, lastcard + 1, sizeof(Card), compare_card);
 }

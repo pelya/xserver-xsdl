@@ -45,6 +45,7 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ********************************************************/
+/* $XFree86: xc/programs/Xserver/Xi/sendexev.c,v 3.3 2001/12/14 19:58:58 dawes Exp $ */
 
 /***********************************************************************
  *
@@ -61,12 +62,15 @@ SOFTWARE.
 #include "windowstr.h"			/* Window      	     */
 #include "XI.h"
 #include "XIproto.h"
+#include "extnsionst.h"
+#include "extinit.h"			/* LookupDeviceIntRec */
+#include "exevents.h"
+#include "exglobals.h"
 
-extern	int 		IReqCode;
-extern	int 		BadDevice;
-extern	void		(* ReplySwapVector[256]) ();
-extern	void		(* EventSwapVector[128]) ();
-DeviceIntPtr		LookupDeviceIntRec();
+#include "grabdev.h"
+#include "sendexev.h"
+
+extern int 		lastEvent; 		/* Defined in extension.c */
 
 /***********************************************************************
  *
@@ -83,7 +87,7 @@ SProcXSendExtensionEvent(client)
     register int i;
     xEvent eventT;
     xEvent *eventP;
-    void (*proc)(), NotImplemented();
+    EventSwapPtr proc;
 
     REQUEST(xSendExtensionEventReq);
     swaps(&stuff->length, n);
@@ -116,11 +120,11 @@ SProcXSendExtensionEvent(client)
  *
  */
 
+int
 ProcXSendExtensionEvent (client)
     register ClientPtr client;
     {
     int			ret;
-    extern int 		lastEvent; 		/* Defined in extension.c */
     DeviceIntPtr	dev;
     xEvent		*first;
     XEventClass		*list;
@@ -163,7 +167,7 @@ ProcXSendExtensionEvent (client)
 	return Success;
 
     ret =  (SendEvent (client, dev, stuff->destination,
-	stuff->propagate, &stuff[1], tmp[stuff->deviceid].mask, 
+	stuff->propagate, (xEvent *)&stuff[1], tmp[stuff->deviceid].mask, 
 	stuff->num_events));
 
     if (ret != Success)

@@ -76,30 +76,26 @@ not be used in advertising or otherwise to promote the sale, use or other
 dealings in this Software without prior written authorization from said
 copyright holders.
 */
+/* $XFree86: xc/programs/Xserver/Xprint/pcl/PclInit.c,v 1.12 2002/10/16 21:13:32 dawes Exp $ */
 
 #include <stdio.h>
 #include <string.h>
+#include <sys/types.h>
 #include <sys/wait.h>
 
 #include "Pcl.h"
-#include "AttrValid.h"
 
 #include "cfb.h"
+#include "Xos.h"	/* for unlink() */
 
 #include "attributes.h"
-#include "windowstr.h"
+#include "DiPrint.h"
 
 #define MODELDIRNAME "/models"
-extern char *XpGetConfigDir();
 
-static void AllocatePclPrivates(
-    ScreenPtr pScreen);
+static void AllocatePclPrivates(ScreenPtr pScreen);
 static int PclInitContext(XpContextPtr pCon);
-
-extern Bool _XpBoolNoop();
-extern void _XpVoidNoop();
-
-extern unsigned char *PclReadMap(char *, int *);
+static Bool PclDestroyContext(XpContextPtr pCon);
 
 int PclScreenPrivateIndex;
 int PclContextPrivateIndex;
@@ -153,46 +149,24 @@ Bool
 PclCloseScreen(int index,
 	       ScreenPtr pScreen)
 {
-    Bool status = Success;
     PclScreenPrivPtr pPriv = pScreen->devPrivates[PclScreenPrivateIndex].ptr;
 
-/*
-    if( pPriv->CloseScreen != (Bool (*)())NULL )
-      {
-	  pScreen->CloseScreen = pPriv->CloseScreen;
-	  status = pScreen->CloseScreen( index, pScreen );
-	  pScreen->CloseScreen = PclCloseScreen;
-      }
-*/
-
-    /*
-     * Finish cleaning up cfb (code taken from cfbCloseScreen)
-     */
-#ifdef XP_PCL_COLOR
-#ifdef CFB_NEED_SCREEN_PRIVATE
-    xfree( pScreen->devPrivates[cfbScreenPrivateIndex].ptr );
-#else
-    xfree( pScreen->devPrivate );
-#endif
-#endif
-
+    pScreen->CloseScreen = pPriv->CloseScreen;
     xfree( pPriv );
     
-    return status;
+    return (*pScreen->CloseScreen)(index, pScreen);
 }
 
 Bool
-InitializePclDriver(ndx, pScreen, argc, argv)
-     int ndx;
-     ScreenPtr pScreen;
-     int argc;
-     char **argv;
+InitializePclDriver(
+     int ndx,
+     ScreenPtr pScreen,
+     int argc,
+     char **argv)
 {
-    int maxRes, xRes, yRes, maxWidth, maxHeight, maxDim, numBytes;
-    int i;
+    int maxRes, xRes, yRes, maxDim;
+    unsigned i;
     PclScreenPrivPtr pPriv;
-    char **printerNames;
-    int numPrinters;
     
     /*
      * Register this driver's InitContext function with the print
@@ -227,7 +201,7 @@ InitializePclDriver(ndx, pScreen, argc, argv)
     /*
      * Clean up the fields that we stomp (code taken from cfbCloseScreen)
      */
-    for( i = 0; i < pScreen->numDepths; i++ )
+    for( i = 0; (int) i < pScreen->numDepths; i++ )
       xfree( pScreen->allowedDepths[i].vids );
     xfree( pScreen->allowedDepths );
     xfree( pScreen->visuals );
@@ -236,19 +210,19 @@ InitializePclDriver(ndx, pScreen, argc, argv)
 		  maxRes );
 #endif /* XP_PCL_COLOR */
 
+    miInitializeBackingStore ( pScreen );
+
     pScreen->defColormap = FakeClientID(0);
     pScreen->blackPixel = 1;
     pScreen->whitePixel = 0;
 
-/*
     pPriv->CloseScreen = pScreen->CloseScreen;
-*/
     pScreen->CloseScreen = PclCloseScreen;
     
     pScreen->QueryBestSize = (QueryBestSizeProcPtr)PclQueryBestSize;
-    pScreen->SaveScreen = _XpBoolNoop;
-    pScreen->GetImage = _XpVoidNoop;
-    pScreen->GetSpans = _XpVoidNoop;
+    pScreen->SaveScreen = (SaveScreenProcPtr)_XpBoolNoop;
+    pScreen->GetImage = (GetImageProcPtr)_XpVoidNoop;
+    pScreen->GetSpans = (GetSpansProcPtr)_XpVoidNoop;
     pScreen->CreateWindow = PclCreateWindow;
     pScreen->DestroyWindow = PclDestroyWindow;
 /*
@@ -316,30 +290,29 @@ InitializePclDriver(ndx, pScreen, argc, argv)
 }
 
 static void
-AllocatePclPrivates(
-    ScreenPtr pScreen)
+AllocatePclPrivates(ScreenPtr pScreen)
 {
-	static int PclGeneration = -1;
+    static unsigned long PclGeneration = 0;
 
-    if(PclGeneration != serverGeneration)
+    if((unsigned long) PclGeneration != serverGeneration)
     {
         PclScreenPrivateIndex = AllocateScreenPrivateIndex();
 
 	PclWindowPrivateIndex = AllocateWindowPrivateIndex();
-    AllocateWindowPrivate( pScreen, PclWindowPrivateIndex,
-			  sizeof( PclWindowPrivRec ) );
+	AllocateWindowPrivate( pScreen, PclWindowPrivateIndex,
+			       sizeof( PclWindowPrivRec ) );
 
 	PclContextPrivateIndex = XpAllocateContextPrivateIndex();
-    XpAllocateContextPrivate( PclContextPrivateIndex, 
-			     sizeof( PclContextPrivRec ) );
+	XpAllocateContextPrivate( PclContextPrivateIndex, 
+				  sizeof( PclContextPrivRec ) );
 
 	PclGCPrivateIndex = AllocateGCPrivateIndex();
-    AllocateGCPrivate( pScreen, PclGCPrivateIndex, 
-		      sizeof( PclGCPrivRec ) );
+	AllocateGCPrivate( pScreen, PclGCPrivateIndex, 
+			   sizeof( PclGCPrivRec ) );
 
 	PclPixmapPrivateIndex = AllocatePixmapPrivateIndex();
-    AllocatePixmapPrivate( pScreen, PclPixmapPrivateIndex, 
-			  sizeof( PclPixmapPrivRec ) );
+	AllocatePixmapPrivate( pScreen, PclPixmapPrivateIndex, 
+			       sizeof( PclPixmapPrivRec ) );
 	
         PclGeneration = serverGeneration;
     }
@@ -364,8 +337,7 @@ static char PAGE_ATT_VAL[]="content-orientation default-printer-resolution \
 default-input-tray default-medium plex";
 
 static int
-PclInitContext( pCon )
-     XpContextPtr pCon;
+PclInitContext(XpContextPtr pCon)
 {
     XpDriverFuncsPtr pFuncs;
     PclContextPrivPtr pConPriv;
@@ -373,7 +345,6 @@ PclInitContext( pCon )
     char *modelID;
     char *configDir;
     char *pathName;
-    extern XpValidatePoolsRec PclValidatePoolsRec;
     int i, j;
     float width, height;
     XpOidMediumDiscreteSizeList* ds_list;
@@ -392,16 +363,16 @@ PclInitContext( pCon )
     pFuncs = &( pCon->funcs );
     pFuncs->StartJob = PclStartJob;
     pFuncs->EndJob = PclEndJob;
-    pFuncs->StartDoc = (int (*)())PclStartDoc;
+    pFuncs->StartDoc = PclStartDoc;
     pFuncs->EndDoc = PclEndDoc;
     pFuncs->StartPage = PclStartPage;
     pFuncs->EndPage = PclEndPage;
     pFuncs->PutDocumentData = PclDocumentData;
     pFuncs->GetDocumentData = PclGetDocumentData;
-    pFuncs->GetAttributes = (char *(*)())PclGetAttributes;
-    pFuncs->SetAttributes = (int (*)())PclSetAttributes;
-    pFuncs->AugmentAttributes = (int (*)())PclAugmentAttributes;
-    pFuncs->GetOneAttribute = (char *(*)())PclGetOneAttribute;
+    pFuncs->GetAttributes = PclGetAttributes;
+    pFuncs->SetAttributes = PclSetAttributes;
+    pFuncs->AugmentAttributes = PclAugmentAttributes;
+    pFuncs->GetOneAttribute = PclGetOneAttribute;
     pFuncs->DestroyContext = PclDestroyContext;
     pFuncs->GetMediumDimensions = PclGetMediumDimensions;
     pFuncs->GetReproducibleArea = PclGetReproducibleArea;
@@ -541,8 +512,7 @@ PclInitContext( pCon )
 }
 
 static Bool
-PclDestroyContext( pCon )
-     XpContextPtr pCon;
+PclDestroyContext(XpContextPtr pCon)
 {
     PclContextPrivPtr pConPriv = (PclContextPrivPtr)
       pCon->devPrivates[PclContextPrivateIndex].ptr;
@@ -639,8 +609,7 @@ PclDestroyContext( pCon )
 }
 
 XpContextPtr
-PclGetContextFromWindow( win )
-     WindowPtr win;
+PclGetContextFromWindow(WindowPtr win)
 {
     PclWindowPrivPtr pPriv;
     

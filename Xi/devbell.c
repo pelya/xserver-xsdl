@@ -45,6 +45,7 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ********************************************************/
+/* $XFree86: xc/programs/Xserver/Xi/devbell.c,v 3.3 2001/12/14 19:58:55 dawes Exp $ */
 
 /***********************************************************************
  *
@@ -59,11 +60,11 @@ SOFTWARE.
 #include "inputstr.h"			/* DeviceIntPtr	     */
 #include "XI.h"
 #include "XIproto.h"
+#include "extnsionst.h"
+#include "extinit.h"			/* LookupDeviceIntRec */
+#include "exglobals.h"
 
-extern	int 		IReqCode;
-extern	int 		BadDevice;
-extern	void		(* ReplySwapVector[256]) ();
-DeviceIntPtr		LookupDeviceIntRec();
+#include "devbell.h"
 
 /***********************************************************************
  *
@@ -89,6 +90,7 @@ SProcXDeviceBell(client)
  *
  */
 
+int
 ProcXDeviceBell (client)
     register ClientPtr client;
     {
@@ -99,7 +101,7 @@ ProcXDeviceBell (client)
     int newpercent;
     CARD8 class;
     pointer ctrl;
-    void (*proc)();
+    BellProcPtr proc;
 
     REQUEST(xDeviceBellReq);
     REQUEST_SIZE_MATCH(xDeviceBellReq);

@@ -1,3 +1,4 @@
+/* $XFree86: xc/programs/Xserver/cfb/cfbbresd.c,v 3.6 2001/12/14 19:59:22 dawes Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -64,7 +65,7 @@ cfbBresD(rrops,
     int		    numInDashList;	/* total length of dash list */
     int		    *pdashOffset;	/* offset into current dash */
     int		    isDoubleDash;
-    unsigned long   *addrl;		/* pointer to base of bitmap */
+    CfbBits   *addrl;		/* pointer to base of bitmap */
     int		    nlwidth;		/* width in longwords of bitmap */
     int		    signdx, signdy;	/* signs of directions */
     int		    axis;		/* major axis (Y_AXIS or X_AXIS) */
@@ -81,17 +82,41 @@ cfbBresD(rrops,
     int			dashIndex;
     int			dashOffset;
     int			dashRemaining;
-    unsigned long	xorFg, andFg, xorBg, andBg;
+    CfbBits	xorFg, andFg, xorBg, andBg;
     Bool		isCopy;
     int			thisDash;
+#if PSZ == 24
+    CfbBits xorPiQxlFg[3], andPiQxlFg[3], xorPiQxlBg[3], andPiQxlBg[3]; 
+    char *addrb;
+    int signdx3, signdy3;
+#endif
 
     dashOffset = *pdashOffset;
     dashIndex = *pdashIndex;
     isCopy = (rrops[0].rop == GXcopy && rrops[1].rop == GXcopy);
+#if PSZ == 24
+    xorFg = rrops[0].xor & 0xffffff;
+    andFg = rrops[0].and & 0xffffff;
+    xorBg = rrops[1].xor & 0xffffff;
+    andBg = rrops[1].and & 0xffffff;
+    xorPiQxlFg[0] = xorFg | (xorFg << 24);
+    xorPiQxlFg[1] = (xorFg >> 8) | (xorFg << 16);
+    xorPiQxlFg[2] = (xorFg >> 16) | (xorFg << 8);
+    andPiQxlFg[0] = andFg | (andFg << 24);
+    andPiQxlFg[1] = (andFg >> 8) | (andFg << 16);
+    andPiQxlFg[2] = (andFg >> 16) | (andFg << 8);
+    xorPiQxlBg[0] = xorBg | (xorBg << 24);
+    xorPiQxlBg[1] = (xorBg >> 8) | (xorBg << 16);
+    xorPiQxlBg[2] = (xorBg >> 16) | (xorBg << 8);
+    andPiQxlBg[0] = andBg | (andBg << 24);
+    andPiQxlBg[1] = (andBg >> 8) | (andBg << 16);
+    andPiQxlBg[2] = (andFg >> 16) | (andBg << 8);
+#else
     xorFg = rrops[0].xor;
     andFg = rrops[0].and;
     xorBg = rrops[1].xor;
     andBg = rrops[1].and;
+#endif
     dashRemaining = pDash[dashIndex] - dashOffset;
     if ((thisDash = dashRemaining) >= len)
     {
@@ -116,6 +141,17 @@ cfbBresD(rrops,
 
 #ifdef PIXEL_ADDR
 
+#if PSZ == 24
+#define Loop(store) while (thisDash--) {\
+			store; \
+ 			BresStep(addrb+=signdy3,addrb+=signdx3) \
+		    }
+    /* point to first point */
+    nlwidth <<= PWSH;
+    addrp = (PixelType *)(addrl) + (y1 * nlwidth);
+    addrb = (char *)addrp + x1 * 3;
+
+#else
 #define Loop(store) while (thisDash--) {\
 			store; \
  			BresStep(addrp+=signdy,addrp+=signdx) \
@@ -123,7 +159,12 @@ cfbBresD(rrops,
     /* point to first point */
     nlwidth <<= PWSH;
     addrp = (PixelType *)(addrl) + (y1 * nlwidth) + x1;
+#endif
     signdy *= nlwidth;
+#if PSZ == 24
+    signdx3 = signdx * 3;
+    signdy3 = signdy * sizeof (CfbBits);
+#endif
     if (axis == Y_AXIS)
     {
 	int t;
@@ -131,61 +172,136 @@ cfbBresD(rrops,
 	t = signdx;
 	signdx = signdy;
 	signdy = t;
+#if PSZ == 24
+	t = signdx3;
+	signdx3 = signdy3;
+	signdy3 = t;
+#endif
     }
 
     if (isCopy)
     {
+#if PSZ == 24
+#define body_copy(pix) { \
+	addrp = (PixelType *)((unsigned long)addrb & ~0x03); \
+	switch((unsigned long)addrb & 3){ \
+	case 0: \
+	  *addrp = (*addrp & 0xFF000000)|((pix)[0] & 0xFFFFFF); \
+	  break; \
+	case 1: \
+	  *addrp = (*addrp & 0xFF)|((pix)[2] & 0xFFFFFF00); \
+	  break; \
+	case 3: \
+	  *addrp = (*addrp & 0xFFFFFF)|((pix)[0] & 0xFF000000); \
+	  *(addrp+1) = (*(addrp+1) & 0xFFFF0000)|((pix)[1] & 0xFFFF); \
+	  break; \
+	case 2: \
+	  *addrp = (*addrp & 0xFFFF)|((pix)[1] & 0xFFFF0000); \
+	  *(addrp+1) = (*(addrp+1) & 0xFFFFFF00)|((pix)[2] & 0xFF); \
+	  break; \
+	} \
+}
+#endif /* PSZ == 24 */
+		    
 	for (;;)
 	{ 
 	    len -= thisDash;
 	    if (dashIndex & 1) {
 		if (isDoubleDash) {
+#if PSZ == 24
+		    Loop(body_copy(xorPiQxlBg))
+#else
 		    Loop(*addrp = xorBg)
+#endif
 		} else {
 		    Loop(;)
 		}
 	    } else {
+#if PSZ == 24
+		Loop(body_copy(xorPiQxlFg))
+#else
 		Loop(*addrp = xorFg)
+#endif
 	    }
 	    if (!len)
 		break;
 	    NextDash
 	}
+#undef body_copy
     }
     else
     {
+#define body_set(and, xor) { \
+	addrp = (PixelType *)((unsigned long)addrb & ~0x03); \
+	switch((unsigned long)addrb & 3){ \
+	case 0: \
+	  *addrp = (*addrp & ((and)[0]|0xFF000000)) ^ ((xor)[0] & 0xFFFFFF); \
+	  break; \
+	case 1: \
+	  *addrp = (*addrp & ((and)[2]|0xFF)) ^ ((xor)[2] & 0xFFFFFF00); \
+	  break; \
+	case 3: \
+	  *addrp = (*addrp & ((and)[0]|0xFFFFFF)) ^ ((xor)[0] & 0xFF000000); \
+	  *(addrp+1)=(*(addrp+1)&((and)[1]|0xFFFF0000)) ^ ((xor)[1]&0xFFFF); \
+	  break; \
+	case 2: \
+	  *addrp = (*addrp & ((and)[1]|0xFFFF)) ^ ((xor)[1] & 0xFFFF0000); \
+	  *(addrp+1)=(*(addrp+1)&((and)[2]|0xFFFFFF00)) ^ ((xor)[2] & 0xFF); \
+	  break; \
+	} \
+}
+
 	for (;;)
 	{ 
 	    len -= thisDash;
 	    if (dashIndex & 1) {
 		if (isDoubleDash) {
+#if PSZ == 24
+		    Loop(body_set(andPiQxlBg, xorPiQxlBg))
+#else
 		    Loop(*addrp = DoRRop(*addrp,andBg, xorBg))
+#endif
 		} else {
 		    Loop(;)
 		}
 	    } else {
+#if PSZ == 24
+		Loop(body_set(andPiQxlFg, xorPiQxlFg))
+#else
 		Loop(*addrp = DoRRop(*addrp,andFg, xorFg))
+#endif
 	    }
 	    if (!len)
 		break;
 	    NextDash
 	}
+#undef body_set
     }
 #else /* !PIXEL_ADDR */
     {
-    	register unsigned long	tmp;
-	unsigned long		startbit, bit;
+    	register CfbBits	tmp;
+	CfbBits		startbit, bit;
 
     	/* point to longword containing first point */
+#if PSZ == 24
+    	addrl = (addrl + (y1 * nlwidth) + ((x1*3) >> 2);
+#else
     	addrl = (addrl + (y1 * nlwidth) + (x1 >> PWSH));
+#endif
     	signdy = signdy * nlwidth;
 
 	if (signdx > 0)
 	    startbit = cfbmask[0];
 	else
+#if PSZ == 24
+	    startbit = cfbmask[(PPW-1)<<1];
+    	bit = cfbmask[(x1 & 3)<<1];
+#else
 	    startbit = cfbmask[PPW-1];
     	bit = cfbmask[x1 & PIM];
+#endif
 
+#if PSZ == 24
 #define X_Loop(store)	while(thisDash--) {\
 			    store; \
 		    	    BresStep(addrl += signdy, \
@@ -212,6 +328,34 @@ cfbBresD(rrops,
 		    	     	     }, \
 				     addrl += signdy) \
 			}
+#else
+#define X_Loop(store)	while(thisDash--) {\
+			    store; \
+		    	    BresStep(addrl += signdy, \
+		    	     	     if (signdx > 0) \
+		    	     	     	 bit = SCRRIGHT(bit,1); \
+		    	     	     else \
+		    	     	     	 bit = SCRLEFT(bit,1); \
+		    	     	     if (!bit) \
+		    	     	     { \
+		    	     	     	 bit = startbit; \
+		    	     	     	 addrl += signdx; \
+		    	     	     }) \
+			}
+#define Y_Loop(store)	while(thisDash--) {\
+			    store; \
+		    	    BresStep(if (signdx > 0) \
+		    	     	     	 bit = SCRRIGHT(bit,1); \
+		    	     	     else \
+		    	     	     	 bit = SCRLEFT(bit,1); \
+		    	     	     if (!bit) \
+		    	     	     { \
+		    	     	     	 bit = startbit; \
+		    	     	     	 addrl += signdx; \
+		    	     	     }, \
+				     addrl += signdy) \
+			}
+#endif
 
     	if (axis == X_AXIS)
     	{

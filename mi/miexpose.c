@@ -1,3 +1,4 @@
+/* $XFree86: xc/programs/Xserver/mi/miexpose.c,v 3.9 2001/12/14 20:00:22 dawes Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -64,7 +65,12 @@ SOFTWARE.
 #include "mi.h"
 #include "Xmd.h"
 
-extern WindowPtr *WindowTable;
+#include "globals.h"
+
+#ifdef PANORAMIX
+#include "panoramiX.h"
+#include "panoramiXsrv.h"
+#endif
 
 /*
     machine-independent graphics exposure code.  any device that uses
@@ -103,7 +109,7 @@ miHandleExposures(pSrcDrawable, pDstDrawable,
     int 			dstx, dsty;
     unsigned long		plane;
 {
-    register ScreenPtr pscr = pGC->pScreen;
+    register ScreenPtr pscr;
     RegionPtr prgnSrcClip;	/* drawable-relative source clip */
     RegionRec rgnSrcRec;
     RegionPtr prgnDstClip;	/* drawable-relative dest clip */
@@ -119,6 +125,9 @@ miHandleExposures(pSrcDrawable, pDstDrawable,
     WindowPtr pSrcWin;
     BoxRec expBox;
     Bool extents;
+
+    /* This prevents warning about pscr not being used. */
+    pGC->pScreen = pscr = pGC->pScreen;
 
     /* avoid work if we can */
     if (!pGC->graphicsExposures &&
@@ -388,6 +397,7 @@ miSendGraphicsExpose (client, pRgn, drawable, major, minor)
     }
 }
 
+
 void
 miSendExposures(pWin, pRgn, dx, dy)
     WindowPtr pWin;
@@ -414,7 +424,40 @@ miSendExposures(pWin, pRgn, dx, dy)
 	pe->u.expose.height = pBox->y2 - pBox->y1;
 	pe->u.expose.count = i;
     }
+
+#ifdef PANORAMIX
+    if(!noPanoramiXExtension) {
+	int scrnum = pWin->drawable.pScreen->myNum;
+	int x = 0, y = 0;
+	XID realWin = 0;
+
+	if(!pWin->parent) {
+	    x = panoramiXdataPtr[scrnum].x;
+	    y = panoramiXdataPtr[scrnum].y;
+	    pWin = WindowTable[0];
+	    realWin = pWin->drawable.id;
+	} else if (scrnum) {
+	    PanoramiXRes *win;
+	    win = PanoramiXFindIDByScrnum(XRT_WINDOW, 
+			pWin->drawable.id, scrnum);
+	    if(!win) {
+		DEALLOCATE_LOCAL(pEvent);
+		return;
+	    }
+	    realWin = win->info[0].id;
+	    pWin = LookupIDByType(realWin, RT_WINDOW);
+	}
+	if(x || y || scrnum)
+	  for (i = 0; i < numRects; i++) {
+	      pEvent[i].u.expose.window = realWin;
+	      pEvent[i].u.expose.x += x;
+	      pEvent[i].u.expose.y += y;
+	  }
+    }
+#endif
+
     DeliverEvents(pWin, pEvent, numRects, NullWindow);
+
     DEALLOCATE_LOCAL(pEvent);
 }
 
@@ -540,9 +583,9 @@ static GCPtr	screenContext[MAXSCREENS];
 
 /*ARGSUSED*/
 static int
-tossGC (value, id)
-pointer value;
-XID id;
+tossGC (
+    pointer value,
+    XID id)
 {
     GCPtr pGC = (GCPtr)value;
     screenContext[pGC->pScreen->myNum] = (GCPtr)NULL;
@@ -550,6 +593,8 @@ XID id;
     numGCs--;
     if (!numGCs)
 	ResType = 0;
+
+    return 0;
 }
 
 
@@ -807,6 +852,7 @@ int what;
 /* MICLEARDRAWABLE -- sets the entire drawable to the background color of
  * the GC.  Useful when we have a scratch drawable and need to initialize 
  * it. */
+void
 miClearDrawable(pDraw, pGC)
     DrawablePtr	pDraw;
     GCPtr	pGC;

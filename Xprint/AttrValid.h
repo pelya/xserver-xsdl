@@ -30,12 +30,13 @@ not be used in advertising or otherwise to promote the sale, use or other
 dealings in this Software without prior written authorization from said
 copyright holders.
 */
+/* $XFree86: xc/programs/Xserver/Xprint/AttrValid.h,v 1.7 2001/12/21 21:02:04 dawes Exp $ */
 
 #ifndef _Xp_AttrValid_h
 #define _Xp_AttrValid_h
 
+#include <X11/extensions/Printstr.h>
 #include "Oid.h"
-#include "attributes.h"
 
 #define XpNumber(a) (sizeof(a) / sizeof(*(a)))
 
@@ -83,6 +84,9 @@ typedef struct
     (const char*)XpGetOneAttribute(pContext, pool, (char*)XpOidString(oid))
 #define XpPutStringAttr(pContext, pool, oid, value) \
     XpPutOneAttribute(pContext, pool, XpOidString(oid), value)
+
+#ifdef _XP_PRINT_SERVER_	/* needed for XpContextPtr in Printstr.h */
+
 /*
  * XpOid-valued attribute access
  */
@@ -175,7 +179,7 @@ void XpPutMediumSSAttr(XpContextPtr pContext,
 		       XPAttributes pool,
 		       XpOid oid,
 		       const XpOidMediumSS* msss);
-const XpOidMediumSS* XpGetDefaultMediumSS();
+const XpOidMediumSS* XpGetDefaultMediumSS(void);
 
 /*
  * XpOidTrayMediumList-valued attribute access
@@ -189,12 +193,15 @@ void XpPutTrayMediumListAttr(XpContextPtr pContext,
 			     XPAttributes pool,
 			     XpOid oid,
 			     const XpOidTrayMediumList* tm);
+BOOL XpOidTrayMediumListHasTray(const XpOidTrayMediumList* list, XpOid tray);
+
 /*
  * Attribute pool validation
  */
 void XpValidateAttributePool(XpContextPtr pContext,
 			     XPAttributes pool,
 			     const XpValidatePoolsRec* vpr);
+void XpValidateNotificationProfile(XpContextPtr pContext);
 void XpValidatePrinterPool(XpContextPtr pContext,
 			   const XpValidatePoolsRec* vpr);
 void XpValidateJobPool(XpContextPtr pContext,
@@ -203,6 +210,10 @@ void XpValidateDocumentPool(XpContextPtr pContext,
 			    const XpValidatePoolsRec* vpr);
 void XpValidatePagePool(XpContextPtr pContext,
 			const XpValidatePoolsRec* vpr);
+void XpValidatePrinterMediaAttrs(XpContextPtr pContext,
+			    const XpOidList* valid_trays,
+			    const XpOidList* valid_sizes);
 
+#endif /* _XP_PRINT_SERVER_ */
 
 #endif /* _Xp_AttrValid_h - don't add anything after this line */

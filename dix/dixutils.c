@@ -1,3 +1,4 @@
+/* $XFree86: xc/programs/Xserver/dix/dixutils.c,v 3.13 2003/01/12 02:44:26 dawes Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -94,7 +95,7 @@ Author:  Adobe Systems Incorporated
 #include "keysymdef.h"
 #ifdef XCSECURITY
 #define _SECURITY_SERVER
-#include "extensions/security.h"
+#include "security.h"
 #endif
 
 /*
@@ -326,7 +327,7 @@ AlterSaveSetForClient(client, pWin, mode)
     unsigned mode;
 {
     int numnow;
-    pointer *pTmp;
+    pointer *pTmp = NULL;
     int j;
 
     numnow = client->numSaved;
@@ -397,11 +398,7 @@ DeleteWindowFromAnySaveSet(pWin)
  * procedure to call than to check if there's a procedure 
  */
 void
-NoopDDA(
-#if NeedVarargsPrototypes
-    void* f, ...
-#endif
-)
+NoopDDA(void)
 {
 }
 
@@ -556,7 +553,7 @@ WorkQueuePtr		workQueue;
 static WorkQueuePtr	*workQueueLast = &workQueue;
 
 void
-ProcessWorkQueue()
+ProcessWorkQueue(void)
 {
     WorkQueuePtr    q, *p;
 
@@ -567,7 +564,7 @@ ProcessWorkQueue()
      * they will be called again.  This must be reentrant with
      * QueueWorkProc.
      */
-    while (q = *p)
+    while ((q = *p))
     {
 	if ((*q->function) (q->client, q->closure))
 	{
@@ -584,12 +581,12 @@ ProcessWorkQueue()
 }
 
 void
-ProcessWorkQueueZombies()
+ProcessWorkQueueZombies(void)
 {
     WorkQueuePtr    q, *p;
 
     p = &workQueue;
-    while (q = *p)
+    while ((q = *p))
     {
 	if (q->client && q->client->clientGone)
 	{
@@ -607,10 +604,22 @@ ProcessWorkQueueZombies()
 }
 
 Bool
+#if NeedFunctionPrototypes
+QueueWorkProc (
+    Bool	(*function)(
+#if NeedNestedPrototypes
+		ClientPtr	/* pClient */,
+		pointer		/* closure */
+#endif
+		),
+    ClientPtr	client,
+    pointer	closure)
+#else
 QueueWorkProc (function, client, closure)
     Bool	(*function)();
     ClientPtr	client;
     pointer	closure;
+#endif
 {
     WorkQueuePtr    q;
 
@@ -637,7 +646,7 @@ QueueWorkProc (function, client, closure)
 typedef struct _SleepQueue {
     struct _SleepQueue	*next;
     ClientPtr		client;
-    Bool		(*function)();
+    ClientSleepProcPtr  function;
     pointer		closure;
 } SleepQueueRec, *SleepQueuePtr;
 
@@ -646,7 +655,7 @@ static SleepQueuePtr	sleepQueue = NULL;
 Bool
 ClientSleep (client, function, closure)
     ClientPtr	client;
-    Bool	(*function)();
+    ClientSleepProcPtr function;
     pointer	closure;
 {
     SleepQueuePtr   q;
@@ -692,7 +701,11 @@ ClientWakeup (client)
 	    *prev = q->next;
 	    xfree (q);
 	    if (client->clientGone)
-		CloseDownClient(client);
+		/* Oops -- new zombie cleanup code ensures this only
+		 * happens from inside CloseDownClient; don't want to
+		 * recurse here...
+		 */
+		/* CloseDownClient(client) */;
 	    else
 		AttendClient (client);
 	    break;
@@ -723,10 +736,17 @@ static int numCallbackListsToCleanup = 0;
 static CallbackListPtr **listsToCleanup = NULL;
 
 static Bool 
+#if NeedFunctionPrototypes
+_AddCallback(
+    CallbackListPtr *pcbl,
+    CallbackProcPtr callback,
+    pointer         data)
+#else
 _AddCallback(pcbl, callback, data)
     CallbackListPtr *pcbl;
     CallbackProcPtr callback;
     pointer         data;
+#endif
 {
     CallbackPtr     cbr;
 
@@ -742,14 +762,20 @@ _AddCallback(pcbl, callback, data)
 }
 
 static Bool 
+#if NeedFunctionPrototypes
+_DeleteCallback(
+    CallbackListPtr *pcbl,
+    CallbackProcPtr callback,
+    pointer         data)
+#else
 _DeleteCallback(pcbl, callback, data)
     CallbackListPtr *pcbl;
     CallbackProcPtr callback;
     pointer         data;
+#endif
 {
     CallbackListPtr cbl = *pcbl;
     CallbackPtr     cbr, pcbr;
-    int i;
 
     for (pcbr = NULL, cbr = cbl->list;
 	 cbr != NULL;
@@ -779,9 +805,15 @@ _DeleteCallback(pcbl, callback, data)
 }
 
 static void 
+#if NeedFunctionPrototypes
+_CallCallbacks(
+    CallbackListPtr    *pcbl,
+    pointer	    call_data)
+#else
 _CallCallbacks(pcbl, call_data)
     CallbackListPtr    *pcbl;
     pointer	    call_data;
+#endif
 {
     CallbackListPtr cbl = *pcbl;
     CallbackPtr     cbr, pcbr;
@@ -836,8 +868,13 @@ _CallCallbacks(pcbl, call_data)
 }
 
 static void
+#if NeedFunctionPrototypes
+_DeleteCallbackList(
+    CallbackListPtr    *pcbl)
+#else
 _DeleteCallbackList(pcbl)
     CallbackListPtr    *pcbl;
+#endif
 {
     CallbackListPtr cbl = *pcbl;
     CallbackPtr     cbr, nextcbr;
@@ -851,7 +888,7 @@ _DeleteCallbackList(pcbl)
 
     for (i = 0; i < numCallbackListsToCleanup; i++)
     {
-	if (listsToCleanup[i] = pcbl)
+	if ((listsToCleanup[i] = pcbl) != 0)
 	{
 	    listsToCleanup[i] = NULL;
 	    break;

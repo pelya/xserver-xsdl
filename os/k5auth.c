@@ -26,6 +26,7 @@ other dealings in this Software without prior written authorization
 from The Open Group.
 
 */
+/* $XFree86: xc/programs/Xserver/os/k5auth.c,v 3.5 2001/12/14 20:00:34 dawes Exp $ */
 
 /*
  * Kerberos V5 authentication scheme
@@ -303,7 +304,7 @@ int k5_stage1(client)
 	return(SendConnSetup(client, "Krb5 stage1: getpeername failed"));
     }
     if (cli_net_addr.sa_family == AF_UNSPEC
-#if defined(UNIXCONN) || defined(LOCALCONN)
+#if defined(UNIXCONN) || defined(LOCALCONN) || defined(OS2PIPECONN)
 	|| cli_net_addr.sa_family == AF_UNIX
 #endif
 	)			/* assume local host */

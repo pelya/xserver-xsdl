@@ -1,3 +1,4 @@
+/* $XFree86: xc/programs/Xserver/mfb/mfbclip.c,v 1.5 2001/12/14 20:00:05 dawes Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -53,6 +54,7 @@ SOFTWARE.
 #include "gc.h"
 #include "maskbits.h"
 #include "mi.h"
+#include "mfb.h"
 
 #define ADDRECT(reg,r,fr,rx1,ry1,rx2,ry2)			\
 if (((rx1) < (rx2)) && ((ry1) < (ry2)) &&			\
@@ -93,7 +95,7 @@ mfbPixmapToRegion(pPix)
     register RegionPtr	pReg;
     register PixelType	*pw, w;
     register int	ib;
-    int			width, h, base, rx1, crects;
+    int			width, h, base, rx1 = 0, crects;
     PixelType		*pwLineEnd;
     int			irectPrevStart, irectLineStart;
     register BoxPtr	prectO, prectN;

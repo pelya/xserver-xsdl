@@ -30,19 +30,16 @@ not be used in advertising or otherwise to promote the sale, use or other
 dealings in this Software without prior written authorization from said
 copyright holders.
 */
+/* $XFree86: xc/programs/Xserver/Xprint/ddxInit.c,v 1.14 2001/10/28 03:32:53 tsi Exp $ */
 
 #include "X.h"
 #include "Xproto.h"
-#include "screenint.h"
-#include "input.h"
-#include "misc.h"
-#include "scrnintstr.h"
 #include "windowstr.h"
 #include "servermd.h"
 #include "Xos.h"
+#include "DiPrint.h"
 
-static void Exit();
-void _XpVoidNoop();
+static void Exit(int);
 
 /*-
  *-----------------------------------------------------------------------
@@ -72,13 +69,11 @@ void _XpVoidNoop();
  */
 
 void 
-InitOutput(pScreenInfo, argc, argv)
-    ScreenInfo 	  *pScreenInfo;
-    int     	  argc;
-    char    	  **argv;
+InitOutput(
+    ScreenInfo 	  *pScreenInfo,
+    int     	  argc,
+    char    	  **argv)
 {
-    int i;
-
     pScreenInfo->imageByteOrder = IMAGE_BYTE_ORDER;
     pScreenInfo->bitmapScanlineUnit = BITMAP_SCANLINE_UNIT;
     pScreenInfo->bitmapScanlinePad = BITMAP_SCANLINE_PAD;
@@ -92,17 +87,17 @@ InitOutput(pScreenInfo, argc, argv)
 }
 
 static void
-BellProc(volume, pDev)
-    int volume;
-    DeviceIntPtr pDev;
+BellProc(
+    int volume,
+    DeviceIntPtr pDev)
 {
     return;
 }
 
 static void
-KeyControlProc(pDev, ctrl)
-    DeviceIntPtr pDev;
-    KeybdCtrl *ctrl;
+KeyControlProc(
+    DeviceIntPtr pDev,
+    KeybdCtrl *ctrl)
 {
     return;
 }
@@ -111,11 +106,11 @@ static KeySym printKeyMap[256];
 static CARD8 printModMap[256];
 
 static int
-KeyboardProc(pKbd, what, argc, argv)
-    DevicePtr pKbd;
-    int what;
-    int argc;
-    char *argv[];
+KeyboardProc(
+    DevicePtr pKbd,
+    int what,
+    int argc,
+    char *argv[])
 {
     KeySymsRec keySyms;
 
@@ -143,11 +138,11 @@ KeyboardProc(pKbd, what, argc, argv)
 
 #include "../mi/mipointer.h"
 static int
-PointerProc(pPtr, what, argc, argv)
-     DevicePtr pPtr;
-     int what;
-     int argc;
-     char *argv[];
+PointerProc(
+     DevicePtr pPtr,
+     int what,
+     int argc,
+     char *argv[])
 {
 #define NUM_BUTTONS 1
     CARD8 map[NUM_BUTTONS];
@@ -174,11 +169,11 @@ PointerProc(pPtr, what, argc, argv)
 }
 
 void
-InitInput(argc, argv)
-     int	argc;
-     char **argv;
+InitInput(
+     int	argc,
+     char **argv)
 {
-    DevicePtr ptr, kbd;
+    DeviceIntPtr ptr, kbd;
 
     ptr = AddInputDevice((DeviceProc)PointerProc, TRUE);
     kbd = AddInputDevice((DeviceProc)KeyboardProc, TRUE);
@@ -189,28 +184,42 @@ InitInput(argc, argv)
 
 
 Bool
-LegalModifier(key, dev)
-     unsigned int key;
-     DevicePtr dev;
+LegalModifier(
+     unsigned int key,
+     DevicePtr dev)
 {
     return TRUE;
 }
 
 void
-ProcessInputEvents()
+ProcessInputEvents(void)
 {
 }
 
+#ifdef __DARWIN__
+void
+DarwinHandleGUI(int argc, char *argv[])
+{
+}
+#endif
+
 #ifdef DDXOSINIT
 void
-OsVendorInit()
+OsVendorInit(void)
+{
+}
+#endif
+
+#ifdef DDXOSFATALERROR
+void
+OsVendorFatalError(void)
 {
 }
 #endif
 
 #ifdef DDXTIME
 CARD32
-GetTimeInMillis()
+GetTimeInMillis(void)
 {
     struct timeval  tp;
 
@@ -226,7 +235,7 @@ GetTimeInMillis()
 *
 *****************************************/
 
-void ddxUseMsg()
+void ddxUseMsg(void)
 {
 	/* Right now, let's just do nothing */
 }
@@ -237,20 +246,19 @@ static void Exit (code)
     exit (code);
 }
 
-void AbortDDX ()
+void AbortDDX (void)
 {
 }
 
-void ddxGiveUp()	/* Called by GiveUp() */
+void ddxGiveUp(void)	/* Called by GiveUp() */
 {
 }
 
 int
-ddxProcessArgument (argc, argv, i)
-    int argc;
-    char *argv[];
-    int i;
-
+ddxProcessArgument (
+    int argc,
+    char *argv[],
+    int i)
 {
 #ifdef PRINT_ONLY_SERVER
     return XprintOptions(argc, argv, i) - i;
@@ -263,67 +271,76 @@ ddxProcessArgument (argc, argv, i)
 
 #include "XI.h"
 #include "XIproto.h"
+#include "XIstubs.h"
 
 extern  int     BadDevice;
 
-ChangePointerDevice (old_dev, new_dev, x, y)
-    DeviceIntPtr        old_dev;
-    DeviceIntPtr        new_dev;
-    unsigned char       x,y;
+int
+ChangePointerDevice (
+    DeviceIntPtr        old_dev,
+    DeviceIntPtr        new_dev,
+    unsigned char	x,
+    unsigned char	y)
 {
-        return (BadDevice);
+    return (BadDevice);
 }
 
 int
-ChangeDeviceControl (client, dev, control)
-    register    ClientPtr       client;
-    DeviceIntPtr dev;
-    xDeviceCtl  *control;
+ChangeDeviceControl (
+    register    ClientPtr       client,
+    DeviceIntPtr dev,
+    xDeviceCtl  *control)
 {
     return BadMatch;
 }
 
-OpenInputDevice (dev, client, status)
-    DeviceIntPtr dev;
-    ClientPtr client;
-    int *status;
+void
+OpenInputDevice (
+    DeviceIntPtr dev,
+    ClientPtr client,
+    int *status)
 {
     return;
 }
 
-AddOtherInputDevices ()
+void
+AddOtherInputDevices (void)
 {
     return;
 }
 
-CloseInputDevice (dev, client)
-    DeviceIntPtr        dev;
-    ClientPtr           client;
+void
+CloseInputDevice (
+    DeviceIntPtr        dev,
+    ClientPtr           client)
 {
     return;
 }
 
-ChangeKeyboardDevice (old_dev, new_dev)
-    DeviceIntPtr        old_dev;
-    DeviceIntPtr        new_dev;
+int
+ChangeKeyboardDevice (
+    DeviceIntPtr        old_dev,
+    DeviceIntPtr        new_dev)
 {
     return (Success);
 }
 
-SetDeviceMode (client, dev, mode)
-    register    ClientPtr       client;
-    DeviceIntPtr dev;
-    int         mode;
+int
+SetDeviceMode (
+    register    ClientPtr       client,
+    DeviceIntPtr dev,
+    int         mode)
 {
     return BadMatch;
 }
 
-SetDeviceValuators (client, dev, valuators, first_valuator, num_valuators)
-    register    ClientPtr       client;
-    DeviceIntPtr dev;
-    int         *valuators;
-    int         first_valuator;
-    int         num_valuators;
+int
+SetDeviceValuators (
+    register    ClientPtr       client,
+    DeviceIntPtr dev,
+    int         *valuators,
+    int         first_valuator,
+    int         num_valuators)
 {
     return BadMatch;
 }
@@ -334,21 +351,19 @@ SetDeviceValuators (client, dev, valuators, first_valuator, num_valuators)
 #ifdef XTESTEXT1
 
 void
-XTestJumpPointer(x, y, dev)
-    int x, y, dev;
+XTestJumpPointer(int x, int y, int dev)
 {
     return;
 }
 
 void
-XTestGetPointerPos(x, y)
+XTestGetPointerPos(int x, int y)
 {
     return;
 }
 
 void
-XTestGenerateEvent(dev, keycode, keystate, x, y)
-    int dev, keycode, keystate, x, y;
+XTestGenerateEvent(int dev, int keycode, int keystate, int x, int y)
 {
     return;
 }

@@ -24,6 +24,7 @@ used in advertising or otherwise to promote the sale, use or other dealings
 in this Software without prior written authorization from The Open Group.
 
 */
+/* $XFree86: xc/programs/Xserver/Xext/cup.c,v 1.10 2001/12/14 19:58:48 dawes Exp $ */
 
 #define NEED_REPLIES
 #define NEED_EVENTS
@@ -35,11 +36,16 @@ in this Software without prior written authorization from The Open Group.
 #include "colormapst.h"
 #include "scrnintstr.h"
 #include "servermd.h"
+#include "swapreq.h"
 #define _XCUP_SERVER_
 #include "Xcupstr.h"
 #include "Xfuncproto.h"
 
+#ifndef EXTMODULE
 #include "../os/osdep.h"
+#else
+#include "xf86_ansic.h"
+#endif
 
 static int		ProcDispatch (), SProcDispatch ();
 static void		ResetProc ();
@@ -121,13 +127,13 @@ XcupExtensionInit ()
 {
     ExtensionEntry* extEntry;
 
-    if (extEntry = AddExtension (XCUPNAME,
+    if ((extEntry = AddExtension (XCUPNAME,
 				0,
 				XcupNumberErrors,
 				ProcDispatch,
 				SProcDispatch,
 				ResetProc,
-				StandardMinorOpcode)) {
+				StandardMinorOpcode))) {
 	ReqCode = (unsigned char)extEntry->base;
 	ErrorBase = extEntry->errorBase;
     }
@@ -146,7 +152,7 @@ static
 int ProcQueryVersion (client)
     register ClientPtr client;
 {
-    REQUEST (xXcupQueryVersionReq);
+    /* REQUEST (xXcupQueryVersionReq); */
     xXcupQueryVersionReply rep;
     register int n;
 
@@ -214,7 +220,6 @@ int ProcStoreColors (client)
 	int ncolors, n;
 	xXcupStoreColorsReply rep;
 	xColorItem* cptr;
-	Pixel pixel;
 
 	if (!(pcmp->class & DynamicClass))
 	    return BadMatch;
@@ -302,7 +307,7 @@ int SProcGetReservedColormapEntries (client)
 }
 
 static 
-int SProcStoreColors (client)
+int SProcXcupStoreColors (client)
     ClientPtr client;
 {
     register int n;
@@ -331,7 +336,7 @@ int SProcDispatch (client)
     case X_XcupGetReservedColormapEntries:
 	return SProcGetReservedColormapEntries (client);
     case X_XcupStoreColors:
-	return SProcStoreColors (client);
+	return SProcXcupStoreColors (client);
     default:
 	return BadRequest;
     }

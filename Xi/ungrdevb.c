@@ -45,6 +45,7 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ********************************************************/
+/* $XFree86: xc/programs/Xserver/Xi/ungrdevb.c,v 3.4 2001/12/14 19:59:00 dawes Exp $ */
 
 /***********************************************************************
  *
@@ -60,15 +61,16 @@ SOFTWARE.
 #include "windowstr.h"			/* window structure  */
 #include "XI.h"
 #include "XIproto.h"
+#include "extnsionst.h"
+#include "extinit.h"			/* LookupDeviceIntRec */
+#include "exglobals.h"
+#include "dixgrabs.h"
+
+#include "ungrdevb.h"
 
 #define AllModifiersMask ( \
 	ShiftMask | LockMask | ControlMask | Mod1Mask | Mod2Mask | \
 	Mod3Mask | Mod4Mask | Mod5Mask )
-extern	int 	IReqCode;
-extern	int	BadDevice;
-extern	int	DeviceButtonPress;
-extern	void	(* ReplySwapVector[256]) ();
-DeviceIntPtr	LookupDeviceIntRec();
 
 /***********************************************************************
  *

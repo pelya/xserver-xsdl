@@ -30,166 +30,180 @@ not be used in advertising or otherwise to promote the sale, use or other
 dealings in this Software without prior written authorization from said
 copyright holders.
 */
+/* $XFree86: xc/programs/Xserver/Xprint/pcl/Pclmap.h,v 1.6 2001/12/21 21:02:05 dawes Exp $ */
 
 #ifndef _PCLMAP_H_
 #define _PCLMAP_H_
 
 #ifdef XP_PCL_COLOR
-#if (defined(__STDC__) && !defined(UNIXCPP)) || defined(ANSICPP)
-#define NAME(subname) PclCr##subname
+#ifdef CATNAME
+#undef CATNAME
+#endif
+#if !defined(UNIXCPP) || defined(ANSICPP)
+#define PCLNAME(subname) PclCr##subname
 #define CATNAME(prefix,subname) prefix##Color##subname
 #else
-#define NAME(subname) PclCr/**/subname
+#define PCLNAME(subname) PclCr/**/subname
 #define CATNAME(prefix,subname) prefix/**/Color/**/subname
 #endif
 #endif /* XP_PCL_COLOR */
 
 #ifdef XP_PCL_MONO
-#if (defined(__STDC__) && !defined(UNIXCPP)) || defined(ANSICPP)
-#define NAME(subname) PclMn##subname
+#ifdef CATNAME
+#undef CATNAME
+#endif
+#if !defined(UNIXCPP) || defined(ANSICPP)
+#define PCLNAME(subname) PclMn##subname
 #define CATNAME(prefix,subname) prefix##Mono##subname
 #else
-#define NAME(subname) PclMn/**/subname
+#define PCLNAME(subname) PclMn/**/subname
 #define CATNAME(prefix,subname) prefix/**/Mono/**/subname
 #endif
 #endif /* XP_PCL_MONO */
 
 #ifdef XP_PCL_LJ3
-#if (defined(__STDC__) && !defined(UNIXCPP)) || defined(ANSICPP)
-#define NAME(subname) PclLj3##subname
+#ifdef CATNAME
+#undef CATNAME
+#endif
+#if !defined(UNIXCPP) || defined(ANSICPP)
+#define PCLNAME(subname) PclLj3##subname
 #define CATNAME(prefix,subname) prefix##Lj3##subname
 #else
-#define NAME(subname) PclLj3/**/subname
+#define PCLNAME(subname) PclLj3/**/subname
 #define CATNAME(prefix,subname) prefix/**/Lj3/**/subname
 #endif
 #endif /* XP_PCL_LJ3 */
 
+#ifdef PCLNAME
+
 /* PclInit.c */
 #define InitializePclDriver		CATNAME(Initialize, PclDriver)
-#define PclCloseScreen			NAME(CloseScreen)
-#define PclGetContextFromWindow		NAME(GetContextFromWindow)
-#define PclScreenPrivateIndex	NAME(ScreenPrivateIndex)
-#define PclWindowPrivateIndex	NAME(WindowPrivateIndex)
-#define PclContextPrivateIndex	NAME(ContextPrivateIndex)
-#define PclPixmapPrivateIndex	NAME(PixmapPrivateIndex)
-#define PclGCPrivateIndex	NAME(GCPrivateIndex)
+#define PclCloseScreen			PCLNAME(CloseScreen)
+#define PclGetContextFromWindow		PCLNAME(GetContextFromWindow)
+#define PclScreenPrivateIndex	PCLNAME(ScreenPrivateIndex)
+#define PclWindowPrivateIndex	PCLNAME(WindowPrivateIndex)
+#define PclContextPrivateIndex	PCLNAME(ContextPrivateIndex)
+#define PclPixmapPrivateIndex	PCLNAME(PixmapPrivateIndex)
+#define PclGCPrivateIndex	PCLNAME(GCPrivateIndex)
 
 /* PclPrint.c */
-#define PclStartJob			NAME(StartJob)
-#define PclEndJob			NAME(EndJob)
-#define PclStartPage			NAME(StartPage)
-#define PclEndPage			NAME(EndPage)
-#define PclStartDoc			NAME(StartDoc)
-#define PclEndDoc			NAME(EndDoc)
-#define PclDocumentData			NAME(DocumentData)
-#define PclGetDocumentData		NAME(GetDocumentData)
+#define PclStartJob			PCLNAME(StartJob)
+#define PclEndJob			PCLNAME(EndJob)
+#define PclStartPage			PCLNAME(StartPage)
+#define PclEndPage			PCLNAME(EndPage)
+#define PclStartDoc			PCLNAME(StartDoc)
+#define PclEndDoc			PCLNAME(EndDoc)
+#define PclDocumentData			PCLNAME(DocumentData)
+#define PclGetDocumentData		PCLNAME(GetDocumentData)
 
 /* PclWindow.c */
-#define PclCreateWindow			NAME(CreateWindow)
-#define PclMapWindow			NAME(MapWindow)
-#define PclPositionWindow		NAME(PositionWindow)
-#define PclUnmapWindow			NAME(UnmapWindow)
-#define PclCopyWindow			NAME(CopyWindow)
-#define PclChangeWindowAttributes	NAME(ChangeWindowAttributes)
-#define PclPaintWindow			NAME(PaintWindow)
-#define PclDestroyWindow		NAME(DestroyWindow)
+#define PclCreateWindow			PCLNAME(CreateWindow)
+#define PclMapWindow			PCLNAME(MapWindow)
+#define PclPositionWindow		PCLNAME(PositionWindow)
+#define PclUnmapWindow			PCLNAME(UnmapWindow)
+#define PclCopyWindow			PCLNAME(CopyWindow)
+#define PclChangeWindowAttributes	PCLNAME(ChangeWindowAttributes)
+#define PclPaintWindow			PCLNAME(PaintWindow)
+#define PclDestroyWindow		PCLNAME(DestroyWindow)
 
 /* PclGC.c */
-#define PclCreateGC			NAME(CreateGC)
-#define PclDestroyGC			NAME(DestroyGC)
-#define PclGetDrawablePrivateStuff	NAME(GetDrawablePrivateStuff)
-#define PclSetDrawablePrivateGC		NAME(SetDrawablePrivateGC)
-#define PclSendPattern			NAME(SendPattern)
-#define PclUpdateDrawableGC		NAME(UpdateDrawableGC)
-#define PclComputeCompositeClip		NAME(ComputeCompositeClip)
-#define PclValidateGC			NAME(ValidateGC)
+#define PclCreateGC			PCLNAME(CreateGC)
+#define PclDestroyGC			PCLNAME(DestroyGC)
+#define PclGetDrawablePrivateStuff	PCLNAME(GetDrawablePrivateStuff)
+#define PclSetDrawablePrivateGC		PCLNAME(SetDrawablePrivateGC)
+#define PclSendPattern			PCLNAME(SendPattern)
+#define PclUpdateDrawableGC		PCLNAME(UpdateDrawableGC)
+#define PclComputeCompositeClip		PCLNAME(ComputeCompositeClip)
+#define PclValidateGC			PCLNAME(ValidateGC)
 
 /* PclAttr.c */
-#define PclGetAttributes		NAME(GetAttributes)
-#define PclGetOneAttribute		NAME(GetOneAttribute)
-#define PclAugmentAttributes		NAME(AugmentAttributes)
-#define PclSetAttributes		NAME(SetAttributes)
+#define PclGetAttributes		PCLNAME(GetAttributes)
+#define PclGetOneAttribute		PCLNAME(GetOneAttribute)
+#define PclAugmentAttributes		PCLNAME(AugmentAttributes)
+#define PclSetAttributes		PCLNAME(SetAttributes)
 
 /* PclColor.c */
-#define PclLookUp			NAME(LookUp)
-#define PclCreateDefColormap		NAME(CreateDefColormap)
-#define PclCreateColormap		NAME(CreateColormap)
-#define PclDestroyColormap		NAME(DestroyColormap)
-#define PclInstallColormap		NAME(InstallColormap)
-#define PclUninstallColormap		NAME(UninstallColormap)
-#define PclListInstalledColormaps	NAME(ListInstalledColormaps)
-#define PclStoreColors			NAME(StoreColors)
-#define PclResolveColor			NAME(ResolveColor)
-#define PclFindPaletteMap		NAME(FindPaletteMap)
-#define PclUpdateColormap		NAME(UpdateColormap)
-#define PclReadMap			NAME(ReadMap)
+#define PclLookUp			PCLNAME(LookUp)
+#define PclCreateDefColormap		PCLNAME(CreateDefColormap)
+#define PclCreateColormap		PCLNAME(CreateColormap)
+#define PclDestroyColormap		PCLNAME(DestroyColormap)
+#define PclInstallColormap		PCLNAME(InstallColormap)
+#define PclUninstallColormap		PCLNAME(UninstallColormap)
+#define PclListInstalledColormaps	PCLNAME(ListInstalledColormaps)
+#define PclStoreColors			PCLNAME(StoreColors)
+#define PclResolveColor			PCLNAME(ResolveColor)
+#define PclFindPaletteMap		PCLNAME(FindPaletteMap)
+#define PclUpdateColormap		PCLNAME(UpdateColormap)
+#define PclReadMap			PCLNAME(ReadMap)
 
 /* PclPixmap.c */
-#define PclCreatePixmap			NAME(CreatePixmap)
-#define PclDestroyPixmap		NAME(DestroyPixmap)
+#define PclCreatePixmap			PCLNAME(CreatePixmap)
+#define PclDestroyPixmap		PCLNAME(DestroyPixmap)
 
 /* PclArc.c */
-#define PclDoArc			NAME(DoArc)
-#define PclPolyArc			NAME(PolyArc)
-#define PclPolyFillArc			NAME(PolyFillArc)
+#define PclDoArc			PCLNAME(DoArc)
+#define PclPolyArc			PCLNAME(PolyArc)
+#define PclPolyFillArc			PCLNAME(PolyFillArc)
 
 /* PclArea.c */
-#define PclPutImage			NAME(PutImage)
-#define PclCopyArea			NAME(CopyArea)
-#define PclCopyPlane			NAME(CopyPlane)
+#define PclPutImage			PCLNAME(PutImage)
+#define PclCopyArea			PCLNAME(CopyArea)
+#define PclCopyPlane			PCLNAME(CopyPlane)
 
 /* PclLine */
-#define PclPolyLine			NAME(PolyLine)
-#define PclPolySegment			NAME(PolySegment)
+#define PclPolyLine			PCLNAME(PolyLine)
+#define PclPolySegment			PCLNAME(PolySegment)
 
 /* PclPixel.c */
-#define PclPolyPoint			NAME(PolyPoint)
-#define PclPushPixels			NAME(PushPixels)
+#define PclPolyPoint			PCLNAME(PolyPoint)
+#define PclPushPixels			PCLNAME(PushPixels)
 
 /* PclPolygon.c */
-#define PclPolyRectangle		NAME(PolyRectangle)
-#define PclFillPolygon			NAME(FillPolygon)
-#define PclPolyFillRect			NAME(PolyFillRect)
+#define PclPolyRectangle		PCLNAME(PolyRectangle)
+#define PclFillPolygon			PCLNAME(FillPolygon)
+#define PclPolyFillRect			PCLNAME(PolyFillRect)
 
 /* PclSpans.c */
-#define PclFillSpans			NAME(FillSpans)
-#define PclSetSpans			NAME(SetSpans)
+#define PclFillSpans			PCLNAME(FillSpans)
+#define PclSetSpans			PCLNAME(SetSpans)
 
 /* PclText.c */
-#define PclPolyText8			NAME(PolyText8)
-#define PclPolyText16			NAME(PolyText16)
-#define PclImageText8			NAME(ImageText8)
-#define PclImageText16			NAME(ImageText16)
-#define PclImageGlyphBlt		NAME(ImageGlyphBlt)
-#define PclPolyGlyphBlt			NAME(PolyGlyphBlt)
-#define PclPolyGlyphBlt			NAME(PolyGlyphBlt)
+#define PclPolyText8			PCLNAME(PolyText8)
+#define PclPolyText16			PCLNAME(PolyText16)
+#define PclImageText8			PCLNAME(ImageText8)
+#define PclImageText16			PCLNAME(ImageText16)
+#define PclImageGlyphBlt		PCLNAME(ImageGlyphBlt)
+#define PclPolyGlyphBlt			PCLNAME(PolyGlyphBlt)
+#define PclPolyGlyphBlt			PCLNAME(PolyGlyphBlt)
 
 /* PclFonts.c */
-#define PclRealizeFont			NAME(RealizeFont)
-#define PclUnrealizeFont		NAME(UnrealizeFont)
+#define PclRealizeFont			PCLNAME(RealizeFont)
+#define PclUnrealizeFont		PCLNAME(UnrealizeFont)
 
 /* PclSFonts.c */
-#define PclDownloadSoftFont8		NAME(DownloadSoftFont8)
-#define PclDownloadSoftFont16		NAME(DownloadSoftFont16)
-#define PclCreateSoftFontInfo		NAME(CreateSoftFontInfo)
-#define PclDestroySoftFontInfo		NAME(DestroySoftFontInfo)
+#define PclDownloadSoftFont8		PCLNAME(DownloadSoftFont8)
+#define PclDownloadSoftFont16		PCLNAME(DownloadSoftFont16)
+#define PclCreateSoftFontInfo		PCLNAME(CreateSoftFontInfo)
+#define PclDestroySoftFontInfo		PCLNAME(DestroySoftFontInfo)
 
 /* PclMisc.c */
-#define PclQueryBestSize		NAME(QueryBestSize)
-#define GetPropString			NAME(GetPropString)
-#define SystemCmd			NAME(SystemCmd)
-#define PclGetMediumDimensions		NAME(GetMediumDimensions)
-#define PclGetReproducibleArea		NAME(GetReproducibleArea)
-#define PclSpoolFigs			NAME(SpoolFigs)
-#define PclSendData			NAME(SendData)
+#define PclQueryBestSize		PCLNAME(QueryBestSize)
+#define GetPropString			PCLNAME(GetPropString)
+#define SystemCmd			PCLNAME(SystemCmd)
+#define PclGetMediumDimensions		PCLNAME(GetMediumDimensions)
+#define PclGetReproducibleArea		PCLNAME(GetReproducibleArea)
+#define PclSpoolFigs			PCLNAME(SpoolFigs)
+#define PclSendData			PCLNAME(SendData)
 
 /* PclCursor.c */
-#define PclConstrainCursor		NAME(ConstrainCursor)
-#define PclCursorLimits			NAME(CursorLimits)
-#define PclDisplayCursor		NAME(DisplayCursor)
-#define PclRealizeCursor		NAME(RealizeCursor)
-#define PclUnrealizeCursor		NAME(UnrealizeCursor)
-#define PclRecolorCursor		NAME(RecolorCursor)
-#define PclSetCursorPosition		NAME(SetCursorPosition)
+#define PclConstrainCursor		PCLNAME(ConstrainCursor)
+#define PclCursorLimits			PCLNAME(CursorLimits)
+#define PclDisplayCursor		PCLNAME(DisplayCursor)
+#define PclRealizeCursor		PCLNAME(RealizeCursor)
+#define PclUnrealizeCursor		PCLNAME(UnrealizeCursor)
+#define PclRecolorCursor		PCLNAME(RecolorCursor)
+#define PclSetCursorPosition		PCLNAME(SetCursorPosition)
+
+#endif
 
 #endif /* _PCLMAP_H_ */

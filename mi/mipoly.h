@@ -26,6 +26,7 @@ other dealings in this Software without prior written authorization
 from The Open Group.
 
 */
+/* $XFree86: xc/programs/Xserver/mi/mipoly.h,v 1.3 2001/12/14 20:00:25 dawes Exp $ */
 
 
 /*
@@ -182,47 +183,35 @@ typedef struct _ScanLineListBlock {
 /* mipolyutil.c */
 
 extern Bool miInsertEdgeInET(
-#if NeedFunctionPrototypes
     EdgeTable * /*ET*/,
     EdgeTableEntry * /*ETE*/,
     int /*scanline*/,
     ScanLineListBlock ** /*SLLBlock*/,
     int * /*iSLLBlock*/
-#endif
 );
 
 extern Bool miCreateETandAET(
-#if NeedFunctionPrototypes
     int /*count*/,
     DDXPointPtr /*pts*/,
     EdgeTable * /*ET*/,
     EdgeTableEntry * /*AET*/,
     EdgeTableEntry * /*pETEs*/,
     ScanLineListBlock * /*pSLLBlock*/
-#endif
 );
 
 extern void miloadAET(
-#if NeedFunctionPrototypes
     EdgeTableEntry * /*AET*/,
     EdgeTableEntry * /*ETEs*/
-#endif
 );
 
 extern void micomputeWAET(
-#if NeedFunctionPrototypes
     EdgeTableEntry * /*AET*/
-#endif
 );
 
 extern int miInsertionSort(
-#if NeedFunctionPrototypes
     EdgeTableEntry * /*AET*/
-#endif
 );
 
 extern void miFreeStorage(
-#if NeedFunctionPrototypes
     ScanLineListBlock * /*pSLLBlock*/
-#endif
 );

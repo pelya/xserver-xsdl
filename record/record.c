@@ -32,15 +32,28 @@ This work benefited from earlier work done by Martha Zimet of NCD
 and Jim Haggerty of Metheus.
 
 */
+/* $XFree86: xc/programs/Xserver/record/record.c,v 1.10 2002/09/17 01:15:14 dawes Exp $ */
 
-#include <stdio.h>
-#include <assert.h>
 #define NEED_EVENTS
 #include "dixstruct.h"
 #include "extnsionst.h"
 #define _XRECORD_SERVER_
-#include "X11/extensions/recordstr.h"
+#include "recordstr.h"
 #include "set.h"
+
+#ifndef XFree86LOADER
+#include <stdio.h>
+#include <assert.h>
+#else
+#include "xf86_ansic.h"
+#endif
+
+#ifdef PANORAMIX
+#include "globals.h"
+#include "panoramiX.h"
+#include "panoramiXsrv.h"
+#include "cursor.h"
+#endif
 
 static RESTYPE RTContext;   /* internal resource type for Record contexts */
 static int RecordErrorBase; /* first Record error number */
@@ -286,7 +299,7 @@ RecordAProtocolElement(pContext, pClient, category, data, datalen, futurelen)
     int numElemHeaders = 0;
     Bool recordingClientSwapped = pContext->pRecordingClient->swapped;
     int n;
-    CARD32 serverTime;
+    CARD32 serverTime = 0;
     Bool gotServerTime = FALSE;
     int replylen;
 
@@ -864,11 +877,31 @@ RecordADeviceEvent(pcbl, nulldata, calldata)
 		    {
 		        xEvent swappedEvent;
 		        xEvent *pEvToRecord = pev;
+#ifdef PANORAMIX
+		        xEvent shiftedEvent;
+
+			if (!noPanoramiXExtension &&
+			    (pev->u.u.type == MotionNotify ||
+			     pev->u.u.type == ButtonPress ||
+			     pev->u.u.type == ButtonRelease ||
+			     pev->u.u.type == KeyPress ||
+			     pev->u.u.type == KeyRelease)) {
+				int scr = XineramaGetCursorScreen();
+				memcpy(&shiftedEvent, pev, sizeof(xEvent));
+				shiftedEvent.u.keyButtonPointer.rootX +=
+				    panoramiXdataPtr[scr].x - 
+					panoramiXdataPtr[0].x;
+				shiftedEvent.u.keyButtonPointer.rootY +=
+				    panoramiXdataPtr[scr].y -
+					panoramiXdataPtr[0].y;
+				pEvToRecord = &shiftedEvent;
+			}
+#endif /* PANORAMIX */
 
 			if (pContext->pRecordingClient->swapped)
 			{
-			    (*EventSwapVector[pev->u.u.type & 0177])
-				(pev, &swappedEvent);
+			    (*EventSwapVector[pEvToRecord->u.u.type & 0177])
+				(pEvToRecord, &swappedEvent);
 			    pEvToRecord = &swappedEvent;
 			}
 
@@ -979,8 +1012,8 @@ RecordInstallHooks(pRCAP, oneclient)
 			(pointer)pClientPriv;
 		    pClient->requestVector = pClientPriv->recordVector;
 		}
-		while (pIter = RecordIterateSet(pRCAP->pRequestMajorOpSet,
-						pIter, &interval))
+		while ((pIter = RecordIterateSet(pRCAP->pRequestMajorOpSet,
+						pIter, &interval)))
 		{
 		    unsigned int j;
 		    for (j = interval.first; j <= interval.last; j++)
@@ -1078,9 +1111,9 @@ RecordUninstallHooks(pRCAP, oneclient)
 			RecordSetInterval interval;
 
 			otherRCAPwantsProcVector = TRUE;
-			while (pIter = RecordIterateSet(
+			while ((pIter = RecordIterateSet(
 						pOtherRCAP->pRequestMajorOpSet,
-						pIter, &interval))
+						pIter, &interval)))
 			{
 			    unsigned int j;
 			    for (j = interval.first; j <= interval.last; j++)
@@ -1241,7 +1274,7 @@ RecordDeleteClientFromContext(pContext, clientspec)
     RecordClientsAndProtocolPtr pRCAP;
     int position;
 
-    if (pRCAP = RecordFindClientOnContext(pContext, clientspec, &position))
+    if ((pRCAP = RecordFindClientOnContext(pContext, clientspec, &position)))
 	RecordDeleteClientFromRCAP(pRCAP, position);
 } /* RecordDeleteClientFromContext */
 
@@ -1696,8 +1729,8 @@ RecordRegisterClients(pContext, client, stuff)
     int maxSets;
     int nExtReqSets = 0;
     int nExtRepSets = 0;
-    int extReqSetsOffset;
-    int extRepSetsOffset;
+    int extReqSetsOffset = 0;
+    int extRepSetsOffset = 0;
     SetInfoPtr pExtReqSets, pExtRepSets;
     int clientListOffset;
     XID *pCanonClients;
@@ -1964,7 +1997,7 @@ static int
 ProcRecordQueryVersion(client)
     ClientPtr client;
 {
-    REQUEST(xRecordQueryVersionReq);
+    /* REQUEST(xRecordQueryVersionReq); */
     xRecordQueryVersionReply 	rep;
     int 		n;
 
@@ -2186,7 +2219,7 @@ RecordConvertSetToRanges(pSet, pri, byteoffset, card8, imax, pStartIndex)
 	return Success;
 
     nRanges = pStartIndex ? *pStartIndex : 0;
-    while (pIter = RecordIterateSet(pSet, pIter, &interval))
+    while ((pIter = RecordIterateSet(pSet, pIter, &interval)))
     {
 	if (interval.first > imax) break;
 	if (interval.last  > imax) interval.last = imax;
@@ -2602,7 +2635,7 @@ RecordDeleteContext(value, id)
      *  As a result, the RCAPs will be freed.
      */
 
-    while (pRCAP = pContext->pListOfRCAP)
+    while ((pRCAP = pContext->pListOfRCAP))
     {
 	int numClients = pRCAP->numClients;
 	/* when the last client is deleted, the RCAP will go away. */
@@ -2926,8 +2959,8 @@ RecordAClientStateChange(pcbl, nulldata, calldata)
 	    RecordClientsAndProtocolPtr pRCAP;
 	    RecordContextPtr pContext = ppAllContexts[i];
 
-	    if (pRCAP = RecordFindClientOnContext(pContext,
-					    XRecordFutureClients, NULL))
+	    if ((pRCAP = RecordFindClientOnContext(pContext,
+					    XRecordFutureClients, NULL)))
 	    {
 		RecordAddClientToRCAP(pRCAP, pClient->clientAsMask);
 		if (pContext->pRecordingClient && pRCAP->clientStarted)
@@ -2946,8 +2979,8 @@ RecordAClientStateChange(pcbl, nulldata, calldata)
 
 	    if (pContext->pRecordingClient == pClient)
 		RecordDisableContext(pContext);
-	    if (pRCAP = RecordFindClientOnContext(pContext,
-				    pClient->clientAsMask, &pos))
+	    if ((pRCAP = RecordFindClientOnContext(pContext,
+				    pClient->clientAsMask, &pos)))
 	    {
 		if (pContext->pRecordingClient && pRCAP->clientDied)
 		    RecordAProtocolElement(pContext, pClient,
@@ -2957,6 +2990,8 @@ RecordAClientStateChange(pcbl, nulldata, calldata)
 	}
     break;
 
+    default:
+    break;
     } /* end switch on client state */
 } /* RecordAClientStateChange */
 
@@ -3019,3 +3054,4 @@ RecordExtensionInit()
     RecordErrorBase = extentry->errorBase;
 
 } /* RecordExtensionInit */
+

@@ -45,6 +45,8 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ********************************************************/
+/* $XFree86: xc/programs/Xserver/include/input.h,v 3.7 2001/12/14 19:59:54 dawes Exp $ */
+
 #ifndef INPUT_H
 #define INPUT_H
 
@@ -152,7 +154,18 @@ typedef struct {
 extern KeybdCtrl	defaultKeyboardControl;
 extern PtrCtrl		defaultPointerControl;
 
+#undef  AddInputDevice
 extern DevicePtr AddInputDevice(
+#if NeedFunctionPrototypes
+    DeviceProc /*deviceProc*/,
+    Bool /*autoStart*/
+#endif
+);
+
+#define AddInputDevice(deviceProc, autoStart) \
+       _AddInputDevice(deviceProc, autoStart)
+
+extern DeviceIntPtr _AddInputDevice(
 #if NeedFunctionPrototypes
     DeviceProc /*deviceProc*/,
     Bool /*autoStart*/
@@ -183,21 +196,47 @@ extern void CloseDownDevices(
 #endif
 );
 
+extern void RemoveDevice(
+#if NeedFunctionPrototypes
+    DeviceIntPtr /*dev*/
+#endif
+);
+
 extern int NumMotionEvents(
 #if NeedFunctionPrototypes
     void
 #endif
 );
 
+#undef  RegisterPointerDevice
 extern void RegisterPointerDevice(
 #if NeedFunctionPrototypes
     DevicePtr /*device*/
 #endif
 );
 
+#define RegisterPointerDevice(device) \
+       _RegisterPointerDevice(device)
+
+extern void _RegisterPointerDevice(
+#if NeedFunctionPrototypes
+    DeviceIntPtr /*device*/
+#endif
+);
+
+#undef  RegisterKeyboardDevice
 extern void RegisterKeyboardDevice(
 #if NeedFunctionPrototypes
     DevicePtr /*device*/
+#endif
+);
+
+#define RegisterKeyboardDevice(device) \
+       _RegisterKeyboardDevice(device)
+
+extern void _RegisterKeyboardDevice(
+#if NeedFunctionPrototypes
+    DeviceIntPtr /*device*/
 #endif
 );
 

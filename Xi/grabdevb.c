@@ -45,6 +45,7 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ********************************************************/
+/* $XFree86: xc/programs/Xserver/Xi/grabdevb.c,v 3.3 2001/12/14 19:58:57 dawes Exp $ */
 
 /***********************************************************************
  *
@@ -60,11 +61,13 @@ SOFTWARE.
 #include "windowstr.h"			/* window structure  */
 #include "XI.h"
 #include "XIproto.h"
+#include "exevents.h"
+#include "extnsionst.h"
+#include "extinit.h"			/* LookupDeviceIntRec */
+#include "exglobals.h"
 
-extern	int 		IReqCode;
-extern	int		BadDevice;
-extern	void		(* ReplySwapVector[256]) ();
-DeviceIntPtr		LookupDeviceIntRec();
+#include "grabdev.h"
+#include "grabdevb.h"
 
 /***********************************************************************
  *
@@ -154,7 +157,7 @@ ProcXGrabDeviceButton(client)
 	    return Success;
     ret = GrabButton(client, dev, stuff->this_device_mode, 
 	stuff->other_devices_mode, stuff->modifiers, mdev, stuff->button, 
-	stuff->grabWindow, stuff->ownerEvents, NullCursor, NullWindow, 
+	stuff->grabWindow, stuff->ownerEvents, (Cursor)0, (Window)0, 
 	tmp[stuff->grabbed_device].mask);
 
     if (ret != Success)

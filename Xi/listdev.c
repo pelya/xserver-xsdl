@@ -45,6 +45,7 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ********************************************************/
+/* $XFree86: xc/programs/Xserver/Xi/listdev.c,v 3.4 2001/12/14 19:58:58 dawes Exp $ */
 
 /***********************************************************************
  *
@@ -59,22 +60,14 @@ SOFTWARE.
 #include "inputstr.h"			/* DeviceIntPtr	     */
 #include "XI.h"
 #include "XIproto.h"
+#include "XIstubs.h"
+#include "extnsionst.h"
+#include "extinit.h"			/* LookupDeviceIntRec */
+#include "exglobals.h"			/* FIXME */
+
+#include "listdev.h"
 
 #define VPC	20			/* Max # valuators per chunk */
-extern InputInfo inputInfo;
-extern	int 	IReqCode;
-extern	int	BadDevice;
-extern	void	(*ReplySwapVector[256]) ();
-DeviceIntPtr	LookupDeviceIntRec();
-
-void		CopySwapKeyClass ();
-void		CopySwapButtonClass ();
-int		CopySwapValuatorClass ();
-void		SizeDeviceInfo ();
-void		ListDeviceInfo ();
-void		AddOtherInputDevices ();
-void		CopyDeviceName ();
-void		CopySwapDevice ();
 
 /***********************************************************************
  *
@@ -99,6 +92,7 @@ SProcXListInputDevices(client)
  *
  */
 
+int
 ProcXListInputDevices (client)
     register ClientPtr client;
     {
@@ -114,7 +108,6 @@ ProcXListInputDevices (client)
     xDeviceInfo 	*dev;
     DeviceIntPtr 	d;
 
-    REQUEST(xListInputDevicesReq);
     REQUEST_SIZE_MATCH(xListInputDevicesReq);
 
     rep.repType = X_Reply;
@@ -131,7 +124,7 @@ ProcXListInputDevices (client)
 	SizeDeviceInfo (d, &namesize, &size);
 
     total_length = numdevs * sizeof (xDeviceInfo) + size + namesize;
-    devbuf = (char *) Xalloc (total_length);
+    devbuf = (char *) xalloc (total_length);
     classbuf = devbuf + (numdevs * sizeof (xDeviceInfo));
     namebuf = classbuf + size;
     savbuf = devbuf;
@@ -146,7 +139,7 @@ ProcXListInputDevices (client)
     rep.length = (total_length + 3) >> 2;
     WriteReplyToClient (client, sizeof (xListInputDevicesReply), &rep);
     WriteToClient(client, total_length, savbuf);
-    Xfree (savbuf);
+    xfree (savbuf);
     return Success;
     }
 
@@ -396,6 +389,7 @@ CopySwapValuatorClass (client, v, buf)
  *
  */
 
+void
 SRepXListInputDevices (client, size, rep)
     ClientPtr	client;
     int		size;

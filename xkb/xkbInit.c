@@ -1,6 +1,3 @@
-/*
- * @(#)$RCSfile$ $Revision$ (DEC) $Date$
- */
 /* $Xorg: xkbInit.c,v 1.3 2000/08/17 19:53:47 cpqbld Exp $ */
 /************************************************************
 Copyright (c) 1993 by Silicon Graphics Computer Systems, Inc.
@@ -27,10 +24,12 @@ OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION  WITH
 THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 ********************************************************/
+/* $XFree86: xc/programs/Xserver/xkb/xkbInit.c,v 3.26.2.1 2003/03/17 23:53:14 paulo Exp $ */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <unistd.h>
 #include <math.h>
 #define NEED_EVENTS 1
 #include <X11/X.h>
@@ -39,6 +38,7 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include <X11/Xatom.h>
 #include "misc.h"
 #include "inputstr.h"
+#include "opaque.h"
 #include "property.h"
 #define	XKBSRV_NEED_FILE_FUNCS
 #include "XKBsrv.h"
@@ -56,7 +56,7 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #define	PHYS_LEDS	0x7f
 #define	LED_COMPOSE	8
 #else
-#if defined(ultrix) || defined(__osf__) || defined(__alpha)
+#if defined(ultrix) || defined(__osf__) || defined(__alpha) || defined(__alpha__)
 #define	LED_COMPOSE	2
 #define LED_CAPS	3
 #define	LED_SCROLL	4
@@ -169,7 +169,6 @@ XkbWriteRulesProp(client, closure)
 #endif
 {
 int 			len,out;
-extern WindowPtr *	WindowTable;
 Atom			name;
 char *			pval;
 
@@ -304,6 +303,9 @@ XkbSetRulesDflts(rulesFile,model,layout,variant,options)
 #endif
 
 #include "xkbDflts.h"
+
+/* A dummy to keep the compiler quiet */
+pointer xkbBogus = &indicators;
 
 static Bool
 #if NeedFunctionPrototypes
@@ -441,7 +443,7 @@ Atom		unknown;
     }
 #ifdef DEBUG_RADIO_GROUPS
     if (names->num_rg<1) {
-	names->radio_groups= (Atom *)Xcalloc(RG_COUNT*sizeof(Atom));
+	names->radio_groups= (Atom *)_XkbCalloc(RG_COUNT, sizeof(Atom));
 	if (names->radio_groups) {
 	    names->num_rg = RG_COUNT;
 	    names->radio_groups[RG_BOGUS_FUNCTION_GROUP]= CREATE_ATOM("BOGUS");
@@ -483,6 +485,13 @@ XkbSrvLedInfoPtr	sli;
 	map->maps[LED_NUM-1].mods.mask= 0;
 	map->maps[LED_NUM-1].mods.real_mods= 0;
 	map->maps[LED_NUM-1].mods.vmods= vmod_NumLockMask;
+
+/* Metro Link */
+	map->maps[LED_SCROLL-1].flags= XkbIM_NoExplicit;
+	map->maps[LED_SCROLL-1].which_mods= XkbIM_UseLocked;
+	map->maps[LED_SCROLL-1].mods.mask= Mod3Mask;
+	map->maps[LED_SCROLL-1].mods.real_mods= Mod3Mask;
+/* Metro Link */
     }
     sli= XkbFindSrvLedInfo(xkbi->device,XkbDfltXIClass,XkbDfltXIId,0);
     if (sli)
@@ -652,6 +661,10 @@ XkbEventCauseRec	cause;
     return;
 }
 
+#if MAP_LENGTH > XkbMaxKeyCount
+#undef  XkbMaxKeyCount
+#define XkbMaxKeyCount MAP_LENGTH
+#endif
 
 Bool
 #if NeedFunctionPrototypes
@@ -675,7 +688,7 @@ XkbFileInfo		finfo;
 KeySymsRec		tmpSyms,*pSyms;
 CARD8			tmpMods[XkbMaxLegalKeyCode+1],*pMods;
 char			name[PATH_MAX],*rules;
-Bool			ok;
+Bool			ok=False;
 XPointer		config;
 XkbComponentNamesRec	cfgNames;
 XkbRF_VarDefsRec	defs;
@@ -689,29 +702,94 @@ XkbRF_VarDefsRec	defs;
     rules= XkbGetRulesDflts(&defs);
     config= XkbDDXPreloadConfig(&rules,&defs,&cfgNames,dev);
 
+    /*
+     * The strings are duplicated because it is not guaranteed that
+     * they are allocated, or that they are allocated for every server
+     * generation. Eventually they will be freed at the end of this
+     * function.
+     */
+    if (names->keymap) names->keymap = _XkbDupString(names->keymap);
+    if (names->keycodes) names->keycodes = _XkbDupString(names->keycodes);
+    if (names->types) names->types = _XkbDupString(names->types);
+    if (names->compat) names->compat = _XkbDupString(names->compat);
+    if (names->geometry) names->geometry = _XkbDupString(names->geometry);
+    if (names->symbols) names->symbols = _XkbDupString(names->symbols);
+
     if (defs.model && defs.layout && rules) {
 	XkbComponentNamesRec	rNames;
 	bzero(&rNames,sizeof(XkbComponentNamesRec));
 	if (XkbDDXNamesFromRules(dev,rules,&defs,&rNames)) {
-	    if (rNames.keymap)		names->keymap= rNames.keymap;
-	    if (rNames.keycodes)	names->keycodes= rNames.keycodes;
-	    if (rNames.types)		names->types= rNames.types;
-	    if (rNames.compat)		names->compat= rNames.compat;
-	    if (rNames.symbols)		names->symbols= rNames.symbols;
-	    if (rNames.geometry)	names->geometry= rNames.geometry;
+	    if (rNames.keymap) {
+		if (!names->keymap)
+		    names->keymap = rNames.keymap;
+		else _XkbFree(rNames.keymap);
+	    }
+	    if (rNames.keycodes) {
+		if (!names->keycodes)
+		    names->keycodes =  rNames.keycodes;
+		else
+		    _XkbFree(rNames.keycodes);
+	    }
+	    if (rNames.types) {
+		if (!names->types)
+		    names->types = rNames.types;
+		else  _XkbFree(rNames.types);
+	    }
+	    if (rNames.compat) {
+		if (!names->compat) 
+		    names->compat =  rNames.compat;
+		else  _XkbFree(rNames.compat);
+	    }
+	    if (rNames.symbols) {
+		if (!names->symbols)
+		    names->symbols =  rNames.symbols;
+		else _XkbFree(rNames.symbols);
+	    }
+	    if (rNames.geometry) {
+		if (!names->geometry)
+		    names->geometry = rNames.geometry;
+		else _XkbFree(rNames.geometry);
+	    }
 	    XkbSetRulesUsed(&defs);
 	}
     }
-    if (cfgNames.keymap)	names->keymap= cfgNames.keymap;
-    if (cfgNames.keycodes)	names->keycodes= cfgNames.keycodes;
-    if (cfgNames.types)		names->types= cfgNames.types;
-    if (cfgNames.compat)	names->compat= cfgNames.compat;
-    if (cfgNames.symbols)	names->symbols= cfgNames.symbols;
-    if (cfgNames.geometry)	names->geometry= cfgNames.geometry;
+    if (cfgNames.keymap){
+	if (names->keymap) _XkbFree(names->keymap);
+	names->keymap= cfgNames.keymap;
+    }
+    if (cfgNames.keycodes){
+	if (names->keycodes) _XkbFree(names->keycodes);	
+	names->keycodes= cfgNames.keycodes;
+    }
+    if (cfgNames.types) {
+	if (names->types) _XkbFree(names->types);	
+	names->types= cfgNames.types;
+    }
+    if (cfgNames.compat) {
+	if (names->compat) _XkbFree(names->compat);	
+	names->compat= cfgNames.compat;
+    }
+    if (cfgNames.symbols){
+	if (names->symbols) _XkbFree(names->symbols);	
+	names->symbols= cfgNames.symbols;
+    }
+    if (cfgNames.geometry) {
+	if (names->geometry) _XkbFree(names->geometry);
+	names->geometry= cfgNames.geometry;
+    }
 
-    if ((XkbDDXLoadKeymapByNames(dev,names,XkmAllIndicesMask,0,
-						&finfo,name,PATH_MAX))&&
-						(finfo.xkb!=NULL)) {
+    if (names->keymap) {
+        XkbComponentNamesRec	tmpNames;
+	bzero(&tmpNames,sizeof(XkbComponentNamesRec));
+	tmpNames.keymap = names->keymap;
+        ok = (Bool) XkbDDXLoadKeymapByNames(dev,&tmpNames,XkmAllIndicesMask,0,
+					    &finfo,name,PATH_MAX);
+    }
+    if (!(ok && (finfo.xkb!=NULL)))
+        ok = (Bool) XkbDDXLoadKeymapByNames(dev,names,XkmAllIndicesMask,0,
+					    &finfo,name,PATH_MAX);
+
+    if (ok && (finfo.xkb!=NULL)) {
 	XkbDescPtr	xkb;
 	int		minKC,maxKC;
 
@@ -758,6 +836,20 @@ XkbRF_VarDefsRec	defs;
 	_XkbFree(pSyms->map);
 	pSyms->map= NULL;
     }
+
+    if (names->keymap) _XkbFree(names->keymap);
+    names->keymap = NULL;
+    if (names->keycodes) _XkbFree(names->keycodes);
+    names->keycodes = NULL;
+    if (names->types) _XkbFree(names->types);
+    names->types = NULL;
+    if (names->compat) _XkbFree(names->compat);
+    names->compat = NULL;
+    if (names->geometry) _XkbFree(names->geometry);
+    names->geometry = NULL;
+    if (names->symbols) _XkbFree(names->symbols);
+    names->symbols = NULL;
+
     return ok;
 }
 
@@ -836,7 +928,7 @@ XkbFreeInfo(xkbi)
 #endif
 {
     if (xkbi->radioGroups) {
-	Xfree(xkbi->radioGroups);
+	_XkbFree(xkbi->radioGroups);
 	xkbi->radioGroups= NULL;
     }
     if (xkbi->mouseKeyTimer) {
@@ -868,7 +960,7 @@ XkbFreeInfo(xkbi)
 	XkbFreeKeyboard(xkbi->desc,XkbAllComponentsMask,True);
 	xkbi->desc= NULL;
     }
-    Xfree(xkbi);
+    _XkbFree(xkbi);
     return;
 }
 
@@ -900,10 +992,37 @@ XkbProcessArguments(argc,argv,i)
 	noXkbExtension= False;
 	return 1;
     }
+    else if (strncmp(argv[i], "-xkbdir", 7) == 0) {
+	if(++i < argc) {
+#if !defined(WIN32) && !defined(__UNIXOS2__) && !defined(__CYGWIN__)
+	    if (getuid() != geteuid()) {
+		ErrorF("-xkbdir is not available for setuid X servers\n");
+		return -1;
+	    } else
+#endif
+	    {
+		if (strlen(argv[i]) < PATH_MAX) {
+		    XkbBaseDirectory= argv[i];
+		    return 2;
+	        } else {
+		    ErrorF("-xkbdir pathname too long\n");
+		    return -1;
+		}
+	    }
+	}
+	else {
+	    return -1;
+	}
+    }
     else if (strncmp(argv[i], "-xkbmap", 7) == 0) {
 	if(++i < argc) {
-	    XkbInitialMap= argv[i];
-	    return 2;
+	    if (strlen(argv[i]) < PATH_MAX) {
+		XkbInitialMap= argv[i];
+		return 2;
+	    } else {
+		ErrorF("-xkbmap pathname too long\n");
+		return -1;
+	    }
 	}
 	else {
 	    return -1;
@@ -911,8 +1030,13 @@ XkbProcessArguments(argc,argv,i)
     }
     else if (strncmp(argv[i], "-xkbdb", 7) == 0) {
 	if(++i < argc) {
-	    XkbDB= argv[i];
-	    return 2;
+	    if (strlen(argv[i]) < PATH_MAX) {
+		XkbDB= argv[i];
+		return 2;
+	    } else {
+		ErrorF("-xkbdb pathname too long\n");
+		return -1;
+	    }
 	}
 	else {
 	    return -1;
@@ -988,7 +1112,6 @@ XkbUseMsg()
     ErrorF("-ar1                   set XKB autorepeat delay\n");
     ErrorF("-ar2                   set XKB autorepeat interval\n");
     ErrorF("-noloadxkb             don't load XKB keymap description\n");
-    ErrorF("-xkbcomp               default keymap compiler\n");
     ErrorF("-xkbdb                 file that contains default XKB keymaps\n");
     ErrorF("-xkbmap                XKB keyboard description to load on startup\n");
 }

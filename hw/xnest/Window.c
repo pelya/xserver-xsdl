@@ -12,6 +12,8 @@ the suitability of this software for any purpose.  It is provided "as
 is" without express or implied warranty.
 
 */
+/* $XFree86: xc/programs/Xserver/hw/xnest/Window.c,v 3.7 2001/10/28 03:34:11 tsi Exp $ */
+
 #include "X.h"
 #include "Xproto.h"
 #include "gcstruct.h"
@@ -21,6 +23,8 @@ is" without express or implied warranty.
 #include "colormapst.h"
 #include "scrnintstr.h"
 #include "region.h"
+
+#include "mi.h"
 
 #include "Xnest.h"
 
@@ -288,23 +292,26 @@ Bool xnestChangeWindowAttributes(pWin, mask)
       break;
     }
 
-  if (mask & CWBackPixel)
+  if (mask & CWBackPixel) {
     if (pWin->backgroundState == BackgroundPixel)
       attributes.background_pixel = xnestPixel(pWin->background.pixel);
     else
       mask &= ~CWBackPixel;
+  }
   
-  if (mask & CWBorderPixmap)
+  if (mask & CWBorderPixmap) {
     if (pWin->borderIsPixel)
       mask &= ~CWBorderPixmap;
     else
       attributes.border_pixmap = xnestPixmap(pWin->border.pixmap);
+  }
   
-  if (mask & CWBorderPixel)
+  if (mask & CWBorderPixel) {
     if (pWin->borderIsPixel)
       attributes.border_pixel = xnestPixel(pWin->border.pixel);
     else
       mask &= ~CWBorderPixel;
+  }
   
   if (mask & CWBitGravity) 
     attributes.bit_gravity = pWin->bitGravity;
@@ -488,7 +495,6 @@ void xnestShapeWindow(pWin)
   BoxPtr pBox;
   XRectangle rect;
   int i;
-  Bool overlap;
 
   if (!xnestRegionEqual(xnestWindowPriv(pWin)->bounding_shape,
 			wBoundingShape(pWin))) {

@@ -26,6 +26,7 @@ other dealings in this Software without prior written authorization
 from The Open Group.
 
 */
+/* $XFree86: xc/programs/Xserver/cfb/cfb8bit.c,v 1.5 2001/12/14 19:59:20 dawes Exp $ */
 
 /*
  * cfb8bit.c
@@ -193,11 +194,11 @@ PixelGroup cfb8StippleAnd[NUM_MASKS], cfb8StippleXor[NUM_MASKS];
 int
 cfb8SetStipple (alu, fg, planemask)
 int		alu;
-unsigned long	fg, planemask;
+CfbBits	fg, planemask;
 {
-    unsigned long   and, xor, rrop;
+    CfbBits   and, xor, rrop;
     int	s;
-    unsigned long   c;
+    CfbBits   c;
 
     cfb8StippleMode = FillStippled;
     cfb8StippleAlu = alu;
@@ -222,11 +223,11 @@ unsigned long	fg, planemask;
 int
 cfb8SetOpaqueStipple (alu, fg, bg, planemask)
 int		alu;
-unsigned long	fg, bg, planemask;
+CfbBits	fg, bg, planemask;
 {
-    unsigned long   andfg, xorfg, andbg, xorbg, rropfg, rropbg;
+    CfbBits   andfg, xorfg, andbg, xorbg, rropfg, rropbg;
     int	s;
-    unsigned long   c;
+    CfbBits   c;
 
     cfb8StippleMode = FillOpaqueStippled;
     cfb8StippleAlu = alu;
@@ -371,7 +372,7 @@ cfb8ComputeClipMasks32 (pBox, numRects, x, y, w, h, clips)
 {
     int	    yBand, yBandBot;
     int	    ch;
-    unsigned long	    clip;
+    CfbBits	    clip;
     int	    partIN = FALSE, partOUT = FALSE;
     int	    result;
 

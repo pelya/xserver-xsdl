@@ -25,6 +25,7 @@ in this Software without prior written authorization from The Open Group.
  *
  * Author:  Keith Packard, MIT X Consortium
  */
+/* $XFree86: xc/programs/Xserver/cfb/cfbrrop.c,v 1.6 2001/12/14 19:59:24 dawes Exp $ */
 
 /* cfb reduced rasterop computations */
 
@@ -123,10 +124,10 @@ in this Software without prior written authorization from The Open Group.
 int
 cfbReduceRasterOp (rop, fg, pm, andp, xorp)
     int		    rop;
-    unsigned long   fg, pm;
-    unsigned long   *andp, *xorp;
+    CfbBits   fg, pm;
+    CfbBits   *andp, *xorp;
 {
-    unsigned long   and, xor;
+    CfbBits   and, xor;
     int		    rrop;
 
     fg = PFILL (fg);
@@ -196,6 +197,9 @@ cfbReduceRasterOp (rop, fg, pm, andp, xorp)
     case GXset:
 	and = 0;
 	xor = ~0;
+	break;
+    default:
+	and = xor = 0;
 	break;
     }
     and |= ~pm;

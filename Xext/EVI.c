@@ -21,6 +21,8 @@ DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE
 OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION  WITH
 THE USE OR PERFORMANCE OF THIS SOFTWARE.
 ********************************************************/
+/* $XFree86: xc/programs/Xserver/Xext/EVI.c,v 3.9 2001/10/28 03:32:50 tsi Exp $ */
+
 #include "X.h"
 #include "Xproto.h"
 #include "dixstruct.h"
@@ -34,7 +36,7 @@ static EviPrivPtr eviPriv;
 static int
 ProcEVIQueryVersion(ClientPtr client)
 {
-    REQUEST(xEVIQueryVersionReq);
+    /* REQUEST(xEVIQueryVersionReq); */
     xEVIQueryVersionReply rep;
     register int n;
     REQUEST_SIZE_MATCH (xEVIQueryVersionReq);
@@ -167,11 +169,11 @@ EVIResetProc(ExtensionEntry *extEntry)
 void
 EVIExtensionInit(void)
 {
-    ExtensionEntry *extEntry, *AddExtension();
-    if (extEntry = AddExtension(EVINAME, 0, 0,
+    ExtensionEntry *extEntry;
+    if ((extEntry = AddExtension(EVINAME, 0, 0,
 				ProcEVIDispatch,
 				SProcEVIDispatch,
-				EVIResetProc, StandardMinorOpcode))
+				EVIResetProc, StandardMinorOpcode)))
     {
 	XEVIReqCode = (unsigned char)extEntry->base;
 	eviPriv = eviDDXInit();

@@ -1,3 +1,4 @@
+/* $XFree86: xc/programs/Xserver/cfb/cfbbstore.c,v 1.5 2001/01/17 22:36:34 dawes Exp $ */
 /*-
  * cfbbstore.c --
  *	Functions required by the backing-store implementation in MI.
@@ -73,11 +74,8 @@ cfbSaveAreas(pPixmap, prgnSave, xorg, yorg, pWin)
 	pBox++;
     }
 
-#ifdef CFB_NEED_SCREEN_PRIVATE
-    pScrPix = (PixmapPtr) pScreen->devPrivates[cfbScreenPrivateIndex].ptr;
-#else
-    pScrPix = (PixmapPtr) pScreen->devPrivate;
-#endif
+    pScrPix = (*pScreen->GetWindowPixmap)(pWin);
+
 
     cfbDoBitbltCopy((DrawablePtr) pScrPix, (DrawablePtr)pPixmap,
 		    GXcopy, prgnSave, pPtsInit, ~0L);
@@ -134,11 +132,7 @@ cfbRestoreAreas(pPixmap, prgnRestore, xorg, yorg, pWin)
 	pBox++;
     }
 
-#ifdef CFB_NEED_SCREEN_PRIVATE
-    pScrPix = (PixmapPtr) pScreen->devPrivates[cfbScreenPrivateIndex].ptr;
-#else
-    pScrPix = (PixmapPtr) pScreen->devPrivate;
-#endif
+    pScrPix = (*pScreen->GetWindowPixmap)(pWin);
 
     cfbDoBitbltCopy((DrawablePtr)pPixmap, (DrawablePtr) pScrPix,
 		    GXcopy, prgnRestore, pPtsInit, ~0L);

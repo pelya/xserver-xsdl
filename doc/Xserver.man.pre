@@ -1,15 +1,15 @@
 .\" $Xorg: Xserver.man,v 1.4 2001/02/09 02:04:07 xorgcvs Exp $
 .\" Copyright 1984 - 1991, 1993, 1994, 1998  The Open Group
-.\" 
+.\"
 .\" Permission to use, copy, modify, distribute, and sell this software and its
 .\" documentation for any purpose is hereby granted without fee, provided that
 .\" the above copyright notice appear in all copies and that both that
 .\" copyright notice and this permission notice appear in supporting
 .\" documentation.
-.\" 
+.\"
 .\" The above copyright notice and this permission notice shall be included
 .\" in all copies or substantial portions of the Software.
-.\" 
+.\"
 .\" THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
 .\" OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
 .\" MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
@@ -17,12 +17,13 @@
 .\" OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 .\" ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 .\" OTHER DEALINGS IN THE SOFTWARE.
-.\" 
+.\"
 .\" Except as contained in this notice, the name of The Open Group shall
 .\" not be used in advertising or otherwise to promote the sale, use or
 .\" other dealings in this Software without prior written authorization
 .\" from The Open Group.
-.TH XSERVER 1 "Release 6.4"  "X Version 11"
+.\" $XFree86: xc/programs/Xserver/Xserver.man,v 3.21 2002/11/19 23:18:09 dawes Exp $
+.TH XSERVER 1 __xorgversion__
 .SH NAME
 Xserver \- X Window System display server
 .SH SYNOPSIS
@@ -34,13 +35,13 @@ is the generic name for the X Window System display server.  It is
 frequently a link or a copy of the appropriate server binary for
 driving the most frequently used server on a given machine.
 .SH "STARTING THE SERVER"
-The X server is usually started from the X Display Manager program \fIxdm(1)\fP.
+The X server is usually started from the X Display Manager program \fIxdm\fP(1).
 This utility is run from the system boot files and takes care of keeping
 the server running, prompting for usernames and passwords, and starting up
 the user sessions.
 .PP
 Installations that run more than one window system may need to use the
-\fIxinit(1)\fP utility instead of \fIxdm\fP.  However, \fIxinit\fP is
+\fIxinit\fP(1) utility instead of \fIxdm\fP.  However, \fIxinit\fP is
 to be considered a tool for building startup scripts and is not
 intended for use by end users.  Site administrators are \fBstrongly\fP
 urged to use \fIxdm\fP, or build other interfaces for novice users.
@@ -49,20 +50,24 @@ The X server may also be started directly by the user, though this
 method is usually reserved for testing and is not recommended for
 normal operation.  On some platforms, the user must have special
 permission to start the X server, often because access to certain
-devices (e.g. /dev/mouse) is restricted.
+devices (e.g. \fI/dev/mouse\fP) is restricted.
 .PP
 When the X server starts up, it typically takes over the display.  If
 you are running on a workstation whose console is the display, you may
 not be able to log into the console while the server is running.
 .SH OPTIONS
+Many X servers have device-specific command line options.  See the manual
+pages for the individual servers for more details; a list of
+server-specific manual pages is provided in the SEE ALSO section below.
+.PP
 All of the X servers accept the following command line options:
 .TP 8
 .B :\fIdisplaynumber\fP
-the X server runs as the given \fIdisplaynumber\fP, which by default is 0.
+The X server runs as the given \fIdisplaynumber\fP, which by default is 0.
 If multiple X servers are to run simultaneously on a host, each must have
 a unique display number.  See the DISPLAY
-NAMES section of the \fIX(1)\fP manual page to learn how to specify
-which display number clients should try to use.
+NAMES section of the \fIX\fP(__miscmansuffix__) manual page to learn how to
+specify which display number clients should try to use.
 .TP 8
 .B \-a \fInumber\fP
 sets pointer acceleration (i.e. the ratio of how much is reported to how much
@@ -75,7 +80,7 @@ Use with extreme caution.
 This option exists primarily for running test suites remotely.
 .TP 8
 .B \-audit \fIlevel\fP
-Sets the audit trail level.  The default level is 1, meaning only connection
+sets the audit trail level.  The default level is 1, meaning only connection
 rejections are reported.  Level 2 additionally reports all successful
 connections and disconnects.  Level 4 enables messages from the
 SECURITY extension, if present, including generation and revocation of
@@ -84,7 +89,7 @@ Level 0 turns off the audit trail.
 Audit lines are sent as standard error output.
 .TP 8
 .B \-auth \fIauthorization-file\fP
-Specifies a file which contains a collection of authorization records used
+specifies a file which contains a collection of authorization records used
 to authenticate access.  See also the \fIxdm\fP and \fIXsecurity\fP manual
 pages.
 .TP 8
@@ -95,6 +100,10 @@ Deprecated.
 .TP 8
 .B \-bs
 disables backing store support on all screens.
+.TP 8
+.B \-br
+sets the default root window to solid black instead of the standard root weave
+pattern.
 .TP 8
 .B \-c
 turns off key-click.
@@ -108,14 +117,19 @@ The class numbers are as specified in the X protocol.
 Not obeyed by all servers.
 .TP 8
 .B \-co \fIfilename\fP
-sets name of RGB color database.  The default is <XRoot>/lib/X11/rgb,
-where <XRoot> refers to the root of the X11 install tree.
+sets name of RGB color database.  The default is
+\fI__projectroot__/lib/X11/rgb\fP.
+.ig
 .TP 8
 .B \-config \fIfilename\fP
 reads more options from the given file.  Options in the file may be separated
 by newlines if desired.  If a '#' character appears on a line, all characters
 between it and the next newline are ignored, providing a simple commenting
 facility.  The \fB\-config\fP option itself may appear in the file.
+.BR NOTE :
+This option is disabled when the Xserver is run with an effective uid
+different from the user's real uid.
+..
 .TP 8
 .B \-core
 causes the server to generate a core dump on fatal errors.
@@ -148,8 +162,16 @@ prints a usage message.
 .B \-I
 causes all remaining command line arguments to be ignored.
 .TP 8
-.B \-kb
-disables the XKEYBOARD extension if present.
+.B \-nolisten \fItrans-type\fP
+disables a transport type.  For example, TCP/IP connections can be disabled
+with
+.BR "\-nolisten tcp" .
+.TP 8
+.B \-noreset
+prevents a server reset when the last client connection is closed.  This
+overrides a previous
+.B \-terminate
+command line option.
 .TP 8
 .B \-p \fIminutes\fP
 sets screen-saver pattern cycle time in minutes.
@@ -177,6 +199,9 @@ pointer acceleration should take effect).
 .TP 8
 .B \-terminate
 causes the server to terminate at server reset, instead of continuing to run.
+This overrides a previous
+.B \-noreset
+command line option.
 .TP 8
 .B \-to \fIseconds\fP
 sets default connection timeout in seconds.
@@ -209,7 +234,8 @@ loads the specified extension at init.
 This is a no-op for most implementations.
 .TP 8
 .B [+-]xinerama
-enable(+) or disable(-) XINERAMA extension. Default is disabled.
+enables(+) or disables(-) the XINERAMA extension.  The default state is
+disabled.
 .SH SERVER DEPENDENT OPTIONS
 Some X servers accept the following options:
 .TP 8
@@ -240,23 +266,36 @@ X servers that support XDMCP have the following options.
 See the \fIX Display Manager Control Protocol\fP specification for more
 information.
 .TP 8
-.B \-query \fIhost-name\fP
-Enable XDMCP and send Query packets to the specified host.
+.B \-query \fIhostname\fP
+enables XDMCP and sends Query packets to the specified
+.IR hostname .
 .TP 8
 .B \-broadcast
-Enable XDMCP and broadcast BroadcastQuery packets to the network.  The
+enable XDMCP and broadcasts BroadcastQuery packets to the network.  The
 first responding display manager will be chosen for the session.
 .TP 8
-.B \-indirect \fIhost-name\fP
-Enable XDMCP and send IndirectQuery packets to the specified host.
+.B \-indirect \fIhostname\fP
+enables XDMCP and send IndirectQuery packets to the specified
+.IR hostname .
 .TP 8
-.B \-port \fIport-num\fP
-Use an alternate port number for XDMCP packets.  Must be specified before
-any \-query, \-broadcast or \-indirect options.
+.B \-port \fIport-number\fP
+uses the specified \fIport-number\fP for XDMCP packets, instead of the
+default.  This option must be specified before any \-query, \-broadcast or
+\-indirect options.
+.TP 8
+.B \-from \fIlocal-address\fP
+specifies the local address to connect from (useful if the connecting host
+has multiple network interfaces).  The \fIlocal-address\fP may be expressed
+in any form acceptable to the host platform's \fIgethostbyname\fP(3)
+implementation.
+.TP 8
+.B \-once
+causes the server to terminate (rather than reset) when the XDMCP session
+ends.
 .TP 8
 .B \-class \fIdisplay-class\fP
 XDMCP has an additional display qualifier used in resource lookup for
-display-specific options.  This option sets that value, by default it 
+display-specific options.  This option sets that value, by default it
 is "MIT-Unspecified" (not a very useful value).
 .TP 8
 .B \-cookie \fIxdm-auth-bits\fP
@@ -268,35 +307,43 @@ data (not that it is very private, being on the command line!).
 Yet another XDMCP specific value, this one allows the display manager to
 identify each display so that it can locate the shared key.
 .SH XKEYBOARD OPTIONS
-X servers that support the XKEYBOARD extension accept the following options:
+X servers that support the XKEYBOARD (a.k.a. \(oqXKB\(cq) extension accept the
+following options:
+.TP 8
+.B [+-]kb
+enables(+) or disables(-) the XKEYBOARD extension.
+.TP 8
+.BR [+-]accessx " [ \fItimeout\fP [ \fItimeout_mask\fP [ \fIfeedback\fP [ \fIoptions_mask\fP ] ] ] ]"
+enables(+) or disables(-) AccessX key sequences.
 .TP 8
 .B \-xkbdir \fIdirectory\fP
-base directory for keyboard layout files
-.TP 8
-.B \-xkbmap \fIfilename\fP
-keyboard description to load on startup
-.TP 8
-.B [+-]accessx
-enable(+) or disable(-) AccessX key sequences
+base directory for keyboard layout files.  This option is not available
+for setuid X servers (i.e., when the X server's real and effective uids
+are different).
 .TP 8
 .B \-ar1 \fImilliseconds\fP
-sets the length of time in milliseconds that a key must be depressed before
-autorepeat starts
+sets the autorepeat delay (length of time in milliseconds that a key must
+be depressed before autorepeat starts).
 .TP 8
 .B \-ar2 \fImilliseconds\fP
-sets the length of time in milliseconds that should elapse between
-autorepeat-generated keystrokes
-.PP
-Many servers also have device-specific command line options.  See the
-manual pages for the individual servers for more details.
+sets the autorepeat interval (length of time in milliseconds that should
+elapse between autorepeat-generated keystrokes).
+.TP 8
+.B \-noloadxkb
+disables loading of an XKB keymap description on server startup.
+.TP 8
+.B \-xkbdb \fIfilename\fP
+uses \fIfilename\fP for default keyboard keymaps.
+.TP 8
+.B \-xkbmap \fIfilename\fP
+loads keyboard description in \fIfilename\fP on server startup.
 .SH SECURITY EXTENSION OPTIONS
 X servers that support the SECURITY extension accept the following option:
 .TP 8
 .B \-sp \fIfilename\fP
-causes
-the server to attempt to read and interpret filename as a security policy
-file with the format described below.  The file is read at
-server startup and reread at each server reset.
+causes the server to attempt to read and interpret filename as a security
+policy file with the format described below.  The file is read at server
+startup and reread at each server reset.
 .PP
 The syntax of the security policy file is as follows.
 Notation: "*" means zero or more occurrences of the preceding element,
@@ -442,14 +489,14 @@ Here is an example security policy file.
 .PP
 .ta 3i 4i
 .nf
-version-1 
+version-1
 
-# Allow reading of application resources, but not writing.
+XCOMM Allow reading of application resources, but not writing.
 property RESOURCE_MANAGER	root	ar iw
 property SCREEN_RESOURCES	root	ar iw
 
-# Ignore attempts to use cut buffers.  Giving errors causes apps to crash,
-# and allowing access may give away too much information.
+XCOMM Ignore attempts to use cut buffers.  Giving errors causes apps to crash,
+XCOMM and allowing access may give away too much information.
 property CUT_BUFFER0	root	irw
 property CUT_BUFFER1	root	irw
 property CUT_BUFFER2	root	irw
@@ -459,31 +506,31 @@ property CUT_BUFFER5	root	irw
 property CUT_BUFFER6	root	irw
 property CUT_BUFFER7	root	irw
 
-# If you are using Motif, you probably want these.
+XCOMM If you are using Motif, you probably want these.
 property _MOTIF_DEFAULT_BINDINGS	root	ar iw
 property _MOTIF_DRAG_WINDOW	root	ar iw
 property _MOTIF_DRAG_TARGETS	any 	ar iw
 property _MOTIF_DRAG_ATOMS	any 	ar iw
 property _MOTIF_DRAG_ATOM_PAIRS	any 	ar iw
 
-# The next two rules let xwininfo -tree work when untrusted.
+XCOMM The next two rules let xwininfo -tree work when untrusted.
 property WM_NAME	any	ar
 
-# Allow read of WM_CLASS, but only for windows with WM_NAME.
-# This might be more restrictive than necessary, but demonstrates
-# the <required property> facility, and is also an attempt to
-# say "top level windows only."
+XCOMM Allow read of WM_CLASS, but only for windows with WM_NAME.
+XCOMM This might be more restrictive than necessary, but demonstrates
+XCOMM the <required property> facility, and is also an attempt to
+XCOMM say "top level windows only."
 property WM_CLASS	WM_NAME	ar
 
-# These next three let xlsclients work untrusted.  Think carefully
-# before including these; giving away the client machine name and command
-# may be exposing too much.
+XCOMM These next three let xlsclients work untrusted.  Think carefully
+XCOMM before including these; giving away the client machine name and command
+XCOMM may be exposing too much.
 property WM_STATE	WM_NAME	ar
 property WM_CLIENT_MACHINE	WM_NAME	ar
 property WM_COMMAND	WM_NAME	ar
 
-# To let untrusted clients use the standard colormaps created by
-# xstdcmap, include these lines.
+XCOMM To let untrusted clients use the standard colormaps created by
+XCOMM xstdcmap, include these lines.
 property RGB_DEFAULT_MAP	root	ar
 property RGB_BEST_MAP	root	ar
 property RGB_RED_MAP	root	ar
@@ -491,24 +538,24 @@ property RGB_GREEN_MAP	root	ar
 property RGB_BLUE_MAP	root	ar
 property RGB_GRAY_MAP	root	ar
 
-# To let untrusted clients use the color management database created
-# by xcmsdb, include these lines.
+XCOMM To let untrusted clients use the color management database created
+XCOMM by xcmsdb, include these lines.
 property XDCCC_LINEAR_RGB_CORRECTION	root	ar
 property XDCCC_LINEAR_RGB_MATRICES	root	ar
 property XDCCC_GRAY_SCREENWHITEPOINT	root	ar
 property XDCCC_GRAY_CORRECTION	root	ar
 
-# To let untrusted clients use the overlay visuals that many vendors
-# support, include this line.
+XCOMM To let untrusted clients use the overlay visuals that many vendors
+XCOMM support, include this line.
 property SERVER_OVERLAY_VISUALS	root	ar
 
-# Dumb examples to show other capabilities.
+XCOMM Dumb examples to show other capabilities.
 
-# oddball property names and explicit specification of error conditions
+XCOMM oddball property names and explicit specification of error conditions
 property "property with spaces"	'property with "'	aw er ed
 
-# Allow deletion of Woo-Hoo if window also has property OhBoy with value
-# ending in "son".  Reads and writes will cause an error.
+XCOMM Allow deletion of Woo-Hoo if window also has property OhBoy with value
+XCOMM ending in "son".  Reads and writes will cause an error.
 property Woo-Hoo	OhBoy = "*son"	ad
 
 .fi
@@ -516,13 +563,13 @@ property Woo-Hoo	OhBoy = "*son"	ad
 The X server supports client connections via a platform-dependent subset of
 the following transport types: TCP\/IP, Unix Domain sockets, DECnet,
 and several varieties of SVR4 local connections.  See the DISPLAY
-NAMES section of the \fIX(1)\fP manual page to learn how to specify
-which transport type clients should try to use.
+NAMES section of the \fIX(__miscmansuffix__)\fP manual page to learn how to
+specify which transport type clients should try to use.
 .SH GRANTING ACCESS
 The X server implements a platform-dependent subset of the following
 authorization protocols: MIT-MAGIC-COOKIE-1, XDM-AUTHORIZATION-1,
-SUN-DES-1, and MIT-KERBEROS-5.  See the \fIXsecurity(1)\fP manual page
-for information on the operation of these protocols.
+SUN-DES-1, and MIT-KERBEROS-5.  See the \fIXsecurity\fP(__miscmansuffix__)
+manual page for information on the operation of these protocols.
 .PP
 Authorization data required by the above protocols is passed to the
 server in a private file named with the \fB\-auth\fP command line
@@ -533,7 +580,7 @@ automatically allowed access to the server, and only clients which
 send one of the authorization records contained in the file in the
 connection setup information will be allowed access.  See the
 \fIXau\fP manual page for a description of the binary format of this
-file.  See \fIxauth(1)\fP for maintenance of this file, and distribution
+file.  See \fIxauth\fP(1) for maintenance of this file, and distribution
 of its contents to remote hosts.
 .PP
 The X server also uses a host-based access control list for deciding
@@ -547,7 +594,7 @@ hostname in double colon format (e.g. hydra::).  There should be no leading
 or trailing spaces on any lines.  For example:
 .sp
 .in +8
-.nf 
+.nf
 joesworkstation
 corporate.company.com
 star::
@@ -559,20 +606,20 @@ Users can add or remove hosts from this list and enable or disable access
 control using the \fIxhost\fP command from the same machine as the server.
 .PP
 If the X FireWall Proxy (\fIxfwp\fP) is being used without a sitepolicy,
-host-based authorization must be turned on for clients to be able to 
-connect to the X server via the \fIxfwp\fP.  If \fIxfwp\fP is run without 
-a configuration file and thus no sitepolicy is defined, if \fIxfwp\fP 
-is using an X server where xhost + has been run to turn off host-based 
-authorization checks, when a client tries to connect to this X server 
-via \fIxfwp\fP, the X server will deny the connection.  See \fIxfwp(1)\fP
+host-based authorization must be turned on for clients to be able to
+connect to the X server via the \fIxfwp\fP.  If \fIxfwp\fP is run without
+a configuration file and thus no sitepolicy is defined, if \fIxfwp\fP
+is using an X server where xhost + has been run to turn off host-based
+authorization checks, when a client tries to connect to this X server
+via \fIxfwp\fP, the X server will deny the connection.  See \fIxfwp\fP(1)
 for more information about this proxy.
 .PP
 The X protocol intrinsically does not have any notion of window operation
 permissions or place any restrictions on what a client can do; if a program can
-connect to a display, it has full run of the screen.  
+connect to a display, it has full run of the screen.
 X servers that support the SECURITY extension fare better because clients
 can be designated untrusted via the authorization they use to connect; see
-the \fIxauth(1)\fP manual page for details.  Restrictions are imposed
+the \fIxauth\fP(1) manual page for details.  Restrictions are imposed
 on untrusted clients that curtail the mischief they can do.  See the SECURITY
 extension specification for a complete list of these restrictions.
 .PP
@@ -608,66 +655,66 @@ the X server uses when trying to open a font is controlled
 by the \fIfont path\fP.  
 .LP
 The default font path is
-"<XRoot>/lib/X11/fonts/misc/,
-<XRoot>/lib/X11/fonts/Speedo/,
-<XRoot>/lib/X11/fonts/Type1/,
-<XRoot>/lib/X11/fonts/75dpi/,
-<XRoot>/lib/X11/fonts/100dpi/" .
-where <XRoot> refers to the root of the X11 install tree.
+__projectroot__/lib/X11/fonts/misc/,
+__projectroot__/lib/X11/fonts/Speedo/,
+__projectroot__/lib/X11/fonts/Type1/,
+__projectroot__/lib/X11/fonts/75dpi/,
+__projectroot__/lib/X11/fonts/100dpi/" .
 .LP
-The font path can be set with the \fB\-fp\fP option or by \fIxset(1)\fP
+The font path can be set with the \fB\-fp\fP option or by \fIxset\fP(1)
 after the server has started.
 .SH FILES
 .TP 30
-/etc/X\fBn\fP.hosts
+.I /etc/X\fBn\fP.hosts
 Initial access control list for display number \fBn\fP
 .TP 30
-<XRoot>/lib/X11/fonts/misc, <XRoot>/lib/X11/fonts/75dpi, <XRoot>/lib/X11/fonts/100dpi 
+.IR __projectroot__/lib/X11/fonts/misc , __projectroot__/lib/X11/fonts/75dpi , __projectroot__/lib/X11/fonts/100dpi
 Bitmap font directories
 .TP 30
-<XRoot>/lib/X11/fonts/Speedo, <XRoot>/lib/X11/fonts/Type1
+.IR __projectroot__/lib/X11/fonts/Speedo , __projectroot__/lib/X11/fonts/Type1
 Outline font directories
+.\" .TP 30
+.\" __projectroot__/lib/X11/fonts/PEX
+.\" PEX font directories
 .TP 30
-<XRoot>/lib/X11/fonts/PEX
-PEX font directories
-.TP 30
-<XRoot>/lib/X11/rgb.txt
+.I __projectroot__/lib/X11/rgb.txt
 Color database
 .TP 30
-/tmp/.X11-unix/X\fBn\fP
+.I /tmp/.X11-unix/X\fBn\fP
 Unix domain socket for display number \fBn\fP
 .TP 30
-/tmp/rcX\fBn\fP
+.IR /tmp/rcX\fBn\fP
 Kerberos 5 replay cache for display number \fBn\fP
 .TP 30
-/usr/adm/X\fBn\fPmsgs
-Error log file for display number \fBn\fP if run from \fIinit(8)\fP
+.I /usr/adm/X\fBn\fPmsgs
+Error log file for display number \fBn\fP if run from \fIinit\fP(8)
 .TP 30
-<XRoot>/lib/X11/xdm/xdm-errors
-Default error log file if the server is run from \fIxdm(1)\fP
-.LP
-Note: <XRoot> refers to the root of the X11 install tree.
+.I __projectroot__/lib/X11/xdm/xdm-errors
+Default error log file if the server is run from \fIxdm\fP(1)
 .SH "SEE ALSO"
-General information: X(1)
+General information: \fIX\fP(__miscmansuffix__)
 .PP
 Protocols:
 .I "X Window System Protocol,"
 .I "The X Font Service Protocol,"
 .I "X Display Manager Control Protocol"
 .PP
-Fonts: bdftopcf(1), mkfontdir(1), xfs(1), xlsfonts(1), xfontsel(1), xfd(1),
+Fonts: \fIbdftopcf\fP(1), \fImkfontdir\fP(1), \fIxfs\fP(1), 
+\FIxlsfonts\fP(1), \fIxfontsel\fP(1), \fIxfd\fP(1),
 .I "X Logical Font Description Conventions"
 .PP
-Security: Xsecurity(1), xauth(1), Xau(1), xdm(1), xhost(1), xfwp(1)
+Security: \fIXsecurity\fP(__miscmansuffix__), \fIxauth\fP(1), \fIXau\fP(1), 
+\fIxdm\fP(1), \fIxhost\fP(1), \fIxfwp\fP(1)
 .I "Security Extension Specification"
 .PP
-Starting the server: xdm(1), xinit(1)
+Starting the server: \fIxdm(1)\fP, \fIxinit\fP(1)
 .PP
-Controlling the server once started: xset(1), xsetroot(1), xhost(1)
+Controlling the server once started: \fIxset\fP(1), \fIxsetroot\fP(1),
+\fIxhost\fP(1)
 .PP
-Server-specific man pages: 
-Xdec(1), XmacII(1), Xsun(1), Xnest(1), Xvfb(1),
-XF86_Accel(1), XF86_Mono(1), XF86_SVGA(1), XF86_VGA16(1), XFree86(1)
+Server-specific man pages:
+\fIXdec\fP(1), \fIXmacII\fP(1), \fIXsun\fP(1), \fIXnest\fP(1),
+\fIXvfb\fP(1), \fIXFree86\fP(1), \fIXDarwin\fP(1).
 .PP
 Server internal documentation:
 .I "Definition of the Porting Layer for the X v11 Sample Server"

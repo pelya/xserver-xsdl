@@ -1,3 +1,4 @@
+/* $XFree86: xc/programs/Xserver/mfb/mfbbresd.c,v 1.5 2001/12/14 20:00:05 dawes Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -87,7 +88,7 @@ int len;		/* length of line */
     register int yinc;	/* increment to next scanline, in bytes */
     register PixelType *addrl;
     register int e3 = e2-e1;
-    register unsigned long bit;
+    register MfbBits bit;
     PixelType leftbit = mask[0]; /* leftmost bit to process in new word */
     PixelType rightbit = mask[PPW-1]; /* rightmost bit to process in new word */
     int dashIndex;

@@ -46,6 +46,35 @@ SOFTWARE.
 
 ********************************************************/
 
+/* The panoramix components contained the following notice */
+/****************************************************************
+*                                                               *
+*    Copyright (c) Digital Equipment Corporation, 1991, 1997    *
+*                                                               *
+*   All Rights Reserved.  Unpublished rights  reserved  under   *
+*   the copyright laws of the United States.                    *
+*                                                               *
+*   The software contained on this media  is  proprietary  to   *
+*   and  embodies  the  confidential  technology  of  Digital   *
+*   Equipment Corporation.  Possession, use,  duplication  or   *
+*   dissemination of the software and media is authorized only  *
+*   pursuant to a valid written license from Digital Equipment  *
+*   Corporation.                                                *
+*                                                               *
+*   RESTRICTED RIGHTS LEGEND   Use, duplication, or disclosure  *
+*   by the U.S. Government is subject to restrictions  as  set  *
+*   forth in Subparagraph (c)(1)(ii)  of  DFARS  252.227-7013,  *
+*   or  in  FAR 52.227-19, as applicable.                       *
+*                                                               *
+*****************************************************************/
+
+/* $XFree86: xc/programs/Xserver/dix/dispatch.c,v 3.29 2003/01/12 02:44:26 dawes Exp $ */
+
+#ifdef PANORAMIX_DEBUG
+#include <stdio.h>
+int ProcInitialConnection();
+#endif
+
 #include "windowstr.h"
 #include "fontstruct.h"
 #include "dixfontstr.h"
@@ -59,40 +88,43 @@ SOFTWARE.
 #include "servermd.h"
 #include "extnsionst.h"
 #include "dixfont.h"
+#include "dispatch.h"
+#include "swaprep.h"
+#include "swapreq.h"
+#ifdef PANORAMIX
+#include "panoramiX.h"
+#include "panoramiXsrv.h"
+#endif
 #ifdef XCSECURITY
 #define _SECURITY_SERVER
-#include "extensions/security.h"
+#include "security.h"
 #endif
 #ifdef XAPPGROUP
-#include "extensions/Xagsrv.h"
+#include "Xagsrv.h"
+#endif
+#ifdef XKB
+#define XKB_IN_SERVER
+#include "inputstr.h"
+#include "XKBsrv.h"
+#endif
+#ifdef LBX
+#include "lbxserve.h"
 #endif
 
 #define mskcnt ((MAXCLIENTS + 31) / 32)
-#define BITMASK(i) (1 << ((i) & 31))
+#define BITMASK(i) (1U << ((i) & 31))
 #define MASKIDX(i) ((i) >> 5)
 #define MASKWORD(buf, i) buf[MASKIDX(i)]
 #define BITSET(buf, i) MASKWORD(buf, i) |= BITMASK(i)
 #define BITCLEAR(buf, i) MASKWORD(buf, i) &= ~BITMASK(i)
 #define GETBIT(buf, i) (MASKWORD(buf, i) & BITMASK(i))
 
-extern WindowPtr *WindowTable;
 extern xConnSetupPrefix connSetupPrefix;
 extern char *ConnectionInfo;
-extern void ReleaseActiveGrabs();
-extern void NotImplemented();
-extern void SwapConnClientPrefix(
-#if NeedFunctionPrototypes
-    xConnClientPrefix	*
-#endif
-);
 
 Selection *CurrentSelections;
 int NumCurrentSelections;
 
-extern CARD32 defaultScreenSaverTime;
-extern CARD32 defaultScreenSaverInterval;
-extern int  defaultScreenSaverBlanking;
-extern int  defaultScreenSaverAllowExposures;
 static ClientPtr grabClient;
 #define GrabNone 0
 #define GrabActive 1
@@ -102,13 +134,6 @@ static long grabWaiters[mskcnt];
 CallbackListPtr ServerGrabCallback = NULL;
 HWEventQueuePtr checkForInput[2];
 extern int connBlockScreenStart;
-
-#ifdef XKB
-extern Bool noXkbExtension;
-#endif
-
-extern void Swap32Write(), SLHostsExtend(), SQColorsExtend(), WriteSConnectionInfo();
-extern void WriteSConnSetupPrefix();
 
 static void KillAllClients(
 #if NeedFunctionPrototypes
@@ -121,10 +146,6 @@ static void DeleteClientFromAnySelections(
     ClientPtr /*client*/
 #endif
 );
-
-#ifdef LBX
-extern unsigned long  StandardRequestLength();
-#endif
 
 static int nextFreeClientID; /* always MIN free client ID */
 
@@ -221,17 +242,123 @@ FlushClientCaches(id)
 	}
     }
 }
+#ifdef SMART_SCHEDULE
+
+#undef SMART_DEBUG
+
+#define SMART_SCHEDULE_DEFAULT_INTERVAL	20	    /* ms */
+#define SMART_SCHEDULE_MAX_SLICE	200	    /* ms */
+
+Bool	    SmartScheduleDisable;
+long	    SmartScheduleSlice = SMART_SCHEDULE_DEFAULT_INTERVAL;
+long	    SmartScheduleInterval = SMART_SCHEDULE_DEFAULT_INTERVAL;
+long	    SmartScheduleMaxSlice = SMART_SCHEDULE_MAX_SLICE;
+long	    SmartScheduleTime;
+ClientPtr   SmartLastClient;
+int	    SmartLastIndex[SMART_MAX_PRIORITY-SMART_MIN_PRIORITY+1];
+int         SmartScheduleClient(int *clientReady, int nready);
+
+#ifdef SMART_DEBUG
+long	    SmartLastPrint;
+#endif
+
+void        Dispatch(void);
+void        InitProcVectors(void);
+
+int
+SmartScheduleClient (int *clientReady, int nready)
+{
+    ClientPtr	pClient;
+    int		i;
+    int		client;
+    int		bestPrio, best = 0;
+    int		bestRobin, robin;
+    long	now = SmartScheduleTime;
+    long	idle;
+
+    bestPrio = -0x7fffffff;
+    bestRobin = 0;
+    idle = 2 * SmartScheduleSlice;
+    for (i = 0; i < nready; i++)
+    {
+	client = clientReady[i];
+	pClient = clients[client];
+	/* Praise clients which are idle */
+	if ((now - pClient->smart_check_tick) >= idle)
+	{
+	    if (pClient->smart_priority < 0)
+		pClient->smart_priority++;
+	}
+	pClient->smart_check_tick = now;
+	
+	/* check priority to select best client */
+	robin = (pClient->index - SmartLastIndex[pClient->smart_priority-SMART_MIN_PRIORITY]) & 0xff;
+	if (pClient->smart_priority > bestPrio ||
+	    (pClient->smart_priority == bestPrio && robin > bestRobin))
+	{
+	    bestPrio = pClient->smart_priority;
+	    bestRobin = robin;
+	    best = client;
+	}
+#ifdef SMART_DEBUG
+	if ((now - SmartLastPrint) >= 5000)
+	    fprintf (stderr, " %2d: %3d", client, pClient->smart_priority);
+#endif
+    }
+#ifdef SMART_DEBUG
+    if ((now - SmartLastPrint) >= 5000)
+    {
+	fprintf (stderr, " use %2d\n", best);
+	SmartLastPrint = now;
+    }
+#endif
+    pClient = clients[best];
+    SmartLastIndex[bestPrio-SMART_MIN_PRIORITY] = pClient->index;
+    /*
+     * Set current client pointer
+     */
+    if (SmartLastClient != pClient)
+    {
+	pClient->smart_start_tick = now;
+	SmartLastClient = pClient;
+    }
+    /*
+     * Adjust slice
+     */
+    if (nready == 1)
+    {
+	/*
+	 * If it's been a long time since another client
+	 * has run, bump the slice up to get maximal
+	 * performance from a single client
+	 */
+	if ((now - pClient->smart_start_tick) > 1000 &&
+	    SmartScheduleSlice < SmartScheduleMaxSlice)
+	{
+	    SmartScheduleSlice += SmartScheduleInterval;
+	}
+    }
+    else
+    {
+	SmartScheduleSlice = SmartScheduleInterval;
+    }
+    return best;
+}
+#endif
 
 #define MAJOROP ((xReq *)client->requestBuffer)->reqType
 
 void
-Dispatch()
+Dispatch(void)
 {
     register int        *clientReady;     /* array of request ready clients */
     register int	result;
     register ClientPtr	client;
     register int	nready;
     register HWEventQueuePtr* icheck = checkForInput;
+#ifdef SMART_SCHEDULE
+    int			start_tick;
+#endif
 
     nextFreeClientID = 1;
     InitSelections();
@@ -251,6 +378,13 @@ Dispatch()
 
 	nready = WaitForSomething(clientReady);
 
+#ifdef SMART_SCHEDULE
+	if (nready && !SmartScheduleDisable)
+	{
+	    clientReady[0] = SmartScheduleClient (clientReady, nready);
+	    nready = 1;
+	}
+#endif
        /***************** 
 	*  Handle events in round robin fashion, doing input between 
 	*  each round 
@@ -273,6 +407,9 @@ Dispatch()
 	    isItTimeToYield = FALSE;
  
             requestingClient = client;
+#ifdef SMART_SCHEDULE
+	    start_tick = SmartScheduleTime;
+#endif
 	    while (!isItTimeToYield)
 	    {
 	        if (*icheck[0] != *icheck[1])
@@ -280,7 +417,16 @@ Dispatch()
 		    ProcessInputEvents();
 		    FlushIfCriticalOutputPending();
 		}
-	   
+#ifdef SMART_SCHEDULE
+		if (!SmartScheduleDisable && 
+		    (SmartScheduleTime - start_tick) >= SmartScheduleSlice)
+		{
+		    /* Penalize clients which consume ticks */
+		    if (client->smart_priority > SMART_MIN_PRIORITY)
+			client->smart_priority--;
+		    break;
+		}
+#endif
 		/* now, finally, deal with client requests */
 
 	        result = ReadRequestFromClient(client);
@@ -315,7 +461,11 @@ Dispatch()
 	        }
 	    }
 	    FlushAllOutput();
-
+#ifdef SMART_SCHEDULE
+	    client = clients[clientReady[nready]];
+	    if (client)
+		client->smart_stop_tick = SmartScheduleTime;
+#endif
 	    requestingClient = NULL;
 	}
 	dispatchException &= ~DE_PRIORITYCHANGE;
@@ -699,7 +849,6 @@ int
 ProcQueryTree(client)
     register ClientPtr client;
 {
-
     xQueryTreeReply reply;
     int numChildren = 0;
     register WindowPtr pChild, pWin, pHead;
@@ -718,7 +867,6 @@ ProcQueryTree(client)
 	reply.parent = pWin->parent->drawable.id;
     else
         reply.parent = (Window)None;
-
     pHead = RealChildHead(pWin);
     for (pChild = pWin->lastChild; pChild != pHead; pChild = pChild->prevSib)
 	numChildren++;
@@ -739,7 +887,7 @@ ProcQueryTree(client)
     WriteReplyToClient(client, sizeof(xQueryTreeReply), &reply);
     if (numChildren)
     {
-    	client->pSwapReplyFunc = Swap32Write;
+    	client->pSwapReplyFunc = (ReplySwapPtr) Swap32Write;
 	WriteSwappedDataToClient(client, numChildren * sizeof(Window), childIDs);
 	DEALLOCATE_LOCAL(childIDs);
     }
@@ -999,7 +1147,6 @@ int
 ProcGrabServer(client)
     register ClientPtr client;
 {
-    REQUEST(xReq);
     REQUEST_SIZE_MATCH(xReq);
     if (grabState != GrabNone && client != grabClient)
     {
@@ -1025,8 +1172,12 @@ ProcGrabServer(client)
 }
 
 static void
+#if NeedFunctionPrototypes
+UngrabServer(ClientPtr client)
+#else
 UngrabServer(client)
     ClientPtr client;
+#endif
 {
     int i;
 
@@ -1056,7 +1207,6 @@ int
 ProcUngrabServer(client)
     register ClientPtr client;
 {
-    REQUEST(xReq);
     REQUEST_SIZE_MATCH(xReq);
     UngrabServer(client);
     return(client->noClientException);
@@ -1429,6 +1579,7 @@ ProcChangeGC(client)
     len = client->req_len -  (sizeof(xChangeGCReq) >> 2);
     if (len != Ones(stuff->mask))
         return BadLength;
+
     result = dixChangeGC(client, pGC, stuff->mask, (CARD32 *) &stuff[1], 0);
     if (client->noClientException != Success)
         return(client->noClientException);
@@ -1808,6 +1959,7 @@ ProcPolyFillRectangle(client)
     if (things & 4)
 	return(BadLength);
     things >>= 3;
+
     if (things)
         (*pGC->ops->PolyFillRect) (pDraw, pGC, things,
 		      (xRectangle *) &stuff[1]);
@@ -1833,6 +1985,49 @@ ProcPolyFillArc(client)
         (*pGC->ops->PolyFillArc) (pDraw, pGC, narcs, (xArc *) &stuff[1]);
     return (client->noClientException);
 }
+
+#ifdef MATCH_CLIENT_ENDIAN
+
+int
+ServerOrder (void)
+{
+    int	    whichbyte = 1;
+
+    if (*((char *) &whichbyte))
+	return LSBFirst;
+    return MSBFirst;
+}
+
+#define ClientOrder(client) ((client)->swapped ? !ServerOrder() : ServerOrder())
+
+void
+ReformatImage (char *base, int nbytes, int bpp, int order)
+{
+    switch (bpp) {
+    case 1:	/* yuck */
+	if (BITMAP_BIT_ORDER != order)
+	    BitOrderInvert ((unsigned char *) base, nbytes);
+#if IMAGE_BYTE_ORDER != BITMAP_BIT_ORDER && BITMAP_SCANLINE_UNIT != 8
+	ReformatImage (base, nbytes, BITMAP_SCANLINE_UNIT, order);
+#endif
+	break;
+    case 4:
+	break;  /* yuck */
+    case 8:
+	break;
+    case 16:
+	if (IMAGE_BYTE_ORDER != order)
+	    TwoByteSwap ((unsigned char *) base, nbytes);
+	break;
+    case 32:
+	if (IMAGE_BYTE_ORDER != order)
+	    FourByteSwap ((unsigned char *) base, nbytes);
+	break;
+    }
+}
+#else
+#define ReformatImage(b,n,bpp,o)
+#endif
 
 /* 64-bit server notes: the protocol restricts padding of images to
  * 8-, 16-, or 32-bits. We would like to have 64-bits for the server
@@ -1864,9 +2059,6 @@ ProcPutImage(client)
 	    (stuff->leftPad >= (unsigned int)screenInfo.bitmapScanlinePad))
             return BadMatch;
         length 	    = BitmapBytePad(stuff->width + stuff->leftPad);
-#ifdef INTERNAL_VS_EXTERNAL_PADDING
-        lengthProto = BitmapBytePadProto(stuff->width + stuff->leftPad);
-#endif
     }
     else if (stuff->format == XYPixmap)
     {
@@ -1875,19 +2067,12 @@ ProcPutImage(client)
             return BadMatch;
         length      = BitmapBytePad(stuff->width + stuff->leftPad);
 	length      *= stuff->depth;
-#ifdef INTERNAL_VS_EXTERNAL_PADDING
-        lengthProto = BitmapBytePadProto(stuff->width + stuff->leftPad);
-	lengthProto *= stuff->depth;
-#endif
     }
     else if (stuff->format == ZPixmap)
     {
         if ((pDraw->depth != stuff->depth) || (stuff->leftPad != 0))
             return BadMatch;
         length      = PixmapBytePad(stuff->width, stuff->depth);
-#ifdef INTERNAL_VS_EXTERNAL_PADDING
-        lengthProto = PixmapBytePadProto(stuff->width, stuff->depth);
-#endif
     }
     else
     {
@@ -1895,64 +2080,20 @@ ProcPutImage(client)
         return BadValue;
     }
 
-#ifdef INTERNAL_VS_EXTERNAL_PADDING
-    /* handle 64 bit case where protocol may pad to 32 and we want 64 */
-    if ( length != lengthProto ) {
-	register int 	i;
-	char 		* stuffptr, /* pointer into protocol data */
-			* tmpptr;   /* new location to copy to */
-
-        if(!(tmpImage = (char *) ALLOCATE_LOCAL(length*stuff->height)))
-            return (BadAlloc);
-    
-	bzero(tmpImage,length*stuff->height);
-    
-	if ( stuff->format == XYPixmap ) {
-	    int lineBytes = BitmapBytePad(stuff->width + stuff->leftPad);
-	    int lineBytesProto = 
-		BitmapBytePadProto(stuff->width + stuff->leftPad);
-	    int depth = stuff->depth;
-
-	    stuffptr = (char *)&stuff[1];
-	    tmpptr = tmpImage;
-	    for ( i = 0; i < stuff->height*stuff->depth;
-	        stuffptr += lineBytesProto,tmpptr += lineBytes, i++) 
-	        memmove(tmpptr,stuffptr,lineBytesProto);
-	}
-	else {
-	    for ( i = 0,stuffptr = (char *)&stuff[1],tmpptr=tmpImage;
-	        i < stuff->height;
-	        stuffptr += lengthProto,tmpptr += length, i++) 
-	        memmove(tmpptr,stuffptr,lengthProto);
-	}
-    }
-
-    /* handle 64-bit case where stuff is not 64-bit aligned */
-    else if ((unsigned long)&stuff[1] & (sizeof(long)-1)) {
-        if(!(tmpImage = (char *) ALLOCATE_LOCAL(length*stuff->height)))
-            return (BadAlloc);
-	memmove(tmpImage,(char *)&stuff[1],length*stuff->height);
-    }
-    else
-	tmpImage = (char *)&stuff[1];
-#else
     tmpImage = (char *)&stuff[1];
     lengthProto = length;
-#endif /* INTERNAL_VS_EXTERNAL_PADDING */
 	
     if (((((lengthProto * stuff->height) + (unsigned)3) >> 2) + 
 	(sizeof(xPutImageReq) >> 2)) != client->req_len)
 	return BadLength;
 
+    ReformatImage (tmpImage, lengthProto * stuff->height, 
+		   stuff->format == ZPixmap ? BitsPerPixel (stuff->depth) : 1,
+		   ClientOrder(client));
+    
     (*pGC->ops->PutImage) (pDraw, pGC, stuff->depth, stuff->dstX, stuff->dstY,
 		  stuff->width, stuff->height, 
 		  stuff->leftPad, stuff->format, tmpImage);
-
-#ifdef INTERNAL_VS_EXTERNAL_PADDING
-    /* free up our temporary space if used */
-    if (tmpImage != (char *)&stuff[1])
-        DEALLOCATE_LOCAL(tmpImage);
-#endif /* INTERNAL_VS_EXTERNAL_PADDING */
 
      return (client->noClientException);
 }
@@ -1971,10 +2112,7 @@ DoGetImage(client, format, drawable, x, y, width, height, planemask, im_return)
     int			nlines, linesPerBuf;
     register int	linesDone;
     long		widthBytesLine, length;
-#ifdef INTERNAL_VS_EXTERNAL_PADDING
-    long		widthBytesLineProto, lengthProto;
-#endif
-    Mask		plane;
+    Mask		plane = 0;
     char		*pBuf;
     xGetImageReply	xgi;
     RegionPtr pVisibleRegion = NULL;
@@ -2024,10 +2162,6 @@ DoGetImage(client, format, drawable, x, y, width, height, planemask, im_return)
 	widthBytesLine = PixmapBytePad(width, pDraw->depth);
 	length = widthBytesLine * height;
 
-#ifdef INTERNAL_VS_EXTERNAL_PADDING
-	widthBytesLineProto = PixmapBytePadProto(width, pDraw->depth);
-	lengthProto 	    = widthBytesLineProto * height;
-#endif
     }
     else 
     {
@@ -2037,18 +2171,9 @@ DoGetImage(client, format, drawable, x, y, width, height, planemask, im_return)
 	length = widthBytesLine * height *
 		 Ones(planemask & (plane | (plane - 1)));
 
-#ifdef INTERNAL_VS_EXTERNAL_PADDING
-	widthBytesLineProto = BitmapBytePadProto(width);
-	lengthProto = widthBytesLineProto * height *
-		 Ones(planemask & (plane | (plane - 1)));
-#endif
     }
 
-#ifdef INTERNAL_VS_EXTERNAL_PADDING
-    xgi.length = lengthProto;
-#else
     xgi.length = length;
-#endif
 
     if (im_return) {
 	pBuf = (char *)xalloc(sz_xGetImageReply + length);
@@ -2078,12 +2203,12 @@ DoGetImage(client, format, drawable, x, y, width, height, planemask, im_return)
 	{
 	    /* we have to make sure intermediate buffers don't need padding */
 	    while ((linesPerBuf > 1) &&
-		   (length & ((1 << LOG2_BYTES_PER_SCANLINE_PAD)-1)))
+		   (length & ((1L << LOG2_BYTES_PER_SCANLINE_PAD)-1)))
 	    {
 		linesPerBuf--;
 		length -= widthBytesLine;
 	    }
-	    while (length & ((1 << LOG2_BYTES_PER_SCANLINE_PAD)-1))
+	    while (length & ((1L << LOG2_BYTES_PER_SCANLINE_PAD)-1))
 	    {
 		linesPerBuf++;
 		length += widthBytesLine;
@@ -2131,35 +2256,19 @@ DoGetImage(client, format, drawable, x, y, width, height, planemask, im_return)
 			nlines, format, pBuf);
 #endif
 
-#ifdef INTERNAL_VS_EXTERNAL_PADDING
-	    /* for 64-bit server, convert image to pad to 32 bits */
-	    if ( widthBytesLine != widthBytesLineProto ) {
-		register char * bufPtr, * protoPtr;
-		register int i;
-
-		for (i = 1,
-		     bufPtr = pBuf + widthBytesLine,
-		     protoPtr = pBuf + widthBytesLineProto;
-		     i < nlines;
-		     bufPtr += widthBytesLine,
-		     protoPtr += widthBytesLineProto, 
-		     i++)
-		    memmove(protoPtr, bufPtr, widthBytesLineProto);
-	    }
-#endif
 	    /* Note that this is NOT a call to WriteSwappedDataToClient,
                as we do NOT byte swap */
 	    if (!im_return)
+	    {
+		ReformatImage (pBuf, (int)(nlines * widthBytesLine),
+			       BitsPerPixel (pDraw->depth),
+			       ClientOrder(client));
+
 /* Don't split me, gcc pukes when you do */
-#ifdef INTERNAL_VS_EXTERNAL_PADDING
-		(void)WriteToClient(client,
-				    (int)(nlines * widthBytesLineProto),
-				    pBuf);
-#else
 		(void)WriteToClient(client,
 				    (int)(nlines * widthBytesLine),
 				    pBuf);
-#endif
+	    }
 	    linesDone += nlines;
         }
     }
@@ -2189,41 +2298,21 @@ DoGetImage(client, format, drawable, x, y, width, height, planemask, im_return)
 				nlines, format, pBuf);
 #endif
 
-#ifdef INTERNAL_VS_EXTERNAL_PADDING
-	    	    /* for 64-bit server, convert image to pad to 32 bits */
-	    	    if ( widthBytesLine != widthBytesLineProto ) {
-			register char * bufPtr, * protoPtr;
-			register int i;
-
-			for (i = 1,
-			     bufPtr = pBuf + widthBytesLine,
-			     protoPtr = pBuf + widthBytesLineProto;
-			     i < nlines;
-			     bufPtr += widthBytesLine,
-			     protoPtr += widthBytesLineProto,
-			     i++)
-		    	    memmove(protoPtr, bufPtr, widthBytesLineProto);
-	    	    }
-#endif
 		    /* Note: NOT a call to WriteSwappedDataToClient,
 		       as we do NOT byte swap */
 		    if (im_return) {
-#ifdef INTERNAL_VS_EXTERNAL_PADDING
-			pBuf += nlines * widthBytesLineProto;
-#else
 			pBuf += nlines * widthBytesLine;
-#endif
-		    } else
+		    } else {
+			ReformatImage (pBuf, 
+				       (int)(nlines * widthBytesLine), 
+				       1,
+				       ClientOrder (client));
+
 /* Don't split me, gcc pukes when you do */
-#ifdef INTERNAL_VS_EXTERNAL_PADDING
-			(void)WriteToClient(client,
-					(int)(nlines * widthBytesLineProto),
-					pBuf);
-#else
 			(void)WriteToClient(client,
 					(int)(nlines * widthBytesLine),
 					pBuf);
-#endif
+		    }
 		    linesDone += nlines;
 		}
             }
@@ -2517,7 +2606,7 @@ ProcListInstalledColormaps(client)
     preply->nColormaps = nummaps;
     preply->length = nummaps;
     WriteReplyToClient(client, sizeof (xListInstalledColormapsReply), preply);
-    client->pSwapReplyFunc = Swap32Write;
+    client->pSwapReplyFunc = (ReplySwapPtr) Swap32Write;
     WriteSwappedDataToClient(client, nummaps * sizeof(Colormap), &preply[1]);
     DEALLOCATE_LOCAL(preply);
     return(client->noClientException);
@@ -2561,6 +2650,9 @@ ProcAllocColor(client)
 	    else
 	        return (retval);
 	}
+#ifdef PANORAMIX
+	if (noPanoramiXExtension || !pmap->pScreen->myNum)
+#endif
         WriteReplyToClient(client, sizeof(xAllocColorReply), &acr);
 	return (client->noClientException);
 
@@ -2617,6 +2709,9 @@ ProcAllocNamedColor           (client)
                 else
     	            return(retval);
 	    }
+#ifdef PANORAMIX
+	    if (noPanoramiXExtension || !pcmp->pScreen->myNum)
+#endif
             WriteReplyToClient(client, sizeof (xAllocNamedColorReply), &ancr);
 	    return (client->noClientException);
 	}
@@ -2684,14 +2779,19 @@ ProcAllocColorCells           (client)
 	    else
 	        return(retval);
 	}
-	accr.type = X_Reply;
-	accr.length = length >> 2;
-	accr.sequenceNumber = client->sequence;
-	accr.nPixels = npixels;
-	accr.nMasks = nmasks;
-        WriteReplyToClient(client, sizeof (xAllocColorCellsReply), &accr);
-	client->pSwapReplyFunc = Swap32Write;
-	WriteSwappedDataToClient(client, length, ppixels);
+#ifdef PANORAMIX
+	if (noPanoramiXExtension || !pcmp->pScreen->myNum)
+#endif
+	{
+	    accr.type = X_Reply;
+	    accr.length = length >> 2;
+	    accr.sequenceNumber = client->sequence;
+	    accr.nPixels = npixels;
+	    accr.nMasks = nmasks;
+	    WriteReplyToClient(client, sizeof (xAllocColorCellsReply), &accr);
+	    client->pSwapReplyFunc = (ReplySwapPtr) Swap32Write;
+	    WriteSwappedDataToClient(client, length, ppixels);
+	}
 	DEALLOCATE_LOCAL(ppixels);
         return (client->noClientException);        
     }
@@ -2758,9 +2858,14 @@ ProcAllocColorPlanes(client)
 	        return(retval);
 	}
 	acpr.length = length >> 2;
-	WriteReplyToClient(client, sizeof(xAllocColorPlanesReply), &acpr);
-	client->pSwapReplyFunc = Swap32Write;
-	WriteSwappedDataToClient(client, length, ppixels);
+#ifdef PANORAMIX
+	if (noPanoramiXExtension || !pcmp->pScreen->myNum)
+#endif
+	{
+	    WriteReplyToClient(client, sizeof(xAllocColorPlanesReply), &acpr);
+	    client->pSwapReplyFunc = (ReplySwapPtr) Swap32Write;
+	    WriteSwappedDataToClient(client, length, ppixels);
+	}
 	DEALLOCATE_LOCAL(ppixels);
         return (client->noClientException);        
     }
@@ -2915,7 +3020,7 @@ ProcQueryColors(client)
 	WriteReplyToClient(client, sizeof(xQueryColorsReply), &qcr);
 	if (count)
 	{
-	    client->pSwapReplyFunc = SQColorsExtend;
+	    client->pSwapReplyFunc = (ReplySwapPtr) SQColorsExtend;
 	    WriteSwappedDataToClient(client, count * sizeof(xrgb), prgbs);
 	}
 	if (prgbs) DEALLOCATE_LOCAL(prgbs);
@@ -3199,7 +3304,6 @@ int
 ProcGetScreenSaver(client)
     register ClientPtr client;
 {
-    REQUEST(xReq);
     xGetScreenSaverReply rep;
 
     REQUEST_SIZE_MATCH(xReq);
@@ -3243,11 +3347,10 @@ int
 ProcListHosts(client)
     register ClientPtr client;
 {
-extern int GetHosts();
     xListHostsReply reply;
     int	len, nHosts, result;
     pointer	pdata;
-    REQUEST(xListHostsReq);
+    /* REQUEST(xListHostsReq); */
 
     REQUEST_SIZE_MATCH(xListHostsReq);
 #ifdef XCSECURITY
@@ -3268,7 +3371,7 @@ extern int GetHosts();
     WriteReplyToClient(client, sizeof(xListHostsReply), &reply);
     if (nHosts)
     {
-	client->pSwapReplyFunc = SLHostsExtend;
+	client->pSwapReplyFunc = (ReplySwapPtr) SLHostsExtend;
 	WriteSwappedDataToClient(client, len, pdata);
     }
     xfree(pdata);
@@ -3372,7 +3475,7 @@ ProcGetFontPath(client)
     xGetFontPathReply reply;
     int stringLens, numpaths;
     unsigned char *bufferStart;
-    REQUEST (xReq);
+    /* REQUEST (xReq); */
 
     REQUEST_SIZE_MATCH(xReq);
     bufferStart = GetFontPath(&numpaths, &stringLens);
@@ -3429,8 +3532,6 @@ int ProcForceScreenSaver(client)
 int ProcNoOperation(client)
     register ClientPtr client;
 {
-    REQUEST(xReq);
-
     REQUEST_AT_LEAST_SIZE(xReq);
     
     /* noop -- don't do anything */
@@ -3438,7 +3539,7 @@ int ProcNoOperation(client)
 }
 
 void
-InitProcVectors()
+InitProcVectors(void)
 {
     int i;
     for (i = 0; i<256; i++)
@@ -3446,7 +3547,7 @@ InitProcVectors()
 	if(!ProcVector[i])
 	{
             ProcVector[i] = SwappedProcVector[i] = ProcBadRequest;
-	    ReplySwapVector[i] = NotImplemented;
+	    ReplySwapVector[i] = ReplyNotSwappd;
 	}
 #ifdef K5AUTH
 	if (!k5_Vector[i])
@@ -3469,7 +3570,7 @@ InitProcVectors()
  *  then killed again, the client is really destroyed.
  *********************/
 
-Bool terminateAtReset = FALSE;
+char dispatchExceptionAtReset = DE_RESET;
 
 void
 CloseDownClient(client)
@@ -3535,12 +3636,8 @@ CloseDownClient(client)
     if (really_close_down)
     {
 	if (client->clientState == ClientStateRunning && nClients == 0)
-	{
-	    if (terminateAtReset)
-		dispatchException |= DE_TERMINATE;
-	    else
-		dispatchException |= DE_RESET;
-	}
+	    dispatchException |= dispatchExceptionAtReset;
+
 	client->clientState = ClientStateGone;
 	if (ClientStateCallback)
 	{
@@ -3555,6 +3652,9 @@ CloseDownClient(client)
 	if (client->index < nextFreeClientID)
 	    nextFreeClientID = client->index;
 	clients[client->index] = NullClient;
+#ifdef SMART_SCHEDULE
+	SmartLastClient = NullClient;
+#endif
 	xfree(client);
 
 	while (!clients[currentMaxClients-1])
@@ -3651,6 +3751,12 @@ void InitClient(client, i, ospriv)
     client->appgroup = NULL;
 #endif
     client->fontResFunc = NULL;
+#ifdef SMART_SCHEDULE
+    client->smart_priority = 0;
+    client->smart_start_tick = SmartScheduleTime;
+    client->smart_stop_tick = SmartScheduleTime;
+    client->smart_check_tick = SmartScheduleTime;
+#endif
 }
 
 extern int clientPrivateLen;
@@ -3795,7 +3901,6 @@ SendConnSetup(client, reason)
     if (reason)
     {
 	xConnSetupPrefix csp;
-	char pad[3];
 
 	csp.success = xFalse;
 	csp.lengthReason = strlen(reason);
@@ -3828,8 +3933,19 @@ SendConnSetup(client, reason)
 #endif
     ((xConnSetup *)lConnectionInfo)->ridBase = client->clientAsMask;
     ((xConnSetup *)lConnectionInfo)->ridMask = RESOURCE_ID_MASK;
+#ifdef MATCH_CLIENT_ENDIAN
+    ((xConnSetup *)lConnectionInfo)->imageByteOrder = ClientOrder (client);
+    ((xConnSetup *)lConnectionInfo)->bitmapBitOrder = ClientOrder (client);
+#endif
     /* fill in the "currentInputMask" */
     root = (xWindowRoot *)(lConnectionInfo + connBlockScreenStart);
+#ifdef PANORAMIX
+    if (noPanoramiXExtension)
+	numScreens = screenInfo.numScreens;
+    else 
+        numScreens = ((xConnSetup *)ConnectionInfo)->numRoots;
+#endif
+
     for (i=0; i<numScreens; i++) 
     {
 	register unsigned int j;

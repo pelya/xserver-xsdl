@@ -51,6 +51,30 @@ in this Software without prior written authorization from The Open Group.
  * 
  ******************************************************************/
 
+/* The panoramix components contained the following notice */
+/****************************************************************
+*                                                               *
+*    Copyright (c) Digital Equipment Corporation, 1991, 1997    *
+*                                                               *
+*   All Rights Reserved.  Unpublished rights  reserved  under   *
+*   the copyright laws of the United States.                    *
+*                                                               *
+*   The software contained on this media  is  proprietary  to   *
+*   and  embodies  the  confidential  technology  of  Digital   *
+*   Equipment Corporation.  Possession, use,  duplication  or   *
+*   dissemination of the software and media is authorized only  *
+*   pursuant to a valid written license from Digital Equipment  *
+*   Corporation.                                                *
+*                                                               *
+*   RESTRICTED RIGHTS LEGEND   Use, duplication, or disclosure  *
+*   by the U.S. Government is subject to restrictions  as  set  *
+*   forth in Subparagraph (c)(1)(ii)  of  DFARS  252.227-7013,  *
+*   or  in  FAR 52.227-19, as applicable.                       *
+*                                                               *
+*****************************************************************/
+
+/* $XFree86: xc/programs/Xserver/mi/mivaltree.c,v 1.9 2001/12/14 20:00:27 dawes Exp $ */
+
  /* 
   * Aug '86: Susan Angebranndt -- original code
   * July '87: Adam de Boor -- substantially modified and commented
@@ -60,7 +84,6 @@ in this Software without prior written authorization from The Open Group.
   *		Bob Scheifler -- avoid miComputeClips for unmapped windows,
   *				 valdata changes
   */
-
 #include    "X.h"
 #include    "scrnintstr.h"
 #include    "validate.h"
@@ -69,10 +92,13 @@ in this Software without prior written authorization from The Open Group.
 #include    "regionstr.h"
 #include    "mivalidate.h"
 
+#include    "globals.h"
+
 #ifdef SHAPE
 /*
  * Compute the visibility of a shaped window
  */
+int
 miShapedWindowIn (pScreen, universe, bounding, rect, x, y)
     ScreenPtr	pScreen;
     RegionPtr	universe, bounding;
@@ -137,7 +163,8 @@ miShapedWindowIn (pScreen, universe, bounding, rect, x, y)
 				    HasBorder(w) && \
 				    (w)->backgroundState == ParentRelative)
 
-/*-
+
+/*
  *-----------------------------------------------------------------------
  * miComputeClips --
  *	Recompute the clipList, borderClip, exposed and borderExposed
@@ -153,14 +180,13 @@ miShapedWindowIn (pScreen, universe, bounding, rect, x, y)
  *
  *-----------------------------------------------------------------------
  */
-
 static void
-miComputeClips (pParent, pScreen, universe, kind, exposed)
-    register WindowPtr	pParent;
-    register ScreenPtr	pScreen;
-    register RegionPtr	universe;
-    VTKind		kind;
-    RegionPtr		exposed; /* for intermediate calculations */
+miComputeClips (
+    register WindowPtr	pParent,
+    register ScreenPtr	pScreen,
+    register RegionPtr	universe,
+    VTKind		kind,
+    RegionPtr		exposed ) /* for intermediate calculations */
 {
     int			dx,
 			dy;
@@ -172,7 +198,6 @@ miComputeClips (pParent, pScreen, universe, kind, exposed)
     Bool		overlap;
     RegionPtr		borderVisible;
     Bool		resized;
-    
     /*
      * Figure out the new visibility of this window.
      * The extent of the universe should be the same as the extent of
@@ -181,7 +206,6 @@ miComputeClips (pParent, pScreen, universe, kind, exposed)
      * completely). If the window is completely obscured, none of the
      * universe will cover the rectangle.
      */
-
     borderSize.x1 = pParent->drawable.x - wBorderWidth(pParent);
     borderSize.y1 = pParent->drawable.y - wBorderWidth(pParent);
     dx = (int) pParent->drawable.x + (int) pParent->drawable.width + wBorderWidth(pParent);
@@ -310,6 +334,10 @@ miComputeClips (pParent, pScreen, universe, kind, exposed)
 	    REGION_TRANSLATE( pScreen, &pParent->borderClip, dx, dy);
 	    REGION_TRANSLATE( pScreen, &pParent->clipList, dx, dy);
     	} 
+	break;
+    case VTBroken:
+	REGION_EMPTY (pScreen, &pParent->borderClip);
+	REGION_EMPTY (pScreen, &pParent->clipList);
 	break;
     }
 
@@ -476,8 +504,8 @@ miComputeClips (pParent, pScreen, universe, kind, exposed)
 }
 
 static void
-miTreeObscured(pParent)
-    register WindowPtr pParent;
+miTreeObscured(
+    register WindowPtr pParent )
 {
     register WindowPtr pChild;
     register int    oldVis;
@@ -505,7 +533,7 @@ miTreeObscured(pParent)
     }
 }
 
-/*-
+/*
  *-----------------------------------------------------------------------
  * miValidateTree --
  *	Recomputes the clip list for pParent and all its inferiors.
@@ -572,39 +600,65 @@ miValidateTree (pParent, pChild, kind)
      */
     REGION_INIT(pScreen, &totalClip, NullBox, 0);
     viewvals = 0;
-    if ((pChild->drawable.y < pParent->lastChild->drawable.y) ||
-	((pChild->drawable.y == pParent->lastChild->drawable.y) &&
-	 (pChild->drawable.x < pParent->lastChild->drawable.x)))
+    if (REGION_BROKEN (pScreen, &pParent->clipList) &&
+	!REGION_BROKEN (pScreen, &pParent->borderClip))
     {
+	kind = VTBroken;
+	/*
+	 * When rebuilding clip lists after out of memory,
+	 * assume everything is busted.
+	 */
 	forward = TRUE;
+	REGION_COPY (pScreen, &totalClip, &pParent->borderClip);
+	REGION_INTERSECT (pScreen, &totalClip, &totalClip, &pParent->winSize);
+	
+	for (pWin = pParent->firstChild; pWin != pChild; pWin = pWin->nextSib)
+	{
+	    if (pWin->viewable)
+		REGION_SUBTRACT (pScreen, &totalClip, &totalClip, &pWin->borderSize);
+	}
 	for (pWin = pChild; pWin; pWin = pWin->nextSib)
-	{
-	    if (pWin->valdata)
-	    {
-		REGION_APPEND( pScreen, &totalClip, &pWin->borderClip);
-		if (pWin->viewable)
-		    viewvals++;
-	    }
-	}
+	    if (pWin->valdata && pWin->viewable)
+		viewvals++;
+	
+	REGION_EMPTY (pScreen, &pParent->clipList);
     }
-    else
+    else 
     {
-	forward = FALSE;
-	pWin = pParent->lastChild;
-	while (1)
+	if ((pChild->drawable.y < pParent->lastChild->drawable.y) ||
+	    ((pChild->drawable.y == pParent->lastChild->drawable.y) &&
+	     (pChild->drawable.x < pParent->lastChild->drawable.x)))
 	{
-	    if (pWin->valdata)
+	    forward = TRUE;
+	    for (pWin = pChild; pWin; pWin = pWin->nextSib)
 	    {
-		REGION_APPEND( pScreen, &totalClip, &pWin->borderClip);
-		if (pWin->viewable)
-		    viewvals++;
+		if (pWin->valdata)
+		{
+		    REGION_APPEND( pScreen, &totalClip, &pWin->borderClip);
+		    if (pWin->viewable)
+			viewvals++;
+		}
 	    }
-	    if (pWin == pChild)
-		break;
-	    pWin = pWin->prevSib;
 	}
+	else
+	{
+	    forward = FALSE;
+	    pWin = pParent->lastChild;
+	    while (1)
+	    {
+		if (pWin->valdata)
+		{
+		    REGION_APPEND( pScreen, &totalClip, &pWin->borderClip);
+		    if (pWin->viewable)
+			viewvals++;
+		}
+		if (pWin == pChild)
+		    break;
+		pWin = pWin->prevSib;
+	    }
+	}
+	REGION_VALIDATE( pScreen, &totalClip, &overlap);
     }
-    REGION_VALIDATE( pScreen, &totalClip, &overlap);
 
     /*
      * Now go through the children of the root and figure their new

@@ -15,48 +15,16 @@
  *	"$Xorg: mibstore.h,v 1.3 2000/08/17 19:53:37 cpqbld Exp $
  */
 
+
+/* $XFree86: xc/programs/Xserver/mi/mibstore.h,v 1.5 2001/08/06 20:51:18 dawes Exp $ */
+
 #ifndef _MIBSTORE_H
 #define _MIBSTORE_H
 
-typedef struct _miBSFuncRec {
-    void	    (*SaveAreas)(
-#if NeedNestedPrototypes
-		    PixmapPtr /*pBackingPixmap*/,
-		    RegionPtr /*pObscured*/,
-		    int /*x*/,
-		    int /*y*/,
-		    WindowPtr /*pWin*/
-#endif
-);
-    void	    (*RestoreAreas)(
-#if NeedNestedPrototypes
-		    PixmapPtr /*pBackingPixmap*/,
-		    RegionPtr /*pExposed*/,
-		    int /*x*/,
-		    int /*y*/,
-		    WindowPtr /*pWin*/
-#endif
-);
-    void	    (*SetClipmaskRgn)(
-#if NeedNestedPrototypes
-		    GCPtr /*pBackingGC*/,
-		    RegionPtr /*pbackingCompositeClip*/
-#endif
-);
-    PixmapPtr	    (*GetImagePixmap)(); /* unused */
-    PixmapPtr	    (*GetSpansPixmap)(); /* unused */
-} miBSFuncRec;
-
-#ifndef _XTYPEDEF_MIBSFUNCPTR
-typedef struct _miBSFuncRec *miBSFuncPtr;
-#define _XTYPEDEF_MIBSFUNCPTR
-#endif
+#include "screenint.h"
 
 extern void miInitializeBackingStore(
-#if NeedFunctionPrototypes
-    ScreenPtr /*pScreen*/,
-    miBSFuncPtr /*funcs*/
-#endif
+    ScreenPtr /*pScreen*/
 );
 
 #endif /* _MIBSTORE_H */

@@ -45,6 +45,7 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ********************************************************/
+/* $XFree86: xc/programs/Xserver/Xi/getprop.c,v 3.6 2001/12/14 19:58:57 dawes Exp $ */
 
 /***********************************************************************
  *
@@ -60,11 +61,15 @@ SOFTWARE.
 #include "windowstr.h"			/* window structs    */
 #include "XI.h"
 #include "XIproto.h"
+#include "extnsionst.h"
+#include "extinit.h"			/* LookupDeviceIntRec */
+#include "exglobals.h"
+#include "swaprep.h"
 
-extern	int 		IReqCode;
-extern	void		(* ReplySwapVector[256]) ();
+#include "getprop.h"
+
 extern			XExtEventInfo EventInfo[];
-DeviceIntPtr		LookupDeviceIntRec();
+extern int	ExtEventIndex;
 
 /***********************************************************************
  *
@@ -91,16 +96,15 @@ SProcXGetDeviceDontPropagateList(client)
  *
  */
 
+int
 ProcXGetDeviceDontPropagateList (client)
     register ClientPtr client;
     {
     CARD16				count = 0;
     int					i;
-    XEventClass				*buf, *tbuf;
+    XEventClass				*buf = NULL, *tbuf;
     WindowPtr 				pWin;
     xGetDeviceDontPropagateListReply	rep;
-    XEventClass 			*ClassFromMask ();
-    void				Swap32Write();
     OtherInputMasks			*others;
 
     REQUEST(xGetDeviceDontPropagateListReq);
@@ -121,7 +125,7 @@ ProcXGetDeviceDontPropagateList (client)
 	return Success;
         }
 
-    if (others = wOtherInputMasks(pWin))
+    if ((others = wOtherInputMasks(pWin)) != 0)
 	{
 	for (i=0; i<EMASKSIZE; i++)
 	    tbuf = ClassFromMask (NULL, others->dontPropagateMask[i], i, 
@@ -129,7 +133,7 @@ ProcXGetDeviceDontPropagateList (client)
 	if (count)
 	    {
 	    rep.count = count;
-	    buf = (XEventClass *) Xalloc (rep.count * sizeof(XEventClass));
+	    buf = (XEventClass *) xalloc (rep.count * sizeof(XEventClass));
 	    rep.length = (rep.count * sizeof (XEventClass) + 3) >> 2;
 
 	    tbuf = buf;
@@ -144,9 +148,9 @@ ProcXGetDeviceDontPropagateList (client)
 
     if (count)
 	{
-	client->pSwapReplyFunc = Swap32Write;
+	client->pSwapReplyFunc = (ReplySwapPtr)Swap32Write;
 	WriteSwappedDataToClient( client, count * sizeof(XEventClass), buf);
-	Xfree (buf);
+	xfree (buf);
 	}
     return Success;
     }
@@ -169,7 +173,6 @@ XEventClass
     int		i,j;
     int		id = maskndx;
     Mask	tmask = 0x80000000;
-    extern int	ExtEventIndex;
 
     for (i=0; i<32; i++,tmask>>=1)
 	if (tmask & mask)
@@ -193,6 +196,7 @@ XEventClass
  *
  */
 
+void
 SRepXGetDeviceDontPropagateList (client, size, rep)
     ClientPtr	client;
     int		size;

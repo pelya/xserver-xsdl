@@ -27,43 +27,55 @@ Equipment Corporation.
 
 ******************************************************************/
 
+/*
+ * HISTORY
+ *
+ * @(#)RCSfile: dpms.c,v Revision: 1.1.4.5  (DEC) Date: 1996/03/04 15:27:00
+ */
+
+/* $XFree86: xc/programs/Xserver/Xext/dpms.c,v 3.9 2001/10/28 03:32:50 tsi Exp $ */
+
 #include "X.h"
 #include "Xproto.h"
 #include "misc.h"
 #include "os.h"
 #include "dixstruct.h"
 #include "extnsionst.h"
+#include "opaque.h"
+#define DPMS_SERVER
 #include "dpms.h"
 #include "dpmsstr.h"
-#include <stdio.h>
+#include "dpmsproc.h"
 
 static unsigned char DPMSCode;
-static int ProcDPMSDispatch(), SProcDPMSDispatch();
-static void DPMSResetProc();
-static int ProcDPMSGetVersion(), SProcDPMSGetVersion();
-static int ProcDPMSGetTimeouts(), SProcDPMSGetTimeouts();
-static int ProcDPMSSetTimeouts(), ProcDPMSSetTimeouts();
-static int ProcDPMSEnable(), ProcDPMSEnable();
-static int ProcDPMSDisable(), ProcDPMSDisable();
-static int ProcDPMSForceLevel(), ProcDPMSForceLevel();
-
-extern void Swap32Write(); /* XXX should be in header file */
-extern CARD32 ScreenSaverTime;
-extern CARD32 DPMSStandbyTime;
-extern CARD32 DPMSSuspendTime;
-extern CARD32 DPMSOffTime;
-extern BOOL DPMSCapableFlag;
-extern BOOL DPMSEnabled;
-extern CARD16 DPMSPowerLevel;
+static DISPATCH_PROC(ProcDPMSDispatch);
+static DISPATCH_PROC(SProcDPMSDispatch);
+static DISPATCH_PROC(ProcDPMSGetVersion);
+static DISPATCH_PROC(SProcDPMSGetVersion);
+static DISPATCH_PROC(ProcDPMSGetTimeouts);
+static DISPATCH_PROC(SProcDPMSGetTimeouts);
+static DISPATCH_PROC(ProcDPMSSetTimeouts);
+static DISPATCH_PROC(SProcDPMSSetTimeouts);
+static DISPATCH_PROC(ProcDPMSEnable);
+static DISPATCH_PROC(SProcDPMSEnable);
+static DISPATCH_PROC(ProcDPMSDisable);
+static DISPATCH_PROC(SProcDPMSDisable);
+static DISPATCH_PROC(ProcDPMSForceLevel);
+static DISPATCH_PROC(SProcDPMSForceLevel);
+static DISPATCH_PROC(ProcDPMSInfo);
+static DISPATCH_PROC(SProcDPMSInfo);
+static DISPATCH_PROC(ProcDPMSCapable);
+static DISPATCH_PROC(SProcDPMSCapable);
+static void DPMSResetProc(ExtensionEntry* extEntry);
 
 void
 DPMSExtensionInit()
 {
-    ExtensionEntry *extEntry, *AddExtension();
+    ExtensionEntry *extEntry;
     
-    if (extEntry = AddExtension(DPMSExtensionName, 0, 0,
+    if ((extEntry = AddExtension(DPMSExtensionName, 0, 0,
 				ProcDPMSDispatch, SProcDPMSDispatch,
-				DPMSResetProc, StandardMinorOpcode))
+				DPMSResetProc, StandardMinorOpcode)))
 	DPMSCode = (unsigned char)extEntry->base;
     return;
 }
@@ -79,7 +91,7 @@ static int
 ProcDPMSGetVersion(client)
     register ClientPtr client;
 {
-    REQUEST(xDPMSGetVersionReq);
+    /* REQUEST(xDPMSGetVersionReq); */
     xDPMSGetVersionReply rep;
     register int n;
 
@@ -100,10 +112,9 @@ ProcDPMSGetVersion(client)
 }
 
 static int
-ProcDPMSCapable(client)
-    register ClientPtr client;
+ProcDPMSCapable(register ClientPtr client)
 {
-    REQUEST(xDPMSCapableReq);
+    /* REQUEST(xDPMSCapableReq); */
     xDPMSCapableReply rep;
     register int n;
 
@@ -114,6 +125,9 @@ ProcDPMSCapable(client)
     rep.sequenceNumber = client->sequence;
     rep.capable = DPMSCapableFlag;
 
+    if (client->swapped) {
+	swaps(&rep.sequenceNumber, n);
+    }
     WriteToClient(client, sizeof(xDPMSCapableReply), (char *)&rep);
     return(client->noClientException);
 }
@@ -122,7 +136,7 @@ static int
 ProcDPMSGetTimeouts(client)
     register ClientPtr client;
 {
-    REQUEST(xDPMSGetTimeoutsReq);
+    /* REQUEST(xDPMSGetTimeoutsReq); */
     xDPMSGetTimeoutsReply rep;
     register int n;
 
@@ -150,7 +164,6 @@ ProcDPMSSetTimeouts(client)
     register ClientPtr client;
 {
     REQUEST(xDPMSSetTimeoutsReq);
-    register int n;
 
     REQUEST_SIZE_MATCH(xDPMSSetTimeoutsReq);
 
@@ -176,7 +189,7 @@ static int
 ProcDPMSEnable(client)
     register ClientPtr client;
 {
-    REQUEST(xDPMSEnableReq);
+    /* REQUEST(xDPMSEnableReq); */
 
     REQUEST_SIZE_MATCH(xDPMSEnableReq);
 
@@ -190,13 +203,11 @@ static int
 ProcDPMSDisable(client)
     register ClientPtr client;
 {
-    REQUEST(xDPMSDisableReq);
+    /* REQUEST(xDPMSDisableReq); */
 
     REQUEST_SIZE_MATCH(xDPMSDisableReq);
 
-#ifdef DPMSExtension
     DPMSSet(DPMSModeOn);
-#endif
 
     DPMSEnabled = FALSE;
 
@@ -217,9 +228,7 @@ ProcDPMSForceLevel(client)
     if (stuff->level == DPMSModeOn) {
       lastDeviceEventTime.milliseconds =
           GetTimeInMillis();
-    } 
-#if 0
-      else if (stuff->level == DPMSModeStandby) {
+    } else if (stuff->level == DPMSModeStandby) {
       lastDeviceEventTime.milliseconds =
           GetTimeInMillis() -  DPMSStandbyTime;
     } else if (stuff->level == DPMSModeSuspend) {
@@ -232,20 +241,16 @@ ProcDPMSForceLevel(client)
 	client->errorValue = stuff->level;
 	return BadValue;
     }
-#endif
 
-#ifdef DPMSExtension
     DPMSSet(stuff->level);
-#endif
 
     return(client->noClientException);
 }
 
 static int
-ProcDPMSInfo(client)
-    register ClientPtr client;
+ProcDPMSInfo(register ClientPtr client)
 {
-    REQUEST(xDPMSInfoReq);
+    /* REQUEST(xDPMSInfoReq); */
     xDPMSInfoReply rep;
     register int n;
 
@@ -309,8 +314,7 @@ SProcDPMSGetVersion(client)
 }
 
 static int
-SProcDPMSCapable(client)
-    register ClientPtr client;
+SProcDPMSCapable(register ClientPtr client)
 {
     REQUEST(xDPMSCapableReq);
     register int n;

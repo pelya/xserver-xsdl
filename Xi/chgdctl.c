@@ -45,6 +45,7 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ********************************************************/
+/* $XFree86: xc/programs/Xserver/Xi/chgdctl.c,v 3.4 2001/12/14 19:58:54 dawes Exp $ */
 
 /********************************************************************
  *
@@ -59,11 +60,13 @@ SOFTWARE.
 #include "inputstr.h"			/* DeviceIntPtr	     */
 #include "XI.h"
 #include "XIproto.h"			/* control constants */
+#include "XIstubs.h"
 
-extern	int 	IReqCode;
-extern	int	BadDevice, DeviceBusy;
-extern	void	(* ReplySwapVector[256]) ();
-DeviceIntPtr	LookupDeviceIntRec();
+#include "extnsionst.h"
+#include "extinit.h"			/* LookupDeviceIntRec */
+#include "exglobals.h"
+
+#include "chgdctl.h"
 
 /***********************************************************************
  *
@@ -91,10 +94,12 @@ SProcXChangeDeviceControl(client)
  *
  */
 
+int
 ProcXChangeDeviceControl(client)
     ClientPtr client;
     {
-    int i, len, status;
+    unsigned len;
+    int i, status;
     DeviceIntPtr dev;
     xDeviceResolutionCtl *r;
     xChangeDeviceControlReply rep;
@@ -150,7 +155,7 @@ ProcXChangeDeviceControl(client)
 		    BadValue);
 		return Success;
 		}
-	    status = ChangeDeviceControl(client, dev, r);
+	    status = ChangeDeviceControl(client, dev, (xDeviceCtl*) r);
 	    if (status == Success)
 		{
 	        a = &dev->valuator->axes[r->first_valuator];
@@ -195,6 +200,7 @@ ProcXChangeDeviceControl(client)
  *
  */
 
+void
 SRepXChangeDeviceControl (client, size, rep)
     ClientPtr	client;
     int		size;

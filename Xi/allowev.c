@@ -45,6 +45,7 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ********************************************************/
+/* $XFree86: xc/programs/Xserver/Xi/allowev.c,v 3.4 2001/12/14 19:58:54 dawes Exp $ */
 
 /***********************************************************************
  *
@@ -60,10 +61,12 @@ SOFTWARE.
 #include "XI.h"
 #include "XIproto.h"
 
-extern	int 		IReqCode;
-extern	int 		BadDevice;
-extern	void		(* ReplySwapVector[256]) ();
-DeviceIntPtr		LookupDeviceIntRec();
+#include "extnsionst.h"
+#include "extinit.h"			/* LookupDeviceIntRec */
+#include "exglobals.h"
+
+#include "allowev.h"
+#include "dixevents.h"
 
 /***********************************************************************
  *
@@ -96,7 +99,6 @@ ProcXAllowDeviceEvents(client)
     {
     TimeStamp		time;
     DeviceIntPtr	thisdev;
-    void AllowSome ();
 
     REQUEST(xAllowDeviceEventsReq);
     REQUEST_SIZE_MATCH(xAllowDeviceEventsReq);

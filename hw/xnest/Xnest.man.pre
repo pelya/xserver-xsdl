@@ -24,7 +24,10 @@
 .\" not be used in advertising or otherwise to promote the sale, use or
 .\" other dealings in this Software without prior written authorization
 .\" from the X Consortium.
-.TH XNEST 1 "Release 6.4" "X Version 11"
+.\"
+.\" $XFree86: xc/programs/Xserver/hw/xnest/Xnest.man,v 1.6 2001/01/27 18:21:00 dawes Exp $
+.\"
+.TH XNEST 1 __xorgversion__
 .SH NAME
 Xnest \- a nested X server
 .SH SYNOPSIS

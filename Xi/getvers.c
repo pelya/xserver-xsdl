@@ -45,6 +45,7 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ********************************************************/
+/* $XFree86: xc/programs/Xserver/Xi/getvers.c,v 3.3 2001/12/14 19:58:57 dawes Exp $ */
 
 /***********************************************************************
  *
@@ -59,10 +60,12 @@ SOFTWARE.
 #include "inputstr.h"			/* DeviceIntPtr	     */
 #include "XI.h"
 #include "XIproto.h"
+#include "extnsionst.h"
+#include "extinit.h"			/* LookupDeviceIntRec */
+#include "exglobals.h"
 
-extern	int 		IReqCode;
-extern	void		(* ReplySwapVector[256]) ();
-DeviceIntPtr		LookupDeviceIntRec();
+#include "getvers.h"
+
 XExtensionVersion	AllExtensionVersions[128];
 
 /***********************************************************************
@@ -90,6 +93,7 @@ SProcXGetExtensionVersion(client)
  *
  */
 
+int
 ProcXGetExtensionVersion (client)
     register ClientPtr client;
     {
@@ -133,6 +137,7 @@ ProcXGetExtensionVersion (client)
  *
  */
 
+void
 SRepXGetExtensionVersion (client, size, rep)
     ClientPtr	client;
     int		size;

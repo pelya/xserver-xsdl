@@ -45,6 +45,7 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ********************************************************/
+/* $XFree86: xc/programs/Xserver/include/site.h,v 1.8 2001/12/19 21:37:35 dawes Exp $ */
 
 #ifndef SITE_H
 #define SITE_H
@@ -99,19 +100,12 @@ SOFTWARE.
 #else
 #define DEFAULT_AUTOREPEAT	FALSE
 #endif
-#ifdef hpux
 #define DEFAULT_AUTOREPEATS	{\
         0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,\
         0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,\
         0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,\
         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}
-#else
-#define DEFAULT_AUTOREPEATS	{\
-	0, 0, 0, 0, 0, 0, 0, 0,\
-	0, 0, 0, 0, 0, 0, 0, 0,\
-	0, 0, 0, 0, 0, 0, 0, 0,\
-	0, 0, 0, 0, 0, 0, 0, 0 }
-#endif
+
 #define DEFAULT_LEDS		0x0        /* all off */
 #define DEFAULT_LEDS_MASK	0xffffffff /* 32 */
 #define DEFAULT_INT_RESOLUTION		1000

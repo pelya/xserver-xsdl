@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/sysv/sysv_init.c,v 3.4.2.1 1998/02/06 22:36:54 hohndel Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/sysv/sysv_init.c,v 3.5 1998/07/25 16:57:08 dawes Exp $ */
 /*
  * Copyright 1990,91 by Thomas Roell, Dinkelscherben, Germany
  * Copyright 1993 by David Wexelblat <dwex@goblin.org>
@@ -23,17 +23,15 @@
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *
  */
-/* $Xorg: sysv_init.c,v 1.3 2000/08/17 19:51:32 cpqbld Exp $ */
+/* $XConsortium: sysv_init.c /main/4 1996/02/21 17:54:31 kaleb $ */
 
 #include "X.h"
 #include "Xmd.h"
-#include "input.h"
-#include "scrnintstr.h"
 
 #include "compiler.h"
 
 #include "xf86.h"
-#include "xf86Procs.h"
+#include "xf86Priv.h"
 #include "xf86_OSlib.h"
 
 static Bool KeepTty = FALSE;
@@ -42,27 +40,21 @@ static Bool Protect0 = FALSE;
 #endif
 static int VTnum = -1;
 
-extern void xf86VTRequest(
-#if NeedFunctionPrototypes
-	int
-#endif
-);
 
-void xf86OpenConsole()
+void
+xf86OpenConsole()
 {
     int fd;
     struct vt_mode VT;
     char vtname1[10],vtname2[10];
+    MessageType from = X_PROBED;
 
     if (serverGeneration == 1) 
     {
     	/* check if we're run with euid==0 */
     	if (geteuid() != 0)
 	{
-	    FatalError("xf86OpenConsole: Server must be running with root "
-	        "permissions\n"
-		"You should be using Xwrapper to start the server or xdm.\n"
-		"We strongly advise against making the server SUID root!\n");
+      	    FatalError("xf86OpenConsole: Server must be suid root\n");
 	}
 
 #ifdef SVR4
@@ -74,16 +66,18 @@ void xf86OpenConsole()
 
 	    if ((fd = open("/dev/zero", O_RDONLY, 0)) < 0)
 	    {
-		ErrorF("xf86OpenConsole: cannot open /dev/zero (%s)\n",
-		       strerror(errno));
+		xf86Msg(X_WARNING,
+			"xf86OpenConsole: cannot open /dev/zero (%s)\n",
+			strerror(errno));
 	    }
 	    else
 	    {
 		if ((int)mmap(0, 0x1000, PROT_NONE,
 			      MAP_FIXED | MAP_SHARED, fd, 0) == -1)
 		{
-		    ErrorF("xf86OpenConsole: failed to protect page 0 (%s)\n",
-		       strerror(errno));
+		    xf86Msg(X_WARNING,
+			"xf86OpenConsole: failed to protect page 0 (%s)\n",
+			strerror(errno));
 		}
 		close(fd);
 	    }
@@ -95,6 +89,7 @@ void xf86OpenConsole()
     	if (VTnum != -1) 
 	{
       	    xf86Info.vtno = VTnum;
+	    from = X_CMDLINE;
     	}
     	else 
 	{
@@ -111,12 +106,10 @@ void xf86OpenConsole()
 	    }
            close(fd);
         }
-	ErrorF("(using VT number %d)\n\n", xf86Info.vtno);
+	xf86Msg(from, "using VT number %d\n\n", xf86Info.vtno);
 
 	sprintf(vtname1,"/dev/vc%02d",xf86Info.vtno); /* ESIX */
 	sprintf(vtname2,"/dev/vt%02d",xf86Info.vtno); /* rest of the world */
-
-	xf86Config(FALSE); /* Read XF86Config */
 
 	if (!KeepTty)
     	{
@@ -141,11 +134,11 @@ void xf86OpenConsole()
 	 */
 	if (ioctl(xf86Info.consoleFd, VT_ACTIVATE, xf86Info.vtno) != 0)
 	{
-    	    ErrorF("xf86OpenConsole: VT_ACTIVATE failed\n");
+    	    xf86Msg(X_WARNING, "xf86OpenConsole: VT_ACTIVATE failed\n");
 	}
 	if (ioctl(xf86Info.consoleFd, VT_WAITACTIVE, xf86Info.vtno) != 0)
 	{
-	    ErrorF("xf86OpenConsole: VT_WAITACTIVE failed\n");
+	    xf86Msg(X_WARNING, "xf86OpenConsole: VT_WAITACTIVE failed\n");
 	}
 	if (ioctl(xf86Info.consoleFd, VT_GETMODE, &VT) < 0) 
 	{
@@ -174,24 +167,25 @@ void xf86OpenConsole()
 	 */
 	if (ioctl(xf86Info.consoleFd, VT_ACTIVATE, xf86Info.vtno) != 0)
 	{
-	    ErrorF("xf86OpenConsole: VT_ACTIVATE failed\n");
+	    xf86Msg(X_WARNING, "xf86OpenConsole: VT_ACTIVATE failed\n");
 	}
 	if (ioctl(xf86Info.consoleFd, VT_WAITACTIVE, xf86Info.vtno) != 0)
 	{
-      	    ErrorF("xf86OpenConsole: VT_WAITACTIVE failed\n");
+      	    xf86Msg(X_WARNING, "xf86OpenConsole: VT_WAITACTIVE failed\n");
 	}
 	/*
 	 * If the server doesn't have the VT when the reset occurs,
 	 * this is to make sure we don't continue until the activate
 	 * signal is received.
 	 */
-	if (!xf86VTSema)
+	if (!xf86Screens[0]->vtSema)
 	    sleep(5);
     }
     return;
 }
 
-void xf86CloseConsole()
+void
+xf86CloseConsole()
 {
     struct vt_mode   VT;
 
@@ -209,10 +203,8 @@ void xf86CloseConsole()
     return;
 }
 
-int xf86ProcessArgument(argc, argv, i)
-int argc;
-char *argv[];
-int i;
+int
+xf86ProcessArgument(int argc, char *argv[], int i)
 {
 	/*
 	 * Keep server from detaching from controlling tty.  This is useful 
@@ -248,7 +240,8 @@ int i;
 	return(0);
 }
 
-void xf86UseMsg()
+void
+xf86UseMsg()
 {
 	ErrorF("vtXX                   use the specified VT number\n");
 	ErrorF("-keeptty               ");

@@ -26,14 +26,23 @@ other dealings in this Software without prior written authorization
 from The Open Group.
 
 */
+/* $XFree86: xc/programs/Xserver/mi/cbrt.c,v 3.4 2001/12/14 20:00:19 dawes Exp $ */
 
 /* simple cbrt, in case your math library doesn't have a good one */
 
-double pow();
+/*
+ * Would normally include <math.h> for this, but for the sake of compiler
+ * warnings, we don't want to get duplicate declarations for cbrt().
+ */
+
+double pow(double, double);
+double cbrt(double);
 
 double
-cbrt(x)
-    double x;
+cbrt(double x)
 {
-    return pow(x, 1.0/3.0);
+    if (x > 0.0)
+	return pow(x, 1.0/3.0);
+    else
+	return -pow(-x, 1.0/3.0);
 }

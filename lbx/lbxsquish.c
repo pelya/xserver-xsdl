@@ -46,12 +46,15 @@ in this Software without prior written authorization from The Open Group.
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *
  */
+/* $XFree86: xc/programs/Xserver/lbx/lbxsquish.c,v 1.4 2001/12/14 20:00:01 dawes Exp $ */
 #define NEED_REPLIES
 #define NEED_EVENTS
 #include "X.h"
 #include "Xproto.h"
 #include "Xos.h"
 #include "misc.h"
+#include "colormapst.h"
+#include "propertyst.h"
 #include "lbxserve.h"
 #define _XLBX_SERVER_
 #include "lbxstr.h"
@@ -135,8 +138,7 @@ static char lbxevpad[] = {
 };
 
 int
-LbxSquishEvent(buf)
-    char *buf;
+LbxSquishEvent(char *buf)
 {
     int delta = lbxevdelta[((xEvent *)buf)->u.u.type];
     int pad = lbxevpad[((xEvent *)buf)->u.u.type];

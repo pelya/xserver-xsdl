@@ -12,6 +12,8 @@ the suitability of this software for any purpose.  It is provided "as
 is" without express or implied warranty.
 
 */
+/* $XFree86: xc/programs/Xserver/hw/xnest/Screen.c,v 3.11 2003/01/10 13:29:40 eich Exp $ */
+
 #include "X.h"
 #include "Xproto.h"
 #include "scrnintstr.h"
@@ -25,26 +27,26 @@ is" without express or implied warranty.
 
 #include "Display.h"
 #include "Screen.h"
-#include "Args.h"
 #include "XNGC.h"
 #include "GCOps.h"
 #include "Drawable.h"
 #include "XNFont.h"
 #include "Color.h"
-#include "Cursor.h"
+#include "XNCursor.h"
 #include "Visual.h"
 #include "Events.h"
 #include "Init.h"
+#include "mipointer.h"
 #include "Args.h"
 
-extern Bool miModifyPixmapHeader();
-extern Bool miCreateScreenResources();
-extern Bool miCloseScreen();
-extern Bool miScreenInit();
 extern Window xnestParentWindow;
 
 Window xnestDefaultWindows[MAXSCREENS];
 Window xnestScreenSaverWindows[MAXSCREENS];
+
+#ifdef PIXPRIV
+int xnestScreenGeneration = -1;
+#endif
 
 ScreenPtr xnestScreen(window)
      Window window;
@@ -102,6 +104,28 @@ static Bool xnestSaveScreen(pScreen, what)
   }
 }
 
+static Bool
+xnestCursorOffScreen (ppScreen, x, y)
+    ScreenPtr   *ppScreen;
+    int         *x, *y;
+{
+    return FALSE;
+}
+
+static void
+xnestCrossScreen (pScreen, entering)
+    ScreenPtr   pScreen;
+    Bool        entering;
+{
+}
+
+static miPointerScreenFuncRec xnestPointerCursorFuncs =
+{
+    xnestCursorOffScreen,
+    xnestCrossScreen,
+    miPointerWarpCursor
+};
+
 Bool xnestOpenScreen(index, pScreen, argc, argv)
      int index;
      register ScreenPtr pScreen;
@@ -123,6 +147,17 @@ Bool xnestOpenScreen(index, pScreen, argc, argv)
 			    sizeof(xnestPrivGC)))) 
     return False;
 
+#ifdef PIXPRIV
+  if (xnestScreenGeneration != serverGeneration) {
+      if ((xnestPixmapPrivateIndex = AllocatePixmapPrivateIndex()) < 0)
+	  return False;
+      xnestScreenGeneration = serverGeneration;
+  }
+  
+  if (!AllocatePixmapPrivate(pScreen,xnestPixmapPrivateIndex,
+			     sizeof (xnestPrivPixmap)))
+      return False;
+#endif
   visuals = (VisualPtr)xalloc(xnestNumVisuals * sizeof(VisualRec));
   numVisuals = 0;
 
@@ -160,6 +195,9 @@ Bool xnestOpenScreen(index, pScreen, argc, argv)
 	(VisualID *)xalloc(MAXVISUALSPERDEPTH * sizeof(VisualID));
       numDepths++;
     }
+    if (depths[depthIndex].numVids >= MAXVISUALSPERDEPTH) {
+	FatalError("Visual table overflow");
+    }
     depths[depthIndex].vids[depths[depthIndex].numVids] = 
       visuals[numVisuals].vid;
     depths[depthIndex].numVids++;
@@ -179,7 +217,11 @@ Bool xnestOpenScreen(index, pScreen, argc, argv)
 	       visuals[xnestDefaultVisualIndex].nplanes, /* rootDepth */
 	       numDepths, depths,
 	       visuals[xnestDefaultVisualIndex].vid, /* root visual */
-	       numVisuals, visuals, NULL);
+	       numVisuals, visuals);
+
+  miInitializeBackingStore(pScreen);
+
+  miDCInitialize(pScreen, &xnestPointerCursorFuncs);
 
   pScreen->mmWidth = xnestWidth * DisplayWidthMM(xnestDisplay, 
 		       DefaultScreen(xnestDisplay)) / 

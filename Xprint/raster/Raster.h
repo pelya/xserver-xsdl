@@ -30,6 +30,8 @@ not be used in advertising or otherwise to promote the sale, use or other
 dealings in this Software without prior written authorization from said
 copyright holders.
 */
+/* $XFree86: xc/programs/Xserver/Xprint/raster/Raster.h,v 1.4 2001/12/21 21:02:06 dawes Exp $ */
+
 /*******************************************************************
 **
 **    *********************************************************
@@ -50,17 +52,18 @@ copyright holders.
 /*
  * Some sleazes to force the XrmDB stuff into the server
  */
+#ifndef HAVE_XPointer
 typedef char *XPointer;
+#endif
 #define Status int
 #define True 1
 #define False 0
 #include "misc.h"
 #include <Xfuncproto.h>
-#include "../Xresource.h"
+#include <X11/Xresource.h>
+#include "attributes.h"
 
-#define _XP_PRINT_SERVER_
-#include "extensions/Printstr.h"
-#undef _XP_PRINT_SERVER_
+#include <X11/extensions/Printstr.h>
 
 #define MAX_TOKEN_LEN 512
 
@@ -81,10 +84,10 @@ typedef char *XPointer;
 
 typedef struct {
     char *pBits;
-    Bool (* CreateWindow)();            /* pWin */
-    Bool (* ChangeWindowAttributes)();  /* pWin, mask */
-    Bool (* DestroyWindow)();            /* pWin */
-    Bool (* CloseScreen)();            /* index, pScreen */
+    CreateWindowProcPtr CreateWindow;
+    ChangeWindowAttributesProcPtr ChangeWindowAttributes;
+    DestroyWindowProcPtr DestroyWindow;
+    CloseScreenProcPtr CloseScreen;
 } RasterScreenPrivRec, *RasterScreenPrivPtr;
 
 typedef struct {
@@ -102,5 +105,11 @@ typedef struct {
     ClientPtr getDocClient;
     int getDocBufSize;
 } RasterContextPrivRec, *RasterContextPrivPtr;
+
+
+extern XpValidatePoolsRec RasterValidatePoolsRec;
+
+extern Bool InitializeRasterDriver(int ndx, ScreenPtr pScreen, int argc,
+				   char **argv);
 
 #endif  /* _RASTER_H_ */

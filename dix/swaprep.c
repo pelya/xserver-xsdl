@@ -1,3 +1,4 @@
+/* $XFree86: xc/programs/Xserver/dix/swaprep.c,v 3.7 2001/12/14 19:59:33 dawes Exp $ */
 /************************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -55,8 +56,29 @@ SOFTWARE.
 #include "dixstruct.h"
 #include "fontstruct.h"
 #include "scrnintstr.h"
+#include "swaprep.h"
+#include "globals.h"
 
-void SwapVisual(), SwapConnSetup(), SwapWinRoot();
+static void SwapFontInfo(
+#if NeedFunctionPrototypes
+    xQueryFontReply * /* pr */
+#endif
+);
+
+#ifndef LBX
+static void SwapCharInfo(
+#if NeedFunctionPrototypes
+    xCharInfo * /* pInfo */
+#endif
+    );
+
+static void SwapFont(
+#if NeedFunctionPrototypes
+    xQueryFontReply * /* pr */,
+    Bool /* hasGlyphs */
+#endif
+    );
+#endif
 
 /* Thanks to Jack Palevich for testing and subsequently rewriting all this */
 void
@@ -1294,47 +1316,47 @@ SKeymapNotifyEvent(from, to)
 }
 
 void
-SwapConnSetupInfo(pInfo, pInfoTBase)
-    char 		*pInfo;
-    char 		*pInfoTBase;
+SwapConnSetupInfo(
+    char 	*pInfo,
+    char 	*pInfoT
+)
 {
     int		i, j, k;
-    ScreenPtr	pScreen;
-    DepthPtr	pDepth;
-    char	*pInfoT;
     xConnSetup	*pConnSetup = (xConnSetup *)pInfo;
+    xDepth	*depth;
+    xWindowRoot *root;
 
-    pInfoT = pInfoTBase;
     SwapConnSetup(pConnSetup, (xConnSetup *)pInfoT);
     pInfo += sizeof(xConnSetup);
     pInfoT += sizeof(xConnSetup);
 
     /* Copy the vendor string */
     i = (pConnSetup->nbytesVendor + 3) & ~3;
-    memmove(pInfoT, pInfo, i);
+    memcpy(pInfoT, pInfo, i);
     pInfo += i;
     pInfoT += i;
 
     /* The Pixmap formats don't need to be swapped, just copied. */
-    i = sizeof(xPixmapFormat) * screenInfo.numPixmapFormats;
-    memmove(pInfoT, pInfo, i);
+    i = sizeof(xPixmapFormat) * pConnSetup->numFormats;
+    memcpy(pInfoT, pInfo, i);
     pInfo += i;
     pInfoT += i;
 
-    for(i = 0; i < screenInfo.numScreens; i++)
+    for(i = 0; i < pConnSetup->numRoots; i++)
     {
-	pScreen = screenInfo.screens[i];
-	SwapWinRoot((xWindowRoot *)pInfo, (xWindowRoot *)pInfoT);
+	root = (xWindowRoot*)pInfo;
+	SwapWinRoot(root, (xWindowRoot *)pInfoT);
 	pInfo += sizeof(xWindowRoot);
 	pInfoT += sizeof(xWindowRoot);
-	pDepth = pScreen->allowedDepths;
-	for(j = 0; j < pScreen->numDepths; j++, pDepth++)
+
+	for(j = 0; j < root->nDepths; j++)
 	{
-            ((xDepth *)pInfoT)->depth = ((xDepth *)pInfo)->depth;
-	    cpswaps(((xDepth *)pInfo)->nVisuals, ((xDepth *)pInfoT)->nVisuals);
+	    depth = (xDepth*)pInfo;
+            ((xDepth *)pInfoT)->depth = depth->depth;
+	    cpswaps(depth->nVisuals, ((xDepth *)pInfoT)->nVisuals);
 	    pInfo += sizeof(xDepth);
 	    pInfoT += sizeof(xDepth);
-	    for(k = 0; k < pDepth->numVids; k++)
+	    for(k = 0; k < depth->nVisuals; k++)
 	    {
 		SwapVisual((xVisualType *)pInfo, (xVisualType *)pInfoT);
 		pInfo += sizeof(xVisualType);

@@ -44,9 +44,13 @@ not be used in advertising or otherwise to promote the sale, use or other
 dealings in this Software without prior written authorization from said
 copyright holders.
 */
+/* $XFree86: xc/programs/Xserver/Xprint/pcl/PclMisc.c,v 1.10 2001/12/02 13:35:28 herrb Exp $ */
 
+#include <stdlib.h>
+#include <signal.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 #include "Xos.h"	/* for SIGCLD on pre-POSIX systems */
-#include <stdio.h>
 #include "Pcl.h"
 
 #include "cursor.h"
@@ -54,6 +58,7 @@ copyright holders.
 
 #include "windowstr.h"
 #include "propertyst.h"
+#include "attributes.h"
 
 
 /*ARGSUSED*/
@@ -142,12 +147,14 @@ GetPropString(
 }
 
 #include <signal.h>
+#include <errno.h>
 
 /* ARGSUSED */
 static void SigchldHndlr (
     int dummy)
 {
     int   status, w;
+    int olderrno = errno;
     struct sigaction act;
     sigfillset(&act.sa_mask);
     act.sa_flags = 0;
@@ -159,6 +166,7 @@ static void SigchldHndlr (
      * Is this really necessary?
      */
     sigaction(SIGCHLD, &act, (struct sigaction *)NULL);
+    errno = olderrno;
 }
 
 /*
@@ -248,6 +256,7 @@ char *ptr;
  * in the clipped area.
  * For XP-PCL-LJ3, it draws the spooled figures in the clipped area.
  */
+void
 PclSendData(
 	FILE *outFile,
 	PclContextPrivPtr pConPriv,

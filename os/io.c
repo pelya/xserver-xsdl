@@ -43,6 +43,7 @@ WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION,
 ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
+
 ******************************************************************/
 /* $Xorg: io.c,v 1.6 2001/02/09 02:05:23 xorgcvs Exp $ */
 /*****************************************************************
@@ -52,30 +53,37 @@ SOFTWARE.
  *   InsertFakeRequest, ResetCurrentRequest
  *
  *****************************************************************/
+/* $XFree86: xc/programs/Xserver/os/io.c,v 3.34 2002/05/31 18:46:05 dawes Exp $ */
 
+#if 0
+#define DEBUG_COMMUNICATION
+#endif
 #ifdef WIN32
 #include <X11/Xwinsock.h>
 #endif
 #include <stdio.h>
 #include <X11/Xtrans.h>
-#ifdef X_NOT_STDC_ENV
-extern int errno;
-#endif
 #include "Xmd.h"
 #include <errno.h>
-#ifndef WIN32
+#if !defined(__UNIXOS2__) && !defined(WIN32)
+#ifndef Lynx
 #include <sys/uio.h>
+#else
+#include <uio.h>
+#endif
 #endif
 #include "X.h"
 #define NEED_REPLIES
 #include "Xproto.h"
 #include "os.h"
-#include "Xpoll.h"
 #include "osdep.h"
+#include "Xpoll.h"
 #include "opaque.h"
 #include "dixstruct.h"
 #include "misc.h"
 #ifdef LBX
+#include "colormapst.h"
+#include "propertyst.h"
 #include "lbxserve.h"
 #endif
 
@@ -85,6 +93,7 @@ CallbackListPtr       FlushCallback;
 /* check for both EAGAIN and EWOULDBLOCK, because some supposedly POSIX
  * systems are broken and return EWOULDBLOCK when they should return EAGAIN
  */
+#ifndef __UNIXOS2__
 #if defined(EAGAIN) && defined(EWOULDBLOCK)
 #define ETEST(err) (err == EAGAIN || err == EWOULDBLOCK)
 #else
@@ -94,13 +103,9 @@ CallbackListPtr       FlushCallback;
 #define ETEST(err) (err == EWOULDBLOCK)
 #endif
 #endif
-
-extern fd_set ClientsWithInput, IgnoredClientsWithInput, AllClients;
-extern fd_set ClientsWriteBlocked;
-extern fd_set OutputPending;
-extern int ConnectionTranslation[];
-extern Bool NewOutputPending;
-extern Bool AnyClientsWriteBlocked;
+#else /* __UNIXOS2__  Writing to full pipes may return ENOSPC */
+#define ETEST(err) (err == EAGAIN || err == EWOULDBLOCK || err == ENOSPC)
+#endif
 
 Bool CriticalOutputPending;
 int timesThisConnection = 0;
@@ -251,7 +256,7 @@ ReadRequestFromClient(client)
 
     if (!oci)
     {
-	if (oci = FreeInputs)
+	if ((oci = FreeInputs))
 	{
 	    FreeInputs = oci->next;
 	}
@@ -371,8 +376,23 @@ ReadRequestFromClient(client)
 	{
 	    if ((result < 0) && ETEST(errno))
 	    {
-		YieldControlNoInput();
-		return 0;
+#if defined(SVR4) && defined(i386) && !defined(sun)
+#if defined(LBX) && 0
+		/*
+		 * For LBX connections, we can get a valid EWOULDBLOCK
+		 * There is probably a better way of distinguishing LBX
+		 * connections, but this works. (DHD)
+		 */
+		extern int LbxRead();
+		if (oc->Read == LbxRead)
+#else
+		if (0)
+#endif
+#endif
+		{
+		    YieldControlNoInput();
+		    return 0;
+		}
 	    }
 	    YieldControlDeath();
 	    return -1;
@@ -451,14 +471,29 @@ ReadRequestFromClient(client)
 	    )
 	    FD_SET(fd, &ClientsWithInput);
 	else
-	    YieldControlNoInput();
+	{
+#ifdef SMART_SCHEDULE
+	    if (!SmartScheduleDisable)
+		FD_CLR(fd, &ClientsWithInput);
+	    else
+#endif
+		YieldControlNoInput();
+	}
     }
     else
     {
 	if (!gotnow)
 	    AvailableInput = oc;
-	YieldControlNoInput();
+#ifdef SMART_SCHEDULE
+	if (!SmartScheduleDisable)
+	    FD_CLR(fd, &ClientsWithInput);
+	else
+#endif
+	    YieldControlNoInput();
     }
+#ifdef SMART_SCHEDULE
+    if (SmartScheduleDisable)
+#endif
     if (++timesThisConnection >= MAX_TIMES_PER)
 	YieldControl();
 #ifdef BIGREQS
@@ -472,6 +507,13 @@ ReadRequestFromClient(client)
     }
 #endif
     client->requestBuffer = (pointer)oci->bufptr;
+#ifdef DEBUG_COMMUNICATION
+    {
+	xReq *req = client->requestBuffer;
+	ErrorF("REQUEST: ClientIDX: %i, type: 0x%x data: 0x%x len: %i\n",
+	       client->index,req->reqType,req->data,req->length);
+    }
+#endif
     return needed;
 }
 
@@ -513,7 +555,7 @@ InsertFakeRequest(client, data, count)
     }
     if (!oci)
     {
-	if (oci = FreeInputs)
+	if ((oci = FreeInputs))
 	    FreeInputs = oci->next;
 	else if (!(oci = AllocateInputBuffer()))
 	    return FALSE;
@@ -558,6 +600,7 @@ InsertFakeRequest(client, data, count)
  *
  **********************/
 
+void
 ResetCurrentRequest(client)
     ClientPtr client;
 {
@@ -567,7 +610,6 @@ ResetCurrentRequest(client)
     register xReq *request;
     int gotnow, needed;
 #ifdef LBX
-    Bool part;
     LbxClientPtr lbxClient = LbxClient(client);
 
     if (lbxClient) {
@@ -769,11 +811,12 @@ static int padlength[4] = {0, 3, 2, 1};
 void
 FlushAllOutput()
 {
-    register int index, base, mask;
+    register int index, base;
+    register fd_mask mask; /* raphael */
     OsCommPtr oc;
     register ClientPtr client;
     Bool newoutput = NewOutputPending;
-#ifdef WIN32
+#if defined(WIN32)
     fd_set newOutputPending;
 #endif
 
@@ -800,7 +843,7 @@ FlushAllOutput()
 	{
 	    index = ffs(mask) - 1;
 	    mask &= ~lowbit(mask);
-	    if ((index = ConnectionTranslation[(base << 5) + index]) == 0)
+	    if ((index = ConnectionTranslation[(base * (sizeof(fd_mask)*8)) + index]) == 0)
 		continue;
 	    client = clients[index];
 	    if (client->clientGone)
@@ -879,13 +922,54 @@ WriteToClient (who, count, buf)
     OsCommPtr oc = (OsCommPtr)who->osPrivate;
     register ConnectionOutputPtr oco = oc->output;
     int padBytes;
-
+#ifdef DEBUG_COMMUNICATION
+    Bool multicount = FALSE;
+#endif
     if (!count)
 	return(0);
+#ifdef DEBUG_COMMUNICATION
+    {
+	char info[128];
+	xError *err;
+	xGenericReply *rep;
+	xEvent *ev;
+	
+	if (!who->replyBytesRemaining) {
+	    switch(buf[0]) {
+	    case X_Reply:
+		rep = (xGenericReply*)buf;
+		if (rep->sequenceNumber == who->sequence) {
+		    snprintf(info,127,"Xreply: type: 0x%x data: 0x%x "
+			     "len: %i seq#: 0x%x", rep->type, rep->data1,
+			     rep->length, rep->sequenceNumber);
+		    multicount = TRUE;
+		}
+		break;
+	    case X_Error:
+		err = (xError*)buf;
+		snprintf(info,127,"Xerror: Code: 0x%x resID: 0x%x maj: 0x%x "
+			 "min: %x", err->errorCode,err->resourceID,
+			 err->minorCode,err->majorCode);
+		break;
+	    default:
+		if ((buf[0] & 0x7f) == KeymapNotify) 
+		    snprintf(info,127,"KeymapNotifyEvent: %i",buf[0]);
+		else {
+		    ev = (xEvent*)buf;
+		    snprintf(info,127,"XEvent: type: 0x%x detail: 0x%x "
+			     "seq#: 0x%x",  ev->u.u.type, ev->u.u.detail,
+			     ev->u.u.sequenceNumber);
+		}
+	    }
+	    ErrorF("REPLY: ClientIDX: %i %s\n",who->index, info);
+	} else
+	    multicount = TRUE;
+    }
+#endif
 
     if (!oco)
     {
-	if (oco = FreeOutputs)
+	if ((oco = FreeOutputs))
 	{
 	    FreeOutputs = oco->next;
 	}
@@ -933,14 +1017,25 @@ WriteToClient (who, count, buf)
 	    replyinfo.bytesRemaining = who->replyBytesRemaining = bytesleft;
 	    CallCallbacks((&ReplyCallback), (pointer)&replyinfo);
 	} 	                      
-    } 
-  
+    }
+#ifdef DEBUG_COMMUNICATION
+    else if (multicount) {
+	if (who->replyBytesRemaining) {
+	    who->replyBytesRemaining -= (count + padBytes);
+	} else {
+	    CARD32 replylen;
+	    replylen = ((xGenericReply *)buf)->length;
+	    who->replyBytesRemaining =
+		(replylen * 4) + SIZEOF(xReply) - count - padBytes;
+	}
+    }
+#endif
     if (oco->count + count + padBytes > oco->size)
     {
 	FD_CLR(oc->fd, &OutputPending);
 	if(!XFD_ANYSET(&OutputPending)) {
-		CriticalOutputPending = FALSE;
-		NewOutputPending = FALSE;
+	  CriticalOutputPending = FALSE;
+	  NewOutputPending = FALSE;
 	}
 	return FlushClient(who, oc, buf, count);
     }
@@ -1007,7 +1102,7 @@ FlushClient(who, oc, extraBuf, extraCount)
 	long remain = todo;	/* amount to try this time, <= notWritten */
 	int i = 0;
 	long len;
-
+	
 	/* You could be very general here and have "in" and "out" iovecs
 	 * and write a loop without using a macro, but what the heck.  This
 	 * translates to:
@@ -1203,7 +1298,7 @@ FreeOsBuffers(oc)
 
     if (AvailableInput == oc)
 	AvailableInput = (OsCommPtr)NULL;
-    if (oci = oc->input)
+    if ((oci = oc->input))
     {
 	if (FreeInputs)
 	{
@@ -1219,7 +1314,7 @@ FreeOsBuffers(oc)
 	    oci->lenLastReq = 0;
 	}
     }
-    if (oco = oc->output)
+    if ((oco = oc->output))
     {
 	if (FreeOutputs)
 	{
@@ -1234,7 +1329,7 @@ FreeOsBuffers(oc)
 	}
     }
 #ifdef LBX
-    if (oci = oc->largereq) {
+    if ((oci = oc->largereq)) {
 	xfree(oci->buffer);
 	xfree(oci);
     }
@@ -1247,13 +1342,13 @@ ResetOsBuffers()
     register ConnectionInputPtr oci;
     register ConnectionOutputPtr oco;
 
-    while (oci = FreeInputs)
+    while ((oci = FreeInputs))
     {
 	FreeInputs = oci->next;
 	xfree(oci->buffer);
 	xfree(oci);
     }
-    while (oco = FreeOutputs)
+    while ((oco = FreeOutputs))
     {
 	FreeOutputs = oco->next;
 	xfree(oco->buf);

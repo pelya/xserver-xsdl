@@ -26,6 +26,7 @@ other dealings in this Software without prior written authorization
 from The Open Group.
 
 */
+/* $XFree86: xc/programs/Xserver/dix/pixmap.c,v 3.5 2001/12/14 19:59:32 dawes Exp $ */
 
 #include "X.h"
 #include "scrnintstr.h"
@@ -65,10 +66,12 @@ GetScratchPixmapHeader(pScreen, width, height, depth, bitsPerPixel, devKind,
 	/* width and height of 0 means don't allocate any pixmap data */
 	pPixmap = (*pScreen->CreatePixmap)(pScreen, 0, 0, depth);
 
-    if (pPixmap)
+    if (pPixmap) {
 	if ((*pScreen->ModifyPixmapHeader)(pPixmap, width, height, depth,
 					   bitsPerPixel, devKind, pPixData))
 	    return pPixmap;
+	(*pScreen->DestroyPixmap)(pPixmap);
+    }
     return NullPixmap;
 }
 
@@ -132,7 +135,7 @@ AllocatePixmap(pScreen, pixDataSize)
     ptr = (char *)(ppriv + pScreen->PixmapPrivateLen);
     for (i = pScreen->PixmapPrivateLen; --i >= 0; ppriv++, sizes++)
     {
-        if (size = *sizes)
+        if ((size = *sizes) != 0)
         {
 	    ppriv->ptr = (pointer)ptr;
 	    ptr += size;

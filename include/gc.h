@@ -1,3 +1,4 @@
+/* $XFree86: xc/programs/Xserver/include/gc.h,v 1.5 2001/12/14 19:59:54 dawes Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -49,8 +50,8 @@ SOFTWARE.
 #ifndef GC_H
 #define GC_H 
 
-#include "misc.h"	/* for Bool */
 #include "X11/X.h"	/* for GContext, Mask */
+#include "Xdefs.h"	/* for Bool */
 #include "X11/Xproto.h"
 #include "screenint.h"	/* for ScreenPtr */
 #include "pixmap.h"	/* for DrawablePtr */

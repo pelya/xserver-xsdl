@@ -25,6 +25,7 @@ in this Software without prior written authorization from The Open Group.
  *
  * Author:  Keith Packard, MIT X Consortium
  */
+/* $XFree86: xc/programs/Xserver/cfb/cfbsolid.c,v 3.8 2002/09/16 18:05:31 eich Exp $ */
 
 
 #include "X.h"
@@ -117,17 +118,18 @@ RROP_NAME(cfbFillRectSolid) (pDrawable, pGC, nBox, pBox)
     BoxPtr	    pBox;
 {
     register int    m;
-    register unsigned long   *pdst;
+    register CfbBits   *pdst;
     RROP_DECLARE
-    register unsigned long   leftMask, rightMask;
-    unsigned long   *pdstBase, *pdstRect;
+    CfbBits   *pdstBase, *pdstRect;
     int		    nmiddle;
     int		    h;
     int		    w;
     int		    widthDst;
-    cfbPrivGCPtr    devPriv;
-
-    devPriv = cfbGetGCPrivate(pGC);
+#if PSZ == 24
+    int		    leftIndex, rightIndex;
+#else
+    register CfbBits   leftMask, rightMask;
+#endif
 
     cfbGetLongWidthAndPointer (pDrawable, widthDst, pdstBase)
 
@@ -153,6 +155,577 @@ RROP_NAME(cfbFillRectSolid) (pDrawable, pGC, nBox, pBox)
 	else
 	{
 #endif
+#if PSZ == 24
+	leftIndex = pBox->x1 &3;
+/*	rightIndex = ((leftIndex+w)<5)?0:pBox->x2 &3;*/
+	rightIndex = pBox->x2 &3;
+
+	nmiddle = w - rightIndex;
+	if(leftIndex){
+	  nmiddle -= (4 - leftIndex);
+	}
+	nmiddle >>= 2;
+	if(nmiddle < 0)
+	  nmiddle = 0;
+
+	pdstRect += (pBox->x1 * 3) >> 2;
+	pdst = pdstRect;	
+	switch(leftIndex+w){
+	case 4:
+	    switch(leftIndex){
+	    case 0:
+		while(h--){
+#if RROP == GXcopy
+		    *pdst++ = piQxelXor[0];
+		    *pdst++ = piQxelXor[1];
+		    *pdst-- = piQxelXor[2];
+#endif
+#if RROP == GXxor
+		    *pdst++ ^= piQxelXor[0];
+		    *pdst++ ^= piQxelXor[1];
+		    *pdst-- ^= piQxelXor[2];
+#endif
+#if RROP == GXand
+		    *pdst++ &= piQxelAnd[0];
+		    *pdst++ &= piQxelAnd[1];
+		    *pdst-- &= piQxelAnd[2];
+#endif
+#if RROP == GXor
+		    *pdst++ |= piQxelOr[0];
+		    *pdst++ |= piQxelOr[1];
+		    *pdst-- |= piQxelOr[2];
+#endif
+#if RROP == GXset
+		    *pdst = DoRRop((*pdst), piQxelAnd[0], piQxelXor[0]);
+		    pdst++;
+		    *pdst = DoRRop((*pdst), piQxelAnd[1], piQxelXor[1]);
+		    pdst++;
+		    *pdst = DoRRop((*pdst), piQxelAnd[2], piQxelXor[2]);
+		    pdst--;
+#endif
+		    pdst--;
+		    pdst += widthDst;
+		}
+		break;
+	    case 1:
+		while(h--){
+#if RROP == GXcopy
+		    *pdst = ((*pdst) & 0xFFFFFF) | (piQxelXor[0] & 0xFF000000);
+		    pdst++;
+		    *pdst++ = piQxelXor[1];
+		    *pdst-- = piQxelXor[2];
+#endif
+#if RROP == GXxor
+		    *pdst++ ^= (piQxelXor[0] & 0xFF000000);
+		    *pdst++ ^= piQxelXor[1];
+		    *pdst-- ^= piQxelXor[2];
+#endif
+#if RROP == GXand
+		    *pdst++ &= (piQxelAnd[0] | 0x00FFFFFF);
+		    *pdst++ &= piQxelAnd[1];
+		    *pdst-- &= piQxelAnd[2];
+#endif
+#if RROP == GXor
+		    *pdst++ |= (piQxelOr[0] & 0xFF000000);
+		    *pdst++ |= piQxelOr[1];
+		    *pdst-- |= piQxelOr[2];
+#endif
+#if RROP == GXset
+		    *pdst = DoMaskRRop((*pdst), piQxelAnd[0], piQxelXor[0], 0xFF000000);
+		    pdst++;
+		    *pdst = DoRRop((*pdst), piQxelAnd[1], piQxelXor[1]);
+		    pdst++;
+		    *pdst = DoRRop((*pdst), piQxelAnd[2], piQxelXor[2]);
+		    pdst--;
+#endif
+		    pdst--;
+		    pdst += widthDst;
+		}
+		break;
+	    case 2:
+		while(h--){
+#if RROP == GXcopy
+		    *pdst = ((*pdst) & 0xFFFF) | (piQxelXor[1] & 0xFFFF0000);
+		    pdst++;
+		    *pdst-- = piQxelXor[2];
+#endif
+#if RROP == GXxor
+		    *pdst++ ^= (piQxelXor[1] & 0xFFFF0000);
+		    *pdst-- ^= piQxelXor[2];
+#endif
+#if RROP == GXand
+		    *pdst++ &= (piQxelAnd[1] | 0xFFFF);
+		    *pdst-- &= piQxelAnd[2];
+#endif
+#if RROP == GXor
+		    *pdst++ |= (piQxelOr[1] & 0xFFFF0000);
+		    *pdst-- |= piQxelOr[2];
+#endif
+#if RROP == GXset
+		    *pdst = DoMaskRRop((*pdst), piQxelAnd[1], piQxelXor[1], 0xFFFF0000);
+		    pdst++;
+		    *pdst = DoRRop((*pdst), piQxelAnd[2], piQxelXor[2]);
+		    pdst--;
+#endif
+		    pdst += widthDst;
+		}
+		break;
+	    case 3:
+		while(h--){
+#if RROP == GXcopy
+		    *pdst = ((*pdst) & 0xFF) | (piQxelXor[2] & 0xFFFFFF00);
+#endif
+#if RROP == GXxor
+		    *pdst ^= (piQxelXor[2] & 0xFFFFFF00);
+#endif
+#if RROP == GXand
+		    *pdst &= (piQxelAnd[2] | 0xFF);
+#endif
+#if RROP == GXor
+		    *pdst |= (piQxelOr[2] & 0xFFFFFF00);
+#endif
+#if RROP == GXset
+		    *pdst = DoMaskRRop((*pdst), piQxelAnd[2], piQxelXor[2], 0xFFFFFF00);
+#endif
+		    pdst += widthDst;
+		}
+		break;
+	    }
+	    break;
+	case 3:
+	    switch(leftIndex){
+	    case 0:
+		while(h--){
+#if RROP == GXcopy
+		    *pdst++ = piQxelXor[0];
+		    *pdst++ = piQxelXor[1];
+		    *pdst = ((*pdst) & 0xFFFFFF00) | (piQxelXor[2] & 0xFF);
+		    pdst--;
+#endif
+#if RROP == GXxor
+		    *pdst++ ^= piQxelXor[0];
+		    *pdst++ ^= piQxelXor[1];
+		    *pdst-- ^= (piQxelXor[2] & 0xFF);
+#endif
+#if RROP == GXand
+		    *pdst++ &= piQxelAnd[0];
+		    *pdst++ &= piQxelAnd[1];
+		    *pdst-- &= (piQxeAnd[2] | 0xFFFFFF00);
+#endif
+#if RROP == GXor
+		    *pdst++ |= piQxelOr[0];
+		    *pdst++ |= piQxelOr[1];
+		    *pdst-- |= (piQxelOr[2] & 0xFF);
+#endif
+#if RROP == GXset
+		    *pdst = DoRRop((*pdst), piQxelAnd[0], piQxelXor[0]);
+		    pdst++;
+		    *pdst = DoRRop((*pdst), piQxelAnd[1], piQxelXor[1]);
+		    pdst++;
+		    *pdst = DoMaskRRop((*pdst), piQxelAnd[2], piQxelXor[2], 0xFF);
+		    pdst--;
+#endif
+		    pdst--;
+		    pdst += widthDst;
+		}
+		break;
+	    case 1:
+		while(h--){
+#if RROP == GXcopy
+		    *pdst = ((*pdst) & 0xFFFFFF) | (piQxelXor[0] & 0xFF000000);
+		    pdst++;
+		    *pdst++ = piQxelXor[1];
+		    *pdst = ((*pdst) & 0xFFFFFF00) | (piQxelXor[2] & 0xFF);
+		    pdst--;
+#endif
+#if RROP == GXxor
+		    *pdst++ ^= (piQxelXor[0] & 0xFF000000);
+		    *pdst++ ^= piQxelXor[1];
+		    *pdst-- ^= (piQxelXor[2] & 0xFF);
+#endif
+#if RROP == GXand
+		    *pdst++ &= (piQxelAnd[0] | 0x00FFFFFF);
+		    *pdst++ &= piQxelAnd[1];
+		    *pdst-- &= (piQxelAnd[2] | 0xFFFFFF00);
+#endif
+#if RROP == GXor
+		    *pdst++ |= (piQxelOr[0] & 0xFF000000);
+		    *pdst++ |= piQxelOr[1];
+		    *pdst-- |= (piQxelOr[2] & 0xFF);
+#endif
+#if RROP == GXset
+		    *pdst = DoMaskRRop((*pdst), piQxelAnd[0], piQxelXor[0], 0xFF000000);
+		    pdst++;
+		    *pdst = DoRRop((*pdst), piQxelAnd[1], piQxelXor[1]);
+		    pdst++;
+		    *pdst = DoMaskRRop((*pdst), piQxelAnd[2], piQxelXor[2], 0xFF);
+		    pdst--;
+#endif
+		    pdst--;
+		    pdst += widthDst;
+		}
+		break;
+	    case 2:
+		while(h--){
+#if RROP == GXcopy
+		    *pdst = ((*pdst) & 0xFFFF) | (piQxelXor[1] & 0xFFFF0000);
+		    pdst++;
+		    *pdst = ((*pdst) & 0xFFFFFF00) | (piQxelXor[2] & 0xFF);
+		    pdst--;
+#endif
+#if RROP == GXxor
+		    *pdst++ ^= (piQxelXor[1] & 0xFFFF0000);
+		    *pdst-- ^= (piQxelXor[2] & 0xFF);
+#endif
+#if RROP == GXand
+		    *pdst++ &= (piQxelAnd[1] | 0xFFFF);
+		    *pdst-- &= (piQxelAnd[2] | 0xFFFFFF00);
+#endif
+#if RROP == GXor
+		    *pdst++ |= (piQxelOr[1] & 0xFFFF0000);
+		    *pdst-- |= (piQxelOr[2] & 0xFF);
+#endif
+#if RROP == GXset
+		    *pdst = DoMaskRRop((*pdst), piQxelAnd[1], piQxelXor[1], 0xFFFF0000);
+		    pdst++;
+		    *pdst = DoMaskRRop((*pdst), piQxelAnd[2], piQxelXor[2], 0xFF);
+		    pdst--;
+#endif
+		    pdst += widthDst;
+		}
+		break;
+	    case 3:
+		while(h--){
+#if RROP == GXcopy
+		    *pdst = ((*pdst) & 0xFF) | (piQxelXor[2] & 0xFFFFFF00);
+#endif
+#if RROP == GXxor
+		    *pdst ^= (piQxelXor[2] & 0xFFFFFF00);
+#endif
+#if RROP == GXand
+		    *pdst &= (piQxelAnd[2] | 0xFF);
+#endif
+#if RROP == GXor
+		    *pdst |= (piQxelOr[2] & 0xFFFFFF00);
+#endif
+#if RROP == GXset
+		    *pdst = DoMaskRRop((*pdst), piQxelAnd[2], piQxelXor[2], 0xFFFFFF00);
+#endif
+		    pdst += widthDst;
+		}
+		break;
+	    }
+	    break;
+	case 2: /* leftIndex + w = 2*/
+	    switch(leftIndex){
+	    case 2:
+		while(h--){
+#if RROP == GXcopy
+		    *pdst = ((*pdst) & 0xFFFF) | (piQxelXor[1] & 0xFFFF0000);
+		    pdst++;
+		    *pdst = ((*pdst) & 0xFFFFFF00) | (piQxelXor[2] & 0xFF);
+		    pdst--;
+#endif
+#if RROP == GXxor
+		    *pdst++ ^= (piQxelXor[1] & 0xFFFF0000);
+		    *pdst-- ^= (piQxelXor[2] & 0xFF);
+#endif
+#if RROP == GXand
+		    *pdst++ &= (piQxelAnd[1] | 0xFFFF0000);
+		    *pdst-- &= (piQxelAnd[2] | 0xFF);
+#endif
+#if RROP == GXor
+		    *pdst++ |= (piQxelOr[1] & 0xFFFF0000);
+		    *pdst-- |= (piQxelOr[2] & 0xFF);
+#endif
+#if RROP == GXset
+		    *pdst = DoMaskRRop((*pdst), piQxelAnd[1], piQxelXor[1], 0xFFFF0000);
+		    pdst++;
+		    *pdst = DoMaskRRop((*pdst), piQxelAnd[2], piQxelXor[2], 0xFF);
+		    pdst--;
+#endif
+		    pdst += widthDst;
+		  }
+		break;
+	    case 1:
+		while(h--){
+#if RROP == GXcopy
+		    *pdst = ((*pdst) & 0xFFFFFF) | (piQxelXor[0] & 0xFF000000);
+		    pdst++;
+		    *pdst = ((*pdst) & 0xFFFF0000) | (piQxelXor[1] & 0xFFFF);
+		    pdst--;
+#endif
+#if RROP == GXxor
+		    *pdst++ ^= (piQxelXor[0] & 0xFF000000);
+		    *pdst-- ^= (piQxelXor[1] & 0xFFFF);
+#endif
+#if RROP == GXand
+		    *pdst++ &= (piQxelAnd[0] | 0xFFFFFF);
+		    *pdst-- &= (piQxelAnd[1] | 0xFFFF0000);
+#endif
+#if RROP == GXor
+		    *pdst++ |= (piQxelOr[0] & 0xFF000000);
+		    *pdst-- |= (piQxelOr[1] & 0xFFFF);
+#endif
+#if RROP == GXset
+		    *pdst = DoMaskRRop((*pdst), piQxelAnd[0], piQxelXor[0], 0xFF000000);
+		    pdst++;
+		    *pdst = DoMaskRRop((*pdst), piQxelAnd[1], piQxelXor[1], 0xFFFF);
+		    pdst--;
+#endif
+		    pdst += widthDst;
+		  }
+		break;
+	    case 0: /*case 2 leftIndex == 0 */
+		while(h--){
+#if RROP == GXcopy
+		    *pdst++ = piQxelXor[0];
+		    *pdst = ((*pdst) & 0xFFFF0000) | (piQxelXor[1] & 0xFFFF);
+		    pdst--;
+#endif
+#if RROP == GXxor
+		    *pdst++ ^= piQxelXor[0];
+		    *pdst-- ^= (piQxelXor[1] & 0xFFFF);
+#endif
+#if RROP == GXand
+		    *pdst++ &= piQxelAnd[0];
+		    *pdst-- &= (piQxelAnd[1] | 0xFFFF0000);
+#endif
+#if RROP == GXor
+		    *pdst++ |= piQxelOr[0];
+		    *pdst-- |= (piQxelOr[1] & 0xFFFF);
+#endif
+#if RROP == GXset
+		    *pdst = DoRRop((*pdst), piQxelAnd[0], piQxelXor[0]);
+		    pdst++;
+		    *pdst = DoMaskRRop((*pdst), piQxelAnd[1], piQxelXor[1], 0xFFFF);
+		    pdst--;
+#endif
+		    pdst += widthDst;
+		}
+		break;
+	    }
+	    break;
+	case 1: /*only if leftIndex = 0 and w = 1*/
+	    while(h--){
+#if RROP == GXcopy
+		*pdst = ((*pdst) & 0xFF000000) | (piQxelXor[0] & 0xFFFFFF);
+#endif
+#if RROP == GXxor
+		*pdst ^= (piQxelXor[0] & 0xFFFFFF);
+#endif
+#if RROP == GXand
+		*pdst &= (piQxelAnd[0] | 0xFF000000);
+#endif
+#if RROP == GXor
+		*pdst |= (piQxelOr[0] & 0xFFFFFF);
+#endif
+#if RROP == GXset
+		*pdst = DoMaskRRop((*pdst), piQxelAnd[0], piQxelXor[0], 0xFFFFFF);
+#endif
+		pdst += widthDst;
+	    }
+	    break;
+	case 0: /*never*/
+	    break;
+	default:
+	    {
+		while(h--){
+		    pdst = pdstRect;
+		    switch(leftIndex){
+		    case 0:
+			break;
+		    case 1:
+#if RROP == GXcopy
+			*pdst = ((*pdst) & 0xFFFFFF) | (piQxelXor[0] & 0xFF000000);
+			pdst++;
+			*pdst++ = piQxelXor[1];
+			*pdst++ = piQxelXor[2];
+#endif
+#if RROP == GXxor
+			*pdst++ ^= (piQxelXor[0] & 0xFF000000);
+			*pdst++ ^= piQxelXor[1];
+			*pdst++ ^= piQxelXor[2];
+#endif
+#if RROP == GXand
+			*pdst++ &= (piQxelAnd[0] | 0xFFFFFF);
+			*pdst++ &= piQxelAnd[1];
+			*pdst++ &= piQxelAnd[2];
+#endif
+#if RROP == GXor
+			*pdst++ |= (piQxelOr[0] & 0xFF000000);
+			*pdst++ |= piQxelOr[1];
+			*pdst++ |= piQxelOr[2];
+#endif
+#if RROP == GXset
+			*pdst = DoMaskRRop((*pdst), piQxelAnd[0], piQxelXor[0], 0xFF000000);
+			pdst++;
+			*pdst = DoRRop((*pdst), piQxelAnd[1], piQxelXor[1]);
+			pdst++;
+			*pdst = DoRRop((*pdst), piQxelAnd[2], piQxelXor[2]);
+			pdst++;
+#endif
+		    break;
+		    case 2:
+#if RROP == GXcopy
+			*pdst = (((*pdst) & 0xFFFF) | (piQxelXor[1] & 0xFFFF0000));
+			pdst++;
+			*pdst++ = piQxelXor[2];
+#endif
+#if RROP == GXxor
+			*pdst++ ^=(piQxelXor[1] & 0xFFFF0000);
+			*pdst++ ^= piQxelXor[2];
+#endif
+#if RROP == GXand
+			*pdst++ &= (piQxelAnd[1] | 0xFFFF);
+			*pdst++ &= piQxelAnd[2];
+#endif
+#if RROP == GXor
+			*pdst++ |= (piQxelOr[1] & 0xFFFF0000);
+			*pdst++ |= piQxelOr[2];
+#endif
+#if RROP == GXset
+			*pdst = DoMaskRRop((*pdst), piQxelAnd[1], piQxelXor[1], 0xFFFF0000);
+			pdst++;
+			*pdst = DoRRop((*pdst), piQxelAnd[2], piQxelXor[2]);
+			pdst++;
+#endif
+			break;
+		    case 3:
+#if RROP == GXcopy
+			*pdst = ((*pdst) & 0xFF) | (piQxelXor[2] & 0xFFFFFF00);
+			pdst++;
+#endif
+#if RROP == GXxor
+			*pdst++ ^= (piQxelXor[2] & 0xFFFFFF00);
+#endif
+#if RROP == GXand
+			*pdst++ &= (piQxelAnd[2] | 0xFF);
+#endif
+#if RROP == GXor
+			*pdst++ |= (piQxelOr[2] & 0xFFFFFF00);
+#endif
+#if RROP == GXset
+			*pdst = DoMaskRRop((*pdst), piQxelAnd[2], piQxelXor[2], 0xFFFFFF00);
+			pdst++;
+#endif
+			break;
+		      }
+		    m = nmiddle;
+		    while(m--){
+#if RROP == GXcopy
+			*pdst++ = piQxelXor[0];
+			*pdst++ = piQxelXor[1];
+			*pdst++ = piQxelXor[2];
+#endif
+#if RROP == GXxor
+			*pdst++ ^= piQxelXor[0];
+			*pdst++ ^= piQxelXor[1];
+			*pdst++ ^= piQxelXor[2];
+#endif
+#if RROP == GXand
+			*pdst++ &= piQxelAnd[0];
+			*pdst++ &= piQxelAnd[1];
+			*pdst++ &= piQxelAnd[2];
+#endif
+#if RROP == GXor
+			*pdst++ |= piQxelOr[0];
+			*pdst++ |= piQxelOr[1];
+			*pdst++ |= piQxelOr[2];
+#endif
+#if RROP == GXset
+			*pdst = DoRRop((*pdst), piQxelAnd[0], piQxelXor[0]);
+			pdst++;
+			*pdst = DoRRop((*pdst), piQxelAnd[1], piQxelXor[1]);
+			pdst++;
+			*pdst = DoRRop((*pdst), piQxelAnd[2], piQxelXor[2]);
+			pdst++;
+#endif
+		}
+		switch(rightIndex){
+		case 0:
+		  break;
+		case 1:
+#if RROP == GXcopy
+		  *pdst = ((*pdst) & 0xFF000000) | (piQxelXor[0] & 0xFFFFFF);
+		  pdst++;
+#endif
+#if RROP == GXxor
+		  *pdst++ ^= (piQxelXor[0] & 0xFFFFFF);
+#endif
+#if RROP == GXand
+		  *pdst++ &= (piQxelAnd[0] | 0xFF);
+#endif
+#if RROP == GXor
+		  *pdst++ |= (piQxelOr[0] & 0xFFFFFF);
+#endif
+#if RROP == GXset
+		  *pdst = DoMaskRRop((*pdst), piQxelAnd[0], piQxelXor[0], 0xFFFFFF);
+		  pdst++;
+#endif
+		  break;
+		case 2:
+#if RROP == GXcopy
+		  *pdst++ = piQxelXor[0];
+		  *pdst = ((*pdst) & 0xFFFF0000) | (piQxelXor[1] & 0xFFFF);
+		  pdst++;
+#endif
+#if RROP == GXxor
+		  *pdst++ ^= piQxelXor[0];
+		  *pdst++ ^= (piQxelXor[1] & 0xFFFF);
+#endif
+#if RROP == GXand
+		  *pdst++ &= piQxelAnd[0];
+		  *pdst++ &= (piQxelAnd[1] | 0xFFFF0000);
+#endif
+#if RROP == GXor
+		  *pdst++ |= piQxelOr[0];
+		  *pdst++ |= (piQxelOr[1] & 0xFFFF);
+#endif
+#if RROP == GXset
+		  *pdst = DoRRop((*pdst), piQxelAnd[0], piQxelXor[0]);
+		  pdst++;
+		  *pdst = DoMaskRRop((*pdst), piQxelAnd[1], piQxelXor[1], 0xFFFF);
+		  pdst++;
+#endif
+		  break;
+		case 3:
+#if RROP == GXcopy
+		  *pdst++ = piQxelXor[0];
+		  *pdst++ = piQxelXor[1];
+		  *pdst = ((*pdst) & 0xFFFFFF00) | (piQxelXor[2] & 0xFF);
+		  pdst++;
+#endif
+#if RROP == GXxor
+		  *pdst++ ^= piQxelXor[0];
+		  *pdst++ ^= piQxelXor[1];
+		  *pdst++ ^= (piQxelXor[2] & 0xFF);
+#endif
+#if RROP == GXand
+		  *pdst++ &= piQxelAnd[0];
+		  *pdst++ &= piQxelAnd[1];
+		  *pdst++ &= (piQxelAnd[2] | 0xFFFFFF00);
+#endif
+#if RROP == GXor
+		  *pdst++ |= piQxelOr[0];
+		  *pdst++ |= piQxelOr[1];
+		  *pdst++ |= (piQxelOr[2] & 0xFF);
+#endif
+#if RROP == GXset
+		  *pdst = DoRRop((*pdst), piQxelAnd[0], piQxelXor[0]);
+		  pdst++;
+		  *pdst = DoRRop((*pdst), piQxelAnd[1], piQxelXor[1]);
+		  pdst++;
+		  *pdst = DoMaskRRop((*pdst), piQxelAnd[2], piQxelXor[2], 0xFF);
+		  pdst++;
+#endif
+		  break;
+		}
+		pdstRect += widthDst;
+	    }
+	}
+	}
+#else /* PSZ != 24 */
 	pdstRect += (pBox->x1 >> PWSH);
 	if ((pBox->x1 & PIM) + w <= PPW)
 	{
@@ -193,6 +766,7 @@ RROP_NAME(cfbFillRectSolid) (pDrawable, pGC, nBox, pBox)
 		}
 	    }
 	}
+#endif
 #if PSZ == 8
 	}
 #endif
@@ -208,14 +782,13 @@ RROP_NAME(cfbSolidSpans) (pDrawable, pGC, nInit, pptInit, pwidthInit, fSorted)
     int		*pwidthInit;		/* pointer to list of n widths */
     int 	fSorted;
 {
-    unsigned long   *pdstBase;
+    CfbBits   *pdstBase;
     int		    widthDst;
 
     RROP_DECLARE
     
-    register unsigned long  *pdst;
+    register CfbBits  *pdst;
     register int	    nlmiddle;
-    register unsigned long  startmask, endmask;
     register int	    w;
     int			    x;
     
@@ -226,10 +799,15 @@ RROP_NAME(cfbSolidSpans) (pDrawable, pGC, nInit, pptInit, pwidthInit, fSorted)
     DDXPointPtr	    pptFree;
     int		    *pwidth;
     cfbPrivGCPtr    devPriv;
+#if PSZ == 24
+    int		    leftIndex, rightIndex;
+#else
+    register CfbBits  startmask, endmask;
+#endif
 
     devPriv = cfbGetGCPrivate(pGC);
     RROP_FETCH_GCPRIV(devPriv)
-    n = nInit * miFindMaxBand(devPriv->pCompositeClip);
+    n = nInit * miFindMaxBand(pGC->pCompositeClip);
     pwidthFree = (int *)ALLOCATE_LOCAL(n * sizeof(int));
     pptFree = (DDXPointRec *)ALLOCATE_LOCAL(n * sizeof(DDXPointRec));
     if(!pptFree || !pwidthFree)
@@ -240,8 +818,7 @@ RROP_NAME(cfbSolidSpans) (pDrawable, pGC, nInit, pptInit, pwidthInit, fSorted)
     }
     pwidth = pwidthFree;
     ppt = pptFree;
-    n = miClipSpans(devPriv->pCompositeClip,
-		     pptInit, pwidthInit, nInit,
+    n = miClipSpans(pGC->pCompositeClip, pptInit, pwidthInit, nInit,
 		     ppt, pwidth, fSorted);
 
     cfbGetLongWidthAndPointer (pDrawable, widthDst, pdstBase)
@@ -254,6 +831,493 @@ RROP_NAME(cfbSolidSpans) (pDrawable, pGC, nInit, pptInit, pwidthInit, fSorted)
 	w = *pwidth++;
 	if (!w)
 	    continue;
+#if PSZ == 24
+	leftIndex = x &3;
+/*	rightIndex = ((leftIndex+w)<5)?0:(x+w)&3;*/
+	rightIndex = (x+w)&3;
+
+	nlmiddle = w - rightIndex;
+	if(leftIndex){
+	  nlmiddle -= (4 - leftIndex);
+	}
+/*	nlmiddle += 3;*/
+	nlmiddle >>= 2;
+	if(nlmiddle < 0)
+	  nlmiddle = 0;
+
+	pdst += (x >> 2)*3;
+	pdst += leftIndex? (leftIndex -1):0;
+	switch(leftIndex+w){
+	case 4:
+	    switch(leftIndex){
+	    case 0:
+#if RROP == GXcopy
+		    *pdst++ = piQxelXor[0];
+		    *pdst++ = piQxelXor[1];
+		    *pdst-- = piQxelXor[2];
+#endif
+#if RROP == GXxor
+		    *pdst++ ^= piQxelXor[0];
+		    *pdst++ ^= piQxelXor[1];
+		    *pdst-- ^= piQxelXor[2];
+#endif
+#if RROP == GXand
+		    *pdst++ &= piQxelAnd[0];
+		    *pdst++ &= piQxelAnd[1];
+		    *pdst-- &= piQxelAnd[2];
+#endif
+#if RROP == GXor
+		    *pdst++ |= piQxelOr[0];
+		    *pdst++ |= piQxelOr[1];
+		    *pdst-- |= piQxelOr[2];
+#endif
+#if RROP == GXset
+		    *pdst = DoRRop((*pdst), piQxelAnd[0], piQxelXor[0]);
+		    pdst++;
+		    *pdst = DoRRop((*pdst), piQxelAnd[1], piQxelXor[1]);
+		    pdst++;
+		    *pdst = DoRRop((*pdst), piQxelAnd[2], piQxelXor[2]);
+		    pdst--;
+#endif
+		    pdst--;
+		break;
+	    case 1:
+#if RROP == GXcopy
+		    *pdst = ((*pdst) & 0xFFFFFF) | (piQxelXor[0] & 0xFF000000);
+		    pdst++;
+		    *pdst++ = piQxelXor[1];
+		    *pdst-- = piQxelXor[2];
+#endif
+#if RROP == GXxor
+		    *pdst++ ^= (piQxelXor[0] & 0xFF000000);
+		    *pdst++ ^= piQxelXor[1];
+		    *pdst-- ^= piQxelXor[2];
+#endif
+#if RROP == GXand
+		    *pdst++ &= (piQxelAnd[0] | 0x00FFFFFF);
+		    *pdst++ &= piQxelAnd[1];
+		    *pdst-- &= piQxelAnd[2];
+#endif
+#if RROP == GXor
+		    *pdst++ |= (piQxelOr[0] & 0xFF000000);
+		    *pdst++ |= piQxelOr[1];
+		    *pdst-- |= piQxelOr[2];
+#endif
+#if RROP == GXset
+		    *pdst = DoMaskRRop((*pdst), piQxelAnd[0], piQxelXor[0], 0xFF000000);
+		    pdst++;
+		    *pdst = DoRRop((*pdst), piQxelAnd[1], piQxelXor[1]);
+		    pdst++;
+		    *pdst = DoRRop((*pdst), piQxelAnd[2], piQxelXor[2]);
+		    pdst--;
+#endif
+		    pdst--;
+		break;
+	    case 2:
+#if RROP == GXcopy
+		    *pdst = ((*pdst) & 0xFFFF) | (piQxelXor[1] & 0xFFFF0000);
+		    pdst++;
+		    *pdst-- = piQxelXor[2];
+#endif
+#if RROP == GXxor
+		    *pdst++ ^= (piQxelXor[1] & 0xFFFF0000);
+		    *pdst-- ^= piQxelXor[2];
+#endif
+#if RROP == GXand
+		    *pdst++ &= (piQxelAnd[1] | 0xFFFF);
+		    *pdst-- &= piQxelAnd[2];
+#endif
+#if RROP == GXor
+		    *pdst++ |= (piQxelOr[1] & 0xFFFF0000);
+		    *pdst-- |= piQxelOr[2];
+#endif
+#if RROP == GXset
+		    *pdst = DoMaskRRop((*pdst), piQxelAnd[1], piQxelXor[1], 0xFFFF0000);
+		    pdst++;
+		    *pdst = DoRRop((*pdst), piQxelAnd[2], piQxelXor[2]);
+		    pdst--;
+#endif
+		break;
+	    case 3:
+#if RROP == GXcopy
+		    *pdst = ((*pdst) & 0xFF) | (piQxelXor[2] & 0xFFFFFF00);
+#endif
+#if RROP == GXxor
+		    *pdst ^= (piQxelXor[2] & 0xFFFFFF00);
+#endif
+#if RROP == GXand
+		    *pdst &= (piQxelAnd[2] | 0xFF);
+#endif
+#if RROP == GXor
+		    *pdst |= (piQxelOr[2] & 0xFFFFFF00);
+#endif
+#if RROP == GXset
+		    *pdst = DoMaskRRop((*pdst), piQxelAnd[2], piQxelXor[2], 0xFFFFFF00);
+#endif
+		break;
+	    }
+	    break;
+	case 3:
+	    switch(leftIndex){
+	    case 0:
+#if RROP == GXcopy
+		    *pdst++ = piQxelXor[0];
+		    *pdst++ = piQxelXor[1];
+		    *pdst = ((*pdst) & 0xFFFFFF00) | (piQxelXor[2] & 0xFF);
+		    pdst--;
+#endif
+#if RROP == GXxor
+		    *pdst++ ^= piQxelXor[0];
+		    *pdst++ ^= piQxelXor[1];
+		    *pdst-- ^= (piQxelXor[2] & 0xFF);
+#endif
+#if RROP == GXand
+		    *pdst++ &= piQxelAnd[0];
+		    *pdst++ &= piQxelAnd[1];
+		    *pdst-- &= (piQxelAnd[2] | 0xFFFFFF00);
+#endif
+#if RROP == GXor
+		    *pdst++ |= piQxelOr[0];
+		    *pdst++ |= piQxelOr[1];
+
+		    *pdst-- |= (piQxelOr[2] & 0xFF);
+#endif
+#if RROP == GXset
+		    *pdst = DoRRop((*pdst), piQxelAnd[0], piQxelXor[0]);
+		    pdst++;
+		    *pdst = DoRRop((*pdst), piQxelAnd[1], piQxelXor[1]);
+		    pdst++;
+		    *pdst = DoMaskRRop((*pdst), piQxelAnd[2], piQxelXor[2], 0xFF);
+		    pdst--;
+#endif
+		    pdst--;
+		break;
+	    case 1:
+#if RROP == GXcopy
+		    *pdst = ((*pdst) & 0xFFFFFF) | (piQxelXor[0] & 0xFF000000);
+		    pdst++;
+		    *pdst++ = piQxelXor[1];
+		    *pdst = ((*pdst) & 0xFFFFFF00) | (piQxelXor[2] & 0xFF);
+		    pdst--;
+#endif
+#if RROP == GXxor
+		    *pdst++ ^= (piQxelXor[0] & 0xFF000000);
+		    *pdst++ ^= piQxelXor[1];
+		    *pdst-- ^= (piQxelXor[2] & 0xFF);
+#endif
+#if RROP == GXand
+		    *pdst++ &= (piQxelAnd[0] | 0x00FFFFFF);
+		    *pdst++ &= piQxelAnd[1];
+		    *pdst-- &= (piQxelAnd[2] | 0xFFFFFF00);
+#endif
+#if RROP == GXor
+		    *pdst++ |= (piQxelOr[0] & 0xFF000000);
+		    *pdst++ |= piQxelOr[1];
+		    *pdst-- |= (piQxelOr[2] & 0xFF);
+#endif
+#if RROP == GXset
+		    *pdst = DoMaskRRop((*pdst), piQxelAnd[0], piQxelXor[0], 0xFF000000);
+		    pdst++;
+		    *pdst = DoRRop((*pdst), piQxelAnd[1], piQxelXor[1]);
+		    pdst++;
+		    *pdst = DoMaskRRop((*pdst), piQxelAnd[2], piQxelXor[2], 0xFF);
+		    pdst--;
+#endif
+		    pdst--;
+		break;
+	    case 2:
+/*		pdst++;*/
+#if RROP == GXcopy
+		    *pdst = ((*pdst) & 0xFFFF) | (piQxelXor[1] & 0xFFFF0000);
+		    pdst++;
+		    *pdst = ((*pdst) & 0xFFFFFF00) | (piQxelXor[2] & 0xFF);
+		    pdst--;
+#endif
+#if RROP == GXxor
+		    *pdst++ ^= (piQxelXor[1] & 0xFFFF0000);
+		    *pdst-- ^= (piQxelXor[2] & 0xFF);
+#endif
+#if RROP == GXand
+		    *pdst++ &= (piQxelAnd[1] | 0xFFFF);
+		    *pdst-- &= (piQxelAnd[2] | 0xFFFFFF00);
+#endif
+#if RROP == GXor
+		    *pdst++ |= (piQxelOr[1] & 0xFFFF0000);
+		    *pdst-- |= (piQxelOr[2] & 0xFF);
+#endif
+#if RROP == GXset
+		    *pdst = DoMaskRRop((*pdst), piQxelAnd[1], piQxelXor[1], 0xFFFF0000);
+		    pdst++;
+		    *pdst = DoMaskRRop((*pdst), piQxelAnd[2], piQxelXor[2], 0xFF);
+		    pdst--;
+#endif
+		break;
+	    }
+	    break;
+	case 2: /* leftIndex + w = 2*/
+	    if(leftIndex){
+#if RROP == GXcopy
+		    *pdst = ((*pdst) & 0xFFFFFF) | (piQxelXor[0] & 0xFF000000);
+		    pdst++;
+		    *pdst = ((*pdst) & 0xFFFF0000) | (piQxelXor[1] & 0xFFFF);
+		    pdst--;
+#endif
+#if RROP == GXxor
+		    *pdst++ ^= (piQxelXor[0] & 0xFF000000);
+		    *pdst-- ^= (piQxelXor[1] & 0xFFFF);
+#endif
+#if RROP == GXand
+		    *pdst++ &= (piQxelAnd[0] | 0xFFFFFF);
+		    *pdst-- &= (piQxelAnd[1] | 0xFFFF0000);
+#endif
+#if RROP == GXor
+		    *pdst++ |= (piQxelOr[0] & 0xFF000000);
+		    *pdst-- |= (piQxelOr[1] & 0xFFFF);
+#endif
+#if RROP == GXset
+		    *pdst = DoMaskRRop((*pdst), piQxelAnd[0], piQxelXor[0], 0xFF000000);
+		    pdst++;
+		    *pdst = DoMaskRRop((*pdst), piQxelAnd[1], piQxelXor[1], 0xFFFF);
+		    pdst--;
+#endif
+	    }
+	    else{ /*case 2 leftIndex === 0 */
+#if RROP == GXcopy
+		    *pdst++ = piQxelXor[0];
+		    *pdst = ((*pdst) & 0xFFFF0000) | (piQxelXor[1] & 0xFFFF);
+		    pdst--;
+#endif
+#if RROP == GXxor
+		    *pdst++ ^= piQxelXor[0];
+		    *pdst-- ^= (piQxelXor[1] & 0xFFFF);
+#endif
+#if RROP == GXand
+		    *pdst++ &= piQxelAnd[0];
+		    *pdst-- &= (piQxelAnd[1] | 0xFFFF0000);
+#endif
+#if RROP == GXor
+		    *pdst++ |= piQxelOr[0];
+		    *pdst-- |= (piQxelOr[1] & 0xFFFF);
+#endif
+#if RROP == GXset
+		    *pdst = DoRRop((*pdst), piQxelAnd[0], piQxelXor[0]);
+		    pdst++;
+		    *pdst = DoMaskRRop((*pdst), piQxelAnd[1], piQxelXor[1], 0xFFFF);
+		    pdst--;
+#endif
+	    }
+	    break;
+	case 1: /*only if leftIndex = 0 and w = 1*/
+#if RROP == GXcopy
+		*pdst = ((*pdst) & 0xFF000000) | (piQxelXor[0] & 0xFFFFFF);
+#endif
+#if RROP == GXxor
+		*pdst ^= (piQxelXor[0] & 0xFFFFFF);
+#endif
+#if RROP == GXand
+		*pdst &= (piQxelAnd[0] | 0xFF000000);
+#endif
+#if RROP == GXor
+		*pdst |= (piQxelOr[0] & 0xFFFFFF);
+#endif
+#if RROP == GXset
+		*pdst = DoMaskRRop((*pdst), piQxelAnd[0], piQxelXor[0], 0xFFFFFF);
+#endif
+	    break;
+	case 0: /*never*/
+	    break;
+	default:
+	{
+	    switch(leftIndex){
+		    case 0:
+			break;
+		    case 1:
+#if RROP == GXcopy
+			*pdst = ((*pdst) & 0xFFFFFF) | (piQxelXor[0] & 0xFF000000);
+			pdst++;
+			*pdst++ = piQxelXor[1];
+			*pdst++ = piQxelXor[2];
+#endif
+#if RROP == GXxor
+			*pdst++ ^= (piQxelXor[0] & 0xFF000000);
+			*pdst++ ^= piQxelXor[1];
+			*pdst++ ^= piQxelXor[2];
+#endif
+#if RROP == GXand
+			*pdst++ &= (piQxelAnd[0] | 0xFFFFFF);
+			*pdst++ &= piQxelAnd[1];
+			*pdst++ &= piQxelAnd[2];
+#endif
+#if RROP == GXor
+			*pdst++ |= (piQxelOr[0] & 0xFF000000);
+			*pdst++ |= piQxelOr[1];
+			*pdst++ |= piQxelOr[2];
+#endif
+#if RROP == GXset
+			*pdst = DoMaskRRop((*pdst), piQxelAnd[0], piQxelXor[0], 0xFF000000);
+			pdst++;
+			*pdst = DoRRop((*pdst), piQxelAnd[1], piQxelXor[1]);
+			pdst++;
+			*pdst = DoRRop((*pdst), piQxelAnd[2], piQxelXor[2]);
+			pdst++;
+#endif
+		    break;
+		    case 2:
+#if RROP == GXcopy
+			*pdst = (((*pdst) & 0xFFFF) | (piQxelXor[1] & 0xFFFF0000));
+			pdst++;
+			*pdst++ = piQxelXor[2];
+#endif
+#if RROP == GXxor
+			*pdst++ ^=(piQxelXor[1] & 0xFFFF0000);
+			*pdst++ ^= piQxelXor[2];
+#endif
+#if RROP == GXand
+			*pdst++ &= (piQxelAnd[1] | 0xFFFF);
+			*pdst++ &= piQxelAnd[2];
+#endif
+#if RROP == GXor
+			*pdst++ |= (piQxelOr[1] & 0xFFFF0000);
+			*pdst++ |= piQxelOr[2];
+#endif
+#if RROP == GXset
+			*pdst = DoMaskRRop((*pdst), piQxelAnd[1], piQxelXor[1], 0xFFFF0000);
+			pdst++;
+			*pdst = DoRRop((*pdst), piQxelAnd[2], piQxelXor[2]);
+			pdst++;
+#endif
+			break;
+		    case 3:
+#if RROP == GXcopy
+			*pdst = ((*pdst) & 0xFF) | (piQxelXor[2] & 0xFFFFFF00);
+			pdst++;
+#endif
+#if RROP == GXxor
+			*pdst++ ^= (piQxelXor[2] & 0xFFFFFF00);
+#endif
+#if RROP == GXand
+			*pdst++ &= (piQxelAnd[2] | 0xFF);
+#endif
+#if RROP == GXor
+			*pdst++ |= (piQxelOr[2] & 0xFFFFFF00);
+#endif
+#if RROP == GXset
+			*pdst = DoMaskRRop((*pdst), piQxelAnd[2], piQxelXor[2], 0xFFFFFF00);
+			pdst++;
+#endif
+			break;
+		    }
+		    while(nlmiddle--){
+#if RROP == GXcopy
+			*pdst++ = piQxelXor[0];
+			*pdst++ = piQxelXor[1];
+			*pdst++ = piQxelXor[2];
+#endif
+#if RROP == GXxor
+			*pdst++ ^= piQxelXor[0];
+			*pdst++ ^= piQxelXor[1];
+			*pdst++ ^= piQxelXor[2];
+#endif
+#if RROP == GXand
+			*pdst++ &= piQxelAnd[0];
+			*pdst++ &= piQxelAnd[1];
+			*pdst++ &= piQxelAnd[2];
+#endif
+#if RROP == GXor
+			*pdst++ |= piQxelOr[0];
+			*pdst++ |= piQxelOr[1];
+			*pdst++ |= piQxelOr[2];
+#endif
+#if RROP == GXset
+			*pdst = DoRRop((*pdst), piQxelAnd[0], piQxelXor[0]);
+			pdst++;
+			*pdst = DoRRop((*pdst), piQxelAnd[1], piQxelXor[1]);
+			pdst++;
+			*pdst = DoRRop((*pdst), piQxelAnd[2], piQxelXor[2]);
+			pdst++;
+#endif
+		}
+		switch(rightIndex){
+		case 0:
+		  break;
+		case 1:
+#if RROP == GXcopy
+		  *pdst = ((*pdst) & 0xFF000000) | (piQxelXor[0] & 0xFFFFFF);
+		  pdst++;
+#endif
+#if RROP == GXxor
+		  *pdst++ ^= (piQxelXor[0] & 0xFFFFFF);
+#endif
+#if RROP == GXand
+		  *pdst++ &= (piQxelAnd[0] | 0xFF);
+#endif
+#if RROP == GXor
+		  *pdst++ |= (piQxelOr[0] & 0xFFFFFF);
+#endif
+#if RROP == GXset
+		  *pdst = DoMaskRRop((*pdst), piQxelAnd[0], piQxelXor[0], 0xFFFFFF);
+#endif
+		  break;
+		case 2:
+#if RROP == GXcopy
+		  *pdst++ = piQxelXor[0];
+		  *pdst = ((*pdst) & 0xFFFF0000) | (piQxelXor[1] & 0xFFFF);
+		  pdst++;
+#endif
+#if RROP == GXxor
+		  *pdst++ ^= piQxelXor[0];
+		  *pdst++ ^= (piQxelXor[1] & 0xFFFF);
+#endif
+#if RROP == GXand
+		  *pdst++ &= piQxelAnd[0];
+		  *pdst++ &= (piQxelAnd[1] | 0xFFFF0000);
+#endif
+#if RROP == GXor
+		  *pdst++ |= piQxelOr[0];
+		  *pdst++ |= (piQxelOr[1] & 0xFFFF);
+#endif
+#if RROP == GXset
+		  *pdst = DoRRop((*pdst), piQxelAnd[0], piQxelXor[0]);
+		  pdst++;
+		  *pdst = DoMaskRRop((*pdst), piQxelAnd[1], piQxelXor[1], 0xFFFF);
+		  pdst++;
+#endif
+		  break;
+		case 3:
+#if RROP == GXcopy
+		  *pdst++ = piQxelXor[0];
+		  *pdst++ = piQxelXor[1];
+		  *pdst = ((*pdst) & 0xFFFFFF00) | (piQxelXor[2] & 0xFF);
+		  pdst++;
+#endif
+#if RROP == GXxor
+		  *pdst++ ^= piQxelXor[0];
+		  *pdst++ ^= piQxelXor[1];
+		  *pdst++ ^= (piQxelXor[2] & 0xFF);
+#endif
+#if RROP == GXand
+		  *pdst++ &= piQxelAnd[0];
+		  *pdst++ &= piQxelAnd[1];
+		  *pdst++ &= (piQxelAnd[2] | 0xFFFFFF00);
+#endif
+#if RROP == GXor
+		  *pdst++ |= piQxelOr[0];
+		  *pdst++ |= piQxelOr[1];
+		  *pdst++ |= (piQxelOr[2] & 0xFF);
+#endif
+#if RROP == GXset
+		  *pdst = DoRRop((*pdst), piQxelAnd[0], piQxelXor[0]);
+		  pdst++;
+		  *pdst = DoRRop((*pdst), piQxelAnd[1], piQxelXor[1]);
+		  pdst++;
+		  *pdst = DoMaskRRop((*pdst), piQxelAnd[2], piQxelXor[2], 0xFF);
+		  pdst++;
+#endif
+		  break;
+		}
+	}
+}
+#else
 #if PSZ == 8
 	if (w <= PGSZB)
 	{
@@ -290,6 +1354,7 @@ RROP_NAME(cfbSolidSpans) (pDrawable, pGC, nInit, pptInit, pwidthInit, fSorted)
 		RROP_SOLID_MASK (pdst, endmask);
 	    }
 	}
+#endif
     }
     DEALLOCATE_LOCAL(pptFree);
     DEALLOCATE_LOCAL(pwidthFree);

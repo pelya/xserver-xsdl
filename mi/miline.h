@@ -25,8 +25,11 @@ used in advertising or otherwise to promote the sale, use or other dealings
 in this Software without prior written authorization from The Open Group.
 
 */
+/* $XFree86: xc/programs/Xserver/mi/miline.h,v 1.7 2001/12/14 20:00:24 dawes Exp $ */
 
 #ifndef MILINE_H
+
+#include "screenint.h"
 
 /*
  * Public definitions used for configuring basic pixelization aspects
@@ -76,10 +79,8 @@ in this Software without prior written authorization from The Open Group.
  */
 
 extern void miSetZeroLineBias(
-#if NeedFunctionPrototypes
     ScreenPtr /* pScreen */,
     unsigned int /* bias */
-#endif
 );
 
 /*
@@ -101,6 +102,14 @@ extern void miSetZeroLineBias(
     if	    ( (_y) <  (_pbox)->y1) (_result) |= OUT_ABOVE; \
     else if ( (_y) >= (_pbox)->y2) (_result) |= OUT_BELOW;
 
+#define MIOUTCODES(outcode, x, y, xmin, ymin, xmax, ymax) \
+{\
+     if (x < xmin) outcode |= OUT_LEFT;\
+     if (x > xmax) outcode |= OUT_RIGHT;\
+     if (y < ymin) outcode |= OUT_ABOVE;\
+     if (y > ymax) outcode |= OUT_BELOW;\
+}
+  
 #define SWAPINT(i, j) \
 {  register int _t = i;  i = j;  j = _t; }
 
@@ -144,7 +153,6 @@ extern void miSetZeroLineBias(
 extern int miZeroLineScreenIndex;
 
 extern int miZeroClipLine(
-#if NeedFunctionPrototypes
     int /*xmin*/,
     int /*ymin*/,
     int /*xmax*/,
@@ -161,7 +169,6 @@ extern int miZeroClipLine(
     unsigned int /*bias*/,
     int /*oc1*/,
     int /*oc2*/
-#endif
 );
 
 #endif /* MILINE_H */

@@ -1,3 +1,4 @@
+/* $XFree86: xc/programs/Xserver/dix/extension.c,v 3.12 2002/02/19 11:09:22 alanh Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -47,6 +48,7 @@ SOFTWARE.
 /* $Xorg: extension.c,v 1.4 2001/02/09 02:04:40 xorgcvs Exp $ */
 
 #include "X.h"
+#define NEED_EVENTS
 #define NEED_REPLIES
 #include "Xproto.h"
 #include "misc.h"
@@ -54,9 +56,13 @@ SOFTWARE.
 #include "extnsionst.h"
 #include "gcstruct.h"
 #include "scrnintstr.h"
+#include "dispatch.h"
 #ifdef XCSECURITY
 #define _SECURITY_SERVER
-#include "extensions/security.h"
+#include "security.h"
+#endif
+#ifdef LBX
+#include "lbxserve.h"
 #endif
 
 #define EXTENSION_BASE  128
@@ -72,15 +78,12 @@ int lastEvent = EXTENSION_EVENT_BASE;
 static int lastError = FirstExtensionError;
 static unsigned int NumExtensions = 0;
 
-ExtensionEntry *AddExtension(name, NumEvents, NumErrors, MainProc, 
-			      SwappedMainProc, CloseDownProc, MinorOpcodeProc)
-    char *name;
-    int NumEvents;
-    int NumErrors;
-    int (* MainProc)();
-    int (* SwappedMainProc)();
-    void (* CloseDownProc)();
-    unsigned short (* MinorOpcodeProc)();
+ExtensionEntry *
+AddExtension(char *name, int NumEvents, int NumErrors, 
+	     int (*MainProc)(ClientPtr c1), 
+	     int (*SwappedMainProc)(ClientPtr c2), 
+	     void (*CloseDownProc)(ExtensionEntry *e), 
+	     unsigned short (*MinorOpcodeProc)(ClientPtr c3))
 {
     int i;
     register ExtensionEntry *ext, **newexts;
@@ -179,9 +182,7 @@ Bool AddExtensionAlias(alias, ext)
 }
 
 static int
-FindExtension(extname, len)
-    char *extname;
-    int len;
+FindExtension(char *extname, int len)
 {
     int i, j;
 
@@ -199,6 +200,22 @@ FindExtension(extname, len)
 	if (j >= 0) break;
     }
     return ((i == NumExtensions) ? -1 : i);
+}
+
+/*
+ * CheckExtension returns the extensions[] entry for the requested
+ * extension name.  Maybe this could just return a Bool instead?
+ */
+ExtensionEntry *
+CheckExtension(const char *extname)
+{
+    int n;
+
+    n = FindExtension((char*)extname, strlen(extname));
+    if (n != -1)
+	return extensions[n];
+    else
+	return NULL;
 }
 
 void
@@ -337,7 +354,6 @@ ProcListExtensions(client)
     char *bufptr, *buffer;
     int total_length = 0;
 
-    REQUEST(xReq);
     REQUEST_SIZE_MATCH(xReq);
 
     reply.type = X_Reply;

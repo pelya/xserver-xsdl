@@ -22,7 +22,10 @@
 .\" not be used in advertising or otherwise to promote the sale, use or
 .\" other dealings in this Software without prior written authorization
 .\" from The Open Group.
-.TH XVFB 1 "Release 6.4" "X Version 11"
+.\"
+.\" $XFree86: xc/programs/Xserver/hw/vfb/Xvfb.man,v 1.9 2001/12/14 19:59:45 dawes Exp $
+.\"
+.TH XVFB 1 __xorgversion__
 .SH NAME
 Xvfb \- virtual framebuffer X server for X Version 11
 .SH SYNOPSIS
@@ -46,9 +49,9 @@ that don't really need an X server but insist on having one anyway.
 .SH BUILDING
 To build \fIXvfb\fP, put the following in your host.def and remake.
 .PP
-#define BuildServer YES /* if you aren't already building other servers */
+\&#define BuildServer YES /* if you aren't already building other servers */
 .br
-#define XVirtualFramebufferServer YES
+\&#define XVirtualFramebufferServer YES
 
 .SH OPTIONS
 .PP
@@ -123,6 +126,6 @@ xwud -in /usr/tmp/Xvfb_screen0
 Displays screen 0 of the server started by the preceding example.
 .SH "SEE ALSO"
 .PP
-X(1), Xserver(1), xwd(1), xwud(1), XWDFile.h
+X(__miscmansuffix__), Xserver(1), xwd(1), xwud(1), XWDFile.h
 .SH AUTHORS
 David P. Wiggins, The Open Group, Inc.

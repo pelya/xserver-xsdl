@@ -26,6 +26,7 @@ other dealings in this Software without prior written authorization
 from The Open Group.
 
 */
+/* $XFree86: xc/programs/Xserver/include/closestr.h,v 3.4 2001/12/14 19:59:53 dawes Exp $ */
 
 
 #ifndef CLOSESTR_H
@@ -102,6 +103,18 @@ typedef struct _LFclosure {
 
 /* PolyText */
 
+typedef
+    int			(* PolyTextPtr)(
+#if NeedNestedPrototypes
+			DrawablePtr /* pDraw */,
+			GCPtr /* pGC */,
+			int /* x */,
+			int /* y */,
+			int /* count */,
+			void * /* chars or shorts */
+#endif
+			);
+
 typedef struct _PTclosure {
     ClientPtr		client;
     DrawablePtr		pDraw;
@@ -112,7 +125,7 @@ typedef struct _PTclosure {
     int			xorg;
     int			yorg;
     CARD8		reqType;
-    int			(* polyText)();
+    PolyTextPtr		polyText;
     int			itemSize;
     XID			did;
     int			err;
@@ -120,6 +133,18 @@ typedef struct _PTclosure {
 } PTclosureRec;
 
 /* ImageText */
+
+typedef
+    void		(* ImageTextPtr)(
+#if NeedNestedPrototypes
+			DrawablePtr /* pDraw */,
+			GCPtr /* pGC */,
+			int /* x */,
+			int /* y */,
+			int /* count */,
+			void * /* chars or shorts */
+#endif
+			);
 
 typedef struct _ITclosure {
     ClientPtr		client;
@@ -130,7 +155,7 @@ typedef struct _ITclosure {
     int			xorg;
     int			yorg;
     CARD8		reqType;
-    void		(* imageText)();
+    ImageTextPtr	imageText;
     int			itemSize;
     XID			did;
     Bool		slept;

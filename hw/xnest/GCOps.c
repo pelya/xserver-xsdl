@@ -12,6 +12,8 @@ the suitability of this software for any purpose.  It is provided "as
 is" without express or implied warranty.
 
 */
+/* $XFree86: xc/programs/Xserver/hw/xnest/GCOps.c,v 3.4 2001/01/17 22:36:55 dawes Exp $ */
+
 #include "X.h"
 #include "Xproto.h"
 #include "miscstruct.h"

@@ -45,6 +45,8 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ******************************************************************/
+/* $XFree86: xc/programs/Xserver/cfb/cfbtegblt.c,v 3.6 2001/12/14 19:59:25 dawes Exp $ */
+
 #include	"X.h"
 #include	"Xmd.h"
 #include	"Xproto.h"
@@ -91,7 +93,7 @@ cfbTEGlyphBlt(pDrawable, pGC, x, y, nglyph, ppci, pglyphBase)
 {
     FontPtr	pfont = pGC->font;
     int widthDst;
-    unsigned long *pdstBase;	/* pointer to longword with top row 
+    CfbBits *pdstBase;	/* pointer to longword with top row 
 				   of current glyph */
 
     int w;			/* width of glyph and char */
@@ -101,12 +103,12 @@ cfbTEGlyphBlt(pDrawable, pGC, x, y, nglyph, ppci, pglyphBase)
     register unsigned char *pglyph;
     int widthGlyph;
 
-    register unsigned long *pdst;/* pointer to current longword in dst */
+    register CfbBits *pdst;/* pointer to current longword in dst */
     int hTmp;			/* counter for height */
     BoxRec bbox;		/* for clipping */
 
     register int wtmp,xtemp,width;
-    unsigned long bgfill,fgfill,*ptemp,tmpDst1,tmpDst2,*pdtmp;
+    CfbBits bgfill,fgfill,*ptemp,tmpDst1,tmpDst2,*pdtmp;
     int tmpx;
 
     xpos += pDrawable->x;
@@ -154,7 +156,7 @@ cfbTEGlyphBlt(pDrawable, pGC, x, y, nglyph, ppci, pglyphBase)
 
 	   one day...
 	*/
-	miImageGlyphBlt(pDrawable, pGC, x, y, nglyph, ppci, pglyphBase);
+	cfbImageGlyphBlt8(pDrawable, pGC, x, y, nglyph, ppci, pglyphBase);
 	break;
       case rgnIN:
 
@@ -174,18 +176,37 @@ cfbTEGlyphBlt(pDrawable, pGC, x, y, nglyph, ppci, pglyphBase)
 
 		while (width > 0)
 		{
+#if PSZ == 24
+		    tmpx = x & 3;
+		    w = 1;
+#else
 		    tmpx = x & PIM;
 		    w = min(width, PPW - tmpx);
 		    w = min(w, (PGSZ - xtemp));
+#endif
 
-		    ptemp = (unsigned long *)(pglyph + (xtemp >> MFB_PWSH));
+#if PSZ == 24
+		    ptemp = (CfbBits *)(pglyph + ((xtemp *3)>> 2));
+#else
+		    ptemp = (CfbBits *)(pglyph + (xtemp >> MFB_PWSH));
+#endif
+#if PSZ == 24
+		    getstipplepixels24(ptemp,xtemp,0,&bgfill,&tmpDst1, xtemp);
+		    getstipplepixels24(ptemp,xtemp,1,&fgfill,&tmpDst2, xtemp);
+#else
 		    getstipplepixels(ptemp,xtemp,w,0,&bgfill,&tmpDst1);
 		    getstipplepixels(ptemp,xtemp,w,1,&fgfill,&tmpDst2);
+#endif
 
 		    {
-			unsigned long tmpDst = tmpDst1 | tmpDst2;
-			unsigned long *pdsttmp = pdst + (x >> PWSH);
+			CfbBits tmpDst = tmpDst1 | tmpDst2;
+#if PSZ == 24
+			CfbBits *pdsttmp = pdst + ((x*3) >> 2);
+			putbits24(tmpDst,tmpx,w,pdsttmp,pGC->planemask,x);
+#else
+			CfbBits *pdsttmp = pdst + (x >> PWSH);
 			putbits(tmpDst,tmpx,w,pdsttmp,pGC->planemask);
+#endif
 		    }
 		    x += w;
 		    xtemp += w;

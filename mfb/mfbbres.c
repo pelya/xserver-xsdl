@@ -1,4 +1,5 @@
 /* Combined Purdue/PurduePlus patches, level 2.0, 1/17/89 */
+/* $XFree86: xc/programs/Xserver/mfb/mfbbres.c,v 1.5 2001/12/14 20:00:05 dawes Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -71,7 +72,7 @@ int e2;
 int len;		/* length of line */
 {
     register int yinc;	/* increment to next scanline, in bytes */
-    register PixelType *addrl;	/* bitmask long pointer */
+    register PixelType *addrl;	/* bitmask 32-bit pointer */
     register PixelType bit;	/* current bit being set/cleared/etc.  */
     PixelType leftbit = mask[0]; /* leftmost bit to process in new word */
     PixelType rightbit = mask[PPW-1]; /* rightmost bit to process in new word */

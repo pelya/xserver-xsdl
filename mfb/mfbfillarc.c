@@ -1,3 +1,4 @@
+/* $XFree86: xc/programs/Xserver/mfb/mfbfillarc.c,v 1.5 2001/12/14 20:00:06 dawes Exp $ */
 /************************************************************
 
 Copyright 1989, 1998  The Open Group
@@ -288,7 +289,7 @@ mfbPolyFillArcSolid(pDraw, pGC, narcs, parcs)
     rop = priv->rop;
     if ((rop == RROP_NOP) || !(pGC->planemask & 1))
 	return;
-    cclip = priv->pCompositeClip;
+    cclip = pGC->pCompositeClip;
     for (arc = parcs, i = narcs; --i >= 0; arc++)
     {
 	if (miFillArcEmpty(arc))

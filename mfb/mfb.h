@@ -1,3 +1,4 @@
+/* $XFree86: xc/programs/Xserver/mfb/mfb.h,v 1.19 2003/02/18 21:30:01 tsi Exp $ */
 /* Combined Purdue/PurduePlus patches, level 2.0, 1/17/89 */
 /***********************************************************
 
@@ -46,6 +47,12 @@ SOFTWARE.
 
 ******************************************************************/
 /* $Xorg: mfb.h,v 1.4 2001/02/09 02:05:18 xorgcvs Exp $ */
+
+#if !defined(_MFB_H_) || defined(MFB_PROTOTYPES_ONLY)
+#ifndef MFB_PROTOTYPES_ONLY
+#define _MFB_H_
+#endif
+
 /* Monochrome Frame Buffer definitions 
    written by drewry, september 1986
 */
@@ -58,10 +65,14 @@ SOFTWARE.
 
 extern int InverseAlu[];
 
+
 /* warning: PixelType definition duplicated in maskbits.h */
 #ifndef PixelType
-#define PixelType unsigned long
+#define PixelType CARD32
 #endif /* PixelType */
+#ifndef MfbBits
+#define MfbBits CARD32
+#endif
 
 /* mfbbitblt.c */
 
@@ -92,7 +103,20 @@ extern RegionPtr mfbCopyArea(
 extern Bool mfbRegisterCopyPlaneProc(
 #if NeedFunctionPrototypes
     ScreenPtr /*pScreen*/,
-    RegionPtr (* /*proc*/)()
+    RegionPtr (* /*proc*/)(
+#if NeedNestedPrototypes
+	DrawablePtr         /* pSrcDrawable */,
+	DrawablePtr         /* pDstDrawable */,
+	GCPtr               /* pGC */,
+	int                 /* srcx */,
+	int                 /* srcy */,
+	int                 /* width */,
+	int                 /* height */,
+	int                 /* dstx */,
+	int                 /* dsty */,
+	unsigned long	    /* bitPlane */
+#endif
+	)
 #endif
 );
 
@@ -454,7 +478,7 @@ extern void mfbGetSpans(
 );
 /* mfbhrzvert.c */
 
-extern int mfbHorzS(
+extern void mfbHorzS(
 #if NeedFunctionPrototypes
     int /*rop*/,
     PixelType * /*addrl*/,
@@ -465,7 +489,7 @@ extern int mfbHorzS(
 #endif
 );
 
-extern int mfbVertS(
+extern void mfbVertS(
 #if NeedFunctionPrototypes
     int /*rop*/,
     PixelType * /*addrl*/,
@@ -825,6 +849,20 @@ extern Bool mfbScreenInit(
     int /*width*/
 #endif
 );
+
+extern PixmapPtr mfbGetWindowPixmap(
+#if NeedFunctionPrototypes
+    WindowPtr /*pWin*/
+#endif
+);
+
+extern void mfbSetWindowPixmap(
+#if NeedFunctionPrototypes
+    WindowPtr /*pWin*/,
+    PixmapPtr /*pPix*/
+#endif
+);
+
 /* mfbseg.c */
 
 extern void mfbSegmentSS(
@@ -846,7 +884,7 @@ extern void mfbSegmentSD(
 );
 /* mfbsetsp.c */
 
-extern int mfbSetScanline(
+extern void mfbSetScanline(
 #if NeedFunctionPrototypes
     int /*y*/,
     int /*xOrigin*/,
@@ -987,6 +1025,7 @@ extern void mfbZeroPolyArcSS(
 #endif
 );
 
+#ifndef MFB_PROTOTYPES_ONLY
 /*
    private filed of pixmap
    pixmap.devPrivate = (PixelType *)pointer_to_bits
@@ -1000,23 +1039,26 @@ displayable screen (e.g. the early vsII, which displayed 960 pixels
 across, but was 1024 in the hardware.)
 
    private field of GC 
-	Freeing pCompositeClip is done based on the value of
-freeCompClip; if freeCompClip is not carefully maintained, we will end
-up losing storage or freeing something that isn't ours.
 */
+typedef void (*mfbFillAreaProcPtr)(
+#if NeedNestedPrototypes
+	      DrawablePtr /*pDraw*/,
+	      int /*nbox*/,
+	      BoxPtr /*pbox*/,
+	      int /*alu*/,
+	      PixmapPtr /*nop*/
+#endif
+	      );
 
 typedef struct {
     unsigned char	rop;		/* reduction of rasterop to 1 of 3 */
     unsigned char	ropOpStip;	/* rop for opaque stipple */
     unsigned char	ropFillArea;	/*  == alu, rop, or ropOpStip */
-    unsigned	fExpose:1;		/* callexposure handling ? */
-    unsigned	freeCompClip:1;
-    PixmapPtr	pRotatedPixmap;		/* tile/stipple rotated to align */
-    RegionPtr	pCompositeClip;		/* free this based on freeCompClip
-					   flag rather than NULLness */
-    void 	(* FillArea)();		/* fills regions; look at the code */
+    unsigned char	unused1[sizeof(long) - 3];	/* Alignment */
+    mfbFillAreaProcPtr 	FillArea;	/* fills regions; look at the code */
     } mfbPrivGC;
 typedef mfbPrivGC	*mfbPrivGCPtr;
+#endif
 
 extern int  mfbGCPrivateIndex;		/* index into GC private array */
 extern int  mfbWindowPrivateIndex;	/* index into Window private array */
@@ -1024,6 +1066,7 @@ extern int  mfbWindowPrivateIndex;	/* index into Window private array */
 extern int  frameWindowPrivateIndex;	/* index into Window private array */
 #endif
 
+#ifndef MFB_PROTOTYPES_ONLY
 /* private field of window */
 typedef struct {
     unsigned char fastBorder;	/* non-zero if border tile is 32 bits wide */
@@ -1036,10 +1079,10 @@ typedef struct {
 
 /* Common macros for extracting drawing information */
 
-#define mfbGetTypedWidth(pDrawable,type) (\
+#define mfbGetTypedWidth(pDrawable,wtype) (\
     (((pDrawable)->type == DRAWABLE_WINDOW) ? \
      (int) (((PixmapPtr)((pDrawable)->pScreen->devPrivate))->devKind) : \
-     (int)(((PixmapPtr)pDrawable)->devKind)) / sizeof (type))
+     (int)(((PixmapPtr)pDrawable)->devKind)) / sizeof (wtype))
 
 #define mfbGetByteWidth(pDrawable) mfbGetTypedWidth(pDrawable, unsigned char)
 
@@ -1161,7 +1204,8 @@ than a switch on the rop per item (span or rectangle.)
 #define fnCOPYINVERTED(src, dst)(~src)
 #define fnORINVERTED(src, dst)	(~src | dst)
 #define fnNAND(src, dst)	(~(src & dst))
-#define fnSET(src, dst)		(~0)
+#undef fnSET
+#define fnSET(src, dst)		(MfbBits)(~0)
 
 /*  Using a "switch" statement is much faster in most cases
  *  since the compiler can do a look-up table or multi-way branch
@@ -1177,6 +1221,7 @@ than a switch on the rop per item (span or rectangle.)
  *  Note that this requires a change to the "calling sequence"
  *  since we can't engineer a "switch" statement to have an lvalue.
  */
+#undef DoRop
 #define DoRop(result, alu, src, dst) \
 { \
     if (alu == GXcopy) \
@@ -1198,6 +1243,7 @@ than a switch on the rop per item (span or rectangle.)
 	  case GXandInverted: \
 	    result = fnANDINVERTED (src, dst); \
 	    break; \
+	  default: \
 	  case GXnoop: \
 	    result = fnNOOP (src, dst); \
 	    break; \
@@ -1248,3 +1294,13 @@ than a switch on the rop per item (span or rectangle.)
 #define MFB_EQWHOLEWORD_INVERT  ^=~0
 #define MFB_OP_WHITE    /* nothing */
 #define MFB_OP_BLACK    ~
+
+/*
+ * if MFB is built as a module, it shouldn't call libc functions.
+ */
+#ifdef XFree86LOADER
+#include "xf86_ansic.h"
+#endif
+
+#endif /* MFB_PROTOTYPES_ONLY */
+#endif /* _MFB_H_ */

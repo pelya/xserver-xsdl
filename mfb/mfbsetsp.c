@@ -1,3 +1,4 @@
+/* $XFree86: xc/programs/Xserver/mfb/mfbsetsp.c,v 1.7 2003/02/18 21:30:01 tsi Exp $ */
 /* Combined Purdue/PurduePlus patches, level 2.0, 1/17/89 */
 /***********************************************************
 
@@ -69,6 +70,7 @@ SOFTWARE.
  * boxes, we may not want to start grabbing bits at psrc but at some offset
  * further on.) 
  */
+void
 mfbSetScanline(y, xOrigin, xStart, xEnd, psrc, alu, pdstBase, widthDst)
     int			y;
     int			xOrigin;	/* where this scanline starts */
@@ -157,7 +159,7 @@ mfbSetSpans(pDrawable, pGC, pcharsrc, ppt, pwidth, nspans, fSorted)
     int			nspans;
     int			fSorted;
 {
-    PixelType		*psrc = (PixelType *)pcharsrc;
+    PixelType		*psrc = (PixelType *)(pointer)pcharsrc;
     PixelType 		*pdstBase;	/* start of dst bitmap */
     int 		widthDst;	/* width of bitmap in words */
     register BoxPtr 	pbox, pboxLast, pboxTest;
@@ -168,7 +170,7 @@ mfbSetSpans(pDrawable, pGC, pcharsrc, ppt, pwidth, nspans, fSorted)
     int			yMax;
 
     alu = pGC->alu;
-    prgnDst = ((mfbPrivGC *)(pGC->devPrivates[mfbGCPrivateIndex].ptr))->pCompositeClip;
+    prgnDst = pGC->pCompositeClip;
 
     pptLast = ppt + nspans;
 

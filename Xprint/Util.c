@@ -30,18 +30,23 @@ not be used in advertising or otherwise to promote the sale, use or other
 dealings in this Software without prior written authorization from said
 copyright holders.
 */
-#include "Xos.h"	/* for unistd.h and string.h */
+/* $XFree86: xc/programs/Xserver/Xprint/Util.c,v 1.13 2001/10/31 22:50:28 tsi Exp $ */
+
+/* To get the tempnam() prototype in <stdio.h> */
+#if defined(linux) && defined(__STRICT_ANSI__)
+#undef __STRICT_ANSI__
+#endif
+
+#include <X11/Xos.h>	/* for unistd.h and string.h */
 #include <stdio.h>
 #include <sys/wait.h>
 #include <sys/stat.h>
-#include "dixstruct.h"
-#include "scrnintstr.h"
 #include "misc.h"
+#include "dixstruct.h"
 
-#define _XP_PRINT_SERVER_
-#include "extensions/Print.h"
-#include "extensions/Printstr.h"
-#undef _XP_PRINT_SERVER_
+#include <X11/extensions/Print.h>
+
+#include "attributes.h"
 
 #define IN_FILE_STRING "%(InFile)%"
 #define OUT_FILE_STRING          "%(OutFile)%"
@@ -89,10 +94,10 @@ ReplaceAnyString(
  * and the caller is responsible for freeing whatever string is returned.
  */
 char *
-ReplaceFileString(string, inFileName, outFileName)
-    char *string;
-    char *inFileName;
-    char *outFileName;
+ReplaceFileString(
+    char *string,
+    char *inFileName,
+    char *outFileName)
 {
     char *pKeyString,
 	 *pInFileString = IN_FILE_STRING,
@@ -143,9 +148,9 @@ ReplaceFileString(string, inFileName, outFileName)
  * we don't delete the job file before the spooler has made a copy.
  */
 void
-ExecCommand(pCommand, argVector)
-    char *pCommand;
-    char **argVector;
+ExecCommand(
+    char *pCommand,
+    char **argVector)
 {
     pid_t childPid;
     int status;
@@ -169,17 +174,19 @@ ExecCommand(pCommand, argVector)
  * beginning the transfer.
  */
 int
-TransferBytes(pSrcFile, pDstFile, numBytes)
+TransferBytes(
     FILE *pSrcFile,
-	 *pDstFile;
-    int numBytes;
+    FILE *pDstFile,
+    int numBytes)
 {
     char buf[10240];
-    int bytesWritten = 0, bytesToXfer;
+#define BUF_SIZE (sizeof(buf)*sizeof(char))
+    int bytesWritten = 0;
+    unsigned bytesToXfer;
 
-    for(bytesToXfer = min(sizeof(buf)*sizeof(char), numBytes);
+    for(bytesToXfer = min(BUF_SIZE, (unsigned)numBytes);
         bytesToXfer > 0;
-	bytesToXfer = min(sizeof(buf)*sizeof(char), numBytes - bytesWritten))
+	bytesToXfer = min(BUF_SIZE, (unsigned)(numBytes - bytesWritten)))
     {
 	if(fread((void *)buf, (size_t) 1, bytesToXfer, pSrcFile) < bytesToXfer)
 	    return bytesWritten;
@@ -195,10 +202,10 @@ TransferBytes(pSrcFile, pDstFile, numBytes)
  * pre, no, and post raster files as well as the raster file itself.
  */
 Bool
-CopyContentsAndDelete(ppSrcFile, pSrcFileName, pDstFile)
+CopyContentsAndDelete(
     FILE **ppSrcFile,
-	 *pDstFile;
-    char **pSrcFileName;
+    char **pSrcFileName,
+    FILE *pDstFile)
 {
     struct stat statBuf;
 
@@ -228,7 +235,8 @@ XpSendDocumentData(
     int maxBufSize)
 {
     xPrintGetDocumentDataReply *pRep;
-    int bytesWritten, bytesToWrite;
+    int bytesWritten;
+    unsigned bytesToWrite;
     int result = Success;
 
     if(client->clientGone)
@@ -247,8 +255,7 @@ XpSendDocumentData(
         pRep->length = (QUADPAD(bytesToWrite)) >> 2;
 	pRep->dataLen = bytesToWrite;
 
-	if(fread((void *)(pRep + 1), (size_t) 1, bytesToWrite, fp) < 
-	   bytesToWrite)
+	if(fread((void *)(pRep + 1), 1, bytesToWrite, fp) < bytesToWrite)
 	{
 	    result = BadAlloc; /* XXX poor error choice? */
 	    pRep->statusCode = 2; /* XXX Is this the right value??? */
@@ -316,6 +323,7 @@ XpFinishDocData(
     return Success;
 }
 
+#ifndef HAS_MKSTEMP
 static
 char *XpDirName(char *fname)
 {
@@ -334,6 +342,7 @@ char *XpDirName(char *fname)
     }
     return fn;
 }
+#endif
 
 Bool
 XpOpenTmpFile(
@@ -341,6 +350,7 @@ XpOpenTmpFile(
     char **fname,
     FILE **stream)
 {
+#ifndef HAS_MKSTEMP
     char *fn = NULL;
 
     /* note that there is a small race condition here... */
@@ -348,6 +358,7 @@ XpOpenTmpFile(
 	!(fn = XpDirName(*fname)) ||
 	access(fn, W_OK) ||
 	!(*stream = fopen(*fname, mode)))
+	
     {
 	xfree(fn);
 	xfree(*fname);
@@ -356,5 +367,26 @@ XpOpenTmpFile(
 	return FALSE;
     }
     xfree(fn);
+#else
+    int fd;
+    
+    *stream = NULL;
+    *fname = (char *)xalloc(14);
+    if (*fname == NULL) 
+	return FALSE;
+    strcpy(*fname, "/tmp/xpXXXXXX");
+    fd = mkstemp(*fname);
+    if (fd < 0) {
+	xfree(*fname);
+	*fname = NULL;
+	return FALSE;
+    }
+    *stream = fdopen(fd, mode);
+    if (stream == NULL) {
+	xfree(*fname);
+	*fname = NULL;
+	return FALSE;
+    }
+#endif
     return TRUE;
 }

@@ -57,6 +57,7 @@ in this Software without prior written authorization from The Open Group.
  * or other dealings in this Software without prior written authorization
  * from said copyright holders.
  */
+/* $XFree86: xc/programs/Xserver/Xprint/ps/PsGC.c,v 1.6 2001/12/14 19:59:15 dawes Exp $ */
 
 /*******************************************************************
 **
@@ -144,7 +145,6 @@ PsGetDrawablePrivateStuff(
   ColormapPtr    *cMap)
 {
   XpContextPtr     pCon;
-  PsPixmapPrivPtr  pPriv;
   PsContextPrivPtr cPriv;
   PsScreenPrivPtr  sPriv;
 
@@ -229,7 +229,7 @@ PsUpdateDrawableGC(
           }
         }
 
-        if( freeClip ) (*pGC->pScreen->RegionDestroy)(pReg);
+        if( freeClip ) REGION_DESTROY(pGC->pScreen, pReg);
         PsOut_Offset(*psOut, pDrawable->x, pDrawable->y);
         PsOut_Clip(*psOut, pGC->clientClipType, (PsClipPtr)pGC->clientClip);
       }
@@ -293,7 +293,7 @@ PsChangeClip(GCPtr pGC, int type, pointer pValue, int nrects)
         clp->rects[i].w = (boxes[i].x2-boxes[i].x1)+1;
         clp->rects[i].h = (boxes[i].y2-boxes[i].y1)+1;
       }
-      (*pGC->pScreen->RegionDestroy)((RegionPtr)pValue);
+      REGION_DESTROY(pGC->pScreen, (RegionPtr)pValue);
       break;
     case CT_UNSORTED:
     case CT_YSORTED:

@@ -32,50 +32,40 @@ Except as contained in this notice, the name of The Open Group shall not be
 used in advertising or otherwise to promote the sale, use or other dealings
 in this Software without prior written authorization from The Open Group.
 */
+/* $XFree86: xc/programs/Xserver/mi/misprite.h,v 1.3 2001/12/14 20:00:27 dawes Exp $ */
 
 typedef struct {
     Bool	(*RealizeCursor)(
-#if NeedNestedPrototypes
 		ScreenPtr /*pScreen*/,
 		CursorPtr /*pCursor*/
-#endif
 );
     Bool	(*UnrealizeCursor)(
-#if NeedNestedPrototypes
 		ScreenPtr /*pScreen*/,
 		CursorPtr /*pCursor*/
-#endif
 );
     Bool	(*PutUpCursor)(
-#if NeedNestedPrototypes
 		ScreenPtr /*pScreen*/,
 		CursorPtr /*pCursor*/,
 		int /*x*/,
 		int /*y*/,
 		unsigned long /*source*/,
 		unsigned long /*mask*/
-#endif
 );
     Bool	(*SaveUnderCursor)(
-#if NeedNestedPrototypes
 		ScreenPtr /*pScreen*/,
 		int /*x*/,
 		int /*y*/,
 		int /*w*/,
 		int /*h*/
-#endif
 );
     Bool	(*RestoreUnderCursor)(
-#if NeedNestedPrototypes
 		ScreenPtr /*pScreen*/,
 		int /*x*/,
 		int /*y*/,
 		int /*w*/,
 		int /*h*/
-#endif
 );
     Bool	(*MoveCursor)(
-#if NeedNestedPrototypes
 		ScreenPtr /*pScreen*/,
 		CursorPtr /*pCursor*/,
 		int /*x*/,
@@ -86,10 +76,8 @@ typedef struct {
 		int /*dy*/,
 		unsigned long /*source*/,
 		unsigned long /*mask*/
-#endif
 );
     Bool	(*ChangeSave)(
-#if NeedNestedPrototypes
 		ScreenPtr /*pScreen*/,
 		int /*x*/,
 		int /*y*/,
@@ -97,15 +85,12 @@ typedef struct {
 		int /*h*/,
 		int /*dx*/,
 		int /*dy*/
-#endif
 );
 
 } miSpriteCursorFuncRec, *miSpriteCursorFuncPtr;
 
 extern Bool miSpriteInitialize(
-#if NeedFunctionPrototypes
     ScreenPtr /*pScreen*/,
     miSpriteCursorFuncPtr /*cursorFuncs*/,
     miPointerScreenFuncPtr /*screenFuncs*/
-#endif
 );

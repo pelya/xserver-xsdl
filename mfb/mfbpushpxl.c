@@ -1,3 +1,4 @@
+/* $XFree86: xc/programs/Xserver/mfb/mfbpushpxl.c,v 1.7 2003/02/18 21:30:01 tsi Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -107,7 +108,7 @@ mfbSolidPP(pGC, pBitMap, pDrawable, dx, dy, xOrg, yOrg)
     register BoxPtr pbox;
     int i;
 
-    if (!pGC->planemask & 1) return;
+    if (!(pGC->planemask & 1)) return;
 
     /* compute the reduced rop function */
     alu = pGC->alu;
@@ -122,8 +123,7 @@ mfbSolidPP(pGC, pBitMap, pDrawable, dx, dy, xOrg, yOrg)
     REGION_INIT(pGC->pScreen, &rgnDst, &srcBox, 1);
 
     /* clip the shape of the dst to the destination composite clip */
-    REGION_INTERSECT(pGC->pScreen, &rgnDst, &rgnDst,
-	((mfbPrivGC *)(pGC->devPrivates[mfbGCPrivateIndex].ptr))->pCompositeClip);
+    REGION_INTERSECT(pGC->pScreen, &rgnDst, &rgnDst, pGC->pCompositeClip);
 
     if (!REGION_NIL(&rgnDst))
     {
@@ -179,7 +179,7 @@ mfbPushPixels(pGC, pBitMap, pDrawable, dx, dy, xOrg, yOrg)
     for(h = 0; h < dy; h++)
     {
 
-	pw = (PixelType *)
+	pw = (PixelType *)(pointer)
 	     (((char *)(pBitMap->devPrivate.ptr))+(h * pBitMap->devKind));
 	pwLineStart = pw;
 	/* Process all words which are fully in the pixmap */

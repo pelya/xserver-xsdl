@@ -2,6 +2,8 @@
  * Push Pixels for 8 bit displays.
  */
 
+/* $XFree86: xc/programs/Xserver/cfb/cfbpush8.c,v 1.6 2001/12/14 19:59:24 dawes Exp $ */
+
 /*
 
 Copyright 1989, 1998  The Open Group
@@ -51,17 +53,17 @@ cfbPushPixels8 (pGC, pBitmap, pDrawable, dx, dy, xOrg, yOrg)
     DrawablePtr	pDrawable;
     int		dx, dy, xOrg, yOrg;
 {
-    register unsigned long   *src, *dst;
-    register unsigned long   pixel;
-    register unsigned long   c, bits;
-    unsigned long   *pdstLine, *psrcLine;
-    unsigned long   *pdstBase;
+    register CfbBits   *src, *dst;
+    register CfbBits   pixel;
+    register CfbBits   c, bits;
+    CfbBits   *pdstLine, *psrcLine;
+    CfbBits   *pdstBase;
     int		    srcWidth;
     int		    dstWidth;
     int		    xoff;
     int		    nBitmapLongs, nPixmapLongs;
     int		    nBitmapTmp, nPixmapTmp;
-    unsigned long   rightMask;
+    CfbBits   rightMask;
     BoxRec	    bbox;
     cfbPrivGCPtr    devPriv;
 
@@ -71,7 +73,7 @@ cfbPushPixels8 (pGC, pBitmap, pDrawable, dx, dy, xOrg, yOrg)
     bbox.y2 = bbox.y1 + dy;
     devPriv = cfbGetGCPrivate(pGC);
     
-    switch (RECT_IN_REGION(pGC->pScreen, devPriv->pCompositeClip, &bbox))
+    switch (RECT_IN_REGION(pGC->pScreen, pGC->pCompositeClip, &bbox))
     {
       case rgnPART:
 #ifndef LOWMEMFTPT
@@ -85,7 +87,7 @@ cfbPushPixels8 (pGC, pBitmap, pDrawable, dx, dy, xOrg, yOrg)
 
     cfbGetLongWidthAndPointer (pDrawable, dstWidth, pdstBase)
 
-    psrcLine = (unsigned long *) pBitmap->devPrivate.ptr;
+    psrcLine = (CfbBits *) pBitmap->devPrivate.ptr;
     srcWidth = (int) pBitmap->devKind >> PWSH;
     
     pixel = devPriv->xor;

@@ -1,117 +1,273 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/sco/sco_io.c,v 3.3 1996/12/23 06:50:49 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/sco/sco_io.c,v 3.10 2003/02/17 15:11:59 dawes Exp $ */
 /*
- * Copyright 1993 by David McCullough <davidm@stallion.oz.au>
- * Copyright 1993 by David Dawes <dawes@physics.su.oz.au>
+ * Copyright 2001 by J. Kean Johnston <jkj@sco.com>
  *
  * Permission to use, copy, modify, distribute, and sell this software and its
  * documentation for any purpose is hereby granted without fee, provided that
  * the above copyright notice appear in all copies and that both that
  * copyright notice and this permission notice appear in supporting
- * documentation, and that the names of David McCullough and David Dawes 
- * not be used in advertising or publicity pertaining to distribution of 
- * the software without specific, written prior permission.  David McCullough
- * and David Dawes makes no representations about the suitability of this 
- * software for any purpose.  It is provided "as is" without express or 
- * implied warranty.
+ * documentation, and that the name J. Kean Johnston not be used in
+ * advertising or publicity pertaining to distribution of the software without
+ * specific, written prior permission.  J. Kean Johnston makes no
+ * representations about the suitability of this software for any purpose.
+ * It is provided "as is" without express or implied warranty.
  *
- * DAVID MCCULLOUGH AND DAVID DAWES DISCLAIMS ALL WARRANTIES WITH REGARD TO 
- * THIS SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND 
- * FITNESS, IN NO EVENT SHALL DAVID MCCULLOUGH OR DAVID DAWES BE LIABLE FOR 
- * ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER 
- * RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF 
- * CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN 
- * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
- *
+ * J. KEAN JOHNSTON DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
+ * INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO
+ * EVENT SHALL J. KEAN JOHNSTON BE LIABLE FOR ANY SPECIAL, INDIRECT OR
+ * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF
+ * USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+ * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+ * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $Xorg: sco_io.c,v 1.3 2000/08/17 19:51:29 cpqbld Exp $ */
+/* $XConsortium$ */
 
-#define NEED_EVENTS
+/* Re-written May 2001 to represent the current state of reality */
+
 #include "X.h"
-#include "Xproto.h"
-#include "inputstr.h"
-#include "scrnintstr.h"
 
 #include "compiler.h"
 
-#include "xf86Procs.h"
+#define _NEED_SYSI86
+#include "xf86.h"
+#include "xf86Priv.h"
+#include "xf86OSpriv.h"
 #include "xf86_OSlib.h"
-#include "xf86_Config.h"
 
-void xf86SoundKbdBell(loudness, pitch, duration)
-int loudness;
-int pitch;
-int duration;
+#include <sys/param.h>
+#include <sys/emap.h>
+#include <sys/nmap.h>
+
+void
+xf86SoundKbdBell(int loudness, int pitch, int duration)
 {
-	if (loudness && pitch)
-	{
-		ioctl(xf86Info.consoleFd, KIOCSOUND, 1193180 / pitch);
-		usleep(duration * loudness * 20);
-		ioctl(xf86Info.consoleFd, KIOCSOUND, 0);
-	}
+  if (loudness && pitch) {
+    ioctl(xf86Info.consoleFd, KIOCSOUND, 1193180 / pitch);
+    usleep(duration * loudness * 20);
+    ioctl(xf86Info.consoleFd, KIOCSOUND, 0);
+  }
 }
 
-void xf86SetKbdLeds(leds)
-int leds;
+void
+xf86SetKbdLeds(int leds)
 {
-	/*
-	 * sleep the first time through under SCO.  There appears to be a
-	 * timing problem in the driver which causes the keyboard to be lost.
-	 * This sleep stops it from occurring.  The sleep could proably be
-	 * a lot shorter as even trace can fix the problem.  You may
-	 * prefer a usleep(100).
-	 */
-	static int once = 1;
+  /*
+   * sleep the first time through under SCO.  There appears to be a
+   * timing problem in the driver which causes the keyboard to be lost.
+   * This usleep stops it from occurring. NOTE: this was in the old code.
+   * I am not convinced it is true any longer, but it doesn't hurt to
+   * leave this in here.
+   */
+  static int once = 1;
 
-	if (once)
-	{
-		sleep(1);
-		once = 0;
-	}
-	ioctl(xf86Info.consoleFd, KDSETLED, leds );
+  if (once) {
+    usleep(100);
+    once = 0;
+  }
+
+  ioctl(xf86Info.consoleFd, KDSETLED, leds );
 }
 
-void xf86MouseInit(mouse)
-MouseDevPtr mouse;
+int
+xf86GetKbdLeds()
 {
-	if ((mouse->mseFd = open(mouse->mseDevice, O_RDWR | O_NDELAY)) < 0)
-	{
-		if (xf86AllowMouseOpenFail) {
-			ErrorF("Cannot open mouse (%s) - Continuing...\n",
-				strerror(errno));
-			return;
-		}
-		FatalError("Cannot open mouse (%s)\n", strerror(errno));
-	}
+  int leds;
+
+  ioctl (xf86Info.consoleFd, KDGETLED, &leds);
+  return leds;
 }
 
-int xf86MouseOn(mouse)
-MouseDevPtr mouse;
+/*
+ * Much of the code in this function is duplicated from the Linux code
+ * by Orest Zborowski <obz@Kodak.com> and David Dawes <dawes@xfree86.org>.
+ * Please see the file ../linux/lnx_io.c for full copyright information.
+ *
+ * NOTE: Only OpenServer Release 5.0.6 with Release Supplement 5.0.6A
+ * and later have the required ioctl. 5.0.6A or higher is HIGHLY
+ * recommended. The console driver is quite a different beast on that OS.
+ */
+void
+xf86SetKbdRepeat(char rad)
 {
-	xf86SetupMouse(mouse);
+#if defined(KBIO_SETRATE)
+  int i;
+  int value = 0x7f;     /* Maximum delay with slowest rate */
+  int delay = 250;      /* Default delay */
+  int rate = 300;       /* Default repeat rate */
 
-	/* Flush any pending input */
-	ioctl(mouse->mseFd, TCFLSH, 0);
+  static int valid_rates[] = { 300, 267, 240, 218, 200, 185, 171, 160, 150,
+                               133, 120, 109, 100, 92, 86, 80, 75, 67,
+                               60, 55, 50, 46, 43, 40, 37, 33, 30, 27,
+                               25, 23, 21, 20 };
+#define RATE_COUNT (sizeof( valid_rates ) / sizeof( int ))
 
-	return(mouse->mseFd);
+  static int valid_delays[] = { 250, 500, 750, 1000 };
+#define DELAY_COUNT (sizeof( valid_delays ) / sizeof( int ))
+
+  if (xf86Info.kbdRate >= 0) 
+    rate = xf86Info.kbdRate * 10;
+  if (xf86Info.kbdDelay >= 0)
+    delay = xf86Info.kbdDelay;
+
+  for (i = 0; i < RATE_COUNT; i++)
+    if (rate >= valid_rates[i]) {
+      value &= 0x60;
+      value |= i;
+      break;
+    }
+
+  for (i = 0; i < DELAY_COUNT; i++)
+    if (delay <= valid_delays[i]) {
+      value &= 0x1f;
+      value |= i << 5;
+      break;
+    }
+
+  ioctl (xf86Info.consoleFd, KBIO_SETRATE, value);
+#endif /* defined(KBIO_SETRATE) */
 }
 
-int xf86MouseOff(mouse, doclose)
-MouseDevPtr mouse;
-Bool doclose;
+static Bool use_tcs = TRUE, use_kd = TRUE;
+static Bool no_nmap = TRUE, no_emap = TRUE;
+static int orig_getsc, orig_kbm;
+static struct termios orig_termios;
+static keymap_t keymap, noledmap;
+static uchar_t *sc_mapbuf;
+static uchar_t *sc_mapbuf2;
+
+void
+xf86KbdInit()
 {
-	if (mouse->mseFd >= 0)
-	{
-		if (mouse->mseType == P_LOGI)
-		{
-			write(mouse->mseFd, "U", 1);
-			xf86SetMouseSpeed(mouse, mouse->baudRate, 
-					  mouse->oldBaudRate,
-				  	  xf86MouseCflags[P_LOGI]);
-		}
-		if (doclose)
-		{
-			close(mouse->mseFd);
-		}
-	}
-	return(mouse->mseFd);
+  orig_getsc = 0;
+  if (ioctl (xf86Info.consoleFd, TCGETSC, &orig_getsc) < 0)
+    use_tcs = FALSE;
+  if (ioctl (xf86Info.consoleFd, KDGKBMODE, &orig_kbm) < 0)
+    use_kd = FALSE;
+
+  if (!use_tcs && !use_kd)
+    FatalError ("xf86KbdInit: Could not determine keyboard mode\n");
+
+  /*
+   * One day this should be fixed to translate normal ASCII characters
+   * back into scancodes or into events that XFree86 wants, but not
+   * now. For the time being, we only support scancode mode screens.
+  */
+  if (use_tcs && !(orig_getsc & KB_ISSCANCODE))
+    FatalError ("xf86KbdInit: Keyboard can not send scancodes\n");
+
+  /*
+   * We need to get the original keyboard map and NUL out the lock
+   * modifiers. This prevents the scancode API from messing with
+   * the keyboard LED's. We restore the original map when we exit.
+   */
+  if (ioctl (xf86Info.consoleFd, GIO_KEYMAP, &keymap) < 0) {
+    FatalError ("xf86KbdInit: Failed to get keyboard map (%s)\n",
+        strerror(errno));
+  }
+  if (ioctl (xf86Info.consoleFd, GIO_KEYMAP, &noledmap) < 0) {
+    FatalError ("xf86KbdInit: Failed to get keyboard map (%s)\n",
+        strerror(errno));
+  } else {
+    int i, j;
+
+    for (i = 0; i < noledmap.n_keys; i++) {
+      for (j = 0; j < NUM_STATES; j++) {
+        if (IS_SPECIAL(noledmap, i, j) &&
+            ((noledmap.key[i].map[j] == K_CLK) ||
+             (noledmap.key[i].map[j] == K_NLK) ||
+             (noledmap.key[i].map[j] == K_SLK))) {
+          noledmap.key[i].map[j] = K_NOP;
+        }
+      }
+    }
+  }
+
+  if (ioctl (xf86Info.consoleFd, XCGETA, &orig_termios) < 0) {
+    FatalError ("xf86KbdInit: Failed to get terminal modes (%s)\n",
+        strerror(errno));
+  }
+
+  sc_mapbuf = xalloc (10*BSIZE);
+  sc_mapbuf2 = xalloc(10*BSIZE);
+
+  /* Get the emap */
+  if (ioctl (xf86Info.consoleFd, LDGMAP, sc_mapbuf) < 0) {
+    if (errno != ENAVAIL) {
+      FatalError ("xf86KbdInit: Failed to retrieve e-map (%s)\n",
+          strerror (errno));
+    }
+    no_emap = FALSE;
+  }
+
+  /* Get the nmap */
+  if (ioctl (xf86Info.consoleFd, NMGMAP, sc_mapbuf2) < 0) {
+    if (errno != ENAVAIL) {
+      FatalError ("xf86KbdInit: Failed to retrieve n-map (%s)\n",
+          strerror (errno));
+    }
+    no_nmap = FALSE;
+  }
+}
+
+int
+xf86KbdOn()
+{
+  struct termios newtio;
+
+  ioctl (xf86Info.consoleFd, LDNMAP); /* Turn e-mapping off */
+  ioctl (xf86Info.consoleFd, NMNMAP); /* Turn n-mapping off */
+
+  newtio = orig_termios;        /* structure copy */
+  newtio.c_iflag = (IGNPAR | IGNBRK) & (~PARMRK) & (~ISTRIP);
+  newtio.c_oflag = 0;
+  newtio.c_cflag = CREAD | CS8 | B9600;
+  newtio.c_lflag = 0;
+  newtio.c_cc[VTIME]=0;
+  newtio.c_cc[VMIN]=1;
+  cfsetispeed(&newtio, 9600);
+  cfsetospeed(&newtio, 9600);
+  ioctl(xf86Info.consoleFd, XCSETA, &newtio);
+
+  /* Now tell the keyboard driver to send us raw scancodes */
+  if (use_tcs) {
+    int nm = orig_getsc;
+    nm &= ~KB_XSCANCODE;
+    ioctl (xf86Info.consoleFd, TCSETSC, &nm);
+  }
+
+  if (use_kd)
+    ioctl (xf86Info.consoleFd, KDSKBMODE, K_RAW);
+
+  ioctl (xf86Info.consoleFd, PIO_KEYMAP, &noledmap);
+
+  return(xf86Info.consoleFd);
+}
+
+int
+xf86KbdOff()
+{
+  /* Revert back to original translate scancode mode */
+  if (use_tcs)
+    ioctl (xf86Info.consoleFd, TCSETSC, &orig_getsc);
+  if (use_kd)
+    ioctl (xf86Info.consoleFd, KDSKBMODE, orig_kbm);
+
+  ioctl (xf86Info.consoleFd, PIO_KEYMAP, &keymap);
+
+  if (no_emap)
+    ioctl (xf86Info.consoleFd, LDSMAP, sc_mapbuf);
+  if (no_nmap)
+    ioctl (xf86Info.consoleFd, NMSMAP, sc_mapbuf2);
+
+  ioctl(xf86Info.consoleFd, XCSETA, &orig_termios);
+
+  return(xf86Info.consoleFd);
+}
+
+#include "xf86OSKbd.h"
+
+Bool
+xf86OSKbdPreInit(InputInfoPtr pInfo)
+{
+    return FALSE;
 }

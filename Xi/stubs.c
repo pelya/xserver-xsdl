@@ -45,6 +45,7 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ********************************************************/
+/* $XFree86: xc/programs/Xserver/Xi/stubs.c,v 3.4 2001/12/14 19:58:59 dawes Exp $ */
 
 /*
  * stubs.c -- stub routines for the X server side of the XINPUT
@@ -62,6 +63,7 @@ SOFTWARE.
 #include "inputstr.h"
 #include "XI.h"
 #include "XIproto.h"
+#include "XIstubs.h"
 
 /***********************************************************************
  *
@@ -95,6 +97,7 @@ ChangeKeyboardDevice (old_dev, new_dev)
     /***********************************************************************
      DeleteFocusClassDeviceStruct(old_dev);	 * defined in xchgptr.c *
     **********************************************************************/
+    return BadMatch;
     }
 
 
@@ -129,9 +132,17 @@ ChangeKeyboardDevice (old_dev, new_dev)
  */
 
 int
+#if NeedFunctionPrototypes
+ChangePointerDevice (
+    DeviceIntPtr	old_dev,
+    DeviceIntPtr	new_dev,
+    unsigned char	x,
+    unsigned char	y)
+#else
 ChangePointerDevice (old_dev, new_dev, x, y)
     DeviceIntPtr	old_dev, new_dev;
     unsigned char	x, y;
+#endif
     {
     /***********************************************************************
     InitFocusClassDeviceStruct(old_dev);	* allow focusing old ptr*
@@ -143,6 +154,7 @@ ChangePointerDevice (old_dev, new_dev, x, y)
     else
 	axes_changed = FALSE;
     *************************************************************************/
+    return BadMatch;
     }
 
 /***********************************************************************
@@ -194,12 +206,12 @@ CloseInputDevice (d, client)
 void
 AddOtherInputDevices ()
     {
+    /**********************************************************************
+     for each uninitialized device, do something like: 
+
     DeviceIntPtr dev;
     DeviceProc deviceProc;
     pointer private;
-
-    /**********************************************************************
-     for each uninitialized device, do something like: 
 
     dev = (DeviceIntPtr) AddInputDevice(deviceProc, TRUE);
     dev->public.devicePrivate = private;

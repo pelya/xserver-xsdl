@@ -45,6 +45,7 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ******************************************************************/
+/* $XFree86: xc/programs/Xserver/cfb/cfbsetsp.c,v 3.5 2001/12/14 19:59:24 dawes Exp $ */
 
 #include "X.h"
 #include "Xmd.h"
@@ -67,6 +68,7 @@ SOFTWARE.
  * boxes, we may not want to start grabbing bits at psrc but at some offset
  * further on.) 
  */
+void
 cfbSetScanline(y, xOrigin, xStart, xEnd, psrc, alu, pdstBase, widthDst, planemask)
     int			y;
     int			xOrigin;	/* where this scanline starts */
@@ -83,19 +85,46 @@ cfbSetScanline(y, xOrigin, xStart, xEnd, psrc, alu, pdstBase, widthDst, planemas
     register int	tmpSrc;		/* scratch buffer to collect bits in */
     int			dstBit;		/* offset in bits from beginning of 
 					 * word */
+    int			offSrc;
+    int			nl;
+#if PSZ == 24
+    register char *psrcb, *pdstb;
+    register int	xIndex;
+#else
     register int	nstart; 	/* number of bits from first partial */
     register int	nend; 		/* " " last partial word */
-    int			offSrc;
-    int		startmask, endmask, nlMiddle, nl;
+    int			startmask, endmask, nlMiddle;
+#endif
     DeclareMergeRop()
 
     InitializeMergeRop(alu,planemask);
+#if PSZ == 24
+    pdst = pdstBase + (y * widthDst);
+    xIndex = xStart;
+    pdstb = (char *)pdst + (xStart * 3);
+    offSrc = xStart - xOrigin;
+    psrcb = (char *)psrc + (offSrc * 3);
+#else
     pdst = pdstBase + (y * widthDst) + (xStart >> PWSH); 
     psrc += (xStart - xOrigin) >> PWSH;
     offSrc = (xStart - xOrigin) & PIM;
+#endif
     w = xEnd - xStart;
     dstBit = xStart & PIM;
 
+#if PSZ == 24
+    nl = w;
+    while (nl--){
+      psrc = (unsigned int *)((unsigned long)psrcb & ~0x03);
+      getbits24(psrc, tmpSrc, offSrc);
+      pdst = (int *)((unsigned long)pdstb & ~0x03);
+      DoMergeRop24(tmpSrc, pdst, xIndex);
+      offSrc++;
+      psrcb += 3;
+      xIndex++;
+      pdstb += 3;
+    } 
+#else /* PSZ == 24 */
     if (dstBit + w <= PPW) 
     { 
 	maskpartialbits(dstBit, w, startmask);
@@ -139,6 +168,7 @@ cfbSetScanline(y, xOrigin, xStart, xEnd, psrc, alu, pdstBase, widthDst, planemas
 	getbits(psrc, offSrc, nend, tmpSrc);
 	putbitsmropshort(tmpSrc, 0, nend, pdst);
     } 
+#endif /* PSZ == 24 */
 }
 
 
@@ -160,7 +190,7 @@ cfbSetSpans(pDrawable, pGC, pcharsrc, ppt, pwidth, nspans, fSorted)
     int			fSorted;
 {
     unsigned int	*psrc = (unsigned int *)pcharsrc;
-    unsigned long	*pdstBase;	/* start of dst bitmap */
+    CfbBits	*pdstBase;	/* start of dst bitmap */
     int 		widthDst;	/* width of bitmap in words */
     register BoxPtr 	pbox, pboxLast, pboxTest;
     register DDXPointPtr pptLast;

@@ -24,16 +24,20 @@ OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION  WITH
 THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 ********************************************************/
+/* $XFree86: xc/programs/Xserver/xkb/xkbAccessX.c,v 1.9 2001/08/23 14:33:25 alanh Exp $ */
 
 #include <stdio.h>
 #include <math.h>
+#ifdef __QNX__
+#include <limits.h>
+#endif
 #define NEED_EVENTS 1
 #include <X11/X.h>
 #include <X11/Xproto.h>
 #include <X11/keysym.h>
 #include "inputstr.h"
 #include "XKBsrv.h"
-#ifndef WIN32
+#if !defined(WIN32) && !defined(Lynx)
 #include <sys/time.h>
 #endif
 
@@ -139,9 +143,6 @@ AccessXKeyboardEvent(keybd,type,keyCode,isRepeat)
 #endif
 {
 xEvent		xE;
-#ifdef XINPUT
-extern int	DeviceKeyPress;
-#endif
     
     xE.u.u.type = type;
     xE.u.u.detail = keyCode;
@@ -582,12 +583,11 @@ KeySym *	sym = XkbKeySymsPtr(xkbi->desc,key);
      */
     if (ctrls->enabled_ctrls & XkbSlowKeysMask) {
 	xkbAccessXNotify	ev;
-	/* If key was already pressed, ignore subsequent press events 
-	 *  from the server's autorepeat
+	/* If key was already pressed, ignore subsequent press events
+	 * from the server's autorepeat
 	 */
 	if(xkbi->slowKey == key)
-		return TRUE;
-
+	    return TRUE;
 	ev.detail= XkbAXN_SKPress;
 	ev.keycode= key;
 	ev.slowKeysDelay= ctrls->slow_keys_delay;

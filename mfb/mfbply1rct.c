@@ -26,6 +26,8 @@ in this Software without prior written authorization from The Open Group.
  * Author:  Keith Packard, MIT X Consortium
  */
 
+/* $XFree86: xc/programs/Xserver/mfb/mfbply1rct.c,v 1.8 2002/12/09 04:10:57 tsi Exp $ */
+
 #include "X.h"
 
 #include "gcstruct.h"
@@ -46,12 +48,12 @@ in this Software without prior written authorization from The Open Group.
 
 #if IMAGE_BYTE_ORDER == MSBFirst
 #define intToCoord(i,x,y)   (((x) = GetHighWord(i)), ((y) = (int) ((short) (i))))
-#define coordToInt(x,y)	(((x) << 16) | (y))
+#define coordToInt(x,y)	(((x) << 16) | ((y) & 0xffff))
 #define intToX(i)	(GetHighWord(i))
 #define intToY(i)	((int) ((short) i))
 #else
 #define intToCoord(i,x,y)   (((x) = (int) ((short) (i))), ((y) = GetHighWord(i)))
-#define coordToInt(x,y)	(((y) << 16) | (x))
+#define coordToInt(x,y)	(((y) << 16) | ((x) & 0xffff))
 #define intToX(i)	((int) ((short) (i)))
 #define intToY(i)	(GetHighWord(i))
 #endif
@@ -60,10 +62,11 @@ void
 MFBFILLPOLY1RECT (pDrawable, pGC, shape, mode, count, ptsIn)
     DrawablePtr	pDrawable;
     GCPtr	pGC;
+    int		shape;
+    int		mode;
     int		count;
     DDXPointPtr	ptsIn;
 {
-    mfbPrivGCPtr    devPriv;
     int		    nlwidth;
     PixelType	    *addrl, *addr;
     int		    maxy;
@@ -73,29 +76,28 @@ MFBFILLPOLY1RECT (pDrawable, pGC, shape, mode, count, ptsIn)
     BoxPtr	    extents;
     int		    clip;
     int		    y;
-    int		    *vertex1p, *vertex2p;
+    int		    *vertex1p = NULL, *vertex2p;
     int		    *endp;
-    int		    x1, x2;
-    int		    dx1, dx2;
-    int		    dy1, dy2;
-    int		    e1, e2;
-    int		    step1, step2;
-    int		    sign1, sign2;
+    int		    x1 = 0, x2 = 0;
+    int		    dx1 = 0, dx2 = 0;
+    int		    dy1 = 0, dy2 = 0;
+    int		    e1 = 0, e2 = 0;
+    int		    step1 = 0, step2 = 0;
+    int		    sign1 = 0, sign2 = 0;
     int		    h;
     int		    l, r;
     PixelType	    mask, bits = ~((PixelType)0);
     int		    nmiddle;
 
-    devPriv = (mfbPrivGC *)(pGC->devPrivates[mfbGCPrivateIndex].ptr);
     if (mode == CoordModePrevious || shape != Convex ||
-	REGION_NUM_RECTS(devPriv->pCompositeClip) != 1)
+	REGION_NUM_RECTS(pGC->pCompositeClip) != 1)
     {
 	miFillPolygon (pDrawable, pGC, shape, mode, count, ptsIn);
 	return;
     }
     origin = *((int *) &pDrawable->x);
     vertex2 = origin - ((origin & 0x8000) << 1);
-    extents = &devPriv->pCompositeClip->extents;
+    extents = &pGC->pCompositeClip->extents;
     vertex1 = *((int *) &extents->x1) - vertex2;
     vertex2 = *((int *) &extents->x2) - vertex2 - 0x00010001;
     clip = 0;
@@ -135,7 +137,7 @@ MFBFILLPOLY1RECT (pDrawable, pGC, shape, mode, count, ptsIn)
 	vertex2p = (int *) ptsIn;
 #define Setup(c,x,vertex,dx,dy,e,sign,step) {\
     x = intToX(vertex); \
-    if (dy = intToY(c) - y) { \
+    if ((dy = intToY(c) - y)) { \
     	dx = intToX(c) - x; \
 	step = 0; \
     	if (dx >= 0) \
@@ -239,7 +241,7 @@ MFBFILLPOLY1RECT (pDrawable, pGC, shape, mode, count, ptsIn)
 	    	}
 	    	nmiddle >>= PWSH;
 		Duff (nmiddle, *addr++ EQWHOLEWORD)
-	    	if (mask = ~SCRRIGHT(bits, r & PIM))
+	    	if ((mask = ~SCRRIGHT(bits, r & PIM)))
 	    	    *addr OPEQ mask;
 	    }
 	    if (!--h)

@@ -1,3 +1,4 @@
+/* $XFree86: xc/programs/Xserver/dix/xpstubs.c,v 1.4 2001/12/20 19:41:00 tsi Exp $ */
 /*
 Copyright 1996, 1998  The Open Group
 
@@ -43,7 +44,6 @@ XpClientIsPrintClient(client, fpe)
 {
     return FALSE;
 }
-
 int
 XprintOptions(argc, argv, i)
     int argc;

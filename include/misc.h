@@ -1,3 +1,4 @@
+/* $XFree86: xc/programs/Xserver/include/misc.h,v 3.28 2001/12/14 19:59:55 dawes Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -80,17 +81,16 @@ extern unsigned long serverGeneration;
 #include <X11/Xfuncproto.h>
 #include <X11/Xmd.h>
 #include <X11/X.h>
+#include <X11/Xdefs.h>
 
+#ifndef IN_MODULE
 #ifndef NULL
-#ifndef X_NOT_STDC_ENV
 #include <stddef.h>
-#else
-#define NULL            0
 #endif
 #endif
 
 #ifndef MAXSCREENS
-#define MAXSCREENS	3
+#define MAXSCREENS	16
 #endif
 #define MAXCLIENTS	256
 #define MAXDITS		1
@@ -98,12 +98,6 @@ extern unsigned long serverGeneration;
 #define MAXFORMATS	8
 #define MAXVISUALS_PER_SCREEN 50
 
-#if NeedFunctionPrototypes
-typedef void *pointer;
-#else
-typedef unsigned char *pointer;
-#endif
-typedef int Bool;
 typedef unsigned long PIXEL;
 typedef unsigned long ATOM;
 
@@ -111,16 +105,6 @@ typedef unsigned long ATOM;
 #ifndef TRUE
 #define TRUE 1
 #define FALSE 0
-#endif
-
-#ifndef _XTYPEDEF_FONTPTR
-typedef struct _Font *FontPtr; /* also in fonts/include/font.h */
-#define _XTYPEDEF_FONTPTR
-#endif
-
-#ifndef _XTYPEDEF_CLIENTPTR
-typedef struct _Client *ClientPtr; /* also in dix.h */
-#define _XTYPEDEF_CLIENTPTR
 #endif
 
 #ifndef _XTYPEDEF_CALLBACKLISTPTR
@@ -131,7 +115,9 @@ typedef struct _CallbackList *CallbackListPtr; /* also in dix.h */
 typedef struct _xReq *xReqPtr;
 
 #include "os.h" 	/* for ALLOCATE_LOCAL and DEALLOCATE_LOCAL */
+#ifndef IN_MODULE
 #include <X11/Xfuncs.h> /* for bcopy, bzero, and bcmp */
+#endif
 
 #define NullBox ((BoxPtr)0)
 #define MILLI_PER_MIN (1000 * 60)
@@ -154,11 +140,17 @@ typedef struct _xReq *xReqPtr;
 /* byte swap a short literal */
 #define lswaps(x) ((((x) & 0xff) << 8) | (((x) >> 8) & 0xff))
 
+#undef min
+#undef max
+
 #define min(a, b) (((a) < (b)) ? (a) : (b))
 #define max(a, b) (((a) > (b)) ? (a) : (b))
-#ifndef abs
-#define abs(a) ((a) > 0 ? (a) : -(a))
-#endif
+#ifndef IN_MODULE
+/* abs() is a function, not a macro; include the file declaring
+ * it in case we haven't done that yet.
+ */  
+#include <stdlib.h>
+#endif /* IN_MODULE */
 #ifndef Fabs
 #define Fabs(a) ((a) > 0.0 ? (a) : -(a))	/* floating absolute value */
 #endif
@@ -174,13 +166,32 @@ typedef struct _xReq *xReqPtr;
  */
 #define lowbit(x) ((x) & (~(x) + 1))
 
-#ifndef MAXSHORT
-#define MAXSHORT 32767
-#endif
-#ifndef MINSHORT
-#define MINSHORT -MAXSHORT 
-#endif
+#ifndef IN_MODULE
+/* XXX Not for modules */
+#include <limits.h>
+#if !defined(MAXSHORT) || !defined(MINSHORT) || \
+    !defined(MAXINT) || !defined(MININT)
+/*
+ * Some implementations #define these through <math.h>, so preclude
+ * #include'ing it later.
+ */
 
+#include <math.h>
+#endif
+#undef MAXSHORT
+#define MAXSHORT SHRT_MAX
+#undef MINSHORT
+#define MINSHORT SHRT_MIN
+#undef MAXINT
+#define MAXINT INT_MAX
+#undef MININT
+#define MININT INT_MIN
+
+#include <assert.h>
+#include <ctype.h>
+#include <stdio.h>	/* for fopen, etc... */
+
+#endif
 
 /* some macros to help swap requests, replies, and events */
 
@@ -240,7 +251,7 @@ extern void SwapShorts(
 #endif
 );
 
-extern int MakePredeclaredAtoms(
+extern void MakePredeclaredAtoms(
 #if NeedFunctionPrototypes
     void
 #endif

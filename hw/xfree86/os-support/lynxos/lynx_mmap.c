@@ -21,11 +21,9 @@
  *
  */
 
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/lynxos/lynx_mmap.c,v 3.2 1996/09/29 13:38:29 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/lynxos/lynx_mmap.c,v 3.6 2000/02/11 22:36:02 dawes Exp $ */
 
 #include "X.h"
-#include "input.h"
-#include "scrnintstr.h"
 
 #include "xf86.h"
 #include "xf86Priv.h"
@@ -35,26 +33,30 @@
  * Read BIOS using smem_create facility
  */
 
-int xf86ReadBIOS(Base, Offset, Buf, Len)
-unsigned long Base;
-unsigned long Offset;
-unsigned char *Buf;
-int Len;
+int
+xf86ReadBIOS(unsigned long Base, unsigned long Offset, unsigned char *Buf,
+	     int Len)
 {
+#if defined(__powerpc__)
+	xf86Msg(X_WARNING, "xf86ReadBios: no BIOS-probe on PowerPC\n");
+	return(-1);
+#else
 	char *p;
 	int mlen;
 
-	mlen = (Offset + Len + 4095) & ~4096;
+	mlen = (Offset + Len + 4095) & ~4095;
 	p = smem_create("BIOS-probe", (char *)Base, mlen, SM_READ);
 	if (p == NULL)
 	{
 		/* check if there is a stale segment around */
 		if (smem_remove("BIOS-probe") == 0) {
-		    ErrorF("xf86ReadBios: removed stale smem_ segment\n");
+		    xf86Msg(X_INFO,
+			"xf86ReadBios: removed stale smem_ segment\n");
 		    p = smem_create("BIOS-probe", (char *)Base, mlen, SM_READ);
 		}
 		if (p == NULL) {
-		    ErrorF("xf86ReadBios: Failed to smem_create Base %x len %x %s \n",
+		    xf86Msg(X_WARNING, "xf86ReadBios: Failed to smem_create "
+			    "Base %x len %x %s \n",
 			    Base, mlen, strerror(errno));
 		    return(-1);
 		}
@@ -63,4 +65,5 @@ int Len;
 	smem_create(NULL, p, 0, SM_DETACH);
 	smem_remove("BIOS-probe");
 	return(Len);
+#endif
 }

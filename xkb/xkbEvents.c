@@ -24,6 +24,7 @@ OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION  WITH
 THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 ********************************************************/
+/* $XFree86: xc/programs/Xserver/xkb/xkbEvents.c,v 3.10 2001/10/28 03:34:20 tsi Exp $ */
 
 #include <stdio.h>
 #define NEED_EVENTS 1
@@ -34,8 +35,6 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include "inputstr.h"
 #include "windowstr.h"
 #include "XKBsrv.h"
-
-extern int (*InitialVector[3])();
 
 /***====================================================================***/
 
@@ -51,7 +50,6 @@ XkbSendNewKeyboardNotify(kbd,pNKN)
 register int	i;
 Time 		time;
 CARD16		changed;
-XkbChangesRec	changes;
 
     pNKN->type = XkbEventCode + XkbEventBase;
     pNKN->xkbType = XkbNewKeyboardNotify;
@@ -181,7 +179,7 @@ XkbSendMapNotify(kbd,pMN)
 {
 int 		i;
 XkbSrvInfoPtr	xkbi;
-unsigned	time,initialized;
+unsigned	time = 0,initialized;
 CARD16		changed;
 
     xkbi = kbd->key->xkbInfo;
@@ -260,6 +258,10 @@ CARD32 		changedControls;
 	changedControls|= XkbMouseKeysAccelMask;
     if (old->ax_options!=new->ax_options)
 	changedControls|= XkbAccessXKeysMask;
+    if ((old->ax_options^new->ax_options) & XkbAX_SKOptionsMask)
+	changedControls|= XkbStickyKeysMask;
+    if ((old->ax_options^new->ax_options) & XkbAX_FBOptionsMask)
+	changedControls|= XkbAccessXFeedbackMask;
     if ((old->ax_timeout!=new->ax_timeout)||
 	(old->axt_ctrls_mask!=new->axt_ctrls_mask)||
 	(old->axt_ctrls_values!=new->axt_ctrls_values)||
@@ -308,10 +310,10 @@ XkbSendControlsNotify(kbd,pCN)
 #endif
 {
 int			initialized;
-CARD32 		 	changedControls,enabledControls,enabledChanges;
+CARD32 		 	changedControls, enabledControls, enabledChanges = 0;
 XkbSrvInfoPtr		xkbi;
 XkbInterestPtr		interest;
-Time 		 	time;
+Time 		 	time = 0;
 
     interest = kbd->xkb_interest;
     if (!interest)
@@ -367,7 +369,7 @@ XkbSendIndicatorNotify(kbd,xkbType,pEv)
 {
 int		initialized;
 XkbInterestPtr	interest;
-Time 		time;
+Time 		time = 0;
 CARD32		state,changed;
 
     interest = kbd->xkb_interest;
@@ -441,8 +443,8 @@ XkbSrvInfoPtr	xkbi;
 XkbInterestPtr	interest;
 CARD8		id;
 CARD16		pitch,duration;
-Time 		time;
-XID		winID;
+Time 		time = 0;
+XID		winID = 0;
 
     xkbi = kbd->key->xkbInfo;
 
@@ -519,7 +521,7 @@ XkbSendAccessXNotify(kbd,pEv)
 {
 int		initialized;
 XkbInterestPtr	interest;
-Time 		time;
+Time 		time = 0;
 CARD16		sk_delay,db_delay;
 
     interest = kbd->xkb_interest;
@@ -570,7 +572,7 @@ XkbSendNamesNotify(kbd,pEv)
 {
 int		initialized;
 XkbInterestPtr	interest;
-Time 		time;
+Time 		time = 0;
 CARD16		changed,changedVirtualMods;
 CARD32		changedIndicators;
 
@@ -625,8 +627,8 @@ XkbSendCompatMapNotify(kbd,pEv)
 {
 int		initialized;
 XkbInterestPtr	interest;
-Time 		time;
-CARD16		firstSI,nSI,nTotalSI;
+Time 		time = 0;
+CARD16		firstSI = 0, nSI = 0, nTotalSI = 0;
 
     interest = kbd->xkb_interest;
     if (!interest)
@@ -680,7 +682,7 @@ XkbSendActionMessage(kbd,pEv)
 int		 initialized;
 XkbSrvInfoPtr	 xkbi;
 XkbInterestPtr	 interest;
-Time 		 time;
+Time 		 time = 0;
 
     xkbi = kbd->key->xkbInfo;
     interest = kbd->xkb_interest;
@@ -731,9 +733,9 @@ XkbSendExtensionDeviceNotify(dev,client,pEv)
 {
 int		 initialized;
 XkbInterestPtr	 interest;
-Time 		 time;
-CARD32		 defined,state;
-CARD16		 reason,supported;
+Time 		 time = 0;
+CARD32		 defined, state;
+CARD16		 reason, supported = 0;
 
     interest = dev->xkb_interest;
     if (!interest)
@@ -894,7 +896,7 @@ XkbFilterEvents(pClient,nEvents,xE)
     xEvent	*xE;
 #endif
 {
-int	i;
+int	i, button_mask;
 DeviceIntPtr pXDev = (DeviceIntPtr)LookupKeyboardDevice();
 XkbSrvInfoPtr	xkbi;
 
@@ -920,7 +922,7 @@ XkbSrvInfoPtr	xkbi;
 	     	(_XkbIsReleaseEvent(xE[0].u.u.type)) ) {
 	    return False;
 	}
-	if ((pXDev->grab != NullGrab) &&
+	if ((pXDev->grab != NullGrab) && pXDev->fromPassiveGrab &&
 	    ((xE[0].u.u.type==KeyPress)||(xE[0].u.u.type==KeyRelease))) {
 	    register unsigned state,flags;
 
@@ -945,6 +947,19 @@ XkbSrvInfoPtr	xkbi;
 		state= xkbi->state.compat_lookup_mods;
 	    xE[0].u.keyButtonPointer.state= state;
 	}
+	button_mask = 1 << xE[0].u.u.detail;
+	if (xE[0].u.u.type == ButtonPress &&
+	    ((xE[0].u.keyButtonPointer.state >> 7) & button_mask) == button_mask &&
+	    (xkbi->lockedPtrButtons & button_mask) == button_mask) {
+#ifdef DEBUG
+	    /* If the MouseKeys is pressed, and the "real" mouse is also pressed
+	     * when the mouse is released, the server does not behave properly.
+	     * Faking a release of the button here solves the problem.
+	     */
+	    ErrorF("Faking release of button %d\n", xE[0].u.u.detail);
+#endif
+	    XkbDDXFakePointerButton(ButtonRelease, xE[0].u.u.detail);
+        }
     }
     else {
 	register CARD8 	type;
@@ -978,6 +993,15 @@ XkbSrvInfoPtr	xkbi;
 	    else if ((type==EnterNotify)||(type==LeaveNotify)) {
 		xE->u.enterLeave.state&= 0x1F00;
 		xE->u.enterLeave.state|= xkbi->state.compat_grab_mods;
+	    }
+	    button_mask = 1 << xE[i].u.u.detail;
+	    if (type == ButtonPress &&
+		((xE[i].u.keyButtonPointer.state >> 7) & button_mask) == button_mask &&
+		(xkbi->lockedPtrButtons & button_mask) == button_mask) {
+#ifdef DEBUG
+		ErrorF("Faking release of button %d\n", xE[i].u.u.detail);
+#endif
+		XkbDDXFakePointerButton(ButtonRelease, xE[i].u.u.detail);
 	    }
 	}
     }
@@ -1074,7 +1098,7 @@ Bool		found;
 	    dev->xkb_interest = interest->next;
 	    autoCtrls= interest->autoCtrls;
 	    autoValues= interest->autoCtrlValues;
-	    xfree(interest);
+	    _XkbFree(interest);
 	    found= True;
 	}
 	while ((!found)&&(interest->next)) {
@@ -1083,7 +1107,7 @@ Bool		found;
 		interest->next = victim->next;
 		autoCtrls= victim->autoCtrls;
 		autoValues= victim->autoCtrlValues;
-		xfree(victim);
+		_XkbFree(victim);
 		found= True;
 	    }
 	    interest = interest->next;
@@ -1113,7 +1137,7 @@ DeviceIntPtr	dev = (DeviceIntPtr)inDev;
 XkbInterestPtr	interest;
 Bool		found;
 unsigned long	autoCtrls,autoValues;
-ClientPtr	client;
+ClientPtr	client = NULL;
 
     found= False;
     autoCtrls= autoValues= 0;
@@ -1124,7 +1148,7 @@ ClientPtr	client;
 	    autoCtrls= interest->autoCtrls;
 	    autoValues= interest->autoCtrlValues;
 	    client= interest->client;
-	    xfree(interest);
+	    _XkbFree(interest);
 	    found= True;
 	}
 	while ((!found)&&(interest->next)) {
@@ -1134,7 +1158,7 @@ ClientPtr	client;
 		autoCtrls= victim->autoCtrls;
 		autoValues= victim->autoCtrlValues;
 		client= victim->client;
-		xfree(victim);
+		_XkbFree(victim);
 		found= True;
 	    }
 	    interest = interest->next;
@@ -1149,6 +1173,3 @@ ClientPtr	client;
     }
     return found;
 }
-
-
-

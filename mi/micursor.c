@@ -1,3 +1,4 @@
+/* $XFree86: xc/programs/Xserver/mi/micursor.c,v 1.3 2001/12/14 20:00:21 dawes Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -48,6 +49,7 @@ SOFTWARE.
 #include "scrnintstr.h"
 #include "cursor.h"
 #include "misc.h"
+#include "mi.h"
 
 extern Bool Must_have_memory;
 

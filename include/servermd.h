@@ -1,3 +1,4 @@
+/* $XFree86: xc/programs/Xserver/include/servermd.h,v 3.53 2002/05/31 18:46:04 dawes Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -44,9 +45,10 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ******************************************************************/
+/* $Xorg: servermd.h,v 1.3 2000/08/17 19:53:31 cpqbld Exp $ */
+
 #ifndef SERVERMD_H
 #define SERVERMD_H 1
-/* $Xorg: servermd.h,v 1.4 2001/02/09 02:05:16 xorgcvs Exp $ */
 
 /*
  * Machine dependent values:
@@ -130,12 +132,87 @@ SOFTWARE.
 
 #endif /* vax */
 
+#ifdef __arm32__
+
+#define IMAGE_BYTE_ORDER        LSBFirst
+
+# if defined(XF86MONOVGA) || defined(XF86VGA16) || defined(XF86MONO)
+#  define BITMAP_BIT_ORDER      MSBFirst
+# else
+#  define BITMAP_BIT_ORDER      LSBFirst
+# endif
+
+# if defined(XF86MONOVGA) || defined(XF86VGA16)
+#  define BITMAP_SCANLINE_UNIT  8
+# endif
+
+#define GLYPHPADBYTES           4
+#define GETLEFTBITS_ALIGNMENT   1
+#define LARGE_INSTRUCTION_CACHE
+#define AVOID_MEMORY_READ
+
+#endif /* __arm32__ */
+
+#if defined (__hppa__)
+
+#define IMAGE_BYTE_ORDER	MSBFirst
+#define BITMAP_BIT_ORDER	MSBFirst
+#define GLYPHPADBYTES		4	/* to make fb work */
+#define GETLEFTBITS_ALIGNMENT	1	/* PA forces longs to 4 */
+					/* byte boundries */
+#define AVOID_MEMORY_READ
+#define FAST_CONSTANT_OFFSET_MODE
+#define LARGE_INSTRUCTION_CACHE
+#define PLENTIFUL_REGISTERS
+
+#endif /* __hppa__ */
+
+#if defined(__powerpc__)
+
+#define IMAGE_BYTE_ORDER        MSBFirst
+#define BITMAP_BIT_ORDER        MSBFirst
+#define GLYPHPADBYTES           4
+#define GETLEFTBITS_ALIGNMENT   1
+
+/* XXX Should this be for Lynx only? */
+#ifdef Lynx
+#define BITMAP_SCANLINE_UNIT	8
+#endif
+
+#define LARGE_INSTRUCTION_CACHE
+#define FAST_CONSTANT_OFFSET_MODE
+#define PLENTIFUL_REGISTERS
+#define AVOID_MEMORY_READ
+
+#define FAST_MEMCPY
+
+#endif /* PowerPC */
+
+#if defined(__sh__)
+
+#if defined(__BIG_ENDIAN__)
+# define IMAGE_BYTE_ORDER	MSBFirst
+# define BITMAP_BIT_ORDER	MSBFirst
+# define GLYPHPADBYTES		4
+# define GETLEFTBITS_ALIGNMENT	1
+#else
+# define IMAGE_BYTE_ORDER	LSBFirst
+# define BITMAP_BIT_ORDER	LSBFirst
+# define GLYPHPADBYTES		4
+# define GETLEFTBITS_ALIGNMENT	1
+#endif
+
+#define AVOID_MEMORY_READ
+#define FAST_CONSTANT_OFFSET_MODE
+#define LARGE_INSTRUCTION_CACHE
+#define PLENTIFUL_REGISTERS
+
+#endif /* SuperH */
+
+
 #if (defined(sun) && !(defined(i386) && defined(SVR4))) || \
-    (defined(AMOEBA) && (defined(sparc) || defined(mc68000))) || \
     (defined(__uxp__) && (defined(sparc) || defined(mc68000))) || \
-    (defined(Lynx) && defined(__sparc__)) || \
-    ((defined(__NetBSD__) || defined(__OpenBSD__)) && \
-     (defined(__sparc__) || defined(__mc68000__)))
+    defined(__sparc__) || defined(__mc68000__)
 
 #if defined(sun386) || defined(sun5)
 # define IMAGE_BYTE_ORDER	LSBFirst        /* Values for the SUN only */
@@ -159,7 +236,7 @@ SOFTWARE.
 #define	GLYPHPADBYTES		4
 #define GETLEFTBITS_ALIGNMENT	1
 
-#endif /* sun */
+#endif /* sun && !(i386 && SVR4) */
 
 
 #if defined(AIXV3)
@@ -252,31 +329,100 @@ SOFTWARE.
 
 #endif /* mips */
 
-#if defined(__alpha) || defined(__alphaCross)
+#if defined(__alpha) || defined(__alpha__) || defined(__alphaCross)
 # define IMAGE_BYTE_ORDER	LSBFirst	/* Values for the Alpha only */
-# define BITMAP_BIT_ORDER	LSBFirst
+
+# if defined(XF86MONOVGA) || defined(XF86VGA16) || defined(XF86MONO)
+#  define BITMAP_BIT_ORDER      MSBFirst
+# else
+#  define BITMAP_BIT_ORDER      LSBFirst
+# endif
+
+# if defined(XF86MONOVGA) || defined(XF86VGA16)
+#  define BITMAP_SCANLINE_UNIT  8
+# endif
+
 # define GLYPHPADBYTES		4
 # define GETLEFTBITS_ALIGNMENT	1
 # define FAST_CONSTANT_OFFSET_MODE
 # define LARGE_INSTRUCTION_CACHE
 # define PLENTIFUL_REGISTERS
 
-/* pad scanline to a longword */
-#define BITMAP_SCANLINE_UNIT			64
-
-#define BITMAP_SCANLINE_PAD 			64
-#define LOG2_BITMAP_PAD				6
-#define LOG2_BYTES_PER_SCANLINE_PAD		3
-
-/* Add for handling protocol XPutImage and XGetImage; see comment below */
-#define INTERNAL_VS_EXTERNAL_PADDING
-#define BITMAP_SCANLINE_UNIT_PROTO		32
-
-#define BITMAP_SCANLINE_PAD_PROTO 	 	32
-#define LOG2_BITMAP_PAD_PROTO			5
-#define LOG2_BYTES_PER_SCANLINE_PAD_PROTO	2
-
 #endif /* alpha */
+
+#if defined (linux) && defined (__s390__)
+
+#define IMAGE_BYTE_ORDER      	MSBFirst
+#define BITMAP_BIT_ORDER      	MSBFirst
+#define GLYPHPADBYTES         	4
+#define GETLEFTBITS_ALIGNMENT  1	
+
+#define BITMAP_SCANLINE_UNIT	8
+#define LARGE_INSTRUCTION_CACHE
+#define FAST_CONSTANT_OFFSET_MODE
+#define FAST_UNALIGNED_READ
+
+#define FAST_MEMCPY
+
+#endif /* linux/s390 */
+
+#if defined (linux) && defined (__s390x__)
+
+#define IMAGE_BYTE_ORDER       MSBFirst
+#define BITMAP_BIT_ORDER       MSBFirst
+#define GLYPHPADBYTES          4
+#define GETLEFTBITS_ALIGNMENT  1
+
+#define BITMAP_SCANLINE_UNIT	8
+#define LARGE_INSTRUCTION_CACHE
+#define FAST_CONSTANT_OFFSET_MODE
+#define FAST_UNALIGNED_READ
+
+#define FAST_MEMCPY
+#endif /* linux/s390x */
+
+
+#if defined(__ia64__) || defined(ia64)
+# define IMAGE_BYTE_ORDER	LSBFirst
+
+# if defined(XF86MONOVGA) || defined(XF86VGA16) || defined(XF86MONO)
+#  define BITMAP_BIT_ORDER      MSBFirst
+# else
+#  define BITMAP_BIT_ORDER      LSBFirst
+# endif
+
+# if defined(XF86MONOVGA) || defined(XF86VGA16)
+#  define BITMAP_SCANLINE_UNIT  8
+# endif
+
+# define GLYPHPADBYTES		4
+# define GETLEFTBITS_ALIGNMENT	1
+# define FAST_CONSTANT_OFFSET_MODE
+# define LARGE_INSTRUCTION_CACHE
+# define PLENTIFUL_REGISTERS
+
+#endif /* ia64 */
+
+#if defined(__x86_64__) || defined(x86_64)
+# define IMAGE_BYTE_ORDER	LSBFirst
+
+# if defined(XF86MONOVGA) || defined(XF86VGA16) || defined(XF86MONO)
+#  define BITMAP_BIT_ORDER      MSBFirst
+# else
+#  define BITMAP_BIT_ORDER      LSBFirst
+# endif
+
+# if defined(XF86MONOVGA) || defined(XF86VGA16)
+#  define BITMAP_SCANLINE_UNIT  8
+# endif
+
+# define GLYPHPADBYTES		4
+# define GETLEFTBITS_ALIGNMENT	1
+# define LARGE_INSTRUCTION_CACHE
+# define FAST_CONSTANT_OFFSET_MODE
+/* ???? */
+# define FAST_UNALIGNED_READS
+#endif /* x86_64 */
 
 #ifdef stellar
 
@@ -308,18 +454,14 @@ SOFTWARE.
 
 #endif /* luna */
 
-#if ((defined(SVR4) && defined(i386)) || \
-     (defined(SYSV) && defined(i386)) || \
-     (defined(sun) && defined (i386) && defined(SVR4)) || \
-     defined(__bsdi__) || \
-     (defined(__NetBSD__) && defined(__i386__)) || \
-     defined(__FreeBSD__) || \
-     defined(MACH386) || \
-     defined(linux) || \
-     (defined(AMOEBA) && defined(i80386)) || \
-     defined(MINIX) || \
-     defined(WIN32))
-
+#if	(defined(SVR4) && defined(i386)) || \
+	defined(__alpha__) || defined(__alpha) || \
+	defined(__i386__) || \
+	defined(__UNIXOS2__) || \
+	defined(__OS2ELF__) || \
+	defined(__QNX__) || \
+	defined(__s390x__) || defined(__s390__)
+  
 #ifndef IMAGE_BYTE_ORDER
 #define IMAGE_BYTE_ORDER	LSBFirst
 #endif
@@ -353,6 +495,15 @@ SOFTWARE.
 
 #endif /* SVR4 / BSD / i386 */
 
+#if defined (linux) && defined (__mc68000__)
+
+#define IMAGE_BYTE_ORDER       MSBFirst
+#define BITMAP_BIT_ORDER       MSBFirst
+#define FAST_UNALIGNED_READS
+#define GLYPHPADBYTES          4
+#define GETLEFTBITS_ALIGNMENT  1
+
+#endif /* linux/m68k */
 
 #ifdef sgi
 
@@ -363,21 +514,6 @@ SOFTWARE.
 
 # define GLYPHPADBYTES		4
 # define GETLEFTBITS_ALIGNMENT	1
-
-/* pad scanline to a longword */
-#define BITMAP_SCANLINE_UNIT			64
-
-#define BITMAP_SCANLINE_PAD 			64
-#define LOG2_BITMAP_PAD				6
-#define LOG2_BYTES_PER_SCANLINE_PAD		3
-
-/* Add for handling protocol XPutImage and XGetImage; see comment below */
-#define INTERNAL_VS_EXTERNAL_PADDING
-#define BITMAP_SCANLINE_UNIT_PROTO		32
-
-#define BITMAP_SCANLINE_PAD_PROTO 	 	32
-#define LOG2_BITMAP_PAD_PROTO			5
-#define LOG2_BYTES_PER_SCANLINE_PAD_PROTO	2
 
 #else
 
@@ -393,18 +529,20 @@ SOFTWARE.
 
 #endif
 
+/* linux on the Compaq Itsy */
+#if defined(linux) && defined(__arm__)
+#define IMAGE_BYTE_ORDER	LSBFirst
+#define BITMAP_BIT_ORDER	LSBFirst
+#define GLYPHPADBYTES		4
+#define GETLEFTBITS_ALIGNMENT	1
+#endif
+ 
 /* size of buffer to use with GetImage, measured in bytes. There's obviously
  * a trade-off between the amount of stack (or whatever ALLOCATE_LOCAL gives
  * you) used and the number of times the ddx routine has to be called.
- * 
- * for a 1024 x 864 bit monochrome screen  with a 32 bit word we get 
- * 8192/4 words per buffer 
- * (1024/32) = 32 words per scanline
- * 2048 words per buffer / 32 words per scanline = 64 scanlines per buffer
- * 864 scanlines / 64 scanlines = 14 buffers to draw a full screen
  */
 #ifndef IMAGE_BUFSIZE
-#define IMAGE_BUFSIZE		8192
+#define IMAGE_BUFSIZE		(64*1024)
 #endif
 
 /* pad scanline to a longword */
@@ -429,12 +567,22 @@ typedef struct _PaddingInfo {
 	int     padRoundUp;	/* pixels per pad unit - 1 */
 	int	padPixelsLog2;	/* log 2 (pixels per pad unit) */
 	int     padBytesLog2;	/* log 2 (bytes per pad unit) */
+	int	notPower2;	/* bitsPerPixel not a power of 2 */
+	int	bytesPerPixel;	/* only set when notPower2 is TRUE */
+	int	bitsPerPixel;	/* bits per pixel */
 } PaddingInfo;
 extern PaddingInfo PixmapWidthPaddingInfo[];
 
+/* The only portable way to get the bpp from the depth is to look it up */
+#define BitsPerPixel(d) (PixmapWidthPaddingInfo[d].bitsPerPixel)
+
 #define PixmapWidthInPadUnits(w, d) \
+    (PixmapWidthPaddingInfo[d].notPower2 ? \
+    (((int)(w) * PixmapWidthPaddingInfo[d].bytesPerPixel +  \
+	         PixmapWidthPaddingInfo[d].bytesPerPixel) >> \
+	PixmapWidthPaddingInfo[d].padBytesLog2) : \
     ((int)((w) + PixmapWidthPaddingInfo[d].padRoundUp) >> \
-	PixmapWidthPaddingInfo[d].padPixelsLog2)
+	PixmapWidthPaddingInfo[d].padPixelsLog2))
 
 /*
  *	Return the number of bytes to which a scanline of the given
@@ -446,38 +594,8 @@ extern PaddingInfo PixmapWidthPaddingInfo[];
 #define BitmapBytePad(w) \
     (((int)((w) + BITMAP_SCANLINE_PAD - 1) >> LOG2_BITMAP_PAD) << LOG2_BYTES_PER_SCANLINE_PAD)
 
-#ifdef INTERNAL_VS_EXTERNAL_PADDING
-
-/*  This is defined if the server's internal padding is different from the padding
- *  advertised in the protocol.  The protocol does not allow for padding to
- *  64 bits, for example, so if the server wants to use 64 bit padding internally,
- *  it has to advertise 32 bit padding and do padding fixups whenever images
- *  cross the wire.  (See ProcGetImage and ProcPutImage.)
- *
- *  The macros and constants that end in Proto or PROTO refer to the advertised
- *  padding, and the ones without Proto are for internal padding.
- */
-
-extern PaddingInfo PixmapWidthPaddingInfoProto[];
-
-#define PixmapWidthInPadUnitsProto(w, d) \
-    ((int)((w) + PixmapWidthPaddingInfoProto[d].padRoundUp) >> \
-	PixmapWidthPaddingInfoProto[d].padPixelsLog2)
-
-#define PixmapBytePadProto(w, d) \
-    (PixmapWidthInPadUnitsProto(w, d) << \
-    PixmapWidthPaddingInfoProto[d].padBytesLog2)
-
-#define BitmapBytePadProto(w) \
-    ((((w) + BITMAP_SCANLINE_PAD_PROTO - 1) >> LOG2_BITMAP_PAD_PROTO) \
-    << LOG2_BYTES_PER_SCANLINE_PAD_PROTO)
-
-#else /* protocol and internal padding is the same */
-
 #define PixmapWidthInPadUnitsProto(w, d) PixmapWidthInPadUnits(w, d)
 #define PixmapBytePadProto(w, d) PixmapBytePad(w, d)
 #define BitmapBytePadProto(w) BitmapBytePad(w)
-
-#endif /* protocol vs. internal padding  */
 
 #endif /* SERVERMD_H */

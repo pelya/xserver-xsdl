@@ -1,3 +1,4 @@
+/* $XFree86: xc/programs/Xserver/cfb/cfbline.c,v 3.6 2001/12/14 19:59:23 dawes Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -114,7 +115,7 @@ cfbLineSS (pDrawable, pGC, mode, npt, pptInit)
     unsigned int oc1;		/* outcode of point 1 */
     unsigned int oc2;		/* outcode of point 2 */
 
-    unsigned long *addrl;	/* address of destination pixmap */
+    CfbBits *addrl;	/* address of destination pixmap */
     int nlwidth;		/* width in longwords of destination pixmap */
     int xorg, yorg;		/* origin of window */
 
@@ -134,11 +135,11 @@ cfbLineSS (pDrawable, pGC, mode, npt, pptInit)
     register int x1, x2;
     RegionPtr cclip;
     cfbPrivGCPtr    devPriv;
-    unsigned long   xor, and;
+    CfbBits   xor, and;
     int		    alu;
 
     devPriv = cfbGetGCPrivate(pGC);
-    cclip = devPriv->pCompositeClip;
+    cclip = pGC->pCompositeClip;
     pboxInit = REGION_RECTS(cclip);
     nboxInit = REGION_NUM_RECTS(cclip);
 
@@ -428,11 +429,16 @@ cfbLineSS (pDrawable, pGC, mode, npt, pptInit)
 		(x2 <  pbox->x2) &&
 		(y2 <  pbox->y2))
 	    {
-		unsigned long mask;
-		unsigned long scrbits;
+		CfbBits mask;
+		CfbBits scrbits;
 
+#if PSZ == 24
+		mask = cfbmask[(x2 & 3)<<1];
+		addrl += (y2 * nlwidth) + ((x2*3) >> 2);
+#else
 		mask = cfbmask[x2 & PIM];
 		addrl += (y2 * nlwidth) + (x2 >> PWSH);
+#endif
 		scrbits = *addrl;
 		*addrl = (scrbits & ~mask) |
 			 (DoRRop (scrbits, and, xor) & mask);
@@ -476,7 +482,7 @@ cfbLineSD( pDrawable, pGC, mode, npt, pptInit)
     register unsigned int oc1;		/* outcode of point 1 */
     register unsigned int oc2;		/* outcode of point 2 */
 
-    unsigned long *addrl;		/* address of destination pixmap */
+    CfbBits *addrl;		/* address of destination pixmap */
     int nlwidth;		/* width in longwords of destination pixmap */
     int xorg, yorg;		/* origin of window */
 
@@ -502,7 +508,7 @@ cfbLineSD( pDrawable, pGC, mode, npt, pptInit)
     cfbPrivGCPtr    devPriv;
 
     devPriv = cfbGetGCPrivate(pGC);
-    cclip = devPriv->pCompositeClip;
+    cclip = pGC->pCompositeClip;
     rrops[0].rop = devPriv->rop;
     rrops[0].and = devPriv->and;
     rrops[0].xor = devPriv->xor;
@@ -632,7 +638,6 @@ cfbLineSD( pDrawable, pGC, mode, npt, pptInit)
 		int clip1 = 0, clip2 = 0;
 		int clipdx, clipdy;
 		int err;
-		int dashIndexTmp, dashOffsetTmp;
 		
 		if (miZeroClipLine(pbox->x1, pbox->y1, pbox->x2-1,
 				   pbox->y2-1,
@@ -724,14 +729,19 @@ dontStep:	;
 		(x2 <  pbox->x2) &&
 		(y2 <  pbox->y2))
 	    {
-		unsigned long	mask;
+		CfbBits	mask;
 		int		pix;
 
 		pix = 0;
 		if (dashIndex & 1)
 		    pix = 1;
+#if PSZ == 24
+		mask = cfbmask[(x2 & 3)<<1];
+		addrl += (y2 * nlwidth) + ((x2 *3)>> 2);
+#else
 		mask = cfbmask[x2 & PIM];
 		addrl += (y2 * nlwidth) + (x2 >> PWSH);
+#endif
 		*addrl = DoMaskRRop (*addrl, rrops[pix].and, rrops[pix].xor, mask);
 		break;
 	    }

@@ -1,3 +1,4 @@
+/* $XFree86: xc/programs/Xserver/mi/miwindow.c,v 1.7 2001/12/14 20:00:28 dawes Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -156,10 +157,10 @@ miClearToBackground(pWin, x, y, w, h, generateExposures)
  *-----------------------------------------------------------------------
  */
 static Bool
-miCheckSubSaveUnder(pParent, pFirst, pRegion)
-    register WindowPtr	pParent;	/* Parent to check */
-    WindowPtr		pFirst;		/* first reconfigured window */
-    RegionPtr		pRegion;	/* Initial area obscured by saveUnder */
+miCheckSubSaveUnder(
+    register WindowPtr	pParent,	/* Parent to check */
+    WindowPtr		pFirst,		/* first reconfigured window */
+    RegionPtr		pRegion)	/* Initial area obscured by saveUnder */
 {
     register WindowPtr	pChild;		/* Current child */
     register ScreenPtr	pScreen;	/* Screen to use */
@@ -362,8 +363,10 @@ miMarkOverlappedWindows(pWin, pFirst, ppLayerWin)
     register BoxPtr box;
     register WindowPtr pChild, pLast;
     Bool anyMarked = FALSE;
-    void (* MarkWindow)() = pWin->drawable.pScreen->MarkWindow;
-    ScreenPtr pScreen = pWin->drawable.pScreen;
+    MarkWindowProcPtr MarkWindow = pWin->drawable.pScreen->MarkWindow;
+    ScreenPtr pScreen;
+
+    pScreen = pWin->drawable.pScreen;
 
     /* single layered systems are easy */
     if (ppLayerWin) *ppLayerWin = pWin;
@@ -379,6 +382,10 @@ miMarkOverlappedWindows(pWin, pFirst, ppLayerWin)
 	{
 	    if (pChild->viewable)
 	    {
+		if (REGION_BROKEN (pScreen, &pChild->winSize))
+		    SetWinSize (pChild);
+		if (REGION_BROKEN (pScreen, &pChild->borderSize))
+		    SetBorderSize (pChild);
 		(* MarkWindow)(pChild);
 		if (pChild->firstChild)
 		{
@@ -401,15 +408,21 @@ miMarkOverlappedWindows(pWin, pFirst, ppLayerWin)
 	pLast = pChild->parent->lastChild;
 	while (1)
 	{
-	    if (pChild->viewable && RECT_IN_REGION(pScreen, &pChild->borderSize,
-						       box))
+	    if (pChild->viewable)
 	    {
-		(* MarkWindow)(pChild);
-		anyMarked = TRUE;
-		if (pChild->firstChild)
+		if (REGION_BROKEN (pScreen, &pChild->winSize))
+		    SetWinSize (pChild);
+		if (REGION_BROKEN (pScreen, &pChild->borderSize))
+		    SetBorderSize (pChild);
+		if (RECT_IN_REGION(pScreen, &pChild->borderSize, box))
 		{
-		    pChild = pChild->firstChild;
-		    continue;
+		    (* MarkWindow)(pChild);
+		    anyMarked = TRUE;
+		    if (pChild->firstChild)
+		    {
+			pChild = pChild->firstChild;
+			continue;
+		    }
 		}
 	    }
 	    while (!pChild->nextSib && (pChild != pLast))
@@ -436,8 +449,10 @@ miHandleValidateExposures(pWin)
 {
     register WindowPtr pChild;
     register ValidatePtr val;
-    ScreenPtr pScreen = pWin->drawable.pScreen;
-    void (* WindowExposures)();
+    ScreenPtr pScreen;
+    WindowExposuresProcPtr WindowExposures;
+
+    pScreen = pWin->drawable.pScreen;
 
     pChild = pWin;
     WindowExposures = pChild->drawable.pScreen->WindowExposures;
@@ -478,9 +493,9 @@ miMoveWindow(pWin, x, y, pNextSib, kind)
     WindowPtr pParent;
     Bool WasViewable = (Bool)(pWin->viewable);
     short bw;
-    RegionPtr oldRegion;
+    RegionPtr oldRegion = NULL;
     DDXPointRec oldpt;
-    Bool anyMarked;
+    Bool anyMarked = FALSE;
     register ScreenPtr pScreen;
     WindowPtr windowToValidate;
 #ifdef DO_SAVE_UNDERS
@@ -558,9 +573,9 @@ miMoveWindow(pWin, x, y, pNextSib, kind)
  */
 
 static int
-miRecomputeExposures (pWin, value)
-    register WindowPtr	pWin;
-    pointer		value; /* must conform to VisitWindowProcPtr */
+miRecomputeExposures (
+    register WindowPtr	pWin,
+    pointer		value) /* must conform to VisitWindowProcPtr */
 {
     register ScreenPtr	pScreen;
     RegionPtr	pValid = (RegionPtr)value;
@@ -601,8 +616,8 @@ miSlideAndSizeWindow(pWin, x, y, w, h, pSib)
     int bw = wBorderWidth (pWin);
     short dw, dh;
     DDXPointRec oldpt;
-    RegionPtr oldRegion;
-    Bool anyMarked;
+    RegionPtr oldRegion = NULL;
+    Bool anyMarked = FALSE;
     register ScreenPtr pScreen;
     WindowPtr pFirstChange;
     register WindowPtr pChild;
@@ -610,9 +625,9 @@ miSlideAndSizeWindow(pWin, x, y, w, h, pSib)
     register unsigned g;
     int		nx, ny;		/* destination x,y */
     int		newx, newy;	/* new inner window position */
-    RegionPtr	pRegion;
+    RegionPtr	pRegion = NULL;
     RegionPtr	destClip;	/* portions of destination already written */
-    RegionPtr	oldWinClip;	/* old clip list for window */
+    RegionPtr	oldWinClip = NULL;	/* old clip list for window */
     RegionPtr	borderVisible = NullRegion; /* visible area of the border */
     RegionPtr	bsExposed = NullRegion;	    /* backing store exposures */
     Bool	shrunk = FALSE; /* shrunk in an inner dimension */
@@ -962,9 +977,8 @@ miSetShape(pWin)
 {
     Bool	WasViewable = (Bool)(pWin->viewable);
     register ScreenPtr pScreen = pWin->drawable.pScreen;
-    Bool	anyMarked;
-    WindowPtr	pParent = pWin->parent;
-    RegionPtr	pOldClip, bsExposed;
+    Bool	anyMarked = FALSE;
+    RegionPtr	pOldClip = NULL, bsExposed;
 #ifdef DO_SAVE_UNDERS
     Bool	dosave = FALSE;
 #endif
@@ -1064,7 +1078,7 @@ miChangeBorderWidth(pWin, width)
 {
     WindowPtr pParent;
     int oldwidth;
-    Bool anyMarked;
+    Bool anyMarked = FALSE;
     register ScreenPtr pScreen;
     Bool WasViewable = (Bool)(pWin->viewable);
     Bool HadBorder;
@@ -1140,5 +1154,23 @@ miMarkUnrealizedWindow(pChild, pWin, fromConfigure)
 	if (pChild->drawable.pScreen->ClipNotify)
 	    (* pChild->drawable.pScreen->ClipNotify)(pChild, 0, 0);
 	REGION_EMPTY(pChild->drawable.pScreen, &pChild->borderClip);
+    }
+}
+
+void
+miSegregateChildren(WindowPtr pWin, RegionPtr pReg, int depth)
+{
+    ScreenPtr pScreen;
+    WindowPtr pChild;
+
+    pScreen = pWin->drawable.pScreen;
+
+    for (pChild = pWin->firstChild; pChild; pChild = pChild->nextSib)
+    {
+	if (pChild->drawable.depth == depth)
+	    REGION_UNION(pScreen, pReg, pReg, &pChild->borderClip);
+
+	if (pChild->firstChild)
+	    miSegregateChildren(pChild, pReg, depth);
     }
 }
