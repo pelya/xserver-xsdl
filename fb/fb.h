@@ -22,7 +22,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $XdotOrg: $ */
+/* $XdotOrg$ */
 
 #ifndef _FB_H_
 #define _FB_H_
@@ -641,7 +641,7 @@ typedef struct {
 	((WindowPtr) (pWin))->devPrivates[fbWinPrivateIndex].ptr)
 #endif
 
-#ifdef __DARWIN__
+#if defined(__DARWIN__)||defined(__CYGWIN__)
 #define __fbPixOriginX(pPix)	((pPix)->drawable.x)
 #define __fbPixOriginY(pPix)	((pPix)->drawable.y)
 #else
