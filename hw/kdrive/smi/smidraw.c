@@ -285,8 +285,6 @@ smiDrawEnable (ScreenPtr pScreen)
     smic = getSmiCardInfo(pScreenPriv);
     dpr = smic->dpr;
     
-    iopl(3);
-    
     smis->stride = pScreenPriv->screen->fb[0].byteStride;
     smis->dpr_vpr_enable = smiGetIndex (smic, VGA_SEQ_INDEX, 
 					VGA_SEQ_DATA, 0x21) & ~0x03;
@@ -329,7 +327,6 @@ smiDrawDisable (ScreenPtr pScreen)
     smis = 0;
     dpr = 0;
     accel_cmd = 0;
-    iopl (0);
     LEAVE ();
 }
 

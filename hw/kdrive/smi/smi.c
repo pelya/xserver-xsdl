@@ -236,6 +236,7 @@ smiEnable (ScreenPtr pScreen)
     SmiCardInfo	*smic = pScreenPriv->card->driver;
 
     ENTER ();
+    iopl (3);
     if (!subEnable (pScreen))
 	return FALSE;
     
@@ -257,8 +258,10 @@ smiDisable (ScreenPtr pScreen)
     SmiCardInfo	*smic = pScreenPriv->card->driver;
 
     ENTER ();
+#if 0
 #ifdef XV
     KdXVDisable (pScreen);
+#endif
 #endif
     smiResetMMIO (pScreenPriv->card, smic);
     subDisable (pScreen);
