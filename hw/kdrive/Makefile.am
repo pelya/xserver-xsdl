@@ -11,5 +11,5 @@ SUBDIRS =			\
 	linux			\
 	$(FBDEV_SUBDIRS)	\
 	$(VESA_SUBDIRS)		\
-	ati			\
-	sis300
+	ati
+
