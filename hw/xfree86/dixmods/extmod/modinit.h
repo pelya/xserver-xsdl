@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/Xext/extmod/modinit.h,v 1.2 2004/04/23 18:44:43 eich Exp $ */
+/* $XdotOrg: xc/programs/Xserver/Xext/extmod/modinit.h,v 1.1.4.3.4.1 2004/05/04 19:43:01 ewalsh Exp $ */
 /* $XFree86: xc/programs/Xserver/Xext/extmod/modinit.h,v 1.1 2003/07/16 01:38:33 dawes Exp $ */
 
 #ifndef INITARGS
@@ -124,7 +124,16 @@ extern void ShmRegisterFuncs(
     ShmFuncsPtr funcs);
 #endif
 
+#ifdef XACE
+extern void XaceExtensionInit(INITARGS);
+#endif
+
+#ifdef XSELINUX
+extern void XSELinuxExtensionInit(INITARGS);
+#endif
+
 #if 1
+extern void SecurityExtensionSetup(INITARGS);
 extern void SecurityExtensionInit(INITARGS);
 #endif
 

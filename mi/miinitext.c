@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/mi/miinitext.c,v 1.3 2004/04/26 11:07:03 gisburn Exp $ */
+/* $XdotOrg: xc/programs/Xserver/mi/miinitext.c,v 1.1.4.5.2.1 2004/05/04 19:44:01 ewalsh Exp $ */
 /* $XFree86: xc/programs/Xserver/mi/miinitext.c,v 3.67 2003/01/12 02:44:27 dawes Exp $ */
 /***********************************************************
 
@@ -122,9 +122,15 @@ typedef void (*InitExtension)(INITARGS);
 #define _XAG_SERVER_
 #include "Xagstr.h"
 #endif
+#ifdef XACE
+#include "xace.h"
+#endif
 #ifdef XCSECURITY
 #define _SECURITY_SERVER
 #include "securstr.h"
+#endif
+#ifdef XSELINUX
+#include "xselinux.h"
 #endif
 #ifdef PANORAMIX
 #include "panoramiXproto.h"
@@ -210,8 +216,15 @@ extern void DbeExtensionInit(INITARGS);
 #ifdef XAPPGROUP
 extern void XagExtensionInit(INITARGS);
 #endif
+#ifdef XACE
+extern void XaceExtensionInit(INITARGS);
+#endif
 #ifdef XCSECURITY
+extern void SecurityExtensionSetup(INITARGS);
 extern void SecurityExtensionInit(INITARGS);
+#endif
+#ifdef XSELINUX
+extern void XSELinuxExtensionInit(INITARGS);
 #endif
 #ifdef XPRINT
 extern void XpExtensionInit(INITARGS);
@@ -270,6 +283,9 @@ InitExtensions(argc, argv)
     int		argc;
     char	*argv[];
 {
+#ifdef XCSECURITY
+    SecurityExtensionSetup();
+#endif
 #ifdef PANORAMIX
 # if !defined(PRINT_ONLY_SERVER) && !defined(NO_PANORAMIX)
   if (!noPanoramiXExtension) PanoramiXExtensionInit();
@@ -345,8 +361,14 @@ InitExtensions(argc, argv)
 #ifdef XAPPGROUP
     XagExtensionInit();
 #endif
+#ifdef XACE
+    XaceExtensionInit();
+#endif
 #ifdef XCSECURITY
     SecurityExtensionInit();
+#endif
+#ifdef XSELINUX
+    XSELinuxExtensionInit();
 #endif
 #ifdef XPRINT
     XpExtensionInit();
@@ -447,7 +469,9 @@ ExtensionModule extension[] =
     { NULL, "LBX", NULL, NULL },
     { NULL, "DOUBLE-BUFFER", NULL, NULL },
     { NULL, "XC-APPGROUP", NULL, NULL },
+    { NULL, "XAccessControlExtension", NULL, NULL },
     { NULL, "SECURITY", NULL, NULL },
+    { NULL, "SELinux", NULL, NULL },
     { NULL, "XpExtension", NULL, NULL },
     { NULL, "XFree86-VidModeExtension", NULL, NULL },
     { NULL, "XFree86-Misc", NULL, NULL },
@@ -501,8 +525,14 @@ static ExtensionModule staticExtensions[] = {
 #ifdef XAPPGROUP
     { XagExtensionInit, XAGNAME, NULL, NULL, NULL },
 #endif
+#ifdef XACE
+    { XaceExtensionInit, XACE_EXTENSION_NAME, NULL, NULL, NULL },
+#endif
 #ifdef XCSECURITY
-    { SecurityExtensionInit, SECURITY_EXTENSION_NAME, NULL, NULL, NULL },
+    { SecurityExtensionInit, SECURITY_EXTENSION_NAME, NULL, SecurityExtensionSetup, NULL },
+#endif
+#ifdef XSELINUX
+    { XSELinuxExtensionInit, XSELINUX_EXTENSION_NAME, NULL, NULL, NULL },
 #endif
 #ifdef XPRINT
     { XpExtensionInit, XP_PRINTNAME, NULL, NULL, NULL },
