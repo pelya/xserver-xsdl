@@ -1462,7 +1462,18 @@ CompositeTriFan (CARD8		op,
     (*ps->TriFan) (op, pSrc, pDst, maskFormat, xSrc, ySrc, npoints, points);
 }
 
-typedef xFixed_32_32	xFixed_48_16;
+void
+AddTraps (PicturePtr	pPicture,
+	  INT16		xOff,
+	  INT16		yOff,
+	  int		ntrap,
+	  xTrap		*traps)
+{
+    PictureScreenPtr	ps = GetPictureScreen(pPicture->pDrawable->pScreen);
+    
+    ValidatePicture (pPicture);
+    (*ps->AddTraps) (pPicture, xOff, yOff, ntrap, traps);
+}
 
 #define MAX_FIXED_48_16	    ((xFixed_48_16) 0x7fffffff)
 #define MIN_FIXED_48_16	    (-((xFixed_48_16) 1 << 31))

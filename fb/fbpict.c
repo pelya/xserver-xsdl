@@ -1230,6 +1230,8 @@ fbPictureInit (ScreenPtr pScreen, PictFormatPtr formats, int nformats)
     ps->Glyphs = miGlyphs;
     ps->CompositeRects = miCompositeRects;
     ps->RasterizeTrapezoid = fbRasterizeTrapezoid;
+    ps->AddTraps = fbAddTraps;
+    ps->AddTriangles = fbAddTriangles;
 
 #endif /* RENDER */
 

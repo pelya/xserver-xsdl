@@ -186,6 +186,11 @@ typedef long long int	xFixed_32_32;
 # endif
 #endif
 
+typedef xFixed_32_32	xFixed_48_16;
+
+#define MAX_FIXED_48_16	    ((xFixed_48_16) 0x7fffffff)
+#define MIN_FIXED_48_16	    (-((xFixed_48_16) 1 << 31))
+
 typedef CARD32		xFixed_1_31;
 typedef CARD32		xFixed_1_16;
 typedef INT32		xFixed_16_16;

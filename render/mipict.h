@@ -124,6 +124,9 @@ miRenderPixelToColor (PictFormatPtr pPict,
 		      CARD32	    pixel,
 		      xRenderColor  *color);
 
+Bool
+miIsSolidAlpha (PicturePtr pSrc);
+
 void
 miCompositeRects (CARD8		op,
 		  PicturePtr	pDst,

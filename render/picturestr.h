@@ -226,6 +226,18 @@ typedef void	(*UpdateIndexedProcPtr)	    (ScreenPtr	    pScreen,
 					     int	    ndef,
 					     xColorItem	    *pdef);
 
+typedef void	(*AddTrapsProcPtr)	    (PicturePtr	    pPicture,
+					     INT16	    xOff,
+					     INT16	    yOff,
+					     int	    ntrap,
+					     xTrap	    *traps);
+
+typedef void	(*AddTrianglesProcPtr)	    (PicturePtr	    pPicture,
+					     INT16	    xOff,
+					     INT16	    yOff,
+					     int	    ntri,
+					     xTriangle	    *tris);
+
 typedef struct _PictureScreen {
     int				totalPictureSize;
     unsigned int		*PicturePrivateSizes;
@@ -273,6 +285,11 @@ typedef struct _PictureScreen {
     TriFanProcPtr		TriFan;
 
     RasterizeTrapezoidProcPtr	RasterizeTrapezoid;
+
+    AddTrianglesProcPtr		AddTriangles;
+
+    AddTrapsProcPtr		AddTraps;
+
 } PictureScreenRec, *PictureScreenPtr;
 
 extern int		PictureScreenPrivateIndex;
@@ -515,6 +532,13 @@ AnimCurInit (ScreenPtr pScreen);
 
 int
 AnimCursorCreate (CursorPtr *cursors, CARD32 *deltas, int ncursor, CursorPtr *ppCursor);
+
+void
+AddTraps (PicturePtr	pPicture, 
+	  INT16		xOff,
+	  INT16		yOff,
+	  int		ntraps,
+	  xTrap		*traps);
 
 #ifdef PANORAMIX
 void PanoramiXRenderInit (void);

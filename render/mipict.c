@@ -456,6 +456,35 @@ miFillColor (CARD32 pixel, int bits)
     return (CARD16) pixel;
 }
 
+Bool
+miIsSolidAlpha (PicturePtr pSrc)
+{
+    ScreenPtr	pScreen = pSrc->pDrawable->pScreen;
+    char	line[1];
+    
+    /* Alpha-only */
+    if (PICT_FORMAT_TYPE (pSrc->format) != PICT_TYPE_A)
+	return FALSE;
+    /* repeat */
+    if (!pSrc->repeat)
+	return FALSE;
+    /* 1x1 */
+    if (pSrc->pDrawable->width != 1 || pSrc->pDrawable->height != 1)
+	return FALSE;
+    line[0] = 1;
+    (*pScreen->GetImage) (pSrc->pDrawable, 0, 0, 1, 1, ZPixmap, ~0L, line);
+    switch (pSrc->pDrawable->bitsPerPixel) {
+    case 1:
+	return (CARD8) line[0] == 1 || (CARD8) line[0] == 0x80;
+    case 4:
+	return (CARD8) line[0] == 0xf || (CARD8) line[0] == 0xf0;
+    case 8:
+	return (CARD8) line[0] == 0xff;
+    default:
+	return FALSE;
+    }
+}
+
 void
 miRenderPixelToColor (PictFormatPtr format,
 		      CARD32	    pixel,
@@ -516,5 +545,9 @@ miPictureInit (ScreenPtr pScreen, PictFormatPtr formats, int nformats)
     ps->TriStrip	= miTriStrip;
     ps->TriFan		= miTriFan;
     
+    ps->RasterizeTrapezoid = 0;			/* requires DDX support */
+    ps->AddTraps	= 0;			/* requires DDX support */
+    ps->AddTriangles	= 0;			/* requires DDX support */
+
     return TRUE;
 }

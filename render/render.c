@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/render/render.c,v 1.3 2004/06/30 20:06:56 kem Exp $ */
+/* $XdotOrg: xc/programs/Xserver/render/render.c,v 1.4 2004/07/26 22:41:47 herrb Exp $ */
 /*
  * $XFree86: xc/programs/Xserver/render/render.c,v 1.27tsi Exp $
  *
@@ -78,6 +78,7 @@ static int ProcRenderSetPictureTransform (ClientPtr pClient);
 static int ProcRenderQueryFilters (ClientPtr pClient);
 static int ProcRenderSetPictureFilter (ClientPtr pClient);
 static int ProcRenderCreateAnimCursor (ClientPtr pClient);
+static int ProcRenderAddTraps (ClientPtr pClient);
 
 static int ProcRenderDispatch (ClientPtr pClient);
 
@@ -111,6 +112,7 @@ static int SProcRenderSetPictureTransform (ClientPtr pClient);
 static int SProcRenderQueryFilters (ClientPtr pClient);
 static int SProcRenderSetPictureFilter (ClientPtr pClient);
 static int SProcRenderCreateAnimCursor (ClientPtr pClient);
+static int SProcRenderAddTraps (ClientPtr pClient);
 
 static int SProcRenderDispatch (ClientPtr pClient);
 
@@ -147,6 +149,7 @@ int	(*ProcRenderVector[RenderNumberRequests])(ClientPtr) = {
     ProcRenderQueryFilters,
     ProcRenderSetPictureFilter,
     ProcRenderCreateAnimCursor,
+    ProcRenderAddTraps,
 };
 
 int	(*SProcRenderVector[RenderNumberRequests])(ClientPtr) = {
@@ -182,6 +185,7 @@ int	(*SProcRenderVector[RenderNumberRequests])(ClientPtr) = {
     SProcRenderQueryFilters,
     SProcRenderSetPictureFilter,
     SProcRenderCreateAnimCursor,
+    SProcRenderAddTraps,
 };
 
 static void
@@ -1813,6 +1817,27 @@ ProcRenderCreateAnimCursor (ClientPtr client)
 }
 
 static int
+ProcRenderAddTraps (ClientPtr client)
+{
+    int		ntraps;
+    PicturePtr	pPicture;
+    REQUEST(xRenderAddTrapsReq);
+
+    REQUEST_AT_LEAST_SIZE(xRenderAddTrapsReq);
+    VERIFY_PICTURE (pPicture, stuff->picture, client, SecurityWriteAccess, 
+		    RenderErrBase + BadPicture);
+    ntraps = (client->req_len << 2) - sizeof (xRenderAddTrapsReq);
+    if (ntraps % sizeof (xTrap))
+	return BadLength;
+    ntraps /= sizeof (xTrap);
+    if (ntraps)
+	AddTraps (pPicture,
+		  stuff->xOff, stuff->yOff,
+		  ntraps, (xTrap *) &stuff[1]);
+    return client->noClientException;
+}
+
+static int
 ProcRenderDispatch (ClientPtr client)
 {
     REQUEST(xReq);
@@ -2273,6 +2298,21 @@ SProcRenderCreateAnimCursor (ClientPtr client)
 
     swaps(&stuff->length, n);
     swapl(&stuff->cid, n);
+    SwapRestL(stuff);
+    return (*ProcRenderVector[stuff->renderReqType]) (client);
+}
+
+static int
+SProcRenderAddTraps (ClientPtr client)
+{
+    register int n;
+    REQUEST (xRenderAddTrapsReq);
+    REQUEST_AT_LEAST_SIZE (xRenderAddTrapsReq);
+
+    swaps(&stuff->length, n);
+    swapl(&stuff->picture, n);
+    swaps(&stuff->xOff, n);
+    swaps(&stuff->yOff, n);
     SwapRestL(stuff);
     return (*ProcRenderVector[stuff->renderReqType]) (client);
 }
@@ -2922,6 +2962,44 @@ PanoramiXRenderColorTriangles(ClientPtr client)
 
 #endif
 
+static int
+PanoramiXRenderAddTraps (ClientPtr client)
+{
+    PanoramiXRes    *picture;
+    int		    result = Success, j;
+    REQUEST(xRenderAddTrapsReq);
+    char	    *extra;
+    int		    extra_len;
+    INT16    	    x_off, y_off;
+
+    REQUEST_AT_LEAST_SIZE (xRenderAddTrapsReq);
+    VERIFY_XIN_PICTURE (picture, stuff->picture, client, SecurityWriteAccess, 
+			RenderErrBase + BadPicture);
+    extra_len = (client->req_len << 2) - sizeof (xRenderAddTrapsReq);
+    if (extra_len &&
+	(extra = (char *) ALLOCATE_LOCAL (extra_len)))
+    {
+	memcpy (extra, stuff + 1, extra_len);
+	x_off = stuff->xOff;
+	y_off = stuff->yOff;
+	FOR_NSCREENS_FORWARD(j) {
+	    if (j) memcpy (stuff + 1, extra, extra_len);
+	    stuff->picture = picture->info[j].id;
+	    
+	    if (picture->u.pict.root)
+	    {
+		stuff->xOff = x_off + panoramiXdataPtr[j].x;
+		stuff->yOff = y_off + panoramiXdataPtr[j].y;
+	    }
+	    result = (*PanoramiXSaveRenderVector[X_RenderAddTraps]) (client);
+	    if(result != Success) break;
+	}
+	DEALLOCATE_LOCAL(extra);
+    }
+
+    return result;
+}
+
 void
 PanoramiXRenderInit (void)
 {
@@ -2949,6 +3027,7 @@ PanoramiXRenderInit (void)
     ProcRenderVector[X_RenderTriangles] = PanoramiXRenderTriangles;
     ProcRenderVector[X_RenderTriStrip] = PanoramiXRenderTriStrip;
     ProcRenderVector[X_RenderTriFan] = PanoramiXRenderTriFan;
+    ProcRenderVector[X_RenderAddTraps] = PanoramiXRenderAddTraps;
 }
 
 void

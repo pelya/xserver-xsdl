@@ -25,6 +25,8 @@
 #ifndef _FBPICT_H_
 #define _FBPICT_H_
 
+#include "renderedge.h"
+
 #define FbIntMult(a,b,t) ( (t) = (a) * (b) + 0x80, ( ( ( (t)>>8 ) + (t) )>>8 ) )
 #define FbIntDiv(a,b)	 (((CARD16) (a) * 255) / (b))
 
@@ -198,6 +200,15 @@ typedef struct _FbAccessMap {
  * search on format
  */
 extern FbAccessMap  fbAccessMap[];
+
+/* fbaddtrap.c */
+
+void
+fbAddTraps (PicturePtr	pPicture,
+	    INT16	xOff,
+	    INT16	yOff,
+	    int		ntrap,
+	    xTrap	*traps);
 
 /* fbcompose.c */
 
@@ -817,6 +828,17 @@ fbCompositeGeneral (CARD8	op,
 		    CARD16	height);
 
 
+/* fbedge.c */
+void
+fbRasterizeEdges (FbBits	*buf,
+		  int		bpp,
+		  int		width,
+		  int		stride,
+		  RenderEdge	*l,
+		  RenderEdge	*r,
+		  xFixed	t,
+		  xFixed	b);
+
 /* fbpict.c */
 CARD32
 fbOver (CARD32 x, CARD32 y);
@@ -1024,10 +1046,25 @@ fbComposite (CARD8      op,
 	     CARD16     height);
 
 /* fbtrap.c */
+
+void
+fbAddTraps (PicturePtr	pPicture,
+	    INT16	xOff,
+	    INT16	yOff,
+	    int		ntrap,
+	    xTrap	*traps);
+
 void
 fbRasterizeTrapezoid (PicturePtr    alpha,
 		      xTrapezoid    *trap,
 		      int	    x_off,
 		      int	    y_off);
+
+void
+fbAddTriangles (PicturePtr  pPicture,
+		INT16	    xOff,
+		INT16	    yOff,
+		int	    ntri,
+		xTriangle   *tris);
 
 #endif /* _FBPICT_H_ */
