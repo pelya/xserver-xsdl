@@ -30,6 +30,7 @@
 #include "ati_reg.h"
 #include "ati_dma.h"
 #include "ati_draw.h"
+#include "kaa.h"
 
 CARD8 ATISolidRop[16] = {
     /* GXclear      */      0x00,         /* 0 */
