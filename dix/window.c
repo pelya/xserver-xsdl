@@ -1,4 +1,4 @@
-/* $XdotOrg$ */
+/* $XdotOrg: xc/programs/Xserver/dix/window.c,v 1.2 2004/04/23 19:04:44 eich Exp $ */
 /* $Xorg: window.c,v 1.4 2001/02/09 02:04:41 xorgcvs Exp $ */
 /*
 
@@ -3152,10 +3152,17 @@ HandleSaveSet(client)
 
     for (j=0; j<client->numSaved; j++)
     {
-	pWin = (WindowPtr)client->saveSet[j];
-	pParent = pWin->parent;
-	while (pParent && (wClient (pParent) == client))
-	    pParent = pParent->parent;
+	pWin = SaveSetWindow(client->saveSet[j]);
+#ifdef XFIXES
+        if (SaveSetToRoot(client->saveSet[j]))
+            pParent = WindowTable[pWin->drawable.pScreen->myNum];
+        else
+#endif
+        {
+            pParent = pWin->parent;
+            while (pParent && (wClient (pParent) == client))
+                pParent = pParent->parent;
+        }
 	if (pParent)
 	{
 	    if (pParent != pWin->parent)
@@ -3172,7 +3179,11 @@ HandleSaveSet(client)
     }
     xfree(client->saveSet);
     client->numSaved = 0;
+#ifdef XFIXES
+    client->saveSet = (SaveSetElt *)NULL;
+#else
     client->saveSet = (pointer *)NULL;
+#endif
 }
 
 Bool
@@ -3227,8 +3238,9 @@ SendVisibilityNotify(pWin)
     WindowPtr pWin;
 {
     xEvent event;
+#ifndef NO_XINERAMA_PORT
     unsigned int visibility = pWin->visibility;
-
+#endif
 #ifdef PANORAMIX
     /* This is not quite correct yet, but it's close */
     if(!noPanoramiXExtension) {

@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/dix/events.c,v 1.2 2004/04/23 19:04:44 eich Exp $ */
+/* $XdotOrg: xc/programs/Xserver/dix/events.c,v 1.3 2004/06/30 20:06:53 kem Exp $ */
 /* $XFree86: xc/programs/Xserver/dix/events.c,v 3.51 2004/01/12 17:04:52 tsi Exp $ */
 /************************************************************
 
@@ -181,11 +181,6 @@ static WindowPtr *spriteTrace = (WindowPtr *)NULL;
 #define ROOT spriteTrace[0]
 static int spriteTraceSize = 0;
 static int spriteTraceGood;
-
-typedef struct {
-    int		x, y;
-    ScreenPtr	pScreen;
-} HotSpot;
 
 static  struct {
     CursorPtr	current;
