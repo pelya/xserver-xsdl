@@ -188,7 +188,7 @@ winMWExtWMUpdateIcon (Window id)
  * winMWExtWMDecorateWindow - Update window style. Called by EnumWindows.
  */
 
-BOOL CALLBACK
+wBOOL CALLBACK
 winMWExtWMDecorateWindow (HWND hwnd, LPARAM lParam)
 {
   win32RootlessWindowPtr pRLWinPriv = NULL;

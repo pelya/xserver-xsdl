@@ -1396,7 +1396,7 @@ void
 winMWExtWMUpdateWindowDecoration (win32RootlessWindowPtr pRLWinPriv,
 				  winScreenInfoPtr pScreenInfo);
 
-BOOL CALLBACK
+wBOOL CALLBACK
 winMWExtWMDecorateWindow (HWND hwnd, LPARAM lParam);
 
 Bool
