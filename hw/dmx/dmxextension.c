@@ -227,14 +227,14 @@ static void dmxAdjustCursorBoundaries(void)
     dmxConnectionBlockCallback();
     for (i = 0; i < dmxNumInputs; i++) {
         DMXInputInfo *dmxInput = &dmxInputs[i];
-	dmxInputReInit(dmxInput);
+	if (!dmxInput->detached) dmxInputReInit(dmxInput);
     }
 
     dmxCheckCursor();
 
     for (i = 0; i < dmxNumInputs; i++) {
         DMXInputInfo *dmxInput = &dmxInputs[i];
-	dmxInputLateReInit(dmxInput);
+	if (!dmxInput->detached) dmxInputLateReInit(dmxInput);
     }
 }
 

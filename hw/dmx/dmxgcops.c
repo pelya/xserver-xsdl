@@ -47,6 +47,8 @@
 #include "pixmapstr.h"
 #include "dixfontstr.h"
 
+#include "panoramiXsrv.h"
+
 #define DMX_GCOPS_SET_DRAWABLE(_pDraw, _draw)				\
 do {									\
     if ((_pDraw)->type == DRAWABLE_WINDOW) {				\
@@ -503,6 +505,42 @@ void dmxPushPixels(GCPtr pGC, PixmapPtr pBitMap, DrawablePtr pDst,
  * Miscellaneous drawing commands
  */
 
+/** When Xinerama is active, the client pixmaps are always obtained from
+ * screen 0.  When screen 0 is detached, the pixmaps must be obtained
+ * from any other screen that is not detached.  Usually, this is screen
+ * 1. */
+static DMXScreenInfo *dmxFindAlternatePixmap(DrawablePtr pDrawable, XID *draw)
+{
+#ifdef PANORAMIX
+    PanoramiXRes  *pXinPix;
+    int           i;
+    DMXScreenInfo *dmxScreen;
+            
+    if (noPanoramiXExtension)               return NULL;
+    if (pDrawable->type != DRAWABLE_PIXMAP) return NULL;
+    
+    if (!(pXinPix = (PanoramiXRes *)LookupIDByType(pDrawable->id, XRT_PIXMAP)))
+        return NULL;
+
+    for (i = 1; i < PanoramiXNumScreens; i++) {
+        dmxScreen = &dmxScreens[i];
+        if (dmxScreen->beDisplay) {
+            PixmapPtr     pSrc;
+            dmxPixPrivPtr pSrcPriv;
+            
+            pSrc = (PixmapPtr)LookupIDByType(pXinPix->info[i].id,
+                                             RT_PIXMAP);
+            pSrcPriv = DMX_GET_PIXMAP_PRIV(pSrc);
+            if (pSrcPriv->pixmap) {
+                *draw = pSrcPriv->pixmap;
+                return dmxScreen;
+            }
+        }
+    }
+#endif
+    return NULL;
+}
+
 /** Get an image from the back-end server associated with \a pDrawable's
  *  screen.  If \a pDrawable is a window, it must be viewable to get an
  *  image from it.  If it is not viewable, then get the image from the
@@ -533,8 +571,11 @@ void dmxGetImage(DrawablePtr pDrawable, int sx, int sy, int w, int h,
 	    return;
     } else {
 	DMX_GCOPS_SET_DRAWABLE(pDrawable, draw);
-	if (DMX_GCOPS_OFFSCREEN(pDrawable))
-	    return;
+	if (DMX_GCOPS_OFFSCREEN(pDrawable)) {
+            /* Try to find the pixmap on a non-detached Xinerama screen */
+            dmxScreen = dmxFindAlternatePixmap(pDrawable, &draw);
+            if (!dmxScreen) return;
+        }
     }
 
     img = XGetImage(dmxScreen->beDisplay, draw,
