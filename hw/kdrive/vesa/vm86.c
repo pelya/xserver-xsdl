@@ -431,13 +431,12 @@ vm86_emulate(Vm86InfoPtr vi)
         if(pref_rep) {
             if(pref_66) {
                 regs->ecx--;
-                if(regs->ecx != 0) {
+                if(regs->ecx != 0)
                     goto again;
-                } else {
-                    SET_16(regs->ecx, regs->ecx - 1);
-                    if(regs->ecx & 0xFFFF != 0)
-                        goto again;
-                }
+            } else {
+                SET_16(regs->ecx, regs->ecx - 1);
+                if(regs->ecx & 0xFFFF != 0)
+                    goto again;
             }
         }
         INC_IP(1);
