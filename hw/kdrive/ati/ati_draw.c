@@ -677,7 +677,8 @@ ATIBlockHandler(pointer blockData, OSTimePtr timeout, pointer readmask)
 	/* When the server is going to sleep, make sure that all DMA data has
 	 * been flushed.
 	 */
-	ATIFlushIndirect(atis, 1);
+	if (atis->indirectBuffer)
+		ATIFlushIndirect(atis, 1);
 }
 
 static void
@@ -770,17 +771,11 @@ ATIDrawEnable(ScreenPtr pScreen)
 			atis->kaa.PrepareComposite = R128PrepareComposite;
 			atis->kaa.Composite = R128Composite;
 			atis->kaa.DoneComposite = R128DoneComposite;
-			/*atis->kaa.PrepareTrapezoids = R128PrepareTrapezoids;
-			atis->kaa.Trapezoids = R128Trapezoids;
-			atis->kaa.DoneTrapezoids = R128DoneTrapezoids;*/
 		} else if (atic->is_r100) {
 			atis->kaa.CheckComposite = R100CheckComposite;
 			atis->kaa.PrepareComposite = R100PrepareComposite;
 			atis->kaa.Composite = RadeonComposite;
 			atis->kaa.DoneComposite = RadeonDoneComposite;
-			/*atis->kaa.PrepareTrapezoids = RadeonPrepareTrapezoids;
-			atis->kaa.Trapezoids = RadeonTrapezoids;
-			atis->kaa.DoneTrapezoids = RadeonDoneTrapezoids;*/
 		} else if (0 && atic->is_r200) { /* XXX */
 			atis->kaa.CheckComposite = R200CheckComposite;
 			atis->kaa.PrepareComposite = R200PrepareComposite;
@@ -788,6 +783,19 @@ ATIDrawEnable(ScreenPtr pScreen)
 			atis->kaa.DoneComposite = RadeonDoneComposite;
 		}
 	}
+#ifdef USE_DRI
+	if (atis->using_dri) {
+		if (!atic->is_radeon) {
+			/*atis->kaa.PrepareTrapezoids = R128PrepareTrapezoids;
+			atis->kaa.Trapezoids = R128Trapezoids;
+			atis->kaa.DoneTrapezoids = R128DoneTrapezoids;*/
+		} else if (atic->is_r100) {
+			atis->kaa.PrepareTrapezoids = RadeonPrepareTrapezoids;
+			atis->kaa.Trapezoids = RadeonTrapezoids;
+			atis->kaa.DoneTrapezoids = RadeonDoneTrapezoids;
+		}
+	}
+#endif /* USE_DRI */
 
 	atis->kaa.UploadToScreen = ATIUploadToScreen;
 
@@ -809,8 +817,6 @@ ATIDrawEnable(ScreenPtr pScreen)
 void
 ATIDrawDisable(ScreenPtr pScreen)
 {
-	RemoveBlockAndWakeupHandlers (ATIBlockHandler, ATIWakeupHandler,
-				      pScreen);
 
 	ATIDMATeardown(pScreen);
 }
@@ -826,6 +832,9 @@ ATIDrawFini(ScreenPtr pScreen)
 		atis->using_dri = FALSE;
 	}
 #endif /* USE_DRI */
+
+	RemoveBlockAndWakeupHandlers(ATIBlockHandler, ATIWakeupHandler,
+	    pScreen);
 
 	kaaDrawFini(pScreen);
 }
