@@ -40,6 +40,7 @@ from The Open Group.
 #define _XAG_SERVER_
 #include "Xagstr.h"
 #include "Xagsrv.h"
+#include "xacestr.h"
 #define _SECURITY_SERVER
 #include "security.h"
 #include "Xfuncproto.h"
@@ -125,60 +126,9 @@ void XagClientStateChange(
     pointer nulldata,
     pointer calldata)
 {
-    SecurityAuthorizationPtr pAuth;
     NewClientInfoRec* pci = (NewClientInfoRec*) calldata;
     ClientPtr pClient = pci->client;
-    AppGroupPtr pAppGrp;
-    XID authId = 0;
-
-    if (!pClient->appgroup) {
-	switch (pClient->clientState) {
-
-	case ClientStateAuthenticating:
-	case ClientStateRunning: 
-	case ClientStateCheckingSecurity:
-	    return;
-
-	case ClientStateInitial: 
-	case ClientStateCheckedSecurity:
-	    /* 
-	     * If the client is connecting via a firewall proxy (which
-	     * uses XC-QUERY-SECURITY-1, then the authId is available
-	     * during ClientStateCheckedSecurity, otherwise it's
-	     * available during ClientStateInitial.
-	     *
-	     * Don't get it from pClient because can't guarantee the order
-	     * of the callbacks and the security extension might not have
-	     * plugged it in yet.
-	     */
-	    authId = AuthorizationIDOfClient(pClient);
-	    break;
-
-	case ClientStateGone:
-	case ClientStateRetained:
-	    /*
-	     * Don't get if from AuthorizationIDOfClient because can't
-	     * guarantee the order of the callbacks and the security
-	     * extension may have torn down the client's private data
-	     */
-	    authId = pClient->authId;
-	    break;
-	}
-
-	if (authId == None)
-	    return;
-
-	pAuth = (SecurityAuthorizationPtr)SecurityLookupIDByType(pClient,
-		authId, SecurityAuthorizationResType, SecurityReadAccess);
-
-	if (pAuth == NULL)
-	    return;
-
-	for (pAppGrp = appGrpList; pAppGrp != NULL; pAppGrp = pAppGrp->next)
-	    if (pAppGrp->appgroupId == pAuth->group) break;
-    } else {
-	pAppGrp = pClient->appgroup;
-    }
+    AppGroupPtr pAppGrp = pClient->appgroup;
 
     if (!pAppGrp)
 	return;
@@ -248,6 +198,7 @@ XagExtensionInit(INITARGS)
 		      StandardMinorOpcode)) {
 #endif
 	RT_APPGROUP = CreateNewResourceType (XagAppGroupFree);
+	XaceRegisterCallback(XACE_AUTH_AVAIL, XagCallClientStateChange, NULL);
     }
 }
 
@@ -814,12 +765,33 @@ void XagGetDeltaInfo(
 }
 
 void XagCallClientStateChange(
-    ClientPtr client)
+    CallbackListPtr *pcbl,
+    pointer nulldata,
+    pointer calldata)
 {
-    if (appGrpList) {
+    XaceAuthAvailRec* rec = (XaceAuthAvailRec*) calldata;
+    ClientPtr pClient = rec->client;
+
+    if (!pClient->appgroup) {
+	SecurityAuthorizationPtr pAuth;
+	XID authId = rec->authId;
+
+	/* can't use SecurityLookupIDByType here -- client
+	 * security state hasn't been setup yet.
+	 */
+	pAuth = (SecurityAuthorizationPtr)LookupIDByType(authId,
+				SecurityAuthorizationResType);
+	if (!pAuth)
+	    return;
+
+	pClient->appgroup = (AppGroupPtr)LookupIDByType(pAuth->group,
+							RT_APPGROUP);
+    }
+
+    if (pClient->appgroup) {
 	NewClientInfoRec clientinfo;
 
-	clientinfo.client = client;
+	clientinfo.client = pClient;
 	XagClientStateChange (NULL, NULL, (pointer)&clientinfo);
     }
 }
