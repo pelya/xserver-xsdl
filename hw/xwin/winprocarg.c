@@ -50,6 +50,7 @@ extern char *			g_pszCommandLine;
 extern Bool			g_fKeyboardHookLL;
 extern Bool			g_fNoHelpMessageBox;                     
 extern Bool			g_fSoftwareCursor;
+extern Bool			g_fSilentDupError;
 
 
 /*
@@ -1154,6 +1155,11 @@ ddxProcessArgument (int argc, char *argv[], int i)
       return 1;
     }
   
+  if (IS_OPTION ("-silent-dup-error"))
+    {
+      g_fSilentDupError = TRUE;
+      return 1;
+    }
   return 0;
 }
 

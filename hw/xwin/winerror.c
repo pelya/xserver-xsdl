@@ -32,7 +32,7 @@
 
 /* References to external symbols */
 extern char *		g_pszCommandLine;
-extern Bool		g_fUseMsg;
+extern Bool		g_fSilentFatalError;
 
 
 #ifdef DDXOSVERRORF
@@ -69,7 +69,7 @@ void
 OsVendorFatalError (void)
 {
   /* Don't give duplicate warning if UseMsg was called */
-  if (g_fUseMsg)
+  if (g_fSilentFatalError)
     return;
 
   winMessageBoxF ("A fatal error has occurred and Cygwin/X will now exit.\n" \

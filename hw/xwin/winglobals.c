@@ -59,13 +59,14 @@ char *		g_pszLogFile = "/tmp/XWin.log";
 int		g_iLogVerbose = 2;
 Bool		g_fLogInited = FALSE;
 char *		g_pszCommandLine = NULL;
-Bool		g_fUseMsg = FALSE;
+Bool		g_fSilentFatalError = FALSE;
 DWORD		g_dwCurrentThreadID = 0;
 Bool		g_fKeyboardHookLL = FALSE;
 HHOOK		g_hhookKeyboardLL = NULL;
 HWND		g_hwndKeyboardFocus = NULL;
 Bool		g_fNoHelpMessageBox = FALSE;
 Bool		g_fSoftwareCursor = FALSE;
+Bool		g_fSilentDupError = FALSE;
 
 
 /*

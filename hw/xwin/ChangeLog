@@ -1,3 +1,26 @@
+2004-07-09  Alexander Gottwald  <ago@freedesktop.org>
+
+	* winconfig.c: Add entry for irish layout (ie)
+	* InitOutput.c, winerror.c, winglobals.c: rename g_fUseMsg to 
+	g_fSilentFatalError
+	* InitOutput.c, winglobals.c, winprocarg.c: added commandline option 
+	-silent-dup-error to allow silent termination if another instance of
+	XWin was found running
+
+2004-06-27  Alexander Gottwald  <ago@freedesktop.org>
+
+	* winconfig.c: Add entry for us layout. This changes not much but 
+	removes a strange error message about the unknown us layout. 
+
+2004-06-24  Alexander Gottwald  <ago@freedesktop.org>
+
+	* InitOutput.c: Check for textmode mounted /tmp and print a warning
+
+2004-06-15  Harold Hunt  <huntharo@msu.edu>
+
+	* windialogs.c: Fix path to locally installed changelog for the About 
+	dialog box.
+
 2004-05-27  Alexander Gottwald  <ago@freedesktop.org>
 
 	* winpriv.c: Create win32 window if not already created
@@ -62,3 +85,5 @@
 	logging api's.  Add some additional debug logging.  Make best effort 
 	to prevent our window appearing twice in the clipboard chain.  Also 
 	detect loops when they occur and try to behave in a reasonable way.
+
+# vim:ts=8:noexpandtab        
