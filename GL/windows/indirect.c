@@ -995,6 +995,26 @@ static __GLXvisualConfig FallbackConfigs[NUM_FALLBACK_CONFIGS] = {
   }
 };
 
+static __GLXvisualConfig NullConfig = {
+    -1,                 /* vid */
+    -1,                 /* class */
+    False,              /* rgba */
+    -1, -1, -1, 0,      /* rgba sizes */
+    -1, -1, -1, 0,      /* rgba masks */
+     0,  0,  0, 0,      /* rgba accum sizes */
+    False,              /* doubleBuffer */
+    False,              /* stereo */
+    -1,                 /* bufferSize */
+    16,                 /* depthSize */
+    0,                  /* stencilSize */
+    0,                  /* auxBuffers */
+    0,                  /* level */
+    GLX_NONE_EXT,       /* visualRating */
+    0,                  /* transparentPixel */
+    0, 0, 0, 0,         /* transparent rgba color (floats scaled to ints) */
+    0                   /* transparentIndex */
+};
+
 static inline int count_bits(uint32_t x)
 {
     x = x - ((x >> 1) & 0x55555555);
@@ -1137,7 +1157,6 @@ static Bool init_visuals(int *nvisualp, VisualPtr *visualp,
         int is_rgb = (pVisual[i].class == TrueColor ||
                       pVisual[i].class == DirectColor);
 
-#if 0
         if (!is_rgb)
         {
             /* We don't support non-rgb visuals for GL. But we don't
@@ -1157,14 +1176,13 @@ static Bool init_visuals(int *nvisualp, VisualPtr *visualp,
             orig_vid[j] = pVisual[i].vid;
 
             /* Initialize the glXVisual */
-            glXVisualPtr[j] = NullConfig;
-            glXVisualPriv[j] = NULL;
+            _gl_copy_visual_to_context_mode( modes, & NullConfig );
+            modes->visualID = pVisualNew[j].vid;
 
             j++;
 
             continue;
         }
-#endif
 
         for (k = 0; k < numNewConfigs; k++) {
             if (pNewVisualConfigs[k].rgba != is_rgb)

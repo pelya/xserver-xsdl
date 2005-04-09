@@ -1,3 +1,9 @@
+2005-04-09  Alexander Gottwald  <ago at freedesktop dot org>
+
+	* indirect.c:
+	Fix passing of non-RGB visuals. The old code did not initialize the
+	structure properly which lead to a crash in 8bpp mode
+
 2005-03-01  Alexander Gottwald  <ago at freedesktop dot org>
 
 	* indirect.c:
