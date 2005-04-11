@@ -181,6 +181,8 @@ void CConfig::Save(const char *filename)
     setAttribute(root, L"XDMCPHost", xdmcp_host.c_str());
     setAttribute(root, L"XDMCPBroadcast", broadcast?L"True":L"False");
     setAttribute(root, L"XDMCPIndirect", indirect?L"True":L"False");
+    setAttribute(root, L"Clipboard", clipboard?L"True":L"False");
+    setAttribute(root, L"ExtraParams", extra_params.c_str());
 
     VARIANT var = VariantString(filename);
     HRCALL(doc->save(var), "save");
@@ -271,7 +273,8 @@ void CConfig::Load(const char *filename)
     getAttribute(root, L"XDMCPHost", xdmcp_host);
     getAttributeBool(root, L"XDMCPBroadcast", broadcast);
     getAttributeBool(root, L"XDMCPIndirect", indirect);
-
+    getAttributeBool(root, L"Clipboard", clipboard);
+    getAttribute(root, L"ExtraParams", extra_params);
     
 
     doc->Release();
