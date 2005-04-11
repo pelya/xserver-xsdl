@@ -939,7 +939,7 @@ vfbScreenInit(int index, ScreenPtr pScreen, int argc, char **argv)
 
     if (!ret) return FALSE;
 
-    /* miInitializeBackingStore(pScreen); */
+    miInitializeBackingStore(pScreen);
 
     /*
      * Circumvent the backing store that was just initialised.  This amounts
