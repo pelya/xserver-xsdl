@@ -1168,6 +1168,10 @@ miLineProjectingCap (pDrawable, pGC, pixel, spanData, face, isLeft, xorg, yorg, 
     }
     else if (dx == 0)
     {
+	if (dy < 0) {
+	    dy = -dy;
+	    isLeft = !isLeft;
+	}
 	topy = yorgi;
 	bottomy = yorgi + dy;
 	if (isLeft)
