@@ -65,6 +65,14 @@ copyright holders.
 
 #include "spooler.h"
 
+#ifndef MIN
+#define MIN(a,b) (((a)<(b))?(a):(b))
+#endif
+#ifndef MAX
+#define MAX(a,b) (((a)>(b))?(a):(b))
+#endif
+
+
 static XrmDatabase CopyDb(XrmDatabase inDb);
 
 extern XrmDatabase XpSpoolerGetServerAttributes(void);
@@ -1084,6 +1092,50 @@ XpSpoolerGetServerAttributes(void)
 }
 
 /*
+ * Tailf() works similar to "/bin/tail -f fd_in >fd_out" until
+ * the process |child| terminates (the child status is
+ * returned in |child_status|).
+ * This function is used to copy the stdout/stderr output of a
+ * child to fd_out until the child terminates.
+ */
+static
+void Tailf(int fd_in, int fd_out, pid_t child, int *child_status)
+{
+    char           b[256];
+    ssize_t        sz;
+    Bool           childDone = FALSE;
+    struct timeval timeout;
+    long           fpos = 0; /* XXX: this is not correct for largefile support */
+
+    timeout.tv_sec  = 0;
+    timeout.tv_usec = 100000;
+
+    for(;;)
+    {
+        /* Check whether the child is still alive or not */
+        if (waitpid(child, child_status, WNOHANG) == child)
+            childDone = TRUE;
+
+        /* Copy traffic from |fd_in| to |fd_out|
+         * (Note we have to use |pread()| here to avoid race conditions
+         * between a child process writing to the same file using the
+         * same file pointer (|dup(2)| and |fork(2)| just duplicate the
+         * file handle but not the pointer)).
+         */
+        while ((sz = pread(fd_in, b, sizeof(b), fpos)) > 0)
+        {
+            fpos += sz;
+            write(fd_out, b, sz);
+        }
+
+        if (childDone)
+            break;
+
+        (void)select(0, NULL, NULL, NULL, &timeout);
+    }
+}
+
+/*
  * SendFileToCommand takes three character pointers - the file name,
  * the command to execute,
  * and the "argv" style NULL-terminated vector of arguments for the command.
@@ -1095,6 +1147,7 @@ XpSpoolerGetServerAttributes(void)
  */
 static void
 SendFileToCommand(
+    XpContextPtr pContext,
     char *fileName,
     char *pCommand,
     char **argVector,
@@ -1105,22 +1158,39 @@ SendFileToCommand(
     int status;
     struct stat statBuf;
     FILE *fp, *outPipe;
+    FILE *resFp; /* output from launched command */
+    int   resfd;
+    
+    resFp = tmpfile();
+    if (resFp == NULL)
+    {
+        ErrorF("SendFileToCommand: Cannot open temporary file for command output\n");
+        return;
+    }
+    resfd = fileno(resFp);
 
     if(pipe(pipefd))
-	return;
+    {
+        ErrorF("SendFileToCommand: Cannot open pipe\n");
+        fclose(resFp);
+        return;
+    }
 
     if(stat(fileName, &statBuf) < 0 || (int)statBuf.st_size == 0)
     {
-	    close(pipefd[0]);
-	    close(pipefd[1]);
-	    return;
+        close(pipefd[0]);
+        close(pipefd[1]);
+        fclose(resFp);
+        return;
     }
 
     fp = fopen(fileName, "r");
     if(fp == (FILE *)NULL)
     {
+        ErrorF("SendFileToCommand: Cannot open scratch spool file '%s'\n", fileName);
         close(pipefd[0]);
         close(pipefd[1]);
+        fclose(resFp);
         return;
     }
     
@@ -1129,13 +1199,22 @@ SendFileToCommand(
         close(pipefd[1]);
 
         /* Replace current stdin with input from the pipe */
-	close(0);
+	close(STDIN_FILENO);
 	dup(pipefd[0]);
 	close(pipefd[0]);
 
-        /* Close current stdout and redirect it to stderr */
-        close(1);
-        dup(2);
+        /* Close current stdout and redirect it to resfd */
+        close(STDOUT_FILENO);
+        dup(resfd);
+
+        /* Close current stderr and redirect it to resfd
+         * (valgrind may not like that, in this case simply start it using
+         * % valgrind 50>/dev/tty --logfile-fd=50 <more-options> ./Xprt ... #)
+         */
+        close(STDERR_FILENO);
+        dup(resfd);
+
+        fclose(resFp);
         
 	/*
 	 * If a user name is specified, try to set our uid to match that
@@ -1171,8 +1250,6 @@ SendFileToCommand(
     }
     else
     {
-	int res;
-
 	(void) close(pipefd[0]);
 
  	outPipe = fdopen(pipefd[1], "w");
@@ -1181,7 +1258,47 @@ SendFileToCommand(
 	(void) fclose(outPipe);
 	(void) fclose(fp);
 
-        (void) waitpid(childPid, &status, 0);
+        /* Wait for spooler child (and send all it's output to stderr) */
+        Tailf(resfd, STDERR_FILENO, childPid, &status);
+        
+        if (status != EXIT_SUCCESS)
+        {
+            ErrorF("SendFileToCommand: spooler command returned non-zero status %d.\n", status);
+        }
+
+        /* Store "xp-spooler-command-results" XPJobAttr that the
+         * client can fetch it on demand */
+        if ((fstat(resfd, &statBuf) >= 0) && (statBuf.st_size >= 0))
+        {
+            long  bufSize;
+            char *buf;
+
+            bufSize = statBuf.st_size;
+
+            /* Clamp buffer size to 4MB to prevent that we allocate giant 
+             * buffers if the spooler goes mad and spams it's stdout/stderr
+             * channel. */
+            bufSize = MIN(bufSize, 4*1024*1024);
+
+            buf = xalloc(bufSize+1);
+            if (buf != NULL)
+            {
+                bufSize = pread(resfd, buf, bufSize, 0);
+                buf[bufSize]='\0';
+
+                /* XXX: This should be converted from local multibyte encoding to
+                 * Compound Text encoding first */
+                XpPutOneAttribute(pContext, XPJobAttr, "xp-spooler-command-results", buf);
+
+                xfree(buf);
+            }
+        }
+        else
+        {
+            ErrorF("SendFileToCommand: fstat() failed.\n");
+        }
+
+        fclose(resFp);
     }
     return;
 }
@@ -1483,7 +1600,7 @@ XpSubmitJob(fileName, pContext)
     if(userName != (char *)NULL && strlen(userName) == 0)
 	userName = (char *)NULL;
 
-    SendFileToCommand(fileName, cmdNam, vector, userName);
+    SendFileToCommand(pContext, fileName, cmdNam, vector, userName);
 
     FreeVector(vector);
     xfree(cmdNam);
