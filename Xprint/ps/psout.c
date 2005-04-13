@@ -309,16 +309,23 @@ static char *S_SetupDefs = "\
 void
 S_Flush(PsOutPtr self)
 {
-  if( self->Buf[0] )
+  int len;
+  
+  if( self->Buf[0] == '\0' )
+    return;
+  
+  len = strlen(self->Buf);
+
+  /* Append a newline char ('\n') if there isn't one there already */
+  if( self->Buf[len-1] != '\n' )
   {
-    if( self->Buf[strlen(self->Buf)-1]!='\n' ) strcat(self->Buf, "\n");
-
-    if (!ferror(self->Fp)) {
-	(void) fputs(self->Buf, self->Fp);
-    }
-
-    self->Buf[0] = '\0';
+    self->Buf[len++] = '\n';
+    self->Buf[len]   = '\0';
   }
+
+  (void)fwrite(self->Buf, len, 1, self->Fp);
+
+  self->Buf[0] = '\0';
 }
 
 static void
@@ -356,12 +363,23 @@ S_OutNum(PsOutPtr self, float num)
 {
   int  i;
   char buf[64];
+  int  len;
+
   sprintf(buf, "%.3f", num);
+
+  /* Remove any zeros at the end */
   for( i=strlen(buf)-1 ; buf[i]=='0' ; i-- ); buf[i+1] = '\0';
-  if( buf[strlen(buf)-1]=='.' ) buf[strlen(buf)-1] = '\0';
-  if( self->Buf[0] ) strcat(self->Buf, " ");
-  strcat(self->Buf, buf);
-  if( strlen(self->Buf)>70 ) S_Flush(self);
+  /* Remove '.' if it is the last character */
+  i = strlen(buf)-1; if( buf[i]=='.' ) buf[i] = '\0';
+
+  len = strlen(self->Buf);
+  if( len > 0 )
+  {
+    self->Buf[len++] = ' ';
+    self->Buf[len]   = '\0';
+  } 
+  strcpy(&self->Buf[len], buf);
+  if( (len+i)>70 ) S_Flush(self);
 }
 
 static void
@@ -416,8 +434,13 @@ S_OutStr16(PsOutPtr self, unsigned short *txt, int txtl)
 void
 S_OutTok(PsOutPtr self, char *tok, int cr)
 {
-  if( self->Buf[0] ) strcat(self->Buf, " ");
-  strcat(self->Buf, tok);
+  int len = strlen(self->Buf);
+  if( len > 0 )
+  {
+    self->Buf[len++] = ' ';
+    self->Buf[len]   = '\0';
+  } 
+  strcpy(&self->Buf[len], tok);
   if( cr ) S_Flush(self);
 }
 
@@ -1475,15 +1498,29 @@ void
 PsOut_OutImageBytes(PsOutPtr self, int nBytes, char *bytes)
 {
   int   i;
-  char  buf[5];
+  int   b;
+  int   len;
+  const char hex[] = { '0', '1', '2', '3', '4', '5', '6', '7',
+                       '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
 
   if( (!self->ImageFormat) || self->ImgSkip ) return;
+
+  len = strlen(self->Buf);
+
   for( i=0 ; i<nBytes ; i++ )
   {
-    if( self->RevImage ) sprintf(buf, "%02x", (int)(bytes[i]^0xFF)&0xFF);
-    else                 sprintf(buf, "%02x", (int)bytes[i]&0xFF);
-    strcat(self->Buf, buf);
-    if( strlen(self->Buf)>70 ) S_Flush(self);
+    if( self->RevImage ) b = (int)((bytes[i]^0xFF)&0xFF);
+    else                 b = (int)(bytes[i]&0xFF);
+    
+    self->Buf[len++] = hex[(b&0xF0) >> 4];
+    self->Buf[len++] = hex[(b&0x0F)];
+    self->Buf[len] = '\0';
+
+    if( len>70 ) 
+    {
+      S_Flush(self);
+      len = 0;
+    }
   }
 }
 
