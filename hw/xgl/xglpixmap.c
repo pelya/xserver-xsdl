@@ -106,6 +106,7 @@ xglPixmapSurfaceInit (PixmapPtr	    pPixmap,
     pPixmapPriv->acceleratedTile = FALSE;
     pPixmapPriv->pictureMask = ~0;
     pPixmapPriv->target = xglPixmapTargetNo;
+    pPixmapPriv->lock = 0;
 
     if (pPixmapPriv->format)
     {
@@ -209,7 +210,7 @@ void
 xglFiniPixmap (PixmapPtr pPixmap)
 {
     XGL_PIXMAP_PRIV (pPixmap);
-        
+    
     if (pPixmapPriv->pArea)
 	xglWithdrawArea (pPixmapPriv->pArea);
 	

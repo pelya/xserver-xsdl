@@ -351,6 +351,7 @@ typedef struct _xglPixmap {
     Bool	      allBits;
     unsigned long     pictureMask;
     xglGeometryPtr    pGeometry;
+    int		      lock;
 } xglPixmapRec, *xglPixmapPtr;
 
 extern int xglPixmapPrivateIndex;
@@ -1313,6 +1314,9 @@ xglUpdatePicture (PicturePtr pPicture);
 Bool
 xglPictureInit (ScreenPtr pScreen);
 
+void
+xglPictureClipExtents (PicturePtr pPicture,
+		       BoxPtr     extents);
 
 /* xglglyph.c */
 
@@ -1362,6 +1366,13 @@ xglAddTraps (PicturePtr pDst,
 	     INT16	yOff,
 	     int	nTrap,
 	     xTrap	*traps);
+
+#endif
+
+#ifdef GLXEXT
+
+Bool
+xglInitVisualConfigs (ScreenPtr pScreen);
 
 #endif
 

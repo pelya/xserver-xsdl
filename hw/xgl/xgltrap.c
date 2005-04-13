@@ -40,64 +40,6 @@
 /* just a guess */
 #define SMOOTH_TRAPS_ESTIMATE_RECTS(nTrap) (30 * nTrap)
 
-static PicturePtr
-xglCreateMaskPicture (ScreenPtr     pScreen, 
-		      PicturePtr    pDst,
-		      PictFormatPtr pPictFormat,
-		      CARD16	    width,
-		      CARD16	    height,
-		      Bool	    accelerate)
-{
-    PixmapPtr	 pPixmap;
-    PicturePtr	 pPicture;
-    GCPtr	 pGC;
-    int		 error;
-    xRectangle	 rect;
-
-    if (width > 32767 || height > 32767)
-	return 0;
-
-    pPixmap = (*pScreen->CreatePixmap) (pScreen, width, height, 
-					pPictFormat->depth);
-    if (!pPixmap)
-	return 0;
-
-    if (!accelerate)
-    {
-	XGL_PIXMAP_PRIV (pPixmap);
-	
-	if (!xglAllocatePixmapBits (pPixmap, XGL_PIXMAP_USAGE_HINT_DEFAULT))
-	{
-	    (*pScreen->DestroyPixmap) (pPixmap);
-	    return 0;
-	}
-
-	pPixmapPriv->target = xglPixmapTargetNo;
-    }
-    
-    pGC = GetScratchGC (pPixmap->drawable.depth, pScreen);
-    if (!pGC)
-    {
-	(*pScreen->DestroyPixmap) (pPixmap);
-	return 0;
-    }
-
-    rect.x = 0;
-    rect.y = 0;
-    rect.width = width;
-    rect.height = height;
-    
-    ValidateGC (&pPixmap->drawable, pGC);
-    (*pGC->ops->PolyFillRect) (&pPixmap->drawable, pGC, 1, &rect);
-    FreeScratchGC (pGC);
-
-    pPicture = CreatePicture (0, &pPixmap->drawable, pPictFormat,
-			      0, 0, serverClient, &error);
-    (*pScreen->DestroyPixmap) (pPixmap);
-    
-    return pPicture;
-}
-
 #define LINE_FIXED_X(l, _y, v)			 \
     dx = (l)->p2.x - (l)->p1.x;			 \
     ex = (xFixed_32_32) ((_y) - (l)->p1.y) * dx; \
@@ -111,9 +53,10 @@ xglCreateMaskPicture (ScreenPtr     pScreen,
     (v) = (l)->p1.x + (xFixed) ((ex + (dy - 1)) / dy)
 
 static Bool
-xglTrapezoidBounds (int	       ntrap,
-		    xTrapezoid *traps,
-		    BoxPtr     box)
+xglTrapezoidExtents (PicturePtr pDst,
+		     int        ntrap,
+		     xTrapezoid *traps,
+		     BoxPtr     extents)
 {
     Bool	 x_overlap, overlap = FALSE;
     xFixed	 dx, dy, top, bottom;
@@ -121,24 +64,24 @@ xglTrapezoidBounds (int	       ntrap,
 
     if (!ntrap)
     {
-	box->x1 = MAXSHORT;
-	box->x2 = MINSHORT;
-	box->y1 = MAXSHORT;
-	box->y2 = MINSHORT;
+	extents->x1 = MAXSHORT;
+	extents->x2 = MINSHORT;
+	extents->y1 = MAXSHORT;
+	extents->y2 = MINSHORT;
 
 	return FALSE;
     }
 
-    box->y1 = xFixedToInt (traps->top);
-    box->y2 = xFixedToInt (xFixedCeil (traps->bottom));
+    extents->y1 = xFixedToInt (traps->top);
+    extents->y2 = xFixedToInt (xFixedCeil (traps->bottom));
     
     LINE_FIXED_X (&traps->left, traps->top, top);
     LINE_FIXED_X (&traps->left, traps->bottom, bottom);
-    box->x1 = xFixedToInt (MIN (top, bottom));
+    extents->x1 = xFixedToInt (MIN (top, bottom));
     
     LINE_FIXED_X_CEIL (&traps->right, traps->top, top);
     LINE_FIXED_X_CEIL (&traps->right, traps->bottom, bottom);
-    box->x2 = xFixedToInt (xFixedCeil (MAX (top, bottom)));
+    extents->x2 = xFixedToInt (xFixedCeil (MAX (top, bottom)));
     
     ntrap--;
     traps++;
@@ -162,34 +105,36 @@ xglTrapezoidBounds (int	       ntrap,
 	x2 = xFixedToInt (xFixedCeil (MAX (top, bottom)));
 	
 	x_overlap = FALSE;
-	if (x1 >= box->x2)
-	    box->x2 = x2;
-	else if (x2 <= box->x1)
-	    box->x1 = x1;
+	if (x1 >= extents->x2)
+	    extents->x2 = x2;
+	else if (x2 <= extents->x1)
+	    extents->x1 = x1;
 	else
 	{
 	    x_overlap = TRUE;
-	    if (x1 < box->x1)
-		box->x1 = x1;
-	    if (x2 > box->x2)
-		box->x2 = x2;
+	    if (x1 < extents->x1)
+		extents->x1 = x1;
+	    if (x2 > extents->x2)
+		extents->x2 = x2;
 	}
 	
-	if (y1 >= box->y2)
-	    box->y2 = y2;
-	else if (y2 <= box->y1)
-	    box->y1 = y1;	    
+	if (y1 >= extents->y2)
+	    extents->y2 = y2;
+	else if (y2 <= extents->y1)
+	    extents->y1 = y1;	    
 	else
 	{
-	    if (y1 < box->y1)
-		box->y1 = y1;
-	    if (y2 > box->y2)
-		box->y2 = y2;
+	    if (y1 < extents->y1)
+		extents->y1 = y1;
+	    if (y2 > extents->y2)
+		extents->y2 = y2;
 	    
 	    if (x_overlap)
 		overlap = TRUE;
 	}
     }
+
+    xglPictureClipExtents (pDst, extents);
 
     return overlap;
 }
@@ -211,24 +156,30 @@ xglTrapezoids (CARD8	     op,
     unsigned int    polyEdge = pDst->polyEdge;
     INT16	    xDst, yDst;
     INT16	    xOff, yOff;
-    BoxRec	    bounds;
+    BoxRec	    extents;
     Bool	    overlap;
+    Bool	    target;
     
     XGL_SCREEN_PRIV (pScreen);
+    XGL_DRAWABLE_PIXMAP_PRIV (pDst->pDrawable);
 
     xDst = traps[0].left.p1.x >> 16;
     yDst = traps[0].left.p1.y >> 16;
     
-    overlap = xglTrapezoidBounds (nTrap, traps, &bounds);
-    if (bounds.y1 >= bounds.y2 || bounds.x1 >= bounds.x2)
+    overlap = xglTrapezoidExtents (pDst, nTrap, traps, &extents);
+    if (extents.y1 >= extents.y2 || extents.x1 >= extents.x2)
 	return;
+
+    target = xglPrepareTarget (pDst->pDrawable);
 
     if (nTrap > 1 && op != PictOpAdd && maskFormat &&
 	(overlap || op != PictOpOver))
     {
-	xglPixmapPtr pPixmapPriv;
-	int	     width, height;
-	Bool	     accelerate;
+	PixmapPtr  pPixmap;
+	GCPtr	   pGC;
+	xRectangle rect;
+	int	   error;
+	int	   area;
 	
 	if (!pScreenPriv->pSolidAlpha)
 	{
@@ -237,39 +188,53 @@ xglTrapezoids (CARD8	     op,
 		return;
 	}
 
-	accelerate = TRUE;
-	width  = bounds.x2 - bounds.x1;
-	height = bounds.y2 - bounds.y1;
-	if (maskFormat->depth > 1)
-	{
-	    /* Avoid acceleration if the estimated amount of vertex data
-	       is likely to exceed the size of the mask. */
-	    if ((SMOOTH_TRAPS_ESTIMATE_RECTS (nTrap) * 4) > (width * height))
-		accelerate = FALSE;
-	} else
-	    accelerate = FALSE;
+	rect.x = 0;
+	rect.y = 0;
+	rect.width = extents.x2 - extents.x1;
+	rect.height = extents.y2 - extents.y1;
 
-	pMask = xglCreateMaskPicture (pScreen, pDst, maskFormat,
-				      width, height, accelerate);
-	if (!pMask)
+	pPixmap = (*pScreen->CreatePixmap) (pScreen,
+					    rect.width, rect.height, 
+					    maskFormat->depth);
+	if (!pPixmap)
 	    return;
+    
+	pMask = CreatePicture (0, &pPixmap->drawable, maskFormat,
+			       0, 0, serverClient, &error);
+	if (!pMask)
+	{
+	    (*pScreen->DestroyPixmap) (pPixmap);
+	    return;
+	}
+	
+	/* make sure destination drawable is locked */
+	pPixmapPriv->lock++;
 
+	/* lock mask if we are not doing accelerated drawing to destination */
+	area = rect.width * rect.height;
+	if (!target || (SMOOTH_TRAPS_ESTIMATE_RECTS (nTrap) * 4) > area)
+	    XGL_GET_PIXMAP_PRIV (pPixmap)->lock = 1;
+	
 	ValidatePicture (pMask);
+	pGC = GetScratchGC (pPixmap->drawable.depth, pScreen);
+	ValidateGC (&pPixmap->drawable, pGC);
+	(*pGC->ops->PolyFillRect) (&pPixmap->drawable, pGC, 1, &rect);
+	FreeScratchGC (pGC);
 
-	/* all will be damaged */
-	pPixmapPriv = XGL_GET_DRAWABLE_PIXMAP_PRIV (pMask->pDrawable);
-	pPixmapPriv->damageBox.x1 = 0;
-	pPixmapPriv->damageBox.y1 = 0;
-	pPixmapPriv->damageBox.x2 = pMask->pDrawable->width;
-	pPixmapPriv->damageBox.y2 = pMask->pDrawable->height;
+	(*pScreen->DestroyPixmap) (pPixmap);
 
-	xOff = -bounds.x1;
-	yOff = -bounds.y1;
+	target = xglPrepareTarget (pMask->pDrawable);
+	
+	xOff = -extents.x1;
+	yOff = -extents.y1;
 	pSrcPicture = pScreenPriv->pSolidAlpha;
 	pDstPicture = pMask;
     }
     else
     {
+	/* make sure destination drawable is locked */
+	pPixmapPriv->lock++;
+
 	if (maskFormat)
 	{
 	    if (maskFormat->depth == 1)
@@ -284,7 +249,7 @@ xglTrapezoids (CARD8	     op,
 	pDstPicture = pDst;
     }
 
-    if (xglPrepareTarget (pDstPicture->pDrawable))
+    if (target)
     {
 	if (maskFormat || polyEdge == PolyEdgeSmooth)
 	{
@@ -309,7 +274,8 @@ xglTrapezoids (CARD8	     op,
 		{
 		    if (pMask)
 			FreePicture (pMask, 0);
-		    
+
+		    pPixmapPriv->lock--;
 		    return;
 		}
 		
@@ -337,7 +303,8 @@ xglTrapezoids (CARD8	     op,
 	    {
 		if (pMask)
 		    FreePicture (pMask, 0);
-		
+
+		pPixmapPriv->lock--;
 		return;
 	    }
 	    
@@ -354,13 +321,13 @@ xglTrapezoids (CARD8	     op,
 		 pSrcPicture,
 		 NULL,
 		 pDstPicture,
-		 bounds.x1 + xOff + xSrc - xDst,
-		 bounds.y1 + yOff + ySrc - yDst,
+		 extents.x1 + xOff + xSrc - xDst,
+		 extents.y1 + yOff + ySrc - yDst,
 		 0, 0,
-		 pDstPicture->pDrawable->x + bounds.x1 + xOff,
-		 pDstPicture->pDrawable->y + bounds.y1 + yOff,
-		 bounds.x2 - bounds.x1,
-		 bounds.y2 - bounds.y1,
+		 pDstPicture->pDrawable->x + extents.x1 + xOff,
+		 pDstPicture->pDrawable->y + extents.y1 + yOff,
+		 extents.x2 - extents.x1,
+		 extents.y2 - extents.y1,
 		 pGeometry,
 		 mask))
     {
@@ -370,7 +337,7 @@ xglTrapezoids (CARD8	     op,
 	{
 	    RegionRec region;
 
-	    REGION_INIT (pScreen, &region, &bounds, 1);
+	    REGION_INIT (pScreen, &region, &extents, 1);
 	    REGION_TRANSLATE (pScreen, &region,
 			      pDst->pDrawable->x, pDst->pDrawable->y);
 	    
@@ -385,10 +352,10 @@ xglTrapezoids (CARD8	     op,
     {
 	XGL_DRAWABLE_PIXMAP_PRIV (pDstPicture->pDrawable);
 
-	pPixmapPriv->damageBox.x1 = bounds.x1 + xOff;
-	pPixmapPriv->damageBox.y1 = bounds.y1 + yOff;
-	pPixmapPriv->damageBox.x2 = bounds.x2 + xOff;
-	pPixmapPriv->damageBox.y2 = bounds.y2 + yOff;
+	pPixmapPriv->damageBox.x1 = extents.x1 + xOff;
+	pPixmapPriv->damageBox.y1 = extents.y1 + yOff;
+	pPixmapPriv->damageBox.x2 = extents.x2 + xOff;
+	pPixmapPriv->damageBox.y2 = extents.y2 + yOff;
 
 	xglSyncDamageBoxBits (pDstPicture->pDrawable);
 
@@ -411,15 +378,18 @@ xglTrapezoids (CARD8	     op,
 	xglLeaveOffscreenArea ((PixmapPtr) pMask->pDrawable);
 	
 	CompositePicture (op, pSrc, pMask, pDst,
-			  bounds.x1 + xSrc - xDst,
-			  bounds.y1 + ySrc - yDst,
+			  extents.x1 + xSrc - xDst,
+			  extents.y1 + ySrc - yDst,
 			  0, 0,
-			  bounds.x1, bounds.y1,
-			  bounds.x2 - bounds.x1,
-			  bounds.y2 - bounds.y1);
+			  extents.x1, extents.y1,
+			  extents.x2 - extents.x1,
+			  extents.y2 - extents.y1);
 	
 	FreePicture (pMask, 0);
     }
+
+    /* release destination drawable lock */
+    pPixmapPriv->lock--;
 }
 
 void

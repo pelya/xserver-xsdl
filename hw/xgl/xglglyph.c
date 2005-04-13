@@ -837,7 +837,8 @@ xglCachedGlyphs (CARD8	       op,
 }
 
 static Bool
-xglGlyphExtents (int	      nlist,
+xglGlyphExtents (PicturePtr   pDst,
+		 int	      nlist,
 		 GlyphListPtr list,
 		 GlyphPtr     *glyphs,
 		 BoxPtr	      extents)
@@ -941,6 +942,8 @@ xglGlyphExtents (int	      nlist,
 	}
     }
 
+    xglPictureClipExtents (pDst, extents);
+
     return overlap;
 }
 
@@ -981,20 +984,26 @@ xglGlyphs (CARD8	 op,
     BoxRec	  extents;
     xglGlyphOpRec glyphOp;
     int		  xDst = list->xOff, yDst = list->yOff;
+    int		  overlap;
+    int		  target;
+
+    XGL_DRAWABLE_PIXMAP_PRIV (pDst->pDrawable);
+
+    overlap = xglGlyphExtents (pDst, nlist, list, glyphs, &extents);
+    if (extents.x2 <= extents.x1 || extents.y2 <= extents.y1)
+	return;
+    
+    target = xglPrepareTarget (pDst->pDrawable);
 
     if (op != PictOpAdd && maskFormat &&
-	(xglGlyphExtents (nlist, list, glyphs, &extents) || op != PictOpOver ||
+	(overlap || op != PictOpOver ||
 	 xglGlyphListFormatId (list, nlist) != maskFormat->id))
     {
-	PixmapPtr    pPixmap;
-	xglPixmapPtr pPixmapPriv;
-	CARD32	     componentAlpha;
-	GCPtr	     pGC;
-	xRectangle   rect;
-	int	     error;
-	
-	if (extents.x2 <= extents.x1 || extents.y2 <= extents.y1)
-	    return;
+	PixmapPtr  pPixmap;
+	CARD32	   componentAlpha;
+	GCPtr	   pGC;
+	xRectangle rect;
+	int	   error;
 
 	rect.x = 0;
 	rect.y = 0;
@@ -1012,7 +1021,17 @@ xglGlyphs (CARD8	 op,
 			       maskFormat, CPComponentAlpha, &componentAlpha,
 			       serverClient, &error);
 	if (!pMask)
+	{
+	    (*pScreen->DestroyPixmap) (pPixmap);
 	    return;
+	}
+
+	/* make sure destination drawable is locked */
+	pPixmapPriv->lock++;
+
+	/* lock mask if we are not doing accelerated drawing to destination */
+	if (!target)
+	    XGL_GET_PIXMAP_PRIV (pPixmap)->lock = 1;
 
 	ValidatePicture (pMask);
 	pGC = GetScratchGC (pPixmap->drawable.depth, pScreen);
@@ -1020,14 +1039,9 @@ xglGlyphs (CARD8	 op,
 	(*pGC->ops->PolyFillRect) (&pPixmap->drawable, pGC, 1, &rect);
 	FreeScratchGC (pGC);
 
-	/* all will be damaged */
-	pPixmapPriv = XGL_GET_PIXMAP_PRIV (pPixmap);
-	pPixmapPriv->damageBox.x1 = 0;
-	pPixmapPriv->damageBox.y1 = 0;
-	pPixmapPriv->damageBox.x2 = pMask->pDrawable->width;
-	pPixmapPriv->damageBox.y2 = pMask->pDrawable->height;
-
 	(*pScreen->DestroyPixmap) (pPixmap);
+
+	target = xglPrepareTarget (pMask->pDrawable);
 	
 	glyphOp.xOff = -extents.x1;
 	glyphOp.yOff = -extents.y1;
@@ -1036,6 +1050,9 @@ xglGlyphs (CARD8	 op,
     }
     else
     {
+	/* make sure destination drawable is locked */
+	pPixmapPriv->lock++;
+
 	glyphOp.xOff = 0;
 	glyphOp.yOff = 0;
 	pSrcPicture = pSrc;
@@ -1043,11 +1060,7 @@ xglGlyphs (CARD8	 op,
     }
 
     glyphOp.ppGlyphs = glyphs;
-    
-    if (xglPrepareTarget (pDstPicture->pDrawable))
-	glyphOp.noCache = FALSE;
-    else
-	glyphOp.noCache = TRUE;
+    glyphOp.noCache  = !target;
 
     while (nlist--)
     {
@@ -1097,6 +1110,10 @@ xglGlyphs (CARD8	 op,
 	
 	FreePicture ((pointer) pMask, (XID) 0);
     }
+
+    /* release destination drawable lock */
+    pPixmapPriv->lock--;
+
 }
 
 #endif

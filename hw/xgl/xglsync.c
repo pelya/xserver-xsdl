@@ -304,6 +304,9 @@ xglPrepareTarget (DrawablePtr pDrawable)
 	break;
     case xglPixmapTargetOut:
 	XGL_INCREMENT_PIXMAP_SCORE (pPixmapPriv, 10);
+
+	if (pPixmapPriv->lock)
+	    return FALSE;
 	
 	if (xglFindOffscreenArea (pDrawable->pScreen, pPixmap))
 	    return TRUE;

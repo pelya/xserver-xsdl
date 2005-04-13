@@ -464,4 +464,41 @@ xglPictureInit (ScreenPtr pScreen)
     return TRUE;
 }
 
+void
+xglPictureClipExtents (PicturePtr pPicture,
+		       BoxPtr     extents)
+{
+    if (pPicture->clientClipType != CT_NONE)
+    {
+	BoxPtr clip = REGION_EXTENTS (pPicture->pDrawable->pScreen,
+				      (RegionPtr) pPicture->clientClip);
+
+	if (extents->x1 < pPicture->clipOrigin.x + clip->x1)
+	    extents->x1 = pPicture->clipOrigin.x + clip->x1;
+
+	if (extents->y1 < pPicture->clipOrigin.y + clip->y1)
+	    extents->y1 = pPicture->clipOrigin.y + clip->y1;
+
+	if (extents->x2 > pPicture->clipOrigin.x + clip->x2)
+	    extents->x2 = pPicture->clipOrigin.x + clip->x2;
+
+	if (extents->y2 > pPicture->clipOrigin.y + clip->y2)
+	    extents->y2 = pPicture->clipOrigin.y + clip->y2;
+    }
+    else
+    {
+	if (extents->x1 < 0)
+	    extents->x1 = 0;
+
+	if (extents->y1 < 0)
+	    extents->y1 = 0;
+
+	if (extents->x2 > pPicture->pDrawable->width)
+	    extents->x2 = pPicture->pDrawable->width;
+
+	if (extents->y2 > pPicture->pDrawable->height)
+	    extents->y2 = pPicture->pDrawable->height;
+    }
+}
+
 #endif

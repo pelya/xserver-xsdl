@@ -90,6 +90,9 @@ xglOffscreenCompareScore (xglAreaPtr pArea,
     
     if (s1 > s2)
 	XGL_DECREMENT_PIXMAP_SCORE (pPixmapPriv, 10);
+
+    if (pPixmapPriv->lock)
+	return 1;
     
     return s1 - s2;
 }

@@ -35,6 +35,9 @@ static ShmFuncs shmFuncs = { NULL, xglShmPutImage };
 #ifdef RENDER
 #include "glyphstr.h"
 #endif
+#ifdef COMPOSITE
+#include "compint.h"
+#endif
 
 int xglScreenGeneration = -1;
 int xglScreenPrivateIndex;
@@ -135,7 +138,7 @@ xglScreenInit (ScreenPtr        pScreen,
 	       xglScreenInfoPtr pScreenInfo)
 {
     xglScreenPtr pScreenPriv;
-    int		 depth;
+    int		 depth, bpp;
     
 #ifdef RENDER
     PictureScreenPtr pPictureScreen;
@@ -154,6 +157,7 @@ xglScreenInit (ScreenPtr        pScreen,
 	glitz_drawable_get_features (pScreenInfo->drawable);
 
     depth = pScreenPriv->pVisual->pPixel->depth;
+    bpp   = pScreenPriv->pVisual->pPixel->masks.bpp;
 
     if (!xglInitOffscreen (pScreen, pScreenInfo))
 	return FALSE;
@@ -190,8 +194,7 @@ xglScreenInit (ScreenPtr        pScreen,
     if (!fbSetupScreen (pScreen, NULL,
 			pScreenInfo->width, pScreenInfo->height,
 			monitorResolution, monitorResolution,
-			pScreenInfo->width,
-			pScreenPriv->pVisual->pPixel->masks.bpp))
+			pScreenInfo->width, bpp))
 	return FALSE;
 
     pScreen->SaveScreen = xglSaveScreen;
@@ -202,8 +205,7 @@ xglScreenInit (ScreenPtr        pScreen,
     if (!fbFinishScreenInit (pScreen, NULL,
 			     pScreenInfo->width, pScreenInfo->height,
 			     monitorResolution, monitorResolution,
-			     pScreenInfo->width,
-			     pScreenPriv->pVisual->pPixel->masks.bpp))
+			     pScreenInfo->width, bpp))
 	return FALSE;
 
 #ifdef MITSHM
@@ -267,6 +269,19 @@ xglScreenInit (ScreenPtr        pScreen,
     XGL_SCREEN_WRAP (BackingStoreFuncs.SaveAreas, xglSaveAreas);
     XGL_SCREEN_WRAP (BackingStoreFuncs.RestoreAreas, xglRestoreAreas);
 
+    if (!fbCreateDefColormap (pScreen))
+	return FALSE;
+
+#ifdef COMPOSITE
+    if (!compScreenInit (pScreen))
+	return FALSE;
+#endif
+
+#ifdef GLXEXT
+    if (!xglInitVisualConfigs (pScreen))
+	return FALSE;
+#endif
+    
     /* Damage is required */
     DamageSetup (pScreen);
 
@@ -288,13 +303,6 @@ xglFinishScreenInit (ScreenPtr pScreen)
 
     XGL_SCREEN_PRIV (pScreen);
 	
-    /* Do we want to use BackingStore?
-       miInitializeBackingStore (pScreen);
-    */
-
-    if (!fbCreateDefColormap (pScreen))
-	return FALSE;
-
     pScreenPriv->solid =
 	glitz_surface_create (pScreenPriv->drawable,
 			      pScreenPriv->pixmapFormats[32].format,
