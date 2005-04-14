@@ -85,7 +85,7 @@ SOFTWARE.
 # define usePolyGlyphBlt	miPolyGlyphBlt
 #endif
 
-void cfbUnPushPixels (GCPtr, PixmapPtr, DrawablePtr, int, int, int, int);
+static void cfbUnPushPixels (GCPtr, PixmapPtr, DrawablePtr, int, int, int, int);
 
 #ifdef FOUR_BIT_CODE
 # define usePushPixels	cfbPushPixels8
