@@ -137,8 +137,7 @@ xf86OSPMOpen(void)
     if ((fd = open( APM_DEVICE, O_RDWR )) > -1) {
 	if (access( APM_PROC, R_OK ) ||
 	    ((pfd = open( APM_PROC, O_RDONLY)) == -1)) {
-	    xf86MsgVerb(X_WARNING,3,"Cannot open APM (%s) (%s)\n",
-			APM_PROC, strerror(errno));
+	    xf86MsgVerb(X_INFO,3,"No APM support in BIOS or kernel\n");
 	    close(fd);
 	    return NULL;
 	} else
