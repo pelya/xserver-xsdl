@@ -67,7 +67,7 @@
  */
 
 /* $XConsortium: xf86_OSlib.h /main/22 1996/10/27 11:06:31 kaleb $ */
-/* $XdotOrg: xc/programs/Xserver/hw/xfree86/os-support/xf86_OSlib.h,v 1.4 2004/07/28 03:57:19 alanc Exp $ */
+/* $XdotOrg: xc/programs/Xserver/hw/xfree86/os-support/xf86_OSlib.h,v 1.5 2005/03/02 11:20:29 gisburn Exp $ */
 
 /*
  * This is private, and should not be included by any drivers.  Drivers
@@ -255,8 +255,14 @@ typedef signed long xf86ssize_t;
 
 # include <termio.h>
 # include <sys/fbio.h>
-# include <sys/kbd.h>
+# include <sys/kbd.h> 
 # include <sys/kbio.h>
+
+/* undefine symbols from <sys/kbd.h> we don't need that conflict with enum
+   definitions in parser/xf86tokens.h */
+#undef STRING
+#undef LEFTALT
+#undef RIGHTALT
 
 # define LED_CAP LED_CAPS_LOCK
 # define LED_NUM LED_NUM_LOCK
