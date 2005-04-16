@@ -59,8 +59,6 @@ typedef struct _AppleWMProcs {
     FrameDrawProc FrameDraw;
 } AppleWMProcsRec, *AppleWMProcsPtr;
 
-extern AppleWMProcsPtr appleWMProcs;
-
 void AppleWMExtensionInit(
     AppleWMProcsPtr procsPtr
 );
