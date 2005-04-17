@@ -1,9 +1,10 @@
 #include "xf86.h"
 #include "xf86i2c.h"
 #include "fi1236.h"
+#include "tda9885.h"
 #include "i2c_def.h"
 
-#define NUM_TUNERS    7
+#define NUM_TUNERS    8
 
 const FI1236_parameters tuner_parms[NUM_TUNERS] =
 {
@@ -23,7 +24,9 @@ const FI1236_parameters tuner_parms[NUM_TUNERS] =
     /* 5 - FI1256 */
     { 623 ,16*49.75 ,16*863.25 ,16*170 ,16*450 ,0xA0 ,0x90, 0x30, 0x8e },
     /* 6 - FI1236W */
-    { 733 ,884 ,12820 ,2516 ,7220 ,0x1 ,0x2, 0x4, 0x8e }
+    { 733 ,884 ,12820 ,2516 ,7220 ,0x1 ,0x2, 0x4, 0x8e },
+	 /* 7 - FM1216ME */
+    { 623 ,16*48.25 ,16*863.25 ,16*158.00 ,16*442.00 ,0x1 ,0x2, 0x4, 0x8e }
 };
 
 
@@ -329,16 +332,36 @@ I2C_WriteRead(&(f->d), (I2CByte *)data, 2, NULL, 0);
 
 static int FI1236_get_afc_hint(FI1236Ptr f)
 {
-CARD8 out;
-CARD8 AFC;
-I2C_WriteRead(&(f->d), NULL, 0, &out, 1);
-AFC=out & 0x7;
-if(AFC==2)return TUNER_TUNED;
-if(AFC==3)return TUNER_JUST_BELOW;
-if(AFC==1)return TUNER_JUST_ABOVE;
-return TUNER_OFF;
-}
+	CARD8 out;
+	CARD8 AFC;
 
+	if ((f->type == TUNER_TYPE_FM1216ME) || (f->type == TUNER_TYPE_FI1236W))
+	{
+		TDA9885Ptr t = (TDA9885Ptr)f->afc_source;
+		if (t == NULL)
+			return TUNER_OFF; 
+		
+		tda9885_getstatus(t);
+		tda9885_dumpstatus(t);
+		AFC = t->afc_status & 0x0f;
+
+		xf86DrvMsg(f->d.pI2CBus->scrnIndex, X_INFO, "AFC: FI1236_get_afc_hint: %i\n", AFC);
+		if (AFC == 0) return TUNER_TUNED;
+		else if (AFC <= 0x07)return TUNER_JUST_BELOW;
+		else if (AFC < 0x0f )return TUNER_JUST_ABOVE;
+		else if (AFC == 0x0f)return TUNER_TUNED;
+	}
+	else
+	{
+		I2C_WriteRead(&(f->d), NULL, 0, &out, 1);
+		AFC=out & 0x7;
+		xf86DrvMsg(f->d.pI2CBus->scrnIndex, X_INFO, "AFC: FI1236_get_afc_hint: %i\n", AFC);
+		if(AFC==2)return TUNER_TUNED;
+		if(AFC==3)return TUNER_JUST_BELOW;
+		if(AFC==1)return TUNER_JUST_ABOVE;
+		return TUNER_OFF;
+	}
+}
 
 static int MT2032_get_afc_hint(FI1236Ptr f)
 {
@@ -457,6 +480,7 @@ if(FI1236_AFC(f))return 150;
 void FI1236_tune(FI1236Ptr f, CARD32 frequency)
 {
     CARD16 divider;
+	 CARD8 data;
 
     if(frequency < f->parm.min_freq) frequency = f->parm.min_freq;
     if(frequency > f->parm.max_freq) frequency = f->parm.max_freq;
@@ -479,10 +503,20 @@ void FI1236_tune(FI1236Ptr f, CARD32 frequency)
         f->tuner_data.band = f->parm.band_high;
     }
 
-#if 0
+	 xf86DrvMsg(f->d.pI2CBus->scrnIndex, X_INFO, "Setting tuner band to %d\n", f->tuner_data.band);
+
     xf86DrvMsg(f->d.pI2CBus->scrnIndex, X_INFO, "Setting tuner frequency to %d\n", frequency);
-#endif    
-    I2C_WriteRead(&(f->d), (I2CByte *)&(f->tuner_data), 4, NULL, 0);
+
+	 if ((f->type == TUNER_TYPE_FM1216ME) || (f->type == TUNER_TYPE_FI1236W))
+	 {
+				f->tuner_data.aux = 0x20;
+				I2C_WriteRead(&(f->d), (I2CByte *)&(f->tuner_data), 5, NULL, 0);
+				I2C_WriteRead(&(f->d), NULL, 0, &data, 1);
+				xf86DrvMsg(f->d.pI2CBus->scrnIndex, X_INFO, "Tuner status %x\n", data);
+
+	 }
+	 else
+				I2C_WriteRead(&(f->d), (I2CByte *)&(f->tuner_data), 4, NULL, 0);
 }
 
 void TUNER_set_frequency(FI1236Ptr f, CARD32 frequency)
@@ -537,7 +571,11 @@ int FI1236_AFC(FI1236Ptr f)
 	} else 
 	{
     	f->last_afc_hint=FI1236_get_afc_hint(f);
-	if(f->last_afc_hint==TUNER_TUNED)return 0;
+	if(f->last_afc_hint==TUNER_TUNED)
+	{
+			  xf86DrvMsg(f->d.pI2CBus->scrnIndex, X_INFO, "AFC: TUNER_TUNNED\n");
+			  return 0;
+	}
 	if(f->afc_count>3)f->last_afc_hint=TUNER_OFF;
 	if(f->last_afc_hint==TUNER_OFF)
 	        {

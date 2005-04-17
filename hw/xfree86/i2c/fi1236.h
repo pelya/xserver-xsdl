@@ -44,6 +44,8 @@ typedef struct {
 typedef struct {
 	I2CDevRec  d;
 	int type;
+
+	void* afc_source;    /* The AFC source may be another chip like TDA988x */
 	
 	int afc_delta;
 	CARD32 original_frequency;
@@ -60,6 +62,7 @@ typedef struct {
 		CARD8   div2;
 		CARD8   control;
 		CARD8   band;
+		CARD8	  aux;	/* this is for MK3 tuners */
 		} tuner_data;
 	} FI1236Rec, *FI1236Ptr;
 
@@ -70,6 +73,7 @@ typedef struct {
 #define TUNER_TYPE_FI1246              4
 #define TUNER_TYPE_FI1256              5
 #define TUNER_TYPE_FI1236W             6
+#define TUNER_TYPE_FM1216ME            7
 
 #define FI1236_ADDR(a)        ((a)->d.SlaveAddr)
 
