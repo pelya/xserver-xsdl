@@ -87,6 +87,8 @@ data[3]=(t->standard_sound_carrier & 0x3) |
 	((t->vif_agc & 0x01)<<7);   /* E data */
 
 I2C_WriteRead(&(t->d), data, 4, NULL, 0); 
+
+xf86DrvMsg(t->d.pI2CBus->scrnIndex,X_INFO,"TDA9885 setparam: B data: %x, C data: %x, E data: %x\n", data[1], data[2], data[3]);
 }
 
 void tda9885_dumpstatus(TDA9885Ptr t)
