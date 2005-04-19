@@ -101,6 +101,8 @@ typedef int xglGLXVisualConfigRec, *xglGLXVisualConfigPtr;
 typedef struct _xglGLContext {
     __GLinterface	     iface;
     __GLinterface	     *mIface;
+    int			     refcnt;
+    struct _xglGLContext     *shared;
     glitz_context_t	     *context;
     __glProcTableEXT	     glRenderTableEXT;
     PFNGLWINDOWPOS3FMESAPROC WindowPos3fMESA;
@@ -110,8 +112,20 @@ typedef struct _xglGLContext {
     int			     tx, ty;
     xRectangle		     viewport;
     xRectangle		     scissor;
+    GLboolean		     scissorTest;
     char		     *versionString;
+    GLenum		     error;
+    xglHashTablePtr	     texObjects;
+    xglHashTablePtr	     displayLists;
 } xglGLContextRec, *xglGLContextPtr;
+
+typedef struct _xglTexObj {
+    GLuint name;
+} xglTexObjRec, *xglTexObjPtr;
+
+typedef struct _xglDisplayList {
+    GLuint name;
+} xglDisplayListRec, *xglDisplayListPtr;
 
 xglGLContextPtr cctx = NULL;
 
@@ -141,8 +155,9 @@ xglScissor (GLint   x,
     cctx->scissor.width  = width;
     cctx->scissor.height = height;
 
-    glitz_context_set_scissor (cctx->context,
-			       cctx->tx + x, cctx->ty + y, width, height);
+    if (cctx->scissorTest)
+	glitz_context_set_scissor (cctx->context,
+				   cctx->tx + x, cctx->ty + y, width, height);
 }
 
 static void
@@ -154,8 +169,42 @@ xglDrawBuffer (GLenum mode)
 static void
 xglDisable (GLenum cap)
 {
-    if (cap != GL_SCISSOR_TEST)
+    switch (cap) {
+    case GL_SCISSOR_TEST:
+	if (cctx->scissorTest)
+	{
+	    __GLcontext		*gc = (__GLcontext *) cctx;
+	    __GLinterface	*i = cctx->mIface;
+	    __GLdrawablePrivate *drawPriv = i->imports.getDrawablePrivate (gc);
+	    xglGLBufferPtr	pDrawBufferPriv = drawPriv->private;
+	    DrawablePtr		pDrawable = pDrawBufferPriv->pDrawable;
+    
+	    cctx->scissorTest = GL_FALSE;
+	    glitz_context_set_scissor (cctx->context,
+				       cctx->tx, cctx->ty,
+				       pDrawable->width, pDrawable->height);
+	}
+	break;
+    default:
 	glDisable (cap);
+    }
+}
+
+static void
+xglEnable (GLenum cap)
+{
+    switch (cap) {
+    case GL_SCISSOR_TEST:
+	cctx->scissorTest = GL_TRUE;
+	glitz_context_set_scissor (cctx->context,
+				   cctx->tx + cctx->scissor.x,
+				   cctx->ty + cctx->scissor.y,
+				   cctx->scissor.width,
+				   cctx->scissor.height);
+	break;
+    default:
+	glEnable (cap);
+    }
 }
 
 static void
@@ -173,6 +222,215 @@ xglCopyPixels (GLint   x,
 {
     ErrorF ("NYI glCopyPixels: %d %d %d %d 0x%x\n",
 	    x, y, width, height, type);   
+}
+
+static GLint
+xglGetTextureBinding (GLenum pname)
+{
+    xglTexObjPtr pTexObj;
+    GLuint	 key;
+    GLint	 texture;
+    
+    glGetIntegerv (pname, &texture);
+    
+    key = xglHashFirstEntry (cctx->shared->texObjects);
+    while (key)
+    {
+	pTexObj = (xglTexObjPtr) xglHashLookup (cctx->shared->texObjects, key);
+	if (pTexObj && pTexObj->name == texture)
+	    return key;
+	
+	key = xglHashNextEntry (cctx->shared->texObjects, key);
+    }
+    
+    return 0;
+}
+
+#define INT_TO_BOOLEAN(I)  ((I) ? GL_TRUE : GL_FALSE)
+#define ENUM_TO_BOOLEAN(E) ((E) ? GL_TRUE : GL_FALSE)
+
+static void
+xglGetBooleanv (GLenum	  pname,
+		GLboolean *params)
+{
+    switch (pname) {
+    case GL_DOUBLEBUFFER:
+	params[0] = GL_TRUE;
+	break;
+    case GL_DRAW_BUFFER:
+	params[0] = ENUM_TO_BOOLEAN (GL_BACK);
+	break;
+    case GL_READ_BUFFER:
+	params[0] = ENUM_TO_BOOLEAN (GL_BACK);
+	break;
+    case GL_SCISSOR_BOX:
+	params[0] = INT_TO_BOOLEAN (cctx->scissor.x);
+	params[1] = INT_TO_BOOLEAN (cctx->scissor.y);
+	params[2] = INT_TO_BOOLEAN (cctx->scissor.width);
+	params[3] = INT_TO_BOOLEAN (cctx->scissor.height); 
+	break;
+    case GL_SCISSOR_TEST:
+	params[0] = cctx->scissorTest;
+	break;
+    case GL_VIEWPORT:
+	params[0] = INT_TO_BOOLEAN (cctx->viewport.x);
+	params[1] = INT_TO_BOOLEAN (cctx->viewport.y);
+	params[2] = INT_TO_BOOLEAN (cctx->viewport.width);
+	params[3] = INT_TO_BOOLEAN (cctx->viewport.height);
+	break;
+    case GL_TEXTURE_BINDING_1D:
+    case GL_TEXTURE_BINDING_2D:
+    case GL_TEXTURE_BINDING_3D:
+	/* should be safe to fall-through here */
+    default:
+	glGetBooleanv (pname, params);
+    }
+}
+
+#define ENUM_TO_DOUBLE(E)    ((GLdouble) (E))
+#define BOOLEAN_TO_DOUBLE(B) ((B) ? 1.0F : 0.0F)
+
+static void
+xglGetDoublev (GLenum	pname,
+	       GLdouble *params)
+{
+    switch (pname) {
+    case GL_DOUBLEBUFFER:
+	params[0] = BOOLEAN_TO_DOUBLE (GL_TRUE);
+	break;
+    case GL_DRAW_BUFFER:
+	params[0] = ENUM_TO_DOUBLE (GL_BACK);
+	break;
+    case GL_READ_BUFFER:
+	params[0] = ENUM_TO_DOUBLE (GL_BACK);
+	break;
+    case GL_SCISSOR_BOX:
+	params[0] = cctx->scissor.x;
+	params[1] = cctx->scissor.y;
+	params[2] = cctx->scissor.width;
+	params[3] = cctx->scissor.height; 
+	break;
+    case GL_SCISSOR_TEST:
+	params[0] = BOOLEAN_TO_DOUBLE (cctx->scissorTest);
+	break;
+    case GL_VIEWPORT:
+	params[0] = cctx->viewport.x;
+	params[1] = cctx->viewport.y;
+	params[2] = cctx->viewport.width;
+	params[3] = cctx->viewport.height;
+	break;
+    case GL_TEXTURE_BINDING_1D:
+    case GL_TEXTURE_BINDING_2D:
+    case GL_TEXTURE_BINDING_3D:
+	params[0] = xglGetTextureBinding (pname);
+	break;
+    default:
+	glGetDoublev (pname, params);
+    }
+}
+
+#define ENUM_TO_FLOAT(E)    ((GLfloat) (E))
+#define BOOLEAN_TO_FLOAT(B) ((B) ? 1.0F : 0.0F)
+
+static void
+xglGetFloatv (GLenum  pname,
+	      GLfloat *params)
+{
+    switch (pname) {
+    case GL_DOUBLEBUFFER:
+	params[0] = BOOLEAN_TO_FLOAT (GL_TRUE);
+	break;
+    case GL_DRAW_BUFFER:
+	params[0] = ENUM_TO_FLOAT (GL_BACK);
+	break;
+    case GL_READ_BUFFER:
+	params[0] = ENUM_TO_FLOAT (GL_BACK);
+	break;
+    case GL_SCISSOR_BOX:
+	params[0] = cctx->scissor.x;
+	params[1] = cctx->scissor.y;
+	params[2] = cctx->scissor.width;
+	params[3] = cctx->scissor.height; 
+	break;
+    case GL_SCISSOR_TEST:
+	params[0] = BOOLEAN_TO_FLOAT (cctx->scissorTest);
+	break;
+    case GL_VIEWPORT:
+	params[0] = cctx->viewport.x;
+	params[1] = cctx->viewport.y;
+	params[2] = cctx->viewport.width;
+	params[3] = cctx->viewport.height;
+	break;
+    case GL_TEXTURE_BINDING_1D:
+    case GL_TEXTURE_BINDING_2D:
+    case GL_TEXTURE_BINDING_3D:
+	params[0] = xglGetTextureBinding (pname);
+	break;
+    default:
+	glGetFloatv (pname, params);
+    }
+}
+
+#define ENUM_TO_INT(E)    ((GLint) (E))
+#define BOOLEAN_TO_INT(B) ((GLint) (B))
+
+static void
+xglGetIntegerv (GLenum pname,
+		GLint  *params)
+{
+    switch (pname) {
+    case GL_DOUBLEBUFFER:
+	params[0] = BOOLEAN_TO_INT (GL_TRUE);
+	break;
+    case GL_DRAW_BUFFER:
+	params[0] = ENUM_TO_INT (GL_BACK);
+	break;
+    case GL_READ_BUFFER:
+	params[0] = ENUM_TO_INT (GL_BACK);
+	break;
+    case GL_SCISSOR_BOX:
+	params[0] = cctx->scissor.x;
+	params[1] = cctx->scissor.y;
+	params[2] = cctx->scissor.width;
+	params[3] = cctx->scissor.height; 
+	break;
+    case GL_SCISSOR_TEST:
+	params[0] = BOOLEAN_TO_INT (cctx->scissorTest);
+	break;
+    case GL_VIEWPORT:
+	params[0] = cctx->viewport.x;
+	params[1] = cctx->viewport.y;
+	params[2] = cctx->viewport.width;
+	params[3] = cctx->viewport.height;
+	break;
+    case GL_TEXTURE_BINDING_1D:
+    case GL_TEXTURE_BINDING_2D:
+    case GL_TEXTURE_BINDING_3D:
+	params[0] = xglGetTextureBinding (pname);
+	break;
+    default:
+	glGetIntegerv (pname, params);
+    }
+}
+
+static GLboolean
+xglIsEnabled (GLenum cap)
+{
+    switch (cap) {
+    case GL_SCISSOR_TEST:
+	return cctx->scissorTest;
+    default:
+	return glIsEnabled (cap);
+    }
+}
+
+static GLenum
+xglGetError (void)
+{
+    if (cctx->error != GL_NO_ERROR)
+	return cctx->error;
+
+    return glGetError ();
 }
 
 static const GLubyte *
@@ -196,13 +454,380 @@ xglGetString (GLenum name)
     }
 }
 
+static void
+xglGenTextures (GLsizei n,
+		GLuint  *textures)
+{
+    xglTexObjPtr pTexObj;
+    GLuint	 name;
+    
+    name = xglHashFindFreeKeyBlock (cctx->shared->texObjects, n);
+
+    glGenTextures (n, textures);
+
+    while (n--)
+    {
+	pTexObj = xalloc (sizeof (xglTexObjRec));
+	if (pTexObj)
+	{
+	    pTexObj->name = *textures;
+	    xglHashInsert (cctx->shared->texObjects, name, pTexObj);
+	}
+	else
+	{
+	    glDeleteTextures (1, textures);
+	    cctx->error = GL_OUT_OF_MEMORY;
+	}
+	
+	*textures++ = name++;
+    }
+}
+
+static void
+xglBindTexture (GLenum target,
+		GLuint texture)
+{
+    if (texture)
+    {
+	xglTexObjPtr pTexObj;
+	
+	pTexObj = (xglTexObjPtr) xglHashLookup (cctx->shared->texObjects,
+						texture);
+	if (!pTexObj)
+	{
+	    pTexObj = xalloc (sizeof (xglTexObjRec));
+	    if (!pTexObj)
+	    {
+		cctx->error = GL_OUT_OF_MEMORY;
+		return;
+	    }
+
+	    glGenTextures (1, &pTexObj->name);
+	    xglHashInsert (cctx->shared->texObjects, texture, pTexObj);
+	}
+	
+	glBindTexture (target, pTexObj->name);
+    }
+    else
+	glBindTexture (target, 0);
+}
+ 
+static GLboolean
+xglAreTexturesResident (GLsizei	     n,
+			const GLuint *textures,
+			GLboolean    *residences)
+{
+    GLboolean allResident = GL_TRUE;
+    int	      i, j;
+    
+    if (n < 0)
+    {
+	cctx->error = GL_INVALID_VALUE;
+	return GL_FALSE;
+    }
+    
+    if (!textures || !residences)
+	return GL_FALSE;
+
+    for (i = 0; i < n; i++)
+    {
+	xglTexObjPtr pTexObj;
+	GLboolean    resident;
+	
+	if (textures[i] == 0)
+	{
+	    cctx->error = GL_INVALID_VALUE;
+	    return GL_FALSE;
+	}
+
+	pTexObj = (xglTexObjPtr) xglHashLookup (cctx->shared->texObjects,
+						textures[i]);
+	if (!pTexObj)
+	{
+	    cctx->error = GL_INVALID_VALUE;
+	    return GL_FALSE;
+	}
+	
+	if (glAreTexturesResident (1, &pTexObj->name, &resident))
+	{
+	    if (!allResident)
+		residences[i] = GL_TRUE;
+	}
+	else
+	{
+	    if (allResident)
+	    {
+		allResident = GL_FALSE;
+
+		for (j = 0; j < i; j++)
+		    residences[j] = GL_TRUE;
+	    }
+	    residences[i] = GL_FALSE;
+	}
+    }
+   
+    return allResident;
+}
+
+static void
+xglDeleteTextures (GLsizei	n,
+		   const GLuint *textures)
+{
+    xglTexObjPtr pTexObj;
+    
+    while (n--)
+    {
+	pTexObj = (xglTexObjPtr) xglHashLookup (cctx->shared->texObjects,
+						*textures);
+	if (pTexObj)
+	{
+	    glDeleteTextures (1, &pTexObj->name);
+	    xglHashRemove (cctx->shared->texObjects, *textures);
+	    xfree (pTexObj);
+	}
+	textures++;
+    }
+}
+
+static GLboolean
+xglIsTexture (GLuint texture)
+{
+    xglTexObjPtr pTexObj;
+
+    if (!texture)
+	return GL_FALSE;
+    
+    pTexObj = (xglTexObjPtr) xglHashLookup (cctx->shared->texObjects, texture);
+    if (pTexObj)
+	return glIsTexture (pTexObj->name);
+
+    return GL_FALSE;
+}
+
+static void
+xglPrioritizeTextures (GLsizei	      n,
+		       const GLuint   *textures,
+		       const GLclampf *priorities)
+{
+    xglTexObjPtr pTexObj;
+    int		 i;
+    
+    if (n < 0)
+    {
+	cctx->error = GL_INVALID_VALUE;
+	return;
+    }
+    
+    if (!priorities)
+	return;
+    
+    for (i = 0; i < n; i++)
+    {
+	if (textures[i] <= 0)
+	    continue;
+	
+	pTexObj = (xglTexObjPtr) xglHashLookup (cctx->shared->texObjects,
+						textures[i]);
+	if (pTexObj)
+	    glPrioritizeTextures (1, &pTexObj->name, &priorities[i]);
+    }
+}
+
+static GLuint
+xglGenLists (GLsizei range)
+{
+    xglDisplayListPtr pDisplayList;
+    GLuint	      first, name, lists;
+    
+    lists = glGenLists (range);
+    if (!lists)
+	return 0;
+    
+    first = xglHashFindFreeKeyBlock (cctx->shared->displayLists, range);
+
+    name = first;
+    for (name = first; range--; name++)
+    {
+	pDisplayList = xalloc (sizeof (xglDisplayListRec));
+	if (pDisplayList)
+	{
+	    pDisplayList->name = lists;
+	    xglHashInsert (cctx->shared->displayLists, name, pDisplayList);
+	}
+	else
+	{
+	    glDeleteLists (lists, 1);
+	    cctx->error = GL_OUT_OF_MEMORY;
+	}
+	lists++;
+    }
+
+    return first;
+}
+
+static void
+xglNewList (GLuint list,
+	    GLenum mode)
+{
+    xglDisplayListPtr pDisplayList;
+    
+    if (!list)
+    {
+	cctx->error = GL_INVALID_VALUE;
+	return;
+    }
+       
+    pDisplayList = (xglDisplayListPtr)
+	xglHashLookup (cctx->shared->displayLists, list);
+    if (!pDisplayList)
+    {
+	pDisplayList = xalloc (sizeof (xglDisplayListRec));
+	if (!pDisplayList)
+	{
+	    cctx->error = GL_OUT_OF_MEMORY;
+	    return;
+	}
+	    
+	pDisplayList->name = glGenLists (1);
+	xglHashInsert (cctx->shared->displayLists, list, pDisplayList);
+    }
+    
+    glNewList (pDisplayList->name, mode);
+}
+
+static void
+xglCallList (GLuint list)
+{
+    xglDisplayListPtr pDisplayList;
+    
+    if (!list)
+    {
+	cctx->error = GL_INVALID_VALUE;
+	return;
+    }
+       
+    pDisplayList = (xglDisplayListPtr)
+	xglHashLookup (cctx->shared->displayLists, list);
+    if (pDisplayList)
+	glCallList (pDisplayList->name);
+}
+
+static void
+xglCallLists (GLsizei	   n,
+	      GLenum	   type,
+	      const GLvoid *lists)
+{
+    xglDisplayListPtr pDisplayList;
+    GLuint	      list;
+    GLint	      base, i;
+
+    glGetIntegerv (GL_LIST_BASE, &base);
+
+    for (i = 0; i < n; i++)
+    {
+	switch (type) {
+	case GL_BYTE:
+	    list = (GLuint) *(((GLbyte *) lists) + n);
+	    break;
+	case GL_UNSIGNED_BYTE:
+	    list = (GLuint) *(((GLubyte *) lists) + n);
+	    break;
+	case GL_SHORT:
+	    list = (GLuint) *(((GLshort *) lists) + n);
+	    break;
+	case GL_UNSIGNED_SHORT:
+	    list = (GLuint) *(((GLushort *) lists) + n);
+	    break;
+	case GL_INT:
+	    list = (GLuint) *(((GLint *) lists) + n);
+	    break;
+	case GL_UNSIGNED_INT:
+	    list = (GLuint) *(((GLuint *) lists) + n);
+	    break;
+	case GL_FLOAT:
+	    list = (GLuint) *(((GLfloat *) lists) + n);
+	    break;
+	case GL_2_BYTES:
+	{
+	    GLubyte *ubptr = ((GLubyte *) lists) + 2 * n;
+	    list = (GLuint) *ubptr * 256 + (GLuint) *(ubptr + 1);
+	} break;
+	case GL_3_BYTES:
+	{
+	    GLubyte *ubptr = ((GLubyte *) lists) + 3 * n;
+	    list = (GLuint) * ubptr * 65536
+		+ (GLuint) * (ubptr + 1) * 256
+		+ (GLuint) * (ubptr + 2);
+	} break;
+	case GL_4_BYTES:
+	{
+	    GLubyte *ubptr = ((GLubyte *) lists) + 4 * n;
+	    list = (GLuint) * ubptr * 16777216
+		+ (GLuint) * (ubptr + 1) * 65536
+		+ (GLuint) * (ubptr + 2) * 256
+		+ (GLuint) * (ubptr + 3);
+	} break;
+	default:
+	    cctx->error = GL_INVALID_ENUM;
+	    return;
+	}
+	
+	pDisplayList = (xglDisplayListPtr)
+	    xglHashLookup (cctx->shared->displayLists, base + list);
+	if (pDisplayList)
+	    glCallList (pDisplayList->name);
+    }
+}
+
+static void
+xglDeleteLists (GLuint  list,
+		GLsizei range)
+{
+    xglDisplayListPtr pDisplayList;
+    GLint	      i;
+    
+    if (range < 0)
+    {
+	cctx->error = GL_INVALID_VALUE;
+	return;
+    }
+    
+    for (i = 0; i < range; i++)
+    {
+	pDisplayList = (xglDisplayListPtr)
+	    xglHashLookup (cctx->shared->displayLists, list + i);
+	if (pDisplayList)
+	{
+	    glDeleteLists (pDisplayList->name, 1);
+	    xglHashRemove (cctx->shared->displayLists, list + i);
+	    xfree (pDisplayList);
+	}
+    }
+}
+
+static GLboolean
+xglIsList (GLuint list)
+{
+    xglDisplayListPtr pDisplayList;
+
+    if (!list)
+	return GL_FALSE;
+    
+    pDisplayList = (xglDisplayListPtr)
+	xglHashLookup (cctx->shared->displayLists, list);
+    if (pDisplayList)
+	return glIsList (pDisplayList->name);
+
+    return GL_FALSE;
+}
+
 __glProcTable __glNativeRenderTable = {
-    glNewList,
+    xglNewList, /* glNewList */
     glEndList,
-    glCallList,
-    glCallLists,
-    glDeleteLists,
-    glGenLists,
+    xglCallList, /* glCallList */
+    xglCallLists, /* glCallLists */
+    xglDeleteLists, /* glDeleteLists */
+    xglGenLists, /* glGenLists */
     glListBase,
     glBegin,
     glBitmap,
@@ -342,7 +967,7 @@ __glProcTable __glNativeRenderTable = {
     glIndexMask,
     glAccum,
     xglDisable, /* glDisable */
-    glEnable,
+    xglEnable, /* glEnable */
     glFinish,
     glFlush,
     glPopAttrib,
@@ -381,12 +1006,12 @@ __glProcTable __glNativeRenderTable = {
     xglCopyPixels, /* glCopyPixels */
     glReadPixels,
     glDrawPixels,
-    glGetBooleanv,
+    xglGetBooleanv, /* glGetBooleanv */
     glGetClipPlane,
-    glGetDoublev,
-    glGetError,
-    glGetFloatv,
-    glGetIntegerv,
+    xglGetDoublev, /* glGetDoublev */
+    xglGetError, /* glGetError */
+    xglGetFloatv, /* glGetFloatv */
+    xglGetIntegerv, /* glGetIntegerv */
     glGetLightfv,
     glGetLightiv,
     glGetMapdv,
@@ -409,8 +1034,8 @@ __glProcTable __glNativeRenderTable = {
     glGetTexParameteriv,
     glGetTexLevelParameterfv,
     glGetTexLevelParameteriv,
-    glIsEnabled,
-    glIsList,
+    xglIsEnabled, /* glIsEnabled */
+    xglIsList, /* glIsList */
     glDepthRange,
     glFrustum,
     glLoadIdentity,
@@ -430,7 +1055,7 @@ __glProcTable __glNativeRenderTable = {
     glTranslatef,
     xglViewport, /* glViewport */
     glArrayElement,
-    glBindTexture,
+    xglBindTexture, /* glBindTexture */
     glColorPointer,
     glDisableClientState,
     glDrawArrays,
@@ -444,16 +1069,16 @@ __glProcTable __glNativeRenderTable = {
     glPolygonOffset,
     glTexCoordPointer,
     glVertexPointer,
-    glAreTexturesResident,
+    xglAreTexturesResident, /* glAreTexturesResident */
     glCopyTexImage1D,
     glCopyTexImage2D,
     glCopyTexSubImage1D,
     glCopyTexSubImage2D,
-    glDeleteTextures,
-    glGenTextures,
+    xglDeleteTextures, /* glDeleteTextures */
+    xglGenTextures, /* glGenTextures */
     glGetPointerv,
-    glIsTexture,
-    glPrioritizeTextures,
+    xglIsTexture, /* glIsTexture */
+    xglPrioritizeTextures, /* glPrioritizeTextures */
     glTexSubImage1D,
     glTexSubImage2D,
     glPopClientAttrib,
@@ -764,17 +1389,9 @@ xglInitExtensions (xglGLContextPtr pContext)
     if (strstr (extensions, "GL_EXT_texture_object"))
     {
 	pContext->glRenderTableEXT.AreTexturesResidentEXT =
-	    (PFNGLARETEXTURESRESIDENTEXTPROC)
-	    glitz_context_get_proc_address (pContext->context,
-					    "glAreTexturesResidentEXT");
-	pContext->glRenderTableEXT.GenTexturesEXT =
-	    (PFNGLGENTEXTURESEXTPROC)
-	    glitz_context_get_proc_address (pContext->context,
-					    "glGenTexturesEXT");
-	pContext->glRenderTableEXT.IsTextureEXT =
-	    (PFNGLISTEXTUREEXTPROC)
-	    glitz_context_get_proc_address (pContext->context,
-					    "glIsTextureEXT");
+	    xglAreTexturesResident;
+	pContext->glRenderTableEXT.GenTexturesEXT = xglGenTextures;
+	pContext->glRenderTableEXT.IsTextureEXT = xglIsTexture;
     }
 
     if (strstr (extensions, "GL_SGIS_multisample"))
@@ -897,16 +1514,80 @@ xglInitExtensions (xglGLContextPtr pContext)
     pContext->needInit = FALSE;
 }
 
+static void
+xglFreeContext (xglGLContextPtr pContext)
+{
+    pContext->refcnt--;
+    if (pContext->shared == pContext)
+	pContext->refcnt--;
+	
+    if (pContext->refcnt)
+	return;
+
+    if (pContext->shared != pContext)
+	xglFreeContext (pContext->shared);
+
+    if (pContext->texObjects)
+    {
+	xglTexObjPtr pTexObj;
+	GLuint	     key;
+
+	do {
+	    key = xglHashFirstEntry (pContext->texObjects);
+	    if (key)
+	    {
+		pTexObj = (xglTexObjPtr) xglHashLookup (pContext->texObjects,
+							key);
+		if (pTexObj)
+		{
+		    glDeleteTextures (1, &pTexObj->name);
+		    xfree (pTexObj);
+		}
+		xglHashRemove (pContext->texObjects, key);
+	    }
+	} while (key);
+	
+	xglDeleteHashTable (pContext->texObjects);
+    }
+
+    if (pContext->displayLists)
+    {
+	xglDisplayListPtr pDisplayList;
+	GLuint		  key;
+
+	do {
+	    key = xglHashFirstEntry (pContext->displayLists);
+	    if (key)
+	    {
+		pDisplayList = (xglDisplayListPtr)
+		    xglHashLookup (pContext->displayLists, key);
+		if (pDisplayList)
+		{
+		    glDeleteLists (pDisplayList->name, 1);
+		    xfree (pDisplayList);
+		}
+		xglHashRemove (pContext->displayLists, key);
+	    }
+	} while (key);
+	
+	xglDeleteHashTable (pContext->displayLists);
+    }
+    
+    glitz_context_destroy (pContext->context);
+
+    if (pContext->versionString)
+	xfree (pContext->versionString);
+
+    xfree (pContext);
+}
+
 static GLboolean
 xglDestroyContext (__GLcontext *gc)
 {
     xglGLContextPtr pContext = (xglGLContextPtr) gc;
     __GLinterface   *iface = pContext->mIface;
 
-    glitz_context_destroy (pContext->context);
-    if (pContext->versionString)
-	xfree (pContext->versionString);
-    xfree (pContext);
+    xglFreeContext (pContext);
 
     return (*iface->exports.destroyContext) ((__GLcontext *) iface);
 }
@@ -993,8 +1674,6 @@ xglShareContext (__GLcontext *gc,
     __GLinterface   *iface = pContext->mIface;
     __GLinterface   *ifaceShare = pContextShare->mIface;
 
-    /* NYI. all contexts are currently shared */
-    
     return (*iface->exports.shareContext) ((__GLcontext *) iface,
 					   (__GLcontext *) ifaceShare);
 }
@@ -1121,30 +1800,58 @@ xglCreateContext (__GLimports      *imports,
     __GLXcontext	    *glxCtx = (__GLXcontext *) imports->other;
     
     XGL_SCREEN_PRIV (glxCtx->pScreen);
- 
-    if (shareGC)
-	shareIface = pShareContext->mIface;
-    
+
+    format = glitz_drawable_get_format (pScreenPriv->drawable);
+
     pContext = xalloc (sizeof (xglGLContextRec));
     if (!pContext)
 	return NULL;
 
-    format = glitz_drawable_get_format (pScreenPriv->drawable);
-
     pContext->context = glitz_context_create (pScreenPriv->drawable, format);
-
+    glitz_context_set_user_data (pContext->context, NULL, 
+				 xglLoseCurrentContext);
+	
     pContext->needInit	    = TRUE;
     pContext->draw	    = NULL;
     pContext->target	    = FALSE;
     pContext->versionString = NULL;
+    pContext->scissorTest   = GL_FALSE;
+    pContext->error	    = GL_NO_ERROR;
     
-    glitz_context_set_user_data (pContext->context, NULL, 
-				 xglLoseCurrentContext);
-				 
+    pContext->refcnt = 1;
+    if (shareGC)
+    {
+	pContext->texObjects   = NULL;
+	pContext->displayLists = NULL;
+	
+	pContext->shared = pShareContext->shared;
+	shareIface = pShareContext->mIface;
+    }
+    else
+    {
+	pContext->texObjects = xglNewHashTable ();
+	if (!pContext->texObjects)
+	{
+	    xglFreeContext (pContext);
+	    return NULL;
+	}
+	
+	pContext->displayLists = xglNewHashTable ();
+	if (!pContext->displayLists)
+	{
+	    xglFreeContext (pContext);
+	    return NULL;
+	}
+
+	pContext->shared = pContext;
+    }
+
+    pContext->shared->refcnt++;
+    
     iface = (*screenInfoPriv.createContext) (imports, modes, shareIface);
     if (!iface)
     {
-	xfree (pContext);
+	xglFreeContext (pContext);
 	return NULL;
     }
 

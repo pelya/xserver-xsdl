@@ -30,4 +30,6 @@ libxgl_a_SOURCES =     \
 	xglcomp.c      \
 	xglpict.c      \
 	xglglyph.c     \
-	xgltrap.c
+	xgltrap.c      \
+	xglhash.c      \
+	xglglx.c

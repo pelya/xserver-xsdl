@@ -1371,6 +1371,38 @@ xglAddTraps (PicturePtr pDst,
 
 #ifdef GLXEXT
 
+typedef struct _xglHashTable *xglHashTablePtr;
+
+xglHashTablePtr
+xglNewHashTable (void);
+
+void
+xglDeleteHashTable (xglHashTablePtr pTable);
+
+void *
+xglHashLookup (const xglHashTablePtr pTable,
+	       unsigned int	     key);
+
+void
+xglHashInsert (xglHashTablePtr pTable,
+	       unsigned int    key,
+	       void	       *data);
+
+void
+xglHashRemove (xglHashTablePtr pTable,
+	       unsigned int    key);
+
+unsigned int
+xglHashFirstEntry (xglHashTablePtr pTable);
+
+unsigned int
+xglHashNextEntry (const xglHashTablePtr pTable,
+		  unsigned int		key);
+
+unsigned int
+xglHashFindFreeKeyBlock (xglHashTablePtr pTable,
+			 unsigned int	 numKeys);
+
 Bool
 xglInitVisualConfigs (ScreenPtr pScreen);
 
