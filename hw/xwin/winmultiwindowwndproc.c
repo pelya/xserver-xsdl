@@ -266,15 +266,19 @@ ValidateSizing (HWND hwnd, WindowPtr pWin,
 }
 
 extern Bool winInDestroyWindowsWindow;
+static Bool winInRaiseWindow = FALSE;
 static void winRaiseWindow(WindowPtr pWin)
 {
-  if (!winInDestroyWindowsWindow)
+  if (!winInDestroyWindowsWindow && !winInRaiseWindow)
   {
+    BOOL oldstate = winInRaiseWindow;
+    winInRaiseWindow = TRUE;
     /* Call configure window directly to make sure it gets processed 
      * in time
      */
     XID vlist[1] = { 0 };
     ConfigureWindow(pWin, CWStackMode, vlist, NULL); 
+    winInRaiseWindow = oldstate;
   }
 }
 
