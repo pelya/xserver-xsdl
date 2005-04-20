@@ -89,7 +89,7 @@ SOFTWARE.
 #if defined(NOFILE) && !defined(NOFILES_MAX)
 #define OPEN_MAX NOFILE
 #else
-#ifndef __UNIXOS2__
+#if !defined(__UNIXOS2__) && !defined(WIN32)
 #define OPEN_MAX NOFILES_MAX
 #else
 #define OPEN_MAX 256
