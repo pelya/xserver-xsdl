@@ -532,6 +532,7 @@ class CMyWizard : public CWizard
 		    else
 			buffer += "-query ";
 		    buffer += config.xdmcp_host;
+            buffer += " ";
 		}
 	    }
             if (config.clipboard)
