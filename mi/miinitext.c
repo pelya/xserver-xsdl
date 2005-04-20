@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/mi/miinitext.c,v 1.16 2005/03/19 20:51:34 gisburn Exp $ */
+/* $XdotOrg: xc/programs/Xserver/mi/miinitext.c,v 1.17 2005/04/20 12:25:45 daniels Exp $ */
 /* $XFree86: xc/programs/Xserver/mi/miinitext.c,v 3.67 2003/01/12 02:44:27 dawes Exp $ */
 /***********************************************************
 
@@ -242,7 +242,7 @@ typedef void (*InitExtension)(INITARGS);
 #include <X11/extensions/panoramiXproto.h>
 #endif
 #ifdef XF86BIGFONT
-#include "xf86bigfstr.h"
+#include <X11/extensions/xf86bigfstr.h>
 #endif
 #ifdef RES
 #include <X11/extensions/XResproto.h>
