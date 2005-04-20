@@ -92,7 +92,7 @@ Author:  Adobe Systems Incorporated
 #include "pixmapstr.h"
 #include "scrnintstr.h"
 #define  XK_LATIN1
-#include "keysymdef.h"
+#include <X11/keysymdef.h>
 #ifdef XCSECURITY
 #define _SECURITY_SERVER
 #include <X11/extensions/security.h>
