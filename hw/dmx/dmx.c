@@ -53,10 +53,10 @@
 #include "opaque.h"
 
 #include "dmxextension.h"
-#include "dmxproto.h"
+#include <X11/extensions/dmxproto.h>
 
 #define _DMX_SERVER_
-#include "dmxext.h"
+#include <X11/extensions/dmxext.h>
 
 #ifdef PANORAMIX
 #include "panoramiX.h"
