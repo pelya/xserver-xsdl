@@ -42,7 +42,7 @@ of the copyright holder.
 #include "scrnintstr.h"
 #include "servermd.h"
 #define  _XEVIE_SERVER_
-#include "Xeviestr.h"
+#include <X11/extensions/Xeviestr.h>
 #include <X11/Xfuncproto.h>
 #include "input.h"
 
