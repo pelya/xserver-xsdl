@@ -2,6 +2,7 @@
 #include <X11/Xproto.h>
 #include "scrnintstr.h"
 #include "colormapst.h"
+#include "glyphstr.h"
 #include "resource.h"
 #include "font.h"
 #include "dixfontstr.h"
