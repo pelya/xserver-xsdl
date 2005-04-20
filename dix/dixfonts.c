@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/dix/dixfonts.c,v 1.3 2005/03/07 23:02:58 gisburn Exp $ */
+/* $XdotOrg: xc/programs/Xserver/dix/dixfonts.c,v 1.4 2005/04/20 12:25:19 daniels Exp $ */
 /* $XFree86: xc/programs/Xserver/dix/dixfonts.c,v 3.28 2003/11/08 02:02:03 dawes Exp $ */
 /************************************************************************
 Copyright 1987 by Digital Equipment Corporation, Maynard, Massachusetts.
@@ -78,7 +78,7 @@ Equipment Corporation.
 
 #ifdef XF86BIGFONT
 #define _XF86BIGFONT_SERVER_
-#include "xf86bigfont.h"
+#include <X11/extensions/xf86bigfont.h>
 #endif
 
 #define QUERYCHARINFO(pci, pr)  *(pr) = (pci)->metrics
