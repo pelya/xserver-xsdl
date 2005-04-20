@@ -12,7 +12,7 @@
 #include "xf86_ansic.h"
 #include "xf86_OSproc.h"
 
-#include "X.h"
+#include <X11/X.h>
 #include "mi.h"
 #include "pixmapstr.h"
 #include "gcstruct.h"

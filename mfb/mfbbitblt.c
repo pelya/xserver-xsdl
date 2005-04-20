@@ -47,8 +47,8 @@ SOFTWARE.
 
 ******************************************************************/
 /* $Xorg: mfbbitblt.c,v 1.4 2001/02/09 02:05:18 xorgcvs Exp $ */
-#include "X.h"
-#include "Xprotostr.h"
+#include <X11/X.h>
+#include <X11/Xprotostr.h>
 
 #include "regionstr.h"
 #include "gcstruct.h"

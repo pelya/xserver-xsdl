@@ -49,9 +49,9 @@ SOFTWARE.
 
 /* $XFree86: xc/programs/Xserver/mfb/mfbtegblt.c,v 1.7 2001/01/17 22:37:03 dawes Exp $ */
 
-#include	"X.h"
-#include	"Xmd.h"
-#include	"Xproto.h"
+#include	<X11/X.h>
+#include	<X11/Xmd.h>
+#include	<X11/Xproto.h>
 #include	"mfb.h"
 #include	"fontstruct.h"
 #include	"dixfontstr.h"

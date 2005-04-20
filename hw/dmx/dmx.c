@@ -43,8 +43,8 @@
  * Please see the Client-to-Server DMX Extension to the X Protocol
  * document for details about the protocol.  */
 
-#include "X.h"
-#include "Xproto.h"
+#include <X11/X.h>
+#include <X11/Xproto.h>
 #include "misc.h"
 #include "os.h"
 #include "dixstruct.h"

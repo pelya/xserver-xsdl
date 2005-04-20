@@ -56,12 +56,12 @@ copyright holders.
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include "X.h"
-#include "Xos.h"	/* for SIGCLD on pre-POSIX systems */
+#include <X11/X.h>
+#include <X11/Xos.h>	/* for SIGCLD on pre-POSIX systems */
 #define NEED_EVENTS
-#include "Xproto.h"
+#include <X11/Xproto.h>
 #undef NEED_EVENTS
-#include "Xatom.h"
+#include <X11/Xatom.h>
 #include "misc.h"
 #include "dixstruct.h"
 #include "scrnintstr.h"

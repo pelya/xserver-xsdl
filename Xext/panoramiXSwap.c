@@ -26,8 +26,8 @@ Equipment Corporation.
 /* $XFree86: xc/programs/Xserver/Xext/panoramiXSwap.c,v 3.9 2003/07/16 01:38:29 dawes Exp $ */
 
 #include <stdio.h>
-#include "X.h"
-#include "Xproto.h"
+#include <X11/X.h>
+#include <X11/Xproto.h>
 #include "misc.h"
 #include "cursor.h"
 #include "cursorstr.h"
@@ -44,7 +44,7 @@ Equipment Corporation.
 #include <X11/Xserver/ws.h> 
 #endif
 #include "panoramiX.h"
-#include "panoramiXproto.h"
+#include <X11/extensions/panoramiXproto.h>
 #include "panoramiXsrv.h"
 #include "globals.h"
 #include "panoramiXh.h"

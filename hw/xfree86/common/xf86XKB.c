@@ -61,7 +61,7 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include "inputstr.h"
 #include "scrnintstr.h"
 #include "windowstr.h"
-#include "XI.h"
+#include <X11/extensions/XI.h>
 
 #include "compiler.h"
 
@@ -70,7 +70,7 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #define XF86_OS_PRIVS
 #include "xf86_OSlib.h"
 
-#include "XKBsrv.h"
+#include <X11/extensions/XKBsrv.h>
 
 void
 xf86InitXkb(void)

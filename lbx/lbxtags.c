@@ -48,7 +48,7 @@ in this Software without prior written authorization from The Open Group.
  */
 /* $XFree86: xc/programs/Xserver/lbx/lbxtags.c,v 1.3 2001/01/17 22:37:00 dawes Exp $ */
 
-#include "X.h"
+#include <X11/X.h>
 #include "misc.h"
 #include "lbxdata.h"
 #include "resource.h"
@@ -56,7 +56,7 @@ in this Software without prior written authorization from The Open Group.
 #include "propertyst.h"
 #include "lbxtags.h"
 #define _XLBX_SERVER_
-#include "lbxstr.h"
+#include <X11/extensions/lbxstr.h>
 #include "propertyst.h"
 
 static RESTYPE TagResType;

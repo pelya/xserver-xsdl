@@ -65,9 +65,9 @@ copyright holders.
 #include <sys/sysmacros.h>
 #endif
 
-#include "X.h"
+#include <X11/X.h>
 #define NEED_EVENTS 1
-#include "Xproto.h"
+#include <X11/Xproto.h>
 #include <servermd.h>
 
 #include "screenint.h"

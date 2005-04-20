@@ -29,11 +29,11 @@
  * holders shall not be used in advertising or otherwise to promote the sale,
  * use or other dealings in this Software without prior written authorization.
  */
-/* $XdotOrg: xc/programs/Xserver/hw/darwin/darwin.c,v 1.4 2004/08/11 23:53:36 torrey Exp $ */
+/* $XdotOrg: xc/programs/Xserver/hw/darwin/darwin.c,v 1.5 2004/09/22 23:38:32 torrey Exp $ */
 /* $XFree86: xc/programs/Xserver/hw/darwin/darwin.c,v 1.55 2003/11/15 00:07:09 torrey Exp $ */
 
-#include "X.h"
-#include "Xproto.h"
+#include <X11/X.h>
+#include <X11/Xproto.h>
 #include "os.h"
 #include "servermd.h"
 #include "inputstr.h"
@@ -49,8 +49,8 @@
 #include "dix.h"
 
 #ifdef XINPUT
-# include "XI.h"
-# include "XIproto.h"
+# include <X11/extensions/XI.h>
+# include <X11/extensions/XIproto.h>
 # include "exevents.h"
 # include "extinit.h"
 #endif

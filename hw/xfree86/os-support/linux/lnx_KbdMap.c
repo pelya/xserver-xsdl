@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/linux/lnx_KbdMap.c,v 1.1 2002/10/11 01:40:35 dawes Exp $ */
+/* $XFree86$ */
 
 /*
  * Slightly modified xf86KbdLnx.c which is
@@ -6,8 +6,8 @@
  * Copyright 1990,91 by Thomas Roell, Dinkelscherben, Germany.
  */
 
-#include "X.h"
-#include "Xmd.h"
+#include <X11/X.h>
+#include <X11/Xmd.h>
 #include "input.h"
 #include "scrnintstr.h"
 

@@ -3,7 +3,7 @@
 #ifndef __DGAPROC_H
 #define __DGAPROC_H
 
-#include "Xproto.h"
+#include <X11/Xproto.h>
 #include "pixmap.h"
 
 #define DGA_CONCURRENT_ACCESS	0x00000001

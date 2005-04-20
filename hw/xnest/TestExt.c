@@ -25,7 +25,7 @@ is" without express or implied warranty.
 #include "servermd.h"
 #include "mipointer.h"
 #define XTestSERVER_SIDE
-#include "xtestext1.h"
+#include <X11/extensions/xtestext1.h>
 #include "xtest1dd.h"
 
 extern CARD32 lastEventTime;

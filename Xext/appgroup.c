@@ -28,8 +28,8 @@ from The Open Group.
 
 #define NEED_REPLIES
 #define NEED_EVENTS
-#include "X.h"
-#include "Xproto.h"
+#include <X11/X.h>
+#include <X11/Xproto.h>
 #include "misc.h"
 #include "dixstruct.h"
 #include "extnsionst.h"
@@ -38,14 +38,14 @@ from The Open Group.
 #include "colormapst.h"
 #include "servermd.h"
 #define _XAG_SERVER_
-#include "Xagstr.h"
-#include "Xagsrv.h"
+#include <X11/extensions/Xagstr.h>
+#include <X11/extensions/Xagsrv.h>
 #define _SECURITY_SERVER
-#include "security.h"
-#include "Xfuncproto.h"
+#include <X11/extensions/security.h>
+#include <X11/Xfuncproto.h>
 
 #define XSERV_t
-#include <X11/Xtrans.h>
+#include <X11/Xtrans/Xtrans.h>
 #include "../os/osdep.h"
 
 #include <stdio.h>

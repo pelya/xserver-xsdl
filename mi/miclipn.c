@@ -28,7 +28,7 @@ from The Open Group.
 */
 /* $XFree86: xc/programs/Xserver/mi/miclipn.c,v 1.3 2001/08/06 21:46:04 dawes Exp $ */
 
-#include "X.h"
+#include <X11/X.h>
 #include "windowstr.h"
 #include "scrnintstr.h"
 #include "mi.h"

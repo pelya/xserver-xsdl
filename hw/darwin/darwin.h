@@ -31,7 +31,7 @@
 #include <IOKit/IOTypes.h>
 #include "inputstr.h"
 #include "scrnintstr.h"
-#include "extensions/XKB.h"
+#include <X11/extensions/XKB.h>
 
 typedef struct {
     void                *framebuffer;

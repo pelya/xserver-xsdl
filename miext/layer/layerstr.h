@@ -25,7 +25,7 @@
 #ifndef _LAYERSTR_H_
 #define _LAYERSTR_H_
 
-#include    "X.h"
+#include    <X11/X.h>
 #include    "scrnintstr.h"
 #include    "windowstr.h"
 #include    "font.h"

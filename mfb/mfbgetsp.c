@@ -47,8 +47,8 @@ SOFTWARE.
 
 ******************************************************************/
 /* $Xorg: mfbgetsp.c,v 1.4 2001/02/09 02:05:19 xorgcvs Exp $ */
-#include "X.h"
-#include "Xmd.h"
+#include <X11/X.h>
+#include <X11/Xmd.h>
 
 #include "misc.h"
 #include "region.h"

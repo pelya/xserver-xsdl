@@ -29,7 +29,7 @@
 #include <stdlib.h>
 #include <dlfcn.h>
 
-#include "Xos.h"
+#include <X11/Xos.h>
 #include "os.h"
 
 #include "sym.h"

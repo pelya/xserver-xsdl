@@ -67,7 +67,7 @@
  * for complete references). */
 
 #include "inputstr.h"
-#include "Xos.h"
+#include <X11/Xos.h>
 #include <errno.h>
 #include <termios.h>
 

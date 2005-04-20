@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/render/render.c,v 1.5 2004/08/06 23:42:10 keithp Exp $ */
+/* $XdotOrg: xc/programs/Xserver/render/render.c,v 1.6 2004/12/04 00:43:13 kuhn Exp $ */
 /*
  * $XFree86: xc/programs/Xserver/render/render.c,v 1.27tsi Exp $
  *
@@ -26,8 +26,8 @@
 
 #define NEED_REPLIES
 #define NEED_EVENTS
-#include "X.h"
-#include "Xproto.h"
+#include <X11/X.h>
+#include <X11/Xproto.h>
 #include "misc.h"
 #include "os.h"
 #include "dixstruct.h"
@@ -38,11 +38,11 @@
 #include "colormapst.h"
 #include "extnsionst.h"
 #include "servermd.h"
-#include "render.h"
-#include "renderproto.h"
+#include <X11/extensions/render.h>
+#include <X11/extensions/renderproto.h>
 #include "picturestr.h"
 #include "glyphstr.h"
-#include "Xfuncproto.h"
+#include <X11/Xfuncproto.h>
 #include "cursorstr.h"
 #ifdef EXTMODULE
 #include "xf86_ansic.h"

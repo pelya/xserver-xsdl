@@ -6,7 +6,7 @@
 #include "xf86_OSproc.h"
 #include "servermd.h"
 
-#include "X.h"
+#include <X11/X.h>
 #include "scrnintstr.h"
 #include "mi.h"
 #include "pixmapstr.h"

@@ -1,6 +1,6 @@
 /* $XFree86$ */
 
-#include "X.h"
+#include <X11/X.h>
 #include "misc.h"
 #include "xf86.h"
 #include "xf86_ansic.h"

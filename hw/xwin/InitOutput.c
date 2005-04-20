@@ -39,7 +39,7 @@ from The Open Group.
 #include <mntent.h>
 #endif
 #if defined(XKB) && defined(WIN32)
-#include "XKBsrv.h"
+#include <X11/extensions/XKBsrv.h>
 #endif
 #ifdef RELOCATE_PROJECTROOT
 #include <shlobj.h>

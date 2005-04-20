@@ -40,7 +40,7 @@
 /* INCLUDES */
 
 #define NEED_DBE_PROTOCOL
-#include "Xdbeproto.h"
+#include <X11/extensions/Xdbeproto.h>
 #include "windowstr.h"
 
 

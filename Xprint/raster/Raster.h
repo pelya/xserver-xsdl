@@ -58,7 +58,7 @@ typedef char *XPointer;
 #define True 1
 #define False 0
 #include "misc.h"
-#include <Xfuncproto.h>
+#include <X11/Xfuncproto.h>
 #include <X11/Xresource.h>
 #include "attributes.h"
 

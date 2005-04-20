@@ -34,9 +34,9 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include "inputstr.h"
 #include "scrnintstr.h"
 #include "windowstr.h"
-#include "XKBsrv.h"
-#include "XI.h"
-#include "XIproto.h"
+#include <X11/extensions/XKBsrv.h>
+#include <X11/extensions/XI.h>
+#include <X11/extensions/XIproto.h>
 
 extern	int	DeviceValuator;
 

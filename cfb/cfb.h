@@ -31,7 +31,7 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 #if !defined(__CFB_H__) || defined(CFB_PROTOTYPES_ONLY)
 
-#include "X.h"
+#include <X11/X.h>
 #include "globals.h"
 #include "pixmap.h"
 #include "region.h"

@@ -44,7 +44,7 @@
 #include <pthread.h>
 
 #include "inputstr.h"
-#include "extensions/XI.h"
+#include <X11/extensions/XI.h>
 
 void NSBeep();
 

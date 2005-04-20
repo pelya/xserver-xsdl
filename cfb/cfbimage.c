@@ -47,7 +47,7 @@ SOFTWARE.
 ******************************************************************/
 /* $Xorg: cfbimage.c,v 1.4 2001/02/09 02:04:38 xorgcvs Exp $ */
 
-#include "X.h"
+#include <X11/X.h>
 #include "windowstr.h"
 #include "pixmapstr.h"
 #include "scrnintstr.h"

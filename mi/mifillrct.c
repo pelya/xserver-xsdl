@@ -47,8 +47,8 @@ SOFTWARE.
 ******************************************************************/
 /* $Xorg: mifillrct.c,v 1.4 2001/02/09 02:05:20 xorgcvs Exp $ */
 
-#include "X.h"
-#include "Xprotostr.h"
+#include <X11/X.h>
+#include <X11/Xprotostr.h>
 #include "gcstruct.h"
 #include "windowstr.h"
 #include "pixmap.h"

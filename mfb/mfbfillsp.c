@@ -47,8 +47,8 @@ SOFTWARE.
 
 ******************************************************************/
 /* $Xorg: mfbfillsp.c,v 1.4 2001/02/09 02:05:18 xorgcvs Exp $ */
-#include "X.h"
-#include "Xmd.h"
+#include <X11/X.h>
+#include <X11/Xmd.h>
 #include "gcstruct.h"
 #include "window.h"
 #include "pixmapstr.h"

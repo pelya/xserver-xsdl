@@ -78,7 +78,7 @@
 #include "scrnintstr.h"         /* For screenInfo */
 
 #ifdef XINPUT
-#include "XIproto.h"
+#include <X11/extensions/XIproto.h>
 #define EXTENSION_PROC_ARGS void *
 #include "extinit.h"            /* For LookupDeviceIntRec */
 #endif

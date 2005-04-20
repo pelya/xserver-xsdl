@@ -27,7 +27,7 @@
 
 #include "scrnintstr.h"
 #include "mi.h"
-#include "randr.h"
+#include <X11/extensions/randr.h>
 #include "randrstr.h"
 #include <stdio.h>
 

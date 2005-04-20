@@ -48,8 +48,8 @@ SOFTWARE.
 /* $Xorg: mibitblt.c,v 1.5 2001/02/09 02:05:20 xorgcvs Exp $ */
 /* Author: Todd Newman  (aided and abetted by Mr. Drewry) */
 
-#include "X.h"
-#include "Xprotostr.h"
+#include <X11/X.h>
+#include <X11/Xprotostr.h>
 
 #include "misc.h"
 #include "gcstruct.h"
@@ -58,7 +58,7 @@ SOFTWARE.
 #include "scrnintstr.h"
 #include "mi.h"
 #include "regionstr.h"
-#include "Xmd.h"
+#include <X11/Xmd.h>
 #include "servermd.h"
 
 #ifndef HAS_FFS

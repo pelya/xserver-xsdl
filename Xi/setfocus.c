@@ -55,12 +55,12 @@ SOFTWARE.
 
 #define	 NEED_EVENTS
 #define	 NEED_REPLIES
-#include "X.h"				/* for inputstr.h    */
-#include "Xproto.h"			/* Request macro     */
+#include <X11/X.h>				/* for inputstr.h    */
+#include <X11/Xproto.h>			/* Request macro     */
 #include "windowstr.h"			/* focus struct      */
 #include "inputstr.h"			/* DeviceIntPtr	     */
-#include "XI.h"
-#include "XIproto.h"
+#include <X11/extensions/XI.h>
+#include <X11/extensions/XIproto.h>
 
 #include "dixevents.h"
 

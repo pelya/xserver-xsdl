@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/Xext/shape.c,v 1.3 2004/07/29 18:46:37 stukreit Exp $ */
+/* $XdotOrg: xc/programs/Xserver/Xext/shape.c,v 1.4 2004/07/29 23:43:39 kem Exp $ */
 /* $XFree86: xc/programs/Xserver/Xext/shape.c,v 3.18 2003/10/28 23:08:43 tsi Exp $ */
 /************************************************************
 
@@ -29,8 +29,8 @@ in this Software without prior written authorization from The Open Group.
 /* $Xorg: shape.c,v 1.4 2001/02/09 02:04:32 xorgcvs Exp $ */
 #define NEED_REPLIES
 #define NEED_EVENTS
-#include "X.h"
-#include "Xproto.h"
+#include <X11/X.h>
+#include <X11/Xproto.h>
 #include "misc.h"
 #include "os.h"
 #include "windowstr.h"
@@ -41,7 +41,7 @@ in this Software without prior written authorization from The Open Group.
 #include "resource.h"
 #include "opaque.h"
 #define _SHAPE_SERVER_	/* don't want Xlib structures */
-#include "shapestr.h"
+#include <X11/extensions/shapestr.h>
 #include "regionstr.h"
 #include "gcstruct.h"
 #ifdef EXTMODULE

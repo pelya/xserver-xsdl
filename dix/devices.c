@@ -49,12 +49,12 @@ SOFTWARE.
 
 /* $Xorg: devices.c,v 1.4 2001/02/09 02:04:39 xorgcvs Exp $ */
 
-#include "X.h"
+#include <X11/X.h>
 #include "misc.h"
 #include "resource.h"
 #define NEED_EVENTS
 #define NEED_REPLIES
-#include "Xproto.h"
+#include <X11/Xproto.h>
 #include "windowstr.h"
 #include "inputstr.h"
 #include "scrnintstr.h"
@@ -63,11 +63,11 @@ SOFTWARE.
 #include "site.h"
 #define	XKB_IN_SERVER
 #ifdef XKB
-#include "XKBsrv.h"
+#include <X11/extensions/XKBsrv.h>
 #endif
 #ifdef XCSECURITY
 #define _SECURITY_SERVER
-#include "security.h"
+#include <X11/extensions/security.h>
 #endif
 #ifdef LBX
 #include "lbxserve.h"

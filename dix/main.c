@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/dix/main.c,v 1.5 2005/03/07 23:02:58 gisburn Exp $ */
+/* $XdotOrg: xc/programs/Xserver/dix/main.c,v 1.6 2005/03/23 19:58:45 gisburn Exp $ */
 /* $XFree86: xc/programs/Xserver/dix/main.c,v 3.43 2003/10/30 21:21:02 herrb Exp $ */
 /***********************************************************
 
@@ -80,9 +80,9 @@ Equipment Corporation.
 /* $TOG: main.c /main/86 1998/02/09 14:20:03 kaleb $ */
 
 #define NEED_EVENTS
-#include "X.h"
-#include "Xos.h"   /* for unistd.h  */
-#include "Xproto.h"
+#include <X11/X.h>
+#include <X11/Xos.h>   /* for unistd.h  */
+#include <X11/Xproto.h>
 #include "scrnintstr.h"
 #include "misc.h"
 #include "os.h"
@@ -110,7 +110,7 @@ Equipment Corporation.
 
 #ifdef DPMSExtension
 #define DPMS_SERVER
-#include "dpms.h"
+#include <X11/extensions/dpms.h>
 #include "dpmsproc.h"
 #endif
 

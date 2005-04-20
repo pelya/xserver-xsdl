@@ -25,7 +25,7 @@
  */
 /* $XConsortium: lnx_video.c /main/9 1996/10/19 18:06:34 kaleb $ */
 
-#include "X.h"
+#include <X11/X.h>
 #include "input.h"
 #include "scrnintstr.h"
 

@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/mi/miarc.c,v 1.1.4.3 2003/12/20 00:28:31 kaleb Exp $ */
+/* $XdotOrg: xc/programs/Xserver/mi/miarc.c,v 1.2 2004/04/23 19:54:26 eich Exp $ */
 /* $XFree86: xc/programs/Xserver/mi/miarc.c,v 3.14 2003/10/29 22:57:48 tsi Exp $ */
 /***********************************************************
 
@@ -58,8 +58,8 @@ SOFTWARE.
 #include <math.h>
 #undef _XOPEN_SOURCE
 #endif
-#include "X.h"
-#include "Xprotostr.h"
+#include <X11/X.h>
+#include <X11/Xprotostr.h>
 #include "misc.h"
 #include "gcstruct.h"
 #include "scrnintstr.h"
@@ -68,7 +68,7 @@ SOFTWARE.
 #include "mifpoly.h"
 #include "mi.h"
 #include "mifillarc.h"
-#include "Xfuncproto.h"
+#include <X11/Xfuncproto.h>
 
 static double miDsin(double a);
 static double miDcos(double a);

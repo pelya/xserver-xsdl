@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/shared/VTsw_noop.c,v 3.2 1998/07/25 16:56:59 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/shared/VTsw_noop.c,v 3.1.4.1 1998/06/05 16:23:20 dawes Exp $ */
 /*
  * Copyright 1993 by David Wexelblat <dwex@XFree86.org>
  *
@@ -23,7 +23,7 @@
  */
 /* $XConsortium: VTsw_noop.c /main/3 1996/02/21 17:53:25 kaleb $ */
 
-#include "X.h"
+#include <X11/X.h>
 
 #include "xf86.h"
 #include "xf86Priv.h"

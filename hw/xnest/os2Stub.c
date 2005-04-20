@@ -33,7 +33,7 @@
 /* things so it cannot be used as a general select.                             */
 
 #define I_NEED_OS2_H
-#include "Xpoll.h"
+#include <X11/Xpoll.h>
 #include <stdio.h>
 #include <sys/select.h>
 #include <sys/errno.h>

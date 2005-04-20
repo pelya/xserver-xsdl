@@ -1,4 +1,4 @@
-/* $XdotOrg$ */
+/* $XdotOrg: xc/programs/Xserver/Xext/xvdisp.c,v 1.2 2004/04/23 18:44:42 eich Exp $ */
 /***********************************************************
 Copyright 1991 by Digital Equipment Corporation, Maynard, Massachusetts,
 and the Massachusetts Institute of Technology, Cambridge, Massachusetts.
@@ -48,8 +48,8 @@ SOFTWARE.
 **
 */
 
-#include "X.h"
-#include "Xproto.h"
+#include <X11/X.h>
+#include <X11/Xproto.h>
 #include "misc.h"
 #include "scrnintstr.h"
 #include "windowstr.h"
@@ -59,12 +59,12 @@ SOFTWARE.
 #include "resource.h"
 #include "opaque.h"
 
-#include "Xv.h"
-#include "Xvproto.h"
+#include <X11/extensions/Xv.h>
+#include <X11/extensions/Xvproto.h>
 #include "xvdix.h"
 #ifdef MITSHM
 #define _XSHM_SERVER_
-#include "shmstr.h"
+#include <X11/extensions/shmstr.h>
 #endif
 
 #ifdef EXTMODULE

@@ -49,7 +49,7 @@ SOFTWARE.
 ******************************************************************/
 /* $XConsortium: afbpntarea.c,v 5.7 94/04/17 20:28:29 dpw Exp $ */
 
-#include "X.h"
+#include <X11/X.h>
 
 #include "windowstr.h"
 #include "regionstr.h"

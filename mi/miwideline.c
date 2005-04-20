@@ -43,7 +43,7 @@ from The Open Group.
 #include <math.h>
 #undef _XOPEN_SOURCE
 #endif
-#include "X.h"
+#include <X11/X.h>
 #include "windowstr.h"
 #include "gcstruct.h"
 #include "regionstr.h"

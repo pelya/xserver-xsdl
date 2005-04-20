@@ -34,7 +34,7 @@ copyright holders.
 #ifndef _Xp_Oid_h
 #define _Xp_Oid_h
 
-#include <Xproto.h>
+#include <X11/Xproto.h>
 
 /*
  * include the auto-generated XpOid enum definition

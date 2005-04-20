@@ -51,7 +51,7 @@ SOFTWARE.
 /* Modified nov 94 by Martin Schaller (Martin_Schaller@maus.r.de) for use with
 interleaved planes */
 
-#include "X.h"
+#include <X11/X.h>
 #include "misc.h"
 #include "ipl.h"
 #include "servermd.h"

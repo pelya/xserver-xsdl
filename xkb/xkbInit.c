@@ -1,5 +1,5 @@
 /* $Xorg: xkbInit.c,v 1.3 2000/08/17 19:53:47 cpqbld Exp $ */
-/* $XdotOrg$ */
+/* $XdotOrg: xc/programs/Xserver/xkb/xkbInit.c,v 1.2 2004/04/23 19:54:30 eich Exp $ */
 /************************************************************
 Copyright (c) 1993 by Silicon Graphics Computer Systems, Inc.
 
@@ -42,8 +42,8 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include "opaque.h"
 #include "property.h"
 #define	XKBSRV_NEED_FILE_FUNCS
-#include "XKBsrv.h"
-#include "XKBgeom.h"
+#include <X11/extensions/XKBsrv.h>
+#include <X11/extensions/XKBgeom.h>
 #include <X11/extensions/XKMformat.h>
 #include <X11/extensions/XKBfile.h>
 #include "xkb.h"

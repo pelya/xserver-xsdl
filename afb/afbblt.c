@@ -33,9 +33,9 @@ Author: Keith Packard
 */
 /* $XConsortium: afbblt.c,v 1.11 94/04/17 20:28:16 dpw Exp $ */
 
-#include "X.h"
-#include "Xmd.h"
-#include "Xproto.h"
+#include <X11/X.h>
+#include <X11/Xmd.h>
+#include <X11/Xproto.h>
 #include "afb.h"
 #include "gcstruct.h"
 #include "windowstr.h"

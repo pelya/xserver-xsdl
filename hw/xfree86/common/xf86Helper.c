@@ -36,7 +36,7 @@
  * different drivers.
  */
 
-#include "X.h"
+#include <X11/X.h>
 #include "os.h"
 #include "servermd.h"
 #include "pixmapstr.h"

@@ -27,8 +27,8 @@
 
 #define NEED_REPLIES
 #define NEED_EVENTS
-#include "X.h"
-#include "Xproto.h"
+#include <X11/X.h>
+#include <X11/Xproto.h>
 #include "misc.h"
 #include "os.h"
 #include "dixstruct.h"
@@ -38,14 +38,14 @@
 #include "pixmapstr.h"
 #include "extnsionst.h"
 #include "servermd.h"
-#include "randr.h"
-#include "randrproto.h"
+#include <X11/extensions/randr.h>
+#include <X11/extensions/randrproto.h>
 #include "randrstr.h"
 #ifdef RENDER
-#include "render.h" 	/* we share subpixel order information */
+#include <X11/extensions/render.h> 	/* we share subpixel order information */
 #include "picturestr.h"
 #endif
-#include "Xfuncproto.h"
+#include <X11/Xfuncproto.h>
 #ifdef EXTMODULE
 #include "xf86_ansic.h"
 #endif

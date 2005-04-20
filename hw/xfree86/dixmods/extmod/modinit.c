@@ -29,7 +29,7 @@
 #include "xf86Module.h"
 #include "xf86Opt.h"
 
-#include "Xproto.h"
+#include <X11/Xproto.h>
 
 #include "modinit.h"
 

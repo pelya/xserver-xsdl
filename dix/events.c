@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/dix/events.c,v 1.6 2004/08/09 02:08:35 kem Exp $ */
+/* $XdotOrg: xc/programs/Xserver/dix/events.c,v 1.7 2005/03/07 23:02:58 gisburn Exp $ */
 /* $XFree86: xc/programs/Xserver/dix/events.c,v 3.51 2004/01/12 17:04:52 tsi Exp $ */
 /************************************************************
 
@@ -78,12 +78,12 @@ Equipment Corporation.
 
 /* $Xorg: events.c,v 1.4 2001/02/09 02:04:40 xorgcvs Exp $ */
 
-#include "X.h"
+#include <X11/X.h>
 #include "misc.h"
 #include "resource.h"
 #define NEED_EVENTS
 #define NEED_REPLIES
-#include "Xproto.h"
+#include <X11/Xproto.h>
 #include "windowstr.h"
 #include "inputstr.h"
 #include "scrnintstr.h"
@@ -97,13 +97,13 @@ Equipment Corporation.
 #include "globals.h"
 
 #ifdef XKB
-#include "XKBsrv.h"
+#include <X11/extensions/XKBsrv.h>
 extern Bool XkbFilterEvents(ClientPtr, int, xEvent *);
 #endif
 
 #ifdef XCSECURITY
 #define _SECURITY_SERVER
-#include "security.h"
+#include <X11/extensions/security.h>
 #endif
 
 #ifdef XEVIE
@@ -120,7 +120,7 @@ int    xeviegrabState = 0;
 xEvent *xeviexE;
 #endif
 
-#include "XIproto.h"
+#include <X11/extensions/XIproto.h>
 #include "exevents.h"
 #include "extnsionst.h"
 

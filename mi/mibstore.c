@@ -45,9 +45,9 @@ implied warranty.
 /* $XFree86: xc/programs/Xserver/mi/mibstore.c,v 1.10tsi Exp $ */
 
 #define NEED_EVENTS
-#include "X.h"
-#include "Xmd.h"
-#include "Xproto.h"
+#include <X11/X.h>
+#include <X11/Xmd.h>
+#include <X11/Xproto.h>
 #include "misc.h"
 #include "regionstr.h"
 #include "scrnintstr.h"

@@ -33,7 +33,7 @@
 
 #include "quartzPasteboard.h"
 
-#include "Xatom.h"
+#include <X11/Xatom.h>
 #include "windowstr.h"
 #include "propertyst.h"
 #include "scrnintstr.h"

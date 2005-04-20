@@ -46,7 +46,7 @@ SOFTWARE.
 
 ******************************************************************/
 /* $Xorg: mipolygen.c,v 1.4 2001/02/09 02:05:21 xorgcvs Exp $ */
-#include "X.h"
+#include <X11/X.h>
 #include "gcstruct.h"
 #include "miscanfill.h"
 #include "mipoly.h"

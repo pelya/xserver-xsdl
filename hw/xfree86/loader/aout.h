@@ -35,7 +35,7 @@
 #ifndef _AOUT_H
 #define _AOUT_H
 
-#include "Xos.h"
+#include <X11/Xos.h>
 
 /* Get prototype for ntohl. */
 #include <ctype.h>

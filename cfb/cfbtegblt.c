@@ -47,9 +47,9 @@ SOFTWARE.
 ******************************************************************/
 /* $XFree86: xc/programs/Xserver/cfb/cfbtegblt.c,v 3.6tsi Exp $ */
 
-#include	"X.h"
-#include	"Xmd.h"
-#include	"Xproto.h"
+#include	<X11/X.h>
+#include	<X11/Xmd.h>
+#include	<X11/Xproto.h>
 #include	"cfb.h"
 #include	"fontstruct.h"
 #include	"dixfontstr.h"

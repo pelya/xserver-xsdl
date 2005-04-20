@@ -29,8 +29,8 @@ in this Software without prior written authorization from The Open Group.
 #define NEED_REPLIES
 #define NEED_EVENTS
 #include <stdio.h>
-#include "X.h"
-#include "Xproto.h"
+#include <X11/X.h>
+#include <X11/Xproto.h>
 #include "misc.h"
 #include "os.h"
 #include "windowstr.h"
@@ -47,7 +47,7 @@ in this Software without prior written authorization from The Open Group.
 
 #define _MULTIBUF_SERVER_	/* don't want Xlib structures */
 #define _MULTIBUF_PIXMAP_
-#include "multibufst.h"
+#include <X11/extensions/multibufst.h>
 
 
 static Bool NoopDDA_True() { return TRUE; }

@@ -25,7 +25,7 @@
 #ifndef _RANDRSTR_H_
 #define _RANDRSTR_H_
 
-#include "randr.h"
+#include <X11/extensions/randr.h>
 
 typedef struct _rrScreenRate {
     int		    rate;

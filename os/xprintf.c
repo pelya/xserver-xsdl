@@ -26,7 +26,7 @@
  * holders shall not be used in advertising or otherwise to promote the sale,
  * use or other dealings in this Software without prior written authorization.
  */
-#include "Xos.h"
+#include <X11/Xos.h>
 #include "os.h"
 #include <stdarg.h>
 #include <stdio.h>

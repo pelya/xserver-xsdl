@@ -49,7 +49,7 @@ SOFTWARE.
 ******************************************************************/
 /* $XConsortium: afbhrzvert.c,v 1.15 94/04/17 20:28:24 dpw Exp $ */
 
-#include "X.h"
+#include <X11/X.h>
 
 #include "gc.h"
 #include "window.h"

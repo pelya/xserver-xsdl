@@ -31,7 +31,7 @@ in this Software without prior written authorization from The Open Group.
 #define _MERGEROP_H_
 
 #ifndef GXcopy
-#include "X.h"
+#include <X11/X.h>
 #endif
 
 typedef struct _mergeRopBits {

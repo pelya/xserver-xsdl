@@ -1,4 +1,4 @@
-/* $XdotOrg$ */
+/* $XdotOrg: xc/programs/Xserver/hw/xfree86/common/xf86Mode.c,v 1.2 2004/04/23 19:20:32 eich Exp $ */
 /* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86Mode.c,v 1.69 2003/10/08 14:58:28 dawes Exp $ */
 /*
  * Copyright (c) 1997-2003 by The XFree86 Project, Inc.
@@ -36,7 +36,7 @@
  * This file includes helper functions for mode related things.
  */
 
-#include "X.h"
+#include <X11/X.h>
 #include "os.h"
 #include "servermd.h"
 #include "mibank.h"

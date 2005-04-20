@@ -58,7 +58,7 @@ SOFTWARE.
 #include "region.h"
 #include "pixmap.h"
 #include "screenint.h"
-#include "Xprotostr.h"
+#include <X11/Xprotostr.h>
 
 /*
  * functions which modify the state of the GC

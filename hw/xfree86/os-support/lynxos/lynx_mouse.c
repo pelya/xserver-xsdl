@@ -4,7 +4,7 @@
  * Copyright 1999 by The XFree86 Project, Inc.
  */
 
-#include "X.h"
+#include <X11/X.h>
 #include "xf86.h"
 #include "xf86Xinput.h"
 #include "xf86OSmouse.h"

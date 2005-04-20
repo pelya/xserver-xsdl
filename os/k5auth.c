@@ -50,11 +50,11 @@ from The Open Group.
 #undef BITS32
 #undef xfree
 #include <krb5/los-proto.h>
-#include "X.h"
+#include <X11/X.h>
 #include "os.h"
 #include "osdep.h"
-#include "Xproto.h"
-#include "Xfuncs.h"
+#include <X11/Xproto.h>
+#include <X11/Xfuncs.h>
 #include "dixstruct.h"
 #include <com_err.h>
 #include "Xauth.h"

@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/sysv/xqueue.c,v 3.20 2001/03/06 18:20:31 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/sysv/xqueue.c,v 3.19 2000/02/10 22:33:45 dawes Exp $ */
 /*
  * Copyright 1990,91 by Thomas Roell, Dinkelscherben, Germany
  * Copyright 1993-1999 by The XFree86 Project, Inc.
@@ -24,7 +24,7 @@
  */
 /* $XConsortium: xqueue.c /main/8 1996/10/19 18:08:11 kaleb $ */
 
-#include "X.h"
+#include <X11/X.h>
 #include "compiler.h"
 
 #include "xf86.h"

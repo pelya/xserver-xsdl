@@ -33,7 +33,7 @@
 #include "applewmExt.h"
 #include "rootless.h"
 #include "Xplugin.h"
-#include "X.h"
+#include <X11/X.h>
 
 
 static int xprSetWindowLevel(

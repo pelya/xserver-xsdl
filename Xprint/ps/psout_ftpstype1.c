@@ -34,7 +34,7 @@ THE SOFTWARE.
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
-#include "Xproto.h"
+#include <X11/Xproto.h>
 #include "font.h"
 #include "fontstruct.h"
 #include "fntfilst.h"

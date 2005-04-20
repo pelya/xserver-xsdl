@@ -47,7 +47,7 @@ SOFTWARE.
 
 ******************************************************************/
 
-#include "X.h"
+#include <X11/X.h>
 
 #include "windowstr.h"
 #include "regionstr.h"

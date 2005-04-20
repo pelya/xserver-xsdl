@@ -1,6 +1,6 @@
 /* $XFree86: xc/programs/Xserver/hw/xfree86/dummylib/verrorfverb.c,v 1.2 2003/08/25 04:13:05 dawes Exp $ */
 
-#include "X.h"
+#include <X11/X.h>
 #include "os.h"
 #include "xf86.h"
 #include "xf86Priv.h"

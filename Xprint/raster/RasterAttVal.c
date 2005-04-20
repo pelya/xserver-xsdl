@@ -33,7 +33,7 @@ copyright holders.
 /* $XFree86: xc/programs/Xserver/Xprint/raster/RasterAttVal.c,v 1.3 2001/10/31 22:50:29 tsi Exp $ */
 
 #include <stdio.h>
-#include "X.h"
+#include <X11/X.h>
 #include "misc.h"
 #include "dixstruct.h"
 #include "scrnintstr.h"

@@ -46,7 +46,7 @@ SOFTWARE.
 
 ******************************************************************/
 /* $Xorg: mizerline.c,v 1.4 2001/02/09 02:05:22 xorgcvs Exp $ */
-#include "X.h"
+#include <X11/X.h>
 
 #include "misc.h"
 #include "scrnintstr.h"

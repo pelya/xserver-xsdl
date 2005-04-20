@@ -30,8 +30,8 @@ in this Software without prior written authorization from The Open Group.
 /* dixsleep.c - implement millisecond timeouts for X clients */
 
 #include "sleepuntil.h"
-#include "X.h"
-#include "Xmd.h"
+#include <X11/X.h>
+#include <X11/Xmd.h>
 #include "misc.h"
 #include "windowstr.h"
 #include "dixstruct.h"

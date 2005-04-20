@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/hw/xfree86/loader/elfloader.c,v 1.4 2004/11/09 15:58:41 ajax Exp $ */
+/* $XdotOrg: xc/programs/Xserver/hw/xfree86/loader/elfloader.c,v 1.5 2005/04/04 09:47:07 eich Exp $ */
 /* $XFree86: xc/programs/Xserver/hw/xfree86/loader/elfloader.c,v 1.61tsi Exp $ */
 
 /*
@@ -46,7 +46,7 @@
 # define Xfree(size) free(size)
 #endif
 
-#include "Xos.h"
+#include <X11/Xos.h>
 #include "os.h"
 #include "elf.h"
 

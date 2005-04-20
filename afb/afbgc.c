@@ -48,9 +48,9 @@ SOFTWARE.
 ******************************************************************/
 /* $XConsortium: afbgc.c,v 5.35 94/04/17 20:28:23 dpw Exp $ */
 
-#include "X.h"
-#include "Xmd.h"
-#include "Xproto.h"
+#include <X11/X.h>
+#include <X11/Xmd.h>
+#include <X11/Xproto.h>
 #include "afb.h"
 #include "dixfontstr.h"
 #include "fontstruct.h"

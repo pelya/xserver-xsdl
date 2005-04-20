@@ -24,8 +24,8 @@ SOFTWARE.
 ******************************************************************/
 /* $Xorg: maskbits.h,v 1.3 2000/08/17 19:53:34 cpqbld Exp $ */
 
-#include "X.h"
-#include "Xmd.h"
+#include <X11/X.h>
+#include <X11/Xmd.h>
 #include "servermd.h"
 
 

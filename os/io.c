@@ -62,8 +62,8 @@ SOFTWARE.
 #include <X11/Xwinsock.h>
 #endif
 #include <stdio.h>
-#include <X11/Xtrans.h>
-#include "Xmd.h"
+#include <X11/Xtrans/Xtrans.h>
+#include <X11/Xmd.h>
 #include <errno.h>
 #if !defined(__UNIXOS2__) && !defined(WIN32)
 #ifndef Lynx
@@ -72,12 +72,12 @@ SOFTWARE.
 #include <uio.h>
 #endif
 #endif
-#include "X.h"
+#include <X11/X.h>
 #define NEED_REPLIES
-#include "Xproto.h"
+#include <X11/Xproto.h>
 #include "os.h"
 #include "osdep.h"
-#include "Xpoll.h"
+#include <X11/Xpoll.h>
 #include "opaque.h"
 #include "dixstruct.h"
 #include "misc.h"
@@ -121,7 +121,7 @@ OsCommPtr AvailableInput = (OsCommPtr)NULL;
 			      lswaps((req)->length) : (req)->length)
 
 #ifdef BIGREQS
-#include "bigreqstr.h"
+#include <X11/extensions/bigreqstr.h>
 
 #define get_big_req_len(req,cli) ((cli)->swapped ? \
 				  lswapl(((xBigReq *)(req))->length) : \

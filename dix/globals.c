@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/dix/globals.c,v 1.2 2004/04/23 19:04:44 eich Exp $ */
+/* $XdotOrg: xc/programs/Xserver/dix/globals.c,v 1.3 2004/09/22 17:20:55 alanc Exp $ */
 /* $XFree86: xc/programs/Xserver/dix/globals.c,v 1.12tsi Exp $ */
 /************************************************************
 
@@ -49,8 +49,8 @@ SOFTWARE.
 
 /* $Xorg: globals.c,v 1.4 2001/02/09 02:04:40 xorgcvs Exp $ */
 
-#include "X.h"
-#include "Xmd.h"
+#include <X11/X.h>
+#include <X11/Xmd.h>
 #include "misc.h"
 #include "windowstr.h"
 #include "scrnintstr.h"

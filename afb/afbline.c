@@ -48,7 +48,7 @@ SOFTWARE.
 ******************************************************************/
 /* $XConsortium: afbline.c,v 5.18 94/04/17 20:28:26 dpw Exp $ */
 
-#include "X.h"
+#include <X11/X.h>
 
 #include "gcstruct.h"
 #include "windowstr.h"

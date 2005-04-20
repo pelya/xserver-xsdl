@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/dix/dixfonts.c,v 1.2 2004/04/23 19:04:44 eich Exp $ */
+/* $XdotOrg: xc/programs/Xserver/dix/dixfonts.c,v 1.3 2005/03/07 23:02:58 gisburn Exp $ */
 /* $XFree86: xc/programs/Xserver/dix/dixfonts.c,v 3.28 2003/11/08 02:02:03 dawes Exp $ */
 /************************************************************************
 Copyright 1987 by Digital Equipment Corporation, Maynard, Massachusetts.
@@ -52,9 +52,9 @@ Equipment Corporation.
 /* $Xorg: dixfonts.c,v 1.4 2000/08/17 19:48:18 cpqbld Exp $ */
 
 #define NEED_REPLIES
-#include "X.h"
-#include "Xmd.h"
-#include "Xproto.h"
+#include <X11/X.h>
+#include <X11/Xmd.h>
+#include <X11/Xproto.h>
 #include "scrnintstr.h"
 #include "resource.h"
 #include "dixstruct.h"

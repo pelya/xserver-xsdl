@@ -46,7 +46,7 @@ SOFTWARE.
 
 ******************************************************************/
 /* $Xorg: mfbbresd.c,v 1.4 2001/02/09 02:05:18 xorgcvs Exp $ */
-#include "X.h"
+#include <X11/X.h>
 #include "misc.h"
 #include "mfb.h"
 #include "maskbits.h"

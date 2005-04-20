@@ -37,8 +37,8 @@
  */
 /* $XConsortium: xf86KbdMach.c /main/9 1996/02/21 17:38:43 kaleb $ */
 
-#include "X.h"
-#include "Xmd.h"
+#include <X11/X.h>
+#include <X11/Xmd.h>
 #include "input.h"
 #include "scrnintstr.h"
 

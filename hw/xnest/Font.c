@@ -14,9 +14,9 @@ is" without express or implied warranty.
 */
 /* $XFree86: xc/programs/Xserver/hw/xnest/Font.c,v 3.6 2003/07/16 01:38:51 dawes Exp $ */
 
-#include "X.h"
-#include "Xatom.h"
-#include "Xproto.h"
+#include <X11/X.h>
+#include <X11/Xatom.h>
+#include <X11/Xproto.h>
 #include "misc.h"
 #include "regionstr.h"
 #include "font.h"

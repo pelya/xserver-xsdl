@@ -29,11 +29,11 @@
  * sale, use or other dealings in this Software without prior written
  * authorization.
  */
-/* $XdotOrg: xc/programs/Xserver/hw/darwin/quartz/XServer.h,v 1.2 2004/04/23 19:15:17 eich Exp $ */
+/* $XdotOrg: xc/programs/Xserver/hw/darwin/quartz/XServer.h,v 1.3 2004/07/30 19:12:17 torrey Exp $ */
 /* $XFree86: xc/programs/Xserver/hw/darwin/quartz/XServer.h,v 1.16 2003/11/23 06:04:01 torrey Exp $ */
 
 #define BOOL xBOOL
-#include "Xproto.h"
+#include <X11/Xproto.h>
 #undef BOOL
 
 #import <Cocoa/Cocoa.h>

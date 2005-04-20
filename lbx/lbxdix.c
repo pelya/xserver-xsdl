@@ -54,8 +54,8 @@ in this Software without prior written authorization from The Open Group.
 #include <stdio.h>
 #define NEED_REPLIES
 #define NEED_EVENTS
-#include "X.h"
-#include "Xproto.h"
+#include <X11/X.h>
+#include <X11/Xproto.h>
 #include "misc.h"
 #include "os.h"
 #include "dixstruct.h"
@@ -68,13 +68,13 @@ in this Software without prior written authorization from The Open Group.
 #include "windowstr.h"
 #include "propertyst.h"
 #define _XLBX_SERVER_
-#include "lbxstr.h"
+#include <X11/extensions/lbxstr.h>
 #include "lbxserve.h"
 #include "lbxtags.h"
 #include "lbxdata.h"
-#include "Xfuncproto.h"
+#include <X11/Xfuncproto.h>
 #ifdef XAPPGROUP
-#include "Xagsrv.h"
+#include <X11/extensions/Xagsrv.h>
 #endif
 #include "swaprep.h"
 

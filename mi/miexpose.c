@@ -1,4 +1,4 @@
-/* $XdotOrg$ */
+/* $XdotOrg: xc/programs/Xserver/mi/miexpose.c,v 1.2 2004/04/23 19:54:26 eich Exp $ */
 /* $XFree86: xc/programs/Xserver/mi/miexpose.c,v 3.9tsi Exp $ */
 /***********************************************************
 
@@ -76,10 +76,10 @@ Equipment Corporation.
 
 /* $Xorg: miexpose.c,v 1.4 2001/02/09 02:05:20 xorgcvs Exp $ */
 
-#include "X.h"
+#include <X11/X.h>
 #define NEED_EVENTS
-#include "Xproto.h"
-#include "Xprotostr.h"
+#include <X11/Xproto.h>
+#include <X11/Xprotostr.h>
 
 #include "misc.h"
 #include "regionstr.h"
@@ -91,7 +91,7 @@ Equipment Corporation.
 
 #include "dixstruct.h"
 #include "mi.h"
-#include "Xmd.h"
+#include <X11/Xmd.h>
 
 #include "globals.h"
 

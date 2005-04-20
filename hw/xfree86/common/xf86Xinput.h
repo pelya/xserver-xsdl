@@ -60,8 +60,8 @@
 #include "xf86str.h"
 #include "inputstr.h"
 #ifdef XINPUT
-#include "extensions/XI.h"
-#include "extensions/XIproto.h"
+#include <X11/extensions/XI.h>
+#include <X11/extensions/XIproto.h>
 #include "XIstubs.h"
 #endif
 

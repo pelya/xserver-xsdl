@@ -9,8 +9,8 @@ Copyright (c) 1995, 1996, 1999  XFree86 Inc
 
 #define NEED_REPLIES
 #define NEED_EVENTS
-#include "X.h"
-#include "Xproto.h"
+#include <X11/X.h>
+#include <X11/Xproto.h>
 #include "misc.h"
 #include "dixstruct.h"
 #include "extnsionst.h"
@@ -19,8 +19,8 @@ Copyright (c) 1995, 1996, 1999  XFree86 Inc
 #include "scrnintstr.h"
 #include "servermd.h"
 #define _XF86DGA_SERVER_
-#include "xf86dga.h"
-#include "xf86dgastr.h"
+#include <X11/extensions/xf86dga.h>
+#include <X11/extensions/xf86dgastr.h>
 #include "swaprep.h"
 #include "dgaproc.h"
 

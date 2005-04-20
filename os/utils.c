@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/os/utils.c,v 1.11 2004/11/25 12:48:21 ago Exp $ */
+/* $XdotOrg: xc/programs/Xserver/os/utils.c,v 1.12 2005/03/23 19:58:45 gisburn Exp $ */
 /* $Xorg: utils.c,v 1.5 2001/02/09 02:05:24 xorgcvs Exp $ */
 /*
 
@@ -60,11 +60,11 @@ OR PERFORMANCE OF THIS SOFTWARE.
 #if defined(WIN32) && !defined(__CYGWIN__)
 #include <X11/Xwinsock.h>
 #endif
-#include "Xos.h"
+#include <X11/Xos.h>
 #include <stdio.h>
 #include "misc.h"
-#include "X.h"
-#include <X11/Xtrans.h>
+#include <X11/X.h>
+#include <X11/Xtrans/Xtrans.h>
 #include "input.h"
 #include "dixfont.h"
 #include "osdep.h"
@@ -112,11 +112,11 @@ OR PERFORMANCE OF THIS SOFTWARE.
 #endif
 
 #ifdef XKB
-#include "XKBsrv.h"
+#include <X11/extensions/XKBsrv.h>
 #endif
 #ifdef XCSECURITY
 #define _SECURITY_SERVER
-#include "security.h"
+#include <X11/extensions/security.h>
 #endif
 
 #ifdef RENDER

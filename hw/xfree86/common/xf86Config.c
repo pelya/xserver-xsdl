@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/hw/xfree86/common/xf86Config.c,v 1.4 2004/08/09 02:08:35 kem Exp $ */
+/* $XdotOrg: xc/programs/Xserver/hw/xfree86/common/xf86Config.c,v 1.6 2004/12/06 21:54:19 herrb Exp $ */
 /* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86Config.c,v 3.276 2003/10/08 14:58:26 dawes Exp $ */
 
 
@@ -71,7 +71,7 @@ extern DeviceAssocRec mouse_assoc;
 
 #ifdef XKB
 #define XKB_IN_SERVER
-#include "XKBsrv.h"
+#include <X11/extensions/XKBsrv.h>
 #endif
 
 #ifdef RENDER

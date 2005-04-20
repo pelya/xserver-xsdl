@@ -49,7 +49,7 @@ SOFTWARE.
 ******************************************************************/
 /* $XConsortium: afbtile.c,v 5.8 94/04/17 20:28:36 dpw Exp $ */
 
-#include "X.h"
+#include <X11/X.h>
 
 #include "windowstr.h"
 #include "regionstr.h"

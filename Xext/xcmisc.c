@@ -30,14 +30,14 @@ from The Open Group.
 
 #define NEED_EVENTS
 #define NEED_REPLIES
-#include "X.h"
-#include "Xproto.h"
+#include <X11/X.h>
+#include <X11/Xproto.h>
 #include "misc.h"
 #include "os.h"
 #include "dixstruct.h"
 #include "extnsionst.h"
 #include "swaprep.h"
-#include "xcmiscstr.h"
+#include <X11/extensions/xcmiscstr.h>
 #include "modinit.h"
 
 #if 0

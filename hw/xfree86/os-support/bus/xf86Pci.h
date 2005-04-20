@@ -104,8 +104,8 @@
 
 #ifndef _XF86PCI_H
 #define _XF86PCI_H 1
-#include "Xarch.h"
-#include "Xfuncproto.h"
+#include <X11/Xarch.h>
+#include <X11/Xfuncproto.h>
 #include "misc.h"
 
 #define PCI_NOT_FOUND	0xFFFFFFFFU

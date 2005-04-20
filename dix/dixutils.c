@@ -84,8 +84,8 @@ Author:  Adobe Systems Incorporated
 
 /* $Xorg: dixutils.c,v 1.4 2001/02/09 02:04:40 xorgcvs Exp $ */
 
-#include "X.h"
-#include "Xmd.h"
+#include <X11/X.h>
+#include <X11/Xmd.h>
 #include "misc.h"
 #include "windowstr.h"
 #include "dixstruct.h"
@@ -95,7 +95,7 @@ Author:  Adobe Systems Incorporated
 #include "keysymdef.h"
 #ifdef XCSECURITY
 #define _SECURITY_SERVER
-#include "security.h"
+#include <X11/extensions/security.h>
 #endif
 
 /*

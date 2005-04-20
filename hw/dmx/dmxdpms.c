@@ -48,7 +48,7 @@
 #include "dpmsproc.h"
 #endif
 #include "windowstr.h"          /* For screenIsSaved */
-#include "X11/extensions/dpms.h"
+#include <X11/extensions/dpms.h>
 
 static unsigned long dpmsGeneration = 0;
 static Bool          dpmsSupported  = TRUE;

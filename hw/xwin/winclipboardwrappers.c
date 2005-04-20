@@ -30,7 +30,7 @@
 
 #include "win.h"
 #include "dixstruct.h"
-#include "X11/Xatom.h"
+#include <X11/Xatom.h>
 
 
 /*

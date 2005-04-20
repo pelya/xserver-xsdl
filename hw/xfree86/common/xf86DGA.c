@@ -1,4 +1,4 @@
-/* $XdotOrg$ */
+/* $XdotOrg: xc/programs/Xserver/hw/xfree86/common/xf86DGA.c,v 1.2 2004/04/23 19:20:32 eich Exp $ */
 /* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86DGA.c,v 1.46 2002/12/03 18:17:40 tsi Exp $ */
 /*
  * Copyright (c) 1998-2002 by The XFree86 Project, Inc.
@@ -33,7 +33,7 @@
 #include "xf86str.h"
 #include "xf86Priv.h"
 #include "dgaproc.h"
-#include "xf86dgastr.h"
+#include <X11/extensions/xf86dgastr.h>
 #include "colormapst.h"
 #include "pixmapstr.h"
 #include "inputstr.h"
@@ -41,7 +41,7 @@
 #include "servermd.h"
 #include "micmap.h"
 #ifdef XKB
-#include "XKBsrv.h"
+#include <X11/extensions/XKBsrv.h>
 #endif
 #include "xf86Xinput.h"
 

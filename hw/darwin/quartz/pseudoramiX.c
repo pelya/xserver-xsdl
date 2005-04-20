@@ -39,7 +39,7 @@ Equipment Corporation.
 #include "extnsionst.h"
 #include "dixstruct.h"
 #include "window.h"
-#include "panoramiXproto.h"
+#include <X11/extensions/panoramiXproto.h>
 #include "globals.h"
 
 extern int ProcPanoramiXQueryVersion (ClientPtr client);

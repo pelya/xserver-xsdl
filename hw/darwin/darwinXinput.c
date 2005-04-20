@@ -55,11 +55,11 @@ SOFTWARE.
 /* $XFree86: xc/programs/Xserver/hw/darwin/darwinXinput.c,v 1.1 2004/05/28 07:44:00 torrey Exp $ */
 
 #define	 NEED_EVENTS
-#include "X.h"
-#include "Xproto.h"
+#include <X11/X.h>
+#include <X11/Xproto.h>
 #include "inputstr.h"
-#include "XI.h"
-#include "XIproto.h"
+#include <X11/extensions/XI.h>
+#include <X11/extensions/XIproto.h>
 #include "XIstubs.h"
 
 /***********************************************************************

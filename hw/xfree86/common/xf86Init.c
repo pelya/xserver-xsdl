@@ -44,10 +44,10 @@
 #ifdef __UNIXOS2__
 #define I_NEED_OS2_H
 #endif
-#include "X.h"
-#include "Xmd.h"
-#include "Xproto.h"
-#include "Xatom.h"
+#include <X11/X.h>
+#include <X11/Xmd.h>
+#include <X11/Xproto.h>
+#include <X11/Xatom.h>
 #include "input.h"
 #include "servermd.h"
 #include "windowstr.h"
@@ -74,8 +74,8 @@
 #include "xf86Build.h"
 #include "mipointer.h"
 #ifdef XINPUT
-#include "XI.h"
-#include "XIproto.h"
+#include <X11/extensions/XI.h>
+#include <X11/extensions/XIproto.h>
 #else
 #include "inputstr.h"
 #endif
@@ -95,7 +95,7 @@ extern int xtest_command_key;
 
 #ifdef DPMSExtension
 #define DPMS_SERVER
-#include "extensions/dpms.h"
+#include <X11/extensions/dpms.h>
 #include "dpmsproc.h"
 #endif
 

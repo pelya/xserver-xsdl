@@ -30,8 +30,8 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-#include "X.h"
-#include "Xmd.h"
+#include <X11/X.h>
+#include <X11/Xmd.h>
 #include "os.h"
 #ifdef XFree86LOADER
 #include "loaderProcs.h"

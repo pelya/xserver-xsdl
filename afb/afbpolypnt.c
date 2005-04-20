@@ -49,8 +49,8 @@ SOFTWARE.
 ******************************************************************/
 /* $XConsortium: afbpolypnt.c,v 5.6 94/04/17 20:28:30 dpw Exp $ */
 
-#include "X.h"
-#include "Xprotostr.h"
+#include <X11/X.h>
+#include <X11/Xprotostr.h>
 #include "pixmapstr.h"
 #include "gcstruct.h"
 #include "windowstr.h"

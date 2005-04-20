@@ -58,7 +58,7 @@ SOFTWARE.
 #include "resource.h"	/* for ROOT_WINDOW_ID_BASE */
 #include "dix.h"
 #include "miscstruct.h"
-#include "X11/Xprotostr.h"
+#include <X11/Xprotostr.h>
 #include "opaque.h"
 
 #define GuaranteeNothing	0

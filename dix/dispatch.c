@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/dix/dispatch.c,v 1.6 2004/09/15 09:05:22 eich Exp $ */
+/* $XdotOrg: xc/programs/Xserver/dix/dispatch.c,v 1.7 2005/03/07 23:02:58 gisburn Exp $ */
 /* $Xorg: dispatch.c,v 1.5 2001/02/09 02:04:40 xorgcvs Exp $ */
 /************************************************************
 
@@ -105,15 +105,15 @@ int ProcInitialConnection();
 #endif
 #ifdef XCSECURITY
 #define _SECURITY_SERVER
-#include "security.h"
+#include <X11/extensions/security.h>
 #endif
 #ifdef XAPPGROUP
-#include "Xagsrv.h"
+#include <X11/extensions/Xagsrv.h>
 #endif
 #ifdef XKB
 #define XKB_IN_SERVER
 #include "inputstr.h"
-#include "XKBsrv.h"
+#include <X11/extensions/XKBsrv.h>
 #endif
 #ifdef LBX
 #include "lbxserve.h"

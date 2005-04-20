@@ -49,7 +49,7 @@
  */
 
 /* $XConsortium: xf86Events.c /main/46 1996/10/25 11:36:30 kaleb $ */
-/* $XdotOrg: xc/programs/Xserver/hw/xfree86/common/xf86Events.c,v 1.6 2005/01/28 16:12:58 eich Exp $ */
+/* $XdotOrg: xc/programs/Xserver/hw/xfree86/common/xf86Events.c,v 1.7 2005/03/05 20:47:12 gisburn Exp $ */
 
 /* [JCH-96/01/21] Extended std reverse map to four buttons. */
 
@@ -57,9 +57,9 @@
 #define I_NEED_OS2_H
 #endif
 
-#include "X.h"
-#include "Xpoll.h"
-#include "Xproto.h"
+#include <X11/X.h>
+#include <X11/Xpoll.h>
+#include <X11/Xproto.h>
 #include "misc.h"
 
 #include "compiler.h"
@@ -76,8 +76,8 @@
 #endif
 
 #ifdef XINPUT
-#include "XI.h"
-#include "XIproto.h"
+#include <X11/extensions/XI.h>
+#include <X11/extensions/XIproto.h>
 #else
 #include "inputstr.h"
 #endif
@@ -97,7 +97,7 @@ extern Bool noXkbExtension;
 
 #ifdef DPMSExtension
 #define DPMS_SERVER
-#include "extensions/dpms.h"
+#include <X11/extensions/dpms.h>
 #include "dpmsproc.h"
 #endif
 
@@ -119,7 +119,7 @@ extern Bool noXkbExtension;
 #ifdef XTESTEXT1
 
 #define	XTestSERVER_SIDE
-#include "xtestext1.h"
+#include <X11/extensions/xtestext1.h>
 extern short xtest_mousex;
 extern short xtest_mousey;
 extern int   on_steal_input;          

@@ -39,7 +39,7 @@
 #define Xfree(size) free(size)
 #endif
 
-#include "Xos.h"
+#include <X11/Xos.h>
 #include "os.h"
 #include "coff.h"
 

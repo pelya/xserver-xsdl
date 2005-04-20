@@ -54,9 +54,9 @@ in this Software without prior written authorization from The Open Group.
 
 #define _LBXSERVE_H_
 #define _XLBX_SERVER_
-#include "lbxstr.h"
-#include "lbxdeltastr.h"
-#include "lbxopts.h"
+#include <X11/extensions/lbxstr.h>
+#include <X11/extensions/lbxdeltastr.h>
+#include <X11/extensions/lbxopts.h>
 
 #define MAX_LBX_CLIENTS	MAXCLIENTS
 #define	MAX_NUM_PROXIES	(MAXCLIENTS >> 1)

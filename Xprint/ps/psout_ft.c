@@ -31,7 +31,7 @@ THE SOFTWARE.
 #include FT_FREETYPE_H
 #include FT_TYPE1_TABLES_H
 
-#include "Xproto.h"
+#include <X11/Xproto.h>
 #include "font.h"
 #include "fontstruct.h"
 #include "fntfilst.h"

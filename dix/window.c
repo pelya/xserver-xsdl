@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/dix/window.c,v 1.6 2004/07/31 08:24:13 anholt Exp $ */
+/* $XdotOrg: xc/programs/Xserver/dix/window.c,v 1.7 2005/03/07 23:02:59 gisburn Exp $ */
 /* $Xorg: window.c,v 1.4 2001/02/09 02:04:41 xorgcvs Exp $ */
 /*
 
@@ -101,11 +101,11 @@ Equipment Corporation.
 #include "globals.h"
 
 #ifdef XAPPGROUP
-#include "Xagsrv.h"
+#include <X11/extensions/Xagsrv.h>
 #endif
 #ifdef XCSECURITY
 #define _SECURITY_SERVER
-#include "security.h"
+#include <X11/extensions/security.h>
 #endif
 
 /******

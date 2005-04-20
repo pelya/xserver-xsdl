@@ -28,8 +28,8 @@ in this Software without prior written authorization from The Open Group.
 
 #define NEED_REPLIES
 #define NEED_EVENTS
-#include "X.h"
-#include "Xproto.h"
+#include <X11/X.h>
+#include <X11/Xproto.h>
 #include "misc.h"
 #include "dixstruct.h"
 #include "extnsionst.h"
@@ -38,8 +38,8 @@ in this Software without prior written authorization from The Open Group.
 #include "servermd.h"
 #include "swapreq.h"
 #define _XCUP_SERVER_
-#include "Xcupstr.h"
-#include "Xfuncproto.h"
+#include <X11/extensions/Xcupstr.h>
+#include <X11/Xfuncproto.h>
 
 #ifndef EXTMODULE
 #include "../os/osdep.h"

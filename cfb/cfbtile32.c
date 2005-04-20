@@ -31,8 +31,8 @@ in this Software without prior written authorization from The Open Group.
 
 /* $Xorg: cfbtile32.c,v 1.4 2001/02/09 02:04:39 xorgcvs Exp $ */
 
-#include "X.h"
-#include "Xmd.h"
+#include <X11/X.h>
+#include <X11/Xmd.h>
 #include "servermd.h"
 #include "gcstruct.h"
 #include "window.h"

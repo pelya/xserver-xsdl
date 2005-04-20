@@ -14,7 +14,7 @@
 #ifndef _VGAHW_H
 #define _VGAHW_H
 
-#include "X.h"
+#include <X11/X.h>
 #include "misc.h"
 #include "input.h"
 #include "scrnintstr.h"
@@ -27,7 +27,7 @@
 
 #include "globals.h"
 #define DPMS_SERVER
-#include "extensions/dpms.h"
+#include <X11/extensions/dpms.h>
 
 extern int vgaHWGetIndex(void);
 

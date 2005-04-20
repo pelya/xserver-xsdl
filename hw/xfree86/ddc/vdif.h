@@ -22,7 +22,7 @@
 #define VDIF_POLARITY_NEGATIVE 0
 #define VDIF_POLARITY_POSITIVE 1
 
-#include "Xmd.h"
+#include <X11/Xmd.h>
 
 #undef  CARD32
 #define CARD32 unsigned int	/* ... on all supported platforms */

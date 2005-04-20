@@ -35,7 +35,7 @@
 #include "windowswmstr.h"
 #include "dixevents.h"
 #include "propertyst.h"
-#include "Xatom.h"
+#include <X11/Xatom.h>
 #include "winmultiwindowclass.h"
 #include "winmsg.h"
 

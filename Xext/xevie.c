@@ -33,8 +33,8 @@ of the copyright holder.
 
 #define NEED_REPLIES
 #define NEED_EVENTS
-#include "X.h"
-#include "Xproto.h"
+#include <X11/X.h>
+#include <X11/Xproto.h>
 #include "misc.h"
 #include "dixstruct.h"
 #include "extnsionst.h"
@@ -43,7 +43,7 @@ of the copyright holder.
 #include "servermd.h"
 #define  _XEVIE_SERVER_
 #include "Xeviestr.h"
-#include "Xfuncproto.h"
+#include <X11/Xfuncproto.h>
 #include "input.h"
 
 #include "../os/osdep.h"

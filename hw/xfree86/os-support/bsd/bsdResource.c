@@ -1,8 +1,8 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/bsd/bsdResource.c,v 1.8 2002/05/22 21:38:29 herrb Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/bsd/bsdResource.c,v 1.6 2001/02/16 14:45:10 tsi Exp $ */
 
 /* Resource information code */
 
-#include "X.h"
+#include <X11/X.h>
 #include "xf86.h"
 #include "xf86Priv.h"
 #include "xf86Privstr.h"
@@ -18,7 +18,7 @@ resRange PciAvoid[] = {_PCI_AVOID_PC_STYLE, _END};
 
 #ifdef INCLUDE_XF86_NO_DOMAIN
 
-#if defined(__alpha__) || defined(__sparc64__)
+#if defined(__alpha__) || defined(__sparc64__) || defined(__amd64__)
 
 resPtr
 xf86BusAccWindowsFromOS(void)

@@ -33,7 +33,7 @@ from The Open Group.
  * Author:  Keith Packard, MIT X Consortium
  */
 
-#include "X.h"
+#include <X11/X.h>
 #include "os.h"
 #include "osdep.h"
 #include "dixstruct.h"

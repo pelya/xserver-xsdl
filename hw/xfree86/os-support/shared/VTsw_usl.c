@@ -23,7 +23,7 @@
  */
 /* $XConsortium: VTsw_usl.c /main/3 1996/02/21 17:53:28 kaleb $ */
 
-#include "X.h"
+#include <X11/X.h>
 
 #include "xf86.h"
 #include "xf86Priv.h"

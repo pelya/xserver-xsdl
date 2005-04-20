@@ -47,9 +47,9 @@ SOFTWARE.
 ******************************************************************/
 /* $Xorg: mfbscrinit.c,v 1.4 2001/02/09 02:05:19 xorgcvs Exp $ */
 
-#include "X.h"
-#include "Xproto.h"	/* for xColorItem */
-#include "Xmd.h"
+#include <X11/X.h>
+#include <X11/Xproto.h>	/* for xColorItem */
+#include <X11/Xmd.h>
 #include "scrnintstr.h"
 #include "pixmapstr.h"
 #include "windowstr.h"

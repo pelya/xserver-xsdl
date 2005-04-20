@@ -13,9 +13,9 @@
 #include "xf86.h"
 #include "xf86_ansic.h"
 #include "vbe.h"
-#include "Xarch.h"
+#include <X11/Xarch.h>
 #define DPMS_SERVER
-#include "extensions/dpms.h"
+#include <X11/extensions/dpms.h>
 
 #define VERSION(x) VBE_VERSION_MAJOR(x),VBE_VERSION_MINOR(x)
 

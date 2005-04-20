@@ -78,7 +78,7 @@ OR PERFORMANCE OF THIS SOFTWARE.
 
 /* $XFree86: xc/programs/Xserver/os/log.c,v 1.6 2003/11/07 13:45:27 tsi Exp $ */
 
-#include "Xos.h"
+#include <X11/Xos.h>
 #include <stdio.h>
 #include <time.h>
 #include <sys/stat.h>

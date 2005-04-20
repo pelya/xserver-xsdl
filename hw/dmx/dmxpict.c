@@ -46,8 +46,8 @@
 #include "pixmapstr.h"
 #include "dixstruct.h"
 
-#include "render.h"
-#include "renderproto.h"
+#include <X11/extensions/render.h>
+#include <X11/extensions/renderproto.h>
 #include "picture.h"
 #include "picturestr.h"
 #include "mipict.h"

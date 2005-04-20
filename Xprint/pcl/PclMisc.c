@@ -50,7 +50,7 @@ copyright holders.
 #include <signal.h>
 #include <sys/types.h>
 #include <sys/wait.h>
-#include "Xos.h"	/* for SIGCLD on pre-POSIX systems */
+#include <X11/Xos.h>	/* for SIGCLD on pre-POSIX systems */
 #include "Pcl.h"
 
 #include "cursor.h"

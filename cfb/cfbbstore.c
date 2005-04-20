@@ -18,7 +18,7 @@
 /* $Xorg: cfbbstore.c,v 1.3 2000/08/17 19:48:13 cpqbld Exp $ */
 
 #include    "cfb.h"
-#include    "X.h"
+#include    <X11/X.h>
 #include    "mibstore.h"
 #include    "regionstr.h"
 #include    "scrnintstr.h"

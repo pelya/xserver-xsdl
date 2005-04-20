@@ -27,19 +27,19 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 /* $XFree86: xc/programs/Xserver/xkb/xkb.c,v 3.22tsi Exp $ */
 
 #include <stdio.h>
-#include "X.h"
+#include <X11/X.h>
 #define	NEED_EVENTS
 #define	NEED_REPLIES
-#include "Xproto.h"
+#include <X11/Xproto.h>
 #include "misc.h"
 #include "inputstr.h"
 #define	XKBSRV_NEED_FILE_FUNCS
-#include "XKBsrv.h"
+#include <X11/extensions/XKBsrv.h>
 #include "extnsionst.h"
 #include "modinit.h"
 #include "xkb.h"
 
-#include "XI.h"
+#include <X11/extensions/XI.h>
 
 	int	XkbEventBase;
 	int	XkbErrorBase;
@@ -3907,7 +3907,7 @@ ProcXkbSetNames(ClientPtr client)
 
 /***====================================================================***/
 
-#include "XKBgeom.h"
+#include <X11/extensions/XKBgeom.h>
 
 #define	XkbSizeCountedString(s)  ((s)?((((2+strlen(s))+3)/4)*4):4)
 

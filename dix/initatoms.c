@@ -3,8 +3,8 @@
  * Do not change!  Changing this file implies a protocol change!
  */
 
-#include "X.h"
-#include "Xatom.h"
+#include <X11/X.h>
+#include <X11/Xatom.h>
 #include "misc.h"
 #include "dix.h"
 void MakePredeclaredAtoms()

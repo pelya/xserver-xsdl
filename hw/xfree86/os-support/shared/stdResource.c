@@ -31,7 +31,7 @@
 #ifdef __UNIXOS2__
 # define I_NEED_OS2_H
 #endif
-#include "X.h"
+#include <X11/X.h>
 #include "xf86.h"
 #include "xf86Priv.h"
 #include "xf86Privstr.h"

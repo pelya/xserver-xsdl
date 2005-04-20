@@ -35,7 +35,7 @@ from the X Consortium.
    to use interleaved bitplanes instead of normal bitplanes */
 
 #include	"ilbm.h"
-#include	"X.h"
+#include	<X11/X.h>
 #include	"mibstore.h"
 #include	"regionstr.h"
 #include	"scrnintstr.h"

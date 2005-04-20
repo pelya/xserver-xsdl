@@ -1,6 +1,6 @@
 /* $XFree86: xc/programs/Xserver/hw/xfree86/xaa/xaaBitOrder.c,v 1.7 2001/05/18 20:22:31 tsi Exp $ */
 
-#include "Xmd.h"
+#include <X11/Xmd.h>
 CARD32 XAAReverseBitOrder(CARD32 v);
 
 CARD32

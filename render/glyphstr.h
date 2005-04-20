@@ -26,7 +26,7 @@
 #ifndef _GLYPHSTR_H_
 #define _GLYPHSTR_H_
 
-#include "renderproto.h"
+#include <X11/extensions/renderproto.h>
 #include "picture.h"
 #include "screenint.h"
 

@@ -49,8 +49,8 @@ SOFTWARE.
 ******************************************************************/
 /* $XConsortium: afbgetsp.c,v 5.10 94/04/17 20:28:24 dpw Exp $ */
 
-#include "X.h"
-#include "Xmd.h"
+#include <X11/X.h>
+#include <X11/Xmd.h>
 
 #include "misc.h"
 #include "region.h"

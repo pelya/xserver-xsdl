@@ -41,7 +41,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "servermd.h"
 #include "swaprep.h"
 #include "propertyst.h"
-#include "Xatom.h"
+#include <X11/Xatom.h>
 #include "darwin.h"
 #define _APPLEWM_SERVER_
 #include "applewmstr.h"

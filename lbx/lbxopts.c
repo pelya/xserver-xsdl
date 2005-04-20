@@ -26,18 +26,18 @@
 #ifdef OPTDEBUG
 #include <stdio.h>
 #endif
-#include "X.h"
-#include "Xproto.h"
+#include <X11/X.h>
+#include <X11/Xproto.h>
 #include "misc.h"
 #include "colormapst.h"
 #include "propertyst.h"
 #include "lbxserve.h"
-#include "lbxstr.h"
-#include "lbximage.h"
-#include "lbxopts.h"
+#include <X11/extensions/lbxstr.h>
+#include <X11/extensions/lbximage.h>
+#include <X11/extensions/lbxopts.h>
 #include "lbxsrvopts.h"
 #ifndef NO_ZLIB
-#include "lbxzlib.h"
+#include <X11/extensions/lbxzlib.h>
 #endif /* NO_ZLIB */
 
 static int LbxProxyDeltaOpt ( LbxNegOptsPtr pno, unsigned char *popt, 

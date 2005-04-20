@@ -26,7 +26,7 @@
 #ifndef _LBX_SRVOPTS_H_
 #define _LBX_SRVOPTS_H_
 
-#include "lbxopts.h"
+#include <X11/extensions/lbxopts.h>
 
 typedef struct _LbxNegOpts {
     int		nopts;

@@ -28,8 +28,8 @@ in this Software without prior written authorization from the X Consortium.
 
 /* $XConsortium: afbfillarc.c,v 5.14 94/04/17 20:28:20 dpw Exp $ */
 
-#include "X.h"
-#include "Xprotostr.h"
+#include <X11/X.h>
+#include <X11/Xprotostr.h>
 #include "regionstr.h"
 #include "gcstruct.h"
 #include "pixmapstr.h"

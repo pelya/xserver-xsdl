@@ -35,16 +35,16 @@ Equipment Corporation.
 
 /* $XFree86: xc/programs/Xserver/Xext/dpms.c,v 3.10tsi Exp $ */
 
-#include "X.h"
-#include "Xproto.h"
+#include <X11/X.h>
+#include <X11/Xproto.h>
 #include "misc.h"
 #include "os.h"
 #include "dixstruct.h"
 #include "extnsionst.h"
 #include "opaque.h"
 #define DPMS_SERVER
-#include "dpms.h"
-#include "dpmsstr.h"
+#include <X11/extensions/dpms.h>
+#include <X11/extensions/dpmsstr.h>
 #include "dpmsproc.h"
 #include "modinit.h"
 

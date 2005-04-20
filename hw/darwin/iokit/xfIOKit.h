@@ -35,7 +35,7 @@
 
 #include <pthread.h>
 #include <IOKit/graphics/IOFramebufferShared.h>
-#include "X11/Xproto.h"
+#include <X11/Xproto.h>
 #include "screenint.h"
 #include "darwin.h"
 

@@ -31,8 +31,8 @@ in this Software without prior written authorization from the X Consortium.
 /* Modified nov 94 by Martin Schaller (Martin_Schaller@maus.r.de) for use with
 interleaved planes */
 
-#include "X.h"
-#include "Xprotostr.h"
+#include <X11/X.h>
+#include <X11/Xprotostr.h>
 #include "miscstruct.h"
 #include "gcstruct.h"
 #include "pixmapstr.h"

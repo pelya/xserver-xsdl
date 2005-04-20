@@ -27,14 +27,14 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 /* $XFree86: xc/programs/Xserver/xkb/xkbSwap.c,v 3.4 2003/09/13 16:39:01 dawes Exp $ */
 
 #include "stdio.h"
-#include "X.h"
+#include <X11/X.h>
 #define	NEED_EVENTS
 #define	NEED_REPLIES
-#include "Xproto.h"
+#include <X11/Xproto.h>
 #include "misc.h"
 #include "inputstr.h"
-#include "XKBsrv.h"
-#include "XKBstr.h"
+#include <X11/extensions/XKBsrv.h>
+#include <X11/extensions/XKBstr.h>
 #include "extnsionst.h"
 #include "xkb.h"
 

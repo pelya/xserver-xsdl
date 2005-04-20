@@ -27,7 +27,7 @@ in this Software without prior written authorization from The Open Group.
  */
 /* $XFree86: xc/programs/Xserver/cfb/cfbply1rct.c,v 3.10 2003/10/29 22:44:53 tsi Exp $ */
 
-#include "X.h"
+#include <X11/X.h>
 
 #include "gcstruct.h"
 #include "windowstr.h"

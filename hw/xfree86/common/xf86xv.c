@@ -34,8 +34,8 @@
 #include "xf86.h"
 #include "xf86_OSproc.h"
 
-#include "X.h"
-#include "Xproto.h"
+#include <X11/X.h>
+#include <X11/Xproto.h>
 #include "scrnintstr.h"
 #include "regionstr.h"
 #include "windowstr.h"
@@ -46,8 +46,8 @@
 #include "gcstruct.h"
 #include "dixstruct.h"
 
-#include "Xv.h"
-#include "Xvproto.h"
+#include <X11/extensions/Xv.h>
+#include <X11/extensions/Xvproto.h>
 #include "xvdix.h"
 #ifdef XFree86LOADER
 #include "xvmodproc.h"

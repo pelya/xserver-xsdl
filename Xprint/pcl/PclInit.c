@@ -86,7 +86,7 @@ copyright holders.
 #include "Pcl.h"
 
 #include "cfb.h"
-#include "Xos.h"	/* for unlink() */
+#include <X11/Xos.h>	/* for unlink() */
 
 #include "attributes.h"
 #include "DiPrint.h"

@@ -40,8 +40,8 @@
 #include "dmxlog.h"
 #include "dmxinput.h"
 #ifdef XINPUT
-#include "XI.h"
-#include "XIproto.h"
+#include <X11/extensions/XI.h>
+#include <X11/extensions/XIproto.h>
 #endif
 
 static dmxLogLevel dmxCurrentLogLevel = dmxDebug;

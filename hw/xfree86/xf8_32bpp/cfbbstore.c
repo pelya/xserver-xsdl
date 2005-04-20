@@ -5,7 +5,7 @@
 #undef PSZ
 #include "cfb32.h"
 #include "cfb8_32.h"
-#include "X.h"
+#include <X11/X.h>
 #include "mibstore.h"
 #include "regionstr.h"
 #include "scrnintstr.h"

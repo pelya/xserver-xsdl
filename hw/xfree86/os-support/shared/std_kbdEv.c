@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/shared/std_kbdEv.c,v 3.3 1999/05/07 02:56:23 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/shared/std_kbdEv.c,v 3.2 1998/07/25 16:57:01 dawes Exp $ */
 /*
  * Copyright 1990,91 by Thomas Roell, Dinkelscherben, Germany
  * Copyright 1993 by David Dawes <dawes@xfree86.org>
@@ -25,7 +25,7 @@
  */
 /* $XConsortium: std_kbdEv.c /main/4 1996/03/11 10:47:33 kaleb $ */
 
-#include "X.h"
+#include <X11/X.h>
 #include "xf86.h"
 #include "xf86Priv.h"
 #include "xf86_OSlib.h"

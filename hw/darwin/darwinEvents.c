@@ -32,9 +32,9 @@ in this Software without prior written authorization from The Open Group.
 /* $XFree86: xc/programs/Xserver/hw/darwin/darwinEvents.c,v 1.6 2004/03/31 22:29:09 torrey Exp $ */
 
 #define NEED_EVENTS
-#include   "X.h"
-#include   "Xmd.h"
-#include   "Xproto.h"
+#include   <X11/X.h>
+#include   <X11/Xmd.h>
+#include   <X11/Xproto.h>
 #include   "misc.h"
 #include   "windowstr.h"
 #include   "pixmapstr.h"

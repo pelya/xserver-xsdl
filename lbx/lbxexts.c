@@ -23,18 +23,18 @@
  */
 /* $XFree86: xc/programs/Xserver/lbx/lbxexts.c,v 1.2 2000/05/18 23:46:24 dawes Exp $ */
 
-#include "X.h"
-#include "Xproto.h"
+#include <X11/X.h>
+#include <X11/Xproto.h>
 #include "misc.h"
 #include "dixstruct.h"
 #include "colormapst.h"
 #include "propertyst.h"
 #define _XLBX_SERVER_
-#include "lbxstr.h"
+#include <X11/extensions/lbxstr.h>
 #include "lbxserve.h"
 #ifdef XCSECURITY
 #define _SECURITY_SERVER
-#include "extensions/security.h"
+#include <X11/extensions/security.h>
 #endif
 
 typedef struct _lbxext {

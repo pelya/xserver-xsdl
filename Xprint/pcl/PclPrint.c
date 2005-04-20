@@ -54,7 +54,7 @@ copyright holders.
 #include <X11/Xprotostr.h>
 
 #define NEED_EVENTS
-#include "Xproto.h"
+#include <X11/Xproto.h>
 #undef NEED_EVENTS
 
 #include "Pcl.h"

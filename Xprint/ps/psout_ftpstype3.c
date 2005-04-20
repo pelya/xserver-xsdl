@@ -58,7 +58,7 @@ THE SOFTWARE.
 #include FT_INTERNAL_OBJECTS_H
 #endif /* USE_FT_INTERNALS */
 
-#include "Xproto.h"
+#include <X11/Xproto.h>
 #include "font.h"
 #include "fontstruct.h"
 #include "fntfilst.h"

@@ -152,7 +152,7 @@
 /*****************************************************************************/
 
 #include "inputstr.h"
-#include "Xos.h"
+#include <X11/Xos.h>
 #include <sys/ioctl.h>
 #include <errno.h>
 #include <signal.h>

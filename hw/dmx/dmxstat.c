@@ -46,7 +46,7 @@
 #include "dmx.h"
 #include "dmxstat.h"
 #include "dmxlog.h"
-#include "Xos.h"                /* For sys/time.h */
+#include <X11/Xos.h>                /* For sys/time.h */
 
 /** Used to compute a running average of value. */
 typedef struct _DMXStatAvg {

@@ -1,4 +1,4 @@
-/* $XdotOrg$ */
+/* $XdotOrg: xc/programs/Xserver/Xext/xtest.c,v 1.2 2004/04/23 18:44:42 eich Exp $ */
 /* $Xorg: xtest.c,v 1.4 2001/02/09 02:04:33 xorgcvs Exp $ */
 /*
 
@@ -29,9 +29,9 @@ from The Open Group.
 */
 /* $XFree86: xc/programs/Xserver/Xext/xtest.c,v 3.10 2003/10/28 23:08:44 tsi Exp $ */
 
-#include "X.h"
+#include <X11/X.h>
 #define NEED_EVENTS
-#include "Xproto.h"
+#include <X11/Xproto.h>
 #include "misc.h"
 #include "os.h"
 #include "dixstruct.h"
@@ -42,11 +42,11 @@ from The Open Group.
 #include "dixevents.h"
 #include "sleepuntil.h"
 #define _XTEST_SERVER_
-#include "XTest.h"
-#include "xteststr.h"
+#include <X11/extensions/XTest.h>
+#include <X11/extensions/xteststr.h>
 #ifdef XINPUT
-#include "XI.h"
-#include "XIproto.h"
+#include <X11/extensions/XI.h>
+#include <X11/extensions/XIproto.h>
 #define EXTENSION_EVENT_BASE	64
 #include "extinit.h"		/* LookupDeviceIntRec */
 #endif /* XINPUT */

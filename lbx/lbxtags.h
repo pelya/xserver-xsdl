@@ -55,8 +55,8 @@ in this Software without prior written authorization from The Open Group.
 #include	"os.h"
 #include	"opaque.h"
 #include	"resource.h"
-#include	"X.h"
-#include	"Xproto.h"
+#include	<X11/X.h>
+#include	<X11/Xproto.h>
 
 typedef struct _tagdata {
     XID         tid;

@@ -31,7 +31,7 @@ from the X Consortium.
 /* $XFree86$ */
 
 
-#include "Xos.h"
+#include <X11/Xos.h>
 #include "os.h"
 #include <time.h>
 

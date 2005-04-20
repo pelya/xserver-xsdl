@@ -35,9 +35,9 @@ Pascal Haible.
 
 #include <stdlib.h>	/* for malloc() etc. */
 
-#include "Xos.h"
+#include <X11/Xos.h>
 #include "misc.h"
-#include "X.h"
+#include <X11/X.h>
 
 #ifdef XALLOC_LOG
 #include <stdio.h>

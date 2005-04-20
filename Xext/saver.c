@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/Xext/saver.c,v 1.4 2004/11/01 16:05:27 eich Exp $ */
+/* $XdotOrg: xc/programs/Xserver/Xext/saver.c,v 1.6 2005/03/23 21:09:48 herrb Exp $ */
 /*
  * $XConsortium: saver.c,v 1.12 94/04/17 20:59:36 dpw Exp $
  *
@@ -32,8 +32,8 @@ in this Software without prior written authorization from the X Consortium.
 
 #define NEED_REPLIES
 #define NEED_EVENTS
-#include "X.h"
-#include "Xproto.h"
+#include <X11/X.h>
+#include <X11/Xproto.h>
 #include "misc.h"
 #include "os.h"
 #include "windowstr.h"
@@ -43,7 +43,7 @@ in this Software without prior written authorization from the X Consortium.
 #include "dixstruct.h"
 #include "resource.h"
 #include "opaque.h"
-#include "saverproto.h"
+#include <X11/extensions/saverproto.h>
 #include "gcstruct.h"
 #include "cursorstr.h"
 #include "colormapst.h"

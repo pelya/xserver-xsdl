@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/hw/xfree86/os-support/xf86_libc.h,v 1.3 2005/03/02 11:20:29 gisburn Exp $ */
+/* $XdotOrg: xc/programs/Xserver/hw/xfree86/os-support/xf86_libc.h,v 1.4 2005/03/08 10:26:59 eich Exp $ */
 /* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/xf86_libc.h,v 3.63 2003/12/08 21:46:55 alanh Exp $ */
 /*
  * Copyright (c) 1997-2003 by The XFree86 Project, Inc.
@@ -45,7 +45,7 @@
 #ifndef	XF86_LIBC_H
 #define XF86_LIBC_H 1
 
-#include "Xfuncs.h"
+#include <X11/Xfuncs.h>
 #include <stddef.h>
 
 /*

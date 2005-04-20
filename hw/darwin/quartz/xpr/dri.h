@@ -38,7 +38,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #ifndef _DRI_H_
 #define _DRI_H_
 
-#include "Xdefs.h"
+#include <X11/Xdefs.h>
 #include "scrnintstr.h"
 #define _APPLEDRI_SERVER_
 #include "appledri.h"

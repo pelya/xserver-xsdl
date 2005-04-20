@@ -2,7 +2,7 @@
 
 #ifndef _XVMC_H
 #define _XVMC_H
-#include "Xv.h"
+#include <X11/extensions/Xv.h>
 #include "xvdix.h"
 
 typedef struct {

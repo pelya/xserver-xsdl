@@ -70,8 +70,8 @@
 #include "windowstr.h"
 
 #ifdef XINPUT
-#include "XI.h"
-#include "XIproto.h"
+#include <X11/extensions/XI.h>
+#include <X11/extensions/XIproto.h>
 #include "exevents.h"
 #define EXTENSION_PROC_ARGS void *
 #include "extinit.h"

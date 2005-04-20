@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/hw/xfree86/os-support/linux/lnx_init.c,v 1.3 2005/01/14 18:42:26 eich Exp $ */
+/* $XdotOrg: xc/programs/Xserver/hw/xfree86/os-support/linux/lnx_init.c,v 1.4 2005/01/28 16:12:59 eich Exp $ */
 /* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/linux/lnx_init.c,v 3.14 2001/10/31 22:50:30 tsi Exp $ */
 /*
  * Copyright 1992 by Orest Zborowski <obz@Kodak.com>
@@ -26,8 +26,8 @@
  */
 /* $XConsortium: lnx_init.c /main/7 1996/10/23 18:46:30 kaleb $ */
 
-#include "X.h"
-#include "Xmd.h"
+#include <X11/X.h>
+#include <X11/Xmd.h>
 
 #include "compiler.h"
 

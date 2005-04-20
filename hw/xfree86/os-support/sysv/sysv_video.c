@@ -25,7 +25,7 @@
  */
 /* $XConsortium: sysv_video.c /main/8 1996/10/25 11:38:09 kaleb $ */
 
-#include "X.h"
+#include <X11/X.h>
 
 #define _NEED_SYSI86
 #include "xf86.h"

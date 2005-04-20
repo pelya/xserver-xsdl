@@ -24,8 +24,8 @@
 /* $XConsortium: vgaCmap.c /main/15 1996/10/28 05:13:44 kaleb $ */
 
 
-#include "X.h"
-#include "Xproto.h"
+#include <X11/X.h>
+#include <X11/Xproto.h>
 #include "windowstr.h"
 #include "compiler.h"
 #include "mipointer.h"
@@ -36,7 +36,7 @@
 #include "xf86_ansic.h"
 
 #define _XF86DGA_SERVER_
-#include "extensions/xf86dgastr.h"
+#include <X11/extensions/xf86dgastr.h>
 #include "dgaproc.h"
 
 

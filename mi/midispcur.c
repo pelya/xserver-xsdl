@@ -33,7 +33,7 @@ in this Software without prior written authorization from The Open Group.
 /* $XFree86: xc/programs/Xserver/mi/midispcur.c,v 1.9 2002/12/09 04:10:57 tsi Exp $ */
 
 #define NEED_EVENTS
-# include   "X.h"
+# include   <X11/X.h>
 # include   "misc.h"
 # include   "input.h"
 # include   "cursorstr.h"

@@ -38,8 +38,8 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include "inputstr.h"
 
 #define	XKBSRV_NEED_FILE_FUNCS
-#include "XKBsrv.h"
-#include "extensions/XKBgeom.h"
+#include <X11/extensions/XKBsrv.h>
+#include <X11/extensions/XKBgeom.h>
 #include "xkb.h"
 
 #ifdef MODE_SWITCH

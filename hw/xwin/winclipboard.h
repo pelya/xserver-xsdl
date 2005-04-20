@@ -46,13 +46,13 @@
 #include <pthread.h>
 
 /* X headers */
-#include "X11/X.h"
-#include "X11/Xatom.h"
+#include <X11/X.h>
+#include <X11/Xatom.h>
 /* NOTE: For some unknown reason, including Xproto.h solves
  * tons of problems with including windows.h.  Unknowns reasons
  * are usually bad, so someone should investigate this.
  */
-#include "X11/Xproto.h"
+#include <X11/Xproto.h>
 #include "X11/Xutil.h"
 #include "X11/Xlocale.h"
 

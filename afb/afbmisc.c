@@ -48,7 +48,7 @@ SOFTWARE.
 ******************************************************************/
 /* $XConsortium: afbmisc.c,v 5.4 94/04/17 20:28:27 dpw Exp $ */
 
-#include "X.h"
+#include <X11/X.h>
 #include "misc.h"
 #include "cursor.h"
 #include "scrnintstr.h"

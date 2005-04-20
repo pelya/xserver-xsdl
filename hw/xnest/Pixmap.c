@@ -14,8 +14,8 @@ is" without express or implied warranty.
 */
 /* $XFree86: xc/programs/Xserver/hw/xnest/Pixmap.c,v 3.7 2003/07/16 01:38:51 dawes Exp $ */
 
-#include "X.h"
-#include "Xproto.h"
+#include <X11/X.h>
+#include <X11/Xproto.h>
 #include "regionstr.h"
 #include "pixmapstr.h"
 #include "scrnintstr.h"

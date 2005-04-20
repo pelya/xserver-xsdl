@@ -32,7 +32,7 @@ from the X Consortium.
 */
 
 #include	"afb.h"
-#include	"X.h"
+#include	<X11/X.h>
 #include	"mibstore.h"
 #include	"regionstr.h"
 #include	"scrnintstr.h"

@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/bsd/ppc_video.c,v 1.5 2003/03/14 13:46:04 tsi Exp $ */
+/* $XFree86: ppc_video.c,v 1.5 2003/03/14 13:46:04 tsi Exp $ */
 /*
  * Copyright 1992 by Rich Murphey <Rich@Rice.edu>
  * Copyright 1993 by David Wexelblat <dwex@goblin.org>
@@ -26,7 +26,7 @@
 
 /* $XConsortium: bsd_video.c /main/10 1996/10/25 11:37:57 kaleb $ */
 
-#include "X.h"
+#include <X11/X.h>
 #include "xf86.h"
 #include "xf86Priv.h"
 
@@ -80,7 +80,7 @@ ppcMapVidMem(int ScreenNum, unsigned long Base, unsigned long Size, int flags)
 		     PROT_READ : (PROT_READ | PROT_WRITE),
 		    MAP_SHARED, fd, Base);
 	if (base == MAP_FAILED)
-		FatalError("%s: could not mmap screen [s=%x,a=%x] (%s)\n",
+		FatalError("%s: could not mmap screen [s=%x,a=%x] (%s)",
 			   "xf86MapVidMem", Size, Base, strerror(errno));
 
 	return base;
@@ -102,7 +102,7 @@ xf86ReadBIOS(unsigned long Base, unsigned long Offset, unsigned char *Buf,
 	if (kmem == -1) {
 		kmem = open(DEV_MEM, 2);
 		if (kmem == -1) {
-			FatalError("xf86ReadBIOS: open %s\n", DEV_MEM);
+			FatalError("xf86ReadBIOS: open %s", DEV_MEM);
 		}
 	}
 

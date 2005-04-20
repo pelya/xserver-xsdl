@@ -54,7 +54,7 @@ copyright holders.
 
 #include "Pcl.h"
 #include "migc.h"
-#include "Xatom.h"
+#include <X11/Xatom.h>
 
 #include "PclSFonts.h"
 

@@ -48,7 +48,7 @@ SOFTWARE.
 ******************************************************************/
 /* $XConsortium: afbpushpxl.c,v 5.6 94/04/17 20:28:31 dpw Exp $ */
 
-#include "X.h"
+#include <X11/X.h>
 #include "gcstruct.h"
 #include "scrnintstr.h"
 #include "pixmapstr.h"

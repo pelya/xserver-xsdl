@@ -57,8 +57,8 @@
 
 /* $XConsortium: xf86KbdLnx.c /main/7 1996/10/19 17:59:00 kaleb $ */
 
-#include "X.h"
-#include "Xmd.h"
+#include <X11/X.h>
+#include <X11/Xmd.h>
 #include "input.h"
 #include "scrnintstr.h"
 

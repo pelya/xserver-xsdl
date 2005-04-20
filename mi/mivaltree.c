@@ -1,5 +1,5 @@
 /* $Xorg: mivaltree.c,v 1.4 2001/02/09 02:05:22 xorgcvs Exp $ */
-/* $XdotOrg: xc/programs/Xserver/mi/mivaltree.c,v 1.2.2.1 2004/07/30 06:54:42 anholt Exp $ */
+/* $XdotOrg: xc/programs/Xserver/mi/mivaltree.c,v 1.3 2004/07/31 08:24:14 anholt Exp $ */
 /*
  * mivaltree.c --
  *	Functions for recalculating window clip lists. Main function
@@ -92,7 +92,7 @@ Equipment Corporation.
   *		Bob Scheifler -- avoid miComputeClips for unmapped windows,
   *				 valdata changes
   */
-#include    "X.h"
+#include    <X11/X.h>
 #include    "scrnintstr.h"
 #include    "validate.h"
 #include    "windowstr.h"

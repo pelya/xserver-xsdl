@@ -39,7 +39,7 @@
 #include "dixevents.h"
 #include "winmultiwindowclass.h"
 #include "winprefs.h"
-#include "Xatom.h"
+#include <X11/Xatom.h>
 
 
 /*

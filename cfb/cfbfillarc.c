@@ -27,8 +27,8 @@ in this Software without prior written authorization from The Open Group.
 
 /* $Xorg: cfbfillarc.c,v 1.4 2001/02/09 02:04:37 xorgcvs Exp $ */
 
-#include "X.h"
-#include "Xprotostr.h"
+#include <X11/X.h>
+#include <X11/Xprotostr.h>
 #include "regionstr.h"
 #include "gcstruct.h"
 #include "pixmapstr.h"

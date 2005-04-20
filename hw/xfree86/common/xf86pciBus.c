@@ -34,7 +34,7 @@
 #include <ctype.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include "X.h"
+#include <X11/X.h>
 #include "os.h"
 #include "Pci.h"
 #include "xf86.h"

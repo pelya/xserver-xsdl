@@ -48,7 +48,7 @@ SOFTWARE.
 ******************************************************************/
 /* $XConsortium: afbclip.c,v 5.6 94/04/17 20:28:19 dpw Exp $ */
 
-#include "X.h"
+#include <X11/X.h>
 #include "regionstr.h"
 #include "pixmapstr.h"
 #include "scrnintstr.h"

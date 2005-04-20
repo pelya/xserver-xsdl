@@ -26,12 +26,12 @@
 #if defined(linux) && !defined(__GLIBC__)
 #undef __STRICT_ANSI__
 #endif
-#include <X.h>
+#include <X11/X.h>
 #ifdef __UNIXOS2__
 #define I_NEED_OS2_H
 #endif
-#include <Xmd.h>
-#include <Xos.h>
+#include <X11/Xmd.h>
+#include <X11/Xos.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #if defined(__bsdi__)
@@ -45,7 +45,7 @@
 #endif
 #include <stdarg.h>
 #include <fcntl.h>
-#include "Xfuncproto.h"
+#include <X11/Xfuncproto.h>
 #include "os.h"
 #include <ctype.h>
 #include <unistd.h>

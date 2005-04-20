@@ -31,9 +31,9 @@ in this Software without prior written authorization from The Open Group.
 /* $XFree86: xc/programs/Xserver/mi/mipointer.c,v 3.9 2001/09/04 14:03:28 dawes Exp $ */
 
 # define NEED_EVENTS
-# include   "X.h"
-# include   "Xmd.h"
-# include   "Xproto.h"
+# include   <X11/X.h>
+# include   <X11/Xmd.h>
+# include   <X11/Xproto.h>
 # include   "misc.h"
 # include   "windowstr.h"
 # include   "pixmapstr.h"

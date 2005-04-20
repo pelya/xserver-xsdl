@@ -30,7 +30,7 @@ SOFTWARE.
 #include "fontstruct.h"
 #include "closure.h"
 #define NEED_REPLIES
-#include "X11/Xproto.h" /* for xQueryFontReply */
+#include <X11/Xproto.h> /* for xQueryFontReply */
 
 #define FONTCHARSET(font)	  (font)
 #define FONTMAXBOUNDS(font,field) (font)->info.maxbounds.field

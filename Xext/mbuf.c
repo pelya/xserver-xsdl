@@ -28,8 +28,8 @@ in this Software without prior written authorization from The Open Group.
 /* $Xorg: mbuf.c,v 1.4 2001/02/09 02:04:32 xorgcvs Exp $ */
 #define NEED_REPLIES
 #define NEED_EVENTS
-#include "X.h"
-#include "Xproto.h"
+#include <X11/X.h>
+#include <X11/Xproto.h>
 #include "window.h"
 #include "os.h"
 #include "windowstr.h"
@@ -42,7 +42,7 @@ in this Software without prior written authorization from The Open Group.
 #include "opaque.h"
 #include "sleepuntil.h"
 #define _MULTIBUF_SERVER_	/* don't want Xlib structures */
-#include "multibufst.h"
+#include <X11/extensions/multibufst.h>
 
 #ifdef EXTMODULE
 #include "xf86_ansic.h"

@@ -32,10 +32,10 @@ from The Open Group.
 #include <X11/Xwinsock.h>
 #endif
 #include <stdio.h>
-#include "X11/X.h"
+#include <X11/X.h>
 #define NEED_EVENTS
-#include "X11/Xproto.h"
-#include "X11/Xos.h"
+#include <X11/Xproto.h>
+#include <X11/Xos.h>
 #include "scrnintstr.h"
 #include "servermd.h"
 #define PSZ 8

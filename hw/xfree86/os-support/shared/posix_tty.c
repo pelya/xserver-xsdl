@@ -55,7 +55,7 @@
 
 /* $XConsortium: posix_tty.c /main/7 1996/10/19 18:07:47 kaleb $ */
 
-#include "X.h"
+#include <X11/X.h>
 #include "xf86.h"
 #include "xf86Priv.h"
 #include "xf86_OSlib.h"

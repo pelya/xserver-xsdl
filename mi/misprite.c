@@ -32,8 +32,8 @@ in this Software without prior written authorization from The Open Group.
 */
 /* $XFree86: xc/programs/Xserver/mi/misprite.c,v 3.10tsi Exp $ */
 
-# include   "X.h"
-# include   "Xproto.h"
+# include   <X11/X.h>
+# include   <X11/Xproto.h>
 # include   "misc.h"
 # include   "pixmapstr.h"
 # include   "input.h"

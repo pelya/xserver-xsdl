@@ -40,7 +40,7 @@
 
 #ifdef XKB
 #define XKB_IN_SERVER
-#include "XKBsrv.h"
+#include <X11/extensions/XKBsrv.h>
 #endif
 
 static Bool g_winKeyState[NUM_KEYCODES];

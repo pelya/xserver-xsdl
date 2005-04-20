@@ -30,7 +30,7 @@
 #include "misc.h"
 #include "xf86.h"
 
-#include "X.h"
+#include <X11/X.h>
 #include "scrnintstr.h"
 #include "regionstr.h"
 #include "xf86fbman.h"

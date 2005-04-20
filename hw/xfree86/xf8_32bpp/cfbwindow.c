@@ -1,7 +1,7 @@
 /* $XFree86: xc/programs/Xserver/hw/xfree86/xf8_32bpp/cfbwindow.c,v 1.8tsi Exp $ */
 
 
-#include "X.h"
+#include <X11/X.h>
 #include "scrnintstr.h"
 #include "windowstr.h"
 #define PSZ 8

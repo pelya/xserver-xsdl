@@ -5,7 +5,7 @@
 #include <X11/X.h>
 #include "windowstr.h"
 #define XKBSRV_NEED_FILE_FUNCS
-#include "XKBsrv.h"
+#include <X11/extensions/XKBsrv.h>
 
 #ifdef XF86DDXACTIONS
 #include "xf86.h"

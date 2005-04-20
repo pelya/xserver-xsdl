@@ -84,7 +84,7 @@ in this Software without prior written authorization from The Open Group.
 #include <X11/Xprotostr.h>
 
 #define NEED_EVENTS
-#include "Xproto.h"
+#include <X11/Xproto.h>
 #undef NEED_EVENTS
 
 #include "Ps.h"

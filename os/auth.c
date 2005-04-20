@@ -45,7 +45,7 @@ from The Open Group.
 # include   <sys/stat.h>
 #ifdef XCSECURITY
 #define _SECURITY_SERVER
-# include   "extensions/security.h"
+# include   <X11/extensions/security.h>
 #endif
 #ifdef WIN32
 #include "Xw32defs.h"

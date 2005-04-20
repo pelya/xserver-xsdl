@@ -25,7 +25,7 @@ static char rcsid[] =
 interleaved planes */
 
 #include    "ipl.h"
-#include    "X.h"
+#include    <X11/X.h>
 #include    "mibstore.h"
 #include    "regionstr.h"
 #include    "scrnintstr.h"

@@ -26,7 +26,7 @@
 /* $XConsortium: lnx_io.c /main/8 1996/10/19 18:06:28 kaleb $ */
 
 #define NEED_EVENTS
-#include "X.h"
+#include <X11/X.h>
 
 #include "compiler.h"
 

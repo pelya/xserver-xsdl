@@ -31,8 +31,8 @@
 #include "xf86.h"
 #include "xf86_OSproc.h"
 
-#include "X.h"
-#include "Xproto.h"
+#include <X11/X.h>
+#include <X11/Xproto.h>
 #include "scrnintstr.h"
 #include "resource.h"
 #include "dixstruct.h"

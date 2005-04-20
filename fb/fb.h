@@ -22,12 +22,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $XdotOrg: xc/programs/Xserver/fb/fb.h,v 1.7 2004/11/05 19:51:38 torrey Exp $ */
+/* $XdotOrg: xc/programs/Xserver/fb/fb.h,v 1.8 2004/12/04 00:42:50 kuhn Exp $ */
 
 #ifndef _FB_H_
 #define _FB_H_
 
-#include "X.h"
+#include <X11/X.h>
 #include "scrnintstr.h"
 #include "pixmap.h"
 #include "pixmapstr.h"

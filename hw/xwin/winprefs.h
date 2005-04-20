@@ -32,7 +32,7 @@
 /* $XFree86: $ */
 
 /* Need Bool */
-#include "Xdefs.h"
+#include <X11/Xdefs.h>
 /* Need TRUE */
 #include "misc.h"
 

@@ -55,7 +55,7 @@ copyright holders.
 #include <string.h>
 #include <locale.h>
 
-#include "X.h"
+#include <X11/X.h>
 #include "dixstruct.h"
 #include "screenint.h"
 #include "misc.h"

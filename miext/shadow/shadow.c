@@ -23,7 +23,7 @@
  */
 
 
-#include    "X.h"
+#include    <X11/X.h>
 #include    "scrnintstr.h"
 #include    "windowstr.h"
 #include    "font.h"

@@ -1,5 +1,5 @@
 /* $Xorg: access.c,v 1.5 2001/02/09 02:05:23 xorgcvs Exp $ */
-/* $XdotOrg: xc/programs/Xserver/os/access.c,v 1.6 2004/10/17 10:46:14 herrb Exp $ */
+/* $XdotOrg: xc/programs/Xserver/os/access.c,v 1.7 2004/11/15 15:06:50 ago Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -63,10 +63,10 @@ SOFTWARE.
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <X11/Xtrans.h>
+#include <X11/Xtrans/Xtrans.h>
 #include <X11/Xauth.h>
-#include <X.h>
-#include <Xproto.h>
+#include <X11/X.h>
+#include <X11/Xproto.h>
 #include "misc.h"
 #include "site.h"
 #include <errno.h>
@@ -197,7 +197,7 @@ SOFTWARE.
 
 #ifdef XCSECURITY
 #define _SECURITY_SERVER
-#include "extensions/security.h"
+#include <X11/extensions/security.h>
 #endif
 
 #ifndef PATH_MAX

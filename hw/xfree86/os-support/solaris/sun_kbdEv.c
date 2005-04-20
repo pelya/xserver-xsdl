@@ -23,15 +23,15 @@
  */
 
 /* [JCH-96/01/21] Extended std reverse map to four buttons. */
-/* $XdotOrg:$ */
+/* $XdotOrg: xc/programs/Xserver/hw/xfree86/os-support/sunos/sun_kbdEv.c,v 1.3 2004/07/28 03:57:19 alanc Exp $ */
 
 #include "xf86.h"
 #include "xf86Priv.h"
 #include "xf86_OSlib.h"
 
 #ifdef XINPUT
-#include "XI.h"
-#include "XIproto.h"
+#include <X11/extensions/XI.h>
+#include <X11/extensions/XIproto.h>
 #include "xf86Xinput.h"
 #else
 #include "inputstr.h"
@@ -57,7 +57,7 @@ extern Bool noXkbExtension;
 #ifdef XTESTEXT1
 
 #define	XTestSERVER_SIDE
-#include "xtestext1.h"
+#include <X11/extensions/xtestext1.h>
 extern short xtest_mousex;
 extern short xtest_mousey;
 extern int   on_steal_input;
