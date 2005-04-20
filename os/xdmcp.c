@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/os/xdmcp.c,v 1.4 2004/11/15 15:06:50 ago Exp $ */
+/* $XdotOrg: xc/programs/Xserver/os/xdmcp.c,v 1.5 2005/04/20 12:25:47 daniels Exp $ */
 /* $Xorg: xdmcp.c,v 1.4 2001/01/31 13:37:19 pookie Exp $ */
 /*
  * Copyright 1989 Network Computing Devices, Inc., Mountain View, California.
@@ -17,7 +17,7 @@
 /* $XFree86: xc/programs/Xserver/os/xdmcp.c,v 3.31 2003/12/30 21:24:32 herrb Exp $ */
 
 #ifdef WIN32
-#include <Xwinsock.h>
+#include <X11/Xwinsock.h>
 #endif
 
 #include <X11/Xos.h>

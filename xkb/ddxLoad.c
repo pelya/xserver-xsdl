@@ -79,7 +79,7 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 #ifdef WIN32
 
-#include <Xwindows.h>
+#include <X11/Xwindows.h>
 const char* 
 Win32TempDir()
 {
@@ -139,12 +139,12 @@ Win32System(const char *cmdline)
 	xfree(cmd);
 	return -1;
     }
-    // Wait until child process exits.
+    /* Wait until child process exits. */
     WaitForSingleObject( pi.hProcess, INFINITE );
 
     GetExitCodeProcess( pi.hProcess, &dwExitCode);
     
-    // Close process and thread handles. 
+    /* Close process and thread handles. */
     CloseHandle( pi.hProcess );
     CloseHandle( pi.hThread );
     xfree(cmd);

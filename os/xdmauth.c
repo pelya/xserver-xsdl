@@ -49,7 +49,7 @@ static Bool authFromXDMCP;
 #ifdef XDMCP
 #include <X11/Xmd.h>
 #undef REQUEST
-#include "Xdmcp.h"
+#include <X11/Xdmcp.h>
 
 /* XDM-AUTHENTICATION-1 */
 

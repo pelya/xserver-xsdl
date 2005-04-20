@@ -1,4 +1,4 @@
-#include <Xwindows.h>
+#include <X11/Xwindows.h>
 #include <GL/gl.h>
 #include <GL/glext.h>
 

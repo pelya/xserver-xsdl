@@ -48,7 +48,7 @@ from The Open Group.
 # include   <X11/extensions/security.h>
 #endif
 #ifdef WIN32
-#include "Xw32defs.h"
+#include    <X11/Xw32defs.h>
 #endif
 
 struct protocol {
