@@ -49,7 +49,7 @@
  */
 
 /* $XConsortium: xf86Events.c /main/46 1996/10/25 11:36:30 kaleb $ */
-/* $XdotOrg: xc/programs/Xserver/hw/xfree86/common/xf86Events.c,v 1.7 2005/03/05 20:47:12 gisburn Exp $ */
+/* $XdotOrg: xc/programs/Xserver/hw/xfree86/common/xf86Events.c,v 1.8 2005/04/20 12:25:21 daniels Exp $ */
 
 /* [JCH-96/01/21] Extended std reverse map to four buttons. */
 
@@ -88,7 +88,7 @@
 
 #ifdef XF86BIGFONT
 #define _XF86BIGFONT_SERVER_
-#include "xf86bigfont.h"
+#include <X11/extensions/xf86bigfont.h>
 #endif
 
 #ifdef XKB
