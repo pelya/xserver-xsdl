@@ -1,4 +1,5 @@
 .\"
+.\" $XdotOrg: $
 .\" Copyright (c) 2000 by Conectiva S.A. (http://www.conectiva.com)
 .\"
 .\" Permission is hereby granted, free of charge, to any person obtaining a
@@ -33,7 +34,7 @@
 xorgcfg - Graphical configuration tool for __xservername__
 .SH SYNOPSIS
 .B xorgcfg
-[-config\fI __xconfigfile__\fP] [-modulepath \fImoduledir\fP] 
+[-config \fIconfigfile\fP] [-modulepath \fImoduledir\fP] 
 [-fontpath \fIfontsdir\fP] [-toolkitoption ...]
 .SH DESCRIPTION
 .I Xorgcfg
@@ -41,21 +42,20 @@ is a tool to configure\fI __xservername__\fP, and can be used to either write th
 initial configuration file or make customizations to the current configuration.
 .PP
 When the \fBDISPLAY\fP environment variable is not set, xorgcfg will run
-the command\fI __xservername__ -configure\fP to allow the xserver detect the
+the command\fI __xservername__ -configure\fP to allow the xserver to detect the
 hardware in the computer, and write an initial\fI __xconfigfile__\fP file
 in the user's home directory. Then, it will start 
 __xservername__ and allow customizations.
-.br
+.PP
 If the \fBDISPLAY\fP environment variable is set, xorgcfg will read the
-default\fI __xconfigfile__\fP, that may not be the same being used by the current
-server, and allow customizations.
+default\fI __xconfigfile__\fP, which may or may not be the one being used by 
+the current server, and allow customizations.
 .PP
 To use an alternative location for modules or fonts the respective search
 paths may be specified.
 .PP
 Unless there is an \fBApply\fP button in the current xorgcfg dialog, the
 changes made will take place the next time\fI __xservername__\fP is started.
-
 .PP
 Xorgcfg allows addition and configuration of new devices, such as video cards,
 monitors, keyboards and mouses.
@@ -89,8 +89,8 @@ Specifies the path to the rgb.txt file that should be used by the server
 started by xorgcfg, if any.
 .TP 8
 .I -textmode
-If xorgcfg was compiled with support to ncurses, this option makes xorgcfg
-enters a text mode interface.
+If xorgcfg was compiled with support for ncurses, this option makes xorgcfg
+enter a text mode interface.
 .TP 8
 .I -nomodules
 When built with support for loading modules, this options changes xorgcfg
@@ -99,14 +99,14 @@ behaviour, so that it will not load any modules, and thus start quicker.
 .SH ENVIRONMENT
 .TP 8
 .I DISPLAY
-Default host and display number
+Default host and display number.
 .TP 8
 .I XWINHOME
-Directory where __xservername__ was installed, defaults to /usr/X11R6.
+Directory where __xservername__ was installed, defaults to __projectroot__.
 .TP 8
 .I XENVIRONMENT
 Name of a resource file that overrides the global resources
-stored in the RESOURCE_MANAGER property
+stored in the RESOURCE_MANAGER property.
 
 .SH FILES
 .TP 8
@@ -116,7 +116,7 @@ Server configuration file
 .I /etc/X11/__xconfigfile__
 Server configuration file
 .TP 8
-.I /usr/X11R6/etc/__xconfigfile__
+.I __projectroot__/etc/__xconfigfile__
 Server configuration file
 .TP 8
 .IR __projectroot__/lib/X11/__xconfigfile__. hostname
@@ -132,7 +132,7 @@ Specifies xorgcfg resources
 Keyboard specific configuration
 
 .SH "SEE ALSO"
-.IR __xservername__ (__appmansuffix__)
+.IR __xservername__ (__appmansuffix__),
 .IR __xconfigfile__ (__filemansuffix__)
 
 .SH COPYRIGHT
