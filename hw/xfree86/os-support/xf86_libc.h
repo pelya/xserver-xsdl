@@ -707,6 +707,10 @@ typedef int xf86jmp_buf[1024];
 #undef FILENAME_MAX
 #define FILENAME_MAX		1024
 
+#if (defined(sun) && defined(__SVR4)) 
+# define _FILEDEFED /* Already have FILE defined, don't redefine it */
+#endif
+
 #endif /* XFree86LOADER  && !DONT_DEFINE_WRAPPERS */
 
 #if defined(XFree86LOADER) && \
