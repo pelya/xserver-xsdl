@@ -256,6 +256,8 @@ resPtr xf86AccResFromOS(resPtr ret);
 #endif /* NEED_OS_RAC_PROTOS */
 
 extern Bool xf86GetPciSizeFromOS(PCITAG tag, int indx, int* bits);
+extern Bool xf86GetPciOffsetFromOS(PCITAG tag, int indx, unsigned long* bases);
+extern unsigned long xf86GetOSOffsetFromPCI(PCITAG tag, int space, unsigned long base);
 
 extern void xf86MakeNewMapping(int, int, unsigned long, unsigned long, pointer);
 extern void xf86InitVidMem(void);

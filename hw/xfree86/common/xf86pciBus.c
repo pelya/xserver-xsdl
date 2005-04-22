@@ -1621,10 +1621,12 @@ getValidBIOSBase(PCITAG tag, int num)
 	    m = m->next;
 	}
     } else {
+#if !defined(__ia64__) /* on ia64, trust the kernel, don't look for overlaps */
 	if (!xf86IsSubsetOf(range, m) || 
 	    ChkConflict(&range, avoid, SETUP) 
 	    || (mem && ChkConflict(&range, mem, SETUP))) 
 	    ret = 0;
+#endif 
     }
 
     xf86FreeResList(avoid);

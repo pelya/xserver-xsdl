@@ -1093,12 +1093,12 @@ LOOKUP xfree86LookupTab[] = {
 #endif
 #endif
 #if defined(__ia64__)
-    SYMFUNC(_outw)
-    SYMFUNC(_outb)
-    SYMFUNC(_outl)
-    SYMFUNC(_inb)
-    SYMFUNC(_inw)
-    SYMFUNC(_inl)
+    SYMFUNC(outw)
+    SYMFUNC(outb)
+    SYMFUNC(outl)
+    SYMFUNC(inb)
+    SYMFUNC(inw)
+    SYMFUNC(inl)
 #endif
 #if defined(__arm__)
     SYMFUNC(outw)

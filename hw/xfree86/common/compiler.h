@@ -124,7 +124,8 @@ extern int ffs(unsigned long);
 
 #  if !defined(__arm__)
 #   if !defined(__sparc__) && !defined(__arm32__) \
-      && !(defined(__alpha__) && defined(linux))
+      && !(defined(__alpha__) && defined(linux)) \
+      && !(defined(__ia64__) && defined(linux)) \
 
 extern void outb(unsigned short, unsigned char);
 extern void outw(unsigned short, unsigned short);
@@ -162,7 +163,7 @@ extern unsigned short ldw_brx(volatile unsigned char *, int);
 
 # ifndef NO_INLINE
 #  ifdef __GNUC__
-#   if (defined(linux) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__)) && defined(__alpha__)
+#   if (defined(linux) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__)) && (defined(__alpha__))
 
 #    ifdef linux
 /* for Linux on Alpha, we use the LIBC _inx/_outx routines */
@@ -494,11 +495,16 @@ __ustw (unsigned long r5, unsigned short * r11)
 #    undef outb
 #    undef outw
 #    undef outl
+#    undef inb
+#    undef inw
+#    undef inl
+extern void outb(unsigned long port, unsigned char val);
+extern void outw(unsigned long port, unsigned short val);
+extern void outl(unsigned long port, unsigned int val);
+extern unsigned int inb(unsigned long port);
+extern unsigned int inw(unsigned long port);
+extern unsigned int inl(unsigned long port);
  
-#    define outb(a,b)	_outb(b,a)
-#    define outw(a,b)	_outw(b,a)
-#    define outl(a,b)	_outl(b,a) 
-
 #   elif defined(linux) && defined(__amd64__) 
  
 #    include <inttypes.h>

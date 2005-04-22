@@ -32,7 +32,8 @@ typedef enum {
     NONE_CHIPSET,
     I460GX_CHIPSET,
     E8870_CHIPSET,
-    ZX1_CHIPSET
+    ZX1_CHIPSET,
+    ALTIX_CHIPSET
 } IA64Chipset;
 
 # ifdef OS_PROBE_PCI_CHIPSET
