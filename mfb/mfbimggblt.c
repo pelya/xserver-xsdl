@@ -190,11 +190,7 @@ MFBIMAGEGLYPHBLT(pDrawable, pGC, x, y, nglyph, ppci, pglyphBase)
     else
         pPrivGC->FillArea = mfbSolidBlackArea;
 
-#ifndef LOWMEMFTPT
     mfbPolyFillRect(pDrawable, pGC, 1, &backrect);
-#else
-    miPolyFillRect(pDrawable, pGC, 1, &backrect);
-#endif
     pPrivGC->FillArea = oldFillArea;
 
     /* the faint-hearted can open their eyes now */

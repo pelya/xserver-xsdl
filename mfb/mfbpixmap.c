@@ -62,7 +62,6 @@ SOFTWARE.
 
 #include "servermd.h"
 
-#ifndef LOWMEMFTPT
 
 PixmapPtr
 mfbCreatePixmap (pScreen, width, height, depth)
@@ -104,7 +103,6 @@ mfbCreatePixmap (pScreen, width, height, depth)
     return pPixmap;
 }
 
-#endif /* ifndef LOWMEMFTPT */
 
 Bool
 mfbDestroyPixmap(pPixmap)

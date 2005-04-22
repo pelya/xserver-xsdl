@@ -104,11 +104,7 @@ LOWMEMFTPT	False	False	False	False
 #ifdef FOUR_BIT_CODE
 # define usePushPixels  cfbPushPixels8
 #else
-#ifndef LOWMEMFTPT
 # define usePushPixels  mfbPushPixels
-#else
-# define usePushPixels  miPushPixels
-#endif /* ifndef LOWMEMFTPT */
 #endif
 
 #ifdef PIXEL_ADDR
@@ -638,11 +634,7 @@ cfb8_32ValidateGC32(
 	}
 #endif
 #ifdef FOUR_BIT_CODE
-#ifndef LOWMEMFTPT
 	pGC->ops->PushPixels = mfbPushPixels;
-#else
-	pGC->ops->PushPixels = miPushPixels;
-#endif /* ifndef LOWMEMFTPT */
 	if (pGC->fillStyle == FillSolid && devPriv->rop == GXcopy)
 	    pGC->ops->PushPixels = cfbPushPixels8;
 #endif

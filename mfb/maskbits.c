@@ -150,7 +150,6 @@ PixelType endtab[PPW+1] =
 	LONG2CHARS( 0xFFFFFFFF )
     };
 
-#ifndef LOWMEMFTPT
 
 #ifdef NEED_OLD_MFB_MASKS
 /* a hack, for now, since the entries for 0 need to be all
@@ -233,7 +232,6 @@ PixelType endpartial[33] =
     };
 #endif /* NEED_OLD_MFB_MASKS */
 
-#endif /* ifndef LOWMEMFTPT */
 
 PixelType partmasks[PPW][PPW] = {
      {LONG2CHARS( 0xFFFFFFFF ), LONG2CHARS( 0x80000000 ), LONG2CHARS( 0xC0000000 ), LONG2CHARS( 0xE0000000 ),
@@ -575,7 +573,6 @@ PixelType endtab[PPW+1] =
 	LONG2CHARS( 0xFFFFFFFF )
 	};
 
-#ifndef LOWMEMFTPT
 
 #ifdef NEED_OLD_MFB_MASKS
 /* a hack ), for now, since the entries for 0 need to be all
@@ -658,7 +655,6 @@ PixelType endpartial[33] =
 	};
 #endif
 
-#endif /* ifndef LOWMEMFTPT */
 
 PixelType partmasks[PPW][PPW] = {
      {LONG2CHARS( 0xFFFFFFFF ), LONG2CHARS( 0x00000001 ), LONG2CHARS( 0x00000003 ), LONG2CHARS( 0x00000007 ),

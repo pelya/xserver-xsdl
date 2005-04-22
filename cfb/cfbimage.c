@@ -143,11 +143,7 @@ cfbGetImage(pDrawable, sx, sy, w, h, format, planeMask, pdstLine)
 	return;
     if (pDrawable->bitsPerPixel == 1)
     {
-#ifndef LOWMEMFTPT
 	mfbGetImage(pDrawable, sx, sy, w, h, format, planeMask, pdstLine);
-#else
-	miGetImage(pDrawable, sx, sy, w, h, format, planeMask, pdstLine);
-#endif /* ifndef LOWMEMFTPT */
 	return;
     }
     pScreen = pDrawable->pScreen;

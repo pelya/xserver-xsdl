@@ -93,7 +93,6 @@ destination.  this is a simple translation.
  ** and much less overhead.  Nice for drawing lots of small pixmaps.
  */
  
-#ifndef LOWMEMFTPT
 
 void
 mfbDoBitblt (pSrc, pDst, alu, prgnDst, pptSrc)
@@ -388,7 +387,6 @@ int dstx, dsty;
     return prgnExposed;
 }
 
-#endif /* ifndef LOWMEMFTPT */
 
 /*
  * Devices which use mfb for 1-bit pixmap support
@@ -437,7 +435,6 @@ CopyArea().
 
 */
 
-#ifndef LOWMEMFTPT
 
 RegionPtr
 mfbCopyPlane(pSrcDrawable, pDstDrawable,
@@ -507,4 +504,3 @@ unsigned long plane;
     return prgnExposed;
 }
 
-#endif /* ifndef LOWMEMFTPT */

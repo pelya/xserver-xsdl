@@ -73,7 +73,6 @@ static GCFuncs	mfbFuncs = {
 	miCopyClip
 };
 
-#ifndef LOWMEMFTPT
 
 static GCOps	whiteTECopyOps = {
 	mfbWhiteSolidFS,
@@ -361,295 +360,6 @@ static GCOps	fgEqBgInvertOps = {
 #endif
 };
 
-#else
-
-static GCOps	whiteTECopyOps = {
-	mfbWhiteSolidFS,
-	mfbSetSpans,
-	miPutImage,
-	miCopyArea,
-	miCopyPlane,
-	miPolyPoint,
-	miZeroLine,
-	miPolySegment,
-	miPolyRectangle,
-	miZeroPolyArc,
-	mfbFillPolyWhite,
-	mfbPolyFillRect,
-	miPolyFillArc,
-	miPolyText8,
-	miPolyText16,
-	miImageText8,
-	miImageText16,
-	mfbTEGlyphBltWhite,
-	mfbPolyGlyphBltWhite,
-	miPushPixels
-#ifdef NEED_LINEHELPER
-	,NULL
-#endif
-};
-
-static GCOps	blackTECopyOps = {
-	mfbBlackSolidFS,
-	mfbSetSpans,
-	miPutImage,
-	miCopyArea,
-	miCopyPlane,
-	miPolyPoint,
-	miZeroLine,
-	miPolySegment,
-	miPolyRectangle,
-	miZeroPolyArc,
-	mfbFillPolyBlack,
-	mfbPolyFillRect,
-	miPolyFillArc,
-	miPolyText8,
-	miPolyText16,
-	miImageText8,
-	miImageText16,
-	mfbTEGlyphBltBlack,
-	mfbPolyGlyphBltBlack,
-	miPushPixels
-#ifdef NEED_LINEHELPER
-	,NULL
-#endif
-};
-
-static GCOps	whiteTEInvertOps = {
-	mfbInvertSolidFS,
-	mfbSetSpans,
-	miPutImage,
-	miCopyArea,
-	miCopyPlane,
-	miPolyPoint,
-	miZeroLine,
-	miPolySegment,
-	miPolyRectangle,
-	miZeroPolyArc,
-	mfbFillPolyInvert,
-	mfbPolyFillRect,
-	miPolyFillArc,
-	miPolyText8,
-	miPolyText16,
-	miImageText8,
-	miImageText16,
-	mfbTEGlyphBltWhite,
-	mfbPolyGlyphBltInvert,
-	miPushPixels
-#ifdef NEED_LINEHELPER
-	,NULL
-#endif
-};
-
-static GCOps	blackTEInvertOps = {
-	mfbInvertSolidFS,
-	mfbSetSpans,
-	miPutImage,
-	miCopyArea,
-	miCopyPlane,
-	miPolyPoint,
-	miZeroLine,
-	miPolySegment,
-	miPolyRectangle,
-	miZeroPolyArc,
-	mfbFillPolyInvert,
-	mfbPolyFillRect,
-	miPolyFillArc,
-	miPolyText8,
-	miPolyText16,
-	miImageText8,
-	miImageText16,
-	mfbTEGlyphBltBlack,
-	mfbPolyGlyphBltInvert,
-	miPushPixels
-#ifdef NEED_LINEHELPER
-	,NULL
-#endif
-};
-
-static GCOps	whiteCopyOps = {
-	mfbWhiteSolidFS,
-	mfbSetSpans,
-	miPutImage,
-	miCopyArea,
-	miCopyPlane,
-	miPolyPoint,
-	miZeroLine,
-	miPolySegment,
-	miPolyRectangle,
-	miZeroPolyArc,
-	mfbFillPolyWhite,
-	mfbPolyFillRect,
-	miPolyFillArc,
-	miPolyText8,
-	miPolyText16,
-	miImageText8,
-	miImageText16,
-	mfbImageGlyphBltWhite,
-	mfbPolyGlyphBltWhite,
-	miPushPixels
-#ifdef NEED_LINEHELPER
-	,NULL
-#endif
-};
-
-static GCOps	blackCopyOps = {
-	mfbBlackSolidFS,
-	mfbSetSpans,
-	miPutImage,
-	miCopyArea,
-	miCopyPlane,
-	miPolyPoint,
-	miZeroLine,
-	miPolySegment,
-	miPolyRectangle,
-	miZeroPolyArc,
-	mfbFillPolyBlack,
-	mfbPolyFillRect,
-	miPolyFillArc,
-	miPolyText8,
-	miPolyText16,
-	miImageText8,
-	miImageText16,
-	mfbImageGlyphBltBlack,
-	mfbPolyGlyphBltBlack,
-	miPushPixels
-#ifdef NEED_LINEHELPER
-	,NULL
-#endif
-};
-
-static GCOps	whiteInvertOps = {
-	mfbInvertSolidFS,
-	mfbSetSpans,
-	miPutImage,
-	miCopyArea,
-	miCopyPlane,
-	miPolyPoint,
-	miZeroLine,
-	miPolySegment,
-	miPolyRectangle,
-	miZeroPolyArc,
-	mfbFillPolyInvert,
-	mfbPolyFillRect,
-	miPolyFillArc,
-	miPolyText8,
-	miPolyText16,
-	miImageText8,
-	miImageText16,
-	mfbImageGlyphBltWhite,
-	mfbPolyGlyphBltInvert,
-	miPushPixels
-#ifdef NEED_LINEHELPER
-	,NULL
-#endif
-};
-
-static GCOps	blackInvertOps = {
-	mfbInvertSolidFS,
-	mfbSetSpans,
-	miPutImage,
-	miCopyArea,
-	miCopyPlane,
-	miPolyPoint,
-	miZeroLine,
-	miPolySegment,
-	miPolyRectangle,
-	miZeroPolyArc,
-	mfbFillPolyInvert,
-	mfbPolyFillRect,
-	miPolyFillArc,
-	miPolyText8,
-	miPolyText16,
-	miImageText8,
-	miImageText16,
-	mfbImageGlyphBltBlack,
-	mfbPolyGlyphBltInvert,
-	miPushPixels
-#ifdef NEED_LINEHELPER
-	,NULL
-#endif
-};
-
-static GCOps	whiteWhiteCopyOps = {
-	mfbWhiteSolidFS,
-	mfbSetSpans,
-	miPutImage,
-	miCopyArea,
-	miCopyPlane,
-	miPolyPoint,
-	miZeroLine,
-	miPolySegment,
-	miPolyRectangle,
-	miZeroPolyArc,
-	mfbFillPolyWhite,
-	mfbPolyFillRect,
-	miPolyFillArc,
-	miPolyText8,
-	miPolyText16,
-	miImageText8,
-	miImageText16,
-	miImageGlyphBlt,
-	mfbPolyGlyphBltWhite,
-	miPushPixels
-#ifdef NEED_LINEHELPER
-	,NULL
-#endif
-};
-
-static GCOps	blackBlackCopyOps = {
-	mfbBlackSolidFS,
-	mfbSetSpans,
-	miPutImage,
-	miCopyArea,
-	miCopyPlane,
-	miPolyPoint,
-	miZeroLine,
-	miPolySegment,
-	miPolyRectangle,
-	miZeroPolyArc,
-	mfbFillPolyBlack,
-	mfbPolyFillRect,
-	miPolyFillArc,
-	miPolyText8,
-	miPolyText16,
-	miImageText8,
-	miImageText16,
-	miImageGlyphBlt,
-	mfbPolyGlyphBltBlack,
-	miPushPixels
-#ifdef NEED_LINEHELPER
-	,NULL
-#endif
-};
-
-static GCOps	fgEqBgInvertOps = {
-	mfbInvertSolidFS,
-	mfbSetSpans,
-	miPutImage,
-	miCopyArea,
-	miCopyPlane,
-	miPolyPoint,
-	miZeroLine,
-	miPolySegment,
-	miPolyRectangle,
-	miZeroPolyArc,
-	mfbFillPolyInvert,
-	mfbPolyFillRect,
-	miPolyFillArc,
-	miPolyText8,
-	miPolyText16,
-	miImageText8,
-	miImageText16,
-	miImageGlyphBlt,
-	mfbPolyGlyphBltInvert,
-	miPushPixels
-#ifdef NEED_LINEHELPER
-	,NULL
-#endif
-};
-
-#endif /* ifndef LOWMEMFTPT */
 
 struct commonOps {
     int		    fg, bg;
@@ -1047,12 +757,10 @@ mfbValidateGC(pGC, changes, pDrawable)
     {
 	if (pGC->lineWidth == 0)
 	{
-#ifndef LOWMEMFTPT
 	    if ((pGC->lineStyle == LineSolid) && (pGC->fillStyle == FillSolid)
 		&& ((rrop == RROP_WHITE) || (rrop == RROP_BLACK)))
 		pGC->ops->PolyArc = mfbZeroPolyArcSS;
 	    else
-#endif /* ifndef LOWMEMFTPT */
 		pGC->ops->PolyArc = miZeroPolyArc;
 	}
 	else
@@ -1061,14 +769,12 @@ mfbValidateGC(pGC, changes, pDrawable)
 	{
 	    if(pGC->lineWidth == 0)
 	    {
-#ifndef LOWMEMFTPT
 	        if (pGC->fillStyle == FillSolid)
 		{
 		    pGC->ops->PolySegment = mfbSegmentSS;
 		    pGC->ops->Polylines = mfbLineSS;
 	        }
  		else
-#endif /* ifndef LOWMEMFTPT */
 		{
 		    pGC->ops->PolySegment = miPolySegment;
 		    pGC->ops->Polylines = miZeroLine;
@@ -1082,14 +788,12 @@ mfbValidateGC(pGC, changes, pDrawable)
 	}
 	else
 	{
-#ifndef LOWMEMFTPT
 	    if(pGC->lineWidth == 0 && pGC->fillStyle == FillSolid)
 	    {
 	        pGC->ops->Polylines = mfbLineSD;
 		pGC->ops->PolySegment = mfbSegmentSD;
 	    }
 	    else
-#endif /* ifndef LOWMEMFTPT */
 	    {
 	        pGC->ops->Polylines = miWideDash;
 		pGC->ops->PolySegment = miPolySegment;
@@ -1111,7 +815,6 @@ mfbValidateGC(pGC, changes, pDrawable)
 	{
 	    /* special case ImageGlyphBlt for terminal emulator fonts */
 
-#ifndef LOWMEMFTPT
 
 	    if ((pGC->font) &&
 		TERMINALFONT(pGC->font) &&
@@ -1128,7 +831,6 @@ mfbValidateGC(pGC, changes, pDrawable)
 	    }
 	    else
 
-#endif /* ifndef LOWMEMFTPT */
 
 	    {
 	        if (pGC->fgPixel & 1)
@@ -1162,7 +864,6 @@ mfbValidateGC(pGC, changes, pDrawable)
 
     if (new_fill)
 
-#ifndef LOWMEMFTPT
 
     {
 	/* install a suitable fillspans and pushpixels */
@@ -1299,138 +1000,6 @@ mfbValidateGC(pGC, changes, pDrawable)
 	} /* end of natural rectangles */
     } /* end of new_fill */
 
-#else
-
-    {
-	/* install a suitable fillspans and pushpixels */
-	pGC->ops->PushPixels = miPushPixels;
-	pGC->ops->FillPolygon = miFillPolygon;
-	if ((pGC->fillStyle == FillSolid) ||
-	    ((pGC->fillStyle == FillOpaqueStippled) &&
-	     ((pGC->fgPixel & 1) == (pGC->bgPixel & 1))))
-	{
-	    pGC->ops->PushPixels = miPushPixels;
-	    switch(devPriv->rop)
-	    {
-	      case RROP_WHITE:
-		pGC->ops->FillSpans = mfbWhiteSolidFS;
-		pGC->ops->FillPolygon = mfbFillPolyWhite;
-		break;
-	      case RROP_BLACK:
-		pGC->ops->FillSpans = mfbBlackSolidFS;
-		pGC->ops->FillPolygon = mfbFillPolyBlack;
-		break;
-	      case RROP_INVERT:
-		pGC->ops->FillSpans = mfbInvertSolidFS;
-		pGC->ops->FillPolygon = mfbFillPolyInvert;
-		break;
-	      case RROP_NOP:
-		pGC->ops->FillSpans = (void (*)())NoopDDA;
-		pGC->ops->FillPolygon = (void (*)())NoopDDA;
-		break;
-	    }
-	}
-	/* beyond this point, opaqueStippled ==> fg != bg */
-	else if (((pGC->fillStyle == FillTiled) ||
-		  (pGC->fillStyle == FillOpaqueStippled)) &&
-		 !pGC->pRotatedPixmap)
-	{
-	    pGC->ops->FillSpans = mfbUnnaturalTileFS;
-	}
-	else if ((pGC->fillStyle == FillStippled) && !pGC->pRotatedPixmap)
-	{
-	    pGC->ops->FillSpans = mfbUnnaturalStippleFS;
-	}
-	else if (pGC->fillStyle == FillStippled)
-	{
-	    switch(devPriv->rop)
-	    {
-	      case RROP_WHITE:
-		pGC->ops->FillSpans = mfbWhiteStippleFS;
-	      case RROP_BLACK:
-		pGC->ops->FillSpans = mfbBlackStippleFS;
-	      case RROP_INVERT:
-		pGC->ops->FillSpans = mfbInvertStippleFS;
-	      case RROP_NOP:
-		pGC->ops->FillSpans = (void (*)())NoopDDA;
-		break;
-	    }
-	}
-	else /* overload tiles to do parti-colored opaque stipples */
-	{
-	    pGC->ops->FillSpans = mfbTileFS;
-	}
-	    pGC->ops->PolyFillArc = miPolyFillArc;
-	/* the rectangle code doesn't deal with opaque stipples that
-	   are two colors -- we can fool it for fg==bg, though
-	 */
-	if ((((pGC->fillStyle == FillTiled) ||
-	      (pGC->fillStyle == FillStippled)) &&
-	     !pGC->pRotatedPixmap) ||
-	    ((pGC->fillStyle == FillOpaqueStippled) &&
-	     ((pGC->fgPixel & 1) != (pGC->bgPixel & 1)))
-	   )
-	{
-	    pGC->ops->PolyFillRect = miPolyFillRect;
-	}
-	else /* deal with solids and natural stipples and tiles */
-	{
-	    pGC->ops->PolyFillRect = mfbPolyFillRect;
-
-	    if ((pGC->fillStyle == FillSolid) ||
-		((pGC->fillStyle == FillOpaqueStippled) &&
-		 ((pGC->fgPixel & 1) == (pGC->bgPixel & 1))))
-	    {
-		switch(devPriv->rop)
-		{
-		  case RROP_WHITE:
-		    devPriv->FillArea = mfbSolidWhiteArea;
-		    break;
-		  case RROP_BLACK:
-		    devPriv->FillArea = mfbSolidBlackArea;
-		    break;
-		  case RROP_INVERT:
-		    devPriv->FillArea = mfbSolidInvertArea;
-		    break;
-		  case RROP_NOP:
-		    devPriv->FillArea = (mfbFillAreaProcPtr)NoopDDA;
-		    break;
-		}
-	    }
-	    else if (pGC->fillStyle == FillStippled)
-	    {
-		switch(devPriv->rop)
-		{
-		  case RROP_WHITE:
-		    devPriv->FillArea = mfbStippleWhiteArea;
-		    break;
-		  case RROP_BLACK:
-		    devPriv->FillArea = mfbStippleBlackArea;
-		    break;
-		  case RROP_INVERT:
-		    devPriv->FillArea = mfbStippleInvertArea;
-		    break;
-		  case RROP_NOP:
-		    devPriv->FillArea = (mfbFillAreaProcPtr)NoopDDA;
-		    break;
-		}
-	    }
-	    else /* deal with tiles */
-	    {
-		switch (pGC->alu)
-		{
-		  case GXcopy:
-		    devPriv->FillArea = mfbTileAreaPPWCopy;
-		    break;
-		  default:
-		    devPriv->FillArea = mfbTileAreaPPWGeneral;
-		    break;
-		}
-	    }
-	} /* end of natural rectangles */
-    } /* end of new_fill */
-
-#endif /* ifndef LOWMEMFTPT */
 
 }
 

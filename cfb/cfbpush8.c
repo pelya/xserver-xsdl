@@ -76,11 +76,7 @@ cfbPushPixels8 (pGC, pBitmap, pDrawable, dx, dy, xOrg, yOrg)
     switch (RECT_IN_REGION(pGC->pScreen, pGC->pCompositeClip, &bbox))
     {
       case rgnPART:
-#ifndef LOWMEMFTPT
 	mfbPushPixels(pGC, pBitmap, pDrawable, dx, dy, xOrg, yOrg);
-#else
-	miPushPixels(pGC, pBitmap, pDrawable, dx, dy, xOrg, yOrg);
-#endif /* ifndef LOWMEMFTPT */
       case rgnOUT:
 	return;
     }
