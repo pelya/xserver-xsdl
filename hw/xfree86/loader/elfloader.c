@@ -1623,6 +1623,57 @@ Elf_RelocateEntry(ELFModulePtr elffile, Elf_Word secn, Elf_Rel_t *rel,
  		break;
  	    }
  
+    case R_ALPHA_BRSGP:
+	 {
+	    Elf_Sym *syms;
+	    int     Delta;
+	    
+	    dest32 = (unsigned int *)((secp + rel->r_offset) + rel->r_addend);
+
+# ifdef ELFDEBUG
+	    ELFDEBUF("R_ALPHA_BRSGP %s\t",
+		   ElfGetSymbolName(elffile, ELF_R_SYM(rel->r_info)));
+
+	    ELFDEBUG("secp=%lx\t", secp);
+	    ELFDEBUG("symval=%lx\t", symval);
+	    ELFDEBUG("dest32=%lx\t", dest32);
+	    ELFDEBUG("*dest32=%8.8x\t", *dest32);
+# endif
+
+# ifdef ELFDEBUG
+	    ELFDEBUG("symval=%lx\t", symval);
+# endif
+	    syms = (Elf_Sym *) elffile->saddr[elffile->symndx];
+        
+	    if (syms[ELF_R_SYM(rel->r_info)].st_other & 0x8)
+		Delta = -4;
+	    else
+	        Delta = 4;
+	    
+	    symval -= (Elf_Addr) (((unsigned char *)dest32) + Delta);
+	    if (symval % 4) {
+	       ErrorF("R_ALPHA_BRSGP bad alignment of offset\n");
+	    }
+	    symval = symval >> 2;
+
+# ifdef ELFDEBUG
+	    ELFDEBUG("symval=%lx\t", symval);
+# endif
+
+	    if (symval & 0xffe00000) {
+# ifdef ELFDEBUG
+	       ELFDEBUG("R_ALPHA_BRSGP symval too large\n");
+# endif
+	    }
+
+	    *dest32 = (*dest32 & ~0x1fffff) | (symval & 0x1fffff);
+
+# ifdef ELFDEBUG
+	    ELFDEBUG("*dest32=%8.8x\n", *dest32);
+# endif
+	    break;
+	 }
+       
 #endif /* alpha */
 #if defined(__mc68000__)
     case R_68K_32:
