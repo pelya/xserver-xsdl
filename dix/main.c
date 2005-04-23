@@ -100,9 +100,7 @@ Equipment Corporation.
 #include "site.h"
 #include "dixfont.h"
 #include "extnsionst.h"
-#ifdef XPRINT
 #include "DiPrint.h"
-#endif
 #ifdef PANORAMIX
 #include "panoramiXsrv.h"
 #else
@@ -251,9 +249,7 @@ main(int argc, char *argv[], char *envp[])
     display = "0";
 
     InitGlobals();
-#ifdef XPRINT
     PrinterInitGlobals();
-#endif
 
     /* Quartz support on Mac OS X requires that the Cocoa event loop be in
      * the main thread. This allows the X server main to be called again
@@ -365,9 +361,7 @@ main(int argc, char *argv[], char *envp[])
 	InitCallbackManager();
 	InitVisualWrap();
 	InitOutput(&screenInfo, argc, argv);
-#ifdef XPRINT
 	PrinterInitOutput(&screenInfo, argc, argv);
-#endif
 
 	if (screenInfo.numScreens < 1)
 	    FatalError("no screens found");
