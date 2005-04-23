@@ -1203,6 +1203,7 @@ void
 LoaderErrorMsg(const char *name, const char *modname, int errmaj, int errmin)
 {
     const char *msg;
+    MessageType type = X_ERROR;
 
     switch (errmaj) {
     case LDR_NOERROR:
@@ -1230,7 +1231,8 @@ LoaderErrorMsg(const char *name, const char *modname, int errmaj, int errmin)
 	msg = "loader failed";
 	break;
     case LDR_ONCEONLY:
-	msg = "once-only module";
+	msg = "already loaded";
+        type = X_INFO;
 	break;
     case LDR_NOPORTOPEN:
 	msg = "port open failed";
@@ -1257,10 +1259,10 @@ LoaderErrorMsg(const char *name, const char *modname, int errmaj, int errmin)
 	msg = "uknown error";
     }
     if (name)
-	xf86Msg(X_ERROR, "%s: Failed to load module \"%s\" (%s, %d)\n",
+	xf86Msg(type, "%s: Failed to load module \"%s\" (%s, %d)\n",
 		name, modname, msg, errmin);
     else
-	xf86Msg(X_ERROR, "Failed to load module \"%s\" (%s, %d)\n",
+	xf86Msg(type, "Failed to load module \"%s\" (%s, %d)\n",
 		modname, msg, errmin);
 }
 
