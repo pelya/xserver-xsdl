@@ -29,7 +29,9 @@ from The Open Group.
 
 #include "misc.h"
 #include "font.h"
+#ifdef XPRINT
 #include "DiPrint.h"
+#endif
 
 Bool
 XpClientIsBitmapClient(
@@ -45,6 +47,7 @@ XpClientIsPrintClient(
 {
     return FALSE;
 }
+#ifdef XPRINT
 int
 PrinterOptions(
     int argc,
@@ -66,5 +69,5 @@ void PrinterUseMsg(void)
 void PrinterInitGlobals(void)
 {
 }
-
+#endif /* XPRINT */
 

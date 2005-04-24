@@ -84,6 +84,10 @@ SOFTWARE.
 #undef DAMAGE
 #undef XFIXES
 #undef XEVIE
+#else
+#ifndef LOADABLEPRINTDDX
+#undef XPRINT
+#endif /* LOADABLEPRINTDDX */
 #endif /* PRINT_ONLY_SERVER */
 
 

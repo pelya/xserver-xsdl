@@ -123,7 +123,9 @@ OR PERFORMANCE OF THIS SOFTWARE.
 #include "picture.h"
 #endif
 
+#ifdef XPRINT
 #include "DiPrint.h"
+#endif
 
 Bool noTestExtensions;
 #ifdef BEZIER
@@ -655,7 +657,9 @@ void UseMsg(void)
 #ifdef XCSECURITY
     ErrorF("-sp file               security policy file\n");
 #endif
+#ifdef XPRINT
     PrinterUseMsg();
+#endif
     ErrorF("-su                    disable any save under support\n");
     ErrorF("-t #                   mouse threshold (pixels)\n");
     ErrorF("-terminate             terminate at server reset\n");
