@@ -92,11 +92,37 @@ typedef struct _xglGLBuffer {
     ScreenPtr		pScreen;
     DrawablePtr		pDrawable;
     PixmapPtr		pPixmap;
-    GCPtr		pGC;
+    GCPtr		pGC, swapGC;
+    RegionRec		damage;
     void	        *private;
 } xglGLBufferRec, *xglGLBufferPtr;
 
 typedef int xglGLXVisualConfigRec, *xglGLXVisualConfigPtr;
+
+typedef struct _xglDisplayList *xglDisplayListPtr;
+
+#define XGL_LIST_OP_CALLS 0
+#define XGL_LIST_OP_DRAW  1
+#define XGL_LIST_OP_LIST  2
+
+typedef struct _xglListOp {
+    int type;
+    union {
+	GLuint		  name;
+	xglDisplayListPtr list;
+    } u;
+} xglListOpRec, *xglListOpPtr;
+
+typedef struct _xglDisplayList {
+    xglListOpPtr pOp;
+    int		 nOp;
+    int		 size;
+    int		 refcnt;
+} xglDisplayListRec;
+
+typedef struct _xglTexObj {
+    GLuint name;
+} xglTexObjRec, *xglTexObjPtr;
 
 typedef struct _xglGLContext {
     __GLinterface	     iface;
@@ -110,6 +136,8 @@ typedef struct _xglGLContext {
     Bool		     target;
     glitz_surface_t	     *draw;
     int			     tx, ty;
+    GLenum		     drawBuffer;
+    xglGLBufferPtr	     pDrawBuffer;
     xRectangle		     viewport;
     xRectangle		     scissor;
     GLboolean		     scissorTest;
@@ -117,15 +145,11 @@ typedef struct _xglGLContext {
     GLenum		     error;
     xglHashTablePtr	     texObjects;
     xglHashTablePtr	     displayLists;
+    GLuint		     list;
+    GLenum		     listMode;
+    xglDisplayListPtr	     pList;
+    GLuint		     groupList;
 } xglGLContextRec, *xglGLContextPtr;
-
-typedef struct _xglTexObj {
-    GLuint name;
-} xglTexObjRec, *xglTexObjPtr;
-
-typedef struct _xglDisplayList {
-    GLuint name;
-} xglDisplayListRec, *xglDisplayListPtr;
 
 xglGLContextPtr cctx = NULL;
 
@@ -173,16 +197,11 @@ xglDisable (GLenum cap)
     case GL_SCISSOR_TEST:
 	if (cctx->scissorTest)
 	{
-	    __GLcontext		*gc = (__GLcontext *) cctx;
-	    __GLinterface	*i = cctx->mIface;
-	    __GLdrawablePrivate *drawPriv = i->imports.getDrawablePrivate (gc);
-	    xglGLBufferPtr	pDrawBufferPriv = drawPriv->private;
-	    DrawablePtr		pDrawable = pDrawBufferPriv->pDrawable;
-    
 	    cctx->scissorTest = GL_FALSE;
 	    glitz_context_set_scissor (cctx->context,
 				       cctx->tx, cctx->ty,
-				       pDrawable->width, pDrawable->height);
+				       cctx->pDrawBuffer->pDrawable->width,
+				       cctx->pDrawBuffer->pDrawable->height);
 	}
 	break;
     default:
@@ -258,7 +277,7 @@ xglGetBooleanv (GLenum	  pname,
 	params[0] = GL_TRUE;
 	break;
     case GL_DRAW_BUFFER:
-	params[0] = ENUM_TO_BOOLEAN (GL_BACK);
+	params[0] = ENUM_TO_BOOLEAN (cctx->drawBuffer);
 	break;
     case GL_READ_BUFFER:
 	params[0] = ENUM_TO_BOOLEAN (GL_BACK);
@@ -299,7 +318,7 @@ xglGetDoublev (GLenum	pname,
 	params[0] = BOOLEAN_TO_DOUBLE (GL_TRUE);
 	break;
     case GL_DRAW_BUFFER:
-	params[0] = ENUM_TO_DOUBLE (GL_BACK);
+	params[0] = ENUM_TO_DOUBLE (cctx->drawBuffer);
 	break;
     case GL_READ_BUFFER:
 	params[0] = ENUM_TO_DOUBLE (GL_BACK);
@@ -341,7 +360,7 @@ xglGetFloatv (GLenum  pname,
 	params[0] = BOOLEAN_TO_FLOAT (GL_TRUE);
 	break;
     case GL_DRAW_BUFFER:
-	params[0] = ENUM_TO_FLOAT (GL_BACK);
+	params[0] = ENUM_TO_FLOAT (cctx->drawBuffer);
 	break;
     case GL_READ_BUFFER:
 	params[0] = ENUM_TO_FLOAT (GL_BACK);
@@ -383,7 +402,7 @@ xglGetIntegerv (GLenum pname,
 	params[0] = BOOLEAN_TO_INT (GL_TRUE);
 	break;
     case GL_DRAW_BUFFER:
-	params[0] = ENUM_TO_INT (GL_BACK);
+	params[0] = ENUM_TO_INT (cctx->drawBuffer);
 	break;
     case GL_READ_BUFFER:
 	params[0] = ENUM_TO_INT (GL_BACK);
@@ -633,33 +652,114 @@ xglPrioritizeTextures (GLsizei	      n,
     }
 }
 
+static xglDisplayListPtr
+xglCreateList (void)
+{
+    xglDisplayListPtr pDisplayList;
+    
+    pDisplayList = xalloc (sizeof (xglDisplayListRec));
+    if (!pDisplayList)
+	return NULL;
+    
+    pDisplayList->pOp    = NULL;
+    pDisplayList->nOp    = 0;
+    pDisplayList->size   = 0;
+    pDisplayList->refcnt = 1;
+
+    return pDisplayList;
+}
+
+static void
+xglDestroyList (xglDisplayListPtr pDisplayList)
+{
+    xglListOpPtr pOp = pDisplayList->pOp;
+    int		 nOp = pDisplayList->nOp;
+
+    pDisplayList->refcnt--;
+    if (pDisplayList->refcnt)
+	return;
+
+    while (nOp--)
+    {
+	switch (pOp->type) {
+	case XGL_LIST_OP_CALLS:
+	case XGL_LIST_OP_DRAW:
+	    glDeleteLists (pOp->u.name, 1);
+	    break;
+	case XGL_LIST_OP_LIST:
+	    xglDestroyList (pOp->u.list);
+	    break;
+	}
+	
+	pOp++;
+    }
+    
+    if (pDisplayList->pOp)
+	xfree (pDisplayList->pOp);
+
+    xfree (pDisplayList);
+}
+
+static Bool
+xglResizeList (xglDisplayListPtr pDisplayList,
+	       int		 nOp)
+{
+    if (pDisplayList->size < nOp)
+    {
+	int size = pDisplayList->nOp ? pDisplayList->nOp : 4;
+
+	while (size < nOp)
+	    size <<= 1;
+	
+	pDisplayList->pOp = xrealloc (pDisplayList->pOp,
+				      sizeof (xglListOpRec) * size);
+	if (!pDisplayList->pOp)
+	    return FALSE;
+	
+	pDisplayList->size = size;
+    }
+
+    return TRUE;
+}
+
+static void
+xglStartList (int    type,
+	      GLenum mode)
+{
+    if (!xglResizeList (cctx->pList, cctx->pList->nOp + 1))
+    {
+	cctx->error = GL_OUT_OF_MEMORY;
+	return;
+    }
+    
+    cctx->pList->pOp[cctx->pList->nOp].type   = type;
+    cctx->pList->pOp[cctx->pList->nOp].u.name = glGenLists (1);
+
+    glNewList (cctx->pList->pOp[cctx->pList->nOp].u.name, mode);
+
+    cctx->pList->nOp++;
+}
+
 static GLuint
 xglGenLists (GLsizei range)
 {
     xglDisplayListPtr pDisplayList;
-    GLuint	      first, name, lists;
-    
-    lists = glGenLists (range);
-    if (!lists)
-	return 0;
+    GLuint	      first, name;
     
     first = xglHashFindFreeKeyBlock (cctx->shared->displayLists, range);
 
     name = first;
     for (name = first; range--; name++)
     {
-	pDisplayList = xalloc (sizeof (xglDisplayListRec));
+	pDisplayList = xglCreateList ();
 	if (pDisplayList)
 	{
-	    pDisplayList->name = lists;
 	    xglHashInsert (cctx->shared->displayLists, name, pDisplayList);
 	}
 	else
 	{
-	    glDeleteLists (lists, 1);
 	    cctx->error = GL_OUT_OF_MEMORY;
 	}
-	lists++;
     }
 
     return first;
@@ -669,30 +769,160 @@ static void
 xglNewList (GLuint list,
 	    GLenum mode)
 {
-    xglDisplayListPtr pDisplayList;
-    
     if (!list)
     {
 	cctx->error = GL_INVALID_VALUE;
 	return;
     }
-       
-    pDisplayList = (xglDisplayListPtr)
-	xglHashLookup (cctx->shared->displayLists, list);
-    if (!pDisplayList)
+
+    if (cctx->list)
     {
-	pDisplayList = xalloc (sizeof (xglDisplayListRec));
-	if (!pDisplayList)
+	cctx->error = GL_INVALID_OPERATION;
+	return;
+    }
+
+    cctx->pList = xglCreateList ();
+    if (!cctx->pList)
+    {
+	cctx->error = GL_OUT_OF_MEMORY;
+	return;
+    }
+
+    cctx->list     = list;
+    cctx->listMode = mode;
+
+    xglStartList (XGL_LIST_OP_CALLS, mode);
+}
+
+static void
+xglEndList (void)
+{
+    xglDisplayListPtr pDisplayList;
+
+    if (!cctx->list)
+    {
+	cctx->error = GL_INVALID_OPERATION;
+	return;
+    }
+
+    glEndList ();
+
+    pDisplayList = (xglDisplayListPtr)
+	xglHashLookup (cctx->shared->displayLists, cctx->list);
+    if (pDisplayList)
+    {
+	xglHashRemove (cctx->shared->displayLists, cctx->list);
+	xglDestroyList (pDisplayList);
+    }
+
+    xglHashInsert (cctx->shared->displayLists, cctx->list, cctx->pList);
+
+    cctx->list = 0;
+}
+
+#define XGL_GLX_DRAW_DECLERATIONS(pBox, nBox)			    \
+    GCPtr	   pGC = cctx->pDrawBuffer->pGC;		    \
+    BoxPtr	   (pBox) = REGION_RECTS (pGC->pCompositeClip);	    \
+    int		   (nBox) = REGION_NUM_RECTS (pGC->pCompositeClip); \
+    DrawablePtr	   pDrawable = cctx->pDrawBuffer->pDrawable;	    \
+    int		   scissorX1 = cctx->scissor.x;			    \
+    int		   scissorX2 = scissorX1 + cctx->scissor.width;	    \
+    int		   scissorY2 = pDrawable->height - cctx->scissor.y; \
+    int		   scissorY1 = scissorY2 - cctx->scissor.height
+
+#define XGL_GLX_DRAW_SCISSOR_CLIP(box) \
+    if ((box)->x1 < scissorX1)	       \
+	(box)->x1 = scissorX1;	       \
+    if ((box)->y1 < scissorY1)	       \
+	(box)->y1 = scissorY1;	       \
+    if ((box)->x2 > scissorX2)	       \
+	(box)->x2 = scissorX2;	       \
+    if ((box)->y2 > scissorY2)	       \
+	(box)->y2 = scissorY2
+
+#define XGL_GLX_DRAW_DAMAGE(pBox, pRegion)	      \
+    if (cctx->drawBuffer == GL_FRONT)		      \
+    {						      \
+	REGION_INIT (pGC->pScreen, pRegion, pBox, 1); \
+	REGION_UNION (pGC->pScreen,		      \
+		      &cctx->pDrawBuffer->damage,     \
+		      &cctx->pDrawBuffer->damage,     \
+		      pRegion);			      \
+	REGION_UNINIT (pGC->pScreen, pRegion);	      \
+    } 
+
+#define XGL_GLX_DRAW_SET_SCISSOR_BOX(box)				 \
+    glitz_context_set_scissor (cctx->context,				 \
+			       cctx->tx + (box)->x1,			 \
+			       pDrawable->height - (box)->y2 - cctx->ty, \
+			       (box)->x2 - (box)->x1,			 \
+			       (box)->y2 - (box)->y1)
+		    
+		    
+static void
+xglDrawList (GLuint list)
+{
+    RegionRec region;
+    BoxRec    box;
+	
+    XGL_GLX_DRAW_DECLERATIONS (pBox, nBox);
+
+    while (nBox--)
+    {
+	box = *pBox++;
+	
+	XGL_GLX_DRAW_SCISSOR_CLIP (&box);
+	
+	if (box.x1 < box.x2 && box.y1 < box.y2)
+	{
+	    XGL_GLX_DRAW_SET_SCISSOR_BOX (&box);
+
+	    glCallList (list);
+
+	    XGL_GLX_DRAW_DAMAGE (&box, &region);
+	}
+    }
+}
+
+static void
+xglCallDisplayList (xglDisplayListPtr pDisplayList)
+{
+    if (cctx->list)
+    {
+	if (!xglResizeList (cctx->pList, cctx->pList->nOp + 1))
 	{
 	    cctx->error = GL_OUT_OF_MEMORY;
 	    return;
 	}
-	    
-	pDisplayList->name = glGenLists (1);
-	xglHashInsert (cctx->shared->displayLists, list, pDisplayList);
+
+	pDisplayList->refcnt++;
+
+	cctx->pList->pOp[cctx->pList->nOp].type   = XGL_LIST_OP_LIST;
+	cctx->pList->pOp[cctx->pList->nOp].u.list = pDisplayList;
+	cctx->pList->nOp++;
     }
-    
-    glNewList (pDisplayList->name, mode);
+    else
+    {
+	xglListOpPtr pOp = pDisplayList->pOp;
+	int	     nOp = pDisplayList->nOp;
+
+	while (nOp--)
+	{
+	    switch (pOp->type) {
+	    case XGL_LIST_OP_CALLS:
+		glCallList (pOp->u.name);
+		break;
+	    case XGL_LIST_OP_DRAW:
+		xglDrawList (pOp->u.name);
+		break;
+	    case XGL_LIST_OP_LIST:
+		xglCallDisplayList (pOp->u.list);
+		break;
+	    }
+
+	    pOp++;
+	}
+    }
 }
 
 static void
@@ -709,7 +939,7 @@ xglCallList (GLuint list)
     pDisplayList = (xglDisplayListPtr)
 	xglHashLookup (cctx->shared->displayLists, list);
     if (pDisplayList)
-	glCallList (pDisplayList->name);
+	xglCallDisplayList (pDisplayList);
 }
 
 static void
@@ -775,7 +1005,7 @@ xglCallLists (GLsizei	   n,
 	pDisplayList = (xglDisplayListPtr)
 	    xglHashLookup (cctx->shared->displayLists, base + list);
 	if (pDisplayList)
-	    glCallList (pDisplayList->name);
+	    xglCallDisplayList (pDisplayList);
     }
 }
 
@@ -798,9 +1028,8 @@ xglDeleteLists (GLuint  list,
 	    xglHashLookup (cctx->shared->displayLists, list + i);
 	if (pDisplayList)
 	{
-	    glDeleteLists (pDisplayList->name, 1);
 	    xglHashRemove (cctx->shared->displayLists, list + i);
-	    xfree (pDisplayList);
+	    xglDestroyList (pDisplayList);
 	}
     }
 }
@@ -816,21 +1045,518 @@ xglIsList (GLuint list)
     pDisplayList = (xglDisplayListPtr)
 	xglHashLookup (cctx->shared->displayLists, list);
     if (pDisplayList)
-	return glIsList (pDisplayList->name);
+	return GL_TRUE;
 
     return GL_FALSE;
 }
 
+static void
+xglFlush (void)
+{
+    xglGLBufferPtr pBuffer = cctx->pDrawBuffer;
+    
+    glFlush ();
+
+    if (REGION_NOTEMPTY (pBuffer->pDrawable->pScreen, &pBuffer->damage))
+    {
+	DamageDamageRegion (pBuffer->pDrawable, &pBuffer->damage);
+	REGION_EMPTY (pBuffer->pDrawable->pScreen, &pBuffer->damage);
+    }
+}
+
+static void
+xglFinish (void)
+{
+    xglGLBufferPtr pBuffer = cctx->pDrawBuffer;
+    
+    glFinish ();
+
+    if (REGION_NOTEMPTY (pBuffer->pDrawable->pScreen, &pBuffer->damage))
+    {
+	DamageDamageRegion (pBuffer->pDrawable, &pBuffer->damage);
+	REGION_EMPTY (pBuffer->pDrawable->pScreen, &pBuffer->damage);
+    }
+}
+
+static void
+xglClear (GLbitfield mask)
+{
+    GLenum mode;
+    
+    if (cctx->list)
+    {
+	glEndList ();
+	xglStartList (XGL_LIST_OP_DRAW, GL_COMPILE);
+	glClear (mask);
+	glEndList ();
+	
+	mode = cctx->listMode;
+    }
+    else
+	mode = GL_COMPILE_AND_EXECUTE;
+
+    if (mode == GL_COMPILE_AND_EXECUTE)
+    {
+	RegionRec region;
+	BoxRec	  box;
+
+	XGL_GLX_DRAW_DECLERATIONS (pBox, nBox);
+    
+	while (nBox--)
+	{
+	    box = *pBox++;
+	    
+	    XGL_GLX_DRAW_SCISSOR_CLIP (&box);
+	    
+	    if (box.x1 < box.x2 && box.y1 < box.y2)
+	    {
+		XGL_GLX_DRAW_SET_SCISSOR_BOX (&box);
+
+		glClear (mask);
+		
+		if (mask & GL_COLOR_BUFFER_BIT)
+		    XGL_GLX_DRAW_DAMAGE (&box, &region);
+	    }
+	}
+    }
+
+    if (cctx->list)
+	xglStartList (XGL_LIST_OP_CALLS, cctx->listMode);
+}
+
+static void
+xglAccum (GLenum  op,
+	  GLfloat value)
+{
+    if (op == GL_RETURN)
+    {
+	GLenum listMode;
+    
+	if (cctx->list)
+	{
+	    glEndList ();
+	    xglStartList (XGL_LIST_OP_DRAW, GL_COMPILE);
+	    glAccum (GL_RETURN, value);
+	    glEndList ();
+	    
+	    listMode = cctx->listMode;
+	}
+	else
+	    listMode = GL_COMPILE_AND_EXECUTE;
+	
+	if (listMode == GL_COMPILE_AND_EXECUTE)
+	{
+	    RegionRec region;
+	    BoxRec    box;
+
+	    XGL_GLX_DRAW_DECLERATIONS (pBox, nBox);
+	
+	    while (nBox--)
+	    {
+		box = *pBox++;
+		
+		XGL_GLX_DRAW_SCISSOR_CLIP (&box);
+		
+		if (box.x1 < box.x2 && box.y1 < box.y2)
+		{
+		    XGL_GLX_DRAW_SET_SCISSOR_BOX (&box);
+
+		    glAccum (GL_RETURN, value);
+		    
+		    XGL_GLX_DRAW_DAMAGE (&box, &region);
+		}
+	    }
+	}
+	
+	if (cctx->list)
+	    xglStartList (XGL_LIST_OP_CALLS, cctx->listMode);
+    }
+    else
+	glAccum (op, value);
+}
+
+static void
+xglDrawArrays (GLenum  mode,
+	       GLint   first,
+	       GLsizei count)
+{
+    GLenum listMode;
+    
+    if (cctx->list)
+    {
+	glEndList ();
+	xglStartList (XGL_LIST_OP_DRAW, GL_COMPILE);
+	glDrawArrays (mode, first, count);
+	glEndList ();
+	    
+	listMode = cctx->listMode;
+    }
+    else
+	listMode = GL_COMPILE_AND_EXECUTE;
+	
+    if (listMode == GL_COMPILE_AND_EXECUTE)
+    {
+	RegionRec region;
+	BoxRec    box;
+
+	XGL_GLX_DRAW_DECLERATIONS (pBox, nBox);
+
+	while (nBox--)
+	{
+	    box = *pBox++;
+	    
+	    XGL_GLX_DRAW_SCISSOR_CLIP (&box);
+	    
+	    if (box.x1 < box.x2 && box.y1 < box.y2)
+	    {
+		XGL_GLX_DRAW_SET_SCISSOR_BOX (&box);
+
+		glDrawArrays (mode, first, count);
+	
+		XGL_GLX_DRAW_DAMAGE (&box, &region);
+	    }
+	}
+    }
+
+    if (cctx->list)
+	xglStartList (XGL_LIST_OP_CALLS, cctx->listMode);
+}
+
+static void
+xglDrawElements (GLenum	      mode,
+		 GLsizei      count,
+		 GLenum	      type,
+		 const GLvoid *indices)
+{
+    GLenum listMode;
+    
+    if (cctx->list)
+    {
+	glEndList ();
+	xglStartList (XGL_LIST_OP_DRAW, GL_COMPILE);
+	glDrawElements (mode, count, type, indices);
+	glEndList ();
+	    
+	listMode = cctx->listMode;
+    }
+    else
+	listMode = GL_COMPILE_AND_EXECUTE;
+	
+    if (listMode == GL_COMPILE_AND_EXECUTE)
+    {
+	RegionRec region;
+	BoxRec    box;
+
+	XGL_GLX_DRAW_DECLERATIONS (pBox, nBox);
+
+	while (nBox--)
+	{
+	    box = *pBox++;
+	    
+	    XGL_GLX_DRAW_SCISSOR_CLIP (&box);
+	    
+	    if (box.x1 < box.x2 && box.y1 < box.y2)
+	    {
+		XGL_GLX_DRAW_SET_SCISSOR_BOX (&box);
+
+		glDrawElements (mode, count, type, indices);
+	
+		XGL_GLX_DRAW_DAMAGE (&box, &region);
+	    }
+	}
+    }
+
+    if (cctx->list)
+	xglStartList (XGL_LIST_OP_CALLS, cctx->listMode);
+}
+
+static void
+xglDrawPixels (GLsizei	    width,
+	       GLsizei	    height,
+	       GLenum	    format,
+	       GLenum	    type,
+	       const GLvoid *pixels)
+{
+    GLenum listMode;
+    
+    if (cctx->list)
+    {
+	glEndList ();
+	xglStartList (XGL_LIST_OP_DRAW, GL_COMPILE);
+	glDrawPixels (width, height, format, type, pixels);
+	glEndList ();
+	    
+	listMode = cctx->listMode;
+    }
+    else
+	listMode = GL_COMPILE_AND_EXECUTE;
+	
+    if (listMode == GL_COMPILE_AND_EXECUTE)
+    {
+	RegionRec region;
+	BoxRec    box;
+	    
+	XGL_GLX_DRAW_DECLERATIONS (pBox, nBox);
+
+	while (nBox--)
+	{
+	    box = *pBox++;
+	    
+	    XGL_GLX_DRAW_SCISSOR_CLIP (&box);
+	    
+	    if (box.x1 < box.x2 && box.y1 < box.y2)
+	    {
+		XGL_GLX_DRAW_SET_SCISSOR_BOX (&box);
+
+		glDrawPixels (width, height, format, type, pixels);
+		
+		XGL_GLX_DRAW_DAMAGE (&box, &region);
+	    }
+	}
+    }
+
+    if (cctx->list)
+	xglStartList (XGL_LIST_OP_CALLS, cctx->listMode);
+}
+
+static void
+xglBitmap (GLsizei	 width,
+	   GLsizei	 height,
+	   GLfloat	 xorig,
+	   GLfloat	 yorig,
+	   GLfloat	 xmove,
+	   GLfloat	 ymove,
+	   const GLubyte *bitmap)
+{
+    GLenum listMode;
+    
+    if (cctx->list)
+    {
+	glEndList ();
+	xglStartList (XGL_LIST_OP_DRAW, GL_COMPILE);
+	glBitmap (width, height, xorig, yorig, xmove, ymove, bitmap);
+	glEndList ();
+	    
+	listMode = cctx->listMode;
+    }
+    else
+	listMode = GL_COMPILE_AND_EXECUTE;
+	
+    if (listMode == GL_COMPILE_AND_EXECUTE)
+    {
+	RegionRec region;
+	BoxRec    box;
+
+	XGL_GLX_DRAW_DECLERATIONS (pBox, nBox);
+
+	while (nBox--)
+	{
+	    box = *pBox++;
+	    
+	    XGL_GLX_DRAW_SCISSOR_CLIP (&box);
+	    
+	    if (box.x1 < box.x2 && box.y1 < box.y2)
+	    {
+		XGL_GLX_DRAW_SET_SCISSOR_BOX (&box);
+
+		glBitmap (width, height, xorig, yorig, xmove, ymove, bitmap);
+		
+		XGL_GLX_DRAW_DAMAGE (&box, &region);
+	    }
+	}
+    }
+    
+    if (cctx->list)
+	xglStartList (XGL_LIST_OP_CALLS, cctx->listMode);
+}
+
+static void
+xglRectdv (const GLdouble *v1,
+	   const GLdouble *v2)
+{
+    GLenum listMode;
+    
+    if (cctx->list)
+    {
+	glEndList ();
+	xglStartList (XGL_LIST_OP_DRAW, GL_COMPILE);
+	glRectdv (v1, v2);
+	glEndList ();
+	    
+	listMode = cctx->listMode;
+    }
+    else
+	listMode = GL_COMPILE_AND_EXECUTE;
+	
+    if (listMode == GL_COMPILE_AND_EXECUTE)
+    {
+	RegionRec region;
+	BoxRec    box;
+
+	XGL_GLX_DRAW_DECLERATIONS (pBox, nBox);
+
+	while (nBox--)
+	{
+	    box = *pBox++;
+	    
+	    XGL_GLX_DRAW_SCISSOR_CLIP (&box);
+	    
+	    if (box.x1 < box.x2 && box.y1 < box.y2)
+	    {
+		XGL_GLX_DRAW_SET_SCISSOR_BOX (&box);
+
+		glRectdv (v1, v2);
+		
+		XGL_GLX_DRAW_DAMAGE (&box, &region);
+	    }
+	}
+    }
+
+    if (cctx->list)
+	xglStartList (XGL_LIST_OP_CALLS, cctx->listMode);
+}
+
+static void
+xglRectfv (const GLfloat *v1,
+	   const GLfloat *v2)
+{
+    GLdouble dv1[2];
+    GLdouble dv2[2];
+
+    dv1[0] = (GLdouble) v1[0];
+    dv1[1] = (GLdouble) v1[1];
+    dv2[0] = (GLdouble) v2[0];
+    dv2[1] = (GLdouble) v2[1];
+
+    xglRectdv (dv1, dv2);
+}
+
+static void
+xglRectiv (const GLint *v1,
+	   const GLint *v2)
+{
+    GLdouble dv1[2];
+    GLdouble dv2[2];
+
+    dv1[0] = (GLdouble) v1[0];
+    dv1[1] = (GLdouble) v1[1];
+    dv2[0] = (GLdouble) v2[0];
+    dv2[1] = (GLdouble) v2[1];
+
+    xglRectdv (dv1, dv2);
+}
+
+static void
+xglRectsv (const GLshort *v1,
+	   const GLshort *v2)
+{
+    GLdouble dv1[2];
+    GLdouble dv2[2];
+
+    dv1[0] = (GLdouble) v1[0];
+    dv1[1] = (GLdouble) v1[1];
+    dv2[0] = (GLdouble) v2[0];
+    dv2[1] = (GLdouble) v2[1];
+
+    xglRectdv (dv1, dv2);
+}
+
+static void
+xglBegin (GLenum mode)
+{
+    if (cctx->list)
+    {
+	glEndList ();
+	xglStartList (XGL_LIST_OP_DRAW, GL_COMPILE);
+    }
+    else
+    {
+	XGL_GLX_DRAW_DECLERATIONS (pBox, nBox);
+	    
+	if (nBox == 1)
+	{
+	    BoxRec box = *pBox;
+
+	    XGL_GLX_DRAW_SCISSOR_CLIP (&box);
+	    XGL_GLX_DRAW_SET_SCISSOR_BOX (&box);
+	}
+	else
+	{
+	    if (!cctx->groupList)
+		cctx->groupList = glGenLists (1);
+	    
+	    glNewList (cctx->groupList, GL_COMPILE);
+	}
+    }
+    
+    glBegin (mode);
+}
+
+static void
+xglEnd (void)
+{
+    glEnd ();
+    
+    if (!cctx->list || cctx->listMode == GL_COMPILE_AND_EXECUTE)
+    {
+	RegionRec region;
+	BoxRec	  box;
+	GLuint	  list;
+
+	XGL_GLX_DRAW_DECLERATIONS (pBox, nBox);
+	
+	if (cctx->list)
+	{
+	    list = cctx->pList->pOp[cctx->pList->nOp - 1].u.name;
+	}
+	else
+	{
+	    if (nBox == 1)
+	    {
+		box = *pBox++;
+	    
+		XGL_GLX_DRAW_SCISSOR_CLIP (&box);
+		XGL_GLX_DRAW_DAMAGE (&box, &region);
+		return;
+	    }
+	
+	    list = cctx->groupList;
+	}
+
+	glEndList ();
+
+	while (nBox--)
+	{
+	    box = *pBox++;
+	    
+	    XGL_GLX_DRAW_SCISSOR_CLIP (&box);
+	    
+	    if (box.x1 < box.x2 && box.y1 < box.y2)
+	    {
+		XGL_GLX_DRAW_SET_SCISSOR_BOX (&box);
+
+		glCallList (list);
+		
+		XGL_GLX_DRAW_DAMAGE (&box, &region);
+	    }
+	}
+    }
+	
+    if (cctx->list)
+	xglStartList (XGL_LIST_OP_CALLS, cctx->listMode);
+}
+
+
 __glProcTable __glNativeRenderTable = {
     xglNewList, /* glNewList */
-    glEndList,
+    xglEndList, /* glEndList */
     xglCallList, /* glCallList */
     xglCallLists, /* glCallLists */
     xglDeleteLists, /* glDeleteLists */
     xglGenLists, /* glGenLists */
     glListBase,
-    glBegin,
-    glBitmap,
+    xglBegin, /* glBegin */
+    xglBitmap, /* glBitmap */
     glColor3bv,
     glColor3dv,
     glColor3fv,
@@ -848,7 +1574,7 @@ __glProcTable __glNativeRenderTable = {
     glColor4uiv,
     glColor4usv,
     glEdgeFlagv,
-    glEnd,
+    xglEnd, /* glEnd */
     glIndexdv,
     glIndexfv,
     glIndexiv,
@@ -870,10 +1596,10 @@ __glProcTable __glNativeRenderTable = {
     glRasterPos4fv,
     glRasterPos4iv,
     glRasterPos4sv,
-    glRectdv,
-    glRectfv,
-    glRectiv,
-    glRectsv,
+    xglRectdv, /* glRectdv */
+    xglRectfv, /* glRectfv */
+    xglRectiv, /* glRectiv */
+    xglRectsv, /* glRectsv */
     glTexCoord1dv,
     glTexCoord1fv,
     glTexCoord1iv,
@@ -955,7 +1681,7 @@ __glProcTable __glNativeRenderTable = {
     glPopName,
     glPushName,
     xglDrawBuffer, /* glDrawBuffer */
-    glClear,
+    xglClear, /* glClear */
     glClearAccum,
     glClearIndex,
     glClearColor,
@@ -965,11 +1691,11 @@ __glProcTable __glNativeRenderTable = {
     glColorMask,
     glDepthMask,
     glIndexMask,
-    glAccum,
+    xglAccum, /* glAccum */
     xglDisable, /* glDisable */
     xglEnable, /* glEnable */
-    glFinish,
-    glFlush,
+    xglFinish, /* glFinish */
+    xglFlush, /* glFlush */
     glPopAttrib,
     glPushAttrib,
     glMap1d,
@@ -1005,7 +1731,7 @@ __glProcTable __glNativeRenderTable = {
     xglReadBuffer, /* glReadBuffer */
     xglCopyPixels, /* glCopyPixels */
     glReadPixels,
-    glDrawPixels,
+    xglDrawPixels, /* glDrawPixels */
     xglGetBooleanv, /* glGetBooleanv */
     glGetClipPlane,
     xglGetDoublev, /* glGetDoublev */
@@ -1058,8 +1784,8 @@ __glProcTable __glNativeRenderTable = {
     xglBindTexture, /* glBindTexture */
     glColorPointer,
     glDisableClientState,
-    glDrawArrays,
-    glDrawElements,
+    xglDrawArrays, /* glDrawArrays */
+    xglDrawElements, /* glDrawElements */
     glEdgeFlagPointer,
     glEnableClientState,
     glIndexPointer,
@@ -1562,16 +2288,17 @@ xglFreeContext (xglGLContextPtr pContext)
 		pDisplayList = (xglDisplayListPtr)
 		    xglHashLookup (pContext->displayLists, key);
 		if (pDisplayList)
-		{
-		    glDeleteLists (pDisplayList->name, 1);
-		    xfree (pDisplayList);
-		}
+		    xglDestroyList (pDisplayList);
+		
 		xglHashRemove (pContext->displayLists, key);
 	    }
 	} while (key);
 	
 	xglDeleteHashTable (pContext->displayLists);
     }
+
+    if (pContext->groupList)
+	glDeleteLists (pContext->groupList, 1);
     
     glitz_context_destroy (pContext->context);
 
@@ -1625,6 +2352,8 @@ xglMakeCurrent (__GLcontext *gc)
 	{
 	    xglPixmapPtr pFront = XGL_GET_DRAWABLE_PIXMAP_PRIV (pDrawable);
 	    xglPixmapPtr pBack  = XGL_GET_PIXMAP_PRIV (pPixmap);
+	    XID		 value = FALSE;
+	    int		 status;
 	    
 	    pContext->scissor.x = pContext->scissor.y = 0;
 	    pContext->scissor.width = pDrawable->width;
@@ -1636,11 +2365,31 @@ xglMakeCurrent (__GLcontext *gc)
 
 	    pContext->draw = pBack->surface;
 	    pContext->tx = pContext->ty = 0;
+
+	    pContext->pDrawBuffer = pDrawBufferPriv;
 	    
 	    if (!pFront->lock) pFront->lock++;
 	    if (!pBack->lock) pBack->lock++;
 
 	    glitz_context_set_surface (pContext->context, pContext->draw);
+
+	    if (!pDrawBufferPriv->pGC)
+	    {
+		pDrawBufferPriv->pGC =
+		    CreateGC (pDrawable,
+			      GCGraphicsExposures, &value,
+			      &status);
+		ValidateGC (pDrawable, pDrawBufferPriv->pGC);
+	    }
+	    
+	    if (!pDrawBufferPriv->swapGC)
+	    {
+		pDrawBufferPriv->swapGC =
+		    CreateGC (&pPixmap->drawable,
+			      GCGraphicsExposures, &value,
+			      &status);
+		ValidateGC (&pPixmap->drawable, pDrawBufferPriv->swapGC);
+	    }
 
 	    return GL_TRUE;
 	}
@@ -1813,12 +2562,16 @@ xglCreateContext (__GLimports      *imports,
 	
     pContext->needInit	    = TRUE;
     pContext->draw	    = NULL;
+    pContext->drawBuffer    = GL_BACK;
     pContext->target	    = FALSE;
     pContext->versionString = NULL;
     pContext->scissorTest   = GL_FALSE;
     pContext->error	    = GL_NO_ERROR;
+    pContext->shared	    = NULL;
+    pContext->list	    = 0;
+    pContext->groupList	    = 0;
+    pContext->refcnt	    = 1;
     
-    pContext->refcnt = 1;
     if (shareGC)
     {
 	pContext->texObjects   = NULL;
@@ -1881,21 +2634,13 @@ xglSwapBuffers (__GLXdrawablePrivate *glxPriv)
     xglGLBufferPtr	pBufferPriv = glPriv->private;
     DrawablePtr		pDrawable = pBufferPriv->pDrawable;
     PixmapPtr		pPixmap = pBufferPriv->pPixmap;
-    GCPtr		pGC = pBufferPriv->pGC;
+    GCPtr		pGC = pBufferPriv->swapGC;
     GLboolean		ret;
-
+    
     if (pPixmap)
     {
-	if (!pGC)
-	{
-	    int status;
-	    XID value;
-
-	    value = FALSE;
-	    pGC = CreateGC (pDrawable, GCGraphicsExposures, &value, &status);
-	    ValidateGC (pDrawable, pGC);
-	    pBufferPriv->pGC = pGC;
-	}
+	/* Discard front buffer damage */
+	REGION_EMPTY (pGC->pScreen, &pBufferPriv->damage);
 	
 	if (pGC)
 	{
@@ -1949,6 +2694,7 @@ xglResizeBuffers (__GLdrawableBuffer  *buffer,
 	    XGL_GET_PIXMAP_PRIV (pPixmap)->score = 4000;
 	    pBufferPriv->pPixmap = pPixmap;
 	}
+	ValidateGC (&pPixmap->drawable, pBufferPriv->swapGC);
     }
     
     glPriv->private = pBufferPriv->private;
@@ -1976,6 +2722,9 @@ xglFreeBuffers (__GLdrawablePrivate *glPriv)
 
     if (pBufferPriv->pGC)
 	FreeGC (pBufferPriv->pGC, (GContext) 0);
+
+    if (pBufferPriv->swapGC)
+	FreeGC (pBufferPriv->swapGC, (GContext) 0);
     
     xfree (pBufferPriv);
 }
@@ -2001,6 +2750,9 @@ xglCreateBuffer (__GLXdrawablePrivate *glxPriv)
     pBufferPriv->pDrawable = pDrawable;
     pBufferPriv->pPixmap = NULL;
     pBufferPriv->pGC = NULL;
+    pBufferPriv->swapGC = NULL;
+
+    REGION_INIT (pScreen, &pBufferPriv->damage, NullBox, 0);
     
     if (glxPriv->pGlxVisual->doubleBuffer)
 	pBufferPriv->pPixmap =
