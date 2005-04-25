@@ -204,13 +204,13 @@ LoaderSetPath(const char *path)
 
 /* Standard set of module subdirectories to search, in order of preference */
 static const char *stdSubdirs[] = {
-    "drivers/",
+    "",
+    "fonts/",
     "input/",
+    "drivers/",
     "multimedia/",
     "extensions/",
-    "fonts/",
     "internal/",
-    "",
     NULL
 };
 
@@ -398,19 +398,20 @@ static char *
 FindModule(const char *module, const char *dir, const char **subdirlist,
 	   PatternPtr patterns)
 {
-    char buf[PATH_MAX + 1];
+    char buf[PATH_MAX + 1], tmpBuf[PATH_MAX + 1];
     char *dirpath = NULL;
     char *name = NULL;
     struct stat stat_buf;
-    int len, dirlen;
+    int dirlen;
     char *fp;
-    DIR *d;
     const char **subdirs = NULL;
-    PatternPtr p = NULL;
     const char **s;
-    struct dirent *dp;
-    regmatch_t match[2];
-
+#ifdef DLOPEN_HACK
+    const char suffix[3][3] = { "so", "a", "o" };
+#else
+    const char suffix[3][3] = { "a", "o", "so" };
+#endif
+    
     subdirs = InitSubdirs(subdirlist);
     if (!subdirs)
 	return NULL;
@@ -431,39 +432,37 @@ FindModule(const char *module, const char *dir, const char **subdirlist,
 	strcpy(buf, dirpath);
 	strcat(buf, *s);
 	/*xf86Msg(X_INFO,"OS2DIAG: FindModule: buf=%s\n",buf); */
-	fp = buf + dirlen;
-	if (stat(buf, &stat_buf) == 0 && S_ISDIR(stat_buf.st_mode) &&
-	    (d = opendir(buf))) {
-	    if (buf[dirlen - 1] != '/') {
-		buf[dirlen++] = '/';
-		fp++;
+        if ((stat(buf, &stat_buf) == 0) && S_ISDIR(stat_buf.st_mode)) {
+	    int i;
+	
+            if (buf[dirlen - 1] != '/') {
+                buf[dirlen++] = '/';
+                fp++;
+            }
+	    
+	    for (i = 0; i < 3 && !name; i++) {
+                snprintf(tmpBuf, PATH_MAX, "%slib%s.%s", buf, module,
+                         suffix[i]);
+                if (stat(tmpBuf, &stat_buf) == 0) {
+                    name = tmpBuf;
+                    break;
+                }
+                snprintf(tmpBuf, PATH_MAX, "%s%s_drv.%s", buf, module,
+                         suffix[i]);
+                if (stat(tmpBuf, &stat_buf) == 0) {
+                    name = tmpBuf;
+                    break;
+                }
+                snprintf(tmpBuf, PATH_MAX, "%s%s.%s", buf, module,
+                         suffix[i]);
+                if (stat(tmpBuf, &stat_buf) == 0) {
+                    name = tmpBuf;
+                    break;
+                }
 	    }
-	    while ((dp = readdir(d))) {
-		if (dirlen + strlen(dp->d_name) + 1 > PATH_MAX)
-		    continue;
-		strcpy(fp, dp->d_name);
-		if (!(stat(buf, &stat_buf) == 0 && S_ISREG(stat_buf.st_mode)))
-		    continue;
-		for (p = patterns; p->pattern; p++) {
-		    if (regexec(&p->rex, dp->d_name, 2, match, 0) == 0 &&
-			match[1].rm_so != -1) {
-			len = match[1].rm_eo - match[1].rm_so;
-			if (len == strlen(module) &&
-			    strncmp(module, dp->d_name + match[1].rm_so,
-				    len) == 0) {
-			    /*xf86Msg(X_INFO,"OS2DIAG: matching %s\n",buf); */
-			    name = buf;
-			    break;
-			}
-		    }
-		}
-		if (name)
-		    break;
-	    }
-	    closedir(d);
 	    if (name)
 		break;
-	}
+        }
     }
     FreeSubdirs(subdirs);
     if (dirpath != dir)
