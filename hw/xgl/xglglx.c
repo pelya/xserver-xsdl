@@ -103,12 +103,104 @@ typedef struct _xglDisplayList *xglDisplayListPtr;
 
 #define XGL_LIST_OP_CALLS 0
 #define XGL_LIST_OP_DRAW  1
-#define XGL_LIST_OP_LIST  2
+#define XGL_LIST_OP_COPY  2
+#define XGL_LIST_OP_LIST  3
+
+typedef struct _xglCopyOp {
+    void (*copyProc) (struct _xglCopyOp *pOp);
+    union {
+	struct {
+	    GLint   x;
+	    GLint   y;
+	    GLsizei width;
+	    GLsizei height;
+	    GLenum  type; 
+	} pixels;
+	struct {
+	    GLenum  target;
+	    GLint   level;
+	    GLenum  internalformat;
+	    GLint   x;
+	    GLint   y;
+	    GLsizei width;
+	    GLint   border; 
+	} tex_image_1d;
+	struct {
+	    GLenum  target;
+	    GLint   level;
+	    GLenum  internalformat;
+	    GLint   x;
+	    GLint   y;
+	    GLsizei width;
+	    GLsizei height;
+	    GLint   border; 
+	} tex_image_2d;
+	struct {
+	    GLenum  target;
+	    GLint   level;
+	    GLint   xoffset;
+	    GLint   x;
+	    GLint   y;
+	    GLsizei width; 
+	} tex_sub_image_1d;
+	struct {
+	    GLenum  target;
+	    GLint   level;
+	    GLint   xoffset;
+	    GLint   yoffset;
+	    GLint   x;
+	    GLint   y;
+	    GLsizei width;
+	    GLsizei height; 
+	} tex_sub_image_2d;
+	struct {
+	    GLenum  target;
+	    GLenum  internalformat;
+	    GLint   x;
+	    GLint   y;
+	    GLsizei width;
+	} color_table;
+	struct {
+	    GLenum  target;
+	    GLsizei start;
+	    GLint   x;
+	    GLint   y;
+	    GLsizei width;
+	} color_sub_table;
+	struct {
+	    GLenum  target;
+	    GLenum  internalformat;
+	    GLint   x;
+	    GLint   y;
+	    GLsizei width;
+	} convolution_filter_1d;
+	struct {
+	    GLenum  target;
+	    GLenum  internalformat;
+	    GLint   x;
+	    GLint   y;
+	    GLsizei width;
+	    GLsizei height;
+	} convolution_filter_2d;
+	struct {
+	    GLenum  target;
+	    GLint   level;
+	    GLint   xoffset;
+	    GLint   yoffset;
+	    GLint   zoffset;
+	    GLint   x;
+	    GLint   y;
+	    GLsizei width;
+	    GLsizei height; 
+	} tex_sub_image_3d;
+    } u;
+} xglCopyOpRec, *xglCopyOpPtr;
 
 typedef struct _xglListOp {
     int type;
     union {
 	GLuint		  name;
+	xglCopyOpPtr	  copy;
 	xglDisplayListPtr list;
     } u;
 } xglListOpRec, *xglListOpPtr;
@@ -124,6 +216,15 @@ typedef struct _xglTexObj {
     GLuint name;
 } xglTexObjRec, *xglTexObjPtr;
 
+typedef struct _xglGLAttributes {
+    GLbitfield mask;
+    GLenum     drawBuffer;
+    GLenum     readBuffer;
+    xRectangle viewport;
+    xRectangle scissor;
+    GLboolean  scissorTest;
+} xglGLAttributesRec, *xglGLAttributesPtr;
+
 typedef struct _xglGLContext {
     __GLinterface	     iface;
     __GLinterface	     *mIface;
@@ -136,11 +237,7 @@ typedef struct _xglGLContext {
     Bool		     target;
     glitz_surface_t	     *draw;
     int			     tx, ty;
-    GLenum		     drawBuffer;
     xglGLBufferPtr	     pDrawBuffer;
-    xRectangle		     viewport;
-    xRectangle		     scissor;
-    GLboolean		     scissorTest;
     char		     *versionString;
     GLenum		     error;
     xglHashTablePtr	     texObjects;
@@ -149,6 +246,9 @@ typedef struct _xglGLContext {
     GLenum		     listMode;
     xglDisplayListPtr	     pList;
     GLuint		     groupList;
+    xglGLAttributesRec	     attrib;
+    xglGLAttributesPtr	     pAttribStack;
+    int			     nAttribStack;
 } xglGLContextRec, *xglGLContextPtr;
 
 xglGLContextPtr cctx = NULL;
@@ -159,13 +259,12 @@ xglViewport (GLint   x,
 	     GLsizei width,
 	     GLsizei height)
 {
-    cctx->viewport.x	  = x;
-    cctx->viewport.y	  = y;
-    cctx->viewport.width  = width;
-    cctx->viewport.height = height;
+    cctx->attrib.viewport.x	 = x;
+    cctx->attrib.viewport.y	 = y;
+    cctx->attrib.viewport.width  = width;
+    cctx->attrib.viewport.height = height;
 
-    glitz_context_set_viewport (cctx->context,
-				cctx->tx + x, cctx->ty + y, width, height);
+    glitz_context_set_viewport (cctx->context, x, y, width, height);
 }
 
 static void
@@ -174,20 +273,20 @@ xglScissor (GLint   x,
 	    GLsizei width,
 	    GLsizei height)
 {
-    cctx->scissor.x	 = x;
-    cctx->scissor.y	 = y;
-    cctx->scissor.width  = width;
-    cctx->scissor.height = height;
+    cctx->attrib.scissor.x	= x;
+    cctx->attrib.scissor.y	= y;
+    cctx->attrib.scissor.width  = width;
+    cctx->attrib.scissor.height = height;
 
-    if (cctx->scissorTest)
-	glitz_context_set_scissor (cctx->context,
-				   cctx->tx + x, cctx->ty + y, width, height);
+    if (cctx->attrib.scissorTest)
+	glitz_context_set_scissor (cctx->context, x, y, width, height);
 }
 
 static void
 xglDrawBuffer (GLenum mode)
 {
-    ErrorF ("NYI xglDrawBuffer: 0x%x\n", mode);
+    if (mode != cctx->attrib.drawBuffer)
+	ErrorF ("NYI xglDrawBuffer: 0x%x\n", mode);
 }
 
 static void
@@ -195,11 +294,11 @@ xglDisable (GLenum cap)
 {
     switch (cap) {
     case GL_SCISSOR_TEST:
-	if (cctx->scissorTest)
+	if (cctx->attrib.scissorTest)
 	{
-	    cctx->scissorTest = GL_FALSE;
+	    cctx->attrib.scissorTest = GL_FALSE;
 	    glitz_context_set_scissor (cctx->context,
-				       cctx->tx, cctx->ty,
+				       0, 0,
 				       cctx->pDrawBuffer->pDrawable->width,
 				       cctx->pDrawBuffer->pDrawable->height);
 	}
@@ -214,12 +313,12 @@ xglEnable (GLenum cap)
 {
     switch (cap) {
     case GL_SCISSOR_TEST:
-	cctx->scissorTest = GL_TRUE;
+	cctx->attrib.scissorTest = GL_TRUE;
 	glitz_context_set_scissor (cctx->context,
-				   cctx->tx + cctx->scissor.x,
-				   cctx->ty + cctx->scissor.y,
-				   cctx->scissor.width,
-				   cctx->scissor.height);
+				   cctx->attrib.scissor.x,
+				   cctx->attrib.scissor.y,
+				   cctx->attrib.scissor.width,
+				   cctx->attrib.scissor.height);
 	break;
     default:
 	glEnable (cap);
@@ -229,18 +328,113 @@ xglEnable (GLenum cap)
 static void
 xglReadBuffer (GLenum mode)
 {
-    ErrorF ("NYI xglReadBuffer: 0x%x\n", mode);
+    if (mode != cctx->attrib.readBuffer)
+	ErrorF ("NYI xglReadBuffer: 0x%x\n", mode);
 }
 
 static void
-xglCopyPixels (GLint   x,
-	       GLint   y,
-	       GLsizei width,
-	       GLsizei height,
-	       GLenum  type)
+xglPushAttrib (GLbitfield mask)
 {
-    ErrorF ("NYI glCopyPixels: %d %d %d %d 0x%x\n",
-	    x, y, width, height, type);   
+    xglGLAttributesPtr pAttrib;
+    GLint	       depth;
+    
+    glGetIntegerv (GL_MAX_ATTRIB_STACK_DEPTH, &depth);
+    
+    if (cctx->nAttribStack == depth)
+    {
+	cctx->error = GL_STACK_OVERFLOW;
+	return;
+    }
+    
+    cctx->pAttribStack =
+	realloc (cctx->pAttribStack,
+		 sizeof (xglGLAttributesRec) * (cctx->nAttribStack + 1));
+    
+    if (!cctx->pAttribStack)
+    {
+	cctx->error = GL_OUT_OF_MEMORY;
+	return;
+    }
+
+    pAttrib = &cctx->pAttribStack[cctx->nAttribStack];
+    pAttrib->mask = mask;
+
+    if (mask & GL_COLOR_BUFFER_BIT)
+	pAttrib->drawBuffer = cctx->attrib.drawBuffer;
+
+    if (mask & GL_PIXEL_MODE_BIT)
+	pAttrib->readBuffer = cctx->attrib.readBuffer;
+ 
+    if (mask & GL_SCISSOR_BIT)
+    {
+	pAttrib->scissorTest = cctx->attrib.scissorTest;
+	pAttrib->scissor = cctx->attrib.scissor;
+    }
+    else if (mask & GL_ENABLE_BIT)
+	pAttrib->scissorTest = cctx->attrib.scissorTest;
+
+    if (mask & GL_VIEWPORT_BIT)
+	pAttrib->viewport = cctx->attrib.viewport;
+
+    cctx->nAttribStack++;
+    
+    glPushAttrib (mask);
+}
+
+static void
+xglPopAttrib (void)
+{
+    xglGLAttributesPtr pAttrib;
+    GLbitfield	       mask;
+    
+    if (!cctx->nAttribStack)
+    {
+	cctx->error = GL_STACK_UNDERFLOW;
+	return;
+    }
+
+    cctx->nAttribStack--;
+    
+    pAttrib = &cctx->pAttribStack[cctx->nAttribStack];
+    mask = pAttrib->mask;
+
+    if (mask & GL_COLOR_BUFFER_BIT)
+	xglDrawBuffer (pAttrib->drawBuffer);
+	
+    if (mask & GL_PIXEL_MODE_BIT)
+	xglReadBuffer (pAttrib->readBuffer);
+	
+    if (mask & GL_SCISSOR_BIT)
+    {
+	xglScissor (pAttrib->scissor.x,
+		    pAttrib->scissor.y,
+		    pAttrib->scissor.width,
+		    pAttrib->scissor.height);
+
+	if (pAttrib->scissorTest)
+	    xglEnable (GL_SCISSOR_TEST);
+	else
+	    xglDisable (GL_SCISSOR_TEST);
+    }
+    else if (mask & GL_ENABLE_BIT)
+    {
+	if (pAttrib->scissorTest)
+	    xglEnable (GL_SCISSOR_TEST);
+	else
+	    xglDisable (GL_SCISSOR_TEST);
+    }
+    
+    if (mask & GL_VIEWPORT_BIT)
+	xglViewport (pAttrib->viewport.x,
+		     pAttrib->viewport.y,
+		     pAttrib->viewport.width,
+		     pAttrib->viewport.height);
+
+    cctx->pAttribStack =
+	realloc (cctx->pAttribStack,
+		 sizeof (xglGLAttributesRec) * cctx->nAttribStack);
+    
+    glPopAttrib ();
 }
 
 static GLint
@@ -277,25 +471,25 @@ xglGetBooleanv (GLenum	  pname,
 	params[0] = GL_TRUE;
 	break;
     case GL_DRAW_BUFFER:
-	params[0] = ENUM_TO_BOOLEAN (cctx->drawBuffer);
+	params[0] = ENUM_TO_BOOLEAN (cctx->attrib.drawBuffer);
 	break;
     case GL_READ_BUFFER:
-	params[0] = ENUM_TO_BOOLEAN (GL_BACK);
+	params[0] = ENUM_TO_BOOLEAN (cctx->attrib.readBuffer);
 	break;
     case GL_SCISSOR_BOX:
-	params[0] = INT_TO_BOOLEAN (cctx->scissor.x);
-	params[1] = INT_TO_BOOLEAN (cctx->scissor.y);
-	params[2] = INT_TO_BOOLEAN (cctx->scissor.width);
-	params[3] = INT_TO_BOOLEAN (cctx->scissor.height); 
+	params[0] = INT_TO_BOOLEAN (cctx->attrib.scissor.x);
+	params[1] = INT_TO_BOOLEAN (cctx->attrib.scissor.y);
+	params[2] = INT_TO_BOOLEAN (cctx->attrib.scissor.width);
+	params[3] = INT_TO_BOOLEAN (cctx->attrib.scissor.height); 
 	break;
     case GL_SCISSOR_TEST:
-	params[0] = cctx->scissorTest;
+	params[0] = cctx->attrib.scissorTest;
 	break;
     case GL_VIEWPORT:
-	params[0] = INT_TO_BOOLEAN (cctx->viewport.x);
-	params[1] = INT_TO_BOOLEAN (cctx->viewport.y);
-	params[2] = INT_TO_BOOLEAN (cctx->viewport.width);
-	params[3] = INT_TO_BOOLEAN (cctx->viewport.height);
+	params[0] = INT_TO_BOOLEAN (cctx->attrib.viewport.x);
+	params[1] = INT_TO_BOOLEAN (cctx->attrib.viewport.y);
+	params[2] = INT_TO_BOOLEAN (cctx->attrib.viewport.width);
+	params[3] = INT_TO_BOOLEAN (cctx->attrib.viewport.height);
 	break;
     case GL_TEXTURE_BINDING_1D:
     case GL_TEXTURE_BINDING_2D:
@@ -318,25 +512,25 @@ xglGetDoublev (GLenum	pname,
 	params[0] = BOOLEAN_TO_DOUBLE (GL_TRUE);
 	break;
     case GL_DRAW_BUFFER:
-	params[0] = ENUM_TO_DOUBLE (cctx->drawBuffer);
+	params[0] = ENUM_TO_DOUBLE (cctx->attrib.drawBuffer);
 	break;
     case GL_READ_BUFFER:
-	params[0] = ENUM_TO_DOUBLE (GL_BACK);
+	params[0] = ENUM_TO_DOUBLE (cctx->attrib.readBuffer);
 	break;
     case GL_SCISSOR_BOX:
-	params[0] = cctx->scissor.x;
-	params[1] = cctx->scissor.y;
-	params[2] = cctx->scissor.width;
-	params[3] = cctx->scissor.height; 
+	params[0] = cctx->attrib.scissor.x;
+	params[1] = cctx->attrib.scissor.y;
+	params[2] = cctx->attrib.scissor.width;
+	params[3] = cctx->attrib.scissor.height; 
 	break;
     case GL_SCISSOR_TEST:
-	params[0] = BOOLEAN_TO_DOUBLE (cctx->scissorTest);
+	params[0] = BOOLEAN_TO_DOUBLE (cctx->attrib.scissorTest);
 	break;
     case GL_VIEWPORT:
-	params[0] = cctx->viewport.x;
-	params[1] = cctx->viewport.y;
-	params[2] = cctx->viewport.width;
-	params[3] = cctx->viewport.height;
+	params[0] = cctx->attrib.viewport.x;
+	params[1] = cctx->attrib.viewport.y;
+	params[2] = cctx->attrib.viewport.width;
+	params[3] = cctx->attrib.viewport.height;
 	break;
     case GL_TEXTURE_BINDING_1D:
     case GL_TEXTURE_BINDING_2D:
@@ -360,25 +554,25 @@ xglGetFloatv (GLenum  pname,
 	params[0] = BOOLEAN_TO_FLOAT (GL_TRUE);
 	break;
     case GL_DRAW_BUFFER:
-	params[0] = ENUM_TO_FLOAT (cctx->drawBuffer);
+	params[0] = ENUM_TO_FLOAT (cctx->attrib.drawBuffer);
 	break;
     case GL_READ_BUFFER:
-	params[0] = ENUM_TO_FLOAT (GL_BACK);
+	params[0] = ENUM_TO_FLOAT (cctx->attrib.readBuffer);
 	break;
     case GL_SCISSOR_BOX:
-	params[0] = cctx->scissor.x;
-	params[1] = cctx->scissor.y;
-	params[2] = cctx->scissor.width;
-	params[3] = cctx->scissor.height; 
+	params[0] = cctx->attrib.scissor.x;
+	params[1] = cctx->attrib.scissor.y;
+	params[2] = cctx->attrib.scissor.width;
+	params[3] = cctx->attrib.scissor.height; 
 	break;
     case GL_SCISSOR_TEST:
-	params[0] = BOOLEAN_TO_FLOAT (cctx->scissorTest);
+	params[0] = BOOLEAN_TO_FLOAT (cctx->attrib.scissorTest);
 	break;
     case GL_VIEWPORT:
-	params[0] = cctx->viewport.x;
-	params[1] = cctx->viewport.y;
-	params[2] = cctx->viewport.width;
-	params[3] = cctx->viewport.height;
+	params[0] = cctx->attrib.viewport.x;
+	params[1] = cctx->attrib.viewport.y;
+	params[2] = cctx->attrib.viewport.width;
+	params[3] = cctx->attrib.viewport.height;
 	break;
     case GL_TEXTURE_BINDING_1D:
     case GL_TEXTURE_BINDING_2D:
@@ -402,25 +596,25 @@ xglGetIntegerv (GLenum pname,
 	params[0] = BOOLEAN_TO_INT (GL_TRUE);
 	break;
     case GL_DRAW_BUFFER:
-	params[0] = ENUM_TO_INT (cctx->drawBuffer);
+	params[0] = ENUM_TO_INT (cctx->attrib.drawBuffer);
 	break;
     case GL_READ_BUFFER:
-	params[0] = ENUM_TO_INT (GL_BACK);
+	params[0] = ENUM_TO_INT (cctx->attrib.readBuffer);
 	break;
     case GL_SCISSOR_BOX:
-	params[0] = cctx->scissor.x;
-	params[1] = cctx->scissor.y;
-	params[2] = cctx->scissor.width;
-	params[3] = cctx->scissor.height; 
+	params[0] = cctx->attrib.scissor.x;
+	params[1] = cctx->attrib.scissor.y;
+	params[2] = cctx->attrib.scissor.width;
+	params[3] = cctx->attrib.scissor.height; 
 	break;
     case GL_SCISSOR_TEST:
-	params[0] = BOOLEAN_TO_INT (cctx->scissorTest);
+	params[0] = BOOLEAN_TO_INT (cctx->attrib.scissorTest);
 	break;
     case GL_VIEWPORT:
-	params[0] = cctx->viewport.x;
-	params[1] = cctx->viewport.y;
-	params[2] = cctx->viewport.width;
-	params[3] = cctx->viewport.height;
+	params[0] = cctx->attrib.viewport.x;
+	params[1] = cctx->attrib.viewport.y;
+	params[2] = cctx->attrib.viewport.width;
+	params[3] = cctx->attrib.viewport.height;
 	break;
     case GL_TEXTURE_BINDING_1D:
     case GL_TEXTURE_BINDING_2D:
@@ -437,7 +631,7 @@ xglIsEnabled (GLenum cap)
 {
     switch (cap) {
     case GL_SCISSOR_TEST:
-	return cctx->scissorTest;
+	return cctx->attrib.scissorTest;
     default:
 	return glIsEnabled (cap);
     }
@@ -685,6 +879,9 @@ xglDestroyList (xglDisplayListPtr pDisplayList)
 	case XGL_LIST_OP_CALLS:
 	case XGL_LIST_OP_DRAW:
 	    glDeleteLists (pOp->u.name, 1);
+	    break;    
+	case XGL_LIST_OP_COPY:
+	    xfree (pOp->u.copy);
 	    break;
 	case XGL_LIST_OP_LIST:
 	    xglDestroyList (pOp->u.list);
@@ -820,15 +1017,15 @@ xglEndList (void)
     cctx->list = 0;
 }
 
-#define XGL_GLX_DRAW_DECLERATIONS(pBox, nBox)			    \
-    GCPtr	   pGC = cctx->pDrawBuffer->pGC;		    \
-    BoxPtr	   (pBox) = REGION_RECTS (pGC->pCompositeClip);	    \
-    int		   (nBox) = REGION_NUM_RECTS (pGC->pCompositeClip); \
-    DrawablePtr	   pDrawable = cctx->pDrawBuffer->pDrawable;	    \
-    int		   scissorX1 = cctx->scissor.x;			    \
-    int		   scissorX2 = scissorX1 + cctx->scissor.width;	    \
-    int		   scissorY2 = pDrawable->height - cctx->scissor.y; \
-    int		   scissorY1 = scissorY2 - cctx->scissor.height
+#define XGL_GLX_DRAW_DECLERATIONS(pBox, nBox)				   \
+    GCPtr	   pGC = cctx->pDrawBuffer->pGC;			   \
+    BoxPtr	   (pBox) = REGION_RECTS (pGC->pCompositeClip);		   \
+    int		   (nBox) = REGION_NUM_RECTS (pGC->pCompositeClip);	   \
+    DrawablePtr	   pDrawable = cctx->pDrawBuffer->pDrawable;		   \
+    int		   scissorX1 = cctx->attrib.scissor.x;			   \
+    int		   scissorX2 = scissorX1 + cctx->attrib.scissor.width;	   \
+    int		   scissorY2 = pDrawable->height - cctx->attrib.scissor.y; \
+    int		   scissorY1 = scissorY2 - cctx->attrib.scissor.height
 
 #define XGL_GLX_DRAW_SCISSOR_CLIP(box) \
     if ((box)->x1 < scissorX1)	       \
@@ -841,7 +1038,7 @@ xglEndList (void)
 	(box)->y2 = scissorY2
 
 #define XGL_GLX_DRAW_DAMAGE(pBox, pRegion)	      \
-    if (cctx->drawBuffer == GL_FRONT)		      \
+    if (cctx->attrib.drawBuffer == GL_FRONT)	      \
     {						      \
 	REGION_INIT (pGC->pScreen, pRegion, pBox, 1); \
 	REGION_UNION (pGC->pScreen,		      \
@@ -851,11 +1048,11 @@ xglEndList (void)
 	REGION_UNINIT (pGC->pScreen, pRegion);	      \
     } 
 
-#define XGL_GLX_DRAW_SET_SCISSOR_BOX(box)				 \
-    glitz_context_set_scissor (cctx->context,				 \
-			       cctx->tx + (box)->x1,			 \
-			       pDrawable->height - (box)->y2 - cctx->ty, \
-			       (box)->x2 - (box)->x1,			 \
+#define XGL_GLX_DRAW_SET_SCISSOR_BOX(box)		      \
+    glitz_context_set_scissor (cctx->context,		      \
+			       (box)->x1,		      \
+			       pDrawable->height - (box)->y2, \
+			       (box)->x2 - (box)->x1,	      \
 			       (box)->y2 - (box)->y1)
 		    
 		    
@@ -914,6 +1111,9 @@ xglCallDisplayList (xglDisplayListPtr pDisplayList)
 		break;
 	    case XGL_LIST_OP_DRAW:
 		xglDrawList (pOp->u.name);
+		break;
+	    case XGL_LIST_OP_COPY:
+		(*pOp->u.copy->copyProc) (pOp->u.copy);
 		break;
 	    case XGL_LIST_OP_LIST:
 		xglCallDisplayList (pOp->u.list);
@@ -1309,8 +1509,9 @@ xglDrawPixels (GLsizei	    width,
 		XGL_GLX_DRAW_SET_SCISSOR_BOX (&box);
 
 		glDrawPixels (width, height, format, type, pixels);
-		
-		XGL_GLX_DRAW_DAMAGE (&box, &region);
+
+		if (format != GL_STENCIL_INDEX)
+		    XGL_GLX_DRAW_DAMAGE (&box, &region);
 	    }
 	}
     }
@@ -1546,6 +1747,408 @@ xglEnd (void)
 	xglStartList (XGL_LIST_OP_CALLS, cctx->listMode);
 }
 
+static void
+xglCopyOp (xglCopyOpPtr pOp)
+{
+    if (cctx->list)
+    {
+	xglCopyOpPtr pCopyOp;
+
+	pCopyOp = xalloc (sizeof (xglCopyOpRec));
+	if (!pCopyOp)
+	{
+	    cctx->error = GL_OUT_OF_MEMORY;
+	    return;
+	}
+	
+	if (!xglResizeList (cctx->pList, cctx->pList->nOp + 1))
+	{
+	    xfree (pCopyOp);
+	    cctx->error = GL_OUT_OF_MEMORY;
+	    return;
+	}
+
+	glEndList ();
+
+	*pCopyOp = *pOp;
+	
+	cctx->pList->pOp[cctx->pList->nOp].type   = XGL_LIST_OP_COPY;
+	cctx->pList->pOp[cctx->pList->nOp].u.copy = pCopyOp;
+	cctx->pList->nOp++;
+
+	if (cctx->listMode == GL_COMPILE_AND_EXECUTE)
+	    (*pOp->copyProc) (pOp);
+
+	xglStartList (XGL_LIST_OP_CALLS, cctx->listMode);
+    }
+    else
+	(*pOp->copyProc) (pOp);   
+}
+
+static void
+xglDoCopyPixels (xglCopyOpPtr pOp)
+{
+    RegionRec region;
+    BoxRec    box;
+	    
+    XGL_GLX_DRAW_DECLERATIONS (pBox, nBox);
+
+    while (nBox--)
+    {
+	box = *pBox++;
+	
+	XGL_GLX_DRAW_SCISSOR_CLIP (&box);
+	
+	if (box.x1 < box.x2 && box.y1 < box.y2)
+	{
+	    XGL_GLX_DRAW_SET_SCISSOR_BOX (&box);
+
+	    glCopyPixels (cctx->tx + pOp->u.pixels.x,
+			  cctx->ty + pOp->u.pixels.y,
+			  pOp->u.pixels.width,
+			  pOp->u.pixels.height,
+			  pOp->u.pixels.type);
+
+	    if (pOp->u.pixels.type == GL_COLOR)
+		XGL_GLX_DRAW_DAMAGE (&box, &region);
+	}
+    }
+}
+
+static void
+xglCopyPixels (GLint   x,
+	       GLint   y,
+	       GLsizei width,
+	       GLsizei height,
+	       GLenum  type)
+{
+    xglCopyOpRec copy;
+    
+    copy.copyProc	 = xglDoCopyPixels;
+    copy.u.pixels.x	 = x;
+    copy.u.pixels.y	 = y;
+    copy.u.pixels.width  = width;
+    copy.u.pixels.height = height;
+    copy.u.pixels.type	 = type;
+
+    xglCopyOp (&copy);   
+}
+
+static void
+xglReadPixels (GLint   x,
+	       GLint   y,
+	       GLsizei width,
+	       GLsizei height,
+	       GLenum  format,
+	       GLenum  type,
+	       GLvoid  *pixels)
+{
+    glReadPixels (cctx->tx + x, cctx->ty + y,
+		  width, height, format, type, pixels);
+}
+
+static void
+xglDoCopyTexImage1D (xglCopyOpPtr pOp)
+{
+    glCopyTexImage1D (pOp->u.tex_image_1d.target,
+		      pOp->u.tex_image_1d.level,
+		      pOp->u.tex_image_1d.internalformat,
+		      cctx->tx + pOp->u.tex_image_1d.x,
+		      cctx->ty + pOp->u.tex_image_1d.y,
+		      pOp->u.tex_image_1d.width,
+		      pOp->u.tex_image_1d.border);
+}
+
+static void
+xglCopyTexImage1D (GLenum  target,
+		   GLint   level,
+		   GLenum  internalformat,
+		   GLint   x,
+		   GLint   y,
+		   GLsizei width,
+		   GLint   border)
+{
+    xglCopyOpRec copy;
+    
+    copy.copyProc		       = xglDoCopyTexImage1D;
+    copy.u.tex_image_1d.target	       = target;
+    copy.u.tex_image_1d.level	       = level;
+    copy.u.tex_image_1d.internalformat = internalformat;
+    copy.u.tex_image_1d.x	       = x;
+    copy.u.tex_image_1d.y	       = y;
+    copy.u.tex_image_1d.width	       = width;
+    copy.u.tex_image_1d.border	       = border;
+
+    xglCopyOp (&copy);
+}
+
+static void
+xglDoCopyTexImage2D (xglCopyOpPtr pOp)
+{
+    glCopyTexImage2D (pOp->u.tex_image_2d.target,
+		      pOp->u.tex_image_2d.level,
+		      pOp->u.tex_image_2d.internalformat,
+		      cctx->tx + pOp->u.tex_image_2d.x,
+		      cctx->ty + pOp->u.tex_image_2d.y,
+		      pOp->u.tex_image_2d.width,
+		      pOp->u.tex_image_2d.height,
+		      pOp->u.tex_image_2d.border);
+}
+
+static void
+xglCopyTexImage2D (GLenum  target,
+		   GLint   level,
+		   GLenum  internalformat,
+		   GLint   x,
+		   GLint   y,
+		   GLsizei width,
+		   GLsizei height,
+		   GLint   border)
+{
+    xglCopyOpRec copy;
+    
+    copy.copyProc		       = xglDoCopyTexImage2D;
+    copy.u.tex_image_2d.target	       = target;
+    copy.u.tex_image_2d.level	       = level;
+    copy.u.tex_image_2d.internalformat = internalformat;
+    copy.u.tex_image_2d.x	       = x;
+    copy.u.tex_image_2d.y	       = y;
+    copy.u.tex_image_2d.width	       = width;
+    copy.u.tex_image_2d.height	       = height;
+    copy.u.tex_image_2d.border	       = border;
+
+    xglCopyOp (&copy);
+}
+
+static void
+xglDoCopyTexSubImage1D (xglCopyOpPtr pOp)
+{
+    glCopyTexSubImage1D (pOp->u.tex_sub_image_1d.target,
+			 pOp->u.tex_sub_image_1d.level,
+			 pOp->u.tex_sub_image_1d.xoffset,
+			 cctx->tx + pOp->u.tex_sub_image_1d.x,
+			 cctx->ty + pOp->u.tex_sub_image_1d.y,
+			 pOp->u.tex_sub_image_1d.width);
+}
+
+static void
+xglCopyTexSubImage1D (GLenum  target,
+		      GLint   level,
+		      GLint   xoffset,
+		      GLint   x,
+		      GLint   y,
+		      GLsizei width)
+{
+    xglCopyOpRec copy;
+    
+    copy.copyProc		    = xglDoCopyTexSubImage1D;
+    copy.u.tex_sub_image_1d.target  = target;
+    copy.u.tex_sub_image_1d.level   = level;
+    copy.u.tex_sub_image_1d.xoffset = xoffset;
+    copy.u.tex_sub_image_1d.x	    = x;
+    copy.u.tex_sub_image_1d.y	    = y;
+    copy.u.tex_sub_image_1d.width   = width;
+
+    xglCopyOp (&copy);
+}
+
+static void
+xglDoCopyTexSubImage2D (xglCopyOpPtr pOp)
+{
+    glCopyTexSubImage2D (pOp->u.tex_sub_image_2d.target,
+			 pOp->u.tex_sub_image_2d.level,
+			 pOp->u.tex_sub_image_2d.xoffset,
+			 pOp->u.tex_sub_image_2d.yoffset,
+			 cctx->tx + pOp->u.tex_sub_image_2d.x,
+			 cctx->ty + pOp->u.tex_sub_image_2d.y,
+			 pOp->u.tex_sub_image_2d.width,
+			 pOp->u.tex_sub_image_2d.height);
+}
+
+static void
+xglCopyTexSubImage2D (GLenum  target,
+		      GLint   level,
+		      GLint   xoffset,
+		      GLint   yoffset,
+		      GLint   x,
+		      GLint   y,
+		      GLsizei width,
+		      GLsizei height)
+{
+    xglCopyOpRec copy;
+    
+    copy.copyProc		    = xglDoCopyTexSubImage2D;
+    copy.u.tex_sub_image_2d.target  = target;
+    copy.u.tex_sub_image_2d.level   = level;
+    copy.u.tex_sub_image_2d.xoffset = xoffset;
+    copy.u.tex_sub_image_2d.yoffset = yoffset;
+    copy.u.tex_sub_image_2d.x	    = x;
+    copy.u.tex_sub_image_2d.y	    = y;
+    copy.u.tex_sub_image_2d.width   = width;
+    copy.u.tex_sub_image_2d.height  = height;
+
+    xglCopyOp (&copy);
+}    
+
+static void
+xglDoCopyColorTable (xglCopyOpPtr pOp)
+{
+    glCopyColorTable (pOp->u.color_table.target,
+		      pOp->u.color_table.internalformat,
+		      cctx->tx + pOp->u.color_table.x,
+		      cctx->ty + pOp->u.color_table.y,
+		      pOp->u.color_table.width);
+}
+
+static void
+xglCopyColorTable (GLenum  target,
+		   GLenum  internalformat,
+		   GLint   x,
+		   GLint   y,
+		   GLsizei width)
+{
+    xglCopyOpRec copy;
+    
+    copy.copyProc		      = xglDoCopyColorTable;
+    copy.u.color_table.target	      = target;
+    copy.u.color_table.internalformat = internalformat;
+    copy.u.color_table.x	      = x;
+    copy.u.color_table.y	      = y;
+    copy.u.color_table.width	      = width;
+    
+    xglCopyOp (&copy);
+}
+
+static void
+xglDoCopyColorSubTable (xglCopyOpPtr pOp)
+{
+    glCopyColorTable (pOp->u.color_sub_table.target,
+		      pOp->u.color_sub_table.start,
+		      cctx->tx + pOp->u.color_sub_table.x,
+		      cctx->ty + pOp->u.color_sub_table.y,
+		      pOp->u.color_sub_table.width);
+}
+
+static void
+xglCopyColorSubTable (GLenum  target,
+		      GLsizei start,
+		      GLint   x,
+		      GLint   y,
+		      GLsizei width)
+{
+    xglCopyOpRec copy;
+    
+    copy.copyProc		  = xglDoCopyColorSubTable;
+    copy.u.color_sub_table.target = target;
+    copy.u.color_sub_table.start  = start;
+    copy.u.color_sub_table.x	  = x;
+    copy.u.color_sub_table.y	  = y;
+    copy.u.color_sub_table.width  = width;
+    
+    xglCopyOp (&copy);
+}
+
+static void
+xglDoCopyConvolutionFilter1D (xglCopyOpPtr pOp)
+{
+    glCopyConvolutionFilter1D (pOp->u.convolution_filter_1d.target,
+			       pOp->u.convolution_filter_1d.internalformat,
+			       cctx->tx + pOp->u.convolution_filter_1d.x,
+			       cctx->ty + pOp->u.convolution_filter_1d.y,
+			       pOp->u.convolution_filter_1d.width);
+}
+
+static void
+xglCopyConvolutionFilter1D (GLenum  target,
+			    GLenum  internalformat,
+			    GLint   x,
+			    GLint   y,
+			    GLsizei width)
+{
+    xglCopyOpRec copy;
+    
+    copy.copyProc				= xglDoCopyConvolutionFilter1D;
+    copy.u.convolution_filter_1d.target		= target;
+    copy.u.convolution_filter_1d.internalformat = internalformat;
+    copy.u.convolution_filter_1d.x		= x;
+    copy.u.convolution_filter_1d.y		= y;
+    copy.u.convolution_filter_1d.width		= width;
+    
+    xglCopyOp (&copy);
+}
+
+static void
+xglDoCopyConvolutionFilter2D (xglCopyOpPtr pOp)
+{
+    glCopyConvolutionFilter2D (pOp->u.convolution_filter_2d.target,
+			       pOp->u.convolution_filter_2d.internalformat,
+			       cctx->tx + pOp->u.convolution_filter_2d.x,
+			       cctx->ty + pOp->u.convolution_filter_2d.y,
+			       pOp->u.convolution_filter_2d.width,
+			       pOp->u.convolution_filter_2d.height);
+}
+
+static void
+xglCopyConvolutionFilter2D (GLenum  target,
+			    GLenum  internalformat,
+			    GLint   x,
+			    GLint   y,
+			    GLsizei width,
+			    GLsizei height)
+{
+    xglCopyOpRec copy;
+    
+    copy.copyProc				= xglDoCopyConvolutionFilter2D;
+    copy.u.convolution_filter_2d.target		= target;
+    copy.u.convolution_filter_2d.internalformat = internalformat;
+    copy.u.convolution_filter_2d.x		= x;
+    copy.u.convolution_filter_2d.y		= y;
+    copy.u.convolution_filter_2d.width		= width;
+    copy.u.convolution_filter_2d.height		= height;
+    
+    xglCopyOp (&copy);
+}
+
+static void
+xglDoCopyTexSubImage3D (xglCopyOpPtr pOp)
+{
+    glCopyTexSubImage3D (pOp->u.tex_sub_image_3d.target,
+			 pOp->u.tex_sub_image_3d.level,
+			 pOp->u.tex_sub_image_3d.xoffset,
+			 pOp->u.tex_sub_image_3d.yoffset,
+			 pOp->u.tex_sub_image_3d.zoffset,
+			 cctx->tx + pOp->u.tex_sub_image_3d.x,
+			 cctx->ty + pOp->u.tex_sub_image_3d.y,
+			 pOp->u.tex_sub_image_3d.width,
+			 pOp->u.tex_sub_image_3d.height);
+}
+
+static void
+xglCopyTexSubImage3D (GLenum  target,
+		      GLint   level,
+		      GLint   xoffset,
+		      GLint   yoffset,
+		      GLint   zoffset,
+		      GLint   x,
+		      GLint   y,
+		      GLsizei width,
+		      GLsizei height)
+{
+    xglCopyOpRec copy;
+    
+    copy.copyProc		    = xglDoCopyTexSubImage3D;
+    copy.u.tex_sub_image_3d.target  = target;
+    copy.u.tex_sub_image_3d.level   = level;
+    copy.u.tex_sub_image_3d.xoffset = xoffset;
+    copy.u.tex_sub_image_3d.yoffset = yoffset;
+    copy.u.tex_sub_image_3d.zoffset = zoffset;
+    copy.u.tex_sub_image_3d.x	    = x;
+    copy.u.tex_sub_image_3d.y	    = y;
+    copy.u.tex_sub_image_3d.width   = width;
+    copy.u.tex_sub_image_3d.height  = height;
+
+    xglCopyOp (&copy);
+}    
 
 __glProcTable __glNativeRenderTable = {
     xglNewList, /* glNewList */
@@ -1696,8 +2299,8 @@ __glProcTable __glNativeRenderTable = {
     xglEnable, /* glEnable */
     xglFinish, /* glFinish */
     xglFlush, /* glFlush */
-    glPopAttrib,
-    glPushAttrib,
+    xglPopAttrib, /* glPopAttrib */
+    xglPushAttrib, /* glPushAttrib */
     glMap1d,
     glMap1f,
     glMap2d,
@@ -1730,7 +2333,7 @@ __glProcTable __glNativeRenderTable = {
     glPixelMapusv,
     xglReadBuffer, /* glReadBuffer */
     xglCopyPixels, /* glCopyPixels */
-    glReadPixels,
+    xglReadPixels, /* glReadPixels */
     xglDrawPixels, /* glDrawPixels */
     xglGetBooleanv, /* glGetBooleanv */
     glGetClipPlane,
@@ -1796,10 +2399,10 @@ __glProcTable __glNativeRenderTable = {
     glTexCoordPointer,
     glVertexPointer,
     xglAreTexturesResident, /* glAreTexturesResident */
-    glCopyTexImage1D,
-    glCopyTexImage2D,
-    glCopyTexSubImage1D,
-    glCopyTexSubImage2D,
+    xglCopyTexImage1D, /* glCopyTexImage1D */
+    xglCopyTexImage2D, /* glCopyTexImage2D */
+    xglCopyTexSubImage1D, /* glCopyTexSubImage1D */
+    xglCopyTexSubImage2D, /* glCopyTexSubImage2D */
     xglDeleteTextures, /* glDeleteTextures */
     xglGenTextures, /* glGenTextures */
     glGetPointerv,
@@ -1814,20 +2417,20 @@ __glProcTable __glNativeRenderTable = {
     glColorTable,
     glColorTableParameterfv,
     glColorTableParameteriv,
-    glCopyColorTable,
+    xglCopyColorTable, /* glCopyColorTable */
     glGetColorTable,
     glGetColorTableParameterfv,
     glGetColorTableParameteriv,
     glColorSubTable,
-    glCopyColorSubTable,
+    xglCopyColorSubTable, /* glCopyColorSubTable */
     glConvolutionFilter1D,
     glConvolutionFilter2D,
     glConvolutionParameterf,
     glConvolutionParameterfv,
     glConvolutionParameteri,
     glConvolutionParameteriv,
-    glCopyConvolutionFilter1D,
-    glCopyConvolutionFilter2D,
+    xglCopyConvolutionFilter1D, /* glCopyConvolutionFilter1D */
+    xglCopyConvolutionFilter2D, /* glCopyConvolutionFilter2D */
     glGetConvolutionFilter,
     glGetConvolutionParameterfv,
     glGetConvolutionParameteriv,
@@ -1845,7 +2448,7 @@ __glProcTable __glNativeRenderTable = {
     glResetMinmax,
     glTexImage3D,
     glTexSubImage3D,
-    glCopyTexSubImage3D
+    xglCopyTexSubImage3D /* glCopyTexSubImage3D */
 };
 
 /* GL_ARB_multitexture */
@@ -2299,6 +2902,9 @@ xglFreeContext (xglGLContextPtr pContext)
 
     if (pContext->groupList)
 	glDeleteLists (pContext->groupList, 1);
+
+    if (pContext->pAttribStack)
+	xfree (pContext->pAttribStack);
     
     glitz_context_destroy (pContext->context);
 
@@ -2355,17 +2961,29 @@ xglMakeCurrent (__GLcontext *gc)
 	    XID		 value = FALSE;
 	    int		 status;
 	    
-	    pContext->scissor.x = pContext->scissor.y = 0;
-	    pContext->scissor.width = pDrawable->width;
-	    pContext->scissor.height = pDrawable->height;
+	    pContext->attrib.scissor.x = pContext->attrib.scissor.y = 0;
+	    pContext->attrib.scissor.width = pDrawable->width;
+	    pContext->attrib.scissor.height = pDrawable->height;
 
-	    pContext->viewport.x = pContext->viewport.y = 0;
-	    pContext->viewport.width = pDrawable->width;
-	    pContext->viewport.height = pDrawable->height;
+	    pContext->attrib.viewport.x = pContext->attrib.viewport.y = 0;
+	    pContext->attrib.viewport.width = pDrawable->width;
+	    pContext->attrib.viewport.height = pDrawable->height;
 
 	    pContext->draw = pBack->surface;
-	    pContext->tx = pContext->ty = 0;
 
+	    if (pBack->pArea)
+	    {
+		xglOffscreenPtr pOffscreen = (xglOffscreenPtr)
+		    pBack->pArea->pRoot->closure;
+
+		pContext->tx = pBack->pArea->x;
+		pContext->ty =
+		    glitz_drawable_get_height (pOffscreen->drawable) -
+		    pBack->pArea->y - pDrawable->height;
+	    }
+	    else
+		pContext->tx = pContext->ty = 0;
+	    
 	    pContext->pDrawBuffer = pDrawBufferPriv;
 	    
 	    if (!pFront->lock) pFront->lock++;
@@ -2374,29 +2992,26 @@ xglMakeCurrent (__GLcontext *gc)
 	    glitz_context_set_surface (pContext->context, pContext->draw);
 
 	    if (!pDrawBufferPriv->pGC)
-	    {
 		pDrawBufferPriv->pGC =
-		    CreateGC (pDrawable,
-			      GCGraphicsExposures, &value,
-			      &status);
-		ValidateGC (pDrawable, pDrawBufferPriv->pGC);
-	    }
-	    
-	    if (!pDrawBufferPriv->swapGC)
-	    {
-		pDrawBufferPriv->swapGC =
 		    CreateGC (&pPixmap->drawable,
 			      GCGraphicsExposures, &value,
 			      &status);
-		ValidateGC (&pPixmap->drawable, pDrawBufferPriv->swapGC);
-	    }
+	    
+	    ValidateGC (&pPixmap->drawable, pDrawBufferPriv->pGC);
+	    
+	    if (!pDrawBufferPriv->swapGC)
+		pDrawBufferPriv->swapGC =
+		    CreateGC (pDrawable,
+			      GCGraphicsExposures, &value,
+			      &status);
+	    
+	    ValidateGC (pDrawable, pDrawBufferPriv->swapGC);
 
 	    return GL_TRUE;
 	}
     } else
 	pContext->target = xglPixmapTargetNo;
 
-    ErrorF ("[glx] software: %d %d\n", pDrawable->x, pDrawable->y);
     if (pPixmap)
     {
 	(*pScreen->DestroyPixmap) (pPixmap);
@@ -2562,15 +3177,19 @@ xglCreateContext (__GLimports      *imports,
 	
     pContext->needInit	    = TRUE;
     pContext->draw	    = NULL;
-    pContext->drawBuffer    = GL_BACK;
     pContext->target	    = FALSE;
     pContext->versionString = NULL;
-    pContext->scissorTest   = GL_FALSE;
     pContext->error	    = GL_NO_ERROR;
     pContext->shared	    = NULL;
     pContext->list	    = 0;
     pContext->groupList	    = 0;
+    pContext->pAttribStack  = NULL;
+    pContext->nAttribStack  = 0;
     pContext->refcnt	    = 1;
+
+    pContext->attrib.drawBuffer  = GL_BACK;
+    pContext->attrib.readBuffer  = GL_BACK;
+    pContext->attrib.scissorTest = GL_FALSE;
     
     if (shareGC)
     {
@@ -2684,8 +3303,6 @@ xglResizeBuffers (__GLdrawableBuffer  *buffer,
 	if (pPixmap->drawable.width  != width ||
 	    pPixmap->drawable.height != height)
 	{   
-	    ErrorF ("[glx] resizeBuffer: %d %d %dx%d\n", x, y, width, height);
-
 	    (*pScreen->DestroyPixmap) (pPixmap);
 	    pPixmap = (*pScreen->CreatePixmap) (pScreen, width, height,
 						pDrawable->depth);
@@ -2694,7 +3311,7 @@ xglResizeBuffers (__GLdrawableBuffer  *buffer,
 	    XGL_GET_PIXMAP_PRIV (pPixmap)->score = 4000;
 	    pBufferPriv->pPixmap = pPixmap;
 	}
-	ValidateGC (&pPixmap->drawable, pBufferPriv->swapGC);
+	ValidateGC (pDrawable, pBufferPriv->swapGC);
     }
     
     glPriv->private = pBufferPriv->private;
@@ -2743,9 +3360,6 @@ xglCreateBuffer (__GLXdrawablePrivate *glxPriv)
     if (!pBufferPriv)
 	FatalError ("No memory");
 
-    ErrorF ("[glx] createBuffer: %dx%d\n",
-	    pDrawable->width, pDrawable->height);
-    
     pBufferPriv->pScreen = pScreen;
     pBufferPriv->pDrawable = pDrawable;
     pBufferPriv->pPixmap = NULL;
