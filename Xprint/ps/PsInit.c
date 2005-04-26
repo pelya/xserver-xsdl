@@ -121,7 +121,7 @@ InitializePsDriver(ndx, pScreen, argc, argv)
                     nv_1bit,  /* number of 8bit visuals */
                     nv_8bit,  /* number of 8bit visuals */
                     nv_12bit, /* number of 12bit visuals */
-                    nv_15bit, /* number of 15bit visuals */
+                    nv_14bit, /* number of 14bit visuals */
                     nv_16bit, /* number of 16bit visuals */
                     nv_24bit, /* number of 24bit visuals*/
                     nv_30bit; /* number of 30bit visuals*/
@@ -130,7 +130,7 @@ InitializePsDriver(ndx, pScreen, argc, argv)
   VisualID         *vids_1bit,
                    *vids_8bit,
                    *vids_12bit,
-                   *vids_15bit,
+                   *vids_14bit,
                    *vids_16bit,
                    *vids_24bit,
                    *vids_30bit;
@@ -197,12 +197,12 @@ InitializePsDriver(ndx, pScreen, argc, argv)
   vids_1bit  = (VisualID *)xalloc(16*sizeof(VisualID));
   vids_8bit  = (VisualID *)xalloc(16*sizeof(VisualID));
   vids_12bit = (VisualID *)xalloc(16*sizeof(VisualID));
-  vids_15bit = (VisualID *)xalloc(16*sizeof(VisualID));
+  vids_14bit = (VisualID *)xalloc(16*sizeof(VisualID));
   vids_16bit = (VisualID *)xalloc(16*sizeof(VisualID));
   vids_24bit = (VisualID *)xalloc(16*sizeof(VisualID));
   vids_30bit = (VisualID *)xalloc(16*sizeof(VisualID));
 
-  nv = nv_1bit = nv_8bit = nv_12bit = nv_15bit = nv_16bit = nv_24bit = nv_30bit = nd = 0;
+  nv = nv_1bit = nv_8bit = nv_12bit = nv_14bit = nv_16bit = nv_24bit = nv_30bit = nd = 0;
 
 #ifdef PSOUT_USE_DEEPCOLOR
 /* gisburn: 30bit TrueColor has been disabled for now since it causes problems
@@ -260,20 +260,22 @@ InitializePsDriver(ndx, pScreen, argc, argv)
 #ifdef PSOUT_USE_DEEPCOLOR
   /* PostScript Level 2 and above, colors can have 12 bits per component
    * (36 bit for RGB) */
-  /* PseudoColor, 15bit */
+
+  /* PseudoColor, 14bit (15bit won't work as |ColormapEntries==32768|
+   * is too large for a |signed short|... xx@@!!!... ;-( ) */
   visuals[nv].vid             = FakeClientID(0);
   visuals[nv].class           = PseudoColor;
   visuals[nv].bitsPerRGBValue = 12;
-  visuals[nv].ColormapEntries = 32768;
-  visuals[nv].nplanes         = 15;
+  visuals[nv].ColormapEntries = 16384;
+  visuals[nv].nplanes         = 14;
   visuals[nv].redMask         = 0x0;
   visuals[nv].greenMask       = 0x0;
   visuals[nv].blueMask        = 0x0;
   visuals[nv].offsetRed       = 0x0;
   visuals[nv].offsetGreen     = 0x0;
   visuals[nv].offsetBlue      = 0x0;
-  vids_15bit[nv_15bit] = visuals[nv].vid;
-  nv++; nv_15bit++;
+  vids_14bit[nv_14bit] = visuals[nv].vid;
+  nv++; nv_14bit++;
 
   /* PseudoColor, 12bit */
   visuals[nv].vid             = FakeClientID(0);
@@ -409,11 +411,11 @@ InitializePsDriver(ndx, pScreen, argc, argv)
     nd++;
   }
 
-  if( nv_15bit > 0 )
+  if( nv_14bit > 0 )
   {
-    depths[nd].depth   = 15;
-    depths[nd].numVids = nv_15bit;
-    depths[nd].vids    = vids_15bit;
+    depths[nd].depth   = 14;
+    depths[nd].numVids = nv_14bit;
+    depths[nd].vids    = vids_14bit;
     nd++;
   }
   
