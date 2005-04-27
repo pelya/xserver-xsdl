@@ -376,7 +376,10 @@ xglFillLine (DrawablePtr pDrawable,
 	while (nptTmp--)
 	{
 	    if (pptTmp->x != pt.x && pptTmp->y != pt.y)
+	    {
 		horizontalAndVertical = FALSE;
+		break;
+	    }
 
 	    pt = *pptTmp++;
 	}
