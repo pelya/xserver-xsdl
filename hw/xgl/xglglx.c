@@ -1017,7 +1017,7 @@ xglEndList (void)
     cctx->list = 0;
 }
 
-#define XGL_GLX_DRAW_DECLERATIONS(pBox, nBox)				   \
+#define XGL_GLX_DRAW_DECLARATIONS(pBox, nBox)				   \
     GCPtr	   pGC = cctx->pDrawBuffer->pGC;			   \
     BoxPtr	   (pBox) = REGION_RECTS (pGC->pCompositeClip);		   \
     int		   (nBox) = REGION_NUM_RECTS (pGC->pCompositeClip);	   \
@@ -1062,7 +1062,7 @@ xglDrawList (GLuint list)
     RegionRec region;
     BoxRec    box;
 	
-    XGL_GLX_DRAW_DECLERATIONS (pBox, nBox);
+    XGL_GLX_DRAW_DECLARATIONS (pBox, nBox);
 
     while (nBox--)
     {
@@ -1300,7 +1300,7 @@ xglClear (GLbitfield mask)
 	RegionRec region;
 	BoxRec	  box;
 
-	XGL_GLX_DRAW_DECLERATIONS (pBox, nBox);
+	XGL_GLX_DRAW_DECLARATIONS (pBox, nBox);
     
 	while (nBox--)
 	{
@@ -1349,7 +1349,7 @@ xglAccum (GLenum  op,
 	    RegionRec region;
 	    BoxRec    box;
 
-	    XGL_GLX_DRAW_DECLERATIONS (pBox, nBox);
+	    XGL_GLX_DRAW_DECLARATIONS (pBox, nBox);
 	
 	    while (nBox--)
 	    {
@@ -1399,7 +1399,7 @@ xglDrawArrays (GLenum  mode,
 	RegionRec region;
 	BoxRec    box;
 
-	XGL_GLX_DRAW_DECLERATIONS (pBox, nBox);
+	XGL_GLX_DRAW_DECLARATIONS (pBox, nBox);
 
 	while (nBox--)
 	{
@@ -1447,7 +1447,7 @@ xglDrawElements (GLenum	      mode,
 	RegionRec region;
 	BoxRec    box;
 
-	XGL_GLX_DRAW_DECLERATIONS (pBox, nBox);
+	XGL_GLX_DRAW_DECLARATIONS (pBox, nBox);
 
 	while (nBox--)
 	{
@@ -1496,7 +1496,7 @@ xglDrawPixels (GLsizei	    width,
 	RegionRec region;
 	BoxRec    box;
 	    
-	XGL_GLX_DRAW_DECLERATIONS (pBox, nBox);
+	XGL_GLX_DRAW_DECLARATIONS (pBox, nBox);
 
 	while (nBox--)
 	{
@@ -1548,7 +1548,7 @@ xglBitmap (GLsizei	 width,
 	RegionRec region;
 	BoxRec    box;
 
-	XGL_GLX_DRAW_DECLERATIONS (pBox, nBox);
+	XGL_GLX_DRAW_DECLARATIONS (pBox, nBox);
 
 	while (nBox--)
 	{
@@ -1594,7 +1594,7 @@ xglRectdv (const GLdouble *v1,
 	RegionRec region;
 	BoxRec    box;
 
-	XGL_GLX_DRAW_DECLERATIONS (pBox, nBox);
+	XGL_GLX_DRAW_DECLARATIONS (pBox, nBox);
 
 	while (nBox--)
 	{
@@ -1672,7 +1672,7 @@ xglBegin (GLenum mode)
     }
     else
     {
-	XGL_GLX_DRAW_DECLERATIONS (pBox, nBox);
+	XGL_GLX_DRAW_DECLARATIONS (pBox, nBox);
 	    
 	if (nBox == 1)
 	{
@@ -1704,7 +1704,7 @@ xglEnd (void)
 	BoxRec	  box;
 	GLuint	  list;
 
-	XGL_GLX_DRAW_DECLERATIONS (pBox, nBox);
+	XGL_GLX_DRAW_DECLARATIONS (pBox, nBox);
 	
 	if (cctx->list)
 	{
@@ -1791,7 +1791,7 @@ xglDoCopyPixels (xglCopyOpPtr pOp)
     RegionRec region;
     BoxRec    box;
 	    
-    XGL_GLX_DRAW_DECLERATIONS (pBox, nBox);
+    XGL_GLX_DRAW_DECLARATIONS (pBox, nBox);
 
     while (nBox--)
     {
