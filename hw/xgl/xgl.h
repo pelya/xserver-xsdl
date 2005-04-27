@@ -67,6 +67,7 @@ typedef struct _xglScreenInfo {
     int		     geometryUsage;
     Bool	     yInverted;
     int		     pboMask;
+    Bool	     lines;
 } xglScreenInfoRec, *xglScreenInfoPtr;
 
 typedef struct _xglPixelFormat {
@@ -223,6 +224,7 @@ typedef struct _xglScreen {
     int				  geometryDataType;
     Bool			  yInverted;
     int				  pboMask;
+    Bool			  lines;
     xglGeometryRec		  scratchGeometry;
     
 #ifdef RENDER
@@ -1002,7 +1004,7 @@ xglFill (DrawablePtr	pDrawable,
 	 BoxPtr		pBox,
 	 int		nBox);
 
-Bool
+void
 xglFillSpan (DrawablePtr pDrawable,
 	     GCPtr	 pGC,
 	     int	 n,

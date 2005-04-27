@@ -84,7 +84,8 @@ xglScreenInfoRec xglScreenInfo = {
     DEFAULT_GEOMETRY_DATA_TYPE,
     DEFAULT_GEOMETRY_USAGE,
     FALSE,
-    XGL_DEFAULT_PBO_MASK
+    XGL_DEFAULT_PBO_MASK,
+    FALSE
 };
 
 static Bool

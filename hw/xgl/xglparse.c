@@ -108,6 +108,8 @@ xglUseMsg (void)
     ErrorF ("-yinverted             Y is upside-down\n");
     ErrorF ("-pbomask [1|4|8|16|32] "
 	    "set bpp's to use with pixel buffer objects\n");
+    ErrorF ("-lines                 "
+	    "accelerate lines that are not vertical or horizontal\n");
 }
 
 int
@@ -166,6 +168,11 @@ xglProcessArgument (xglScreenInfoPtr pScreenInfo,
 	    return 1;
 	
 	return 2;
+    }
+    else if (!strcmp (argv[i], "-lines"))
+    {
+	pScreenInfo->lines = TRUE;
+	return 1;
     }
     
     return 0;

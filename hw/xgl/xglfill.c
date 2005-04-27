@@ -69,124 +69,22 @@ xglFill (DrawablePtr	pDrawable,
     return FALSE;
 }
 
-#define N_STACK_BOX 1024
-
-static BoxPtr
-xglMoreBoxes (BoxPtr stackBox,
-	      BoxPtr heapBox,
-	      int    nBoxes)
+static void
+xglFillBox (DrawablePtr pDrawable, 
+	    GCPtr	pGC,
+	    int	  	x,
+	    int		y,
+	    int		width,
+	    int		height,
+	    BoxPtr	pBox,
+	    int		nBox)
 {
-    Bool stack = !heapBox;
-	
-    heapBox = xrealloc (heapBox, sizeof (BoxRec) * nBoxes);
-    if (!heapBox)
-	return NULL;
+    BoxRec box;
     
-    if (stack)
-	memcpy (heapBox, stackBox, sizeof (BoxRec) * N_STACK_BOX);
-
-    return heapBox;
-}
-
-#define ADD_BOX(pBox, nBox, stackBox, heapBox, size, box)	\
-    {								\
-	if ((nBox) == (size))					\
-	{							\
-	    (size) *= 2;					\
-	    (heapBox) = xglMoreBoxes (stackBox, heapBox, size);	\
-	    if (!(heapBox))					\
-		return;						\
-	    (pBox) = (heapBox) + (nBox);			\
-	}							\
-	*(pBox)++ = (box);					\
-	(nBox)++;						\
-    }
-
-void
-xglFillRect (DrawablePtr pDrawable, 
-	     GCPtr	 pGC, 
-	     int	 nrect,
-	     xRectangle  *prect)
-{
-    RegionPtr pClip = pGC->pCompositeClip;
-    BoxPtr    pClipBox;
-    BoxPtr    pExtent = REGION_EXTENTS (pGC->pScreen, pClip);
-    BoxRec    full, part;
-    BoxPtr    heapBox = NULL;
-    BoxRec    stackBox[N_STACK_BOX];
-    int       size = N_STACK_BOX;
-    BoxPtr    pBox = stackBox;
-    int	      n, nBox = 0;
-
-    while (nrect--)
-    {
-	full.x1 = prect->x + pDrawable->x;
-	full.y1 = prect->y + pDrawable->y;
-	full.x2 = full.x1 + (int) prect->width;
-	full.y2 = full.y1 + (int) prect->height;
-	
-	prect++;
-	
-	if (full.x1 < pExtent->x1)
-	    full.x1 = pExtent->x1;
-
-	if (full.y1 < pExtent->y1)
-	    full.y1 = pExtent->y1;
-	
-	if (full.x2 > pExtent->x2)
-	    full.x2 = pExtent->x2;
-	
-	if (full.y2 > pExtent->y2)
-	    full.y2 = pExtent->y2;
-	
-	if (full.x1 >= full.x2 || full.y1 >= full.y2)
-	    continue;
-	
-	n = REGION_NUM_RECTS (pClip);
-
-	if (n == 1)
-	{
-	    ADD_BOX (pBox, nBox, stackBox, heapBox, size, full);
-	}
-	else
-	{
-	    pClipBox = REGION_RECTS (pClip);
-
-	    while (n--)
-	    {
-		part.x1 = pClipBox->x1;
-		if (part.x1 < full.x1)
-		    part.x1 = full.x1;
-		
-		part.y1 = pClipBox->y1;
-		if (part.y1 < full.y1)
-		    part.y1 = full.y1;
-		
-		part.x2 = pClipBox->x2;
-		if (part.x2 > full.x2)
-		    part.x2 = full.x2;
-		
-		part.y2 = pClipBox->y2;
-		if (part.y2 > full.y2)
-		    part.y2 = full.y2;
-    
-		pClipBox++;
-		
-		if (part.x1 < part.x2 && part.y1 < part.y2)
-		    ADD_BOX (pBox, nBox, stackBox, heapBox, size, part);
-	    }
-	}
-    }
-
     if (!nBox)
-	return;
+	return;	  
     
-    pBox = (heapBox) ? heapBox : stackBox;
-
-    if (!xglFill (pDrawable, pGC, NULL,
-		  pExtent->x1, pExtent->y1,
-		  pExtent->x2 - pExtent->x1, pExtent->y2 - pExtent->y1,
-		  pBox, nBox))
+    if (!xglFill (pDrawable, pGC, NULL, x, y, width, height, pBox, nBox))
     {
 	RegionRec	region;
 	RegionPtr       pDamageRegion;
@@ -227,12 +125,12 @@ xglFillRect (DrawablePtr pDrawable,
 
 	    if (pPixmapPriv->format)
 	    {
-		part.x1 = pBox->x1 + xOff;
-		part.y1 = pBox->y1 + yOff;
-		part.x2 = pBox->x2 + xOff;
-		part.y2 = pBox->y2 + yOff;
+		box.x1 = pBox->x1 + xOff;
+		box.y1 = pBox->y1 + yOff;
+		box.x2 = pBox->x2 + xOff;
+		box.y2 = pBox->y2 + yOff;
 		
-		REGION_INIT (pDrawable->pScreen, &region, &part, 1);
+		REGION_INIT (pDrawable->pScreen, &region, &box, 1);
 		REGION_UNION (pDrawable->pScreen,
 			      pDamageRegion, pDamageRegion, &region);
 		REGION_UNINIT (pDrawable->pScreen, &region);
@@ -242,42 +140,193 @@ xglFillRect (DrawablePtr pDrawable,
 	}
     } else
 	xglAddCurrentBitDamage (pDrawable);
+}
 
+#define N_STACK_BOX 1024
+
+static BoxPtr
+xglMoreBoxes (BoxPtr stackBox,
+	      BoxPtr heapBox,
+	      int    nBoxes)
+{
+    Bool stack = !heapBox;
+	
+    heapBox = xrealloc (heapBox, sizeof (BoxRec) * nBoxes);
+    if (!heapBox)
+	return NULL;
+    
+    if (stack)
+	memcpy (heapBox, stackBox, sizeof (BoxRec) * N_STACK_BOX);
+
+    return heapBox;
+}
+
+#define ADD_BOX(pBox, nBox, stackBox, heapBox, size, box)	\
+    {								\
+	if ((nBox) == (size))					\
+	{							\
+	    (size) *= 2;					\
+	    (heapBox) = xglMoreBoxes (stackBox, heapBox, size);	\
+	    if (heapBox)					\
+	    {							\
+		(pBox) = (heapBox) + (nBox);			\
+		*(pBox)++ = (box);				\
+		(nBox)++;					\
+	    }							\
+	}							\
+	else							\
+	{							\
+	    *(pBox)++ = (box);					\
+	    (nBox)++;						\
+	}							\
+    }
+
+void
+xglFillRect (DrawablePtr pDrawable, 
+	     GCPtr	 pGC, 
+	     int	 nrect,
+	     xRectangle  *prect)
+{
+    RegionPtr pClip = pGC->pCompositeClip;
+    BoxPtr    pClipBox;
+    BoxPtr    pExtent = REGION_EXTENTS (pGC->pScreen, pClip);
+    BoxRec    part, full;
+    BoxPtr    heapBox = NULL;
+    BoxRec    stackBox[N_STACK_BOX];
+    int       size = N_STACK_BOX;
+    BoxPtr    pBox = stackBox;
+    int	      nClip, nBox = 0;
+
+    while (nrect--)
+    {
+	full.x1 = prect->x + pDrawable->x;
+	full.y1 = prect->y + pDrawable->y;
+	full.x2 = full.x1 + (int) prect->width;
+	full.y2 = full.y1 + (int) prect->height;
+
+	prect++;
+	
+	if (full.x1 < pExtent->x1)
+	    full.x1 = pExtent->x1;
+	if (full.y1 < pExtent->y1)
+	    full.y1 = pExtent->y1;	    
+	if (full.x2 > pExtent->x2)
+	    full.x2 = pExtent->x2;
+	if (full.y2 > pExtent->y2)
+	    full.y2 = pExtent->y2;
+	
+	if (full.x1 >= full.x2 || full.y1 >= full.y2)
+	    continue;
+	
+	nClip = REGION_NUM_RECTS (pClip);
+	if (nClip == 1)
+	{
+	    ADD_BOX (pBox, nBox, stackBox, heapBox, size, full);
+	}
+	else
+	{
+	    pClipBox = REGION_RECTS (pClip);
+	    while (nClip--)
+	    {
+		part = *pClipBox++;
+
+		if (part.x1 < full.x1)
+		    part.x1 = full.x1;
+		if (part.y1 < full.y1)
+		    part.y1 = full.y1;
+		if (part.x2 > full.x2)
+		    part.x2 = full.x2;
+		if (part.y2 > full.y2)
+		    part.y2 = full.y2;
+		
+		if (part.x1 < part.x2 && part.y1 < part.y2)
+		    ADD_BOX (pBox, nBox, stackBox, heapBox, size, part);
+	    }
+	}
+    }
+
+    xglFillBox (pDrawable, pGC,
+		pExtent->x1, pExtent->y1,
+		pExtent->x2 - pExtent->x1, pExtent->y2 - pExtent->y1,
+		(heapBox) ? heapBox : stackBox, nBox);
+		
     if (heapBox)
 	xfree (heapBox);
 }
 
-Bool
+void
 xglFillSpan (DrawablePtr pDrawable,
 	     GCPtr	 pGC,
 	     int	 n,
 	     DDXPointPtr ppt,
 	     int	 *pwidth)
 {
-    BoxPtr	   pExtent;
-    xglGeometryPtr pGeometry;
+    RegionPtr pClip = pGC->pCompositeClip;
+    BoxPtr    pClipBox;
+    BoxPtr    pExtent = REGION_EXTENTS (pGC->pScreen, pClip);
+    BoxRec    part, full;
+    BoxPtr    heapBox = NULL;
+    BoxRec    stackBox[N_STACK_BOX];
+    int       size = N_STACK_BOX;
+    BoxPtr    pBox = stackBox;
+    int	      nClip, nBox = 0;
 
-    if (n < 1)
-	return TRUE;
+    while (n--)
+    {
+	full.x1 = ppt->x;
+	full.y1 = ppt->y;
+	full.x2 = full.x1 + *pwidth;
+	full.y2 = full.y1 + 1;
 
-    pExtent = REGION_EXTENTS (pDrawable->pScreen, pGC->pCompositeClip);
+	pwidth++;
+	ppt++;
+	
+	if (full.x1 < pExtent->x1)
+	    full.x1 = pExtent->x1;
+	if (full.y1 < pExtent->y1)
+	    full.y1 = pExtent->y1;	    
+	if (full.x2 > pExtent->x2)
+	    full.x2 = pExtent->x2;
+	if (full.y2 > pExtent->y2)
+	    full.y2 = pExtent->y2;
+	
+	if (full.x1 >= full.x2 || full.y1 >= full.y2)
+	    continue;
+	
+	nClip = REGION_NUM_RECTS (pClip);
+	if (nClip == 1)
+	{
+	    ADD_BOX (pBox, nBox, stackBox, heapBox, size, full);
+	}
+	else
+	{
+	    pClipBox = REGION_RECTS (pClip);
+	    while (nClip--)
+	    {
+		part = *pClipBox++;
 
-    pGeometry = xglGetScratchVertexGeometry (pGC->pScreen, 2 * n);
-    
-    GEOMETRY_ADD_SPAN (pGC->pScreen, pGeometry, ppt, pwidth, n);
+		if (part.x1 < full.x1)
+		    part.x1 = full.x1;
+		if (part.y1 < full.y1)
+		    part.y1 = full.y1;
+		if (part.x2 > full.x2)
+		    part.x2 = full.x2;
+		if (part.y2 > full.y2)
+		    part.y2 = full.y2;
+		
+		if (part.x1 < part.x2 && part.y1 < part.y2)
+		    ADD_BOX (pBox, nBox, stackBox, heapBox, size, part);
+	    }
+	}
+    }
 
-    /* Spans are treated as lines so they need a 0.5 translate */
-    GEOMETRY_TRANSLATE_FIXED (pGeometry, 1 << 15, 1 << 15);
-    GEOMETRY_SET_VERTEX_PRIMITIVE (pGeometry, GLITZ_PRIMITIVE_LINES);
-
-    if (xglFill (pDrawable, pGC, pGeometry,
-		 pExtent->x1, pExtent->y1,
-		 pExtent->x2 - pExtent->x1, pExtent->y2 - pExtent->y1,
-		 REGION_RECTS (pGC->pCompositeClip),
-		 REGION_NUM_RECTS (pGC->pCompositeClip)))
-	return TRUE;
-    
-    return FALSE;
+    xglFillBox (pDrawable, pGC,
+		pExtent->x1, pExtent->y1,
+		pExtent->x2 - pExtent->x1, pExtent->y2 - pExtent->y1,
+		(heapBox) ? heapBox : stackBox, nBox);
+		
+    if (heapBox)
+	xfree (heapBox);
 }
 
 Bool
@@ -287,29 +336,32 @@ xglFillLine (DrawablePtr pDrawable,
 	     int	 npt,
 	     DDXPointPtr ppt)
 {
-    BoxPtr	   pExtent;
+    RegionPtr	   pClip = pGC->pCompositeClip;
+    BoxPtr	   pExtent = REGION_EXTENTS (pGC->pScreen, pClip);
+    Bool	   coincidentEndpoints = FALSE;
+    Bool	   horizontalAndVertical = TRUE;
+    DDXPointPtr    pptTmp;
+    int		   nptTmp;
+    DDXPointRec    pt;
     xglGeometryPtr pGeometry;
-    Bool	   coincident_endpoints;
 
+    XGL_SCREEN_PRIV (pGC->pScreen);
+	
     if (npt < 2)
 	return TRUE;
     
-    pExtent = REGION_EXTENTS (pDrawable->pScreen, pGC->pCompositeClip);
-
-    coincident_endpoints = FALSE;
+    pt = *ppt;
+	
+    nptTmp = npt - 1;
+    pptTmp = ppt + 1;
+	
     if (mode == CoordModePrevious)
     {
-	DDXPointPtr pptTmp;
-	int	    nptTmp;
-	DDXPointRec pt;
-
-	pt = *ppt;
-	
-	nptTmp = npt - 1;
-	pptTmp = ppt + 1;
-
 	while (nptTmp--)
 	{
+	    if (pptTmp->x && pptTmp->y)
+		horizontalAndVertical = FALSE;
+	    
 	    pt.x += pptTmp->x;
 	    pt.y += pptTmp->y;
 	    
@@ -317,23 +369,167 @@ xglFillLine (DrawablePtr pDrawable,
 	}
 	
 	if (pt.x == ppt->x && pt.y == ppt->y)
-	    coincident_endpoints = TRUE;
+	    coincidentEndpoints = TRUE;
     }
     else
     {
+	while (nptTmp--)
+	{
+	    if (pptTmp->x != pt.x && pptTmp->y != pt.y)
+		horizontalAndVertical = FALSE;
+
+	    pt = *pptTmp++;
+	}
+	
 	if (ppt[npt - 1].x == ppt->x && ppt[npt - 1].y == ppt->y)
-	    coincident_endpoints = TRUE;
+	    coincidentEndpoints = TRUE;
     }
 
-    if (coincident_endpoints)
-	npt--;
+    if (horizontalAndVertical)
+    {
+	BoxPtr pClipBox;
+	BoxRec part, full;
+	BoxPtr heapBox = NULL;
+	BoxRec stackBox[N_STACK_BOX];
+	int    size = N_STACK_BOX;
+	BoxPtr pBox = stackBox;
+	int    nClip, nBox = 0;
+	int    dx, dy;
 
+	pt = *ppt;
+
+	ppt++;
+	npt--;
+    
+	while (npt--)
+	{
+	    if (mode == CoordModePrevious)
+	    {
+		dx = ppt->x;
+		dy = ppt->y;
+	    }
+	    else
+	    {
+		dx = ppt->x - pt.x;
+		dy = ppt->y - pt.y;
+	    }
+	
+	    if (dx)
+	    {
+		if (dx > 0)
+		{
+		    full.x1 = pt.x + pDrawable->x;
+		    
+		    if (npt || coincidentEndpoints)
+			full.x2 = full.x1 + dx;
+		    else
+			full.x2 = full.x1 + dx + 1;
+		}
+		else
+		{
+		    full.x2 = pt.x + pDrawable->x + 1;
+
+		    if (npt || coincidentEndpoints)
+			full.x1 = full.x2 + dx;
+		    else
+			full.x1 = full.x2 + dx - 1;
+		}
+		
+		full.y1 = pt.y + pDrawable->y;
+		full.y2 = full.y1 + 1;
+	    }
+	    else
+	    {
+		if (dy > 0)
+		{
+		    full.y1 = pt.y + pDrawable->y;
+			
+		    if (npt || coincidentEndpoints)
+			full.y2 = full.y1 + dy;
+		    else
+			full.y2 = full.y1 + dy + 1;
+		}
+		else
+		{
+		    full.y2 = pt.y + pDrawable->y + 1;
+
+		    if (npt || coincidentEndpoints)
+			full.y1 = full.y2 + dy;
+		    else
+			full.y1 = full.y2 + dy - 1;
+		}
+		
+		full.x1 = pt.x + pDrawable->x;
+		full.x2 = full.x1 + 1;
+	    }
+	    
+	    pt.x += dx;
+	    pt.y += dy;
+	    
+	    ppt++;
+	    
+	    if (full.x1 < pExtent->x1)
+		full.x1 = pExtent->x1;
+	    if (full.y1 < pExtent->y1)
+		full.y1 = pExtent->y1;	    
+	    if (full.x2 > pExtent->x2)
+		full.x2 = pExtent->x2;
+	    if (full.y2 > pExtent->y2)
+		full.y2 = pExtent->y2;
+	
+	    if (full.x1 >= full.x2 || full.y1 >= full.y2)
+		continue;
+	
+	    nClip = REGION_NUM_RECTS (pClip);
+	    if (nClip == 1)
+	    {
+		ADD_BOX (pBox, nBox, stackBox, heapBox, size, full);
+	    }
+	    else
+	    {
+		pClipBox = REGION_RECTS (pClip);
+		while (nClip--)
+		{
+		    part = *pClipBox++;
+
+		    if (part.x1 < full.x1)
+			part.x1 = full.x1;
+		    if (part.y1 < full.y1)
+			part.y1 = full.y1;
+		    if (part.x2 > full.x2)
+			part.x2 = full.x2;
+		    if (part.y2 > full.y2)
+			part.y2 = full.y2;
+		
+		    if (part.x1 < part.x2 && part.y1 < part.y2)
+			ADD_BOX (pBox, nBox, stackBox, heapBox, size, part);
+		}
+	    }
+	}
+
+	xglFillBox (pDrawable, pGC,
+		    pExtent->x1, pExtent->y1,
+		    pExtent->x2 - pExtent->x1, pExtent->y2 - pExtent->y1,
+		    (heapBox) ? heapBox : stackBox, nBox);
+		
+	if (heapBox)
+	    xfree (heapBox);
+
+	return TRUE;
+    }
+
+    if (!pScreenPriv->lines)
+	return FALSE;
+
+    if (coincidentEndpoints)
+	npt--;
+    
     pGeometry = xglGetScratchVertexGeometry (pGC->pScreen, npt);
     
     GEOMETRY_ADD_LINE (pGC->pScreen, pGeometry,
-		       coincident_endpoints, mode, npt, ppt);
+		       coincidentEndpoints, mode, npt, ppt);
 
-    if (coincident_endpoints)
+    if (coincidentEndpoints)
 	GEOMETRY_SET_VERTEX_PRIMITIVE (pGeometry, GLITZ_PRIMITIVE_LINE_LOOP);
     else
 	GEOMETRY_SET_VERTEX_PRIMITIVE (pGeometry, GLITZ_PRIMITIVE_LINE_STRIP);
@@ -358,20 +554,138 @@ xglFillLine (DrawablePtr pDrawable,
 Bool
 xglFillSegment (DrawablePtr pDrawable,
 		GCPtr	    pGC, 
-		int	    nsegInit,
+		int	    nSegInit,
 		xSegment    *pSegInit)
 {
-    BoxPtr	   pExtent;
+    RegionPtr	   pClip = pGC->pCompositeClip;
+    BoxPtr	   pExtent = REGION_EXTENTS (pGC->pScreen, pClip);
+    Bool	   horizontalAndVertical = TRUE;
     xglGeometryPtr pGeometry;
+    xSegment	   *pSeg;
+    int		   nSeg;
 
-    if (nsegInit < 1)
+    XGL_SCREEN_PRIV (pGC->pScreen);
+
+    if (nSegInit < 1)
 	return TRUE;
 
-    pExtent = REGION_EXTENTS (pDrawable->pScreen, pGC->pCompositeClip);
+    pSeg = pSegInit;
+    nSeg = nSegInit;
+    while (nSeg--)
+    {
+	if (pSeg->x1 != pSeg->x2 && pSeg->y1 != pSeg->y2)
+	    horizontalAndVertical = FALSE;
 
-    pGeometry = xglGetScratchVertexGeometry (pGC->pScreen, 2 * nsegInit);
+	pSeg++;
+    }
+
+    if (horizontalAndVertical)
+    {
+	BoxPtr pClipBox;
+	BoxRec part, full;
+	BoxPtr heapBox = NULL;
+	BoxRec stackBox[N_STACK_BOX];
+	int    size = N_STACK_BOX;
+	BoxPtr pBox = stackBox;
+	int    nClip, nBox = 0;
+
+	while (nSegInit--)
+	{
+	    if (pSegInit->x1 != pSegInit->x2)
+	    {
+		if (pSegInit->x1 < pSegInit->x2)
+		{
+		    full.x1 = pSegInit->x1;
+		    full.x2 = pSegInit->x2;
+		}
+		else
+		{
+		    full.x1 = pSegInit->x2;
+		    full.x2 = pSegInit->x1;
+		}
+
+		full.x1 += pDrawable->x;
+		full.x2 += pDrawable->x + 1;
+		full.y1  = pSegInit->y1 + pDrawable->y;
+		full.y2  = full.y1 + 1;
+	    }
+	    else
+	    {
+		if (pSegInit->y1 < pSegInit->y2)
+		{
+		    full.y1 = pSegInit->y1;
+		    full.y2 = pSegInit->y2;
+		}
+		else
+		{
+		    full.y1 = pSegInit->y2;
+		    full.y2 = pSegInit->y1;
+		}
+
+		full.y1 += pDrawable->y;
+		full.y2 += pDrawable->y + 1;
+		full.x1  = pSegInit->x1 + pDrawable->x;
+		full.x2  = full.x1 + 1;
+	    }
+
+	    pSegInit++;
+	    
+	    if (full.x1 < pExtent->x1)
+		full.x1 = pExtent->x1;
+	    if (full.y1 < pExtent->y1)
+		full.y1 = pExtent->y1;	    
+	    if (full.x2 > pExtent->x2)
+		full.x2 = pExtent->x2;
+	    if (full.y2 > pExtent->y2)
+		full.y2 = pExtent->y2;
 	
-    GEOMETRY_ADD_SEGMENT (pGC->pScreen, pGeometry, nsegInit, pSegInit);
+	    if (full.x1 >= full.x2 || full.y1 >= full.y2)
+		continue;
+	
+	    nClip = REGION_NUM_RECTS (pClip);
+	    if (nClip == 1)
+	    {
+		ADD_BOX (pBox, nBox, stackBox, heapBox, size, full);
+	    }
+	    else
+	    {
+		pClipBox = REGION_RECTS (pClip);
+		while (nClip--)
+		{
+		    part = *pClipBox++;
+
+		    if (part.x1 < full.x1)
+			part.x1 = full.x1;
+		    if (part.y1 < full.y1)
+			part.y1 = full.y1;
+		    if (part.x2 > full.x2)
+			part.x2 = full.x2;
+		    if (part.y2 > full.y2)
+			part.y2 = full.y2;
+		
+		    if (part.x1 < part.x2 && part.y1 < part.y2)
+			ADD_BOX (pBox, nBox, stackBox, heapBox, size, part);
+		}
+	    }
+	}
+
+	xglFillBox (pDrawable, pGC,
+		    pExtent->x1, pExtent->y1,
+		    pExtent->x2 - pExtent->x1, pExtent->y2 - pExtent->y1,
+		    (heapBox) ? heapBox : stackBox, nBox);
+		
+	if (heapBox)
+	    xfree (heapBox);
+
+	return TRUE;
+    }
+
+    if (!pScreenPriv->lines)
+	return FALSE;
+    
+    pGeometry = xglGetScratchVertexGeometry (pGC->pScreen, 2 * nSegInit);
+	
+    GEOMETRY_ADD_SEGMENT (pGC->pScreen, pGeometry, nSegInit, pSegInit);
 
     /* Line segments need 0.5 translate */
     GEOMETRY_TRANSLATE_FIXED (pGeometry, 1 << 15, 1 << 15);

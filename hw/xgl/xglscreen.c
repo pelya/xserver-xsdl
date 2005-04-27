@@ -170,6 +170,7 @@ xglScreenInit (ScreenPtr        pScreen,
     pScreenPriv->geometryUsage    = pScreenInfo->geometryUsage;
     pScreenPriv->yInverted	  = pScreenInfo->yInverted;
     pScreenPriv->pboMask	  = pScreenInfo->pboMask;
+    pScreenPriv->lines		  = pScreenInfo->lines;
 
     GEOMETRY_INIT (pScreen, &pScreenPriv->scratchGeometry,
 		   GLITZ_GEOMETRY_TYPE_VERTEX,

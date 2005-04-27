@@ -100,18 +100,17 @@ xglFillSpans (DrawablePtr pDrawable,
 {
     XGL_GC_PRIV (pGC);
 
-    if (!pGCPriv->flags)
+    if (pGCPriv->flags || pGC->fillStyle == FillStippled)
     {
-	if (xglFillSpan (pDrawable, pGC, nspans, ppt, pwidth))
-	{
-	    xglAddCurrentBitDamage (pDrawable);
-	    return;
-	}
+	XGL_GC_FILL_OP_FALLBACK_PROLOGUE (pDrawable);
+	(*pGC->ops->FillSpans) (pDrawable, pGC, nspans, ppt, pwidth, fSorted);
+	XGL_GC_OP_FALLBACK_EPILOGUE (pDrawable);
     }
-
-    XGL_GC_FILL_OP_FALLBACK_PROLOGUE (pDrawable);
-    (*pGC->ops->FillSpans) (pDrawable, pGC, nspans, ppt, pwidth, fSorted);
-    XGL_GC_OP_FALLBACK_EPILOGUE (pDrawable);
+    else
+    {
+	/* xglFillSpan handles fall-back */
+	xglFillSpan (pDrawable, pGC, nspans, ppt, pwidth);
+    }
 }
 
 void
