@@ -1665,6 +1665,9 @@ OsBlockSignals (void)
 #ifdef SIGTTOU
 	sigaddset (&set, SIGTTOU);
 #endif
+#ifdef SIGCHLD
+	sigaddset (&set, SIGCHLD);
+#endif
 	sigprocmask (SIG_BLOCK, &set, &PreviousSignalMask);
     }
 #endif
