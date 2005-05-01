@@ -844,14 +844,20 @@ xglGlyphExtents (PicturePtr   pDst,
 		 BoxPtr	      extents)
 {
     GlyphPtr glyph;
+    BoxRec   line;
     int	     x1, x2, y1, y2;
     int	     n;
     int	     x;
     int	     y;
-    Bool     x_overlap, overlap = FALSE;
+    Bool     overlap = FALSE;
 
     x = 0;
     y = 0;
+
+    extents->x1 = MAXSHORT;
+    extents->x2 = MINSHORT;
+    extents->y1 = MAXSHORT;
+    extents->y2 = MINSHORT;    
 
     while (!list->len)
     {
@@ -863,11 +869,6 @@ xglGlyphExtents (PicturePtr   pDst,
 	}
 	else
 	{
-	    extents->x1 = MAXSHORT;
-	    extents->x2 = MINSHORT;
-	    extents->y1 = MAXSHORT;
-	    extents->y2 = MINSHORT;
-	    
 	    return FALSE;
 	}
     }
@@ -880,10 +881,10 @@ xglGlyphExtents (PicturePtr   pDst,
     if (y1 < MINSHORT)
 	y1 = MINSHORT;
 
-    extents->x1 = x1;
-    extents->x2 = x1;
-    extents->y1 = y1;
-    extents->y2 = y1;
+    line.x1 = x1;
+    line.x2 = x1;
+    line.y1 = y1;
+    line.y2 = y1;
 
     while (nlist--)
     {
@@ -908,33 +909,55 @@ xglGlyphExtents (PicturePtr   pDst,
 	    if (y2 > MAXSHORT)
 		y2 = MAXSHORT;
 
-	    x_overlap = FALSE;
-	    if (x1 >= extents->x2)
-		extents->x2 = x2;
-	    else if (x2 <= extents->x1)
-		extents->x1 = x1;
-	    else
+	    if (x1 >= line.x2)
 	    {
-		x_overlap = TRUE;
-		if (x1 < extents->x1)
-		    extents->x1 = x1;
-		if (x2 > extents->x2)
-		    extents->x2 = x2;
+		line.x2 = x2;
+		if (y1 < line.y1)
+		    line.y1 = y1;
+		if (y2 > line.y2)
+		    line.y2 = y2;
 	    }
-
-	    if (y1 >= extents->y2)
-		extents->y2 = y2;
-	    else if (y2 <= extents->y1)
-		extents->y1 = y1;	    
+	    else if (x2 <= line.x1)
+	    {
+		line.x1 = x1;
+		if (y1 < line.y1)
+		    line.y1 = y1;
+		if (y2 > line.y2)
+		    line.y2 = y2;
+	    }
 	    else
 	    {
-		if (y1 < extents->y1)
-		    extents->y1 = y1;
-		if (y2 > extents->y2)
-		    extents->y2 = y2;
-
-		if (x_overlap)
+		if (line.y1 >= extents->y2)
+		{
+		    extents->y2 = line.y2;
+		    if (line.y1 < extents->y1)
+			extents->y1 = line.y1;
+		}
+		else if (line.y2 <= extents->y1)
+		{
+		    extents->y1 = line.y1;
+		    if (line.y2 > extents->y2)
+			extents->y2 = line.y2;
+		}
+		else
+		{
+		    if (line.y1 < extents->y1)
+			extents->y1 = line.y1;
+		    if (line.y2 > extents->y2)
+			extents->y2 = line.y2;
+		
 		    overlap = TRUE;
+		}
+
+		if (line.x1 < extents->x1)
+		    extents->x1 = line.x1;
+		if (line.x2 > extents->x2)
+		    extents->x2 = line.x2;
+
+		line.x1 = x1;
+		line.y1 = y1;
+		line.x2 = x2;
+		line.y2 = y2;
 	    }
 	    
 	    x += glyph->info.xOff;
@@ -942,6 +965,33 @@ xglGlyphExtents (PicturePtr   pDst,
 	}
     }
 
+    if (line.y1 >= extents->y2)
+    {
+	extents->y2 = line.y2;
+	if (line.y1 < extents->y1)
+	    extents->y1 = line.y1;
+    }
+    else if (line.y2 <= extents->y1)
+    {
+	extents->y1 = line.y1;
+	if (line.y2 > extents->y2)
+	    extents->y2 = line.y2;
+    }
+    else
+    {
+	if (line.y1 < extents->y1)
+	    extents->y1 = line.y1;
+	if (line.y2 > extents->y2)
+	    extents->y2 = line.y2;
+	
+	overlap = TRUE;
+    }
+    
+    if (line.x1 < extents->x1)
+	extents->x1 = line.x1;
+    if (line.x2 > extents->x2)
+	extents->x2 = line.x2;
+    
     xglPictureClipExtents (pDst, extents);
 
     return overlap;
