@@ -32,6 +32,7 @@
 
 /* References to external symbols */
 extern char *		g_pszCommandLine;
+extern char *		g_pszLogFile;
 extern Bool		g_fSilentFatalError;
 
 
@@ -80,8 +81,8 @@ OsVendorFatalError (void)
 
   winMessageBoxF (
           "A fatal error has occurred and " PROJECT_NAME " will now exit.\n" \
-		  "Please open /tmp/XWin.log for more information.\n",
-		  MB_ICONERROR);
+		  "Please open %s for more information.\n",
+		  MB_ICONERROR, (g_pszLogFile?g_pszLogFile:"the logfile"));
 }
 #endif
 
