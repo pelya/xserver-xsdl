@@ -791,7 +791,7 @@ static ClientPtr
 AllocNewConnection (XtransConnInfo trans_conn, int fd, CARD32 conn_time, 
     int (*Flush)(
         ClientPtr /*who*/, OsCommPtr /*oc*/,
-        char */*extraBuf*/, int /*extraCount*/),
+        char * /*extraBuf*/, int /*extraCount*/),
     void (*Close)(
         ClientPtr /*client*/),
     LbxProxyPtr proxy)

@@ -366,7 +366,7 @@ extern int DoGetImage(
     int /*width*/, 
     int /*height*/,
     Mask /*planemask*/,
-    xGetImageReply **/*im_return*/);
+    xGetImageReply ** /*im_return*/);
 
 #ifdef LBX
 extern void IncrementClientCount(void);

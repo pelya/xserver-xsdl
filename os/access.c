@@ -217,9 +217,9 @@ Bool defeatAccessControl = FALSE;
 			  (length) == (host)->len &&\
 			  !acmp (address, (host)->addr, length))
 
-static int ConvertAddr(struct sockaddr */*saddr*/,
-		       int */*len*/,
-		       pointer */*addr*/);
+static int ConvertAddr(struct sockaddr * /*saddr*/,
+		       int * /*len*/,
+		       pointer * /*addr*/);
 
 static int CheckAddr(int /*family*/,
 		     pointer /*pAddr*/,

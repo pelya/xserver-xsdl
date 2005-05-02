@@ -216,7 +216,7 @@ extern int StandardFlushClient(
     int /*extraCount*/
 );
 extern int LbxFlushClient(ClientPtr /*who*/, OsCommPtr /*oc*/, 
-    char */*extraBuf*/, int /*extraCount*/);
+    char * /*extraBuf*/, int /*extraCount*/);
 #else
 extern int FlushClient(
     ClientPtr /*who*/,
