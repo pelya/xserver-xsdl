@@ -155,7 +155,7 @@ static void get_xdmcp_sock(void);
 static void send_query_msg(void);
 
 static void recv_willing_msg(
-    struct sockaddr */*from*/,
+    struct sockaddr * /*from*/,
     int /*fromlen*/,
     unsigned /*length*/);
 
@@ -176,27 +176,27 @@ static void send_keepalive_msg(void);
 static void recv_alive_msg(unsigned /*length*/);
 
 static void XdmcpFatal(
-    char */*type*/,
+    char * /*type*/,
     ARRAY8Ptr /*status*/);
  
-static void XdmcpWarning(char */*str*/);
+static void XdmcpWarning(char * /*str*/);
 
 static void get_manager_by_name(
     int /*argc*/,
-    char **/*argv*/,
+    char ** /*argv*/,
     int /*i*/);
 
-static void get_fromaddr_by_name(int /*argc*/, char **/*argv*/, int /*i*/);
+static void get_fromaddr_by_name(int /*argc*/, char ** /*argv*/, int /*i*/);
 
 #if defined(IPv6) && defined(AF_INET6)
-static int get_mcast_options(int /*argc*/, char **/*argv*/, int /*i*/);
+static int get_mcast_options(int /*argc*/, char ** /*argv*/, int /*i*/);
 #endif
 
 static void receive_packet(int /*socketfd*/);
 
 static void send_packet(void);
 
-extern void XdmcpDeadSession(char */*reason*/);
+extern void XdmcpDeadSession(char * /*reason*/);
 
 static void timeout(void);
 
@@ -204,7 +204,7 @@ static void restart(void);
 
 static void XdmcpBlockHandler(
     pointer /*data*/,
-    struct timeval **/*wt*/,
+    struct timeval ** /*wt*/,
     pointer /*LastSelectMask*/);
 
 static void XdmcpWakeupHandler(
@@ -1459,7 +1459,7 @@ recv_alive_msg (unsigned length)
     	}
 	else
     	{
-	    XdmcpDeadSession ("Alive respose indicates session dead");
+	    XdmcpDeadSession ("Alive response indicates session dead");
     	}
     }
 }
