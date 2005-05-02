@@ -3503,6 +3503,7 @@ xglInitVisualConfigs (ScreenPtr pScreen)
 
 	pConfig[i].doubleBuffer = TRUE;
 	pConfig[i].depthSize = format->depth_size;
+	pConfig[i].stencilSize = format->stencil_size;
 	pConfig[i].stereo = FALSE;
 	
 	if (depth == 16)
