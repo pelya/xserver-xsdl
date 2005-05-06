@@ -223,7 +223,7 @@ hash_table_modify (x_hash_table *h, void *k, void *v, int replace)
             {
                 hash_table_destroy_item (h, ITEM_KEY (item),
                                          ITEM_VALUE (item));
-                ITEM_KEY (item) = k;
+                item->next = k;
                 ITEM_VALUE (item) = v;
             }
             else

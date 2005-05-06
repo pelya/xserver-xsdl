@@ -64,12 +64,12 @@
 /* Define this to use Alt for Mode_switch. */
 #define ALT_IS_MODE_SWITCH 1
 
-#include <drivers/event_status_driver.h>
-#include <IOKit/hidsystem/ev_keymap.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
 #include <sys/stat.h>
+#include <IOKit/hidsystem/event_status_driver.h>
+#include <IOKit/hidsystem/ev_keymap.h>
 #include <architecture/byte_order.h>  // For the NXSwap*
 #include "darwin.h"
 #include "darwinKeyboard.h"
