@@ -1,3 +1,10 @@
+2005-05-08  Alexander Gottwald  <ago at freedesktop dot org>
+
+	* winmultiwindowwndproc.c:
+	* winblock.c:
+	Only call ConfigureWindow from winRaiseWindow if the windows
+	message dispatch loop is running.
+
 2005-05-02  Alexander Gottwald  <ago at freedesktop dot org>
 
 	* winerror.c:

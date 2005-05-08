@@ -266,10 +266,11 @@ ValidateSizing (HWND hwnd, WindowPtr pWin,
 }
 
 extern Bool winInDestroyWindowsWindow;
+extern Bool winInBlockHandler; 
 static Bool winInRaiseWindow = FALSE;
 static void winRaiseWindow(WindowPtr pWin)
 {
-  if (!winInDestroyWindowsWindow && !winInRaiseWindow)
+  if (winInBlockHandler && !winInDestroyWindowsWindow && !winInRaiseWindow)
   {
     BOOL oldstate = winInRaiseWindow;
     winInRaiseWindow = TRUE;
