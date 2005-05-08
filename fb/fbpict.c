@@ -32,6 +32,19 @@
 #include "fbpict.h"
 #include "fbmmx.h"
 
+typedef void	(*CompositeFunc) (CARD8      op,
+				  PicturePtr pSrc,
+				  PicturePtr pMask,
+				  PicturePtr pDst,
+				  INT16      xSrc,
+				  INT16      ySrc,
+				  INT16      xMask,
+                                  INT16      yMask,
+				  INT16      xDst,
+				  INT16      yDst,
+				  CARD16     width,
+				  CARD16     height);
+
 CARD32
 fbOver (CARD32 x, CARD32 y)
 {
@@ -824,7 +837,7 @@ fbComposite (CARD8      op,
     RegionRec	    region;
     int		    n;
     BoxPtr	    pbox;
-    CompositeFunc   func;
+    CompositeFunc   func = 0;
     Bool	    srcRepeat = pSrc->repeat;
     Bool	    maskRepeat = FALSE;
     Bool	    srcAlphaMap = pSrc->alphaMap != 0;
@@ -845,21 +858,6 @@ fbComposite (CARD8      op,
 	maskAlphaMap = pMask->alphaMap != 0;
     }
     
-    if (!miComputeCompositeRegion (&region,
-				   pSrc,
-				   pMask,
-				   pDst,
-				   xSrc,
-				   ySrc,
-				   xMask,
-				   yMask,
-				   xDst,
-				   yDst,
-				   width,
-				   height))
-	return;
-				   
-    func = fbCompositeGeneral;
     if (!pSrc->transform && !(pMask && pMask->transform))
     if (!maskAlphaMap && !srcAlphaMap && !dstAlphaMap)
     switch (op) {
@@ -1212,6 +1210,27 @@ fbComposite (CARD8      op,
 	}
 	break;
     }
+
+    if (!func) {
+         /* no fast path, use the general code */
+         fbCompositeGeneral(op, pSrc, pMask, pDst, xSrc, ySrc, xMask, yMask, xDst, yDst, width, height);
+         return;
+    }
+
+    if (!miComputeCompositeRegion (&region,
+ 				   pSrc,
+ 				   pMask,
+ 				   pDst,
+ 				   xSrc,
+ 				   ySrc,
+ 				   xMask,
+ 				   yMask,
+ 				   xDst,
+ 				   yDst,
+ 				   width,
+                                   height))
+        return;
+
     n = REGION_NUM_RECTS (&region);
     pbox = REGION_RECTS (&region);
     while (n--)
