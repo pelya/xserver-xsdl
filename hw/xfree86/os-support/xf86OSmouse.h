@@ -287,7 +287,7 @@ typedef struct _MouseDevRec {
 /* Generalize for other axes. */
 #define MSE_NOAXISMAP	MSE_NOZMAP
 
-#define MSE_MAXBUTTONS	12
+#define MSE_MAXBUTTONS	24
 #define MSE_DFLTBUTTONS	 3
 
 #endif /* _XF86OSMOUSE_H_ */
