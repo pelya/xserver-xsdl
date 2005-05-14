@@ -2811,8 +2811,10 @@ static void fbFetchExternalAlpha(PicturePtr pict, int x, int y, int width, CARD3
     int i;
     CARD32 alpha_buffer[SCANLINE_BUFFER_LENGTH];
 
-    if (!pict->alphaMap)
-        return fbFetchTransformed(pict, x, y, width, buffer);
+    if (!pict->alphaMap) {
+        fbFetchTransformed(pict, x, y, width, buffer);
+	return;
+    }
 
     fbFetchTransformed(pict, x, y, width, buffer);
     fbFetchTransformed(pict->alphaMap, x - pict->alphaOrigin.x, y - pict->alphaOrigin.y, width, alpha_buffer);
@@ -2857,8 +2859,10 @@ static void fbStoreExternalAlpha(PicturePtr pict, int x, int y, int width, CARD3
     miIndexedPtr indexed = (miIndexedPtr) pict->pFormat->index.devPrivate;
     miIndexedPtr aindexed;
 
-    if (!pict->alphaMap)
-        return fbStore(pict, x, y, width, buffer);
+    if (!pict->alphaMap) {
+        fbStore(pict, x, y, width, buffer);
+	return;
+    }
 
     store = storeProcForPicture(pict);
     astore = storeProcForPicture(pict->alphaMap);
