@@ -249,16 +249,15 @@ mtrr_remove_offending(int screenNum, unsigned long base, unsigned long size,
 
     wcr = &wcreturn;
     for (gent.regnum = 0; 
-	 ioctl(mtrr_fd, MTRRIOC_GET_ENTRY, &gent) >= 0;) {
+	 ioctl(mtrr_fd, MTRRIOC_GET_ENTRY, &gent) >= 0; gent.regnum++ ) {
 	if (gent.type == MTRR_TYPE_WRCOMB
 	    && ((gent.base >= base && gent.base + gent.size < base + size) || 
 		(gent.base >  base && gent.base + gent.size <= base + size))) {
 	    *wcr = mtrr_cull_wc_region(screenNum, gent.base, gent.size, from);
+	    if (*wcr) gent.regnum--;
 	    while(*wcr) {
 		wcr = &((*wcr)->next);
 	    }
-	} else {
-	    gent.regnum++;
 	}
     }
     return wcreturn;
