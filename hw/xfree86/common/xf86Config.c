@@ -2114,16 +2114,20 @@ configMonitor(MonPtr monitorp, XF86ConfMonitorPtr conf_monitor)
     /*
      * fill in the monitor structure
      */    
-    for( count = 0 ; count < conf_monitor->mon_n_hsync; count++) {
+    for( count = 0 ;
+	 count < conf_monitor->mon_n_hsync && count < MAX_HSYNC;
+	 count++) {
         monitorp->hsync[count].hi = conf_monitor->mon_hsync[count].hi;
         monitorp->hsync[count].lo = conf_monitor->mon_hsync[count].lo;
     }
-    monitorp->nHsync = conf_monitor->mon_n_hsync;
-    for( count = 0 ; count < conf_monitor->mon_n_vrefresh; count++) {
+    monitorp->nHsync = count;
+    for( count = 0 ;
+	 count < conf_monitor->mon_n_vrefresh && count < MAX_VREFRESH;
+	 count++) {
         monitorp->vrefresh[count].hi = conf_monitor->mon_vrefresh[count].hi;
         monitorp->vrefresh[count].lo = conf_monitor->mon_vrefresh[count].lo;
     }
-    monitorp->nVrefresh = conf_monitor->mon_n_vrefresh;
+    monitorp->nVrefresh = count;
 
     /*
      * first we collect the mode lines from the UseModes directive
