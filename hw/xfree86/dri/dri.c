@@ -1958,14 +1958,15 @@ DRIGetWrappedFuncs(ScreenPtr pScreen)
     return &(DRI_SCREEN_PRIV(pScreen)->wrap);
 }
 
+/* note that this returns the library version, not the protocol version */
 void
 DRIQueryVersion(int *majorVersion,
                 int *minorVersion,
                 int *patchVersion)
 {
-    *majorVersion = XF86DRI_MAJOR_VERSION;
-    *minorVersion = XF86DRI_MINOR_VERSION;
-    *patchVersion = XF86DRI_PATCH_VERSION;
+    *majorVersion = DRIINFO_MAJOR_VERSION;
+    *minorVersion = DRIINFO_MINOR_VERSION;
+    *patchVersion = DRIINFO_PATCH_VERSION;
 }
 
 static void
