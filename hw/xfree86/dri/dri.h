@@ -104,10 +104,11 @@ typedef struct {
  * Revision history:
  * 4.1.0 and earlier: DRIQueryVersion returns XF86DRI_*_VERSION.
  * 4.2.0: DRIQueryVersion begins returning DRIINFO_*_VERSION.
+ * 5.0.0: frameBufferPhysicalAddress changed from CARD32 to pointer.
  */
 
-#define DRIINFO_MAJOR_VERSION   4
-#define DRIINFO_MINOR_VERSION   2
+#define DRIINFO_MAJOR_VERSION   5
+#define DRIINFO_MINOR_VERSION   0
 #define DRIINFO_PATCH_VERSION   0
 
 typedef struct {
@@ -156,7 +157,7 @@ typedef struct {
     int			ddxDriverMajorVersion;
     int			ddxDriverMinorVersion;
     int			ddxDriverPatchVersion;
-    CARD32		frameBufferPhysicalAddress;
+    pointer		frameBufferPhysicalAddress;
     long		frameBufferSize;
     long		frameBufferStride;
     long		SAREASize;

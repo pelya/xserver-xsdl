@@ -71,8 +71,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 extern Bool noPanoramiXExtension;
 #endif
 
-extern Bool noXFree86DRIExtension;
-
 static int DRIScreenPrivIndex = -1;
 static int DRIWindowPrivIndex = -1;
 static unsigned long DRIGeneration = 0;
@@ -284,7 +282,7 @@ DRIScreenInit(ScreenPtr pScreen, DRIInfoPtr pDRIInfo, int *pDRMFD)
 	return FALSE;
     }
     DRIDrvMsg(pScreen->myNum, X_INFO,
-	      "[drm] added %d byte SAREA at 0x%08lx\n",
+	      "[drm] added %d byte SAREA at %p\n",
 	      pDRIPriv->pDriverInfo->SAREASize, pDRIPriv->hSAREA);
 
     if (drmMap( pDRIPriv->drmFD,
@@ -300,7 +298,7 @@ DRIScreenInit(ScreenPtr pScreen, DRIInfoPtr pDRIInfo, int *pDRMFD)
 	return FALSE;
     }
     memset(pDRIPriv->pSAREA, 0, pDRIPriv->pDriverInfo->SAREASize);
-    DRIDrvMsg(pScreen->myNum, X_INFO, "[drm] mapped SAREA 0x%08lx to %p\n",
+    DRIDrvMsg(pScreen->myNum, X_INFO, "[drm] mapped SAREA %p to %p\n",
 	      pDRIPriv->hSAREA, pDRIPriv->pSAREA);
 
     if (drmAddMap( pDRIPriv->drmFD,
@@ -318,7 +316,7 @@ DRIScreenInit(ScreenPtr pScreen, DRIInfoPtr pDRIInfo, int *pDRMFD)
                   "[drm] drmAddMap failed\n");
 	return FALSE;
     }
-    DRIDrvMsg(pScreen->myNum, X_INFO, "[drm] framebuffer handle = 0x%08lx\n",
+    DRIDrvMsg(pScreen->myNum, X_INFO, "[drm] framebuffer handle = %p\n",
 	      pDRIPriv->hFrameBuffer);
 
 				/* Add tags for reserved contexts */
@@ -381,7 +379,7 @@ DRIFinishScreenInit(ScreenPtr pScreen)
     pDRIPriv->myContextPriv = pDRIContextPriv;
 
     DRIDrvMsg(pScreen->myNum, X_INFO,
-	      "X context handle = 0x%08lx\n", pDRIPriv->myContext);
+	      "X context handle = %p\n", pDRIPriv->myContext);
 
     /* Now that we have created the X server's context, we can grab the
      * hardware lock for the X server.
@@ -565,14 +563,14 @@ DRICloseScreen(ScreenPtr pScreen)
 	drmUnlock(pDRIPriv->drmFD, pDRIPriv->myContext);
 	lockRefCount=0;
 	DRIDrvMsg(pScreen->myNum, X_INFO,
-		  "[drm] unmapping %d bytes of SAREA 0x%08lx at %p\n",
+		  "[drm] unmapping %d bytes of SAREA %p at %p\n",
 		  pDRIInfo->SAREASize,
 		  pDRIPriv->hSAREA,
 		  pDRIPriv->pSAREA);
 	if (drmUnmap(pDRIPriv->pSAREA, pDRIInfo->SAREASize)) {
 	    DRIDrvMsg(pScreen->myNum, X_ERROR,
 		      "[drm] unable to unmap %d bytes"
-		      " of SAREA 0x%08lx at %p\n",
+		      " of SAREA %p at %p\n",
 		      pDRIInfo->SAREASize,
 		      pDRIPriv->hSAREA,
 		      pDRIPriv->pSAREA);
