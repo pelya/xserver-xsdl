@@ -469,7 +469,8 @@ VBESetVBEMode(vbeInfoPtr pVbe, int mode, VbeCRTCInfoBlock *block)
 	memcpy(pVbe->memory, block, sizeof(VbeCRTCInfoBlock));
 	pVbe->pInt10->es = SEG_ADDR(pVbe->real_mode_base);
 	pVbe->pInt10->di = SEG_OFF(pVbe->real_mode_base);
-    }
+    } else
+	pVbe->pInt10->bx &= ~(1 << 11);
 
     xf86ExecX86int10(pVbe->pInt10);
 
