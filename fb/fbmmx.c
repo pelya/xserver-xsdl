@@ -676,7 +676,7 @@ fbCompositeSrc_8888x8x8888mmx (CARD8	op,
 	    __m64 vs4 = *(__m64 *)(src + 8);
 	    __m64 vs5 = *(__m64 *)(src + 10);
 	    __m64 vs6 = *(__m64 *)(src + 12);
-	    __m64 vs7 = *(__m64 *)(dst + 14);
+	    __m64 vs7 = *(__m64 *)(src + 14);
 
 	    vd0 = (__m64)pack8888 (
 		in_over (expand8888 (vs0, 0), srca, vmask, expand8888 (vd0, 0)),
