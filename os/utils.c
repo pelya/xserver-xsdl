@@ -128,9 +128,6 @@ OR PERFORMANCE OF THIS SOFTWARE.
 #endif
 
 Bool noTestExtensions;
-#ifdef BEZIER
-Bool noBezierExtension = FALSE;
-#endif
 #ifdef BIGREQS
 Bool noBigReqExtension = FALSE;
 #endif
@@ -193,9 +190,6 @@ Bool noSyncExtension = FALSE;
 #ifdef TOGCUP
 Bool noXcupExtension = FALSE;
 #endif
-#ifdef PEXEXT
-Bool noPexExtension = FALSE;
-#endif
 #ifdef RES
 Bool noResExtension = FALSE;
 #endif
@@ -209,9 +203,6 @@ Bool noXCMiscExtension = FALSE;
 /* Xevie is disabled by default for now until the
  * interface is stable */
 Bool noXevieExtension = TRUE;
-#endif
-#ifdef XIE
-Bool noXie = FALSE;
 #endif
 #ifdef XF86BIGFONT
 Bool noXFree86BigfontExtension = FALSE;

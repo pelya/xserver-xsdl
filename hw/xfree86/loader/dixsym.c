@@ -330,9 +330,6 @@ LOOKUP dixLookupTab[] = {
     SYMVAR(noTestExtensions)
     SYMFUNC(GiveUp)
 
-#ifdef BEZIER
-    SYMVAR(noBezierExtension)
-#endif
 #ifdef BIGREQS
     SYMVAR(noBigReqExtension)
 #endif
@@ -393,9 +390,6 @@ LOOKUP dixLookupTab[] = {
 #ifdef TOGCUP
     SYMVAR(noXcupExtension)
 #endif
-#ifdef PEXEXT
-    SYMVAR(noPexExtension)
-#endif
 #ifdef RES
     SYMVAR(noResExtension)
 #endif
@@ -407,9 +401,6 @@ LOOKUP dixLookupTab[] = {
 #endif
 #ifdef XEVIE
     SYMVAR(noXevieExtension)
-#endif
-#ifdef XIE
-    SYMVAR(noXie)
 #endif
 #ifdef XF86BIGFONT
     SYMVAR(noXFree86BigfontExtension)
