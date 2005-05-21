@@ -640,7 +640,7 @@ mouse_configuration(void) {
 		config_emulate3buttons = 0;
 	printf("\n");
 
-#if (defined(sun) && defined(__i386))
+#if (defined(sun) && (defined(__i386) || defined(__x86)))
 	/* SPARC & USB mice (VUID or AUTO protocols) default to /dev/mouse, 
 	   but PS/2 mice default to /dev/kdmouse */
 	if ((config_mousetype != M_AUTO) && (config_mousetype != M_VUID)) {

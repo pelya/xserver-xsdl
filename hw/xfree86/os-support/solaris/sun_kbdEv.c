@@ -114,7 +114,7 @@ static OsTimerPtr sunTimer = NULL;
 #define KEY_Execute	0x83
 
 static unsigned char map[256] = {
-#if defined(i386) || defined(__i386) || defined(__i386__)
+#if defined(i386) || defined(__i386) || defined(__i386__) || defined(__x86)
 	KEY_NOTUSED,		/*   0 */
 	KEY_Tilde,		/*   1 */
 	KEY_1,			/*   2 */

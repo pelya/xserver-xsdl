@@ -248,7 +248,7 @@ typedef signed long xf86ssize_t;
 #if defined(__SOL8__) || (defined(sun) && !defined(i386))
 # include <sys/mman.h>
 # include <errno.h>
-# ifdef i386
+# if defined(i386) || defined(__x86)
 #  include <sys/sysi86.h>
 # endif
 # include <sys/psw.h>

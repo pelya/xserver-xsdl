@@ -46,6 +46,7 @@ SOFTWARE.
 
 ******************************************************************/
 /* $Xorg: servermd.h,v 1.3 2000/08/17 19:53:31 cpqbld Exp $ */
+/* $XdotOrg: $ */
 
 #ifndef SERVERMD_H
 #define SERVERMD_H 1
@@ -389,7 +390,7 @@ SOFTWARE.
 
 #endif /* ia64 */
 
-#if defined(__amd64__) || defined(amd64)
+#if defined(__amd64__) || defined(amd64) || defined(__amd64)
 # define IMAGE_BYTE_ORDER	LSBFirst
 
 # if defined(XF86MONOVGA) || defined(XF86VGA16) || defined(XF86MONO)
