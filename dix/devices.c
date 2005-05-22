@@ -48,6 +48,7 @@ SOFTWARE.
 
 
 /* $Xorg: devices.c,v 1.4 2001/02/09 02:04:39 xorgcvs Exp $ */
+/* $XdotOrg: $ */
 
 #include <X11/X.h>
 #include "misc.h"
@@ -120,6 +121,8 @@ _AddInputDevice(DeviceProc deviceProc, Bool autoStart)
 #ifdef XKB
     dev->xkb_interest= NULL;
 #endif
+    dev->nPrivates = 0;
+    dev->devPrivates = dev->unwrapProc = NULL;
     inputInfo.off_devices = dev;
     return dev;
 }
@@ -352,13 +355,10 @@ _RegisterPointerDevice(DeviceIntPtr device)
 {
     inputInfo.pointer = device;
 #ifdef XKB
-    if (noXkbExtension) {
-	device->public.processInputProc = CoreProcessPointerEvent;
-	device->public.realInputProc = CoreProcessPointerEvent;
-    } else {
-	device->public.processInputProc = ProcessPointerEvent;
-	device->public.realInputProc = ProcessPointerEvent;
-    }
+    device->public.processInputProc = CoreProcessPointerEvent;
+    device->public.realInputProc = CoreProcessPointerEvent;
+    if (!noXkbExtension)
+       XkbSetExtension(device,ProcessPointerEvent);
 #else
     device->public.processInputProc = ProcessPointerEvent;
     device->public.realInputProc = ProcessPointerEvent;
@@ -378,13 +378,10 @@ _RegisterKeyboardDevice(DeviceIntPtr device)
 {
     inputInfo.keyboard = device;
 #ifdef XKB
-    if (noXkbExtension) {
-	device->public.processInputProc = CoreProcessKeyboardEvent;
-	device->public.realInputProc = CoreProcessKeyboardEvent;
-    } else {
-	device->public.processInputProc = ProcessKeyboardEvent;
-	device->public.realInputProc = ProcessKeyboardEvent;
-    }
+    device->public.processInputProc = CoreProcessKeyboardEvent;
+    device->public.realInputProc = CoreProcessKeyboardEvent;
+    if (!noXkbExtension)
+       XkbSetExtension(device,ProcessKeyboardEvent);
 #else
     device->public.processInputProc = ProcessKeyboardEvent;
     device->public.realInputProc = ProcessKeyboardEvent;

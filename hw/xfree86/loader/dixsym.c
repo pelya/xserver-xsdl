@@ -54,6 +54,7 @@
 #include "sym.h"
 #include "colormap.h"
 #include "cursor.h"
+#include "cursorstr.h"
 #include "dix.h"
 #include "dixevents.h"
 #include "dixfont.h"
@@ -168,6 +169,7 @@ LOOKUP dixLookupTab[] = {
     SYMFUNC(PointerConfinedToScreen)
     SYMFUNC(TryClientEvents)
     SYMFUNC(WriteEventsToClient)
+    SYMFUNC(GetCurrentRootWindow)
     SYMFUNC(GetSpritePosition)
     SYMFUNC(GetSpriteWindow)
     SYMFUNC(GetSpriteCursor)
@@ -187,6 +189,10 @@ LOOKUP dixLookupTab[] = {
     SYMFUNC(DeclareExtensionSecurity)
     SYMFUNC(MinorOpcodeOfRequest)
     SYMFUNC(StandardMinorOpcode)
+#ifdef XEVIE
+    SYMVAR(xeviehot)
+    SYMVAR(xeviewin)
+#endif
     /* gc.c */
     SYMFUNC(CopyGC)
     SYMFUNC(CreateGC)
@@ -252,6 +258,8 @@ LOOKUP dixLookupTab[] = {
     SYMFUNC(AllocateWindowPrivateIndex)
     SYMFUNC(AllocateScreenPrivateIndex)
     SYMFUNC(AllocateColormapPrivateIndex)
+    SYMFUNC(AllocateDevicePrivateIndex)
+    SYMFUNC(AllocateDevicePrivate)
 #ifdef PIXPRIV
     SYMFUNC(AllocatePixmapPrivateIndex)
     SYMFUNC(AllocatePixmapPrivate)

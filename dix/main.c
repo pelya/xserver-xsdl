@@ -362,6 +362,7 @@ main(int argc, char *argv[], char *envp[])
 #endif
 	ResetColormapPrivates();
 	ResetFontPrivateIndex();
+	ResetDevicePrivateIndex();
 	InitCallbackManager();
 	InitVisualWrap();
 	InitOutput(&screenInfo, argc, argv);

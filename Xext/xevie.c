@@ -1,6 +1,6 @@
 /************************************************************
 
-Copyright 2003 Sun Microsystems, Inc.
+Copyright 2003-2005 Sun Microsystems, Inc.
 
 All rights reserved.
 
@@ -30,6 +30,7 @@ or other dealings in this Software without prior written authorization
 of the copyright holder.
 
 ************************************************************/
+/* $XdotOrg: $ */
 
 #define NEED_REPLIES
 #define NEED_EVENTS
@@ -45,6 +46,10 @@ of the copyright holder.
 #include <X11/extensions/Xeviestr.h>
 #include <X11/Xfuncproto.h>
 #include "input.h"
+#include "inputstr.h"
+#include "windowstr.h"
+#include "cursorstr.h"
+#include <X11/extensions/XKBsrv.h>
 
 #include "../os/osdep.h"
 
@@ -66,6 +71,12 @@ DeviceIntPtr		xeviemouse = NULL;
 Mask			xevieMask = 0;
 int       		xevieEventSent = 0;
 int			xevieKBEventSent = 0;
+static unsigned int             xevieServerGeneration;
+static int                      xevieDevicePrivateIndex;
+static Bool                     xevieModifiersOn = FALSE;
+
+#define XEVIEINFO(dev)  ((xevieDeviceInfoPtr)dev->devPrivates[xevieDevicePrivateIndex].ptr)
+
 Mask xevieFilters[128] = 
 {
         NoSuchEvent,                   /* 0 */
@@ -77,17 +88,52 @@ Mask xevieFilters[128] =
         PointerMotionMask              /* MotionNotify (initial state) */
 };
 
+typedef struct {
+    ProcessInputProc processInputProc;
+    ProcessInputProc realInputProc;
+    DeviceUnwrapProc unwrapProc;
+} xevieDeviceInfoRec, *xevieDeviceInfoPtr;
+
+typedef struct {
+    CARD32 time;
+    KeyClassPtr keyc;
+} xevieKeycQueueRec, *xevieKeycQueuePtr;
+
+#define KEYC_QUEUE_SIZE	    100
+xevieKeycQueueRec keycq[KEYC_QUEUE_SIZE] = {0, NULL};
+static int keycqHead = 0, keycqTail = 0;
+
+static int              ProcDispatch (ClientPtr), SProcDispatch (ClientPtr);
+static void             ResetProc (ExtensionEntry*);
+
+static int              ErrorBase;
+
+static Bool XevieStart(void);
 static void XevieEnd(int clientIndex);
 static void XevieClientStateCallback(CallbackListPtr *pcbl, pointer nulldata,
-                                   pointer calldata);
+                                    pointer calldata);
 static void XevieServerGrabStateCallback(CallbackListPtr *pcbl,
-                                   pointer nulldata,
-                                   pointer calldata);
+                                         pointer nulldata,
+                                         pointer calldata);
+
+static Bool XevieAdd(DeviceIntPtr device, pointer data);
+static void XevieWrap(DeviceIntPtr device, ProcessInputProc proc);
+static Bool XevieRemove(DeviceIntPtr device, pointer data);
+static void doSendEvent(xEvent *xE, DeviceIntPtr device);
+static void XeviePointerProcessInputProc(xEvent *xE, DeviceIntPtr dev,
+                                         int count);
+static void XevieKbdProcessInputProc(xEvent *xE, DeviceIntPtr dev, int count);
 
 void
 XevieExtensionInit ()
 {
     ExtensionEntry* extEntry;
+
+    if (serverGeneration != xevieServerGeneration) {
+        if ((xevieDevicePrivateIndex = AllocateDevicePrivateIndex()) == -1)
+            return;
+        xevieServerGeneration = serverGeneration;
+    }
 
     if (!AddCallback(&ServerGrabCallback,XevieServerGrabStateCallback,NULL))
        return;
@@ -147,10 +193,25 @@ int ProcStart (client)
            xevieFlag = 1;
            rep.pad1 = 1;
            xevieClientIndex = client->index;
+	   if(!keycq[0].time ) {
+		int i;
+		for(i=0; i<KEYC_QUEUE_SIZE; i++) {
+		    keycq[i].keyc = xalloc(sizeof(KeyClassRec));	
+		    keycq[i].keyc->xkbInfo = xalloc(sizeof(XkbSrvInfoRec));
+		}
+	   }
         } else
            return BadAlloc;
     } else
         return BadAccess;
+    if (!noXkbExtension) {
+	if (!XevieStart()) {
+            DeleteCallback(&ClientStateCallback,XevieClientStateCallback,NULL);
+            return BadAlloc;
+        }
+    }
+    
+    xevieModifiersOn = FALSE;
 
     rep.type = X_Reply;
     rep.sequence_number = client->sequence;
@@ -164,7 +225,13 @@ int ProcEnd (client)
 {
     xXevieEndReply rep;
 
-    XevieEnd(xevieClientIndex);
+    if (xevieFlag) {
+        if (client->index != xevieClientIndex)
+            return BadAccess;
+
+        DeleteCallback(&ClientStateCallback,XevieClientStateCallback,NULL);
+        XevieEnd(xevieClientIndex);
+    }
 
     rep.type = X_Reply;
     rep.sequence_number = client->sequence;
@@ -182,6 +249,9 @@ int ProcSend (client)
     OsCommPtr oc;
     static unsigned char lastDetail = 0, lastType = 0;
 
+    if (client->index != xevieClientIndex)
+        return BadAccess;
+
     xE = (xEvent *)&stuff->event;
     rep.type = X_Reply;
     rep.sequence_number = client->sequence;
@@ -191,16 +261,19 @@ int ProcSend (client)
 	case KeyPress:
         case KeyRelease:
 	  xevieKBEventSent = 1;
-#ifdef XKB
           if(noXkbExtension)
-#endif
             CoreProcessKeyboardEvent (xE, xeviekb, 1);
+	  else 
+	    doSendEvent(xE, inputInfo.keyboard);
 	  break;
 	case ButtonPress:
 	case ButtonRelease:
 	case MotionNotify:
 	  xevieEventSent = 1;
-	  CoreProcessPointerEvent(xE, xeviemouse, 1); 
+	  if(noXkbExtension)
+	    CoreProcessPointerEvent(xE, xeviemouse, 1); 
+	  else
+	    doSendEvent(xE, inputInfo.pointer);
 	  break; 
 	default:
 	  break;
@@ -216,6 +289,9 @@ int ProcSelectInput (client)
 {
     REQUEST (xXevieSelectInputReq);
     xXevieSelectInputReply rep;
+
+    if (client->index != xevieClientIndex)
+        return BadAccess;
 
     xevieMask = (long)stuff->event_mask;
     rep.type = X_Reply;
@@ -335,11 +411,154 @@ int SProcDispatch (client)
 	return BadRequest;
     }
 }
+/*======================================================*/
+
+#define WRAP_INPUTPROC(dev,store,inputProc) \
+   store->processInputProc = dev->public.processInputProc; \
+   dev->public.processInputProc = inputProc; \
+   store->realInputProc = dev->public.realInputProc; \
+   dev->public.realInputProc = inputProc;
+
+#define COND_WRAP_INPUTPROC(dev,store,inputProc) \
+   if (dev->public.processInputProc == dev->public.realInputProc) \
+          dev->public.processInputProc = inputProc; \
+   store->processInputProc =  \
+   store->realInputProc = dev->public.realInputProc; \
+   dev->public.realInputProc = inputProc;
+
+#define UNWRAP_INPUTPROC(dev,restore) \
+   dev->public.processInputProc = restore->processInputProc; \
+   dev->public.realInputProc = restore->realInputProc;
+
+#define UNWRAP_INPUTPROC(dev,restore) \
+   dev->public.processInputProc = restore->processInputProc; \
+   dev->public.realInputProc = restore->realInputProc;
+
+#define XEVIE_EVENT(xE) \
+      (xevieFlag \
+       && !xeviegrabState \
+       && clients[xevieClientIndex] \
+       && (xevieMask & xevieFilters[xE->u.u.type]))
+
+
+static void
+sendEvent(ClientPtr pClient, xEvent *xE)
+{
+    if(pClient->swapped) {
+        xEvent    eventTo;
+
+        /* Remember to strip off the leading bit of type in case
+           this event was sent with "SendEvent." */
+        (*EventSwapVector[xE->u.u.type & 0177]) (xE, &eventTo);
+        (void)WriteToClient(pClient, sizeof(xEvent), (char *)&eventTo);
+    } else {
+        (void)WriteToClient(pClient, sizeof(xEvent), (char *) xE);
+    }
+}
+
+static void
+XevieKbdProcessInputProc(xEvent *xE, DeviceIntPtr dev, int count)
+{
+    int             key, bit;
+    BYTE   *kptr;
+    ProcessInputProc tmp;
+    KeyClassPtr keyc = dev->key;
+    xevieDeviceInfoPtr xeviep = XEVIEINFO(dev);
+
+    if(XEVIE_EVENT(xE)) {
+        key = xE->u.u.detail;
+        kptr = &keyc->down[key >> 3];
+        bit = 1 << (key & 7);
+
+	if (dev->key->modifierMap[xE->u.u.detail])
+            xevieModifiersOn = TRUE;
+
+        xE->u.keyButtonPointer.event = xeviewin->drawable.id;
+        xE->u.keyButtonPointer.root = GetCurrentRootWindow()->drawable.id;
+        xE->u.keyButtonPointer.child = (xeviewin->firstChild)
+            ? xeviewin->firstChild->drawable.id:0;
+        xE->u.keyButtonPointer.rootX = xeviehot.x;
+        xE->u.keyButtonPointer.rootY = xeviehot.y;
+        xE->u.keyButtonPointer.state = keyc->state | inputInfo.pointer->button->state;
+        /* fix bug: sequence lost in Xlib */
+        xE->u.u.sequenceNumber = clients[xevieClientIndex]->sequence;
+	/* fix for bug5092586 */
+	if(!noXkbExtension) {
+          switch(xE->u.u.type) {
+	    case KeyPress: *kptr |= bit; break;
+	    case KeyRelease: *kptr &= ~bit; break;
+	  }
+	}
+	keycq[keycqHead].time = xE->u.keyButtonPointer.time;
+	memcpy(keycq[keycqHead].keyc, keyc, sizeof(KeyClassRec) - sizeof(KeyClassPtr));
+	memcpy(keycq[keycqHead].keyc->xkbInfo, keyc->xkbInfo, sizeof(XkbSrvInfoRec));
+	if(++keycqHead >=KEYC_QUEUE_SIZE)
+	    keycqHead = 0;
+        sendEvent(clients[xevieClientIndex], xE);
+        return;
+    }
+
+    tmp = dev->public.realInputProc;
+    UNWRAP_INPUTPROC(dev,xeviep);
+    dev->public.processInputProc(xE,dev,count);
+    COND_WRAP_INPUTPROC(dev,xeviep,tmp);
+}
+
+static void
+XeviePointerProcessInputProc(xEvent *xE, DeviceIntPtr dev, int count)
+{
+    xevieDeviceInfoPtr xeviep = XEVIEINFO(dev);
+    ProcessInputProc tmp;
+
+    if (XEVIE_EVENT(xE)) {
+        /* fix bug: sequence lost in Xlib */
+        xE->u.u.sequenceNumber = clients[xevieClientIndex]->sequence;
+        sendEvent(clients[xevieClientIndex], xE);
+        return;
+    }
+
+    tmp = dev->public.realInputProc;
+    UNWRAP_INPUTPROC(dev,xeviep);
+    dev->public.processInputProc(xE,dev,count);
+    COND_WRAP_INPUTPROC(dev,xeviep,tmp);
+}
+
+static Bool
+XevieStart(void)
+{
+    ProcessInputProc prp;
+    prp = XevieKbdProcessInputProc;
+    if (!XevieAdd(inputInfo.keyboard,&prp))
+        return FALSE;
+    prp = XeviePointerProcessInputProc;
+    if (!XevieAdd(inputInfo.pointer,&prp))
+        return FALSE;
+
+    return TRUE;
+}
+
 
 static void
 XevieEnd(int clientIndex)
 {
     if (!clientIndex || clientIndex == xevieClientIndex) {
+
+       if(!noXkbExtension) {
+
+	   XevieRemove(inputInfo.keyboard,NULL);
+
+	   inputInfo.keyboard->public.processInputProc = CoreProcessKeyboardEvent;
+           inputInfo.keyboard->public.realInputProc = CoreProcessKeyboardEvent;
+           XkbSetExtension(inputInfo.keyboard,ProcessKeyboardEvent);
+
+
+           XevieRemove(inputInfo.pointer,NULL);
+
+	   inputInfo.pointer->public.processInputProc = CoreProcessPointerEvent;
+           inputInfo.pointer->public.realInputProc = CoreProcessPointerEvent;
+           XkbSetExtension(inputInfo.pointer,ProcessPointerEvent);
+       }
+
        xevieFlag = 0;
        xevieClientIndex = 0;
        DeleteCallback (&ClientStateCallback, XevieClientStateCallback, NULL);
@@ -368,4 +587,125 @@ XevieServerGrabStateCallback(CallbackListPtr *pcbl, pointer nulldata,
        xeviegrabState = FALSE;
 }
 
+#define UNWRAP_UNWRAPPROC(device,proc_store) \
+    device->unwrapProc = proc_store;
+
+#define WRAP_UNWRAPPROC(device,proc_store,proc) \
+    proc_store = device->unwrapProc; \
+    device->unwrapProc = proc;
+
+static void
+xevieUnwrapProc(DeviceIntPtr device, DeviceHandleProc proc, pointer data)
+{
+    xevieDeviceInfoPtr xeviep = XEVIEINFO(device);
+    ProcessInputProc tmp = device->public.processInputProc;
+
+    UNWRAP_INPUTPROC(device,xeviep);
+    UNWRAP_UNWRAPPROC(device,xeviep->unwrapProc);
+    proc(device,data);
+    WRAP_INPUTPROC(device,xeviep,tmp);
+    WRAP_UNWRAPPROC(device,xeviep->unwrapProc,xevieUnwrapProc);
+}
+
+static Bool
+XevieUnwrapAdd(DeviceIntPtr device, void* data)
+{
+    if (device->unwrapProc)
+        device->unwrapProc(device,XevieUnwrapAdd,data);
+    else {
+        ProcessInputProc *ptr = data;
+        XevieWrap(device,*ptr);
+    }
+
+    return TRUE;
+}
+
+static Bool
+XevieAdd(DeviceIntPtr device, void* data)
+{
+    xevieDeviceInfoPtr xeviep;
+
+    if (!AllocateDevicePrivate(device, xevieDevicePrivateIndex))
+        return FALSE;
+
+    xeviep = xalloc (sizeof (xevieDeviceInfoRec));
+    if (!xeviep)
+            return FALSE;
+
+    device->devPrivates[xevieDevicePrivateIndex].ptr = xeviep;
+    XevieUnwrapAdd(device, data);
+
+    return TRUE;
+}
+
+static Bool
+XevieRemove(DeviceIntPtr device,pointer data)
+{
+    xevieDeviceInfoPtr xeviep = XEVIEINFO(device);
+
+    if (!xeviep) return TRUE;
+
+    UNWRAP_INPUTPROC(device,xeviep);
+    UNWRAP_UNWRAPPROC(device,xeviep->unwrapProc);
+
+    xfree(xeviep);
+    device->devPrivates[xevieDevicePrivateIndex].ptr = NULL;
+    return TRUE;
+}
+
+static void
+XevieWrap(DeviceIntPtr device, ProcessInputProc proc)
+{
+    xevieDeviceInfoPtr xeviep = XEVIEINFO(device);
+
+    WRAP_INPUTPROC(device,xeviep,proc);
+    WRAP_UNWRAPPROC(device,xeviep->unwrapProc,xevieUnwrapProc);
+}
+
+static void
+doSendEvent(xEvent *xE, DeviceIntPtr dev)
+{
+    xevieDeviceInfoPtr xeviep = XEVIEINFO(dev);
+    ProcessInputProc tmp = dev->public.realInputProc;
+    if (((xE->u.u.type==KeyPress)||(xE->u.u.type==KeyRelease))
+        && !xevieModifiersOn) {
+	KeyClassPtr keyc =  dev->key;
+        CARD8 realModes = dev->key->modifierMap[xE->u.u.detail];
+	int notFound = 0;
+	/* if some events are consumed by client, move the queue tail pointer to the current 
+           event which just comes back from Xevie client . 
+	*/
+        if(keycq[keycqTail].time != xE->u.keyButtonPointer.time) {
+	    while(keycq[keycqTail].time != xE->u.keyButtonPointer.time) {
+		if(++keycqTail >= KEYC_QUEUE_SIZE)
+		    keycqTail = 0;
+		if(keycqTail == keycqHead) {
+		    notFound = 1;
+		    break;
+		}
+	    }
+	}
+	if(!notFound) {
+	    dev->key = keycq[keycqTail].keyc;
+	    if(++keycqTail >= KEYC_QUEUE_SIZE)
+	        keycqTail = 0;
+	}
+        dev->key->modifierMap[xE->u.u.detail] = 0;  
+
+        UNWRAP_INPUTPROC(dev,xeviep);
+        dev->public.processInputProc(xE,dev,1);
+        COND_WRAP_INPUTPROC(dev,xeviep,tmp);
+        dev->key->modifierMap[xE->u.u.detail] = realModes;
+	dev->key = keyc;
+	if(notFound) {
+	    DeleteCallback(&ClientStateCallback,XevieClientStateCallback,NULL);
+            XevieEnd(xevieClientIndex);
+	    ErrorF("Error: Xevie keyc queue size is not enough, disable Xevie\n");
+	}	
+    } else {
+        UNWRAP_INPUTPROC(dev,xeviep);
+        dev->public.processInputProc(xE,dev,1);
+        COND_WRAP_INPUTPROC(dev,xeviep,tmp);
+    }
+}
 

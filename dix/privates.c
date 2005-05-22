@@ -1,4 +1,5 @@
 /* $Xorg: privates.c,v 1.4 2001/02/09 02:04:40 xorgcvs Exp $ */
+/* $XdotOrg: $ */
 /*
 
 Copyright 1993, 1998  The Open Group
@@ -39,6 +40,7 @@ from The Open Group.
 #include "colormapst.h"
 #include "servermd.h"
 #include "site.h"
+#include "inputstr.h"
 
 /*
  *  See the Wrappers and devPrivates section in "Definition of the
@@ -353,4 +355,40 @@ AllocateColormapPrivateIndex (InitCmapPrivFunc initPrivFunc)
     }
 
     return index;
+}
+
+/*
+ *  device private machinery
+ */
+
+static int devicePrivateIndex = 0;
+
+int
+AllocateDevicePrivateIndex()
+{
+    return devicePrivateIndex++;
+}
+
+Bool
+AllocateDevicePrivate(DeviceIntPtr device, int index)
+{
+    if (device->nPrivates < ++index) {
+	DevUnion *nprivs = (DevUnion *) xrealloc(device->devPrivates,
+						 index * sizeof(DevUnion));
+	if (!nprivs)
+	    return FALSE;
+	device->devPrivates = nprivs;
+	bzero(&nprivs[device->nPrivates], sizeof(DevUnion)
+	      * (index - device->nPrivates));
+	device->nPrivates = index;
+	return TRUE;
+    } else {
+	return TRUE;
+    }
+}
+
+void
+ResetDevicePrivateIndex(void)
+{
+    devicePrivateIndex = 0;
 }
