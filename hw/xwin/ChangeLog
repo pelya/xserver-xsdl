@@ -1,3 +1,9 @@
+2005-05-25  Alexander Gottwald  <ago at freedesktop dot org>
+
+	* win.h:
+	* winmultiwindowwm.c:
+	Workaround bug in pthread.h
+
 2005-05-08  Alexander Gottwald  <ago at freedesktop dot org>
 
 	* winmultiwindowwndproc.c:

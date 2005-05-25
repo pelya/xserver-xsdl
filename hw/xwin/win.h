@@ -141,8 +141,10 @@
 #include <stdio.h>
 
 #include <errno.h>
-#if defined(XWIN_MULTIWINDOWEXTWM) || defined(XWIN_CLIPBOARD) || defined(XWIN_MULTIWINDOW) 
+#if defined(XWIN_MULTIWINDOWEXTWM) || defined(XWIN_CLIPBOARD) || defined(XWIN_MULTIWINDOW)
+#define HANDLE void *
 #include <pthread.h>
+#undef HANDLE
 #endif
 
 #ifdef HAS_MMAP

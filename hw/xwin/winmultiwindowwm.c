@@ -38,7 +38,9 @@
 #endif
 #include <fcntl.h>
 #include <setjmp.h>
+#define HANDLE void *
 #include <pthread.h>
+#undef HANDLE
 #include <X11/X.h>
 #include <X11/Xatom.h>
 #include <X11/Xlib.h>
