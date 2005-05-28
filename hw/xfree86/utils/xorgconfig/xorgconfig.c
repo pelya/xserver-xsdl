@@ -128,14 +128,6 @@ static int getuid() { return 0; }
 #define XFREE86_VERSION 400
 
 /*
- * This is the filename of the temporary XF86Config file that is written
- * when the program is told to probe clocks (which can only happen for
- * root).
- */
-#define TEMPORARY_XF86CONFIG_DIR_PREFIX "/tmp/.xf86config"
-#define TEMPORARY_XF86CONFIG_FILENAME "XF86Config.tmp"
-
-/*
  * Define this to have /etc/X11/XF86Config prompted for as the default
  * location to write the XF86Config file to.
  */
@@ -155,11 +147,6 @@ static int getuid() { return 0; }
 
 #define DUMBCONFIG2 "dumbconfig.2"
 #define DUMBCONFIG3 "dumbconfig.3"
-#ifndef __UNIXOS2__
-#define XSERVERNAME_FOR_PROBE "X"
-#else
-#define XSERVERNAME_FOR_PROBE "/usr/X11R6/bin/"__XSERVERNAME__
-#endif
 
 /* some more vars to make path names in texts more flexible. OS/2 users
  * may be more irritated than Unix users
@@ -182,10 +169,24 @@ static int getuid() { return 0; }
 #endif
 #define MODULEPATH		TREEROOT "/lib/modules"
 
+#ifndef __UNIXOS2__
+#define XSERVERNAME_FOR_PROBE "X"
+#else
+#define XSERVERNAME_FOR_PROBE PROJECTROOT"/bin/"__XSERVERNAME__
+#endif
+
 #ifndef XCONFIGFILE
 #define XCONFIGFILE		"XF86Config"
 #endif
 #define CONFIGNAME		XCONFIGFILE
+
+/*
+ * This is the filename of the temporary XF86Config file that is written
+ * when the program is told to probe clocks (which can only happen for
+ * root).
+ */
+#define TEMPORARY_XF86CONFIG_DIR_PREFIX "/tmp/."XCONFIGFILE
+#define TEMPORARY_XF86CONFIG_FILENAME XCONFIGFILE".tmp"
 
 #ifndef XF86_VERSION_MAJOR
 #ifdef XVERSION
