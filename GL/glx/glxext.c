@@ -221,15 +221,9 @@ void GlxExtensionInit(void)
     ExtensionEntry *extEntry;
     int i;
     
-#ifdef X11R5
-    __glXContextRes = CreateNewResourceType(ContextGone);
-    __glXClientRes = CreateNewResourceType(ClientGone);
-    __glXPixmapRes = CreateNewResourceType(PixmapGone);
-#else
     __glXContextRes = CreateNewResourceType((DeleteType)ContextGone);
     __glXClientRes = CreateNewResourceType((DeleteType)ClientGone);
     __glXPixmapRes = CreateNewResourceType((DeleteType)PixmapGone);
-#endif 
 
     /*
     ** Add extension to server extensions.
