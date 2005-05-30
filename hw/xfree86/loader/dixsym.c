@@ -126,6 +126,9 @@ LOOKUP dixLookupTab[] = {
     SYMFUNC(InitKeyClassDeviceStruct)
     SYMFUNC(InitKeyboardDeviceStruct)
     SYMFUNC(SendMappingNotify)
+    SYMFUNC(InitPointerDeviceStruct)
+    SYMFUNC(LookupKeyboardDevice)
+    SYMFUNC(LookupPointerDevice)
     /* dispatch.c */
     SYMFUNC(SetInputCheck)
     SYMFUNC(SendErrorToClient)
@@ -173,12 +176,13 @@ LOOKUP dixLookupTab[] = {
     SYMFUNC(GetSpritePosition)
     SYMFUNC(GetSpriteWindow)
     SYMFUNC(GetSpriteCursor)
+    SYMFUNC(WindowsRestructured)
     SYMVAR(DeviceEventCallback)
     SYMVAR(EventCallback)
     SYMVAR(inputInfo)
-    SYMVAR(SetCriticalEvent)
+    SYMFUNC(SetCriticalEvent)
 #ifdef PANORAMIX
-    SYMVAR(XineramaGetCursorScreen)
+    SYMFUNC(XineramaGetCursorScreen)
 #endif
     /* property.c */
     SYMFUNC(ChangeWindowProperty)
@@ -208,6 +212,7 @@ LOOKUP dixLookupTab[] = {
     SYMFUNC(VerifyRectOrder)
     SYMFUNC(SetDashes)
     /* globals.c */
+    SYMVAR(ScreenSaverTime)
 #ifdef DPMSExtension
     SYMVAR(DPMSEnabled)
     SYMVAR(DPMSCapableFlag)
@@ -244,11 +249,11 @@ LOOKUP dixLookupTab[] = {
     SYMVAR(serverGeneration)
     /* main.c */
     SYMFUNC(NotImplemented)
+    SYMVAR(PixmapWidthPaddingInfo)
     /* pixmap.c */
     SYMFUNC(AllocatePixmap)
     SYMFUNC(GetScratchPixmapHeader)
     SYMFUNC(FreeScratchPixmapHeader)
-    SYMVAR(PixmapWidthPaddingInfo)
     /* privates.c */
     SYMFUNC(AllocateClientPrivate)
     SYMFUNC(AllocateClientPrivateIndex)
@@ -294,9 +299,9 @@ LOOKUP dixLookupTab[] = {
     SYMFUNC(Swap32Write)
     SYMFUNC(SwapConnSetupInfo)
     SYMFUNC(SwapConnSetupPrefix)
+    /* swapreq.c */
     SYMFUNC(SwapShorts)
     SYMFUNC(SwapLongs)
-    /* swapreq.c */
     SYMFUNC(SwapColorItem)
     /* tables.c */
     SYMVAR(EventSwapVector)
@@ -321,7 +326,6 @@ LOOKUP dixLookupTab[] = {
     SYMFUNC(TraverseTree)
     SYMFUNC(UnmapWindow)
     SYMFUNC(WalkTree)
-    SYMFUNC(WindowsRestructured)
     SYMVAR(deltaSaveUndersViewable)
     SYMVAR(numSaveUndersViewable)
     SYMVAR(savedScreenInfo)
@@ -464,7 +468,6 @@ LOOKUP dixLookupTab[] = {
     SYMFUNC(Xfree)
     SYMFUNC(Xrealloc)
     /* WaitFor.c */
-    SYMFUNC(ScreenSaverTime)
     SYMFUNC(TimerFree)
     SYMFUNC(TimerSet)
     SYMFUNC(TimerCancel)
@@ -487,11 +490,6 @@ LOOKUP dixLookupTab[] = {
     SYMFUNC(MakeClientGrabImpervious)
     SYMVAR(GrabInProgress)
 
-    /* devices.c */
-    SYMFUNC(InitPointerDeviceStruct)
-    SYMFUNC(LookupKeyboardDevice)
-    SYMFUNC(LookupPointerDevice)
-
 #ifdef XKB
     /* xkb/xkbInit.c */
     SYMFUNC(XkbInitKeyboardDeviceStruct)
@@ -513,17 +511,23 @@ LOOKUP dixLookupTab[] = {
 
     /* librender.a */
 #ifdef RENDER
+    /* picture.c */
     SYMFUNC(PictureInit)
-    SYMFUNC(miPictureInit)
-    SYMFUNC(miComputeCompositeRegion)
-    SYMFUNC(miGlyphs)
-    SYMFUNC(miCompositeRects)
-    SYMVAR(PictureScreenPrivateIndex)
     SYMFUNC(PictureTransformPoint)
-    SYMFUNC(PictureAddFilter)
-    SYMFUNC(PictureSetFilterAlias)
     SYMFUNC(PictureGetSubpixelOrder)
     SYMFUNC(PictureSetSubpixelOrder)
+    SYMVAR(PictureScreenPrivateIndex)
+    /* mipict.c */
+    SYMFUNC(miPictureInit)
+    SYMFUNC(miComputeCompositeRegion)
+    /* miglyph.c */
+    SYMFUNC(miGlyphs)
+    /* mirect.c */
+    SYMFUNC(miCompositeRects)
+    /* filter.c */
+    SYMFUNC(PictureAddFilter)
+    SYMFUNC(PictureSetFilterAlias)
+    /* renderedge.c */
     SYMFUNC(RenderSampleCeilY)
     SYMFUNC(RenderSampleFloorY)
     SYMFUNC(RenderEdgeStep)
