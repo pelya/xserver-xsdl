@@ -41,8 +41,6 @@ extern HWND			g_hDlgExit;
 extern HWND			g_hDlgAbout;
 
 
-Bool winInBlockHandler = FALSE;
-
 /* See Porting Layer Definition - p. 6 */
 void
 winBlockHandler (int nScreen,
@@ -89,9 +87,6 @@ winBlockHandler (int nScreen,
 winBlockHandler_ProcessMessages:
 #endif
 
-
-
-  winInBlockHandler = TRUE;
   /* Process all messages on our queue */
   while (PeekMessage (&msg, NULL, 0, 0, PM_REMOVE))
     {
@@ -105,5 +100,4 @@ winBlockHandler_ProcessMessages:
 	  DispatchMessage (&msg);
 	}
     }
-  winInBlockHandler = FALSE;
 }

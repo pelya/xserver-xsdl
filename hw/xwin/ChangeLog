@@ -1,3 +1,9 @@
+2005-06-03  Alexander Gottwald  <ago at freedesktop dot org>
+
+	* winmultiwindowwndproc.c:
+	* winblock.c:
+	Backout last winRaiseWindow patch which caused stacking problems
+
 2005-05-25  Alexander Gottwald  <ago at freedesktop dot org>
 
 	* win.h:
