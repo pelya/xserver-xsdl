@@ -503,6 +503,9 @@ vuidMouseProc(DeviceIntPtr pPointer, int what)
 			pInfo->name, strerror(errno));
 	    }
 	    vuidMouseWheelInit(pInfo);
+#ifdef HAVE_ABSOLUTE_MOUSE_SCALING	    
+	    vuidMouseSendScreenSize(screenInfo.screens[0], pVuidMse);
+#endif	    
 	    xf86FlushInput(pInfo->fd);
 	}
 	break;
