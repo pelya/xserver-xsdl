@@ -514,6 +514,7 @@ xeglScreenInit (int	  index,
 	softCursor = TRUE;
 #endif
     miDCInitialize (pScreen, &xeglPointerScreenFuncs);
+    miCreateDefColormap (pScreen);
 
 //  miPointerInitialize(pScreen, &eglPointerSpriteFuncs,
 //    &kdPointerScreenFuncs, FALSE);
