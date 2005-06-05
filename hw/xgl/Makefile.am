@@ -1,4 +1,4 @@
-SUBDIRS = . $(XGLX_DIRS)
+SUBDIRS = . $(XGLX_DIRS) $(XEGL_DIRS)
 
 INCLUDES =		   \
 	@XGL_INCS@	   \
