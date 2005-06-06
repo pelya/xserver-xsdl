@@ -153,11 +153,9 @@ EvdevRead (int evdevPort, void *closure)
             ErrorF("Flags is %x\n", flags);
 	    break;
 	case EV_REL:
-            ErrorF("EV_REL\n");
 	    ke->rel[events[i].code] += events[i].value;
 	    break;
 	case EV_ABS:
-            ErrorF("EV_ABS\n");
 	    ke->abs[events[i].code] = events[i].value;
 	    break;
 	}
@@ -328,137 +326,123 @@ KdMouseFuncs LinuxEvdevMouseFuncs = {
 };
 
 
-static void EvdevKbdLoad(void)
-{
-}
+KeySym evdevKeymap[(112 - 1 + 1) * 2] = {
+/* These are directly mapped from DOS scanset 0 */
+/*      1     8 */       XK_Escape, NoSymbol,
+/*      2     9 */       XK_1,  XK_exclam,
+/*      3    10 */       XK_2,  XK_at,
+/*      4    11 */       XK_3,  XK_numbersign,
+/*      5    12 */       XK_4,  XK_dollar,
+/*      6    13 */       XK_5,  XK_percent,
+/*      7    14 */       XK_6,  XK_asciicircum,
+/*      8    15 */       XK_7,  XK_ampersand,
+/*      9    16 */       XK_8,  XK_asterisk,
+/*     10    17 */       XK_9,  XK_parenleft,
+/*     11    18 */       XK_0,  XK_parenright,
+/*     12    19 */       XK_minus,      XK_underscore,
+/*     13    20 */       XK_equal,      XK_plus,
+/*     14    21 */       XK_BackSpace,  NoSymbol,
+/*     15    22 */       XK_Tab,        NoSymbol,
+/*     16    23 */       XK_Q,  NoSymbol,
+/*     17    24 */       XK_W,  NoSymbol,
+/*     18    25 */       XK_E,  NoSymbol,
+/*     19    26 */       XK_R,  NoSymbol,
+/*     20    27 */       XK_T,  NoSymbol,
+/*     21    28 */       XK_Y,  NoSymbol,
+/*     22    29 */       XK_U,  NoSymbol,
+/*     23    30 */       XK_I,  NoSymbol,
+/*     24    31 */       XK_O,  NoSymbol,
+/*     25    32 */       XK_P,  NoSymbol,
+/*     26    33 */       XK_bracketleft,        XK_braceleft,
+/*     27    34 */       XK_bracketright,       XK_braceright,
+/*     28    35 */       XK_Return,     NoSymbol,
+/*     29    36 */       XK_Control_L,  NoSymbol,
+/*     30    37 */       XK_A,  NoSymbol,
+/*     31    38 */       XK_S,  NoSymbol,
+/*     32    39 */       XK_D,  NoSymbol,
+/*     33    40 */       XK_F,  NoSymbol,
+/*     34    41 */       XK_G,  NoSymbol,
+/*     35    42 */       XK_H,  NoSymbol,
+/*     36    43 */       XK_J,  NoSymbol,
+/*     37    44 */       XK_K,  NoSymbol,
+/*     38    45 */       XK_L,  NoSymbol,
+/*     39    46 */       XK_semicolon,  XK_colon,
+/*     40    47 */       XK_apostrophe, XK_quotedbl,
+/*     41    48 */       XK_grave,      XK_asciitilde,
+/*     42    49 */       XK_Shift_L,    NoSymbol,
+/*     43    50 */       XK_backslash,  XK_bar,
+/*     44    51 */       XK_Z,  NoSymbol,
+/*     45    52 */       XK_X,  NoSymbol,
+/*     46    53 */       XK_C,  NoSymbol,
+/*     47    54 */       XK_V,  NoSymbol,
+/*     48    55 */       XK_B,  NoSymbol,
+/*     49    56 */       XK_N,  NoSymbol,
+/*     50    57 */       XK_M,  NoSymbol,
+/*     51    58 */       XK_comma,      XK_less,
+/*     52    59 */       XK_period,     XK_greater,
+/*     53    60 */       XK_slash,      XK_question,
+/*     54    61 */       XK_Shift_R,    NoSymbol,
+/*     55    62 */       XK_KP_Multiply,        NoSymbol,
+/*     56    63 */       XK_Alt_L,      XK_Meta_L,
+/*     57    64 */       XK_space,      NoSymbol,
+/*     58    65 */       XK_Caps_Lock,  NoSymbol,
+/*     59    66 */       XK_F1, NoSymbol,
+/*     60    67 */       XK_F2, NoSymbol,
+/*     61    68 */       XK_F3, NoSymbol,
+/*     62    69 */       XK_F4, NoSymbol,
+/*     63    70 */       XK_F5, NoSymbol,
+/*     64    71 */       XK_F6, NoSymbol,
+/*     65    72 */       XK_F7, NoSymbol,
+/*     66    73 */       XK_F8, NoSymbol,
+/*     67    74 */       XK_F9, NoSymbol,
+/*     68    75 */       XK_F10,        NoSymbol,
+/*     69    76 */       XK_Break,      XK_Pause,
+/*     70    77 */       XK_Scroll_Lock,        NoSymbol,
+/*     71    78 */       XK_KP_Home,    XK_KP_7,
+/*     72    79 */       XK_KP_Up,      XK_KP_8,
+/*     73    80 */       XK_KP_Page_Up, XK_KP_9,
+/*     74    81 */       XK_KP_Subtract,        NoSymbol,
+/*     75    82 */       XK_KP_Left,    XK_KP_4,
+/*     76    83 */       XK_KP_5,       NoSymbol,
+/*     77    84 */       XK_KP_Right,   XK_KP_6,
+/*     78    85 */       XK_KP_Add,     NoSymbol,
+/*     79    86 */       XK_KP_End,     XK_KP_1,
+/*     80    87 */       XK_KP_Down,    XK_KP_2,
+/*     81    88 */       XK_KP_Page_Down,       XK_KP_3,
+/*     82    89 */       XK_KP_Insert,  XK_KP_0,
+/*     83    90 */       XK_KP_Delete,  XK_KP_Decimal,
+/*     84    91 */     NoSymbol,        NoSymbol,
+/*     85    92 */     NoSymbol,        NoSymbol,
+/*     86    93 */     NoSymbol,        NoSymbol,
+/*     87    94 */       XK_F11,        NoSymbol,
+/*     88    95 */       XK_F12,        NoSymbol,
 
-static const KeySym linux_to_x[128] = {
-/*KEY_RESERVED*/ NoSymbol,
-/*KEY_ESC*/ XK_Escape,
-/*KEY_1*/ XK_1,
-/*KEY_2*/ XK_2,
-/*KEY_3*/ XK_3,
-/*KEY_4*/ XK_4,
-/*KEY_5*/ XK_5,
-/*KEY_6*/ XK_6,
-/*KEY_7*/ XK_7,
-/*KEY_8*/ XK_8,
-/*KEY_9*/ XK_9,
-/*KEY_0*/ XK_0,
-/*KEY_MINUS*/ XK_minus,
-/*KEY_EQUAL*/ XK_equal,
-/*KEY_BACKSPACE*/ XK_BackSpace,
-/*KEY_TAB*/ XK_Tab,
-/*KEY_Q*/ XK_Q,
-/*KEY_W*/ XK_W,
-/*KEY_E*/ XK_E,
-/*KEY_R*/ XK_R,
-/*KEY_T*/ XK_T,
-/*KEY_Y*/ XK_Y,
-/*KEY_U*/ XK_U,
-/*KEY_I*/ XK_I,
-/*KEY_O*/ XK_O,
-/*KEY_P*/ XK_P,
-/*KEY_LEFTBRACE*/ XK_braceleft,
-/*KEY_RIGHTBRACE*/ XK_braceright,
-/*KEY_ENTER*/ XK_Return,
-/*KEY_LEFTCTRL*/ XK_Control_L,
-/*KEY_A*/ XK_A,
-/*KEY_S*/ XK_S,
-/*KEY_D*/ XK_D,
-/*KEY_F*/ XK_F,
-/*KEY_G*/ XK_G,
-/*KEY_H*/ XK_H,
-/*KEY_J*/ XK_J,
-/*KEY_K*/ XK_K,
-/*KEY_L*/ XK_L,
-/*KEY_SEMICOLON*/ XK_semicolon,
-/*KEY_APOSTROPHE*/ XK_apostrophe,
-/*KEY_GRAVE*/ XK_grave,
-/*KEY_LEFTSHIFT*/ XK_Shift_L,
-/*KEY_BACKSLASH*/ XK_backslash,
-/*KEY_Z*/ XK_Z,
-/*KEY_X*/ XK_X,
-/*KEY_C*/ XK_C,
-/*KEY_V*/ XK_V,
-/*KEY_B*/ XK_B,
-/*KEY_N*/ XK_N,
-/*KEY_M*/ XK_M,
-/*KEY_COMMA*/ XK_comma,
-/*KEY_DOT*/ XK_period,
-/*KEY_SLASH*/ XK_slash,
-/*KEY_RIGHTSHIFT*/ XK_Shift_R,
-/*KEY_KPASTERISK*/ XK_KP_Multiply,
-/*KEY_LEFTALT*/ XK_Alt_L,
-/*KEY_SPACE*/ XK_space,
-/*KEY_CAPSLOCK*/ XK_Caps_Lock,
-/*KEY_F1*/ XK_F1,
-/*KEY_F2*/ XK_F2,
-/*KEY_F3*/ XK_F3,
-/*KEY_F4*/ XK_F4,
-/*KEY_F5*/ XK_F5,
-/*KEY_F6*/ XK_F6,
-/*KEY_F7*/ XK_F7,
-/*KEY_F8*/ XK_F8,
-/*KEY_F9*/ XK_F9,
-/*KEY_F10*/ XK_F10,
-/*KEY_NUMLOCK*/ XK_Num_Lock,
-/*KEY_SCROLLLOCK*/ XK_Scroll_Lock,
-/*KEY_KP7*/ XK_KP_7,
-/*KEY_KP8*/ XK_KP_8,
-/*KEY_KP9*/ XK_KP_9,
-/*KEY_KPMINUS*/ XK_KP_Subtract,
-/*KEY_KP4*/ XK_KP_4,
-/*KEY_KP5*/ XK_KP_5,
-/*KEY_KP6*/ XK_KP_6,
-/*KEY_KPPLUS*/ XK_KP_Add,
-/*KEY_KP1*/ XK_KP_1,
-/*KEY_KP2*/ XK_KP_2,
-/*KEY_KP3*/ XK_KP_3,
-/*KEY_KP0*/ XK_KP_0,
-/*KEY_KPDOT*/ XK_KP_Decimal,
-/*KEY_ZENKAKUHANKAKU*/ NoSymbol,
-/*KEY_102ND*/ NoSymbol,
-/*KEY_F11*/ XK_F11,
-/*KEY_F12*/ XK_F12,
-/*KEY_RO*/ NoSymbol,
-/*KEY_KATAKANA*/ NoSymbol,
-/*KEY_HIRAGANA*/ NoSymbol,
-/*KEY_HENKAN*/ NoSymbol,
-/*KEY_KATAKANAHIRAGANA*/ NoSymbol,
-/*KEY_MUHENKAN*/ NoSymbol,
-/*KEY_KPJPCOMMA*/ NoSymbol,
-/*KEY_KPENTER*/ XK_KP_Enter,
-/*KEY_RIGHTCTRL*/ XK_Control_R,
-/*KEY_KPSLASH*/ XK_KP_Divide,
-/*KEY_SYSRQ*/ NoSymbol,
-/*KEY_RIGHTALT*/ XK_Alt_R,
-/*KEY_LINEFEED*/ XK_Linefeed,
-/*KEY_HOME*/ XK_Home,
-/*KEY_UP*/ XK_Up,
-/*KEY_PAGEUP*/ XK_Prior,
-/*KEY_LEFT*/ XK_Left,
-/*KEY_RIGHT*/ XK_Right,
-/*KEY_END*/ XK_End,
-/*KEY_DOWN*/ XK_Down,
-/*KEY_PAGEDOWN*/ XK_Next,
-/*KEY_INSERT*/ XK_Insert,
-/*KEY_DELETE*/ XK_Delete,
-/*KEY_MACRO*/ NoSymbol,
-/*KEY_MUTE*/ NoSymbol,
-/*KEY_VOLUMEDOWN*/ NoSymbol,
-/*KEY_VOLUMEUP*/ NoSymbol,
-/*KEY_POWER*/ NoSymbol,
-/*KEY_KPEQUAL*/ NoSymbol,
-/*KEY_KPPLUSMINUS*/ NoSymbol,
-/*KEY_PAUSE*/ NoSymbol,
-/*KEY_KPCOMMA*/ XK_KP_Separator,
-/*KEY_HANGUEL*/ NoSymbol,
-/*KEY_HANJA*/ NoSymbol,
-/*KEY_YEN*/ NoSymbol,
-/*KEY_LEFTMETA*/ NoSymbol,
-/*KEY_RIGHTMETA*/ NoSymbol,
-/*KEY_COMPOSE*/ NoSymbol,
+/* These are remapped from the extended set (using ExtendMap) */
+
+/*     89    96 */       XK_Control_R,  NoSymbol,
+/*     90    97 */       XK_KP_Enter,   NoSymbol,
+/*     91    98 */       XK_KP_Divide,  NoSymbol,
+/*     92    99 */       XK_Sys_Req,    XK_Print,
+/*     93   100 */       XK_Alt_R,      XK_Meta_R,
+/*     94   101 */       XK_Num_Lock,   NoSymbol,
+/*     95   102 */       XK_Home,       NoSymbol,
+/*     96   103 */       XK_Up,         NoSymbol,
+/*     97   104 */       XK_Page_Up,    NoSymbol,
+/*     98   105 */       XK_Left,       NoSymbol,
+/*     99   106 */       XK_Right,      NoSymbol,
+/*    100   107 */       XK_End,        NoSymbol,
+/*    101   108 */       XK_Down,       NoSymbol,
+/*    102   109 */       XK_Page_Down,  NoSymbol,
+/*    103   110 */       XK_Insert,     NoSymbol,
+/*    104   111 */       XK_Delete,     NoSymbol,
+/*    105   112 */       XK_Super_L,    NoSymbol,
+/*    106   113 */       XK_Super_R,    NoSymbol,
+/*    107   114 */       XK_Menu,       NoSymbol,
+/*    108   115 */       NoSymbol,      NoSymbol,
+/*    109   116 */       NoSymbol,      NoSymbol,
+/*    110   117 */       NoSymbol,      NoSymbol,
+/*    111   118 */       NoSymbol,      NoSymbol,
+/*    112   119 */       NoSymbol,      NoSymbol,
 };
 
 static void
@@ -477,18 +461,16 @@ EvdevRead1 (int evdevPort, void *closure)
         case EV_SYN:
             break;
         case EV_KEY:
-            xk = NoSymbol;
-            if (events[i].code < 128)
-                xk = linux_to_x[events[i].code];
+            xk = events[i].code;
             if (events[i].code < 0x100)
                 ErrorF ("key %d %d xk %d\n", events[i].code, events[i].value, xk);
             else
                 ErrorF ("key 0x%x %d xk %d\n", events[i].code, events[i].value, xk);
             if (events[i].value == 2) {
-                KdEnqueueKeyboardEvent (xk - KD_MIN_KEYCODE, 0);
-                KdEnqueueKeyboardEvent (xk - KD_MIN_KEYCODE, 1);
+                //KdEnqueueKeyboardEvent (xk, 0);
+                KdEnqueueKeyboardEvent (xk, 0);
             } else
-                KdEnqueueKeyboardEvent (xk - KD_MIN_KEYCODE, !events[i].value);
+                KdEnqueueKeyboardEvent (xk, !events[i].value);
             break;
         }
     }
@@ -512,9 +494,6 @@ EvdevKbdInit (void)
     int         fd;
     int         n = 0;
     char        name[100];
-
-    kdMinScanCode = 0;
-    kdMaxScanCode = 255;
 
     if (!EvdevInputType)
         EvdevInputType = KdAllocInputType ();
@@ -615,6 +594,14 @@ EvdevKbdInit (void)
         }
     }
     return TRUE;
+}
+
+static void EvdevKbdLoad(void)
+{
+    kdMinScanCode = 1;
+    kdMaxScanCode = 112;
+    kdKeymapWidth = 2;
+    memcpy (kdKeymap, evdevKeymap, sizeof (evdevKeymap));
 }
 
 static void
