@@ -159,9 +159,6 @@ xglScreenInit (ScreenPtr        pScreen,
     depth = pScreenPriv->pVisual->pPixel->depth;
     bpp   = pScreenPriv->pVisual->pPixel->masks.bpp;
 
-    if (!xglInitOffscreen (pScreen, pScreenInfo))
-	return FALSE;
-    
     xglInitPixmapFormats (pScreen);
     if (!pScreenPriv->pixmapFormats[depth].format)
 	return FALSE;
@@ -189,6 +186,8 @@ xglScreenInit (ScreenPtr        pScreen,
 			  GLITZ_DRAWABLE_BUFFER_FRONT_COLOR,
 			  0, 0);
 
+    pScreenPriv->backSurface = NULL;
+    
     if (monitorResolution == 0)
 	monitorResolution = XGL_DEFAULT_DPI;
 
@@ -365,7 +364,7 @@ xglCloseScreen (int	  index,
 {
     XGL_SCREEN_PRIV (pScreen);
     XGL_PIXMAP_PRIV (pScreenPriv->pScreenPixmap);
-    
+
 #ifdef RENDER
     int i;
     
@@ -386,10 +385,11 @@ xglCloseScreen (int	  index,
     if (pScreenPriv->solid)
 	glitz_surface_destroy (pScreenPriv->solid);
 
+    if (pScreenPriv->backSurface)
+	glitz_surface_destroy (pScreenPriv->backSurface);
+
     if (pScreenPriv->surface)
 	glitz_surface_destroy (pScreenPriv->surface);
-
-    xglFiniOffscreen (pScreen);
 
     GEOMETRY_UNINIT (&pScreenPriv->scratchGeometry);
 

@@ -73,8 +73,6 @@ xglSyncBits (DrawablePtr pDrawable,
     XGL_DRAWABLE_PIXMAP (pDrawable);
     XGL_PIXMAP_PRIV (pPixmap);
 
-    XGL_DECREMENT_PIXMAP_SCORE (pPixmapPriv, 20);
-    
     if (pPixmapPriv->allBits)
 	return xglMapPixmapBits (pPixmap);
 
@@ -295,20 +293,10 @@ xglPrepareTarget (DrawablePtr pDrawable)
 
     switch (pPixmapPriv->target) {
     case xglPixmapTargetNo:
+    case xglPixmapTargetOut:
 	break;
     case xglPixmapTargetIn:
-	XGL_INCREMENT_PIXMAP_SCORE (pPixmapPriv, 10);
-	
 	if (xglSyncSurface (pDrawable))
-	    return TRUE;
-	break;
-    case xglPixmapTargetOut:
-	XGL_INCREMENT_PIXMAP_SCORE (pPixmapPriv, 10);
-
-	if (pPixmapPriv->lock)
-	    return FALSE;
-	
-	if (xglFindOffscreenArea (pDrawable->pScreen, pPixmap))
 	    return TRUE;
 	break;
     }

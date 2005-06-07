@@ -45,6 +45,9 @@ xglGetImage (DrawablePtr   pDrawable,
     /* Many apps use GetImage to sync with the visable frame buffer */
     if (pDrawable->type == DRAWABLE_WINDOW)
     {
+	if (!xglSyncSurface (&pScreenPriv->pScreenPixmap->drawable))
+	    FatalError (XGL_SW_FAILURE_STRING);
+
 	glitz_surface_flush (pScreenPriv->surface);
 	glitz_drawable_finish (pScreenPriv->drawable);
     }

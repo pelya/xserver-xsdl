@@ -89,9 +89,6 @@ typedef struct _xglPixmapFormat {
 extern xglVisualPtr xglVisuals;
 extern int	    nxglVisuals;
 
-extern xglVisualPtr xglPbufferVisuals;
-extern int	    nxglPbufferVisuals;
-
 #define xglAreaAvailable 0
 #define xglAreaDivided   1
 #define xglAreaOccupied  2
@@ -201,25 +198,15 @@ extern int xglGlyphPrivateIndex;
 
 #endif
 
-#define XGL_MAX_OFFSCREEN_AREAS 8
-
-typedef struct _xglOffscreen {
-    xglRootAreaRec	    rootArea;
-    glitz_drawable_t	    *drawable;
-    glitz_drawable_format_t *format;
-    glitz_drawable_buffer_t buffer;
-} xglOffscreenRec, *xglOffscreenPtr;
-
 typedef struct _xglScreen {
     xglVisualPtr		  pVisual;
     xglPixmapFormatRec		  pixmapFormats[33];
     glitz_drawable_t		  *drawable;
     glitz_surface_t		  *surface;
+    glitz_surface_t		  *backSurface;
     glitz_surface_t		  *solid;
     PixmapPtr			  pScreenPixmap;
     unsigned long		  features;
-    xglOffscreenRec		  pOffscreen[XGL_MAX_OFFSCREEN_AREAS];
-    int				  nOffscreen;
     int				  geometryUsage;
     int				  geometryDataType;
     Bool			  yInverted;
@@ -264,7 +251,11 @@ typedef struct _xglScreen {
 #endif
 
     BSFuncRec			  BackingStoreFuncs;
-    
+
+#ifdef GLXEXT
+    DestroyWindowProcPtr	  DestroyWindow;
+#endif
+
 } xglScreenRec, *xglScreenPtr;
 
 extern int xglScreenPrivateIndex;
@@ -342,8 +333,6 @@ typedef struct _xglPixmap {
     glitz_surface_t   *surface;
     glitz_buffer_t    *buffer;
     int		      target;
-    xglAreaPtr	      pArea;
-    int		      score;
     Bool	      acceleratedTile;
     pointer	      bits;
     int		      stride;
@@ -436,23 +425,6 @@ extern int xglWinPrivateIndex;
 #define BOX_NOTEMPTY(pBox)	      \
     (((pBox)->x2 - (pBox)->x1) > 0 && \
      ((pBox)->y2 - (pBox)->y1) > 0)
-
-#define XGL_MAX_PIXMAP_SCORE  32768
-#define XGL_MIN_PIXMAP_SCORE -32768
-
-#define XGL_INCREMENT_PIXMAP_SCORE(pPixmapPriv, incr)	 \
-    {							 \
-	(pPixmapPriv)->score += (incr);			 \
-	if ((pPixmapPriv)->score > XGL_MAX_PIXMAP_SCORE) \
-	    (pPixmapPriv)->score = XGL_MAX_PIXMAP_SCORE; \
-    }
-
-#define XGL_DECREMENT_PIXMAP_SCORE(pPixmapPriv, decr)	 \
-    {							 \
-	(pPixmapPriv)->score -= (decr);			 \
-	if ((pPixmapPriv)->score < XGL_MIN_PIXMAP_SCORE) \
-	    (pPixmapPriv)->score = XGL_MIN_PIXMAP_SCORE; \
-    }
 
 
 /* xglinput.c */
@@ -572,23 +544,6 @@ xglFindArea (xglAreaPtr pArea,
 	     int	height,
 	     Bool	kickOut,
 	     pointer	closure);
-
-
-/* xgloffscreen.c */
-
-Bool
-xglInitOffscreen (ScreenPtr	   pScreen,
-		  xglScreenInfoPtr pScreenInfo);
-
-void
-xglFiniOffscreen (ScreenPtr pScreen);
-
-Bool
-xglFindOffscreenArea (ScreenPtr pScreen,
-		      PixmapPtr	pPixmap);
-
-void
-xglLeaveOffscreenArea (PixmapPtr pPixmap);
 
 
 /* xglgeometry.c */

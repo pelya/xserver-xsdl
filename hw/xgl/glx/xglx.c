@@ -437,7 +437,11 @@ xglxScreenInit (int	  index,
 	return FALSE;
     }
 
-    XSelectInput (xdisplay, pScreenPriv->win, ExposureMask);
+    XSelectInput (xdisplay, pScreenPriv->win,
+		  ButtonPressMask | ButtonReleaseMask |
+		  KeyPressMask | KeyReleaseMask | EnterWindowMask |
+		  PointerMotionMask | ExposureMask);
+    
     XMapWindow (xdisplay, pScreenPriv->win);
 
     if (xglScreenInfo.fullscreen)
@@ -517,11 +521,6 @@ xglxScreenInit (int	  index,
     while (XNextEvent (xdisplay, &xevent))
 	if (xevent.type == Expose)
 	    break;
-    
-    XSelectInput (xdisplay, pScreenPriv->win,
-		  ButtonPressMask | ButtonReleaseMask |
-		  KeyPressMask | KeyReleaseMask | EnterWindowMask |
-		  PointerMotionMask);
 
     return TRUE;
 }
@@ -580,20 +579,81 @@ InitOutput (ScreenInfo *pScreenInfo,
     AddScreen (xglxScreenInit, argc, argv);
 }
 
+static Bool
+xglxExposurePredicate (Display *xdisplay,
+		       XEvent  *xevent,
+		       char    *args)
+{
+    return (xevent->type == Expose);
+}
+
+static Bool
+xglxNotExposurePredicate (Display *xdisplay,
+			  XEvent  *xevent,
+			  char	  *args)
+{
+    return (xevent->type != Expose);
+}
+
+static int
+xglxWindowExposures (WindowPtr pWin,
+		     pointer   pReg)
+{
+    ScreenPtr pScreen = pWin->drawable.pScreen;
+    RegionRec ClipList;
+
+    if (HasBorder (pWin))
+    {
+	REGION_INIT (pScreen, &ClipList, NullBox, 0);
+	REGION_SUBTRACT (pScreen, &ClipList, &pWin->borderClip,
+			 &pWin->winSize);
+	REGION_INTERSECT (pScreen, &ClipList, &ClipList, (RegionPtr) pReg);
+	(*pScreen->PaintWindowBorder) (pWin, &ClipList, PW_BORDER);
+	REGION_UNINIT (pScreen, &ClipList);
+    }
+    
+    REGION_INIT (pScreen, &ClipList, NullBox, 0);
+    REGION_INTERSECT (pScreen, &ClipList, &pWin->clipList, (RegionPtr) pReg);
+    (*pScreen->WindowExposures) (pWin, &ClipList, NullRegion);
+    REGION_UNINIT (pScreen, &ClipList);
+
+    return WT_WALKCHILDREN;
+}
+
 static void
 xglxBlockHandler (pointer   blockData,
 		  OSTimePtr pTimeout,
 		  pointer   pReadMask)
 {
+    XEvent    X;
+    RegionRec region;
+    BoxRec    box;
+
     XGL_SCREEN_PRIV (currentScreen);
 
+    while (XCheckIfEvent (xdisplay, &X, xglxExposurePredicate, NULL))
+    {
+	ScreenPtr pScreen = currentScreen;
+	
+	box.x1 = X.xexpose.x;
+	box.y1 = X.xexpose.y;
+	box.x2 = box.x1 + X.xexpose.width;
+	box.y2 = box.y1 + X.xexpose.height;
+	    
+	REGION_INIT (currentScreen, &region, &box, 1);
+
+	WalkTree (pScreen, xglxWindowExposures, &region);
+	
+	REGION_UNINIT (pScreen, &region);
+    }
+    
     if (!xglSyncSurface (&pScreenPriv->pScreenPixmap->drawable))
 	FatalError (XGL_SW_FAILURE_STRING);
     
     glitz_surface_flush (pScreenPriv->surface);
-    glitz_drawable_finish (pScreenPriv->drawable);
+    glitz_drawable_flush (pScreenPriv->drawable);
     
-    XSync (xdisplay, FALSE);
+    XFlush (xdisplay);
 }
 
 static void
@@ -605,9 +665,8 @@ xglxWakeupHandler (pointer blockData,
     XEvent    X;
     xEvent    x;
 
-    while (XPending (xdisplay)) {
-	XNextEvent (xdisplay, &X);
-	
+    while (XCheckIfEvent (xdisplay, &X, xglxNotExposurePredicate, NULL))
+    {
 	switch (X.type) {
 	case KeyPress:
 	    x.u.u.type = KeyPress;

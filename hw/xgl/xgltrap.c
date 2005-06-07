@@ -375,8 +375,6 @@ xglTrapezoids (CARD8	     op,
     
     if (pMask)
     {
-	xglLeaveOffscreenArea ((PixmapPtr) pMask->pDrawable);
-	
 	CompositePicture (op, pSrc, pMask, pDst,
 			  extents.x1 + xSrc - xDst,
 			  extents.y1 + ySrc - yDst,

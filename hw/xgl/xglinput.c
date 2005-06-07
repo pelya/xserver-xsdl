@@ -33,7 +33,7 @@
 #include <X11/XF86keysym.h>
 #endif
 
-#define NUM_BUTTONS 5
+#define NUM_BUTTONS 7
 
 int
 xglMouseProc (DeviceIntPtr pDevice,

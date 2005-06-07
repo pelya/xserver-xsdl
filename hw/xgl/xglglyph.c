@@ -1145,8 +1145,6 @@ xglGlyphs (CARD8	 op,
     
     if (pMask)
     {
-	xglLeaveOffscreenArea ((PixmapPtr) pMask->pDrawable);
-	
 	CompositePicture (op,
 			  pSrc,
 			  pMask,

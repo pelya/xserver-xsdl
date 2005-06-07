@@ -101,8 +101,6 @@ xglPixmapSurfaceInit (PixmapPtr	    pPixmap,
     XGL_PIXMAP_PRIV (pPixmap);
     
     pPixmapPriv->surface = NULL;
-    pPixmapPriv->pArea = NULL;
-    pPixmapPriv->score = 0;
     pPixmapPriv->acceleratedTile = FALSE;
     pPixmapPriv->pictureMask = ~0;
     pPixmapPriv->target = xglPixmapTargetNo;
@@ -211,9 +209,6 @@ xglFiniPixmap (PixmapPtr pPixmap)
 {
     XGL_PIXMAP_PRIV (pPixmap);
     
-    if (pPixmapPriv->pArea)
-	xglWithdrawArea (pPixmapPriv->pArea);
-	
     if (pPixmap->devPrivate.ptr)
     {
 	if (pPixmapPriv->buffer)
@@ -316,9 +311,6 @@ xglModifyPixmapHeader (PixmapPtr pPixmap,
 	pPixmap->drawable.width != oldWidth ||
 	pPixmap->drawable.height != oldHeight)
     {
-	if (pPixmapPriv->pArea)
-	    xglWithdrawArea (pPixmapPriv->pArea);
-	
 	if (pPixmapPriv->surface)
 	    glitz_surface_destroy (pPixmapPriv->surface);
 
@@ -372,11 +364,6 @@ xglModifyPixmapHeader (PixmapPtr pPixmap,
 	    REGION_INIT (pPixmap->drawable.pScreen, pRegion,
 			 &pPixmapPriv->bitBox, 1);
 	}
-
-	/*
-	 * We probably don't want accelerated drawing to this pixmap.
-	 */
-	pPixmapPriv->score = XGL_MIN_PIXMAP_SCORE;
     }
 
     /*

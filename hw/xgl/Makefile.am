@@ -14,7 +14,6 @@ libxgl_a_SOURCES =     \
 	xglparse.c     \
 	xglscreen.c    \
 	xglarea.c      \
-	xgloffscreen.c \
 	xglgeometry.c  \
 	xglpixmap.c    \
 	xglsync.c      \
