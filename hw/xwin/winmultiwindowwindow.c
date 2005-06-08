@@ -855,6 +855,11 @@ winMinimizeWindow (Window id)
 #endif
 
   pWin = LookupIDByType (id, RT_WINDOW);
+  if (!pWin) 
+  { 
+      ErrorF("%s: NULL pWin. Leaving\n", __FUNCTION__); 
+      return; 
+  }
 
   pScreen = pWin->drawable.pScreen;
   if (pScreen) pScreenPriv = winGetScreenPriv(pScreen);

@@ -1,3 +1,8 @@
+2005-06-08  Alexander Gottwald  <ago at freedesktop dot org>
+
+	* winmultiwindowwindow.c:
+	Fix crash reported by Øyvind Harboe
+
 2005-06-03  Alexander Gottwald  <ago at freedesktop dot org>
 
 	* winmultiwindowwndproc.c:
