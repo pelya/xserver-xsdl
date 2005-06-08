@@ -1,5 +1,15 @@
 2005-06-08  Alexander Gottwald  <ago at freedesktop dot org>
 
+	* winlayouts.h:
+	Merge from CYGWIN
+	Added layout "French (Canada)" as ca_enhanced 
+	Added Czech (QWERTY) layout
+	* winshaddnl.c:
+	Merge from CYGWIN
+	Print error code if winStoreColorsShadowDDNL fails
+
+2005-06-08  Alexander Gottwald  <ago at freedesktop dot org>
+
 	* winmultiwindowwindow.c:
 	Fix crash reported by Øyvind Harboe
 

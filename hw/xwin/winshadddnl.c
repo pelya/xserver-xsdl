@@ -1308,7 +1308,7 @@ winStoreColorsShadowDDNL (ColormapPtr pColormap,
 					  + pdefs[0].pixel);
   if (FAILED (ddrval))
     {
-      ErrorF ("winStoreColorsShadowDDNL - SetEntries () failed\n");
+      ErrorF ("winStoreColorsShadowDDNL - SetEntries () failed: %08x\n", ddrval);
       return FALSE;
     }
 
