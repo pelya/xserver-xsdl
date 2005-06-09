@@ -1037,7 +1037,16 @@ ProcXineramaIsActive(ClientPtr client)
     rep.type = X_Reply;
     rep.length = 0;
     rep.sequenceNumber = client->sequence;
+#if 1
+    {
+	/* The following hack fools clients into thinking that Xinerama
+	 * is disabled even though it is not. */
+	extern Bool PanoramiXExtensionDisabledHack;
+	rep.state = !noPanoramiXExtension && !PanoramiXExtensionDisabledHack;
+    }
+#else
     rep.state = !noPanoramiXExtension;
+#endif
     if (client->swapped) {
 	register int n;
 	swaps (&rep.sequenceNumber, n);

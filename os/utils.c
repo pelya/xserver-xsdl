@@ -249,6 +249,7 @@ Bool PanoramiXVisibilityNotifySent = FALSE;
 Bool PanoramiXMapped = FALSE;
 Bool PanoramiXWindowExposureSent = FALSE;
 Bool PanoramiXOneExposeRequest = FALSE;
+Bool PanoramiXExtensionDisabledHack = FALSE;
 #endif
 
 int auditTrailLevel = 1;
@@ -1030,6 +1031,9 @@ ProcessCommandLine(int argc, char *argv[])
 	}
 	else if ( strcmp( argv[i], "-xinerama") == 0){
 	    noPanoramiXExtension = TRUE;
+	}
+	else if ( strcmp( argv[i], "-disablexineramaextension") == 0){
+	    PanoramiXExtensionDisabledHack = TRUE;
 	}
 #endif
 	else if ( strcmp( argv[i], "-x") == 0)
