@@ -38,6 +38,7 @@
 #ifdef XV
 #include "kxv.h"
 #endif
+#include "kaa.h"
 
 #ifdef DPMSExtension
 #include "dpmsproc.h"

@@ -242,11 +242,13 @@ mgaDoneCopy (void)
   mgaWaitIdle();
 }
 
+#if 0
 static Bool
 mgaUploadToScreen(PixmapPtr pDst, char *src, int src_pitch) {
   /* fprintf(stderr,"Upload to Screen %p [%d]\n",src,src_pitch); */
   return TRUE;
 }
+#endif
 
 Bool
 mgaDrawInit (ScreenPtr pScreen)

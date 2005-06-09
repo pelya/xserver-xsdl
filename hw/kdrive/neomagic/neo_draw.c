@@ -79,10 +79,6 @@ static void neoWaitMarker (ScreenPtr pScreen, int marker)
     neoWaitIdle(neoc);
 }
 
-static  void neoWaitFifo(NeoCardInfo *neoc, int requested_fifo_space)
-{
-    neoWaitIdle( neoc );
-}
 
 static Bool neoPrepareSolid(PixmapPtr pPixmap,
                             int alu,

@@ -29,11 +29,11 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h> 		/* for memset */
-#include <time.h>
 
 #include <sys/ipc.h>
 #include <sys/shm.h>
 #include <sys/time.h>
+#include <time.h>
 
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>

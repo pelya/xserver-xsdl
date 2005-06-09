@@ -56,18 +56,9 @@ fakeCardInit (KdCardInfo *card)
     return TRUE;
 }
 
-static Bool
-fakeModeSupported (KdScreenInfo		*screen,
-		    const KdMonitorTiming	*t)
-{
-    return TRUE;
-}
-
 Bool
 fakeScreenInitialize (KdScreenInfo *screen, FakeScrPriv *scrpriv)
 {
-    const KdMonitorTiming *t;
-    
     if (!screen->width || !screen->height)
     {
 	screen->width = 1024;

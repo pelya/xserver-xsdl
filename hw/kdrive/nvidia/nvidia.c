@@ -26,6 +26,7 @@
 #include <config.h>
 #endif
 #include "nvidia.h"
+#include "kaa.h"
 #include <sys/io.h>
 
 static Bool

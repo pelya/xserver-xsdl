@@ -49,7 +49,7 @@ int partprodPermedia[] = {
 	             -1,              -1,              -1,              -1,
 		     0};
 
-Bool
+static Bool
 pmMapReg(KdCardInfo *card, PM2CardInfo *pm2c)
 {
 	pm2c->reg_base = (CARD8 *)KdMapDevice(PM2_REG_BASE(card),
@@ -64,7 +64,7 @@ pmMapReg(KdCardInfo *card, PM2CardInfo *pm2c)
 	return TRUE;
 }
 
-void
+static void
 pmUnmapReg(KdCardInfo *card, PM2CardInfo *pm2c)
 {
 	if (pm2c->reg_base) {
@@ -78,8 +78,6 @@ pmUnmapReg(KdCardInfo *card, PM2CardInfo *pm2c)
 Bool
 pmCardInit (KdCardInfo *card)
 {
-    int i;
-
     PM2CardInfo	*pm2c;
 
     pm2c = (PM2CardInfo *) xalloc (sizeof (PM2CardInfo));
@@ -102,7 +100,7 @@ pmCardInit (KdCardInfo *card)
     return TRUE;
 }
 
-void
+static  void
 pmCardFini (KdCardInfo *card)
 {
     PM2CardInfo	*pm2c = (PM2CardInfo *) card->driver;
@@ -176,7 +174,7 @@ pmScreenInit (KdScreenInfo *screen)
     return TRUE;
 }
 
-void
+static void
 pmScreenFini (KdScreenInfo *screen)
 {
     PM2ScreenInfo	*pm2s = (PM2ScreenInfo *) screen->driver;
@@ -186,7 +184,7 @@ pmScreenFini (KdScreenInfo *screen)
     screen->driver = 0;
 }
 
-Bool
+static Bool
 pmInitScreen (ScreenPtr pScreen)
 {
     return vesaInitScreen (pScreen);
@@ -216,7 +214,7 @@ pmRandRInit (ScreenPtr pScreen)
 }
 #endif
 
-Bool
+static Bool
 pmFinishInitScreen (ScreenPtr pScreen)
 {
     Bool    ret;
@@ -227,7 +225,7 @@ pmFinishInitScreen (ScreenPtr pScreen)
     return ret;
 }
 
-void
+static void
 pmPreserve(KdCardInfo *card)
 {
     vesaPreserve(card);
@@ -236,17 +234,12 @@ pmPreserve(KdCardInfo *card)
 static void
 pmRestore(KdCardInfo *card)
 {
-    PM2CardInfo	*pm2c = card->driver;
-
     vesaRestore (card);
 }
 
-Bool
+static Bool
 pmEnable (ScreenPtr pScreen)
 {
-    KdScreenPriv(pScreen);
-    PM2CardInfo	*pm2c = pScreenPriv->card->driver;
-
     if (!vesaEnable (pScreen))
 	return FALSE;
     
@@ -257,12 +250,9 @@ pmEnable (ScreenPtr pScreen)
     return TRUE;
 }
 
-void
+static void
 pmDisable(ScreenPtr pScreen)
 {
-    KdScreenPriv(pScreen);
-    PM2CardInfo	*pm2c = pScreenPriv->card->driver;
-
 #ifdef XV
     KdXVDisable (pScreen);
 #endif

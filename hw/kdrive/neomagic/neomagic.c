@@ -85,7 +85,6 @@ static Bool
 neoScreenInit(KdScreenInfo *screen)
 {
     NeoScreenInfo *neos;
-    neoCardInfo(screen);
     int screen_size, memory;
 
     neos = xcalloc(sizeof(NeoScreenInfo), 1);

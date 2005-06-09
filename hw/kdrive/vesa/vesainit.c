@@ -48,7 +48,6 @@ const KdCardFuncs vesaFuncs = {
     
     0,                          /* initAccel */
     0,                          /* enableAccel */
-    0,                          /* syncAccel */
     0,                          /* disableAccel */
     0,                          /* finiAccel */
     

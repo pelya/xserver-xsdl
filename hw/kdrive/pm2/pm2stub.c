@@ -2,6 +2,7 @@
 #include <config.h>
 #endif
 #include "kdrive.h"
+#include "klinux.h"
 
 #include "pm2.h"
 
@@ -15,8 +16,6 @@ InitCard (char *name)
 {
     KdCardAttr	attr;
     int		i;
-
-    Bool LinuxFindPci(CARD16, CARD16, CARD32, KdCardAttr *); 
 
     for (i = 0; i < numPM2Cards; i++)
 	if (LinuxFindPci (0x3d3d, PM2Cards[i], 0, &attr))

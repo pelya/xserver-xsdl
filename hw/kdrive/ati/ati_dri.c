@@ -28,6 +28,7 @@
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
+
 #include "ati.h"
 #include "ati_reg.h"
 #include "ati_dma.h"
@@ -38,6 +39,7 @@
 #include "ati_draw.h"
 #include "r128_common.h"
 #include "radeon_common.h"
+#include "kaa.h"
 
 /* ?? HACK - for now, put this here... */
 /* ?? Alpha - this may need to be a variable to handle UP1x00 vs TITAN */

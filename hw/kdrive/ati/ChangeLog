@@ -1,5 +1,11 @@
 2005-06-09  Eric Anholt  <anholt@FreeBSD.org>
 
+	* ati_dri.c:
+	Perform a warnings sweep on hw/kdrive.  A number of these were my fault,
+	but some come from others.
+
+2005-06-09  Eric Anholt  <anholt@FreeBSD.org>
+
 	* ati.c:
 	* ati.h:
 	* ati_draw.c: (ATIWaitMarker), (ATIGetOffsetPitch),

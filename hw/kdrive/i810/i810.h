@@ -435,6 +435,9 @@ i810PrintErrorState(i810CardInfo *i810c);
 void
 i810VGAGetIOBase(i810VGAPtr vgap);
 
+Bool
+i810InitVideo(ScreenPtr pScreen);
+
 /*
  * MMIO versions of the register access functions.  These require
  * hwp->MemBase to be set in such a way that when the standard VGA port

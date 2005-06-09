@@ -79,20 +79,23 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "i810.h"
 #include "cursorstr.h"
 
-#define SetupCursor(s)	    KdScreenPriv(s); \
+#define SetupCursor(s)	    KdScreenPriv(pScreen); \
 			    i810CardInfo(pScreenPriv); \
 			    i810ScreenInfo(pScreenPriv); \
 			    i810Cursor *pCurPriv = &i810s->cursor
 
 
 static void
-writeStandardMMIO(I810CardInfo *i810c, int addr, CARD8 val) {
+writeStandardMMIO(I810CardInfo *i810c, int addr, CARD8 val)
+{
   moutb(addr, val);
 }
 
-void
-_i810MoveCursor(ScreenPtr pScreen, int x, int y) {
-    SetupCursor(pScreen);
+static void
+_i810MoveCursor(ScreenPtr pScreen, int x, int y)
+{
+    KdScreenPriv(pScreen);
+    i810CardInfo(pScreenPriv);
     int flag;
 
     if (I810_DEBUG & DEBUG_VERBOSE_CURSOR)
@@ -128,7 +131,9 @@ static void i810LoadCursor(ScreenPtr pScreen, int x, int y);
 static void
 i810MoveCursor (ScreenPtr pScreen, int x, int y)
 {
-    SetupCursor (pScreen);
+    KdScreenPriv(pScreen);
+    i810ScreenInfo(pScreenPriv);
+    i810Cursor *pCurPriv = &i810s->cursor;
     
     if (!pCurPriv->has_cursor)
 	return;
@@ -142,9 +147,11 @@ i810MoveCursor (ScreenPtr pScreen, int x, int y)
 }
 
 static void
-_i810SetCursorColors(ScreenPtr pScreen) { /* int bg, int fg */
+_i810SetCursorColors(ScreenPtr pScreen)
+{
 
-    SetupCursor(pScreen);
+    KdScreenPriv(pScreen);
+    i810CardInfo(pScreenPriv);
     int tmp;
 
     int bg = 0xffffff;
@@ -176,12 +183,11 @@ _i810SetCursorColors(ScreenPtr pScreen) { /* int bg, int fg */
     v = ((v & 0x0f0f0f0f) << 4) | ((v >> 4) & 0x0f0f0f0f); \
 }
 
-static void i810LoadCursor(ScreenPtr pScreen, int x, int y) {
-
+static void i810LoadCursor(ScreenPtr pScreen, int x, int y)
+{
     SetupCursor(pScreen);
 
-    int		    w, h;
-    unsigned short  r;
+    int		    h;
     unsigned int   *msk, *mskLine, *src, *srcLine;
     
     int		    i, j;
@@ -219,7 +225,7 @@ static void i810LoadCursor(ScreenPtr pScreen, int x, int y) {
 
 	for (j = 0; j < I810_CURSOR_WIDTH / 32; j++) {
 
-	    unsigned long  m, s, b1, b2;
+	    unsigned long  m, s;
 
 	    if (i < h && j < src_width) 
 	    {
@@ -261,9 +267,10 @@ static void i810LoadCursor(ScreenPtr pScreen, int x, int y) {
 }
 
 static void
-i810UnloadCursor(ScreenPtr pScreen) {
-
-    SetupCursor(pScreen);
+i810UnloadCursor(ScreenPtr pScreen)
+{
+    KdScreenPriv(pScreen);
+    i810CardInfo(pScreenPriv);
 
     unsigned char tmp;
     
@@ -276,7 +283,9 @@ i810UnloadCursor(ScreenPtr pScreen) {
 static Bool
 i810RealizeCursor (ScreenPtr pScreen, CursorPtr pCursor)
 {
-    SetupCursor(pScreen);
+    KdScreenPriv(pScreen);
+    i810ScreenInfo(pScreenPriv);
+    i810Cursor *pCurPriv = &i810s->cursor;
 
     if (!pScreenPriv->enabled)
 	return TRUE;
@@ -304,7 +313,9 @@ i810UnrealizeCursor (ScreenPtr pScreen, CursorPtr pCursor)
 static void
 i810SetCursor (ScreenPtr pScreen, CursorPtr pCursor, int x, int y)
 {
-    SetupCursor(pScreen);
+    KdScreenPriv(pScreen);
+    i810ScreenInfo(pScreenPriv);
+    i810Cursor *pCurPriv = &i810s->cursor;
 
     pCurPriv->pCursor = pCursor;
     
@@ -329,7 +340,9 @@ i810QueryBestSize (int class,
                    unsigned short *pwidth, unsigned short *pheight, 
                    ScreenPtr pScreen)
 {
-    SetupCursor (pScreen);
+    KdScreenPriv(pScreen);
+    i810ScreenInfo(pScreenPriv);
+    i810Cursor *pCurPriv = &i810s->cursor;
 
     switch (class)
     {
@@ -352,8 +365,10 @@ i810QueryBestSize (int class,
 Bool
 i810CursorInit(ScreenPtr pScreen)
 {
-
-    SetupCursor(pScreen);
+    KdScreenPriv(pScreen);
+    i810ScreenInfo(pScreenPriv);
+    i810CardInfo(pScreenPriv);
+    i810Cursor *pCurPriv = &i810s->cursor;
 
     if (!i810c->CursorStart) {
 	pCurPriv->has_cursor = FALSE;
@@ -375,7 +390,9 @@ i810CursorInit(ScreenPtr pScreen)
 void
 i810CursorEnable (ScreenPtr pScreen)
 {
-    SetupCursor (pScreen);
+    KdScreenPriv(pScreen);
+    i810ScreenInfo(pScreenPriv);
+    i810Cursor *pCurPriv = &i810s->cursor;
 
     if (pCurPriv->has_cursor)
     {
@@ -394,7 +411,9 @@ i810CursorEnable (ScreenPtr pScreen)
 void
 i810CursorDisable (ScreenPtr pScreen)
 {
-    SetupCursor (pScreen);
+    KdScreenPriv(pScreen);
+    i810ScreenInfo(pScreenPriv);
+    i810Cursor *pCurPriv = &i810s->cursor;
 
     if (!pScreenPriv->enabled)
 	return;
@@ -411,7 +430,9 @@ i810CursorDisable (ScreenPtr pScreen)
 void
 i810CursorFini (ScreenPtr pScreen)
 {
-    SetupCursor (pScreen);
+    KdScreenPriv(pScreen);
+    i810ScreenInfo(pScreenPriv);
+    i810Cursor *pCurPriv = &i810s->cursor;
 
     pCurPriv->pCursor = NULL;
 }

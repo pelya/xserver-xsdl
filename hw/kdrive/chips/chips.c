@@ -30,14 +30,10 @@
 
 #undef CHIPS_DEBUG
 
-Bool
+static Bool
 chipsCardInit (KdCardInfo *card)
 {
-    int			k;
-    char		*pixels;
     ChipsCardInfo	*chipsc;
-    CARD8		r00, r01, r02;
-    CARD8		r39;
 
     chipsc = (ChipsCardInfo *) xalloc (sizeof (ChipsCardInfo));
     if (!chipsc)
@@ -61,14 +57,11 @@ chipsCardInit (KdCardInfo *card)
     return TRUE;
 }
 
-Bool
+static Bool
 chipsScreenInit (KdScreenInfo *screen)
 {
-    ChipsCardInfo	*chipsc = screen->card->driver;
     ChipsScreenInfo	*chipss;
     int			screen_size, memory;
-    CARD32		mmio_base;
-    CARD32		mmio_size;
 
     chipss = (ChipsScreenInfo *) xalloc (sizeof (ChipsScreenInfo));
     if (!chipss)
@@ -126,7 +119,7 @@ chipsScreenInit (KdScreenInfo *screen)
     return TRUE;
 }
 
-Bool
+static Bool
 chipsInitScreen (ScreenPtr pScreen)
 {
     return vesaInitScreen (pScreen);
@@ -156,7 +149,7 @@ chipsRandRInit (ScreenPtr pScreen)
 }
 #endif
 
-Bool
+static Bool
 chipsFinishInitScreen (ScreenPtr pScreen)
 {
     Bool    ret;
@@ -189,7 +182,8 @@ chipsWriteXR (ChipsScreenInfo *chipss, CARD8 index, CARD8 value)
     outb (value, 0x3d7);
 }
 
-CARD8
+#if 0
+static CARD8
 chipsReadFR (ChipsScreenInfo *chipss, CARD8 index)
 {
     CARD8 value;
@@ -198,14 +192,14 @@ chipsReadFR (ChipsScreenInfo *chipss, CARD8 index)
     return value;
 }
 
-void
+static void
 chipsWriteFR (ChipsScreenInfo *chipss, CARD8 index, CARD8 value)
 {
     outb (index, 0x3d0);
     outb (value, 0x3d1);
 }
 
-CARD8
+static CARD8
 chipsReadSeq (ChipsScreenInfo *chipss, CARD8 index)
 {
     CARD8   value;
@@ -214,31 +208,31 @@ chipsReadSeq (ChipsScreenInfo *chipss, CARD8 index)
     return value;
 }
 
-void
+static void
 chipsWriteSeq (ChipsScreenInfo *chipss, CARD8 index, CARD8 value)
 {
     outb (index, 0x3c4);
     outb (value, 0x3c5);
 }
+#endif
 
-void
+static void
 chipsPreserve (KdCardInfo *card)
 {
-    ChipsCardInfo	*chipss = card->driver;
     vesaPreserve(card);
 }
 
-void
+static void
 chipsSetMMIO (ChipsCardInfo *chipsc)
 {
 }
 
-void
+static void
 chipsResetMMIO (ChipsCardInfo *chipsc)
 {
 }
 
-Bool
+static Bool
 chipsEnable (ScreenPtr pScreen)
 {
     KdScreenPriv(pScreen);
@@ -250,7 +244,8 @@ chipsEnable (ScreenPtr pScreen)
     return TRUE;
 }
 
-Bool
+#if 0
+static Bool
 chipsDPMS (ScreenPtr pScreen, int mode)
 {
     KdScreenPriv(pScreen);
@@ -264,14 +259,15 @@ chipsDPMS (ScreenPtr pScreen, int mode)
     ErrorF ("flat panel XR52 0x%x\n", chipsReadXR (chipss, 0x52));
     return TRUE;
 }
+#endif
 
-void
+static void
 chipsDisable (ScreenPtr pScreen)
 {
     vesaDisable (pScreen);
 }
 
-void
+static void
 chipsRestore (KdCardInfo *card)
 {
     ChipsCardInfo	*chipsc = card->driver;
@@ -280,7 +276,7 @@ chipsRestore (KdCardInfo *card)
     vesaRestore (card);
 }
 
-void
+static void
 chipsScreenFini (KdScreenInfo *screen)
 {
     ChipsScreenInfo	*chipss = (ChipsScreenInfo *) screen->driver;
@@ -297,11 +293,9 @@ chipsScreenFini (KdScreenInfo *screen)
     screen->driver = 0;
 }
 
-void
+static void
 chipsCardFini (KdCardInfo *card)
 {
-    ChipsCardInfo	*chipsc = card->driver;
-
     vesaCardFini (card);
 }
 

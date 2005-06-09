@@ -160,13 +160,6 @@ chipsSet (ScreenPtr pScreen)
     pixelStride = pScreenPriv->screen->fb[0].pixelStride;
 }
 
-static void
-chipsWaitMarker (ScreenPtr pScreen, int marker)
-{
-    chipsSet (pScreen);
-    chipsWaitIdle ();
-}
-
 #ifdef HIQV
 #define CHIPS_BR0	0x00	/* offset */
 #define CHIPS_BR1    	0x04	/* bg */
@@ -310,6 +303,13 @@ chipsWaitIdle (void)
     while (*(VOL32 *) (mmio + CHIPS_DR4) & 0x00100000)
 	;
 #endif
+}
+
+static void
+chipsWaitMarker (ScreenPtr pScreen, int marker)
+{
+    chipsSet (pScreen);
+    chipsWaitIdle ();
 }
 
 static Bool

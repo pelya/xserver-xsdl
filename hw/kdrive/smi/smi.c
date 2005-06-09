@@ -25,6 +25,7 @@
 #include <config.h>
 #endif
 #include "smi.h"
+#include "kaa.h"
 #include <sys/io.h>
 
 static Bool

@@ -47,13 +47,12 @@ X Window System is a trademark of The Open Group */
 #endif
 #include "kdrive.h"
 #include "kxv.h"
+#include "klinux.h"
 
 #include "i810.h"
 #include "agp.h"
 
 #include "i810draw.h"
-
-Bool i810InitVideo(ScreenPtr pScreen);
 
 #ifndef I810_DEBUG
 int I810_DEBUG = (0
@@ -137,8 +136,6 @@ i810CardInit (KdCardInfo *card)
 
     {
         unsigned long *p;
-        unsigned char *LinuxGetPciCfg(KdCardAttr *attr);
-
 
         if (!(p= (unsigned long *) LinuxGetPciCfg(&card->attr)))
             return FALSE;
