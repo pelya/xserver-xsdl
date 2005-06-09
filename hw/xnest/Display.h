@@ -38,7 +38,6 @@ extern Drawable xnestDefaultDrawables[MAXDEPTH + 1];
 extern Pixmap xnestIconBitmap;
 extern Pixmap xnestScreenSaverPixmap;
 extern XlibGC xnestBitmapGC;
-extern Window xnestConfineWindow;
 extern unsigned long xnestEventMask;
 
 void xnestOpenDisplay(int argc, char *argv[]);

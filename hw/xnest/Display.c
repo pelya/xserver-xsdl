@@ -48,7 +48,6 @@ Drawable xnestDefaultDrawables[MAXDEPTH + 1];
 Pixmap xnestIconBitmap;
 Pixmap xnestScreenSaverPixmap;
 XlibGC xnestBitmapGC;
-Window xnestConfineWindow;
 unsigned long xnestEventMask;
 
 void
@@ -135,13 +134,6 @@ xnestOpenDisplay(int argc, char *argv[])
       }
   
   xnestBitmapGC = XCreateGC(xnestDisplay, xnestDefaultDrawables[1], 0L, NULL);
-  
-  xnestConfineWindow = XCreateWindow(xnestDisplay, 
-				     DefaultRootWindow(xnestDisplay),
-				     0, 0, 1, 1, 0, 0,
-				     InputOnly,
-				     CopyFromParent,
-				     0L, NULL);
   
   if (!(xnestUserGeometry & XValue))
     xnestX = 0;
