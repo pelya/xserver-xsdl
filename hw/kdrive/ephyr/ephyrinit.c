@@ -61,6 +61,7 @@ ddxUseMsg (void)
   ErrorF("\nXephyr Option Usage:\n");
   ErrorF("-parent XID   Use existing window as Xephyr root win\n");
   ErrorF("-host-cursor  Re-use exisiting X host server cursor\n");
+  ErrorF("-fullscreen   Attempt to run Xephyr fullscreen\n");
   ErrorF("\n");
 
   exit(1);
@@ -85,6 +86,11 @@ ddxProcessArgument (int argc, char **argv, int i)
   else if (!strcmp (argv[i], "-host-cursor"))
     {
       hostx_use_host_cursor();
+      return 1;
+    }
+  else if (!strcmp (argv[i], "-fullscreen"))
+    {
+      hostx_use_fullscreen();
       return 1;
     }
   else if (argv[i][0] == ':')

@@ -171,6 +171,8 @@ TslibInit (void)
     if (!TsInputType)
 	TsInputType = KdAllocInputType ();
 
+    KdMouseInfoAdd(); /* allocate empty kdMouseInfo entry for ts  */
+
     for (mi = kdMouseInfo; mi; mi = next)
     {
 	next = mi->next;

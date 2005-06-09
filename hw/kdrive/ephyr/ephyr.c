@@ -355,7 +355,8 @@ ephyrRandRGetInfo (ScreenPtr pScreen, Rotation *rotations)
     
     *rotations = RR_Rotate_All|RR_Reflect_All;
     
-    if (!hostx_want_preexisting_window()) /* only if no -parent switch */
+    if (!hostx_want_preexisting_window()
+	&& !hostx_want_fullscreen()) /* only if no -parent switch */
       {
 	while (sizes[n].width != 0 && sizes[n].height != 0)
 	  {

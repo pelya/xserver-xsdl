@@ -88,6 +88,12 @@ hostx_want_host_cursor(void);
 void
 hostx_use_host_cursor(void);
 
+void
+hostx_use_fullscreen(void);
+
+int
+hostx_want_fullscreen(void);
+
 int
 hostx_want_preexisting_window(void);
 

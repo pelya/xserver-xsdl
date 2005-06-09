@@ -61,7 +61,9 @@ struct EphyrHostXVars
   XImage         *ximg;
   int             win_width, win_height;
   Bool            use_host_cursor;
+  Bool            use_fullscreen;
   Bool            have_shm;
+
   long            damage_debug_msec;
 
   unsigned char  *fb_data;   	/* only used when host bpp != server bpp */
@@ -71,7 +73,7 @@ struct EphyrHostXVars
 };
 
 /* memset ( missing> ) instead of below  */
-static EphyrHostXVars HostX = { "?", 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+static EphyrHostXVars HostX = { "?", 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 
 static int            HostXWantDamageDebug = 0;
 
@@ -84,6 +86,9 @@ extern int	      kdMinKeyCode;
 extern int	      kdMaxKeyCode;
 extern int	      kdKeymapWidth;
 extern int            monitorResolution;
+
+static void
+hostx_set_fullscreen_hint(void);
 
 /* X Error traps */
 
@@ -118,7 +123,8 @@ hostx_errors_untrap(void)
 int
 hostx_want_screen_size(int *width, int *height)
 {
- if (HostX.win_pre_existing != None)
+ if (HostX.win_pre_existing != None
+     || HostX.use_fullscreen == True)
     {
       *width  = HostX.win_width;
       *height = HostX.win_height;
@@ -165,6 +171,34 @@ hostx_want_preexisting_window(void)
     return 1;
   else
     return 0;
+}
+
+void
+hostx_use_fullscreen(void)
+{
+  HostX.use_fullscreen = True;
+}
+
+int
+hostx_want_fullscreen(void)
+{
+  return HostX.use_fullscreen;
+}
+
+static void
+hostx_set_fullscreen_hint(void)
+{
+  Atom atom_WINDOW_STATE, atom_WINDOW_STATE_FULLSCREEN;
+
+  atom_WINDOW_STATE 
+    = XInternAtom(HostX.dpy, "_NET_WM_STATE", False);
+  atom_WINDOW_STATE_FULLSCREEN 
+    = XInternAtom(HostX.dpy, "_NET_WM_STATE_FULLSCREEN",False);
+
+  XChangeProperty(HostX.dpy, HostX.win,
+		  atom_WINDOW_STATE, XA_ATOM, 32,
+		  PropModeReplace,
+		  (unsigned char *)&atom_WINDOW_STATE_FULLSCREEN, 1);
 }
 
 void
@@ -264,6 +298,14 @@ hostx_init(void)
 				&attr);
 
       hostx_set_win_title("( ctrl+shift grabs mouse and keyboard )");
+
+      if (HostX.use_fullscreen)
+	{
+	  HostX.win_width  = DisplayWidth(HostX.dpy, HostX.screen); 
+	  HostX.win_height = DisplayHeight(HostX.dpy, HostX.screen); 
+
+	  hostx_set_fullscreen_hint();
+	}
     }
 
 
