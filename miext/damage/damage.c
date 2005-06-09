@@ -112,11 +112,12 @@ getDrawableDamageRef (DrawablePtr pDrawable)
 
 #if DAMAGE_DEBUG_ENABLE
 static void
-_damageDamageRegion (DrawablePtr pDrawable, RegionPtr pRegion, Bool clip, char *where)
-#define damageDamageRegion(d,r,c) _damageDamageRegion(d,r,c,__FUNCTION__)
+_damageDamageRegion (DrawablePtr pDrawable, RegionPtr pRegion, Bool clip, int subWindowMode, const char *where)
+#define damageDamageRegion(d,r,c,m) _damageDamageRegion(d,r,c,m,__FUNCTION__)
 #else
 static void
-damageDamageRegion (DrawablePtr pDrawable, RegionPtr pRegion, Bool clip)
+damageDamageRegion (DrawablePtr pDrawable, RegionPtr pRegion, Bool clip,
+			int subWindowMode)
 #endif
 {
     ScreenPtr	    pScreen = pDrawable->pScreen;
@@ -154,6 +155,26 @@ damageDamageRegion (DrawablePtr pDrawable, RegionPtr pRegion, Bool clip)
         REGION_TRANSLATE (pScreen, pRegion, screen_x, screen_y);
 #endif
 	
+    if (pDrawable->type == DRAWABLE_WINDOW &&
+	((WindowPtr)(pDrawable))->backingStore == NotUseful)
+    {
+	if (subWindowMode == ClipByChildren)
+	{
+	    REGION_INTERSECT(pScreen, pRegion, pRegion,
+			     &((WindowPtr)(pDrawable))->clipList);
+	}
+	else if (subWindowMode == IncludeInferiors)
+	{
+	    RegionPtr pTempRegion =
+		NotClippedByChildren((WindowPtr)(pDrawable));
+	    REGION_INTERSECT(pScreen, pRegion, pRegion, pTempRegion);
+	    REGION_UNINIT(pScreen, pTempRegion);
+	}
+	/* If subWindowMode is set to an invalid value, don't perform
+	 * any drawable-based clipping. */
+    }
+        
+
     REGION_NULL (pScreen, &clippedRec);
     for (; pDamage; pDamage = pNext)
     {
@@ -282,21 +303,21 @@ damageDamageRegion (DrawablePtr pDrawable, RegionPtr pRegion, Bool clip)
 }
 
 #if DAMAGE_DEBUG_ENABLE
-#define damageDamageBox(d,b) _damageDamageBox(d,b,__FUNCTION__)
+#define damageDamageBox(d,b,m) _damageDamageBox(d,b,m,__FUNCTION__)
 static void
-_damageDamageBox (DrawablePtr pDrawable, BoxPtr pBox, char *where)
+_damageDamageBox (DrawablePtr pDrawable, BoxPtr pBox, int subWindowMode, const char *where)
 #else
 static void
-damageDamageBox (DrawablePtr pDrawable, BoxPtr pBox)
+damageDamageBox (DrawablePtr pDrawable, BoxPtr pBox, int subWindowMode)
 #endif
 {
     RegionRec	region;
 
     REGION_INIT (pDrawable->pScreen, &region, pBox, 1);
 #if DAMAGE_DEBUG_ENABLE
-    _damageDamageRegion (pDrawable, &region, TRUE, where);
+    _damageDamageRegion (pDrawable, &region, TRUE, subWindowMode, where);
 #else
-    damageDamageRegion (pDrawable, &region, TRUE);
+    damageDamageRegion (pDrawable, &region, TRUE, subWindowMode);
 #endif
     REGION_UNINIT (pDrawable->pScreen, &region);
 }
@@ -511,7 +532,7 @@ damageComposite (CARD8      op,
 	box.y2 = box.y1 + height;
 	TRIM_PICTURE_BOX(box, pDst);
 	if (BOX_NOT_EMPTY(box))
-	    damageDamageBox (pDst->pDrawable, &box);
+	    damageDamageBox (pDst->pDrawable, &box, pDst->subWindowMode);
     }
     unwrap (pScrPriv, ps, Composite);
     (*ps->Composite) (op,
@@ -588,7 +609,7 @@ damageGlyphs (CARD8		op,
 	}
 	TRIM_PICTURE_BOX (box, pDst);
 	if (BOX_NOT_EMPTY(box))
-	    damageDamageBox (pDst->pDrawable, &box);
+	    damageDamageBox (pDst->pDrawable, &box, pDst->subWindowMode);
     }
     unwrap (pScrPriv, ps, Glyphs);
     (*ps->Glyphs) (op, pSrc, pDst, maskFormat, xSrc, ySrc, nlist, list, glyphs);
@@ -639,7 +660,7 @@ damageFillSpans(DrawablePtr pDrawable,
         TRIM_BOX(box, pGC); 
 
 	if(BOX_NOT_EMPTY(box))
-	   damageDamageBox (pDrawable, &box);
+	   damageDamageBox (pDrawable, &box, pGC->subWindowMode);
     }
     
     (*pGC->ops->FillSpans)(pDrawable, pGC, npt, ppt, pwidth, fSorted);
@@ -688,7 +709,7 @@ damageSetSpans(DrawablePtr  pDrawable,
         TRIM_BOX(box, pGC); 
 
 	if(BOX_NOT_EMPTY(box))
-	   damageDamageBox (pDrawable, &box);
+	   damageDamageBox (pDrawable, &box, pGC->subWindowMode);
     }
     (*pGC->ops->SetSpans)(pDrawable, pGC, pcharsrc, ppt, pwidth, npt, fSorted);
     DAMAGE_GC_OP_EPILOGUE(pGC, pDrawable);
@@ -718,7 +739,7 @@ damagePutImage(DrawablePtr  pDrawable,
 
 	TRIM_BOX(box, pGC);
 	if(BOX_NOT_EMPTY(box))
-	   damageDamageBox (pDrawable, &box);
+	   damageDamageBox (pDrawable, &box, pGC->subWindowMode);
     }
     (*pGC->ops->PutImage)(pDrawable, pGC, depth, x, y, w, h,
 		leftPad, format, pImage);
@@ -760,7 +781,7 @@ damageCopyArea(DrawablePtr   pSrc,
 
 	TRIM_BOX(box, pGC);
 	if(BOX_NOT_EMPTY(box))
-	   damageDamageBox (pDst, &box);
+	   damageDamageBox (pDst, &box, pGC->subWindowMode);
     }
 
     ret = (*pGC->ops->CopyArea)(pSrc, pDst,
@@ -805,7 +826,7 @@ damageCopyPlane(DrawablePtr	pSrc,
 
 	TRIM_BOX(box, pGC);
 	if(BOX_NOT_EMPTY(box))
-	   damageDamageBox (pDst, &box);
+	   damageDamageBox (pDst, &box, pGC->subWindowMode);
     }
 
     ret = (*pGC->ops->CopyPlane)(pSrc, pDst,
@@ -848,7 +869,7 @@ damagePolyPoint(DrawablePtr pDrawable,
 
 	TRIM_AND_TRANSLATE_BOX(box, pDrawable, pGC);
 	if(BOX_NOT_EMPTY(box))
-	   damageDamageBox (pDrawable, &box);
+	   damageDamageBox (pDrawable, &box, pGC->subWindowMode);
     }
     (*pGC->ops->PolyPoint)(pDrawable, pGC, mode, npt, ppt);
     DAMAGE_GC_OP_EPILOGUE(pGC, pDrawable);
@@ -921,7 +942,7 @@ damagePolylines(DrawablePtr pDrawable,
 
 	TRIM_AND_TRANSLATE_BOX(box, pDrawable, pGC);
 	if(BOX_NOT_EMPTY(box))
-	   damageDamageBox (pDrawable, &box);
+	   damageDamageBox (pDrawable, &box, pGC->subWindowMode);
     }
     (*pGC->ops->Polylines)(pDrawable, pGC, mode, npt, ppt);
     DAMAGE_GC_OP_EPILOGUE(pGC, pDrawable);
@@ -999,7 +1020,7 @@ damagePolySegment(DrawablePtr	pDrawable,
 
 	TRIM_AND_TRANSLATE_BOX(box, pDrawable, pGC);
 	if(BOX_NOT_EMPTY(box))
-	   damageDamageBox (pDrawable, &box);
+	   damageDamageBox (pDrawable, &box, pGC->subWindowMode);
     }
     (*pGC->ops->PolySegment)(pDrawable, pGC, nSeg, pSeg);
     DAMAGE_GC_OP_EPILOGUE(pGC, pDrawable);
@@ -1033,7 +1054,7 @@ damagePolyRectangle(DrawablePtr  pDrawable,
 	    box.y2 = box.y1 + offset2;
 	    TRIM_AND_TRANSLATE_BOX(box, pDrawable, pGC);
 	    if(BOX_NOT_EMPTY(box))
-		damageDamageBox (pDrawable, &box);
+		damageDamageBox (pDrawable, &box, pGC->subWindowMode);
 
 	    box.x1 = pRectsTmp->x - offset1;
 	    box.y1 = pRectsTmp->y + offset3;
@@ -1041,7 +1062,7 @@ damagePolyRectangle(DrawablePtr  pDrawable,
 	    box.y2 = box.y1 + pRectsTmp->height - offset2;
 	    TRIM_AND_TRANSLATE_BOX(box, pDrawable, pGC);
 	    if(BOX_NOT_EMPTY(box))
-		damageDamageBox (pDrawable, &box);
+		damageDamageBox (pDrawable, &box, pGC->subWindowMode);
 
 	    box.x1 = pRectsTmp->x + pRectsTmp->width - offset1;
 	    box.y1 = pRectsTmp->y + offset3;
@@ -1049,7 +1070,7 @@ damagePolyRectangle(DrawablePtr  pDrawable,
 	    box.y2 = box.y1 + pRectsTmp->height - offset2;
 	    TRIM_AND_TRANSLATE_BOX(box, pDrawable, pGC);
 	    if(BOX_NOT_EMPTY(box))
-		damageDamageBox (pDrawable, &box);
+		damageDamageBox (pDrawable, &box, pGC->subWindowMode);
 
 	    box.x1 = pRectsTmp->x - offset1;
 	    box.y1 = pRectsTmp->y + pRectsTmp->height - offset1;
@@ -1057,7 +1078,7 @@ damagePolyRectangle(DrawablePtr  pDrawable,
 	    box.y2 = box.y1 + offset2;
 	    TRIM_AND_TRANSLATE_BOX(box, pDrawable, pGC);
 	    if(BOX_NOT_EMPTY(box))
-		damageDamageBox (pDrawable, &box);
+		damageDamageBox (pDrawable, &box, pGC->subWindowMode);
 
 	    pRectsTmp++;
 	}
@@ -1112,7 +1133,7 @@ damagePolyArc(DrawablePtr   pDrawable,
 
 	TRIM_AND_TRANSLATE_BOX(box, pDrawable, pGC);
 	if(BOX_NOT_EMPTY(box))
-	   damageDamageBox (pDrawable, &box);
+	   damageDamageBox (pDrawable, &box, pGC->subWindowMode);
     }
     (*pGC->ops->PolyArc)(pDrawable, pGC, nArcs, pArcs);
     DAMAGE_GC_OP_EPILOGUE(pGC, pDrawable);
@@ -1169,7 +1190,7 @@ damageFillPolygon(DrawablePtr	pDrawable,
 
 	TRIM_AND_TRANSLATE_BOX(box, pDrawable, pGC);
 	if(BOX_NOT_EMPTY(box))
-	   damageDamageBox (pDrawable, &box);
+	   damageDamageBox (pDrawable, &box, pGC->subWindowMode);
     }
     
     (*pGC->ops->FillPolygon)(pDrawable, pGC, shape, mode, npt, ppt);
@@ -1208,7 +1229,7 @@ damagePolyFillRect(DrawablePtr	pDrawable,
 
 	TRIM_AND_TRANSLATE_BOX(box, pDrawable, pGC);
 	if(BOX_NOT_EMPTY(box))
-	    damageDamageBox (pDrawable, &box);
+	    damageDamageBox (pDrawable, &box, pGC->subWindowMode);
     }
     (*pGC->ops->PolyFillRect)(pDrawable, pGC, nRects, pRects);
     DAMAGE_GC_OP_EPILOGUE(pGC, pDrawable);
@@ -1249,7 +1270,7 @@ damagePolyFillArc(DrawablePtr	pDrawable,
 
 	TRIM_AND_TRANSLATE_BOX(box, pDrawable, pGC);
 	if(BOX_NOT_EMPTY(box))
-	   damageDamageBox (pDrawable, &box);
+	   damageDamageBox (pDrawable, &box, pGC->subWindowMode);
     }
     (*pGC->ops->PolyFillArc)(pDrawable, pGC, nArcs, pArcs);
     DAMAGE_GC_OP_EPILOGUE(pGC, pDrawable);
@@ -1267,7 +1288,8 @@ damageDamageChars (DrawablePtr	pDrawable,
 		   int		y,
 		   unsigned int	n,
 		   CharInfoPtr	*charinfo,
-		   Bool		imageblt)
+		   Bool		imageblt,
+		   int		subWindowMode)
 {
     ExtentInfoRec   extents;
     BoxRec	    box;
@@ -1290,7 +1312,7 @@ damageDamageChars (DrawablePtr	pDrawable,
     box.y1 = y - extents.overallAscent;
     box.x2 = x + extents.overallRight;
     box.y2 = y + extents.overallDescent;
-    damageDamageBox (pDrawable, &box);
+    damageDamageBox (pDrawable, &box, subWindowMode);
 }
 
 /*
@@ -1334,7 +1356,7 @@ damageText (DrawablePtr	    pDrawable,
 
     if (n != 0) {
 	damageDamageChars (pDrawable, pGC->font, x + pDrawable->x, y + pDrawable->y, n,
-			   charinfo, imageblt);
+			   charinfo, imageblt, pGC->subWindowMode);
 	if (imageblt)
 	    (*pGC->ops->ImageGlyphBlt)(pDrawable, pGC, x, y, n, charinfo,
 				       FONTGLYPHS(pGC->font));
@@ -1434,7 +1456,7 @@ damageImageGlyphBlt(DrawablePtr	    pDrawable,
 {
     DAMAGE_GC_OP_PROLOGUE(pGC, pDrawable);
     damageDamageChars (pDrawable, pGC->font, x + pDrawable->x, y + pDrawable->y,
-		       nglyph, ppci, TRUE);
+		       nglyph, ppci, TRUE, pGC->subWindowMode);
     (*pGC->ops->ImageGlyphBlt)(pDrawable, pGC, x, y, nglyph,
 					ppci, pglyphBase);
     DAMAGE_GC_OP_EPILOGUE(pGC, pDrawable);
@@ -1451,7 +1473,7 @@ damagePolyGlyphBlt(DrawablePtr	pDrawable,
 {
     DAMAGE_GC_OP_PROLOGUE(pGC, pDrawable);
     damageDamageChars (pDrawable, pGC->font, x + pDrawable->x, y + pDrawable->y,
-		       nglyph, ppci, FALSE);
+		       nglyph, ppci, FALSE, pGC->subWindowMode);
     (*pGC->ops->PolyGlyphBlt)(pDrawable, pGC, x, y, nglyph,
 				ppci, pglyphBase);
     DAMAGE_GC_OP_EPILOGUE(pGC, pDrawable);
@@ -1484,7 +1506,7 @@ damagePushPixels(GCPtr		pGC,
 
 	TRIM_BOX(box, pGC);
 	if(BOX_NOT_EMPTY(box))
-	   damageDamageBox (pDrawable, &box);
+	   damageDamageBox (pDrawable, &box, pGC->subWindowMode);
     }
     (*pGC->ops->PushPixels)(pGC, pBitMap, pDrawable, dx, dy, xOrg, yOrg);
     DAMAGE_GC_OP_EPILOGUE(pGC, pDrawable);
@@ -1562,7 +1584,7 @@ damagePaintWindow(WindowPtr pWindow,
      */
     if ((what != PW_BACKGROUND || pWindow->backgroundState != None) &&
 	getWindowDamage (pWindow))
-	damageDamageRegion (&pWindow->drawable, prgn, FALSE);
+	damageDamageRegion (&pWindow->drawable, prgn, FALSE, -1);
     if(what == PW_BACKGROUND) {
 	unwrap (pScrPriv, pScreen, PaintWindowBackground);
 	(*pScreen->PaintWindowBackground) (pWindow, prgn, what);
@@ -1593,7 +1615,7 @@ damageCopyWindow(WindowPtr	pWindow,
 	 * at the destination location.  Translate back and forth.
 	 */
 	REGION_TRANSLATE (pScreen, prgnSrc, dx, dy);
-	damageDamageRegion (&pWindow->drawable, prgnSrc, FALSE);
+	damageDamageRegion (&pWindow->drawable, prgnSrc, FALSE, -1);
 	REGION_TRANSLATE (pScreen, prgnSrc, -dx, -dy);
     }
     unwrap (pScrPriv, pScreen, CopyWindow);
@@ -1628,7 +1650,7 @@ damageRestoreAreas (PixmapPtr	pPixmap,
     ScreenPtr pScreen = pWindow->drawable.pScreen;
     damageScrPriv(pScreen);
 
-    damageDamageRegion (&pWindow->drawable, prgn, FALSE);
+    damageDamageRegion (&pWindow->drawable, prgn, FALSE, -1);
     unwrap (pScrPriv, pScreen, BackingStoreFuncs.RestoreAreas);
     (*pScreen->BackingStoreFuncs.RestoreAreas) (pPixmap, prgn,
 						xorg, yorg, pWindow);
@@ -1937,5 +1959,5 @@ void
 DamageDamageRegion (DrawablePtr	pDrawable,
 		    RegionPtr	pRegion)
 {
-    damageDamageRegion (pDrawable, pRegion, FALSE);
+    damageDamageRegion (pDrawable, pRegion, FALSE, -1);
 }
