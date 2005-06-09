@@ -263,15 +263,6 @@ typedef struct _FbComposeData {
 } FbComposeData;
 
 
-/* fbaddtrap.c */
-
-void
-fbAddTraps (PicturePtr	pPicture,
-	    INT16	xOff,
-	    INT16	yOff,
-	    int		ntrap,
-	    xTrap	*traps);
-
 /* fbcompose.c */
 
 void
