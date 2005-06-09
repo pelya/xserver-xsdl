@@ -99,13 +99,7 @@ static const char GLServerExtensions[] =
 			"GL_APPLE_packed_pixels "
 			"GL_ATI_texture_mirror_once "
 			"GL_ATI_texture_env_combine3 "
-#if 0
-    /* This is currently removed because there seem to be some problems with
-     * it and the software-only indirect rendering path.  At this point, I'm
-     * not sure which side (client or server) has the problem. - idr
-     */
  			"GL_HP_occlusion_test "
-#endif
 			"GL_IBM_texture_mirrored_repeat "
 			"GL_MESA_pack_invert "
 			"GL_MESA_ycbcr_texture "
