@@ -562,7 +562,7 @@ static void ATIDRISwapContext(ScreenPtr pScreen, DRISyncType syncType,
 	if ((syncType==DRI_3D_SYNC) && (oldContextType==DRI_2D_CONTEXT) &&
 	    (newContextType==DRI_2D_CONTEXT)) {
 		/* Entering from Wakeup */
-		KdMarkSync(pScreen);
+		kaaMarkSync(pScreen);
 	}
 	if ((syncType==DRI_2D_SYNC) && (oldContextType==DRI_NO_CONTEXT) &&
 	    (newContextType==DRI_2D_CONTEXT)) {

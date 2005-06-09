@@ -33,6 +33,8 @@
 #include    "epson13806draw.h"
 #include    "epson13806reg.h"
 
+#include    "kaa.h"
+
 #include    "gcstruct.h"
 #include    "scrnintstr.h"
 #include    "pixmapstr.h"
@@ -182,7 +184,28 @@ epsonWaitForHwBltDone (void)
 {
     while (EPSON13806_REG (EPSON13806_BLTCTRL0) & EPSON13806_BLTCTRL0_ACTIVE) {}
 }
-                    
+
+
+/*
+ * epsonDrawSync
+ *
+ * Description:    Sync hardware acceleration
+ *
+ * History:
+ * 11-Feb-04  C.Stylianou       NBL: Created.
+ *
+ */
+
+static void
+epsonWaitMarker (ScreenPtr pScreen, int marker)
+{
+    EPSON_DEBUG (fprintf(stderr,"+epsonDrawSync\n"));
+
+    epsonWaitForHwBltDone ();
+
+    EPSON_DEBUG (fprintf(stderr,"-epsonDrawSync\n"));
+}
+
 
 /*
  * epsonPrepareSolid
@@ -428,20 +451,6 @@ epsonDoneCopy (void)
     EPSON_DEBUG_COPY (fprintf(stderr,"-epsonDoneCopy\n"));
 }
 
-static KaaScreenInfoRec epsonKaa = {
-    .PrepareSolid = epsonPrepareSolid,
-    .Solid = epsonSolid,
-    .DoneSolid = epsonDoneSolid,
-    
-    .PrepareCopy = epsonPrepareCopy,
-    .Copy = epsonCopy,
-    .DoneCopy = epsonDoneCopy,
-    
-    0,
-	0,
-    .flags = KAA_OFFSCREEN_PIXMAPS, /* Flags */
-};
-
 
 /*
  * epsonDrawInit
@@ -456,6 +465,10 @@ static KaaScreenInfoRec epsonKaa = {
 Bool
 epsonDrawInit (ScreenPtr pScreen)
 {
+    KdScreenPriv(pScreen);
+    KdScreenInfo *screen = pScreenPriv->screen;
+    EpsonScrPriv *epsons = screen->driver;
+
    EPSON_DEBUG (fprintf(stderr,"+epsonDrawInit\n"));
    
    epsonSet(pScreen);
@@ -535,7 +548,17 @@ epsonDrawInit (ScreenPtr pScreen)
     EPSON13806_REG16(EPSON13806_GPIOCTRL) |= 0x00fc;
 #endif
     
-    if (!kaaDrawInit (pScreen, &epsonKaa))
+    memset(&epsons->kaa, 0, sizeof(KaaScreenInfoRec));
+    epsons->kaa.waitMarker	= epsonWaitMarker;
+    epsons->kaa.PrepareSolid	= epsonPrepareSolid;
+    epsons->kaa.Solid		= epsonSolid;
+    epsons->kaa.DoneSolid	= epsonDoneSolid;
+    epsons->kaa.PrepareCopy	= epsonPrepareCopy;
+    epsons->kaa.Copy		= epsonCopy;
+    epsons->kaa.DoneCopy	= epsonDoneCopy;
+    epsons->kaa.flags		= KAA_OFFSCREEN_PIXMAPS;
+
+    if (!kaaDrawInit (pScreen, &epsons->kaa))
         return FALSE;
     
     EPSON_DEBUG (fprintf(stderr,"-epsonDrawInit\n"));
@@ -558,29 +581,8 @@ epsonDrawEnable (ScreenPtr pScreen)
 {
     EPSON_DEBUG (fprintf(stderr,"+epsonDrawEnable\n"));
     epsonWaitForHwBltDone ();
-    KdMarkSync (pScreen);
-    EPSON_DEBUG (fprintf(stderr,"+epsonDrawEnable\n"));
-}
-
-
-/*
- * epsonDrawSync
- *
- * Description:    Sync hardware acceleration
- *
- * History:
- * 11-Feb-04  C.Stylianou       NBL: Created.
- *
- */
-
-void
-epsonDrawSync (ScreenPtr pScreen)
-{
-    EPSON_DEBUG (fprintf(stderr,"+epsonDrawSync\n"));
-
-    epsonWaitForHwBltDone ();
-
-    EPSON_DEBUG (fprintf(stderr,"-epsonDrawSync\n"));
+    kaaMarkSync (pScreen);
+    EPSON_DEBUG (fprintf(stderr,"-epsonDrawEnable\n"));
 }
 
 

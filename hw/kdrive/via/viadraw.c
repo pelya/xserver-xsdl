@@ -34,6 +34,8 @@
 #include "viadraw.h"
 #include "via_regs.h"
 #include <sched.h>
+#include "kdrive.h"
+#include "kaa.h"
 
 /*
 ** A global to contain card information between calls into this file.
@@ -106,6 +108,29 @@ viaWaitIdle( ViaCardInfo* viac ) {
 	while( INREG32( VIA_REG_STATUS ) & VIA_BUSY )
 		sched_yield();
 }
+
+/*
+** void viaDrawSync( ScreenPtr pScreen, int marker )
+**
+** Description:
+**	Block until the graphics chip has finished all outstanding drawing
+**	operations and the framebuffer contents is static.
+**
+** Arguments:
+**	pScreen		Pointer to screen strucutre for the screen we're
+**			waiting for drawing to end on.
+**
+** Return:
+**	None.
+*/
+static void
+viaWaitMarker( ScreenPtr pScreen, int marker ) {
+	KdScreenPriv( pScreen );
+	ViaCardInfo* viac = pScreenPriv->card->driver;
+
+	viaWaitIdle( viac );
+}
+
 
 /*
 ** Bool viaPrepareSolid( PixmapPtr pPixmap, int alu, Pixel planemask, Pixel fg )
@@ -214,8 +239,7 @@ viaSolid( int x1, int y1, int x2, int y2 ) {
 **	None.
 */
 static void
-viaDoneSolid() {
-	;
+viaDoneSolid(void) {
 }
 
 /*
@@ -330,26 +354,9 @@ viaCopy( int srcX, int srcY, int dstX, int dstY, int w, int h ) {
 **	None.
 */
 static void
-viaDoneCopy() {
-	;
+viaDoneCopy(void) {
 }
 
-/*
-** viaKaa structure
-**
-** Description:
-**	Structure to contain function pointers to accelerated KAA operations
-**	in this driver.
-*/
-KaaScreenInfoRec viaKaa = {
-	viaPrepareSolid,
-	viaSolid,
-	viaDoneSolid,
-
-	viaPrepareCopy,
-	viaCopy,
-	viaDoneCopy,
-};
 
 /*
 ** Bool viaDrawInit( ScreenPtr pScreen )
@@ -370,6 +377,7 @@ Bool
 viaDrawInit( ScreenPtr pScreen ) {
 	KdScreenPriv( pScreen );
 	ViaCardInfo* viac = pScreenPriv->card->driver;
+	ViaScreenInfo* vias = pScreenPriv->card->driver;
 	CARD32 geMode = 0;
 
 	if( !viac ) return FALSE;
@@ -425,7 +433,16 @@ viaDrawInit( ScreenPtr pScreen ) {
 
 	DebugF( "Initialized 2D engine!\n" );
 
-	return kaaDrawInit( pScreen, &viaKaa );
+	memset(&vias->kaa, 0, sizeof(KaaScreenInfoRec));
+	vias->kaa.waitMarker	= viaWaitMarker;
+	vias->kaa.PrepareSolid	= viaPrepareSolid;
+	vias->kaa.Solid		= viaSolid;
+	vias->kaa.DoneSolid	= viaDoneSolid;
+	vias->kaa.PrepareCopy	= viaPrepareCopy;
+	vias->kaa.Copy		= viaCopy;
+	vias->kaa.DoneCopy	= viaDoneCopy;
+
+	return kaaDrawInit( pScreen, &vias->kaa );
 }
 
 /*
@@ -443,7 +460,7 @@ viaDrawInit( ScreenPtr pScreen ) {
 */
 void
 viaDrawEnable( ScreenPtr pScreen ) {
-	KdMarkSync( pScreen );
+	kaaMarkSync( pScreen );
 }
 
 /*
@@ -480,26 +497,3 @@ viaDrawDisable( ScreenPtr pScreen ) {
 void
 viaDrawFini( ScreenPtr pScreen ) {
 }
-
-/*
-** void viaDrawSync( ScreenPtr pScreen )
-**
-** Description:
-**	Block until the graphics chip has finished all outstanding drawing
-**	operations and the framebuffer contents is static.
-**
-** Arguments:
-**	pScreen		Pointer to screen strucutre for the screen we're
-**			waiting for drawing to end on.
-**
-** Return:
-**	None.
-*/
-void
-viaDrawSync( ScreenPtr pScreen ) {
-	KdScreenPriv( pScreen );
-	ViaCardInfo* viac = pScreenPriv->card->driver;
-
-	viaWaitIdle( viac );
-}
-

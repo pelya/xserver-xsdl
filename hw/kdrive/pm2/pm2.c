@@ -2,6 +2,7 @@
 #include <config.h>
 #endif
 #include "kdrive.h"
+#include "kaa.h"
 
 #include "pm2.h"
 
@@ -198,7 +199,7 @@ pmRandRSetConfig (ScreenPtr		pScreen,
 		      int		rate,
 		      RRScreenSizePtr	pSize)
 {
-    KdCheckSync (pScreen);
+    kaaWaitSync (pScreen);
 
     if (!vesaRandRSetConfig (pScreen, rotation, rate, pSize))
 	return FALSE;
@@ -296,7 +297,6 @@ KdCardFuncs	PM2Funcs = {
 
     pmDrawInit,              /* initAccel */
     pmDrawEnable,            /* enableAccel */
-    pmDrawSync,              /* syncAccel */
     pmDrawDisable,           /* disableAccel */
     pmDrawFini,              /* finiAccel */
     

@@ -27,6 +27,7 @@
 #endif
 #include "mga.h"
 #include "g400_common.h"
+#include "kaa.h"
 #include <unistd.h>
 
 CARD32 mgaRop[16] = {
@@ -68,6 +69,17 @@ void
 mgaWaitIdle (void)
 {
     while (MGA_IN32 (mmio, MGA_REG_STATUS) & 0x10000);
+}
+
+static void
+mgaWaitMarker (ScreenPtr pScreen, int marker)
+{
+    KdScreenPriv (pScreen);
+    mgaCardInfo (pScreenPriv);
+
+    mmio = mgac->reg_base;
+
+    mgaWaitIdle ();
 }
 
 Bool
@@ -232,38 +244,40 @@ mgaUploadToScreen(PixmapPtr pDst, char *src, int src_pitch) {
   return TRUE;
 }
 
-KaaScreenInfoRec mgaKaa = {
-    mgaPrepareSolid,
-    mgaSolid,
-    mgaDoneSolid,
-
-    mgaPrepareCopy,
-    mgaCopy,
-    mgaDoneCopy,
-
-    192, /* 192 Offscreen byte alignment */
-    128, /* Pitch alignment is in sets of 32 pixels, and we need to
-	    cover 32bpp, so 128 bytes */
-    KAA_OFFSCREEN_PIXMAPS /* Flags */
-};
-
 Bool
 mgaDrawInit (ScreenPtr pScreen)
 {
     KdScreenPriv(pScreen);
+    mgaScreenInfo (pScreenPriv);
     KdCardInfo *card = pScreenPriv->card;
         
+    memset(&mgas->kaa, 0, sizeof(KaaScreenInfoRec));
+    mgas->kaa.waitMarker	= mgaWaitMarker;
+    mgas->kaa.PrepareSolid	= mgaPrepareSolid;
+    mgas->kaa.Solid		= mgaSolid;
+    mgas->kaa.DoneSolid		= mgaDoneSolid;
+    mgas->kaa.PrepareCopy	= mgaPrepareCopy;
+    mgas->kaa.Copy		= mgaCopy;
+    mgas->kaa.DoneCopy		= mgaDoneCopy;
+    /* In PW24 mode, we need to align to "3 64-bytes" */
+    mgas->kaa.offsetAlign	= 192;
+    /* Pitch alignment is in sets of 32 pixels, and we need to cover 32bpp, so
+     * 128 bytes
+     */
+    mgas->kaa.pitchAlign	= 128;
+    mgas->kaa.flags		= KAA_OFFSCREEN_PIXMAPS;
+
     if (card->attr.deviceID == MGA_G4XX_DEVICE_ID) {
-        mgaKaa.PrepareBlend=mgaPrepareBlend;
-	mgaKaa.Blend=mgaBlend;
-	mgaKaa.DoneBlend=mgaDoneBlend;
-	mgaKaa.PrepareComposite=mgaPrepareComposite;
-	mgaKaa.Composite=mgaComposite;
-	mgaKaa.DoneComposite=mgaDoneComposite;
+        mgas->kaa.PrepareBlend	= mgaPrepareBlend;
+	mgas->kaa.Blend		= mgaBlend;
+	mgas->kaa.DoneBlend	= mgaDoneBlend;
+	mgas->kaa.PrepareComposite = mgaPrepareComposite;
+	mgas->kaa.Composite	= mgaComposite;
+	mgas->kaa.DoneComposite	= mgaDoneComposite;
     }
     /*mgaKaa.UploadToScreen=mgaUploadToScreen;*/
         
-    if (!kaaDrawInit (pScreen, &mgaKaa))
+    if (!kaaDrawInit (pScreen, &mgas->kaa))
 	return FALSE;
 
     return TRUE;
@@ -292,7 +306,7 @@ mgaDrawEnable (ScreenPtr pScreen)
       FatalError ("unsupported pixel format");
     }
 
-    KdMarkSync (pScreen);
+    kaaMarkSync (pScreen);
 }
 
 void
@@ -305,13 +319,3 @@ mgaDrawFini (ScreenPtr pScreen)
 {
 }
 
-void
-mgaDrawSync (ScreenPtr pScreen)
-{
-    KdScreenPriv (pScreen);
-    mgaCardInfo (pScreenPriv);
-
-    mmio = mgac->reg_base;
-
-    mgaWaitIdle ();
-}

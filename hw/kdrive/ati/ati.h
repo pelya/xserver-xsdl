@@ -353,9 +353,6 @@ void
 ATIDrawEnable(ScreenPtr pScreen);
 
 void
-ATIDrawSync(ScreenPtr pScreen);
-
-void
 ATIDrawDisable(ScreenPtr pScreen);
 
 void

@@ -426,7 +426,6 @@ KdCardFuncs viaFuncs = {
 
 	viaDrawInit,		/* initAccel */
 	viaDrawEnable,		/* enableAccel */
-	viaDrawSync,		/* syncAccel */
 	viaDrawDisable,		/* disableAccel */
 	viaDrawFini,		/* finiAccel */
 

@@ -83,6 +83,8 @@ typedef struct _r128ScreenInfo {
     CARD8 *off_screen;
     int off_screen_size;
 
+    KaaScreenInfoRec kaa;
+
     int pitch;
     int datatype;
 
@@ -112,9 +114,6 @@ r128DrawInit (ScreenPtr pScreen);
 
 void
 r128DrawEnable (ScreenPtr pScreen);
-
-void
-r128DrawSync (ScreenPtr pScreen);
 
 void
 r128DrawDisable (ScreenPtr pScreen);

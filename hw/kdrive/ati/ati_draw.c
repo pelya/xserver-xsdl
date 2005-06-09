@@ -192,6 +192,17 @@ ATIDrawSetup(ScreenPtr pScreen)
 	}
 }
 
+static void
+ATIWaitMarker(ScreenPtr pScreen, int marker)
+{
+	KdScreenPriv(pScreen);
+	ATIScreenInfo(pScreenPriv);
+
+	ENTER_DRAW(0);
+	ATIWaitIdle(atis);
+	LEAVE_DRAW(0);
+}
+
 void
 RadeonSwitchTo2D(ATIScreenInfo *atis)
 {
@@ -287,12 +298,12 @@ ATIGetOffsetPitch(ATIScreenInfo *atis, int bpp, CARD32 *pitch_offset,
 	ATICardInfo *atic = atis->atic;
 
 	/* On the R128, depending on the bpp the screen can be set up so that it
-	 * doesn't meet the offscreenPitch requirement but can still be
+	 * doesn't meet the pitchAlign requirement but can still be
 	 * accelerated, so we check the specific pitch requirement of alignment
 	 * to 8 pixels.
 	 */
 	if (atic->is_radeon) {
-		if (pitch % atis->kaa.offscreenPitch != 0)
+		if (pitch % atis->kaa.pitchAlign != 0)
 			ATI_FALLBACK(("Bad pitch 0x%08x\n", pitch));
 		*pitch_offset = ((pitch >> 6) << 22) | (offset >> 10);
 
@@ -302,7 +313,7 @@ ATIGetOffsetPitch(ATIScreenInfo *atis, int bpp, CARD32 *pitch_offset,
 		*pitch_offset = ((pitch / bpp) << 21) | (offset >> 5);
 	}
 
-	if (offset % atis->kaa.offscreenByteAlign != 0)
+	if (offset % atis->kaa.offsetAlign != 0)
 		ATI_FALLBACK(("Bad offset 0x%08x\n", offset));
 
 	return TRUE;
@@ -656,7 +667,7 @@ ATIUploadToScreen(PixmapPtr pDst, char *src, int src_pitch)
 		END_DMA();
 	}
 
-	KdMarkSync(pScreen);
+	kaaMarkSync(pScreen);
 
 	ErrorF("hostdata upload %d,%d %dbpp\n", width, height, bpp);
 
@@ -683,20 +694,19 @@ ATIUploadToScratch(PixmapPtr pSrc, PixmapPtr pDst)
 	if (atis->kaa.flags & KAA_OFFSCREEN_ALIGN_POT)
 		w = 1 << (ATILog2(w - 1) + 1);
 	dst_pitch = (w * pSrc->drawable.bitsPerPixel / 8 +
-	    atis->kaa.offscreenPitch - 1) & ~(atis->kaa.offscreenPitch - 1);
+	    atis->kaa.pitchAlign - 1) & ~(atis->kaa.pitchAlign - 1);
 
 	size = dst_pitch * pSrc->drawable.height;
 	if (size > atis->scratch_area->size)
 		ATI_FALLBACK(("Pixmap too large for scratch (%d,%d)\n",
 		    pSrc->drawable.width, pSrc->drawable.height));
 
-	atis->scratch_next = (atis->scratch_next +
-	    atis->kaa.offscreenByteAlign - 1) &
-	    ~(atis->kaa.offscreenByteAlign - 1);
+	atis->scratch_next = (atis->scratch_next + atis->kaa.offsetAlign - 1) &
+	    ~(atis->kaa.offsetAlign - 1);
 	if (atis->scratch_next + size > atis->scratch_area->offset +
 	    atis->scratch_area->size) {
 		/* Only sync when we've used all of the scratch area. */
-		KdCheckSync(pSrc->drawable.pScreen);
+		kaaWaitSync(pSrc->drawable.pScreen);
 		atis->scratch_next = atis->scratch_area->offset;
 	}
 	memcpy(pDst, pSrc, sizeof(*pDst));
@@ -771,6 +781,7 @@ ATIDrawInit(ScreenPtr pScreen)
 #endif /* USE_DRI */
 
 	memset(&atis->kaa, 0, sizeof(KaaScreenInfoRec));
+	atis->kaa.waitMarker = ATIWaitMarker;
 	atis->kaa.PrepareSolid = ATIPrepareSolid;
 	atis->kaa.Solid = ATISolid;
 	atis->kaa.DoneSolid = ATIDoneSolid;
@@ -783,16 +794,16 @@ ATIDrawInit(ScreenPtr pScreen)
 
 	atis->kaa.flags = KAA_OFFSCREEN_PIXMAPS;
 	if (atic->is_radeon) {
-		atis->kaa.offscreenByteAlign = 1024;
-		atis->kaa.offscreenPitch = 64;
+		atis->kaa.offsetAlign = 1024;
+		atis->kaa.pitchAlign = 64;
 	} else {
 		/* Rage 128 compositing wants power-of-two pitches. */
 		atis->kaa.flags |= KAA_OFFSCREEN_ALIGN_POT;
-		atis->kaa.offscreenByteAlign = 32;
+		atis->kaa.offsetAlign = 32;
 		/* Pitch alignment is in sets of 8 pixels, and we need to cover
 		 * 32bpp, so 32 bytes.
 		 */
-		atis->kaa.offscreenPitch = 32;
+		atis->kaa.pitchAlign = 32;
 	}
 
 	kaaInitTrapOffsets(8, sample_offsets_x, sample_offsets_y, 0.0, 0.0);
@@ -874,13 +885,13 @@ ATIDrawEnable(ScreenPtr pScreen)
 	 * can't be migrated.
 	 */
 	atis->scratch_area = KdOffscreenAlloc(pScreen, 131072,
-	    atis->kaa.offscreenByteAlign, TRUE, ATIScratchSave, atis);
+	    atis->kaa.offsetAlign, TRUE, ATIScratchSave, atis);
 	if (atis->scratch_area != NULL) {
 		atis->scratch_next = atis->scratch_area->offset;
 		atis->kaa.UploadToScratch = ATIUploadToScratch;
 	}
 
-	KdMarkSync(pScreen);
+	kaaMarkSync(pScreen);
 }
 
 void
@@ -908,13 +919,3 @@ ATIDrawFini(ScreenPtr pScreen)
 	kaaDrawFini(pScreen);
 }
 
-void
-ATIDrawSync(ScreenPtr pScreen)
-{
-	KdScreenPriv(pScreen);
-	ATIScreenInfo(pScreenPriv);
-
-	ENTER_DRAW(0);
-	ATIWaitIdle(atis);
-	LEAVE_DRAW(0);
-}

@@ -76,6 +76,7 @@ typedef struct _chipsScreenInfo {
     CARD8	    *off_screen;
     int		    off_screen_size;
     ChipsCursor   cursor;
+    KaaScreenInfoRec kaa;
 } ChipsScreenInfo;
 
 #define getChipsScreenInfo(kd) ((ChipsScreenInfo *) ((kd)->screen->driver))
@@ -86,9 +87,6 @@ chipsDrawInit (ScreenPtr pScreen);
 
 void
 chipsDrawEnable (ScreenPtr pScreen);
-
-void
-chipsDrawSync (ScreenPtr pScreen);
 
 void
 chipsDrawDisable (ScreenPtr pScreen);

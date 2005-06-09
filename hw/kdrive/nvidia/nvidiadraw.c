@@ -40,6 +40,7 @@
 #include	"migc.h"
 #include	"miline.h"
 #include	"picturestr.h"
+#include	"kaa.h"
 
 CARD8 nvidiaRop[16] = {
     /* GXclear      */      0x01,         /* 0 */
@@ -79,6 +80,15 @@ nvidiaWaitIdle (NvidiaCardInfo *card)
     {
 	card->fifo_free = card->rop->FifoFree.FifoFree >> 2;
     }
+}
+
+static void
+nvidiaWaitMarker (ScreenPtr pScreen, int marker)
+{
+    KdScreenPriv(pScreen);
+    nvidiaCardInfo(pScreenPriv);
+    
+    nvidiaWaitIdle (nvidiac);
 }
 
 static Bool
@@ -154,27 +164,27 @@ nvidiaDoneCopy (void)
 {
 }
 
-KaaScreenInfoRec    nvidiaKaa = {
-    nvidiaPrepareSolid,
-    nvidiaSolid,
-    nvidiaDoneSolid,
-
-    nvidiaPrepareCopy,
-    nvidiaCopy,
-    nvidiaDoneCopy,
-};
-
 Bool
 nvidiaDrawInit (ScreenPtr pScreen)
 {
     KdScreenPriv(pScreen);
     nvidiaCardInfo(pScreenPriv);
+    nvidiaScreenInfo(pScreenPriv);
     Bool    ret = TRUE;
     
     ENTER ();
     if (pScreenPriv->screen->fb[0].depth == 4)
 	ret = FALSE;
     
+    memset(&nvidias->kaa, 0, sizeof(KaaScreenInfoRec));
+    nvidias->kaa.waitMarker	= nvidiaWaitMarker;
+    nvidias->kaa.PrepareSolid	= nvidiaPrepareSolid;
+    nvidias->kaa.Solid		= nvidiaSolid;
+    nvidias->kaa.DoneSolid	= nvidiaDoneSolid;
+    nvidias->kaa.PrepareCopy	= nvidiaPrepareCopy;
+    nvidias->kaa.Copy		= nvidiaCopy;
+    nvidias->kaa.DoneCopy	= nvidiaDoneCopy;
+
     if (ret && !nvidiac->rop)
     {
 	ErrorF ("Failed to map fifo registers\n");
@@ -185,7 +195,7 @@ nvidiaDrawInit (ScreenPtr pScreen)
 	ErrorF ("Fifo appears broken\n");
 	ret = FALSE;
     }
-    if (ret && !kaaDrawInit (pScreen, &nvidiaKaa))
+    if (ret && !kaaDrawInit (pScreen, &nvidias->kaa))
     {
 	ErrorF ("kaaDrawInit failed\n");
 	ret = FALSE;
@@ -215,7 +225,7 @@ nvidiaDrawEnable (ScreenPtr pScreen)
     ENTER ();
     nvidiac->fifo_size = nvidiac->rop->FifoFree.FifoFree;
     nvidiac->fifo_free = 0;
-    KdMarkSync (pScreen);
+    kaaMarkSync (pScreen);
     LEAVE ();
 }
 
@@ -229,11 +239,3 @@ nvidiaDrawFini (ScreenPtr pScreen)
 {
 }
 
-void
-nvidiaDrawSync (ScreenPtr pScreen)
-{
-    KdScreenPriv(pScreen);
-    nvidiaCardInfo(pScreenPriv);
-    
-    nvidiaWaitIdle (nvidiac);
-}

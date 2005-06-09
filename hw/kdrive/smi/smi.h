@@ -186,6 +186,7 @@ typedef struct _smiScreenInfo {
     CARD32		stride;
     CARD32		data_format;
     CARD8		dpr_vpr_enable;
+    KaaScreenInfoRec kaa;
 } SmiScreenInfo;
 
 #define getSmiScreenInfo(kd) ((SmiScreenInfo *) ((kd)->screen->driver))
@@ -241,9 +242,6 @@ smiDrawReinit (ScreenPtr pScreen);
 
 void
 smiDrawEnable (ScreenPtr pScreen);
-
-void
-smiDrawSync (ScreenPtr pScreen);
 
 void
 smiDrawDisable (ScreenPtr pScreen);

@@ -100,9 +100,10 @@ typedef struct _mgaCardInfo {
 typedef struct _mgaScreenInfo {
     VesaScreenPrivRec vesa;
 
+    KaaScreenInfoRec kaa;
+
     int pitch;
     int pw;
-    
 } MgaScreenInfo;
 
 #define getMgaScreenInfo(kd) ((MgaScreenInfo *) ((kd)->screen->driver))
@@ -132,9 +133,6 @@ mgaDrawInit (ScreenPtr pScreen);
 
 void
 mgaDrawEnable (ScreenPtr pScreen);
-
-void
-mgaDrawSync (ScreenPtr pScreen);
 
 void
 mgaDrawDisable (ScreenPtr pScreen);

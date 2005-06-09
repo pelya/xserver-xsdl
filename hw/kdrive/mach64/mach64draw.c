@@ -41,6 +41,7 @@
 #include	"migc.h"
 #include	"miline.h"
 #include	"picturestr.h"
+#include	"kaa.h"
 
 CARD8 mach64Rop[16] = {
     /* GXclear      */      0x01,         /* 0 */
@@ -336,6 +337,16 @@ static const Mach64AccelReg	mach64AccelReg[] = {
 
 #define NACCELREG (sizeof mach64AccelReg / sizeof mach64AccelReg[0])
 
+static void
+mach64WaitMarker (ScreenPtr pScreen, int marker)
+{
+    KdScreenPriv(pScreen);
+    mach64CardInfo(pScreenPriv);
+    reg = mach64c->reg;
+    
+    mach64WaitIdle (reg);
+}
+
 static Bool
 mach64Setup (PixmapPtr pDst, PixmapPtr pSrc, CARD32 combo, int wait)
 {
@@ -537,29 +548,29 @@ mach64DoneCopy (void)
 #endif
 }
 
-KaaScreenInfoRec    mach64Kaa = {
-    mach64PrepareSolid,
-    mach64Solid,
-    mach64DoneSolid,
-
-    mach64PrepareCopy,
-    mach64Copy,
-    mach64DoneCopy,
-
-    64,			    /* Offscreen byte alignment */
-    64,			    /* Offscreen pitch */
-    KAA_OFFSCREEN_PIXMAPS,  /* Flags */
-};
 
 Bool
 mach64DrawInit (ScreenPtr pScreen)
 {
     KdScreenPriv(pScreen);
-    
+    mach64ScreenInfo(pScreenPriv);
+
+    memset(&mach64s->kaa, 0, sizeof(KaaScreenInfoRec));
+    mach64s->kaa.waitMarker	= mach64WaitMarker;
+    mach64s->kaa.PrepareSolid	= mach64PrepareSolid;
+    mach64s->kaa.Solid		= mach64Solid;
+    mach64s->kaa.DoneSolid	= mach64DoneSolid;
+    mach64s->kaa.PrepareCopy	= mach64PrepareCopy;
+    mach64s->kaa.Copy		= mach64Copy;
+    mach64s->kaa.DoneCopy	= mach64DoneCopy;
+    mach64s->kaa.offsetAlign	= 64;
+    mach64s->kaa.pitchAlign	= 64;
+    mach64s->kaa.flags		= KAA_OFFSCREEN_PIXMAPS;
+
     if (pScreenPriv->screen->fb[0].depth == 4)
 	return FALSE;
     
-    if (!kaaDrawInit (pScreen, &mach64Kaa))
+    if (!kaaDrawInit (pScreen, &mach64s->kaa))
 	return FALSE;
 
     return TRUE;
@@ -568,7 +579,7 @@ mach64DrawInit (ScreenPtr pScreen)
 void
 mach64DrawEnable (ScreenPtr pScreen)
 {
-    KdMarkSync (pScreen);
+    kaaMarkSync (pScreen);
 }
 
 void
@@ -580,14 +591,4 @@ void
 mach64DrawFini (ScreenPtr pScreen)
 {
     kaaDrawFini (pScreen);
-}
-
-void
-mach64DrawSync (ScreenPtr pScreen)
-{
-    KdScreenPriv(pScreen);
-    mach64CardInfo(pScreenPriv);
-    reg = mach64c->reg;
-    
-    mach64WaitIdle (reg);
 }

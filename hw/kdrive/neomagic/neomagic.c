@@ -328,7 +328,6 @@ KdCardFuncs    neoFuncs = {
 
     neoDrawInit,              // initAccel
     neoDrawEnable,            // enableAccel
-    neoDrawSync,              // syncAccel
     neoDrawDisable,           // disableAccel
     neoDrawFini,              // finiAccel
 

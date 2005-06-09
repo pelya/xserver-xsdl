@@ -117,7 +117,7 @@ nvidiaRandRSetConfig (ScreenPtr		pScreen,
 		      int		rate,
 		      RRScreenSizePtr	pSize)
 {
-    KdCheckSync (pScreen);
+    kaaWaitSync (pScreen);
 
     if (!vesaRandRSetConfig (pScreen, rotation, rate, pSize))
 	return FALSE;
@@ -354,7 +354,6 @@ KdCardFuncs	nvidiaFuncs = {
     
     nvidiaDrawInit,	    /* initAccel */
     nvidiaDrawEnable,	    /* enableAccel */
-    nvidiaDrawSync,	    /* syncAccel */
     nvidiaDrawDisable,	    /* disableAccel */
     nvidiaDrawFini,	    /* finiAccel */
     

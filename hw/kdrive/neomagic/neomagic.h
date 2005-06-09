@@ -166,6 +166,7 @@ typedef struct _neoScreenInfo {
     int pitch;
     int depth;
     KdVideoAdaptorPtr pAdaptor;
+    KaaScreenInfoRec kaa;
 } NeoScreenInfo;
 
 #define getNeoScreenInfo(kd) ((NeoScreenInfo *) ((kd)->screen->driver))
@@ -207,9 +208,6 @@ neoDrawDisable (ScreenPtr pScreen);
 
 void
 neoDrawFini (ScreenPtr pScreen);
-
-void
-neoDrawSync (ScreenPtr pScreen);
 
 extern KdCardFuncs  neoFuncs;
 

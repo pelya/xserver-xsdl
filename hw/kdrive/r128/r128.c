@@ -244,7 +244,6 @@ KdCardFuncs r128Funcs = {
     
     r128DrawInit,	/* initAccel */
     r128DrawEnable,	/* enableAccel */
-    r128DrawSync,	/* syncAccel */
     r128DrawDisable,	/* disableAccel */
     r128DrawFini,	/* finiAccel */
     

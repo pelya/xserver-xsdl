@@ -279,7 +279,7 @@ kaaTryDriverSolidFill(PicturePtr	pSrc,
      * before accessing it.  We'd prefer for it to be in memory.
      */
     if (kaaPixmapIsOffscreen(pSrcPix)) {
-	KdCheckSync(pDst->pDrawable->pScreen);
+	kaaWaitSync(pDst->pDrawable->pScreen);
     }
 
     pixel = *(CARD32 *)(pSrcPix->devPrivate.ptr);
@@ -310,7 +310,7 @@ kaaTryDriverSolidFill(PicturePtr	pSrc,
     }
 
     (*pKaaScr->info->DoneSolid) ();
-    KdMarkSync(pDst->pDrawable->pScreen);
+    kaaMarkSync (pDst->pDrawable->pScreen);
     kaaDrawableDirty (pDst->pDrawable);
 
     REGION_UNINIT(pDst->pDrawable->pScreen, &region);
@@ -397,7 +397,7 @@ kaaTryDriverBlend(CARD8		op,
     }
     
     (*pKaaScr->info->DoneBlend) ();
-    KdMarkSync(pDst->pDrawable->pScreen);
+    kaaMarkSync (pDst->pDrawable->pScreen);
     kaaDrawableDirty (pDst->pDrawable);
 
     REGION_UNINIT(pDst->pDrawable->pScreen, &region);
@@ -520,7 +520,7 @@ kaaTryDriverComposite(CARD8		op,
     }
 
     (*pKaaScr->info->DoneComposite) ();
-    KdMarkSync(pDst->pDrawable->pScreen);
+    kaaMarkSync (pDst->pDrawable->pScreen);
     kaaDrawableDirty (pDst->pDrawable);
 
     REGION_UNINIT(pDst->pDrawable->pScreen, &region);

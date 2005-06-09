@@ -160,6 +160,7 @@ typedef struct _nvidiaScreenInfo {
     CARD8			*off_screen;
     int				off_screen_size;
     KdVideoAdaptorPtr		pAdaptor;
+    KaaScreenInfoRec		kaa;
 } NvidiaScreenInfo;
 
 #define getNvidiaScreenInfo(kd) ((NvidiaScreenInfo *) ((kd)->screen->driver))
@@ -215,9 +216,6 @@ nvidiaDrawReinit (ScreenPtr pScreen);
 
 void
 nvidiaDrawEnable (ScreenPtr pScreen);
-
-void
-nvidiaDrawSync (ScreenPtr pScreen);
 
 void
 nvidiaDrawDisable (ScreenPtr pScreen);

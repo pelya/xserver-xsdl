@@ -99,7 +99,7 @@ static int i810SetPortAttribute(KdScreenInfo *, Atom, int, pointer);
 static int i810GetPortAttribute(KdScreenInfo *, Atom, int *, pointer);
 static void i810QueryBestSize(KdScreenInfo *, Bool,
 	short, short, short, short, unsigned int *, unsigned int *, pointer);
-static int i810PutImage( KdScreenInfo *, 
+static int i810PutImage( KdScreenInfo *, DrawablePtr, 
 	short, short, short, short, short, short, short, short,
 	int, unsigned char*, short, short, Bool, RegionPtr, pointer);
 static int i810QueryImageAttributes(KdScreenInfo *, 
@@ -929,20 +929,27 @@ i810AllocateMemory(
    return new_linear;
 }
 
-static int 
-i810PutImage( 
-  KdScreenInfo *screen, 
-  short src_x, short src_y, 
-  short drw_x, short drw_y,
-  short src_w, short src_h, 
-  short drw_w, short drw_h,
-  int id, unsigned char* buf, 
-  short width, short height, 
-  Bool sync,
-  RegionPtr clipBoxes, pointer data
-){
-  KdCardInfo *card = screen->card;
-  I810CardInfo	*i810c = (I810CardInfo *) card->driver;
+static int
+i810PutImage(KdScreenInfo	    *screen, 
+	       DrawablePtr	    pDraw,
+	       short		    src_x,
+	       short		    src_y,
+	       short		    drw_x,
+	       short		    drw_y,
+	       short		    src_w,
+	       short		    src_h,
+	       short		    drw_w,
+	       short		    drw_h,
+	       int		     id,
+	       unsigned char	    *buf,
+	       short		    width,
+	       short		    height,
+	       Bool		    sync,
+	       RegionPtr	    clipBoxes,
+	       pointer		    data)
+{
+    KdCardInfo *card = screen->card;
+    I810CardInfo *i810c = (I810CardInfo *) card->driver;
     I810PortPrivPtr pPriv = (I810PortPrivPtr)data;
     INT32 x1, x2, y1, y2;
     int srcPitch, dstPitch;
@@ -1029,14 +1036,7 @@ i810PutImage(
     /* update cliplist */
     if(!REGION_EQUAL(screen->pScreen, &pPriv->clip, clipBoxes)) {
 	REGION_COPY(screen->pScreen, &pPriv->clip, clipBoxes);
-        i810FillBoxSolid(screen, REGION_NUM_RECTS(clipBoxes),
-                         REGION_RECTS(clipBoxes),
-                         pPriv->colorKey, GXcopy, ~0);
-        /*
-	XAAFillSolidRects(screen, pPriv->colorKey, GXcopy, ~0, 
-					REGION_NUM_RECTS(clipBoxes),
-					REGION_RECTS(clipBoxes));
-        */
+	KXVPaintRegion (pDraw, &pPriv->clip, pPriv->colorKey);
     }
 
 

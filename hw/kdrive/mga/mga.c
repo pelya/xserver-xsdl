@@ -234,7 +234,6 @@ KdCardFuncs mgaFuncs = {
     
     mgaDrawInit,	/* initAccel */
     mgaDrawEnable,	/* enableAccel */
-    mgaDrawSync,	/* syncAccel */
     mgaDrawDisable,	/* disableAccel */
     mgaDrawFini,	/* finiAccel */
     

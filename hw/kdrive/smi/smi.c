@@ -108,7 +108,7 @@ smiRandRSetConfig (ScreenPtr		pScreen,
     Bool    ret;
     
     ENTER ();
-    KdCheckSync (pScreen);
+    kaaWaitSync (pScreen);
 
     ret = subRandRSetConfig (pScreen, randr, rate, pSize);
     LEAVE();
@@ -335,7 +335,6 @@ KdCardFuncs	smiFuncs = {
     
     smiDrawInit,	    /* initAccel */
     smiDrawEnable,	    /* enableAccel */
-    smiDrawSync,	    /* syncAccel */
     smiDrawDisable,	    /* disableAccel */
     smiDrawFini,	    /* finiAccel */
     

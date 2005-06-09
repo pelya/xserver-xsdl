@@ -326,48 +326,6 @@ mach64CopyPlanarData(KdScreenInfo   *screen,
     }
 }
 
-static void
-mach64PaintRegion (DrawablePtr pDraw, RegionPtr pRgn, Pixel fg)
-{
-    GCPtr	pGC;
-    CARD32    	val[2];
-    xRectangle	*rects, *r;
-    BoxPtr	pBox = REGION_RECTS (pRgn);
-    int		nBox = REGION_NUM_RECTS (pRgn);
-    
-    rects = ALLOCATE_LOCAL (nBox * sizeof (xRectangle));
-    if (!rects)
-	goto bail0;
-    r = rects;
-    while (nBox--)
-    {
-	r->x = pBox->x1 - pDraw->x;
-	r->y = pBox->y1 - pDraw->y;
-	r->width = pBox->x2 - pBox->x1;
-	r->height = pBox->y2 - pBox->y1;
-	r++;
-	pBox++;
-    }
-    
-    pGC = GetScratchGC (pDraw->depth, pDraw->pScreen);
-    if (!pGC)
-	goto bail1;
-    
-    val[0] = fg;
-    val[1] = IncludeInferiors;
-    ChangeGC (pGC, GCForeground|GCSubwindowMode, val);
-    
-    ValidateGC (pDraw, pGC);
-    
-    (*pGC->ops->PolyFillRect) (pDraw, pGC, 
-			       REGION_NUM_RECTS (pRgn), rects);
-
-    FreeScratchGC (pGC);
-bail1:
-    DEALLOCATE_LOCAL (rects);
-bail0:
-    ;
-}
 
 /* Mach64ClipVideo -  
 
@@ -777,7 +735,7 @@ mach64PutImage(KdScreenInfo	    *screen,
     if (!REGION_EQUAL (screen->pScreen, &pPortPriv->clip, clipBoxes))
     {
 	REGION_COPY (screen->pScreen, &pPortPriv->clip, clipBoxes);
-	mach64PaintRegion (pDraw, &pPortPriv->clip, pPortPriv->colorKey);
+	KXVPaintRegion (pDraw, &pPortPriv->clip, pPortPriv->colorKey);
     }
 
     pPortPriv->videoOn = TRUE;
@@ -898,7 +856,7 @@ mach64ReputImage (KdScreenInfo	    *screen,
 	if (!REGION_EQUAL (screen->pScreen, &pPortPriv->clip, clipBoxes))
 	{
 	    REGION_COPY (screen->pScreen, &pPortPriv->clip, clipBoxes);
-	    mach64PaintRegion (pDraw, &pPortPriv->clip, pPortPriv->colorKey);
+	    KXVPaintRegion (pDraw, &pPortPriv->clip, pPortPriv->colorKey);
 	}
 	return Success;
     }

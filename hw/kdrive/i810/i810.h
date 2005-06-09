@@ -122,17 +122,20 @@ typedef struct {
    ErrorF("BEGIN_LP_RING %d in %s:%d\n", n, __FILE__, __LINE__)
 #endif
 
+#define LP_RING_LOCALS \
+    unsigned int outring, ringmask;					\
+    volatile unsigned char *virt
+
 #define BEGIN_LP_RING(n)						\
-   unsigned int outring, ringmask;					\
-   volatile unsigned char *virt;							\
-   if (n>2 && (I810_DEBUG&DEBUG_ALWAYS_SYNC)) i810Sync( screen );	\
-   if (i810c->LpRing.space < n*4) i810WaitLpRing( screen, n*4, 0);	\
-   i810c->LpRing.space -= n*4;						\
-   if (I810_DEBUG & DEBUG_VERBOSE_RING) 				\
-      LP_RING_MESSAGE(n);						\
-   outring = i810c->LpRing.tail;					\
-   ringmask = i810c->LpRing.tail_mask;					\
-   virt = i810c->LpRing.virtual_start;			
+    if (n>2 && (I810_DEBUG&DEBUG_ALWAYS_SYNC))				\
+	i810Sync(i810s);	\
+    if (i810c->LpRing.space < n*4) i810WaitLpRing(i810s, n*4, 0);	\
+    i810c->LpRing.space -= n*4;						\
+    if (I810_DEBUG & DEBUG_VERBOSE_RING) 				\
+	LP_RING_MESSAGE(n);						\
+    outring = i810c->LpRing.tail;					\
+    ringmask = i810c->LpRing.tail_mask;					\
+    virt = i810c->LpRing.virtual_start;			
 
 /* Memory mapped register access macros */
 #define INREG8(addr)        *(volatile CARD8  *)(i810c->MMIOBase + (addr))
@@ -193,6 +196,7 @@ extern int I810_DEBUG;
 #define PCI_CHIP_I810_DC100_BRIDGE 0x7122
 #define PCI_CHIP_I810_E_BRIDGE     0x7124
 #define PCI_CHIP_I815_BRIDGE       0x1130
+#define PCI_CHIP_I845G             0x2562
 #endif
 
 
@@ -277,7 +281,7 @@ typedef struct _i810CardInfo {
     I810RegRec ModeReg;
     I810RingBuffer LpRing;
 
-   unsigned int BR[20]; 
+    unsigned int BR[20]; 
 
     int CursorOffset;
     unsigned long CursorPhysical;
@@ -285,8 +289,6 @@ typedef struct _i810CardInfo {
     unsigned long OverlayPhysical;
     unsigned long OverlayStart;
     int colorKey;
-
-    Bool NeedToSync; /* Need to sync accel stuff */
 
     int nextColorExpandBuf;
 
@@ -296,7 +298,9 @@ typedef struct _i810CardInfo {
     KdVideoAdaptorPtr adaptor;
 #endif
 
-} I810CardInfo;
+} i810CardInfo;
+
+typedef struct _i810CardInfo I810CardInfo;	/* compatibility */
 
 #define getI810CardInfo(kd)	((I810CardInfo *) ((kd)->card->driver))
 #define i810CardInfo(kd)	I810CardInfo *i810c = getI810CardInfo(kd)
@@ -312,8 +316,14 @@ typedef struct _i810Cursor {
 } i810Cursor, *i810CursorPtr;
 
 typedef struct _i810ScreenInfo {
+    i810CardInfo *i810c;
     i810Cursor cursor;
-} I810ScreenInfo;
+
+    int pitch;
+    KaaScreenInfoRec kaa;
+} i810ScreenInfo;
+
+typedef struct _i810ScreenInfo I810ScreenInfo;	/* compatibility */
 
 #define I810_CURSOR_HEIGHT 64
 #define I810_CURSOR_WIDTH 64
@@ -347,9 +357,6 @@ i810InitAccel(ScreenPtr);
 
 void        
 i810EnableAccel (ScreenPtr);
-
-void	
-i810SyncAccel (ScreenPtr);
 
 void        
 i810DisableAccel (ScreenPtr);
@@ -423,7 +430,7 @@ void
 i810VGASave(KdCardInfo *card, vgaRegPtr save, int flags);
 
 void 
-i810PrintErrorState(KdCardInfo *card);
+i810PrintErrorState(i810CardInfo *i810c);
 
 void
 i810VGAGetIOBase(i810VGAPtr vgap);

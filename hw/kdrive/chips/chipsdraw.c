@@ -39,6 +39,7 @@
 #include	"fb.h"
 #include	"migc.h"
 #include	"miline.h"
+#include	"kaa.h"
 
 CARD8 chipsBltRop[16] = {
     /* GXclear      */      0x00,         /* 0 */
@@ -157,6 +158,13 @@ chipsSet (ScreenPtr pScreen)
     byteStride = pScreenPriv->screen->fb[0].byteStride;
     bytesPerPixel = pScreenPriv->screen->fb[0].bitsPerPixel >> 3;
     pixelStride = pScreenPriv->screen->fb[0].pixelStride;
+}
+
+static void
+chipsWaitMarker (ScreenPtr pScreen, int marker)
+{
+    chipsSet (pScreen);
+    chipsWaitIdle ();
 }
 
 #ifdef HIQV
@@ -424,23 +432,12 @@ chipsDoneCopy (void)
 {
 }
 
-KaaScreenInfoRec    chipsKaa = {
-    chipsPrepareSolid,
-    chipsSolid,
-    chipsDoneSolid,
-
-    chipsPrepareCopy,
-    chipsCopy,
-    chipsDoneCopy,
-
-    0, 0, 0
-};
-
 Bool
 chipsDrawInit (ScreenPtr pScreen)
 {
     KdScreenPriv(pScreen);
-    
+    chipsScreenInfo(pScreenPriv);
+
     switch (pScreenPriv->screen->fb[0].bitsPerPixel) {
     case 8:
     case 16:
@@ -449,7 +446,16 @@ chipsDrawInit (ScreenPtr pScreen)
 	return FALSE;
     }
 	
-    if (!kaaDrawInit (pScreen, &chipsKaa))
+    memset(&chipss->kaa, 0, sizeof(KaaScreenInfoRec));
+    chipss->kaa.waitMarker	= chipsWaitMarker;
+    chipss->kaa.PrepareSolid	= chipsPrepareSolid;
+    chipss->kaa.Solid		= chipsSolid;
+    chipss->kaa.DoneSolid	= chipsDoneSolid;
+    chipss->kaa.PrepareCopy	= chipsPrepareCopy;
+    chipss->kaa.Copy		= chipsCopy;
+    chipss->kaa.DoneCopy	= chipsDoneCopy;
+
+    if (!kaaDrawInit (pScreen, &chipss->kaa))
 	return FALSE;
     
     return TRUE;
@@ -474,7 +480,7 @@ chipsDrawEnable (ScreenPtr pScreen)
     chipsWaitIdle ();
     chipsWriteXR (chipss, 0x20, mode);
     
-    KdMarkSync (pScreen);
+    kaaMarkSync (pScreen);
 }
 
 void
@@ -487,9 +493,3 @@ chipsDrawFini (ScreenPtr pScreen)
 {
 }
 
-void
-chipsDrawSync (ScreenPtr pScreen)
-{
-    chipsSet (pScreen);
-    chipsWaitIdle ();
-}

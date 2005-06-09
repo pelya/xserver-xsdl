@@ -25,6 +25,7 @@
 #include <config.h>
 #endif
 #include "mach64.h"
+#include "kaa.h"
 
 static Bool
 mach64CardInit (KdCardInfo *card)
@@ -103,7 +104,7 @@ mach64RandRSetConfig (ScreenPtr		pScreen,
 		      int		rate,
 		      RRScreenSizePtr	pSize)
 {
-    KdCheckSync (pScreen);
+   kaaWaitSync (pScreen);
 
     if (!vesaRandRSetConfig (pScreen, rotation, rate, pSize))
 	return FALSE;
@@ -353,7 +354,7 @@ mach64DPMS (ScreenPtr pScreen, int mode)
 	CRTC_GEN_CNTL &= ~(1 << 6);
     }
     
-    KdCheckSync (pScreen);
+    kaaWaitSync (pScreen);
 
     mach64WriteLCD (reg, 1, LCD_GEN_CTRL);
     
@@ -425,7 +426,6 @@ KdCardFuncs	mach64Funcs = {
     
     mach64DrawInit,	    /* initAccel */
     mach64DrawEnable,	    /* enableAccel */
-    mach64DrawSync,	    /* syncAccel */
     mach64DrawDisable,	    /* disableAccel */
     mach64DrawFini,	    /* finiAccel */
     

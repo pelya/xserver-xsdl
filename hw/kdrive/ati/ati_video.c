@@ -259,7 +259,7 @@ R128DisplayVideo(KdScreenInfo *screen, ATIPortPrivPtr pPortPriv)
 	/* XXX: Shouldn't this be in kxv.c instead? */
 	DamageDamageRegion(pPortPriv->pDraw, &pPortPriv->clip);
 #endif
-	KdMarkSync(pScreen);
+	kaaMarkSync(pScreen);
 }
 
 union intfloat {
@@ -490,7 +490,7 @@ RadeonDisplayVideo(KdScreenInfo *screen, ATIPortPrivPtr pPortPriv)
 	/* XXX: Shouldn't this be in kxv.c instead? */
 	DamageDamageRegion(pPortPriv->pDraw, &pPortPriv->clip);
 #endif
-	KdMarkSync(pScreen);
+	kaaMarkSync(pScreen);
 }
 
 static void

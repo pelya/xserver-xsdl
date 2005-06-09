@@ -756,7 +756,6 @@ KdCardFuncs ATIFuncs = {
 
 	ATIDrawInit,		/* initAccel */
 	ATIDrawEnable,		/* enableAccel */
-	ATIDrawSync,		/* syncAccel */
 	ATIDrawDisable,		/* disableAccel */
 	ATIDrawFini,		/* finiAccel */
 

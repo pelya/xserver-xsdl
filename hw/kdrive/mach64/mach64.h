@@ -570,6 +570,7 @@ typedef struct _mach64ScreenInfo {
     Mach64Cursor		cursor;
     CARD32			colorKey;
     KdVideoAdaptorPtr		pAdaptor;
+    KaaScreenInfoRec		kaa;
 } Mach64ScreenInfo;
 
 #define getMach64ScreenInfo(kd) ((Mach64ScreenInfo *) ((kd)->screen->driver))
@@ -622,9 +623,6 @@ mach64DrawReinit (ScreenPtr pScreen);
 
 void
 mach64DrawEnable (ScreenPtr pScreen);
-
-void
-mach64DrawSync (ScreenPtr pScreen);
 
 void
 mach64DrawDisable (ScreenPtr pScreen);

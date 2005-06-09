@@ -107,6 +107,7 @@ typedef struct _viaCardInfo {
 */
 typedef struct _viaScreenInfo {
 	VesaScreenPrivRec	vesa;
+	KaaScreenInfoRec	kaa;
 } ViaScreenInfo;
 
 /*

@@ -41,6 +41,7 @@
 #include	"migc.h"
 #include	"miline.h"
 #include	"picturestr.h"
+#include	"kaa.h"
 
 CARD8 smiBltRop[16] = {
     /* GXclear      */      0x00,         /* 0 */
@@ -143,6 +144,15 @@ smiSetup (ScreenPtr pScreen, int wait)
     return TRUE;
 }
 
+static void
+smiWaitMarker (ScreenPtr pScreen, int marker)
+{
+    KdScreenPriv(pScreen);
+    smic = getSmiCardInfo(pScreenPriv);
+    
+    smiWaitIdle (smic);
+}
+
 static Bool
 smiPrepareSolid (PixmapPtr    pPixmap,
 		 int		alu,
@@ -229,15 +239,6 @@ smiDoneCopy (void)
 {
 }
 
-KaaScreenInfoRec    smiKaa = {
-    smiPrepareSolid,
-    smiSolid,
-    smiDoneSolid,
-
-    smiPrepareCopy,
-    smiCopy,
-    smiDoneCopy,
-};
 
 Bool
 smiDrawInit (ScreenPtr pScreen)
@@ -258,7 +259,16 @@ smiDrawInit (ScreenPtr pScreen)
 	return FALSE;
     }
 
-    if (!kaaDrawInit (pScreen, &smiKaa))
+    memset(&smis->kaa, 0, sizeof(KaaScreenInfoRec));
+    smis->kaa.PrepareSolid	= smiPrepareSolid;
+    smis->kaa.Solid		= smiSolid;
+    smis->kaa.DoneSolid		= smiDoneSolid;
+    smis->kaa.PrepareCopy	= smiPrepareCopy;
+    smis->kaa.Copy		= smiCopy;
+    smis->kaa.DoneCopy		= smiDoneCopy;
+    smis->kaa.waitMarker	= smiWaitMarker;
+
+    if (!kaaDrawInit (pScreen, &smis->kaa))
     {
 	LEAVE ();
 	return FALSE;
@@ -311,7 +321,7 @@ smiDrawEnable (ScreenPtr pScreen)
     }
     
     smiSetup (pScreen, 0);
-    KdMarkSync (pScreen);
+    kaaMarkSync (pScreen);
     LEAVE ();
 }
 
@@ -331,13 +341,4 @@ smiDrawFini (ScreenPtr pScreen)
 {
     ENTER ();
     LEAVE ();
-}
-
-void
-smiDrawSync (ScreenPtr pScreen)
-{
-    KdScreenPriv(pScreen);
-    smic = getSmiCardInfo(pScreenPriv);
-    
-    smiWaitIdle (smic);
 }

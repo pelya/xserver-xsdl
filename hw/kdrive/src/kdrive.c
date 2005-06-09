@@ -224,7 +224,7 @@ KdDisableScreen (ScreenPtr pScreen)
     
     if (!pScreenPriv->enabled)
 	return;
-    KdCheckSync (pScreen);
+    kaaWaitSync (pScreen);
     if (!pScreenPriv->closed)
 	KdSetRootClip (pScreen, FALSE);
     KdDisableColormap (pScreen);

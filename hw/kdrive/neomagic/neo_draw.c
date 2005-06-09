@@ -71,6 +71,14 @@ static  void neoWaitIdle(NeoCardInfo *neoc)
     while ((mmio->bltStat & 1) && ++i<100000);
 }
 
+static void neoWaitMarker (ScreenPtr pScreen, int marker)
+{
+    KdScreenPriv(pScreen);
+    neoCardInfo(pScreenPriv);
+
+    neoWaitIdle(neoc);
+}
+
 static  void neoWaitFifo(NeoCardInfo *neoc, int requested_fifo_space)
 {
     neoWaitIdle( neoc );
@@ -156,20 +164,24 @@ static void neoDoneCopy (void)
 {
 }
 
-KaaScreenInfoRec neoKaa = {
-    neoPrepareSolid,
-    neoSolid,
-    neoDoneSolid,
-
-    neoPrepareCopy,
-    neoCopy,
-    neoDoneCopy
-};
 
 Bool neoDrawInit (ScreenPtr pScreen)
 {
+    KdScreenPriv(pScreen);
+    neoScreenInfo(pScreenPriv);
+
     ENTER();
-    if (!kaaDrawInit (pScreen, &neoKaa)) {
+
+    memset(&neos->kaa, 0, sizeof(KaaScreenInfoRec));
+    neos->kaa.waitMarker	= neoWaitMarker;
+    neos->kaa.PrepareSolid	= neoPrepareSolid;
+    neos->kaa.Solid		= neoSolid;
+    neos->kaa.DoneSolid		= neoDoneSolid;
+    neos->kaa.PrepareCopy	= neoPrepareCopy;
+    neos->kaa.Copy		= neoCopy;
+    neos->kaa.DoneCopy		= neoDoneCopy;
+
+    if (!kaaDrawInit (pScreen, &neos->kaa)) {
         return FALSE;
     }
     LEAVE();
@@ -201,9 +213,3 @@ void neoDrawFini (ScreenPtr pScreen)
     LEAVE();
 }
 
-void neoDrawSync (ScreenPtr pScreen)
-{
-    SetupNeo(pScreen);
-
-    neoWaitIdle(neoc);
-}

@@ -2,6 +2,7 @@
 #include <config.h>
 #endif
 #include "kdrive.h"
+#include "kaa.h"
 
 #include "pm2.h"
 
@@ -9,6 +10,20 @@ static PM2CardInfo	*card;
 static VOL8	*mmio;
 
 static void Permedia2LoadCoord(int x, int y, int w, int h);
+
+static void
+pmWaitMarker (ScreenPtr pScreen, int marker)
+{
+    CHECKCLIPPING;
+
+    while (GLINT_READ_REG(DMACount) != 0);
+    GLINT_WAIT(2);
+    GLINT_WRITE_REG(0x400, FilterMode);
+    GLINT_WRITE_REG(0, GlintSync);
+    do {
+   	while(GLINT_READ_REG(OutFIFOWords) == 0);
+    } while (GLINT_READ_REG(OutputFIFO) != Sync_tag);
+}
 
 static Bool
 pmPrepareSolid (PixmapPtr   	pPixmap,
@@ -159,27 +174,28 @@ Permedia2LoadCoord(int x, int y,
     }
 }
 
-KaaScreenInfoRec    pmKaa = {
-    pmPrepareSolid,
-    pmSolid,
-    pmDoneSolid,
-
-    pmPrepareCopy,
-    pmCopy,
-    pmDoneCopy,
-};
 
 Bool
 pmDrawInit (ScreenPtr pScreen)
 {
     KdScreenPriv(pScreen);
     pmCardInfo(pScreenPriv);
+    pmScreenInfo(pScreenPriv);
     Bool    ret = TRUE;
 
     card = pm2c;
     mmio = pm2c->reg_base;
 
-    if (ret && !kaaDrawInit (pScreen, &pmKaa))
+    memset(&pm2s->kaa, 0, sizeof(KaaScreenInfoRec));
+    pm2s->kaa.waitMarker	= pmWaitMarker;
+    pm2s->kaa.PrepareSolid	= pmPrepareSolid;
+    pm2s->kaa.Solid		= pmSolid;
+    pm2s->kaa.DoneSolid		= pmDoneSolid;
+    pm2s->kaa.PrepareCopy	= pmPrepareCopy;
+    pm2s->kaa.Copy		= pmCopy;
+    pm2s->kaa.DoneCopy		= pmDoneCopy;
+
+    if (ret && !kaaDrawInit (pScreen, &pm2s->kaa))
     {
 	ErrorF ("kaaDrawInit failed\n");
 	ret = FALSE;
@@ -288,7 +304,7 @@ pmDrawEnable (ScreenPtr pScreen)
     GLINT_SLOW_WRITE_REG(0, StartY);
     GLINT_SLOW_WRITE_REG(0, GLINTCount);
 
-    KdMarkSync (pScreen);
+    kaaMarkSync (pScreen);
 }
 
 void
@@ -299,18 +315,4 @@ pmDrawDisable (ScreenPtr pScreen)
 void
 pmDrawFini (ScreenPtr pScreen)
 {
-}
-
-void
-pmDrawSync (ScreenPtr pScreen)
-{
-    CHECKCLIPPING;
-
-    while (GLINT_READ_REG(DMACount) != 0);
-    GLINT_WAIT(2);
-    GLINT_WRITE_REG(0x400, FilterMode);
-    GLINT_WRITE_REG(0, GlintSync);
-    do {
-   	while(GLINT_READ_REG(OutFIFOWords) == 0);
-    } while (GLINT_READ_REG(OutputFIFO) != Sync_tag);
 }

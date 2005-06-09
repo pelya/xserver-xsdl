@@ -176,7 +176,7 @@ i810CardInit (KdCardInfo *card)
     return TRUE;
 }
 
-void
+static void
 i810ScreenFini (KdScreenInfo *screen)
 {
     I810ScreenInfo    *i810s = (I810ScreenInfo *) screen->driver;
@@ -185,7 +185,7 @@ i810ScreenFini (KdScreenInfo *screen)
     screen->driver = 0;    
 }
 
-Bool
+static Bool
 i810InitScreen (ScreenPtr pScreen) {
 
 #ifdef XV
@@ -194,7 +194,14 @@ i810InitScreen (ScreenPtr pScreen) {
     return TRUE;
 }
 
-void
+static Bool
+i810FinishInitScreen(ScreenPtr pScreen)
+{
+    /* XXX: RandR init */
+    return TRUE;
+}
+
+static void
 i810CardFini (KdCardInfo *card)
 {
     I810CardInfo	*i810c = (I810CardInfo *) card->driver;
@@ -415,7 +422,7 @@ i810ReadControlMMIO(I810CardInfo *i810c, int addr, CARD8 index) {
   return minb(addr+1);
 }
 
-Bool
+static Bool
 i810ModeSupported (KdScreenInfo *screen, const KdMonitorTiming *t)
 {
     /* This is just a guess. */
@@ -424,7 +431,7 @@ i810ModeSupported (KdScreenInfo *screen, const KdMonitorTiming *t)
     return TRUE;
 }
 
-Bool
+static Bool
 i810ModeUsable (KdScreenInfo *screen)
 {
     KdCardInfo	    *card = screen->card;
@@ -465,7 +472,7 @@ i810ModeUsable (KdScreenInfo *screen)
     return screen_size <= (i810c->videoRam * 1024);
 }
 
-int i810AllocateGARTMemory( KdScreenInfo *screen ) 
+static int i810AllocateGARTMemory( KdScreenInfo *screen ) 
 {
    KdCardInfo	    *card = screen->card;
    I810CardInfo    *i810c = (I810CardInfo *) card->driver;
@@ -589,7 +596,7 @@ int i810AllocateGARTMemory( KdScreenInfo *screen )
 
 /* Allocate from a memrange, returns success */
 
-int i810AllocLow( I810MemRange *result, I810MemRange *pool, int size )
+static int i810AllocLow( I810MemRange *result, I810MemRange *pool, int size )
 {
    if (size > pool->Size) return FALSE;
 
@@ -600,7 +607,7 @@ int i810AllocLow( I810MemRange *result, I810MemRange *pool, int size )
    return TRUE;
 }
 
-int i810AllocHigh( I810MemRange *result, I810MemRange *pool, int size )
+static int i810AllocHigh( I810MemRange *result, I810MemRange *pool, int size )
 {
    if (size > pool->Size) return 0;
 
@@ -611,7 +618,7 @@ int i810AllocHigh( I810MemRange *result, I810MemRange *pool, int size )
    return 1;
 }
 
-Bool
+static Bool
 i810AllocateFront(KdScreenInfo *screen) {
 
     KdCardInfo	    *card = screen->card;
@@ -718,6 +725,8 @@ i810ScreenInit (KdScreenInfo *screen)
 	return FALSE;
 
     memset (i810s, '\0', sizeof (I810ScreenInfo));
+
+    i810s->i810c = i810c;
 
     /* Default dimensions */
     if (!screen->width || !screen->height)
@@ -933,7 +942,7 @@ DoSave(KdCardInfo *card, vgaRegPtr vgaReg, I810RegPtr i810Reg, Bool saveFonts)
 
     if ((i810Reg->LprbTail & TAIL_ADDR) != (i810Reg->LprbHead & HEAD_ADDR) &&
         i810Reg->LprbLen & RING_VALID) {
-        i810PrintErrorState( card );
+        i810PrintErrorState( i810c );
         FatalError( "Active ring not flushed\n");
     }
 
@@ -943,7 +952,9 @@ DoSave(KdCardInfo *card, vgaRegPtr vgaReg, I810RegPtr i810Reg, Bool saveFonts)
     }       
 }
 
-void i810Preserve(KdCardInfo *card) {
+static void
+i810Preserve(KdCardInfo *card)
+{
     I810CardInfo    *i810c = card->driver;
     i810VGAPtr      vgap = &i810c->vga;
 
@@ -954,10 +965,8 @@ void i810Preserve(KdCardInfo *card) {
 /* Famous last words
  */
 void 
-i810PrintErrorState(KdCardInfo *card)
+i810PrintErrorState(i810CardInfo *i810c)
 {
-
-    I810CardInfo    *i810c = card->driver;
     
    fprintf(stderr, "pgetbl_ctl: 0x%lx pgetbl_err: 0x%lx\n", 
 	   INREG(PGETBL_CTL),
@@ -993,7 +1002,7 @@ i810PrintErrorState(KdCardInfo *card)
 	   INREG16(IIR));
 }
 
-Bool
+static Bool
 i810BindGARTMemory( KdScreenInfo *screen ) 
 {
     
@@ -1022,7 +1031,7 @@ i810BindGARTMemory( KdScreenInfo *screen )
     return TRUE;
 }
 
-Bool
+static Bool
 i810UnbindGARTMemory(KdScreenInfo  *screen) 
 {
     KdCardInfo	    *card = screen->card;
@@ -1124,7 +1133,7 @@ i810CalcVCLK( KdScreenInfo *screen, double freq )
 
 #define Elements(x) (sizeof(x)/sizeof(*x))
 
-unsigned int 
+static unsigned int 
 i810CalcWatermark( KdScreenInfo *screen, double freq, Bool dcache )
 {
 
@@ -1268,7 +1277,7 @@ static void i810PrintMode( vgaRegPtr vgaReg, I810RegPtr mode )
  * HW, but still warns about not programming them...
  */
 
-void
+static void
 i810VGASeqReset(i810VGAPtr vgap, Bool start)
 {
     if (start)
@@ -1281,7 +1290,7 @@ i810VGASeqReset(i810VGAPtr vgap, Bool start)
     }
 }
 
-void
+static void
 i810VGAProtect(KdCardInfo *card, Bool on)
 {
 
@@ -1666,7 +1675,7 @@ i810VGAInit(KdScreenInfo *screen, const KdMonitorTiming *t)
 
     int hactive, hblank, hbp, hfp;
     int vactive, vblank, vbp, vfp;
-    int h_screen_off, h_adjust, h_total, h_display_end, h_blank_start;
+    int h_screen_off = 0, h_adjust = 0, h_total, h_display_end, h_blank_start;
     int h_blank_end, h_sync_start, h_sync_end, v_total, v_retrace_start;
     int v_retrace_end, v_display_end, v_blank_start, v_blank_end;
 
@@ -1911,7 +1920,7 @@ i810Restore(KdCardInfo *card) {
     DoRestore(card, &vgap->SavedReg, &i810c->SavedReg, TRUE);
 }
 
-Bool
+static Bool
 i810Enable (ScreenPtr pScreen)
 {
     KdScreenPriv(pScreen);
@@ -1964,7 +1973,7 @@ i810Enable (ScreenPtr pScreen)
 }
 
 
-void
+static void
 i810Disable(ScreenPtr pScreen) {
 
     KdScreenPriv(pScreen);
@@ -2035,7 +2044,9 @@ i810DPMS(ScreenPtr pScreen, int mode)
 }
 
 
-void i810GetColors (ScreenPtr pScreen, int fb, int ndefs, xColorItem *c) {
+static void
+i810GetColors (ScreenPtr pScreen, int fb, int ndefs, xColorItem *c)
+{
 
     if (I810_DEBUG)
         fprintf(stderr,"i810GetColors (NOT IMPLEMENTED)\n");
@@ -2047,7 +2058,9 @@ void i810GetColors (ScreenPtr pScreen, int fb, int ndefs, xColorItem *c) {
 	    temp = Vminb((hw)->IOBase + VGA_IN_STAT_1_OFFSET);		     \
 	} while (0)
 
-void i810PutColors (ScreenPtr pScreen, int fb, int ndef, xColorItem *pdefs) {
+static void
+i810PutColors (ScreenPtr pScreen, int fb, int ndef, xColorItem *pdefs)
+{
 
     KdScreenPriv(pScreen);
     KdScreenInfo    *screen = pScreenPriv->screen;
@@ -2079,6 +2092,8 @@ KdCardFuncs	i810Funcs = {
     i810CardInit,               /* cardinit */
     i810ScreenInit,             /* scrinit */
     i810InitScreen,             /* initScreen */
+    i810FinishInitScreen,       /* finishInitScreen */
+    NULL,			/* createResources */
     i810Preserve,               /* preserve */
     i810Enable,                 /* enable */
     i810DPMS,                   /* dpms */
@@ -2095,7 +2110,6 @@ KdCardFuncs	i810Funcs = {
 
     i810InitAccel,              /* initAccel */
     i810EnableAccel,            /* enableAccel */
-    i810SyncAccel,              /* syncAccel */
     i810DisableAccel,           /* disableAccel */
     i810FiniAccel,              /* finiAccel */
     

@@ -57,6 +57,7 @@ typedef struct _epsonPriv {
 typedef struct _epsonScrPriv {
     Rotation		randr;
     Bool			shadow;
+    KaaScreenInfoRec	kaa;
 } EpsonScrPriv;
 
 extern KdCardFuncs  epsonFuncs;
@@ -113,9 +114,6 @@ epsonDrawInit (ScreenPtr pScreen);
 
 void
 epsonDrawEnable (ScreenPtr pScreen);
-
-void
-epsonDrawSync (ScreenPtr pScreen);
 
 void
 epsonDrawDisable (ScreenPtr pScreen);

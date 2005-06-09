@@ -42,8 +42,13 @@ X Window System is a trademark of The Open Group */
 #include "kdrive.h"
 #include "kxv.h"
 #include "i810.h"
+#include "klinux.h"
 
-static const int i810Cards[]={ PCI_CHIP_I810, PCI_CHIP_I810_DC100, PCI_CHIP_I810_E };
+static const int i810Cards[]={
+    PCI_CHIP_I810,
+    PCI_CHIP_I810_DC100,
+    PCI_CHIP_I810_E
+};
 
 #define numI810Cards (sizeof(i810Cards) / sizeof(i810Cards[0]))
 
@@ -52,8 +57,6 @@ InitCard (char *name)
 {
     KdCardAttr	attr;
     int		i;
-
-    Bool LinuxFindPci(CARD16, CARD16, CARD32, KdCardAttr *); 
 
     for (i = 0; i < numI810Cards; i++)
 	if (LinuxFindPci (0x8086, i810Cards[i], 0, &attr))
@@ -83,7 +86,6 @@ int
 ddxProcessArgument (int argc, char **argv, int i)
 {
     int	ret;
-    int KdProcessArgument(int, char **, int);
     
     ret = KdProcessArgument(argc, argv, i);
     return ret;

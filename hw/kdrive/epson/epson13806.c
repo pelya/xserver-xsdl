@@ -597,7 +597,6 @@ KdCardFuncs epsonFuncs = {
 
     epsonDrawInit,          /* initAccel */
     epsonDrawEnable,        /* enableAccel */
-    epsonDrawSync,          /* syncAccel */
     epsonDrawDisable,       /* disableAccel */
     epsonDrawFini,          /* finiAccel */
     

@@ -104,7 +104,7 @@ kaaPixmapSave (ScreenPtr pScreen, KdOffscreenArea *area)
 	return;
 #endif
 
-    KdCheckSync (pPixmap->drawable.pScreen);
+    kaaWaitSync (pPixmap->drawable.pScreen);
 
     bytes = src_pitch < dst_pitch ? src_pitch : dst_pitch;
 
@@ -142,13 +142,13 @@ kaaPixmapAllocArea (PixmapPtr pPixmap)
 
     if (pKaaScr->info->flags & KAA_OFFSCREEN_ALIGN_POT && w != 1)
 	w = 1 << (kaaLog2(w - 1) + 1);
-    pitch = (w * bpp / 8 + pKaaScr->info->offscreenPitch - 1) &
-            ~(pKaaScr->info->offscreenPitch - 1);
+    pitch = (w * bpp / 8 + pKaaScr->info->pitchAlign - 1) &
+            ~(pKaaScr->info->pitchAlign - 1);
     
     pKaaPixmap->devKind = pPixmap->devKind;
     pKaaPixmap->devPrivate = pPixmap->devPrivate;
     pKaaPixmap->area = KdOffscreenAlloc (pScreen, pitch * h,
-					 pKaaScr->info->offscreenByteAlign,
+					 pKaaScr->info->offsetAlign,
 					 FALSE, 
 					 kaaPixmapSave, (pointer) pPixmap);
     if (!pKaaPixmap->area)
@@ -202,7 +202,7 @@ kaaMoveInPixmap (PixmapPtr pPixmap)
     
     bytes = src_pitch < dst_pitch ? src_pitch : dst_pitch;
 
-    KdCheckSync (pPixmap->drawable.pScreen);
+    kaaWaitSync (pPixmap->drawable.pScreen);
 
     i = pPixmap->drawable.height;
     while (i--) {
@@ -513,7 +513,7 @@ kaaFillSpans(DrawablePtr pDrawable, GCPtr pGC, int n,
     }
     (*pKaaScr->info->DoneSolid) ();
     kaaDrawableDirty (pDrawable);
-    KdMarkSync(pDrawable->pScreen);
+    kaaMarkSync (pDrawable->pScreen);
 }
 
 void
@@ -563,11 +563,11 @@ kaaCopyNtoN (DrawablePtr    pSrcDrawable,
 	    pbox++;
 	}
 	(*pKaaScr->info->DoneCopy) ();
-	KdMarkSync(pDstDrawable->pScreen);
+	kaaMarkSync (pDstDrawable->pScreen);
     }
     else
     {
-	KdCheckSync (pDstDrawable->pScreen);
+	kaaWaitSync (pDstDrawable->pScreen);
 	fbCopyNtoN (pSrcDrawable, pDstDrawable, pGC, 
 		    pbox, nbox, dx, dy, reverse, upsidedown, 
 		    bitplane, closure);
@@ -683,7 +683,7 @@ kaaPolyFillRect(DrawablePtr pDrawable,
     }
     (*pKaaScr->info->DoneSolid) ();
     kaaDrawableDirty (pDrawable);
-    KdMarkSync(pDrawable->pScreen);
+    kaaMarkSync (pDrawable->pScreen);
 }
     
 static void
@@ -708,7 +708,7 @@ kaaSolidBoxClipped (DrawablePtr	pDrawable,
 	!(pPixmap = kaaGetOffscreenPixmap (pDrawable, &xoff, &yoff)) ||
 	!(*pKaaScr->info->PrepareSolid) (pPixmap, GXcopy, pm, fg))
     {
-	KdCheckSync (pDrawable->pScreen);
+	kaaWaitSync (pDrawable->pScreen);
 	fg = fbReplicatePixel (fg, pDrawable->bitsPerPixel);
 	fbSolidBoxClipped (pDrawable, pClip, x1, y1, x2, y2,
 			   fbAnd (GXcopy, fg, pm),
@@ -747,7 +747,7 @@ kaaSolidBoxClipped (DrawablePtr	pDrawable,
     }
     (*pKaaScr->info->DoneSolid) ();
     kaaDrawableDirty (pDrawable);
-    KdMarkSync(pDrawable->pScreen);
+    kaaMarkSync (pDrawable->pScreen);
 }
 
 static void
@@ -833,7 +833,7 @@ kaaImageGlyphBlt (DrawablePtr	pDrawable,
 	opaque = FALSE;
     }
 
-    KdCheckSync (pDrawable->pScreen);
+    kaaWaitSync (pDrawable->pScreen);
     kaaDrawableDirty (pDrawable);
     
     ppci = ppciInit;
@@ -992,11 +992,11 @@ kaaFillRegionSolid (DrawablePtr	pDrawable,
 	    pBox++;
 	}
 	(*pKaaScr->info->DoneSolid) ();
-	KdMarkSync(pDrawable->pScreen);
+	kaaMarkSync (pDrawable->pScreen);
     }
     else
     {
-	KdCheckSync (pDrawable->pScreen);
+	kaaWaitSync (pDrawable->pScreen);
 	fbFillRegionSolid (pDrawable, pRegion, 0,
 			   fbReplicatePixel (pixel, pDrawable->bitsPerPixel));
     }
@@ -1011,7 +1011,7 @@ kaaFillRegionTiled (DrawablePtr pDrawable,
 {
     else
     {
-	KdCheckSync
+	kaaWaitSync
 }
 #endif
 
@@ -1133,4 +1133,29 @@ kaaDrawFini (ScreenPtr pScreen)
     KaaScreenPriv(pScreen);
 
     xfree (pKaaScr);
+}
+
+void
+kaaMarkSync (ScreenPtr pScreen)
+{
+    KdScreenPriv(pScreen);
+    KaaScreenPriv(pScreen);
+
+    pScreenPriv->card->needSync = TRUE;
+    if (pKaaScr->info->markSync != NULL) {
+	pScreenPriv->card->lastMarker = (*pKaaScr->info->markSync) (pScreen);
+    }
+}
+
+void
+kaaWaitSync (ScreenPtr pScreen)
+{
+    KdScreenPriv(pScreen);
+    KaaScreenPriv(pScreen);
+    KdCardInfo *card = pScreenPriv->card;
+
+    if (card->needSync) {
+	(*pKaaScr->info->waitMarker) (pScreen, card->lastMarker);
+	card->needSync = FALSE;
+    }
 }

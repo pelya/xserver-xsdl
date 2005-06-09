@@ -28,6 +28,9 @@
 #endif
 #include "kdrive.h"
 #include "kaa.h"
+#include "picturestr.h"
+#include "mipict.h"
+#include "fbpict.h"
 
 /*
  * These functions wrap the low-level fb rendering functions and
@@ -39,7 +42,7 @@ void
 KdCheckFillSpans  (DrawablePtr pDrawable, GCPtr pGC, int nspans,
 		   DDXPointPtr ppt, int *pwidth, int fSorted)
 {
-    KdCheckSync (pDrawable->pScreen);
+    kaaWaitSync (pDrawable->pScreen);
     kaaDrawableDirty (pDrawable);
     fbFillSpans (pDrawable, pGC, nspans, ppt, pwidth, fSorted);
 }
@@ -48,7 +51,7 @@ void
 KdCheckSetSpans (DrawablePtr pDrawable, GCPtr pGC, char *psrc,
 		 DDXPointPtr ppt, int *pwidth, int nspans, int fSorted)
 {
-    KdCheckSync (pDrawable->pScreen);
+    kaaWaitSync (pDrawable->pScreen);
     kaaDrawableDirty (pDrawable);
     fbSetSpans (pDrawable, pGC, psrc, ppt, pwidth, nspans, fSorted);
 }
@@ -58,7 +61,7 @@ KdCheckPutImage (DrawablePtr pDrawable, GCPtr pGC, int depth,
 		 int x, int y, int w, int h, int leftPad, int format,
 		 char *bits)
 {
-    KdCheckSync (pDrawable->pScreen);
+    kaaWaitSync (pDrawable->pScreen);
     kaaDrawableDirty (pDrawable);
     fbPutImage (pDrawable, pGC, depth, x, y, w, h, leftPad, format, bits);
 }
@@ -67,7 +70,7 @@ RegionPtr
 KdCheckCopyArea (DrawablePtr pSrc, DrawablePtr pDst, GCPtr pGC,
 		 int srcx, int srcy, int w, int h, int dstx, int dsty)
 {
-    KdCheckSync (pSrc->pScreen);
+    kaaWaitSync (pSrc->pScreen);
     kaaDrawableDirty (pDst);
     return fbCopyArea (pSrc, pDst, pGC, srcx, srcy, w, h, dstx, dsty);
 }
@@ -77,7 +80,7 @@ KdCheckCopyPlane (DrawablePtr pSrc, DrawablePtr pDst, GCPtr pGC,
 		  int srcx, int srcy, int w, int h, int dstx, int dsty,
 		  unsigned long bitPlane)
 {
-    KdCheckSync (pSrc->pScreen);
+    kaaWaitSync (pSrc->pScreen);
     kaaDrawableDirty (pDst);
     return fbCopyPlane (pSrc, pDst, pGC, srcx, srcy, w, h, dstx, dsty,
 			bitPlane);
@@ -87,7 +90,7 @@ void
 KdCheckPolyPoint (DrawablePtr pDrawable, GCPtr pGC, int mode, int npt,
 		  DDXPointPtr pptInit)
 {
-    KdCheckSync (pDrawable->pScreen);
+    kaaWaitSync (pDrawable->pScreen);
     kaaDrawableDirty (pDrawable);
     fbPolyPoint (pDrawable, pGC, mode, npt, pptInit);
 }
@@ -98,7 +101,7 @@ KdCheckPolylines (DrawablePtr pDrawable, GCPtr pGC,
 {
 
     if (pGC->lineWidth == 0) {
-	KdCheckSync(pDrawable->pScreen);
+	kaaWaitSync(pDrawable->pScreen);
 	kaaDrawableDirty (pDrawable);
     }
     kaaDrawableDirty (pDrawable);
@@ -110,7 +113,7 @@ KdCheckPolySegment (DrawablePtr pDrawable, GCPtr pGC,
 		    int nsegInit, xSegment *pSegInit)
 {
     if (pGC->lineWidth == 0) {
-	KdCheckSync(pDrawable->pScreen);
+	kaaWaitSync(pDrawable->pScreen);
 	kaaDrawableDirty (pDrawable);
     }
     kaaDrawableDirty (pDrawable);
@@ -122,7 +125,7 @@ KdCheckPolyRectangle (DrawablePtr pDrawable, GCPtr pGC,
 		      int nrects, xRectangle *prect)
 {
     if (pGC->lineWidth == 0) {
-	KdCheckSync(pDrawable->pScreen);
+	kaaWaitSync(pDrawable->pScreen);
 	kaaDrawableDirty (pDrawable);
     }
     fbPolyRectangle (pDrawable, pGC, nrects, prect);
@@ -134,7 +137,7 @@ KdCheckPolyArc (DrawablePtr pDrawable, GCPtr pGC,
 {
     if (pGC->lineWidth == 0)
     {
-	KdCheckSync(pDrawable->pScreen);
+	kaaWaitSync(pDrawable->pScreen);
 	kaaDrawableDirty (pDrawable);
 	fbPolyArc (pDrawable, pGC, narcs, pArcs);
     }
@@ -147,7 +150,7 @@ void
 KdCheckFillPolygon (DrawablePtr pDrawable, GCPtr pGC, 
 		    int shape, int mode, int count, DDXPointPtr pPts)
 {
-    KdCheckSync(pDrawable->pScreen);
+    kaaWaitSync(pDrawable->pScreen);
     kaaDrawableDirty (pDrawable);
     fbFillPolygon (pDrawable, pGC, mode, count, pPts);
 }
@@ -157,7 +160,7 @@ void
 KdCheckPolyFillRect (DrawablePtr pDrawable, GCPtr pGC,
 		     int nrect, xRectangle *prect)
 {
-    KdCheckSync(pDrawable->pScreen);
+    kaaWaitSync(pDrawable->pScreen);
     kaaDrawableDirty (pDrawable);
     fbPolyFillRect (pDrawable, pGC, nrect, prect);
 }
@@ -166,7 +169,7 @@ void
 KdCheckPolyFillArc (DrawablePtr pDrawable, GCPtr pGC, 
 		    int narcs, xArc *pArcs)
 {
-    KdCheckSync(pDrawable->pScreen);
+    kaaWaitSync(pDrawable->pScreen);
     kaaDrawableDirty (pDrawable);
     fbPolyFillArc (pDrawable, pGC, narcs, pArcs);
 }
@@ -176,7 +179,7 @@ KdCheckImageGlyphBlt (DrawablePtr pDrawable, GCPtr pGC,
 		      int x, int y, unsigned int nglyph,
 		      CharInfoPtr *ppci, pointer pglyphBase)
 {
-    KdCheckSync(pDrawable->pScreen);
+    kaaWaitSync(pDrawable->pScreen);
     kaaDrawableDirty (pDrawable);
     fbImageGlyphBlt (pDrawable, pGC, x, y, nglyph, ppci, pglyphBase);
 }
@@ -186,7 +189,7 @@ KdCheckPolyGlyphBlt (DrawablePtr pDrawable, GCPtr pGC,
 		     int x, int y, unsigned int nglyph,
 		     CharInfoPtr *ppci, pointer pglyphBase)
 {
-    KdCheckSync(pDrawable->pScreen);
+    kaaWaitSync(pDrawable->pScreen);
     kaaDrawableDirty (pDrawable);
     fbPolyGlyphBlt (pDrawable, pGC, x, y, nglyph, ppci, pglyphBase);
 }
@@ -196,7 +199,7 @@ KdCheckPushPixels (GCPtr pGC, PixmapPtr pBitmap,
 		   DrawablePtr pDrawable,
 		   int w, int h, int x, int y)
 {
-    KdCheckSync(pDrawable->pScreen);
+    kaaWaitSync(pDrawable->pScreen);
     kaaDrawableDirty (pDrawable);
     fbPushPixels (pGC, pBitmap, pDrawable, w, h, x, y);
 }
@@ -207,7 +210,7 @@ KdCheckGetImage (DrawablePtr pDrawable,
 		 unsigned int format, unsigned long planeMask,
 		 char *d)
 {
-    KdCheckSync(pDrawable->pScreen);
+    kaaWaitSync(pDrawable->pScreen);
     fbGetImage (pDrawable, x, y, w, h, format, planeMask, d);
 }
 
@@ -219,7 +222,7 @@ KdCheckGetSpans (DrawablePtr pDrawable,
 		 int nspans,
 		 char *pdstStart)
 {
-    KdCheckSync(pDrawable->pScreen);
+    kaaWaitSync(pDrawable->pScreen);
     fbGetSpans (pDrawable, wMax, ppt, pwidth, nspans, pdstStart);
 }
 
@@ -230,7 +233,7 @@ KdCheckSaveAreas (PixmapPtr	pPixmap,
 		  int		yorg,
 		  WindowPtr	pWin)
 {
-    KdCheckSync(pWin->drawable.pScreen);
+    kaaWaitSync(pWin->drawable.pScreen);
     kaaDrawableDirty (&pPixmap->drawable);
     fbSaveAreas (pPixmap, prgnSave, xorg, yorg, pWin);
 }
@@ -242,7 +245,7 @@ KdCheckRestoreAreas (PixmapPtr	pPixmap,
 		     int    	yorg,
 		     WindowPtr	pWin)
 {
-    KdCheckSync(pWin->drawable.pScreen);
+    kaaWaitSync(pWin->drawable.pScreen);
     kaaDrawableDirty ((DrawablePtr)pWin);
     fbRestoreAreas (pPixmap, prgnSave, xorg, yorg, pWin);
 }
@@ -250,7 +253,7 @@ KdCheckRestoreAreas (PixmapPtr	pPixmap,
 void
 KdCheckPaintWindow (WindowPtr pWin, RegionPtr pRegion, int what)
 {
-    KdCheckSync (pWin->drawable.pScreen);
+    kaaWaitSync (pWin->drawable.pScreen);
     kaaDrawableDirty ((DrawablePtr)pWin);
     fbPaintWindow (pWin, pRegion, what);
 }
@@ -258,7 +261,7 @@ KdCheckPaintWindow (WindowPtr pWin, RegionPtr pRegion, int what)
 void
 KdCheckCopyWindow (WindowPtr pWin, DDXPointRec ptOldOrg, RegionPtr prgnSrc)
 {
-    KdCheckSync (pWin->drawable.pScreen);
+    kaaWaitSync (pWin->drawable.pScreen);
     kaaDrawableDirty ((DrawablePtr)pWin);
     fbCopyWindow (pWin, ptOldOrg, prgnSrc);
 }
@@ -270,7 +273,7 @@ KdCheckPaintKey(DrawablePtr  pDrawable,
 		CARD32       pixel,
 		int          layer)
 {
-    KdCheckSync (pDrawable->pScreen);
+    kaaWaitSync (pDrawable->pScreen);
     kaaDrawableDirty (pDrawable);
     fbOverlayPaintKey (pDrawable,  pRegion, pixel, layer);
 }
@@ -278,7 +281,7 @@ KdCheckPaintKey(DrawablePtr  pDrawable,
 void
 KdCheckOverlayCopyWindow  (WindowPtr pWin, DDXPointRec ptOldOrg, RegionPtr prgnSrc)
 {
-    KdCheckSync (pWin->drawable.pScreen);
+    kaaWaitSync (pWin->drawable.pScreen);
     kaaDrawableDirty ((DrawablePtr)pWin);
     fbOverlayCopyWindow (pWin, ptOldOrg, prgnSrc);
 }
@@ -303,6 +306,47 @@ KdScreenInitAsync (ScreenPtr pScreen)
 #ifdef RENDER
     KdPictureInitAsync (pScreen);
 #endif
+}
+
+void
+KdCheckComposite (CARD8      op,
+		  PicturePtr pSrc,
+		  PicturePtr pMask,
+		  PicturePtr pDst,
+		  INT16      xSrc,
+		  INT16      ySrc,
+		  INT16      xMask,
+		  INT16      yMask,
+		  INT16      xDst,
+		  INT16      yDst,
+		  CARD16     width,
+		  CARD16     height)
+{
+    kaaWaitSync (pDst->pDrawable->pScreen);
+    kaaDrawableDirty (pDst->pDrawable);
+    fbComposite (op,
+		 pSrc,
+		 pMask,
+		 pDst,
+		 xSrc,
+		 ySrc,
+		 xMask,
+		 yMask,
+		 xDst,
+		 yDst,
+		 width,
+		 height);
+}
+
+void
+KdCheckRasterizeTrapezoid(PicturePtr	pMask,
+			  xTrapezoid	*trap,
+			  int		x_off,
+			  int		y_off)
+{
+    kaaWaitSync (pMask->pDrawable->pScreen);
+    kaaDrawableDirty (pMask->pDrawable);
+    fbRasterizeTrapezoid (pMask, trap, x_off, y_off);
 }
 
 /*
@@ -333,3 +377,13 @@ const GCOps kdAsyncPixmapGCOps = {
     ,NULL
 #endif
 };
+
+void
+KdPictureInitAsync (ScreenPtr pScreen)
+{
+    PictureScreenPtr    ps;
+
+    ps = GetPictureScreen(pScreen);
+    ps->Composite = KdCheckComposite;
+    ps->RasterizeTrapezoid = KdCheckRasterizeTrapezoid;
+}

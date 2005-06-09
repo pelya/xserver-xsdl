@@ -26,6 +26,7 @@
 #include <config.h>
 #endif
 #include "r128.h"
+#include "kaa.h"
 
 CARD8 r128SolidRop[16] = {
     /* GXclear      */      0x00,         /* 0 */
@@ -105,6 +106,17 @@ r128WaitIdle (void)
 	    break;
     }
     
+}
+
+static void
+r128WaitMarker (ScreenPtr pScreen, int marker)
+{
+    KdScreenPriv (pScreen);
+    r128CardInfo (pScreenPriv);
+
+    mmio = r128c->reg_base;
+
+    r128WaitIdle ();
 }
 
 static Bool
@@ -219,20 +231,23 @@ r128DoneCopy (void)
 {
 }
 
-KaaScreenInfoRec r128Kaa = {
-    r128PrepareSolid,
-    r128Solid,
-    r128DoneSolid,
-
-    r128PrepareCopy,
-    r128Copy,
-    r128DoneCopy,
-};
 
 Bool
 r128DrawInit (ScreenPtr pScreen)
 {
-    if (!kaaDrawInit (pScreen, &r128Kaa))
+    KdScreenPriv (pScreen);
+    r128ScreenInfo (pScreenPriv);
+
+    memset(&r128s->kaa, 0, sizeof(KaaScreenInfoRec));
+    r128s->kaa.waitMarker	= r128WaitMarker;
+    r128s->kaa.PrepareSolid	= r128PrepareSolid;
+    r128s->kaa.Solid		= r128Solid;
+    r128s->kaa.DoneSolid	= r128DoneSolid;
+    r128s->kaa.PrepareCopy	= r128PrepareCopy;
+    r128s->kaa.Copy		= r128Copy;
+    r128s->kaa.DoneCopy		= r128DoneCopy;
+
+    if (!kaaDrawInit (pScreen, &r128s->kaa))
 	return FALSE;
 
     return TRUE;
@@ -245,7 +260,7 @@ r128DrawEnable (ScreenPtr pScreen)
     r128ScreenInfo (pScreenPriv);
 
     r128s->pitch = pScreenPriv->screen->width >> 3;
-    
+
     switch (pScreenPriv->screen->fb[0].depth) {
     case 8:
 	r128s->datatype = 2;
@@ -270,7 +285,7 @@ r128DrawEnable (ScreenPtr pScreen)
 				 | R128_GMC_CLR_CMP_CNTL_DIS
 				 | R128_GMC_AUX_CLIP_DIS);
     
-    KdMarkSync (pScreen);
+    kaaMarkSync (pScreen);
 }
 
 void
@@ -281,15 +296,4 @@ r128DrawDisable (ScreenPtr pScreen)
 void
 r128DrawFini (ScreenPtr pScreen)
 {
-}
-
-void
-r128DrawSync (ScreenPtr pScreen)
-{
-    KdScreenPriv (pScreen);
-    r128CardInfo (pScreenPriv);
-
-    mmio = r128c->reg_base;
-
-    r128WaitIdle ();
 }

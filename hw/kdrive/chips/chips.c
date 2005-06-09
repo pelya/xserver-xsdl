@@ -25,6 +25,7 @@
 #include <config.h>
 #endif
 #include "chips.h"
+#include "kaa.h"
 #include <sys/io.h>
 
 #undef CHIPS_DEBUG
@@ -138,7 +139,7 @@ chipsRandRSetConfig (ScreenPtr		pScreen,
 		      int		rate,
 		      RRScreenSizePtr	pSize)
 {
-    KdCheckSync (pScreen);
+    kaaWaitSync (pScreen);
 
     if (!vesaRandRSetConfig (pScreen, rotation, rate, pSize))
 	return FALSE;
@@ -332,7 +333,6 @@ KdCardFuncs	chipsFuncs = {
     
     chipsDrawInit,        /* initAccel */
     chipsDrawEnable,      /* enableAccel */
-    chipsDrawSync,	    /* syncAccel */
     chipsDrawDisable,     /* disableAccel */
     chipsDrawFini,        /* finiAccel */
     

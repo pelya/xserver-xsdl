@@ -89,7 +89,9 @@ typedef struct _KdCardInfo {
     struct _KdScreenInfo    *screenList;
     int			    selected;
     struct _KdCardInfo	    *next;
+
     Bool		    needSync;
+    int			    lastMarker;
 } KdCardInfo;
 
 extern KdCardInfo	*kdCardInfo;
@@ -180,7 +182,6 @@ typedef struct _KdCardFuncs {
 
     Bool        (*initAccel) (ScreenPtr);
     void        (*enableAccel) (ScreenPtr);
-    void	(*syncAccel) (ScreenPtr);
     void        (*disableAccel) (ScreenPtr);
     void        (*finiAccel) (ScreenPtr);
 
@@ -316,6 +317,13 @@ typedef struct _KaaTrapezoid {
 } KaaTrapezoid;
 
 typedef struct _KaaScreenInfo {
+    int	        offsetAlign;
+    int         pitchAlign;
+    int		flags;
+
+    int		(*markSync) (ScreenPtr pScreen);
+    void	(*waitMarker) (ScreenPtr pScreen, int marker);
+
     Bool	(*PrepareSolid) (PixmapPtr	pPixmap,
 				 int		alu,
 				 Pixel		planemask,
@@ -336,10 +344,6 @@ typedef struct _KaaScreenInfo {
 			 int	width,
 			 int	height);
     void	(*DoneCopy) (void);
-
-    int	        offscreenByteAlign;
-    int         offscreenPitch;
-    int		flags;
 
     Bool        (*PrepareBlend) (int		op,
 				 PicturePtr	pSrcPicture,
@@ -420,17 +424,6 @@ extern KdOsFuncs	*kdOsFuncs;
 #define KdSetScreenPriv(pScreen,v) ((pScreen)->devPrivates[kdScreenPrivateIndex].ptr = \
 				    (pointer) v)
 #define KdScreenPriv(pScreen) KdPrivScreenPtr pScreenPriv = KdGetScreenPriv(pScreen)
-
-#define KdCheckSync(s)	{ \
-    KdScreenPriv(s); \
-    KdCardInfo	*card = pScreenPriv->card; \
-    if (card->needSync) { \
-	card->needSync = FALSE; \
-	(*card->cfuncs->syncAccel) (s); \
-    } \
-}
-
-#define KdMarkSync(s)	(KdGetScreenPriv(s)->card->needSync = TRUE)
 
 /* kaa.c */
 Bool

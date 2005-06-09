@@ -27,6 +27,8 @@
 #ifndef _KAA_H_
 #define _KAA_H_
 
+#include "picturestr.h"
+
 #define KaaGetScreenPriv(s)	((KaaScreenPrivPtr)(s)->devPrivates[kaaScreenPrivateIndex].ptr)
 #define KaaScreenPriv(s)	KaaScreenPrivPtr    pKaaScr = KaaGetScreenPriv(s)
 
@@ -70,6 +72,12 @@ kaaGetOffscreenPixmap (DrawablePtr pDrawable, int *xp, int *yp);
 
 void
 kaaMoveInPixmap (PixmapPtr pPixmap);
+
+void
+kaaMarkSync (ScreenPtr pScreen);
+
+void
+kaaWaitSync (ScreenPtr pScreen);
 
 void
 kaaCopyNtoN (DrawablePtr    pSrcDrawable,

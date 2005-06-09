@@ -59,6 +59,7 @@ typedef struct _PM2ScreenInfo {
     CARD8 *off_screen;
     int	 off_screen_size;
     KdVideoAdaptorPtr pAdaptor;
+    KaaScreenInfoRec kaa;
 } PM2ScreenInfo;
 
 #define getPM2ScreenInfo(kd) ((PM2ScreenInfo *) ((kd)->screen->driver))
@@ -75,9 +76,6 @@ pmDrawInit(ScreenPtr);
 
 void
 pmDrawEnable (ScreenPtr);
-
-void
-pmDrawSync (ScreenPtr);
 
 void
 pmDrawDisable (ScreenPtr);
