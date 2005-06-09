@@ -56,6 +56,7 @@
 #define MGA_REG_YBOT		(0x1c9c)
 #define MGA_REG_FIFOSTATUS 	(0x1e10)
 #define MGA_REG_STATUS	 	(0x1e14)
+#define MGA_REG_CACHEFLUSH 	(0x1fff)
 #define MGA_REG_SRCORG 		(0x2cb4)
 #define MGA_REG_DSTORG 		(0x2cb8)
 

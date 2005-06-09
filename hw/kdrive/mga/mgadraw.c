@@ -68,7 +68,11 @@ mgaWaitAvail (int n)
 void
 mgaWaitIdle (void)
 {
-    while (MGA_IN32 (mmio, MGA_REG_STATUS) & 0x10000);
+    while (MGA_IN32 (mmio, MGA_REG_STATUS) & 0x10000)
+	;
+
+    mgaWaitAvail (1);
+    MGA_OUT32(mmio, MGA_REG_CACHEFLUSH, 0);
 }
 
 static void
@@ -268,9 +272,7 @@ mgaDrawInit (ScreenPtr pScreen)
     mgas->kaa.flags		= KAA_OFFSCREEN_PIXMAPS;
 
     if (card->attr.deviceID == MGA_G4XX_DEVICE_ID) {
-        mgas->kaa.PrepareBlend	= mgaPrepareBlend;
-	mgas->kaa.Blend		= mgaBlend;
-	mgas->kaa.DoneBlend	= mgaDoneBlend;
+	mgas->kaa.CheckComposite = mgaCheckComposite;
 	mgas->kaa.PrepareComposite = mgaPrepareComposite;
 	mgas->kaa.Composite	= mgaComposite;
 	mgas->kaa.DoneComposite	= mgaDoneComposite;

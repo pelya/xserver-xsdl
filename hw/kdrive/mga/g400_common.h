@@ -51,6 +51,7 @@
 #    define MGA_SRC_DST_ALPHA                	(0x00000006)
 #    define MGA_SRC_ONE_MINUS_DST_ALPHA      	(0x00000007)
 #    define MGA_SRC_SRC_ALPHA_SATURATE       	(0x00000008)
+#    define MGA_SRC_BLEND_MASK			(0x0000000f)
 
 #    define MGA_DST_ZERO                     	(0x00000000)
 #    define MGA_DST_ONE                      	(0x00000010)
@@ -60,6 +61,7 @@
 #    define MGA_DST_ONE_MINUS_SRC_ALPHA      	(0x00000050)
 #    define MGA_DST_DST_ALPHA                	(0x00000060)
 #    define MGA_DST_ONE_MINUS_DST_ALPHA      	(0x00000070)
+#    define MGA_DST_BLEND_MASK			(0x00000070)
 
 #    define MGA_ALPHACHANNEL                 	(0x00000100)
 #    define MGA_VIDEOALPHA                   	(0x00000200)
@@ -93,7 +95,7 @@
 #    define MGA_TW8AL         			(0x00000008)
 #    define MGA_TW422         			(0x0000000A)
 #    define MGA_TW422UYVY     			(0x0000000B)
-#    define MGA_PITCHEXT			(0x00000100)
+#    define MGA_PITCHLIN			(0x00000100)
 #    define MGA_NOPERSPECTIVE			(0x00200000)
 #    define MGA_TAKEY           	     	(0x02000000)
 #    define MGA_TAMASK				(0x04000000)
@@ -168,14 +170,8 @@
 
 /* Composition Prototypes. MMIO Access */
 Bool
-mgaPrepareBlend(int op, PicturePtr pSrcPicture, PicturePtr pDstPicture,
-		PixmapPtr pSrc, PixmapPtr pDst);
-
-void
-mgaBlend(int srcX, int srcY, int dstX, int dstY, int width, int height);
-
-void
-mgaDoneBlend(void);
+mgaCheckComposite(int op, PicturePtr pSrcPicture, PicturePtr pMaskPicture,
+		  PicturePtr pDstPicture);
 
 Bool
 mgaPrepareComposite(int op, PicturePtr pSrcPicture, PicturePtr pMaskPicture,

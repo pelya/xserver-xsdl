@@ -34,37 +34,56 @@
 static PixmapPtr currentSrc;
 static PixmapPtr currentMask;
 
-static CARD32 mgaBlendOP[14] = {
-    /* Clear */
-    MGA_SRC_ZERO	        | MGA_DST_ZERO,
-    /* Src */
-    MGA_SRC_ONE			| MGA_DST_ZERO,
-    /* Dst */
-    MGA_SRC_ZERO	        | MGA_DST_ONE,
-    /* Over */
-    MGA_SRC_ALPHA               | MGA_DST_ONE_MINUS_SRC_ALPHA,
-    /* OverReverse */
-    MGA_SRC_ONE_MINUS_DST_ALPHA | MGA_DST_ONE,
-    /* In */
-    MGA_SRC_DST_ALPHA           | MGA_DST_ZERO,
-    /* InReverse */
-    MGA_SRC_ZERO	        | MGA_DST_SRC_ALPHA,
-    /* Out */
-    MGA_SRC_ONE_MINUS_DST_ALPHA | MGA_DST_ZERO,
-    /* OutReverse */
-    MGA_SRC_ZERO	        | MGA_DST_ONE_MINUS_SRC_ALPHA,
-    /* Atop */
-    MGA_SRC_DST_ALPHA	        | MGA_DST_ONE_MINUS_SRC_ALPHA,
-    /* AtopReverse */
-    MGA_SRC_ONE_MINUS_DST_ALPHA | MGA_DST_SRC_ALPHA,
-    /* Xor */
-    MGA_SRC_ONE_MINUS_DST_ALPHA | MGA_DST_ONE_MINUS_SRC_ALPHA,
-    /* Add */
-    MGA_SRC_ONE                 | MGA_DST_ONE,
-    /* Saturate */
-    MGA_SRC_SRC_ALPHA_SATURATE  | MGA_DST_ONE
+struct blendinfo {
+	Bool dst_alpha;
+	Bool src_alpha;
+	CARD32 blend_cntl;
 };
 
+static struct blendinfo mgaBlendOP[] = {
+	/* Clear */
+	{0, 0, MGA_SRC_ZERO			| MGA_DST_ZERO},
+	/* Src */
+	{0, 0, MGA_SRC_ONE			| MGA_DST_ZERO},
+	/* Dst */
+	{0, 0, MGA_SRC_ZERO			| MGA_DST_ONE},
+	/* Over */
+	{0, 1, MGA_SRC_ONE			| MGA_DST_ONE_MINUS_SRC_ALPHA},
+	/* OverReverse */
+	{1, 0, MGA_SRC_ONE_MINUS_DST_ALPHA	| MGA_DST_ONE},
+	/* In */
+	{1, 0, MGA_SRC_DST_ALPHA		| MGA_DST_ZERO},
+	/* InReverse */
+	{0, 1, MGA_SRC_ZERO			| MGA_DST_SRC_ALPHA},
+	/* Out */
+	{1, 0, MGA_SRC_ONE_MINUS_DST_ALPHA	| MGA_DST_ZERO},
+	/* OutReverse */
+	{0, 1, MGA_SRC_ZERO			| MGA_DST_ONE_MINUS_SRC_ALPHA},
+	/* Atop */
+	{1, 1, MGA_SRC_DST_ALPHA		| MGA_DST_ONE_MINUS_SRC_ALPHA},
+	/* AtopReverse */
+	{1, 1, MGA_SRC_ONE_MINUS_DST_ALPHA	| MGA_DST_SRC_ALPHA},
+	/* Xor */
+	{1, 1, MGA_SRC_ONE_MINUS_DST_ALPHA	| MGA_DST_ONE_MINUS_SRC_ALPHA},
+	/* Add */
+	{0, 0, MGA_SRC_ONE			| MGA_DST_ONE},
+};
+
+struct formatinfo {
+	int fmt;
+	CARD32 card_fmt;
+};
+
+static struct formatinfo texformats[] = {
+    {PICT_a8r8g8b8, MGA_TW32},
+    {PICT_x8r8g8b8, MGA_TW32},
+    {PICT_r5g6b5, MGA_TW16},
+    {PICT_a1r5g5b5, MGA_TW15},
+    {PICT_x1r5g5b5, MGA_TW15},
+    {PICT_a4r4g4b4, MGA_TW12},
+    {PICT_x4r4g4b4, MGA_TW12},
+    {PICT_a8, MGA_TW8A},
+};
 
 static int MGA_LOG2( int val )
 {
@@ -76,36 +95,31 @@ static int MGA_LOG2( int val )
     return ((1 << (ret-1)) == val) ? (ret-1) : ret;
 }
 
-
-Bool
-mgaPrepareBlend (int		op,
-		 PicturePtr	pSrcPicture,
-		 PicturePtr	pDstPicture,
-		 PixmapPtr	pSrc,
-		 PixmapPtr	pDst)
+static Bool
+mgaCheckSourceTexture (int		tmu,
+		       PicturePtr 	pPict)
 {
-    return mgaPrepareComposite (op, pSrcPicture, NULL, pDstPicture,
-				pSrc, NULL, pDst);
+    int w = pPict->pDrawable->width;
+    int h = pPict->pDrawable->height;
+    int i;
+    CARD32 texctl = 0;
+
+    if ((w > 2047) || (h > 2047))
+	MGA_FALLBACK(("Picture too large for composition (%dx%d)\n", w, h));
+
+    for (i = 0; i < sizeof(texformats) / sizeof(texformats[0]); i++) {
+	if (texformats[i].fmt == pPict->format) {
+	    texctl = texformats[i].card_fmt;
+	    break;
+	}
+    }
+    if (texctl == 0) {
+	    MGA_FALLBACK(("Picture is in unsupported format 0x%x\n"
+			  pPict->format));
+    }
+
+    return TRUE;
 }
-
-void
-mgaBlend (int	srcX,
-	  int	srcY,
-	  int	dstX,
-	  int	dstY,
-	  int	width,
-	  int	height)
-{
-    mgaComposite (srcX, srcY, 0, 0, dstX, dstY, width, height);
-}
-
-void
-mgaDoneBlend (void)
-{
-    mgaDoneComposite ();
-}
-
-
 
 static Bool
 PrepareSourceTexture (int		tmu,
@@ -115,39 +129,31 @@ PrepareSourceTexture (int		tmu,
     KdScreenPriv (pSrc->drawable.pScreen);  
     int mem_base=(int)pScreenPriv->screen->memory_base;
     int pitch = pSrc->devKind / (pSrc->drawable.bitsPerPixel >> 3); 
+    int i;
 
     int w = pSrc->drawable.width;
     int h = pSrc->drawable.height;
     int w_log2 = MGA_LOG2(w);
     int h_log2 = MGA_LOG2(h);
-    
-    int texctl=MGA_PITCHEXT | ((pitch&0x7ff)<<9) | 
-	MGA_TAKEY | MGA_CLAMPUV | MGA_NOPERSPECTIVE;  
+
+    int texctl = MGA_PITCHLIN | ((pitch & (2048 - 1)) << 9) | 
+	MGA_CLAMPUV | MGA_NOPERSPECTIVE;  
     int texctl2=MGA_G400_TC2_MAGIC;
-
-    if ((w > 2047) || (h > 2047))
-	MGA_FALLBACK(("Picture too large for composition (%dx%d)\n", w, h));
-
-    switch (pSrcPicture->format) {
-    case PICT_a8r8g8b8:
-    case PICT_x8r8g8b8:
-    case PICT_a8b8g8r8:
-    case PICT_x8b8g8r8:
-	texctl |= MGA_TW32;
-	break;
-    case PICT_r5g6b5:
-    case PICT_b5g6r5:
-	texctl |= MGA_TW16;
-	break;
-    case PICT_a8:
-	texctl |= MGA_TW8A;
-	break;
-    default:
-	MGA_FALLBACK(("unsupported Picture format for composition (%x)\n",
-		      pSrcPicture->format));
+ 
+    for (i = 0; i < sizeof(texformats) / sizeof(texformats[0]); i++) {
+	if (texformats[i].fmt == pSrcPicture->format) {
+	    texctl |= texformats[i].card_fmt;
+	    break;
+	}
     }
-    
-    if (tmu == 1) texctl2 |= MGA_TC2_DUALTEX | MGA_TC2_SELECT_TMU1;
+    if (PICT_FORMAT_A(pSrcPicture->format) != 0) {
+	texctl |= MGA_TAKEY;
+    } else {
+	texctl |= MGA_TAMASK | MGA_TAKEY;
+    }
+
+    if (tmu == 1)
+	texctl2 |= MGA_TC2_DUALTEX | MGA_TC2_SELECT_TMU1;
   
     mgaWaitAvail (6);
     MGA_OUT32 (mmio, MGA_REG_TEXCTL2, texctl2);
@@ -168,6 +174,50 @@ PrepareSourceTexture (int		tmu,
 }
 
 Bool
+mgaCheckComposite(int op, PicturePtr pSrcPicture, PicturePtr pMaskPicture,
+		  PicturePtr pDstPicture)
+{
+    if (op >= sizeof(mgaBlendOP) / sizeof(mgaBlendOP[0]))
+	MGA_FALLBACK(("unsupported op %x", op));
+    if (!mgaCheckSourceTexture (0, pSrcPicture))
+	return FALSE;
+    if (pSrcPicture->transform != NULL)
+	    MGA_FALLBACK(("Transformed src unsupported"));
+    if (pMaskPicture != NULL) {
+	if (PICT_FORMAT_A(pMaskPicture->format) == 0)
+	    MGA_FALLBACK(("Mask without alpha unsupported"));
+	if (!mgaCheckSourceTexture (1, pMaskPicture))
+	    return FALSE;
+	if (pMaskPicture->transform != NULL)
+	    MGA_FALLBACK(("Transformed mask unsupported"));
+    }
+
+    if (pMaskPicture->componentAlpha)
+	MGA_FALLBACK(("Component alpha unsupported"));
+
+    switch (pDstPicture->format) {
+    case PICT_a8:
+	MGA_FALLBACK(("render to A8 unsupported"));
+    }
+
+    return TRUE;
+}
+
+#define C_ARG1_CUR		0x0	
+#define C_ARG2_DIFFUSE		MGA_TDS_COLOR_ARG2_DIFFUSE
+#define C_ARG2_PREV		MGA_TDS_COLOR_ARG2_PREVSTAGE
+#define COLOR_MUL		MGA_TDS_COLOR_SEL_MUL
+#define COLOR_ARG1		MGA_TDS_COLOR_SEL_ARG1
+#define COLOR_ARG2		MGA_TDS_COLOR_SEL_ARG2
+#define A_ARG1_CUR		0x0
+#define A_ARG2_IGN		A_ARG2_DIFFUSE
+#define A_ARG2_DIFFUSE		MGA_TDS_ALPHA_ARG2_DIFFUSE
+#define A_ARG2_PREV		MGA_TDS_ALPHA_ARG2_PREVSTAGE
+#define ALPHA_MUL		MGA_TDS_ALPHA_SEL_MUL
+#define ALPHA_ARG1		MGA_TDS_ALPHA_SEL_ARG1
+#define ALPHA_ARG2		MGA_TDS_ALPHA_SEL_ARG2
+
+Bool
 mgaPrepareComposite (int		op,
 		     PicturePtr		pSrcPicture,
 		     PicturePtr		pMaskPicture,
@@ -178,17 +228,7 @@ mgaPrepareComposite (int		op,
 {
     KdScreenPriv (pSrc->drawable.pScreen);  
     int mem_base=(int)pScreenPriv->screen->memory_base;
-    int cmd;
-
-    /* sometimes mgaPrepareComposite is given the same pointer for Src
-     * and Mask. PSrcPicture is an unsupported format (x8b8g8r8) whereas
-     * pMaskPicture is supported (a8r8g8b8). We Choose to render a
-     * simple blend and using pMaskPicture as the Source.
-     */
-    if (pMask == pSrc) {
-	pMask=NULL;
-	pMaskPicture=NULL;
-    }
+    int cmd, blendcntl;
 
     mgaWaitIdle();
     /* Init MGA (clipping) */
@@ -202,6 +242,18 @@ mgaPrepareComposite (int		op,
     MGA_OUT32 (mmio, MGA_REG_TMR7, 0);
     MGA_OUT32 (mmio, MGA_REG_TMR8, 0x10000); 
 
+    /* Initialize colors to 0, used in the src = A8 case */
+    mgaWaitAvail(9);
+    MGA_OUT32 (mmio, MGA_REG_DR4, 0); 
+    MGA_OUT32 (mmio, MGA_REG_DR6, 0);
+    MGA_OUT32 (mmio, MGA_REG_DR7, 0);
+    MGA_OUT32 (mmio, MGA_REG_DR8, 0); 
+    MGA_OUT32 (mmio, MGA_REG_DR10, 0); 
+    MGA_OUT32 (mmio, MGA_REG_DR11, 0);
+    MGA_OUT32 (mmio, MGA_REG_DR12, 0);
+    MGA_OUT32 (mmio, MGA_REG_DR14, 0); 
+    MGA_OUT32 (mmio, MGA_REG_DR15, 0);
+
     /* Destination flags */
     mgaWaitAvail (2);
     MGA_OUT32 (mmio, MGA_REG_DSTORG, ((int)pDst->devPrivate.ptr - mem_base));
@@ -214,17 +266,29 @@ mgaPrepareComposite (int		op,
 	if (!PrepareSourceTexture (1, pMaskPicture, pMask)) return FALSE;
 
     /* MultiTexture modulation */
-    mgaWaitAvail (2);  
-    MGA_OUT32 (mmio, MGA_REG_TDUALSTAGE0, MGA_TDS_COLOR_SEL_ARG1);
+    mgaWaitAvail (2);
+    if (pSrcPicture->format == PICT_a8) {
+	/* C = 0	A = As */
+	MGA_OUT32 (mmio, MGA_REG_TDUALSTAGE0,
+		   C_ARG2_DIFFUSE | COLOR_ARG2 |
+		   A_ARG1_CUR | ALPHA_ARG1);
+    } else {
+	/* C = Cs	A = As */
+	MGA_OUT32 (mmio, MGA_REG_TDUALSTAGE0,
+		   C_ARG1_CUR | COLOR_ARG1 |
+		   A_ARG1_CUR | ALPHA_ARG1);
+    }
     if (pMask != NULL) {
 	if (PICT_FORMAT_A (pSrcPicture->format) == 0) {
 	    MGA_OUT32 (mmio, MGA_REG_TDUALSTAGE1, 
-		       MGA_TDS_COLOR_ARG2_PREVSTAGE | MGA_TDS_COLOR_SEL_ARG2 |
-		       MGA_TDS_ALPHA_SEL_ARG1);
+		       C_ARG1_CUR | C_ARG2_PREV | COLOR_MUL |
+		       A_ARG1_CUR | A_ARG2_IGN | ALPHA_ARG1 |
+		       MGA_TDS_COLOR_ARG1_REPLICATEALPHA);
 	} else {
 	    MGA_OUT32 (mmio, MGA_REG_TDUALSTAGE1, 
-		       MGA_TDS_COLOR_ARG2_PREVSTAGE | MGA_TDS_COLOR_SEL_ARG2 |
-		       MGA_TDS_ALPHA_ARG2_PREVSTAGE | MGA_TDS_ALPHA_SEL_MUL);
+		       C_ARG1_CUR | C_ARG2_PREV | COLOR_MUL |
+		       A_ARG1_CUR | A_ARG2_PREV | ALPHA_MUL |
+		       MGA_TDS_COLOR_ARG1_REPLICATEALPHA);
 	}
     } else {
 	MGA_OUT32 (mmio, MGA_REG_TDUALSTAGE1, 0);    
@@ -234,9 +298,17 @@ mgaPrepareComposite (int		op,
 	MGA_DWGCTL_SHIFTZERO | MGA_DWGCTL_SGNZERO | MGA_DWGCTL_ARZERO |
 	MGA_ATYPE_I;
     
+    blendcntl = mgaBlendOP[op].blend_cntl;
+    if (PICT_FORMAT_A(pDstPicture->format) == 0 && mgaBlendOP[op].dst_alpha) {
+	if ((blendcntl & MGA_SRC_BLEND_MASK) == MGA_SRC_DST_ALPHA)
+	    blendcntl = (blendcntl & ~MGA_SRC_BLEND_MASK) | MGA_SRC_ONE;
+	else if ((blendcntl & MGA_SRC_BLEND_MASK) == MGA_SRC_ONE_MINUS_DST_ALPHA)
+	    blendcntl = (blendcntl & ~MGA_SRC_BLEND_MASK) | MGA_SRC_ZERO;
+    }
+
     mgaWaitAvail (2);
     MGA_OUT32 (mmio, MGA_REG_DWGCTL, cmd);
-    MGA_OUT32 (mmio, MGA_REG_ALPHACTRL, MGA_ALPHACHANNEL | mgaBlendOP[op]);
+    MGA_OUT32 (mmio, MGA_REG_ALPHACTRL, MGA_ALPHACHANNEL | blendcntl);
     
     currentSrc=pSrc;
     currentMask=pMask;
