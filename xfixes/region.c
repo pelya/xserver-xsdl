@@ -675,7 +675,6 @@ ProcXFixesSetWindowShapeRegion (ClientPtr client)
     ScreenPtr	    pScreen;
     RegionPtr	    pRegion;
     RegionPtr	    *pDestRegion;
-    int		    destBounding;
     REQUEST(xXFixesSetWindowShapeRegionReq);
 
     REQUEST_SIZE_MATCH(xXFixesSetWindowShapeRegionReq);
@@ -686,18 +685,16 @@ ProcXFixesSetWindowShapeRegion (ClientPtr client)
 	return BadWindow;
     }
     VERIFY_REGION_OR_NONE(pRegion, stuff->region, client, SecurityWriteAccess);
+    pScreen = pWin->drawable.pScreen;
     switch (stuff->destKind) {
     case ShapeBounding:
-	destBounding = 1;
-	break;
     case ShapeClip:
-	destBounding = 0;
+    case ShapeInput:
 	break;
     default:
 	client->errorValue = stuff->destKind;
 	return BadValue;
     }
-    pScreen = pWin->drawable.pScreen;
     if (pRegion)
     {
 	pRegion = XFixesRegionCopy (pRegion);
@@ -705,10 +702,18 @@ ProcXFixesSetWindowShapeRegion (ClientPtr client)
 	    return BadAlloc;
 	if (!pWin->optional)
 	    MakeWindowOptional (pWin);
-	if (destBounding)
+	switch (stuff->destKind) {
+	default:
+	case ShapeBounding:
 	    pDestRegion = &pWin->optional->boundingShape;
-	else
+	    break;
+	case ShapeClip:
 	    pDestRegion = &pWin->optional->clipShape;
+	    break;
+	case ShapeInput:
+	    pDestRegion = &pWin->optional->inputShape;
+	    break;
+	}
 	if (stuff->xOff || stuff->yOff)
 	    REGION_TRANSLATE (0, pRegion, stuff->xOff, stuff->yOff);
     }
@@ -716,10 +721,18 @@ ProcXFixesSetWindowShapeRegion (ClientPtr client)
     {
 	if (pWin->optional)
 	{
-	    if (destBounding)
+	    switch (stuff->destKind) {
+	    default:
+	    case ShapeBounding:
 		pDestRegion = &pWin->optional->boundingShape;
-	    else
+		break;
+	    case ShapeClip:
 		pDestRegion = &pWin->optional->clipShape;
+		break;
+	    case ShapeInput:
+		pDestRegion = &pWin->optional->inputShape;
+		break;
+	    }
 	}
 	else
 	    pDestRegion = &pRegion; /* a NULL region pointer */

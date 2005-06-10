@@ -1249,6 +1249,12 @@ ProcTranslateCoords(register ClientPtr client)
 		&& (!wBoundingShape(pWin) ||
 		    POINT_IN_REGION(pWin->drawable.pScreen, 
 					&pWin->borderSize, x, y, &box))
+		
+		&& (!wInputShape(pWin) ||
+		    POINT_IN_REGION(pWin->drawable.pScreen,
+				    wInputShape(pWin),
+				    x - pWin->drawable.x,
+				    y - pWin->drawable.y, &box))
 #endif
 		)
             {

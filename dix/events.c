@@ -1988,26 +1988,32 @@ static WindowPtr
 XYToWindow(int x, int y)
 {
     register WindowPtr  pWin;
+    BoxRec		box;
 
     spriteTraceGood = 1;	/* root window still there */
     pWin = ROOT->firstChild;
     while (pWin)
     {
 	if ((pWin->mapped) &&
-		(x >= pWin->drawable.x - wBorderWidth (pWin)) &&
-		(x < pWin->drawable.x + (int)pWin->drawable.width +
-		    wBorderWidth(pWin)) &&
-		(y >= pWin->drawable.y - wBorderWidth (pWin)) &&
-		(y < pWin->drawable.y + (int)pWin->drawable.height +
-		    wBorderWidth (pWin))
+	    (x >= pWin->drawable.x - wBorderWidth (pWin)) &&
+	    (x < pWin->drawable.x + (int)pWin->drawable.width +
+	     wBorderWidth(pWin)) &&
+	    (y >= pWin->drawable.y - wBorderWidth (pWin)) &&
+	    (y < pWin->drawable.y + (int)pWin->drawable.height +
+	     wBorderWidth (pWin))
 #ifdef SHAPE
-		/* When a window is shaped, a further check
-		 * is made to see if the point is inside
-		 * borderSize
-		 */
-		&& (!wBoundingShape(pWin) || PointInBorderSize(pWin, x, y))
+	    /* When a window is shaped, a further check
+	     * is made to see if the point is inside
+	     * borderSize
+	     */
+	    && (!wBoundingShape(pWin) || PointInBorderSize(pWin, x, y))
+	    && (!wInputShape(pWin) ||
+		POINT_IN_REGION(pWin->drawable.pScreen,
+				wInputShape(pWin),
+				x - pWin->drawable.x,
+				y - pWin->drawable.y, &box))
 #endif
-		)
+	    )
 	{
 	    if (spriteTraceGood >= spriteTraceSize)
 	    {
@@ -2277,7 +2283,12 @@ XineramaPointInWindowIsVisible(
 	x = xoff - panoramiXdataPtr[i].x;
 	y = yoff - panoramiXdataPtr[i].y;
 
-	if(POINT_IN_REGION(pScreen, &pWin->borderClip, x, y, &box))
+	if(POINT_IN_REGION(pScreen, &pWin->borderClip, x, y, &box)
+	   && (!wInputShape(pWin) ||
+	       POINT_IN_REGION(pWin->drawable.pScreen,
+			       wInputShape(pWin),
+			       x - pWin->drawable.x, 
+			       y - pWin->drawable.y, &box)))
             return TRUE;
 
     }
