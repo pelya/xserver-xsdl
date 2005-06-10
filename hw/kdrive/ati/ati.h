@@ -171,9 +171,6 @@ typedef struct _ATIPortPriv {
 	int brightness;
 	int saturation;
 	RegionRec clip;
-	Bool videoOn;
-	Time offTime;
-	Time freeTime;
 	CARD32 size;
 	KdOffscreenArea *off_screen;
 	DrawablePtr pDraw;

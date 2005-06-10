@@ -1,5 +1,13 @@
 2005-06-09  Eric Anholt  <anholt@FreeBSD.org>
 
+	* ati.h:
+	* ati_video.c:
+	Axe a few dead fields from the port priv struct and add my name to 
+	the "Copyright" line of the license to ati_video.c that already has my
+	name in the text.
+
+2005-06-09  Eric Anholt  <anholt@FreeBSD.org>
+
 	* ati_dri.c:
 	Perform a warnings sweep on hw/kdrive.  A number of these were my fault,
 	but some come from others.
