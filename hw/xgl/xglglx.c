@@ -78,6 +78,10 @@ typedef __GLinterface *(*GLXCreateContextProc) (__GLimports      *imports,
 						__GLinterface    *shareGC);
 typedef void	      (*GLXCreateBufferProc)   (__GLXdrawablePrivate *glxPriv);
 typedef GLboolean     (*GLXSwapBuffersProc)    (__GLXdrawablePrivate *glxPriv);
+typedef int	      (*GLXBindBuffersProc)    (__GLXdrawablePrivate *glxPriv,
+						int		     buffer);
+typedef int	      (*GLXReleaseBuffersProc) (__GLXdrawablePrivate *glxPriv,
+						int		     buffer);
 
 typedef struct _xglGLXScreenInfo {
     GLXScreenProbeProc   screenProbe;
@@ -97,18 +101,20 @@ typedef GLboolean (*GLResizeBuffersProc) (__GLdrawableBuffer   *buffer,
 typedef void	  (*GLFreeBuffersProc)   (__GLdrawablePrivate  *glPriv);
     
 typedef struct _xglGLBuffer {
-    GLXSwapBuffersProc  swapBuffers;
-    GLResizeBuffersProc resizeBuffers;
-    GLFreeBuffersProc   freeBuffers;
-    ScreenPtr		pScreen;
-    DrawablePtr		pDrawable;
-    glitz_surface_t	*backSurface;
-    PixmapPtr		pPixmap;
-    GCPtr		pGC;
-    RegionRec		damage;
-    void	        *private;
-    int			xOff, yOff;
-    int			yFlip;
+    GLXSwapBuffersProc    swapBuffers;
+    GLXBindBuffersProc    bindBuffers;
+    GLXReleaseBuffersProc releaseBuffers;
+    GLResizeBuffersProc   resizeBuffers;
+    GLFreeBuffersProc     freeBuffers;
+    ScreenPtr		  pScreen;
+    DrawablePtr		  pDrawable;
+    glitz_surface_t	  *backSurface;
+    PixmapPtr		  pPixmap;
+    GCPtr		  pGC;
+    RegionRec		  damage;
+    void	          *private;
+    int			  xOff, yOff;
+    int			  yFlip;
 } xglGLBufferRec, *xglGLBufferPtr;
 
 typedef int xglGLXVisualConfigRec, *xglGLXVisualConfigPtr;
@@ -3388,136 +3394,6 @@ xglNoOpPointParameterivNV (GLenum pname, const GLint *params) {}
 static void
 xglNoOpActiveStencilFaceEXT (GLenum face) {}
 
-
-/* GL_MESA_render_texture */
-#define GLX_TEXTURE_TARGET_MESA	   0x1
-#define GLX_TEXTURE_2D_MESA	   0x2
-#define GLX_TEXTURE_RECTANGLE_MESA 0x3
-#define GLX_NO_TEXTURE_MESA	   0x4
-#define GLX_FRONT_LEFT_MESA	   0x5
-static int
-xglXBindTexImageMESA (DrawablePtr pDrawable,
-		      int	  buffer)
-{
-    if (buffer != GLX_FRONT_LEFT_MESA)
-	return FALSE;
-
-    if (pDrawable->type != DRAWABLE_WINDOW)
-    {
-        xglGLContextPtr pContext = cctx;
-	xglTexUnitPtr   pTexUnit = &cctx->attrib.texUnits[cctx->activeTexUnit];
-	xglTexObjPtr	pTexObj = NULL;
-	
-	if (xglSyncSurface (pDrawable))
-	{
-	    glitz_point_fixed_t point = { 1 << 16 , 1 << 16 };
-	    
-	    XGL_DRAWABLE_PIXMAP (pDrawable);
-	    XGL_PIXMAP_PRIV (pPixmap);
-    
-	    /* FIXME: doesn't work with 1x1 textures */
-	    glitz_surface_translate_point (pPixmapPriv->surface,
-					   &point, &point);
-	    if (point.x > (1 << 16) || point.y > (1 << 16))
-		pTexObj = pTexUnit->pRect;
-	    else
-		pTexObj = pTexUnit->p2D;
-	    
-	    if (pTexObj)
-	    {
-		pPixmap->refcnt++;
-
-		if (pTexObj->pPixmap)
-		    (*pDrawable->pScreen->DestroyPixmap) (pTexObj->pPixmap);
-	    
-		pTexObj->pPixmap = pPixmap;
-	    }
-	}
-
-	if (pContext != cctx)
-	    xglSetCurrentContext (pContext);
-
-	if (pTexObj)
-	    return TRUE;
-    }
-
-    return FALSE;
-}
-static int
-xglXReleaseTexImageMESA (DrawablePtr pDrawable,
-			 int	     buffer)
-{
-    xglTexObjPtr pTexObj;
-    
-    XGL_DRAWABLE_PIXMAP (pDrawable);
-
-    if (buffer != GLX_FRONT_LEFT_MESA)
-	return FALSE;
-    
-    pTexObj = cctx->attrib.texUnits[cctx->activeTexUnit].p2D;
-    if (pTexObj && pTexObj->pPixmap == pPixmap)
-    {
-	(*pDrawable->pScreen->DestroyPixmap) (pTexObj->pPixmap);
-	pTexObj->pPixmap = NULL;
-    }
-    else
-    {
-	pTexObj = cctx->attrib.texUnits[cctx->activeTexUnit].pRect;
-	if (pTexObj && pTexObj->pPixmap == pPixmap)
-	{
-	    (*pDrawable->pScreen->DestroyPixmap) (pTexObj->pPixmap);
-	    pTexObj->pPixmap = NULL;
-	}
-	else
-	    return FALSE;
-    }
-    
-    return TRUE;
-}
-static int
-xglXQueryDrawableMESA (DrawablePtr  pDrawable,
-		       int	    attribute,
-		       unsigned int *value)
-{
-    switch (attribute) {
-    case GLX_TEXTURE_TARGET_MESA:
-	if (pDrawable->type != DRAWABLE_WINDOW)
-	{
-	    glitz_point_fixed_t point = { 1 << 16 , 1 << 16 };
-	    xglGLContextPtr	pContext = cctx;
-
-	    XGL_DRAWABLE_PIXMAP (pDrawable);
-
-	    if (xglCreatePixmapSurface (pPixmap))
-	    {
-		XGL_PIXMAP_PRIV (pPixmap);
-
-		/* FIXME: doesn't work for 1x1 textures */
-		glitz_surface_translate_point (pPixmapPriv->surface,
-					       &point, &point);
-		if (point.x > (1 << 16) || point.y > (1 << 16))
-		    *value = GLX_TEXTURE_RECTANGLE_MESA;
-		else
-		    *value = GLX_TEXTURE_2D_MESA;
-	    }
-	    else
-		*value = GLX_NO_TEXTURE_MESA;
-
-	    if (pContext != cctx)
-		xglSetCurrentContext (pContext);
-	}
-	else
-	    *value = GLX_NO_TEXTURE_MESA;
-	
-	return TRUE;
-    default:
-	break;
-    }
-
-    *value = 0;
-    return FALSE;
-}
-
 __glProcTableEXT __glNoOpRenderTableEXT = {
     xglNoOpActiveTextureARB,
     xglNoOpClientActiveTextureARB,
@@ -3561,10 +3437,7 @@ __glProcTableEXT __glNoOpRenderTableEXT = {
     xglNoOpSecondaryColorPointerEXT,
     xglNoOpPointParameteriNV,
     xglNoOpPointParameterivNV,
-    xglNoOpActiveStencilFaceEXT,
-    xglXBindTexImageMESA,
-    xglXReleaseTexImageMESA,
-    xglXQueryDrawableMESA
+    xglNoOpActiveStencilFaceEXT
 };
 
 static void
@@ -4490,6 +4363,125 @@ xglResizeBuffers (__GLdrawableBuffer  *buffer,
     return status;
 }
 
+static int
+xglBindBuffers (__GLXdrawablePrivate *glxPriv,
+		int		     buffer)
+{
+    __GLdrawablePrivate	*glPriv = &glxPriv->glPriv;
+    xglGLBufferPtr	pBufferPriv = glPriv->private;
+
+    if (cctx)
+    {
+	xglTexUnitPtr pTexUnit = &cctx->attrib.texUnits[cctx->activeTexUnit];
+	xglTexObjPtr  pTexObj = NULL;
+	DrawablePtr   pDrawable;
+	
+	/* XXX: front left buffer is only supported so far */
+	if (buffer != GLX_FRONT_LEFT_EXT)
+	    return FALSE;
+
+	/* Must be a GLXpixmap */
+	if (!glxPriv->pGlxPixmap)
+	    return FALSE;
+
+	pDrawable = glxPriv->pGlxPixmap->pDraw;
+
+	switch (glxPriv->texTarget) {
+	case GLX_TEXTURE_RECTANGLE_EXT:
+	    pTexObj = pTexUnit->pRect;
+	    break;
+	case GLX_TEXTURE_2D_EXT:
+	    pTexObj = pTexUnit->p2D;
+	    break;
+	default:
+	    break;
+	}
+
+	if (pTexObj)
+	{
+	    XGL_DRAWABLE_PIXMAP (pDrawable);
+	    
+	    pPixmap->refcnt++;
+	
+	    if (pTexObj->pPixmap)
+		(*pDrawable->pScreen->DestroyPixmap) (pTexObj->pPixmap);
+	
+	    pTexObj->pPixmap = pPixmap;
+
+	    return TRUE;
+	}
+    }
+    else if (pBufferPriv->private)
+    {
+	int status;
+	
+	glPriv->private = pBufferPriv->private;
+	status = (*pBufferPriv->bindBuffers) (glxPriv, buffer);
+	glPriv->private = pBufferPriv;
+
+	return status;
+    }
+
+    return FALSE;
+}
+
+static int
+xglReleaseBuffers (__GLXdrawablePrivate *glxPriv,
+		   int		        buffer)
+{
+    __GLdrawablePrivate	*glPriv = &glxPriv->glPriv;
+    xglGLBufferPtr	pBufferPriv = glPriv->private;
+
+    if (cctx)
+    {
+	xglTexObjPtr pTexObj;
+	
+	/* XXX: front left buffer is only supported so far */
+	if (buffer != GLX_FRONT_LEFT_EXT)
+	    return FALSE;
+	
+	/* Must be a GLXpixmap */
+	if (glxPriv->pGlxPixmap)
+	{
+	    DrawablePtr pDrawable = glxPriv->pGlxPixmap->pDraw;
+
+	    XGL_DRAWABLE_PIXMAP (pDrawable);
+
+	    pTexObj = cctx->attrib.texUnits[cctx->activeTexUnit].p2D;
+	    if (pTexObj && pTexObj->pPixmap == pPixmap)
+	    {
+		(*pDrawable->pScreen->DestroyPixmap) (pTexObj->pPixmap);
+		pTexObj->pPixmap = NULL;
+		
+		return TRUE;
+	    }
+	    else
+	    {
+		pTexObj = cctx->attrib.texUnits[cctx->activeTexUnit].pRect;
+		if (pTexObj && pTexObj->pPixmap == pPixmap)
+		{
+		    (*pDrawable->pScreen->DestroyPixmap) (pTexObj->pPixmap);
+		    pTexObj->pPixmap = NULL;
+		    
+		    return TRUE;
+		}
+	    }
+	}
+    }
+    else if (pBufferPriv->private)
+    {
+	int status;
+	
+	glPriv->private = pBufferPriv->private;
+	status = (*pBufferPriv->releaseBuffers) (glxPriv, buffer);
+	glPriv->private = pBufferPriv;
+
+	return status;
+    }
+    
+    return FALSE;
+}
+
 static void
 xglFreeBuffers (__GLdrawablePrivate *glPriv)
 {
@@ -4529,7 +4521,11 @@ xglCreateBuffer (__GLXdrawablePrivate *glxPriv)
     pBufferPriv->pGC	       = NULL;
     pBufferPriv->backSurface   = NULL;
 
-    pBufferPriv->swapBuffers   = NULL;
+    pBufferPriv->swapBuffers = NULL;
+
+    pBufferPriv->bindBuffers    = NULL;
+    pBufferPriv->releaseBuffers = NULL;
+    
     pBufferPriv->resizeBuffers = NULL;
     pBufferPriv->private       = NULL;
     pBufferPriv->freeBuffers   = NULL;
@@ -4554,17 +4550,17 @@ xglCreateBuffer (__GLXdrawablePrivate *glxPriv)
 	    glitz_surface_reference (pScreenPriv->backSurface);
 	}
     }
-    else if (0) /*pScreenPriv->features &
-		 GLITZ_FEATURE_FRAMEBUFFER_OBJECT_MASK) */
+    else if (0) /* pScreenPriv->features &
+		   GLITZ_FEATURE_FRAMEBUFFER_OBJECT_MASK) */
     {
 	pBufferPriv->pDrawable = pDrawable;
 	
 	if (glxPriv->pGlxVisual->doubleBuffer)
 	{
 	    int depth = pDrawable->depth;
-	    
+		
 	    pBufferPriv->backSurface =
-	    	glitz_surface_create (pScreenPriv->drawable,
+		glitz_surface_create (pScreenPriv->drawable,
 				      pScreenPriv->pixmapFormats[depth].format,
 				      pDrawable->width, pDrawable->height,
 				      0, NULL);
@@ -4576,20 +4572,64 @@ xglCreateBuffer (__GLXdrawablePrivate *glxPriv)
     {
 	(*screenInfoPriv.createBuffer) (glxPriv);
 
-	/* wrap the swap buffers routine */
+	/* Wrap the swap buffers routine */
 	pBufferPriv->swapBuffers = glxPriv->swapBuffers;
-	
-	/* wrap the front buffer's resize routine and freePrivate */
+	    
+	/* Wrap the render texture routines */
+	pBufferPriv->bindBuffers    = glxPriv->bindBuffers;
+	pBufferPriv->releaseBuffers = glxPriv->releaseBuffers;
+
+	/* Wrap the front buffer's resize routine */
 	pBufferPriv->resizeBuffers = glPriv->frontBuffer.resize;
-	pBufferPriv->freeBuffers   = glPriv->freePrivate;
-	pBufferPriv->private	   = glPriv->private;
+	    
+	/* Save Xgl's private buffer structure */
+	pBufferPriv->freeBuffers = glPriv->freePrivate;
+	pBufferPriv->private	 = glPriv->private;
+    }
+
+    glxPriv->texTarget = GLX_NO_TEXTURE_EXT;
+
+    /* We enable render texture for all GLXPixmaps right now. Eventually, this
+       should only be enabled when fbconfig attribute GLX_RENDER_TEXTURE_RGB or
+       GLX_RENDER_TEXTURE_RGBA is set to TRUE. */
+    if (pDrawable->type != DRAWABLE_WINDOW)
+    {
+	/* GL_ARB_texture_rectangle is required for sane texture coordinates.
+	   GL_ARB_texture_border_clamp is required right now as glitz will
+	   emulate it when missing, which means a 1 pixel translucent black
+	   border inside textures, that cannot be exposed to clients. */
+	if (pScreenPriv->features &
+	    (GLITZ_FEATURE_TEXTURE_BORDER_CLAMP_MASK |
+	     GLITZ_FEATURE_TEXTURE_RECTANGLE_MASK))
+	{
+	    glitz_point_fixed_t point = { 1 << 16 , 1 << 16 };
+	
+	    XGL_DRAWABLE_PIXMAP (pDrawable);
+	    
+	    if (xglCreatePixmapSurface (pPixmap))
+	    {
+		XGL_PIXMAP_PRIV (pPixmap);
+		
+		/* FIXME: doesn't work for 1x1 textures */
+		glitz_surface_translate_point (pPixmapPriv->surface,
+					       &point, &point);
+		if (point.x > (1 << 16) || point.y > (1 << 16))
+		    glxPriv->texTarget = GLX_TEXTURE_RECTANGLE_EXT;
+		else
+		    glxPriv->texTarget = GLX_TEXTURE_2D_EXT;
+	    }
+	}
     }
 
     glxPriv->swapBuffers = xglSwapBuffers;
+    
+    glxPriv->bindBuffers    = xglBindBuffers;
+    glxPriv->releaseBuffers = xglReleaseBuffers;
 
     glPriv->frontBuffer.resize = xglResizeBuffers;
-    glPriv->private	       = (void *) pBufferPriv;
-    glPriv->freePrivate	       = xglFreeBuffers;
+    
+    glPriv->private	= (void *) pBufferPriv;
+    glPriv->freePrivate	= xglFreeBuffers;
 }
 
 static Bool
