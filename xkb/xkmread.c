@@ -26,6 +26,9 @@
  ********************************************************/
 /* $XFree86: xc/lib/xkbfile/xkmread.c,v 1.6 2002/02/13 22:09:42 herrb Exp $ */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 #include <stdio.h>
 
 #include <X11/Xos.h>

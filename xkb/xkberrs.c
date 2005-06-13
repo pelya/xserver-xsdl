@@ -26,6 +26,9 @@
  ********************************************************/
 /* $XFree86: xc/lib/xkbfile/xkberrs.c,v 3.4 2001/07/29 05:01:13 tsi Exp $ */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 #include <stdio.h>
 #include <ctype.h>
 #include <stdlib.h>

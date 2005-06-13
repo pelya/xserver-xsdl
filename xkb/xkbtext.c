@@ -26,6 +26,9 @@
  ********************************************************/
 /* $XFree86: xc/lib/xkbfile/xkbtext.c,v 3.11 2002/12/21 18:49:02 paulo Exp $ */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 #include <stdio.h>
 #include <ctype.h>
 #include <stdlib.h>
