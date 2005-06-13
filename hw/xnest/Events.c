@@ -196,6 +196,14 @@ xnestCollectEvents()
 	  X.xdestroywindow.window == xnestParentWindow)
 	exit (0);
       break;
+
+    case CirculateNotify:
+    case ConfigureNotify:
+    case GravityNotify:
+    case MapNotify:
+    case ReparentNotify:
+    case UnmapNotify:
+      break;
       
     default:
       ErrorF("xnest warning: unhandled event\n");
