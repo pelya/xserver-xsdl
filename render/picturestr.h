@@ -17,7 +17,7 @@
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO EVENT SHALL SuSE
  * BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
  * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION
- * OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN 
+ * OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *
  * Author:  Keith Packard, SuSE, Inc.
@@ -69,7 +69,7 @@ typedef struct _Picture {
     int		    refcnt;
     CARD32	    id;
     PicturePtr	    pNext;	    /* chain on same drawable */
-    
+
     unsigned int    repeat : 1;
     unsigned int    graphicsExposures : 1;
     unsigned int    subWindowMode : 1;
@@ -92,9 +92,9 @@ typedef struct _Picture {
     unsigned long   serialNumber;
 
     RegionPtr	    pCompositeClip;
-    
+
     DevUnion	    *devPrivates;
-    
+
     PictTransform   *transform;
 
     int		    filter;
@@ -117,6 +117,8 @@ typedef struct {
 #define PictFilterGood		3
 #define PictFilterBest		4
 
+#define PictFilterConvolution	5
+
 typedef struct {
     char	    *alias;
     int		    alias_id;
@@ -130,7 +132,7 @@ typedef int	(*ChangePictureClipProcPtr) (PicturePtr	pPicture,
 					     pointer    value,
 					     int	n);
 typedef void	(*DestroyPictureClipProcPtr)(PicturePtr	pPicture);
-    
+
 typedef int	(*ChangePictureTransformProcPtr)    (PicturePtr	    pPicture,
 						     PictTransform  *transform);
 
@@ -246,12 +248,12 @@ typedef struct _PictureScreen {
     PictFormatPtr		formats;
     PictFormatPtr		fallback;
     int				nformats;
-    
+
     CreatePictureProcPtr	CreatePicture;
     DestroyPictureProcPtr	DestroyPicture;
     ChangePictureClipProcPtr	ChangePictureClip;
     DestroyPictureClipProcPtr	DestroyPictureClip;
-    
+
     ChangePictureProcPtr	ChangePicture;
     ValidatePictureProcPtr	ValidatePicture;
 
@@ -269,7 +271,7 @@ typedef struct _PictureScreen {
     UpdateIndexedProcPtr	UpdateIndexed;
 
     int				subpixel;
-    
+
     PictFilterPtr		filters;
     int				nfilters;
     PictFilterAliasPtr		filterAliases;
@@ -278,7 +280,7 @@ typedef struct _PictureScreen {
     ChangePictureTransformProcPtr   ChangePictureTransform;
     ChangePictureFilterProcPtr	ChangePictureFilter;
     DestroyPictureFilterProcPtr	DestroyPictureFilter;
-    
+
     TrapezoidsProcPtr		Trapezoids;
     TrianglesProcPtr		Triangles;
     TriStripProcPtr		TriStrip;
@@ -355,7 +357,7 @@ PictureMatchVisual (ScreenPtr pScreen, int depth, VisualPtr pVisual);
 
 PictFormatPtr
 PictureMatchFormat (ScreenPtr pScreen, int depth, CARD32 format);
-    
+
 Bool
 PictureInit (ScreenPtr pScreen, PictFormatPtr formats, int nformats);
 
@@ -375,7 +377,7 @@ PictureSetFilterAlias (ScreenPtr pScreen, char *filter, char *alias);
 
 Bool
 PictureSetDefaultFilters (ScreenPtr pScreen);
-    
+
 void
 PictureResetFilters (ScreenPtr pScreen);
 
@@ -390,7 +392,7 @@ PictureFinishInit (void);
 
 void
 SetPictureToDefaults (PicturePtr pPicture);
-    
+
 PicturePtr
 AllocatePicture (ScreenPtr  pScreen);
 
@@ -534,7 +536,7 @@ int
 AnimCursorCreate (CursorPtr *cursors, CARD32 *deltas, int ncursor, CursorPtr *ppCursor);
 
 void
-AddTraps (PicturePtr	pPicture, 
+AddTraps (PicturePtr	pPicture,
 	  INT16		xOff,
 	  INT16		yOff,
 	  int		ntraps,

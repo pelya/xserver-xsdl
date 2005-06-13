@@ -17,7 +17,7 @@
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO EVENT SHALL SuSE
  * BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
  * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION
- * OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN 
+ * OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *
  * Author:  Keith Packard, SuSE, Inc.
@@ -113,7 +113,7 @@ fbCompositeSolidMask_nx8x8888 (CARD8      op,
     CARD16	w;
 
     fbComposeGetSolid(pSrc, src, pDst->format);
-    
+
     dstMask = FbFullMask (pDst->pDrawable->depth);
     srca = src >> 24;
     if (src == 0)
@@ -121,7 +121,7 @@ fbCompositeSolidMask_nx8x8888 (CARD8      op,
 
     fbComposeGetStart (pDst, xDst, yDst, CARD32, dstStride, dstLine, 1);
     fbComposeGetStart (pMask, xMask, yMask, CARD8, maskStride, maskLine, 1);
-    
+
     while (height--)
     {
 	dst = dstLine;
@@ -172,15 +172,15 @@ fbCompositeSolidMask_nx8888x8888C (CARD8      op,
     CARD32	m, n, o, p;
 
     fbComposeGetSolid(pSrc, src, pDst->format);
-    
+
     dstMask = FbFullMask (pDst->pDrawable->depth);
     srca = src >> 24;
     if (src == 0)
 	return;
-    
+
     fbComposeGetStart (pDst, xDst, yDst, CARD32, dstStride, dstLine, 1);
     fbComposeGetStart (pMask, xMask, yMask, CARD32, maskStride, maskLine, 1);
-    
+
     while (height--)
     {
 	dst = dstLine;
@@ -245,14 +245,14 @@ fbCompositeSolidMask_nx8x0888 (CARD8      op,
     CARD16	w;
 
     fbComposeGetSolid(pSrc, src, pDst->format);
-    
+
     srca = src >> 24;
     if (src == 0)
 	return;
-    
+
     fbComposeGetStart (pDst, xDst, yDst, CARD8, dstStride, dstLine, 3);
     fbComposeGetStart (pMask, xMask, yMask, CARD8, maskStride, maskLine, 1);
-    
+
     while (height--)
     {
 	dst = dstLine;
@@ -307,14 +307,14 @@ fbCompositeSolidMask_nx8x0565 (CARD8      op,
     CARD16	w;
 
     fbComposeGetSolid(pSrc, src, pDst->format);
-    
+
     srca = src >> 24;
     if (src == 0)
 	return;
-    
+
     fbComposeGetStart (pDst, xDst, yDst, CARD16, dstStride, dstLine, 1);
     fbComposeGetStart (pMask, xMask, yMask, CARD8, maskStride, maskLine, 1);
-    
+
     while (height--)
     {
 	dst = dstLine;
@@ -372,16 +372,16 @@ fbCompositeSolidMask_nx8888x0565C (CARD8      op,
     CARD32	m, n, o;
 
     fbComposeGetSolid(pSrc, src, pDst->format);
-    
+
     srca = src >> 24;
     if (src == 0)
 	return;
-    
+
     src16 = cvt8888to0565(src);
-    
+
     fbComposeGetStart (pDst, xDst, yDst, CARD16, dstStride, dstLine, 1);
     fbComposeGetStart (pMask, xMask, yMask, CARD32, maskStride, maskLine, 1);
-    
+
     while (height--)
     {
 	dst = dstLine;
@@ -440,10 +440,10 @@ fbCompositeSrc_8888x8888 (CARD8      op,
     FbStride	dstStride, srcStride;
     CARD8	a;
     CARD16	w;
-    
+
     fbComposeGetStart (pDst, xDst, yDst, CARD32, dstStride, dstLine, 1);
     fbComposeGetStart (pSrc, xSrc, ySrc, CARD32, srcStride, srcLine, 1);
-    
+
     dstMask = FbFullMask (pDst->pDrawable->depth);
 
     while (height--)
@@ -487,10 +487,10 @@ fbCompositeSrc_8888x0888 (CARD8      op,
     CARD8	a;
     FbStride	dstStride, srcStride;
     CARD16	w;
-    
+
     fbComposeGetStart (pDst, xDst, yDst, CARD8, dstStride, dstLine, 3);
     fbComposeGetStart (pSrc, xSrc, ySrc, CARD32, srcStride, srcLine, 1);
-    
+
     while (height--)
     {
 	dst = dstLine;
@@ -536,7 +536,7 @@ fbCompositeSrc_8888x0565 (CARD8      op,
     CARD8	a;
     FbStride	dstStride, srcStride;
     CARD16	w;
-    
+
     fbComposeGetStart (pSrc, xSrc, ySrc, CARD32, srcStride, srcLine, 1);
     fbComposeGetStart (pDst, xDst, yDst, CARD16, dstStride, dstLine, 1);
 
@@ -586,7 +586,7 @@ fbCompositeSrc_0565x0565 (CARD8      op,
     CARD16	*srcLine, *src;
     FbStride	dstStride, srcStride;
     CARD16	w;
-    
+
     fbComposeGetStart (pSrc, xSrc, ySrc, CARD16, srcStride, srcLine, 1);
 
     fbComposeGetStart (pDst, xDst, yDst, CARD16, dstStride, dstLine, 1);
@@ -624,7 +624,7 @@ fbCompositeSrcAdd_8000x8000 (CARD8	op,
     CARD16	w;
     CARD8	s, d;
     CARD16	t;
-    
+
     fbComposeGetStart (pSrc, xSrc, ySrc, CARD8, srcStride, srcLine, 1);
     fbComposeGetStart (pDst, xDst, yDst, CARD8, dstStride, dstLine, 1);
 
@@ -675,7 +675,7 @@ fbCompositeSrcAdd_8888x8888 (CARD8	op,
     CARD32	s, d;
     CARD16	t;
     CARD32	m,n,o,p;
-    
+
     fbComposeGetStart (pSrc, xSrc, ySrc, CARD32, srcStride, srcLine, 1);
     fbComposeGetStart (pDst, xDst, yDst, CARD32, dstStride, dstLine, 1);
 
@@ -730,7 +730,7 @@ fbCompositeSrcAdd_1000x1000 (CARD8	op,
     int		dstBpp, srcBpp;
     int		dstXoff, dstYoff;
     int		srcXoff, srcYoff;
-    
+
     fbGetDrawable(pSrc->pDrawable, srcBits, srcStride, srcBpp, srcXoff, srcYoff);
 
     fbGetDrawable(pDst->pDrawable, dstBits, dstStride, dstBpp, dstXoff, dstYoff);
@@ -775,13 +775,13 @@ fbCompositeSolidMask_nx1xn (CARD8      op,
     int		dstXoff, dstYoff;
     int		maskXoff, maskYoff;
     FbBits	src;
-    
+
     fbComposeGetSolid(pSrc, src, pDst->format);
 
     if ((src & 0xff000000) != 0xff000000)
     {
 	fbCompositeGeneral  (op, pSrc, pMask, pDst,
-			     xSrc, ySrc, xMask, yMask, xDst, yDst, 
+			     xSrc, ySrc, xMask, yMask, xDst, yDst,
 			     width, height);
 	return;
     }
@@ -845,7 +845,7 @@ fbComposite (CARD8      op,
     Bool	    dstAlphaMap = pDst->alphaMap != 0;
     int		    x_msk, y_msk, x_src, y_src, x_dst, y_dst;
     int		    w, h, w_this, h_this;
-    
+
     xDst += pDst->pDrawable->x;
     yDst += pDst->pDrawable->y;
     xSrc += pSrc->pDrawable->x;
@@ -857,9 +857,11 @@ fbComposite (CARD8      op,
 	maskRepeat = pMask->repeat;
 	maskAlphaMap = pMask->alphaMap != 0;
     }
-    
-    if (!pSrc->transform && !(pMask && pMask->transform))
-    if (!maskAlphaMap && !srcAlphaMap && !dstAlphaMap)
+
+    if (!pSrc->transform && !(pMask && pMask->transform)
+         && !maskAlphaMap && !srcAlphaMap && !dstAlphaMap
+         && (pSrc->filter != PictFilterConvolution)
+         && (!pMask || pMask->filter != PictFilterConvolution))
     switch (op) {
     case PictOpSrc:
 #ifdef USE_MMX
@@ -873,7 +875,7 @@ fbComposite (CARD8      op,
     case PictOpOver:
 	if (pMask)
 	{
-	    if (srcRepeat && 
+	    if (srcRepeat &&
 		pSrc->pDrawable->width == 1 &&
 		pSrc->pDrawable->height == 1)
 	    {
@@ -1026,7 +1028,7 @@ fbComposite (CARD8      op,
 		    }
 		    break;
 		}
-		else 
+		else
 		{
 		    /* non-repeating source, repeating mask => translucent window */
 		    if (maskRepeat &&
@@ -1040,7 +1042,7 @@ fbComposite (CARD8      op,
 #ifdef USE_MMX
 			    if (fbHaveMMX())
 				func = fbCompositeSrc_8888x8x8888mmx;
-#endif			    
+#endif
 			}
 		    }
 		}
@@ -1048,7 +1050,7 @@ fbComposite (CARD8      op,
 	}
 	else /* no mask */
 	{
-	    if (srcRepeat && 
+	    if (srcRepeat &&
 		pSrc->pDrawable->width == 1 &&
 		pSrc->pDrawable->height == 1)
 	    {
@@ -1274,7 +1276,7 @@ fbComposite (CARD8      op,
 			w_this = pSrc->pDrawable->width - x_src;
 		}
 		(*func) (op, pSrc, pMask, pDst,
-			 x_src, y_src, x_msk, y_msk, x_dst, y_dst, 
+			 x_src, y_src, x_msk, y_msk, x_dst, y_dst,
 			 w_this, h_this);
 		w -= w_this;
 		x_src += w_this;

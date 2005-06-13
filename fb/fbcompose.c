@@ -50,7 +50,7 @@ fbFetch_a8r8g8b8 (const FbBits *bits, int x, int width, CARD32 *buffer, miIndexe
 {
     memcpy(buffer, (const CARD32 *)bits + x, width*sizeof(CARD32));
 }
-    
+
 static FASTCALL void
 fbFetch_x8r8g8b8 (const FbBits *bits, int x, int width, CARD32 *buffer, miIndexedPtr indexed)
 {
@@ -60,7 +60,7 @@ fbFetch_x8r8g8b8 (const FbBits *bits, int x, int width, CARD32 *buffer, miIndexe
         *buffer++ = *pixel++ | 0xff000000;
     }
 }
-    
+
 static FASTCALL void
 fbFetch_a8b8g8r8 (const FbBits *bits, int x, int width, CARD32 *buffer, miIndexedPtr indexed)
 {
@@ -73,7 +73,7 @@ fbFetch_a8b8g8r8 (const FbBits *bits, int x, int width, CARD32 *buffer, miIndexe
         ++pixel;
     }
 }
-    
+
 static FASTCALL void
 fbFetch_x8b8g8r8 (const FbBits *bits, int x, int width, CARD32 *buffer, miIndexedPtr indexed)
 {
@@ -389,7 +389,7 @@ fbFetch_a4 (const FbBits *bits, int x, int width, CARD32 *buffer, miIndexedPtr i
     int i;
     for (i = 0; i < width; ++i) {
         CARD32  p = Fetch4(bits, i + x);
-    
+
         p |= p << 4;
         *buffer++ = p << 24;
     }
@@ -402,7 +402,7 @@ fbFetch_r1g2b1 (const FbBits *bits, int x, int width, CARD32 *buffer, miIndexedP
     for (i = 0; i < width; ++i) {
         CARD32  p = Fetch4(bits, i + x);
         CARD32  r,g,b;
-    
+
         r = ((p & 0x8) * 0xff) << 13;
         g = ((p & 0x6) * 0x55) << 7;
         b = ((p & 0x1) * 0xff);
@@ -417,7 +417,7 @@ fbFetch_b1g2r1 (const FbBits *bits, int x, int width, CARD32 *buffer, miIndexedP
     for (i = 0; i < width; ++i) {
         CARD32  p = Fetch4(bits, i + x);
         CARD32  r,g,b;
-    
+
         b = ((p & 0x8) * 0xff) >> 3;
         g = ((p & 0x6) * 0x55) << 7;
         r = ((p & 0x1) * 0xff) << 16;
@@ -432,7 +432,7 @@ fbFetch_a1r1g1b1 (const FbBits *bits, int x, int width, CARD32 *buffer, miIndexe
     for (i = 0; i < width; ++i) {
         CARD32  p = Fetch4(bits, i + x);
         CARD32  a,r,g,b;
-    
+
         a = ((p & 0x8) * 0xff) << 21;
         r = ((p & 0x4) * 0xff) << 14;
         g = ((p & 0x2) * 0xff) << 7;
@@ -448,7 +448,7 @@ fbFetch_a1b1g1r1 (const FbBits *bits, int x, int width, CARD32 *buffer, miIndexe
     for (i = 0; i < width; ++i) {
         CARD32  p = Fetch4(bits, i + x);
         CARD32  a,r,g,b;
-    
+
         a = ((p & 0x8) * 0xff) << 21;
         r = ((p & 0x4) * 0xff) >> 3;
         g = ((p & 0x2) * 0xff) << 7;
@@ -463,7 +463,7 @@ fbFetch_c4 (const FbBits *bits, int x, int width, CARD32 *buffer, miIndexedPtr i
     int i;
     for (i = 0; i < width; ++i) {
         CARD32  p = Fetch4(bits, i + x);
-    
+
         *buffer++ = indexed->rgba[p];
     }
 }
@@ -513,15 +513,15 @@ static fetchProc fetchProcForPicture (PicturePtr pict)
     case PICT_x8r8g8b8: return fbFetch_x8r8g8b8;
     case PICT_a8b8g8r8: return fbFetch_a8b8g8r8;
     case PICT_x8b8g8r8: return fbFetch_x8b8g8r8;
-    
+
         /* 24bpp formats */
     case PICT_r8g8b8: return fbFetch_r8g8b8;
     case PICT_b8g8r8: return fbFetch_b8g8r8;
-    
+
         /* 16bpp formats */
     case PICT_r5g6b5: return fbFetch_r5g6b5;
     case PICT_b5g6r5: return fbFetch_b5g6r5;
-    
+
     case PICT_a1r5g5b5: return fbFetch_a1r5g5b5;
     case PICT_x1r5g5b5: return fbFetch_x1r5g5b5;
     case PICT_a1b5g5r5: return fbFetch_a1b5g5r5;
@@ -530,7 +530,7 @@ static fetchProc fetchProcForPicture (PicturePtr pict)
     case PICT_x4r4g4b4: return fbFetch_x4r4g4b4;
     case PICT_a4b4g4r4: return fbFetch_a4b4g4r4;
     case PICT_x4b4g4r4: return fbFetch_x4b4g4r4;
-    
+
         /* 8bpp formats */
     case PICT_a8: return  fbFetch_a8;
     case PICT_r3g3b2: return fbFetch_r3g3b2;
@@ -548,7 +548,7 @@ static fetchProc fetchProcForPicture (PicturePtr pict)
     case PICT_a1b1g1r1: return fbFetch_a1b1g1r1;
     case PICT_c4: return  fbFetch_c4;
     case PICT_g4: return  fbFetch_c4;
-    
+
         /* 1bpp formats */
     case PICT_a1: return  fbFetch_a1;
     case PICT_g1: return  fbFetch_g1;
@@ -585,18 +585,18 @@ fbFetchPixel_a8b8g8r8 (const FbBits *bits, int offset, miIndexedPtr indexed)
 	    (pixel & 0x0000ff00) |
 	    ((pixel & 0xff) << 16));
 }
-    
+
 static FASTCALL CARD32
 fbFetchPixel_x8b8g8r8 (const FbBits *bits, int offset, miIndexedPtr indexed)
 {
     CARD32  pixel = ((CARD32 *)bits)[offset];
-    
+
     return ((0xff000000) |
 	    ((pixel >> 16) & 0xff) |
 	    (pixel & 0x0000ff00) |
 	    ((pixel & 0xff) << 16));
 }
-    
+
 static FASTCALL CARD32
 fbFetchPixel_r8g8b8 (const FbBits *bits, int offset, miIndexedPtr indexed)
 {
@@ -636,19 +636,19 @@ fbFetchPixel_r5g6b5 (const FbBits *bits, int offset, miIndexedPtr indexed)
 {
     CARD32  pixel = ((CARD16 *) bits)[offset];
     CARD32  r,g,b;
-    
+
     r = ((pixel & 0xf800) | ((pixel & 0xe000) >> 5)) << 8;
     g = ((pixel & 0x07e0) | ((pixel & 0x0600) >> 6)) << 5;
     b = ((pixel & 0x001c) | ((pixel & 0x001f) << 5)) >> 2;
     return (0xff000000 | r | g | b);
 }
-    
+
 static FASTCALL CARD32
 fbFetchPixel_b5g6r5 (const FbBits *bits, int offset, miIndexedPtr indexed)
 {
     CARD32  pixel = ((CARD16 *) bits)[offset];
     CARD32  r,g,b;
-    
+
     b = ((pixel & 0xf800) | ((pixel & 0xe000) >> 5)) >> 8;
     g = ((pixel & 0x07e0) | ((pixel & 0x0600) >> 6)) << 5;
     r = ((pixel & 0x001c) | ((pixel & 0x001f) << 5)) << 14;
@@ -886,14 +886,14 @@ fbFetchPixel_a1b1g1r1 (const FbBits *bits, int offset, miIndexedPtr indexed)
 {
     CARD32  pixel = Fetch4(bits, offset);
     CARD32  a,r,g,b;
-    
+
     a = ((pixel & 0x8) * 0xff) << 21;
     r = ((pixel & 0x4) * 0xff) >> 3;
     g = ((pixel & 0x2) * 0xff) << 7;
     b = ((pixel & 0x1) * 0xff) << 16;
     return a|r|g|b;
 }
-    
+
 static FASTCALL CARD32
 fbFetchPixel_c4 (const FbBits *bits, int offset, miIndexedPtr indexed)
 {
@@ -945,11 +945,11 @@ static fetchPixelProc fetchPixelProcForPicture (PicturePtr pict)
         /* 24bpp formats */
     case PICT_r8g8b8: return fbFetchPixel_r8g8b8;
     case PICT_b8g8r8: return fbFetchPixel_b8g8r8;
-    
+
         /* 16bpp formats */
     case PICT_r5g6b5: return fbFetchPixel_r5g6b5;
     case PICT_b5g6r5: return fbFetchPixel_b5g6r5;
-    
+
     case PICT_a1r5g5b5: return fbFetchPixel_a1r5g5b5;
     case PICT_x1r5g5b5: return fbFetchPixel_x1r5g5b5;
     case PICT_a1b5g5r5: return fbFetchPixel_a1b5g5r5;
@@ -984,7 +984,7 @@ static fetchPixelProc fetchPixelProcForPicture (PicturePtr pict)
         return 0;
     }
 }
-    
+
 
 
 /*
@@ -1057,7 +1057,7 @@ fbStore_b8g8r8 (FbBits *bits, const CARD32 *values, int x, int width, miIndexedP
 #endif
     }
 }
-    
+
 static FASTCALL void
 fbStore_r5g6b5 (FbBits *bits, const CARD32 *values, int x, int width, miIndexedPtr indexed)
 {
@@ -1070,7 +1070,7 @@ fbStore_r5g6b5 (FbBits *bits, const CARD32 *values, int x, int width, miIndexedP
                    ((s >> 8) & 0xf800);
     }
 }
-    
+
 static FASTCALL void
 fbStore_b5g6r5 (FbBits *bits, const CARD32 *values, int x, int width, miIndexedPtr indexed)
 {
@@ -1083,7 +1083,7 @@ fbStore_b5g6r5 (FbBits *bits, const CARD32 *values, int x, int width, miIndexedP
                     ((r >> 3)         ));
     }
 }
-    
+
 static FASTCALL void
 fbStore_a1r5g5b5 (FbBits *bits, const CARD32 *values, int x, int width, miIndexedPtr indexed)
 {
@@ -1675,7 +1675,7 @@ fbCombineDisjointInPart (CARD8 a, CARD8 b)
 	return 0;	    /* 1 - 1 */
     return ~FbIntDiv(b,a);  /* 1 - (1-b) / a */
 }
-    
+
 static FASTCALL void
 fbCombineDisjointGeneralU (CARD32 *dest, const CARD32 *src, int width, CARD8 combine)
 {
@@ -1725,7 +1725,7 @@ fbCombineDisjointGeneralU (CARD32 *dest, const CARD32 *src, int width, CARD8 com
         dest[i] = s;
     }
 }
-    
+
 static FASTCALL void
 fbCombineDisjointOverU (CARD32 *dest, const CARD32 *src, int width)
 {
@@ -1747,19 +1747,19 @@ fbCombineDisjointOverU (CARD32 *dest, const CARD32 *src, int width)
         }
     }
 }
-    
+
 static FASTCALL void
 fbCombineDisjointInU (CARD32 *dest, const CARD32 *src, int width)
 {
     fbCombineDisjointGeneralU (dest, src, width, CombineAIn);
 }
-    
+
 static FASTCALL void
 fbCombineDisjointInReverseU (CARD32 *dest, const CARD32 *src, int width)
 {
     fbCombineDisjointGeneralU (dest, src, width, CombineBIn);
 }
-    
+
 static FASTCALL void
 fbCombineDisjointOutU (CARD32 *dest, const CARD32 *src, int width)
 {
@@ -1771,7 +1771,7 @@ fbCombineDisjointOutReverseU (CARD32 *dest, const CARD32 *src, int width)
 {
     fbCombineDisjointGeneralU (dest, src, width, CombineBOut);
 }
-    
+
 static FASTCALL void
 fbCombineDisjointAtopU (CARD32 *dest, const CARD32 *src, int width)
 {
@@ -1783,7 +1783,7 @@ fbCombineDisjointAtopReverseU (CARD32 *dest, const CARD32 *src, int width)
 {
     fbCombineDisjointGeneralU (dest, src, width, CombineBAtop);
 }
-    
+
 static FASTCALL void
 fbCombineDisjointXorU (CARD32 *dest, const CARD32 *src, int width)
 {
@@ -1796,7 +1796,7 @@ fbCombineConjointOutPart (CARD8 a, CARD8 b)
 {
     /* max (1-b/a,0) */
     /* = 1-min(b/a,1) */
-    
+
     /* min (1, (1-b) / a) */
 
     if (b >= a)		    /* b >= a -> b/a >= 1 */
@@ -1878,7 +1878,7 @@ fbCombineConjointOverReverseU (CARD32 *dest, const CARD32 *src, int width)
     fbCombineConjointGeneralU (dest, src, width, CombineBOver);
 }
 
-    
+
 static FASTCALL void
 fbCombineConjointInU (CARD32 *dest, const CARD32 *src, int width)
 {
@@ -2644,38 +2644,32 @@ static void fbFetchTransformed(PicturePtr pict, int x, int y, int width, CARD32 
     PictVector	v;
     PictVector  unit;
     int         i;
-    int         trans_x, trans_y;
     BoxRec	box;
     miIndexedPtr indexed = (miIndexedPtr) pict->pFormat->index.devPrivate;
-    if (!pict->transform) {
-        fbFetch(pict, x, y, width, buffer);
-        return;
-    }
+
     fetch = fetchPixelProcForPicture(pict);
 
     fbGetDrawable(pict->pDrawable, bits, stride, bpp, xoff, yoff);
     x += xoff;
     y += yoff;
-    trans_x = x - pict->pDrawable->x;
-    trans_y = y - pict->pDrawable->y;
 
     v.vector[0] = IntToxFixed(x - pict->pDrawable->x);
     v.vector[1] = IntToxFixed(y - pict->pDrawable->y);
     v.vector[2] = xFixed1;
-	
+
     unit.vector[0] = xFixed1;
     unit.vector[1] = 0;
     unit.vector[2] = xFixed1;
-	
-    if (!PictureTransformPoint (pict->transform, &v)) {
-        return;
+
+    if (pict->transform) {
+        /* when using convolution filters one might get here without a transform */
+        if (!PictureTransformPoint (pict->transform, &v))
+            return;
+        if (!PictureTransformPoint (pict->transform, &unit))
+            return;
     }
-    if (!PictureTransformPoint (pict->transform, &unit)) {
-        return;
-    }
-	    
-    if (pict->filter == PictFilterNearest)
-	    {
+
+    if (pict->filter == PictFilterNearest) {
         if (REGION_NUM_RECTS(pict->pCompositeClip) == 1) {
             box = pict->pCompositeClip->extents;
             for (i = 0; i < width; ++i) {
@@ -2706,10 +2700,9 @@ static void fbFetchTransformed(PicturePtr pict, int x, int y, int width, CARD32 
                     buffer[i] = fetch(bits + (y - pict->pDrawable->y)*stride, x - pict->pDrawable->x, indexed);
                 else
                     buffer[i] = 0;
-	}
-    }
-    } else if (pict->filter == PictFilterBilinear)
-    {
+            }
+        }
+    } else if (pict->filter == PictFilterBilinear) {
         if (REGION_NUM_RECTS(pict->pCompositeClip) == 1) {
             box = pict->pCompositeClip->extents;
             for (i = 0; i < width; ++i) {
@@ -2725,19 +2718,18 @@ static void fbFetchTransformed(PicturePtr pict, int x, int y, int width, CARD32 
                 x2 = x1 + 1;
                 y1 = xFixedToInt(v.vector[1]);
                 y2 = y1 + 1;
-                if (pict->repeat)
-	{
+                if (pict->repeat) {
                     x1 = mod (x1, pict->pDrawable->width);
                     y1 = mod (y1, pict->pDrawable->height);
                     x2 = mod (x2, pict->pDrawable->width);
                     y2 = mod (y2, pict->pDrawable->height);
-	}
-	
+                }
+
                 distx = ((v.vector[0] - (x1 << 16)) >> 8);
                 disty = ((v.vector[1] - (y1 << 16)) >> 8);
                 idistx = 256 - distx;
                 idisty = 256 - disty;
-	
+
                 b = bits + (y1 - pict->pDrawable->y)*stride;
                 x_off = x1 - pict->pDrawable->x;
 
@@ -2801,6 +2793,64 @@ static void fbFetchTransformed(PicturePtr pict, int x, int y, int width, CARD32 
                 FbByteAddMul_256(tl, idisty, bl, disty);
                 buffer[i] = tl;
             }
+        }
+    } else if (pict->filter == PictFilterConvolution) {
+        xFixed *params = pict->filter_params;
+        INT32 cwidth = xFixedToInt(params[0]);
+        INT32 cheight = xFixedToInt(params[1]);
+        v.vector[0] -= params[0] >> 2;
+        v.vector[1] -= params[1] >> 2;
+        params += 2;
+        for (i = 0; i < width; ++i) {
+            int x1, x2, y1, y2, x, y;
+            INT32 srtot, sgtot, sbtot, satot, sum;
+            xFixed *p = params;
+
+            v.vector[0] += unit.vector[0];
+            v.vector[1] += unit.vector[1];
+
+            x1 = xFixedToInt(v.vector[0]);
+            x2 = x1 + cwidth;
+            y1 = xFixedToInt(v.vector[1]);
+            y2 = y1 + cheight;
+
+            srtot = sgtot = sbtot = satot = sum = 0;
+
+            for (y = y1; y < y2; y++) {
+                int ty = (pict->repeat) ? mod (y, pict->pDrawable->height) : y;
+                for (x = x1; x < x2; x++) {
+                    if (*params) {
+                        int tx = (pict->repeat) ? mod (x, pict->pDrawable->width) : x;
+                        if (POINT_IN_REGION (0, pict->pCompositeClip, tx, ty, &box)) {
+                            FbBits *b = bits + (ty - pict->pDrawable->y)*stride;
+                            CARD32 c = fetch(b, tx - pict->pDrawable->x, indexed);
+
+                            srtot += Red(c) * *p;
+                            sgtot += Green(c) * *p;
+                            sbtot += Blue(c) * *p;
+                            satot += Alpha(c) * *p;
+                        }
+                        sum += *p;
+                    }
+                    p++;
+                }
+            }
+
+            if (sum) {
+                satot /= sum;
+                srtot /= sum;
+                sgtot /= sum;
+                sbtot /= sum;
+            }
+            if (satot < 0) satot = 0; else if (satot > 0xff) satot = 0xff;
+            if (srtot < 0) srtot = 0; else if (srtot > 0xff) srtot = 0xff;
+            if (sgtot < 0) sgtot = 0; else if (sgtot > 0xff) sgtot = 0xff;
+            if (sbtot < 0) sbtot = 0; else if (sbtot > 0xff) sbtot = 0xff;
+
+            buffer[i] = ((satot << 24) |
+                         (srtot << 16) |
+                         (sgtot <<  8) |
+                         (sbtot       ));
         }
     }
 }
@@ -2904,15 +2954,19 @@ fbCompositeRect (const FbComposeData *data, CARD32 *scanline_buffer)
         fetchSrc = fbFetchExternalAlpha;
     else if (data->src->repeat && data->src->pDrawable->width == 1 && data->src->pDrawable->height == 1)
         fetchSrc = fbFetchSolid;
+    else if (!data->src->transform && data->src->filter != PictFilterConvolution)
+        fetchSrc = fbFetch;
     else
         fetchSrc = fbFetchTransformed;
-	
+
     if (data->mask && data->op != PictOpClear) {
         if (data->mask->alphaMap)
             fetchMask = fbFetchExternalAlpha;
         else if (data->mask->repeat && data->mask->pDrawable->width == 1 && data->mask->pDrawable->height == 1)
             fetchMask = fbFetchSolid;
-    else
+        else if (!data->mask->transform && data->src->filter != PictFilterConvolution)
+            fetchMask = fbFetch;
+        else
             fetchMask = fbFetchTransformed;
     } else {
         fetchMask = 0;
@@ -2935,7 +2989,7 @@ fbCompositeRect (const FbComposeData *data, CARD32 *scanline_buffer)
             return;
 
         for (i = 0; i < data->height; ++i)
-	    {
+        {
             /* fill first half of scanline with source */
             fetchSrc(data->src, data->xSrc, data->ySrc + i, data->width, src_buffer);
             fetchMask(data->mask, data->xMask, data->yMask + i, data->width, mask_buffer);
@@ -2967,7 +3021,7 @@ fbCompositeRect (const FbComposeData *data, CARD32 *scanline_buffer)
         }
 
         for (i = 0; i < data->height; ++i)
-		{
+        {
             /* fill first half of scanline with source */
             if (fetchSrc) {
                 fetchSrc(data->src, data->xSrc, data->ySrc + i, data->width, src_buffer);
@@ -2977,7 +3031,7 @@ fbCompositeRect (const FbComposeData *data, CARD32 *scanline_buffer)
                     fetchMask(data->mask, data->xMask, data->yMask + i, data->width, dest_buffer);
                     fbCombineMaskU(src_buffer, dest_buffer, data->width);
                 }
-		}
+            }
 
             /* fill dest into second half of scanline */
             if (fetchDest)
@@ -2988,7 +3042,7 @@ fbCompositeRect (const FbComposeData *data, CARD32 *scanline_buffer)
 
             /* write back */
             store(data->dest, data->xDest, data->yDest + i, data->width, dest_buffer);
-	    }
+        }
     }
 }
 
@@ -3016,7 +3070,7 @@ fbCompositeGeneral (CARD8	op,
     CARD32 *scanline_buffer = _scanline_buffer;
     FbComposeData compose_data;
 
-    
+
     if (pMask)
 	maskRepeat = pMask->repeat && (pMask->pDrawable->width != 1 || pMask->pDrawable->height != 1);
 
@@ -3036,7 +3090,7 @@ fbCompositeGeneral (CARD8	op,
 				   width,
 				   height))
 	    return;
-	
+
     compose_data.op = op;
     compose_data.src = pSrc;
     compose_data.mask = pMask;
