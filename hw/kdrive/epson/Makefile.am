@@ -12,7 +12,11 @@ noinst_LIBRARIES = libepson.a
 
 libepson_a_SOURCES = 	\
 	epson13806.c	\
-	epson13806draw.c
+	epson13806.h	\
+	epson13806draw.c\
+	epson13806draw.h\
+	epson13806reg.h
+
 Xepson_SOURCES = \
 	epson13806stub.c
 

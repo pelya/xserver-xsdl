@@ -1,4 +1,12 @@
-SUBDIRS = . $(XGLX_DIRS) $(XEGL_DIRS)
+if XGLXSERVER
+XGLX_SUBDIRS = glx
+endif
+
+if XEGLSERVER
+XEGL_SUBDIRS = egl
+endif
+
+SUBDIRS = . $(XGLX_SUBDIRS) $(XEGL_SUBDIRS)
 
 INCLUDES =		   \
 	@XGL_INCS@	   \
@@ -8,6 +16,7 @@ INCLUDES =		   \
 noinst_LIBRARIES = libxgl.a
 
 libxgl_a_SOURCES =     \
+	xgl.h	       \
 	xglinput.c     \
 	xgloutput.c    \
 	xglcmap.c      \

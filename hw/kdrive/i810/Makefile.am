@@ -15,7 +15,7 @@ libi810_a_SOURCES = 		\
 	i810_video.c	\
 	i810draw.c	\
 	i810draw.h	\
-	i810reg.h	\
+	i810_reg.h	\
 	i810.c		\
 	i810.h
 
