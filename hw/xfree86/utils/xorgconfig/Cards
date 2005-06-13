@@ -2865,12 +2865,12 @@ SEE RIVA TNT2
 # 3Dfx
 NAME Voodoo Banshee (generic)
 SERVER SVGA
-CHIPSET Voodo Banshee
+CHIPSET 3dfx Banshee
 DRIVER tdfx
 
 NAME Voodoo3 (generic)
 SERVER SVGA
-CHIPSET Voodoo3
+CHIPSET 3dfx Voodoo3
 DRIVER tdfx
 
 NAME Elsa Victory II
