@@ -79,6 +79,7 @@
 # include <stdio.h>
 # include <stdlib.h>
 #else
+# include "drm.h"
 # include "xf86drm.h"
 # ifdef XFree86LOADER
 #  include "xf86.h"

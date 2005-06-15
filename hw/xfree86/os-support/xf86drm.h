@@ -104,7 +104,8 @@ typedef enum {
     DRM_REGISTERS       = 1,      /**< no caching, no core dump */
     DRM_SHM             = 2,      /**< shared, cached */
     DRM_AGP             = 3,	  /**< AGP/GART */
-    DRM_SCATTER_GATHER  = 4	  /**< PCI scatter/gather */
+    DRM_SCATTER_GATHER  = 4,	  /**< PCI scatter/gather */
+    DRM_CONSISTENT      = 5	  /**< PCI consistent */
 } drmMapType;
 
 typedef enum {
@@ -147,7 +148,8 @@ typedef enum {
 typedef enum {
     DRM_PAGE_ALIGN       = 0x01,
     DRM_AGP_BUFFER       = 0x02,
-    DRM_SG_BUFFER        = 0x04
+    DRM_SG_BUFFER        = 0x04,
+    DRM_FB_BUFFER        = 0x08
 } drmBufDescFlags;
 
 typedef enum {
@@ -281,8 +283,8 @@ typedef struct _drmSetVersion {
 
 #define __drm_dummy_lock(lock) (*(__volatile__ unsigned int *)lock)
 
-#define DRM_LOCK_HELD  0x80000000 /**< Hardware lock is held */
-#define DRM_LOCK_CONT  0x40000000 /**< Hardware lock is contended */
+#define DRM_LOCK_HELD  0x80000000U /**< Hardware lock is held */
+#define DRM_LOCK_CONT  0x40000000U /**< Hardware lock is contended */
 
 #if defined(__GNUC__) && (__GNUC__ >= 2)
 # if defined(__i386) || defined(__AMD64__)

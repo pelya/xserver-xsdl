@@ -62,8 +62,6 @@
 # ifdef DRM_USE_MALLOC
 #  define _DRM_MALLOC malloc
 #  define _DRM_FREE   free
-extern int xf86InstallSIGIOHandler(int fd, void (*f)(int, void *), void *);
-extern int xf86RemoveSIGIOHandler(int fd);
 # else
 #  include <X11/Xlibint.h>
 #  define _DRM_MALLOC Xmalloc
@@ -104,10 +102,6 @@ extern unsigned long _bus_base(void);
 
 #ifndef DRM_MAX_MINOR
 #define DRM_MAX_MINOR 16
-#endif
-
-#ifdef __linux__
-#include <sys/sysmacros.h>	/* for makedev() */
 #endif
 
 #ifndef makedev
@@ -2268,7 +2262,7 @@ int drmCommandWriteRead(int fd, unsigned long drmCommandIndex,
     return 0;
 }
 
-#if defined(XFree86Server) || defined(DRM_USE_MALLOC)
+#if defined(XFree86Server) 
 static void drmSIGIOHandler(int interrupt, void *closure)
 {
     unsigned long key;
