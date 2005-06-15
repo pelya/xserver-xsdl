@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/dix/events.c,v 1.7 2005/03/07 23:02:58 gisburn Exp $ */
+/* $XdotOrg: xc/programs/Xserver/dix/events.c,v 1.10 2005/06/10 04:01:14 ajax Exp $ */
 /* $XFree86: xc/programs/Xserver/dix/events.c,v 3.51 2004/01/12 17:04:52 tsi Exp $ */
 /************************************************************
 
@@ -2806,6 +2806,7 @@ drawable.id:0;
 	    CallCallbacks(&DeviceEventCallback, (pointer)&eventinfo);
 	}
     }
+#ifdef XEVIE
     /* fix for bug5094030: don't change the state bit if the event is from XEvIE client */
     if(!(!xeviegrabState && xevieFlag && clients[xevieClientIndex] &&
 	 (xevieMask & xevieFilters[xE->u.u.type]
@@ -2814,6 +2815,7 @@ drawable.id:0;
 #endif
     )))
 	XE_KBPTR.state = (keyc->state | inputInfo.pointer->button->state);
+#endif
     XE_KBPTR.rootX = sprite.hot.x;
     XE_KBPTR.rootY = sprite.hot.y;
     key = xE->u.u.detail;
