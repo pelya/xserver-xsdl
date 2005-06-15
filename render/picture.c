@@ -1485,6 +1485,35 @@ AddTraps (PicturePtr	pPicture,
 #define MIN_FIXED_48_16	    (-((xFixed_48_16) 1 << 31))
 
 Bool
+PictureTransformPoint3d (PictTransformPtr transform,
+                         PictVectorPtr	vector)
+{
+    PictVector	    result;
+    int		    i, j;
+    xFixed_32_32    partial;
+    xFixed_48_16    v;
+
+    for (j = 0; j < 3; j++)
+    {
+	v = 0;
+	for (i = 0; i < 3; i++)
+	{
+	    partial = ((xFixed_48_16) transform->matrix[j][i] *
+		       (xFixed_48_16) vector->vector[i]);
+	    v += partial >> 16;
+	}
+	if (v > MAX_FIXED_48_16 || v < MIN_FIXED_48_16)
+	    return FALSE;
+	result.vector[j] = (xFixed) v;
+    }
+    if (!result.vector[2])
+	return FALSE;
+    *vector = result;
+    return TRUE;
+}
+
+
+Bool
 PictureTransformPoint (PictTransformPtr transform,
 		       PictVectorPtr	vector)
 {

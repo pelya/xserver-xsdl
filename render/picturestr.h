@@ -527,6 +527,10 @@ Bool
 PictureTransformPoint (PictTransformPtr transform,
 		       PictVectorPtr	vector);
 
+Bool
+PictureTransformPoint3d (PictTransformPtr transform,
+                         PictVectorPtr	vector);
+
 void RenderExtensionInit (void);
 
 Bool
