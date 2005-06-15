@@ -2822,7 +2822,7 @@ drawable.id:0;
     kptr = &keyc->down[key >> 3];
     bit = 1 << (key & 7);
     modifiers = keyc->modifierMap[key];
-#ifdef XKB
+#if defined(XKB) && defined(XEVIE)
     if(!noXkbExtension && !xeviegrabState &&
        xevieFlag && clients[xevieClientIndex] &&
        (xevieMask & xevieFilters[xE->u.u.type])) {
