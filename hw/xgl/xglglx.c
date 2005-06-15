@@ -1205,15 +1205,15 @@ xglGetString (GLenum name)
     case GL_VERSION:
 	if (!cctx->versionString)
 	{
-	    static const char *version = "1.2 (%s)";
-	    const char	      *nativeVersion = glGetString (GL_VERSION);
+	    static char *version = "1.2 (%s)";
+	    char	*nativeVersion = (char *) glGetString (GL_VERSION);
 
 	    cctx->versionString = xalloc (strlen (version) +
 					  strlen (nativeVersion));
 	    if (cctx->versionString)
 		sprintf (cctx->versionString, version, nativeVersion);
 	}
-	return cctx->versionString;
+	return (GLubyte *) cctx->versionString;
     default:
 	return glGetString (name);
     }
@@ -3447,7 +3447,7 @@ xglInitExtensions (xglGLContextPtr pContext)
 
     pContext->glRenderTableEXT = __glNoOpRenderTableEXT;
 
-    extensions = glGetString (GL_EXTENSIONS);
+    extensions = (const char *) glGetString (GL_EXTENSIONS);
 
     if (strstr (extensions, "GL_ARB_multitexture"))
     {
