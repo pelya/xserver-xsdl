@@ -38,7 +38,10 @@
 #endif
 #include "ephyr.h"
 
+#include "inputstr.h"
+
 extern int KdTsPhyScreen;
+extern DeviceIntPtr pKdKeyboard;
 
 static int mouseState = 0;
 
@@ -564,6 +567,65 @@ ephyrScreenFini (KdScreenInfo *screen)
 {
 }
 
+/*  
+ * Port of Mark McLoughlin's Xnest fix for focus in + modifier bug.
+ * See https://bugs.freedesktop.org/show_bug.cgi?id=3030
+ */
+void
+ephyrUpdateModifierState(unsigned int state)
+{
+  DeviceIntPtr pkeydev;
+  KeyClassPtr  keyc;
+  int          i;
+  CARD8        mask;
+
+  pkeydev = LookupKeyboardDevice();
+
+  if (!pkeydev)
+      return;
+
+  keyc = pkeydev->key;
+
+  if (keyc->state == state)
+    return;
+
+  for (i = 0, mask = 1; i < 8; i++, mask <<= 1) 
+    {
+      int key;
+      
+      /* Modifier is down, but shouldn't be   */
+      if ((keyc->state & mask) && !(state & mask)) 
+	{
+	  int count = keyc->modifierKeyCount[i];
+	  
+	  for (key = 0; key < MAP_LENGTH; key++)
+	    if (keyc->modifierMap[key] & mask) 
+	      {
+		int bit;
+		BYTE *kptr;
+		
+		kptr = &keyc->down[key >> 3];
+		bit = 1 << (key & 7);
+		
+		if (*kptr & bit)
+		  KdEnqueueKeyboardEvent(key, TRUE); /* release */
+		
+		if (--count == 0)
+		  break;
+	      }
+	}
+       
+      /* Modifier shoud be down, but isn't   */
+      if (!(keyc->state & mask) && (state & mask))
+	for (key = 0; key < MAP_LENGTH; key++)
+	  if (keyc->modifierMap[key] & mask) 
+	    {
+	      KdEnqueueKeyboardEvent(key, FALSE); /* press */
+	      break;
+	    }
+    }
+}
+
 void
 ephyrPoll(void)
 {
@@ -592,12 +654,12 @@ ephyrPoll(void)
 	  break;
 
 	case EPHYR_EV_KEY_PRESS:
-
+	  ephyrUpdateModifierState(ev.data.key_down.state);
 	  KdEnqueueKeyboardEvent (ev.data.key_down.scancode, FALSE);
 	  break;
 
 	case EPHYR_EV_KEY_RELEASE:
-
+	  ephyrUpdateModifierState(ev.data.key_up.state);
 	  KdEnqueueKeyboardEvent (ev.data.key_up.scancode, TRUE);
 	  break;
 

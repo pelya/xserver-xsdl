@@ -29,11 +29,11 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h> 		/* for memset */
+#include <time.h>
 
 #include <sys/ipc.h>
 #include <sys/shm.h>
 #include <sys/time.h>
-#include <time.h>
 
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
@@ -733,7 +733,8 @@ hostx_get_event(EphyrHostXEvent *ev)
 
 	case KeyPress:
 	  {
-	    ev->type = EPHYR_EV_KEY_PRESS;
+	    ev->type  = EPHYR_EV_KEY_PRESS;
+	    ev->data.key_down.state = xev.xkey.state;
 	    ev->data.key_down.scancode = xev.xkey.keycode;  
 	    return 1;
 	  }
@@ -779,6 +780,7 @@ hostx_get_event(EphyrHostXEvent *ev)
            * kdrive all togeather. 
  	   */
 	  ev->type = EPHYR_EV_KEY_RELEASE;
+	  ev->data.key_up.state = xev.xkey.state;
 	  ev->data.key_up.scancode = xev.xkey.keycode;
 	  return 1;
 

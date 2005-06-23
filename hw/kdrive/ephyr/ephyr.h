@@ -142,6 +142,9 @@ ephyrShadowUpdate (ScreenPtr pScreen, shadowBufPtr pBuf);
 
 #endif
 
+void
+ephyrUpdateModifierState(unsigned int state);
+
 extern KdMouseFuncs EphyrMouseFuncs;
 
 extern KdKeyboardFuncs	EphyrKeyboardFuncs;
