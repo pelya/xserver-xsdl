@@ -18,7 +18,11 @@ static XF86ModuleVersionInfo uda1380VersRec =
         {0,0,0,0}
 };
  
-XF86ModuleData uda1380ModuleData = { &uda1380VersRec, uda1380Setup, NULL }; 
+_X_EXPORT XF86ModuleData uda1380ModuleData = {
+        &uda1380VersRec,
+        uda1380Setup,
+        NULL
+}; 
 
 static pointer
 uda1380Setup(pointer module, pointer opts, int *errmaj, int *errmin) {

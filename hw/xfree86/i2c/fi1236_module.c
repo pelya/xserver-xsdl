@@ -18,7 +18,11 @@ static XF86ModuleVersionInfo fi1236VersRec =
         {0,0,0,0}
 };
  
-XF86ModuleData fi1236ModuleData = { &fi1236VersRec, fi1236Setup, NULL }; 
+_X_EXPORT XF86ModuleData fi1236ModuleData = {
+        &fi1236VersRec,
+        fi1236Setup,
+        NULL
+}; 
 
 static pointer
 fi1236Setup(pointer module, pointer opts, int *errmaj, int *errmin) {

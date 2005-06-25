@@ -18,7 +18,11 @@ static XF86ModuleVersionInfo tda9850VersRec =
         {0,0,0,0}
 };
  
-XF86ModuleData tda9850ModuleData = { &tda9850VersRec, tda9850Setup, NULL }; 
+_X_EXPORT XF86ModuleData tda9850ModuleData = {
+        &tda9850VersRec,
+        tda9850Setup,
+        NULL
+}; 
 
 static pointer
 tda9850Setup(pointer module, pointer opts, int *errmaj, int *errmin) {

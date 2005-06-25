@@ -18,7 +18,11 @@ static XF86ModuleVersionInfo msp3430VersRec =
         {0,0,0,0}
 };
  
-XF86ModuleData msp3430ModuleData = { &msp3430VersRec, msp3430Setup, NULL }; 
+_X_EXPORT XF86ModuleData msp3430ModuleData = {
+        &msp3430VersRec,
+        msp3430Setup,
+        NULL
+}; 
 
 static pointer
 msp3430Setup(pointer module, pointer opts, int *errmaj, int *errmin) {

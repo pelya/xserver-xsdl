@@ -18,7 +18,7 @@ static XF86ModuleVersionInfo bt829VersRec =
         {0,0,0,0}
 };
  
-XF86ModuleData bt829ModuleData = { &bt829VersRec, bt829Setup, NULL }; 
+_X_EXPORT XF86ModuleData bt829ModuleData = { &bt829VersRec, bt829Setup, NULL }; 
 
 static pointer
 bt829Setup(pointer module, pointer opts, int *errmaj, int *errmin) {
