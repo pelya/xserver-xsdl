@@ -31,6 +31,7 @@ is" without express or implied warranty.
 #include "Screen.h"
 #include "Keyboard.h"
 #include "Args.h"
+#include "Events.h"
 
 #ifdef XKB
 #include <X11/extensions/XKB.h>
@@ -82,6 +83,8 @@ extern	Status	XkbGetControls(
 #endif
 
 #endif
+
+DeviceIntPtr xnestKeyboardDevice = NULL;
 
 void
 xnestBell(int volume, DeviceIntPtr pDev, pointer ctrl, int cls)
@@ -281,4 +284,50 @@ Bool
 LegalModifier(unsigned int key, DevicePtr pDev)
 {
   return TRUE;
+}
+
+void
+xnestUpdateModifierState(unsigned int state)
+{
+  DeviceIntPtr pDev = xnestKeyboardDevice;
+  KeyClassPtr keyc = pDev->key;
+  int i;
+  CARD8 mask;
+
+  if (keyc->state == state)
+    return;
+
+  for (i = 0, mask = 1; i < 8; i++, mask <<= 1) {
+    int key;
+
+    /* Modifier is down, but shouldn't be
+     */
+    if ((keyc->state & mask) && !(state & mask)) {
+      int count = keyc->modifierKeyCount[i];
+
+      for (key = 0; key < MAP_LENGTH; key++)
+	if (keyc->modifierMap[key] & mask) {
+	  int bit;
+	  BYTE *kptr;
+
+	  kptr = &keyc->down[key >> 3];
+	  bit = 1 << (key & 7);
+
+	  if (*kptr & bit)
+	    xnestQueueKeyEvent(KeyRelease, key);
+
+	  if (--count == 0)
+	    break;
+	}
+    }
+
+    /* Modifier shoud be down, but isn't
+     */
+    if (!(keyc->state & mask) && (state & mask))
+      for (key = 0; key < MAP_LENGTH; key++)
+	if (keyc->modifierMap[key] & mask) {
+	  xnestQueueKeyEvent(KeyPress, key);
+	  break;
+	}
+  }
 }

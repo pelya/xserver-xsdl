@@ -87,15 +87,13 @@ InitOutput(ScreenInfo *screenInfo, int argc, char *argv[])
 void
 InitInput(int argc, char *argv[])
 {
-  pointer ptr, kbd;
+  xnestPointerDevice = AddInputDevice(xnestPointerProc, TRUE);
+  xnestKeyboardDevice = AddInputDevice(xnestKeyboardProc, TRUE);
 
-  ptr = AddInputDevice(xnestPointerProc, TRUE);
-  kbd = AddInputDevice(xnestKeyboardProc, TRUE);
+  RegisterPointerDevice(xnestPointerDevice);
+  RegisterKeyboardDevice(xnestKeyboardDevice);
 
-  RegisterPointerDevice(ptr);
-  RegisterKeyboardDevice(kbd);
-
-  mieqInit(kbd, ptr);
+  mieqInit((DevicePtr)xnestKeyboardDevice, (DevicePtr)xnestPointerDevice);
 
   AddEnabledDevice(XConnectionNumber(xnestDisplay));
 

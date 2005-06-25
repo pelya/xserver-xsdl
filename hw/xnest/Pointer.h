@@ -23,6 +23,8 @@ is" without express or implied warranty.
         (ButtonPressMask | ButtonReleaseMask | PointerMotionMask | \
 	 EnterWindowMask | LeaveWindowMask)
 
+extern DeviceIntPtr xnestPointerDevice;
+
 void xnestChangePointerControl(DeviceIntPtr pDev, PtrCtrl *ctrl);
 int xnestPointerProc(DeviceIntPtr pDev, int onoff);
 

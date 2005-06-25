@@ -31,6 +31,8 @@ is" without express or implied warranty.
 #include "Pointer.h"
 #include "Args.h"
 
+DeviceIntPtr xnestPointerDevice = NULL;
+
 void
 xnestChangePointerControl(DeviceIntPtr pDev, PtrCtrl *ctrl)
 {

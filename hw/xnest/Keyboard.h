@@ -20,8 +20,11 @@ is" without express or implied warranty.
 #define XNEST_KEYBOARD_EVENT_MASK \
         (KeyPressMask | KeyReleaseMask | FocusChangeMask | KeymapStateMask)
 
+extern DeviceIntPtr xnestKeyboardDevice;
+
 void xnestBell(int volume, DeviceIntPtr pDev, pointer ctrl, int cls);
 void xnestChangeKeyboardControl(DeviceIntPtr pDev, KeybdCtrl *ctrl);
 int xnestKeyboardProc(DeviceIntPtr pDev, int onoff);
+void xnestUpdateModifierState(unsigned int state);
 
 #endif /* XNESTKEYBOARD_H */

@@ -26,5 +26,6 @@ extern CARD32 lastEventTime;
 void SetTimeSinceLastInputEvent(void);
 void xnestCollectExposures(void);
 void xnestCollectEvents(void);
+void xnestQueueKeyEvent(int type, unsigned int keycode);
 
 #endif /* XNESTEVENTS_H */

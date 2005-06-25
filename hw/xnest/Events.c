@@ -34,6 +34,7 @@ is" without express or implied warranty.
 #include "Screen.h"
 #include "XNWindow.h"
 #include "Events.h"
+#include "Keyboard.h"
 #include "mipointer.h"
 
 CARD32 lastEventTime = 0;
@@ -96,6 +97,16 @@ xnestCollectExposures()
 }
 
 void
+xnestQueueKeyEvent(int type, unsigned int keycode)
+{
+  xEvent x;
+  x.u.u.type = type;
+  x.u.u.detail = keycode;
+  x.u.keyButtonPointer.time = lastEventTime = GetTimeInMillis();
+  mieqEnqueue(&x);
+}
+
+void
 xnestCollectEvents()
 {
   XEvent X;
@@ -105,17 +116,13 @@ xnestCollectEvents()
   while (XCheckIfEvent(xnestDisplay, &X, xnestNotExposurePredicate, NULL)) {
     switch (X.type) {
     case KeyPress:
-      x.u.u.type = KeyPress;
-      x.u.u.detail = X.xkey.keycode;
-      x.u.keyButtonPointer.time = lastEventTime = GetTimeInMillis();
-      mieqEnqueue(&x);
+      xnestUpdateModifierState(X.xkey.state);
+      xnestQueueKeyEvent(KeyPress, X.xkey.keycode);
       break;
       
     case KeyRelease:
-      x.u.u.type = KeyRelease;
-      x.u.u.detail = X.xkey.keycode;
-      x.u.keyButtonPointer.time = lastEventTime = GetTimeInMillis();
-      mieqEnqueue(&x);
+      xnestUpdateModifierState(X.xkey.state);
+      xnestQueueKeyEvent(KeyRelease, X.xkey.keycode);
       break;
       
     case ButtonPress:
