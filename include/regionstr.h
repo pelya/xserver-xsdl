@@ -29,13 +29,13 @@ Copyright 1987 by Digital Equipment Corporation, Maynard, Massachusetts.
 
                         All Rights Reserved
 
-Permission to use, copy, modify, and distribute this software and its 
-documentation for any purpose and without fee is hereby granted, 
+Permission to use, copy, modify, and distribute this software and its
+documentation for any purpose and without fee is hereby granted,
 provided that the above copyright notice appear in all copies and that
-both that copyright notice and this permission notice appear in 
+both that copyright notice and this permission notice appear in
 supporting documentation, and that the name of Digital not be
 used in advertising or publicity pertaining to distribution of the
-software without specific, written prior permission.  
+software without specific, written prior permission.
 
 DIGITAL DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE, INCLUDING
 ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO EVENT SHALL
@@ -63,7 +63,7 @@ typedef struct _Region RegionRec, *RegionPtr;
 
 #define NullRegion ((RegionPtr)0)
 
-/* 
+/*
  *   clip region
  */
 
@@ -250,9 +250,25 @@ extern RegDataRec miBrokenData;
 #define REGION_INIT(_pScreen, _pReg, _rect, _size) \
 { \
     REGION_SCREEN(_pScreen); \
-    (_pReg)->extents = *(_rect); \
-    (_pReg)->data = (RegDataPtr)NULL; \
-}
+    if (_rect) \
+    { \
+        (_pReg)->extents = *(_rect); \
+        (_pReg)->data = (RegDataPtr)NULL; \
+    } \
+    else \
+    { \
+        (_pReg)->extents = miEmptyBox; \
+        if (((_size) > 1) && ((_pReg)->data = \
+                             (RegDataPtr)xalloc(REGION_SZOF(_size)))) \
+        { \
+            (_pReg)->data->size = (_size); \
+            (_pReg)->data->numRects = 0; \
+        } \
+        else \
+            (_pReg)->data = &miEmptyData; \
+    } \
+ }
+
 
 #define REGION_UNINIT(_pScreen, _pReg) \
 { \
