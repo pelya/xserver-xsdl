@@ -91,8 +91,6 @@ LOOKUP miLookupTab[] = {
     SYMFUNC(miClearDrawable)
     SYMFUNC(miPolyPoint)
     SYMFUNC(miStepDash)
-    SYMFUNC(miEmptyBox)
-    SYMFUNC(miEmptyData)
     SYMFUNC(miIntersect)
     SYMFUNC(miRegionAppend)
     SYMFUNC(miRegionCopy)
@@ -197,13 +195,15 @@ LOOKUP miLookupTab[] = {
     SYMFUNC(miOverlayComputeCompositeClip)
     SYMFUNC(miOverlayGetPrivateClips)
     SYMFUNC(miOverlaySetRootClip)
+    SYMVAR(miEmptyBox)
+    SYMVAR(miEmptyData)
     SYMVAR(miZeroLineScreenIndex)
     SYMVAR(miSpritePointerFuncs)
     SYMVAR(miPointerScreenIndex)
     SYMVAR(miInstalledMaps)
     SYMVAR(miInitVisualsProc)
 #ifdef RENDER
-    SYMVAR(miGlyphExtents)
+    SYMFUNC(miGlyphExtents)
 #endif
 
     {0, 0}
