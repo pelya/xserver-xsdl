@@ -33,9 +33,6 @@
 # xyzw	"
 #	20ce	New Chipset Description
 
-103c	"
-	12b4	zx1 QuickSilver AGP8x LBA
-
 1102	"
 	0002	"
 		C  0401
@@ -43,23 +40,7 @@
 # Some NVIDIA cards that are not in the master pci.ids file yet.
 10de	"
 	018c	Quadro NVS 50 PC
-	0042	NV40.2 [GeForce 6800 LE]
-	00c1	NV41.1 [GeForce 6800]
-	00c2	NV41.2 [GeForce 6800 LE]
-	00c8	NV41.8 [GeForce Go 6800]
-	00c9	GeForce Go 6800 Ultra
-	00cc	Quadro GX Go 1400
-	00ce	NV41GL [Quadro FX 1400]
-	0140	GeForce 6600 GT
-	0141	GeForce 6600
-	0144	GeForce Go 6600
-	0145	GeForce 6610 XL
 	0146	GeForce Go 6600 TE/6200 TE
-	0148	GeForce Go 6600
-	014E	Quadro FX 540
-	014F	GeForce 6200
-	0161	GeForce 6200 TurboCache(TM)
-	0164	GeForce Go 6200
 	0166	GeForce Go 6250
 	0167	GeForce Go 6200
 	0168	GeForce Go 6250
@@ -68,6 +49,5 @@
 	0215	GeForce 6800 GT
 	0314	GeForce FX 5600SE
 	0323	GeForce FX 5200SE
-	0328	GeForce FX Go5200 32M/64M
 	0329	GeForce FX 5200 (Mac)
 
