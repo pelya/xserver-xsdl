@@ -546,11 +546,11 @@ kaaComposite(CARD8	op,
     KaaScreenPriv (pDst->pDrawable->pScreen);
     int ret = -1;
 
-    if (!pMask)
+    if (!pMask && pSrc->pDrawable)
     {
 	if (op == PictOpSrc)
 	{
-	    if (pScreenPriv->enabled && pSrc->pDrawable->width == 1 &&
+	    if (pScreenPriv->enabled && pSrc->pDrawable && pSrc->pDrawable->width == 1 &&
 		pSrc->pDrawable->height == 1 && pSrc->repeat)
 	    {
 		ret = kaaTryDriverSolidFill(pSrc, pDst, xSrc, ySrc, xDst, yDst,
@@ -592,7 +592,8 @@ kaaComposite(CARD8	op,
 	}
     }
 
-    if (pScreenPriv->enabled && pKaaScr->info->PrepareComposite &&
+    if (pSrc->pDrawable && (!pMask || pMask->pDrawable) &&
+        pScreenPriv->enabled && pKaaScr->info->PrepareComposite &&
 	!pSrc->alphaMap && (!pMask || !pMask->alphaMap) && !pDst->alphaMap)
     {
 	ret = kaaTryDriverComposite(op, pSrc, pMask, pDst, xSrc, ySrc, xMask,
