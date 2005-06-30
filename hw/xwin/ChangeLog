@@ -1,3 +1,9 @@
+2005-06-30  Alexander Gottwald  <ago at freedesktop dot org>
+
+	* winmultiwindowwndproc.c:
+	Pass serverClient instead of NULL to ConfigureWindow.
+	This should fix a crash reported by Øyvind Harboe
+
 2005-06-08  Alexander Gottwald  <ago at freedesktop dot org>
 
 	* winlayouts.h:

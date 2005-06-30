@@ -277,7 +277,7 @@ static void winRaiseWindow(WindowPtr pWin)
      * in time
      */
     XID vlist[1] = { 0 };
-    ConfigureWindow(pWin, CWStackMode, vlist, NULL); 
+    ConfigureWindow(pWin, CWStackMode, vlist, serverClient); 
     winInRaiseWindow = oldstate;
   }
 }
