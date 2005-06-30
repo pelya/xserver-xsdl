@@ -719,6 +719,7 @@ hostx_get_event(EphyrHostXEvent *ev)
 
 	case ButtonPress:
 	  ev->type = EPHYR_EV_MOUSE_PRESS;
+	  ev->key_state = xev.xkey.state;
 	  /* 
 	   * This is a bit hacky. will break for button 5 ( defined as 0x10 )
            * Check KD_BUTTON defines in kdrive.h 
@@ -728,13 +729,14 @@ hostx_get_event(EphyrHostXEvent *ev)
 
 	case ButtonRelease:
 	  ev->type = EPHYR_EV_MOUSE_RELEASE;
+	  ev->key_state = xev.xkey.state;
 	  ev->data.mouse_up.button_num = 1<<(xev.xbutton.button-1);
 	  return 1;
 
 	case KeyPress:
 	  {
-	    ev->type  = EPHYR_EV_KEY_PRESS;
-	    ev->data.key_down.state = xev.xkey.state;
+	    ev->type = EPHYR_EV_KEY_PRESS;
+	    ev->key_state = xev.xkey.state;
 	    ev->data.key_down.scancode = xev.xkey.keycode;  
 	    return 1;
 	  }
@@ -780,7 +782,7 @@ hostx_get_event(EphyrHostXEvent *ev)
            * kdrive all togeather. 
  	   */
 	  ev->type = EPHYR_EV_KEY_RELEASE;
-	  ev->data.key_up.state = xev.xkey.state;
+	  ev->key_state = xev.xkey.state;
 	  ev->data.key_up.scancode = xev.xkey.keycode;
 	  return 1;
 

@@ -579,12 +579,14 @@ ephyrUpdateModifierState(unsigned int state)
   int          i;
   CARD8        mask;
 
-  pkeydev = LookupKeyboardDevice();
+  pkeydev = (DeviceIntPtr)LookupKeyboardDevice();
 
   if (!pkeydev)
       return;
 
   keyc = pkeydev->key;
+
+  state = state & 0xff;
 
   if (keyc->state == state)
     return;
@@ -642,24 +644,24 @@ ephyrPoll(void)
 	  break;
 
 	case EPHYR_EV_MOUSE_PRESS:
-
+	  ephyrUpdateModifierState(ev.key_state);
 	  mouseState |= ev.data.mouse_down.button_num;
 	  KdEnqueueMouseEvent(kdMouseInfo, mouseState|KD_MOUSE_DELTA, 0, 0);
 	  break;
 
 	case EPHYR_EV_MOUSE_RELEASE:
-
+	  ephyrUpdateModifierState(ev.key_state);
 	  mouseState &= ~ev.data.mouse_up.button_num;
 	  KdEnqueueMouseEvent(kdMouseInfo, mouseState|KD_MOUSE_DELTA, 0, 0);
 	  break;
 
 	case EPHYR_EV_KEY_PRESS:
-	  ephyrUpdateModifierState(ev.data.key_down.state);
+	  ephyrUpdateModifierState(ev.key_state);
 	  KdEnqueueKeyboardEvent (ev.data.key_down.scancode, FALSE);
 	  break;
 
 	case EPHYR_EV_KEY_RELEASE:
-	  ephyrUpdateModifierState(ev.data.key_up.state);
+	  ephyrUpdateModifierState(ev.key_state);
 	  KdEnqueueKeyboardEvent (ev.data.key_up.scancode, TRUE);
 	  break;
 

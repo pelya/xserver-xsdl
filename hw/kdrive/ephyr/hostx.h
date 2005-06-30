@@ -69,16 +69,15 @@ struct EphyrHostXEvent
 
     struct key_up {
       int scancode;
-      int state;
     } key_up;
 
     struct key_down {
       int scancode;
-      int state;
     } key_down;
 
   } data;
 
+  int key_state;
 };
 
 int
