@@ -226,16 +226,16 @@ exaMoveInPixmap (PixmapPtr pPixmap)
     exaWaitSync (pPixmap->drawable.pScreen);
 
     i = pPixmap->drawable.height;
-    ErrorF("dst = %p, src = %p,(%d, %d) height = %d, mem_base = %p, offset = %d\n",
-           dst, src, dst_pitch, src_pitch,
-           i, pExaScr->info->card.memoryBase, ExaGetPixmapPriv(pPixmap)->area->offset);
+    DBG_PIXMAP(("dst = %p, src = %p,(%d, %d) height = %d, mem_base = %p, offset = %d\n",
+                dst, src, dst_pitch, src_pitch,
+                i, pExaScr->info->card.memoryBase, ExaGetPixmapPriv(pPixmap)->area->offset));
 
     while (i--) {
 	memcpy (dst, src, bytes);
 	dst += dst_pitch;
 	src += src_pitch;
     }
-    ErrorF("done\n");
+    DBG_PIXMAP("done\n");
 }
 
 static void
@@ -1145,8 +1145,8 @@ exaDriverInit (ScreenPtr		pScreen,
 	    return FALSE;
     }
 
-    ErrorF("============== %ld < %ld\n", pExaScr->info->card.offScreenBase,
-           pExaScr->info->card.memorySize);
+    DBG_PIXMAP(("============== %ld < %ld\n", pExaScr->info->card.offScreenBase,
+                pExaScr->info->card.memorySize));
     if (pExaScr->info->card.offScreenBase < pExaScr->info->card.memorySize) {
 	if (!exaOffscreenInit (pScreen))
             return FALSE;
@@ -1238,7 +1238,7 @@ exaSetup(pointer Module, pointer Options, int *ErrorMajor, int *ErrorMinor)
 {
     static Bool Initialised = FALSE;
 
-    ErrorF("exa setup\n");
+    DBG_PIXMAP("exa setup\n");
     if (!Initialised) {
 	Initialised = TRUE;
 #ifndef REMOVE_LOADER_CHECK_MODULE_INFO

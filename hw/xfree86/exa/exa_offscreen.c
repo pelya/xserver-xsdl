@@ -349,7 +349,9 @@ exaOffscreenInit (ScreenPtr pScreen)
     area->next = NULL;
     area->score = 0;
 
+#if DEBUG_OFFSCREEN
     ErrorF("============ initial memory block of %d\n", area->size);
+#endif
 
     /* Add it to the free areas */
     pExaScr->info->card.offScreenAreas = area;
