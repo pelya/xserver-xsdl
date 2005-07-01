@@ -8,10 +8,13 @@ INCLUDES = $(XORG_INCS) -I$(top_srcdir)/afb -I$(top_srcdir)/mfb \
            -I$(top_srcdir)/cfb -I$(top_srcdir)/dbe -I$(srcdir)/../loader \
            -I$(top_srcdir)/miext/layer -I$(top_srcdir)/miext/shadow
 
-libbitmap_la_SOURCES = bitmapmod.c
+libbitmap_la_SOURCES = \
+	bitmapmod.c
 libbitmap_la_LDFLAGS = -lXfont
 
-libfb_la_SOURCES = fbmodule.c
+libfb_la_SOURCES = \
+	$(top_srcdir)/fb/fbcmap.c
+	fbmodule.c
 
 libdixmods_la_SOURCES = \
 	afbmodule.c \
