@@ -1,0 +1,12 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+moduledir=@moduledir@
+sdkdir=@sdkdir@
+
+Name: xorg-server
+Description: Modular X.Org X Server
+Version: @PACKAGE_VERSION@
+Libs: -L${libdir}
+Cflags: -I${sdkdir} -DIN_MODULE -DXFree86Module

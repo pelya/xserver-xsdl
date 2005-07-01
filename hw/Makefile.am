@@ -1,0 +1,9 @@
+if DMX
+DMX_SUBDIRS = dmx
+endif
+
+XORG_SUBDIRS = xfree86 
+
+SUBDIRS =			\
+	$(XORG_SUBDIRS)		\
+	$(DMX_SUBDIRS)
