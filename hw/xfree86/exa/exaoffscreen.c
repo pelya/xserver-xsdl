@@ -22,7 +22,7 @@
 
 #include "exaPriv.h"
 
-#define DEBUG_OFFSCREEN 1
+#define DEBUG_OFFSCREEN 0
 #if DEBUG_OFFSCREEN
 #define DBG_OFFSCREEN(a) ErrorF a
 #else
