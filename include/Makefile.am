@@ -23,10 +23,8 @@ sdk_HEADERS =		\
 	globals.h	\
 	input.h		\
 	inputstr.h	\
-	misc.h		\
 	miscstruct.h	\
 	opaque.h	\
-	os.h		\
 	pixmap.h	\
 	pixmapstr.h	\
 	property.h	\

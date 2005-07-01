@@ -10,6 +10,7 @@ INCLUDES = $(XORG_INCS) -I$(top_srcdir)/afb -I$(top_srcdir)/mfb \
 
 libbitmap_la_SOURCES = bitmapmod.c
 libbitmap_la_LDFLAGS = -lXfont
+
 libfb_la_SOURCES = fbmodule.c
 
 libdixmods_la_SOURCES = \
@@ -19,8 +20,17 @@ libdixmods_la_SOURCES = \
 	cfb24module.c \
 	cfb32module.c \
 	mfbmodule.c \
-	miinitext.c \
 	laymodule.c \
 	shmodule.c \
+	xkbKillSrv.c \
+	xkbPrivate.c \
+	xkbVT.c \
+	$(top_srcdir)/mi/miinitext.c \
 	$(top_srcdir)/Xext/xf86misc.c \
 	$(top_srcdir)/Xext/xf86vmode.c
+
+xkb%.c: $(srcdir)/ddx$*.c
+	echo "#define XF86DDXACTIONS" > $@
+	echo "#include \"$(top_srcdir)/xkb/ddx$*.c\"" >> $@
+
+DISTCLEANFILES = xkbKillSrv.c xkbPrivate.c xkbVT.c
