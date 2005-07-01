@@ -504,21 +504,22 @@ XAAComposite (CARD8      op,
 
     if((op == PictOpSrc) && !pMask && infoRec->pScrn->vtSema &&
 	infoRec->ScreenToScreenBitBlt &&
+        pSrc->pDrawable &&
 	DRAWABLE_IS_ON_CARD(pSrc->pDrawable) &&
 	DRAWABLE_IS_ON_CARD(pDst->pDrawable) &&
 	!pSrc->transform && !pSrc->repeat && (pSrc->format == pDst->format))
     {
 	XAACompositeSrcCopy(pSrc, pDst, xSrc, ySrc, xDst, yDst, width, height);
-    } else if(!infoRec->Composite ||
-       !(*infoRec->Composite)(op, pSrc, pMask, pDst,
-                       xSrc, ySrc, xMask, yMask, xDst, yDst,
-                       width, height))
+    } else if(!pSrc->pDrawable || (pMask && !pMask->pDrawable) ||
+              !infoRec->Composite ||
+              !(*infoRec->Composite)(op, pSrc, pMask, pDst,
+                                     xSrc, ySrc, xMask, yMask, xDst, yDst,
+                                     width, height))
     {
-        if((pSrc->pDrawable->type == DRAWABLE_WINDOW ||
-           pDst->pDrawable->type == DRAWABLE_WINDOW ||
-           IS_OFFSCREEN_PIXMAP(pSrc->pDrawable) ||
-           IS_OFFSCREEN_PIXMAP(pDst->pDrawable))
-	   && infoRec->pScrn->vtSema) {
+        if(infoRec->pScrn->vtSema &&
+           ((pSrc->pDrawable &&
+             (pSrc->pDrawable->type == DRAWABLE_WINDOW || IS_OFFSCREEN_PIXMAP(pSrc->pDrawable))) ||
+            pDst->pDrawable->type == DRAWABLE_WINDOW || IS_OFFSCREEN_PIXMAP(pDst->pDrawable))) {
             SYNC_CHECK(pDst->pDrawable);
         }
         (*GetPictureScreen(pScreen)->Composite) (op,
@@ -745,17 +746,16 @@ XAAGlyphs (CARD8         op,
     XAAInfoRecPtr infoRec = GET_XAAINFORECPTR_FROM_SCREEN(pScreen);
     XAA_RENDER_PROLOGUE(pScreen, Glyphs);
 
-    if(!infoRec->Glyphs ||
+    if(!pSrc->pDrawable || !infoRec->Glyphs ||
        !(*infoRec->Glyphs)(op, pSrc, pDst, maskFormat,
-                                          xSrc, ySrc, nlist, list, glyphs))
+                           xSrc, ySrc, nlist, list, glyphs))
     {
-       if(((pSrc->pDrawable->type == DRAWABLE_WINDOW) ||
-          (pDst->pDrawable->type == DRAWABLE_WINDOW) ||
-          IS_OFFSCREEN_PIXMAP(pSrc->pDrawable) ||
-          IS_OFFSCREEN_PIXMAP(pDst->pDrawable))
-	  && infoRec->pScrn->vtSema) {
-           SYNC_CHECK(pDst->pDrawable);
-       }
+        if(infoRec->pScrn->vtSema &&
+           ((pSrc->pDrawable &&
+             (pSrc->pDrawable->type == DRAWABLE_WINDOW || IS_OFFSCREEN_PIXMAP(pSrc->pDrawable))) ||
+            pDst->pDrawable->type == DRAWABLE_WINDOW || IS_OFFSCREEN_PIXMAP(pDst->pDrawable))) {
+            SYNC_CHECK(pDst->pDrawable);
+        }
        (*GetPictureScreen(pScreen)->Glyphs) (op, pSrc, pDst, maskFormat,
 					  xSrc, ySrc, nlist, list, glyphs);
     }

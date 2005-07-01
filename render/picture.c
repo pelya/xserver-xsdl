@@ -762,6 +762,7 @@ SetPictureToDefaults (PicturePtr    pPicture)
 
     pPicture->serialNumber = GC_CHANGE_SERIAL_BIT;
     pPicture->stateChanges = (1 << (CPLastBit+1)) - 1;
+    pPicture->pSourcePict = 0;
 }
 
 PicturePtr
@@ -845,6 +846,301 @@ CreatePicture (Picture		pid,
     return pPicture;
 }
 
+static CARD32 xRenderColorToCard32(xRenderColor c)
+{
+    return
+        (c.alpha >> 8 << 24) |
+        (c.red >> 8 << 16) |
+        (c.green & 0xff00) |
+        (c.blue >> 8);
+}
+
+static uint premultiply(uint x)
+{
+    uint a = x >> 24;
+    uint t = (x & 0xff00ff) * a;
+    t = (t + ((t >> 8) & 0xff00ff) + 0x800080) >> 8;
+    t &= 0xff00ff;
+
+    x = ((x >> 8) & 0xff) * a;
+    x = (x + ((x >> 8) & 0xff) + 0x80);
+    x &= 0xff00;
+    x |= t | (a << 24);
+    return x;
+}
+
+static uint INTERPOLATE_PIXEL_256(uint x, uint a, uint y, uint b)
+{
+    CARD32 t = (x & 0xff00ff) * a + (y & 0xff00ff) * b;
+    t >>= 8;
+    t &= 0xff00ff;
+
+    x = ((x >> 8) & 0xff00ff) * a + ((y >> 8) & 0xff00ff) * b;
+    x &= 0xff00ff00;
+    x |= t;
+    return x;
+}
+
+static void initGradientColorTable(SourcePictPtr pGradient, int *error)
+{
+    int begin_pos, end_pos;
+    xFixed incr, dpos;
+    int pos, current_stop;
+    PictGradientStopPtr stops = pGradient->linear.stops;
+    int nstops = pGradient->linear.nstops;
+
+    /* The position where the gradient begins and ends */
+    begin_pos = (stops[0].x * PICT_GRADIENT_STOPTABLE_SIZE) >> 16;
+    end_pos = (stops[nstops - 1].x * PICT_GRADIENT_STOPTABLE_SIZE) >> 16;
+
+    pos = 0; /* The position in the color table. */
+
+    /* Up to first point */
+    while (pos <= begin_pos) {
+        pGradient->linear.colorTable[pos] = xRenderColorToCard32(stops[0].color);
+        ++pos;
+    }
+
+    incr =  (1<<16)/ PICT_GRADIENT_STOPTABLE_SIZE; /* the double increment. */
+    dpos = incr * pos; /* The position in terms of 0-1. */
+
+    current_stop = 0; /* We always interpolate between current and current + 1. */
+
+    /* Gradient area */
+    while (pos < end_pos) {
+        uint current_color = xRenderColorToCard32(stops[current_stop].color);
+        uint next_color = xRenderColorToCard32(stops[current_stop + 1].color);
+
+        int dist = (int)(256*(dpos - stops[current_stop].x)
+                         / (stops[current_stop+1].x - stops[current_stop].x));
+        int idist = 256 - dist;
+
+        pGradient->linear.colorTable[pos] = premultiply(INTERPOLATE_PIXEL_256(current_color, idist, next_color, dist));
+
+        ++pos;
+        dpos += incr;
+
+        if (dpos > stops[current_stop + 1].x)
+            ++current_stop;
+    }
+
+    /* After last point */
+    while (pos < PICT_GRADIENT_STOPTABLE_SIZE) {
+        pGradient->linear.colorTable[pos] = xRenderColorToCard32(stops[nstops - 1].color);
+        ++pos;
+    }
+}
+
+static void initGradient(SourcePictPtr pGradient, int stopCount,
+                         xFixed *stopPoints, xRenderColor *stopColors, int *error)
+{
+    int i;
+    xFixed dpos;
+
+    if (stopCount <= 0) {
+        *error = BadValue;
+        return;
+    }
+
+    dpos = -1;
+    for (i = 0; i < stopCount; ++i) {
+        if (stopPoints[i] <= dpos || stopPoints[i] > (1<<16)) {
+            *error = BadValue;
+            return;
+        }
+        dpos = stopPoints[i];
+    }
+
+    pGradient->linear.stops = xalloc(stopCount*sizeof(PictGradientStop));
+    if (!pGradient->linear.stops) {
+        *error = BadAlloc;
+        return;
+    }
+
+    pGradient->linear.nstops = stopCount;
+
+    for (i = 0; i < stopCount; ++i) {
+        pGradient->linear.stops[i].x = stopPoints[i];
+        pGradient->linear.stops[i].color = stopColors[i];
+    }
+    initGradientColorTable(pGradient, error);
+}
+
+static PicturePtr createSourcePicture(void)
+{
+    PicturePtr pPicture;
+    pPicture = (PicturePtr) xalloc(sizeof(PictureRec));
+    pPicture->pDrawable = 0;
+    pPicture->pFormat = 0;
+    pPicture->pNext = 0;
+
+    SetPictureToDefaults(pPicture);
+    return pPicture;
+}
+
+PicturePtr
+CreateSolidPicture (Picture pid, xRenderColor *color, int *error)
+{
+    PicturePtr pPicture;
+    pPicture = createSourcePicture();
+    if (!pPicture) {
+        *error = BadAlloc;
+        return 0;
+    }
+
+    pPicture->id = pid;
+    pPicture->pSourcePict = (SourcePictPtr) xalloc(sizeof(PictSolidFill));
+    if (!pPicture->pSourcePict) {
+        *error = BadAlloc;
+        xfree(pPicture);
+        return 0;
+    }
+    pPicture->pSourcePict->type = SourcePictTypeSolidFill;
+    pPicture->pSourcePict->solidFill.color = xRenderColorToCard32(*color);
+    return pPicture;
+}
+
+PicturePtr
+CreateLinearGradientPicture (Picture pid, xPointFixed *p1, xPointFixed *p2,
+                             int nStops, xFixed *stops, xRenderColor *colors, int *error)
+{
+    PicturePtr pPicture;
+
+    if (nStops < 2) {
+        *error = BadValue;
+        return 0;
+    }
+
+    pPicture = createSourcePicture();
+    if (!pPicture) {
+        *error = BadAlloc;
+        return 0;
+    }
+    if (p1->x == p2->x && p1->y == p2->y) {
+        *error = BadValue;
+        return 0;
+    }
+
+    pPicture->id = pid;
+    pPicture->pSourcePict = (SourcePictPtr) xalloc(sizeof(PictLinearGradient));
+    if (!pPicture->pSourcePict) {
+        *error = BadAlloc;
+        xfree(pPicture);
+        return 0;
+    }
+
+    pPicture->pSourcePict->linear.type = SourcePictTypeLinear;
+    pPicture->pSourcePict->linear.p1 = *p1;
+    pPicture->pSourcePict->linear.p2 = *p2;
+
+    initGradient(pPicture->pSourcePict, nStops, stops, colors, error);
+    if (*error) {
+        xfree(pPicture);
+        return 0;
+    }
+    return pPicture;
+}
+
+#define FixedToDouble(x) ((x)/65536.)
+
+PicturePtr
+CreateRadialGradientPicture (Picture pid, xPointFixed *inner, xPointFixed *outer,
+                             xFixed innerRadius, xFixed outerRadius,
+                             int nStops, xFixed *stops, xRenderColor *colors, int *error)
+{
+    PicturePtr pPicture;
+    PictRadialGradient *radial;
+
+    if (nStops < 2) {
+        *error = BadValue;
+        return 0;
+    }
+
+    pPicture = createSourcePicture();
+    if (!pPicture) {
+        *error = BadAlloc;
+        return 0;
+    }
+    {
+        double dx = (double)(inner->x - outer->x);
+        double dy = (double)(inner->y - outer->y);
+        if (sqrt(dx*dx + dy*dy) + (double)(innerRadius) > (double)(outerRadius)) {
+            *error = BadValue;
+            return 0;
+        }
+    }
+
+    pPicture->id = pid;
+    pPicture->pSourcePict = (SourcePictPtr) xalloc(sizeof(PictRadialGradient));
+    if (!pPicture->pSourcePict) {
+        *error = BadAlloc;
+        xfree(pPicture);
+        return 0;
+    }
+    radial = &pPicture->pSourcePict->radial;
+
+    radial->type = SourcePictTypeRadial;
+    {
+        double x = (double)innerRadius / (double)outerRadius;
+        radial->dx = (outer->x - inner->x);
+        radial->dy = (outer->y - inner->y);
+        radial->fx = (inner->x) - x*radial->dx;
+        radial->fy = (inner->y) - x*radial->dy;
+        radial->m = 1./(1+x);
+        radial->b = -x*radial->m;
+        radial->dx /= 65536.;
+        radial->dy /= 65536.;
+        radial->fx /= 65536.;
+        radial->fy /= 65536.;
+        x = outerRadius/65536.;
+        radial->a = x*x - radial->dx*radial->dx - radial->dy*radial->dy;
+    }
+
+    initGradient(pPicture->pSourcePict, nStops, stops, colors, error);
+    if (*error) {
+        xfree(pPicture);
+        return 0;
+    }
+    return pPicture;
+}
+
+PicturePtr
+CreateConicalGradientPicture (Picture pid, xPointFixed *center, xFixed angle,
+                              int nStops, xFixed *stops, xRenderColor *colors, int *error)
+{
+    PicturePtr pPicture;
+
+    if (nStops < 2) {
+        *error = BadValue;
+        return 0;
+    }
+
+    pPicture = createSourcePicture();
+    if (!pPicture) {
+        *error = BadAlloc;
+        return 0;
+    }
+
+    pPicture->id = pid;
+    pPicture->pSourcePict = (SourcePictPtr) xalloc(sizeof(PictConicalGradient));
+    if (!pPicture->pSourcePict) {
+        *error = BadAlloc;
+        xfree(pPicture);
+        return 0;
+    }
+
+    pPicture->pSourcePict->conical.type = SourcePictTypeConical;
+    pPicture->pSourcePict->conical.center = *center;
+    pPicture->pSourcePict->conical.angle = angle;
+
+    initGradient(pPicture->pSourcePict, nStops, stops, colors, error);
+    if (*error) {
+        xfree(pPicture);
+        return 0;
+    }
+    return pPicture;
+}
+
 #define NEXT_VAL(_type) (vlist ? (_type) *vlist++ : (_type) ulist++->val)
 
 #define NEXT_PTR(_type) ((_type) ulist++->ptr)
@@ -856,8 +1152,8 @@ ChangePicture (PicturePtr	pPicture,
 	       DevUnion		*ulist,
 	       ClientPtr	client)
 {
-    ScreenPtr		pScreen = pPicture->pDrawable->pScreen;
-    PictureScreenPtr	ps = GetPictureScreen(pScreen);
+    ScreenPtr pScreen = pPicture->pDrawable ? pPicture->pDrawable->pScreen : 0;
+    PictureScreenPtr ps = pScreen ? GetPictureScreen(pScreen) : 0;
     BITS32		index2;
     int			error = 0;
     BITS32		maskQ;
@@ -875,7 +1171,7 @@ ChangePicture (PicturePtr	pPicture,
 	    {
 		unsigned int	newr;
 		newr = NEXT_VAL(unsigned int);
-		if (newr <= xTrue)
+		if (newr <= RepeatReflect)
 		    pPicture->repeat = newr;
 		else
 		{
@@ -943,6 +1239,8 @@ ChangePicture (PicturePtr	pPicture,
 		Pixmap	    pid;
 		PixmapPtr   pPixmap;
 		int	    clipType;
+                if (!pScreen)
+                    return BadDrawable;
 
 		if (vlist)
 		{
@@ -1069,7 +1367,8 @@ ChangePicture (PicturePtr	pPicture,
 	    break;
 	}
     }
-    (*ps->ChangePicture) (pPicture, maskQ);
+    if (ps)
+        (*ps->ChangePicture) (pPicture, maskQ);
     return error;
 }
 
@@ -1268,7 +1567,7 @@ CopyPicture (PicturePtr	pSrc,
 static void
 ValidateOnePicture (PicturePtr pPicture)
 {
-    if (pPicture->serialNumber != pPicture->pDrawable->serialNumber)
+    if (pPicture->pDrawable && pPicture->serialNumber != pPicture->pDrawable->serialNumber)
     {
 	PictureScreenPtr    ps = GetPictureScreen(pPicture->pDrawable->pScreen);
 
@@ -1294,35 +1593,43 @@ FreePicture (pointer	value,
 
     if (--pPicture->refcnt == 0)
     {
-	ScreenPtr	    pScreen = pPicture->pDrawable->pScreen;
-	PictureScreenPtr    ps = GetPictureScreen(pScreen);
-	
-	if (pPicture->alphaMap)
-	    FreePicture ((pointer) pPicture->alphaMap, (XID) 0);
-	(*ps->DestroyPicture) (pPicture);
-	(*ps->DestroyPictureClip) (pPicture);
 	if (pPicture->transform)
 	    xfree (pPicture->transform);
-	if (pPicture->pDrawable->type == DRAWABLE_WINDOW)
-	{
-	    WindowPtr	pWindow = (WindowPtr) pPicture->pDrawable;
-	    PicturePtr	*pPrev;
+        if (!pPicture->pDrawable) {
+            if (pPicture->pSourcePict) {
+                if (pPicture->pSourcePict->type != SourcePictTypeSolidFill)
+                    xfree(pPicture->pSourcePict->linear.stops);
+                xfree(pPicture->pSourcePict);
+            }
+        } else {
+            ScreenPtr	    pScreen = pPicture->pDrawable->pScreen;
+            PictureScreenPtr    ps = GetPictureScreen(pScreen);
+	
+            if (pPicture->alphaMap)
+                FreePicture ((pointer) pPicture->alphaMap, (XID) 0);
+            (*ps->DestroyPicture) (pPicture);
+            (*ps->DestroyPictureClip) (pPicture);
+            if (pPicture->pDrawable->type == DRAWABLE_WINDOW)
+            {
+                WindowPtr	pWindow = (WindowPtr) pPicture->pDrawable;
+                PicturePtr	*pPrev;
 
-	    for (pPrev = (PicturePtr *) &((pWindow)->devPrivates[PictureWindowPrivateIndex].ptr);
-		 *pPrev;
-		 pPrev = &(*pPrev)->pNext)
-	    {
-		if (*pPrev == pPicture)
-		{
-		    *pPrev = pPicture->pNext;
-		    break;
-		}
-	    }
-	}
-	else if (pPicture->pDrawable->type == DRAWABLE_PIXMAP)
-	{
-	    (*pScreen->DestroyPixmap) ((PixmapPtr)pPicture->pDrawable);
-	}
+                for (pPrev = (PicturePtr *) &((pWindow)->devPrivates[PictureWindowPrivateIndex].ptr);
+                     *pPrev;
+                     pPrev = &(*pPrev)->pNext)
+                {
+                    if (*pPrev == pPicture)
+                    {
+                        *pPrev = pPicture->pNext;
+                        break;
+                    }
+                }
+            }
+            else if (pPicture->pDrawable->type == DRAWABLE_PIXMAP)
+            {
+                (*pScreen->DestroyPixmap) ((PixmapPtr)pPicture->pDrawable);
+            }
+        }
 	xfree (pPicture);
     }
     return Success;

@@ -34,6 +34,7 @@
 #include "picturestr.h"
 #include "mipict.h"
 #include "fbpict.h"
+#include <math.h>
 
 #define mod(a,b)	((b) == 1 ? 0 : (a) >= 0 ? (a) % (b) : (b) - (-a) % (b))
 
@@ -2636,6 +2637,219 @@ static void fbFetch(PicturePtr pict, int x, int y, int width, CARD32 *buffer)
 
 #define MOD(a,b) ((a) < 0 ? ((b) - ((-(a) - 1) % (b))) - 1 : (a) % (b))
 
+
+static CARD32 gradientPixel(const SourcePictPtr pGradient, xFixed_48_16 pos, unsigned int spread)
+{
+    int ipos = (pos * PICT_GRADIENT_STOPTABLE_SIZE - 1) >> 16;
+
+    /* calculate the actual offset. */
+    if (ipos < 0 || ipos >= PICT_GRADIENT_STOPTABLE_SIZE) {
+        if (pGradient->type == SourcePictTypeConical || spread == RepeatNormal) {
+            ipos = ipos % PICT_GRADIENT_STOPTABLE_SIZE;
+            ipos = ipos < 0 ? PICT_GRADIENT_STOPTABLE_SIZE + ipos : ipos;
+
+        } else if (spread == RepeatReflect) {
+            const int limit = PICT_GRADIENT_STOPTABLE_SIZE * 2 - 1;
+            ipos = ipos % limit;
+            ipos = ipos < 0 ? limit + ipos : ipos;
+            ipos = ipos >= PICT_GRADIENT_STOPTABLE_SIZE ? limit - ipos : ipos;
+
+        } else if (spread == RepeatPad) {
+            if (ipos < 0)
+                ipos = 0;
+            else if (ipos >= PICT_GRADIENT_STOPTABLE_SIZE)
+                ipos = PICT_GRADIENT_STOPTABLE_SIZE-1;
+        } else { /* RepeatNone */
+            return 0;
+        }
+    }
+
+    assert(ipos >= 0);
+    assert(ipos < PICT_GRADIENT_STOPTABLE_SIZE);
+
+    return pGradient->linear.colorTable[ipos];
+}
+
+static void fbFetchSourcePict(PicturePtr pict, int x, int y, int width, CARD32 *buffer)
+{
+    SourcePictPtr pGradient = pict->pSourcePict;
+    CARD32 *end = buffer + width;
+
+    if (pGradient->type == SourcePictTypeSolidFill) {
+        register CARD32 color = pGradient->solidFill.color;
+        while (buffer < end) {
+            *buffer++ = color;
+        }
+    } else if (pGradient->type == SourcePictTypeLinear) {
+        PictVector v, unit;
+        xFixed_32_32 l;
+        xFixed_48_16 dx, dy, a, b, off;
+
+        v.vector[0] = IntToxFixed(x);
+        v.vector[1] = IntToxFixed(y);
+        v.vector[2] = xFixed1;
+        if (pict->transform) {
+            if (!PictureTransformPoint3d (pict->transform, &v))
+                return;
+            unit.vector[0] = pict->transform->matrix[0][0];
+            unit.vector[1] = pict->transform->matrix[1][0];
+            unit.vector[2] = pict->transform->matrix[2][0];
+        } else {
+            unit.vector[0] = xFixed1;
+            unit.vector[1] = 0;
+            unit.vector[2] = 0;
+        }
+
+        dx = pGradient->linear.p2.x - pGradient->linear.p1.x;
+        dy = pGradient->linear.p2.y - pGradient->linear.p1.y;
+        l = dx*dx + dy*dy;
+        if (l != 0) {
+            a = (dx << 32) / l;
+            b = (dy << 32) / l;
+            off = (-a*pGradient->linear.p1.x - b*pGradient->linear.p1.y)>>16;
+        }
+        if (l == 0  || (unit.vector[2] == 0 && v.vector[2] == xFixed1)) {
+            xFixed_48_16 inc, t;
+            /* affine transformation only */
+            if (l == 0) {
+                t = 0;
+                inc = 0;
+            } else {
+                t = ((a*v.vector[0] + b*v.vector[1]) >> 16) + off;
+                inc = (a * unit.vector[0] + b * unit.vector[1]) >> 16;
+            }
+            while (buffer < end) {
+                *buffer++ = gradientPixel(pGradient, t, pict->repeat);
+                t += inc;
+            }
+        } else {
+            /* projective transformation */
+            while (buffer < end) {
+                xFixed_48_16 t;
+                if (v.vector[2] == 0) {
+                    t = 0;
+                } else {
+                    xFixed_48_16 x, y;
+                    x = ((xFixed_48_16)v.vector[0] << 16) / v.vector[2];
+                    y = ((xFixed_48_16)v.vector[1] << 16) / v.vector[2];
+                    t = ((a*x + b*y) >> 16) + off;
+                }
+                *buffer++ = gradientPixel(pGradient, t, pict->repeat);
+                v.vector[0] += unit.vector[0];
+                v.vector[1] += unit.vector[1];
+                v.vector[2] += unit.vector[2];
+            }
+        }
+    } else {
+        /* radial or conical */
+        Bool projective = FALSE;
+        double cx = 1.;
+        double cy = 0.;
+        double cz = 0.;
+        double rx = x;
+        double ry = y;
+        double rz = 1.;
+
+        if (pict->transform) {
+            PictVector v;
+            v.vector[0] = IntToxFixed(x);
+            v.vector[1] = IntToxFixed(y);
+            v.vector[2] = xFixed1;
+            if (!PictureTransformPoint3d (pict->transform, &v))
+                return;
+
+            cx = pict->transform->matrix[0][0]/65536.;
+            cy = pict->transform->matrix[1][0]/65536.;
+            cz = pict->transform->matrix[2][0]/65536.;
+            rx = v.vector[0]/65536.;
+            ry = v.vector[1]/65536.;
+            rz = v.vector[2]/65536.;
+            projective = pict->transform->matrix[2][0] != 0 || v.vector[2] != xFixed1;
+        }
+
+        if (pGradient->type == SourcePictTypeRadial) {
+            if (!projective) {
+                rx -= pGradient->radial.fx;
+                ry -= pGradient->radial.fy;
+
+                while (buffer < end) {
+                    double b = 2*(rx*pGradient->radial.dx + ry*pGradient->radial.dy);
+                    double c = -(rx*rx + ry*ry);
+                    double det = (b * b) - (4 * pGradient->radial.a * c);
+                    double s = (-b + sqrt(det))/(2. * pGradient->radial.a);
+                    *buffer = gradientPixel(pGradient,
+                                            (xFixed_48_16)((s*pGradient->radial.m + pGradient->radial.b)*65536),
+                                            pict->repeat);
+                    ++buffer;
+                    rx += cx;
+                    ry += cy;
+                }
+            } else {
+                while (buffer < end) {
+                    double x, y;
+                    double b, c, det, s;
+                    if (rz != 0) {
+                        x = rx/rz;
+                        y = ry/rz;
+                    } else {
+                        x = y = 0.;
+                    }
+                    x -= pGradient->radial.fx;
+                    y -= pGradient->radial.fy;
+                    b = 2*(x*pGradient->radial.dx + y*pGradient->radial.dy);
+                    c = -(x*x + y*y);
+                    det = (b * b) - (4 * pGradient->radial.a * c);
+                    s = (-b + sqrt(det))/(2. * pGradient->radial.a);
+                    *buffer = gradientPixel(pGradient,
+                                            (xFixed_48_16)((s*pGradient->radial.m + pGradient->radial.b)*65536),
+                                            pict->repeat);
+                    ++buffer;
+                    rx += cx;
+                    ry += cy;
+                    rz += cz;
+                }
+            }
+        } else /* SourcePictTypeConical */ {
+            double a = pGradient->conical.angle/(180.*65536);
+            if (!projective) {
+                rx -= pGradient->conical.center.x/65536.;
+                ry -= pGradient->conical.center.y/65536.;
+
+                while (buffer < end) {
+                    double angle = atan2(ry, rx) + a;
+                    *buffer = gradientPixel(pGradient, (xFixed_48_16) (angle * (65536. / (2*M_PI))),
+                                            pict->repeat);
+                    ++buffer;
+                    rx += cx;
+                    ry += cy;
+                }
+            } else {
+
+                while (buffer < end) {
+                    double x, y, angle;
+                    if (rz != 0) {
+                        x = rx/rz;
+                        y = ry/rz;
+                    } else {
+                        x = y = 0.;
+                    }
+                    x -= pGradient->conical.center.x/65536.;
+                    y -= pGradient->conical.center.y/65536.;
+                    angle = atan2(y, x) + a;
+                    *buffer = gradientPixel(pGradient, (xFixed_48_16) (angle * (65536. / (2*M_PI))),
+                                            pict->repeat);
+                    ++buffer;
+                    rx += cx;
+                    ry += cy;
+                    rz += cz;
+                }
+            }
+        }
+    }
+}
+
+
+
 static void fbFetchTransformed(PicturePtr pict, int x, int y, int width, CARD32 *buffer)
 {
     FbBits     *bits;
@@ -2674,7 +2888,7 @@ static void fbFetchTransformed(PicturePtr pict, int x, int y, int width, CARD32 
 
     if (pict->filter == PictFilterNearest)
     {
-        if (pict->repeat) {
+        if (pict->repeat == RepeatNormal) {
             if (REGION_NUM_RECTS(pict->pCompositeClip) == 1) {
                 box = pict->pCompositeClip->extents;
                 for (i = 0; i < width; ++i) {
@@ -2741,7 +2955,7 @@ static void fbFetchTransformed(PicturePtr pict, int x, int y, int width, CARD32 
             }
         }
     } else if (pict->filter == PictFilterBilinear) {
-        if (pict->repeat) {
+        if (pict->repeat == RepeatNormal) {
             if (REGION_NUM_RECTS(pict->pCompositeClip) == 1) {
                 box = pict->pCompositeClip->extents;
                 for (i = 0; i < width; ++i) {
@@ -2943,7 +3157,7 @@ static void fbFetchTransformed(PicturePtr pict, int x, int y, int width, CARD32 
         params += 2;
         for (i = 0; i < width; ++i) {
             int x1, x2, y1, y2, x, y;
-            INT32 srtot, sgtot, sbtot, satot, sum;
+            INT32 srtot, sgtot, sbtot, satot;
             xFixed *p = params;
             xFixed_48_16 tmp;
 
@@ -2962,13 +3176,13 @@ static void fbFetchTransformed(PicturePtr pict, int x, int y, int width, CARD32 
             y1 = xFixedToInt(tmp);
             y2 = y1 + cheight;
 
-            srtot = sgtot = sbtot = satot = sum = 0;
+            srtot = sgtot = sbtot = satot = 0;
 
             for (y = y1; y < y2; y++) {
-                int ty = (pict->repeat) ? MOD (y, pict->pDrawable->height) : y;
+                int ty = (pict->repeat == RepeatNormal) ? MOD (y, pict->pDrawable->height) : y;
                 for (x = x1; x < x2; x++) {
                     if (*p) {
-                        int tx = (pict->repeat) ? MOD (x, pict->pDrawable->width) : x;
+                        int tx = (pict->repeat == RepeatNormal) ? MOD (x, pict->pDrawable->width) : x;
                         if (POINT_IN_REGION (0, pict->pCompositeClip, tx, ty, &box)) {
                             FbBits *b = bits + (ty + pict->pDrawable->y)*stride;
                             CARD32 c = fetch(b, tx + pict->pDrawable->x, indexed);
@@ -2978,22 +3192,15 @@ static void fbFetchTransformed(PicturePtr pict, int x, int y, int width, CARD32 
                             sbtot += Blue(c) * *p;
                             satot += Alpha(c) * *p;
                         }
-                        sum += *p;
                     }
                     p++;
                 }
             }
 
-            if (sum) {
-                satot /= sum;
-                srtot /= sum;
-                sgtot /= sum;
-                sbtot /= sum;
-            }
             if (satot < 0) satot = 0; else if (satot > 0xff) satot = 0xff;
-            if (srtot < 0) srtot = 0; else if (srtot > 0xff) srtot = 0xff;
-            if (sgtot < 0) sgtot = 0; else if (sgtot > 0xff) sgtot = 0xff;
-            if (sbtot < 0) sbtot = 0; else if (sbtot > 0xff) sbtot = 0xff;
+            if (srtot < 0) srtot = 0; else if (srtot > satot) srtot = satot;
+            if (sgtot < 0) sgtot = 0; else if (sgtot > satot) sgtot = satot;
+            if (sbtot < 0) sbtot = 0; else if (sbtot > satot) sbtot = satot;
 
             buffer[i] = ((satot << 24) |
                          (srtot << 16) |
@@ -3094,13 +3301,17 @@ fbCompositeRect (const FbComposeData *data, CARD32 *scanline_buffer)
     CARD32 *dest_buffer = src_buffer + data->width;
     int i;
     scanStoreProc store;
-    scanFetchProc fetchSrc, fetchMask, fetchDest;
+    scanFetchProc fetchSrc = 0, fetchMask = 0, fetchDest = 0;
 
     if (data->op == PictOpClear)
         fetchSrc = 0;
-    else if (data->src->alphaMap)
+    else if (!data->src->pDrawable) {
+        if (data->src->pSourcePict)
+            fetchSrc = fbFetchSourcePict;
+    } else if (data->src->alphaMap)
         fetchSrc = fbFetchExternalAlpha;
-    else if (data->src->repeat && data->src->pDrawable->width == 1 && data->src->pDrawable->height == 1)
+    else if (data->src->repeat == RepeatNormal &&
+             data->src->pDrawable->width == 1 && data->src->pDrawable->height == 1)
         fetchSrc = fbFetchSolid;
     else if (!data->src->transform && data->src->filter != PictFilterConvolution)
         fetchSrc = fbFetch;
@@ -3108,9 +3319,13 @@ fbCompositeRect (const FbComposeData *data, CARD32 *scanline_buffer)
         fetchSrc = fbFetchTransformed;
 
     if (data->mask && data->op != PictOpClear) {
-        if (data->mask->alphaMap)
+        if (!data->mask->pDrawable) {
+            if (data->mask->pSourcePict)
+                fetchMask = fbFetchSourcePict;
+        } else if (data->mask->alphaMap)
             fetchMask = fbFetchExternalAlpha;
-        else if (data->mask->repeat && data->mask->pDrawable->width == 1 && data->mask->pDrawable->height == 1)
+        else if (data->mask->repeat == RepeatNormal
+                 && data->mask->pDrawable->width == 1 && data->mask->pDrawable->height == 1)
             fetchMask = fbFetchSolid;
         else if (!data->mask->transform && data->mask->filter != PictFilterConvolution)
             fetchMask = fbFetch;
@@ -3211,17 +3426,19 @@ fbCompositeGeneral (CARD8	op,
     RegionRec	    region;
     int		    n;
     BoxPtr	    pbox;
-    Bool	    srcRepeat = pSrc->repeat && !pSrc->transform
-                                && (pSrc->pDrawable->width != 1 || pSrc->pDrawable->height != 1);
+    Bool	    srcRepeat = FALSE;
     Bool	    maskRepeat = FALSE;
     int		    w, h;
     CARD32 _scanline_buffer[SCANLINE_BUFFER_LENGTH*3];
     CARD32 *scanline_buffer = _scanline_buffer;
     FbComposeData compose_data;
 
+    if (pSrc->pDrawable)
+        srcRepeat = pSrc->repeat == RepeatNormal && !pSrc->transform
+                    && (pSrc->pDrawable->width != 1 || pSrc->pDrawable->height != 1);
 
-    if (pMask)
-	maskRepeat = pMask->repeat  && !pMask->transform
+    if (pMask && pMask->pDrawable)
+	maskRepeat = pMask->repeat == RepeatNormal && !pMask->transform
                      && (pMask->pDrawable->width != 1 || pMask->pDrawable->height != 1);
 
     if (op == PictOpOver && !pMask && !pSrc->transform && !PICT_FORMAT_A(pSrc->format))

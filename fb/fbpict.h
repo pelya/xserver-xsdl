@@ -224,11 +224,11 @@
 #define FbByteAdd(x, y) do {                                    \
         CARD32 t;                                               \
         CARD32 r = (x & 0xff00ff) + (y & 0xff00ff);             \
-        r |= 0 - ((r >> 8) & 0xff00ff);                         \
+        r |= 0x1000100 - ((r >> 8) & 0xff00ff);                         \
         r &= 0xff00ff;                                          \
                                                                 \
         t = ((x >> 8) & 0xff00ff) + ((y >> 8) & 0xff00ff);       \
-        t |= 0 - ((t >> 8) & 0xff00ff);                          \
+        t |= 0x1000100 - ((t >> 8) & 0xff00ff);                          \
         r |= (t & 0xff00ff) << 8;                                \
         x = r;                                                   \
 } while (0)

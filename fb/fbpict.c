@@ -838,7 +838,7 @@ fbComposite (CARD8      op,
     int		    n;
     BoxPtr	    pbox;
     CompositeFunc   func = 0;
-    Bool	    srcRepeat = pSrc->repeat;
+    Bool	    srcRepeat = pSrc->pDrawable && pSrc->repeat == RepeatNormal;
     Bool	    maskRepeat = FALSE;
     Bool	    srcAlphaMap = pSrc->alphaMap != 0;
     Bool	    maskAlphaMap = FALSE;
@@ -848,20 +848,23 @@ fbComposite (CARD8      op,
 
     xDst += pDst->pDrawable->x;
     yDst += pDst->pDrawable->y;
-    xSrc += pSrc->pDrawable->x;
-    ySrc += pSrc->pDrawable->y;
-    if (pMask)
+    if (pSrc->pDrawable) {
+        xSrc += pSrc->pDrawable->x;
+        ySrc += pSrc->pDrawable->y;
+    }
+    if (pMask && pMask->pDrawable)
     {
 	xMask += pMask->pDrawable->x;
 	yMask += pMask->pDrawable->y;
-	maskRepeat = pMask->repeat;
+	maskRepeat = pMask->repeat == RepeatNormal;
 	maskAlphaMap = pMask->alphaMap != 0;
     }
 
-    if (!pSrc->transform && !(pMask && pMask->transform)
-         && !maskAlphaMap && !srcAlphaMap && !dstAlphaMap
-         && (pSrc->filter != PictFilterConvolution)
-         && (!pMask || pMask->filter != PictFilterConvolution))
+    if (pSrc->pDrawable && (!pMask || pMask->pDrawable)
+        && !pSrc->transform && !(pMask && pMask->transform)
+        && !maskAlphaMap && !srcAlphaMap && !dstAlphaMap
+        && (pSrc->filter != PictFilterConvolution)
+        && (!pMask || pMask->filter != PictFilterConvolution))
     switch (op) {
     case PictOpSrc:
 #ifdef USE_MMX

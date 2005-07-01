@@ -79,6 +79,10 @@ static int ProcRenderQueryFilters (ClientPtr pClient);
 static int ProcRenderSetPictureFilter (ClientPtr pClient);
 static int ProcRenderCreateAnimCursor (ClientPtr pClient);
 static int ProcRenderAddTraps (ClientPtr pClient);
+static int ProcRenderCreateSolidFill (ClientPtr pClient);
+static int ProcRenderCreateLinearGradient (ClientPtr pClient);
+static int ProcRenderCreateRadialGradient (ClientPtr pClient);
+static int ProcRenderCreateConicalGradient (ClientPtr pClient);
 
 static int ProcRenderDispatch (ClientPtr pClient);
 
@@ -113,6 +117,10 @@ static int SProcRenderQueryFilters (ClientPtr pClient);
 static int SProcRenderSetPictureFilter (ClientPtr pClient);
 static int SProcRenderCreateAnimCursor (ClientPtr pClient);
 static int SProcRenderAddTraps (ClientPtr pClient);
+static int SProcRenderCreateSolidFill (ClientPtr pClient);
+static int SProcRenderCreateLinearGradient (ClientPtr pClient);
+static int SProcRenderCreateRadialGradient (ClientPtr pClient);
+static int SProcRenderCreateConicalGradient (ClientPtr pClient);
 
 static int SProcRenderDispatch (ClientPtr pClient);
 
@@ -150,6 +158,10 @@ int	(*ProcRenderVector[RenderNumberRequests])(ClientPtr) = {
     ProcRenderSetPictureFilter,
     ProcRenderCreateAnimCursor,
     ProcRenderAddTraps,
+    ProcRenderCreateSolidFill,
+    ProcRenderCreateLinearGradient,
+    ProcRenderCreateRadialGradient,
+    ProcRenderCreateConicalGradient
 };
 
 int	(*SProcRenderVector[RenderNumberRequests])(ClientPtr) = {
@@ -186,6 +198,10 @@ int	(*SProcRenderVector[RenderNumberRequests])(ClientPtr) = {
     SProcRenderSetPictureFilter,
     SProcRenderCreateAnimCursor,
     SProcRenderAddTraps,
+    SProcRenderCreateSolidFill,
+    SProcRenderCreateLinearGradient,
+    SProcRenderCreateRadialGradient,
+    SProcRenderCreateConicalGradient
 };
 
 static void
@@ -647,6 +663,7 @@ ProcRenderChangePicture (ClientPtr client)
     REQUEST_AT_LEAST_SIZE(xRenderChangePictureReq);
     VERIFY_PICTURE (pPicture, stuff->picture, client, SecurityWriteAccess,
 		    RenderErrBase + BadPicture);
+
     len = client->req_len - (sizeof(xRenderChangePictureReq) >> 2);
     if (Ones(stuff->mask) != len)
 	return BadLength;
@@ -666,6 +683,9 @@ ProcRenderSetPictureClipRectangles (ClientPtr client)
     REQUEST_AT_LEAST_SIZE(xRenderSetPictureClipRectanglesReq);
     VERIFY_PICTURE (pPicture, stuff->picture, client, SecurityWriteAccess,
 		    RenderErrBase + BadPicture);
+    if (!pPicture->pDrawable)
+        return BadDrawable;
+
     nr = (client->req_len << 2) - sizeof(xRenderChangePictureReq);
     if (nr & 4)
 	return BadLength;
@@ -717,14 +737,16 @@ ProcRenderComposite (ClientPtr client)
 	client->errorValue = stuff->op;
 	return BadValue;
     }
+    VERIFY_PICTURE (pDst, stuff->dst, client, SecurityWriteAccess,
+		    RenderErrBase + BadPicture);
+    if (!pDst->pDrawable)
+        return BadDrawable;
     VERIFY_PICTURE (pSrc, stuff->src, client, SecurityReadAccess, 
 		    RenderErrBase + BadPicture);
     VERIFY_ALPHA (pMask, stuff->mask, client, SecurityReadAccess, 
 		  RenderErrBase + BadPicture);
-    VERIFY_PICTURE (pDst, stuff->dst, client, SecurityWriteAccess, 
-		    RenderErrBase + BadPicture);
-    if (pSrc->pDrawable->pScreen != pDst->pDrawable->pScreen ||
-	(pMask && pSrc->pDrawable->pScreen != pMask->pDrawable->pScreen))
+    if ((pSrc->pDrawable && pSrc->pDrawable->pScreen != pDst->pDrawable->pScreen) ||
+	(pMask && pMask->pDrawable && pSrc->pDrawable->pScreen != pMask->pDrawable->pScreen))
 	return BadMatch;
     CompositePicture (stuff->op,
 		      pSrc,
@@ -765,7 +787,9 @@ ProcRenderTrapezoids (ClientPtr client)
 		    RenderErrBase + BadPicture);
     VERIFY_PICTURE (pDst, stuff->dst, client, SecurityWriteAccess, 
 		    RenderErrBase + BadPicture);
-    if (pSrc->pDrawable->pScreen != pDst->pDrawable->pScreen)
+    if (!pDst->pDrawable)
+        return BadDrawable;
+    if (pSrc->pDrawable && pSrc->pDrawable->pScreen != pDst->pDrawable->pScreen)
 	return BadMatch;
     if (stuff->maskFormat)
     {
@@ -810,7 +834,9 @@ ProcRenderTriangles (ClientPtr client)
 		    RenderErrBase + BadPicture);
     VERIFY_PICTURE (pDst, stuff->dst, client, SecurityWriteAccess, 
 		    RenderErrBase + BadPicture);
-    if (pSrc->pDrawable->pScreen != pDst->pDrawable->pScreen)
+    if (!pDst->pDrawable)
+        return BadDrawable;
+    if (pSrc->pDrawable && pSrc->pDrawable->pScreen != pDst->pDrawable->pScreen)
 	return BadMatch;
     if (stuff->maskFormat)
     {
@@ -855,7 +881,9 @@ ProcRenderTriStrip (ClientPtr client)
 		    RenderErrBase + BadPicture);
     VERIFY_PICTURE (pDst, stuff->dst, client, SecurityWriteAccess, 
 		    RenderErrBase + BadPicture);
-    if (pSrc->pDrawable->pScreen != pDst->pDrawable->pScreen)
+    if (!pDst->pDrawable)
+        return BadDrawable;
+    if (pSrc->pDrawable && pSrc->pDrawable->pScreen != pDst->pDrawable->pScreen)
 	return BadMatch;
     if (stuff->maskFormat)
     {
@@ -900,7 +928,9 @@ ProcRenderTriFan (ClientPtr client)
 		    RenderErrBase + BadPicture);
     VERIFY_PICTURE (pDst, stuff->dst, client, SecurityWriteAccess, 
 		    RenderErrBase + BadPicture);
-    if (pSrc->pDrawable->pScreen != pDst->pDrawable->pScreen)
+    if (!pDst->pDrawable)
+        return BadDrawable;
+    if (pSrc->pDrawable && pSrc->pDrawable->pScreen != pDst->pDrawable->pScreen)
 	return BadMatch;
     if (stuff->maskFormat)
     {
@@ -1226,7 +1256,9 @@ ProcRenderCompositeGlyphs (ClientPtr client)
 		    RenderErrBase + BadPicture);
     VERIFY_PICTURE (pDst, stuff->dst, client, SecurityWriteAccess,
 		    RenderErrBase + BadPicture);
-    if (pSrc->pDrawable->pScreen != pDst->pDrawable->pScreen)
+    if (!pDst->pDrawable)
+        return BadDrawable;
+    if (pSrc->pDrawable && pSrc->pDrawable->pScreen != pDst->pDrawable->pScreen)
 	return BadMatch;
     if (stuff->maskFormat)
     {
@@ -1391,6 +1423,8 @@ ProcRenderFillRectangles (ClientPtr client)
     }
     VERIFY_PICTURE (pDst, stuff->dst, client, SecurityWriteAccess, 
 		    RenderErrBase + BadPicture);
+    if (!pDst->pDrawable)
+        return BadDrawable;
     
     things = (client->req_len << 2) - sizeof(xRenderFillRectanglesReq);
     if (things & 4)
@@ -1455,6 +1489,8 @@ ProcRenderCreateCursor (ClientPtr client)
     
     VERIFY_PICTURE (pSrc, stuff->src, client, SecurityReadAccess, 
 		    RenderErrBase + BadPicture);
+    if (!pSrc->pDrawable)
+        return BadDrawable;
     pScreen = pSrc->pDrawable->pScreen;
     width = pSrc->pDrawable->width;
     height = pSrc->pDrawable->height;
@@ -1826,6 +1862,8 @@ ProcRenderAddTraps (ClientPtr client)
     REQUEST_AT_LEAST_SIZE(xRenderAddTrapsReq);
     VERIFY_PICTURE (pPicture, stuff->picture, client, SecurityWriteAccess, 
 		    RenderErrBase + BadPicture);
+    if (!pPicture->pDrawable)
+        return BadDrawable;
     ntraps = (client->req_len << 2) - sizeof (xRenderAddTrapsReq);
     if (ntraps % sizeof (xTrap))
 	return BadLength;
@@ -1836,6 +1874,113 @@ ProcRenderAddTraps (ClientPtr client)
 		  ntraps, (xTrap *) &stuff[1]);
     return client->noClientException;
 }
+
+static int ProcRenderCreateSolidFill(ClientPtr client)
+{
+    PicturePtr	    pPicture;
+    int		    error = 0;
+    REQUEST(xRenderCreateSolidFillReq);
+
+    REQUEST_AT_LEAST_SIZE(xRenderCreateSolidFillReq);
+
+    LEGAL_NEW_RESOURCE(stuff->pid, client);
+
+    pPicture = CreateSolidPicture(stuff->pid, &stuff->color, &error);
+    if (!pPicture)
+	return error;
+    if (!AddResource (stuff->pid, PictureType, (pointer)pPicture))
+	return BadAlloc;
+    return Success;
+}
+
+static int ProcRenderCreateLinearGradient (ClientPtr client)
+{
+    PicturePtr	    pPicture;
+    int		    len;
+    int		    error = 0;
+    xFixed          *stops;
+    xRenderColor   *colors;
+    REQUEST(xRenderCreateLinearGradientReq);
+
+    REQUEST_AT_LEAST_SIZE(xRenderCreateLinearGradientReq);
+
+    LEGAL_NEW_RESOURCE(stuff->pid, client);
+
+    len = (client->req_len << 2) - sizeof(xRenderCreateLinearGradientReq);
+    if (len != stuff->nStops*(sizeof(xFixed) + sizeof(xRenderColor)))
+        return BadLength;
+
+    stops = (xFixed *)(stuff + 1);
+    colors = (xRenderColor *)(stops + stuff->nStops);
+
+    pPicture = CreateLinearGradientPicture (stuff->pid, &stuff->p1, &stuff->p2,
+                                            stuff->nStops, stops, colors, &error);
+    if (!pPicture)
+	return error;
+    if (!AddResource (stuff->pid, PictureType, (pointer)pPicture))
+	return BadAlloc;
+    return Success;
+}
+
+static int ProcRenderCreateRadialGradient (ClientPtr client)
+{
+    PicturePtr	    pPicture;
+    int		    len;
+    int		    error = 0;
+    xFixed          *stops;
+    xRenderColor   *colors;
+    REQUEST(xRenderCreateRadialGradientReq);
+
+    REQUEST_AT_LEAST_SIZE(xRenderCreateRadialGradientReq);
+
+    LEGAL_NEW_RESOURCE(stuff->pid, client);
+
+    len = (client->req_len << 2) - sizeof(xRenderCreateRadialGradientReq);
+    if (len != stuff->nStops*(sizeof(xFixed) + sizeof(xRenderColor)))
+        return BadLength;
+
+    stops = (xFixed *)(stuff + 1);
+    colors = (xRenderColor *)(stops + stuff->nStops);
+
+    pPicture = CreateRadialGradientPicture (stuff->pid, &stuff->inner, &stuff->outer,
+                                            stuff->inner_radius, stuff->outer_radius,
+                                            stuff->nStops, stops, colors, &error);
+    if (!pPicture)
+	return error;
+    if (!AddResource (stuff->pid, PictureType, (pointer)pPicture))
+	return BadAlloc;
+    return Success;
+}
+
+static int ProcRenderCreateConicalGradient (ClientPtr client)
+{
+    PicturePtr	    pPicture;
+    int		    len;
+    int		    error = 0;
+    xFixed          *stops;
+    xRenderColor   *colors;
+    REQUEST(xRenderCreateConicalGradientReq);
+
+    REQUEST_AT_LEAST_SIZE(xRenderCreateConicalGradientReq);
+
+    LEGAL_NEW_RESOURCE(stuff->pid, client);
+
+    len = (client->req_len << 2) - sizeof(xRenderCreateConicalGradientReq);
+    if (len != stuff->nStops*(sizeof(xFixed) + sizeof(xRenderColor)))
+        return BadLength;
+
+    stops = (xFixed *)(stuff + 1);
+    colors = (xRenderColor *)(stops + stuff->nStops);
+
+    pPicture = CreateConicalGradientPicture (stuff->pid, &stuff->center, stuff->angle,
+                                             stuff->nStops, stops, colors, &error);
+    if (!pPicture)
+	return error;
+    if (!AddResource (stuff->pid, PictureType, (pointer)pPicture))
+	return BadAlloc;
+    return Success;
+}
+
 
 static int
 ProcRenderDispatch (ClientPtr client)
@@ -2314,6 +2459,115 @@ SProcRenderAddTraps (ClientPtr client)
     swaps(&stuff->xOff, n);
     swaps(&stuff->yOff, n);
     SwapRestL(stuff);
+    return (*ProcRenderVector[stuff->renderReqType]) (client);
+}
+
+static int
+SProcRenderCreateSolidFill(ClientPtr client)
+{
+    register int n;
+    REQUEST (xRenderCreateSolidFillReq);
+    REQUEST_AT_LEAST_SIZE (xRenderCreateSolidFillReq);
+
+    swaps(&stuff->length, n);
+    swapl(&stuff->pid, n);
+    swaps(&stuff->color.alpha, n);
+    swaps(&stuff->color.red, n);
+    swaps(&stuff->color.green, n);
+    swaps(&stuff->color.blue, n);
+    return (*ProcRenderVector[stuff->renderReqType]) (client);
+}
+
+static void swapStops(void *stuff, int n)
+{
+    int i;
+    CARD32 *stops;
+    CARD16 *colors;
+    stops = (CARD32 *)(stuff);
+    for (i = 0; i < n; ++i) {
+        swapl(stops, n);
+        ++stops;
+    }
+    colors = (CARD16 *)(stops);
+    for (i = 0; i < 4*n; ++i) {
+        swaps(stops, n);
+        ++stops;
+    }
+}
+
+static int
+SProcRenderCreateLinearGradient (ClientPtr client)
+{
+    register int n;
+    int len;
+    REQUEST (xRenderCreateLinearGradientReq);
+    REQUEST_AT_LEAST_SIZE (xRenderCreateLinearGradientReq);
+
+    swaps(&stuff->length, n);
+    swapl(&stuff->pid, n);
+    swapl(&stuff->p1.x, n);
+    swapl(&stuff->p1.y, n);
+    swapl(&stuff->p2.x, n);
+    swapl(&stuff->p2.y, n);
+    swapl(&stuff->nStops, n);
+
+    len = (client->req_len << 2) - sizeof(xRenderCreateLinearGradientReq);
+    if (len != stuff->nStops*(sizeof(xFixed) + sizeof(xRenderColor)))
+        return BadLength;
+
+    swapStops(stuff+1, stuff->nStops);
+
+    return (*ProcRenderVector[stuff->renderReqType]) (client);
+}
+
+static int
+SProcRenderCreateRadialGradient (ClientPtr client)
+{
+    register int n;
+    int len;
+    REQUEST (xRenderCreateRadialGradientReq);
+    REQUEST_AT_LEAST_SIZE (xRenderCreateRadialGradientReq);
+
+    swaps(&stuff->length, n);
+    swapl(&stuff->pid, n);
+    swapl(&stuff->inner.x, n);
+    swapl(&stuff->inner.y, n);
+    swapl(&stuff->outer.x, n);
+    swapl(&stuff->outer.y, n);
+    swapl(&stuff->inner_radius, n);
+    swapl(&stuff->outer_radius, n);
+    swapl(&stuff->nStops, n);
+
+    len = (client->req_len << 2) - sizeof(xRenderCreateRadialGradientReq);
+    if (len != stuff->nStops*(sizeof(xFixed) + sizeof(xRenderColor)))
+        return BadLength;
+
+    swapStops(stuff+1, stuff->nStops);
+
+    return (*ProcRenderVector[stuff->renderReqType]) (client);
+}
+
+static int
+SProcRenderCreateConicalGradient (ClientPtr client)
+{
+    register int n;
+    int len;
+    REQUEST (xRenderCreateConicalGradientReq);
+    REQUEST_AT_LEAST_SIZE (xRenderCreateConicalGradientReq);
+
+    swaps(&stuff->length, n);
+    swapl(&stuff->pid, n);
+    swapl(&stuff->center.x, n);
+    swapl(&stuff->center.y, n);
+    swapl(&stuff->angle, n);
+    swapl(&stuff->nStops, n);
+
+    len = (client->req_len << 2) - sizeof(xRenderCreateConicalGradientReq);
+    if (len != stuff->nStops*(sizeof(xFixed) + sizeof(xRenderColor)))
+        return BadLength;
+
+    swapStops(stuff+1, stuff->nStops);
+
     return (*ProcRenderVector[stuff->renderReqType]) (client);
 }
 

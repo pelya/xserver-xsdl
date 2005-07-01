@@ -62,6 +62,70 @@ typedef struct _PictTransform {
     xFixed	    matrix[3][3];
 } PictTransform, *PictTransformPtr;
 
+#define PICT_GRADIENT_STOPTABLE_SIZE 1024
+#define SourcePictTypeSolidFill 0
+#define SourcePictTypeLinear 1
+#define SourcePictTypeRadial 2
+#define SourcePictTypeConical 3
+
+typedef struct _PictSolidFill {
+    unsigned int type;
+    CARD32 color;
+} PictSolidFill, *PictSolidFillPtr;
+
+typedef struct _PictGradientStop {
+    xFixed x;
+    xRenderColor color;
+} PictGradientStop, *PictGradientStopPtr;
+
+typedef struct _PictGradient {
+    unsigned int type;
+    int nstops;
+    PictGradientStopPtr stops;
+    CARD32 colorTable[PICT_GRADIENT_STOPTABLE_SIZE];
+} PictGradient, *PictGradientPtr;
+
+typedef struct _PictLinearGradient {
+    unsigned int type;
+    int nstops;
+    PictGradientStopPtr stops;
+    CARD32 colorTable[PICT_GRADIENT_STOPTABLE_SIZE];
+    xPointFixed p1;
+    xPointFixed p2;
+} PictLinearGradient, *PictLinearGradientPtr;
+
+typedef struct _PictRadialGradient {
+    unsigned int type;
+    int nstops;
+    PictGradientStopPtr stops;
+    CARD32 colorTable[PICT_GRADIENT_STOPTABLE_SIZE];
+    double fx;
+    double fy;
+    double dx;
+    double dy;
+    double a;
+    double m;
+    double b;
+} PictRadialGradient, *PictRadialGradientPtr;
+
+typedef struct _PictConicalGradient {
+    unsigned int type;
+    int nstops;
+    PictGradientStopPtr stops;
+    CARD32 colorTable[PICT_GRADIENT_STOPTABLE_SIZE];
+    xPointFixed center;
+    xFixed angle;
+} PictConicalGradient, *PictConicalGradientPtr;
+
+typedef union _SourcePict {
+    unsigned int type;
+    PictSolidFill solidFill;
+    PictGradient gradient;
+    PictLinearGradient linear;
+    PictRadialGradient radial;
+    PictConicalGradient conical;
+} SourcePict, *SourcePictPtr;
+
 typedef struct _Picture {
     DrawablePtr	    pDrawable;
     PictFormatPtr   pFormat;
@@ -70,7 +134,7 @@ typedef struct _Picture {
     CARD32	    id;
     PicturePtr	    pNext;	    /* chain on same drawable */
 
-    unsigned int    repeat : 1;
+    unsigned int    repeat : 2;
     unsigned int    graphicsExposures : 1;
     unsigned int    subWindowMode : 1;
     unsigned int    polyEdge : 1;
@@ -78,7 +142,7 @@ typedef struct _Picture {
     unsigned int    freeCompClip : 1;
     unsigned int    clientClipType : 2;
     unsigned int    componentAlpha : 1;
-    unsigned int    unused : 23;
+    unsigned int    unused : 22;
 
     PicturePtr	    alphaMap;
     DDXPointRec	    alphaOrigin;
@@ -100,6 +164,7 @@ typedef struct _Picture {
     int		    filter;
     xFixed	    *filter_params;
     int		    filter_nparams;
+    SourcePictPtr   pSourcePict;
 } PictureRec;
 
 typedef Bool (*PictFilterValidateParamsProcPtr) (PicturePtr pPicture, int id,
@@ -545,6 +610,40 @@ AddTraps (PicturePtr	pPicture,
 	  INT16		yOff,
 	  int		ntraps,
 	  xTrap		*traps);
+
+PicturePtr
+CreateSolidPicture (Picture pid,
+                    xRenderColor *color,
+                    int *error);
+
+PicturePtr
+CreateLinearGradientPicture (Picture pid,
+                             xPointFixed *p1,
+                             xPointFixed *p2,
+                             int nStops,
+                             xFixed *stops,
+                             xRenderColor *colors,
+                             int *error);
+
+PicturePtr
+CreateRadialGradientPicture (Picture pid,
+                             xPointFixed *inner,
+                             xPointFixed *outer,
+                             xFixed innerRadius,
+                             xFixed outerRadius,
+                             int nStops,
+                             xFixed *stops,
+                             xRenderColor *colors,
+                             int *error);
+
+PicturePtr
+CreateConicalGradientPicture (Picture pid,
+                              xPointFixed *center,
+                              xFixed angle,
+                              int nStops,
+                              xFixed *stops,
+                              xRenderColor *colors,
+                              int *error);
 
 #ifdef PANORAMIX
 void PanoramiXRenderInit (void);

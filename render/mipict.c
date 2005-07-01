@@ -296,7 +296,7 @@ miClipPictureSrc (RegionPtr	pRegion,
 		  int		dy)
 {
     /* XXX what to do with clipping from transformed pictures? */
-    if (pPicture->transform)
+    if (pPicture->transform || !pPicture->pDrawable)
 	return TRUE;
     if (pPicture->repeat)
     {
@@ -331,7 +331,12 @@ miCompositeSourceValidate (PicturePtr	pPicture,
 			   CARD16	height)
 {
     DrawablePtr	pDrawable = pPicture->pDrawable;
-    ScreenPtr	pScreen = pDrawable->pScreen;
+    ScreenPtr	pScreen;
+
+    if (!pDrawable)
+        return;
+
+    pScreen = pDrawable->pScreen;
     
     if (pScreen->SourceValidate)
     {
@@ -521,8 +526,13 @@ miFillColor (CARD32 pixel, int bits)
 Bool
 miIsSolidAlpha (PicturePtr pSrc)
 {
-    ScreenPtr	pScreen = pSrc->pDrawable->pScreen;
+    ScreenPtr	pScreen;
     char	line[1];
+
+    if (!pSrc->pDrawable)
+        return FALSE;
+
+    pScreen = pSrc->pDrawable->pScreen;
     
     /* Alpha-only */
     if (PICT_FORMAT_TYPE (pSrc->format) != PICT_TYPE_A)
