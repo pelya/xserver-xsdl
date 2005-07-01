@@ -42,7 +42,7 @@ SOFTWARE.
 #include <X11/Xprotostr.h>
 #include <X11/extensions/xtrapdi.h>
 #include "input.h"          /* Server DevicePtr definitions */
-#include "misc.h"
+#include <X11/misc.h>
 #include "dixstruct.h"
 #ifdef PC
 # include "extnsist.h"

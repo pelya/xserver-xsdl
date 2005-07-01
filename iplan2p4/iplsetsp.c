@@ -55,7 +55,7 @@ interleaved planes */
 #include <X11/Xmd.h>
 #include "servermd.h"
 
-#include "misc.h"
+#include <X11/misc.h>
 #include "regionstr.h"
 #include "gcstruct.h"
 #include "windowstr.h"

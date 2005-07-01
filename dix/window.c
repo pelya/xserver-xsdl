@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/dix/window.c,v 1.7 2005/03/07 23:02:59 gisburn Exp $ */
+/* $XdotOrg: xc/programs/Xserver/dix/window.c,v 1.9 2005/06/10 04:01:14 ajax Exp $ */
 /* $Xorg: window.c,v 1.4 2001/02/09 02:04:41 xorgcvs Exp $ */
 /*
 
@@ -80,9 +80,9 @@ Equipment Corporation.
 
 /* $XFree86: xc/programs/Xserver/dix/window.c,v 3.36 2003/11/14 23:52:50 torrey Exp $ */
 
-#include "misc.h"
+#include <X11/misc.h>
 #include "scrnintstr.h"
-#include "os.h"
+#include <X11/os.h>
 #include "regionstr.h"
 #include "validate.h"
 #include "windowstr.h"

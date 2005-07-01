@@ -74,7 +74,7 @@ Equipment Corporation.
 ******************************************************************/
 
 /* $Xorg: resource.c,v 1.5 2001/02/09 02:04:40 xorgcvs Exp $ */
-/* $XdotOrg: xc/programs/Xserver/dix/resource.c,v 1.4 2005/03/07 23:02:58 gisburn Exp $ */
+/* $XdotOrg: xc/programs/Xserver/dix/resource.c,v 1.5 2005/04/20 12:25:19 daniels Exp $ */
 /* $TOG: resource.c /main/41 1998/02/09 14:20:31 kaleb $ */
 
 /*	Routines to manage various kinds of resources:
@@ -103,8 +103,8 @@ Equipment Corporation.
 
 #define NEED_EVENTS
 #include <X11/X.h>
-#include "misc.h"
-#include "os.h"
+#include <X11/misc.h>
+#include <X11/os.h>
 #include "resource.h"
 #include "dixstruct.h" 
 #include "opaque.h"

@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/dix/dixfonts.c,v 1.4 2005/04/20 12:25:19 daniels Exp $ */
+/* $XdotOrg: xc/programs/Xserver/dix/dixfonts.c,v 1.5 2005/04/20 13:33:54 daniels Exp $ */
 /* $XFree86: xc/programs/Xserver/dix/dixfonts.c,v 3.28 2003/11/08 02:02:03 dawes Exp $ */
 /************************************************************************
 Copyright 1987 by Digital Equipment Corporation, Maynard, Massachusetts.
@@ -59,7 +59,7 @@ Equipment Corporation.
 #include "resource.h"
 #include "dixstruct.h"
 #include "cursorstr.h"
-#include "misc.h"
+#include <X11/misc.h>
 #include "opaque.h"
 #include "dixfontstr.h"
 #include "closestr.h"

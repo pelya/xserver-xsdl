@@ -67,7 +67,7 @@
  */
 
 /* $XConsortium: xf86_OSlib.h /main/22 1996/10/27 11:06:31 kaleb $ */
-/* $XdotOrg: xc/programs/Xserver/hw/xfree86/os-support/xf86_OSlib.h,v 1.5 2005/03/02 11:20:29 gisburn Exp $ */
+/* $XdotOrg: xc/programs/Xserver/hw/xfree86/os-support/xf86_OSlib.h,v 1.7 2005/05/21 07:46:37 alanc Exp $ */
 
 /*
  * This is private, and should not be included by any drivers.  Drivers

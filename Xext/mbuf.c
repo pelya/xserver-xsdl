@@ -31,7 +31,7 @@ in this Software without prior written authorization from The Open Group.
 #include <X11/X.h>
 #include <X11/Xproto.h>
 #include "window.h"
-#include "os.h"
+#include <X11/os.h>
 #include "windowstr.h"
 #include "scrnintstr.h"
 #include "pixmapstr.h"

@@ -39,8 +39,8 @@
 #define NEED_EVENTS
 #include <X11/X.h>
 #include <X11/Xproto.h>
-#include "misc.h"
-#include "os.h"
+#include <X11/misc.h>
+#include <X11/os.h>
 #include "windowstr.h"
 #include "scrnintstr.h"
 #include "pixmapstr.h"

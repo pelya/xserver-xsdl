@@ -1,4 +1,4 @@
-/* $XdotOrg$ */
+/* $XdotOrg: xc/programs/Xserver/hw/xfree86/loader/misym.c,v 1.3 2005/06/26 02:48:36 ajax Exp $ */
 /* $XFree86: xc/programs/Xserver/hw/xfree86/loader/misym.c,v 1.38 2003/10/15 16:29:04 dawes Exp $ */
 
 /*
@@ -52,7 +52,7 @@
  */
 
 #include "sym.h"
-#include "misc.h"
+#include <X11/misc.h>
 #include "mi.h"
 #include "mibank.h"
 #include "miwideline.h"

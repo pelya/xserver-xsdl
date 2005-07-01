@@ -23,9 +23,9 @@
  * Author:  Keith Packard, SuSE, Inc.
  */
 
-#include "misc.h"
+#include <X11/misc.h>
 #include "scrnintstr.h"
-#include "os.h"
+#include <X11/os.h>
 #include "regionstr.h"
 #include "validate.h"
 #include "windowstr.h"

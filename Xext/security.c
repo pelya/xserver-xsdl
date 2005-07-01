@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/Xext/security.c,v 1.2 2004/04/23 18:44:41 eich Exp $ */
+/* $XdotOrg: xc/programs/Xserver/Xext/security.c,v 1.3 2005/04/20 12:25:12 daniels Exp $ */
 /* $Xorg: security.c,v 1.4 2001/02/09 02:04:32 xorgcvs Exp $ */
 /*
 

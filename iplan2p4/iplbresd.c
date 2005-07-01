@@ -52,7 +52,7 @@ SOFTWARE.
 interleaved planes */
 
 #include <X11/X.h>
-#include "misc.h"
+#include <X11/misc.h>
 #include "ipl.h"
 #include "miline.h"
 #include "iplmskbits.h"

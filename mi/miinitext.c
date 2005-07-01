@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/mi/miinitext.c,v 1.17 2005/04/20 12:25:45 daniels Exp $ */
+/* $XdotOrg: xc/programs/Xserver/mi/miinitext.c,v 1.20 2005/05/19 18:53:50 ajax Exp $ */
 /* $XFree86: xc/programs/Xserver/mi/miinitext.c,v 3.67 2003/01/12 02:44:27 dawes Exp $ */
 /***********************************************************
 
@@ -48,7 +48,7 @@ SOFTWARE.
 ******************************************************************/
 /* $Xorg: miinitext.c,v 1.4 2001/02/09 02:05:21 xorgcvs Exp $ */
 
-#include "misc.h"
+#include <X11/misc.h>
 #include "extension.h"
 #include "micmap.h"
 

@@ -49,7 +49,7 @@ in this Software without prior written authorization from The Open Group.
 /* $XFree86: xc/programs/Xserver/lbx/lbxtags.c,v 1.3 2001/01/17 22:37:00 dawes Exp $ */
 
 #include <X11/X.h>
-#include "misc.h"
+#include <X11/misc.h>
 #include "lbxdata.h"
 #include "resource.h"
 #include "colormapst.h"

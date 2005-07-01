@@ -49,7 +49,7 @@ SOFTWARE.
 
 #ifndef PROPERTYSTRUCT_H
 #define PROPERTYSTRUCT_H 
-#include "misc.h"
+#include <X11/misc.h>
 #include "property.h"
 /* 
  *   PROPERTY -- property element

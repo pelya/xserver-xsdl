@@ -22,7 +22,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-#include "misc.h"
+#include <X11/misc.h>
 #include "xf86.h"
 #include "xf86_ansic.h"
 #include "xf86_OSproc.h"

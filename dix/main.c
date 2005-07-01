@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/dix/main.c,v 1.7 2005/04/20 12:25:19 daniels Exp $ */
+/* $XdotOrg: xc/programs/Xserver/dix/main.c,v 1.11 2005/05/22 01:12:49 alanc Exp $ */
 /* $XFree86: xc/programs/Xserver/dix/main.c,v 3.43 2003/10/30 21:21:02 herrb Exp $ */
 /***********************************************************
 
@@ -84,8 +84,8 @@ Equipment Corporation.
 #include <X11/Xos.h>   /* for unistd.h  */
 #include <X11/Xproto.h>
 #include "scrnintstr.h"
-#include "misc.h"
-#include "os.h"
+#include <X11/misc.h>
+#include <X11/os.h>
 #include "windowstr.h"
 #include "resource.h"
 #include "dixstruct.h"

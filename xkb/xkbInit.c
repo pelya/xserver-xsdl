@@ -1,5 +1,5 @@
 /* $Xorg: xkbInit.c,v 1.3 2000/08/17 19:53:47 cpqbld Exp $ */
-/* $XdotOrg: xc/programs/Xserver/xkb/xkbInit.c,v 1.2 2004/04/23 19:54:30 eich Exp $ */
+/* $XdotOrg: xc/programs/Xserver/xkb/xkbInit.c,v 1.3 2005/04/20 12:25:48 daniels Exp $ */
 /************************************************************
 Copyright (c) 1993 by Silicon Graphics Computer Systems, Inc.
 
@@ -37,7 +37,7 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include <X11/Xproto.h>
 #include <X11/keysym.h>
 #include <X11/Xatom.h>
-#include "misc.h"
+#include <X11/misc.h>
 #include "inputstr.h"
 #include "opaque.h"
 #include "property.h"

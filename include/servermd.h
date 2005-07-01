@@ -46,7 +46,7 @@ SOFTWARE.
 
 ******************************************************************/
 /* $Xorg: servermd.h,v 1.3 2000/08/17 19:53:31 cpqbld Exp $ */
-/* $XdotOrg: $ */
+/* $XdotOrg: xc/programs/Xserver/include/servermd.h,v 1.4 2005/05/21 07:46:38 alanc Exp $ */
 
 #ifndef SERVERMD_H
 #define SERVERMD_H 1

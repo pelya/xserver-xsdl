@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/os/utils.c,v 1.12 2005/03/23 19:58:45 gisburn Exp $ */
+/* $XdotOrg: xc/programs/Xserver/os/utils.c,v 1.17 2005/06/09 02:29:42 ajax Exp $ */
 /* $Xorg: utils.c,v 1.5 2001/02/09 02:05:24 xorgcvs Exp $ */
 /*
 
@@ -62,7 +62,7 @@ OR PERFORMANCE OF THIS SOFTWARE.
 #endif
 #include <X11/Xos.h>
 #include <stdio.h>
-#include "misc.h"
+#include <X11/misc.h>
 #include <X11/X.h>
 #include <X11/Xtrans/Xtrans.h>
 #include "input.h"

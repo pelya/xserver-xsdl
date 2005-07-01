@@ -30,7 +30,7 @@
 #include <dlfcn.h>
 
 #include <X11/Xos.h>
-#include "os.h"
+#include <X11/os.h>
 
 #include "sym.h"
 #include "loader.h"

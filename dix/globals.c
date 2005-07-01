@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/dix/globals.c,v 1.3 2004/09/22 17:20:55 alanc Exp $ */
+/* $XdotOrg: xc/programs/Xserver/dix/globals.c,v 1.4 2005/04/20 12:25:19 daniels Exp $ */
 /* $XFree86: xc/programs/Xserver/dix/globals.c,v 1.12tsi Exp $ */
 /************************************************************
 
@@ -51,14 +51,14 @@ SOFTWARE.
 
 #include <X11/X.h>
 #include <X11/Xmd.h>
-#include "misc.h"
+#include <X11/misc.h>
 #include "windowstr.h"
 #include "scrnintstr.h"
 #include "input.h"
 #include "dixfont.h"
 #include "site.h"
 #include "dixstruct.h"
-#include "os.h"
+#include <X11/os.h>
 
 ScreenInfo screenInfo;
 KeybdCtrl defaultKeyboardControl = {

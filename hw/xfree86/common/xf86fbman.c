@@ -27,7 +27,7 @@
  * authorization from the copyright holder(s) and author(s).
  */
 
-#include "misc.h"
+#include <X11/misc.h>
 #include "xf86.h"
 
 #include <X11/X.h>

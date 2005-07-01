@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/fb/fbwindow.c,v 1.5 2004/12/04 00:42:50 kuhn Exp $ */
+/* $XdotOrg: xc/programs/Xserver/fb/fbwindow.c,v 1.6 2004/12/06 15:53:00 eich Exp $ */
 /*
  * Id: fbwindow.c,v 1.1 1999/11/02 03:54:45 keithp Exp $
  *

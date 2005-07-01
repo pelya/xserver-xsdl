@@ -75,12 +75,12 @@ SOFTWARE.
 #include <X11/X.h>
 #define NEED_REPLIES
 #include <X11/Xproto.h>
-#include "os.h"
+#include <X11/os.h>
 #include "osdep.h"
 #include <X11/Xpoll.h>
 #include "opaque.h"
 #include "dixstruct.h"
-#include "misc.h"
+#include <X11/misc.h>
 #ifdef LBX
 #include "colormapst.h"
 #include "propertyst.h"

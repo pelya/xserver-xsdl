@@ -2,14 +2,14 @@
    Copyright (c) 2002  XFree86 Inc
 */
 /* $XFree86: xc/programs/Xserver/Xext/xres.c,v 1.7tsi Exp $ */
-/* $XdotOrg: xc/programs/Xserver/Xext/xres.c,v 1.3 2004/12/15 20:51:25 herrb Exp $ */
+/* $XdotOrg: xc/programs/Xserver/Xext/xres.c,v 1.4 2005/04/20 12:25:12 daniels Exp $ */
 
 #define NEED_EVENTS
 #define NEED_REPLIES
 #include <X11/X.h>
 #include <X11/Xproto.h>
-#include "misc.h"
-#include "os.h"
+#include <X11/misc.h>
+#include <X11/os.h>
 #include "dixstruct.h"
 #include "extnsionst.h"
 #include "swaprep.h"

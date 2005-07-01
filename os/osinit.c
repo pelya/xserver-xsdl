@@ -49,7 +49,7 @@ SOFTWARE.
 
 #include <stdio.h>
 #include <X11/X.h>
-#include "os.h"
+#include <X11/os.h>
 #include "osdep.h"
 #include <X11/Xos.h>
 

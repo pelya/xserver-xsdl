@@ -5,8 +5,8 @@
  * License: GPL
  *
  * $Log$
- * Revision 1.1  2005/04/17 22:58:03  bogdand
- * This is the UDA1380 sound coder-decoder module
+ * Revision 1.2  2005/07/01 22:43:11  daniels
+ * Change all misc.h and os.h references to <X11/foo.h>.
  *
  *
  ************************************************************************************/

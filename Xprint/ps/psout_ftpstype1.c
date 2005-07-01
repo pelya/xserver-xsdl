@@ -27,7 +27,7 @@ THE SOFTWARE.
 #include <errno.h>
 #include <sys/wait.h>
 
-#include "os.h"
+#include <X11/os.h>
 #define USE_PSOUT_PRIVATE 1
 #include "psout.h"
 

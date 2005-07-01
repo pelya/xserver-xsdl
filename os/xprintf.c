@@ -27,7 +27,7 @@
  * use or other dealings in this Software without prior written authorization.
  */
 #include <X11/Xos.h>
-#include "os.h"
+#include <X11/os.h>
 #include <stdarg.h>
 #include <stdio.h>
 

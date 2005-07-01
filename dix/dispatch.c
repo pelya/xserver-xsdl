@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/dix/dispatch.c,v 1.7 2005/03/07 23:02:58 gisburn Exp $ */
+/* $XdotOrg: xc/programs/Xserver/dix/dispatch.c,v 1.9 2005/06/10 04:01:14 ajax Exp $ */
 /* $Xorg: dispatch.c,v 1.5 2001/02/09 02:04:40 xorgcvs Exp $ */
 /************************************************************
 

@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/record/record.c,v 1.2 2004/04/23 19:54:28 eich Exp $ */
+/* $XdotOrg: xc/programs/Xserver/record/record.c,v 1.3 2005/04/20 12:25:47 daniels Exp $ */
 /* $Xorg: record.c,v 1.4 2001/02/09 02:05:27 xorgcvs Exp $ */
 
 /*

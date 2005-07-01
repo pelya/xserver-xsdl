@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/os/xdmcp.c,v 1.5 2005/04/20 12:25:47 daniels Exp $ */
+/* $XdotOrg: xc/programs/Xserver/os/xdmcp.c,v 1.7 2005/05/02 21:57:32 harold Exp $ */
 /* $Xorg: xdmcp.c,v 1.4 2001/01/31 13:37:19 pookie Exp $ */
 /*
  * Copyright 1989 Network Computing Devices, Inc., Mountain View, California.
@@ -37,7 +37,7 @@
 #include <stdlib.h>
 #include <X11/X.h>
 #include <X11/Xmd.h>
-#include "misc.h"
+#include <X11/misc.h>
 #include <X11/Xpoll.h>
 #include "osdep.h"
 #include "input.h"

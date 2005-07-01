@@ -34,7 +34,7 @@ copyright holders.
 
 #include <stdio.h>
 #include <X11/X.h>
-#include "misc.h"
+#include <X11/misc.h>
 #include "dixstruct.h"
 #include "scrnintstr.h"
 #include "screenint.h"

@@ -1,6 +1,6 @@
 /* $XFree86: xc/programs/Xserver/hw/xfree86/xaa/xaaStateChange.c,v 3.1 2000/06/20 05:08:49 dawes Exp $ */
 
-#include "misc.h"
+#include <X11/misc.h>
 #include "xf86.h"
 #include "xf86_ansic.h"
 #include "xf86_OSproc.h"

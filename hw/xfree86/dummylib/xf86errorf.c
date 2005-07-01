@@ -1,7 +1,7 @@
 /* $XFree86: xc/programs/Xserver/hw/xfree86/dummylib/xf86errorf.c,v 1.2 2000/05/31 07:15:05 eich Exp $ */
 
 #include <X11/X.h>
-#include "os.h"
+#include <X11/os.h>
 #include "xf86.h"
 #include "xf86Priv.h"
 

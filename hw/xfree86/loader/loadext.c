@@ -30,7 +30,7 @@
 
 #define LOADERDECLARATIONS
 #include "loaderProcs.h"
-#include "misc.h"
+#include <X11/misc.h>
 #include "xf86.h"
 
 ExtensionModule *ExtensionModuleList = NULL;

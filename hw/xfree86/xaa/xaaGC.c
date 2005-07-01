@@ -1,6 +1,6 @@
 /* $XFree86: xc/programs/Xserver/hw/xfree86/xaa/xaaGC.c,v 1.18 2000/09/28 20:48:00 mvojkovi Exp $ */
 
-#include "misc.h"
+#include <X11/misc.h>
 #include "xf86.h"
 #include "xf86_ansic.h"
 #include "xf86_OSproc.h"

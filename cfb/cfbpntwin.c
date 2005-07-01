@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/cfb/cfbpntwin.c,v 1.2 2004/04/23 19:00:12 eich Exp $ */
+/* $XdotOrg: xc/programs/Xserver/cfb/cfbpntwin.c,v 1.3 2005/04/20 12:25:18 daniels Exp $ */
 /* $Xorg: cfbpntwin.c,v 1.4 2001/02/09 02:04:38 xorgcvs Exp $ */
 /***********************************************************
 

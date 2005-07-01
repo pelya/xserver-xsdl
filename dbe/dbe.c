@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/dbe/dbe.c,v 1.2 2004/04/23 19:03:43 eich Exp $ */
+/* $XdotOrg: xc/programs/Xserver/dbe/dbe.c,v 1.3 2005/04/20 12:25:19 daniels Exp $ */
 /* $Xorg: dbe.c,v 1.3 2000/08/17 19:48:16 cpqbld Exp $ */
 /******************************************************************************
  * 

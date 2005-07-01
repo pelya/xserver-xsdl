@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/mi/miarc.c,v 1.2 2004/04/23 19:54:26 eich Exp $ */
+/* $XdotOrg: xc/programs/Xserver/mi/miarc.c,v 1.3 2005/04/20 12:25:45 daniels Exp $ */
 /* $XFree86: xc/programs/Xserver/mi/miarc.c,v 3.14 2003/10/29 22:57:48 tsi Exp $ */
 /***********************************************************
 
@@ -60,7 +60,7 @@ SOFTWARE.
 #endif
 #include <X11/X.h>
 #include <X11/Xprotostr.h>
-#include "misc.h"
+#include <X11/misc.h>
 #include "gcstruct.h"
 #include "scrnintstr.h"
 #include "pixmapstr.h"

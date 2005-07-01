@@ -46,7 +46,7 @@ SOFTWARE.
 ******************************************************************/
 /* $Xorg: mfbmisc.c,v 1.4 2001/02/09 02:05:19 xorgcvs Exp $ */
 #include <X11/X.h>
-#include "misc.h"
+#include <X11/misc.h>
 #include "cursor.h"
 #include "scrnintstr.h"
 

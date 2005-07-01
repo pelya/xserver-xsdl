@@ -15,7 +15,7 @@
 #define _VGAHW_H
 
 #include <X11/X.h>
-#include "misc.h"
+#include <X11/misc.h>
 #include "input.h"
 #include "scrnintstr.h"
 #include "colormapst.h"

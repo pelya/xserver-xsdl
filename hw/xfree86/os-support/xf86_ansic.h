@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/xf86_ansic.h,v 3.51 2003/08/24 17:37:03 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/xf86_ansic.h,v 3.53 2003/10/28 18:36:37 tsi Exp $ */
 /*
  * Copyright 1997-2003 by The XFree86 Project, Inc
  *
@@ -86,7 +86,7 @@
 #endif
 
 #ifndef FONTMODULE
-#include "misc.h"
+#include <X11/misc.h>
 #endif
 #include "xf86_libc.h"
 #ifndef SHRT_MAX
@@ -239,6 +239,8 @@ extern int xf86strcasecmp(const char*,const char*);
 extern char* xf86strcpy(char*,const char*);
 extern xf86size_t xf86strcspn(const char*,const char*);
 extern char* xf86strerror(int);
+extern xf86size_t xf86strlcat(char*,const char*,xf86size_t);
+extern xf86size_t xf86strlcpy(char*,const char*,xf86size_t);
 extern xf86size_t xf86strlen(const char*);
 extern char* xf86strncat(char *, const char *, xf86size_t);
 extern int xf86strncmp(const char*,const char*,xf86size_t);

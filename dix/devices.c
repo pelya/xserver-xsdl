@@ -48,10 +48,10 @@ SOFTWARE.
 
 
 /* $Xorg: devices.c,v 1.4 2001/02/09 02:04:39 xorgcvs Exp $ */
-/* $XdotOrg: $ */
+/* $XdotOrg: xc/programs/Xserver/dix/devices.c,v 1.5 2005/05/22 01:12:49 alanc Exp $ */
 
 #include <X11/X.h>
-#include "misc.h"
+#include <X11/misc.h>
 #include "resource.h"
 #define NEED_EVENTS
 #define NEED_REPLIES

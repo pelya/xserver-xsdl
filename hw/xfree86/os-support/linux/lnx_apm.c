@@ -1,7 +1,7 @@
 /* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/linux/lnx_apm.c,v 3.12 2001/12/24 22:54:31 dawes Exp $ */
 
 #include <X11/X.h>
-#include "os.h"
+#include <X11/os.h>
 #include "xf86.h"
 #include "xf86Priv.h"
 #define XF86_OS_PRIVS

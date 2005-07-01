@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/Xext/xvmain.c,v 1.2 2004/04/23 18:44:42 eich Exp $ */
+/* $XdotOrg: xc/programs/Xserver/Xext/xvmain.c,v 1.3 2005/04/20 12:25:12 daniels Exp $ */
 /***********************************************************
 Copyright 1991 by Digital Equipment Corporation, Maynard, Massachusetts,
 and the Massachusetts Institute of Technology, Cambridge, Massachusetts.
@@ -77,8 +77,8 @@ SOFTWARE.
 
 #include <X11/X.h>
 #include <X11/Xproto.h>
-#include "misc.h"
-#include "os.h"
+#include <X11/misc.h>
+#include <X11/os.h>
 #include "scrnintstr.h"
 #include "windowstr.h"
 #include "pixmapstr.h"

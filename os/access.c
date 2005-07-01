@@ -1,5 +1,5 @@
 /* $Xorg: access.c,v 1.5 2001/02/09 02:05:23 xorgcvs Exp $ */
-/* $XdotOrg: xc/programs/Xserver/os/access.c,v 1.7 2004/11/15 15:06:50 ago Exp $ */
+/* $XdotOrg: xc/programs/Xserver/os/access.c,v 1.9 2005/05/02 22:01:08 harold Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -67,7 +67,7 @@ SOFTWARE.
 #include <X11/Xauth.h>
 #include <X11/X.h>
 #include <X11/Xproto.h>
-#include "misc.h"
+#include <X11/misc.h>
 #include "site.h"
 #include <errno.h>
 #include <sys/types.h>

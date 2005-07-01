@@ -25,9 +25,9 @@
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
-#include "misc.h"
+#include <X11/misc.h>
 #include "scrnintstr.h"
-#include "os.h"
+#include <X11/os.h>
 #include "regionstr.h"
 #include "validate.h"
 #include "windowstr.h"

@@ -46,7 +46,7 @@
 #include <stdarg.h>
 #include <fcntl.h>
 #include <X11/Xfuncproto.h>
-#include "os.h"
+#include <X11/os.h>
 #include <ctype.h>
 #include <unistd.h>
 #include <string.h>

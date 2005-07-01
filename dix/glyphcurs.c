@@ -47,7 +47,7 @@ SOFTWARE.
 
 /* $Xorg: glyphcurs.c,v 1.4 2001/02/09 02:04:40 xorgcvs Exp $ */
 
-#include "misc.h"
+#include <X11/misc.h>
 #include "fontstruct.h"
 #include "dixfontstr.h"
 #include "scrnintstr.h"

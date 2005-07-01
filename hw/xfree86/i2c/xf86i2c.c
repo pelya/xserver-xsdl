@@ -9,7 +9,7 @@
 /* $XFree86: xc/programs/Xserver/hw/xfree86/i2c/xf86i2c.c,v 1.14 2003/05/05 21:18:41 tsi Exp $ */
 
 #if 1
-#include "misc.h"
+#include <X11/misc.h>
 #include "xf86.h"
 #include "xf86_ansic.h"
 #include "xf86_OSproc.h"

@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/xkb/ddxFakeMtn.c,v 1.2 2004/04/23 19:54:30 eich Exp $ */
+/* $XdotOrg: xc/programs/Xserver/xkb/ddxFakeMtn.c,v 1.3 2005/04/20 12:25:48 daniels Exp $ */
 /* $Xorg: ddxFakeMtn.c,v 1.3 2000/08/17 19:53:45 cpqbld Exp $ */
 /************************************************************
 Copyright (c) 1993 by Silicon Graphics Computer Systems, Inc.

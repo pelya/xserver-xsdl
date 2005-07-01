@@ -50,7 +50,7 @@ SOFTWARE.
 #ifndef PIXMAP_H
 #define PIXMAP_H
 
-#include "misc.h"
+#include <X11/misc.h>
 #include "screenint.h"
 
 /* types for Drawable */

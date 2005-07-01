@@ -57,8 +57,8 @@ PERFORMANCE OF THIS SOFTWARE.
 #include <X11/X.h>
 #include <X11/Xproto.h>
 #include <X11/Xmd.h>
-#include "misc.h"
-#include "os.h"
+#include <X11/misc.h>
+#include <X11/os.h>
 #include "extnsionst.h"
 #include "dixstruct.h"
 #include "resource.h"

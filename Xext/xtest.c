@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/Xext/xtest.c,v 1.2 2004/04/23 18:44:42 eich Exp $ */
+/* $XdotOrg: xc/programs/Xserver/Xext/xtest.c,v 1.3 2005/04/20 12:25:12 daniels Exp $ */
 /* $Xorg: xtest.c,v 1.4 2001/02/09 02:04:33 xorgcvs Exp $ */
 /*
 
@@ -32,8 +32,8 @@ from The Open Group.
 #include <X11/X.h>
 #define NEED_EVENTS
 #include <X11/Xproto.h>
-#include "misc.h"
-#include "os.h"
+#include <X11/misc.h>
+#include <X11/os.h>
 #include "dixstruct.h"
 #include "extnsionst.h"
 #include "windowstr.h"

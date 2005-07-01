@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/hw/xfree86/common/xf86cmap.c,v 1.4 2004/12/04 00:42:52 kuhn Exp $ */
+/* $XdotOrg: xc/programs/Xserver/hw/xfree86/common/xf86cmap.c,v 1.5 2005/04/20 12:25:21 daniels Exp $ */
 /* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86cmap.c,v 1.25 2003/10/17 20:02:12 alanh Exp $ */
 /*
  * Copyright (c) 1998-2001 by The XFree86 Project, Inc.
@@ -37,7 +37,7 @@
 #endif
 
 #include <X11/X.h>
-#include "misc.h"
+#include <X11/misc.h>
 #include <X11/Xproto.h>
 #include "colormapst.h"
 #include "scrnintstr.h"

@@ -1,5 +1,5 @@
 /* $Xorg: privates.c,v 1.4 2001/02/09 02:04:40 xorgcvs Exp $ */
-/* $XdotOrg: $ */
+/* $XdotOrg: xc/programs/Xserver/dix/privates.c,v 1.6 2005/05/22 01:12:49 alanc Exp $ */
 /*
 
 Copyright 1993, 1998  The Open Group
@@ -31,8 +31,8 @@ from The Open Group.
 
 #include <X11/X.h>
 #include "scrnintstr.h"
-#include "misc.h"
-#include "os.h"
+#include <X11/misc.h>
+#include <X11/os.h>
 #include "windowstr.h"
 #include "resource.h"
 #include "dixstruct.h"

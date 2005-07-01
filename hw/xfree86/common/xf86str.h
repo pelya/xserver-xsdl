@@ -35,7 +35,7 @@
 #ifndef _XF86STR_H
 #define _XF86STR_H
 
-#include "misc.h"
+#include <X11/misc.h>
 #include "input.h"
 #include "scrnintstr.h"
 #include "pixmapstr.h"

@@ -52,7 +52,7 @@ from The Open Group.
 */
 
 #ifndef TESTING
-#include "misc.h"
+#include <X11/misc.h>
 #else
 #include <stdio.h>
 #include <stdlib.h>

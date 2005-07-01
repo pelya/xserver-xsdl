@@ -25,7 +25,7 @@
  * the sale, use or other dealings in this Software without prior written
  * authorization from the copyright holder(s) and author(s).
  */
-/* $XdotOrg: xc/programs/Xserver/hw/xfree86/os-support/shared/sigiostubs.c,v 1.2 2004/06/28 18:08:26 alanc Exp $ */
+/* $XdotOrg: xc/programs/Xserver/hw/xfree86/os-support/shared/sigiostubs.c,v 1.3 2005/04/20 12:25:38 daniels Exp $ */
 
 #ifdef XFree86Server
 #ifdef __UNIXOS2__

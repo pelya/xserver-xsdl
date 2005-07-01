@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/Xext/xtest1di.c,v 1.2 2004/04/23 18:44:42 eich Exp $ */
+/* $XdotOrg: xc/programs/Xserver/Xext/xtest1di.c,v 1.3 2005/04/20 12:25:12 daniels Exp $ */
 /* $Xorg: xtest1di.c,v 1.4 2001/02/09 02:04:33 xorgcvs Exp $ */
 /*
  *	File:  xtest1di.c
@@ -65,8 +65,8 @@ University of California.
 #include <stdio.h>
 #include <X11/X.h>
 #include <X11/Xproto.h>
-#include "misc.h"
-#include "os.h"
+#include <X11/misc.h>
+#include <X11/os.h>
 #include "gcstruct.h"   
 #include "extnsionst.h"
 #include "dixstruct.h"

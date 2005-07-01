@@ -1,5 +1,5 @@
 /* $Xorg: Keyboard.c,v 1.3 2000/08/17 19:53:28 cpqbld Exp $ */
-/* $XdotOrg: xc/programs/Xserver/hw/xnest/Keyboard.c,v 1.2 2004/04/23 19:54:21 eich Exp $ */
+/* $XdotOrg: xc/programs/Xserver/hw/xnest/Keyboard.c,v 1.4 2005/06/25 21:28:48 ajax Exp $ */
 /*
 
 Copyright 1993 by Davor Matic
@@ -21,7 +21,7 @@ is" without express or implied warranty.
 #include "keysym.h"
 #include "screenint.h"
 #include "inputstr.h"
-#include "misc.h"
+#include <X11/misc.h>
 #include "scrnintstr.h"
 #include "servermd.h"
 

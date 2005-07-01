@@ -1,5 +1,5 @@
 /* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/sunos/sun_mouse.c,v 1.4 2002/01/25 21:56:21 tsi Exp $ */
-/* $XdotOrg: $ */
+/* $XdotOrg: xc/programs/Xserver/hw/xfree86/os-support/sunos/sun_mouse.c,v 1.5 2005/06/03 21:49:11 alanc Exp $ */
 /*
  * Copyright 1999-2001 The XFree86 Project, Inc.  All Rights Reserved.
  *

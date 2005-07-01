@@ -48,7 +48,7 @@ SOFTWARE.
 /* $Xorg: micursor.c,v 1.4 2001/02/09 02:05:20 xorgcvs Exp $ */
 #include "scrnintstr.h"
 #include "cursor.h"
-#include "misc.h"
+#include <X11/misc.h>
 #include "mi.h"
 
 extern Bool Must_have_memory;

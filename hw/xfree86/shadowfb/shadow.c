@@ -10,7 +10,7 @@
 
 #include <X11/X.h>
 #include <X11/Xproto.h>
-#include "misc.h"
+#include <X11/misc.h>
 #include "pixmapstr.h"
 #include "input.h"
 #include "font.h"

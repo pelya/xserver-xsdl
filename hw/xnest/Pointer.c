@@ -19,7 +19,7 @@ is" without express or implied warranty.
 #include "screenint.h"
 #include "inputstr.h"
 #include "input.h"
-#include "misc.h"
+#include <X11/misc.h>
 #include "scrnintstr.h"
 #include "servermd.h"
 #include "mipointer.h"

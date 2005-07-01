@@ -51,7 +51,7 @@ from The Open Group.
 #undef xfree
 #include <krb5/los-proto.h>
 #include <X11/X.h>
-#include "os.h"
+#include <X11/os.h>
 #include "osdep.h"
 #include <X11/Xproto.h>
 #include <X11/Xfuncs.h>

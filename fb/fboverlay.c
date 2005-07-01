@@ -23,7 +23,7 @@
  * Author:  Keith Packard, SuSE, Inc.
  */
 
-/* $XdotOrg: xc/programs/Xserver/fb/fboverlay.c,v 1.4 2004/07/30 20:30:51 ajax Exp $ */
+/* $XdotOrg: xc/programs/Xserver/fb/fboverlay.c,v 1.5 2004/12/04 00:42:50 kuhn Exp $ */
 
 #include "fb.h"
 #include "fboverlay.h"

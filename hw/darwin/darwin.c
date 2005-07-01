@@ -29,12 +29,12 @@
  * holders shall not be used in advertising or otherwise to promote the sale,
  * use or other dealings in this Software without prior written authorization.
  */
-/* $XdotOrg: xc/programs/Xserver/hw/darwin/darwin.c,v 1.5 2004/09/22 23:38:32 torrey Exp $ */
+/* $XdotOrg: xc/programs/Xserver/hw/darwin/darwin.c,v 1.6 2005/04/20 12:25:19 daniels Exp $ */
 /* $XFree86: xc/programs/Xserver/hw/darwin/darwin.c,v 1.55 2003/11/15 00:07:09 torrey Exp $ */
 
 #include <X11/X.h>
 #include <X11/Xproto.h>
-#include "os.h"
+#include <X11/os.h>
 #include "servermd.h"
 #include "inputstr.h"
 #include "scrnintstr.h"

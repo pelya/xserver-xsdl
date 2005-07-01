@@ -59,7 +59,7 @@ SOFTWARE.
 #endif
 #endif
 #include "rgb.h"
-#include "os.h"
+#include <X11/os.h>
 #include "opaque.h"
 
 /* Note that we are assuming there is only one database for all the screens. */
@@ -148,7 +148,7 @@ OsLookupColor(int screen, char *name, unsigned int len,
  */
 
 #include <stdio.h>
-#include "os.h"
+#include <X11/os.h>
 #include "opaque.h"
 
 #define HASHSIZE 511

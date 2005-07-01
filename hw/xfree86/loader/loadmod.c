@@ -49,13 +49,13 @@
  * authorization from the copyright holder(s) and author(s).
  */
 
-#include "os.h"
+#include <X11/os.h>
 /* For stat() and related stuff */
 #define NO_OSLIB_PROTOTYPES
 #include "xf86_OSlib.h"
 #define LOADERDECLARATIONS
 #include "loaderProcs.h"
-#include "misc.h"
+#include <X11/misc.h>
 #include "xf86.h"
 #include "xf86Priv.h"
 #ifdef XINPUT

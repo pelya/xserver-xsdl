@@ -28,7 +28,7 @@
 #endif
 #include <X11/X.h>
 #include <X11/Xproto.h>
-#include "misc.h"
+#include <X11/misc.h>
 #include "colormapst.h"
 #include "propertyst.h"
 #include "lbxserve.h"

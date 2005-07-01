@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/hw/xfree86/common/xf86Config.c,v 1.6 2004/12/06 21:54:19 herrb Exp $ */
+/* $XdotOrg: xc/programs/Xserver/hw/xfree86/common/xf86Config.c,v 1.8 2005/05/18 10:31:53 eich Exp $ */
 /* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86Config.c,v 3.276 2003/10/08 14:58:26 dawes Exp $ */
 
 

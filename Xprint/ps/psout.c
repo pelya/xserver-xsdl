@@ -76,7 +76,7 @@ in this Software without prior written authorization from The Open Group.
 
 #include <stdlib.h>
 #include <stdio.h>
-#include "os.h"
+#include <X11/os.h>
 #define USE_PSOUT_PRIVATE 1
 #include "psout.h"
 #ifdef XP_USE_FREETYPE

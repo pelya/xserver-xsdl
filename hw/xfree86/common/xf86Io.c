@@ -49,7 +49,7 @@
  */
 
 /* $XConsortium: xf86Io.c /main/27 1996/10/19 17:58:55 kaleb $ */
-/* $XdotOrg: xc/programs/Xserver/hw/xfree86/common/xf86Io.c,v 1.2 2004/07/28 03:57:19 alanc Exp $ */
+/* $XdotOrg: xc/programs/Xserver/hw/xfree86/common/xf86Io.c,v 1.3 2005/04/20 12:25:21 daniels Exp $ */
 
 #define NEED_EVENTS
 #include <X11/X.h>

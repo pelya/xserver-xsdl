@@ -1,7 +1,7 @@
 /* $XFree86: bsd_axp.c,v 1.2 2002/10/29 23:19:13 herrb Exp $ */
 
 #include <X11/X.h>
-#include "os.h"
+#include <X11/os.h>
 #include "xf86.h"
 #include "xf86Priv.h"
 #include "xf86Axp.h"

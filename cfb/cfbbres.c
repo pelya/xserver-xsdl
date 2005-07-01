@@ -47,7 +47,7 @@ SOFTWARE.
 ******************************************************************/
 /* $Xorg: cfbbres.c,v 1.4 2001/02/09 02:04:37 xorgcvs Exp $ */
 #include <X11/X.h>
-#include "misc.h"
+#include <X11/misc.h>
 #include "cfb.h"
 #include "cfbmskbits.h"
 #include "servermd.h"

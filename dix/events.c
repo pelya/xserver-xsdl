@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/dix/events.c,v 1.10 2005/06/10 04:01:14 ajax Exp $ */
+/* $XdotOrg: xc/programs/Xserver/dix/events.c,v 1.12 2005/06/15 16:46:59 daniels Exp $ */
 /* $XFree86: xc/programs/Xserver/dix/events.c,v 3.51 2004/01/12 17:04:52 tsi Exp $ */
 /************************************************************
 
@@ -112,7 +112,7 @@ of the copyright holder.
 /* $Xorg: events.c,v 1.4 2001/02/09 02:04:40 xorgcvs Exp $ */
 
 #include <X11/X.h>
-#include "misc.h"
+#include <X11/misc.h>
 #include "resource.h"
 #define NEED_EVENTS
 #define NEED_REPLIES

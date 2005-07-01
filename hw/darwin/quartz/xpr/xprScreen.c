@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/hw/darwin/quartz/xpr/xprScreen.c,v 1.4 2004/08/12 20:24:36 torrey Exp $ */
+/* $XdotOrg: xc/programs/Xserver/hw/darwin/quartz/xpr/xprScreen.c,v 1.5 2004/09/18 00:38:30 torrey Exp $ */
 /*
  * Xplugin rootless implementation screen functions
  */

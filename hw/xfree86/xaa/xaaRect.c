@@ -1,6 +1,6 @@
 /* $XFree86: xc/programs/Xserver/hw/xfree86/xaa/xaaRect.c,v 1.2 1998/07/25 16:58:51 dawes Exp $ */
 
-#include "misc.h"
+#include <X11/misc.h>
 #include "xf86.h"
 #include "xf86_ansic.h"
 #include "xf86_OSproc.h"

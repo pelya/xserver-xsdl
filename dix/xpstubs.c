@@ -27,7 +27,7 @@ from The Open Group.
 
 /* $Xorg: xpstubs.c,v 1.5 2001/03/08 17:52:08 pookie Exp $ */
 
-#include "misc.h"
+#include <X11/misc.h>
 #include "font.h"
 #ifdef XPRINT
 #include "DiPrint.h"

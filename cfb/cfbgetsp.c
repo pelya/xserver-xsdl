@@ -51,7 +51,7 @@ SOFTWARE.
 #include <X11/Xmd.h>
 #include "servermd.h"
 
-#include "misc.h"
+#include <X11/misc.h>
 #include "region.h"
 #include "gc.h"
 #include "windowstr.h"

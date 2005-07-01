@@ -30,7 +30,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #define NEED_REPLIES
 #define NEED_EVENTS
-#include "misc.h"
+#include <X11/misc.h>
 #include "dixstruct.h"
 #include "globals.h"
 #include "extnsionst.h"

@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/Xext/saver.c,v 1.6 2005/03/23 21:09:48 herrb Exp $ */
+/* $XdotOrg: xc/programs/Xserver/Xext/saver.c,v 1.7 2005/04/20 12:25:12 daniels Exp $ */
 /*
  * $XConsortium: saver.c,v 1.12 94/04/17 20:59:36 dpw Exp $
  *
@@ -34,8 +34,8 @@ in this Software without prior written authorization from the X Consortium.
 #define NEED_EVENTS
 #include <X11/X.h>
 #include <X11/Xproto.h>
-#include "misc.h"
-#include "os.h"
+#include <X11/misc.h>
+#include <X11/os.h>
 #include "windowstr.h"
 #include "scrnintstr.h"
 #include "pixmapstr.h"

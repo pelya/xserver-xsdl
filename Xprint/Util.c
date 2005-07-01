@@ -41,7 +41,7 @@ copyright holders.
 #include <stdio.h>
 #include <sys/wait.h>
 #include <sys/stat.h>
-#include "misc.h"
+#include <X11/misc.h>
 #include "dixstruct.h"
 
 #include <X11/extensions/Print.h>

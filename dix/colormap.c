@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/dix/colormap.c,v 1.6 2005/03/07 23:02:58 gisburn Exp $ */
+/* $XdotOrg: xc/programs/Xserver/dix/colormap.c,v 1.7 2005/04/20 12:25:19 daniels Exp $ */
 /* $XFree86: xc/programs/Xserver/dix/colormap.c,v 3.11 2003/11/03 05:10:59 tsi Exp $ */
 /***********************************************************
 
@@ -52,10 +52,10 @@ SOFTWARE.
 #include <X11/X.h>
 #define NEED_EVENTS
 #include <X11/Xproto.h>
-#include "misc.h"
+#include <X11/misc.h>
 #include "dix.h"
 #include "colormapst.h"
-#include "os.h"
+#include <X11/os.h>
 #include "scrnintstr.h"
 #include "resource.h"
 #include "windowstr.h"

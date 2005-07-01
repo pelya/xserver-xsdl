@@ -86,7 +86,7 @@ Author:  Adobe Systems Incorporated
 
 #include <X11/X.h>
 #include <X11/Xmd.h>
-#include "misc.h"
+#include <X11/misc.h>
 #include "windowstr.h"
 #include "dixstruct.h"
 #include "pixmapstr.h"

@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/hw/darwin/quartz/quartz.c,v 1.2 2004/04/23 19:15:17 eich Exp $ */
+/* $XdotOrg: xc/programs/Xserver/hw/darwin/quartz/quartz.c,v 1.3 2004/07/30 19:12:17 torrey Exp $ */
 /**************************************************************
  *
  * Quartz-specific support for the Darwin X Server

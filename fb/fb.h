@@ -22,7 +22,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $XdotOrg: xc/programs/Xserver/fb/fb.h,v 1.8 2004/12/04 00:42:50 kuhn Exp $ */
+/* $XdotOrg: xc/programs/Xserver/fb/fb.h,v 1.9 2005/04/20 12:25:19 daniels Exp $ */
 
 #ifndef _FB_H_
 #define _FB_H_

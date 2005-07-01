@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/hw/xfree86/loader/dixsym.c,v 1.8 2005/04/01 20:05:11 ajax Exp $ */
+/* $XdotOrg: xc/programs/Xserver/hw/xfree86/loader/dixsym.c,v 1.12 2005/05/30 18:44:55 ajax Exp $ */
 /* $XFree86: xc/programs/Xserver/hw/xfree86/loader/dixsym.c,v 1.63 2003/12/03
  * 17:11:29 tsi Exp $ */
 
@@ -59,9 +59,9 @@
 #include "dixevents.h"
 #include "dixfont.h"
 #include "dixstruct.h"
-#include "misc.h"
+#include <X11/misc.h>
 #include "globals.h"
-#include "os.h"
+#include <X11/os.h>
 #include "osdep.h"
 #include "resource.h"
 #include "servermd.h"

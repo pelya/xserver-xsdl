@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/hw/xfree86/common/xf86RandR.c,v 1.8 2005/03/16 12:16:06 eich Exp $ */
+/* $XdotOrg: xc/programs/Xserver/hw/xfree86/common/xf86RandR.c,v 1.9 2005/04/20 12:25:21 daniels Exp $ */
 /*
  * $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86RandR.c,v 1.7tsi Exp $
  *
@@ -24,7 +24,7 @@
  */
 
 #include <X11/X.h>
-#include "os.h"
+#include <X11/os.h>
 #include "mibank.h"
 #include "globals.h"
 #include "xf86.h"

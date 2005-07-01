@@ -52,7 +52,7 @@ SOFTWARE.
    to use interleaved bitplanes instead of normal bitplanes */
 
 #include <X11/X.h>
-#include "misc.h"
+#include <X11/misc.h>
 #include "ilbm.h"
 #include "maskbits.h"
 #include "miline.h"

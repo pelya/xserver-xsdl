@@ -1,4 +1,4 @@
-/* $XdotOrg: $ */
+/* $XdotOrg: xc/programs/Xserver/hw/xfree86/xf86config/cards.c,v 1.3 2004/08/13 23:57:38 alanc Exp $ */
 /* $XConsortium: cards.c /main/9 1996/10/19 18:15:32 kaleb $ */
 
 

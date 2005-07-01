@@ -48,7 +48,7 @@ SOFTWARE.
 
 /* $Xorg: mispans.c,v 1.4 2001/02/09 02:05:21 xorgcvs Exp $ */
 
-#include "misc.h"
+#include <X11/misc.h>
 #include "pixmapstr.h"
 #include "gcstruct.h"
 #include "mispans.h"

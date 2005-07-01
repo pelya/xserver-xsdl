@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/Xext/shape.c,v 1.4 2004/07/29 23:43:39 kem Exp $ */
+/* $XdotOrg: xc/programs/Xserver/Xext/shape.c,v 1.6 2005/06/10 04:01:14 ajax Exp $ */
 /* $XFree86: xc/programs/Xserver/Xext/shape.c,v 3.18 2003/10/28 23:08:43 tsi Exp $ */
 /************************************************************
 
@@ -31,8 +31,8 @@ in this Software without prior written authorization from The Open Group.
 #define NEED_EVENTS
 #include <X11/X.h>
 #include <X11/Xproto.h>
-#include "misc.h"
-#include "os.h"
+#include <X11/misc.h>
+#include <X11/os.h>
 #include "windowstr.h"
 #include "scrnintstr.h"
 #include "pixmapstr.h"

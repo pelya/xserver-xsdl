@@ -1,7 +1,7 @@
 /* $XFree86: xc/programs/Xserver/hw/xfree86/ddc/print_vdif.c,v 1.4tsi Exp $ */
 
 #include "vdif.h"
-#include "misc.h"
+#include <X11/misc.h>
 #include "xf86DDC.h"
 
 static void print_vdif(xf86VdifPtr l, char *s);

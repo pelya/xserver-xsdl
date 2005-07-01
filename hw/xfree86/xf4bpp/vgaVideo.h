@@ -24,7 +24,7 @@
 
 /* $XConsortium: vgaVideo.h /main/4 1996/02/21 17:59:14 kaleb $ */
 
-#include "misc.h"	/* GJA -- for pointer data type */
+#include <X11/misc.h>	/* GJA -- for pointer data type */
 #ifdef lint
 #if defined(volatile)
 #undef volatile

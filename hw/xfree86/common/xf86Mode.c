@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/hw/xfree86/common/xf86Mode.c,v 1.2 2004/04/23 19:20:32 eich Exp $ */
+/* $XdotOrg: xc/programs/Xserver/hw/xfree86/common/xf86Mode.c,v 1.4 2005/05/18 10:31:53 eich Exp $ */
 /* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86Mode.c,v 1.69 2003/10/08 14:58:28 dawes Exp $ */
 /*
  * Copyright (c) 1997-2003 by The XFree86 Project, Inc.
@@ -37,7 +37,7 @@
  */
 
 #include <X11/X.h>
-#include "os.h"
+#include <X11/os.h>
 #include "servermd.h"
 #include "mibank.h"
 #include "globals.h"

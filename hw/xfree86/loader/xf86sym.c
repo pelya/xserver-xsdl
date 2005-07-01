@@ -54,7 +54,7 @@
 #include <fcntl.h>
 #include <setjmp.h>
 #include "sym.h"
-#include "misc.h"
+#include <X11/misc.h>
 #include "mi.h"
 #include "cursor.h"
 #include "mipointer.h"

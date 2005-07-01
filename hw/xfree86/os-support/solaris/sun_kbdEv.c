@@ -23,7 +23,7 @@
  */
 
 /* [JCH-96/01/21] Extended std reverse map to four buttons. */
-/* $XdotOrg: xc/programs/Xserver/hw/xfree86/os-support/sunos/sun_kbdEv.c,v 1.3 2004/07/28 03:57:19 alanc Exp $ */
+/* $XdotOrg: xc/programs/Xserver/hw/xfree86/os-support/sunos/sun_kbdEv.c,v 1.5 2005/05/21 07:46:37 alanc Exp $ */
 
 #include "xf86.h"
 #include "xf86Priv.h"

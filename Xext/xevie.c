@@ -30,13 +30,13 @@ or other dealings in this Software without prior written authorization
 of the copyright holder.
 
 ************************************************************/
-/* $XdotOrg: $ */
+/* $XdotOrg: xc/programs/Xserver/Xext/xevie.c,v 1.6 2005/05/22 01:12:49 alanc Exp $ */
 
 #define NEED_REPLIES
 #define NEED_EVENTS
 #include <X11/X.h>
 #include <X11/Xproto.h>
-#include "misc.h"
+#include <X11/misc.h>
 #include "dixstruct.h"
 #include "extnsionst.h"
 #include "colormapst.h"

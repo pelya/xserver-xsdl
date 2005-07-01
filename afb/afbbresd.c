@@ -49,7 +49,7 @@ SOFTWARE.
 /* $XConsortium: afbbresd.c,v 1.10 94/04/17 20:28:18 dpw Exp $ */
 
 #include <X11/X.h>
-#include "misc.h"
+#include <X11/misc.h>
 #include "afb.h"
 #include "maskbits.h"
 #include "miline.h"

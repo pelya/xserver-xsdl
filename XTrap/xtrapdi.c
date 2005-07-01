@@ -1,4 +1,4 @@
-/* $XdotOrg$ */
+/* $XdotOrg: xc/programs/Xserver/XTrap/xtrapdi.c,v 1.2 2004/04/23 18:44:40 eich Exp $ */
 /* $XFree86: xc/programs/Xserver/XTrap/xtrapdi.c,v 1.6tsi Exp $ */
 /*****************************************************************************
 Copyright 1987, 1988, 1989, 1990, 1991 by Digital Equipment Corp., Maynard, MA
@@ -61,7 +61,7 @@ CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include <X11/X.h>
 #include <X11/Xproto.h>
 #include "input.h"              /* Server DevicePtr definitions */
-#include "misc.h"               /* Server swapping macros */
+#include <X11/misc.h>               /* Server swapping macros */
 #include "dixstruct.h"          /* Server ClientRec definitions */
 #include "resource.h"           /* Used with the MakeAtom call */
 #ifdef PC
