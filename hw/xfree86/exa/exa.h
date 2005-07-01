@@ -107,8 +107,8 @@ typedef struct _ExaAccelInfo {
      */
     Bool        (*PrepareCopy) (PixmapPtr       pSrcPixmap,
                                 PixmapPtr       pDstPixmap,
-                                Bool            upsidedown,
-                                Bool            reverse,
+                                int             dx,
+                                int             dy,
                                 int             alu,
                                 Pixel           planemask);
     void        (*Copy) (PixmapPtr       pDstPixmap,
