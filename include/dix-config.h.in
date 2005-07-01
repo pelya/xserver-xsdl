@@ -1,0 +1,346 @@
+/* include/config.h.in.  Generated from configure.ac by autoheader.  */
+
+/* Support BigRequests extension */
+#undef BIGREQS
+
+/* Builder address */
+#undef BUILDERADDR
+
+/* Default font path */
+#undef COMPILEDDEFAULTFONTPATH
+
+/* Support Composite Extension */
+#undef COMPOSITE
+
+/* Define to one of `_getb67', `GETB67', `getb67' for Cray-2 and Cray-YMP
+   systems. This function is required for `alloca.c' support on those systems.
+   */
+#undef CRAY_STACKSEG_END
+
+/* Define to 1 if using `alloca.c'. */
+#undef C_ALLOCA
+
+/* Support Damage extension */
+#undef DAMAGE
+
+/* Use OsVendorInit */
+#undef DDXOSINIT
+
+/* Build DPMS extension */
+#undef DPMSExtension
+
+/* Build GLX extension */
+#undef GLXEXT
+
+/* Include handhelds.org h3600 touchscreen driver */
+#undef H3600_TS
+
+/* Support XDM-AUTH*-1 */
+#undef HASXDMAUTH
+
+/* Support SHM */
+#undef HAS_SHM
+
+/* Define to 1 if you have `alloca', as a function or macro. */
+#undef HAVE_ALLOCA
+
+/* Define to 1 if you have <alloca.h> and it should be used (not on Ultrix).
+   */
+#undef HAVE_ALLOCA_H
+
+/* Define to 1 if you have the <asm/mtrr.h> header file. */
+#undef HAVE_ASM_MTRR_H
+
+/* Define to 1 if you have the <dbm.h> header file. */
+#undef HAVE_DBM_H
+
+/* Define to 1 if you have the <dirent.h> header file, and it defines `DIR'.
+   */
+#undef HAVE_DIRENT_H
+
+/* Define to 1 if you have the <dlfcn.h> header file. */
+#undef HAVE_DLFCN_H
+
+/* Define to 1 if you don't have `vprintf' but do have `_doprnt.' */
+#undef HAVE_DOPRNT
+
+/* Define to 1 if you have the <fcntl.h> header file. */
+#undef HAVE_FCNTL_H
+
+/* Define to 1 if you have the `geteuid' function. */
+#undef HAVE_GETEUID
+
+/* Define to 1 if you have the `getopt' function. */
+#undef HAVE_GETOPT
+
+/* Define to 1 if you have the `getopt_long' function. */
+#undef HAVE_GETOPT_LONG
+
+/* Define to 1 if you have the `getuid' function. */
+#undef HAVE_GETUID
+
+/* Define to 1 if you have the <inttypes.h> header file. */
+#undef HAVE_INTTYPES_H
+
+/* Define to 1 if you have the `m' library (-lm). */
+#undef HAVE_LIBM
+
+/* Define to 1 if you have the `link' function. */
+#undef HAVE_LINK
+
+/* Define to 1 if you have the <linux/agpgart.h> header file. */
+#undef HAVE_LINUX_AGPGART_H
+
+/* Define to 1 if you have the <linux/apm_bios.h> header file. */
+#undef HAVE_LINUX_APM_BIOS_H
+
+/* Define to 1 if you have the <linux/fb.h> header file. */
+#undef HAVE_LINUX_FB_H
+
+/* Define to 1 if you have the <linux/h3600_ts.h> header file. */
+#undef HAVE_LINUX_H3600_TS_H
+
+/* Define to 1 if you have the `memmove' function. */
+#undef HAVE_MEMMOVE
+
+/* Define to 1 if you have the <memory.h> header file. */
+#undef HAVE_MEMORY_H
+
+/* Define to 1 if you have the `memset' function. */
+#undef HAVE_MEMSET
+
+/* Define to 1 if you have the `mkstemp' function. */
+#undef HAVE_MKSTEMP
+
+/* Define to 1 if you have the <ndbm.h> header file. */
+#undef HAVE_NDBM_H
+
+/* Define to 1 if you have the <ndir.h> header file, and it defines `DIR'. */
+#undef HAVE_NDIR_H
+
+/* Define to 1 if you have the <rpcsvc/dbm.h> header file. */
+#undef HAVE_RPCSVC_DBM_H
+
+/* Define to 1 if you have the <stdint.h> header file. */
+#undef HAVE_STDINT_H
+
+/* Define to 1 if you have the <stdlib.h> header file. */
+#undef HAVE_STDLIB_H
+
+/* Define to 1 if you have the `strchr' function. */
+#undef HAVE_STRCHR
+
+/* Define to 1 if you have the <strings.h> header file. */
+#undef HAVE_STRINGS_H
+
+/* Define to 1 if you have the <string.h> header file. */
+#undef HAVE_STRING_H
+
+/* Define to 1 if you have the `strrchr' function. */
+#undef HAVE_STRRCHR
+
+/* Define to 1 if you have the `strtol' function. */
+#undef HAVE_STRTOL
+
+/* Define to 1 if SYSV IPC is available */
+#undef HAVE_SYSV_IPC
+
+/* Define to 1 if you have the <sys/agpio.h> header file. */
+#undef HAVE_SYS_AGPIO_H
+
+/* Define to 1 if you have the <sys/dir.h> header file, and it defines `DIR'.
+   */
+#undef HAVE_SYS_DIR_H
+
+/* Define to 1 if you have the <sys/io.h> header file. */
+#undef HAVE_SYS_IO_H
+
+/* Define to 1 if you have the <sys/ndir.h> header file, and it defines `DIR'.
+   */
+#undef HAVE_SYS_NDIR_H
+
+/* Define to 1 if you have the <sys/stat.h> header file. */
+#undef HAVE_SYS_STAT_H
+
+/* Define to 1 if you have the <sys/types.h> header file. */
+#undef HAVE_SYS_TYPES_H
+
+/* Define to 1 if you have the <sys/vm86.h> header file. */
+#undef HAVE_SYS_VM86_H
+
+/* Define to 1 if you have the <tslib.h> header file. */
+#undef HAVE_TSLIB_H
+
+/* Define to 1 if you have the <unistd.h> header file. */
+#undef HAVE_UNISTD_H
+
+/* Define to 1 if you have the `vprintf' function. */
+#undef HAVE_VPRINTF
+
+/* Support IPv6 for TCP connections */
+#undef IPv6
+
+/* Support MIT Misc extension */
+#undef MITMISC
+
+/* Support MIT-SHM Extension */
+#undef MITSHM
+
+/* Disable some debugging code */
+#undef NDEBUG
+
+/* Name of package */
+#undef PACKAGE
+
+/* Internal define for Xinerama */
+#undef PANORAMIX
+
+/* Support pixmap privates */
+#undef PIXPRIV
+
+/* Overall prefix */
+#undef PROJECTROOT
+
+/* Support RANDR extension */
+#undef RANDR
+
+/* Support Record extension */
+#undef RECORD
+
+/* Support RENDER extension */
+#undef RENDER
+
+/* Support X resource extension */
+#undef RES
+
+/* Support MIT-SCREEN-SAVER extension */
+#undef SCREENSAVER
+
+/* Use a lock to prevent multiple servers on a display */
+#undef SERVER_LOCK
+
+/* Support SHAPE extension */
+#undef SHAPE
+
+/* Include time-based scheduler */
+#undef SMART_SCHEDULE
+
+/* If using the C implementation of alloca, define if you know the
+   direction of stack growth for your system; otherwise it will be
+   automatically deduced at run-time.
+	STACK_DIRECTION > 0 => grows toward higher addresses
+	STACK_DIRECTION < 0 => grows toward lower addresses
+	STACK_DIRECTION = 0 => direction of growth unknown */
+#undef STACK_DIRECTION
+
+/* Define to 1 if you have the ANSI C header files. */
+#undef STDC_HEADERS
+
+/* Support TCP socket connections */
+#undef TCPCONN
+
+/* Enable touchscreen support */
+#undef TOUCHSCREEN
+
+/* Support tslib touchscreen abstraction library */
+#undef TSLIB
+
+/* Support UNIX socket connections */
+#undef UNIXCONN
+
+/* Use builtin rgb color database */
+#undef USE_RGB_BUILTIN
+
+/* Use rgb.txt directly */
+#undef USE_RGB_TXT
+
+/* Define to 1 if your processor stores words with the most significant byte
+   first (like Motorola and SPARC, unlike Intel and VAX). */
+#undef WORDS_BIGENDIAN
+
+/* unaligned word accesses behave as expected */
+#undef WORKING_UNALIGNED_INT
+
+/* Support XCMisc extension */
+#undef XCMISC
+
+/* Build Security extension */
+#undef XCSECURITY
+
+/* Support Xdmcp */
+#undef XDMCP
+
+/* Build XEvIE extension */
+#undef XEVIE
+
+/* Build XFree86 BigFont extension */
+#undef XF86BIGFONT
+
+/* Support XFree86 miscellaneous extensions */
+#undef XF86MISC
+
+/* Support XFree86 Video Mode extension */
+#undef XF86VIDMODE
+
+/* Support XFixes extension */
+#undef XFIXES
+
+/* Build XDGA support */
+#undef XFree86XDGA
+
+/* Support Xinerama extension */
+#undef XINERAMA
+
+/* Support X Input extension */
+#undef XINPUT
+
+/* Build XKB */
+#undef XKB
+
+/* Enable XKB per default */
+#undef XKB_DFLT_DISABLED
+
+/* Build XKB server */
+#undef XKB_IN_SERVER
+
+/* Vendor release */
+#undef XORG_RELEASE
+
+/* Current Xorg version */
+#undef XORG_VERSION_CURRENT
+
+/* Build XRes extension */
+#undef XResExtension
+
+/* Support XSync extension */
+#undef XSYNC
+
+/* Support XTest extension */
+#undef XTEST
+
+/* Support XTrap extension */
+#undef XTRAP
+
+/* Support Xv Extension */
+#undef XV
+
+/* Vendor name */
+#undef XVENDORNAME
+
+/* Endian order */
+#undef X_BYTE_ORDER
+
+/* BSD-compliant source */
+#undef _BSD_SOURCE
+
+/* POSIX-compliant source */
+#undef _POSIX_SOURCE
+
+/* X/Open-compliant source */
+#undef _XOPEN_SOURCE
+
+/* Define to empty if `const' does not conform to ANSI C. */
+#undef const
+
+/* Define to `int' if <sys/types.h> does not define. */
+#undef pid_t

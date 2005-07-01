@@ -1,0 +1,69 @@
+/*
+ * xorg-config.h.in: not at all generated.
+ * 
+ * This file differs from xorg-server.h.in in that -server is installed with the
+ * rest of the SDK for external drivers/modules to use, whereas -config is for
+ * internal use only (i.e. building the DDX).
+ *
+ */
+
+/* Normally this is guarded, but if we don't have dix-config.h, we're in some
+ * pretty serious trouble anyway.  Consider this a canary. */
+#include <dix-config.h>
+
+/* Building XFree86-based server. */
+#undef XFree86Server
+
+/* Building Xorg server. */
+#undef XORGSERVER
+
+/* Building XFree86 loader. */
+#undef XFree86LOADER
+
+/* Current X.Org version. */
+#undef XORG_VERSION_CURRENT
+
+/* Need XFree86 libc-replacement typedefs. */
+#undef NEED_XF86_TYPES
+
+/* Need XFree86 libc-replacement functions. */
+#undef NEED_XF86_PROTOTYPES
+
+/* Name of X server. */
+#undef __XSERVERNAME__
+
+/* Default set of XKB rules. */
+#undef __XKBDEFRULES__
+
+/* URL to go to for support. */
+#undef __VENDORDWEBSUPPORT__
+
+/* Use libdl-based loader. */
+#undef DLOPEN_SUPPORT
+
+/* Built-in output drivers. */
+#undef DRIVERS
+
+/* Built-in input drivers. */
+#undef IDRIVERS
+
+/* Path to configuration file. */
+#undef XF86CONFIGFILE
+
+/* Path to configuration file. */
+#undef __XCONFIGFILE__
+
+/* Path to loadable modules. */
+#undef DEFAULT_MODULE_PATH
+
+/* Path to server log file. */
+#undef DEFAULT_LOGPREFIX
+
+/* Path to XKB definitions. */
+#undef XKB_BASE_DIRECTORY
+
+/* Building DRI-capable DDX. */
+#undef XORGDRI
+
+/* Building DRI-capable DDX. */
+#undef _XORGDRI_SERVER_
