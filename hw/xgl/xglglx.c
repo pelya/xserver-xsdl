@@ -4378,11 +4378,11 @@ xglBindBuffers (__GLXdrawablePrivate *glxPriv,
 	
 	/* XXX: front left buffer is only supported so far */
 	if (buffer != GLX_FRONT_LEFT_EXT)
-	    return FALSE;
+	    return BadMatch;
 
 	/* Must be a GLXpixmap */
 	if (!glxPriv->pGlxPixmap)
-	    return FALSE;
+	    return __glXBadDrawable;
 
 	pDrawable = glxPriv->pGlxPixmap->pDraw;
 
@@ -4408,7 +4408,7 @@ xglBindBuffers (__GLXdrawablePrivate *glxPriv,
 	
 	    pTexObj->pPixmap = pPixmap;
 
-	    return TRUE;
+	    return Success;
 	}
     }
     else if (pBufferPriv->private)
@@ -4422,7 +4422,7 @@ xglBindBuffers (__GLXdrawablePrivate *glxPriv,
 	return status;
     }
 
-    return FALSE;
+    return __glXBadContext;
 }
 
 static int
@@ -4438,7 +4438,7 @@ xglReleaseBuffers (__GLXdrawablePrivate *glxPriv,
 	
 	/* XXX: front left buffer is only supported so far */
 	if (buffer != GLX_FRONT_LEFT_EXT)
-	    return FALSE;
+	    return BadMatch;
 	
 	/* Must be a GLXpixmap */
 	if (glxPriv->pGlxPixmap)
@@ -4453,7 +4453,7 @@ xglReleaseBuffers (__GLXdrawablePrivate *glxPriv,
 		(*pDrawable->pScreen->DestroyPixmap) (pTexObj->pPixmap);
 		pTexObj->pPixmap = NULL;
 		
-		return TRUE;
+		return Success;
 	    }
 	    else
 	    {
@@ -4463,7 +4463,7 @@ xglReleaseBuffers (__GLXdrawablePrivate *glxPriv,
 		    (*pDrawable->pScreen->DestroyPixmap) (pTexObj->pPixmap);
 		    pTexObj->pPixmap = NULL;
 		    
-		    return TRUE;
+		    return Success;
 		}
 	    }
 	}
@@ -4479,7 +4479,7 @@ xglReleaseBuffers (__GLXdrawablePrivate *glxPriv,
 	return status;
     }
     
-    return FALSE;
+    return __glXBadContext;
 }
 
 static void
