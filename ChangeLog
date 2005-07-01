@@ -1,0 +1,8 @@
+2005-07-02  Daniel Stone  <daniel@freedesktop.org>
+
+	* acinclude.m4:
+	* autogen.sh:
+	* configure.ac:
+	* **/Makefile.am:
+	* xorg-server.pc.in:
+	Initial build system checked in.
