@@ -138,7 +138,7 @@ xnestKeyboardProc(DeviceIntPtr pDev, int onoff)
   int mapWidth;
   int min_keycode, max_keycode;
   KeySymsRec keySyms;
-  CARD8 modmap[256];
+  CARD8 modmap[MAP_LENGTH];
   int i, j;
   XKeyboardState values;
 
@@ -168,7 +168,7 @@ xnestKeyboardProc(DeviceIntPtr pDev, int onoff)
 				   &mapWidth);
 #endif
       
-      for (i = 0; i < 256; i++)
+      for (i = 0; i < MAP_LENGTH; i++)
 	modmap[i] = 0;
       for (j = 0; j < 8; j++)
 	for(i = 0; i < modifier_keymap->max_keypermod; i++) {
@@ -293,6 +293,8 @@ xnestUpdateModifierState(unsigned int state)
   KeyClassPtr keyc = pDev->key;
   int i;
   CARD8 mask;
+
+  state = state & 0xff;
 
   if (keyc->state == state)
     return;

@@ -126,6 +126,7 @@ xnestCollectEvents()
       break;
       
     case ButtonPress:
+      xnestUpdateModifierState(X.xkey.state);
       x.u.u.type = ButtonPress;
       x.u.u.detail = X.xbutton.button;
       x.u.keyButtonPointer.time = lastEventTime = GetTimeInMillis();
@@ -133,6 +134,7 @@ xnestCollectEvents()
       break;
       
     case ButtonRelease:
+      xnestUpdateModifierState(X.xkey.state);
       x.u.u.type = ButtonRelease;
       x.u.u.detail = X.xbutton.button;
       x.u.keyButtonPointer.time = lastEventTime = GetTimeInMillis();
