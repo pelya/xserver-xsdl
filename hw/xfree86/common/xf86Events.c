@@ -1273,6 +1273,29 @@ xf86InterceptSigIll(void (*sigillhandler)(void))
     xf86SigIllHandler = sigillhandler;
 }
 
+#if defined(__GLIBC__) && __GLIBC_PREREQ(2, 1)
+
+#include <execinfo.h>
+
+static inline void xorg_backtrace(void)
+{
+    void *array[32]; /* deeper nesting than this means something's wrong */
+    size_t size, i;
+    char **strings;
+    ErrorF("\nBacktrace:\n");
+    size = backtrace(array, 32);
+    strings = backtrace_symbols(array, size);
+    for (i = 0; i < size; i++)
+        ErrorF("%d: %s\n", i, strings[i]);
+    free(strings);
+}
+
+#else /* not glibc or glibc < 2.1 */
+
+static inline void xorg_backtrace(void) { return; }
+
+#endif
+
 /*
  * xf86SigHandler --
  *    Catch unexpected signals and exit or continue cleanly.
@@ -1306,6 +1329,9 @@ xf86SigHandler(int signo)
 	 "   *** If unresolved symbols were reported above, they might not\n"
 	 "   *** be the reason for the server aborting.\n");
 #endif
+
+  xorg_backtrace();
+    
   FatalError("Caught signal %d.  Server aborting\n", signo);
 }
 
