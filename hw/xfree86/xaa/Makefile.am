@@ -61,3 +61,5 @@ EXTRA_DIST = xaaWrapper.h xaacexp.h xaawrap.h xaaLine.c xaaDashLine.c \
              xaaStipple.c xaaTEGlyph.c xaaBitmap.c
 
 INCLUDES = $(XORG_INCS)
+
+AM_CFLAGS = $(XORG_CFLAGS)

@@ -1,5 +1,7 @@
 noinst_LTLIBRARIES = libXi.la
 
+AM_CFLAGS = $(DIX_CFLAGS)
+
 libXi_la_SOURCES =	\
 	allowev.c \
 	allowev.h \

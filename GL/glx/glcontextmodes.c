@@ -31,6 +31,9 @@
  * \author Ian Romanick <idr@us.ibm.com>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <dix-config.h>
+#endif
 #ifdef DRI_NEW_INTERFACE_ONLY
 # include <stdlib.h>
 # include <string.h>

@@ -129,7 +129,6 @@ VERSION_STRING="${DEFAULT_VENDOR_RELEASE//./,},0"
 DEFAULT_VENDOR_WEB="http://wiki.x.org"
 EXTENSION_LIBS='$(top_builddir)/Xext/libXext.la'
 DMX_EXTENSIONS='$(top_builddir)/Xext/libXext.la'" "'$(top_builddir)/render/librender.la'
-CORE_INCS='-I$(top_srcdir)/include'
 EXTENSION_INCS='-I$(top_srcdir)/Xext'
 AC_DEFINE(XORG_SERVER, 1, [Build X.Org X server])
 
@@ -225,6 +224,7 @@ fi
 AC_DEFINE(XKB,1,[Build XKB])
 AC_DEFINE(XKB_IN_SERVER,1,[Build XKB server])
 AC_DEFINE(XKB_DFLT_DISABLED,0,[Enable XKB per default])
+REQUIRED_MODULES="$REQUIRED_MODULES xkbfile"
 AC_DEFINE(XINPUT,,[Build XInput])
 
 AC_SUBST([XKB])
@@ -426,6 +426,7 @@ XPSTUBS_LIB='$(top_builddir)/dix/libxpstubs.la'
 XKB_LIB='$(top_builddir)/xkb/libxkb.la'
 XI_LIB='$(top_builddir)/Xi/libXi.la'
 XI_INC='-I$(top_srcdir)/Xi'
+CORE_INCS='-I$(top_srcdir)/include -I$(top_builddir)/inc'
 
 PKG_CHECK_MODULES([XSERVER], [$REQUIRED_MODULES])
 XSERVER_LIBS="${XSERVER_LIBS} -lm -lz"
@@ -443,30 +444,25 @@ else
 	ENDIAN="X_LITTLE_ENDIAN"
 fi
 AC_DEFINE_UNQUOTED(X_BYTE_ORDER,[$ENDIAN],[Endian order])
-XORG_CFLAGS="$XORGSERVER_CFLAGS $XORG_INCS"
+XORG_CFLAGS="$XORGSERVER_CFLAGS -DHAVE_XORG_CONFIG_H"
 case $host_os in
   linux-gnu*)
-  	# support: yea
   	XORG_OS="linux"
 	XORG_OS_SUBDIR="linux"
 	;;
   freebsd*)
-  	# support: nay
   	XORG_OS="freebsd"
 	XORG_OS_SUBDIR="bsd"
 	;;
   netbsd*)
-  	# support: nay
   	XORG_OS="netbsd"
 	XORG_OS_SUBDIR="bsd"
 	;;
   openbsd*)
- 	# support: nay
   	XORG_OS="openbsd"
 	XORG_OS_SUBDIR="bsd"
 	;;
   solaris*)
-  	# support: nay
   	XORG_OS="solaris"
 	XORG_OS_SUBDIR="solaris"
 	;;
@@ -510,6 +506,14 @@ AC_DEFINE_DIR(XKB_BASE_DIRECTORY, XKBDIR, [Path to XKB data])
 AC_DEFINE(XORGSERVER,,[Build Xorg server])
 AC_DEFINE_UNQUOTED(__VENDORDWEBSUPPORT__, ["$VENDOR_WEB"], [Vendor web address for support])
 
+dnl only used in hw/xfree86/scanpci, TTBOMK
+AC_PATH_PROG(PERL, perl, no)
+dnl unlikely as this may be ...
+if test "x$PERL" = xno; then
+	AC_MSG_ERROR([Perl is required to build the XFree86/Xorg DDX.])
+fi
+AC_SUBST(PERL)
+
 dnl and the rest of these are generic, so they're in config.h
 AC_DEFINE(XFree86XDGA,1,[Build XDGA support])
 AC_DEFINE(XF86BIGFONT,1,[Build XFree86 BigFont extension])
@@ -538,6 +542,9 @@ AC_SUBST([CFLAGS])
 
 BUILD_DATE="$(date +'%Y%m%d')"
 AC_SUBST([BUILD_DATE])
+
+DIX_CFLAGS="-DHAVE_DIX_CONFIG_H"
+AC_SUBST([DIX_CFLAGS])
 
 AC_MSG_CHECKING(if unaligned word accesses behave as expected)
 AC_TRY_RUN([

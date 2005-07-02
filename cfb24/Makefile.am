@@ -6,6 +6,6 @@ libcfb24_la_SOURCES = $(libcfb_common_sources) $(libcfb_gen_sources)
 
 EXTRA_DIST = cfbrrop24.h
 	
-AM_CFLAGS = -DPSZ=24
+AM_CFLAGS = -DPSZ=24 $(DIX_CFLAGS)
 
 INCLUDES = $(CFB_INCLUDES)

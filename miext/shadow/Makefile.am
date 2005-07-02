@@ -1,5 +1,7 @@
 module_LTLIBRARIES = libshadow.la
 
+AM_CFLAGS = $(DIX_CFLAGS)
+
 sdk_HEADERS = shadow.h
 
 libshadow_la_SOURCES =		\

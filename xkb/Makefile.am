@@ -1,5 +1,7 @@
 noinst_LTLIBRARIES = libxkb.la
 
+AM_CFLAGS = $(DIX_CFLAGS)
+
 DDX_SRCS = \
         ddxBeep.c \
         ddxCtrls.c \

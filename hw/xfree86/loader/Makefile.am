@@ -5,7 +5,7 @@ INCLUDES = $(XORG_INCS) -I$(srcdir)/../parser -I$(srcdir)/../vbe \
            -I$(srcdir)/../vgahw -I$(srcdir)/../ramdac -I$(srcdir)/../shadowfb
 
 #AM_LDFLAGS = -r
-AM_CFLAGS = -DIN_LOADER
+AM_CFLAGS = -DIN_LOADER $(XORG_CFLAGS)
 
 EXTRA_DIST = \
 	aout.h \

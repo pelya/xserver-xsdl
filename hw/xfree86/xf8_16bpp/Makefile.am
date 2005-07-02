@@ -2,7 +2,9 @@ module_LTLIBRARIES = libxf8_16bpp.la
 
 sdk_HEADERS = cfb8_16.h
 
-INCLUDES = $(XORG_INCS) -I$(top_srcdir)/cfb -I$(top_srcdir)/mfb
+INCLUDES = $(XORG_INCS)
+
+AM_CFLAGS = $(XORG_CFLAGS)
 
 libxf8_16bpp_la_SOURCES = \
 	cfb8_16module.c \

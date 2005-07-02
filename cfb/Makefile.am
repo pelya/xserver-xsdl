@@ -9,7 +9,7 @@ libcfb_la_SOURCES = cfb8bit.c cfbcmap.c cfbteblt8.c cfbglrop8.c cfbpush8.c \
 
 libcfb_la_LIBADD = ../mfb/libmfb.la
 
-AM_CFLAGS = -DPSZ=8
+AM_CFLAGS = -DPSZ=8 $(DIX_CFLAGS)
 
 INCLUDES = $(CFB_INCLUDES)
 

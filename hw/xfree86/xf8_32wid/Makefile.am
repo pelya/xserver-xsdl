@@ -2,7 +2,8 @@ module_LTLIBRARIES = libxf8_32wid.la
 
 sdk_HEADERS = cfb8_32wid.h
 
-INCLUDES = $(XORG_INCS) -I$(top_srcdir)/cfb -I$(top_srcdir)/mfb
+INCLUDES = $(XORG_INCS)
+AM_CFLAGS = $(XORG_CFLAGS)
 
 libxf8_32wid_la_SOURCES = \
 	cfb8_32widmodule.c \

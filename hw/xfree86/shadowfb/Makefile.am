@@ -4,3 +4,5 @@ libshadowfb_la_SOURCES = sfbmodule.c shadow.c
 sdk_HEADERS = shadowfb.h
 
 INCLUDES = $(XORG_INCS)
+
+AM_CFLAGS = $(XORG_CFLAGS)

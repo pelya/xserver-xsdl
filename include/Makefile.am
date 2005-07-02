@@ -45,4 +45,6 @@ sdk_HEADERS =		\
 	windowstr.h	\
 	xorg-server.h
 
+AM_CFLAGS = $(DIX_CFLAGS)
+
 EXTRA_DIST = $(sdk_HEADERS) do-not-use-config.h dix-config.h xorg-config.h

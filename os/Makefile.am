@@ -1,8 +1,7 @@
 noinst_LTLIBRARIES = libos.la
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
+AM_CFLAGS = $(DIX_CFLAGS)
+
 #	k5auth.c	\
 #	lbxio.c		\
 #	rpcauth.c	\

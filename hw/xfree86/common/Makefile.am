@@ -44,9 +44,9 @@ libcommon_a_SOURCES = xf86Configure.c xf86Bus.c xf86Config.c \
                       xf86Cursor.c xf86DGA.c xf86DPMS.c xf86DefModes.c \
                       xf86DoProbe.c xf86DoScanPci.c xf86Events.c \
                       xf86Globals.c xf86Io.c xf86AutoConfig.c \
-                      xf86MiscExt.c xf86Option.c xf86PM.c \
+                      xf86MiscExt.c xf86Option.c \
                       xf86VidMode.c xf86fbman.c xf86cmap.c \
-                      ../scanpci/xf86ScanPci.c xf86Helper.c \
+                      xf86Helper.c \
                       xf86Mode.c xf86Build.h xorgHelper.c xf86Versions.c \
                       $(XVSOURCES) $(BUSSOURCES) $(XKBSOURCES) \
                       $(DEBUGSOURCES) $(XISOURCES) $(RANDRSOURCES) \
@@ -92,6 +92,9 @@ EXTRA_DIST = \
 	xf86xvmc.h \
 	xf86xvpriv.h \
 	xisb.h \
-	xf86Build.h.in
+	xf86Build.h.in \
+	xf86Version.h \
+	xorgVersion.h \
+	xf86Date.h
 
 AM_CFLAGS = $(XORG_CFLAGS)

@@ -1,4 +1,4 @@
-AUTOMAKE_OPTIONS=dist-bzip2 foreign
+AUTOMAKE_OPTIONS=dist-bzip2 foreign nostdinc
 
 if COMPOSITE
 COMPOSITE_DIR=composite

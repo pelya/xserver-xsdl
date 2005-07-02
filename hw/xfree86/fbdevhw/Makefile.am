@@ -8,6 +8,8 @@ libfbdevhw_la_SOURCES = fbdevhw.c
 
 INCLUDES = $(XORG_INCS) -I$(srcdir)/../i2c
 
+AM_CFLAGS = $(XORG_CFLAGS)
+
 sdk_HEADERS = fbdevhw.h
 
 EXTRA_DIST = fbpriv.h

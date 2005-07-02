@@ -6,4 +6,4 @@ libcfb16_la_SOURCES = $(libcfb_common_sources) $(libcfb_gen_sources)
 
 INCLUDES = $(CFB_INCLUDES)
 
-AM_CFLAGS = -DPSZ=16
+AM_CFLAGS = -DPSZ=16 $(DIX_CFLAGS)

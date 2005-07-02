@@ -11,6 +11,8 @@ endif
 
 INCLUDES = $(XORG_INCS)
 
+AM_CFLAGS = $(XORG_CFLAGS)
+
 EXTRA_DIST = \
 	460gxPCI.h \
 	Pci.h \

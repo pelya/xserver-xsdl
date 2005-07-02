@@ -1,5 +1,7 @@
 noinst_LTLIBRARIES = librender.la
 
+AM_CFLAGS = $(DIX_CFLAGS)
+
 librender_la_SOURCES =	\
 	animcur.c	\
 	filter.c	\

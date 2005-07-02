@@ -43,8 +43,8 @@ libxf4bpp_la_SOURCES = \
         mfbfillarc.c \
         mfbzerarc.c \
         vgamodule.c
-	
-libxf4bpp_la_LIBADD=../xf1bpp/libxf1bpp.la
+
+libxf4bpp_la_LIBADD = ../xf1bpp/libxf1bpp.la
 
 EXTRA_DIST = OScompiler.h ibmTrace.h ppcGCstr.h ppcSpMcro.h vgaReg.h \
              vgaVideo.h wm3.h
@@ -55,5 +55,6 @@ mfbseg.c:
 	echo "#define POLYSEGMENT" > $@
 	echo "#include \"$(top_srcdir)/mfb/mfbline.c\"" >> $@
 
-INCLUDES = $(XORG_INCS) -I$(srcdir)/../xf1bpp -I$(top_srcdir)/mfb \
-	  -I$(top_srcdir)/cfb
+INCLUDES = $(XORG_INCS) -I$(srcdir)/../xf1bpp
+
+AM_CFLAGS = $(XORG_CFLAGS)

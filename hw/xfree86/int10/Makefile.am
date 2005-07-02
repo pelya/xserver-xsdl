@@ -23,7 +23,7 @@ libint10_la_SOURCES = pci.c xf86int10module.c helper_exec.c helper_mem.c \
 endif
 
 if INT10_STUB
-AM_CFLAGS = -D_PC -D_VM86_LINUX
+AM_CFLAGS = -D_PC -D_VM86_LINUX $(XORG_CFLAGS)
 libint10_la_SOURCES = stub.c xf86int10module.c
 endif
 

@@ -1,5 +1,7 @@
 noinst_LTLIBRARIES = libcomposite.la
 
+AM_CFLAGS = $(DIX_CFLAGS)
+
 libcomposite_la_SOURCES = 	\
 	compalloc.c		\
 	compext.c		\

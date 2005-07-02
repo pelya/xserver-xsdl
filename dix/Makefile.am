@@ -1,5 +1,7 @@
 noinst_LTLIBRARIES = libdix.la libxpstubs.la
 
+AM_CFLAGS = $(DIX_CFLAGS)
+
 libdix_la_SOURCES = 	\
 	atom.c		\
 	colormap.c	\

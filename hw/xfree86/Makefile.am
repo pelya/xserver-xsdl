@@ -32,5 +32,3 @@ Xorg_LDADD = $(XORG_LIBS) \
              -ldl
 
 Xorg_LDFLAGS = -rdynamic
-
-sdk_HEADERS = xf86Date.h xf86Version.h xorgVersion.h

@@ -3,7 +3,7 @@ noinst_LTLIBRARIES = libdixmods.la
 module_LTLIBRARIES = libbitmap.la libfb.la
 
 # yes, this is a cheesy hack.
-AM_CFLAGS = -include xorg-config.h $(XORG_CFLAGS)
+AM_CFLAGS = $(XORG_CFLAGS) -include xorg-config.h
 INCLUDES = $(XORG_INCS) -I$(top_srcdir)/afb -I$(top_srcdir)/mfb \
            -I$(top_srcdir)/cfb -I$(top_srcdir)/dbe -I$(srcdir)/../loader \
            -I$(top_srcdir)/miext/layer -I$(top_srcdir)/miext/shadow
@@ -32,7 +32,7 @@ libdixmods_la_SOURCES = \
 	$(top_srcdir)/Xext/xf86misc.c \
 	$(top_srcdir)/Xext/xf86vmode.c
 
-xkb%.c: $(srcdir)/ddx$*.c
+xkb%.c:
 	echo "#define XF86DDXACTIONS" > $@
 	echo "#include \"$(top_srcdir)/xkb/ddx$*.c\"" >> $@
 

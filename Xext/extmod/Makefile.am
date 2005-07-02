@@ -1,1 +1,3 @@
+AM_CFLAGS = $(DIX_CFLAGS)
+
 EXTRA_DIST = modinit.h

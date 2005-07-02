@@ -27,6 +27,9 @@
  * \author Ian Romanick <idr@us.ibm.com>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <dix-config.h>
+#endif
 #ifndef GLCONTEXTMODES_H
 #define GLCONTEXTMODES_H
 

@@ -32,7 +32,9 @@ if XEVIE
 XEVIE_SRCS = xevie.c EVIstruct.h
 endif
 
-AM_CFLAGS = -I$(srcdir)/extmod
+INCLUDES = -I$(srcdir)/extmod
+
+AM_CFLAGS = $(DIX_CFLAGS)
 
 EXTRA_DIST = \
 	dgaproc.h \

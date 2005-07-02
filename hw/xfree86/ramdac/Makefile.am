@@ -8,7 +8,8 @@ sdk_HEADERS = BT.h IBM.h TI.h xf86Cursor.h xf86RamDac.h
 DISTCLEANFILES = xf86BitOrder.c
 EXTRA_DIST = BTPriv.h IBMPriv.h TIPriv.h xf86CursorPriv.h xf86RamDacPriv.h
 
-AM_CFLAGS = -DXAAReverseBitOrder=xf86ReverseBitOrder -DRAMDAC_MODULE
+AM_CFLAGS = -DXAAReverseBitOrder=xf86ReverseBitOrder -DRAMDAC_MODULE \
+            $(XORG_CFLAGS)
 INCLUDES = $(XORG_INCS)
 
 xf86BitOrder.c:

@@ -58,7 +58,7 @@ libxf1bppmfb_a_SOURCES = \
 
 libxf1bpp_la_SOURCES = $(libxf1bppmfb_a_SOURCES) $(libxf1bppgen_a_SOURCES)
 
-AM_CFLAGS = -DXF86MONO -include mfbmap.h
+AM_CFLAGS = -DXF86MONO -include mfbmap.h $(XORG_CFLAGS)
 INCLUDES = $(XORG_INCS)
 
 mfbseg.c:

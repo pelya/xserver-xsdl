@@ -4,3 +4,5 @@ librac_la_SOURCES = xf86RACmodule.c xf86RAC.c
 sdk_HEADERS = xf86RAC.h
 
 INCLUDES = $(XORG_INCS)
+
+AM_CFLAGS = $(XORG_CFLAGS)

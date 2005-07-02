@@ -2,6 +2,8 @@ noinst_LIBRARIES = libdummy.a
 
 INCLUDES = $(XORG_INCS)
 
+AM_CFLAGS = $(XORG_CFLAGS)
+
 libdummy_a_SOURCES = getvalidbios.c \
                      pcitestmulti.c xf86allocscripi.c \
                      xf86addrestolist.c xf86drvmsg.c xf86drvmsgverb.c \

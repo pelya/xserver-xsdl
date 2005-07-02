@@ -1,5 +1,7 @@
 noinst_LTLIBRARIES = libafb.la
 
+AM_CFLAGS = $(DIX_CFLAGS)
+
 libafb_gen_sources = afbbltC.c afbbltX.c afbbltCI.c afbbltO.c afbbltG.c afbtileC.c afbtileG.c afbseg.c
 
 DISTCLEANFILES = $(libafb_gen_sources)

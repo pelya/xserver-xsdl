@@ -1,5 +1,7 @@
 noinst_LTLIBRARIES = libmfb.la
 
+AM_CFLAGS = $(DIX_CFLAGS)
+
 libmfb_gen_sources = mfbseg.c mfbpgbwht.c mfbpgbblak.c mfbpgbinv.c mfbigbwht.c \
 	 mfbigbblak.c mfbpawhite.c mfbpablack.c mfbpainv.c mfbtewhite.c \
 	 mfbteblack.c mfbbltC.c mfbbltX.c mfbbltCI.c mfbbltO.c mfbbltG.c \
