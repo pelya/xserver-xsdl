@@ -27,9 +27,6 @@
 #include <dix-config.h>
 #endif
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
 #include <X11/misc.h>
 #include "scrnintstr.h"
 #include <X11/os.h>

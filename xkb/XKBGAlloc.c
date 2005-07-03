@@ -26,18 +26,17 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 ********************************************************/
 /* $XFree86: xc/lib/X11/XKBGAlloc.c,v 3.4 2001/01/17 19:41:48 dawes Exp $ */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#elif defined(HAVE_CONFIG_H)
+#include <config.h>
+#endif
+
 #define	NEED_EVENTS
 #define	NEED_REPLIES
 
-#ifdef HAVE_DIX_CONFIG_H
-#include <dix-config.h>
-#endif
-
 #ifndef XKB_IN_SERVER
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
 #include <stdio.h>
 #include "Xlibint.h"
 #include "XKBlibint.h"
@@ -47,12 +46,12 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #else 
 
 #include <stdio.h>
-#include "X.h"
-#include "Xproto.h"
+#include <X11/X.h>
+#include <X11/Xproto.h>
 #include "misc.h"
 #include "inputstr.h"
-#include "XKBsrv.h"
-#include "XKBgeom.h"
+#include <X11/extensions/XKBsrv.h>
+#include <X11/extensions/XKBgeom.h>
 
 #endif /* XKB_IN_SERVER */
 
