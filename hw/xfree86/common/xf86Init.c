@@ -114,7 +114,9 @@ static void xf86RunVtInit(void);
 extern void os2ServerVideoAccess();
 #endif
 
+#ifdef XF86PM
 void (*xf86OSPMClose)(void) = NULL;
+#endif
 
 #ifdef XFree86LOADER
 static char *baseModules[] = {
@@ -259,7 +261,9 @@ PostConfigInit(void)
 #endif
     }
 
+#ifdef XF86PM
     xf86OSPMClose = xf86OSPMOpen();
+#endif
     
     /* Run an external VT Init program if specified in the config file */
     xf86RunVtInit();
@@ -831,6 +835,7 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
      */
     xf86OpenConsole();
 
+#ifdef XF86PM
     /*
       should we reopen it here? We need to deal with an already opened
       device. We could leave this to the OS layer. For now we simply
@@ -840,6 +845,7 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
         xf86OSPMClose();
     if ((xf86OSPMClose = xf86OSPMOpen()) != NULL)
 	xf86MsgVerb(X_INFO, 3, "APM registered successfully\n");
+#endif
 
     /* Make sure full I/O access is enabled */
     if (xorgHWAccess)
@@ -1216,9 +1222,11 @@ ddxGiveUp()
 {
     int i;
 
+#ifdef XF86PM
     if (xf86OSPMClose)
 	xf86OSPMClose();
     xf86OSPMClose = NULL;
+#endif
 
     xf86AccessLeaveState();
 

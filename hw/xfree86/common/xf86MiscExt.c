@@ -62,7 +62,6 @@
 #endif
 
 #include "xf86OSmouse.h"
-#include "../input/mouse/mouse.h"
 
 #ifdef DEBUG
 # define DEBUG_P(x) ErrorF(x"\n");

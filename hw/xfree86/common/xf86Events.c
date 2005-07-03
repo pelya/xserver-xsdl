@@ -173,7 +173,9 @@ extern fd_set EnabledDevices;
 #if defined(XQUEUE)
 extern void xf86XqueRequest(void);
 #endif
+#ifdef XF86PM
 extern void (*xf86OSPMClose)(void);
+#endif
 
 static void xf86VTSwitch(void);
 
@@ -1448,9 +1450,11 @@ xf86VTSwitch()
       xf86UnblockSIGIO(prevSIGIO);
 
     } else {
+#ifdef XF86PM
 	  if (xf86OSPMClose)
 	      xf86OSPMClose();
 	  xf86OSPMClose = NULL;
+#endif
 
 	for (i = 0; i < xf86NumScreens; i++) {
  	    /*
@@ -1472,7 +1476,9 @@ xf86VTSwitch()
     if (!xf86VTSwitchTo()) return;
 
     prevSIGIO = xf86BlockSIGIO();
+#ifdef XF86PM
     xf86OSPMClose = xf86OSPMOpen();
+#endif
 
     if (xorgHWAccess)
 	xf86EnableIO();
