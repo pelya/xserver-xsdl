@@ -3,7 +3,7 @@ module_LTLIBRARIES = libscanpci.la libpcidata.la
 libpcidata_la_SOURCES = xf86PciData.c
 libscanpci_la_SOURCES = xf86ScanPci.c
 
-INCLUDES = $(XORG_INCS)
+INCLUDES = $(XORG_INCS) -I.
 
 AM_CFLAGS = $(XORG_CFLAGS)
 
