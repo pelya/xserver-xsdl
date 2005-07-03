@@ -29,9 +29,7 @@
 #include <xorg-config.h>
 #endif
 
-#ifdef HAVE_DIX_CONFIG_H
-#include <dix-config.h>
-#endif
+#define PSZ 32
 
 #ifdef XFree86LOADER
 
