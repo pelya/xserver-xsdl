@@ -71,7 +71,7 @@ SOFTWARE.
 #include <X11/Xauth.h>
 #include <X11/X.h>
 #include <X11/Xproto.h>
-#include <X11/misc.h>
+#include "misc.h"
 #include "site.h"
 #include <errno.h>
 #include <sys/types.h>

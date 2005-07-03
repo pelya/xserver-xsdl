@@ -52,7 +52,7 @@ SOFTWARE.
 #include <dix-config.h>
 #endif
 
-#include <X11/misc.h>
+#include "misc.h"
 #include "pixmapstr.h"
 #include "gcstruct.h"
 #include "mispans.h"

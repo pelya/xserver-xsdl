@@ -85,7 +85,7 @@ Equipment Corporation.
 #include <X11/Xproto.h>
 #include <X11/Xprotostr.h>
 
-#include <X11/misc.h>
+#include "misc.h"
 #include "regionstr.h"
 #include "scrnintstr.h"
 #include "gcstruct.h"

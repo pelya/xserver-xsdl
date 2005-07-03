@@ -114,7 +114,7 @@ typedef struct _CallbackList *CallbackListPtr; /* also in dix.h */
 
 typedef struct _xReq *xReqPtr;
 
-#include <X11/os.h> 	/* for ALLOCATE_LOCAL and DEALLOCATE_LOCAL */
+#include "os.h" 	/* for ALLOCATE_LOCAL and DEALLOCATE_LOCAL */
 #ifndef IN_MODULE
 #include <X11/Xfuncs.h> /* for bcopy, bzero, and bcmp */
 #endif

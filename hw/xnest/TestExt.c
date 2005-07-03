@@ -20,7 +20,7 @@ is" without express or implied warranty.
 #undef Bool
 #include "screenint.h"
 #include "input.h"
-#include <X11/misc.h>
+#include "misc.h"
 #include "scrnintstr.h"
 #include "servermd.h"
 #include "mipointer.h"

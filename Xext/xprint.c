@@ -76,7 +76,7 @@ copyright holders.
 #define NEED_EVENTS
 #include <X11/Xproto.h>
 #undef NEED_EVENTS
-#include <X11/misc.h>
+#include "misc.h"
 #include "windowstr.h"
 #include "scrnintstr.h"
 #include "pixmapstr.h"

@@ -35,7 +35,7 @@
 #define MIN(a,b) (((a)<(b))?(a):(b))
 #define ABS(x) (((x)>0)?(x):-(x))
 
-#include <X11/misc.h>
+#include "misc.h"
 #include "xf86_ansic.h"
 #include "compiler.h"
 

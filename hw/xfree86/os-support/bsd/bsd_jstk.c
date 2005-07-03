@@ -37,7 +37,7 @@
 #include <fcntl.h>
 
 #ifdef XFree86LOADER
-#include <X11/misc.h>
+#include "misc.h"
 #include "xf86_libc.h"
 #endif
 #include "xf86.h"

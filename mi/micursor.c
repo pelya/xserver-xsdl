@@ -52,7 +52,7 @@ SOFTWARE.
 
 #include "scrnintstr.h"
 #include "cursor.h"
-#include <X11/misc.h>
+#include "misc.h"
 #include "mi.h"
 
 extern Bool Must_have_memory;

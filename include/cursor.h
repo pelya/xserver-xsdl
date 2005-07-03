@@ -54,7 +54,7 @@ SOFTWARE.
 #ifndef CURSOR_H
 #define CURSOR_H 
 
-#include <X11/misc.h>
+#include "misc.h"
 #include "screenint.h"
 #include "window.h"
 

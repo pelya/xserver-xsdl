@@ -40,7 +40,7 @@ from The Open Group.
 #include <X11/Xproto.h>
 #include "closure.h"
 #include "dix.h"
-#include <X11/misc.h>
+#include "misc.h"
 #include "gcstruct.h"
 
 /* closure structures */

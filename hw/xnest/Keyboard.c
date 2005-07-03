@@ -21,7 +21,7 @@ is" without express or implied warranty.
 #include "keysym.h"
 #include "screenint.h"
 #include "inputstr.h"
-#include <X11/misc.h>
+#include "misc.h"
 #include "scrnintstr.h"
 #include "servermd.h"
 

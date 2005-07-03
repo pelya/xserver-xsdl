@@ -45,7 +45,7 @@ Equipment Corporation.
 #include "opaque.h"
 #include "inputstr.h"
 #include "migc.h"
-#include <X11/misc.h>
+#include "misc.h"
 #include "dixstruct.h"
 #include "panoramiX.h"
 #include "panoramiXsrv.h"

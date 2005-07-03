@@ -80,7 +80,7 @@ in this Software without prior written authorization from The Open Group.
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <X11/os.h>
+#include "os.h"
 #define USE_PSOUT_PRIVATE 1
 #include "psout.h"
 #ifdef XP_USE_FREETYPE

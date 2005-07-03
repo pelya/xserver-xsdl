@@ -38,7 +38,7 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include "inputstr.h"
 #include "scrnintstr.h"
 #include "windowstr.h"
-#include <X11/os.h>
+#include "os.h"
 #define	XKBSRV_NEED_FILE_FUNCS
 #include <X11/extensions/XKBsrv.h>
 #include <X11/extensions/XKBconfig.h>

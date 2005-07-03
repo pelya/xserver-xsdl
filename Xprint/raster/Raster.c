@@ -66,7 +66,7 @@ copyright holders.
 #include <X11/Xproto.h>
 #undef NEED_EVENTS
 #include <X11/Xatom.h>
-#include <X11/misc.h>
+#include "misc.h"
 #include "dixstruct.h"
 #include "scrnintstr.h"
 #include "screenint.h"

@@ -35,7 +35,7 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #define	NEED_EVENTS
 #define	NEED_REPLIES
 #include <X11/Xproto.h>
-#include <X11/misc.h>
+#include "misc.h"
 #include "inputstr.h"
 #define	XKBSRV_NEED_FILE_FUNCS
 #include <X11/extensions/XKBsrv.h>

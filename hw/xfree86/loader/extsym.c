@@ -31,7 +31,7 @@
 
 #include "resource.h"
 #include "sym.h"
-#include <X11/misc.h>
+#include "misc.h"
 #ifdef PANORAMIX
 #include "panoramiX.h"
 #endif

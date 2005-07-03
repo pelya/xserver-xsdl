@@ -15,7 +15,7 @@ Copyright (c) 1995, 1996, 1999  XFree86 Inc
 
 #include <X11/X.h>
 #include <X11/Xproto.h>
-#include <X11/misc.h>
+#include "misc.h"
 #include "dixstruct.h"
 #include "extnsionst.h"
 #include "colormapst.h"

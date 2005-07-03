@@ -51,7 +51,7 @@ SOFTWARE.
 #include <dix-config.h>
 #endif
 
-#include <X11/misc.h>
+#include "misc.h"
 #include <X11/fonts/fontstruct.h>
 #include "dixfontstr.h"
 #include "scrnintstr.h"

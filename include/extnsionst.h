@@ -54,7 +54,7 @@ SOFTWARE.
 #ifndef EXTENSIONSTRUCT_H
 #define EXTENSIONSTRUCT_H 
 
-#include <X11/misc.h>
+#include "misc.h"
 #include "screenint.h"
 #include "extension.h"
 #include "gc.h"

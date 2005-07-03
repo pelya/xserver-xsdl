@@ -29,9 +29,9 @@
 #ifndef _COMPINT_H_
 #define _COMPINT_H_
 
-#include <X11/misc.h>
+#include "misc.h"
 #include "scrnintstr.h"
-#include <X11/os.h>
+#include "os.h"
 #include "regionstr.h"
 #include "validate.h"
 #include "windowstr.h"

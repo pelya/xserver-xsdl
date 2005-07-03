@@ -62,7 +62,7 @@ copyright holders.
 #include <X11/X.h>
 #include "dixstruct.h"
 #include "screenint.h"
-#include <X11/misc.h>
+#include "misc.h"
 #include "scrnintstr.h"
 #include <X11/fonts/fontstruct.h>
 

@@ -56,7 +56,7 @@ from The Open Group.
 #endif
 
 #ifndef TESTING
-#include <X11/misc.h>
+#include "misc.h"
 #else
 #include <stdio.h>
 #include <stdlib.h>

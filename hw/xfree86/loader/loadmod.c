@@ -53,13 +53,13 @@
 #include <xorg-config.h>
 #endif
 
-#include <X11/os.h>
+#include "os.h"
 /* For stat() and related stuff */
 #define NO_OSLIB_PROTOTYPES
 #include "xf86_OSlib.h"
 #define LOADERDECLARATIONS
 #include "loaderProcs.h"
-#include <X11/misc.h>
+#include "misc.h"
 #include "xf86.h"
 #include "xf86Priv.h"
 #ifdef XINPUT

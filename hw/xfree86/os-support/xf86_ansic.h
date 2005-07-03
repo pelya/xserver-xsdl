@@ -90,7 +90,7 @@
 #endif
 
 #ifndef FONTMODULE
-#include <X11/misc.h>
+#include "misc.h"
 #endif
 #include "xf86_libc.h"
 #ifndef SHRT_MAX

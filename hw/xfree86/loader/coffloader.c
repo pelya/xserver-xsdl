@@ -44,7 +44,7 @@
 #endif
 
 #include <X11/Xos.h>
-#include <X11/os.h>
+#include "os.h"
 #include "coff.h"
 
 #include "sym.h"

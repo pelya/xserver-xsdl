@@ -56,7 +56,7 @@ SOFTWARE.
 #endif
 
 #include <X11/X.h>
-#include <X11/misc.h>
+#include "misc.h"
 #include "ilbm.h"
 #include "maskbits.h"
 #include "miline.h"

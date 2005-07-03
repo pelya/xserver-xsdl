@@ -53,7 +53,7 @@ SOFTWARE.
 
 #ifndef RESOURCE_H
 #define RESOURCE_H 1
-#include <X11/misc.h>
+#include "misc.h"
 
 /*****************************************************************
  * STUFF FOR RESOURCES 

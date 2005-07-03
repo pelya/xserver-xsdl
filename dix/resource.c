@@ -107,8 +107,8 @@ Equipment Corporation.
 #endif
 
 #include <X11/X.h>
-#include <X11/misc.h>
-#include <X11/os.h>
+#include "misc.h"
+#include "os.h"
 #include "resource.h"
 #include "dixstruct.h" 
 #include "opaque.h"

@@ -67,12 +67,12 @@ SOFTWARE.
 #endif
 #include <X11/X.h>
 #include <X11/Xproto.h>
-#include <X11/os.h>
+#include "os.h"
 #include <X11/Xpoll.h>
 #include "osdep.h"
 #include "opaque.h"
 #include "dixstruct.h"
-#include <X11/misc.h>
+#include "misc.h"
 #include "colormapst.h"
 #include "propertyst.h"
 #include "lbxserve.h"

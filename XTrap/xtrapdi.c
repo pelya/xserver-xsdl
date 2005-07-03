@@ -65,7 +65,7 @@ CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include <X11/X.h>
 #include <X11/Xproto.h>
 #include "input.h"              /* Server DevicePtr definitions */
-#include <X11/misc.h>               /* Server swapping macros */
+#include "misc.h"               /* Server swapping macros */
 #include "dixstruct.h"          /* Server ClientRec definitions */
 #include "resource.h"           /* Used with the MakeAtom call */
 #ifdef PC

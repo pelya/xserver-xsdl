@@ -55,14 +55,14 @@ SOFTWARE.
 
 #include <X11/X.h>
 #include <X11/Xmd.h>
-#include <X11/misc.h>
+#include "misc.h"
 #include "windowstr.h"
 #include "scrnintstr.h"
 #include "input.h"
 #include "dixfont.h"
 #include "site.h"
 #include "dixstruct.h"
-#include <X11/os.h>
+#include "os.h"
 
 ScreenInfo screenInfo;
 KeybdCtrl defaultKeyboardControl = {

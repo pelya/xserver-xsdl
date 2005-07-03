@@ -54,7 +54,7 @@ SOFTWARE.
 #ifndef WINDOW_H
 #define WINDOW_H
 
-#include <X11/misc.h>
+#include "misc.h"
 #include "region.h"
 #include "screenint.h"
 #include <X11/Xproto.h>

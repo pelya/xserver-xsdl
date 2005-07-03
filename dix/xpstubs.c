@@ -31,7 +31,7 @@ from The Open Group.
 #include <dix-config.h>
 #endif
 
-#include <X11/misc.h>
+#include "misc.h"
 #include <X11/fonts/font.h>
 #ifdef XPRINT
 #include "DiPrint.h"

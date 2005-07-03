@@ -51,7 +51,7 @@ SOFTWARE.
 
 #include <X11/X.h>
 
-#include <X11/misc.h>
+#include "misc.h"
 #include "scrnintstr.h"
 #include "gcstruct.h"
 #include "windowstr.h"

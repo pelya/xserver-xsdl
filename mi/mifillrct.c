@@ -57,7 +57,7 @@ SOFTWARE.
 #include "windowstr.h"
 #include "pixmap.h"
 #include "mi.h"
-#include <X11/misc.h>
+#include "misc.h"
 
 /* mi rectangles
    written by newman, with debts to all and sundry

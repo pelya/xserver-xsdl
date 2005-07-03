@@ -5,7 +5,7 @@
 #endif
 
 #include <X11/X.h>
-#include <X11/os.h>
+#include "os.h"
 #include "servermd.h"
 #include "pixmapstr.h"
 #include "windowstr.h"

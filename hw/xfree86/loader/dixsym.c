@@ -63,9 +63,9 @@
 #include "dixevents.h"
 #include "dixfont.h"
 #include "dixstruct.h"
-#include <X11/misc.h>
+#include "misc.h"
 #include "globals.h"
-#include <X11/os.h>
+#include "os.h"
 #include "osdep.h"
 #include "resource.h"
 #include "servermd.h"

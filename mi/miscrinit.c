@@ -34,7 +34,7 @@ from The Open Group.
 
 #include <X11/X.h>
 #include "servermd.h"
-#include <X11/misc.h>
+#include "misc.h"
 #include "mi.h"
 #include "scrnintstr.h"
 #include "pixmapstr.h"

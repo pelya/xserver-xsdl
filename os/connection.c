@@ -142,7 +142,7 @@ extern __const__ int _nfiles;
 #endif
 #endif
 #endif /* WIN32 */
-#include <X11/misc.h>		/* for typedef of pointer */
+#include "misc.h"		/* for typedef of pointer */
 #include "osdep.h"
 #include <X11/Xpoll.h>
 #include "opaque.h"

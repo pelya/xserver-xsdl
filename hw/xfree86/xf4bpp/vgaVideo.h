@@ -28,7 +28,7 @@
 #include <xorg-config.h>
 #endif
 
-#include <X11/misc.h>	/* GJA -- for pointer data type */
+#include "misc.h"	/* GJA -- for pointer data type */
 #ifdef lint
 #if defined(volatile)
 #undef volatile

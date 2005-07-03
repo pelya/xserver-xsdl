@@ -56,7 +56,7 @@
 #endif
 
 #include "sym.h"
-#include <X11/misc.h>
+#include "misc.h"
 #include "mi.h"
 #include "mibank.h"
 #include "miwideline.h"

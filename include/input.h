@@ -54,7 +54,7 @@ SOFTWARE.
 #ifndef INPUT_H
 #define INPUT_H
 
-#include <X11/misc.h>
+#include "misc.h"
 #include "screenint.h"
 #include <X11/Xmd.h>
 #include <X11/Xproto.h>

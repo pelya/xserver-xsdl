@@ -56,7 +56,7 @@ interleaved planes */
 #endif
 
 #include <X11/X.h>
-#include <X11/misc.h>
+#include "misc.h"
 #include "ipl.h"
 #include "miline.h"
 #include "iplmskbits.h"

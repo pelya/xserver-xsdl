@@ -56,7 +56,7 @@ CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include <X11/Xprotostr.h>
 #include <X11/extensions/xtrapdi.h>
 #include "input.h"          /* Server DevicePtr definitions */
-#include <X11/misc.h>
+#include "misc.h"
 #include "dixstruct.h"
 #ifdef PC
 # include "extnsist.h"

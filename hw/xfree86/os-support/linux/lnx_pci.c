@@ -6,7 +6,7 @@
 
 #include <stdio.h>
 #include <X11/X.h>
-#include <X11/os.h>
+#include "os.h"
 #include "xf86.h"
 #include "xf86Priv.h"
 #define XF86_OS_PRIVS

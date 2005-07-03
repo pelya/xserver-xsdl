@@ -34,7 +34,7 @@
 #endif
 
 #include "loaderProcs.h"
-#include <X11/misc.h>
+#include "misc.h"
 #include "xf86.h"
 
 ExtensionModule *ExtensionModuleList = NULL;

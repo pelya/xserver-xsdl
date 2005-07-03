@@ -32,7 +32,7 @@ Equipment Corporation.
 #include <stdio.h>
 #include <X11/X.h>
 #include <X11/Xproto.h>
-#include <X11/misc.h>
+#include "misc.h"
 #include "cursor.h"
 #include "cursorstr.h"
 #include "extnsionst.h"

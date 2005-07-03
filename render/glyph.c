@@ -27,9 +27,9 @@
 #include <dix-config.h>
 #endif
 
-#include <X11/misc.h>
+#include "misc.h"
 #include "scrnintstr.h"
-#include <X11/os.h>
+#include "os.h"
 #include "regionstr.h"
 #include "validate.h"
 #include "windowstr.h"

@@ -67,7 +67,7 @@ SOFTWARE.
 #include <errno.h>
 #include <stdio.h>
 #include <X11/X.h>
-#include <X11/misc.h>
+#include "misc.h"
 
 #ifdef __UNIXOS2__
 #define select(n,r,w,x,t) os2PseudoSelect(n,r,w,x,t)

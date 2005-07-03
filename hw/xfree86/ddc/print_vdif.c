@@ -5,7 +5,7 @@
 #endif
 
 #include "vdif.h"
-#include <X11/misc.h>
+#include "misc.h"
 #include "xf86DDC.h"
 
 static void print_vdif(xf86VdifPtr l, char *s);

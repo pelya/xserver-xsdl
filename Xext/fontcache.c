@@ -39,7 +39,7 @@
 
 #include <X11/X.h>
 #include <X11/Xproto.h>
-#include <X11/misc.h>
+#include "misc.h"
 #include "dixstruct.h"
 #include "extnsionst.h"
 #include "scrnintstr.h"

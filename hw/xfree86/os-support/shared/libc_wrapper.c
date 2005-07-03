@@ -50,7 +50,7 @@
 #include <stdarg.h>
 #include <fcntl.h>
 #include <X11/Xfuncproto.h>
-#include <X11/os.h>
+#include "os.h"
 #include <ctype.h>
 #include <unistd.h>
 #include <string.h>

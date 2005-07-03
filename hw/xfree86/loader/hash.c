@@ -28,7 +28,7 @@
 #include <xorg-config.h>
 #endif
 
-#include <X11/os.h>
+#include "os.h"
 #include <X11/Xos.h>
 #undef abs
 #include <stdlib.h>

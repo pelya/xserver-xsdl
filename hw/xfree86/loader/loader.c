@@ -73,7 +73,7 @@
 #include "elf.h"
 #include "coff.h"
 
-#include <X11/os.h>
+#include "os.h"
 #include "sym.h"
 #include "loader.h"
 #include "loaderProcs.h"

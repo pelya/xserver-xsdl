@@ -28,7 +28,7 @@
 #endif
 
 #include <X11/X.h>
-#include <X11/os.h>
+#include "os.h"
 #include "mibank.h"
 #include "globals.h"
 #include "xf86.h"

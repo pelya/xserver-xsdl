@@ -42,7 +42,7 @@ int _xf86misc;
 /* For use only with gcc */
 #ifdef __GNUC__
 
-#include <X11/os.h>
+#include "os.h"
 
 char *
 debug_alloca(char *file, int line, int size)

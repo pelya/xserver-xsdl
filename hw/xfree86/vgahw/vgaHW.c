@@ -17,7 +17,7 @@
 #endif
 
 #include <X11/X.h>
-#include <X11/misc.h>
+#include "misc.h"
 
 #include "xf86.h"
 #include "xf86_OSproc.h"

@@ -53,7 +53,7 @@ SOFTWARE.
 #ifndef SCREENINT_H
 #define SCREENINT_H
 
-#include <X11/misc.h>
+#include "misc.h"
 
 typedef struct _PixmapFormat *PixmapFormatPtr;
 typedef struct _Visual *VisualPtr;

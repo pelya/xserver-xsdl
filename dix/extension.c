@@ -55,7 +55,7 @@ SOFTWARE.
 #define NEED_EVENTS
 #define NEED_REPLIES
 #include <X11/Xproto.h>
-#include <X11/misc.h>
+#include "misc.h"
 #include "dixstruct.h"
 #include "extnsionst.h"
 #include "gcstruct.h"

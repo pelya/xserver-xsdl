@@ -54,7 +54,7 @@ SOFTWARE.
 #ifndef MISCSTRUCT_H
 #define MISCSTRUCT_H 1
 
-#include <X11/misc.h>
+#include "misc.h"
 #include <X11/Xprotostr.h>
 #include "gc.h"
 

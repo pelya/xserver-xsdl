@@ -17,7 +17,7 @@ is" without express or implied warranty.
 #include <X11/X.h>
 #include <X11/Xatom.h>
 #include <X11/Xproto.h>
-#include <X11/misc.h>
+#include "misc.h"
 #include "regionstr.h"
 #include <X11/fonts/font.h>
 #include <X11/fonts/fontstruct.h>

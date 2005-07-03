@@ -77,7 +77,7 @@ copyright holders.
 #include "screenint.h"
 #include "input.h"
 #include "cursor.h"
-#include <X11/misc.h>
+#include "misc.h"
 #include "windowstr.h"
 #include "inputstr.h"
 
@@ -94,7 +94,7 @@ typedef char *XPointer;
 #include "DiPrint.h"
 #include "attributes.h"
 
-#include <X11/os.h>
+#include "os.h"
 #include "spooler.h"
 
 static void GenericScreenInit(

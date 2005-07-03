@@ -8,7 +8,7 @@
 #define __XF86RAC_H 1
 
 #include "screenint.h"
-#include <X11/misc.h>
+#include "misc.h"
 #include "xf86.h"
 
 Bool xf86RACInit(ScreenPtr pScreen, unsigned int flag);

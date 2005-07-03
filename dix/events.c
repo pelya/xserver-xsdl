@@ -116,7 +116,7 @@ of the copyright holder.
 #endif
 
 #include <X11/X.h>
-#include <X11/misc.h>
+#include "misc.h"
 #include "resource.h"
 #define NEED_EVENTS
 #define NEED_REPLIES

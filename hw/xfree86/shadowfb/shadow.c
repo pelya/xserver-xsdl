@@ -14,7 +14,7 @@
 
 #include <X11/X.h>
 #include <X11/Xproto.h>
-#include <X11/misc.h>
+#include "misc.h"
 #include "pixmapstr.h"
 #include "input.h"
 #include <X11/fonts/font.h>

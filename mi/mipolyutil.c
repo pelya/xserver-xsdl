@@ -54,7 +54,7 @@ SOFTWARE.
 #include "gc.h"
 #include "miscanfill.h"
 #include "mipoly.h"
-#include <X11/misc.h>	/* MAXINT */
+#include "misc.h"	/* MAXINT */
 
 /*
  *     fillUtils.c

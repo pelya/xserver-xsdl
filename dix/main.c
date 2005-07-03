@@ -88,8 +88,8 @@ Equipment Corporation.
 #include <X11/Xos.h>   /* for unistd.h  */
 #include <X11/Xproto.h>
 #include "scrnintstr.h"
-#include <X11/misc.h>
-#include <X11/os.h>
+#include "misc.h"
+#include "os.h"
 #include "windowstr.h"
 #include "resource.h"
 #include "dixstruct.h"

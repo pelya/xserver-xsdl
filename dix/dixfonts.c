@@ -63,7 +63,7 @@ Equipment Corporation.
 #include "resource.h"
 #include "dixstruct.h"
 #include "cursorstr.h"
-#include <X11/misc.h>
+#include "misc.h"
 #include "opaque.h"
 #include "dixfontstr.h"
 #include "closestr.h"

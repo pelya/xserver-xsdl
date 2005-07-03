@@ -55,7 +55,7 @@ SOFTWARE.
 #include <X11/X.h>
 #include <X11/Xprotostr.h>
 
-#include <X11/misc.h>
+#include "misc.h"
 #include "gcstruct.h"
 #include "pixmapstr.h"
 #include "windowstr.h"

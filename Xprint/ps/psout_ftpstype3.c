@@ -27,7 +27,7 @@ THE SOFTWARE.
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <X11/os.h>
+#include "os.h"
 #define USE_PSOUT_PRIVATE 1
 #include "psout.h"
 

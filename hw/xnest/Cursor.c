@@ -18,7 +18,7 @@ is" without express or implied warranty.
 #include <X11/Xproto.h>
 #include "screenint.h"
 #include "input.h"
-#include <X11/misc.h>
+#include "misc.h"
 #include "cursor.h"
 #include "cursorstr.h"
 #include "scrnintstr.h"
