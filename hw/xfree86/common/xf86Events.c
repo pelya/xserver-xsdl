@@ -1277,7 +1277,7 @@ xf86InterceptSigIll(void (*sigillhandler)(void))
 
 #include <execinfo.h>
 
-static inline void xorg_backtrace(void)
+static __inline__ void xorg_backtrace(void)
 {
     void *array[32]; /* deeper nesting than this means something's wrong */
     size_t size, i;
@@ -1292,7 +1292,7 @@ static inline void xorg_backtrace(void)
 
 #else /* not glibc or glibc < 2.1 */
 
-static inline void xorg_backtrace(void) { return; }
+static __inline__ void xorg_backtrace(void) { return; }
 
 #endif
 
