@@ -53,7 +53,7 @@ libcommon_a_SOURCES = xf86Configure.c xf86Bus.c xf86Config.c \
                       $(KBDSOURCES)
 libinit_a_SOURCES = xf86Build.h xf86Init.c
 
-INCLUDES = $(XORG_INCS) -I. -I$(srcdir)/../ddc -I$(srcdir)/../i2c \
+INCLUDES = $(XORG_INCS) -I$(srcdir)/../ddc -I$(srcdir)/../i2c \
 	   -I$(srcdir)/../loader -I$(srcdir)/../rac -I$(srcdir)/../parser \
            -I$(srcdir)/../scanpci -I$(srcdir)/../vbe -I$(srcdir)/../int10 \
 	   -I$(srcdir)/../vgahw
