@@ -74,7 +74,6 @@
 #include "atKeynames.h"
 
 #include "xf86Keymap.h"
-#include "DECkeysym.h"
 
 /*
  * LegalModifier --

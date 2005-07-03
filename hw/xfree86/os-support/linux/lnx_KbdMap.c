@@ -25,7 +25,6 @@
 #include "atKeynames.h"
 
 #include "xf86Keymap.h"
-#include "DECkeysym.h"
 
 #include "lnx_kbd.h"
 
