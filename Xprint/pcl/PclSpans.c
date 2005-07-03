@@ -47,6 +47,10 @@ copyright holders.
 /* $XFree86: xc/programs/Xserver/Xprint/pcl/PclSpans.c,v 1.5 1999/12/13 02:12:57 robin Exp $ */
 
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #include "Pcl.h"
 #include "gcstruct.h"
 #include "windowstr.h"

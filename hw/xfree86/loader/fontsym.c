@@ -26,17 +26,21 @@
  * authorization from the copyright holder(s) and author(s).
  */
 
-#include "font.h"
-#include "sym.h"
-#include "fntfilst.h"
-#include "fontenc.h"
-#ifdef FONTENC_COMPATIBILITY
-#include "fontencc.h"
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
 #endif
-#include "fntfilio.h"
-#include "fntfil.h"
-#include "fontutil.h"
-#include "fontxlfd.h"
+
+#include <X11/fonts/font.h>
+#include "sym.h"
+#include <X11/fonts/fntfilst.h>
+#include <X11/fonts/fontenc.h>
+#ifdef FONTENC_COMPATIBILITY
+#include <X11/fonts/fontencc.h>
+#endif
+#include <X11/fonts/fntfilio.h>
+#include <X11/fonts/fntfil.h>
+#include <X11/fonts/fontutil.h>
+#include <X11/fonts/fontxlfd.h>
 #ifdef FONTCACHE
 #define _FONTCACHE_SERVER_
 #include "fontcache.h"

@@ -50,6 +50,10 @@ SOFTWARE.
 /* Author: Keith Packard and Bob Scheifler */
 /* Warning: this code is toxic, do not dally very long here. */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #if defined(_XOPEN_SOURCE) || defined(__QNXNTO__) \
 	|| (defined(sun) && defined(__SVR4))
 #include <math.h>

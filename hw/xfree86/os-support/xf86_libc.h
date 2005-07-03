@@ -42,6 +42,10 @@
  * 0.1	Feb 24 1997	hide the trivial functions mem* str*
  */
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #ifndef	XF86_LIBC_H
 #define XF86_LIBC_H 1
 

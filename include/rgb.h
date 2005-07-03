@@ -46,6 +46,10 @@ SOFTWARE.
 ******************************************************************/
 /* $Xorg: rgb.h,v 1.4 2001/02/09 02:05:15 xorgcvs Exp $ */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #ifndef RGB_H
 #define RGB_H
 typedef struct _RGB {

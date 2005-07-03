@@ -23,6 +23,10 @@
  * Author:  Keith Packard, SuSE, Inc.
  */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #include <X11/misc.h>
 #include "scrnintstr.h"
 #include <X11/os.h>

@@ -34,6 +34,10 @@ Author: Keith Packard
 
 /* 24-bit bug fixes: Peter Wainwright, 1998/11/28 */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #include	<X11/X.h>
 #include	<X11/Xmd.h>
 #include	<X11/Xproto.h>

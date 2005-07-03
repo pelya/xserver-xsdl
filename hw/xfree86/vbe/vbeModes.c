@@ -30,6 +30,10 @@
  * $XFree86: xc/programs/Xserver/hw/xfree86/vbe/vbeModes.c,v 1.3tsi Exp $
  */
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #include "xf86.h"
 #include "xf86_ansic.h"
 #include "vbe.h"

@@ -4,6 +4,10 @@
  * Copyright 1998 by The XFree86 Project, Inc
  */
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #ifdef XFree86LOADER
 
 #include "xf86Module.h"

@@ -2,6 +2,10 @@
 
 /* Prototypes for DGA functions that the DDX must provide */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #ifndef _VIDMODEPROC_H_
 #define _VIDMODEPROC_H_
 

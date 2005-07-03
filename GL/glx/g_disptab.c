@@ -29,6 +29,10 @@
 ** version 1.2.1 Specification.
 */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #include "glxserver.h"
 #include "glxext.h"
 #include "g_disptab.h"

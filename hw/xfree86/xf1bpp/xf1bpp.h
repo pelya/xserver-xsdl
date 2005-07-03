@@ -25,6 +25,10 @@
  * XFree86 Project.
  */
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #ifndef __XF1BPP_H__
 #define __XF1BPP_H__
 

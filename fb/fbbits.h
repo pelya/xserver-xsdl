@@ -29,6 +29,10 @@
 
 #define isClipped(c,ul,lr)  ((((c) - (ul)) | ((lr) - (c))) & 0x80008000)
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #ifdef BITSMUL
 #define MUL BITSMUL
 #else

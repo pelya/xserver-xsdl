@@ -25,6 +25,10 @@
 
 /* $XdotOrg: xc/programs/Xserver/fb/fboverlay.c,v 1.5 2004/12/04 00:42:50 kuhn Exp $ */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #include "fb.h"
 #include "fboverlay.h"
 

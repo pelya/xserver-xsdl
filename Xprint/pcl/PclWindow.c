@@ -47,6 +47,10 @@ copyright holders.
 /* $XFree86: xc/programs/Xserver/Xprint/pcl/PclWindow.c,v 1.10tsi Exp $ */
 
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #include <stdio.h>
 #include <string.h>
 #include <sys/types.h>

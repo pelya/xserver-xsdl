@@ -32,6 +32,10 @@ copyright holders.
 */
 /* $XFree86: xc/programs/Xserver/Xprint/pcl/Pclmap.h,v 1.5 2001/07/25 15:05:00 dawes Exp $ */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #ifndef _PCLMAP_H_
 #define _PCLMAP_H_
 

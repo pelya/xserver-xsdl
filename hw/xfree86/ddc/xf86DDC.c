@@ -4,6 +4,10 @@
  * 
  * Copyright 1998,1999 by Egbert Eich <Egbert.Eich@Physik.TU-Darmstadt.DE>
  */
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #include <X11/misc.h>
 #include "xf86.h"
 #include "xf86_ansic.h"

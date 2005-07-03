@@ -1,5 +1,9 @@
 /* $XFree86: xc/programs/Xserver/hw/xfree86/xaa/xaaStipple.c,v 1.11 2001/10/28 03:34:04 tsi Exp $ */
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #include "xaa.h"
 #include "xaalocal.h"
 #include "xaacexp.h"

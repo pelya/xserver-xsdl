@@ -50,6 +50,10 @@ SOFTWARE.
 /* GJA -- modified this file for vga16 */
 /* $XConsortium: mfbhrzvert.c /main/3 1996/02/21 17:56:41 kaleb $ */
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #include "xf4bpp.h"
 #include "OScompiler.h"
 #include "mfbmap.h"

@@ -58,6 +58,10 @@
     pGC->ops   = &XAAPixmapOps;\
     pixPriv->flags |= DIRTY
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #ifdef RENDER
 #define XAA_RENDER_PROLOGUE(pScreen,field)\
     (GetPictureScreen(pScreen)->field = \

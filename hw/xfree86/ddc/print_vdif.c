@@ -1,5 +1,9 @@
 /* $XFree86: xc/programs/Xserver/hw/xfree86/ddc/print_vdif.c,v 1.4tsi Exp $ */
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #include "vdif.h"
 #include <X11/misc.h>
 #include "xf86DDC.h"

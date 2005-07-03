@@ -36,6 +36,10 @@
 
 #define NEED_REPLIES
 #define FONT_PCF
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #include "glxserver.h"
 #include "glxutil.h"
 #include <GL/glxtokens.h>

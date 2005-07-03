@@ -23,6 +23,10 @@
 
 /* $XFree86: xc/programs/Xserver/hw/xfree86/loader/elfloader.h,v 1.3 1998/09/20 14:41:05 dawes Exp $ */
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #ifndef _ELFLOADER_H
 #define _ELFLOADER_H
 /* elfloader.c */

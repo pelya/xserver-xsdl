@@ -25,6 +25,10 @@
  */
 /* $XConsortium: lnx_video.c /main/9 1996/10/19 18:06:34 kaleb $ */
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #include <X11/X.h>
 #include "input.h"
 #include "scrnintstr.h"

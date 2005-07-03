@@ -1,6 +1,10 @@
 /*
  * This file contains the glue necessary for support of SGI's Altix chipset.
  */
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #include <stdio.h>
 #include <unistd.h>
 #include "altixPCI.h"

@@ -55,6 +55,10 @@ SOFTWARE.
  *****************************************************************/
 /* $XFree86: xc/programs/Xserver/os/io.c,v 3.34 2002/05/31 18:46:05 dawes Exp $ */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #if 0
 #define DEBUG_COMMUNICATION
 #endif

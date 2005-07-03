@@ -31,6 +31,10 @@ in this Software without prior written authorization from The Open Group.
 */
 /* $XFree86: xc/programs/Xserver/mi/mipointer.h,v 3.8 2001/08/06 20:51:19 dawes Exp $ */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #ifndef MIPOINTER_H
 #define MIPOINTER_H
 

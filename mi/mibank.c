@@ -77,6 +77,10 @@
 
 /* #define NO_ALLOCA 1 */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #include "servermd.h"
 #include "gcstruct.h"
 #include "pixmapstr.h"

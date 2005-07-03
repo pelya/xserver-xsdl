@@ -53,6 +53,10 @@
  * of the copyright holder.
  */
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #include "xf86.h"
 #include "xf86_OSlib.h"
 #include "xf86OSmouse.h"

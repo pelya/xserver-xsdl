@@ -51,6 +51,10 @@ CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 #define NEED_REPLIES
 #define NEED_EVENTS
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #ifndef EXTMODULE
 #include <stdio.h>
 #include <errno.h>

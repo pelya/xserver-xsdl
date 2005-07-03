@@ -26,7 +26,7 @@
 #include <config.h>
 #endif
 #include "exaPriv.h"
-#include "fontstruct.h"
+#include <X11/fonts/fontstruct.h>
 #include "dixfontstr.h"
 #include "xf86str.h"
 #include "xf86.h"

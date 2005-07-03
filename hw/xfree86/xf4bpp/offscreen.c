@@ -43,6 +43,10 @@
 */
 /* $XConsortium: offscreen.c /main/4 1996/02/21 17:56:55 kaleb $ */
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #include "xf4bpp.h"
 #include "vgaVideo.h"
 #include "pixmapstr.h"

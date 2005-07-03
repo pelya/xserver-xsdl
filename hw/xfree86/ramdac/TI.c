@@ -26,6 +26,10 @@
  */
 /* $XFree86: xc/programs/Xserver/hw/xfree86/ramdac/TI.c,v 1.7 2003/02/17 16:08:29 dawes Exp $ */
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #include "xf86.h"
 #include "xf86_OSproc.h"
 #include "xf86_ansic.h"

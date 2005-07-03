@@ -48,6 +48,10 @@ SOFTWARE.
 
 /* $Xorg: mispans.c,v 1.4 2001/02/09 02:05:21 xorgcvs Exp $ */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #include <X11/misc.h>
 #include "pixmapstr.h"
 #include "gcstruct.h"

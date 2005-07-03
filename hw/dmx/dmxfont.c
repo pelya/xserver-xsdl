@@ -42,7 +42,7 @@
 #include "dmxfont.h"
 #include "dmxlog.h"
 
-#include "fontstruct.h"
+#include <X11/fonts/fontstruct.h>
 #include "dixfont.h"
 #include "dixstruct.h"
 

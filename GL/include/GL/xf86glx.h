@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/GL/include/GL/xf86glx.h,v 1.4 2000/02/23 04:46:54 martin Exp $ */
+/* $XFree86: xc/programs/Xserver/GL/include/GL/xf86glx.h,v 1.3 1999/06/14 07:31:41 dawes Exp $ */
 /**************************************************************************
 
 Copyright 1998-1999 Precision Insight, Inc., Cedar Park, Texas.
@@ -31,6 +31,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *   Kevin E. Martin <kevin@precisioninsight.com>
  *
  */
+
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
 
 #include "miscstruct.h"
 

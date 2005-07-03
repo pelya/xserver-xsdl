@@ -36,6 +36,10 @@ from The Open Group.
  * krb5 distribution. (At least the checking part)
  */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #include <sys/types.h>
 #include <sys/socket.h>
 #ifdef TCPCONN

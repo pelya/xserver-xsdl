@@ -46,6 +46,10 @@ copyright holders.
 */
 /* $XFree86: xc/programs/Xserver/Xprint/pcl/PclGC.c,v 1.9 2001/01/19 18:34:28 dawes Exp $ */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #include "gcstruct.h"
 
 #include "Pcl.h"

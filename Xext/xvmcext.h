@@ -1,5 +1,9 @@
 /* $XFree86: xc/programs/Xserver/Xext/xvmcext.h,v 1.1 2001/04/07 11:04:21 alanh Exp $ */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #ifndef _XVMC_H
 #define _XVMC_H
 #include <X11/extensions/Xv.h>

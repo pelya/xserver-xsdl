@@ -32,6 +32,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *   Brian Paul <brian@precisioninsight.com>
  */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #ifndef _XF86GLX_UTIL_H_
 #define _XF86GLX_UTIL_H_
 

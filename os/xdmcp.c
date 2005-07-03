@@ -16,6 +16,10 @@
  */
 /* $XFree86: xc/programs/Xserver/os/xdmcp.c,v 3.31 2003/12/30 21:24:32 herrb Exp $ */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #ifdef WIN32
 #include <X11/Xwinsock.h>
 #endif

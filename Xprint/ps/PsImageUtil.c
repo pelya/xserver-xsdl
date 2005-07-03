@@ -29,6 +29,10 @@ copyright holders.
 /* Please do not beat me for this ugly code - most of it has been stolen from
  * xc/lib/X11/ImUtil.c */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #include "gcstruct.h"
 #include "windowstr.h"
 #include "servermd.h"

@@ -23,6 +23,10 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 ********************************************************/
 /* $XFree86: xc/programs/Xserver/Xext/EVI.c,v 3.10tsi Exp $ */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #include <X11/X.h>
 #include <X11/Xproto.h>
 #include "dixstruct.h"

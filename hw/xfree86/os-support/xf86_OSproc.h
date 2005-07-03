@@ -66,6 +66,10 @@
 
 /* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/xf86_OSproc.h,v 3.56 2003/08/24 17:37:03 dawes Exp $ */
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #ifndef _XF86_OSPROC_H
 #define _XF86_OSPROC_H
 

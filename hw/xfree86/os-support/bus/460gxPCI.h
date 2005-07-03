@@ -25,6 +25,10 @@
  * XFree86 Project.
  */
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #ifndef PCI_460GX_H
 #define PCI_460GX_H 1
 

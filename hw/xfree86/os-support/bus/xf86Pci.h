@@ -102,6 +102,10 @@
  * Drivers should use this file rather than Pci.h.
  */
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #ifndef _XF86PCI_H
 #define _XF86PCI_H 1
 #include <X11/Xarch.h>

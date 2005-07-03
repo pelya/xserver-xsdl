@@ -57,6 +57,10 @@ SOFTWARE.
 
 #define	 NEED_EVENTS
 #define	 NEED_REPLIES
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #include <X11/X.h>
 #include <X11/Xproto.h>
 #include "inputstr.h"

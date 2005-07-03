@@ -78,6 +78,10 @@ copyright holders.
 */
 /* $XFree86: xc/programs/Xserver/Xprint/pcl/PclInit.c,v 1.11 2001/12/21 21:02:05 dawes Exp $ */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #include <stdio.h>
 #include <string.h>
 #include <sys/types.h>

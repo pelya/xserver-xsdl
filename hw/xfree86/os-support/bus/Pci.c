@@ -195,6 +195,10 @@
  * authorization from the copyright holder(s) and author(s).
  */
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #include <errno.h>
 #include <signal.h>
 #include <X11/Xarch.h>

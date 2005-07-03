@@ -23,6 +23,10 @@
 */
 /* $XConsortium: OScompiler.h /main/4 1996/02/21 17:56:09 kaleb $ */
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #ifndef __COMPILER_DEPENDANCIES__
 #define __COMPILER_DEPENDANCIES__
 

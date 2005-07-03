@@ -22,6 +22,10 @@
  * 
  * Based on work by Owen Taylor
  */
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #ifdef USE_MMX
 
 #ifndef __amd64__

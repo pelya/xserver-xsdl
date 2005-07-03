@@ -29,6 +29,10 @@ from The Open Group.
 
 /* $XFree86: xc/programs/Xserver/mi/migc.c,v 1.8 2001/08/06 20:51:18 dawes Exp $ */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #include "scrnintstr.h"
 #include "gcstruct.h"
 #include "pixmapstr.h"

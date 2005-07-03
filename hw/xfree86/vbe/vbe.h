@@ -10,6 +10,10 @@
  * Authors: Paulo César Pereira de Andrade <pcpa@conectiva.com.br> 
  */
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #ifndef _VBE_H
 #define _VBE_H
 #include "xf86int10.h"

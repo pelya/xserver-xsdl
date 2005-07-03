@@ -2,6 +2,10 @@
 
 /* Prototypes for Pointer/Keyboard functions that the DDX must provide */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #ifndef _XF86MISCPROC_H_
 #define _XF86MISCPROC_H_
 

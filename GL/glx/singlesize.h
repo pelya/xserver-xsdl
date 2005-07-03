@@ -1,4 +1,8 @@
-/* $XFree86: xc/programs/Xserver/GL/glx/singlesize.h,v 1.3 2001/03/21 16:29:37 dawes Exp $ */
+/* $XFree86$ */
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #ifndef _singlesize_h_
 #define _singlesize_h_
 

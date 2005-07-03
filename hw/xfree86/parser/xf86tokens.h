@@ -54,6 +54,10 @@
  */
 
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #ifndef _xf86_tokens_h
 #define _xf86_tokens_h
 

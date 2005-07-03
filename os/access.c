@@ -57,6 +57,10 @@ SOFTWARE.
 ******************************************************************/
 /* $XFree86: xc/programs/Xserver/os/access.c,v 3.53 2004/01/02 18:23:19 tsi Exp $ */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #ifdef WIN32
 #include <X11/Xwinsock.h>
 #endif

@@ -15,6 +15,10 @@
  * -- 1997.10.27  Marc Aurele La France (tsi@xfree86.org)
  */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #ifndef _BSTORE_H_
 #define _BSTORE_H_
 

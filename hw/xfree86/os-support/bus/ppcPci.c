@@ -58,6 +58,10 @@
  * SOFTWARE.
  */
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #include <stdio.h>
 #include "compiler.h"
 #include "xf86.h"

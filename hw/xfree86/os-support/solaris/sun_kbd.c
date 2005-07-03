@@ -25,6 +25,10 @@
  */
 /* $XdotOrg: xc/programs/Xserver/hw/xfree86/os-support/sunos/sun_kbd.c,v 1.3 2004/06/13 04:50:21 alanc Exp $ */
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #include "xf86.h"
 #include "xf86Priv.h"
 #include "xf86_OSlib.h"

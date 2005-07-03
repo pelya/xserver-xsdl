@@ -1,5 +1,9 @@
 /* $XFree86: xc/programs/Xserver/hw/xfree86/xaa/xaa.h,v 1.38 2002/10/21 01:54:04 mvojkovi Exp $ */
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #ifndef _XAA_H
 #define _XAA_H
 

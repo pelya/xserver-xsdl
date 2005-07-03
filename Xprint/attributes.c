@@ -45,6 +45,10 @@ copyright holders.
 ** 
 ********************************************************************/
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #include <X11/Xproto.h>
 #include <string.h>
 #include <stdlib.h>

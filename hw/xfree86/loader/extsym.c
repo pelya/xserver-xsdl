@@ -25,6 +25,10 @@
  * SOFTWARE.
  */
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #include "resource.h"
 #include "sym.h"
 #include <X11/misc.h>

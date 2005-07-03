@@ -49,6 +49,10 @@ SOFTWARE.
 
 /* $XFree86: xc/programs/Xserver/include/gcstruct.h,v 1.7 2003/04/27 21:31:04 herrb Exp $ */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #ifndef GCSTRUCT_H
 #define GCSTRUCT_H
 

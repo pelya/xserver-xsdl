@@ -80,6 +80,10 @@ Equipment Corporation.
 /* $TOG: main.c /main/86 1998/02/09 14:20:03 kaleb $ */
 
 #define NEED_EVENTS
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #include <X11/X.h>
 #include <X11/Xos.h>   /* for unistd.h  */
 #include <X11/Xproto.h>
@@ -94,7 +98,7 @@ Equipment Corporation.
 #include "colormap.h"
 #include "colormapst.h"
 #include "cursorstr.h"
-#include "font.h"
+#include <X11/fonts/font.h>
 #include "opaque.h"
 #include "servermd.h"
 #include "site.h"

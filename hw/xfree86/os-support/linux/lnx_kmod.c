@@ -1,4 +1,8 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/linux/lnx_kmod.c,v 3.6 2001/10/31 22:50:30 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/linux/lnx_kmod.c,v 3.5 2001/10/01 13:44:14 eich Exp $ */
+
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
 
 #include <errno.h>
 #include <fcntl.h>

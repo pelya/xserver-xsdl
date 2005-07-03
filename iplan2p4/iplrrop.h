@@ -9,6 +9,10 @@ interleaved planes */
 #define INTER_RROP_FETCH_GC(gc) \
 INTER_RROP_FETCH_GCPRIV(((iplPrivGCPtr)(gc)->devPrivates[iplGCPrivateIndex].ptr))
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #if RROP == GXcopy
 #define INTER_RROP_DECLARE	register unsigned short *rrop_xor;
 #define INTER_RROP_FETCH_GCPRIV(devPriv)  rrop_xor = (devPriv)->xorg;

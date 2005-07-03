@@ -36,6 +36,10 @@ Equipment Corporation.
  *	PanoramiX definitions
  */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #ifndef _PANORAMIX_H_
 #define _PANORAMIX_H_
 

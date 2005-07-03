@@ -29,6 +29,10 @@
 /* Maybe this file belongs in lib/font/fontfile/module/ ? */
 
 #define LOADERDECLARATIONS
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #include "loaderProcs.h"
 #include <X11/misc.h>
 #include "xf86.h"

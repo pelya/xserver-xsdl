@@ -8,6 +8,10 @@
 
 /* $XFree86: xc/programs/Xserver/hw/xfree86/i2c/xf86i2c.c,v 1.14 2003/05/05 21:18:41 tsi Exp $ */
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #if 1
 #include <X11/misc.h>
 #include "xf86.h"

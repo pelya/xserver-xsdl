@@ -1,5 +1,9 @@
 /* $XFree86: xc/programs/Xserver/hw/xfree86/ramdac/IBMPriv.h,v 1.1.2.2 1998/07/18 17:54:01 dawes Exp $ */
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #include "IBM.h"
 
 typedef struct {

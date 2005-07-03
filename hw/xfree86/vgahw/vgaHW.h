@@ -11,6 +11,10 @@
  * Author: Dirk Hohndel
  */
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #ifndef _VGAHW_H
 #define _VGAHW_H
 

@@ -25,6 +25,10 @@
  *
  * Modified 21/02/97 by Sebastien Marineau to support OS/2 a.out objects
  */
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <stdio.h>

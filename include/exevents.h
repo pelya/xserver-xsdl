@@ -28,6 +28,10 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  * Interface of 'exevents.c'
  */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #ifndef EXEVENTS_H
 #define EXEVENTS_H
 

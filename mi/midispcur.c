@@ -45,6 +45,10 @@ in this Software without prior written authorization from The Open Group.
 # include   "mipointer.h"
 # include   "misprite.h"
 # include   "gcstruct.h"
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #ifdef ARGB_CURSOR
 # include   "picturestr.h"
 #endif

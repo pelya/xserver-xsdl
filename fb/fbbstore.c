@@ -23,6 +23,10 @@
  */
 /* $XFree86: xc/programs/Xserver/fb/fbbstore.c,v 1.1 1999/11/19 13:53:42 hohndel Exp $ */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #include "fb.h"
 
 void

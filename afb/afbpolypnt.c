@@ -49,6 +49,10 @@ SOFTWARE.
 ******************************************************************/
 /* $XConsortium: afbpolypnt.c,v 5.6 94/04/17 20:28:30 dpw Exp $ */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #include <X11/X.h>
 #include <X11/Xprotostr.h>
 #include "pixmapstr.h"

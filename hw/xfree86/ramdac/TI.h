@@ -1,5 +1,9 @@
 /* $XFree86: xc/programs/Xserver/hw/xfree86/ramdac/TI.h,v 1.4 2000/05/02 21:04:46 alanh Exp $ */
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #include <xf86RamDac.h>
 
 unsigned long TIramdacCalculateMNPForClock(unsigned long RefClock,

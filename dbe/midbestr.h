@@ -32,6 +32,10 @@
  *****************************************************************************/
 
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #ifndef MIDBE_STRUCT_H
 #define MIDBE_STRUCT_H
 

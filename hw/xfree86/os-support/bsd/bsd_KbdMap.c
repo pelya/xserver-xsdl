@@ -8,6 +8,10 @@
  * and from xf86KbdCODrv.c by Holger Veit
  */
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #include <X11/X.h>
 #include <X11/Xmd.h>
 #include "input.h"

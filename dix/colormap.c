@@ -49,6 +49,10 @@ SOFTWARE.
 
 /* $Xorg: colormap.c,v 1.4 2001/02/09 02:04:39 xorgcvs Exp $ */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #include <X11/X.h>
 #define NEED_EVENTS
 #include <X11/Xproto.h>

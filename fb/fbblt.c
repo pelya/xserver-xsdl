@@ -23,6 +23,10 @@
  */
 /* $XFree86: xc/programs/Xserver/fb/fbblt.c,v 1.7 2000/09/22 05:58:01 keithp Exp $ */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #include "fb.h"
 
 #define InitializeShifts(sx,dx,ls,rs) { \

@@ -22,6 +22,10 @@
  *
  */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #ifndef _LBXDATA_H_
 #define _LBXDATA_H_
 #define NEED_REPLIES

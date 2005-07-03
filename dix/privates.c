@@ -29,6 +29,10 @@ from The Open Group.
 */
 /* $XFree86: xc/programs/Xserver/dix/privates.c,v 3.7 2001/01/17 22:36:44 dawes Exp $ */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #include <X11/X.h>
 #include "scrnintstr.h"
 #include <X11/misc.h>

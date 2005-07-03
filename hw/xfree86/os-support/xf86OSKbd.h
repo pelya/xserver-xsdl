@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/xf86OSKbd.h,v 1.5 2003/08/24 19:58:06 dawes Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/xf86OSKbd.h,v 1.5tsi Exp $ */
 /*
  * Copyright (c) 2002-2003 by The XFree86 Project, Inc.
  *
@@ -27,6 +27,10 @@
  *
  * Author: Ivan Pascal.
  */
+
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
 
 #include "xf86Xinput.h"
 
@@ -104,7 +108,7 @@ typedef enum {
     PROT_XQUEUE,
     PROT_WSCONS,
     PROT_USB,
-    PROT_UNKNOWN
+    PROT_UNKNOWN_KBD
 } KbdProtocolId;
 
 typedef struct {

@@ -22,6 +22,10 @@
  */
 /* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86sbusBus.c,v 3.6 2001/03/03 22:16:35 tsi Exp $ */
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #include <ctype.h>
 #include <stdio.h>
 #include <unistd.h>

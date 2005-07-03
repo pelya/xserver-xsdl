@@ -47,6 +47,10 @@ copyright holders.
 
 /* $XFree86: xc/programs/Xserver/Xprint/pcl/PclArc.c,v 1.4 1999/12/13 02:12:53 robin Exp $ */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #include <stdio.h>
 #include <math.h>
 #include <errno.h>

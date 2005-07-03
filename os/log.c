@@ -78,6 +78,10 @@ OR PERFORMANCE OF THIS SOFTWARE.
 
 /* $XFree86: xc/programs/Xserver/os/log.c,v 1.6 2003/11/07 13:45:27 tsi Exp $ */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #include <X11/Xos.h>
 #include <stdio.h>
 #include <time.h>

@@ -74,6 +74,10 @@ in this Software without prior written authorization from The Open Group.
 ** 
 ********************************************************************/
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #include "Ps.h"
 #include "attributes.h"
 

@@ -1,4 +1,8 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/sysv/xqueue.h,v 1.1 1999/05/22 08:40:18 dawes Exp $ */
+/* $XFree86$ */
+
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
 
 #ifndef _XF86_XQUEUE_H_
 #define _XF86_XQUEUE_H_

@@ -31,6 +31,10 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 /* $Xorg: cfbmskbits.h,v 1.3 2000/08/17 19:48:14 cpqbld Exp $ */
 /* Optimizations for PSZ == 32 added by Kyle Marvin (marvin@vitec.com) */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #include	<X11/X.h>
 #include	<X11/Xmd.h>
 #include	"servermd.h"

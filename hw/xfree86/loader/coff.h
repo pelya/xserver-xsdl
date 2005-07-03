@@ -16,6 +16,10 @@
    COFF, thein check out the book mentioned above.
 */
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #ifndef _COFF_H
 #define _COFF_H
 

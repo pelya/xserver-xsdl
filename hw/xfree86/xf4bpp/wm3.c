@@ -6,6 +6,10 @@
 
 /* $XConsortium: wm3.c /main/5 1996/02/21 17:59:21 kaleb $ */
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #include "xf4bpp.h"
 #include "OScompiler.h"
 #include "wm3.h"

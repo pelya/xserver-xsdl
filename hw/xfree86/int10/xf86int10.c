@@ -5,6 +5,10 @@
  *                 Copyright 1999 Egbert Eich
  */
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #include "xf86.h"
 #include "xf86_ansic.h"
 #include "compiler.h"

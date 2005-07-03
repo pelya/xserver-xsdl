@@ -47,6 +47,10 @@ SOFTWARE.
 ******************************************************************/
 /* $Xorg: oscolor.c,v 1.4 2001/02/09 02:05:23 xorgcvs Exp $ */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #ifndef USE_RGB_TXT
 
 #ifdef NDBM

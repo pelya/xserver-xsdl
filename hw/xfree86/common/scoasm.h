@@ -31,6 +31,10 @@
  * scoasm.h - used to define inline versions of certain functions which
  * do NOT appear in sys/inline.h.
  */
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #ifdef SCO325
 #ifndef _SCOASM_HDR_INC
 #define _SCOASM_HDR_INC

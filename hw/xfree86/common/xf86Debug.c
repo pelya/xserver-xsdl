@@ -27,6 +27,10 @@
  * authorization from the copyright holder(s) and author(s).
  */
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #ifdef __UNIXOS2__
 #define I_NEED_OS2_H
 #endif

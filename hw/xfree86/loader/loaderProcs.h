@@ -49,12 +49,16 @@
  * authorization from the copyright holder(s) and author(s).
  */
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #ifndef _LOADERPROCS_H
 #define _LOADERPROCS_H
 
 #define IN_LOADER
 #include "xf86Module.h"
-#include "fontmod.h"
+#include <X11/fonts/fontmod.h>
 
 typedef struct module_desc {
     struct module_desc *child;

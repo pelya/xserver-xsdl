@@ -35,6 +35,10 @@
  * XLoadQueryFont).
  */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #include <sys/types.h>
 #ifdef HAS_SHM
 #if defined(linux) && (!defined(__GNU_LIBRARY__) || __GNU_LIBRARY__ < 2)

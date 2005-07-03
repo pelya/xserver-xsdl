@@ -26,6 +26,10 @@
 /* $XConsortium: lnx_io.c /main/8 1996/10/19 18:06:28 kaleb $ */
 
 #define NEED_EVENTS
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #include <X11/X.h>
 
 #include "compiler.h"

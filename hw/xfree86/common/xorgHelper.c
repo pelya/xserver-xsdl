@@ -1,5 +1,9 @@
 /* $XdotOrg: xc/programs/Xserver/hw/xfree86/common/xorgHelper.c,v 1.3 2005/04/20 12:25:21 daniels Exp $ */
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #include <X11/X.h>
 #include <X11/os.h>
 #include "servermd.h"

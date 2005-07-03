@@ -1,4 +1,8 @@
 /* $Xorg: selection.h,v 1.4 2001/02/09 02:05:16 xorgcvs Exp $ */
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #ifndef SELECTION_H
 #define SELECTION_H 1
 

@@ -23,6 +23,10 @@
  *
  */
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #if defined(linux) && !defined(__GLIBC__)
 #undef __STRICT_ANSI__
 #endif

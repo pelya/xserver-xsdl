@@ -33,6 +33,10 @@
 /* $XFree86$ */
 
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #ifndef DBE_STRUCT_H
 #define DBE_STRUCT_H
 

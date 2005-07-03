@@ -49,6 +49,10 @@ SOFTWARE.
 ******************************************************************/
 /* $XConsortium: afbtile.c,v 5.8 94/04/17 20:28:36 dpw Exp $ */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #include <X11/X.h>
 
 #include "windowstr.h"

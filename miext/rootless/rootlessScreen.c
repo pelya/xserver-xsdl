@@ -31,6 +31,10 @@
 /* $XFree86: xc/programs/Xserver/miext/rootless/rootlessScreen.c,v 1.2 2003/04/30 23:15:35 torrey Exp $ */
 
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #include "mi.h"
 #include "scrnintstr.h"
 #include "gcstruct.h"

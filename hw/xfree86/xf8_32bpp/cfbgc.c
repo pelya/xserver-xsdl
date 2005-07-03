@@ -61,11 +61,15 @@ LOWMEMFTPT	False	False	False	False
 
 /* This gets built twice.  Once for 8bpp and another for 32bpp */
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #include <X11/X.h>
 #include <X11/Xmd.h>
 #include <X11/Xproto.h>
 #include "cfb.h"
-#include "fontstruct.h"
+#include <X11/fonts/fontstruct.h>
 #include "dixfontstr.h"
 #include "gcstruct.h"
 #include "windowstr.h"

@@ -29,6 +29,10 @@
  * dependencies are dealt with, as this library will be linked in last.
  */
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #include <ctype.h>
 
 /* To prevent empty source file warnings */

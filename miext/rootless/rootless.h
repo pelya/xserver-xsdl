@@ -29,6 +29,10 @@
  */
 /* $XFree86: xc/programs/Xserver/miext/rootless/rootless.h,v 1.7 2004/07/02 01:30:33 torrey Exp $ */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #ifndef _ROOTLESS_H
 #define _ROOTLESS_H
 

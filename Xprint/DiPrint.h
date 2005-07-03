@@ -38,6 +38,10 @@ copyright holders.
  * request will allow us to build it with the description in the locale of
  * the requesting client.
  */
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #ifndef _XpDiPrint_H_
 #define _XpDiPrint_H_ 1
 

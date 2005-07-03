@@ -46,6 +46,10 @@ copyright holders.
 */
 /* $XFree86: xc/programs/Xserver/Xprint/pcl/Pcl.h,v 1.12 2001/12/21 21:02:05 dawes Exp $ */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #ifndef _PCL_H_
 #define _PCL_H_
 
@@ -60,7 +64,7 @@ copyright holders.
 #include <X11/extensions/Printstr.h>
 
 #include "regionstr.h"
-#include "fontstruct.h"
+#include <X11/fonts/fontstruct.h>
 #include "dixfontstr.h"
 #include "gcstruct.h"
 

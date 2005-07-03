@@ -27,6 +27,10 @@ from The Open Group.
 */
 /* $XFree86: xc/programs/Xserver/lbx/lbxcmap.c,v 1.9 2001/08/23 14:46:57 alanh Exp $ */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #include <sys/types.h>
 #define NEED_REPLIES
 #define NEED_EVENTS

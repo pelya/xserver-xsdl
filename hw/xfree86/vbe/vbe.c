@@ -10,6 +10,10 @@
  * Authors: Paulo César Pereira de Andrade <pcpa@conectiva.com.br> 
  */
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #include "xf86.h"
 #include "xf86_ansic.h"
 #include "vbe.h"

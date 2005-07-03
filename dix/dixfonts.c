@@ -52,6 +52,10 @@ Equipment Corporation.
 /* $Xorg: dixfonts.c,v 1.4 2000/08/17 19:48:18 cpqbld Exp $ */
 
 #define NEED_REPLIES
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #include <X11/X.h>
 #include <X11/Xmd.h>
 #include <X11/Xproto.h>

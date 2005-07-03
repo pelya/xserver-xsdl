@@ -115,6 +115,10 @@ typedef struct dynamic64 {
     } d_un;
 } Elf64_Dyn;
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #ifndef QNX4
 extern Elf32_Dyn _DYNAMIC[];
 #endif

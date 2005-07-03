@@ -47,6 +47,10 @@ SOFTWARE.
 ******************************************************************/
 /* $XFree86: xc/programs/Xserver/include/extnsionst.h,v 3.8 2003/04/27 21:31:04 herrb Exp $ */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #ifndef EXTENSIONSTRUCT_H
 #define EXTENSIONSTRUCT_H 
 

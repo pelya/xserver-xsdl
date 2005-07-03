@@ -29,6 +29,10 @@
 
 /* Option handling things that ModuleSetup procs can use */
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #ifndef _XF86_OPT_H_
 #define _XF86_OPT_H_
 

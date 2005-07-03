@@ -59,6 +59,10 @@
  * they should not be visible outside of the parser.
  */
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #ifndef _Configint_h_
 #define _Configint_h_
 

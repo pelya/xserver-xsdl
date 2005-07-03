@@ -53,6 +53,10 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 /* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86XKB.c,v 3.12 2003/08/24 17:36:55 dawes Exp $ */
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #include <stdio.h>
 #define	NEED_EVENTS 1
 #include <X11/X.h>

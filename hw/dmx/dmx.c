@@ -43,6 +43,10 @@
  * Please see the Client-to-Server DMX Extension to the X Protocol
  * document for details about the protocol.  */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #include <X11/X.h>
 #include <X11/Xproto.h>
 #include <X11/misc.h>

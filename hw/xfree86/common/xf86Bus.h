@@ -33,6 +33,10 @@
  * video drivers must not include this file.
  */
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #ifndef _XF86_BUS_H
 #define _XF86_BUS_H
 

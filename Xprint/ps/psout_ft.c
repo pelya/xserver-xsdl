@@ -21,6 +21,10 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <X11/os.h>
@@ -32,11 +36,11 @@ THE SOFTWARE.
 #include FT_TYPE1_TABLES_H
 
 #include <X11/Xproto.h>
-#include "font.h"
-#include "fontstruct.h"
-#include "fntfilst.h"
-#include "fontutil.h"
-#include "fontenc.h"
+#include <X11/fonts/font.h>
+#include <X11/fonts/fontstruct.h>
+#include <X11/fonts/fntfilst.h>
+#include <X11/fonts/fontutil.h>
+#include <X11/fonts/fontenc.h>
 #include "ft.h"
 #include "ftfuncs.h"
 #include "servermd.h" /* needed for endian test (IMAGE_BYTE_ORDER) */

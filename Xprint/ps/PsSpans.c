@@ -75,6 +75,10 @@ in this Software without prior written authorization from The Open Group.
 ********************************************************************/
 /* $XFree86: xc/programs/Xserver/Xprint/ps/PsSpans.c,v 1.8 2001/10/28 03:32:56 tsi Exp $ */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #include "Ps.h"
 #include "gcstruct.h"
 #include "windowstr.h"

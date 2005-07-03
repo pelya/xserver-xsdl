@@ -5,6 +5,10 @@
  * Authors: Alexander Gottwald
  */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #include <X11/Xwindows.h>
 #include <GL/gl.h>
 #include <GL/glext.h>

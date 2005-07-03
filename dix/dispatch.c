@@ -78,13 +78,17 @@ Equipment Corporation.
 
 /* $XFree86: xc/programs/Xserver/dix/dispatch.c,v 3.32 2003/11/10 18:21:45 tsi Exp $ */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #ifdef PANORAMIX_DEBUG
 #include <stdio.h>
 int ProcInitialConnection();
 #endif
 
 #include "windowstr.h"
-#include "fontstruct.h"
+#include <X11/fonts/fontstruct.h>
 #include "dixfontstr.h"
 #include "gcstruct.h"
 #include "selection.h"

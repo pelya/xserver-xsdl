@@ -8,18 +8,22 @@
 
 /* $XFree86: xc/programs/Xserver/hw/xfree86/shadowfb/shadow.c,v 1.20tsi Exp $ */
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #include <X11/X.h>
 #include <X11/Xproto.h>
 #include <X11/misc.h>
 #include "pixmapstr.h"
 #include "input.h"
-#include "font.h"
+#include <X11/fonts/font.h>
 #include "mi.h"
 #include "scrnintstr.h"
 #include "windowstr.h"
 #include "gcstruct.h"
 #include "dixfontstr.h"
-#include "fontstruct.h"
+#include <X11/fonts/fontstruct.h>
 #include "xf86.h"
 #include "xf86str.h"
 #include "shadowfb.h"

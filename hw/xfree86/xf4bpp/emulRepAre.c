@@ -28,6 +28,10 @@
  * P. Shupak 1/88
  */
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #include "xf4bpp.h"
 
 void xf4bppReplicateArea( pWin, x, y, planeMask, goalWidth, goalHeight,

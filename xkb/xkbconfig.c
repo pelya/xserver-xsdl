@@ -26,6 +26,10 @@
  ********************************************************/
 /* $XFree86: xc/lib/xkbfile/xkbconfig.c,v 3.7 2001/11/30 12:11:51 eich Exp $ */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif

@@ -29,6 +29,10 @@
  * This file contains the glue needed to support various IA-64 chipsets.
  */
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #include <fcntl.h>
 #include <unistd.h>
 #include <signal.h>

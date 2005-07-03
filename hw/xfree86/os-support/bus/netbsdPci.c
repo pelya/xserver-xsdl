@@ -27,6 +27,10 @@
  * authorization from the XFree86 Project.
  */
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #include <sys/types.h>
 #include <sys/mman.h>
 #include <sys/ioctl.h>

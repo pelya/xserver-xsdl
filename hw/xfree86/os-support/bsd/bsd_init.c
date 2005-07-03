@@ -25,6 +25,10 @@
  */
 /* $XConsortium: bsd_init.c /main/8 1996/10/23 13:13:05 kaleb $ */
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #include <X11/X.h>
 
 #include "compiler.h"

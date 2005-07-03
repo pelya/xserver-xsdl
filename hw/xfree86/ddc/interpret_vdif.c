@@ -1,5 +1,9 @@
 /* $XFree86: xc/programs/Xserver/hw/xfree86/ddc/interpret_vdif.c,v 1.5 1999/12/03 19:17:26 eich Exp $ */
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #include <X11/Xarch.h>
 #include "xf86DDC.h"
 #include "vdif.h"

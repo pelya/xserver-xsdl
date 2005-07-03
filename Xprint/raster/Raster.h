@@ -44,6 +44,10 @@ copyright holders.
 **    *********************************************************
 ** 
 ********************************************************************/
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #ifndef _RASTER_H_
 #define _RASTER_H_
 

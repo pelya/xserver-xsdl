@@ -52,6 +52,10 @@
 /* $XdotOrg: xc/programs/Xserver/hw/xfree86/common/xf86Io.c,v 1.3 2005/04/20 12:25:21 daniels Exp $ */
 
 #define NEED_EVENTS
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #include <X11/X.h>
 #include <X11/Xproto.h>
 #include "inputstr.h"

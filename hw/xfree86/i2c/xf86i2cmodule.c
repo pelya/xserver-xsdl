@@ -7,6 +7,10 @@
 
 /* $XFree86: xc/programs/Xserver/hw/xfree86/i2c/xf86i2cmodule.c,v 1.6 1999/01/26 05:54:10 dawes Exp $ */
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #include "xf86Module.h"
 
 static MODULESETUPPROTO(i2cSetup);

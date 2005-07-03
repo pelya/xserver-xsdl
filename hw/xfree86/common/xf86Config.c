@@ -46,6 +46,10 @@
  *      ... and others
  */
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #ifdef XF86DRI
 #include <sys/types.h>
 #include <grp.h>

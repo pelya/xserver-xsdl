@@ -47,6 +47,10 @@ SOFTWARE.
 ******************************************************************/
 /* $XFree86: xc/programs/Xserver/mi/mi.h,v 3.9 2001/08/06 20:51:16 dawes Exp $ */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #ifndef MI_H
 #define MI_H
 #include <X11/X.h>
@@ -54,7 +58,7 @@ SOFTWARE.
 #include "validate.h"
 #include "window.h"
 #include "gc.h"
-#include "font.h"
+#include <X11/fonts/font.h>
 #include "input.h"
 #include "cursor.h"
 

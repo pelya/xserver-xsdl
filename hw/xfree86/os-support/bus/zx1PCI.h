@@ -25,6 +25,10 @@
  * XFree86 Project.
  */
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #ifndef PCI_ZX1_H
 #define PCI_ZX1_H 1
 

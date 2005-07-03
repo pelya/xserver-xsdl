@@ -28,6 +28,10 @@ from The Open Group.
 */
 /* $XFree86: xc/programs/Xserver/mi/miclipn.c,v 1.3 2001/08/06 21:46:04 dawes Exp $ */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #include <X11/X.h>
 #include "windowstr.h"
 #include "scrnintstr.h"

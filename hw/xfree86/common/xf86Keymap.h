@@ -36,6 +36,10 @@
 
 static KeySym map[NUM_KEYCODES * GLYPHS_PER_KEY] = {
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #if !defined(__SOL8__) && (!defined(sun) || defined(i386))
 
     /* 0x00 */  NoSymbol,       NoSymbol,	NoSymbol,	NoSymbol,

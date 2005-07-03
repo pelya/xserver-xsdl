@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/GL/glx/glxbuf.c,v 1.7 2001/10/31 22:50:26 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/GL/glx/glxbuf.c,v 1.6 2001/03/25 05:32:01 tsi Exp $ */
 /*
 ** License Applicability. Except to the extent portions of this file are
 ** made subject to an alternative license as permitted in the SGI Free
@@ -33,6 +33,10 @@
 ** compliant with the OpenGL(R) version 1.2.1 Specification.
 **
 */
+
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
 
 #include "glxserver.h"
 #include "glxutil.h"

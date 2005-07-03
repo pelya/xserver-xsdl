@@ -27,6 +27,10 @@
  * authorization from the copyright holder(s) and author(s).
  */
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #ifndef _XF86_RESOURCES_H
 
 #define _XF86_RESOURCES_H

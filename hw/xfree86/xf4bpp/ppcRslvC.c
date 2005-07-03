@@ -57,6 +57,10 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
  * P. Shupak 12/31/87
  */
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #include "xf4bpp.h"
 #include "scrnintstr.h"
 

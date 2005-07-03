@@ -55,6 +55,10 @@
 
 /* View/edit this file with tab stops set to 4 */
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #include "xf86Parser.h"
 #include "xf86tokens.h"
 #include "Configint.h"

@@ -527,6 +527,10 @@ _miRegisterPointerDevice (pScreen, pDevice)
 }
 
 /* obsolete: for binary compatibility */
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #ifdef miRegisterPointerDevice
 #undef miRegisterPointerDevice
 void

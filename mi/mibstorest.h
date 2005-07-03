@@ -33,6 +33,10 @@ in this Software without prior written authorization from The Open Group.
 
 /* $XFree86: xc/programs/Xserver/mi/mibstorest.h,v 1.4 2001/01/17 22:37:06 dawes Exp $ */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #include "mibstore.h"
 #include "regionstr.h"
 

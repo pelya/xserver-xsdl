@@ -50,6 +50,10 @@
 
 /* $XConsortium: atKeynames.h /main/11 1996/03/09 11:17:41 kaleb $ */
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #ifndef _ATKEYNAMES_H
 #define _ATKEYNAMES_H
 

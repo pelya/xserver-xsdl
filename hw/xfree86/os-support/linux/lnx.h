@@ -1,5 +1,9 @@
 /* $XFree86: Exp $ */
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #ifndef LNX_H_
 # ifdef __alpha__
 extern unsigned long _bus_base __P ((void)) __attribute__ ((const));

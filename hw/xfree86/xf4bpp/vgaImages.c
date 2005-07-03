@@ -23,6 +23,10 @@
 */
 /* $XConsortium: vgaImages.c /main/5 1996/02/21 17:58:58 kaleb $ */
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #include "xf4bpp.h"
 #include "OScompiler.h"
 #include "vgaReg.h"

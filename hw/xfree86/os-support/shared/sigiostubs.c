@@ -27,6 +27,10 @@
  */
 /* $XdotOrg: xc/programs/Xserver/hw/xfree86/os-support/shared/sigiostubs.c,v 1.3 2005/04/20 12:25:38 daniels Exp $ */
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #ifdef XFree86Server
 #ifdef __UNIXOS2__
 # define I_NEED_OS2_H

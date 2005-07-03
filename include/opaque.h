@@ -28,6 +28,10 @@ from The Open Group.
 */
 /* $XFree86: xc/programs/Xserver/include/opaque.h,v 1.13 2003/07/24 13:50:25 eich Exp $ */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #ifndef OPAQUE_H
 #define OPAQUE_H
 

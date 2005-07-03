@@ -70,6 +70,10 @@ SOFTWARE.
 */
 /* $XConsortium: ppcClip.c /main/4 1996/02/21 17:57:21 kaleb $ */
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #include "xf4bpp.h"
 #include "mfbmap.h"
 #include "mfb.h"

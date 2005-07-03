@@ -48,6 +48,10 @@ copyright holders.
 /* $XFree86: xc/programs/Xserver/Xprint/pcl/PclSFonts.c,v 1.7tsi Exp $ */
 
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #include <stdio.h>
 #include "Pcl.h"
 

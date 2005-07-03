@@ -77,6 +77,10 @@ Equipment Corporation.
 
 ******************************************************************/
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #include "regionstr.h"
 #include <X11/Xprotostr.h>
 #include "gc.h"

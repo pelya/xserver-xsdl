@@ -46,6 +46,10 @@ SOFTWARE.
 
 ******************************************************************/
 /* $XFree86: xc/programs/Xserver/include/screenint.h,v 1.5 2001/12/14 19:59:56 dawes Exp $ */
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #ifndef SCREENINT_H
 #define SCREENINT_H
 

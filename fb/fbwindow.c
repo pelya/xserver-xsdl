@@ -24,6 +24,10 @@
  */
 /* $XFree86: xc/programs/Xserver/fb/fbwindow.c,v 1.10tsi Exp $ */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #include "fb.h"
 #ifdef IN_MODULE
 #include "xf86_ansic.h"

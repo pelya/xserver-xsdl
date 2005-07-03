@@ -31,6 +31,10 @@
  * Call the functions from the scanpci module.
  */
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #include <ctype.h>
 #include <stdlib.h>
 #include <X11/X.h>

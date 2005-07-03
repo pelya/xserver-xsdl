@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/sunos/sun_bios.c,v 1.2 2001/10/28 03:34:02 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/sunos/sun_bios.c,v 1.2tsi Exp $ */
 /*
  * Copyright 1990,91 by Thomas Roell, Dinkelscherben, Germany
  * Copyright 1993 by David Wexelblat <dwex@goblin.org>
@@ -22,6 +22,10 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE
  * OF THIS SOFTWARE.
  */
+
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
 
 #ifdef i386
 #define _NEED_SYSI86
@@ -71,7 +75,7 @@ xf86ReadBIOS(unsigned long Base, unsigned long Offset, unsigned char *Buf,
 	{
 		if (!xf86LinearVidMem())
 			FatalError("xf86ReadBIOS: Could not mmap BIOS"
-				   " [a=%x]\n", Base);
+				   " [a=%lx]\n", Base);
 		sprintf(solx86_vtname, apertureDevName);
 	}
 
@@ -86,7 +90,7 @@ xf86ReadBIOS(unsigned long Base, unsigned long Offset, unsigned char *Buf,
 	if (ptr == MAP_FAILED)
 	{
 		xf86Msg(X_WARNING, "xf86ReadBIOS: %s mmap failed "
-			"[0x%05x, 0x%04x]\n",
+			"[0x%08lx, 0x%04x]\n",
 			solx86_vtname, Base, mlen);
 		close(fd);
 		return -1;

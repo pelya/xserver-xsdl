@@ -47,6 +47,10 @@
  */
 
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #ifndef _XF86_PCIINFO_H
 #define _XF86_PCIINFO_H
 

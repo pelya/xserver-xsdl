@@ -49,6 +49,10 @@ SOFTWARE.
 ******************************************************************/
 /* $Xorg: lbxio.c,v 1.4 2001/02/09 02:05:23 xorgcvs Exp $ */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #include <stdio.h>
 #include <X11/Xtrans/Xtrans.h>
 #include <X11/Xmd.h>

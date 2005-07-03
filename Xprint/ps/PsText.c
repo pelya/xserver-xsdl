@@ -74,11 +74,15 @@ in this Software without prior written authorization from The Open Group.
 ** 
 ********************************************************************/
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #include "Ps.h"
 #include "gcstruct.h"
 #include "windowstr.h"
-#include "fntfil.h"
-#include "fntfilst.h"
+#include <X11/fonts/fntfil.h>
+#include <X11/fonts/fntfilst.h>
 #include <limits.h>
 
 int

@@ -35,6 +35,10 @@
  * underneath this layer besides fb will get called.
  */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #include "rootless.h"
 #include "rlAccel.h"
 

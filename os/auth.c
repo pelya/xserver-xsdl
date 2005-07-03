@@ -33,6 +33,10 @@ from The Open Group.
  * Author:  Keith Packard, MIT X Consortium
  */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #ifdef K5AUTH
 # include   <krb5/krb5.h>
 #endif

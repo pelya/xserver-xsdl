@@ -48,6 +48,10 @@ copyright holders.
 ** 
 ********************************************************************/
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -60,7 +64,7 @@ copyright holders.
 #include "screenint.h"
 #include <X11/misc.h>
 #include "scrnintstr.h"
-#include "fontstruct.h"
+#include <X11/fonts/fontstruct.h>
 
 #include "DiPrint.h"
 #include "attributes.h"

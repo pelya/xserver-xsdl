@@ -51,6 +51,10 @@
  */
 
 #undef DBMALLOC
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #include "sym.h"
 #include "colormap.h"
 #include "cursor.h"

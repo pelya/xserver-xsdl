@@ -30,6 +30,10 @@
  */
 /* $XFree86: xc/programs/Xserver/miext/rootless/rootlessCommon.c,v 1.6 2004/07/02 01:30:33 torrey Exp $ */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #include "rootlessCommon.h"
 
 unsigned int rootless_CopyBytes_threshold = 0;

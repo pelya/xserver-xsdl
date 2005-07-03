@@ -25,6 +25,10 @@
  */
 /* $XFree86: xc/programs/Xserver/hw/xfree86/ramdac/BT.c,v 1.7 2000/10/20 12:57:27 alanh Exp $ */
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #include "xf86.h"
 #include "xf86_OSproc.h"
 #include "xf86_ansic.h"

@@ -47,6 +47,10 @@ SOFTWARE.
 ******************************************************************/
 /* $XFree86: xc/programs/Xserver/include/extension.h,v 1.5 2001/12/14 19:59:54 dawes Exp $ */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #ifndef EXTENSION_H
 #define EXTENSION_H 
 

@@ -1,6 +1,10 @@
 /* $XFree86: xc/programs/Xserver/hw/xfree86/xf4bpp/xf4bpp.h,v 1.9 2003/11/03 05:11:57 tsi Exp $ */
 
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #ifndef __XF4BPP_H__
 #define __XF4BPP_H__
 
@@ -8,7 +12,7 @@
 #include "windowstr.h"
 #include "gcstruct.h"
 #include "colormapst.h"
-#include "fontstruct.h"
+#include <X11/fonts/fontstruct.h>
 #ifndef PixelType
 #define PixelType CARD32
 #endif

@@ -24,6 +24,10 @@
  */
 /* $XFree86: xc/programs/Xserver/fb/fbfillsp.c,v 1.2 2000/02/23 20:29:43 dawes Exp $ */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #include "fb.h"
 #include "rlAccel.h"
 

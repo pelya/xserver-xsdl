@@ -25,9 +25,13 @@
  */
 /* $XFree86: xc/lib/font/bitmap/module/bitmapmod.c,v 1.7 1999/01/26 05:53:47 dawes Exp $ */
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #include <X11/Xdefs.h>
 
-#include "fontmod.h"
+#include <X11/fonts/fontmod.h>
 #include "xf86Module.h"
 
 static MODULESETUPPROTO(bitmapSetup);

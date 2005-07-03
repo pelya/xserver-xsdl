@@ -23,6 +23,10 @@
  */
 /* $XFree86: xc/programs/Xserver/lbx/lbxexts.c,v 1.2 2000/05/18 23:46:24 dawes Exp $ */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #include <X11/X.h>
 #include <X11/Xproto.h>
 #include <X11/misc.h>

@@ -26,6 +26,10 @@
  ********************************************************/
 /* $XFree86: xc/lib/xkbfile/xkbout.c,v 3.9 2001/10/28 03:32:47 tsi Exp $ */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif

@@ -30,6 +30,10 @@ in this Software without prior written authorization from The Open Group.
 /* $Xorg: mitmisc.c,v 1.4 2001/02/09 02:04:32 xorgcvs Exp $ */
 
 #define NEED_EVENTS
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #include <X11/X.h>
 #include <X11/Xproto.h>
 #include <X11/misc.h>

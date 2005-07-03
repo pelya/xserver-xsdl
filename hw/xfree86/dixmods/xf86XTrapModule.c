@@ -2,6 +2,10 @@
 /*  This is the xf86 module code for the DEC_XTRAP extension.
  */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #include "xf86Module.h"
 
 #include <X11/extensions/xtrapdi.h>

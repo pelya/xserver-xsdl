@@ -24,6 +24,10 @@
 /* $XdotOrg: xc/programs/Xserver/fb/fbgc.c,v 1.3 2004/12/04 00:42:50 kuhn Exp $ */
 /* $XFree86: xc/programs/Xserver/fb/fbgc.c,v 1.14 2003/12/18 15:22:32 alanh Exp $ */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #include "fb.h"
 #ifdef IN_MODULE
 #include "xf86_ansic.h"

@@ -29,6 +29,10 @@
  * This file contains the glue necessary for support of Intel's E8870 chipset.
  */
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #include "e8870PCI.h"
 #include "xf86.h"
 #include "Pci.h"

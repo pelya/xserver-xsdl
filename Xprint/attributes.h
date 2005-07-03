@@ -31,6 +31,10 @@ dealings in this Software without prior written authorization from said
 copyright holders.
 */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #ifndef _Xp_attributes_h
 #define _Xp_attributes_h 1
 

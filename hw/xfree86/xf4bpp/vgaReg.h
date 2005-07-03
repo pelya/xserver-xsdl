@@ -35,6 +35,10 @@
 	 SET_BYTE_REGISTER((RegGroup) + 1, Value))
 
 /* There is a jumper on the ega to change this to 0x200 instead !! */
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #if 0	/* This is now a stack variable, as needed */
 #define REGBASE				0x300
 #endif

@@ -38,7 +38,7 @@
 #ifndef DMXFONT_H
 #define DMXFONT_H
 
-#include "fontstruct.h"
+#include <X11/fonts/fontstruct.h>
 
 /** Font private area. */
 typedef struct _dmxFontPriv {

@@ -1,6 +1,10 @@
 /* $XFree86: xc/programs/Xserver/hw/xfree86/xf8_32bpp/cfb8_32module.c,v 1.5 1999/01/24 13:32:42 dawes Exp $ */
 
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #ifdef XFree86LOADER
 
 #include "xf86Module.h"

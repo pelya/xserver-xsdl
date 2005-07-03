@@ -1,5 +1,9 @@
 /* $XFree86$ */
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #ifdef XFree86LOADER
 
 #include "xf86Module.h"

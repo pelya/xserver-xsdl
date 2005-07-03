@@ -47,6 +47,10 @@ in this Software without prior written authorization from The Open Group.
  */
 /* $XFree86: xc/programs/Xserver/lbx/lbxmain.c,v 1.12 2001/10/28 03:34:12 tsi Exp $ */
  
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #include <sys/types.h>
 #define NEED_REPLIES
 #define NEED_EVENTS

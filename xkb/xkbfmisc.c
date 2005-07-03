@@ -26,6 +26,10 @@
  ********************************************************/
 /* $XFree86: xc/lib/xkbfile/xkbmisc.c,v 1.7 2003/07/16 02:31:10 dawes Exp $ */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif

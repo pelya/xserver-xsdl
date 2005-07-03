@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/lynxos/lynx_noinline.c,v 3.6 2002/01/25 21:56:20 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/lynxos/lynx_noinline.c,v 3.5 2000/07/31 23:25:18 tsi Exp $ */
 /*
  * Copyright 1998 by Metro Link Incorporated
  *
@@ -22,6 +22,10 @@
  * ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
  * SOFTWARE.
  */
+
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
 
 #if /* NO_INLINE && */ defined(__powerpc__)
 

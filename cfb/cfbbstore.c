@@ -17,6 +17,10 @@
  */
 /* $Xorg: cfbbstore.c,v 1.3 2000/08/17 19:48:13 cpqbld Exp $ */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #include    "cfb.h"
 #include    <X11/X.h>
 #include    "mibstore.h"

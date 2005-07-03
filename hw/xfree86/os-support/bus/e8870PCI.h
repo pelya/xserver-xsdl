@@ -25,6 +25,10 @@
  * XFree86 Project.
  */
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #ifndef PCI_E8870_H
 #define PCI_E8870_H 1
 

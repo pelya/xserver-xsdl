@@ -50,6 +50,10 @@ SOFTWARE.
 /* $Xorg: devices.c,v 1.4 2001/02/09 02:04:39 xorgcvs Exp $ */
 /* $XdotOrg: xc/programs/Xserver/dix/devices.c,v 1.5 2005/05/22 01:12:49 alanc Exp $ */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #include <X11/X.h>
 #include <X11/misc.h>
 #include "resource.h"

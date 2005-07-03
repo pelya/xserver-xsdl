@@ -49,11 +49,15 @@ SOFTWARE.
 ******************************************************************/
 /* $XConsortium: afbimggblt.c,v 5.17 94/04/17 20:28:25 dpw Exp $ */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #include		<X11/X.h>
 #include		<X11/Xmd.h>
 #include		<X11/Xproto.h>
 #include		"afb.h"
-#include		"fontstruct.h"
+#include		<X11/fonts/fontstruct.h>
 #include		"dixfontstr.h"
 #include		"gcstruct.h"
 #include		"windowstr.h"

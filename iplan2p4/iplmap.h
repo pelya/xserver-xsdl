@@ -37,6 +37,10 @@ interleaved planes */
 
 /* a losing vendor cpp dumps core if we define NAME in terms of CATNAME */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #if INTER_PLANES == 2
 #define NAME(subname) ipl2p2##subname
 #elif INTER_PLANES == 4

@@ -26,6 +26,10 @@
  *
  */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #ifndef _MICOORD_H_
 #define _MICOORD_H_ 1
 

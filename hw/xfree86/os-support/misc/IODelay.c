@@ -6,6 +6,10 @@
 
 /* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/misc/IODelay.c,v 1.1.2.1 1998/06/04 17:35:59 dawes Exp $ */
  
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #include <X11/X.h>
 #include "xf86.h"
 #include "xf86Priv.h"

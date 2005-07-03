@@ -24,6 +24,10 @@
  *
  */
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/utsname.h>

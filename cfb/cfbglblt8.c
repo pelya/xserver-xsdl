@@ -30,11 +30,15 @@ in this Software without prior written authorization from The Open Group.
  * only.
  */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #include	<X11/X.h>
 #include	<X11/Xmd.h>
 #include	<X11/Xproto.h>
 #include	"cfb.h"
-#include	"fontstruct.h"
+#include	<X11/fonts/fontstruct.h>
 #include	"dixfontstr.h"
 #include	"gcstruct.h"
 #include	"windowstr.h"

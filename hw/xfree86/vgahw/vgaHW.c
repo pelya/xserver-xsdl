@@ -12,6 +12,10 @@
 
 #define _NEED_SYSI86
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #include <X11/X.h>
 #include <X11/misc.h>
 

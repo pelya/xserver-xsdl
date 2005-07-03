@@ -1,4 +1,8 @@
 /* $Xorg: PclSFonts.h,v 1.3 2000/08/17 19:48:08 cpqbld Exp $ */
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #ifndef _PCLFONTS_H
 #define _PCLFONTS_H
 

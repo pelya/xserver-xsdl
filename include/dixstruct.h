@@ -23,6 +23,10 @@ SOFTWARE.
 ******************************************************************/
 /* $Xorg: dixstruct.h,v 1.3 2000/08/17 19:53:29 cpqbld Exp $ */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #ifndef DIXSTRUCT_H
 #define DIXSTRUCT_H
 

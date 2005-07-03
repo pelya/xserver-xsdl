@@ -1,6 +1,10 @@
 /* $XFree86: xc/programs/Xserver/hw/xfree86/xf8_32bpp/cfbbstore.c,v 1.2 1999/01/31 12:22:17 dawes Exp $ */
 
 #define PSZ 8
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #include "cfb.h"
 #undef PSZ
 #include "cfb32.h"

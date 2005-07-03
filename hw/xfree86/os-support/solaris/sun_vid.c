@@ -23,6 +23,10 @@
  *
  */
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #if defined(i386) || defined(__x86)
 #define _NEED_SYSI86
 #endif

@@ -121,6 +121,10 @@ XF86ConfExtensionsPtr xf86parseExtensionsSection (void);
 void xf86printExtensionsSection (FILE * cf, XF86ConfExtensionsPtr ptr);
 void xf86freeExtensions (XF86ConfExtensionsPtr ptr);
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #ifndef IN_XSERVER
 /* Externally provided functions */
 void ErrorF(const char *f, ...);

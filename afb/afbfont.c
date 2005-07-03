@@ -48,11 +48,15 @@ SOFTWARE.
 */
 /* $XConsortium: afbfont.c,v 1.18 94/04/17 20:28:22 keith Exp $ */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #include <X11/X.h>
 #include <X11/Xmd.h>
 #include <X11/Xproto.h>
 #include "afb.h"
-#include "fontstruct.h"
+#include <X11/fonts/fontstruct.h>
 #include "dixfontstr.h"
 #include "scrnintstr.h"
 

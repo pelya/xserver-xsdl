@@ -1,3 +1,7 @@
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #ifndef PCI_ALTIX_H
 #define PCI_ALTIX_H 1
 

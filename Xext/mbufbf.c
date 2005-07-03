@@ -29,6 +29,10 @@ in this Software without prior written authorization from The Open Group.
 
 #define NEED_REPLIES
 #define NEED_EVENTS
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #include <stdio.h>
 #include <X11/X.h>
 #include <X11/Xproto.h>

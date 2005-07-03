@@ -70,6 +70,10 @@ SOFTWARE.
 ******************************************************************/
 /* $XConsortium: ppcPolyRec.c /main/4 1996/02/21 17:58:11 kaleb $ */
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #include "xf4bpp.h"
 
 void

@@ -27,6 +27,10 @@
  * authorization from the copyright holder(s) and author(s).
  */
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #ifndef _xf86InPriv_h
 #define _xf86InPriv_h
 

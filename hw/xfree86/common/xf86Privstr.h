@@ -32,6 +32,10 @@
  * None of the data structures here should be used by video drivers.
  */ 
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #ifndef _XF86PRIVSTR_H
 #define _XF86PRIVSTR_H
 

@@ -6,6 +6,10 @@
 
 /* $XFree86: xc/programs/Xserver/hw/xfree86/xf8_16bpp/cfbscrinit.c,v 1.7 2000/01/21 01:12:24 dawes Exp $ */
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #include <X11/X.h>
 #include <X11/Xmd.h>
 #include <X11/misc.h>

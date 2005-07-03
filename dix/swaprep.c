@@ -48,13 +48,17 @@ SOFTWARE.
 
 /* $Xorg: swaprep.c,v 1.4 2001/02/09 02:04:41 xorgcvs Exp $ */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #include <X11/X.h>
 #define NEED_REPLIES
 #define NEED_EVENTS
 #include <X11/Xproto.h>
 #include <X11/misc.h>
 #include "dixstruct.h"
-#include "fontstruct.h"
+#include <X11/fonts/fontstruct.h>
 #include "scrnintstr.h"
 #include "swaprep.h"
 #include "globals.h"

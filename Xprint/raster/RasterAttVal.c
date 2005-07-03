@@ -32,6 +32,10 @@ copyright holders.
 */
 /* $XFree86: xc/programs/Xserver/Xprint/raster/RasterAttVal.c,v 1.3 2001/10/31 22:50:29 tsi Exp $ */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #include <stdio.h>
 #include <X11/X.h>
 #include <X11/misc.h>

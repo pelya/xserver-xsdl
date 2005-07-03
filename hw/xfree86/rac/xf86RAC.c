@@ -1,5 +1,9 @@
 /* $XFree86: xc/programs/Xserver/hw/xfree86/rac/xf86RAC.c,v 1.5 1999/06/12 17:30:21 dawes Exp $ */
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #include <X11/misc.h>
 #include "xf86.h"
 #include "xf86_ansic.h"

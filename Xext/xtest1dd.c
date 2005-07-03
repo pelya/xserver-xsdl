@@ -61,6 +61,10 @@ University of California.
 #define	NEED_EVENTS
 #define	NEED_REPLIES
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #include <stdio.h>
 #include <X11/Xos.h>
 #include <X11/X.h>

@@ -26,6 +26,10 @@
  */
 /* $XConsortium: lnx_init.c /main/7 1996/10/23 18:46:30 kaleb $ */
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #include <X11/X.h>
 #include <X11/Xmd.h>
 

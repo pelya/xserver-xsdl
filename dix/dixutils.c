@@ -84,6 +84,10 @@ Author:  Adobe Systems Incorporated
 
 /* $Xorg: dixutils.c,v 1.4 2001/02/09 02:04:40 xorgcvs Exp $ */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #include <X11/X.h>
 #include <X11/Xmd.h>
 #include <X11/misc.h>

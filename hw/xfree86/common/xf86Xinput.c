@@ -50,6 +50,10 @@
 /* $XConsortium: xf86Xinput.c /main/14 1996/10/27 11:05:25 kaleb $ */
 /* $XdotOrg: xc/programs/Xserver/hw/xfree86/common/xf86Xinput.c,v 1.4 2005/04/20 12:25:21 daniels Exp $ */
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #include <X11/Xfuncproto.h>
 #include <X11/Xmd.h>
 #ifdef XINPUT

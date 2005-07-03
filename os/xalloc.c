@@ -31,6 +31,10 @@ Pascal Haible.
 /* Only used if INTERNAL_MALLOC is defined
  * - otherwise xalloc() in utils.c is used
  */
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #ifdef INTERNAL_MALLOC
 
 #include <stdlib.h>	/* for malloc() etc. */

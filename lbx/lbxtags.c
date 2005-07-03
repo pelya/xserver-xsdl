@@ -48,6 +48,10 @@ in this Software without prior written authorization from The Open Group.
  */
 /* $XFree86: xc/programs/Xserver/lbx/lbxtags.c,v 1.3 2001/01/17 22:37:00 dawes Exp $ */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #include <X11/X.h>
 #include <X11/misc.h>
 #include "lbxdata.h"

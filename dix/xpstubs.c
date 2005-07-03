@@ -27,8 +27,12 @@ from The Open Group.
 
 /* $Xorg: xpstubs.c,v 1.5 2001/03/08 17:52:08 pookie Exp $ */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #include <X11/misc.h>
-#include "font.h"
+#include <X11/fonts/font.h>
 #ifdef XPRINT
 #include "DiPrint.h"
 #endif

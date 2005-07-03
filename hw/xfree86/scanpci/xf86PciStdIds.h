@@ -19,6 +19,10 @@
  * copyright notice.
  */
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #include "xf86PciInfo.h"
 #ifndef NULL
 #define NULL (void *)0

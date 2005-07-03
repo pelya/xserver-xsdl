@@ -23,6 +23,10 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 ********************************************************/
 /* $XFree86: xc/programs/Xserver/Xext/EVIstruct.h,v 3.5 2003/07/16 01:38:28 dawes Exp $ */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #ifndef EVI_STRUCT_H
 #define EVI_STRUCT_H
 

@@ -47,6 +47,10 @@ from The Open Group.
 #define SwitchEven(n) case n: BodyEven(n)
 
 /* to allow mfb and cfb to share code... */
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #ifndef BitRight
 #define BitRight(a,b) SCRRIGHT(a,b)
 #define BitLeft(a,b) SCRLEFT(a,b)

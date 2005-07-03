@@ -63,11 +63,18 @@ SOFTWARE.
  *
  *****************************************************************/
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #ifdef WIN32
 #include <X11/Xwinsock.h>
 #endif
 #include <X11/X.h>
 #include <X11/Xproto.h>
+#define XSERV_t
+#define TRANS_SERVER
+#define TRANS_REOPEN
 #include <X11/Xtrans/Xtrans.h>
 #include <errno.h>
 #include <signal.h>

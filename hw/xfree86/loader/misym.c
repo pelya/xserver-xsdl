@@ -51,6 +51,10 @@
  * authorization from the copyright holder(s) and author(s).
  */
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #include "sym.h"
 #include <X11/misc.h>
 #include "mi.h"

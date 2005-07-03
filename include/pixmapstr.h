@@ -47,6 +47,10 @@ SOFTWARE.
 ******************************************************************/
 /* $XFree86$ */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #ifndef PIXMAPSTRUCT_H
 #define PIXMAPSTRUCT_H
 #include "pixmap.h"

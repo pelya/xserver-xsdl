@@ -52,6 +52,10 @@ SOFTWARE.
    written by drewry, september 1986
 */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #include "pixmap.h"
 #include "region.h"
 #include "gc.h"

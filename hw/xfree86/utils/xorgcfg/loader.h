@@ -47,7 +47,7 @@
 #define XINPUT
 #include "xf86Xinput.h"
 
-#include "fontmod.h"
+#include <X11/fonts/fontmod.h>
 #include "loaderProcs.h"
 
 #include <sym.h>

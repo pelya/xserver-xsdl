@@ -24,6 +24,10 @@
  */
 /* $XFree86: xc/programs/Xserver/fb/fbfill.c,v 1.6 2003/01/31 00:01:45 torrey Exp $ */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #include "fb.h"
 #include "rlAccel.h"
 

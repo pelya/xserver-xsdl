@@ -25,6 +25,10 @@
  */
 /* $XConsortium: bsd_VTsw.c /main/4 1996/02/21 17:50:57 kaleb $ */
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #include <X11/X.h>
 #include "xf86.h"
 #include "xf86Priv.h"

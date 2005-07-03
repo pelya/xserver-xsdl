@@ -33,6 +33,10 @@
  */
 /* $XFree86: xc/programs/Xserver/GL/apple/indirect.c,v 1.2 2003/09/16 00:36:11 torrey Exp $ */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #include "dri.h"
 #include "quartz.h"
 

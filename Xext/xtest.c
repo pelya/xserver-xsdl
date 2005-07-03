@@ -29,6 +29,10 @@ from The Open Group.
 */
 /* $XFree86: xc/programs/Xserver/Xext/xtest.c,v 3.10 2003/10/28 23:08:44 tsi Exp $ */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #include <X11/X.h>
 #define NEED_EVENTS
 #include <X11/Xproto.h>

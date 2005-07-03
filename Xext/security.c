@@ -27,6 +27,10 @@ in this Software without prior written authorization from The Open Group.
 */
 /* $XFree86: xc/programs/Xserver/Xext/security.c,v 1.16tsi Exp $ */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #include "dixstruct.h"
 #include "extnsionst.h"
 #include "windowstr.h"

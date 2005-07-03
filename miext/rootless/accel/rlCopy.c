@@ -24,6 +24,10 @@
  */
 /* $XFree86: xc/programs/Xserver/fb/fbcopy.c,v 1.12 2001/07/16 05:04:05 keithp Exp $ */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #include "fb.h"
 #include "rlAccel.h"
 

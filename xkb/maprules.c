@@ -26,6 +26,10 @@
  ********************************************************/
 /* $XFree86: xc/lib/xkbfile/maprules.c,v 3.17 2002/11/26 01:43:25 dawes Exp $ */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif

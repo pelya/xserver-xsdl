@@ -25,6 +25,10 @@
  */
 /* $XConsortium: sysv_init.c /main/4 1996/02/21 17:54:31 kaleb $ */
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #include <X11/X.h>
 #include <X11/Xmd.h>
 

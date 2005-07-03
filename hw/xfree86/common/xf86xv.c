@@ -30,6 +30,10 @@
 
 /* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86xv.c,v 1.37 2003/11/10 18:22:15 tsi Exp $ */
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #include <X11/misc.h>
 #include "xf86.h"
 #include "xf86_OSproc.h"

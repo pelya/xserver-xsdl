@@ -22,6 +22,10 @@
  */
 /* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86sbusBus.h,v 3.4 2001/10/28 03:33:19 tsi Exp $ */
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #ifndef _XF86_SBUSBUS_H
 #define _XF86_SBUSBUS_H
 

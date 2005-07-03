@@ -27,6 +27,10 @@ in this Software without prior written authorization from The Open Group.
 */
 /* $XFree86: xc/programs/Xserver/mi/miline.h,v 1.6 2001/08/06 20:51:19 dawes Exp $ */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #ifndef MILINE_H
 
 #include "screenint.h"

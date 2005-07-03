@@ -26,6 +26,10 @@
  */
 /* $XFree86$ */
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #ifndef	_xisb_H_
 #define _xisb_H_
 

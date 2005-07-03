@@ -1,4 +1,8 @@
 /* $XFree86: xc/programs/Xserver/GL/glx/glxdrawable.h,v 1.3 2001/03/21 16:29:36 dawes Exp $ */
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #ifndef _GLX_drawable_h_
 #define _GLX_drawable_h_
 

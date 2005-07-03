@@ -18,6 +18,10 @@
 /* $XFree86$ */
 
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #include <sys/types.h>
 #include <string.h>
 

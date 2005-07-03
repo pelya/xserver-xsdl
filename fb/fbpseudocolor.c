@@ -1,12 +1,16 @@
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #include <X11/X.h>
 #include <X11/Xproto.h>
 #include "scrnintstr.h"
 #include "colormapst.h"
 #include "glyphstr.h"
 #include "resource.h"
-#include "font.h"
+#include <X11/fonts/font.h>
 #include "dixfontstr.h"
-#include "fontstruct.h"
+#include <X11/fonts/fontstruct.h>
 #include "micmap.h"
 #include "fb.h"
 #include "fbpseudocolor.h"

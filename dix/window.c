@@ -80,6 +80,10 @@ Equipment Corporation.
 
 /* $XFree86: xc/programs/Xserver/dix/window.c,v 3.36 2003/11/14 23:52:50 torrey Exp $ */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #include <X11/misc.h>
 #include "scrnintstr.h"
 #include <X11/os.h>

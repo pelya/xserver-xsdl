@@ -50,6 +50,10 @@ SOFTWARE.
 */
 /* $XFree86: xc/programs/Xserver/mfb/maskbits.c,v 1.5 2001/01/17 22:37:01 dawes Exp $ */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #include "maskbits.h"
 #include "servermd.h"
 

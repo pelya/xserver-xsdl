@@ -55,6 +55,10 @@ SOFTWARE.
 
 #define	 NEED_EVENTS			/* for inputstr.h    */
 #define	 NEED_REPLIES
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #include <X11/X.h>				/* for inputstr.h    */
 #include <X11/Xproto.h>			/* Request macro     */
 #include "inputstr.h"			/* DeviceIntPtr	     */

@@ -23,6 +23,10 @@ SOFTWARE.
 ******************************************************************/
 /* $XFree86: xc/programs/Xserver/Xext/xvdix.h,v 1.7 2001/05/07 21:37:51 tsi Exp $ */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #ifndef XVDIX_H
 #define XVDIX_H
 /*

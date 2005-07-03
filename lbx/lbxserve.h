@@ -47,6 +47,10 @@ in this Software without prior written authorization from The Open Group.
  */
 /* $XFree86: xc/programs/Xserver/lbx/lbxserve.h,v 1.4 2001/08/01 00:44:58 tsi Exp $ */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #ifndef _LBXSERVE_H_
 
 #include "colormap.h"

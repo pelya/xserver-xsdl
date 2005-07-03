@@ -30,6 +30,10 @@ Equipment Corporation.
 
 typedef int Bool;
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #include "dpmsproc.h"
 
 #define FALSE 0

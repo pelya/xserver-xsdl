@@ -25,6 +25,10 @@
  */
 /* $XConsortium: sysv_io.c /main/8 1996/10/19 18:08:06 kaleb $ */
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #include <X11/X.h>
 
 #include "compiler.h"

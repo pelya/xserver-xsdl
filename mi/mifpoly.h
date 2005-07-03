@@ -47,6 +47,10 @@ SOFTWARE.
 ******************************************************************/
 /* $XFree86: xc/programs/Xserver/mi/mifpoly.h,v 1.3 2001/10/25 12:03:47 alanh Exp $ */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #ifndef __MIFPOLY_H__
 #define __MIFPOLY_H__
 

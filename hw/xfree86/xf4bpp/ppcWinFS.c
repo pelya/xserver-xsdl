@@ -46,6 +46,10 @@ SOFTWARE.
 ******************************************************************/
 /* $XConsortium: ppcWinFS.c /main/3 1996/02/21 17:58:39 kaleb $ */
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #include "xf4bpp.h"
 #include "mfbmap.h"
 #include "mfb.h"

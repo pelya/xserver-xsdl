@@ -25,6 +25,10 @@ Equipment Corporation.
 ******************************************************************/
 /* $XFree86: xc/programs/Xserver/Xext/panoramiXSwap.c,v 3.9 2003/07/16 01:38:29 dawes Exp $ */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #include <stdio.h>
 #include <X11/X.h>
 #include <X11/Xproto.h>

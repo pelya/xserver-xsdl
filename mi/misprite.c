@@ -39,7 +39,7 @@ in this Software without prior written authorization from The Open Group.
 # include   "input.h"
 # include   "mi.h"
 # include   "cursorstr.h"
-# include   "font.h"
+# include   <X11/fonts/font.h>
 # include   "scrnintstr.h"
 # include   "colormapst.h"
 # include   "windowstr.h"
@@ -47,7 +47,11 @@ in this Software without prior written authorization from The Open Group.
 # include   "mipointer.h"
 # include   "mispritest.h"
 # include   "dixfontstr.h"
-# include   "fontstruct.h"
+# include   <X11/fonts/fontstruct.h>
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #ifdef RENDER
 # include   "mipict.h"
 #endif

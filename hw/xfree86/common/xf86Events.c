@@ -53,6 +53,10 @@
 
 /* [JCH-96/01/21] Extended std reverse map to four buttons. */
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #ifdef __UNIXOS2__
 #define I_NEED_OS2_H
 #endif

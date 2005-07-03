@@ -31,6 +31,10 @@
  * architectures.
  */
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #include "zx1PCI.h"
 #include "xf86.h"
 #include "xf86_OSlib.h"

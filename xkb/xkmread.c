@@ -26,6 +26,10 @@
  ********************************************************/
 /* $XFree86: xc/lib/xkbfile/xkmread.c,v 1.6 2002/02/13 22:09:42 herrb Exp $ */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif

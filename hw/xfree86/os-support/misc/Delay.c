@@ -1,5 +1,9 @@
 /* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/misc/Delay.c,v 3.3 2000/12/08 20:13:38 eich Exp $ */
  
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #ifdef __UNIXOS2__
 #define I_NEED_OS2_H
 #endif

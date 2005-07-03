@@ -25,6 +25,10 @@
 
 /* various bits of DIX-level mangling */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #include <sys/types.h>
 #include <stdio.h>
 #define NEED_REPLIES

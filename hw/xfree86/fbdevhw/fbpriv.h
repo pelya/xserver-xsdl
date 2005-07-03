@@ -4,6 +4,10 @@
  */
 /* $XFree86: xc/programs/Xserver/hw/xfree86/fbdevhw/fbpriv.h,v 1.2 2000/01/21 02:30:02 dawes Exp $ */
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #ifndef _LINUX_FB_H
 #define _LINUX_FB_H
 

@@ -36,6 +36,10 @@
 
 /* $XFree86: xc/programs/Xserver/GL/dri/sarea.h,v 1.11 2002/10/30 12:52:03 alanh Exp $ */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #ifndef _SAREA_H_
 #define _SAREA_H_
 

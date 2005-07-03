@@ -52,6 +52,10 @@ OR PERFORMANCE OF THIS SOFTWARE.
 */
 /* $XFree86: xc/programs/Xserver/os/utils.c,v 3.96 2004/01/07 04:16:37 dawes Exp $ */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #ifdef __CYGWIN__
 #include <stdlib.h>
 #include <signal.h>

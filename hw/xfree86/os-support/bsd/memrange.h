@@ -3,7 +3,11 @@
  *
  * $FreeBSD: src/sys/sys/memrange.h,v 1.4 1999/12/29 04:24:44 peter Exp $
  */
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/bsd/memrange.h,v 1.1 2002/08/06 13:25:36 herrb Exp $ */
+/* $XFree86$ */
+
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
 
 #ifndef _MEMRANGE_H
 #define _MEMRANGE_H

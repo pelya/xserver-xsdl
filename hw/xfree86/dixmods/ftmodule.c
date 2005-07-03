@@ -27,7 +27,7 @@
 
 #include "misc.h"
 
-#include "fontmod.h"
+#include <X11/fonts/fontmod.h>
 #include "xf86Module.h"
 
 static MODULESETUPPROTO(freetypeSetup);

@@ -10,6 +10,10 @@
  */
 
 #define NEED_EVENTS
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #include <X11/X.h>
 
 #include "compiler.h"

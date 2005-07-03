@@ -21,6 +21,10 @@
 
 /* $XFree86: xc/programs/Xserver/hw/xfree86/loader/aoutloader.h,v 1.3 1998/09/20 14:41:03 dawes Exp $ */
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #ifndef _AOUTLOADER_H
 #define _AOUTLOADER_H
 extern void *AOUTLoadModule(loaderPtr, int, LOOKUP **);

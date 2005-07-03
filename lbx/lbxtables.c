@@ -22,6 +22,10 @@
  *
  */
 /* $XFree86: xc/programs/Xserver/lbx/lbxtables.c,v 1.2 2000/05/18 23:46:24 dawes Exp $ */
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #include "dix.h"
 
 extern int ProcInitialConnection(ClientPtr client);

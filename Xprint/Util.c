@@ -33,6 +33,10 @@ copyright holders.
 /* $XFree86: xc/programs/Xserver/Xprint/Util.c,v 1.12 2001/08/01 00:44:45 tsi Exp $ */
 
 /* To get the tempnam() prototype in <stdio.h> */
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #if defined(linux) && defined(__STRICT_ANSI__)
 #undef __STRICT_ANSI__
 #endif

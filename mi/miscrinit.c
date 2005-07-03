@@ -28,6 +28,10 @@ from The Open Group.
 */
 /* $XFree86: xc/programs/Xserver/mi/miscrinit.c,v 3.15tsi Exp $ */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #include <X11/X.h>
 #include "servermd.h"
 #include <X11/misc.h>

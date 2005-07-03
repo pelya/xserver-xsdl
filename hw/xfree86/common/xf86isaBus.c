@@ -31,6 +31,10 @@
  * This file contains the interfaces to the bus-specific code
  */
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #include <ctype.h>
 #include <stdlib.h>
 #include <unistd.h>

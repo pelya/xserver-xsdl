@@ -49,6 +49,10 @@
  * authorization from the copyright holder(s) and author(s).
  */
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #include <X11/os.h>
 /* For stat() and related stuff */
 #define NO_OSLIB_PROTOTYPES

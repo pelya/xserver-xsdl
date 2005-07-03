@@ -27,6 +27,10 @@
  * authorization from the copyright holder(s) and author(s).
  */
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #if defined(_XOPEN_SOURCE) || defined(__QNXNTO__) \
 	|| (defined(sun) && defined(__SVR4))
 #include <math.h>

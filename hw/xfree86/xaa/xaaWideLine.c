@@ -14,6 +14,10 @@ Original mi code written by Keith Packard.
 
 */
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #ifndef XFree86LOADER
 #if defined(_XOPEN_SOURCE) || defined(__QNXNTO__) \
         || (defined(sun) && defined(__SVR4))

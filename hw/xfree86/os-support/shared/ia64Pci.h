@@ -23,6 +23,10 @@
  *ings in this Software without prior written authorization from Egbert Eich.
  *
  */
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #ifndef _IA64_PCI_H
 # define _IA64_PCI_H
 

@@ -9,6 +9,10 @@
 
 /* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/linux/lnx_agp.c,v 3.11 2003/04/03 22:47:42 dawes Exp $ */
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #include <X11/X.h>
 #include "xf86.h"
 #include "xf86Priv.h"

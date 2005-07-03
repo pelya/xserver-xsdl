@@ -23,6 +23,10 @@
 
 /* $XFree86: xc/programs/Xserver/hw/xfree86/loader/coffloader.h,v 1.3 1998/09/20 14:41:04 dawes Exp $ */
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #ifndef _COFFLOADER_H
 #define _COFFLOADER_H
 /* coffloader.c */

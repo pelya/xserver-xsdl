@@ -51,6 +51,10 @@
 
 #define INCLUDE_DEPRECATED 1
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #include <fcntl.h>
 #include <setjmp.h>
 #include "sym.h"

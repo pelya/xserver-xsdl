@@ -47,6 +47,10 @@ SOFTWARE.
 ******************************************************************/
 /* $Xorg: osdep.h,v 1.5 2001/02/09 02:05:23 xorgcvs Exp $ */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #ifndef _OSDEP_H_
 #define _OSDEP_H_ 1
 

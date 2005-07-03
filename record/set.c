@@ -51,6 +51,10 @@ from The Open Group.
 
 */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #ifndef TESTING
 #include <X11/misc.h>
 #else

@@ -30,6 +30,10 @@ from The Open Group.
 
 /* Author:  Keith Packard, MIT X Consortium */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #include "mispans.h"
 #include "mifpoly.h" /* for ICEIL */
 

@@ -42,6 +42,10 @@ extern INTER_PIXGRP iplendpartial[];
 		_IG(xor) = 0;						\
 	})
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #if INTER_PLANES == 2
 
 #define PLANE_TIMESCONDG(x)					\

@@ -36,6 +36,10 @@ in this Software without prior written authorization from The Open Group.
 
 /* $Xorg: cfb8bit.h,v 1.4 2001/02/09 02:04:37 xorgcvs Exp $ */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #include "servermd.h"
 
 #if (BITMAP_BIT_ORDER == MSBFirst)
