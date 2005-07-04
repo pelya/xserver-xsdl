@@ -28,6 +28,10 @@
  * Authors:	Harold L Hunt II
  */
 
+#ifdef HAVE_XWIN_CONFIG_H
+#include <xwin-config.h>
+#endif
+#include <sys/types.h>
 #include "winclipboard.h"
 #ifdef __CYGWIN__
 #include <errno.h>

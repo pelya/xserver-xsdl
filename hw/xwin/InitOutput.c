@@ -28,12 +28,18 @@ from The Open Group.
 */
 /* $XFree86: xc/programs/Xserver/hw/xwin/InitOutput.c,v 1.34 2003/10/02 13:30:09 eich Exp $ */
 
+#ifdef HAVE_XWIN_CONFIG_H
+#include <xwin-config.h>
+#endif
 #include "win.h"
 #include "winmsg.h"
 #include "winconfig.h"
 #include "winprefs.h"
 #ifdef XWIN_CLIPBOARD
 #include "X11/Xlocale.h"
+#endif
+#ifdef DPMSExtension
+#include "dpmsproc.h"
 #endif
 #ifdef __CYGWIN__
 #include <mntent.h>
@@ -122,7 +128,6 @@ winLogVersionInfo (void);
 
 Bool
 winValidateArgs (void);
-
 
 /*
  * For the depth 24 pixmap we default to 32 bits per pixel, but
@@ -285,7 +290,7 @@ AbortDDX (void)
 
 #ifdef __CYGWIN__
 /* hasmntopt is currently not implemented for cygwin */
-const char *winCheckMntOpt(const struct mntent *mnt, const char *opt)
+static const char *winCheckMntOpt(const struct mntent *mnt, const char *opt)
 {
     const char *s;
     size_t len;
@@ -305,7 +310,7 @@ const char *winCheckMntOpt(const struct mntent *mnt, const char *opt)
     return NULL;
 }
 
-void
+static void
 winCheckMount(void)
 {
   FILE *mnt;
@@ -367,13 +372,14 @@ winCheckMount(void)
    winMsg(X_WARNING, "/tmp mounted int textmode\n"); 
 }
 #else
-void
+static void
 winCheckMount(void) 
 {
 }
 #endif
 
-const char * 
+#ifdef RELOCATE_PROJECTROOT
+static const char * 
 winGetBaseDir(void)
 {
     static BOOL inited = FALSE;
@@ -400,6 +406,7 @@ winGetBaseDir(void)
     }
     return buffer;
 }
+#endif
 
 static void
 winFixupPaths (void)
@@ -749,7 +756,7 @@ OsVendorInit (void)
 }
 
 
-void
+static void
 winUseMsg (void)
 {
   ErrorF ("-depth bits_per_pixel\n"
@@ -1141,3 +1148,20 @@ winCheckDisplayNumber ()
 
   return TRUE;
 }
+
+#ifdef DPMSExtension
+Bool DPMSSupported(void)
+{
+  return FALSE;
+}
+
+void DPMSSet(int level)
+{
+  return;
+}
+
+int DPMSGet(int *plevel)
+{
+  return 0;
+}
+#endif

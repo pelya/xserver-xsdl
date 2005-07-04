@@ -28,6 +28,9 @@
  * Authors:	Harold L Hunt II
  */
 
+#ifdef HAVE_XWIN_CONFIG_H
+#include <xwin-config.h>
+#endif
 #include "win.h"
 
 void
@@ -229,7 +232,6 @@ winDestroyGCNativeGDI (GCPtr pGC)
   /* Invalidate the GC privates pointer */
   winSetGCPriv (pGC, NULL);
 }
-
 
 #if 0
 /* See Porting Layer Definition - p. 46 */

@@ -32,6 +32,9 @@
  */
 /* $XFree86: xc/programs/Xserver/hw/xwin/winwakeup.c,v 1.6 2002/10/17 08:18:25 alanh Exp $ */
 
+#ifdef HAVE_XWIN_CONFIG_H
+#include <xwin-config.h>
+#endif
 #include "win.h"
 
 

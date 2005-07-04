@@ -26,6 +26,14 @@ from The Open Group.
 
 */
 
+#ifdef HAVE_XWIN_CONFIG_H
+#include <xwin-config.h>
+#endif
+#ifdef XVENDORNAME
+#define VENDOR_STRING XVENDORNAME
+#define VERSION_STRING XORG_RELEASE
+#define VENDOR_CONTACT BUILDERADDR
+#endif
 #include "win.h"
 #include "winconfig.h"
 #include "winprefs.h"
@@ -72,7 +80,7 @@ ENUMDISPLAYMONITORSPROC _EnumDisplayMonitors;
 
 wBOOL CALLBACK getMonitorInfo(HMONITOR hMonitor, HDC hdc, LPRECT rect, LPARAM _data);
 
-Bool QueryMonitor(int index, struct GetMonitorInfoData *data)
+static Bool QueryMonitor(int index, struct GetMonitorInfoData *data)
 {
     /* Load EnumDisplayMonitors from DLL */
     HMODULE user32;

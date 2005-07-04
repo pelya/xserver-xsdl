@@ -28,6 +28,9 @@
 */
 /* $XFree86: xc/programs/Xserver/hw/xwin/InitInput.c,v 1.11 2002/07/05 09:19:25 alanh Exp $ */
 
+#ifdef HAVE_XWIN_CONFIG_H
+#include <xwin-config.h>
+#endif
 #include "win.h"
 #ifdef XWIN_CLIPBOARD
 # include "../../Xext/xf86miscproc.h"

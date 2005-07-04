@@ -32,6 +32,9 @@
 /*
  * Raster operations used by Windows translated to X's 16 rop codes...
  */
+#ifdef HAVE_XWIN_CONFIG_H
+#include <xwin-config.h>
+#endif
 #include "win.h"
 
 void

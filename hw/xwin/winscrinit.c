@@ -33,6 +33,9 @@
  */
 /* $XFree86: xc/programs/Xserver/hw/xwin/winscrinit.c,v 1.27 2003/07/29 21:25:18 dawes Exp $ */
 
+#ifdef HAVE_XWIN_CONFIG_H
+#include <xwin-config.h>
+#endif
 #include "win.h"
 #include "winmsg.h"
 #include "safeAlpha.h"	

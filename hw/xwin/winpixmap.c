@@ -30,6 +30,9 @@
  */
 /* $XFree86: xc/programs/Xserver/hw/xwin/winpixmap.c,v 1.10 2002/10/17 08:18:24 alanh Exp $ */
 
+#ifdef HAVE_XWIN_CONFIG_H
+#include <xwin-config.h>
+#endif
 #include "win.h"
 
 

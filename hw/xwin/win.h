@@ -963,10 +963,10 @@ winSendKeyEvent (DWORD dwKey, Bool fDown);
  */
 
 Bool
-winInstallKeyboardHookLL ();
+winInstallKeyboardHookLL (void);
 
 void
-winRemoveKeyboardHookLL ();
+winRemoveKeyboardHookLL (void);
 
 
 /*

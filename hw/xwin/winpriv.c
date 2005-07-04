@@ -4,6 +4,9 @@
  * Authors: Alexander Gottwald
  */
 
+#ifdef HAVE_XWIN_CONFIG_H
+#include <xwin-config.h>
+#endif
 #include "win.h"
 #include "winpriv.h"
 #include "winwindow.h"

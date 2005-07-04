@@ -28,6 +28,15 @@
  * Authors:	Harold L Hunt II
  */
 
+#ifdef HAVE_XWIN_CONFIG_H
+#include <xwin-config.h>
+#endif
+#ifdef XVENDORNAME
+#define VENDOR_STRING XVENDORNAME
+#define VERSION_STRING XORG_RELEASE
+#define VENDOR_CONTACT BUILDERADDR
+#endif
+
 #include "win.h"
 
 /* References to external symbols */

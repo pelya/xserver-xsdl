@@ -32,6 +32,9 @@
 /*
  * Look at hw/darwin/quartz/xpr/xprFrame.c and hw/darwin/quartz/cr/crFrame.c
  */
+#ifdef HAVE_XWIN_CONFIG_H
+#include <xwin-config.h>
+#endif
 #include "win.h"
 #include <winuser.h>
 #define _WINDOWSWM_SERVER_

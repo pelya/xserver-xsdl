@@ -29,13 +29,18 @@
  */
 /* $XFree86: xc/programs/Xserver/hw/xwin/winconfig.c,v 1.3 2003/10/02 13:30:10 eich Exp $ */
 
+#ifdef HAVE_XWIN_CONFIG_H
+#include <xwin-config.h>
+#endif
 #include "win.h"
 #include "winconfig.h"
 #include "winmsg.h"
 #include "globals.h"
 
 #ifdef XKB
+#ifndef XKB_IN_SERVER
 #define XKB_IN_SERVER
+#endif
 #include <X11/extensions/XKBsrv.h>
 #endif
 

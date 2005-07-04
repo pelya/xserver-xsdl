@@ -33,13 +33,18 @@
 /* $XFree86: xc/programs/Xserver/hw/xwin/winkeybd.c,v 1.12 2002/10/17 08:18:22 alanh Exp $ */
 
 
+#ifdef HAVE_XWIN_CONFIG_H
+#include <xwin-config.h>
+#endif
 #include "win.h"
 #include "winkeybd.h"
 #include "winconfig.h"
 #include "winmsg.h"
 
 #ifdef XKB
+#ifndef XKB_IN_SERVER
 #define XKB_IN_SERVER
+#endif
 #include <X11/extensions/XKBsrv.h>
 #endif
 

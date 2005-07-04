@@ -30,6 +30,9 @@
  */
 /* $XFree86: $ */
 
+#ifdef HAVE_XWIN_CONFIG_H
+#include <xwin-config.h>
+#endif
 #include "win.h"
 #include <shellapi.h>
 #include "winprefs.h"
@@ -111,7 +114,7 @@ winHandleIconMessage (HWND hwnd, UINT message,
 		      WPARAM wParam, LPARAM lParam,
 		      winPrivScreenPtr pScreenPriv)
 {
-#ifdef XWIN_MULTIWINDOWEXTWM
+#if defined(XWIN_MULTIWINDOWEXTWM) || defined(XWIN_MULTIWINDOW)
   winScreenInfo		*pScreenInfo = pScreenPriv->pScreenInfo;
 #endif
 

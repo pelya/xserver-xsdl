@@ -30,6 +30,9 @@
 /* $XFree86: xc/programs/Xserver/hw/xwin/winwindow.c,v 1.5 2002/11/07 10:31:32 alanh Exp $ */
 
 /* X headers */
+#ifdef HAVE_XWIN_CONFIG_H
+#include <xwin-config.h>
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -63,7 +66,9 @@
 #include "objbase.h"
 #include "ddraw.h"
 #include "winwindow.h"
+#ifdef XWIN_MULTIWINDOWEXTWM
 #include "windowswmstr.h"
+#endif
 
 extern void winDebug(const char *format, ...);
 
@@ -1236,9 +1241,11 @@ winInitMultiWindowWM (WMInfoPtr pWMInfo, WMProcArgPtr pProcArg)
   pWMInfo->atmWmDelete = XInternAtom (pWMInfo->pDisplay,
 				      "WM_DELETE_WINDOW",
 				      False);
+#ifdef WIN_MULTIWINDOWEXTWM
   pWMInfo->atmPrivMap  = XInternAtom (pWMInfo->pDisplay,
 				      WINDOWSWM_NATIVE_HWND,
 				      False);
+#endif
 
 
   if (1) {

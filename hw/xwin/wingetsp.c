@@ -30,6 +30,9 @@
  */
 /* $XFree86: xc/programs/Xserver/hw/xwin/wingetsp.c,v 1.7 2001/11/01 12:19:40 alanh Exp $ */
 
+#ifdef HAVE_XWIN_CONFIG_H
+#include <xwin-config.h>
+#endif
 #include "win.h"
 
 /* See Porting Layer Definition - p. 55 */

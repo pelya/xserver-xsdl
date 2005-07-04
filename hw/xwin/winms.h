@@ -36,7 +36,7 @@
 #define WIN32_LEAN_AND_MEAN
 #endif
 
-#include <Xwindows.h>
+#include <X11/Xwindows.h>
 #include <windowsx.h>
 
 #include "ddraw.h"

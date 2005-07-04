@@ -32,6 +32,9 @@
  */
 /* $XFree86: xc/programs/Xserver/hw/xwin/winmouse.c,v 1.3 2001/05/08 08:14:09 alanh Exp $ */
 
+#ifdef HAVE_XWIN_CONFIG_H
+#include <xwin-config.h>
+#endif
 #include "win.h"
 
 #if defined(XFree86Server) && defined(XINPUT)

@@ -31,6 +31,9 @@
  */
 /* $XFree86: xc/programs/Xserver/hw/xwin/winmultiwindowwndproc.c,v 1.2 2003/10/02 13:30:11 eich Exp $ */
 
+#ifdef HAVE_XWIN_CONFIG_H
+#include <xwin-config.h>
+#endif
 #include "win.h"
 #include "dixevents.h"
 #include "winmultiwindowclass.h"

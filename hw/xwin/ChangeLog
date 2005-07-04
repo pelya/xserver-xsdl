@@ -1,3 +1,10 @@
+2005-07-05  Alexander Gottwald  <ago at freedesktop dot org>
+
+	* *.c:
+	Include xwin-config.h if HAVE_XWIN_CONFIG is defined
+	Cleanup X11 includes handling
+	Warning fixes
+	
 2005-06-30  Alexander Gottwald  <ago at freedesktop dot org>
 
 	* winmultiwindowwndproc.c:

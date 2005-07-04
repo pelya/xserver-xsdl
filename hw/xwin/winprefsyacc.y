@@ -30,6 +30,9 @@
  */
 /* $XFree86: $ */
 
+#ifdef HAVE_XWIN_CONFIG_H
+#include <xwin-config.h>
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

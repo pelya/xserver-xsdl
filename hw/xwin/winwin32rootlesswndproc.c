@@ -29,6 +29,9 @@
  *		Earle F. Philhower, III
  *		Harold L Hunt II
  */
+#ifdef HAVE_XWIN_CONFIG_H
+#include <xwin-config.h>
+#endif
 #include "win.h"
 #include <winuser.h>
 #define _WINDOWSWM_SERVER_

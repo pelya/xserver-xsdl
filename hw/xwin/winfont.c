@@ -28,8 +28,12 @@
  * Authors:	Harold L Hunt II
  */
 
+#ifdef HAVE_XWIN_CONFIG_H
+#include <xwin-config.h>
+#endif
 #include "win.h"
 
+#ifdef XWIN_NATIVEGDI
 /* See Porting Layer Definition - p. 32 */
 /* See mfb/mfbfont.c - mfbRealizeFont() - which is empty :) */
 Bool
@@ -73,3 +77,4 @@ winUnrealizeFontNativeGDI (ScreenPtr pScreen, FontPtr pFont)
 #endif
   return TRUE;
 }
+#endif
