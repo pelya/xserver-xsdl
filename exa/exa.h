@@ -182,10 +182,6 @@ typedef struct _ExaDriver {
     ExaAccelInfoRec accel;
 } ExaDriverRec, *ExaDriverPtr;
 
-typedef struct {
-    ExaDriverPtr info;
-} ExaScreenPrivRec, *ExaScreenPrivPtr;
-
 #define EXA_OFFSCREEN_PIXMAPS           (1 << 0)
 #define EXA_OFFSCREEN_ALIGN_POT         (1 << 1)
 

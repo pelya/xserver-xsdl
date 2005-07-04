@@ -165,6 +165,8 @@ exaPixmapAllocArea (PixmapPtr pPixmap)
     pitch = (w * bpp / 8 + pExaScr->info->card.offscreenPitch - 1) &
             ~(pExaScr->info->card.offscreenPitch - 1);
 
+    ErrorF("allocating pixmap with pitch = %d, bpp = %d, byteAlign = %d\n",
+           pitch, bpp, pExaScr->info->card.offscreenByteAlign);
     pExaPixmap->devKind = pPixmap->devKind;
     pExaPixmap->devPrivate = pPixmap->devPrivate;
     pExaPixmap->area = exaOffscreenAlloc (pScreen, pitch * h,
@@ -344,6 +346,7 @@ exaCreatePixmap(ScreenPtr pScreen, int w, int h, int depth)
 	    }
     }
 
+    ErrorF("Creating a pixmap on %d display, with %d bpp\n", depth, bpp);
     pPixmap = fbCreatePixmapBpp (pScreen, w, h, depth, bpp);
     if (!pPixmap)
 	return NULL;
@@ -1084,6 +1087,35 @@ exaPaintWindow(WindowPtr pWin, RegionPtr pRegion, int what)
     ExaCheckPaintWindow (pWin, pRegion, what);
 }
 
+
+static Bool
+exaCloseScreen(int i, ScreenPtr pScreen)
+{
+    ExaScreenPriv(pScreen);
+#ifdef RENDER
+    PictureScreenPtr	ps = GetPictureScreenIfSet(pScreen);
+#endif
+
+    pScreen->CreateGC = pExaScr->SavedCreateGC;
+    pScreen->CloseScreen = pExaScr->SavedCloseScreen;
+    pScreen->GetImage = pExaScr->SavedGetImage;
+    pScreen->GetSpans = pExaScr->SavedGetSpans;
+    pScreen->PaintWindowBackground = pExaScr->SavedPaintWindowBackground;
+    pScreen->PaintWindowBorder = pExaScr->SavedPaintWindowBorder;
+    pScreen->CreatePixmap = pExaScr->SavedCreatePixmap;
+    pScreen->DestroyPixmap = pExaScr->SavedDestroyPixmap;
+    pScreen->CopyWindow = pExaScr->SavedCopyWindow;
+#ifdef RENDER
+    if (ps) {
+	ps->Composite = pExaScr->SavedComposite;
+    }
+#endif
+
+    xfree (pExaScr);
+
+    return (*pScreen->CloseScreen) (i, pScreen);
+}
+
 Bool
 exaDriverInit (ScreenPtr		pScreen,
                ExaDriverPtr	pScreenInfo)
@@ -1111,18 +1143,34 @@ exaDriverInit (ScreenPtr		pScreen,
     pScreen->devPrivates[exaScreenPrivateIndex].ptr = (pointer) pExaScr;
 
     /*
-     * Hook up asynchronous drawing
-     */
-    ExaScreenInitAsync (pScreen);
-    /*
      * Replace various fb screen functions
      */
+    pExaScr->SavedCloseScreen = pScreen->CloseScreen;
+    pScreen->CloseScreen = exaCloseScreen;
+
+    pExaScr->SavedCreateGC = pScreen->CreateGC;
     pScreen->CreateGC = exaCreateGC;
+
+    pExaScr->SavedGetImage = pScreen->GetImage;
+    pScreen->GetImage = ExaCheckGetImage;
+
+    pExaScr->SavedGetSpans = pScreen->GetSpans;
+    pScreen->GetSpans = ExaCheckGetSpans;
+
+    pExaScr->SavedCopyWindow = pScreen->CopyWindow;
     pScreen->CopyWindow = exaCopyWindow;
+
+    pExaScr->SavedPaintWindowBackground = pScreen->PaintWindowBackground;
     pScreen->PaintWindowBackground = exaPaintWindow;
+
+    pExaScr->SavedPaintWindowBorder = pScreen->PaintWindowBorder;
     pScreen->PaintWindowBorder = exaPaintWindow;
+
+    pScreen->BackingStoreFuncs.SaveAreas = ExaCheckSaveAreas;
+    pScreen->BackingStoreFuncs.RestoreAreas = ExaCheckRestoreAreas;
 #ifdef RENDER
     if (ps) {
+        pExaScr->SavedComposite = ps->Composite;
 	ps->Composite = exaComposite;
     }
 #endif
@@ -1136,7 +1184,10 @@ exaDriverInit (ScreenPtr		pScreen,
 	if (!AllocatePixmapPrivate(pScreen, exaPixmapPrivateIndex,
 				   sizeof (ExaPixmapPrivRec)))
 	    return FALSE;
+        pExaScr->SavedCreatePixmap = pScreen->CreatePixmap;
 	pScreen->CreatePixmap = exaCreatePixmap;
+
+        pExaScr->SavedDestroyPixmap = pScreen->DestroyPixmap;
 	pScreen->DestroyPixmap = exaDestroyPixmap;
     }
     else
@@ -1158,12 +1209,8 @@ exaDriverInit (ScreenPtr		pScreen,
 void
 exaDriverFini (ScreenPtr pScreen)
 {
-    ExaScreenPriv(pScreen);
-
-    STRACE;
-    xfree (pExaScr);
+    /*right now does nothing*/
 }
-
 
 void exaMarkSync(ScreenPtr pScreen)
 {

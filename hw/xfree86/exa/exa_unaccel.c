@@ -250,90 +250,34 @@ ExaCheckPaintWindow (WindowPtr pWin, RegionPtr pRegion, int what)
 }
 
 void
-ExaCheckCopyWindow (WindowPtr pWin, DDXPointRec ptOldOrg, RegionPtr prgnSrc)
-{
-    exaWaitSync (pWin->drawable.pScreen);
-    exaDrawableDirty ((DrawablePtr)pWin);
-    fbCopyWindow (pWin, ptOldOrg, prgnSrc);
-}
-
-#if EXA_MAX_FB > 1
-void
-ExaCheckPaintKey(DrawablePtr  pDrawable,
-		RegionPtr    pRegion,
-		CARD32       pixel,
-		int          layer)
-{
-    exaWaitSync (pDrawable->pScreen);
-    exaDrawableDirty (pDrawable);
-    fbOverlayPaintKey (pDrawable,  pRegion, pixel, layer);
-}
-
-void
-ExaCheckOverlayCopyWindow  (WindowPtr pWin, DDXPointRec ptOldOrg, RegionPtr prgnSrc)
-{
-    exaWaitSync (pWin->drawable.pScreen);
-    exaDrawableDirty ((DrawablePtr)pWin);
-    fbOverlayCopyWindow (pWin, ptOldOrg, prgnSrc);
-}
-#endif
-
-void
-ExaScreenInitAsync (ScreenPtr pScreen)
-{
-    pScreen->GetImage = ExaCheckGetImage;
-    pScreen->GetSpans = ExaCheckGetSpans;
-    pScreen->PaintWindowBackground = ExaCheckPaintWindow;
-    pScreen->PaintWindowBorder = ExaCheckPaintWindow;
-    pScreen->CopyWindow = ExaCheckCopyWindow;
-    pScreen->BackingStoreFuncs.SaveAreas = ExaCheckSaveAreas;
-    pScreen->BackingStoreFuncs.RestoreAreas = ExaCheckRestoreAreas;
-
-#ifdef RENDER
-    ExaPictureInitAsync (pScreen);
-#endif
-}
-
-
-void
 ExaCheckComposite (CARD8      op,
-		  PicturePtr pSrc,
-		  PicturePtr pMask,
-		  PicturePtr pDst,
-		  INT16      xSrc,
-		  INT16      ySrc,
-		  INT16      xMask,
-		  INT16      yMask,
-		  INT16      xDst,
-		  INT16      yDst,
-		  CARD16     width,
-		  CARD16     height)
+                   PicturePtr pSrc,
+                   PicturePtr pMask,
+                   PicturePtr pDst,
+                   INT16      xSrc,
+                   INT16      ySrc,
+                   INT16      xMask,
+                   INT16      yMask,
+                   INT16      xDst,
+                   INT16      yDst,
+                   CARD16     width,
+                   CARD16     height)
 {
     exaWaitSync (pDst->pDrawable->pScreen);
     exaDrawableDirty (pDst->pDrawable);
     fbComposite (op,
-		 pSrc,
-		 pMask,
-		 pDst,
-		 xSrc,
-		 ySrc,
-		 xMask,
-		 yMask,
-		 xDst,
-		 yDst,
-		 width,
-		 height);
+                 pSrc,
+                 pMask,
+                 pDst,
+                 xSrc,
+                 ySrc,
+                 xMask,
+                 yMask,
+                 xDst,
+                 yDst,
+                 width,
+                 height);
 }
-
-void
-ExaPictureInitAsync (ScreenPtr pScreen)
-{
-    PictureScreenPtr    ps;
-
-    ps = GetPictureScreen(pScreen);
-    ps->Composite = ExaCheckComposite;
-}
-
 
 /*
  * Only need to stall for copyarea/copyplane

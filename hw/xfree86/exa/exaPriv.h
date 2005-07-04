@@ -49,6 +49,21 @@
 #define EXA_MAX_FB   FB_OVERLAY_MAX
 #endif
 
+typedef struct {
+    ExaDriverPtr info;
+    CreateGCProcPtr 		 SavedCreateGC;
+    CloseScreenProcPtr 		 SavedCloseScreen;
+    GetImageProcPtr 		 SavedGetImage;
+    GetSpansProcPtr 		 SavedGetSpans;
+    PaintWindowBackgroundProcPtr SavedPaintWindowBackground;
+    CreatePixmapProcPtr 	 SavedCreatePixmap;
+    DestroyPixmapProcPtr 	 SavedDestroyPixmap;
+    PaintWindowBorderProcPtr 	 SavedPaintWindowBorder;
+    CopyWindowProcPtr 		 SavedCopyWindow;
+#ifdef RENDER
+    CompositeProcPtr             SavedComposite;
+#endif
+} ExaScreenPrivRec, *ExaScreenPrivPtr;
 
 /*
  * This is the only completely portable way to
@@ -179,26 +194,7 @@ ExaCheckRestoreAreas (PixmapPtr	pPixmap,
 void
 ExaCheckPaintWindow (WindowPtr pWin, RegionPtr pRegion, int what);
 
-void
-ExaCheckCopyWindow (WindowPtr pWin, DDXPointRec ptOldOrg, RegionPtr prgnSrc);
-
-void
-ExaCheckPaintKey(DrawablePtr  pDrawable,
-		RegionPtr    pRegion,
-		CARD32       pixel,
-		int          layer);
-
-void
-ExaCheckOverlayCopyWindow  (WindowPtr pWin, DDXPointRec ptOldOrg, RegionPtr prgnSrc);
-
-void
-ExaScreenInitAsync (ScreenPtr pScreen);
-
 extern const GCOps	exaAsyncPixmapGCOps;
-
-/* exapict.c */
-void
-ExaPictureInitAsync (ScreenPtr pScreen);
 
 #ifdef RENDER
 void
