@@ -609,7 +609,14 @@ AC_DEFINE(XFree86XDGA,1,[Build XDGA support])
 AC_DEFINE(XF86BIGFONT,1,[Build XFree86 BigFont extension])
 AC_DEFINE(XResExtension,1,[Build XRes extension])
 AC_DEFINE(DPMSExtension,1,[Build DPMS extension])
-AC_DEFINE(_POSIX_SOURCE,500,[POSIX-compliant source])
+
+dnl CYGWIN does not define fd_set if _POSIX_SOURCE is defined
+case $host_os in
+	cygwin*) ;;
+	*) 
+		AC_DEFINE(_POSIX_SOURCE,500,[POSIX-compliant source])
+		;;
+esac
 AC_DEFINE(_XOPEN_SOURCE,1,[X/Open-compliant source])
 AC_DEFINE(_BSD_SOURCE,1,[BSD-compliant source])
 

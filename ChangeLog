@@ -1,5 +1,13 @@
 2005-07-05  Alexander Gottwald  <ago@freedesktop.org>
 
+	* hw/xwin/Makefile.am:
+	Build miinitext.c and fbcmap.c as DDX specific files
+
+	* configure.ac:
+	Do not define _POSIX_SOURCE on cygwin.
+
+2005-07-05  Alexander Gottwald  <ago@freedesktop.org>
+
 	* fb/Makefile.am:
 	* mi/Makefile.am:
 	* xkb/Makefile.am:

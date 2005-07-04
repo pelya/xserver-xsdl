@@ -105,6 +105,8 @@ SRCS =	InitInput.c \
 	winwakeup.c \
 	winwindow.c \
 	winwndproc.c \
+	$(top_srcdir)/mi/miinitext.c \
+	$(top_srcdir)/fb/fbcmap.c \
 	$(SRCS_CLIPBOARD) \
 	$(SRCS_GLX_WINDOWS) \
 	$(SRCS_MULTIWINDOW) \
