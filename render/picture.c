@@ -42,6 +42,10 @@
 #include "servermd.h"
 #include "picturestr.h"
 
+#ifdef WIN32
+typedef unsigned int uint;
+#endif
+
 int		PictureScreenPrivateIndex = -1;
 int		PictureWindowPrivateIndex;
 int		PictureGeneration;
