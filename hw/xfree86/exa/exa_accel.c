@@ -165,8 +165,6 @@ exaPixmapAllocArea (PixmapPtr pPixmap)
     pitch = (w * bpp / 8 + pExaScr->info->card.offscreenPitch - 1) &
             ~(pExaScr->info->card.offscreenPitch - 1);
 
-    ErrorF("allocating pixmap with pitch = %d, bpp = %d, byteAlign = %d\n",
-           pitch, bpp, pExaScr->info->card.offscreenByteAlign);
     pExaPixmap->devKind = pPixmap->devKind;
     pExaPixmap->devPrivate = pPixmap->devPrivate;
     pExaPixmap->area = exaOffscreenAlloc (pScreen, pitch * h,
@@ -346,7 +344,6 @@ exaCreatePixmap(ScreenPtr pScreen, int w, int h, int depth)
 	    }
     }
 
-    ErrorF("Creating a pixmap on %d display, with %d bpp\n", depth, bpp);
     pPixmap = fbCreatePixmapBpp (pScreen, w, h, depth, bpp);
     if (!pPixmap)
 	return NULL;
