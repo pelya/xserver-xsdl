@@ -1279,8 +1279,13 @@ xf86InterceptSigIll(void (*sigillhandler)(void))
     xf86SigIllHandler = sigillhandler;
 }
 
-#if defined(__GLIBC__) && __GLIBC_PREREQ(2, 1)
+#if defined(__GLIBC__)
+# if __GLIBC_PREREQ(2, 1)
+#  define HAVE_BACKTRACE
+# endif
+#endif
 
+#ifdef HAVE_BACKTRACE
 #include <execinfo.h>
 
 static __inline__ void xorg_backtrace(void)
@@ -1298,8 +1303,78 @@ static __inline__ void xorg_backtrace(void)
 
 #else /* not glibc or glibc < 2.1 */
 
+# if defined(HAVE_WALKCONTEXT) /* Solaris 9 & later */
+
+# include <ucontext.h>
+# include <signal.h>
+# include <dlfcn.h>
+# include <sys/elf.h>
+
+#ifdef _LP64
+# define ElfSym Elf64_Sym
+#else
+# define ElfSym Elf32_Sym
+#endif
+
+/* Called for each frame on the stack to print it's contents */
+static int xorg_backtrace_frame(uintptr_t pc, int signo, void *arg)
+{
+    Dl_info dlinfo;
+    ElfSym *dlsym;
+    char header[32];
+    int depth = *((int *) arg);
+    
+    if (signo) {
+	char signame[SIG2STR_MAX];
+
+	if (sig2str(signo, signame) != 0) {
+	    strcpy(signame, "unknown");
+	}
+
+	ErrorF("** Signal %d (%s)\n", signo, signame);
+    }
+
+    snprintf(header, sizeof(header), "%d: 0x%lx", depth, pc);
+    *((int *) arg) = depth + 1;
+    
+    /* Ask system dynamic loader for info on the address */
+    if (dladdr1((void *) pc, &dlinfo, (void **) &dlsym, RTLD_DL_SYMENT)) {
+	unsigned long offset = pc - (uintptr_t) dlinfo.dli_saddr;
+	const char *symname;
+	
+	if (offset < dlsym->st_size) { /* inside a function */
+	    symname = dlinfo.dli_sname;
+	} else { /* found which file it was in, but not which function */
+	    symname = "<section start>";
+	    offset = pc - (uintptr_t)dlinfo.dli_fbase;
+	}
+	ErrorF("%s: %s:%s+0x%lx\n", header, dlinfo.dli_fname,
+	       symname, offset);
+
+    } else {
+	/* Couldn't find symbol info from system dynamic loader, should
+	 * probably poke elfloader here, but haven't written that code yet,
+	 * so we just print the pc.
+	 */
+	ErrorF("%s\n", header);
+    }
+    
+    return 0;
+}
+
+static __inline__ void xorg_backtrace(void) { 
+    ucontext_t u;
+    int depth = 1;
+
+    if (getcontext(&u) == 0)
+	walkcontext(&u, xorg_backtrace_frame, &depth);
+}
+# else
+
+/* Default fallback if we can't find any way to get a backtrace */
 static __inline__ void xorg_backtrace(void) { return; }
 
+# endif
 #endif
 
 /*
