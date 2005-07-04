@@ -68,6 +68,6 @@ libminimi_la_SOURCES = 	\
 	mizerclip.c	\
 	mizerline.c
 
-libmi_la_SOURCES = $(libminimi_la_SOURCES) miinitext.c
+libmi_la_SOURCES = $(libminimi_la_SOURCES)
 
 INCLUDES = -I$(top_srcdir)/mfb

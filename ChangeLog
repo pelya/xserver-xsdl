@@ -1,5 +1,12 @@
 2005-07-05  Alexander Gottwald  <ago@freedesktop.org>
 
+	* fb/Makefile.am:
+	* mi/Makefile.am:
+	* xkb/Makefile.am:
+	Revert last changes. They have to be addressed in a different way
+
+2005-07-05  Alexander Gottwald  <ago@freedesktop.org>
+
 	* configure.ac:
 	* hw/Makefile.am:
 	Add XWin DDX, make Xorg DDX conditional

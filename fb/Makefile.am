@@ -16,7 +16,6 @@ libfb_la_SOURCES = 	\
 	fbbstore.c	\
 	fbcompose.c	\
 	fbcopy.c	\
-	fbcmap.c	\
 	fbfill.c	\
 	fbfillrect.c	\
 	fbfillsp.c	\
@@ -48,3 +47,5 @@ libfb_la_SOURCES = 	\
 	fbedgeimp.h	\
 	fbmmx.c		\
 	fbmmx.h
+
+EXTRA_DIST = fbcmap.c
