@@ -51,3 +51,5 @@ libxkb_la_SOURCES = $(DDX_SRCS) $(DIX_SRCS) $(XI_SRCS) $(XKBFILE_SRCS) \
                     $(X11_SRCS)
 
 EXTRA_DIST = xkb.h xkbDflts.h
+
+INCLUDES = -I$(top_srcdir)/Xext/extmod

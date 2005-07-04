@@ -1,3 +1,26 @@
+2005-07-05  Alexander Gottwald  <ago@freedesktop.org>
+
+	* configure.ac:
+	* hw/Makefile.am:
+	Add XWin DDX, make Xorg DDX conditional
+	Make XF86VidMode and XF86Misc conditional
+
+	* include/xwin-config.h.in:
+	* hw/xwin/Makefile.am:
+	Add XWin DDX
+
+	* include/dix-config.h.in:
+	Added DDXTIME, DDXOSFATALERROR, DDXOSVERRORF and DDXBEFORERESET
+
+	* fb/Makefile.am:
+	Added fbcmap.c
+
+	* mi/Makefile.am:
+	Added miinitext.c
+
+	* xkb/Makefile.am:
+	Added -I$(top_srcdir)/Xext/extmod to INCLUDES
+
 2005-07-02  Daniel Stone  <daniel@freedesktop.org>
 
 	* acinclude.m4:

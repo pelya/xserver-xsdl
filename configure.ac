@@ -38,9 +38,11 @@ dnl drivers.
 AC_CONFIG_HEADERS(include/xorg-server.h)
 dnl dix-config.h covers most of the DIX (i.e. everything but the DDX, not just
 dnl dix/).
-AC_CONFIG_HEADERS(include/xorg-config.h)
-dnl xorg-config.h covers the Xorg DDX.
 AC_CONFIG_HEADERS(include/dix-config.h)
+dnl xorg-config.h covers the Xorg DDX.
+AC_CONFIG_HEADERS(include/xorg-config.h)
+dnl xwin-config.h covers the XWin DDX.
+AC_CONFIG_HEADERS(include/xwin-config.h)
 
 AC_PROG_CC
 AM_PROG_AS
@@ -50,6 +52,8 @@ AC_LIBTOOL_WIN32_DLL
 AC_PROG_LIBTOOL
 AC_PROG_MAKE_SET
 PKG_PROG_PKG_CONFIG
+AC_PROG_LEX
+AC_PROG_YACC
 
 AC_HEADER_DIRENT
 AC_HEADER_STDC
@@ -144,14 +148,19 @@ AC_ARG_ENABLE(xdm-auth-1,    [  --disable-xdm-auth-1 ],[XDMAUTH=$enableval],[XDM
 AC_ARG_ENABLE(glx,           [  --enable-glx ],[GLX=$enableval],[GLX=no])
 AC_ARG_ENABLE(dri,           [  --enable-dri ],[DRI=$enableval],[DRI=no])
 AC_ARG_ENABLE(xinerama,	     [  --disable-xinerama ],[XINERAMA=$enableval],[XINERAMA=yes])
+AC_ARG_ENABLE(xf86vidmode,   [  --disable-xf86vidmode ],[XF86VIDMODE=$enableval],[XF86VIDMODE=yes])
+AC_ARG_ENABLE(xf86misc,      [  --disable-xf86misc ],[XF86MISC=$enableval],[XF86MISC=yes])
 AC_ARG_ENABLE(xcsecurity,     AS_HELP_STRING([--enable-xcsecurity],[Build Security extension (default: disabled)]),[XCSECURITY=$enableval],[XCSECURITY=no])
+AC_ARG_ENABLE(xorg,    	      AS_HELP_STRING([--enable-xorg],[Build Xorg server (default: auto)]),[XORG=$enableval],[XORG=auto])
 AC_ARG_ENABLE(dmx,    	      AS_HELP_STRING([--enable-dmx],[Build DMX server (default: disabled)]),[DMX=$enableval],[DMX=no])
+AC_ARG_ENABLE(xwin,    	      AS_HELP_STRING([--enable-xwin],[Build XWin server (default: auto)]),[XWIN=$enableval],[XWIN=auto])
 AC_ARG_ENABLE(xevie,          AS_HELP_STRING([--enable-xevie],[Build XEvIE extension (default: disabled)]), [XEVIE=$enableval],[XEVIE=no])
 
 # Transport selection
 AC_ARG_ENABLE(unix-transport,[  --disable-unix-transport ], [UNIXCONN=$enableval], [UNIXCONN=yes])
 AC_ARG_ENABLE(tcp-transport, [  --disable-tcp-transport ], [TCPCONN=$enableval], [TCPCONN=yes])
 AC_ARG_ENABLE(ipv6,          [  --disable-ipv6 ], [IPV6CONN=$enableval], [IPV6CONN=yes])
+AC_ARG_ENABLE(debug,         [  --enable-debug ], [DEBUGGING=$enableval],[DEBUGGING=no])
 
 AC_ARG_WITH(int10,           AS_HELP_STRING([--with-int10=BACKEND],[int10 backend: vm86, x86emu or stub]),
 				[INT10="$withval"],
@@ -186,17 +195,89 @@ AC_SUBST([extdir])
 
 AC_DEFINE(SHAPE,1,[Support SHAPE extension])
 
-AM_CONDITIONAL(XV, [test x$XV = xyes])
-if test "$XV" = yes; then
-	AC_DEFINE(XV,1,[Support Xv Extension])
-fi
-
 AM_CONDITIONAL(DMX, [test x$DMX = xyes])
 if test "$DMX" = yes; then
 	PKG_CHECK_MODULES([DMXMODULES],[xmuu xextproto x11 xrender xfont])
 	if test "$GLX" = yes; then
 	    PKG_CHECK_MODULES(GL,gl)
 	fi
+fi
+
+AC_MSG_CHECKING([whether to build Xorg DDX])
+if test x$XORG = xauto; then
+	XORG="yes"
+	case $host_os in
+		cygwin*) XORG="no" ;;
+	esac
+fi
+AC_MSG_RESULT([$XORG])
+AM_CONDITIONAL(XORG, [test x$XORG = xyes])
+
+dnl  
+dnl  Definitions for XWin DDX
+dnl 
+
+AC_MSG_CHECKING([whether to build XWin DDX])
+if test x$XWIN = xauto; then
+	case $host_os in
+		cygwin*) XWIN="yes" ;;
+		mingw*) XWIN="yes" ;;
+		*) XWIN="no" ;;
+	esac
+fi
+AC_MSG_RESULT([$XWIN])
+
+if test "$XWIN" = yes; then
+	XWIN_SERVER_NAME=XWin
+	case $host_os in
+		cygwin*)
+			PKG_CHECK_MODULES([XWINMODULES],[x11 xdmcp xau xfont])
+			AC_DEFINE(HAS_DEVWINDOWS,1,[Cygwin has /dev/windows for signaling new win32 messages])
+			;;
+		mingw*)
+			PKG_CHECK_MODULES([XWINMODULES],[x11 xdmcp xau xfont])
+			XWIN_SERVER_NAME=Xming
+			AC_DEFINE(RELOCATE_PROJECTROOT,1,[Make PROJECT_ROOT relative to the xserver location])
+			AC_DEFINE(HAS_WINSOCK,1,[Use Windows sockets])
+			XWIN_SYSTEM_LIBS=-lwinsock2
+			;;
+	esac
+	AC_SUBST(XWIN_SERVER_NAME)
+	AC_SUBST(XWIN_SYSTEM_LIBS)
+
+	if test "x$DEBUGGING" = xyes; then
+		AC_DEFINE(CYGDEBUG,1,[Simple debug messages])
+		AC_DEFINE(CYGWINDOWING_DEBUG,1,[Debug messages for window handling])
+		AC_DEFINE(CYGMULTIWINDOW_DEBUG,1,[Debug window manager])
+	fi
+
+	AC_DEFINE(DDXOSINIT,1,[Use OsVendorInit])
+	AC_DEFINE(DDXTIME,1,[Use GetTimeInMillis])
+	AC_DEFINE(DDXOSFATALERROR,1,[Use OsVendorFatalError])
+	AC_DEFINE(DDXOSVERRORF,1,[Use OsVendorVErrorF])
+	AC_DEFINE(DDXBEFORERESET,1,[Use ddxBeforeReset ])
+	if test "$XF86VIDMODE" = yes; then
+		AC_MSG_NOTICE([Disabling XF86VidMode extension])
+		XF86VIDMODE=no
+	fi
+	if test "$XF86MISC" = yes; then
+		AC_MSG_NOTICE([Disabling XF86Misc extension])
+		XF86MISC=no
+	fi
+fi
+AM_CONDITIONAL(XWIN, [test x$XWIN = xyes])
+AM_CONDITIONAL(XWIN_MULTIWINDOW, [test x$XWIN = xyes && true])
+AM_CONDITIONAL(XWIN_MULTIWINDOWEXTWM, [test x$XWIN = xyes && false])
+AM_CONDITIONAL(XWIN_CLIPBOARD, [test x$XWIN = xyes && true])
+AM_CONDITIONAL(XWIN_GLX_WINDOWS, [test x$XWIN = xyes && false])
+AM_CONDITIONAL(XWIN_NATIVEGDI, [test x$XWIN = xyes && false])
+AM_CONDITIONAL(XWIN_PRIMARYFB, [test x$XWIN = xyes && true])
+AM_CONDITIONAL(XWIN_RANDR, [test x$XWIN = xyes && true])
+AM_CONDITIONAL(XWIN_XV, [test x$XWIN = xyes -a x$XV = xyes])
+
+AM_CONDITIONAL(XV, [test x$XV = xyes])
+if test "$XV" = yes; then
+	AC_DEFINE(XV,1,[Support Xv Extension])
 fi
 
 AM_CONDITIONAL(COMPOSITE, [test x$COMPOSITE = xyes])
@@ -387,7 +468,9 @@ EXTENSION_INCS="$EXTENSION_INCS "-I'$(top_srcdir)/randr'
 AC_DEFINE(DDXOSINIT,1,[Use OsVendorInit])
 AC_DEFINE(SERVER_LOCK,1,[Use a lock to prevent multiple servers on a display])
 AC_DEFINE(SMART_SCHEDULE,1,[Include time-based scheduler])
-AC_DEFINE(NDEBUG,1,[Disable some debugging code])
+if test x$DEBUGGING != xyes; then
+  AC_DEFINE(NDEBUG,1,[Disable some debugging code])
+fi
 AC_DEFINE(USE_RGB_TXT,1,[Use rgb.txt directly])
 AC_DEFINE(MITMISC,1,[Support MIT Misc extension])
 AC_DEFINE(XTEST,1,[Support XTest extension])
@@ -396,8 +479,12 @@ AC_DEFINE(XCMISC,1,[Support XCMisc extension])
 AC_DEFINE(BIGREQS,1,[Support BigRequests extension])
 AC_DEFINE(PIXPRIV,1,[Support pixmap privates])
 AC_DEFINE(XFIXES,1,[Support XFixes extension])
-AC_DEFINE(XF86VIDMODE,1,[Support XFree86 Video Mode extension])
-AC_DEFINE(XF86MISC,1,[Support XFree86 miscellaneous extensions])
+if test x$XF86VIDMODE = xyes; then
+  AC_DEFINE(XF86VIDMODE,1,[Support XFree86 Video Mode extension])
+fi
+if test x$XF86MIS = xyes; then
+  AC_DEFINE(XF86MISC,1,[Support XFree86 miscellaneous extensions])
+fi
 # must come first as it uses stuff in Shape -d
 EXTENSION_LIBS='$(top_builddir)/xfixes/libxfixes.la'" $EXTENSION_LIBS"
 EXTENSION_INCS="$EXTENSION_INCS "'-I$(top_srcdir)/xfixes'
@@ -421,6 +508,7 @@ FB_INC='-I$(top_srcdir)/fb'
 DAMAGE_LIB='$(top_builddir)/miext/damage/libdamage.la'
 DAMAGE_INC='-I$(top_srcdir)/miext/damage'
 SHADOW_INC='-I$(top_srcdir)/miext/shadow'
+SHADOW_LIB='$(top_builddir)/miext/shadow/libshadow.la'
 LAYER_LIB='$(top_builddir)/miext/layer/liblayer.la'
 XPSTUBS_LIB='$(top_builddir)/dix/libxpstubs.la'
 XKB_LIB='$(top_builddir)/xkb/libxkb.la'
@@ -433,6 +521,7 @@ XSERVER_LIBS="${XSERVER_LIBS} -lm -lz"
 
 XORG_CORE_LIBS="$DIX_LIB"
 XORG_LIBS="$FB_LIB $MI_LIB $XI_LIB $XKB_LIB $COMPOSITE_LIB $DAMAGE_LIB $LAYER_LIB $EXTENSION_LIBS $XPSTUBS_LIB $OS_LIB $SHADOW_LIB"
+XWIN_LIBS="$FB_LIB $MI_LIB $XI_LIB $XKB_LIB $COMPOSITE_LIB $DAMAGE_LIB $LAYER_LIB $EXTENSION_LIBS $XPSTUBS_LIB $OS_LIB $SHADOW_LIB"
 XDMX_LIBS="$OS_LIB $DAMAGE_LIB $MINIMI_LIB $XKB_LIB $XI_LIB $DMX_EXTENSIONS"
 XORG_DDXINCS='-I$(top_srcdir)/hw/xfree86 -I$(top_srcdir)/hw/xfree86/include -I$(top_srcdir)/hw/xfree86/common'
 XORG_OSINCS='-I$(top_srcdir)/hw/xfree86/os-support -I$(top_srcdir)/hw/xfree86/os-support/bus -I$(top_srcdir)/os'
@@ -445,7 +534,7 @@ else
 fi
 AC_DEFINE_UNQUOTED(X_BYTE_ORDER,[$ENDIAN],[Endian order])
 XORG_CFLAGS="$XORGSERVER_CFLAGS -DHAVE_XORG_CONFIG_H"
-case $host_os in
+test x$XORG = xyes && case $host_os in
   linux-gnu*)
   	XORG_OS="linux"
 	XORG_OS_SUBDIR="linux"
@@ -476,6 +565,7 @@ case $host_os in
 esac
 AC_SUBST([XORG_CORE_LIBS])
 AC_SUBST([XORG_LIBS])
+AC_SUBST([XWIN_LIBS])
 AC_SUBST([EXTENSION_LIBS])
 AC_SUBST([XDMX_LIBS])
 AC_SUBST([XORG_INCS])
@@ -626,5 +716,6 @@ hw/xfree86/xf8_32wid/Makefile
 hw/dmx/input/Makefile
 hw/dmx/glxProxy/Makefile
 hw/dmx/Makefile
+hw/xwin/Makefile
 xorg-server.pc
 ])
