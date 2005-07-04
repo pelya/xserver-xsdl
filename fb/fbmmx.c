@@ -32,8 +32,6 @@
 
 #ifdef USE_MMX
 
-#include "fb.h"
-#include "fbmmx.h"
 
 #include <mmintrin.h>
 
@@ -42,6 +40,9 @@
 #endif 
 
 #ifdef RENDER
+
+#include "fb.h"
+#include "fbmmx.h"
 
 #include "picturestr.h"
 #include "mipict.h"

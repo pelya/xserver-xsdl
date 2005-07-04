@@ -3220,9 +3220,6 @@ static void fbFetchExternalAlpha(PicturePtr pict, int x, int y, int width, CARD3
     fbFetchTransformed(pict, x, y, width, buffer);
     fbFetchTransformed(pict->alphaMap, x - pict->alphaOrigin.x, y - pict->alphaOrigin.y, width, alpha_buffer);
     for (i = 0; i < width; ++i) {
-        /* XXX i absolutely hate the way i'm doing it right now.
-           there's definitely million better ways or handling
-           external alpha */
         int a = alpha_buffer[i]>>24;
         buffer[i] = (a << 24)
                  | (div_255(Red(buffer[i]) * a) << 16)
@@ -3437,7 +3434,7 @@ fbCompositeGeneral (CARD8	op,
 	maskRepeat = pMask->repeat == RepeatNormal && !pMask->transform
                      && (pMask->pDrawable->width != 1 || pMask->pDrawable->height != 1);
 
-    if (op == PictOpOver && !pMask && !pSrc->transform && !PICT_FORMAT_A(pSrc->format))
+    if (op == PictOpOver && !pMask && !pSrc->transform && !PICT_FORMAT_A(pSrc->format) && !pSrc->alphaMap)
         op = PictOpSrc;
 
     if (!miComputeCompositeRegion (&region,
