@@ -1471,8 +1471,8 @@ fbCombineOverU (CARD32 *dest, const CARD32 *src, int width)
         CARD32 d = dest[i];
         CARD32 ia = Alpha(~s);
 
-        FbByteMul(d, ia);
-        dest[i] = s + d;
+        FbByteMulAdd(d, ia, s);
+        dest[i] = d;
     }
 }
 
@@ -1482,9 +1482,10 @@ fbCombineOverReverseU (CARD32 *dest, const CARD32 *src, int width)
     int i;
     for (i = 0; i < width; ++i) {
         CARD32 s = src[i];
+        CARD32 d = dest[i];
         CARD32 ia = Alpha(~dest[i]);
-        FbByteMul(s, ia);
-        dest[i] += s;
+        FbByteMulAdd(s, ia, d);
+        dest[i] = s;
     }
 }
 
@@ -1743,8 +1744,8 @@ fbCombineDisjointOverU (CARD32 *dest, const CARD32 *src, int width)
             {
                 CARD32 d = dest[i];
                 a = fbCombineDisjointOutPart (d >> 24, a);
-                FbByteMul(d, a);
-                s += d;
+                FbByteMulAdd(d, a, s);
+                s = d;
             }
             dest[i] = s;
         }
@@ -2089,8 +2090,8 @@ fbCombineOverC (CARD32 *dest, CARD32 *src, CARD32 *mask, int width)
             if (a)
             {
                 CARD32 d = dest[i];
-                FbByteMulC(d, a);
-                s += d;
+                FbByteMulAddC(d, a, s);
+                s = d;
             }
             dest[i] = s;
         }
@@ -2111,8 +2112,7 @@ fbCombineOverReverseC (CARD32 *dest, CARD32 *src, CARD32 *mask, int width)
             CARD32 s = src[i];
             if (a != 0xff)
             {
-                FbByteMul(s, a);
-                d += s;
+                FbByteMulAdd(s, a, d);
             }
             dest[i] = s;
         }
@@ -2894,65 +2894,65 @@ static void fbFetchTransformed(PicturePtr pict, int x, int y, int width, CARD32 
             if (REGION_NUM_RECTS(pict->pCompositeClip) == 1) {
                 box = pict->pCompositeClip->extents;
                 for (i = 0; i < width; ++i) {
+                    if (!v.vector[2]) {
+                        buffer[i] = 0;
+                    } else {
+                        y = MOD((v.vector[1]/v.vector[2]), pict->pDrawable->height);
+                        x = MOD((v.vector[0]/v.vector[2]), pict->pDrawable->width);
+                        buffer[i] = fetch(bits + (y + pict->pDrawable->y)*stride, x + pict->pDrawable->x, indexed);
+                    }
                     v.vector[0] += unit.vector[0];
                     v.vector[1] += unit.vector[1];
                     v.vector[2] += unit.vector[2];
-                    if (!v.vector[2]) {
-                        buffer[i] = 0;
-                        continue;
-                    }
-                    y = MOD((v.vector[1]/v.vector[2]), pict->pDrawable->height);
-                    x = MOD((v.vector[0]/v.vector[2]), pict->pDrawable->width);
-                    buffer[i] = fetch(bits + (y + pict->pDrawable->y)*stride, x + pict->pDrawable->x, indexed);
                 }
             } else {
                 for (i = 0; i < width; ++i) {
+                    if (!v.vector[2]) {
+                        buffer[i] = 0;
+                    } else {
+                        y = MOD((v.vector[1]/v.vector[2]), pict->pDrawable->height);
+                        x = MOD((v.vector[0]/v.vector[2]), pict->pDrawable->width);
+                        if (POINT_IN_REGION (0, pict->pCompositeClip, x, y, &box))
+                            buffer[i] = fetch(bits + (y + pict->pDrawable->y)*stride, x + pict->pDrawable->x, indexed);
+                        else
+                            buffer[i] = 0;
+                    }
                     v.vector[0] += unit.vector[0];
                     v.vector[1] += unit.vector[1];
                     v.vector[2] += unit.vector[2];
-                    if (!v.vector[2]) {
-                        buffer[i] = 0;
-                        continue;
-                    }
-                    y = MOD((v.vector[1]/v.vector[2]), pict->pDrawable->height);
-                    x = MOD((v.vector[0]/v.vector[2]), pict->pDrawable->width);
-                    if (POINT_IN_REGION (0, pict->pCompositeClip, x, y, &box))
-                        buffer[i] = fetch(bits + (y + pict->pDrawable->y)*stride, x + pict->pDrawable->x, indexed);
-                    else
-                        buffer[i] = 0;
                 }
             }
         } else {
             if (REGION_NUM_RECTS(pict->pCompositeClip) == 1) {
                 box = pict->pCompositeClip->extents;
                 for (i = 0; i < width; ++i) {
+                    if (!v.vector[2]) {
+                        buffer[i] = 0;
+                    } else {
+                        y = (v.vector[1]/v.vector[2]);
+                        x = (v.vector[0]/v.vector[2]);
+                        buffer[i] = ((x < box.x1) | (x >= box.x2) | (y < box.y1) | (y >= box.y2)) ?
+                                    0 : fetch(bits + (y + pict->pDrawable->y)*stride, x + pict->pDrawable->x, indexed);
+                    }
                     v.vector[0] += unit.vector[0];
                     v.vector[1] += unit.vector[1];
                     v.vector[2] += unit.vector[2];
-                    if (!v.vector[2]) {
-                        buffer[i] = 0;
-                        continue;
-                    }
-                    y = (v.vector[1]/v.vector[2]);
-                    x = (v.vector[0]/v.vector[2]);
-                    buffer[i] = ((x < box.x1) | (x >= box.x2) | (y < box.y1) | (y >= box.y2)) ?
-                                0 : fetch(bits + (y + pict->pDrawable->y)*stride, x + pict->pDrawable->x, indexed);
                 }
             } else {
                 for (i = 0; i < width; ++i) {
+                    if (!v.vector[2]) {
+                        buffer[i] = 0;
+                    } else {
+                        y = (v.vector[1]/v.vector[2]);
+                        x = (v.vector[0]/v.vector[2]);
+                        if (POINT_IN_REGION (0, pict->pCompositeClip, x, y, &box))
+                            buffer[i] = fetch(bits + (y + pict->pDrawable->y)*stride, x + pict->pDrawable->x, indexed);
+                        else
+                            buffer[i] = 0;
+                    }
                     v.vector[0] += unit.vector[0];
                     v.vector[1] += unit.vector[1];
                     v.vector[2] += unit.vector[2];
-                    if (!v.vector[2]) {
-                        buffer[i] = 0;
-                        continue;
-                    }
-                    y = (v.vector[1]/v.vector[2]);
-                    x = (v.vector[0]/v.vector[2]);
-                    if (POINT_IN_REGION (0, pict->pCompositeClip, x, y, &box))
-                        buffer[i] = fetch(bits + (y + pict->pDrawable->y)*stride, x + pict->pDrawable->x, indexed);
-                    else
-                        buffer[i] = 0;
                 }
             }
         }
@@ -2961,192 +2961,188 @@ static void fbFetchTransformed(PicturePtr pict, int x, int y, int width, CARD32 
             if (REGION_NUM_RECTS(pict->pCompositeClip) == 1) {
                 box = pict->pCompositeClip->extents;
                 for (i = 0; i < width; ++i) {
-                    int x1, x2, y1, y2, distx, idistx, disty, idisty;
-                    FbBits *b;
-                    CARD32 tl, tr, bl, br;
-                    xFixed_48_16 div;
+                    if (!v.vector[2]) {
+                        buffer[i] = 0;
+                    } else {
+                        int x1, x2, y1, y2, distx, idistx, disty, idisty;
+                        FbBits *b;
+                        CARD32 tl, tr, bl, br;
+                        xFixed_48_16 div;
 
+                        div = ((xFixed_48_16)v.vector[0] << 16)/v.vector[2];
+                        x1 = div >> 16;
+                        distx = ((xFixed)div >> 8) & 0xff;
+                        x2 = x1 + 1;
+                        div = ((xFixed_48_16)v.vector[1] << 16)/v.vector[2];
+                        y1 = div >> 16;
+                        y2 = y1 + 1;
+                        disty = ((xFixed)div >> 8) & 0xff;
+
+                        idistx = 256 - distx;
+                        idisty = 256 - disty;
+
+                        x1 = MOD (x1, pict->pDrawable->width);
+                        x2 = MOD (x2, pict->pDrawable->width);
+                        y1 = MOD (y1, pict->pDrawable->height);
+                        y2 = MOD (y2, pict->pDrawable->height);
+
+                        b = bits + (y1 + pict->pDrawable->y)*stride;
+
+                        tl = fetch(b, x1 + pict->pDrawable->x, indexed);
+                        tr = fetch(b, x2 + pict->pDrawable->x, indexed);
+                        b = bits + (y2 + pict->pDrawable->y)*stride;
+                        bl = fetch(b, x1 + pict->pDrawable->x, indexed);
+                        br = fetch(b, x2 + pict->pDrawable->x, indexed);
+
+                        FbByteAddMul_256(tl, idistx, tr, distx);
+                        FbByteAddMul_256(bl, idistx, br, distx);
+                        FbByteAddMul_256(tl, idisty, bl, disty);
+                        buffer[i] = tl;
+                    }
                     v.vector[0] += unit.vector[0];
                     v.vector[1] += unit.vector[1];
                     v.vector[2] += unit.vector[2];
-
-                    if (!v.vector[2]) {
-                        buffer[i] = 0;
-                        continue;
-                    }
-                    div = ((xFixed_48_16)v.vector[0] << 16)/v.vector[2];
-                    x1 = div >> 16;
-                    distx = ((xFixed)div >> 8) & 0xff;
-                    x2 = x1 + 1;
-                    div = ((xFixed_48_16)v.vector[1] << 16)/v.vector[2];
-                    y1 = div >> 16;
-                    y2 = y1 + 1;
-                    disty = ((xFixed)div >> 8) & 0xff;
-
-                    idistx = 256 - distx;
-                    idisty = 256 - disty;
-
-                    x1 = MOD (x1, pict->pDrawable->width);
-                    x2 = MOD (x2, pict->pDrawable->width);
-                    y1 = MOD (y1, pict->pDrawable->height);
-                    y2 = MOD (y2, pict->pDrawable->height);
-
-                    b = bits + (y1 + pict->pDrawable->y)*stride;
-
-                    tl = fetch(b, x1 + pict->pDrawable->x, indexed);
-                    tr = fetch(b, x2 + pict->pDrawable->x, indexed);
-                    b = bits + (y2 + pict->pDrawable->y)*stride;
-                    bl = fetch(b, x1 + pict->pDrawable->x, indexed);
-                    br = fetch(b, x2 + pict->pDrawable->x, indexed);
-
-                    FbByteAddMul_256(tl, idistx, tr, distx);
-                    FbByteAddMul_256(bl, idistx, br, distx);
-                    FbByteAddMul_256(tl, idisty, bl, disty);
-                    buffer[i] = tl;
                 }
             } else {
                 for (i = 0; i < width; ++i) {
-                    int x1, x2, y1, y2, distx, idistx, disty, idisty;
-                    FbBits *b;
-                    CARD32 tl, tr, bl, br;
-                    xFixed_48_16 div;
+                    if (!v.vector[2]) {
+                        buffer[i] = 0;
+                    } else {
+                        int x1, x2, y1, y2, distx, idistx, disty, idisty;
+                        FbBits *b;
+                        CARD32 tl, tr, bl, br;
+                        xFixed_48_16 div;
 
+                        div = ((xFixed_48_16)v.vector[0] << 16)/v.vector[2];
+                        x1 = div >> 16;
+                        distx = ((xFixed)div >> 8) & 0xff;
+                        x2 = x1 + 1;
+                        div = ((xFixed_48_16)v.vector[1] << 16)/v.vector[2];
+                        y1 = div >> 16;
+                        y2 = y1 + 1;
+                        disty = ((xFixed)div >> 8) & 0xff;
+
+                        idistx = 256 - distx;
+                        idisty = 256 - disty;
+
+                        x1 = MOD (x1, pict->pDrawable->width);
+                        x2 = MOD (x2, pict->pDrawable->width);
+                        y1 = MOD (y1, pict->pDrawable->height);
+                        y2 = MOD (y2, pict->pDrawable->height);
+
+                        b = bits + (y1 + pict->pDrawable->y)*stride;
+
+                        tl = POINT_IN_REGION(0, pict->pCompositeClip, x1, y1, &box)
+                             ? fetch(b, x1 + pict->pDrawable->x, indexed) : 0;
+                        tr = POINT_IN_REGION(0, pict->pCompositeClip, x2, y1, &box)
+                             ? fetch(b, x2 + pict->pDrawable->x, indexed) : 0;
+                        b = bits + (y2 + pict->pDrawable->y)*stride;
+                        bl = POINT_IN_REGION(0, pict->pCompositeClip, x1, y2, &box)
+                             ? fetch(b, x1 + pict->pDrawable->x, indexed) : 0;
+                        br = POINT_IN_REGION(0, pict->pCompositeClip, x2, y2, &box)
+                             ? fetch(b, x2 + pict->pDrawable->x, indexed) : 0;
+
+                        FbByteAddMul_256(tl, idistx, tr, distx);
+                        FbByteAddMul_256(bl, idistx, br, distx);
+                        FbByteAddMul_256(tl, idisty, bl, disty);
+                        buffer[i] = tl;
+                    }
                     v.vector[0] += unit.vector[0];
                     v.vector[1] += unit.vector[1];
                     v.vector[2] += unit.vector[2];
-                    if (!v.vector[2]) {
-                        buffer[i] = 0;
-                        continue;
-                    }
-
-                    div = ((xFixed_48_16)v.vector[0] << 16)/v.vector[2];
-                    x1 = div >> 16;
-                    distx = ((xFixed)div >> 8) & 0xff;
-                    x2 = x1 + 1;
-                    div = ((xFixed_48_16)v.vector[1] << 16)/v.vector[2];
-                    y1 = div >> 16;
-                    y2 = y1 + 1;
-                    disty = ((xFixed)div >> 8) & 0xff;
-
-                    idistx = 256 - distx;
-                    idisty = 256 - disty;
-
-                    x1 = MOD (x1, pict->pDrawable->width);
-                    x2 = MOD (x2, pict->pDrawable->width);
-                    y1 = MOD (y1, pict->pDrawable->height);
-                    y2 = MOD (y2, pict->pDrawable->height);
-
-                    b = bits + (y1 + pict->pDrawable->y)*stride;
-
-                    tl = POINT_IN_REGION(0, pict->pCompositeClip, x1, y1, &box)
-                         ? fetch(b, x1 + pict->pDrawable->x, indexed) : 0;
-                    tr = POINT_IN_REGION(0, pict->pCompositeClip, x2, y1, &box)
-                         ? fetch(b, x2 + pict->pDrawable->x, indexed) : 0;
-                    b = bits + (y2 + pict->pDrawable->y)*stride;
-                    bl = POINT_IN_REGION(0, pict->pCompositeClip, x1, y2, &box)
-                         ? fetch(b, x1 + pict->pDrawable->x, indexed) : 0;
-                    br = POINT_IN_REGION(0, pict->pCompositeClip, x2, y2, &box)
-                         ? fetch(b, x2 + pict->pDrawable->x, indexed) : 0;
-
-                    FbByteAddMul_256(tl, idistx, tr, distx);
-                    FbByteAddMul_256(bl, idistx, br, distx);
-                    FbByteAddMul_256(tl, idisty, bl, disty);
-                    buffer[i] = tl;
                 }
             }
         } else {
             if (REGION_NUM_RECTS(pict->pCompositeClip) == 1) {
                 box = pict->pCompositeClip->extents;
                 for (i = 0; i < width; ++i) {
-                    int x1, x2, y1, y2, distx, idistx, disty, idisty, x_off;
-                    FbBits *b;
-                    CARD32 tl, tr, bl, br;
-                    Bool x1_out, x2_out, y1_out, y2_out;
-                    xFixed_48_16 div;
+                    if (!v.vector[2]) {
+                        buffer[i] = 0;
+                    } else {
+                        int x1, x2, y1, y2, distx, idistx, disty, idisty, x_off;
+                        FbBits *b;
+                        CARD32 tl, tr, bl, br;
+                        Bool x1_out, x2_out, y1_out, y2_out;
+                        xFixed_48_16 div;
 
+                        div = ((xFixed_48_16)v.vector[0] << 16)/v.vector[2];
+                        x1 = div >> 16;
+                        distx = ((xFixed)div >> 8) & 0xff;
+                        x2 = x1 + 1;
+                        div = ((xFixed_48_16)v.vector[1] << 16)/v.vector[2];
+                        y1 = div >> 16;
+                        y2 = y1 + 1;
+                        disty = ((xFixed)div >> 8) & 0xff;
+
+                        idistx = 256 - distx;
+                        idisty = 256 - disty;
+
+                        b = bits + (y1 + pict->pDrawable->y)*stride;
+                        x_off = x1 + pict->pDrawable->x;
+
+                        x1_out = (x1 < box.x1) | (x1 >= box.x2);
+                        x2_out = (x2 < box.x1) | (x2 >= box.x2);
+                        y1_out = (y1 < box.y1) | (y1 >= box.y2);
+                        y2_out = (y2 < box.y1) | (y2 >= box.y2);
+
+                        tl = x1_out|y1_out ? 0 : fetch(b, x_off, indexed);
+                        tr = x2_out|y1_out ? 0 : fetch(b, x_off + 1, indexed);
+                        b += stride;
+                        bl = x1_out|y2_out ? 0 : fetch(b, x_off, indexed);
+                        br = x2_out|y2_out ? 0 : fetch(b, x_off + 1, indexed);
+
+                        FbByteAddMul_256(tl, idistx, tr, distx);
+                        FbByteAddMul_256(bl, idistx, br, distx);
+                        FbByteAddMul_256(tl, idisty, bl, disty);
+                        buffer[i] = tl;
+                    }
                     v.vector[0] += unit.vector[0];
                     v.vector[1] += unit.vector[1];
                     v.vector[2] += unit.vector[2];
-                    if (!v.vector[2]) {
-                        buffer[i] = 0;
-                        continue;
-                    }
-
-                    div = ((xFixed_48_16)v.vector[0] << 16)/v.vector[2];
-                    x1 = div >> 16;
-                    distx = ((xFixed)div >> 8) & 0xff;
-                    x2 = x1 + 1;
-                    div = ((xFixed_48_16)v.vector[1] << 16)/v.vector[2];
-                    y1 = div >> 16;
-                    y2 = y1 + 1;
-                    disty = ((xFixed)div >> 8) & 0xff;
-
-                    idistx = 256 - distx;
-                    idisty = 256 - disty;
-
-                    b = bits + (y1 + pict->pDrawable->y)*stride;
-                    x_off = x1 + pict->pDrawable->x;
-
-                    x1_out = (x1 < box.x1) | (x1 >= box.x2);
-                    x2_out = (x2 < box.x1) | (x2 >= box.x2);
-                    y1_out = (y1 < box.y1) | (y1 >= box.y2);
-                    y2_out = (y2 < box.y1) | (y2 >= box.y2);
-
-                    tl = x1_out|y1_out ? 0 : fetch(b, x_off, indexed);
-                    tr = x2_out|y1_out ? 0 : fetch(b, x_off + 1, indexed);
-                    b += stride;
-                    bl = x1_out|y2_out ? 0 : fetch(b, x_off, indexed);
-                    br = x2_out|y2_out ? 0 : fetch(b, x_off + 1, indexed);
-
-                    FbByteAddMul_256(tl, idistx, tr, distx);
-                    FbByteAddMul_256(bl, idistx, br, distx);
-                    FbByteAddMul_256(tl, idisty, bl, disty);
-                    buffer[i] = tl;
                 }
             } else {
                 for (i = 0; i < width; ++i) {
-                    int x1, x2, y1, y2, distx, idistx, disty, idisty, x_off;
-                    FbBits *b;
-                    CARD32 tl, tr, bl, br;
-                    xFixed_48_16 div;
+                    if (!v.vector[2]) {
+                        buffer[i] = 0;
+                    } else {
+                        int x1, x2, y1, y2, distx, idistx, disty, idisty, x_off;
+                        FbBits *b;
+                        CARD32 tl, tr, bl, br;
+                        xFixed_48_16 div;
 
+                        div = ((xFixed_48_16)v.vector[0] << 16)/v.vector[2];
+                        x1 = div >> 16;
+                        distx = ((xFixed)div >> 8) & 0xff;
+                        x2 = x1 + 1;
+                        div = ((xFixed_48_16)v.vector[1] << 16)/v.vector[2];
+                        y1 = div >> 16;
+                        y2 = y1 + 1;
+                        disty = ((xFixed)div >> 8) & 0xff;
+
+                        idistx = 256 - distx;
+                        idisty = 256 - disty;
+
+                        b = bits + (y1 + pict->pDrawable->y)*stride;
+                        x_off = x1 + pict->pDrawable->x;
+
+                        tl = POINT_IN_REGION(0, pict->pCompositeClip, x1, y1, &box)
+                             ? fetch(b, x_off, indexed) : 0;
+                        tr = POINT_IN_REGION(0, pict->pCompositeClip, x2, y1, &box)
+                             ? fetch(b, x_off + 1, indexed) : 0;
+                        b += stride;
+                        bl = POINT_IN_REGION(0, pict->pCompositeClip, x1, y2, &box)
+                             ? fetch(b, x_off, indexed) : 0;
+                        br = POINT_IN_REGION(0, pict->pCompositeClip, x2, y2, &box)
+                             ? fetch(b, x_off + 1, indexed) : 0;
+
+                        FbByteAddMul_256(tl, idistx, tr, distx);
+                        FbByteAddMul_256(bl, idistx, br, distx);
+                        FbByteAddMul_256(tl, idisty, bl, disty);
+                        buffer[i] = tl;
+                    }
                     v.vector[0] += unit.vector[0];
                     v.vector[1] += unit.vector[1];
                     v.vector[2] += unit.vector[2];
-                    if (!v.vector[2]) {
-                        buffer[i] = 0;
-                        continue;
-                    }
-
-                    div = ((xFixed_48_16)v.vector[0] << 16)/v.vector[2];
-                    x1 = div >> 16;
-                    distx = ((xFixed)div >> 8) & 0xff;
-                    x2 = x1 + 1;
-                    div = ((xFixed_48_16)v.vector[1] << 16)/v.vector[2];
-                    y1 = div >> 16;
-                    y2 = y1 + 1;
-                    disty = ((xFixed)div >> 8) & 0xff;
-
-                    idistx = 256 - distx;
-                    idisty = 256 - disty;
-
-                    b = bits + (y1 + pict->pDrawable->y)*stride;
-                    x_off = x1 + pict->pDrawable->x;
-
-                    tl = POINT_IN_REGION(0, pict->pCompositeClip, x1, y1, &box)
-                         ? fetch(b, x_off, indexed) : 0;
-                    tr = POINT_IN_REGION(0, pict->pCompositeClip, x2, y1, &box)
-                         ? fetch(b, x_off + 1, indexed) : 0;
-                    b += stride;
-                    bl = POINT_IN_REGION(0, pict->pCompositeClip, x1, y2, &box)
-                         ? fetch(b, x_off, indexed) : 0;
-                    br = POINT_IN_REGION(0, pict->pCompositeClip, x2, y2, &box)
-                         ? fetch(b, x_off + 1, indexed) : 0;
-
-                    FbByteAddMul_256(tl, idistx, tr, distx);
-                    FbByteAddMul_256(bl, idistx, br, distx);
-                    FbByteAddMul_256(tl, idisty, bl, disty);
-                    buffer[i] = tl;
                 }
             }
         }
@@ -3158,56 +3154,54 @@ static void fbFetchTransformed(PicturePtr pict, int x, int y, int width, CARD32 
         int yoff = params[1] >> 1;
         params += 2;
         for (i = 0; i < width; ++i) {
-            int x1, x2, y1, y2, x, y;
-            INT32 srtot, sgtot, sbtot, satot;
-            xFixed *p = params;
-            xFixed_48_16 tmp;
+            if (!v.vector[2]) {
+                buffer[i] = 0;
+            } else {
+                int x1, x2, y1, y2, x, y;
+                INT32 srtot, sgtot, sbtot, satot;
+                xFixed *p = params;
+                xFixed_48_16 tmp;
+                tmp = ((xFixed_48_16)v.vector[0] << 16)/v.vector[2] - xoff;
+                x1 = xFixedToInt(tmp);
+                x2 = x1 + cwidth;
+                tmp = ((xFixed_48_16)v.vector[1] << 16)/v.vector[2] - yoff;
+                y1 = xFixedToInt(tmp);
+                y2 = y1 + cheight;
 
+                srtot = sgtot = sbtot = satot = 0;
+
+                for (y = y1; y < y2; y++) {
+                    int ty = (pict->repeat == RepeatNormal) ? MOD (y, pict->pDrawable->height) : y;
+                    for (x = x1; x < x2; x++) {
+                        if (*p) {
+                            int tx = (pict->repeat == RepeatNormal) ? MOD (x, pict->pDrawable->width) : x;
+                            if (POINT_IN_REGION (0, pict->pCompositeClip, tx, ty, &box)) {
+                                FbBits *b = bits + (ty + pict->pDrawable->y)*stride;
+                                CARD32 c = fetch(b, tx + pict->pDrawable->x, indexed);
+
+                                srtot += Red(c) * *p;
+                                sgtot += Green(c) * *p;
+                                sbtot += Blue(c) * *p;
+                                satot += Alpha(c) * *p;
+                            }
+                        }
+                        p++;
+                    }
+                }
+
+                if (satot < 0) satot = 0; else if (satot > 0xff) satot = 0xff;
+                if (srtot < 0) srtot = 0; else if (srtot > satot) srtot = satot;
+                if (sgtot < 0) sgtot = 0; else if (sgtot > satot) sgtot = satot;
+                if (sbtot < 0) sbtot = 0; else if (sbtot > satot) sbtot = satot;
+
+                buffer[i] = ((satot << 24) |
+                             (srtot << 16) |
+                             (sgtot <<  8) |
+                             (sbtot       ));
+            }
             v.vector[0] += unit.vector[0];
             v.vector[1] += unit.vector[1];
             v.vector[2] += unit.vector[2];
-            if (!v.vector[2]) {
-                buffer[i] = 0;
-                continue;
-            }
-
-            tmp = ((xFixed_48_16)v.vector[0] << 16)/v.vector[2] - xoff;
-            x1 = xFixedToInt(tmp);
-            x2 = x1 + cwidth;
-            tmp = ((xFixed_48_16)v.vector[1] << 16)/v.vector[2] - yoff;
-            y1 = xFixedToInt(tmp);
-            y2 = y1 + cheight;
-
-            srtot = sgtot = sbtot = satot = 0;
-
-            for (y = y1; y < y2; y++) {
-                int ty = (pict->repeat == RepeatNormal) ? MOD (y, pict->pDrawable->height) : y;
-                for (x = x1; x < x2; x++) {
-                    if (*p) {
-                        int tx = (pict->repeat == RepeatNormal) ? MOD (x, pict->pDrawable->width) : x;
-                        if (POINT_IN_REGION (0, pict->pCompositeClip, tx, ty, &box)) {
-                            FbBits *b = bits + (ty + pict->pDrawable->y)*stride;
-                            CARD32 c = fetch(b, tx + pict->pDrawable->x, indexed);
-
-                            srtot += Red(c) * *p;
-                            sgtot += Green(c) * *p;
-                            sbtot += Blue(c) * *p;
-                            satot += Alpha(c) * *p;
-                        }
-                    }
-                    p++;
-                }
-            }
-
-            if (satot < 0) satot = 0; else if (satot > 0xff) satot = 0xff;
-            if (srtot < 0) srtot = 0; else if (srtot > satot) srtot = satot;
-            if (sgtot < 0) sgtot = 0; else if (sgtot > satot) sgtot = satot;
-            if (sbtot < 0) sbtot = 0; else if (sbtot > satot) sbtot = satot;
-
-            buffer[i] = ((satot << 24) |
-                         (srtot << 16) |
-                         (sgtot <<  8) |
-                         (sbtot       ));
         }
     }
 }

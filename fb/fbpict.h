@@ -159,17 +159,55 @@
     } while (0)
 
 /*
+  x_c = (x_c * a) / 255 + y
+*/
+#define FbByteMulAdd(x, a, y) do {                                \
+        CARD32 t = (x & 0xff00ff) * a;                            \
+        t = (t + ((t >> 8) & 0xff00ff) + 0x800080) >> 8;          \
+        t &= 0xff00ff;                                            \
+        t += y & 0xff00ff;                                        \
+        t |= 0x1000100 - ((t >> 8) & 0xff00ff);                   \
+        t &= 0xff00ff;                                            \
+                                                                  \
+        x = ((x >> 8) & 0xff00ff) * a;                              \
+        x = (x + ((x >> 8) & 0xff00ff) + 0x800080) >> 8;            \
+        x &= 0xff00ff;                                              \
+        x += (y >> 8) & 0xff00ff;                                   \
+        x |= 0x1000100 - ((t >> 8) & 0xff00ff);                     \
+        x &= 0xff00ff;                                              \
+        x <<= 8;                                                    \
+        x += t;                                                     \
+    } while (0)
+
+/*
   x_c = (x_c * a + y_c * b) / 255
 */
 #define FbByteAddMul(x, a, y, b) do {                                   \
-        CARD32 t = (x & 0xff00ff) * a + (y & 0xff00ff) * b;             \
-        t = (t + ((t >> 8) & 0xff00ff) + 0x800080) >> 8;                \
-        t &= 0xff00ff;                                                  \
+        CARD32 t;                                                       \
+        CARD32 r = (x >> 24) * a + (y >> 24) * b;                       \
+        r += (r >> 8) + 0x80;                                           \
+        r >>= 8;                                                        \
                                                                         \
-        x = ((x >> 8) & 0xff00ff) * a + ((y >> 8) & 0xff00ff) * b;      \
-        x = (x + ((x >> 8) & 0xff00ff) + 0x800080);                     \
-        x &= 0xff00ff00;                                                \
-        x += t;                                                         \
+        t = (x & 0xff00) * a + (y & 0xff00) * b;                        \
+        t += (t >> 8) + 0x8000;                                         \
+        t >>= 16;                                                       \
+                                                                        \
+        t |= r << 16;                                                   \
+        t |= 0x1000100 - ((t >> 8) & 0xff00ff);                         \
+        t &= 0xff00ff;                                                  \
+        t <<= 8;                                                        \
+                                                                        \
+        r = ((x >> 16) & 0xff) * a + ((y >> 16) & 0xff) * b;            \
+        r += (r >> 8) + 0x80;                                           \
+        r >>= 8;                                                        \
+                                                                        \
+        x = (x & 0xff) * a + (y & 0xff) * b;                            \
+        x += (x >> 8) + 0x80;                                           \
+        x >>= 8;                                                        \
+        x |= r << 16;                                                   \
+        x |= 0x1000100 - ((x >> 8) & 0xff00ff);                         \
+        x &= 0xff00ff;                                                  \
+        x |= t;                                                         \
 } while (0)
 
 /*
@@ -203,39 +241,74 @@
     } while (0)
 
 /*
-  x_c = (x_c * a_c + y_c * b) / 255
+  x_c = (x_c * a) / 255 + y
 */
-#define FbByteAddMulC(x, a, y, b) do {                     \
-        CARD32 t;                                       \
-        CARD32 r = (x & 0xff) * (a & 0xff);             \
-        r |= (x & 0xff0000) * ((a >> 16) & 0xff);       \
-        r += (y & 0xff00ff) * b;                        \
-        r = (r + ((r >> 8) & 0xff00ff) + 0x800080) >> 8;        \
-        r &= 0xff00ff;                                  \
-                                                        \
-        x >>= 8;                                        \
-        t = (x & 0xff) * ((a >> 8) & 0xff);             \
-        t |= (x & 0xff0000) * (a >> 24);                \
-        t += ((y >> 8) & 0xff00ff) * b;                 \
-        t = (t + ((t >> 8) & 0xff00ff) + 0x800080);     \
-        x = r | (t & 0xff00ff00);                       \
-                                                        \
+#define FbByteMulAddC(x, a, y) do {                                 \
+        CARD32 t;                                                   \
+        CARD32 r = (x & 0xff) * (a & 0xff);                         \
+        r |= (x & 0xff0000) * ((a >> 16) & 0xff);                   \
+        r = (r + ((r >> 8) & 0xff00ff) + 0x800080) >> 8;            \
+        r &= 0xff00ff;                                              \
+        r += y & 0xff00ff;                                          \
+        r |= 0x1000100 - ((r >> 8) & 0xff00ff);                     \
+        r &= 0xff00ff;                                              \
+                                                                    \
+        x >>= 8;                                                       \
+        t = (x & 0xff) * ((a >> 8) & 0xff);                            \
+        t |= (x & 0xff0000) * (a >> 24);                               \
+        t = (t + ((t >> 8) & 0xff00ff) + 0x800080) >> 8;               \
+        t &= 0xff00ff;                                                 \
+        t += (y >> 8) & 0xff00ff;                                      \
+        t |= 0x1000100 - ((t >> 8) & 0xff00ff);                        \
+        t &= 0xff00ff;                                                 \
+        x = r | (t << 8);                                              \
     } while (0)
 
 /*
+  x_c = (x_c * a_c + y_c * b) / 255
+*/
+#define FbByteAddMulC(x, a, y, b) do {                                  \
+        CARD32 t;                                                       \
+        CARD32 r = (x >> 24) * (a >> 24) + (y >> 24) * b;               \
+        r += (r >> 8) + 0x80;                                           \
+        r >>= 8;                                                        \
+                                                                        \
+        t = (x & 0xff00) * ((a >> 8) & 0xff) + (y & 0xff00) * b;        \
+        t += (t >> 8) + 0x8000;                                         \
+        t >>= 16;                                                       \
+                                                                        \
+        t |= r << 16;                                                   \
+        t |= 0x1000100 - ((t >> 8) & 0xff00ff);                         \
+        t &= 0xff00ff;                                                  \
+        t <<= 8;                                                        \
+                                                                        \
+        r = ((x >> 16) & 0xff) * ((a >> 16) & 0xff) + ((y >> 16) & 0xff) * b; \
+        r += (r >> 8) + 0x80;                                           \
+        r >>= 8;                                                        \
+                                                                        \
+        x = (x & 0xff) * (a & 0xff) + (y & 0xff) * b;                   \
+        x += (x >> 8) + 0x80;                                           \
+        x >>= 8;                                                        \
+        x |= r << 16;                                                   \
+        x |= 0x1000100 - ((x >> 8) & 0xff00ff);                         \
+        x &= 0xff00ff;                                                  \
+        x |= t;                                                         \
+    } while (0)
+ 
+/*
   x_c = min(x_c + y_c, 255)
 */
-#define FbByteAdd(x, y) do {                                    \
-        CARD32 t;                                               \
-        CARD32 r = (x & 0xff00ff) + (y & 0xff00ff);             \
+#define FbByteAdd(x, y) do {                                            \
+        CARD32 t;                                                       \
+        CARD32 r = (x & 0xff00ff) + (y & 0xff00ff);                     \
         r |= 0x1000100 - ((r >> 8) & 0xff00ff);                         \
-        r &= 0xff00ff;                                          \
-                                                                \
-        t = ((x >> 8) & 0xff00ff) + ((y >> 8) & 0xff00ff);       \
-        t |= 0x1000100 - ((t >> 8) & 0xff00ff);                          \
-        r |= (t & 0xff00ff) << 8;                                \
-        x = r;                                                   \
-} while (0)
+        r &= 0xff00ff;                                                  \
+                                                                        \
+        t = ((x >> 8) & 0xff00ff) + ((y >> 8) & 0xff00ff);              \
+        t |= 0x1000100 - ((t >> 8) & 0xff00ff);                         \
+        r |= (t & 0xff00ff) << 8;                                       \
+        x = r;                                                          \
+    } while (0)
 
 #define div_255(x) (((x) + ((x) >> 8) + 0x80) >> 8)
 
