@@ -194,7 +194,10 @@ FindPCIVideoInfo(void)
     int i = 0, j, k;
     int num = 0;
     pciVideoPtr info;
+    int DoIsolateDeviceCheck = 0;
 
+    if (xf86IsolateDevice.bus || xf86IsolateDevice.device || xf86IsolateDevice.func)
+        DoIsolateDeviceCheck = 1;
     pcrpp = xf86PciInfo = xf86scanpci(0);
     getPciClassFlags(pcrpp);
     
@@ -216,7 +219,11 @@ FindPCIVideoInfo(void)
 	    subclass = pcrp->pci_sub_class;
 	}
 	
-	if (PCIINFOCLASSES(baseclass, subclass)) {
+	if (PCIINFOCLASSES(baseclass, subclass) &&
+	    (DoIsolateDeviceCheck ?
+	    (xf86IsolateDevice.bus == pcrp->busnum &&
+	     xf86IsolateDevice.device == pcrp->devnum &&
+	     xf86IsolateDevice.func == pcrp->funcnum) : 1)) {
 	    num++;
 	    xf86PciVideoInfo = xnfrealloc(xf86PciVideoInfo,
 					  sizeof(pciVideoPtr) * (num + 1));

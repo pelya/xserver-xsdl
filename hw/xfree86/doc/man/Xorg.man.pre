@@ -1,4 +1,4 @@
-.\" $XdotOrg$
+.\" $XdotOrg: xc/programs/Xserver/hw/xfree86/Xorg.man,v 1.2 2004/04/23 19:20:02 eich Exp $
 .TH __xservername__ __appmansuffix__ __vendorversion__
 .SH NAME
 __xservername__ - X11R6 X server
@@ -256,6 +256,19 @@ than the server's.  This is because such modules might use interfaces
 that the server does not have.  When this option is specified, mismatches
 like this are downgraded from fatal errors to warnings.  This option
 should be used with care.
+.TP 8
+.B \-isolateDevice \fIbus\-id\fP
+Restrict device resets to the device at
+.IR bus\-id .
+The
+.I bus\-id
+string has the form
+.IB bustype : bus : device : function
+(e.g., \(oqPCI:1:0:0\(cq).
+At present, only isolation of PCI devices is supported; i.e., this option
+is ignored if
+.I bustype
+is anything other than \(oqPCI\(cq.
 .TP 8
 .B \-keeptty
 Prevent the server from detaching its initial controlling terminal.

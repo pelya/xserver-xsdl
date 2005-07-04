@@ -1657,6 +1657,20 @@ checkCoreInputDevices(serverLayoutPtr servlayoutp, Bool implicitLayout)
     return TRUE;
 }
 
+typedef enum {
+    LAYOUT_ISOLATEDEVICE,
+    LAYOUT_SINGLECARD
+} LayoutValues;
+
+static OptionInfoRec LayoutOptions[] = {
+  { LAYOUT_ISOLATEDEVICE,      "IsolateDevice",        OPTV_STRING,
+       {0}, FALSE },
+  { LAYOUT_SINGLECARD,         "SingleCard",           OPTV_BOOLEAN,
+       {0}, FALSE },
+  { -1,                                NULL,                   OPTV_NONE,
+       {0}, FALSE },
+};
+
 /*
  * figure out which layout is active, which screens are used in that layout,
  * which drivers and monitors are used in these screens
@@ -2540,6 +2554,8 @@ xf86HandleConfigFile(Bool autoconfig)
     const char *filename;
     char *searchpath;
     MessageType from = X_DEFAULT;
+    char *scanptr;
+    Bool singlecard = 0;
 
     if (!autoconfig) {
 	if (getuid() == 0)
@@ -2611,6 +2627,29 @@ xf86HandleConfigFile(Bool autoconfig)
 	    return CONFIG_PARSE_ERROR;
 	  }
 	}
+    }
+
+    xf86ProcessOptions(-1, xf86ConfigLayout.options, LayoutOptions);
+
+    if ((scanptr = xf86GetOptValString(LayoutOptions, LAYOUT_ISOLATEDEVICE))) {
+       ; /* IsolateDevice specified; overrides SingleCard */
+    } else {
+       xf86GetOptValBool(LayoutOptions, LAYOUT_SINGLECARD, &singlecard);
+       if (singlecard)
+           scanptr = xf86ConfigLayout.screens->screen->device->busID;
+    }
+    if (scanptr) {
+       int bus, device, func, stroffset = 0;
+       if (strncmp(scanptr, "PCI:", 4) != 0) {
+           xf86Msg(X_WARNING, "Bus types other than PCI not yet isolable.\n"
+                              "\tIgnoring IsolateDevice option.\n");
+       } else if (sscanf(scanptr, "PCI:%d:%d:%d", &bus, &device, &func) == 3) {
+           xf86IsolateDevice.bus = bus;
+           xf86IsolateDevice.device = device;
+           xf86IsolateDevice.func = func;
+           xf86Msg(X_INFO,
+                   "Isolating PCI bus \"%d:%d:%d\"\n", bus, device, func);
+       }
     }
 
     /* Now process everything else */

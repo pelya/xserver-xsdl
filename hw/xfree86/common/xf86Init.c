@@ -1681,6 +1681,25 @@ ddxProcessArgument(int argc, char **argv, int i)
     xf86AllowMouseOpenFail = TRUE;
     return 1;
   }
+  if (!strcmp(argv[i], "-isolateDevice"))
+  {
+    int bus, device, func;
+    if (++i >= argc)
+       return 0;
+    if (strncmp(argv[i], "PCI:", 4)) {
+       ErrorF("Bus types other than PCI not yet isolable\n");
+       return 0;
+    }
+    if (sscanf(argv[i], "PCI:%d:%d:%d", &bus, &device, &func) == 3) {
+       xf86IsolateDevice.bus = bus;
+       xf86IsolateDevice.device = device;
+       xf86IsolateDevice.func = func;
+       return 2;
+    } else {
+       ErrorF("Invalid isolated device specifiation\n");
+       return 0;
+    }
+  }
   /* OS-specific processing */
   return xf86ProcessArgument(argc, argv, i);
 }
@@ -1745,6 +1764,7 @@ ddxUseMsg()
 #endif
   ErrorF("-bestRefresh           choose modes with the best refresh rate\n");
   ErrorF("-ignoreABI             make module ABI mismatches non-fatal\n");
+  ErrorF("-isolateDevice bus_id  restrict device resets to bus_id (PCI only)\n");
   ErrorF("-version               show the server version\n");
   /* OS-specific usage */
   xf86UseMsg();

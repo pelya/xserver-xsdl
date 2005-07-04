@@ -243,6 +243,7 @@ Bool xf86MiscModInDevAllowNonLocal = FALSE;
 RootWinPropPtr *xf86RegisteredPropertiesTable = NULL;
 Bool xf86inSuspend = FALSE;
 Bool xorgHWAccess = FALSE;
+PciBusId xf86IsolateDevice;
 
 #ifdef DLOPEN_HACK
 /*

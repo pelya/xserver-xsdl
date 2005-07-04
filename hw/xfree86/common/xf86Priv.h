@@ -80,6 +80,7 @@ extern Bool xf86BestRefresh;
 extern Gamma xf86Gamma;
 extern char *xf86ServerName;
 extern Bool xf86ShowUnresolved;
+extern PciBusId xf86IsolateDevice;
 
 /* Other parameters */
 
