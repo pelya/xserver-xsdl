@@ -1,5 +1,10 @@
 2005-07-05  Alexander Gottwald  <ago at freedesktop dot org>
 
+	* winmultiwindowwm.c:
+	Fix crash on server shutdown
+	
+2005-07-05  Alexander Gottwald  <ago at freedesktop dot org>
+
 	* winkeybd.c:
 	* winkeybd.h:
 	* winwndproc.c:

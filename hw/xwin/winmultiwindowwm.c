@@ -981,6 +981,9 @@ winMultiWindowXMsgProc (void *pArg)
   /* Loop until we explicitly break out */
   while (1)
     {
+      if (g_shutdown)
+        break;
+
       if (pProcArg->pWMInfo->fAllowOtherWM && !XPending (pProcArg->pDisplay))
 	{
 	  if (CheckAnotherWindowManager (pProcArg->pDisplay, pProcArg->dwScreen))
@@ -1061,6 +1064,10 @@ winMultiWindowXMsgProc (void *pArg)
 	  winSendMessageToWM (pProcArg->pWMInfo, &msg);
 	}
     }
+
+  XCloseDisplay (pProcArg->pDisplay);
+  pthread_exit (NULL);
+ 
 }
 
 
@@ -1337,6 +1344,9 @@ static int
 winMultiWindowWMIOErrorHandler (Display *pDisplay)
 {
   ErrorF ("\nwinMultiWindowWMIOErrorHandler!\n\n");
+
+  if (g_shutdown)
+    pthread_exit(NULL);
 
   /* Restart at the main entry point */
   longjmp (g_jmpWMEntry, WIN_JMP_ERROR_IO);
