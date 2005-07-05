@@ -233,6 +233,8 @@ if test "$XWIN" = yes; then
 		cygwin*)
 			PKG_CHECK_MODULES([XWINMODULES],[x11 xdmcp xau xfont])
 			AC_DEFINE(HAS_DEVWINDOWS,1,[Cygwin has /dev/windows for signaling new win32 messages])
+			AC_DEFINE(ROOTLESS,1,[Build Rootless code])
+			CFLAGS="$CFLAGS -DFD_SETSIZE=256"
 			;;
 		mingw*)
 			PKG_CHECK_MODULES([XWINMODULES],[x11 xdmcp xau xfont])
@@ -264,6 +266,10 @@ if test "$XWIN" = yes; then
 		AC_MSG_NOTICE([Disabling XF86Misc extension])
 		XF86MISC=no
 	fi
+	if test "$COMPOSITE" = yes; then
+		AC_MSG_NOTICE([Disabling Composite extension])
+		COMPOSITE=no
+	fi
 fi
 AM_CONDITIONAL(XWIN, [test x$XWIN = xyes])
 AM_CONDITIONAL(XWIN_MULTIWINDOW, [test x$XWIN = xyes && true])
@@ -271,9 +277,13 @@ AM_CONDITIONAL(XWIN_MULTIWINDOWEXTWM, [test x$XWIN = xyes && false])
 AM_CONDITIONAL(XWIN_CLIPBOARD, [test x$XWIN = xyes && true])
 AM_CONDITIONAL(XWIN_GLX_WINDOWS, [test x$XWIN = xyes && false])
 AM_CONDITIONAL(XWIN_NATIVEGDI, [test x$XWIN = xyes && false])
-AM_CONDITIONAL(XWIN_PRIMARYFB, [test x$XWIN = xyes && true])
+AM_CONDITIONAL(XWIN_PRIMARYFB, [test x$XWIN = xyes && false])
 AM_CONDITIONAL(XWIN_RANDR, [test x$XWIN = xyes && true])
 AM_CONDITIONAL(XWIN_XV, [test x$XWIN = xyes -a x$XV = xyes])
+
+AM_CONDITIONAL(MFB, [test x$XORG = xyes])
+AM_CONDITIONAL(CFB, [test x$XORG = xyes])
+AM_CONDITIONAL(AFB, [test x$XORG = xyes])
 
 AM_CONDITIONAL(XV, [test x$XV = xyes])
 if test "$XV" = yes; then

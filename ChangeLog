@@ -1,3 +1,12 @@
+2005-07-06  Alexander Gottwald  <ago@freedesktop.org>
+
+	* configure.ac:
+	* Makefile.am:
+	* include/dix-config.h:
+	Add more defines for XWin DDX
+	Make building of cfb*, afb and mfb conditional
+	Set FD_SETSIZE=256 on cygwin
+	
 2005-07-05  Alexander Gottwald  <ago@freedesktop.org>
 
 	* hw/xwin/Makefile.am:

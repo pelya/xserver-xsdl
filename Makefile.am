@@ -6,6 +6,18 @@ endif
 if XTRAP
 XTRAP_DIR=XTrap
 endif
+if CFB
+CFB_DIR=cfb
+CFB16_DIR=cfb16
+CFB24_DIR=cfb24
+CFB32_DIR=cfb32
+endif
+if AFB
+AFB_DIR=afb
+endif
+if MFB
+MFB_DIR=mfb
+endif
 
 SUBDIRS=	\
 	include	\
@@ -17,19 +29,19 @@ SUBDIRS=	\
 	os	\
 	randr	\
 	render  \
-        Xi	\
-        mfb	\
-        xkb	\
-	afb	\
-	cfb	\
-	cfb16   \
-	cfb24   \
-	cfb32   \
+	Xi	\
+	xkb	\
+	$(MFB_DIR)	\
+	$(AFB_DIR)	\
+	$(CFB_DIR)	\
+	$(CFB16_DIR)   \
+	$(CFB24_DIR)   \
+	$(CFB32_DIR)   \
 	record	\
 	xfixes	\
 	damageext \
 	$(XTRAP_DIR) \
-        $(COMPOSITE_DIR) \
+	$(COMPOSITE_DIR) \
 	hw
 
 pkgconfigdir = $(libdir)/pkgconfig
