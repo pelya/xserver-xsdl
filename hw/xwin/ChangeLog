@@ -1,5 +1,13 @@
 2005-07-05  Alexander Gottwald  <ago at freedesktop dot org>
 
+	* winkeybd.c:
+	* winkeybd.h:
+	* winwndproc.c:
+	Fix simultanious presses of Left and Right Control and Shift keys.
+	https://bugs.freedesktop.org/show_bug.cgi?id=3677
+
+2005-07-05  Alexander Gottwald  <ago at freedesktop dot org>
+
 	* winmultiwindowwm.c:
 	Fix typo which broke window titles
 

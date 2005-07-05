@@ -612,3 +612,39 @@ winSendKeyEvent (DWORD dwKey, Bool fDown)
   xCurrentEvent.u.u.detail = dwKey + MIN_KEYCODE;
   mieqEnqueue (&xCurrentEvent);
 }
+
+BOOL winCheckKeyPressed(WPARAM wParam, LPARAM lParam)
+{
+  switch (wParam)
+  {
+    case VK_CONTROL:
+      if ((lParam & 0x1ff0000) == 0x11d0000 && g_winKeyState[KEY_RCtrl])
+        return TRUE;
+      if ((lParam & 0x1ff0000) == 0x01d0000 && g_winKeyState[KEY_LCtrl])
+        return TRUE;
+      break;
+    case VK_SHIFT:
+      if ((lParam & 0x1ff0000) == 0x0360000 && g_winKeyState[KEY_ShiftR])
+        return TRUE;
+      if ((lParam & 0x1ff0000) == 0x02a0000 && g_winKeyState[KEY_ShiftL])
+        return TRUE;
+      break;
+    default:
+      return TRUE;
+  }
+  return FALSE;
+}
+
+/* Only on shift release message is sent even if both are pressed.
+ * Fix this here 
+ */
+void winFixShiftKeys (int iScanCode)
+{
+  if (GetKeyState (VK_SHIFT) & 0x8000)
+    return;
+
+  if (iScanCode == KEY_ShiftL && g_winKeyState[KEY_ShiftR])
+    winSendKeyEvent (KEY_ShiftR, FALSE);
+  if (iScanCode == KEY_ShiftR && g_winKeyState[KEY_ShiftL])
+    winSendKeyEvent (KEY_ShiftL, FALSE);
+}

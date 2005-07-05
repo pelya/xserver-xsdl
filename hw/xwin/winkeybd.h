@@ -65,7 +65,7 @@ g_iKeyMap [] = {
   /* 13 */	VK_RETURN,	0,		KEY_KP_Enter,
   /* 14 */	0,		0,		0,
   /* 15 */	0,		0,		0,
-  /* 16 */	VK_SHIFT,	KEY_ShiftL,	KEY_ShiftR,
+  /* 16 */	VK_SHIFT,	0,		0,
   /* 17 */	VK_CONTROL,	0,		KEY_RCtrl,
   /* 18 */	VK_MENU,	0,		KEY_AltLang,
   /* 19 */	VK_PAUSE,	KEY_Pause,	0,
