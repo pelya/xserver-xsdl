@@ -1,5 +1,10 @@
 2005-07-05  Alexander Gottwald  <ago at freedesktop dot org>
 
+	* winmultiwindowwm.c:
+	Fix typo which broke window titles
+
+2005-07-05  Alexander Gottwald  <ago at freedesktop dot org>
+
 	* winmultiwindowwndproc.c:
 	* winkeybd.c:
 	Fix problem with fake Control press on Alt-Gr
