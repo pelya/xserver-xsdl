@@ -610,7 +610,8 @@ winFinishScreenInitFB (int index,
 		      &pScreenPriv->ptXMsgProc,
 		      &pScreenPriv->pmServerStarted,
 		      pScreenInfo->dwScreen,
-		      (HWND)&pScreenPriv->hwndScreen))
+		      (HWND)&pScreenPriv->hwndScreen,
+		      pScreenInfo->fInternalWM))
         {
           ErrorF ("winFinishScreenInitFB - winInitWM () failed.\n");
           return FALSE;

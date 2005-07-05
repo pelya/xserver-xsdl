@@ -112,6 +112,7 @@ typedef struct _WMInfo {
   Atom			atmWmProtos;
   Atom			atmWmDelete;
   Atom			atmPrivMap;
+  Bool			fAllowOtherWM;
 } WMInfoRec, *WMInfoPtr;
 
 typedef struct _WMProcArgRec {
@@ -933,7 +934,25 @@ winMultiWindowXMsgProc (void *pArg)
 	  "successfully opened the display.\n");
 
   /* Check if another window manager is already running */
-  g_fAnotherWMRunnig = CheckAnotherWindowManager (pProcArg->pDisplay, pProcArg->dwScreen);
+  if (pProcArg->pWMInfo->fAllowOtherWM)
+  {
+    g_fAnotherWMRunnig = CheckAnotherWindowManager (pProcArg->pDisplay, pProcArg->dwScreen);
+  } else {
+    redirectError = FALSE;
+    XSetErrorHandler (winRedirectErrorHandler); 	 
+    XSelectInput(pProcArg->pDisplay, 	 
+        RootWindow (pProcArg->pDisplay, pProcArg->dwScreen), 	 
+        SubstructureNotifyMask | ButtonPressMask); 	 
+    XSync (pProcArg->pDisplay, 0); 	 
+    XSetErrorHandler (winMultiWindowXMsgProcErrorHandler); 	 
+    if (redirectError) 	 
+    { 	 
+      ErrorF ("winMultiWindowXMsgProc - " 	 
+          "another window manager is running.  Exiting.\n"); 	 
+      pthread_exit (NULL); 	 
+    }
+    g_fAnotherWMRunnig = FALSE;
+  }
   
   /* Set up the supported icon sizes */
   xis = XAllocIconSize ();
@@ -962,7 +981,7 @@ winMultiWindowXMsgProc (void *pArg)
   /* Loop until we explicitly break out */
   while (1)
     {
-      if (!XPending (pProcArg->pDisplay))
+      if (pProcArg->pWMInfo->fAllowOtherWM && !XPending (pProcArg->pDisplay))
 	{
 	  if (CheckAnotherWindowManager (pProcArg->pDisplay, pProcArg->dwScreen))
 	    {
@@ -1057,7 +1076,8 @@ winInitWM (void **ppWMInfo,
 	   pthread_t *ptXMsgProc,
 	   pthread_mutex_t *ppmServerStarted,
 	   int dwScreen,
-	   HWND hwndScreen)
+	   HWND hwndScreen,
+	   BOOL allowOtherWM)
 {
   WMProcArgPtr		pArg = (WMProcArgPtr) malloc (sizeof(WMProcArgRec));
   WMInfoPtr		pWMInfo = (WMInfoPtr) malloc (sizeof(WMInfoRec));
@@ -1077,6 +1097,7 @@ winInitWM (void **ppWMInfo,
 
   /* Set a return pointer to the Window Manager info structure */
   *ppWMInfo = pWMInfo;
+  pWMInfo->fAllowOtherWM = allowOtherWM;
 
   /* Setup the argument structure for the thread function */
   pArg->dwScreen = dwScreen;

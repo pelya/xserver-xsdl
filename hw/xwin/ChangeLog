@@ -1,5 +1,13 @@
 2005-07-05  Alexander Gottwald  <ago at freedesktop dot org>
 
+	* winwindow.h:
+	* winmultiwindowwm.c:
+	* winscrinit.c:
+	External windowmanagers could connect in multiwindow mode which lead
+	to strange results with the internal windowmanager.
+
+2005-07-05  Alexander Gottwald  <ago at freedesktop dot org>
+
 	* *.c:
 	Include xwin-config.h if HAVE_XWIN_CONFIG is defined
 	Cleanup X11 includes handling
