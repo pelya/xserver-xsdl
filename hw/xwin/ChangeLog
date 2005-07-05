@@ -1,5 +1,16 @@
 2005-07-05  Alexander Gottwald  <ago at freedesktop dot org>
 
+	* winmultiwindowwndproc.c:
+	* winkeybd.c:
+	Fix problem with fake Control press on Alt-Gr
+	https://bugs.freedesktop.org/show_bug.cgi?id=3680
+	https://bugs.freedesktop.org/show_bug.cgi?id=3497
+
+	* InitOutput.c:
+	Fix static declaration of winGetBaseDir
+
+2005-07-05  Alexander Gottwald  <ago at freedesktop dot org>
+
 	* winwindow.h:
 	* winmultiwindowwm.c:
 	* winscrinit.c:

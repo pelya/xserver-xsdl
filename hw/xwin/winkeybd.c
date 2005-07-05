@@ -453,7 +453,7 @@ winIsFakeCtrl_L (UINT message, WPARAM wParam, LPARAM lParam)
    * Fake Ctrl_L presses will be followed by an Alt_R keypress
    * with the same timestamp as the Ctrl_L press.
    */
-  if (message == WM_KEYDOWN
+  if ((message == WM_KEYDOWN || message == WM_SYSKEYDOWN)
       && wParam == VK_CONTROL
       && (HIWORD (lParam) & KF_EXTENDED) == 0)
     {
@@ -464,7 +464,7 @@ winIsFakeCtrl_L (UINT message, WPARAM wParam, LPARAM lParam)
 
       /* Look for fake Ctrl_L preceeding an Alt_R press. */
       fReturn = PeekMessage (&msgNext, NULL,
-			     WM_KEYDOWN, WM_KEYDOWN,
+			     WM_KEYDOWN, WM_SYSKEYDOWN,
 			     PM_NOREMOVE);
 
       /*
@@ -478,9 +478,11 @@ winIsFakeCtrl_L (UINT message, WPARAM wParam, LPARAM lParam)
 
 	  /* Look for fake Ctrl_L preceeding an Alt_R press. */
 	  fReturn = PeekMessage (&msgNext, NULL,
-				 WM_KEYDOWN, WM_KEYDOWN,
+				 WM_KEYDOWN, WM_SYSKEYDOWN,
 				 PM_NOREMOVE);
 	}
+      if (msgNext.message != WM_KEYDOWN && msgNext.message != WM_SYSKEYDOWN)
+          fReturn = 0;
 
       /* Is next press an Alt_R with the same timestamp? */
       if (fReturn && msgNext.wParam == VK_MENU
@@ -529,6 +531,9 @@ winIsFakeCtrl_L (UINT message, WPARAM wParam, LPARAM lParam)
 				 PM_NOREMOVE);
 	}
 
+      if (msgNext.message != WM_KEYUP && msgNext.message != WM_SYSKEYUP)
+          fReturn = 0;
+      
       /* Is next press an Alt_R with the same timestamp? */
       if (fReturn
 	  && (msgNext.message == WM_KEYUP
