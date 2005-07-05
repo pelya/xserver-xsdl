@@ -611,7 +611,10 @@ winFinishScreenInitFB (int index,
 		      &pScreenPriv->pmServerStarted,
 		      pScreenInfo->dwScreen,
 		      (HWND)&pScreenPriv->hwndScreen,
-		      pScreenInfo->fInternalWM))
+#ifdef XWIN_MULTIWINDOWEXTWM
+		      pScreenInfo->fInternalWM ||
+#endif
+		      FALSE))
         {
           ErrorF ("winFinishScreenInitFB - winInitWM () failed.\n");
           return FALSE;
