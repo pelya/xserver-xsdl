@@ -738,7 +738,7 @@ Initial access control list for display number \fBn\fP
 .IR __projectroot__/lib/X11/fonts/misc , __projectroot__/lib/X11/fonts/75dpi , __projectroot__/lib/X11/fonts/100dpi
 Bitmap font directories
 .TP 30
-.IR __projectroot__/lib/X11/fonts/TTF , __projectroot__/lib/X11/fonts/Speedo , __projectroot__/lib/X11/fonts/Type1
+.IR __projectroot__/lib/X11/fonts/TTF , __projectroot__/lib/X11/fonts/Type1
 Outline font directories
 .TP 30
 .I __projectroot__/lib/X11/rgb.txt

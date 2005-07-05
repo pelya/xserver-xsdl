@@ -309,7 +309,7 @@ font path elements:
 .RS 4
 .nf
 .I __projectroot__/lib/X11/fonts/misc/
-.I __projectroot__/lib/X11/fonts/Speedo/
+.I __projectroot__/lib/X11/fonts/TTF/
 .I __projectroot__/lib/X11/fonts/Type1/
 .I __projectroot__/lib/X11/fonts/CID/
 .I __projectroot__/lib/X11/fonts/75dpi/
