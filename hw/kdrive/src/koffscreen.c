@@ -46,11 +46,11 @@ KdOffscreenValidate (ScreenPtr pScreen)
     for (area = pScreenPriv->off_screen_areas; area; area = area->next)
     {
 	if (prev)
-	    assert (prev->area.offset + prev->area.size == area->area.offset);
+	    assert (prev->offset + prev->size == area->offset);
 	    
 	prev = area;
     }
-    assert (prev->area.offset + prev->area.size == pScreenPriv->screen->memory_size);
+    assert (prev->offset + prev->size == pScreenPriv->screen->memory_size);
 }
 #else
 #define KdOffscreenValidate(s)
@@ -214,7 +214,11 @@ KdOffscreenAlloc (ScreenPtr pScreen, int size, int align,
     area->score = 0;
 
     area->save_offset = area->offset;
-    area->offset = (area->offset + align - 1) & ~(align - 1);
+    {
+	int tmp = area->offset % align;
+	if (tmp)
+	    area->offset += (align - tmp);
+    }
 
     KdOffscreenValidate (pScreen);
     
