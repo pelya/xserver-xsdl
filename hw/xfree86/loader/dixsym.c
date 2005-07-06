@@ -518,6 +518,7 @@ LOOKUP dixLookupTab[] = {
     /* picture.c */
     SYMFUNC(PictureInit)
     SYMFUNC(PictureTransformPoint)
+    SYMFUNC(PictureTransformPoint3d)
     SYMFUNC(PictureGetSubpixelOrder)
     SYMFUNC(PictureSetSubpixelOrder)
     SYMVAR(PictureScreenPrivateIndex)
