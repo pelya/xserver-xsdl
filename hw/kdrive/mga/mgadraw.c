@@ -65,14 +65,18 @@ mgaWaitAvail (int n)
     fifo_size -= n;
 }
 
+#define MGA_OUT8(mmio, a, v) (*(VOL8 *) ((mmio) + (a)) = (v))
+#define MGA_REG_CRTC_INDEX	(0x1fd4)
+
 void
 mgaWaitIdle (void)
 {
+    
+    mgaWaitAvail (2);
+    MGA_OUT32(mmio, MGA_REG_CACHEFLUSH, 0);
+    /* MGA_OUT8 (mmio, MGA_REG_CRTC_INDEX, 0); */
     while (MGA_IN32 (mmio, MGA_REG_STATUS) & 0x10000)
 	;
-
-    mgaWaitAvail (1);
-    MGA_OUT32(mmio, MGA_REG_CACHEFLUSH, 0);
 }
 
 static void
@@ -168,7 +172,6 @@ mgaSolid (int x1, int y1, int x2, int y2)
 static void
 mgaDoneSolid (void)
 {
-  mgaWaitIdle();
 }
 
 #define BLIT_LEFT	1
@@ -179,7 +182,6 @@ mgaPrepareCopy (PixmapPtr pSrcPixmap, PixmapPtr pDstPixmap,
 		int dx, int dy, int alu, Pixel pm)
 {
   KdScreenPriv(pSrcPixmap->drawable.pScreen);
-
     int cmd;
 
     cmd = MGA_OPCOD_BITBLT | MGA_DWGCTL_BFCOL | MGA_DWGCTL_SHIFTZERO | mgaRop[alu];
@@ -214,7 +216,6 @@ static void
 mgaCopy (int srcX, int srcY, int dstX, int dstY, int w, int h)
 {
     int start, end;
-
     if (dir & BLIT_UP)
     {
 	srcY += h - 1;
@@ -239,13 +240,12 @@ mgaCopy (int srcX, int srcY, int dstX, int dstY, int w, int h)
 static void
 mgaDoneCopy (void)
 {
-  mgaWaitIdle();
 }
 
 #if 0
 static Bool
 mgaUploadToScreen(PixmapPtr pDst, char *src, int src_pitch) {
-  /* fprintf(stderr,"Upload to Screen %p [%d]\n",src,src_pitch); */
+  /*fprintf(stderr,"Upload to Screen %p [%d]\n",src,src_pitch);*/
   return TRUE;
 }
 #endif
@@ -272,14 +272,15 @@ mgaDrawInit (ScreenPtr pScreen)
      */
     mgas->kaa.pitchAlign	= 128;
     mgas->kaa.flags		= KAA_OFFSCREEN_PIXMAPS;
-
+    
     if (card->attr.deviceID == MGA_G4XX_DEVICE_ID) {
 	mgas->kaa.CheckComposite = mgaCheckComposite;
 	mgas->kaa.PrepareComposite = mgaPrepareComposite;
 	mgas->kaa.Composite	= mgaComposite;
 	mgas->kaa.DoneComposite	= mgaDoneComposite;
     }
-    /*mgaKaa.UploadToScreen=mgaUploadToScreen;*/
+    
+    /*mgas->kaa.UploadToScreen=mgaUploadToScreen;*/
         
     if (!kaaDrawInit (pScreen, &mgas->kaa))
 	return FALSE;
