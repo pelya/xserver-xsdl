@@ -1005,7 +1005,7 @@ int __glXGetVisualConfigs(__GLXclientState *cl, GLbyte *pc)
 
 
 #define __GLX_TOTAL_FBCONFIG_ATTRIBS (28)
-
+#define __GLX_FBCONFIG_ATTRIBS_LENGTH (__GLX_TOTAL_FBCONFIG_ATTRIBS * 2)
 /**
  * Send the set of GLXFBConfigs to the client.  There is not currently
  * and interface into the driver on the server-side to get GLXFBConfigs,
@@ -1021,7 +1021,7 @@ int DoGetFBConfigs(__GLXclientState *cl, unsigned screen, GLboolean do_swap)
     ClientPtr client = cl->client;
     xGLXGetFBConfigsReply reply;
     __GLXscreenInfo *pGlxScreen;
-    CARD32 buf[__GLX_TOTAL_FBCONFIG_ATTRIBS * 2];
+    CARD32 buf[__GLX_FBCONFIG_ATTRIBS_LENGTH];
     int p;
     __GLcontextModes *modes;
     __GLX_DECLARE_SWAP_VARIABLES;
@@ -1037,7 +1037,7 @@ int DoGetFBConfigs(__GLXclientState *cl, unsigned screen, GLboolean do_swap)
 
     reply.numFBConfigs = pGlxScreen->numUsableVisuals;
     reply.numAttribs = __GLX_TOTAL_FBCONFIG_ATTRIBS;
-    reply.length = (reply.numAttribs * reply.numFBConfigs);
+    reply.length = (__GLX_FBCONFIG_ATTRIBS_LENGTH * reply.numFBConfigs);
     reply.type = X_Reply;
     reply.sequenceNumber = client->sequence;
 
@@ -1097,9 +1097,9 @@ int DoGetFBConfigs(__GLXclientState *cl, unsigned screen, GLboolean do_swap)
 	WRITE_PAIR( GLX_SWAP_METHOD_OML, modes->swapMethod );
 
 	if ( do_swap ) {
-	    __GLX_SWAP_INT_ARRAY(buf, __GLX_TOTAL_FBCONFIG_ATTRIBS * 2);
+	    __GLX_SWAP_INT_ARRAY(buf, __GLX_FBCONFIG_ATTRIBS_LENGTH);
 	}
-	WriteToClient(client, __GLX_SIZE_CARD32 * __GLX_TOTAL_FBCONFIG_ATTRIBS * 2,
+	WriteToClient(client, __GLX_SIZE_CARD32 * __GLX_FBCONFIG_ATTRIBS_LENGTH,
 		      (char *)buf);
     }
     return Success;
