@@ -30,6 +30,9 @@
 #ifdef RENDER
 #include "mipict.h"
 
+#include "xf86str.h"
+#include "xf86.h"
+
 #define EXA_DEBUG_FALLBACKS 0
 
 #if EXA_DEBUG_FALLBACKS
@@ -502,6 +505,15 @@ exaComposite(CARD8	op,
 {
     ExaScreenPriv (pDst->pDrawable->pScreen);
     int ret = -1;
+    ScrnInfoPtr pScrn = XF86SCRNINFO(pDst->pDrawable->pScreen);
+
+    if (!pScrn->vtSema) {
+        exaDrawableDirty(pDst->pDrawable);
+        pExaScr->SavedComposite(op, pSrc, pMask, pDst, xSrc, ySrc,
+                                xMask, yMask, xDst, yDst, width, height);
+        return;
+    }
+
 
     if (!pMask && pSrc->pDrawable)
     {

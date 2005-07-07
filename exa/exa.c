@@ -330,12 +330,26 @@ exaCreatePixmap(ScreenPtr pScreen, int w, int h, int depth)
     PixmapPtr		pPixmap;
     ExaPixmapPrivPtr	pExaPixmap;
     int			bpp;
+    ScrnInfoPtr pScrn = XF86SCRNINFO(pScreen);
+
+    if (!pScrn->vtSema) {
+        ExaScreenPriv(pScreen);
+        pPixmap = pExaScr->SavedCreatePixmap(pScreen, w, h, depth);
+        pExaPixmap = ExaGetPixmapPriv(pPixmap);
+        if (!w || !h)
+            pExaPixmap->score = EXA_PIXMAP_SCORE_PINNED;
+        else
+            pExaPixmap->score = EXA_PIXMAP_SCORE_INIT;
+
+        pExaPixmap->area = NULL;
+        pExaPixmap->dirty = FALSE;
+        return pPixmap;
+    }
 
     bpp = BitsPerPixel (depth);
     if (bpp == 32 && depth == 24)
     {
 	int format;
-        ScrnInfoPtr pScrn = XF86SCRNINFO(pScreen);
 	for (format = 0; format < MAXFORMATS && pScrn->formats[format].depth; ++format)
 	    if (pScrn->formats[format].depth == 24)
 	    {
@@ -476,6 +490,13 @@ exaFillSpans(DrawablePtr pDrawable, GCPtr pGC, int n,
     int		    partX1, partX2;
     int		    off_x, off_y;
 
+
+    ScrnInfoPtr pScrn = XF86SCRNINFO(pScreen);
+    if (!pScrn->vtSema) {
+        ExaCheckFillSpans(pDrawable, pGC, n, ppt, pwidth, fSorted);
+        return;
+    }
+
     STRACE;
     if (pGC->fillStyle != FillSolid ||
 	!(pPixmap = exaGetOffscreenPixmap (pDrawable, &off_x, &off_y)) ||
@@ -610,6 +631,12 @@ static RegionPtr
 exaCopyArea(DrawablePtr pSrcDrawable, DrawablePtr pDstDrawable, GCPtr pGC,
 	    int srcx, int srcy, int width, int height, int dstx, int dsty)
 {
+    ScrnInfoPtr pScrn = XF86SCRNINFO(pDstDrawable->pScreen);
+    if (!pScrn->vtSema) {
+        return  ExaCheckCopyArea(pSrcDrawable, pDstDrawable, pGC,
+                                 srcx, srcy, width, height, dstx, dsty);
+    }
+
     return  fbDoCopy (pSrcDrawable, pDstDrawable, pGC,
                       srcx, srcy, width, height,
                       dstx, dsty, exaCopyNtoN, 0, 0);
@@ -623,6 +650,7 @@ exaPolyFillRect(DrawablePtr pDrawable,
 {
     ExaScreenPriv (pDrawable->pScreen);
     RegionPtr	    pClip = fbGetCompositeClip(pGC);
+    ScrnInfoPtr     pScrn = XF86SCRNINFO(pDrawable->pScreen);
     PixmapPtr	    pPixmap;
     register BoxPtr pbox;
     BoxPtr	    pextent;
@@ -634,7 +662,8 @@ exaPolyFillRect(DrawablePtr pDrawable,
     int		    n;
 
     STRACE;
-    if (pGC->fillStyle != FillSolid ||
+    if (!pScrn->vtSema ||
+        pGC->fillStyle != FillSolid ||
 	!(pPixmap = exaGetOffscreenPixmap (pDrawable, &xoff, &yoff)) ||
 	!(*pExaScr->info->accel.PrepareSolid) (pPixmap,
                                                pGC->alu,
@@ -729,6 +758,7 @@ exaSolidBoxClipped (DrawablePtr	pDrawable,
 		    int		y2)
 {
     ExaScreenPriv (pDrawable->pScreen);
+    ScrnInfoPtr pScrn = XF86SCRNINFO(pDrawable->pScreen);
     PixmapPtr   pPixmap;
     BoxPtr	pbox;
     int		nbox;
@@ -736,7 +766,8 @@ exaSolidBoxClipped (DrawablePtr	pDrawable,
     int		partX1, partX2, partY1, partY2;
 
     STRACE;
-    if (!(pPixmap = exaGetOffscreenPixmap (pDrawable, &xoff, &yoff)) ||
+    if (!pScrn->vtSema ||
+        !(pPixmap = exaGetOffscreenPixmap (pDrawable, &xoff, &yoff)) ||
 	!(*pExaScr->info->accel.PrepareSolid) (pPixmap, GXcopy, pm, fg))
     {
 	exaWaitSync (pDrawable->pScreen);
@@ -981,6 +1012,13 @@ exaCopyWindow(WindowPtr pWin, DDXPointRec ptOldOrg, RegionPtr prgnSrc)
     RegionRec	rgnDst;
     int		dx, dy;
     PixmapPtr	pPixmap = (*pWin->drawable.pScreen->GetWindowPixmap) (pWin);
+    ScrnInfoPtr pScrn = XF86SCRNINFO(pWin->drawable.pScreen);
+
+    if (!pScrn->vtSema) {
+        ExaScreenPriv(pWin->drawable.pScreen);
+        pExaScr->SavedCopyWindow (pWin, ptOldOrg, prgnSrc);
+        return;
+    }
 
     STRACE;
     dx = ptOldOrg.x - pWin->drawable.x;
@@ -1041,7 +1079,20 @@ exaFillRegionSolid (DrawablePtr	pDrawable,
 static void
 exaPaintWindow(WindowPtr pWin, RegionPtr pRegion, int what)
 {
+    ScrnInfoPtr pScrn = XF86SCRNINFO(pWin->drawable.pScreen);
+    ExaScreenPriv(pWin->drawable.pScreen);
+    if (!pScrn->vtSema) {
+        switch (what) {
+        case PW_BACKGROUND:
+            pExaScr->SavedPaintWindowBackground(pWin, pRegion, what);
+        case PW_BORDER:
+            pExaScr->SavedPaintWindowBorder(pWin, pRegion, what);
+        }
+        return;
+    }
+
     STRACE;
+
     if (!REGION_NUM_RECTS(pRegion))
 	return;
     switch (what) {
@@ -1224,8 +1275,9 @@ void exaWaitSync(ScreenPtr pScreen)
 {
     ExaScreenPriv(pScreen);
     ExaCardInfoPtr card = &(pExaScr->info->card);
+    ScrnInfoPtr pScrn = XF86SCRNINFO(pScreen);
 
-    if (card->needsSync) {
+    if (card->needsSync && pScrn->vtSema) {
         (*pExaScr->info->accel.WaitMarker)(pScreen, card->lastMarker);
         card->needsSync = FALSE;
     }
