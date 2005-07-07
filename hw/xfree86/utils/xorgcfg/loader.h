@@ -36,7 +36,9 @@
 
 #else
 
+#ifndef XFree86LOADER
 #define XFree86LOADER		/* not really */
+#endif
 #define IN_LOADER
 
 #include "xf86.h"
@@ -44,7 +46,9 @@
 #include "xf86Opt.h"
 #include "xf86Module.h"
 
+#ifndef XINPUT
 #define XINPUT
+#endif
 #include "xf86Xinput.h"
 
 #include <X11/fonts/fontmod.h>
