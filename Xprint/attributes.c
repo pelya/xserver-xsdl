@@ -54,6 +54,7 @@ copyright holders.
 #include <stdlib.h>
 #include <sys/wait.h>
 #include <pwd.h>
+#include <grp.h>
 #if (defined(sun) && defined(SVR4)) || (defined(SCO))
 #include <wchar.h>
 #endif
@@ -154,7 +155,7 @@ static char NULL_STRING[] = "\0";
 static
 char *XpGetConfigDirBase()
 {
-    char **configDir;
+    char *configDir;
 
     /*
      * If the XPCONFIGDIR environment variable is not set, then use the

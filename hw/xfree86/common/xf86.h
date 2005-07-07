@@ -299,6 +299,7 @@ Bool xf86GetAllowMouseOpenFail(void);
 Bool xf86IsPc98(void);
 void xf86DisableRandR(void);
 CARD32 xf86GetVersion(void);
+CARD32 xorgGetVersion(void);
 CARD32 xf86GetModuleVersion(pointer module);
 pointer xf86LoadDrvSubModule(DriverPtr drv, const char *name);
 pointer xf86LoadSubModule(ScrnInfoPtr pScrn, const char *name);
