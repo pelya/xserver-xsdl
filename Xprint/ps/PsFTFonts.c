@@ -43,6 +43,7 @@ THE SOFTWARE.
 #include FT_FREETYPE_H
 
 #include "ft.h"
+#define NOT_IN_FTFUNCS
 #include "ftfuncs.h"
 
 char *

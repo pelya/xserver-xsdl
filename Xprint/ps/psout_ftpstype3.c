@@ -69,6 +69,7 @@ THE SOFTWARE.
 #include <X11/fonts/fontutil.h>
 #include <X11/fonts/fontenc.h>
 #include "ft.h"
+#define NOT_IN_FTFUNCS
 #include "ftfuncs.h"
 
 struct ft2info
