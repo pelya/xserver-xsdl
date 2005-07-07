@@ -351,4 +351,8 @@ extern int XdmcpAddAuthorization (ARRAY8Ptr name, ARRAY8Ptr data);
 struct sockaddr_in;
 extern void XdmcpRegisterBroadcastAddress (struct sockaddr_in *addr);
 
+#ifdef HASXDMAUTH
+extern void XdmAuthenticationInit (char *cookie, int cookie_length);
+#endif
+
 #endif /* _OSDEP_H_ */
