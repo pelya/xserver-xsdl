@@ -536,7 +536,7 @@ AugmentPrinterDb(const char *command)
 
 #define XP_DESCRIPTOR     "xp-printerattr.descriptor="
 #define XP_DESCRIPTOR_LEN (sizeof(XP_DESCRIPTOR)-1)
-        while (option = strchr(option, '\t')) {
+        while ((option = strchr(option, '\t'))) {
            option++; /* Skip the '\t' */
            if (!strncmp(option, XP_DESCRIPTOR, XP_DESCRIPTOR_LEN)) {
                *(option-1) = '\0'; /* Kill the '\t' (only if we found a valid option) */
@@ -755,7 +755,7 @@ GetConfigFileName(void)
     /*
      * Check for a LANG-specific file.
      */
-    if(dirName = XpGetConfigDir(TRUE))
+    if((dirName = XpGetConfigDir(TRUE)))
     {
         filePath = (char *)xalloc(strlen(dirName) +
 				  strlen(XPRINTERSFILENAME) + 2);
@@ -774,7 +774,7 @@ GetConfigFileName(void)
 	xfree(filePath);
     }
 
-    if(dirName = XpGetConfigDir(FALSE))
+    if((dirName = XpGetConfigDir(FALSE)))
     {
 	filePath = (char *)xalloc(strlen(dirName) +
 				  strlen(XPRINTERSFILENAME) + 2);
@@ -833,7 +833,7 @@ BuildPrinterDb(void)
 		{
 		    while((tok = strtok((char *)NULL, " \t")) != (char *)NULL)
 		    {
-		        if(ptr = MbStrchr(tok, '\012'))
+		        if((ptr = MbStrchr(tok, '\012')))
 		            *ptr = (char)'\0';
 			AddPrinterDbName(tok, NULL);
 		    }
@@ -1094,7 +1094,7 @@ FindFontDir(
         return (char *)NULL;
     
     configDir = XpGetConfigDir(TRUE);
-    if(fontDir = ValidateFontDir(configDir, modelName))
+    if((fontDir = ValidateFontDir(configDir, modelName)))
     {
 	xfree(configDir);
 	return fontDir;
@@ -1215,7 +1215,7 @@ AugmentFontPath(void)
     for(i = 0; allIDs != (char **)NULL && allIDs[i] != (char *)NULL; i ++)
     {
 	char *fontDir;
-	if(fontDir = FindFontDir(allIDs[i]))
+	if((fontDir = FindFontDir(allIDs[i])))
 	{
 	    AddToFontPath(fontDir);
 	    xfree(fontDir);

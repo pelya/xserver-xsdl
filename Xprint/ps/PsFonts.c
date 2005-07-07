@@ -603,7 +603,7 @@ PsFontTypeInfoRec *PsCreateFontTypeInfoRec(DrawablePtr pDrawable, FontPtr pFont)
 
   rec->next              = NULL;
 
-  if (rec->filename = getFontFilename(pFont))
+  if ((rec->filename = getFontFilename(pFont)))
   {
     rec->font_type = getFontFileType(rec->filename);   
   }

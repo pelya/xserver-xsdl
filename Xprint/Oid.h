@@ -191,6 +191,7 @@ typedef struct
 const char* XpOidString(XpOid);
 int XpOidStringLength(XpOid);
 XpOid XpOidFromString(const char* value);
+BOOL XpOidTrayMediumListHasTray(const XpOidTrayMediumList* list, XpOid tray);
 
 /*
  * XpOidList public methods

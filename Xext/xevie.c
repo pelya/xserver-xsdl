@@ -142,13 +142,13 @@ XevieExtensionInit ()
     if (!AddCallback(&ServerGrabCallback,XevieServerGrabStateCallback,NULL))
        return;
 
-    if (extEntry = AddExtension (XEVIENAME,
+    if ((extEntry = AddExtension (XEVIENAME,
 				0,
 				XevieNumberErrors,
 				ProcDispatch,
 				SProcDispatch,
 				ResetProc,
-				StandardMinorOpcode)) {
+				StandardMinorOpcode))) {
 	ReqCode = (unsigned char)extEntry->base;
 	ErrorBase = extEntry->errorBase;
     }

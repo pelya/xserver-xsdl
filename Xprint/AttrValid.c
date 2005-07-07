@@ -48,7 +48,7 @@ static XpOidMediumDiscreteSizeList DefaultMediumSizeList = {
     &DefaultMediumSize, 1
 };
 static XpOidMediumSourceSize DefaultMediumSourceSize = {
-    xpoid_unspecified, XpOidMediumSS_DISCRETE, &DefaultMediumSizeList
+    xpoid_unspecified, XpOidMediumSS_DISCRETE, { &DefaultMediumSizeList }
 };
 static XpOidMediumSS DefaultMediumSS = {
     &DefaultMediumSourceSize, 1
