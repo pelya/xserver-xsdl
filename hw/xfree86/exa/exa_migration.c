@@ -335,30 +335,21 @@ exaCreatePixmap(ScreenPtr pScreen, int w, int h, int depth)
     if (!pScrn->vtSema) {
         ExaScreenPriv(pScreen);
         pPixmap = pExaScr->SavedCreatePixmap(pScreen, w, h, depth);
-        pExaPixmap = ExaGetPixmapPriv(pPixmap);
-        if (!w || !h)
-            pExaPixmap->score = EXA_PIXMAP_SCORE_PINNED;
-        else
-            pExaPixmap->score = EXA_PIXMAP_SCORE_INIT;
+    } else {
+        bpp = BitsPerPixel (depth);
+        if (bpp == 32 && depth == 24)
+        {
+            int format;
+            for (format = 0; format < MAXFORMATS && pScrn->formats[format].depth; ++format)
+                if (pScrn->formats[format].depth == 24)
+                {
+                    bpp = pScrn->formats[format].bitsPerPixel;
+                    break;
+                }
+        }
 
-        pExaPixmap->area = NULL;
-        pExaPixmap->dirty = FALSE;
-        return pPixmap;
+        pPixmap = fbCreatePixmapBpp (pScreen, w, h, depth, bpp);
     }
-
-    bpp = BitsPerPixel (depth);
-    if (bpp == 32 && depth == 24)
-    {
-	int format;
-	for (format = 0; format < MAXFORMATS && pScrn->formats[format].depth; ++format)
-	    if (pScrn->formats[format].depth == 24)
-	    {
-		bpp = pScrn->formats[format].bitsPerPixel;
-		break;
-	    }
-    }
-
-    pPixmap = fbCreatePixmapBpp (pScreen, w, h, depth, bpp);
     if (!pPixmap)
 	return NULL;
     pExaPixmap = ExaGetPixmapPriv(pPixmap);
@@ -1085,8 +1076,10 @@ exaPaintWindow(WindowPtr pWin, RegionPtr pRegion, int what)
         switch (what) {
         case PW_BACKGROUND:
             pExaScr->SavedPaintWindowBackground(pWin, pRegion, what);
+            break;
         case PW_BORDER:
             pExaScr->SavedPaintWindowBorder(pWin, pRegion, what);
+            break;
         }
         return;
     }
