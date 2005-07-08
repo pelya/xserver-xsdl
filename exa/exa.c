@@ -1008,6 +1008,7 @@ exaCopyWindow(WindowPtr pWin, DDXPointRec ptOldOrg, RegionPtr prgnSrc)
     if (!pScrn->vtSema) {
         ExaScreenPriv(pWin->drawable.pScreen);
         pExaScr->SavedCopyWindow (pWin, ptOldOrg, prgnSrc);
+        exaDrawableDirty (&pWin->drawable);
         return;
     }
 
@@ -1071,59 +1072,49 @@ static void
 exaPaintWindow(WindowPtr pWin, RegionPtr pRegion, int what)
 {
     ScrnInfoPtr pScrn = XF86SCRNINFO(pWin->drawable.pScreen);
-    ExaScreenPriv(pWin->drawable.pScreen);
-    if (!pScrn->vtSema) {
-        switch (what) {
-        case PW_BACKGROUND:
-            pExaScr->SavedPaintWindowBackground(pWin, pRegion, what);
-            break;
-        case PW_BORDER:
-            pExaScr->SavedPaintWindowBorder(pWin, pRegion, what);
-            break;
-        }
-        return;
-    }
 
     STRACE;
 
     if (!REGION_NUM_RECTS(pRegion))
 	return;
-    switch (what) {
-    case PW_BACKGROUND:
-	switch (pWin->backgroundState) {
-	case None:
-	    return;
-	case ParentRelative:
-	    do {
-		pWin = pWin->parent;
-	    } while (pWin->backgroundState == ParentRelative);
-	    (*pWin->drawable.pScreen->PaintWindowBackground)(pWin, pRegion,
-							     what);
-	    return;
-	case BackgroundPixel:
-	    exaFillRegionSolid((DrawablePtr)pWin, pRegion, pWin->background.pixel);
-	    return;
+    if (pScrn->vtSema) {
+        switch (what) {
+        case PW_BACKGROUND:
+            switch (pWin->backgroundState) {
+            case None:
+                return;
+            case ParentRelative:
+                do {
+                    pWin = pWin->parent;
+                } while (pWin->backgroundState == ParentRelative);
+                (*pWin->drawable.pScreen->PaintWindowBackground)(pWin, pRegion,
+                                                                 what);
+                return;
+            case BackgroundPixel:
+                exaFillRegionSolid((DrawablePtr)pWin, pRegion, pWin->background.pixel);
+                return;
 #if 0
-	case BackgroundPixmap:
-	    exaFillRegionTiled((DrawablePtr)pWin, pRegion, pWin->background.pixmap);
-	    return;
+            case BackgroundPixmap:
+                exaFillRegionTiled((DrawablePtr)pWin, pRegion, pWin->background.pixmap);
+                return;
 #endif
-    	}
-    	break;
-    case PW_BORDER:
-	if (pWin->borderIsPixel)
-	{
-	    exaFillRegionSolid((DrawablePtr)pWin, pRegion, pWin->border.pixel);
-	    return;
-	}
+            }
+            break;
+        case PW_BORDER:
+            if (pWin->borderIsPixel)
+            {
+                exaFillRegionSolid((DrawablePtr)pWin, pRegion, pWin->border.pixel);
+                return;
+            }
 #if 0
-	else
-	{
-	    exaFillRegionTiled((DrawablePtr)pWin, pRegion, pWin->border.pixmap);
-	    return;
-	}
+            else
+            {
+                exaFillRegionTiled((DrawablePtr)pWin, pRegion, pWin->border.pixmap);
+                return;
+            }
 #endif
-	break;
+            break;
+        }
     }
     ExaCheckPaintWindow (pWin, pRegion, what);
 }
