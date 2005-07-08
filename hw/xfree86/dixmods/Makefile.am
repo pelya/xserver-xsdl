@@ -10,7 +10,7 @@ INCLUDES = $(XORG_INCS) -I$(top_srcdir)/afb -I$(top_srcdir)/mfb \
 
 libbitmap_la_SOURCES = \
 	bitmapmod.c
-libbitmap_la_LDFLAGS = -lXfont
+libbitmap_la_LDFLAGS = `pkg-config --libs xfont`
 
 libfb_la_SOURCES = \
 	$(top_srcdir)/fb/fbcmap.c
