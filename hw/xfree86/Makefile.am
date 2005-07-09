@@ -23,8 +23,6 @@ XORG_LIBS = \
             $(OS_LIBS) \
             dummylib/libdummy.a \
             dixmods/libdixmods.la \
-	    vgahw/libvgahw.la \
-	    $(top_builddir)/fb/libfb.la \
             @XORG_LIBS@
 
 Xorg_LDADD = $(XORG_LIBS) \
