@@ -44,11 +44,15 @@
 #include "dix.h"
 #include "fb.h"
 #include "fboverlay.h"
+#ifdef RENDER
+#include "fbpict.h"
+#endif
 
 #ifndef EXA_MAX_FB
 #define EXA_MAX_FB   FB_OVERLAY_MAX
 #endif
 
+typedef void (*EnableDisableFBAccessProcPtr)(int, Bool);
 typedef struct {
     ExaDriverPtr info;
     CreateGCProcPtr 		 SavedCreateGC;
@@ -63,6 +67,9 @@ typedef struct {
 #ifdef RENDER
     CompositeProcPtr             SavedComposite;
 #endif
+    EnableDisableFBAccessProcPtr SavedEnableDisableFBAccess;
+    Bool			 wrappedEnableDisableFB;
+    Bool			 swappedOut;
 } ExaScreenPrivRec, *ExaScreenPrivPtr;
 
 /*
@@ -224,6 +231,9 @@ ExaOffscreenSwapIn (ScreenPtr pScreen);
 
 void
 ExaOffscreenFini (ScreenPtr pScreen);
+
+void
+exaEnableDisableFBAccess (int index, Bool enable);
 
 /* exa.c */
 void

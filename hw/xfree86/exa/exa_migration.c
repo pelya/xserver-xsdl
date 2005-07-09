@@ -331,9 +331,9 @@ exaCreatePixmap(ScreenPtr pScreen, int w, int h, int depth)
     ExaPixmapPrivPtr	pExaPixmap;
     int			bpp;
     ScrnInfoPtr pScrn = XF86SCRNINFO(pScreen);
+    ExaScreenPriv(pScreen);
 
-    if (!pScrn->vtSema) {
-        ExaScreenPriv(pScreen);
+    if (!pScrn->vtSema || pExaScr->swappedOut) {
         pPixmap = pExaScr->SavedCreatePixmap(pScreen, w, h, depth);
     } else {
         bpp = BitsPerPixel (depth);
@@ -1127,6 +1127,7 @@ exaCloseScreen(int i, ScreenPtr pScreen)
 #ifdef RENDER
     PictureScreenPtr	ps = GetPictureScreenIfSet(pScreen);
 #endif
+    ScrnInfoPtr pScrn = XF86SCRNINFO(pScreen);
 
     pScreen->CreateGC = pExaScr->SavedCreateGC;
     pScreen->CloseScreen = pExaScr->SavedCloseScreen;
@@ -1142,6 +1143,8 @@ exaCloseScreen(int i, ScreenPtr pScreen)
 	ps->Composite = pExaScr->SavedComposite;
     }
 #endif
+    if (pExaScr->wrappedEnableDisableFB)
+	pScrn->EnableDisableFBAccess = pExaScr->SavedEnableDisableFBAccess;
 
     xfree (pExaScr);
 
@@ -1152,6 +1155,8 @@ Bool
 exaDriverInit (ScreenPtr		pScreen,
                ExaDriverPtr	pScreenInfo)
 {
+    /* Do NOT use XF86SCRNINFO macro here!! */
+    ScrnInfoPtr pScrn = xf86Screens[pScreen->myNum];
     ExaScreenPrivPtr pExaScr;
 
 #ifdef RENDER
@@ -1165,7 +1170,7 @@ exaDriverInit (ScreenPtr		pScreen,
 	exaGeneration = serverGeneration;
     }
 
-    pExaScr = xalloc (sizeof (ExaScreenPrivRec));
+    pExaScr = xcalloc (sizeof (ExaScreenPrivRec), 1);
 
     if (!pExaScr)
 	return FALSE;
@@ -1233,6 +1238,10 @@ exaDriverInit (ScreenPtr		pScreen,
     if (pExaScr->info->card.offScreenBase < pExaScr->info->card.memorySize) {
 	if (!exaOffscreenInit (pScreen))
             return FALSE;
+
+	pExaScr->SavedEnableDisableFBAccess = pScrn->EnableDisableFBAccess;
+	pScrn->EnableDisableFBAccess = exaEnableDisableFBAccess;
+	pExaScr->wrappedEnableDisableFB = TRUE;
     }
 
     return TRUE;

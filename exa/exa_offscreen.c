@@ -253,6 +253,26 @@ ExaOffscreenSwapIn (ScreenPtr pScreen)
     exaOffscreenInit (pScreen);
 }
 
+void
+exaEnableDisableFBAccess (int index, Bool enable)
+{
+    ScreenPtr pScreen = screenInfo.screens[index];
+    ExaScreenPriv (pScreen);
+
+    if (!enable) {
+	ExaOffscreenSwapOut (pScreen);
+	pExaScr->swappedOut = TRUE;
+    }
+
+    if (pExaScr->SavedEnableDisableFBAccess)
+       (*pExaScr->SavedEnableDisableFBAccess)(index, enable);
+
+    if (enable) {
+	ExaOffscreenSwapIn (pScreen);
+	pExaScr->swappedOut = FALSE;
+    }
+}
+
 /* merge the next free area into this one */
 static void
 ExaOffscreenMerge (ExaOffscreenArea *area)
