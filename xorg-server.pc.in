@@ -4,6 +4,8 @@ libdir=@libdir@
 includedir=@includedir@
 moduledir=@moduledir@
 sdkdir=@sdkdir@
+driverdir=@moduledir@/drivers
+inputdir=@moduledir@/input
 
 Name: xorg-server
 Description: Modular X.Org X Server
