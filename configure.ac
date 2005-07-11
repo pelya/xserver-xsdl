@@ -675,6 +675,8 @@ AC_SUBST([libdir exec_prefix prefix])
 
 AC_OUTPUT([
 Makefile
+GL/Makefile
+GL/dri/Makefile
 include/Makefile
 afb/Makefile
 composite/Makefile

@@ -18,6 +18,9 @@ endif
 if MFB
 MFB_DIR=mfb
 endif
+if GLX
+GLX_DIR=GL
+endif
 
 SUBDIRS=	\
 	include	\
@@ -42,6 +45,7 @@ SUBDIRS=	\
 	damageext \
 	$(XTRAP_DIR) \
 	$(COMPOSITE_DIR) \
+        $(GLX_DIR) \
 	hw
 
 pkgconfigdir = $(libdir)/pkgconfig
