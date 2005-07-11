@@ -1,5 +1,9 @@
 /* TODO: clean up/fix CC code */
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include "xf86.h"
 #include "xf86i2c.h"
 #include "bt829.h"
