@@ -61,10 +61,8 @@
 #ifdef XFree86Server
 # include <X11/X.h>
 # include "xf86.h"
-# include "xf86drm.h"
 # include "xf86Priv.h"
 # include "xf86_OSlib.h"
-# include "xf86drm.h"
 # include "inputstr.h"
 #else
 # include <unistd.h>
