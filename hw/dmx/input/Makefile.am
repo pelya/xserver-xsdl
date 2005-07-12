@@ -7,5 +7,13 @@ DMXSRCS = dmxinputinit.c dmxarg.c dmxsigio.c dmxevents.c \
 	  dmxxinput.c dmxmotion.c dmxeq.c dmxmap.c
 
 
-libdmxinput_a_SOURCES = ChkNotMaskEv.c $(RAWSRCS) $(USBSRCS) $(DRVSRCS) $(DMXSRCS) $(LIBSRCS)
-AM_CFLAGS = -I..
+libdmxinput_a_SOURCES = ChkNotMaskEv.c \
+                        $(RAWSRCS) \
+                        $(USBSRCS) \
+                        $(DRVSRCS) \
+                        $(DMXSRCS) \
+                        $(LIBSRCS)
+
+AM_CFLAGS = -I.. -I../../xfree86/common \
+            -DHAVE_DMX_CONFIG_H \
+            @DMXMODULES_CFLAGS@

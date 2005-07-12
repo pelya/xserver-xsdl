@@ -6,6 +6,12 @@
 /* Builder address */
 #undef BUILDERADDR
 
+/* Operating System Name */
+#undef OSNAME
+
+/* Operating System Vendor */
+#undef OSVENDOR
+
 /* Default font path */
 #undef COMPILEDDEFAULTFONTPATH
 
@@ -217,7 +223,7 @@
 #undef RANDR
 
 /* Support Record extension */
-#undef RECORD
+#undef XRECORD
 
 /* Support RENDER extension */
 #undef RENDER

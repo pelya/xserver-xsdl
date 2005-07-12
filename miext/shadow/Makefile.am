@@ -1,4 +1,4 @@
-module_LTLIBRARIES = libshadow.la
+noinst_LTLIBRARIES = libshadow.la
 
 AM_CFLAGS = $(DIX_CFLAGS)
 

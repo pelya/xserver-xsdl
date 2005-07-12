@@ -141,7 +141,8 @@ AC_ARG_ENABLE(composite,     [  --enable-composite ],[COMPOSITE=$enableval],[COM
 AC_ARG_ENABLE(mitshm,        [  --disable-shm ],[MITSHM=$enableval],[MITSHM=yes])
 AC_ARG_ENABLE(xres,          [  --disable-xres ],[RES=$enableval],[RES=yes])
 AC_ARG_ENABLE(xtrap,         [  --enable-xtrap ],[XTRAP=$enableval],[XTRAP=no])
-AC_ARG_ENABLE(record,        [  --enable-record ],[RECORD=$enableval],[RECORD=no])
+AC_ARG_ENABLE(record,        [  --disable-record ],[RECORD=$enableval],[RECORD=yes])
+AC_ARG_ENABLE(xv,            [  --disable-xv ],[XV=$enableval],[XV=yes])
 AC_ARG_ENABLE(screensaver,   [  --disable-screensaver ],[SCREENSAVER=$enableval],[SCREENSAVER=yes])
 AC_ARG_ENABLE(xdmcp,         [  --disable-xdmcp ],[XDMCP=$enableval],[XDMCP=auto])
 AC_ARG_ENABLE(xdm-auth-1,    [  --disable-xdm-auth-1 ],[XDMAUTH=$enableval],[XDMAUTH=auto])
@@ -153,6 +154,7 @@ AC_ARG_ENABLE(xf86misc,      [  --disable-xf86misc ],[XF86MISC=$enableval],[XF86
 AC_ARG_ENABLE(xcsecurity,     AS_HELP_STRING([--enable-xcsecurity],[Build Security extension (default: disabled)]),[XCSECURITY=$enableval],[XCSECURITY=no])
 AC_ARG_ENABLE(xorg,    	      AS_HELP_STRING([--enable-xorg],[Build Xorg server (default: auto)]),[XORG=$enableval],[XORG=auto])
 AC_ARG_ENABLE(dmx,    	      AS_HELP_STRING([--enable-dmx],[Build DMX server (default: disabled)]),[DMX=$enableval],[DMX=no])
+AC_ARG_ENABLE(xvfb,    	      AS_HELP_STRING([--enable-xvfb],[Build Xvfb server (default: auto)]),[XVFB=$enableval],[XVFB=auto])
 AC_ARG_ENABLE(xwin,    	      AS_HELP_STRING([--enable-xwin],[Build XWin server (default: auto)]),[XWIN=$enableval],[XWIN=auto])
 AC_ARG_ENABLE(xevie,          AS_HELP_STRING([--enable-xevie],[Build XEvIE extension (default: disabled)]), [XEVIE=$enableval],[XEVIE=no])
 
@@ -180,6 +182,12 @@ AC_ARG_WITH(module-dir,      [  --with-module-dir=DIR ],
 AC_ARG_WITH(builder-addr,    [  --with-builder-addr=ADDRESS ],
 				[ BUILDERADDR="$withval" ],
 				[ BUILDERADDR="xorg@lists.freedesktop.org" ])
+AC_ARG_WITH(os-name,         [  --with-os-name=OSNAME ],
+				[ OSNAME="$withval" ],
+				[ OSNAME="UNKNOWN" ])
+AC_ARG_WITH(os-vendor,       [  --with-os-vendor=OSVENDOR ],
+				[ OSVENDOR="$withval" ],
+				[ OSVENDOR="" ])
 
 AM_CONDITIONAL(INT10_VM86, [test x$INT10 = xvm86])
 AM_CONDITIONAL(INT10_X86EMU, [test x$INT10 = xx86emu])
@@ -197,7 +205,7 @@ AC_DEFINE(SHAPE,1,[Support SHAPE extension])
 
 AM_CONDITIONAL(DMX, [test x$DMX = xyes])
 if test "$DMX" = yes; then
-	PKG_CHECK_MODULES([DMXMODULES],[xmuu xextproto x11 xrender xfont])
+	PKG_CHECK_MODULES([DMXMODULES],[xmuu xextproto x11 xrender xfont xi dmxproto])
 	if test "$GLX" = yes; then
 	    PKG_CHECK_MODULES(GL,gl)
 	fi
@@ -212,6 +220,13 @@ if test x$XORG = xauto; then
 fi
 AC_MSG_RESULT([$XORG])
 AM_CONDITIONAL(XORG, [test x$XORG = xyes])
+
+AC_MSG_CHECKING([whether to build Xvfb DDX])
+if test x$XVFB = xauto; then
+	XVFB="yes"
+fi
+AC_MSG_RESULT([$XVFB])
+AM_CONDITIONAL(XVFB, [test x$XVFB = xyes])
 
 dnl  
 dnl  Definitions for XWin DDX
@@ -323,12 +338,15 @@ AC_SUBST([XKB])
 AM_CONDITIONAL(XTRAP, [test x$XTRAP = xyes])
 if test "$XTRAP" = yes; then
 	AC_DEFINE(XTRAP,1,[Support XTrap extension])
+	EXTENSION_LIBS="$EXTENSION_LIBS "'$(top_builddir)/XTrap/libxtrap.la'
 	DMX_EXTENSIONS="$DMX_EXTENSIONS "'$(top_builddir)/XTrap/libxtrap.la'
 fi
 AM_CONDITIONAL(RECORD, [test x$RECORD = xyes])
 if test "$RECORD" = yes; then
-	AC_DEFINE(RECORD,1,[Support Record extension])
+	AC_DEFINE(XRECORD,1,[Support Record extension])
 	REQUIRED_MODULES="$REQUIRED_MODULES recordproto"
+	EXTENSION_LIBS="$EXTENSION_LIBS "'$(top_builddir)/record/librecord.la'
+	DMX_EXTENSIONS="$DMX_EXTENSIONS "'$(top_builddir)/record/librecord.la'
 fi
 
 AM_CONDITIONAL(SCREENSAVER, [test x$SCREENSAVER = xyes])
@@ -463,6 +481,8 @@ AC_DEFINE_UNQUOTED(COMPILEDDEFAULTFONTPATH, ["$FONTPATH"], [Default font path])
 AC_DEFINE_UNQUOTED(XVENDORNAME,["$VENDOR_STRING"], [Vendor name])
 AC_DEFINE_UNQUOTED(XORG_RELEASE, ["$VENDOR_RELEASE"], [Vendor release])
 AC_DEFINE_UNQUOTED(BUILDERADDR, ["$BUILDERADDR"], [Builder address])
+AC_DEFINE_UNQUOTED(OSNAME, ["$OSNAME"], [Operating System Name])
+AC_DEFINE_UNQUOTED(OSVENDOR, ["$OSVENDOR"], [Operating System Vendor])
 
 dnl
 dnl A bunch of configuration values which shouldn't be optional
@@ -514,6 +534,7 @@ MI_LIB='$(top_builddir)/mi/libmi.la'
 MINIMI_LIB='$(top_builddir)/mi/libminimi.la'
 MI_EXT_LIB='$(top_builddir)/mi/libmiext.la'
 MI_INC='-I$(top_srcdir)/mi'
+FB_LIB='$(top_builddir)/fb/libfb.la'
 FB_INC='-I$(top_srcdir)/fb'
 DAMAGE_LIB='$(top_builddir)/miext/damage/libdamage.la'
 DAMAGE_INC='-I$(top_srcdir)/miext/damage'
@@ -531,8 +552,9 @@ XSERVER_LIBS="${XSERVER_LIBS} -lm -lz"
 
 XORG_CORE_LIBS="$DIX_LIB"
 XORG_LIBS="$MI_LIB $XI_LIB $XKB_LIB $COMPOSITE_LIB $DAMAGE_LIB $EXTENSION_LIBS $XPSTUBS_LIB $OS_LIB"
+XVFB_LIBS="$FB_LIB $MI_LIB $XI_LIB $XKB_LIB $COMPOSITE_LIB $DAMAGE_LIB $LAYER_LIB $EXTENSION_LIBS $XPSTUBS_LIB $OS_LIB"
 XWIN_LIBS="$FB_LIB $MI_LIB $XI_LIB $XKB_LIB $COMPOSITE_LIB $DAMAGE_LIB $LAYER_LIB $EXTENSION_LIBS $XPSTUBS_LIB $OS_LIB $SHADOW_LIB"
-XDMX_LIBS="$OS_LIB $DAMAGE_LIB $MINIMI_LIB $XKB_LIB $XI_LIB $DMX_EXTENSIONS"
+XDMX_LIBS="$FB_LIB $MI_LIB $XI_LIB $XKB_LIB $DAMAGE_LIB $DMX_EXTENSIONS $OS_LIB $SHADOW_LIB"
 XORG_DDXINCS='-I$(top_srcdir)/hw/xfree86 -I$(top_srcdir)/hw/xfree86/include -I$(top_srcdir)/hw/xfree86/common'
 XORG_OSINCS='-I$(top_srcdir)/hw/xfree86/os-support -I$(top_srcdir)/hw/xfree86/os-support/bus -I$(top_srcdir)/os'
 XORG_INCS="$XORG_DDXINCS $XORG_OSINCS"
@@ -575,6 +597,7 @@ test x$XORG = xyes && case $host_os in
 esac
 AC_SUBST([XORG_CORE_LIBS])
 AC_SUBST([XORG_LIBS])
+AC_SUBST([XVFB_LIBS])
 AC_SUBST([XWIN_LIBS])
 AC_SUBST([EXTENSION_LIBS])
 AC_SUBST([XDMX_LIBS])
@@ -732,9 +755,11 @@ hw/xfree86/xf1bpp/Makefile
 hw/xfree86/xf4bpp/Makefile
 hw/xfree86/xf8_16bpp/Makefile
 hw/xfree86/xf8_32wid/Makefile
+hw/dmx/config/Makefile
 hw/dmx/input/Makefile
 hw/dmx/glxProxy/Makefile
 hw/dmx/Makefile
+hw/vfb/Makefile
 hw/xwin/Makefile
 xorg-server.pc
 ])
