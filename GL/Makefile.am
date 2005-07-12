@@ -1,8 +1,3 @@
 SUBDIRS = glx
 
-if DRI
-SUBDIRS += dri
-endif
-
-# switch among mesa/apple/windows for different ddxes
-
+# xwin/darwin/xfree86 have their accel support under the DDX
