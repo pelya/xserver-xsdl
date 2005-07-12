@@ -129,10 +129,12 @@ fbFetch_r5g6b5 (const FbBits *bits, int x, int width, CARD32 *buffer, miIndexedP
     const CARD16 *end = pixel + width;
     while (pixel < end) {
         CARD32  p = *pixel++;
-        *buffer++ = 0xff000000 |
-                    ((((p) << 3) & 0xf8) | (((p) >> 2) & 0x7)) |
-                    ((((p) << 5) & 0xfc00) | (((p) >> 1) & 0x300)) |
-                    ((((p) << 8) & 0xf80000) | (((p) << 3) & 0x70000));
+        CARD32 r = (((p) << 3) & 0xf8) | 
+                   (((p) << 5) & 0xfc00) |
+                   (((p) << 8) & 0xf80000);
+        r |= (r >> 5) & 0x70007;
+        r |= (r >> 6) & 0x300;
+        *buffer++ = 0xff000000 | r;
     }
 }
 
@@ -1428,7 +1430,6 @@ static storeProc storeProcForPicture (PicturePtr pict)
 /*
  * Combine src and mask
  */
-
 static FASTCALL void
 fbCombineMaskU (CARD32 *src, const CARD32 *mask, int width)
 {
@@ -1441,13 +1442,9 @@ fbCombineMaskU (CARD32 *src, const CARD32 *mask, int width)
     }
 }
 
-
-
 /*
  * All of the composing functions
  */
-typedef FASTCALL void (*CombineFuncU) (CARD32 *dest, const CARD32 *src, int width);
-
 
 static FASTCALL void
 fbCombineClear (CARD32 *dest, const CARD32 *src, int width)
@@ -1607,7 +1604,7 @@ fbCombineSaturateU (CARD32 *dest, const CARD32 *src, int width)
         da = ~d >> 24;
         if (sa > da)
         {
-            sa = (da << 8) / sa;
+            sa = FbIntDiv(da, sa);
             FbByteMul(s, sa);
         }
         FbByteAdd(d, s);
@@ -1926,7 +1923,7 @@ fbCombineConjointXorU (CARD32 *dest, const CARD32 *src, int width)
     fbCombineConjointGeneralU (dest, src, width, CombineXor);
 }
 
-static CombineFuncU combineFuncU[] = {
+static CombineFuncU fbCombineFuncU[] = {
     fbCombineClear,
     fbCombineSrcU,
     0, /* CombineDst */
@@ -1972,8 +1969,6 @@ static CombineFuncU combineFuncU[] = {
     fbCombineConjointAtopReverseU,
     fbCombineConjointXorU,
 };
-
-
 
 static FASTCALL void
 fbCombineMaskC (CARD32 *src, CARD32 *mask, int width)
@@ -2060,8 +2055,6 @@ fbCombineMaskAlphaC (const CARD32 *src, CARD32 *mask, int width)
         mask[i] = a;
     }
 }
-
-typedef FASTCALL void (*CombineFuncC) (CARD32 *dest, CARD32 *src, CARD32 *mask, int width);
 
 static FASTCALL void
 fbCombineClearC (CARD32 *dest, CARD32 *src, CARD32 *mask, int width)
@@ -2551,7 +2544,7 @@ fbCombineConjointXorC (CARD32 *dest, CARD32 *src, CARD32 *mask, int width)
     fbCombineConjointGeneralC (dest, src, mask, width, CombineXor);
 }
 
-static CombineFuncC combineFuncC[] = {
+static CombineFuncC fbCombineFuncC[] = {
     fbCombineClearC,
     fbCombineSrcC,
     0, /* Dest */
@@ -2597,6 +2590,14 @@ static CombineFuncC combineFuncC[] = {
     fbCombineConjointAtopReverseC,
     fbCombineConjointXorC,
 };
+
+
+FbComposeFunctions composeFunctions = {
+    fbCombineFuncU,
+    fbCombineFuncC,
+    fbCombineMaskU
+};
+
 
 static void fbFetchSolid(PicturePtr pict, int x, int y, int width, CARD32 *buffer)
 {
@@ -3340,7 +3341,7 @@ fbCompositeRect (const FbComposeData *data, CARD32 *scanline_buffer)
 
     if (fetchSrc && fetchMask && data->mask && data->mask->componentAlpha && PICT_FORMAT_RGB(data->mask->format)) {
         CARD32 *mask_buffer = dest_buffer + data->width;
-        CombineFuncC compose = combineFuncC[data->op];
+        CombineFuncC compose = composeFunctions.combineC[data->op];
         if (!compose)
             return;
 
@@ -3362,7 +3363,7 @@ fbCompositeRect (const FbComposeData *data, CARD32 *scanline_buffer)
         }
     } else {
 
-        CombineFuncU compose = combineFuncU[data->op];
+        CombineFuncU compose = composeFunctions.combineU[data->op];
         if (!compose)
             return;
 
@@ -3370,7 +3371,7 @@ fbCompositeRect (const FbComposeData *data, CARD32 *scanline_buffer)
             fetchSrc(data->src, data->xSrc, data->ySrc, data->width, src_buffer);
             if (fetchMask) {
                 fetchMask(data->mask, data->xMask, data->yMask, data->width, dest_buffer);
-                fbCombineMaskU(src_buffer, dest_buffer, data->width);
+                composeFunctions.combineMaskU(src_buffer, dest_buffer, data->width);
             }
             fetchSrc = 0;
             fetchMask = 0;
@@ -3385,7 +3386,7 @@ fbCompositeRect (const FbComposeData *data, CARD32 *scanline_buffer)
                 /* add in mask */
                 if (fetchMask) {
                     fetchMask(data->mask, data->xMask, data->yMask + i, data->width, dest_buffer);
-                    fbCombineMaskU(src_buffer, dest_buffer, data->width);
+                    composeFunctions.combineMaskU(src_buffer, dest_buffer, data->width);
                 }
             }
 
@@ -3425,7 +3426,7 @@ fbCompositeGeneral (CARD8	op,
     CARD32 _scanline_buffer[SCANLINE_BUFFER_LENGTH*3];
     CARD32 *scanline_buffer = _scanline_buffer;
     FbComposeData compose_data;
-
+    
     if (pSrc->pDrawable)
         srcRepeat = pSrc->repeat == RepeatNormal && !pSrc->transform
                     && (pSrc->pDrawable->width != 1 || pSrc->pDrawable->height != 1);

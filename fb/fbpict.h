@@ -339,6 +339,15 @@ typedef struct _FbComposeData {
     CARD16	height;
 } FbComposeData;
 
+typedef FASTCALL void (*CombineMaskU) (CARD32 *src, const CARD32 *mask, int width);
+typedef FASTCALL void (*CombineFuncU) (CARD32 *dest, const CARD32 *src, int width);
+typedef FASTCALL void (*CombineFuncC) (CARD32 *dest, CARD32 *src, CARD32 *mask, int width);
+
+typedef struct _FbComposeFunctions {
+    CombineFuncU *combineU;
+    CombineFuncC *combineC;
+    CombineMaskU combineMaskU;
+} FbComposeFunctions;
 
 /* fbcompose.c */
 

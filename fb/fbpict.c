@@ -850,6 +850,14 @@ fbComposite (CARD8      op,
     int		    x_msk, y_msk, x_src, y_src, x_dst, y_dst;
     int		    w, h, w_this, h_this;
 
+#ifdef USE_MMX
+    static Bool mmx_setup = FALSE;
+    if (!mmx_setup) {
+        fbComposeSetupMMX();
+        mmx_setup = TRUE;
+    }
+#endif
+        
     xDst += pDst->pDrawable->x;
     yDst += pDst->pDrawable->y;
     if (pSrc->pDrawable) {

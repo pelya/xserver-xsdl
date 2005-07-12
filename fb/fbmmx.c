@@ -1,6 +1,7 @@
 /*
  * Copyright © 2004 Red Hat, Inc.
  * Copyright © 2004 Nicholas Miell
+ * Copyright © 2005 Trolltech AS
  *
  * Permission to use, copy, modify, distribute, and sell this software and its
  * documentation for any purpose is hereby granted without fee, provided that
@@ -12,15 +13,18 @@
  * suitability of this software for any purpose.  It is provided "as is"
  * without express or implied warranty.
  *
- * RED HAT DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE, INCLUDING ALL
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO EVENT SHALL RED HAT
- * BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
- * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION
- * OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN 
- * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ * THE COPYRIGHT HOLDERS DISCLAIM ALL WARRANTIES WITH REGARD TO THIS
+ * SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND
+ * FITNESS, IN NO EVENT SHALL THE COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+ * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN
+ * AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING
+ * OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
+ * SOFTWARE.
  *
  * Author:  Søren Sandmann (sandmann@redhat.com)
  * Minor Improvements: Nicholas Miell (nmiell@gmail.com)
+ * MMX code paths for fbcompose.c by Lars Knoll (lars@trolltech.com) 
  *
  * Based on work by Owen Taylor
  */
@@ -32,12 +36,8 @@
 
 #ifdef USE_MMX
 
-
 #include <mmintrin.h>
-
-#ifdef USE_SSE
 #include <xmmintrin.h> /* for _mm_shuffle_pi16 and _MM_SHUFFLE */
-#endif 
 
 #ifdef RENDER
 
@@ -48,8 +48,6 @@
 #include "mipict.h"
 #include "fbpict.h"
 
-typedef unsigned long long ullong;
-
 #define noVERBOSE
 
 #ifdef VERBOSE
@@ -57,6 +55,582 @@ typedef unsigned long long ullong;
 #else
 #define CHECKPOINT()
 #endif
+
+/* --------------- MMX code patch for fbcompose.c --------------------- */
+
+static FASTCALL void
+mmxCombineMaskU (CARD32 *src, const CARD32 *mask, int width)
+{
+    const __m64 mmx_0 = _mm_setzero_si64();
+    const __m64 mmx_4x0080 = (__m64) 0x0080008000800080ULL;
+    
+    const CARD32 *end = mask + width;
+    while (mask < end) {
+        __m64 a = MmxTo(*mask);
+        __m64 s = MmxTo(*src);
+        a = MmxAlpha(a);
+        MmxMul(s, a);
+        *src = MmxFrom(s);
+        ++src;
+        ++mask;
+    }
+    _mm_empty();
+}
+
+
+static FASTCALL void
+mmxCombineOverU (CARD32 *dest, const CARD32 *src, int width)
+{
+    const __m64 mmx_0 = _mm_setzero_si64();
+    const __m64 mmx_4x0080 = (__m64) 0x0080008000800080ULL;
+    const __m64 mmx_4x00ff = (__m64) 0x00ff00ff00ff00ffULL;
+
+    const CARD32 *end = dest + width;
+
+    while (dest < end) {
+        __m64 x, y, a;
+        x = MmxTo(*src);
+        y = MmxTo(*dest);
+        a = MmxAlpha(x);
+        a = MmxNegate(a);
+        MmxMulAdd(y, a, x);
+        *dest = MmxFrom(y);
+        ++dest;
+        ++src;
+    }
+    _mm_empty();
+}
+
+static FASTCALL void
+mmxCombineOverReverseU (CARD32 *dest, const CARD32 *src, int width)
+{
+    const __m64 mmx_0 = _mm_setzero_si64();
+    const __m64 mmx_4x0080 = (__m64) 0x0080008000800080ULL;
+    const __m64 mmx_4x00ff = (__m64) 0x00ff00ff00ff00ffULL;
+
+    const CARD32 *end = dest + width;
+
+    while (dest < end) {
+        __m64 x, y, a;
+        x = MmxTo(*dest);
+        y = MmxTo(*src);
+        a = MmxAlpha(x);
+        a = MmxNegate(a);
+        MmxMulAdd(y, a, x);
+        *dest = MmxFrom(y);
+        ++dest;
+        ++src;
+    }
+    _mm_empty();
+}
+
+static FASTCALL void
+mmxCombineInU (CARD32 *dest, const CARD32 *src, int width)
+{
+    const __m64 mmx_0 = _mm_setzero_si64();
+    const __m64 mmx_4x0080 = (__m64) 0x0080008000800080ULL;
+
+    const CARD32 *end = dest + width;
+
+    while (dest < end) {
+        __m64 x, a;
+        x = MmxTo(*src);
+        a = MmxTo(*dest);
+        a = MmxAlpha(a);
+        MmxMul(x, a);
+        *dest = MmxFrom(x);
+        ++dest;
+        ++src;
+    }
+    _mm_empty();
+}
+
+static FASTCALL void
+mmxCombineInReverseU (CARD32 *dest, const CARD32 *src, int width)
+{
+    const __m64 mmx_0 = _mm_setzero_si64();
+    const __m64 mmx_4x0080 = (__m64) 0x0080008000800080ULL;
+
+    const CARD32 *end = dest + width;
+
+    while (dest < end) {
+        __m64 x, a;
+        x = MmxTo(*dest);
+        a = MmxTo(*src);
+        a = MmxAlpha(a);
+        MmxMul(x, a);
+        *dest = MmxFrom(x);
+        ++dest;
+        ++src;
+    }
+    _mm_empty();
+}
+
+static FASTCALL void
+mmxCombineOutU (CARD32 *dest, const CARD32 *src, int width)
+{
+    const __m64 mmx_0 = _mm_setzero_si64();
+    const __m64 mmx_4x0080 = (__m64) 0x0080008000800080ULL;
+    const __m64 mmx_4x00ff = (__m64) 0x00ff00ff00ff00ffULL;
+
+    const CARD32 *end = dest + width;
+
+    while (dest < end) {
+        __m64 x, a;
+        x = MmxTo(*src);
+        a = MmxTo(*dest);
+        a = MmxAlpha(a);
+        a = MmxNegate(a);
+        MmxMul(x, a);
+        *dest = MmxFrom(x);
+        ++dest;
+        ++src;
+    }
+    _mm_empty();
+}
+
+static FASTCALL void
+mmxCombineOutReverseU (CARD32 *dest, const CARD32 *src, int width)
+{
+    const __m64 mmx_0 = _mm_setzero_si64();
+    const __m64 mmx_4x0080 = (__m64) 0x0080008000800080ULL;
+    const __m64 mmx_4x00ff = (__m64) 0x00ff00ff00ff00ffULL;
+
+    const CARD32 *end = dest + width;
+
+    while (dest < end) {
+        __m64 x, a;
+        x = MmxTo(*dest);
+        a = MmxTo(*src);
+        a = MmxAlpha(a);
+        a = MmxNegate(a);
+        MmxMul(x, a);
+        *dest = MmxFrom(x);
+        ++dest;
+        ++src;
+    }
+    _mm_empty();
+}
+
+static FASTCALL void
+mmxCombineAtopU (CARD32 *dest, const CARD32 *src, int width)
+{
+    const __m64 mmx_0 = _mm_setzero_si64();
+    const __m64 mmx_4x0080 = (__m64) 0x0080008000800080ULL;
+    const __m64 mmx_4x00ff = (__m64) 0x00ff00ff00ff00ffULL;
+
+    const CARD32 *end = dest + width;
+
+    while (dest < end) {
+        __m64 s, da, d, sia;
+        s = MmxTo(*src);
+        d = MmxTo(*dest);
+        sia = MmxAlpha(s);
+        sia = MmxNegate(sia);
+        da = MmxAlpha(d);
+        MmxAddMul(s, da, d, sia);
+        *dest = MmxFrom(s);
+        ++dest;
+        ++src;
+    }
+    _mm_empty();
+}
+
+static FASTCALL void
+mmxCombineAtopReverseU (CARD32 *dest, const CARD32 *src, int width)
+{
+    const __m64 mmx_0 = _mm_setzero_si64();
+    const __m64 mmx_4x0080 = (__m64) 0x0080008000800080ULL;
+    const __m64 mmx_4x00ff = (__m64) 0x00ff00ff00ff00ffULL;
+
+    const CARD32 *end;
+
+    end = dest + width;
+
+    while (dest < end) {
+        __m64 s, dia, d, sa;
+        s = MmxTo(*src);
+        d = MmxTo(*dest);
+        sa = MmxAlpha(s);
+        dia = MmxAlpha(d);
+        dia = MmxNegate(dia);
+        MmxAddMul(s, dia, d, sa);
+        *dest = MmxFrom(s);
+        ++dest;
+        ++src;
+    }
+    _mm_empty();
+}
+
+static FASTCALL void
+mmxCombineXorU (CARD32 *dest, const CARD32 *src, int width)
+{
+    const __m64 mmx_0 = _mm_setzero_si64();
+    const __m64 mmx_4x0080 = (__m64) 0x0080008000800080ULL;
+    const __m64 mmx_4x00ff = (__m64) 0x00ff00ff00ff00ffULL;
+
+    const CARD32 *end = dest + width;
+
+    while (dest < end) {
+        __m64 s, dia, d, sia;
+        s = MmxTo(*src);
+        d = MmxTo(*dest);
+        sia = MmxAlpha(s);
+        dia = MmxAlpha(d);
+        sia = MmxNegate(sia);
+        dia = MmxNegate(dia);
+        MmxAddMul(s, dia, d, sia);
+        *dest = MmxFrom(s);
+        ++dest;
+        ++src;
+    }
+    _mm_empty();
+}
+
+static FASTCALL void
+mmxCombineAddU (CARD32 *dest, const CARD32 *src, int width)
+{
+    const __m64 mmx_0 = _mm_setzero_si64();
+
+    const CARD32 *end = dest + width;
+    while (dest < end) {
+        __m64 s, d;
+        s = MmxTo(*src);
+        d = MmxTo(*dest);
+        s = MmxAdd(s, d);
+        *dest = MmxFrom(s);
+        ++dest;
+        ++src;
+    }
+    _mm_empty();
+}
+
+static FASTCALL void
+mmxCombineSaturateU (CARD32 *dest, const CARD32 *src, int width)
+{
+    const __m64 mmx_0 = _mm_setzero_si64();
+    const __m64 mmx_4x0080 = (__m64) 0x0080008000800080ULL;
+
+    const CARD32 *end = dest + width;
+    while (dest < end) {
+        CARD32 s = *src;
+        CARD32 d = *dest;
+        __m64 ms = MmxTo(s);
+        __m64 md = MmxTo(d);
+        CARD32 sa = s >> 24;
+        CARD32 da = ~d >> 24;
+
+        if (sa > da) {
+            __m64 msa = MmxTo(FbIntDiv(da, sa));
+            msa = MmxAlpha(msa);
+            MmxMul(ms, msa);
+        }
+        MmxAdd(md, ms);
+        *dest = MmxFrom(md);
+        ++src;
+        ++dest;
+    }
+    _mm_empty();
+}
+
+
+static FASTCALL void
+mmxCombineSrcC (CARD32 *dest, CARD32 *src, CARD32 *mask, int width)
+{
+    const __m64 mmx_0 = _mm_setzero_si64();
+    const __m64 mmx_4x0080 = (__m64) 0x0080008000800080ULL;
+
+    const CARD32 *end = src + width;
+    while (src < end) {
+        __m64 a = MmxTo(*mask);
+        __m64 s = MmxTo(*src);
+        MmxMul(s, a);
+        *dest = MmxFrom(s);
+        ++src;
+        ++mask;
+        ++dest;
+    }
+    _mm_empty();
+}
+
+static FASTCALL void
+mmxCombineOverC (CARD32 *dest, CARD32 *src, CARD32 *mask, int width)
+{
+    const __m64 mmx_0 = _mm_setzero_si64();
+    const __m64 mmx_4x0080 = (__m64) 0x0080008000800080ULL;
+    const __m64 mmx_4x00ff = (__m64) 0x00ff00ff00ff00ffULL;
+    
+    const CARD32 *end = src + width;
+    while (src < end) {
+        __m64 a = MmxTo(*mask);
+        __m64 s = MmxTo(*src);
+        __m64 d = MmxTo(*dest);
+        __m64 sa = MmxAlpha(s);
+        MmxMul(s, a);
+        MmxMul(a, sa);
+        a = MmxNegate(a);
+        MmxMulAdd(d, a, s);
+        *dest = MmxFrom(d);
+        ++src;
+        ++dest;
+        ++mask;
+    }
+    _mm_empty();
+}
+
+static FASTCALL void
+mmxCombineOverReverseC (CARD32 *dest, CARD32 *src, CARD32 *mask, int width)
+{
+    const __m64 mmx_0 = _mm_setzero_si64();
+    const __m64 mmx_4x0080 = (__m64) 0x0080008000800080ULL;
+    const __m64 mmx_4x00ff = (__m64) 0x00ff00ff00ff00ffULL;
+    
+    const CARD32 *end = src + width;
+    while (src < end) {
+        __m64 a = MmxTo(*mask);
+        __m64 s = MmxTo(*src);
+        __m64 d = MmxTo(*dest);
+        __m64 da = MmxAlpha(d);
+        da = MmxNegate(da);
+        MmxMul(s, a);
+        MmxMulAdd(s, da, d);
+        *dest = MmxFrom(s);
+        ++src;
+        ++dest;
+        ++mask;
+    }
+    _mm_empty();
+}
+
+
+static FASTCALL void
+mmxCombineInC (CARD32 *dest, CARD32 *src, CARD32 *mask, int width)
+{
+    const __m64 mmx_0 = _mm_setzero_si64();
+    const __m64 mmx_4x0080 = (__m64) 0x0080008000800080ULL;
+    
+    const CARD32 *end = src + width;
+    while (src < end) {
+        __m64 a = MmxTo(*mask);
+        __m64 s = MmxTo(*src);
+        __m64 d = MmxTo(*dest);
+        __m64 da = MmxAlpha(d);
+        MmxMul(s, a);
+        MmxMul(s, da);
+        *dest = MmxFrom(s);
+        ++src;
+        ++dest;
+        ++mask;
+    }
+    _mm_empty();
+}
+
+static FASTCALL void
+mmxCombineInReverseC (CARD32 *dest, CARD32 *src, CARD32 *mask, int width)
+{
+    const __m64 mmx_0 = _mm_setzero_si64();
+    const __m64 mmx_4x0080 = (__m64) 0x0080008000800080ULL;
+    
+    const CARD32 *end = src + width;
+    while (src < end) {
+        __m64 a = MmxTo(*mask);
+        __m64 s = MmxTo(*src);
+        __m64 d = MmxTo(*dest);
+        __m64 sa = MmxAlpha(s);
+        MmxMul(a, sa);
+        MmxMul(d, a);
+        *dest = MmxFrom(d);
+        ++src;
+        ++dest;
+        ++mask;
+    }
+    _mm_empty();
+}
+
+static FASTCALL void
+mmxCombineOutC (CARD32 *dest, CARD32 *src, CARD32 *mask, int width)
+{
+    const __m64 mmx_0 = _mm_setzero_si64();
+    const __m64 mmx_4x0080 = (__m64) 0x0080008000800080ULL;
+    const __m64 mmx_4x00ff = (__m64) 0x00ff00ff00ff00ffULL;
+    
+    const CARD32 *end = src + width;
+    while (src < end) {
+        __m64 a = MmxTo(*mask);
+        __m64 s = MmxTo(*src);
+        __m64 d = MmxTo(*dest);
+        __m64 da = MmxAlpha(d);
+        da = MmxNegate(da);
+        MmxMul(s, a);
+        MmxMul(s, da);
+        *dest = MmxFrom(s);
+        ++src;
+        ++dest;
+        ++mask;
+    }
+    _mm_empty();
+}
+
+static FASTCALL void
+mmxCombineOutReverseC (CARD32 *dest, CARD32 *src, CARD32 *mask, int width)
+{
+    const __m64 mmx_0 = _mm_setzero_si64();
+    const __m64 mmx_4x0080 = (__m64) 0x0080008000800080ULL;
+    const __m64 mmx_4x00ff = (__m64) 0x00ff00ff00ff00ffULL;
+    
+    const CARD32 *end = src + width;
+    while (src < end) {
+        __m64 a = MmxTo(*mask);
+        __m64 s = MmxTo(*src);
+        __m64 d = MmxTo(*dest);
+        __m64 sa = MmxAlpha(s);
+        MmxMul(a, sa);
+        a = MmxNegate(a);
+        MmxMul(d, a);
+        *dest = MmxFrom(d);
+        ++src;
+        ++dest;
+        ++mask;
+    }
+    _mm_empty();
+}
+
+static FASTCALL void
+mmxCombineAtopC (CARD32 *dest, CARD32 *src, CARD32 *mask, int width)
+{
+    const __m64 mmx_0 = _mm_setzero_si64();
+    const __m64 mmx_4x0080 = (__m64) 0x0080008000800080ULL;
+    const __m64 mmx_4x00ff = (__m64) 0x00ff00ff00ff00ffULL;
+    
+    const CARD32 *end = src + width;
+    while (src < end) {
+        __m64 a = MmxTo(*mask);
+        __m64 s = MmxTo(*src);
+        __m64 d = MmxTo(*dest);
+        __m64 da = MmxAlpha(d);
+        __m64 sa = MmxAlpha(s); 
+        MmxMul(s, a);
+        MmxMul(a, sa);
+        a = MmxNegate(a);
+        MmxAddMul(d, a, s, da);
+        *dest = MmxFrom(d);
+        ++src;
+        ++dest;
+        ++mask;
+    }
+    _mm_empty();
+}
+
+static FASTCALL void
+mmxCombineAtopReverseC (CARD32 *dest, CARD32 *src, CARD32 *mask, int width)
+{
+    const __m64 mmx_0 = _mm_setzero_si64();
+    const __m64 mmx_4x0080 = (__m64) 0x0080008000800080ULL;
+    const __m64 mmx_4x00ff = (__m64) 0x00ff00ff00ff00ffULL;
+    
+    const CARD32 *end = src + width;
+    while (src < end) {
+        __m64 a = MmxTo(*mask);
+        __m64 s = MmxTo(*src);
+        __m64 d = MmxTo(*dest);
+        __m64 da = MmxAlpha(d);
+        __m64 sa = MmxAlpha(s)
+        MmxMul(s, a);
+        MmxMul(a, sa);
+        da = MmxNegate(da);
+        MmxAddMul(d, a, s, da);
+        *dest = MmxFrom(d);
+        ++src;
+        ++dest;
+        ++mask;
+    }
+    _mm_empty();
+}
+
+static FASTCALL void
+mmxCombineXorC (CARD32 *dest, CARD32 *src, CARD32 *mask, int width)
+{
+    const __m64 mmx_0 = _mm_setzero_si64();
+    const __m64 mmx_4x0080 = (__m64) 0x0080008000800080ULL;
+    const __m64 mmx_4x00ff = (__m64) 0x00ff00ff00ff00ffULL;
+    
+    const CARD32 *end = src + width;
+    while (src < end) {
+        __m64 a = MmxTo(*mask);
+        __m64 s = MmxTo(*src);
+        __m64 d = MmxTo(*dest);
+        __m64 da = MmxAlpha(d);
+        __m64 sa = MmxAlpha(s);
+        MmxMul(s, a);
+        MmxMul(a, sa);
+        da = MmxNegate(da);
+        a = MmxNegate(a);
+        MmxAddMul(d, a, s, da);
+        *dest = MmxFrom(d);
+        ++src;
+        ++dest;
+        ++mask;
+    }
+    _mm_empty();
+}
+
+static FASTCALL void
+mmxCombineAddC (CARD32 *dest, CARD32 *src, CARD32 *mask, int width)
+{
+    const __m64 mmx_0 = _mm_setzero_si64();
+    const __m64 mmx_4x0080 = (__m64) 0x0080008000800080ULL;
+    
+    const CARD32 *end = src + width;
+    while (src < end) {
+        __m64 a = MmxTo(*mask);
+        __m64 s = MmxTo(*src);
+        __m64 d = MmxTo(*dest);
+        MmxMul(s, a);
+        d = MmxAdd(s, d);
+        *dest = MmxFrom(d);
+        ++src;
+        ++dest;
+        ++mask;
+    }
+    _mm_empty();
+}
+
+extern FbComposeFunctions composeFunctions;
+
+void fbComposeSetupMMX(void)
+{
+    /* check if we have MMX support and initialize accordingly */
+    if (fbHaveMMX()) {
+        composeFunctions.combineU[PictOpOver] = mmxCombineOverU;
+        composeFunctions.combineU[PictOpOverReverse] = mmxCombineOverReverseU;
+        composeFunctions.combineU[PictOpIn] = mmxCombineInU;
+        composeFunctions.combineU[PictOpInReverse] = mmxCombineInReverseU;
+        composeFunctions.combineU[PictOpOut] = mmxCombineOutU;
+        composeFunctions.combineU[PictOpOutReverse] = mmxCombineOutReverseU;
+        composeFunctions.combineU[PictOpAtop] = mmxCombineAtopU;
+        composeFunctions.combineU[PictOpAtopReverse] = mmxCombineAtopReverseU;
+        composeFunctions.combineU[PictOpXor] = mmxCombineXorU;
+        composeFunctions.combineU[PictOpAdd] = mmxCombineAddU;
+        composeFunctions.combineU[PictOpSaturate] = mmxCombineSaturateU;
+
+        composeFunctions.combineC[PictOpSrc] = mmxCombineSrcC;
+        composeFunctions.combineC[PictOpOver] = mmxCombineOverC;
+        composeFunctions.combineC[PictOpOverReverse] = mmxCombineOverReverseC;
+        composeFunctions.combineC[PictOpIn] = mmxCombineInC;
+        composeFunctions.combineC[PictOpInReverse] = mmxCombineInReverseC;
+        composeFunctions.combineC[PictOpOut] = mmxCombineOutC;
+        composeFunctions.combineC[PictOpOutReverse] = mmxCombineOutReverseC;
+        composeFunctions.combineC[PictOpAtop] = mmxCombineAtopC;
+        composeFunctions.combineC[PictOpAtopReverse] = mmxCombineAtopReverseC;
+        composeFunctions.combineC[PictOpXor] = mmxCombineXorC;
+        composeFunctions.combineC[PictOpAdd] = mmxCombineAddC;
+
+        composeFunctions.combineMaskU = mmxCombineMaskU;
+    } 
+}
+
+
+/* ------------------ MMX code paths called from fbpict.c ----------------------- */
 
 typedef struct
 {
@@ -127,12 +701,6 @@ pix_multiply (__m64 a, __m64 b)
     return res;
 }
 
-#ifdef USE_SSE
-#define HAVE_PSHUFW
-#endif
-
-#ifdef HAVE_PSHUFW
-
 static __inline__ __m64
 expand_alpha (__m64 pixel)
 {
@@ -150,61 +718,6 @@ invert_colors (__m64 pixel)
 {
     return _mm_shuffle_pi16 (pixel, _MM_SHUFFLE(3, 0, 1, 2));
 }
-
-#else
-
-static __inline__ __m64
-expand_alpha (__m64 pixel)
-{
-    __m64 t1, t2;
-    
-    t1 = shift (pixel, -48);
-    t2 = shift (t1, 16);
-    t1 = _mm_or_si64 (t1, t2);
-    t2 = shift (t1, 32);
-    t1 = _mm_or_si64 (t1, t2);
-    
-    return t1;
-}
-
-static __inline__ __m64
-expand_alpha_rev (__m64 pixel)
-{
-    __m64 t1, t2;
-    
-    /* move alpha to low 16 bits and zero the rest */
-    t1 = shift (pixel,  48);
-    t1 = shift (t1, -48);
-    
-    t2 = shift (t1, 16);
-    t1 = _mm_or_si64 (t1, t2);
-    t2 = shift (t1, 32);
-    t1 = _mm_or_si64 (t1, t2);
-    
-    return t1;
-}
-
-static __inline__ __m64
-invert_colors (__m64 pixel)
-{
-    __m64 x, y, z;
-    
-    x = y = z = pixel;
-    
-    x = _mm_and_si64 (x, MC(ffff0000ffff0000));
-    y = _mm_and_si64 (y, MC(000000000000ffff));
-    z = _mm_and_si64 (z, MC(0000ffff00000000));
-    
-    y = shift (y, 32);
-    z = shift (z, -32);
-    
-    x = _mm_or_si64 (x, y);
-    x = _mm_or_si64 (x, z);
-    
-    return x;
-}
-
-#endif
 
 /* Notes about writing mmx code
  *
@@ -1711,7 +2224,7 @@ fbCopyAreammx (DrawablePtr	pSrc,
 	    d += 2;
 	}
 	
-	while (w >= 4 && ((unsigned int)d & 7))
+	while (w >= 4 && ((unsigned long)d & 7))
 	{
 	    *(CARD32 *)d = *(CARD32 *)s;
 	    
@@ -1776,7 +2289,89 @@ fbCompositeCopyAreammx (CARD8		op,
 		   width, height);
 }
 
-#ifndef __amd64__
+#if !defined(__amd64__) && !defined(__x86_64__)
+
+enum CPUFeatures {
+    NoFeatures = 0,
+    MMX = 0x1,
+    MMX_Extensions = 0x2, 
+    SSE = 0x6,
+    SSE2 = 0x8,
+    CMOV = 0x10
+};
+
+static uint detectCPUFeatures(void) {
+    uint result;
+    char vendor[13];
+    vendor[0] = 0;
+    vendor[12] = 0;
+    /* see p. 118 of amd64 instruction set manual Vol3 */
+    asm ("push %%ebx\n"
+         "pushf\n"
+         "pop %%eax\n"
+         "mov %%eax, %%ebx\n"
+         "xor $0x00200000, %%eax\n"
+         "push %%eax\n"
+         "popf\n"
+         "pushf\n"
+         "pop %%eax\n"
+         "mov $0x0, %%edx\n"
+         "xor %%ebx, %%eax\n"
+         "jz skip\n"
+
+         "mov $0x00000000, %%eax\n"
+         "cpuid\n"
+         "mov %%ebx, %1\n"
+         "mov %%edx, %2\n"
+         "mov %%ecx, %3\n"
+         "mov $0x00000001, %%eax\n"
+         "cpuid\n"
+         "skip:\n"
+         "pop %%ebx\n"
+         "mov %%edx, %0\n"
+        : "=r" (result), 
+          "=m" (vendor[0]), 
+          "=m" (vendor[4]), 
+          "=m" (vendor[8])
+        :
+        : "%eax", "%ebx", "%ecx", "%edx"
+        );
+
+    uint features = 0;
+    if (result) {
+        // result now contains the standard feature bits
+        if (result & (1 << 15))
+            features |= CMOV;
+        if (result & (1 << 23))
+            features |= MMX;
+        if (result & (1 << 25))
+            features |= SSE;
+        if (result & (1 << 26))
+            features |= SSE2;
+        if ((result & MMX) && !(result & SSE) && (strcmp(vendor, "AuthenticAMD") == 0)) {
+            /* check for AMD MMX extensions */
+
+            uint result;            
+            asm("mov $0x80000000, %%eax\n"
+                "cpuid\n"
+                "xor %%edx, %%edx\n"
+                "cmp $0x1, %%eax\n"
+                "jge skip2\n"
+                "mov $0x80000001, %%eax\n"
+                "cpuid\n"
+                "skip2:\n"
+                "mov %%edx, %0\n"
+                : "=r" (result)
+                :
+                : "%eax", "%ebx", "%ecx", "%edx"
+                );
+            if (result & (1<<22))
+                features |= MMX_Extensions;
+        }
+    }
+    return features;
+}
+
 Bool
 fbHaveMMX (void)
 {
@@ -1785,52 +2380,9 @@ fbHaveMMX (void)
     
     if (!initialized)
     {
-	int tmp; /* static variables are accessed through %ebx,
-		  * but we mess around with the registers below,
-		  * so we need a temporary variable that can
-		  * be accessed directly.
-		  */
-	
-	__asm__ __volatile__ (
-/* Check if bit 21 in flags word is writeable */
-	    
-	    "pusha			        \n\t"
-	    "pushfl				\n\t"
-	    "popl	%%eax			\n\t"
-	    "movl	%%eax, %%ebx		\n\t"
-	    "xorl	$0x00200000, %%eax	\n\t"
-	    "pushl	%%eax			\n\t"
-	    "popfl				\n\t"
-	    "pushfl				\n\t"
-	    "popl	%%eax			\n\t"
-	    
-	    "cmpl	%%eax, %%ebx		\n\t"
-	    
-	    "je		.notfound		\n\t"
-	    
-/* OK, we have CPUID */
-	    
-	    "movl	$1, %%eax		\n\t"
-	    "cpuid				\n\t"
-	    
-	    "test	$0x00800000, %%edx	\n\t"
-	    "jz		.notfound		\n\t"
-	    
-	    "movl	$1, %0			\n\t"
-	    "jmp	.out			\n\t"
-	    
-	    ".notfound:				\n\t"
-	    "movl  	$0, %0			\n\t"
-	    
-	    ".out:				\n\t"
-	    "popa			        \n\t"
-	    :
-	    "=m" (tmp)
-	    : /* no input */);
-	
-	initialized = TRUE;
-	
-	mmx_present = tmp;
+        uint features = detectCPUFeatures();
+	mmx_present = (features & (MMX|MMX_Extensions)) == (MMX|MMX_Extensions);
+        initialized = TRUE;
     }
     
     return mmx_present;
