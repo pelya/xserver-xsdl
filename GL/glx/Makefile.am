@@ -5,6 +5,8 @@ AM_CFLAGS = $(DIX_CFLAGS)
 # none yet
 #sdk_HEADERS =
 
+INCLUDES = -I$(top_srcdir)/GL/include
+
 libglx_la_SOURCES = \
         g_disptab.c \
         g_disptab.h \
