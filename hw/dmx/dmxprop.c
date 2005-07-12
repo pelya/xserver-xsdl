@@ -56,6 +56,10 @@
  *
  * The routines in this file handle the property management. */
 
+#ifdef HAVE_DMX_CONFIG_H
+#include <dmx-config.h>
+#endif
+
 #include "dmx.h"
 #include "dmxprop.h"
 #include "dmxlog.h"

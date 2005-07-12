@@ -39,6 +39,10 @@
  * This file is not used by the DMX server.
  */
 
+#ifdef HAVE_DMX_CONFIG_H
+#include <dmx-config.h>
+#endif
+
 #include "dmxconfig.h"
 #include "dmxparse.h"
 #include "dmxcompat.h"

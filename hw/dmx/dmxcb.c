@@ -35,6 +35,10 @@
 /** \file
  * This code queries and modifies the connection block. */
 
+#ifdef HAVE_DMX_CONFIG_H
+#include <dmx-config.h>
+#endif
+
 #include "dmx.h"
 #include "dmxcb.h"
 #include "dmxinput.h"

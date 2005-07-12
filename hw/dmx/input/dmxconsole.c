@@ -39,6 +39,10 @@
  * This file implements the console input devices.
  */
 
+#ifdef HAVE_DMX_CONFIG_H
+#include <dmx-config.h>
+#endif
+
 #define DMX_CONSOLE_DEBUG 0
 #define DMX_WINDOW_DEBUG  0
 

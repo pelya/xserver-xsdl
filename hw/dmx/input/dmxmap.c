@@ -49,6 +49,10 @@
  * XI_Device* names for these routines.
  */
 
+#ifdef HAVE_DMX_CONFIG_H
+#include <dmx-config.h>
+#endif
+
 #include "dmxinputinit.h"
 #include "dmxmap.h"
 

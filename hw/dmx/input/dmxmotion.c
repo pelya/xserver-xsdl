@@ -39,6 +39,10 @@
  * for motion buffers for extension devices, and are \a not compatible
  * replacements for the mi routines.  */
 
+#ifdef HAVE_DMX_CONFIG_H
+#include <dmx-config.h>
+#endif
+
 #include "inputstr.h"
 #include "dmxinputinit.h"
 #include "dmxcommon.h"

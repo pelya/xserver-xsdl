@@ -35,6 +35,10 @@
 /** \file
  * This file provides support for window-related functions. */
 
+#ifdef HAVE_DMX_CONFIG_H
+#include <dmx-config.h>
+#endif
+
 #include "dmx.h"
 #include "dmxsync.h"
 #include "dmxwindow.h"

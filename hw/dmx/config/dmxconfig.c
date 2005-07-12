@@ -37,6 +37,10 @@
  * combining that information with command-line configuration parameters. */
     
 
+#ifdef HAVE_DMX_CONFIG_H
+#include <dmx-config.h>
+#endif
+
 #include "dmx.h"
 #include "dmxinput.h"
 #include "dmxconfig.h"

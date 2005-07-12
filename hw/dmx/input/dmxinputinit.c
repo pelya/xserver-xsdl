@@ -37,6 +37,10 @@
  * input and lead to the calling of low-level device drivers for
  * input. */
 
+#ifdef HAVE_DMX_CONFIG_H
+#include <dmx-config.h>
+#endif
+
 #define DMX_WINDOW_DEBUG 0
 
 #include "dmxinputinit.h"

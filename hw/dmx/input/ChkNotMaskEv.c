@@ -55,6 +55,10 @@
  * This file provides a #XCheckNotMaskEvent function that is derived
  * from the standard Xlib XCheckMaskEvent function. */
 
+#ifdef HAVE_DMX_CONFIG_H
+#include <dmx-config.h>
+#endif
+
 #define NEED_EVENTS
 #include "dmx.h"
 #include "ChkNotMaskEv.h"

@@ -36,6 +36,10 @@
  * This file encapsulated all of the logging functions that are used by
  * DMX for informational, warning, and error messages. */
 
+#ifdef HAVE_DMX_CONFIG_H
+#include <dmx-config.h>
+#endif
+
 #include "dmx.h"
 #include "dmxlog.h"
 #include "dmxinput.h"

@@ -43,6 +43,10 @@
  * calls and monitoring their latency.  This functionality can be turned
  * on using the -stat command-line parameter. */
 
+#ifdef HAVE_DMX_CONFIG_H
+#include <dmx-config.h>
+#endif
+
 #include "dmx.h"
 #include "dmxstat.h"
 #include "dmxlog.h"

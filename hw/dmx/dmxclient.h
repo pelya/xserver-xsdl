@@ -141,7 +141,9 @@ extern int ChangeDeviceNotify;
 #include <X11/XKBlib.h>
 #ifdef XKB
 #include <X11/extensions/XKBproto.h>
+#ifndef XKB_IN_SERVER
 #define XKB_IN_SERVER
+#endif
 #include <X11/extensions/XKBsrv.h>
 #undef XPointer
 #endif

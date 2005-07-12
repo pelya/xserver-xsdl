@@ -40,6 +40,10 @@
  * (and restored at Xdmx server shutdown time).
  */
 
+#ifdef HAVE_DMX_CONFIG_H
+#include <dmx-config.h>
+#endif
+
 #include "dmx.h"
 #include "dmxdpms.h"
 #include "dmxlog.h"

@@ -37,6 +37,10 @@
  * Routines that are common between #usb-keyboard.c, #usb-mouse.c, and
  * #usb-other.c */
 
+#ifdef HAVE_DMX_CONFIG_H
+#include <dmx-config.h>
+#endif
+
 #include "usb-private.h"
 
 #define USB_COMMON_DEBUG 1

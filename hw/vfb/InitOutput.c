@@ -28,6 +28,10 @@ from The Open Group.
 */
 /* $XFree86: xc/programs/Xserver/hw/vfb/InitOutput.c,v 3.25 2003/11/15 04:01:56 dawes Exp $ */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #if defined(WIN32)
 #include <X11/Xwinsock.h>
 #endif

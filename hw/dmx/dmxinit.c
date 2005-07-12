@@ -38,6 +38,10 @@
  * Provide expected functions for initialization from the ddx layer and
  * global variables for the DMX server. */
 
+#ifdef HAVE_DMX_CONFIG_H
+#include <dmx-config.h>
+#endif
+
 #include "dmx.h"
 #include "dmxinit.h"
 #include "dmxsync.h"

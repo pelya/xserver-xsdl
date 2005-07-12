@@ -37,6 +37,10 @@
  * This code implements a low-level device driver for a non-keyboard,
  * non-mouse USB device (e.g., a joystick or gamepad). */
 
+#ifdef HAVE_DMX_CONFIG_H
+#include <dmx-config.h>
+#endif
+
 #include "usb-private.h"
 
 /*****************************************************************************/

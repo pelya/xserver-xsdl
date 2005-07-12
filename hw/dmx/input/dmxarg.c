@@ -35,6 +35,10 @@
 /** \file
  * Generic comma-delimited argument processing. */
 
+#ifdef HAVE_DMX_CONFIG_H
+#include <dmx-config.h>
+#endif
+
 #define DMX_ARG_TEST 0
 
 #include "dmx.h"

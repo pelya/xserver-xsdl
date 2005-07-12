@@ -37,6 +37,10 @@
  * This file implements support required by the XINPUT extension.
  */
 
+#ifdef HAVE_DMX_CONFIG_H
+#include <dmx-config.h>
+#endif
+
 #define	 NEED_EVENTS
 #include <X11/X.h>
 #include <X11/Xproto.h>

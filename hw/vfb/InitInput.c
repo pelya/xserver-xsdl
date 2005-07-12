@@ -28,6 +28,10 @@ from The Open Group.
 */
 /* $XFree86: xc/programs/Xserver/hw/vfb/InitInput.c,v 3.9 2001/12/14 19:59:45 dawes Exp $ */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #include <X11/X.h>
 #define NEED_EVENTS
 #include "mi.h"
@@ -38,7 +42,7 @@ from The Open Group.
 #include "mibstore.h"
 #include "mipointer.h"
 #include "lk201kbd.h"
-#include "keysym.h"
+#include <X11/keysym.h>
 
 Bool
 LegalModifier(unsigned int key, DevicePtr pDev)

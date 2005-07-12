@@ -72,6 +72,10 @@
  * under Linux.  The keymap description is derived from code by Thomas
  * Roell, Orest Zborowski. */
 
+#ifdef HAVE_DMX_CONFIG_H
+#include <dmx-config.h>
+#endif
+
 #include "atKeynames.h"
 #include "usb-private.h"
 

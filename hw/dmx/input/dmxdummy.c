@@ -37,6 +37,10 @@
  * server, but that don't actually provide any events.  This is useful
  * for testing. */
 
+#ifdef HAVE_DMX_CONFIG_H
+#include <dmx-config.h>
+#endif
+
 #include "dmx.h"
 #include "dmxinputinit.h"
 #include "dmxdummy.h"

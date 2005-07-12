@@ -41,6 +41,10 @@
  * used in a stand-alone fashion (i.e., independent from the DMX server
  * source tree), no dependencies on other DMX routines are made. */
 
+#ifdef HAVE_DMX_CONFIG_H
+#include <dmx-config.h>
+#endif
+
 #include "dmxconfig.h"
 #include "dmxparse.h"
 #include "dmxprint.h"

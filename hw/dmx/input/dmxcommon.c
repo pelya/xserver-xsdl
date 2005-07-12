@@ -39,6 +39,10 @@
  * input devices.
  */
 
+#ifdef HAVE_DMX_CONFIG_H
+#include <dmx-config.h>
+#endif
+
 #define DMX_STATE_DEBUG 0
 
 #include "dmxinputinit.h"
@@ -50,7 +54,7 @@
 
 #include "inputstr.h"
 #include "input.h"
-#include "keysym.h"
+#include <X11/keysym.h>
 #include "mipointer.h"
 #include "scrnintstr.h"
 

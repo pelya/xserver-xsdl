@@ -33,6 +33,10 @@
  */
 
 %{
+#ifdef HAVE_DMX_CONFIG_H
+#include <dmx-config.h>
+#endif
+
 #include "dmxparse.h"
 #include "parser.h"
 #include <string.h>

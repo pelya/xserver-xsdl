@@ -36,6 +36,10 @@
  *
  * Provides an interface for handling SIGIO signals for input devices. */
 
+#ifdef HAVE_DMX_CONFIG_H
+#include <dmx-config.h>
+#endif
+
 #include "inputstr.h"
 #include "dmxinputinit.h"
 #include "dmxsigio.h"

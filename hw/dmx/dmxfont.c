@@ -35,6 +35,10 @@
 /** \file
  * This file provides support for fonts. */
 
+#ifdef HAVE_DMX_CONFIG_H
+#include <dmx-config.h>
+#endif
+
 #define DMX_FONTPATH_DEBUG 0
 
 #include "dmx.h"

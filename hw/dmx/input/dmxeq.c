@@ -66,6 +66,10 @@
  * Consortium).  (Another example of similar code is provided in
  * hw/xfree86/common/xf86Xinput.c.) */
 
+#ifdef HAVE_DMX_CONFIG_H
+#include <dmx-config.h>
+#endif
+
 #define DMX_EQ_DEBUG 0
 
 #include "dmx.h"

@@ -36,6 +36,10 @@
  *
  * This code implements a low-level device driver for a USB mouse. */
 
+#ifdef HAVE_DMX_CONFIG_H
+#include <dmx-config.h>
+#endif
+
 #include "usb-private.h"
 
 /*****************************************************************************/

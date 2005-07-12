@@ -38,6 +38,10 @@
  * in programs/Xserver/Xext.  Those programs should only include dmxext.h
  */
 
+#ifdef HAVE_DMX_CONFIG_H
+#include <dmx-config.h>
+#endif
+
 #include "dmx.h"
 #include "dmxinit.h"
 #include "dmxextension.h"
@@ -57,8 +61,8 @@
 #include "input/dmxinputinit.h"
 
 #include "windowstr.h"
-#include "inputstr.h"           /* For DeviceIntRec */
-#include "dmxproto.h"           /* For DMX_BAD_* */
+#include "inputstr.h"                 /* For DeviceIntRec */
+#include <X11/extensions/dmxproto.h>  /* For DMX_BAD_* */
 #include "cursorstr.h"
 
 /* The default font is declared in dix/globals.c, but is not included in

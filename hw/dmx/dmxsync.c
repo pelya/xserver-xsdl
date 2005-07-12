@@ -47,6 +47,10 @@
  * times faster, with 68 more than 50X faster, 114 more than 10X faster,
  * and 181 more than 2X faster. */
 
+#ifdef HAVE_DMX_CONFIG_H
+#include <dmx-config.h>
+#endif
+
 #include "dmx.h"
 #include "dmxsync.h"
 #include "dmxstat.h"

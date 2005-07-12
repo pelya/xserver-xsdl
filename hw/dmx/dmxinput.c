@@ -39,6 +39,10 @@
  * that arequired by the dix layer.
  */
 
+#ifdef HAVE_DMX_CONFIG_H
+#include <dmx-config.h>
+#endif
+
 #include "dmx.h"
 #include "dmxlog.h"
 #include "dmxinput.h"

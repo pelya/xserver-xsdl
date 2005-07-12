@@ -35,6 +35,10 @@
 /** \file
  * This file provides support for GC operations. */
 
+#ifdef HAVE_DMX_CONFIG_H
+#include <dmx-config.h>
+#endif
+
 #include "dmx.h"
 #include "dmxsync.h"
 #include "dmxgc.h"

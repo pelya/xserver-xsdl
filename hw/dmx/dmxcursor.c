@@ -73,6 +73,10 @@
  * maintainability for efficiency does not seem justified in this case.
  */
 
+#ifdef HAVE_DMX_CONFIG_H
+#include <dmx-config.h>
+#endif
+
 #define DMX_CURSOR_DEBUG 0
 
 #include "dmx.h"

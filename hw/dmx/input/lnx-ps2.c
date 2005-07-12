@@ -66,6 +66,10 @@
  * The code is derived from code by Keith Packard (see the source code
  * for complete references). */
 
+#ifdef HAVE_DMX_CONFIG_H
+#include <dmx-config.h>
+#endif
+
 #include "inputstr.h"
 #include <X11/Xos.h>
 #include <errno.h>

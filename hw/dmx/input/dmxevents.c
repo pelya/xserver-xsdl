@@ -36,6 +36,10 @@
  * Provide support and helper functions for enqueing events received by
  * the low-level input drivers. */
 
+#ifdef HAVE_DMX_CONFIG_H
+#include <dmx-config.h>
+#endif
+
 #define DMX_EVENTS_DEBUG 0
 
 #include "dmxinputinit.h"
@@ -48,7 +52,7 @@
 #include "dmxsigio.h"
 #include "dmxmap.h"
 
-#include "keysym.h"
+#include <X11/keysym.h>
 #include "opaque.h"
 #include "inputstr.h"
 #include "mipointer.h"

@@ -35,6 +35,10 @@
 /** \file
  * Provide support and helper functions for input detach and attach. */
 
+#ifdef HAVE_DMX_CONFIG_H
+#include <dmx-config.h>
+#endif
+
 #include "dmxinputinit.h"
 #include "dmxextension.h"       /* For dmxInputCount */
 

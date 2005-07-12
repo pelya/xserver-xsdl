@@ -123,6 +123,10 @@
  * Zborowski, and David Dawes (see the source code for complete
  * references). */
 
+#ifdef HAVE_DMX_CONFIG_H
+#include <dmx-config.h>
+#endif
+
 /*****************************************************************************/
 /* Define some macros to make it easier to move this file to another
  * part of the Xserver tree.  All calls to the dmx* layer are #defined
