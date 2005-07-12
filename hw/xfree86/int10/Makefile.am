@@ -20,7 +20,7 @@ AM_CFLAGS = -D_X86EMU -D_PC $(XORG_CFLAGS)
 INCLUDES = $(XORG_INCS) -I$(srcdir)/../x86emu
 libint10_la_SOURCES = pci.c xf86int10module.c helper_exec.c helper_mem.c \
 	xf86int10.c xf86x86emu.c generic.c x86emu.c
-libint10_la_LIBADD = $(srcdir)/../x86emu/libx86emu.a
+libint10_la_LIBADD = ../x86emu/libx86emu.a
 endif
 
 if INT10_STUB
