@@ -567,7 +567,7 @@ fi
 AC_DEFINE_UNQUOTED(X_BYTE_ORDER,[$ENDIAN],[Endian order])
 XORG_CFLAGS="$XORGSERVER_CFLAGS -DHAVE_XORG_CONFIG_H"
 test x$XORG = xyes && case $host_os in
-  linux-gnu*)
+  linux*)
   	XORG_OS="linux"
 	XORG_OS_SUBDIR="linux"
 	;;
@@ -750,6 +750,7 @@ hw/xfree86/scanpci/Makefile
 hw/xfree86/shadowfb/Makefile
 hw/xfree86/vbe/Makefile
 hw/xfree86/vgahw/Makefile
+hw/xfree86/x86emu/Makefile
 hw/xfree86/xaa/Makefile
 hw/xfree86/xf1bpp/Makefile
 hw/xfree86/xf4bpp/Makefile
