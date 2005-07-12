@@ -216,7 +216,7 @@ identify_card(pciConfigPtr pcr, int verbose)
     int i, j;
     int foundit = 0;
     int foundvendor = 0;
-    const char *vname, *dname, *svname, *sname;
+    const char *vname = NULL, *dname = NULL, *svname = NULL, *sname = NULL;
 
     pciVendorDevFuncInfo *vdf = vendorDeviceFuncInfo;
 
@@ -263,6 +263,8 @@ identify_card(pciConfigPtr pcr, int verbose)
 
     if (verbose && !(pcr->pci_header_type & 0x7f) &&
 	(pcr->pci_subsys_vendor != 0 || pcr->pci_subsys_card != 0) &&
+	((pcr->pci_subsys_vendor != NOVENDOR)
+	 || (pcr->pci_subsys_card != NOSUBSYS)) &&
 	(pcr->pci_vendor != pcr->pci_subsys_vendor ||
 	 pcr->pci_device != pcr->pci_subsys_card)) {
 	foundit = 0;
