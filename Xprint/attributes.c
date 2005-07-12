@@ -50,11 +50,17 @@ copyright holders.
 #endif
 
 #include <X11/Xproto.h>
+#include <stdio.h>
+#include <ctype.h>
 #include <string.h>
 #include <stdlib.h>
 #include <sys/wait.h>
 #include <pwd.h>
 #include <grp.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+
 #if (defined(sun) && defined(SVR4)) || (defined(SCO))
 #include <wchar.h>
 #endif
@@ -64,9 +70,8 @@ copyright holders.
 
 #include "attributes.h"
 
-#include "Xlib.h"
-#include "Xresource.h"
-#include "Xrm.c"
+#include <X11/Xlib.h>
+#include <X11/Xresource.h>
 
 #include "spooler.h"
 
@@ -805,6 +810,8 @@ PutByte(
     pStr->space--;
 }
 
+#define XrmQString XrmPermStringToQuark("String")
+
 /*
  * AppendEntry is called by XrmEnumerateDatabase, and serves to append
  * a database entry onto a string database.  The passed-in "closure"
@@ -1314,7 +1321,6 @@ SendFileToCommand(
  * store for the supplied print context.  The ReplaceAnyString utility
  * routine is used to perform the actual replacements.
  */
-extern char *ReplaceAnyString(char *, char *, char *);
 
 static char *
 ReplaceAllKeywords(
