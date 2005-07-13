@@ -34,6 +34,7 @@ SUBDIRS=	\
 	render  \
 	Xi	\
 	xkb	\
+        dbe     \
 	$(MFB_DIR)	\
 	$(AFB_DIR)	\
 	$(CFB_DIR)	\

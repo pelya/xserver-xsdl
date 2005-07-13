@@ -704,6 +704,7 @@ include/Makefile
 afb/Makefile
 composite/Makefile
 damageext/Makefile
+dbe/Makefile
 dix/Makefile
 fb/Makefile
 record/Makefile
