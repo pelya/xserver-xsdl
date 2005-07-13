@@ -1,6 +1,6 @@
 noinst_LTLIBRARIES = libXext.la
 
-sdk_HEADERS = dgaproc.h xvdix.h xvmcext.h
+sdk_HEADERS = xvdix.h xvmcext.h
 
 SUBDIRS = extmod
 
@@ -37,10 +37,6 @@ INCLUDES = -I$(srcdir)/extmod
 AM_CFLAGS = $(DIX_CFLAGS)
 
 EXTRA_DIST = \
-	dgaproc.h \
-	vidmodeproc.h \
-	xf86dgaext.h \
-	xf86miscproc.h \
 	appgroup.h \
 	xvdisp.h \
 	xvmodproc.h
@@ -61,14 +57,10 @@ libXext_la_SOURCES =		\
 	dpms.c			\
 	dpmsproc.h		\
 	xf86bigfont.c		\
-	xf86dga.c		\
-	xf86dgaext.h		\
-	xf86dga2.c		\
 	$(MITSHM_SRCS)		\
 	$(XV_SRCS)		\
 	$(RES_SRCS)		\
 	$(SCREENSAVER_SRCS)	\
 	$(PANORAMIX_SRCS)	\
 	$(XCSECURITY_SRCS)	\
-	$(XEVIE_SRCS)		\
-	extmod/modinit.c
+	$(XEVIE_SRCS)
