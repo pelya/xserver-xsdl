@@ -27,7 +27,7 @@ RANDRSOURCES = xf86RandR.c
 BUSSOURCES = xf86isaBus.c xf86pciBus.c xf86fbBus.c xf86noBus.c $(SBUS_SOURCES)
 
 #if LINUX
-KBDSOURCES = xf86KbdLnx.c
+#KBDSOURCES = xf86KbdLnx.c
 # XXX psuedocodeish
 #else if BSD
 #KBDSOURCES = xf86KbdBSD.c
@@ -36,6 +36,7 @@ KBDSOURCES = xf86KbdLnx.c
 #else
 #KBDSOURCES = xf86Kbd.c
 #endif
+KBDSOURCES = xf86Kbd@XORG_OS_KBD@.c
 
 # shouldn't isaBus and pciBus only be built on the relevant architectures? -ds
 # ditto DoScanPci

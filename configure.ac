@@ -84,7 +84,8 @@ AC_CHECK_HEADERS([linux/agpgart.h sys/agpio.h])
 AC_CHECK_HEADERS([linux/apm_bios.h])
 
 # fbdev header
-AC_CHECK_HEADERS([linux/fb.h])
+AC_CHECK_HEADERS([linux/fb.h], FBDEV=yes)
+AM_CONDITIONAL(FBDEVHW, [test x$FBDEV = xyes])
 
 # MTRR header
 AC_CHECK_HEADERS([asm/mtrr.h])
@@ -117,7 +118,10 @@ case $host_cpu in
         DEFAULT_INT10=x86emu
 	;;
   i*86)
-        DEFAULT_INT10=vm86
+	case $host_os in
+		solaris*) 	DEFAULT_INT10=x86emu ;;
+		*)		DEFAULT_INT10=vm86 ;;
+	esac
         ;;
   *)
         DEFAULT_INT10=x86emu
@@ -570,22 +574,48 @@ test x$XORG = xyes && case $host_os in
   linux*)
   	XORG_OS="linux"
 	XORG_OS_SUBDIR="linux"
+	XORG_OS_KBD="Lnx"
 	;;
   freebsd*)
   	XORG_OS="freebsd"
 	XORG_OS_SUBDIR="bsd"
+	XORG_OS_KBD="BSD"
 	;;
   netbsd*)
   	XORG_OS="netbsd"
 	XORG_OS_SUBDIR="bsd"
+	XORG_OS_KBD="BSD"
 	;;
   openbsd*)
   	XORG_OS="openbsd"
 	XORG_OS_SUBDIR="bsd"
+	XORG_OS_KBD="BSD"
 	;;
   solaris*)
   	XORG_OS="solaris"
 	XORG_OS_SUBDIR="solaris"
+	# This really should be tests for specific features, but the #ifdef's
+	# were done as a simple version check in XFree86 4.x and haven't been 
+	# fixed yet
+	AC_MSG_CHECKING([Solaris version])
+        OS_MINOR=`echo ${host_os}|sed -e 's/^.*solaris2\.//' -e s'/\..*$//'`
+	if test "${OS_MINOR}" -ge 7 ; then
+        	AC_MSG_RESULT(Solaris ${OS_MINOR})
+	else
+		AC_MSG_RESULT(Solaris `echo ${host_os}|sed -e 's/^.*solaris//`)
+	fi
+	if test "${OS_MINOR}" -ge 8 ; then
+		AC_DEFINE(__SOL8__,1,[Solaris 8 or later])
+	fi
+	case $host_cpu in
+	  sparc*)	XORG_OS_PCI="sparc" ;;
+	  i*86)		XORG_OS_PCI="ix86" ;;
+	  *)
+		AC_MSG_ERROR([Unsupported Solaris platform. Only SPARC & x86 \
+		are supported on Solaris in this release.   If you are \
+		interested in porting Xorg to your platform, please email \
+		xorg@lists.freedesktop.org.]) ;;
+	esac
 	;;
   *)
   	XORG_OS="unknown"
@@ -595,6 +625,9 @@ test x$XORG = xyes && case $host_os in
 	to your platform, please email xorg@lists.freedesktop.org.])
 	;;
 esac
+if test x$XORG_OS_PCI = x ; then
+	XORG_OS_PCI=$XORG_OS
+fi
 AC_SUBST([XORG_CORE_LIBS])
 AC_SUBST([XORG_LIBS])
 AC_SUBST([XVFB_LIBS])
@@ -604,6 +637,8 @@ AC_SUBST([XDMX_LIBS])
 AC_SUBST([XORG_INCS])
 AC_SUBST([XORG_OS])
 AC_SUBST([XORG_OS_SUBDIR])
+AC_SUBST([XORG_OS_KBD])
+AC_SUBST([XORG_OS_PCI])
 AM_CONDITIONAL([XORG_BUS_SBUS], [test "x$xorg_bus_sbus" = xyes])
 
 dnl these only go in xorg-config.h
@@ -644,14 +679,17 @@ AC_DEFINE(XResExtension,1,[Build XRes extension])
 AC_DEFINE(DPMSExtension,1,[Build DPMS extension])
 
 dnl CYGWIN does not define fd_set if _POSIX_SOURCE is defined
+dnl _*_SOURCE on Solaris restricts to the standards, and removes non-standard
+dnl functions which X uses
 case $host_os in
 	cygwin*) ;;
+	solaris*);;
 	*) 
 		AC_DEFINE(_POSIX_SOURCE,500,[POSIX-compliant source])
+		AC_DEFINE(_XOPEN_SOURCE,1,[X/Open-compliant source])
+		AC_DEFINE(_BSD_SOURCE,1,[BSD-compliant source])
 		;;
 esac
-AC_DEFINE(_XOPEN_SOURCE,1,[X/Open-compliant source])
-AC_DEFINE(_BSD_SOURCE,1,[BSD-compliant source])
 
 if test "x$GCC" = "xyes"; then
 	GCC_WARNINGS1="-Wall -Wpointer-arith -Wstrict-prototypes"

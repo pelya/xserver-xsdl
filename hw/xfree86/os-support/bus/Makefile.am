@@ -1,7 +1,7 @@
 noinst_LIBRARIES = libbus.a
 sdk_HEADERS = xf86Pci.h
 
-PCI_SOURCES = @XORG_OS@Pci.c ix86Pci.c
+PCI_SOURCES = @XORG_OS_PCI@Pci.c ix86Pci.c
 
 libbus_a_SOURCES = Pci.c $(PCI_SOURCES)
 
@@ -19,3 +19,4 @@ EXTRA_DIST = \
 	altixPCI.h \
 	e8870PCI.h \
 	zx1PCI.h
+

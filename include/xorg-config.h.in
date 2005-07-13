@@ -67,3 +67,7 @@
 
 /* Building DRI-capable DDX. */
 #undef _XORGDRI_SERVER_
+
+/* Solaris 8 or later? */
+#undef __SOL8__
+
