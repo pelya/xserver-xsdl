@@ -2300,46 +2300,46 @@ enum CPUFeatures {
     CMOV = 0x10
 };
 
-static uint detectCPUFeatures(void) {
-    uint result;
+static unsigned int detectCPUFeatures(void) {
+    unsigned int result;
     char vendor[13];
     vendor[0] = 0;
     vendor[12] = 0;
     /* see p. 118 of amd64 instruction set manual Vol3 */
-    asm ("push %%ebx\n"
-         "pushf\n"
-         "pop %%eax\n"
-         "mov %%eax, %%ebx\n"
-         "xor $0x00200000, %%eax\n"
-         "push %%eax\n"
-         "popf\n"
-         "pushf\n"
-         "pop %%eax\n"
-         "mov $0x0, %%edx\n"
-         "xor %%ebx, %%eax\n"
-         "jz skip\n"
+    __asm__ ("push %%ebx\n"
+             "pushf\n"
+             "pop %%eax\n"
+             "mov %%eax, %%ebx\n"
+             "xor $0x00200000, %%eax\n"
+             "push %%eax\n"
+             "popf\n"
+             "pushf\n"
+             "pop %%eax\n"
+             "mov $0x0, %%edx\n"
+             "xor %%ebx, %%eax\n"
+             "jz skip\n"
 
-         "mov $0x00000000, %%eax\n"
-         "cpuid\n"
-         "mov %%ebx, %1\n"
-         "mov %%edx, %2\n"
-         "mov %%ecx, %3\n"
-         "mov $0x00000001, %%eax\n"
-         "cpuid\n"
-         "skip:\n"
-         "pop %%ebx\n"
-         "mov %%edx, %0\n"
-        : "=r" (result), 
-          "=m" (vendor[0]), 
-          "=m" (vendor[4]), 
-          "=m" (vendor[8])
-        :
-        : "%eax", "%ebx", "%ecx", "%edx"
+             "mov $0x00000000, %%eax\n"
+             "cpuid\n"
+             "mov %%ebx, %1\n"
+             "mov %%edx, %2\n"
+             "mov %%ecx, %3\n"
+             "mov $0x00000001, %%eax\n"
+             "cpuid\n"
+             "skip:\n"
+             "pop %%ebx\n"
+             "mov %%edx, %0\n"
+             : "=r" (result), 
+               "=m" (vendor[0]), 
+               "=m" (vendor[4]), 
+               "=m" (vendor[8])
+             :
+             : "%eax", "%ebx", "%ecx", "%edx"
         );
 
-    uint features = 0;
+    unsigned int features = 0;
     if (result) {
-        // result now contains the standard feature bits
+        /* result now contains the standard feature bits */
         if (result & (1 << 15))
             features |= CMOV;
         if (result & (1 << 23))
@@ -2351,19 +2351,19 @@ static uint detectCPUFeatures(void) {
         if ((result & MMX) && !(result & SSE) && (strcmp(vendor, "AuthenticAMD") == 0)) {
             /* check for AMD MMX extensions */
 
-            uint result;            
-            asm("mov $0x80000000, %%eax\n"
-                "cpuid\n"
-                "xor %%edx, %%edx\n"
-                "cmp $0x1, %%eax\n"
-                "jge skip2\n"
-                "mov $0x80000001, %%eax\n"
-                "cpuid\n"
-                "skip2:\n"
-                "mov %%edx, %0\n"
-                : "=r" (result)
-                :
-                : "%eax", "%ebx", "%ecx", "%edx"
+            unsigned int result;            
+            __asm__("mov $0x80000000, %%eax\n"
+                    "cpuid\n"
+                    "xor %%edx, %%edx\n"
+                    "cmp $0x1, %%eax\n"
+                    "jge skip2\n"
+                    "mov $0x80000001, %%eax\n"
+                    "cpuid\n"
+                    "skip2:\n"
+                    "mov %%edx, %0\n"
+                    : "=r" (result)
+                    :
+                    : "%eax", "%ebx", "%ecx", "%edx"
                 );
             if (result & (1<<22))
                 features |= MMX_Extensions;
@@ -2380,7 +2380,7 @@ fbHaveMMX (void)
     
     if (!initialized)
     {
-        uint features = detectCPUFeatures();
+        unsigned int features = detectCPUFeatures();
 	mmx_present = (features & (MMX|MMX_Extensions)) == (MMX|MMX_Extensions);
         initialized = TRUE;
     }
