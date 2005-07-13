@@ -70,10 +70,11 @@ libXi_la_SOURCES =	\
 	setmmap.h \
 	setmode.c \
 	setmode.h \
-	stubs.c \
 	ungrdev.c \
 	ungrdev.h \
 	ungrdevb.c \
 	ungrdevb.h \
 	ungrdevk.c \
 	ungrdevk.h
+
+EXTRA_DIST = stubs.c

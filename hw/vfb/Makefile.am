@@ -3,6 +3,7 @@ bin_PROGRAMS = Xvfb
 SRCS =	InitInput.c \
 	InitOutput.c \
 	$(top_srcdir)/Xext/dpmsstubs.c \
+	$(top_srcdir)/Xi/stubs.c \
 	$(top_srcdir)/mi/miinitext.c \
 	$(top_srcdir)/fb/fbcmap.c
 
