@@ -1,7 +1,7 @@
 /* TODO: clean up/fix CC code */
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
 #endif
 
 #include "xf86.h"

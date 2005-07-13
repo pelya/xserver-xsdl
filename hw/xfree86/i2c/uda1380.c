@@ -5,6 +5,11 @@
  * License: GPL
  *
  * $Log$
+ * Revision 1.4  2005/07/13 20:19:37  sandmann
+ * xc/programs/Xserver/hw/xfree86/drivers/i2c/*.c: include xorg-config.h
+ * instead of config.h
+ * xserver/xorg/hw/xfree86/i2c/Makefile.am: Add i2c drivers
+ *
  * Revision 1.3  2005/07/11 02:29:50  ajax
  * Prep for modular builds by adding guarded #include "config.h" everywhere.
  *
@@ -14,8 +19,8 @@
  *
  ************************************************************************************/
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
 #endif
 
 #include "xf86.h"
