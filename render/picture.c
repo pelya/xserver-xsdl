@@ -42,10 +42,6 @@
 #include "servermd.h"
 #include "picturestr.h"
 
-#ifdef WIN32
-typedef unsigned int uint;
-#endif
-
 int		PictureScreenPrivateIndex = -1;
 int		PictureWindowPrivateIndex;
 int		PictureGeneration;
@@ -860,10 +856,10 @@ static CARD32 xRenderColorToCard32(xRenderColor c)
         (c.blue >> 8);
 }
 
-static uint premultiply(uint x)
+static unsigned int premultiply(unsigned int x)
 {
-    uint a = x >> 24;
-    uint t = (x & 0xff00ff) * a;
+    unsigned int a = x >> 24;
+    unsigned int t = (x & 0xff00ff) * a;
     t = (t + ((t >> 8) & 0xff00ff) + 0x800080) >> 8;
     t &= 0xff00ff;
 
@@ -874,7 +870,8 @@ static uint premultiply(uint x)
     return x;
 }
 
-static uint INTERPOLATE_PIXEL_256(uint x, uint a, uint y, uint b)
+static unsigned int INTERPOLATE_PIXEL_256(unsigned int x, unsigned int a,
+                                          unsigned int y, unsigned int b)
 {
     CARD32 t = (x & 0xff00ff) * a + (y & 0xff00ff) * b;
     t >>= 8;
@@ -913,8 +910,8 @@ static void initGradientColorTable(SourcePictPtr pGradient, int *error)
 
     /* Gradient area */
     while (pos < end_pos) {
-        uint current_color = xRenderColorToCard32(stops[current_stop].color);
-        uint next_color = xRenderColorToCard32(stops[current_stop + 1].color);
+        unsigned int current_color = xRenderColorToCard32(stops[current_stop].color);
+        unsigned int next_color = xRenderColorToCard32(stops[current_stop + 1].color);
 
         int dist = (int)(256*(dpos - stops[current_stop].x)
                          / (stops[current_stop+1].x - stops[current_stop].x));
