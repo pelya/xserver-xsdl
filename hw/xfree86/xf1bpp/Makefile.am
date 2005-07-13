@@ -2,6 +2,8 @@ module_LTLIBRARIES = libxf1bpp.la
 
 sdk_HEADERS = xf1bpp.h mfbmap.h mfbunmap.h
 
+libxf1bpp_la_LDFLAGS = -avoid-version
+
 libxf1bppgen_a_SOURCES = \
         mfbseg.c \
         mfbpgbwht.c \

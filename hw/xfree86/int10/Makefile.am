@@ -2,6 +2,8 @@ module_LTLIBRARIES = libint10.la
 
 sdk_HEADERS = xf86int10.h
 
+libint10_la_LDFLAGS = -avoid-version
+
 if INT10_VM86
 AM_CFLAGS = -D_PC -D_VM86_LINUX $(XORG_CFLAGS)
 INCLUDES = $(XORG_INCS)

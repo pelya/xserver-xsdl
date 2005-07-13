@@ -1,5 +1,8 @@
 module_LTLIBRARIES = libscanpci.la libpcidata.la
 
+libpcidata_la_LDFLAGS = -avoid-version
+libscanpci_la_LDFLAGS = -avoid-version
+
 libpcidata_la_SOURCES = xf86PciData.c
 libscanpci_la_SOURCES = xf86ScanPci.c
 

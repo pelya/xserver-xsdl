@@ -6,6 +6,8 @@ INCLUDES = $(XORG_INCS) -I$(top_srcdir)/mfb -I$(top_srcdir)/cfb
 
 AM_CFLAGS = $(XORG_CFLAGS)
 
+libxf8_16bpp_la_LDFLAGS = -avoid-version
+
 libxf8_16bpp_la_SOURCES = \
 	cfb8_16module.c \
 	cfbscrinit.c \

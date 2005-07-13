@@ -1,4 +1,7 @@
 module_LTLIBRARIES = libramdac.la
+
+libramdac_la_LDFLAGS = -avoid-version
+
 libramdac_la_SOURCES = xf86RamDacMod.c xf86RamDac.c xf86RamDacCmap.c \
                       xf86Cursor.c xf86HWCurs.c IBM.c BT.c TI.c \
 		      xf86BitOrder.c

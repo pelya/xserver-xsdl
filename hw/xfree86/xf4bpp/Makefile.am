@@ -2,6 +2,8 @@ module_LTLIBRARIES = libxf4bpp.la
 
 sdk_HEADERS = xf4bpp.h
 
+libxf4bpp_la_LDFLAGS = -avoid-version
+
 libxf4bpp_la_SOURCES = \
         ppcArea.c \
         ppcBStore.c \

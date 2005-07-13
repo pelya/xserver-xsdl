@@ -1,5 +1,7 @@
 module_LTLIBRARIES = libfbdevhw.la
 
+libfbdevhw_la_LDFLAGS = -avoid-version
+
 #if FBDEVHW
 libfbdevhw_la_SOURCES = fbdevhw.c
 #else
