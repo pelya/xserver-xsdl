@@ -22,9 +22,10 @@ libafb_la_LDFLAGS = -avoid-version
 libafb_la_LIBADD = $(top_srcdir)/afb/libafb.la
 libafb_la_SOURCES = afbmodule.c
 
+# libbitmap is just a wrapper around the bitmap font code in Xfont.
+# it doesn't even make sense to have it loadable, but, welcome to X.
 libbitmap_la_SOURCES = bitmapmod.c
 libbitmap_la_LDFLAGS = -avoid-version # `pkg-config --libs xfont`
-# XXX sources?
 
 libcfb_la_LDFLAGS = -avoid-version
 libcfb_la_LIBADD = $(top_srcdir)/cfb/libcfb.la
