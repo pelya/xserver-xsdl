@@ -2334,7 +2334,7 @@ static unsigned int detectCPUFeatures(void) {
                "=m" (vendor[4]), 
                "=m" (vendor[8])
              :
-             : "%eax", "%ebx", "%ecx", "%edx"
+             : "%eax", "%ecx", "%edx"
         );
 
     unsigned int features = 0;
@@ -2352,7 +2352,8 @@ static unsigned int detectCPUFeatures(void) {
             /* check for AMD MMX extensions */
 
             unsigned int result;            
-            __asm__("mov $0x80000000, %%eax\n"
+            __asm__("push %%ebx\n"
+                    "mov $0x80000000, %%eax\n"
                     "cpuid\n"
                     "xor %%edx, %%edx\n"
                     "cmp $0x1, %%eax\n"
@@ -2361,9 +2362,10 @@ static unsigned int detectCPUFeatures(void) {
                     "cpuid\n"
                     "skip2:\n"
                     "mov %%edx, %0\n"
+                    "pop %%ebx\n"
                     : "=r" (result)
                     :
-                    : "%eax", "%ebx", "%ecx", "%edx"
+                    : "%eax", "%ecx", "%edx"
                 );
             if (result & (1<<22))
                 features |= MMX_Extensions;
