@@ -38,6 +38,9 @@
 /* URL to go to for support. */
 #undef __VENDORDWEBSUPPORT__
 
+/* Prefer dlloader modules to elfloader */
+#undef DLOPEN_HACK
+
 /* Use libdl-based loader. */
 #undef DLOPEN_SUPPORT
 

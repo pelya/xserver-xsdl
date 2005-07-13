@@ -653,6 +653,9 @@ AC_DEFINE(NEED_XF86_TYPES,1,[Need XFree86 typedefs])
 AC_DEFINE(NEED_XF86_PROTOTYPES,1,[Need XFree86 helper functions])
 AC_DEFINE(__XSERVERNAME__,"Xorg",[Name of X server])
 AC_DEFINE(__XKBDEFRULES__,"xorg",[Default XKB rules])
+# XXX HACK!  if anyone cares about elfloader in 7.0 you need to
+# XXX do something smarter here.
+AC_DEFINE(DLOPEN_HACK,1,[Prefer dlloader modules to elfloader])                
 AC_DEFINE(DLOPEN_SUPPORT,1,[Use libdl-based loader])
 AC_DEFINE(DRIVERS,{},[Built-in output drivers])
 AC_DEFINE(IDRIVERS,{},[Built-in input drivers])
