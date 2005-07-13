@@ -3191,9 +3191,9 @@ static void fbFetchTransformed(PicturePtr pict, int x, int y, int width, CARD32 
                 }
 
                 if (satot < 0) satot = 0; else if (satot > 0xff) satot = 0xff;
-                if (srtot < 0) srtot = 0; else if (srtot > satot) srtot = satot;
-                if (sgtot < 0) sgtot = 0; else if (sgtot > satot) sgtot = satot;
-                if (sbtot < 0) sbtot = 0; else if (sbtot > satot) sbtot = satot;
+                if (srtot < 0) srtot = 0; else if (srtot > 0xff) srtot = 0xff;
+                if (sgtot < 0) sgtot = 0; else if (sgtot > 0xff) sgtot = 0xff;
+                if (sbtot < 0) sbtot = 0; else if (sbtot > 0xff) sbtot = 0xff;
 
                 buffer[i] = ((satot << 24) |
                              (srtot << 16) |
@@ -3211,12 +3211,15 @@ static void fbFetchTransformed(PicturePtr pict, int x, int y, int width, CARD32 
 static void fbFetchExternalAlpha(PicturePtr pict, int x, int y, int width, CARD32 *buffer)
 {
     int i;
-    CARD32 alpha_buffer[SCANLINE_BUFFER_LENGTH];
+    CARD32 _alpha_buffer[SCANLINE_BUFFER_LENGTH];
+    CARD32 *alpha_buffer = _alpha_buffer;
 
     if (!pict->alphaMap) {
         fbFetchTransformed(pict, x, y, width, buffer);
 	return;
     }
+    if (width > SCANLINE_BUFFER_LENGTH)
+        alpha_buffer = (CARD32 *) malloc(width*sizeof(CARD32));
 
     fbFetchTransformed(pict, x, y, width, buffer);
     fbFetchTransformed(pict->alphaMap, x - pict->alphaOrigin.x, y - pict->alphaOrigin.y, width, alpha_buffer);
@@ -3227,6 +3230,9 @@ static void fbFetchExternalAlpha(PicturePtr pict, int x, int y, int width, CARD3
                  | (div_255(Green(buffer[i]) * a) << 8)
                  | (div_255(Blue(buffer[i]) * a));
     }
+
+    if (alpha_buffer != _alpha_buffer)
+        free(alpha_buffer);
 }
 
 static void fbStore(PicturePtr pict, int x, int y, int width, CARD32 *buffer)
