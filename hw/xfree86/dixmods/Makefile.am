@@ -1,5 +1,7 @@
 noinst_LTLIBRARIES = libdixmods.la
 
+SUBDIRS = extmod
+
 if GLX
 GLXMODS = libglx.la libGLcore.la
 endif
@@ -71,9 +73,7 @@ libdixmods_la_SOURCES = \
 	xkbKillSrv.c \
 	xkbPrivate.c \
 	xkbVT.c \
-	$(top_srcdir)/mi/miinitext.c \
-	$(top_srcdir)/Xext/xf86misc.c \
-	$(top_srcdir)/Xext/xf86vmode.c
+	$(top_srcdir)/mi/miinitext.c
 
 xkb%.c:
 	echo "#define XF86DDXACTIONS" > $@
