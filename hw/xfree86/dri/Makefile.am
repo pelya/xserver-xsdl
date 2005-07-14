@@ -10,4 +10,4 @@ libdri_la_SOURCES = \
 	sarea.h \
 	xf86dri.c
 
-sdk_HEADERS = dri.h sarea.h dristruct.h  xf86dri.h
+sdk_HEADERS = dri.h sarea.h dristruct.h

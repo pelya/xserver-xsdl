@@ -1,0 +1,10 @@
+/*
+ * xkb-config.h.in: not at all generated.
+ * 
+ */
+
+/* Default set of XKB rules. */
+#undef __XKBDEFRULES__
+
+/* Path to XKB definitions. */
+#undef XKB_BASE_DIRECTORY

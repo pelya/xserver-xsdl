@@ -3,11 +3,15 @@ DMX_SUBDIRS = dmx
 endif
 
 if XORG
-XORG_SUBDIRS = xfree86 
+XORG_SUBDIRS = xfree86
 endif
 
 if XVFB
-XVFB_SUBDIRS = vfb 
+XVFB_SUBDIRS = vfb
+endif
+
+if XNEST
+XNEST_SUBDIRS = xnest
 endif
 
 if XWIN
@@ -18,4 +22,5 @@ SUBDIRS =			\
 	$(XORG_SUBDIRS)		\
 	$(XWIN_SUBDIRS)		\
 	$(XVFB_SUBDIRS)		\
+	$(XNEST_SUBDIRS)	\
 	$(DMX_SUBDIRS)

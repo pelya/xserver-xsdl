@@ -7,9 +7,10 @@
  *
  */
 
-/* Normally this is guarded, but if we don't have dix-config.h, we're in some
+/* Normally these are guarded, but if we don't have dix-config.h, we're in some
  * pretty serious trouble anyway.  Consider this a canary. */
 #include <dix-config.h>
+#include <xkb-config.h>
 
 /* Building XFree86-based server. */
 #undef XFree86Server
@@ -31,9 +32,6 @@
 
 /* Name of X server. */
 #undef __XSERVERNAME__
-
-/* Default set of XKB rules. */
-#undef __XKBDEFRULES__
 
 /* URL to go to for support. */
 #undef __VENDORDWEBSUPPORT__
@@ -61,9 +59,6 @@
 
 /* Path to server log file. */
 #undef DEFAULT_LOGPREFIX
-
-/* Path to XKB definitions. */
-#undef XKB_BASE_DIRECTORY
 
 /* Building DRI-capable DDX. */
 #undef XORGDRI

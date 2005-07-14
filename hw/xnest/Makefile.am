@@ -1,0 +1,62 @@
+bin_PROGRAMS = Xnest
+
+SRCS =	Args.c \
+	Args.h \
+	Color.c \
+	Color.h \
+	Cursor.c \
+	Display.c \
+	Display.h \
+	Drawable.h \
+	Events.c \
+	Events.h \
+	Font.c \
+	GC.c \
+	GCOps.c \
+	GCOps.h \
+	GetTime.c \
+	Handlers.c \
+	Handlers.h \
+	Init.c \
+	Init.h \
+	Keyboard.c \
+	Keyboard.h \
+	Pixmap.c \
+	Pointer.c \
+	Pointer.h \
+	Screen.c \
+	Screen.h \
+	TestExt.c \
+	Visual.c \
+	Visual.h \
+	Window.c \
+	XNCursor.h \
+	Xnest.h \
+	XNFont.h \
+	XNGC.h \
+	XNPixmap.h \
+	XNWindow.h \
+	$(top_srcdir)/Xext/dpmsstubs.c \
+	$(top_srcdir)/Xi/stubs.c \
+	$(top_srcdir)/mi/miinitext.c \
+	$(top_srcdir)/fb/fbcmap.c
+
+
+Xnest_SOURCES = $(SRCS)
+
+Xnest_LDADD = $(XORG_CORE_LIBS) \
+              $(XNEST_LIBS) \
+              $(XNESTMODULES_LIBS)
+
+Xnest_LDFLAGS =
+
+AM_CFLAGS = -DHAVE_XNEST_CONFIG_H \
+            -DNO_HW_ONLY_EXTS \
+            $(XNESTMODULES_CFLAGS)
+
+EXTRA_DIST = os2Stub.c
+
+# -UDPMSExtension for miinitext? can't put into 
+# OS_DEFINES???
+# EXT_DEFINES???
+# ICONFIGFILES -- SpecialCObjectRule

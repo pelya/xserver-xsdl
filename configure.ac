@@ -41,6 +41,8 @@ dnl dix/).
 AC_CONFIG_HEADERS(include/dix-config.h)
 dnl xorg-config.h covers the Xorg DDX.
 AC_CONFIG_HEADERS(include/xorg-config.h)
+dnl xkb-config.h covers XKB for the Xorg and Xnest DDXs.
+AC_CONFIG_HEADERS(include/xkb-config.h)
 dnl xwin-config.h covers the XWin DDX.
 AC_CONFIG_HEADERS(include/xwin-config.h)
 
@@ -159,6 +161,7 @@ AC_ARG_ENABLE(xcsecurity,     AS_HELP_STRING([--enable-xcsecurity],[Build Securi
 AC_ARG_ENABLE(xorg,    	      AS_HELP_STRING([--enable-xorg],[Build Xorg server (default: auto)]),[XORG=$enableval],[XORG=auto])
 AC_ARG_ENABLE(dmx,    	      AS_HELP_STRING([--enable-dmx],[Build DMX server (default: disabled)]),[DMX=$enableval],[DMX=no])
 AC_ARG_ENABLE(xvfb,    	      AS_HELP_STRING([--enable-xvfb],[Build Xvfb server (default: auto)]),[XVFB=$enableval],[XVFB=auto])
+AC_ARG_ENABLE(xnest,   	      AS_HELP_STRING([--enable-xnest],[Build Xnest server (default: auto)]),[XNEST=$enableval],[XNEST=auto])
 AC_ARG_ENABLE(xwin,    	      AS_HELP_STRING([--enable-xwin],[Build XWin server (default: auto)]),[XWIN=$enableval],[XWIN=auto])
 AC_ARG_ENABLE(xevie,          AS_HELP_STRING([--enable-xevie],[Build XEvIE extension (default: disabled)]), [XEVIE=$enableval],[XEVIE=no])
 
@@ -209,7 +212,7 @@ AC_DEFINE(SHAPE,1,[Support SHAPE extension])
 
 AM_CONDITIONAL(DMX, [test x$DMX = xyes])
 if test "$DMX" = yes; then
-	PKG_CHECK_MODULES([DMXMODULES],[xmuu xextproto x11 xrender xfont xi dmxproto])
+	PKG_CHECK_MODULES([DMXMODULES],[xmuu xext x11 xrender xfont xi dmxproto])
 	if test "$GLX" = yes; then
 	    PKG_CHECK_MODULES(GL,gl)
 	fi
@@ -231,6 +234,16 @@ if test x$XVFB = xauto; then
 fi
 AC_MSG_RESULT([$XVFB])
 AM_CONDITIONAL(XVFB, [test x$XVFB = xyes])
+
+AC_MSG_CHECKING([whether to build Xnest DDX])
+if test x$XNEST = xauto; then
+	XNEST="yes"
+fi
+AC_MSG_RESULT([$XNEST])
+if test "$XNEST" = yes; then
+	PKG_CHECK_MODULES([XNESTMODULES],[xfont xext x11])
+fi
+AM_CONDITIONAL(XNEST, [test x$XNEST = xyes])
 
 dnl  
 dnl  Definitions for XWin DDX
@@ -379,6 +392,7 @@ AM_CONDITIONAL(DRI, test x$DRI = xyes)
 if test "$DRI" = yes; then
 	AC_DEFINE(XORGDRI,1,[Build DRI extension])
 	AC_DEFINE(_XORGDRI_SERVER_,1,[XORGDRI internal define])
+	REQUIRED_MODULES="$REQUIRED_MODULES xf86driproto"
 fi
 AC_DEFINE(XINPUT,1,[Support X Input extension])
 EXTENSION_LIBS="$EXTENSION_LIBS "'$(top_builddir)/Xi/libXi.la'
@@ -556,9 +570,10 @@ XSERVER_LIBS="${XSERVER_LIBS} -lm -lz"
 
 XORG_CORE_LIBS="$DIX_LIB"
 XORG_LIBS="$MI_LIB $XI_LIB $XKB_LIB $COMPOSITE_LIB $DAMAGE_LIB $EXTENSION_LIBS $XPSTUBS_LIB $OS_LIB"
-XVFB_LIBS="$FB_LIB $MI_LIB $XI_LIB $XKB_LIB $COMPOSITE_LIB $DAMAGE_LIB $LAYER_LIB $EXTENSION_LIBS $XPSTUBS_LIB $OS_LIB"
+XVFB_LIBS="$FB_LIB $MI_LIB $EXTENSION_LIBS $XI_LIB $XKB_LIB $COMPOSITE_LIB $DAMAGE_LIB $LAYER_LIB $XPSTUBS_LIB $OS_LIB"
+XNEST_LIBS="$FB_LIB $MI_LIB $EXTENSION_LIBS $XI_LIB $XKB_LIB $COMPOSITE_LIB $DAMAGE_LIB $LAYER_LIB $XPSTUBS_LIB $OS_LIB"
 XWIN_LIBS="$FB_LIB $MI_LIB $XI_LIB $XKB_LIB $COMPOSITE_LIB $DAMAGE_LIB $LAYER_LIB $EXTENSION_LIBS $XPSTUBS_LIB $OS_LIB $SHADOW_LIB"
-XDMX_LIBS="$FB_LIB $MI_LIB $XI_LIB $XKB_LIB $DAMAGE_LIB $DMX_EXTENSIONS $OS_LIB $SHADOW_LIB"
+XDMX_LIBS="$FB_LIB $MI_LIB $DMX_EXTENSIONS $XI_LIB $XKB_LIB $DAMAGE_LIB $OS_LIB $SHADOW_LIB"
 XORG_DDXINCS='-I$(top_srcdir)/hw/xfree86 -I$(top_srcdir)/hw/xfree86/include -I$(top_srcdir)/hw/xfree86/common'
 XORG_OSINCS='-I$(top_srcdir)/hw/xfree86/os-support -I$(top_srcdir)/hw/xfree86/os-support/bus -I$(top_srcdir)/os'
 XORG_INCS="$XORG_DDXINCS $XORG_OSINCS"
@@ -631,6 +646,7 @@ fi
 AC_SUBST([XORG_CORE_LIBS])
 AC_SUBST([XORG_LIBS])
 AC_SUBST([XVFB_LIBS])
+AC_SUBST([XNEST_LIBS])
 AC_SUBST([XWIN_LIBS])
 AC_SUBST([EXTENSION_LIBS])
 AC_SUBST([XDMX_LIBS])
@@ -641,10 +657,14 @@ AC_SUBST([XORG_OS_KBD])
 AC_SUBST([XORG_OS_PCI])
 AM_CONDITIONAL([XORG_BUS_SBUS], [test "x$xorg_bus_sbus" = xyes])
 
+dnl these only go in xkb-config.h (which is shared by the Xorg and Xnest servers)
+XKBDIR="$datadir/X11/xkb"
+AC_DEFINE(__XKBDEFRULES__,"xorg",[Default XKB rules])
+AC_DEFINE_DIR(XKB_BASE_DIRECTORY, XKBDIR, [Path to XKB data])
+
 dnl these only go in xorg-config.h
 CONFIGFILE="$sysconfdir/xorg.conf"
 LOGPREFIX="$localstatedir/log/Xorg."
-XKBDIR="$datadir/X11/xkb"
 AC_DEFINE(XFree86Server,1,[Building XFree86 server])
 AC_DEFINE(XORGSERVER,,[Building Xorg server])
 AC_DEFINE(XFree86LOADER,1,[Building XFree86 loader])
@@ -652,7 +672,6 @@ AC_DEFINE_UNQUOTED(XORG_VERSION_CURRENT,[XF86_VERSION_NUMERIC($VERSION_STRING)],
 AC_DEFINE(NEED_XF86_TYPES,1,[Need XFree86 typedefs])
 AC_DEFINE(NEED_XF86_PROTOTYPES,1,[Need XFree86 helper functions])
 AC_DEFINE(__XSERVERNAME__,"Xorg",[Name of X server])
-AC_DEFINE(__XKBDEFRULES__,"xorg",[Default XKB rules])
 # XXX HACK!  if anyone cares about elfloader in 7.0 you need to
 # XXX do something smarter here.
 AC_DEFINE(DLOPEN_HACK,1,[Prefer dlloader modules to elfloader])                
@@ -663,7 +682,6 @@ AC_DEFINE_DIR(__XCONFIGFILE__, XF86CONFIGFILE,[Location of configuration file])
 AC_DEFINE_DIR(XF86CONFIGFILE, CONFIGFILE, [Path to Xorg configuration file])
 AC_DEFINE_DIR(DEFAULT_MODULE_PATH, moduledir, [Default module search path])
 AC_DEFINE_DIR(DEFAULT_LOGPREFIX, LOGPREFIX, [Default log location])
-AC_DEFINE_DIR(XKB_BASE_DIRECTORY, XKBDIR, [Path to XKB data])
 AC_DEFINE(XORGSERVER,,[Build Xorg server])
 AC_DEFINE_UNQUOTED(__VENDORDWEBSUPPORT__, ["$VENDOR_WEB"], [Vendor web address for support])
 
@@ -806,6 +824,7 @@ hw/dmx/input/Makefile
 hw/dmx/glxProxy/Makefile
 hw/dmx/Makefile
 hw/vfb/Makefile
+hw/xnest/Makefile
 hw/xwin/Makefile
 xorg-server.pc
 ])
