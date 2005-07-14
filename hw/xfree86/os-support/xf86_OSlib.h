@@ -104,12 +104,11 @@ typedef signed long xf86ssize_t;
 #include <stddef.h>
 
 /**************************************************************************/
-/* SYSV386 (SVR3, SVR4) - But not Solaris8                                */
+/* SYSV386 (SVR3, SVR4), including Solaris                                */
 /**************************************************************************/
 #if (defined(SYSV) || defined(SVR4)) && \
     !defined(DGUX) && !defined(sgi) && \
-    !defined(__SOL8__) && \
-    (!defined(sun) || defined(i386))
+    (defined(sun) || defined(i386))
 # ifdef SCO325
 #  ifndef _SVID3
 #   define _SVID3
@@ -142,7 +141,7 @@ typedef signed long xf86ssize_t;
 #  include <sys/sysmacros.h>
 # elif defined(_NEED_SYSI86)
 #  include <sys/immu.h>
-#  if !(defined (sun) && defined (i386) && defined (SVR4))
+#  if !(defined (sun) && defined (SVR4))
 #    include <sys/region.h>
 #  endif
 #  include <sys/proc.h>
@@ -151,14 +150,17 @@ typedef signed long xf86ssize_t;
 #  if defined(SVR4) && !defined(sun)
 #   include <sys/seg.h>
 #  endif /* SVR4 && !sun */
-#  if defined(sun) && defined (i386) && defined (SVR4) 	/* Solaris? */
-#   if !defined(V86SC_IOPL)				/* Solaris 7? */
-#    include <sys/v86.h>				/* Nope */
+/* V86SC_IOPL was moved to <sys/sysi86.h> on Solaris 7 and later */
+#  if defined(sun) && defined (SVR4)		/* Solaris? */
+#   if defined(i386) || defined(__x86)		/* on x86 or x64? */
+#    if !defined(V86SC_IOPL)			/* Solaris 7 or later? */
+#     include <sys/v86.h>			/* Nope */
+#    endif
 #   endif /* V86SC_IOPL */
 #  else 
 #   include <sys/v86.h>					/* Not solaris */
 #  endif /* sun && i386 && SVR4 */
-#  if defined(sun) && defined (i386) && defined (SVR4)
+#  if defined(sun) && (defined (i386) || defined(__x86))  && defined (SVR4)
 #    include <sys/psw.h>
 #  endif
 # endif /* _NEED_SYSI86 */
@@ -172,7 +174,7 @@ typedef signed long xf86ssize_t;
 #  include <sys/mmap.h>		/* MMAP driver header */
 # endif
 
-# if !defined(sun) || !defined(sparc)
+# if !defined(sun) || (!defined(sparc) && !defined(__SOL8__))
 #  define HAS_USL_VTS
 # endif
 # if !defined(sun)
@@ -190,6 +192,21 @@ typedef signed long xf86ssize_t;
 #  include <sys/at_ansi.h>
 #  include <sys/kd.h>
 #  include <sys/vt.h>
+# elif defined(sun)
+#  include <sys/fbio.h>
+#  include <sys/kbd.h> 
+#  include <sys/kbio.h>
+
+/* undefine symbols from <sys/kbd.h> we don't need that conflict with enum
+   definitions in parser/xf86tokens.h */
+#  undef STRING
+#  undef LEFTALT
+#  undef RIGHTALT
+
+#  define LED_CAP LED_CAPS_LOCK
+#  define LED_NUM LED_NUM_LOCK
+#  define LED_SCR LED_SCROLL_LOCK
+#  define LED_COMP LED_COMPOSE
 # endif /* SCO */
 
 # if !defined(VT_ACKACQ)
@@ -203,7 +220,7 @@ typedef signed long xf86ssize_t;
 
 # if defined(SVR4) || defined(SCO325)
 #  include <sys/mman.h>
-#  if !(defined(sun) && defined (i386) && defined (SVR4))
+#  if !(defined(sun) && defined (SVR4))
 #    define DEV_MEM "/dev/pmem"
 #  elif defined(PowerMAX_OS)
 #    define DEV_MEM "/dev/iomem"
@@ -221,7 +238,7 @@ typedef signed long xf86ssize_t;
 #  define POSIX_TTY
 # endif
 
-# if defined(sun) && defined (i386) && defined (SVR4)
+# if defined(sun) && defined (i386) && defined (SVR4) && !defined(__SOL8__)
 #  define USE_VT_SYSREQ
 #  define VT_SYSREQ_DEFAULT TRUE
 # endif
@@ -244,38 +261,6 @@ typedef signed long xf86ssize_t;
 # endif
 
 #endif /* (SYSV || SVR4) && !DGUX */
-
-/**********
- * Good ol' Solaris8, and its lack of VT support 
- ***********/
-
-#if defined(__SOL8__) || (defined(sun) && !defined(i386))
-# include <sys/mman.h>
-# include <errno.h>
-# if defined(i386) || defined(__x86)
-#  include <sys/sysi86.h>
-# endif
-# include <sys/psw.h>
-
-# include <termio.h>
-# include <sys/fbio.h>
-# include <sys/kbd.h> 
-# include <sys/kbio.h>
-
-/* undefine symbols from <sys/kbd.h> we don't need that conflict with enum
-   definitions in parser/xf86tokens.h */
-#undef STRING
-#undef LEFTALT
-#undef RIGHTALT
-
-# define LED_CAP LED_CAPS_LOCK
-# define LED_NUM LED_NUM_LOCK
-# define LED_SCR LED_SCROLL_LOCK
-# define LED_COMP LED_COMPOSE
-
-# include <signal.h>
-
-#endif /* __SOL8__ */
 
 
 
