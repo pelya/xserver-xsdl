@@ -56,6 +56,11 @@ SOFTWARE.
 #include <dmx-config.h>
 #endif
 
+#ifdef HAVE_XNEST_CONFIG_H
+#include <xnest-config.h>
+#undef DPMSExtension
+#endif
+
 #include "misc.h"
 #include "extension.h"
 #include "micmap.h"

@@ -16,9 +16,13 @@ is" without express or implied warranty.
 /* $XFree86: xc/programs/Xserver/hw/xnest/Keyboard.c,v 1.9 2003/09/13 21:33:09 dawes Exp $ */
 
 #define NEED_EVENTS
+#ifdef HAVE_XNEST_CONFIG_H
+#include <xnest-config.h>
+#endif
+
 #include <X11/X.h>
 #include <X11/Xproto.h>
-#include "keysym.h"
+#include <X11/keysym.h>
 #include "screenint.h"
 #include "inputstr.h"
 #include "misc.h"

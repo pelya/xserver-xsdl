@@ -14,6 +14,10 @@ is" without express or implied warranty.
 */
 /* $XFree86: xc/programs/Xserver/hw/xnest/Handlers.c,v 1.2 2001/08/01 00:44:57 tsi Exp $ */
 
+#ifdef HAVE_XNEST_CONFIG_H
+#include <xnest-config.h>
+#endif
+
 #include <X11/X.h>
 #include <X11/Xproto.h>
 #include "screenint.h"

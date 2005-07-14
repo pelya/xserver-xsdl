@@ -31,10 +31,15 @@ from the X Consortium.
 /* $XFree86$ */
 
 
+#ifdef HAVE_XNEST_CONFIG_H
+#include <xnest-config.h>
+#endif
+
 #include <X11/Xos.h>
 #include "os.h"
 #include <time.h>
 
+#ifdef DDXTIME
 CARD32
 GetTimeInMillis()
 {
@@ -43,3 +48,4 @@ GetTimeInMillis()
     X_GETTIMEOFDAY(&tp);
     return(tp.tv_sec * 1000) + (tp.tv_usec / 1000);
 }
+#endif
