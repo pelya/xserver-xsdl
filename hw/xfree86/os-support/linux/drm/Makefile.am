@@ -1,4 +1,8 @@
-INCLUDES = -I$(srcdir)/../../shared/drm/kernel
+INCLUDES = -I$(srcdir)/../../shared/drm/kernel \
+           -I$(srcdir)/../.. \
+           -I$(srcdir)/../../bus \
+           -I$(srcdir)/../../../dri \
+           -I$(srcdir)/../../../common
 
 sdklibdir = $(libdir)/xorg
 sdklib_LIBRARIES = libxorglinuxdrm.a

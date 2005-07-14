@@ -392,7 +392,8 @@ AM_CONDITIONAL(DRI, test x$DRI = xyes)
 if test "$DRI" = yes; then
 	AC_DEFINE(XORGDRI,1,[Build DRI extension])
 	AC_DEFINE(_XORGDRI_SERVER_,1,[XORGDRI internal define])
-	REQUIRED_MODULES="$REQUIRED_MODULES xf86driproto"
+	PKG_CHECK_MODULES([DRIPROTO], [xf86driproto])
+	AC_SUBST(DRIPROTO_CFLAGS)
 fi
 AC_DEFINE(XINPUT,1,[Support X Input extension])
 EXTENSION_LIBS="$EXTENSION_LIBS "'$(top_builddir)/Xi/libXi.la'
