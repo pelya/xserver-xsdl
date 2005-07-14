@@ -7,7 +7,7 @@ INCLUDES = $(XORG_INCS)
 
 AM_CFLAGS = $(XORG_CFLAGS)
 
-sdk_HEADERS = xf86i2c.h bt829.h fi1236.h msp3430.h tda8425.h tda9850.h tda9885.h uda1380.h
+sdk_HEADERS = xf86i2c.h bt829.h fi1236.h msp3430.h tda8425.h tda9850.h tda9885.h uda1380.h i2c_def.h
 
 
 
