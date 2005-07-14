@@ -786,6 +786,7 @@ hw/xfree86/os-support/bus/Makefile
 hw/xfree86/os-support/misc/Makefile
 hw/xfree86/os-support/linux/Makefile
 hw/xfree86/os-support/linux/drm/Makefile
+hw/xfree86/os-support/solaris/Makefile
 hw/xfree86/parser/Makefile
 hw/xfree86/rac/Makefile
 hw/xfree86/ramdac/Makefile
