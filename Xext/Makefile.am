@@ -32,7 +32,7 @@ if XEVIE
 XEVIE_SRCS = xevie.c EVIstruct.h
 endif
 
-INCLUDES = -I$(srcdir)/extmod
+INCLUDES = -I$(srcdir)/extmod -I$(top_builddir)/hw/xfree86/dixmods/extmod
 
 AM_CFLAGS = $(DIX_CFLAGS)
 
