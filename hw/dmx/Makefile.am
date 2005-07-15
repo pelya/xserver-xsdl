@@ -31,8 +31,8 @@ Xdmx_SOURCES = dmxinit.c \
 	dmxsync.c \
 	dmxextension.c \
 	dmxpict.c \
+	dmx.c \
 	$(top_srcdir)/fb/fbcmap.c \
-	$(top_srcdir)/Xext/dmx.c \
 	$(top_srcdir)/mi/miinitext.c \
 	$(GLX_SRCS) 
 

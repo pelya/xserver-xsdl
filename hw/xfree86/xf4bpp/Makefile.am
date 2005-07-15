@@ -55,7 +55,7 @@ DISTCLEANFILES = mfbseg.c
 
 mfbseg.c:
 	echo "#define POLYSEGMENT" > $@
-	echo "#include \"$(top_srcdir)/mfb/mfbline.c\"" >> $@
+	echo "#include \"$(srcdir)/mfbline.c\"" >> $@
 
 INCLUDES = $(XORG_INCS) -I$(srcdir)/../xf1bpp -I$(top_srcdir)/mfb -I$(top_srcdir)/cfb
 

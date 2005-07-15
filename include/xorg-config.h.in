@@ -1,14 +1,14 @@
-/*
- * xorg-config.h.in: not at all generated.
+/* xorg-config.h.in: not at all generated.                      -*- c -*-
  * 
- * This file differs from xorg-server.h.in in that -server is installed with the
- * rest of the SDK for external drivers/modules to use, whereas -config is for
- * internal use only (i.e. building the DDX).
+ * This file differs from xorg-server.h.in in that -server is installed
+ * with the rest of the SDK for external drivers/modules to use, whereas
+ * -config is for internal use only (i.e. building the DDX).
  *
  */
 
-/* Normally these are guarded, but if we don't have dix-config.h, we're in some
- * pretty serious trouble anyway.  Consider this a canary. */
+#ifndef _XORG_CONFIG_H_
+#define _XORG_CONFIG_H_
+
 #include <dix-config.h>
 #include <xkb-config.h>
 
@@ -61,11 +61,9 @@
 #undef DEFAULT_LOGPREFIX
 
 /* Building DRI-capable DDX. */
-#undef XORGDRI
-
-/* Building DRI-capable DDX. */
-#undef _XORGDRI_SERVER_
+#undef XF86DRI
 
 /* Solaris 8 or later? */
 #undef __SOL8__
 
+#endif /* _XORG_CONFIG_H_ */

@@ -390,10 +390,11 @@ AC_SUBST([MESA_SOURCE])
 
 AM_CONDITIONAL(DRI, test x$DRI = xyes)
 if test "$DRI" = yes; then
-	AC_DEFINE(XORGDRI,1,[Build DRI extension])
-	AC_DEFINE(_XORGDRI_SERVER_,1,[XORGDRI internal define])
+	AC_DEFINE(XF86DRI,1,[Build DRI extension])
 	PKG_CHECK_MODULES([DRIPROTO], [xf86driproto])
 	AC_SUBST(DRIPROTO_CFLAGS)
+	PKG_CHECK_MODULES([LIBDRM], [libdrm])
+	AC_SUBST(LIBDRM_CFLAGS)
 fi
 AC_DEFINE(XINPUT,1,[Support X Input extension])
 EXTENSION_LIBS="$EXTENSION_LIBS "'$(top_builddir)/Xi/libXi.la'
@@ -803,9 +804,9 @@ hw/xfree86/int10/Makefile
 hw/xfree86/loader/Makefile
 hw/xfree86/os-support/Makefile
 hw/xfree86/os-support/bus/Makefile
+hw/xfree86/os-support/drm/Makefile
 hw/xfree86/os-support/misc/Makefile
 hw/xfree86/os-support/linux/Makefile
-hw/xfree86/os-support/linux/drm/Makefile
 hw/xfree86/os-support/solaris/Makefile
 hw/xfree86/parser/Makefile
 hw/xfree86/rac/Makefile

@@ -1,8 +1,3 @@
-if DRI
-DRI_SUBDIRS=drm
-DRI_LIBS=drm/libxorglinuxdrm.a
-endif
-
 noinst_LIBRARIES = liblinux.a
 liblinux_a_SOURCES = lnx_init.c lnx_video.c lnx_io.c lnx_kbd.c lnx_mouse.c \
                      lnx_pci.c lnx_agp.c lnx_kmod.c lnx_KbdMap.c \
@@ -19,8 +14,6 @@ liblinux_a_SOURCES = lnx_init.c lnx_video.c lnx_io.c lnx_kbd.c lnx_mouse.c \
 sdk_HEADERS = agpgart.h
 
 AM_CFLAGS = -DUSESTDRES -DHAVE_SYSV_IPC $(XORG_CFLAGS)
-
-SUBDIRS = $(DRI_SUBDIRS)
 
 INCLUDES = $(XORG_INCS) -I/usr/include/drm # FIXME this last part is crack
 

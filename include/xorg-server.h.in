@@ -13,6 +13,9 @@
  * However, it should be kept in sync with this file.
  */
 
+#ifndef _XORG_SERVER_H_
+#define _XORG_SERVER_H_
+
 /* Support BigRequests extension */
 #undef BIGREQS
 
@@ -161,7 +164,7 @@
 #undef XLOADABLE
 
 /* Build DRI extension */
-#undef XORGDRI
+#undef XF86DRI
 
 /* Build Xorg server */
 #undef XORGSERVER
@@ -202,9 +205,6 @@
 /* X/Open-compliant source */
 #undef _XOPEN_SOURCE
 
-/* XORGDRI internal define */
-#undef _XORGDRI_SERVER_
-
 /* Vendor web address for support */
 #undef __VENDORDWEBSUPPORT__
 
@@ -216,3 +216,5 @@
 
 /* Name of X server */
 #undef __XSERVERNAME__
+
+#endif /* _XORG_SERVER_H_ */

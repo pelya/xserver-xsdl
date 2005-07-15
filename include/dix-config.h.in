@@ -1,4 +1,7 @@
-/* include/config.h.in.  Generated from configure.ac by autoheader.  */
+/* dix-config.h.in: not at all generated.                      -*- c -*- */
+
+#ifndef _DIX_CONFIG_H_
+#define _DIX_CONFIG_H_
 
 /* Support BigRequests extension */
 #undef BIGREQS
@@ -342,6 +345,9 @@
 /* Support Xv Extension */
 #undef XV
 
+/* Support DRI support */
+#undef XF86DRI
+
 /* Vendor name */
 #undef XVENDORNAME
 
@@ -365,3 +371,5 @@
 
 /* Build Rootless code */
 #undef ROOTLESS
+
+#endif /* _DIX_CONFIG_H_ */
