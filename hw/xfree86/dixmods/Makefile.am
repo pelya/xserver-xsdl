@@ -3,7 +3,7 @@ noinst_LTLIBRARIES = libdixmods.la
 SUBDIRS = extmod
 
 if GLX
-GLXMODS = libglx.la libGLcore.la
+GLXMODS = libglx.la # libGLcore.la
 endif
 
 module_LTLIBRARIES = \
