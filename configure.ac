@@ -152,7 +152,7 @@ AC_ARG_ENABLE(xv,            [  --disable-xv ],[XV=$enableval],[XV=yes])
 AC_ARG_ENABLE(screensaver,   [  --disable-screensaver ],[SCREENSAVER=$enableval],[SCREENSAVER=yes])
 AC_ARG_ENABLE(xdmcp,         [  --disable-xdmcp ],[XDMCP=$enableval],[XDMCP=auto])
 AC_ARG_ENABLE(xdm-auth-1,    [  --disable-xdm-auth-1 ],[XDMAUTH=$enableval],[XDMAUTH=auto])
-AC_ARG_ENABLE(glx,           [  --enable-glx ],[GLX=$enableval],[GLX=no])
+AC_ARG_ENABLE(glx,           [  --disable-glx ],[GLX=$enableval],[GLX=yes])
 AC_ARG_ENABLE(dri,           [  --enable-dri ],[DRI=$enableval],[DRI=no])
 AC_ARG_ENABLE(xinerama,	     [  --disable-xinerama ],[XINERAMA=$enableval],[XINERAMA=yes])
 AC_ARG_ENABLE(xf86vidmode,   [  --disable-xf86vidmode ],[XF86VIDMODE=$enableval],[XF86VIDMODE=yes])
@@ -383,7 +383,7 @@ fi
 AM_CONDITIONAL(GLX, test x$GLX = xyes)
 if test "$GLX" = yes; then
 	AC_DEFINE(GLXEXT,1,[Build GLX extension])
-#	EXTENSION_LIBS="$EXTENSION_LIBS "'$(top_builddir)/GL/glx/libglx.la $(top_builddir)/GL/mesa/libglcore.la'
+#	EXTENSION_LIBS="$EXTENSION_LIBS "'$(top_builddir)/GL/glx/libglx.la $(top_builddir)/GL/mesa/libGLcore.la'
 	dnl EXTENSION_INCS="$EXTENSION_INCS "'-I$(top_srcdir)/glx'
 fi
 AC_SUBST([MESA_SOURCE])
