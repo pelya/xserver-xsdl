@@ -2818,8 +2818,8 @@ drawable.id:0;
 	  && !noXkbExtension
 #endif
     )))
-	XE_KBPTR.state = (keyc->state | inputInfo.pointer->button->state);
 #endif
+    XE_KBPTR.state = (keyc->state | inputInfo.pointer->button->state);
     XE_KBPTR.rootX = sprite.hot.x;
     XE_KBPTR.rootY = sprite.hot.y;
     key = xE->u.u.detail;
