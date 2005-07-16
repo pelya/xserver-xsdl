@@ -3,7 +3,7 @@ noinst_LTLIBRARIES = libdixmods.la
 SUBDIRS = extmod
 
 if GLX
-GLXMODS = libglx.la # libGLcore.la
+GLXMODS = libglx.la libGLcore.la
 endif
 
 module_LTLIBRARIES = libafb.la \
@@ -31,7 +31,7 @@ INCLUDES = @XORG_INCS@ \
            -I$(top_srcdir)/miext/shadow
 
 libGLcore_la_LDFLAGS = -avoid-version
-libGLcore_la_LIBADD = $(top_srcdir)/GL/mesa/libGLcore.a
+libGLcore_la_LIBADD = $(top_srcdir)/GL/mesa/libGLcore.la
 libGLcore_la_SOURCES = GLcoremodule.c
 
 libafb_la_LDFLAGS = -avoid-version
