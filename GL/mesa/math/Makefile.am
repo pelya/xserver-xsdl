@@ -1,6 +1,6 @@
 noinst_LTLIBRARIES = libmath.la
 
-INCLUDES = -I@mesadir@/include \
+INCLUDES = -I@MESA_SOURCE@/include \
            -I$(srcdir)/../X \
            -I$(srcdir)/../array_cache \
            -I$(srcdir)/../glapi \
