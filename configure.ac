@@ -195,6 +195,9 @@ AC_ARG_WITH(os-name,         [  --with-os-name=OSNAME ],
 AC_ARG_WITH(os-vendor,       [  --with-os-vendor=OSVENDOR ],
 				[ OSVENDOR="$withval" ],
 				[ OSVENDOR="" ])
+AC_ARG_WITH(mesa-source,     [  --with-mesa-path=MESA_SOURCE ]
+                                [ MESA_SOURCE="$withval" ],
+                                [ MESA_SOURCE="" ])
 
 AM_CONDITIONAL(INT10_VM86, [test x$INT10 = xvm86])
 AM_CONDITIONAL(INT10_X86EMU, [test x$INT10 = xx86emu])
@@ -761,6 +764,15 @@ AC_OUTPUT([
 Makefile
 GL/Makefile
 GL/glx/Makefile
+GL/mesa/Makefile
+GL/mesa/array_cache/Makefile
+GL/mesa/main/Makefile
+GL/mesa/math/Makefile
+GL/mesa/shader/Makefile
+GL/mesa/swrast/Makefile
+GL/mesa/swrast_setup/Makefile
+GL/mesa/tnl/Makefile
+GL/mesa/X/Makefile
 include/Makefile
 afb/Makefile
 composite/Makefile
