@@ -1,7 +1,7 @@
 /* $XFree86: xc/programs/Xserver/Xext/xvmod.c,v 1.1 1998/08/13 14:45:36 dawes Exp $ */
 
-#ifdef HAVE_DIX_CONFIG_H
-#include <dix-config.h>
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
 #endif
 
 #include <X11/X.h>

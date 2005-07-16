@@ -52,6 +52,10 @@ SOFTWARE.
 #include <dix-config.h>
 #endif
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #ifdef HAVE_DMX_CONFIG_H
 #include <dmx-config.h>
 #endif

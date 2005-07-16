@@ -4,6 +4,10 @@
 #include <dix-config.h>
 #endif
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #include <stdio.h>
 #define NEED_EVENTS 1
 #include <X11/X.h>
