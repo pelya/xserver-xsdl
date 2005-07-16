@@ -42,8 +42,8 @@ from The Open Group.
 extern char *defaultTextFont;
 extern char *defaultCursorFont;
 extern int MaxClients;
-extern char isItTimeToYield;
-extern char dispatchException;
+extern volatile char isItTimeToYield;
+extern volatile char dispatchException;
 
 /* bit values for dispatchException */
 #define DE_RESET     1

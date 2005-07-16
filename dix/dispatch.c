@@ -157,8 +157,14 @@ static int nextFreeClientID; /* always MIN free client ID */
 static int	nClients;	/* number of authorized clients */
 
 CallbackListPtr ClientStateCallback;
-char dispatchException = 0;
-char isItTimeToYield;
+
+/* dispatchException & isItTimeToYield must be declared volatile since they
+ * are modified by signal handlers - otherwise optimizer may assume it doesn't
+ * need to actually check value in memory when used and may miss changes from
+ * signal handlers.
+ */
+volatile char dispatchException = 0;
+volatile char isItTimeToYield;
 
 /* Various of the DIX function interfaces were not designed to allow
  * the client->errorValue to be set on BadValue and other errors.
