@@ -52,6 +52,7 @@ Xnest_LDFLAGS =
 
 AM_CFLAGS = -DHAVE_XNEST_CONFIG_H \
             -DNO_HW_ONLY_EXTS \
+            -DXFree86Server \
             $(XNESTMODULES_CFLAGS)
 
 EXTRA_DIST = os2Stub.c

@@ -20,4 +20,5 @@ Xvfb_LDFLAGS =
 AM_CFLAGS = -DHAVE_DIX_CONFIG_H \
             -DNO_HW_ONLY_EXTS \
             -DNO_MODULE_EXTS \
+            -DXFree86Server \
             $(XVFBMODULES_CFLAGS)

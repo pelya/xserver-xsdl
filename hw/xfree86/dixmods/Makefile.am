@@ -6,15 +6,29 @@ if GLX
 GLXMODS = libglx.la # libGLcore.la
 endif
 
-module_LTLIBRARIES = \
-        libafb.la libbitmap.la libcfb.la libcfb16.la libcfb24.la libcfb32.la \
-        libdbe.la libfb.la liblayer.la libmfb.la libshadow.la $(GLXMODS)
+module_LTLIBRARIES = libafb.la \
+                     libbitmap.la \
+                     libcfb.la \
+                     libcfb16.la \
+                     libcfb24.la \
+                     libcfb32.la \
+                     libdbe.la \
+                     libfb.la \
+                     liblayer.la \
+                     libmfb.la \
+                     librecord.la \
+                     libshadow.la \
+                     $(GLXMODS)
 
-# yes, this is a cheesy hack.
-AM_CFLAGS = $(XORG_CFLAGS) -include xorg-config.h
-INCLUDES = $(XORG_INCS) -I$(top_srcdir)/afb -I$(top_srcdir)/mfb \
-           -I$(top_srcdir)/cfb -I$(top_srcdir)/dbe -I$(srcdir)/../loader \
-           -I$(top_srcdir)/miext/layer -I$(top_srcdir)/miext/shadow
+AM_CFLAGS = @XORG_CFLAGS@
+INCLUDES = @XORG_INCS@ \
+           -I$(top_srcdir)/afb \
+           -I$(top_srcdir)/cfb \
+           -I$(top_srcdir)/mfb \
+           -I$(top_srcdir)/dbe \
+           -I$(top_srcdir)/hw/xfree86/loader \
+           -I$(top_srcdir)/miext/layer \
+           -I$(top_srcdir)/miext/shadow
 
 libGLcore_la_LDFLAGS = -avoid-version
 libGLcore_la_LIBADD = $(top_srcdir)/GL/mesa/libGLcore.a
@@ -49,6 +63,7 @@ libdbe_la_LDFLAGS = -avoid-version
 libdbe_la_LIBADD = $(top_srcdir)/dbe/libdbe.la
 libdbe_la_SOURCES = dbemodule.c
 
+libfb_la_CFLAGS = -DXFree86Server $(AM_CFLAGS)
 libfb_la_LDFLAGS = -avoid-version
 libfb_la_LIBADD = $(top_srcdir)/fb/libfb.la
 libfb_la_SOURCES = $(top_srcdir)/fb/fbcmap.c fbmodule.c
@@ -65,15 +80,18 @@ libmfb_la_LDFLAGS = -avoid-version
 libmfb_la_LIBADD = $(top_srcdir)/mfb/libmfb.la
 libmfb_la_SOURCES = mfbmodule.c
 
+librecord_la_LDFLAGS = -avoid-version
+librecord_la_LIBADD = $(top_srcdir)/record/librecord.la
+librecord_la_SOURCES = recordmod.c
+
 libshadow_la_LDFLAGS = -avoid-version
 libshadow_la_LIBADD = $(top_srcdir)/miext/shadow/libshadow.la
 libshadow_la_SOURCES = shmodule.c
 
-libdixmods_la_SOURCES = \
-	xkbKillSrv.c \
-	xkbPrivate.c \
-	xkbVT.c \
-	$(top_srcdir)/mi/miinitext.c
+libdixmods_la_SOURCES = xkbKillSrv.c \
+                        xkbPrivate.c \
+                        xkbVT.c \
+                        $(top_srcdir)/mi/miinitext.c
 
 xkb%.c:
 	echo "#define XF86DDXACTIONS" > $@
