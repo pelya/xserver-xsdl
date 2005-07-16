@@ -728,6 +728,15 @@ if test "x$GCC" = "xyes"; then
 	XSERVER_CFLAGS="$GCC_WARNINGS $XSERVER_CFLAGS"
 fi
 
+# The Xorg binary needs to export symbols so that they can be used from modules
+# Some platforms require extra flags to do this.   gcc should set these flags
+# when -rdynamic is passed to it, other compilers/linkers may need to be added
+# here.
+if test "x$GCC" = "xyes"; then
+	LD_EXPORT_SYMBOLS_FLAG="-rdynamic"
+fi
+AC_SUBST([LD_EXPORT_SYMBOLS_FLAG])
+
 AC_DEFINE_DIR(PROJECTROOT, prefix, [Overall prefix])
 AC_SUBST([XORG_CFLAGS])
 

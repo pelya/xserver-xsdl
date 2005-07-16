@@ -33,4 +33,4 @@ Xorg_LDADD = $(XORG_LIBS) \
              @XSERVER_LIBS@ \
              -ldl
 
-Xorg_LDFLAGS = -rdynamic
+Xorg_LDFLAGS = $(LD_EXPORT_SYMBOLS_FLAG)
