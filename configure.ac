@@ -195,7 +195,7 @@ AC_ARG_WITH(os-name,         [  --with-os-name=OSNAME ],
 AC_ARG_WITH(os-vendor,       [  --with-os-vendor=OSVENDOR ],
 				[ OSVENDOR="$withval" ],
 				[ OSVENDOR="" ])
-AC_ARG_WITH(mesa-source,     [  --with-mesa-path=MESA_SOURCE ]
+AC_ARG_WITH(mesa-source,     [  --with-mesa-source=MESA_SOURCE ],
                                 [ MESA_SOURCE="$withval" ],
                                 [ MESA_SOURCE="" ])
 
@@ -384,10 +384,12 @@ if test "$XCSECURITY" = yes; then
 fi
 
 AM_CONDITIONAL(GLX, test x$GLX = xyes)
-if test "$GLX" = yes; then
+if test "$GLX" = yes -a x$MESA_SOURCE != x; then
 	AC_DEFINE(GLXEXT,1,[Build GLX extension])
 #	EXTENSION_LIBS="$EXTENSION_LIBS "'$(top_builddir)/GL/glx/libglx.la $(top_builddir)/GL/mesa/libGLcore.la'
 	dnl EXTENSION_INCS="$EXTENSION_INCS "'-I$(top_srcdir)/glx'
+else
+        GLX=no
 fi
 AC_SUBST([MESA_SOURCE])
 
