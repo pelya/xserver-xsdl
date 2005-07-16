@@ -1,5 +1,17 @@
 noinst_LTLIBRARIES = libtnl.la
 
+INCLUDES = -I@mesadir@/include \
+           -I$(srcdir)/../X \
+           -I$(srcdir)/../array_cache \
+           -I$(srcdir)/../glapi \
+           -I$(srcdir)/../main \
+           -I$(srcdir)/../math \
+           -I$(srcdir)/../shader \
+           -I$(srcdir)/../swrast \
+           -I$(srcdir)/../swrast_setup \
+           -I$(srcdir)/../tnl \
+           -I$(srcdir)/..
+
 libtnl_la_SOURCES = t_array_api.c \
                       t_array_import.c \
                       t_context.c \

@@ -1,5 +1,17 @@
 noinst_LTLIBRARIES = libswrast.la
 
+INCLUDES = -I@mesadir@/include \
+           -I$(srcdir)/../X \
+           -I$(srcdir)/../array_cache \
+           -I$(srcdir)/../glapi \
+           -I$(srcdir)/../main \
+           -I$(srcdir)/../math \
+           -I$(srcdir)/../shader \
+           -I$(srcdir)/../swrast \
+           -I$(srcdir)/../swrast_setup \
+           -I$(srcdir)/../tnl \
+           -I$(srcdir)/..
+
 libswrast_la_SOURCES = s_aaline.c \
                       s_aatriangle.c \
                       s_accum.c \
