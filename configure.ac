@@ -383,7 +383,6 @@ if test "$XCSECURITY" = yes; then
 	AC_DEFINE(XCSECURITY,1,[Build Security extension])
 fi
 
-AM_CONDITIONAL(GLX, test x$GLX = xyes)
 if test "$GLX" = yes -a x$MESA_SOURCE != x; then
 	AC_DEFINE(GLXEXT,1,[Build GLX extension])
 #	EXTENSION_LIBS="$EXTENSION_LIBS "'$(top_builddir)/GL/glx/libglx.la $(top_builddir)/GL/mesa/libGLcore.la'
@@ -391,6 +390,7 @@ if test "$GLX" = yes -a x$MESA_SOURCE != x; then
 else
         GLX=no
 fi
+AM_CONDITIONAL(GLX, test x$GLX = xyes)
 AC_SUBST([MESA_SOURCE])
 
 AM_CONDITIONAL(DRI, test x$DRI = xyes)
