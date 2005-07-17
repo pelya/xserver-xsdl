@@ -18,7 +18,7 @@ INCLUDES = @XORG_INCS@ \
            -I$(top_srcdir)/miext/shadow
 
 libextmod_la_LDFLAGS = -avoid-version
-libextmod_la_LIBADD = $(top_srcdir)/Xext/libXext.la
+libextmod_la_LIBADD = $(top_builddir)/Xext/libXext.la
 libextmod_la_SOURCES = modinit.c \
                        $(DGA_SRCS) \
                        xf86misc.c \

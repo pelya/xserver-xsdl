@@ -705,7 +705,6 @@ AC_DEFINE(XFree86XDGA,1,[Build XDGA support])
 AC_DEFINE(XF86BIGFONT,1,[Build XFree86 BigFont extension])
 AC_DEFINE(XResExtension,1,[Build XRes extension])
 AC_DEFINE(DPMSExtension,1,[Build DPMS extension])
-
 dnl CYGWIN does not define fd_set if _POSIX_SOURCE is defined
 dnl _*_SOURCE on Solaris restricts to the standards, and removes non-standard
 dnl functions which X uses
