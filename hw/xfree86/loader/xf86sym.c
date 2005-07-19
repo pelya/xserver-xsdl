@@ -295,6 +295,7 @@ LOOKUP xfree86LookupTab[] = {
     SYMFUNC(xf86AcquireGART)
     SYMFUNC(xf86ReleaseGART)
     SYMFUNC(xf86AllocateGARTMemory)
+    SYMFUNC(xf86DeallocateGARTMemory)
     SYMFUNC(xf86BindGARTMemory)
     SYMFUNC(xf86UnbindGARTMemory)
     SYMFUNC(xf86EnableAGP)

@@ -81,6 +81,11 @@ xf86AllocateGARTMemory(int screenNum, unsigned long size, int type,
 	return -1;
 }
 
+Bool
+xf86DeallocateGARTMemory(int screenNum, int key)
+{
+	return FALSE;
+}
 
 Bool
 xf86BindGARTMemory(int screenNum, int key, unsigned long offset)

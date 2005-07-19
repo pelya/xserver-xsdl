@@ -248,6 +248,27 @@ xf86AllocateGARTMemory(int screenNum, unsigned long size, int type,
 	return alloc.key;
 }
 
+Bool
+xf86DeallocateGARTMemory(int screenNum, int key)
+{
+	if (!GARTInit(screenNum) || acquiredScreen != screenNum)
+		return FALSE;
+
+	if (acquiredScreen != screenNum) {
+		xf86DrvMsg(screenNum, X_ERROR,
+                   "xf86UnbindGARTMemory: AGP not acquired by this screen\n");
+		return FALSE;
+	}
+
+	if (ioctl(gartFd, AGPIOC_DEALLOCATE, (char *)&key) != 0) {
+		xf86DrvMsg(screenNum, X_WARNING,"xf86DeAllocateGARTMemory: "
+                   "deallocation gart memory with key %d failed\n\t(%s)\n",
+                   key, strerror(errno));
+		return FALSE;
+	}
+
+	return TRUE;
+}
 
 /* Bind GART memory with "key" at "offset" */
 Bool
