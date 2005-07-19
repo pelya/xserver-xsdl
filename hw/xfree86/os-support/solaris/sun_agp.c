@@ -37,7 +37,7 @@
 
 #pragma ident	"@(#)sun_agp.c	1.1	05/04/04 SMI"
 
-#include "X.h"
+#include <X11/X.h>
 #include "xf86.h"
 #include "xf86Priv.h"
 #include "xf86_OSlib.h"
