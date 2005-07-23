@@ -385,7 +385,7 @@ fi
 
 if test "$GLX" = yes -a x$MESA_SOURCE != x; then
 	AC_DEFINE(GLXEXT,1,[Build GLX extension])
-#	EXTENSION_LIBS="$EXTENSION_LIBS "'$(top_builddir)/GL/glx/libglx.la $(top_builddir)/GL/mesa/libGLcore.la'
+	GLX_LIBS='$(top_builddir)/GL/glx/libglx.la $(top_builddir)/GL/mesa/libGLcore.la'
 	dnl EXTENSION_INCS="$EXTENSION_INCS "'-I$(top_srcdir)/glx'
 else
         GLX=no
@@ -577,8 +577,8 @@ XSERVER_LIBS="${XSERVER_LIBS} -lm -lz"
 
 XORG_CORE_LIBS="$DIX_LIB"
 XORG_LIBS="$MI_LIB $XI_LIB $XKB_LIB $COMPOSITE_LIB $DAMAGE_LIB $EXTENSION_LIBS $XPSTUBS_LIB $OS_LIB"
-XVFB_LIBS="$FB_LIB $MI_LIB $EXTENSION_LIBS $XI_LIB $XKB_LIB $COMPOSITE_LIB $DAMAGE_LIB $LAYER_LIB $XPSTUBS_LIB $OS_LIB"
-XNEST_LIBS="$FB_LIB $MI_LIB $EXTENSION_LIBS $XI_LIB $XKB_LIB $COMPOSITE_LIB $DAMAGE_LIB $LAYER_LIB $XPSTUBS_LIB $OS_LIB"
+XVFB_LIBS="$FB_LIB $MI_LIB $GLX_LIBS $EXTENSION_LIBS $XI_LIB $XKB_LIB $COMPOSITE_LIB $DAMAGE_LIB $LAYER_LIB $XPSTUBS_LIB $OS_LIB"
+XNEST_LIBS="$FB_LIB $MI_LIB $GLX_LIBS $EXTENSION_LIBS $XI_LIB $XKB_LIB $COMPOSITE_LIB $DAMAGE_LIB $LAYER_LIB $XPSTUBS_LIB $OS_LIB"
 XWIN_LIBS="$FB_LIB $MI_LIB $XI_LIB $XKB_LIB $COMPOSITE_LIB $DAMAGE_LIB $LAYER_LIB $EXTENSION_LIBS $XPSTUBS_LIB $OS_LIB $SHADOW_LIB"
 XDMX_LIBS="$FB_LIB $MI_LIB $DMX_EXTENSIONS $XI_LIB $XKB_LIB $DAMAGE_LIB $OS_LIB $SHADOW_LIB"
 XORG_DDXINCS='-I$(top_srcdir)/hw/xfree86 -I$(top_srcdir)/hw/xfree86/include -I$(top_srcdir)/hw/xfree86/common'
@@ -776,9 +776,12 @@ GL/Makefile
 GL/glx/Makefile
 GL/mesa/Makefile
 GL/mesa/array_cache/Makefile
+GL/mesa/glapi/Makefile
 GL/mesa/main/Makefile
 GL/mesa/math/Makefile
 GL/mesa/shader/Makefile
+GL/mesa/shader/grammar/Makefile
+GL/mesa/shader/slang/Makefile
 GL/mesa/swrast/Makefile
 GL/mesa/swrast_setup/Makefile
 GL/mesa/tnl/Makefile
