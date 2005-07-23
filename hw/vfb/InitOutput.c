@@ -72,7 +72,7 @@ from The Open Group.
 
 #define VFB_DEFAULT_WIDTH      1280
 #define VFB_DEFAULT_HEIGHT     1024
-#define VFB_DEFAULT_DEPTH        12
+#define VFB_DEFAULT_DEPTH         8
 #define VFB_DEFAULT_WHITEPIXEL    1
 #define VFB_DEFAULT_BLACKPIXEL    0
 #define VFB_DEFAULT_LINEBIAS      0
@@ -892,6 +892,7 @@ vfbScreenInit(int index, ScreenPtr pScreen, int argc, char **argv)
 				   (1 << DirectColor)),
 				  8, PseudoColor, 0, 0, 0);
 	break;
+#if 0
     /* 12bit PseudoColor with 12bit color resolution
      * (to simulate SGI hardware and the 12bit PseudoColor emulation layer) */
     case 12:
@@ -904,6 +905,7 @@ vfbScreenInit(int index, ScreenPtr pScreen, int argc, char **argv)
 				   (1 << DirectColor)),
 				  12, PseudoColor, 0, 0, 0);
 	break;
+#endif
     case 15:
 	miSetVisualTypesAndMasks (15,
 				  ((1 << GrayScale) |
@@ -924,6 +926,7 @@ vfbScreenInit(int index, ScreenPtr pScreen, int argc, char **argv)
 				   (1 << DirectColor)),
 				  8, TrueColor, 0xff0000, 0x00ff00, 0x0000ff);
 	break;
+#if 0
     /* 30bit TrueColor (to simulate Sun's XVR-1000/-4000 high quality
      * framebuffer series) */
     case 30:
@@ -932,6 +935,7 @@ vfbScreenInit(int index, ScreenPtr pScreen, int argc, char **argv)
 				   (1 << DirectColor)),
 				  10, TrueColor, 0x3ff00000, 0x000ffc00, 0x000003ff);
 	break;
+#endif
     }
 	
     ret = fbScreenInit(pScreen, pbits, pvfb->width, pvfb->height,
@@ -995,11 +999,15 @@ InitOutput(ScreenInfo *screenInfo, int argc, char **argv)
 	vfbPixmapDepths[1] = TRUE;
 	vfbPixmapDepths[4] = TRUE;
 	vfbPixmapDepths[8] = TRUE;
+#if 0
 	vfbPixmapDepths[12] = TRUE;
+#endif
 /*	vfbPixmapDepths[15] = TRUE; */
 	vfbPixmapDepths[16] = TRUE;
 	vfbPixmapDepths[24] = TRUE;
+#if 0
 	vfbPixmapDepths[30] = TRUE;
+#endif
 	vfbPixmapDepths[32] = TRUE;
     }
 
