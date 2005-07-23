@@ -387,6 +387,7 @@ if test "$GLX" = yes -a x$MESA_SOURCE != x; then
 	AC_DEFINE(GLXEXT,1,[Build GLX extension])
 	GLX_LIBS='$(top_builddir)/GL/glx/libglx.la $(top_builddir)/GL/mesa/libGLcore.la'
 	dnl EXTENSION_INCS="$EXTENSION_INCS "'-I$(top_srcdir)/glx'
+        ( cd GL && ./symlink-mesa.sh $MESA_SOURCE . )
 else
         GLX=no
 fi
