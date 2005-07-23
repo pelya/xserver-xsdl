@@ -1016,6 +1016,9 @@ CreateGCperDepth(int screenNum)
     if (!(ppGC[0] = CreateScratchGC(pScreen, 1)))
 	return FALSE;
     ppGC[0]->graphicsExposures = FALSE;
+    /* Make sure we don't overflow GCperDepth[] */
+    if( pScreen->numDepths > MAXFORMATS )
+	    return FALSE;
 
     pDepth = pScreen->allowedDepths;
     for (i=0; i<pScreen->numDepths; i++, pDepth++)
