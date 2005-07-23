@@ -1,3 +1,5 @@
+SUBDIRS = grammar slang
+
 noinst_LTLIBRARIES = libshader.la
 
 INCLUDES = -I@MESA_SOURCE@/include \
@@ -7,6 +9,8 @@ INCLUDES = -I@MESA_SOURCE@/include \
            -I$(srcdir)/../main \
            -I$(srcdir)/../math \
            -I$(srcdir)/../shader \
+	   -I$(srcdir)/../shader/grammar \
+	   -I$(srcdir)/../shader/slang \
            -I$(srcdir)/../swrast \
            -I$(srcdir)/../swrast_setup \
            -I$(srcdir)/../tnl \
@@ -23,5 +27,4 @@ libshader_la_SOURCES = arbfragparse.c \
                       nvvertparse.c \
                       program.c \
                       shaderobjects.c \
-                      shaderobjects_3dlabs.c \
-                      grammar_mesa.c
+		      shaderobjects_3dlabs.c
