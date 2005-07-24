@@ -235,6 +235,12 @@ xf86AllocateGARTMemory(int screenNum, unsigned long size, int type,
 	return alloc.agpa_key;
 }
 
+Bool
+xf86DeallocateGARTMemory(int screenNum, int key)
+{
+	return FALSE;
+}
+
 /* Bind GART memory with "key" at "offset" */
 Bool
 xf86BindGARTMemory(int screenNum, int key, unsigned long offset)
