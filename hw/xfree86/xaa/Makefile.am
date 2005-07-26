@@ -58,8 +58,8 @@ mf3-%.c:
 
 DISTCLEANFILES = $(POLYSEG) $(LSB_FIRST) $(LSB_FIXED) $(MSB_FIRST) $(MSB_FIXED)
 
-sdk_HEADERS = xaa.h xaalocal.h xaarop.h
-EXTRA_DIST = xaaWrapper.h xaacexp.h xaawrap.h xaaLine.c xaaDashLine.c \
+sdk_HEADERS = xaa.h xaalocal.h xaarop.h xaaWrapper.h
+EXTRA_DIST = xaacexp.h xaawrap.h xaaLine.c xaaDashLine.c \
              xaaStipple.c xaaTEGlyph.c xaaBitmap.c
 
 INCLUDES = $(XORG_INCS)
