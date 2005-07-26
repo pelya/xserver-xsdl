@@ -2,7 +2,7 @@ noinst_LTLIBRARIES = libfb.la
 
 AM_CFLAGS = $(DIX_CFLAGS)
 
-sdk_HEADERS = fb.h fbrop.h fbpseudocolor.h
+sdk_HEADERS = fb.h fbrop.h fbpseudocolor.h fboverlay.h
 
 libfb_la_SOURCES = 	\
 	fb.h		\
