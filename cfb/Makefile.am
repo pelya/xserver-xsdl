@@ -15,7 +15,7 @@ INCLUDES = $(CFB_INCLUDES)
 
 EXTRA_DIST = cfbline.c cfbfillarc.c cfbzerarc.c cfbblt.c cfbsolid.c \
              cfbtileodd.c cfbtile32.c cfb8line.c cfbply1rct.c cfbglblt8.c \
-	     cfb16.h cfb24.h cfb32.h cfb8bit.h cfbmap.h cfbmskbits.h cfbrrop.h \
-	     cfbtab.h cfbunmap.h
+	     cfb16.h cfb24.h cfb32.h cfb8bit.h cfbrrop.h \
+	     cfbtab.h
 
-sdk_HEADERS = cfb.h
+sdk_HEADERS = cfb.h cfb32.h cfb16.h cfbmap.h cfbunmap.h cfbmskbits.h

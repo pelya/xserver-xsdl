@@ -1,7 +1,8 @@
 noinst_LTLIBRARIES = libminimi.la libmi.la
 
 sdk_HEADERS = mibank.h micmap.h miline.h mipointer.h mi.h mibstore.h \
-              migc.h mipointrst.h mizerarc.h micoord.h
+              migc.h mipointrst.h mizerarc.h micoord.h mifillarc.h \
+              mispans.h
 
 AM_CFLAGS = $(DIX_CFLAGS)
 

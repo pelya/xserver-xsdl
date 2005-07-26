@@ -12,7 +12,7 @@ libxf8_32wid_la_SOURCES = \
 	cfbscrinit.c \
 	cfbwindow.c \
 	cfbwid.c
-	
+
 #libxf8_32wid_la_LIBADD = $(top_builddir)/cfb16/libcfb16.la \
 #                         $(top_builddir)/cfb24/libcfb24.la \
 #                         $(top_builddir)/cfb32/libcfb32.la
