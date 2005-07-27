@@ -25,11 +25,15 @@ Equipment Corporation.
 ******************************************************************/
 /* $XFree86: xc/programs/Xserver/Xext/panoramiX.c,v 3.37tsi Exp $ */
 
-#define NEED_REPLIES
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>
 #endif
 
+#ifdef HAVE_DMX_CONFIG_H
+#include <dmx-config.h>
+#endif
+
+#define NEED_REPLIES
 #include <stdio.h>
 #include <X11/X.h>
 #include <X11/Xproto.h>

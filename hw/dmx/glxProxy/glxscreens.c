@@ -34,6 +34,10 @@
 **
 */
 
+#ifdef HAVE_DMX_CONFIG_H
+#include <dmx-config.h>
+#endif
+
 #include "dmx.h"
 #include "dmxlog.h"
 

@@ -33,6 +33,10 @@
 **
 */
 
+#ifdef HAVE_DMX_CONFIG_H
+#include <dmx-config.h>
+#endif
+
 #include "dmx.h"
 #include "glxserver.h"
 #include "glxutil.h"
