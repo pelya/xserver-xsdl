@@ -159,7 +159,7 @@ AC_ARG_ENABLE(xf86vidmode,   [  --disable-xf86vidmode ],[XF86VIDMODE=$enableval]
 AC_ARG_ENABLE(xf86misc,      [  --disable-xf86misc ],[XF86MISC=$enableval],[XF86MISC=yes])
 AC_ARG_ENABLE(xcsecurity,     AS_HELP_STRING([--enable-xcsecurity],[Build Security extension (default: disabled)]),[XCSECURITY=$enableval],[XCSECURITY=no])
 AC_ARG_ENABLE(xorg,    	      AS_HELP_STRING([--enable-xorg],[Build Xorg server (default: auto)]),[XORG=$enableval],[XORG=auto])
-AC_ARG_ENABLE(dmx,    	      AS_HELP_STRING([--enable-dmx],[Build DMX server (default: disabled)]),[DMX=$enableval],[DMX=no])
+AC_ARG_ENABLE(dmx,    	      AS_HELP_STRING([--enable-dmx],[Build DMX server (default: disabled)]),[DMX=$enableval],[DMX=auto])
 AC_ARG_ENABLE(xvfb,    	      AS_HELP_STRING([--enable-xvfb],[Build Xvfb server (default: auto)]),[XVFB=$enableval],[XVFB=auto])
 AC_ARG_ENABLE(xnest,   	      AS_HELP_STRING([--enable-xnest],[Build Xnest server (default: auto)]),[XNEST=$enableval],[XNEST=auto])
 AC_ARG_ENABLE(xwin,    	      AS_HELP_STRING([--enable-xwin],[Build XWin server (default: auto)]),[XWIN=$enableval],[XWIN=auto])
@@ -213,13 +213,16 @@ AC_SUBST([extdir])
 
 AC_DEFINE(SHAPE,1,[Support SHAPE extension])
 
-AM_CONDITIONAL(DMX, [test x$DMX = xyes])
-if test "$DMX" = yes; then
-	PKG_CHECK_MODULES([DMXMODULES],[xmuu xext x11 xrender xfont xi dmxproto])
-	if test "$GLX" = yes; then
-	    PKG_CHECK_MODULES(GL,gl)
-	fi
+AC_MSG_CHECKING([whether to build Xdmx DDX])
+if test x$DMX = xauto; then
+	DMX="yes"
 fi
+AC_MSG_RESULT([$DMX])
+if test "$DMX" = yes; then
+	PKG_CHECK_MODULES([DMXMODULES],
+                          [xmuu xext x11 xrender xfont xi dmxproto])
+fi
+AM_CONDITIONAL(DMX, [test x$DMX = xyes])
 
 AC_MSG_CHECKING([whether to build Xorg DDX])
 if test x$XORG = xauto; then

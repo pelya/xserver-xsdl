@@ -9,32 +9,33 @@ if GLX
 SUBDIRS += glxProxy
 GLX_LIBS = glxProxy/libglxproxy.a
 GLX_SRCS = $(PANORAMIX_SRCS) dmx_glxvisuals.c
+GLX_INCS = -I$(top_srcdir)/hw/xfree86/dixmods/extmod
 endif
 
 Xdmx_SOURCES = dmxinit.c \
-	dmxscrinit.c \
-	dmxshadow.c \
-	dmxcursor.c \
-	dmxinput.c \
-	dmxdpms.c \
-	dmxgc.c \
-	dmxgcops.c \
-	dmxwindow.c \
-	dmxpixmap.c \
-	dmxfont.c \
-	dmxcmap.c \
-	dmxvisual.c \
-	dmxlog.c \
-	dmxcb.c \
-	dmxprop.c \
-	dmxstat.c \
-	dmxsync.c \
-	dmxextension.c \
-	dmxpict.c \
-	dmx.c \
-	$(top_srcdir)/fb/fbcmap.c \
-	$(top_srcdir)/mi/miinitext.c \
-	$(GLX_SRCS) 
+               dmxscrinit.c \
+               dmxshadow.c \
+               dmxcursor.c \
+               dmxinput.c \
+               dmxdpms.c \
+               dmxgc.c \
+               dmxgcops.c \
+               dmxwindow.c \
+               dmxpixmap.c \
+               dmxfont.c \
+               dmxcmap.c \
+               dmxvisual.c \
+               dmxlog.c \
+               dmxcb.c \
+               dmxprop.c \
+               dmxstat.c \
+               dmxsync.c \
+               dmxextension.c \
+               dmxpict.c \
+               dmx.c \
+               $(top_srcdir)/fb/fbcmap.c \
+               $(top_srcdir)/mi/miinitext.c \
+               $(GLX_SRCS) 
 
 
 #if COMPOSITE
@@ -51,4 +52,5 @@ Xdmx_LDADD = $(XORG_CORE_LIBS) \
 
 Xdmx_CFLAGS = -DHAVE_DMX_CONFIG_H \
               -DXFree86Server \
+              $(GLX_INCS) \
               @DMXMODULES_CFLAGS@
