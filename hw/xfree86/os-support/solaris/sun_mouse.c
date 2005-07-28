@@ -65,7 +65,6 @@
 
 #include "xisb.h"
 #include "mipointer.h"
-#include "../../input/mouse/mousePriv.h"
 #include <sys/stropts.h>
 #include <sys/vuid_event.h>
 #include <sys/msio.h>
@@ -103,18 +102,18 @@ static const char *solarisMouseDevs[] = {
 };
 
 typedef struct _VuidMseRec {
-    mousePrivRec	common;
+    struct _VuidMseRec *next;    
+    InputInfoPtr	pInfo;
     Firm_event 		event;
     unsigned char *	buffer;
     char *		strmod;
     Bool(*wrapped_device_control)(DeviceIntPtr device, int what);
 #ifdef HAVE_ABSOLUTE_MOUSE_SCALING
-    InputInfoPtr		 pInfo;
     Ms_screen_resolution	 absres;
-    struct _VuidMseRec		*next_abs_mouse;
 #endif
 } VuidMseRec, *VuidMsePtr;
 
+static VuidMsePtr	vuidMouseList = NULL;
 
 static int  vuidMouseProc(DeviceIntPtr pPointer, int what);
 static void vuidReadInput(InputInfoPtr pInfo);
@@ -126,9 +125,20 @@ static void vuidMouseAdjustFrame(int index, int x, int y, int flags);
 static int vuidMouseGeneration = 0;
 static int vuidMouseScreenIndex;
 #define vuidMouseScreenPrivate(s) ((s)->devPrivates[vuidMouseScreenIndex].ptr)
-
-static VuidMsePtr	abs_mouse_list;
 #endif /* HAVE_ABSOLUTE_MOUSE_SCALING */
+
+static inline
+VuidMsePtr getVuidMsePriv(InputInfoPtr pInfo)
+{
+    VuidMsePtr m = vuidMouseList;
+
+    while ((m != NULL) && (m->pInfo != pInfo)) {
+	m = m->next;
+    }
+
+    return m;
+}
+
 
 /*
  * Initialize and enable the mouse wheel, if present.
@@ -142,22 +152,26 @@ vuidMouseWheelInit(InputInfoPtr pInfo)
 #ifdef HAVE_VUID_WHEEL
     wheel_state wstate;
     int nwheel = -1;
+    int i;
 
     wstate.vers = VUID_WHEEL_STATE_VERS;
     wstate.id = 0;
     wstate.stateflags = -1;
 
-    if (ioctl(pInfo->fd, VUIDGWHEELCOUNT, &nwheel) != 0)
+    SYSCALL(i = ioctl(pInfo->fd, VUIDGWHEELCOUNT, &nwheel));
+    if (i != 0)
 	return (0);
 
-    if (ioctl(pInfo->fd, VUIDGWHEELSTATE, &wstate) != 0) {
+    SYSCALL(i = ioctl(pInfo->fd, VUIDGWHEELSTATE, &wstate));
+    if (i != 0) {
 	xf86Msg(X_WARNING, "%s: couldn't get wheel state\n", pInfo->name);
 	return (0);
     }
 
     wstate.stateflags |= VUID_WHEEL_STATE_ENABLED;
 
-    if (ioctl(pInfo->fd, VUIDSWHEELSTATE, &wstate) != 0) {
+    SYSCALL(i = ioctl(pInfo->fd, VUIDSWHEELSTATE, &wstate));
+    if (i != 0) {
 	xf86Msg(X_WARNING, "%s: couldn't enable wheel\n", pInfo->name);
 	return (0);
     }
@@ -175,7 +189,7 @@ vuidPreInit(InputInfoPtr pInfo, const char *protocol, int flags)
 {
     MouseDevPtr pMse = pInfo->private;
     VuidMsePtr pVuidMse;
-    int buttons;
+    int buttons, i;
 
     pVuidMse = xcalloc(sizeof(VuidMseRec), 1);
     if (pVuidMse == NULL) {
@@ -207,42 +221,44 @@ vuidPreInit(InputInfoPtr pInfo, const char *protocol, int flags)
     pVuidMse->buffer = (unsigned char *)&pVuidMse->event;
 
     pVuidMse->strmod = xf86SetStrOption(pInfo->options, "StreamsModule", NULL);
-    if (pVuidMse->strmod && 
-      	(ioctl(pInfo->fd, I_PUSH, pVuidMse->strmod) == -1)) {
-	xf86Msg(X_ERROR,
-	  "%s: cannot push module '%s' onto mouse device: %s\n",
-	  pInfo->name, pVuidMse->strmod, strerror(errno));
-	xf86CloseSerial(pInfo->fd);
-	pInfo->fd = -1;
-	xfree(pVuidMse->strmod);
-	xfree(pVuidMse);
-	xfree(pMse);
-	return FALSE;
+    if (pVuidMse->strmod) {
+	SYSCALL(i = ioctl(pInfo->fd, I_PUSH, pVuidMse->strmod));
+ 	if (i < 0) {
+	    xf86Msg(X_ERROR,
+		    "%s: cannot push module '%s' onto mouse device: %s\n",
+		    pInfo->name, pVuidMse->strmod, strerror(errno));
+	    xf86CloseSerial(pInfo->fd);
+	    pInfo->fd = -1;
+	    xfree(pVuidMse->strmod);
+	    xfree(pVuidMse);
+	    xfree(pMse);
+	    return FALSE;
+	}
     }
 
     buttons = xf86SetIntOption(pInfo->options, "Buttons", 0);
     if (buttons == 0) {
-	if(ioctl(pInfo->fd, MSIOBUTTONS, &buttons) == 0) {
+	SYSCALL(i = ioctl(pInfo->fd, MSIOBUTTONS, &buttons));
+	if (i == 0) {
 	    pInfo->conf_idev->commonOptions =
-	      xf86ReplaceIntOption(pInfo->conf_idev->commonOptions, 
-		"Buttons", buttons);
+		xf86ReplaceIntOption(pInfo->conf_idev->commonOptions, 
+				     "Buttons", buttons);
 	    xf86Msg(X_INFO, "%s: Setting Buttons option to \"%d\"\n",
-	      pInfo->name, buttons);
+		    pInfo->name, buttons);
 	}
     }
 
-    if (pVuidMse->strmod && 
-      (ioctl(pInfo->fd, I_POP, pVuidMse->strmod) == -1)) {
-	xf86Msg(X_WARNING,
-	  "%s: cannot pop module '%s' off mouse device: %s\n",
-	  pInfo->name, pVuidMse->strmod, strerror(errno));
+    if (pVuidMse->strmod) { 
+	SYSCALL(i = ioctl(pInfo->fd, I_POP, pVuidMse->strmod));
+	if (i == -1) {
+	    xf86Msg(X_WARNING,
+		    "%s: cannot pop module '%s' off mouse device: %s\n",
+		    pInfo->name, pVuidMse->strmod, strerror(errno));
+	}
     }
 
     xf86CloseSerial(pInfo->fd);
     pInfo->fd = -1;
-
-    /* Private structure */
-    pMse->mousePriv = pVuidMse;
 
     /* Process common mouse options (like Emulate3Buttons, etc). */
     pMse->CommonOptions(pInfo);
@@ -254,26 +270,12 @@ vuidPreInit(InputInfoPtr pInfo, const char *protocol, int flags)
 
     pMse->xisbscale = sizeof(Firm_event);
 
-#ifdef HAVE_ABSOLUTE_MOUSE_SCALING
-    if (vuidMouseGeneration != serverGeneration) {
-        if ((vuidMouseScreenIndex = AllocateScreenPrivateIndex()) >= 0) {
-	    int i;
-
-	    for (i = 0; i < screenInfo.numScreens; i++) {
-		ScreenPtr pScreen = screenInfo.screens[i];
-		ScrnInfoPtr pScrn = XF86SCRNINFO(pScreen);
-		vuidMouseScreenPrivate(pScreen) = (pointer) pScrn->AdjustFrame;
-		pScrn->AdjustFrame = vuidMouseAdjustFrame;
-	    }
-	}
-	vuidMouseGeneration = serverGeneration;
-	abs_mouse_list = NULL;
-    }
-    pVuidMse->pInfo = pInfo;
+#ifdef HAVE_ABSOLUTE_MOUSE_SCALING    
     pVuidMse->absres.height = pVuidMse->absres.width = 0;
-    pVuidMse->next_abs_mouse = abs_mouse_list ; 
-    abs_mouse_list = pVuidMse;
 #endif
+    pVuidMse->pInfo = pInfo;
+    pVuidMse->next = vuidMouseList; 
+    vuidMouseList = pVuidMse;
 
     pInfo->flags |= XI86_CONFIGURED;
     return TRUE;
@@ -326,7 +328,7 @@ vuidReadInput(InputInfoPtr pInfo)
     Bool absXset = FALSE, absYset = FALSE;
 
     pMse = pInfo->private;
-    pVuidMse = pMse->mousePriv;
+    pVuidMse = getVuidMsePriv(pInfo);
     buttons = pMse->lastButtons;
     XisbBlockDuration(pMse->buffer, -1);
     pBuf = pVuidMse->buffer;
@@ -465,7 +467,7 @@ static void vuidMouseAdjustFrame(int index, int x, int y, int flags)
       }
 
       if (miPointerCurrentScreen() == pScreen) {
-	  for (m = abs_mouse_list; m != NULL ; m = m->next_abs_mouse) {
+	  for (m = vuidMouseList; m != NULL ; m = m->next) {
 	      vuidMouseSendScreenSize(pScreen, m);
 	  }
       }
@@ -480,28 +482,55 @@ vuidMouseProc(DeviceIntPtr pPointer, int what)
     MouseDevPtr pMse;
     VuidMsePtr pVuidMse;
     int ret = Success;
+    int i;
 
     pInfo = pPointer->public.devicePrivate;
     pMse = pInfo->private;
     pMse->device = pPointer;
-    pVuidMse = pMse->mousePriv;
 
+    pVuidMse = getVuidMsePriv(pInfo);
+    if (pVuidMse == NULL) {
+	return BadImplementation;
+    }
+    
     switch (what) {
+
+    case DEVICE_INIT:
+#ifdef HAVE_ABSOLUTE_MOUSE_SCALING
+	if (vuidMouseGeneration != serverGeneration) {
+	    if ((vuidMouseScreenIndex = AllocateScreenPrivateIndex()) >= 0) {
+		for (i = 0; i < screenInfo.numScreens; i++) {
+		    ScreenPtr pScreen = screenInfo.screens[i];
+		    ScrnInfoPtr pScrn = XF86SCRNINFO(pScreen);
+		    vuidMouseScreenPrivate(pScreen)
+			= (pointer) pScrn->AdjustFrame;
+		    pScrn->AdjustFrame = vuidMouseAdjustFrame;
+		}
+	    }
+	    vuidMouseGeneration = serverGeneration;
+	}
+#endif    	
+	ret = pVuidMse->wrapped_device_control(pPointer, what);
+	break;
+	
     case DEVICE_ON:
 	ret = pVuidMse->wrapped_device_control(pPointer, DEVICE_ON);
 
 	if ((ret == Success) && (pInfo->fd != -1)) {
 	    int fmt = VUID_FIRM_EVENT;
 	    
-	    if (pVuidMse->strmod && 
-		(ioctl(pInfo->fd, I_PUSH, pVuidMse->strmod) < 0)) {
-		xf86Msg(X_WARNING,
+	    if (pVuidMse->strmod) {
+		SYSCALL(i = ioctl(pInfo->fd, I_PUSH, pVuidMse->strmod));
+		if (i < 0) {
+		    xf86Msg(X_WARNING,
 			"%s: cannot push module '%s' onto mouse device: %s\n",
 			pInfo->name, pVuidMse->strmod, strerror(errno));
-		xfree(pVuidMse->strmod);
-		pVuidMse->strmod = NULL;
+		    xfree(pVuidMse->strmod);
+		    pVuidMse->strmod = NULL;
+		}
 	    }
-	    if (ioctl(pInfo->fd, VUIDSFORMAT, &fmt) < 0) {
+	    SYSCALL(i = ioctl(pInfo->fd, VUIDSFORMAT, &fmt));
+	    if (i < 0) {
 		xf86Msg(X_WARNING,
 			"%s: cannot set mouse device to VUID mode: %s\n",
 			pInfo->name, strerror(errno));
@@ -517,18 +546,19 @@ vuidMouseProc(DeviceIntPtr pPointer, int what)
     case DEVICE_OFF:
     case DEVICE_CLOSE:
 	if (pInfo->fd != -1) {
-	    if (pVuidMse->strmod && 
-		(ioctl(pInfo->fd, I_POP, pVuidMse->strmod) == -1)) {
-		xf86Msg(X_WARNING,
+	    if (pVuidMse->strmod) {
+		SYSCALL(i = ioctl(pInfo->fd, I_POP, pVuidMse->strmod));
+		if (i == -1) {
+		    xf86Msg(X_WARNING,
 		      "%s: cannot pop module '%s' off mouse device: %s\n",
 		      pInfo->name, pVuidMse->strmod, strerror(errno));
+		}
 	    }
 	}
 	ret = pVuidMse->wrapped_device_control(pPointer, what);
 	break;
 
-    case DEVICE_INIT:
-    default:
+    default: /* Should never be called, but just in case */
 	ret = pVuidMse->wrapped_device_control(pPointer, what);
 	break;
     }
@@ -594,8 +624,9 @@ solarisMouseAutoProbe(InputInfoPtr pInfo, const char **protocol,
 	} else {
 	    found = TRUE;
 	    if ((*pproto != NULL) && (strcmp(*pproto, "VUID") == 0)) {
-		int i;
-		if (ioctl(fd, VUIDGFORMAT, &i) < 0) {
+		int i, r;
+		SYSCALL(r = ioctl(fd, VUIDGFORMAT, &i));
+    		if (r < 0) {
 		    found = FALSE;
 		}
 	    }
