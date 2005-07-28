@@ -1,3 +1,5 @@
+DIST_SUBDIRS = input config glxProxy
+
 SUBDIRS = input config
 bin_PROGRAMS = Xdmx
 
@@ -8,31 +10,54 @@ endif
 if GLX
 SUBDIRS += glxProxy
 GLX_LIBS = glxProxy/libglxproxy.a
-GLX_SRCS = $(PANORAMIX_SRCS) dmx_glxvisuals.c
+GLX_SRCS = $(PANORAMIX_SRCS) dmx_glxvisuals.c dmx_glxvisuals.h
 GLX_INCS = -I$(top_srcdir)/hw/xfree86/dixmods/extmod
 endif
 
-Xdmx_SOURCES = dmxinit.c \
-               dmxscrinit.c \
-               dmxshadow.c \
-               dmxcursor.c \
-               dmxinput.c \
-               dmxdpms.c \
-               dmxgc.c \
-               dmxgcops.c \
-               dmxwindow.c \
-               dmxpixmap.c \
-               dmxfont.c \
-               dmxcmap.c \
-               dmxvisual.c \
-               dmxlog.c \
+Xdmx_SOURCES = dmx.c \
                dmxcb.c \
-               dmxprop.c \
-               dmxstat.c \
-               dmxsync.c \
+               dmxcb.h \
+               dmxclient.h \
+               dmxcmap.c \
+               dmxcmap.h \
+               dmx-config.h \
+               dmxcursor.c \
+               dmxcursor.h \
+               dmxdpms.c \
+               dmxdpms.h \
                dmxextension.c \
+               dmxextension.h \
+               dmxfont.c \
+               dmxfont.h \
+               dmxgc.c \
+               dmxgc.h \
+               dmxgcops.c \
+               dmxgcops.h \
+               dmx.h \
+               dmxinit.c \
+               dmxinit.h \
+               dmxinput.c \
+               dmxinput.h \
+               dmxlog.c \
+               dmxlog.h \
                dmxpict.c \
-               dmx.c \
+               dmxpict.h \
+               dmxpixmap.c \
+               dmxpixmap.h \
+               dmxprop.c \
+               dmxprop.h \
+               dmxscrinit.c \
+               dmxscrinit.h \
+               dmxshadow.c \
+               dmxshadow.h \
+               dmxstat.c \
+               dmxstat.h \
+               dmxsync.c \
+               dmxsync.h \
+               dmxvisual.c \
+               dmxvisual.h \
+               dmxwindow.c \
+               dmxwindow.h \
                $(top_srcdir)/fb/fbcmap.c \
                $(top_srcdir)/mi/miinitext.c \
                $(GLX_SRCS) 

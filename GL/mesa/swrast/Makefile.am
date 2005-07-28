@@ -12,7 +12,7 @@ INCLUDES = -I@MESA_SOURCE@/include \
            -I$(srcdir)/../tnl \
            -I$(srcdir)/..
 
-libswrast_la_SOURCES = s_aaline.c \
+nodist_libswrast_la_SOURCES = s_aaline.c \
                       s_aatriangle.c \
                       s_accum.c \
                       s_alpha.c \

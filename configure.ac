@@ -815,7 +815,6 @@ randr/Makefile
 render/Makefile
 xkb/Makefile
 Xext/Makefile
-Xext/extmod/Makefile
 Xi/Makefile
 xfixes/Makefile
 hw/Makefile

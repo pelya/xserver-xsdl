@@ -24,3 +24,5 @@ SUBDIRS =			\
 	$(XVFB_SUBDIRS)		\
 	$(XNEST_SUBDIRS)	\
 	$(DMX_SUBDIRS)
+
+DIST_SUBDIRS = dmx xfree86 vfb xnest xwin

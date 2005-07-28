@@ -12,7 +12,7 @@ INCLUDES = -I@MESA_SOURCE@/include \
            -I$(srcdir)/../tnl \
            -I$(srcdir)/..
 
-libmath_la_SOURCES = m_debug_clip.c \
+nodist_libmath_la_SOURCES = m_debug_clip.c \
                        m_debug_norm.c \
                        m_debug_xform.c \
                        m_eval.c \

@@ -13,7 +13,7 @@ INCLUDES = -I@MESA_SOURCE@/include \
            -I$(srcdir)/../../tnl \
            -I$(srcdir)/../..
 
-libslang_la_SOURCES = slang_assemble_assignment.c \
+nodist_libslang_la_SOURCES = slang_assemble_assignment.c \
 		      slang_assemble.c \
 		      slang_assemble_conditional.c \
 		      slang_assemble_constructor.c \

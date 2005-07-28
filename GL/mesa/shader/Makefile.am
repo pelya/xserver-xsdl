@@ -16,7 +16,7 @@ INCLUDES = -I@MESA_SOURCE@/include \
            -I$(srcdir)/../tnl \
            -I$(srcdir)/..
 
-libshader_la_SOURCES = arbfragparse.c \
+nodist_libshader_la_SOURCES = arbfragparse.c \
                       arbprogparse.c \
                       arbprogram.c \
                       arbvertparse.c \

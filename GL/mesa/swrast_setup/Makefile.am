@@ -12,4 +12,4 @@ INCLUDES = -I@MESA_SOURCE@/include \
            -I$(srcdir)/../tnl \
            -I$(srcdir)/..
 
-libss_la_SOURCES = ss_context.c ss_triangle.c
+nodist_libss_la_SOURCES = ss_context.c ss_triangle.c

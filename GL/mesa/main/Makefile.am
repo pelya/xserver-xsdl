@@ -12,7 +12,7 @@ INCLUDES = -I@MESA_SOURCE@/include \
            -I$(srcdir)/../tnl \
            -I$(srcdir)/..
 
-libmain_la_SOURCES = accum.c \
+nodist_libmain_la_SOURCES = accum.c \
                     api_arrayelt.c \
                     api_loopback.c \
                     api_noop.c \

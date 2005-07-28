@@ -12,7 +12,7 @@ INCLUDES = -I@MESA_SOURCE@/include \
            -I$(srcdir)/../tnl \
            -I$(srcdir)/..
 
-libtnl_la_SOURCES = t_array_api.c \
+nodist_libtnl_la_SOURCES = t_array_api.c \
                       t_array_import.c \
                       t_context.c \
                       t_pipeline.c \

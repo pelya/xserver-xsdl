@@ -12,4 +12,4 @@ INCLUDES = -I@MESA_SOURCE@/include \
            -I$(srcdir)/../tnl \
            -I$(srcdir)/..
 
-libglapi_la_SOURCES = glapi.c glthread.c
+nodist_libglapi_la_SOURCES = glapi.c glthread.c

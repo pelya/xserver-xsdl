@@ -2,8 +2,6 @@ noinst_LTLIBRARIES = libXext.la
 
 sdk_HEADERS = xvdix.h xvmcext.h
 
-SUBDIRS = extmod
-
 if MITSHM
 MITSHM_SRCS = shm.c
 endif
@@ -32,14 +30,13 @@ if XEVIE
 XEVIE_SRCS = xevie.c EVIstruct.h
 endif
 
-INCLUDES = -I$(srcdir)/extmod -I$(top_builddir)/hw/xfree86/dixmods/extmod
+INCLUDES = -I$(top_srcdir)/hw/xfree86/dixmods/extmod
 
 AM_CFLAGS = $(DIX_CFLAGS)
 
 EXTRA_DIST = \
 	appgroup.h \
-	xvdisp.h \
-	xvmodproc.h
+	xvdisp.h
 
 # dmx.c has a hard dependency on the dmx DDX
 libXext_la_SOURCES =		\

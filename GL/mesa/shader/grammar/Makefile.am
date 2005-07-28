@@ -12,4 +12,4 @@ INCLUDES = -I@MESA_SOURCE@/include \
            -I$(srcdir)/../../tnl \
            -I$(srcdir)/../..
 
-libgrammar_la_SOURCES = grammar_mesa.c
+nodist_libgrammar_la_SOURCES = grammar_mesa.c

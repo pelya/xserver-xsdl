@@ -36,6 +36,7 @@ SRCS =	Args.c \
 	XNGC.h \
 	XNPixmap.h \
 	XNWindow.h \
+	xnest-config.h \
 	$(top_srcdir)/Xext/dpmsstubs.c \
 	$(top_srcdir)/Xi/stubs.c \
 	$(top_srcdir)/mi/miinitext.c \
@@ -55,7 +56,9 @@ AM_CFLAGS = -DHAVE_XNEST_CONFIG_H \
             -DXFree86Server \
             $(XNESTMODULES_CFLAGS)
 
-EXTRA_DIST = os2Stub.c
+EXTRA_DIST = os2Stub.c \
+             icon \
+             screensaver
 
 # -UDPMSExtension for miinitext? can't put into 
 # OS_DEFINES???

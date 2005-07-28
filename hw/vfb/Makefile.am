@@ -2,6 +2,7 @@ bin_PROGRAMS = Xvfb
 
 SRCS =	InitInput.c \
 	InitOutput.c \
+	lk201kbd.h \
 	$(top_srcdir)/Xext/dpmsstubs.c \
 	$(top_srcdir)/Xi/stubs.c \
 	$(top_srcdir)/mi/miinitext.c \

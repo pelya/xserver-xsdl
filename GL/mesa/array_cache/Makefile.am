@@ -12,4 +12,4 @@ INCLUDES = -I@MESA_SOURCE@/include \
            -I$(srcdir)/../tnl \
            -I$(srcdir)/..
 
-libac_la_SOURCES = ac_context.c ac_import.c
+nodist_libac_la_SOURCES = ac_context.c ac_import.c

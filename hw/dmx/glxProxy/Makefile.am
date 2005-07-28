@@ -1,22 +1,38 @@
 noinst_LIBRARIES = libglxproxy.a
 
-libglxproxy_a_SOURCES = g_disptab.c \
+libglxproxy_a_SOURCES = compsize.c \
+                        g_disptab.c \
+                        g_disptab.h \
+                        global.c \
                         glxcmds.c \
+                        glxcmdsswap.c \
+                        glxcontext.h \
+                        glxdrawable.h \
+                        glxerror.h \
                         glxext.c \
+                        glxext.h \
+                        glxfbconfig.c \
+                        glxfbconfig.h \
+                        glxscreens.c \
+                        glxscreens.h \
+                        glxserver.h \
+                        glxsingle.c \
+                        glxsingle.h \
+                        glxswap.c \
+                        glxswap.h \
                         glxutil.c \
+                        glxutil.h \
+                        glxvendor.c \
+                        glxvendor.h \
+                        glxvisuals.c \
+                        glxvisuals.h \
                         g_renderswap.c \
                         render2swap.c \
                         renderpixswap.c \
-                        global.c \
-                        glxcmdsswap.c \
-                        compsize.c \
-                        glxscreens.c \
-                        glxvisuals.c \
-                        glxsingle.c \
-                        glxvendor.c \
-                        glxfbconfig.c \
-                        glxswap.c
+                        unpack.h
 
-AM_CFLAGS = -I.. -I$(top_srcdir)/include -I$(top_srcdir)/GL/include \
+AM_CFLAGS = -I$(top_srcdir)/hw/dmx \
+            -I$(top_srcdir)/include \
+            -I$(top_srcdir)/GL/include \
             -DHAVE_DMX_CONFIG_H \
             @DMXMODULES_CFLAGS@
