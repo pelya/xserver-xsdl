@@ -215,7 +215,10 @@ AC_DEFINE(SHAPE,1,[Support SHAPE extension])
 
 AC_MSG_CHECKING([whether to build Xdmx DDX])
 if test x$DMX = xauto; then
-	DMX="yes"
+	case $host_os in
+		linux*) DMX="yes" ;;
+		*) DMX="no" ;;
+	esac
 fi
 AC_MSG_RESULT([$DMX])
 if test "$DMX" = yes; then
