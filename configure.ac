@@ -26,7 +26,7 @@ dnl Process this file with autoconf to create configure.
 AC_PREREQ(2.53)
 dnl we aren't intelligent about padding the version, so it always has to be four
 dnl digits.  ho hum.
-AC_INIT([xorg-server], 6.9.99.0, [daniel@freedesktop.org], xorg-server)
+AC_INIT([xorg-server], 6.99.99.900, [https://bugs.freedesktop.org/enter_bug.cgi?product=xorg], xorg-server)
 AC_CONFIG_SRCDIR([Makefile.am])
 AM_INIT_AUTOMAKE([dist-bzip2 foreign])
 AM_MAINTAINER_MODE
@@ -776,6 +776,8 @@ int main()
  AC_MSG_RESULT(assuming not on target machine))
 
 AC_SUBST([libdir exec_prefix prefix])
+
+XORG_RELEASE_VERSION
 
 AC_OUTPUT([
 Makefile
