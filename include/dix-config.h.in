@@ -257,6 +257,9 @@
 /* Define to 1 if you have the ANSI C header files. */
 #undef STDC_HEADERS
 
+/* Define to 1 on systems derived from System V Release 4 */
+#undef SVR4
+
 /* Support TCP socket connections */
 #undef TCPCONN
 

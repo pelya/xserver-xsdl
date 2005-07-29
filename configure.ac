@@ -599,6 +599,18 @@ else
 fi
 AC_DEFINE_UNQUOTED(X_BYTE_ORDER,[$ENDIAN],[Endian order])
 XORG_CFLAGS="$XORGSERVER_CFLAGS -DHAVE_XORG_CONFIG_H"
+
+# Imake defines SVR4 on SVR4 systems, and many files check for it, so
+# we need to replicate that here until those can all be fixed
+AC_MSG_CHECKING([if SVR4 needs to be defined])
+AC_EGREP_CPP([I_AM_SVR4],[
+#if defined(SVR4) || defined(__svr4__) || defined(__SVR4)
+ I_AM_SVR4
+#endif
+],[
+AC_DEFINE([SVR4],1,[Define to 1 on systems derived from System V Release 4])
+AC_MSG_RESULT([yes])], AC_MSG_RESULT([no]))
+
 test x$XORG = xyes && case $host_os in
   linux*)
   	XORG_OS="linux"
