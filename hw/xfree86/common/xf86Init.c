@@ -1804,8 +1804,12 @@ xf86PrintBanner()
 #endif
 
 #if XORG_VERSION_SNAP >= 900
+#if XORG_VERSION_MINOR >= 99
+  ErrorF(" (%d.0.0 RC %d)", XORG_VERSION_MAJOR+1, XORG_VERSION_SNAP - 900);
+#else
   ErrorF(" (%d.%d.0 RC %d)", XORG_VERSION_MAJOR, XORG_VERSION_MINOR + 1,
 				XORG_VERSION_SNAP - 900);
+#endif
 #endif
 
 #ifdef XORG_CUSTOM_VERSION
