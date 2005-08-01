@@ -695,7 +695,8 @@ pix_multiply (__m64 a, __m64 b)
     __m64 res;
     
     res = _mm_mullo_pi16 (a, b);
-    res = _mm_add_pi16 (res, MC(4x0080));
+    res = _mm_adds_pu16 (res, _mm_srli_pi16 (res, 8));
+    res = _mm_adds_pu16 (res, MC(4x0080));
     res = _mm_srli_pi16 (res, 8);
     
     return res;
@@ -2379,7 +2380,7 @@ fbHaveMMX (void)
 {
     static Bool initialized = FALSE;
     static Bool mmx_present;
-    
+
     if (!initialized)
     {
         unsigned int features = detectCPUFeatures();
