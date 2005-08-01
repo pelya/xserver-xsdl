@@ -2465,9 +2465,8 @@ configExtensions(XF86ConfExtensionsPtr conf_ext)
 		xf86Msg(X_CONFIG, "Extension \"%s\" is %s\n",
 			name, enable ? "enabled" : "disabled");
 	    } else {
-		xf86Msg(X_ERROR,
-			    "Extension \"%s\" is unrecognized\n", name);
-		return FALSE;
+		xf86Msg(X_WARNING, "Ignoring unrecognized extension \"%s\"\n",
+                        name);
 	    }
 	}
     }
