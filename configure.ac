@@ -23,7 +23,7 @@ dnl PERFORMANCE OF THIS SOFTWARE.
 dnl
 dnl Process this file with autoconf to create configure.
 
-AC_PREREQ(2.53)
+AC_PREREQ(2.57)
 dnl we aren't intelligent about padding the version, so it always has to be four
 dnl digits.  ho hum.
 AC_INIT([xorg-server], 6.99.99.900, [https://bugs.freedesktop.org/enter_bug.cgi?product=xorg], xorg-server)
@@ -141,6 +141,8 @@ EXTENSION_LIBS='$(top_builddir)/Xext/libXext.la'
 DMX_EXTENSIONS='$(top_builddir)/Xext/libXext.la'" "'$(top_builddir)/render/librender.la'
 EXTENSION_INCS='-I$(top_srcdir)/Xext'
 AC_DEFINE(XORG_SERVER, 1, [Build X.Org X server])
+
+m4_ifdef([AS_HELP_STRING], , [m4_define([AS_HELP_STRING], m4_defn([AC_HELP_STRING]))])
 
 AC_ARG_ENABLE(werror,        [  --enable-werror ],[WERROR=$enableval],[WERROR=no])
 AC_ARG_ENABLE(composite,     [  --enable-composite ],[COMPOSITE=$enableval],[COMPOSITE=no])
