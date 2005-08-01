@@ -472,12 +472,6 @@ symlink_mesa_x() {
     dst_dir mesa/X/drivers/common
     action driverfuncs.c
     action driverfuncs.h
-
-    # and another
-    src_dir src/glx/x11
-    dst_dir mesa/X
-    action indirect_size.c
-    action indirect_size.h
 }
 
 symlink_mesa_ppc() {
@@ -519,6 +513,15 @@ symlink_mesa() {
     symlink_mesa_x8664
 }
 
+symlink_glx() {
+    # this is... unpleasant
+    src_dir src/glx/x11
+    dst_dir glx
+
+    action indirect_size.c
+    action indirect_size.h
+}
+
 #########
 #
 #    Helper functions
@@ -545,6 +548,7 @@ run() {
     # $2 explanation
 
     ACTION=$1 EXPLANATION=$2 run_module mesa
+    ACTION=$1 EXPLANATION=$2 run_module glx
 }
 
 src_dir() {

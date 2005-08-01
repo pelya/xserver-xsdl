@@ -42,6 +42,8 @@ libglx_la_SOURCES = \
         glxutil.c \
         glxutil.h \
         impsize.h \
+        indirect_size.c \
+        indirect_size.h \
         render2.c \
         render2swap.c \
         renderpix.c \

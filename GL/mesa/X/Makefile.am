@@ -25,5 +25,4 @@ nodist_libX_la_SOURCES = xf86glx.c \
                   xm_line.c \
                   xm_span.c \
                   xm_tri.c \
-		  indirect_size.c \
 		  drivers/common/driverfuncs.c
