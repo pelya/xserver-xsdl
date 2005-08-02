@@ -140,6 +140,9 @@ XWin_LDFLAGS = -mwindows -static
 winprefsyacc.h: winprefsyacc.c
 winprefslex.c: winprefslex.l winprefsyacc.c winprefsyacc.h
 
+BUILT_SOURCES = winprefsyacc.h winprefsyacc.c winprefslex.c
+CLEANFILES = $(BUILT_SOURCES)
+
 AM_YFLAGS = -d
 AM_LFLAGS = -i
 AM_CFLAGS = -DHAVE_XWIN_CONFIG_H \

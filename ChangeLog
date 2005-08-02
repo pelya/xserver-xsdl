@@ -1,3 +1,10 @@
+2005-08-02  Keith Packard  <keithp@keithp.com>
+
+	* hw/xwin/Makefile.am:
+	Mark generated files as BUILT_SOURCES and CLEANFILES
+	to ensure they are regenerated after 'make clean' and
+	to make parallel builds work right.
+
 2005-08-01  Keith Packard  <keithp@keithp.com>
 
 	* hw/dmx/config/Makefile.am:
