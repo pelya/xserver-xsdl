@@ -30,8 +30,6 @@ PROWORKS_ASM_FLAGS =
 #   error "Unsupported Architecture for building with Sun Compilers"
 #  endif
 PROWORKS_INOUT_SRC = solaris-$(PROWORKS_ASM_ARCH).S
-PROWORKS_INOUT_OBJ = solaris-$(PROWORKS_ASM_ARCH).o
-libsolaris_la_LIBADD = $(PROWORKS_INOUT_OBJ)
 
 #all:: $(PROWORKS_ASM_ARCH).il
 #includes:: $(PROWORKS_ASM_ARCH).il
@@ -48,7 +46,7 @@ libsolaris_la_SOURCES = sun_bios.c sun_init.c $(IO_SRC) $(KBD_SRCS) \
 	$(srcdir)/../shared/kmod_noop.c $(srcdir)/../shared/pm_noop.c \
 	$(srcdir)/../shared/posix_tty.c $(srcdir)/../shared/sigiostubs.c \
 	$(srcdir)/../shared/stdPci.c $(srcdir)/../shared/stdResource.c \
-	$(VTSW_SRC)
+	$(VTSW_SRC) $(PROWORKS_INOUT_SRC)
 
 sdk_HEADERS = agpgart.h
 
