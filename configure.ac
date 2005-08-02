@@ -132,6 +132,10 @@ esac
 
 REQUIRED_MODULES="randrproto renderproto fixesproto damageproto xextproto xfont xproto xtrans xau xf86dgaproto xf86miscproto xf86rushproto xf86vidmodeproto xf86bigfontproto"
 
+OSNAME=`uname -srm`
+AC_DEFINE_UNQUOTED(OSNAME, "$OSNAME", 
+	[Define to OS Name string to display for build OS in Xorg log])
+
 DEFAULT_VENDOR_STRING="X.Org"
 DEFAULT_VENDOR_RELEASE="$PACKAGE_VERSION"
 # e.g. 6.9.99.1 -> 6,9,99,1,0
