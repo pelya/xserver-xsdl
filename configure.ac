@@ -68,7 +68,7 @@ AC_TYPE_PID_T
 
 # Checks for library functions.
 AC_FUNC_VPRINTF
-AC_CHECK_FUNCS([geteuid getuid link memmove memset mkstemp strchr strrchr strtol getopt getopt_long])
+AC_CHECK_FUNCS([geteuid getuid link memmove memset mkstemp strchr strrchr strtol getopt getopt_long walkcontext])
 AC_FUNC_ALLOCA
 
 # Find the math libary

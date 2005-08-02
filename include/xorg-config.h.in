@@ -66,4 +66,8 @@
 /* Solaris 8 or later? */
 #undef __SOL8__
 
+/* Define to 1 if you have the `walkcontext' function (used on Solaris for
+   xorg_backtrace in hw/xfree86/common/xf86Events.c */
+#undef HAVE_WALKCONTEXT
+
 #endif /* _XORG_CONFIG_H_ */
