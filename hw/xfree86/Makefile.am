@@ -12,15 +12,26 @@ DIST_SUBDIRS = common ddc dummylib i2c x86emu int10 fbdevhw os-support \
 
 bin_PROGRAMS = Xorg
 
-Xorg_SOURCES = dummy.c
+Xorg_SOURCES = xorg.c
 
-DISTCLEANFILES = dummy.c
+DISTCLEANFILES = xorg.c
 
-dummy.c:
+xorg.c:
 	touch $@
 
-OS_LIBS = os-support/bus/libbus.a \
-          os-support/@XORG_OS_SUBDIR@/lib@XORG_OS_SUBDIR@.a os-support/misc/libmisc.a
+xorgos.c:
+	touch $@
+
+# to get the grouping semantics right, you have to glom these three together
+# as one library, otherwise libtool will actively defeat your attempts to
+# list them multiple times on the link line.
+noinst_LTLIBRARIES = libxorgos.la
+libxorgos_la_SOURCES = xorgos.c
+libxorgos_la_LIBADD = os-support/@XORG_OS_SUBDIR@/lib@XORG_OS_SUBDIR@.la \
+                      os-support/bus/libbus.la \
+                      os-support/misc/libmisc.la
+
+OS_LIBS = libxorgos.la
 
 XORG_LIBS = \
             @XORG_CORE_LIBS@ \

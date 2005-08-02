@@ -31,7 +31,7 @@ PROWORKS_ASM_FLAGS =
 #  endif
 PROWORKS_INOUT_SRC = solaris-$(PROWORKS_ASM_ARCH).S
 PROWORKS_INOUT_OBJ = solaris-$(PROWORKS_ASM_ARCH).o
-libsolaris_a_LIBADD = $(PROWORKS_INOUT_OBJ)
+libsolaris_la_LIBADD = $(PROWORKS_INOUT_OBJ)
 
 #all:: $(PROWORKS_ASM_ARCH).il
 #includes:: $(PROWORKS_ASM_ARCH).il
@@ -41,8 +41,8 @@ libsolaris_a_LIBADD = $(PROWORKS_INOUT_OBJ)
 $(PROWORKS_INOUT_OBJ): $(PROWORKS_INOUT_SRC)
 	$(AS) -P -o $@ $(PROWORKS_ASM_FLAGS) $(PROWORKS_INOUT_SRC)
 
-noinst_LIBRARIES = libsolaris.a
-libsolaris_a_SOURCES = sun_bios.c sun_init.c $(IO_SRC) $(KBD_SRCS) \
+noinst_LTLIBRARIES = libsolaris.la
+libsolaris_la_SOURCES = sun_bios.c sun_init.c $(IO_SRC) $(KBD_SRCS) \
 	sun_mouse.c sun_vid.c $(AGP_SRC) \
 	$(srcdir)/../shared/libc_wrapper.c \
 	$(srcdir)/../shared/kmod_noop.c $(srcdir)/../shared/pm_noop.c \

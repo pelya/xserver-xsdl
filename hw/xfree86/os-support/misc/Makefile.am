@@ -1,6 +1,6 @@
-noinst_LIBRARIES = libmisc.a
+noinst_LTLIBRARIES = libmisc.la
 
-libmisc_a_SOURCES = Delay.c IODelay.c BUSmemcpy.c SlowBcopy.c 
+libmisc_la_SOURCES = Delay.c IODelay.c BUSmemcpy.c SlowBcopy.c 
 
 #AM_LDFLAGS = -r
 

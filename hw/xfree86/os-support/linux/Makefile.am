@@ -1,5 +1,10 @@
-noinst_LIBRARIES = liblinux.a
-liblinux_a_SOURCES = lnx_init.c lnx_video.c lnx_io.c lnx_kbd.c lnx_mouse.c \
+noinst_LTLIBRARIES = liblinux.la
+
+if LINUX_IA64
+PLATFORM_PCI_SUPPORT = $(srcdir)/../shared/ia64Pci.c
+endif
+
+liblinux_la_SOURCES = lnx_init.c lnx_video.c lnx_io.c lnx_kbd.c lnx_mouse.c \
                      lnx_pci.c lnx_agp.c lnx_kmod.c lnx_KbdMap.c \
                      $(srcdir)/../shared/bios_mmap.c \
 		     $(srcdir)/../shared/VTsw_usl.c \
@@ -9,7 +14,8 @@ liblinux_a_SOURCES = lnx_init.c lnx_video.c lnx_io.c lnx_kbd.c lnx_mouse.c \
 		     $(srcdir)/../shared/sigio.c \
                      $(srcdir)/../shared/stdResource.c \
 		     $(srcdir)/../shared/libc_wrapper.c \
-                     $(srcdir)/../shared/at_scancode.c
+                     $(srcdir)/../shared/at_scancode.c \
+                     $(PLATFORM_PCI_SUPPORT)
 
 sdk_HEADERS = agpgart.h
 
