@@ -1,3 +1,10 @@
+2005-08-01  Keith Packard  <keithp@keithp.com>
+
+	* hw/dmx/config/Makefile.am:
+	Note yacc and lex generated files as BUILT_SOURCES so
+	they are created before anything is compiled; required
+	for parallel builds
+
 2005-07-06  Alexander Gottwald  <ago@freedesktop.org>
 
 	* configure.ac:

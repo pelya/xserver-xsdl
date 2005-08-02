@@ -14,7 +14,9 @@ LIBSRCS = parser.y \
 parser.h: parser.c
 scanner.c: scanner.l parser.h
 
-CLEANFILES = parser.c parser.h scanner.c
+BUILT_SOURCES = parser.c parser.h scanner.c
+
+CLEANFILES = $(BUILT_SOURCES)
 
 libdmxconfig_a_SOURCES = $(LIBSRCS)
 
