@@ -7,6 +7,8 @@ AM_CFLAGS = $(DIX_CFLAGS) -I@MESA_SOURCE@/include
 
 INCLUDES = -I$(top_srcdir)/GL/include
 
+nodist_libglx_la_SOURCES = indirect_size.c indirect_size.h
+
 libglx_la_SOURCES = \
         g_disptab.c \
         g_disptab.h \
@@ -42,8 +44,6 @@ libglx_la_SOURCES = \
         glxutil.c \
         glxutil.h \
         impsize.h \
-        indirect_size.c \
-        indirect_size.h \
         render2.c \
         render2swap.c \
         renderpix.c \

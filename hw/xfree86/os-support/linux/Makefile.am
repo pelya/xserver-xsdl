@@ -25,4 +25,5 @@ INCLUDES = $(XORG_INCS) -I/usr/include/drm # FIXME this last part is crack
 
 EXTRA_DIST = \
 	lnx.h \
-	lnx_kbd.h
+	lnx_kbd.h \
+        $(srcdir)/../shared/ia64Pci.h
