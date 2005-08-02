@@ -620,12 +620,11 @@ test x$XORG = xyes && case $host_os in
 	XORG_OS_KBD="Lnx"
 	case $host_cpu in
 	  ia64*)
-		ia64=yes
+		linux_ia64=yes
 		;;
 	  *)
 		;;
 	esac
-	AM_CONDITIONAL([LINUX_IA64], [test "x$ia64" = xyes])
 	;;
   freebsd*)
   	XORG_OS="freebsd"
@@ -692,6 +691,7 @@ AC_SUBST([XORG_OS_SUBDIR])
 AC_SUBST([XORG_OS_KBD])
 AC_SUBST([XORG_OS_PCI])
 AM_CONDITIONAL([XORG_BUS_SBUS], [test "x$xorg_bus_sbus" = xyes])
+AM_CONDITIONAL([LINUX_IA64], [test "x$linux_ia64" = xyes])
 
 dnl these only go in xkb-config.h (which is shared by the Xorg and Xnest servers)
 XKBDIR="$datadir/X11/xkb"
