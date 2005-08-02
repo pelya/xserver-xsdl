@@ -130,8 +130,6 @@ case $host_cpu in
         ;;
 esac
 
-m4_ifdef([AS_HELP_STRING], , [m4_define([AS_HELP_STRING], m4_defn([AC_HELP_STRING]))])
-
 REQUIRED_MODULES="randrproto renderproto fixesproto damageproto xextproto xfont xproto xtrans xau xf86dgaproto xf86miscproto xf86rushproto xf86vidmodeproto xf86bigfontproto"
 
 DEFAULT_VENDOR_STRING="X.Org"
