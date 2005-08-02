@@ -1,7 +1,11 @@
 noinst_LTLIBRARIES = libbus.la
 sdk_HEADERS = xf86Pci.h
 
-PCI_SOURCES = @XORG_OS_PCI@Pci.c ix86Pci.c
+PCI_SOURCES = @XORG_OS_PCI@Pci.c 
+
+if XORG_BUS_IX86PCI
+PCI_SOURCES += ix86Pci.c
+endif
 
 if LINUX_IA64
 PLATFORM_PCI_SOURCES = 460gxPCI.c altixPCI.c e8870PCI.c zx1PCI.c
@@ -10,7 +14,7 @@ endif
 libbus_la_SOURCES = Pci.c $(PCI_SOURCES) $(PLATFORM_PCI_SOURCES)
 
 if XORG_BUS_SBUS
-	libbus_la_SOURCES += Sbus.c
+libbus_la_SOURCES += Sbus.c
 endif
 
 INCLUDES = $(XORG_INCS)

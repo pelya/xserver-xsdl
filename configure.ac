@@ -114,20 +114,30 @@ if test "$ac_cv_sysv_ipc" = yes; then
 	AC_DEFINE(HAVE_SYSV_IPC,1, [Define to 1 if SYSV IPC is available])
 fi
 
+### Choose bus options - replaces logic in hw/xfree86/os-support/bus/Imakefile
+
+# Defaults:
+
+DEFAULT_INT10="x86emu"
+xorg_bus_sbus="no"
+xorg_bus_ix86pci="no"
+
+# Override defaults as needed for specific platforms:
+
 case $host_cpu in
   sparc*)
   	xorg_bus_sbus="yes"
-        DEFAULT_INT10=x86emu
 	;;
   i*86)
+	xorg_bus_ix86pci="yes"
 	case $host_os in
-		solaris*) 	DEFAULT_INT10=x86emu ;;
-		*)		DEFAULT_INT10=vm86 ;;
+		*linux*)	DEFAULT_INT10=vm86 ;;
+		*bsd*)		xorg_bus_ix86pci="no" ;;
 	esac
         ;;
-  *)
-        DEFAULT_INT10=x86emu
-        ;;
+  amd64*)
+	xorg_bus_ix86pci="yes"
+	;;
 esac
 
 REQUIRED_MODULES="randrproto renderproto fixesproto damageproto xextproto xfont xproto xtrans xau xf86dgaproto xf86miscproto xf86rushproto xf86vidmodeproto xf86bigfontproto"
@@ -694,6 +704,7 @@ AC_SUBST([XORG_OS])
 AC_SUBST([XORG_OS_SUBDIR])
 AC_SUBST([XORG_OS_KBD])
 AC_SUBST([XORG_OS_PCI])
+AM_CONDITIONAL([XORG_BUS_IX86PCI], [test "x$xorg_bus_ix86pci" = xyes])
 AM_CONDITIONAL([XORG_BUS_SBUS], [test "x$xorg_bus_sbus" = xyes])
 AM_CONDITIONAL([LINUX_IA64], [test "x$linux_ia64" = xyes])
 
