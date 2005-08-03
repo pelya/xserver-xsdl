@@ -17,8 +17,12 @@ INCLUDES = -I@MESA_SOURCE@/include \
 # terribly gross hack.  i need a shower now.
 AM_CFLAGS = $(DIX_CFLAGS) -DXFree86Server
 
-nodist_libX_la_SOURCES = xf86glx.c \
+libX_la_SOURCES = xf86glx.c \
                   xf86glx_util.c \
+                  xf86glx_util.h \
+                  xf86glxint.h
+
+nodist_libX_la_SOURCES = \
                   xm_api.c \
 		  xm_buffer.c \
                   xm_dd.c \
