@@ -671,15 +671,44 @@ test x$XORG = xyes && case $host_os in
 	if test "${OS_MINOR}" -ge 8 ; then
 		AC_DEFINE(__SOL8__,1,[Solaris 8 or later])
 	fi
+	AC_CHECK_DECL([__SUNPRO_C], [SUNCC="yes"], [SUNCC="no"])
+	if test "x$SUNCC" = "xyes"; then
+		solaris_asm_inline="yes"
+	fi
+	AC_MSG_CHECKING([whether building 32-bit or 64-bit])
+	AC_EGREP_CPP(IAM64, [
+#ifdef __LP64
+IAM64
+#endif
+			], [SOLARIS_64="yes" ; AC_MSG_RESULT([64-bit])],
+			[SOLARIS_64="no" ; AC_MSG_RESULT([32-bit])])
+		
 	case $host_cpu in
-	  sparc*)	XORG_OS_PCI="sparc" ;;
-	  i*86)		XORG_OS_PCI="ix86" ;;
+	  sparc*)	
+		XORG_OS_PCI="sparc"
+		SOLARIS_INOUT_ARCH="sparcv8plus"
+		;;
+	  i*86)	
+		XORG_OS_PCI="ix86"
+		if test x$SOLARIS_64 = xyes ; then
+			SOLARIS_INOUT_ARCH="amd64"
+		else
+			SOLARIS_INOUT_ARCH="ia32"
+		fi
+		if test "${OS_MINOR}" -lt 8 ; then
+			solaris_usl_console="yes"
+		fi
+		;;
 	  *)
 		AC_MSG_ERROR([Unsupported Solaris platform. Only SPARC & x86 \
 		are supported on Solaris in this release.   If you are \
 		interested in porting Xorg to your platform, please email \
 		xorg@lists.freedesktop.org.]) ;;
 	esac
+	AC_SUBST([SOLARIS_INOUT_ARCH])
+	if test x$solaris_asm_inline = xyes ; then
+		XORG_CFLAGS="${XORG_CFLAGS} "'$(top_srcdir)/hw/xfree86/os-support/solaris/solaris-${SOLARIS_INOUT_ARCH}.il'
+	fi
 	;;
   *)
   	XORG_OS="unknown"
@@ -707,6 +736,8 @@ AC_SUBST([XORG_OS_PCI])
 AM_CONDITIONAL([XORG_BUS_IX86PCI], [test "x$xorg_bus_ix86pci" = xyes])
 AM_CONDITIONAL([XORG_BUS_SBUS], [test "x$xorg_bus_sbus" = xyes])
 AM_CONDITIONAL([LINUX_IA64], [test "x$linux_ia64" = xyes])
+AM_CONDITIONAL([SOLARIS_USL_CONSOLE], [test "x$solaris_usl_console" = xyes])
+AM_CONDITIONAL([SOLARIS_ASM_INLINE], [test "x$solaris_asm_inline" = xyes])
 
 dnl these only go in xkb-config.h (which is shared by the Xorg and Xnest servers)
 XKBDIR="$datadir/X11/xkb"

@@ -49,3 +49,14 @@ Xorg_LDADD = $(XORG_LIBS) \
              -ldl
 
 Xorg_LDFLAGS = $(LD_EXPORT_SYMBOLS_FLAG)
+
+
+if SOLARIS_ASM_INLINE
+# Needs to be built before any files are compiled when using Sun compilers
+# so in*/out* inline definitions are properly processed.
+
+BUILT_SOURCES = os-support/solaris/solaris-$(SOLARIS_INOUT_ARCH).il
+
+os-support/solaris/solaris-$(SOLARIS_INOUT_ARCH).il:
+	cd os-support/solaris ; make solaris-$(SOLARIS_INOUT_ARCH).il
+endif
