@@ -44,40 +44,6 @@ Bool fbHaveMMX(void);
 
 #ifdef USE_MMX
 
-#define MmxNegate(x) _mm_xor_si64((x), mmx_4x00ff)
-#define MmxAlpha(x) _mm_shuffle_pi16 ((x), _MM_SHUFFLE(3, 3, 3, 3));
-#define MmxTo(x) _mm_unpacklo_pi8 (_mm_cvtsi32_si64((x)), mmx_0)
-#define MmxFrom(x) (CARD32)_mm_cvtsi64_si32(_mm_packs_pu16((x), mmx_0))
-#define MmxAdd(x, y) _mm_adds_pu16 ((x), (y))
-
-#define MmxMulAdd(x, a, y) do {                     \
-        x = _mm_mullo_pi16 (x, a);                  \
-        x = _mm_adds_pu16 (x, _mm_srli_pi16 (x, 8)); \
-        x = _mm_adds_pu16 (x, mmx_4x0080);           \
-        x = _mm_srli_pi16 (x, 8);                   \
-        x = _mm_adds_pu16(x, y);                    \
-    } while (0)
-
-#define MmxMul(x, a) do {                           \
-        x = _mm_mullo_pi16 (x, a);                  \
-        x = _mm_adds_pu16 (x, _mm_srli_pi16 (x, 8)); \
-        x = _mm_adds_pu16 (x, mmx_4x0080);           \
-        x = _mm_srli_pi16 (x, 8);                   \
-    } while (0)
-
-#define MmxAddMul(x, a, y, b) do {                  \
-        x = _mm_mullo_pi16 (x, a);                  \
-        y = _mm_mullo_pi16 (y, b);                  \
-        x = _mm_srli_pi16(x, 1);                    \
-        y = _mm_srli_pi16(y, 1);                    \
-        x = _mm_adds_pu16 (x, y);                    \
-        x = _mm_adds_pu16 (x, _mm_srli_pi16 (x, 8)); \
-        x = _mm_adds_pu16 (x, mmx_4x0080);           \
-        x = _mm_srli_pi16 (x, 7);                   \
-    } while (0)
-
-typedef unsigned long long ullong;
-
 void fbComposeSetupMMX(void);
 
 void fbCompositeSolidMask_nx8888x0565Cmmx (CARD8      op,
