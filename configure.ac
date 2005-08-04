@@ -68,8 +68,10 @@ AC_TYPE_PID_T
 
 # Checks for library functions.
 AC_FUNC_VPRINTF
-AC_CHECK_FUNCS([geteuid getuid link memmove memset mkstemp strchr strrchr strtol getopt getopt_long walkcontext])
+AC_CHECK_FUNCS([geteuid getuid link memmove memset mkstemp strchr strrchr strtol getopt getopt_long vsnprintf walkcontext])
 AC_FUNC_ALLOCA
+
+AM_CONDITIONAL(NEED_VSNPRINTF, [test x$HAVE_VSNPRINTF = xno])
 
 # Find the math libary
 AC_CHECK_LIB(m, sqrt)
@@ -248,6 +250,7 @@ if test x$XORG = xauto; then
 	XORG="yes"
 	case $host_os in
 		cygwin*) XORG="no" ;;
+                darwin*) XORG="no" ;;
 	esac
 fi
 AC_MSG_RESULT([$XORG])
@@ -714,8 +717,8 @@ IAM64
   	XORG_OS="unknown"
 	XORG_OS_SUBDIR="unknown"
 	AC_MSG_ERROR([Your OS is unknown. Xorg currently only supports Linux, \
-	Free/Open/NetBSD, and Solaris. If you are interested in porting Xorg \
-	to your platform, please email xorg@lists.freedesktop.org.])
+	Free/Open/NetBSD, Solaris, and OS X. If you are interested in porting \
+        Xorg to your platform, please email xorg@lists.freedesktop.org.])
 	;;
 esac
 if test x$XORG_OS_PCI = x ; then
@@ -785,7 +788,14 @@ dnl _*_SOURCE on Solaris restricts to the standards, and removes non-standard
 dnl functions which X uses
 case $host_os in
 	cygwin*) ;;
-	solaris*);;
+	solaris*) ;;
+        darwin*)
+                echo $host_cpu
+                case $host_cpu in
+                        powerpc*)
+                                CFLAGS="$CFLAGS -D__powerpc__" ;; # eew
+                esac
+                ;;
 	*) 
 		AC_DEFINE(_POSIX_SOURCE,500,[POSIX-compliant source])
 		AC_DEFINE(_XOPEN_SOURCE,1,[X/Open-compliant source])

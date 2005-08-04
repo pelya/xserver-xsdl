@@ -12,6 +12,10 @@ INCLUDES = -I@MESA_SOURCE@/include \
            -I$(srcdir)/../tnl \
            -I$(srcdir)/..
 
+if NEED_VSNPRINTF
+VSNPRINTF_SOURCES = vsnprintf.c
+endif
+
 nodist_libmain_la_SOURCES = accum.c \
                     api_arrayelt.c \
                     api_loopback.c \
@@ -67,5 +71,5 @@ nodist_libmain_la_SOURCES = accum.c \
                     texstate.c \
                     texstore.c \
                     varray.c \
-                    vsnprintf.c \
+                    $(VSNPRINTF_SOURCES) \
                     vtxfmt.c

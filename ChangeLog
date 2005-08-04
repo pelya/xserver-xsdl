@@ -1,3 +1,11 @@
+2005-08-04  Adam Jackson  <ajax@freedesktop.org>
+
+	* configure.ac:
+	* GL/mesa/main/Makefile.am:
+	- Check for vsnprintf
+	- Don't build the Xorg DDX on darwin
+	- Workaround for gcc defining __ppc__ but not __powerpc__
+
 2005-08-02  Keith Packard  <keithp@keithp.com>
 
 	* hw/xwin/Makefile.am:
