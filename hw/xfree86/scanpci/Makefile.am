@@ -17,7 +17,9 @@ EXTRA_DIST = \
 	xf86PciIds.h \
 	xf86PciStdIds.h \
 	xf86PciStr.h \
-	xf86ScanPci.h
+	xf86ScanPci.h \
+	pci.ids \
+	pciid2c.pl
 
 xf86PciData.c:
 	echo "#define PCIDATA" > $@

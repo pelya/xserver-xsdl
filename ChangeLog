@@ -1,6 +1,20 @@
 2005-08-04  Adam Jackson  <ajax@freedesktop.org>
 
 	* configure.ac:
+	* GL/Makefile.am:
+	* GL/include/Makefile.am:
+	* GL/include/GL/Makefile.am:
+	* hw/xfree86/os-support/solaris/Makefile.am:
+	* hw/xfree86/scanpci/Makefile.am:
+	- Bug #3960: Add remaining GLX and pci.ids stuff to DIST
+	  (Cha Young-Ho, Olli Helenius)
+	- Fix some distcheck problems for non-solaris systems
+	- Change server version number from the Xorg rev to an independent one
+	- _POSIX_SOURCE and _XOPEN_SOURCE defined to the right values
+
+2005-08-04  Adam Jackson  <ajax@freedesktop.org>
+
+	* configure.ac:
 	* GL/mesa/main/Makefile.am:
 	- Check for vsnprintf
 	- Don't build the Xorg DDX on darwin

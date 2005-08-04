@@ -24,9 +24,9 @@ dnl
 dnl Process this file with autoconf to create configure.
 
 AC_PREREQ(2.57)
-dnl we aren't intelligent about padding the version, so it always has to be four
-dnl digits.  ho hum.
-AC_INIT([xorg-server], 6.99.99.900, [https://bugs.freedesktop.org/enter_bug.cgi?product=xorg], xorg-server)
+dnl This is the not the Xorg version number, it's the server version number.
+dnl Yes, that's weird.
+AC_INIT([xorg-server], 0.99.1, [https://bugs.freedesktop.org/enter_bug.cgi?product=xorg], xorg-server)
 AC_CONFIG_SRCDIR([Makefile.am])
 AM_INIT_AUTOMAKE([dist-bzip2 foreign])
 AM_MAINTAINER_MODE
@@ -151,7 +151,7 @@ AC_DEFINE_UNQUOTED(OSNAME, "$OSNAME",
 DEFAULT_VENDOR_STRING="X.Org"
 DEFAULT_VENDOR_RELEASE="$PACKAGE_VERSION"
 # e.g. 6.9.99.1 -> 6,9,99,1,0
-VERSION_STRING="${DEFAULT_VENDOR_RELEASE//./,},0"
+VERSION_STRING="6,99,99,900,0"
 DEFAULT_VENDOR_WEB="http://wiki.x.org"
 EXTENSION_LIBS='$(top_builddir)/Xext/libXext.la'
 DMX_EXTENSIONS='$(top_builddir)/Xext/libXext.la'" "'$(top_builddir)/render/librender.la'
@@ -797,8 +797,8 @@ case $host_os in
                 esac
                 ;;
 	*) 
-		AC_DEFINE(_POSIX_SOURCE,500,[POSIX-compliant source])
-		AC_DEFINE(_XOPEN_SOURCE,1,[X/Open-compliant source])
+		AC_DEFINE(_POSIX_SOURCE,1,[POSIX-compliant source])
+		AC_DEFINE(_XOPEN_SOURCE,500,[X/Open-compliant source])
 		AC_DEFINE(_BSD_SOURCE,1,[BSD-compliant source])
 		;;
 esac
@@ -861,6 +861,8 @@ AC_OUTPUT([
 Makefile
 GL/Makefile
 GL/glx/Makefile
+GL/include/Makefile
+GL/include/GL/Makefile
 GL/mesa/Makefile
 GL/mesa/array_cache/Makefile
 GL/mesa/glapi/Makefile
