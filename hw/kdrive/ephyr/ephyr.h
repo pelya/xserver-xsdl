@@ -47,6 +47,7 @@ typedef struct _ephyrScrPriv {
     Rotation	randr;
     Bool	shadow;
     PixmapPtr	pShadow;
+    DamagePtr   pDamage;
 } EphyrScrPriv;
 
 extern KdCardFuncs  ephyrFuncs;
@@ -116,8 +117,11 @@ ephyrSetScreenSizes (ScreenPtr pScreen);
 Bool
 ephyrUnmapFramebuffer (KdScreenInfo *screen);
 
+void
+ephyrUnsetInternalDamage (ScreenPtr pScreen);
+
 Bool
-ephyrSetShadow (ScreenPtr pScreen);
+ephyrSetInternalDamage (ScreenPtr pScreen);
 
 Bool
 ephyrCreateColormap (ColormapPtr pmap);
