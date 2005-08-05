@@ -67,6 +67,11 @@ sdk_HEADERS = compiler.h fourcc.h xf86.h xf86Module.h xf86Opt.h \
 
 DISTCLEANFILES = xf86Build.h
 
+# this is a hack for now.  as above we don't have rules to build all of these
+# yet, but we want to make sure they all get into the distball.  this should
+# eventually go away.
+DISTKBDSOURCES = xf86Kbd.c xf86KbdBSD.c xf86KbdLnx.c xf86KbdMach.c
+
 EXTRA_DIST = \
 	atKeynames.h \
 	compiler.h \
@@ -96,6 +101,7 @@ EXTRA_DIST = \
 	xf86Build.h.in \
 	xf86Version.h \
 	xorgVersion.h \
-	xf86Date.h
+	xf86Date.h \
+        $(DISTKBDSOURCES)
 
 AM_CFLAGS = $(XORG_CFLAGS)

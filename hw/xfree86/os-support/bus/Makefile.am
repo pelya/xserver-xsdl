@@ -21,10 +21,16 @@ INCLUDES = $(XORG_INCS)
 
 AM_CFLAGS = $(XORG_CFLAGS)
 
+# hack to keep all the OS PCI support files in the distball even though
+# there aren't rules to build them all yet.  also the AC_SUBST pattern
+# above will defeat automake's EXTRA_DIST logic, woo.
+PCIDISTSOURCES = freebsdPci.c linuxPci.c netbsdPci.c
+
 EXTRA_DIST = \
 	460gxPCI.h \
 	Pci.h \
 	altixPCI.h \
 	e8870PCI.h \
-	zx1PCI.h
+	zx1PCI.h \
+        $(PCIDISTSOURCES)
 

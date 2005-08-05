@@ -1,5 +1,11 @@
 2005-08-04  Adam Jackson  <ajax@freedesktop.org>
 
+	* hw/xfree86/common/Makefile.am:
+	* hw/xfree86/os-support/bus/Makefile.am:
+	EXTRA_DIST hacks to get all the OS support files into the tarball.
+
+2005-08-04  Adam Jackson  <ajax@freedesktop.org>
+
 	* configure.ac:
 	* GL/Makefile.am:
 	* GL/include/Makefile.am:
