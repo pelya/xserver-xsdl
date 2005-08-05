@@ -678,13 +678,7 @@ test x$XORG = xyes && case $host_os in
 	if test "x$SUNCC" = "xyes"; then
 		solaris_asm_inline="yes"
 	fi
-	AC_MSG_CHECKING([whether building 32-bit or 64-bit])
-	AC_EGREP_CPP(IAM64, [
-#ifdef __LP64
-IAM64
-#endif
-			], [SOLARIS_64="yes" ; AC_MSG_RESULT([64-bit])],
-			[SOLARIS_64="no" ; AC_MSG_RESULT([32-bit])])
+	AC_CHECK_DECL([_LP64], [SOLARIS_64="yes"], [SOLARIS_64="no"])
 		
 	case $host_cpu in
 	  sparc*)	
