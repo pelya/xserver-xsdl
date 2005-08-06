@@ -27,6 +27,8 @@
 #include <xorg-config.h>
 #endif
 
+#include <sys/types.h> /* get __x86 definition if not set by compiler */
+
 #if defined(i386) || defined(__x86)
 #define _NEED_SYSI86
 #endif

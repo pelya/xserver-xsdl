@@ -215,9 +215,15 @@ SOFTWARE.
 #endif /* SuperH */
 
 
-#if (defined(sun) && !(defined(i386) && defined(SVR4))) || \
+#if (defined(sun) && (defined(__sparc) || defined(sparc))) || \
     (defined(__uxp__) && (defined(sparc) || defined(mc68000))) || \
     defined(__sparc__) || defined(__mc68000__)
+
+#if defined(__sparc) || defined(__sparc__)
+# if !defined(sparc)
+#  define sparc 1
+# endif
+#endif
 
 #if defined(sun386) || defined(sun5)
 # define IMAGE_BYTE_ORDER	LSBFirst        /* Values for the SUN only */
@@ -447,7 +453,7 @@ SOFTWARE.
 
 #if	(defined(SVR4) && defined(i386)) || \
 	defined(__alpha__) || defined(__alpha) || \
-	defined(__i386__) || \
+	defined(__i386__) || defined(__i386) || \
 	defined(__UNIXOS2__) || \
 	defined(__OS2ELF__) || \
 	defined(__QNX__) || \
