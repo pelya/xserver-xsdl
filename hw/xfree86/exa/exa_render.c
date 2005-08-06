@@ -23,7 +23,7 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include <xorg-config.h>
 #endif
 #include "exaPriv.h"
 
