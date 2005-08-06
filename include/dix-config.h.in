@@ -59,6 +59,18 @@
 /* Support XDM-AUTH*-1 */
 #undef HASXDMAUTH
 
+/* Define to 1 if you have the `getdtablesize' function. */
+#undef HAS_GETDTABLESIZE
+
+/* Define to 1 if you have the `getifaddrs' function. */
+#undef HAS_GETIFADDRS
+
+/* Define to 1 if you have the `getpeereid' function. */
+#undef HAS_GETPEEREID
+
+/* Define to 1 if you have the `getpeerucred' function. */
+#undef HAS_GETPEERUCRED
+
 /* Support SHM */
 #undef HAS_SHM
 

@@ -71,6 +71,15 @@ AC_TYPE_PID_T
 AC_FUNC_VPRINTF
 AC_CHECK_FUNCS([geteuid getuid link memmove memset mkstemp strchr strrchr strtol getopt getopt_long vsnprintf walkcontext])
 AC_FUNC_ALLOCA
+# Old HAS_* names used in os/*.c
+AC_CHECK_FUNC([getdtablesize], AC_DEFINE(HAS_GETDTABLESIZE,1,
+	[Define to 1 if you have the `getdtablesize' function.]))
+AC_CHECK_FUNC([getifaddrs], AC_DEFINE(HAS_GETIFADDRS,1,
+	[Define to 1 if you have the `getifaddrs' function.]))
+AC_CHECK_FUNC([getpeereid], AC_DEFINE(HAS_GETPEEREID,1,
+	[Define to 1 if you have the `getpeereid' function.]))
+AC_CHECK_FUNC([getpeerucred], AC_DEFINE(HAS_GETPEERUCRED,1,
+	[Define to 1 if you have the `getpeerucred' function.]))
 
 AM_CONDITIONAL(NEED_VSNPRINTF, [test x$HAVE_VSNPRINTF = xno])
 
