@@ -1804,11 +1804,21 @@ xf86PrintBanner()
 #endif
 
 #if XORG_VERSION_SNAP >= 900
+  /* When the minor number is 99, that signifies that the we are making
+   * a release candidate for a major version.  (X.0.0)
+   * When the patch number is 99, that signifies that the we are making
+   * a release candidate for a minor version.  (X.Y.0)
+   * When the patch number is < 99, then we are making a release
+   * candidate for the next point release.  (X.Y.Z)
+   */
 #if XORG_VERSION_MINOR >= 99
   ErrorF(" (%d.0.0 RC %d)", XORG_VERSION_MAJOR+1, XORG_VERSION_SNAP - 900);
-#else
+#elif XORG_VERSION_PATCH == 99
   ErrorF(" (%d.%d.0 RC %d)", XORG_VERSION_MAJOR, XORG_VERSION_MINOR + 1,
 				XORG_VERSION_SNAP - 900);
+#else
+  ErrorF(" (%d.%d.%d RC %d)", XORG_VERSION_MAJOR, XORG_VERSION_MINOR,
+ 			 XORG_VERSION_PATCH + 1, XORG_VERSION_SNAP - 900);
 #endif
 #endif
 
