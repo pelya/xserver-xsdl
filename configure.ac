@@ -63,7 +63,8 @@ AC_CHECK_HEADERS([fcntl.h stdlib.h string.h unistd.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
-AC_C_BIGENDIAN
+AC_C_BIGENDIAN([ENDIAN="X_BIG_ENDIAN"],[ENDIAN="X_LITTLE_ENDIAN"])
+
 AC_TYPE_PID_T
 
 # Checks for library functions.
@@ -611,11 +612,6 @@ XORG_DDXINCS='-I$(top_srcdir)/hw/xfree86 -I$(top_srcdir)/hw/xfree86/include -I$(
 XORG_OSINCS='-I$(top_srcdir)/hw/xfree86/os-support -I$(top_srcdir)/hw/xfree86/os-support/bus -I$(top_srcdir)/os'
 XORG_INCS="$XORG_DDXINCS $XORG_OSINCS"
 XSERVER_CFLAGS="$XSERVER_CFLAGS $CORE_INCS $EXTENSION_INCS $MI_INC $DAMAGE_INC $SHADOW_INC $FB_INC $XI_INC"
-if test "$WORDS_BIGENDIAN" = yes; then
-	ENDIAN="X_BIG_ENDIAN"
-else
-	ENDIAN="X_LITTLE_ENDIAN"
-fi
 AC_DEFINE_UNQUOTED(X_BYTE_ORDER,[$ENDIAN],[Endian order])
 XORG_CFLAGS="$XORGSERVER_CFLAGS -DHAVE_XORG_CONFIG_H"
 
