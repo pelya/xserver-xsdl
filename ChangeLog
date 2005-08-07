@@ -1,6 +1,11 @@
 2005-08-07  Adam Jackson  <ajax@freedesktop.org>
 
 	* configure.ac:
+	Invert the sense of the composite configure flag to match reality.
+
+2005-08-07  Adam Jackson  <ajax@freedesktop.org>
+
+	* configure.ac:
 	* miext/damage/Makefile.am:
 	Bug #3989: Fix Composite builds, enable Composite build by default.
 	(Olli Helenius)
