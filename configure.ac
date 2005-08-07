@@ -171,7 +171,7 @@ AC_DEFINE(XORG_SERVER, 1, [Build X.Org X server])
 m4_ifdef([AS_HELP_STRING], , [m4_define([AS_HELP_STRING], m4_defn([AC_HELP_STRING]))])
 
 AC_ARG_ENABLE(werror,        [  --enable-werror ],[WERROR=$enableval],[WERROR=no])
-AC_ARG_ENABLE(composite,     [  --enable-composite ],[COMPOSITE=$enableval],[COMPOSITE=no])
+AC_ARG_ENABLE(composite,     [  --enable-composite ],[COMPOSITE=$enableval],[COMPOSITE=yes])
 AC_ARG_ENABLE(mitshm,        [  --disable-shm ],[MITSHM=$enableval],[MITSHM=yes])
 AC_ARG_ENABLE(xres,          [  --disable-xres ],[RES=$enableval],[RES=yes])
 AC_ARG_ENABLE(xtrap,         [  --enable-xtrap ],[XTRAP=$enableval],[XTRAP=no])

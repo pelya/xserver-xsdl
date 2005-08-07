@@ -1,3 +1,10 @@
+2005-08-07  Adam Jackson  <ajax@freedesktop.org>
+
+	* configure.ac:
+	* miext/damage/Makefile.am:
+	Bug #3989: Fix Composite builds, enable Composite build by default.
+	(Olli Helenius)
+
 2005-08-04  Adam Jackson  <ajax@freedesktop.org>
 
 	* hw/xfree86/common/Makefile.am:
