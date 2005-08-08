@@ -585,7 +585,7 @@ EXTENSION_LIBS="$EXTENSION_LIBS "'$(top_builddir)/damageext/libdamageext.la'
 EXTENSION_INCS="$EXTENSION_INCS "'-I$(top_srcdir)/damageext'
 
 if test "$COMPOSITE" = yes; then
-	EXTENSION_LIBS="$EXTENSION_LIBS "'$(top_builddir)/composite/libcomposite.la'" "'$(top_builddir)/miext/cw/libcw.la'
+	EXTENSION_LIBS="$EXTENSION_LIBS "'$(top_builddir)/composite/libcomposite.la'
 	EXTENSION_INCS="$EXTENSION_INCS "'-I$(top_srcdir)/composite'
 fi
 
@@ -598,6 +598,10 @@ MI_INC='-I$(top_srcdir)/mi'
 FB_LIB='$(top_builddir)/fb/libfb.la'
 FB_INC='-I$(top_srcdir)/fb'
 DAMAGE_LIB='$(top_builddir)/miext/damage/libdamage.la'
+# damage (may) need the composite wrapper when composite is enabled
+if test "$COMPOSITE" = yes; then
+	DAMAGE_LIB="$DAMAGE_LIB "'$(top_builddir)/miext/cw/libcw.la'
+fi
 DAMAGE_INC='-I$(top_srcdir)/miext/damage'
 SHADOW_INC='-I$(top_srcdir)/miext/shadow'
 SHADOW_LIB='$(top_builddir)/miext/shadow/libshadow.la'
@@ -612,11 +616,11 @@ PKG_CHECK_MODULES([XSERVER], [$REQUIRED_MODULES])
 XSERVER_LIBS="${XSERVER_LIBS} -lm -lz"
 
 XORG_CORE_LIBS="$DIX_LIB"
-XORG_LIBS="$MI_LIB $XI_LIB $XKB_LIB $COMPOSITE_LIB $DAMAGE_LIB $EXTENSION_LIBS $XPSTUBS_LIB $OS_LIB"
+XORG_LIBS="$MI_LIB $EXTENSION_LIBS $XI_LIB $XKB_LIB $COMPOSITE_LIB $DAMAGE_LIB $XPSTUBS_LIB $OS_LIB"
 XVFB_LIBS="$FB_LIB $MI_LIB $GLX_LIBS $EXTENSION_LIBS $XI_LIB $XKB_LIB $COMPOSITE_LIB $DAMAGE_LIB $LAYER_LIB $XPSTUBS_LIB $OS_LIB"
 XNEST_LIBS="$FB_LIB $MI_LIB $GLX_LIBS $EXTENSION_LIBS $XI_LIB $XKB_LIB $COMPOSITE_LIB $DAMAGE_LIB $LAYER_LIB $XPSTUBS_LIB $OS_LIB"
-XWIN_LIBS="$FB_LIB $MI_LIB $XI_LIB $XKB_LIB $COMPOSITE_LIB $DAMAGE_LIB $LAYER_LIB $EXTENSION_LIBS $XPSTUBS_LIB $OS_LIB $SHADOW_LIB"
-XDMX_LIBS="$FB_LIB $MI_LIB $DMX_EXTENSIONS $XI_LIB $XKB_LIB $DAMAGE_LIB $OS_LIB $SHADOW_LIB"
+XWIN_LIBS="$FB_LIB $MI_LIB $EXTENSION_LIBS $XI_LIB $XKB_LIB $COMPOSITE_LIB $DAMAGE_LIB $LAYER_LIB $XPSTUBS_LIB $OS_LIB $SHADOW_LIB"
+XDMX_LIBS="$FB_LIB $MI_LIB $DMX_EXTENSIONS $EXTENSION_LIBS $XI_LIB $XKB_LIB $DAMAGE_LIB $OS_LIB $SHADOW_LIB"
 XORG_DDXINCS='-I$(top_srcdir)/hw/xfree86 -I$(top_srcdir)/hw/xfree86/include -I$(top_srcdir)/hw/xfree86/common'
 XORG_OSINCS='-I$(top_srcdir)/hw/xfree86/os-support -I$(top_srcdir)/hw/xfree86/os-support/bus -I$(top_srcdir)/os'
 XORG_INCS="$XORG_DDXINCS $XORG_OSINCS"

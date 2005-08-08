@@ -5,5 +5,13 @@ sdk_HEADERS = exa.h
 libexa_la_LDFLAGS = -avoid-version
 
 INCLUDES = $(XORG_INCS)
-DEFS += -DPIXPRIV
-libexa_la_SOURCES = exa.c exaasync.c exaoffscreen.c exapict.c
+
+AM_CFLAGS = $(XORG_CFLAGS)
+
+libexa_la_SOURCES = \
+	exaasync.c \
+	exa.c \
+	exa.h \
+	exaoffscreen.c \
+	exapict.c \
+	exaPriv.h
