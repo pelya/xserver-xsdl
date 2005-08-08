@@ -1,3 +1,7 @@
+Mon Aug  8 13:36:23 2005  Søren Sandmann  <sandmann@redhat.com>
+
+	* include/xorg-config.h.in: #undef PIXPRIV here.
+
 2005-08-07  Keith Packard  <keithp@keithp.com>
 
 	* include/dix-config.h.in:
