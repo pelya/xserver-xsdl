@@ -1,5 +1,11 @@
 2005-08-07  Keith Packard  <keithp@keithp.com>
 
+	* include/dix-config.h.in:
+	Re-add _XOPEN_SOURCE as it's needed *sometimes*.
+	Place it in #ifndef to avoid whinging.
+
+2005-08-07  Keith Packard  <keithp@keithp.com>
+
 	* .cvsignore:
 	* GL/mesa/X/.cvsignore:
 	* Xext/extmod/.cvsignore:

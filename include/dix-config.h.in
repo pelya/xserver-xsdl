@@ -371,6 +371,11 @@
 /* POSIX-compliant source */
 #undef _POSIX_SOURCE
 
+#ifndef _XOPEN_SOURCE
+/* X/Open-compliant source */
+#undef _XOPEN_SOURCE
+#endif
+
 /* Define to empty if `const' does not conform to ANSI C. */
 #undef const
 
