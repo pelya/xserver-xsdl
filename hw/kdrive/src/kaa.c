@@ -29,7 +29,6 @@
 #endif
 #include "kdrive.h"
 #include "kaa.h"
-#include "fontstruct.h"
 #include "dixfontstr.h"
 
 #define DEBUG_MIGRATE 0

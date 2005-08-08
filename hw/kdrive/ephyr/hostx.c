@@ -521,9 +521,15 @@ hostx_screen_init (int width, int height)
 
   /* Ask the WM to keep our size static */
   size_hints = XAllocSizeHints();
+#if 0
   size_hints->max_width = size_hints->min_width = width;
   size_hints->max_height = size_hints->min_height = height;
   size_hints->flags = PMinSize|PMaxSize;
+#else
+  size_hints->min_width = 100;
+  size_hints->min_height = 100;
+  size_hints->flags = PMinSize;
+#endif
   XSetWMNormalHints(HostX.dpy, HostX.win, size_hints);
   XFree(size_hints);
 

@@ -393,6 +393,7 @@ RadeonDisplayVideo(KdScreenInfo *screen, ATIPortPrivPtr pPortPriv)
 
 		END_DMA();
 	} else {
+//		BEGIN_DMA(11);
 		BEGIN_DMA(9);
 
 		OUT_RING(DMA_PACKET0(RADEON_REG_PP_TXFILTER_0, 5));
@@ -420,6 +421,8 @@ RadeonDisplayVideo(KdScreenInfo *screen, ATIPortPrivPtr pPortPriv)
 		    ((pPixmap->drawable.height - 1) << RADEON_TEX_VSIZE_SHIFT));
 		OUT_RING_REG(RADEON_REG_PP_TEX_PITCH_0,
 		    pPortPriv->src_pitch - 32);
+
+//	        OUT_RING_REG(ATI_REG_WAIT_UNTIL, ATI_WAIT_CRTC_VLINE);
 
 		END_DMA();
 	}

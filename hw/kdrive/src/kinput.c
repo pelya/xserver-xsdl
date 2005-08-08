@@ -1373,6 +1373,7 @@ KdMouseAccelerate (DeviceIntPtr	device, int *dx, int *dy)
     PtrCtrl *pCtrl = &device->ptrfeed->ctrl;
     double  speed = sqrt (*dx * *dx + *dy * *dy);
     double  accel;
+#ifdef QUADRATIC_ACCELERATION
     double  m;
 
     /*
@@ -1389,6 +1390,11 @@ KdMouseAccelerate (DeviceIntPtr	device, int *dx, int *dy)
     m = (((double) pCtrl->num / (double) pCtrl->den - 1.0) / 
 	 ((double) pCtrl->threshold * 2.0));
     accel = m * speed + 1;
+#else
+    accel = 1.0;
+    if (speed > pCtrl->threshold)
+	accel = (double) pCtrl->num / pCtrl->den;
+#endif
     *dx = accel * *dx;
     *dy = accel * *dy;
 }

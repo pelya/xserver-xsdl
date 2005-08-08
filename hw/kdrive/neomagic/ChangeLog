@@ -1,3 +1,8 @@
+2005-08-07  Keith Packard  <keithp@keithp.com>
+
+	* neo_draw.c:
+	Build with modular X libraries and headers
+
 2005-06-09  Eric Anholt  <anholt@FreeBSD.org>
 
 	* neo_draw.c:

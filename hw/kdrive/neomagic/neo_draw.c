@@ -32,7 +32,6 @@
 #include "pixmapstr.h"
 #include "regionstr.h"
 #include "mistruct.h"
-#include "fontstruct.h"
 #include "dixfontstr.h"
 #include "fb.h"
 #include "migc.h"
