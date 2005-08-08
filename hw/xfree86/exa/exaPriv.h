@@ -26,6 +26,10 @@
 #ifndef EXAPRIV_H
 #define EXAPRIV_H
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #include "exa.h"
 
 #include <X11/X.h>
