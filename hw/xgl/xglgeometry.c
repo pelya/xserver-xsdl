@@ -24,7 +24,7 @@
  */
 
 #include "xgl.h"
-#include "fontstruct.h"
+#include <X11/fonts/fontstruct.h>
 #include "dixfontstr.h"
 
 xglDataTypeInfoRec xglGeometryDataTypes[2] = {
