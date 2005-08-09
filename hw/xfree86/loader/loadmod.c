@@ -591,7 +591,13 @@ CheckVersion(const char *module, XF86ModuleVersionInfo * data,
 	    data->modname ? data->modname : "UNKNOWN!",
 	    data->vendor ? data->vendor : "UNKNOWN!");
 
-    if (ver > (4 << 24)) {
+    /* Check for the different scheme used in XFree86 4.0.x releases:
+     * ((((((((major << 7) | minor) << 7) | subminor) << 5) | beta) << 5) | alpha)
+     * Since it wasn't used in 4.1.0 or later, limit to versions in the 4.0.x
+     * range, which limits the overlap with the new version scheme to conflicts
+     * with 6.71.8.764 through 6.72.39.934.
+     */
+    if ((ver > (4 << 24)) && (ver < ( (4 << 24) + (1 << 17)))) {
 	/* 4.0.x and earlier */
 	verstr[1] = verstr[3] = 0;
 	verstr[2] = (ver & 0x1f) ? (ver & 0x1f) + 'a' - 1 : 0;
