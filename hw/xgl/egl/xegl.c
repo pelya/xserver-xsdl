@@ -552,7 +552,7 @@ InitOutput (ScreenInfo *pScreenInfo,
 
     if (!xdisplay)
     {
-        xdisplay = eglGetDisplay("!fb_dri");
+        xdisplay = eglGetDisplay(":0");
         assert(xdisplay);
 
         if (!eglInitialize(xdisplay, &maj, &min))
