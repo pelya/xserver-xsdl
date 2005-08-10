@@ -36,6 +36,10 @@
 
 #ifdef USE_MMX
 
+#if defined(__amd64__) || defined(__x86_64__)
+#define USE_SSE
+#endif
+
 #include <mmintrin.h>
 #include <xmmintrin.h> /* for _mm_shuffle_pi16 and _MM_SHUFFLE */
 
@@ -155,6 +159,8 @@ pix_add (__m64 a, __m64 b)
     return  _mm_adds_pu8 (a, b);
 }
 
+#ifdef USE_SSE
+
 static __inline__ __m64
 expand_alpha (__m64 pixel)
 {
@@ -172,6 +178,61 @@ invert_colors (__m64 pixel)
 {
     return _mm_shuffle_pi16 (pixel, _MM_SHUFFLE(3, 0, 1, 2));
 }
+
+#else
+
+static __inline__ __m64
+expand_alpha (__m64 pixel)
+{
+    __m64 t1, t2;
+    
+    t1 = shift (pixel, -48);
+    t2 = shift (t1, 16);
+    t1 = _mm_or_si64 (t1, t2);
+    t2 = shift (t1, 32);
+    t1 = _mm_or_si64 (t1, t2);
+
+    return t1;
+}
+
+static __inline__ __m64
+expand_alpha_rev (__m64 pixel)
+{
+    __m64 t1, t2;
+
+    /* move alpha to low 16 bits and zero the rest */
+    t1 = shift (pixel,  48);
+    t1 = shift (t1, -48);
+
+    t2 = shift (t1, 16);
+    t1 = _mm_or_si64 (t1, t2);
+    t2 = shift (t1, 32);
+    t1 = _mm_or_si64 (t1, t2);
+
+    return t1;
+}
+
+static __inline__ __m64
+invert_colors (__m64 pixel)
+{
+    __m64 x, y, z;
+
+    x = y = z = pixel;
+
+    x = _mm_and_si64 (x, MC(ffff0000ffff0000));
+    y = _mm_and_si64 (y, MC(000000000000ffff));
+    z = _mm_and_si64 (z, MC(0000ffff00000000));
+
+    y = shift (y, 32);
+    z = shift (z, -32);
+
+    x = _mm_or_si64 (x, y);
+    x = _mm_or_si64 (x, z);
+
+    return x;
+}
+
+#endif
 
 static __inline__ __m64
 over (__m64 src, __m64 srca, __m64 dest)
