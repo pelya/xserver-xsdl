@@ -1,6 +1,6 @@
 noinst_LTLIBRARIES = libxkb.la
 
-AM_CFLAGS = $(DIX_CFLAGS) -DXF86DDXACTIONS -I$(top_srcdir)/hw/xfree86/common -I$(top_srcdir)/hw/xfree86/os-support/bus/
+AM_CFLAGS = $(DIX_CFLAGS)
 
 DDX_SRCS = \
         ddxBeep.c \
@@ -11,7 +11,7 @@ DDX_SRCS = \
         ddxKeyClick.c \
         ddxKillSrv.c \
         ddxLEDs.c \
-        ddxVT.c \
+	ddxVT.c \
         ddxLoad.c \
         ddxList.c \
         ddxConfig.c \
