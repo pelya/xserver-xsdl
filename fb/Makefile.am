@@ -4,6 +4,11 @@ AM_CFLAGS = $(DIX_CFLAGS)
 
 sdk_HEADERS = fb.h fbrop.h fbpseudocolor.h fboverlay.h
 
+if MMX_CAPABLE
+AM_CFLAGS += -mmmx -msse -Winline --param inline-unit-growth=10000 \
+        --param large-function-growth=10000 -DUSE_MMX
+endif
+
 libfb_la_SOURCES = 	\
 	fb.h		\
 	fb24_32.c	\

@@ -283,6 +283,34 @@ if test "$XNEST" = yes; then
 fi
 AM_CONDITIONAL(XNEST, [test x$XNEST = xyes])
 
+          
+# Checks to see if we should compile in MMX support (there will be
+# a runtime test when the code is actually run to see if it should
+# be used - this just checks if we can compile it.)
+#
+# This code is partially taken from Mesa via gtk+
+#
+AC_MSG_CHECKING(for MMX capable platform)
+case $host_cpu in
+        i386|i486|i586|i686|i786|k6|k7|amd64|x86-64)
+        use_x86_asm=yes
+        ;;
+   *)
+        use_x86_asm=no
+esac
+
+if [[[ x$use_x86_asm = xyes && "x$GCC" = "xyes" ]]] ; then
+	AC_PREPROC_IFELSE([
+#if (!defined (__GNUC__) || __GNUC__ < 3 || (__GNUC__ == 3 && __GNUC_MINOR__ < 4))
+    #error Not supported
+#endif
+], mmx_capable=yes, mmx_capable=no)
+fi
+
+AC_MSG_RESULT([$mmx_capable])
+
+AM_CONDITIONAL(MMX_CAPABLE, [test x$mmx_capable = xyes])
+
 dnl  
 dnl  Definitions for XWin DDX
 dnl 
