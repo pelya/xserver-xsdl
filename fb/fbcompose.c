@@ -2967,9 +2967,9 @@ static void fbFetchTransformed(PicturePtr pict, int x, int y, int width, CARD32 
                     if (!v.vector[2]) {
                         buffer[i] = 0;
                     } else {
-                        int x1, x2, y1, y2, distx, idistx, disty, idisty;
+                        int x1, x2, y1, y2, distx, idistx, disty, idisty, k;
                         FbBits *b;
-                        CARD32 tl, tr, bl, br;
+                        CARD32 tl, tr, bl, br, r;
                         xFixed_48_16 div;
 
                         div = ((xFixed_48_16)v.vector[0] << 16)/v.vector[2];
@@ -2997,10 +2997,14 @@ static void fbFetchTransformed(PicturePtr pict, int x, int y, int width, CARD32 
                         bl = fetch(b, x1 + pict->pDrawable->x, indexed);
                         br = fetch(b, x2 + pict->pDrawable->x, indexed);
 
-                        FbByteAddMul_256(tl, idistx, tr, distx);
-                        FbByteAddMul_256(bl, idistx, br, distx);
-                        FbByteAddMul_256(tl, idisty, bl, disty);
-                        buffer[i] = tl;
+                        r = 0;
+                        for (k = 0; k < 32; k += 8) {
+                            CARD32 t, b;
+                            t = FbGet8(tl,k) * idistx + FbGet8(tr,k) * distx;
+                            b = FbGet8(bl,k) * idistx + FbGet8(br,k) * distx;
+                            r |= ((((t * idisty) + (b * disty)) >> 16) & 0xff) << k;
+                        }
+                        buffer[i] = r;
                     }
                     v.vector[0] += unit.vector[0];
                     v.vector[1] += unit.vector[1];
@@ -3011,9 +3015,9 @@ static void fbFetchTransformed(PicturePtr pict, int x, int y, int width, CARD32 
                     if (!v.vector[2]) {
                         buffer[i] = 0;
                     } else {
-                        int x1, x2, y1, y2, distx, idistx, disty, idisty;
+                        int x1, x2, y1, y2, distx, idistx, disty, idisty, k;
                         FbBits *b;
-                        CARD32 tl, tr, bl, br;
+                        CARD32 tl, tr, bl, br, r;
                         xFixed_48_16 div;
 
                         div = ((xFixed_48_16)v.vector[0] << 16)/v.vector[2];
@@ -3045,10 +3049,14 @@ static void fbFetchTransformed(PicturePtr pict, int x, int y, int width, CARD32 
                         br = POINT_IN_REGION(0, pict->pCompositeClip, x2, y2, &box)
                              ? fetch(b, x2 + pict->pDrawable->x, indexed) : 0;
 
-                        FbByteAddMul_256(tl, idistx, tr, distx);
-                        FbByteAddMul_256(bl, idistx, br, distx);
-                        FbByteAddMul_256(tl, idisty, bl, disty);
-                        buffer[i] = tl;
+                        r = 0;
+                        for (k = 0; k < 32; k += 8) {
+                            CARD32 t, b;
+                            t = FbGet8(tl,k) * idistx + FbGet8(tr,k) * distx;
+                            b = FbGet8(bl,k) * idistx + FbGet8(br,k) * distx;
+                            r |= ((((t * idisty) + (b * disty)) >> 16) & 0xff) << k;
+                        }
+                        buffer[i] = r;
                     }
                     v.vector[0] += unit.vector[0];
                     v.vector[1] += unit.vector[1];
@@ -3062,9 +3070,9 @@ static void fbFetchTransformed(PicturePtr pict, int x, int y, int width, CARD32 
                     if (!v.vector[2]) {
                         buffer[i] = 0;
                     } else {
-                        int x1, x2, y1, y2, distx, idistx, disty, idisty, x_off;
+                        int x1, x2, y1, y2, distx, idistx, disty, idisty, x_off, k;
                         FbBits *b;
-                        CARD32 tl, tr, bl, br;
+                        CARD32 tl, tr, bl, br, r;
                         Bool x1_out, x2_out, y1_out, y2_out;
                         xFixed_48_16 div;
 
@@ -3094,10 +3102,14 @@ static void fbFetchTransformed(PicturePtr pict, int x, int y, int width, CARD32 
                         bl = x1_out|y2_out ? 0 : fetch(b, x_off, indexed);
                         br = x2_out|y2_out ? 0 : fetch(b, x_off + 1, indexed);
 
-                        FbByteAddMul_256(tl, idistx, tr, distx);
-                        FbByteAddMul_256(bl, idistx, br, distx);
-                        FbByteAddMul_256(tl, idisty, bl, disty);
-                        buffer[i] = tl;
+                        r = 0;
+                        for (k = 0; k < 32; k += 8) {
+                            CARD32 t, b;
+                            t = FbGet8(tl,k) * idistx + FbGet8(tr,k) * distx;
+                            b = FbGet8(bl,k) * idistx + FbGet8(br,k) * distx;
+                            r |= ((((t * idisty) + (b * disty)) >> 16) & 0xff) << k;
+                        }
+                        buffer[i] = r;
                     }
                     v.vector[0] += unit.vector[0];
                     v.vector[1] += unit.vector[1];
@@ -3108,9 +3120,9 @@ static void fbFetchTransformed(PicturePtr pict, int x, int y, int width, CARD32 
                     if (!v.vector[2]) {
                         buffer[i] = 0;
                     } else {
-                        int x1, x2, y1, y2, distx, idistx, disty, idisty, x_off;
+                        int x1, x2, y1, y2, distx, idistx, disty, idisty, x_off, k;
                         FbBits *b;
-                        CARD32 tl, tr, bl, br;
+                        CARD32 tl, tr, bl, br, r;
                         xFixed_48_16 div;
 
                         div = ((xFixed_48_16)v.vector[0] << 16)/v.vector[2];
@@ -3138,10 +3150,14 @@ static void fbFetchTransformed(PicturePtr pict, int x, int y, int width, CARD32 
                         br = POINT_IN_REGION(0, pict->pCompositeClip, x2, y2, &box)
                              ? fetch(b, x_off + 1, indexed) : 0;
 
-                        FbByteAddMul_256(tl, idistx, tr, distx);
-                        FbByteAddMul_256(bl, idistx, br, distx);
-                        FbByteAddMul_256(tl, idisty, bl, disty);
-                        buffer[i] = tl;
+                        r = 0;
+                        for (k = 0; k < 32; k += 8) {
+                            CARD32 t, b;
+                            t = FbGet8(tl,k) * idistx + FbGet8(tr,k) * distx;
+                            b = FbGet8(bl,k) * idistx + FbGet8(br,k) * distx;
+                            r |= ((((t * idisty) + (b * disty)) >> 16) & 0xff) << k;
+                        }
+                        buffer[i] = r;
                     }
                     v.vector[0] += unit.vector[0];
                     v.vector[1] += unit.vector[1];
