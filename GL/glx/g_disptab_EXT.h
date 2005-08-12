@@ -99,17 +99,10 @@ extern void __glXDispSwap_SecondaryColor3dv(GLbyte *);
 extern void __glXDisp_BlendFuncSeparate(GLbyte *);
 extern void __glXDispSwap_BlendFuncSeparate(GLbyte *);
 
-#ifdef __DARWIN__
 extern void __glXDisp_PointParameteriNV(GLbyte *);
 extern void __glXDisp_PointParameterivNV(GLbyte *);
 extern void __glXDispSwap_PointParameteriNV(GLbyte *);
 extern void __glXDispSwap_PointParameterivNV(GLbyte *);
-#else
-extern void __glXDisp_PointParameteri(GLbyte *);
-extern void __glXDisp_PointParameteriv(GLbyte *);
-extern void __glXDispSwap_PointParameteri(GLbyte *);
-extern void __glXDispSwap_PointParameteriv(GLbyte *);
-#endif
 
 extern void __glXDisp_ActiveStencilFaceEXT(GLbyte*);
 

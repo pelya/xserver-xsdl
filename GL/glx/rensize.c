@@ -922,7 +922,7 @@ int __glXPointParameterfvARBReqSize(GLbyte *pc, Bool swap )
     if (swap) {
 	pname = SWAPL( pname );
     }
-    return 4 * __glPointParameterfvARB_size( pname );
+    return 4 * __glPointParameterfvEXT_size( pname );
 }
 
 int __glXPointParameterivReqSize(GLbyte *pc, Bool swap )

@@ -71,7 +71,7 @@ extern int __glTexParameterfv_size(GLenum e);
 extern int __glTexParameteriv_size(GLenum e);
 extern int __glEvalComputeK(GLenum target);
 
-extern int __glPointParameterfvARB_size(GLenum e);
-extern int __glPointParameteriv_size(GLenum e);
+extern int __glPointParameterfvEXT_size(GLenum e);
+extern int __glPointParameterivNV_size(GLenum e);
 
 #endif /* _impsize_h_ */

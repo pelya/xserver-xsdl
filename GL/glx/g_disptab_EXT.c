@@ -2225,13 +2225,8 @@ __GLXdispatchRenderProcPtr __glXRenderTable_EXT[__GLX_MAX_RENDER_OPCODE_EXT - __
 	__glXNoSuchRenderOpcode, /* 4219 */
 #ifndef MISSING_GL_EXTS
 	__glXDisp_ActiveStencilFaceEXT, /* 4220 */
-# ifndef __DARWIN__
-	__glXDisp_PointParameteri,      /* 4221 */
-	__glXDisp_PointParameteriv,     /* 4222 */
-# else
 	__glXDisp_PointParameteriNV,    /* 4221 */
 	__glXDisp_PointParameterivNV,   /* 4222 */
-# endif
 #else
 	__glXNoSuchRenderOpcode,
 	__glXNoSuchRenderOpcode,
@@ -4435,13 +4430,8 @@ __GLXdispatchRenderProcPtr __glXSwapRenderTable_EXT[__GLX_MAX_RENDER_OPCODE_EXT 
 	__glXNoSuchRenderOpcode, /* 4219 */
 #ifndef MISSING_GL_EXTS
 	__glXDispSwap_ActiveStencilFaceEXT, /* 4220 */
-# ifndef __DARWIN__
-	__glXDispSwap_PointParameteri,      /* 4221 */
-	__glXDispSwap_PointParameteriv,     /* 4222 */
-# else
 	__glXDispSwap_PointParameteriNV,    /* 4221 */
 	__glXDispSwap_PointParameterivNV,   /* 4222 */
-# endif
 #else
 	__glXNoSuchRenderOpcode,
 	__glXNoSuchRenderOpcode,
