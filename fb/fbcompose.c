@@ -2639,6 +2639,8 @@ static void fbFetch(PicturePtr pict, int x, int y, int width, CARD32 *buffer)
 }
 
 #define MOD(a,b) ((a) < 0 ? ((b) - ((-(a) - 1) % (b))) - 1 : (a) % (b))
+#define DIV(a,b) ((((a) < 0) == ((b) < 0)) ? (a) / (b) :\
+        ((a) - (b) + 1 - (((b) < 0) << 1)) / (b))
 
 
 static CARD32 gradientPixel(const SourcePictPtr pGradient, xFixed_48_16 pos, unsigned int spread)
@@ -2898,8 +2900,8 @@ static void fbFetchTransformed(PicturePtr pict, int x, int y, int width, CARD32 
                     if (!v.vector[2]) {
                         buffer[i] = 0;
                     } else {
-                        y = MOD((v.vector[1]/v.vector[2]), pict->pDrawable->height);
-                        x = MOD((v.vector[0]/v.vector[2]), pict->pDrawable->width);
+                        y = MOD(DIV(v.vector[1],v.vector[2]), pict->pDrawable->height);
+                        x = MOD(DIV(v.vector[0],v.vector[2]), pict->pDrawable->width);
                         buffer[i] = fetch(bits + (y + pict->pDrawable->y)*stride, x + pict->pDrawable->x, indexed);
                     }
                     v.vector[0] += unit.vector[0];
@@ -2911,8 +2913,8 @@ static void fbFetchTransformed(PicturePtr pict, int x, int y, int width, CARD32 
                     if (!v.vector[2]) {
                         buffer[i] = 0;
                     } else {
-                        y = MOD((v.vector[1]/v.vector[2]), pict->pDrawable->height);
-                        x = MOD((v.vector[0]/v.vector[2]), pict->pDrawable->width);
+                        y = MOD(DIV(v.vector[1],v.vector[2]), pict->pDrawable->height);
+                        x = MOD(DIV(v.vector[0],v.vector[2]), pict->pDrawable->width);
                         if (POINT_IN_REGION (0, pict->pCompositeClip, x, y, &box))
                             buffer[i] = fetch(bits + (y + pict->pDrawable->y)*stride, x + pict->pDrawable->x, indexed);
                         else
@@ -2930,8 +2932,8 @@ static void fbFetchTransformed(PicturePtr pict, int x, int y, int width, CARD32 
                     if (!v.vector[2]) {
                         buffer[i] = 0;
                     } else {
-                        y = (v.vector[1]/v.vector[2]);
-                        x = (v.vector[0]/v.vector[2]);
+                        y = DIV(v.vector[1],v.vector[2]);
+                        x = DIV(v.vector[0],v.vector[2]);
                         buffer[i] = ((x < box.x1) | (x >= box.x2) | (y < box.y1) | (y >= box.y2)) ?
                                     0 : fetch(bits + (y + pict->pDrawable->y)*stride, x + pict->pDrawable->x, indexed);
                     }
@@ -2944,8 +2946,8 @@ static void fbFetchTransformed(PicturePtr pict, int x, int y, int width, CARD32 
                     if (!v.vector[2]) {
                         buffer[i] = 0;
                     } else {
-                        y = (v.vector[1]/v.vector[2]);
-                        x = (v.vector[0]/v.vector[2]);
+                        y = DIV(v.vector[1],v.vector[2]);
+                        x = DIV(v.vector[0],v.vector[2]);
                         if (POINT_IN_REGION (0, pict->pCompositeClip, x, y, &box))
                             buffer[i] = fetch(bits + (y + pict->pDrawable->y)*stride, x + pict->pDrawable->x, indexed);
                         else
