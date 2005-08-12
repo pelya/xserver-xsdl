@@ -1137,7 +1137,8 @@ InitInput(argc, argv)
     else {
 #ifdef USE_DEPRECATED_KEYBOARD_DRIVER
       /* Only set this if we're allowing the old driver. */
-      xf86Info.pKeyboard = AddInputDevice(xf86Info.kbdProc, TRUE);
+	if (xf86Info.kbdProc != NULL) 
+	    xf86Info.pKeyboard = AddInputDevice(xf86Info.kbdProc, TRUE);
 #endif
     }
     if (corePointer)
