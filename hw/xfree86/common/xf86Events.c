@@ -440,9 +440,7 @@ xf86ProcessActionEvent(ActionEvent action, void *arg)
 extern u_char SpecialServerMap[];
 #endif
 
-#if !defined(__UNIXOS2__) && \
-    !defined(__SOL8__) && \
-    (!defined(sun) || defined(i386)) 
+#if !defined(__UNIXOS2__)
 void
 xf86PostKbdEvent(unsigned key)
 {
