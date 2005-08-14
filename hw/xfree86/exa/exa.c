@@ -162,13 +162,13 @@ exaPixmapAllocArea (PixmapPtr pPixmap)
 
     if (pExaScr->info->card.flags & EXA_OFFSCREEN_ALIGN_POT && w != 1)
 	w = 1 << (exaLog2(w - 1) + 1);
-    pitch = (w * bpp / 8 + pExaScr->info->card.offscreenPitch - 1) &
-            ~(pExaScr->info->card.offscreenPitch - 1);
+    pitch = (w * bpp / 8) + (pExaScr->info->card.pixmapPitchAlign - 1);
+    pitch -= pitch % pExaScr->info->card.pixmapPitchAlign;
 
     pExaPixmap->devKind = pPixmap->devKind;
     pExaPixmap->devPrivate = pPixmap->devPrivate;
     pExaPixmap->area = exaOffscreenAlloc (pScreen, pitch * h,
-                                          pExaScr->info->card.offscreenByteAlign,
+                                          pExaScr->info->card.pixmapOffsetAlign,
                                           FALSE,
                                           exaPixmapSave, (pointer) pPixmap);
     if (!pExaPixmap->area)

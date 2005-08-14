@@ -212,7 +212,8 @@ exaOffscreenAlloc (ScreenPtr pScreen, int size, int align,
     area->score = 0;
 
     area->save_offset = area->offset;
-    area->offset = (area->offset + align - 1) & ~(align - 1);
+    area->offset = (area->offset + align - 1);
+    area->offset -= area->offset % align;
 
     ExaOffscreenValidate (pScreen);
 

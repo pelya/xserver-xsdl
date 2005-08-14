@@ -72,8 +72,8 @@ typedef struct _ExaCardInfo {
        << 10, >>10 all over the place */
     unsigned long memorySize;
 
-    int offscreenByteAlign;
-    int offscreenPitch;
+    int pixmapOffsetAlign;
+    int pixmapPitchAlign;
     int flags;
 
     /* The coordinate limitations for rendering for this hardware.
