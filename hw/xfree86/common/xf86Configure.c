@@ -315,6 +315,8 @@ configureInputSection (void)
     mouse->inp_option_lst = 
 		xf86addNewOption(mouse->inp_option_lst, "Device", DFLT_MOUSE_DEV);
 #endif
+    mouse->inp_option_lst = 
+		xf86addNewOption(mouse->inp_option_lst, "ZAxisMapping", "4 5 6 7");
     ptr = (XF86ConfInputPtr)xf86addListItem((glp)ptr, (glp)mouse);
     return ptr;
 }
