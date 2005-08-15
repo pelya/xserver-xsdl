@@ -67,6 +67,8 @@ AC_C_BIGENDIAN([ENDIAN="X_BIG_ENDIAN"],[ENDIAN="X_LITTLE_ENDIAN"])
 
 AC_TYPE_PID_T
 
+AC_SYS_LARGEFILE
+
 # Checks for library functions.
 AC_FUNC_VPRINTF
 AC_CHECK_FUNCS([geteuid getuid link memmove memset mkstemp strchr strrchr strtol getopt getopt_long vsnprintf walkcontext])
