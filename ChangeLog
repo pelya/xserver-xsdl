@@ -1,3 +1,8 @@
+Mon Aug 15 15:41:26 2005  Søren Sandmann  <sandmann@redhat.com>
+
+	* hw/xfree86/dixmods/extmod/Makefile.am (libextmod_la_LIBADD):
+	Link this module with libXext.la.
+
 Mon Aug 15 14:56:57 2005  Søren Sandmann  <sandmann@redhat.com>
 
 	* hw/xfree86/dixmods/Makefile.am (libdixmods_la_SOURCES): Remove
