@@ -1,3 +1,13 @@
+Mon Aug 15 14:56:57 2005  Søren Sandmann  <sandmann@redhat.com>
+
+	* hw/xfree86/dixmods/Makefile.am (libdixmods_la_SOURCES): Remove
+	the xkb* files.
+
+	* hw/xfree86/Makefile.am (Xorg_LDADD): Add xkbVT.o and friends as
+	the last things on the link line so they will override the symbols
+	in libxkb.a.  Add a comment on how this situation might not be
+	considered ideal.
+
 Mon Aug  8 13:36:23 2005  Søren Sandmann  <sandmann@redhat.com>
 
 	* include/xorg-config.h.in: #undef PIXPRIV here.

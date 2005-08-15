@@ -88,13 +88,4 @@ libshadow_la_LDFLAGS = -avoid-version
 libshadow_la_LIBADD = $(top_builddir)/miext/shadow/libshadow.la
 libshadow_la_SOURCES = shmodule.c
 
-libdixmods_la_SOURCES = xkbKillSrv.c \
-                        xkbPrivate.c \
-                        xkbVT.c \
-                        $(top_srcdir)/mi/miinitext.c
-
-xkb%.c:
-	echo "#define XF86DDXACTIONS" > $@
-	echo "#include \"$(top_srcdir)/xkb/ddx$*.c\"" >> $@
-
-DISTCLEANFILES = xkbKillSrv.c xkbPrivate.c xkbVT.c
+libdixmods_la_SOURCES = $(top_srcdir)/mi/miinitext.c
