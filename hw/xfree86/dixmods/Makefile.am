@@ -18,6 +18,8 @@ module_LTLIBRARIES = libafb.la \
                      libmfb.la \
                      librecord.la \
                      libshadow.la \
+		     libfreetype.la \
+                     libtype1.la \
                      $(GLXMODS)
 
 AM_CFLAGS = @XORG_CFLAGS@
@@ -87,5 +89,11 @@ librecord_la_SOURCES = recordmod.c
 libshadow_la_LDFLAGS = -avoid-version
 libshadow_la_LIBADD = $(top_builddir)/miext/shadow/libshadow.la
 libshadow_la_SOURCES = shmodule.c
+
+libfreetype_la_LDFLAGS = -avoid-version
+libfreetype_la_SOURCES = ftmodule.c
+
+libtype1_la_LDFLAGS = -avoid-version
+libtype1_la_SOURCES = type1mod.c
 
 libdixmods_la_SOURCES = $(top_srcdir)/mi/miinitext.c
