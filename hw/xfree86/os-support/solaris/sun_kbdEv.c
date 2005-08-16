@@ -665,9 +665,6 @@ sunPostKbdEvent(int sun_ktype, Firm_event *event)
     else
 	down = FALSE;
 
-    /*
-     * and now get some special keysequences
-     */
 
 #if defined(KB_USB)
     if(sun_ktype == KB_USB)
@@ -676,82 +673,53 @@ sunPostKbdEvent(int sun_ktype, Firm_event *event)
 #endif
 	keycode = map[event->id];
 
-    if ((ModifierDown(ControlMask | AltMask)) ||
- 	(ModifierDown(ControlMask | AltLangMask)))
+    /*
+     * and now get some special keysequences
+     */
+    
+#ifdef XKB
+    if (((xf86Info.ddxSpecialKeys == SKWhenNeeded) &&
+	 (!xf86Info.ActionKeyBindingsSet)) ||
+	noXkbExtension || (xf86Info.ddxSpecialKeys == SKAlways))
+#endif
     {
-	switch (keycode) {
-	/*
-	 * The idea here is to pass the scancode down to a list of registered
-	 * routines.  There should be some standard conventions for processing
-	 * certain keys.
-	 */
-
-	case KEY_BackSpace:
-	    if (!xf86Info.dontZap) {
-		DGAShutdown();
-		GiveUp(0);
+	if (!(ModifierDown(ShiftMask)) &&
+	    ((ModifierDown(ControlMask | AltMask)) ||
+	     (ModifierDown(ControlMask | AltLangMask))))
+	{
+	    switch (keycode) {
+	    /*
+	     * The idea here is to pass the scancode down to a list of 
+	     * registered routines.  There should be some standard conventions
+	     * for processing certain keys.
+	     */
+	    case KEY_BackSpace:
+		xf86ProcessActionEvent(ACTION_TERMINATE, NULL);
+		break;
+		
+	    /*
+	     * Check grabs
+	     */
+	    case KEY_KP_Divide:
+		xf86ProcessActionEvent(ACTION_DISABLEGRAB, NULL);
+		break;
+	    case KEY_KP_Multiply:
+		xf86ProcessActionEvent(ACTION_CLOSECLIENT, NULL);
+		break;
+		
+	    /*
+	     * Video mode switches
+	     */
+	    case KEY_KP_Minus:   /* Keypad - */
+		if (down) xf86ProcessActionEvent(ACTION_PREV_MODE, NULL);
+		if (!xf86Info.dontZoom) return;
+		break;
+		
+	    case KEY_KP_Plus:   /* Keypad + */
+		if (down) xf86ProcessActionEvent(ACTION_NEXT_MODE, NULL);
+		if (!xf86Info.dontZoom) return;
+		break;
 	    }
-	    break;
-
-	/* Check grabs */
-	case KEY_KP_Divide:
-	    if (!xf86Info.grabInfo.disabled &&
-		xf86Info.grabInfo.allowDeactivate) {
-		if (inputInfo.pointer && inputInfo.pointer->grab != NULL &&
-		    inputInfo.pointer->DeactivateGrab)
-			(*inputInfo.pointer->DeactivateGrab)(inputInfo.pointer);
-		if (inputInfo.keyboard && inputInfo.keyboard->grab != NULL &&
-		    inputInfo.keyboard->DeactivateGrab)
-			(*inputInfo.keyboard->DeactivateGrab)(inputInfo.keyboard);
-	    }
-	    break;
-
-	case KEY_KP_Multiply:
-	    if (!xf86Info.grabInfo.disabled &&
-		xf86Info.grabInfo.allowClosedown) {
-		ClientPtr pointer, keyboard, server;
-
-		pointer = keyboard = server = NULL;
-		if (inputInfo.pointer && inputInfo.pointer->grab != NULL)
-		    pointer =
-			clients[CLIENT_ID(inputInfo.pointer->grab->resource)];
-
-		if (inputInfo.keyboard && inputInfo.keyboard->grab != NULL) {
-		    keyboard =
-			clients[CLIENT_ID(inputInfo.keyboard->grab->resource)];
-		    if (keyboard == pointer)
-			keyboard = NULL;
-		}
-
-	    if ((xf86Info.grabInfo.server.grabstate == SERVER_GRABBED) &&
-		(((server = xf86Info.grabInfo.server.client) == pointer) ||
-		 (server == keyboard)))
-		server = NULL;
-
-	    if (pointer)
-		CloseDownClient(pointer);
-	    if (keyboard)
-		CloseDownClient(keyboard);
-	    if (server)
-		CloseDownClient(server);
-	    }
-	    break;
-	
-	case KEY_KP_Minus:	/* Keypad - */
-	    if (!xf86Info.dontZoom) {
-		if (down)
-		    xf86ZoomViewport(xf86Info.currentScreen, -1);
-		return;
-	    }
-	    break;
-
-	case KEY_KP_Plus:	/* Keypad + */
-	    if (!xf86Info.dontZoom) {
-		if (down)
-		    xf86ZoomViewport(xf86Info.currentScreen,  1);
-		return;
-	    }
-	    break;
 	}
     }
 
