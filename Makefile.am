@@ -47,7 +47,8 @@ SUBDIRS=	\
 	$(XTRAP_DIR) \
 	$(COMPOSITE_DIR) \
         $(GLX_DIR) \
-	hw
+	hw	\
+	Xprint
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = xorg-server.pc

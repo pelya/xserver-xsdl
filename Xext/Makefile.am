@@ -30,6 +30,10 @@ if XEVIE
 XEVIE_SRCS = xevie.c EVIstruct.h
 endif
 
+if XPRINT
+XPRINT_SRCS = xprint.c
+endif
+
 INCLUDES = -I$(top_srcdir)/hw/xfree86/dixmods/extmod
 
 AM_CFLAGS = $(DIX_CFLAGS)
@@ -60,4 +64,6 @@ libXext_la_SOURCES =		\
 	$(SCREENSAVER_SRCS)	\
 	$(PANORAMIX_SRCS)	\
 	$(XCSECURITY_SRCS)	\
-	$(XEVIE_SRCS)
+	$(XEVIE_SRCS)		\
+	$(XPRINT_SRCS)
+

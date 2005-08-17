@@ -83,8 +83,8 @@ copyright holders.
 #include "extnsionst.h"
 #include "dixstruct.h"
 #include <X11/Xatom.h>
-#include "Print.h"
-#include "Printstr.h"
+#include <X11/extensions/Print.h>
+#include <X11/extensions/Printstr.h>
 #include "../Xprint/DiPrint.h"
 #include "../Xprint/attributes.h"
 #include "modinit.h"

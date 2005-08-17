@@ -82,14 +82,14 @@ copyright holders.
 #include "inputstr.h"
 
 #include "gcstruct.h"
-#include "fonts/fontstruct.h"
+#include <X11/fonts/fontstruct.h>
 #include "errno.h"
 
 typedef char *XPointer;
 #define HAVE_XPointer 1
 
 #define Status int
-#include <Xresource.h>
+#include <X11/Xresource.h>
 
 #include "DiPrint.h"
 #include "attributes.h"

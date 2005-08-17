@@ -166,6 +166,7 @@ DEFAULT_VENDOR_RELEASE="$PACKAGE_VERSION"
 VERSION_STRING="6,99,99,900,0"
 DEFAULT_VENDOR_WEB="http://wiki.x.org"
 EXTENSION_LIBS='$(top_builddir)/Xext/libXext.la'
+XPRINT_EXTENSIONS='$(top_builddir)/Xext/libXext.la'" "'$(top_builddir)/render/librender.la'" "'$(top_builddir)/composite/libcomposite.la'" "'$(top_builddir)/randr/librandr.la'" "'$(top_builddir)/Xi/libXi.la'" "'$(top_builddir)/xfixes/libxfixes.la'" "'$(top_builddir)/damageext/libdamageext.la'
 DMX_EXTENSIONS='$(top_builddir)/Xext/libXext.la'" "'$(top_builddir)/render/librender.la'
 EXTENSION_INCS='-I$(top_srcdir)/Xext'
 AC_DEFINE(XORG_SERVER, 1, [Build X.Org X server])
@@ -194,6 +195,7 @@ AC_ARG_ENABLE(xvfb,    	      AS_HELP_STRING([--enable-xvfb],[Build Xvfb server 
 AC_ARG_ENABLE(xnest,   	      AS_HELP_STRING([--enable-xnest],[Build Xnest server (default: auto)]),[XNEST=$enableval],[XNEST=auto])
 AC_ARG_ENABLE(xwin,    	      AS_HELP_STRING([--enable-xwin],[Build XWin server (default: auto)]),[XWIN=$enableval],[XWIN=auto])
 AC_ARG_ENABLE(xevie,          AS_HELP_STRING([--enable-xevie],[Build XEvIE extension (default: disabled)]), [XEVIE=$enableval],[XEVIE=no])
+AC_ARG_ENABLE(xprint,         AS_HELP_STRING([--disable-xprint],[Build Xprint extension and server (default: auto)]), [XPRINT=$enableval],[XPRINT=auto])
 
 # Transport selection
 AC_ARG_ENABLE(unix-transport,[  --disable-unix-transport ], [UNIXCONN=$enableval], [UNIXCONN=yes])
@@ -285,7 +287,20 @@ if test "$XNEST" = yes; then
 fi
 AM_CONDITIONAL(XNEST, [test x$XNEST = xyes])
 
-          
+#
+# XPRINT
+#
+
+if test "$XPRINT" = auto; then
+   PKG_CHECK_MODULES([XPRINT], [printproto x11], [XPRINT=yes], [XPRINT=no])
+fi
+if test x$XPRINT = xyes; then
+   PKG_CHECK_MODULES([XPRINT], [printproto x11 xfont])
+fi
+AM_CONDITIONAL(XPRINT, [test x$XPRINT = xyes])
+AC_MSG_CHECKING([whether to build Xprint DDX])
+AC_MSG_RESULT([$XPRINT])
+
 # Checks to see if we should compile in MMX support (there will be
 # a runtime test when the code is actually run to see if it should
 # be used - this just checks if we can compile it.)
@@ -651,6 +666,7 @@ XVFB_LIBS="$FB_LIB $MI_LIB $GLX_LIBS $EXTENSION_LIBS $XI_LIB $XKB_LIB $COMPOSITE
 XNEST_LIBS="$FB_LIB $MI_LIB $GLX_LIBS $EXTENSION_LIBS $XI_LIB $XKB_LIB $COMPOSITE_LIB $DAMAGE_LIB $LAYER_LIB $XPSTUBS_LIB $OS_LIB"
 XWIN_LIBS="$FB_LIB $MI_LIB $EXTENSION_LIBS $XI_LIB $XKB_LIB $COMPOSITE_LIB $DAMAGE_LIB $LAYER_LIB $XPSTUBS_LIB $OS_LIB $SHADOW_LIB"
 XDMX_LIBS="$FB_LIB $MI_LIB $DMX_EXTENSIONS $EXTENSION_LIBS $XI_LIB $XKB_LIB $DAMAGE_LIB $OS_LIB $SHADOW_LIB"
+XPRINT_LIBS="$XPRINT_LIBS $DIX_LIB $XKB_LIB $OS_LIB $XPRINT_EXTENSIONS $MI_LIB $DAMAGE_LIB"
 XORG_DDXINCS='-I$(top_srcdir)/hw/xfree86 -I$(top_srcdir)/hw/xfree86/include -I$(top_srcdir)/hw/xfree86/common'
 XORG_OSINCS='-I$(top_srcdir)/hw/xfree86/os-support -I$(top_srcdir)/hw/xfree86/os-support/bus -I$(top_srcdir)/os'
 XORG_INCS="$XORG_DDXINCS $XORG_OSINCS"
@@ -764,6 +780,7 @@ AC_SUBST([XNEST_LIBS])
 AC_SUBST([XWIN_LIBS])
 AC_SUBST([EXTENSION_LIBS])
 AC_SUBST([XDMX_LIBS])
+AC_SUBST([XPRINT_LIBS])
 AC_SUBST([XORG_INCS])
 AC_SUBST([XORG_OS])
 AC_SUBST([XORG_OS_SUBDIR])
@@ -975,5 +992,9 @@ hw/dmx/Makefile
 hw/vfb/Makefile
 hw/xnest/Makefile
 hw/xwin/Makefile
+Xprint/Makefile
+Xprint/pcl/Makefile
+Xprint/raster/Makefile
+Xprint/ps/Makefile
 xorg-server.pc
 ])
