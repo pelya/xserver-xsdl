@@ -32,5 +32,6 @@ EXTRA_DIST = \
 	altixPCI.h \
 	e8870PCI.h \
 	zx1PCI.h \
+	xf86Sbus.h \
         $(PCIDISTSOURCES)
 
