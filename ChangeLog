@@ -1,3 +1,9 @@
+Thu Aug 18 17:27:09 2005  Søren Sandmann  <sandmann@redhat.com>
+
+	* fb/Makefile.am (libfbmmx_la_CFLAGS): Move fbmmx to a convenience
+	library since the mmx flags may be harmful when applied to non-mmx
+	code.
+
 Wed Aug 17 14:54:49 2005  Søren Sandmann  <sandmann@redhat.com>
 
 	* Xext/Makefile.am: Conditionally compile in xprint.c

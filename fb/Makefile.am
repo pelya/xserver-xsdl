@@ -1,13 +1,25 @@
-noinst_LTLIBRARIES = libfb.la
+noinst_LTLIBRARIES = libfb.la libfbmmx.la
 
 AM_CFLAGS = $(DIX_CFLAGS)
 
 sdk_HEADERS = fb.h fbrop.h fbpseudocolor.h fboverlay.h
 
 if MMX_CAPABLE
-AM_CFLAGS += -mmmx -msse -Winline --param inline-unit-growth=10000 \
-        --param large-function-growth=10000 -DUSE_MMX
+AM_CFLAGS += -DUSE_MMX
+
+libfbmmx_la_CFLAGS =				\
+	$(DIX_CFLAGS)				\
+	-DUSE_MMX				\
+	-mmmx					\
+	-msse					\
+	-Winline				\
+	--param inline-unit-growth=10000	\
+        --param large-function-growth=10000
 endif
+
+libfbmmx_la_SOURCES =	\
+	fbmmx.c		\
+	fbmmx.h
 
 libfb_la_SOURCES = 	\
 	fb.h		\
@@ -49,8 +61,8 @@ libfb_la_SOURCES = 	\
 	fbpseudocolor.c \
 	fbpseudocolor.h \
 	fbedge.c	\
-	fbedgeimp.h	\
-	fbmmx.c		\
-	fbmmx.h
+	fbedgeimp.h
+
+libfb_la_LIBADD = libfbmmx.la
 
 EXTRA_DIST = fbcmap.c
