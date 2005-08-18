@@ -61,9 +61,17 @@ XORG_LIBS = \
 #  it to install callbacks for those actions.
 #  
 
-xkb%.c:
+xkbVT.c:
 	echo "#define XF86DDXACTIONS" > $@
-	echo "#include \"$(top_srcdir)/xkb/ddx$*.c\"" >> $@
+	echo "#include \"$(top_srcdir)/xkb/ddxVT.c\"" >> $@
+
+xkbKillSrv.c:
+	echo "#define XF86DDXACTIONS" > $@
+	echo "#include \"$(top_srcdir)/xkb/ddxKillSrv.c\"" >> $@
+
+xkbPrivate.c:
+	echo "#define XF86DDXACTIONS" > $@
+	echo "#include \"$(top_srcdir)/xkb/ddxPrivate.c\"" >> $@
 
 Xorg_LDADD = $(XORG_LIBS) \
              @XSERVER_LIBS@ \
