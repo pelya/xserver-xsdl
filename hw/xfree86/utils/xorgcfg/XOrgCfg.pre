@@ -527,7 +527,7 @@ XF86Cfg.translations:	#override \
 *options*viewport.right:		chainRight
 *options*list.longest:			376
 
-*options*driverOpts.label:		Options for module\ 
+*options*driverOpts.label:		Options for module
 *options*driverOpts.justify:		left
 *options*driverOpts.width:		278
 *options*popdown.label:			Popdown dialog
@@ -1179,22 +1179,22 @@ lines		-1,0,0,0,0,-1
 *accessx*enter.height:			74
 *accessx*0.width:			104
 *accessx*lock.label:			Num\nLock
-*accessx*div.label:			/\n\ 
-*accessx*mul.label:			*\n\ 
-*accessx*minus.label:			-\n\ 
-*accessx*7.label:			7\n\ 
-*accessx*8.label:			8\n\ 
-*accessx*9.label:			9\n\ 
-*accessx*plus.label:			+\n\ \n\ \n\ \n\ 
-*accessx*4.label:			4\n\ 
-*accessx*5.label:			5\n\ 
-*accessx*6.label:			6\n\ 
-*accessx*1.label:			1\n\ 
-*accessx*2.label:			2\n\ 
-*accessx*3.label:			3\n\ 
-*accessx*enter.label:			Enter\n\ \n\ \n\ \n\ 
-*accessx*0.label:			0\n\ 
-*accessx*del.label:			.\n\ \n\ 
+*accessx*div.label:			/\n
+*accessx*mul.label:			*\n
+*accessx*minus.label:			-\n
+*accessx*7.label:			7\n
+*accessx*8.label:			8\n
+*accessx*9.label:			9\n
+*accessx*plus.label:			+\n\ \n\ \n\ \n
+*accessx*4.label:			4\n
+*accessx*5.label:			5\n
+*accessx*6.label:			6\n
+*accessx*1.label:			1\n
+*accessx*2.label:			2\n
+*accessx*3.label:			3\n
+*accessx*enter.label:			Enter\n\ \n\ \n\ \n
+*accessx*0.label:			0\n
+*accessx*del.label:			.\n\ \n
 *accessx*label.displayList:\
 foreground	white;\
 lines		+1,-1,-1,-1,-1,+1;\
