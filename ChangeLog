@@ -5,23 +5,23 @@
 	Remove requirement for XF86Rush protocol headers, which we don't even
 	use.
 
-Thu Aug 18 17:27:09 2005  Søren Sandmann  <sandmann@redhat.com>
+2005-08-19  Søren Sandmann  <sandmann@redhat.com>
 
 	* fb/Makefile.am (libfbmmx_la_CFLAGS): Move fbmmx to a convenience
 	library since the mmx flags may be harmful when applied to non-mmx
 	code.
 
-Wed Aug 17 14:54:49 2005  Søren Sandmann  <sandmann@redhat.com>
+2005-08-17  Søren Sandmann  <sandmann@redhat.com>
 
 	* Xext/Makefile.am: Conditionally compile in xprint.c
 
 	* Makefile.am, configure.ac: Add Xprint
 
-Tue Aug 16 12:09:09 2005  Søren Sandmann  <sandmann@redhat.com>
+2005-08-16  Søren Sandmann  <sandmann@redhat.com>
 
 	* hw/xfree86/dixmods/Makefile.am: Add ft and type1 modules.
 
-Mon Aug 15 15:41:26 2005  Søren Sandmann  <sandmann@redhat.com>
+2005-08-15  Søren Sandmann  <sandmann@redhat.com>
 
 	* hw/xfree86/dixmods/extmod/Makefile.am (libextmod_la_LIBADD):
 	Link this module with libXext.la.
@@ -36,7 +36,7 @@ Mon Aug 15 14:56:57 2005  Søren Sandmann  <sandmann@redhat.com>
 	in libxkb.a.  Add a comment on how this situation might not be
 	considered ideal.
 
-Mon Aug  8 13:36:23 2005  Søren Sandmann  <sandmann@redhat.com>
+2005-08-08  Søren Sandmann  <sandmann@redhat.com>
 
 	* include/xorg-config.h.in: #undef PIXPRIV here.
 
