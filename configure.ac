@@ -67,8 +67,6 @@ AC_C_BIGENDIAN([ENDIAN="X_BIG_ENDIAN"],[ENDIAN="X_LITTLE_ENDIAN"])
 
 AC_TYPE_PID_T
 
-AC_SYS_LARGEFILE
-
 # Checks for library functions.
 AC_FUNC_VPRINTF
 AC_CHECK_FUNCS([geteuid getuid link memmove memset mkstemp strchr strrchr strtol getopt getopt_long vsnprintf walkcontext])
@@ -154,7 +152,7 @@ case $host_cpu in
 	;;
 esac
 
-REQUIRED_MODULES="randrproto renderproto fixesproto damageproto xextproto xfont xproto xtrans xau xf86dgaproto xf86miscproto xf86rushproto xf86vidmodeproto xf86bigfontproto"
+REQUIRED_MODULES="randrproto renderproto fixesproto damageproto xextproto xfont xproto xtrans xau xf86dgaproto xf86miscproto xf86vidmodeproto xf86bigfontproto"
 
 OSNAME=`uname -srm`
 AC_DEFINE_UNQUOTED(OSNAME, "$OSNAME", 
@@ -166,9 +164,9 @@ DEFAULT_VENDOR_RELEASE="$PACKAGE_VERSION"
 VERSION_STRING="6,99,99,900,0"
 DEFAULT_VENDOR_WEB="http://wiki.x.org"
 EXTENSION_LIBS='$(top_builddir)/Xext/libXext.la'
-XPRINT_EXTENSIONS='$(top_builddir)/Xext/libXext.la'" "'$(top_builddir)/render/librender.la'" "'$(top_builddir)/composite/libcomposite.la'" "'$(top_builddir)/randr/librandr.la'" "'$(top_builddir)/Xi/libXi.la'" "'$(top_builddir)/xfixes/libxfixes.la'" "'$(top_builddir)/damageext/libdamageext.la'
 DMX_EXTENSIONS='$(top_builddir)/Xext/libXext.la'" "'$(top_builddir)/render/librender.la'
 EXTENSION_INCS='-I$(top_srcdir)/Xext'
+XPRINT_EXTENSIONS='$(top_builddir)/Xext/libXext.la'" "'$(top_builddir)/render/librender.la'" "'$(top_builddir)/composite/libcomposite.la'" "'$(top_builddir)/randr/librandr.la'" "'$(top_builddir)/Xi/libXi.la'" "'$(top_builddir)/xfixes/libxfixes.la'" "'$(top_builddir)/damageext/libdamageext.la'
 AC_DEFINE(XORG_SERVER, 1, [Build X.Org X server])
 
 m4_ifdef([AS_HELP_STRING], , [m4_define([AS_HELP_STRING], m4_defn([AC_HELP_STRING]))])
@@ -195,9 +193,9 @@ AC_ARG_ENABLE(xvfb,    	      AS_HELP_STRING([--enable-xvfb],[Build Xvfb server 
 AC_ARG_ENABLE(xnest,   	      AS_HELP_STRING([--enable-xnest],[Build Xnest server (default: auto)]),[XNEST=$enableval],[XNEST=auto])
 AC_ARG_ENABLE(xwin,    	      AS_HELP_STRING([--enable-xwin],[Build XWin server (default: auto)]),[XWIN=$enableval],[XWIN=auto])
 AC_ARG_ENABLE(xevie,          AS_HELP_STRING([--enable-xevie],[Build XEvIE extension (default: disabled)]), [XEVIE=$enableval],[XEVIE=no])
-AC_ARG_ENABLE(xprint,         AS_HELP_STRING([--disable-xprint],[Build Xprint extension and server (default: auto)]), [XPRINT=$enableval],[XPRINT=auto])
 
 # Transport selection
+AC_ARG_ENABLE(xprint,         AS_HELP_STRING([--disable-xprint],[Build Xprint extension and server (default: auto)]), [XPRINT=$enableval],[XPRINT=auto])
 AC_ARG_ENABLE(unix-transport,[  --disable-unix-transport ], [UNIXCONN=$enableval], [UNIXCONN=yes])
 AC_ARG_ENABLE(tcp-transport, [  --disable-tcp-transport ], [TCPCONN=$enableval], [TCPCONN=yes])
 AC_ARG_ENABLE(ipv6,          [  --disable-ipv6 ], [IPV6CONN=$enableval], [IPV6CONN=yes])
@@ -467,7 +465,7 @@ if test "$GLX" = yes -a x$MESA_SOURCE != x; then
 	AC_DEFINE(GLXEXT,1,[Build GLX extension])
 	GLX_LIBS='$(top_builddir)/GL/glx/libglx.la $(top_builddir)/GL/mesa/libGLcore.la'
 	dnl EXTENSION_INCS="$EXTENSION_INCS "'-I$(top_srcdir)/glx'
-        ( cd GL && ./symlink-mesa.sh $MESA_SOURCE . )
+        $srcdir/GL/symlink-mesa.sh $MESA_SOURCE GL/
 else
         GLX=no
 fi

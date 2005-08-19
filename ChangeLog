@@ -1,3 +1,10 @@
+2005-07-20  Daniel Stone  <daniel@fooishbar.org>
+
+	* configure.ac:
+	Make symlink-mesa.sh call srcdir != objdir safe.
+	Remove requirement for XF86Rush protocol headers, which we don't even
+	use.
+
 Thu Aug 18 17:27:09 2005  Søren Sandmann  <sandmann@redhat.com>
 
 	* fb/Makefile.am (libfbmmx_la_CFLAGS): Move fbmmx to a convenience
