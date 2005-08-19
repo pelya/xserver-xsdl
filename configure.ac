@@ -489,7 +489,7 @@ AM_CONDITIONAL(XINERAMA, [test x$XINERAMA = xyes])
 if test "$XINERAMA" = yes; then
 	AC_DEFINE(XINERAMA,1,[Support Xinerama extension])
 	AC_DEFINE(PANORAMIX,1,[Internal define for Xinerama])
-	REQUIRED_MODULES="$REQUIRED_MODULES panoramixproto"
+	REQUIRED_MODULES="$REQUIRED_MODULES xineramaproto"
 fi
 AM_CONDITIONAL(XCSECURITY, [test x$XCSECURITY = xyes])
 if test "$XCSECURITY" = yes; then
