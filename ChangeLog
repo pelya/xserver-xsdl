@@ -1,7 +1,7 @@
 2005-07-20  Daniel Stone  <daniel@fooishbar.org>
 
 	* configure.ac:
-	Make symlink-mesa.sh call srcdir != objdir safe.
+	Make symlink-mesa.sh usage srcdir != objdir safe.
 	Remove requirement for XF86Rush protocol headers, which we don't even
 	use.
 
