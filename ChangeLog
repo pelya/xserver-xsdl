@@ -3,7 +3,7 @@
 	* configure.ac:
 	Make symlink-mesa.sh usage srcdir != objdir safe.
 	Remove requirement for XF86Rush protocol headers, which we don't even
-	use.
+	use any more.
 
 2005-08-19  Søren Sandmann  <sandmann@redhat.com>
 
