@@ -26,4 +26,4 @@ libextmod_la_SOURCES = modinit.c \
                        xf86vmode.c \
                        vidmodeproc.h \
                        $(XV_SRCS)
-libextmod_la_LIBADD = $(top_srcdir)/Xext/libXext.la
+libextmod_la_LIBADD = $(top_builddir)/Xext/libXext.la
