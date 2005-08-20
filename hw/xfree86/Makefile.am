@@ -47,37 +47,9 @@ XORG_LIBS = \
 	    dixmods/libdixmods.la \
             @XORG_LIBS@
 
-#
-#  The xkbVT.c xkbKillSrv.c and xkbPrivate.c files used below are really
-#  the same files as ddxVT.c ddxKillSrv.c and ddxPrivate.c from
-#  $(top_srcdir)/xkb. However they are compiled with the flag 
-#  XF86DDXACTIONS which means they'll do stuff like Ctrl-Alt-Fx etc.
-#  They have to be last on the link line so that their symbols will
-#  override the ones from libxkb.a.
-#
-#  Unfortunately, those symbols can't be removed from libxkb because that
-#  causes other ddx'es to break. One possible fix would be to turn libxkb
-#  into shared a shared library and add API that would people linking to
-#  it to install callbacks for those actions.
-#  
-
-xkbVT.c:
-	echo "#define XF86DDXACTIONS" > $@
-	echo "#include \"$(top_srcdir)/xkb/ddxVT.c\"" >> $@
-
-xkbKillSrv.c:
-	echo "#define XF86DDXACTIONS" > $@
-	echo "#include \"$(top_srcdir)/xkb/ddxKillSrv.c\"" >> $@
-
-xkbPrivate.c:
-	echo "#define XF86DDXACTIONS" > $@
-	echo "#include \"$(top_srcdir)/xkb/ddxPrivate.c\"" >> $@
-
 Xorg_LDADD = $(XORG_LIBS) \
              @XSERVER_LIBS@ \
-	     xkbVT.o \
-	     xkbKillSrv.o \
-	     xkbPrivate.o \
+	     dixmods/libxorgxkb.la \
              -ldl
 
 Xorg_LDFLAGS = $(LD_EXPORT_SYMBOLS_FLAG)

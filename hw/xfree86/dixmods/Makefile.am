@@ -1,4 +1,4 @@
-noinst_LTLIBRARIES = libdixmods.la
+noinst_LTLIBRARIES = libdixmods.la libxorgxkb.la
 
 SUBDIRS = extmod
 
@@ -97,3 +97,9 @@ libtype1_la_LDFLAGS = -avoid-version
 libtype1_la_SOURCES = type1mod.c
 
 libdixmods_la_SOURCES = $(top_srcdir)/mi/miinitext.c
+
+libxorgxkb_la_SOURCES = xkbVT.c xkbPrivate.c xkbKillSrv.c
+
+xkb%.c:
+	echo "#define XF86DDXACTIONS" > $@
+	echo "#include \"$(top_srcdir)/xkb/ddx$*.c\"" >> $@

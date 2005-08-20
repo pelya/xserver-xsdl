@@ -5,6 +5,14 @@
 	Remove requirement for XF86Rush protocol headers, which we don't even
 	use in the core server.
 
+	* configure.ac:
+	* xkb/Makefile.am:
+	* hw/xfree86/Makefile.am:
+	* hw/xfree86/dixmods/Makefile.am:
+	Build libxkbstubs.la to stub XKB DDX functions (e.g. VT switches), and
+	build libxorggxkb.la from within the Xorg DDX to replace the previous
+	xf86VT.o, et al, hacks.
+
 2005-08-19  Søren Sandmann  <sandmann@redhat.com>
 
 	* fb/Makefile.am (libfbmmx_la_CFLAGS): Move fbmmx to a convenience

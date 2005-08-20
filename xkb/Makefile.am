@@ -1,7 +1,7 @@
-noinst_LTLIBRARIES = libxkb.la
+noinst_LTLIBRARIES = libxkb.la libxkbstubs.la
 
 AM_CFLAGS = $(DIX_CFLAGS)
-
+	
 DDX_SRCS = \
         ddxBeep.c \
         ddxCtrls.c \
@@ -9,14 +9,11 @@ DDX_SRCS = \
         ddxFakeMtn.c \
         ddxInit.c \
         ddxKeyClick.c \
-        ddxKillSrv.c \
         ddxLEDs.c \
-	ddxVT.c \
         ddxLoad.c \
         ddxList.c \
         ddxConfig.c \
-        ddxDevBtn.c \
-        ddxPrivate.c
+        ddxDevBtn.c
 
 DIX_SRCS = \
         xkb.c \
@@ -49,5 +46,6 @@ XI_SRCS = xkbPrOtherEv.c
 
 libxkb_la_SOURCES = $(DDX_SRCS) $(DIX_SRCS) $(XI_SRCS) $(XKBFILE_SRCS) \
                     $(X11_SRCS)
+libxkbstubs_la_SOURCES = ddxVT.c ddxPrivate.c ddxKillSrv.c
 
 EXTRA_DIST = xkb.h xkbDflts.h
