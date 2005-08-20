@@ -22,6 +22,10 @@ if GLX
 GLX_DIR=GL
 endif
 
+if XPRINT
+XPDDX_DIR=Xprint
+endif
+
 SUBDIRS=	\
 	include	\
 	dix 	\
@@ -48,7 +52,7 @@ SUBDIRS=	\
 	$(COMPOSITE_DIR) \
         $(GLX_DIR) \
 	hw	\
-	Xprint
+	$(XPDDX_DIR)
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = xorg-server.pc
