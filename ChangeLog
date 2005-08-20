@@ -1,4 +1,9 @@
-2005-07-20  Daniel Stone  <daniel@fooishbar.org>
+2005-08-20  Adam Jackson  <ajax@freedesktop.org>
+
+	* hw/xfree86/os-support/bus/Makefile.am:
+	Add sparcPci.c to EXTRA_DIST.
+
+2005-08-20  Daniel Stone  <daniel@fooishbar.org>
 
 	* configure.ac:
 	Make symlink-mesa.sh usage srcdir != objdir safe.
