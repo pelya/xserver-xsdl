@@ -1,16 +1,16 @@
 noinst_LTLIBRARIES = libX.la
 
 INCLUDES = -I@MESA_SOURCE@/include \
-           -I$(srcdir)/../X \
-           -I$(srcdir)/../array_cache \
-           -I$(srcdir)/../glapi \
-           -I$(srcdir)/../main \
-           -I$(srcdir)/../math \
-           -I$(srcdir)/../shader \
-           -I$(srcdir)/../swrast \
-           -I$(srcdir)/../swrast_setup \
-           -I$(srcdir)/../tnl \
-           -I$(srcdir)/.. \
+           -I../X \
+           -I../array_cache \
+           -I../glapi \
+           -I../main \
+           -I../math \
+           -I../shader \
+           -I../swrast \
+           -I../swrast_setup \
+           -I../tnl \
+           -I.. \
            -I$(top_srcdir)/GL/glx \
            -I$(top_srcdir)/GL/include
 

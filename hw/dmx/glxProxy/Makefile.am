@@ -34,5 +34,7 @@ libglxproxy_a_SOURCES = compsize.c \
 AM_CFLAGS = -I$(top_srcdir)/hw/dmx \
             -I$(top_srcdir)/include \
             -I$(top_srcdir)/GL/include \
+            -I$(top_builddir)/GL/include \
+	    -I@MESA_SOURCE@/include \
             -DHAVE_DMX_CONFIG_H \
             @DMXMODULES_CFLAGS@

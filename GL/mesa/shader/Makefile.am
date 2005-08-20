@@ -3,18 +3,18 @@ SUBDIRS = grammar slang
 noinst_LTLIBRARIES = libshader.la
 
 INCLUDES = -I@MESA_SOURCE@/include \
-           -I$(srcdir)/../X \
-           -I$(srcdir)/../array_cache \
-           -I$(srcdir)/../glapi \
-           -I$(srcdir)/../main \
-           -I$(srcdir)/../math \
-           -I$(srcdir)/../shader \
-	   -I$(srcdir)/../shader/grammar \
-	   -I$(srcdir)/../shader/slang \
-           -I$(srcdir)/../swrast \
-           -I$(srcdir)/../swrast_setup \
-           -I$(srcdir)/../tnl \
-           -I$(srcdir)/..
+           -I../X \
+           -I../array_cache \
+           -I../glapi \
+           -I../main \
+           -I../math \
+           -I../shader \
+	   -I../shader/grammar \
+	   -I../shader/slang \
+           -I../swrast \
+           -I../swrast_setup \
+           -I../tnl \
+           -I..
 
 nodist_libshader_la_SOURCES = arbfragparse.c \
                       arbprogparse.c \

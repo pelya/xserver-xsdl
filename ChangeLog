@@ -13,6 +13,12 @@
 	build libxorggxkb.la from within the Xorg DDX to replace the previous
 	xf86VT.o, et al, hacks.
 
+	* configure.ac:
+	* GL/**/Makefile.am:
+	* hw/xfree86/dri/Makefile.am:
+	Make DRI/GLcore builds srcdir != builddir safe, and invoke
+	symlink-mesa.sh in our builddir, not our srcdir.
+
 2005-08-19  Søren Sandmann  <sandmann@redhat.com>
 
 	* fb/Makefile.am (libfbmmx_la_CFLAGS): Move fbmmx to a convenience
