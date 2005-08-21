@@ -385,4 +385,7 @@
 /* Build Rootless code */
 #undef ROOTLESS
 
+/* Define to 1 if unsigned long is 64 bits. */
+#undef _XSERVER64
+
 #endif /* _DIX_CONFIG_H_ */

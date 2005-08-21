@@ -73,4 +73,7 @@
    xorg_backtrace in hw/xfree86/common/xf86Events.c */
 #undef HAVE_WALKCONTEXT
 
+/* Define to 1 if unsigned long is 64 bits. */
+#undef _XSERVER64
+
 #endif /* _XORG_CONFIG_H_ */

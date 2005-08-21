@@ -220,4 +220,7 @@
 /* Name of X server */
 #undef __XSERVERNAME__
 
+/* Define to 1 if unsigned long is 64 bits. */
+#undef _XSERVER64
+
 #endif /* _XORG_SERVER_H_ */
