@@ -11,15 +11,13 @@ if LINUX_IA64
 PLATFORM_PCI_SOURCES = 460gxPCI.c altixPCI.c e8870PCI.c zx1PCI.c
 endif
 
-if LINUX_SPARC
+if XORG_BUS_SPARC
 PLATFORM_PCI_SOURCES = sparcPci.c
+PLATFORM_SOURCES = Sbus.c
 endif
 
-libbus_la_SOURCES = Pci.c $(PCI_SOURCES) $(PLATFORM_PCI_SOURCES)
-
-if XORG_BUS_SBUS
-libbus_la_SOURCES += Sbus.c
-endif
+libbus_la_SOURCES = Pci.c $(PCI_SOURCES) $(PLATFORM_PCI_SOURCES) \
+                    $(PLATFORM_SOURCES)
 
 INCLUDES = $(XORG_INCS)
 

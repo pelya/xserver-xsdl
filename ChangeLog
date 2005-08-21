@@ -2,7 +2,9 @@
 
 	* configure.ac:
 	* hw/xfree86/loader/Makefile.am:
-	Add test for SPARC.  Build SparcMulDiv.S on all SPARCs.
+	* hw/xfree86/os-support/bus/Makefile.am:
+	Add test for SPARC.  Build SparcMulDiv.S, sparcPci.c, and Sbus.c on
+	all SPARCs; use xorg_bus_sparc instead of xorg_bus_sbus.
 
 	* configure.ac:
 	Make the default font path configurable.
