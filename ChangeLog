@@ -1,9 +1,18 @@
+2005-08-21  Daniel Stone  <daniel@freedesktop.org>
+
+	* configure.ac:
+	* hw/xfree86/loader/Makefile.am:
+	Add test for SPARC.  Build SparcMulDiv.S on all SPARCs.
+
+	* configure.ac:
+	Make the default font path configurable.
+
 2005-08-20  Adam Jackson  <ajax@freedesktop.org>
 
 	* hw/xfree86/os-support/bus/Makefile.am:
 	Add sparcPci.c to EXTRA_DIST.
 
-2005-08-20  Daniel Stone  <daniel@fooishbar.org>
+2005-08-20  Daniel Stone  <daniel@freedesktop.org>
 
 	* configure.ac:
 	Make symlink-mesa.sh usage srcdir != objdir safe.

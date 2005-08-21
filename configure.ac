@@ -139,6 +139,7 @@ xorg_bus_ix86pci="no"
 case $host_cpu in
   sparc*)
   	xorg_bus_sbus="yes"
+	xorg_loader_sparcmuldiv="yes"
 	;;
   i*86)
 	xorg_bus_ix86pci="yes"
@@ -228,6 +229,9 @@ AC_ARG_WITH(os-vendor,       [  --with-os-vendor=OSVENDOR ],
 AC_ARG_WITH(mesa-source,     [  --with-mesa-source=MESA_SOURCE ],
                                 [ MESA_SOURCE="$withval" ],
                                 [ MESA_SOURCE="" ])
+AC_ARG_WITH(default-font-path, [ --with-default-font-path=PATH ],
+				[ FONTPATH="$withval" ],
+				[ FONTPATH="${datadir}/X11/fonts" ])
 
 AM_CONDITIONAL(INT10_VM86, [test x$INT10 = xvm86])
 AM_CONDITIONAL(INT10_X86EMU, [test x$INT10 = xx86emu])
@@ -582,7 +586,7 @@ PKG_CHECK_MODULES(XFONT, xfont)
 #	              --enable-fc.])
 #fi
 
-AC_DEFINE_UNQUOTED(COMPILEDDEFAULTFONTPATH, ["$FONTPATH"], [Default font path])
+AC_DEFINE_DIR(COMPILEDDEFAULTFONTPATH, ["$FONTPATH"], [Default font path])
 AC_DEFINE_UNQUOTED(XVENDORNAME,["$VENDOR_STRING"], [Vendor name])
 AC_DEFINE_UNQUOTED(XORG_RELEASE, ["$VENDOR_RELEASE"], [Vendor release])
 AC_DEFINE_UNQUOTED(BUILDERADDR, ["$BUILDERADDR"], [Builder address])
@@ -694,6 +698,9 @@ test x$XORG = xyes && case $host_os in
 	  ia64*)
 		linux_ia64=yes
 		;;
+          sparc*)
+	  	linux_sparc=yes
+		;;
 	  *)
 		;;
 	esac
@@ -788,7 +795,9 @@ AC_SUBST([XORG_OS_KBD])
 AC_SUBST([XORG_OS_PCI])
 AM_CONDITIONAL([XORG_BUS_IX86PCI], [test "x$xorg_bus_ix86pci" = xyes])
 AM_CONDITIONAL([XORG_BUS_SBUS], [test "x$xorg_bus_sbus" = xyes])
+AM_CONDITIONAL([XORG_LOADER_SPARC], [test "x$xorg_loader_sparcmuldiv" = xyes])
 AM_CONDITIONAL([LINUX_IA64], [test "x$linux_ia64" = xyes])
+AM_CONDITIONAL([LINUX_SPARC], [test "x$linux_sparc" = xyes])
 AM_CONDITIONAL([SOLARIS_USL_CONSOLE], [test "x$solaris_usl_console" = xyes])
 AM_CONDITIONAL([SOLARIS_ASM_INLINE], [test "x$solaris_asm_inline" = xyes])
 

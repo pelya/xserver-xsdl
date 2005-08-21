@@ -8,6 +8,10 @@ INCLUDES = $(XORG_INCS) -I$(srcdir)/../parser -I$(srcdir)/../vbe \
 #AM_LDFLAGS = -r
 AM_CFLAGS = -DIN_LOADER $(XORG_CFLAGS)
 
+if XORG_LOADER_SPARC
+SPARC_SOURCES = SparcMulDiv.S
+endif
+
 EXTRA_DIST = \
 	aout.h \
 	aoutloader.h \
@@ -20,7 +24,8 @@ EXTRA_DIST = \
 	hash.h \
 	loader.h \
 	loaderProcs.h \
-	sym.h
+	sym.h \
+	SparcMulDiv.S
 
 libloader_a_SOURCES = \
 	loader.c \
@@ -38,4 +43,5 @@ libloader_a_SOURCES = \
 	fontsym.c \
 	misym.c \
 	xf86sym.c \
-	hash.c
+	hash.c \
+	$(SPARC_SOURCES)
