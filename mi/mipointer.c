@@ -30,6 +30,10 @@ in this Software without prior written authorization from The Open Group.
 */
 /* $XFree86: xc/programs/Xserver/mi/mipointer.c,v 3.9 2001/09/04 14:03:28 dawes Exp $ */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 # define NEED_EVENTS
 # include   <X11/X.h>
 # include   <X11/Xmd.h>
@@ -527,9 +531,6 @@ _miRegisterPointerDevice (pScreen, pDevice)
 }
 
 /* obsolete: for binary compatibility */
-#ifdef HAVE_DIX_CONFIG_H
-#include <dix-config.h>
-#endif
 
 #ifdef miRegisterPointerDevice
 #undef miRegisterPointerDevice
