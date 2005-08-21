@@ -1,3 +1,5 @@
+dnl From http://autoconf-archive.cryp.to/ac_define_dir.html.
+
 AC_DEFUN([AC_DEFINE_DIR], [
   prefix_NONE=
   exec_prefix_NONE=

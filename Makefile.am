@@ -3,21 +3,26 @@ AUTOMAKE_OPTIONS=dist-bzip2 foreign nostdinc
 if COMPOSITE
 COMPOSITE_DIR=composite
 endif
+
 if XTRAP
 XTRAP_DIR=XTrap
 endif
+
 if CFB
 CFB_DIR=cfb
 CFB16_DIR=cfb16
 CFB24_DIR=cfb24
 CFB32_DIR=cfb32
 endif
+
 if AFB
 AFB_DIR=afb
 endif
+
 if MFB
 MFB_DIR=mfb
 endif
+
 if GLX
 GLX_DIR=GL
 endif

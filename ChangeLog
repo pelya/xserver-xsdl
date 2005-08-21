@@ -1,6 +1,22 @@
 2005-08-21  Daniel Stone  <daniel@freedesktop.org>
 
 	* configure.ac:
+	Huge cleanup.  Group into sections: hardware feature detection,
+	extension detection/configuration, DDX options.  Make building of Xorg
+	DDX fully optional.  Clarify and correct some help texts.  Change all
+	comments to use dnl instead of #.  Quote all tests correctly, and guard
+	pure-variable tests with 'x' (e.g. test $DMX = yes -> test "x$DMX" =
+	xyes).  Since the DDXes seem to have pretty divergent extension support
+	these days, get rid of EXTENSION_LIBS, DMX_EXTENSIONS and
+	XPRINT_EXTENSIONS, and go back to building extension lists by hand in
+	the DDX-specific sections.  Use portable POSIX constructs everywhere
+	(e.g. test foo && test bar, instead of test foo -a bar).
+
+	* configure.ac:
+	Set _XSERVER64 on 64-bit architectures, and use x86_64 for host_cpu
+	instead of amd64 (Jürg Billeter).
+	
+	* configure.ac:
 	* hw/xfree86/loader/Makefile.am:
 	* hw/xfree86/os-support/bus/Makefile.am:
 	Add test for SPARC.  Build SparcMulDiv.S, sparcPci.c, and Sbus.c on

@@ -1,45 +1,27 @@
 noinst_LIBRARIES = libcommon.a libinit.a
 
-if XORG_BUS_SBUS
+if XORG_BUS_SPARC
 SBUS_SOURCES = xf86sbusBus.c
 endif
 
-#if DEBUG
-#DEBUGSOURCES = xf86Debug.c
-#endif
+if DEBUG
+DEBUGSOURCES = xf86Debug.c
+endif
 
-#if BUILDXV
+if XV
 XVSOURCES = xf86xv.c xf86xvmc.c
 XVSDKINCS = xf86xv.h xf86xvmc.h
-#endif
+endif
 
-#if XKB
 XKBSOURCES = xf86XKB.c
-#endif
-
-#if XINPUT
 XISOURCES = xf86Xinput.c xisb.c
 XISDKINCS = xf86Xinput.h xisb.h
-#endif
-
 RANDRSOURCES = xf86RandR.c
 
 BUSSOURCES = xf86isaBus.c xf86pciBus.c xf86fbBus.c xf86noBus.c $(SBUS_SOURCES)
 
-#if LINUX
-#KBDSOURCES = xf86KbdLnx.c
-# XXX psuedocodeish
-#else if BSD
-#KBDSOURCES = xf86KbdBSD.c
-#else if Mach && !GNU/Mach
-#KBDSOURCES = xf86KbdMach.c
-#else
-#KBDSOURCES = xf86Kbd.c
-#endif
 KBDSOURCES = xf86Kbd@XORG_OS_KBD@.c
 
-# shouldn't isaBus and pciBus only be built on the relevant architectures? -ds
-# ditto DoScanPci
 AM_LDFLAGS = -r
 libcommon_a_SOURCES = xf86Configure.c xf86Bus.c xf86Config.c \
                       xf86Cursor.c xf86DGA.c xf86DPMS.c xf86DefModes.c \
