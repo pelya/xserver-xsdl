@@ -159,20 +159,37 @@ Win32System(const char *cmdline)
 #define System(x) Win32System(x)
 #endif
 
+#ifdef MAKE_XKM_OUTPUT_DIR
+/* Borrow trans_mkdir from Xtransutil.c to more safely make directories */
+# undef X11_t
+# define TRANS_SERVER
+# define PRMSG(lvl,x,a,b,c) \
+	if (lvl <= 1) { LogMessage(X_ERROR,x,a,b,c); } else ((void)0)
+# include <X11/Xtrans/Xtransutil.c>
+# ifndef XKM_OUTPUT_DIR_MODE
+#  define XKM_OUTPUT_DIR_MODE 0755
+# endif
+#endif
+
 static void
 OutputDirectory(
     char* outdir,
     size_t size)
 {
 #ifndef WIN32
-    if (getuid() == 0 && strlen(XKM_OUTPUT_DIR) < size) {
+    if (getuid() == 0 && (strlen(XKM_OUTPUT_DIR) < size)
+#ifdef MAKE_XKM_OUTPUT_DIR    
+	&& (trans_mkdir(XKM_OUTPUT_DIR, XKM_OUTPUT_DIR_MODE) == 0)
+#endif
+	)
+    {
 	/* if server running as root it *may* be able to write */
 	/* FIXME: check whether directory is writable at all */
 	(void) strcpy (outdir, XKM_OUTPUT_DIR);
     } else
 #endif
 #ifdef _PATH_VARTMP
-    if (strlen(_PATH_VARTMP) < size) 
+    if ((strlen(_PATH_VARTMP) + 1) < size) 
     {
 	(void) strcpy (outdir, _PATH_VARTMP);
 	if (outdir[strlen(outdir) - 1] != '/')	/* Hi IBM, Digital */
@@ -186,6 +203,7 @@ OutputDirectory(
 	(void) strcat(outdir, "\\");
     } else 
 #endif
+    if (strlen("/tmp/") < size)
     {
 	(void) strcpy (outdir, "/tmp/");
     }
