@@ -1,3 +1,8 @@
+2005-08-22  Kevin E. Martin  <kem-at-freedesktop-dot-org>
+
+	* configure.ac:
+	Fix linking errors for xprint.
+
 2005-08-21  Daniel Stone  <daniel@freedesktop.org>
 
 	* configure.ac:
