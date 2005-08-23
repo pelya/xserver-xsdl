@@ -1,3 +1,4 @@
+!! $XdotOrg: $
 !!
 !! Copyright (c) 2000 by Conectiva S.A. (http://www.conectiva.com)
 !! 
@@ -108,17 +109,17 @@ lines		-1,0,0,0,0,-1
 *Viewport.allowVert:			True
 *Viewport.useRight:			True
 
-.xf86cfg.geometry:			320x400
-.xf86cfg.minWidth:			320
-.xf86cfg.minHeight:			400
-.xf86cfg.maxWidth:			320
-.xf86cfg.maxHeight:			400
+.xorgcfg.geometry:			320x400
+.xorgcfg.minWidth:			320
+.xorgcfg.minHeight:			400
+.xorgcfg.maxWidth:			320
+.xorgcfg.maxHeight:			400
 
-.xf86cfg.config.geometry:		320x369
-.xf86cfg.config.minWidth:		320
-.xf86cfg.config.maxWidth:		320
-.xf86cfg.config.minHeight:		369
-.xf86cfg.config.maxHeight:		369
+.xorgcfg.config.geometry:		320x369
+.xorgcfg.config.minWidth:		320
+.xorgcfg.config.maxWidth:		320
+.xorgcfg.config.minHeight:		369
+.xorgcfg.config.maxHeight:		369
 
 *work.width:				320
 *work.height:				240
@@ -292,7 +293,7 @@ lines		-1,0,0,0,0,-1
 
 !! Wellcome message
 *work.wellcome.borderWidth:	0
-*work.wellcome.label:		Welcome to __VENDORNAME__ 4.0 setup program
+*work.wellcome.label:		Welcome to __VENDORNAME__ __VENDORVERS__ setup program
 *work.?.borderWidth:		0
 !*work.?.width:			310
 *work.?.height:			290
@@ -442,53 +443,53 @@ lines		-1,0,0,0,0,-1
 *work.monitor.width:			47
 *work.monitor.height:			40
 
-.xf86cfg.pane.work.Simple.borderWidth:	1
-.xf86cfg.pane.work.Simple.translations:\
+.xorgcfg.pane.work.Simple.borderWidth:	1
+.xorgcfg.pane.work.Simple.translations:\
 Any<Btn1Down>:	select-device()\n\
 Any<Btn1Motion>:	move-device()\n\
 Any<Btn1Up>:	unselect-device()\n\
 Any<Btn3Down>:	device-popup()\n\
 Any<Btn3Up>:	device-popdown()
 
-.xf86cfg.pane.work.screen.translations:\
+.xorgcfg.pane.work.screen.translations:\
 Any<Btn1Down>:	select-device()\n\
 Any<Btn1Motion>:	move-device()\n\
 Any<Btn1Up>:	unselect-device()\n\
 Any<Btn3Down>:	device-popup()\n\
 Any<Btn3Up>:	device-popdown()
 
-XF86Cfg.translations:	#override \
+Xorgcfg.translations:	#override \
 <Message>WM_PROTOCOLS:	quit()
-.xf86cfg.config.translations:	#override \
+.xorgcfg.config.translations:	#override \
 <Message>WM_PROTOCOLS:	config-cancel()
-.xf86cfg.options.translations:	#override \
+.xorgcfg.options.translations:	#override \
 <Message>WM_PROTOCOLS:	options-cancel()
-.xf86cfg.quit.translations:	#override \
+.xorgcfg.quit.translations:	#override \
 <Message>WM_PROTOCOLS:	quit-cancel()
-.xf86cfg.error.translations:	#override \
+.xorgcfg.error.translations:	#override \
 <Message>WM_PROTOCOLS:	error-cancel()
-.xf86cfg.force.translations:	#override \
+.xorgcfg.force.translations:	#override \
 <Message>WM_PROTOCOLS:	addmode-cancel()
-.xf86cfg.addMode.translations:	#override \
+.xorgcfg.addMode.translations:	#override \
 <Message>WM_PROTOCOLS:	addmode-cancel()
-.xf86cfg.accessx.translations:	#override \
+.xorgcfg.accessx.translations:	#override \
 <Message>WM_PROTOCOLS:	accessx-close()
-.xf86cfg.test.translations:	#override \
+.xorgcfg.test.translations:	#override \
 <Message>WM_PROTOCOLS:	testmode-cancel()
-.xf86cfg.Expert.translations:	#override \
+.xorgcfg.Expert.translations:	#override \
 <Message>WM_PROTOCOLS:	expert-close()
-.xf86cfg.options.moduleOptions.translations:	#override \
+.xorgcfg.options.moduleOptions.translations:	#override \
 <Message>WM_PROTOCOLS:	module-options-close()
 
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !! Options
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-.xf86cfg.options.geometry:		400x176
-.xf86cfg.options.minWidth:		400
-.xf86cfg.options.maxWidth:		400
-.xf86cfg.options.minHeight:		176
-.xf86cfg.options.maxHeight:		176
+.xorgcfg.options.geometry:		400x176
+.xorgcfg.options.minWidth:		400
+.xorgcfg.options.maxWidth:		400
+.xorgcfg.options.minHeight:		176
+.xorgcfg.options.maxHeight:		176
 
 *options*commands.remove.fromHoriz:	add
 *options*commands.update.fromHoriz:	remove
@@ -535,11 +536,11 @@ XF86Cfg.translations:	#override \
  o option name\n\
  o option type
 
-.xf86cfg*options.moduleOptions.geometry:			360x245
-.xf86cfg*options.moduleOptions.minWidth:			360
-.xf86cfg*options.moduleOptions.maxWidth:			360
-.xf86cfg*options.moduleOptions.minHeight:			245
-.xf86cfg*options.moduleOptions.maxHeight:			245
+.xorgcfg*options.moduleOptions.geometry:			360x245
+.xorgcfg*options.moduleOptions.minWidth:			360
+.xorgcfg*options.moduleOptions.maxWidth:			360
+.xorgcfg*options.moduleOptions.minHeight:			245
+.xorgcfg*options.moduleOptions.maxHeight:			245
 *options.moduleOptions*descriptions*labelType.label:		Select option
 *options.moduleOptions*descriptions*labelType.width:		348
 *options.moduleOptions*descriptions*module.fromVert:		labelType
@@ -813,30 +814,30 @@ Press ESC if your monitor goes out of sync.
 *vidtune.add.vertDistance:		4
 *vidtune.add.fromVert:			form
 *vidtune.add.label:			Add
-.xf86cfg.force.geometry:		268x58
-.xf86cfg.force.minWidth:		268
-.xf86cfg.force.maxWidth:		268
-.xf86cfg.force.minHeight:		58
-.xf86cfg.force.maxHeight:		58
-.xf86cfg.force.?.label:			There is already a modeline with the\n\
+.xorgcfg.force.geometry:		268x58
+.xorgcfg.force.minWidth:		268
+.xorgcfg.force.maxWidth:		268
+.xorgcfg.force.minHeight:		58
+.xorgcfg.force.maxHeight:		58
+.xorgcfg.force.?.label:			There is already a modeline with the\n\
 specified identifier. Add anyway?
 
-.xf86cfg.addMode.geometry:		350x80
-.xf86cfg.addMode.minWidth:		350
-.xf86cfg.addMode.maxWidth:		350
-.xf86cfg.addMode.minHeight:		80
-.xf86cfg.addMode.maxHeight:		80
-.xf86cfg.addMode.?.label:		XF86VidModeAddModeLine returned True,\n\
+.xorgcfg.addMode.geometry:		350x80
+.xorgcfg.addMode.minWidth:		350
+.xorgcfg.addMode.maxWidth:		350
+.xorgcfg.addMode.minHeight:		80
+.xorgcfg.addMode.maxHeight:		80
+.xorgcfg.addMode.?.label:		XF86VidModeAddModeLine returned True,\n\
 but no modeline was added to the current Screen.\n\
 Do you want to add it to the Monitor section?
 
-.xf86cfg.test.?.label:			\        Testing modeline...\n\n\
+.xorgcfg.test.?.label:			\        Testing modeline...\n\n\
 Press ESC or stop button to quit.
-.xf86cfg.test.geometry:			250x72
-.xf86cfg.test.minWidth:			250
-.xf86cfg.test.maxWidth:			250
-.xf86cfg.test.minHeight:		72
-.xf86cfg.test.maxHeight:		72
+.xorgcfg.test.geometry:			250x72
+.xorgcfg.test.minWidth:			250
+.xorgcfg.test.maxWidth:			250
+.xorgcfg.test.minHeight:		72
+.xorgcfg.test.maxHeight:		72
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !! screen
@@ -911,18 +912,18 @@ your monitor is not rotated.
 *quit.ask.label.justify:		left
 *quit.ask.value.width:			222
 *quit.ask.icon:				Excl
-.xf86cfg.quit.geometry:			230x92
-.xf86cfg.quit.minWidth:			230
-.xf86cfg.quit.maxWidth:			230
-.xf86cfg.quit.minHeight:		92
-.xf86cfg.quit.maxHeight:		92
+.xorgcfg.quit.geometry:			230x92
+.xorgcfg.quit.minWidth:			230
+.xorgcfg.quit.maxWidth:			230
+.xorgcfg.quit.minHeight:		92
+.xorgcfg.quit.maxHeight:		92
 
 *error.notice.label:			Failed to write configuration file.
-.xf86cfg.error.geometry:		280x50
-.xf86cfg.error.minWidth:		260
-.xf86cfg.error.maxWidth:		260
-.xf86cfg.error.minHeight:		50
-.xf86cfg.error.maxHeight:		50
+.xorgcfg.error.geometry:		280x50
+.xorgcfg.error.minWidth:		260
+.xorgcfg.error.maxWidth:		260
+.xorgcfg.error.minHeight:		50
+.xorgcfg.error.maxHeight:		50
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !! accessx
@@ -1354,12 +1355,12 @@ tt?family=Courier&pixelsize=10
 *help*commands.showGrip:False
 *help*wrap:		word
 *help*commands.close.label:	Close
-.xf86cfg.help.geometry:		320x369
-.xf86cfg.help.minWidth:		320
-.xf86cfg.help.maxWidth:		320
-.xf86cfg.help.minHeight:	369
-.xf86cfg.help.maxHeight:	369
-.xf86cfg.help.translations:	#override \
+.xorgcfg.help.geometry:		320x369
+.xorgcfg.help.minWidth:		320
+.xorgcfg.help.maxWidth:		320
+.xorgcfg.help.minHeight:	369
+.xorgcfg.help.maxHeight:	369
+.xorgcfg.help.translations:	#override \
 <Message>WM_PROTOCOLS:	help-close()
 *help*text.translations:\
 <Key>Up:	scroll-one-line-down()\n\
