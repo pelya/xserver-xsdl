@@ -256,17 +256,21 @@ static int write_XF86Config(char *filename);
 
 static char *intro_text =
 "\n"
-"This program will create a basic " CONFIGNAME " file, based on menu selections you\n"
-"make.\n"
+"This program will create a basic " CONFIGNAME " file, based on menu selections\n"
+"you make.  It will ask for a pathname when it is ready to write the file.\n"
 "\n"
-"The " CONFIGNAME " file usually resides in " TREEROOTCFG " or /etc/X11. A sample\n"
-CONFIGNAME " file is supplied with "__XSERVERNAME__"; it is configured for a standard\n"
-"VGA card and monitor with 640x480 resolution. This program will ask for a\n"
-"pathname when it is ready to write the file.\n"
+"The " CONFIGNAME " file usually resides in /etc/X11 or " TREEROOTCFG ".  If\n"
+"no " CONFIGNAME " file is present there, " __XSERVERNAME__" will probe the system to\n"
+"autoconfigure itself.  You can run " __XSERVERNAME__ " -configure to generate a " CONFIGNAME "\n"
+"file based on the results of autoconfiguration, or let this program\n"
+"produce a base " CONFIGNAME " file for your configuration, and fine-tune it.\n"
+"A sample " CONFIGNAME " file is also supplied with "__XSERVERNAME__"; it is configured \n"
+"for a standard VGA card and monitor with 640x480 resolution.\n"
 "\n"
-"You can either take the sample " CONFIGNAME " as a base and edit it for your\n"
-"configuration, or let this program produce a base " CONFIGNAME " file for your\n"
-"configuration and fine-tune it.\n"
+"There are also many chipset and card-specific options and settings available,\n"
+"but this program does not know about these. On some configurations some of\n"
+"these settings must be specified. Refer to the X driver man pages and the\n"
+"chipset-specific READMEs in " TREEROOTDOC " for further details.\n"
 #if 0
 " Refer to " TREEROOTDOC "/README.Config\n"
 "for a detailed overview of the configuration process.\n"
@@ -280,19 +284,19 @@ CONFIGNAME " file is supplied with "__XSERVERNAME__"; it is configured for a sta
 "\n"
 "Before continuing with this program, make sure you know what video card\n"
 "you have, and preferably also the chipset it uses and the amount of video\n"
-"memory on your video card. SuperProbe may be able to help with this.\n"
+"memory on your video card, as well as the specifications of your monitor.\n"
 "\n"
 ;
 
 static char *finalcomment_text =
-"File has been written. Take a look at it before running 'startx'. Note that\n"
+"File has been written. Take a look at it before starting an X server. Note that\n"
 "the " CONFIGNAME " file must be in one of the directories searched by the server\n"
 "(e.g. /etc/X11) in order to be used. Within the server press\n"
 "ctrl, alt and '+' simultaneously to cycle video resolutions. Pressing ctrl,\n"
 "alt and backspace simultaneously immediately exits the server (use if\n"
 "the monitor doesn't sync for a particular mode).\n"
 "\n"
-"For further configuration, refer to the " XCONFIGFILE "(5) manual page.\n"
+"For further configuration, refer to the " XCONFIGFILE "(" FILEMANSUFFIX ") manual page.\n"
 "\n";
 
 static void *
