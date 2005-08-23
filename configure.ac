@@ -538,8 +538,9 @@ fi
 dnl Xnest DDX
 
 AC_MSG_CHECKING([whether to build Xnest DDX])
+PKG_CHECK_MODULES(XNESTMODULES, [xfont xext x11], [have_xnest=yes], [have_xnest=no])
 if test "x$XNEST" = xauto; then
-	PKG_CHECK_MODULES(XNESTMODULES, [xfont xext x11], [XNEST=yes], [XNEST=no])
+	XNEST="$have_xnest"
 fi
 AC_MSG_RESULT([$XNEST])
 AM_CONDITIONAL(XNEST, [test "x$XNEST" = xyes])
