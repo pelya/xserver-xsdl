@@ -416,7 +416,7 @@ struct {
 	},
 #ifdef sun
 	{"VUID",		&M_VUID,
-	 "Solaris VUID"
+	 "Solaris VUID protocol (SPARC, USB, or virtual mouse)"
 	},
 #endif
 	{"SysMouse",		&M_SYSMOUSE,
@@ -562,7 +562,8 @@ mouse_configuration(void) {
 		emptylines();
 		printf("%s", mouseintro_text);
 		for (j = i; j < i + 14 && j < MOUSETYPE_COUNT; j++)
-			printf("%2d.  %s\n", j + 1, mouse_info[j].name);
+			printf("%2d.  %s [%s]\n", j + 1,
+			       mouse_info[j].name, mouse_info[j].desc);
 		printf("\n");
 		printf("%s", mousecomment_text);
 		printf("Enter a protocol number: ");
@@ -2130,14 +2131,14 @@ static char *pointersection_text1 =
 
 static char *pointersection_text2 =
 "\n"
-"# Mouse-speed setting for PS/2 mouse.\n"
-"\n"
-"#    Option \"Resolution\"	\"256\"\n"
-"\n"
 "# When using XQUEUE, comment out the above two lines, and uncomment\n"
 "# the following line.\n"
 "\n"
 "#    Option \"Protocol\"	\"Xqueue\"\n"
+"\n"
+"# Mouse-speed setting for PS/2 mouse.\n"
+"\n"
+"#    Option \"Resolution\"	\"256\"\n"
 "\n"
 "# Baudrate and SampleRate are only for some Logitech mice. In\n"
 "# almost every case these lines should be omitted.\n"
@@ -2145,9 +2146,17 @@ static char *pointersection_text2 =
 "#    Option \"BaudRate\"	\"9600\"\n"
 "#    Option \"SampleRate\"	\"150\"\n"
 "\n"
-"# Emulate3Buttons is an option for 2-button Microsoft mice\n"
+"# Mouse wheel mapping.  Default is to map vertical wheel to buttons 4 & 5,\n"
+"# horizontal wheel to buttons 6 & 7.   Change if your mouse has more than\n"
+"# 3 buttons and you need to map the wheel to different button ids to avoid\n"
+"# conflicts.\n"
+"\n"
+"    Option \"ZAxisMapping\"   \"4 5 6 7\"\n"
+"\n"
+"# Emulate3Buttons is an option for 2-button mice\n"
 "# Emulate3Timeout is the timeout in milliseconds (default is 50ms)\n"
 "\n";
+
 
 static char *xinputsection_text =
 "# **********************************************************************\n"
@@ -2600,8 +2609,9 @@ write_XF86Config(char *filename)
 	 * Write pointer section.
 	 */
 	fprintf(f, "%s", pointersection_text1);
-	fprintf(f, "    Option \"Protocol\"    \"%s\"\n",
-		mouse_info[config_mousetype].name);
+	fprintf(f, "    Option \"Protocol\"    \"%s\"\t# %s\n",
+		mouse_info[config_mousetype].name,
+		mouse_info[config_mousetype].desc);
 #if !defined(__UNIXOS2__) && !defined(QNX4)
 	fprintf(f, "    Option \"Device\"      \"%s\"\n", config_pointerdevice);
 #endif
