@@ -272,11 +272,12 @@ XEXT_INC='-I$(top_srcdir)/Xext'
 XEXT_LIB='$(top_builddir)/Xext/libXext.la'
 
 dnl Core modules for most extensions, et al.
-REQUIRED_MODULES="randrproto renderproto fixesproto damageproto xextproto xfont xproto xtrans xau xf86dgaproto xf86miscproto xf86vidmodeproto xf86bigfontproto"
+REQUIRED_MODULES="randrproto renderproto fixesproto damageproto xextproto xfont xproto xtrans xau xf86dgaproto xf86miscproto xf86vidmodeproto xf86bigfontproto scrnsaverproto"
 
 AM_CONDITIONAL(XV, [test "x$XV" = xyes])
 if test "x$XV" = xyes; then
 	AC_DEFINE(XV, 1, [Support Xv extension])
+	REQUIRED_MODULES="$REQUIRED_MODULES videoproto"
 fi
 
 AM_CONDITIONAL(COMPOSITE, [test "x$COMPOSITE" = xyes])
@@ -296,6 +297,7 @@ fi
 AM_CONDITIONAL(XTRAP, [test "x$XTRAP" = xyes])
 if test "x$XTRAP" = xyes; then
 	AC_DEFINE(XTRAP, 1, [Support XTrap extension])
+	REQUIRED_MODULES="$REQUIRED_MODULES trapproto"
 	XTRAP_LIB='$(top_builddir)/XTrap/libxtrap.la'
 fi
 
@@ -357,6 +359,7 @@ fi
 AM_CONDITIONAL(XEVIE, [test "x$XEVIE" = xyes])
 if test "x$XEVIE" = xyes; then
 	AC_DEFINE(XEVIE, 1, [Build XEvIE extension])
+	REQUIRED_MODULES="$REQUIRED_MODULES evieproto"
 fi
 
 if test "x$XF86VIDMODE" = xyes; then
