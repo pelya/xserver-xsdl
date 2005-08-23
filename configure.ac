@@ -451,7 +451,7 @@ AC_DEFINE_UNQUOTED(OSVENDOR, ["$OSVENDOR"], [Operating System Vendor])
 AC_DEFINE(DDXOSINIT, 1, [Use OsVendorInit])
 AC_DEFINE(SERVER_LOCK, 1, [Use a lock to prevent multiple servers on a display])
 AC_DEFINE(SMART_SCHEDULE, 1, [Include time-based scheduler])
-AM_CONDITIONAL(DEBUG, [Enable debugging code], test "x$DEBUGGING" = xyes)
+AM_CONDITIONAL(DEBUG, test "x$DEBUGGING" = xyes)
 
 if ! test "x$DEBUGGING" = xyes; then
   AC_DEFINE(NDEBUG, 1, [Disable some debugging code])
