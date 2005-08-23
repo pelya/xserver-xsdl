@@ -1,4 +1,5 @@
 /* $DHD: xc/programs/Xserver/hw/xfree86/common/xf86AutoConfig.c,v 1.15 2003/09/24 19:39:36 dawes Exp $ */
+/* $XdotOrg: $ */
 
 /*
  * Copyright 2003 by David H. Dawes.
@@ -201,8 +202,9 @@ xf86AutoConfig(void)
 
 	/*
 	 * Look for the getconfig program first in the xf86ModulePath
-	 * directories, then in BINDIR.  If it isn't found in any of those
-	 * locations, just use the normal search path.
+	 * directories, then in GETCONFIG_DIR, then in BINDIR.  If it
+	 * isn't found in any of those locations, just use the normal
+	 * search path.
 	 */
 
 	if (xf86ModulePath) {
@@ -221,6 +223,14 @@ xf86AutoConfig(void)
 		path = NULL;
 	    }
 	    xfree(a);
+	}
+
+	if (!path) {
+	    path = xnfstrdup(GETCONFIG_DIR "/" GET_CONFIG_CMD);
+	    if (access(path, X_OK) != 0) {
+		xfree(path);
+		path = NULL;
+	    }
 	}
 
 #ifdef BINDIR
