@@ -37,6 +37,10 @@
 
 #pragma ident	"@(#)sun_agp.c	1.1	05/04/04 SMI"
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #include <X11/X.h>
 #include "xf86.h"
 #include "xf86Priv.h"
@@ -238,7 +242,17 @@ xf86AllocateGARTMemory(int screenNum, unsigned long size, int type,
 Bool
 xf86DeallocateGARTMemory(int screenNum, int key)
 {
-	return FALSE;
+	if (!GARTInit(screenNum) || (acquiredScreen != screenNum))
+		return FALSE;
+
+ 	if (ioctl(gartFd, AGPIOC_DEALLOCATE, (int *)key) != 0) {
+		xf86DrvMsg(screenNum, X_WARNING, "xf86DeAllocateGARTMemory: "
+			   "deallocation of gart memory with key %d failed\n"
+			   "\t(%s)\n", key, strerror(errno));
+		return FALSE;
+	}
+
+	return TRUE;
 }
 
 /* Bind GART memory with "key" at "offset" */
