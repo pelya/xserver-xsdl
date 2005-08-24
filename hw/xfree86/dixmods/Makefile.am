@@ -22,7 +22,7 @@ module_LTLIBRARIES = libafb.la \
                      libtype1.la \
                      $(GLXMODS)
 
-AM_CFLAGS = @XORG_CFLAGS@
+AM_CFLAGS = @XORG_CFLAGS@ @DIX_CFLAGS@
 INCLUDES = @XORG_INCS@ \
            -I$(top_srcdir)/afb \
            -I$(top_srcdir)/cfb \
