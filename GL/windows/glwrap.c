@@ -485,6 +485,18 @@ GLAPI void APIENTRY glPointParameteriv(GLenum pname, const GLint *params)
     proc(pname, params);
 }
 
+GLAPI void APIENTRY glPointParameteriNV(GLenum pname, GLint param)
+{
+    RESOLVE(PFNGLPOINTPARAMETERINVPROC, "glPointParameteriNV");
+    proc(pname, param);
+}
+
+GLAPI void APIENTRY glPointParameterivNV(GLenum pname, const GLint *params)
+{
+    RESOLVE(PFNGLPOINTPARAMETERIVNVPROC, "glPointParameterivNV");
+    proc(pname, params);
+}
+
 GLAPI void APIENTRY glSecondaryColor3bv(const GLbyte *v)
 {
     RESOLVE(PFNGLSECONDARYCOLOR3BVPROC, "glSecondaryColor3bv");
