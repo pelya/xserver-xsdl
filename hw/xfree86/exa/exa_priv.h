@@ -261,6 +261,10 @@ exaGetOffscreenPixmap (DrawablePtr pDrawable, int *xp, int *yp);
 void
 exaMoveInPixmap (PixmapPtr pPixmap);
 
+RegionPtr
+exaCopyArea(DrawablePtr pSrcDrawable, DrawablePtr pDstDrawable, GCPtr pGC,
+	    int srcx, int srcy, int width, int height, int dstx, int dsty);
+
 void
 exaCopyNtoN (DrawablePtr    pSrcDrawable,
 	     DrawablePtr    pDstDrawable,

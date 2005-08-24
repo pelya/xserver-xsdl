@@ -605,12 +605,21 @@ exaCopyNtoN (DrawablePtr    pSrcDrawable,
     int	    dst_off_x, dst_off_y;
     STRACE;
 
-    /* Migrate pixmaps to same place as destination */
-    if (pSrcDrawable->type == DRAWABLE_PIXMAP) {
-	if (exaDrawableIsOffscreen (pDstDrawable))
+    /* If either drawable is already in framebuffer, try to get both of them
+     * there.  Otherwise, be happy with where they are.
+     */
+    if (exaDrawableIsOffscreen(pDstDrawable) ||
+	exaDrawableIsOffscreen(pSrcDrawable))
+    {
+	if (pSrcDrawable->type == DRAWABLE_PIXMAP)
 	    exaPixmapUseScreen ((PixmapPtr) pSrcDrawable);
-	else
+	if (pDstDrawable->type == DRAWABLE_PIXMAP)
+	    exaPixmapUseScreen ((PixmapPtr) pDstDrawable);
+    } else {
+	if (pSrcDrawable->type == DRAWABLE_PIXMAP)
 	    exaPixmapUseMemory ((PixmapPtr) pSrcDrawable);
+	if (pDstDrawable->type == DRAWABLE_PIXMAP)
+	    exaPixmapUseMemory ((PixmapPtr) pDstDrawable);
     }
 
     if ((pSrcPixmap = exaGetOffscreenPixmap (pSrcDrawable, &src_off_x, &src_off_y)) &&
@@ -645,7 +654,7 @@ exaCopyNtoN (DrawablePtr    pSrcDrawable,
     exaDrawableDirty (pDstDrawable);
 }
 
-static RegionPtr
+RegionPtr
 exaCopyArea(DrawablePtr pSrcDrawable, DrawablePtr pDstDrawable, GCPtr pGC,
 	    int srcx, int srcy, int width, int height, int dstx, int dsty)
 {

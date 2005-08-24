@@ -280,13 +280,14 @@ ExaCheckComposite (CARD8      op,
 }
 
 /*
- * Only need to stall for copyarea/copyplane
+ * Only need to stall for CopyArea/CopyPlane, but we want to have the chance to
+ * do migration for CopyArea.
  */
 const GCOps exaAsyncPixmapGCOps = {
     fbFillSpans,
     fbSetSpans,
     fbPutImage,
-    ExaCheckCopyArea,
+    exaCopyArea,
     ExaCheckCopyPlane,
     fbPolyPoint,
     fbPolyLine,
