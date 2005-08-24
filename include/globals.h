@@ -1,10 +1,6 @@
 /* $XdotOrg: xc/programs/Xserver/include/globals.h,v 1.6 2005/05/19 18:53:49 ajax Exp $ */
 /* $XFree86: xc/programs/Xserver/include/globals.h,v 1.3 1999/09/25 14:38:21 dawes Exp $ */
 
-#ifdef HAVE_DIX_CONFIG_H
-#include <dix-config.h>
-#endif
-
 #ifndef _XSERV_GLOBAL_H_
 #define _XSERV_GLOBAL_H_
 

@@ -29,10 +29,6 @@ from The Open Group.
 /* $XFree86: xc/programs/Xserver/include/closestr.h,v 3.4 2001/12/14 19:59:53 dawes Exp $ */
 
 
-#ifdef HAVE_DIX_CONFIG_H
-#include <dix-config.h>
-#endif
-
 #ifndef CLOSESTR_H
 #define CLOSESTR_H
 

@@ -22,10 +22,6 @@ SOFTWARE.
 
 ******************************************************************/
 
-#ifdef HAVE_DIX_CONFIG_H
-#include <dix-config.h>
-#endif
-
 #ifndef DIXFONTSTRUCT_H
 #define DIXFONTSTRUCT_H
 

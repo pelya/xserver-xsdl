@@ -1,9 +1,5 @@
 /* $XFree86: xc/programs/Xserver/hw/xfree86/ramdac/IBM.h,v 1.7 1999/02/12 22:52:11 hohndel Exp $ */
 
-#ifdef HAVE_XORG_CONFIG_H
-#include <xorg-config.h>
-#endif
-
 #include <xf86RamDac.h>
 
 RamDacHelperRecPtr IBMramdacProbe(ScrnInfoPtr pScrn, RamDacSupportedInfoRecPtr ramdacs);

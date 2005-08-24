@@ -23,10 +23,6 @@ SOFTWARE.
 ******************************************************************/
 /* $XFree86: xc/programs/Xserver/include/dixfont.h,v 3.7 2001/02/02 21:39:02 herrb Exp $ */
 
-#ifdef HAVE_DIX_CONFIG_H
-#include <dix-config.h>
-#endif
-
 #ifndef DIXFONT_H
 #define DIXFONT_H 1
 

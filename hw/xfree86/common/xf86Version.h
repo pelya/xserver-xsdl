@@ -28,10 +28,6 @@
  * authorization from the copyright holder(s) and author(s).
  */
 
-#ifdef HAVE_XORG_CONFIG_H
-#include <xorg-config.h>
-#endif
-
 #ifndef XF86_VERSION_CURRENT
 
 #define XF86_VERSION_MAJOR	4

@@ -1,9 +1,5 @@
 /* $XFree86: xc/programs/Xserver/Xext/dgaproc.h,v 1.21 2000/06/30 19:06:54 keithp Exp $ */
 
-#ifdef HAVE_DIX_CONFIG_H
-#include <dix-config.h>
-#endif
-
 #ifndef __DGAPROC_H
 #define __DGAPROC_H
 

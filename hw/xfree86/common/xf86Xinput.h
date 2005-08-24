@@ -51,10 +51,6 @@
 
 /* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86Xinput.h,v 3.36 2003/08/24 17:36:55 dawes Exp $ */
 
-#ifdef HAVE_XORG_CONFIG_H
-#include <xorg-config.h>
-#endif
-
 #ifndef _xf86Xinput_h
 #define _xf86Xinput_h
 

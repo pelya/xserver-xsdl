@@ -24,10 +24,6 @@
 
 /* $XdotOrg: xc/programs/Xserver/fb/fb.h,v 1.9 2005/04/20 12:25:19 daniels Exp $ */
 
-#ifdef HAVE_DIX_CONFIG_H
-#include <dix-config.h>
-#endif
-
 #ifndef _FB_H_
 #define _FB_H_
 

@@ -1,9 +1,5 @@
 /* $XFree86: xc/programs/Xserver/mi/micmap.h,v 1.5 1999/06/14 07:32:11 dawes Exp $ */
 
-#ifdef HAVE_DIX_CONFIG_H
-#include <dix-config.h>
-#endif
-
 #include "colormapst.h"
 
 #ifndef _MICMAP_H_

@@ -27,10 +27,6 @@ in this Software without prior written authorization from The Open Group.
 
 /* $Xorg: mifillarc.h,v 1.4 2001/02/09 02:05:20 xorgcvs Exp $ */
 
-#ifdef HAVE_DIX_CONFIG_H
-#include <dix-config.h>
-#endif
-
 #ifndef __MIFILLARC_H__
 #define __MIFILLARC_H__
 

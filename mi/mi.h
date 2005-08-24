@@ -47,10 +47,6 @@ SOFTWARE.
 ******************************************************************/
 /* $XFree86: xc/programs/Xserver/mi/mi.h,v 3.9 2001/08/06 20:51:16 dawes Exp $ */
 
-#ifdef HAVE_DIX_CONFIG_H
-#include <dix-config.h>
-#endif
-
 #ifndef MI_H
 #define MI_H
 #include <X11/X.h>

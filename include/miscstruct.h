@@ -47,10 +47,6 @@ SOFTWARE.
 ******************************************************************/
 /* $XFree86: xc/programs/Xserver/include/miscstruct.h,v 3.4 2003/04/27 21:31:04 herrb Exp $ */
 
-#ifdef HAVE_DIX_CONFIG_H
-#include <dix-config.h>
-#endif
-
 #ifndef MISCSTRUCT_H
 #define MISCSTRUCT_H 1
 

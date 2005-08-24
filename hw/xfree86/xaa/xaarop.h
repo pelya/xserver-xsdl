@@ -29,10 +29,6 @@
 
 */
 
-#ifdef HAVE_XORG_CONFIG_H
-#include <xorg-config.h>
-#endif
-
 #ifndef _XAAROP_H
 #define _XAAROP_H
 

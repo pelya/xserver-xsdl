@@ -47,10 +47,6 @@ SOFTWARE.
 ******************************************************************/
 /* $XFree86: xc/programs/Xserver/include/scrnintstr.h,v 1.12 2003/04/27 21:31:05 herrb Exp $ */
 
-#ifdef HAVE_DIX_CONFIG_H
-#include <dix-config.h>
-#endif
-
 #ifndef SCREENINTSTRUCT_H
 #define SCREENINTSTRUCT_H
 

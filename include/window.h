@@ -47,10 +47,6 @@ SOFTWARE.
 ******************************************************************/
 /* $XFree86$ */
 
-#ifdef HAVE_DIX_CONFIG_H
-#include <dix-config.h>
-#endif
-
 #ifndef WINDOW_H
 #define WINDOW_H
 

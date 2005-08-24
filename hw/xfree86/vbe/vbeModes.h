@@ -29,10 +29,6 @@
  * $XFree86: xc/programs/Xserver/hw/xfree86/os-support/vbe/vbeModes.h,v 1.1 2002/08/06 13:46:28 dawes Exp $
  */
 
-#ifdef HAVE_XORG_CONFIG_H
-#include <xorg-config.h>
-#endif
-
 #ifndef _VBE_MODES_H
 
 /*

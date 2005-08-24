@@ -10,11 +10,6 @@
  * Copyright 1998 by Egbert Eich <Egbert.Eich@Physik.TU-Darmstadt.DE>
  */
 
-
-#ifdef HAVE_XORG_CONFIG_H
-#include <xorg-config.h>
-#endif
-
 #ifndef XF86_DDC_H
 # define XF86_DDC_H
 

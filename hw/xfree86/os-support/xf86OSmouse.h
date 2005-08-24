@@ -28,10 +28,6 @@
 
 /* Public interface to OS-specific mouse support. */
 
-#ifdef HAVE_XORG_CONFIG_H
-#include <xorg-config.h>
-#endif
-
 #ifndef _XF86OSMOUSE_H_
 #define _XF86OSMOUSE_H_
 

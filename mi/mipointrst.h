@@ -31,10 +31,6 @@ in this Software without prior written authorization from The Open Group.
 */
 /* $XFree86: xc/programs/Xserver/mi/mipointrst.h,v 1.3 2001/04/19 14:14:07 tsi Exp $ */
 
-#ifdef HAVE_DIX_CONFIG_H
-#include <dix-config.h>
-#endif
-
 #include "mipointer.h"
 #include "scrnintstr.h"
 

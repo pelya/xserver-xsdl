@@ -29,10 +29,6 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 ********************************************************/
 /* $XFree86: xc/programs/Xserver/cfb/cfb.h,v 3.29tsi Exp $ */
 
-#ifdef HAVE_DIX_CONFIG_H
-#include <dix-config.h>
-#endif
-
 #if !defined(__CFB_H__) || defined(CFB_PROTOTYPES_ONLY)
 
 #include <X11/X.h>

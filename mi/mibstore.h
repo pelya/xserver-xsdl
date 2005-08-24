@@ -18,10 +18,6 @@
 
 /* $XFree86: xc/programs/Xserver/mi/mibstore.h,v 1.4 2001/01/17 22:37:06 dawes Exp $ */
 
-#ifdef HAVE_DIX_CONFIG_H
-#include <dix-config.h>
-#endif
-
 #ifndef _MIBSTORE_H
 #define _MIBSTORE_H
 

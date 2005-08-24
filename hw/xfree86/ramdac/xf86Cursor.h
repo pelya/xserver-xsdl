@@ -1,9 +1,5 @@
 /* $XFree86: xc/programs/Xserver/hw/xfree86/ramdac/xf86Cursor.h,v 1.10tsi Exp $ */
 
-#ifdef HAVE_XORG_CONFIG_H
-#include <xorg-config.h>
-#endif
-
 #ifndef _XF86CURSOR_H
 #define _XF86CURSOR_H
 

@@ -25,10 +25,6 @@
  * XFree86 Project.
  */
 
-#ifdef HAVE_DIX_CONFIG_H
-#include <dix-config.h>
-#endif
-
 #ifndef _CFB32_H_
 #define _CFB32_H_
 

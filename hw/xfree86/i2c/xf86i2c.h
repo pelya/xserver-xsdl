@@ -3,9 +3,6 @@
  */
 
 /* $XFree86: xc/programs/Xserver/hw/xfree86/i2c/xf86i2c.h,v 1.10 2003/07/16 01:38:47 dawes Exp $ */
-#ifdef HAVE_XORG_CONFIG_H
-#include <xorg-config.h>
-#endif
 
 #ifndef _XF86I2C_H
 #define _XF86I2C_H

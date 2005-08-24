@@ -47,9 +47,6 @@ SOFTWARE.
 
 ******************************************************************/
 /* $Xorg: cursor.h,v 1.4 2001/02/09 02:05:15 xorgcvs Exp $ */
-#ifdef HAVE_DIX_CONFIG_H
-#include <dix-config.h>
-#endif
 
 #ifndef CURSOR_H
 #define CURSOR_H 

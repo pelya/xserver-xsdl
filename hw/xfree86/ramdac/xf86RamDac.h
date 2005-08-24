@@ -1,9 +1,5 @@
 /* $XFree86: xc/programs/Xserver/hw/xfree86/ramdac/xf86RamDac.h,v 1.9 1999/03/28 15:33:02 dawes Exp $ */
 
-#ifdef HAVE_XORG_CONFIG_H
-#include <xorg-config.h>
-#endif
-
 #ifndef _XF86RAMDAC_H
 #define _XF86RAMDAC_H 1
 

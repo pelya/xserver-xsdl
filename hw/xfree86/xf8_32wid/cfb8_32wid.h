@@ -1,9 +1,5 @@
 /* $XFree86$ */
 
-#ifdef HAVE_XORG_CONFIG_H
-#include <xorg-config.h>
-#endif
-
 #ifndef _CFB8_32WID_H
 #define _CFB8_32WID_H
 

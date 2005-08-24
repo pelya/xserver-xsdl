@@ -45,9 +45,6 @@ SOFTWARE.
 
 */
 /* $Xorg: colormapst.h,v 1.4 2001/02/09 02:05:14 xorgcvs Exp $ */
-#ifdef HAVE_DIX_CONFIG_H
-#include <dix-config.h>
-#endif
 
 #ifndef CMAPSTRUCT_H
 #define CMAPSTRUCT_H 1

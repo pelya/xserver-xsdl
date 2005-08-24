@@ -74,10 +74,6 @@
  * may include xf86_OSproc.h to get prototypes for public interfaces.
  */
 
-#ifdef HAVE_XORG_CONFIG_H
-#include <xorg-config.h>
-#endif
-
 #ifndef _XF86_OSLIB_H
 #define _XF86_OSLIB_H
 

@@ -28,10 +28,6 @@
  * Author: Ivan Pascal.
  */
 
-#ifdef HAVE_XORG_CONFIG_H
-#include <xorg-config.h>
-#endif
-
 #include "xf86Xinput.h"
 
 Bool ATScancode(InputInfoPtr pInfo, int *scanCode);

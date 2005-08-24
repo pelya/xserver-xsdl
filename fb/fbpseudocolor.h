@@ -1,7 +1,3 @@
-#ifdef HAVE_DIX_CONFIG_H
-#include <dix-config.h>
-#endif
-
 #ifndef _FB_XX_H_
 # define  _FB_XX_H_
 

@@ -48,10 +48,6 @@ SOFTWARE.
 ******************************************************************/
 /* $XFree86: xc/programs/Xserver/include/regionstr.h,v 1.12tsi Exp $ */
 
-#ifdef HAVE_DIX_CONFIG_H
-#include <dix-config.h>
-#endif
-
 #ifndef REGIONSTRUCT_H
 #define REGIONSTRUCT_H
 

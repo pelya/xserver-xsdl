@@ -50,10 +50,6 @@
 
 /* $XConsortium: compiler.h /main/16 1996/10/25 15:38:34 kaleb $ */
 
-#ifdef HAVE_XORG_CONFIG_H
-#include <xorg-config.h>
-#endif
-
 #ifndef _COMPILER_H
 
 # if !defined(_XF86_ANSIC_H) && defined(XFree86Module)

@@ -23,10 +23,6 @@
  * Author:  Keith Packard, SuSE, Inc.
  */
 
-#ifdef HAVE_DIX_CONFIG_H
-#include <dix-config.h>
-#endif
-
 #ifndef _MIPICT_H_
 #define _MIPICT_H_
 

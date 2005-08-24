@@ -40,10 +40,6 @@
  * XXX This file arguably belongs in xfree86/loader/.
  */
 
-#ifdef HAVE_XORG_CONFIG_H
-#include <xorg-config.h>
-#endif
-
 #ifndef _XF86MODULE_H
 #define _XF86MODULE_H
 

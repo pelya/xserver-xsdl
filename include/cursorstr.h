@@ -47,10 +47,6 @@ SOFTWARE.
 ******************************************************************/
 /* $XFree86: xc/programs/Xserver/include/cursorstr.h,v 1.8 2002/11/30 06:21:51 keithp Exp $ */
 
-#ifdef HAVE_DIX_CONFIG_H
-#include <dix-config.h>
-#endif
-
 #ifndef CURSORSTRUCT_H
 #define CURSORSTRUCT_H 
 

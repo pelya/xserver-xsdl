@@ -47,10 +47,6 @@ SOFTWARE.
 ******************************************************************/
 /* $XFree86: xc/programs/Xserver/include/windowstr.h,v 1.6 2001/12/14 19:59:57 dawes Exp $ */
 
-#ifdef HAVE_DIX_CONFIG_H
-#include <dix-config.h>
-#endif
-
 #ifndef WINDOWSTRUCT_H
 #define WINDOWSTRUCT_H
 

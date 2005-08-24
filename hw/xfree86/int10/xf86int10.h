@@ -6,10 +6,6 @@
  *                 Copyright 1999 Egbert Eich
  */
 
-#ifdef HAVE_XORG_CONFIG_H
-#include <xorg-config.h>
-#endif
-
 #ifndef _XF86INT10_H
 #define _XF86INT10_H
 

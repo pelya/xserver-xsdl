@@ -47,10 +47,6 @@ SOFTWARE.
 ******************************************************************/
 /* $XFree86: xc/programs/Xserver/include/propertyst.h,v 3.2 2001/01/17 22:36:57 dawes Exp $ */
 
-#ifdef HAVE_DIX_CONFIG_H
-#include <dix-config.h>
-#endif
-
 #ifndef PROPERTYSTRUCT_H
 #define PROPERTYSTRUCT_H 
 #include "misc.h"

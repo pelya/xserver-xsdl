@@ -32,10 +32,6 @@ in this Software without prior written authorization from The Open Group.
  * Map names around so that multiple depths can be supported simultaneously
  */
 
-#ifdef HAVE_DIX_CONFIG_H
-#include <dix-config.h>
-#endif
-
 #if 0
 #undef QuartetBitsTable
 #undef QuartetPixelMaskTable

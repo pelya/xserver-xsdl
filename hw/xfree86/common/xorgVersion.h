@@ -27,10 +27,6 @@
  * authorization from the copyright holder(s) and author(s).
  */
 
-#ifdef HAVE_XORG_CONFIG_H
-#include <xorg-config.h>
-#endif
-
 #ifndef XORG_VERSION_H
 # define XORG_VERSION_H
 
