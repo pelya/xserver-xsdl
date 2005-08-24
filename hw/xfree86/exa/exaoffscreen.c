@@ -127,7 +127,7 @@ exaOffscreenAlloc (ScreenPtr pScreen, int size, int align,
 	    if (begin->state == ExaOffscreenLocked)
 		continue;
 
-	    /* adjust size to match alignment requirement */
+	    /* adjust size needed to account for alignment loss for this area */
 	    real_size = size;
 	    tmp = begin->offset % align;
 	    if (tmp)
@@ -164,9 +164,9 @@ exaOffscreenAlloc (ScreenPtr pScreen, int size, int align,
 	    return NULL;
 	}
 
-	/* adjust size to match alignment requirement */
+	/* adjust size needed to account for alignment loss for this area */
 	real_size = size;
-	tmp = begin->offset % align;
+	tmp = area->offset % align;
 	if (tmp)
 	    real_size += (align - tmp);
 
