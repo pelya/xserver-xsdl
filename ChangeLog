@@ -1,3 +1,14 @@
+2005-08-24  Alan Coopersmith  <alan.coopersmith@sun.com>
+
+	* configure.ac: 
+	* hw/dmx/input/Makefile.am:
+	Don't try to build dmx/input/lnx-*.c if <linux/keyboard.h> isn't found
+	Don't try to build dmx/input/usb-*.c if <linux/input.h> isn't found
+
+	* hw/dmx/Makefile.am: 
+	Replace -rdynamic with $(LD_EXPORT_SYMBOLS_FLAG) for compatibility
+	with compilers other than gcc
+	
 2005-08-22  Kevin E. Martin  <kem-at-freedesktop-dot-org>
 
 	* configure.ac:

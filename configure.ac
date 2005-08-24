@@ -523,6 +523,16 @@ if test "x$DMX" = xyes; then
 	DMX_INCLUDES="$XEXT_INC $RENDER_INC $XTRAP_INC $RECORD_INC"
 	XDMX_LIBS="$FB_LIB $MI_LIB $XEXT_LIB $RENDER_LIB $XTRAP_LIB $RECORD_LIB $XI_LIB $XKB_LIB $XKB_STUB_LIB $MIEXT_DAMAGE_LIB $OS_LIB $MIEXT_SHADOW_LIB"
 	AC_SUBST([XDMX_LIBS])
+
+dnl USB sources in DMX require <linux/input.h>
+	AC_CHECK_HEADER([linux/input.h], HAVE_LINUX_INPUT_H="yes",
+			HAVE_LINUX_INPUT_H="no")
+	AM_CONDITIONAL([DMX_BUILD_USB],[test "x$HAVE_LINUX_INPUT_H" = xyes])
+
+dnl Linux sources in DMX require <linux/keyboard.h>
+	AC_CHECK_HEADER([linux/keyboard.h], HAVE_LINUX_KEYBOARD_H="yes",
+			HAVE_LINUX_KEYBOARD_H="no")
+	AM_CONDITIONAL([DMX_BUILD_LNX],[test "x$HAVE_LINUX_KEYBOARD_H" = xyes])
 fi
 
 

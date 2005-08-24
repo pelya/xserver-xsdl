@@ -1,12 +1,15 @@
 noinst_LIBRARIES = libdmxinput.a
 
+if DMX_BUILD_LNX
 RAWSRCS = lnx-keyboard.c \
           lnx-keyboard.h \
           lnx-ms.c \
           lnx-ms.h \
           lnx-ps2.c \
           lnx-ps2.h
+endif
 
+if DMX_BUILD_USB
 USBSRCS = usb-keyboard.c \
           usb-keyboard.h \
           usb-mouse.c \
@@ -16,6 +19,7 @@ USBSRCS = usb-keyboard.c \
           usb-common.c \
           usb-common.h \
           usb-private.h
+endif
 
 DRVSRCS = dmxdummy.c \
           dmxdummy.h \

@@ -67,7 +67,7 @@ Xdmx_SOURCES = dmx.c \
 #Xdmx_SOURCES += fakecw.c
 #endif
 
-Xdmx_LDFLAGS = -rdynamic
+Xdmx_LDFLAGS = $(LD_EXPORT_SYMBOLS_FLAG)
 Xdmx_LDADD = $(XORG_CORE_LIBS) \
              $(XDMX_LIBS) \
              $(GLX_LIBS) \
