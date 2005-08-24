@@ -33,7 +33,7 @@
 #include "picturestr.h"
 
 #define EXA_VERSION_MAJOR   0
-#define EXA_VERSION_MINOR   1
+#define EXA_VERSION_MINOR   2
 #define EXA_VERSION_RELEASE 0
 
 typedef struct _ExaOffscreenArea ExaOffscreenArea;
@@ -218,7 +218,11 @@ exaOffscreenAlloc(ScreenPtr pScreen, int size, int align,
 ExaOffscreenArea *
 exaOffscreenFree(ScreenPtr pScreen, ExaOffscreenArea *area);
 
+unsigned long
+exaGetPixmapOffset(PixmapPtr pPix);
 
+unsigned long
+exaGetPixmapPitch(PixmapPtr pPix);
 
 #define exaInitCard(exa, sync, memory_base, off_screen_base, memory_size, \
                     offscreen_byte_align, offscreen_pitch, flags, \

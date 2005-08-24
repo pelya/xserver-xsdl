@@ -58,6 +58,26 @@ int exaPixmapPrivateIndex;
 #define EXA_PIXMAP_SCORE_PINNED	    1000
 #define EXA_PIXMAP_SCORE_INIT	    1001
 
+/* Returns the offset (in bytes) within the framebuffer of the beginning of the
+ * given pixmap.  May need to be extended in the future if we grow support for
+ * having multiple card-accessible areas at different offsets.
+ */
+unsigned long
+exaGetPixmapOffset(PixmapPtr pPix)
+{
+    ExaScreenPriv (pPix->drawable.pScreen);
+
+    return ((unsigned long)pPix->devPrivate.ptr -
+	(unsigned long)pExaScr->info->card.memoryBase);
+}
+
+/* Returns the pitch in bytes of the given pixmap. */
+unsigned long
+exaGetPixmapPitch(PixmapPtr pPix)
+{
+    return pPix->devKind;
+}
+
 void
 exaDrawableDirty (DrawablePtr pDrawable)
 {
