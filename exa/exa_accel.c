@@ -264,6 +264,10 @@ exaPixmapUseScreen (PixmapPtr pPixmap)
     ExaPixmapPriv (pPixmap);
 
     STRACE;
+
+    if (pExaPixmap == NULL)
+	return;
+
     if (pExaPixmap->score == EXA_PIXMAP_SCORE_PINNED)
 	return;
 
@@ -286,6 +290,9 @@ void
 exaPixmapUseMemory (PixmapPtr pPixmap)
 {
     ExaPixmapPriv (pPixmap);
+
+    if (pExaPixmap == NULL)
+	return;
 
     if (pExaPixmap->score == EXA_PIXMAP_SCORE_PINNED)
 	return;
