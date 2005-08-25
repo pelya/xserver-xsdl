@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/dix/events.c,v 1.12 2005/06/15 16:46:59 daniels Exp $ */
+/* $XdotOrg: xc/programs/Xserver/dix/events.c,v 1.16 2005/07/15 05:48:29 kem Exp $ */
 /* $XFree86: xc/programs/Xserver/dix/events.c,v 3.51 2004/01/12 17:04:52 tsi Exp $ */
 /************************************************************
 
@@ -675,7 +675,9 @@ XineramaChangeToCursor(CursorPtr cursor)
 		(sprite.current->bits->yhot != cursor->bits->yhot))
 	    XineramaCheckPhysLimits(cursor, FALSE);
     	(*sprite.screen->DisplayCursor)(sprite.screen, cursor);
+	FreeCursor(sprite.current, (Cursor)0);
 	sprite.current = cursor;
+	sprite.current->refcnt++;
     }
 }
 
@@ -930,7 +932,9 @@ ChangeToCursor(CursorPtr cursor)
 			    (ScreenPtr)NULL);
 	(*sprite.hotPhys.pScreen->DisplayCursor) (sprite.hotPhys.pScreen,
 						  cursor);
+	FreeCursor(sprite.current, (Cursor)0);
 	sprite.current = cursor;
+	sprite.current->refcnt++;
     }
 }
 
@@ -2184,6 +2188,7 @@ DefineInitialRootWindow(register WindowPtr win)
 #endif
     sprite.win = win;
     sprite.current = wCursor (win);
+    sprite.current->refcnt++;
     spriteTraceGood = 1;
     ROOT = win;
     (*pScreen->CursorLimits) (
