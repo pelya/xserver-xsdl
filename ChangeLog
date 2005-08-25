@@ -1,3 +1,8 @@
+2005-08-25  Kristian Høgsberg  <krh@redhat.com>
+
+	* hw/xfree86/os-support/solaris/Makefile.am (EXTRA_DIST): Remove
+	sun_inout.s so make dist works (discussed with Alan Coopersmith).
+
 Wed Aug 24 15:39:07 2005  Søren Sandmann  <sandmann@redhat.com>
 
 	* configure.ac: Add GLX_{INC,LIBS} for xprint.
