@@ -1,3 +1,4 @@
+/* $XdotOrg: $ */
 /*
  * Copyright (c) 2000 by Conectiva S.A. (http://www.conectiva.com)
  * 
@@ -32,7 +33,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#ifdef _SCO_DS
+#if defined(_SCO_DS) || (defined(sun) && defined(__SVR4))
 #include <curses.h>
 #else
 #include <ncurses.h>
