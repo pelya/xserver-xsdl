@@ -1,3 +1,9 @@
+Thu Aug 25 17:15:01 2005  Søren Sandmann  <sandmann@redhat.com>
+
+	* hw/xfree86/i2c/Makefile.am (module_LTLIBRARIES): Add all the
+	drivers to the module_LTLIBRARIES instead of having separate 
+	variables for them. Pointed out by Kristian Høgsberg.
+	
 2005-08-25  Kristian Høgsberg  <krh@redhat.com>
 
 	* hw/xfree86/os-support/solaris/Makefile.am (EXTRA_DIST): Remove
