@@ -1208,8 +1208,11 @@ exaDriverInit (ScreenPtr		pScreen,
 
     pExaScr = xcalloc (sizeof (ExaScreenPrivRec), 1);
 
-    if (!pExaScr)
+    if (!pExaScr) {
+        xf86DrvMsg(pScreen->myNum, X_WARNING,
+                   "EXA: Failed to allocate screen private\n");
 	return FALSE;
+    }
 
     pExaScr->info = pScreenInfo;
 
@@ -1255,8 +1258,11 @@ exaDriverInit (ScreenPtr		pScreen,
 	pExaScr->info->card.offScreenBase < pExaScr->info->card.memorySize)
     {
 	if (!AllocatePixmapPrivate(pScreen, exaPixmapPrivateIndex,
-				   sizeof (ExaPixmapPrivRec)))
+				   sizeof (ExaPixmapPrivRec))) {
+            xf86DrvMsg(pScreen->myNum, X_WARNING,
+                       "EXA: Failed to allocate pixmap private\n");
 	    return FALSE;
+        }
         pExaScr->SavedCreatePixmap = pScreen->CreatePixmap;
 	pScreen->CreatePixmap = exaCreatePixmap;
 
@@ -1265,6 +1271,7 @@ exaDriverInit (ScreenPtr		pScreen,
     }
     else
     {
+        xf86DrvMsg(pScreen->myNum, X_INFO, "EXA: No offscreen pixmaps\n");
 	if (!AllocatePixmapPrivate(pScreen, exaPixmapPrivateIndex, 0))
 	    return FALSE;
     }
@@ -1272,8 +1279,11 @@ exaDriverInit (ScreenPtr		pScreen,
     DBG_PIXMAP(("============== %ld < %ld\n", pExaScr->info->card.offScreenBase,
                 pExaScr->info->card.memorySize));
     if (pExaScr->info->card.offScreenBase < pExaScr->info->card.memorySize) {
-	if (!exaOffscreenInit (pScreen))
+	if (!exaOffscreenInit (pScreen)) {
+            xf86DrvMsg(pScreen->myNum, X_WARNING,
+                       "EXA: Offscreen pixmap setup failed\n");
             return FALSE;
+        }
 
 	pExaScr->SavedEnableDisableFBAccess = pScrn->EnableDisableFBAccess;
 	pScrn->EnableDisableFBAccess = exaEnableDisableFBAccess;
