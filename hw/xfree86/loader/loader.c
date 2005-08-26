@@ -190,9 +190,24 @@ sparcUseHWMulDiv(void)
     while (fgets(buffer, 1024, f) != NULL) {
 	if (!strncmp(buffer, "type", 4)) {
 	    p = strstr(buffer, "sun4");
-	    if (p && (p[4] == 'u' || p[4] == 'd' || p[4] == 'm')) {
+	    if (p && (p[4] == 'u' || p[4] == 'd')) {
 		fclose(f);
 		return 1;
+	    } else if (p && p[4] == 'm') {
+		fclose(f);
+		f = fopen("/proc/cpuinfo","r");
+		if (!f) return 0;
+		while (fgets(buffer, 1024, f) != NULL) {
+		    if (!strncmp (buffer, "MMU type", 8)) {
+		      p = strstr (buffer, "Cypress");
+		      if (p) {
+			fclose(f);
+			return 1;
+		      }
+		    }
+		}
+	        fclose(f);
+	        return 0;
 	    }
 	}
     }
