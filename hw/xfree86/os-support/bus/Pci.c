@@ -1091,14 +1091,30 @@ handlePciBIOS(PCITAG Tag, int basereg,
     for (i = ROM_BASE_PRESET; i <= ROM_BASE_FIND; i++) {
 	memType savebase = 0, newbase, romaddr;
 
-	if (i == ROM_BASE_PRESET) {
+        switch (i) {
+        case ROM_BASE_PRESET:
 	    /* Does the driver have a preference? */
 	    if (basereg > ROM_BASE_PRESET && basereg <= ROM_BASE_FIND)
 		b_reg = basereg;
 	    else
 		b_reg = ++i;
-	} else
+ 	    break;
+         case ROM_BASE_FIND:
+ 	    /*
+ 	     * If we have something that looks like a valid address
+ 	     * in romsave, it's probably not going to help to try
+ 	     * to guess a new address and reprogram it.
+ 	     */
+ 	    if (PCIGETROM(romsave)) {
+ 		pciWriteLong(Tag, PCI_MAP_ROM_REG, PCI_MAP_ROM_ADDRESS_MASK);
+ 		if (romsave != pciReadLong(Tag, PCI_MAP_ROM_REG)) {
+ 		    pciWriteLong(Tag, PCI_MAP_ROM_REG, romsave);
+ 	            continue;
+ 		}
+ 	    }
+ 	default:
 	    b_reg = i;
+	}
 
 	if (!(newbase = getValidBIOSBase(Tag, b_reg)))
 	    continue;  /* no valid address found */
