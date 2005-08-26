@@ -23,10 +23,11 @@
 #define PCIADDR_FMT		"%lx"
 #endif
 
+FILE *xf86OSLinuxPCIFile = NULL;
+
 Bool
 xf86GetPciSizeFromOS(PCITAG tag, int index, int* bits)
 {
-    FILE *file;
     char c[0x200];
     char *res;
     unsigned int bus, devfn, dev, fn;
@@ -37,10 +38,11 @@ xf86GetPciSizeFromOS(PCITAG tag, int index, int* bits)
     if (index > 7)
 	return FALSE;
     
-    if (!(file = fopen("/proc/bus/pci/devices","r")))
+    if (!xf86OSLinuxPCIFile && \
+        !(xf86OSLinuxPCIFile = fopen("/proc/bus/pci/devices","r")))
 	return FALSE;
     do {
-	res = fgets(c,0x1ff,file);
+	res = fgets(c,0x1ff,xf86OSLinuxPCIFile);
 	if (res) {
 	    num = sscanf(res,
 			 /*bus+dev vendorid deviceid irq */
@@ -64,7 +66,7 @@ xf86GetPciSizeFromOS(PCITAG tag, int index, int* bits)
 			 &bus,&devfn,&size[0],&size[1],&size[2],&size[3],
 			 &size[4],&size[5],&size[6]);
 	    if (num != 9) {  /* apparantly not 2.3 style */ 
-		fclose(file);
+		fseek(xf86OSLinuxPCIFile, 0L, SEEK_SET);
 		return FALSE;
 	    }
 	    dev = devfn >> 3;
@@ -78,13 +80,13 @@ xf86GetPciSizeFromOS(PCITAG tag, int index, int* bits)
 			(*bits)++;
 		    }
 		}
-		fclose(file);
+		fseek(xf86OSLinuxPCIFile, 0L, SEEK_SET);
 		return TRUE;
 	    }
 	}
     } while (res);
 
-    fclose(file);
+    fseek(xf86OSLinuxPCIFile, 0L, SEEK_SET);
     return FALSE;
 }
 
