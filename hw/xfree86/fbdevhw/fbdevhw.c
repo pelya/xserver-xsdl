@@ -309,7 +309,10 @@ fbdev_open_pci(pciVideoPtr pPci, char **namep)
 	}
 	if (namep)
 	    *namep = NULL;
+	xf86DrvMsg(-1, X_ERROR,
+		   "Unable to find a valid framebuffer device\n");
 	return -1;
+
 }
 
 static int
