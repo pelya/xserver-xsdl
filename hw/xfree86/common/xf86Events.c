@@ -1735,6 +1735,26 @@ XTestGenerateEvent(int dev_type, int keycode, int keystate, int mousex,
 
 #endif /* XTESTEXT1 */
 
+void
+xf86ReloadInputDevs(int sig)
+{
+  InputInfoPtr pInfo;
+  
+  signal(sig, (void(*)(int))xf86ReloadInputDevs);
+
+  DisableDevice((DeviceIntPtr)xf86Info.pKeyboard);
+  EnableDevice((DeviceIntPtr)xf86Info.pKeyboard);
+
+  pInfo = xf86InputDevs;
+  while (pInfo) {
+    DisableDevice(pInfo->dev);
+    EnableDevice(pInfo->dev);
+    pInfo = pInfo->next;
+  }
+  
+  return;
+}
+
 #ifdef WSCONS_SUPPORT
 
 /* XXX Currently XKB is mandatory. */

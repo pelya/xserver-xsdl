@@ -289,6 +289,7 @@ xf86OpenConsole(void)
         } else { /* ShareVTs */
             close(xf86Info.consoleFd);
         }
+	signal(SIGUSR2, xf86ReloadInputDevs);
     } else { 	/* serverGeneration != 1 */
         if (!ShareVTs && VTSwitch)
         {
