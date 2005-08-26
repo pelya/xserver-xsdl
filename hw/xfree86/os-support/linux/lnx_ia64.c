@@ -32,6 +32,7 @@
 #include <sys/stat.h>
 #include <sys/utsname.h>
 #include <unistd.h>
+#include <stdlib,h>
 
 #include "ia64Pci.h"
 #include "Pci.h"
@@ -47,11 +48,21 @@ IA64Chipset OS_PROBE_PCI_CHIPSET(scanpciWrapperOpt flags)
 	return ZX1_CHIPSET;
 
     if (!stat("/proc/sgi_sn/licenseID", &unused)) {
-	/*
-	 * We need a 2.6.11 or better kernel for Altix support
-	 */
+        int major, minor, patch;
+        char *c;
+
+	/* We need a 2.6.11 or better kernel for Altix support */
 	uname(&utsName);
-	if (!strstr(utsName.release, "2.6.11")) {
+        c = utsName.release;
+        
+        major = atoi(c);
+        c = strstr(c, ".") + 1;
+        minor = atoi(c);
+        c = strstr(c, ".") + 1;
+        patch = atoi(c);
+        
+	if (major < 2 || (major == 2 && minor < 6) ||
+            (major == 2 && minor == 6 && patch < 11)) {
 	    ErrorF("Kernel 2.6.11 or better needed for Altix support\n");
 	    return NONE_CHIPSET;
 	}
