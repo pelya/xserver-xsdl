@@ -2443,12 +2443,14 @@ configExtensions(XF86ConfExtensionsPtr conf_ext)
 
 	    if (!val ||
 		xf86NameCmp(val, "enable") == 0 ||
+		xf86NameCmp(val, "enabled") == 0 ||
 		xf86NameCmp(val, "on") == 0 ||
 		xf86NameCmp(val, "1") == 0 ||
 		xf86NameCmp(val, "yes") == 0 ||
 		xf86NameCmp(val, "true") == 0) {
 		/* NOTHING NEEDED -- enabling is handled below */
 	    } else if (xf86NameCmp(val, "disable") == 0 ||
+                       xf86NameCmp(val, "disabled") == 0 ||
 		       xf86NameCmp(val, "off") == 0 ||
 		       xf86NameCmp(val, "0") == 0 ||
 		       xf86NameCmp(val, "no") == 0 ||
