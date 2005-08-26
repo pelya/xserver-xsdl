@@ -41,8 +41,8 @@
 
 #include <X11/Xos.h>
 
-/* Get prototype for ntohl. */
-#include <ctype.h>
+/* Get prototype for ntohl, per SuSv3. */
+#include <arpa/inet.h>
 
 /* OS/2 EMX has ntohl in this file */
 #ifdef __UNIXOS2__
