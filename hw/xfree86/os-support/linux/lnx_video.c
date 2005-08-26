@@ -29,6 +29,9 @@
 #include <xorg-config.h>
 #endif
 
+#include <errno.h>
+#include <string.h>
+
 #include <X11/X.h>
 #include "input.h"
 #include "scrnintstr.h"
@@ -566,11 +569,14 @@ xf86EnableIO(void)
 	}
 	close(fd);
 #elif !defined(__mc68000__) && !defined(__sparc__) && !defined(__mips__) && !defined(__sh__) && !defined(__hppa__)
-	if (ioperm(0, 1024, 1) || iopl(3)) {
-		xf86Msg(X_WARNING,
-			"xf86EnableIOPorts: Failed to set IOPL for I/O\n");
+        if (ioperm(0, 1024, 1) || iopl(3)) {
+                if (errno == ENODEV)
+                        ErrorF("xf86EnableIOPorts: no I/O ports found\n");
+                else
+                        FatalError("xf86EnableIOPorts: failed to set IOPL"
+                                   " for I/O (%s)\n", strerror(errno));
 		return FALSE;
-	}
+        }
 # if !defined(__alpha__)
 	ioperm(0x40,4,0); /* trap access to the timer chip */
 	ioperm(0x60,4,0); /* trap access to the keyboard controller */
