@@ -236,8 +236,6 @@ LOOKUP dixLookupTab[] = {
     SYMVAR(XvGetScreenIndexProc)
     SYMVAR(XvGetRTPortProc)
     SYMVAR(XvMCScreenInitProc)
-    /* But this just comes from Xext. */
-    SYMFUNC(XvGetScreenIndex)
 #endif
     SYMVAR(ScreenSaverBlanking)
     SYMVAR(WindowTable)
