@@ -1,5 +1,5 @@
 /*
- * $XdotOrg: xc/programs/Xserver/fb/fbcompose.c,v 1.19 2005/08/12 18:50:33 sandmann Exp $
+ * $XdotOrg: xc/programs/Xserver/fb/fbcompose.c,v 1.20 2005/08/30 03:01:38 anholt Exp $
  * $XFree86: xc/programs/Xserver/fb/fbcompose.c,v 1.17tsi Exp $
  *
  * Copyright © 2000 Keith Packard, member of The XFree86 Project, Inc.
@@ -2547,7 +2547,7 @@ fbCombineConjointXorC (CARD32 *dest, CARD32 *src, CARD32 *mask, int width)
 static CombineFuncC fbCombineFuncC[] = {
     fbCombineClearC,
     fbCombineSrcC,
-    0, /* Dest */
+    NULL, /* Dest */
     fbCombineOverC,
     fbCombineOverReverseC,
     fbCombineInC,
@@ -2559,11 +2559,11 @@ static CombineFuncC fbCombineFuncC[] = {
     fbCombineXorC,
     fbCombineAddC,
     fbCombineSaturateC,
-    0,
-    0,
+    NULL,
+    NULL,
     fbCombineClearC,	    /* 0x10 */
     fbCombineSrcC,
-    0, /* Dest */
+    NULL, /* Dest */
     fbCombineDisjointOverC,
     fbCombineSaturateC, /* DisjointOverReverse */
     fbCombineDisjointInC,
@@ -2573,13 +2573,13 @@ static CombineFuncC fbCombineFuncC[] = {
     fbCombineDisjointAtopC,
     fbCombineDisjointAtopReverseC,
     fbCombineDisjointXorC,  /* 0x1b */
-    0,
-    0,
-    0,
-    0,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
     fbCombineClearC,
     fbCombineSrcC,
-    0, /* Dest */
+    NULL, /* Dest */
     fbCombineConjointOverC,
     fbCombineConjointOverReverseC,
     fbCombineConjointInC,
