@@ -32,7 +32,7 @@
 #include <sys/stat.h>
 #include <sys/utsname.h>
 #include <unistd.h>
-#include <stdlib,h>
+#include <stdlib.h>
 
 #include "ia64Pci.h"
 #include "Pci.h"
