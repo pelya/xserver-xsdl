@@ -841,7 +841,7 @@ fbComposite (CARD8      op,
     RegionRec	    region;
     int		    n;
     BoxPtr	    pbox;
-    CompositeFunc   func = 0;
+    CompositeFunc   func = NULL;
     Bool	    srcRepeat = pSrc->pDrawable && pSrc->repeat == RepeatNormal;
     Bool	    maskRepeat = FALSE;
     Bool	    srcAlphaMap = pSrc->alphaMap != 0;

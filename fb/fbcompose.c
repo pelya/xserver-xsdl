@@ -1,5 +1,5 @@
 /*
- * $XdotOrg: xc/programs/Xserver/fb/fbcompose.c,v 1.10 2005/07/01 10:05:42 lars Exp $
+ * $XdotOrg: xc/programs/Xserver/fb/fbcompose.c,v 1.19 2005/08/12 18:50:33 sandmann Exp $
  * $XFree86: xc/programs/Xserver/fb/fbcompose.c,v 1.17tsi Exp $
  *
  * Copyright © 2000 Keith Packard, member of The XFree86 Project, Inc.
@@ -558,7 +558,7 @@ static fetchProc fetchProcForPicture (PicturePtr pict)
     case PICT_a1: return  fbFetch_a1;
     case PICT_g1: return  fbFetch_g1;
     default:
-        return 0;
+        return NULL;
     }
 }
 
@@ -986,7 +986,7 @@ static fetchPixelProc fetchPixelProcForPicture (PicturePtr pict)
     case PICT_a1: return  fbFetchPixel_a1;
     case PICT_g1: return  fbFetchPixel_g1;
     default:
-        return 0;
+        return NULL;
     }
 }
 
@@ -1422,7 +1422,7 @@ static storeProc storeProcForPicture (PicturePtr pict)
     case PICT_a1: return  fbStore_a1;
     case PICT_g1: return  fbStore_g1;
     default:
-        return 0;
+        return NULL;
     }
 }
 
@@ -1926,7 +1926,7 @@ fbCombineConjointXorU (CARD32 *dest, const CARD32 *src, int width)
 static CombineFuncU fbCombineFuncU[] = {
     fbCombineClear,
     fbCombineSrcU,
-    0, /* CombineDst */
+    NULL, /* CombineDst */
     fbCombineOverU,
     fbCombineOverReverseU,
     fbCombineInU,
@@ -1938,11 +1938,11 @@ static CombineFuncU fbCombineFuncU[] = {
     fbCombineXorU,
     fbCombineAddU,
     fbCombineSaturateU,
-    0,
-    0,
+    NULL,
+    NULL,
     fbCombineClear,
     fbCombineSrcU,
-    0, /* CombineDst */
+    NULL, /* CombineDst */
     fbCombineDisjointOverU,
     fbCombineSaturateU, /* DisjointOverReverse */
     fbCombineDisjointInU,
@@ -1952,13 +1952,13 @@ static CombineFuncU fbCombineFuncU[] = {
     fbCombineDisjointAtopU,
     fbCombineDisjointAtopReverseU,
     fbCombineDisjointXorU,
-    0,
-    0,
-    0,
-    0,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
     fbCombineClear,
     fbCombineSrcU,
-    0, /* CombineDst */
+    NULL, /* CombineDst */
     fbCombineConjointOverU,
     fbCombineConjointOverReverseU,
     fbCombineConjointInU,
@@ -3319,10 +3319,10 @@ fbCompositeRect (const FbComposeData *data, CARD32 *scanline_buffer)
     CARD32 *dest_buffer = src_buffer + data->width;
     int i;
     scanStoreProc store;
-    scanFetchProc fetchSrc = 0, fetchMask = 0, fetchDest = 0;
+    scanFetchProc fetchSrc = NULL, fetchMask = NULL, fetchDest = NULL;
 
     if (data->op == PictOpClear)
-        fetchSrc = 0;
+        fetchSrc = NULL;
     else if (!data->src->pDrawable) {
         if (data->src->pSourcePict)
             fetchSrc = fbFetchSourcePict;
@@ -3350,7 +3350,7 @@ fbCompositeRect (const FbComposeData *data, CARD32 *scanline_buffer)
         else
             fetchMask = fbFetchTransformed;
     } else {
-        fetchMask = 0;
+        fetchMask = NULL;
     }
 
     if (data->dest->alphaMap) {
@@ -3361,7 +3361,7 @@ fbCompositeRect (const FbComposeData *data, CARD32 *scanline_buffer)
         store = fbStore;
     }
     if (data->op == PictOpClear || data->op == PictOpSrc)
-        fetchDest = 0;
+        fetchDest = NULL;
 
     if (fetchSrc && fetchMask && data->mask && data->mask->componentAlpha && PICT_FORMAT_RGB(data->mask->format)) {
         CARD32 *mask_buffer = dest_buffer + data->width;
@@ -3397,8 +3397,8 @@ fbCompositeRect (const FbComposeData *data, CARD32 *scanline_buffer)
                 fetchMask(data->mask, data->xMask, data->yMask, data->width, dest_buffer);
                 composeFunctions.combineMaskU(src_buffer, dest_buffer, data->width);
             }
-            fetchSrc = 0;
-            fetchMask = 0;
+            fetchSrc = NULL;
+            fetchMask = NULL;
         }
 
         for (i = 0; i < data->height; ++i)
