@@ -1,3 +1,14 @@
+2005-08-30  Kristian Høgsberg  <krh@redhat.com>
+
+	* hw/xfree86/dri/Makefile.am: 
+	* hw/xfree86/os-support/drm/Makefile.am: Use the $(moduledir)
+	makefile variable instead of @moduledir@ so it can be overridden
+	at make install time.
+
+	* xorg-server.pc.in: Remove driverdir and inputdir from pkg-config
+	file.  The directory layout of moduledir is fixed and well known
+	by drivers.
+
 Thu Aug 25 17:15:01 2005  Søren Sandmann  <sandmann@redhat.com>
 
 	* hw/xfree86/i2c/Makefile.am (module_LTLIBRARIES): Add all the

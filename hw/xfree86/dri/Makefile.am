@@ -10,7 +10,7 @@ libdri_la_CFLAGS = -I$(top_srcdir)/hw/xfree86/common \
                    @DRIPROTO_CFLAGS@ \
                    @LIBDRM_CFLAGS@
 libdri_la_LDFLAGS = -module -avoid-version
-libdri_ladir = @moduledir@/extensions
+libdri_ladir = $(moduledir)/extensions
 libdri_la_SOURCES = \
 	dri.c \
 	dri.h \

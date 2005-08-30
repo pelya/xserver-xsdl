@@ -9,7 +9,7 @@ libdrm_la_CFLAGS = -I$(top_srcdir)/hw/xfree86/common \
                    -DHAVE_XORG_CONFIG_H \
                    @LIBDRM_CFLAGS@
 libdrm_la_LDFLAGS = -module -avoid-version
-libdrm_ladir = @moduledir@/@XORG_OS@
+libdrm_ladir = $(moduledir)/@XORG_OS@
 libdrm_la_SOURCES = \
 	xf86drm.c \
 	xf86drmHash.c \
