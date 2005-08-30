@@ -108,7 +108,12 @@ rasterizeEdges (FbBits		*buf,
 			AddAlpha (N_X_FRAC(N_BITS));
 			StepAlpha;
 		    }
-		    AddAlpha (rxs);
+		    /* Do not add in a 0 alpha here. This check is necessary
+		     * to avoid a buffer overrun when rx is exactly on a pixel
+		     * boundary.
+		     */
+		    if (rxs != 0)
+			AddAlpha (rxs);
 		}
 	    }
 #endif
