@@ -327,64 +327,19 @@ exaTryDriverComposite(CARD8		op,
     PixmapPtr pSrcPix, pMaskPix = NULL, pDstPix;
     struct _Pixmap scratch;
 
-    if (pExaScr->info->card.maxX < width ||
-        pExaScr->info->card.maxY < height)
+    /* Bail if we might exceed coord limits by rendering from/to these.  We
+     * should really be making some scratch pixmaps with offsets and coords
+     * adjusted to deal with this, but it hasn't been done yet.
+     */
+    if (pSrc->pDrawable->width > pExaScr->info->card.maxX ||
+	pSrc->pDrawable->height > pExaScr->info->card.maxY ||
+	pDst->pDrawable->width > pExaScr->info->card.maxX ||
+	pDst->pDrawable->height > pExaScr->info->card.maxY || 
+	(pMask && (pMask->pDrawable->width > pExaScr->info->card.maxX ||
+		   pMask->pDrawable->height > pExaScr->info->card.maxY)))
     {
-        int total_width  = width;
-        int total_height = height;
-        int xOff = 0;
-        int yOff = 0;
-        while (total_width  > pExaScr->info->card.maxX) {
-            while (total_height > pExaScr->info->card.maxY) {
-                exaTryDriverComposite(op,
-                                      pSrc,
-                                      pMask,
-                                      pDst,
-                                      xSrc  + xOff,
-                                      ySrc  + yOff,
-                                      xMask + xOff,
-                                      yMask + yOff,
-                                      xDst  + xOff,
-                                      yDst  + yOff,
-                                      pExaScr->info->card.maxX,
-                                      pExaScr->info->card.maxY);
-                total_width -= pExaScr->info->card.maxX;
-                xOff += pExaScr->info->card.maxX;
-                yOff = 0;
-            }
-            if (total_height)
-                exaTryDriverComposite(op,
-                                      pSrc,
-                                      pMask,
-                                      pDst,
-                                      xSrc  + xOff,
-                                      ySrc  + yOff,
-                                      xMask + xOff,
-                                      yMask + yOff,
-                                      xDst  + xOff,
-                                      yDst  + yOff,
-                                      pExaScr->info->card.maxX,
-                                      total_height);
-            total_height -= pExaScr->info->card.maxY;
-            yOff += pExaScr->info->card.maxY;
-        }
-        if (total_width && total_height)
-            exaTryDriverComposite(op,
-                                  pSrc,
-                                  pMask,
-                                  pDst,
-                                  xSrc  + xOff,
-                                  ySrc  + yOff,
-                                  xMask + xOff,
-                                  yMask + yOff,
-                                  xDst  + xOff,
-                                  yDst  + yOff,
-                                  total_width,
-                                  total_height);
-
-        return -1;
+	return -1;
     }
-
 
     xDst += pDst->pDrawable->x;
     yDst += pDst->pDrawable->y;

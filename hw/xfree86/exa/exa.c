@@ -517,6 +517,8 @@ exaFillSpans(DrawablePtr pDrawable, GCPtr pGC, int n,
 
     STRACE;
     if (pGC->fillStyle != FillSolid ||
+	pDrawable->width > pExaScr->info->card.maxX ||
+	pDrawable->height > pExaScr->info->card.maxY ||
 	!(pPixmap = exaGetOffscreenPixmap (pDrawable, &off_x, &off_y)) ||
 	!(*pExaScr->info->accel.PrepareSolid) (pPixmap,
                                                pGC->alu,
@@ -605,6 +607,25 @@ exaCopyNtoN (DrawablePtr    pSrcDrawable,
     int	    dst_off_x, dst_off_y;
     STRACE;
 
+    /* Respect maxX/maxY in a trivial way: don't set up drawing when we might
+     * violate the limits.  The proper solution would be a temporary pixmap
+     * adjusted so that the drawing happened within limits.
+     */
+    if (pSrcDrawable->width > pExaScr->info->card.maxX ||
+	pSrcDrawable->height > pExaScr->info->card.maxY ||
+	pDstDrawable->width > pExaScr->info->card.maxX ||
+	pDstDrawable->height > pExaScr->info->card.maxY)
+    {
+	if (pSrcDrawable->type == DRAWABLE_PIXMAP)
+	    exaPixmapUseMemory ((PixmapPtr) pSrcDrawable);
+	if (pDstDrawable->type == DRAWABLE_PIXMAP)
+	    exaPixmapUseMemory ((PixmapPtr) pDstDrawable);
+	exaWaitSync (pDstDrawable->pScreen);
+	fbCopyNtoN (pSrcDrawable, pDstDrawable, pGC,
+		    pbox, nbox, dx, dy, reverse, upsidedown,
+		    bitplane, closure);
+    }
+
     /* If either drawable is already in framebuffer, try to get both of them
      * there.  Otherwise, be happy with where they are.
      */
@@ -691,6 +712,8 @@ exaPolyFillRect(DrawablePtr pDrawable,
     STRACE;
     if (!pScrn->vtSema ||
         pGC->fillStyle != FillSolid ||
+	pDrawable->width > pExaScr->info->card.maxX ||
+	pDrawable->height > pExaScr->info->card.maxY ||
 	!(pPixmap = exaGetOffscreenPixmap (pDrawable, &xoff, &yoff)) ||
 	!(*pExaScr->info->accel.PrepareSolid) (pPixmap,
                                                pGC->alu,
@@ -794,6 +817,8 @@ exaSolidBoxClipped (DrawablePtr	pDrawable,
 
     STRACE;
     if (!pScrn->vtSema ||
+	pDrawable->width > pExaScr->info->card.maxX ||
+	pDrawable->height > pExaScr->info->card.maxY ||
         !(pPixmap = exaGetOffscreenPixmap (pDrawable, &xoff, &yoff)) ||
 	!(*pExaScr->info->accel.PrepareSolid) (pPixmap, GXcopy, pm, fg))
     {
@@ -1079,7 +1104,9 @@ exaFillRegionSolid (DrawablePtr	pDrawable,
     int xoff, yoff;
 
     STRACE;
-    if ((pPixmap = exaGetOffscreenPixmap (pDrawable, &xoff, &yoff)) &&
+    if (pDrawable->width <= pExaScr->info->card.maxX &&
+	pDrawable->height <= pExaScr->info->card.maxY &&
+	(pPixmap = exaGetOffscreenPixmap (pDrawable, &xoff, &yoff)) &&
 	(*pExaScr->info->accel.PrepareSolid) (pPixmap, GXcopy, FB_ALLONES, pixel))
     {
 	int	nbox = REGION_NUM_RECTS (pRegion);
