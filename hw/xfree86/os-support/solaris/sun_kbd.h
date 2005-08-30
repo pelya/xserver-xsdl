@@ -41,6 +41,7 @@ typedef struct {
     Bool		kbdActive;	/* Have we set kbd modes for X? */
     int 		otranslation;	/* Original translation mode */
     int 		odirect;	/* Original "direct" mode setting */
+    unsigned char	oleds;		/* Original LED state */
     const char *	strmod;		/* Streams module pushed on kbd device */
     const char *	audioDevName;	/* Audio device path to use for bell
 					   or NULL to use keyboard beeper */

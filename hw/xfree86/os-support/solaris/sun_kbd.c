@@ -102,7 +102,7 @@ sunKbdOpen(const char *devName, pointer options)
     if (kbdFD == -1) {
         xf86Msg(X_ERROR, "%s: cannot open \"%s\"\n", devName, kbdPath);
     } else {
-	xf86Msg(X_INFO, "%s: Opened device \"%s\"\n", devName , kbdPath);
+	xf86MsgVerb(X_INFO, 3, "%s: Opened device \"%s\"\n", devName, kbdPath);
     }
     
     if ((kbdPath != NULL) && (kbdPath != defaultKbd)) {
@@ -127,6 +127,28 @@ sunKbdInit(sunKbdPrivPtr priv, int kbdFD, const char *devName, pointer options)
     priv->devName 	= devName;
     priv->otranslation 	= -1;
     priv->odirect 	= -1;
+
+    if (options != NULL) {
+	priv->strmod = xf86SetStrOption(options, "StreamsModule", NULL);
+	priv->audioDevName = xf86SetStrOption(options, "BellDevice", NULL);
+
+	if (priv->audioDevName && (priv->audioDevName[0] == '\0')) {
+	    xfree(priv->audioDevName);
+	    priv->audioDevName = NULL;
+	}	
+    } else {
+	priv->strmod 		= NULL;
+	priv->audioDevName	= NULL;
+    }
+
+    if (priv->strmod) {
+	SYSCALL(i = ioctl(priv->kbdFD, I_PUSH, priv->strmod));
+	if (i < 0) {
+	    xf86Msg(X_ERROR,
+		    "%s: cannot push module '%s' onto keyboard device: %s\n",
+		    priv->devName, priv->strmod, strerror(errno));
+	}
+    }
     
     SYSCALL(i = ioctl(kbdFD, KIOCTYPE, &ktype));
     if (i < 0) {
@@ -162,20 +184,8 @@ sunKbdInit(sunKbdPrivPtr priv, int kbdFD, const char *devName, pointer options)
     priv->ktype 	= ktype;
     priv->keyMap	= sunGetKbdMapping(ktype);
     priv->audioState	= AB_INITIALIZING;
+    priv->oleds 	= sunKbdGetLeds(priv);
 
-    if (options != NULL) {
-	priv->strmod = xf86SetStrOption(options, "StreamsModule", NULL);
-	priv->audioDevName = xf86SetStrOption(options, "BellDevice", NULL);
-
-	if (priv->audioDevName && (priv->audioDevName[0] == '\0')) {
-	    xfree(priv->audioDevName);
-	    priv->audioDevName = NULL;
-	}	
-    } else {
-	priv->strmod 		= NULL;
-	priv->audioDevName	= NULL;
-    }
-    
     return Success;
 }
 
@@ -183,15 +193,6 @@ _X_HIDDEN int
 sunKbdOn(sunKbdPrivPtr priv)
 {
     int	ktrans, kdirect, i;
-
-    if (priv->strmod) {
-	SYSCALL(i = ioctl(priv->kbdFD, I_PUSH, priv->strmod));
-	if (i < 0) {
-	    xf86Msg(X_ERROR,
-		    "%s: cannot push module '%s' onto keyboard device: %s\n",
-		    priv->devName, priv->strmod, strerror(errno));
-	}
-    }
 
     SYSCALL(i = ioctl(priv->kbdFD, KIOCGDIRECT, &kdirect));
     if (i < 0) {
@@ -238,6 +239,10 @@ _X_HIDDEN int
 sunKbdOff(sunKbdPrivPtr priv)
 {
     int i;
+
+    /* restore original state */
+    
+    sunKbdSetLeds(priv, priv->oleds);
     
     if (priv->otranslation != -1) {
         SYSCALL(i = ioctl(priv->kbdFD, KIOCTRANS, &priv->otranslation));
@@ -478,7 +483,7 @@ sunKbdSetLeds(sunKbdPrivPtr priv, int leds)
 _X_HIDDEN int
 sunKbdGetLeds(sunKbdPrivPtr priv)
 {
-    int i, leds;
+    int i, leds = 0;
 
     SYSCALL(i = ioctl(priv->kbdFD, KIOCGLED, &leds));
     if (i < 0) {
