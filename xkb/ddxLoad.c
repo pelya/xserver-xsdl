@@ -30,6 +30,10 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include <dix-config.h>
 #endif
 
+#ifdef HAVE_XKB_CONFIG_H
+#include <xkb-config.h>
+#endif
+
 #include <stdio.h>
 #include <ctype.h>
 #define	NEED_EVENTS 1
