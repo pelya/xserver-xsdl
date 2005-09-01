@@ -1,4 +1,5 @@
-module_LTLIBRARIES =		\
+multimediadir = $(moduledir)/multimedia
+multimedia_LTLIBRARIES =	\
 	libi2c.la		\
 	bt829_drv.la		\
 	fi1236_drv.la		\

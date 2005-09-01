@@ -1,3 +1,12 @@
+2005-09-01  Daniel Stone  <daniel@freedesktop.org>
+
+	* configure.ac:
+	* include/config.h.in:
+	Make RGB_PATH configurable.
+
+	* hw/xfree86/i2c/Makefile.am:
+	Move I2C modules back to $(moduledir)/multimedia.
+
 2005-08-30  Kristian Høgsberg  <krh@redhat.com>
 
 	* hw/xfree86/dri/Makefile.am: 

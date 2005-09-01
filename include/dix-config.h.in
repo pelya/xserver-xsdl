@@ -388,4 +388,7 @@
 /* Define to 1 if unsigned long is 64 bits. */
 #undef _XSERVER64
 
+/* Define to location of RGB database */
+#undef RGB_PATH
+
 #endif /* _DIX_CONFIG_H_ */

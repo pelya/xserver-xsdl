@@ -214,6 +214,9 @@ AC_ARG_WITH(default-font-path, [ --with-default-font-path=PATH ],
 AC_ARG_WITH(xkb-path,        [  --with-xkb-path=PATH ],
 				[ XKBPATH="$withval" ],
 				[ XKBPATH="${datadir}/X11/xkb" ])
+AC_ARG_WITH(rgb-path,        [  --with-rgb-path=PATH ],
+				[ RGBPATH="$withval" ],
+				[ RGBPATH="${datadir}/X11/rgb" ])
 
 dnl Extensions.
 AC_ARG_ENABLE(composite,     [  --disable-composite ], [COMPOSITE=$enableval], [COMPOSITE=yes])
@@ -444,7 +447,8 @@ if test "x$USE_RGB_BUILTIN" = xyes; then
 	AC_DEFINE(USE_RGB_BUILTIN, 1, [Use built-in RGB color database])
 fi
 
-AC_DEFINE_DIR(COMPILEDDEFAULTFONTPATH, ["$FONTPATH"], [Default font path])
+AC_DEFINE_DIR(COMPILEDDEFAULTFONTPATH, FONTPATH, [Default font path])
+AC_DEFINE_DIR(RGB_PATH, RGBPATH, [Default RGB path])
 AC_DEFINE_UNQUOTED(XVENDORNAME, ["$VENDOR_STRING"], [Vendor name])
 AC_DEFINE_UNQUOTED(XORG_RELEASE, ["$VENDOR_RELEASE"], [Vendor release])
 AC_DEFINE_UNQUOTED(BUILDERADDR, ["$BUILDERADDR"], [Builder address])
