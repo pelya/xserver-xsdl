@@ -176,7 +176,7 @@ char	tmpname[PATH_MAX];
 	    haveDir= False;
 	    buf = Xprintf(
 		"'%s/xkbcomp' '-R%s/%s' -w %ld -l -vlfhpR '%s'" W32_tmparg,
-                XkbBaseDirectory,XkbBaseDirectory,componentDirs[what],(long)
+                XkbBinDirectory,XkbBaseDirectory,componentDirs[what],(long)
 		((xkbDebugFlags<2)?1:((xkbDebugFlags>10)?10:xkbDebugFlags)),
 		file W32_tmpfile
                 );

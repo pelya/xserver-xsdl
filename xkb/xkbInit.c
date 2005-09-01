@@ -100,6 +100,9 @@ typedef struct	_SrvXkmInfo {
 #ifndef XKB_BASE_DIRECTORY
 #define	XKB_BASE_DIRECTORY	"/usr/lib/X11/xkb"
 #endif
+#ifndef XKB_BIN_DIRECTORY
+#define	XKB_BIN_DIRECTORY	XKB_BASE_DIRECTORY
+#endif
 #ifndef XKB_DFLT_RULES_FILE
 #define	XKB_DFLT_RULES_FILE	"rules"
 #endif
@@ -123,6 +126,7 @@ typedef struct	_SrvXkmInfo {
 #endif
 
 char	*		XkbBaseDirectory=	XKB_BASE_DIRECTORY;
+char	*		XkbBinDirectory=	XKB_BIN_DIRECTORY;
 char	*		XkbInitialMap=		NULL;
 int	 		XkbWantAccessX=		0;	
 static XkbFileInfo *	_XkbInitFileInfo=	NULL;

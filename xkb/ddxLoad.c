@@ -243,16 +243,21 @@ char 	*cmd = NULL,file[PATH_MAX],xkm_output_dir[PATH_MAX],*map,*outFile;
     if (XkbBaseDirectory!=NULL) {
 #ifndef __UNIXOS2__
         char *xkbbasedir = XkbBaseDirectory;
+        char *xkbbindir = XkbBinDirectory;
 #else
         /* relocate the basedir and replace the slashes with backslashes */
         char *xkbbasedir = (char*)__XOS2RedirRoot(XkbBaseDirectory);
+        char *xkbbindir = (char*)__XOS2RedirRoot(XkbBinDirectory);
         int i;
+
 	for (i=0; i<strlen(xkbbasedir); i++) 
             if (xkbbasedir[i]=='/') xkbbasedir[i]='\\';
+	for (i=0; i<strlen(xkbbindir); i++) 
+            if (xkbbindir[i]=='/') xkbbindir[i]='\\';
 #endif
 
 	cmd = Xprintf("\"%s" PATHSEPARATOR "xkbcomp\" -w %d \"-R%s\" -xkm %s%s -em1 %s -emp %s -eml %s keymap/%s \"%s%s.xkm\"",
-		xkbbasedir,
+		xkbbindir,
 		((xkbDebugFlags<2)?1:((xkbDebugFlags>10)?10:(int)xkbDebugFlags)),
 		xkbbasedir,(map?"-m ":""),(map?map:""),
 		PRE_ERROR_MSG,ERROR_PREFIX,POST_ERROR_MSG1,file,
@@ -337,16 +342,20 @@ char tmpname[PATH_MAX];
 #endif
 #ifndef __UNIXOS2__
         char *xkbbasedir = XkbBaseDirectory;
+        char *xkbbindir = XkbBinDirectory;
 #else
         int i;
         char *xkbbasedir = (char*)__XOS2RedirRoot(XkbBaseDirectory);
+        char *xkbbindir = (char*)__XOS2RedirRoot(XkbBinDirectory);
 	for (i=0; i<strlen(xkbbasedir); i++) 
             if (xkbbasedir[i]=='/') xkbbasedir[i]='\\';
+	for (i=0; i<strlen(xkbbindir); i++) 
+            if (xkbbindir[i]=='/') xkbbindir[i]='\\';
 #endif
         
 	buf = Xprintf(
 	   "\"%s" PATHSEPARATOR "xkbcomp\" -w %d \"-R%s\" -xkm \"%s\" -em1 %s -emp %s -eml %s \"%s%s.xkm\"",
-		xkbbasedir,
+		xkbbindir,
 		((xkbDebugFlags<2)?1:((xkbDebugFlags>10)?10:(int)xkbDebugFlags)),
 		xkbbasedir, xkmfile,
 		PRE_ERROR_MSG,ERROR_PREFIX,POST_ERROR_MSG1,
