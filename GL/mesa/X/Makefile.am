@@ -15,7 +15,7 @@ INCLUDES = -I@MESA_SOURCE@/include \
            -I$(top_srcdir)/GL/include
 
 # terribly gross hack.  i need a shower now.
-AM_CFLAGS = $(DIX_CFLAGS) -DXFree86Server
+AM_CFLAGS = $(DIX_CFLAGS) -DXFree86Server -include xorg-server.h
 
 libX_la_SOURCES = xf86glx.c \
                   xf86glx_util.c \

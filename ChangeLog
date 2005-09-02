@@ -1,3 +1,9 @@
+2005-09-02  Daniel Stone  <daniel@freedesktop.org>
+
+	* GL/mesa/X/Makefile.am:
+	Add -include dix-config.h to CFLAGS so we pickup _XSERVER64 and other
+	assorted vaguely useful macros; this unbreaks GLcore on amd64.
+
 2005-09-01  Daniel Stone  <daniel@freedesktop.org>
 
 	* configure.ac:
