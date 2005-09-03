@@ -244,11 +244,20 @@ AC_ARG_ENABLE(xnest,   	      AS_HELP_STRING([--enable-xnest], [Build Xnest serv
 AC_ARG_ENABLE(xwin,    	      AS_HELP_STRING([--enable-xwin], [Build XWin server (default: auto)]), [XWIN=$enableval], [XWIN=auto])
 AC_ARG_ENABLE(xprint,         AS_HELP_STRING([--enable-xprint], [Build Xprint extension and server (default: auto)]), [XPRINT=$enableval], [XPRINT=auto])
 
-dnl Transport selection
-AC_ARG_ENABLE(unix-transport,[  --disable-unix-transport ], [UNIXCONN=$enableval], [UNIXCONN=yes])
-AC_ARG_ENABLE(tcp-transport, [  --disable-tcp-transport ], [TCPCONN=$enableval], [TCPCONN=yes])
-AC_ARG_ENABLE(ipv6,          [  --disable-ipv6 ], [IPV6CONN=$enableval], [IPV6CONN=yes])
+dnl Issue an error if xtrans.m4 was not found and XTRANS_CONNECTION_FLAGS macro
+dnl was not expanded, since libX11 with no transport types is rather useless.
+dnl
+dnl If you're seeing an error here, be sure you installed the lib/xtrans module
+dnl first and if it's not in the default location, that you set the ACLOCAL
+dnl environment variable to find it, such as:
+dnl	ACLOCAL="aclocal -I ${PREFIX}/share/aclocal"
+m4_pattern_forbid(XTRANS_CONNECTION_FLAGS)
 
+# Transport selection macro from xtrans.m4
+XTRANS_CONNECTION_FLAGS
+
+# Secure RPC detection macro from xtrans.m4
+XTRANS_SECURE_RPC_FLAGS
 
 AM_CONDITIONAL(INT10_VM86, [test "x$INT10" = xvm86])
 AM_CONDITIONAL(INT10_X86EMU, [test "x$INT10" = xx86emu])
@@ -256,16 +265,6 @@ AM_CONDITIONAL(INT10_STUB, [test "x$INT10" = xstub])
 if test "x$INT10" = xyes; then
 	dnl VM86 headers
 	AC_CHECK_HEADERS([sys/vm86.h sys/io.h])
-fi
-
-if test "x$UNIXCONN" = xyes; then
-	AC_DEFINE(UNIXCONN, 1, [Support UNIX socket connections])
-fi
-if test "x$TCPCONN" = xyes; then
-	AC_DEFINE(TCPCONN, 1, [Support TCP socket connections])
-fi
-if test "x$IPV6CONN" = xyes; then
-	AC_DEFINE(IPv6, 1, [Support IPv6 for TCP connections])
 fi
 
 dnl ---------------------------------------------------------------------------
