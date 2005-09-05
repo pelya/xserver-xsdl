@@ -347,10 +347,13 @@ AllocateColormapPrivateIndex (InitCmapPrivFunc initPrivFunc)
 	{
 	    privs = (DevUnion *) xrealloc (pColormap->devPrivates,
 		colormapPrivateCount * sizeof(DevUnion));
-    
+	    if (!privs) {
+		colormapPrivateCount--;
+		return -1;
+	    }
+	    bzero(&privs[index], sizeof(DevUnion));
 	    pColormap->devPrivates = privs;
-    
-	    if (!privs || !(*initPrivFunc)(pColormap,index))
+	    if (!(*initPrivFunc)(pColormap,index))
 	    {
 		colormapPrivateCount--;
 		return -1;
