@@ -1,4 +1,4 @@
-.\" $XdotOrg: xc/programs/Xserver/hw/vfb/Xvfb.man,v 1.2 2004/04/23 19:19:32 eich Exp $
+.\" $XdotOrg: xc/programs/Xserver/hw/vfb/Xvfb.man,v 1.3 2005/03/23 20:49:52 gisburn Exp $
 .\" $Xorg: Xvfb.man,v 1.4 2001/02/09 02:04:45 xorgcvs Exp $
 .\" Copyright 1993, 1998  The Open Group
 .\" 
@@ -39,7 +39,7 @@ and no physical input devices.  It emulates a dumb framebuffer using
 virtual memory.
 .PP
 The primary use of this server was intended to be server testing.  The
-mfb or cfb code for any depth can be exercised with this server
+fb code for any depth can be exercised with this server
 without the need for real hardware that supports the desired depths.
 The X community has found many other novel uses for \fIXvfb\fP,
 including testing clients against unusual depths and screen
@@ -93,7 +93,7 @@ The value \fIn\fP is a bitmask of octants in which to prefer an axial
 step when the Bresenham error term is exactly zero.  See the file
 Xserver/mi/miline.h for more information.  This option is probably only useful
 to server developers to experiment with the range of line pixelization
-possible with the cfb and mfb code.
+possible with the fb code.
 .TP 4
 .B "\-blackpixel \fIpixel-value\fP, \-whitepixel \fIpixel-value\fP"
 These options specify the black and white pixel values the server should use.
