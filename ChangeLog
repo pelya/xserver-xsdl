@@ -1,3 +1,9 @@
+2005-09-09  Jürg Billeter  <j@bitron.ch>
+
+	* configure.ac: use RGB_DB not RGB_PATH as that's what it's looking for
+
+	* xkb/Makefile.am: define HAVE_XKB_CONFIG_H so setting xkb-path works
+
 2005-09-02  Alan Coopersmith  <alan.coopersmith@sun.com>
 
 	* configure.ac: 
