@@ -33,18 +33,18 @@ void
 ExaCheckFillSpans  (DrawablePtr pDrawable, GCPtr pGC, int nspans,
 		   DDXPointPtr ppt, int *pwidth, int fSorted)
 {
-    exaWaitSync (pDrawable->pScreen);
-    exaDrawableDirty (pDrawable);
+    exaPrepareAccess (pDrawable, EXA_PREPARE_DEST);
     fbFillSpans (pDrawable, pGC, nspans, ppt, pwidth, fSorted);
+    exaFinishAccess (pDrawable, EXA_PREPARE_DEST);
 }
 
 void
 ExaCheckSetSpans (DrawablePtr pDrawable, GCPtr pGC, char *psrc,
 		 DDXPointPtr ppt, int *pwidth, int nspans, int fSorted)
 {
-    exaWaitSync (pDrawable->pScreen);
-    exaDrawableDirty (pDrawable);
+    exaPrepareAccess (pDrawable, EXA_PREPARE_DEST);
     fbSetSpans (pDrawable, pGC, psrc, ppt, pwidth, nspans, fSorted);
+    exaFinishAccess (pDrawable, EXA_PREPARE_DEST);
 }
 
 void
@@ -52,18 +52,24 @@ ExaCheckPutImage (DrawablePtr pDrawable, GCPtr pGC, int depth,
 		 int x, int y, int w, int h, int leftPad, int format,
 		 char *bits)
 {
-    exaWaitSync (pDrawable->pScreen);
-    exaDrawableDirty (pDrawable);
+    exaPrepareAccess (pDrawable, EXA_PREPARE_DEST);
     fbPutImage (pDrawable, pGC, depth, x, y, w, h, leftPad, format, bits);
+    exaFinishAccess (pDrawable, EXA_PREPARE_DEST);
 }
 
 RegionPtr
 ExaCheckCopyArea (DrawablePtr pSrc, DrawablePtr pDst, GCPtr pGC,
 		 int srcx, int srcy, int w, int h, int dstx, int dsty)
 {
-    exaWaitSync (pSrc->pScreen);
-    exaDrawableDirty (pDst);
-    return fbCopyArea (pSrc, pDst, pGC, srcx, srcy, w, h, dstx, dsty);
+    RegionPtr ret;
+
+    exaPrepareAccess (pDst, EXA_PREPARE_DEST);
+    exaPrepareAccess (pSrc, EXA_PREPARE_SRC);
+    ret = fbCopyArea (pSrc, pDst, pGC, srcx, srcy, w, h, dstx, dsty);
+    exaFinishAccess (pSrc, EXA_PREPARE_SRC);
+    exaFinishAccess (pDst, EXA_PREPARE_DEST);
+
+    return ret;
 }
 
 RegionPtr
@@ -71,19 +77,25 @@ ExaCheckCopyPlane (DrawablePtr pSrc, DrawablePtr pDst, GCPtr pGC,
 		  int srcx, int srcy, int w, int h, int dstx, int dsty,
 		  unsigned long bitPlane)
 {
-    exaWaitSync (pSrc->pScreen);
-    exaDrawableDirty (pDst);
-    return fbCopyPlane (pSrc, pDst, pGC, srcx, srcy, w, h, dstx, dsty,
-			bitPlane);
+    RegionPtr ret;
+
+    exaPrepareAccess (pDst, EXA_PREPARE_DEST);
+    exaPrepareAccess (pSrc, EXA_PREPARE_SRC);
+    ret = fbCopyPlane (pSrc, pDst, pGC, srcx, srcy, w, h, dstx, dsty,
+		       bitPlane);
+    exaFinishAccess (pSrc, EXA_PREPARE_SRC);
+    exaFinishAccess (pDst, EXA_PREPARE_DEST);
+
+    return ret;
 }
 
 void
 ExaCheckPolyPoint (DrawablePtr pDrawable, GCPtr pGC, int mode, int npt,
 		  DDXPointPtr pptInit)
 {
-    exaWaitSync (pDrawable->pScreen);
-    exaDrawableDirty (pDrawable);
+    exaPrepareAccess (pDrawable, EXA_PREPARE_DEST);
     fbPolyPoint (pDrawable, pGC, mode, npt, pptInit);
+    exaFinishAccess (pDrawable, EXA_PREPARE_DEST);
 }
 
 void
@@ -92,10 +104,11 @@ ExaCheckPolylines (DrawablePtr pDrawable, GCPtr pGC,
 {
 
     if (pGC->lineWidth == 0) {
-	exaWaitSync(pDrawable->pScreen);
-	exaDrawableDirty (pDrawable);
+	exaPrepareAccess (pDrawable, EXA_PREPARE_DEST);
+	fbPolyLine (pDrawable, pGC, mode, npt, ppt);
+	exaFinishAccess (pDrawable, EXA_PREPARE_DEST);
+	return;
     }
-    exaDrawableDirty (pDrawable);
     fbPolyLine (pDrawable, pGC, mode, npt, ppt);
 }
 
@@ -104,10 +117,11 @@ ExaCheckPolySegment (DrawablePtr pDrawable, GCPtr pGC,
 		    int nsegInit, xSegment *pSegInit)
 {
     if (pGC->lineWidth == 0) {
-	exaWaitSync(pDrawable->pScreen);
-	exaDrawableDirty (pDrawable);
+	exaPrepareAccess (pDrawable, EXA_PREPARE_DEST);
+	fbPolySegment (pDrawable, pGC, nsegInit, pSegInit);
+	exaFinishAccess (pDrawable, EXA_PREPARE_DEST);
+	return;
     }
-    exaDrawableDirty (pDrawable);
     fbPolySegment (pDrawable, pGC, nsegInit, pSegInit);
 }
 
@@ -116,8 +130,10 @@ ExaCheckPolyRectangle (DrawablePtr pDrawable, GCPtr pGC,
 		      int nrects, xRectangle *prect)
 {
     if (pGC->lineWidth == 0) {
-	exaWaitSync(pDrawable->pScreen);
-	exaDrawableDirty (pDrawable);
+	exaPrepareAccess (pDrawable, EXA_PREPARE_DEST);
+	fbPolyRectangle (pDrawable, pGC, nrects, prect);
+	exaFinishAccess (pDrawable, EXA_PREPARE_DEST);
+	return;
     }
     fbPolyRectangle (pDrawable, pGC, nrects, prect);
 }
@@ -128,12 +144,12 @@ ExaCheckPolyArc (DrawablePtr pDrawable, GCPtr pGC,
 {
     if (pGC->lineWidth == 0)
     {
-	exaWaitSync(pDrawable->pScreen);
-	exaDrawableDirty (pDrawable);
+	exaPrepareAccess (pDrawable, EXA_PREPARE_DEST);
 	fbPolyArc (pDrawable, pGC, narcs, pArcs);
+	exaFinishAccess (pDrawable, EXA_PREPARE_DEST);
+	return;
     }
-    else
-	miPolyArc (pDrawable, pGC, narcs, pArcs);
+    miPolyArc (pDrawable, pGC, narcs, pArcs);
 }
 
 #if 0
@@ -141,9 +157,9 @@ void
 ExaCheckFillPolygon (DrawablePtr pDrawable, GCPtr pGC,
 		    int shape, int mode, int count, DDXPointPtr pPts)
 {
-    exaWaitSync(pDrawable->pScreen);
-    exaDrawableDirty (pDrawable);
+    exaPrepareAccess (pDrawable, EXA_PREPARE_DEST);
     fbFillPolygon (pDrawable, pGC, mode, count, pPts);
+    exaFinishAccess (pDrawable, EXA_PREPARE_DEST);
 }
 #endif
 
@@ -151,18 +167,18 @@ void
 ExaCheckPolyFillRect (DrawablePtr pDrawable, GCPtr pGC,
 		     int nrect, xRectangle *prect)
 {
-    exaWaitSync(pDrawable->pScreen);
-    exaDrawableDirty (pDrawable);
+    exaPrepareAccess (pDrawable, EXA_PREPARE_DEST);
     fbPolyFillRect (pDrawable, pGC, nrect, prect);
+    exaFinishAccess (pDrawable, EXA_PREPARE_DEST);
 }
 
 void
 ExaCheckPolyFillArc (DrawablePtr pDrawable, GCPtr pGC,
 		    int narcs, xArc *pArcs)
 {
-    exaWaitSync(pDrawable->pScreen);
-    exaDrawableDirty (pDrawable);
+    exaPrepareAccess (pDrawable, EXA_PREPARE_DEST);
     fbPolyFillArc (pDrawable, pGC, narcs, pArcs);
+    exaFinishAccess (pDrawable, EXA_PREPARE_DEST);
 }
 
 void
@@ -170,9 +186,9 @@ ExaCheckImageGlyphBlt (DrawablePtr pDrawable, GCPtr pGC,
 		      int x, int y, unsigned int nglyph,
 		      CharInfoPtr *ppci, pointer pglyphBase)
 {
-    exaWaitSync(pDrawable->pScreen);
-    exaDrawableDirty (pDrawable);
+    exaPrepareAccess (pDrawable, EXA_PREPARE_DEST);
     fbImageGlyphBlt (pDrawable, pGC, x, y, nglyph, ppci, pglyphBase);
+    exaFinishAccess (pDrawable, EXA_PREPARE_DEST);
 }
 
 void
@@ -180,9 +196,9 @@ ExaCheckPolyGlyphBlt (DrawablePtr pDrawable, GCPtr pGC,
 		     int x, int y, unsigned int nglyph,
 		     CharInfoPtr *ppci, pointer pglyphBase)
 {
-    exaWaitSync(pDrawable->pScreen);
-    exaDrawableDirty (pDrawable);
+    exaPrepareAccess (pDrawable, EXA_PREPARE_DEST);
     fbPolyGlyphBlt (pDrawable, pGC, x, y, nglyph, ppci, pglyphBase);
+    exaFinishAccess (pDrawable, EXA_PREPARE_DEST);
 }
 
 void
@@ -190,9 +206,9 @@ ExaCheckPushPixels (GCPtr pGC, PixmapPtr pBitmap,
 		   DrawablePtr pDrawable,
 		   int w, int h, int x, int y)
 {
-    exaWaitSync(pDrawable->pScreen);
-    exaDrawableDirty (pDrawable);
+    exaPrepareAccess (pDrawable, EXA_PREPARE_DEST);
     fbPushPixels (pGC, pBitmap, pDrawable, w, h, x, y);
+    exaFinishAccess (pDrawable, EXA_PREPARE_DEST);
 }
 
 void
@@ -201,8 +217,9 @@ ExaCheckGetImage (DrawablePtr pDrawable,
 		 unsigned int format, unsigned long planeMask,
 		 char *d)
 {
-    exaWaitSync(pDrawable->pScreen);
+    exaPrepareAccess (pDrawable, EXA_PREPARE_SRC);
     fbGetImage (pDrawable, x, y, w, h, format, planeMask, d);
+    exaFinishAccess (pDrawable, EXA_PREPARE_SRC);
 }
 
 void
@@ -213,8 +230,9 @@ ExaCheckGetSpans (DrawablePtr pDrawable,
 		 int nspans,
 		 char *pdstStart)
 {
-    exaWaitSync(pDrawable->pScreen);
+    exaPrepareAccess (pDrawable, EXA_PREPARE_SRC);
     fbGetSpans (pDrawable, wMax, ppt, pwidth, nspans, pdstStart);
+    exaFinishAccess (pDrawable, EXA_PREPARE_SRC);
 }
 
 void
@@ -224,9 +242,9 @@ ExaCheckSaveAreas (PixmapPtr	pPixmap,
 		  int		yorg,
 		  WindowPtr	pWin)
 {
-    exaWaitSync(pWin->drawable.pScreen);
-    exaDrawableDirty (&pPixmap->drawable);
+    exaPrepareAccess ((DrawablePtr)pPixmap, EXA_PREPARE_DEST);
     fbSaveAreas (pPixmap, prgnSave, xorg, yorg, pWin);
+    exaFinishAccess ((DrawablePtr)pPixmap, EXA_PREPARE_DEST);
 }
 
 void
@@ -236,17 +254,17 @@ ExaCheckRestoreAreas (PixmapPtr	pPixmap,
 		     int    	yorg,
 		     WindowPtr	pWin)
 {
-    exaWaitSync(pWin->drawable.pScreen);
-    exaDrawableDirty ((DrawablePtr)pWin);
+    exaPrepareAccess ((DrawablePtr)pPixmap, EXA_PREPARE_DEST);
     fbRestoreAreas (pPixmap, prgnSave, xorg, yorg, pWin);
+    exaFinishAccess ((DrawablePtr)pPixmap, EXA_PREPARE_DEST);
 }
 
 void
 ExaCheckPaintWindow (WindowPtr pWin, RegionPtr pRegion, int what)
 {
-    exaWaitSync (pWin->drawable.pScreen);
-    exaDrawableDirty ((DrawablePtr)pWin);
+    exaPrepareAccess (&pWin->drawable, EXA_PREPARE_DEST);
     fbPaintWindow (pWin, pRegion, what);
+    exaFinishAccess (&pWin->drawable, EXA_PREPARE_DEST);
 }
 
 void
@@ -263,8 +281,10 @@ ExaCheckComposite (CARD8      op,
                    CARD16     width,
                    CARD16     height)
 {
-    exaWaitSync (pDst->pDrawable->pScreen);
-    exaDrawableDirty (pDst->pDrawable);
+    exaPrepareAccess (pDst->pDrawable, EXA_PREPARE_DEST);
+    exaPrepareAccess (pSrc->pDrawable, EXA_PREPARE_SRC);
+    if (pMask)
+	exaPrepareAccess (pMask->pDrawable, EXA_PREPARE_MASK);
     fbComposite (op,
                  pSrc,
                  pMask,
@@ -277,6 +297,10 @@ ExaCheckComposite (CARD8      op,
                  yDst,
                  width,
                  height);
+    if (pMask)
+	exaFinishAccess (pMask->pDrawable, EXA_PREPARE_MASK);
+    exaFinishAccess (pSrc->pDrawable, EXA_PREPARE_SRC);
+    exaFinishAccess (pDst->pDrawable, EXA_PREPARE_DEST);
 }
 
 /*

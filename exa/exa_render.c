@@ -262,13 +262,8 @@ exaTryDriverSolidFill(PicturePtr	pSrc,
     else
 	pSrcPix = (PixmapPtr) (pSrc->pDrawable);
 
-    /* If source is offscreen, we need to sync the accelerator
-     * before accessing it.  We'd prefer for it to be in memory.
-     */
-    if (exaPixmapIsOffscreen(pSrcPix)) {
-	exaWaitSync(pDst->pDrawable->pScreen);
-    }
 
+    exaPrepareAccess(&pSrcPix->drawable, EXA_PREPARE_SRC);
     pixel = *(CARD32 *)(pSrcPix->devPrivate.ptr);
     if (!exaGetRGBAFromPixel(pixel, &red, &green, &blue, &alpha,
 			 pSrc->format))
@@ -276,6 +271,8 @@ exaTryDriverSolidFill(PicturePtr	pSrc,
 	REGION_UNINIT(pDst->pDrawable->pScreen, &region);
 	return -1;
     }
+    exaFinishAccess(&pSrcPix->drawable, EXA_PREPARE_SRC);
+
     exaGetPixelFromRGBA(&pixel, red, green, blue, alpha,
 			pDst->format);
 

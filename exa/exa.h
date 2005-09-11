@@ -175,6 +175,24 @@ typedef struct _ExaAccelInfo {
      */
     int		(*MarkSync)   (ScreenPtr pScreen);
     void	(*WaitMarker) (ScreenPtr pScreen, int marker);
+
+    /* These are wrapping all fb or composite operations that will cause
+     * a direct access to the framebuffer. You can use them to update
+     * endian swappers, force migration to RAM, or whatever else you find
+     * useful at this point. EXA can stack up to 3 calls to Prepare/Finish
+     * access, though they will have a different index. If your hardware
+     * doesn't have enough separate configurable swapper, you can return
+     * FALSE from PrepareAccess() to force EXA to migrate the pixmap to RAM.
+     * Note that DownloadFromScreen and UploadToScreen can both be called
+     * between PrepareAccess() and FinishAccess(). If they need to use a
+     * swapper, they should save & restore its setting.
+     */
+    Bool	(*PrepareAccess)(PixmapPtr pPix, int index);
+    void	(*FinishAccess)(PixmapPtr pPix, int index);
+	#define EXA_PREPARE_DEST	0
+	#define EXA_PREPARE_SRC		1
+	#define EXA_PREPARE_MASK	2
+
 } ExaAccelInfoRec, *ExaAccelInfoPtr;
 
 typedef struct _ExaDriver {
@@ -223,6 +241,9 @@ exaGetPixmapOffset(PixmapPtr pPix);
 
 unsigned long
 exaGetPixmapPitch(PixmapPtr pPix);
+
+unsigned long
+exaGetPixmapSize(PixmapPtr pPix);
 
 #define exaInitCard(exa, sync, memory_base, off_screen_base, memory_size, \
                     offscreen_byte_align, offscreen_pitch, flags, \

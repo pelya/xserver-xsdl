@@ -78,6 +78,21 @@ exaGetPixmapPitch(PixmapPtr pPix)
     return pPix->devKind;
 }
 
+/* Returns the size in bytes of the given pixmap in
+ * video memory. Only valid when the vram storage has been
+ * allocated
+ */
+unsigned long
+exaGetPixmapSize(PixmapPtr pPix)
+{
+    ExaPixmapPrivPtr pExaPixmap;
+
+    pExaPixmap = ExaGetPixmapPriv(pPix);
+    if (pExaPixmap != NULL)
+	return pExaPixmap->size;
+    return 0;
+}
+
 void
 exaDrawableDirty (DrawablePtr pDrawable)
 {
@@ -185,6 +200,7 @@ exaPixmapAllocArea (PixmapPtr pPixmap)
     pitch = (w * bpp / 8) + (pExaScr->info->card.pixmapPitchAlign - 1);
     pitch -= pitch % pExaScr->info->card.pixmapPitchAlign;
 
+    pExaPixmap->size = pitch * h;
     pExaPixmap->devKind = pPixmap->devKind;
     pExaPixmap->devPrivate = pPixmap->devPrivate;
     pExaPixmap->area = exaOffscreenAlloc (pScreen, pitch * h,
@@ -439,11 +455,63 @@ exaDrawableIsOffscreen (DrawablePtr pDrawable)
 {
     PixmapPtr	pPixmap;
     STRACE;
+
     if (pDrawable->type == DRAWABLE_WINDOW)
 	pPixmap = (*pDrawable->pScreen->GetWindowPixmap) ((WindowPtr) pDrawable);
     else
 	pPixmap = (PixmapPtr) pDrawable;
     return exaPixmapIsOffscreen (pPixmap);
+}
+
+void
+exaPrepareAccess(DrawablePtr pDrawable, int index)
+{
+    ScreenPtr	    pScreen = pDrawable->pScreen;
+    ExaScreenPriv  (pScreen);
+    PixmapPtr	    pPixmap;
+    STRACE;
+
+    if (pDrawable->type == DRAWABLE_WINDOW)
+	pPixmap = (*pDrawable->pScreen->GetWindowPixmap) ((WindowPtr) pDrawable);
+    else
+	pPixmap = (PixmapPtr) pDrawable;
+
+    if (index == EXA_PREPARE_DEST)
+	exaDrawableDirty (pDrawable);
+    if (exaPixmapIsOffscreen (pPixmap))
+	exaWaitSync (pDrawable->pScreen);
+    else
+	return;
+
+    if (pExaScr->info->accel.PrepareAccess == NULL)
+	return;
+
+    if (!(*pExaScr->info->accel.PrepareAccess) (pPixmap, index)) {
+	ExaPixmapPriv (pPixmap);
+	assert (pExaPixmap->score != EXA_PIXMAP_SCORE_PINNED);
+	exaMoveOutPixmap (pPixmap);
+    }
+}
+
+void
+exaFinishAccess(DrawablePtr pDrawable, int index)
+{
+    ScreenPtr	    pScreen = pDrawable->pScreen;
+    ExaScreenPriv  (pScreen);
+    PixmapPtr	    pPixmap;
+    STRACE;
+
+    if (pExaScr->info->accel.FinishAccess == NULL)
+	return;
+
+    if (pDrawable->type == DRAWABLE_WINDOW)
+	pPixmap = (*pDrawable->pScreen->GetWindowPixmap) ((WindowPtr) pDrawable);
+    else
+	pPixmap = (PixmapPtr) pDrawable;
+    if (!exaPixmapIsOffscreen (pPixmap))
+	return;
+
+    (*pExaScr->info->accel.FinishAccess) (pPixmap, index);
 }
 
 #if 0
@@ -620,10 +688,7 @@ exaCopyNtoN (DrawablePtr    pSrcDrawable,
 	    exaPixmapUseMemory ((PixmapPtr) pSrcDrawable);
 	if (pDstDrawable->type == DRAWABLE_PIXMAP)
 	    exaPixmapUseMemory ((PixmapPtr) pDstDrawable);
-	exaWaitSync (pDstDrawable->pScreen);
-	fbCopyNtoN (pSrcDrawable, pDstDrawable, pGC,
-		    pbox, nbox, dx, dy, reverse, upsidedown,
-		    bitplane, closure);
+	goto fallback;
     }
 
     /* If either drawable is already in framebuffer, try to get both of them
@@ -664,15 +729,18 @@ exaCopyNtoN (DrawablePtr    pSrcDrawable,
 	}
 	(*pExaScr->info->accel.DoneCopy) (pDstPixmap);
 	exaMarkSync(pDstDrawable->pScreen);
+	exaDrawableDirty (pDstDrawable);
+	return;
     }
-    else
-    {
-	exaWaitSync (pDstDrawable->pScreen);
-	fbCopyNtoN (pSrcDrawable, pDstDrawable, pGC,
-		    pbox, nbox, dx, dy, reverse, upsidedown,
-		    bitplane, closure);
-    }
-    exaDrawableDirty (pDstDrawable);
+
+fallback:
+    exaPrepareAccess (pDstDrawable, EXA_PREPARE_DEST);
+    exaPrepareAccess (pSrcDrawable, EXA_PREPARE_SRC);
+    fbCopyNtoN (pSrcDrawable, pDstDrawable, pGC,
+		pbox, nbox, dx, dy, reverse, upsidedown,
+		bitplane, closure);
+    exaFinishAccess (pSrcDrawable, EXA_PREPARE_SRC);
+    exaFinishAccess (pDstDrawable, EXA_PREPARE_DEST);
 }
 
 RegionPtr
@@ -822,12 +890,12 @@ exaSolidBoxClipped (DrawablePtr	pDrawable,
         !(pPixmap = exaGetOffscreenPixmap (pDrawable, &xoff, &yoff)) ||
 	!(*pExaScr->info->accel.PrepareSolid) (pPixmap, GXcopy, pm, fg))
     {
-	exaWaitSync (pDrawable->pScreen);
+	exaPrepareAccess (pDrawable, EXA_PREPARE_DEST);
 	fg = fbReplicatePixel (fg, pDrawable->bitsPerPixel);
 	fbSolidBoxClipped (pDrawable, pClip, x1, y1, x2, y2,
 			   fbAnd (GXcopy, fg, pm),
 			   fbXor (GXcopy, fg, pm));
-	exaDrawableDirty (pDrawable);
+	exaFinishAccess (pDrawable, EXA_PREPARE_DEST);
 	return;
     }
     for (nbox = REGION_NUM_RECTS(pClip), pbox = REGION_RECTS(pClip);
@@ -949,8 +1017,7 @@ exaImageGlyphBlt (DrawablePtr	pDrawable,
 	opaque = FALSE;
     }
 
-    exaWaitSync (pDrawable->pScreen);
-    exaDrawableDirty (pDrawable);
+    exaPrepareAccess (pDrawable, EXA_PREPARE_DEST);
 
     ppci = ppciInit;
     while (nglyph--)
@@ -996,6 +1063,7 @@ exaImageGlyphBlt (DrawablePtr	pDrawable,
 	}
 	x += pci->metrics.characterWidth;
     }
+    exaFinishAccess (pDrawable, EXA_PREPARE_DEST);
 }
 
 static const GCOps	exaOps = {
@@ -1121,14 +1189,15 @@ exaFillRegionSolid (DrawablePtr	pDrawable,
 	}
 	(*pExaScr->info->accel.DoneSolid) (pPixmap);
 	exaMarkSync(pDrawable->pScreen);
+	exaDrawableDirty (pDrawable);
     }
     else
     {
-	exaWaitSync (pDrawable->pScreen);
+	exaPrepareAccess (pDrawable, EXA_PREPARE_DEST);
 	fbFillRegionSolid (pDrawable, pRegion, 0,
 			   fbReplicatePixel (pixel, pDrawable->bitsPerPixel));
+	exaFinishAccess (pDrawable, EXA_PREPARE_DEST);
     }
-    exaDrawableDirty (pDrawable);
 }
 
 static void

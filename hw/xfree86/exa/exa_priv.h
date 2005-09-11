@@ -103,6 +103,7 @@ typedef struct {
     int		    devKind;
     DevUnion	    devPrivate;
     Bool	    dirty;
+    unsigned int    size;
 } ExaPixmapPrivRec, *ExaPixmapPrivPtr;
 
 
@@ -245,6 +246,12 @@ exaPixmapUseScreen (PixmapPtr pPixmap);
 
 void
 exaPixmapUseMemory (PixmapPtr pPixmap);
+
+void
+exaPrepareAccess(DrawablePtr pDrawable, int index);
+
+void
+exaFinishAccess(DrawablePtr pDrawable, int index);
 
 void
 exaDrawableDirty(DrawablePtr pDrawable);
