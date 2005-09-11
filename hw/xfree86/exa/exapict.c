@@ -469,6 +469,23 @@ exaComposite(CARD8	op,
         return;
     }
 
+    /* simplify the drivers by reducing here */
+    switch (op) {
+	case PictOpDisjointClear:
+	case PictOpConjointClear:
+	    op = PictOpClear;
+	    break;    
+	case PictOpDisjointSrc:
+	case PictOpConjointSrc:
+	    op = PictOpSrc;
+	    break;    
+	case PictOpDisjointDst:
+	case PictOpConjointDst:
+	case PictOpDst:
+	    return;    
+	default:
+	    break;
+    }
 
     if (!pMask && pSrc->pDrawable)
     {
