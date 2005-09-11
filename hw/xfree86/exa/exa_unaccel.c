@@ -23,6 +23,17 @@
 
 #include "exaPriv.h"
 
+#define EXA_TRACE_FALL	0
+
+#if EXA_TRACE_FALL
+#define EXA_FALLBACK(x)     					\
+do {								\
+	ErrorF("EXA fallback at %s: ", __FUNCTION__);		\
+	ErrorF x;						\
+} while (0)
+#else
+#define EXA_FALLBACK(x)
+#endif
 /*
  * These functions wrap the low-level fb rendering functions and
  * synchronize framebuffer/accelerated drawing by stalling until
@@ -33,6 +44,7 @@ void
 ExaCheckFillSpans  (DrawablePtr pDrawable, GCPtr pGC, int nspans,
 		   DDXPointPtr ppt, int *pwidth, int fSorted)
 {
+    EXA_FALLBACK(("to 0x%lx\n", (long)pDrawable));
     exaPrepareAccess (pDrawable, EXA_PREPARE_DEST);
     fbFillSpans (pDrawable, pGC, nspans, ppt, pwidth, fSorted);
     exaFinishAccess (pDrawable, EXA_PREPARE_DEST);
@@ -42,6 +54,7 @@ void
 ExaCheckSetSpans (DrawablePtr pDrawable, GCPtr pGC, char *psrc,
 		 DDXPointPtr ppt, int *pwidth, int nspans, int fSorted)
 {
+    EXA_FALLBACK(("to 0x%lx\n", (long)pDrawable));
     exaPrepareAccess (pDrawable, EXA_PREPARE_DEST);
     fbSetSpans (pDrawable, pGC, psrc, ppt, pwidth, nspans, fSorted);
     exaFinishAccess (pDrawable, EXA_PREPARE_DEST);
@@ -52,6 +65,7 @@ ExaCheckPutImage (DrawablePtr pDrawable, GCPtr pGC, int depth,
 		 int x, int y, int w, int h, int leftPad, int format,
 		 char *bits)
 {
+    EXA_FALLBACK(("to 0x%lx\n", (long)pDrawable));
     exaPrepareAccess (pDrawable, EXA_PREPARE_DEST);
     fbPutImage (pDrawable, pGC, depth, x, y, w, h, leftPad, format, bits);
     exaFinishAccess (pDrawable, EXA_PREPARE_DEST);
@@ -63,6 +77,7 @@ ExaCheckCopyArea (DrawablePtr pSrc, DrawablePtr pDst, GCPtr pGC,
 {
     RegionPtr ret;
 
+    EXA_FALLBACK(("from 0x%lx to 0x%lx\n", (long)pSrc, (long)pDst));
     exaPrepareAccess (pDst, EXA_PREPARE_DEST);
     exaPrepareAccess (pSrc, EXA_PREPARE_SRC);
     ret = fbCopyArea (pSrc, pDst, pGC, srcx, srcy, w, h, dstx, dsty);
@@ -79,6 +94,7 @@ ExaCheckCopyPlane (DrawablePtr pSrc, DrawablePtr pDst, GCPtr pGC,
 {
     RegionPtr ret;
 
+    EXA_FALLBACK(("from 0x%lx to 0x%lx\n", (long)pSrc, (long)pDst));
     exaPrepareAccess (pDst, EXA_PREPARE_DEST);
     exaPrepareAccess (pSrc, EXA_PREPARE_SRC);
     ret = fbCopyPlane (pSrc, pDst, pGC, srcx, srcy, w, h, dstx, dsty,
@@ -93,6 +109,7 @@ void
 ExaCheckPolyPoint (DrawablePtr pDrawable, GCPtr pGC, int mode, int npt,
 		  DDXPointPtr pptInit)
 {
+    EXA_FALLBACK(("to 0x%lx\n", (long)pDrawable));
     exaPrepareAccess (pDrawable, EXA_PREPARE_DEST);
     fbPolyPoint (pDrawable, pGC, mode, npt, pptInit);
     exaFinishAccess (pDrawable, EXA_PREPARE_DEST);
@@ -102,6 +119,7 @@ void
 ExaCheckPolylines (DrawablePtr pDrawable, GCPtr pGC,
 		  int mode, int npt, DDXPointPtr ppt)
 {
+    EXA_FALLBACK(("to 0x%lx\n", (long)pDrawable));
 
     if (pGC->lineWidth == 0) {
 	exaPrepareAccess (pDrawable, EXA_PREPARE_DEST);
@@ -116,6 +134,7 @@ void
 ExaCheckPolySegment (DrawablePtr pDrawable, GCPtr pGC,
 		    int nsegInit, xSegment *pSegInit)
 {
+    EXA_FALLBACK(("to 0x%lx\n", (long)pDrawable));
     if (pGC->lineWidth == 0) {
 	exaPrepareAccess (pDrawable, EXA_PREPARE_DEST);
 	fbPolySegment (pDrawable, pGC, nsegInit, pSegInit);
@@ -129,6 +148,7 @@ void
 ExaCheckPolyRectangle (DrawablePtr pDrawable, GCPtr pGC,
 		      int nrects, xRectangle *prect)
 {
+    EXA_FALLBACK(("to 0x%lx\n", (long)pDrawable));
     if (pGC->lineWidth == 0) {
 	exaPrepareAccess (pDrawable, EXA_PREPARE_DEST);
 	fbPolyRectangle (pDrawable, pGC, nrects, prect);
@@ -142,6 +162,7 @@ void
 ExaCheckPolyArc (DrawablePtr pDrawable, GCPtr pGC,
 		int narcs, xArc *pArcs)
 {
+    EXA_FALLBACK(("to 0x%lx\n", (long)pDrawable));
     if (pGC->lineWidth == 0)
     {
 	exaPrepareAccess (pDrawable, EXA_PREPARE_DEST);
@@ -157,6 +178,7 @@ void
 ExaCheckFillPolygon (DrawablePtr pDrawable, GCPtr pGC,
 		    int shape, int mode, int count, DDXPointPtr pPts)
 {
+    EXA_FALLBACK(("to 0x%lx\n", (long)pDrawable));
     exaPrepareAccess (pDrawable, EXA_PREPARE_DEST);
     fbFillPolygon (pDrawable, pGC, mode, count, pPts);
     exaFinishAccess (pDrawable, EXA_PREPARE_DEST);
@@ -167,6 +189,7 @@ void
 ExaCheckPolyFillRect (DrawablePtr pDrawable, GCPtr pGC,
 		     int nrect, xRectangle *prect)
 {
+    EXA_FALLBACK(("to 0x%lx\n", (long)pDrawable));
     exaPrepareAccess (pDrawable, EXA_PREPARE_DEST);
     fbPolyFillRect (pDrawable, pGC, nrect, prect);
     exaFinishAccess (pDrawable, EXA_PREPARE_DEST);
@@ -176,6 +199,7 @@ void
 ExaCheckPolyFillArc (DrawablePtr pDrawable, GCPtr pGC,
 		    int narcs, xArc *pArcs)
 {
+    EXA_FALLBACK(("to 0x%lx\n", (long)pDrawable));
     exaPrepareAccess (pDrawable, EXA_PREPARE_DEST);
     fbPolyFillArc (pDrawable, pGC, narcs, pArcs);
     exaFinishAccess (pDrawable, EXA_PREPARE_DEST);
@@ -186,6 +210,7 @@ ExaCheckImageGlyphBlt (DrawablePtr pDrawable, GCPtr pGC,
 		      int x, int y, unsigned int nglyph,
 		      CharInfoPtr *ppci, pointer pglyphBase)
 {
+    EXA_FALLBACK(("to 0x%lx\n", (long)pDrawable));
     exaPrepareAccess (pDrawable, EXA_PREPARE_DEST);
     fbImageGlyphBlt (pDrawable, pGC, x, y, nglyph, ppci, pglyphBase);
     exaFinishAccess (pDrawable, EXA_PREPARE_DEST);
@@ -196,6 +221,7 @@ ExaCheckPolyGlyphBlt (DrawablePtr pDrawable, GCPtr pGC,
 		     int x, int y, unsigned int nglyph,
 		     CharInfoPtr *ppci, pointer pglyphBase)
 {
+    EXA_FALLBACK(("to 0x%lx\n", (long)pDrawable));
     exaPrepareAccess (pDrawable, EXA_PREPARE_DEST);
     fbPolyGlyphBlt (pDrawable, pGC, x, y, nglyph, ppci, pglyphBase);
     exaFinishAccess (pDrawable, EXA_PREPARE_DEST);
@@ -206,6 +232,7 @@ ExaCheckPushPixels (GCPtr pGC, PixmapPtr pBitmap,
 		   DrawablePtr pDrawable,
 		   int w, int h, int x, int y)
 {
+    EXA_FALLBACK(("from 0x%lx to 0x%lx\n", (long)pBitmap, (long)pDrawable));
     exaPrepareAccess (pDrawable, EXA_PREPARE_DEST);
     fbPushPixels (pGC, pBitmap, pDrawable, w, h, x, y);
     exaFinishAccess (pDrawable, EXA_PREPARE_DEST);
@@ -217,6 +244,7 @@ ExaCheckGetImage (DrawablePtr pDrawable,
 		 unsigned int format, unsigned long planeMask,
 		 char *d)
 {
+    EXA_FALLBACK(("from 0x%lx\n", (long)pDrawable));
     exaPrepareAccess (pDrawable, EXA_PREPARE_SRC);
     fbGetImage (pDrawable, x, y, w, h, format, planeMask, d);
     exaFinishAccess (pDrawable, EXA_PREPARE_SRC);
@@ -230,6 +258,7 @@ ExaCheckGetSpans (DrawablePtr pDrawable,
 		 int nspans,
 		 char *pdstStart)
 {
+    EXA_FALLBACK(("from 0x%lx\n", (long)pDrawable));
     exaPrepareAccess (pDrawable, EXA_PREPARE_SRC);
     fbGetSpans (pDrawable, wMax, ppt, pwidth, nspans, pdstStart);
     exaFinishAccess (pDrawable, EXA_PREPARE_SRC);
@@ -242,6 +271,7 @@ ExaCheckSaveAreas (PixmapPtr	pPixmap,
 		  int		yorg,
 		  WindowPtr	pWin)
 {
+    EXA_FALLBACK(("from 0x%lx\n", (long)&pPixmap->drawable));
     exaPrepareAccess ((DrawablePtr)pPixmap, EXA_PREPARE_DEST);
     fbSaveAreas (pPixmap, prgnSave, xorg, yorg, pWin);
     exaFinishAccess ((DrawablePtr)pPixmap, EXA_PREPARE_DEST);
@@ -254,6 +284,7 @@ ExaCheckRestoreAreas (PixmapPtr	pPixmap,
 		     int    	yorg,
 		     WindowPtr	pWin)
 {
+    EXA_FALLBACK(("to 0x%lx\n", (long)&pPixmap->drawable));
     exaPrepareAccess ((DrawablePtr)pPixmap, EXA_PREPARE_DEST);
     fbRestoreAreas (pPixmap, prgnSave, xorg, yorg, pWin);
     exaFinishAccess ((DrawablePtr)pPixmap, EXA_PREPARE_DEST);
@@ -262,6 +293,7 @@ ExaCheckRestoreAreas (PixmapPtr	pPixmap,
 void
 ExaCheckPaintWindow (WindowPtr pWin, RegionPtr pRegion, int what)
 {
+    EXA_FALLBACK(("from 0x%lx\n", (long)pWin));
     exaPrepareAccess (&pWin->drawable, EXA_PREPARE_DEST);
     fbPaintWindow (pWin, pRegion, what);
     exaFinishAccess (&pWin->drawable, EXA_PREPARE_DEST);
@@ -281,6 +313,8 @@ ExaCheckComposite (CARD8      op,
                    CARD16     width,
                    CARD16     height)
 {
+    EXA_FALLBACK(("from picts 0x%lx/0x%lx to pict 0x%lx\n",
+		 (long)pSrc, (long)pMask, (long)pDst));
     exaPrepareAccess (pDst->pDrawable, EXA_PREPARE_DEST);
     exaPrepareAccess (pSrc->pDrawable, EXA_PREPARE_SRC);
     if (pMask)
