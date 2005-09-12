@@ -2,7 +2,8 @@
 
 	* configure.ac:
 	Put DMX AC_CONDITIONALS at the top level, since they must always be
-	called.  Add missing resourceproto to REQUIRED_MODULES.
+	called.  Add missing resourceproto, fontenc, and fontsproto to
+	REQUIRED_MODULES.
 
 	* configure.ac:
 	* include/xorg-config.h.in:
