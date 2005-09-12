@@ -274,7 +274,7 @@ XEXT_INC='-I$(top_srcdir)/Xext'
 XEXT_LIB='$(top_builddir)/Xext/libXext.la'
 
 dnl Core modules for most extensions, et al.
-REQUIRED_MODULES="randrproto renderproto fixesproto damageproto xcmiscproto xextproto xfont xproto xtrans xau xf86dgaproto xf86miscproto xf86vidmodeproto xf86bigfontproto scrnsaverproto bigreqsproto"
+REQUIRED_MODULES="randrproto renderproto fixesproto damageproto xcmiscproto xextproto xfont xproto xtrans xau xf86dgaproto xf86miscproto xf86vidmodeproto xf86bigfontproto scrnsaverproto bigreqsproto resourceproto"
 
 AM_CONDITIONAL(XV, [test "x$XV" = xyes])
 if test "x$XV" = xyes; then
