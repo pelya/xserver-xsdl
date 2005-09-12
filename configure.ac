@@ -723,6 +723,7 @@ if test "x$XORG" = xyes; then
 	# XXX do something smarter here.
 	AC_DEFINE(DLOPEN_HACK, 1, [Prefer dlloader modules to elfloader])                
 	AC_DEFINE(DLOPEN_SUPPORT, 1, [Use libdl-based loader])
+	AC_DEFINE(WITH_VGAHW, 1, [Building vgahw module])
 	AC_DEFINE(DRIVERS, {}, [Built-in output drivers (none)])
 	AC_DEFINE(IDRIVERS, {}, [Built-in input drivers (none)])
 	AC_DEFINE_DIR(__XCONFIGFILE__, XF86CONFIGFILE, [Location of configuration file])
