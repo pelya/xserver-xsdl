@@ -528,15 +528,14 @@ if test "x$DMX" = xyes; then
 	AC_SUBST([XDMX_LIBS])
 
 dnl USB sources in DMX require <linux/input.h>
-	AC_CHECK_HEADER([linux/input.h], HAVE_LINUX_INPUT_H="yes",
-			HAVE_LINUX_INPUT_H="no")
-	AM_CONDITIONAL([DMX_BUILD_USB],[test "x$HAVE_LINUX_INPUT_H" = xyes])
-
+	AC_CHECK_HEADER([linux/input.h], DMX_BUILD_USB="yes",
+			DMX_BUILD_USB="no")
 dnl Linux sources in DMX require <linux/keyboard.h>
-	AC_CHECK_HEADER([linux/keyboard.h], HAVE_LINUX_KEYBOARD_H="yes",
-			HAVE_LINUX_KEYBOARD_H="no")
-	AM_CONDITIONAL([DMX_BUILD_LNX],[test "x$HAVE_LINUX_KEYBOARD_H" = xyes])
+	AC_CHECK_HEADER([linux/keyboard.h], DMX_BUILD_LNX="yes",
+			DMX_BUILD_LNX="no")
 fi
+AM_CONDITIONAL([DMX_BUILD_LNX], [test "x$DMX_BUILD_LNX" = xyes])
+AM_CONDITIONAL([DMX_BUILD_USB], [test "x$DMX_BUILD_USB" = xyes])
 
 
 dnl Xvfb DDX

@@ -1,3 +1,9 @@
+2005-09-12  Daniel Stone  <daniel@freedesktop.org>
+
+	* configure.ac:
+	Put DMX AC_CONDITIONALS at the top level, since they must always be
+	called.
+
 2005-09-09  Jürg Billeter  <j@bitron.ch>
 
 	* configure.ac: use RGB_DB not RGB_PATH as that's what it's looking for
