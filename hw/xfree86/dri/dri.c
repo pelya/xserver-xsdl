@@ -79,7 +79,6 @@ static int DRIScreenPrivIndex = -1;
 static int DRIWindowPrivIndex = -1;
 static unsigned long DRIGeneration = 0;
 static unsigned int DRIDrawableValidationStamp = 0;
-static int lockRefCount=0;
 
 				/* Support cleanup for fullscreen mode,
                                    independent of the DRICreateDrawable
@@ -565,7 +564,7 @@ DRICloseScreen(ScreenPtr pScreen)
 
 	/* Make sure signals get unblocked etc. */
 	drmUnlock(pDRIPriv->drmFD, pDRIPriv->myContext);
-	lockRefCount=0;
+	pDRIPriv->lockRefCount = 0;
 	DRIDrvMsg(pScreen->myNum, X_INFO,
 		  "[drm] unmapping %d bytes of SAREA %p at %p\n",
 		  pDRIInfo->SAREASize,
@@ -1910,9 +1909,9 @@ DRILock(ScreenPtr pScreen, int flags)
     DRIScreenPrivPtr pDRIPriv = DRI_SCREEN_PRIV(pScreen);
     if(!pDRIPriv) return;
 
-    if (!lockRefCount)
+    if (!pDRIPriv->lockRefCount)
         DRM_LOCK(pDRIPriv->drmFD, pDRIPriv->pSAREA, pDRIPriv->myContext, flags);
-    lockRefCount++;
+    pDRIPriv->lockRefCount++;
 }
 
 void
@@ -1921,14 +1920,14 @@ DRIUnlock(ScreenPtr pScreen)
     DRIScreenPrivPtr pDRIPriv = DRI_SCREEN_PRIV(pScreen);
     if(!pDRIPriv) return;
 
-    if (lockRefCount > 0) {
-        lockRefCount--;
+    if (pDRIPriv->lockRefCount > 0) {
+        pDRIPriv->lockRefCount--;
     }
     else {
         ErrorF("DRIUnlock called when not locked\n");
         return;
     }
-    if (!lockRefCount)
+    if (!pDRIPriv->lockRefCount)
         DRM_UNLOCK(pDRIPriv->drmFD, pDRIPriv->pSAREA, pDRIPriv->myContext);
 }
 

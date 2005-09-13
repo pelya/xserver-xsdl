@@ -99,6 +99,7 @@ typedef struct _DRIScreenPrivRec
     Bool		grabbedDRILock;
     Bool		drmSIGIOHandlerInstalled;
     Bool		wrapped;
+    int			lockRefCount;
 } DRIScreenPrivRec, *DRIScreenPrivPtr;
 
 #endif /* DRI_STRUCT_H */
