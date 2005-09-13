@@ -1,6 +1,16 @@
 2005-09-13  Eric Anholt  <anholt@FreeBSD.org>
 
 	* configure.ac:
+	* hw/xfree86/dri/Makefile.am:
+	Turn on DRI by default on Linux, NetBSD, FreeBSD, and fix the build of
+	the module for FreeBSD by setting some missing defines (XFree86Module,
+	IN_MODULE) in the dri directory.  Note that those missing defines should
+	be somewhere generic, since there are other consumers of them, but I
+	haven't figured out where.
+
+2005-09-13  Eric Anholt  <anholt@FreeBSD.org>
+
+	* configure.ac:
 	* hw/xfree86/Makefile.am:
 	* hw/xfree86/os-support/bsd/Makefile.am:
 	* include/dix-config.h.in:

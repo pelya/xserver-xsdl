@@ -217,6 +217,7 @@ AM_CONDITIONAL(I386_VIDEO, [test "x$I386_VIDEO" == xyes])
 AM_CONDITIONAL(PPC_VIDEO, [test "x$PPC_VIDEO" == xyes])
 AM_CONDITIONAL(SPARC64_VIDEO, [test "x$SPARC64_VIDEO" == xyes])
 
+DRI=no
 dnl it would be nice to autodetect these *CONS_SUPPORTs
 case $host_os in
   *freebsd*)
@@ -224,16 +225,21 @@ case $host_os in
 	AC_DEFINE(PCCONS_SUPPORT, 1, [System has PC console])
 	AC_DEFINE(PCVT_SUPPORT, 1, [System has PCVT console])
 	AC_DEFINE(SYSCONS_SUPPORT, 1, [System has syscons console])
+	DRI=yes
 	;;
   *netbsd*)
 	AC_DEFINE(CSRG_BASED, 1, [System is BSD-like])
 	AC_DEFINE(PCCONS_SUPPORT, 1, [System has PC console])
 	AC_DEFINE(WSCONS_SUPPORT, 1, [System has wscons console])
+	DRI=yes
 	;;
   *openbsd*)
 	AC_DEFINE(CSRG_BASED, 1, [System is BSD-like])
 	AC_DEFINE(PCCONS_SUPPORT, 1, [System has PC console])
 	AC_DEFINE(WSCONS_SUPPORT, 1, [System has wscons console])
+	;;
+  *linux*)
+	DRI=yes
 	;;
 esac
 
@@ -312,7 +318,7 @@ AC_ARG_ENABLE(screensaver,   [  --disable-screensaver ], [SCREENSAVER=$enableval
 AC_ARG_ENABLE(xdmcp,         [  --disable-xdmcp ], [XDMCP=$enableval], [XDMCP=auto])
 AC_ARG_ENABLE(xdm-auth-1,    [  --disable-xdm-auth-1 ], [XDMAUTH=$enableval], [XDMAUTH=auto])
 AC_ARG_ENABLE(glx,           [  --disable-glx ], [GLX=$enableval], [GLX=yes])
-AC_ARG_ENABLE(dri,           [  --enable-dri ], [DRI=$enableval], [DRI=no])
+AC_ARG_ENABLE(dri,           [  --enable-dri ], [DRI=$enableval])
 AC_ARG_ENABLE(xinerama,	     [  --disable-xinerama ], [XINERAMA=$enableval], [XINERAMA=yes])
 AC_ARG_ENABLE(xf86vidmode,   [  --disable-xf86vidmode ], [XF86VIDMODE=$enableval], [XF86VIDMODE=yes])
 AC_ARG_ENABLE(xf86misc,      [  --disable-xf86misc ], [XF86MISC=$enableval], [XF86MISC=yes])
