@@ -79,10 +79,12 @@ ilbmCreatePixmap(pScreen, width, height, depth)
 	int				depth;
 {
 	PixmapPtr pPixmap;
-	int datasize;
-	int paddedWidth;
+	size_t datasize;
+	size_t paddedWidth;
 
 	paddedWidth = BitmapBytePad(width);
+	if (paddedWidth > 32767 || height > 32767 || depth > 4)
+		return NullPixmap;
 	datasize = height * paddedWidth * depth;
 	pPixmap = AllocatePixmap(pScreen, datasize);
 	if (!pPixmap)

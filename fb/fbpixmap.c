@@ -36,12 +36,14 @@ PixmapPtr
 fbCreatePixmapBpp (ScreenPtr pScreen, int width, int height, int depth, int bpp)
 {
     PixmapPtr	pPixmap;
-    int		datasize;
-    int		paddedWidth;
+    size_t	datasize;
+    size_t	paddedWidth;
     int		adjust;
     int		base;
 
     paddedWidth = ((width * bpp + FB_MASK) >> FB_SHIFT) * sizeof (FbBits);
+    if (paddedWidth / 4 > 32767 || height > 32767)
+	return NullPixmap;
     datasize = height * paddedWidth;
 #ifdef PIXPRIV
     base = pScreen->totalPixmapSize;

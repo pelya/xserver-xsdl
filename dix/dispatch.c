@@ -1483,6 +1483,23 @@ ProcCreatePixmap(register ClientPtr client)
 	client->errorValue = 0;
         return BadValue;
     }
+    if (stuff->width > 32767 || stuff->height > 32767)
+    {
+	/* It is allowed to try and allocate a pixmap which is larger than
+	 * 32767 in either dimension. However, all of the framebuffer code
+	 * is buggy and does not reliably draw to such big pixmaps, basically
+	 * because the Region data structure operates with signed shorts
+	 * for the rectangles in it.
+	 *
+	 * Furthermore, several places in the X server computes the
+	 * size in bytes of the pixmap and tries to store it in an
+	 * integer. This integer can overflow and cause the allocated size
+	 * to be much smaller.
+	 *
+	 * So, such big pixmaps are rejected here with a BadAlloc
+	 */
+	return BadAlloc;
+    }
     if (stuff->depth != 1)
     {
         pDepth = pDraw->pScreen->allowedDepths;

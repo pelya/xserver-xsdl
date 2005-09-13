@@ -78,12 +78,14 @@ iplCreatePixmap (pScreen, width, height, depth)
     int		depth;
 {
     PixmapPtr pPixmap;
-    int datasize;
-    int paddedWidth;
+    size_t datasize;
+    size_t paddedWidth;
     int ipad=INTER_PLANES*2 - 1;
 
     paddedWidth = PixmapBytePad(width, depth);
     paddedWidth = (paddedWidth + ipad) & ~ipad;
+    if (paddedWidth / 4 > 32767 || height > 32767)
+	return NullPixmap;
     datasize = height * paddedWidth;
     pPixmap = AllocatePixmap(pScreen, datasize);
     if (!pPixmap)

@@ -502,6 +502,9 @@ XAACreatePixmap(ScreenPtr pScreen, int w, int h, int depth)
     XAAPixmapPtr pPriv;
     PixmapPtr pPix = NULL;
     int size = w * h;
+
+    if (w > 32767 || h > 32767)
+	return NullPixmap;
     
     if (!infoRec->offscreenDepthsInitialized)
 	XAAInitializeOffscreenDepths (pScreen);

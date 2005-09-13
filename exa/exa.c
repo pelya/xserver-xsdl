@@ -376,6 +376,9 @@ exaCreatePixmap(ScreenPtr pScreen, int w, int h, int depth)
     ScrnInfoPtr pScrn = XF86SCRNINFO(pScreen);
     ExaScreenPriv(pScreen);
 
+    if (w > 32767 || h > 32767)
+	return NullPixmap;
+    
     if (!pScrn->vtSema || pExaScr->swappedOut) {
         pPixmap = pExaScr->SavedCreatePixmap(pScreen, w, h, depth);
     } else {

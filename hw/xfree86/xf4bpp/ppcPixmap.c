@@ -89,7 +89,7 @@ xf4bppCreatePixmap( pScreen, width, height, depth )
     int		depth ;
 {
     register PixmapPtr pPixmap  = (PixmapPtr)NULL;
-    int size ;
+    size_t size ;
     
     TRACE(("xf4bppCreatePixmap(pScreen=0x%x, width=%d, height=%d, depth=%d)\n", pScreen, width, height, depth)) ;
 
@@ -97,6 +97,10 @@ xf4bppCreatePixmap( pScreen, width, height, depth )
 	return (PixmapPtr) NULL ;
 
     size = PixmapBytePad(width, depth);
+
+    if (size / 4 > 32767 || height > 32767)
+	return (PixmapPtr) NULL ;
+    
     pPixmap = AllocatePixmap (pScreen, (height * size));
     
     if ( !pPixmap )
