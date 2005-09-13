@@ -856,7 +856,7 @@ case $host_os in
 	cygwin*) ;;
 	solaris*) ;;
         darwin*) ;;
-	openbsd*) ;;
+	*bsd*) ;;
 	*) 
 		AC_DEFINE(_POSIX_SOURCE, 1, [POSIX-compliant source])
 		AC_DEFINE(_XOPEN_SOURCE, 500, [X/Open-compliant source])

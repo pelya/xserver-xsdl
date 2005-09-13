@@ -7,7 +7,6 @@ libx86emu_a_SOURCES = debug.c \
                       ops.c \
                       prim_ops.c \
                       sys.c \
-                      validate.c \
                       x86emu.h
 
 INCLUDES = 

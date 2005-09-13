@@ -1,3 +1,15 @@
+2005-09-12  Eric Anholt  <anholt@FreeBSD.org>
+
+	* configure.ac:
+	Don't define POSIX_SOURCE on any BSDs, since it breaks things.
+
+	* hw/xfree86/int10/Makefile.am:
+	Define NO_SYS_HEADERS, as the monolithic build does.  Helps FreeBSD.
+
+	* hw/xfree86/x86emu/Makefile.am:
+	Don't include validate.c in the library, since it seems to be a userland
+	test program.
+
 2005-09-12  Daniel Stone  <daniel@freedesktop.org>
 
 	* configure.ac:
