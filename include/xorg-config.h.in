@@ -79,4 +79,37 @@
 /* Building vgahw module */
 #undef WITH_VGAHW
 
+/* Define to 1 if NetBSD built-in MTRR support is available */
+#undef HAS_MTRR_BUILTIN
+
+/* Define to 1 if BSD MTRR support is available */
+#undef HAS_MTRR_SUPPORT
+
+/* NetBSD PIO alpha IO */
+#undef USE_ALPHA_PIO
+
+/* BSD AMD64 iopl */
+#undef USE_AMD64_IOPL
+
+/* BSD /dev/io */
+#undef USE_DEV_IO
+
+/* BSD i386 iopl */
+#undef USE_I386_IOPL
+
+/* System is BSD-like */
+#undef CSRG_BASED
+
+/* System has PC console */
+#undef PCCONS_SUPPORT
+
+/* System has PCVT console */
+#undef PCVT_SUPPORT
+
+/* System has syscons console */
+#undef SYSCONS_SUPPORT
+
+/* System has wscons console */
+#undef WSCONS_SUPPORT
+
 #endif /* _XORG_CONFIG_H_ */

@@ -49,8 +49,7 @@ XORG_LIBS = \
 
 Xorg_LDADD = $(XORG_LIBS) \
              @XSERVER_LIBS@ \
-	     dixmods/libxorgxkb.la \
-             -ldl
+	     dixmods/libxorgxkb.la
 
 Xorg_LDFLAGS = $(LD_EXPORT_SYMBOLS_FLAG)
 

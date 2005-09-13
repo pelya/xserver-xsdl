@@ -1,3 +1,15 @@
+2005-09-13  Eric Anholt  <anholt@FreeBSD.org>
+
+	* configure.ac:
+	* hw/xfree86/Makefile.am:
+	* hw/xfree86/os-support/bsd/Makefile.am:
+	* include/dix-config.h.in:
+	* include/xorg-config.h.in:
+	* include/xorg-server.h.in:
+	Add some initial BSD support for the xorg server.  Incomplete on NetBSD,
+	OpenBSD, and non-i386/amd64 FreeBSD for sure.  Plus I haven't actually
+	run it yet.
+
 2005-09-12  Eric Anholt  <anholt@FreeBSD.org>
 
 	* configure.ac:

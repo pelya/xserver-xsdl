@@ -226,4 +226,19 @@
 /* Building vgahw module */
 #undef WITH_VGAHW
 
+/* System is BSD-like */
+#undef CSRG_BASED
+
+/* System has PC console */
+#undef PCCONS_SUPPORT
+
+/* System has PCVT console */
+#undef PCVT_SUPPORT
+
+/* System has syscons console */
+#undef SYSCONS_SUPPORT
+
+/* System has wscons console */
+#undef WSCONS_SUPPORT
+
 #endif /* _XORG_SERVER_H_ */

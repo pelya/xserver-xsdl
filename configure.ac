@@ -96,7 +96,8 @@ AC_CHECK_LIB(m, sqrt)
 AC_CHECK_HEADERS([ndbm.h dbm.h rpcsvc/dbm.h])
 
 dnl AGPGART headers
-AC_CHECK_HEADERS([linux/agpgart.h sys/agpio.h])
+AC_CHECK_HEADERS([linux/agpgart.h sys/agpio.h], AGP=yes)
+AM_CONDITIONAL(AGP, [test "x$AGP" == xyes])
 
 dnl APM header
 AC_CHECK_HEADERS([linux/apm_bios.h])
@@ -107,6 +108,31 @@ AM_CONDITIONAL(FBDEVHW, [test "x$FBDEV" = xyes])
 
 dnl MTRR header
 AC_CHECK_HEADERS([asm/mtrr.h])
+
+dnl BSD MTRR header
+AC_CHECK_HEADERS([sys/memrange.h], ac_cv_memrange_h=yes)
+if test "x$ac_cv_memrange_h" == xyes; then
+	AC_DEFINE(HAS_MTRR_SUPPORT, 1, [Define to 1 if BSD MTRR support is
+		 available])
+fi
+
+dnl A NetBSD MTRR header
+AC_CHECK_HEADERS([machine/mtrr.h], ac_cv_mtrr_h=yes)
+if test "x$ac_cv_mtrr_h" == xyes; then
+	AC_DEFINE(HAS_MTRR_BUILTIN, 1, [Define to 1 if NetBSD built-in MTRR
+		support is available])
+fi
+
+dnl FreeBSD kldload support (sys/linker.h)
+AC_CACHE_CHECK([for sys/linker.h],
+		ac_cv_sys_linker_h,
+		[AC_TRY_RUN([
+#include <sys/param.h>
+#include <sys/linker.h>
+],
+	[ac_cv_sys_linker_h=yes],
+	[ac_cv_sys_linker_h=no])])
+AM_CONDITIONAL(FREEBSD_KLDLOAD, [test "x$ac_cv_sys_linker_h" == xyes])
 
 AC_CACHE_CHECK([for SYSV IPC],
 		ac_cv_sysv_ipc,
@@ -136,21 +162,78 @@ use_x86_asm="no"
 dnl Override defaults as needed for specific platforms:
 
 case $host_cpu in
-  sparc*)
-	xorg_bus_sparc="yes"
-	xorg_loader_sparcmuldiv="yes"
+  alpha*)
+	ALPHA_VIDEO=yes
+	case $host_os in
+		*netbsd*)	AC_DEFINE(USE_ALPHA_PIO, 1, [NetBSD PIO alpha IO]) ;;
+	esac
+	;;
+  arm*)
+	ARM_VIDEO=yes
 	;;
   i*86)
 	xorg_bus_ix86pci="yes"
 	use_x86_asm="yes"
+	I386_VIDEO=yes
 	case $host_os in
 		*linux*)	DEFAULT_INT10=vm86 ;;
-		*bsd*)		xorg_bus_ix86pci="no" ;;
+		*freebsd*)	xorg_bus_ix86pci="no"
+				AC_DEFINE(USE_DEV_IO) ;;
+		*netbsd*)	xorg_bus_ix86pci="no"
+				AC_DEFINE(USE_I386_IOPL) ;;
+		*openbsd*)	xorg_bus_ix86pci="no"
+				AC_DEFINE(USE_I386_IOPL) ;;
 	esac
         ;;
-  x86_64*)
-  	use_x86_asm="yes"
+  powerpc*)
+	PPC_VIDEO=yes
+	case $host_os in
+		*freebsd*)	DEFAULT_INT10=stub ;;
+	esac
+	;;
+  sparc*)
+	xorg_bus_sparc="yes"
+	xorg_loader_sparcmuldiv="yes"
+	SPARC64_VIDEO=yes
+	BSD_ARCH_SOURCES="sparc64_video.c ioperm_noop.c"
+	;;
+  x86_64*|amd64*)
 	xorg_bus_ix86pci="yes"
+  	use_x86_asm="yes"
+	I386_VIDEO=yes
+	case $host_os in
+		*freebsd*)	AC_DEFINE(USE_DEV_IO, 1, [BSD /dev/io]) ;;
+		*netbsd*)	AC_DEFINE(USE_I386_IOPL, 1, [BSD i386 iopl]) ;;
+		*openbsd*)	AC_DEFINE(USE_AMD64_IOPL, 1, [BSD AMD64 iopl]) ;;
+	esac
+	;;
+esac
+
+
+dnl BSD *_video.c selection
+AM_CONDITIONAL(ALPHA_VIDEO, [test "x$ALPHA_VIDEO" == xyes])
+AM_CONDITIONAL(ARM_VIDEO, [test "x$ARM_VIDEO" == xyes])
+AM_CONDITIONAL(I386_VIDEO, [test "x$I386_VIDEO" == xyes])
+AM_CONDITIONAL(PPC_VIDEO, [test "x$PPC_VIDEO" == xyes])
+AM_CONDITIONAL(SPARC64_VIDEO, [test "x$SPARC64_VIDEO" == xyes])
+
+dnl it would be nice to autodetect these *CONS_SUPPORTs
+case $host_os in
+  *freebsd*)
+	AC_DEFINE(CSRG_BASED, 1, [System is BSD-like])
+	AC_DEFINE(PCCONS_SUPPORT, 1, [System has PC console])
+	AC_DEFINE(PCVT_SUPPORT, 1, [System has PCVT console])
+	AC_DEFINE(SYSCONS_SUPPORT, 1, [System has syscons console])
+	;;
+  *netbsd*)
+	AC_DEFINE(CSRG_BASED, 1, [System is BSD-like])
+	AC_DEFINE(PCCONS_SUPPORT, 1, [System has PC console])
+	AC_DEFINE(WSCONS_SUPPORT, 1, [System has wscons console])
+	;;
+  *openbsd*)
+	AC_DEFINE(CSRG_BASED, 1, [System is BSD-like])
+	AC_DEFINE(PCCONS_SUPPORT, 1, [System has PC console])
+	AC_DEFINE(WSCONS_SUPPORT, 1, [System has wscons console])
 	;;
 esac
 
@@ -585,7 +668,9 @@ if test "x$XORG" = xyes; then
 	XORG_CFLAGS="$XORGSERVER_CFLAGS -DHAVE_XORG_CONFIG_H"
 	XORG_CORE_LIBS="$DIX_LIB"
 	XORG_LIBS="$MI_LIB $FIXES_LIB $XEXT_LIB $XTRAP_LIB $RECORD_LIB $GLX_LIBS $RENDER_LIB $RANDR_LIB $DAMAGE_LIB $MIEXT_DAMAGE_LIB $MIEXT_SHADOW_LIB $MIEXT_LAYER_LIB $XI_LIB $XKB_LIB $COMPOSITE_LIB $XPSTUBS_LIB $OS_LIB"
-	
+
+	AC_CHECK_LIB([dl], [dlopen], XORG_LIBS="$XORG_LIBS -ldl")
+
 	case $host_os in
 	  linux*)
 	  	XORG_OS="linux"
@@ -940,6 +1025,7 @@ hw/xfree86/i2c/Makefile
 hw/xfree86/int10/Makefile
 hw/xfree86/loader/Makefile
 hw/xfree86/os-support/Makefile
+hw/xfree86/os-support/bsd/Makefile
 hw/xfree86/os-support/bus/Makefile
 hw/xfree86/os-support/drm/Makefile
 hw/xfree86/os-support/misc/Makefile

@@ -391,4 +391,7 @@
 /* Define to location of RGB database */
 #undef RGB_PATH
 
+/* System is BSD-like */
+#undef CSRG_BASED
+
 #endif /* _DIX_CONFIG_H_ */
