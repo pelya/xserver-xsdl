@@ -119,6 +119,7 @@ shadowDamageBox (WindowPtr pWindow, BoxPtr pBox)
 
     REGION_INIT (pWindow->drawable.pScreen, &region, pBox, 1);
     shadowDamageRegion (pWindow, &region);
+    REGION_UNINIT (pWindow->drawable.pScreen, &region);
 }
 
 static void
