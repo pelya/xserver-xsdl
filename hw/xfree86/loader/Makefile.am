@@ -12,6 +12,9 @@ if XORG_LOADER_SPARC
 SPARC_SOURCES = SparcMulDiv.S
 endif
 
+sdk_HEADERS = \
+	elf.h
+
 EXTRA_DIST = \
 	aout.h \
 	aoutloader.h \
