@@ -3,7 +3,10 @@ module_LTLIBRARIES = libxf8_32bpp.la
 sdk_HEADERS = cfb8_32.h
 
 INCLUDES = $(XORG_INCS) -I$(top_srcdir)/mfb -I$(top_srcdir)/cfb
+
 AM_CFLAGS = $(XORG_CFLAGS)
+
+libxf8_32bpp_la_LDFLAGS = -avoid-version
 
 libxf8_32bpp_la_SOURCES = \
 	cfbbstore.c \

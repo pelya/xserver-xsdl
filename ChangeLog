@@ -1,5 +1,10 @@
 2005-09-14  Eric Anholt  <anholt@FreeBSD.org>
 
+	* hw/xfree86/xf8_32bpp/Makefile.am:
+	Don't put a version number on the module filename.
+
+2005-09-14  Eric Anholt  <anholt@FreeBSD.org>
+
 	* configure.ac:
 	* hw/xfree86/Makefile.am:
 	* hw/xfree86/loader/Makefile.am:
