@@ -1,5 +1,11 @@
 2005-09-14  Eric Anholt  <anholt@FreeBSD.org>
 
+	* configure.ac:
+	Bug #3990: Require glproto in the cases that it's necessary (DRI or DMX
+	with GLX).  (spyderous)
+
+2005-09-14  Eric Anholt  <anholt@FreeBSD.org>
+
 	* hw/xfree86/Makefile.am:
 	Bug #4046: Install the X.Org server setuid root. (David Schleef)
 
