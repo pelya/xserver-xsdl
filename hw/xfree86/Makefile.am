@@ -63,3 +63,6 @@ BUILT_SOURCES = os-support/solaris/solaris-$(SOLARIS_INOUT_ARCH).il
 os-support/solaris/solaris-$(SOLARIS_INOUT_ARCH).il:
 	cd os-support/solaris ; make solaris-$(SOLARIS_INOUT_ARCH).il
 endif
+
+install-data-local:
+	$(mkdir_p) $(logdir)

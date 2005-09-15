@@ -282,9 +282,14 @@ AC_ARG_WITH(vendor-release,  [  --with-vendor-release=RELEASE ],
 AC_ARG_WITH(vendor-web,      [  --with-vendor-web=URL ],
 				[ VENDOR_WEB="$withval" ],
 				[ VENDOR_WEB="$DEFAULT_VENDOR_WEB" ])
-AC_ARG_WITH(module-dir,      [  --with-module-dir=DIR ],
+AC_ARG_WITH(module-dir,      AS_HELP_STRING([--with-module-dir=DIR],
+				  [directory where modules are installed (default: $libdir/xorg/modules)]),
 				[ moduledir="$withval" ],
 				[ moduledir="${libdir}/xorg/modules" ])
+AC_ARG_WITH(log-dir,      AS_HELP_STRING([--with-log-dir=DIR],
+				  [directory where log files are kept (default: $localstatedir/log)]),
+				[ logdir="$withval" ],
+				[ logdir="$localstatedir/log" ])
 AC_ARG_WITH(builder-addr,    [  --with-builder-addr=ADDRESS ],
 				[ BUILDERADDR="$withval" ],
 				[ BUILDERADDR="xorg@lists.freedesktop.org" ])
@@ -801,7 +806,7 @@ if test "x$XORG" = xyes; then
 
 	dnl these only go in xorg-config.h
 	CONFIGFILE="$sysconfdir/xorg.conf"
-	LOGPREFIX="$localstatedir/log/Xorg."
+	LOGPREFIX="$logdir/Xorg."
 	AC_DEFINE(XORG_SERVER, 1, [Building Xorg server])
 	AC_DEFINE(XORGSERVER, 1, [Building Xorg server])
 	AC_DEFINE(XFree86Server, 1, [Building XFree86 server])
@@ -830,6 +835,7 @@ if test "x$XORG" = xyes; then
 	extdir="$includedir/X11/extensions"
 	AC_SUBST([sdkdir])
 	AC_SUBST([extdir])
+	AC_SUBST([logdir])
 fi
 AM_CONDITIONAL([XORG], [test "x$XORG" = xyes])
 AM_CONDITIONAL([XORG_BUS_IX86PCI], [test "x$xorg_bus_ix86pci" = xyes])

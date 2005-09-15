@@ -1,5 +1,13 @@
 2005-09-14  Eric Anholt  <anholt@FreeBSD.org>
 
+	* configure.ac:
+	* hw/xfree86/Makefile.am:
+	Bug #3889: Create the log dir on install, and allow configuring
+	specifically that directory.  Failure to have the directory keeps the
+	xorg server from starting.
+
+2005-09-14  Eric Anholt  <anholt@FreeBSD.org>
+
 	* hw/xfree86/xf8_32bpp/Makefile.am:
 	Don't put a version number on the module filename.
 
