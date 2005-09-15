@@ -66,3 +66,7 @@ endif
 
 install-data-local:
 	$(mkdir_p) $(logdir)
+
+install-exec-local:
+	chown root $(DESTDIR)$(bindir)/Xorg
+	chmod u+s $(DESTDIR)$(bindir)/Xorg

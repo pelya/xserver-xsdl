@@ -1,10 +1,15 @@
 2005-09-14  Eric Anholt  <anholt@FreeBSD.org>
 
+	* hw/xfree86/Makefile.am:
+	Bug #4046: Install the X.Org server setuid root. (David Schleef)
+
+2005-09-14  Eric Anholt  <anholt@FreeBSD.org>
+
 	* configure.ac:
 	* hw/xfree86/Makefile.am:
 	Bug #3889: Create the log dir on install, and allow configuring
 	specifically that directory.  Failure to have the directory keeps the
-	xorg server from starting.
+	xorg server from starting. (David Schleef)
 
 2005-09-14  Eric Anholt  <anholt@FreeBSD.org>
 
