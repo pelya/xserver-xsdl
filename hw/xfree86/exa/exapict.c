@@ -76,7 +76,7 @@ static void exaCompositeFallbackPictDesc(PicturePtr pict, char *string, int n)
 	     pict->pDrawable->height, pict->repeat ?
 	     " R" : "");
 
-    snprintf(string, n, "0x%lx:%c fmt %s (%s)", (long)pict, loc, format, size);
+    snprintf(string, n, "0x%lx:%c fmt %s (%s)", (long)pict->pDrawable, loc, format, size);
 }
 
 static void
@@ -245,10 +245,8 @@ exaTryDriverSolidFill(PicturePtr	pSrc,
 				   width, height))
 	return 1;
 
-    if (pSrc->pDrawable->type == DRAWABLE_PIXMAP)
-	exaPixmapUseMemory ((PixmapPtr) pSrc->pDrawable);
-    if (pDst->pDrawable->type == DRAWABLE_PIXMAP)
-	exaPixmapUseScreen ((PixmapPtr) pDst->pDrawable);
+    exaDrawableUseMemory(pSrc->pDrawable);
+    exaDrawableUseScreen(pDst->pDrawable);
 
     pDstPix = exaGetOffscreenPixmap (pDst->pDrawable, &dst_off_x, &dst_off_y);
     if (!pDstPix) {
@@ -361,12 +359,10 @@ exaTryDriverComposite(CARD8		op,
 	return -1;
     }
 
-    if (pSrc->pDrawable->type == DRAWABLE_PIXMAP)
-	exaPixmapUseScreen ((PixmapPtr) pSrc->pDrawable);
-    if (pMask && pMask->pDrawable->type == DRAWABLE_PIXMAP)
-	exaPixmapUseScreen ((PixmapPtr) pMask->pDrawable);
-    if (pDst->pDrawable->type == DRAWABLE_PIXMAP)
-	exaPixmapUseScreen ((PixmapPtr) pDst->pDrawable);
+    exaDrawableUseScreen(pSrc->pDrawable);
+    if (pMask != NULL)
+     exaDrawableUseScreen(pMask->pDrawable);
+    exaDrawableUseScreen(pDst->pDrawable);
 
     pSrcPix = exaGetOffscreenPixmap (pSrc->pDrawable, &src_off_x, &src_off_y);
     if (pMask)
@@ -535,12 +531,10 @@ exaComposite(CARD8	op,
 	/* failure to accelerate was not due to pixmaps being in the wrong
 	 * locations.
 	 */
-	if (pSrc->pDrawable->type == DRAWABLE_PIXMAP)
-	    exaPixmapUseMemory ((PixmapPtr) pSrc->pDrawable);
-	if (pMask && pMask->pDrawable->type == DRAWABLE_PIXMAP)
-	    exaPixmapUseMemory ((PixmapPtr) pMask->pDrawable);
-	if (pDst->pDrawable->type == DRAWABLE_PIXMAP)
-	    exaPixmapUseMemory ((PixmapPtr) pDst->pDrawable);
+      exaDrawableUseMemory(pSrc->pDrawable);
+      if (pMask != NULL)
+	exaDrawableUseMemory(pMask->pDrawable);
+      exaDrawableUseMemory(pDst->pDrawable);
     }
 
 #if EXA_DEBUG_FALLBACKS
@@ -551,3 +545,217 @@ exaComposite(CARD8	op,
 		      xMask, yMask, xDst, yDst, width, height);
 }
 #endif
+
+#define NeedsComponent(f) (PICT_FORMAT_A(f) != 0 && PICT_FORMAT_RGB(f) != 0)
+
+/* exaGlyphs is a slight variation on miGlyphs, to support acceleration.  The
+ * issue is that miGlyphs' use of ModifyPixmapHeader makes it impossible to
+ * migrate these pixmaps.  So, instead we create a pixmap at the beginning of
+ * the loop and upload each glyph into the pixmap before compositing.
+ */
+void
+exaGlyphs (CARD8	op,
+	  PicturePtr	pSrc,
+	  PicturePtr	pDst,
+	  PictFormatPtr	maskFormat,
+	  INT16		xSrc,
+	  INT16		ySrc,
+	  int		nlist,
+	  GlyphListPtr	list,
+	  GlyphPtr	*glyphs)
+{
+    ExaScreenPriv (pDst->pDrawable->pScreen);
+    PixmapPtr	pPixmap = NULL, pScratchPixmap = NULL;
+    PicturePtr	pPicture;
+    PixmapPtr   pMaskPixmap = NULL;
+    PicturePtr  pMask;
+    ScreenPtr   pScreen = pDst->pDrawable->pScreen;
+    int		width = 0, height = 0;
+    int		x, y;
+    int		xDst = list->xOff, yDst = list->yOff;
+    int		n;
+    GlyphPtr	glyph;
+    int		error;
+    BoxRec	extents;
+    CARD32	component_alpha;
+
+    /* If the driver doesn't support accelerated composite, there's no point in
+     * going to this extra work.
+     */
+    if (!pExaScr->info->accel.PrepareComposite) {
+	miGlyphs(op, pSrc, pDst, maskFormat, xSrc, ySrc, nlist, list, glyphs);
+	return;
+    }
+
+    if (maskFormat)
+    {
+	GCPtr	    pGC;
+	xRectangle  rect;
+	
+	miGlyphExtents (nlist, list, glyphs, &extents);
+	
+	if (extents.x2 <= extents.x1 || extents.y2 <= extents.y1)
+	    return;
+	width = extents.x2 - extents.x1;
+	height = extents.y2 - extents.y1;
+	pMaskPixmap = (*pScreen->CreatePixmap) (pScreen, width, height,
+						maskFormat->depth);
+	if (!pMaskPixmap)
+	    return;
+	component_alpha = NeedsComponent(maskFormat->format);
+	pMask = CreatePicture (0, &pMaskPixmap->drawable,
+			       maskFormat, CPComponentAlpha, &component_alpha,
+			       serverClient, &error);
+	if (!pMask)
+	{
+	    (*pScreen->DestroyPixmap) (pMaskPixmap);
+	    return;
+	}
+	pGC = GetScratchGC (pMaskPixmap->drawable.depth, pScreen);
+	ValidateGC (&pMaskPixmap->drawable, pGC);
+	rect.x = 0;
+	rect.y = 0;
+	rect.width = width;
+	rect.height = height;
+	(*pGC->ops->PolyFillRect) (&pMaskPixmap->drawable, pGC, 1, &rect);
+	FreeScratchGC (pGC);
+	x = -extents.x1;
+	y = -extents.y1;
+    }
+    else
+    {
+	pMask = pDst;
+	x = 0;
+	y = 0;
+    }
+
+    while (nlist--)
+    {
+	GCPtr pGC;
+	int maxwidth = 0, maxheight = 0, i;
+
+	x += list->xOff;
+	y += list->yOff;
+	n = list->len;
+	for (i = 0; i < n; i++) {
+	    if (glyphs[i]->info.width > maxwidth)
+		maxwidth = glyphs[i]->info.width;
+	    if (glyphs[i]->info.height > maxheight)
+		maxheight = glyphs[i]->info.height;
+	}
+	if (maxwidth == 0 || maxheight == 0)
+	    continue;
+
+	/* Get a scratch pixmap to wrap the original glyph data */
+	pScratchPixmap = GetScratchPixmapHeader (pScreen, glyphs[0]->info.width,
+						 glyphs[0]->info.height, 
+						 list->format->depth,
+						 list->format->depth, 
+						 0, (pointer) (glyphs[0] + 1));
+	if (!pScratchPixmap)
+	    return;
+
+	/* Create the (real) temporary pixmap to store the current glyph in */
+	pPixmap = (*pScreen->CreatePixmap) (pScreen, maxwidth, maxheight,
+					    list->format->depth);
+	if (!pPixmap) {
+	    FreeScratchPixmapHeader (pScratchPixmap);
+	    return;
+	}
+
+	/* Create a temporary picture to wrap the temporary pixmap, so it can be
+	 * used as a source for Composite.
+	 */
+	component_alpha = NeedsComponent(list->format->format);
+	pPicture = CreatePicture (0, &pPixmap->drawable, list->format,
+				  CPComponentAlpha, &component_alpha, 
+				  serverClient, &error);
+	if (!pPicture) {
+	    (*pScreen->DestroyPixmap) (pPixmap);
+	    FreeScratchPixmapHeader (pScratchPixmap);
+	    return;
+	}
+
+	/* Get a scratch GC with which to copy the glyph data from scratch to
+	 * temporary
+	 */
+	pGC = GetScratchGC (list->format->depth, pScreen);
+	ValidateGC (&pPixmap->drawable, pGC);
+
+	/* Give the temporary pixmap an initial kick towards the screen, so
+	 * it'll stick there.
+	 */
+	exaPixmapUseScreen (pPixmap);
+
+	while (n--)
+	{
+	    glyph = *glyphs++;
+	    
+	    (*pScreen->ModifyPixmapHeader) (pScratchPixmap, 
+					    glyph->info.width, glyph->info.height,
+					    0, 0, -1, (pointer) (glyph + 1));
+	    pScratchPixmap->drawable.serialNumber = NEXT_SERIAL_NUMBER;
+
+	    /* Copy the glyph data into the proper pixmap instead of a fake.
+	     * We ought to make exaCopyNtoN (the guts of exaCopyArea) handle
+	     * uploads from memory to screen using UploadToScreen, which will
+	     * be the steady state for this.
+	     */
+	    (*pGC->ops->CopyArea) (&pScratchPixmap->drawable, &pPixmap->drawable, pGC,
+			 0, 0, glyph->info.width, glyph->info.height, 0, 0);
+	    /*exaCopyArea (&pScratchPixmap->drawable, &pPixmap->drawable, pGC,
+			 0, 0, glyph->info.width, glyph->info.height, 0, 0);*/
+
+	    if (maskFormat)
+	    {
+		CompositePicture (PictOpAdd,
+				  pPicture,
+				  None,
+				  pMask,
+				  0, 0,
+				  0, 0,
+				  x - glyph->info.x,
+				  y - glyph->info.y,
+				  glyph->info.width,
+				  glyph->info.height);
+	    }
+	    else
+	    {
+		CompositePicture (op,
+				  pSrc,
+				  pPicture,
+				  pDst,
+				  xSrc + (x - glyph->info.x) - xDst,
+				  ySrc + (y - glyph->info.y) - yDst,
+				  0, 0,
+				  x - glyph->info.x,
+				  y - glyph->info.y,
+				  glyph->info.width,
+				  glyph->info.height);
+	    }
+	    x += glyph->info.xOff;
+	    y += glyph->info.yOff;
+	}
+	list++;
+	FreeScratchGC (pGC);
+	FreePicture ((pointer) pPicture, 0);
+	(*pScreen->DestroyPixmap) (pPixmap);
+	FreeScratchPixmapHeader (pScratchPixmap);
+    }
+    if (maskFormat)
+    {
+	x = extents.x1;
+	y = extents.y1;
+	CompositePicture (op,
+			  pSrc,
+			  pMask,
+			  pDst,
+			  xSrc + x - xDst,
+			  ySrc + y - yDst,
+			  0, 0,
+			  x, y,
+			  width, height);
+	FreePicture ((pointer) pMask, (XID) 0);
+	(*pScreen->DestroyPixmap) (pMaskPixmap);
+    }
+}

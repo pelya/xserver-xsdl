@@ -119,7 +119,7 @@ exaPixmapSave (ScreenPtr pScreen, ExaOffscreenArea *area)
     char *dst, *src;
     int i;
 
-    DBG_MIGRATE (("Save 0x%08p (0x%p) (%dx%d)\n",
+    DBG_MIGRATE (("Save %p (%p) (%dx%d)\n",
 		  (void*)pPixmap->drawable.id,
 		  (void*)(ExaGetPixmapPriv(pPixmap)->area ?
                           ExaGetPixmapPriv(pPixmap)->area->offset : 0),
@@ -295,17 +295,50 @@ exaMoveOutPixmap (PixmapPtr pPixmap)
 }
 
 void
+exaDrawableUseScreen(DrawablePtr pDrawable)
+{
+    PixmapPtr pPixmap;
+
+    if (pDrawable->type == DRAWABLE_WINDOW)
+	pPixmap = (*pDrawable->pScreen->GetWindowPixmap) ((WindowPtr) pDrawable);
+    else
+	pPixmap = (PixmapPtr) pDrawable;
+
+    exaPixmapUseScreen (pPixmap);
+}
+
+void
+exaDrawableUseMemory(DrawablePtr pDrawable)
+{
+    PixmapPtr pPixmap;
+
+    if (pDrawable->type == DRAWABLE_WINDOW)
+	pPixmap = (*pDrawable->pScreen->GetWindowPixmap) ((WindowPtr) pDrawable);
+    else
+	pPixmap = (PixmapPtr) pDrawable;
+
+    exaPixmapUseMemory (pPixmap);
+}
+
+void
 exaPixmapUseScreen (PixmapPtr pPixmap)
 {
     ExaPixmapPriv (pPixmap);
 
     STRACE;
 
-    if (pExaPixmap == NULL)
+    if (pExaPixmap == NULL) {
+	DBG_MIGRATE(("UseScreen: ignoring exa-uncontrolled pixmap %p (%s)\n",
+		     pPixmap, exaPixmapIsOffscreen(pPixmap) ? "s" : "m"));
 	return;
+    }
 
-    if (pExaPixmap->score == EXA_PIXMAP_SCORE_PINNED)
+    if (pExaPixmap->score == EXA_PIXMAP_SCORE_PINNED) {
+	DBG_MIGRATE(("UseScreen: not migrating pinned pixmap %p\n", pPixmap));
 	return;
+    }
+
+    DBG_MIGRATE(("UseScreen %p score %d\n", pPixmap, pExaPixmap->score));
 
     if (pExaPixmap->score == EXA_PIXMAP_SCORE_INIT) {
 	exaMoveInPixmap(pPixmap);
@@ -327,8 +360,13 @@ exaPixmapUseMemory (PixmapPtr pPixmap)
 {
     ExaPixmapPriv (pPixmap);
 
-    if (pExaPixmap == NULL)
+    if (pExaPixmap == NULL) {
+	DBG_MIGRATE(("UseMem: ignoring exa-uncontrolled pixmap %p (%s)\n",
+		    pPixmap, exaPixmapIsOffscreen(pPixmap) ? "s" : "m"));
 	return;
+    }
+
+    DBG_MIGRATE(("UseMem: %p score %d\n", pPixmap, pExaPixmap->score));
 
     if (pExaPixmap->score == EXA_PIXMAP_SCORE_PINNED)
 	return;
@@ -399,6 +437,8 @@ exaCreatePixmap(ScreenPtr pScreen, int w, int h, int depth)
     if (!pPixmap)
 	return NULL;
     pExaPixmap = ExaGetPixmapPriv(pPixmap);
+
+    /* Glyphs have w/h equal to zero, and may not be migrated. See exaGlyphs. */
     if (!w || !h)
 	pExaPixmap->score = EXA_PIXMAP_SCORE_PINNED;
     else
@@ -687,10 +727,8 @@ exaCopyNtoN (DrawablePtr    pSrcDrawable,
 	pDstDrawable->width > pExaScr->info->card.maxX ||
 	pDstDrawable->height > pExaScr->info->card.maxY)
     {
-	if (pSrcDrawable->type == DRAWABLE_PIXMAP)
-	    exaPixmapUseMemory ((PixmapPtr) pSrcDrawable);
-	if (pDstDrawable->type == DRAWABLE_PIXMAP)
-	    exaPixmapUseMemory ((PixmapPtr) pDstDrawable);
+	exaDrawableUseMemory (pSrcDrawable);
+	exaDrawableUseMemory (pDstDrawable);
 	goto fallback;
     }
 
@@ -700,15 +738,11 @@ exaCopyNtoN (DrawablePtr    pSrcDrawable,
     if (exaDrawableIsOffscreen(pDstDrawable) ||
 	exaDrawableIsOffscreen(pSrcDrawable))
     {
-	if (pSrcDrawable->type == DRAWABLE_PIXMAP)
-	    exaPixmapUseScreen ((PixmapPtr) pSrcDrawable);
-	if (pDstDrawable->type == DRAWABLE_PIXMAP)
-	    exaPixmapUseScreen ((PixmapPtr) pDstDrawable);
+	exaDrawableUseScreen (pSrcDrawable);
+	exaDrawableUseScreen (pDstDrawable);
     } else {
-	if (pSrcDrawable->type == DRAWABLE_PIXMAP)
-	    exaPixmapUseMemory ((PixmapPtr) pSrcDrawable);
-	if (pDstDrawable->type == DRAWABLE_PIXMAP)
-	    exaPixmapUseMemory ((PixmapPtr) pDstDrawable);
+	exaDrawableUseMemory (pSrcDrawable);
+	exaDrawableUseMemory (pDstDrawable);
     }
 
     if ((pSrcPixmap = exaGetOffscreenPixmap (pSrcDrawable, &src_off_x, &src_off_y)) &&
@@ -1347,6 +1381,9 @@ exaDriverInit (ScreenPtr		pScreen,
     if (ps) {
         pExaScr->SavedComposite = ps->Composite;
 	ps->Composite = exaComposite;
+
+	pExaScr->SavedGlyphs = ps->Glyphs;
+	ps->Glyphs = exaGlyphs;
     }
 #endif
 

@@ -70,6 +70,7 @@ typedef struct {
     CopyWindowProcPtr 		 SavedCopyWindow;
 #ifdef RENDER
     CompositeProcPtr             SavedComposite;
+    GlyphsProcPtr                SavedGlyphs;
 #endif
     EnableDisableFBAccessProcPtr SavedEnableDisableFBAccess;
     Bool			 wrappedEnableDisableFB;
@@ -242,6 +243,12 @@ exaEnableDisableFBAccess (int index, Bool enable);
 
 /* exa.c */
 void
+exaDrawableUseScreen(DrawablePtr pDrawable);
+
+void
+exaDrawableUseMemory(DrawablePtr pDrawable);
+
+void
 exaPixmapUseScreen (PixmapPtr pPixmap);
 
 void
@@ -298,5 +305,16 @@ exaComposite(CARD8	op,
 	     INT16	yDst,
 	     CARD16	width,
 	     CARD16	height);
+
+void
+exaGlyphs (CARD8	op,
+	  PicturePtr	pSrc,
+	  PicturePtr	pDst,
+	  PictFormatPtr	maskFormat,
+	  INT16		xSrc,
+	  INT16		ySrc,
+	  int		nlist,
+	  GlyphListPtr	list,
+	  GlyphPtr	*glyphs);
 
 #endif /* EXAPRIV_H */
