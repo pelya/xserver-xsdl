@@ -153,6 +153,10 @@ typedef struct _ExaAccelInfo {
      * in-framebuffer pDst beginning at x,y and of width w,h.  May fail.
      */
     Bool        (*UploadToScreen) (PixmapPtr            pDst,
+				   int                  x,
+				   int                  y,
+				   int                  w,
+				   int                  h,
                                    char                 *src,
                                    int                  src_pitch);
     Bool        (*UploadToScratch) (PixmapPtr           pSrc,

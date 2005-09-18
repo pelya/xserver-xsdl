@@ -250,7 +250,10 @@ exaMoveInPixmap (PixmapPtr pPixmap)
 
     if (pExaScr->info->accel.UploadToScreen)
     {
-	if (pExaScr->info->accel.UploadToScreen(pPixmap, src, src_pitch))
+	if (pExaScr->info->accel.UploadToScreen(pPixmap, 0, 0,
+						pPixmap->drawable.width,
+						pPixmap->drawable.height,
+						src, src_pitch))
 	    return;
     }
 

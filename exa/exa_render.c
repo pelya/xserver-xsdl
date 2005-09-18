@@ -692,19 +692,26 @@ exaGlyphs (CARD8	op,
 	    glyph = *glyphs++;
 	    
 	    (*pScreen->ModifyPixmapHeader) (pScratchPixmap, 
-					    glyph->info.width, glyph->info.height,
+					    glyph->info.width,
+					    glyph->info.height,
 					    0, 0, -1, (pointer) (glyph + 1));
 	    pScratchPixmap->drawable.serialNumber = NEXT_SERIAL_NUMBER;
 
 	    /* Copy the glyph data into the proper pixmap instead of a fake.
-	     * We ought to make exaCopyNtoN (the guts of exaCopyArea) handle
-	     * uploads from memory to screen using UploadToScreen, which will
-	     * be the steady state for this.
+	     * First we try to use UploadToScreen, if we can, then we fall back
+	     * to a plain exaCopyArea in case of failure.
 	     */
-	    (*pGC->ops->CopyArea) (&pScratchPixmap->drawable, &pPixmap->drawable, pGC,
-			 0, 0, glyph->info.width, glyph->info.height, 0, 0);
-	    /*exaCopyArea (&pScratchPixmap->drawable, &pPixmap->drawable, pGC,
-			 0, 0, glyph->info.width, glyph->info.height, 0, 0);*/
+	    if (!pExaScr->info->accel.UploadToScreen ||
+		!exaPixmapIsOffscreen(pPixmap) ||
+		!(*pExaScr->info->accel.UploadToScreen) (pPixmap, 0, 0,
+					glyph->info.width,
+					glyph->info.height,
+					pScratchPixmap->devPrivate.ptr,
+					pScratchPixmap->devKind))
+	    {
+		exaCopyArea (&pScratchPixmap->drawable, &pPixmap->drawable, pGC,
+			     0, 0, glyph->info.width, glyph->info.height, 0, 0);
+	    }
 
 	    if (maskFormat)
 	    {
