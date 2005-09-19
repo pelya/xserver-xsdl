@@ -40,23 +40,25 @@
 # Some NVIDIA cards that are not in the master pci.ids file yet.
 10de	"
 	0046	NV40 [GeForce 6800 GT]
-	00cd	Quadro FX 3450/4000 SDI
-	0091	GeForce 7800 GTX
+	0048	GeForce 6800 XT
+	0092	GeForce 7800 GT
 	0099	GeForce Go 7800 GTX
-	009D	Quadro FX 4500
+	009d	Quadro FX 4500
+	00c3	GeForce 6800 XT
 	0142	GeForce 6600 LE
-	0146	GeForce Go 6600 TE/6200 TE
 	0147	GeForce 6700 XL
 	0149	GeForce Go 6600 GT
+	0160	GeForce 6500
 	0162	GeForce 6200SE TurboCache(TM)
+	0163	GeForce 6200 LE
 	0166	GeForce Go 6400
 	0167	GeForce Go 6200
 	0168	GeForce Go 6400
+	0169	GeForce 6250
 	018c	Quadro NVS 50 PC
 	0211	GeForce 6800
 	0212	GeForce 6800 LE
 	0215	GeForce 6800 GT
-	0221	GeForce 6200
 	0314	GeForce FX 5600SE
 	0323	GeForce FX 5200SE
 	0329	GeForce FX 5200 (Mac)
