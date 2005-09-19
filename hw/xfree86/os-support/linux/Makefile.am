@@ -3,6 +3,11 @@ noinst_LTLIBRARIES = liblinux.la
 if LINUX_IA64
 PLATFORM_PCI_SUPPORT = $(srcdir)/../shared/ia64Pci.c
 endif
+if LINUX_ALPHA
+PLATFORM_PCI_SUPPORT = lnx_ev56.c
+       $(srcdir)/lnx_axp.c
+       $(srcdir)/../shared/xf86Axp.c
+endif
 
 liblinux_la_SOURCES = lnx_init.c lnx_video.c lnx_io.c lnx_kbd.c lnx_mouse.c \
                      lnx_pci.c lnx_agp.c lnx_kmod.c lnx_KbdMap.c \
@@ -27,3 +32,4 @@ EXTRA_DIST = \
 	lnx.h \
 	lnx_kbd.h \
         $(srcdir)/../shared/ia64Pci.h
+       $(srcdir)/../shared/xf86Axp.h

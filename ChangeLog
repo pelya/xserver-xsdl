@@ -1,3 +1,10 @@
+2005-09-19  Alan Coopersmith  <alan.coopersmith@sun.com>
+
+	* configure.ac:
+	* hw/xfree86/os-support/bus/Makefile.am: 
+	* hw/xfree86/os-support/linux/Makefile.am:
+	Linux/Alpha support (Stefaan De Roeck)
+
 2005-09-14  Eric Anholt  <anholt@FreeBSD.org>
 
 	* configure.ac:

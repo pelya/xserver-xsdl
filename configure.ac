@@ -697,6 +697,10 @@ if test "x$XORG" = xyes; then
 		  ia64*)
 			linux_ia64=yes
 			;;
+		  alpha*)
+		  	linux_alpha=yes
+			XORG_OS_PCI="axp"
+			;;
 		  *)
 			;;
 		esac
@@ -848,6 +852,7 @@ AM_CONDITIONAL([XORG_BUS_IX86PCI], [test "x$xorg_bus_ix86pci" = xyes])
 AM_CONDITIONAL([XORG_BUS_SPARC], [test "x$xorg_bus_sparc" = xyes])
 AM_CONDITIONAL([XORG_LOADER_SPARC], [test "x$xorg_loader_sparcmuldiv" = xyes])
 AM_CONDITIONAL([LINUX_IA64], [test "x$linux_ia64" = xyes])
+AM_CONDITIONAL([LINUX_ALPHA], [test "x$linux_alpha" = xyes])
 AM_CONDITIONAL([SOLARIS_USL_CONSOLE], [test "x$solaris_usl_console" = xyes])
 AM_CONDITIONAL([SOLARIS_ASM_INLINE], [test "x$solaris_asm_inline" = xyes])
 AM_CONDITIONAL(MFB, [test "x$XORG" = xyes])
