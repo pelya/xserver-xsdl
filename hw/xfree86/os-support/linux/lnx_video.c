@@ -1,3 +1,4 @@
+/* $XdotOrg: $ */
 /* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/linux/lnx_video.c,v 3.67 2003/06/25 18:27:07 eich Exp $ */
 /*
  * Copyright 1992 by Orest Zborowski <obz@Kodak.com>
@@ -42,7 +43,7 @@
 #include "xf86OSpriv.h"
 #include "lnx.h"
 #ifdef __alpha__
-#include "xf86Axp.h"
+#include "shared/xf86Axp.h"
 #endif
 
 #ifdef HAS_MTRR_SUPPORT
