@@ -1,5 +1,7 @@
 #!/usr/bin/perl
 
+# $XdotOrg$
+
 # Automatically generate the data structures for PCI vendor/device lists
 # from the pci.ids file.
 #
@@ -132,7 +134,7 @@ if ($infofile) {
 
 # Print out header information.
 
-$proj = "XFree86";
+$proj = "XdotOrg";
 print "/* \$$proj\$ */
 
 /*
@@ -150,8 +152,8 @@ print "/* \$$proj\$ */
  *
  * The pci.ids file and the data it contains are from the Linux PCI ID's
  * Project (http://pciids.sf.net/).  It is maintained by Martin Mares
- * <mj\@ucw.cz> and other volunteers.  The pci.ids file contains no
- * copyright notice.
+ * <mj\@ucw.cz> and other volunteers.  The pci.ids file is licensed under
+ * the BSD 3-clause or GPL version 2 or later licenses.
  */
 
 #include \"xf86PciInfo.h\"
