@@ -1,3 +1,12 @@
+2005-09-20  Alan Coopersmith  <alan.coopersmith@sun.com>
+
+	* hw/xfree86/Makefile.am (install-exec-local): 
+	* configure.ac:
+	Add --disable-install-setuid option so you can build as non-root
+	and chown/chmod later.   Also disable by default on platforms that
+	don't need setuid root X servers (Darwin & SPARC's, according to
+	InstallXserverSetUID settings in the old Imake config files).
+
 2005-09-19  Alan Coopersmith  <alan.coopersmith@sun.com>
 
 	* configure.ac:

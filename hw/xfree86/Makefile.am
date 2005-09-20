@@ -67,6 +67,10 @@ endif
 install-data-local:
 	$(mkdir_p) $(logdir)
 
+
 install-exec-local:
+if INSTALL_SETUID
 	chown root $(DESTDIR)$(bindir)/Xorg
 	chmod u+s $(DESTDIR)$(bindir)/Xorg
+endif
+
