@@ -308,6 +308,9 @@ AC_ARG_WITH(default-font-path, [ --with-default-font-path=PATH ],
 AC_ARG_WITH(xkb-path,        [  --with-xkb-path=PATH ],
 				[ XKBPATH="$withval" ],
 				[ XKBPATH="${datadir}/X11/xkb" ])
+AC_ARG_WITH(xkb-output,      [  --with-xkb-output=PATH ],
+				[ XKBOUTPUT="$withval" ],
+				[ XKBOUTPUT="compiled/" ])
 AC_ARG_WITH(rgb-path,        [  --with-rgb-path=PATH ],
 				[ RGBPATH="$withval" ],
 				[ RGBPATH="${datadir}/X11/rgb" ])
@@ -968,6 +971,8 @@ AM_CONDITIONAL(XWIN_XV, [test "x$XWIN" = xyes && test "x$XV" = xyes])
 dnl these only go in xkb-config.h (which is shared by the Xorg and Xnest servers)
 AC_DEFINE(__XKBDEFRULES__, "xorg", [Default XKB rules])
 AC_DEFINE_DIR(XKB_BASE_DIRECTORY, XKBPATH, [Path to XKB data])
+AC_DEFINE_DIR(XKB_BIN_DIRECTORY, bindir, [Path to XKB bin dir])
+AC_DEFINE_DIR(XKM_OUTPUT_DIR, XKBOUTPUT, [Path to XKB output dir])
 
 dnl and the rest of these are generic, so they're in config.h
 AC_DEFINE(XFree86XDGA, 1, [Build XDGA support])

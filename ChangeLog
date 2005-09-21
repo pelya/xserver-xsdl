@@ -1,3 +1,13 @@
+2005-09-21  Kristian Høgsberg  <krh@redhat.com>
+
+	* configure.ac: Accept --with-xkb-output argument to specify
+	output dir for compiled xkb keymaps.  Define XKM_OUTPUT_DIR and
+	XKB_BIN_DIRECTORY.
+
+	* include/xkb-config.h.in: Add XKM_OUTPUT_DIR and XKB_BIN_DIRECTORY.
+
+	* xkb/Makefile.am (AM_CFLAGS): Add XKB_CFLAGS.
+
 2005-09-20  Adam Jackson  <ajax@freedesktop.org>
 
 	* hw/xfree86/os-support/Makefile.am:
