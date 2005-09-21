@@ -22,7 +22,6 @@
 
 #include "exaPriv.h"
 
-#define DEBUG_OFFSCREEN 0
 #if DEBUG_OFFSCREEN
 #define DBG_OFFSCREEN(a) ErrorF a
 #else
@@ -85,7 +84,9 @@ exaOffscreenAlloc (ScreenPtr pScreen, int size, int align,
     /* throw out requests that cannot fit */
     if (size > (pExaScr->info->card.memorySize - pExaScr->info->card.offScreenBase))
     {
-	DBG_OFFSCREEN (("Alloc 0x%x -> TOBIG\n", size));
+	DBG_OFFSCREEN (("Alloc 0x%x vs (0x%lx) -> TOBIG\n", size,
+			pExaScr->info->card.memorySize -
+			pExaScr->info->card.offScreenBase));
 	return NULL;
     }
 

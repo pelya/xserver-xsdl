@@ -52,6 +52,21 @@
 #include "fbpict.h"
 #endif
 
+#define DEBUG_TRACE_FALL	0
+#define DEBUG_MIGRATE		0
+#define DEBUG_PIXMAP		0
+#define DEBUG_OFFSCREEN		0
+
+#if DEBUG_TRACE_FALL
+#define EXA_FALLBACK(x)     					\
+do {								\
+	ErrorF("EXA fallback at %s: ", __FUNCTION__);		\
+	ErrorF x;						\
+} while (0)
+#else
+#define EXA_FALLBACK(x)
+#endif
+
 #ifndef EXA_MAX_FB
 #define EXA_MAX_FB   FB_OVERLAY_MAX
 #endif

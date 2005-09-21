@@ -23,17 +23,6 @@
 
 #include "exaPriv.h"
 
-#define EXA_TRACE_FALL	0
-
-#if EXA_TRACE_FALL
-#define EXA_FALLBACK(x)     					\
-do {								\
-	ErrorF("EXA fallback at %s: ", __FUNCTION__);		\
-	ErrorF x;						\
-} while (0)
-#else
-#define EXA_FALLBACK(x)
-#endif
 /*
  * These functions wrap the low-level fb rendering functions and
  * synchronize framebuffer/accelerated drawing by stalling until

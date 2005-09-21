@@ -33,9 +33,8 @@
 #include "xf86str.h"
 #include "xf86.h"
 
-#define EXA_DEBUG_FALLBACKS 0
 
-#if EXA_DEBUG_FALLBACKS
+#if DEBUG_TRACE_FALL
 static void exaCompositeFallbackPictDesc(PicturePtr pict, char *string, int n)
 {
     char format[20];
@@ -537,7 +536,7 @@ exaComposite(CARD8	op,
       exaDrawableUseMemory(pDst->pDrawable);
     }
 
-#if EXA_DEBUG_FALLBACKS
+#if DEBUG_TRACE_FALL
     exaPrintCompositeFallback (op, pSrc, pMask, pDst);
 #endif
 

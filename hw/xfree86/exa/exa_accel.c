@@ -32,8 +32,6 @@
 #include "xf86.h"
 #include "exa.h"
 
-#define DEBUG_MIGRATE 0
-#define DEBUG_PIXMAP 0
 #if DEBUG_MIGRATE
 #define DBG_MIGRATE(a) ErrorF a
 #else
@@ -210,12 +208,11 @@ exaPixmapAllocArea (PixmapPtr pPixmap)
     if (!pExaPixmap->area)
 	return FALSE;
 
-    DBG_PIXMAP(("++ 0x%p (0x%p) (%dx%d)\n",
-                (void*)pPixmap->drawable.id,
-                (void*)(ExaGetPixmapPriv(pPixmap)->area ?
-                        ExaGetPixmapPriv(pPixmap)->area->offset : 0),
-		  pPixmap->drawable.width,
-		  pPixmap->drawable.height));
+    DBG_PIXMAP(("++ 0x%lx (0x%x) (%dx%d)\n", pPixmap->drawable.id,
+                (ExaGetPixmapPriv(pPixmap)->area ?
+		 ExaGetPixmapPriv(pPixmap)->area->offset : 0),
+		pPixmap->drawable.width,
+		pPixmap->drawable.height));
     pPixmap->devKind = pitch;
 
     pPixmap->devPrivate.ptr = (pointer) ((CARD8 *) pExaScr->info->card.memoryBase + pExaPixmap->area->offset);
@@ -233,18 +230,22 @@ exaMoveInPixmap (PixmapPtr pPixmap)
     char *dst, *src;
     int i;
 
-    DBG_MIGRATE (("-> 0x%p (0x%p) (%dx%d)\n",
-		  (void*)pPixmap->drawable.id,
-		  (void*)(ExaGetPixmapPriv(pPixmap)->area ?
-                          ExaGetPixmapPriv(pPixmap)->area->offset : 0),
+    DBG_MIGRATE (("-> 0x%lx (0x%x) (%dx%d)\n", pPixmap->drawable.id,
+		  (ExaGetPixmapPriv(pPixmap)->area ?
+                   ExaGetPixmapPriv(pPixmap)->area->offset : 0),
 		  pPixmap->drawable.width,
 		  pPixmap->drawable.height));
 
     src = pPixmap->devPrivate.ptr;
     src_pitch = pPixmap->devKind;
 
-    if (!exaPixmapAllocArea (pPixmap))
+    if (!exaPixmapAllocArea (pPixmap)) {
+	DBG_MIGRATE (("failed to allocate fb for pixmap %p (%dx%dx%d)\n",
+		      (pointer)pPixmap,
+		      pPixmap->drawable.width, pPixmap->drawable.height,
+		      pPixmap->drawable.bitsPerPixel));
 	return;
+    }
 
     pExaPixmap->dirty = FALSE;
 
@@ -274,7 +275,6 @@ exaMoveInPixmap (PixmapPtr pPixmap)
 	dst += dst_pitch;
 	src += src_pitch;
     }
-    DBG_PIXMAP("done\n");
 }
 
 static void
@@ -332,16 +332,19 @@ exaPixmapUseScreen (PixmapPtr pPixmap)
 
     if (pExaPixmap == NULL) {
 	DBG_MIGRATE(("UseScreen: ignoring exa-uncontrolled pixmap %p (%s)\n",
-		     pPixmap, exaPixmapIsOffscreen(pPixmap) ? "s" : "m"));
+		     (pointer)pPixmap,
+		     exaPixmapIsOffscreen(pPixmap) ? "s" : "m"));
 	return;
     }
 
     if (pExaPixmap->score == EXA_PIXMAP_SCORE_PINNED) {
-	DBG_MIGRATE(("UseScreen: not migrating pinned pixmap %p\n", pPixmap));
+	DBG_MIGRATE(("UseScreen: not migrating pinned pixmap %p\n",
+		     (pointer)pPixmap));
 	return;
     }
 
-    DBG_MIGRATE(("UseScreen %p score %d\n", pPixmap, pExaPixmap->score));
+    DBG_MIGRATE(("UseScreen %p score %d\n",
+		 (pointer)pPixmap, pExaPixmap->score));
 
     if (pExaPixmap->score == EXA_PIXMAP_SCORE_INIT) {
 	exaMoveInPixmap(pPixmap);
@@ -349,12 +352,14 @@ exaPixmapUseScreen (PixmapPtr pPixmap)
     }
 
     if (pExaPixmap->score < EXA_PIXMAP_SCORE_MAX)
-    {
 	pExaPixmap->score++;
-	if (!exaPixmapIsOffscreen(pPixmap) &&
-	    pExaPixmap->score >= EXA_PIXMAP_SCORE_MOVE_IN)
-	    exaMoveInPixmap (pPixmap);
+
+    if (pExaPixmap->score >= EXA_PIXMAP_SCORE_MOVE_IN &&
+	!exaPixmapIsOffscreen(pPixmap))
+    {
+	exaMoveInPixmap (pPixmap);
     }
+
     ExaOffscreenMarkUsed (pPixmap);
 }
 
@@ -365,11 +370,12 @@ exaPixmapUseMemory (PixmapPtr pPixmap)
 
     if (pExaPixmap == NULL) {
 	DBG_MIGRATE(("UseMem: ignoring exa-uncontrolled pixmap %p (%s)\n",
-		    pPixmap, exaPixmapIsOffscreen(pPixmap) ? "s" : "m"));
+		     (pointer)pPixmap,
+		     exaPixmapIsOffscreen(pPixmap) ? "s" : "m"));
 	return;
     }
 
-    DBG_MIGRATE(("UseMem: %p score %d\n", pPixmap, pExaPixmap->score));
+    DBG_MIGRATE(("UseMem: %p score %d\n", (pointer)pPixmap, pExaPixmap->score));
 
     if (pExaPixmap->score == EXA_PIXMAP_SCORE_PINNED)
 	return;
@@ -378,12 +384,10 @@ exaPixmapUseMemory (PixmapPtr pPixmap)
 	pExaPixmap->score = 0;
 
     if (pExaPixmap->score > EXA_PIXMAP_SCORE_MIN)
-    {
 	pExaPixmap->score--;
-	if (pExaPixmap->area &&
-	    pExaPixmap->score <= EXA_PIXMAP_SCORE_MOVE_OUT)
-	    exaMoveOutPixmap (pPixmap);
-    }
+
+    if (pExaPixmap->score <= EXA_PIXMAP_SCORE_MOVE_OUT && pExaPixmap->area)
+	exaMoveOutPixmap (pPixmap);
 }
 
 static Bool
@@ -534,7 +538,8 @@ exaPrepareAccess(DrawablePtr pDrawable, int index)
 
     if (!(*pExaScr->info->accel.PrepareAccess) (pPixmap, index)) {
 	ExaPixmapPriv (pPixmap);
-	assert (pExaPixmap->score != EXA_PIXMAP_SCORE_PINNED);
+	if (pExaPixmap->score != EXA_PIXMAP_SCORE_PINNED)
+	    FatalError("Driver failed PrepareAccess on a pinned pixmap\n");
 	exaMoveOutPixmap (pPixmap);
     }
 }
@@ -728,6 +733,8 @@ exaCopyNtoN (DrawablePtr    pSrcDrawable,
     }
 
 fallback:
+    EXA_FALLBACK(("from 0x%lx to 0x%lx\n", (long)pSrcDrawable,
+		  (long)pDstDrawable));
     exaPrepareAccess (pDstDrawable, EXA_PREPARE_DEST);
     exaPrepareAccess (pSrcDrawable, EXA_PREPARE_SRC);
     fbCopyNtoN (pSrcDrawable, pDstDrawable, pGC,
@@ -884,6 +891,7 @@ exaSolidBoxClipped (DrawablePtr	pDrawable,
         !(pPixmap = exaGetOffscreenPixmap (pDrawable, &xoff, &yoff)) ||
 	!(*pExaScr->info->accel.PrepareSolid) (pPixmap, GXcopy, pm, fg))
     {
+	EXA_FALLBACK(("to 0x%lx\n", (long)pDrawable));
 	exaPrepareAccess (pDrawable, EXA_PREPARE_DEST);
 	fg = fbReplicatePixel (fg, pDrawable->bitsPerPixel);
 	fbSolidBoxClipped (pDrawable, pClip, x1, y1, x2, y2,
@@ -1011,6 +1019,7 @@ exaImageGlyphBlt (DrawablePtr	pDrawable,
 	opaque = FALSE;
     }
 
+    EXA_FALLBACK(("to 0x%lx\n", (long)pDrawable));
     exaPrepareAccess (pDrawable, EXA_PREPARE_DEST);
 
     ppci = ppciInit;
@@ -1187,6 +1196,7 @@ exaFillRegionSolid (DrawablePtr	pDrawable,
     }
     else
     {
+	EXA_FALLBACK(("to 0x%lx\n", (long)pDrawable));
 	exaPrepareAccess (pDrawable, EXA_PREPARE_DEST);
 	fbFillRegionSolid (pDrawable, pRegion, 0,
 			   fbReplicatePixel (pixel, pDrawable->bitsPerPixel));
@@ -1278,6 +1288,7 @@ exaFillRegionTiled (DrawablePtr	pDrawable,
     }
 
 fallback:
+    EXA_FALLBACK(("from 0x%lx to 0x%lx\n", (long)pTile, (long)pDrawable));
     exaPrepareAccess (pDrawable, EXA_PREPARE_DEST);
     fbFillRegionTiled (pDrawable, pRegion, pTile);
     exaFinishAccess (pDrawable, EXA_PREPARE_DEST);
@@ -1548,7 +1559,6 @@ exaSetup(pointer Module, pointer Options, int *ErrorMajor, int *ErrorMinor)
 {
     static Bool Initialised = FALSE;
 
-    DBG_PIXMAP("exa setup\n");
     if (!Initialised) {
 	Initialised = TRUE;
 #ifndef REMOVE_LOADER_CHECK_MODULE_INFO
