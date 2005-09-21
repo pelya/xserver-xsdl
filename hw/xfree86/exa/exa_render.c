@@ -642,8 +642,16 @@ exaGlyphs (CARD8	op,
 	    if (glyphs[i]->info.height > maxheight)
 		maxheight = glyphs[i]->info.height;
 	}
-	if (maxwidth == 0 || maxheight == 0)
+	if (maxwidth == 0 || maxheight == 0) {
+	    while (n--)
+	    {
+		glyph = *glyphs++;
+		x += glyph->info.xOff;
+		y += glyph->info.yOff;
+	    }
+	    list++;
 	    continue;
+	}
 
 	/* Get a scratch pixmap to wrap the original glyph data */
 	pScratchPixmap = GetScratchPixmapHeader (pScreen, glyphs[0]->info.width,
