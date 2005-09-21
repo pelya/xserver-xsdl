@@ -1,5 +1,10 @@
 2005-09-20  Adam Jackson  <ajax@freedesktop.org>
 
+	* hw/xfree86/os-support/Makefile.am:
+	Bug #4487: Add the bsd subdir to DIST_SUBDIRS. (Joshua Baergen)
+
+2005-09-20  Adam Jackson  <ajax@freedesktop.org>
+
 	* cfb/Makefile.am:
 	* cfb/Makefile.am.inc:
 	Bug #4257: Move cfbcmap.c to cfb_common_sources.
