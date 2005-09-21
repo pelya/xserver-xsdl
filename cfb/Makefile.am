@@ -4,8 +4,8 @@ include Makefile.am.inc
 
 DISTCLEANFILES += cfbglrop8.c
 
-libcfb_la_SOURCES = cfb8bit.c cfbcmap.c cfbteblt8.c cfbglrop8.c cfbpush8.c \
-                    cfbrctstp8.c $(libcfb_gen_sources) $(libcfb_common_sources)
+libcfb_la_SOURCES = cfb8bit.c cfbteblt8.c cfbglrop8.c cfbpush8.c cfbrctstp8.c \
+                    $(libcfb_gen_sources) $(libcfb_common_sources)
 
 libcfb_la_LIBADD = ../mfb/libmfb.la
 

@@ -18,7 +18,8 @@ libcfb_common_sources =  $(top_srcdir)/cfb/cfbgc.c $(top_srcdir)/cfb/cfbrrop.c \
 	$(top_srcdir)/cfb/cfbbstore.c $(top_srcdir)/cfb/cfbpolypnt.c \
 	$(top_srcdir)/cfb/cfbbres.c $(top_srcdir)/cfb/cfbline.c \
 	$(top_srcdir)/cfb/cfbhrzvert.c $(top_srcdir)/cfb/cfbbresd.c \
-	$(top_srcdir)/cfb/cfbimage.c $(top_srcdir)/cfb/cfbcppl.c
+	$(top_srcdir)/cfb/cfbimage.c $(top_srcdir)/cfb/cfbcppl.c \
+	$(top_srcdir)/cfb/cfbcmap.c
 
 cfbseg.c:
 	echo "#define POLYSEGMENT" > $@

@@ -1,3 +1,9 @@
+2005-09-20  Adam Jackson  <ajax@freedesktop.org>
+
+	* cfb/Makefile.am:
+	* cfb/Makefile.am.inc:
+	Bug #4257: Move cfbcmap.c to cfb_common_sources.
+
 2005-09-20  Alan Coopersmith  <alan.coopersmith@sun.com>
 
 	* hw/xfree86/Makefile.am (install-exec-local): 
