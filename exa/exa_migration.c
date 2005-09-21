@@ -560,52 +560,6 @@ exaFinishAccess(DrawablePtr pDrawable, int index)
     (*pExaScr->info->accel.FinishAccess) (pPixmap, index);
 }
 
-#if 0
-static void
-exaFillTiled(int	dst_x,
-	     int	dst_y,
-	     int	width,
-	     int	height,
-	     int	src_x,
-	     int	src_y,
-	     int	src_width,
-	     int	src_height,
-	     void	(*Copy) (int	srcX,
-				 int	srcY,
-				 int	dstX,
-				 int	dstY,
-				 int	width,
-				 int	height))
-{
-    modulus (src_x, src_width, src_x);
-    modulus (src_y, src_height, src_y);
-
-    while (height)
-    {
-	int dst_x_tmp = dst_x;
-	int src_x_tmp = src_x;
-	int width_tmp = width;
-	int height_left = src_height - src_y;
-	int height_this = min (height, height_left);
-
-	while (width_tmp)
-	{
-	    int width_left = src_width - src_x_tmp;
-	    int width_this = min (width_tmp, width_left);
-
-	    (*Copy) (src_x_tmp, src_y,
-		     dst_x_tmp, dst_y,
-		     width_this, height_this);
-
-	    width_tmp -= width_this;
-	    dst_x_tmp += width_this;
-	}
-	height -= height_this;
-	dst_y += height_this;
-	src_y = 0;
-    }
-}
-#endif
 
 static void
 exaFillSpans(DrawablePtr pDrawable, GCPtr pGC, int n,
@@ -1240,6 +1194,95 @@ exaFillRegionSolid (DrawablePtr	pDrawable,
     }
 }
 
+/* Try to do an accelerated tile of the pTile into pRegion of pDrawable.
+ * Based on fbFillRegionTiled(), fbTile().
+ */
+static void
+exaFillRegionTiled (DrawablePtr	pDrawable,
+		    RegionPtr	pRegion,
+		    PixmapPtr	pTile)
+{
+    ExaScreenPriv(pDrawable->pScreen);
+    PixmapPtr pPixmap;
+    int xoff, yoff;
+    int tileWidth, tileHeight;
+
+    STRACE;
+    tileWidth = pTile->drawable.width;
+    tileHeight = pTile->drawable.height;
+	
+    if (pDrawable->width > pExaScr->info->card.maxX ||
+	pDrawable->height > pExaScr->info->card.maxY ||
+	tileWidth > pExaScr->info->card.maxX ||
+	tileHeight > pExaScr->info->card.maxY)
+    {
+	goto fallback;
+    }
+
+    pPixmap = exaGetOffscreenPixmap (pDrawable, &xoff, &yoff);
+    if (!pPixmap)
+	goto fallback;
+
+    exaPixmapUseScreen(pTile);
+    if (!exaPixmapIsOffscreen(pTile))
+	goto fallback;
+
+    if ((*pExaScr->info->accel.PrepareCopy) (pTile, pPixmap, 0, 0, GXcopy,
+					     FB_ALLONES))
+    {
+	int nbox = REGION_NUM_RECTS (pRegion);
+	BoxPtr pBox = REGION_RECTS (pRegion);
+	int xRot = pDrawable->x + xoff;
+	int yRot = pDrawable->y + yoff;
+
+	while (nbox--)
+	{
+	    int height = pBox->y2 - pBox->y1;
+	    int dstY = pBox->y1 + yoff;
+	    int tileY;
+
+	    modulus (dstY - yRot, tileHeight, tileY);
+	    while (height > 0) {
+		int width = pBox->x2 - pBox->x1;
+		int dstX = pBox->x1 + xoff;
+		int tileX;
+		int h = tileHeight - tileY;
+
+		if (h > height)
+		    h = height;
+		height -= h;
+
+		modulus (dstX - xRot, tileWidth, tileX);
+		while (width > 0) {
+		    int w = tileWidth - tileX;
+		    if (w > width)
+			w = width;
+		    width -= w;
+
+		    (*pExaScr->info->accel.Copy) (pPixmap,
+						  tileX, tileY,
+						  dstX, dstY,
+						  w, h);
+		    dstX += w;
+		    tileX = 0;
+		}
+		dstY += h;
+		tileY = 0;
+	    }
+	    pBox++;
+	}
+	(*pExaScr->info->accel.DoneCopy) (pPixmap);
+	exaMarkSync(pDrawable->pScreen);
+	exaDrawableDirty (pDrawable);
+	return;
+    }
+
+fallback:
+    exaPrepareAccess (pDrawable, EXA_PREPARE_DEST);
+    fbFillRegionTiled (pDrawable, pRegion, pTile);
+    exaFinishAccess (pDrawable, EXA_PREPARE_DEST);
+}
+
 static void
 exaPaintWindow(WindowPtr pWin, RegionPtr pRegion, int what)
 {
@@ -1265,26 +1308,19 @@ exaPaintWindow(WindowPtr pWin, RegionPtr pRegion, int what)
             case BackgroundPixel:
                 exaFillRegionSolid((DrawablePtr)pWin, pRegion, pWin->background.pixel);
                 return;
-#if 0
             case BackgroundPixmap:
                 exaFillRegionTiled((DrawablePtr)pWin, pRegion, pWin->background.pixmap);
                 return;
-#endif
             }
             break;
         case PW_BORDER:
-            if (pWin->borderIsPixel)
-            {
+            if (pWin->borderIsPixel) {
                 exaFillRegionSolid((DrawablePtr)pWin, pRegion, pWin->border.pixel);
                 return;
-            }
-#if 0
-            else
-            {
+            } else {
                 exaFillRegionTiled((DrawablePtr)pWin, pRegion, pWin->border.pixmap);
                 return;
             }
-#endif
             break;
         }
     }
