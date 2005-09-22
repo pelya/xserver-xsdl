@@ -139,6 +139,8 @@ xf86GetAGPInfo(int screenNum)
 		return NULL;
 	}
 
+	memset((char*)&agpinf, 0, sizeof(agpinf));
+
 	if (ioctl(gartFd, AGPIOC_INFO, &agpinf) != 0) {
 		xf86DrvMsg(screenNum, X_ERROR,
 			   "xf86GetAGPInfo: AGPIOC_INFO failed (%s)\n",
@@ -153,6 +155,8 @@ xf86GetAGPInfo(int screenNum)
 	info->totalPages = agpinf.pg_total;
 	info->systemPages = agpinf.pg_system;
 	info->usedPages = agpinf.pg_used;
+
+	xf86DrvMsg(screenNum, X_INFO, "Kernel reported %d total, %d used\n", agpinf.pg_total, agpinf.pg_used);
 
 	return info;
 }
