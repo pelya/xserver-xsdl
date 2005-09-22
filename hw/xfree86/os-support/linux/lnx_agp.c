@@ -139,8 +139,6 @@ xf86GetAGPInfo(int screenNum)
 		return NULL;
 	}
 
-	memset((char*)&agpinf, 0, sizeof(agpinf));
-
 	if (ioctl(gartFd, AGPIOC_INFO, &agpinf) != 0) {
 		xf86DrvMsg(screenNum, X_ERROR,
 			   "xf86GetAGPInfo: AGPIOC_INFO failed (%s)\n",
@@ -155,8 +153,6 @@ xf86GetAGPInfo(int screenNum)
 	info->totalPages = agpinf.pg_total;
 	info->systemPages = agpinf.pg_system;
 	info->usedPages = agpinf.pg_used;
-
-	xf86DrvMsg(screenNum, X_INFO, "Kernel reported %d total, %d used\n", agpinf.pg_total, agpinf.pg_used);
 
 	return info;
 }
@@ -264,7 +260,7 @@ xf86DeallocateGARTMemory(int screenNum, int key)
 		return FALSE;
 	}
 
-	if (ioctl(gartFd, AGPIOC_DEALLOCATE, (char *)&key) != 0) {
+	if (ioctl(gartFd, AGPIOC_DEALLOCATE, (int *)key) != 0) {
 		xf86DrvMsg(screenNum, X_WARNING,"xf86DeAllocateGARTMemory: "
                    "deallocation gart memory with key %d failed\n\t(%s)\n",
                    key, strerror(errno));
