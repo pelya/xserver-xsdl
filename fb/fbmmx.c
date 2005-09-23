@@ -2304,28 +2304,37 @@ static unsigned int detectCPUFeatures(void) {
     vendor[0] = 0;
     vendor[12] = 0;
     /* see p. 118 of amd64 instruction set manual Vol3 */
-    __asm__ ("push %%ebx\n"
-             "pushf\n"
+    /* We need to be careful about the handling of %ebx and
+     * %esp here. We can't declare either one as clobbered
+     * since they are special registers (%ebx is the "PIC
+     * register" holding an offset to global data, %esp the
+     * stack pointer), so we need to make sure they have their+      * original values when we access the output operands.
+     */
+    __asm__ ("pushf\n"
              "pop %%eax\n"
-             "mov %%eax, %%ebx\n"
+             "mov %%eax, %%ecx\n"
              "xor $0x00200000, %%eax\n"
              "push %%eax\n"
              "popf\n"
              "pushf\n"
              "pop %%eax\n"
              "mov $0x0, %%edx\n"
-             "xor %%ebx, %%eax\n"
+             "xor %%ecx, %%eax\n"
              "jz 1\n"
 
              "mov $0x00000000, %%eax\n"
+	     "push %%ebx\n"
              "cpuid\n"
-             "mov %%ebx, %1\n"
+             "mov %%ebx, %%eax\n"
+	     "pop %%ebx\n"
+	     "mov %%eax, %1\n"
              "mov %%edx, %2\n"
              "mov %%ecx, %3\n"
              "mov $0x00000001, %%eax\n"
+	     "push %%ebx\n"
              "cpuid\n"
+	     "pop %%ebx\n"
              "1:\n"
-             "pop %%ebx\n"
              "mov %%edx, %0\n"
              : "=r" (result), 
                "=m" (vendor[0]), 
@@ -2359,8 +2368,8 @@ static unsigned int detectCPUFeatures(void) {
                     "mov $0x80000001, %%eax\n"
                     "cpuid\n"
                     "2:\n"
-                    "mov %%edx, %0\n"
                     "pop %%ebx\n"
+                    "mov %%edx, %0\n"
                     : "=r" (result)
                     :
                     : "%eax", "%ecx", "%edx"
