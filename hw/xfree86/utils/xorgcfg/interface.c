@@ -1317,11 +1317,16 @@ SetTip(xf86cfgDevice *device)
 
 	    if (monitor == NULL)
 		return;
-	    len = XmuSnprintf(buffer, sizeof(buffer),
-			      "Identifier \"%s\"\n"
-			      "Vendor     \"%s\"\n",
-			      monitor->mon_identifier,
-			      monitor->mon_vendor);
+	    if (monitor->mon_vendor != NULL)
+		len = XmuSnprintf(buffer, sizeof(buffer),
+				  "Identifier \"%s\"\n"
+				  "Vendor     \"%s\"\n",
+				  monitor->mon_identifier,
+				  monitor->mon_vendor);
+	    else
+		len = XmuSnprintf(buffer, sizeof(buffer),
+				  "Identifier \"%s\"\n",
+				  monitor->mon_identifier);
 	    option = monitor->mon_option_lst;
 	}   break;
 	case SCREEN: {
