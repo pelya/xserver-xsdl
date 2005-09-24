@@ -331,9 +331,6 @@ extern void DRIQueryVersion(int *majorVersion,
 
 extern void DRIAdjustFrame(int scrnIndex, int x, int y, int flags);
 
-extern int  DRIOpenFullScreen(ScreenPtr pScreen, DrawablePtr pDrawable);
-extern int  DRICloseFullScreen(ScreenPtr pScreen, DrawablePtr pDrawable);
-
 extern void DRIMoveBuffersHelper(ScreenPtr pScreen, 
                                  int dx,
                                  int dy,

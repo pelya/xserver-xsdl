@@ -80,12 +80,6 @@ static int DRIWindowPrivIndex = -1;
 static unsigned long DRIGeneration = 0;
 static unsigned int DRIDrawableValidationStamp = 0;
 
-				/* Support cleanup for fullscreen mode,
-                                   independent of the DRICreateDrawable
-                                   resource management. */
-static Bool    _DRICloseFullScreen(pointer pResource, XID id);
-static RESTYPE DRIFullScreenResType;
-
 static RESTYPE DRIDrawablePrivResType;
 static RESTYPE DRIContextPrivResType;
 static void    DRIDestroyDummyContext(ScreenPtr pScreen, Bool hasCtxPriv);
@@ -605,7 +599,6 @@ DRIExtensionInit(void)
 
     DRIDrawablePrivResType = CreateNewResourceType(DRIDrawablePrivDelete);
     DRIContextPrivResType = CreateNewResourceType(DRIContextPrivDelete);
-    DRIFullScreenResType = CreateNewResourceType(_DRICloseFullScreen);
 
     for (i = 0; i < screenInfo.numScreens; i++)
     {
@@ -2022,96 +2015,6 @@ DRIAdjustFrame(int scrnIndex, int x, int y, int flags)
 
     _DRIAdjustFrame(pScrn, pDRIPriv, x, y);
 }
-
-/* WARNING WARNING WARNING: Just like every other function call in this
-   file, the DRIOpenFullScreen and DRICloseFullScreen calls are for
-   internal use only!  They should be used only by GLX internals and
-   should NEVER be called from a GL application.
-
-   Some time in the future, there will be a (proposed) standard GLX
-   extension that performs expanded functionality, that is designed for
-   used by application-level programs, and that should be portable
-   across multiple GLX implementations. */
-Bool
-DRIOpenFullScreen(ScreenPtr pScreen, DrawablePtr pDrawable)
-{
-    DRIScreenPrivPtr   pDRIPriv    = DRI_SCREEN_PRIV(pScreen);
-    ScrnInfoPtr        pScrn       = xf86Screens[pScreen->myNum];
-    WindowPtr	       pWin        = (WindowPtr)pDrawable;
-    drm_clip_rect_t * pClipRects  = (void *)REGION_RECTS(&pWin->clipList);
-
-    _DRIAdjustFrame(pScrn, pDRIPriv, pScrn->frameX0, pScrn->frameY0);
-
-    if (pDrawable->type != DRAWABLE_WINDOW) return FALSE;
-
-    if (!pScrn->vtSema) return FALSE; /* switched away */
-
-    if (pDrawable->x != pScrn->frameX0
-	|| pDrawable->y != pScrn->frameY0
-	|| pDrawable->width != pScrn->frameX1 - pScrn->frameX0 + 1
-	|| pDrawable->height != pScrn->frameY1 - pScrn->frameY0 + 1) {
-	return FALSE;
-    }
-
-    if (REGION_NUM_RECTS(&pWin->clipList) != 1) return FALSE;
-    if (pDrawable->x != pClipRects[0].x1
-	|| pDrawable->y != pClipRects[0].y1
-	|| pDrawable->width != pClipRects[0].x2 - pClipRects[0].x1
-	|| pDrawable->height != pClipRects[0].y2 - pClipRects[0].y1) {
-	return FALSE;
-    }
-
-    AddResource(pDrawable->id, DRIFullScreenResType, (pointer)pWin);
-
-    xf86EnableVTSwitch(FALSE);
-    pScrn->EnableDisableFBAccess(pScreen->myNum, FALSE);
-    pScrn->vtSema        = FALSE;
-    pDRIPriv->fullscreen = pDrawable;
-    DRIClipNotify(pWin, 0, 0);
-
-    if (pDRIPriv->pDriverInfo->OpenFullScreen)
-	pDRIPriv->pDriverInfo->OpenFullScreen(pScreen);
-
-    pDRIPriv->pSAREA->frame.fullscreen = 1;
-    return TRUE;
-}
-
-static Bool
-_DRICloseFullScreen(pointer pResource, XID id)
-{
-    DrawablePtr      pDrawable = (DrawablePtr)pResource;
-    ScreenPtr        pScreen   = pDrawable->pScreen;
-    DRIScreenPrivPtr pDRIPriv  = DRI_SCREEN_PRIV(pScreen);
-    ScrnInfoPtr      pScrn     = xf86Screens[pScreen->myNum];
-    WindowPtr	     pWin      = (WindowPtr)pDrawable;
-    WindowOptPtr     optional  = pWin->optional;
-    Mask             mask      = pWin->eventMask;
-
-    if (pDRIPriv->pDriverInfo->CloseFullScreen)
-	pDRIPriv->pDriverInfo->CloseFullScreen(pScreen);
-
-    pDRIPriv->fullscreen = NULL;
-    pScrn->vtSema        = TRUE;
-
-				/* Turn off expose events for the top window */
-    pWin->eventMask &= ~ExposureMask;
-    pWin->optional   = NULL;
-    pScrn->EnableDisableFBAccess(pScreen->myNum, TRUE);
-    pWin->eventMask  = mask;
-    pWin->optional   = optional;
-
-    xf86EnableVTSwitch(TRUE);
-    pDRIPriv->pSAREA->frame.fullscreen = 0;
-    return TRUE;
-}
-
-Bool
-DRICloseFullScreen(ScreenPtr pScreen, DrawablePtr pDrawable)
-{
-    FreeResourceByType(pDrawable->id, DRIFullScreenResType, FALSE);
-    return TRUE;
-}
-
 
 /* 
  * DRIMoveBuffersHelper swaps the regions rects in place leaving you

@@ -80,8 +80,6 @@ static DISPATCH_PROC(ProcXF86DRIGetDrawableInfo);
 static DISPATCH_PROC(ProcXF86DRIGetDeviceInfo);
 static DISPATCH_PROC(ProcXF86DRIDispatch);
 static DISPATCH_PROC(ProcXF86DRIAuthConnection);
-static DISPATCH_PROC(ProcXF86DRIOpenFullScreen);
-static DISPATCH_PROC(ProcXF86DRICloseFullScreen);
 
 static DISPATCH_PROC(SProcXF86DRIQueryVersion);
 static DISPATCH_PROC(SProcXF86DRIDispatch);
@@ -565,67 +563,6 @@ ProcXF86DRIGetDeviceInfo(
 }
 
 static int
-ProcXF86DRIOpenFullScreen (
-    register ClientPtr client
-)
-{
-    REQUEST(xXF86DRIOpenFullScreenReq);
-    xXF86DRIOpenFullScreenReply rep;
-    DrawablePtr                 pDrawable;
-
-    REQUEST_SIZE_MATCH(xXF86DRIOpenFullScreenReq);
-    if (stuff->screen >= screenInfo.numScreens) {
-	client->errorValue = stuff->screen;
-	return BadValue;
-    }
-
-    rep.type           = X_Reply;
-    rep.length         = 0;
-    rep.sequenceNumber = client->sequence;
-
-    if (!(pDrawable = SecurityLookupDrawable(stuff->drawable,
-					     client, 
-					     SecurityReadAccess)))
-	return BadValue;
-
-    rep.isFullScreen = DRIOpenFullScreen(screenInfo.screens[stuff->screen],
-					 pDrawable);
-    
-    WriteToClient(client, sizeof(xXF86DRIOpenFullScreenReply), (char *)&rep);
-    return client->noClientException;
-}
-
-static int
-ProcXF86DRICloseFullScreen (
-    register ClientPtr client
-)
-{
-    REQUEST(xXF86DRICloseFullScreenReq);
-    xXF86DRICloseFullScreenReply rep;
-    DrawablePtr                  pDrawable;
-
-    REQUEST_SIZE_MATCH(xXF86DRICloseFullScreenReq);
-    if (stuff->screen >= screenInfo.numScreens) {
-	client->errorValue = stuff->screen;
-	return BadValue;
-    }
-
-    rep.type           = X_Reply;
-    rep.length         = 0;
-    rep.sequenceNumber = client->sequence;
-
-    if (!(pDrawable = SecurityLookupDrawable(stuff->drawable,
-					     client, 
-					     SecurityReadAccess)))
-	return BadValue;
-    
-    DRICloseFullScreen(screenInfo.screens[stuff->screen], pDrawable);
-    
-    WriteToClient(client, sizeof(xXF86DRICloseFullScreenReply), (char *)&rep);
-    return (client->noClientException);
-}
-
-static int
 ProcXF86DRIDispatch (
     register ClientPtr	client
 )
@@ -665,10 +602,7 @@ ProcXF86DRIDispatch (
 	return ProcXF86DRIGetDeviceInfo(client);
     case X_XF86DRIAuthConnection:
 	return ProcXF86DRIAuthConnection(client);
-    case X_XF86DRIOpenFullScreen:
-	return ProcXF86DRIOpenFullScreen(client);
-    case X_XF86DRICloseFullScreen:
-	return ProcXF86DRICloseFullScreen(client);
+    /* {Open,Close}FullScreen are deprecated now */
     default:
 	return BadRequest;
     }
