@@ -1,3 +1,18 @@
+2005-09-23  Alan Coopersmith  <alan.coopersmith@sun.com>
+
+	* configure.ac:
+	* cpprules.in:
+	* hw/xfree86/Makefile.am:
+	* hw/xfree86/dummylib/Makefile.am:
+	* hw/xfree86/os-support/.cvsignore:
+	* hw/xfree86/os-support/Makefile.am:
+	* hw/xfree86/scanpci/Makefile.am:
+	* hw/xfree86/utils/Makefile.am:
+	* hw/xfree86/utils/scanpci/Makefile.am:
+	* hw/xfree86/utils/xorgcfg/Makefile.am:
+	* hw/xfree86/utils/xorgconfig/Makefile.am:
+	Add scanpci, xorgcfg, & xorgconfig utilities.
+
 2005-09-21  Kristian Høgsberg  <krh@redhat.com>
 
 	* configure.ac: Accept --with-xkb-output argument to specify

@@ -1,0 +1,4 @@
+SUBDIRS = \
+	scanpci \
+	xorgcfg \
+	xorgconfig

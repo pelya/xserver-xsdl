@@ -57,6 +57,7 @@ AC_PROG_MAKE_SET
 PKG_PROG_PKG_CONFIG
 AC_PROG_LEX
 AC_PROG_YACC
+XORG_PROG_RAWCPP
 
 AC_HEADER_DIRENT
 AC_HEADER_STDC
@@ -87,6 +88,8 @@ AC_CHECK_FUNC([getpeereid],
 	AC_DEFINE(HAS_GETPEEREID, 1, [Have the `getpeereid' function.]))
 AC_CHECK_FUNC([getpeerucred],
 	AC_DEFINE(HAS_GETPEERUCRED, 1, [Have the `getpeerucred' function.]))
+AC_CHECK_FUNC([strlcat], HAVE_STRLCAT=yes, HAVE_STRLCAT=no)
+AM_CONDITIONAL(NEED_STRLCAT, [test x$HAVE_STRLCAT = xno])	
 
 AM_CONDITIONAL(NEED_VSNPRINTF, [test x$HAVE_VSNPRINTF = xno])
 
@@ -836,7 +839,8 @@ if test "x$XORG" = xyes; then
 	AC_SUBST([LD_EXPORT_SYMBOLS_FLAG])
 
 	dnl these only go in xorg-config.h
-	CONFIGFILE="$sysconfdir/xorg.conf"
+	XF86CONFIGFILE="xorg.conf"
+	CONFIGFILE="$sysconfdir/$XF86CONFIGFILE"
 	LOGPREFIX="$logdir/Xorg."
 	AC_DEFINE(XORG_SERVER, 1, [Building Xorg server])
 	AC_DEFINE(XORGSERVER, 1, [Building Xorg server])
@@ -853,7 +857,7 @@ if test "x$XORG" = xyes; then
 	AC_DEFINE(WITH_VGAHW, 1, [Building vgahw module])
 	AC_DEFINE(DRIVERS, {}, [Built-in output drivers (none)])
 	AC_DEFINE(IDRIVERS, {}, [Built-in input drivers (none)])
-	AC_DEFINE_DIR(__XCONFIGFILE__, XF86CONFIGFILE, [Location of configuration file])
+	AC_DEFINE_DIR(__XCONFIGFILE__, XF86CONFIGFILE, [Name of configuration file])
 	AC_DEFINE_DIR(XF86CONFIGFILE, CONFIGFILE, [Path to Xorg configuration file])
 	AC_DEFINE_DIR(DEFAULT_MODULE_PATH, moduledir, [Default module search path])
 	AC_DEFINE_DIR(DEFAULT_LOGPREFIX, LOGPREFIX, [Default log location])
@@ -997,6 +1001,25 @@ esac
 
 AC_DEFINE_DIR(PROJECTROOT, prefix, [Overall prefix])
 
+dnl xorgconfig CLI configuration utility
+PKG_CHECK_MODULES([XORGCONFIG_DEP], [xkbfile])
+
+dnl xorgcfg GUI configuration utility
+AC_ARG_ENABLE(xorgcfg, AS_HELP_STRING([  --enable-xorgcfg ], 
+	[Build xorgcfg GUI configuration utility (default: yes)]),
+	[XORGCFG=$enableval],[XORGCFG=yes])
+if test x$XORGCFG = xyes ; then
+	PKG_CHECK_MODULES([XORGCFG_DEP], 
+	    [xkbui xkbfile xxf86misc xxf86vm xaw7 xmu xt xpm x11])
+	AC_CHECK_LIB([curses],[waddstr],
+	    [XORGCFG_DEP_LIBS="$XORGCFG_DEP_LIBS -lcurses"; CURSES=yes],
+	    AC_CHECK_LIB([ncurses],[waddstr],
+		[XORGCFG_DEP_LIBS="$XORGCFG_DEP_LIBS -lncurses" ; CURSES=yes],
+		[CURSES=no]))
+fi
+AM_CONDITIONAL(BUILD_XORGCFG, [test x$XORGCFG = xyes])
+AM_CONDITIONAL(USE_CURSES, [test x$CURSES = xyes])
+
 CFLAGS="$XSERVER_CFLAGS $CFLAGS"
 AC_SUBST([CFLAGS])
 
@@ -1007,6 +1030,9 @@ DIX_CFLAGS="-DHAVE_DIX_CONFIG_H"
 AC_SUBST([DIX_CFLAGS])
 
 AC_SUBST([libdir exec_prefix prefix])
+
+# Man page sections - used in config utils & generating man pages
+XORG_MANPAGE_SECTIONS
 
 # XORG in this case refers to the roll-up releases, not the Xorg DDX.
 XORG_RELEASE_VERSION
@@ -1091,6 +1117,10 @@ hw/xfree86/xf4bpp/Makefile
 hw/xfree86/xf8_16bpp/Makefile
 hw/xfree86/xf8_32bpp/Makefile
 hw/xfree86/xf8_32wid/Makefile
+hw/xfree86/utils/Makefile
+hw/xfree86/utils/scanpci/Makefile
+hw/xfree86/utils/xorgcfg/Makefile
+hw/xfree86/utils/xorgconfig/Makefile
 hw/dmx/config/Makefile
 hw/dmx/input/Makefile
 hw/dmx/glxProxy/Makefile

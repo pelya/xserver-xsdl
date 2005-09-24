@@ -26,6 +26,6 @@ xf86PciData.c:
 	echo "#include \"$(srcdir)/xf86ScanPci.c\"" >> $@
 
 xf86PciIds.h: $(srcdir)/../common/xf86PciInfo.h
-	$(PERL) $(srcdir)/pciid2c.pl $(srcdir)/../common/xf86PciInfo.h < $(srcdir)/pci.ids > xf86PciIds.h
+	$(PERL) $(srcdir)/pciid2c.pl $(srcdir)/../common/xf86PciInfo.h < $(srcdir)/pci.ids $(srcdir)/extrapci.ids > xf86PciIds.h
 
 DISTCLEANFILES = xf86PciData.c xf86PciIds.h
