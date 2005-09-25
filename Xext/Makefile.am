@@ -1,5 +1,9 @@
 noinst_LTLIBRARIES = libXext.la
 
+INCLUDES = -I$(top_srcdir)/hw/xfree86/dixmods/extmod
+
+AM_CFLAGS = $(DIX_CFLAGS)
+
 sdk_HEADERS = xvdix.h xvmcext.h
 
 if MITSHM
@@ -20,6 +24,9 @@ endif
 
 if XCSECURITY   
 XCSECURITY_SRCS = security.c
+SERVERCONFIGdir = $(libdir)/xserver
+SERVERCONFIG_DATA = SecurityPolicy
+AM_CFLAGS += -DDEFAULTPOLICYFILE=\"$(SERVERCONFIGdir)/SecurityPolicy\"
 endif
 
 if XINERAMA
@@ -33,10 +40,6 @@ endif
 if XPRINT
 XPRINT_SRCS = xprint.c
 endif
-
-INCLUDES = -I$(top_srcdir)/hw/xfree86/dixmods/extmod
-
-AM_CFLAGS = $(DIX_CFLAGS)
 
 EXTRA_DIST = \
 	appgroup.h \

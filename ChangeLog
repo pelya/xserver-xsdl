@@ -1,3 +1,11 @@
+2005-09-25  Alan Coopersmith  <alan.coopersmith@sun.com>
+
+	* Xext/Makefile.am: 
+	Add SecurityPolicy file for XCSECURITY extension.
+	
+	* hw/xfree86/dummylib/Makefile.am:
+	Add README to EXTRA_DIST
+
 2005-09-23  Alan Coopersmith  <alan.coopersmith@sun.com>
 
 	* configure.ac:
