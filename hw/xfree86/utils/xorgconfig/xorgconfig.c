@@ -96,6 +96,11 @@
 /* $XConsortium: xf86config.c /main/21 1996/10/28 05:43:57 kaleb $ */
 /* $XdotOrg: xc/programs/Xserver/hw/xfree86/xf86config/xorgconfig.c,v 1.14 2005/05/28 00:08:03 alanc Exp $ */
 
+#ifdef HAVE_CONFIG_H
+# include "xorg-server.h"
+# include "xkb-config.h"
+#endif
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <ctype.h>
@@ -176,7 +181,7 @@ static int getuid() { return 0; }
 #endif
 
 #ifndef XCONFIGFILE
-#define XCONFIGFILE		"XF86Config"
+#define XCONFIGFILE		"xorg.conf"
 #endif
 #define CONFIGNAME		XCONFIGFILE
 
@@ -728,6 +733,10 @@ keyboard_configuration(void)
 	}
 #endif
 
+#ifndef XKB_RULES_DIR
+# define XKB_RULES_DIR XKB_BASE_DIRECTORY "/rules"
+#endif
+	
 #ifdef XFREE98_XKB
 	config_xkbrules = "xfree98";	/* static */
         rulesfile = XKB_RULES_DIR "/xfree98";

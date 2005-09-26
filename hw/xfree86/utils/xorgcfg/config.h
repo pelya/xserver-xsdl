@@ -29,6 +29,10 @@
  * $XFree86: xc/programs/Xserver/hw/xfree86/xf86cfg/config.h,v 1.21 2004/02/13 23:58:52 dawes Exp $
  */
 
+#ifdef HAVE_CONFIG_H
+# include "xorg-config.h"
+#endif
+
 #include <X11/IntrinsicP.h>
 #include <X11/StringDefs.h>
 #include <X11/Xmu/SysUtil.h>

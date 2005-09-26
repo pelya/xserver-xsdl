@@ -1,3 +1,4 @@
+/* $XdotOrg: $ */
 /*
  * Copyright (c) 2000 by Conectiva S.A. (http://www.conectiva.com)
  * 
@@ -528,18 +529,13 @@ main(int argc, char *argv[])
 
     if (!config_set && startedx) {
 	XtFree(XF86Config_path);
-#ifdef XF86CONFIG
-# ifdef XF86CONFIGDIR
+#ifndef XF86CONFIG
+# define XF86CONFIG __XCONFIGFILE__
+#endif
+#ifdef XF86CONFIGDIR
 	XF86Config_path = XtNewString(XF86CONFIGDIR "/" XF86CONFIG);
-# else
-	XF86Config_path = XtNewString("/etc/X11/" XF86CONFIG);
-# endif
 #else
-# ifdef XF86CONFIGDIR
-	XF86Config_path = XtNewString(XF86CONFIGDIR "/"__XCONFIGFILE__);
-# else
-	XF86Config_path = XtNewString("/etc/X11/"__XCONFIGFILE__);
-# endif
+	XF86Config_path = XtNewString("/etc/X11/" XF86CONFIG);
 #endif
     }
     XtAppMainLoop(appcon);
