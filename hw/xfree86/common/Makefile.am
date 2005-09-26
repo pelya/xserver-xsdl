@@ -22,9 +22,22 @@ BUSSOURCES = xf86isaBus.c xf86pciBus.c xf86fbBus.c xf86noBus.c $(SBUS_SOURCES)
 
 KBDSOURCES = xf86Kbd@XORG_OS_KBD@.c
 
+MODEDEFSOURCES = $(srcdir)/vesamodes $(srcdir)/extramodes
+MODEDEFS = modedefs
+
+$(MODEDEFS): $(MODEDEFSOURCES)
+	$(RM) $@
+	cat $(MODEDEFSOURCES) > $@
+
+xf86DefModeSet.c: $(MODEDEFS) $(srcdir)/modeline2c.pl
+	$(RM) $@
+	$(PERL) $(srcdir)/modeline2c.pl < $(MODEDEFS) > $@
+
+BUILT_SOURCES = xf86DefModeSet.c
+
 AM_LDFLAGS = -r
 libcommon_a_SOURCES = xf86Configure.c xf86Bus.c xf86Config.c \
-                      xf86Cursor.c xf86DGA.c xf86DPMS.c xf86DefModes.c \
+                      xf86Cursor.c xf86DGA.c xf86DPMS.c xf86DefModeSet.c \
                       xf86DoProbe.c xf86DoScanPci.c xf86Events.c \
                       xf86Globals.c xf86Io.c xf86AutoConfig.c \
                       xf86MiscExt.c xf86Option.c \
@@ -47,7 +60,7 @@ sdk_HEADERS = compiler.h fourcc.h xf86.h xf86Module.h xf86Opt.h \
               $(XVSDKINCS) atKeynames.h xf86Version.h xorgVersion.h \
               xf86sbusBus.h xf86xv.h xf86xvmc.h xf86xvpriv.h
 
-DISTCLEANFILES = xf86Build.h
+DISTCLEANFILES = xf86Build.h $(MODEDEFS) $(BUILT_SOURCES)
 
 # this is a hack for now.  as above we don't have rules to build all of these
 # yet, but we want to make sure they all get into the distball.  this should
@@ -84,6 +97,9 @@ EXTRA_DIST = \
 	xf86Version.h \
 	xorgVersion.h \
 	xf86Date.h \
+	xf86DefModes.c \
+	$(MODEDEFSOURCES) \
+	modeline2c.pl \
         $(DISTKBDSOURCES)
 
 AM_CFLAGS = $(XORG_CFLAGS)

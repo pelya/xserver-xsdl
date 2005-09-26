@@ -1118,6 +1118,8 @@ hw/xfree86/xf8_16bpp/Makefile
 hw/xfree86/xf8_32bpp/Makefile
 hw/xfree86/xf8_32wid/Makefile
 hw/xfree86/utils/Makefile
+hw/xfree86/utils/ioport/Makefile
+hw/xfree86/utils/pcitweak/Makefile
 hw/xfree86/utils/scanpci/Makefile
 hw/xfree86/utils/xorgcfg/Makefile
 hw/xfree86/utils/xorgconfig/Makefile

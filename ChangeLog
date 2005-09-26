@@ -1,3 +1,17 @@
+2005-09-26  Alan Coopersmith  <alan.coopersmith@sun.com>
+
+	* configure.ac:
+	* hw/xfree86/utils/Makefile.am:
+	* hw/xfree86/utils/ioport/Makefile.am
+	* hw/xfree86/utils/pcitweak/Makefile.am: 
+	Add ioport and pcitweak utils from monolith hw/xfree86/etc dir.
+
+	* xserver/xorg/hw/xfree86/common/Makefile.am:
+	Generate xf86DefModeSet.c from vesamodes & extramodes
+
+	* xserver/xorg/hw/xfree86/os-support/solaris/Makefile.am:
+	Add apSolaris.shar to EXTRA_DIST
+	
 2005-09-25  Alan Coopersmith  <alan.coopersmith@sun.com>
 
 	* Xext/Makefile.am: 
