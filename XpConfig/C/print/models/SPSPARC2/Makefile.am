@@ -1,1 +1,1 @@
-SUBDIRS = model-config
+# FIXME this directory is actually empty
