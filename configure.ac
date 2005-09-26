@@ -1132,5 +1132,6 @@ Xprint/Makefile
 Xprint/pcl/Makefile
 Xprint/raster/Makefile
 Xprint/ps/Makefile
+XpConfig/Makefile
 xorg-server.pc
 ])

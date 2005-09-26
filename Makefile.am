@@ -29,6 +29,7 @@ endif
 
 if XPRINT
 XPDDX_DIR=Xprint
+XPCONFIG_DIR=XpConfig
 endif
 
 SUBDIRS=	\
@@ -57,7 +58,8 @@ SUBDIRS=	\
 	$(COMPOSITE_DIR) \
         $(GLX_DIR) \
 	hw	\
-	$(XPDDX_DIR)
+	$(XPDDX_DIR) \
+	$(XPCONFIG_DIR)
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = xorg-server.pc
