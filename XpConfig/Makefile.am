@@ -5,6 +5,8 @@
 
 # List of locales which should be linked to the "C" locale
 
+SUBDIRS = C en_US
+
 xpconfigdir = $(libdir)/X11/xserver
 
 C_LOCALES= \
@@ -681,16 +683,28 @@ US_LOCALES= \
         yi_US \
         yi_US.cp1255
 
-dist_xpconfig_DATA = README
-
 install-data-local:
+	mkdir -p $(xpconfigdir) ;				\
+	mkdir -p $(xpconfigdir)/C				\
+	mkdir -p $(xpconfigdir)/en_US				\
+								\
 	cd $(xpconfigdir) ;					\
+								\
 	for dir in $(US_LOCALES) ; do				\
 		rm -f $${dir} ;					\
 	done ;							\
 								\
 	for dir in $(US_LOCALES) ; do				\
 		ln -s en_US $${dir} ;				\
-		echo $(xpconfigdir) ;				\
-		echo  $${dir} ;					\
-	done 
+	done ; 							\
+								\
+	for dir in $(C_LOCALES) ; do				\
+		rm -f $${dir} ;					\
+	done ;							\
+								\
+	for dir in $(C_LOCALES) ; do				\
+		ln -s en_US $${dir} ;				\
+	done ;
+
+
+EXTRA_DIST = README

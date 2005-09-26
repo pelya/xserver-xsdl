@@ -1,0 +1,1 @@
+SUBDIRS = model-config
