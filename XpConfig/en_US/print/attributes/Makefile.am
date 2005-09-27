@@ -1,1 +1,3 @@
-EXTRA_DIST = documents  ## FIXME
+xpcdir = @xpconfigdir@/en_US/print/attributes
+
+xpc_DATA = document

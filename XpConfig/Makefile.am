@@ -7,7 +7,7 @@
 
 SUBDIRS = C en_US
 
-xpconfigdir = $(libdir)/X11/xserver
+xpconfigdir = @xpconfigdir@
 
 C_LOCALES= \
 	POSIX \
@@ -685,25 +685,23 @@ US_LOCALES= \
 
 install-data-local:
 	mkdir -p $(xpconfigdir) ;				\
-	mkdir -p $(xpconfigdir)/C				\
-	mkdir -p $(xpconfigdir)/en_US				\
-								\
-	cd $(xpconfigdir) ;					\
+	mkdir -p $(xpconfigdir)/C;				\
+	mkdir -p $(xpconfigdir)/en_US;				\
 								\
 	for dir in $(US_LOCALES) ; do				\
-		rm -f $${dir} ;					\
+		rm -f $(xpconfigdir)/$${dir} ;			\
 	done ;							\
 								\
 	for dir in $(US_LOCALES) ; do				\
-		ln -s en_US $${dir} ;				\
+		ln -s en_US $(xpconfigdir)/$${dir} ;		\
 	done ; 							\
 								\
 	for dir in $(C_LOCALES) ; do				\
-		rm -f $${dir} ;					\
+		rm -f $(xpconfigdir)/$${dir} ;			\
 	done ;							\
 								\
 	for dir in $(C_LOCALES) ; do				\
-		ln -s en_US $${dir} ;				\
+		ln -s en_US $(xpconfigdir)/$${dir} ;		\
 	done ;
 
 

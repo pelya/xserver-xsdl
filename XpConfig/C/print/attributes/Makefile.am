@@ -1,4 +1,6 @@
-EXTRA_DIST = document job printer		## FIXME
+xpcdir = @xpconfigdir@/C/print/attributes
+
+xpc_DATA = document job printer
 
 
 

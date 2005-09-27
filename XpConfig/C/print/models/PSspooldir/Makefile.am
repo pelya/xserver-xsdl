@@ -1,1 +1,3 @@
-EXTRA_DIST = model-config ## FIXME
+xpcdir = @xpconfigdir@/C/print/models/PSspooldir
+
+xpc_DATA = model-config

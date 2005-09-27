@@ -1,1 +1,4 @@
-EXTRA_DIST = Makefile.am model-config ## FIXME
+xpcdir = @xpconfigdir@/C/print/models/CANONBJ10E-GS
+
+xpc_DATA = model-config
+

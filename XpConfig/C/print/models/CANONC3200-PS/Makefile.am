@@ -1,1 +1,4 @@
-EXTRA_DIST = model-config ## FIXME
+xpcdir = @xpconfigdir@/C/print/models/CANONC3200-PS
+
+xpc_DATA = model-config
+

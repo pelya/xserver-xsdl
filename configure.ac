@@ -918,6 +918,9 @@ if test "x$XPRINT" = xyes; then
 	XPRINT_INCLUDES="$XEXT_INC $RENDER_INC $COMPOSITE_INC $RANDR_INC $XI_INC $FIXES_INC $DAMAGE_INC $XI_INC $GLX_INC"
 	XPRINT_LIBS="$XPRINT_LIBS $DIX_LIB $XKB_LIB $XKB_STUB_LIB $OS_LIB $XPRINT_EXTENSIONS $MI_LIB $MIEXT_DAMAGE_LIB $GLX_INC"
 	AC_SUBST([XPRINT_LIBS])
+
+	xpconfigdir=$libdir/X11/xserver
+	AC_SUBST([xpconfigdir])
 fi
 
 
@@ -1172,6 +1175,7 @@ XpConfig/C/print/models/CANONC3200-PS/Makefile
 XpConfig/C/print/models/HPLJ4family/fonts/Makefile
 XpConfig/C/print/models/HPLJ4family/Makefile
 XpConfig/C/print/models/HPDJ1600C/Makefile
+XpConfig/C/print/models/HPDJ1600C/fonts/Makefile
 XpConfig/C/print/Makefile
 XpConfig/C/Makefile
 XpConfig/en_US/print/attributes/Makefile

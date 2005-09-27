@@ -1,2 +1,5 @@
-EXTRA_DIST = pcl postscript    ## FIXME
+xpcdir = @xpconfigdir@/C/print/ddx-config/raster
+
+xpc_DATA = pcl postscript
+
 

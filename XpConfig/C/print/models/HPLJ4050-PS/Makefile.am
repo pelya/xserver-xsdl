@@ -1,1 +1,4 @@
-EXTRA_DIST = model-config ## FIXME
+xpcdir = @xpconfigdir@/C/print/models/HPLJ4050-PS
+
+xpc_DATA = model-config
+
