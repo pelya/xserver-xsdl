@@ -1,5 +1,11 @@
 2005-09-27  Kevin E. Martin  <kem-at-freedesktop-dot-org>
 
+	* hw/dmx/doc/Makefile.am:
+	* hw/xfree86/doc/sgml/Makefile.am:
+	Fix make dist to include only sgml files.
+
+2005-09-27  Kevin E. Martin  <kem-at-freedesktop-dot-org>
+
 	* configure.ac:
 	Add build system for building docs and fix setuid issues.
 
