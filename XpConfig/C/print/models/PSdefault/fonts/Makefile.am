@@ -31,3 +31,12 @@ xpc_DATA =				\
 	Times-Italic.pmf		\
 	Times-Roman.pmf			\
 	ZapfDingbats.pmf
+
+install-data-hook:
+	@rm -f $(xpcdir)/fonts.scale
+	$(MKFONTSCALE) $(xpcdir)
+	@rm -f $(xpcdir)/font.dir
+	$(MKFONTDIR) $(xpcdir)
+
+distuninstallcheck:
+	@:

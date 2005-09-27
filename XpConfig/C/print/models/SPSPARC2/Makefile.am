@@ -1,1 +1,5 @@
-# FIXME, find out what the monolith does with this empty directory
+SUBDIRS = fonts
+
+xpcdir = @xpconfigdir@/C/print/models/SPSPARC2
+
+xpc_DATA = model-config

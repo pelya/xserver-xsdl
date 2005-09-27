@@ -921,6 +921,9 @@ if test "x$XPRINT" = xyes; then
 
 	xpconfigdir=$libdir/X11/xserver
 	AC_SUBST([xpconfigdir])
+
+	AC_PATH_PROG(MKFONTSCALE, mkfontscale)
+	AC_PATH_PROG(MKFONTDIR, mkfontdir)
 fi
 
 
@@ -1167,11 +1170,14 @@ XpConfig/C/print/models/PSdefault/fonts/Makefile
 XpConfig/C/print/models/PSdefault/Makefile
 XpConfig/C/print/models/PSspooldir/Makefile
 XpConfig/C/print/models/SPSPARC2/Makefile
+XpConfig/C/print/models/SPSPARC2/fonts/Makefile
 XpConfig/C/print/models/GSdefault/Makefile
 XpConfig/C/print/models/HPLJ4050-PS/Makefile
+XpConfig/C/print/models/HPLJ4050-PS/fonts/Makefile
 XpConfig/C/print/models/Makefile
 XpConfig/C/print/models/PS2PDFspooldir-GS/Makefile
 XpConfig/C/print/models/CANONC3200-PS/Makefile
+XpConfig/C/print/models/CANONC3200-PS/fonts/Makefile
 XpConfig/C/print/models/HPLJ4family/fonts/Makefile
 XpConfig/C/print/models/HPLJ4family/Makefile
 XpConfig/C/print/models/HPDJ1600C/Makefile
