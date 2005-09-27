@@ -1,6 +1,3 @@
 xpcdir = @xpconfigdir@/C/print/attributes
 
-xpc_DATA = document job printer
-
-
-
+dist_xpc_DATA = document job printer

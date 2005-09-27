@@ -1,6 +1,6 @@
 xpcdir = @xpconfigdir@/C/print/models/PSdefault/fonts
 
-xpc_DATA =				\
+dist_xpc_DATA =				\
 	AvantGarde-BookOblique.pmf	\
 	AvantGarde-Book.pmf		\
 	AvantGarde-DemiOblique.pmf	\

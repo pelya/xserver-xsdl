@@ -49,27 +49,41 @@ CURSESDEFINES  = -DHAS_NCURSES
 endif
 
 xorgcfg_SOURCES =	\
-        accessx.c\
-        card-cfg.c\
-        cards.c\
-        config.c\
-        expert.c\
-        help.c\
-        interface.c\
-        keyboard-cfg.c\
-        $(LDSRCS) \
-        monitor-cfg.c\
-        mouse-cfg.c\
-        options.c\
-        screen-cfg.c\
-        screen.c\
-        $(SNPRINTFSRCS)\
-        startx.c\
-        $(STRLSRCS)\
-        stubs.c\
-        $(TEXTSRC)\
-        vidmode.c\
-        xf86config.c
+        accessx.c \
+        card-cfg.c \
+        cards.c \
+        config.c \
+        expert.c \
+        help.c \
+        interface.c \
+        keyboard-cfg.c \
+        $(LDSRCS)  \
+        monitor-cfg.c \
+        mouse-cfg.c \
+        options.c \
+        screen-cfg.c \
+        screen.c \
+        $(SNPRINTFSRCS) \
+        startx.c \
+        $(STRLSRCS) \
+        stubs.c \
+        $(TEXTSRC) \
+        vidmode.c \
+        xf86config.c \
+        card-cfg.h \
+        cards.h \
+        config.h \
+        help.h \
+        keyboard-cfg.h \
+        loader.h \
+        monitor-cfg.h \
+        mouse-cfg.h \
+        options.h \
+        screen-cfg.h \
+        screen.h \
+        stubs.h \
+        vidmode.h \
+        xf86config.h
 
 XBMdir = $(includedir)/X11/bitmaps
 XPMdir = $(includedir)/X11/pixmaps
@@ -125,4 +139,5 @@ CPP_MAN_FLAGS = $(MANDEFS) $(EXTRAMANDEFS)
 dist_man1_MANS =  \
 	xorgcfg.man
 
+EXTRA_DIST = $(XBM_DATA) $(XPM_DATA) XOrgCfg.pre
 endif

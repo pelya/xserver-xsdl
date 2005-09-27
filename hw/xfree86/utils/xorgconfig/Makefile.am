@@ -29,7 +29,7 @@
 bin_PROGRAMS = xorgconfig
 
 X11dir = $(libdir)/X11
-X11_DATA = Cards
+dist_X11_DATA = Cards
 
 xorgconfig_CFLAGS = $(DEP_CFLAGS) \
 	-DCARD_DATABASE_FILE='"$(X11dir)/Cards"' \

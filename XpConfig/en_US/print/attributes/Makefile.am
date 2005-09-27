@@ -1,3 +1,3 @@
 xpcdir = @xpconfigdir@/en_US/print/attributes
 
-xpc_DATA = document
+dist_xpc_DATA = document

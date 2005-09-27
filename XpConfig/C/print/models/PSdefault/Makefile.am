@@ -2,7 +2,7 @@ SUBDIRS = fonts
 
 xpcdir = @xpconfigdir@/C/print/models/PSdefault
 
-xpc_DATA = model-config
+dist_xpc_DATA = model-config
 
 install-data-hook:
 	@rm -f $(xpcdir)/fonts.scale

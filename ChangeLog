@@ -1,5 +1,27 @@
 2005-09-27  Kevin E. Martin  <kem-at-freedesktop-dot-org>
 
+	* XpConfig/C/print/Makefile.am:
+	* XpConfig/C/print/attributes/Makefile.am:
+	* XpConfig/C/print/ddx-config/raster/Makefile.am:
+	* XpConfig/C/print/models/CANONBJ10E-GS/Makefile.am:
+	* XpConfig/C/print/models/CANONC3200-PS/Makefile.am:
+	* XpConfig/C/print/models/GSdefault/Makefile.am:
+	* XpConfig/C/print/models/HPLJ4050-PS/Makefile.am:
+	* XpConfig/C/print/models/HPLJ4family/Makefile.am:
+	* XpConfig/C/print/models/HPLJ4family/fonts/Makefile.am:
+	* XpConfig/C/print/models/PS2PDFspooldir-GS/Makefile.am:
+	* XpConfig/C/print/models/PSdefault/Makefile.am:
+	* XpConfig/C/print/models/PSdefault/fonts/Makefile.am:
+	* XpConfig/C/print/models/PSspooldir/Makefile.am:
+	* XpConfig/C/print/models/SPSPARC2/Makefile.am:
+	* XpConfig/en_US/print/attributes/Makefile.am:
+	* hw/xfree86/dummylib/Makefile.am:
+	* hw/xfree86/utils/xorgcfg/Makefile.am:
+	* hw/xfree86/utils/xorgconfig/Makefile.am:
+	Fix distcheck build and install errors.
+
+2005-09-27  Kevin E. Martin  <kem-at-freedesktop-dot-org>
+
 	* hw/dmx/doc/Makefile.am:
 	* hw/xfree86/doc/sgml/Makefile.am:
 	Fix make dist to include only sgml files.

@@ -1,6 +1,6 @@
 xpcdir = @xpconfigdir@/C/print/models/HPLJ4family/fonts
 
-xpc_DATA =			\
+dist_xpc_DATA =			\
 	9nb00051.pmf		\
 	9nb00052.pmf		\
 	9nb00053.pmf		\

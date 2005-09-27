@@ -47,4 +47,4 @@ libdummy_nonserver_a_SOURCES = \
 	xf86verbose.c \
 	$(srcdir)/../os-support/shared/sigiostubs.c
 
-EXTRA_DIST = README
+EXTRA_DIST = README dummylib.h

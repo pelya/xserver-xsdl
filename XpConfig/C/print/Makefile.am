@@ -3,8 +3,8 @@ SUBDIRS = attributes ddx-config models
 xpcdir = @xpconfigdir@/C/print
 
 
-Xprinters.ghostscript: Xprinters
-	sed <Xprinters "s/#Printer xp_pdf_spooldir_tmp_Xprintjobs/Printer xp_pdf_spooldir_tmp_Xprintjobs/" >Xprinters.ghostscript
+Xprinters.ghostscript: $(srcdir)/Xprinters
+	sed < $(srcdir)/Xprinters "s/#Printer xp_pdf_spooldir_tmp_Xprintjobs/Printer xp_pdf_spooldir_tmp_Xprintjobs/" > Xprinters.ghostscript
 
 
 

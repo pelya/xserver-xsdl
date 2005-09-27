@@ -1,4 +1,3 @@
 xpcdir = @xpconfigdir@/C/print/models/GSdefault
 
-xpc_DATA = model-config
-
+dist_xpc_DATA = model-config

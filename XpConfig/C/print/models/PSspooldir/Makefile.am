@@ -1,3 +1,3 @@
 xpcdir = @xpconfigdir@/C/print/models/PSspooldir
 
-xpc_DATA = model-config
+dist_xpc_DATA = model-config
