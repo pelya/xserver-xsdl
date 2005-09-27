@@ -317,6 +317,9 @@ AC_ARG_WITH(xkb-output,      [  --with-xkb-output=PATH ],
 AC_ARG_WITH(rgb-path,        [  --with-rgb-path=PATH ],
 				[ RGBPATH="$withval" ],
 				[ RGBPATH="${datadir}/X11/rgb" ])
+AC_ARG_ENABLE(builddocs,     [  --enable-builddocs ],
+                                [BUILDDOCS=$enableval],
+                                [BUILDDOCS=no])
 
 dnl Extensions.
 AC_ARG_ENABLE(composite,     [  --disable-composite ], [COMPOSITE=$enableval], [COMPOSITE=yes])
@@ -350,6 +353,7 @@ AC_ARG_ENABLE(install-setuid,
     AS_HELP_STRING([--enable-install-setuid],
        [Install Xorg server as owned by root with setuid bit (default: auto)]),
     [SETUID=$enableval], [SETUID=auto])
+AC_MSG_CHECKING([to see if we can install the Xorg server as root])
 if test "x$SETUID" = "xauto" ; then
 	case $host_os in
 	    darwin*)		SETUID="no"  ;;
@@ -359,7 +363,13 @@ if test "x$SETUID" = "xauto" ; then
 		    *)		SETUID="yes" ;;
 		esac
 	esac
+	if test "x$SETUID" = xyes; then
+		touch testfile
+		chown root testfile > /dev/null 2>&1 || SETUID="no"
+		rm -f testfile
+	fi
 fi
+AC_MSG_RESULT([$SETUID])
 AM_CONDITIONAL(INSTALL_SETUID, [test "x$SETUID" = "xyes"])
 
 dnl Issue an error if xtrans.m4 was not found and XTRANS_CONNECTION_FLAGS macro
@@ -384,6 +394,14 @@ if test "x$INT10" = xyes; then
 	dnl VM86 headers
 	AC_CHECK_HEADERS([sys/vm86.h sys/io.h])
 fi
+
+dnl Handle building documentation
+AM_CONDITIONAL(BUILDDOCS, test "x$BUILDDOCS" = xyes)
+if test "x$BUILDDOCS" = xyes; then
+	dnl Only build sgml docs when linuxdoc is available
+	AC_PATH_PROG(LINUXDOC, linuxdoc)
+fi
+AM_CONDITIONAL(BUILDSGMLDOCS, test "x$LINUXDOC" != x)
 
 dnl ---------------------------------------------------------------------------
 dnl Extension section
@@ -852,7 +870,7 @@ if test "x$XORG" = xyes; then
 	AC_DEFINE(__XSERVERNAME__, "Xorg", [Name of X server])
 	# XXX HACK!  if anyone cares about elfloader in 7.0 you need to
 	# XXX do something smarter here.
-	AC_DEFINE(DLOPEN_HACK, 1, [Prefer dlloader modules to elfloader])                
+	AC_DEFINE(DLOPEN_HACK, 1, [Prefer dlloader modules to elfloader])
 	AC_DEFINE(DLOPEN_SUPPORT, 1, [Use libdl-based loader])
 	AC_DEFINE(WITH_VGAHW, 1, [Building vgahw module])
 	AC_DEFINE(DRIVERS, {}, [Built-in output drivers (none)])
@@ -1089,6 +1107,8 @@ hw/xfree86/common/xf86Build.h
 hw/xfree86/ddc/Makefile
 hw/xfree86/dixmods/Makefile
 hw/xfree86/dixmods/extmod/Makefile
+hw/xfree86/doc/Makefile
+hw/xfree86/doc/sgml/Makefile
 hw/xfree86/dri/Makefile
 hw/xfree86/dummylib/Makefile
 hw/xfree86/exa/Makefile
@@ -1124,6 +1144,7 @@ hw/xfree86/utils/scanpci/Makefile
 hw/xfree86/utils/xorgcfg/Makefile
 hw/xfree86/utils/xorgconfig/Makefile
 hw/dmx/config/Makefile
+hw/dmx/doc/Makefile
 hw/dmx/input/Makefile
 hw/dmx/glxProxy/Makefile
 hw/dmx/Makefile

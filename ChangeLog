@@ -1,3 +1,15 @@
+2005-09-27  Kevin E. Martin  <kem-at-freedesktop-dot-org>
+
+	* configure.ac:
+	Add build system for building docs and fix setuid issues.
+
+	* hw/dmx/Makefile.am:
+	* hw/dmx/doc/Makefile.am:
+	* hw/xfree86/Makefile.am:
+	* hw/xfree86/doc/Makefile.am:
+	* hw/xfree86/doc/sgml/Makefile.am:
+	Add build system for sgml docs.
+	
 2005-09-26  Alan Coopersmith  <alan.coopersmith@sun.com>
 
 	* configure.ac:

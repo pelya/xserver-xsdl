@@ -1,4 +1,4 @@
-DIST_SUBDIRS = input config glxProxy
+DIST_SUBDIRS = input config glxProxy doc
 
 SUBDIRS = input config
 bin_PROGRAMS = Xdmx
@@ -12,6 +12,10 @@ SUBDIRS += glxProxy
 GLX_LIBS = glxProxy/libglxproxy.a
 GLX_SRCS = $(PANORAMIX_SRCS) dmx_glxvisuals.c dmx_glxvisuals.h
 GLX_INCS = -I$(top_srcdir)/hw/xfree86/dixmods/extmod
+endif
+
+if BUILDDOCS
+SUBDIRS += doc
 endif
 
 Xdmx_SOURCES = dmx.c \
