@@ -48,30 +48,10 @@
 ** itself), but we thought it was better to call these routines than to
 ** replicate the code in here.
 */
-extern int __glCallLists_size(GLsizei n, GLenum type);
-extern int __glColorTableParameterfv_size(GLenum pname);
-extern int __glColorTableParameteriv_size(GLenum pname);
-extern int __glConvolutionParameterfv_size(GLenum pname);
-extern int __glConvolutionParameteriv_size(GLenum pname);
-extern int __glDrawPixels_size(GLenum format, GLenum type, GLsizei w,GLsizei h);
-extern int __glFogfv_size(GLenum pname);
-extern int __glFogiv_size(GLenum pname);
-extern int __glLightModelfv_size(GLenum pname);
-extern int __glLightModeliv_size(GLenum pname);
-extern int __glLightfv_size(GLenum pname);
-extern int __glLightiv_size(GLenum pname);
-extern int __glMaterialfv_size(GLenum pname);
-extern int __glMaterialiv_size(GLenum pname);
-extern int __glTexEnvfv_size(GLenum e);
-extern int __glTexEnviv_size(GLenum e);
-extern int __glTexGendv_size(GLenum e);
-extern int __glTexGenfv_size(GLenum e);
-extern int __glTexGeniv_size(GLenum pname);
-extern int __glTexParameterfv_size(GLenum e);
-extern int __glTexParameteriv_size(GLenum e);
-extern int __glEvalComputeK(GLenum target);
 
-extern int __glPointParameterfvEXT_size(GLenum e);
-extern int __glPointParameterivNV_size(GLenum e);
+#include "indirect_size.h"
+
+extern int __glDrawPixels_size(GLenum format, GLenum type, GLsizei w,GLsizei h);
+extern int __glEvalComputeK(GLenum target);
 
 #endif /* _impsize_h_ */
