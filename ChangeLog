@@ -1,3 +1,10 @@
+2005-09-28  Alan Coopersmith  <alan.coopersmith@sun.com>
+
+	* configure.ac: 
+	* hw/xfree86/utils/Makefile.am:
+	* hw/xfree86/utils/kbd_mode/Makefile.am:
+	Add kbd_mode build system
+
 2005-09-27  Kevin E. Martin  <kem-at-freedesktop-dot-org>
 
 	* XpConfig/C/print/Makefile.am:

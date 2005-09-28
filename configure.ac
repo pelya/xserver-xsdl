@@ -1044,6 +1044,29 @@ fi
 AM_CONDITIONAL(BUILD_XORGCFG, [test x$XORGCFG = xyes])
 AM_CONDITIONAL(USE_CURSES, [test x$CURSES = xyes])
 
+AC_ARG_ENABLE(kbd_mode, AS_HELP_STRING([  --enable-kbd_mode],
+	[Build kbd_mode utility (default: auto)]),
+	[BUILD_KBD_MODE=$enable_val], [BUILD_KBD_MODE="auto"])
+if test x$BUILD_KBD_MODE != xno ; then
+	case $host_os in
+	  *bsd*)
+		KBD_MODE_TYPE="bsd"
+#		BUILD_KBD_MODE="yes"  # need to test on BSD before enabling
+				      # by default
+		;;
+	  solaris*)
+		KBD_MODE_TYPE="sun"
+		BUILD_KBD_MODE="yes"  # enabled by default
+		;;
+	  *)
+		BUILD_KBD_MODE="no"   # disabled by default
+		;;
+	esac
+fi
+AM_CONDITIONAL(BUILD_KBD_MODE, [test x$BUILD_KBD_MODE = xyes])
+AM_CONDITIONAL(BSD_KBD_MODE, [test x$KBD_MODE_TYPE = xbsd])
+AM_CONDITIONAL(SUN_KBD_MODE, [test x$KBD_MODE_TYPE = xsun])
+
 CFLAGS="$XSERVER_CFLAGS $CFLAGS"
 AC_SUBST([CFLAGS])
 
@@ -1145,6 +1168,7 @@ hw/xfree86/xf8_32bpp/Makefile
 hw/xfree86/xf8_32wid/Makefile
 hw/xfree86/utils/Makefile
 hw/xfree86/utils/ioport/Makefile
+hw/xfree86/utils/kbd_mode/Makefile
 hw/xfree86/utils/pcitweak/Makefile
 hw/xfree86/utils/scanpci/Makefile
 hw/xfree86/utils/xorgcfg/Makefile
