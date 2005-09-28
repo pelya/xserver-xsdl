@@ -66,7 +66,6 @@ static const char *glcoreSymbols[] = {
     "__glConvolutionParameteriv_size",
     "__glDDXExtensionInfo",
     "__glDDXScreenInfo",
-    "__glEvalComputeK",
     "__glFloorLog2",
     "__glFogfv_size",
     "__glFogiv_size",

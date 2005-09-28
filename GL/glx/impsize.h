@@ -52,6 +52,5 @@
 #include "indirect_size.h"
 
 extern int __glDrawPixels_size(GLenum format, GLenum type, GLsizei w,GLsizei h);
-extern int __glEvalComputeK(GLenum target);
 
 #endif /* _impsize_h_ */

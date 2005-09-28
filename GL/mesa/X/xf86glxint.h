@@ -98,7 +98,6 @@ extern void __MESA_beginDispatchOverride(__GLcontext *gc);
 extern void __MESA_endDispatchOverride(__GLcontext *gc);
 
 extern GLint __glCallLists_size(GLsizei n, GLenum type);
-extern GLint __glEvalComputeK(GLenum target);
 extern GLuint __glFloorLog2(GLuint val);
 extern GLint __glFogfv_size(GLenum pname);
 extern GLint __glFogiv_size(GLenum pname);

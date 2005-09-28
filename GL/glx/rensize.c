@@ -184,7 +184,7 @@ int __glXMap1dReqSize(GLbyte *pc, Bool swap )
 	target = SWAPL( target );
 	order = SWAPL( order );
     }
-    k = __glEvalComputeK( target );
+    k = __glMap1d_size( target );
     return 8 * Map1Size( k, order );
 }
 
@@ -199,7 +199,7 @@ int __glXMap1fReqSize(GLbyte *pc, Bool swap )
 	target = SWAPL( target );
 	order = SWAPL( order );
     }
-    k = __glEvalComputeK(target);
+    k = __glMap1f_size(target);
     return 4 * Map1Size(k, order);
 }
 
@@ -222,7 +222,7 @@ int __glXMap2dReqSize(GLbyte *pc, Bool swap )
 	uorder = SWAPL( uorder );
 	vorder = SWAPL( vorder );
     }
-    k = __glEvalComputeK( target );
+    k = __glMap2d_size( target );
     return 8 * Map2Size( k, uorder, vorder );
 }
 
@@ -239,7 +239,7 @@ int __glXMap2fReqSize(GLbyte *pc, Bool swap )
 	uorder = SWAPL( uorder );
 	vorder = SWAPL( vorder );
     }
-    k = __glEvalComputeK( target );
+    k = __glMap2f_size( target );
     return 4 * Map2Size( k, uorder, vorder );
 }
 
