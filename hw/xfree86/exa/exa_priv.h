@@ -118,6 +118,10 @@ typedef struct {
     int		    score;
     int		    devKind;
     DevUnion	    devPrivate;
+
+    /* True if the in-screen copy has been modified compared to the
+     * system-memory copy.
+     */
     Bool	    dirty;
     unsigned int    size;
 } ExaPixmapPrivRec, *ExaPixmapPrivPtr;

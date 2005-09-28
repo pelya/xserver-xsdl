@@ -130,44 +130,34 @@ exaPixmapSave (ScreenPtr pScreen, ExaOffscreenArea *area)
     src = pPixmap->devPrivate.ptr;
     dst = pExaPixmap->devPrivate.ptr;
 
-    if (pExaScr->info->accel.DownloadFromScreen)
-    {
-        if (pExaScr->info->accel.DownloadFromScreen(pPixmap,
-                                                    pPixmap->drawable.x,
-                                                    pPixmap->drawable.y,
-                                                    pPixmap->drawable.width,
-                                                    pPixmap->drawable.height,
-                                                    dst,
-                                                    dst_pitch)) {
+    if (pExaPixmap->dirty) {
+        if (pExaScr->info->accel.DownloadFromScreen &&
+	    (*pExaScr->info->accel.DownloadFromScreen) (pPixmap,
+							pPixmap->drawable.x,
+							pPixmap->drawable.y,
+							pPixmap->drawable.width,
+							pPixmap->drawable.height,
+							dst,
+							dst_pitch)) {
 
-            pPixmap->devKind = dst_pitch;
-            pPixmap->devPrivate.ptr = dst;
-            pPixmap->drawable.serialNumber = NEXT_SERIAL_NUMBER;
-            pExaPixmap->area = NULL;
-            return;
-        }
+        } else {
+	    exaWaitSync (pPixmap->drawable.pScreen);
+
+	    bytes = src_pitch < dst_pitch ? src_pitch : dst_pitch;
+
+	    i = pPixmap->drawable.height;
+	    while (i--) {
+		memcpy (dst, src, bytes);
+		dst += dst_pitch;
+		src += src_pitch;
+	    }
+	}
     }
 
     pPixmap->devKind = dst_pitch;
     pPixmap->devPrivate.ptr = dst;
     pPixmap->drawable.serialNumber = NEXT_SERIAL_NUMBER;
     pExaPixmap->area = NULL;
-
-#if 0
-    if (!pExaPixmap->dirty)
-	return;
-#endif
-
-    exaWaitSync (pPixmap->drawable.pScreen);
-
-    bytes = src_pitch < dst_pitch ? src_pitch : dst_pitch;
-
-    i = pPixmap->drawable.height;
-    while (i--) {
-	memcpy (dst, src, bytes);
-	dst += dst_pitch;
-	src += src_pitch;
-    }
 }
 
 static int
@@ -1360,6 +1350,7 @@ exaCloseScreen(int i, ScreenPtr pScreen)
 #ifdef RENDER
     if (ps) {
 	ps->Composite = pExaScr->SavedComposite;
+	ps->Glyphs = pExaScr->SavedGlyphs;
     }
 #endif
     if (pExaScr->wrappedEnableDisableFB)
