@@ -32,11 +32,13 @@ dist_xpc_DATA =				\
 	Times-Roman.pmf			\
 	ZapfDingbats.pmf
 
-install-data-hook:
-	@rm -f $(xpcdir)/fonts.scale
-	$(MKFONTSCALE) $(xpcdir)
-	@rm -f $(xpcdir)/font.dir
-	$(MKFONTDIR) $(xpcdir)
 
-distuninstallcheck:
-	@:
+dest = $(DESTDIR)$(xpcdir)
+
+remove-stuff:
+	@rm -f $(dest)/fonts.dir
+
+install-data-hook: remove-stuff
+	$(MKFONTSCALE) -b -s -l $(dest)
+
+uninstall-hook: remove-stuff

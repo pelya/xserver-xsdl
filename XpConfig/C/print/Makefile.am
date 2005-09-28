@@ -10,3 +10,5 @@ Xprinters.ghostscript: $(srcdir)/Xprinters
 
 dist_xpc_DATA = Xprinters
 xpc_DATA = Xprinters.ghostscript
+
+CLEANFILES = Xprinters.ghostscript

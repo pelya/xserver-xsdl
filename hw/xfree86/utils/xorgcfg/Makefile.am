@@ -140,4 +140,7 @@ dist_man1_MANS =  \
 	xorgcfg.man
 
 EXTRA_DIST = $(XBM_DATA) $(XPM_DATA) XOrgCfg.pre
+
+CLEANFILES = $(APPDEFAULTFILES)
+
 endif

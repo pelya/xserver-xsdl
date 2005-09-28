@@ -1,4 +1,5 @@
 SUBDIRS = \
+	PSdefault		\
 	CANONBJ10E-GS		\
 	CANONC3200-PS		\
 	GSdefault		\
@@ -6,6 +7,5 @@ SUBDIRS = \
 	HPLJ4050-PS		\
 	HPLJ4family		\
 	PS2PDFspooldir-GS	\
-	PSdefault		\
 	PSspooldir		\
 	SPSPARC2

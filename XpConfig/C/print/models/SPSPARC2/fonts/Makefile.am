@@ -1,6 +1,6 @@
 xpcdir = @xpconfigdir@/C/print/models/SPSPARC2/fonts
 
-parentdir = @xpconfigdir@/C/print/models/PSdefault/fonts
+parentdir = $(DESTDIR)/@xpconfigdir@/C/print/models/PSdefault/fonts
 
 XPFONTS = \
         Courier-Bold.pmf \
@@ -17,18 +17,21 @@ XPFONTS = \
         Times-Italic.pmf \
         Times-Roman.pmf
 
-install-data-hook:
-	mkdir -p $(xpcdir) ;								\
-											\
-	for x in $(XPFONTS) ; do							\
-		rm -f $(xpcdir)/$$x	;						\
-		ln -s $(parentdir)/$$x $(xpcdir)/$$x	;				\
+dest = $(DESTDIR)$(xpcdir)
+
+remove-stuff:
+	for x in $(XPFONTS) ; do			\
+		rm -f $(dest)/$$x	;		\
 	done
 
-	@rm -f $(xpcdir)/fonts.scale
-	$(MKFONTSCALE) $(xpcdir)
-	@rm -f $(xpcdir)/font.dir
-	$(MKFONTDIR) $(xpcdir)
+	rm -f $(dest)/fonts.dir
 
-distuninstallcheck:
-	@:
+install-data-hook: remove-stuff
+	mkdir -p $(dest) ;								\
+	for x in $(XPFONTS) ; do							\
+		ln -s $(parentdir)/$$x $(dest)/$$x	;				\
+	done
+
+	$(MKFONTSCALE) -b -s -l $(dest)
+
+uninstall-hook: remove-stuff

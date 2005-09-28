@@ -683,26 +683,30 @@ US_LOCALES= \
         yi_US \
         yi_US.cp1255
 
-install-data-local:
-	mkdir -p $(xpconfigdir) ;				\
-	mkdir -p $(xpconfigdir)/C;				\
-	mkdir -p $(xpconfigdir)/en_US;				\
-								\
+dest = $(DESTDIR)$(xpconfigdir)
+
+remove-links:
 	for dir in $(US_LOCALES) ; do				\
-		rm -f $(xpconfigdir)/$${dir} ;			\
+		rm -f $(dest)/$${dir} ;			\
 	done ;							\
 								\
+	for dir in $(C_LOCALES) ; do				\
+		rm -f $(dest)/$${dir} ;			\
+	done ;
+
+install-data-local: remove-links
+	mkdir -p $(dest) ;				\
+	mkdir -p $(dest)/C;				\
+	mkdir -p $(dest)/en_US;				\
+								\
 	for dir in $(US_LOCALES) ; do				\
-		ln -s en_US $(xpconfigdir)/$${dir} ;		\
+		ln -s en_US $(dest)/$${dir} ;		\
 	done ; 							\
 								\
 	for dir in $(C_LOCALES) ; do				\
-		rm -f $(xpconfigdir)/$${dir} ;			\
-	done ;							\
-								\
-	for dir in $(C_LOCALES) ; do				\
-		ln -s en_US $(xpconfigdir)/$${dir} ;		\
+		ln -s en_US $(dest)/$${dir} ;		\
 	done ;
 
+uninstall-hook: remove-links
 
 EXTRA_DIST = README
