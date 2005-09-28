@@ -1,4 +1,5 @@
 /* $Xorg: kbd_mode.c,v 1.3 2000/08/17 19:48:29 cpqbld Exp $ */
+/* $XdotOrg: $ */
 /************************************************************
 Copyright 1987 by Sun Microsystems, Inc. Mountain View, CA.
 
@@ -42,7 +43,7 @@ static  char sccsid[] = "@(#)kbd_mode.c 7.1 87/04/13";
 #include <sys/types.h>
 #include <sys/file.h>
 #include <sys/ioctl.h>
-#if defined(SVR4) || defined(__bsdi__)
+#if defined(SVR4) || defined(__SVR4) || defined(__bsdi__)
 #include <fcntl.h>
 #ifndef __bsdi__
 #include <sys/kbio.h>
