@@ -1,1 +1,1 @@
-SUBDIRS = sgml
+SUBDIRS = devel man sgml

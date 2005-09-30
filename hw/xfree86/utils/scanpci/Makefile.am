@@ -43,6 +43,10 @@ scanpci_LDADD = \
 scanpci_SOURCES =	\
 	scanpci.c
 
-dist_man1_MANS = \
-	scanpci.man
+man1_MANS = scanpci.man
 
+CLEANFILES = $(man1_MANS)
+
+include $(top_srcdir)/cpprules.in
+
+EXTRA_DIST = scanpci.man.pre

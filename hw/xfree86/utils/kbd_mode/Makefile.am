@@ -35,12 +35,23 @@ if BSD_KBD_MODE
 INCLUDES = $(XORG_INCS)
 kbd_mode_CFLAGS = $(XORG_CFLAGS)
 kbd_mode_SOURCES = bsd-kbd_mode.c
-dist_man1_MANS = bsd-kbd_mode.man
+MAN_SRC = bsd-kbd_mode.man.pre
 endif
 
 if SUN_KBD_MODE
 kbd_mode_SOURCES = sun-kbd_mode.c
-dist_man1_MANS = sun-kbd_mode.man
+MAN_SRC = sun-kbd_mode.man.pre
 endif
 
+man1_MANS = kbd_mode.man
+
+all-local: kbd_mode.man.pre $(man1_MANS)
+
+kbd_mode.man.pre: $(MAN_SRC)
+	$(LN_S) $(MAN_SRC) kbd_mode.man.pre
+
 endif
+
+include $(top_srcdir)/cpprules.in
+
+EXTRA_DIST = bsd-kbd_mode.man.pre sun-kbd_mode.man.pre

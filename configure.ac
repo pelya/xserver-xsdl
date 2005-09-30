@@ -1108,6 +1108,7 @@ composite/Makefile
 damageext/Makefile
 dbe/Makefile
 dix/Makefile
+doc/Makefile
 fb/Makefile
 record/Makefile
 XTrap/Makefile
@@ -1137,6 +1138,8 @@ hw/xfree86/ddc/Makefile
 hw/xfree86/dixmods/Makefile
 hw/xfree86/dixmods/extmod/Makefile
 hw/xfree86/doc/Makefile
+hw/xfree86/doc/devel/Makefile
+hw/xfree86/doc/man/Makefile
 hw/xfree86/doc/sgml/Makefile
 hw/xfree86/dri/Makefile
 hw/xfree86/dummylib/Makefile
@@ -1182,6 +1185,7 @@ hw/vfb/Makefile
 hw/xnest/Makefile
 hw/xwin/Makefile
 Xprint/Makefile
+Xprint/doc/Makefile
 Xprint/pcl/Makefile
 Xprint/raster/Makefile
 Xprint/ps/Makefile

@@ -47,24 +47,10 @@ xorgconfig_SOURCES =	\
 # Man page
 include $(top_srcdir)/cpprules.in
 
-SUFFIXES += .$(APP_MAN_SUFFIX) .man
+man1_MANS = xorgconfig.man
 
-XORGRELSTRING = @PACKAGE_STRING@
-  XORGMANNAME = X Version 11
-
-MANDEFS = -D__appmansuffix__=$(APP_MAN_SUFFIX) \
-        -D__vendorversion__="\"$(XORGRELSTRING)\" \"$(XORGMANNAME)\"" \
-	-D__xservername__=Xorg -D__xconfigfile__=xorg.conf \
-	-D__projectroot__=$(prefix)
-
-CPP_MAN_FLAGS = $(MANDEFS) $(EXTRAMANDEFS)
-
-.man.$(APP_MAN_SUFFIX):
-	$(RAWCPP) $(RAWCPPFLAGS) $(CPP_MAN_FLAGS) < $< | $(CPP_SED_MAGIC) > $@
-
-dist_man1_MANS = \
-	xorgconfig.man
+CLEANFILES = $(man1_MANS)
 
 EXTRA_DIST = \
 	Cards98 \
-	xf86config.cmd
+	xorgconfig.man.pre

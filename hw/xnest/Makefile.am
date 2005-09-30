@@ -58,9 +58,16 @@ AM_CFLAGS = -DHAVE_XNEST_CONFIG_H \
 
 EXTRA_DIST = os2Stub.c \
              icon \
-             screensaver
+             screensaver \
+	     Xnest.man.pre
 
 # -UDPMSExtension for miinitext? can't put into 
 # OS_DEFINES???
 # EXT_DEFINES???
 # ICONFIGFILES -- SpecialCObjectRule
+
+man1_MANS = Xnest.man
+
+CLEANFILES = $(man1_MANS)
+
+include $(top_srcdir)/cpprules.in

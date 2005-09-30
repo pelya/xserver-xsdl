@@ -33,6 +33,7 @@ XPCONFIG_DIR=XpConfig
 endif
 
 SUBDIRS=	\
+	doc	\
 	include	\
 	dix 	\
 	fb	\

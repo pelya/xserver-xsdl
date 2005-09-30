@@ -109,8 +109,6 @@ XPM_DATA = \
         monitor.xpm \
         mouse.xpm
 
-include $(top_srcdir)/cpprules.in
-
 # App default files  (*.ad)
 
 appdefaultdir = $(sysconfdir)/X11/app-defaults
@@ -120,27 +118,15 @@ APPDEFAULTFILES = XOrgCfg
 appdefault_DATA = $(APPDEFAULTFILES)
 
 # Man page
+man1_MANS =  xorgcfg.man
 
-SUFFIXES += .$(APP_MAN_SUFFIX) .man
+all-local: $(man1_MANS)
 
-XORGRELSTRING = @PACKAGE_STRING@
-  XORGMANNAME = X Version 11
+EXTRA_DIST = $(XBM_DATA) $(XPM_DATA) XOrgCfg.pre xorgcfg.man.pre
 
-MANDEFS = -D__appmansuffix__=$(APP_MAN_SUFFIX) \
-        -D__vendorversion__="\"$(XORGRELSTRING)\" \"$(XORGMANNAME)\"" \
-	-D__xservername__=Xorg -D__xconfigfile__=xorg.conf \
-	-D__projectroot__=$(prefix)
+CLEANFILES = $(APPDEFAULTFILES) $(man1_MANS)
 
-CPP_MAN_FLAGS = $(MANDEFS) $(EXTRAMANDEFS)
-
-.man.$(APP_MAN_SUFFIX):
-	$(RAWCPP) $(RAWCPPFLAGS) $(CPP_MAN_FLAGS) < $< | $(CPP_SED_MAGIC) > $@
-
-dist_man1_MANS =  \
-	xorgcfg.man
-
-EXTRA_DIST = $(XBM_DATA) $(XPM_DATA) XOrgCfg.pre
-
-CLEANFILES = $(APPDEFAULTFILES)
+# Rules needed to cpp man page
+include $(top_srcdir)/cpprules.in
 
 endif

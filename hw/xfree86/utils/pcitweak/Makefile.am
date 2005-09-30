@@ -41,6 +41,10 @@ pcitweak_LDADD = \
 pcitweak_SOURCES =	\
 	pcitweak.c
 
-dist_man1_MANS = \
-	pcitweak.man
+man1_MANS = pcitweak.man
 
+CLEANFILES = $(man1_MANS)
+
+include $(top_srcdir)/cpprules.in
+
+EXTRA_DIST = pcitweak.man.pre
