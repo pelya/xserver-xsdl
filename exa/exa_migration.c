@@ -45,7 +45,7 @@
 #define STRACE
 #define TRACE
 
-int exaGeneration;
+static int exaGeneration;
 int exaScreenPrivateIndex;
 int exaPixmapPrivateIndex;
 
@@ -746,7 +746,7 @@ exaCopyArea(DrawablePtr pSrcDrawable, DrawablePtr pDstDrawable, GCPtr pGC,
 
     return  fbDoCopy (pSrcDrawable, pDstDrawable, pGC,
                       srcx, srcy, width, height,
-                      dstx, dsty, exaCopyNtoN, 0, 0);
+                      dstx, dsty, exaCopyNtoN, 0, NULL);
 }
 
 static void
@@ -963,7 +963,7 @@ exaImageGlyphBlt (DrawablePtr	pDrawable,
 	ExaCheckImageGlyphBlt(pDrawable, pGC, x, y, nglyph, ppciInit, pglyphBase);
 	return;
     }
-    glyph = 0;
+    glyph = NULL;
     fbGetDrawable (pDrawable, dst, dstStride, dstBpp, dstXoff, dstYoff);
     switch (dstBpp) {
     case 8:	glyph = fbGlyph8; break;
@@ -1096,7 +1096,7 @@ exaValidateGC (GCPtr pGC, Mask changes, DrawablePtr pDrawable)
 	pGC->ops = (GCOps *) &exaAsyncPixmapGCOps;
 }
 
-GCFuncs	exaGCFuncs = {
+static GCFuncs	exaGCFuncs = {
     exaValidateGC,
     miChangeGC,
     miCopyGC,
@@ -1149,8 +1149,8 @@ exaCopyWindow(WindowPtr pWin, DDXPointRec ptOldOrg, RegionPtr prgnSrc)
 #endif
 
     fbCopyRegion (&pPixmap->drawable, &pPixmap->drawable,
-		  0,
-		  &rgnDst, dx, dy, exaCopyNtoN, 0, 0);
+		  NULL,
+		  &rgnDst, dx, dy, exaCopyNtoN, 0, NULL);
 
     REGION_UNINIT(pWin->drawable.pScreen, &rgnDst);
 }

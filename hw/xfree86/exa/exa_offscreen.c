@@ -195,7 +195,7 @@ exaOffscreenAlloc (ScreenPtr pScreen, int size, int align,
 	new_area->offset = area->offset + real_size;
 	new_area->size = area->size - real_size;
 	new_area->state = ExaOffscreenAvail;
-	new_area->save = 0;
+	new_area->save = NULL;
 	new_area->score = 0;
 	new_area->next = area->next;
 	area->next = new_area;
@@ -299,14 +299,14 @@ exaOffscreenFree (ScreenPtr pScreen, ExaOffscreenArea *area)
     ExaOffscreenValidate (pScreen);
 
     area->state = ExaOffscreenAvail;
-    area->save = 0;
+    area->save = NULL;
     area->offset = area->save_offset;
     area->score = 0;
     /*
      * Find previous area
      */
     if (area == pExaScr->info->card.offScreenAreas)
-	prev = 0;
+	prev = NULL;
     else
 	for (prev = pExaScr->info->card.offScreenAreas; prev; prev = prev->next)
 	    if (prev->next == area)
@@ -367,7 +367,7 @@ exaOffscreenInit (ScreenPtr pScreen)
     area->state = ExaOffscreenAvail;
     area->offset = pExaScr->info->card.offScreenBase;
     area->size = pExaScr->info->card.memorySize - area->offset;
-    area->save = 0;
+    area->save = NULL;
     area->next = NULL;
     area->score = 0;
 

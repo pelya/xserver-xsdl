@@ -507,10 +507,10 @@ exaComposite(CARD8	op,
 		    return;
 
 
-		exaCopyNtoN (pSrc->pDrawable, pDst->pDrawable, 0,
+		exaCopyNtoN (pSrc->pDrawable, pDst->pDrawable, NULL,
 			     REGION_RECTS(&region), REGION_NUM_RECTS(&region),
 			     xSrc - xDst, ySrc - yDst,
-			     FALSE, FALSE, 0, 0);
+			     FALSE, FALSE, 0, NULL);
 		return;
 	    }
 	}
@@ -724,7 +724,7 @@ exaGlyphs (CARD8	op,
 	    {
 		CompositePicture (PictOpAdd,
 				  pPicture,
-				  None,
+				  NULL,
 				  pMask,
 				  0, 0,
 				  0, 0,
