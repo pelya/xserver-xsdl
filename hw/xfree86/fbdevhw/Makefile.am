@@ -14,8 +14,10 @@ AM_CFLAGS = $(XORG_CFLAGS)
 
 sdk_HEADERS = fbdevhw.h
 
+include $(top_srcdir)/cpprules.in
+
 drivermandir = $(mandir)/man$(DRIVER_MAN_SUFFIX)
-driverman_DATA = fbdevhw.man.$(DRIVER_MAN_SUFFIX)
+driverman_DATA = fbdevhw.$(DRIVER_MAN_SUFFIX)
 CLEANFILES = $(driverman_DATA)
 
 fbdevhw.$(DRIVER_MAN_SUFFIX): fbdevhw.man
