@@ -543,8 +543,9 @@ void __glXDispSwap_SeparableFilter2D(GLbyte *pc)
     /* XXX check this usage - internal code called
     ** a version without the packing parameters
     */
-    image1len = __glXImageSize(hdr->format, hdr->type, hdr->width, 1,
-			       hdr->rowLength, hdr->skipRows, hdr->alignment);
+    image1len = __glXImageSize(hdr->format, hdr->type, 0, hdr->width, 1, 1,
+			       0, hdr->rowLength, 0, hdr->skipRows,
+			       hdr->alignment);
     image1len = __GLX_PAD(image1len);
 
 

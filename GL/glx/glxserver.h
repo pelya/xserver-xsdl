@@ -225,13 +225,10 @@ extern void glxSwapQueryServerStringReply(ClientPtr client,
  */
 
 extern int __glXTypeSize(GLenum enm);
-extern int __glXImageSize(GLenum format, GLenum type, GLsizei w, GLsizei h,
-			  GLint rowLength, GLint skipRows, GLint alignment);
-extern int __glXImage3DSize(GLenum format, GLenum type,
-			    GLsizei w, GLsizei h, GLsizei d,
-			    GLint imageHeight, GLint rowLength,
-			    GLint skipImages, GLint skipRows,
-			    GLint alignment);
+extern int __glXImageSize(GLenum format, GLenum type,
+    GLenum target, GLsizei w, GLsizei h, GLsizei d,
+    GLint imageHeight, GLint rowLength, GLint skipImages, GLint skipRows,
+    GLint alignment);
 
 extern int __glXCallListsReqSize(GLbyte *pc, Bool swap);
 extern int __glXBitmapReqSize(GLbyte *pc, Bool swap);

@@ -268,19 +268,49 @@ int __glXPixelMapusvReqSize(GLbyte *pc, Bool swap )
     return 2 * mapsize;
 }
 
-int __glXImageSize( GLenum format, GLenum type, GLsizei w, GLsizei h,
-	       GLint rowLength, GLint skipRows, GLint alignment )
-{
-    return __glXImage3DSize( format, type, w, h, 1, 0, rowLength,
-			     0, skipRows, alignment );
-}
-
-/* XXX
- * This should be folded into __glXImageSize().
+/**
+ * Calculate the size of an image.
+ * 
+ * The size of an image sent to the server from the client or sent from the
+ * server to the client is calculated.  The size is based on the dimensions
+ * of the image, the type of pixel data, padding in the image, and the
+ * alignment requirements of the image.
+ * 
+ * \param format       Format of the pixels.  Same as the \c format parameter
+ *                     to \c glTexImage1D
+ * \param type         Type of the pixel data.  Same as the \c type parameter
+ *                     to \c glTexImage1D
+ * \param target       Typically the texture target of the image.  If the
+ *                     target is one of \c GL_PROXY_*, the size returned is
+ *                     always zero. For uses that do not have a texture target
+ *                     (e.g, glDrawPixels), zero should be specified.
+ * \param w            Width of the image data.  Must be >= 1.
+ * \param h            Height of the image data.  Must be >= 1, even for 1D
+ *                     images.
+ * \param d            Depth of the image data.  Must be >= 1, even for 1D or
+ *                     2D images.
+ * \param imageHeight  If non-zero, defines the true height of a volumetric
+ *                     image.  This value will be used instead of \c h for
+ *                     calculating the size of the image.
+ * \param rowLength    If non-zero, defines the true width of an image.  This
+ *                     value will be used instead of \c w for calculating the
+ *                     size of the image.
+ * \param skipImages   Number of extra layers of image data in a volumtric
+ *                     image that are to be skipped before the real data.
+ * \param skipRows     Number of extra rows of image data in an image that are
+ *                     to be skipped before the real data.
+ * \param alignment    Specifies the alignment for the start of each pixel row
+ *                     in memory.  This value must be one of 1, 2, 4, or 8.
+ *
+ * \returns
+ * The size of the image is returned.  If the specified \c format and \c type
+ * are invalid, -1 is returned.  If \c target is one of \c GL_PROXY_*, zero
+ * is returned.
  */
-int __glXImage3DSize( GLenum format, GLenum type, GLsizei w, GLsizei h,
-		      GLsizei d, GLint imageHeight, GLint rowLength,
-		      GLint skipImages, GLint skipRows, GLint alignment )
+int __glXImageSize( GLenum format, GLenum type, GLenum target,
+		    GLsizei w, GLsizei h, GLsizei d,
+		    GLint imageHeight, GLint rowLength,
+		    GLint skipImages, GLint skipRows, GLint alignment )
 {
     GLint bytesPerElement, elementsPerGroup, groupsPerRow;
     GLint groupSize, rowSize, padding, imageSize;
@@ -291,6 +321,22 @@ int __glXImage3DSize( GLenum format, GLenum type, GLsizei w, GLsizei h,
 	return -1;
     }
     if (w==0 || h==0 || d == 0) return 0;
+
+    switch( target ) {
+    case GL_PROXY_TEXTURE_1D:
+    case GL_PROXY_TEXTURE_2D:
+    case GL_PROXY_TEXTURE_3D:
+    case GL_PROXY_TEXTURE_4D_SGIS:
+    case GL_PROXY_TEXTURE_CUBE_MAP:
+    case GL_PROXY_TEXTURE_RECTANGLE_ARB:
+    case GL_PROXY_HISTOGRAM:
+    case GL_PROXY_COLOR_TABLE:
+    case GL_PROXY_TEXTURE_COLOR_TABLE_SGI:
+    case GL_PROXY_POST_CONVOLUTION_COLOR_TABLE:
+    case GL_PROXY_POST_COLOR_MATRIX_COLOR_TABLE:
+    case GL_PROXY_POST_IMAGE_TRANSFORM_COLOR_TABLE_HP:
+	return 0;
+    }
 
     if (type == GL_BITMAP) {
 	if (rowLength > 0) {
@@ -425,7 +471,8 @@ int __glXDrawPixelsReqSize(GLbyte *pc, Bool swap )
 	skipRows = SWAPL( skipRows );
 	alignment = SWAPL( alignment );
     }
-    return __glXImageSize( format, type, w, h, rowLength, skipRows, alignment );
+    return __glXImageSize( format, type, 0, w, h, 1,
+			   0, rowLength, 0, skipRows, alignment );
 }
 
 int __glXBitmapReqSize(GLbyte *pc, Bool swap )
@@ -444,8 +491,8 @@ int __glXBitmapReqSize(GLbyte *pc, Bool swap )
 	skipRows = SWAPL( skipRows );
 	alignment = SWAPL( alignment );
     }
-    return __glXImageSize( GL_COLOR_INDEX, GL_BITMAP, w, h,
-		      rowLength, skipRows, alignment );
+    return __glXImageSize( GL_COLOR_INDEX, GL_BITMAP, 0, w, h, 1,
+		      0, rowLength, 0, skipRows, alignment );
 }
 
 int __glXTexImage1DReqSize(GLbyte *pc, Bool swap )
@@ -473,7 +520,8 @@ int __glXTexImage1DReqSize(GLbyte *pc, Bool swap )
     } else if (format == GL_STENCIL_INDEX || format == GL_DEPTH_COMPONENT) {
 	return -1;
     }
-    return __glXImageSize( format, type, w, 1, rowLength, skipRows, alignment );
+    return __glXImageSize( format, type, 0, w, 1, 1,
+			   0, rowLength, 0, skipRows, alignment );
 }
 
 int __glXTexImage2DReqSize(GLbyte *pc, Bool swap )
@@ -503,7 +551,8 @@ int __glXTexImage2DReqSize(GLbyte *pc, Bool swap )
     } else if (format == GL_STENCIL_INDEX || format == GL_DEPTH_COMPONENT) {
 	return -1;
     }
-    return __glXImageSize( format, type, w, h, rowLength, skipRows, alignment );
+    return __glXImageSize( format, type, 0, w, h, 1,
+			   0, rowLength, 0, skipRows, alignment );
 }
 
 /* XXX this is used elsewhere - should it be exported from glxserver.h? */
@@ -614,7 +663,8 @@ int __glXTexSubImage1DReqSize(GLbyte *pc, Bool swap )
 	skipRows = SWAPL( skipRows );
 	alignment = SWAPL( alignment );
     }
-    return __glXImageSize( format, type, w, 1, rowLength, skipRows, alignment );
+    return __glXImageSize( format, type, 0, w, 1, 1,
+			   0, rowLength, 0, skipRows, alignment );
 }
 
 int __glXTexSubImage2DReqSize(GLbyte *pc, Bool swap )
@@ -637,7 +687,8 @@ int __glXTexSubImage2DReqSize(GLbyte *pc, Bool swap )
 	skipRows = SWAPL( skipRows );
 	alignment = SWAPL( alignment );
     }
-    return __glXImageSize( format, type, w, h, rowLength, skipRows, alignment );
+    return __glXImageSize( format, type, 0, w, h, 1,
+			   0, rowLength, 0, skipRows, alignment );
 }
 
 int __glXTexImage3DReqSize(GLbyte *pc, Bool swap )
@@ -672,9 +723,8 @@ int __glXTexImage3DReqSize(GLbyte *pc, Bool swap )
     if (target == GL_PROXY_TEXTURE_3D || nullImage) {
 	return 0;
     } else {
-	return __glXImage3DSize( format, type, w, h, d, imageHeight,
-				 rowLength, skipImages, skipRows,
-				 alignment);
+	return __glXImageSize( format, type, target, w, h, d, imageHeight,
+			       rowLength, skipImages, skipRows, alignment );
     }
 }
 
@@ -710,9 +760,8 @@ int __glXTexSubImage3DReqSize(GLbyte *pc, Bool swap )
     if (target == GL_PROXY_TEXTURE_3D) {
 	return 0;
     } else {
-	return __glXImage3DSize( format, type, w, h, d, imageHeight,
-				 rowLength, skipImages, skipRows,
-				 alignment);
+	return __glXImageSize( format, type, target, w, h, d, imageHeight,
+			       rowLength, skipImages, skipRows, alignment );
     }
 }
 
@@ -735,7 +784,8 @@ int __glXConvolutionFilter1DReqSize(GLbyte *pc, Bool swap )
 	alignment = SWAPL( alignment );
     }
 
-    return __glXImageSize ( format, type, w, 1, rowLength, 0, alignment );
+    return __glXImageSize( format, type, 0, w, 1, 1, 
+			   0, rowLength, 0, 0, alignment );
 }
 
 int __glXConvolutionFilter2DReqSize(GLbyte *pc, Bool swap )
@@ -761,7 +811,8 @@ int __glXConvolutionFilter2DReqSize(GLbyte *pc, Bool swap )
 	alignment = SWAPL( alignment );
     }
 
-    return __glXImageSize ( format, type, w, h, rowLength, skipRows, alignment );
+    return __glXImageSize( format, type, 0, w, h, 1,
+			   0, rowLength, 0, skipRows, alignment );
 }
 
 int __glXConvolutionParameterivSize(GLenum pname)
@@ -820,9 +871,11 @@ int __glXSeparableFilter2DReqSize(GLbyte *pc, Bool swap )
     }
 
     /* XXX Should rowLength be used for either or both image? */
-    image1size = __glXImageSize ( format, type, w, 1, rowLength, 0, alignment );
+    image1size = __glXImageSize( format, type, 0, w, 1, 1,
+				 0, rowLength, 0, 0, alignment );
     image1size = __GLX_PAD(image1size);
-    image2size = __glXImageSize ( format, type, h, 1, rowLength, 0, alignment );
+    image2size = __glXImageSize( format, type, 0, h, 1, 1,
+				 0, rowLength, 0, 0, alignment );
     return image1size + image2size;
 
 }
@@ -876,7 +929,8 @@ int __glXColorTableReqSize(GLbyte *pc, Bool swap )
 	alignment = SWAPL( alignment );
     }
 
-    return __glXImageSize ( format, type, w, 1, rowLength, 0, alignment );
+    return __glXImageSize( format, type, 0, w, 1, 1,
+			   0, rowLength, 0, 0, alignment );
 }
 
 int __glXColorSubTableReqSize(GLbyte *pc, Bool swap )
@@ -898,7 +952,8 @@ int __glXColorSubTableReqSize(GLbyte *pc, Bool swap )
 	alignment = SWAPL( alignment );
     }
 
-    return __glXImageSize ( format, type, count, 1, rowLength, 0, alignment );
+    return __glXImageSize( format, type, 0, count, 1, 1,
+			   0, rowLength, 0, 0, alignment );
 }
 
 int __glXColorTableParameterfvReqSize(GLbyte *pc, Bool swap )

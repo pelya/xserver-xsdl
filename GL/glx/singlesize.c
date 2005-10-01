@@ -51,7 +51,7 @@
 
 GLint __glReadPixels_size(GLenum format, GLenum type, GLint w, GLint h)
 {
-    return __glXImage3DSize( format, type, w, h, 1, 0, 0, 0, 0, 4 );
+    return __glXImageSize( format, type, 0, w, h, 1, 0, 0, 0, 0, 4 );
 }
 
 /**
@@ -1127,8 +1127,8 @@ GLint __glGetTexLevelParameteriv_size(GLenum pname)
 GLint __glGetTexImage_size(GLenum target, GLint level, GLenum format,
 			   GLenum type, GLint width, GLint height, GLint depth)
 {
-    return __glXImage3DSize( format, type, width, height, depth,
-			     0, 0, 0, 0, 4 );
+    return __glXImageSize( format, type, target, width, height, depth,
+			   0, 0, 0, 0, 4 );
 }
 
 GLint __glGetConvolutionParameteriv_size(GLenum pname)
