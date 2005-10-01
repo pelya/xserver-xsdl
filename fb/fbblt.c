@@ -271,8 +271,11 @@ fbBlt (FbBits   *srcLine,
 		if (startmask)
 		{
 		    bits = FbScrLeft(bits1, leftShift); 
-		    bits1 = *src++;
-		    bits |= FbScrRight(bits1, rightShift);
+		    if (FbScrLeft(startmask, rightShift))
+		    {
+			bits1 = *src++;
+			bits |= FbScrRight(bits1, rightShift);
+		    }
 		    FbDoLeftMaskByteMergeRop (dst, bits, startbyte, startmask);
 		    dst++;
 		}
