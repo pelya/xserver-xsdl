@@ -91,6 +91,7 @@
 #include "selection.h"
 #ifdef XKB
 #include <X11/extensions/XKBsrv.h>
+extern int XkbDfltRepeatDelay, XkbDfltRepeatInterval;
 #endif
 
 extern Selection *CurrentSelections;
@@ -498,6 +499,8 @@ LOOKUP dixLookupTab[] = {
     /* xkb/xkbInit.c */
     SYMFUNC(XkbInitKeyboardDeviceStruct)
     SYMFUNC(XkbSetRulesDflts)
+    SYMVAR(XkbDfltRepeatDelay)
+    SYMVAR(XkbDfltRepeatInterval)
 #endif
 
 #ifdef XINPUT
