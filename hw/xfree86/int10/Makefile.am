@@ -29,4 +29,4 @@ AM_CFLAGS = -D_PC -D_VM86_LINUX $(XORG_CFLAGS)
 libint10_la_SOURCES = stub.c xf86int10module.c
 endif
 
-EXTRA_DIST = xf86x86emu.h
+EXTRA_DIST = xf86x86emu.h INT10.HOWTO

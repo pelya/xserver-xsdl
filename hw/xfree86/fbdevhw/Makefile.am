@@ -14,4 +14,12 @@ AM_CFLAGS = $(XORG_CFLAGS)
 
 sdk_HEADERS = fbdevhw.h
 
-EXTRA_DIST = fbpriv.h
+drivermandir = $(mandir)/man$(DRIVER_MAN_SUFFIX)
+driverman_DATA = fbdevhw.man.$(DRIVER_MAN_SUFFIX)
+CLEANFILES = $(driverman_DATA)
+
+fbdevhw.$(DRIVER_MAN_SUFFIX): fbdevhw.man
+	-rm -f fbdevhw.$(DRIVER_MAN_SUFFIX)
+	$(LN_S) fbdevhw.man fbdevhw.$(DRIVER_MAN_SUFFIX)
+
+EXTRA_DIST = fbpriv.h fbdevhw.man.pre README

@@ -10,4 +10,4 @@ INCLUDES = $(XORG_INCS) -I$(srcdir)/../i2c
 
 AM_CFLAGS = $(XORG_CFLAGS)
 
-EXTRA_DIST = ddcPriv.h
+EXTRA_DIST = ddcPriv.h DDC.HOWTO
