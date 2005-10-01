@@ -97,22 +97,6 @@ extern struct __GLdispatchStateRec *__MESA_dispatchExec(__GLcontext *gc);
 extern void __MESA_beginDispatchOverride(__GLcontext *gc);
 extern void __MESA_endDispatchOverride(__GLcontext *gc);
 
-extern GLint __glCallLists_size(GLsizei n, GLenum type);
 extern GLuint __glFloorLog2(GLuint val);
-extern GLint __glFogfv_size(GLenum pname);
-extern GLint __glFogiv_size(GLenum pname);
-extern GLint __glLightModelfv_size(GLenum pname);
-extern GLint __glLightModeliv_size(GLenum pname);
-extern GLint __glLightfv_size(GLenum pname);
-extern GLint __glLightiv_size(GLenum pname);
-extern GLint __glMaterialfv_size(GLenum pname);
-extern GLint __glMaterialiv_size(GLenum pname);
-extern GLint __glTexEnvfv_size(GLenum pname);
-extern GLint __glTexEnviv_size(GLenum pname);
-extern GLint __glTexGendv_size(GLenum pname);
-extern GLint __glTexGenfv_size(GLenum pname);
-extern GLint __glTexGeniv_size(GLenum pname);
-extern GLint __glTexParameterfv_size(GLenum pname);
-extern GLint __glTexParameteriv_size(GLenum pname);
 
 #endif /* _XF86GLXINT_H_ */
