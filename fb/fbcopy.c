@@ -68,11 +68,11 @@ fbCopyNtoN (DrawablePtr	pSrcDrawable,
 	    if (!fbCopyAreammx (pSrcDrawable,
 				pDstDrawable,
 				
-				(pbox->x1 + dx + srcXoff),
-				(pbox->y1 + dy + srcYoff),
+				(pbox->x1 + dx),
+				(pbox->y1 + dy),
 				
-				(pbox->x1 + dstXoff),
-				(pbox->y1 + dstYoff),
+				(pbox->x1),
+				(pbox->y1),
 				
 				(pbox->x2 - pbox->x1),
 				(pbox->y2 - pbox->y1)))

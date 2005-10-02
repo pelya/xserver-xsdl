@@ -164,5 +164,10 @@ void
 cwFiniRender (ScreenPtr pScreen);
 
 /* cw.c */
+
 void
 miInitializeCompositeWrapper(ScreenPtr pScreen);
+
+/* Must be called before miInitializeCompositeWrapper */
+void
+miDisableCompositeWrapper(ScreenPtr pScreen);

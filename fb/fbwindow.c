@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/fb/fbwindow.c,v 1.6 2004/12/06 15:53:00 eich Exp $ */
+/* $XdotOrg: xc/programs/Xserver/fb/fbwindow.c,v 1.8 2005/07/03 07:01:23 daniels Exp $ */
 /*
  * Id: fbwindow.c,v 1.1 1999/11/02 03:54:45 keithp Exp $
  *
@@ -291,7 +291,7 @@ fbFillRegionTiled (DrawablePtr	pDrawable,
 		FB_ALLONES,
 		dstBpp,
 		xRot * dstBpp,
-		yRot - pbox->y1);
+		yRot - (pbox->y1 + dstYoff));
 	pbox++;
     }
 }

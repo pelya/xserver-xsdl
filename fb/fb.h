@@ -22,7 +22,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $XdotOrg: xc/programs/Xserver/fb/fb.h,v 1.9 2005/04/20 12:25:19 daniels Exp $ */
+/* $XdotOrg: xc/programs/Xserver/fb/fb.h,v 1.12 2005/08/24 11:18:33 daniels Exp $ */
 
 #ifndef _FB_H_
 #define _FB_H_
@@ -648,37 +648,53 @@ typedef struct {
 #endif
 
 #ifdef ROOTLESS
-#define __fbPixOriginX(pPix)	((pPix)->drawable.x)
-#define __fbPixOriginY(pPix)	((pPix)->drawable.y)
+#define __fbPixDrawableX(pPix)	((pPix)->drawable.x)
+#define __fbPixDrawableY(pPix)	((pPix)->drawable.y)
 #else
-#define __fbPixOriginX(pPix)	0
-#define __fbPixOriginY(pPix)	0
+#define __fbPixDrawableX(pPix)	0
+#define __fbPixDrawableY(pPix)	0
 #endif
+
+#ifdef COMPOSITE
+#define __fbPixOffXWin(pPix)	(__fbPixDrawableX(pPix) - (pPix)->screen_x)
+#define __fbPixOffYWin(pPix)	(__fbPixDrawableY(pPix) - (pPix)->screen_y)
+#else
+#define __fbPixOffXWin(pPix)	(__fbPixDrawableX(pPix))
+#define __fbPixOffYWin(pPix)	(__fbPixDrawableY(pPix))
+#endif
+#define __fbPixOffXPix(pPix)	(__fbPixDrawableX(pPix))
+#define __fbPixOffYPix(pPix)	(__fbPixDrawableY(pPix))
 
 #define fbGetDrawable(pDrawable, pointer, stride, bpp, xoff, yoff) { \
     PixmapPtr   _pPix; \
-    if ((pDrawable)->type != DRAWABLE_PIXMAP) \
+    if ((pDrawable)->type != DRAWABLE_PIXMAP) { \
 	_pPix = fbGetWindowPixmap(pDrawable); \
-    else \
+	(xoff) = __fbPixOffXWin(_pPix); \
+	(yoff) = __fbPixOffYWin(_pPix); \
+    } else { \
 	_pPix = (PixmapPtr) (pDrawable); \
+	(xoff) = __fbPixOffXPix(_pPix); \
+	(yoff) = __fbPixOffYPix(_pPix); \
+    } \
     (pointer) = (FbBits *) _pPix->devPrivate.ptr; \
     (stride) = ((int) _pPix->devKind) / sizeof (FbBits); (void)(stride); \
     (bpp) = _pPix->drawable.bitsPerPixel;  (void)(bpp); \
-    (xoff) = __fbPixOriginX(_pPix); (void)(xoff); \
-    (yoff) = __fbPixOriginY(_pPix); (void)(yoff); \
 }
 
 #define fbGetStipDrawable(pDrawable, pointer, stride, bpp, xoff, yoff) { \
     PixmapPtr   _pPix; \
-    if ((pDrawable)->type != DRAWABLE_PIXMAP) \
+    if ((pDrawable)->type != DRAWABLE_PIXMAP) { \
 	_pPix = fbGetWindowPixmap(pDrawable); \
-    else \
+	(xoff) = __fbPixOffXWin(_pPix); \
+	(yoff) = __fbPixOffYWin(_pPix); \
+    } else { \
 	_pPix = (PixmapPtr) (pDrawable); \
+	(xoff) = __fbPixOffXPix(_pPix); \
+	(yoff) = __fbPixOffYPix(_pPix); \
+    } \
     (pointer) = (FbStip *) _pPix->devPrivate.ptr; \
     (stride) = ((int) _pPix->devKind) / sizeof (FbStip); (void)(stride); \
     (bpp) = _pPix->drawable.bitsPerPixel; (void)(bpp); \
-    (xoff) = __fbPixOriginX(_pPix); (void)(xoff); \
-    (yoff) = __fbPixOriginY(_pPix); (void)(yoff); \
 }
 
 /*
@@ -836,6 +852,8 @@ fbDots8 (FbBits	    *dst,
 	 BoxPtr	    pBox,
 	 xPoint	    *pts,
 	 int	    npt,
+	 int	    xorg,
+	 int	    yorg,
 	 int	    xoff,
 	 int	    yoff,
 	 FbBits	    and,
@@ -908,6 +926,8 @@ fbDots16(FbBits	    *dst,
 	 BoxPtr	    pBox,
 	 xPoint	    *pts,
 	 int	    npt,
+	 int	    xorg,
+	 int	    yorg,
 	 int	    xoff,
 	 int	    yoff,
 	 FbBits	    and,
@@ -981,6 +1001,8 @@ fbDots24(FbBits	    *dst,
 	 BoxPtr	    pBox,
 	 xPoint	    *pts,
 	 int	    npt,
+	 int	    xorg,
+	 int	    yorg,
 	 int	    xoff,
 	 int	    yoff,
 	 FbBits	    and,
@@ -1054,6 +1076,8 @@ fbDots32(FbBits	    *dst,
 	 BoxPtr	    pBox,
 	 xPoint	    *pts,
 	 int	    npt,
+	 int	    xorg,
+	 int	    yorg,
 	 int	    xoff,
 	 int	    yoff,
 	 FbBits	    and,
@@ -1600,6 +1624,8 @@ fbDots (FbBits	    *dstOrig,
 	BoxPtr	    pBox,
 	xPoint	    *pts,
 	int	    npt,
+	int	    xorg,
+	int	    yorg,
 	int	    xoff,
 	int	    yoff,
 	FbBits	    andOrig,

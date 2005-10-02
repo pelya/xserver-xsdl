@@ -48,6 +48,7 @@ int cwWindowIndex;
 #ifdef RENDER
 int cwPictureIndex;
 #endif
+static Bool cwDisabled[MAXSCREENS];
 static unsigned long cwGeneration = 0;
 extern GCOps cwGCOps;
 
@@ -617,6 +618,9 @@ miInitializeCompositeWrapper(ScreenPtr pScreen)
 {
     cwScreenPtr pScreenPriv;
 
+    if (cwDisabled[pScreen->myNum])
+	return;
+
     if (cwGeneration != serverGeneration)
     {
 	cwScreenIndex = AllocateScreenPrivateIndex();
@@ -658,6 +662,12 @@ miInitializeCompositeWrapper(ScreenPtr pScreen)
     if (GetPictureScreen (pScreen))
 	cwInitializeRender(pScreen);
 #endif
+}
+
+void
+miDisableCompositeWrapper(ScreenPtr pScreen)
+{
+    cwDisabled[pScreen->myNum] = TRUE;
 }
 
 static Bool

@@ -31,6 +31,7 @@
 #include "xf86str.h"
 #include "xf86.h"
 #include "exa.h"
+#include "cw.h"
 
 #if DEBUG_MIGRATE
 #define DBG_MIGRATE(a) ErrorF a
@@ -1232,19 +1233,17 @@ exaFillRegionTiled (DrawablePtr	pDrawable,
     {
 	int nbox = REGION_NUM_RECTS (pRegion);
 	BoxPtr pBox = REGION_RECTS (pRegion);
-	int xRot = pDrawable->x + xoff;
-	int yRot = pDrawable->y + yoff;
 
 	while (nbox--)
 	{
 	    int height = pBox->y2 - pBox->y1;
-	    int dstY = pBox->y1 + yoff;
+	    int dstY = pBox->y1;
 	    int tileY;
 
-	    modulus (dstY - yRot, tileHeight, tileY);
+	    tileY = (dstY - pDrawable->y) % tileHeight;
 	    while (height > 0) {
 		int width = pBox->x2 - pBox->x1;
-		int dstX = pBox->x1 + xoff;
+		int dstX = pBox->x1;
 		int tileX;
 		int h = tileHeight - tileY;
 
@@ -1252,7 +1251,7 @@ exaFillRegionTiled (DrawablePtr	pDrawable,
 		    h = height;
 		height -= h;
 
-		modulus (dstX - xRot, tileWidth, tileX);
+		tileX = (dstX - pDrawable->x) % tileWidth;
 		while (width > 0) {
 		    int w = tileWidth - tileX;
 		    if (w > width)
@@ -1261,7 +1260,7 @@ exaFillRegionTiled (DrawablePtr	pDrawable,
 
 		    (*pExaScr->info->accel.Copy) (pPixmap,
 						  tileX, tileY,
-						  dstX, dstY,
+						  dstX + xoff, dstY + yoff,
 						  w, h);
 		    dstX += w;
 		    tileX = 0;
@@ -1427,6 +1426,8 @@ exaDriverInit (ScreenPtr		pScreen,
 	ps->Glyphs = exaGlyphs;
     }
 #endif
+
+    miDisableCompositeWrapper(pScreen);
 
     /*
      * Hookup offscreen pixmaps

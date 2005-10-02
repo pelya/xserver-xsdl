@@ -2034,16 +2034,6 @@ fbCompositeSrcAdd_8888x8888mmx (CARD8		op,
     _mm_empty();
 }
 
-#define GetStart(drw,x,y,type,stride,line,bpp) {\
-    FbBits	*__bits__;									\
-    FbStride	__stride__;									\
-    int		__xoff__,__yoff__;								\
-												\
-    fbGetDrawable((drw),__bits__,__stride__,bpp,__xoff__,__yoff__);				\
-    (stride) = __stride__ * sizeof (FbBits) / sizeof (type);					\
-    (line) = ((type *) __bits__) + (stride) * ((y) - __yoff__) + ((x) - __xoff__);		\
-}
-
 Bool
 fbSolidFillmmx (DrawablePtr	pDraw,
 		int		x,
@@ -2074,14 +2064,14 @@ fbSolidFillmmx (DrawablePtr	pDraw,
     if (bpp == 16)
     {
 	stride = stride * sizeof (FbBits) / 2;
-	byte_line = (CARD8 *)(((CARD16 *)bits) + stride * (y - yoff) + (x - xoff));
+	byte_line = (CARD8 *)(((CARD16 *)bits) + stride * (y + yoff) + (x + xoff));
 	byte_width = 2 * width;
 	stride *= 2;
     }
     else
     {
 	stride = stride * sizeof (FbBits) / 4;
-	byte_line = (CARD8 *)(((CARD32 *)bits) + stride * (y - yoff) + (x - xoff));
+	byte_line = (CARD8 *)(((CARD32 *)bits) + stride * (y + yoff) + (x + xoff));
 	byte_width = 4 * width;
 	stride *= 4;
     }
@@ -2173,36 +2163,28 @@ fbCopyAreammx (DrawablePtr	pSrc,
     fbGetDrawable(pSrc, src_bits, src_stride, src_bpp, src_xoff, src_yoff);
     fbGetDrawable(pDst, dst_bits, dst_stride, dst_bpp, dst_xoff, dst_yoff);
 
-    if (src_bpp != 16 && src_bpp != 32)
-	return FALSE;
-
-    if (dst_bpp != 16 && dst_bpp != 32)
-	return FALSE;
-
     if (src_bpp != dst_bpp)
-    {
 	return FALSE;
-    }
     
     if (src_bpp == 16)
     {
 	src_stride = src_stride * sizeof (FbBits) / 2;
 	dst_stride = dst_stride * sizeof (FbBits) / 2;
-	src_bytes = (CARD8 *)(((CARD16 *)src_bits) + src_stride * (src_y - src_yoff) + (src_x - src_xoff));
-	dst_bytes = (CARD8 *)(((CARD16 *)dst_bits) + dst_stride * (dst_y - dst_yoff) + (dst_x - dst_xoff));
+	src_bytes = (CARD8 *)(((CARD16 *)src_bits) + src_stride * (src_y + src_yoff) + (src_x + src_xoff));
+	dst_bytes = (CARD8 *)(((CARD16 *)dst_bits) + dst_stride * (dst_y + dst_yoff) + (dst_x + dst_xoff));
 	byte_width = 2 * width;
 	src_stride *= 2;
 	dst_stride *= 2;
-    }
-    else
-    {
+    } else if (src_bpp == 32) {
 	src_stride = src_stride * sizeof (FbBits) / 4;
 	dst_stride = dst_stride * sizeof (FbBits) / 4;
-	src_bytes = (CARD8 *)(((CARD32 *)src_bits) + src_stride * (src_y - src_yoff) + (src_x - src_xoff));
-	dst_bytes = (CARD8 *)(((CARD32 *)dst_bits) + dst_stride * (dst_y - dst_yoff) + (dst_x - dst_xoff));
+	src_bytes = (CARD8 *)(((CARD32 *)src_bits) + src_stride * (src_y + src_yoff) + (src_x + src_xoff));
+	dst_bytes = (CARD8 *)(((CARD32 *)dst_bits) + dst_stride * (dst_y + dst_yoff) + (dst_x + dst_xoff));
 	byte_width = 4 * width;
 	src_stride *= 4;
 	dst_stride *= 4;
+    } else {
+	return FALSE;
     }
 
     while (height--)

@@ -274,6 +274,8 @@ DOTS (FbBits	    *dst,
       BoxPtr	    pBox,
       xPoint	    *ptsOrig,
       int	    npt,
+      int	    xorg,
+      int	    yorg,
       int	    xoff,
       int	    yoff,
       FbBits	    and,
@@ -288,10 +290,10 @@ DOTS (FbBits	    *dst,
     INT32    	ul, lr;
     INT32    	pt;
 
-    ul = coordToInt(pBox->x1 - xoff,     pBox->y1 - yoff);
-    lr = coordToInt(pBox->x2 - xoff - 1, pBox->y2 - yoff - 1);
+    ul = coordToInt(pBox->x1 - xorg,     pBox->y1 - yorg);
+    lr = coordToInt(pBox->x2 - xorg - 1, pBox->y2 - yorg - 1);
 
-    bits += bitsStride * yoff + xoff * MUL;
+    bits += bitsStride * (yorg + yoff) + (xorg + xoff) * MUL;
     
     if (and == 0)
     {
@@ -826,6 +828,8 @@ POLYSEGMENT (DrawablePtr    pDrawable,
     bitsBase = ((UNIT *) dst) + (yoff + dstYoff) * bitsStride + (xoff + dstXoff) * MUL;
     ul = coordToInt(pBox->x1 - xoff,     pBox->y1 - yoff);
     lr = coordToInt(pBox->x2 - xoff - 1, pBox->y2 - yoff - 1);
+
+    bits += bitsStride * yoff + xoff * MUL;
 
     capNotLast = pGC->capStyle == CapNotLast;
     

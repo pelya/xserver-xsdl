@@ -92,7 +92,7 @@ fbFill (DrawablePtr pDrawable,
 		    dstBpp,
 		    
 		    (pGC->patOrg.x + pDrawable->x + dstXoff),
-		    pGC->patOrg.y + pDrawable->y + dstYoff - y);
+		    pGC->patOrg.y + pDrawable->y - y);
 	}
 	else
 	{
@@ -129,7 +129,7 @@ fbFill (DrawablePtr pDrawable,
 		       fgand, fgxor,
 		       bgand, bgxor,
 		       pGC->patOrg.x + pDrawable->x + dstXoff,
-		       pGC->patOrg.y + pDrawable->y + dstYoff - y);
+		       pGC->patOrg.y + pDrawable->y - y);
 	}
 	break;
     }
@@ -157,7 +157,7 @@ fbFill (DrawablePtr pDrawable,
 		pPriv->pm,
 		dstBpp,
 		(pGC->patOrg.x + pDrawable->x + dstXoff) * dstBpp,
-		pGC->patOrg.y + pDrawable->y + dstYoff - y);
+		pGC->patOrg.y + pDrawable->y - y);
 	break;
     }
     }
