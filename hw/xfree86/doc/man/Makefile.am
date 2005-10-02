@@ -1,5 +1,5 @@
 # Xserver.man covers options generic to all X servers built in this tree
-MAN_SRCS = Xorg.man.pre Xorg.conf.man.pre
+MAN_SRCS = Xorg.man.pre xorg.conf.man.pre
 
 man1_MANS = Xorg.man
 
