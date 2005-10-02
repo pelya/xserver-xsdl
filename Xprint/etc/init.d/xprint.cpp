@@ -176,6 +176,9 @@ export OPENWINHOME=/usr/openwin
 #elif defined(OS_AIX)
 XPROJECTROOT=/usr/lpp/X11
 #else
+#if defined(ProjectRoot)
+[ -d ProjectRoot/bin ]	&& XPROJECTROOT=ProjectRoot
+#endif
 [ -d /usr/X11/bin ]     && XPROJECTROOT=/usr/X11
 [ -d /usr/X11R6/bin ]   && XPROJECTROOT=/usr/X11R6
 #endif
