@@ -34,6 +34,9 @@
 #include "xf86.h"
 #include "xf86Priv.h"
 
+#include <errno.h>
+#include <sys/mman.h>
+
 #ifdef HAS_MTRR_SUPPORT
 #ifndef __NetBSD__
 #include <sys/types.h>

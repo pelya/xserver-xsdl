@@ -31,6 +31,7 @@
 #endif
 
 #include <X11/X.h>
+#include <termios.h>
 
 #include "compiler.h"
 
@@ -148,7 +149,7 @@ xf86SetKbdRepeat(char rad)
 }
 
 #if defined(SYSCONS_SUPPORT) || defined(PCCONS_SUPPORT) || defined(PCVT_SUPPORT) || defined(WSCONS_SUPPORT)
-static struct termio kbdtty;
+static struct termios kbdtty;
 #endif
 
 void

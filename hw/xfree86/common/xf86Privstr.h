@@ -120,7 +120,7 @@ typedef struct {
     /* graphics part */
     Bool		sharedMonitor;
     ScreenPtr		currentScreen;
-#ifdef CSRG_BASED
+#if defined(CSRG_BASED) || defined(__FreeBSD_kernel__)
     int			screenFd;	/* fd for memory mapped access to
 					 * vga card */
     int			consType;	/* Which console driver? */
@@ -222,7 +222,7 @@ typedef struct _RootWinProp {
 #define XCOMP	((unsigned long) 0x00008000)
 
 /* BSD console driver types (consType) */
-#ifdef CSRG_BASED
+#if defined(CSRG_BASED) || defined(__FreeBSD_kernel__)
 #define PCCONS		   0
 #define CODRV011	   1
 #define CODRV01X	   2

@@ -83,7 +83,8 @@ extern DeviceAssocRec mouse_assoc;
 #endif
 
 #if (defined(i386) || defined(__i386__)) && \
-    (defined(__FreeBSD__) || defined(__NetBSD__) || defined(linux) || \
+    (defined(__FreeBSD__) || defined(__FreeBSD_kernel__) || \
+     defined(__NetBSD__) || defined(linux) || \
      (defined(SVR4) && !defined(sun)) || defined(__GNU__))
 #define SUPPORT_PC98
 #endif

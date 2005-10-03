@@ -37,7 +37,7 @@
 #include <sys/param.h>
 #ifndef __NetBSD__
 #  include <sys/sysctl.h>
-#  ifdef __FreeBSD__
+#  if defined(__FreeBSD__) || defined(__FreeBSD_kernel__)
 #      include <machine/sysarch.h>
 #   endif
 # else
@@ -399,7 +399,7 @@ xf86ReadBIOS(unsigned long Base, unsigned long Offset, unsigned char *Buf,
 }
 
 
-#if defined(__FreeBSD__) || defined(__OpenBSD__)
+#if defined(__FreeBSD__) || defined(__FreeBSD_kernel__) || defined(__OpenBSD__)
 
 extern int ioperm(unsigned long from, unsigned long num, int on);
 
@@ -417,7 +417,7 @@ xf86DisableIO()
 	return;
 }
 
-#endif /* __FreeBSD__ || __OpenBSD__ */
+#endif /* __FreeBSD_kernel__ || __OpenBSD__ */
 
 #ifdef USE_ALPHA_PIO
 
@@ -492,7 +492,7 @@ writeSparse16(int Value, pointer Base, register unsigned long Offset);
 static void
 writeSparse32(int Value, pointer Base, register unsigned long Offset);
 
-#ifdef __FreeBSD__
+#if defined(__FreeBSD__) || defined(__FreeBSD_kernel__)
 extern int sysarch(int, void *);
 #endif
 
@@ -504,7 +504,7 @@ struct parms {
 static int
 sethae(u_int64_t hae)
 {
-#ifdef __FreeBSD__
+#if defined(__FreeBSD__) || defined(__FreeBSD_kernel__)
 #ifndef ALPHA_SETHAE
 #define ALPHA_SETHAE 0
 #endif

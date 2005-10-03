@@ -15,6 +15,7 @@
 #endif
 
 #include <X11/X.h>
+#include <termios.h>
 
 #include "compiler.h"
 
@@ -41,7 +42,7 @@ static KbdProtocolRec protocols[] = {
 };
 
 typedef struct {
-   struct termio kbdtty;
+   struct termios kbdtty;
 } BsdKbdPrivRec, *BsdKbdPrivPtr;
 
 static
@@ -74,10 +75,16 @@ SetKbdLeds(InputInfoPtr pInfo, int leds)
     KbdDevPtr pKbd = (KbdDevPtr) pInfo->private;
     int real_leds = 0;
 
+#ifdef LED_CAP
     if (leds & XLED1)  real_leds |= LED_CAP;
+#endif
+#ifdef LED_NUM
     if (leds & XLED2)  real_leds |= LED_NUM;
+#endif
+#ifdef LED_SCR
     if (leds & XLED3)  real_leds |= LED_SCR;
     if (leds & XLED4)  real_leds |= LED_SCR;
+#endif
 
     switch (pKbd->consType) {
 
@@ -119,9 +126,15 @@ GetKbdLeds(InputInfoPtr pInfo)
 #endif
     }
 
+#ifdef LED_CAP
     if (real_leds & LED_CAP) leds |= XLED1;
+#endif
+#ifdef LED_NUM
     if (real_leds & LED_NUM) leds |= XLED2;
+#endif
+#ifdef LED_SCR
     if (real_leds & LED_SCR) leds |= XLED3;
+#endif
 
     return(leds);
 }
@@ -311,16 +324,20 @@ Bool SpecialKey(InputInfoPtr pInfo, int key, Bool down, int modifiers)
              case KEY_F8:
              case KEY_F9:
              case KEY_F10:
+#ifdef VT_ACTIVATE
                   if (down) {
                     ioctl(xf86Info.consoleFd, VT_ACTIVATE, key - KEY_F1 + 1);
                     return TRUE;
                   }
+#endif
              case KEY_F11:
              case KEY_F12:
+#ifdef VT_ACTIVATE
                   if (down) {
                     ioctl(xf86Info.consoleFd, VT_ACTIVATE, key - KEY_F11 + 11);
                     return TRUE;
                   }
+#endif
          }
       }
     }

@@ -326,12 +326,24 @@ typedef signed long xf86ssize_t;
 #endif /* DGUX && SVR4 */
 
 /**************************************************************************/
-/* Linux                                                                  */
+/* Linux or Glibc-based system                                            */
 /**************************************************************************/
-#if defined(linux)
+#if defined(__linux__) || defined(__GLIBC__)
 # include <sys/ioctl.h>
 # include <signal.h>
-# include <termio.h>
+# include <stdlib.h>
+# include <sys/types.h>
+# include <assert.h>
+
+#ifdef __GNU__ /* GNU/Hurd */
+# define USE_OSMOUSE
+#endif
+
+# ifdef __linux__
+#  include <termio.h>
+# else /* __GLIBC__ */
+#  include <termios.h>
+# endif
 # ifdef __sparc__
 #  include <sys/param.h>
 # endif
@@ -340,20 +352,21 @@ typedef signed long xf86ssize_t;
 
 # include <sys/stat.h>
 
-# define HAS_USL_VTS
 # include <sys/mman.h>
-# include <sys/kd.h>
-# include <sys/vt.h>
-# define LDGMAP GIO_SCRNMAP
-# define LDSMAP PIO_SCRNMAP
-# define LDNMAP LDSMAP
-
-# define CLEARDTR_SUPPORT
-# define USE_VT_SYSREQ
+# ifdef __linux__
+#  define HAS_USL_VTS
+#  include <sys/kd.h>
+#  include <sys/vt.h>
+#  define LDGMAP GIO_SCRNMAP
+#  define LDSMAP PIO_SCRNMAP
+#  define LDNMAP LDSMAP
+#  define CLEARDTR_SUPPORT
+#  define USE_VT_SYSREQ
+# endif
 
 # define POSIX_TTY
 
-#endif /* linux */
+#endif /* __linux__ || __GLIBC__ */
 
 /**************************************************************************/
 /* LynxOS AT                                                              */
@@ -413,6 +426,30 @@ extern int errno;
 
 # include <errno.h>
 
+# include <sys/types.h>
+# include <sys/mman.h>
+# include <sys/stat.h>
+
+# if defined(__bsdi__)
+#  include <sys/param.h>
+# if (_BSDI_VERSION < 199510)
+#  include <i386/isa/vgaioctl.h>
+# endif
+# endif /* __bsdi__ */
+
+#endif /* CSRG_BASED */
+
+/**************************************************************************/
+/* Kernel of *BSD                                                         */
+/**************************************************************************/
+#if defined(__FreeBSD__) || defined(__FreeBSD_kernel__) || \
+ defined(__NetBSD__) || defined(__OpenBSD__) || defined(__bsdi__)
+
+# include <sys/param.h>
+# if defined(__FreeBSD_version) && !defined(__FreeBSD_kernel_version)
+#  define __FreeBSD_kernel_version __FreeBSD_version
+# endif
+
 # if !defined(LINKKIT)
   /* Don't need this stuff for the Link Kit */
 #  if defined(__bsdi__)
@@ -434,9 +471,8 @@ extern int errno;
 #    if defined(__NetBSD__) || defined(__OpenBSD__) || defined(__DragonFly__)
 #     include <machine/console.h>
 #    else
-#     if defined(__FreeBSD__)
-#        include <osreldate.h>
-#        if __FreeBSD_version >= 410000
+#     if defined(__FreeBSD__) || defined(__FreeBSD_kernel__)
+#        if (__FreeBSD_kernel_version >= 410000)
 #          include <sys/consio.h>
 #          include <sys/kbio.h>
 #        else
@@ -450,7 +486,7 @@ extern int errno;
 #   if defined(PCVT_SUPPORT)
 #    if !defined(SYSCONS_SUPPORT)
       /* no syscons, so include pcvt specific header file */
-#     if defined(__FreeBSD__) || defined(__DragonFly__)
+#     if defined(__FreeBSD__) || defined(__FreeBSD_kernel__) || defined(__DragonFly__)
 #      include <machine/pcvt_ioctl.h>
 #     else
 #      if defined(__NetBSD__) || defined(__OpenBSD__)
@@ -460,7 +496,7 @@ extern int errno;
 #      else
 #       include <sys/pcvt_ioctl.h>
 #      endif /* __NetBSD__ */
-#     endif /* __FreeBSD__ || __OpenBSD__ */
+#     endif /* __FreeBSD_kernel__ || __OpenBSD__ */
 #    else /* pcvt and syscons: hard-code the ID magic */
 #     define VGAPCVTID _IOWR('V',113, struct pcvtid)
       struct pcvtid {
@@ -473,9 +509,8 @@ extern int errno;
 #    include <dev/wscons/wsconsio.h>
 #    include <dev/wscons/wsdisplay_usl_io.h>
 #   endif /* WSCONS_SUPPORT */
-#   if defined(__FreeBSD__)
-#    include <osreldate.h>
-#    if __FreeBSD_version >= 500013
+#   if defined(__FreeBSD__) || defined(__FreeBSD_kernel__)
+#    if (__FreeBSD_kernel_version >= 500013)
 #     include <sys/mouse.h>
 #    else
 #     undef MOUSE_GETINFO
@@ -514,17 +549,6 @@ extern int errno;
 #  endif /* __bsdi__ */
 # endif /* !LINKKIT */
 
-# include <sys/types.h>
-# include <sys/mman.h>
-# include <sys/stat.h>
-
-# if defined(__bsdi__)
-#  include <sys/param.h>
-# if (_BSDI_VERSION < 199510)
-#  include <i386/isa/vgaioctl.h>
-# endif
-# endif /* __bsdi__ */
-
 #if defined(USE_I386_IOPL) || defined(USE_AMD64_IOPL)
 #include <machine/sysarch.h>
 #endif
@@ -535,7 +559,8 @@ extern int errno;
 #  define USE_VT_SYSREQ
 # endif
 
-#endif /* CSRG_BASED */
+#endif
+/* __FreeBSD_kernel__ || __NetBSD__ || __OpenBSD__ || __bsdi__ */
 
 /**************************************************************************/
 /* OS/2                                                                   */
@@ -643,25 +668,6 @@ extern char* __XOS2RedirRoot(char*);
 # define POSIX_TTY
 
 #endif
-
-/**************************************************************************/
-/* GNU/Hurd								  */
-/**************************************************************************/
-#if defined(__GNU__)
-
-#include <stdlib.h>
-#include <sys/types.h>
-#include <errno.h>
-#include <signal.h>
-#include <sys/ioctl.h>
-#include <termios.h>
-#include <sys/stat.h>
-#include <assert.h>
-
-#define POSIX_TTY
-#define USE_OSMOUSE
-
-#endif /* __GNU__ */
 
 /**************************************************************************/
 /* IRIX                                                                   */
