@@ -153,6 +153,13 @@ if test "x$ac_cv_sysv_ipc" = xyes; then
 	AC_DEFINE(HAVE_SYSV_IPC, 1, [Define to 1 if SYSV IPC is available])
 fi
 
+dnl glibc backtrace support check (hw/xfree86/common/xf86Events.c)
+AC_CHECK_HEADER([execinfo.h],[
+    AC_CHECK_LIB(c, backtrace, [
+        AC_DEFINE(HAVE_BACKTRACE, 1, [Has backtrace support])
+    ])
+)
+
 dnl ---------------------------------------------------------------------------
 dnl Bus options and CPU capabilities.  Replaces logic in
 dnl hw/xfree86/os-support/bus/Makefile.am, among others.
