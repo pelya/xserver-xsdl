@@ -3,7 +3,7 @@ INCLUDES = $(XORG_INCS) -I$(srcdir)/../parser -I$(srcdir)/../vbe \
            -I$(srcdir)/../ddc -I$(srcdir)/../int10 -I$(srcdir)/../i2c \
            -I$(srcdir)/../fbdevhw -I$(srcdir)/../scanpci -I$(srcdir)/../xaa \
            -I$(srcdir)/../vgahw -I$(srcdir)/../ramdac -I$(srcdir)/../shadowfb \
-           -I$(srcdir)/../dixmods/extmod
+           -I$(srcdir)/../dixmods/extmod -I$(srcdir)/../../../miext/cw
 
 #AM_LDFLAGS = -r
 AM_CFLAGS = -DIN_LOADER $(XORG_CFLAGS)
