@@ -1,5 +1,5 @@
 /*
- * $XdotOrg: xc/programs/Xserver/fb/fbcompose.c,v 1.22 2005/09/07 01:30:23 daniels Exp $
+ * $XdotOrg: xc/programs/Xserver/fb/fbcompose.c,v 1.23 2005/10/03 11:43:55 anholt Exp $
  * $XFree86: xc/programs/Xserver/fb/fbcompose.c,v 1.17tsi Exp $
  *
  * Copyright © 2000 Keith Packard, member of The XFree86 Project, Inc.
@@ -2747,7 +2747,7 @@ static void fbFetchSourcePict(PicturePtr pict, int x, int y, int width, CARD32 *
         }
     } else {
         /* radial or conical */
-        Bool projective = FALSE;
+        Bool affine = TRUE;
         double cx = 1.;
         double cy = 0.;
         double cz = 0.;
@@ -2769,11 +2769,11 @@ static void fbFetchSourcePict(PicturePtr pict, int x, int y, int width, CARD32 *
             rx = v.vector[0]/65536.;
             ry = v.vector[1]/65536.;
             rz = v.vector[2]/65536.;
-            projective = pict->transform->matrix[2][0] != 0 || v.vector[2] != xFixed1;
+            affine = pict->transform->matrix[2][0] == 0 && v.vector[2] == xFixed1;
         }
 
         if (pGradient->type == SourcePictTypeRadial) {
-            if (!projective) {
+            if (affine) {
                 rx -= pGradient->radial.fx;
                 ry -= pGradient->radial.fy;
 
@@ -2816,7 +2816,7 @@ static void fbFetchSourcePict(PicturePtr pict, int x, int y, int width, CARD32 *
             }
         } else /* SourcePictTypeConical */ {
             double a = pGradient->conical.angle/(180.*65536);
-            if (!projective) {
+            if (affine) {
                 rx -= pGradient->conical.center.x/65536.;
                 ry -= pGradient->conical.center.y/65536.;
 
@@ -2867,7 +2867,7 @@ static void fbFetchTransformed(PicturePtr pict, int x, int y, int width, CARD32 
     int         i;
     BoxRec	box;
     miIndexedPtr indexed = (miIndexedPtr) pict->pFormat->index.devPrivate;
-    Bool projective = FALSE;
+    Bool affine = TRUE;
 
     fetch = fetchPixelProcForPicture(pict);
 
@@ -2886,12 +2886,12 @@ static void fbFetchTransformed(PicturePtr pict, int x, int y, int width, CARD32 
         unit.vector[0] = pict->transform->matrix[0][0];
         unit.vector[1] = pict->transform->matrix[1][0];
         unit.vector[2] = pict->transform->matrix[2][0];
+        affine = v.vector[2] == xFixed1 && unit.vector[2] == 0;
     } else {
         unit.vector[0] = xFixed1;
         unit.vector[1] = 0;
         unit.vector[2] = 0;
     }
-    projective = (unit.vector[2] != 0);
 
     if (pict->filter == PictFilterNearest)
     {
@@ -2902,7 +2902,7 @@ static void fbFetchTransformed(PicturePtr pict, int x, int y, int width, CARD32 
                     if (!v.vector[2]) {
                         buffer[i] = 0;
                     } else {
-                        if (projective) {
+                        if (!affine) {
                             y = MOD(DIV(v.vector[1],v.vector[2]), pict->pDrawable->height);
                             x = MOD(DIV(v.vector[0],v.vector[2]), pict->pDrawable->width);
                         } else {
@@ -2920,7 +2920,7 @@ static void fbFetchTransformed(PicturePtr pict, int x, int y, int width, CARD32 
                     if (!v.vector[2]) {
                         buffer[i] = 0;
                     } else {
-                        if (projective) {
+                        if (!affine) {
                             y = MOD(DIV(v.vector[1],v.vector[2]), pict->pDrawable->height);
                             x = MOD(DIV(v.vector[0],v.vector[2]), pict->pDrawable->width);
                         } else {
@@ -2944,7 +2944,7 @@ static void fbFetchTransformed(PicturePtr pict, int x, int y, int width, CARD32 
                     if (!v.vector[2]) {
                         buffer[i] = 0;
                     } else {
-                        if (projective) {
+                        if (!affine) {
                             y = DIV(v.vector[1],v.vector[2]);
                             x = DIV(v.vector[0],v.vector[2]);
                         } else {
@@ -2963,7 +2963,7 @@ static void fbFetchTransformed(PicturePtr pict, int x, int y, int width, CARD32 
                     if (!v.vector[2]) {
                         buffer[i] = 0;
                     } else {
-                        if (projective) {
+                        if (!affine) {
                             y = DIV(v.vector[1],v.vector[2]);
                             x = DIV(v.vector[0],v.vector[2]);
                         } else {
@@ -2994,7 +2994,7 @@ static void fbFetchTransformed(PicturePtr pict, int x, int y, int width, CARD32 
                         CARD32 tl, tr, bl, br, r;
                         CARD32 ft, fb;
 
-                        if (projective) {
+                        if (!affine) {
                             xFixed_48_16 div;
                             div = ((xFixed_48_16)v.vector[0] << 16)/v.vector[2];
                             x1 = div >> 16;
@@ -3055,7 +3055,7 @@ static void fbFetchTransformed(PicturePtr pict, int x, int y, int width, CARD32 
                         CARD32 tl, tr, bl, br, r;
                         CARD32 ft, fb;
 
-                        if (projective) {
+                        if (!affine) {
                             xFixed_48_16 div;
                             div = ((xFixed_48_16)v.vector[0] << 16)/v.vector[2];
                             x1 = div >> 16;
@@ -3124,7 +3124,7 @@ static void fbFetchTransformed(PicturePtr pict, int x, int y, int width, CARD32 
                         Bool x1_out, x2_out, y1_out, y2_out;
                         CARD32 ft, fb;
 
-                        if (projective) {
+                        if (!affine) {
                             xFixed_48_16 div;
                             div = ((xFixed_48_16)v.vector[0] << 16)/v.vector[2];
                             x1 = div >> 16;
@@ -3186,7 +3186,7 @@ static void fbFetchTransformed(PicturePtr pict, int x, int y, int width, CARD32 
                         CARD32 tl, tr, bl, br, r;
                         CARD32 ft, fb;
 
-                        if (projective) {
+                        if (!affine) {
                             xFixed_48_16 div;
                             div = ((xFixed_48_16)v.vector[0] << 16)/v.vector[2];
                             x1 = div >> 16;
@@ -3254,7 +3254,7 @@ static void fbFetchTransformed(PicturePtr pict, int x, int y, int width, CARD32 
                 INT32 srtot, sgtot, sbtot, satot;
                 xFixed *p = params;
 
-                if (projective) {
+                if (!affine) {
                     xFixed_48_16 tmp;
                     tmp = ((xFixed_48_16)v.vector[0] << 16)/v.vector[2] - xoff;
                     x1 = xFixedToInt(tmp);
