@@ -1178,6 +1178,7 @@ hw/xfree86/xf8_16bpp/Makefile
 hw/xfree86/xf8_32bpp/Makefile
 hw/xfree86/xf8_32wid/Makefile
 hw/xfree86/utils/Makefile
+hw/xfree86/utils/gtf/Makefile
 hw/xfree86/utils/ioport/Makefile
 hw/xfree86/utils/kbd_mode/Makefile
 hw/xfree86/utils/pcitweak/Makefile

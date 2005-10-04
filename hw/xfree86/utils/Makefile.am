@@ -1,4 +1,5 @@
 SUBDIRS = \
+	gtf \
 	ioport \
 	kbd_mode \
 	pcitweak \
