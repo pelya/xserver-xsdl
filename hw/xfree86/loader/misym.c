@@ -77,7 +77,7 @@
 #include "mipict.h"
 #endif
 #ifdef COMPOSITE
-#include "cw/cw.h"
+#include "cw.h"
 #endif
 
 /* mi things */
