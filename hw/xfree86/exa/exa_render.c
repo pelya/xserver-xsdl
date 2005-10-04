@@ -718,6 +718,8 @@ exaGlyphs (CARD8	op,
 	    {
 		exaCopyArea (&pScratchPixmap->drawable, &pPixmap->drawable, pGC,
 			     0, 0, glyph->info.width, glyph->info.height, 0, 0);
+	    } else {
+		exaDrawableDirty (&pPixmap->drawable);
 	    }
 
 	    if (maskFormat)
