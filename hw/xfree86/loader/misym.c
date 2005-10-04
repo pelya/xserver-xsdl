@@ -76,6 +76,9 @@
 #ifdef RENDER
 #include "mipict.h"
 #endif
+#ifdef COMPOSITE
+#include "cw/cw.h"
+#endif
 
 /* mi things */
 
@@ -208,6 +211,9 @@ LOOKUP miLookupTab[] = {
     SYMVAR(miInitVisualsProc)
 #ifdef RENDER
     SYMFUNC(miGlyphExtents)
+#endif
+#ifdef COMPOSITE
+    SYMFUNC(miDisableCompositeWrapper)
 #endif
 
     {0, 0}
