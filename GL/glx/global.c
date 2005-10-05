@@ -53,6 +53,7 @@ __GLXcontext *__glXLastContext;
 RESTYPE __glXContextRes;
 RESTYPE __glXClientRes;
 RESTYPE __glXPixmapRes;
+RESTYPE __glXSwapBarrierRes;
 
 /*
 ** Error codes with the extension error base already added in.

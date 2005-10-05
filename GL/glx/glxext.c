@@ -180,6 +180,18 @@ GLboolean __glXFreeContext(__GLXcontext *cx)
     return GL_TRUE;
 }
 
+extern RESTYPE __glXSwapBarrierRes;
+
+static int SwapBarrierGone(int screen, XID drawable)
+{
+    if (__glXSwapBarrierFuncs &&
+        __glXSwapBarrierFuncs[screen].bindSwapBarrierFunc != NULL) {
+        __glXSwapBarrierFuncs[screen].bindSwapBarrierFunc(screen, drawable, 0);
+    }
+    FreeResourceByType(drawable, __glXSwapBarrierRes, FALSE);
+    return True;
+}
+
 /************************************************************************/
 
 /*
@@ -255,6 +267,8 @@ void GlxExtensionInit(void)
     __glXBadLargeRequest = extEntry->errorBase + GLXBadLargeRequest;
     __glXUnsupportedPrivateRequest = extEntry->errorBase +
       			GLXUnsupportedPrivateRequest;
+
+    __glXSwapBarrierRes = CreateNewResourceType((DeleteType)SwapBarrierGone);
 
     /*
     ** Initialize table of client state.  There is never a client 0.

@@ -49,6 +49,7 @@
 
 #include "glxserver.h"
 #include "glxutil.h"
+#include "glxext.h"
 
 const char GLServerVersion[] = "1.2";
 static const char GLServerExtensions[] = 
@@ -135,6 +136,8 @@ static char GLXServerExtensions[] =
 			"GLX_SGI_make_current_read "
 #ifndef __DARWIN__
 			"GLX_SGIS_multisample "
+                        "GLX_SGIX_hyperpipe "
+                        "GLX_SGIX_swap_barrier "
 #endif
 			"GLX_SGIX_fbconfig "
 			;
@@ -153,6 +156,12 @@ static GLint __glXNumStaticScreens =
 
 __GLXscreenInfo *__glXActiveScreens;
 GLint __glXNumActiveScreens;
+
+__GLXSwapBarrierExtensionFuncs *__glXSwapBarrierFuncs = NULL;
+static int __glXNumSwapBarrierFuncs = 0;
+__GLXHyperpipeExtensionFuncs *__glXHyperpipeFuncs = NULL;
+static int __glXNumHyperpipeFuncs = 0;
+
 
 RESTYPE __glXDrawableRes;
 
@@ -270,6 +279,49 @@ static void wrapPositionWindow(int screen)
     pScreen->PositionWindow = PositionWindow;
 }
 
+/*
+ * If your DDX driver wants to register support for swap barriers or hyperpipe
+ * topology, it should call __glXHyperpipeInit() or __glXSwapBarrierInit()
+ * with a dispatch table of functions to handle the requests.   In the XFree86
+ * DDX, for example, you would call these near the bottom of the driver's
+ * ScreenInit method, after DRI has been initialized.
+ *
+ * This should be replaced with a better method when we teach the server how
+ * to load DRI drivers.
+ */
+
+void __glXHyperpipeInit(int screen, __GLXHyperpipeExtensionFuncs *funcs)
+{
+    if (__glXNumHyperpipeFuncs < screen + 1) {
+        __glXHyperpipeFuncs = __glXRealloc(__glXHyperpipeFuncs,
+                                           (screen+1) * sizeof(__GLXHyperpipeExtensionFuncs));
+        __glXNumHyperpipeFuncs = screen + 1;
+    }
+
+    __glXHyperpipeFuncs[screen].queryHyperpipeNetworkFunc =
+        *funcs->queryHyperpipeNetworkFunc;
+    __glXHyperpipeFuncs[screen].queryHyperpipeConfigFunc =
+        *funcs->queryHyperpipeConfigFunc;
+    __glXHyperpipeFuncs[screen].destroyHyperpipeConfigFunc =
+        *funcs->destroyHyperpipeConfigFunc;
+    __glXHyperpipeFuncs[screen].hyperpipeConfigFunc =
+        *funcs->hyperpipeConfigFunc;
+}
+
+void __glXSwapBarrierInit(int screen, __GLXSwapBarrierExtensionFuncs *funcs)
+{
+    if (__glXNumSwapBarrierFuncs < screen + 1) {
+        __glXSwapBarrierFuncs = __glXRealloc(__glXSwapBarrierFuncs,
+                                           (screen+1) * sizeof(__GLXSwapBarrierExtensionFuncs));
+        __glXNumSwapBarrierFuncs = screen + 1;
+    }
+
+    __glXSwapBarrierFuncs[screen].bindSwapBarrierFunc =
+        funcs->bindSwapBarrierFunc;
+    __glXSwapBarrierFuncs[screen].queryMaxSwapBarriersFunc =
+        funcs->queryMaxSwapBarriersFunc;
+}
+
 void __glXScreenInit(GLint numscreens)
 {
     GLint i,j;
@@ -315,6 +367,12 @@ void __glXScreenReset(void)
       __glXFree(__glXActiveScreens[i].GLextensions);
   }
   xfree(__glXActiveScreens);
+  xfree(__glXHyperpipeFuncs);
+  xfree(__glXSwapBarrierFuncs);
+  __glXNumHyperpipeFuncs = 0;
+  __glXNumSwapBarrierFuncs = 0;
+  __glXHyperpipeFuncs = NULL;
+  __glXSwapBarrierFuncs = NULL;
   __glXActiveScreens = NULL;
   __glXNumActiveScreens = 0;
 }

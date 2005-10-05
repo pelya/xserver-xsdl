@@ -107,5 +107,25 @@ extern int GlxInitVisuals(
     int               preferredVis
 );
 
+typedef struct {
+    void * (* queryHyperpipeNetworkFunc)(int, int *, int *);
+    void * (* queryHyperpipeConfigFunc)(int, int, int *, int *);
+    int    (* destroyHyperpipeConfigFunc)(int, int);
+    void * (* hyperpipeConfigFunc)(int, int, int *, int *, void *);
+} __GLXHyperpipeExtensionFuncs;
+
+extern void __glXHyperpipeInit(int screen, __GLXHyperpipeExtensionFuncs *funcs);
+
+extern __GLXHyperpipeExtensionFuncs *__glXHyperpipeFuncs;
+
+typedef struct {
+    int    (* bindSwapBarrierFunc)(int, XID, int);
+    int    (* queryMaxSwapBarriersFunc)(int);
+} __GLXSwapBarrierExtensionFuncs;
+
+extern void __glXSwapBarrierInit(int screen, __GLXSwapBarrierExtensionFuncs *funcs);
+
+extern __GLXSwapBarrierExtensionFuncs *__glXSwapBarrierFuncs;
+
 #endif /* _glxext_h_ */
 
