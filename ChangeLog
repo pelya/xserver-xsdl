@@ -1,3 +1,9 @@
+2005-10-05  Adam Jackson  <ajax@freedesktop.org>
+
+	* configure.ac:
+	* hw/xfree86/utils/xorgcfg/Makefile.am:
+	Preprocess and install XOrgCfg.ad as in the monolith.
+
 2005-10-04  Adam Jackson  <ajax@freedesktop.org>
 
 	* configure.ac:

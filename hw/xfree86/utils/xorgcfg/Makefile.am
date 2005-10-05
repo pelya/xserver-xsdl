@@ -113,9 +113,13 @@ XPM_DATA = \
 
 appdefaultdir = $(sysconfdir)/X11/app-defaults
 
-APPDEFAULTFILES = XOrgCfg
+APPDEFAULTFILES = XOrgCfg.ad
 
 appdefault_DATA = $(APPDEFAULTFILES)
+
+XOrgCfg.ad: XOrgCfg.pre
+	$(RAWCPP) $(RAWCPPFLAGS) -D__VENDORNAME__="@VENDOR_STRING@" \
+               -D__VENDORVERS__="@VENDOR_RELEASE@" -o $@ $<
 
 # Man page
 man1_MANS =  xorgcfg.man
