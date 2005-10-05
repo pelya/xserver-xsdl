@@ -60,7 +60,7 @@ os-support/solaris/solaris-$(SOLARIS_INOUT_ARCH).il:
 endif
 
 install-data-local:
-	$(mkdir_p) $(logdir)
+	$(mkdir_p) $(DESTDIR)$(logdir)
 
 
 install-exec-local:
