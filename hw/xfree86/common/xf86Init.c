@@ -1,4 +1,5 @@
 /* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86Init.c,v 3.212 2004/01/27 01:31:45 dawes Exp $ */
+/* $XdotOrg: $ */
 
 /*
  * Loosely based on code bearing the following copyright:
@@ -1399,13 +1400,17 @@ ddxProcessArgument(int argc, char **argv, int i)
   }
   if (!strcmp(argv[i], "-config") || !strcmp(argv[i], "-xf86config"))
   {
-    if (!argv[i + 1])
-      return 0;
+    if (((i + 1) >= argc) || (!argv[i + 1])) {
+      ErrorF("Required argument to %s not specified\n", argv[i]);
+      UseMsg();
+      FatalError("Required argument to %s not specified\n", argv[i]);
+    }
     if (getuid() != 0 && !xf86PathIsSafe(argv[i + 1])) {
-      FatalError("\nInvalid argument for -config\n"
-	  "\tFor non-root users, the file specified with -config must be\n"
+      FatalError("\nInvalid argument for %s\n"
+	  "\tFor non-root users, the file specified with %s must be\n"
 	  "\ta relative path and must not contain any \"..\" elements.\n"
-	  "\tUsing default "__XCONFIGFILE__" search path.\n\n");
+	  "\tUsing default "__XCONFIGFILE__" search path.\n\n",
+	  argv[i], argv[i]);
     }
     xf86ConfigFile = argv[i + 1];
     return 2;
@@ -1728,11 +1733,8 @@ ddxUseMsg()
     ErrorF("-logfile file          specify a log file name\n");
     ErrorF("-configure             probe for devices and write an "__XCONFIGFILE__"\n");
   }
-  else
-  {
-    ErrorF("-config file       specify a configuration file, relative to the\n");
-    ErrorF("                       "__XCONFIGFILE__" search path, only root can use absolute\n");
-  }
+  ErrorF("-config file           specify a configuration file, relative to the\n");
+  ErrorF("                       "__XCONFIGFILE__" search path, only root can use absolute\n");
   ErrorF("-probeonly             probe for devices, then exit\n");
   ErrorF("-scanpci               execute the scanpci module and exit\n");
   ErrorF("-verbose [n]           verbose startup messages\n");
