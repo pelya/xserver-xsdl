@@ -577,7 +577,7 @@ AM_CONDITIONAL(XDMCP, [test "x$XDMCP" = xyes])
 if test "x$XDMCP" = xyes; then
 	AC_DEFINE(XDMCP, 1, [Support XDM Control Protocol])
 	REQUIRED_MODULES="$REQUIRED_MODULES xdmcp"
-	XNEST_MODULES="$XNEST_MODULES xdmcp"
+	XDMCP_MODULES="xdmcp"
 fi
 
 AM_CONDITIONAL(XDMAUTH, [test "x$XDMAUTH" = xyes])
@@ -585,7 +585,7 @@ if test "x$XDMAUTH" = xyes; then
 	AC_DEFINE(HASXDMAUTH,1,[Support XDM-AUTH*-1])
 	if ! test "x$XDMCP" = xyes; then
 		REQUIRED_MODULES="$REQUIRED_MODULES xdmcp"
-		XNEST_MODULES="$XNEST_MODULES xdmcp"
+		XDMCP_MODULES="xdmcp"
 	fi
 fi
 
@@ -659,7 +659,7 @@ dnl ---------------------------------------------------------------------------
 dnl DMX DDX
 
 AC_MSG_CHECKING([whether to build Xdmx DDX])
-PKG_CHECK_MODULES([DMXMODULES], [xmuu xext x11 xrender xfont xi dmxproto], [have_dmx=yes], [have_dmx=no])
+PKG_CHECK_MODULES([DMXMODULES], [xmuu xext x11 xrender xfont xi dmxproto xau $XDMCP_MODULES], [have_dmx=yes], [have_dmx=no])
 if test "x$DMX" = xauto; then
 	DMX="$have_dmx"
 fi
@@ -704,7 +704,7 @@ fi
 dnl Xnest DDX
 
 AC_MSG_CHECKING([whether to build Xnest DDX])
-PKG_CHECK_MODULES(XNESTMODULES, [xfont xext x11 xau $XNEST_MODULES], [have_xnest=yes], [have_xnest=no])
+PKG_CHECK_MODULES(XNESTMODULES, [xfont xext x11 xau $XDMCP_MODULES], [have_xnest=yes], [have_xnest=no])
 if test "x$XNEST" = xauto; then
 	XNEST="$have_xnest"
 fi
@@ -922,7 +922,7 @@ AC_MSG_RESULT([$XPRINT])
 AM_CONDITIONAL(XPRINT, [test x$XPRINT = xyes])
 
 if test "x$XPRINT" = xyes; then
-	PKG_CHECK_MODULES([XPRINT], [printproto x11 xfont])
+	PKG_CHECK_MODULES([XPRINT], [printproto x11 xfont $XDMCP_MODULES xau])
 	XPRINT_EXTENSIONS="$XEXT_LIB $RENDER_LIB $COMPOSITE_LIB $RANDR_LIB $XI_LIB $FIXES_LIB $DAMAGE_LIB $XI_LIB $GLX_LIBS"
 	XPRINT_INCLUDES="$XEXT_INC $RENDER_INC $COMPOSITE_INC $RANDR_INC $XI_INC $FIXES_INC $DAMAGE_INC $XI_INC $GLX_INC"
 	XPRINT_LIBS="$XPRINT_LIBS $DIX_LIB $XKB_LIB $XKB_STUB_LIB $OS_LIB $XPRINT_EXTENSIONS $MI_LIB $MIEXT_DAMAGE_LIB $GLX_INC"
