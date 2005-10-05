@@ -335,6 +335,7 @@ AC_ARG_ENABLE(xres,          [  --disable-xres ], [RES=$enableval], [RES=yes])
 AC_ARG_ENABLE(xtrap,         [  --enable-xtrap ], [XTRAP=$enableval], [XTRAP=no])
 AC_ARG_ENABLE(record,        [  --disable-record ], [RECORD=$enableval], [RECORD=yes])
 AC_ARG_ENABLE(xv,            [  --disable-xv ], [XV=$enableval], [XV=yes])
+AC_ARG_ENABLE(dga,           [  --enable-dga ], [DGA=$enableval], [DGA=no])
 AC_ARG_ENABLE(screensaver,   [  --disable-screensaver ], [SCREENSAVER=$enableval], [SCREENSAVER=yes])
 AC_ARG_ENABLE(xdmcp,         [  --disable-xdmcp ], [XDMCP=$enableval], [XDMCP=auto])
 AC_ARG_ENABLE(xdm-auth-1,    [  --disable-xdm-auth-1 ], [XDMAUTH=$enableval], [XDMAUTH=auto])
@@ -417,12 +418,18 @@ XEXT_INC='-I$(top_srcdir)/Xext'
 XEXT_LIB='$(top_builddir)/Xext/libXext.la'
 
 dnl Core modules for most extensions, et al.
-REQUIRED_MODULES="randrproto renderproto fixesproto damageproto xcmiscproto xextproto xfont xproto xtrans xau xf86dgaproto xf86miscproto xf86vidmodeproto xf86bigfontproto scrnsaverproto bigreqsproto resourceproto fontenc fontsproto"
+REQUIRED_MODULES="randrproto renderproto fixesproto damageproto xcmiscproto xextproto xfont xproto xtrans xau xf86miscproto xf86vidmodeproto xf86bigfontproto scrnsaverproto bigreqsproto resourceproto fontenc fontsproto"
 
 AM_CONDITIONAL(XV, [test "x$XV" = xyes])
 if test "x$XV" = xyes; then
 	AC_DEFINE(XV, 1, [Support Xv extension])
 	REQUIRED_MODULES="$REQUIRED_MODULES videoproto"
+fi
+
+AM_CONDITIONAL(DGA, [test "x$DGA" = xyes])
+if test "x$DGA" = xyes; then
+	AC_DEFINE(DGA, 1, [Support DGA extension])
+	REQUIRED_MODULES="$REQUIRED_MODULES xf86dgaproto"
 fi
 
 AM_CONDITIONAL(COMPOSITE, [test "x$COMPOSITE" = xyes])

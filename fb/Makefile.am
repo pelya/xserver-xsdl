@@ -24,6 +24,7 @@ libfbmmx_la_SOURCES =	\
 libfb_la_SOURCES = 	\
 	fb.h		\
 	fb24_32.c	\
+	fb24_32.h	\
 	fballpriv.c	\
 	fbarc.c		\
 	fbbits.c	\

@@ -33,3 +33,5 @@ libxpstubs_la_SOURCES =	\
 	xpstubs.c
 
 INCLUDES = -I$(top_srcdir)/Xprint
+
+EXTRA_DIST = buildatoms BuiltInAtoms CHANGES

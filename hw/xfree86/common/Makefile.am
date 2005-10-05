@@ -23,15 +23,10 @@ BUSSOURCES = xf86isaBus.c xf86pciBus.c xf86fbBus.c xf86noBus.c $(SBUS_SOURCES)
 KBDSOURCES = xf86Kbd@XORG_OS_KBD@.c
 
 MODEDEFSOURCES = $(srcdir)/vesamodes $(srcdir)/extramodes
-MODEDEFS = modedefs
 
-$(MODEDEFS): $(MODEDEFSOURCES)
+xf86DefModeSet.c: $(srcdir)/modeline2c.pl
 	$(RM) $@
-	cat $(MODEDEFSOURCES) > $@
-
-xf86DefModeSet.c: $(MODEDEFS) $(srcdir)/modeline2c.pl
-	$(RM) $@
-	$(PERL) $(srcdir)/modeline2c.pl < $(MODEDEFS) > $@
+	cat $(MODEDEFSOURCES) | $(PERL) $(srcdir)/modeline2c.pl > $@
 
 BUILT_SOURCES = xf86DefModeSet.c
 
@@ -42,7 +37,7 @@ libcommon_a_SOURCES = xf86Configure.c xf86Bus.c xf86Config.c \
                       xf86Globals.c xf86Io.c xf86AutoConfig.c \
                       xf86MiscExt.c xf86Option.c \
                       xf86VidMode.c xf86fbman.c xf86cmap.c \
-                      xf86Helper.c \
+                      xf86Helper.c xf86PM.c \
                       xf86Mode.c xf86Build.h xorgHelper.c xf86Versions.c \
                       $(XVSOURCES) $(BUSSOURCES) $(XKBSOURCES) \
                       $(DEBUGSOURCES) $(XISOURCES) $(RANDRSOURCES) \

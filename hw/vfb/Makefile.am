@@ -23,3 +23,7 @@ AM_CFLAGS = -DHAVE_DIX_CONFIG_H \
             -DNO_MODULE_EXTS \
             -DXFree86Server \
             $(XVFBMODULES_CFLAGS)
+
+man1_MANS = Xvfb.man
+
+CLEANFILES = $(man1_MANS)

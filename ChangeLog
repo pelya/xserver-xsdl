@@ -1,3 +1,16 @@
+2005-10-05  Kristian Høgsberg  <krh@redhat.com>
+
+	* afb/Makefile.am:
+	* cfb/Makefile.am:
+	* configure.ac:
+	* dix/Makefile.am:
+	* fb/Makefile.am:
+	* hw/vfb/Makefile.am:
+	* hw/xfree86/common/Makefile.am:
+	* hw/xfree86/dixmods/extmod/Makefile.am:
+	Add DGA configure option and add various files that we should be
+	dist'ing.  Simplify xf86DefModeSet.c rule a bit.
+
 2005-10-05  Adam Jackson  <ajax@freedesktop.org>
 
 	* configure.ac:

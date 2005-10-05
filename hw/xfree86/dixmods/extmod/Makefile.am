@@ -2,7 +2,10 @@ sdk_HEADERS = dgaproc.h
 
 module_LTLIBRARIES = libextmod.la
 
-# DGA_SRCS = xf86dga.c xf86dga2.c dgaproc.h xf86dgaext.h
+if DGA
+DGA_SRCS = xf86dga.c xf86dga2.c dgaproc.h xf86dgaext.h
+endif
+
 if XV
 XV_SRCS = xvmod.c xvmodproc.h
 endif

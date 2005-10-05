@@ -11,10 +11,10 @@ libafb_la_SOURCES = afbgc.c afbwindow.c afbfont.c afbfillrct.c afbpntwin.c afbpi
 	 afbzerarc.c afbfillarc.c afbfillsp.c afbsetsp.c afbscrinit.c afbplygblt.c \
 	 afbclip.c afbgetsp.c afbpolypnt.c afbbitblt.c afbcmap.c afbimggblt.c afbpntarea.c \
 	 afbmisc.c afbbstore.c afbtegblt.c $(libafb_gen_sources)
-	 
+
 INCLUDES = -I$(top_srcdir)/mfb
 
-EXTRA_DIST = afbline.c afbblt.c afbtile.c
+EXTRA_DIST = afbline.c afbblt.c afbtile.c README Xdaniver.doc
 
 afbseg.c:
 	echo "#define POLYSEGMENT" > $@
