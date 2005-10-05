@@ -577,6 +577,7 @@ AM_CONDITIONAL(XDMCP, [test "x$XDMCP" = xyes])
 if test "x$XDMCP" = xyes; then
 	AC_DEFINE(XDMCP, 1, [Support XDM Control Protocol])
 	REQUIRED_MODULES="$REQUIRED_MODULES xdmcp"
+	XNEST_MODULES="$XNEST_MODULES xdmcp"
 fi
 
 AM_CONDITIONAL(XDMAUTH, [test "x$XDMAUTH" = xyes])
@@ -584,6 +585,7 @@ if test "x$XDMAUTH" = xyes; then
 	AC_DEFINE(HASXDMAUTH,1,[Support XDM-AUTH*-1])
 	if ! test "x$XDMCP" = xyes; then
 		REQUIRED_MODULES="$REQUIRED_MODULES xdmcp"
+		XNEST_MODULES="$XNEST_MODULES xdmcp"
 	fi
 fi
 
@@ -702,7 +704,7 @@ fi
 dnl Xnest DDX
 
 AC_MSG_CHECKING([whether to build Xnest DDX])
-PKG_CHECK_MODULES(XNESTMODULES, [xfont xext x11], [have_xnest=yes], [have_xnest=no])
+PKG_CHECK_MODULES(XNESTMODULES, [xfont xext x11 xau $XNEST_MODULES], [have_xnest=yes], [have_xnest=no])
 if test "x$XNEST" = xauto; then
 	XNEST="$have_xnest"
 fi
