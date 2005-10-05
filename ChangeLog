@@ -1,3 +1,8 @@
+2005-10-04  Adam Jackson  <ajax@freedesktop.org>
+
+	* configure.ac:
+	Bug #4038: Unbreak the SYSVIPC check for cross builds. (Detlef Vollman)
+
 2005-10-04  Aaron Plattner  <aplattner@nvidia.com>
 
 	* hw/xfree86/loader/Makefile.am:
