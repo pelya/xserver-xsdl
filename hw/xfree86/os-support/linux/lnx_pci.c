@@ -166,7 +166,7 @@ xf86GetOSOffsetFromPCI(PCITAG tag, int space, unsigned long base)
     unsigned int ndx;
 
     if (!(file = fopen("/proc/bus/pci/devices","r")))
-        return NULL;
+        return 0;
     do {
         res = fgets(c,0x1ff,file);
         if (res) {
@@ -194,7 +194,7 @@ xf86GetOSOffsetFromPCI(PCITAG tag, int space, unsigned long base)
 		         &size[3], &size[4], &size[5], &size[6]);
             if (num != 16) {  /* apparantly not 2.3 style */
                 fclose(file);
-                return NULL;
+                return 0;
             }
 
             dev = devfn >> 3;
@@ -213,10 +213,11 @@ xf86GetOSOffsetFromPCI(PCITAG tag, int space, unsigned long base)
 		    else /* this the ROM bar */
 			savePtr = (0xFFFFFFF0) & 
 			    pciReadLong(tag, PCI_CMD_BASE_REG + (0x4 * ndx));
+
                     /* find the index of the incoming base */
                     if (base >= savePtr && base <= (savePtr + size[ndx])) {
                         fclose(file);
-                        return ( ~(0xFUL) & (offset[ndx] + (base - savePtr)));
+                        return (offset[ndx] & ~(0xFUL)) + (base - savePtr);
                     }
                 }
             }
@@ -224,6 +225,6 @@ xf86GetOSOffsetFromPCI(PCITAG tag, int space, unsigned long base)
     } while (res);
 
     fclose(file);
-    return NULL;
+    return 0;
 
 }
