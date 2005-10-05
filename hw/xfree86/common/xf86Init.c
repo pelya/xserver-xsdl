@@ -1368,14 +1368,20 @@ ddxProcessArgument(int argc, char **argv, int i)
    * yet.  Use malloc/free instead.
    */
 
+#define CHECK_FOR_REQUIRED_ARGUMENT() \
+    if (((i + 1) >= argc) || (!argv[i + 1])) { 				\
+      ErrorF("Required argument to %s not specified\n", argv[i]); 	\
+      UseMsg(); 							\
+      FatalError("Required argument to %s not specified\n", argv[i]);	\
+    }
+  
   /* First the options that are only allowed for root */
   if (getuid() == 0 || geteuid != 0)
   {
     if (!strcmp(argv[i], "-modulepath"))
     {
       char *mp;
-      if (!argv[i + 1])
-	return 0;
+      CHECK_FOR_REQUIRED_ARGUMENT();
       mp = malloc(strlen(argv[i + 1]) + 1);
       if (!mp)
 	FatalError("Can't allocate memory for ModulePath\n");
@@ -1387,8 +1393,7 @@ ddxProcessArgument(int argc, char **argv, int i)
     else if (!strcmp(argv[i], "-logfile"))
     {
       char *lf;
-      if (!argv[i + 1])
-	return 0;
+      CHECK_FOR_REQUIRED_ARGUMENT();
       lf = malloc(strlen(argv[i + 1]) + 1);
       if (!lf)
 	FatalError("Can't allocate memory for LogFile\n");
@@ -1397,14 +1402,12 @@ ddxProcessArgument(int argc, char **argv, int i)
       xf86LogFileFrom = X_CMDLINE;
       return 2;
     }
+  } else if (!strcmp(argv[i], "-modulepath") || !strcmp(argv[i], "-logfile")) {
+    FatalError("The '%s' option can only be used by root.\n", argv[i]);
   }
   if (!strcmp(argv[i], "-config") || !strcmp(argv[i], "-xf86config"))
   {
-    if (((i + 1) >= argc) || (!argv[i + 1])) {
-      ErrorF("Required argument to %s not specified\n", argv[i]);
-      UseMsg();
-      FatalError("Required argument to %s not specified\n", argv[i]);
-    }
+    CHECK_FOR_REQUIRED_ARGUMENT();
     if (getuid() != 0 && !xf86PathIsSafe(argv[i + 1])) {
       FatalError("\nInvalid argument for %s\n"
 	  "\tFor non-root users, the file specified with %s must be\n"
@@ -1545,11 +1548,11 @@ ddxProcessArgument(int argc, char **argv, int i)
   }
   if (!strcmp(argv[i], "-bpp"))
   {
-    if (++i >= argc)
-      return 0;
     ErrorF("The -bpp option is no longer supported.\n"
 	"\tUse -depth to set the color depth, and use -fbbpp if you really\n"
 	"\tneed to force a non-default framebuffer (hardware) pixel format.\n");
+    if (++i >= argc)
+      return 1;
     return 2;
   }
   if (!strcmp(argv[i], "-pixmap24"))
@@ -1565,9 +1568,8 @@ ddxProcessArgument(int argc, char **argv, int i)
   if (!strcmp(argv[i], "-fbbpp"))
   {
     int bpp;
-    if (++i >= argc)
-      return 0;
-    if (sscanf(argv[i], "%d", &bpp) == 1)
+    CHECK_FOR_REQUIRED_ARGUMENT();
+    if (sscanf(argv[++i], "%d", &bpp) == 1)
     {
       xf86FbBpp = bpp;
       return 2;
@@ -1581,9 +1583,8 @@ ddxProcessArgument(int argc, char **argv, int i)
   if (!strcmp(argv[i], "-depth"))
   {
     int depth;
-    if (++i >= argc)
-      return 0;
-    if (sscanf(argv[i], "%d", &depth) == 1)
+    CHECK_FOR_REQUIRED_ARGUMENT();
+    if (sscanf(argv[++i], "%d", &depth) == 1)
     {
       xf86Depth = depth;
       return 2;
@@ -1597,9 +1598,8 @@ ddxProcessArgument(int argc, char **argv, int i)
   if (!strcmp(argv[i], "-weight"))
   {
     int red, green, blue;
-    if (++i >= argc)
-      return 0;
-    if (sscanf(argv[i], "%1d%1d%1d", &red, &green, &blue) == 3)
+    CHECK_FOR_REQUIRED_ARGUMENT();
+    if (sscanf(argv[++i], "%1d%1d%1d", &red, &green, &blue) == 3)
     {
       xf86Weight.red = red;
       xf86Weight.green = green;
@@ -1616,9 +1616,8 @@ ddxProcessArgument(int argc, char **argv, int i)
       !strcmp(argv[i], "-ggamma") || !strcmp(argv[i], "-bgamma"))
   {
     double gamma;
-    if (++i >= argc)
-      return 0;
-    if (sscanf(argv[i], "%lf", &gamma) == 1) {
+    CHECK_FOR_REQUIRED_ARGUMENT();    
+    if (sscanf(argv[++i], "%lf", &gamma) == 1) {
        if (gamma < GAMMA_MIN || gamma > GAMMA_MAX) {
 	  ErrorF("gamma out of range, only  %.2f <= gamma_value <= %.1f"
 		 " is valid\n", GAMMA_MIN, GAMMA_MAX);
@@ -1634,30 +1633,26 @@ ddxProcessArgument(int argc, char **argv, int i)
   }
   if (!strcmp(argv[i], "-layout"))
   {
-    if (++i >= argc)
-      return 0;
-    xf86LayoutName = argv[i];
+    CHECK_FOR_REQUIRED_ARGUMENT();
+    xf86LayoutName = argv[++i];
     return 2;
   }
   if (!strcmp(argv[i], "-screen"))
   {
-    if (++i >= argc)
-      return 0;
-    xf86ScreenName = argv[i];
+    CHECK_FOR_REQUIRED_ARGUMENT();
+    xf86ScreenName = argv[++i];
     return 2;
   }
   if (!strcmp(argv[i], "-pointer"))
   {
-    if (++i >= argc)
-      return 0;
-    xf86PointerName = argv[i];
+    CHECK_FOR_REQUIRED_ARGUMENT();
+    xf86PointerName = argv[++i];
     return 2;
   }
   if (!strcmp(argv[i], "-keyboard"))
   {
-    if (++i >= argc)
-      return 0;
-    xf86KeyboardName = argv[i];
+    CHECK_FOR_REQUIRED_ARGUMENT();    
+    xf86KeyboardName = argv[++i];
     return 2;
   }
   if (!strcmp(argv[i], "-nosilk"))
@@ -1690,11 +1685,9 @@ ddxProcessArgument(int argc, char **argv, int i)
   if (!strcmp(argv[i], "-isolateDevice"))
   {
     int bus, device, func;
-    if (++i >= argc)
-       return 0;
-    if (strncmp(argv[i], "PCI:", 4)) {
-       ErrorF("Bus types other than PCI not yet isolable\n");
-       return 0;
+    CHECK_FOR_REQUIRED_ARGUMENT();
+    if (strncmp(argv[++i], "PCI:", 4)) {
+       FatalError("Bus types other than PCI not yet isolable\n");
     }
     if (sscanf(argv[i], "PCI:%d:%d:%d", &bus, &device, &func) == 3) {
        xf86IsolateDevice.bus = bus;
@@ -1702,8 +1695,7 @@ ddxProcessArgument(int argc, char **argv, int i)
        xf86IsolateDevice.func = func;
        return 2;
     } else {
-       ErrorF("Invalid isolated device specifiation\n");
-       return 0;
+       FatalError("Invalid isolated device specification\n");
     }
   }
   /* OS-specific processing */
