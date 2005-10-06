@@ -1,3 +1,8 @@
+2005-10-06  Alan Coopersmith  <alan.coopersmith@sun.com>
+
+	* hw/dmx/examples/Makefile.am: 
+	Don't build "ev" example on systems without <linux/input.h>
+
 2005-10-06  Kristian Høgsberg  <krh@redhat.com>
 
 	* hw/xfree86/parser/Makefile.am: Add cpconfig.c to EXTRA_DIST.
