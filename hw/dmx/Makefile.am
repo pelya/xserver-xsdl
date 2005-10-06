@@ -1,6 +1,6 @@
-DIST_SUBDIRS = input config glxProxy doc
+DIST_SUBDIRS = input config glxProxy examples doc
 
-SUBDIRS = input config
+SUBDIRS = input config examples
 bin_PROGRAMS = Xdmx
 
 if XINERAMA
@@ -83,3 +83,5 @@ Xdmx_CFLAGS = -DHAVE_DMX_CONFIG_H \
               -DXFree86Server \
               $(GLX_INCS) \
               @DMXMODULES_CFLAGS@
+
+dist_man_MANS = Xdmx.1

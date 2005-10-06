@@ -691,6 +691,20 @@ dnl Linux sources in DMX require <linux/keyboard.h>
 	if test "x$GLX" = xyes; then
 		PKG_CHECK_MODULES([GL], [glproto])
 	fi
+	PKG_CHECK_MODULES([XDMXCONFIG_DEP], [xaw7 xmu xt xpm x11])
+	AC_SUBST(XDMXCONFIG_DEP_LIBS)
+	PKG_CHECK_MODULES([DMXEXAMPLES_DEP], [dmx xext x11])
+	AC_SUBST(DMXEXAMPLES_DEP_LIBS)
+	PKG_CHECK_MODULES([DMXXMUEXAMPLES_DEP], [dmx xmu xext x11])
+	AC_SUBST(DMXXMUEXAMPLES_DEP_LIBS)
+	PKG_CHECK_MODULES([DMXXIEXAMPLES_DEP], [dmx xi xext x11])
+	AC_SUBST(DMXXIEXAMPLES_DEP_LIBS)
+	PKG_CHECK_MODULES([XTSTEXAMPLES_DEP], [xtst xext x11])
+	AC_SUBST(XTSTEXAMPLES_DEP_LIBS)
+	PKG_CHECK_MODULES([XRESEXAMPLES_DEP], [xres xext x11])
+	AC_SUBST(XRESEXAMPLES_DEP_LIBS)
+	PKG_CHECK_MODULES([X11EXAMPLES_DEP], [xext x11])
+	AC_SUBST(X11EXAMPLES_DEP_LIBS)
 fi
 AM_CONDITIONAL([DMX_BUILD_LNX], [test "x$DMX_BUILD_LNX" = xyes])
 AM_CONDITIONAL([DMX_BUILD_USB], [test "x$DMX_BUILD_USB" = xyes])
@@ -1196,6 +1210,7 @@ hw/xfree86/utils/xorgcfg/Makefile
 hw/xfree86/utils/xorgconfig/Makefile
 hw/dmx/config/Makefile
 hw/dmx/doc/Makefile
+hw/dmx/examples/Makefile
 hw/dmx/input/Makefile
 hw/dmx/glxProxy/Makefile
 hw/dmx/Makefile

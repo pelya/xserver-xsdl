@@ -1,5 +1,17 @@
 2005-10-05  Kevin E. Martin  <kem-at-freedesktop-dot-org>
 
+	* configure.ac:
+	* hw/dmx/Makefile.am:
+	* hw/dmx/config/Makefile.am:
+	* hw/dmx/doc/Makefile.am:
+	* hw/dmx/examples/Makefile.am:
+	* hw/dmx/input/Makefile.am:
+	Add support for building DMX config and examples programs
+	Add missing files to EXTRA_DIST
+	Install Xdmx man page
+
+2005-10-05  Kevin E. Martin  <kem-at-freedesktop-dot-org>
+
 	* hw/xfree86/fbdevhw/Makefile.am:
 	Clean up generated files to pass distcheck
 
