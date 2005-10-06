@@ -1030,7 +1030,18 @@ dnl these only go in xkb-config.h (which is shared by the Xorg and Xnest servers
 AC_DEFINE(__XKBDEFRULES__, "xorg", [Default XKB rules])
 AC_DEFINE_DIR(XKB_BASE_DIRECTORY, XKBPATH, [Path to XKB data])
 AC_DEFINE_DIR(XKB_BIN_DIRECTORY, bindir, [Path to XKB bin dir])
+
+# Make sure XKM_OUTPUT_DIR is an absolute path
+
+XKBOUTPUT_FIRSTCHAR=`echo $XKBOUTPUT | cut -b 1`
+
+if [[ x$XKBOUTPUT_FIRSTCHAR != x/ ]] ; then
+   XKBOUTPUT="$XKB_BASE_DIRECTORY/$XKBOUTPUT"
+fi
+
 AC_DEFINE_DIR(XKM_OUTPUT_DIR, XKBOUTPUT, [Path to XKB output dir])
+
+AC_SUBST(XKM_OUTPUT_DIR)
 
 dnl and the rest of these are generic, so they're in config.h
 AC_DEFINE(XFree86XDGA, 1, [Build XDGA support])

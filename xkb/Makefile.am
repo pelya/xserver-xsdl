@@ -2,7 +2,7 @@ noinst_LTLIBRARIES = libxkb.la libxkbstubs.la
 
 AM_CFLAGS = $(DIX_CFLAGS) \
 	-DHAVE_XKB_CONFIG_H
-	
+
 DDX_SRCS = \
         ddxBeep.c \
         ddxCtrls.c \
@@ -50,3 +50,6 @@ libxkb_la_SOURCES = $(DDX_SRCS) $(DIX_SRCS) $(XI_SRCS) $(XKBFILE_SRCS) \
 libxkbstubs_la_SOURCES = ddxVT.c ddxPrivate.c ddxKillSrv.c
 
 EXTRA_DIST = xkb.h xkbDflts.h
+
+xkbcompileddir = $(XKM_OUTPUT_DIR)
+xkbcompiled_DATA = README.compiled
