@@ -109,17 +109,19 @@ XPM_DATA = \
         monitor.xpm \
         mouse.xpm
 
+# Rules needed to cpp man page & app-defaults
+include $(top_srcdir)/cpprules.in
+
 # App default files  (*.ad)
 
 appdefaultdir = $(sysconfdir)/X11/app-defaults
 
-APPDEFAULTFILES = XOrgCfg.ad
+APPDEFAULTFILES = XOrgCfg
 
 appdefault_DATA = $(APPDEFAULTFILES)
 
-XOrgCfg.ad: XOrgCfg.pre
-	$(RAWCPP) $(RAWCPPFLAGS) -D__VENDORNAME__="@VENDOR_STRING@" \
-               -D__VENDORVERS__="@VENDOR_RELEASE@" -o $@ $<
+CPP_FILES_FLAGS = -D__VENDORNAME__="@VENDOR_STRING@" \
+                  -D__VENDORVERS__="@VENDOR_RELEASE@"
 
 # Man page
 man1_MANS =  xorgcfg.man
@@ -129,8 +131,5 @@ all-local: $(man1_MANS)
 EXTRA_DIST = $(XBM_DATA) $(XPM_DATA) XOrgCfg.pre xorgcfg.man.pre
 
 CLEANFILES = $(APPDEFAULTFILES) $(man1_MANS)
-
-# Rules needed to cpp man page
-include $(top_srcdir)/cpprules.in
 
 endif
