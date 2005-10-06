@@ -543,9 +543,9 @@ PictureMatchVisual (ScreenPtr pScreen, int depth, VisualPtr pVisual)
 	type = PictTypeIndexed;
 	break;
     case TrueColor:
+    case DirectColor:
 	type = PictTypeDirect;
 	break;
-    case DirectColor:
     default:
 	return 0;
     }
