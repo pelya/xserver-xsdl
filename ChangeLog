@@ -1,3 +1,8 @@
+2005-10-06  Kevin E. Martin  <kem-at-freedesktop-dot-org>
+
+	* hw/vfb/Makefile.am:
+	Install correct man page and add to dist
+
 2005-10-05  Kevin E. Martin  <kem-at-freedesktop-dot-org>
 
 	* configure.ac:
