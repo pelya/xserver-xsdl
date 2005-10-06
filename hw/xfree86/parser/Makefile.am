@@ -10,4 +10,5 @@ EXTRA_DIST = \
 	configProcs.h \
 	xf86Optrec.h \
 	xf86Parser.h \
-	xf86tokens.h
+	xf86tokens.h \
+	cpconfig.c

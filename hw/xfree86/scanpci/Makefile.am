@@ -19,6 +19,7 @@ EXTRA_DIST = \
 	xf86PciStr.h \
 	xf86ScanPci.h \
 	pci.ids \
+	extrapci.ids \
 	pciid2c.pl
 
 xf86PciData.c:
@@ -26,6 +27,6 @@ xf86PciData.c:
 	echo "#include \"$(srcdir)/xf86ScanPci.c\"" >> $@
 
 xf86PciIds.h: $(srcdir)/../common/xf86PciInfo.h
-	$(PERL) $(srcdir)/pciid2c.pl $(srcdir)/../common/xf86PciInfo.h < $(srcdir)/pci.ids $(srcdir)/extrapci.ids > xf86PciIds.h
+	cat $(srcdir)/pci.ids $(srcdir)/extrapci.ids | $(PERL) $(srcdir)/pciid2c.pl $(srcdir)/../common/xf86PciInfo.h > xf86PciIds.h
 
 DISTCLEANFILES = xf86PciData.c xf86PciIds.h
