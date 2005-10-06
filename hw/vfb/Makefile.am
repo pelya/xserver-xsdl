@@ -24,6 +24,11 @@ AM_CFLAGS = -DHAVE_DIX_CONFIG_H \
             -DXFree86Server \
             $(XVFBMODULES_CFLAGS)
 
-dist_man1_MANS = Xvfb.1
+# Man page
+include $(top_srcdir)/cpprules.in
+
+man1_MANS = Xvfb.man
 
 CLEANFILES = $(man1_MANS)
+
+EXTRA_DIST = Xvfb.man.pre
