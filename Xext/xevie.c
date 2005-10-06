@@ -696,9 +696,13 @@ doSendEvent(xEvent *xE, DeviceIntPtr dev)
 	}
         dev->key->modifierMap[xE->u.u.detail] = 0;  
 
+	if(dev->key->xkbInfo->repeatKey != 0 && xE->u.u.type != KeyPress)
+            XkbLastRepeatEvent=     (pointer)xE;
         UNWRAP_INPUTPROC(dev,xeviep);
         dev->public.processInputProc(xE,dev,1);
         COND_WRAP_INPUTPROC(dev,xeviep,tmp);
+        XkbLastRepeatEvent= NULL;
+
         dev->key->modifierMap[xE->u.u.detail] = realModes;
 	dev->key = keyc;
 	if(notFound) {
