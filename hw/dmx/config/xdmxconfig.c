@@ -32,6 +32,10 @@
  *
  */
 
+#ifdef HAVE_DMX_CONFIG_H
+#include <dmx-config.h>
+#endif
+                                                                                
 #include <stdio.h>
 #include <stdlib.h>
 #include <X11/Intrinsic.h>

@@ -40,7 +40,7 @@
 #include <X11/extensions/XInput.h>
 #include <X11/extensions/XKB.h>
 #include <X11/extensions/XKBstr.h>
-#include "dmxext.h"
+#include <X11/extensions/dmxext.h>
 #include <sys/time.h>
 
 static const char *core(DMXInputAttributes *iinf)
