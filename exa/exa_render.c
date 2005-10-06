@@ -453,6 +453,8 @@ exaComposite(CARD8	op,
     ExaScreenPriv (pDst->pDrawable->pScreen);
     int ret = -1;
     ScrnInfoPtr pScrn = XF86SCRNINFO(pDst->pDrawable->pScreen);
+    Bool saveSrcRepeat = pSrc->repeat;
+    Bool saveMaskRepeat = pMask ? pMask->repeat : 0;
 
     if (!pScrn->vtSema) {
         exaDrawableDirty(pDst->pDrawable);
@@ -479,6 +481,12 @@ exaComposite(CARD8	op,
 	    break;
     }
 
+    /* Remove repeat in source if useless */
+    if (pSrc->repeat && !pSrc->transform && xSrc >= 0 &&
+	(xSrc + width) <= pSrc->pDrawable->width && ySrc >= 0 &&
+	(ySrc + height) <= pSrc->pDrawable->height)
+	    pSrc->repeat = 0;
+
     if (!pMask && pSrc->pDrawable)
     {
 	if (op == PictOpSrc)
@@ -489,7 +497,7 @@ exaComposite(CARD8	op,
 		ret = exaTryDriverSolidFill(pSrc, pDst, xSrc, ySrc, xDst, yDst,
 					    width, height);
 		if (ret == 1)
-		    return;
+		    goto bail;
 	    }
 	    else if (!pSrc->repeat && !pSrc->transform &&
 		     pSrc->format == pDst->format)
@@ -504,7 +512,7 @@ exaComposite(CARD8	op,
 		if (!miComputeCompositeRegion (&region, pSrc, pMask, pDst,
 					       xSrc, ySrc, xMask, yMask, xDst,
 					       yDst, width, height))
-		    return;
+		    goto bail;
 
 
 		exaCopyNtoN (pSrc->pDrawable, pDst->pDrawable, NULL,
@@ -512,10 +520,17 @@ exaComposite(CARD8	op,
 			     xSrc - xDst, ySrc - yDst,
 			     FALSE, FALSE, 0, NULL);
 		REGION_UNINIT(pDst->pDrawable->pScreen, &region);
-		return;
+		goto bail;
 	    }
 	}
     }
+
+    /* Remove repeat in mask if useless */
+    if (pMask && pMask->repeat && !pMask->transform && xMask >= 0 &&
+	(xMask + width) <= pMask->pDrawable->width && yMask >= 0 &&
+	(yMask + height) <= pMask->pDrawable->height)
+	    pMask->repeat = 0;
+
 
     if (pSrc->pDrawable && (!pMask || pMask->pDrawable) &&
         pExaScr->info->accel.PrepareComposite &&
@@ -524,7 +539,7 @@ exaComposite(CARD8	op,
 	ret = exaTryDriverComposite(op, pSrc, pMask, pDst, xSrc, ySrc, xMask,
 				    yMask, xDst, yDst, width, height);
 	if (ret == 1)
-	    return;
+	    goto bail;
     }
 
     if (ret != 0) {
@@ -543,6 +558,11 @@ exaComposite(CARD8	op,
 
     ExaCheckComposite (op, pSrc, pMask, pDst, xSrc, ySrc,
 		      xMask, yMask, xDst, yDst, width, height);
+
+ bail:
+    pSrc->repeat = saveSrcRepeat;
+    if (pMask)
+	pMask->repeat = saveMaskRepeat;
 }
 #endif
 
