@@ -31,16 +31,17 @@ dist_bin_SCRIPTS = getconfig getconfig.pl
 getconfigdir = $(libdir)/X11/getconfig
 dist_getconfig_DATA = xorg.cfg cfg.sample
 
-dist_man1_MANS = getconfig.man
+man1_MANS = getconfig.man
 
 include $(top_srcdir)/cpprules.in
 
 filemandir = $(mandir)/man$(FILE_MAN_SUFFIX)
 fileman_DATA = getconfig.$(FILE_MAN_SUFFIX)
-CLEANFILES = $(fileman_DATA)
 
 getconfig.$(FILE_MAN_SUFFIX): cfg.man
 	-rm -f getconfig.$(FILE_MAN_SUFFIX)
 	$(LN_S) cfg.man getconfig.$(FILE_MAN_SUFFIX)
 
-EXTRA_DIST = cfg.man.pre
+CLEANFILES = $(fileman_DATA) cfg.man getconfig.man
+
+EXTRA_DIST = cfg.man.pre getconfig.man.pre

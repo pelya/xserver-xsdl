@@ -18,7 +18,7 @@ include $(top_srcdir)/cpprules.in
 
 drivermandir = $(mandir)/man$(DRIVER_MAN_SUFFIX)
 driverman_DATA = fbdevhw.$(DRIVER_MAN_SUFFIX)
-CLEANFILES = $(driverman_DATA)
+CLEANFILES = $(driverman_DATA) fbdevhw.man
 
 fbdevhw.$(DRIVER_MAN_SUFFIX): fbdevhw.man
 	-rm -f fbdevhw.$(DRIVER_MAN_SUFFIX)
