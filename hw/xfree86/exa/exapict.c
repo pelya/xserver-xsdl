@@ -511,6 +511,7 @@ exaComposite(CARD8	op,
 			     REGION_RECTS(&region), REGION_NUM_RECTS(&region),
 			     xSrc - xDst, ySrc - yDst,
 			     FALSE, FALSE, 0, NULL);
+		REGION_UNINIT(pDst->pDrawable->pScreen, &region);
 		return;
 	    }
 	}

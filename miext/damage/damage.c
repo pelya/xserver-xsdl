@@ -125,7 +125,6 @@ damageDamageRegion (DrawablePtr pDrawable, RegionPtr pRegion, Bool clip,
     damageScrPriv(pScreen);
     drawableDamage(pDrawable);
     DamagePtr	    pNext;
-    RegionPtr	    pClip;
     RegionRec	    clippedRec;
     RegionPtr	    pDamageRegion;
     RegionRec	    pixClip;
@@ -169,7 +168,7 @@ damageDamageRegion (DrawablePtr pDrawable, RegionPtr pRegion, Bool clip,
 	    RegionPtr pTempRegion =
 		NotClippedByChildren((WindowPtr)(pDrawable));
 	    REGION_INTERSECT(pScreen, pRegion, pRegion, pTempRegion);
-	    REGION_UNINIT(pScreen, pTempRegion);
+	    REGION_DESTROY(pScreen, pTempRegion);
 	}
 	/* If subWindowMode is set to an invalid value, don't perform
 	 * any drawable-based clipping. */
@@ -223,19 +222,19 @@ damageDamageRegion (DrawablePtr pDrawable, RegionPtr pRegion, Bool clip,
 	if (clip || pDamage->pDrawable != pDrawable)
 	{
 	    pDamageRegion = &clippedRec;
-	    if (pDamage->pDrawable->type == DRAWABLE_WINDOW)
-		pClip = &((WindowPtr)(pDamage->pDrawable))->borderClip;
-	    else
-	    {
+	    if (pDamage->pDrawable->type == DRAWABLE_WINDOW) {
+		REGION_INTERSECT (pScreen, pDamageRegion, pRegion,
+		    &((WindowPtr)(pDamage->pDrawable))->borderClip);
+	    } else {
 		BoxRec	box;
 		box.x1 = draw_x;
 		box.y1 = draw_y;
 		box.x2 = draw_x + pDamage->pDrawable->width;
 		box.y2 = draw_y + pDamage->pDrawable->height;
 		REGION_INIT(pScreen, &pixClip, &box, 1);
-		pClip = &pixClip;
+		REGION_INTERSECT (pScreen, pDamageRegion, pRegion, &pixClip);
+		REGION_UNINIT(pScreen, &pixClip);
 	    }
-	    REGION_INTERSECT (pScreen, pDamageRegion, pRegion, pClip);
 	    /*
 	     * Short circuit empty results
 	     */
@@ -269,6 +268,7 @@ damageDamageRegion (DrawablePtr pDrawable, RegionPtr pRegion, Bool clip,
 			     &pDamage->damage, pDamageRegion);
 		(*pDamage->damageReport) (pDamage, &tmpRegion, pDamage->closure);
 	    }
+	    REGION_UNINIT(pScreen, &tmpRegion);
 	    break;
 	case DamageReportBoundingBox:
 	    tmpBox = *REGION_EXTENTS (pScreen, &pDamage->damage);
@@ -1940,6 +1940,8 @@ DamageSubtract (DamagePtr	    pDamage,
 	REGION_TRANSLATE (pDrawable->pScreen, &pDamage->damage, pDrawable->x, pDrawable->y);
 	REGION_INTERSECT (pDrawable->pScreen, &pDamage->damage, &pDamage->damage, pClip);
 	REGION_TRANSLATE (pDrawable->pScreen, &pDamage->damage, -pDrawable->x, -pDrawable->y);
+	if (pDrawable->type != DRAWABLE_WINDOW)
+	    REGION_UNINIT(pDrawable->pScreen, &pixmapClip);
     }
     return REGION_NOTEMPTY (pDrawable->pScreen, &pDamage->damage);
 }
