@@ -1,3 +1,13 @@
+2005-10-07  Kristian Høgsberg  <krh@redhat.com>
+
+	* Xprint/Makefile.am:
+	* Xprint/etc/Makefile.am:
+	* Xprint/etc/Xsession.d/Makefile.am:
+	* Xprint/etc/init.d/Makefile.am:
+	* Xprint/etc/profile.d/Makefile.am:
+	* configure.ac:
+	Add Xprint init scrips to EXTRA_DIST.
+
 2005-10-07  Kevin E. Martin  <kem-at-freedesktop-dot-org>
 
 	* configure.ac:

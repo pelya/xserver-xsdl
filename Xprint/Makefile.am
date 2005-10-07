@@ -1,4 +1,4 @@
-SUBDIRS = doc pcl raster ps
+SUBDIRS = doc pcl raster ps etc
 
 bin_PROGRAMS = Xprt
 

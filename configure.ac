@@ -1234,6 +1234,10 @@ Xprint/doc/Makefile
 Xprint/pcl/Makefile
 Xprint/raster/Makefile
 Xprint/ps/Makefile
+Xprint/etc/Makefile
+Xprint/etc/Xsession.d/Makefile
+Xprint/etc/init.d/Makefile
+Xprint/etc/profile.d/Makefile
 XpConfig/Makefile
 XpConfig/C/print/attributes/Makefile
 XpConfig/C/print/ddx-config/Makefile
