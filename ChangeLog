@@ -1,5 +1,19 @@
 2005-10-07  Kevin E. Martin  <kem-at-freedesktop-dot-org>
 
+	* configure.ac:
+	* hw/Makefile.am:
+	* hw/darwin/Makefile.am:
+	Add darwin to dist
+
+	* hw/xfree86/doc/Makefile.am:
+	* hw/xfree86/doc/devel/Makefile.am:
+	Include missing docs in EXTRA_DIST
+
+	* hw/xwin/Makefile.am:
+	Include headers and other files in dist
+	
+2005-10-07  Kevin E. Martin  <kem-at-freedesktop-dot-org>
+
 	* xkb/Makefile.am:
 	Add README.compiled to dist tarball
 

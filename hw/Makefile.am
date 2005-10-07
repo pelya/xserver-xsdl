@@ -18,6 +18,8 @@ if XWIN
 XWIN_SUBDIRS = xwin
 endif
 
+# need to add darwin support here
+
 SUBDIRS =			\
 	$(XORG_SUBDIRS)		\
 	$(XWIN_SUBDIRS)		\
@@ -25,4 +27,4 @@ SUBDIRS =			\
 	$(XNEST_SUBDIRS)	\
 	$(DMX_SUBDIRS)
 
-DIST_SUBDIRS = dmx xfree86 vfb xnest xwin
+DIST_SUBDIRS = dmx xfree86 vfb xnest xwin darwin

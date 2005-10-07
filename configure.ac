@@ -1228,6 +1228,7 @@ hw/dmx/Makefile
 hw/vfb/Makefile
 hw/xnest/Makefile
 hw/xwin/Makefile
+hw/darwin/Makefile
 Xprint/Makefile
 Xprint/doc/Makefile
 Xprint/pcl/Makefile

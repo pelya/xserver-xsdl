@@ -105,6 +105,22 @@ SRCS =	InitInput.c \
 	winwakeup.c \
 	winwindow.c \
 	winwndproc.c \
+	ddraw.h \
+	winclipboard.h \
+	winconfig.h \
+	win.h \
+	winkeybd.h \
+	winkeymap.h \
+	winkeynames.h \
+	winlayouts.h \
+	winmessages.h \
+	winmsg.h \
+	winms.h \
+	winmultiwindowclass.h \
+	winprefs.h \
+	winpriv.h \
+	winresource.h \
+	winwindow.h \
 	$(top_srcdir)/mi/miinitext.c \
 	$(top_srcdir)/fb/fbcmap.c \
 	$(SRCS_CLIPBOARD) \
@@ -147,3 +163,31 @@ AM_YFLAGS = -d
 AM_LFLAGS = -i
 AM_CFLAGS = -DHAVE_XWIN_CONFIG_H \
             $(XWINMODULES_CFLAGS)
+
+dist_man_MANS = XWin.1 XWinrc.1
+
+EXTRA_DIST = \
+	_usr_X11R6_lib_X11_system.XWinrc \
+	X-boxed.ico \
+	X.ico \
+	XWin.rc \
+	xlaunch/config.cc \
+	xlaunch/COPYING \
+	xlaunch/main.cc \
+	xlaunch/resources/dialog.rc \
+	xlaunch/resources/fullscreen.bmp \
+	xlaunch/resources/images.rc \
+	xlaunch/resources/multiwindow.bmp \
+	xlaunch/resources/nodecoration.bmp \
+	xlaunch/resources/resources.h \
+	xlaunch/resources/resources.rc \
+	xlaunch/resources/strings.rc \
+	xlaunch/resources/windowed.bmp \
+	xlaunch/window/dialog.cc \
+	xlaunch/window/dialog.h \
+	xlaunch/window/util.cc \
+	xlaunch/window/util.h \
+	xlaunch/window/window.cc \
+	xlaunch/window/window.h \
+	xlaunch/window/wizard.cc \
+	xlaunch/window/wizard.h

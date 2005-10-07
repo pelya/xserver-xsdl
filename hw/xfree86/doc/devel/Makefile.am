@@ -6,4 +6,5 @@ EXTRA_DIST = \
 	Domain.note \
 	RAC.Notes \
 	Registry \
-	exa-driver.txt
+	exa-driver.txt \
+	README.DRIcomp
