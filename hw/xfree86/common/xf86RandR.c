@@ -262,7 +262,7 @@ xf86RandRSetConfig (ScreenPtr		pScreen,
     if (pScreen == miPointerCurrentScreen ())
     {
 	if (px < pSize->width && py < pSize->height)
-	    (*pScreen->SetCursorPosition) (pScreen, px, py, FALSE);
+	    (*scrp->PointerMoved) (pScreen->myNum, px, py);
     }
 
     return TRUE;
