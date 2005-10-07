@@ -1,3 +1,8 @@
+2005-10-07  Kevin E. Martin  <kem-at-freedesktop-dot-org>
+
+	* xkb/Makefile.am:
+	Add README.compiled to dist tarball
+
 2005-10-06  Alan Coopersmith  <alan.coopersmith@sun.com>
 
 	* hw/dmx/examples/Makefile.am: 
