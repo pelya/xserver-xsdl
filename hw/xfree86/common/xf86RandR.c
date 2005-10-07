@@ -261,12 +261,11 @@ xf86RandRSetConfig (ScreenPtr		pScreen,
      */
     if (pScreen == miPointerCurrentScreen ())
     {
-	if (px < pSize->width && py < pSize->height) {
+	if (px < pSize->width && py < pSize->height)
 	    (*pScreen->SetCursorPosition) (pScreen, px, py, FALSE);	    
 
-	    /* Ensure AdjustFrame is called */
+	if (px < pScreen->width && py < pScreen->height)
 	    (*scrp->PointerMoved) (pScreen->myNum, px, py);
-	}
     }
 
     return TRUE;
