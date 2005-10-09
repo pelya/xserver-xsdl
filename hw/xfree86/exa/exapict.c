@@ -600,9 +600,12 @@ exaGlyphs (CARD8	op,
     CARD32	component_alpha;
 
     /* If the driver doesn't support accelerated composite, there's no point in
-     * going to this extra work.
+     * going to this extra work.  Assume that no driver will be able to do
+     * component-alpha, which is likely accurate (at least until we make a CA
+     * helper).
      */
-    if (!pExaScr->info->accel.PrepareComposite) {
+    if (!pExaScr->info->accel.PrepareComposite ||
+	(maskFormat && NeedsComponent(maskFormat->format))) {
 	miGlyphs(op, pSrc, pDst, maskFormat, xSrc, ySrc, nlist, list, glyphs);
 	return;
     }
