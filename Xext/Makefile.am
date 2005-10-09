@@ -44,7 +44,8 @@ endif
 EXTRA_DIST = \
 	appgroup.h \
 	xvdisp.h \
-	README.xtest1-ddx
+	README.xtest1-ddx \
+	SecurityPolicy
 
 # dmx.c has a hard dependency on the dmx DDX
 libXext_la_SOURCES =		\
