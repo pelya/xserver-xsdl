@@ -1006,25 +1006,40 @@ configServerFlags(XF86ConfFlagsPtr flagsconf, XF86OptionPtr layoutopts)
 	xf86Info.estimateSizesAggressively = i;
     else
 	xf86Info.estimateSizesAggressively = 0;
-	
+
+/* Make sure that timers don't overflow CARD32's after multiplying */
+#define MAX_TIME_IN_MIN (0x7fffffff / MILLI_PER_MIN)
+
     i = -1;
     xf86GetOptValInteger(FlagOptions, FLAG_SAVER_BLANKTIME, &i);
-    if (i >= 0)
+    if ((i >= 0) && (i < MAX_TIME_IN_MIN))
 	ScreenSaverTime = defaultScreenSaverTime = i * MILLI_PER_MIN;
+    else if (i != -1)
+	xf86ConfigError("BlankTime value %d outside legal range of 0 - %d minutes",
+			i, MAX_TIME_IN_MIN);
 
 #ifdef DPMSExtension
     i = -1;
     xf86GetOptValInteger(FlagOptions, FLAG_DPMS_STANDBYTIME, &i);
-    if (i >= 0)
+    if ((i >= 0) && (i < MAX_TIME_IN_MIN))
 	DPMSStandbyTime = defaultDPMSStandbyTime = i * MILLI_PER_MIN;
+    else if (i != -1)
+	xf86ConfigError("StandbyTime value %d outside legal range of 0 - %d minutes",
+			i, MAX_TIME_IN_MIN);
     i = -1;
     xf86GetOptValInteger(FlagOptions, FLAG_DPMS_SUSPENDTIME, &i);
-    if (i >= 0)
+    if ((i >= 0) && (i < MAX_TIME_IN_MIN))
 	DPMSSuspendTime = defaultDPMSSuspendTime = i * MILLI_PER_MIN;
+    else if (i != -1)
+	xf86ConfigError("SuspendTime value %d outside legal range of 0 - %d minutes",
+			i, MAX_TIME_IN_MIN);
     i = -1;
     xf86GetOptValInteger(FlagOptions, FLAG_DPMS_OFFTIME, &i);
-    if (i >= 0)
+    if ((i >= 0) && (i < MAX_TIME_IN_MIN))
 	DPMSOffTime = defaultDPMSOffTime = i * MILLI_PER_MIN;
+    else if (i != -1)
+	xf86ConfigError("OffTime value %d outside legal range of 0 - %d minutes",
+			i, MAX_TIME_IN_MIN);
 #endif
 
     i = -1;
