@@ -264,8 +264,12 @@ xf86RandRSetConfig (ScreenPtr		pScreen,
 	if (px < pSize->width && py < pSize->height)
 	    (*pScreen->SetCursorPosition) (pScreen, px, py, FALSE);	    
 
-	if (px < pScreen->width && py < pScreen->height)
-	    (*scrp->PointerMoved) (pScreen->myNum, px, py);
+        if (px >= pScreen->width || py >= pScreen->height) {
+            px = pScreen->width - 1;
+            py = pScreen->height - 1;
+        }
+
+        xf86SetViewport(pScreen->myNum, px, py);
     }
 
     return TRUE;
