@@ -1279,7 +1279,9 @@ exaFillRegionTiled (DrawablePtr	pDrawable,
 fallback:
     EXA_FALLBACK(("from 0x%lx to 0x%lx\n", (long)pTile, (long)pDrawable));
     exaPrepareAccess (pDrawable, EXA_PREPARE_DEST);
+    exaPrepareAccess ((DrawablePtr)pTile, EXA_PREPARE_SRC);
     fbFillRegionTiled (pDrawable, pRegion, pTile);
+    exaFinishAccess ((DrawablePtr)pTile, EXA_PREPARE_SRC);
     exaFinishAccess (pDrawable, EXA_PREPARE_DEST);
 }
 
