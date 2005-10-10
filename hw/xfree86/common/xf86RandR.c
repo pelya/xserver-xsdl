@@ -261,10 +261,8 @@ xf86RandRSetConfig (ScreenPtr		pScreen,
      */
     if (pScreen == miPointerCurrentScreen ())
     {
-       if (px >= pScreen->width || py >= pScreen->height) {
-            px = pScreen->width - 1;
-            py = pScreen->height - 1;
-        }
+	px = (px >= pScreen->width ? (pScreen->width - 1) : px);
+	py = (py >= pScreen->height ? (pScreen->height - 1) : py);
 
         xf86SetViewport(pScreen, px, py);
 
