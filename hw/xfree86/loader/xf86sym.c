@@ -385,6 +385,7 @@ LOOKUP xfree86LookupTab[] = {
     /* xf86DGA.c */
     /* For drivers */
     SYMFUNC(DGAInit)
+    SYMFUNC(DGAReInitModes)
     /* For extmod */
     SYMFUNC(DGAAvailable)
     SYMFUNC(DGAActive)
