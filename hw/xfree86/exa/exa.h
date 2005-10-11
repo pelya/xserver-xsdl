@@ -47,9 +47,9 @@ typedef enum _ExaOffscreenState {
 } ExaOffscreenState;
 
 struct _ExaOffscreenArea {
-    int                 offset;
-    int                 save_offset;
-    int                 size;
+    int                 base_offset;	/* allocation base */
+    int                 offset;         /* aligned offset */
+    int                 size;           /* total allocation size */
     int                 score;
     pointer             privData;
 

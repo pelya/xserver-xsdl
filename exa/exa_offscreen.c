@@ -35,15 +35,17 @@ ExaOffscreenValidate (ScreenPtr pScreen)
     ExaScreenPriv (pScreen);
     ExaOffscreenArea *prev = 0, *area;
 
-    assert (pExaScr->info->card.offScreenAreas->area.offset == 0);
+    assert (pExaScr->info->card.offScreenAreas->base_offset == 
+	    pExaScr->info->card.offScreenBase);
     for (area = pExaScr->info->card.offScreenAreas; area; area = area->next)
     {
+	assert (area->offset >= area->base_offset &&
+		area->offset < (area->base_offset -> area->size));
 	if (prev)
-	    assert (prev->area.offset + prev->area.size == area->area.offset);
-
+	    assert (prev->base_offset + prev->area.size == area->base_offset);
 	prev = area;
     }
-    assert (prev->area.offset + prev->area.size == pExaScr->info->card.memorySize);
+    assert (prev->base_offset + prev->size == pExaScr->info->card.memorySize);
 }
 #else
 #define ExaOffscreenValidate(s)
@@ -99,7 +101,7 @@ exaOffscreenAlloc (ScreenPtr pScreen, int size, int align,
 
 	/* adjust size to match alignment requirement */
 	real_size = size;
-	tmp = area->offset % align;
+	tmp = area->base_offset % align;
 	if (tmp)
 	    real_size += (align - tmp);
 
@@ -130,7 +132,7 @@ exaOffscreenAlloc (ScreenPtr pScreen, int size, int align,
 
 	    /* adjust size needed to account for alignment loss for this area */
 	    real_size = size;
-	    tmp = begin->offset % align;
+	    tmp = begin->base_offset % align;
 	    if (tmp)
 		real_size += (align - tmp);
 
@@ -141,7 +143,7 @@ exaOffscreenAlloc (ScreenPtr pScreen, int size, int align,
 	    {
 		if (scan->state == ExaOffscreenLocked) {
 		    /* Can't make room here, start after this locked area. */
-		    begin = scan->next;
+		    begin = scan;
 		    break;
 		}
 		/* Score should only be non-zero for ExaOffscreenRemovable */
@@ -167,7 +169,7 @@ exaOffscreenAlloc (ScreenPtr pScreen, int size, int align,
 
 	/* adjust size needed to account for alignment loss for this area */
 	real_size = size;
-	tmp = area->offset % align;
+	tmp = area->base_offset % align;
 	if (tmp)
 	    real_size += (align - tmp);
 
@@ -192,7 +194,8 @@ exaOffscreenAlloc (ScreenPtr pScreen, int size, int align,
 	ExaOffscreenArea   *new_area = xalloc (sizeof (ExaOffscreenArea));
 	if (!new_area)
 	    return NULL;
-	new_area->offset = area->offset + real_size;
+	new_area->base_offset = area->base_offset + real_size;
+	new_area->offset = new_area->base_offset;
 	new_area->size = area->size - real_size;
 	new_area->state = ExaOffscreenAvail;
 	new_area->save = NULL;
@@ -211,14 +214,13 @@ exaOffscreenAlloc (ScreenPtr pScreen, int size, int align,
     area->privData = privData;
     area->save = save;
     area->score = 0;
-
-    area->save_offset = area->offset;
-    area->offset = (area->offset + align - 1);
+    area->offset = (area->base_offset + align - 1);
     area->offset -= area->offset % align;
 
     ExaOffscreenValidate (pScreen);
 
-    DBG_OFFSCREEN (("Alloc 0x%x -> 0x%x\n", size, area->offset));
+    DBG_OFFSCREEN (("Alloc 0x%x -> 0x%x (0x%x)\n", size,
+		    area->base_offset, area->offset));
     return area;
 }
 
@@ -295,12 +297,12 @@ exaOffscreenFree (ScreenPtr pScreen, ExaOffscreenArea *area)
     ExaOffscreenArea	*next = area->next;
     ExaOffscreenArea	*prev;
 
-    DBG_OFFSCREEN (("Free 0x%x -> 0x%x\n", area->size, area->offset));
+    DBG_OFFSCREEN (("Free 0x%x -> 0x%x (0x%x)\n", area->size,
+		    area->base_offset, area->offset));
     ExaOffscreenValidate (pScreen);
 
     area->state = ExaOffscreenAvail;
     area->save = NULL;
-    area->offset = area->save_offset;
     area->score = 0;
     /*
      * Find previous area
@@ -365,7 +367,7 @@ exaOffscreenInit (ScreenPtr pScreen)
 
 
     area->state = ExaOffscreenAvail;
-    area->offset = pExaScr->info->card.offScreenBase;
+    area->base_offset = pExaScr->info->card.offScreenBase;
     area->size = pExaScr->info->card.memorySize - area->offset;
     area->save = NULL;
     area->next = NULL;
