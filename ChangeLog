@@ -1,3 +1,9 @@
+2005-10-09  Alan Coopersmith  <alan.coopersmith@sun.com>
+
+	* Xext/Makefile.am: 
+	Bug #4715 <https://bugs.freedesktop.org/show_bug.cgi?id=4715>
+	Add SecurityPolicy to EXTRA_DIST (Bill Crawford)
+
 2005-10-07  Kristian Høgsberg  <krh@redhat.com>
 
 	* Xprint/Makefile.am:
