@@ -47,7 +47,7 @@ typedef struct _xf86RandRInfo {
     Rotation			    rotation;
 } XF86RandRInfoRec, *XF86RandRInfoPtr;
 
-static int	    xf86RandRIndex;
+static int	    xf86RandRIndex = -1;
 static int	    xf86RandRGeneration;
 
 #define XF86RANDRINFO(p)    ((XF86RandRInfoPtr) (p)->devPrivates[xf86RandRIndex].ptr)
@@ -315,6 +315,17 @@ xf86RandRCloseScreen (int index, ScreenPtr pScreen)
     xfree (randrp);
     pScreen->devPrivates[xf86RandRIndex].ptr = 0;
     return (*pScreen->CloseScreen) (index, pScreen);
+}
+
+Rotation
+xf86GetRotation(ScreenPtr pScreen)
+{
+    XF86RandRInfoPtr	    randrp = XF86RANDRINFO(pScreen);
+
+    if (xf86RandRIndex == -1)
+       return RR_Rotate_0;
+
+    return randrp->rotation;
 }
 
 Bool
