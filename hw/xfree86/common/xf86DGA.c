@@ -170,6 +170,57 @@ DGAInit(
     return TRUE;
 }
 
+/* DGAReInitModes allows the driver to re-initialize
+ * the DGA mode list.
+ */
+
+Bool
+DGAReInitModes(
+   ScreenPtr pScreen,
+   DGAModePtr modes,
+   int num
+){
+    DGAScreenPtr pScreenPriv;
+    int i;
+
+    /* No DGA? Ignore call (but don't make it look like it failed) */
+    if(DGAScreenIndex < 0)
+	return TRUE;
+	
+    pScreenPriv = DGA_GET_SCREEN_PRIV(pScreen);
+
+    /* Same as above */
+    if(!pScreenPriv)
+	return TRUE;
+
+    /* Can't do this while DGA is active */
+    if(pScreenPriv->current)
+	return FALSE;
+
+    /* Quick sanity check */
+    if(!num) 
+	modes = NULL;
+    else if(!modes) 
+	num = 0;
+
+    pScreenPriv->numModes = num;
+    pScreenPriv->modes = modes;
+
+    /* This practically disables DGA. So be it. */
+    if(!num)
+	return TRUE;
+
+    for(i = 0; i < num; i++)
+	modes[i].num = i + 1;
+
+#ifdef PANORAMIX
+     if(!noPanoramiXExtension)
+	for(i = 0; i < num; i++)
+	    modes[i].flags &= ~DGA_PIXMAP_AVAILABLE;
+#endif
+
+     return TRUE;
+}
 
 static void
 FreeMarkedVisuals(ScreenPtr pScreen)

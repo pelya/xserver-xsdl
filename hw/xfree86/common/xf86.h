@@ -209,6 +209,7 @@ Bool xf86DPMSInit(ScreenPtr pScreen, DPMSSetProcPtr set, int flags);
 
 Bool DGAInit(ScreenPtr pScreen, DGAFunctionPtr funcs, DGAModePtr modes, 
 			int num);
+Bool DGAReInitModes(ScreenPtr pScreen, DGAModePtr modes, int num);
 xf86SetDGAModeProc xf86SetDGAMode;
 
 /* xf86Events.c */
