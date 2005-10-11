@@ -325,7 +325,7 @@ xf86GetRotation(ScreenPtr pScreen)
     if (xf86RandRIndex == -1)
        return RR_Rotate_0;
 
-    return XF86RANDRInfo(pScreen)->rotation;
+    return XF86RANDRINFO(pScreen)->rotation;
 }
 
 Bool
