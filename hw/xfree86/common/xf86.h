@@ -45,6 +45,9 @@
 #else
 #include "xf86_ansic.h"
 #endif
+#ifdef RANDR
+#include <X11/extensions/randr.h>
+#endif
 
 #include "propertyst.h"
 
@@ -423,6 +426,7 @@ void xf86CollectOptions(ScrnInfoPtr pScrn, pointer extraOpts);
 #ifdef RANDR
 Bool xf86RandRInit (ScreenPtr    pScreen);
 void xf86RandRSetInitialMode (ScreenPtr pScreen);
+Rotation xf86GetRotation(ScreenPtr pScreen);
 #endif
 
 /* xf86VidModeExtentionInit.c */
