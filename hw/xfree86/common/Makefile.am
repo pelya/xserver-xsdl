@@ -24,15 +24,14 @@ KBDSOURCES = xf86Kbd@XORG_OS_KBD@.c
 
 MODEDEFSOURCES = $(srcdir)/vesamodes $(srcdir)/extramodes
 
-xf86DefModeSet.c: $(srcdir)/modeline2c.pl
-	$(RM) $@
+xf86DefModeSet.c: $(srcdir)/modeline2c.pl $(MODEDEFSOURCES)
 	cat $(MODEDEFSOURCES) | $(PERL) $(srcdir)/modeline2c.pl > $@
 
 BUILT_SOURCES = xf86DefModeSet.c
 
 AM_LDFLAGS = -r
 libcommon_a_SOURCES = xf86Configure.c xf86Bus.c xf86Config.c \
-                      xf86Cursor.c xf86DGA.c xf86DPMS.c xf86DefModeSet.c \
+                      xf86Cursor.c xf86DGA.c xf86DPMS.c \
                       xf86DoProbe.c xf86DoScanPci.c xf86Events.c \
                       xf86Globals.c xf86Io.c xf86AutoConfig.c \
                       xf86MiscExt.c xf86Option.c \
@@ -42,6 +41,7 @@ libcommon_a_SOURCES = xf86Configure.c xf86Bus.c xf86Config.c \
                       $(XVSOURCES) $(BUSSOURCES) $(XKBSOURCES) \
                       $(DEBUGSOURCES) $(XISOURCES) $(RANDRSOURCES) \
                       $(KBDSOURCES)
+nodist_libcommon_a_SOURCES = xf86DefModeSet.c
 libinit_a_SOURCES = xf86Build.h xf86Init.c
 
 INCLUDES = $(XORG_INCS) -I$(srcdir)/../ddc -I$(srcdir)/../i2c \
@@ -55,7 +55,8 @@ sdk_HEADERS = compiler.h fourcc.h xf86.h xf86Module.h xf86Opt.h \
               $(XVSDKINCS) atKeynames.h xf86Version.h xorgVersion.h \
               xf86sbusBus.h xf86xv.h xf86xvmc.h xf86xvpriv.h
 
-DISTCLEANFILES = xf86Build.h $(MODEDEFS) $(BUILT_SOURCES)
+DISTCLEANFILES = xf86Build.h
+CLEANFILES = $(BUILT_SOURCES)
 
 # this is a hack for now.  as above we don't have rules to build all of these
 # yet, but we want to make sure they all get into the distball.  this should

@@ -1,3 +1,13 @@
+2005-10-12  Eric Anholt  <anholt@FreeBSD.org>
+
+	* hw/xfree86/common/Makefile.am:
+	Remove an RM line that appears unnecessary and was breaking the build
+	at xf86DefModeSet.c with FreeBSD make, where RM was undefined.  While
+	here, make the build of xf86DefModeSet.c depend on its sources, so it'll
+	rebuild properly, and make it a normal CLEANFILE rather than a
+	DISTCLEANFILE, since the intention seems to be to build it at the user's
+	build time.
+
 2005-10-11  Kevin E. Martin  <kem-at-freedesktop-dot-org>
 
 	* hw/darwin/Makefile.am:
