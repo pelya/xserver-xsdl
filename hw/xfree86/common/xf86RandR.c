@@ -320,8 +320,6 @@ xf86RandRCloseScreen (int index, ScreenPtr pScreen)
 Rotation
 xf86GetRotation(ScreenPtr pScreen)
 {
-    XF86RandRInfoPtr randrp;
-
     if (xf86RandRIndex == -1)
        return RR_Rotate_0;
 
