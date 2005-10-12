@@ -1,7 +1,7 @@
 /*
- * Copyright © 2001 Keith Packard
+ * Copyright Â© 2001 Keith Packard
  *
- * Partly based on code that is Copyright © The XFree86 Project Inc.
+ * Partly based on code that is Copyright Â© The XFree86 Project Inc.
  *
  * Permission to use, copy, modify, distribute, and sell this software and its
  * documentation for any purpose is hereby granted without fee, provided that
@@ -261,7 +261,17 @@ exaTryDriverSolidFill(PicturePtr	pSrc,
 
 
     exaPrepareAccess(&pSrcPix->drawable, EXA_PREPARE_SRC);
-    pixel = *(CARD32 *)(pSrcPix->devPrivate.ptr);
+    switch (pSrcPix->drawable.bitsPerPixel) {
+    case 32:
+	pixel = *(CARD32 *)(pSrcPix->devPrivate.ptr);
+	break;
+    case 16:
+        pixel = *(CARD16 *)(pSrcPix->devPrivate.ptr);
+	break;
+    default:
+        pixel = *(CARD8 *)(pSrcPix->devPrivate.ptr);
+	break;
+    }
     if (!exaGetRGBAFromPixel(pixel, &red, &green, &blue, &alpha,
 			 pSrc->format))
     {
