@@ -1,4 +1,4 @@
-DIST_EXTRA = \
+EXTRA_DIST = \
 	bundle/Dutch.lproj/Credits.rtf \
 	bundle/Dutch.lproj/Localizable.strings \
 	bundle/Dutch.lproj/MainMenu.nib/classes.nib \

@@ -1,3 +1,8 @@
+2005-10-11  Kevin E. Martin  <kem-at-freedesktop-dot-org>
+
+	* hw/darwin/Makefile.am:
+	Fix typo (DIST_EXTRA -> EXTRA_DIST)
+
 2005-10-09  Alan Coopersmith  <alan.coopersmith@sun.com>
 
 	* Xext/Makefile.am: 
