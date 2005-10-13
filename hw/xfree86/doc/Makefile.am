@@ -1,6 +1,6 @@
 SUBDIRS = devel man sgml
 
-DIST_EXTRA = \
+EXTRA_DIST = \
 	changelogs/CHANGELOG \
 	changelogs/CHANGELOG.ND \
 	changelogs/CHANGELOG.R5 \

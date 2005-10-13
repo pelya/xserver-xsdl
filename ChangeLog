@@ -1,3 +1,21 @@
+2005-10-13  Kristian Høgsberg  <krh@redhat.com>
+
+	* hw/xfree86/xf4bpp/Makefile.am (libxf4bpp_la_SOURCES): Dist NOTES.
+
+	* hw/xfree86/xf1bpp/Makefile.am (EXTRA_DIST): Dist helper shell
+	scripts.
+
+	* hw/xfree86/xaa/Makefile.am (EXTRA_DIST): Dist XAA.HOWTO and a
+	few more unused C files.
+
+	* hw/xfree86/Makefile.am (EXTRA_DIST): Dist xorgconf.cpp.
+
+	* hw/xfree86/doc/Makefile.am (EXTRA_DIST): Fix DIST_EXTRA typo.
+
+	* hw/dmx/config/Makefile.am (MAINTAINERCLEANFILES): Clean yacc and
+	lex generated files only during make maintainer-clean as we don't
+	expect users to have those tools installed.
+
 2005-10-12  Eric Anholt  <anholt@FreeBSD.org>
 
 	* hw/xfree86/common/Makefile.am:

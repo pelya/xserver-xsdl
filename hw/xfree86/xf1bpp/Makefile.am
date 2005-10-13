@@ -150,3 +150,5 @@ mfbtileC.c:
 mfbtileG.c:
 	echo "#define MRop M0" > $@
 	echo "#include \"$(top_srcdir)/mfb/mfbtile.c\"" >> $@
+
+EXTRA_DIST = mfbmap.sh mfbunmap.sh 

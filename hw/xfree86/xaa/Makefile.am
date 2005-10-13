@@ -60,7 +60,8 @@ DISTCLEANFILES = $(POLYSEG) $(LSB_FIRST) $(LSB_FIXED) $(MSB_FIRST) $(MSB_FIXED)
 
 sdk_HEADERS = xaa.h xaalocal.h xaarop.h xaaWrapper.h
 EXTRA_DIST = xaacexp.h xaawrap.h xaaLine.c xaaDashLine.c \
-             xaaStipple.c xaaTEGlyph.c xaaBitmap.c
+             xaaStipple.c xaaTEGlyph.c xaaNonTEGlyph.c xaaBitmap.c \
+             xaaTEGlyphBlt.S XAA.HOWTO
 
 INCLUDES = $(XORG_INCS)
 

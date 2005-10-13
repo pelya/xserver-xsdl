@@ -16,7 +16,7 @@ scanner.c: scanner.l parser.h
 
 BUILT_SOURCES = parser.c parser.h scanner.c
 
-CLEANFILES = $(BUILT_SOURCES)
+MAINTAINERCLEANFILES = $(BUILT_SOURCES)
 
 libdmxconfig_a_SOURCES = $(LIBSRCS)
 
