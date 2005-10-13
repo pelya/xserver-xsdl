@@ -320,7 +320,7 @@ AC_ARG_WITH(xkb-path,        [  --with-xkb-path=PATH ],
 				[ XKBPATH="${datadir}/X11/xkb" ])
 AC_ARG_WITH(xkb-output,      [  --with-xkb-output=PATH ],
 				[ XKBOUTPUT="$withval" ],
-				[ XKBOUTPUT="compiled/" ])
+				[ XKBOUTPUT="compiled" ])
 AC_ARG_WITH(rgb-path,        [  --with-rgb-path=PATH ],
 				[ RGBPATH="$withval" ],
 				[ RGBPATH="${datadir}/X11/rgb" ])
@@ -608,6 +608,8 @@ AC_DEFINE_UNQUOTED(XORG_RELEASE, ["$VENDOR_RELEASE"], [Vendor release])
 AC_DEFINE_UNQUOTED(BUILDERADDR, ["$BUILDERADDR"], [Builder address])
 AC_DEFINE_UNQUOTED(OSNAME, ["$OSNAME"], [Operating System Name])
 AC_DEFINE_UNQUOTED(OSVENDOR, ["$OSVENDOR"], [Operating System Vendor])
+AC_SUBST([VENDOR_STRING])
+AC_SUBST([VENDOR_RELEASE])
 
 AC_DEFINE(DDXOSINIT, 1, [Use OsVendorInit])
 AC_DEFINE(SERVER_LOCK, 1, [Use a lock to prevent multiple servers on a display])
