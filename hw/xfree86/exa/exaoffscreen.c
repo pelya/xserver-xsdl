@@ -368,7 +368,8 @@ exaOffscreenInit (ScreenPtr pScreen)
 
     area->state = ExaOffscreenAvail;
     area->base_offset = pExaScr->info->card.offScreenBase;
-    area->size = pExaScr->info->card.memorySize - area->offset;
+    area->offset = area->base_offset;
+    area->size = pExaScr->info->card.memorySize - area->base_offset;
     area->save = NULL;
     area->next = NULL;
     area->score = 0;
