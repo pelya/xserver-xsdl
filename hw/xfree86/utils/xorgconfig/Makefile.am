@@ -49,6 +49,10 @@ include $(top_srcdir)/cpprules.in
 
 man1_MANS = xorgconfig.man
 
+EXTRAMANDEFS = \
+	-D__XCONFIGFILE__=$(__XCONFIGFILE__) \
+	-D__XSERVERNAME__=$(XSERVERNAME)
+
 CLEANFILES = $(man1_MANS)
 
 EXTRA_DIST = \
