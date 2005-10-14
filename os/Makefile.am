@@ -3,7 +3,6 @@ noinst_LTLIBRARIES = libos.la
 AM_CFLAGS = $(DIX_CFLAGS)
 
 #	k5auth.c	\
-#	lbxio.c		\
 #	rpcauth.c	\
 #	genalloca.c	\
 #	hpsocket.c	\
@@ -16,6 +15,10 @@ endif
 
 if XDMCP
 XDMCP_SOURCES = xdmcp.c
+endif
+
+if LBX
+LBX_SOURCES = lbxio.c
 endif
 
 XORG_SOURCES = log.c
@@ -36,4 +39,5 @@ libos_la_SOURCES = 	\
 	xprintf.c	\
 	$(XCSECURITY_SOURCES) \
 	$(XDMCP_SOURCES) \
-	$(XORG_SOURCES)
+	$(XORG_SOURCES) \
+	$(LBX_SOURCES)

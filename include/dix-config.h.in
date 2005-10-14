@@ -356,6 +356,9 @@
 /* Support Xv Extension */
 #undef XV
 
+/* Build LBX */
+#undef LBX
+
 /* Support DRI support */
 #undef XF86DRI
 

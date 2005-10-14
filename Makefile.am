@@ -32,6 +32,10 @@ XPDDX_DIR=Xprint
 XPCONFIG_DIR=XpConfig
 endif
 
+if LBX
+LBX_DIR=lbx
+endif
+
 SUBDIRS=	\
 	doc	\
 	include	\
@@ -60,7 +64,8 @@ SUBDIRS=	\
         $(GLX_DIR) \
 	hw	\
 	$(XPDDX_DIR) \
-	$(XPCONFIG_DIR)
+	$(XPCONFIG_DIR) \
+	$(LBX_DIR)
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = xorg-server.pc
