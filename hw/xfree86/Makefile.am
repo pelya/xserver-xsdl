@@ -69,4 +69,4 @@ if INSTALL_SETUID
 	chmod u+s $(DESTDIR)$(bindir)/Xorg
 endif
 
-EXTRA_DIST = xorgconf.cpp
+EXTRA_DIST = xorgconf.cpp Options

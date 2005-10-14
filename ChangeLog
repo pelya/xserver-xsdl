@@ -1,3 +1,13 @@
+2005-10-14  Kristian Høgsberg  <krh@redhat.com>
+
+	* hw/xfree86/os-support/Makefile.am (DIST_SUBDIRS): Add sysv and
+	sco os-support subdirs and add simple EXTRA_DIST Makefile.am in
+	those dirs.  Remove unsupported os-support subdirs (bsdi, dgux,
+	hurd, nto, os2, pmax, qnx4) that have no maintainer and we don't
+	dist.
+
+	* hw/xfree86/Makefile.am (EXTRA_DIST): Add Options.
+
 2005-10-13  Donnie Berkholz  <spyderous@gentoo.org>
 
 	* configure.ac: Add XTRAP_LIB to XPRINT_EXTENSIONS to fix xprint build when
