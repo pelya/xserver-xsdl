@@ -2,9 +2,7 @@ if DRI
 DRI_SUBDIR = dri
 endif
 
-if BUILDDOCS
 DOC_SUBDIR = doc
-endif
 
 
 SUBDIRS = common ddc dummylib i2c x86emu int10 fbdevhw os-support parser rac \
