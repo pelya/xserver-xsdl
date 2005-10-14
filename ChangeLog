@@ -1,3 +1,15 @@
+2005-10-14  Alan Coopersmith  <alan.coopersmith@sun.com>
+
+	* configure.ac:
+	Set default font path to match the default in the monolith so
+	fonts are actually found.
+
+2005-10-14  Alan Coopersmith  <alan.coopersmith@sun.com>
+
+	* hw/xfree86/Makefile.am: 
+	* hw/xfree86/doc/Makefile.am: 
+	Install Xorg & xorg.conf man pages even when not building docs
+
 2005-10-14  Kristian Høgsberg  <krh@redhat.com>
 
 	* hw/xfree86/os-support/Makefile.am (DIST_SUBDIRS): Add sysv and
