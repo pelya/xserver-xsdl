@@ -1,5 +1,10 @@
 2005-10-13  Donnie Berkholz  <spyderous@gentoo.org>
 
+	* configure.ac: Add XTRAP_LIB to XPRINT_EXTENSIONS to fix xprint build when
+	xtrap is enabled.
+
+2005-10-13  Donnie Berkholz  <spyderous@gentoo.org>
+
 	* configure.ac: Require glproto >= 1.4.1 if building DRI with GLX. This
 	fixes a build failure on a number of hyperpipe functions.
 
