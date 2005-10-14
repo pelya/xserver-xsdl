@@ -493,7 +493,7 @@ if test "x$DRI" = xyes; then
 	PKG_CHECK_MODULES([DRIPROTO], [xf86driproto])
 	PKG_CHECK_MODULES([LIBDRM], [libdrm])
 	if test "x$GLX" = xyes; then
-		PKG_CHECK_MODULES([GL], [glproto])
+		PKG_CHECK_MODULES([GL], [glproto >= 1.4.1])
 	fi
 	AC_SUBST(DRIPROTO_CFLAGS)
 	AC_SUBST(LIBDRM_CFLAGS)
