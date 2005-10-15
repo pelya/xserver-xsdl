@@ -119,8 +119,12 @@ typedef struct {
     int		    devKind;
     DevUnion	    devPrivate;
 
-    /* True if the in-screen copy has been modified compared to the
-     * system-memory copy.
+    /* If area is NULL, then dirty == TRUE means that the pixmap has been
+     * modified, so the contents are defined.  Used to avoid uploads of
+     * undefined data.
+     * If area is non-NULL, then dirty == TRUE means that the in-framebuffer
+     * copy has been changed from the system-memory copy.  Used to avoid
+     * downloads of unmodified data.
      */
     Bool	    dirty;
     unsigned int    size;

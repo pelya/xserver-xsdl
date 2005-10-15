@@ -159,6 +159,10 @@ exaPixmapSave (ScreenPtr pScreen, ExaOffscreenArea *area)
     pPixmap->devPrivate.ptr = dst;
     pPixmap->drawable.serialNumber = NEXT_SERIAL_NUMBER;
     pExaPixmap->area = NULL;
+    /* Mark it dirty now, to say that there is important data in the
+     * system-memory copy.
+     */
+    pExaPixmap->dirty = TRUE;
 }
 
 static int
@@ -235,6 +239,16 @@ exaMoveInPixmap (PixmapPtr pPixmap)
 		      (pointer)pPixmap,
 		      pPixmap->drawable.width, pPixmap->drawable.height,
 		      pPixmap->drawable.bitsPerPixel));
+	return;
+    }
+
+    /* If the "dirty" flag has never been set on the in-memory pixmap, then
+     * nothing has been written to it, so the contents are undefined and we can
+     * avoid the upload.
+     */
+    if (!pExaPixmap->dirty) {
+	DBG_MIGRATE(("saved upload of %dx%d\n", pPixmap->drawable.width,
+		     pPixmap->drawable.height));
 	return;
     }
 

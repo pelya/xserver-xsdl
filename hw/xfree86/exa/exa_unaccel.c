@@ -331,26 +331,26 @@ ExaCheckComposite (CARD8      op,
  * do migration for CopyArea.
  */
 const GCOps exaAsyncPixmapGCOps = {
-    fbFillSpans,
-    fbSetSpans,
-    fbPutImage,
+    ExaCheckFillSpans,
+    ExaCheckSetSpans,
+    ExaCheckPutImage,
     exaCopyArea,
     ExaCheckCopyPlane,
-    fbPolyPoint,
-    fbPolyLine,
-    fbPolySegment,
-    fbPolyRectangle,
-    fbPolyArc,
-    fbFillPolygon,
-    fbPolyFillRect,
-    fbPolyFillArc,
+    ExaCheckPolyPoint,
+    ExaCheckPolylines,
+    ExaCheckPolySegment,
+    ExaCheckPolyRectangle,
+    ExaCheckPolyArc,
+    ExaCheckFillPolygon,
+    ExaCheckPolyFillRect,
+    ExaCheckPolyFillArc,
     miPolyText8,
     miPolyText16,
     miImageText8,
     miImageText16,
-    fbImageGlyphBlt,
-    fbPolyGlyphBlt,
-    fbPushPixels
+    ExaCheckImageGlyphBlt,
+    ExaCheckPolyGlyphBlt,
+    ExaCheckPushPixels
 #ifdef NEED_LINEHELPER
     ,NULL
 #endif
