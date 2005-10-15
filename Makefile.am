@@ -36,37 +36,70 @@ if LBX
 LBX_DIR=lbx
 endif
 
-SUBDIRS=	\
-	doc	\
-	include	\
-	dix 	\
-	fb	\
-	mi	\
-	Xext	\
-	miext	\
-	os	\
-	randr	\
+SUBDIRS = \
+	doc \
+	include \
+	dix  \
+	fb \
+	mi \
+	Xext \
+	miext \
+	os \
+	randr \
 	render  \
-	Xi	\
-	xkb	\
-        dbe     \
-	$(MFB_DIR)	\
-	$(AFB_DIR)	\
-	$(CFB_DIR)	\
-	$(CFB16_DIR)   \
-	$(CFB24_DIR)   \
-	$(CFB32_DIR)   \
-	record	\
-	xfixes	\
+	Xi \
+	xkb \
+	dbe \
+	$(MFB_DIR) \
+	$(AFB_DIR) \
+	$(CFB_DIR) \
+	$(CFB16_DIR) \
+	$(CFB24_DIR) \
+	$(CFB32_DIR) \
+	record \
+	xfixes \
 	damageext \
 	$(XTRAP_DIR) \
 	$(COMPOSITE_DIR) \
-        $(GLX_DIR) \
-	hw	\
+	$(GLX_DIR) \
+	$(LBX_DIR) \
+	hw \
 	$(XPDDX_DIR) \
-	$(XPCONFIG_DIR) \
-	$(LBX_DIR)
+	$(XPCONFIG_DIR)
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = xorg-server.pc
 EXTRA_DIST = xorg-server.pc.in
+
+DIST_SUBDIRS = \
+	doc \
+	include \
+	dix  \
+	fb \
+	mi \
+	Xext \
+	miext \
+	os \
+	randr \
+	render  \
+	Xi \
+	xkb \
+	dbe \
+	mfb \
+	afb \
+	cfb \
+	cfb16 \
+	cfb24 \
+	cfb32 \
+	ilbm \
+	iplan2p4 \
+	record \
+	xfixes \
+	damageext \
+	XTrap \
+	composite \
+	GL \
+	hw \
+	Xprint \
+	XpConfig \
+	lbx

@@ -31,3 +31,5 @@ Xprt_SOURCES =			\
 	Util.c			\
 	miinitext-wrapper.c	\
 	dpmsstubs-wrapper.c
+
+EXTRA_DIST = ValTree.c

@@ -1,3 +1,25 @@
+2005-10-15  Kevin E. Martin  <kem-at-freedesktop-dot-org>
+
+	* configure.ac:
+	Fix typo and add new Makefiles to AC_OUTPUT
+
+	* XpConfig/C/print/models/HPDJ1600C/Makefile.am:
+	Fix typos
+
+	* hw/xfree86/doc/man/Makefile.am:
+	Add xorg.conf.man to CLEANFILES
+
+	* Makefile.am:
+	* XpConfig/C/print/models/PSspooldir/Makefile.am:
+	* Xprint/Makefile.am:
+	* hw/xfree86/os-support/Makefile.am:
+	* hw/xfree86/os-support/lynxos/Makefile.am:
+	* ilbm/Makefile.am:
+	* iplan2p4/Makefile.am:
+	* miext/Makefile.am:
+	* miext/rootless/Makefile.am:
+	Add missing files to EXTRA_DIST
+
 2005-10-15  Kristian Høgsberg  <krh@redhat.com>
 
 	* lbx/Makefile.am: Doh, remember to add this file.

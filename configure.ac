@@ -348,7 +348,7 @@ AC_ARG_ENABLE(xf86vidmode,   [  --disable-xf86vidmode ], [XF86VIDMODE=$enableval
 AC_ARG_ENABLE(xf86misc,      [  --disable-xf86misc ], [XF86MISC=$enableval], [XF86MISC=yes])
 AC_ARG_ENABLE(xcsecurity,     AS_HELP_STRING([--enable-xcsecurity], [Build Security extension (default: disabled)]),[XCSECURITY=$enableval],[XCSECURITY=no])
 AC_ARG_ENABLE(xevie,          AS_HELP_STRING([--enable-xevie], [Build XEvIE extension (default: disabled)]), [XEVIE=$enableval], [XEVIE=no])
-AC_ARG_ENABLE(lbx,            AS_HELP_STRING([  --enable-xtrap ], [Build LBX (default: no)]), [LBX=$enableval], [LBX=no])
+AC_ARG_ENABLE(lbx,            AS_HELP_STRING([  --enable-lbx ], [Build LBX (default: no)]), [LBX=$enableval], [LBX=no])
 
 dnl DDXes.
 AC_ARG_ENABLE(xorg,    	      AS_HELP_STRING([--enable-xorg], [Build Xorg server (default: auto)]), [XORG=$enableval], [XORG=auto])
@@ -1172,12 +1172,15 @@ cfb/Makefile
 cfb16/Makefile
 cfb24/Makefile
 cfb32/Makefile
+ilbm/Makefile
+iplan2p4/Makefile
 mi/Makefile
 miext/Makefile
 miext/damage/Makefile
 miext/shadow/Makefile
 miext/cw/Makefile
 miext/layer/Makefile
+miext/rootless/Makefile
 os/Makefile
 randr/Makefile
 render/Makefile
@@ -1210,7 +1213,10 @@ hw/xfree86/os-support/bus/Makefile
 hw/xfree86/os-support/drm/Makefile
 hw/xfree86/os-support/misc/Makefile
 hw/xfree86/os-support/linux/Makefile
+hw/xfree86/os-support/lynxos/Makefile
+hw/xfree86/os-support/sco/Makefile
 hw/xfree86/os-support/solaris/Makefile
+hw/xfree86/os-support/sysv/Makefile
 hw/xfree86/parser/Makefile
 hw/xfree86/rac/Makefile
 hw/xfree86/ramdac/Makefile
