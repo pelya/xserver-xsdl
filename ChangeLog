@@ -1,3 +1,7 @@
+2005-10-15  Kristian Høgsberg  <krh@redhat.com>
+
+	* lbx/Makefile.am: Doh, remember to add this file.
+
 2005-10-14  Kristian Høgsberg  <krh@redhat.com>
 
 	* Makefile.am:
