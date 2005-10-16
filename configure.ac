@@ -100,7 +100,7 @@ AC_CHECK_HEADERS([ndbm.h dbm.h rpcsvc/dbm.h])
 
 dnl AGPGART headers
 AC_CHECK_HEADERS([linux/agpgart.h sys/agpio.h], AGP=yes)
-AM_CONDITIONAL(AGP, [test "x$AGP" == xyes])
+AM_CONDITIONAL(AGP, [test "x$AGP" = xyes])
 
 dnl APM header
 AC_CHECK_HEADERS([linux/apm_bios.h])
@@ -114,14 +114,14 @@ AC_CHECK_HEADERS([asm/mtrr.h])
 
 dnl BSD MTRR header
 AC_CHECK_HEADERS([sys/memrange.h], ac_cv_memrange_h=yes)
-if test "x$ac_cv_memrange_h" == xyes; then
+if test "x$ac_cv_memrange_h" = xyes; then
 	AC_DEFINE(HAS_MTRR_SUPPORT, 1, [Define to 1 if BSD MTRR support is
 		 available])
 fi
 
 dnl A NetBSD MTRR header
 AC_CHECK_HEADERS([machine/mtrr.h], ac_cv_mtrr_h=yes)
-if test "x$ac_cv_mtrr_h" == xyes; then
+if test "x$ac_cv_mtrr_h" = xyes; then
 	AC_DEFINE(HAS_MTRR_BUILTIN, 1, [Define to 1 if NetBSD built-in MTRR
 		support is available])
 fi
@@ -135,7 +135,7 @@ AC_CACHE_CHECK([for sys/linker.h],
 ],
 	[ac_cv_sys_linker_h=yes],
 	[ac_cv_sys_linker_h=no])])
-AM_CONDITIONAL(FREEBSD_KLDLOAD, [test "x$ac_cv_sys_linker_h" == xyes])
+AM_CONDITIONAL(FREEBSD_KLDLOAD, [test "x$ac_cv_sys_linker_h" = xyes])
 
 AC_CACHE_CHECK([for SYSV IPC],
 		ac_cv_sysv_ipc,
@@ -221,11 +221,11 @@ esac
 
 
 dnl BSD *_video.c selection
-AM_CONDITIONAL(ALPHA_VIDEO, [test "x$ALPHA_VIDEO" == xyes])
-AM_CONDITIONAL(ARM_VIDEO, [test "x$ARM_VIDEO" == xyes])
-AM_CONDITIONAL(I386_VIDEO, [test "x$I386_VIDEO" == xyes])
-AM_CONDITIONAL(PPC_VIDEO, [test "x$PPC_VIDEO" == xyes])
-AM_CONDITIONAL(SPARC64_VIDEO, [test "x$SPARC64_VIDEO" == xyes])
+AM_CONDITIONAL(ALPHA_VIDEO, [test "x$ALPHA_VIDEO" = xyes])
+AM_CONDITIONAL(ARM_VIDEO, [test "x$ARM_VIDEO" = xyes])
+AM_CONDITIONAL(I386_VIDEO, [test "x$I386_VIDEO" = xyes])
+AM_CONDITIONAL(PPC_VIDEO, [test "x$PPC_VIDEO" = xyes])
+AM_CONDITIONAL(SPARC64_VIDEO, [test "x$SPARC64_VIDEO" = xyes])
 
 DRI=no
 dnl it would be nice to autodetect these *CONS_SUPPORTs
@@ -256,7 +256,7 @@ esac
 AC_MSG_CHECKING(for MMX capable platform)
 if test "x$use_x86_asm" = xyes && test "x$GCC" = xyes ; then
 	AC_PREPROC_IFELSE([
-#if (!defined (__GNUC__) || __GNUC__ < 3 || (__GNUC__ == 3 && __GNUC_MINOR__ < 4))
+#if (!defined (__GNUC__) || __GNUC__ < 3 || (__GNUC__ = 3 && __GNUC_MINOR__ < 4))
     #error Not supported
 #endif
 ], mmx_capable=yes, mmx_capable=no)
