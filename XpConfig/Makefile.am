@@ -704,7 +704,7 @@ install-data-local: remove-links
 	done ; 							\
 								\
 	for dir in $(C_LOCALES) ; do				\
-		ln -s en_US $(dest)/$${dir} ;		\
+		ln -s C $(dest)/$${dir} ;		\
 	done ;
 
 uninstall-hook: remove-links
