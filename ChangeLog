@@ -4,6 +4,9 @@
 	Work around automake-1.7 braindamage by providing an explicit rule
 	for XOrgCfg.
 
+	* hw/xfree86/Makefile.am:
+	More automake 1.7 braindamage: use mkdir -p, not $(mkdir_p).
+
 2005-10-17  Kristian Høgsberg  <krh@redhat.com>
 
 	* configure.ac: Fix whitespace in AS_HELP_STRING uses, convert

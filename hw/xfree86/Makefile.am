@@ -57,8 +57,9 @@ os-support/solaris/solaris-$(SOLARIS_INOUT_ARCH).il:
 	cd os-support/solaris ; make solaris-$(SOLARIS_INOUT_ARCH).il
 endif
 
+# do not use $(mkdir_p) if you want automake 1.7 to work
 install-data-local:
-	$(mkdir_p) $(DESTDIR)$(logdir)
+	mkdir -p $(DESTDIR)$(logdir)
 
 
 install-exec-local:
