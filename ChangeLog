@@ -1,3 +1,9 @@
+2005-10-17  Adam Jackson  <ajax@freedesktop.org>
+
+	* hw/xfree86/utils/xorgcfg/Makefile.am:
+	Work around automake-1.7 braindamage by providing an explicit rule
+	for XOrgCfg.
+
 2005-10-17  Kristian Høgsberg  <krh@redhat.com>
 
 	* configure.ac: Fix whitespace in AS_HELP_STRING uses, convert

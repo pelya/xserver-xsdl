@@ -123,6 +123,11 @@ appdefault_DATA = $(APPDEFAULTFILES)
 CPP_FILES_FLAGS = -D__VENDORNAME__="@VENDOR_STRING@" \
                   -D__VENDORVERS__="@VENDOR_RELEASE@"
 
+# dear automake: it would be really nice if you would actually put things into
+# .SUFFIXES so i wouldnt' have to do this.
+XOrgCfg: XOrgCfg.pre
+	$(RAWCPP) $(RAWCPPFLAGS) $(CPP_FILES_FLAGS) < $< | $(CPP_SED_MAGIC) > $@
+
 # Man page
 man1_MANS =  xorgcfg.man
 
