@@ -1,3 +1,8 @@
+2005-10-17  Kristian Høgsberg  <krh@redhat.com>
+
+	* configure.ac: Fix whitespace in AS_HELP_STRING uses, convert
+	all help strings to use AS_HELP_STRING.
+
 2005-10-17  Kevin E. Martin  <kem-at-freedesktop-dot-org>
 
 	* configure.ac:

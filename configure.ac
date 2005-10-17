@@ -278,82 +278,90 @@ DEFAULT_VENDOR_WEB="http://wiki.x.org"
 m4_ifdef([AS_HELP_STRING], , [m4_define([AS_HELP_STRING], m4_defn([AC_HELP_STRING]))])
 
 dnl Build options.
-AC_ARG_ENABLE(werror,        [  --enable-werror ], [WERROR=$enableval], [WERROR=no])
-AC_ARG_ENABLE(debug,         [  --enable-debug ], [DEBUGGING=$enableval], [DEBUGGING=no])
+AC_ARG_ENABLE(werror,        AS_HELP_STRING([--enable-werror],
+				  [Treat warnings as errors (default: disabled)]),
+			        [WERROR=$enableval], [WERROR=no])
+AC_ARG_ENABLE(debug,         AS_HELP_STRING([--enable-debug],
+				  [Enable debugging (default: disabled)]),
+			        [DEBUGGING=$enableval], [DEBUGGING=no])
 AC_ARG_WITH(int10,           AS_HELP_STRING([--with-int10=BACKEND], [int10 backend: vm86, x86emu or stub]),
 				[INT10="$withval"],
 				[INT10="$DEFAULT_INT10"])
-AC_ARG_WITH(vendor-string,   [  --with-vendor-string=VENDOR ],
+AC_ARG_WITH(vendor-string,   AS_HELP_STRING([--with-vendor-string=VENDOR],
+				  [Vendor string reported by the server]),
 			     	[ VENDOR_STRING="$withval" ],
 			     	[ VENDOR_STRING="$DEFAULT_VENDOR_STRING" ])
-AC_ARG_WITH(vendor-release,  [  --with-vendor-release=RELEASE ],
+AC_ARG_WITH(vendor-release,  AS_HELP_STRING([--with-vendor-release=RELEASE],
+				  [Vendor release string reported by the server]),
 				[ VENDOR_RELEASE="$withval" ],
 				[ VENDOR_RELEASE="$DEFAULT_VENDOR_RELEASE" ])
-AC_ARG_WITH(vendor-web,      [  --with-vendor-web=URL ],
+AC_ARG_WITH(vendor-web,      AS_HELP_STRING([--with-vendor-web=URL],
+				  [Vendor web address reported by the server]),
 				[ VENDOR_WEB="$withval" ],
 				[ VENDOR_WEB="$DEFAULT_VENDOR_WEB" ])
 AC_ARG_WITH(module-dir,      AS_HELP_STRING([--with-module-dir=DIR],
-				  [directory where modules are installed (default: $libdir/xorg/modules)]),
+				  [Directory where modules are installed (default: $libdir/xorg/modules)]),
 				[ moduledir="$withval" ],
 				[ moduledir="${libdir}/xorg/modules" ])
-AC_ARG_WITH(log-dir,      AS_HELP_STRING([--with-log-dir=DIR],
-				  [directory where log files are kept (default: $localstatedir/log)]),
+AC_ARG_WITH(log-dir,         AS_HELP_STRING([--with-log-dir=DIR],
+				  [Directory where log files are kept (default: $localstatedir/log)]),
 				[ logdir="$withval" ],
 				[ logdir="$localstatedir/log" ])
-AC_ARG_WITH(builder-addr,    [  --with-builder-addr=ADDRESS ],
+AC_ARG_WITH(builder-addr,    AS_HELP_STRING([--with-builder-addr=ADDRESS],
+				  [Builder address (default: xorg@lists.freedesktop.org)]),
 				[ BUILDERADDR="$withval" ],
 				[ BUILDERADDR="xorg@lists.freedesktop.org" ])
-AC_ARG_WITH(os-name,         [  --with-os-name=OSNAME ],
+AC_ARG_WITH(os-name,         AS_HELP_STRING([--with-os-name=OSNAME], [Name of OS (default: UNKNOWN)]),
 				[ OSNAME="$withval" ],
 				[ OSNAME="UNKNOWN" ])
-AC_ARG_WITH(os-vendor,       [  --with-os-vendor=OSVENDOR ],
+AC_ARG_WITH(os-vendor,       AS_HELP_STRING([--with-os-vendor=OSVENDOR], [Name of OS vendor]),
 				[ OSVENDOR="$withval" ],
 				[ OSVENDOR="" ])
-AC_ARG_WITH(mesa-source,     [  --with-mesa-source=MESA_SOURCE ],
+AC_ARG_WITH(mesa-source,     AS_HELP_STRING([--with-mesa-source=MESA_SOURCE], [Path to Mesa source tree]),
                                 [ MESA_SOURCE="$withval" ],
                                 [ MESA_SOURCE="" ])
 FONTDIR="${libdir}/X11/fonts"
 DEFAULT_FONT_PATH="${FONTDIR}/misc/,${FONTDIR}/TTF/,${FONTDIR}/OTF,${FONTDIR}/Type1/,${FONTDIR}/CID/,${FONTDIR}/100dpi/,${FONTDIR}/75dpi/"
-AC_ARG_WITH(default-font-path, [ --with-default-font-path=PATH ],
+AC_ARG_WITH(default-font-path, AS_HELP_STRING([--with-default-font-path=PATH], [Comma separated list of font dirs]),
 				[ FONTPATH="$withval" ],
 				[ FONTPATH="${DEFAULT_FONT_PATH}" ])
-AC_ARG_WITH(xkb-path,        [  --with-xkb-path=PATH ],
+AC_ARG_WITH(xkb-path,         AS_HELP_STRING([--with-xkb-path=PATH], [Path to XKB base dir (default: ${datadir}/X11/xkb)]),
 				[ XKBPATH="$withval" ],
 				[ XKBPATH="${datadir}/X11/xkb" ])
-AC_ARG_WITH(xkb-output,      [  --with-xkb-output=PATH ],
+AC_ARG_WITH(xkb-output,       AS_HELP_STRING([--with-xkb-output=PATH], [Path to XKB output dir (default: ${datadir}/X11/xkb/compiled)]),
 				[ XKBOUTPUT="$withval" ],
 				[ XKBOUTPUT="compiled" ])
-AC_ARG_WITH(rgb-path,        [  --with-rgb-path=PATH ],
+AC_ARG_WITH(rgb-path,         AS_HELP_STRING([--with-rgb-path=PATH], [Path to RGB database (default: ${datadir}/X11/rgb)]),
 				[ RGBPATH="$withval" ],
 				[ RGBPATH="${datadir}/X11/rgb" ])
-AC_ARG_ENABLE(builddocs,     [  --enable-builddocs ],
+AC_ARG_ENABLE(builddocs,      AS_HELP_STRING([--enable-builddocs], [Build docs (default: disabled)]),
                                 [BUILDDOCS=$enableval],
                                 [BUILDDOCS=no])
 
 dnl Extensions.
-AC_ARG_ENABLE(composite,     [  --disable-composite ], [COMPOSITE=$enableval], [COMPOSITE=yes])
-AC_ARG_ENABLE(mitshm,        [  --disable-shm ], [MITSHM=$enableval], [MITSHM=yes])
-AC_ARG_ENABLE(xres,          [  --disable-xres ], [RES=$enableval], [RES=yes])
-AC_ARG_ENABLE(xtrap,         [  --enable-xtrap ], [XTRAP=$enableval], [XTRAP=no])
-AC_ARG_ENABLE(record,        [  --disable-record ], [RECORD=$enableval], [RECORD=yes])
-AC_ARG_ENABLE(xv,            [  --disable-xv ], [XV=$enableval], [XV=yes])
-AC_ARG_ENABLE(dga,           [  --enable-dga ], [DGA=$enableval], [DGA=no])
-AC_ARG_ENABLE(screensaver,   [  --disable-screensaver ], [SCREENSAVER=$enableval], [SCREENSAVER=yes])
-AC_ARG_ENABLE(xdmcp,         [  --disable-xdmcp ], [XDMCP=$enableval], [XDMCP=auto])
-AC_ARG_ENABLE(xdm-auth-1,    [  --disable-xdm-auth-1 ], [XDMAUTH=$enableval], [XDMAUTH=auto])
-AC_ARG_ENABLE(glx,           [  --disable-glx ], [GLX=$enableval], [GLX=yes])
-AC_ARG_ENABLE(dri,           [  --enable-dri ], [DRI=$enableval])
-AC_ARG_ENABLE(xinerama,	     [  --disable-xinerama ], [XINERAMA=$enableval], [XINERAMA=yes])
-AC_ARG_ENABLE(xf86vidmode,   [  --disable-xf86vidmode ], [XF86VIDMODE=$enableval], [XF86VIDMODE=yes])
-AC_ARG_ENABLE(xf86misc,      [  --disable-xf86misc ], [XF86MISC=$enableval], [XF86MISC=yes])
-AC_ARG_ENABLE(xcsecurity,     AS_HELP_STRING([--enable-xcsecurity], [Build Security extension (default: disabled)]),[XCSECURITY=$enableval],[XCSECURITY=no])
+AC_ARG_ENABLE(composite,      AS_HELP_STRING([--disable-composite], [Build Composite extension (default: enabled)]), [COMPOSITE=$enableval], [COMPOSITE=yes])
+AC_ARG_ENABLE(mitshm,         AS_HELP_STRING([--disable-shm], [Build SHM extension (default: enabled)]), [MITSHM=$enableval], [MITSHM=yes])
+AC_ARG_ENABLE(xres,           AS_HELP_STRING([--disable-xres], [Build XRes extension (default: enabled)]), [RES=$enableval], [RES=yes])
+AC_ARG_ENABLE(xtrap,          AS_HELP_STRING([--enable-xtrap], [Build XTrap extension (default: disabled)]), [XTRAP=$enableval], [XTRAP=no])
+AC_ARG_ENABLE(record,         AS_HELP_STRING([--disable-record], [Build Record extension (default: enabled)]), [RECORD=$enableval], [RECORD=yes])
+AC_ARG_ENABLE(xv,             AS_HELP_STRING([--disable-xv], [Build Xv extension (default: enabled)]), [XV=$enableval], [XV=yes])
+AC_ARG_ENABLE(dga,            AS_HELP_STRING([--enable-dga], [Build DGA extension (default: disabled)]), [DGA=$enableval], [DGA=no])
+AC_ARG_ENABLE(screensaver,    AS_HELP_STRING([--disable-screensaver], [Build ScreenSaver extension (default: enabled)]), [SCREENSAVER=$enableval], [SCREENSAVER=yes])
+AC_ARG_ENABLE(xdmcp,          AS_HELP_STRING([--disable-xdmcp], [Build XDMCP extension (default: auto)]), [XDMCP=$enableval], [XDMCP=auto])
+AC_ARG_ENABLE(xdm-auth-1,     AS_HELP_STRING([--disable-xdm-auth-1], [Build XDM-Auth-1 extension (default: auto)]), [XDMAUTH=$enableval], [XDMAUTH=auto])
+AC_ARG_ENABLE(glx,            AS_HELP_STRING([--disable-glx], [Build GLX extension (default: enabled)]), [GLX=$enableval], [GLX=yes])
+AC_ARG_ENABLE(dri,            AS_HELP_STRING([--enable-dri], [Build DRI extension (default: auto)]), [DRI=$enableval])
+AC_ARG_ENABLE(xinerama,	      AS_HELP_STRING([--disable-xinerama], [Build Xinerama extension (default: enabled)]), [XINERAMA=$enableval], [XINERAMA=yes])
+AC_ARG_ENABLE(xf86vidmode,    AS_HELP_STRING([--disable-xf86vidmode], [Build XF86VidMode extension (default: enabled)]), [XF86VIDMODE=$enableval], [XF86VIDMODE=yes])
+AC_ARG_ENABLE(xf86misc,       AS_HELP_STRING([--disable-xf86misc], [Build XF86Misc extension (default: enabled)]), [XF86MISC=$enableval], [XF86MISC=yes])
+AC_ARG_ENABLE(xcsecurity,     AS_HELP_STRING([--enable-xcsecurity], [Build Security extension (default: disabled)]), [XCSECURITY=$enableval], [XCSECURITY=no])
 AC_ARG_ENABLE(xevie,          AS_HELP_STRING([--enable-xevie], [Build XEvIE extension (default: disabled)]), [XEVIE=$enableval], [XEVIE=no])
-AC_ARG_ENABLE(lbx,            AS_HELP_STRING([  --enable-lbx ], [Build LBX extension (default: no)]), [LBX=$enableval], [LBX=no])
-AC_ARG_ENABLE(appgroup,       AS_HELP_STRING([  --enable-appgroup ], [Build XC-APPGROUP extension (default: yes)]), [APPGROUP=$enableval], [APPGROUP=yes])
-AC_ARG_ENABLE(cup,            AS_HELP_STRING([  --enable-cup ], [Build TOG-CUP extension (default: yes)]), [CUP=$enableval], [CUP=yes])
-AC_ARG_ENABLE(evi,            AS_HELP_STRING([  --enable-evi ], [Build Extended-Visual-Information extension (default: yes)]), [EVI=$enableval], [EVI=yes])
-AC_ARG_ENABLE(multibuffer,    AS_HELP_STRING([  --enable-multibuffer ], [Build Multibuffer extension (default: no)]), [MULTIBUFFER=$enableval], [MULTIBUFFER=no])
-AC_ARG_ENABLE(fontcache,      AS_HELP_STRING([  --enable-fontcache ], [Build FontCache extension (default: no)]), [FONTCACHE=$enableval], [FONTCACHE=no])
+AC_ARG_ENABLE(lbx,            AS_HELP_STRING([--enable-lbx], [Build LBX extension (default: no)]), [LBX=$enableval], [LBX=no])
+AC_ARG_ENABLE(appgroup,       AS_HELP_STRING([--disable-appgroup], [Build XC-APPGROUP extension (default: yes)]), [APPGROUP=$enableval], [APPGROUP=yes])
+AC_ARG_ENABLE(cup,            AS_HELP_STRING([--disable-cup], [Build TOG-CUP extension (default: yes)]), [CUP=$enableval], [CUP=yes])
+AC_ARG_ENABLE(evi,            AS_HELP_STRING([--disable-evi], [Build Extended-Visual-Information extension (default: yes)]), [EVI=$enableval], [EVI=yes])
+AC_ARG_ENABLE(multibuffer,    AS_HELP_STRING([--enable-multibuffer], [Build Multibuffer extension (default: no)]), [MULTIBUFFER=$enableval], [MULTIBUFFER=no])
+AC_ARG_ENABLE(fontcache,      AS_HELP_STRING([--enable-fontcache], [Build FontCache extension (default: no)]), [FONTCACHE=$enableval], [FONTCACHE=no])
 
 dnl DDXes.
 AC_ARG_ENABLE(xorg,    	      AS_HELP_STRING([--enable-xorg], [Build Xorg server (default: auto)]), [XORG=$enableval], [XORG=auto])
@@ -1116,7 +1124,7 @@ dnl xorgconfig CLI configuration utility
 PKG_CHECK_MODULES([XORGCONFIG_DEP], [xkbfile])
 
 dnl xorgcfg GUI configuration utility
-AC_ARG_ENABLE(xorgcfg, AS_HELP_STRING([  --enable-xorgcfg ], 
+AC_ARG_ENABLE(xorgcfg, AS_HELP_STRING([--enable-xorgcfg], 
 	[Build xorgcfg GUI configuration utility (default: yes)]),
 	[XORGCFG=$enableval],[XORGCFG=yes])
 if test x$XORGCFG = xyes ; then
@@ -1131,7 +1139,7 @@ fi
 AM_CONDITIONAL(BUILD_XORGCFG, [test x$XORGCFG = xyes])
 AM_CONDITIONAL(USE_CURSES, [test x$CURSES = xyes])
 
-AC_ARG_ENABLE(kbd_mode, AS_HELP_STRING([  --enable-kbd_mode],
+AC_ARG_ENABLE(kbd_mode, AS_HELP_STRING([--enable-kbd_mode],
 	[Build kbd_mode utility (default: auto)]),
 	[BUILD_KBD_MODE=$enable_val], [BUILD_KBD_MODE="auto"])
 if test x$BUILD_KBD_MODE != xno ; then
