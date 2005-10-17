@@ -11,7 +11,7 @@ MITSHM_SRCS = shm.c
 endif
 
 if XV
-XV_SRCS = xvmain.c xvdisp.c xvmc.c xvdix.h xvmcext.h
+XV_SRCS = xvmain.c xvdisp.c xvmc.c xvdix.h xvmcext.h xvdisp.h
 endif
 
 if RES
@@ -34,20 +34,39 @@ PANORAMIX_SRCS = panoramiX.c panoramiX.h panoramiXh.h panoramiXsrv.h panoramiXpr
 endif
 
 if XEVIE
-XEVIE_SRCS = xevie.c EVIstruct.h
+XEVIE_SRCS = xevie.c
 endif
 
 if XPRINT
 XPRINT_SRCS = xprint.c
 endif
 
-EXTRA_DIST = \
-	appgroup.h \
-	xvdisp.h \
-	README.xtest1-ddx \
-	SecurityPolicy
+if APPGROUP
+APPGROUP_SRCS = appgroup.c appgroup.h
+endif
 
-# dmx.c has a hard dependency on the dmx DDX
+if CUP
+CUP_SRCS = cup.c
+endif
+
+if EVI
+EVI_SRCS = EVI.c sampleEVI.c EVIstruct.h
+endif
+
+if MULTIBUFFER
+MULTIBUFFER_SRCS = mbuf.c
+endif
+EXTRA_MULTIBUFFER_SRCS = mbufbf.c mbufpx.c
+
+if FONTCACHE
+FONTCACHE_SRCS = fontcache.c
+endif
+
+EXTRA_DIST = \
+	README.xtest1-ddx \
+	SecurityPolicy \
+	$(EXTRA_MULTIBUFFER_SRCS)
+
 libXext_la_SOURCES =		\
 	bigreq.c		\
 	mitmisc.c		\
@@ -70,5 +89,9 @@ libXext_la_SOURCES =		\
 	$(PANORAMIX_SRCS)	\
 	$(XCSECURITY_SRCS)	\
 	$(XEVIE_SRCS)		\
-	$(XPRINT_SRCS)
-
+	$(XPRINT_SRCS)		\
+	$(APPGROUP_SRCS)	\
+	$(CUP_SRCS)		\
+	$(EVI_SRCS)		\
+	$(MULTIBUFFER_SRCS)	\
+	$(FONTCACHE_SRCS)

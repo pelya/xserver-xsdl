@@ -353,13 +353,25 @@
 /* Support XTrap extension */
 #undef XTRAP
 
-/* Support Xv Extension */
+/* Support Xv extension */
 #undef XV
 
-/* Build LBX */
+/* Build LBX extension */
 #undef LBX
 
-/* Support DRI support */
+/* Build APPGROUP extension */
+#undef XAPPGROUP
+
+/* Build TOG-CUP extension */
+#undef TOGCUP
+
+/* Build Extended-Visual-Information extension */
+#undef EVI
+
+/* Build Multibuffer extension */
+#undef MULTIBUFFER
+
+/* Support DRI extension */
 #undef XF86DRI
 
 /* Vendor name */

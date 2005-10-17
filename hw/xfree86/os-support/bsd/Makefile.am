@@ -74,3 +74,20 @@ libbsd_la_SOURCES = \
 	$(DRI_SOURCES) \
 	$(KMOD_SOURCES) \
 	$(RES_SOURCES)
+
+# FIXME: Add these files to the build as needed
+EXTRA_DIST = \
+	bsd_apm.c \
+	bsd_jstk.c \
+	bsd_kbd.h \
+	bsd_kqueue_apm.c \
+	bsdResource.c \
+	memrange.h \
+	libusb/data.c \
+	libusb/descr.c \
+	libusb/parse.c \
+	libusb/usage.c \
+	libusb/usb.3 \
+	libusb/usb.h \
+	libusb/usb_hid_usages \
+	libusb/usbvar.h

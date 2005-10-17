@@ -13,7 +13,8 @@ INCLUDES =
 
 AM_CFLAGS = $(XORG_CFLAGS)
 
-EXTRA_DIST = x86emu/debug.h \
+EXTRA_DIST = validate.c \
+             x86emu/debug.h \
              x86emu/decode.h \
              x86emu/fpu.h \
              x86emu/fpu_regs.h \

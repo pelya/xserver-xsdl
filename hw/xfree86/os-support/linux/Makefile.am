@@ -26,7 +26,18 @@ AM_CFLAGS = -DUSESTDRES -DHAVE_SYSV_IPC $(XORG_CFLAGS)
 
 INCLUDES = $(XORG_INCS) -I/usr/include/drm # FIXME this last part is crack
 
+# FIXME: These need to be added to the build
+LNX_EXTRA_SOURCES = \
+	lnx_acpi.c \
+	lnx_apm.c \
+	lnx_axp.c \
+	lnx_font.c \
+	lnx_ia64.c \
+	lnx_jstk.c \
+	lnxResource.c
+
 EXTRA_DIST = \
+	$(LNX_EXTRA_SOURCES) \
 	lnx.h \
 	lnx_kbd.h \
 	$(srcdir)/../shared/ia64Pci.h \

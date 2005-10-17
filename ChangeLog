@@ -1,3 +1,24 @@
+2005-10-17  Kevin E. Martin  <kem-at-freedesktop-dot-org>
+
+	* configure.ac:
+	* Xext/Makefile.am:
+	* include/dix-config.h.in
+	Add support for more extensions
+
+	* GL/Makefile.am:
+	* XTrap/Makefile.am:
+	* hw/xfree86/os-support/Makefile.am:
+	* hw/xfree86/os-support/bsd/Makefile.am:
+	* hw/xfree86/os-support/bus/Makefile.am:
+	* hw/xfree86/os-support/linux/Makefile.am:
+	* hw/xfree86/os-support/linux/int10/Makefile.am:
+	* hw/xfree86/os-support/misc/Makefile.am:
+	* hw/xfree86/os-support/solaris/Makefile.am:
+	* hw/xfree86/vgahw/Makefile.am:
+	* hw/xfree86/x86emu/Makefile.am:
+	* os/Makefile.am:
+	Add missing files to EXTRA_DIST
+
 2005-10-15  Donnie Berkholz  <spyderous@gentoo.org>
 
 	* configure.ac: Change '==' to portable '='.

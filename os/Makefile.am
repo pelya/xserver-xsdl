@@ -2,12 +2,10 @@ noinst_LTLIBRARIES = libos.la
 
 AM_CFLAGS = $(DIX_CFLAGS)
 
-#	k5auth.c	\
-#	rpcauth.c	\
-#	genalloca.c	\
-#	hpsocket.c	\
-#	secauth.c
-#	xalloc.c
+# FIXME: Add support for these in configure.ac
+K5AUTH_SOURCES = k5auth.c
+SECURERPC_SOURCES = rpcauth.c
+INTERNALMALLOC_SOURCES = xalloc.c
 
 if XCSECURITY
 XCSECURITY_SOURCES = secauth.c
@@ -41,3 +39,5 @@ libos_la_SOURCES = 	\
 	$(XDMCP_SOURCES) \
 	$(XORG_SOURCES) \
 	$(LBX_SOURCES)
+
+EXTRA_DIST = $(K5AUTH_SOURCES) $(SECURERPC_SOURCES) $(INTERNALMALLOC_SOURCES)

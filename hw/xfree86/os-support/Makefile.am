@@ -23,3 +23,9 @@ xorgos.c:
 	touch $@
 
 DISTCLEANFILES = xorgos.c
+
+# FIXME: These don't seem to be used anywhere
+EXTRA_DIST += \
+	shared/bios_devmem.c \
+	shared/inout.S \
+	shared/kbd.c

@@ -3,8 +3,8 @@ IO_SRC   = $(srcdir)/../sysv/sysv_io.c
 KBD_SRCS = $(srcdir)/../shared/sysv_kbd.c $(srcdir)/../shared/std_kbdEv.c
 VTSW_SRC = $(srcdir)/../shared/VTsw_usl.c
 else
-IO_SRC   = sun_io.c
-KBD_SRCS = sun_kbd.c sun_kbdEv.c
+IO_SRC   = sun_io.c sun_kbd.h
+KBD_SRCS = sun_kbd.c sun_kbdEv.c sun_kbd.h
 VTSW_SRC = $(srcdir)/../shared/VTsw_noop.c
 endif
 
@@ -39,5 +39,4 @@ AM_CFLAGS = -DUSESTDRES -DHAVE_SYSV_IPC $(XORG_CFLAGS)
 INCLUDES = $(XORG_INCS) 
 
 EXTRA_DIST = solaris-amd64.S solaris-ia32.S solaris-sparcv8plus.S \
-	apSolaris.shar
-
+	apSolaris.shar sun_inout.s

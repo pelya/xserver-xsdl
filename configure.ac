@@ -348,7 +348,12 @@ AC_ARG_ENABLE(xf86vidmode,   [  --disable-xf86vidmode ], [XF86VIDMODE=$enableval
 AC_ARG_ENABLE(xf86misc,      [  --disable-xf86misc ], [XF86MISC=$enableval], [XF86MISC=yes])
 AC_ARG_ENABLE(xcsecurity,     AS_HELP_STRING([--enable-xcsecurity], [Build Security extension (default: disabled)]),[XCSECURITY=$enableval],[XCSECURITY=no])
 AC_ARG_ENABLE(xevie,          AS_HELP_STRING([--enable-xevie], [Build XEvIE extension (default: disabled)]), [XEVIE=$enableval], [XEVIE=no])
-AC_ARG_ENABLE(lbx,            AS_HELP_STRING([  --enable-lbx ], [Build LBX (default: no)]), [LBX=$enableval], [LBX=no])
+AC_ARG_ENABLE(lbx,            AS_HELP_STRING([  --enable-lbx ], [Build LBX extension (default: no)]), [LBX=$enableval], [LBX=no])
+AC_ARG_ENABLE(appgroup,       AS_HELP_STRING([  --enable-appgroup ], [Build XC-APPGROUP extension (default: yes)]), [APPGROUP=$enableval], [APPGROUP=yes])
+AC_ARG_ENABLE(cup,            AS_HELP_STRING([  --enable-cup ], [Build TOG-CUP extension (default: yes)]), [CUP=$enableval], [CUP=yes])
+AC_ARG_ENABLE(evi,            AS_HELP_STRING([  --enable-evi ], [Build Extended-Visual-Information extension (default: yes)]), [EVI=$enableval], [EVI=yes])
+AC_ARG_ENABLE(multibuffer,    AS_HELP_STRING([  --enable-multibuffer ], [Build Multibuffer extension (default: no)]), [MULTIBUFFER=$enableval], [MULTIBUFFER=no])
+AC_ARG_ENABLE(fontcache,      AS_HELP_STRING([  --enable-fontcache ], [Build FontCache extension (default: no)]), [FONTCACHE=$enableval], [FONTCACHE=no])
 
 dnl DDXes.
 AC_ARG_ENABLE(xorg,    	      AS_HELP_STRING([--enable-xorg], [Build Xorg server (default: auto)]), [XORG=$enableval], [XORG=auto])
@@ -474,11 +479,6 @@ if test "x$xRES" = xyes; then
 	REQUIRED_MODULES="$REQUIRED_MODULES resourceproto"
 fi
 
-AM_CONDITIONAL(XCSECURITY, [test "x$XCSECURITY" = xyes])
-if test "x$XCSECURITY" = xyes; then
-	AC_DEFINE(XCSECURITY, 1, [Build Security extension])
-fi
-
 if test "x$GLX" = xyes && ! test "x$MESA_SOURCE" = x; then
 	AC_DEFINE(GLXEXT, 1, [Build GLX extension])
 	GLX_LIBS='$(top_builddir)/GL/glx/libglx.la $(top_builddir)/GL/mesa/libGLcore.la'
@@ -526,6 +526,39 @@ AM_CONDITIONAL(XEVIE, [test "x$XEVIE" = xyes])
 if test "x$XEVIE" = xyes; then
 	AC_DEFINE(XEVIE, 1, [Build XEvIE extension])
 	REQUIRED_MODULES="$REQUIRED_MODULES evieproto"
+fi
+
+if test "x$APPGROUP" = xyes && test "x$XCSECURITY" != xyes; then
+	AC_MSG_NOTICE([Disabling APPGROUP extension])
+	APPGROUP=no
+fi
+AM_CONDITIONAL(APPGROUP, [test "x$APPGROUP" = xyes])
+if test "x$APPGROUP" = xyes; then
+	AC_DEFINE(XAPPGROUP, 1, [Build APPGROUP extension])
+fi
+
+AM_CONDITIONAL(CUP, [test "x$CUP" = xyes])
+if test "x$CUP" = xyes; then
+	AC_DEFINE(TOGCUP, 1, [Build TOG-CUP extension])
+	# Requires xextproto which is always required
+fi
+
+AM_CONDITIONAL(EVI, [test "x$EVI" = xyes])
+if test "x$EVI" = xyes; then
+	AC_DEFINE(EVI, 1, [Build Extended-Visual-Information extension])
+	# Requires xextproto which is always required
+fi
+
+AM_CONDITIONAL(MULTIBUFFER, [test "x$MULTIBUFFER" = xyes])
+if test "x$MULTIBUFFER" = xyes; then
+	AC_DEFINE(MULTIBUFFER, 1, [Build Multibuffer extension])
+	# Requires xextproto which is always required
+fi
+
+AM_CONDITIONAL(FONTCACHE, [test "x$FONTCACHE" = xyes])
+if test "x$FONTCACHE" = xyes; then
+	AC_DEFINE(FONTCACHE, 1, [Build FontCache extension])
+	REQUIRED_MODULES="$REQUIRED_MODULES fontcacheproto"
 fi
 
 if test "x$XF86VIDMODE" = xyes; then
