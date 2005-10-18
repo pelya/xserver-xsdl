@@ -1,3 +1,8 @@
+2005-10-17  Aaron Plattner  <aplattner@nvidia.com>
+
+	* hw/xfree86/loader/Makefile.am:
+	Add miext/damage so misym.c can export DamageDamageRegion.
+
 2005-10-17  Adam Jackson  <ajax@freedesktop.org>
 
 	* hw/xfree86/utils/xorgcfg/Makefile.am:
