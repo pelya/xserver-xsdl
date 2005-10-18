@@ -79,6 +79,9 @@
 #ifdef COMPOSITE
 #include "cw.h"
 #endif
+#ifdef DAMAGE
+#include "damage.h"
+#endif
 
 /* mi things */
 
@@ -214,6 +217,9 @@ LOOKUP miLookupTab[] = {
 #endif
 #ifdef COMPOSITE
     SYMFUNC(miDisableCompositeWrapper)
+#endif
+#ifdef DAMAGE
+    SYMFUNC(DamageDamageRegion)
 #endif
 
     {0, 0}
