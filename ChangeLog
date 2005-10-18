@@ -1,3 +1,8 @@
+2005-10-18  Adam Jackson  <ajax@freedesktop.org>
+
+	* hw/dmx/config/Makefile.am:
+	Fix parallel builds my ensuring libdmxconfig builds first.
+
 2005-10-18  Alan Coopersmith  <alan.coopersmith@sun.com>
 
 	* hw/xfree86/utils/xorgcfg/Makefile.am:

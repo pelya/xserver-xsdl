@@ -29,6 +29,7 @@ AM_CFLAGS = \
 
 bin_PROGRAMS = xdmxconfig vdltodmx dmxtodmx
 
+xdmxconfig_DEPENDENCIES = libdmxconfig.a
 xdmxconfig_SOURCES = \
 	xdmxconfig.c \
 	$(top_srcdir)/hw/dmx/dmxlog.c \
@@ -37,9 +38,11 @@ xdmxconfig_SOURCES = \
 	CanvasP.h
 xdmxconfig_LDADD = -L. -ldmxconfig @XDMXCONFIG_DEP_LIBS@
 
+vdltodmx_DEPENDENCIES = libdmxconfig.a
 vdltodmx_SOURCES = vdltodmx.c
 vdltodmx_LDADD = -L. -ldmxconfig
 
+dmxtodmx_DEPENDENCIES = libdmxconfig.a
 dmxtodmx_SOURCES = dmxtodmx.c
 dmxtodmx_LDADD = -L. -ldmxconfig
 
