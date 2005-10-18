@@ -62,7 +62,7 @@ install-data-local:
 	mkdir -p $(DESTDIR)$(logdir)
 
 
-install-exec-local:
+install-exec-local: install-binPROGRAMS
 if INSTALL_SETUID
 	chown root $(DESTDIR)$(bindir)/Xorg
 	chmod u+s $(DESTDIR)$(bindir)/Xorg

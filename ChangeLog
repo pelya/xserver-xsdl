@@ -3,6 +3,9 @@
 	* hw/dmx/config/Makefile.am:
 	Fix parallel builds my ensuring libdmxconfig builds first.
 
+	* hw/xfree86/Makefile.am:
+	Fix distcheck by forcing Xorg to be installed before chmod/chown.
+
 2005-10-18  Alan Coopersmith  <alan.coopersmith@sun.com>
 
 	* hw/xfree86/utils/xorgcfg/Makefile.am:
