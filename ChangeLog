@@ -1,3 +1,9 @@
+2005-10-18  Alan Coopersmith  <alan.coopersmith@sun.com>
+
+	* hw/xfree86/utils/xorgcfg/Makefile.am:
+	Don't use $< in explicit rules since neither BSD nor Solaris make
+	allow that.
+
 2005-10-17  Aaron Plattner  <aplattner@nvidia.com>
 
 	* hw/xfree86/loader/Makefile.am:
