@@ -1,3 +1,9 @@
+2005-10-18  Kevin E. Martin  <kem-at-freedesktop-dot-org>
+
+	* configure.ac:
+	Update package version number for RC1 release.
+	Update release string to 6.99.99.901 (i.e., 7.0 RC1).
+
 2005-10-18  Adam Jackson  <ajax@freedesktop.org>
 
 	* hw/dmx/config/Makefile.am:
