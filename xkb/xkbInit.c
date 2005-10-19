@@ -767,7 +767,7 @@ XkbRF_VarDefsRec	defs;
 	_XkbInitFileInfo= &finfo;
     }
     else {
-	LogMessage(X_ERROR, "Couldn't load XKB keymap, falling back to pre-XKB keymap\n");
+	LogMessage(X_WARNING, "Couldn't load XKB keymap, falling back to pre-XKB keymap\n");
     }
     ok= InitKeyboardDeviceStruct((DevicePtr)dev,pSyms,pMods,bellProc,ctrlProc);
     if ((config!=NULL)&&(dev && dev->key && dev->key->xkbInfo))
