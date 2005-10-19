@@ -963,6 +963,11 @@ LoadModule(const char *module, const char *path, const char **subdirlist,
 
     ret->filename = xstrdup(found);
 
+    /* drop any explicit suffix from the module name */
+    p = strchr(name, '.');
+    if (p)
+        *p = '\0';
+
     /*
      * now check if the special data object <modulename>ModuleData is
      * present.
