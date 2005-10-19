@@ -427,7 +427,7 @@ xf86GetPciDomain(PCITAG Tag)
     if (pPCI && (result = PCI_DOM_FROM_BUS(pPCI->busnum)))
 	return result;
 
-    if (pPCI->fakeDevice)
+    if (!pPCI || pPCI->fakeDevice)
 	return 1;		/* Domain 0 is reserved */
 
     if ((fd = linuxPciOpenFile(pPCI ? pPCI->tag : 0,FALSE)) < 0)
