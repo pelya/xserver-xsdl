@@ -256,7 +256,7 @@ esac
 AC_MSG_CHECKING(for MMX capable platform)
 if test "x$use_x86_asm" = xyes && test "x$GCC" = xyes ; then
 	AC_PREPROC_IFELSE([
-#if (!defined (__GNUC__) || __GNUC__ < 3 || (__GNUC__ = 3 && __GNUC_MINOR__ < 4))
+#if (!defined (__GNUC__) || __GNUC__ < 3 || (__GNUC__ == 3 && __GNUC_MINOR__ < 4))
     #error Not supported
 #endif
 ], mmx_capable=yes, mmx_capable=no)
