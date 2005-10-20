@@ -428,7 +428,7 @@ exaCreatePixmap(ScreenPtr pScreen, int w, int h, int depth)
 
     if (w > 32767 || h > 32767)
 	return NullPixmap;
-    
+
     if (!pScrn->vtSema || pExaScr->swappedOut) {
         pPixmap = pExaScr->SavedCreatePixmap(pScreen, w, h, depth);
     } else {
@@ -1225,7 +1225,7 @@ exaFillRegionTiled (DrawablePtr	pDrawable,
     STRACE;
     tileWidth = pTile->drawable.width;
     tileHeight = pTile->drawable.height;
-	
+
     if (pDrawable->width > pExaScr->info->card.maxX ||
 	pDrawable->height > pExaScr->info->card.maxY ||
 	tileWidth > pExaScr->info->card.maxX ||
@@ -1237,7 +1237,7 @@ exaFillRegionTiled (DrawablePtr	pDrawable,
     /* If we're filling with a solid color, grab it out and go to
      * FillRegionSolid, saving numerous copies.
      */
-    if (pDrawable->width == 1 && pDrawable->height == 1) {
+    if (tileWidth == 1 && tileHeight == 1) {
 	CARD32 pixel;
 
 	exaDrawableUseMemory(&pTile->drawable);
