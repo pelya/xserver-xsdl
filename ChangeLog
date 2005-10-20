@@ -1,3 +1,9 @@
+2005-10-18  Adam Jackson  <ajax@freedesktop.org>
+
+	* XTrap/Makefile.am:
+	* hw/xfree86/dixmods/Makefile.am:
+	Move xf86XTrapModule.c to dixmods, guess at a build system.
+
 2005-10-18  Kevin E. Martin  <kem-at-freedesktop-dot-org>
 
 	* configure.ac:
