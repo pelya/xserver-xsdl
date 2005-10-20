@@ -41,6 +41,8 @@
 **
 */
 
+#include "indirect_size.h"
+
 extern GLint __glReadPixels_size(GLenum format, GLenum type,
 				 GLint width, GLint height);
 extern GLint __glGetTexEnvfv_size(GLenum pname);
