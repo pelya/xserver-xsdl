@@ -313,8 +313,8 @@ xf86ActivateDevice(LocalDevicePtr local)
 	if (dev == NULL)
 	    FatalError("Too many input devices");
 	
-	local->atom = MakeAtom(local->name,
-			       strlen(local->name),
+	local->atom = MakeAtom(local->type_name,
+			       strlen(local->type_name),
 			       TRUE);
 	AssignTypeAndName (dev, local->atom, local->name);
 	dev->public.devicePrivate = (pointer) local;
