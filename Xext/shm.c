@@ -1233,6 +1233,7 @@ SProcShmCreatePixmap(client)
     REQUEST(xShmCreatePixmapReq);
     swaps(&stuff->length, n);
     REQUEST_SIZE_MATCH(xShmCreatePixmapReq);
+    swapl(&stuff->pid, n);
     swapl(&stuff->drawable, n);
     swaps(&stuff->width, n);
     swaps(&stuff->height, n);
