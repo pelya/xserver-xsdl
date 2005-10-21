@@ -1,3 +1,8 @@
+2005-10-21  Adam Jackson  <ajax@freedesktop.org>
+
+	* configure.ac:
+	Bug #4840: Typo, x$xRES -> x$RES.  (George Fufutos)
+
 2005-10-20  Donnie Berkholz  <spyderous@gentoo.org>
 
 	* configure.ac: Bug #4817 <https://bugs.freedesktop.org/show_bug.cgi?id=4817>

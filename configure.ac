@@ -482,7 +482,7 @@ if test "x$SCREENSAVER" = xyes; then
 fi
 
 AM_CONDITIONAL(RES, [test "x$RES" = xyes])
-if test "x$xRES" = xyes; then
+if test "x$RES" = xyes; then
 	AC_DEFINE(RES, 1, [Support X resource extension])
 	REQUIRED_MODULES="$REQUIRED_MODULES resourceproto"
 fi
