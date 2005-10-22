@@ -88,6 +88,7 @@ static __GLXscreenInfo __glDDXScreenInfo = {
     NULL,                 /* Set up pVisualPriv in probe */
     0,                    /* Set up numVisuals in probe */
     0,                    /* Set up numUsableVisuals in probe */
+    NULL,                 /* GLextensions is overwritten by __glXScreenInit */
     "Vendor String",      /* GLXvendor is overwritten by __glXScreenInit */
     "Version String",     /* GLXversion is overwritten by __glXScreenInit */
     "Extensions String",  /* GLXextensions is overwritten by __glXScreenInit */
