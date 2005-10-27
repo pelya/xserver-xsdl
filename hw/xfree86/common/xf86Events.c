@@ -1299,6 +1299,10 @@ static __inline__ void xorg_backtrace(void)
 
 #else /* not glibc or glibc < 2.1 */
 
+# if defined(sun) && defined(__SVR4)
+#  define HAVE_PSTACK
+# endif
+
 # if defined(HAVE_WALKCONTEXT) /* Solaris 9 & later */
 
 # include <ucontext.h>
@@ -1357,14 +1361,91 @@ static int xorg_backtrace_frame(uintptr_t pc, int signo, void *arg)
     
     return 0;
 }
+# endif /* HAVE_WALKCONTEXT */
 
-static __inline__ void xorg_backtrace(void) { 
-    ucontext_t u;
-    int depth = 1;
+# ifdef HAVE_PSTACK
+static int xorg_backtrace_pstack(void) {
+    pid_t kidpid;
+    int pipefd[2];
 
-    if (getcontext(&u) == 0)
-	walkcontext(&u, xorg_backtrace_frame, &depth);
+    if (pipe(pipefd) != 0) {
+	return -1;
+    }
+
+    kidpid = fork1();
+
+    if (kidpid == -1) {
+	/* ERROR */
+	return -1;
+    } else if (kidpid == 0) {
+	/* CHILD */
+	char parent[16];
+	
+	seteuid(0);
+	close(STDIN_FILENO);
+	close(STDOUT_FILENO);
+	dup2(pipefd[1],STDOUT_FILENO);
+	closefrom(STDERR_FILENO);
+
+	snprintf(parent, sizeof(parent), "%d", getppid());
+	execle("/usr/bin/pstack", "pstack", parent, NULL);
+	exit(1);
+    } else {
+	/* PARENT */
+	char btline[256];
+	int kidstat;
+	int bytesread;
+	int done = 0;
+	
+	close(pipefd[1]);
+
+	while (!done) {
+	    bytesread = read(pipefd[0], btline, sizeof(btline) - 1);
+	    
+	    if (bytesread > 0) {
+		btline[bytesread] = 0;
+		ErrorF("%s", btline);
+	    }
+	    else if ((bytesread < 0) ||
+		     ((errno != EINTR) && (errno != EAGAIN)))
+		done = 1;
+	}
+	close(pipefd[0]);
+	waitpid(kidpid, &kidstat, 0);
+	if (kidstat != 0)
+	    return -1;
+    }
+    return 0;
 }
+# endif /* HAVE_PSTACK */
+
+
+# if defined(HAVE_PSTACK) || defined(HAVE_WALKCONTEXT)
+
+static __inline__ void xorg_backtrace(void) {
+
+    ErrorF("\nBacktrace:\n");
+    
+#  ifdef HAVE_PSTACK    
+/* First try fork/exec of pstack - otherwise fall back to walkcontext
+   pstack is preferred since it can print names of non-exported functions */
+    
+    if (xorg_backtrace_pstack() < 0)
+#  endif	
+    {
+#  ifdef HAVE_WALKCONTEXT
+	ucontext_t u;
+	int depth = 1;
+	
+	if (getcontext(&u) == 0)
+	    walkcontext(&u, xorg_backtrace_frame, &depth);
+	else
+#  endif
+	    Error("Failed to get backtrace info");
+    }
+    ErrorF("\n");	
+}
+
 # else
 
 /* Default fallback if we can't find any way to get a backtrace */
