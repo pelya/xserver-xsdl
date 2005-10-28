@@ -1694,7 +1694,7 @@ static __inline__ int
 xf86ReadMmio32(void *Base, unsigned long Offset)
 {
 	__asm__ __volatile__("mb"  : : : "memory");
-	return *(volatile CARD32*)((unsigned long)Base+(Offset));
+	return *(volatile unsigned int*)((unsigned long)Base+(Offset));
 }
 #  endif
 extern void (*xf86WriteMmio8)(int, void *, unsigned long);
