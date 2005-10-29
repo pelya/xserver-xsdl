@@ -1,3 +1,8 @@
+2005-10-28  Alan Coopersmith  <alan.coopersmith@sun.com>
+
+	* hw/xfree86/Makefile.am: 
+	Make X -> Xorg symlink at install time.
+	
 2005-10-21  Adam Jackson  <ajax@freedesktop.org>
 
 	* configure.ac:

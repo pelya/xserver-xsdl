@@ -63,6 +63,7 @@ install-data-local:
 
 
 install-exec-local: install-binPROGRAMS
+	(cd $(DESTDIR)$(bindir) && rm -f X && ln -s Xorg X)
 if INSTALL_SETUID
 	chown root $(DESTDIR)$(bindir)/Xorg
 	chmod u+s $(DESTDIR)$(bindir)/Xorg
