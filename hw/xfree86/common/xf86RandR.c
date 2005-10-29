@@ -326,6 +326,44 @@ xf86GetRotation(ScreenPtr pScreen)
     return XF86RANDRINFO(pScreen)->rotation;
 }
 
+/* Function to change RandR's idea of the virtual screen size */
+Bool
+xf86RandRSetNewVirtualAndDimensions(ScreenPtr pScreen,
+	int newvirtX, int newvirtY, int newmmWidth, int newmmHeight,
+	Bool resetMode)
+{
+    XF86RandRInfoPtr randrp;
+
+    if (xf86RandRIndex == -1)
+	return FALSE;
+
+    randrp = XF86RANDRINFO(pScreen);
+    if (randrp == NULL)
+	return FALSE;
+
+    if (newvirtX > 0)
+	randrp->virtualX = newvirtX;
+
+    if (newvirtY > 0)
+	randrp->virtualY = newvirtY;
+
+    if (newmmWidth > 0)
+	randrp->mmWidth = newmmWidth;
+
+    if (newmmHeight > 0)
+	randrp->mmHeight = newmmHeight;
+
+    /* This is only for during server start */
+    if (resetMode) {
+	return (xf86RandRSetMode(pScreen,
+		  XF86SCRNINFO(pScreen)->currentMode,
+		  TRUE,
+		  pScreen->mmWidth, pScreen->mmHeight));
+    }
+
+    return TRUE;
+}
+
 Bool
 xf86RandRInit (ScreenPtr    pScreen)
 {
@@ -373,3 +411,5 @@ xf86RandRInit (ScreenPtr    pScreen)
     pScreen->devPrivates[xf86RandRIndex].ptr = randrp;
     return TRUE;
 }
+
+
