@@ -614,6 +614,11 @@ LOOKUP xfree86LookupTab[] = {
     SYMFUNC(xf86GetGammaRamp)
     SYMFUNC(xf86ChangeGammaRamp)
 
+    /* xf86RandR.c */
+#ifdef RANDR
+    SYMFUNC(xf86RandRSetNewVirtualAndDimensions)
+#endif
+
     /* xf86xv.c */
     SYMFUNC(xf86XVScreenInit)
     SYMFUNC(xf86XVRegisterGenericAdaptorDriver)
