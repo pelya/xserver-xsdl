@@ -69,17 +69,30 @@ xf86RandRGetInfo (ScreenPtr pScreen, Rotation *rotations)
     XF86RandRInfoPtr	    randrp = XF86RANDRINFO(pScreen);
     DisplayModePtr	    mode;
     int			    refresh0 = 60;
+    xorgRRModeMM	    RRModeMM;
 
     *rotations = RR_Rotate_0;
 
     for (mode = scrp->modes; ; mode = mode->next)
     {
 	int refresh = xf86RandRModeRefresh (mode);
+
 	if (mode == scrp->modes)
 	    refresh0 = refresh;
+
+	RRModeMM.mode = mode;
+	RRModeMM.virtX = randrp->virtualX;
+	RRModeMM.virtY = randrp->virtualY;
+	RRModeMM.mmWidth = randrp->mmWidth;
+	RRModeMM.mmHeight = randrp->mmHeight;
+
+	if(scrp->DriverFunc) {
+	   (*scrp->DriverFunc)(scrp, RR_GET_MODE_MM, &RRModeMM);
+	}
+
 	pSize = RRRegisterSize (pScreen,
 				mode->HDisplay, mode->VDisplay,
-				randrp->mmWidth, randrp->mmHeight);
+				RRModeMM.mmWidth, RRModeMM.mmHeight);
 	if (!pSize)
 	    return FALSE;
 	RRRegisterRate (pScreen, pSize, refresh);
@@ -93,10 +106,20 @@ xf86RandRGetInfo (ScreenPtr pScreen, Rotation *rotations)
 	scrp->currentMode->VDisplay != randrp->virtualY)
     {
 	mode = scrp->modes;
+
+	RRModeMM.mode = NULL;
+	RRModeMM.virtX = randrp->virtualX;
+	RRModeMM.virtY = randrp->virtualY;
+	RRModeMM.mmWidth = randrp->mmWidth;
+	RRModeMM.mmHeight = randrp->mmHeight;
+
+	if(scrp->DriverFunc) {
+	   (*scrp->DriverFunc)(scrp, RR_GET_MODE_MM, &RRModeMM);
+	}
+
 	pSize = RRRegisterSize (pScreen,
 				randrp->virtualX, randrp->virtualY,
-				randrp->mmWidth,
-				randrp->mmHeight);
+				RRModeMM.mmWidth, RRModeMM.mmHeight);
 	if (!pSize)
 	    return FALSE;
 	RRRegisterRate (pScreen, pSize, refresh0);

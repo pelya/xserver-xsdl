@@ -134,7 +134,7 @@ typedef struct _DisplayModeRec {
     char *			name;		/* identifier for the mode */
     ModeStatus			status;
     int				type;
-    
+
     /* These are the values that the user sees/provides */
     int				Clock;		/* pixel clock freq (kHz) */
     int				HDisplay;	/* horizontal timing */
@@ -247,6 +247,7 @@ typedef struct _ScrnInfoRec *ScrnInfoPtr;
 typedef enum {
     RR_GET_INFO,
     RR_SET_CONFIG,
+    RR_GET_MODE_MM,
     GET_REQUIRED_HW_INTERFACES = 10
 } xorgDriverFuncOp;
 
@@ -265,6 +266,15 @@ typedef union {
     short RRRotations;
     xorgRRConfig RRConfig;
 } xorgRRRotation, *xorgRRRotationPtr;
+
+/* RR_GET_MODE_MM */
+typedef struct {
+    DisplayModePtr mode;
+    int virtX;
+    int virtY;
+    int mmWidth;
+    int mmHeight;
+} xorgRRModeMM, *xorgRRModeMMPtr;
 
 /* GET_REQUIRED_HW_INTERFACES */
 #define HW_IO 1
@@ -350,7 +360,7 @@ typedef struct {
     int		device;
     int		func;
 } PciBusId;
-    
+
 typedef struct {
     unsigned int dummy;
 } IsaBusId;
@@ -376,7 +386,7 @@ typedef enum {
     DAC_BPP32,
     MAXDACSPEEDS
 } DacSpeedIndex;
- 
+
 typedef struct {
    char *			identifier;
    char *			vendor;
@@ -529,7 +539,7 @@ typedef struct _confdrirec {
     int                 bufs_count;
     confDRIBufferRec    *bufs;
 } confDRIRec, *confDRIPtr;
-    
+
 /* These values should be adjusted when new fields are added to ScrnInfoRec */
 #define NUM_RESERVED_INTS		16
 #define NUM_RESERVED_POINTERS		15
@@ -572,7 +582,7 @@ typedef enum {
 } pmWait;
 
 /*
- * The IO access enabler struct. This contains the address for 
+ * The IO access enabler struct. This contains the address for
  * the IOEnable/IODisable funcs for their specific bus along
  * with a pointer to data needed by them
  */
@@ -720,7 +730,7 @@ typedef struct {
     resRange *resList;
 } IsaChipsets;
 
-typedef struct { 
+typedef struct {
     int numChipset;
     int PCIid;
     resRange *resList;
@@ -768,9 +778,9 @@ typedef struct {
    int imageHeight;
    int pixmapWidth;	/* Xlib accessible portion (pixels) */
    int pixmapHeight;	/* both fields ignored if no concurrent access */
-   int bytesPerScanline; 
+   int bytesPerScanline;
    int byteOrder;	/* MSBFirst, LSBFirst */
-   int depth;		
+   int depth;
    int bitsPerPixel;
    unsigned long red_mask;
    unsigned long green_mask;
@@ -840,10 +850,10 @@ typedef void xf86SetOverscanProc          (ScrnInfoPtr, int);
 typedef struct _ScrnInfoRec {
     int			driverVersion;
     char *		driverName;		/* canonical name used in */
-						/* the config file */   
+						/* the config file */
     ScreenPtr		pScreen;		/* Pointer to the ScreenRec */
     int			scrnIndex;		/* Number of this screen */
-    Bool		configured;		/* Is this screen valid */ 
+    Bool		configured;		/* Is this screen valid */
     int			origIndex;		/* initial number assigned to
 						 * this screen before
 						 * finalising the number of
@@ -937,14 +947,14 @@ typedef struct _ScrnInfoRec {
     /* Allow screens to be enabled/disabled individually */
     Bool		vtSema;
     DevUnion		pixmapPrivate;		/* saved devPrivate from pixmap */
-    
+
     /* hw cursor moves at SIGIO time */
     Bool		silkenMouse;
 
     /* Storage for clockRanges and adjustFlags for use with the VidMode ext */
     ClockRangesPtr	clockRanges;
     int			adjustFlags;
-  
+
     /*
      * These can be used when the minor ABI version is incremented.
      * The NUM_* parameters must be reduced appropriately to keep the
@@ -979,7 +989,7 @@ typedef struct _ScrnInfoRec {
     xf86LoadPaletteProc			*LoadPalette;
     xf86SetOverscanProc			*SetOverscan;
     xorgDriverFuncProc			*DriverFunc;
-    
+
     /*
      * This can be used when the minor ABI version is incremented.
      * The NUM_* parameter must be reduced appropriately to keep the
@@ -992,9 +1002,9 @@ typedef struct _ScrnInfoRec {
 
 typedef struct {
    Bool (*OpenFramebuffer)(
-	ScrnInfoPtr pScrn, 
+	ScrnInfoPtr pScrn,
 	char **name,
-	unsigned char **mem, 
+	unsigned char **mem,
 	int *size,
 	int *offset,
         int *extra
@@ -1005,20 +1015,20 @@ typedef struct {
    int  (*GetViewport)(ScrnInfoPtr pScrn);
    void (*Sync)(ScrnInfoPtr);
    void (*FillRect)(
-	ScrnInfoPtr pScrn, 
-	int x, int y, int w, int h, 
+	ScrnInfoPtr pScrn,
+	int x, int y, int w, int h,
 	unsigned long color
    );
    void (*BlitRect)(
-	ScrnInfoPtr pScrn, 
-	int srcx, int srcy, 
-	int w, int h, 
+	ScrnInfoPtr pScrn,
+	int srcx, int srcy,
+	int w, int h,
 	int dstx, int dsty
    );
    void (*BlitTransRect)(
-	ScrnInfoPtr pScrn, 
-	int srcx, int srcy, 
-	int w, int h, 
+	ScrnInfoPtr pScrn,
+	int srcx, int srcy,
+	int w, int h,
 	int dstx, int dsty,
 	unsigned long color
    );
@@ -1058,7 +1068,7 @@ typedef void (*InputHandlerProc)(int fd, pointer data);
 #define CLK_REG_SAVE		-1
 #define CLK_REG_RESTORE		-2
 
-/* xf86Debug.c */ 
+/* xf86Debug.c */
 #ifdef BUILDDEBUG
 typedef struct {
     long sec;
@@ -1080,7 +1090,7 @@ typedef struct {
 #define OVERLAY_8_32_PLANAR	0x00000008
 
 #if 0
-#define LD_RESOLV_IFDONE		0	/* only check if no more 
+#define LD_RESOLV_IFDONE		0	/* only check if no more
 						   delays pending */
 #define LD_RESOLV_NOW			1	/* finish one delay step */
 #define LD_RESOLV_FORCE			2	/* force checking... */
