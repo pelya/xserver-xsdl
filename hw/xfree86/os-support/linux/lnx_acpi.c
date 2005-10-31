@@ -130,6 +130,7 @@ lnxACPIOpen(void)
 	strcpy(addr.sun_path, ACPI_SOCKET);
 	if ((r = connect(fd, (struct sockaddr*)&addr, sizeof(addr))) == -1) {
 	    shutdown(fd, 2);
+	    close(fd);
 	    fd = -1;
 	}
     }
@@ -162,6 +163,7 @@ lnxCloseACPI(void)
     if (ACPIihPtr) {
 	fd = xf86RemoveInputHandler(ACPIihPtr);
 	shutdown(fd, 2);
+	close(fd);
 	ACPIihPtr = NULL;
     }
 }
