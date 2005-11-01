@@ -1,3 +1,15 @@
+2005-11-01  Kevin E. Martin  <kem-at-freedesktop-dot-org>
+
+	* Makefile.am:
+	Add xorg-server.m4 for driver dependency checking.
+
+	* configure.ac:
+	* hw/dmx/config/Makefile.am:
+	* hw/dmx/examples/Makefile.am:
+	* hw/xfree86/dri/Makefile.am:
+	* hw/xfree86/utils/xorgcfg/Makefile.am:
+	Update pkgcheck depedencies to work with separate build roots.
+
 2005-10-28  Alan Coopersmith  <alan.coopersmith@sun.com>
 
 	* hw/xfree86/Makefile.am: 

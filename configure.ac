@@ -434,7 +434,7 @@ XEXT_INC='-I$(top_srcdir)/Xext'
 XEXT_LIB='$(top_builddir)/Xext/libXext.la'
 
 dnl Core modules for most extensions, et al.
-REQUIRED_MODULES="randrproto renderproto fixesproto damageproto xcmiscproto xextproto xfont xproto xtrans xau xf86miscproto xf86vidmodeproto xf86bigfontproto scrnsaverproto bigreqsproto resourceproto fontenc fontsproto"
+REQUIRED_MODULES="randrproto renderproto fixesproto damageproto xcmiscproto xextproto xfont xproto xtrans xau xf86miscproto xf86vidmodeproto xf86bigfontproto scrnsaverproto bigreqsproto resourceproto fontenc fontsproto inputproto xf86dgaproto"
 
 AM_CONDITIONAL(XV, [test "x$XV" = xyes])
 if test "x$XV" = xyes; then
@@ -445,7 +445,6 @@ fi
 AM_CONDITIONAL(DGA, [test "x$DGA" = xyes])
 if test "x$DGA" = xyes; then
 	AC_DEFINE(DGA, 1, [Support DGA extension])
-	REQUIRED_MODULES="$REQUIRED_MODULES xf86dgaproto"
 fi
 
 AM_CONDITIONAL(COMPOSITE, [test "x$COMPOSITE" = xyes])
@@ -511,11 +510,10 @@ if test "x$DRI" = xyes; then
 	AC_DEFINE(XF86DRI, 1, [Build DRI extension])
 	PKG_CHECK_MODULES([DRIPROTO], [xf86driproto])
 	PKG_CHECK_MODULES([LIBDRM], [libdrm])
-	if test "x$GLX" = xyes; then
-		PKG_CHECK_MODULES([GL], [glproto >= 1.4.1])
-	fi
+	PKG_CHECK_MODULES([GL], [glproto >= 1.4.1])
 	AC_SUBST(DRIPROTO_CFLAGS)
 	AC_SUBST(LIBDRM_CFLAGS)
+	AC_SUBST(GL_CFLAGS)
 fi
 
 AM_CONDITIONAL(XINERAMA, [test "x$XINERAMA" = xyes])
@@ -575,6 +573,15 @@ fi
 
 if test "x$XF86MISC" = xyes; then
 	AC_DEFINE(XF86MISC, 1, [Support XFree86 miscellaneous extensions])
+fi
+
+if test "x$XPRINT" = xauto; then
+	PKG_CHECK_MODULES([XPRINT], [printproto], [XPRINT=yes], [XPRINT=no])
+fi
+AM_CONDITIONAL(XPRINT, [test "x$XPRINT" = xyes])
+if test "x$XPRINT" = xyes; then
+	AC_DEFINE(XPRINT, 1, [Build Print extension])
+	REQUIRED_MODULES="$REQUIRED_MODULES printproto"
 fi
 
 AC_DEFINE(RENDER, 1, [Support RENDER extension])
@@ -746,6 +753,7 @@ dnl Linux sources in DMX require <linux/keyboard.h>
 		PKG_CHECK_MODULES([GL], [glproto])
 	fi
 	PKG_CHECK_MODULES([XDMXCONFIG_DEP], [xaw7 xmu xt xpm x11])
+	AC_SUBST(XDMXCONFIG_DEP_CFLAGS)
 	AC_SUBST(XDMXCONFIG_DEP_LIBS)
 	PKG_CHECK_MODULES([DMXEXAMPLES_DEP], [dmx xext x11])
 	AC_SUBST(DMXEXAMPLES_DEP_LIBS)
@@ -989,12 +997,8 @@ AM_CONDITIONAL(AFB, [test "x$XORG" = xyes])
 
 dnl Xprint DDX
 
-if test "x$XPRINT" = xauto; then
-	PKG_CHECK_MODULES([XPRINT], [printproto x11], [XPRINT=yes], [XPRINT=no])
-fi
 AC_MSG_CHECKING([whether to build Xprint DDX])
 AC_MSG_RESULT([$XPRINT])
-AM_CONDITIONAL(XPRINT, [test x$XPRINT = xyes])
 
 if test "x$XPRINT" = xyes; then
 	PKG_CHECK_MODULES([XPRINT], [printproto x11 xfont $XDMCP_MODULES xau])
@@ -1135,6 +1139,8 @@ if test x$XORGCFG = xyes ; then
 	    AC_CHECK_LIB([ncurses],[waddstr],
 		[XORGCFG_DEP_LIBS="$XORGCFG_DEP_LIBS -lncurses" ; CURSES=yes],
 		[CURSES=no]))
+	AC_SUBST(XORGCFG_DEP_CFLAGS)
+	AC_SUBST(XORGCFG_DEP_LIBS)
 fi
 AM_CONDITIONAL(BUILD_XORGCFG, [test x$XORGCFG = xyes])
 AM_CONDITIONAL(USE_CURSES, [test x$CURSES = xyes])

@@ -37,6 +37,7 @@ xdmxconfig_SOURCES = \
 	Canvas.h \
 	CanvasP.h
 xdmxconfig_LDADD = -L. -ldmxconfig @XDMXCONFIG_DEP_LIBS@
+xdmxconfig_CFLAGS = $(AM_CFLAGS) @XDMXCONFIG_DEP_CFLAGS@
 
 vdltodmx_DEPENDENCIES = libdmxconfig.a
 vdltodmx_SOURCES = vdltodmx.c

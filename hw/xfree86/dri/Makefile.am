@@ -9,7 +9,8 @@ libdri_la_CFLAGS = -I$(top_srcdir)/hw/xfree86/common \
                    -DHAVE_XORG_CONFIG_H \
 		   -DXFree86Module -DIN_MODULE \
                    @DRIPROTO_CFLAGS@ \
-                   @LIBDRM_CFLAGS@
+                   @LIBDRM_CFLAGS@ \
+                   @GL_CFLAGS@
 libdri_la_LDFLAGS = -module -avoid-version
 libdri_ladir = $(moduledir)/extensions
 libdri_la_SOURCES = \

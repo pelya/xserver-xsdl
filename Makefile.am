@@ -67,9 +67,13 @@ SUBDIRS = \
 	$(XPDDX_DIR) \
 	$(XPCONFIG_DIR)
 
+aclocaldir = $(datadir)/aclocal
+aclocal_DATA = xorg-server.m4
+
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = xorg-server.pc
-EXTRA_DIST = xorg-server.pc.in
+
+EXTRA_DIST = xorg-server.pc.in xorg-server.m4
 
 DIST_SUBDIRS = \
 	doc \
