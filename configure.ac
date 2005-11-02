@@ -356,12 +356,13 @@ AC_ARG_ENABLE(xf86vidmode,    AS_HELP_STRING([--disable-xf86vidmode], [Build XF8
 AC_ARG_ENABLE(xf86misc,       AS_HELP_STRING([--disable-xf86misc], [Build XF86Misc extension (default: enabled)]), [XF86MISC=$enableval], [XF86MISC=yes])
 AC_ARG_ENABLE(xcsecurity,     AS_HELP_STRING([--enable-xcsecurity], [Build Security extension (default: disabled)]), [XCSECURITY=$enableval], [XCSECURITY=no])
 AC_ARG_ENABLE(xevie,          AS_HELP_STRING([--enable-xevie], [Build XEvIE extension (default: disabled)]), [XEVIE=$enableval], [XEVIE=no])
-AC_ARG_ENABLE(lbx,            AS_HELP_STRING([--enable-lbx], [Build LBX extension (default: no)]), [LBX=$enableval], [LBX=no])
-AC_ARG_ENABLE(appgroup,       AS_HELP_STRING([--disable-appgroup], [Build XC-APPGROUP extension (default: yes)]), [APPGROUP=$enableval], [APPGROUP=yes])
-AC_ARG_ENABLE(cup,            AS_HELP_STRING([--disable-cup], [Build TOG-CUP extension (default: yes)]), [CUP=$enableval], [CUP=yes])
-AC_ARG_ENABLE(evi,            AS_HELP_STRING([--disable-evi], [Build Extended-Visual-Information extension (default: yes)]), [EVI=$enableval], [EVI=yes])
-AC_ARG_ENABLE(multibuffer,    AS_HELP_STRING([--enable-multibuffer], [Build Multibuffer extension (default: no)]), [MULTIBUFFER=$enableval], [MULTIBUFFER=no])
-AC_ARG_ENABLE(fontcache,      AS_HELP_STRING([--enable-fontcache], [Build FontCache extension (default: no)]), [FONTCACHE=$enableval], [FONTCACHE=no])
+AC_ARG_ENABLE(lbx,            AS_HELP_STRING([--enable-lbx], [Build LBX extension (default: disabled)]), [LBX=$enableval], [LBX=no])
+AC_ARG_ENABLE(appgroup,       AS_HELP_STRING([--disable-appgroup], [Build XC-APPGROUP extension (default: enabled)]), [APPGROUP=$enableval], [APPGROUP=yes])
+AC_ARG_ENABLE(cup,            AS_HELP_STRING([--disable-cup], [Build TOG-CUP extension (default: enabled)]), [CUP=$enableval], [CUP=yes])
+AC_ARG_ENABLE(evi,            AS_HELP_STRING([--disable-evi], [Build Extended-Visual-Information extension (default: enabled)]), [EVI=$enableval], [EVI=yes])
+AC_ARG_ENABLE(multibuffer,    AS_HELP_STRING([--enable-multibuffer], [Build Multibuffer extension (default: disabled)]), [MULTIBUFFER=$enableval], [MULTIBUFFER=no])
+AC_ARG_ENABLE(fontcache,      AS_HELP_STRING([--enable-fontcache], [Build FontCache extension (default: disabled)]), [FONTCACHE=$enableval], [FONTCACHE=no])
+AC_ARG_ENABLE(dbe,            AS_HELP_STRING([--disable-dbe], [Build DBE extension (default: enabled)]), [DBE=$enableval], [DBE=yes])
 
 dnl DDXes.
 AC_ARG_ENABLE(xorg,    	      AS_HELP_STRING([--enable-xorg], [Build Xorg server (default: auto)]), [XORG=$enableval], [XORG=auto])
@@ -565,6 +566,12 @@ AM_CONDITIONAL(FONTCACHE, [test "x$FONTCACHE" = xyes])
 if test "x$FONTCACHE" = xyes; then
 	AC_DEFINE(FONTCACHE, 1, [Build FontCache extension])
 	REQUIRED_MODULES="$REQUIRED_MODULES fontcacheproto"
+fi
+
+AM_CONDITIONAL(DBE, [test "x$DBE" = xyes])
+if test "x$DBE" = xyes; then
+	AC_DEFINE(DBE, 1, [Support DBE extension])
+	DBE_LIB='$(top_builddir)/dbe/libdbe.la'
 fi
 
 if test "x$XF86VIDMODE" = xyes; then
@@ -779,7 +786,7 @@ AC_MSG_RESULT([$XVFB])
 AM_CONDITIONAL(XVFB, [test "x$XVFB" = xyes])
 
 if test "x$XVFB" = xyes; then
-	XVFB_LIBS="$FB_LIB $MI_LIB $FIXES_LIB $XEXT_LIB $XTRAP_LIB $RECORD_LIB $GLX_LIBS $RENDER_LIB $RANDR_LIB $DAMAGE_LIB $MIEXT_DAMAGE_LIB $MIEXT_SHADOW_LIB $MIEXT_LAYER_LIB $XI_LIB $XKB_LIB $XKB_STUB_LIB $LBX_LIB $COMPOSITE_LIB $XPSTUBS_LIB $OS_LIB"
+	XVFB_LIBS="$FB_LIB $MI_LIB $FIXES_LIB $XEXT_LIB $DBE_LIB $XTRAP_LIB $RECORD_LIB $GLX_LIBS $RENDER_LIB $RANDR_LIB $DAMAGE_LIB $MIEXT_DAMAGE_LIB $MIEXT_SHADOW_LIB $MIEXT_LAYER_LIB $XI_LIB $XKB_LIB $XKB_STUB_LIB $LBX_LIB $COMPOSITE_LIB $XPSTUBS_LIB $OS_LIB"
 	AC_SUBST([XVFB_LIBS])
 fi
 
@@ -795,7 +802,7 @@ AC_MSG_RESULT([$XNEST])
 AM_CONDITIONAL(XNEST, [test "x$XNEST" = xyes])
 
 if test "x$XNEST" = xyes; then
-	XNEST_LIBS="$FB_LIB $MI_LIB $FIXES_LIB $XEXT_LIB $XTRAP_LIB $RECORD_LIB $GLX_LIBS $RENDER_LIB $RANDR_LIB $DAMAGE_LIB $MIEXT_DAMAGE_LIB $MIEXT_SHADOW_LIB $MIEXT_LAYER_LIB $XI_LIB $XKB_LIB $XKB_STUB_LIB $LBX_LIB $COMPOSITE_LIB $XPSTUBS_LIB $OS_LIB"
+	XNEST_LIBS="$FB_LIB $MI_LIB $FIXES_LIB $XEXT_LIB $DBE_LIB $XTRAP_LIB $RECORD_LIB $GLX_LIBS $RENDER_LIB $RANDR_LIB $DAMAGE_LIB $MIEXT_DAMAGE_LIB $MIEXT_SHADOW_LIB $MIEXT_LAYER_LIB $XI_LIB $XKB_LIB $XKB_STUB_LIB $LBX_LIB $COMPOSITE_LIB $XPSTUBS_LIB $OS_LIB"
 	AC_SUBST([XNEST_LIBS])
 fi
 
@@ -1002,7 +1009,7 @@ AC_MSG_RESULT([$XPRINT])
 
 if test "x$XPRINT" = xyes; then
 	PKG_CHECK_MODULES([XPRINT], [printproto x11 xfont $XDMCP_MODULES xau])
-	XPRINT_EXTENSIONS="$XEXT_LIB $XTRAP_LIB $RENDER_LIB $COMPOSITE_LIB $RANDR_LIB $XI_LIB $FIXES_LIB $LBX_LIB $DAMAGE_LIB $XI_LIB $GLX_LIBS"
+	XPRINT_EXTENSIONS="$XEXT_LIB $DBE_LIB $XTRAP_LIB $RENDER_LIB $COMPOSITE_LIB $RANDR_LIB $XI_LIB $FIXES_LIB $LBX_LIB $DAMAGE_LIB $XI_LIB $GLX_LIBS"
 	XPRINT_INCLUDES="$XEXT_INC $RENDER_INC $COMPOSITE_INC $RANDR_INC $XI_INC $FIXES_INC $DAMAGE_INC $XI_INC $GLX_INC $LBX_INC"
 	XPRINT_LIBS="$XPRINT_LIBS $DIX_LIB $XKB_LIB $XKB_STUB_LIB $OS_LIB $XPRINT_EXTENSIONS $MI_LIB $MIEXT_DAMAGE_LIB $GLX_INC"
 	AC_SUBST([XPRINT_LIBS])

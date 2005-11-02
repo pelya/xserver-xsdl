@@ -374,6 +374,9 @@
 /* Support DRI extension */
 #undef XF86DRI
 
+/* Build DBE support */
+#undef DBE
+
 /* Vendor name */
 #undef XVENDORNAME
 

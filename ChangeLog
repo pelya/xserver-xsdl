@@ -1,3 +1,10 @@
+2005-11-02  Kevin E. Martin  <kem-at-freedesktop-dot-org>
+
+	* configure.ac:
+	* include/dix-config.h.in:
+	Add support for enabling/disabling DBE (part of generic enable/disable
+	extension support in the server).
+
 2005-11-01  Kevin E. Martin  <kem-at-freedesktop-dot-org>
 
 	* Makefile.am:
