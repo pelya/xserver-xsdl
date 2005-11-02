@@ -40,6 +40,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "xf86Module.h"
 #include "colormap.h"
 #include "micmap.h"
+#include "globals.h"
 
 static MODULESETUPPROTO(glxSetup);
 
@@ -53,7 +54,7 @@ ExtensionModule GLXExt =
 {
     GlxExtensionInit,
     "GLX",
-    NULL,
+    &noGlxExtension,
     NULL,
     initdeps
 };

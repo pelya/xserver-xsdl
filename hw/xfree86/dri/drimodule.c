@@ -39,6 +39,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #endif
 
 #include "xf86Module.h"
+#include "globals.h"
 
 static MODULESETUPPROTO(driSetup);
 
@@ -64,7 +65,7 @@ ExtensionModule XF86DRIExt =
 {
     XFree86DRIExtensionInit,
     XF86DRINAME,
-    NULL,
+    &noXFree86DRIExtension,
     NULL,
     NULL
 };

@@ -5,6 +5,7 @@
 #endif
 
 #include "xf86Module.h"
+#include "globals.h"
 
 static MODULESETUPPROTO(dbeSetup);
 
@@ -13,7 +14,7 @@ extern void DbeExtensionInit(INITARGS);
 ExtensionModule dbeExt = {
     DbeExtensionInit,
     "DOUBLE-BUFFER",
-    NULL,
+    &noDbeExtension,
     NULL,
     NULL
 };
