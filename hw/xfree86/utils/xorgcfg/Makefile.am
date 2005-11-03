@@ -120,8 +120,8 @@ APPDEFAULTFILES = XOrgCfg
 
 appdefault_DATA = $(APPDEFAULTFILES)
 
-CPP_FILES_FLAGS = -D__VENDORNAME__="@VENDOR_STRING@" \
-                  -D__VENDORVERS__="@VENDOR_RELEASE@"
+CPP_FILES_FLAGS = -D__VENDORNAME__="@VENDOR_STRING_SHORT@" \
+                  -D__VENDORVERS__="@VENDOR_MAN_VERSION@"
 
 # dear automake: it would be really nice if you would actually put things into
 # .SUFFIXES so i wouldnt' have to do this.

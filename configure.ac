@@ -269,10 +269,12 @@ OSNAME=`uname -srm`
 AC_DEFINE_UNQUOTED(OSNAME, "$OSNAME", 
 	[Define to OS Name string to display for build OS in Xorg log])
 
-DEFAULT_VENDOR_STRING="X.Org"
-DEFAULT_VENDOR_RELEASE="$PACKAGE_VERSION"
-dnl e.g. 6.9.99.1 -> 6,9,99,1,0
-VERSION_STRING="6,99,99,901,0"
+DEFAULT_VENDOR_NAME="The X.Org Foundation"
+DEFAULT_VENDOR_NAME_SHORT="X.Org"
+DEFAULT_VERSION_MAJOR=6
+DEFAULT_VERSION_MINOR=99
+DEFAULT_VERSION_PATCH=99
+DEFAULT_VERSION_SNAP=901
 DEFAULT_VENDOR_WEB="http://wiki.x.org"
 
 m4_ifdef([AS_HELP_STRING], , [m4_define([AS_HELP_STRING], m4_defn([AC_HELP_STRING]))])
@@ -287,14 +289,30 @@ AC_ARG_ENABLE(debug,         AS_HELP_STRING([--enable-debug],
 AC_ARG_WITH(int10,           AS_HELP_STRING([--with-int10=BACKEND], [int10 backend: vm86, x86emu or stub]),
 				[INT10="$withval"],
 				[INT10="$DEFAULT_INT10"])
-AC_ARG_WITH(vendor-string,   AS_HELP_STRING([--with-vendor-string=VENDOR],
+AC_ARG_WITH(vendor-name,     AS_HELP_STRING([--with-vendor-string=VENDOR],
 				  [Vendor string reported by the server]),
 			     	[ VENDOR_STRING="$withval" ],
-			     	[ VENDOR_STRING="$DEFAULT_VENDOR_STRING" ])
-AC_ARG_WITH(vendor-release,  AS_HELP_STRING([--with-vendor-release=RELEASE],
-				  [Vendor release string reported by the server]),
-				[ VENDOR_RELEASE="$withval" ],
-				[ VENDOR_RELEASE="$DEFAULT_VENDOR_RELEASE" ])
+			     	[ VENDOR_STRING="$DEFAULT_VENDOR_NAME" ])
+AC_ARG_WITH(vendor-name-short, AS_HELP_STRING([--with-vendor-string-short=VENDOR],
+				  [Short version of vendor string reported by the server]),
+			     	[ VENDOR_STRING_SHORT="$withval" ],
+			     	[ VENDOR_STRING_SHORT="$DEFAULT_VENDOR_NAME_SHORT" ])
+AC_ARG_WITH(release-major,   AS_HELP_STRING([--with-release-major=MAJOR],
+				  [Release major number reported by the server]),
+				[ VERSION_MAJOR="$withval" ],
+				[ VERSION_MAJOR="$DEFAULT_VERSION_MAJOR" ])
+AC_ARG_WITH(release-minor,   AS_HELP_STRING([--with-release-minor=MINOR],
+				  [Release minor number reported by the server]),
+				[ VERSION_MINOR="$withval" ],
+				[ VERSION_MINOR="$DEFAULT_VERSION_MINOR" ])
+AC_ARG_WITH(release-patch,   AS_HELP_STRING([--with-release-patch=PATCH],
+				  [Release patch number reported by the server]),
+				[ VERSION_PATCH="$withval" ],
+				[ VERSION_PATCH="$DEFAULT_VERSION_PATCH" ])
+AC_ARG_WITH(release-snap,    AS_HELP_STRING([--with-release-snap=SNAP],
+				  [Release snap number reported by the server]),
+				[ VERSION_SNAP="$withval" ],
+				[ VERSION_SNAP="$DEFAULT_VERSION_SNAP" ])
 AC_ARG_WITH(vendor-web,      AS_HELP_STRING([--with-vendor-web=URL],
 				  [Vendor web address reported by the server]),
 				[ VENDOR_WEB="$withval" ],
@@ -354,9 +372,9 @@ AC_ARG_ENABLE(dri,            AS_HELP_STRING([--enable-dri], [Build DRI extensio
 AC_ARG_ENABLE(xinerama,	      AS_HELP_STRING([--disable-xinerama], [Build Xinerama extension (default: enabled)]), [XINERAMA=$enableval], [XINERAMA=yes])
 AC_ARG_ENABLE(xf86vidmode,    AS_HELP_STRING([--disable-xf86vidmode], [Build XF86VidMode extension (default: enabled)]), [XF86VIDMODE=$enableval], [XF86VIDMODE=yes])
 AC_ARG_ENABLE(xf86misc,       AS_HELP_STRING([--disable-xf86misc], [Build XF86Misc extension (default: enabled)]), [XF86MISC=$enableval], [XF86MISC=yes])
-AC_ARG_ENABLE(xcsecurity,     AS_HELP_STRING([--enable-xcsecurity], [Build Security extension (default: disabled)]), [XCSECURITY=$enableval], [XCSECURITY=no])
-AC_ARG_ENABLE(xevie,          AS_HELP_STRING([--enable-xevie], [Build XEvIE extension (default: disabled)]), [XEVIE=$enableval], [XEVIE=no])
-AC_ARG_ENABLE(lbx,            AS_HELP_STRING([--enable-lbx], [Build LBX extension (default: disabled)]), [LBX=$enableval], [LBX=no])
+AC_ARG_ENABLE(xcsecurity,     AS_HELP_STRING([--disable-xcsecurity], [Build Security extension (default: enabled)]), [XCSECURITY=$enableval], [XCSECURITY=yes])
+AC_ARG_ENABLE(xevie,          AS_HELP_STRING([--disable-xevie], [Build XEvIE extension (default: enabled)]), [XEVIE=$enableval], [XEVIE=yes])
+AC_ARG_ENABLE(lbx,            AS_HELP_STRING([--disable-lbx], [Build LBX extension (default: enabled)]), [LBX=$enableval], [LBX=yes])
 AC_ARG_ENABLE(appgroup,       AS_HELP_STRING([--disable-appgroup], [Build XC-APPGROUP extension (default: enabled)]), [APPGROUP=$enableval], [APPGROUP=yes])
 AC_ARG_ENABLE(cup,            AS_HELP_STRING([--disable-cup], [Build TOG-CUP extension (default: enabled)]), [CUP=$enableval], [CUP=yes])
 AC_ARG_ENABLE(evi,            AS_HELP_STRING([--disable-evi], [Build Extended-Visual-Information extension (default: enabled)]), [EVI=$enableval], [EVI=yes])
@@ -667,15 +685,22 @@ if test "x$USE_RGB_BUILTIN" = xyes; then
 	AC_DEFINE(USE_RGB_BUILTIN, 1, [Use built-in RGB color database])
 fi
 
+VENDOR_RELEASE="((($VERSION_MAJOR) * 10000000) + (($VERSION_MINOR) * 100000) + (($VERSION_PATCH) * 1000) + $VERSION_SNAP)"
+VENDOR_MAN_VERSION="Version ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}.${VERSION_SNAP}"
+
 AC_DEFINE_DIR(COMPILEDDEFAULTFONTPATH, FONTPATH, [Default font path])
 AC_DEFINE_DIR(RGB_DB, RGBPATH, [Default RGB path])
 AC_DEFINE_UNQUOTED(XVENDORNAME, ["$VENDOR_STRING"], [Vendor name])
+AC_DEFINE_UNQUOTED(XVENDORNAMESHORT, ["$VENDOR_STRING_SHORT"], [Short vendor name])
 AC_DEFINE_UNQUOTED(XORG_RELEASE, ["$VENDOR_RELEASE"], [Vendor release])
+AC_DEFINE_UNQUOTED(XORG_MAN_VERSION, ["$VENDOR_MAN_VERSION"], [Vendor man version])
 AC_DEFINE_UNQUOTED(BUILDERADDR, ["$BUILDERADDR"], [Builder address])
 AC_DEFINE_UNQUOTED(OSNAME, ["$OSNAME"], [Operating System Name])
 AC_DEFINE_UNQUOTED(OSVENDOR, ["$OSVENDOR"], [Operating System Vendor])
 AC_SUBST([VENDOR_STRING])
+AC_SUBST([VENDOR_STRING_SHORT])
 AC_SUBST([VENDOR_RELEASE])
+AC_SUBST([VENDOR_MAN_VERSION])
 
 AC_DEFINE(DDXOSINIT, 1, [Use OsVendorInit])
 AC_DEFINE(SERVER_LOCK, 1, [Use a lock to prevent multiple servers on a display])
@@ -963,7 +988,7 @@ if test "x$XORG" = xyes; then
 	AC_DEFINE(XORGSERVER, 1, [Building Xorg server])
 	AC_DEFINE(XFree86Server, 1, [Building XFree86 server])
 	AC_DEFINE(XFree86LOADER, 1, [Building XFree86 loader])
-	AC_DEFINE_UNQUOTED(XORG_VERSION_CURRENT, [XF86_VERSION_NUMERIC($VERSION_STRING)], [Current Xorg version])
+	AC_DEFINE_UNQUOTED(XORG_VERSION_CURRENT, [$VENDOR_RELEASE], [Current Xorg version])
 	AC_DEFINE(NEED_XF86_TYPES, 1, [Need XFree86 typedefs])
 	AC_DEFINE(NEED_XF86_PROTOTYPES, 1, [Need XFree86 helper functions])
 	AC_DEFINE(__XSERVERNAME__, "Xorg", [Name of X server])

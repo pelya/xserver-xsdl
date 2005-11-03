@@ -1,6 +1,8 @@
 noinst_LTLIBRARIES = libdix.la libxpstubs.la
 
-AM_CFLAGS = $(DIX_CFLAGS)
+AM_CFLAGS = $(DIX_CFLAGS) \
+	-DVENDOR_STRING=\""@VENDOR_STRING@"\" \
+	-DVENDOR_RELEASE="@VENDOR_RELEASE@"
 
 libdix_la_SOURCES = 	\
 	atom.c		\
