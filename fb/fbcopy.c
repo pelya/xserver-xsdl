@@ -63,7 +63,8 @@ fbCopyNtoN (DrawablePtr	pSrcDrawable,
     while (nbox--)
     {
 #ifdef USE_MMX
-	if (alu == GXcopy && !reverse && !upsidedown && fbHaveMMX())
+	if (pm == FB_ALLONES && alu == GXcopy && !reverse &&
+	    !upsidedown && fbHaveMMX())
 	{
 	    if (!fbCopyAreammx (pSrcDrawable,
 				pDstDrawable,
