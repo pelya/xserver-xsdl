@@ -1782,13 +1782,13 @@ xf86PrintBanner()
 {
 #if PRE_RELEASE
   ErrorF("\n"
-    "This is a pre-release version of the " XVENDORNAME " X11.\n"
+    "This is a pre-release version of the X server from " XVENDORNAME ".\n"
     "It is not supported in any way.\n"
     "Bugs may be filed in the bugzilla at http://bugs.freedesktop.org/.\n"
     "Select the \"xorg\" product for bugs you find in this release.\n"
     "Before reporting bugs in pre-release versions please check the\n"
-    "latest version in the " XVENDORNAME " \"monolithic tree\" CVS\n"
-    "repository hosted at http://www.freedesktop.org/Software/xorg/");
+    "latest version in the X.Org Foundation CVS repository.\n"
+    "See http://wiki.x.org/wiki/CvsPage for CVS access instructions.\n");
 #endif
   ErrorF("\nX Window System Version %d.%d.%d",
 	 XORG_VERSION_MAJOR,
