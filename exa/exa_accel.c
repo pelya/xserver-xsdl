@@ -156,7 +156,7 @@ exaPixmapSave (ScreenPtr pScreen, ExaOffscreenArea *area)
     }
 
     pPixmap->devKind = dst_pitch;
-    pPixmap->devPrivate.ptr = dst;
+    pPixmap->devPrivate.ptr = pExaPixmap->devPrivate.ptr;
     pPixmap->drawable.serialNumber = NEXT_SERIAL_NUMBER;
     pExaPixmap->area = NULL;
     /* Mark it dirty now, to say that there is important data in the
