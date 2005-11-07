@@ -698,12 +698,11 @@ vfbAllocateFramebufferMemory(vfbScreenInfoPtr pvfb)
 
     /* Calculate how many entries in colormap.  This is rather bogus, because
      * the visuals haven't even been set up yet, but we need to know because we
-     * have to allocate space in the file for the colormap.  The number 15
-     * below comes from the detail that the size of a colormap is limited to
-     * 15bits.
+     * have to allocate space in the file for the colormap.  The number 10
+     * below comes from the MAX_PSEUDO_DEPTH define in cfbcmap.c.
      */
 
-    if (pvfb->depth <= 15)
+    if (pvfb->depth <= 10)
     { /* single index colormaps */
 	pvfb->ncolors = 1 << pvfb->depth;
     }
@@ -908,9 +907,7 @@ vfbScreenInit(int index, ScreenPtr pScreen, int argc, char **argv)
 #endif
     case 15:
 	miSetVisualTypesAndMasks (15,
-				  ((1 << GrayScale) |
-                                   (1 << PseudoColor) |
-                                   (1 << TrueColor) |
+				  ((1 << TrueColor) |
 				   (1 << DirectColor)),
 				  8, TrueColor, 0x7c00, 0x03e0, 0x001f);
 	break;
