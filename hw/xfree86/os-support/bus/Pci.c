@@ -319,14 +319,24 @@ pciReadWord(PCITAG tag, int offset)
   CARD32 tmp;
   int    shift = (offset & 3) * 8;
   int    aligned_offset = offset & ~3;
+  int	 bus = PCI_BUS_FROM_TAG(tag);
 
   if (shift != 0 && shift != 16)
 	  FatalError("pciReadWord: Alignment error: Cannot read 16 bits "
 		     "at offset %d\n", offset);
 
-  tmp = pciReadLong(tag, aligned_offset);
+  pciInit();
 
-  return((CARD16)((tmp >> shift) & 0xffff));
+  if ((bus >= 0) && ((bus < pciNumBuses) || inProbe) && pciBusInfo[bus] &&
+	pciBusInfo[bus]->funcs->pciReadWord) {
+    CARD32 rv = (*pciBusInfo[bus]->funcs->pciReadWord)(tag, offset);
+
+    return(rv);
+  } else {
+    tmp = pciReadLong(tag, aligned_offset);
+
+    return((CARD16)((tmp >> shift) & 0xffff));
+  }
 }
 
 CARD8
@@ -335,10 +345,20 @@ pciReadByte(PCITAG tag, int offset)
   CARD32 tmp;
   int    shift = (offset & 3) * 8;
   int    aligned_offset = offset & ~3;
+  int	 bus = PCI_BUS_FROM_TAG(tag);
 
-  tmp = pciReadLong(tag, aligned_offset);
+  pciInit();
 
-  return((CARD8)((tmp >> shift) & 0xff));
+  if ((bus >= 0) && ((bus < pciNumBuses) || inProbe) && pciBusInfo[bus] &&
+	pciBusInfo[bus]->funcs->pciReadByte) {
+    CARD8 rv = (*pciBusInfo[bus]->funcs->pciReadByte)(tag, offset);
+
+    return(rv);
+  } else {
+    tmp = pciReadLong(tag, aligned_offset);
+
+    return((CARD8)((tmp >> shift) & 0xff));
+  }
 }
 
 void
@@ -359,17 +379,25 @@ pciWriteWord(PCITAG tag, int offset, CARD16 val)
   CARD32 tmp;
   int    aligned_offset = offset & ~3;
   int    shift = (offset & 3) * 8;
+  int	 bus = PCI_BUS_FROM_TAG(tag);
 
   if (shift != 0 && shift != 16)
 	  FatalError("pciWriteWord: Alignment Error: Cannot read 16 bits "
 			"from offset %d\n", offset);
 
-  tmp = pciReadLong(tag, aligned_offset);
+  pciInit();
 
-  tmp &= ~(0xffffL << shift);
-  tmp |= (((CARD32)val) << shift);
+  if ((bus >= 0) && (bus < pciNumBuses) && pciBusInfo[bus] &&
+      pciBusInfo[bus]->funcs->pciWriteWord) {
+    (*pciBusInfo[bus]->funcs->pciWriteWord)(tag, offset, val);
+  } else {
+    tmp = pciReadLong(tag, aligned_offset);
 
-  pciWriteLong(tag, aligned_offset, tmp);
+    tmp &= ~(0xffffL << shift);
+    tmp |= (((CARD32)val) << shift);
+    
+    pciWriteLong(tag, aligned_offset, tmp);
+  }
 }
 
 void
@@ -378,13 +406,22 @@ pciWriteByte(PCITAG tag, int offset, CARD8 val)
   CARD32 tmp;
   int    aligned_offset = offset & ~3;
   int    shift = (offset & 3) *8 ;
+  int	 bus = PCI_BUS_FROM_TAG(tag);
 
-  tmp = pciReadLong(tag, aligned_offset);
+  pciInit();
 
-  tmp &= ~(0xffL << shift);
-  tmp |= (((CARD32)val) << shift);
+  if ((bus >= 0) && (bus < pciNumBuses) && pciBusInfo[bus] &&
+      pciBusInfo[bus]->funcs->pciWriteByte) {
+	  (*pciBusInfo[bus]->funcs->pciWriteByte)(tag, offset, val);
+  } else {
 
-  pciWriteLong(tag, aligned_offset, tmp);
+    tmp = pciReadLong(tag, aligned_offset);
+    
+    tmp &= ~(0xffL << shift);
+    tmp |= (((CARD32)val) << shift);
+    
+    pciWriteLong(tag, aligned_offset, tmp);
+  }
 }
 
 void

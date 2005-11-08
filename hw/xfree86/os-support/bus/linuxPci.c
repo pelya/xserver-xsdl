@@ -69,17 +69,32 @@ static ADDRESS linuxPpcBusAddrToHostAddr(PCITAG, PciAddrType, ADDRESS);
 static ADDRESS linuxPpcHostAddrToBusAddr(PCITAG, PciAddrType, ADDRESS);
 #endif
 
+static CARD8 linuxPciCfgReadByte(PCITAG tag, int off);
+static void linuxPciCfgWriteByte(PCITAG tag, int off, CARD8 val);
+static CARD16 linuxPciCfgReadWord(PCITAG tag, int off);
+static void linuxPciCfgWriteWord(PCITAG tag, int off, CARD16 val);
+
 static pciBusFuncs_t linuxFuncs0 = {
 /* pciReadLong      */	linuxPciCfgRead,
 /* pciWriteLong     */	linuxPciCfgWrite,
 /* pciSetBitsLong   */	linuxPciCfgSetBits,
 #if defined(__powerpc__)
 /* pciAddrHostToBus */	linuxPpcHostAddrToBusAddr,
-/* pciAddrBusToHost */	linuxPpcBusAddrToHostAddr
+/* pciAddrBusToHost */	linuxPpcBusAddrToHostAddr,
 #else
 /* pciAddrHostToBus */	pciAddrNOOP,
-/* pciAddrBusToHost */	linuxTransAddrBusToHost
+/* pciAddrBusToHost */	linuxTransAddrBusToHost,
 #endif
+
+/* pciControlBridge */		NULL,
+/* pciGetBridgeBuses */		NULL,
+/* pciGetBridgeResources */	NULL,
+
+/* pciReadByte */	linuxPciCfgReadByte,
+/* pciWriteByte */	linuxPciCfgWriteByte,
+
+/* pciReadWord */	linuxPciCfgReadWord,
+/* pciWriteWord */	linuxPciCfgWriteWord,
 };
 
 static pciBusInfo_t linuxPci0 = {
@@ -269,6 +284,57 @@ linuxPpcHostAddrToBusAddr(PCITAG tag, PciAddrType type, ADDRESS addr)
 }
 
 #endif /* __powerpc__ */
+
+static CARD8
+linuxPciCfgReadByte(PCITAG tag, int off)
+{
+	int	fd;
+	CARD8	val = 0xff;
+
+	if (-1 != (fd = linuxPciOpenFile(tag,FALSE))) {
+		lseek(fd,off,SEEK_SET);
+		read(fd,&val,1);
+	}
+
+	return val;
+}
+
+static void
+linuxPciCfgWriteByte(PCITAG tag, int off, CARD8 val)
+{
+	int	fd;
+
+	if (-1 != (fd = linuxPciOpenFile(tag,TRUE))) {
+		lseek(fd,off,SEEK_SET);
+		write(fd, &val, 1);
+	}
+}
+
+static CARD16
+linuxPciCfgReadWord(PCITAG tag, int off)
+{
+	int	fd;
+	CARD16	val = 0xff;
+
+	if (-1 != (fd = linuxPciOpenFile(tag,FALSE))) {
+		lseek(fd, off, SEEK_SET);
+		read(fd, &val, 2);
+	}
+
+	return PCI_CPU16(val);
+}
+
+static void
+linuxPciCfgWriteWord(PCITAG tag, int off, CARD16 val)
+{
+	int	fd;
+
+	if (-1 != (fd = linuxPciOpenFile(tag,TRUE))) {
+		lseek(fd, off, SEEK_SET);
+		val = PCI_CPU16(val);
+		write(fd, &val, 2);
+	}
+}
 
 #ifndef INCLUDE_XF86_NO_DOMAIN
 
