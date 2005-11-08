@@ -1029,7 +1029,11 @@ DGAProcessKeyboardEvent (ScreenPtr pScreen, dgaEvent *de, DeviceIntPtr keybd)
 	inputInfo.pointer->valuator->motionHintWindow = NullWindow;
 	*kptr |= bit;
 	keyc->prev_state = keyc->state;
-	if (noXkbExtension) {
+#ifdef XKB
+	if (noXkbExtension)
+#endif
+	{
+	    
 	    for (i = 0, mask = 1; modifiers; i++, mask <<= 1)
 	    {
 		if (mask & modifiers)
@@ -1046,7 +1050,10 @@ DGAProcessKeyboardEvent (ScreenPtr pScreen, dgaEvent *de, DeviceIntPtr keybd)
 	inputInfo.pointer->valuator->motionHintWindow = NullWindow;
 	*kptr &= ~bit;
 	keyc->prev_state = keyc->state;
-	if (noXkbExtension) {
+#ifdef XKB
+	if (noXkbExtension)
+#endif
+	{
 	    for (i = 0, mask = 1; modifiers; i++, mask <<= 1)
 	    {
 		if (mask & modifiers) {
