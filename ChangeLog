@@ -1,3 +1,15 @@
+2005-11-08  Kevin E. Martin  <kem-at-freedesktop-dot-org>
+
+	* hw/xfree86/os-support/Makefile.am:
+	* hw/xfree86/os-support/sco/Makefile.am:
+	* hw/xfree86/os-support/usl/Makefile.am:
+	Add newly checked in files to Xorg server build.
+
+	* configure.ac:
+	* include/dix-config.h.in:
+	Fix release date.
+	Enable DGA extension by default.
+
 2005-11-03  Kevin E. Martin  <kem-at-freedesktop-dot-org>
 
 	* configure.ac:

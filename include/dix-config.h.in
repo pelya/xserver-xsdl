@@ -341,6 +341,9 @@
 /* Current Xorg version */
 #undef XORG_VERSION_CURRENT
 
+/* Xorg release date */
+#undef XORG_DATE
+
 /* Build XRes extension */
 #undef XResExtension
 

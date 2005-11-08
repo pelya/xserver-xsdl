@@ -275,6 +275,7 @@ DEFAULT_VERSION_MAJOR=6
 DEFAULT_VERSION_MINOR=99
 DEFAULT_VERSION_PATCH=99
 DEFAULT_VERSION_SNAP=901
+DEFAULT_RELEASE_DATE="09 November 2005"
 DEFAULT_VENDOR_WEB="http://wiki.x.org"
 
 m4_ifdef([AS_HELP_STRING], , [m4_define([AS_HELP_STRING], m4_defn([AC_HELP_STRING]))])
@@ -313,6 +314,10 @@ AC_ARG_WITH(release-snap,    AS_HELP_STRING([--with-release-snap=SNAP],
 				  [Release snap number reported by the server]),
 				[ VERSION_SNAP="$withval" ],
 				[ VERSION_SNAP="$DEFAULT_VERSION_SNAP" ])
+AC_ARG_WITH(release-date,    AS_HELP_STRING([--with-release-date=DATE],
+				  [Release date reported by the server]),
+				[ RELEASE_DATE="$withval" ],
+				[ RELEASE_DATE="$DEFAULT_RELEASE_DATE" ])
 AC_ARG_WITH(vendor-web,      AS_HELP_STRING([--with-vendor-web=URL],
 				  [Vendor web address reported by the server]),
 				[ VENDOR_WEB="$withval" ],
@@ -363,7 +368,7 @@ AC_ARG_ENABLE(xres,           AS_HELP_STRING([--disable-xres], [Build XRes exten
 AC_ARG_ENABLE(xtrap,          AS_HELP_STRING([--enable-xtrap], [Build XTrap extension (default: disabled)]), [XTRAP=$enableval], [XTRAP=no])
 AC_ARG_ENABLE(record,         AS_HELP_STRING([--disable-record], [Build Record extension (default: enabled)]), [RECORD=$enableval], [RECORD=yes])
 AC_ARG_ENABLE(xv,             AS_HELP_STRING([--disable-xv], [Build Xv extension (default: enabled)]), [XV=$enableval], [XV=yes])
-AC_ARG_ENABLE(dga,            AS_HELP_STRING([--enable-dga], [Build DGA extension (default: disabled)]), [DGA=$enableval], [DGA=no])
+AC_ARG_ENABLE(dga,            AS_HELP_STRING([--disable-dga], [Build DGA extension (default: enabled)]), [DGA=$enableval], [DGA=yes])
 AC_ARG_ENABLE(screensaver,    AS_HELP_STRING([--disable-screensaver], [Build ScreenSaver extension (default: enabled)]), [SCREENSAVER=$enableval], [SCREENSAVER=yes])
 AC_ARG_ENABLE(xdmcp,          AS_HELP_STRING([--disable-xdmcp], [Build XDMCP extension (default: auto)]), [XDMCP=$enableval], [XDMCP=auto])
 AC_ARG_ENABLE(xdm-auth-1,     AS_HELP_STRING([--disable-xdm-auth-1], [Build XDM-Auth-1 extension (default: auto)]), [XDMAUTH=$enableval], [XDMAUTH=auto])
@@ -686,13 +691,26 @@ if test "x$USE_RGB_BUILTIN" = xyes; then
 fi
 
 VENDOR_RELEASE="((($VERSION_MAJOR) * 10000000) + (($VERSION_MINOR) * 100000) + (($VERSION_PATCH) * 1000) + $VERSION_SNAP)"
-VENDOR_MAN_VERSION="Version ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}.${VERSION_SNAP}"
+
+if test $VERSION_SNAP = "0"; then
+	if test $VERSION_PATCH = "0"; then
+		VENDOR_VERSION_STRING="${VERSION_MAJOR}.${VERSION_MINOR}"
+	else
+		VENDOR_VERSION_STRING="${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}"
+	fi
+else
+	VENDOR_VERSION_STRING="${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}.${VERSION_SNAP}"
+fi
+
+VENDOR_RELEASE_STRING="Release ${VENDOR_VERSION_STRING}"
+VENDOR_MAN_VERSION="Version ${VENDOR_VERSION_STRING}"
 
 AC_DEFINE_DIR(COMPILEDDEFAULTFONTPATH, FONTPATH, [Default font path])
 AC_DEFINE_DIR(RGB_DB, RGBPATH, [Default RGB path])
 AC_DEFINE_UNQUOTED(XVENDORNAME, ["$VENDOR_STRING"], [Vendor name])
 AC_DEFINE_UNQUOTED(XVENDORNAMESHORT, ["$VENDOR_STRING_SHORT"], [Short vendor name])
-AC_DEFINE_UNQUOTED(XORG_RELEASE, ["$VENDOR_RELEASE"], [Vendor release])
+AC_DEFINE_UNQUOTED(XORG_RELEASE, ["$VENDOR_RELEASE_STRING"], [Vendor release])
+AC_DEFINE_UNQUOTED(XORG_DATE, ["$RELEASE_DATE"], [Vendor release])
 AC_DEFINE_UNQUOTED(XORG_MAN_VERSION, ["$VENDOR_MAN_VERSION"], [Vendor man version])
 AC_DEFINE_UNQUOTED(BUILDERADDR, ["$BUILDERADDR"], [Builder address])
 AC_DEFINE_UNQUOTED(OSNAME, ["$OSNAME"], [Operating System Name])
@@ -1296,6 +1314,7 @@ hw/xfree86/os-support/lynxos/Makefile
 hw/xfree86/os-support/sco/Makefile
 hw/xfree86/os-support/solaris/Makefile
 hw/xfree86/os-support/sysv/Makefile
+hw/xfree86/os-support/usl/Makefile
 hw/xfree86/parser/Makefile
 hw/xfree86/rac/Makefile
 hw/xfree86/ramdac/Makefile
