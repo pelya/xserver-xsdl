@@ -33,7 +33,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#if defined(_SCO_DS) || (defined(sun) && defined(__SVR4))
+#if defined(__SCO__) || defined(__UNIXWARE__) || \
+	(defined(sun) && defined(__SVR4))
 #include <curses.h>
 #else
 #include <ncurses.h>
@@ -46,6 +47,9 @@
 #include "config.h"
 #include "xf86config.h"
 #include "loader.h"
+
+#define IS_KBDDRIV(X) ((strcmp((X),"kbd") == 0) || \
+	(strcmp((X), "keyboard") == 0))
 
 #ifndef PROJECT_ROOT
 #define PROJECT_ROOT "/usr/X11R6"
@@ -201,16 +205,21 @@ TextMode(void)
 
 	ClearScreen();
 	refresh();
-	if (Dialog( __XSERVERNAME__"Configuration",
+	if (Dialog( __XSERVERNAME__" Configuration",
 		   "This program will create the "__XCONFIGFILE__" file, based on "
 		   "menu selections you make.\n"
 		   "\n"
+#if defined(__SCO__) || defined(__UNIXWARE__)
+		   "The "__XCONFIGFILE__" file usually resides in /etc. A "
+		   "sample "__XCONFIGFILE__" file is supplied with "
+#else
 #ifndef __UNIXOS2__
 		   "The "__XCONFIGFILE__" file usually resides in /usr/X11R6/etc/X11 "
 #else
 		   "The "__XCONFIGFILE__" file usually resides in "XF86CONFIGDIR" "
 #endif
 		   "or /etc/X11. A sample "__XCONFIGFILE__" file is supplied with "
+#endif
 		   __XSERVERNAME__"; it is configured for a standard VGA card and "
 		   "monitor with 640x480 resolution. This program will ask for "
 		   "a pathname when it is ready to write the file.\n"
@@ -350,8 +359,11 @@ static char *protocols[] = {
 #ifdef __UNIXOS2__
     "OS2Mouse",
 #endif
-#ifdef SCO
+#ifdef __SCO__
     "OsMouse",
+#endif
+#ifdef __UNIXWARE__
+    "Xqueue",
 #endif
 #ifdef WSCONS_SUPPORT
     "wsmouse",
@@ -611,7 +623,7 @@ KeyboardConfig(void)
 
     nlist = 0;
     while (input) {
-	if (strcmp(input->inp_driver, "keyboard") == 0) {
+	if (IS_KBDDRIV(input->inp_driver)) {
 	    list = (char**)XtRealloc((XtPointer)list, (nlist + 1) * sizeof(char*));
 	    list[nlist] = XtMalloc(sizeof(Edit) +
 				   strlen(input->inp_identifier) + 1);
@@ -730,7 +742,11 @@ KeyboardConfig(void)
 		input->inp_option_lst =
 		    xf86addNewOption(input->inp_option_lst,
 			XtNewString("XkbLayout"), XtNewString("us"));
+#if defined(USE_DEPRECATED_KEYBOARD_DRIVER)
 		input->inp_driver = XtNewString("keyboard");
+#else
+		input->inp_driver = XtNewString("kbd");
+#endif
 		XF86Config->conf_input_lst =
 		    xf86addInput(XF86Config, input);
 	    }
@@ -806,7 +822,11 @@ KeyboardConfig(void)
 		XtNewString("XkbLayout"), XtNewString(layout));
 
     if (input->inp_driver == NULL) {
+#if defined(USE_DEPRECATED_KEYBOARD_DRIVER)
 	input->inp_driver = XtNewString("keyboard");
+#else
+	input->inp_driver = XtNewString("kbd");
+#endif
 	XF86Config->conf_input_lst =
 	    xf86addInput(XF86Config->conf_input_lst, input);
     }
@@ -1884,7 +1904,7 @@ LayoutConfig(void)
 	    mouses[nmouses] = input;
 	    ++nmouses;
 	}
-	else if (strcmp(input->inp_driver, "keyboard") == 0) {
+	else if (IS_KBDDRIV(input->inp_driver)) {
 	    keyboards = (XF86ConfInputPtr*)XtRealloc((XtPointer)keyboards,
 			    (nkeyboards + 1) * sizeof(XF86ConfInputPtr));
 	    keyboards[nkeyboards] = input;
@@ -2119,7 +2139,7 @@ LayoutConfig(void)
     piref = NULL;
     iref = layout->lay_input_lst;
     while (iref) {
-	if (strcmp(iref->iref_inputdev->inp_driver, "keyboard") == 0) {
+	if (IS_KBDDRIV(iref->iref_inputdev->inp_driver)) {
 	    if (keyboard == NULL)
 		piref = iref;
 	    if (xf86findOption(iref->iref_option_lst, "CoreKeyboard")) {
@@ -2165,7 +2185,7 @@ LayoutConfig(void)
 	list[nlist++] = keyboard->inp_identifier;
 	input = XF86Config->conf_input_lst;
 	while (input) {
-	    if (input != keyboard && strcmp(input->inp_driver, "keyboard") == 0) {
+	    if (input != keyboard && IS_KBDDRIV(input->inp_driver)) {
 		list = (char**)XtRealloc((XtPointer)list, (nlist + 1) * sizeof(char*));
 		list[nlist++] = input->inp_identifier;
 	    }
@@ -3206,6 +3226,9 @@ DialogInput(char *title, char *prompt, int height, int width, char *init,
 		    continue;
 		case KEY_BACKSPACE:
 		case 0177:
+#if defined(__SCO__) || defined(__UNIXWARE__)
+		case '\b':
+#endif
 		    if (input_x || scrlx) {
 			wattrset(dialog, dialog_attr);
 

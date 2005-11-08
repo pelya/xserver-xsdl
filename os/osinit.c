@@ -69,7 +69,7 @@ SOFTWARE.
 #endif
 #endif
 
-#if defined(Lynx) || defined(SCO) || defined(SCO325)
+#if defined(Lynx) || defined(__SCO__)
 #include <sys/wait.h>
 #endif
 
@@ -114,7 +114,7 @@ OsInit(void)
 #ifdef XFree86LOADER
 	xf86WrapperInit();
 #endif
-#if !defined(SCO) && !defined(__CYGWIN__)
+#if !defined(__SCO__) && !defined(__CYGWIN__) && !defined(__UNIXWARE__)
 	fclose(stdin);
 	fclose(stdout);
 #endif

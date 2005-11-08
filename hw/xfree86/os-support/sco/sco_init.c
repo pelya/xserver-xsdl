@@ -1,6 +1,6 @@
 /* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/sco/sco_init.c,v 3.13 2002/06/03 21:22:10 dawes Exp $ */
 /*
- * Copyright 2001 by J. Kean Johnston <jkj@sco.com>
+ * Copyright 2001-2005 by J. Kean Johnston <jkj@sco.com>
  *
  * Permission to use, copy, modify, distribute, and sell this software and its
  * documentation for any purpose is hereby granted without fee, provided that
@@ -39,25 +39,28 @@
 
 static Bool KeepTty = FALSE;
 static int VTnum = -1;
-static char *vtdevice = NULL;
+static char vtdevice[48];
 static int sco_console_mode = -1;
 
 extern Bool mpxLock;
 
 void
-xf86OpenConsole()
+xf86OpenConsole(void)
 {
-  int fd,i, ioctl_ret;
+  int i, ioctl_ret;
   struct vt_mode VT;
-  static char vtname[32];
   struct vid_info vidinf;
   struct sigaction sigvtsw;
+  char *ttn;
 
   if (serverGeneration == 1) {
     /* check if we're run with euid==0 */
     if (geteuid() != 0) {
       FatalError("xf86OpenConsole: Server must be setuid root\n");
     }
+
+    /* If we are run in the background we will get SIGTTOU. Ignore it. */
+    OsSignal (SIGTTOU, SIG_IGN);
 
     /*
      * Set up the virtual terminal (multiscreen in SCO parlance).
@@ -67,75 +70,37 @@ xf86OpenConsole()
      * system such as MaxSpeed or SunRiver. Therefore, we should
      * not make any assumptions about the TTY name we are on, and
      * instead we rely on ttyname() to give us the real TTY name.
-     * Previously, XFree86 tried to determine the TTY name manually.
+     * Previously, we tried to determine the TTY name manually.
      * This is wrong. The only time we need to futz with the TTY name
-     * if if we were given the name of a TTY to run on explicity on
+     * is if we were given the name of a TTY to run on explicity on
      * the command line.
      */
 
     if (VTnum == -1) {
       /*
-       * We can query the current VT number using CONS_GETINFO.
+       * No device was specified. We need to query the kernel to see which
+       * console device we are on (and in fact if we are on a console at all).
        */
-      char *ttn;
-
-      vidinf.size = sizeof(vidinf);
-      if (ioctl (0, CONS_GETINFO, &vidinf) < 0) {
-        FatalError ("xf86OpenConsole: Not on a console device "
-            "or error querying device (%s)\n", strerror (errno));
-      }
-
-      VTnum = vidinf.m_num + 1; /* 0-based */
-      ttn = ttyname (0);
+      ttn = ttyname (1);
 
       if (ttn == (char *)0) {
-        ErrorF ("xf86OpenConsole: Error determining TTY name (%s)\n",
-            strerror(errno));
-        snprintf (vtname, sizeof(vtname)-1, "/dev/tty%02d", VTnum);
-      } else {
-        strlcpy (vtname, ttn, sizeof(vtname));
+	FatalError ("xf86OpenConsole: Could not determine TTY name: %s\n",
+	  strerror(errno));
       }
-      vtdevice = vtname;
-    } else if (VTnum == -2 || VTnum >= 0) {
-      /*
-       * An explicit device was specified. Make sure its a console device.
-       */
-      if (VTnum != -2) {
-        snprintf (vtname, sizeof(vtname)-1, "/dev/tty%02d", VTnum);
-        vtdevice = vtname;
-      }
-
-      fd = open (vtdevice, O_RDWR | O_NDELAY, 0);
-      if (fd < 0) {
-	FatalError ("xf86OpenConsole: Can not open device '%s' (%s)\n",
-	    vtdevice, strerror(errno));
-      }
-
-      vidinf.size = sizeof(vidinf);
-      if (ioctl (fd, CONS_GETINFO, &vidinf) < 0) {
-	FatalError ("xf86OpenConsole: '%s' is not a console device "
-	    "or error querying device (%s)\n", vtname, strerror (errno));
-      }
-      VTnum = vidinf.m_num + 1; /* 0-based */
-      close (fd); /* We're done with it for now */
+      strlcpy (vtdevice, ttn, sizeof(vtdevice));
+    } else if (VTnum >= 0) {
+      snprintf (vtdevice, sizeof(vtdevice), "/dev/tty%02d", VTnum);
     }
 
-    ErrorF("(using VT%02d device %s)\n\n", VTnum, vtdevice);
+    /*
+     * Now we can dispose of stdin/stdout
+     */
+    fclose (stdin);
+    fclose (stdout);
 
     if ((xf86Info.consoleFd = open(vtdevice, O_RDWR | O_NDELAY, 0)) < 0) {
-      FatalError("xf86OpenConsole: Cannot open %s (%s)\n", vtdevice,
-		       strerror(errno));
-    }
-
-    /* Dispose of stdin and stdout */
-    if (freopen(vtdevice, "r+", stdin) == (FILE *) NULL) {
-      FatalError("xf86OpenConsole: Cannot reopen stdin as %s (%s)\n",
-          vtdevice, strerror(errno));
-    }
-
-    if (freopen(vtname, "r+", stdout) == (FILE *) NULL) {
-      FatalError("xf86OpenConsole: Cannot reopen stdout as %s (%s)\n",
-          vtdevice, strerror(errno));
+      FatalError("xf86OpenConsole: Cannot open %s: %s\n", vtdevice,
+	strerror(errno));
     }
 
     /*
@@ -145,10 +110,13 @@ xf86OpenConsole()
      */
     vidinf.size = sizeof(vidinf);
     if (ioctl (xf86Info.consoleFd, CONS_GETINFO, &vidinf) < 0) {
-      FatalError ("xf86OpenConsole: Failed to query console number (%s)\n",
-          strerror (errno));
+      FatalError ("xf86OpenConsole: %s not a console device "
+	"or error querying device: %s\n", vtdevice, strerror (errno));
     }
     xf86Info.vtno = vidinf.m_num;
+    VTnum = vidinf.m_num + 1; /* 0-based */
+
+    ErrorF("(using VT%02d device %s)\n\n", VTnum, vtdevice);
 
     /* We activate the console just in case its not the one we are on */
     if (ioctl(xf86Info.consoleFd, VT_ACTIVATE, xf86Info.vtno) != 0) {
@@ -161,7 +129,7 @@ xf86OpenConsole()
     }
 
     /*
-     * Now we get the current mode that the console device is on. We will
+     * Now we get the current mode that the console device is in. We will
      * use this later when we close the console device to restore it to
      * that same mode.
      */
@@ -227,7 +195,7 @@ xf86OpenConsole()
  * video card down again after coming out of Xfree86.
  */
 void
-xf86CloseConsole()
+xf86CloseConsole(void)
 {
   struct vt_mode VT;
   struct sigaction sigvtsw;
@@ -310,7 +278,7 @@ xf86ProcessArgument(int argc, char *argv[], int i)
       return(0);
     } else {
       VTnum = -2;
-      vtdevice = argv[i];
+      strlcpy (vtdevice, argv[i], sizeof(vtdevice));
       return(2);
     }
   }
@@ -318,7 +286,7 @@ xf86ProcessArgument(int argc, char *argv[], int i)
 }
 
 void
-xf86UseMsg()
+xf86UseMsg(void)
 {
 	ErrorF("vtXX                   use the specified VT number\n");
 	ErrorF("-crt DEVICE            use the specified VT device\n");

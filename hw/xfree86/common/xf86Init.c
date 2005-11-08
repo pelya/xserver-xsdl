@@ -906,7 +906,7 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
       xf86EnterServerState(SETUP);
     } 
   }
-#ifdef SCO
+#ifdef SCO325
   else {
     /*
      * Under SCO we must ack that we got the console at startup,
@@ -919,7 +919,7 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
         xf86Msg(X_WARNING, "VT_ACKACQ failed");
     }
   }
-#endif /* SCO */
+#endif /* SCO325 */
 
   for (i = 0; i < xf86NumScreens; i++) {    
    	xf86EnableAccess(xf86Screens[i]);

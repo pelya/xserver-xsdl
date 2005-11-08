@@ -35,7 +35,7 @@
 #include <xorg-config.h>
 #endif
 
-#ifdef SCO325
+#if defined(__SCO__) && defined(__USLC__)
 #ifndef _SCOASM_HDR_INC
 #define _SCOASM_HDR_INC
 
@@ -140,4 +140,4 @@ asm	int inb(port)
 }
 
 #endif /* _SCOASM_HDR_INC */
-#endif /* SCO325 */
+#endif /* __SCO__ && __USLC__ */

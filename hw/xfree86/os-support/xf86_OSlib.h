@@ -118,7 +118,7 @@ typedef signed long xf86ssize_t;
 # include <termio.h>
 # include <sys/stat.h>
 # include <sys/types.h>
-# if defined(SCO) || defined(ISC)
+# if defined(__SCO__) || defined(ISC)
 # include <sys/param.h>
 # endif
 
@@ -176,7 +176,7 @@ typedef signed long xf86ssize_t;
 # if !defined(sun)
 #  include <sys/emap.h>
 # endif
-# if defined(SCO)
+# if defined(SCO325)
 #  include <sys/vtkd.h>
 #  include <sys/console.h>
 #  include <sys/scankbd.h>
@@ -203,16 +203,16 @@ typedef signed long xf86ssize_t;
 #  define LED_NUM LED_NUM_LOCK
 #  define LED_SCR LED_SCROLL_LOCK
 #  define LED_COMP LED_COMPOSE
-# endif /* SCO */
+# endif /* sun */
 
 # if !defined(VT_ACKACQ)
 #  define VT_ACKACQ 2
 # endif /* !VT_ACKACQ */
 
-# if defined(SCO)
+# if defined(__SCO__)
 #  include <sys/sysmacros.h>
 #  define POSIX_TTY
-# endif /* SCO */
+# endif /* __SCO__ */
 
 # if defined(SVR4) || defined(SCO325)
 #  include <sys/mman.h>
@@ -243,9 +243,11 @@ typedef signed long xf86ssize_t;
 #  define i386 /* not defined in ANSI C mode */
 # endif /* ATT && !i386 */
 
-# if (defined(ATT) || defined(SVR4)) && !defined(sun) && !defined(SCO325)
-#  ifndef XQUEUE
-#   define XQUEUE
+# if (defined(ATT) || defined(SVR4)) && !defined(sun)
+#  ifndef __UNIXWARE__
+#   ifndef XQUEUE
+#    define XQUEUE
+#   endif
 #  endif
 #  include <sys/xque.h>
 # endif /* ATT || SVR4 */

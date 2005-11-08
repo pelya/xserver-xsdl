@@ -55,7 +55,8 @@
 
 #if defined(XFree86LOADER) || defined(NEED_XF86_TYPES)
 
-#if !defined(SYSV) && !defined(SVR4) && !defined(Lynx) || defined(SCO)  
+#if !defined(SYSV) && !defined(SVR4) && !defined(Lynx) || \
+	defined(__SCO__) || defined(__UNIXWARE__)
 #define HAVE_VSSCANF
 #define HAVE_VFSCANF
 #endif 

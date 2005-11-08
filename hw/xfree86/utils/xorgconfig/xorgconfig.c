@@ -2134,8 +2134,13 @@ static char *pointersection_text1 =
 "\n"
 "# Identifier and driver\n"
 "\n"
+#if defined(__UNIXWARE__) || defined(XQUEUE)
+"#    Identifier	\"Mouse1\"\n"
+"#    Driver	\"mouse\"\n"
+#else
 "    Identifier	\"Mouse1\"\n"
 "    Driver	\"mouse\"\n"
+#endif
 ;
 
 static char *pointersection_text2 =
@@ -2143,7 +2148,11 @@ static char *pointersection_text2 =
 "# When using XQUEUE, comment out the above two lines, and uncomment\n"
 "# the following line.\n"
 "\n"
+#if defined(__UNIXWARE__) || defined(XQUEUE)
+"    Option \"Protocol\"	\"Xqueue\"\n"
+#else
 "#    Option \"Protocol\"	\"Xqueue\"\n"
+#endif
 "\n"
 "# Mouse-speed setting for PS/2 mouse.\n"
 "\n"

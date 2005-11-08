@@ -50,7 +50,7 @@
 #define OSNAME "lynxos"
 #elif defined(__GNU__)
 #define OSNAME "hurd"
-#elif defined(SCO)
+#elif defined(__SCO__)
 #define OSNAME "sco"
 #elif defined(DGUX)
 #define OSNAME "dgux"
@@ -58,6 +58,8 @@
 #define OSNAME "isc"
 #elif defined(SVR4) && defined(sun)
 #define OSNAME "solaris"
+#elif defined(SVR5)
+#define OSNAME "svr5"
 #elif defined(SVR4)
 #define OSNAME "svr4"
 #elif defined(__UNIXOS2__)

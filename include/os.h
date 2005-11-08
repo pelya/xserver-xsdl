@@ -93,7 +93,7 @@ typedef struct _NewClientRec *NewClientPtr;
 #endif
 
 #ifndef IN_MODULE
-#ifdef SCO
+#ifdef __SCO__
 #include <stdio.h>
 #endif
 #include <string.h>

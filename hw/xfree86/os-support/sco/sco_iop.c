@@ -66,7 +66,8 @@ extern long sysi86 (int cmd, ...);
 
 static Bool IOEnabled = FALSE;
 
-Bool xf86EnableIO(void)
+Bool
+xf86EnableIO(void)
 {
 	if (IOEnabled)
 		return TRUE;
@@ -80,7 +81,8 @@ Bool xf86EnableIO(void)
 	return TRUE;
 }
 
-void xf86DisableIO(void)
+void
+xf86DisableIO(void)
 {
 	if (!IOEnabled)
 		return;
@@ -93,7 +95,8 @@ void xf86DisableIO(void)
 /* Interrupt Handling section                                              */
 /***************************************************************************/
 
-Bool xf86DisableInterrupts()
+Bool
+xf86DisableInterrupts(void)
 {
   if (!IOEnabled) {
     if (sysi86(SI86V86, V86SC_IOPL, PS_IOPL) < 0)
@@ -113,7 +116,8 @@ Bool xf86DisableInterrupts()
   return(TRUE);
 }
 
-void xf86EnableInterrupts()
+void
+xf86EnableInterrupts(void)
 {
   if (!IOEnabled) {
     if (sysi86(SI86V86, V86SC_IOPL, PS_IOPL) < 0)

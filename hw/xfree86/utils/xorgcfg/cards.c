@@ -489,6 +489,9 @@ LookupCard(char *name)
 {
     CardsEntry **ptr;
 
+    if (NumCardsEntry == 0 || CardsDB == 0)
+	return NULL;
+
     ptr = (CardsEntry**)bsearch(name, CardsDB, NumCardsEntry,
 				sizeof(CardsEntry*), BCompareCards);
 

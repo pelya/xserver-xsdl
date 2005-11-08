@@ -136,6 +136,10 @@ extern void xf86WrapperInit(void);
 #include <X11/Xfuncproto.h>
 #include "opaque.h"
 
+#if defined(XQUEUE)
+#include "input.h"	/* for DeviceIntPtr */
+#endif
+
 _XFUNCPROTOBEGIN
 
 /* public functions */

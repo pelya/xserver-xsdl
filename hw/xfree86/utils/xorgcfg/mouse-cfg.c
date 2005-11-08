@@ -58,8 +58,11 @@ static struct MouseProtocol {
 #ifdef __UNIXOS2__
     {"OS2Mouse",		MTYPE_AUTOMOUSE},
 #endif
-#ifdef SCO
+#ifdef __SCO__
     {"OsMouse",			MTYPE_AUTOMOUSE},
+#endif
+#if defined(__UNIXWARE__)
+    {"Xqueue",			MTYPE_XQUEUE},
 #endif
 #ifdef WSCONS_SUPPORT
     {"wsmouse",			MTYPE_AUTOMOUSE},

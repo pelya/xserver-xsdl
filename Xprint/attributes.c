@@ -61,7 +61,7 @@ copyright holders.
 #include <sys/stat.h>
 #include <unistd.h>
 
-#if (defined(sun) && defined(SVR4)) || (defined(SCO))
+#if (defined(sun) && defined(SVR4)) || defined(__SCO__) || defined(__UNIXWARE__)
 #include <wchar.h>
 #endif
 #include "scrnintstr.h"
@@ -1377,7 +1377,7 @@ ReplaceAllKeywords(
     defined(linux) || \
     defined(__CYGWIN__) || \
     (defined(sun) && !defined(SVR4)) || \
-    (defined(SVR4) && !defined(sun) && !defined(USL)) || \
+    (defined(SVR4) && !defined(sun) && !defined(__UNIXWARE__)) || \
     defined(__UNIXOS2__) || \
     defined(ISC) || \
     defined(Lynx) || \

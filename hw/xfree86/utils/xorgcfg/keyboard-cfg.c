@@ -38,6 +38,9 @@
 #include <X11/Xaw/SimpleMenu.h>
 #include <X11/Xaw/SmeBSB.h>
 
+#define IS_KBDDRIV(X) ((strcasecmp((X),"kbd") == 0) || \
+	(strcasecmp((X), "keyboard") == 0))
+
 /*
  * Types
  */
@@ -159,8 +162,7 @@ KeyboardConfig(XtPointer config)
 	    XF86ConfInputPtr key = XF86Config->conf_input_lst;
 
 	    while (key != NULL) {
-		if (strcasecmp(key->inp_driver, "keyboard") == 0 &&
-		    xkb_infos[i]->conf == key)
+		if (IS_KBDDRIV(key->inp_driver) && xkb_infos[i]->conf == key)
 		    break;
 		key = (XF86ConfInputPtr)(key->list.next);
 	    }
@@ -216,7 +218,7 @@ KeyboardConfig(XtPointer config)
 	int nkeyboards = 0;
 
 	while (input != NULL) {
-	    if (strcasecmp(input->inp_driver, "keyboard") == 0)
+	    if (IS_KBDDRIV(input->inp_driver))
 		++nkeyboards;
 	    input = (XF86ConfInputPtr)(input->list.next);
 	}
@@ -253,7 +255,11 @@ KeyboardConfig(XtPointer config)
 	    keyboard = XtNew(XF86ConfInputRec);
 	    keyboard->list.next = NULL;
 	    keyboard->inp_identifier = XtNewString(ident_string);
+#if defined(USE_DEPRECATED_KEYBOARD_DRIVER)
 	    keyboard->inp_driver = XtNewString("keyboard");
+#else
+	    keyboard->inp_driver = XtNewString("kbd");
+#endif
 	    keyboard->inp_option_lst = xf86newOption(XtNewString(XkbRules),
 						     XtNewString(rules));
 	    xf86addNewOption(keyboard->inp_option_lst,
@@ -493,7 +499,7 @@ InitializeKeyboard(void)
 
     /* XXX Assumes the first keyboard is the core keyboard */
     while (keyboard != NULL) {
-	if (strcasecmp(keyboard->inp_driver, "keyboard") == 0)
+	if (IS_KBDDRIV(keyboard->inp_driver))
 	    break;
 	keyboard = (XF86ConfInputPtr)(keyboard->list.next);
     }

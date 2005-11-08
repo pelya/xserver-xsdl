@@ -42,8 +42,7 @@
 static int
 SupportedInterfaces (void)
 {
-  /* FIXME: Is this correct? Should we just return MSE_MISC? */
-  return MSE_SERIAL | MSE_BUS | MSE_PS2 | MSE_XPS2 | MSE_MISC | MSE_AUTO;
+  return MSE_MISC;
 }
 
 static const char *internalNames[] = {
@@ -107,8 +106,8 @@ OsMouseProc (DeviceIntPtr pPointer, int what)
   case DEVICE_INIT: 
     pPointer->public.on = FALSE;
 
-    dmask = D_REL | D_BUTTON;
-    if ((evi = ev_init()) < 0) {
+    dmask = D_ABS | D_REL | D_BUTTON;
+    if ((evi = ev_initf(xf86Info.consoleFd)) < 0) {
       FatalError ("OsMouseProc: Event driver initialization failed (%s)\n",
           evtErrStr(evi));
     }
@@ -127,9 +126,9 @@ OsMouseProc (DeviceIntPtr pPointer, int what)
     map[1] = 1;
     map[2] = 2;
     map[3] = 3;
-    map[4] = 6;
-    map[5] = 7;
-    map[6] = 8;
+    map[4] = 7;
+    map[5] = 8;
+    map[6] = 6;
     map[7] = 4;
     map[8] = 5; /* Compatibile with SCO X server */
 
@@ -161,7 +160,7 @@ OsMouseProc (DeviceIntPtr pPointer, int what)
 
   case DEVICE_OFF:
   case DEVICE_CLOSE:
-    pPointer->public.on = TRUE;
+    pPointer->public.on = FALSE;
     RemoveEnabledDevice (pInfo->fd);
     if (what == DEVICE_CLOSE) {
       ev_close();
@@ -185,18 +184,15 @@ OsMouseReadInput (InputInfoPtr pInfo)
 
   while ((evp = ev_read()) != (EVENT *)0) {
     int buttons = EV_BUTTONS(*evp);
-    int dx = EV_DX(*evp), dy = -(EV_DY(*evp)), dz = 0, dw = 0;
+    int dx = EV_DX(*evp), dy = -(EV_DY(*evp));
 
     if (EV_TAG(*evp) & T_WHEEL) {
-      dz = (dy & 0x08) ? (dy & 0x0f) - 16 : (dy & 0x0f);
-      dx = dy = 0;
-      pMse->PostEvent (pInfo, buttons, dx, dy, dz, dw);
+      pMse->PostEvent (pInfo, buttons, 0, 0, 0, 0);
       /* Simulate button release */
-      dz = 0;
       buttons &= ~(WHEEL_FWD | WHEEL_BACK);
     }
 
-    pMse->PostEvent (pInfo, buttons, dx, dy, dz, dw);
+    pMse->PostEvent (pInfo, buttons, dx, dy, 0, 0);
     ev_pop();
   }
 }
@@ -217,9 +213,9 @@ OsMousePreInit(InputInfoPtr pInfo, const char *protocol, int flags)
   xf86ProcessCommonOptions(pInfo, pInfo->options);
 
   /* Check if the device can be opened. */
-  pInfo->fd = ev_init();
+  pInfo->fd = ev_initf(xf86Info.consoleFd);
   if (pInfo->fd != -1) {
-    dmask_t dmask = (D_REL | D_BUTTON);
+    dmask_t dmask = (D_ABS | D_REL | D_BUTTON);
     pInfo->fd = ev_open(&dmask);
   } else {
     pInfo->fd = -999;

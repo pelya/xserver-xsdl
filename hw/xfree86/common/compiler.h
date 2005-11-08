@@ -1604,18 +1604,8 @@ extern void outl(unsigned int a, unsigned int l);
 #      define asm __asm
 #     endif
 #    endif
-#    ifdef SVR4
-#if 0
-#     include <sys/types.h>
-#endif
-#     ifndef __HIGHC__
-#      if !defined(__USLC__) && !defined(__SUNPRO_C)
-#       define __USLC__
-#      endif
-#     endif
-#    endif
 #    ifndef SCO325
-#     if defined(USL)
+#     if defined(__UNIXWARE__)
 #      if defined(IN_MODULE)
 #     /* avoid including <sys/types.h> for <sys/inline.h> on UnixWare */
 #       define ushort unsigned short
@@ -1627,15 +1617,15 @@ extern void outl(unsigned int a, unsigned int l);
 #      else
 #       include <sys/types.h>
 #      endif /* IN_MODULE */
-#     endif /* USL */
+#     endif /* __UNIXWARE__ */
 #     if !defined(sgi) && !defined(__SUNPRO_C)
 #      include <sys/inline.h>
 #     endif
 #    else
 #     include "scoasm.h"
 #    endif
-#    if !defined(__HIGHC__) && !defined(SCO325) && !defined(sgi) && \
-	!defined(__SUNPRO_C)
+#    if (!defined(__HIGHC__) && !defined(sgi) && !defined(__SUNPRO_C)) || \
+	defined(__USLC__)
 #     pragma asm partial_optimization outl
 #     pragma asm partial_optimization outw
 #     pragma asm partial_optimization outb

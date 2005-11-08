@@ -1106,6 +1106,11 @@ configInputKbd(IDevPtr inputp)
   MessageType from = X_DEFAULT;
   Bool customKeycodesDefault = FALSE;
   int verb = 0;
+#if defined(XQUEUE)
+  char *kbdproto = "Xqueue";
+#else
+  char *kbdproto = "standard";
+#endif
 
   /* Initialize defaults */
   xf86Info.xleds         = 0L;
@@ -1146,16 +1151,25 @@ configInputKbd(IDevPtr inputp)
   xf86Info.xkbgeometry   = NULL;
 #endif
 
-  s = xf86SetStrOption(inputp->commonOptions, "Protocol", "standard");
+  s = xf86SetStrOption(inputp->commonOptions, "Protocol", kbdproto);
   if (xf86NameCmp(s, "standard") == 0) {
      xf86Info.kbdProc    = xf86KbdProc;
      xf86Info.kbdEvents  = xf86KbdEvents;
      xfree(s);
   } else if (xf86NameCmp(s, "xqueue") == 0) {
+#ifdef __UNIXWARE__
+    /*
+     * To retain compatibility with older config files, on UnixWare, we
+     * accept the xqueue protocol but use the normal keyboard procs.
+     */
+     xf86Info.kbdProc    = xf86KbdProc;
+     xf86Info.kbdEvents  = xf86KbdEvents;
+#else
 #ifdef XQUEUE
     xf86Info.kbdProc = xf86XqueKbdProc;
     xf86Info.kbdEvents = xf86XqueEvents;
     xf86Msg(X_CONFIG, "Xqueue selected for keyboard input\n");
+#endif
 #endif
     xfree(s);
 #ifdef WSCONS_SUPPORT

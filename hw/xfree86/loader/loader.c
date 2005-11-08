@@ -402,6 +402,26 @@ LoaderInit(void)
      */
     mallopt(M_MMAP_MAX, 0);
 #endif
+#if defined(__UNIXWARE__) && !defined(__GNUC__)
+    /* For UnixWare we need to load the C Runtime libraries which are
+     * normally auto-linked by the compiler. Otherwise we are bound to
+     * see unresolved symbols when trying to use the type "long long".
+     * Obviously, this does not apply if the GNU C compiler is used.
+     */
+    {
+	int errmaj, errmin, wasLoaded; /* place holders */
+	char *xcrtpath = DEFAULT_MODULE_PATH "/libcrt.a";
+	char *uwcrtpath = "/usr/ccs/lib/libcrt.a";
+	char *path;
+	struct stat st;
+
+	if(stat(xcrtpath, &st) < 0)
+	    path = uwcrtpath; /* fallback: try to get libcrt.a from the uccs */
+	else
+	    path = xcrtpath; /* get the libcrt.a we compiled with */
+	LoaderOpen (path, "libcrt", 0, &errmaj, &errmin, &wasLoaded);
+    }
+#endif
 }
 
 /*

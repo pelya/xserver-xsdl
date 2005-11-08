@@ -51,7 +51,7 @@
 #ifdef SVR4
 #include <sys/sysmacros.h>
 #endif
-#if defined(ISC) || defined(__CYGWIN__) || defined(SCO) || defined(SCO325)
+#if defined(ISC) || defined(__CYGWIN__) || defined(__SCO__)
 #include <sys/param.h>
 #include <sys/sysmacros.h>
 #endif
