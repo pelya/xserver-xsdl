@@ -319,8 +319,8 @@ typedef struct _drmSetVersion {
                 "       stl_c %1, %2\n"		\
                 "1:     xor   %1, 1, %1\n"	\
                 "       stl   %1, %3"		\
-                : "+r" (old32),                 \
-		  "+&r" (cur32),		\
+                : "=r" (old32),                 \
+		  "=&r" (cur32),		\
                    "=m" (__drm_dummy_lock(lock)),\
                    "=m" (ret)			\
  		: "r" (old),			\

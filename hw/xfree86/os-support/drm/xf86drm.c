@@ -63,9 +63,8 @@
 #  define _DRM_MALLOC malloc
 #  define _DRM_FREE   free
 # else
-#  include <X11/Xlibint.h>
-#  define _DRM_MALLOC Xmalloc
-#  define _DRM_FREE   Xfree
+#  define _DRM_MALLOC malloc
+#  define _DRM_FREE   free
 # endif
 # include "drm.h"
 #endif
