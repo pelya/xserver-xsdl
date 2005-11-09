@@ -551,6 +551,7 @@ usbMouseProc(DeviceIntPtr pPointer, int what)
 	    }
 	}
 	pMse->lastButtons = 0;
+	pMse->lastMappedButtons = 0;
 	pMse->emulateState = 0;
 	pPointer->public.on = TRUE;
 	break;

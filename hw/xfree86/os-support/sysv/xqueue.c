@@ -480,6 +480,7 @@ XqMouseProc(DeviceIntPtr pPointer, int what)
       
     case DEVICE_ON:
 	pMse->lastButtons = 0;
+	pMse->lastMappedButtons = 0;
 	pMse->emulateState = 0;
 	pPointer->public.on = TRUE;
 	ret = XqEnable(pInfo);

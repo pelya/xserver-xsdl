@@ -190,6 +190,19 @@ extern OSMouseInfoPtr xf86OSMouseInit(int flags);
 	(xf86GetBuiltinInterfaceVersion(BUILTIN_IF_OSMOUSE, 0) >= \
                 BUILTIN_INTERFACE_VERSION_NUMERIC(1, 1, 0))
 
+/* Z axis mapping */
+#define MSE_NOZMAP	0
+#define MSE_MAPTOX	-1
+#define MSE_MAPTOY	-2
+#define MSE_MAPTOZ	-3
+#define MSE_MAPTOW	-4
+
+/* Generalize for other axes. */
+#define MSE_NOAXISMAP	MSE_NOZMAP
+
+#define MSE_MAXBUTTONS	24
+#define MSE_DFLTBUTTONS	 3
+
 /*
  * Mouse device record.  This is shared by the mouse driver and the OSMouse
  * layer.
@@ -275,19 +288,8 @@ typedef struct _MouseDevRec {
     int			doubleClickTargetButton;
     int			doubleClickTargetButtonMask;
     int			doubleClickOldSourceState;
+    int			lastMappedButtons;
+    int			buttonMap[MSE_MAXBUTTONS];
 } MouseDevRec, *MouseDevPtr;
-
-/* Z axis mapping */
-#define MSE_NOZMAP	0
-#define MSE_MAPTOX	-1
-#define MSE_MAPTOY	-2
-#define MSE_MAPTOZ	-3
-#define MSE_MAPTOW	-4
-
-/* Generalize for other axes. */
-#define MSE_NOAXISMAP	MSE_NOZMAP
-
-#define MSE_MAXBUTTONS	24
-#define MSE_DFLTBUTTONS	 3
 
 #endif /* _XF86OSMOUSE_H_ */
