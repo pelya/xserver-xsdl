@@ -146,7 +146,7 @@
 #undef XFree86Server
 
 /* Build XDGA support */
-#undef XFree86XDGA
+#undef XFreeXDGA
 
 /* Support Xinerama extension */
 #undef XINERAMA

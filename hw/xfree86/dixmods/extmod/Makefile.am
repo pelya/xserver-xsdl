@@ -10,7 +10,7 @@ if XV
 XV_SRCS = xvmod.c xvmodproc.h
 endif
 
-AM_CFLAGS = @XORG_CFLAGS@
+AM_CFLAGS = @XORG_CFLAGS@ -DEXTMODULE
 INCLUDES = @XORG_INCS@ \
            -I$(top_srcdir)/afb \
            -I$(top_srcdir)/mfb \

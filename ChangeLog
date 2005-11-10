@@ -1,6 +1,16 @@
 2005-11-09  Kevin E. Martin  <kem-at-freedesktop-dot-org>
 
 	* configure.ac:
+	* include/dix-config.h.in:
+	* include/xorg-server.h.in:
+	Fix typo to enable DGA support.
+
+	* hw/xfree86/dixmods/extmod/Makefile.am:
+	EXTMODULE is required to build DGA support into extmod.
+
+2005-11-09  Kevin E. Martin  <kem-at-freedesktop-dot-org>
+
+	* configure.ac:
 	Update package version number for X11R7 RC2 release.
 	Update release string to 6.99.99.902 (i.e., 7.0 RC2).
 

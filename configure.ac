@@ -1152,7 +1152,7 @@ AC_DEFINE_DIR(XKM_OUTPUT_DIR, XKBOUTPUT, [Path to XKB output dir])
 AC_SUBST(XKM_OUTPUT_DIR)
 
 dnl and the rest of these are generic, so they're in config.h
-AC_DEFINE(XFree86XDGA, 1, [Build XDGA support])
+AC_DEFINE(XFreeXDGA, 1, [Build XDGA support])
 AC_DEFINE(XF86BIGFONT, 1, [Build XFree86 BigFont extension])
 AC_DEFINE(XResExtension, 1, [Build XRes extension])
 AC_DEFINE(DPMSExtension, 1, [Build DPMS extension])

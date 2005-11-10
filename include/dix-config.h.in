@@ -318,7 +318,7 @@
 #undef XFIXES
 
 /* Build XDGA support */
-#undef XFree86XDGA
+#undef XFreeXDGA
 
 /* Support Xinerama extension */
 #undef XINERAMA
