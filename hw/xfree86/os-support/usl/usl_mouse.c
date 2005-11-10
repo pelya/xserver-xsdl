@@ -86,14 +86,8 @@ OsMouseProc(DeviceIntPtr pPointer, int what)
     case DEVICE_INIT: 
       pPointer->public.on = FALSE;
 
-      map[1] = 1;
-      map[2] = 2;
-      map[3] = 3;
-      map[4] = 7;
-      map[5] = 8;
-      map[6] = 6;
-      map[7] = 4;
-      map[8] = 5;
+      for (ret = 0; ret <= 8; ret++)
+	map[ret] = ret;
 
       InitPointerDeviceStruct((DevicePtr)pPointer, map, 8, 
 			      miPointerGetMotionEvents, pMse->Ctrl,

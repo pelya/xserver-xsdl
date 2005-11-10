@@ -287,15 +287,12 @@ XqSignalHandler (int signo)
 
       case XQ_WHEEL:
 	if (pMse) {
-	  int wbut = pMse->lastButtons;
+	  int wbut = pMse->lastButtons, dz;
 	  if (xqEvents[xqHead].xq_code == 1)
-	    wbut |= 0x80;
+	    dz = 1;
 	  else
-	    wbut |= 0x40;
-	  pMse->PostEvent(xqMouse, wbut, 0, 0, 0, 0);
-	  /* Simulate button release */
-	  wbut &= ~0xc0;
-	  pMse->PostEvent(xqMouse, wbut, 0, 0, 0, 0);
+	    dz = -1;
+	  pMse->PostEvent(xqMouse, wbut, 0, 0, dz, 0);
 	}
 	break;
 

@@ -123,14 +123,8 @@ OsMouseProc (DeviceIntPtr pPointer, int what)
     }
     xf86Msg (from, "%s: Buttons: %d\n", pInfo->name, pMse->buttons);
 
-    map[1] = 1;
-    map[2] = 2;
-    map[3] = 3;
-    map[4] = 7;
-    map[5] = 8;
-    map[6] = 6;
-    map[7] = 4;
-    map[8] = 5; /* Compatibile with SCO X server */
+    for (evi = 0; evi <= 8; evi++)
+      map[evi] = evi;
 
     InitPointerDeviceStruct((DevicePtr)pPointer, map, 8,
         miPointerGetMotionEvents, pMse->Ctrl,
@@ -185,15 +179,16 @@ OsMouseReadInput (InputInfoPtr pInfo)
 
   while ((evp = ev_read()) != (EVENT *)0) {
     int buttons = EV_BUTTONS(*evp);
-    int dx = EV_DX(*evp), dy = -(EV_DY(*evp));
+    int dx = EV_DX(*evp), dy = -(EV_DY(*evp)), dz = 0;
 
-    if (EV_TAG(*evp) & T_WHEEL) {
-      pMse->PostEvent (pInfo, buttons, 0, 0, 0, 0);
-      /* Simulate button release */
-      buttons &= ~(WHEEL_FWD | WHEEL_BACK);
-    }
+    if (buttons & WHEEL_FWD)
+      dz = -1;
+    else if (buttons & WHEEL_BACK)
+      dz = 1;
 
-    pMse->PostEvent (pInfo, buttons, dx, dy, 0, 0);
+    buttons &= ~(WHEEL_FWD | WHEEL_BACK);
+
+    pMse->PostEvent (pInfo, buttons, dx, dy, dz, 0);
     ev_pop();
   }
 }
