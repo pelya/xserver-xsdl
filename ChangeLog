@@ -1,3 +1,9 @@
+2005-11-12  Alan Coopersmith  <alan.coopersmith@sun.com>
+
+	* include/dix-config.h.in: 
+	use RGB_DB not RGB_PATH as that's what configure defines
+	(Jürg Billeter  <j@bitron.ch>)
+  
 2005-11-09  Kevin E. Martin  <kem-at-freedesktop-dot-org>
 
 	* configure.ac:
