@@ -43,9 +43,14 @@ kbd_mode_SOURCES = sun-kbd_mode.c
 MAN_SRC = sun-kbd_mode.man.pre
 endif
 
-man1_MANS = kbd_mode.man
+appmandir =  $(mandir)/man$(APP_MAN_SUFFIX)
 
-all-local: kbd_mode.man.pre $(man1_MANS)
+appman_SOURCES = kbd_mode.man
+appman_DATA = $(appman_SOURCES:man=@APP_MAN_SUFFIX@)
+BUILT_SOURCES = $(appman_SOURCES)
+CLEANFILES = $(appman_SOURCES) $(appman_DATA)
+
+all-local: kbd_mode.man.pre $(appman_DATA)
 
 kbd_mode.man.pre: $(MAN_SRC)
 	$(LN_S) $(MAN_SRC) kbd_mode.man.pre
@@ -53,5 +58,11 @@ kbd_mode.man.pre: $(MAN_SRC)
 endif
 
 include $(top_srcdir)/cpprules.in
+
+SUFFIXES += .$(APP_MAN_SUFFIX) .man
+
+.man.$(APP_MAN_SUFFIX):
+	-rm -f $@
+	$(LN_S) $< $@
 
 EXTRA_DIST = bsd-kbd_mode.man.pre sun-kbd_mode.man.pre

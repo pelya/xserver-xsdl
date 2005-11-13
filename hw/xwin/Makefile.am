@@ -164,7 +164,7 @@ AM_LFLAGS = -i
 AM_CFLAGS = -DHAVE_XWIN_CONFIG_H \
             $(XWINMODULES_CFLAGS)
 
-dist_man_MANS = XWin.1 XWinrc.1
+dist_man1_MANS = XWin.man XWinrc.man
 
 EXTRA_DIST = \
 	_usr_X11R6_lib_X11_system.XWinrc \

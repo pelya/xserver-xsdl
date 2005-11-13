@@ -47,13 +47,23 @@ xorgconfig_SOURCES =	\
 # Man page
 include $(top_srcdir)/cpprules.in
 
-man1_MANS = xorgconfig.man
+appmandir =  $(mandir)/man$(APP_MAN_SUFFIX)
+
+appman_SOURCES = xorgconfig.man
+appman_DATA = $(appman_SOURCES:man=@APP_MAN_SUFFIX@)
 
 EXTRAMANDEFS = \
 	-D__XCONFIGFILE__=$(__XCONFIGFILE__) \
 	-D__XSERVERNAME__=$(XSERVERNAME)
 
-CLEANFILES = $(man1_MANS)
+BUILT_SOURCES = $(appman_SOURCES)
+CLEANFILES = $(appman_SOURCES) $(appman_DATA)
+
+SUFFIXES += .$(APP_MAN_SUFFIX) .man
+
+.man.$(APP_MAN_SUFFIX):
+	-rm -f $@
+	$(LN_S) $< $@
 
 EXTRA_DIST = \
 	Cards98 \

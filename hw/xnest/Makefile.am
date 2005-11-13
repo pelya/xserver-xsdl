@@ -66,8 +66,23 @@ EXTRA_DIST = os2Stub.c \
 # EXT_DEFINES???
 # ICONFIGFILES -- SpecialCObjectRule
 
-man1_MANS = Xnest.man
-
-CLEANFILES = $(man1_MANS)
-
+# Man page
 include $(top_srcdir)/cpprules.in
+
+appmandir =  $(mandir)/man$(APP_MAN_SUFFIX)
+
+appman_SOURCES = Xnest.man
+appman_DATA = $(appman_SOURCES:man=@APP_MAN_SUFFIX@)
+
+EXTRAMANDEFS = \
+	-D__XCONFIGFILE__=$(__XCONFIGFILE__) \
+	-D__XSERVERNAME__=$(XSERVERNAME)
+
+BUILT_SOURCES = $(appman_SOURCES)
+CLEANFILES = $(appman_SOURCES) $(appman_DATA)
+
+SUFFIXES += .$(APP_MAN_SUFFIX) .man
+
+.man.$(APP_MAN_SUFFIX):
+	-rm -f $@
+	$(LN_S) $< $@

@@ -43,10 +43,19 @@ scanpci_LDADD = \
 scanpci_SOURCES =	\
 	scanpci.c
 
-man1_MANS = scanpci.man
+appmandir =  $(mandir)/man$(APP_MAN_SUFFIX)
 
-CLEANFILES = $(man1_MANS)
+appman_SOURCES = scanpci.man
+appman_DATA = $(appman_SOURCES:man=@APP_MAN_SUFFIX@)
 
 include $(top_srcdir)/cpprules.in
 
 EXTRA_DIST = scanpci.man.pre
+BUILT_SOURCES = $(appman_SOURCES)
+CLEANFILES = $(appman_SOURCES) $(appman_DATA)
+
+SUFFIXES += .$(APP_MAN_SUFFIX) .man
+
+.man.$(APP_MAN_SUFFIX):
+	-rm -f $@
+	$(LN_S) $< $@

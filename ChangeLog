@@ -1,6 +1,26 @@
 2005-11-12  Alan Coopersmith  <alan.coopersmith@sun.com>
 
+	* Xprint/doc/Makefile.am:
+	* hw/dmx/Makefile.am:
+	* hw/dmx/config/Makefile.am:
+	* hw/vfb/Makefile.am:
+	* hw/xfree86/doc/man/Makefile.am:
+	* hw/xfree86/getconfig/Makefile.am:
+	* hw/xfree86/utils/gtf/Makefile.am:
+	* hw/xfree86/utils/kbd_mode/Makefile.am:
+	* hw/xfree86/utils/pcitweak/Makefile.am:
+	* hw/xfree86/utils/scanpci/Makefile.am:
+	* hw/xfree86/utils/xorgcfg/Makefile.am:
+	* hw/xfree86/utils/xorgconfig/Makefile.am:
+	* hw/xnest/Makefile.am:
+	* hw/xwin/Makefile.am:
+	Bug #5019 <https://bugs.freedesktop.org/show_bug.cgi?id=5019>
+	xserver installs manpages into 'man1' instead of 'man1x'
+
+2005-11-12  Alan Coopersmith  <alan.coopersmith@sun.com>
+
 	* include/dix-config.h.in: 
+	Bug #4832 <https://bugs.freedesktop.org/show_bug.cgi?id=4832>
 	use RGB_DB not RGB_PATH as that's what configure defines
 	(Jürg Billeter  <j@bitron.ch>)
   

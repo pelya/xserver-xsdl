@@ -129,12 +129,21 @@ XOrgCfg: XOrgCfg.pre
 	$(RAWCPP) $(RAWCPPFLAGS) $(CPP_FILES_FLAGS) < XOrgCfg.pre | $(CPP_SED_MAGIC) > $@
 
 # Man page
-man1_MANS =  xorgcfg.man
+appmandir =  $(mandir)/man$(APP_MAN_SUFFIX)
 
-all-local: $(man1_MANS)
+appman_SOURCES = xorgcfg.man
+appman_DATA = $(appman_SOURCES:man=@APP_MAN_SUFFIX@)
+
+all-local: $(appman_SOURCES) $(appman_DATA)
 
 EXTRA_DIST = $(XBM_DATA) $(XPM_DATA) XOrgCfg.pre xorgcfg.man.pre
+BUILT_SOURCES = $(appman_SOURCES)
+CLEANFILES = $(APPDEFAULTFILES) $(BUILT_SOURCES) $(appman_DATA)
 
-CLEANFILES = $(APPDEFAULTFILES) $(man1_MANS)
+SUFFIXES += .$(APP_MAN_SUFFIX) .man
+
+.man.$(APP_MAN_SUFFIX):
+	-rm -f $@
+	$(LN_S) $< $@
 
 endif

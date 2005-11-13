@@ -32,11 +32,19 @@ gtf_SOURCES = gtf.c
 gtf_CFLAGS = $(XORG_CFLAGS)
 gtf_LDADD = -lm
 
+appmandir =  $(mandir)/man$(APP_MAN_SUFFIX)
 
-man1_MANS = gtf.man
-
-CLEANFILES = $(man1_MANS)
+appman_SOURCES = gtf.man
+appman_DATA = $(appman_SOURCES:man=@APP_MAN_SUFFIX@)
 
 include $(top_srcdir)/cpprules.in
 
 EXTRA_DIST = gtf.man.pre
+BUILT_SOURCES = $(appman_SOURCES)
+CLEANFILES = $(appman_SOURCES) $(appman_DATA)
+
+SUFFIXES += .$(APP_MAN_SUFFIX) .man
+
+.man.$(APP_MAN_SUFFIX):
+	-rm -f $@
+	$(LN_S) $< $@

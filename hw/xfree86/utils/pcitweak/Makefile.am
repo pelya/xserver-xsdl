@@ -41,10 +41,19 @@ pcitweak_LDADD = \
 pcitweak_SOURCES =	\
 	pcitweak.c
 
-man1_MANS = pcitweak.man
+appmandir =  $(mandir)/man$(APP_MAN_SUFFIX)
 
-CLEANFILES = $(man1_MANS)
+appman_SOURCES = pcitweak.man
+appman_DATA = $(appman_SOURCES:man=@APP_MAN_SUFFIX@)
 
 include $(top_srcdir)/cpprules.in
 
 EXTRA_DIST = pcitweak.man.pre
+BUILT_SOURCES = $(appman_SOURCES)
+CLEANFILES = $(appman_SOURCES) $(appman_DATA)
+
+SUFFIXES += .$(APP_MAN_SUFFIX) .man
+
+.man.$(APP_MAN_SUFFIX):
+	-rm -f $@
+	$(LN_S) $< $@

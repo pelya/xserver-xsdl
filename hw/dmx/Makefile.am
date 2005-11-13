@@ -84,4 +84,25 @@ Xdmx_CFLAGS = -DHAVE_DMX_CONFIG_H \
               $(GLX_INCS) \
               @DMXMODULES_CFLAGS@
 
-dist_man_MANS = Xdmx.1
+# Man page
+appmandir =  $(mandir)/man$(APP_MAN_SUFFIX)
+
+appman_SOURCES = Xdmx.man
+appman_DATA = $(appman_SOURCES:man=@APP_MAN_SUFFIX@)
+
+CLEANFILES = $(appman_DATA)
+
+# Strings to replace in man pages
+XORGRELSTRING = @PACKAGE_STRING@
+  XORGMANNAME = X Version 11
+
+MAN_SUBSTS = \
+	-e 's|__vendorversion__|"$(XORGRELSTRING)" "$(XORGMANNAME)"|' \
+	-e 's|__miscmansuffix__|$(MISC_MAN_SUFFIX)|g'
+
+SUFFIXES = .$(APP_MAN_SUFFIX) .man
+
+.man.$(APP_MAN_SUFFIX):
+	sed $(MAN_SUBSTS) < $< > $@
+
+EXTRA_DIST = $(appman_SOURCES)
