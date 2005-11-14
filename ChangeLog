@@ -1,5 +1,12 @@
 2005-11-14  Kevin E. Martin  <kem-at-freedesktop-dot-org>
 
+	* GL/glx/glcontextmodes.c:
+	* GL/glx/glcontextmodes.h:
+	* GL/symlink-mesa.sh:
+	Use glcontextmodes.[ch] from Mesa.
+
+2005-11-14  Kevin E. Martin  <kem-at-freedesktop-dot-org>
+
 	* GL/glx/Makefile.am:
 	Add GL_CFLAGS so that GLX can find its proto headers when using
 	separate build dirs.
