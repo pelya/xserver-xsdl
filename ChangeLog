@@ -1,4 +1,9 @@
-2005-11-12  Alan Coopersmith  <alan.coopersmith@sun.com>
+2005-11-13  Alan Coopersmith  <alan.coopersmith@sun.com>
+
+	* configure.ac: 
+	Default xkb-output directory needs trailing slash.
+
+2005-11-13  Alan Coopersmith  <alan.coopersmith@sun.com>
 
 	* Xprint/doc/Makefile.am:
 	* hw/dmx/Makefile.am:
