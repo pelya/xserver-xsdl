@@ -1,3 +1,9 @@
+2005-11-14  Kevin E. Martin  <kem-at-freedesktop-dot-org>
+
+	* GL/glx/Makefile.am:
+	Add GL_CFLAGS so that GLX can find its proto headers when using
+	separate build dirs.
+
 2005-11-13  Alan Coopersmith  <alan.coopersmith@sun.com>
 
 	* configure.ac: 

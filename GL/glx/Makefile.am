@@ -1,6 +1,6 @@
 noinst_LTLIBRARIES = libglx.la
 
-AM_CFLAGS = $(DIX_CFLAGS) -I@MESA_SOURCE@/include
+AM_CFLAGS = @DIX_CFLAGS@ @GL_CFLAGS@ -I@MESA_SOURCE@/include
 
 # none yet
 #sdk_HEADERS =
