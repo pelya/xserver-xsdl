@@ -168,7 +168,7 @@ SOFTWARE.
 
 #endif /* hpux || __hppa__ */
 
-#if defined(__powerpc__)
+#if defined(__powerpc__) || defined(__ppc__)
 
 #define IMAGE_BYTE_ORDER        MSBFirst
 #define BITMAP_BIT_ORDER        MSBFirst
