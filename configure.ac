@@ -862,12 +862,15 @@ if test "x$XORG" = xauto; then
 fi
 AC_MSG_RESULT([$XORG])
 
+# XORG_CORE_LIBS is needed even if you're not building the Xorg DDX
+XORG_CORE_LIBS="$DIX_LIB"
+AC_SUBST([XORG_CORE_LIBS])
+
 if test "x$XORG" = xyes; then
 	XORG_DDXINCS='-I$(top_srcdir)/hw/xfree86 -I$(top_srcdir)/hw/xfree86/include -I$(top_srcdir)/hw/xfree86/common'
 	XORG_OSINCS='-I$(top_srcdir)/hw/xfree86/os-support -I$(top_srcdir)/hw/xfree86/os-support/bus -I$(top_srcdir)/os'
 	XORG_INCS="$XORG_DDXINCS $XORG_OSINCS"
 	XORG_CFLAGS="$XORGSERVER_CFLAGS -DHAVE_XORG_CONFIG_H"
-	XORG_CORE_LIBS="$DIX_LIB"
 	XORG_LIBS="$MI_LIB $FIXES_LIB $XEXT_LIB $XTRAP_LIB $RECORD_LIB $GLX_LIBS $RENDER_LIB $RANDR_LIB $DAMAGE_LIB $MIEXT_DAMAGE_LIB $MIEXT_SHADOW_LIB $MIEXT_LAYER_LIB $XI_LIB $XKB_LIB $LBX_LIB $COMPOSITE_LIB $XPSTUBS_LIB $OS_LIB"
 
 	AC_CHECK_LIB([dl], [dlopen], XORG_LIBS="$XORG_LIBS -ldl")
@@ -964,7 +967,6 @@ if test "x$XORG" = xyes; then
 	if test "x$XORG_OS_PCI" = x ; then
 		XORG_OS_PCI=$XORG_OS
 	fi
-	AC_SUBST([XORG_CORE_LIBS])
 	AC_SUBST([XORG_LIBS])
 	AC_SUBST([XORG_INCS])
 	AC_SUBST([XORG_OS])

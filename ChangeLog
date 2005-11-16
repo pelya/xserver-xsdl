@@ -1,3 +1,8 @@
+2005-11-16  Adam Jackson  <ajax@freedesktop.org>
+
+	* configure.ac:
+	Fix builds when not building the Xorg DDX.
+
 2005-11-14  Kevin E. Martin  <kem-at-freedesktop-dot-org>
 
 	* GL/glx/glcontextmodes.c:
