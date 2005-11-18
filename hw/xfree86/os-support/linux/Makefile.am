@@ -4,8 +4,8 @@ if LINUX_IA64
 PLATFORM_PCI_SUPPORT = $(srcdir)/../shared/ia64Pci.c
 endif
 if LINUX_ALPHA
-PLATFORM_PCI_SUPPORT = lnx_ev56.c
-       $(srcdir)/lnx_axp.c
+PLATFORM_PCI_SUPPORT = lnx_ev56.c \
+       $(srcdir)/lnx_axp.c \
        $(srcdir)/../shared/xf86Axp.c
 endif
 

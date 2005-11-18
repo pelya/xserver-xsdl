@@ -1,3 +1,8 @@
+2005-11-18  Adam Jackson  <ajax@freedesktop.org>
+
+	* hw/xfree86/os-support/linux/Makefile.am:
+	Bug #4928: Unbreak Makefile.am for Alpha chips. (Stefan DeRoeck)
+
 2005-11-16  Adam Jackson  <ajax@freedesktop.org>
 
 	* configure.ac:
