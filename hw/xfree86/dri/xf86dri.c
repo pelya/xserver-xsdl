@@ -212,7 +212,11 @@ ProcXF86DRIOpenConnection(
                   ((rep.busIdStringLength + 3) & ~3)) >> 2;
 
     rep.hSAREALow  = (CARD32)(hSAREA & 0xffffffff);
+#if defined(LONG64) && !defined(__linux__)
+    rep.hSAREAHigh = (CARD32)(hSAREA >> 32);
+#else
     rep.hSAREAHigh = 0;
+#endif
 
     WriteToClient(client, sizeof(xXF86DRIOpenConnectionReply), (char *)&rep);
     if (rep.busIdStringLength)
@@ -546,7 +550,11 @@ ProcXF86DRIGetDeviceInfo(
     }
 
     rep.hFrameBufferLow  = (CARD32)(hFrameBuffer & 0xffffffff);
+#if defined(LONG64) && !defined(__linux__)
+    rep.hFrameBufferHigh = (CARD32)(hFrameBuffer >> 32);
+#else
     rep.hFrameBufferHigh = 0;
+#endif
 
     rep.length = 0;
     if (rep.devPrivateSize) {
