@@ -1,6 +1,6 @@
 noinst_LTLIBRARIES = libglx.la
 
-AM_CFLAGS = @DIX_CFLAGS@ @GL_CFLAGS@ -I@MESA_SOURCE@/include
+AM_CFLAGS = @DIX_CFLAGS@ @GL_CFLAGS@ @XLIB_CFLAGS@ -I@MESA_SOURCE@/include -DXFree86Server
 
 # none yet
 #sdk_HEADERS =

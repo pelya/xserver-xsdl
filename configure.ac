@@ -511,6 +511,8 @@ if test "x$RES" = xyes; then
 fi
 
 if test "x$GLX" = xyes && ! test "x$MESA_SOURCE" = x; then
+	PKG_CHECK_MODULES([XLIB], [x11])
+	AC_SUBST(XLIB_CFLAGS)
 	AC_DEFINE(GLXEXT, 1, [Build GLX extension])
 	GLX_LIBS='$(top_builddir)/GL/glx/libglx.la $(top_builddir)/GL/mesa/libGLcore.la'
 	test -d GL || mkdir GL
@@ -1000,6 +1002,11 @@ if test "x$XORG" = xyes; then
 	AC_SUBST([XORG_CFLAGS])
 	AC_SUBST([LD_EXPORT_SYMBOLS_FLAG])
 
+	dnl Module defines are used in the Xorg server and the drivers
+	dnl Note that this is used in xorg-server.pc.in
+	MODULE_DEFINES="-DIN_MODULE -DXFree86Module"
+	AC_SUBST([MODULE_DEFINES])
+
 	dnl these only go in xorg-config.h
 	XF86CONFIGFILE="xorg.conf"
 	CONFIGFILE="$sysconfdir/$XF86CONFIGFILE"
@@ -1055,8 +1062,8 @@ AC_MSG_RESULT([$XPRINT])
 if test "x$XPRINT" = xyes; then
 	PKG_CHECK_MODULES([XPRINT], [printproto x11 xfont $XDMCP_MODULES xau])
 	XPRINT_EXTENSIONS="$XEXT_LIB $DBE_LIB $XTRAP_LIB $RENDER_LIB $COMPOSITE_LIB $RANDR_LIB $XI_LIB $FIXES_LIB $LBX_LIB $DAMAGE_LIB $XI_LIB $GLX_LIBS"
-	XPRINT_INCLUDES="$XEXT_INC $RENDER_INC $COMPOSITE_INC $RANDR_INC $XI_INC $FIXES_INC $DAMAGE_INC $XI_INC $GLX_INC $LBX_INC"
-	XPRINT_LIBS="$XPRINT_LIBS $DIX_LIB $XKB_LIB $XKB_STUB_LIB $OS_LIB $XPRINT_EXTENSIONS $MI_LIB $MIEXT_DAMAGE_LIB $GLX_INC"
+	XPRINT_LIBS="$XPRINT_LIBS $DIX_LIB $XKB_LIB $XKB_STUB_LIB $OS_LIB $XPRINT_EXTENSIONS $MI_LIB $MIEXT_DAMAGE_LIB"
+	AC_SUBST([XPRINT_CFLAGS])
 	AC_SUBST([XPRINT_LIBS])
 
 	xpconfigdir=$libdir/X11/xserver
@@ -1177,7 +1184,9 @@ esac
 AC_DEFINE_DIR(PROJECTROOT, prefix, [Overall prefix])
 
 dnl xorgconfig CLI configuration utility
-PKG_CHECK_MODULES([XORGCONFIG_DEP], [xkbfile])
+PKG_CHECK_MODULES([XORGCONFIG_DEP], [xkbfile x11])
+AC_SUBST(XORGCONFIG_DEP_CFLAGS)
+AC_SUBST(XORGCONFIG_DEP_LIBS)
 
 dnl xorgcfg GUI configuration utility
 AC_ARG_ENABLE(xorgcfg, AS_HELP_STRING([--enable-xorgcfg], 

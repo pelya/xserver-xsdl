@@ -31,13 +31,13 @@ bin_PROGRAMS = xorgconfig
 X11dir = $(libdir)/X11
 dist_X11_DATA = Cards
 
-xorgconfig_CFLAGS = $(DEP_CFLAGS) \
+xorgconfig_CFLAGS = @XORGCONFIG_DEP_CFLAGS@ \
 	-DCARD_DATABASE_FILE='"$(X11dir)/Cards"' \
 	-DPROJECTROOT='"$(prefix)"' \
         -DFILEMANSUFFIX='"$(FILE_MAN_SUFFIX)"' \
         -DXVERSIONSTRING='"$(PACKAGE_STRING)"'
 
-xorgconfig_LDADD = $(XORGCONFIG_DEP_LIBS)
+xorgconfig_LDADD = @XORGCONFIG_DEP_LIBS@
 
 xorgconfig_SOURCES =	\
 	cards.c		\

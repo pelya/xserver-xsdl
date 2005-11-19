@@ -1,3 +1,15 @@
+2005-11-19  Kevin E. Martin  <kem-at-freedesktop-dot-org>
+
+	* GL/glx/Makefile.am:
+	* Xprint/Makefile.am:
+	* Xprint/pcl/Makefile.am:
+	* Xprint/ps/Makefile.am:
+	* Xprint/raster/Makefile.am:
+	* configure.ac:
+	* hw/xfree86/utils/xorgconfig/Makefile.am:
+	* xorg-server.pc.in:
+	Update dependencies to work with separate build roots.
+
 2005-11-18  Adam Jackson  <ajax@freedesktop.org>
 
 	* hw/xfree86/os-support/linux/Makefile.am:
