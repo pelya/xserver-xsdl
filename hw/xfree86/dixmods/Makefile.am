@@ -6,9 +6,9 @@ if GLX
 GLXMODS = libglx.la libGLcore.la
 endif
 
-# if XTRAP
-# XTRAPMOD = libxtrap.la
-# endif
+if XTRAP
+XTRAPMOD = libxtrap.la
+endif
 
 module_LTLIBRARIES = libafb.la \
                      libbitmap.la \
@@ -24,8 +24,8 @@ module_LTLIBRARIES = libafb.la \
                      libshadow.la \
 		     libfreetype.la \
                      libtype1.la \
-                     $(GLXMODS)
-#                    $(XTRAPMOD)
+                     $(GLXMODS) \
+                     $(XTRAPMOD)
 
 AM_CFLAGS = @XORG_CFLAGS@ @DIX_CFLAGS@
 INCLUDES = @XORG_INCS@ \
@@ -105,11 +105,9 @@ libdixmods_la_SOURCES = $(top_srcdir)/mi/miinitext.c
 
 libxorgxkb_la_SOURCES = xkbVT.c xkbPrivate.c xkbKillSrv.c
 
-# XXX NOTYET
-# libxtrap_la_LDFLAGS = -avoid-version
-# libxtrap_la_LIBADD = $(top_builddir)/XTrap/libxtrap.la
-# libxtrap_la_SOURCES = xf86XTrapModule.c
-EXTRA_DIST = xf86XTrapModule.c
+libxtrap_la_LDFLAGS = -avoid-version
+libxtrap_la_LIBADD = $(top_builddir)/XTrap/libxtrap.la
+libxtrap_la_SOURCES = xf86XTrapModule.c
 
 xkb%.c:
 	echo "#define XF86DDXACTIONS" > $@
