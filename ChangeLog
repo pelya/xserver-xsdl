@@ -1,3 +1,8 @@
+2005-11-19  Alan Coopersmith  <alan.coopersmith@sun.com>
+
+	* configure.ac: 
+	Add xext to list of modules xorgcfg depends on.
+
 2005-11-19  Kevin E. Martin  <kem-at-freedesktop-dot-org>
 
 	* GL/glx/Makefile.am:
