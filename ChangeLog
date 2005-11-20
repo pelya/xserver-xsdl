@@ -1,3 +1,12 @@
+2005-11-20  Alan Coopersmith  <alan.coopersmith@sun.com>
+
+	* configure.ac: 
+	* xkb/Makefile.am:
+	Make sure XKM_OUTPUT_DIR (used in code) ends in / (so paths don't
+	get hosed when appending file names) but XKB_COMPILED_DIR (used 
+	in Makefiles) does not so install-sh -d doesn't get confused when
+	the directory already exists.
+
 2005-11-19  Alan Coopersmith  <alan.coopersmith@sun.com>
 
 	* configure.ac: 

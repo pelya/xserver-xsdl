@@ -353,7 +353,7 @@ AC_ARG_WITH(xkb-path,         AS_HELP_STRING([--with-xkb-path=PATH], [Path to XK
 				[ XKBPATH="${datadir}/X11/xkb" ])
 AC_ARG_WITH(xkb-output,       AS_HELP_STRING([--with-xkb-output=PATH], [Path to XKB output dir (default: ${datadir}/X11/xkb/compiled)]),
 				[ XKBOUTPUT="$withval" ],
-				[ XKBOUTPUT="compiled/" ])
+				[ XKBOUTPUT="compiled" ])
 AC_ARG_WITH(rgb-path,         AS_HELP_STRING([--with-rgb-path=PATH], [Path to RGB database (default: ${datadir}/X11/rgb)]),
 				[ RGBPATH="$withval" ],
 				[ RGBPATH="${datadir}/X11/rgb" ])
@@ -1156,9 +1156,15 @@ if [[ x$XKBOUTPUT_FIRSTCHAR != x/ ]] ; then
    XKBOUTPUT="$XKB_BASE_DIRECTORY/$XKBOUTPUT"
 fi
 
+# XKM_OUTPUT_DIR (used in code) must end in / or file names get hosed
+# XKB_COMPILED_DIR (used in Makefiles) must not or install-sh gets confused
+
+XKBOUTPUT=`echo $XKBOUTPUT/ | sed 's|/*$|/|'`
+XKB_COMPILED_DIR=`echo $XKBOUTPUT | sed 's|/*$||'`
+
 AC_DEFINE_DIR(XKM_OUTPUT_DIR, XKBOUTPUT, [Path to XKB output dir])
 
-AC_SUBST(XKM_OUTPUT_DIR)
+AC_SUBST(XKB_COMPILED_DIR)
 
 dnl and the rest of these are generic, so they're in config.h
 AC_DEFINE(XFreeXDGA, 1, [Build XDGA support])

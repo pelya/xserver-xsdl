@@ -51,5 +51,5 @@ libxkbstubs_la_SOURCES = ddxVT.c ddxPrivate.c ddxKillSrv.c
 
 EXTRA_DIST = xkb.h xkbDflts.h
 
-xkbcompileddir = $(XKM_OUTPUT_DIR)
+xkbcompileddir = $(XKB_COMPILED_DIR)
 dist_xkbcompiled_DATA = README.compiled
