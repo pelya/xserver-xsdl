@@ -1,3 +1,9 @@
+2005-11-20  Felix Kuehling  <fxkuehl@gmx.de>
+
+	* configure.ac:
+	Fix Xprt library dependencies in the case that Xprint is
+	auto-detected by configure.
+
 2005-11-20  Alan Coopersmith  <alan.coopersmith@sun.com>
 
 	* configure.ac: 

@@ -608,7 +608,7 @@ if test "x$XF86MISC" = xyes; then
 fi
 
 if test "x$XPRINT" = xauto; then
-	PKG_CHECK_MODULES([XPRINT], [printproto], [XPRINT=yes], [XPRINT=no])
+	PKG_CHECK_MODULES([XPRINTPROTO], [printproto], [XPRINT=yes], [XPRINT=no])
 fi
 AM_CONDITIONAL(XPRINT, [test "x$XPRINT" = xyes])
 if test "x$XPRINT" = xyes; then
