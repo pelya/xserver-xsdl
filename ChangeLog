@@ -1,3 +1,8 @@
+2005-11-21  Eric Anholt  <anholt@FreeBSD.org>
+
+	* hw/xfree86/utils/ioport/Makefile.am:
+	Bug #5118: Use "rm -f" instead of "$(RM)", which isn't always defined.
+
 2005-11-20  Felix Kuehling  <fxkuehl@gmx.de>
 
 	* configure.ac:

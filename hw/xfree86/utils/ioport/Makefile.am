@@ -45,12 +45,12 @@ ioport_PROGRAM_LINKS = inb inw inl outb outw outl
 
 all-local:
 	@for i in $(ioport_PROGRAM_LINKS); do (set -x; \
-	        $(RM) $$i; $(LN_S) ioport $$i); \
+		rm -f $$i; $(LN_S) ioport $$i); \
         done
 
 install-exec-hook:
 	@for i in $(ioport_PROGRAM_LINKS); do (set -x; \
-	        $(RM) $(DESTDIR)$(bindir)/$$i; \
+		rm -f $(DESTDIR)$(bindir)/$$i; \
 	        (cd $(DESTDIR)$(bindir); $(LN_S) ioport $$i)); \
         done
 
