@@ -360,6 +360,11 @@ AC_ARG_WITH(rgb-path,         AS_HELP_STRING([--with-rgb-path=PATH], [Path to RG
 AC_ARG_ENABLE(builddocs,      AS_HELP_STRING([--enable-builddocs], [Build docs (default: disabled)]),
                                 [BUILDDOCS=$enableval],
                                 [BUILDDOCS=no])
+AC_ARG_ENABLE(install-libxf86config,
+				AS_HELP_STRING([--enable-install-libxf86config],
+				[Install libxf86config (default: disabled)]),
+				[INSTALL_LIBXF86CONFIG=$enableval],
+				[INSTALL_LIBXF86CONFIG=no])
 
 dnl Extensions.
 AC_ARG_ENABLE(composite,      AS_HELP_STRING([--disable-composite], [Build Composite extension (default: enabled)]), [COMPOSITE=$enableval], [COMPOSITE=yes])
@@ -450,6 +455,9 @@ if test "x$BUILDDOCS" = xyes; then
 	AC_PATH_PROG(LINUXDOC, linuxdoc)
 fi
 AM_CONDITIONAL(BUILDSGMLDOCS, test "x$LINUXDOC" != x)
+
+dnl Handle installing libxf86config
+AM_CONDITIONAL(INSTALL_LIBXF86CONFIG, [test "x$INSTALL_LIBXF86CONFIG" = xyes])
 
 dnl ---------------------------------------------------------------------------
 dnl Extension section

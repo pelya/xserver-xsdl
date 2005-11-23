@@ -1,3 +1,12 @@
+2005-11-23  Kevin E. Martin  <kem-at-freedesktop-dot-org>
+
+	* configure.ac:
+	* hw/xfree86/Makefile.am:
+	* hw/xfree86/parser/Makefile.am:
+	* hw/xfree86/utils/xorgcfg/Makefile.am:
+	Add configure option to install libxf86config.a (disabled by
+	default).
+
 2005-11-21  Eric Anholt  <anholt@FreeBSD.org>
 
 	* hw/xfree86/utils/ioport/Makefile.am:

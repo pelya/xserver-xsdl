@@ -34,7 +34,7 @@ XORG_LIBS = \
             common/libinit.a \
             loader/libloader.a \
             common/libcommon.a \
-            parser/libparser.a \
+            parser/libxf86config.a \
             $(OS_LIBS) \
             dummylib/libdummy.a \
 	    dixmods/libdixmods.la \

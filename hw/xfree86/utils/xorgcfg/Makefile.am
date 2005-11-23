@@ -32,7 +32,7 @@ bin_PROGRAMS = xorgcfg
 INCLUDES = $(XORG_INCS) -I$(top_srcdir)/hw/xfree86/parser
 
 xorgcfg_CFLAGS = $(XORG_CFLAGS) $(CURSESDEFINES) $(XORGCFG_DEP_CFLAGS)
-xorgcfg_LDADD = $(XORGCFG_DEP_LIBS) ../../parser/libparser.a $(LOADERLIB) \
+xorgcfg_LDADD = $(XORGCFG_DEP_LIBS) ../../parser/libxf86config.a $(LOADERLIB) \
 	../../os-support/libxorgos.la ../../dummylib/libdummy-nonserver.a
 
 #if DoLoadableServer
