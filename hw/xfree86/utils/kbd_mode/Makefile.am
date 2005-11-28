@@ -43,7 +43,7 @@ kbd_mode_SOURCES = sun-kbd_mode.c
 MAN_SRC = sun-kbd_mode.man.pre
 endif
 
-appmandir =  $(mandir)/man$(APP_MAN_SUFFIX)
+appmandir = $(APP_MAN_DIR)
 
 appman_SOURCES = kbd_mode.man
 appman_DATA = $(appman_SOURCES:man=@APP_MAN_SUFFIX@)

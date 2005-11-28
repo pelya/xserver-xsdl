@@ -16,7 +16,7 @@ sdk_HEADERS = fbdevhw.h
 
 include $(top_srcdir)/cpprules.in
 
-drivermandir = $(mandir)/man$(DRIVER_MAN_SUFFIX)
+drivermandir = $(DRIVER_MAN_DIR)
 driverman_DATA = fbdevhw.$(DRIVER_MAN_SUFFIX)
 CLEANFILES = $(driverman_DATA) fbdevhw.man
 

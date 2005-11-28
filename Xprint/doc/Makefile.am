@@ -1,6 +1,6 @@
 MAN_SRCS = Xprt.man.pre
 
-appmandir =  $(mandir)/man$(APP_MAN_SUFFIX)
+appmandir = $(APP_MAN_DIR)
 
 appman_SOURCES = Xprt.man
 appman_DATA = $(appman_SOURCES:man=@APP_MAN_SUFFIX@)

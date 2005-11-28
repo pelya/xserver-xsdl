@@ -1,4 +1,4 @@
-appmandir =  $(mandir)/man$(APP_MAN_SUFFIX)
+appmandir = $(APP_MAN_DIR)
 
 # Xserver.man covers options generic to all X servers built in this tree
 appman_SOURCES = Xserver.man.pre

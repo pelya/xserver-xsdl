@@ -47,7 +47,7 @@ dmxtodmx_DEPENDENCIES = libdmxconfig.a
 dmxtodmx_SOURCES = dmxtodmx.c
 dmxtodmx_LDADD = -L. -ldmxconfig
 
-appmandir =  $(mandir)/man$(APP_MAN_SUFFIX)
+appmandir = $(APP_MAN_DIR)
 
 appman_SOURCES = xdmxconfig.man vdltodmx.man dmxtodmx.man
 appman_DATA = $(appman_SOURCES:man=@APP_MAN_SUFFIX@)

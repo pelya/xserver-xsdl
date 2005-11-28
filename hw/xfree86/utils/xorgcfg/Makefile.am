@@ -129,7 +129,7 @@ XOrgCfg: XOrgCfg.pre
 	$(RAWCPP) $(RAWCPPFLAGS) $(CPP_FILES_FLAGS) < XOrgCfg.pre | $(CPP_SED_MAGIC) > $@
 
 # Man page
-appmandir =  $(mandir)/man$(APP_MAN_SUFFIX)
+appmandir = $(APP_MAN_DIR)
 
 appman_SOURCES = xorgcfg.man
 appman_DATA = $(appman_SOURCES:man=@APP_MAN_SUFFIX@)

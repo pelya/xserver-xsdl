@@ -85,7 +85,7 @@ Xdmx_CFLAGS = -DHAVE_DMX_CONFIG_H \
               @DMXMODULES_CFLAGS@
 
 # Man page
-appmandir =  $(mandir)/man$(APP_MAN_SUFFIX)
+appmandir = $(APP_MAN_DIR)
 
 appman_SOURCES = Xdmx.man
 appman_DATA = $(appman_SOURCES:man=@APP_MAN_SUFFIX@)

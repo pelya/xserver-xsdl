@@ -69,7 +69,7 @@ EXTRA_DIST = os2Stub.c \
 # Man page
 include $(top_srcdir)/cpprules.in
 
-appmandir =  $(mandir)/man$(APP_MAN_SUFFIX)
+appmandir = $(APP_MAN_DIR)
 
 appman_SOURCES = Xnest.man
 appman_DATA = $(appman_SOURCES:man=@APP_MAN_SUFFIX@)

@@ -43,7 +43,7 @@ scanpci_LDADD = \
 scanpci_SOURCES =	\
 	scanpci.c
 
-appmandir =  $(mandir)/man$(APP_MAN_SUFFIX)
+appmandir = $(APP_MAN_DIR)
 
 appman_SOURCES = scanpci.man
 appman_DATA = $(appman_SOURCES:man=@APP_MAN_SUFFIX@)

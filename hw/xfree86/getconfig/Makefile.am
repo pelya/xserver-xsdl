@@ -33,11 +33,11 @@ dist_getconfig_DATA = xorg.cfg cfg.sample
 
 include $(top_srcdir)/cpprules.in
 
-appmandir =  $(mandir)/man$(APP_MAN_SUFFIX)
+appmandir = $(APP_MAN_DIR)
 appman_SOURCES = getconfig.man
 appman_DATA = $(appman_SOURCES:man=@APP_MAN_SUFFIX@)
 
-filemandir = $(mandir)/man$(FILE_MAN_SUFFIX)
+filemandir = $(FILE_MAN_DIR)
 fileman_DATA = getconfig.$(FILE_MAN_SUFFIX)
 
 getconfig.$(FILE_MAN_SUFFIX): cfg.man

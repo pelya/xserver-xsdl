@@ -32,7 +32,7 @@ gtf_SOURCES = gtf.c
 gtf_CFLAGS = $(XORG_CFLAGS)
 gtf_LDADD = -lm
 
-appmandir =  $(mandir)/man$(APP_MAN_SUFFIX)
+appmandir = $(APP_MAN_DIR)
 
 appman_SOURCES = gtf.man
 appman_DATA = $(appman_SOURCES:man=@APP_MAN_SUFFIX@)

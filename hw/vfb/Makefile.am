@@ -27,7 +27,7 @@ AM_CFLAGS = -DHAVE_DIX_CONFIG_H \
 # Man page
 include $(top_srcdir)/cpprules.in
 
-appmandir =  $(mandir)/man$(APP_MAN_SUFFIX)
+appmandir = $(APP_MAN_DIR)
 
 appman_SOURCES = Xvfb.man
 appman_DATA = $(appman_SOURCES:man=@APP_MAN_SUFFIX@)

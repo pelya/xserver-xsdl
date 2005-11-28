@@ -41,7 +41,7 @@ pcitweak_LDADD = \
 pcitweak_SOURCES =	\
 	pcitweak.c
 
-appmandir =  $(mandir)/man$(APP_MAN_SUFFIX)
+appmandir = $(APP_MAN_DIR)
 
 appman_SOURCES = pcitweak.man
 appman_DATA = $(appman_SOURCES:man=@APP_MAN_SUFFIX@)

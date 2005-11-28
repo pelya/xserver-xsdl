@@ -1,10 +1,10 @@
 # Xserver.man covers options generic to all X servers built in this tree
 MAN_SRCS = Xorg.man.pre xorg.conf.man.pre
 
-appmandir =  $(mandir)/man$(APP_MAN_SUFFIX)
+appmandir = $(APP_MAN_DIR)
 appman_DATA = Xorg.$(APP_MAN_SUFFIX)
 
-filemandir = $(mandir)/man$(FILE_MAN_SUFFIX)
+filemandir = $(FILE_MAN_DIR)
 fileman_DATA = xorg.conf.$(FILE_MAN_SUFFIX)
 
 Xorg.$(APP_MAN_SUFFIX): Xorg.man
