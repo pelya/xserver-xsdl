@@ -370,7 +370,7 @@ dnl Extensions.
 AC_ARG_ENABLE(composite,      AS_HELP_STRING([--disable-composite], [Build Composite extension (default: enabled)]), [COMPOSITE=$enableval], [COMPOSITE=yes])
 AC_ARG_ENABLE(mitshm,         AS_HELP_STRING([--disable-shm], [Build SHM extension (default: enabled)]), [MITSHM=$enableval], [MITSHM=yes])
 AC_ARG_ENABLE(xres,           AS_HELP_STRING([--disable-xres], [Build XRes extension (default: enabled)]), [RES=$enableval], [RES=yes])
-AC_ARG_ENABLE(xtrap,          AS_HELP_STRING([--enable-xtrap], [Build XTrap extension (default: disabled)]), [XTRAP=$enableval], [XTRAP=no])
+AC_ARG_ENABLE(xtrap,          AS_HELP_STRING([--disable-xtrap], [Build XTrap extension (default: enabled)]), [XTRAP=$enableval], [XTRAP=yes])
 AC_ARG_ENABLE(record,         AS_HELP_STRING([--disable-record], [Build Record extension (default: enabled)]), [RECORD=$enableval], [RECORD=yes])
 AC_ARG_ENABLE(xv,             AS_HELP_STRING([--disable-xv], [Build Xv extension (default: enabled)]), [XV=$enableval], [XV=yes])
 AC_ARG_ENABLE(dga,            AS_HELP_STRING([--disable-dga], [Build DGA extension (default: enabled)]), [DGA=$enableval], [DGA=yes])
@@ -464,9 +464,11 @@ dnl Extension section
 dnl ---------------------------------------------------------------------------
 XEXT_INC='-I$(top_srcdir)/Xext'
 XEXT_LIB='$(top_builddir)/Xext/libXext.la'
+XEXTXORG_LIB='$(top_builddir)/Xext/libXextbuiltin.la'
 
 dnl Core modules for most extensions, et al.
-REQUIRED_MODULES="randrproto renderproto fixesproto damageproto xcmiscproto xextproto xfont xproto xtrans xau xf86miscproto xf86vidmodeproto xf86bigfontproto scrnsaverproto bigreqsproto resourceproto fontenc fontsproto inputproto xf86dgaproto"
+REQUIRED_MODULES="randrproto renderproto fixesproto damageproto xcmiscproto xextproto xproto xtrans xf86miscproto xf86vidmodeproto xf86bigfontproto scrnsaverproto bigreqsproto resourceproto fontsproto inputproto xf86dgaproto"
+REQUIRED_LIBS="xfont xau fontenc"
 
 AM_CONDITIONAL(XV, [test "x$XV" = xyes])
 if test "x$XV" = xyes; then
@@ -682,7 +684,7 @@ fi
 AM_CONDITIONAL(XDMCP, [test "x$XDMCP" = xyes])
 if test "x$XDMCP" = xyes; then
 	AC_DEFINE(XDMCP, 1, [Support XDM Control Protocol])
-	REQUIRED_MODULES="$REQUIRED_MODULES xdmcp"
+	REQUIRED_LIBS="$REQUIRED_LIBS xdmcp"
 	XDMCP_MODULES="xdmcp"
 fi
 
@@ -690,7 +692,7 @@ AM_CONDITIONAL(XDMAUTH, [test "x$XDMAUTH" = xyes])
 if test "x$XDMAUTH" = xyes; then
 	AC_DEFINE(HASXDMAUTH,1,[Support XDM-AUTH*-1])
 	if ! test "x$XDMCP" = xyes; then
-		REQUIRED_MODULES="$REQUIRED_MODULES xdmcp"
+		REQUIRED_LIBS="$REQUIRED_LIBS xdmcp"
 		XDMCP_MODULES="xdmcp"
 	fi
 fi
@@ -749,6 +751,7 @@ AC_DEFINE(PIXPRIV, 1, [Support pixmap privates])
 
 DIX_LIB='$(top_builddir)/dix/libdix.la'
 OS_LIB='$(top_builddir)/os/libos.la'
+CWRAP_LIB='$(top_builddir)/os/libcwrapper.la'
 MI_LIB='$(top_builddir)/mi/libmi.la'
 MINIMI_LIB='$(top_builddir)/mi/libminimi.la'
 MI_EXT_LIB='$(top_builddir)/mi/libmiext.la'
@@ -761,8 +764,12 @@ MIEXT_LAYER_LIB='$(top_builddir)/miext/layer/liblayer.la'
 XPSTUBS_LIB='$(top_builddir)/dix/libxpstubs.la'
 CORE_INCS='-I$(top_srcdir)/include -I$(top_builddir)/include'
 
-PKG_CHECK_MODULES([XSERVER], [$REQUIRED_MODULES])
-XSERVER_LIBS="${XSERVER_LIBS} -lm -lz"
+PKG_CHECK_MODULES([XSERVERCFLAGS], [$REQUIRED_MODULES $REQUIRED_LIBS])
+PKG_CHECK_MODULES([XSERVERLIBS], [$REQUIRED_LIBS])
+
+XSERVER_CFLAGS="${XSERVERCFLAGS_CFLAGS}"
+XSERVER_LIBS="${XSERVERLIBS_LIBS} -lm -lz"
+AC_SUBST([XSERVER_LIBS])
 
 
 dnl Imake defines SVR4 on SVR4 systems, and many files check for it, so
@@ -783,6 +790,9 @@ dnl ---------------------------------------------------------------------------
 dnl DDX section.
 dnl ---------------------------------------------------------------------------
 
+dnl These are used to define Xorg module and loader defines
+MODULE_DEFINES=""
+LOADER_DEFINES=""
 
 dnl DMX DDX
 
@@ -800,7 +810,7 @@ if test "x$DMX" = xyes; then
 		              modules not found.])
 	fi
 	DMX_INCLUDES="$XEXT_INC $RENDER_INC $XTRAP_INC $RECORD_INC"
-	XDMX_LIBS="$FB_LIB $MI_LIB $XEXT_LIB $RENDER_LIB $XTRAP_LIB $RECORD_LIB $XI_LIB $XKB_LIB $XKB_STUB_LIB $MIEXT_DAMAGE_LIB $LBX_LIB $OS_LIB $MIEXT_SHADOW_LIB"
+	XDMX_LIBS="$FB_LIB $MI_LIB $XEXT_LIB $RENDER_LIB $XTRAP_LIB $RECORD_LIB $XI_LIB $XKB_LIB $XKB_STUB_LIB $MIEXT_DAMAGE_LIB $LBX_LIB $MIEXT_SHADOW_LIB $CWRAP_LIB $OS_LIB"
 	AC_SUBST([XDMX_LIBS])
 
 dnl USB sources in DMX require <linux/input.h>
@@ -839,7 +849,7 @@ AC_MSG_RESULT([$XVFB])
 AM_CONDITIONAL(XVFB, [test "x$XVFB" = xyes])
 
 if test "x$XVFB" = xyes; then
-	XVFB_LIBS="$FB_LIB $MI_LIB $FIXES_LIB $XEXT_LIB $DBE_LIB $XTRAP_LIB $RECORD_LIB $GLX_LIBS $RENDER_LIB $RANDR_LIB $DAMAGE_LIB $MIEXT_DAMAGE_LIB $MIEXT_SHADOW_LIB $MIEXT_LAYER_LIB $XI_LIB $XKB_LIB $XKB_STUB_LIB $LBX_LIB $COMPOSITE_LIB $XPSTUBS_LIB $OS_LIB"
+	XVFB_LIBS="$FB_LIB $MI_LIB $FIXES_LIB $XEXT_LIB $DBE_LIB $XTRAP_LIB $RECORD_LIB $GLX_LIBS $RENDER_LIB $RANDR_LIB $DAMAGE_LIB $MIEXT_DAMAGE_LIB $MIEXT_SHADOW_LIB $MIEXT_LAYER_LIB $XI_LIB $XKB_LIB $XKB_STUB_LIB $LBX_LIB $COMPOSITE_LIB $XPSTUBS_LIB $CWRAP_LIB $OS_LIB"
 	AC_SUBST([XVFB_LIBS])
 fi
 
@@ -855,7 +865,7 @@ AC_MSG_RESULT([$XNEST])
 AM_CONDITIONAL(XNEST, [test "x$XNEST" = xyes])
 
 if test "x$XNEST" = xyes; then
-	XNEST_LIBS="$FB_LIB $MI_LIB $FIXES_LIB $XEXT_LIB $DBE_LIB $XTRAP_LIB $RECORD_LIB $GLX_LIBS $RENDER_LIB $RANDR_LIB $DAMAGE_LIB $MIEXT_DAMAGE_LIB $MIEXT_SHADOW_LIB $MIEXT_LAYER_LIB $XI_LIB $XKB_LIB $XKB_STUB_LIB $LBX_LIB $COMPOSITE_LIB $XPSTUBS_LIB $OS_LIB"
+	XNEST_LIBS="$FB_LIB $MI_LIB $FIXES_LIB $XEXT_LIB $DBE_LIB $XTRAP_LIB $RECORD_LIB $GLX_LIBS $RENDER_LIB $RANDR_LIB $DAMAGE_LIB $MIEXT_DAMAGE_LIB $MIEXT_SHADOW_LIB $MIEXT_LAYER_LIB $XI_LIB $XKB_LIB $XKB_STUB_LIB $LBX_LIB $COMPOSITE_LIB $XPSTUBS_LIB $CWRAP_LIB $OS_LIB"
 	AC_SUBST([XNEST_LIBS])
 fi
 
@@ -881,7 +891,7 @@ if test "x$XORG" = xyes; then
 	XORG_OSINCS='-I$(top_srcdir)/hw/xfree86/os-support -I$(top_srcdir)/hw/xfree86/os-support/bus -I$(top_srcdir)/os'
 	XORG_INCS="$XORG_DDXINCS $XORG_OSINCS"
 	XORG_CFLAGS="$XORGSERVER_CFLAGS -DHAVE_XORG_CONFIG_H"
-	XORG_LIBS="$MI_LIB $FIXES_LIB $XEXT_LIB $XTRAP_LIB $RECORD_LIB $GLX_LIBS $RENDER_LIB $RANDR_LIB $DAMAGE_LIB $MIEXT_DAMAGE_LIB $MIEXT_SHADOW_LIB $MIEXT_LAYER_LIB $XI_LIB $XKB_LIB $LBX_LIB $COMPOSITE_LIB $XPSTUBS_LIB $OS_LIB"
+	XORG_LIBS="$MI_LIB $FIXES_LIB $XEXTXORG_LIB $GLX_LIBS $RENDER_LIB $RANDR_LIB $DAMAGE_LIB $MIEXT_DAMAGE_LIB $MIEXT_SHADOW_LIB $MIEXT_LAYER_LIB $XI_LIB $XKB_LIB $LBX_LIB $COMPOSITE_LIB $XPSTUBS_LIB $OS_LIB"
 
 	AC_CHECK_LIB([dl], [dlopen], XORG_LIBS="$XORG_LIBS -ldl")
 
@@ -1011,9 +1021,8 @@ if test "x$XORG" = xyes; then
 	AC_SUBST([LD_EXPORT_SYMBOLS_FLAG])
 
 	dnl Module defines are used in the Xorg server and the drivers
-	dnl Note that this is used in xorg-server.pc.in
 	MODULE_DEFINES="-DIN_MODULE -DXFree86Module"
-	AC_SUBST([MODULE_DEFINES])
+	LOADER_DEFINES="-DXFree86LOADER"
 
 	dnl these only go in xorg-config.h
 	XF86CONFIGFILE="xorg.conf"
@@ -1022,7 +1031,6 @@ if test "x$XORG" = xyes; then
 	AC_DEFINE(XORG_SERVER, 1, [Building Xorg server])
 	AC_DEFINE(XORGSERVER, 1, [Building Xorg server])
 	AC_DEFINE(XFree86Server, 1, [Building XFree86 server])
-	AC_DEFINE(XFree86LOADER, 1, [Building XFree86 loader])
 	AC_DEFINE_UNQUOTED(XORG_VERSION_CURRENT, [$VENDOR_RELEASE], [Current Xorg version])
 	AC_DEFINE(NEED_XF86_TYPES, 1, [Need XFree86 typedefs])
 	AC_DEFINE(NEED_XF86_PROTOTYPES, 1, [Need XFree86 helper functions])
@@ -1061,6 +1069,8 @@ AM_CONDITIONAL(MFB, [test "x$XORG" = xyes])
 AM_CONDITIONAL(CFB, [test "x$XORG" = xyes])
 AM_CONDITIONAL(AFB, [test "x$XORG" = xyes])
 
+AC_SUBST([MODULE_DEFINES])
+AC_SUBST([LOADER_DEFINES])
 
 dnl Xprint DDX
 
@@ -1069,8 +1079,8 @@ AC_MSG_RESULT([$XPRINT])
 
 if test "x$XPRINT" = xyes; then
 	PKG_CHECK_MODULES([XPRINT], [printproto x11 xfont $XDMCP_MODULES xau])
-	XPRINT_EXTENSIONS="$XEXT_LIB $DBE_LIB $XTRAP_LIB $RENDER_LIB $COMPOSITE_LIB $RANDR_LIB $XI_LIB $FIXES_LIB $LBX_LIB $DAMAGE_LIB $XI_LIB $GLX_LIBS"
-	XPRINT_LIBS="$XPRINT_LIBS $DIX_LIB $XKB_LIB $XKB_STUB_LIB $OS_LIB $XPRINT_EXTENSIONS $MI_LIB $MIEXT_DAMAGE_LIB"
+	XPRINT_EXTENSIONS="$XEXT_LIB $DBE_LIB $XTRAP_LIB $RECORD_LIB $RENDER_LIB $COMPOSITE_LIB $RANDR_LIB $XI_LIB $FIXES_LIB $LBX_LIB $DAMAGE_LIB $XI_LIB $GLX_LIBS"
+	XPRINT_LIBS="$XPRINT_LIBS $DIX_LIB $XKB_LIB $XKB_STUB_LIB $XPRINT_EXTENSIONS $MI_LIB $MIEXT_DAMAGE_LIB $CWRAP_LIB $OS_LIB"
 	AC_SUBST([XPRINT_CFLAGS])
 	AC_SUBST([XPRINT_LIBS])
 

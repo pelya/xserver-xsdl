@@ -7,7 +7,8 @@ libdri_la_CFLAGS = -I$(top_srcdir)/hw/xfree86/common \
                    -I$(top_builddir)/GL/include \
 		   -I@MESA_SOURCE@/include \
                    -DHAVE_XORG_CONFIG_H \
-		   -DXFree86Module -DIN_MODULE \
+		   @MODULE_DEFINES@ \
+                   @LOADER_DEFINES@ \
                    @DRIPROTO_CFLAGS@ \
                    @LIBDRM_CFLAGS@ \
                    @GL_CFLAGS@

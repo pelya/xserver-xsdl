@@ -65,4 +65,4 @@ EXTRA_DIST = xaacexp.h xaawrap.h xaaLine.c xaaDashLine.c \
 
 INCLUDES = $(XORG_INCS)
 
-AM_CFLAGS = $(XORG_CFLAGS)
+AM_CFLAGS = $(XORG_CFLAGS) @MODULE_DEFINES@ @LOADER_DEFINES@

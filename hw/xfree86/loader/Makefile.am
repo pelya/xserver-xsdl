@@ -7,7 +7,7 @@ INCLUDES = $(XORG_INCS) -I$(srcdir)/../parser -I$(srcdir)/../vbe \
            -I$(srcdir)/../../../miext/damage
 
 #AM_LDFLAGS = -r
-AM_CFLAGS = -DIN_LOADER $(XORG_CFLAGS)
+AM_CFLAGS = -DIN_LOADER $(XORG_CFLAGS) @LOADER_DEFINES@
 
 if XORG_LOADER_SPARC
 SPARC_SOURCES = SparcMulDiv.S

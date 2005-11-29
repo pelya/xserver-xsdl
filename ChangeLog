@@ -1,3 +1,84 @@
+2005-11-29  Kevin E. Martin  <kem-at-freedesktop-dot-org>
+
+	* GL/glx/Makefile.am:
+	* GL/mesa/X/Makefile.am:
+	* GL/mesa/array_cache/Makefile.am:
+	* GL/mesa/glapi/Makefile.am:
+	* GL/mesa/main/Makefile.am:
+	* GL/mesa/math/Makefile.am:
+	* GL/mesa/shader/Makefile.am:
+	* GL/mesa/shader/grammar/Makefile.am:
+	* GL/mesa/shader/slang/Makefile.am:
+	* GL/mesa/swrast/Makefile.am:
+	* GL/mesa/swrast_setup/Makefile.am:
+	* GL/mesa/tnl/Makefile.am:
+	* GL/symlink-mesa.sh:
+	* XTrap/Makefile.am:
+	* Xext/Makefile.am:
+	* Xi/Makefile.am:
+	* afb/Makefile.am:
+	* cfb/Makefile.am:
+	* cfb16/Makefile.am:
+	* cfb24/Makefile.am:
+	* cfb32/Makefile.am:
+	* composite/Makefile.am:
+	* configure.ac:
+	* damageext/Makefile.am:
+	* dbe/Makefile.am:
+	* dix/Makefile.am:
+	* fb/Makefile.am:
+	* hw/dmx/glxProxy/Makefile.am:
+	* hw/xfree86/Makefile.am:
+	* hw/xfree86/common/Makefile.am:
+	* hw/xfree86/ddc/Makefile.am:
+	* hw/xfree86/dixmods/Makefile.am:
+	* hw/xfree86/dixmods/extmod/Makefile.am:
+	* hw/xfree86/dri/Makefile.am:
+	* hw/xfree86/dummylib/Makefile.am:
+	* hw/xfree86/exa/Makefile.am:
+	* hw/xfree86/fbdevhw/Makefile.am:
+	* hw/xfree86/i2c/Makefile.am:
+	* hw/xfree86/int10/Makefile.am:
+	* hw/xfree86/loader/Makefile.am:
+	* hw/xfree86/os-support/bsd/Makefile.am:
+	* hw/xfree86/os-support/bus/Makefile.am:
+	* hw/xfree86/os-support/drm/Makefile.am:
+	* hw/xfree86/os-support/linux/Makefile.am:
+	* hw/xfree86/os-support/misc/Makefile.am:
+	* hw/xfree86/os-support/solaris/Makefile.am:
+	* hw/xfree86/parser/Makefile.am:
+	* hw/xfree86/rac/Makefile.am:
+	* hw/xfree86/ramdac/Makefile.am:
+	* hw/xfree86/scanpci/Makefile.am:
+	* hw/xfree86/shadowfb/Makefile.am:
+	* hw/xfree86/utils/xorgcfg/Makefile.am:
+	* hw/xfree86/vbe/Makefile.am:
+	* hw/xfree86/vgahw/Makefile.am:
+	* hw/xfree86/x86emu/Makefile.am:
+	* hw/xfree86/xaa/Makefile.am:
+	* hw/xfree86/xf1bpp/Makefile.am:
+	* hw/xfree86/xf4bpp/Makefile.am:
+	* hw/xfree86/xf8_16bpp/Makefile.am:
+	* hw/xfree86/xf8_32bpp/Makefile.am:
+	* hw/xfree86/xf8_32wid/Makefile.am:
+	* include/xorg-config.h.in:
+	* lbx/Makefile.am:
+	* mfb/Makefile.am:
+	* mi/Makefile.am:
+	* miext/cw/Makefile.am:
+	* miext/damage/Makefile.am:
+	* miext/layer/Makefile.am:
+	* miext/shadow/Makefile.am:
+	* os/Makefile.am:
+	* randr/Makefile.am:
+	* record/Makefile.am:
+	* render/Makefile.am:
+	* xfixes/Makefile.am:
+	* xkb/Makefile.am:
+	* xorg-server.pc.in:
+	Fix usage of XFree86LOADER/XFree86Module/IN_MODULE and update
+	loadable module builds to reflect this change.
+
 2005-11-23  Kevin E. Martin  <kem-at-freedesktop-dot-org>
 
 	* configure.ac:

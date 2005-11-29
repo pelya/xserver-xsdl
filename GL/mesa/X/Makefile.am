@@ -12,10 +12,11 @@ INCLUDES = -I@MESA_SOURCE@/include \
            -I../tnl \
            -I.. \
            -I$(top_srcdir)/GL/glx \
-           -I$(top_srcdir)/GL/include
+           -I$(top_srcdir)/GL/include \
+           -I$(top_srcdir)/hw/xfree86/os-support
 
 # terribly gross hack.  i need a shower now.
-AM_CFLAGS = $(DIX_CFLAGS) -DXFree86Server -include dix-config.h
+AM_CFLAGS = $(DIX_CFLAGS) -DXFree86Server @MODULE_DEFINES@ @LOADER_DEFINES@
 
 libX_la_SOURCES = xf86glx.c \
                   xf86glx_util.c \

@@ -23,7 +23,7 @@ libxf86config_a_SOURCES = \
 	DRI.c \
 	Extensions.c
 
-AM_CFLAGS = $(XORG_CFLAGS)
+AM_CFLAGS = $(XORG_CFLAGS) @LOADER_DEFINES@
 
 EXTRA_DIST = \
 	Configint.h \

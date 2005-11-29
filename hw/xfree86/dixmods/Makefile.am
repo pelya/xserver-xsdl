@@ -11,23 +11,27 @@ XTRAPMOD = libxtrap.la
 endif
 
 module_LTLIBRARIES = libafb.la \
-                     libbitmap.la \
                      libcfb.la \
                      libcfb16.la \
                      libcfb24.la \
                      libcfb32.la \
-                     libdbe.la \
                      libfb.la \
                      liblayer.la \
                      libmfb.la \
-                     librecord.la \
-                     libshadow.la \
-		     libfreetype.la \
-                     libtype1.la \
-                     $(GLXMODS) \
-                     $(XTRAPMOD)
+                     libshadow.la
 
-AM_CFLAGS = @XORG_CFLAGS@ @DIX_CFLAGS@
+extsmoduledir = $(moduledir)/extensions
+extsmodule_LTLIBRARIES = libdbe.la \
+                         librecord.la \
+                         $(GLXMODS) \
+                         $(XTRAPMOD)
+
+fontsmoduledir = $(moduledir)/fonts
+fontsmodule_LTLIBRARIES = libbitmap.la \
+                          libfreetype.la \
+                          libtype1.la
+
+AM_CFLAGS = @XORG_CFLAGS@ @DIX_CFLAGS@ @LOADER_DEFINES@
 INCLUDES = @XORG_INCS@ \
            -I$(top_srcdir)/afb \
            -I$(top_srcdir)/cfb \
@@ -67,7 +71,7 @@ libcfb32_la_LIBADD = $(top_builddir)/cfb32/libcfb32.la
 libcfb32_la_SOURCES = cfb32module.c
 
 libdbe_la_LDFLAGS = -avoid-version
-libdbe_la_LIBADD = $(top_builddir)/dbe/libdbe.la
+libdbe_la_LIBADD = $(top_builddir)/dbe/libdbemodule.la
 libdbe_la_SOURCES = dbemodule.c
 
 libfb_la_CFLAGS = -DXFree86Server $(AM_CFLAGS)
@@ -88,7 +92,7 @@ libmfb_la_LIBADD = $(top_builddir)/mfb/libmfb.la
 libmfb_la_SOURCES = mfbmodule.c
 
 librecord_la_LDFLAGS = -avoid-version
-librecord_la_LIBADD = $(top_builddir)/record/librecord.la
+librecord_la_LIBADD = $(top_builddir)/record/librecordmodule.la
 librecord_la_SOURCES = recordmod.c
 
 libshadow_la_LDFLAGS = -avoid-version
@@ -106,7 +110,7 @@ libdixmods_la_SOURCES = $(top_srcdir)/mi/miinitext.c
 libxorgxkb_la_SOURCES = xkbVT.c xkbPrivate.c xkbKillSrv.c
 
 libxtrap_la_LDFLAGS = -avoid-version
-libxtrap_la_LIBADD = $(top_builddir)/XTrap/libxtrap.la
+libxtrap_la_LIBADD = $(top_builddir)/XTrap/libxtrapmodule.la
 libxtrap_la_SOURCES = xf86XTrapModule.c
 
 xkb%.c:

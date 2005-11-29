@@ -4,6 +4,6 @@ include $(top_srcdir)/cfb/Makefile.am.inc
 
 libcfb32_la_SOURCES = $(libcfb_common_sources) $(libcfb_gen_sources)
 
-INCLUDES = $(CFB_INCLUDES) $(DIX_CFLAGS)
+INCLUDES = $(CFB_INCLUDES) $(DIX_CFLAGS) -I$(top_srcdir)/hw/xfree86/os-support
 
-AM_CFLAGS = -DPSZ=32
+AM_CFLAGS = -DPSZ=32 @MODULE_DEFINES@ @LOADER_DEFINES@

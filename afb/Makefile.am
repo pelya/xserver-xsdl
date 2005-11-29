@@ -1,6 +1,6 @@
 noinst_LTLIBRARIES = libafb.la
 
-AM_CFLAGS = $(DIX_CFLAGS)
+AM_CFLAGS = $(DIX_CFLAGS) @MODULE_DEFINES@ @LOADER_DEFINES@
 
 libafb_gen_sources = afbbltC.c afbbltX.c afbbltCI.c afbbltO.c afbbltG.c afbtileC.c afbtileG.c afbseg.c
 
@@ -12,7 +12,7 @@ libafb_la_SOURCES = afbgc.c afbwindow.c afbfont.c afbfillrct.c afbpntwin.c afbpi
 	 afbclip.c afbgetsp.c afbpolypnt.c afbbitblt.c afbcmap.c afbimggblt.c afbpntarea.c \
 	 afbmisc.c afbbstore.c afbtegblt.c $(libafb_gen_sources)
 
-INCLUDES = -I$(top_srcdir)/mfb
+INCLUDES = -I$(top_srcdir)/mfb -I$(top_srcdir)/hw/xfree86/os-support
 
 EXTRA_DIST = afbline.c afbblt.c afbtile.c README Xdaniver.doc
 

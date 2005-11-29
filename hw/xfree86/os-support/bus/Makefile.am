@@ -21,7 +21,7 @@ libbus_la_SOURCES = Pci.c $(PCI_SOURCES) $(PLATFORM_PCI_SOURCES) \
 
 INCLUDES = $(XORG_INCS)
 
-AM_CFLAGS = $(XORG_CFLAGS)
+AM_CFLAGS = $(XORG_CFLAGS) @LOADER_DEFINES@
 
 # hack to keep all the OS PCI support files in the distball even though
 # there aren't rules to build them all yet.  also the AC_SUBST pattern

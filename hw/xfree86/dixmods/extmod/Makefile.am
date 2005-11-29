@@ -1,6 +1,7 @@
 sdk_HEADERS = dgaproc.h
 
-module_LTLIBRARIES = libextmod.la
+extsmoduledir = $(moduledir)/extensions
+extsmodule_LTLIBRARIES = libextmod.la
 
 if DGA
 DGA_SRCS = xf86dga.c xf86dga2.c dgaproc.h xf86dgaext.h
@@ -10,7 +11,7 @@ if XV
 XV_SRCS = xvmod.c xvmodproc.h
 endif
 
-AM_CFLAGS = @XORG_CFLAGS@ -DEXTMODULE
+AM_CFLAGS = @XORG_CFLAGS@ -DEXTMODULE @LOADER_DEFINES@
 INCLUDES = @XORG_INCS@ \
            -I$(top_srcdir)/afb \
            -I$(top_srcdir)/mfb \
@@ -29,4 +30,4 @@ libextmod_la_SOURCES = modinit.c \
                        xf86vmode.c \
                        vidmodeproc.h \
                        $(XV_SRCS)
-libextmod_la_LIBADD = $(top_builddir)/Xext/libXext.la
+libextmod_la_LIBADD = $(top_builddir)/Xext/libXextmodule.la

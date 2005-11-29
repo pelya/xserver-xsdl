@@ -1,4 +1,5 @@
-module_LTLIBRARIES = libfbdevhw.la
+linuxmoduledir = $(moduledir)/linux
+linuxmodule_LTLIBRARIES = libfbdevhw.la
 
 libfbdevhw_la_LDFLAGS = -avoid-version
 
@@ -10,7 +11,7 @@ endif
 
 INCLUDES = $(XORG_INCS) -I$(srcdir)/../i2c
 
-AM_CFLAGS = $(XORG_CFLAGS)
+AM_CFLAGS = $(XORG_CFLAGS) @MODULE_DEFINES@ @LOADER_DEFINES@
 
 sdk_HEADERS = fbdevhw.h
 

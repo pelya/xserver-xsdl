@@ -5,7 +5,7 @@ sdk_HEADERS = cfb8_32wid.h
 libxf8_32wid_la_LDFLAGS = -avoid-version
 
 INCLUDES = $(XORG_INCS) -I$(top_srcdir)/mfb -I$(top_srcdir)/cfb
-AM_CFLAGS = $(XORG_CFLAGS)
+AM_CFLAGS = $(XORG_CFLAGS) @MODULE_DEFINES@ @LOADER_DEFINES@
 
 libxf8_32wid_la_SOURCES = \
 	cfb8_32widmodule.c \

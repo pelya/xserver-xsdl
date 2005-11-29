@@ -1,6 +1,6 @@
 noinst_LTLIBRARIES = librender.la
 
-AM_CFLAGS = $(DIX_CFLAGS)
+AM_CFLAGS = $(DIX_CFLAGS) @LOADER_DEFINES@
 
 librender_la_SOURCES =	\
 	animcur.c	\

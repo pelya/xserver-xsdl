@@ -1,5 +1,7 @@
 noinst_LTLIBRARIES = libswrast.la
 
+AM_CFLAGS = @MODULE_DEFINES@ @LOADER_DEFINES@
+
 INCLUDES = -I@MESA_SOURCE@/include \
            -I../X \
            -I../array_cache \
@@ -10,7 +12,8 @@ INCLUDES = -I@MESA_SOURCE@/include \
            -I../swrast \
            -I../swrast_setup \
            -I../tnl \
-           -I..
+           -I.. \
+           -I$(top_srcdir)/hw/xfree86/os-support
 
 nodist_libswrast_la_SOURCES = s_aaline.c \
                       s_aatriangle.c \

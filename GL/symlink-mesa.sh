@@ -122,6 +122,7 @@ symlink_mesa_main() {
     action enums.h
     action eval.c
     action eval.h
+    action execmem.c
     action extensions.c
     action extensions.h
     action fbobject.c
@@ -153,6 +154,8 @@ symlink_mesa_main() {
     action macros.h
     action matrix.c
     action matrix.h
+    action mm.c
+    action mm.h
     action mtypes.h
     action occlude.c
     action occlude.h

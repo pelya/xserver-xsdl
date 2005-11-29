@@ -59,4 +59,4 @@ mfbseg.c:
 
 INCLUDES = $(XORG_INCS) -I$(srcdir)/../xf1bpp -I$(top_srcdir)/mfb -I$(top_srcdir)/cfb
 
-AM_CFLAGS = $(XORG_CFLAGS)
+AM_CFLAGS = $(XORG_CFLAGS) @MODULE_DEFINES@ @LOADER_DEFINES@

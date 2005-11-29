@@ -1,5 +1,7 @@
 noinst_LTLIBRARIES = libslang.la
 
+AM_CFLAGS = @MODULE_DEFINES@ @LOADER_DEFINES@
+
 INCLUDES = -I@MESA_SOURCE@/include \
            -I../grammar \
            -I../../X \
@@ -11,7 +13,8 @@ INCLUDES = -I@MESA_SOURCE@/include \
            -I../../swrast \
            -I../../swrast_setup \
            -I../../tnl \
-           -I../..
+           -I../.. \
+           -I$(top_srcdir)/hw/xfree86/os-support
 
 nodist_libslang_la_SOURCES = slang_assemble_assignment.c \
 		      slang_assemble.c \

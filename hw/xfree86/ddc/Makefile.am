@@ -8,6 +8,6 @@ libddc_la_SOURCES = xf86DDC.c edid.c interpret_edid.c print_edid.c \
 
 INCLUDES = $(XORG_INCS) -I$(srcdir)/../i2c
 
-AM_CFLAGS = $(XORG_CFLAGS)
+AM_CFLAGS = $(XORG_CFLAGS) @MODULE_DEFINES@ @LOADER_DEFINES@
 
 EXTRA_DIST = ddcPriv.h DDC.HOWTO

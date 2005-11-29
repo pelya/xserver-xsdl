@@ -18,9 +18,6 @@
 /* Building Xorg server. */
 #undef XORGSERVER
 
-/* Building XFree86 loader. */
-#undef XFree86LOADER
-
 /* Current X.Org version. */
 #undef XORG_VERSION_CURRENT
 

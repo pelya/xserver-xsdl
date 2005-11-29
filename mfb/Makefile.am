@@ -1,6 +1,8 @@
 noinst_LTLIBRARIES = libmfb.la
 
-AM_CFLAGS = $(DIX_CFLAGS)
+AM_CFLAGS = $(DIX_CFLAGS) @MODULE_DEFINES@ @LOADER_DEFINES@
+
+INCLUDES = -I$(top_srcdir)/hw/xfree86/os-support
 
 libmfb_gen_sources = mfbseg.c mfbpgbwht.c mfbpgbblak.c mfbpgbinv.c mfbigbwht.c \
 	 mfbigbblak.c mfbpawhite.c mfbpablack.c mfbpainv.c mfbtewhite.c \

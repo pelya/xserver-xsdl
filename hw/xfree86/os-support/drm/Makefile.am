@@ -7,7 +7,8 @@ libdrm_la_CFLAGS = -I$(top_srcdir)/hw/xfree86/common \
                    -I$(top_srcdir)/GL/glx \
                    -I$(top_srcdir)/GL/include \
                    -DHAVE_XORG_CONFIG_H \
-                   @LIBDRM_CFLAGS@
+                   @LIBDRM_CFLAGS@ \
+                   @LOADER_DEFINES@
 libdrm_la_LDFLAGS = -module -avoid-version
 libdrm_ladir = $(moduledir)/@XORG_OS@
 libdrm_la_SOURCES = \

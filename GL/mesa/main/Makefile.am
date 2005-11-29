@@ -1,5 +1,7 @@
 noinst_LTLIBRARIES = libmain.la
 
+AM_CFLAGS = -DXFree86Server @MODULE_DEFINES@ @LOADER_DEFINES@
+
 INCLUDES = -I@MESA_SOURCE@/include \
            -I../X \
            -I../array_cache \
@@ -10,7 +12,8 @@ INCLUDES = -I@MESA_SOURCE@/include \
            -I../swrast \
            -I../swrast_setup \
            -I../tnl \
-           -I..
+           -I.. \
+           -I$(top_srcdir)/hw/xfree86/os-support
 
 if NEED_VSNPRINTF
 VSNPRINTF_SOURCES = vsnprintf.c
@@ -37,6 +40,7 @@ nodist_libmain_la_SOURCES = accum.c \
                     enable.c \
                     enums.c \
                     eval.c \
+                    execmem.c \
                     extensions.c \
                     fbobject.c \
                     feedback.c \
@@ -52,6 +56,7 @@ nodist_libmain_la_SOURCES = accum.c \
                     light.c \
                     lines.c \
                     matrix.c \
+                    mm.c \
                     occlude.c \
                     pixel.c \
                     points.c \

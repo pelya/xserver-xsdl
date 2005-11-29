@@ -1,6 +1,8 @@
 noinst_LTLIBRARIES = libshadow.la
 
-AM_CFLAGS = $(DIX_CFLAGS)
+AM_CFLAGS = $(DIX_CFLAGS) @MODULE_DEFINES@ @LOADER_DEFINES@
+
+INCLUDES = -I$(top_srcdir)/hw/xfree86/os-support
 
 sdk_HEADERS = shadow.h
 

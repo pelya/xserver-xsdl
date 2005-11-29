@@ -1,6 +1,6 @@
 noinst_LTLIBRARIES = libxkb.la libxkbstubs.la
 
-AM_CFLAGS = $(DIX_CFLAGS) \
+AM_CFLAGS = $(DIX_CFLAGS) @LOADER_DEFINES@ \
 	-DHAVE_XKB_CONFIG_H
 
 DDX_SRCS = \

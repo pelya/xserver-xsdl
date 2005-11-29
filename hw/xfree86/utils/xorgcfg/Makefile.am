@@ -48,6 +48,10 @@ TEXTOBJ = text-mode.o
 CURSESDEFINES  = -DHAS_NCURSES
 endif
 
+if NEED_STRLCAT
+STRL_SRCS = $(top_srcdir)/os/strlcat.c $(top_srcdir)/os/strlcpy.c
+endif
+
 xorgcfg_SOURCES =	\
         accessx.c \
         card-cfg.c \
@@ -83,7 +87,8 @@ xorgcfg_SOURCES =	\
         screen.h \
         stubs.h \
         vidmode.h \
-        xf86config.h
+        xf86config.h \
+	$(STRL_SRCS)
 
 XBMdir = $(includedir)/X11/bitmaps
 XPMdir = $(includedir)/X11/pixmaps

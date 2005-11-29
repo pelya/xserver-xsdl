@@ -1,6 +1,7 @@
+module_LTLIBRARIES = libi2c.la
+
 multimediadir = $(moduledir)/multimedia
 multimedia_LTLIBRARIES =	\
-	libi2c.la		\
 	bt829_drv.la		\
 	fi1236_drv.la		\
 	msp3430_drv.la		\
@@ -14,7 +15,7 @@ libi2c_la_SOURCES = xf86i2c.c xf86i2cmodule.c
 
 INCLUDES = $(XORG_INCS)
 
-AM_CFLAGS = $(XORG_CFLAGS)
+AM_CFLAGS = $(XORG_CFLAGS) @MODULE_DEFINES@ @LOADER_DEFINES@
 
 sdk_HEADERS = xf86i2c.h bt829.h fi1236.h msp3430.h tda8425.h tda9850.h tda9885.h uda1380.h i2c_def.h
 

@@ -1,11 +1,18 @@
 noinst_LTLIBRARIES = libglx.la
 
-AM_CFLAGS = @DIX_CFLAGS@ @GL_CFLAGS@ @XLIB_CFLAGS@ -I@MESA_SOURCE@/include -DXFree86Server
+AM_CFLAGS = \
+	@DIX_CFLAGS@ \
+	@GL_CFLAGS@ \
+	@XLIB_CFLAGS@ \
+	-I@MESA_SOURCE@/include \
+	-DXFree86Server \
+	@MODULE_DEFINES@ \
+	@LOADER_DEFINES@
 
 # none yet
 #sdk_HEADERS =
 
-INCLUDES = -I$(top_srcdir)/GL/include
+INCLUDES = -I$(top_srcdir)/GL/include -I$(top_srcdir)/hw/xfree86/os-support
 
 nodist_libglx_la_SOURCES = indirect_size.c indirect_size.h
 
