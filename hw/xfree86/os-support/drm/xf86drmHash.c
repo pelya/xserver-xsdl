@@ -70,6 +70,10 @@
  *
  */
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #define HASH_MAIN 0
 
 #if HASH_MAIN

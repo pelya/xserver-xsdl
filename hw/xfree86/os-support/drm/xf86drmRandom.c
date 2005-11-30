@@ -73,6 +73,10 @@
  *
  */
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #define RANDOM_MAIN 0
 
 #if RANDOM_MAIN
