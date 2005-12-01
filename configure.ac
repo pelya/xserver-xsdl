@@ -166,8 +166,6 @@ dnl Bus options and CPU capabilities.  Replaces logic in
 dnl hw/xfree86/os-support/bus/Makefile.am, among others.
 dnl ---------------------------------------------------------------------------
 DEFAULT_INT10="x86emu"
-xorg_bus_sparc="no"
-xorg_bus_ix86pci="no"
 use_x86_asm="no"
 
 dnl Override defaults as needed for specific platforms:
@@ -183,17 +181,13 @@ case $host_cpu in
 	ARM_VIDEO=yes
 	;;
   i*86)
-	xorg_bus_ix86pci="yes"
 	use_x86_asm="yes"
 	I386_VIDEO=yes
 	case $host_os in
 		*linux*)	DEFAULT_INT10=vm86 ;;
-		*freebsd*)	xorg_bus_ix86pci="no"
-				AC_DEFINE(USE_DEV_IO) ;;
-		*netbsd*)	xorg_bus_ix86pci="no"
-				AC_DEFINE(USE_I386_IOPL) ;;
-		*openbsd*)	xorg_bus_ix86pci="no"
-				AC_DEFINE(USE_I386_IOPL) ;;
+		*freebsd*)	AC_DEFINE(USE_DEV_IO) ;;
+		*netbsd*)	AC_DEFINE(USE_I386_IOPL) ;;
+		*openbsd*)	AC_DEFINE(USE_I386_IOPL) ;;
 	esac
         ;;
   powerpc*)
@@ -203,13 +197,11 @@ case $host_cpu in
 	esac
 	;;
   sparc*)
-	xorg_bus_sparc="yes"
 	xorg_loader_sparcmuldiv="yes"
 	SPARC64_VIDEO=yes
 	BSD_ARCH_SOURCES="sparc64_video.c ioperm_noop.c"
 	;;
   x86_64*|amd64*)
-	xorg_bus_ix86pci="yes"
   	use_x86_asm="yes"
 	I386_VIDEO=yes
 	case $host_os in
@@ -887,6 +879,14 @@ AC_MSG_RESULT([$XORG])
 XORG_CORE_LIBS="$DIX_LIB"
 AC_SUBST([XORG_CORE_LIBS])
 
+xorg_bus_linuxpci=no
+xorg_bus_freebsdpci=no
+xorg_bus_netbsdpci=no
+xorg_bus_ix86pci=no
+xorg_bus_ppcpci=no
+xorg_bus_sparcpci=no
+xorg_bus_sparc=no
+
 if test "x$XORG" = xyes; then
 	XORG_DDXINCS='-I$(top_srcdir)/hw/xfree86 -I$(top_srcdir)/hw/xfree86/include -I$(top_srcdir)/hw/xfree86/common'
 	XORG_OSINCS='-I$(top_srcdir)/hw/xfree86/os-support -I$(top_srcdir)/hw/xfree86/os-support/bus -I$(top_srcdir)/os'
@@ -901,6 +901,7 @@ if test "x$XORG" = xyes; then
 	  	XORG_OS="linux"
 		XORG_OS_SUBDIR="linux"
 		XORG_OS_KBD="Lnx"
+		xorg_bus_linuxpci="yes"
 		case $host_cpu in
 		  ia64*)
 			linux_ia64=yes
@@ -908,6 +909,7 @@ if test "x$XORG" = xyes; then
 		  alpha*)
 		  	linux_alpha=yes
 			XORG_OS_PCI="axp"
+			xorg_bus_linuxpci="no"
 			;;
 		  *)
 			;;
@@ -917,16 +919,37 @@ if test "x$XORG" = xyes; then
 	  	XORG_OS="freebsd"
 		XORG_OS_SUBDIR="bsd"
 		XORG_OS_KBD="BSD"
+		case $host_cpu in
+		  i*86)
+			;;
+		  *)
+			xorg_bus_freebsdpci="yes"
+			;;
+		esac
 		;;
 	  netbsd*)
 	  	XORG_OS="netbsd"
 		XORG_OS_SUBDIR="bsd"
 		XORG_OS_KBD="BSD"
+		case $host_cpu in
+		  i*86|amd64*|x86_64*|ia64*)
+			;;
+		  *)
+			xorg_bus_netbsdpci="yes"
+			;;
+		esac
 		;;
 	  openbsd*)
 	  	XORG_OS="openbsd"
 		XORG_OS_SUBDIR="bsd"
 		XORG_OS_KBD="BSD"
+		case $host_cpu in
+		  i*86|amd64*|x86_64*|ia64*)
+			;;
+		  *)
+			xorg_bus_freebsdpci="yes"
+			;;
+		esac
 		;;
 	  solaris*)
 	  	XORG_OS="solaris"
@@ -952,11 +975,9 @@ if test "x$XORG" = xyes; then
 			
 		case $host_cpu in
 		  sparc*)	
-			XORG_OS_PCI="sparc"
 			SOLARIS_INOUT_ARCH="sparcv8plus"
 			;;
 		  i*86)	
-			XORG_OS_PCI="ix86"
 			if test x$SOLARIS_64 = xyes ; then
 				SOLARIS_INOUT_ARCH="amd64"
 			else
@@ -985,6 +1006,36 @@ if test "x$XORG" = xyes; then
 	        Xorg to your platform, please email xorg@lists.freedesktop.org.])
 		;;
 	esac
+
+	case $host_cpu in
+	  i*86)
+		xorg_bus_ix86pci=yes
+		;;
+	  powerpc*)
+		case $host_os in
+		  linux*|freebsd*|netbsd*|openbsd*)
+			;;
+		  *)
+			xorg_bus_ppcpci="yes"
+			;;
+		esac
+		;;
+	  sparc*)
+		xorg_bus_sparcpci="yes"
+		xorg_bus_sparc="yes"
+		;;
+	  x86_64*|amd64*)
+		case $host_os in
+		  freebsd*)
+			# FreeBSD uses the system pci interface
+			;;
+		  *)
+			xorg_bus_ix86pci="yes"
+			;;
+		esac
+		;;
+	esac
+
 	if test "x$XORG_OS_PCI" = x ; then
 		XORG_OS_PCI=$XORG_OS
 	fi
@@ -993,7 +1044,6 @@ if test "x$XORG" = xyes; then
 	AC_SUBST([XORG_OS])
 	AC_SUBST([XORG_OS_SUBDIR])
 	AC_SUBST([XORG_OS_KBD])
-	AC_SUBST([XORG_OS_PCI])
 
 	dnl only used in hw/xfree86/scanpci, TTBOMK
 	AC_PATH_PROG(PERL, perl, no)
@@ -1059,7 +1109,12 @@ if test "x$XORG" = xyes; then
 	AC_SUBST([logdir])
 fi
 AM_CONDITIONAL([XORG], [test "x$XORG" = xyes])
+AM_CONDITIONAL([XORG_BUS_LINUXPCI], [test "x$xorg_bus_linuxbsdpci" = xyes])
+AM_CONDITIONAL([XORG_BUS_FREEBSDPCI], [test "x$xorg_bus_freebsdpci" = xyes])
+AM_CONDITIONAL([XORG_BUS_NETBSDPCI], [test "x$xorg_bus_netbsdpci" = xyes])
 AM_CONDITIONAL([XORG_BUS_IX86PCI], [test "x$xorg_bus_ix86pci" = xyes])
+AM_CONDITIONAL([XORG_BUS_PPCPCI], [test "x$xorg_bus_ppcpci" = xyes])
+AM_CONDITIONAL([XORG_BUS_SPARCPCI], [test "x$xorg_bus_sparcpci" = xyes])
 AM_CONDITIONAL([XORG_BUS_SPARC], [test "x$xorg_bus_sparc" = xyes])
 AM_CONDITIONAL([XORG_LOADER_SPARC], [test "x$xorg_loader_sparcmuldiv" = xyes])
 AM_CONDITIONAL([LINUX_IA64], [test "x$linux_ia64" = xyes])

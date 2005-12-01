@@ -1,3 +1,10 @@
+2005-11-30  Eric Anholt  <anholt@FreeBSD.org>
+
+	* configure.ac:
+	* hw/xfree86/os-support/bus/Makefile.am:
+	Bug #5160: Fix the modular build to try to use the same logic for
+	choosing the architecture/os-specific bus support as monolithic.
+
 2005-11-29  Adam Jackson  <ajax@freedesktop.org>
 
 	* configure.ac:
