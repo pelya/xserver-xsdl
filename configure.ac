@@ -1109,7 +1109,7 @@ if test "x$XORG" = xyes; then
 	AC_SUBST([logdir])
 fi
 AM_CONDITIONAL([XORG], [test "x$XORG" = xyes])
-AM_CONDITIONAL([XORG_BUS_LINUXPCI], [test "x$xorg_bus_linuxbsdpci" = xyes])
+AM_CONDITIONAL([XORG_BUS_LINUXPCI], [test "x$xorg_bus_linuxpci" = xyes])
 AM_CONDITIONAL([XORG_BUS_FREEBSDPCI], [test "x$xorg_bus_freebsdpci" = xyes])
 AM_CONDITIONAL([XORG_BUS_NETBSDPCI], [test "x$xorg_bus_netbsdpci" = xyes])
 AM_CONDITIONAL([XORG_BUS_IX86PCI], [test "x$xorg_bus_ix86pci" = xyes])
