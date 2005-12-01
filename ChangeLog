@@ -1,5 +1,10 @@
 2005-12-01  Kevin E. Martin  <kem-at-freedesktop-dot-org>
 
+	* GL/mesa/X/Makefile.am:
+	Fix GL build when srcdir != builddir (Donnie Berkholz).
+
+2005-12-01  Kevin E. Martin  <kem-at-freedesktop-dot-org>
+
 	* configure.ac:
 	* include/dix-config.h.in:
 	* include/xorg-server.h.in:

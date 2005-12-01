@@ -11,6 +11,7 @@ INCLUDES = -I@MESA_SOURCE@/include \
            -I../swrast_setup \
            -I../tnl \
            -I.. \
+           -I../../glx \
            -I$(top_srcdir)/GL/glx \
            -I$(top_srcdir)/GL/include \
            -I$(top_srcdir)/hw/xfree86/os-support
