@@ -1,6 +1,13 @@
 2005-12-01  Kevin E. Martin  <kem-at-freedesktop-dot-org>
 
 	* configure.ac:
+	* include/dix-config.h.in:
+	* include/xorg-server.h.in:
+	Add missing XvExtension and XvMCExtension defines.
+
+2005-12-01  Kevin E. Martin  <kem-at-freedesktop-dot-org>
+
+	* configure.ac:
 	Fix typo: xorg_bus_linuxbsdpci ==> xorg_bus_linuxpci
 
 2005-11-30  Eric Anholt  <anholt@FreeBSD.org>

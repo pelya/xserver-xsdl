@@ -178,6 +178,12 @@
 /* Current Xorg version */
 #undef XORG_VERSION_CURRENT
 
+/* Build Xv Extension */
+#undef XvExtension
+
+/* Build XvMC Extension */
+#undef XvMCExtension
+
 /* Build XRes extension */
 #undef XResExtension
 

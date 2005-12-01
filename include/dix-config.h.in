@@ -344,6 +344,12 @@
 /* Xorg release date */
 #undef XORG_DATE
 
+/* Build Xv Extension */
+#undef XvExtension
+
+/* Build XvMC Extension */
+#undef XvMCExtension
+
 /* Build XRes extension */
 #undef XResExtension
 
