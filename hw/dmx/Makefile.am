@@ -79,8 +79,8 @@ Xdmx_LDADD = $(XORG_CORE_LIBS) \
              config/libdmxconfig.a \
              @DMXMODULES_LIBS@
 
-Xdmx_CFLAGS = -DHAVE_DMX_CONFIG_H \
-              -DXFree86Server \
+Xdmx_CFLAGS = @SERVER_DEFINES@ \
+              -DHAVE_DMX_CONFIG_H \
               $(GLX_INCS) \
               @DMXMODULES_CFLAGS@
 

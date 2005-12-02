@@ -12,9 +12,6 @@
 #include <dix-config.h>
 #include <xkb-config.h>
 
-/* Building XFree86-based server. */
-#undef XFree86Server
-
 /* Building Xorg server. */
 #undef XORGSERVER
 

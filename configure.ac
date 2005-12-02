@@ -789,9 +789,10 @@ dnl ---------------------------------------------------------------------------
 dnl DDX section.
 dnl ---------------------------------------------------------------------------
 
-dnl These are used to define Xorg module and loader defines
+dnl These are used to define Xorg module, loader and general server defines
 MODULE_DEFINES=""
 LOADER_DEFINES=""
+SERVER_DEFINES=""
 
 dnl DMX DDX
 
@@ -1078,8 +1079,9 @@ if test "x$XORG" = xyes; then
 	AC_SUBST([LD_EXPORT_SYMBOLS_FLAG])
 
 	dnl Module defines are used in the Xorg server and the drivers
-	MODULE_DEFINES="-DIN_MODULE -DXFree86Module"
-	LOADER_DEFINES="-DXFree86LOADER"
+	MODULE_DEFINES="$MODULE_DEFINES -DIN_MODULE -DXFree86Module"
+	LOADER_DEFINES="$LOADER_DEFINES -DXFree86LOADER"
+	SERVER_DEFINES="$SERVER_DEFINES -DXFree86Server"
 
 	dnl these only go in xorg-config.h
 	XF86CONFIGFILE="xorg.conf"
@@ -1130,9 +1132,6 @@ AM_CONDITIONAL([SOLARIS_ASM_INLINE], [test "x$solaris_asm_inline" = xyes])
 AM_CONDITIONAL(MFB, [test "x$XORG" = xyes])
 AM_CONDITIONAL(CFB, [test "x$XORG" = xyes])
 AM_CONDITIONAL(AFB, [test "x$XORG" = xyes])
-
-AC_SUBST([MODULE_DEFINES])
-AC_SUBST([LOADER_DEFINES])
 
 dnl Xprint DDX
 
@@ -1314,6 +1313,10 @@ fi
 AM_CONDITIONAL(BUILD_KBD_MODE, [test x$BUILD_KBD_MODE = xyes])
 AM_CONDITIONAL(BSD_KBD_MODE, [test x$KBD_MODE_TYPE = xbsd])
 AM_CONDITIONAL(SUN_KBD_MODE, [test x$KBD_MODE_TYPE = xsun])
+
+AC_SUBST([MODULE_DEFINES])
+AC_SUBST([LOADER_DEFINES])
+AC_SUBST([SERVER_DEFINES])
 
 CFLAGS="$XSERVER_CFLAGS $CFLAGS"
 AC_SUBST([CFLAGS])

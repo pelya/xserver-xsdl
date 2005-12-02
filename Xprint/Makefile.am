@@ -2,7 +2,9 @@ SUBDIRS = doc pcl raster ps etc
 
 bin_PROGRAMS = Xprt
 
-Xprt_CFLAGS = @DIX_CFLAGS@ @XPRINT_CFLAGS@ -DPRINT_ONLY_SERVER -D_XP_PRINT_SERVER_  -DXPRINTDIR=\"$(prefix)/X11/xserver\"  
+Xprt_CFLAGS = @SERVER_DEFINES@ @DIX_CFLAGS@ @XPRINT_CFLAGS@ \
+	-DPRINT_ONLY_SERVER -D_XP_PRINT_SERVER_  \
+	-DXPRINTDIR=\"$(prefix)/X11/xserver\"  
 
 Xprt_LDFLAGS = -L$(top_srcdir)
 Xprt_LDADD = @XPRINT_LIBS@ pcl/libpcl.la raster/libraster.la

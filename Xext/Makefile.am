@@ -8,7 +8,7 @@ noinst_LTLIBRARIES = libXext.la libXextbuiltin.la libXextmodule.la
 
 INCLUDES = -I$(top_srcdir)/hw/xfree86/dixmods/extmod -I$(top_srcdir)/hw/xfree86/os-support
 
-AM_CFLAGS = $(DIX_CFLAGS) @LOADER_DEFINES@
+AM_CFLAGS = $(DIX_CFLAGS) @SERVER_DEFINES@ @LOADER_DEFINES@
 
 sdk_HEADERS = xvdix.h xvmcext.h
 

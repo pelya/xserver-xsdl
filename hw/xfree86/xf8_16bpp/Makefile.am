@@ -4,7 +4,7 @@ sdk_HEADERS = cfb8_16.h
 
 INCLUDES = $(XORG_INCS) -I$(top_srcdir)/mfb -I$(top_srcdir)/cfb
 
-AM_CFLAGS = $(XORG_CFLAGS) @MODULE_DEFINES@ @LOADER_DEFINES@
+AM_CFLAGS = $(XORG_CFLAGS) @SERVER_DEFINES@ @MODULE_DEFINES@ @LOADER_DEFINES@
 
 libxf8_16bpp_la_LDFLAGS = -avoid-version
 

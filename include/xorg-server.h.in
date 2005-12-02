@@ -139,12 +139,6 @@
 /* Support XFree86 Video Mode extension */
 #undef XF86VIDMODE
 
-/* Building XFree86 loader */
-#undef XFree86LOADER
-
-/* Building XFree86 server */
-#undef XFree86Server
-
 /* Build XDGA support */
 #undef XFreeXDGA
 

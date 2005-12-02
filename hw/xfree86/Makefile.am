@@ -17,7 +17,7 @@ DIST_SUBDIRS = common ddc dummylib i2c x86emu int10 fbdevhw os-support \
 
 bin_PROGRAMS = Xorg
 
-AM_CFLAGS = @XORG_CFLAGS@ @LOADER_DEFINES@
+AM_CFLAGS = @XORG_CFLAGS@ @SERVER_DEFINES@ @LOADER_DEFINES@
 INCLUDES = @XORG_INCS@ 
 
 Xorg_SOURCES = xorg.c

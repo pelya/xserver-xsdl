@@ -1,6 +1,6 @@
 noinst_LTLIBRARIES = liblbx.la
 
-AM_CFLAGS = $(DIX_CFLAGS) @LOADER_DEFINES@
+AM_CFLAGS = $(DIX_CFLAGS) @SERVER_DEFINES@ @LOADER_DEFINES@
 
 liblbx_la_SOURCES =				\
 	lbxcmap.c				\

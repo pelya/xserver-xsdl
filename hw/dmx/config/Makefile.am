@@ -22,6 +22,7 @@ libdmxconfig_a_SOURCES = $(LIBSRCS)
 
 AM_YFLAGS = -d
 AM_CFLAGS = \
+	@SERVER_DEFINES@ \
 	-I$(top_srcdir)/hw/dmx \
 	-DHAVE_DMX_CONFIG_H \
 	-DDMX_LOG_STANDALONE \

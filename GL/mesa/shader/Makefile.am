@@ -2,7 +2,7 @@ SUBDIRS = grammar slang
 
 noinst_LTLIBRARIES = libshader.la
 
-AM_CFLAGS = @MODULE_DEFINES@ @LOADER_DEFINES@
+AM_CFLAGS = @SERVER_DEFINES@ @MODULE_DEFINES@ @LOADER_DEFINES@
 
 INCLUDES = -I@MESA_SOURCE@/include \
            -I../X \

@@ -31,7 +31,7 @@ fontsmodule_LTLIBRARIES = libbitmap.la \
                           libfreetype.la \
                           libtype1.la
 
-AM_CFLAGS = @XORG_CFLAGS@ @DIX_CFLAGS@ @LOADER_DEFINES@
+AM_CFLAGS = @XORG_CFLAGS@ @DIX_CFLAGS@ @SERVER_DEFINES@ @LOADER_DEFINES@
 INCLUDES = @XORG_INCS@ \
            -I$(top_srcdir)/afb \
            -I$(top_srcdir)/cfb \
@@ -74,7 +74,6 @@ libdbe_la_LDFLAGS = -avoid-version
 libdbe_la_LIBADD = $(top_builddir)/dbe/libdbemodule.la
 libdbe_la_SOURCES = dbemodule.c
 
-libfb_la_CFLAGS = -DXFree86Server $(AM_CFLAGS)
 libfb_la_LDFLAGS = -avoid-version
 libfb_la_LIBADD = $(top_builddir)/fb/libfb.la
 libfb_la_SOURCES = $(top_builddir)/fb/fbcmap.c fbmodule.c

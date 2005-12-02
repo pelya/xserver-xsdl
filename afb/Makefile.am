@@ -1,6 +1,6 @@
 noinst_LTLIBRARIES = libafb.la
 
-AM_CFLAGS = $(DIX_CFLAGS) @MODULE_DEFINES@ @LOADER_DEFINES@
+AM_CFLAGS = $(DIX_CFLAGS) @SERVER_DEFINES@ @MODULE_DEFINES@ @LOADER_DEFINES@
 
 libafb_gen_sources = afbbltC.c afbbltX.c afbbltCI.c afbbltO.c afbbltG.c afbtileC.c afbtileG.c afbseg.c
 

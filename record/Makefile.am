@@ -1,6 +1,6 @@
 noinst_LTLIBRARIES = librecord.la librecordmodule.la
 
-AM_CFLAGS = $(DIX_CFLAGS) @LOADER_DEFINES@
+AM_CFLAGS = $(DIX_CFLAGS) @SERVER_DEFINES@ @LOADER_DEFINES@
 
 INCLUDES = -I$(top_srcdir)/hw/xfree86/os-support
 

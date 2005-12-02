@@ -6,9 +6,6 @@
  */
 #include <dix-config.h>
 
-/* XFree86 based Xserver */
-#undef XFree86Server
-
 /* Winsock networking */
 #undef HAS_WINSOCK
 

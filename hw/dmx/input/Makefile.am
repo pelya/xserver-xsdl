@@ -55,7 +55,8 @@ libdmxinput_a_SOURCES = ChkNotMaskEv.c \
                         $(DMXSRCS) \
                         $(LIBSRCS)
 
-AM_CFLAGS = -I$(top_srcdir)/hw/dmx \
+AM_CFLAGS = @SERVER_DEFINES@ \
+            -I$(top_srcdir)/hw/dmx \
             -I$(top_srcdir)/hw/xfree86/common \
             -DHAVE_DMX_CONFIG_H \
             @DMXMODULES_CFLAGS@

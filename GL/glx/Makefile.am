@@ -5,7 +5,7 @@ AM_CFLAGS = \
 	@GL_CFLAGS@ \
 	@XLIB_CFLAGS@ \
 	-I@MESA_SOURCE@/include \
-	-DXFree86Server \
+	@SERVER_DEFINES@ \
 	@MODULE_DEFINES@ \
 	@LOADER_DEFINES@
 

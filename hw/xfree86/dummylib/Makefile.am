@@ -6,7 +6,7 @@ noinst_LIBRARIES = libdummy.a libdummy-nonserver.a
 
 INCLUDES = $(XORG_INCS)
 
-AM_CFLAGS = $(XORG_CFLAGS) @LOADER_DEFINES@
+AM_CFLAGS = $(XORG_CFLAGS) @SERVER_DEFINES@ @LOADER_DEFINES@
 
 libdummy_a_SOURCES = getvalidbios.c \
                      pcitestmulti.c xf86allocscripi.c \
