@@ -1,3 +1,13 @@
+2005-12-03  Alan Coopersmith  <alan.coopersmith@sun.com>
+
+	* xorg/Makefile.am:
+	* xorg/configure.ac:
+	* xorg/hw/xfree86/Makefile.am:
+	* hw/xfree86/dixmods/Makefile.am: 
+	Bugzilla #4809 <https://bugs.freedesktop.org/show_bug.cgi?id=4809>
+	Patch #3908 <https://bugs.freedesktop.org/attachment.cgi?id=3908>
+	xf8_32wid and cfb24 only need to be built on sparc
+
 2005-12-03  Kevin E. Martin  <kem-at-freedesktop-dot-org>
 
 	* configure.ac:

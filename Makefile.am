@@ -11,7 +11,10 @@ endif
 if CFB
 CFB_DIR=cfb
 CFB16_DIR=cfb16
+# cfb24 is only used by xf8_32wid, which is only used by sunffb on SPARC
+if BUILD_XF8_32WID
 CFB24_DIR=cfb24
+endif
 CFB32_DIR=cfb32
 endif
 
