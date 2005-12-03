@@ -167,7 +167,7 @@ dnl hw/xfree86/os-support/bus/Makefile.am, among others.
 dnl ---------------------------------------------------------------------------
 DEFAULT_INT10="x86emu"
 use_x86_asm="no"
-build_xf8_32wid="no"
+build_xf8_32wid="yes"
 
 dnl Override defaults as needed for specific platforms:
 
