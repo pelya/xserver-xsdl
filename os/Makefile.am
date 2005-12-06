@@ -7,22 +7,10 @@ K5AUTH_SOURCES = k5auth.c
 SECURERPC_SOURCES = rpcauth.c
 INTERNALMALLOC_SOURCES = xalloc.c
 
-if XCSECURITY
 XCSECURITY_SOURCES = secauth.c
-endif
-
-if XDMCP
 XDMCP_SOURCES = xdmcp.c
-endif
-
-if LBX
 LBX_SOURCES = lbxio.c
-endif
-
-if NEED_STRLCAT
 STRLCAT_SOURCES = strlcat.c strlcpy.c
-endif
-
 XORG_SOURCES = log.c
 
 libos_la_SOURCES = 	\
@@ -39,11 +27,23 @@ libos_la_SOURCES = 	\
 	xdmauth.c	\
 	xstrans.c	\
 	xprintf.c	\
-	$(XCSECURITY_SOURCES) \
-	$(XDMCP_SOURCES) \
-	$(XORG_SOURCES) \
-	$(LBX_SOURCES) \
-	$(STRLCAT_SOURCES)
+	$(XORG_SOURCES)
+
+if XCSECURITY
+libos_la_SOURCES += $(XCSECURITY_SOURCES)
+endif
+
+if XDMCP
+libos_la_SOURCES += $(XDMCP_SOURCES)
+endif
+
+if LBX
+libos_la_SOURCES += $(LBX_SOURCES)
+endif
+
+if NEED_STRLCAT
+libos_la_SOURCES += $(STRLCAT_SOURCES)
+endif
 
 libcwrapper_la_SOURCES = \
 	$(top_srcdir)/hw/xfree86/os-support/shared/libc_wrapper.c
@@ -52,4 +52,5 @@ libcwrapper_la_CFLAGS = \
 	-I$(top_srcdir)/hw/xfree86/os-support \
 	$(AM_CFLAGS)
 
-EXTRA_DIST = $(K5AUTH_SOURCES) $(SECURERPC_SOURCES) $(INTERNALMALLOC_SOURCES)
+EXTRA_DIST = $(K5AUTH_SOURCES) $(SECURERPC_SOURCES) $(INTERNALMALLOC_SOURCES) \
+     $(XCSECURITY_SOURCES) $(XDMCP_SOURCES) $(LBX_SOURCES) $(STRLCAT_SOURCES)

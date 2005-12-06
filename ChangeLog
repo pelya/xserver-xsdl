@@ -1,3 +1,10 @@
+2005-12-06  Alan Coopersmith  <alan.coopersmith@sun.com>
+
+	* os/Makefile.am: 
+	Bugzilla #5219 <https://bugs.freedesktop.org/show_bug.cgi?id=5219>
+	Make sure all optional sources are included in EXTRA_DIST,
+	even if they aren't used on the platform the distballs are made on.
+
 2005-12-03  Alan Coopersmith  <alan.coopersmith@sun.com>
 
 	* xorg/Makefile.am:
