@@ -1,3 +1,8 @@
+2005-12-06  Adam Jackson  <ajax@freedesktop.org>
+
+	* configure.ac:
+	Bug #5230: Fix whitespace bugs.
+
 2005-12-06  Alan Coopersmith  <alan.coopersmith@sun.com>
 
 	* os/Makefile.am: 

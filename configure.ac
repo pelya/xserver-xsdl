@@ -1203,15 +1203,15 @@ if test "x$XWIN" = xyes; then
 	AC_DEFINE(DDXBEFORERESET, 1, [Use ddxBeforeReset ])
 	if test "x$XF86VIDMODE" = xyes; then
 		AC_MSG_NOTICE([Disabling XF86VidMode extension])
-		XF86VIDMODE = no
+		XF86VIDMODE=no
 	fi
 	if test "x$XF86MISC" = xyes; then
 		AC_MSG_NOTICE([Disabling XF86Misc extension])
-		XF86MISC = no
+		XF86MISC=no
 	fi
 	if test "x$COMPOSITE" = xyes; then
 		AC_MSG_NOTICE([Disabling Composite extension])
-		COMPOSITE = no
+		COMPOSITE=no
 	fi
 fi
 AM_CONDITIONAL(XWIN, [test "x$XWIN" = xyes])
