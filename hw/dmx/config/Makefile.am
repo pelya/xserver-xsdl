@@ -50,8 +50,8 @@ dmxtodmx_LDADD = -L. -ldmxconfig
 
 appmandir = $(APP_MAN_DIR)
 
-appman_SOURCES = xdmxconfig.man vdltodmx.man dmxtodmx.man
-appman_DATA = $(appman_SOURCES:man=@APP_MAN_SUFFIX@)
+appman_PRE = xdmxconfig.man vdltodmx.man dmxtodmx.man
+appman_DATA = $(appman_PRE:man=@APP_MAN_SUFFIX@)
 
 CLEANFILES = $(appman_DATA)
 
@@ -67,7 +67,7 @@ MAN_SUBSTS = -e 's|__vendorversion__|"$(XORGRELSTRING)" "$(XORGMANNAME)"|'
 	sed $(MAN_SUBSTS) < $< > $@
 
 EXTRA_DIST = \
-	$(appman_SOURCES) \
+	$(appman_PRE) \
 	test-a.in test-a.out \
 	test-b.in test-b.out \
 	test-c.in test-c.out \

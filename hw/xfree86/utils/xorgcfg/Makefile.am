@@ -137,13 +137,13 @@ XOrgCfg: XOrgCfg.pre
 # Man page
 appmandir = $(APP_MAN_DIR)
 
-appman_SOURCES = xorgcfg.man
-appman_DATA = $(appman_SOURCES:man=@APP_MAN_SUFFIX@)
+appman_PRE = xorgcfg.man
+appman_DATA = $(appman_PRE:man=@APP_MAN_SUFFIX@)
 
-all-local: $(appman_SOURCES) $(appman_DATA)
+all-local: $(appman_PRE) $(appman_DATA)
 
 EXTRA_DIST = $(XBM_DATA) $(XPM_DATA) XOrgCfg.pre xorgcfg.man.pre
-BUILT_SOURCES = $(appman_SOURCES)
+BUILT_SOURCES = $(appman_PRE)
 CLEANFILES = $(APPDEFAULTFILES) $(BUILT_SOURCES) $(appman_DATA)
 
 SUFFIXES += .$(APP_MAN_SUFFIX) .man

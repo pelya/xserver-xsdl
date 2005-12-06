@@ -87,8 +87,8 @@ Xdmx_CFLAGS = @SERVER_DEFINES@ \
 # Man page
 appmandir = $(APP_MAN_DIR)
 
-appman_SOURCES = Xdmx.man
-appman_DATA = $(appman_SOURCES:man=@APP_MAN_SUFFIX@)
+appman_PRE = Xdmx.man
+appman_DATA = $(appman_PRE:man=@APP_MAN_SUFFIX@)
 
 CLEANFILES = $(appman_DATA)
 
@@ -105,4 +105,4 @@ SUFFIXES = .$(APP_MAN_SUFFIX) .man
 .man.$(APP_MAN_SUFFIX):
 	sed $(MAN_SUBSTS) < $< > $@
 
-EXTRA_DIST = $(appman_SOURCES)
+EXTRA_DIST = $(appman_PRE)

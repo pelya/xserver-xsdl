@@ -45,10 +45,10 @@ endif
 
 appmandir = $(APP_MAN_DIR)
 
-appman_SOURCES = kbd_mode.man
-appman_DATA = $(appman_SOURCES:man=@APP_MAN_SUFFIX@)
-BUILT_SOURCES = $(appman_SOURCES)
-CLEANFILES = $(appman_SOURCES) $(appman_DATA)
+appman_PRE = kbd_mode.man
+appman_DATA = $(appman_PRE:man=@APP_MAN_SUFFIX@)
+BUILT_SOURCES = $(appman_PRE)
+CLEANFILES = $(appman_PRE) $(appman_DATA)
 
 all-local: kbd_mode.man.pre $(appman_DATA)
 

@@ -1,3 +1,20 @@
+2005-12-06  Kevin E. Martin  <kem-at-freedesktop-dot-org>
+
+	* Xprint/doc/Makefile.am:
+	* doc/Makefile.am:
+	* hw/dmx/Makefile.am:
+	* hw/dmx/config/Makefile.am:
+	* hw/vfb/Makefile.am:
+	* hw/xfree86/getconfig/Makefile.am:
+	* hw/xfree86/utils/gtf/Makefile.am:
+	* hw/xfree86/utils/kbd_mode/Makefile.am:
+	* hw/xfree86/utils/pcitweak/Makefile.am:
+	* hw/xfree86/utils/scanpci/Makefile.am:
+	* hw/xfree86/utils/xorgcfg/Makefile.am:
+	* hw/xfree86/utils/xorgconfig/Makefile.am:
+	* hw/xnest/Makefile.am:
+	Change *man_SOURCES ==> *man_PRE to fix autotools warnings.
+
 2005-12-06  Adam Jackson  <ajax@freedesktop.org>
 
 	* configure.ac:

@@ -29,11 +29,11 @@ include $(top_srcdir)/cpprules.in
 
 appmandir = $(APP_MAN_DIR)
 
-appman_SOURCES = Xvfb.man
-appman_DATA = $(appman_SOURCES:man=@APP_MAN_SUFFIX@)
+appman_PRE = Xvfb.man
+appman_DATA = $(appman_PRE:man=@APP_MAN_SUFFIX@)
 
-BUILT_SOURCES = $(appman_SOURCES)
-CLEANFILES = $(appman_SOURCES) $(appman_DATA)
+BUILT_SOURCES = $(appman_PRE)
+CLEANFILES = $(appman_PRE) $(appman_DATA)
 
 SUFFIXES += .$(APP_MAN_SUFFIX) .man
 

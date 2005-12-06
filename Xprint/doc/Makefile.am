@@ -2,13 +2,13 @@ MAN_SRCS = Xprt.man.pre
 
 appmandir = $(APP_MAN_DIR)
 
-appman_SOURCES = Xprt.man
-appman_DATA = $(appman_SOURCES:man=@APP_MAN_SUFFIX@)
+appman_PRE = Xprt.man
+appman_DATA = $(appman_PRE:man=@APP_MAN_SUFFIX@)
 
 include $(top_srcdir)/cpprules.in
 
-BUILT_SOURCES = $(appman_SOURCES)
-CLEANFILES = $(appman_SOURCES) $(appman_DATA)
+BUILT_SOURCES = $(appman_PRE)
+CLEANFILES = $(appman_PRE) $(appman_DATA)
 
 SUFFIXES += .$(APP_MAN_SUFFIX) .man
 

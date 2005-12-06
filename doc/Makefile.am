@@ -1,11 +1,11 @@
 appmandir = $(APP_MAN_DIR)
 
 # Xserver.man covers options generic to all X servers built in this tree
-appman_SOURCES = Xserver.man.pre
+appman_PRE = Xserver.man.pre
 
-appman_PROCESSED = $(appman_SOURCES:man.pre=man)
+appman_PROCESSED = $(appman_PRE:man.pre=man)
 
-appman_DATA = $(appman_SOURCES:man.pre=@APP_MAN_SUFFIX@)
+appman_DATA = $(appman_PRE:man.pre=@APP_MAN_SUFFIX@)
 
 BUILT_SOURCES = $(appman_PROCESSED)
 
@@ -22,4 +22,4 @@ EXTRAMANDEFS = -D__default_font_path__="`echo $(COMPILEDDEFAULTFONTPATH) | sed -
 DEVEL_DOCS = smartsched
 
 
-EXTRA_DIST = $(DEVEL_DOCS) $(appman_SOURCES)
+EXTRA_DIST = $(DEVEL_DOCS) $(appman_PRE)
