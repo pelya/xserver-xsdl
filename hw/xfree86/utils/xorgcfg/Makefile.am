@@ -120,7 +120,7 @@ include $(top_srcdir)/cpprules.in
 
 # App default files  (*.ad)
 
-appdefaultdir = $(libdir)/X11/app-defaults
+appdefaultdir = @appdefaultdir@
 
 APPDEFAULTFILES = XOrgCfg
 
