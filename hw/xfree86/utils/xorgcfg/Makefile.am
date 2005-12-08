@@ -31,8 +31,11 @@ bin_PROGRAMS = xorgcfg
 
 INCLUDES = $(XORG_INCS) -I$(top_srcdir)/hw/xfree86/parser
 
+OPTIONSPATH=$(libdir)/X11
+
 xorgcfg_CFLAGS = @SERVER_DEFINES@ $(XORG_CFLAGS) $(CURSESDEFINES) \
-	$(XORGCFG_DEP_CFLAGS)
+	$(XORGCFG_DEP_CFLAGS) -DXKB_RULES_DIR=\"$(XKB_BASE_DIRECTORY)/rules\" \
+	-DPROJECT_ROOT=\"$(PROJECTROOT)\" -DOPTIONSPATH=\"$(OPTIONSPATH)\"
 xorgcfg_LDADD = $(XORGCFG_DEP_LIBS) ../../parser/libxf86config.a $(LOADERLIB) \
 	../../os-support/libxorgos.la ../../dummylib/libdummy-nonserver.a
 
@@ -120,7 +123,7 @@ include $(top_srcdir)/cpprules.in
 
 # App default files  (*.ad)
 
-appdefaultdir = @appdefaultdir@
+appdefaultdir = @APPDEFAULTDIR@
 
 APPDEFAULTFILES = XOrgCfg
 

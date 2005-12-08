@@ -1291,8 +1291,8 @@ if test x$XORGCFG = xyes ; then
 	AC_SUBST(XORGCFG_DEP_CFLAGS)
 	AC_SUBST(XORGCFG_DEP_LIBS)
 
-	appdefaultdir=$(pkg-config --variable=appdefaultdir xt)
-	AC_SUBST(appdefaultdir)
+	APPDEFAULTDIR=$(pkg-config --variable=appdefaultdir xt)
+	AC_SUBST(APPDEFAULTDIR)
 fi
 AM_CONDITIONAL(BUILD_XORGCFG, [test x$XORGCFG = xyes])
 AM_CONDITIONAL(USE_CURSES, [test x$CURSES = xyes])
