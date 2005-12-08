@@ -1038,7 +1038,7 @@ static FASTCALL void
 fbStore_r8g8b8 (FbBits *bits, const CARD32 *values, int x, int width, miIndexedPtr indexed)
 {
     int i;
-    CARD8 *pixel = ((CARD8 *) bits) + x;
+    CARD8 *pixel = ((CARD8 *) bits) + 3*x;
     for (i = 0; i < width; ++i) {
         Store24(pixel, values[i]);
         pixel += 3;
@@ -1049,7 +1049,7 @@ static FASTCALL void
 fbStore_b8g8r8 (FbBits *bits, const CARD32 *values, int x, int width, miIndexedPtr indexed)
 {
     int i;
-    CARD8 *pixel = ((CARD8 *) bits) + x;
+    CARD8 *pixel = ((CARD8 *) bits) + 3*x;
     for (i = 0; i < width; ++i) {
 #if IMAGE_BYTE_ORDER == MSBFirst
         *pixel++ = Blue(values[i]);
