@@ -1,6 +1,11 @@
 2005-12-08  Kevin E. Martin  <kem-at-freedesktop-dot-org>
 
 	* configure.ac:
+	Add configure option to set the top level font dir.
+
+2005-12-08  Kevin E. Martin  <kem-at-freedesktop-dot-org>
+
+	* configure.ac:
 	* hw/xfree86/Makefile.am:
 	* hw/xfree86/utils/xorgcfg/Makefile.am:
 	* hw/xfree86/utils/xorgconfig/Makefile.am:
