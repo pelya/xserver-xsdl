@@ -55,10 +55,12 @@
 #define PROJECT_ROOT "/usr/X11R6"
 #endif
 
+#ifndef XKB_RULES_DIR
 #ifndef __UNIXOS2__
 #define XKB_RULES_DIR PROJECT_ROOT "/lib/X11/xkb/rules"
 #else
 #define XKB_RULES_DIR XF86CONFIGDIR "/xkb/rules"
+#endif
 #endif
 
 #define CONTROL_A	1
@@ -214,7 +216,7 @@ TextMode(void)
 		   "sample "__XCONFIGFILE__" file is supplied with "
 #else
 #ifndef __UNIXOS2__
-		   "The "__XCONFIGFILE__" file usually resides in /usr/X11R6/etc/X11 "
+		   "The "__XCONFIGFILE__" file usually resides in " PROJECT_ROOT "/etc/X11 "
 #else
 		   "The "__XCONFIGFILE__" file usually resides in "XF86CONFIGDIR" "
 #endif

@@ -54,6 +54,10 @@
 
 #include <stdarg.h>
 
+#ifndef OPTIONSPATH
+#define OPTIONSPATH "/usr/X11R6/lib/X11"
+#endif
+
 #ifndef SIGNALRETURNSINT
 void sig_handler(int);
 #else
@@ -188,7 +192,7 @@ LoaderInitializeOptions(void)
 	first = 0;
 
 	checkerLegend[CHECKER_OPTIONS_FILE_MISSING] =
-	"The Options file, normally /usr/X11R6/lib/X11/Options was not found.\n";
+	"The Options file, normally " OPTIONSPATH "/Options was not found.\n";
 	checkerLegend[CHECKER_OPTION_DESCRIPTION_MISSING] =
 	"No description for the module option. The description should be in\n"
 	"in the Options file, and using the sintax:\n"
