@@ -457,6 +457,11 @@ xf86InputDriverlistFromConfig()
 static char **
 GenerateDriverlist(char * dirname, char * drivernames)
 {
+#ifdef XFree86LOADER
+    char *subdirs[] = { dirname, NULL };
+    static const char *patlist[] = {"(.*)_drv\\.so", "(.*)_drv\\.o", NULL};
+    return LoaderListDirs(subdirs, patlist);
+#else /* non-loadable server */
     char *cp, **driverlist;
     int count;
 
@@ -544,6 +549,7 @@ GenerateDriverlist(char * dirname, char * drivernames)
 #endif /* XFree86LOADER */
 
     return driverlist;
+#endif
 }
 
 
