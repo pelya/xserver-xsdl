@@ -481,13 +481,14 @@ fixup_video_driver_list(char **drivers)
     for (drv = drivers; drv != end; drv++) {
         if (!strcmp(*drv, "atimisc")) {
             atimisc = drv;
-            for (drv = drivers; drv != end; drv++) {
+            for (drv = atimisc; drv != end; drv++) {
                 if (!strcmp(*drv, "ati")) {
                     ati = drv;
                     x = *ati; *ati = *atimisc; *atimisc = x;
                     return;
                 }
             }
+            /* if we get here, ati was already ahead of atimisc */
         }
     }
 }
