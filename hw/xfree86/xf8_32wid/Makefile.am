@@ -1,4 +1,6 @@
+if BUILD_XF8_32WID
 module_LTLIBRARIES = libxf8_32wid.la
+endif
 
 sdk_HEADERS = cfb8_32wid.h
 

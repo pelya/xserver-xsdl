@@ -4,13 +4,9 @@ endif
 
 DOC_SUBDIR = doc
 
-if BUILD_XF8_32WID
-XF8_32WID_SUBDIR=xf8_32wid
-endif
-
 SUBDIRS = common ddc dummylib i2c x86emu int10 fbdevhw os-support parser rac \
           ramdac shadowfb vbe vgahw xaa xf1bpp xf4bpp xf8_16bpp \
-	  xf8_32bpp $(XF8_32WID_SUBDIR) loader scanpci dixmods exa \
+	  xf8_32bpp xf8_32wid loader scanpci dixmods exa \
 	  $(DRI_SUBDIR) utils $(DOC_SUBDIR) getconfig
 
 DIST_SUBDIRS = common ddc dummylib i2c x86emu int10 fbdevhw os-support \

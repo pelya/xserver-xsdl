@@ -1,3 +1,10 @@
+2005-12-09  Adam Jackson  <ajax@freedesktop.org>
+
+	* configure.ac:
+	* hw/xfree86/Makefile.am:
+	* hw/xfree86/xf8_32wid/Makefile.am:
+	Bug #4809: Re-fix that doesn't break distcheck. (Alan Coopersmith)
+
 2005-12-08  Adam Jackson  <ajax@freedesktop.org>
 
 	* configure.ac:
