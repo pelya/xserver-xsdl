@@ -25,6 +25,7 @@
 #include <dix-config.h>
 #endif
 
+#include "gcstruct.h"
 #include "picturestr.h"
 
 /*
