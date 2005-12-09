@@ -448,6 +448,50 @@ xf86InputDriverlistFromConfig()
     return modulearray;
 }
 
+static void
+fixup_video_driver_list(char **drivers)
+{
+    static const char *fallback[5] = { "vga", "vesa", "fbdev", "wsfb", NULL };
+    char **end, **drv;
+    char *x;
+    char **ati, **atimisc;
+    int i;
+
+    /* walk to the end of the list */
+    for (end = drivers; *end && **end; end++) ;
+    end--;
+
+    /*
+     * for each of the fallback drivers, if we find it in the list,
+     * swap it with the last available non-fallback driver.
+     */
+    for (i = 0; fallback[i]; i++) {
+        for (drv = drivers; drv != end; drv++) {
+            if (strstr(*drv, fallback[i])) {
+                x = *drv; *drv = *end; *end = x;
+                end--;
+                break;
+            }
+        }
+    }
+    /*
+     * since the ati wrapper driver is gross and awful, sort ati before
+     * atimisc, which makes sure all the ati symbols are visible in xorgcfg.
+     */
+    for (drv = drivers; drv != end; drv++) {
+        if (!strcmp(*drv, "atimisc")) {
+            atimisc = drv;
+            for (drv = drivers; drv != end; drv++) {
+                if (!strcmp(*drv, "ati")) {
+                    ati = drv;
+                    x = *ati; *ati = *atimisc; *atimisc = x;
+                    return;
+                }
+            }
+        }
+    }
+}
+
 
 /*
  * Generate a compiled-in list of driver names.  This is used to produce a
@@ -464,47 +508,8 @@ GenerateDriverlist(char * dirname, char * drivernames)
     ret = LoaderListDirs(subdirs, patlist);
     
     /* fix up the probe order for video drivers */
-    if (strstr(dirname, "drivers")) {
-        char **tmp, **vesa, **vga, **fbdev, **wsfb;
-        char *x;
-
-        /* walk to the end of the list */
-        for (tmp = ret; *tmp && **tmp; tmp++) ;
-        tmp--;
-
-        /*
-         * for each of the fallback drivers, if we find it in the list,
-         * swap it with the last available non-fallback driver.
-         */
-        for (vga = ret; vga != tmp; vga++) {
-            if (strstr(*vga, "vga")) {
-                x = *vga; *vga = *tmp; *tmp = x;
-                tmp--;
-                break;
-            }
-        }
-        for (vesa = ret; vesa != tmp; vesa++) {
-            if (strstr(*vesa, "vesa")) {
-                x = *vesa; *vesa = *tmp; *tmp = x;
-                tmp--;
-                break;
-            }
-        }
-        for (fbdev = ret; fbdev != tmp; fbdev++) {
-            if (strstr(*fbdev, "fbdev")) {
-                x = *fbdev; *fbdev = *tmp; *fbdev = x;
-                tmp--;
-                break;
-            }
-        }
-        for (wsfb = ret; wsfb != tmp; wsfb++) {
-            if (strstr(*wsfb, "wsfb")) {
-                x = *wsfb; *wsfb = *tmp; *wsfb = x;
-                tmp--;
-                break;
-            }
-        }
-    }
+    if (strstr(dirname, "drivers"))
+        fixup_video_driver_list(ret);
 
     return ret;
 #else /* non-loadable server */
@@ -537,62 +542,6 @@ GenerateDriverlist(char * dirname, char * drivernames)
 	*cp++ = 0;
     }
     driverlist[count] = NULL;
-
-#ifdef XFree86LOADER
-    {
-        const char *subdirs[] = {NULL, NULL};
-        static const char *patlist[] = {"(.*)_drv\\.so", "(.*)_drv\\.o", NULL};
-        char **dlist, **clist, **dcp, **ccp;
-	int size;
-
-        subdirs[0] = dirname;
-
-        /* Get module list */
-        dlist = LoaderListDirs(subdirs, patlist);
-        if (!dlist) {
-            xfree(driverlist);
-            return NULL;        /* No modules, no list */
-        }
-
-        clist = driverlist;
-
-        /* The resulting list cannot be longer than the module list */
-        for (dcp = dlist, count = 0;  *dcp++;  count++);
-        driverlist = (char **)xnfalloc((size = count + 1) * sizeof(char *));
-
-        /* First, add modules not in compiled-in list */
-        for (count = 0, dcp = dlist;  *dcp;  dcp++) {
-            for (ccp = clist;  ;  ccp++) {
-                if (!*ccp) {
-                    driverlist[count++] = *dcp;
-		    if (count >= size)
-			driverlist = (char**)
-			    xnfrealloc(driverlist, ++size * sizeof(char*));
-                    break;
-                }
-                if (!strcmp(*ccp, *dcp))
-                    break;
-            }
-        }
-
-        /* Next, add compiled-in names that are also modules */
-        for (ccp = clist;  *ccp;  ccp++) {
-            for (dcp = dlist;  *dcp;  dcp++) {
-                if (!strcmp(*ccp, *dcp)) {
-                    driverlist[count++] = *ccp;
-		    if (count >= size)
-			driverlist = (char**)
-			    xnfrealloc(driverlist, ++size * sizeof(char*));
-                    break;
-                }
-            }
-        }
-
-        driverlist[count] = NULL;
-        xfree(clist);
-        xfree(dlist);
-    }
-#endif /* XFree86LOADER */
 
     return driverlist;
 #endif
