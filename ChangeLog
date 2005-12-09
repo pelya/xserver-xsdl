@@ -1,3 +1,9 @@
+2005-12-08  Adam Jackson  <ajax@freedesktop.org>
+
+	* configure.ac:
+	Bug #4361: Define XF86CONFIGFILE properly so config file generation
+	works.
+
 2005-12-08  Kevin E. Martin  <kem-at-freedesktop-dot-org>
 
 	* configure.ac:

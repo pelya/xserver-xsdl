@@ -1106,7 +1106,7 @@ if test "x$XORG" = xyes; then
 	AC_DEFINE(DRIVERS, {}, [Built-in output drivers (none)])
 	AC_DEFINE(IDRIVERS, {}, [Built-in input drivers (none)])
 	AC_DEFINE_DIR(__XCONFIGFILE__, XF86CONFIGFILE, [Name of configuration file])
-	AC_DEFINE_DIR(XF86CONFIGFILE, CONFIGFILE, [Path to Xorg configuration file])
+	AC_DEFINE_DIR(XF86CONFIGFILE, XF86CONFIGFILE, [Name of configuration file])
 	AC_DEFINE_DIR(DEFAULT_MODULE_PATH, moduledir, [Default module search path])
 	AC_DEFINE_DIR(DEFAULT_LOGPREFIX, LOGPREFIX, [Default log location])
 	AC_DEFINE_UNQUOTED(__VENDORDWEBSUPPORT__, ["$VENDOR_WEB"], [Vendor web address for support])
