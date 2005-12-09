@@ -1,6 +1,13 @@
 2005-12-08  Kevin E. Martin  <kem-at-freedesktop-dot-org>
 
 	* configure.ac:
+	* hw/dmx/doc/Makefile.am:
+	* hw/xfree86/doc/sgml/Makefile.am:
+	Fix sgml docs build.
+
+2005-12-08  Kevin E. Martin  <kem-at-freedesktop-dot-org>
+
+	* configure.ac:
 	Add configure option to set the top level font dir.
 
 2005-12-08  Kevin E. Martin  <kem-at-freedesktop-dot-org>

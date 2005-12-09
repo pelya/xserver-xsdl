@@ -21,29 +21,31 @@
 
 SGML_FILES = DESIGN.sgml
 
+if BUILD_LINUXDOC
 TXT_FILES  = $(SGML_FILES:%.sgml=%.txt)
 PS_FILES   = $(SGML_FILES:%.sgml=%.ps)
+if BUILD_PDFDOC
 PDF_FILES  = $(SGML_FILES:%.sgml=%.pdf)
+endif
 HTML_FILES = $(SGML_FILES:%.sgml=%.html)
 
 SUFFIXES = .sgml .txt .html .ps .pdf
 
-if BUILDSGMLDOCS
 .sgml.txt:
 	@rm -f $@
-	GROFF_NO_SGR= $(LINUXDOC) -B txt $^
+	$(MAKE_TEXT) $<
 
 .sgml.ps:
 	@rm -f $@
-	$(LINUXDOC) -B latex --papersize=letter --output=ps $^
+	$(MAKE_PS) $<
 
-.sgml.pdf:
+.ps.pdf:
 	@rm -f $@
-	$(LINUXDOC) -B latex --papersize=letter --output=pdf $^
+	$(MAKE_PDF) $<
 
 .sgml.html:
 	@rm -f $@
-	$(LINUXDOC) -B html --split=0 $^
+	$(MAKE_HTML) $<
 
 noinst_DATA = $(TXT_FILES) $(PS_FILES) $(PDF_FILES) $(HTML_FILES)
 CLEANFILES = $(TXT_FILES) $(PS_FILES) $(PDF_FILES) $(HTML_FILES)

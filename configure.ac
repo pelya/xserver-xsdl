@@ -449,11 +449,10 @@ fi
 
 dnl Handle building documentation
 AM_CONDITIONAL(BUILDDOCS, test "x$BUILDDOCS" = xyes)
-if test "x$BUILDDOCS" = xyes; then
-	dnl Only build sgml docs when linuxdoc is available
-	AC_PATH_PROG(LINUXDOC, linuxdoc)
-fi
-AM_CONDITIONAL(BUILDSGMLDOCS, test "x$LINUXDOC" != x)
+
+dnl Only build sgml docs when linuxdoc is available and
+dnl def.ents has been installed
+XORG_CHECK_LINUXDOC
 
 dnl Handle installing libxf86config
 AM_CONDITIONAL(INSTALL_LIBXF86CONFIG, [test "x$INSTALL_LIBXF86CONFIG" = xyes])
