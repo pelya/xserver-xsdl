@@ -458,9 +458,55 @@ static char **
 GenerateDriverlist(char * dirname, char * drivernames)
 {
 #ifdef XFree86LOADER
+    char **ret;
     char *subdirs[] = { dirname, NULL };
     static const char *patlist[] = {"(.*)_drv\\.so", "(.*)_drv\\.o", NULL};
-    return LoaderListDirs(subdirs, patlist);
+    ret = LoaderListDirs(subdirs, patlist);
+    
+    /* fix up the probe order for video drivers */
+    if (strstr(dirname, "drivers")) {
+        char **tmp, **vesa, **vga, **fbdev, **wsfb;
+        char *x;
+
+        /* walk to the end of the list */
+        for (tmp = ret; *tmp && **tmp; tmp++) ;
+        tmp--;
+
+        /*
+         * for each of the fallback drivers, if we find it in the list,
+         * swap it with the last available non-fallback driver.
+         */
+        for (vga = ret; vga != tmp; vga++) {
+            if (strstr(*vga, "vga")) {
+                x = *vga; *vga = *tmp; *tmp = x;
+                tmp--;
+                break;
+            }
+        }
+        for (vesa = ret; vesa != tmp; vesa++) {
+            if (strstr(*vesa, "vesa")) {
+                x = *vesa; *vesa = *tmp; *tmp = x;
+                tmp--;
+                break;
+            }
+        }
+        for (fbdev = ret; fbdev != tmp; fbdev++) {
+            if (strstr(*fbdev, "fbdev")) {
+                x = *fbdev; *fbdev = *tmp; *fbdev = x;
+                tmp--;
+                break;
+            }
+        }
+        for (wsfb = ret; wsfb != tmp; wsfb++) {
+            if (strstr(*wsfb, "wsfb")) {
+                x = *wsfb; *wsfb = *tmp; *wsfb = x;
+                tmp--;
+                break;
+            }
+        }
+    }
+
+    return ret;
 #else /* non-loadable server */
     char *cp, **driverlist;
     int count;
