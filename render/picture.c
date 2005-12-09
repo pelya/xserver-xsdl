@@ -745,6 +745,7 @@ SetPictureToDefaults (PicturePtr    pPicture)
     pPicture->freeCompClip = FALSE;
     pPicture->clientClipType = CT_NONE;
     pPicture->componentAlpha = FALSE;
+    pPicture->repeatType = RepeatNone;
 
     pPicture->alphaMap = 0;
     pPicture->alphaOrigin.x = 0;
@@ -1174,7 +1175,10 @@ ChangePicture (PicturePtr	pPicture,
 		unsigned int	newr;
 		newr = NEXT_VAL(unsigned int);
 		if (newr <= RepeatReflect)
-		    pPicture->repeat = newr;
+		{
+		    pPicture->repeat = (newr != RepeatNone);
+		    pPicture->repeatType = newr;
+		}
 		else
 		{
 		    client->errorValue = newr;
@@ -1501,6 +1505,7 @@ CopyPicture (PicturePtr	pSrc,
 	{
 	case CPRepeat:
 	    pDst->repeat = pSrc->repeat;
+	    pDst->repeatType = pSrc->repeatType;
 	    break;
 	case CPAlphaMap:
 	    if (pSrc->alphaMap && pSrc->alphaMap->pDrawable->type == DRAWABLE_PIXMAP)

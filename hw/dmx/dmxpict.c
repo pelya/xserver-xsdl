@@ -960,8 +960,9 @@ void dmxValidatePicture(PicturePtr pPicture, Mask mask)
     if (pPictPriv->pict) {
 	XRenderPictureAttributes  attribs;
 
-	if (mask & CPRepeat)
-	    attribs.repeat = pPicture->repeat;
+	if (mask & CPRepeat) {
+	    attribs.repeat = pPicture->repeatType;
+	}
 	if (mask & CPAlphaMap) {
 	    if (pPicture->alphaMap) {
 		dmxPictPrivPtr  pAlphaPriv;

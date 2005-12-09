@@ -134,7 +134,7 @@ typedef struct _Picture {
     CARD32	    id;
     PicturePtr	    pNext;	    /* chain on same drawable */
 
-    unsigned int    repeat : 2;
+    unsigned int    repeat : 1;
     unsigned int    graphicsExposures : 1;
     unsigned int    subWindowMode : 1;
     unsigned int    polyEdge : 1;
@@ -142,7 +142,8 @@ typedef struct _Picture {
     unsigned int    freeCompClip : 1;
     unsigned int    clientClipType : 2;
     unsigned int    componentAlpha : 1;
-    unsigned int    unused : 22;
+    unsigned int    repeatType : 2;
+    unsigned int    unused : 21;
 
     PicturePtr	    alphaMap;
     DDXPointRec	    alphaOrigin;

@@ -2724,7 +2724,7 @@ static void fbFetchSourcePict(PicturePtr pict, int x, int y, int width, CARD32 *
                 inc = (a * unit.vector[0] + b * unit.vector[1]) >> 16;
             }
             while (buffer < end) {
-                *buffer++ = gradientPixel(pGradient, t, pict->repeat);
+                *buffer++ = gradientPixel(pGradient, t, pict->repeatType);
                 t += inc;
             }
         } else {
@@ -2739,7 +2739,7 @@ static void fbFetchSourcePict(PicturePtr pict, int x, int y, int width, CARD32 *
                     y = ((xFixed_48_16)v.vector[1] << 16) / v.vector[2];
                     t = ((a*x + b*y) >> 16) + off;
                 }
-                *buffer++ = gradientPixel(pGradient, t, pict->repeat);
+                *buffer++ = gradientPixel(pGradient, t, pict->repeatType);
                 v.vector[0] += unit.vector[0];
                 v.vector[1] += unit.vector[1];
                 v.vector[2] += unit.vector[2];
@@ -2784,7 +2784,7 @@ static void fbFetchSourcePict(PicturePtr pict, int x, int y, int width, CARD32 *
                     double s = (-b + sqrt(det))/(2. * pGradient->radial.a);
                     *buffer = gradientPixel(pGradient,
                                             (xFixed_48_16)((s*pGradient->radial.m + pGradient->radial.b)*65536),
-                                            pict->repeat);
+                                            pict->repeatType);
                     ++buffer;
                     rx += cx;
                     ry += cy;
@@ -2807,7 +2807,7 @@ static void fbFetchSourcePict(PicturePtr pict, int x, int y, int width, CARD32 *
                     s = (-b + sqrt(det))/(2. * pGradient->radial.a);
                     *buffer = gradientPixel(pGradient,
                                             (xFixed_48_16)((s*pGradient->radial.m + pGradient->radial.b)*65536),
-                                            pict->repeat);
+                                            pict->repeatType);
                     ++buffer;
                     rx += cx;
                     ry += cy;
@@ -2823,7 +2823,7 @@ static void fbFetchSourcePict(PicturePtr pict, int x, int y, int width, CARD32 *
                 while (buffer < end) {
                     double angle = atan2(ry, rx) + a;
                     *buffer = gradientPixel(pGradient, (xFixed_48_16) (angle * (65536. / (2*M_PI))),
-                                            pict->repeat);
+                                            pict->repeatType);
                     ++buffer;
                     rx += cx;
                     ry += cy;
@@ -2842,7 +2842,7 @@ static void fbFetchSourcePict(PicturePtr pict, int x, int y, int width, CARD32 *
                     y -= pGradient->conical.center.y/65536.;
                     angle = atan2(y, x) + a;
                     *buffer = gradientPixel(pGradient, (xFixed_48_16) (angle * (65536. / (2*M_PI))),
-                                            pict->repeat);
+                                            pict->repeatType);
                     ++buffer;
                     rx += cx;
                     ry += cy;
@@ -2895,7 +2895,7 @@ static void fbFetchTransformed(PicturePtr pict, int x, int y, int width, CARD32 
 
     if (pict->filter == PictFilterNearest)
     {
-        if (pict->repeat == RepeatNormal) {
+        if (pict->repeatType == RepeatNormal) {
             if (REGION_NUM_RECTS(pict->pCompositeClip) == 1) {
                 box = pict->pCompositeClip->extents;
                 for (i = 0; i < width; ++i) {
@@ -2982,7 +2982,7 @@ static void fbFetchTransformed(PicturePtr pict, int x, int y, int width, CARD32 
             }
         }
     } else if (pict->filter == PictFilterBilinear) {
-        if (pict->repeat == RepeatNormal) {
+        if (pict->repeatType == RepeatNormal) {
             if (REGION_NUM_RECTS(pict->pCompositeClip) == 1) {
                 box = pict->pCompositeClip->extents;
                 for (i = 0; i < width; ++i) {
@@ -3270,10 +3270,10 @@ static void fbFetchTransformed(PicturePtr pict, int x, int y, int width, CARD32 
                 srtot = sgtot = sbtot = satot = 0;
 
                 for (y = y1; y < y2; y++) {
-                    int ty = (pict->repeat == RepeatNormal) ? MOD (y, pict->pDrawable->height) : y;
+                    int ty = (pict->repeatType == RepeatNormal) ? MOD (y, pict->pDrawable->height) : y;
                     for (x = x1; x < x2; x++) {
                         if (*p) {
-                            int tx = (pict->repeat == RepeatNormal) ? MOD (x, pict->pDrawable->width) : x;
+                            int tx = (pict->repeatType == RepeatNormal) ? MOD (x, pict->pDrawable->width) : x;
                             if (POINT_IN_REGION (0, pict->pCompositeClip, tx, ty, &box)) {
                                 FbBits *b = bits + (ty + pict->pDrawable->y)*stride;
                                 CARD32 c = fetch(b, tx + pict->pDrawable->x, indexed);
@@ -3408,7 +3408,7 @@ fbCompositeRect (const FbComposeData *data, CARD32 *scanline_buffer)
             fetchSrc = fbFetchSourcePict;
     } else if (data->src->alphaMap)
         fetchSrc = fbFetchExternalAlpha;
-    else if (data->src->repeat == RepeatNormal &&
+    else if (data->src->repeatType == RepeatNormal &&
              data->src->pDrawable->width == 1 && data->src->pDrawable->height == 1)
         fetchSrc = fbFetchSolid;
     else if (!data->src->transform && data->src->filter != PictFilterConvolution)
@@ -3422,7 +3422,7 @@ fbCompositeRect (const FbComposeData *data, CARD32 *scanline_buffer)
                 fetchMask = fbFetchSourcePict;
         } else if (data->mask->alphaMap)
             fetchMask = fbFetchExternalAlpha;
-        else if (data->mask->repeat == RepeatNormal
+        else if (data->mask->repeatType == RepeatNormal
                  && data->mask->pDrawable->width == 1 && data->mask->pDrawable->height == 1)
             fetchMask = fbFetchSolid;
         else if (!data->mask->transform && data->mask->filter != PictFilterConvolution)
@@ -3532,11 +3532,11 @@ fbCompositeGeneral (CARD8	op,
     FbComposeData compose_data;
     
     if (pSrc->pDrawable)
-        srcRepeat = pSrc->repeat == RepeatNormal && !pSrc->transform
+        srcRepeat = pSrc->repeatType == RepeatNormal && !pSrc->transform
                     && (pSrc->pDrawable->width != 1 || pSrc->pDrawable->height != 1);
 
     if (pMask && pMask->pDrawable)
-	maskRepeat = pMask->repeat == RepeatNormal && !pMask->transform
+	maskRepeat = pMask->repeatType == RepeatNormal && !pMask->transform
                      && (pMask->pDrawable->width != 1 || pMask->pDrawable->height != 1);
 
     if (op == PictOpOver && !pMask && !pSrc->transform && !PICT_FORMAT_A(pSrc->format) && !pSrc->alphaMap)
