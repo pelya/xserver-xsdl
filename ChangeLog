@@ -1,3 +1,9 @@
+2005-12-11  Alan Coopersmith  <alan.coopersmith@sun.com>
+
+	* Xext/Makefile.am: 
+	Bugzilla #4715 <https://bugs.freedesktop.org/show_bug.cgi?id=4715>
+	Files in xserver/xorg/Xext not included in tarball after make dist
+
 2005-12-09  Adam Jackson  <ajax@freedesktop.org>
 
 	* configure.ac:
