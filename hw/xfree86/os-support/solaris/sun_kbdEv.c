@@ -42,10 +42,6 @@
 #include "inputstr.h"
 #endif
 
-#ifdef XFreeXDGA
-#include "dgaproc.h"
-#endif
-
 #include <sys/kbd.h>
 #include "atKeynames.h"
 
