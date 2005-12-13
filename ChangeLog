@@ -1,3 +1,8 @@
+2005-12-13  Adam Jackson  <ajax@freedesktop.org>
+
+	* Xext/Makefile.am:
+	Spell it XINERAMA_SRCS, not PANORAMIX_SRCS.
+
 2005-12-12  Alan Coopersmith  <alan.coopersmith@sun.com>
 
 	* hw/xfree86/os-support/solaris/sun_kbdEv.c: 
