@@ -3,6 +3,9 @@
 	* Xext/Makefile.am:
 	Spell it XINERAMA_SRCS, not PANORAMIX_SRCS.
 
+	* GL/mesa/X/Makefile.am:
+	Build libglx correctly when not building the Xorg DDX.
+
 2005-12-12  Alan Coopersmith  <alan.coopersmith@sun.com>
 
 	* hw/xfree86/os-support/solaris/sun_kbdEv.c: 
