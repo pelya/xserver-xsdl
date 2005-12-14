@@ -60,6 +60,7 @@ extern Bool xf86sFlag;
 extern Bool xf86bsEnableFlag;
 extern Bool xf86bsDisableFlag;
 extern Bool xf86silkenMouseDisableFlag;
+extern Bool xf86acpiDisableFlag;
 extern char *xf86LayoutName;
 extern char *xf86ScreenName;
 extern char *xf86PointerName;

@@ -1,3 +1,11 @@
+2005-12-14  Adam Jackson  <ajax@freedesktop.org>
+
+	* hw/xfree86/common/xf86Globals.c:
+	* hw/xfree86/common/xf86Init.c:
+	* hw/xfree86/common/xf86Priv.h:
+	* hw/xfree86/os-support/linux/lnx_apm.c:
+	Bug #4718: Command line flag to disable ACPI.
+
 2005-12-13  Adam Jackson  <ajax@freedesktop.org>
 
 	* Xext/Makefile.am:

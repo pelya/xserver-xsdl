@@ -1660,6 +1660,11 @@ ddxProcessArgument(int argc, char **argv, int i)
     xf86silkenMouseDisableFlag = TRUE;
     return 1;
   }
+  if (!strcmp(argv[i], "-noacpi"))
+  {
+    xf86acpiDisableFlag = TRUE;
+    return 1;
+  }
   if (!strcmp(argv[i], "-scanpci"))
   {
     DoScanPci(argc, argv, i);

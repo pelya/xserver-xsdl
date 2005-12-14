@@ -131,9 +131,10 @@ xf86OSPMOpen(void)
 {
 	PMClose ret = NULL;
 
-	/* Favour ACPI over APM */
+	/* Favour ACPI over APM, but only when enabled */
 
-	ret = lnxACPIOpen();
+	if (!xf86acpiDisableFlag)
+		ret = lnxACPIOpen();
 
 	if (!ret)
 		ret = lnxAPMOpen();
