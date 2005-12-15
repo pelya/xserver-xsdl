@@ -1,3 +1,9 @@
+2005-12-14  Alan Coopersmith  <alan.coopersmith@sun.com>
+
+	* hw/xfree86/scanpci/pci.ids: 
+	* hw/xfree86/scanpci/xf86PciStdIds.h:
+	Update to 2005-12-14 snapshot from pciids.sf.net
+
 2005-12-14  Kevin E. Martin  <kem-at-freedesktop-dot-org>
 
 	* configure.ac:
