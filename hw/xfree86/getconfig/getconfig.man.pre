@@ -7,7 +7,7 @@ getconfig - get configuration information for the __xservername__ server
 .IR ... ]
 .SH DESCRIPTION
 .B getconfig
-is a programatic interface that is used by the
+is a programmatic interface that is used by the
 .B __xservername__
 server to get configuration information about video hardware when
 operating without an

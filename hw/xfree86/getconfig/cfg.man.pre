@@ -5,7 +5,7 @@ getconfig - meta configuration files for getconfig(1)
 .B \(**.cfg
 .SH DESCRIPTION
 .B getconfig
-is a programatic interface that is used by the
+is a programmatic interface that is used by the
 .B __xservername__
 server to get configuration information about video hardware when
 operating without an
@@ -81,7 +81,7 @@ They include:
 .PP
 The
 .B $weight
-variable deterines the weight of the rules as they are processed.  The
+variable determines the weight of the rules as they are processed.  The
 weight for subsequent rules may be set with a pseudo rule that sets or
 changes the value of
 .BR $weight .
@@ -90,7 +90,7 @@ meta-configuration files are processed in an unpredictable order.  The
 weighting of the rules is used to determine their relative priority
 .PP
 After processing all of the rules, both built-in and those read from
-the meta-configration files, the
+the meta-configuration files, the
 .B getconfig
 program chooses as the successful rule the last and highest weighted
 rule that evaluates to true.

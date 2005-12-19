@@ -233,7 +233,7 @@ may be different.
    * DoneSolid - finish a solid fill
    * @pPixmap: Pixmap to finish
    *
-   * Finish the solid fills done in the preceeding Solid calls.
+   * Finish the solid fills done in the preceding Solid calls.
    *
    * Must not fail.
    *
@@ -408,7 +408,7 @@ may be different.
    * memory, copy @pSrc from system memory into @pDst in framebuffer memory,
    * and adjust pDst->devKind to the pitch of the destination and
    * pDst->devPrivate.ptr to the pointer to the area.  The driver is
-   * responsbile for syncing UploadToScratch.  Only data from the last
+   * responsible for syncing UploadToScratch.  Only data from the last
    * UploadToScratch is required to be valid at any given time.
    *
    * Return TRUE for success, FALSE for failure.
@@ -442,7 +442,7 @@ may be different.
    * @pScreen: current screen
    *
    * Return a command marker for use by WaitMarker.  This is an optional
-   * optmization that can keep WaitMarker from having to idle the whole
+   * optimization that can keep WaitMarker from having to idle the whole
    * engine.
    *
    * Returns an integer command id marker.
