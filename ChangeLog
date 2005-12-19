@@ -1,3 +1,8 @@
+2005-12-19  Adam Jackson  <ajax@freedesktop.org>
+
+	* hw/xfree86/doc/man/xorg.conf.man.pre:
+	Bug #5116: Refer DRI section details to dri.fd.o.
+
 2005-12-19  Alan Coopersmith  <alan.coopersmith@sun.com>
 
 	* hw/xfree86/doc/devel/exa-driver.txt:
