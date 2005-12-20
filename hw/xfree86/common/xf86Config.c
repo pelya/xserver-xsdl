@@ -489,6 +489,7 @@ fixup_video_driver_list(char **drivers)
                 }
             }
             /* if we get here, ati was already ahead of atimisc */
+            return;
         }
     }
 }
