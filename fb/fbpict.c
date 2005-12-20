@@ -881,7 +881,7 @@ fbComposite (CARD8      op,
     case PictOpSrc:
 #ifdef USE_MMX
 	if (!pMask && pSrc->format == pDst->format &&
-	    pSrc->pDrawable != pDst->pDrawable)
+	    pSrc->format != PICT_a8 && pSrc->pDrawable != pDst->pDrawable)
 	{
 	    func = fbCompositeCopyAreammx;
 	}
