@@ -550,15 +550,11 @@ InitOutput (ScreenInfo *pScreenInfo,
 	xscreen = DefaultScreen (xdisplay);
     }
 
-    templ.types.window     = 1;
-    templ.types.pbuffer    = 1;
     templ.samples          = 1;
     templ.doublebuffer     = 1;
     templ.color.alpha_size = 8;
     
-    mask =
-	GLITZ_FORMAT_WINDOW_MASK |
-	GLITZ_FORMAT_SAMPLES_MASK;
+    mask = GLITZ_FORMAT_SAMPLES_MASK;
 
     for (i = 0; i < sizeof (extraMask) / sizeof (extraMask[0]); i++)
     {
