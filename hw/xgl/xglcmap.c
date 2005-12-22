@@ -269,7 +269,7 @@ xglInitPixmapFormats (ScreenPtr pScreen)
 		do {
 		    format = glitz_find_format (pScreenPriv->drawable,
 						0, NULL, k++);
-		    if (format && format->type == GLITZ_FORMAT_TYPE_COLOR)
+		    if (format && format->color.fourcc == GLITZ_FOURCC_RGB)
 		    {
 			/* find best matching sufficient format */
 			if (format->color.red_size   >= rs &&
