@@ -1,3 +1,10 @@
+2005-12-22  Eric Anholt  <anholt@FreeBSD.org>
+
+	* hw/xfree86/dixmods/Makefile.am:
+	* hw/xfree86/xaa/Makefile.am:
+	Adjust the rules for auto-generating some source files, so that they
+	work on both GNU make and FreeBSD's make.
+
 2005-12-20  Kevin E. Martin  <kem-at-freedesktop-dot-org>
 
 	* configure.ac:

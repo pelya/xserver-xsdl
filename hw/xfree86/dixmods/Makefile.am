@@ -111,12 +111,13 @@ libtype1_la_SOURCES = type1mod.c
 
 libdixmods_la_SOURCES = $(top_srcdir)/mi/miinitext.c
 
-libxorgxkb_la_SOURCES = xkbVT.c xkbPrivate.c xkbKillSrv.c
+XKB_SOURCES = xkbVT.c xkbPrivate.c xkbKillSrv.c
+libxorgxkb_la_SOURCES = $(XKB_SOURCES)
 
 libxtrap_la_LDFLAGS = -avoid-version
 libxtrap_la_LIBADD = $(top_builddir)/XTrap/libxtrapmodule.la
 libxtrap_la_SOURCES = xf86XTrapModule.c
 
-xkb%.c:
+$(XKB_SOURCES):
 	echo "#define XF86DDXACTIONS" > $@
-	echo "#include \"$(top_srcdir)/xkb/ddx$*.c\"" >> $@
+	echo "#include \"$(top_srcdir)/xkb/ddx${@:xkb%=%}\"" >> $@
