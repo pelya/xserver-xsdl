@@ -383,7 +383,7 @@ AC_ARG_ENABLE(xf86vidmode,    AS_HELP_STRING([--disable-xf86vidmode], [Build XF8
 AC_ARG_ENABLE(xf86misc,       AS_HELP_STRING([--disable-xf86misc], [Build XF86Misc extension (default: enabled)]), [XF86MISC=$enableval], [XF86MISC=yes])
 AC_ARG_ENABLE(xcsecurity,     AS_HELP_STRING([--disable-xcsecurity], [Build Security extension (default: enabled)]), [XCSECURITY=$enableval], [XCSECURITY=yes])
 AC_ARG_ENABLE(xevie,          AS_HELP_STRING([--disable-xevie], [Build XEvIE extension (default: enabled)]), [XEVIE=$enableval], [XEVIE=yes])
-AC_ARG_ENABLE(lbx,            AS_HELP_STRING([--disable-lbx], [Build LBX extension (default: enabled)]), [LBX=$enableval], [LBX=yes])
+AC_ARG_ENABLE(lbx,            AS_HELP_STRING([--disable-lbx], [Build LBX extension (default: auto)]), [LBX=$enableval], [LBX=auto])
 AC_ARG_ENABLE(appgroup,       AS_HELP_STRING([--disable-appgroup], [Build XC-APPGROUP extension (default: enabled)]), [APPGROUP=$enableval], [APPGROUP=yes])
 AC_ARG_ENABLE(cup,            AS_HELP_STRING([--disable-cup], [Build TOG-CUP extension (default: enabled)]), [CUP=$enableval], [CUP=yes])
 AC_ARG_ENABLE(evi,            AS_HELP_STRING([--disable-evi], [Build Extended-Visual-Information extension (default: enabled)]), [EVI=$enableval], [EVI=yes])
@@ -535,6 +535,16 @@ else
 fi
 AM_CONDITIONAL(GLX, test "x$GLX" = xyes)
 AC_SUBST([MESA_SOURCE])
+
+PKG_CHECK_MODULES([LBXUTIL_TEST], [lbxutil], [have_lbxutil=yes], [have_lbxutil=no])
+
+if test "x$LBX" = xauto; then
+    if test "x$have_lbxutil" = "xyes"; then
+        LBX="yes"
+    else
+        LBX="no"
+    fi
+fi
 
 AM_CONDITIONAL(LBX, [test "x$LBX" = xyes])
 if test "x$LBX" = xyes; then

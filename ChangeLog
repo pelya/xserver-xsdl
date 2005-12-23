@@ -1,3 +1,8 @@
+2005-12-23  Daniel Stone  <daniel@freedesktop.org>
+
+	* configure.ac:
+	Make LBX configuration default to 'auto'.
+
 2005-12-22  Eric Anholt  <anholt@FreeBSD.org>
 
 	* hw/xfree86/dixmods/Makefile.am:
