@@ -173,7 +173,7 @@ xglTrapezoids (CARD8	     op,
     target = xglPrepareTarget (pDst->pDrawable);
 
     if (nTrap > 1 && op != PictOpAdd && maskFormat &&
-	(overlap || op != PictOpOver))
+	(!target || overlap || op != PictOpOver))
     {
 	PixmapPtr  pPixmap;
 	GCPtr	   pGC;

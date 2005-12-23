@@ -114,6 +114,8 @@ xglPixmapSurfaceInit (PixmapPtr	    pPixmap,
 	
 	if (width && height)
 	{
+	    XGL_SCREEN_PRIV (pPixmap->drawable.pScreen);
+	    
 	    if (width == 1 && height == 1)
 	    {
 		pPixmapPriv->acceleratedTile = TRUE;
@@ -124,19 +126,27 @@ xglPixmapSurfaceInit (PixmapPtr	    pPixmap,
 		    (POWER_OF_TWO (width) && POWER_OF_TWO (height)))
 		    pPixmapPriv->acceleratedTile = TRUE;
 	    }
-	    
-	    pPixmapPriv->target = xglPixmapTargetOut;
-	    
-	    /*
-	     * Do not allow accelerated drawing to bitmaps.
-	     */
-	    if (pPixmap->drawable.depth == 1)
-		pPixmapPriv->target = xglPixmapTargetNo;
 
 	    /*
-	     * Drawing to really small pixmaps is not worth accelerating.
+	     * Accelerated drawing to pixmaps when using FBOs 
 	     */
-	    if (width < 8 && height < 8)
+	    if (pScreenPriv->fbo)
+	    {
+		pPixmapPriv->target = xglPixmapTargetOut;
+	    
+		/*
+		 * Do not allow accelerated drawing to bitmaps.
+		 */
+		if (pPixmap->drawable.depth == 1)
+		    pPixmapPriv->target = xglPixmapTargetNo;
+
+		/*
+		 * Drawing to really small pixmaps is not worth accelerating.
+		 */
+		if (width < 8 && height < 8)
+		    pPixmapPriv->target = xglPixmapTargetNo;
+	    }
+	    else
 		pPixmapPriv->target = xglPixmapTargetNo;
 	}
     }

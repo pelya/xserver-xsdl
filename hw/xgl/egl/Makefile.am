@@ -1,22 +1,37 @@
+if XGLSERVER
+MODULE_SUBDIRS = module
+endif
+
+SUBDIRS =		  \
+	.		  \
+	$(MODULE_SUBDIRS)
+
 INCLUDES =		    \
-	@XGL_INCS@	    \
+	@XEGL_INCS@	    \
 	@XSERVER_CFLAGS@    \
-	@XGLXSERVER_CFLAGS@
+	@XGLSERVER_CFLAGS@  \
+	@XEGLSERVER_CFLAGS@
 
-bin_PROGRAMS = Xegl
+noinst_LTLIBRARIES = libxegl.la
 
-Xegl_SOURCES =	    \
-	xegl.h	    \
-	xegl.c	    \
-	xeglinput.c \
-	kkeymap.h   \
-	kinput.c    \
+libxegl_la_SOURCES = \
+	xegl.h	     \
+	xegl.c	     \
+	xeglinput.c  \
+	kkeymap.h    \
+	kinput.c     \
 	evdev.c
 
-Xegl_LDADD =		  \
-	@XGL_LIBS@	  \
-	@XSERVER_LIBS@	  \
+if XEGLSERVER
+Xegl_DEPENDENCIES = @XEGL_LIBS@
+Xegl_LDFLAGS	  = -export-dynamic
+Xegl_SOURCES	  = xeglinit.c
+Xegl_LDADD	  =	  \
+	@XEGL_LIBS@	  \
+	@XSERVER_LIBS@    \
+	@XGLSERVER_LIBS@  \
 	@XEGLSERVER_LIBS@
+Xegl_programs	  = Xegl
+endif
 
-Xegl_DEPENDENCIES = @XGL_LIBS@
-
+bin_PROGRAMS = $(Xegl_programs)

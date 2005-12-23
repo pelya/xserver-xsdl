@@ -1,17 +1,26 @@
-if XGLXSERVER
+if GLX
+GLX_SUBDIRS = glxext
+endif
+
+if XGLX
 XGLX_SUBDIRS = glx
 endif
 
-if XEGLSERVER
+if XEGL
 XEGL_SUBDIRS = egl
 endif
 
-SUBDIRS = . $(XGLX_SUBDIRS) $(XEGL_SUBDIRS)
+SUBDIRS = 		\
+	.		\
+	$(GLX_SUBDIRS)  \
+	$(XGLX_SUBDIRS) \
+	$(XEGL_SUBDIRS)
 
 INCLUDES =		   \
 	@XGL_INCS@	   \
 	@XSERVER_CFLAGS@   \
-	@XGLSERVER_CFLAGS@
+	@XGLSERVER_CFLAGS@ \
+	-DMODULEPATH=\"@MODULEPATH@\"
 
 noinst_LIBRARIES = libxgl.a
 
@@ -40,4 +49,18 @@ libxgl_a_SOURCES =     \
 	xglglyph.c     \
 	xgltrap.c      \
 	xglhash.c      \
+        xglloader.c    \
 	xglglx.c
+
+if XGLSERVER
+Xgl_DEPENDENCIES = @XGL_LIBS@
+Xgl_LDFLAGS = -export-dynamic
+Xgl_SOURCES = xglinit.c
+Xgl_LDADD =	\
+	@XGL_LIBS@	\
+	@XSERVER_LIBS@	\
+	@XGLSERVER_LIBS@
+Xgl_programs = Xgl
+endif
+
+bin_PROGRAMS = $(Xgl_programs)

@@ -1,6 +1,6 @@
 /*
  * Copyright © 2005 Novell, Inc.
- * 
+ *
  * Permission to use, copy, modify, distribute, and sell this software
  * and its documentation for any purpose is hereby granted without
  * fee, provided that the above copyright notice appear in all copies
@@ -12,11 +12,11 @@
  * software for any purpose. It is provided "as is" without express or
  * implied warranty.
  *
- * NOVELL, INC. DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE, 
+ * NOVELL, INC. DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
  * INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN
  * NO EVENT SHALL NOVELL, INC. BE LIABLE FOR ANY SPECIAL, INDIRECT OR
  * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
- * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, 
+ * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *
@@ -25,58 +25,77 @@
 
 #include "xgl.h"
 
-#ifdef GLXEXT
+#define SYM(ptr, name) { (void **) &(ptr), (name) }
 
-/* This is just a wrapper around Mesa's hash functions. */
+typedef struct _xglHashFunc {
+    xglHashTablePtr (*NewHashTable)	    (void);
+    void	    (*DeleteHashTable)      (xglHashTablePtr	   pTable);
+    void	    *(*HashLookup)	    (const xglHashTablePtr pTable,
+					     unsigned int	   key);
+    void	    (*HashInsert)	    (xglHashTablePtr	   pTable,
+					     unsigned int	   key,
+					     void		   *data);
+    void	    (*HashRemove)	    (xglHashTablePtr	   pTable,
+					     unsigned int	   key);
+    unsigned int    (*HashFirstEntry)       (xglHashTablePtr	   pTable);
+    unsigned int    (*HashNextEntry)	    (const xglHashTablePtr pTable,
+					     unsigned int	   key);
+    unsigned int    (*HashFindFreeKeyBlock) (xglHashTablePtr	   pTable,
+					     unsigned int	   numKeys);
+} xglHashFuncRec;
 
-extern struct _mesa_HashTable *
-_mesa_NewHashTable (void);
+static xglHashFuncRec __hashFunc;
 
-extern void
-_mesa_DeleteHashTable (struct _mesa_HashTable *table);
+static void *hashHandle = 0;
 
-extern void *
-_mesa_HashLookup (const struct _mesa_HashTable *table,
-		  unsigned int		       key);
+Bool
+xglLoadHashFuncs (void *handle)
+{
 
-extern void
-_mesa_HashInsert (struct _mesa_HashTable *table,
-		  unsigned int		 key,
-		  void			 *data);
+#ifdef XLOADABLE
+    xglSymbolRec sym[] = {
+	SYM (__hashFunc.NewHashTable,	      "_mesa_NewHashTable"),
+	SYM (__hashFunc.DeleteHashTable,      "_mesa_DeleteHashTable"),
+	SYM (__hashFunc.HashLookup,	      "_mesa_HashLookup"),
+	SYM (__hashFunc.HashInsert,	      "_mesa_HashInsert"),
+	SYM (__hashFunc.HashRemove,	      "_mesa_HashRemove"),
+	SYM (__hashFunc.HashFirstEntry,	      "_mesa_HashFirstEntry"),
+	SYM (__hashFunc.HashNextEntry,	      "_mesa_HashNextEntry"),
+	SYM (__hashFunc.HashFindFreeKeyBlock, "_mesa_HashFindFreeKeyBlock")
+    };
 
-extern void
-_mesa_HashRemove (struct _mesa_HashTable *table,
-		  unsigned int		 key);
+    if (!xglLookupSymbols (handle, sym, sizeof (sym) / sizeof (sym[0])))
+	return FALSE;
 
-extern unsigned int
-_mesa_HashFirstEntry (struct _mesa_HashTable *table);
+    hashHandle = handle;
 
-extern unsigned int
-_mesa_HashNextEntry (const struct _mesa_HashTable *table,
-		     unsigned int		  key);
+    return TRUE;
+#else
+    return FALSE;
+#endif
 
-extern unsigned int
-_mesa_HashFindFreeKeyBlock (struct _mesa_HashTable *table,
-			    unsigned int	   numKeys);
-
+}
 
 xglHashTablePtr
 xglNewHashTable (void)
 {
-    return (xglHashTablePtr) _mesa_NewHashTable ();
+    if (!hashHandle)
+	return 0;
+
+    return (*__hashFunc.NewHashTable) ();
 }
 
 void
 xglDeleteHashTable (xglHashTablePtr pTable)
 {
-    _mesa_DeleteHashTable ((struct _mesa_HashTable *) pTable);
+    (*__hashFunc.DeleteHashTable) (pTable);
 }
 
 void *
 xglHashLookup (const xglHashTablePtr pTable,
 	       unsigned int	     key)
 {
-    return _mesa_HashLookup ((struct _mesa_HashTable *) pTable, key);  
+    return (*__hashFunc.HashLookup) (pTable, key);
 }
 
 void
@@ -84,35 +103,32 @@ xglHashInsert (xglHashTablePtr pTable,
 	       unsigned int    key,
 	       void	       *data)
 {
-    _mesa_HashInsert ((struct _mesa_HashTable *) pTable, key, data);
+    (*__hashFunc.HashInsert) (pTable, key, data);
 }
 
 void
 xglHashRemove (xglHashTablePtr pTable,
 	       unsigned int    key)
 {
-    _mesa_HashRemove ((struct _mesa_HashTable *) pTable, key);
+    (*__hashFunc.HashRemove) (pTable, key);
 }
 
 unsigned int
 xglHashFirstEntry (xglHashTablePtr pTable)
 {
-    return _mesa_HashFirstEntry ((struct _mesa_HashTable *) pTable);
+    return (*__hashFunc.HashFirstEntry) (pTable);
 }
 
 unsigned int
 xglHashNextEntry (const xglHashTablePtr pTable,
 		  unsigned int		key)
 {
-    return _mesa_HashNextEntry ((struct _mesa_HashTable *) pTable, key);
+    return (*__hashFunc.HashNextEntry) (pTable, key);
 }
 
 unsigned int
 xglHashFindFreeKeyBlock (xglHashTablePtr pTable,
 			 unsigned int	 numKeys)
 {
-    return _mesa_HashFindFreeKeyBlock ((struct _mesa_HashTable *) pTable,
-				       numKeys);
+    return (*__hashFunc.HashFindFreeKeyBlock) (pTable, numKeys);
 }
-
-#endif

@@ -23,6 +23,7 @@
  * Author: David Reveman <davidr@novell.com>
  */
 
+#include <stdint.h>
 #include "xgl.h"
 #include "colormapst.h"
 #include "micmap.h"
@@ -147,7 +148,6 @@ xglSetVisualTypesAndMasks (ScreenInfo	           *pScreenInfo,
 		nxglVisuals++;
 	    }
 	}
-
     }
 }
 

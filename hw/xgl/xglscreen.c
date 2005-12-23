@@ -134,8 +134,7 @@ xglAllocatePrivates (ScreenPtr pScreen)
 }
 
 Bool
-xglScreenInit (ScreenPtr        pScreen,
-	       xglScreenInfoPtr pScreenInfo)
+xglScreenInit (ScreenPtr        pScreen)
 {
     xglScreenPtr pScreenPriv;
     int		 depth, bpp;
@@ -152,9 +151,9 @@ xglScreenInit (ScreenPtr        pScreen,
     pScreenPriv->pScreenPixmap = NULL;
     
     pScreenPriv->pVisual  = &xglVisuals[0];
-    pScreenPriv->drawable = pScreenInfo->drawable;
+    pScreenPriv->drawable = xglScreenInfo.drawable;
     pScreenPriv->features =
-	glitz_drawable_get_features (pScreenInfo->drawable);
+      glitz_drawable_get_features (xglScreenInfo.drawable);
 
     depth = pScreenPriv->pVisual->pPixel->depth;
     bpp   = pScreenPriv->pVisual->pPixel->masks.bpp;
@@ -163,11 +162,12 @@ xglScreenInit (ScreenPtr        pScreen,
     if (!pScreenPriv->pixmapFormats[depth].format)
 	return FALSE;
     
-    pScreenPriv->geometryDataType = pScreenInfo->geometryDataType;
-    pScreenPriv->geometryUsage    = pScreenInfo->geometryUsage;
-    pScreenPriv->yInverted	  = pScreenInfo->yInverted;
-    pScreenPriv->pboMask	  = pScreenInfo->pboMask;
-    pScreenPriv->lines		  = pScreenInfo->lines;
+    pScreenPriv->geometryDataType = xglScreenInfo.geometryDataType;
+    pScreenPriv->geometryUsage    = xglScreenInfo.geometryUsage;
+    pScreenPriv->yInverted	  = xglScreenInfo.yInverted;
+    pScreenPriv->pboMask	  = xglScreenInfo.pboMask;
+    pScreenPriv->lines		  = xglScreenInfo.lines;
+    pScreenPriv->fbo              = xglScreenInfo.fbo;
 
     GEOMETRY_INIT (pScreen, &pScreenPriv->scratchGeometry,
 		   GLITZ_GEOMETRY_TYPE_VERTEX,
@@ -176,7 +176,7 @@ xglScreenInit (ScreenPtr        pScreen,
     pScreenPriv->surface =
 	glitz_surface_create (pScreenPriv->drawable,
 			      pScreenPriv->pixmapFormats[depth].format,
-			      pScreenInfo->width, pScreenInfo->height,
+			      xglScreenInfo.width, xglScreenInfo.height,
 			      0, NULL);
     if (!pScreenPriv->surface)
 	return FALSE;
@@ -191,9 +191,9 @@ xglScreenInit (ScreenPtr        pScreen,
 	monitorResolution = XGL_DEFAULT_DPI;
 
     if (!fbSetupScreen (pScreen, NULL,
-			pScreenInfo->width, pScreenInfo->height,
+			xglScreenInfo.width, xglScreenInfo.height,
 			monitorResolution, monitorResolution,
-			pScreenInfo->width, bpp))
+			xglScreenInfo.width, bpp))
 	return FALSE;
 
     pScreen->SaveScreen = xglSaveScreen;
@@ -202,9 +202,9 @@ xglScreenInit (ScreenPtr        pScreen,
     pScreen->DestroyPixmap = xglDestroyPixmap;
 
     if (!fbFinishScreenInit (pScreen, NULL,
-			     pScreenInfo->width, pScreenInfo->height,
+			     xglScreenInfo.width, xglScreenInfo.height,
 			     monitorResolution, monitorResolution,
-			     pScreenInfo->width, bpp))
+			     xglScreenInfo.width, bpp))
 	return FALSE;
 
 #ifdef MITSHM
@@ -276,11 +276,6 @@ xglScreenInit (ScreenPtr        pScreen,
 	return FALSE;
 #endif
 
-#ifdef GLXEXT
-    if (!xglInitVisualConfigs (pScreen))
-	return FALSE;
-#endif
-    
     /* Damage is required */
     DamageSetup (pScreen);
 

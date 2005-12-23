@@ -27,7 +27,12 @@
 #include <X11/Xutil.h>
 #include <glitz-glx.h>
 
-#include "xgl.h"
+#include "xglx.h"
+
+#ifdef GLXEXT
+#include "xglglxext.h"
+#endif
+
 #include "inputstr.h"
 #include "cursorstr.h"
 #include "mipointer.h"
@@ -72,21 +77,13 @@ typedef struct _xglxCursor {
 #define XGLX_CURSOR_PRIV(pCursor, pScreen)			        \
     xglxCursorPtr pCursorPriv = XGLX_GET_CURSOR_PRIV (pCursor, pScreen)
 
-char		 *xDisplayName = NULL;
-Display		 *xdisplay = NULL;
-int		 xscreen;
-glitz_format_t	 *xglxCurrentFormat;
-CARD32		 lastEventTime = 0;
-ScreenPtr	 currentScreen = NULL;
-Bool		 softCursor = FALSE;
-xglScreenInfoRec xglScreenInfo = {
-    NULL, 0, 0, 0, 0, FALSE,
-    DEFAULT_GEOMETRY_DATA_TYPE,
-    DEFAULT_GEOMETRY_USAGE,
-    FALSE,
-    XGL_DEFAULT_PBO_MASK,
-    FALSE
-};
+static char	 *xDisplayName = 0;
+static Display	 *xdisplay     = 0;
+static int	 xscreen;
+static CARD32	 lastEventTime = 0;
+static ScreenPtr currentScreen = 0;
+static Bool	 softCursor    = FALSE;
+static Bool	 fullscreen    = FALSE;
 
 static Bool
 xglxAllocatePrivates (ScreenPtr pScreen)
@@ -375,7 +372,7 @@ xglxScreenInit (int	  index,
     pScreenPriv->colormap =
 	XCreateColormap (xdisplay, root, vinfo->visual, AllocNone);
 
-    if (xglScreenInfo.fullscreen)
+    if (fullscreen)
     {
 	xglScreenInfo.width    = DisplayWidth (xdisplay, xscreen);
 	xglScreenInfo.height   = DisplayHeight (xdisplay, xscreen);
@@ -405,7 +402,7 @@ xglxScreenInit (int	  index,
     normalHints->max_width  = xglScreenInfo.width;
     normalHints->max_height = xglScreenInfo.height;
 
-    if (xglScreenInfo.fullscreen)
+    if (fullscreen)
     {
 	normalHints->x = 0;
 	normalHints->y = 0;
@@ -444,7 +441,7 @@ xglxScreenInit (int	  index,
     
     XMapWindow (xdisplay, pScreenPriv->win);
 
-    if (xglScreenInfo.fullscreen)
+    if (fullscreen)
     {
 	XClientMessageEvent xev;
 	
@@ -465,9 +462,14 @@ xglxScreenInit (int	  index,
 
     xglScreenInfo.drawable = drawable;
     
-    if (!xglScreenInit (pScreen, &xglScreenInfo))
+    if (!xglScreenInit (pScreen))
 	return FALSE;
-    
+
+#ifdef GLXEXT
+    if (!xglInitVisualConfigs (pScreen))
+	return FALSE;
+#endif
+
     XGL_SCREEN_WRAP (CloseScreen, xglxCloseScreen);
 
 #ifdef ARGB_CURSOR
@@ -526,9 +528,9 @@ xglxScreenInit (int	  index,
 }
 
 void
-InitOutput (ScreenInfo *pScreenInfo,
-	    int	       argc,
-	    char       **argv)
+xglxInitOutput (ScreenInfo *pScreenInfo,
+		int	   argc,
+		char	   **argv)
 {
     glitz_drawable_format_t *format, templ;
     int			    i;
@@ -792,21 +794,22 @@ xglxKeybdProc (DeviceIntPtr pDevice,
 }
 
 Bool
-LegalModifier (unsigned int key,
-	       DevicePtr    pDev)
+xglxLegalModifier (unsigned int key,
+		   DevicePtr    pDev)
 {
     return TRUE;
 }
 
 void
-ProcessInputEvents ()
+xglxProcessInputEvents (void)
 {
     mieqProcessInputEvents ();
     miPointerUpdate ();
 }
 
 void
-InitInput (int argc, char **argv)
+xglxInitInput (int  argc,
+	       char **argv)
 {
     DeviceIntPtr pKeyboard, pPointer;
     
@@ -827,18 +830,36 @@ InitInput (int argc, char **argv)
 }
 
 void
-ddxUseMsg (void)
+xglxUseMsg (void)
 {
-    ErrorF ("\nXglx usage:\n");
+    ErrorF ("-screen WIDTH[/WIDTHMM]xHEIGHT[/HEIGHTMM] "
+	    "specify screen characteristics\n");
+    ErrorF ("-fullscreen            run fullscreen\n");
     ErrorF ("-display string        display name of the real server\n");
     ErrorF ("-softcursor            force software cursor\n");
-    
-    xglUseMsg ();
 }
 
 int
-ddxProcessArgument (int argc, char **argv, int i)
+xglxProcessArgument (int  argc,
+		     char **argv,
+		     int  i)
 {
+    if (!strcmp (argv[i], "-screen"))
+    {
+	if ((i + 1) < argc)
+	{
+	    xglParseScreen (argv[i + 1]);
+	}
+	else
+	    return 1;
+
+	return 2;
+    }
+    else if (!strcmp (argv[i], "-fullscreen"))
+    {
+	fullscreen = TRUE;
+	return 1;
+    }
     if (!strcmp (argv[i], "-display"))
     {
 	if (++i < argc) {
@@ -853,22 +874,22 @@ ddxProcessArgument (int argc, char **argv, int i)
 	return 1;
     }
 
-    return xglProcessArgument (&xglScreenInfo, argc, argv, i);
+    return 0;
 }
 
 void
-AbortDDX (void)
-{    
+xglxAbort (void)
+{
 }
 
 void
-ddxGiveUp ()
+xglxGiveUp ()
 {
     AbortDDX ();
 }
 
 void
-OsVendorInit (void)
+xglxOsVendorInit (void)
 {
 }
 
@@ -924,7 +945,7 @@ xglxCreateARGBCursor (ScreenPtr pScreen,
     
     xformat = XRenderFindStandardFormat (xdisplay, PictStandardARGB32);
     xpicture = XRenderCreatePicture (xdisplay, xpixmap, xformat, 0, 0);
-    
+
     cursor = XRenderCreateCursor (xdisplay, xpicture,
 				  pCursor->bits->xhot,
 				  pCursor->bits->yhot);

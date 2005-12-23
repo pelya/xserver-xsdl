@@ -1,16 +1,33 @@
+if XGLSERVER
+MODULE_SUBDIRS = module
+endif
+
+SUBDIRS =		  \
+	.		  \
+	$(MODULE_SUBDIRS)
+
 INCLUDES =		    \
-	@XGL_INCS@	    \
+	@XGLX_INCS@	    \
 	@XSERVER_CFLAGS@    \
+	@XGLSERVER_CFLAGS@  \
 	@XGLXSERVER_CFLAGS@
 
-bin_PROGRAMS = Xglx
+noinst_LTLIBRARIES = libxglx.la
 
-Xglx_SOURCES = xglx.c
+libxglx_la_SOURCES = \
+	xglx.h	     \
+	xglx.c
 
-Xglx_LDADD =	          \
-	@XGL_LIBS@        \
+if XGLXSERVER
+Xglx_DEPENDENCIES = @XGLX_LIBS@
+Xglx_LDFLAGS	  = -export-dynamic
+Xglx_SOURCES	  = xglxinit.c
+Xglx_LDADD	  =	  \
+	@XGLX_LIBS@	  \
 	@XSERVER_LIBS@    \
+	@XGLSERVER_LIBS@  \
 	@XGLXSERVER_LIBS@
+Xglx_programs	  = Xglx
+endif
 
-Xglx_DEPENDENCIES = @XGL_LIBS@
-
+bin_PROGRAMS = $(Xglx_programs)

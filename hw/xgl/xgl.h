@@ -55,7 +55,7 @@ typedef struct _GCFuncs *GCFuncsPtr;
 
 extern WindowPtr *WindowTable;
 
-#define XGL_DEFAULT_PBO_MASK 0 /* don't use PBO as default */
+#define XGL_DEFAULT_PBO_MASK 0
 
 typedef struct _xglScreenInfo {
     glitz_drawable_t *drawable;
@@ -63,13 +63,15 @@ typedef struct _xglScreenInfo {
     unsigned int     height;
     unsigned int     widthMm;
     unsigned int     heightMm;
-    Bool	     fullscreen;
     int		     geometryDataType;
     int		     geometryUsage;
     Bool	     yInverted;
     int		     pboMask;
     Bool	     lines;
+    Bool	     fbo;
 } xglScreenInfoRec, *xglScreenInfoPtr;
+
+extern xglScreenInfoRec xglScreenInfo;
 
 typedef struct _xglPixelFormat {
     CARD8		depth, bitsPerRGB;
@@ -213,6 +215,7 @@ typedef struct _xglScreen {
     Bool			  yInverted;
     int				  pboMask;
     Bool			  lines;
+    Bool			  fbo;
     xglGeometryRec		  scratchGeometry;
     
 #ifdef RENDER
@@ -489,24 +492,21 @@ xglParseFindNext (char *cur,
 		  char *last);
 
 void
-xglParseScreen (xglScreenInfoPtr pScreenInfo,
-		char	         *arg);
+xglParseScreen (char *arg);
 
 void
 xglUseMsg (void);
 
 int
-xglProcessArgument (xglScreenInfoPtr pScreenInfo,
-		    int		     argc,
-		    char	     **argv,
-		    int		     i);
+xglProcessArgument (int	 argc,
+		    char **argv,
+		    int	 i);
 
 
 /* xglscreen.c */
 
 Bool
-xglScreenInit (ScreenPtr        pScreen,
-	       xglScreenInfoPtr pScreenInfo);
+xglScreenInit (ScreenPtr pScreen);
 
 Bool
 xglFinishScreenInit (ScreenPtr pScreen);
@@ -870,6 +870,10 @@ xglAddSurfaceDamage (DrawablePtr pDrawable,
 
 void
 xglAddCurrentSurfaceDamage (DrawablePtr pDrawable);
+
+void
+xglAddBitDamage (DrawablePtr pDrawable,
+		 RegionPtr   pRegion);
 
 void
 xglAddCurrentBitDamage (DrawablePtr pDrawable);
@@ -1327,9 +1331,46 @@ xglAddTraps (PicturePtr pDst,
 
 #endif
 
+#ifdef XLOADABLE
+
+/* xglloader.c */
+
+typedef struct _xglSymbol {
+    void       **ptr;
+    const char *name;
+} xglSymbolRec, *xglSymbolPtr;
+
+void *
+xglLoadModule (const char *name);
+
+void
+xglUnloadModule (void *handle);
+
+Bool
+xglLookupSymbols (void         *handle,
+		  xglSymbolPtr sym,
+		  int	       nSym);
+
+#endif
+
 #ifdef GLXEXT
 
+/* xglglx.c */
+
+Bool
+xglLoadGLXModules (void);
+
+void
+xglUnloadGLXModules (void);
+
+#endif
+
+/* xglhash.c */
+
 typedef struct _xglHashTable *xglHashTablePtr;
+
+Bool
+xglLoadHashFuncs (void *handle);
 
 xglHashTablePtr
 xglNewHashTable (void);
@@ -1360,10 +1401,5 @@ xglHashNextEntry (const xglHashTablePtr pTable,
 unsigned int
 xglHashFindFreeKeyBlock (xglHashTablePtr pTable,
 			 unsigned int	 numKeys);
-
-Bool
-xglInitVisualConfigs (ScreenPtr pScreen);
-
-#endif
 
 #endif /* _XGL_H_ */

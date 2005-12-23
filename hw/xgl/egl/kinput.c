@@ -30,7 +30,6 @@
 #include <signal.h>
 #include <stdio.h>
 
-#include "xgl.h"
 #include "xegl.h"
 #include "mipointer.h"
 #include "inputstr.h"
@@ -348,7 +347,7 @@ KdMouseProc(DeviceIntPtr pDevice, int onoff)
 }
 
 Bool
-LegalModifier(unsigned int key, DevicePtr pDev)
+KdLegalModifier(unsigned int key, DevicePtr pDev)
 {
     return TRUE;
 }
@@ -1518,12 +1517,10 @@ KdBlockHandler (int		screen,
 }
 
 void
-KdWakeupHandler (int		screen,
-		 pointer    	data,
-		 unsigned long	lresult,
-		 pointer	readmask)
+KdWakeupHandler (pointer data,
+		 int	 result,
+		 pointer readmask)
 {
-    int		result = (int) lresult;
     fd_set	*pReadmask = (fd_set *) readmask;
     int		i;
     KdMouseInfo	*mi;
@@ -1555,7 +1552,7 @@ KdWakeupHandler (int		screen,
 //      kdProcessSwitch ();
 }
 
-#define KdScreenOrigin(pScreen) (&(KdGetScreenPriv(pScreen)->screen->origin))
+#define KdScreenOrigin(pScreen) (&(KdGetScreenPriv (pScreen)->origin))
 
 static Bool
 KdCursorOffScreen(ScreenPtr *ppScreen, int *x, int *y)
@@ -1673,7 +1670,7 @@ miPointerScreenFuncRec kdPointerScreenFuncs =
 };
 
 void
-ProcessInputEvents ()
+KdProcessInputEvents (void)
 {
     mieqProcessInputEvents();
     miPointerUpdate();
