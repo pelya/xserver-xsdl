@@ -69,10 +69,13 @@ xglComposite (CARD8	 op,
     
     pPictureScreen = GetPictureScreen (pScreen);
 
-    if (!xglSyncBits (pSrc->pDrawable, NullBox))
-	FatalError (XGL_SW_FAILURE_STRING);
+    if (pSrc->pDrawable)
+    {
+	if (!xglSyncBits (pSrc->pDrawable, NullBox))
+	    FatalError (XGL_SW_FAILURE_STRING);
+    }
     
-    if (pMask)
+    if (pMask && pMask->pDrawable)
     {
 	if (!xglSyncBits (pMask->pDrawable, NullBox))
 	    FatalError (XGL_SW_FAILURE_STRING);
