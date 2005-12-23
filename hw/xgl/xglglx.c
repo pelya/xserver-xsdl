@@ -3671,9 +3671,10 @@ xglInitExtensions (xglGLContextPtr pContext)
 static void
 xglSetCurrentContext (xglGLContextPtr pContext)
 {
+    XGL_SCREEN_PRIV (pContext->pDrawBuffer->pGC->pScreen);
     cctx = pContext;
 
-    glitz_context_make_current (cctx->context);
+    glitz_context_make_current (cctx->context, pScreenPriv->drawable);
 
     __glRenderTable = &__glNativeRenderTable;
     __glRenderTableEXT = &cctx->glRenderTableEXT;
@@ -4759,8 +4760,7 @@ xglInitVisualConfigs (ScreenPtr pScreen)
 
 	glitz_surface_attach (pScreenPriv->backSurface,
 			      pScreenPriv->drawable,
-			      GLITZ_DRAWABLE_BUFFER_BACK_COLOR,
-			      0, 0);
+			      GLITZ_DRAWABLE_BUFFER_BACK_COLOR);
 
 	numConfig *= 2;
     }
