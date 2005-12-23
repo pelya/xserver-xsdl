@@ -78,6 +78,9 @@ xglComp (CARD8		 op,
     if (op >= NUM_XGL_OPERATORS)
 	return FALSE;
 
+    if (pSrc->pSourcePict)
+        return FALSE;
+
     if (pSrc->pDrawable->type != DRAWABLE_PIXMAP)
 	return FALSE;
 
@@ -86,6 +89,8 @@ xglComp (CARD8		 op,
 
     if (pMask)
     {
+      if (pMask->pSourcePict)
+	return FALSE;
 	if (pMask->pDrawable->type != DRAWABLE_PIXMAP)
 	    return FALSE;
 
