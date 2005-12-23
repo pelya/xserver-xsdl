@@ -1,3 +1,9 @@
+2005-12-23  Alan Coopersmith  <alan.coopersmith@sun.com>
+
+	* doc/Xserver.man.pre: 
+	Change list of X server man pages in "See Also" section to list the
+	ones actually included and remove the ones that are no longer.
+
 2005-12-23  Daniel Stone  <daniel@freedesktop.org>
 
 	* configure.ac:

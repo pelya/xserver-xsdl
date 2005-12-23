@@ -1,4 +1,5 @@
 .\" $Xorg: Xserver.man,v 1.4 2001/02/09 02:04:07 xorgcvs Exp $
+.\" $XdotOrg: $
 .\" Copyright 1984 - 1991, 1993, 1994, 1998  The Open Group
 .\"
 .\" Permission to use, copy, modify, distribute, and sell this software and its
@@ -777,8 +778,8 @@ Controlling the server once started: \fIxset\fP(1), \fIxsetroot\fP(1),
 \fIxhost\fP(1)
 .PP
 Server-specific man pages:
-\fIXdec\fP(1), \fIXmacII\fP(1), \fIXsun\fP(1), \fIXnest\fP(1),
-\fIXvfb\fP(1), \fIXFree86\fP(1), \fIXDarwin\fP(1).
+\fIXorg\fP(1), \fIXdmx\fP(1), \fIXnest\fP(1),
+\fIXvfb\fP(1), \fIXDarwin\fP(1), \fIXWin\fP(1).
 .PP
 Server internal documentation:
 .I "Definition of the Porting Layer for the X v11 Sample Server"
