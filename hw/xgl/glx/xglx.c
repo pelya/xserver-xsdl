@@ -533,11 +533,6 @@ InitOutput (ScreenInfo *pScreenInfo,
     glitz_drawable_format_t *format, templ;
     int			    i;
     unsigned long	    mask;
-    unsigned long	    extraMask[] = {
-	GLITZ_FORMAT_PBUFFER_MASK      |
-	GLITZ_FORMAT_DOUBLEBUFFER_MASK,
-	0
-    };
 
     xglSetPixmapFormats (pScreenInfo);
     
@@ -556,14 +551,8 @@ InitOutput (ScreenInfo *pScreenInfo,
     
     mask = GLITZ_FORMAT_SAMPLES_MASK;
 
-    for (i = 0; i < sizeof (extraMask) / sizeof (extraMask[0]); i++)
-    {
-	format = glitz_glx_find_drawable_format (xdisplay, xscreen,
-						 mask | extraMask[i],
-						 &templ, 0);
-	if (format)
-	    break;
-    }
+    format = glitz_glx_find_window_format (xdisplay, xscreen,
+					   mask, &templ, 0);
     
     if (!format)
 	FatalError ("no visual format found");

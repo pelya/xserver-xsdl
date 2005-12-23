@@ -30,6 +30,7 @@
 #include <config.h>
 #endif
 
+#include <stdint.h>
 #include <stdio.h>
 #include <X11/X.h>
 #define NEED_EVENTS

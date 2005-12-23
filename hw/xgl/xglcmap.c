@@ -134,7 +134,7 @@ xglSetVisualTypesAndMasks (ScreenInfo	           *pScreenInfo,
     pPixelFormat = xglFindPixelFormat (format, visuals);
     if (pPixelFormat)
     {
-	if (visuals && format->types.window)
+	if (visuals)
 	{
 	    xglVisuals = xrealloc (xglVisuals,
 				   (nxglVisuals + 1) * sizeof (xglVisualRec));
@@ -148,20 +148,6 @@ xglSetVisualTypesAndMasks (ScreenInfo	           *pScreenInfo,
 	    }
 	}
 
-	if (format->types.pbuffer)
-	{
-	    xglPbufferVisuals =
-		xrealloc (xglPbufferVisuals,
-			  (nxglPbufferVisuals + 1) * sizeof (xglVisualRec));
-	    
-	    if (xglPbufferVisuals)
-	    {
-		xglPbufferVisuals[nxglPbufferVisuals].format  = format;
-		xglPbufferVisuals[nxglPbufferVisuals].pPixel  = NULL;
-		xglPbufferVisuals[nxglPbufferVisuals].visuals = 0;
-		nxglPbufferVisuals++;
-	    }
-	}
     }
 }
 

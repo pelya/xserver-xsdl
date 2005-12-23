@@ -183,8 +183,7 @@ xglScreenInit (ScreenPtr        pScreen,
 
     glitz_surface_attach (pScreenPriv->surface,
 			  pScreenPriv->drawable,
-			  GLITZ_DRAWABLE_BUFFER_FRONT_COLOR,
-			  0, 0);
+			  GLITZ_DRAWABLE_BUFFER_FRONT_COLOR);
 
     pScreenPriv->backSurface = NULL;
     
