@@ -41,11 +41,19 @@ xglCopy (DrawablePtr pSrc,
     if (!nBox)
 	return TRUE;
 
-    if (!xglPrepareTarget (pDst))
-	return FALSE;
-
-    if (!xglSyncSurface (pSrc))
-	return FALSE;
+    if (xglPrepareTarget (pDst))
+    {
+	if (!xglSyncSurface (pSrc))
+	    return FALSE;
+    }
+    else
+    {
+	if (!xglPrepareTarget (pSrc))
+	    return FALSE;
+	
+	if (!xglSyncSurface (pDst))
+	    return FALSE;
+    }
     
     XGL_GET_DRAWABLE (pSrc, src, srcXoff, srcYoff);
     XGL_GET_DRAWABLE (pDst, dst, dstXoff, dstYoff);
