@@ -1,3 +1,12 @@
+2005-12-25  Adam Jackson  <ajax@freedesktop.org>
+
+	* configure.ac:
+	* miext/Makefile.am:
+	* miext/layer/*:
+	* hw/xfree86/dixmods/Makefile.am:
+	* hw/xfree86/dixmods/extmod/Makefile.am:
+	Remove unused layer module.
+
 2005-12-23  Alan Coopersmith  <alan.coopersmith@sun.com>
 
 	* doc/Xserver.man.pre: 

@@ -21,7 +21,6 @@ module_LTLIBRARIES = libafb.la \
                      $(CFB24MOD) \
                      libcfb32.la \
                      libfb.la \
-                     liblayer.la \
                      libmfb.la \
                      libshadow.la
 
@@ -43,7 +42,6 @@ INCLUDES = @XORG_INCS@ \
            -I$(top_srcdir)/mfb \
            -I$(top_srcdir)/dbe \
            -I$(top_srcdir)/hw/xfree86/loader \
-           -I$(top_srcdir)/miext/layer \
            -I$(top_srcdir)/miext/shadow
 
 libGLcore_la_LDFLAGS = -avoid-version
@@ -86,10 +84,6 @@ libfb_la_SOURCES = $(top_builddir)/fb/fbcmap.c fbmodule.c
 libglx_la_LDFLAGS = -avoid-version
 libglx_la_LIBADD = $(top_builddir)/GL/glx/libglx.la
 libglx_la_SOURCES = glxmodule.c
-
-liblayer_la_LDFLAGS = -avoid-version
-liblayer_la_LIBADD = $(top_builddir)/miext/layer/liblayer.la
-liblayer_la_SOURCES = laymodule.c
 
 libmfb_la_LDFLAGS = -avoid-version
 libmfb_la_LIBADD = $(top_builddir)/mfb/libmfb.la

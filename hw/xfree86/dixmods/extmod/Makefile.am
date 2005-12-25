@@ -18,7 +18,6 @@ INCLUDES = @XORG_INCS@ \
            -I$(top_srcdir)/cfb \
            -I$(top_srcdir)/dbe \
            -I$(top_srcdir)/hw/xfree86/loader \
-           -I$(top_srcdir)/miext/layer \
            -I$(top_srcdir)/miext/shadow
 
 libextmod_la_LDFLAGS = -avoid-version
