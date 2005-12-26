@@ -42,3 +42,6 @@ SUFFIXES += .$(APP_MAN_SUFFIX) .man
 	$(LN_S) $< $@
 
 EXTRA_DIST = Xvfb.man.pre
+
+relink:
+	rm -f Xvfb && $(MAKE) Xvfb

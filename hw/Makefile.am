@@ -28,3 +28,6 @@ SUBDIRS =			\
 	$(DMX_SUBDIRS)
 
 DIST_SUBDIRS = dmx xfree86 vfb xnest xwin darwin
+
+relink:
+	for i in $(SUBDIRS) ; do $(MAKE) -C $$i relink ; done

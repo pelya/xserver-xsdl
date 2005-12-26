@@ -72,3 +72,6 @@ optionsdir = $(libdir)/X11
 dist_options_DATA = Options
 
 EXTRA_DIST = xorgconf.cpp
+
+relink:
+	rm -f Xorg && $(MAKE) Xorg

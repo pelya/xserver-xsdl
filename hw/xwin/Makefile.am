@@ -191,3 +191,6 @@ EXTRA_DIST = \
 	xlaunch/window/window.h \
 	xlaunch/window/wizard.cc \
 	xlaunch/window/wizard.h
+
+relink:
+	rm -f XWin && $(MAKE) XWin

@@ -110,3 +110,7 @@ DIST_SUBDIRS = \
 	Xprint \
 	XpConfig \
 	lbx
+
+# gross hack
+relink: all
+	$(MAKE) -C hw relink

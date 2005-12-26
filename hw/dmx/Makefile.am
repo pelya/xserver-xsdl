@@ -106,3 +106,6 @@ SUFFIXES = .$(APP_MAN_SUFFIX) .man
 	sed $(MAN_SUBSTS) < $< > $@
 
 EXTRA_DIST = $(appman_PRE)
+
+relink:
+	rm -f Xdmx && $(MAKE) Xdmx
