@@ -51,111 +51,18 @@ SOFTWARE.
 #include <dix-config.h>
 #endif
 
-#ifndef USE_RGB_TXT
-
-#ifdef NDBM
-#include <ndbm.h>
-#else
-#ifdef SVR4
-#include <rpcsvc/dbm.h>
-#else
-#include <dbm.h>
-#endif
-#endif
-#include "rgb.h"
-#include "os.h"
-#include "opaque.h"
-
-/* Note that we are assuming there is only one database for all the screens. */
-
-#ifdef NDBM
-DBM *rgb_dbm = (DBM *)NULL;
-#else
-int rgb_dbm = 0;
-#endif
-
-extern void CopyISOLatin1Lowered(
-    unsigned char * /*dest*/,
-    unsigned char * /*source*/,
-    int /*length*/);
-
-int
-OsInitColors(void)
-{
-    if (!rgb_dbm)
-    {
-#ifdef NDBM
-	rgb_dbm = dbm_open(rgbPath, 0, 0);
-#else
-	if (dbminit(rgbPath) == 0)
-	    rgb_dbm = 1;
-#endif
-	if (!rgb_dbm) {
-	    ErrorF( "Couldn't open RGB_DB '%s'\n", rgbPath );
-	    return FALSE;
-	}
-    }
-    return TRUE;
-}
-
-/*ARGSUSED*/
-int
-OsLookupColor(int screen, char *name, unsigned int len, 
-    unsigned short *pred, unsigned short *pgreen, unsigned short *pblue)
-{
-    datum		dbent;
-    RGB			rgb;
-    char		buf[64];
-    char		*lowername;
-
-    if(!rgb_dbm)
-	return(0);
-
-    /* we use xalloc here so that we can compile with cc without alloca
-     * when otherwise using gcc */
-    if (len < sizeof(buf))
-	lowername = buf;
-    else if (!(lowername = (char *)xalloc(len + 1)))
-	return(0);
-    CopyISOLatin1Lowered ((unsigned char *) lowername, (unsigned char *) name,
-			  (int)len);
-
-    dbent.dptr = lowername;
-    dbent.dsize = len;
-#ifdef NDBM
-    dbent = dbm_fetch(rgb_dbm, dbent);
-#else
-    dbent = fetch (dbent);
-#endif
-
-    if (len >= sizeof(buf))
-	xfree(lowername);
-
-    if(dbent.dptr)
-    {
-	memmove((char *) &rgb, dbent.dptr, sizeof (RGB));
-	*pred = rgb.red;
-	*pgreen = rgb.green;
-	*pblue = rgb.blue;
-	return (1);
-    }
-    return(0);
-}
-
-#else /* USE_RGB_TXT */
-
-
 /*
- * The dbm routines are a porting hassle. This implementation will do
- * the same thing by reading the rgb.txt file directly, which is much
- * more portable.
+ * This file builds the server's internal database mapping color names to
+ * RGB tuples by reading in an rgb.txt file.  This is still slightly foolish,
+ * rgb.txt hasn't changed in years, we should really include a precompiled
+ * version into the server.
  */
 
 #include <stdio.h>
 #include "os.h"
 #include "opaque.h"
 
-#define HASHSIZE 511
+#define HASHSIZE 63
 
 typedef struct _dbEntry * dbEntryPtr;
 typedef struct _dbEntry {
@@ -166,14 +73,12 @@ typedef struct _dbEntry {
   char           name[1];	/* some compilers complain if [0] */
 } dbEntry;
 
-
 extern void CopyISOLatin1Lowered(
     unsigned char * /*dest*/,
     unsigned char * /*source*/,
     int /*length*/);
 
 static dbEntryPtr hashTab[HASHSIZE];
-
 
 static dbEntryPtr
 lookup(char *name, int len, Bool create)
@@ -212,7 +117,6 @@ lookup(char *name, int len, Bool create)
 
   return entry;
 }
-
 
 Bool
 OsInitColors(void)
@@ -278,10 +182,17 @@ OsInitColors(void)
       was_here = TRUE;
     }
 
+  {
+      int i = 0, n = 0;
+      for (i = 0; i < HASHSIZE; i++)
+          if (!hashTab[i])
+              n++;
+
+      ErrorF("RGB: %d wasted hash slots\n", n);
+  }
+
   return TRUE;
 }
-
-
 
 Bool
 OsLookupColor(int screen, char *name, unsigned int len, 
@@ -299,5 +210,3 @@ OsLookupColor(int screen, char *name, unsigned int len,
 
   return FALSE;
 }
-
-#endif /* USE_RGB_TXT */

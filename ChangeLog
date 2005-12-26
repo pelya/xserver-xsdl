@@ -1,3 +1,9 @@
+2005-12-26  Adam Jackson  <ajax@freedesktop.org>
+
+	* os/oscolor.c:
+	Nuke unsupported NDBM routines.  Shrink the hash table a bit, over
+	25% of the buckets were going empty.
+
 2005-12-26  Daniel Stone  <daniel@freedesktop.org>
 
 	* xkb/xkbInit.c:
