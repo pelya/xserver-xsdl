@@ -24,7 +24,7 @@
 /* $RCSId: xc/programs/Xserver/hw/kdrive/trio/s3cmap.c,v 1.1 1999/11/19 13:54:05 hohndel Exp $ */
 
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include <kdrive-config.h>
 #endif
 #include "s3.h"
 

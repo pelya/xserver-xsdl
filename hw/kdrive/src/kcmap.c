@@ -24,7 +24,7 @@
 /* $RCSId: xc/programs/Xserver/hw/kdrive/kcmap.c,v 1.4 2000/05/24 23:57:56 keithp Exp $ */
 
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include <kdrive-config.h>
 #endif
 #include "kdrive.h"
 

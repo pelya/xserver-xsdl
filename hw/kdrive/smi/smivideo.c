@@ -21,7 +21,7 @@
  */
 /* $XFree86: xc/programs/Xserver/hw/kdrive/mach64/mach64video.c,v 1.10 2003/04/23 21:51:18 tsi Exp $ */
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include <kdrive-config.h>
 #endif
 #include "mach64.h"
 

@@ -2,7 +2,7 @@ INCLUDES = 					\
 	-I$(top_srcdir)/hw/kdrive/fbdev		\
 	-I$(top_srcdir)/hw/kdrive/vesa		\
 	@KDRIVE_INCS@				\
-	@XSERVER_CFLAGS@
+	@KDRIVE_CFLAGS@
 
 bin_PROGRAMS = Xsmi
 

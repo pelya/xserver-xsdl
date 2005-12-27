@@ -23,7 +23,7 @@ THE SOFTWARE.
 /* $RCSId: xc/programs/Xserver/hw/kdrive/linux/ms.c,v 1.1 2001/08/09 20:45:15 dawes Exp $ */
 
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include <kdrive-config.h>
 #endif
 #define NEED_EVENTS
 #include <errno.h>

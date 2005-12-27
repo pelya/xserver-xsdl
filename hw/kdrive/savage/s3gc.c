@@ -25,7 +25,7 @@
 /* $RCSId: xc/programs/Xserver/hw/kdrive/savage/s3gc.c,v 1.3 2000/01/21 01:12:02 dawes Exp $ */
 
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include <kdrive-config.h>
 #endif
 #include	"s3.h"
 #include	"s3draw.h"

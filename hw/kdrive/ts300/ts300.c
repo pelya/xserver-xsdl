@@ -24,7 +24,7 @@
 /* $RCSId: xc/programs/Xserver/hw/kdrive/ts300/ts300.c,v 1.3 2000/02/23 20:30:14 dawes Exp $ */
 
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include <kdrive-config.h>
 #endif
 #include "kdrive.h"
 

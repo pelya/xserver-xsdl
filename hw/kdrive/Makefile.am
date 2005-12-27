@@ -1,3 +1,7 @@
+# none of this works yet.  fbdev, ephyr, and the hardware servers all rely
+# on miext/shadow/ changes we haven't brought over yet, and sdl relies on
+# some detection-fu that hasn't been ported.
+
 if KDRIVEVESA
 VESA_SUBDIRS = vesa mach64 mga nvidia r128 smi chips pm2 via neomagic
 endif

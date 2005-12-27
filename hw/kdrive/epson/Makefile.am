@@ -1,6 +1,6 @@
 INCLUDES = 					\
 	@KDRIVE_INCS@				\
-	@XSERVER_CFLAGS@
+	@KDRIVE_CFLAGS@
 
 bin_PROGRAMS = Xepson
 

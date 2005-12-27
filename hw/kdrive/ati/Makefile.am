@@ -27,7 +27,7 @@ INCLUDES = 					\
 	$(DRI_INCLUDES)				\
 	$(FBDEV_INCLUDES)			\
 	$(VESA_INCLUDES)			\
-	@XSERVER_CFLAGS@
+	@KDRIVE_CFLAGS@
 
 bin_PROGRAMS = Xati
 

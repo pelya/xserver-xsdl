@@ -24,7 +24,7 @@
 /* $RCSId: xc/programs/Xserver/hw/kdrive/kinput.c,v 1.30 2002/11/13 16:37:39 keithp Exp $ */
 
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include <kdrive-config.h>
 #endif
 #include "kdrive.h"
 #include "inputstr.h"
@@ -1126,7 +1126,10 @@ KdReceiveTimeout (KdMouseInfo *mi)
 
 CARD32	KdSpecialKeys = 0;
 
+#if 0
+/* already defined in opaque.h */
 extern char dispatchException;
+#endif
 
 /*
  * kdCheckTermination

@@ -24,7 +24,7 @@
 /* $RCSId: xc/programs/Xserver/hw/kdrive/sis530/siscmap.c,v 1.1 1999/11/19 13:53:59 hohndel Exp $ */
 
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include <kdrive-config.h>
 #endif
 #include "sis.h"
 

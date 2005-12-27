@@ -24,7 +24,7 @@
 /* $RCSId: xc/programs/Xserver/hw/kdrive/mach64/mach64draw.c,v 1.6 2001/07/23 03:44:17 keithp Exp $ */
 
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include <kdrive-config.h>
 #endif
 #include "mach64.h"
 #include "mach64draw.h"

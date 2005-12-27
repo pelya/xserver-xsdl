@@ -43,7 +43,7 @@ X Window System is a trademark of The Open Group */
  */
 
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include <kdrive-config.h>
 #endif
 #include "kdrive.h"
 #include "kxv.h"

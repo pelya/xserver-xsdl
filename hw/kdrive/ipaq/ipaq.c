@@ -25,7 +25,7 @@
 /* $RCSId: xc/programs/Xserver/hw/kdrive/ipaq/ipaq.c,v 1.2 2001/05/29 17:47:55 keithp Exp $ */
 
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include <kdrive-config.h>
 #endif
 #include "pcmcia.h"
 

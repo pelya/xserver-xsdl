@@ -30,7 +30,7 @@
 /* $RCSId: xc/programs/Xserver/hw/kdrive/pcmcia/pcmcia.c,v 1.6 2002/10/14 18:01:41 keithp Exp $ */
 
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include <kdrive-config.h>
 #endif
 #include "pcmcia.h"
 #define extern

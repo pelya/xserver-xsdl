@@ -26,7 +26,7 @@
 #ifndef _SIS_H_
 #define _SIS_H_
 
-#include "config.h"
+#include "kdrive-config.h"
 
 #ifdef KDRIVEFBDEV
 #include <fbdev.h>

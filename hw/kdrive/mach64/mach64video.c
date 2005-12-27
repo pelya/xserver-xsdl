@@ -21,7 +21,7 @@
  */
 /* $RCSId: xc/programs/Xserver/hw/kdrive/mach64/mach64video.c,v 1.9tsi Exp $ */
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include <kdrive-config.h>
 #endif
 #include "mach64.h"
 

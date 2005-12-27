@@ -24,7 +24,7 @@
 /* $XFree86: xc/programs/Xserver/hw/kdrive/smi/smidraw.c,v 1.7 2001/07/24 19:06:03 keithp Exp $ */
 
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include <kdrive-config.h>
 #endif
 #include "smi.h"
 #include "smidraw.h"

@@ -22,7 +22,7 @@
 /* $RCSId: xc/programs/Xserver/hw/kdrive/trident/trident.c,v 1.17 2001/06/03 18:48:19 keithp Exp $ */
 
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include <kdrive-config.h>
 #endif
 #include "trident.h"
 #include <sys/io.h>

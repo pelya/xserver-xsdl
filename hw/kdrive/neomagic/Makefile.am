@@ -12,7 +12,7 @@ INCLUDES =                      \
 	@KDRIVE_INCS@               \
 	$(FBDEV_INCLUDES)           \
 	$(VESA_INCLUDES)            \
-	@XSERVER_CFLAGS@
+	@KDRIVE_CFLAGS@
 
 bin_PROGRAMS = Xneomagic
 

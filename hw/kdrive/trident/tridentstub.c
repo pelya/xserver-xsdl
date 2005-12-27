@@ -25,7 +25,7 @@
 /* $RCSId: xc/programs/Xserver/hw/kdrive/trident/tridentstub.c,v 1.5 2000/11/29 08:42:25 keithp Exp $ */
 
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include <kdrive-config.h>
 #endif
 #include "trident.h"
 

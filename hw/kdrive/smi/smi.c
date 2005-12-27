@@ -22,7 +22,7 @@
 /* $XFree86: xc/programs/Xserver/hw/kdrive/smi/smi.c,v 1.11 2002/10/18 06:31:17 keithp Exp $ */
 
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include <kdrive-config.h>
 #endif
 #include "smi.h"
 #include "kaa.h"

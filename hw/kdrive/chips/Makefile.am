@@ -1,7 +1,7 @@
 INCLUDES = 					\
 	@KDRIVE_INCS@				\
 	-I$(top_srcdir)/hw/kdrive/vesa		\
-	@XSERVER_CFLAGS@
+	@KDRIVE_CFLAGS@
 
 bin_PROGRAMS = Xchips
 

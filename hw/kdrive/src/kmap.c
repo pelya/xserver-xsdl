@@ -23,7 +23,7 @@
  */
 /* $RCSId: xc/programs/Xserver/hw/kdrive/kmap.c,v 1.10 2001/07/24 21:26:17 keithp Exp $ */
 
-#include <config.h>
+#include <kdrive-config.h>
 #include "kdrive.h"
 
 #include <errno.h>

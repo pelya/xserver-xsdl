@@ -24,7 +24,7 @@
 /* $RCSId: xc/programs/Xserver/hw/kdrive/trident/tridentcurs.c,v 1.5 2000/08/29 17:20:15 keithp Exp $ */
 
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include <kdrive-config.h>
 #endif
 #include "trident.h"
 #include "cursorstr.h"

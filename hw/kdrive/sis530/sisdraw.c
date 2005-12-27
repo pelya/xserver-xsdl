@@ -24,7 +24,7 @@
 /* $RCSId: xc/programs/Xserver/hw/kdrive/sis530/sisdraw.c,v 1.5 2000/08/09 17:52:44 keithp Exp $ */
 
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include <kdrive-config.h>
 #endif
 #include "sis.h"
 #include "sisdraw.h"

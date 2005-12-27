@@ -25,7 +25,7 @@
 /* $RCSId: xc/programs/Xserver/hw/kdrive/chips/chipsstub.c,v 1.1 2001/09/05 07:12:42 keithp Exp $ */
 
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include <kdrive-config.h>
 #endif
 #include "chips.h"
 

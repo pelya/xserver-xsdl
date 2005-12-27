@@ -1,6 +1,6 @@
 INCLUDES = 					\
 	@KDRIVE_PURE_INCS@				\
-	@XSERVER_CFLAGS@	\
+	@KDRIVE_CFLAGS@	\
 	@XSDL_INCS@
 
 bin_PROGRAMS = Xsdl

@@ -24,7 +24,7 @@
 /* $RCSId: xc/programs/Xserver/hw/kdrive/fbdev/fbdev.c,v 1.31 2002/10/14 18:01:40 keithp Exp $ */
 
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include <kdrive-config.h>
 #endif
 #include "fbdev.h"
 #include <sys/ioctl.h>

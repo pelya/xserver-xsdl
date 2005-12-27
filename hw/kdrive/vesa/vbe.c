@@ -22,7 +22,7 @@ THE SOFTWARE.
 /* $RCSId: xc/programs/Xserver/hw/kdrive/vesa/vbe.c,v 1.9 2001/05/29 04:54:12 keithp Exp $ */
 
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include <kdrive-config.h>
 #endif
 #include "vesa.h"
 

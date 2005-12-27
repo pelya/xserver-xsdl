@@ -38,6 +38,8 @@
 #include "randrstr.h"
 #endif
 
+#include "damage.h"
+
 typedef struct _ephyrPriv {
     CARD8	*base;
     int		bytes_per_line;
