@@ -1,3 +1,9 @@
+2005-12-27  Adam Jackson  <ajax@freedesktop.org>
+
+	* hw/kdrive/Imakefile:
+	* hw/kdrive/*/Imakefile:
+	Remove Imakefiles.
+
 2005-12-26  Adam Jackson  <ajax@freedesktop.org>
 
 	* os/oscolor.c:
@@ -174,6 +180,11 @@
 	* hw/kdrive/vxworks/vxmouse.c:
 	* hw/kdrive/vxworks/vxworks.c:
 	Build fixes: XSERVER_LIBS -> KDRIVE_LIBS, config.h -> kdrive-config.h
+
+	* configure.ac:
+	* hw/Makefile.am:
+	* include/kdrive-config.h.in:
+	Skeletal kdrive build system.  Totall non-functional atm.
 
 2005-12-26  Daniel Stone  <daniel@freedesktop.org>
 
