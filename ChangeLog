@@ -9,6 +9,9 @@
 	* hw/*/Makefile.am:
 	Bug #4190: Add a rule for 'make relink' since automake sucks.
 
+	* hw/kdrive/*:
+	Start importing kdrive.
+
 2005-12-26  Daniel Stone  <daniel@freedesktop.org>
 
 	* xkb/xkbInit.c:
