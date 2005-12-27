@@ -40,7 +40,7 @@ SIS_LIBS =				\
 
 Xsis_LDADD = \
 	$(SIS_LIBS)				\
-	@XSERVER_LIBS@                          \
+	@KDRIVE_LIBS@                          \
 	$(TSLIB_FLAG)
 
 Xsis_DEPENDENCIES = $(SIS_LIBS) @KDRIVE_LIBS@

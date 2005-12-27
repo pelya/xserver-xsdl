@@ -4,6 +4,9 @@
 	* hw/kdrive/*/Imakefile:
 	Remove Imakefiles.
 
+	* hw/kdrive/*/Makefile.am:
+	s/XSERVER/KDRIVE/
+
 2005-12-26  Adam Jackson  <ajax@freedesktop.org>
 
 	* os/oscolor.c:

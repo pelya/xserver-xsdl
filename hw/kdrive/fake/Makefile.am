@@ -23,7 +23,7 @@ Xfake_SOURCES = \
 Xfake_LDADD = 						\
 	libfake.a					\
 	@KDRIVE_LIBS@					\
-	@XSERVER_LIBS@					\
+	@KDRIVE_LIBS@					\
 	$(TSLIB_FLAG)
 
 Xfake_DEPENDENCIES =					\

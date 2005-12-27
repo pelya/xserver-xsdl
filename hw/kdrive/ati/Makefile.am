@@ -64,7 +64,7 @@ ATI_LIBS =				\
 
 Xati_LDADD = \
 	$(ATI_LIBS)			\
-	@XSERVER_LIBS@			\
+	@KDRIVE_LIBS@			\
 	$(TSLIB_FLAG)
 
 

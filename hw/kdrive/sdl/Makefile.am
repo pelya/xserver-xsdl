@@ -12,7 +12,7 @@ endif
 Xsdl_SOURCES = sdl.c
 
 Xsdl_LDADD = @KDRIVE_PURE_LIBS@				\
-	@XSERVER_LIBS@                                  \
+	@KDRIVE_LIBS@                                  \
 	$(TSLIB_FLAG)					\
 	@XSDL_LIBS@
 

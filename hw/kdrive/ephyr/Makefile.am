@@ -30,7 +30,7 @@ Xephyr_LDADD = 						\
 	libxephyr.a					\
 	libxephyr-hostx.a			        \
 	@KDRIVE_LIBS@					\
-	@XSERVER_LIBS@					\
+	@KDRIVE_LIBS@					\
         $(TSLIB_LIBS)                                   \
         @XEPHYR_LIBS@
 	

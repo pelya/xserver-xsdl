@@ -31,7 +31,7 @@ SMI_LIBS =					\
 
 Xsmi_LDADD = \
 	$(SMI_LIBS)				\
-	@XSERVER_LIBS@                          \
+	@KDRIVE_LIBS@                          \
 	$(TSLIB_FLAG)
 
 Xsmi_DEPENDENCIES = $(SMI_LIBS) @KDRIVE_LIBS@

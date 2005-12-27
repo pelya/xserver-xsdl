@@ -26,7 +26,7 @@ CHIPS_LIBS =					\
 
 Xchips_LDADD = \
 	$(CHIPS_LIBS)				\
-	@XSERVER_LIBS@                          \
+	@KDRIVE_LIBS@                          \
 	$(TSLIB_FLAG)
 
 Xchips_DEPENDENCIES = $(CHIPS_LIBS) @KDRIVE_LIBS@
