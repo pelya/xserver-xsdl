@@ -1,0 +1,105 @@
+/* kdrive-config.h.in: not at all generated.                      -*- c -*-
+ */
+
+#ifndef _KDRIVE_CONFIG_H_
+#define _KDRIVE_CONFIG_H_
+
+#include <dix-config.h>
+#include <xkb-config.h>
+
+/* Building kdrive server. */
+#undef KDRIVESERVER
+
+#if 0
+
+/* Need XFree86 libc-replacement typedefs. */
+#undef NEED_XF86_TYPES
+
+/* Need XFree86 libc-replacement functions. */
+#undef NEED_XF86_PROTOTYPES
+
+/* Name of X server. */
+#undef __XSERVERNAME__
+
+/* URL to go to for support. */
+#undef __VENDORDWEBSUPPORT__
+
+/* Prefer dlloader modules to elfloader */
+#undef DLOPEN_HACK
+
+/* Use libdl-based loader. */
+#undef DLOPEN_SUPPORT
+
+/* Built-in output drivers. */
+#undef DRIVERS
+
+/* Built-in input drivers. */
+#undef IDRIVERS
+
+/* Path to configuration file. */
+#undef XF86CONFIGFILE
+
+/* Path to configuration file. */
+#undef __XCONFIGFILE__
+
+/* Path to loadable modules. */
+#undef DEFAULT_MODULE_PATH
+
+/* Path to server log file. */
+#undef DEFAULT_LOGPREFIX
+
+/* Building DRI-capable DDX. */
+#undef XF86DRI
+
+/* Solaris 8 or later? */
+#undef __SOL8__
+
+/* Whether to use pixmap privates */
+#undef PIXPRIV
+
+/* Define to 1 if you have the `walkcontext' function (used on Solaris for
+   xorg_backtrace in hw/xfree86/common/xf86Events.c */
+#undef HAVE_WALKCONTEXT
+
+/* Define to 1 if unsigned long is 64 bits. */
+#undef _XSERVER64
+
+/* Building vgahw module */
+#undef WITH_VGAHW
+
+/* Define to 1 if NetBSD built-in MTRR support is available */
+#undef HAS_MTRR_BUILTIN
+
+/* Define to 1 if BSD MTRR support is available */
+#undef HAS_MTRR_SUPPORT
+
+/* NetBSD PIO alpha IO */
+#undef USE_ALPHA_PIO
+
+/* BSD AMD64 iopl */
+#undef USE_AMD64_IOPL
+
+/* BSD /dev/io */
+#undef USE_DEV_IO
+
+/* BSD i386 iopl */
+#undef USE_I386_IOPL
+
+/* System is BSD-like */
+#undef CSRG_BASED
+
+/* System has PC console */
+#undef PCCONS_SUPPORT
+
+/* System has PCVT console */
+#undef PCVT_SUPPORT
+
+/* System has syscons console */
+#undef SYSCONS_SUPPORT
+
+/* System has wscons console */
+#undef WSCONS_SUPPORT
+
+#endif /* 0 */
+
+#endif /* _XORG_CONFIG_H_ */

@@ -18,6 +18,10 @@ if XWIN
 XWIN_SUBDIRS = xwin
 endif
 
+if KDRIVE
+KDRIVE_SUBDIRS = kdrive
+endif
+
 # need to add darwin support here
 
 SUBDIRS =			\
@@ -25,9 +29,10 @@ SUBDIRS =			\
 	$(XWIN_SUBDIRS)		\
 	$(XVFB_SUBDIRS)		\
 	$(XNEST_SUBDIRS)	\
-	$(DMX_SUBDIRS)
+	$(DMX_SUBDIRS)          \
+        $(KDRIVE_SUBDIRS)
 
-DIST_SUBDIRS = dmx xfree86 vfb xnest xwin darwin
+DIST_SUBDIRS = dmx xfree86 vfb xnest xwin darwin kdrive
 
 relink:
 	for i in $(SUBDIRS) ; do $(MAKE) -C $$i relink ; done

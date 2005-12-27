@@ -45,6 +45,8 @@ dnl xkb-config.h covers XKB for the Xorg and Xnest DDXs.
 AC_CONFIG_HEADERS(include/xkb-config.h)
 dnl xwin-config.h covers the XWin DDX.
 AC_CONFIG_HEADERS(include/xwin-config.h)
+dnl kdrive-config.h covers the kdrive DDX
+AC_CONFIG_HEADERS(include/kdrive-config.h)
 
 
 AC_PROG_CC
@@ -398,6 +400,7 @@ AC_ARG_ENABLE(xvfb,    	      AS_HELP_STRING([--enable-xvfb], [Build Xvfb server
 AC_ARG_ENABLE(xnest,   	      AS_HELP_STRING([--enable-xnest], [Build Xnest server (default: auto)]), [XNEST=$enableval], [XNEST=auto])
 AC_ARG_ENABLE(xwin,    	      AS_HELP_STRING([--enable-xwin], [Build XWin server (default: auto)]), [XWIN=$enableval], [XWIN=auto])
 AC_ARG_ENABLE(xprint,         AS_HELP_STRING([--enable-xprint], [Build Xprint extension and server (default: auto)]), [XPRINT=$enableval], [XPRINT=auto])
+AC_ARG_ENABLE(kdrive,         AS_HELP_STRING([--enable-kdrive], [Build kdrive servers (default: no)]), [KDRIVE=$enableval], [KDRIVE=no])
 
 dnl chown/chmod to be setuid root as part of build
 dnl Replaces InstallXserverSetUID in imake
@@ -1235,6 +1238,60 @@ AM_CONDITIONAL(XWIN_RANDR, [test "x$XWIN" = xyes])
 AM_CONDITIONAL(XWIN_XV, [test "x$XWIN" = xyes && test "x$XV" = xyes])
 
 
+dnl kdrive DDX
+dnl utterly incomplete yet
+
+AM_CONDITIONAL(KDRIVE, [test x$KDRIVE = xyes])
+if test "$KDRIVE" = yes; then
+    AC_DEFINE(KDRIVESERVER,1,[Build Kdrive X server])
+    AC_DEFINE(KDRIVEDDXACTIONS,,[Build kdrive ddx])
+    
+    AC_CHECK_HEADERS([sys/vm86.h sys/io.h])
+    if test "$ac_cv_header_sys_vm86_h" = yes; then
+        AC_DEFINE(KDRIVEVESA, 1, [Include vesa support in X servers])
+    fi
+
+    AC_CHECK_HEADERS([linux/fb.h])
+    if test "$ac_cv_header_linux_fb_h" = yes; then
+        AC_DEFINE(KDRIVEFBDEV, 1, [Include framebuffer support in X servers])
+    fi
+
+    # tslib...
+
+    # damage shadow extension glx (NOTYET) fb mi
+    KDRIVE_PURE_INCS="$MIEXT_DAMAGE_INC $MIEXT_SHADOW_INC $XEXT_INC $FB_INC \
+        $MI_INC"
+    KDRIVE_INC='-I$(top_srcdir)/hw/kdrive/src'
+    KDRIVE_OS_INC='-I$(top_srcdir)/hw/kdrive/linux'
+    KDRIVE_INCS="$KDRIVE_INC $KDRIVE_PURE_INCS $KDRIVE_OS_INC"
+    
+    KDRIVE_CFLAGS=
+
+    # dix os fb mi extension glx (NOTYET) damage shadow xpstubs
+    #KDRIVE_PURE_LIBS="$DIX_LIB $OS_LIB $FB_LIB $XEXT_LIB $MIEXT_DAMAGE_LIB \
+    #    $MIEXT_SHADOW_LIB $XPSTUBS_LIB"
+    KDRIVE_PURE_LIBS="$FB_LIB $MI_LIB $FIXES_LIB $XEXT_LIB $DBE_LIB $XTRAP_LIB $RECORD_LIB $GLX_LIBS $RENDER_LIB $RANDR_LIB $DAMAGE_LIB $MIEXT_DAMAGE_LIB $MIEXT_SHADOW_LIB $XI_LIB $XKB_LIB $XKB_STUB_LIB $COMPOSITE_LIB $XPSTUBS_LIB $OS_LIB"
+    KDRIVE_LIB='$(top_builddir)/hw/kdrive/src/libkdrive.a'
+    KDRIVE_OS_LIB='$(top_builddir)/hw/kdrive/linux/liblinux.a'
+    KDRIVE_LIBS="$DIX_LIB $KDRIVE_LIB $KDRIVE_OS_LIB $KDRIVE_PURE_LIBS"
+
+    PKG_CHECK_MODULES(XEPHYR, x11 xext, [xephyr="yes"], [xephyr="no"])
+fi
+AC_SUBST(KDRIVE_INCS)
+AC_SUBST(KDRIVE_PURE_INCS)
+AC_SUBST(KDRIVE_CFLAGS)
+AC_SUBST(KDRIVE_PURE_LIBS)
+AC_SUBST(KDRIVE_LIBS)
+AM_CONDITIONAL(TSLIB, false)
+AM_CONDITIONAL(H3600_TS, false)
+AM_CONDITIONAL(XEPHYR, true)
+AM_CONDITIONAL(XSDLSERVER, true)
+AM_CONDITIONAL(KDRIVEVESA, [test x"$ac_cv_header_sys_vm86_h" = xyes])
+AM_CONDITIONAL(KDRIVEFBDEV, [test x"$ac_cv_header_linux_fb_h" = xyes])
+AM_CONDITIONAL(XEPHYR, [test x"$xephyr" = xyes])
+AC_SUBST([XEPHYR_LIBS])
+AC_SUBST([XEPHYR_INCS])
+
 dnl these only go in xkb-config.h (which is shared by the Xorg and Xnest servers)
 AC_DEFINE(__XKBDEFRULES__, "xorg", [Default XKB rules])
 AC_DEFINE_DIR(XKB_BASE_DIRECTORY, XKBPATH, [Path to XKB data])
@@ -1462,6 +1519,27 @@ hw/vfb/Makefile
 hw/xnest/Makefile
 hw/xwin/Makefile
 hw/darwin/Makefile
+hw/kdrive/Makefile
+hw/kdrive/ati/Makefile
+hw/kdrive/chips/Makefile
+hw/kdrive/ephyr/Makefile
+hw/kdrive/epson/Makefile
+hw/kdrive/fake/Makefile
+hw/kdrive/fbdev/Makefile
+hw/kdrive/i810/Makefile
+hw/kdrive/linux/Makefile
+hw/kdrive/mach64/Makefile
+hw/kdrive/mga/Makefile
+hw/kdrive/neomagic/Makefile
+hw/kdrive/nvidia/Makefile
+hw/kdrive/pm2/Makefile
+hw/kdrive/r128/Makefile
+hw/kdrive/sdl/Makefile
+hw/kdrive/sis300/Makefile
+hw/kdrive/smi/Makefile
+hw/kdrive/src/Makefile
+hw/kdrive/vesa/Makefile
+hw/kdrive/via/Makefile
 Xprint/Makefile
 Xprint/doc/Makefile
 Xprint/pcl/Makefile
