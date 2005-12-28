@@ -7,6 +7,9 @@
 	* hw/kdrive/*/Makefile.am:
 	s/XSERVER/KDRIVE/
 
+	* configure.ac:
+	Get Xsdl closer to linking.
+
 2005-12-26  Adam Jackson  <ajax@freedesktop.org>
 
 	* os/oscolor.c:

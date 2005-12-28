@@ -400,7 +400,10 @@ AC_ARG_ENABLE(xvfb,    	      AS_HELP_STRING([--enable-xvfb], [Build Xvfb server
 AC_ARG_ENABLE(xnest,   	      AS_HELP_STRING([--enable-xnest], [Build Xnest server (default: auto)]), [XNEST=$enableval], [XNEST=auto])
 AC_ARG_ENABLE(xwin,    	      AS_HELP_STRING([--enable-xwin], [Build XWin server (default: auto)]), [XWIN=$enableval], [XWIN=auto])
 AC_ARG_ENABLE(xprint,         AS_HELP_STRING([--enable-xprint], [Build Xprint extension and server (default: auto)]), [XPRINT=$enableval], [XPRINT=auto])
+# kdrive and its subsystems
 AC_ARG_ENABLE(kdrive,         AS_HELP_STRING([--enable-kdrive], [Build kdrive servers (default: no)]), [KDRIVE=$enableval], [KDRIVE=no])
+AC_ARG_ENABLE(xephyr,         AS_HELP_STRING([--enable-xephyr], [Build the kdrive Xephyr server (default: auto)]), [XEPHYR=$enableval], [XEPHYR=auto])
+AC_ARG_ENABLE(xsdl,           AS_HELP_STRING([--enable-xsdl], [Build the kdrive Xsdl server (default: auto)]), [XSDL=$enableval], [XSDL=auto])
 
 dnl chown/chmod to be setuid root as part of build
 dnl Replaces InstallXserverSetUID in imake
@@ -1241,6 +1244,12 @@ AM_CONDITIONAL(XWIN_XV, [test "x$XWIN" = xyes && test "x$XV" = xyes])
 dnl kdrive DDX
 dnl utterly incomplete yet
 
+XEYPHR_LIBS=
+XEPHYR_INCS=
+XSDL_LIBS=
+XSDL_INCS=
+XSDL_DIRS=
+
 AM_CONDITIONAL(KDRIVE, [test x$KDRIVE = xyes])
 if test "$KDRIVE" = yes; then
     AC_DEFINE(KDRIVESERVER,1,[Build Kdrive X server])
@@ -1259,11 +1268,10 @@ if test "$KDRIVE" = yes; then
     # tslib...
 
     # damage shadow extension glx (NOTYET) fb mi
-    KDRIVE_PURE_INCS="$MIEXT_DAMAGE_INC $MIEXT_SHADOW_INC $XEXT_INC $FB_INC \
-        $MI_INC"
     KDRIVE_INC='-I$(top_srcdir)/hw/kdrive/src'
+    KDRIVE_PURE_INCS="$KDRIVE_INC $MIEXT_DAMAGE_INC $MIEXT_SHADOW_INC $XEXT_INC $FB_INC $MI_INC"
     KDRIVE_OS_INC='-I$(top_srcdir)/hw/kdrive/linux'
-    KDRIVE_INCS="$KDRIVE_INC $KDRIVE_PURE_INCS $KDRIVE_OS_INC"
+    KDRIVE_INCS="$KDRIVE_PURE_INCS $KDRIVE_OS_INC"
     
     KDRIVE_CFLAGS=
 
@@ -1275,7 +1283,11 @@ if test "$KDRIVE" = yes; then
     KDRIVE_OS_LIB='$(top_builddir)/hw/kdrive/linux/liblinux.a'
     KDRIVE_LIBS="$DIX_LIB $KDRIVE_LIB $KDRIVE_OS_LIB $KDRIVE_PURE_LIBS"
 
+    # check if we can build Xephyr
     PKG_CHECK_MODULES(XEPHYR, x11 xext, [xephyr="yes"], [xephyr="no"])
+    
+    # check for SDL SDK
+    AC_CHECK_HEADERS([SDL/SDL.h])
 fi
 AC_SUBST(KDRIVE_INCS)
 AC_SUBST(KDRIVE_PURE_INCS)
@@ -1284,13 +1296,23 @@ AC_SUBST(KDRIVE_PURE_LIBS)
 AC_SUBST(KDRIVE_LIBS)
 AM_CONDITIONAL(TSLIB, false)
 AM_CONDITIONAL(H3600_TS, false)
-AM_CONDITIONAL(XEPHYR, true)
-AM_CONDITIONAL(XSDLSERVER, true)
 AM_CONDITIONAL(KDRIVEVESA, [test x"$ac_cv_header_sys_vm86_h" = xyes])
 AM_CONDITIONAL(KDRIVEFBDEV, [test x"$ac_cv_header_linux_fb_h" = xyes])
+
 AM_CONDITIONAL(XEPHYR, [test x"$xephyr" = xyes])
 AC_SUBST([XEPHYR_LIBS])
 AC_SUBST([XEPHYR_INCS])
+
+AM_CONDITIONAL(XSDLSERVER, [test x"$ac_cv_header_SDL_SDL_h" = xyes])
+if test x"$ac_cv_header_SDL_SDL_h" = xyes -o x"$XSDL" = xyes; then
+    # PKG_CHECK_MODULES(XSDL_EXTRA, Xfont xau $XDMCP_MODULES)
+    AC_DEFINE(XSDLSERVER,,[Build Xsdl server])
+    XSDL_LIBS="`sdl-config --libs` $XSERVER_LIBS"
+    XSDL_INCS="`sdl-config --cflags` $XSERVER_CFLAGS"
+fi
+AC_SUBST([XSDL_LIBS])
+AC_SUBST([XSDL_INCS])
+
 
 dnl these only go in xkb-config.h (which is shared by the Xorg and Xnest servers)
 AC_DEFINE(__XKBDEFRULES__, "xorg", [Default XKB rules])
