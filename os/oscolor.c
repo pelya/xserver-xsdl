@@ -181,16 +181,6 @@ OsInitColors(void)
 
       was_here = TRUE;
     }
-
-  {
-      int i = 0, n = 0;
-      for (i = 0; i < HASHSIZE; i++)
-          if (!hashTab[i])
-              n++;
-
-      ErrorF("RGB: %d wasted hash slots\n", n);
-  }
-
   return TRUE;
 }
 
