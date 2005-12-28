@@ -1,5 +1,11 @@
 2005-12-28  Eric Anholt  <anholt@FreeBSD.org>
 
+	* fb/fbpict.h:
+	Fix a copy'n'paste-o that would result in mis-rounding of the results of
+	several composite operators in A and G channels.
+
+2005-12-28  Eric Anholt  <anholt@FreeBSD.org>
+
 	* Xext/shmint.h:
 	Merge from xserver a header for shm's server internal functions, which
 	are called by DDXes.  Desired by XGL, and should be used in other
