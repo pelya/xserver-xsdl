@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/hw/xfree86/common/xf86Mode.c,v 1.4 2005/05/18 10:31:53 eich Exp $ */
+/* $XdotOrg: xserver/xorg/hw/xfree86/common/xf86Mode.c,v 1.7 2005/07/03 08:53:42 daniels Exp $ */
 /* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86Mode.c,v 1.69 2003/10/08 14:58:28 dawes Exp $ */
 /*
  * Copyright (c) 1997-2003 by The XFree86 Project, Inc.
@@ -165,6 +165,8 @@ xf86ModeStatusToString(ModeStatus status)
         return "all modes must have the same height";
     case MODE_ONE_SIZE:
         return "all modes must have the same resolution";
+    case MODE_NO_REDUCED:
+        return "monitor doesn't support reduced blanking";
     case MODE_BAD:
 	return "unknown reason";
     case MODE_ERROR:
@@ -813,6 +815,17 @@ xf86CheckModeForMonitor(DisplayModePtr mode, MonPtr monitor)
     /* Force interlaced modes to have an odd VTotal */
     if (mode->Flags & V_INTERLACE)
 	mode->CrtcVTotal = mode->VTotal |= 1;
+
+    /* Check wether this mode has acceptable blanking */
+    if (((mode->HDisplay * 5 / 4) & ~0x07) > mode->HTotal) {
+
+        /* Is this a CVT Reduced blanking mode? */
+        if ((mode->HTotal - mode->HDisplay) != 160) 
+            return MODE_HBLANK_NARROW;
+        
+        if (!monitor->reducedblanking)
+            return MODE_NO_REDUCED;
+    }
 
     return MODE_OK;
 }

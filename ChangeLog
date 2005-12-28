@@ -1,3 +1,26 @@
+2005-12-28  Luc Verhaegen  <libv@skynet.be>
+
+	* configure.ac:
+	* hw/xfree86/common/xf86Config.c: (GenerateDriverlist),
+	(configMonitor), (configExtensions), (xf86HandleConfigFile):
+	* hw/xfree86/common/xf86Mode.c: (xf86ModeStatusToString),
+	(xf86CheckModeForMonitor):
+	* hw/xfree86/common/xf86str.h:
+	* hw/xfree86/utils/Makefile.am:
+	* hw/xfree86/utils/cvt/Makefile.am:
+	* hw/xfree86/utils/cvt/cvt.c: (add), (PrintModeline),
+	(xf86CVTMode), (xf86CVTCheckStandard), (PrintUsage),
+	(PrintComment), (main):
+	* hw/xfree86/utils/cvt/cvt.man.pre:
+	Bug #5153: standalone CVT modeline generator.
+	- add hw/xfree86/utils/cvt/, cvt.c, cvt.man.pre and Makefile.am.   
+	- Adjust configure.ac and hw/xfree86/utils/Makefile.am for cvt. 
+	- Add MonPtr->reducedblanking and Option "ReducedBlanking" to the
+	  Monitor section.
+	- Check for reduced blanking in xf86CheckModeForMonitor and disallow
+	  modes with less than 25% blanking otherwise.
+	- Fix some warnings in hw/xfree86/common/xf86Config.c.
+
 2005-12-28  Eric Anholt  <anholt@FreeBSD.org>
 
 	* render/filter.c: (SetPictureFilter):

@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/hw/xfree86/common/xf86Config.c,v 1.8 2005/05/18 10:31:53 eich Exp $ */
+/* $XdotOrg: xserver/xorg/hw/xfree86/common/xf86Config.c,v 1.21 2005/12/20 21:34:21 ajax Exp $ */
 /* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86Config.c,v 3.276 2003/10/08 14:58:26 dawes Exp $ */
 
 
@@ -505,7 +505,7 @@ GenerateDriverlist(char * dirname, char * drivernames)
 {
 #ifdef XFree86LOADER
     char **ret;
-    char *subdirs[] = { dirname, NULL };
+    const char *subdirs[] = { dirname, NULL };
     static const char *patlist[] = {"(.*)_drv\\.so", "(.*)_drv\\.o", NULL};
     ret = LoaderListDirs(subdirs, patlist);
     
@@ -2139,6 +2139,17 @@ configScreen(confScreenPtr screenp, XF86ConfScreenPtr conf_screen, int scrnum,
     return TRUE;
 }
 
+typedef enum {
+    MON_REDUCEDBLANKING
+} MonitorValues;
+
+static OptionInfoRec MonitorOptions[] = {
+  { MON_REDUCEDBLANKING,      "ReducedBlanking",        OPTV_BOOLEAN,
+       {0}, FALSE },
+  { -1,                                NULL,                   OPTV_NONE,
+       {0}, FALSE },
+};
+
 static Bool
 configMonitor(MonPtr monitorp, XF86ConfMonitorPtr conf_monitor)
 {
@@ -2160,6 +2171,7 @@ configMonitor(MonPtr monitorp, XF86ConfMonitorPtr conf_monitor)
     monitorp->gamma = zeros;
     monitorp->widthmm = conf_monitor->mon_width;
     monitorp->heightmm = conf_monitor->mon_height;
+    monitorp->reducedblanking = FALSE;
     monitorp->options = conf_monitor->mon_option_lst;
 
     /*
@@ -2279,6 +2291,11 @@ configMonitor(MonPtr monitorp, XF86ConfMonitorPtr conf_monitor)
 	    return FALSE;
     }
 
+    /* Check wether this Monitor accepts Reduced Blanking modelines */
+    xf86ProcessOptions(-1, monitorp->options, MonitorOptions);
+
+    xf86GetOptValBool(MonitorOptions, MON_REDUCEDBLANKING,
+                      &monitorp->reducedblanking);
     return TRUE;
 }
 
@@ -2452,13 +2469,13 @@ configDRI(XF86ConfDRIPtr drip)
 }
 #endif
 
+/* Extension enable/disable in miinitext.c */
+extern Bool EnableDisableExtension(char *name, Bool enable);
+
 static Bool
 configExtensions(XF86ConfExtensionsPtr conf_ext)
 {
     XF86OptionPtr o;
-
-    /* Extension enable/disable in miinitext.c */
-    extern Bool EnableDisableExtension(char *name, Bool enable);
 
     if (conf_ext && conf_ext->ext_option_lst) {
 	for (o = conf_ext->ext_option_lst; o; o = xf86NextOption(o)) {
@@ -2673,7 +2690,7 @@ xf86HandleConfigFile(Bool autoconfig)
            scanptr = xf86ConfigLayout.screens->screen->device->busID;
     }
     if (scanptr) {
-       int bus, device, func, stroffset = 0;
+       int bus, device, func;
        if (strncmp(scanptr, "PCI:", 4) != 0) {
            xf86Msg(X_WARNING, "Bus types other than PCI not yet isolable.\n"
                               "\tIgnoring IsolateDevice option.\n");

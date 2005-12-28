@@ -115,6 +115,7 @@ typedef enum {
     MODE_ONE_WIDTH,     /* only one width is supported */
     MODE_ONE_HEIGHT,    /* only one height is supported */
     MODE_ONE_SIZE,      /* only one resolution is supported */
+    MODE_NO_REDUCED,    /* monitor doesn't accept reduced blanking */
     MODE_BAD = -2,	/* unspecified reason */
     MODE_ERROR	= -1	/* error condition */
 } ModeStatus;
@@ -206,6 +207,7 @@ typedef struct {
     int			heightmm;
     pointer		options;
     pointer		DDC;
+    Bool                reducedblanking; /* Allow CVT reduced blanking modes? */
 } MonRec, *MonPtr;
 
 /* the list of clock ranges */
