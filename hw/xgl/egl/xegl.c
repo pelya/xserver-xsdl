@@ -116,14 +116,21 @@ xeglScreenInit (int	  index,
     xeglScreenPtr	    pScreenPriv;
     glitz_drawable_format_t *format;
     glitz_drawable_t	    *drawable;
-    const EGLint screenAttribs[] = {
+    EGLint screenAttribs[] = {
 	EGL_WIDTH, 1024,
 	EGL_HEIGHT, 768,
 	EGL_NONE
     };
 
-    xglScreenInfo.width = 1024;
-    xglScreenInfo.height = 768;
+    if (xglScreenInfo.width == 0 || xglScreenInfo.height == 0)
+    {
+      xglScreenInfo.width = XEGL_DEFAULT_SCREEN_WIDTH;
+      xglScreenInfo.height = XEGL_DEFAULT_SCREEN_HEIGHT;
+
+    }
+    
+    screenAttribs[1] = xglScreenInfo.width;
+    screenAttribs[3] = xglScreenInfo.height;
 
     format = xglVisuals[0].format;
 
@@ -149,7 +156,7 @@ xeglScreenInit (int	  index,
 	return FALSE;
     }
 
-    eglShowSurfaceMESA (eDisplay, eScreen, eSurface, mode);
+    eglShowScreenSurfaceMESA (eDisplay, eScreen, eSurface, mode);
 
     drawable = glitz_egl_create_surface (eDisplay, eScreen, format, eSurface,
 					 xglScreenInfo.width,
@@ -173,6 +180,7 @@ xeglScreenInit (int	  index,
     XGL_SCREEN_WRAP (CloseScreen, xeglCloseScreen);
 
     miDCInitialize (pScreen, &kdPointerScreenFuncs);
+    miCreateDefColormap(pScreen);
 
     if (!xglFinishScreenInit (pScreen))
 	return FALSE;
@@ -188,12 +196,12 @@ xeglInitOutput (ScreenInfo *pScreenInfo,
     glitz_drawable_format_t *format, templ;
     int			    i, maj, min, count;
     unsigned long	    mask;
-
+    
     xglSetPixmapFormats (pScreenInfo);
 
     if (!eDisplay)
     {
-	eDisplay = eglGetDisplay ("!fb_dri");
+	eDisplay = eglGetDisplay (":0");
 
 	if (!eglInitialize (eDisplay, &maj, &min))
 	    FatalError ("can't open display");
@@ -207,7 +215,7 @@ xeglInitOutput (ScreenInfo *pScreenInfo,
 
     mask = GLITZ_FORMAT_SAMPLES_MASK;
 
-    format = glitz_egl_find_config (eDisplay, eScreen,
+    format = glitz_egl_find_window_config (eDisplay, eScreen,
 				    mask, &templ, 0);
 
     if (!format)
