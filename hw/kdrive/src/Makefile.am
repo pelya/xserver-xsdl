@@ -2,7 +2,7 @@ INCLUDES = 					\
 	@KDRIVE_INCS@				\
 	@KDRIVE_CFLAGS@
 
-noinst_LIBRARIES = libkdrive.a
+noinst_LIBRARIES = libkdrive.a libkdrivestubs.a
 
 libkdrive_a_SOURCES =	\
 	fourcc.h	\
@@ -26,4 +26,9 @@ libkdrive_a_SOURCES =	\
 	kxv.c		\
 	kxv.h		\
 	vga.c		\
-	vga.h
+	vga.h           \
+        $(top_srcdir)/mi/miinitext.c
+
+libkdrivestubs_a_SOURCES = \
+        $(top_srcdir)/Xi/stubs.c \
+        $(top_srcdir)/fb/fbcmap.c

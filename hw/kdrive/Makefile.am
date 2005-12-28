@@ -1,9 +1,6 @@
-# none of this works yet.  fbdev, ephyr, and the hardware servers all rely
-# on miext/shadow/ changes we haven't brought over yet, and sdl relies on
-# some detection-fu that hasn't been ported.
-
 if KDRIVEVESA
-VESA_SUBDIRS = vesa mach64 mga nvidia r128 smi chips pm2 via neomagic
+VESA_SUBDIRS = vesa ati chips epson i810 mach64 mga neomagic nvidia pm2 r128 \
+               smi via
 endif
 
 if KDRIVEFBDEV
@@ -11,7 +8,7 @@ FBDEV_SUBDIRS = fbdev
 endif
 
 if XSDLSERVER
-XSDL_SUBDIRS=sdl
+XSDL_SUBDIRS = sdl
 endif
 
 if XEPHYR
@@ -25,8 +22,4 @@ SUBDIRS =			\
 	$(FBDEV_SUBDIRS)	\
 	$(VESA_SUBDIRS)		\
 	$(XEPHYR_SUBDIRS)       \
-	ati			\
-	fake			\
-	ephyr                   \
-	i810			\
-	epson
+	fake

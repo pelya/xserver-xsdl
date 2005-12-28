@@ -1254,17 +1254,17 @@ AM_CONDITIONAL(KDRIVE, [test x$KDRIVE = xyes])
 if test "$KDRIVE" = yes; then
     AC_DEFINE(KDRIVESERVER,1,[Build Kdrive X server])
     AC_DEFINE(KDRIVEDDXACTIONS,,[Build kdrive ddx])
-    
+
     AC_CHECK_HEADERS([sys/vm86.h sys/io.h])
     if test "$ac_cv_header_sys_vm86_h" = yes; then
-        AC_DEFINE(KDRIVEVESA, 1, [Include vesa support in X servers])
+        AC_DEFINE(KDRIVEVESA, 1, [Build VESA-based kdrive servers])
     fi
 
     AC_CHECK_HEADERS([linux/fb.h])
     if test "$ac_cv_header_linux_fb_h" = yes; then
-        AC_DEFINE(KDRIVEFBDEV, 1, [Include framebuffer support in X servers])
+        AC_DEFINE(KDRIVEFBDEV, 1, [Build fbdev-based kdrive server])
     fi
-
+    
     # tslib...
 
     # damage shadow extension glx (NOTYET) fb mi
@@ -1273,7 +1273,7 @@ if test "$KDRIVE" = yes; then
     KDRIVE_OS_INC='-I$(top_srcdir)/hw/kdrive/linux'
     KDRIVE_INCS="$KDRIVE_PURE_INCS $KDRIVE_OS_INC"
     
-    KDRIVE_CFLAGS=
+    KDRIVE_CFLAGS="$XSERVER_CFLAGS -DHAVE_KDRIVE_CONFIG_H"
 
     # dix os fb mi extension glx (NOTYET) damage shadow xpstubs
     #KDRIVE_PURE_LIBS="$DIX_LIB $OS_LIB $FB_LIB $XEXT_LIB $MIEXT_DAMAGE_LIB \
@@ -1281,10 +1281,11 @@ if test "$KDRIVE" = yes; then
     KDRIVE_PURE_LIBS="$FB_LIB $MI_LIB $FIXES_LIB $XEXT_LIB $DBE_LIB $XTRAP_LIB $RECORD_LIB $GLX_LIBS $RENDER_LIB $RANDR_LIB $DAMAGE_LIB $MIEXT_DAMAGE_LIB $MIEXT_SHADOW_LIB $XI_LIB $XKB_LIB $XKB_STUB_LIB $COMPOSITE_LIB $XPSTUBS_LIB $OS_LIB"
     KDRIVE_LIB='$(top_builddir)/hw/kdrive/src/libkdrive.a'
     KDRIVE_OS_LIB='$(top_builddir)/hw/kdrive/linux/liblinux.a'
-    KDRIVE_LIBS="$DIX_LIB $KDRIVE_LIB $KDRIVE_OS_LIB $KDRIVE_PURE_LIBS"
+    KDRIVE_STUB_LIB='$(top_builddir)/hw/kdrive/src/libkdrivestubs.a'
+    KDRIVE_LIBS="$DIX_LIB $KDRIVE_LIB $KDRIVE_OS_LIB $KDRIVE_PURE_LIBS $KDRIVE_STUB_LIB"
 
     # check if we can build Xephyr
-    PKG_CHECK_MODULES(XEPHYR, x11 xext, [xephyr="yes"], [xephyr="no"])
+    PKG_CHECK_MODULES(XEPHYR, x11 xext xfont xau xdmcp, [xephyr="yes"], [xephyr="no"])
     
     # check for SDL SDK
     AC_CHECK_HEADERS([SDL/SDL.h])
@@ -1296,10 +1297,13 @@ AC_SUBST(KDRIVE_PURE_LIBS)
 AC_SUBST(KDRIVE_LIBS)
 AM_CONDITIONAL(TSLIB, false)
 AM_CONDITIONAL(H3600_TS, false)
-AM_CONDITIONAL(KDRIVEVESA, [test x"$ac_cv_header_sys_vm86_h" = xyes])
-AM_CONDITIONAL(KDRIVEFBDEV, [test x"$ac_cv_header_linux_fb_h" = xyes])
+#AM_CONDITIONAL(KDRIVEVESA, [test x"$ac_cv_header_sys_vm86_h" = xyes])
+#AM_CONDITIONAL(KDRIVEFBDEV, [test x"$ac_cv_header_linux_fb_h" = xyes])
+AM_CONDITIONAL(KDRIVEVESA, false)
+AM_CONDITIONAL(KDRIVEFBDEV, false)
 
 AM_CONDITIONAL(XEPHYR, [test x"$xephyr" = xyes])
+XEPHYR_LIBS="$XEPHYR_LIBS $XSERVER_LIBS"
 AC_SUBST([XEPHYR_LIBS])
 AC_SUBST([XEPHYR_INCS])
 

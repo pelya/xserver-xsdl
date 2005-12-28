@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/mi/miinitext.c,v 1.20 2005/05/19 18:53:50 ajax Exp $ */
+/* $XdotOrg: xserver/xorg/mi/miinitext.c,v 1.26 2005/07/16 03:49:59 kem Exp $ */
 /* $XFree86: xc/programs/Xserver/mi/miinitext.c,v 3.67 2003/01/12 02:44:27 dawes Exp $ */
 /***********************************************************
 
@@ -63,6 +63,15 @@ SOFTWARE.
 #ifdef HAVE_XNEST_CONFIG_H
 #include <xnest-config.h>
 #undef DPMSExtension
+#endif
+
+#ifdef HAVE_KDRIVE_CONFIG_H
+#include <kdrive-config.h>
+/* there must be a better way... */
+#undef XF86MISC
+#undef XFreeXDGA
+#undef XF86DRI
+#undef XF86VIDMODE
 #endif
 
 #include "misc.h"

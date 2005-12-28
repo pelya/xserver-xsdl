@@ -68,12 +68,12 @@ KdShadowSet (ScreenPtr pScreen, int randr, ShadowUpdateProc update, ShadowWindow
     KdScreenInfo *screen = pScreenPriv->screen;
     int	 fb;
 
-    shadowUnset (pScreen);
+    shadowRemove (pScreen, pScreen->GetScreenPixmap(pScreen));
     for (fb = 0; fb < KD_MAX_FB && screen->fb[fb].depth; fb++)
     {
 	if (screen->fb[fb].shadow)
-	    return shadowSet (pScreen, (*pScreen->GetScreenPixmap) (pScreen), 
-			      update, window, randr, 0);
+            return shadowAdd (pScreen, pScreen->GetScreenPixmap(pScreen),
+                              update, window, randr, 0);
     }
     return TRUE;
 }
@@ -81,5 +81,5 @@ KdShadowSet (ScreenPtr pScreen, int randr, ShadowUpdateProc update, ShadowWindow
 void
 KdShadowUnset (ScreenPtr pScreen)
 {
-    shadowUnset (pScreen);
+    shadowRemove(pScreen, pScreen->GetScreenPixmap(pScreen));
 }
