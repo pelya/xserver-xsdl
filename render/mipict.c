@@ -250,6 +250,22 @@ miValidatePicture (PicturePtr pPicture,
     }
 }
 
+int
+miChangePictureTransform (PicturePtr	pPicture,
+			  PictTransform *transform)
+{
+    return Success;
+}
+
+int
+miChangePictureFilter (PicturePtr pPicture,
+		       int	  filter,
+		       xFixed     *params,
+		       int	  nparams)
+{
+    return Success;
+}
+
 #define BOUND(v)	(INT16) ((v) < MINSHORT ? MINSHORT : (v) > MAXSHORT ? MAXSHORT : (v))
 
 static __inline Bool
@@ -611,6 +627,8 @@ miPictureInit (ScreenPtr pScreen, PictFormatPtr formats, int nformats)
     ps->InitIndexed = miInitIndexed;
     ps->CloseIndexed = miCloseIndexed;
     ps->UpdateIndexed = miUpdateIndexed;
+    ps->ChangePictureTransform = miChangePictureTransform;
+    ps->ChangePictureFilter = miChangePictureFilter;
 
     /* MI rendering routines */
     ps->Composite	= 0;			/* requires DDX support */

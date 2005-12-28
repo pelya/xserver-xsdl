@@ -71,6 +71,15 @@ void
 miValidatePicture (PicturePtr pPicture,
 		   Mask       mask);
 
+int
+miChangePictureTransform (PicturePtr	pPicture,
+			  PictTransform *transform);
+
+int
+miChangePictureFilter (PicturePtr pPicture,
+		       int	  filter,
+		       xFixed     *params,
+		       int	  nparams);
 
 Bool
 miClipPicture (RegionPtr    pRegion,

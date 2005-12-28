@@ -1460,6 +1460,9 @@ SetPictureTransform (PicturePtr	    pPicture,
 	{ 0x00000, xFixed1, 0x00000 },
 	{ 0x00000, 0x00000, xFixed1 },
     } };
+    ScreenPtr		pScreen = pPicture->pDrawable->pScreen;
+    PictureScreenPtr	ps = GetPictureScreen(pScreen);
+    int			result;
 
     if (transform && memcmp (transform, &identity, sizeof (PictTransform)) == 0)
 	transform = 0;
@@ -1484,7 +1487,9 @@ SetPictureTransform (PicturePtr	    pPicture,
     }
     pPicture->serialNumber |= GC_CHANGE_SERIAL_BIT;
 
-    return Success;
+    result = (*ps->ChangePictureTransform) (pPicture, transform);
+
+    return result;
 }
 
 void

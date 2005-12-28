@@ -1,5 +1,15 @@
 2005-12-28  Eric Anholt  <anholt@FreeBSD.org>
 
+	* render/filter.c: (SetPictureFilter):
+	* render/mipict.c: (miChangePictureTransform),
+	(miChangePictureFilter), (miPictureInit):
+	* render/mipict.h:
+	* render/picture.c: (SetPictureTransform):
+	Merge from xserver: Make the existing ChangePictureFilter and
+	ChangePictureTransform screen hooks get called at appropriate times.
+
+2005-12-28  Eric Anholt  <anholt@FreeBSD.org>
+
 	* fb/fbpict.h:
 	Fix a copy'n'paste-o that would result in mis-rounding of the results of
 	several composite operators in A and G channels.
