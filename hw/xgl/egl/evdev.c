@@ -112,7 +112,7 @@ EvdevRead (int evdevPort, void *closure)
 {
     KdMouseInfo		*mi = closure;
     Kevdev		*ke = mi->driver;
-    int			i, n, f = 0;
+    int			i, n;
     struct input_event	events[NUM_EVENTS];
 
     n = read (evdevPort, &events, NUM_EVENTS * sizeof (struct input_event));
@@ -131,26 +131,46 @@ EvdevRead (int evdevPort, void *closure)
 		ErrorF ("key %d %d\n", events[i].code, events[i].value);
 	    else
 		ErrorF ("key 0x%x %d\n", events[i].code, events[i].value);
-            switch (events[i].code) {
-            case BTN_LEFT:
-                f = KD_BUTTON_1;
+	    
+	    if (events[i].value==1) {
+	      switch (events[i].code) {
+	      case BTN_LEFT:
+                flags |= KD_BUTTON_1;
                 break;
-            case BTN_RIGHT:
-                f = KD_BUTTON_2;
+	      case BTN_RIGHT:
+		flags |= KD_BUTTON_3;
                 break;
-            case BTN_MIDDLE:
-                f = KD_BUTTON_3;
+	      case BTN_MIDDLE:
+                flags |= KD_BUTTON_2;
                 break;
-            case BTN_FORWARD:
-                f = KD_BUTTON_4;
+	      case BTN_FORWARD:
+                flags |= KD_BUTTON_4;
                 break;
-            case BTN_BACK:
-                f = KD_BUTTON_5;
+	      case BTN_BACK:
+                flags |= KD_BUTTON_5;
                 break;
-            }
-            flags |= f;
-            KdEnqueueMouseEvent (mi, KD_MOUSE_DELTA | flags, 0, 0);
-            ErrorF("Flags is %x\n", flags);
+	      }
+	    }
+	    else if (events[i].value==0) {
+	      switch (events[i].code) {
+	      case BTN_LEFT:
+                flags &= ~KD_BUTTON_1;
+                break;
+	      case BTN_RIGHT:
+		flags &= ~KD_BUTTON_3;
+                break;
+	      case BTN_MIDDLE:
+                flags &= ~KD_BUTTON_2;
+                break;
+	      case BTN_FORWARD:
+                flags &= ~KD_BUTTON_4;
+                break;
+	      case BTN_BACK:
+                flags &= ~KD_BUTTON_5;
+                break;
+	      }
+	    }
+	    KdEnqueueMouseEvent (mi, KD_MOUSE_DELTA | flags, 0, 0);
 	    break;
 	case EV_REL:
 	    ke->rel[events[i].code] += events[i].value;
@@ -166,12 +186,12 @@ EvdevRead (int evdevPort, void *closure)
 int EvdevInputType;
 
 char *kdefaultEvdev[] =  {
-//    "/dev/input/event0",
-//    "/dev/input/event1",
-//    "/dev/input/event2",
-//    "/dev/input/event3",
-//    "/dev/input/event4",
-    "/dev/input/event5",
+  //    "/dev/input/event0",
+    "/dev/input/event1",
+    //   "/dev/input/event2",
+    // "/dev/input/event3",
+    //    "/dev/input/event4",
+    //   "/dev/input/event5",
 };
 
 #define NUM_DEFAULT_EVDEV    (sizeof (kdefaultEvdev) / sizeof (kdefaultEvdev[0]))
@@ -477,12 +497,12 @@ EvdevRead1 (int evdevPort, void *closure)
 }
 
 char *kdefaultEvdev1[] =  {
-//    "/dev/input/event0",
-//    "/dev/input/event1",
-//    "/dev/input/event2",
-    "/dev/input/event3",
-//    "/dev/input/event4",
-//    "/dev/input/event5",
+    "/dev/input/event0",
+    //    "/dev/input/event1",
+    //    "/dev/input/event2",
+    //    "/dev/input/event3",
+    //    "/dev/input/event4",
+    //    "/dev/input/event5",
 };
 
 #define NUM_DEFAULT_EVDEV1    (sizeof (kdefaultEvdev1) / sizeof (kdefaultEvdev1[0]))
