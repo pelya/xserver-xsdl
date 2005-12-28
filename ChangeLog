@@ -1,3 +1,44 @@
+2005-12-28  Eric Anholt  <anholt@FreeBSD.org>
+
+	* Xext/shmint.h:
+	Merge from xserver a header for shm's server internal functions, which
+	are called by DDXes.  Desired by XGL, and should be used in other
+	locations, probably.
+
+2005-12-28  Eric Anholt  <anholt@FreeBSD.org>
+
+	* configure.ac:
+	* hw/Makefile.am:
+	* hw/xgl/.cvsignore:
+	* hw/xgl/Makefile.am:
+	* hw/xgl/egl/.cvsignore:
+	* hw/xgl/egl/Makefile.am:
+	* hw/xgl/egl/evdev.c:
+	* hw/xgl/egl/kinput.c:
+	* hw/xgl/egl/module/.cvsignore:
+	* hw/xgl/egl/module/Makefile.am:
+	* hw/xgl/glx/.cvsignore:
+	* hw/xgl/glx/Makefile.am:
+	* hw/xgl/glx/module/.cvsignore:
+	* hw/xgl/glx/module/Makefile.am:
+	* hw/xgl/glx/xglxinit.c: (InitOutput), (InitInput),
+	(ddxProcessArgument), (ddxInitGlobals):
+	* hw/xgl/glxext/.cvsignore:
+	* hw/xgl/glxext/module/.cvsignore:
+	* hw/xgl/glxext/xglglxext.h:
+	* hw/xgl/xgl.h:
+	* hw/xgl/xglglx.c: (xglLoadGLXModules), (xglUnloadGLXModules):
+	* hw/xgl/xglhash.c: (xglLoadHashFuncs):
+	* hw/xgl/xglinit.c: (xglEnsureDDXModule), (ddxInitGlobals):
+	* hw/xgl/xglloader.c: (xglLoadModule):
+	* hw/xgl/xglmodule.h:
+	* include/.cvsignore:
+	* include/xgl-config.h.in:
+	Initial commit of XGL build infrastructure and XGL code changes for
+	building within the xorg server tree.  Requires additional, uncommitted
+	dix changes to successfully build, and successful running is still yet
+	to happen.
+
 2005-12-27  Adam Jackson  <ajax@freedesktop.org>
 
 	* hw/kdrive/Imakefile:
