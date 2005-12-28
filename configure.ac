@@ -39,6 +39,8 @@ AC_CONFIG_HEADERS(include/xorg-server.h)
 dnl dix-config.h covers most of the DIX (i.e. everything but the DDX, not just
 dnl dix/).
 AC_CONFIG_HEADERS(include/dix-config.h)
+dnl xgl-config.h covers the Xgl DDX.
+AC_CONFIG_HEADERS(include/xgl-config.h)
 dnl xorg-config.h covers the Xorg DDX.
 AC_CONFIG_HEADERS(include/xorg-config.h)
 dnl xkb-config.h covers XKB for the Xorg and Xnest DDXs.
@@ -400,6 +402,9 @@ AC_ARG_ENABLE(xvfb,    	      AS_HELP_STRING([--enable-xvfb], [Build Xvfb server
 AC_ARG_ENABLE(xnest,   	      AS_HELP_STRING([--enable-xnest], [Build Xnest server (default: auto)]), [XNEST=$enableval], [XNEST=auto])
 AC_ARG_ENABLE(xwin,    	      AS_HELP_STRING([--enable-xwin], [Build XWin server (default: auto)]), [XWIN=$enableval], [XWIN=auto])
 AC_ARG_ENABLE(xprint,         AS_HELP_STRING([--enable-xprint], [Build Xprint extension and server (default: auto)]), [XPRINT=$enableval], [XPRINT=auto])
+AC_ARG_ENABLE(xgl,            AS_HELP_STRING([--enable-xgl], [Build Xgl server (default: no)]), [XGL=$enableval], [XGL=no])
+AC_ARG_ENABLE(xglx,           AS_HELP_STRING([--enable-xglx], [Build Xglx xgl module (default: no)]), [XGLX=$enableval], [XGLX=no])
+AC_ARG_ENABLE(xegl,           AS_HELP_STRING([--enable-xegl], [Build Xegl xgl module (default: no)]), [XEGL=$enableval], [XEGL=no])
 # kdrive and its subsystems
 AC_ARG_ENABLE(kdrive,         AS_HELP_STRING([--enable-kdrive], [Build kdrive servers (default: no)]), [KDRIVE=$enableval], [KDRIVE=no])
 AC_ARG_ENABLE(xephyr,         AS_HELP_STRING([--enable-xephyr], [Build the kdrive Xephyr server (default: auto)]), [XEPHYR=$enableval], [XEPHYR=auto])
@@ -900,6 +905,59 @@ if test "x$XORG" = xauto; then
 	esac
 fi
 AC_MSG_RESULT([$XORG])
+
+dnl Xgl DDX
+
+AC_MSG_CHECKING([whether to build Xgl DDX])
+if test "x$XGL" != xno; then
+  PKG_CHECK_MODULES([XGLMODULES], [glitz-glx >= 0.4.3], [XGL=yes], [XGL=no])
+  AC_SUBST(XGLMODULES_CFLAGS)
+  AC_SUBST(XGLMODULES_LIBS)
+fi
+AC_MSG_RESULT([$XGL])
+AM_CONDITIONAL(XGL, [test "x$XGL" = xyes])
+
+if test "x$XGL" = xyes; then
+	XGL_LIBS="$FB_LIB $MI_LIB $COMPOSITE_LIB $FIXES_LIB $XEXT_LIB $DBE_LIB $XTRAP_LIB $RECORD_LIB $GLX_LIBS $RENDER_LIB $RANDR_LIB $DAMAGE_LIB $MIEXT_DAMAGE_LIB $MIEXT_SHADOW_LIB $MIEXT_LAYER_LIB $XI_LIB $XKB_LIB $XKB_STUB_LIB $LBX_LIB $XPSTUBS_LIB $CWRAP_LIB $OS_LIB"
+	AC_SUBST([XGL_LIBS])
+	AC_DEFINE(XGL_MODULAR, 1, [Use loadable XGL modules])
+
+	xglmoduledir="$moduledir/xgl"
+	AC_SUBST([xglmoduledir])
+	AC_DEFINE_DIR(XGL_MODULE_PATH, xglmoduledir, [Default XGL module search path])
+fi
+
+dnl Xegl DDX
+
+AC_MSG_CHECKING([whether to build Xegl DDX])
+if test "x$XEGL" != xno; then
+  PKG_CHECK_MODULES([XGLMODULES], [glitz-glx >= 0.4.3], [XEGL=yes], [XEGL=no])
+  AC_SUBST(XEGLMODULES_CFLAGS)
+  AC_SUBST(XEGLMODULES_LIBS)
+fi
+AC_MSG_RESULT([$XEGL])
+AM_CONDITIONAL(XEGL, [test "x$XEGL" = xyes])
+
+if test "x$XEGL" = xyes; then
+	XEGL_LIBS="$FB_LIB $MI_LIB $COMPOSITE_LIB $FIXES_LIB $XEXT_LIB $DBE_LIB $XTRAP_LIB $RECORD_LIB $GLX_LIBS $RENDER_LIB $RANDR_LIB $DAMAGE_LIB $MIEXT_DAMAGE_LIB $MIEXT_SHADOW_LIB $MIEXT_LAYER_LIB $XI_LIB $XKB_LIB $XKB_STUB_LIB $LBX_LIB $XPSTUBS_LIB $CWRAP_LIB $OS_LIB"
+	AC_SUBST([XEGL_LIBS])
+fi
+
+dnl Xglx DDX
+
+AC_MSG_CHECKING([whether to build Xglx DDX])
+if test "x$XGLX" != xno; then
+  PKG_CHECK_MODULES([XGLXMODULES], [glitz-glx >= 0.4.3 xrender], [XGLX=yes], [XGLX=no])
+  AC_SUBST(XGLXMODULES_CFLAGS)
+  AC_SUBST(XGLXMODULES_LIBS)
+fi
+AC_MSG_RESULT([$XGLX])
+AM_CONDITIONAL(XGLX, [test "x$XGLX" = xyes])
+
+if test "x$XGLX" = xyes; then
+	XGLX_LIBS="$FB_LIB $MI_LIB $COMPOSITE_LIB $FIXES_LIB $XEXT_LIB $DBE_LIB $XTRAP_LIB $RECORD_LIB $GLX_LIBS $RENDER_LIB $RANDR_LIB $DAMAGE_LIB $MIEXT_DAMAGE_LIB $MIEXT_SHADOW_LIB $MIEXT_LAYER_LIB $XI_LIB $XKB_LIB $XKB_STUB_LIB $LBX_LIB $XPSTUBS_LIB $CWRAP_LIB $OS_LIB"
+	AC_SUBST([XGLX_LIBS])
+fi
 
 # XORG_CORE_LIBS is needed even if you're not building the Xorg DDX
 XORG_CORE_LIBS="$DIX_LIB"
@@ -1542,6 +1600,13 @@ hw/dmx/input/Makefile
 hw/dmx/glxProxy/Makefile
 hw/dmx/Makefile
 hw/vfb/Makefile
+hw/xgl/Makefile
+hw/xgl/egl/Makefile
+hw/xgl/egl/module/Makefile
+hw/xgl/glx/Makefile
+hw/xgl/glx/module/Makefile
+hw/xgl/glxext/Makefile
+hw/xgl/glxext/module/Makefile
 hw/xnest/Makefile
 hw/xwin/Makefile
 hw/darwin/Makefile

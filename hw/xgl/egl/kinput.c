@@ -23,9 +23,7 @@
  */
 /* $RCSId: xc/programs/Xserver/hw/kdrive/kinput.c,v 1.30 2002/11/13 16:37:39 keithp Exp $ */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
+#include <xgl-config.h>
 
 #include <signal.h>
 #include <stdio.h>

@@ -16,11 +16,9 @@ SUBDIRS = 		\
 	$(XGLX_SUBDIRS) \
 	$(XEGL_SUBDIRS)
 
-INCLUDES =		   \
-	@XGL_INCS@	   \
-	@XSERVER_CFLAGS@   \
-	@XGLSERVER_CFLAGS@ \
-	-DMODULEPATH=\"@MODULEPATH@\"
+AM_CFLAGS = \
+	@SERVER_DEFINES@ \
+	$(XGLMODULES_CFLAGS)
 
 noinst_LIBRARIES = libxgl.a
 
@@ -52,15 +50,20 @@ libxgl_a_SOURCES =     \
         xglloader.c    \
 	xglglx.c
 
-if XGLSERVER
-Xgl_DEPENDENCIES = @XGL_LIBS@
 Xgl_LDFLAGS = -export-dynamic
-Xgl_SOURCES = xglinit.c
-Xgl_LDADD =	\
-	@XGL_LIBS@	\
-	@XSERVER_LIBS@	\
-	@XGLSERVER_LIBS@
+Xgl_SOURCES = \
+	xglinit.c \
+	$(top_srcdir)/mi/miinitext.c \
+	$(top_srcdir)/Xext/dpmsstubs.c \
+	$(top_srcdir)/Xi/stubs.c \
+	$(top_srcdir)/fb/fbcmap.c
+Xgl_LDADD = \
+	libxgl.a \
+	$(XORG_CORE_LIBS) \
+	$(XGL_LIBS) \
+	$(XSERVER_LIBS) \
+	$(EXTENSION_LIBS) \
+	$(XGLMODULES_LIBS)
 Xgl_programs = Xgl
-endif
 
 bin_PROGRAMS = $(Xgl_programs)

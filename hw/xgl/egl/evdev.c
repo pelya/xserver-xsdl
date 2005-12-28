@@ -22,9 +22,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
+#include <xgl-config.h>
 #define NEED_EVENTS
 #include <errno.h>
 #include <linux/input.h>

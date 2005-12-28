@@ -26,7 +26,7 @@
 #include "xgl.h"
 #include "xglmodule.h"
 
-#ifdef XLOADABLE
+#ifdef XGL_MODULAR
 
 #include <dlfcn.h>
 
@@ -44,11 +44,11 @@ xglLoadModule (const char *name)
 	SYM (moduleInit,    "moduleInit")
     };
 
-    module = malloc (strlen (MODULEPATH "/xgl/lib.so") + strlen (name) + 1);
+    module = malloc (strlen (XGL_MODULE_PATH "/lib.so") + strlen (name) + 1);
     if (!module)
 	return 0;
 
-    sprintf (module, MODULEPATH "/xgl/lib%s.so", name);
+    sprintf (module, XGL_MODULE_PATH "/lib%s.so", name);
 
     handle = dlopen (module, RTLD_NOW);
     if (handle)

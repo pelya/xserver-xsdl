@@ -1,16 +1,14 @@
-if XGLSERVER
-MODULE_SUBDIRS = module
+if XGL
+XGL_MODULE_DIRS = module
 endif
 
 SUBDIRS =		  \
 	.		  \
-	$(MODULE_SUBDIRS)
+	$(XGL_MODULE_DIRS)
 
-INCLUDES =		    \
-	@XEGL_INCS@	    \
-	@XSERVER_CFLAGS@    \
-	@XGLSERVER_CFLAGS@  \
-	@XEGLSERVER_CFLAGS@
+AM_CFLAGS = \
+	@SERVER_DEFINES@ \
+	$(XEGLMODULES_CFLAGS)
 
 noinst_LTLIBRARIES = libxegl.la
 
@@ -22,16 +20,22 @@ libxegl_la_SOURCES = \
 	kinput.c     \
 	evdev.c
 
-if XEGLSERVER
 Xegl_DEPENDENCIES = @XEGL_LIBS@
 Xegl_LDFLAGS	  = -export-dynamic
-Xegl_SOURCES	  = xeglinit.c
-Xegl_LDADD	  =	  \
-	@XEGL_LIBS@	  \
-	@XSERVER_LIBS@    \
-	@XGLSERVER_LIBS@  \
-	@XEGLSERVER_LIBS@
+Xegl_SOURCES	  = \
+	xglxinit.c \
+	$(top_srcdir)/mi/miinitext.c \
+	$(top_srcdir)/Xext/dpmsstubs.c \
+	$(top_srcdir)/Xi/stubs.c \
+	$(top_srcdir)/fb/fbcmap.c
+Xegl_LDADD = \
+	libxegl.la \
+	../libxgl.a \
+	$(XORG_CORE_LIBS) \
+	$(XEGL_LIBS) \
+	$(XSERVER_LIBS) \
+	$(EXTENSION_LIBS) \
+	$(XGLXMODULES_LIBS)
 Xegl_programs	  = Xegl
-endif
 
 bin_PROGRAMS = $(Xegl_programs)

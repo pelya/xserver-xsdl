@@ -26,9 +26,7 @@
 #ifndef _XGL_GLXEXT_H_
 #define _XGL_GLXEXT_H_
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
+#include <xgl-config.h>
 
 #include "scrnintstr.h"
 

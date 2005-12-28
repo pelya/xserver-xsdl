@@ -1,16 +1,15 @@
-if XGLSERVER
-MODULE_SUBDIRS = module
+if XGL
+XGL_MODULE_DIRS = module
 endif
 
 SUBDIRS =		  \
 	.		  \
-	$(MODULE_SUBDIRS)
+	$(XGL_MODULE_DIRS)
 
-INCLUDES =		    \
-	@XGLX_INCS@	    \
-	@XSERVER_CFLAGS@    \
-	@XGLSERVER_CFLAGS@  \
-	@XGLXSERVER_CFLAGS@
+AM_CFLAGS = \
+	-I$(srcdir)/.. \
+	@SERVER_DEFINES@ \
+	$(XGLXMODULES_CFLAGS)
 
 noinst_LTLIBRARIES = libxglx.la
 
@@ -18,16 +17,22 @@ libxglx_la_SOURCES = \
 	xglx.h	     \
 	xglx.c
 
-if XGLXSERVER
 Xglx_DEPENDENCIES = @XGLX_LIBS@
 Xglx_LDFLAGS	  = -export-dynamic
-Xglx_SOURCES	  = xglxinit.c
-Xglx_LDADD	  =	  \
-	@XGLX_LIBS@	  \
-	@XSERVER_LIBS@    \
-	@XGLSERVER_LIBS@  \
-	@XGLXSERVER_LIBS@
+Xglx_SOURCES	  = \
+	xglxinit.c \
+	$(top_srcdir)/mi/miinitext.c \
+	$(top_srcdir)/Xext/dpmsstubs.c \
+	$(top_srcdir)/Xi/stubs.c \
+	$(top_srcdir)/fb/fbcmap.c
+Xglx_LDADD = \
+	libxglx.la \
+	../libxgl.a \
+	$(XORG_CORE_LIBS) \
+	$(XGLX_LIBS) \
+	$(XSERVER_LIBS) \
+	$(EXTENSION_LIBS) \
+	$(XGLXMODULES_LIBS)
 Xglx_programs	  = Xglx
-endif
 
 bin_PROGRAMS = $(Xglx_programs)

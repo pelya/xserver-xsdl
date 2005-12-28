@@ -139,7 +139,7 @@ Bool
 xglLoadGLXModules (void)
 {
 
-#ifdef XLOADABLE
+#ifdef XGL_MODULAR
     if (!glXHandle)
     {
 	xglSymbolRec sym[] = {
@@ -207,7 +207,7 @@ void
 xglUnloadGLXModules (void)
 {
 
-#ifdef XLOADABLE
+#ifdef XGL_MODULAR
     if (glXHandle)
     {
 	xglUnloadModule (glXHandle);

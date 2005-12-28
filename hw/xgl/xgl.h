@@ -26,9 +26,7 @@
 #ifndef _XGL_H_
 #define _XGL_H_
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
+#include <xgl-config.h>
 
 #include <stdint.h>
 #include <stdio.h>
@@ -52,6 +50,11 @@ typedef struct _GCFuncs *GCFuncsPtr;
 #ifdef RENDER
 #include "mipict.h"
 #endif
+
+/* For the modules.  We should decide what the actual version numbering should
+ * be.
+ */
+#define VERSION "0.0.1"
 
 extern WindowPtr *WindowTable;
 
@@ -1331,7 +1334,7 @@ xglAddTraps (PicturePtr pDst,
 
 #endif
 
-#ifdef XLOADABLE
+#ifdef XGL_MODULAR
 
 /* xglloader.c */
 

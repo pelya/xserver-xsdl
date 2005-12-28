@@ -1,14 +1,14 @@
-INCLUDES =		    \
-	@XGLX_INCS@	    \
-	@XSERVER_CFLAGS@    \
-	@XGLXSERVER_CFLAGS@
+AM_CFLAGS = \
+	-I$(srcdir)/.. \
+	-I$(srcdir)/../.. \
+	$(XGLXMODULES_CFLAGS)
 
 libxglx_la_LDFLAGS = -avoid-version
 libxglx_la_SOURCES = xglxmodule.c
-libxglx_la_LIBADD   =	  \
-	@XGLX_MOD_LIBS@	  \
-	@XGLXSERVER_LIBS@
+libxglx_la_LIBADD = \
+	$(top_builddir)/hw/xgl/glx/libxglx.la \
+	$(XGLXMODULES_LIBS)
 
-moduledir = @MODULEPATH@/xgl
+moduledir = @xglmoduledir@
 
 module_LTLIBRARIES = libxglx.la

@@ -52,7 +52,7 @@ Bool
 xglLoadHashFuncs (void *handle)
 {
 
-#ifdef XLOADABLE
+#ifdef XGL_MODULAR
     xglSymbolRec sym[] = {
 	SYM (__hashFunc.NewHashTable,	      "_mesa_NewHashTable"),
 	SYM (__hashFunc.DeleteHashTable,      "_mesa_DeleteHashTable"),

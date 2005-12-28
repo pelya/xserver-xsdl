@@ -25,7 +25,7 @@
 
 #include "xglx.h"
 
-static xglScreenInfoRec xglxScreenInfo = {
+xglScreenInfoRec xglScreenInfo = {
     NULL, 0, 0, 0, 0,
     DEFAULT_GEOMETRY_DATA_TYPE,
     DEFAULT_GEOMETRY_USAGE,
@@ -53,7 +53,7 @@ InitOutput (ScreenInfo *pScreenInfo,
     }
 #endif
 
-    xglxInitOutput (&xglxScreenInfo, pScreenInfo, argc, argv);
+    xglxInitOutput (pScreenInfo, argc, argv);
 }
 
 Bool
@@ -73,7 +73,7 @@ void
 InitInput (int  argc,
 	   char **argv)
 {
-    xglxInitInput (&xglxScreenInfo, argc, argv);
+    xglxInitInput (argc, argv);
 }
 
 void
@@ -105,11 +105,11 @@ ddxProcessArgument (int  argc,
     }
 #endif
 
-    skip = xglProcessArgument (&xglxScreenInfo, argc, argv, i);
+    skip = xglProcessArgument (argc, argv, i);
     if (skip)
 	return skip;
 
-    return xglxProcessArgument (&xglxScreenInfo, argc, argv, i);
+    return xglxProcessArgument (argc, argv, i);
 }
 
 void
@@ -128,4 +128,8 @@ void
 OsVendorInit (void)
 {
     xglxOsVendorInit ();
+}
+
+void ddxInitGlobals(void)
+{
 }

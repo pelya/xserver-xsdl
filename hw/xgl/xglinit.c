@@ -98,7 +98,7 @@ static Bool
 xglEnsureDDXModule (void)
 {
 
-#ifdef XLOADABLE
+#ifdef XGL_MODULAR
     static void *ddxHandle = 0;
     static Bool status = TRUE;
 
@@ -284,4 +284,8 @@ OsVendorInit (void)
 {
     if (xglEnsureDDXModule ())
 	(*__ddxFunc.osVendorInit) ();
+}
+
+void ddxInitGlobals(void)
+{
 }
