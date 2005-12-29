@@ -1,3 +1,17 @@
+2005-12-29  Dave Airlie  <airlied@linux.ie>
+
+	* hw/xfree86/os-support/bus/Pci.c: (pciByteSwap):
+	* hw/xfree86/os-support/bus/Pci.h:
+	* hw/xfree86/os-support/bus/freebsdPci.c:
+	* hw/xfree86/os-support/bus/ix86Pci.c:
+	* hw/xfree86/os-support/bus/linuxPci.c:
+	* hw/xfree86/os-support/bus/ppcPci.c: (ppcPciInit):
+	* hw/xfree86/os-support/bus/zx1PCI.c:
+	* hw/xfree86/os-support/xf86_OSlib.h:
+	Remove PowerMAX_OS define it never worked , it'll never work
+	again, finishes running joke of OLS2005
+	
+
 2005-12-28  Eric Anholt  <anholt@FreeBSD.org>
 
 	* hw/xgl/Makefile.am:

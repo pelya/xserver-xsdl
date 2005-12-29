@@ -460,10 +460,6 @@ static pciBusInfo_t zx1FakeBus = {
     0,			/* numDevices -- copied from bus 0 */
     FALSE,		/* secondary */
     0,			/* primary_bus -- dynamically set */
-#ifdef PowerMAX_OS
-    0,			/* ppc_io_base -- ignored */
-    0,			/* ppc_io_size -- ignored */
-#endif
     &zx1FakeBusFuncs,	/* funcs */
     NULL,		/* pciBusPriv -- none */
     NULL,		/* bridge -- dynamically set */

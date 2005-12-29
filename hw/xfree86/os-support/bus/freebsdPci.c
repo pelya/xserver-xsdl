@@ -79,10 +79,6 @@ static pciBusInfo_t freebsdPci0 = {
 /* numDevices  */	32,
 /* secondary   */	FALSE,
 /* primary_bus */	0,
-#ifdef PowerMAX_OS
-/* ppc_io_base */	0,
-/* ppc_io_size */	0,
-#endif
 /* funcs       */	&freebsdFuncs0,
 /* pciBusPriv  */	NULL,
 /* bridge      */	NULL

@@ -102,10 +102,6 @@ static pciBusInfo_t linuxPci0 = {
 /* numDevices  */	32,
 /* secondary   */	FALSE,
 /* primary_bus */	0,
-#ifdef PowerMAX_OS
-/* ppc_io_base */	0,
-/* ppc_io_size */	0,
-#endif
 /* funcs       */	&linuxFuncs0,
 /* pciBusPriv  */	NULL,
 /* bridge      */	NULL

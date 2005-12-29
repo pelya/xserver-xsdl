@@ -603,7 +603,7 @@ pciTag(int busnum, int devnum, int funcnum)
 	return(PCI_MAKE_TAG(busnum,devnum,funcnum));
 }
 
-#if defined(PCI_MFDEV_SUPPORT) || defined(PowerMAX_OS)
+#if defined(PCI_MFDEV_SUPPORT)
 
 Bool
 pciMfDev(int busnum, int devnum)
@@ -871,18 +871,8 @@ CARD32
 pciByteSwap(CARD32 u)
 {
 #if X_BYTE_ORDER == X_BIG_ENDIAN
-# if defined(__powerpc__) && defined(PowerMAX_OS)
-  CARD32 tmp;
-
-  __inst_stwbrx(u, &tmp, 0);
-
-  return(tmp);
-
-# else /* !PowerMAX_OS */
 
   return lswapl(u);
-
-# endif /* !PowerMAX_OS */
 
 #else /* !BIG_ENDIAN */
 

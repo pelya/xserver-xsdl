@@ -211,10 +211,6 @@ static pciBusInfo_t ix86Pci0 = {
 /* numDevices  */	0,			/* Set by ix86PciInit() */
 /* secondary   */	FALSE,
 /* primary_bus */	0,
-#ifdef PowerMAX_OS
-/* ppc_io_base */	0,
-/* ppc_io_size */	0,
-#endif
 /* funcs       */	&ix86Funcs0,		/* Set by ix86PciInit() */
 /* pciBusPriv  */	NULL,
 /* bridge      */	NULL
