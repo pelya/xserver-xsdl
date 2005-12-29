@@ -9,6 +9,8 @@ SUBDIRS =		  \
 AM_CFLAGS = \
 	-I$(srcdir)/.. \
 	@SERVER_DEFINES@ \
+	-DHAVE_XGL_CONFIG_H \
+	-DHAVE_DIX_CONFIG_H \
 	$(XGLXMODULES_CFLAGS)
 
 noinst_LTLIBRARIES = libxglx.la

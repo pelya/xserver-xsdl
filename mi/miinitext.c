@@ -1,4 +1,4 @@
-/* $XdotOrg: xserver/xorg/mi/miinitext.c,v 1.26 2005/07/16 03:49:59 kem Exp $ */
+/* $XdotOrg: xserver/xorg/mi/miinitext.c,v 1.27 2005/12/28 10:02:53 ajax Exp $ */
 /* $XFree86: xc/programs/Xserver/mi/miinitext.c,v 3.67 2003/01/12 02:44:27 dawes Exp $ */
 /***********************************************************
 
@@ -68,6 +68,14 @@ SOFTWARE.
 #ifdef HAVE_KDRIVE_CONFIG_H
 #include <kdrive-config.h>
 /* there must be a better way... */
+#undef XF86MISC
+#undef XFreeXDGA
+#undef XF86DRI
+#undef XF86VIDMODE
+#endif
+
+#ifdef HAVE_XGL_CONFIG_H
+#include <xgl-config.h>
 #undef XF86MISC
 #undef XFreeXDGA
 #undef XF86DRI
