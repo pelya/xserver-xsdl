@@ -119,6 +119,16 @@
 	* configure.ac:
 	Get Xsdl closer to linking.
 
+	* configure.ac:
+	* hw/kdrive/Makefile.am:
+	* hw/kdrive/fake/Makefile.am:
+	* hw/kdrive/src/Makefile.am:
+	* hw/kdrive/src/kdrive.c:
+	* hw/kdrive/src/kshadow.c:
+	* mi/miinitext.c:
+	Enough build fixes to get {sdl,ephyr,fake} to link.
+
+
 2005-12-26  Adam Jackson  <ajax@freedesktop.org>
 
 	* os/oscolor.c:
