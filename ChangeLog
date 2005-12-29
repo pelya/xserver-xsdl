@@ -3,6 +3,9 @@
 	* configure.ac:
 	Disable building LBX by default.
 
+	* mi/misprite.c:
+	Style fix, make SCREEN_EPILOGUE two arguments instead of three.
+
 2005-12-29  Dave Airlie  <airlied@linux.ie>
 
 	* hw/xfree86/os-support/bus/Pci.c: (pciByteSwap):
