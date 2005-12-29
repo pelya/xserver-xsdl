@@ -790,6 +790,7 @@ typedef struct _inputTransition {
     KdMouseState   nextState;
 } KdInputTransition;
 
+static const
 KdInputTransition  kdInputMachine[num_input_states][num_input_class] = {
     /* start */
     {
@@ -1046,7 +1047,7 @@ KdQueueEvent (xEvent *ev)
 static void
 KdRunMouseMachine (KdMouseInfo *mi, KdInputClass c, xEvent *ev)
 {
-    KdInputTransition	*t;
+    const KdInputTransition *t;
     int			a;
 
     t = &kdInputMachine[mi->mouseState][c];

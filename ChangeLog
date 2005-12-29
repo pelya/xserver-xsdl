@@ -6,6 +6,9 @@
 	* mi/misprite.c:
 	Style fix, make SCREEN_EPILOGUE two arguments instead of three.
 
+	* hw/kdrive/src/kinput.c:
+	Make kdInputMachine static const, shrinks .data a bit.
+
 2005-12-29  Dave Airlie  <airlied@linux.ie>
 
 	* hw/xfree86/os-support/bus/Pci.c: (pciByteSwap):
