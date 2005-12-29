@@ -1,3 +1,8 @@
+2005-12-29  Adam Jackson  <ajax@freedesktop.org>
+
+	* configure.ac:
+	Disable building LBX by default.
+
 2005-12-29  Dave Airlie  <airlied@linux.ie>
 
 	* hw/xfree86/os-support/bus/Pci.c: (pciByteSwap):
@@ -9,8 +14,7 @@
 	* hw/xfree86/os-support/bus/zx1PCI.c:
 	* hw/xfree86/os-support/xf86_OSlib.h:
 	Remove PowerMAX_OS define it never worked , it'll never work
-	again, finishes running joke of OLS2005
-	
+	again, finishes running joke of OLS2005	
 
 2005-12-28  Eric Anholt  <anholt@FreeBSD.org>
 
@@ -295,7 +299,7 @@
 	* configure.ac:
 	* hw/Makefile.am:
 	* include/kdrive-config.h.in:
-	Skeletal kdrive build system.  Totall non-functional atm.
+	Skeletal kdrive build system.  Totally non-functional atm.
 
 2005-12-26  Daniel Stone  <daniel@freedesktop.org>
 
