@@ -1,3 +1,11 @@
+2005-12-30  Eric Anholt  <anholt@FreeBSD.org>
+
+	* configure.ac:
+	Fix the AC_TRY_RUN for sys/linker.h which had no hope due to lacking a
+	main() to instead use a nice AC_CHECK_HEADERS that works.  Also, fix
+	the nearby SYSV IPC check which was lacking an argument and giving
+	bogus results (it's "AC_TRY_LINK(includes, main, yes, no)").
+
 2005-12-29  Eric Anholt  <anholt@FreeBSD.org>
 
 	* include/dix-config.h.in:

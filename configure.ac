@@ -132,20 +132,17 @@ if test "x$ac_cv_mtrr_h" = xyes; then
 fi
 
 dnl FreeBSD kldload support (sys/linker.h)
-AC_CACHE_CHECK([for sys/linker.h],
-		ac_cv_sys_linker_h,
-		[AC_TRY_RUN([
-#include <sys/param.h>
-#include <sys/linker.h>
-],
+AC_CHECK_HEADERS([sys/linker.h],
 	[ac_cv_sys_linker_h=yes],
-	[ac_cv_sys_linker_h=no])])
+	[ac_cv_sys_linker_h=no],
+	[#include <sys/param.h>])
 AM_CONDITIONAL(FREEBSD_KLDLOAD, [test "x$ac_cv_sys_linker_h" = xyes])
 
 AC_CACHE_CHECK([for SYSV IPC],
 		ac_cv_sysv_ipc,
 		[AC_TRY_LINK([
 #include <sys/shm.h>
+],[
 int main () { 
     int id;
     id = shmget(IPC_PRIVATE, 512, SHM_W | SHM_R);
