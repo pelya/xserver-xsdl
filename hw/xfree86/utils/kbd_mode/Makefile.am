@@ -55,6 +55,8 @@ all-local: kbd_mode.man.pre $(appman_DATA)
 kbd_mode.man.pre: $(MAN_SRC)
 	$(LN_S) $(MAN_SRC) kbd_mode.man.pre
 
+else
+all-local:
 endif
 
 include $(top_srcdir)/cpprules.in
