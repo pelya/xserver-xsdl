@@ -1,5 +1,12 @@
 2005-12-29  Eric Anholt  <anholt@FreeBSD.org>
 
+	* include/dix-config.h.in:
+	Add #undef BSD44SOCKETS, without which the listener socket on FreeBSD
+	would be created without the port number due to xtrans's define not
+	being used when xtrans was compiled in the X Server.
+
+2005-12-29  Eric Anholt  <anholt@FreeBSD.org>
+
 	* hw/xfree86/utils/kbd_mode/Makefile.am:
 	Add an empty all-local target for FreeBSD make's sake, which doesn't
 	deal with .PHONY.
