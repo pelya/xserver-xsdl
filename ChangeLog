@@ -1,3 +1,13 @@
+2005-12-31  Eric Anholt  <anholt@FreeBSD.org>
+
+	* hw/xgl/glx/xglx.c: (xglxWindowExposures):
+	* hw/xgl/glxext/xglglxext.c: (xglCreateBuffer):
+	* hw/xgl/xglsync.c: (xglSyncBits):
+	* hw/xgl/xglwindow.c: (xglCopyWindow):
+	Change REGION_INIT(pScreen, &foo, NullBox, 0) to REGION_NULL(pScreen,
+	&foo).  While it is no longer (or rather, once again not) required as of
+	regionstr.h r1.4, it matches the style of the rest of the xorg code.
+
 2005-12-30  Eric Anholt  <anholt@FreeBSD.org>
 
 	* hw/xgl/xglsync.c: (xglSyncBits), (xglSyncSurface):

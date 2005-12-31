@@ -591,7 +591,7 @@ xglxWindowExposures (WindowPtr pWin,
 
     if (HasBorder (pWin))
     {
-	REGION_INIT (pScreen, &ClipList, NullBox, 0);
+	REGION_NULL (pScreen, &ClipList);
 	REGION_SUBTRACT (pScreen, &ClipList, &pWin->borderClip,
 			 &pWin->winSize);
 	REGION_INTERSECT (pScreen, &ClipList, &ClipList, (RegionPtr) pReg);
@@ -599,7 +599,7 @@ xglxWindowExposures (WindowPtr pWin,
 	REGION_UNINIT (pScreen, &ClipList);
     }
     
-    REGION_INIT (pScreen, &ClipList, NullBox, 0);
+    REGION_NULL (pScreen, &ClipList);
     REGION_INTERSECT (pScreen, &ClipList, &pWin->clipList, (RegionPtr) pReg);
     (*pScreen->WindowExposures) (pWin, &ClipList, NullRegion);
     REGION_UNINIT (pScreen, &ClipList);

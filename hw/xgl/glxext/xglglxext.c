@@ -4729,7 +4729,7 @@ xglCreateBuffer (__GLXdrawablePrivate *glxPriv)
     pBufferPriv->private       = NULL;
     pBufferPriv->freeBuffers   = NULL;
 
-    REGION_INIT (pScreen, &pBufferPriv->damage, NullBox, 0);
+    REGION_NULL (pScreen, &pBufferPriv->damage);
 
     if (pScreenPriv->fbo ||
 	((pDrawable->type == DRAWABLE_WINDOW)

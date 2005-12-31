@@ -96,7 +96,7 @@ xglSyncBits (DrawablePtr pDrawable,
 	    
 	    switch (RECT_IN_REGION (pDrawable->pScreen, &bitRegion, &box)) {
 	    case rgnIN:
-		REGION_INIT (pDrawable->pScreen, &region, NullBox, 0);
+		REGION_NULL (pDrawable->pScreen, &region);
 		break;
 	    case rgnOUT:
 		REGION_INIT (pDrawable->pScreen, &region, &box, 1);

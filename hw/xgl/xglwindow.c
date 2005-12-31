@@ -116,7 +116,7 @@ xglCopyWindow (WindowPtr   pWin,
     dy = ptOldOrg.y - pWin->drawable.y;
     
     REGION_TRANSLATE (pWin->drawable.pScreen, prgnSrc, -dx, -dy);
-    REGION_INIT (pWin->drawable.pScreen, &rgnDst, NullBox, 0);
+    REGION_NULL (pWin->drawable.pScreen, &rgnDst);
     REGION_INTERSECT (pWin->drawable.pScreen,
 		      &rgnDst, &pWin->borderClip, prgnSrc);
 
