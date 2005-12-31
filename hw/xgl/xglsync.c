@@ -173,6 +173,7 @@ xglSyncBits (DrawablePtr pDrawable,
 	pBox = REGION_RECTS (&region);
 	nBox = REGION_NUM_RECTS (&region);
 
+	format.fourcc = GLITZ_FOURCC_RGB;
 	format.masks = pPixmapPriv->pPixel->masks;
 	
 	while (nBox--)
@@ -250,6 +251,7 @@ xglSyncSurface (DrawablePtr pDrawable)
 	pBox = REGION_RECTS (pRegion);
 	pExt = REGION_EXTENTS (pDrawable->pScreen, pRegion);
 
+	format.fourcc  = GLITZ_FOURCC_RGB;
 	format.masks   = pPixmapPriv->pPixel->masks;
 	format.xoffset = pExt->x1;
 

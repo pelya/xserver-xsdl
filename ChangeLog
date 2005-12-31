@@ -1,5 +1,13 @@
 2005-12-30  Eric Anholt  <anholt@FreeBSD.org>
 
+	* hw/xgl/xglsync.c: (xglSyncBits), (xglSyncSurface):
+	Initialize the fourcc value in stack-allocated glitz_pixel_format_t
+	structures.  Greatly reduces the number of uninitialized-value accesses
+	during Xgl startup according to valgrind.  Allocating and filling these
+	in by hand on the stack seems very shady to me.
+
+2005-12-30  Eric Anholt  <anholt@FreeBSD.org>
+
 	* configure.ac:
 	Fix the AC_TRY_RUN for sys/linker.h which had no hope due to lacking a
 	main() to instead use a nice AC_CHECK_HEADERS that works.  Also, fix
