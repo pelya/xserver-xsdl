@@ -459,8 +459,6 @@ xglPictureInit (ScreenPtr pScreen)
     if (!fbPictureInit (pScreen, pFormats, nformats))
 	return FALSE;
 
-    PictureAddFilter (pScreen, FilterConvolution, miFilterValidateParams);
-    
     return TRUE;
 }
 

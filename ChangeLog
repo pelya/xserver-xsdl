@@ -1,5 +1,12 @@
 2006-01-03  Eric Anholt  <anholt@FreeBSD.org>
 
+	* hw/xgl/xglpict.c: (xglPictureInit):
+	Remove the manual AddFilter for convolution, which I'm pretty sure
+	shouldn't be necessary due to it already happening from
+	PictureSetDefaultFilters.
+
+2006-01-03  Eric Anholt  <anholt@FreeBSD.org>
+
 	* render/glyph.c: (ResetGlyphPrivates),
 	(AllocateGlyphPrivateIndex), (AllocateGlyphPrivate),
 	(SetGlyphScreenPrivateOffsets), (SetGlyphPrivatePointers),
