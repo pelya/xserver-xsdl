@@ -35,6 +35,19 @@
 #include "picturestr.h"
 #include "mipict.h"
 
+Bool
+miRealizeGlyph (ScreenPtr pScreen,
+		GlyphPtr  glyph)
+{
+    return TRUE;
+}
+
+void
+miUnrealizeGlyph (ScreenPtr pScreen,
+		  GlyphPtr  glyph)
+{
+}
+
 void
 miGlyphExtents (int		nlist,
 		GlyphListPtr	list,

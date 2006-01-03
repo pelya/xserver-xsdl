@@ -1,4 +1,4 @@
-/*
+ /*
  * $XFree86: xc/programs/Xserver/render/mipict.c,v 1.15tsi Exp $
  *
  * Copyright © 1999 Keith Packard
@@ -629,6 +629,8 @@ miPictureInit (ScreenPtr pScreen, PictFormatPtr formats, int nformats)
     ps->UpdateIndexed = miUpdateIndexed;
     ps->ChangePictureTransform = miChangePictureTransform;
     ps->ChangePictureFilter = miChangePictureFilter;
+    ps->RealizeGlyph = miRealizeGlyph;
+    ps->UnrealizeGlyph = miUnrealizeGlyph;
 
     /* MI rendering routines */
     ps->Composite	= 0;			/* requires DDX support */

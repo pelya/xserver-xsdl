@@ -29,6 +29,8 @@
 #include <X11/extensions/renderproto.h>
 #include "picture.h"
 #include "screenint.h"
+#include "regionstr.h"
+#include "miscstruct.h"
 
 #define GlyphFormat1	0
 #define GlyphFormat4	1
@@ -39,6 +41,7 @@
 
 typedef struct _Glyph {
     CARD32	refcnt;
+    DevUnion	*devPrivates;
     CARD32	size;	/* info + bitmap */
     xGlyphInfo	info;
     /* bits follow */
@@ -103,8 +106,28 @@ ResetGlyphSetPrivateIndex (void);
 Bool
 _GlyphSetSetNewPrivate (GlyphSetPtr glyphSet, int n, pointer ptr);
 
+void
+ResetGlyphPrivates (void);
+
+int
+AllocateGlyphPrivateIndex (void);
+
+Bool
+AllocateGlyphPrivate (ScreenPtr pScreen,
+		      int	index2,
+		      unsigned	amount);
+
 Bool
 GlyphInit (ScreenPtr pScreen);
+
+Bool
+GlyphFinishInit (ScreenPtr pScreen);
+
+void
+GlyphUninit (ScreenPtr pScreen);
+
+GlyphHashSetPtr
+FindGlyphHashSet (CARD32 filled);
 
 GlyphRefPtr
 FindGlyphRef (GlyphHashPtr hash, CARD32 signature, Bool match, GlyphPtr compare);

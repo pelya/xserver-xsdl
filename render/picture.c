@@ -136,6 +136,7 @@ PictureCloseScreen (int index, ScreenPtr pScreen)
     for (n = 0; n < ps->nformats; n++)
 	if (ps->formats[n].type == PictTypeIndexed)
 	    (*ps->CloseIndexed) (pScreen, &ps->formats[n]);
+    GlyphUninit (pScreen);
     SetPictureScreen(pScreen, 0);
     if (ps->PicturePrivateSizes)
 	xfree (ps->PicturePrivateSizes);
@@ -493,6 +494,8 @@ PictureFinishInit (void)
 
     for (s = 0; s < screenInfo.numScreens; s++)
     {
+	if (!GlyphFinishInit (screenInfo.screens[s]))
+	    return FALSE;
 	if (!PictureInitIndexedFormats (screenInfo.screens[s]))
 	    return FALSE;
 	(void) AnimCurInit (screenInfo.screens[s]);

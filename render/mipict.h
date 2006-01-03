@@ -106,6 +106,14 @@ miComputeCompositeRegion (RegionPtr	pRegion,
 Bool
 miPictureInit (ScreenPtr pScreen, PictFormatPtr formats, int nformats);
 
+Bool
+miRealizeGlyph (ScreenPtr pScreen,
+		GlyphPtr  glyph);
+
+void
+miUnrealizeGlyph (ScreenPtr pScreen,
+		  GlyphPtr  glyph);
+
 void
 miGlyphExtents (int		nlist,
 		GlyphListPtr	list,

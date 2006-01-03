@@ -1,3 +1,20 @@
+2006-01-03  Eric Anholt  <anholt@FreeBSD.org>
+
+	* render/glyph.c: (ResetGlyphPrivates),
+	(AllocateGlyphPrivateIndex), (AllocateGlyphPrivate),
+	(SetGlyphScreenPrivateOffsets), (SetGlyphPrivatePointers),
+	(ReallocGlobalGlyphPrivate), (GlyphInit), (GlyphFinishInit),
+	(GlyphUninit), (FreeGlyph), (AddGlyph), (AllocateGlyph):
+	* render/glyphstr.h:
+	* render/miglyph.c: (miRealizeGlyph), (miUnrealizeGlyph):
+	* render/mipict.c: (miPictureInit):
+	* render/mipict.h:
+	* render/picture.c: (PictureCloseScreen), (PictureFinishInit):
+	* render/picturestr.h:
+	Add glyph privates for Xgl, which uses them to implement a glyph cache.
+	EXA would probably also like to do this.  This breaks module ABI for EXA
+	and XAA, and likely breaks proprietary drivers as well.
+
 2005-12-31  Eric Anholt  <anholt@FreeBSD.org>
 
 	* hw/xgl/glx/xglx.c: (xglxWindowExposures):
