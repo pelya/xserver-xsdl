@@ -27,6 +27,8 @@
 	EXA would probably also like to do this.  This breaks module ABI for EXA
 	and XAA, and likely breaks proprietary drivers as well.
 
+	Obtained from: xserver tree (David Reveman)
+
 2005-12-31  Eric Anholt  <anholt@FreeBSD.org>
 
 	* hw/xgl/glx/xglx.c: (xglxWindowExposures):
