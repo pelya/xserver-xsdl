@@ -1,5 +1,10 @@
 2006-01-03  Eric Anholt  <anholt@FreeBSD.org>
 
+	* render/picture.c: (premultiply):
+	Correct rounding in divide-by-255 code.  Obtained from xserver.
+
+2006-01-03  Eric Anholt  <anholt@FreeBSD.org>
+
 	* hw/xgl/xglpict.c: (xglPictureInit):
 	Remove the manual AddFilter for convolution, which I'm pretty sure
 	shouldn't be necessary due to it already happening from

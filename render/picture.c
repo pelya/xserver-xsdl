@@ -863,12 +863,12 @@ static CARD32 xRenderColorToCard32(xRenderColor c)
 static unsigned int premultiply(unsigned int x)
 {
     unsigned int a = x >> 24;
-    unsigned int t = (x & 0xff00ff) * a;
-    t = (t + ((t >> 8) & 0xff00ff) + 0x800080) >> 8;
+    unsigned int t = (x & 0xff00ff) * a + 0x800080;
+    t = (t + ((t >> 8) & 0xff00ff)) >> 8;
     t &= 0xff00ff;
 
-    x = ((x >> 8) & 0xff) * a;
-    x = (x + ((x >> 8) & 0xff) + 0x80);
+    x = ((x >> 8) & 0xff) * a + 0x80;
+    x = (x + ((x >> 8) & 0xff));
     x &= 0xff00;
     x |= t | (a << 24);
     return x;
