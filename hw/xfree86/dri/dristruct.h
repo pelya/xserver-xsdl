@@ -99,6 +99,7 @@ typedef struct _DRIScreenPrivRec
     Bool		grabbedDRILock;
     Bool		drmSIGIOHandlerInstalled;
     Bool		wrapped;
+    Bool		windowsTouched;
     int			lockRefCount;
 } DRIScreenPrivRec, *DRIScreenPrivPtr;
 

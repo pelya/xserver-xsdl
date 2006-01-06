@@ -1405,6 +1405,11 @@ DRIDoBlockHandler(int screenNum, pointer blockData,
 					      DRI_2D_CONTEXT,
 					      pDRIPriv->partial3DContextStore);
     }
+
+    if (pDRIPriv->windowsTouched)
+        DRM_SPINUNLOCK(&pDRIPriv->pSAREA->drawable_lock, 1);
+    pDRIPriv->windowsTouched = FALSE;
+
     DRIUnlock(pScreen);
 }
 
@@ -1751,13 +1756,6 @@ DRILockTree(ScreenPtr pScreen)
     }
 }
 
-/* It appears that somebody is relying on the lock being set even 
-   if we aren't touching 3D windows */ 
-
-#define DRI_BROKEN
-
-static Bool DRIWindowsTouched = FALSE;
-
 int
 DRIValidateTree(WindowPtr pParent, WindowPtr pChild, VTKind kind)
 {
@@ -1767,15 +1765,6 @@ DRIValidateTree(WindowPtr pParent, WindowPtr pChild, VTKind kind)
     int returnValue = 1; /* always return 1, not checked by dix/window.c */
 
     if(!pDRIPriv) return returnValue;
-
-    DRIWindowsTouched = FALSE;
-
-#ifdef DRI_BROKEN
-    if(!DRIWindowsTouched) {
-        DRILockTree(pScreen);
-        DRIWindowsTouched = TRUE;
-    }
-#endif
 
     /* call lower wrapped functions */
     if(pDRIPriv->wrap.ValidateTree) {
@@ -1817,12 +1806,6 @@ DRIPostValidateTree(WindowPtr pParent, WindowPtr pChild, VTKind kind)
 	pDRIPriv->wrap.PostValidateTree = pScreen->PostValidateTree;
 	pScreen->PostValidateTree = DRIPostValidateTree;
     }
-
-    if (DRIWindowsTouched) {
-	/* Release spin lock */
-	DRM_SPINUNLOCK(&pDRIPriv->pSAREA->drawable_lock, 1);
-        DRIWindowsTouched = FALSE;
-    }
 }
 
 void
@@ -1836,12 +1819,10 @@ DRIClipNotify(WindowPtr pWin, int dx, int dy)
 
     if ((pDRIDrawablePriv = DRI_DRAWABLE_PRIV_FROM_WINDOW(pWin))) {
 
-#ifndef DRI_BROKEN
-        if(!DRIWindowsTouched) {
+        if(!pDRIPriv->windowsTouched) {
             DRILockTree(pScreen);
-            DRIWindowsTouched = TRUE;
+            pDRIPriv->windowsTouched = TRUE;
         }
-#endif
 
 	pDRIPriv->pSAREA->drawableTable[pDRIDrawablePriv->drawableIndex].stamp
 	    = DRIDrawableValidationStamp++;
