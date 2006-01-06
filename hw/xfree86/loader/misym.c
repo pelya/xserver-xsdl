@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/hw/xfree86/loader/misym.c,v 1.3 2005/06/26 02:48:36 ajax Exp $ */
+/* $XdotOrg: xserver/xorg/hw/xfree86/loader/misym.c,v 1.9 2005/10/18 04:02:31 aplattner Exp $ */
 /* $XFree86: xc/programs/Xserver/hw/xfree86/loader/misym.c,v 1.38 2003/10/15 16:29:04 dawes Exp $ */
 
 /*
@@ -193,7 +193,6 @@ LOOKUP miLookupTab[] = {
     SYMFUNC(miInitVisuals)
     SYMFUNC(miWindowExposures)
     SYMFUNC(miSegregateChildren)
-    SYMFUNC(miClipNotify)
     SYMFUNC(miHookInitVisuals)
     SYMFUNC(miPointerAbsoluteCursor)
     SYMFUNC(miPointerGetMotionEvents)

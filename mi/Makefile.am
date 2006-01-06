@@ -17,7 +17,6 @@ libminimi_la_SOURCES = 	\
 	mibstore.c	\
 	mibstore.h	\
 	mibstorest.h	\
-	miclipn.c	\
 	micmap.c	\
 	micmap.h	\
 	micoord.h	\

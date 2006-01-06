@@ -1,3 +1,11 @@
+2006-01-06  Adam Jackson  <ajax@freedesktop.org>
+
+	* hw/xfree86/loader/misym.c:
+	* mi/Makefile.am:
+	* mi/mi.h:
+	* mi/miclipn.c:
+	Remove unused X11R4 DDX compatibility function miClipNotify.
+
 2006-01-03  Eric Anholt  <anholt@FreeBSD.org>
 
 	* render/picture.c: (premultiply):

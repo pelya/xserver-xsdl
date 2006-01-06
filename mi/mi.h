@@ -136,16 +136,6 @@ extern void miPutImage(
     char * /*pImage*/
 );
 
-/* miclipn.c */
-
-extern void miClipNotify(
-    void (* /*func*/)(
-	WindowPtr /* pWin */,
-	int /* dx */,
-	int /* dy */
-	)
-);
-
 /* micursor.c */
 
 extern void miRecolorCursor(
