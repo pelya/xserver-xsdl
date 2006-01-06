@@ -144,7 +144,7 @@ if XPRINT
 
 PLATFORMDEFS = -DXFREE86
 
-cfbmskbits.h:   compiler.h
+all:   compiler.h
 
 compiler.h:
 	echo "#include \"$(top_srcdir)/hw/xfree86/common/compiler.h\"" >> $@
