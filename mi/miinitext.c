@@ -1,4 +1,4 @@
-/* $XdotOrg: xserver/xorg/mi/miinitext.c,v 1.27 2005/12/28 10:02:53 ajax Exp $ */
+/* $XdotOrg: xserver/xorg/mi/miinitext.c,v 1.28 2005/12/29 00:19:33 anholt Exp $ */
 /* $XFree86: xc/programs/Xserver/mi/miinitext.c,v 3.67 2003/01/12 02:44:27 dawes Exp $ */
 /***********************************************************
 
@@ -250,7 +250,7 @@ typedef void (*InitExtension)(INITARGS);
 #include <X11/extensions/lbxstr.h>
 #endif
 #ifdef XPRINT
-#include "Print.h"
+#include <X11/extensions/Print.h>
 #endif
 #ifdef XAPPGROUP
 #define _XAG_SERVER_

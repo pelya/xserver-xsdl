@@ -85,6 +85,11 @@ InitOutput(
 
     pScreenInfo->numPixmapFormats = 0; /* get them in PrinterInitOutput */
     screenInfo.numVideoScreens = 0;
+    
+#ifdef PRINT_ONLY_SERVER
+    PrinterInitOutput(pScreenInfo, argc, argv);
+#endif
+
 }
 
 static void

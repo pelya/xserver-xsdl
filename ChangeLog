@@ -2,9 +2,23 @@
 
 	* hw/xfree86/dri/dri.c:
 	* hw/xfree86/dri/dristruct.h:
-	Move drawable lock acquisition into DRIClipNotify from DRIValidateTree, so we only take it when
-	clipping a DRI drawable instead of on every tree update.  Note drawable lock acquisition per-
-	screen instead of globally, and drop it in BlockHandler if necessary.
+	Move drawable lock acquisition into DRIClipNotify from DRIValidateTree,
+	so we only take it when clipping a DRI drawable instead of on every
+	tree update.  Note drawable lock acquisition per-screen instead of
+	globally, and drop it in BlockHandler if necessary.
+
+	* configure.ac:
+	* Xprint/Makefile.am:
+	* Xprint/ddxInit.c:
+	* Xprint/pcl/Makefile.am:
+	* Xprint/pcl-mono/Makefile.am:
+	* cfb/Makefile.am:
+	* cfb/Makefile.am.inc:
+	* cfb16/Makefile.am:
+	* cfb24/Makefile.am:
+	* cfb32/Makefile.am:
+	* mi/miinitext.c:
+	Bug #5525: Build a working Xprt.  (Drew Parsons)
 
 2006-01-06  Adam Jackson  <ajax@freedesktop.org>
 

@@ -1632,6 +1632,7 @@ hw/kdrive/via/Makefile
 Xprint/Makefile
 Xprint/doc/Makefile
 Xprint/pcl/Makefile
+Xprint/pcl-mono/Makefile
 Xprint/raster/Makefile
 Xprint/ps/Makefile
 Xprint/etc/Makefile
