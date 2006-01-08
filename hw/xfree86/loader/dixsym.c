@@ -359,9 +359,6 @@ LOOKUP dixLookupTab[] = {
 #ifdef DBE
     SYMVAR(noDbeExtension)
 #endif
-#ifdef DPSEXT
-    SYMVAR(noDPSExtension)
-#endif
 #ifdef DPMSExtension
     SYMVAR(noDPMSExtension)
 #endif

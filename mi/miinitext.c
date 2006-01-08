@@ -1,4 +1,4 @@
-/* $XdotOrg: xserver/xorg/mi/miinitext.c,v 1.28 2005/12/29 00:19:33 anholt Exp $ */
+/* $XdotOrg: xserver/xorg/mi/miinitext.c,v 1.29 2006/01/06 23:06:15 ajax Exp $ */
 /* $XFree86: xc/programs/Xserver/mi/miinitext.c,v 3.67 2003/01/12 02:44:27 dawes Exp $ */
 /***********************************************************
 
@@ -106,7 +106,6 @@ SOFTWARE.
 #undef XFreeXDGA
 #undef XF86DRI
 #undef DPMSExtension
-#undef DPSEXT
 #undef FONTCACHE
 #undef DAMAGE
 #undef XFIXES
@@ -131,9 +130,6 @@ extern Bool noDamageExtension;
 #endif
 #ifdef DBE
 extern Bool noDbeExtension;
-#endif
-#ifdef DPSEXT
-extern Bool noDPSExtension;
 #endif
 #ifdef DPMSExtension
 extern Bool noDPMSExtension;
@@ -371,9 +367,6 @@ extern void XcupExtensionInit(INITARGS);
 #ifdef DPMSExtension
 extern void DPMSExtensionInit(INITARGS);
 #endif
-#ifdef DPSEXT
-extern void DPSExtensionInit(INITARGS);
-#endif
 #ifdef FONTCACHE
 extern void FontCacheExtensionInit(INITARGS);
 #endif
@@ -424,9 +417,6 @@ static ExtensionToggle ExtensionToggleList[] =
 #endif
 #ifdef DBE
     { "DOUBLE-BUFFER", &noDbeExtension },
-#endif
-#ifdef DPSEXT
-    { "DPSExtension", &noDPSExtension },
 #endif
 #ifdef DPMSExtension
     { "DPMS", &noDPMSExtension },
@@ -657,11 +647,6 @@ InitExtensions(argc, argv)
     if (!noGlxExtension) GlxExtensionInit();
 #else
     if (!noGlxExtension) DarwinGlxExtensionInit();
-#endif
-#endif
-#ifdef DPSEXT
-#ifndef XPRINT
-    if (!noDPSExtension) DPSExtensionInit();
 #endif
 #endif
 #ifdef XFIXES

@@ -146,9 +146,6 @@ Bool noDamageExtension = FALSE;
 #ifdef DBE
 Bool noDbeExtension = FALSE;
 #endif
-#ifdef DPSEXT
-Bool noDPSExtension = FALSE;
-#endif
 #ifdef DPMSExtension
 Bool noDPMSExtension = FALSE;
 #endif
