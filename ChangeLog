@@ -1,5 +1,8 @@
 2006-01-10  Daniel Stone  <daniel@freedesktop.org>
 
+	* configure.ac:
+	Bomb when symlink-mesa.sh fails, instead of blindly continuing.
+
 	* hw/xgl/**/Makefile.am:
 	* hw/kdrive/**/Makefile.am:
 	Add all subdirs used to DIST_SUBDIRS, and files to EXTRA_DIST.
