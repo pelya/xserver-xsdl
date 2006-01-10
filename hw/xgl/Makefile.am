@@ -10,6 +10,8 @@ if XEGL
 XEGL_SUBDIRS = egl
 endif
 
+DIST_SUBDIRS = glxext glx egl
+
 SUBDIRS = 		\
 	.		\
 	$(GLX_SUBDIRS)  \
@@ -51,6 +53,9 @@ libxgl_a_SOURCES =     \
 	xglhash.c      \
         xglloader.c    \
 	xglglx.c
+
+EXTRA_DIST = \
+	xglmodule.h
 
 Xgl_LDFLAGS = -export-dynamic
 Xgl_SOURCES = \

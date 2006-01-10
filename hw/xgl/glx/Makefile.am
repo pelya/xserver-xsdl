@@ -2,6 +2,8 @@ if XGL
 XGL_MODULE_DIRS = module
 endif
 
+DIST_SUBDIRS = module
+
 SUBDIRS =		  \
 	.		  \
 	$(XGL_MODULE_DIRS)

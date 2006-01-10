@@ -2,6 +2,8 @@ if XGL
 XGL_MODULE_DIRS = module
 endif
 
+DIST_SUBDIRS = module
+
 SUBDIRS =		  \
 	.		  \
 	$(XGL_MODULE_DIRS)
@@ -25,7 +27,7 @@ libxegl_la_SOURCES = \
 Xegl_DEPENDENCIES = @XEGL_LIBS@
 Xegl_LDFLAGS	  = -export-dynamic
 Xegl_SOURCES	  = \
-	xglxinit.c \
+	xeglinit.c \
 	$(top_srcdir)/mi/miinitext.c \
 	$(top_srcdir)/Xext/dpmsstubs.c \
 	$(top_srcdir)/Xi/stubs.c \

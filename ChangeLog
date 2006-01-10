@@ -1,3 +1,16 @@
+2006-01-10  Daniel Stone  <daniel@freedesktop.org>
+
+	* hw/xgl/**/Makefile.am:
+	* hw/kdrive/**/Makefile.am:
+	Add all subdirs used to DIST_SUBDIRS, and files to EXTRA_DIST.
+
+	* hw/xgl/egl/Makefile.am:
+	Attempt to build xeglmodule.c, not xglxmodule.c.
+
+	* hw/xfree86/os-support/bus/Makefile.am:
+	Add xf86Sbus.h to EXTRA_DIST, as _HEADERS doesn't appear to get the same
+	treatment as _SOURCES in terms of automatically DISTing.
+
 2006-01-08  Adam Jackson  <ajax@freedesktop.org>
 
 	* hw/xfree86/loader/dixsym.c:
