@@ -538,6 +538,9 @@ if test "x$GLX" = xyes && ! test "x$MESA_SOURCE" = x; then
 	GLX_LIBS='$(top_builddir)/GL/glx/libglx.la $(top_builddir)/GL/mesa/libGLcore.la'
 	test -d GL || mkdir GL
         $srcdir/GL/symlink-mesa.sh $MESA_SOURCE GL/
+	if test $? -ne 0; then
+		AC_MSG_ERROR([Failed to link Mesa source tree.  Please specify a proper path to Mesa sources, or disable GLX.])
+	fi
 else
         GLX=no
 fi
