@@ -37,7 +37,7 @@ SUBDIRS =			\
 	$(DMX_SUBDIRS)          \
         $(KDRIVE_SUBDIRS)
 
-DIST_SUBDIRS = dmx xfree86 vfb xnest xwin darwin kdrive
+DIST_SUBDIRS = dmx xfree86 vfb xnest xwin darwin kdrive xgl
 
 relink:
 	for i in $(SUBDIRS) ; do $(MAKE) -C $$i relink ; done
