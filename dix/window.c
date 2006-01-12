@@ -2728,7 +2728,7 @@ MapWindow(register WindowPtr pWin, ClientPtr client)
 	}
 
 	pWin->mapped = TRUE;
-	if (SubStrSend(pWin, pParent))
+	if (SubStrSend(pWin, pParent) && MapUnmapEventsEnabled(pWin))
 	{
 	    event.u.u.type = MapNotify;
 	    event.u.mapNotify.window = pWin->drawable.id;
@@ -2983,7 +2983,7 @@ UnmapWindow(register WindowPtr pWin, Bool fromConfigure)
 
     if ((!pWin->mapped) || (!(pParent = pWin->parent)))
 	return(Success);
-    if (SubStrSend(pWin, pParent))
+    if (SubStrSend(pWin, pParent) && MapUnmapEventsEnabled(pWin))
     {
 	event.u.u.type = UnmapNotify;
 	event.u.unmapNotify.window = pWin->drawable.id;
@@ -3285,6 +3285,29 @@ SendVisibilityNotify(WindowPtr pWin)
     DeliverEvents(pWin, &event, 1, NullWindow);
 }
 
+static WindowPtr windowDisableMapUnmapEvents;
+
+void
+DisableMapUnmapEvents(WindowPtr pWin)
+{
+    assert (windowDisableMapUnmapEvents == NULL);
+    
+    windowDisableMapUnmapEvents = pWin;
+}
+
+void
+EnableMapUnmapEvents(WindowPtr pWin)
+{
+    assert (windowDisableMapUnmapEvents != NULL);
+
+    windowDisableMapUnmapEvents = NULL;
+}
+
+Bool
+MapUnmapEventsEnabled(WindowPtr pWin)
+{
+    return pWin != windowDisableMapUnmapEvents;
+}
 
 #define RANDOM_WIDTH 32
 

@@ -1,3 +1,12 @@
+Thu Jan 12 17:09:18 2006  Søren Sandmann  <sandmann@redhat.com>
+
+	* include/window.[ch]: Add new functions to enable and disable
+	events on Map and Unmap. 
+
+	* composite/compalloc.c: Use them here to make sure Composite
+	redirect doesn't cause Map/UnmapNotify events that would confuse
+	window managers. 
+
 2006-01-11  Ian Romanick  <idr@us.ibm.com>
 
 	reviewed by: airlied, krh

@@ -101,7 +101,11 @@ compRedirectWindow (ClientPtr pClient, WindowPtr pWin, int update)
 	    return BadAlloc;
 	}
 	if (wasMapped)
+	{
+	    DisableMapUnmapEvents (pWin);
 	    UnmapWindow (pWin, FALSE);
+	    EnableMapUnmapEvents (pWin);
+	}
 
 	REGION_NULL (pScreen, &cw->borderClip);
 	cw->update = CompositeRedirectAutomatic;
@@ -135,7 +139,9 @@ compRedirectWindow (ClientPtr pClient, WindowPtr pWin, int update)
     {
 	Bool	overrideRedirect = pWin->overrideRedirect;
 	pWin->overrideRedirect = TRUE;
+	DisableMapUnmapEvents (pWin);
 	MapWindow (pWin, pClient);
+	EnableMapUnmapEvents (pWin);
 	pWin->overrideRedirect = overrideRedirect;
     }
     
@@ -169,7 +175,11 @@ compFreeClientWindow (WindowPtr pWin, XID id)
     if (!cw->clients)
     {
 	if (wasMapped)
+	{
+	    DisableMapUnmapEvents (pWin);
 	    UnmapWindow (pWin, FALSE);
+	    EnableMapUnmapEvents (pWin);
+	}
     
 	if (pWin->redirectDraw)
 	    compFreePixmap (pWin);
@@ -193,7 +203,9 @@ compFreeClientWindow (WindowPtr pWin, XID id)
     {
 	Bool	overrideRedirect = pWin->overrideRedirect;
 	pWin->overrideRedirect = TRUE;
+	DisableMapUnmapEvents (pWin);
 	MapWindow (pWin, clients[CLIENT_ID(id)]);
+	EnableMapUnmapEvents (pWin);
 	pWin->overrideRedirect = overrideRedirect;
     }
 }
