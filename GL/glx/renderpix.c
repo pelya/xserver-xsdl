@@ -41,247 +41,11 @@
 
 #include "glxserver.h"
 #include "unpack.h"
-#include "g_disptab.h"
-#include "g_disptab_EXT.h"
-
-void __glXDisp_PolygonStipple(GLbyte *pc)
-{
-    __GLXpixelHeader *hdr = (__GLXpixelHeader *) pc;
-
-    glPixelStorei(GL_UNPACK_LSB_FIRST, hdr->lsbFirst);
-    glPixelStorei(GL_UNPACK_ROW_LENGTH, (GLint) hdr->rowLength);
-    glPixelStorei(GL_UNPACK_SKIP_ROWS, (GLint) hdr->skipRows);
-    glPixelStorei(GL_UNPACK_SKIP_PIXELS, (GLint) hdr->skipPixels);
-    glPixelStorei(GL_UNPACK_ALIGNMENT, (GLint) hdr->alignment);
-
-    glPolygonStipple((GLubyte *)(hdr+1));
-}
-
-void __glXDisp_Bitmap(GLbyte *pc)
-{
-    __GLXdispatchBitmapHeader *hdr = (__GLXdispatchBitmapHeader *) pc;
-
-    glPixelStorei(GL_UNPACK_LSB_FIRST, hdr->lsbFirst);
-    glPixelStorei(GL_UNPACK_ROW_LENGTH, (GLint) hdr->rowLength);
-    glPixelStorei(GL_UNPACK_SKIP_ROWS, (GLint) hdr->skipRows);
-    glPixelStorei(GL_UNPACK_SKIP_PIXELS, (GLint) hdr->skipPixels);
-    glPixelStorei(GL_UNPACK_ALIGNMENT, (GLint) hdr->alignment);
-
-    glBitmap((GLsizei) hdr->width,
-	     (GLsizei) hdr->height,
-	     (GLfloat) hdr->xorig,
-	     (GLfloat) hdr->yorig,
-	     (GLfloat) hdr->xmove,
-	     (GLfloat) hdr->ymove,
-	     (GLubyte *)(hdr+1));
-}
-
-void __glXDisp_TexImage1D(GLbyte *pc)
-{
-    __GLXdispatchTexImageHeader *hdr = (__GLXdispatchTexImageHeader *) pc;
-
-    glPixelStorei(GL_UNPACK_SWAP_BYTES, hdr->swapBytes);
-    glPixelStorei(GL_UNPACK_LSB_FIRST, hdr->lsbFirst);
-    glPixelStorei(GL_UNPACK_ROW_LENGTH, (GLint) hdr->rowLength);
-    glPixelStorei(GL_UNPACK_SKIP_ROWS, (GLint) hdr->skipRows);
-    glPixelStorei(GL_UNPACK_SKIP_PIXELS, (GLint) hdr->skipPixels);
-    glPixelStorei(GL_UNPACK_ALIGNMENT, (GLint) hdr->alignment);
-
-    glTexImage1D(hdr->target,
-		 (GLint) hdr->level,
-		 (GLint) hdr->components,
-		 (GLsizei) hdr->width,
-		 (GLint) hdr->border,
-		 hdr->format,
-		 hdr->type,
-		 (GLvoid *)(hdr+1));
-}
-
-void __glXDisp_TexImage2D(GLbyte *pc)
-{
-    __GLXdispatchTexImageHeader *hdr = (__GLXdispatchTexImageHeader *) pc;
-
-    glPixelStorei(GL_UNPACK_SWAP_BYTES, hdr->swapBytes);
-    glPixelStorei(GL_UNPACK_LSB_FIRST, hdr->lsbFirst);
-    glPixelStorei(GL_UNPACK_ROW_LENGTH, (GLint) hdr->rowLength);
-    glPixelStorei(GL_UNPACK_SKIP_ROWS, (GLint) hdr->skipRows);
-    glPixelStorei(GL_UNPACK_SKIP_PIXELS, (GLint) hdr->skipPixels);
-    glPixelStorei(GL_UNPACK_ALIGNMENT, (GLint) hdr->alignment);
-
-    glTexImage2D(hdr->target,
-		 (GLint) hdr->level,
-		 (GLint) hdr->components,
-		 (GLsizei) hdr->width,
-		 (GLsizei) hdr->height,
-		 (GLint) hdr->border,
-		 hdr->format,
-		 hdr->type,
-		 (GLvoid *)(hdr+1));
-}
-
-void __glXDisp_TexImage3D(GLbyte *pc)
-{
-    __GLXdispatchTexImage3DHeader *hdr = (__GLXdispatchTexImage3DHeader *) pc;
-
-    glPixelStorei(GL_UNPACK_SWAP_BYTES, hdr->swapBytes);
-    glPixelStorei(GL_UNPACK_LSB_FIRST, hdr->lsbFirst);
-    glPixelStorei(GL_UNPACK_ROW_LENGTH, hdr->rowLength);
-    glPixelStorei(GL_UNPACK_IMAGE_HEIGHT, hdr->imageHeight);
-    glPixelStorei(GL_UNPACK_SKIP_ROWS, hdr->skipRows);
-    glPixelStorei(GL_UNPACK_SKIP_IMAGES, hdr->skipImages);
-    glPixelStorei(GL_UNPACK_SKIP_PIXELS, hdr->skipPixels);
-    glPixelStorei(GL_UNPACK_ALIGNMENT, hdr->alignment);
-
-    glTexImage3D(hdr->target, hdr->level, hdr->internalformat, hdr->width,
-		 hdr->height, hdr->depth, hdr->border, hdr->format, hdr->type,
-		 (GLvoid *)(hdr+1));
-}
-
-void __glXDisp_DrawPixels(GLbyte *pc)
-{
-    __GLXdispatchDrawPixelsHeader *hdr = (__GLXdispatchDrawPixelsHeader *) pc;
-
-    glPixelStorei(GL_UNPACK_SWAP_BYTES, hdr->swapBytes);
-    glPixelStorei(GL_UNPACK_LSB_FIRST, hdr->lsbFirst);
-    glPixelStorei(GL_UNPACK_ROW_LENGTH, (GLint) hdr->rowLength);
-    glPixelStorei(GL_UNPACK_SKIP_ROWS, (GLint) hdr->skipRows);
-    glPixelStorei(GL_UNPACK_SKIP_PIXELS, (GLint) hdr->skipPixels);
-    glPixelStorei(GL_UNPACK_ALIGNMENT, (GLint) hdr->alignment);
-
-    glDrawPixels((GLsizei) hdr->width,
-		 (GLsizei) hdr->height,
-		 hdr->format,
-		 hdr->type,
-		 (GLvoid *)(hdr+1));
-}
-
-void __glXDisp_TexSubImage1D(GLbyte *pc)
-{
-    __GLXdispatchTexSubImageHeader *hdr = (__GLXdispatchTexSubImageHeader *) pc;
-
-    glPixelStorei(GL_UNPACK_SWAP_BYTES, hdr->swapBytes);
-    glPixelStorei(GL_UNPACK_LSB_FIRST, hdr->lsbFirst);
-    glPixelStorei(GL_UNPACK_ROW_LENGTH, (GLint) hdr->rowLength);
-    glPixelStorei(GL_UNPACK_SKIP_ROWS, (GLint) hdr->skipRows);
-    glPixelStorei(GL_UNPACK_SKIP_PIXELS, (GLint) hdr->skipPixels);
-    glPixelStorei(GL_UNPACK_ALIGNMENT, (GLint) hdr->alignment);
-
-    glTexSubImage1D(hdr->target,
-		    (GLint) hdr->level,
-		    (GLint) hdr->xoffset,
-		    (GLsizei) hdr->width,
-		    hdr->format,
-		    hdr->type,
-		    (GLvoid *)(hdr+1));
-}
-
-void __glXDisp_TexSubImage2D(GLbyte *pc)
-{
-    __GLXdispatchTexSubImageHeader *hdr = (__GLXdispatchTexSubImageHeader *) pc;
-
-    glPixelStorei(GL_UNPACK_SWAP_BYTES, hdr->swapBytes);
-    glPixelStorei(GL_UNPACK_LSB_FIRST, hdr->lsbFirst);
-    glPixelStorei(GL_UNPACK_ROW_LENGTH, (GLint) hdr->rowLength);
-    glPixelStorei(GL_UNPACK_SKIP_ROWS, (GLint) hdr->skipRows);
-    glPixelStorei(GL_UNPACK_SKIP_PIXELS, (GLint) hdr->skipPixels);
-    glPixelStorei(GL_UNPACK_ALIGNMENT, (GLint) hdr->alignment);
-
-    glTexSubImage2D(hdr->target,
-		    (GLint) hdr->level,
-		    (GLint) hdr->xoffset,
-		    (GLint) hdr->yoffset,
-		    (GLsizei) hdr->width,
-		    (GLsizei) hdr->height,
-		    hdr->format,
-		    hdr->type,
-		    (GLvoid *)(hdr+1));
-}
-
-void __glXDisp_TexSubImage3D(GLbyte *pc)
-{
-    __GLXdispatchTexSubImage3DHeader *hdr =
-				(__GLXdispatchTexSubImage3DHeader *) pc;
-
-    glPixelStorei(GL_UNPACK_SWAP_BYTES, hdr->swapBytes);
-    glPixelStorei(GL_UNPACK_LSB_FIRST, hdr->lsbFirst);
-    glPixelStorei(GL_UNPACK_ROW_LENGTH, hdr->rowLength);
-    glPixelStorei(GL_UNPACK_IMAGE_HEIGHT, hdr->imageHeight);
-    glPixelStorei(GL_UNPACK_SKIP_ROWS, hdr->skipRows);
-    glPixelStorei(GL_UNPACK_SKIP_IMAGES, hdr->skipImages);
-    glPixelStorei(GL_UNPACK_SKIP_PIXELS, hdr->skipPixels);
-    glPixelStorei(GL_UNPACK_ALIGNMENT, hdr->alignment);
-
-    glTexSubImage3D(hdr->target, hdr->level, hdr->xoffset, hdr->yoffset,
-		       hdr->zoffset, hdr->width, hdr->height, hdr->depth,
-		       hdr->format, hdr->type, (GLvoid *)(hdr+1));
-}
-
-void __glXDisp_ColorTable(GLbyte *pc)
-{
-   __GLXdispatchColorTableHeader *hdr =
-				(__GLXdispatchColorTableHeader *) pc;
-
-    glPixelStorei(GL_UNPACK_SWAP_BYTES, hdr->swapBytes);
-    glPixelStorei(GL_UNPACK_LSB_FIRST, hdr->lsbFirst);
-    glPixelStorei(GL_UNPACK_ROW_LENGTH, hdr->rowLength);
-    glPixelStorei(GL_UNPACK_SKIP_ROWS, hdr->skipRows);
-    glPixelStorei(GL_UNPACK_SKIP_PIXELS, hdr->skipPixels);
-    glPixelStorei(GL_UNPACK_ALIGNMENT, hdr->alignment);
-
-    glColorTable(hdr->target, hdr->internalformat,
-		 hdr->width, hdr->format, hdr->type,
-		 (GLvoid *)(hdr+1));
-}
-
-void __glXDisp_ColorSubTable(GLbyte *pc)
-{
-   __GLXdispatchColorSubTableHeader *hdr =
-				(__GLXdispatchColorSubTableHeader *) pc;
-
-    glPixelStorei(GL_UNPACK_SWAP_BYTES, hdr->swapBytes);
-    glPixelStorei(GL_UNPACK_LSB_FIRST, hdr->lsbFirst);
-    glPixelStorei(GL_UNPACK_ROW_LENGTH, hdr->rowLength);
-    glPixelStorei(GL_UNPACK_SKIP_ROWS, hdr->skipRows);
-    glPixelStorei(GL_UNPACK_SKIP_PIXELS, hdr->skipPixels);
-    glPixelStorei(GL_UNPACK_ALIGNMENT, hdr->alignment);
-
-    glColorSubTable(hdr->target, hdr->start, hdr->count, hdr->format,
-		    hdr->type, (GLvoid *)(hdr+1));
-}
-
-void __glXDisp_ConvolutionFilter1D(GLbyte *pc)
-{
-   __GLXdispatchConvolutionFilterHeader *hdr =
-				(__GLXdispatchConvolutionFilterHeader *) pc;
-
-    glPixelStorei(GL_UNPACK_SWAP_BYTES, hdr->swapBytes);
-    glPixelStorei(GL_UNPACK_LSB_FIRST, hdr->lsbFirst);
-    glPixelStorei(GL_UNPACK_ROW_LENGTH, hdr->rowLength);
-    glPixelStorei(GL_UNPACK_SKIP_ROWS, hdr->skipRows);
-    glPixelStorei(GL_UNPACK_SKIP_PIXELS, hdr->skipPixels);
-    glPixelStorei(GL_UNPACK_ALIGNMENT, hdr->alignment);
-
-    glConvolutionFilter1D(hdr->target, hdr->internalformat,
-		 hdr->width, hdr->format, hdr->type,
-		 (GLvoid *)(hdr+1));
-}
-
-void __glXDisp_ConvolutionFilter2D(GLbyte *pc)
-{
-   __GLXdispatchConvolutionFilterHeader *hdr =
-				 (__GLXdispatchConvolutionFilterHeader *) pc;
-
-    glPixelStorei(GL_UNPACK_SWAP_BYTES, hdr->swapBytes);
-    glPixelStorei(GL_UNPACK_LSB_FIRST, hdr->lsbFirst);
-    glPixelStorei(GL_UNPACK_ROW_LENGTH, hdr->rowLength);
-    glPixelStorei(GL_UNPACK_SKIP_ROWS, hdr->skipRows);
-    glPixelStorei(GL_UNPACK_SKIP_PIXELS, hdr->skipPixels);
-    glPixelStorei(GL_UNPACK_ALIGNMENT, hdr->alignment);
-
-    glConvolutionFilter2D(hdr->target, hdr->internalformat,
-		 hdr->width, hdr->height, hdr->format, hdr->type,
-		 (GLvoid *)(hdr+1));
-}
+#include "indirect_dispatch.h"
+#include "glapitable.h"
+#include "glapi.h"
+#include "glthread.h"
+#include "dispatch.h"
 
 void __glXDisp_SeparableFilter2D(GLbyte *pc)
 {
@@ -291,12 +55,12 @@ void __glXDisp_SeparableFilter2D(GLbyte *pc)
 
     hdrlen = __GLX_PAD(__GLX_CONV_FILT_CMD_DISPATCH_HDR_SIZE);
 
-    glPixelStorei(GL_UNPACK_SWAP_BYTES, hdr->swapBytes);
-    glPixelStorei(GL_UNPACK_LSB_FIRST, hdr->lsbFirst);
-    glPixelStorei(GL_UNPACK_ROW_LENGTH, hdr->rowLength);
-    glPixelStorei(GL_UNPACK_SKIP_ROWS, hdr->skipRows);
-    glPixelStorei(GL_UNPACK_SKIP_PIXELS, hdr->skipPixels);
-    glPixelStorei(GL_UNPACK_ALIGNMENT, hdr->alignment);
+    CALL_PixelStorei( GET_DISPATCH(), (GL_UNPACK_SWAP_BYTES, hdr->swapBytes) );
+    CALL_PixelStorei( GET_DISPATCH(), (GL_UNPACK_LSB_FIRST, hdr->lsbFirst) );
+    CALL_PixelStorei( GET_DISPATCH(), (GL_UNPACK_ROW_LENGTH, hdr->rowLength) );
+    CALL_PixelStorei( GET_DISPATCH(), (GL_UNPACK_SKIP_ROWS, hdr->skipRows) );
+    CALL_PixelStorei( GET_DISPATCH(), (GL_UNPACK_SKIP_PIXELS, hdr->skipPixels) );
+    CALL_PixelStorei( GET_DISPATCH(), (GL_UNPACK_ALIGNMENT, hdr->alignment) );
 
     /* XXX check this usage - internal code called
     ** a version without the packing parameters
@@ -306,7 +70,7 @@ void __glXDisp_SeparableFilter2D(GLbyte *pc)
 			       hdr->alignment);
     image1len = __GLX_PAD(image1len);
 
-    glSeparableFilter2D(hdr->target, hdr->internalformat,
+    CALL_SeparableFilter2D( GET_DISPATCH(), (hdr->target, hdr->internalformat,
 		 hdr->width, hdr->height, hdr->format, hdr->type,
-		 ((GLubyte *)hdr+hdrlen), ((GLubyte *)hdr+hdrlen+image1len));
+		 ((GLubyte *)hdr+hdrlen), ((GLubyte *)hdr+hdrlen+image1len)) );
 }

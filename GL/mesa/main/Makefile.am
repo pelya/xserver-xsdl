@@ -34,7 +34,6 @@ nodist_libmain_la_SOURCES = accum.c \
                     convolve.c \
                     debug.c \
                     depth.c \
-                    dispatch.c \
                     dlist.c \
                     drawpix.c \
                     enable.c \

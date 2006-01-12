@@ -50,6 +50,10 @@
 #include <windowstr.h>
 #include "glxext.h"
 #include "GL/glx_ansic.h"
+#include "glapitable.h"
+#include "glapi.h"
+#include "glthread.h"
+#include "dispatch.h"
 
 static int __glXSwapGetFBConfigsSGIX(__GLXclientState *cl, GLbyte *pc);
 static int __glXSwapCreateContextWithConfigSGIX(__GLXclientState *cl, GLbyte *pc);
@@ -813,12 +817,12 @@ int __glXSwapVendorPrivate(__GLXclientState *cl, GLbyte *pc)
     case X_GLvop_SampleMaskSGIS:
 	__GLX_SWAP_FLOAT(pc + 4);
 	__GLX_SWAP_INT(pc + 8);
-	glSampleMaskSGIS(*(GLfloat *)(pc + 4),
-			 *(GLboolean *)(pc + 8));
+	CALL_SampleMaskSGIS( GET_DISPATCH(),
+			     (*(GLfloat *)(pc + 4), *(GLboolean *)(pc + 8)) );
 	return Success;
     case X_GLvop_SamplePatternSGIS:
 	__GLX_SWAP_INT(pc + 4);
-	glSamplePatternSGIS( *(GLenum *)(pc + 4));
+	CALL_SamplePatternSGIS( GET_DISPATCH(), (*(GLenum *)(pc + 4)) );
 	return Success;
     }
 #endif

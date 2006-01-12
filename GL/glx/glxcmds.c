@@ -52,6 +52,10 @@
 #include "glxext.h"
 #include "GL/glx_ansic.h"
 #include "glcontextmodes.h"
+#include "glapitable.h"
+#include "glapi.h"
+#include "glthread.h"
+#include "dispatch.h"
 
 /************************************************************************/
 
@@ -624,7 +628,7 @@ int DoMakeCurrent( __GLXclientState *cl,
 	*/
 	if (__GLX_HAS_UNFLUSHED_CMDS(prevglxc)) {
 	    if (__glXForceCurrent(cl, tag, (int *)&error)) {
-		glFlush();
+		CALL_Flush( GET_DISPATCH(), () );
 		__GLX_NOTE_FLUSHED_CMDS(prevglxc);
 	    } else {
 		return error;
@@ -810,7 +814,7 @@ int __glXWaitGL(__GLXclientState *cl, GLbyte *pc)
     if (!__glXForceCurrent(cl, req->contextTag, &error)) {
 	return error;
     }
-    glFinish();
+    CALL_Finish( GET_DISPATCH(), () );
     return Success;
 }
 
@@ -896,7 +900,7 @@ int __glXCopyContext(__GLXclientState *cl, GLbyte *pc)
 	    ** Do whatever is needed to make sure that all preceding requests
 	    ** in both streams are completed before the copy is executed.
 	    */
-	    glFinish();
+	    CALL_Finish( GET_DISPATCH(), () );
 	    __GLX_NOTE_FLUSHED_CMDS(tagcx);
 	} else {
 	    return error;
@@ -1325,7 +1329,7 @@ int __glXSwapBuffers(__GLXclientState *cl, GLbyte *pc)
 	    ** Do whatever is needed to make sure that all preceding requests
 	    ** in both streams are completed before the swap is executed.
 	    */
-	    glFinish();
+	    CALL_Finish( GET_DISPATCH(), () );
 	    __GLX_NOTE_FLUSHED_CMDS(glxc);
 	} else {
 	    return error;
@@ -1971,11 +1975,11 @@ int __glXVendorPrivate(__GLXclientState *cl, GLbyte *pc)
 #ifndef __DARWIN__
     switch( vendorcode ) {
     case X_GLvop_SampleMaskSGIS:
-	glSampleMaskSGIS(*(GLfloat *)(pc + 4),
-			 *(GLboolean *)(pc + 8));
+	CALL_SampleMaskSGIS( GET_DISPATCH(),
+			     (*(GLfloat *)(pc + 4), *(GLboolean *)(pc + 8)) );
 	return Success;
     case X_GLvop_SamplePatternSGIS:
-	glSamplePatternSGIS( *(GLenum *)(pc + 4));
+	CALL_SamplePatternSGIS( GET_DISPATCH(),	(*(GLenum *)(pc + 4)) );
 	return Success;
     case X_GLXvop_BindSwapBarrierSGIX:
         return __glXBindSwapBarrierSGIX(cl, pc);

@@ -36,6 +36,8 @@
 #include "glxserver.h"
 #include "glxext.h"
 #include "g_disptab.h"
+#include "indirect_dispatch.h"
+
 __GLXdispatchSingleProcPtr __glXSingleTable[__GLX_SINGLE_TABLE_SIZE] = {
 	__glXNoSuchSingleOpcode,
 	__glXRender,
@@ -431,7 +433,7 @@ __GLXdispatchRenderProcPtr __glXRenderTable[] = {
 	__glXNoSuchRenderOpcode,
 	__glXDisp_SampleCoverageARB,
 #ifndef MISSING_GL_EXTS
-	__glXDisp_WindowPos3fARB /* 230 */
+	__glXDisp_WindowPos3fvMESA /* 230 */
 #else
 	__glXNoSuchRenderOpcode
 #endif
@@ -832,7 +834,7 @@ __GLXdispatchRenderProcPtr __glXSwapRenderTable[__GLX_RENDER_TABLE_SIZE] = {
 	__glXNoSuchRenderOpcode,
 	__glXDispSwap_SampleCoverageARB,
 #ifndef MISSING_GL_EXTS
-	__glXDispSwap_WindowPos3fARB /* 230 */
+	__glXDispSwap_WindowPos3fvMESA /* 230 */
 #else
 	__glXNoSuchRenderOpcode
 #endif

@@ -39,6 +39,7 @@
 #endif
 
 #include "glxserver.h"
+#include "indirect_reqsize.h"
 #include "g_disptab_EXT.h"
 
 __GLXrenderSizeData __glXRenderSizeTable[__GLX_MAX_RENDER_OPCODE_EXT - __GLX_MIN_RENDER_OPCODE_EXT + 1] = {
@@ -272,7 +273,7 @@ __GLXrenderSizeData __glXRenderSizeTable[__GLX_MAX_RENDER_OPCODE_EXT - __GLX_MIN
 	/* no such opcode      */       {   0,  0                         },
 	/* no such opcode      */       {   0,  0                         },
 	/* no such opcode      */       {   0,  0                         },
-	/* WindowPos3fARB        230 */ {  16,  0                         },
+	/* WindowPos3fvMESA      230 */ {  16,  0                         },
 };
 __GLXrenderSizeData __glXRenderSizeTable_EXT[__GLX_MAX_RENDER_OPCODE_EXT - __GLX_MIN_RENDER_OPCODE_EXT + 1] = {
 	/* ColorTable          2053 */  {  44,  __glXColorTableReqSize    },
@@ -287,8 +288,8 @@ __GLXrenderSizeData __glXRenderSizeTable_EXT[__GLX_MAX_RENDER_OPCODE_EXT - __GLX
 	/* no such opcode      */       {   0,  0                         },
 	/* no such opcode      */       {   0,  0                         },
 	/* no such opcode      */       {   0,  0                         },
-	/* PointParameterfARB   2065 */ {  12,  0                         },
-	/* PointParameterfvARB  2066 */ {   8,  __glXPointParameterfvARBReqSize },
+	/* PointParameterfEXT   2065 */ {  12,  0                         },
+	/* PointParameterfvEXT  2066 */ {   8,  __glXPointParameterfvEXTReqSize },
 	/* no such opcode      */       {   0,  0                         },
 	/* no such opcode      */       {   0,  0                         },
 	/* no such opcode      */       {   0,  0                         },
@@ -2443,6 +2444,6 @@ __GLXrenderSizeData __glXRenderSizeTable_EXT[__GLX_MAX_RENDER_OPCODE_EXT - __GLX
 	/* no such opcode      */	{   0, 	0                         },
 	/* no such opcode      */	{   0, 	0                         },
 	/* ActiveStencilFaceEXT 4220 */ {   8,  0 },
-	/* PointParameteri      4221 */	{  12, 	0 },
-	/* PointParameteriv     4222 */	{   8, 	__glXPointParameterivReqSize },
+	/* PointParameteriNV    4221 */	{  12, 	0 },
+	/* PointParameterivNV   4222 */	{   8, 	__glXPointParameterivNVReqSize },
 };

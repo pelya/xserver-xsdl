@@ -1,10 +1,9 @@
-SUBDIRS = glapi main math array_cache swrast swrast_setup tnl shader X
+SUBDIRS = main math array_cache swrast swrast_setup tnl shader X
 
 noinst_LTLIBRARIES = libGLcore.la
 
 libGLcore_la_SOURCES = dummy.c
-libGLcore_la_LIBADD = glapi/libglapi.la \
-                      main/libmain.la \
+libGLcore_la_LIBADD = main/libmain.la \
                       math/libmath.la \
                       array_cache/libac.la \
                       swrast/libswrast.la \

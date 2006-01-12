@@ -41,8 +41,12 @@
 
 #include "glxserver.h"
 #include "unpack.h"
-#include "g_disptab.h"
-#include "g_disptab_EXT.h"
+#include "indirect_size.h"
+#include "indirect_dispatch.h"
+#include "glapitable.h"
+#include "glapi.h"
+#include "glthread.h"
+#include "dispatch.h"
 
 
 void __glXDispSwap_Map1f(GLbyte *pc)
@@ -74,7 +78,7 @@ void __glXDispSwap_Map1f(GLbyte *pc)
     }
     __GLX_SWAP_FLOAT_ARRAY(points, compsize);
 
-    glMap1f(target, u1, u2, k, order, points);
+    CALL_Map1f( GET_DISPATCH(), (target, u1, u2, k, order, points) );
 }
 
 void __glXDispSwap_Map2f(GLbyte *pc)
@@ -115,7 +119,7 @@ void __glXDispSwap_Map2f(GLbyte *pc)
     }
     __GLX_SWAP_FLOAT_ARRAY(points, compsize);
 
-    glMap2f(target, u1, u2, ustride, uorder, v1, v2, vstride, vorder, points);
+    CALL_Map2f( GET_DISPATCH(), (target, u1, u2, ustride, uorder, v1, v2, vstride, vorder, points) );
 }
 
 void __glXDispSwap_Map1d(GLbyte *pc)
@@ -159,7 +163,7 @@ void __glXDispSwap_Map1d(GLbyte *pc)
 #else
     points = (GLdouble*) pc;
 #endif
-    glMap1d(target, u1, u2, k, order, points);
+    CALL_Map1d( GET_DISPATCH(), (target, u1, u2, k, order, points) );
 }
 
 void __glXDispSwap_Map2d(GLbyte *pc)
@@ -211,42 +215,7 @@ void __glXDispSwap_Map2d(GLbyte *pc)
 #else
     points = (GLdouble*) pc;
 #endif
-    glMap2d(target, u1, u2, ustride, uorder, v1, v2, vstride, vorder, points);
-}
-
-void __glXDispSwap_CallLists(GLbyte *pc)
-{
-    GLenum type;
-    GLsizei n;
-    __GLX_DECLARE_SWAP_VARIABLES;
-    __GLX_DECLARE_SWAP_ARRAY_VARIABLES;
-
-    __GLX_SWAP_INT(pc + 4);
-    __GLX_SWAP_INT(pc + 0);
-    type = *(GLenum *)(pc + 4);
-    n = *(GLsizei *)(pc + 0);
-
-    switch (type) {
-      case GL_BYTE:
-      case GL_UNSIGNED_BYTE:
-      case GL_2_BYTES:
-      case GL_3_BYTES:
-      case GL_4_BYTES:
-	break;
-      case GL_SHORT:
-      case GL_UNSIGNED_SHORT:
-	__GLX_SWAP_SHORT_ARRAY(pc+8, n);
-	break;
-      case GL_INT:
-      case GL_UNSIGNED_INT:
-	__GLX_SWAP_INT_ARRAY(pc+8, n);
-	break;
-      case GL_FLOAT:
-	__GLX_SWAP_FLOAT_ARRAY(pc+8, n);
-	break;
-    }
-
-    glCallLists(n, type, pc+8);
+    CALL_Map2d( GET_DISPATCH(), (target, u1, u2, ustride, uorder, v1, v2, vstride, vorder, points) );
 }
 
 static void swapArray(GLint numVals, GLenum datatype,
@@ -346,28 +315,28 @@ void __glXDispSwap_DrawArrays(GLbyte *pc)
 
         switch (component) {
           case GL_VERTEX_ARRAY:
-	    glEnableClientState(GL_VERTEX_ARRAY);
-	    glVertexPointer(numVals, datatype, stride, pc);
+	    CALL_EnableClientState( GET_DISPATCH(), (GL_VERTEX_ARRAY) );
+	    CALL_VertexPointer( GET_DISPATCH(), (numVals, datatype, stride, pc) );
             break;
           case GL_NORMAL_ARRAY:
-	    glEnableClientState(GL_NORMAL_ARRAY);
-	    glNormalPointer(datatype, stride, pc);
+	    CALL_EnableClientState( GET_DISPATCH(), (GL_NORMAL_ARRAY) );
+	    CALL_NormalPointer( GET_DISPATCH(), (datatype, stride, pc) );
             break;
           case GL_COLOR_ARRAY:
-	    glEnableClientState(GL_COLOR_ARRAY);
-	    glColorPointer(numVals, datatype, stride, pc);
+	    CALL_EnableClientState( GET_DISPATCH(), (GL_COLOR_ARRAY) );
+	    CALL_ColorPointer( GET_DISPATCH(), (numVals, datatype, stride, pc) );
             break;
           case GL_INDEX_ARRAY:
-	    glEnableClientState(GL_INDEX_ARRAY);
-	    glIndexPointer(datatype, stride, pc);
+	    CALL_EnableClientState( GET_DISPATCH(), (GL_INDEX_ARRAY) );
+	    CALL_IndexPointer( GET_DISPATCH(), (datatype, stride, pc) );
             break;
           case GL_TEXTURE_COORD_ARRAY:
-	    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-	    glTexCoordPointer(numVals, datatype, stride, pc);
+	    CALL_EnableClientState( GET_DISPATCH(), (GL_TEXTURE_COORD_ARRAY) );
+	    CALL_TexCoordPointer( GET_DISPATCH(), (numVals, datatype, stride, pc) );
             break;
           case GL_EDGE_FLAG_ARRAY:
-	    glEnableClientState(GL_EDGE_FLAG_ARRAY);
-	    glEdgeFlagPointer(stride, (const GLboolean *)pc);
+	    CALL_EnableClientState( GET_DISPATCH(), (GL_EDGE_FLAG_ARRAY) );
+	    CALL_EdgeFlagPointer( GET_DISPATCH(), (stride, (const GLboolean *)pc) );
             break;
           default:
             break;
@@ -376,15 +345,15 @@ void __glXDispSwap_DrawArrays(GLbyte *pc)
         pc += __GLX_PAD(numVals * __glXTypeSize(datatype));
     }
 
-    glDrawArrays(primType, 0, numVertexes);
+    CALL_DrawArrays( GET_DISPATCH(), (primType, 0, numVertexes) );
 
     /* turn off anything we might have turned on */
-    glDisableClientState(GL_VERTEX_ARRAY);
-    glDisableClientState(GL_NORMAL_ARRAY);
-    glDisableClientState(GL_COLOR_ARRAY);
-    glDisableClientState(GL_INDEX_ARRAY);
-    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-    glDisableClientState(GL_EDGE_FLAG_ARRAY);
+    CALL_DisableClientState( GET_DISPATCH(), (GL_VERTEX_ARRAY) );
+    CALL_DisableClientState( GET_DISPATCH(), (GL_NORMAL_ARRAY) );
+    CALL_DisableClientState( GET_DISPATCH(), (GL_COLOR_ARRAY) );
+    CALL_DisableClientState( GET_DISPATCH(), (GL_INDEX_ARRAY) );
+    CALL_DisableClientState( GET_DISPATCH(), (GL_TEXTURE_COORD_ARRAY) );
+    CALL_DisableClientState( GET_DISPATCH(), (GL_EDGE_FLAG_ARRAY) );
 }
 
 void __glXDispSwap_DrawArraysEXT(GLbyte *pc)

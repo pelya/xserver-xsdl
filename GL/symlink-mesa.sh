@@ -63,7 +63,6 @@ symlink_mesa_glapi() {
     dst_dir mesa/glapi
 
     action dispatch.h
-    action glapi.c
     action glapi.h
     action glapioffsets.h
     action glapitable.h
@@ -111,7 +110,6 @@ symlink_mesa_main() {
     action debug.h
     action depth.c
     action depth.h
-    action dispatch.c
     action dlist.c
     action dlist.h
     action drawpix.c
@@ -521,13 +519,17 @@ symlink_glx() {
     src_dir src/glx/x11
     dst_dir glx
 
-    action indirect_size.c
     action indirect_size.h
 
     src_dir src/mesa/drivers/dri/common
 
     action glcontextmodes.c
     action glcontextmodes.h
+
+    src_dir src/mesa/glapi
+
+    action glapi.c
+    action glthread.c
 }
 
 #########
