@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XdotOrg: xc/programs/Xserver/fb/fbgc.c,v 1.3 2004/12/04 00:42:50 kuhn Exp $ */
+/* $XdotOrg: xserver/xorg/fb/fbgc.c,v 1.5 2005/07/03 07:01:23 daniels Exp $ */
 /* $XFree86: xc/programs/Xserver/fb/fbgc.c,v 1.14 2003/12/18 15:22:32 alanh Exp $ */
 
 #ifdef HAVE_DIX_CONFIG_H
@@ -101,9 +101,13 @@ fbPadPixmap (PixmapPtr pPixmap)
     FbBits  mask;
     int	    height;
     int	    w;
+    int     stride;
+    int     bpp;
+    int     xOff, yOff;
+
+    fbGetDrawable (&pPixmap->drawable, bits, stride, bpp, xOff, yOff);
 
     width = pPixmap->drawable.width * pPixmap->drawable.bitsPerPixel;
-    bits = pPixmap->devPrivate.ptr;
     height = pPixmap->drawable.height;
     mask = FbBitsMask (0, width);
     while (height--)
@@ -115,7 +119,8 @@ fbPadPixmap (PixmapPtr pPixmap)
 	    b = b | FbScrRight(b, w);
 	    w <<= 1;
 	}
-	*bits++ = b;
+	*bits = b;
+	bits += stride;
     }
 }
 

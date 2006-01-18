@@ -1,3 +1,11 @@
+2006-01-18  Dave Airlie  <airlied@linux.ie>
+
+	reviewed by: keithp, ajax, anholt (well they all read it...)
+
+	* fb/fbgc.c: (fbPadPixmap):
+	This is a fix from David Reveman from the xserver tree,
+	Make fbPadPixmap work with negative stride
+
 Thu Jan 12 17:09:18 2006  Søren Sandmann  <sandmann@redhat.com>
 
 	* include/window.[ch]: Add new functions to enable and disable
