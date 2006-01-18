@@ -1,3 +1,10 @@
+2006-01-18  Adam Jackson  <ajax@freedesktop.org>
+
+	* fb/fbblt.c:
+	More kdrive merge, fast path fbBlt to use memcpy() when possible.
+	Good for -5% to 60% speedup on XGetImage, and 0% to 10% speedup on
+	copies within host memory.  Based on work by Jaymz Julian.
+
 2006-01-18  Dave Airlie  <airlied@linux.ie>
 
 	Update XGL server from the xserver tree, and fix to work

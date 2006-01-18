@@ -77,6 +77,29 @@ fbBlt (FbBits   *srcLine,
 	return;
     }
 #endif
+
+    if (alu == GXcopy && pm == FB_ALLONES && !reverse &&
+            !(srcX & 7) && !(dstX & 7) && !(width & 7)) {
+        int i;
+        CARD8 *src = (CARD8 *) srcLine;
+        CARD8 *dst = (CARD8 *) dstLine;
+        
+        srcStride *= sizeof(FbBits);
+        dstStride *= sizeof(FbBits);
+        width >>= 3;
+        src += (srcX >> 3);
+        dst += (dstX >> 3);
+
+        if (!upsidedown)
+            for (i = 0; i < height; i++)
+                memcpy(dst + i * dstStride, src + i * srcStride, width);
+        else
+            for (i = height - 1; i >= 0; i--)
+                memcpy(dst + i * dstStride, src + i * srcStride, width);
+
+        return;
+    }
+
     FbInitializeMergeRop(alu, pm);
     destInvarient = FbDestInvarientMergeRop();
     if (upsidedown)
