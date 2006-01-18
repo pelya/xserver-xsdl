@@ -24,26 +24,41 @@
  */
 
 #include "xgl.h"
+#include "xglglx.h"
 #include "micmap.h"
 #include "mipointer.h"
 #include "fb.h"
 
-#define DEAFULT_DDX_MODULE_NAME "xglx"
+#ifdef XGL_MODULAR
+#include <dlfcn.h>
+#endif
 
-static char *ddxModuleName = DEAFULT_DDX_MODULE_NAME;
+#define DEFAULT_DDX_MODULE_NAME "xglx"
+
+static char *ddxModuleName = DEFAULT_DDX_MODULE_NAME;
 
 xglScreenInfoRec xglScreenInfo = {
-    NULL, 0, 0, 0, 0,
+    NULL, 0, 0, 0, 0, 0,
     DEFAULT_GEOMETRY_DATA_TYPE,
     DEFAULT_GEOMETRY_USAGE,
     FALSE,
     XGL_DEFAULT_PBO_MASK,
     FALSE,
-    FALSE
+    {
+	{ FALSE, FALSE, { 0, 0, 0, 0 } },
+	{ FALSE, FALSE, { 0, 0, 0, 0 } },
+	{ FALSE, FALSE, { 0, 0, 0, 0 } },
+	{ FALSE, FALSE, { 0, 0, 0, 0 } }
+    }
 };
 
 #ifdef GLXEXT
 static Bool loadGlx = TRUE;
+
+#ifndef NGLXEXTLOG
+static char *glxExtLogFile = 0;
+#endif
+
 #endif
 
 typedef struct _xglDDXFunc {
@@ -105,6 +120,29 @@ xglEnsureDDXModule (void)
     if (!status)
 	return FALSE;
 
+#ifdef GLXEXT
+    /* GLX and GLcore modules must be loaded with RTLD_NOW and RTLD_LOCAL
+       flags before DDX module which is linked to libGL and should be
+       loaded with RTLD_GLOBAL. */
+    if (loadGlx)
+    {
+	if (!xglLoadGLXModules ())
+	    FatalError ("No GLX modules loaded");
+
+#ifndef NGLXEXTLOG
+	if (glxExtLogFile)
+	{
+	    __xglGLXLogFp = fopen (glxExtLogFile, "w");
+	    if (!__xglGLXLogFp)
+		perror ("InitOutput");
+	}
+	else
+	    __xglGLXLogFp = 0;
+#endif
+
+    }
+#endif
+
     if (!ddxHandle)
     {
 	xglSymbolRec sym[] = {
@@ -119,7 +157,7 @@ xglEnsureDDXModule (void)
 	    SYM (__ddxFunc.osVendorInit,       "OsVendorInit")
 	};
 
-	ddxHandle = xglLoadModule (ddxModuleName);
+	ddxHandle = xglLoadModule (ddxModuleName, RTLD_NOW | RTLD_GLOBAL);
 	if (!ddxHandle)
 	    return (status = FALSE);
 
@@ -148,14 +186,6 @@ InitOutput (ScreenInfo *pScreenInfo,
 
     if (!xglEnsureDDXModule ())
 	FatalError ("No DDX module loaded");
-
-#ifdef GLXEXT
-    if (loadGlx)
-    {
-	if (!xglLoadGLXModules ())
-	    FatalError ("No GLX modules loaded");
-    }
-#endif
 
     (*__ddxFunc.initOutput) (pScreenInfo, argc, argv);
 }
@@ -191,68 +221,83 @@ ddxUseMsg (void)
 
 #ifdef GLXEXT
     ErrorF ("-noglx                 don't load glx extension\n");
+
+#ifndef NGLXEXTLOG
+    ErrorF ("-glxlog file           glx extension log file\n");
 #endif
+
+#endif
+
+    xglUseMsg ();
 
     if (xglEnsureDDXModule ())
 	(*__ddxFunc.useMsg) ();
 }
-
-#define LOPT(s, l) { (s), (l) }
-#define OPT(s) LOPT (s, 0)
 
 int
 ddxProcessArgument (int  argc,
 		    char **argv,
 		    int  i)
 {
-    struct _option {
-	char *name;
-	int  length;
-    } commonOption[] = {
-	LOPT (":", 1), OPT ("-a"), OPT ("-ac"), OPT ("-audit"), OPT ("-auth"),
-	OPT ("bc"), OPT ("-br"), OPT ("+bs"), OPT ("-bs"), OPT ("c"), OPT ("-c"),
-	OPT ("-cc"), OPT ("-co"), OPT ("-core"), OPT ("-dpi"),
-	OPT ("-deferglyphs"), OPT ("-f"), OPT ("-fc"), OPT ("-fn"), OPT ("-fp"),
-	OPT ("-help"), OPT ("-nolisten"), OPT ("-noreset"), OPT ("-p"),
-	OPT ("-pn"), OPT ("-nopn"), OPT ("r"), OPT ("-r"), OPT ("-s"),
-	OPT ("-su"), OPT ("-t"), OPT ("-terminate"), OPT ("-to"), OPT ("-tst"),
-	OPT ("v"), OPT ("-v"), OPT ("-wm"), OPT ("-x"), OPT ("-I"),
-	LOPT ("tty", 3)
-    };
-    int skip, j;
+    static Bool checkDDX = FALSE;
+    int		skip;
 
-    for (j = 0; j < sizeof (commonOption) / sizeof (commonOption[0]); j++)
+    if (!checkDDX)
     {
-	if (commonOption[j].length)
+	int j;
+
+	for (j = i; j < argc; j++)
 	{
-	    if (!strncmp (argv[i], commonOption[j].name, commonOption[j].length))
-		return 0;
+	    if (!strcmp (argv[j], "-ddx"))
+	    {
+		if (++j < argc)
+		    ddxModuleName = argv[j];
+	    }
+
+#ifdef GLXEXT
+	    else if (!strcmp (argv[j], "-noglx"))
+	    {
+		loadGlx = FALSE;
+	    }
+
+#ifndef NGLXEXTLOG
+	    else if (!strcmp (argv[j], "-glxlog"))
+	    {
+		if (++j < argc)
+		    glxExtLogFile = argv[j];
+	    }
+#endif
+
+#endif
+
 	}
-	else
-	{
-	    if (!strcmp (argv[i], commonOption[j].name))
-		return 0;
-	}
+	checkDDX = TRUE;
     }
 
     if (!strcmp (argv[i], "-ddx"))
     {
 	if ((i + 1) < argc)
-	{
-	    ddxModuleName = argv[i + 1];
-	}
-	else
-	    return 1;
+	    return 2;
 
-	return 2;
+	return 1;
     }
 
 #ifdef GLXEXT
     else if (!strcmp (argv[i], "-noglx"))
     {
-	loadGlx = FALSE;
 	return 1;
     }
+
+#ifndef NGLXEXTLOG
+    else if (!strcmp (argv[i], "-glxlog"))
+    {
+	if ((i + 1) < argc)
+	    return 2;
+
+	return 1;
+    }
+#endif
+
 #endif
 
     skip = xglProcessArgument (argc, argv, i);
@@ -286,6 +331,6 @@ OsVendorInit (void)
 	(*__ddxFunc.osVendorInit) ();
 }
 
-void ddxInitGlobals(void)
+void ddxInitGlobals()
 {
 }

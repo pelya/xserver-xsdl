@@ -1,6 +1,6 @@
 /*
  * Copyright © 2005 Novell, Inc.
- * 
+ *
  * Permission to use, copy, modify, distribute, and sell this software
  * and its documentation for any purpose is hereby granted without
  * fee, provided that the above copyright notice appear in all copies
@@ -12,11 +12,11 @@
  * software for any purpose. It is provided "as is" without express or
  * implied warranty.
  *
- * NOVELL, INC. DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE, 
+ * NOVELL, INC. DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
  * INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN
  * NO EVENT SHALL NOVELL, INC. BE LIABLE FOR ANY SPECIAL, INDIRECT OR
  * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
- * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, 
+ * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *
@@ -56,9 +56,11 @@ xglShmPutImage (DrawablePtr  pDrawable,
 	    GetScratchPixmapHeader (pScreen, w, h, depth,
 				    BitsPerPixel (depth),
 				    PixmapBytePad (w, depth),
-				    (pointer) data);	
+				    (pointer) data);
+
+	/* disable any possible acceleration of this pixmap */
 	if (pPixmap)
-	    XGL_GET_PIXMAP_PRIV (pPixmap)->format = NULL;
+	    xglSetPixmapVisual (pPixmap, 0);
     }
     else
     {
@@ -67,24 +69,22 @@ xglShmPutImage (DrawablePtr  pDrawable,
 	{
 	    GCPtr pScratchGC;
 
-	    XGL_PIXMAP_PRIV (pPixmap);
-
 	    if (!xglAllocatePixmapBits (pPixmap,
 					XGL_PIXMAP_USAGE_HINT_DEFAULT))
 	    {
 		(*pScreen->DestroyPixmap) (pPixmap);
 		return;
 	    }
-	    pPixmapPriv->format = NULL;
-	    pPixmapPriv->target = xglPixmapTargetNo;
-	    
+
+	    xglSetPixmapVisual (pPixmap, 0);
+
 	    pScratchGC = GetScratchGC (depth, pScreen);
 	    if (!pScratchGC)
 	    {
 		(*pScreen->DestroyPixmap) (pPixmap);
 		return;
 	    }
-	
+
 	    ValidateGC ((DrawablePtr) pPixmap, pScratchGC);
 	    (*pGC->ops->PutImage) ((DrawablePtr) pPixmap, pScratchGC, depth,
 				   -sx, -sy, w, h, 0,
@@ -96,7 +96,7 @@ xglShmPutImage (DrawablePtr  pDrawable,
 	    sx = sy = 0;
 	}
     }
-    
+
     if (!pPixmap)
 	return;
 
@@ -112,7 +112,7 @@ xglShmPutImage (DrawablePtr  pDrawable,
 			       sx, sy, sw, sh, dx, dy);
 
     pPixmapPriv->target = saveTarget;
-	
+
     if (pPixmapHeader)
 	FreeScratchPixmapHeader (pPixmapHeader);
     else

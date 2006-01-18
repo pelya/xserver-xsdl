@@ -28,6 +28,62 @@
 
 #include "xgl.h"
 
+#ifdef _XSERVER64
+#define _XSERVER64_tmp
+#undef _XSERVER64
+typedef unsigned long XID64;
+typedef unsigned long Mask64;
+typedef unsigned long Atom64;
+typedef unsigned long VisualID64;
+typedef unsigned long Time64;
+#define XID      XID64
+#define Mask     Mask64
+#define Atom     Atom64
+#define VisualID VisualID64
+#define Time     Time64
+typedef XID Window64;
+typedef XID Drawable64;
+typedef XID Font64;
+typedef XID Pixmap64;
+typedef XID Cursor64;
+typedef XID Colormap64;
+typedef XID GContext64;
+typedef XID KeySym64;
+#define Window   Window64
+#define Drawable Drawable64
+#define Font     Font64
+#define Pixmap   Pixmap64
+#define Cursor   Cursor64
+#define Colormap Colormap64
+#define GContext GContext64
+#define KeySym   KeySym64
+#endif
+
+#define GC XlibGC
+#include <X11/Xlib.h>
+#include <X11/Xutil.h>
+#undef GC
+
+#ifdef _XSERVER64_tmp
+#ifndef _XSERVER64
+#define _XSERVER64
+#endif
+#undef _XSERVER64_tmp
+#undef XID
+#undef Mask
+#undef Atom
+#undef VisualID
+#undef Time
+#undef Window
+#undef Drawable
+#undef Font
+#undef Pixmap
+#undef Cursor
+#undef Colormap
+#undef GContext
+#undef KeySym
+#endif
+
 void
 xglxInitOutput (ScreenInfo *pScreenInfo,
 		int	   argc,
@@ -60,5 +116,23 @@ xglxGiveUp (void);
 
 void
 xglxOsVendorInit (void);
+
+#ifndef NXGLXORG
+
+void
+xglxUseXorgMsg (void);
+
+int
+xglxProcessXorgArgument (int  argc,
+			 char **argv,
+			 int  i);
+
+void
+xglxAbortXorg (void);
+
+char *
+xglxInitXorg (void);
+
+#endif
 
 #endif /* _XGLX_H_ */

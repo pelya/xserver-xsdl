@@ -33,7 +33,8 @@
 #define SYM(ptr, name) { (void **) &(ptr), (name) }
 
 void *
-xglLoadModule (const char *name)
+xglLoadModule (const char *name,
+	       int	  flag)
 {
     ModuleVersionProcPtr moduleVersion;
     ModuleInitProcPtr    moduleInit;
@@ -50,7 +51,7 @@ xglLoadModule (const char *name)
 
     sprintf (module, XGL_MODULE_PATH "/lib%s.so", name);
 
-    handle = dlopen (module, RTLD_NOW);
+    handle = dlopen (module, flag);
     if (handle)
     {
 	if (xglLookupSymbols (handle, mSym, sizeof (mSym) / sizeof (mSym[0])))

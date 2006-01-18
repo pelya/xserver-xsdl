@@ -1,6 +1,6 @@
 /*
  * Copyright © 2004 David Reveman
- * 
+ *
  * Permission to use, copy, modify, distribute, and sell this software
  * and its documentation for any purpose is hereby granted without
  * fee, provided that the above copyright notice appear in all copies
@@ -12,11 +12,11 @@
  * software for any purpose. It is provided "as is" without express or
  * implied warranty.
  *
- * DAVID REVEMAN DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE, 
+ * DAVID REVEMAN DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
  * INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN
  * NO EVENT SHALL DAVID REVEMAN BE LIABLE FOR ANY SPECIAL, INDIRECT OR
  * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
- * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, 
+ * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *
@@ -47,7 +47,7 @@ xglMouseProc (DeviceIntPtr pDevice,
     case DEVICE_INIT:
 	for (i = 1; i <= NUM_BUTTONS; i++)
 	    map[i] = i;
-	
+
 	InitPointerDeviceStruct (pDev,
 				 map,
 				 NUM_BUTTONS,
@@ -63,7 +63,7 @@ xglMouseProc (DeviceIntPtr pDevice,
 	pDev->on = FALSE;
 	break;
     }
-    
+
     return Success;
 }
 
@@ -226,7 +226,7 @@ xglKeybdProc (DeviceIntPtr pDevice,
     case DEVICE_INIT:
 	if (pDev != LookupKeyboardDevice ())
 	    return !Success;
-	
+
 	ret = InitKeyboardDeviceStruct (pDev,
 					&xglKeySyms,
 					xglModMap,
@@ -243,7 +243,7 @@ xglKeybdProc (DeviceIntPtr pDevice,
 	pDev->on = FALSE;
 	break;
     }
-    
+
     return Success;
 }
 
@@ -251,13 +251,13 @@ void
 xglInitInput (int argc, char **argv)
 {
     DeviceIntPtr pKeyboard, pPointer;
-    
+
     pPointer  = AddInputDevice (xglMouseProc, TRUE);
     pKeyboard = AddInputDevice (xglKeybdProc, TRUE);
-    
+
     RegisterPointerDevice (pPointer);
     RegisterKeyboardDevice (pKeyboard);
-    
+
     miRegisterPointerDevice (screenInfo.screens[0], pPointer);
     mieqInit (&pKeyboard->public, &pPointer->public);
 }

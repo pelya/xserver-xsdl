@@ -1,6 +1,6 @@
 /*
  * Copyright © 2004 David Reveman
- * 
+ *
  * Permission to use, copy, modify, distribute, and sell this software
  * and its documentation for any purpose is hereby granted without
  * fee, provided that the above copyright notice appear in all copies
@@ -12,11 +12,11 @@
  * software for any purpose. It is provided "as is" without express or
  * implied warranty.
  *
- * DAVID REVEMAN DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE, 
+ * DAVID REVEMAN DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
  * INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN
  * NO EVENT SHALL DAVID REVEMAN BE LIABLE FOR ANY SPECIAL, INDIRECT OR
  * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
- * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, 
+ * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *
@@ -44,7 +44,7 @@ xglGeometryResize (ScreenPtr	  pScreen,
 		   int		  size)
 {
     XGL_SCREEN_PRIV (pScreen);
-    
+
     if (size == pGeometry->size)
 	return;
 
@@ -54,12 +54,12 @@ xglGeometryResize (ScreenPtr	  pScreen,
     if (pGeometry->usage == GEOMETRY_USAGE_SYSMEM)
     {
 	pGeometry->data = xrealloc (pGeometry->data, size);
-	
+
 	if (pGeometry->buffer)
 	    glitz_buffer_destroy (pGeometry->buffer);
-	
+
 	pGeometry->buffer = NULL;
-	
+
 	if (pGeometry->data)
 	{
 	    pGeometry->buffer = glitz_buffer_create_for_data (pGeometry->data);
@@ -78,6 +78,7 @@ xglGeometryResize (ScreenPtr	  pScreen,
     else
     {
 	glitz_buffer_t *newBuffer;
+
 	if (size)
 	{
 	    newBuffer =
@@ -90,29 +91,29 @@ xglGeometryResize (ScreenPtr	  pScreen,
 	    }
 	} else
 	    newBuffer = NULL;
-	
+
 	if (pGeometry->buffer && newBuffer)
 	{
 	    void *oldData, *newData;
-	    
+
 	    oldData = glitz_buffer_map (pGeometry->buffer,
 					GLITZ_BUFFER_ACCESS_READ_ONLY);
 	    newData = glitz_buffer_map (newBuffer,
 					GLITZ_BUFFER_ACCESS_WRITE_ONLY);
-	    
+
 	    if (oldData && newData)
 		memcpy (newData, oldData, MIN (size, pGeometry->size));
-	    
+
 	    glitz_buffer_unmap (pGeometry->buffer);
 	    glitz_buffer_unmap (newBuffer);
-	    
+
 	    glitz_buffer_destroy (pGeometry->buffer);
 	}
 	pGeometry->buffer = newBuffer;
     }
-    
+
     pGeometry->size = size;
-    
+
     if (pGeometry->endOffset > size)
 	pGeometry->endOffset = size;
 }
@@ -149,7 +150,7 @@ xglGeometryResize (ScreenPtr	  pScreen,
 	(pGeometry)->count = (pGeometry)->endOffset /			   \
 	    (2 * xglGeometryDataTypes[(pGeometry)->dataType].size);	   \
     }
-	
+
 /*
  * Adds a number of boxes as GL_QUAD primitives
  */
@@ -167,7 +168,7 @@ xglGeometryAddBox (ScreenPtr	  pScreen,
 	return;
 
     MAP_GEOMETRY (pScreen, pGeometry, offset, nBox * 8, ptr, size);
-    
+
     switch (pGeometry->dataType) {
     case GEOMETRY_DATA_TYPE_SHORT:
     {
@@ -190,7 +191,7 @@ xglGeometryAddBox (ScreenPtr	  pScreen,
     case GEOMETRY_DATA_TYPE_FLOAT:
     {
 	glitz_float_t *data = (glitz_float_t *) ptr;
-	
+
 	while (nBox--)
 	{
 	    *data++ = (glitz_float_t) pBox->x1;
@@ -228,7 +229,7 @@ xglGeometryAddSpan (ScreenPtr	   pScreen,
 	return;
 
     MAP_GEOMETRY (pScreen, pGeometry, offset, n * 4, ptr, size);
-    
+
     switch (pGeometry->dataType) {
     case GEOMETRY_DATA_TYPE_SHORT:
     {
@@ -240,7 +241,7 @@ xglGeometryAddSpan (ScreenPtr	   pScreen,
 	    *data++ = (glitz_short_t) ppt->y;
 	    *data++ = (glitz_short_t) (ppt->x + *pwidth);
 	    *data++ = (glitz_short_t) ppt->y;
-	
+
 	    ppt++;
 	    pwidth++;
 	}
@@ -255,13 +256,13 @@ xglGeometryAddSpan (ScreenPtr	   pScreen,
 	    *data++ = (glitz_float_t) ppt->y;
 	    *data++ = (glitz_float_t) (ppt->x + *pwidth);
 	    *data++ = (glitz_float_t) ppt->y;
-	
+
 	    ppt++;
 	    pwidth++;
 	}
     } break;
     }
-    
+
     UNMAP_GEOMETRY (pGeometry, offset, size);
 }
 
@@ -298,7 +299,7 @@ xglGeometryAddLine (ScreenPtr	   pScreen,
 
     pt.x = 0;
     pt.y = 0;
-    
+
     switch (pGeometry->dataType) {
     case GEOMETRY_DATA_TYPE_SHORT:
     {
@@ -329,7 +330,7 @@ xglGeometryAddLine (ScreenPtr	   pScreen,
 		    ADJUST_END_POINT (ppt->x, pt.x, ppt->y == pt.y);
 		*data++ = (glitz_short_t) ADJUST_END_POINT (ppt->y, pt.y, 0);
 	    }
-	
+
 	    ppt++;
 	}
     } break;
@@ -362,7 +363,7 @@ xglGeometryAddLine (ScreenPtr	   pScreen,
 		    ADJUST_END_POINT (ppt->x, pt.x, ppt->y == pt.y);
 		*data++ = (glitz_float_t) ADJUST_END_POINT (ppt->y, pt.y, 0);
 	    }
-	    
+
 	    ppt++;
 	}
     } break;
@@ -403,7 +404,7 @@ xglGeometryAddSegment (ScreenPtr      pScreen,
 				  pSegInit->y1 == pSegInit->y2);
 	    *data++ = (glitz_short_t)
 		ADJUST_END_POINT (pSegInit->y1, pSegInit->y2, 0);
-	
+
 	    pSegInit++;
 	}
     } break;
@@ -420,12 +421,12 @@ xglGeometryAddSegment (ScreenPtr      pScreen,
 				  pSegInit->y1 == pSegInit->y2);
 	    *data++ = (glitz_float_t)
 		ADJUST_END_POINT (pSegInit->y1, pSegInit->y2, 0);
-	    
+
 	    pSegInit++;
 	}
     } break;
     }
-    
+
     UNMAP_GEOMETRY (pGeometry, offset, size);
 }
 
@@ -449,7 +450,7 @@ xglGeometryForGlyph (ScreenPtr	    pScreen,
 
     ppci = ppciInit;
     n = nGlyph;
-    
+
     while (n--)
     {
 	pglyph = FONTGLYPHBITS (pglyphBase, *ppci++);
@@ -482,7 +483,7 @@ xglGeometryForGlyph (ScreenPtr	    pScreen,
 	pglyph = FONTGLYPHBITS (pglyphBase, pci);
 	gWidth = GLYPHWIDTHPIXELS (pci);
 	gHeight = GLYPHHEIGHTPIXELS (pci);
-	
+
 	if (gWidth && gHeight)
 	{
 	    gx = x + pci->metrics.leftSideBearing;
@@ -513,8 +514,8 @@ xglGeometryForGlyph (ScreenPtr	    pScreen,
   (((glitz_float_t)				\
       ((line).p1.x + (xFixed_16_16)		\
        (((((line).p2.y - (line).p1.y) - 1) +	\
-         ((xFixed_32_32) ((v) - (line).p1.y) *	\
-          ((line).p2.x - (line).p1.x))) /	\
+	 ((xFixed_32_32) ((v) - (line).p1.y) *	\
+	  ((line).p2.x - (line).p1.x))) /	\
 	((line).p2.y - (line).p1.y)))) / 65536)
 
 /*
@@ -549,7 +550,7 @@ xglGeometryAddTrapezoid (ScreenPtr	pScreen,
 	{
 	    top    = FIXED_TO_FLOAT (pTrap->top);
 	    bottom = FIXED_TO_FLOAT (pTrap->bottom);
-	    
+
 	    *data++ = FIXED_LINE_X_TO_FLOAT (pTrap->left, pTrap->top);
 	    *data++ = top;
 	    *data++ = FIXED_LINE_X_CEIL_TO_FLOAT (pTrap->right, pTrap->top);
@@ -599,7 +600,7 @@ xglGeometryAddTrap (ScreenPtr	   pScreen,
 	{
 	    top    = FIXED_TO_FLOAT (pTrap->top.y);
 	    bottom = FIXED_TO_FLOAT (pTrap->bot.y);
-	    
+
 	    *data++ = FIXED_TO_FLOAT (pTrap->top.l);
 	    *data++ = top;
 	    *data++ = FIXED_TO_FLOAT (pTrap->top.r);
@@ -626,9 +627,9 @@ xglGetScratchGeometryWithSize (ScreenPtr pScreen,
     xglGeometryPtr pGeometry;
 
     XGL_SCREEN_PRIV (pScreen);
-	
+
     pGeometry = &pScreenPriv->scratchGeometry;
-    
+
     if (pGeometry->broken || pGeometry->size < size)
     {
 	GEOMETRY_UNINIT (pGeometry);
@@ -649,7 +650,7 @@ xglGetScratchGeometryWithSize (ScreenPtr pScreen,
 	pGeometry->count     = 0;
 	pGeometry->width     = 2;
     }
-    
+
     return pGeometry;
 }
 
@@ -662,17 +663,17 @@ xglGetScratchVertexGeometryWithType (ScreenPtr pScreen,
     int		   stride;
 
     stride = 2 * xglGeometryDataTypes[type].size;
-    
+
     pGeometry = xglGetScratchGeometryWithSize (pScreen, count * stride);
 
     pGeometry->type	= GLITZ_GEOMETRY_TYPE_VERTEX;
     pGeometry->dataType	= type;
-    
+
     pGeometry->f.vertex.primitive	 = GLITZ_PRIMITIVE_QUADS;
     pGeometry->f.vertex.type		 = xglGeometryDataTypes[type].type;
     pGeometry->f.vertex.bytes_per_vertex = stride;
     pGeometry->f.vertex.attributes       = 0;
-    
+
     return pGeometry;
 }
 
@@ -692,22 +693,22 @@ xglGetScratchVertexGeometry (ScreenPtr pScreen,
 
     pGeometry->type	= GLITZ_GEOMETRY_TYPE_VERTEX;
     pGeometry->dataType	= type;
-    
+
     pGeometry->f.vertex.primitive	 = GLITZ_PRIMITIVE_QUADS;
     pGeometry->f.vertex.type		 = xglGeometryDataTypes[type].type;
     pGeometry->f.vertex.bytes_per_vertex = stride;
     pGeometry->f.vertex.attributes       = 0;
-    
+
     return pGeometry;
 }
 
 Bool
-xglSetGeometry (xglGeometryPtr 	pGeometry,
+xglSetGeometry (xglGeometryPtr	pGeometry,
 		glitz_surface_t *surface)
 {
     if (pGeometry->broken)
 	return FALSE;
-    
+
     glitz_set_geometry (surface, pGeometry->type, &pGeometry->f,
 			pGeometry->buffer);
 
@@ -718,6 +719,6 @@ xglSetGeometry (xglGeometryPtr 	pGeometry,
 	glitz_set_array (surface,
 			 pGeometry->first, pGeometry->width, pGeometry->count,
 			 pGeometry->xOff, pGeometry->yOff);
-    
+
     return TRUE;
 }

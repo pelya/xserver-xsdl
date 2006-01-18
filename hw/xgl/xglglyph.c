@@ -1,6 +1,6 @@
 /*
  * Copyright © 2005 Novell, Inc.
- * 
+ *
  * Permission to use, copy, modify, distribute, and sell this software
  * and its documentation for any purpose is hereby granted without
  * fee, provided that the above copyright notice appear in all copies
@@ -12,11 +12,11 @@
  * software for any purpose. It is provided "as is" without express or
  * implied warranty.
  *
- * NOVELL, INC. DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE, 
+ * NOVELL, INC. DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
  * INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN
  * NO EVENT SHALL NOVELL, INC. BE LIABLE FOR ANY SPECIAL, INDIRECT OR
  * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
- * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, 
+ * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *
@@ -163,9 +163,9 @@ xglRealizeGlyph (ScreenPtr pScreen,
     XGL_PICTURE_SCREEN_UNWRAP (RealizeGlyph);
     ret = (*pPictureScreen->RealizeGlyph) (pScreen, pGlyph);
     XGL_PICTURE_SCREEN_WRAP (RealizeGlyph, xglRealizeGlyph);
-    
+
     pGlyphPriv->pArea = NULL;
-    
+
     return ret;
 }
 
@@ -205,7 +205,7 @@ xglInitGlyphCache (xglGlyphCachePtr pCache,
     if (pCache->depth == 1)
     {
 	int stride;
-	
+
 	GEOMETRY_INIT (pScreen, &pCache->u.geometry,
 		       GLITZ_GEOMETRY_TYPE_VERTEX,
 		       GEOMETRY_USAGE_STATIC, BITMAP_CACHE_SIZE);
@@ -228,9 +228,14 @@ xglInitGlyphCache (xglGlyphCachePtr pCache,
     {
 
 	xglGlyphTexturePtr	   pTexture = &pCache->u.texture;
+	glitz_surface_t		   *mask;
 	glitz_surface_attributes_t attr;
-	xglPixmapFormatPtr	   pFormat;
 	glitz_vertex_format_t	   *vertex;
+	xglVisualPtr		   pVisual;
+
+	pVisual = xglFindVisualWithDepth (pScreen, format->depth);
+	if (!pVisual)
+	    return FALSE;
 
 	if (!xglRootAreaInit (&pCache->rootArea,
 			      TEXTURE_CACHE_MAX_LEVEL,
@@ -240,39 +245,46 @@ xglInitGlyphCache (xglGlyphCachePtr pCache,
 			      (pointer) pCache))
 	    return FALSE;
 
-	pFormat = &pScreenPriv->pixmapFormats[format->depth];
-
 	if (pScreenPriv->geometryDataType == GEOMETRY_DATA_TYPE_SHORT)
 	{
 	    attr.unnormalized = 1;
-	    pTexture->mask =
-		glitz_surface_create (pScreenPriv->drawable, pFormat->format,
-				      TEXTURE_CACHE_SIZE, TEXTURE_CACHE_SIZE,
-				      GLITZ_SURFACE_UNNORMALIZED_MASK, &attr);
-	} else
-	    pTexture->mask = NULL;
-	
-	if (!pTexture->mask)
+	    mask = glitz_surface_create (pScreenPriv->drawable,
+					 pVisual->format.surface,
+					 TEXTURE_CACHE_SIZE,
+					 TEXTURE_CACHE_SIZE,
+					 GLITZ_SURFACE_UNNORMALIZED_MASK,
+					 &attr);
+	}
+	else
+	    mask = NULL;
+
+	if (!mask)
 	{
-	    pTexture->mask =
-		glitz_surface_create (pScreenPriv->drawable, pFormat->format,
-				      TEXTURE_CACHE_SIZE, TEXTURE_CACHE_SIZE,
-				      0, NULL);
-	    if (!pTexture->mask)
+	    mask = glitz_surface_create (pScreenPriv->drawable,
+					 pVisual->format.surface,
+					 TEXTURE_CACHE_SIZE,
+					 TEXTURE_CACHE_SIZE,
+					 0, NULL);
+	    if (!mask)
 		return FALSE;
 
 	    pTexture->geometryDataType = GEOMETRY_DATA_TYPE_FLOAT;
-	} else
+	}
+	else
 	    pTexture->geometryDataType = GEOMETRY_DATA_TYPE_SHORT;
-	
+
 	if (NEEDS_COMPONENT (format->format))
-	    glitz_surface_set_component_alpha (pTexture->mask, 1);
+	    glitz_surface_set_component_alpha (mask, 1);
+
+	pTexture->pMask = xglCreateDevicePicture (mask);
+	if (!pTexture->pMask)
+	    return FALSE;
 
 	vertex = &pCache->u.texture.format.vertex;
 	vertex->primitive  = GLITZ_PRIMITIVE_QUADS;
 	vertex->mask.size  = GLITZ_COORDINATE_SIZE_XY;
 	vertex->attributes = GLITZ_VERTEX_ATTRIBUTE_MASK_COORD_MASK;
-	    
+
 	if (pTexture->geometryDataType == GEOMETRY_DATA_TYPE_FLOAT)
 	{
 	    vertex->type	     = GLITZ_DATA_TYPE_FLOAT;
@@ -288,13 +300,14 @@ xglInitGlyphCache (xglGlyphCachePtr pCache,
 	    vertex->mask.type	     = GLITZ_DATA_TYPE_SHORT;
 	}
 
-	pTexture->pixel.masks	       = pFormat->pPixel->masks;
+	pTexture->pixel.fourcc	       = GLITZ_FOURCC_RGB;
+	pTexture->pixel.masks	       = pVisual->pPixel->masks;
 	pTexture->pixel.scanline_order = GLITZ_PIXEL_SCANLINE_ORDER_BOTTOM_UP;
 	pTexture->pixel.bytes_per_line = 0;
 	pTexture->pixel.xoffset	       = 0;
 	pTexture->pixel.skip_lines     = 0;
     }
-    
+
     pCache->pScreen = pScreen;
 
     return TRUE;
@@ -306,17 +319,17 @@ xglFiniGlyphCache (xglGlyphCachePtr pCache)
     if (pCache->pScreen)
     {
 	xglRootAreaFini (&pCache->rootArea);
-	
+
 	if (pCache->depth == 1)
 	{
 	    GEOMETRY_UNINIT (&pCache->u.geometry);
 	}
 	else
 	{
-	    if (pCache->u.texture.mask)
-		glitz_surface_destroy (pCache->u.texture.mask);
+	    if (pCache->u.texture.pMask)
+		FreePicture ((pointer) pCache->u.texture.pMask, 0);
 	}
-	
+
 	pCache->pScreen = NULL;
     }
 }
@@ -326,24 +339,24 @@ xglCacheGlyph (xglGlyphCachePtr pCache,
 	       GlyphPtr		pGlyph)
 {
     ScreenPtr pScreen = pCache->pScreen;
-    
+
     XGL_GLYPH_PRIV (pScreen, pGlyph);
-    
+
     if (pCache->depth == 1)
     {
 	PixmapPtr pPixmap;
 	RegionPtr pRegion;
 	int	  nBox;
-	
+
 	pPixmap = GetScratchPixmapHeader (pScreen,
 					  pGlyph->info.width,
-					  pGlyph->info.height, 
+					  pGlyph->info.height,
 					  pCache->depth, pCache->depth, 0,
 					  (pointer) (pGlyph + 1));
 	if (!pPixmap)
 	    return NULL;
-	
-	(*pScreen->ModifyPixmapHeader) (pPixmap, 
+
+	(*pScreen->ModifyPixmapHeader) (pPixmap,
 					pGlyph->info.width,
 					pGlyph->info.height,
 					0, 0, -1, (pointer) (pGlyph + 1));
@@ -366,7 +379,7 @@ xglCacheGlyph (xglGlyphCachePtr pCache,
 	    /* Find available area */
 	    if (!xglFindArea (pCache->rootArea.pArea, nBox, 0,
 			      FALSE, (pointer) pGlyph))
-	    {    
+	    {
 		/* Kicking out area with lower score */
 		xglFindArea (pCache->rootArea.pArea, nBox, 0,
 			     TRUE, (pointer) pGlyph);
@@ -375,7 +388,7 @@ xglCacheGlyph (xglGlyphCachePtr pCache,
 	    if (pGlyphPriv->pArea)
 	    {
 		int stride;
-		
+
 		GLYPH_AREA_PRIV (pGlyphPriv->pArea);
 
 		pAreaPriv->serial = glyphSerialNumber;
@@ -388,7 +401,7 @@ xglCacheGlyph (xglGlyphCachePtr pCache,
 	    }
 	} else
 	    pGlyphPriv->pArea = &zeroSizeArea;
-	
+
 	REGION_DESTROY (pScreen, pRegion);
     }
     else
@@ -398,11 +411,11 @@ xglCacheGlyph (xglGlyphCachePtr pCache,
 	if (pGlyph->info.width  > TEXTURE_CACHE_MAX_WIDTH ||
 	    pGlyph->info.height > TEXTURE_CACHE_MAX_HEIGHT)
 	    return NULL;
-	
+
 	if (pGlyph->info.width > 0 && pGlyph->info.height > 0)
 	{
 	    glitz_buffer_t *buffer;
-	    
+
 	    buffer = glitz_buffer_create_for_data (pGlyph + 1);
 	    if (!buffer)
 		return NULL;
@@ -417,19 +430,22 @@ xglCacheGlyph (xglGlyphCachePtr pCache,
 			     pGlyph->info.width, pGlyph->info.height,
 			     TRUE, (pointer) pGlyph);
 	    }
-	    
+
 	    if (pGlyphPriv->pArea)
 	    {
+		glitz_surface_t	     *surface;
 		glitz_point_fixed_t  p1, p2;
 		glitz_pixel_format_t pixel;
-		
+
 		GLYPH_AREA_PRIV (pGlyphPriv->pArea);
 
 		pixel = pTexture->pixel;
 		pixel.bytes_per_line =
 		    PixmapBytePad (pGlyph->info.width, pCache->depth);
-		
-		glitz_set_pixels (pTexture->mask,
+
+		surface = pTexture->pMask->pSourcePict->source.devPrivate.ptr;
+
+		glitz_set_pixels (surface,
 				  pGlyphPriv->pArea->x,
 				  pGlyphPriv->pArea->y,
 				  pGlyph->info.width,
@@ -441,10 +457,10 @@ xglCacheGlyph (xglGlyphCachePtr pCache,
 		p1.y = pGlyphPriv->pArea->y << 16;
 		p2.x = (pGlyphPriv->pArea->x + pGlyph->info.width)  << 16;
 		p2.y = (pGlyphPriv->pArea->y + pGlyph->info.height) << 16;
-		
-		glitz_surface_translate_point (pTexture->mask, &p1, &p1);
-		glitz_surface_translate_point (pTexture->mask, &p2, &p2);
-		
+
+		glitz_surface_translate_point (surface, &p1, &p1);
+		glitz_surface_translate_point (surface, &p2, &p2);
+
 		pAreaPriv->serial = glyphSerialNumber;
 		if (pTexture->geometryDataType)
 		{
@@ -465,7 +481,7 @@ xglCacheGlyph (xglGlyphCachePtr pCache,
 	} else
 	    pGlyphPriv->pArea = &zeroSizeArea;
     }
-    
+
     return pGlyphPriv->pArea;
 }
 
@@ -499,7 +515,7 @@ xglUncachedGlyphs (CARD8	 op,
 		usingCache = FALSE;
 	}
     }
-    
+
     while (pOp->nGlyphs)
     {
 	glyph = *pOp->ppGlyphs;
@@ -511,7 +527,7 @@ xglUncachedGlyphs (CARD8	 op,
 	    pOp->xOff   += pOp->pLists->xOff;
 	    pOp->yOff   += pOp->pLists->yOff;
 	}
-	
+
 	xOff = pOp->xOff;
 	yOff = pOp->yOff;
 
@@ -523,7 +539,7 @@ xglUncachedGlyphs (CARD8	 op,
 	    {
 		if (!pArea)
 		    pArea = xglCacheGlyph (pCache, glyph);
-	    
+
 		if (pArea)
 		    break;
 	    }
@@ -533,26 +549,26 @@ xglUncachedGlyphs (CARD8	 op,
 	pOp->listLen--;
 	pOp->nGlyphs--;
 	pOp->ppGlyphs++;
-	
+
 	pOp->xOff += glyph->info.xOff;
 	pOp->yOff += glyph->info.yOff;
 
 	if (pArea)
 	    continue;
-	
+
 	if (!pPicture)
 	{
-	    CARD32 componentAlpha;
-	    int	   error;
-	    
+	    XID componentAlpha;
+	    int	error;
+
 	    pPixmap = GetScratchPixmapHeader (pScreen,
 					      glyph->info.width,
-					      glyph->info.height, 
+					      glyph->info.height,
 					      depth, depth,
 					      0, (pointer) (glyph + 1));
 	    if (!pPixmap)
 		return;
-	    
+
 	    componentAlpha = NEEDS_COMPONENT (pOp->pLists->format->format);
 	    pPicture = CreatePicture (0, &pPixmap->drawable,
 				      pOp->pLists->format,
@@ -564,8 +580,8 @@ xglUncachedGlyphs (CARD8	 op,
 		return;
 	    }
 	}
-	
-	(*pScreen->ModifyPixmapHeader) (pPixmap, 
+
+	(*pScreen->ModifyPixmapHeader) (pPixmap,
 					glyph->info.width, glyph->info.height,
 					0, 0, -1, (pointer) (glyph + 1));
 	pPixmap->drawable.serialNumber = NEXT_SERIAL_NUMBER;
@@ -594,7 +610,7 @@ xglUncachedGlyphs (CARD8	 op,
 			      glyph->info.width,
 			      glyph->info.height);
     }
-    
+
     if (pPicture)
     {
 	FreeScratchPixmapHeader (pPixmap);
@@ -624,10 +640,10 @@ xglCachedGlyphs (CARD8	       op,
     int			  depth = pOp->pLists->format->depth;
     int			  i, remaining = pOp->nGlyphs;
     int			  nGlyph = 0;
-    glitz_surface_t	  *mask = NULL;
+    PicturePtr		  pMaskPicture = NULL;
 
     XGL_SCREEN_PRIV (pScreen);
-    
+
     pCache = &pScreenPriv->glyphCache[depth];
     if (!pCache->pScreen)
     {
@@ -663,23 +679,23 @@ xglCachedGlyphs (CARD8	       op,
 	else if (pSrc)
 	    break;
     }
-    
+
     if (nGlyph)
     {
 	if (depth == 1)
 	{
 	    glitz_multi_array_t *multiArray;
-	    
+
 	    pGeometry = &pCache->u.geometry;
 	    pGeometry->xOff = pGeometry->yOff = 0;
-	    
+
 	    multiArray = glitz_multi_array_create (nGlyph);
 	    if (!multiArray)
 		return 1;
-	    
+
 	    GEOMETRY_SET_MULTI_ARRAY (pGeometry, multiArray);
 	    glitz_multi_array_destroy (multiArray);
-	    
+
 	    vData.array.lastX = 0;
 	    vData.array.lastY = 0;
 	}
@@ -687,11 +703,11 @@ xglCachedGlyphs (CARD8	       op,
 	{
 	    i = 4 * pCache->u.texture.format.vertex.bytes_per_vertex * nGlyph;
 	    pGeometry = xglGetScratchGeometryWithSize (pScreen, i);
-	    
+
 	    pGeometry->f = pCache->u.texture.format;
 	    pGeometry->type = GLITZ_GEOMETRY_TYPE_VERTEX;
-	    mask = pCache->u.texture.mask;
-	    
+	    pMaskPicture = pCache->u.texture.pMask;
+
 	    vData.list.s = glitz_buffer_map (pGeometry->buffer,
 					     GLITZ_BUFFER_ACCESS_WRITE_ONLY);
 	}
@@ -714,7 +730,7 @@ xglCachedGlyphs (CARD8	       op,
 	    pOp->xOff   += pOp->pLists->xOff;
 	    pOp->yOff   += pOp->pLists->yOff;
 	}
-	
+
 	xOff = pOp->xOff;
 	yOff = pOp->yOff;
 
@@ -726,7 +742,7 @@ xglCachedGlyphs (CARD8	       op,
 	pOp->listLen--;
 	pOp->nGlyphs--;
 	pOp->ppGlyphs++;
-	
+
 	pOp->xOff += glyph->info.xOff;
 	pOp->yOff += glyph->info.yOff;
 
@@ -739,7 +755,7 @@ xglCachedGlyphs (CARD8	       op,
 	    extents.x1 = x1;
 	if (x2 > extents.x2)
 	    extents.x2 = x2;
-	
+
 	y1 = yOff - glyph->info.y;
 	y2 = y1 + glyph->info.height;
 	if (y1 < extents.y1)
@@ -786,7 +802,7 @@ xglCachedGlyphs (CARD8	       op,
 	    glitz_buffer_unmap (pGeometry->buffer);
 	    pGeometry->count = nGlyph * 4;
 	}
-	
+
 	xSrc += extents.x1;
 	ySrc += extents.y1;
 
@@ -794,27 +810,26 @@ xglCachedGlyphs (CARD8	       op,
 	{
 	    op = PictOpAdd;
 	    pSrc = pScreenPriv->pSolidAlpha;
-	    
+
 	    if (remaining)
-	    	*pOp = opSave;
+		*pOp = opSave;
 	}
 
 	GEOMETRY_TRANSLATE (pGeometry,
 			    pDst->pDrawable->x,
 			    pDst->pDrawable->y);
-	
-	if (xglComp (op,
-		     pSrc,
-		     NULL,
-		     pDst,
-		     xSrc, ySrc,
-		     0, 0,
-		     pDst->pDrawable->x + extents.x1,
-		     pDst->pDrawable->y + extents.y1,
-		     extents.x2 - extents.x1,
-		     extents.y2 - extents.y1,
-		     pGeometry,
-		     mask))
+
+	if (xglCompositeGeneral (op,
+				 pSrc,
+				 pMaskPicture,
+				 pDst,
+				 pGeometry,
+				 xSrc, ySrc,
+				 0, 0,
+				 pDst->pDrawable->x + extents.x1,
+				 pDst->pDrawable->y + extents.y1,
+				 extents.x2 - extents.x1,
+				 extents.y2 - extents.y1))
 	{
 	    xglAddCurrentBitDamage (pDst->pDrawable);
 	    return remaining;
@@ -857,7 +872,7 @@ xglGlyphExtents (PicturePtr   pDst,
     extents->x1 = MAXSHORT;
     extents->x2 = MINSHORT;
     extents->y1 = MAXSHORT;
-    extents->y2 = MINSHORT;    
+    extents->y2 = MINSHORT;
 
     while (!list->len)
     {
@@ -892,7 +907,7 @@ xglGlyphExtents (PicturePtr   pDst,
 	y += list->yOff;
 	n = list->len;
 	list++;
-	
+
 	while (n--)
 	{
 	    glyph = *glyphs++;
@@ -945,7 +960,7 @@ xglGlyphExtents (PicturePtr   pDst,
 			extents->y1 = line.y1;
 		    if (line.y2 > extents->y2)
 			extents->y2 = line.y2;
-		
+
 		    overlap = TRUE;
 		}
 
@@ -959,7 +974,7 @@ xglGlyphExtents (PicturePtr   pDst,
 		line.x2 = x2;
 		line.y2 = y2;
 	    }
-	    
+
 	    x += glyph->info.xOff;
 	    y += glyph->info.yOff;
 	}
@@ -983,15 +998,15 @@ xglGlyphExtents (PicturePtr   pDst,
 	    extents->y1 = line.y1;
 	if (line.y2 > extents->y2)
 	    extents->y2 = line.y2;
-	
+
 	overlap = TRUE;
     }
-    
+
     if (line.x1 < extents->x1)
 	extents->x1 = line.x1;
     if (line.x2 > extents->x2)
 	extents->x2 = line.x2;
-    
+
     xglPictureClipExtents (pDst, extents);
 
     return overlap;
@@ -1006,7 +1021,7 @@ xglGlyphListFormatId (GlyphListPtr list,
 
     nlist--;
     list++;
-    
+
     while (nlist--)
     {
 	if (list->format->id != id)
@@ -1037,20 +1052,18 @@ xglGlyphs (CARD8	 op,
     int		  overlap;
     int		  target;
 
-    XGL_DRAWABLE_PIXMAP_PRIV (pDst->pDrawable);
-
     overlap = xglGlyphExtents (pDst, nlist, list, glyphs, &extents);
     if (extents.x2 <= extents.x1 || extents.y2 <= extents.y1)
 	return;
-    
+
     target = xglPrepareTarget (pDst->pDrawable);
 
     if (op != PictOpAdd && maskFormat &&
-	(overlap || op != PictOpOver ||
+	(!target || overlap || op != PictOpOver ||
 	 xglGlyphListFormatId (list, nlist) != maskFormat->id))
     {
 	PixmapPtr  pPixmap;
-	CARD32	   componentAlpha;
+	XID	   componentAlpha;
 	GCPtr	   pGC;
 	xRectangle rect;
 	int	   error;
@@ -1065,7 +1078,7 @@ xglGlyphs (CARD8	 op,
 					    maskFormat->depth);
 	if (!pPixmap)
 	    return;
-	
+
 	componentAlpha = NEEDS_COMPONENT (maskFormat->format);
 	pMask = CreatePicture (0, &pPixmap->drawable,
 			       maskFormat, CPComponentAlpha, &componentAlpha,
@@ -1076,12 +1089,11 @@ xglGlyphs (CARD8	 op,
 	    return;
 	}
 
-	/* make sure destination drawable is locked */
-	pPixmapPriv->lock++;
-
-	/* lock mask if we are not doing accelerated drawing to destination */
 	if (!target)
-	    XGL_GET_PIXMAP_PRIV (pPixmap)->lock = 1;
+	{
+	    /* make sure we don't do accelerated drawing to mask */
+	    xglSetPixmapVisual (pPixmap, NULL);
+	}
 
 	ValidatePicture (pMask);
 	pGC = GetScratchGC (pPixmap->drawable.depth, pScreen);
@@ -1092,7 +1104,7 @@ xglGlyphs (CARD8	 op,
 	(*pScreen->DestroyPixmap) (pPixmap);
 
 	target = xglPrepareTarget (pMask->pDrawable);
-	
+
 	glyphOp.xOff = -extents.x1;
 	glyphOp.yOff = -extents.y1;
 	pSrcPicture = NULL;
@@ -1100,9 +1112,6 @@ xglGlyphs (CARD8	 op,
     }
     else
     {
-	/* make sure destination drawable is locked */
-	pPixmapPriv->lock++;
-
 	glyphOp.xOff = 0;
 	glyphOp.yOff = 0;
 	pSrcPicture = pSrc;
@@ -1119,12 +1128,12 @@ xglGlyphs (CARD8	 op,
 	glyphOp.listLen = list->len;
 	glyphOp.nGlyphs = list->len;
 	glyphOp.pLists  = list++;
-	
+
 	for (; nlist; nlist--, list++)
 	{
 	    if (list->format->id != glyphOp.pLists->format->id)
 		break;
-	    
+
 	    glyphOp.nGlyphs += list->len;
 	}
 
@@ -1142,26 +1151,19 @@ xglGlyphs (CARD8	 op,
 				   &glyphOp);
 	}
     }
-    
+
     if (pMask)
     {
-	CompositePicture (op,
-			  pSrc,
-			  pMask,
-			  pDst,
+	CompositePicture (op, pSrc, pMask, pDst,
 			  xSrc + extents.x1 - xDst,
 			  ySrc + extents.y1 - yDst,
 			  0, 0,
 			  extents.x1, extents.y1,
 			  extents.x2 - extents.x1,
 			  extents.y2 - extents.y1);
-	
+
 	FreePicture ((pointer) pMask, (XID) 0);
     }
-
-    /* release destination drawable lock */
-    pPixmapPriv->lock--;
-
 }
 
 #endif

@@ -1,5 +1,12 @@
 2006-01-18  Dave Airlie  <airlied@linux.ie>
 
+	Update XGL server from the xserver tree, and fix to work
+	in X.org tree (look out for a branch appearing RSN),
+	Most of the changes are from David Reveman @ Novell
+	and the rest are from either myself or Eric Anholt.
+	
+2006-01-18  Dave Airlie  <airlied@linux.ie>
+
 	* Xext/Makefile.am:
 	* dbe/Makefile.am:
 	* fb/Makefile.am:

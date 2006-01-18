@@ -22,12 +22,18 @@ AM_CFLAGS = \
 	@SERVER_DEFINES@ \
 	-DHAVE_XGL_CONFIG_H \
 	-DHAVE_DIX_CONFIG_H \
+	-I$(top_srcdir)/GL/glx			\
+	-I$(top_srcdir)/GL/include		\
+	-I@MESA_SOURCE@/include \
+	-I@MESA_SOURCE@/src/mesa/glapi \
 	$(XGLMODULES_CFLAGS)
 
 noinst_LIBRARIES = libxgl.a
 
 libxgl_a_SOURCES =     \
 	xgl.h	       \
+	xglmodule.h    \
+	xglglx.h       \
 	xglinput.c     \
 	xgloutput.c    \
 	xglcmap.c      \
@@ -46,13 +52,14 @@ libxgl_a_SOURCES =     \
 	xglget.c       \
 	xglgc.c	       \
 	xglshm.c       \
-	xglcomp.c      \
+	xglcompose.c   \
 	xglpict.c      \
 	xglglyph.c     \
 	xgltrap.c      \
+	xglloader.c     \
 	xglhash.c      \
-        xglloader.c    \
-	xglglx.c
+	xglglx.c       \
+	xglxv.c
 
 EXTRA_DIST = \
 	xglmodule.h
@@ -69,8 +76,7 @@ Xgl_LDADD = \
 	$(XORG_CORE_LIBS) \
 	$(XGL_LIBS) \
 	$(XSERVER_LIBS) \
-	$(EXTENSION_LIBS) \
-	$(XGLMODULES_LIBS)
+	$(EXTENSION_LIBS) -lglitz -ldl
 Xgl_programs = Xgl
 
 bin_PROGRAMS = $(Xgl_programs)

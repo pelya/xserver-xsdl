@@ -23,62 +23,27 @@
  * Author: David Reveman <davidr@novell.com>
  */
 
-#include "xgl.h"
+#include "xglglx.h"
 
 #ifdef GLXEXT
 
-#include "glxserver.h"
-#include "glxscreens.h"
-#include "glxext.h"
+#ifdef XGL_MODULAR
+#include <dlfcn.h>
+#endif
 
-typedef struct _xglGLXFunc {
-    void (*extensionInit)     (void);
-    void (*setVisualConfigs)  (int		    nconfigs,
-			       __GLXvisualConfig    *configs,
-			       void                 **privates);
-    void (*wrapInitVisuals)   (miInitVisualsProcPtr *initVisuals);
-    int  (*initVisuals)	      (VisualPtr	    *visualp,
-			       DepthPtr		    *depthp,
-			       int		    *nvisualp,
-			       int		    *ndepthp,
-			       int		    *rootDepthp,
-			       VisualID		    *defaultVisp,
-			       unsigned long	    sizes,
-			       int		    bitsPerRGB,
-			       int		    preferredVis);
+xglGLXFuncRec __xglGLXFunc;
 
-    void (*flushContextCache) (void);
-    void (*setRenderTables)   (__glProcTable	    *table,
-			       __glProcTableEXT	    *tableEXT);
-} xglGLXFuncRec;
-
-static xglGLXFuncRec __glXFunc;
+#ifndef NGLXEXTLOG
+FILE *__xglGLXLogFp;
+#endif
 
 static void *glXHandle = 0;
 static void *glCoreHandle = 0;
 
 #define SYM(ptr, name) { (void **) &(ptr), (name) }
 
-__GLXextensionInfo __glDDXExtensionInfo = {
-    GL_CORE_MESA,
-    NULL,
-    NULL,
-    NULL
-};
-
-__GLXscreenInfo __glDDXScreenInfo = {
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    0,
-    0,
-    "Vendor String",
-    "Version String",
-    "Extensions String",
-    NULL
-};
+__GLXextensionInfo *__xglExtensionInfo;
+__GLXscreenInfo *__xglScreenInfoPtr;
 
 void
 GlxSetVisualConfigs (int	       nconfigs,
@@ -86,21 +51,21 @@ GlxSetVisualConfigs (int	       nconfigs,
 		     void              **privates)
 {
     if (glXHandle && glCoreHandle)
-	(*__glXFunc.setVisualConfigs) (nconfigs, configs, privates);
+	(*__xglGLXFunc.setVisualConfigs) (nconfigs, configs, privates);
 }
 
 void
 GlxExtensionInit (void)
 {
     if (glXHandle && glCoreHandle)
-	(*__glXFunc.extensionInit) ();
+	(*__xglGLXFunc.extensionInit) ();
 }
 
 void
 GlxWrapInitVisuals (miInitVisualsProcPtr *initVisuals)
 {
     if (glXHandle && glCoreHandle)
-	(*__glXFunc.wrapInitVisuals) (initVisuals);
+	(*__xglGLXFunc.wrapInitVisuals) (initVisuals);
 }
 
 int
@@ -115,9 +80,9 @@ GlxInitVisuals (VisualPtr     *visualp,
 		int	      preferredVis)
 {
     if (glXHandle && glCoreHandle)
-	return (*__glXFunc.initVisuals) (visualp, depthp, nvisualp, ndepthp,
-					 rootDepthp, defaultVisp, sizes,
-					 bitsPerRGB, preferredVis);
+	return (*__xglGLXFunc.initVisuals) (visualp, depthp, nvisualp, ndepthp,
+					    rootDepthp, defaultVisp, sizes,
+					    bitsPerRGB, preferredVis);
 
     return 0;
 }
@@ -125,15 +90,58 @@ GlxInitVisuals (VisualPtr     *visualp,
 void
 GlxFlushContextCache (void)
 {
-    (*__glXFunc.flushContextCache) ();
+    (*__xglGLXFunc.flushContextCache) ();
 }
 
 void
-GlxSetRenderTables (__glProcTable    *table,
-		    __glProcTableEXT *tableEXT)
+GlxSetRenderTables (struct _glapi_table *table)
 {
-    (*__glXFunc.setRenderTables) (table, tableEXT);
+  (*__xglGLXFunc.setRenderTables) (table);
 }
+
+struct _glapi_table *_mglapi_Dispatch;
+
+void *(*__glcore_DDXScreenInfo)(void);
+
+void *__glXglDDXScreenInfo(void)
+{
+  return __xglScreenInfoPtr;
+}
+
+void *(*__glcore_DDXExtensionInfo)(void);
+
+void *__glXglDDXExtensionInfo(void)
+{
+  return __xglExtensionInfo;
+}	
+
+void _gl_copy_visual_to_context_mode( __GLcontextModes * mode,
+                                 const __GLXvisualConfig * config )
+{
+	(*__xglGLXFunc.copy_visual_to_context_mode)(mode, config);
+}
+
+__GLcontextModes *_gl_context_modes_create( unsigned count, size_t minimum_size )
+{
+	return (*__xglGLXFunc.context_modes_create)(count, minimum_size);
+}
+
+void _gl_context_modes_destroy( __GLcontextModes * modes )
+{
+	(*__xglGLXFunc.context_modes_destroy)(modes);
+}
+
+GLint _gl_convert_from_x_visual_type( int visualType )
+{
+	return (*__xglGLXFunc.convert_from_x_visual_type)(visualType);
+}
+
+GLint _gl_convert_to_x_visual_type( int visualType )
+{
+	return (*__xglGLXFunc.convert_to_x_visual_type)(visualType);
+}
+
+
 
 Bool
 xglLoadGLXModules (void)
@@ -143,15 +151,20 @@ xglLoadGLXModules (void)
     if (!glXHandle)
     {
 	xglSymbolRec sym[] = {
-	    SYM (__glXFunc.extensionInit,     "GlxExtensionInit"),
-	    SYM (__glXFunc.setVisualConfigs,  "GlxSetVisualConfigs"),
-	    SYM (__glXFunc.wrapInitVisuals,   "GlxWrapInitVisuals"),
-	    SYM (__glXFunc.initVisuals,	      "GlxInitVisuals"),
-	    SYM (__glXFunc.flushContextCache, "GlxFlushContextCache"),
-	    SYM (__glXFunc.setRenderTables,   "GlxSetRenderTables")
+	    SYM (__xglGLXFunc.extensionInit,     "GlxExtensionInit"),
+	    SYM (__xglGLXFunc.setVisualConfigs,  "GlxSetVisualConfigs"),
+	    SYM (__xglGLXFunc.wrapInitVisuals,   "GlxWrapInitVisuals"),
+	    SYM (__xglGLXFunc.initVisuals,	 "GlxInitVisuals"),
+	    SYM (__xglGLXFunc.flushContextCache, "__glXFlushContextCache"),
+	    SYM (__xglGLXFunc.setRenderTables,   "GlxSetRenderTables"),
+	    SYM (__xglGLXFunc.copy_visual_to_context_mode, "_gl_copy_visual_to_context_mode"),
+	    SYM (__xglGLXFunc.context_modes_create, "_gl_context_modes_create"),
+	    SYM (__xglGLXFunc.context_modes_destroy, "_gl_context_modes_destroy"),
+	    SYM (__xglGLXFunc.convert_from_x_visual_type, "_gl_convert_from_x_visual_type"),
+	    SYM (__xglGLXFunc.convert_to_x_visual_type, "_gl_convert_to_x_visual_type"),
 	};
 
-	glXHandle = xglLoadModule ("glx");
+	glXHandle = xglLoadModule ("glx", RTLD_NOW | RTLD_LOCAL);
 	if (!glXHandle)
 	    return FALSE;
 
@@ -166,27 +179,48 @@ xglLoadGLXModules (void)
 
     if (!glCoreHandle)
     {
-	xglSymbolRec sym[] = {
-	    SYM (__glDDXScreenInfo.screenProbe,   "__MESA_screenProbe"),
-	    SYM (__glDDXScreenInfo.createContext, "__MESA_createContext"),
-	    SYM (__glDDXScreenInfo.createBuffer,  "__MESA_createBuffer"),
+        xglSymbolRec ddxsym[] = {
+	    SYM (__glcore_DDXExtensionInfo, "__glXglDDXExtensionInfo"),
+	    SYM (__glcore_DDXScreenInfo, "__glXglDDXScreenInfo")
+        };	
 
-	    SYM (__glDDXExtensionInfo.resetExtension,   "__MESA_resetExtension"),
-	    SYM (__glDDXExtensionInfo.initVisuals,      "__MESA_initVisuals"),
-	    SYM (__glDDXExtensionInfo.setVisualConfigs,
-		 "__MESA_setVisualConfigs")
-	};
-
-	glCoreHandle = xglLoadModule ("glcore");
+	glCoreHandle = xglLoadModule ("glcore", RTLD_NOW | RTLD_LOCAL);
 	if (!glCoreHandle)
 	    return FALSE;
 
-	if (!xglLookupSymbols (glCoreHandle, sym, sizeof (sym) / sizeof (sym[0])))
+	if (!xglLookupSymbols (glCoreHandle, ddxsym,
+			       sizeof (ddxsym) / sizeof(ddxsym[0])))
 	{
+	  xglUnloadModule (glCoreHandle);
+	  glCoreHandle = 0;
+	  
+	  return FALSE;
+	}
+
+	__xglScreenInfoPtr = __glcore_DDXScreenInfo();
+	__xglExtensionInfo = __glcore_DDXExtensionInfo();
+	{
+	  xglSymbolRec sym[] = {
+	      SYM (__xglScreenInfoPtr->screenProbe,    "__MESA_screenProbe"),
+  	    SYM (__xglScreenInfoPtr->createContext,  "__MESA_createContext"),
+	    SYM (__xglScreenInfoPtr->createBuffer,   "__MESA_createBuffer"),
+	    SYM (__xglExtensionInfo->resetExtension,
+		 "__MESA_resetExtension"),
+	    SYM (__xglExtensionInfo->initVisuals, "__MESA_initVisuals"),
+	    SYM (__xglExtensionInfo->setVisualConfigs,
+		 "__MESA_setVisualConfigs"),
+
+	  };
+
+
+	  if (!xglLookupSymbols (glCoreHandle, sym,
+				 sizeof (sym) / sizeof (sym[0])))
+	  {
 	    xglUnloadModule (glCoreHandle);
 	    glCoreHandle = 0;
-
+	    
 	    return FALSE;
+	  }
 	}
 
 	if (!xglLoadHashFuncs (glCoreHandle))

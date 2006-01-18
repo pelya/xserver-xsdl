@@ -31,6 +31,8 @@
 #include <X11/Xdefs.h>
 #include "misc.h"
 
+#define VERSION "0.0.1"
+
 typedef const char *(*ModuleVersionProcPtr) (void);
 typedef Bool	   (*ModuleInitProcPtr)	    (const char *module);
 

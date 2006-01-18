@@ -1,6 +1,6 @@
 /*
  * Copyright © 2004 David Reveman
- * 
+ *
  * Permission to use, copy, modify, distribute, and sell this software
  * and its documentation for any purpose is hereby granted without
  * fee, provided that the above copyright notice appear in all copies
@@ -12,11 +12,11 @@
  * software for any purpose. It is provided "as is" without express or
  * implied warranty.
  *
- * DAVID REVEMAN DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE, 
+ * DAVID REVEMAN DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
  * INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN
  * NO EVENT SHALL DAVID REVEMAN BE LIABLE FOR ANY SPECIAL, INDIRECT OR
  * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
- * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, 
+ * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *
@@ -31,7 +31,7 @@ Bool
 xglFill (DrawablePtr	pDrawable,
 	 GCPtr		pGC,
 	 xglGeometryPtr pGeometry,
-	 int	  	x,
+	 int		x,
 	 int		y,
 	 int		width,
 	 int		height,
@@ -43,7 +43,7 @@ xglFill (DrawablePtr	pDrawable,
     switch (pGC->fillStyle) {
     case FillSolid:
 	if (xglSolid (pDrawable,
-		      pGCPriv->op, &pGCPriv->fg,
+		      pGCPriv->op, pGCPriv->fg,
 		      pGeometry,
 		      x, y,
 		      width, height,
@@ -70,26 +70,21 @@ xglFill (DrawablePtr	pDrawable,
 }
 
 static void
-xglFillBox (DrawablePtr pDrawable, 
+xglFillBox (DrawablePtr pDrawable,
 	    GCPtr	pGC,
-	    int	  	x,
+	    int		x,
 	    int		y,
 	    int		width,
 	    int		height,
 	    BoxPtr	pBox,
 	    int		nBox)
 {
-    BoxRec box;
-    
     if (!nBox)
-	return;	  
-    
+	return;
+
     if (!xglFill (pDrawable, pGC, NULL, x, y, width, height, pBox, nBox))
     {
-	RegionRec	region;
-	RegionPtr       pDamageRegion;
-	glitz_surface_t *surface;
-	int             xOff, yOff;
+	RegionRec region;
 
 	XGL_DRAWABLE_PIXMAP (pDrawable);
 	XGL_PIXMAP_PRIV (pPixmap);
@@ -111,31 +106,18 @@ xglFillBox (DrawablePtr pDrawable,
 	    break;
 	}
 
-	pDamageRegion = DamageRegion (pPixmapPriv->pDamage);
-	
-	XGL_GET_DRAWABLE (pDrawable, surface, xOff, yOff);
-	
 	pPixmapPriv->damageBox = miEmptyBox;
-	
+
 	while (nBox--)
 	{
 	    fbFill (pDrawable, pGC,
 		    pBox->x1, pBox->y1,
 		    pBox->x2 - pBox->x1, pBox->y2 - pBox->y1);
 
-	    if (pPixmapPriv->format)
-	    {
-		box.x1 = pBox->x1 + xOff;
-		box.y1 = pBox->y1 + yOff;
-		box.x2 = pBox->x2 + xOff;
-		box.y2 = pBox->y2 + yOff;
-		
-		REGION_INIT (pDrawable->pScreen, &region, &box, 1);
-		REGION_UNION (pDrawable->pScreen,
-			      pDamageRegion, pDamageRegion, &region);
-		REGION_UNINIT (pDrawable->pScreen, &region);
-	    }
-	    
+	    REGION_INIT (pDrawable->pScreen, &region, pBox, 1);
+	    xglAddSurfaceDamage (pDrawable, &region);
+	    REGION_UNINIT (pDrawable->pScreen, &region);
+
 	    pBox++;
 	}
     } else
@@ -150,11 +132,11 @@ xglMoreBoxes (BoxPtr stackBox,
 	      int    nBoxes)
 {
     Bool stack = !heapBox;
-	
+
     heapBox = xrealloc (heapBox, sizeof (BoxRec) * nBoxes);
     if (!heapBox)
 	return NULL;
-    
+
     if (stack)
 	memcpy (heapBox, stackBox, sizeof (BoxRec) * N_STACK_BOX);
 
@@ -182,8 +164,8 @@ xglMoreBoxes (BoxPtr stackBox,
     }
 
 void
-xglFillRect (DrawablePtr pDrawable, 
-	     GCPtr	 pGC, 
+xglFillRect (DrawablePtr pDrawable,
+	     GCPtr	 pGC,
 	     int	 nrect,
 	     xRectangle  *prect)
 {
@@ -205,19 +187,19 @@ xglFillRect (DrawablePtr pDrawable,
 	full.y2 = full.y1 + (int) prect->height;
 
 	prect++;
-	
+
 	if (full.x1 < pExtent->x1)
 	    full.x1 = pExtent->x1;
 	if (full.y1 < pExtent->y1)
-	    full.y1 = pExtent->y1;	    
+	    full.y1 = pExtent->y1;
 	if (full.x2 > pExtent->x2)
 	    full.x2 = pExtent->x2;
 	if (full.y2 > pExtent->y2)
 	    full.y2 = pExtent->y2;
-	
+
 	if (full.x1 >= full.x2 || full.y1 >= full.y2)
 	    continue;
-	
+
 	nClip = REGION_NUM_RECTS (pClip);
 	if (nClip == 1)
 	{
@@ -238,7 +220,7 @@ xglFillRect (DrawablePtr pDrawable,
 		    part.x2 = full.x2;
 		if (part.y2 > full.y2)
 		    part.y2 = full.y2;
-		
+
 		if (part.x1 < part.x2 && part.y1 < part.y2)
 		    ADD_BOX (pBox, nBox, stackBox, heapBox, size, part);
 	    }
@@ -249,7 +231,7 @@ xglFillRect (DrawablePtr pDrawable,
 		pExtent->x1, pExtent->y1,
 		pExtent->x2 - pExtent->x1, pExtent->y2 - pExtent->y1,
 		(heapBox) ? heapBox : stackBox, nBox);
-		
+
     if (heapBox)
 	xfree (heapBox);
 }
@@ -280,19 +262,19 @@ xglFillSpan (DrawablePtr pDrawable,
 
 	pwidth++;
 	ppt++;
-	
+
 	if (full.x1 < pExtent->x1)
 	    full.x1 = pExtent->x1;
 	if (full.y1 < pExtent->y1)
-	    full.y1 = pExtent->y1;	    
+	    full.y1 = pExtent->y1;
 	if (full.x2 > pExtent->x2)
 	    full.x2 = pExtent->x2;
 	if (full.y2 > pExtent->y2)
 	    full.y2 = pExtent->y2;
-	
+
 	if (full.x1 >= full.x2 || full.y1 >= full.y2)
 	    continue;
-	
+
 	nClip = REGION_NUM_RECTS (pClip);
 	if (nClip == 1)
 	{
@@ -313,7 +295,7 @@ xglFillSpan (DrawablePtr pDrawable,
 		    part.x2 = full.x2;
 		if (part.y2 > full.y2)
 		    part.y2 = full.y2;
-		
+
 		if (part.x1 < part.x2 && part.y1 < part.y2)
 		    ADD_BOX (pBox, nBox, stackBox, heapBox, size, part);
 	    }
@@ -324,7 +306,7 @@ xglFillSpan (DrawablePtr pDrawable,
 		pExtent->x1, pExtent->y1,
 		pExtent->x2 - pExtent->x1, pExtent->y2 - pExtent->y1,
 		(heapBox) ? heapBox : stackBox, nBox);
-		
+
     if (heapBox)
 	xfree (heapBox);
 }
@@ -346,28 +328,28 @@ xglFillLine (DrawablePtr pDrawable,
     xglGeometryPtr pGeometry;
 
     XGL_SCREEN_PRIV (pGC->pScreen);
-	
+
     if (npt < 2)
 	return TRUE;
-    
+
     pt = *ppt;
-	
+
     nptTmp = npt - 1;
     pptTmp = ppt + 1;
-	
+
     if (mode == CoordModePrevious)
     {
 	while (nptTmp--)
 	{
 	    if (pptTmp->x && pptTmp->y)
 		horizontalAndVertical = FALSE;
-	    
+
 	    pt.x += pptTmp->x;
 	    pt.y += pptTmp->y;
-	    
+
 	    pptTmp++;
 	}
-	
+
 	if (pt.x == ppt->x && pt.y == ppt->y)
 	    coincidentEndpoints = TRUE;
     }
@@ -383,7 +365,7 @@ xglFillLine (DrawablePtr pDrawable,
 
 	    pt = *pptTmp++;
 	}
-	
+
 	if (ppt[npt - 1].x == ppt->x && ppt[npt - 1].y == ppt->y)
 	    coincidentEndpoints = TRUE;
     }
@@ -403,7 +385,7 @@ xglFillLine (DrawablePtr pDrawable,
 
 	ppt++;
 	npt--;
-    
+
 	while (npt--)
 	{
 	    if (mode == CoordModePrevious)
@@ -416,13 +398,13 @@ xglFillLine (DrawablePtr pDrawable,
 		dx = ppt->x - pt.x;
 		dy = ppt->y - pt.y;
 	    }
-	
+
 	    if (dx)
 	    {
 		if (dx > 0)
 		{
 		    full.x1 = pt.x + pDrawable->x;
-		    
+
 		    if (npt || coincidentEndpoints)
 			full.x2 = full.x1 + dx;
 		    else
@@ -437,7 +419,7 @@ xglFillLine (DrawablePtr pDrawable,
 		    else
 			full.x1 = full.x2 + dx - 1;
 		}
-		
+
 		full.y1 = pt.y + pDrawable->y;
 		full.y2 = full.y1 + 1;
 	    }
@@ -446,7 +428,7 @@ xglFillLine (DrawablePtr pDrawable,
 		if (dy > 0)
 		{
 		    full.y1 = pt.y + pDrawable->y;
-			
+
 		    if (npt || coincidentEndpoints)
 			full.y2 = full.y1 + dy;
 		    else
@@ -461,28 +443,28 @@ xglFillLine (DrawablePtr pDrawable,
 		    else
 			full.y1 = full.y2 + dy - 1;
 		}
-		
+
 		full.x1 = pt.x + pDrawable->x;
 		full.x2 = full.x1 + 1;
 	    }
-	    
+
 	    pt.x += dx;
 	    pt.y += dy;
-	    
+
 	    ppt++;
-	    
+
 	    if (full.x1 < pExtent->x1)
 		full.x1 = pExtent->x1;
 	    if (full.y1 < pExtent->y1)
-		full.y1 = pExtent->y1;	    
+		full.y1 = pExtent->y1;
 	    if (full.x2 > pExtent->x2)
 		full.x2 = pExtent->x2;
 	    if (full.y2 > pExtent->y2)
 		full.y2 = pExtent->y2;
-	
+
 	    if (full.x1 >= full.x2 || full.y1 >= full.y2)
 		continue;
-	
+
 	    nClip = REGION_NUM_RECTS (pClip);
 	    if (nClip == 1)
 	    {
@@ -503,7 +485,7 @@ xglFillLine (DrawablePtr pDrawable,
 			part.x2 = full.x2;
 		    if (part.y2 > full.y2)
 			part.y2 = full.y2;
-		
+
 		    if (part.x1 < part.x2 && part.y1 < part.y2)
 			ADD_BOX (pBox, nBox, stackBox, heapBox, size, part);
 		}
@@ -514,7 +496,7 @@ xglFillLine (DrawablePtr pDrawable,
 		    pExtent->x1, pExtent->y1,
 		    pExtent->x2 - pExtent->x1, pExtent->y2 - pExtent->y1,
 		    (heapBox) ? heapBox : stackBox, nBox);
-		
+
 	if (heapBox)
 	    xfree (heapBox);
 
@@ -526,9 +508,9 @@ xglFillLine (DrawablePtr pDrawable,
 
     if (coincidentEndpoints)
 	npt--;
-    
+
     pGeometry = xglGetScratchVertexGeometry (pGC->pScreen, npt);
-    
+
     GEOMETRY_ADD_LINE (pGC->pScreen, pGeometry,
 		       coincidentEndpoints, mode, npt, ppt);
 
@@ -539,24 +521,27 @@ xglFillLine (DrawablePtr pDrawable,
 
     /* Lines need a 0.5 translate */
     GEOMETRY_TRANSLATE_FIXED (pGeometry, 1 << 15, 1 << 15);
-    
+
     GEOMETRY_TRANSLATE (pGeometry, pDrawable->x, pDrawable->y);
 
     pExtent = REGION_EXTENTS (pDrawable->pScreen, pGC->pCompositeClip);
-	
+
     if (xglFill (pDrawable, pGC, pGeometry,
 		 pExtent->x1, pExtent->y1,
 		 pExtent->x2 - pExtent->x1, pExtent->y2 - pExtent->y1,
 		 REGION_RECTS (pGC->pCompositeClip),
 		 REGION_NUM_RECTS (pGC->pCompositeClip)))
+    {
+	xglAddCurrentBitDamage (pDrawable);
 	return TRUE;
-    
+    }
+
     return FALSE;
 }
 
 Bool
 xglFillSegment (DrawablePtr pDrawable,
-		GCPtr	    pGC, 
+		GCPtr	    pGC,
 		int	    nSegInit,
 		xSegment    *pSegInit)
 {
@@ -632,19 +617,19 @@ xglFillSegment (DrawablePtr pDrawable,
 	    }
 
 	    pSegInit++;
-	    
+
 	    if (full.x1 < pExtent->x1)
 		full.x1 = pExtent->x1;
 	    if (full.y1 < pExtent->y1)
-		full.y1 = pExtent->y1;	    
+		full.y1 = pExtent->y1;
 	    if (full.x2 > pExtent->x2)
 		full.x2 = pExtent->x2;
 	    if (full.y2 > pExtent->y2)
 		full.y2 = pExtent->y2;
-	
+
 	    if (full.x1 >= full.x2 || full.y1 >= full.y2)
 		continue;
-	
+
 	    nClip = REGION_NUM_RECTS (pClip);
 	    if (nClip == 1)
 	    {
@@ -665,7 +650,7 @@ xglFillSegment (DrawablePtr pDrawable,
 			part.x2 = full.x2;
 		    if (part.y2 > full.y2)
 			part.y2 = full.y2;
-		
+
 		    if (part.x1 < part.x2 && part.y1 < part.y2)
 			ADD_BOX (pBox, nBox, stackBox, heapBox, size, part);
 		}
@@ -676,7 +661,7 @@ xglFillSegment (DrawablePtr pDrawable,
 		    pExtent->x1, pExtent->y1,
 		    pExtent->x2 - pExtent->x1, pExtent->y2 - pExtent->y1,
 		    (heapBox) ? heapBox : stackBox, nBox);
-		
+
 	if (heapBox)
 	    xfree (heapBox);
 
@@ -685,24 +670,27 @@ xglFillSegment (DrawablePtr pDrawable,
 
     if (!pScreenPriv->lines)
 	return FALSE;
-    
+
     pGeometry = xglGetScratchVertexGeometry (pGC->pScreen, 2 * nSegInit);
-	
+
     GEOMETRY_ADD_SEGMENT (pGC->pScreen, pGeometry, nSegInit, pSegInit);
 
     /* Line segments need 0.5 translate */
     GEOMETRY_TRANSLATE_FIXED (pGeometry, 1 << 15, 1 << 15);
     GEOMETRY_SET_VERTEX_PRIMITIVE (pGeometry, GLITZ_PRIMITIVE_LINES);
-    
+
     GEOMETRY_TRANSLATE (pGeometry, pDrawable->x, pDrawable->y);
-	
+
     if (xglFill (pDrawable, pGC, pGeometry,
 		 pExtent->x1, pExtent->y1,
 		 pExtent->x2 - pExtent->x1, pExtent->y2 - pExtent->y1,
 		 REGION_RECTS (pGC->pCompositeClip),
 		 REGION_NUM_RECTS (pGC->pCompositeClip)))
+    {
+	xglAddCurrentBitDamage (pDrawable);
 	return TRUE;
-    
+    }
+
     return FALSE;
 }
 
@@ -745,9 +733,10 @@ xglFillGlyph (DrawablePtr  pDrawable,
 		 REGION_NUM_RECTS (pGC->pCompositeClip)))
     {
 	GEOMETRY_UNINIT (&geometry);
+	xglAddCurrentBitDamage (pDrawable);
 	return TRUE;
     }
-    
+
     GEOMETRY_UNINIT (&geometry);
     return FALSE;
 }

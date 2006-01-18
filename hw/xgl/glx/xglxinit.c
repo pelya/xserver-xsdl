@@ -24,19 +24,30 @@
  */
 
 #include "xglx.h"
+#include "xglglx.h"
 
 xglScreenInfoRec xglScreenInfo = {
-    NULL, 0, 0, 0, 0,
+    NULL, 0, 0, 0, 0, 0,
     DEFAULT_GEOMETRY_DATA_TYPE,
     DEFAULT_GEOMETRY_USAGE,
     FALSE,
     XGL_DEFAULT_PBO_MASK,
     FALSE,
-    FALSE
+    {
+	{ FALSE, FALSE, { 0, 0, 0, 0 } },
+	{ FALSE, FALSE, { 0, 0, 0, 0 } },
+	{ FALSE, FALSE, { 0, 0, 0, 0 } },
+	{ FALSE, FALSE, { 0, 0, 0, 0 } }
+    }
 };
 
 #ifdef GLXEXT
 static Bool loadGlx = TRUE;
+
+#ifndef NGLXEXTLOG
+static char *glxExtLogFile = 0;
+#endif
+
 #endif
 
 void
@@ -50,6 +61,18 @@ InitOutput (ScreenInfo *pScreenInfo,
     {
 	if (!xglLoadGLXModules ())
 	    FatalError ("No GLX modules loaded");
+
+#ifndef NGLXEXTLOG
+	if (glxExtLogFile)
+	{
+	    __xglGLXLogFp = fopen (glxExtLogFile, "w");
+	    if (!__xglGLXLogFp)
+		perror ("InitOutput");
+	}
+	else
+	    __xglGLXLogFp = 0;
+#endif
+
     }
 #endif
 
@@ -83,6 +106,11 @@ ddxUseMsg (void)
 
 #ifdef GLXEXT
     ErrorF ("-noglx                 don't load glx extension\n");
+
+#ifndef NGLXEXTLOG
+    ErrorF ("-glxlog file           glx extension log file\n");
+#endif
+
 #endif
 
     xglUseMsg ();
@@ -103,6 +131,15 @@ ddxProcessArgument (int  argc,
 	loadGlx = FALSE;
 	return 1;
     }
+
+#ifndef NGLXEXTLOG
+    else if (!strcmp (argv[i], "-glxlog"))
+    {
+	if (++i < argc)
+	    glxExtLogFile = argv[i];
+    }
+#endif
+
 #endif
 
     skip = xglProcessArgument (argc, argv, i);
@@ -130,6 +167,6 @@ OsVendorInit (void)
     xglxOsVendorInit ();
 }
 
-void ddxInitGlobals(void)
+void ddxInitGlobals()
 {
 }

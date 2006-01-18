@@ -1,6 +1,6 @@
 /*
  * Copyright © 2004 David Reveman
- * 
+ *
  * Permission to use, copy, modify, distribute, and sell this software
  * and its documentation for any purpose is hereby granted without
  * fee, provided that the above copyright notice appear in all copies
@@ -12,11 +12,11 @@
  * software for any purpose. It is provided "as is" without express or
  * implied warranty.
  *
- * DAVID REVEMAN DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE, 
+ * DAVID REVEMAN DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
  * INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN
  * NO EVENT SHALL DAVID REVEMAN BE LIABLE FOR ANY SPECIAL, INDIRECT OR
  * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
- * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, 
+ * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *
@@ -31,7 +31,7 @@
 Bool
 xglSolid (DrawablePtr	   pDrawable,
 	  glitz_operator_t op,
-	  glitz_color_t	   *color,
+	  glitz_surface_t  *solid,
 	  xglGeometryPtr   pGeometry,
 	  int		   x,
 	  int		   y,
@@ -42,18 +42,14 @@ xglSolid (DrawablePtr	   pDrawable,
 {
     glitz_surface_t *surface;
     int		    xOff, yOff;
-    
-    XGL_SCREEN_PRIV (pDrawable->pScreen);
 
     if (nBox < 1)
 	return TRUE;
 
     if (!xglPrepareTarget (pDrawable))
 	return FALSE;
-    
-    XGL_GET_DRAWABLE (pDrawable, surface, xOff, yOff);
 
-    glitz_set_rectangle (pScreenPriv->solid, color, 0, 0, 1, 1);
+    XGL_GET_DRAWABLE (pDrawable, surface, xOff, yOff);
 
     if (pGeometry)
     {
@@ -67,12 +63,12 @@ xglSolid (DrawablePtr	   pDrawable,
     }
 
     GEOMETRY_TRANSLATE (pGeometry, xOff, yOff);
-    
+
     if (!GEOMETRY_ENABLE (pGeometry, surface))
 	return FALSE;
 
     glitz_composite (op,
-		     pScreenPriv->solid, NULL, surface,
+		     solid, NULL, surface,
 		     0, 0,
 		     0, 0,
 		     x + xOff,
@@ -80,7 +76,7 @@ xglSolid (DrawablePtr	   pDrawable,
 		     width, height);
 
     glitz_surface_set_clip_region (surface, 0, 0, NULL, 0);
-    
+
     if (glitz_surface_get_status (surface))
 	return FALSE;
 
@@ -104,7 +100,7 @@ xglSolidGlyph (DrawablePtr  pDrawable,
 
     x += pDrawable->x;
     y += pDrawable->y;
-    
+
     GEOMETRY_INIT (pDrawable->pScreen, &geometry,
 		   GLITZ_GEOMETRY_TYPE_BITMAP,
 		   GEOMETRY_USAGE_SYSMEM, 0);
@@ -116,11 +112,11 @@ xglSolidGlyph (DrawablePtr  pDrawable,
 			pglyphBase);
 
     GEOMETRY_TRANSLATE (&geometry, x, y);
-	
+
     widthBack = 0;
     while (nGlyph--)
 	widthBack += (*ppci++)->metrics.characterWidth;
-	
+
     xBack = x;
     if (widthBack < 0)
     {
@@ -129,10 +125,10 @@ xglSolidGlyph (DrawablePtr  pDrawable,
     }
     yBack = y - FONTASCENT (pGC->font);
     heightBack = FONTASCENT (pGC->font) + FONTDESCENT (pGC->font);
-	
+
     if (xglSolid (pDrawable,
 		  pGCPriv->op,
-		  &pGCPriv->bg,
+		  pGCPriv->bg,
 		  NULL,
 		  xBack,
 		  yBack,
@@ -143,7 +139,7 @@ xglSolidGlyph (DrawablePtr  pDrawable,
     {
 	if (xglSolid (pDrawable,
 		      pGCPriv->op,
-		      &pGCPriv->fg,
+		      pGCPriv->fg,
 		      &geometry,
 		      xBack,
 		      yBack,
@@ -153,10 +149,11 @@ xglSolidGlyph (DrawablePtr  pDrawable,
 		      REGION_NUM_RECTS (pGC->pCompositeClip)))
 	{
 	    GEOMETRY_UNINIT (&geometry);
+	    xglAddCurrentBitDamage (pDrawable);
 	    return TRUE;
 	}
     }
-	
+
     GEOMETRY_UNINIT (&geometry);
     return FALSE;
 }

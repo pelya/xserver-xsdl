@@ -1,6 +1,6 @@
 /*
  * Copyright © 2004 David Reveman
- * 
+ *
  * Permission to use, copy, modify, distribute, and sell this software
  * and its documentation for any purpose is hereby granted without
  * fee, provided that the above copyright notice appear in all copies
@@ -12,11 +12,11 @@
  * software for any purpose. It is provided "as is" without express or
  * implied warranty.
  *
- * DAVID REVEMAN DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE, 
+ * DAVID REVEMAN DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
  * INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN
  * NO EVENT SHALL DAVID REVEMAN BE LIABLE FOR ANY SPECIAL, INDIRECT OR
  * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
- * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, 
+ * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *
@@ -39,10 +39,10 @@ xglGetImage (DrawablePtr   pDrawable,
     glitz_surface_t *surface;
     int             xOff, yOff;
     BoxRec	    box;
-    
+
     XGL_SCREEN_PRIV (pScreen);
 
-    /* Many apps use GetImage to sync with the visable frame buffer */
+    /* Many apps use GetImage to sync with the visible frame buffer */
     if (pDrawable->type == DRAWABLE_WINDOW)
     {
 	if (!xglSyncSurface (&pScreenPriv->pScreenPixmap->drawable))
@@ -61,27 +61,27 @@ xglGetImage (DrawablePtr   pDrawable,
 
     if (!xglSyncBits (pDrawable, &box))
 	FatalError (XGL_SW_FAILURE_STRING);
-    
+
     XGL_SCREEN_UNWRAP (GetImage);
     (*pScreen->GetImage) (pDrawable, x, y, w, h, format, planeMask, d);
     XGL_SCREEN_WRAP (GetImage, xglGetImage);
 }
 
 void
-xglGetSpans (DrawablePtr pDrawable, 
-	     int	 wMax, 
-	     DDXPointPtr ppt, 
-	     int	 *pwidth, 
-	     int	 nspans, 
+xglGetSpans (DrawablePtr pDrawable,
+	     int	 wMax,
+	     DDXPointPtr ppt,
+	     int	 *pwidth,
+	     int	 nspans,
 	     char	 *pchardstStart)
 {
     ScreenPtr pScreen = pDrawable->pScreen;
-    
+
     XGL_SCREEN_PRIV (pScreen);
 
     if (!xglSyncBits (pDrawable, NullBox))
 	FatalError (XGL_SW_FAILURE_STRING);
-    
+
     XGL_SCREEN_UNWRAP (GetSpans);
     (*pScreen->GetSpans) (pDrawable, wMax, ppt, pwidth, nspans, pchardstStart);
     XGL_SCREEN_WRAP (GetSpans, xglGetSpans);

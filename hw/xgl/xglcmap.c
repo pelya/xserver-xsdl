@@ -1,6 +1,6 @@
 /*
  * Copyright © 2004 David Reveman
- * 
+ *
  * Permission to use, copy, modify, distribute, and sell this software
  * and its documentation for any purpose is hereby granted without
  * fee, provided that the above copyright notice appear in all copies
@@ -12,18 +12,17 @@
  * software for any purpose. It is provided "as is" without express or
  * implied warranty.
  *
- * DAVID REVEMAN DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE, 
+ * DAVID REVEMAN DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
  * INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN
  * NO EVENT SHALL DAVID REVEMAN BE LIABLE FOR ANY SPECIAL, INDIRECT OR
  * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
- * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, 
+ * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *
  * Author: David Reveman <davidr@novell.com>
  */
 
-#include <stdint.h>
 #include "xgl.h"
 #include "colormapst.h"
 #include "micmap.h"
@@ -81,225 +80,387 @@ static xglPixelFormatRec xglPixelFormats[] = {
 #define NUM_XGL_PIXEL_FORMATS				     \
     (sizeof (xglPixelFormats) / sizeof (xglPixelFormats[0]))
 
-xglVisualPtr xglVisuals  = NULL;
-int	     nxglVisuals = 0;
+xglVisualPtr xglVisuals = NULL;
 
-xglVisualPtr xglPbufferVisuals  = NULL;
-int	     nxglPbufferVisuals = 0;
-
-static xglPixelFormatPtr
-xglFindPixelFormat (glitz_drawable_format_t *format,
-		    int		            visuals)
+void
+xglSetVisualTypes (int depth,
+		   int visuals,
+		   int redSize,
+		   int greenSize,
+		   int blueSize)
 {
-    glitz_color_format_t *color;
-    int			 depth, i;
+    xglPixelFormatPtr pBestFormat = 0;
+    int		      i, rs, gs, bs, diff, bestDiff = 0;
 
-    color = &format->color;
-    
-    depth = color->red_size + color->green_size + color->blue_size;
-
-    if (!visuals)
-	depth += color->alpha_size;
-    
     for (i = 0; i < NUM_XGL_PIXEL_FORMATS; i++)
     {
 	if (xglPixelFormats[i].depth == depth)
 	{
-	    xglPixelFormatPtr pPixel;
-
-	    pPixel = &xglPixelFormats[i];
-	    if (Ones (pPixel->masks.red_mask)   == color->red_size &&
-		Ones (pPixel->masks.green_mask) == color->green_size &&
-		Ones (pPixel->masks.blue_mask)  == color->blue_size)
+	    if (visuals)
 	    {
-		
-		if (visuals)
-		    return pPixel;
+		rs = Ones (xglPixelFormats[i].masks.red_mask);
+		gs = Ones (xglPixelFormats[i].masks.green_mask);
+		bs = Ones (xglPixelFormats[i].masks.blue_mask);
 
-		if (Ones (pPixel->masks.alpha_mask) == color->alpha_size)
-		    return pPixel;
-	    }
-	}
-    }
-    
-    return NULL;
-}
-
-void
-xglSetVisualTypesAndMasks (ScreenInfo	           *pScreenInfo,
-			   glitz_drawable_format_t *format,
-			   unsigned long           visuals)
-{
-    xglPixelFormatPtr pPixelFormat;
-
-    pPixelFormat = xglFindPixelFormat (format, visuals);
-    if (pPixelFormat)
-    {
-	if (visuals)
-	{
-	    xglVisuals = xrealloc (xglVisuals,
-				   (nxglVisuals + 1) * sizeof (xglVisualRec));
-	    
-	    if (xglVisuals)
-	    {
-		xglVisuals[nxglVisuals].format  = format;
-		xglVisuals[nxglVisuals].pPixel  = pPixelFormat;
-		xglVisuals[nxglVisuals].visuals = visuals;
-		nxglVisuals++;
-	    }
-	}
-    }
-}
-
-void
-xglInitVisuals (ScreenInfo *pScreenInfo)
-{
-    int i, j;
-
-    for (i = 0; i < pScreenInfo->numPixmapFormats; i++)
-    {
-	unsigned long visuals;
-	unsigned int  bitsPerRGB;
-	Pixel	      rm, gm, bm;
-	
-	visuals = 0;
-	bitsPerRGB = 0;
-	rm = gm = bm = 0;
-
-	for (j = 0; j < nxglVisuals; j++)
-	{
-	    if (pScreenInfo->formats[i].depth == xglVisuals[j].pPixel->depth)
-	    {
-		visuals    = xglVisuals[j].visuals;
-		bitsPerRGB = xglVisuals[j].pPixel->bitsPerRGB;
-	    
-		rm = xglVisuals[j].pPixel->masks.red_mask;
-		gm = xglVisuals[j].pPixel->masks.green_mask;
-		bm = xglVisuals[j].pPixel->masks.blue_mask;
-
-		fbSetVisualTypesAndMasks (pScreenInfo->formats[i].depth,
-					  visuals, bitsPerRGB,
-					  rm, gm, bm);
-	    }
-	}
-
-	if (!visuals)
-	{
-	    for (j = 0; j < NUM_XGL_PIXEL_FORMATS; j++)
-	    {
-		if (pScreenInfo->formats[i].depth == xglPixelFormats[j].depth)
+		if (redSize   >= rs &&
+		    greenSize >= gs &&
+		    blueSize  >= bs)
 		{
-		    bitsPerRGB = xglPixelFormats[j].bitsPerRGB;
-	    
-		    rm = xglPixelFormats[j].masks.red_mask;
-		    gm = xglPixelFormats[j].masks.green_mask;
-		    bm = xglPixelFormats[j].masks.blue_mask;
-		    break;
+		    diff = (redSize - rs) + (greenSize - gs) + (blueSize - bs);
+		    if (pBestFormat)
+		    {
+			if (diff < bestDiff)
+			{
+			    pBestFormat = &xglPixelFormats[i];
+			    bestDiff = diff;
+			}
+		    }
+		    else
+		    {
+			pBestFormat = &xglPixelFormats[i];
+			bestDiff = diff;
+		    }
 		}
 	    }
-	    
-	    fbSetVisualTypesAndMasks (pScreenInfo->formats[i].depth,
-				      visuals, bitsPerRGB,
-				      rm, gm, bm);
+	    else
+	    {
+		pBestFormat = &xglPixelFormats[i];
+		break;
+	    }
 	}
     }
+
+    if (pBestFormat)
+    {
+	xglVisualPtr new, *prev, v;
+	unsigned int bitsPerRGB;
+	Pixel	     rm, gm, bm;
+
+	new = xalloc (sizeof (xglVisualRec));
+	if (!new)
+	    return;
+
+	new->next = 0;
+
+	new->format.surface  = 0;
+	new->format.drawable = 0;
+	new->pPixel	     = pBestFormat;
+	new->vid	     = 0;
+
+	bitsPerRGB = pBestFormat->bitsPerRGB;
+
+	rm = pBestFormat->masks.red_mask;
+	gm = pBestFormat->masks.green_mask;
+	bm = pBestFormat->masks.blue_mask;
+
+	fbSetVisualTypesAndMasks (depth, visuals, bitsPerRGB, rm, gm, bm);
+
+	for (prev = &xglVisuals; (v = *prev); prev = &v->next);
+	*prev = new;
+    }
+    else
+    {
+	fbSetVisualTypesAndMasks (depth, 0, 0, 0, 0, 0);
+    }
+}
+
+Bool
+xglHasVisualTypes (xglVisualPtr pVisual,
+		   int		depth)
+{
+    xglVisualPtr v;
+
+    for (v = pVisual; v; v = v->next)
+	if (v->pPixel->depth == depth)
+	    return TRUE;
+
+    return FALSE;
+}
+
+glitz_format_t *
+xglFindBestSurfaceFormat (ScreenPtr         pScreen,
+			  xglPixelFormatPtr pPixel)
+{
+    glitz_format_t templ, *format, *best = 0;
+    unsigned int   mask;
+    unsigned short rs, gs, bs, as;
+    int	           i = 0;
+
+    XGL_SCREEN_PRIV (pScreen);
+
+    rs = Ones (pPixel->masks.red_mask);
+    gs = Ones (pPixel->masks.green_mask);
+    bs = Ones (pPixel->masks.blue_mask);
+    as = Ones (pPixel->masks.alpha_mask);
+
+    templ.color.fourcc = GLITZ_FOURCC_RGB;
+    mask = GLITZ_FORMAT_FOURCC_MASK;
+
+    do {
+	format = glitz_find_format (pScreenPriv->drawable, mask, &templ, i++);
+	if (format)
+	{
+	    if (format->color.red_size   >= rs &&
+		format->color.green_size >= gs &&
+		format->color.blue_size  >= bs &&
+		format->color.alpha_size >= as)
+	    {
+		if (best)
+		{
+		    if (((format->color.red_size   - rs) +
+			 (format->color.green_size - gs) +
+			 (format->color.blue_size  - bs)) <
+			((best->color.red_size   - rs) +
+			 (best->color.green_size - gs) +
+			 (best->color.blue_size  - bs)))
+			best = format;
+		}
+		else
+		{
+		    best = format;
+		}
+	    }
+	}
+    } while (format);
+
+    return best;
+}
+
+static Bool
+xglInitVisual (ScreenPtr	 pScreen,
+	       xglVisualPtr	 pVisual,
+	       xglPixelFormatPtr pPixel,
+	       VisualID		 vid)
+{
+    glitz_format_t *format;
+
+    XGL_SCREEN_PRIV (pScreen);
+
+    format = xglFindBestSurfaceFormat (pScreen, pPixel);
+    if (format)
+    {
+	glitz_drawable_format_t templ;
+	unsigned long	        mask;
+
+	templ.color        = format->color;
+	templ.depth_size   = 0;
+	templ.stencil_size = 0;
+	templ.doublebuffer = 0;
+	templ.samples      = 1;
+
+	mask =
+	    GLITZ_FORMAT_FOURCC_MASK       |
+	    GLITZ_FORMAT_RED_SIZE_MASK     |
+	    GLITZ_FORMAT_GREEN_SIZE_MASK   |
+	    GLITZ_FORMAT_BLUE_SIZE_MASK    |
+	    GLITZ_FORMAT_ALPHA_SIZE_MASK   |
+	    GLITZ_FORMAT_DEPTH_SIZE_MASK   |
+	    GLITZ_FORMAT_STENCIL_SIZE_MASK |
+	    GLITZ_FORMAT_DOUBLEBUFFER_MASK |
+	    GLITZ_FORMAT_SAMPLES_MASK;
+
+	pVisual->next	 = 0;
+	pVisual->vid	 = vid;
+	pVisual->pPixel	 = pPixel;
+	pVisual->pbuffer = FALSE;
+
+	pVisual->format.surface  = format;
+	pVisual->format.drawable =
+	    glitz_find_drawable_format (pScreenPriv->drawable,
+					mask, &templ, 0);
+
+	return TRUE;
+    }
+
+    return FALSE;
+}
+
+static Bool
+xglInitPbufferVisual (ScreenPtr	        pScreen,
+		      xglVisualPtr	pVisual,
+		      xglPixelFormatPtr pPixel,
+		      VisualID		vid)
+{
+    glitz_format_t *format;
+
+    XGL_SCREEN_PRIV (pScreen);
+
+    format = xglFindBestSurfaceFormat (pScreen, pPixel);
+    if (format)
+    {
+	glitz_drawable_format_t templ, *screenFormat;
+	unsigned long	        mask;
+
+	/* use same drawable format as screen for pbuffers */
+	screenFormat = glitz_drawable_get_format (pScreenPriv->drawable);
+	templ.id = screenFormat->id;
+
+	templ.color   = format->color;
+	templ.samples = 1;
+
+	mask =
+	    GLITZ_FORMAT_ID_MASK	 |
+	    GLITZ_FORMAT_FOURCC_MASK     |
+	    GLITZ_FORMAT_RED_SIZE_MASK   |
+	    GLITZ_FORMAT_GREEN_SIZE_MASK |
+	    GLITZ_FORMAT_BLUE_SIZE_MASK  |
+	    GLITZ_FORMAT_SAMPLES_MASK;
+
+	pVisual->next	 = 0;
+	pVisual->vid	 = vid;
+	pVisual->pPixel	 = pPixel;
+	pVisual->pbuffer = TRUE;
+
+	pVisual->format.surface  = format;
+	pVisual->format.drawable =
+	    glitz_find_pbuffer_format (pScreenPriv->drawable,
+				       mask, &templ, 0);
+
+	if (pVisual->format.drawable)
+	    return TRUE;
+    }
+
+    return FALSE;
+}
+
+void
+xglInitVisuals (ScreenPtr pScreen)
+{
+    xglVisualPtr pVisual, v, new, *prev;
+    int		 i;
+
+    XGL_SCREEN_PRIV (pScreen);
+
+    for (i = 0; i < pScreen->numVisuals; i++)
+    {
+	for (pVisual = xglVisuals; pVisual; pVisual = pVisual->next)
+	    if (pVisual->pPixel->depth == pScreen->visuals[i].nplanes)
+		break;
+
+	if (pVisual)
+	{
+	    new = xalloc (sizeof (xglVisualRec));
+	    if (new)
+	    {
+		if (xglInitVisual (pScreen, new, pVisual->pPixel,
+				   pScreen->visuals[i].vid))
+		{
+		    new->next = 0;
+
+		    prev = &pScreenPriv->pVisual;
+		    while ((v = *prev))
+			prev = &v->next;
+
+		    *prev = new;
+		}
+		else
+		{
+		    xfree (new);
+		}
+	    }
+
+	    new = xalloc (sizeof (xglVisualRec));
+	    if (new)
+	    {
+		if (xglInitPbufferVisual (pScreen, new, pVisual->pPixel,
+					  pScreen->visuals[i].vid))
+		{
+		    new->next = 0;
+
+		    prev = &pScreenPriv->pVisual;
+		    while ((v = *prev))
+			prev = &v->next;
+
+		    *prev = new;
+		}
+		else
+		{
+		    xfree (new);
+		}
+	    }
+	}
+    }
+
+    /* Add additional Xgl visuals for pixmap formats */
+    for (i = 0; i < screenInfo.numPixmapFormats; i++)
+    {
+	if (!xglHasVisualTypes (pScreenPriv->pVisual,
+				screenInfo.formats[i].depth))
+	{
+	    for (v = xglVisuals; v; v = v->next)
+		if (v->pPixel->depth == screenInfo.formats[i].depth)
+		    break;
+
+	    if (v)
+	    {
+		new = xalloc (sizeof (xglVisualRec));
+		if (new)
+		{
+		    if (xglInitVisual (pScreen, new, v->pPixel, 0))
+		    {
+			new->next = 0;
+
+			prev = &pScreenPriv->pVisual;
+			while ((v = *prev))
+			    prev = &v->next;
+
+			*prev = new;
+		    }
+		    else
+		    {
+			xfree (new);
+		    }
+		}
+	    }
+	}
+    }
+}
+
+xglVisualPtr
+xglFindVisualWithDepth (ScreenPtr pScreen,
+			int       depth)
+{
+    xglVisualPtr v;
+
+    XGL_SCREEN_PRIV (pScreen);
+
+    for (v = pScreenPriv->pVisual; v; v = v->next)
+    {
+	if (v->pPixel->depth == depth)
+	    return v;
+    }
+
+    return 0;
+}
+
+xglVisualPtr
+xglFindVisualWithId (ScreenPtr pScreen,
+		     int       vid)
+{
+    xglVisualPtr v;
+
+    XGL_SCREEN_PRIV (pScreen);
+
+    for (v = pScreenPriv->pVisual; v; v = v->next)
+    {
+	if (v->vid == vid)
+	    return v;
+    }
+
+    return 0;
 }
 
 void
 xglClearVisualTypes (void)
 {
-    nxglVisuals        = 0;
-    nxglPbufferVisuals = 0;
+    xglVisualPtr v;
 
-    if (xglVisuals)
-	xfree (xglVisuals);
-
-    if (xglPbufferVisuals)
-	xfree (xglPbufferVisuals);
-
-    xglVisuals        = NULL;
-    xglPbufferVisuals = NULL;
+    while (xglVisuals)
+    {
+	v = xglVisuals;
+	xglVisuals = v->next;
+	xfree (v);
+    }
 
     miClearVisualTypes ();
-}
-
-void
-xglInitPixmapFormats (ScreenPtr pScreen)
-{
-    glitz_format_t *format, **best;
-    int		   i, j;
-    
-    XGL_SCREEN_PRIV (pScreen);
-
-    for (i = 0; i < 33; i++)
-    {
-	pScreenPriv->pixmapFormats[i].pPixel = NULL;
-	pScreenPriv->pixmapFormats[i].format = NULL;
-	
-	for (j = 0; j < NUM_XGL_PIXEL_FORMATS; j++)
-	{
-	    if (xglPixelFormats[j].depth == i)
-	    {
-		int rs, gs, bs, as, k;
-		
-		pScreenPriv->pixmapFormats[i].pPixel = &xglPixelFormats[j];
-		pScreenPriv->pixmapFormats[i].format = NULL;
-		best = &pScreenPriv->pixmapFormats[i].format;
-
-		rs = Ones (xglPixelFormats[j].masks.red_mask);
-		gs = Ones (xglPixelFormats[j].masks.green_mask);
-		bs = Ones (xglPixelFormats[j].masks.blue_mask);
-		as = Ones (xglPixelFormats[j].masks.alpha_mask);
-
-		k = 0;
-		do {
-		    format = glitz_find_format (pScreenPriv->drawable,
-						0, NULL, k++);
-		    if (format && format->color.fourcc == GLITZ_FOURCC_RGB)
-		    {
-			/* find best matching sufficient format */
-			if (format->color.red_size   >= rs &&
-			    format->color.green_size >= gs &&
-			    format->color.blue_size  >= bs &&
-			    format->color.alpha_size >= as)
-			{
-			    if (*best)
-			    {
-				if (((format->color.red_size   - rs) +
-				     (format->color.green_size - gs) +
-				     (format->color.blue_size  - bs)) <
-				    (((*best)->color.red_size   - rs) +
-				     ((*best)->color.green_size - gs) +
-				     ((*best)->color.blue_size  - bs)))
-				    *best = format;
-			    } else
-				*best = format;
-			}
-		    }
-		} while (format);
-	    }
-	}
-    }
-}
-
-#define PIXEL_TO_COLOR(p, mask)						    \
-    (((uint32_t) ((((uint64_t) (((uint32_t) (p)) & (mask))) * 0xffffffff) / \
-		  ((uint64_t) (mask)))))
-
-#define PIXEL_TO_RGB_COLOR(p, mask)	  \
-    ((mask)? PIXEL_TO_COLOR (p, mask): 0)
-
-void
-xglPixelToColor (xglPixelFormatPtr pFormat,
-		 CARD32		   pixel,
-		 glitz_color_t	   *color)
-{
-    color->red   = PIXEL_TO_RGB_COLOR (pixel, pFormat->masks.red_mask);
-    color->green = PIXEL_TO_RGB_COLOR (pixel, pFormat->masks.green_mask);
-    color->blue  = PIXEL_TO_RGB_COLOR (pixel, pFormat->masks.blue_mask);
-    
-    if (pFormat->masks.alpha_mask)
-	color->alpha = PIXEL_TO_COLOR (pixel, pFormat->masks.alpha_mask);
-    else
-	color->alpha = 0xffff;
 }

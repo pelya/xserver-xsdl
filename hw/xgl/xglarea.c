@@ -1,6 +1,6 @@
 /*
  * Copyright © 2005 Novell, Inc.
- * 
+ *
  * Permission to use, copy, modify, distribute, and sell this software
  * and its documentation for any purpose is hereby granted without
  * fee, provided that the above copyright notice appear in all copies
@@ -12,11 +12,11 @@
  * software for any purpose. It is provided "as is" without express or
  * implied warranty.
  *
- * NOVELL, INC. DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE, 
+ * NOVELL, INC. DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
  * INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN
  * NO EVENT SHALL NOVELL, INC. BE LIABLE FOR ANY SPECIAL, INDIRECT OR
  * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
- * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, 
+ * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *
@@ -31,7 +31,7 @@ xglAreaMoveIn (xglAreaPtr pArea,
 {
     pArea->closure = closure;
     pArea->state   = xglAreaOccupied;
-    
+
     return (*pArea->pRoot->funcs->MoveIn) (pArea, closure);
 }
 
@@ -54,7 +54,7 @@ xglAreaCreate (xglRootAreaPtr pRoot,
 {
     xglAreaPtr pArea;
     int	       n = 4;
-    
+
     pArea = xalloc (sizeof (xglAreaRec) + pRoot->devPrivateSize);
     if (!pArea)
 	return NULL;
@@ -67,7 +67,7 @@ xglAreaCreate (xglRootAreaPtr pRoot,
     pArea->pRoot   = pRoot;
     pArea->closure = (pointer) 0;
     pArea->state   = xglAreaAvailable;
-    
+
     while (n--)
 	pArea->pArea[n] = NULL;
 
@@ -81,13 +81,13 @@ xglAreaCreate (xglRootAreaPtr pRoot,
 	free (pArea);
 	return NULL;
     }
-    
+
     return pArea;
 }
 
 static void
 xglAreaDestroy (xglAreaPtr pArea)
-{   
+{
     if (!pArea)
 	return;
 
@@ -98,11 +98,11 @@ xglAreaDestroy (xglAreaPtr pArea)
     else
     {
 	int n = 4;
-	
+
 	while (n--)
 	    xglAreaDestroy (pArea->pArea[n]);
     }
-    
+
     xfree (pArea);
 }
 
@@ -111,7 +111,7 @@ xglAreaGetTopScoredSubArea (xglAreaPtr pArea)
 {
     if (!pArea)
 	return NULL;
-		
+
     switch (pArea->state) {
     case xglAreaOccupied:
 	return pArea;
@@ -120,7 +120,7 @@ xglAreaGetTopScoredSubArea (xglAreaPtr pArea)
     case xglAreaDivided: {
 	xglAreaPtr tmp, top = NULL;
 	int	   i;
-	
+
 	for (i = 0; i < 4; i++)
 	{
 	    tmp = xglAreaGetTopScoredSubArea (pArea->pArea[i]);
@@ -139,7 +139,7 @@ xglAreaGetTopScoredSubArea (xglAreaPtr pArea)
 	return top;
     }
     }
-    
+
     return NULL;
 }
 
@@ -161,11 +161,11 @@ xglAreaFind (xglAreaPtr pArea,
 						      pArea->closure,
 						      closure) >= 0)
 		return FALSE;
-	
+
 	    xglAreaMoveOut (pArea);
 	} else
 	    return FALSE;
-		
+
     /* fall-through */
     case xglAreaAvailable:
     {
@@ -178,15 +178,15 @@ xglAreaFind (xglAreaPtr pArea,
 	else
 	{
 	    int dx[4], dy[4], w[4], h[4], i;
-	    
+
 	    dx[0] = dx[2] = dy[0] = dy[1] = 0;
-	    
+
 	    w[0] = w[2] = dx[1] = dx[3] = width;
 	    h[0] = h[1] = dy[2] = dy[3] = height;
 
 	    w[1] = w[3] = pArea->width - width;
 	    h[2] = h[3] = pArea->height - height;
-	    
+
 	    for (i = 0; i < 2; i++)
 	    {
 		if (w[i])
@@ -210,7 +210,7 @@ xglAreaFind (xglAreaPtr pArea,
 	    }
 
 	    pArea->state = xglAreaDivided;
-	    
+
 	    if (xglAreaFind (pArea->pArea[0], width, height, kickOut, closure))
 		return TRUE;
 	}
@@ -230,7 +230,7 @@ xglAreaFind (xglAreaPtr pArea,
 		    if (xglFindArea (pArea->pArea[i], width, height, kickOut,
 				     closure))
 			return TRUE;
-		    
+
 		    rejected = TRUE;
 		}
 	    }
@@ -257,12 +257,12 @@ xglAreaFind (xglAreaPtr pArea,
 	    xglAreaDestroy (pArea->pArea[i]);
 	    pArea->pArea[i] = NULL;
 	}
-	
+
 	pArea->closure = (pointer) 0;
 	pArea->state   = xglAreaAvailable;
 	if (xglFindArea (pArea, width, height, TRUE, closure))
 	    return TRUE;
-	    
+
     } break;
     }
 
@@ -286,7 +286,7 @@ xglRootAreaInit (xglRootAreaPtr	    pRoot,
     pRoot->pArea = xglAreaCreate (pRoot, 0, 0, 0, width, height);
     if (!pRoot->pArea)
 	return FALSE;
-    
+
     return TRUE;
 }
 
@@ -298,7 +298,7 @@ xglRootAreaFini (xglRootAreaPtr pRoot)
 
 void
 xglLeaveArea (xglAreaPtr pArea)
-{   
+{
     xglAreaMoveOut (pArea);
 }
 

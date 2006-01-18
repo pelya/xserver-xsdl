@@ -1,6 +1,6 @@
 /*
  * Copyright © 2004 David Reveman
- * 
+ *
  * Permission to use, copy, modify, distribute, and sell this software
  * and its documentation for any purpose is hereby granted without
  * fee, provided that the above copyright notice appear in all copies
@@ -12,11 +12,11 @@
  * software for any purpose. It is provided "as is" without express or
  * implied warranty.
  *
- * DAVID REVEMAN DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE, 
+ * DAVID REVEMAN DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
  * INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN
  * NO EVENT SHALL DAVID REVEMAN BE LIABLE FOR ANY SPECIAL, INDIRECT OR
  * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
- * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, 
+ * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *
@@ -69,7 +69,8 @@ xglPixmapDamageReport (DamagePtr pDamage,
 
 	if (pExt->y2 > pPixmapPriv->damageBox.y2)
 	    pPixmapPriv->damageBox.y2 = pExt->y2;
-    } else
+    }
+    else
 	pPixmapPriv->damageBox = *pExt;
 }
 
@@ -88,8 +89,71 @@ xglPixmapCreateDamage (PixmapPtr pPixmap)
 	return FALSE;
 
     DamageRegister (&pPixmap->drawable, pPixmapPriv->pDamage);
-    
+
     return TRUE;
+}
+
+void
+xglSetPixmapVisual (PixmapPtr    pPixmap,
+		    xglVisualPtr pVisual)
+{
+    xglVisualPtr pOldVisual;
+
+    XGL_PIXMAP_PRIV (pPixmap);
+
+    pOldVisual = pPixmapPriv->pVisual;
+    if (pOldVisual && pVisual)
+    {
+	glitz_surface_t *surface;
+
+	if (pOldVisual->vid != pVisual->vid)
+	{
+	    surface = pPixmapPriv->surface;
+	    if (surface)
+	    {
+		glitz_drawable_t *drawable;
+
+		drawable = glitz_surface_get_attached_drawable (surface);
+		if (drawable)
+		{
+		    if (pOldVisual->format.drawable->id !=
+			pVisual->format.drawable->id)
+		    {
+			glitz_surface_detach (pPixmapPriv->surface);
+			pPixmapPriv->target = xglPixmapTargetOut;
+		    }
+		}
+
+		if (pOldVisual->format.surface->id != pVisual->format.surface->id)
+		{
+		    xglSyncBits (&pPixmap->drawable, NULL);
+		    glitz_surface_destroy (pPixmapPriv->surface);
+		    pPixmapPriv->surface = 0;
+		}
+	    }
+	}
+    }
+    else if (pOldVisual)
+    {
+	if (pPixmapPriv->surface)
+	{
+	    xglSyncBits (&pPixmap->drawable, NULL);
+	    glitz_surface_destroy (pPixmapPriv->surface);
+	    pPixmapPriv->surface = 0;
+	}
+	pPixmapPriv->target = xglPixmapTargetNo;
+    }
+
+    pPixmapPriv->pVisual = pVisual;
+
+    if (pPixmapPriv->pVisual && pPixmapPriv->pVisual->format.surface)
+    {
+	if (!pPixmapPriv->pDamage)
+	{
+	    if (!xglPixmapCreateDamage (pPixmap))
+		FatalError (XGL_SW_FAILURE_STRING);
+	}
+    }
 }
 
 static Bool
@@ -98,24 +162,46 @@ xglPixmapSurfaceInit (PixmapPtr	    pPixmap,
 		      int	    width,
 		      int	    height)
 {
+    BoxRec box;
+
     XGL_PIXMAP_PRIV (pPixmap);
-    
+
     pPixmapPriv->surface = NULL;
+    pPixmapPriv->drawable = NULL;
     pPixmapPriv->acceleratedTile = FALSE;
     pPixmapPriv->pictureMask = ~0;
     pPixmapPriv->target = xglPixmapTargetNo;
-    pPixmapPriv->lock = 0;
 
-    if (pPixmapPriv->format)
+    box.x1 = 0;
+    box.y1 = 0;
+    box.x2 = width;
+    box.y2 = height;
+
+    REGION_INIT (pScreen, &pPixmapPriv->bitRegion, &box, 1);
+
+    pPixmapPriv->pVisual = xglFindVisualWithDepth (pPixmap->drawable.pScreen,
+						   pPixmap->drawable.depth);
+    if (pPixmapPriv->pVisual)
+    {
+	XGL_SCREEN_PRIV (pPixmap->drawable.pScreen);
+
+	/* general pixmap acceleration */
+	if (pPixmapPriv->pVisual->format.drawable &&
+	    pScreenPriv->accel.pixmap.enabled &&
+	    xglCheckPixmapSize (pPixmap, &pScreenPriv->accel.pixmap.size))
+	    pPixmapPriv->target = xglPixmapTargetOut;
+    }
+
+    if (pPixmapPriv->pVisual && pPixmapPriv->pVisual->format.surface)
     {
 	if (!pPixmapPriv->pDamage)
+	{
 	    if (!xglPixmapCreateDamage (pPixmap))
 		FatalError (XGL_SW_FAILURE_STRING);
-	
+	}
+
 	if (width && height)
 	{
-	    XGL_SCREEN_PRIV (pPixmap->drawable.pScreen);
-	    
 	    if (width == 1 && height == 1)
 	    {
 		pPixmapPriv->acceleratedTile = TRUE;
@@ -126,28 +212,6 @@ xglPixmapSurfaceInit (PixmapPtr	    pPixmap,
 		    (POWER_OF_TWO (width) && POWER_OF_TWO (height)))
 		    pPixmapPriv->acceleratedTile = TRUE;
 	    }
-
-	    /*
-	     * Accelerated drawing to pixmaps when using FBOs 
-	     */
-	    if (pScreenPriv->fbo)
-	    {
-		pPixmapPriv->target = xglPixmapTargetOut;
-	    
-		/*
-		 * Do not allow accelerated drawing to bitmaps.
-		 */
-		if (pPixmap->drawable.depth == 1)
-		    pPixmapPriv->target = xglPixmapTargetNo;
-
-		/*
-		 * Drawing to really small pixmaps is not worth accelerating.
-		 */
-		if (width < 8 && height < 8)
-		    pPixmapPriv->target = xglPixmapTargetNo;
-	    }
-	    else
-		pPixmapPriv->target = xglPixmapTargetNo;
 	}
     }
 
@@ -157,7 +221,7 @@ xglPixmapSurfaceInit (PixmapPtr	    pPixmap,
 PixmapPtr
 xglCreatePixmap (ScreenPtr  pScreen,
 		 int	    width,
-		 int	    height, 
+		 int	    height,
 		 int	    depth)
 {
     xglPixmapPtr pPixmapPriv;
@@ -180,37 +244,32 @@ xglCreatePixmap (ScreenPtr  pScreen,
     pPixmap->drawable.y = 0;
     pPixmap->drawable.width = width;
     pPixmap->drawable.height = height;
-    
+
 #ifdef COMPOSITE
     pPixmap->screen_x = 0;
     pPixmap->screen_y = 0;
 #endif
-    
+
     pPixmap->devKind = 0;
     pPixmap->refcnt = 1;
     pPixmap->devPrivate.ptr = 0;
 
     pPixmapPriv = XGL_GET_PIXMAP_PRIV (pPixmap);
 
-    pPixmapPriv->format  = pScreenPriv->pixmapFormats[depth].format;
-    pPixmapPriv->pPixel  = pScreenPriv->pixmapFormats[depth].pPixel;
+    pPixmapPriv->pVisual = NULL;
     pPixmapPriv->pDamage = NULL;
 
     if (!xglPixmapSurfaceInit (pPixmap, pScreenPriv->features, width, height))
 	return NullPixmap;
-    
+
     pPixmapPriv->buffer = NULL;
     pPixmapPriv->bits = (pointer) 0;
     pPixmapPriv->stride = 0;
     pPixmapPriv->pGeometry = NULL;
-
     pPixmapPriv->allBits = TRUE;
-    pPixmapPriv->bitBox.x1 = 0;
-    pPixmapPriv->bitBox.y1 = 0;
-    pPixmapPriv->bitBox.x2 = 32767;
-    pPixmapPriv->bitBox.y2 = 32767;
+
     pPixmapPriv->damageBox = miEmptyBox;
-    
+
     return pPixmap;
 }
 
@@ -218,7 +277,7 @@ void
 xglFiniPixmap (PixmapPtr pPixmap)
 {
     XGL_PIXMAP_PRIV (pPixmap);
-    
+
     if (pPixmap->devPrivate.ptr)
     {
 	if (pPixmapPriv->buffer)
@@ -230,10 +289,15 @@ xglFiniPixmap (PixmapPtr pPixmap)
 
     if (pPixmapPriv->buffer)
 	glitz_buffer_destroy (pPixmapPriv->buffer);
-    
+
     if (pPixmapPriv->bits)
 	xfree (pPixmapPriv->bits);
-    
+
+    REGION_UNINIT (pPixmap->drawable.pScreen, &pPixmapPriv->bitRegion);
+
+    if (pPixmapPriv->drawable)
+	glitz_drawable_destroy (pPixmapPriv->drawable);
+
     if (pPixmapPriv->surface)
 	glitz_surface_destroy (pPixmapPriv->surface);
 }
@@ -247,7 +311,7 @@ xglDestroyPixmap (PixmapPtr pPixmap)
     xglFiniPixmap (pPixmap);
 
     xfree (pPixmap);
-    
+
     return TRUE;
 }
 
@@ -260,18 +324,16 @@ xglModifyPixmapHeader (PixmapPtr pPixmap,
 		       int	 devKind,
 		       pointer	 pPixData)
 {
-    xglScreenPtr   pScreenPriv;
-    xglPixmapPtr   pPixmapPriv;
-    glitz_format_t *oldFormat;
-    int		   oldWidth, oldHeight;
-    
+    xglScreenPtr pScreenPriv;
+    xglPixmapPtr pPixmapPriv;
+    int		 oldWidth, oldHeight;
+
     if (!pPixmap)
 	return FALSE;
 
     pScreenPriv = XGL_GET_SCREEN_PRIV (pPixmap->drawable.pScreen);
     pPixmapPriv = XGL_GET_PIXMAP_PRIV (pPixmap);
 
-    oldFormat = pPixmapPriv->format;
     oldWidth  = pPixmap->drawable.width;
     oldHeight = pPixmap->drawable.height;
 
@@ -293,13 +355,13 @@ xglModifyPixmapHeader (PixmapPtr pPixmap,
     {
 	if (width > 0)
 	    pPixmap->drawable.width = width;
-	
+
 	if (height > 0)
 	    pPixmap->drawable.height = height;
-	
+
 	if (depth > 0)
 	    pPixmap->drawable.depth = depth;
-	
+
 	if (bitsPerPixel > 0)
 	    pPixmap->drawable.bitsPerPixel = bitsPerPixel;
 	else if ((bitsPerPixel < 0) && (depth > 0))
@@ -312,17 +374,19 @@ xglModifyPixmapHeader (PixmapPtr pPixmap,
 						 pPixmap->drawable.depth);
     }
 
-    depth = pPixmap->drawable.depth;
-
-    pPixmapPriv->pPixel = pScreenPriv->pixmapFormats[depth].pPixel;
-    pPixmapPriv->format = pScreenPriv->pixmapFormats[depth].format;
-    
-    if (pPixmapPriv->format != oldFormat ||
-	pPixmap->drawable.width != oldWidth ||
+    if (pPixmap->drawable.width  != oldWidth ||
 	pPixmap->drawable.height != oldHeight)
     {
+	pPixmapPriv->pVisual = NULL;
+	pPixmapPriv->target  = xglPixmapTargetNo;
+
+	if (pPixmapPriv->drawable)
+	    glitz_drawable_destroy (pPixmapPriv->drawable);
+
 	if (pPixmapPriv->surface)
 	    glitz_surface_destroy (pPixmapPriv->surface);
+
+	REGION_UNINIT (pPixmap->drawable.pScreen, &pPixmapPriv->bitRegion);
 
 	if (!xglPixmapSurfaceInit (pPixmap,
 				   pScreenPriv->features,
@@ -333,6 +397,8 @@ xglModifyPixmapHeader (PixmapPtr pPixmap,
 
     if (pPixData)
     {
+	BoxRec box;
+
 	if (pPixmap->devPrivate.ptr)
 	{
 	    if (pPixmapPriv->buffer)
@@ -346,10 +412,10 @@ xglModifyPixmapHeader (PixmapPtr pPixmap,
 	    GEOMETRY_UNINIT (pPixmapPriv->pGeometry);
 	    pPixmapPriv->pGeometry = NULL;
 	}
-	
+
 	if (pPixmapPriv->buffer)
 	    glitz_buffer_destroy (pPixmapPriv->buffer);
-	
+
 	if (pPixmapPriv->bits)
 	    xfree (pPixmapPriv->bits);
 
@@ -359,36 +425,54 @@ xglModifyPixmapHeader (PixmapPtr pPixmap,
 	    return FALSE;
 
 	pPixmapPriv->allBits = TRUE;
-	pPixmapPriv->bitBox.x1 = 0;
-	pPixmapPriv->bitBox.y1 = 0;
-	pPixmapPriv->bitBox.x2 = pPixmap->drawable.width;
-	pPixmapPriv->bitBox.y2 = pPixmap->drawable.height;
+
+	box.x1 = 0;
+	box.y1 = 0;
+	box.x2 = pPixmap->drawable.width;
+	box.y2 = pPixmap->drawable.height;
+
+	REGION_UNINIT (pPixmap->drawable.pScreen, &pPixmapPriv->bitRegion);
+	REGION_INIT (pPixmap->drawable.pScreen, &pPixmapPriv->bitRegion,
+		     &box, 1);
 
 	if (pPixmapPriv->pDamage)
 	{
 	    RegionPtr pRegion;
-	    
+
 	    pRegion = DamageRegion (pPixmapPriv->pDamage);
 
 	    REGION_UNINIT (pPixmap->drawable.pScreen, pRegion);
-	    REGION_INIT (pPixmap->drawable.pScreen, pRegion,
-			 &pPixmapPriv->bitBox, 1);
+	    REGION_INIT (pPixmap->drawable.pScreen, pRegion, NullBox, 0);
+	    REGION_SUBTRACT (pPixmap->drawable.pScreen, pRegion,
+			     &pPixmapPriv->bitRegion, pRegion);
+
 	}
     }
 
     /*
-     * Maybe there's a nicer way to detect if this is the screen pixmap.
+     * Screen pixmap
      */
-    if (!pScreenPriv->pScreenPixmap)
+    if (!pScreenPriv->pScreenPixmap || pScreenPriv->pScreenPixmap == pPixmap)
     {
-	glitz_surface_reference (pScreenPriv->surface);
-	
-	pPixmapPriv->surface = pScreenPriv->surface;
+	if (!pPixmapPriv->drawable)
+	{
+	    glitz_drawable_reference (pScreenPriv->drawable);
+	    pPixmapPriv->drawable = pScreenPriv->drawable;
+	}
+
+	if (!pPixmapPriv->surface)
+	{
+	    glitz_surface_reference (pScreenPriv->surface);
+	    pPixmapPriv->surface = pScreenPriv->surface;
+	}
+
+	pPixmapPriv->pVisual = pScreenPriv->rootVisual;
 	pPixmapPriv->target  = xglPixmapTargetIn;
-	
-	pScreenPriv->pScreenPixmap = pPixmap;
+
+	if (!pScreenPriv->pScreenPixmap)
+	    pScreenPriv->pScreenPixmap = pPixmap;
     }
-    
+
     return TRUE;
 }
 
@@ -397,12 +481,12 @@ xglPixmapToRegion (PixmapPtr pPixmap)
 {
     ScreenPtr pScreen = pPixmap->drawable.pScreen;
     RegionPtr pRegion;
-    
+
     XGL_SCREEN_PRIV (pScreen);
-    
+
     if (!xglSyncBits (&pPixmap->drawable, NullBox))
 	FatalError (XGL_SW_FAILURE_STRING);
-    
+
     XGL_SCREEN_UNWRAP (BitmapToRegion);
     pRegion = (*pScreen->BitmapToRegion) (pPixmap);
     XGL_SCREEN_WRAP (BitmapToRegion, xglPixmapToRegion);
@@ -423,14 +507,14 @@ xglPixmapToGeometry (PixmapPtr pPixmap,
     if (!pPixmapPriv->pGeometry)
     {
 	xglGeometryPtr pGeometry;
-	
+
 	if (!pPixmapPriv->buffer)
 	{
 	    if (!xglAllocatePixmapBits (pPixmap,
 					XGL_PIXMAP_USAGE_HINT_DEFAULT))
 		return NULL;
 	}
-	
+
 	pGeometry = xalloc (sizeof (xglGeometryRec));
 	if (!pGeometry)
 	    return NULL;
@@ -453,7 +537,7 @@ xglPixmapToGeometry (PixmapPtr pPixmap,
 	    pGeometry->f.bitmap.scanline_order =
 		GLITZ_PIXEL_SCANLINE_ORDER_TOP_DOWN;
 	}
-	
+
 	pGeometry->f.bitmap.pad = ((1 + FB_MASK) >> FB_SHIFT) *
 	    sizeof (FbBits);
 	pGeometry->width = pPixmap->drawable.width;
@@ -473,27 +557,28 @@ xglCreatePixmapSurface (PixmapPtr pPixmap)
 {
     XGL_PIXMAP_PRIV (pPixmap);
 
-    if (!pPixmapPriv->format)
-	return FALSE;
-    
     if (!pPixmapPriv->surface)
     {
 	XGL_SCREEN_PRIV (pPixmap->drawable.pScreen);
 
+	if (!pPixmapPriv->pVisual || !pPixmapPriv->pVisual->format.surface)
+	    return FALSE;
+
 	pPixmapPriv->surface =
 	    glitz_surface_create (pScreenPriv->drawable,
-				  pPixmapPriv->format,
+				  pPixmapPriv->pVisual->format.surface,
 				  pPixmap->drawable.width,
 				  pPixmap->drawable.height,
 				  0, NULL);
 	if (!pPixmapPriv->surface)
 	{
-	    pPixmapPriv->format = NULL;
-	    pPixmapPriv->target = xglPixmapTargetNo;
+	    pPixmapPriv->pVisual = NULL;
+	    pPixmapPriv->target  = xglPixmapTargetNo;
+
 	    return FALSE;
 	}
     }
-    
+
     return TRUE;
 }
 
@@ -501,20 +586,20 @@ Bool
 xglAllocatePixmapBits (PixmapPtr pPixmap, int hint)
 {
     int width, height, bpp, stride;
-    
+
     XGL_PIXMAP_PRIV (pPixmap);
     XGL_SCREEN_PRIV (pPixmap->drawable.pScreen);
 
     width  = pPixmap->drawable.width;
     height = pPixmap->drawable.height;
     bpp    = pPixmap->drawable.bitsPerPixel;
-    
+
     stride = ((width * bpp + FB_MASK) >> FB_SHIFT) * sizeof (FbBits);
 
     if (stride)
     {
 	glitz_buffer_t *buffer;
-	
+
 	if ((pScreenPriv->pboMask & bpp) && hint)
 	{
 	    buffer = glitz_pixel_buffer_create (pScreenPriv->drawable,
@@ -544,7 +629,7 @@ xglAllocatePixmapBits (PixmapPtr pPixmap, int hint)
 	pPixmapPriv->stride = stride;
     else
 	pPixmapPriv->stride = -stride;
-    
+
     return TRUE;
 }
 
@@ -554,14 +639,14 @@ xglMapPixmapBits (PixmapPtr pPixmap)
     if (!pPixmap->devPrivate.ptr)
     {
 	CARD8 *bits;
-	
+
 	XGL_PIXMAP_PRIV (pPixmap);
-	
+
 	if (!pPixmapPriv->buffer)
 	    if (!xglAllocatePixmapBits (pPixmap,
 					XGL_PIXMAP_USAGE_HINT_DEFAULT))
 		return FALSE;
-	
+
 	bits = glitz_buffer_map (pPixmapPriv->buffer,
 				 GLITZ_BUFFER_ACCESS_READ_WRITE);
 	if (!bits)
@@ -578,7 +663,7 @@ xglMapPixmapBits (PixmapPtr pPixmap)
 	    pPixmap->devPrivate.ptr = bits;
 	}
     }
-    
+
     return TRUE;
 }
 
@@ -589,10 +674,68 @@ xglUnmapPixmapBits (PixmapPtr pPixmap)
 
     pPixmap->devKind = 0;
     pPixmap->devPrivate.ptr = 0;
-    
+
     if (pPixmapPriv->buffer)
 	if (glitz_buffer_unmap (pPixmapPriv->buffer))
 	    return FALSE;
-    
+
     return TRUE;
+}
+
+Bool
+xglCheckPixmapSize (PixmapPtr		 pPixmap,
+		    xglSizeConstraintPtr pSize)
+{
+    if (pPixmap->drawable.width  < pSize->minWidth ||
+	pPixmap->drawable.height < pSize->minHeight)
+	return FALSE;
+
+    if (pPixmap->drawable.width  > pSize->aboveWidth ||
+	pPixmap->drawable.height > pSize->aboveHeight)
+	return TRUE;
+
+    return FALSE;
+}
+
+void
+xglEnablePixmapAccel (PixmapPtr	      pPixmap,
+		      xglAccelInfoPtr pAccel)
+{
+    XGL_SCREEN_PRIV (pPixmap->drawable.pScreen);
+    XGL_PIXMAP_PRIV (pPixmap);
+
+    if (pAccel->enabled && xglCheckPixmapSize (pPixmap, &pAccel->size))
+    {
+	xglVisualPtr v;
+
+	if (pAccel->pbuffer)
+	{
+	    for (v = pScreenPriv->pVisual; v; v = v->next)
+	    {
+		if (v->pPixel->depth != pPixmap->drawable.depth)
+		    continue;
+
+		if (v->format.drawable && v->pbuffer)
+		    break;
+	    }
+	}
+	else
+	{
+	    for (v = pScreenPriv->pVisual; v; v = v->next)
+	    {
+		if (v->pPixel->depth != pPixmap->drawable.depth)
+		    continue;
+
+		if (v->format.drawable && !v->pbuffer)
+		    break;
+	    }
+	}
+
+	if (v)
+	{
+	    xglSetPixmapVisual (pPixmap, v);
+	    if (!pPixmapPriv->target)
+		pPixmapPriv->target = xglPixmapTargetOut;
+	}
+    }
 }

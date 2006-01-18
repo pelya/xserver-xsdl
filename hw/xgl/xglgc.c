@@ -1,6 +1,6 @@
 /*
  * Copyright © 2004 David Reveman
- * 
+ *
  * Permission to use, copy, modify, distribute, and sell this software
  * and its documentation for any purpose is hereby granted without
  * fee, provided that the above copyright notice appear in all copies
@@ -12,11 +12,11 @@
  * software for any purpose. It is provided "as is" without express or
  * implied warranty.
  *
- * DAVID REVEMAN DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE, 
+ * DAVID REVEMAN DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
  * INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN
  * NO EVENT SHALL DAVID REVEMAN BE LIABLE FOR ANY SPECIAL, INDIRECT OR
  * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
- * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, 
+ * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *
@@ -58,7 +58,7 @@ static const GCFuncs xglGCFuncs = {
     xglValidateGC,
     miChangeGC,
     miCopyGC,
-    miDestroyGC,
+    xglDestroyGC,
     miChangeClip,
     miDestroyClip,
     miCopyClip
@@ -123,7 +123,7 @@ xglSetSpans (DrawablePtr pDrawable,
 	     int	 fSorted)
 {
     XGL_GC_PRIV (pGC);
-    
+
     XGL_GC_OP_FALLBACK_PROLOGUE (pDrawable);
     (*pGC->ops->SetSpans) (pDrawable, pGC, psrc, ppt, pwidth, nspans, fSorted);
     XGL_GC_OP_FALLBACK_EPILOGUE (pDrawable);
@@ -163,7 +163,7 @@ xglPutImage (DrawablePtr pDrawable,
 
 	XGL_GC_UNWRAP (funcs);
 	XGL_GC_UNWRAP (ops);
-	
+
 	(*pGC->ops->PutImage) (pDrawable, pGC, depth,
 			       x, y, w, h, leftPad, format, bits);
 
@@ -174,7 +174,7 @@ xglPutImage (DrawablePtr pDrawable,
 	box.y1 = pDrawable->y + y;
 	box.x2 = box.x1 + w;
 	box.y2 = box.y1 + h;
-	
+
 	REGION_INIT (pDrawable->pScreen, &region, &box, 1);
 	REGION_INTERSECT (pDrawable->pScreen, &region, pClip, &region);
 
@@ -197,7 +197,7 @@ xglCopyArea (DrawablePtr pSrc,
 {
     RegionPtr pRegion;
     BoxRec    box;
-    
+
     XGL_GC_PRIV (pGC);
 
     box.x1 = pSrc->x + srcX;
@@ -205,11 +205,11 @@ xglCopyArea (DrawablePtr pSrc,
     box.x2 = box.x1 + w;
     box.y2 = box.y1 + h;
 
-    if (pGC->alu != GXcopy || (pGCPriv->flags &= ~xglGCReadOnlyDrawableFlag))
+    if (pGC->alu != GXcopy || pGCPriv->flags)
     {
 	if (!xglSyncBits (pSrc, &box))
 	    FatalError (XGL_SW_FAILURE_STRING);
-	
+
 	XGL_GC_OP_FALLBACK_PROLOGUE (pDst);
 	pRegion = (*pGC->ops->CopyArea) (pSrc, pDst, pGC,
 					 srcX, srcY, w, h, dstX, dstY);
@@ -243,14 +243,14 @@ xglCopyPlane (DrawablePtr   pSrc,
 {
     RegionPtr pRegion;
     BoxRec    box;
-    
+
     XGL_GC_PRIV (pGC);
 
     box.x1 = pSrc->x + srcX;
     box.y1 = pSrc->y + srcY;
     box.x2 = box.x1 + w;
     box.y2 = box.y1 + h;
-    
+
     if (!xglSyncBits (pSrc, &box))
 	FatalError (XGL_SW_FAILURE_STRING);
 
@@ -293,13 +293,10 @@ xglPolylines (DrawablePtr pDrawable,
 	    if (pGC->lineStyle == LineSolid)
 	    {
 		if (xglFillLine (pDrawable, pGC, mode, npt, ppt))
-		{
-		    xglAddCurrentBitDamage (pDrawable);
 		    return;
-		}
 	    }
 	}
-	
+
 	XGL_GC_FILL_OP_FALLBACK_PROLOGUE (pDrawable);
 	(*pGC->ops->Polylines) (pDrawable, pGC, mode, npt, ppt);
 	XGL_GC_OP_FALLBACK_EPILOGUE (pDrawable);
@@ -315,7 +312,7 @@ xglPolylines (DrawablePtr pDrawable,
 
 void
 xglPolySegment (DrawablePtr pDrawable,
-		GCPtr	    pGC, 
+		GCPtr	    pGC,
 		int	    nsegInit,
 		xSegment    *pSegInit)
 {
@@ -328,10 +325,7 @@ xglPolySegment (DrawablePtr pDrawable,
 	    if (pGC->lineStyle == LineSolid)
 	    {
 		if (xglFillSegment (pDrawable, pGC, nsegInit, pSegInit))
-		{
-		    xglAddCurrentBitDamage (pDrawable);
 		    return;
-		}
 	    }
 	}
 
@@ -344,14 +338,14 @@ xglPolySegment (DrawablePtr pDrawable,
 
 void
 xglPolyArc (DrawablePtr pDrawable,
-	    GCPtr	pGC, 
+	    GCPtr	pGC,
 	    int		narcs,
 	    xArc	*pArcs)
 {
     if (pGC->lineWidth == 0)
     {
 	XGL_GC_PRIV (pGC);
-	
+
 	XGL_GC_FILL_OP_FALLBACK_PROLOGUE (pDrawable);
 	(*pGC->ops->PolyArc) (pDrawable, pGC, narcs, pArcs);
 	XGL_GC_OP_FALLBACK_EPILOGUE (pDrawable);
@@ -367,7 +361,7 @@ xglPolyFillRect (DrawablePtr pDrawable,
 {
     XGL_GC_PRIV (pGC);
 
-    if (pGCPriv->flags || pGC->fillStyle == FillStippled)
+    if (pGC->fillStyle == FillStippled || pGCPriv->flags)
     {
 	XGL_GC_FILL_OP_FALLBACK_PROLOGUE (pDrawable);
 	(*pGC->ops->PolyFillRect) (pDrawable, pGC, nrect, prect);
@@ -382,12 +376,12 @@ xglPolyFillRect (DrawablePtr pDrawable,
 
 void
 xglPolyFillArc (DrawablePtr pDrawable,
-		GCPtr	    pGC, 
+		GCPtr	    pGC,
 		int	    narcs,
 		xArc	    *pArcs)
 {
     XGL_GC_PRIV (pGC);
-    
+
     XGL_GC_FILL_OP_FALLBACK_PROLOGUE (pDrawable);
     (*pGC->ops->PolyFillArc) (pDrawable, pGC, narcs, pArcs);
     XGL_GC_OP_FALLBACK_EPILOGUE (pDrawable);
@@ -404,7 +398,7 @@ xglImageGlyphBlt (DrawablePtr  pDrawable,
 {
     XGL_GC_PRIV (pGC);
 
-    if (!(pGCPriv->flags & ~xglGCBadFunctionFlag))
+    if (!pGCPriv->flags)
     {
 	if (xglSolidGlyph (pDrawable,
 			   pGC,
@@ -413,10 +407,7 @@ xglImageGlyphBlt (DrawablePtr  pDrawable,
 			   nglyph,
 			   ppci,
 			   pglyphBase))
-	{
-	    xglAddCurrentBitDamage (pDrawable);
 	    return;
-	}
     }
 
     XGL_GC_OP_FALLBACK_PROLOGUE (pDrawable);
@@ -445,12 +436,9 @@ xglPolyGlyphBlt (DrawablePtr  pDrawable,
 			  nglyph,
 			  ppci,
 			  pglyphBase))
-	{
-	    xglAddCurrentBitDamage (pDrawable);
 	    return;
-	}
     }
-    
+
     XGL_GC_FILL_OP_FALLBACK_PROLOGUE (pDrawable);
     (*pGC->ops->PolyGlyphBlt) (pDrawable, pGC, x, y, nglyph, ppci, pglyphBase);
     XGL_GC_OP_FALLBACK_EPILOGUE (pDrawable);
@@ -469,7 +457,7 @@ xglPushPixels (GCPtr	   pGC,
 
     if (!xglSyncBits (&pBitmap->drawable, NullBox))
 	FatalError (XGL_SW_FAILURE_STRING);
-    
+
     XGL_GC_OP_FALLBACK_PROLOGUE (pDrawable);
     (*pGC->ops->PushPixels) (pGC, pBitmap, pDrawable, w, h, x, y);
     XGL_GC_OP_FALLBACK_EPILOGUE (pDrawable);
@@ -478,10 +466,9 @@ xglPushPixels (GCPtr	   pGC,
 Bool
 xglCreateGC (GCPtr pGC)
 {
-    static glitz_color_t black = { 0x0, 0x0, 0x0, 0xffff };
-    ScreenPtr		 pScreen = pGC->pScreen;
-    Bool		 ret;
-    
+    ScreenPtr pScreen = pGC->pScreen;
+    Bool      ret;
+
     XGL_SCREEN_PRIV (pScreen);
     XGL_GC_PRIV (pGC);
 
@@ -491,13 +478,33 @@ xglCreateGC (GCPtr pGC)
 
     XGL_GC_WRAP (funcs, (GCFuncs *) &xglGCFuncs);
     XGL_GC_WRAP (ops, (GCOps *) &xglGCOps);
-    
+
     pGCPriv->flags = 0;
     pGCPriv->op = GLITZ_OPERATOR_SRC;
-    pGCPriv->fg = black;
-    pGCPriv->bg = black;
-    
+
+    pGCPriv->fg = NULL;
+    pGCPriv->bg = NULL;
+    pGCPriv->id = ~0;
+
     return ret;
+}
+
+void
+xglDestroyGC (GCPtr pGC)
+{
+    XGL_GC_PRIV (pGC);
+
+    if (pGCPriv->fg)
+	glitz_surface_destroy (pGCPriv->fg);
+
+    if (pGCPriv->bg)
+	glitz_surface_destroy (pGCPriv->bg);
+
+    XGL_GC_UNWRAP (funcs);
+    XGL_GC_UNWRAP (ops);
+    (*pGC->funcs->DestroyGC) (pGC);
+    XGL_GC_WRAP (funcs, (GCFuncs *) &xglGCFuncs);
+    XGL_GC_WRAP (ops, (GCOps *) &xglGCOps);
 }
 
 void
@@ -509,12 +516,12 @@ xglValidateGC (GCPtr	     pGC,
 
     if (changes & GCTile)
     {
-	if (!pGC->tileIsPixel && 
+	if (!pGC->tileIsPixel &&
 	    FbEvenTile (pGC->tile.pixmap->drawable.width *
 			pDrawable->bitsPerPixel))
 	    xglSyncBits (&pGC->tile.pixmap->drawable, NULL);
     }
-    
+
     if (changes & GCStipple)
     {
 	if (pGC->stipple)
@@ -530,16 +537,45 @@ xglValidateGC (GCPtr	     pGC,
     if (pDrawable->serialNumber != (pGC->serialNumber & DRAWABLE_SERIAL_BITS))
     {
 	XGL_DRAWABLE_PIXMAP_PRIV (pDrawable);
-	
-	if (pPixmapPriv->format)
-	    pGCPriv->flags &= ~xglGCSoftwareDrawableFlag;
+
+	if (pPixmapPriv->pVisual && pPixmapPriv->pVisual->format.surface)
+	{
+	    glitz_format_t *format;
+
+	    format = pPixmapPriv->pVisual->format.surface;
+	    if (format->id != pGCPriv->id)
+	    {
+		XGL_SCREEN_PRIV (pDrawable->pScreen);
+
+		pGCPriv->flags |= xglGCSoftwareDrawableFlag;
+
+		if (pGCPriv->fg)
+		    glitz_surface_destroy (pGCPriv->fg);
+
+		pGCPriv->fg = glitz_surface_create (pScreenPriv->drawable,
+						    format, 1, 1, 0, NULL);
+		if (pGCPriv->fg)
+		    glitz_surface_set_fill (pGCPriv->fg, GLITZ_FILL_REPEAT);
+
+		if (pGCPriv->bg)
+		    glitz_surface_destroy (pGCPriv->bg);
+
+		pGCPriv->bg = glitz_surface_create (pScreenPriv->drawable,
+						    format, 1, 1, 0, NULL);
+		if (pGCPriv->bg)
+		    glitz_surface_set_fill (pGCPriv->bg, GLITZ_FILL_REPEAT);
+
+		pGCPriv->id = format->id;
+
+		if (pGCPriv->fg && pGCPriv->bg)
+		{
+		    changes |= (GCForeground | GCBackground);
+		    pGCPriv->flags &= ~xglGCSoftwareDrawableFlag;
+		}
+	    }
+	}
 	else
 	    pGCPriv->flags |= xglGCSoftwareDrawableFlag;
-
-	if (pPixmapPriv->target)
-	    pGCPriv->flags &= ~xglGCReadOnlyDrawableFlag;
-	else
-	    pGCPriv->flags |= xglGCReadOnlyDrawableFlag;
     }
 
     if (changes & GCFunction)
@@ -568,21 +604,45 @@ xglValidateGC (GCPtr	     pGC,
 	FbBits mask;
 
 	mask = FbFullMask (pDrawable->depth);
-	
+
 	if ((pGC->planemask & mask) != mask)
 	    pGCPriv->flags |= xglGCPlaneMaskFlag;
 	else
 	    pGCPriv->flags &= ~xglGCPlaneMaskFlag;
     }
 
-    if (changes & (GCForeground | GCBackground))
+    if (!(pGCPriv->flags & xglGCSoftwareDrawableFlag))
     {
-	XGL_DRAWABLE_PIXMAP_PRIV (pDrawable);
-
-	if (pPixmapPriv->pPixel)
+	if (changes & (GCForeground | GCBackground))
 	{
-	    xglPixelToColor (pPixmapPriv->pPixel, pGC->fgPixel, &pGCPriv->fg);
-	    xglPixelToColor (pPixmapPriv->pPixel, pGC->bgPixel, &pGCPriv->bg);
+	    glitz_pixel_format_t format;
+	    glitz_buffer_t	 *buffer;
+	    CARD32		 pixel;
+
+	    XGL_DRAWABLE_PIXMAP_PRIV (pDrawable);
+
+	    format.fourcc	  = GLITZ_FOURCC_RGB;
+	    format.masks	  = pPixmapPriv->pVisual->pPixel->masks;
+	    format.xoffset	  = 0;
+	    format.skip_lines     = 0;
+	    format.bytes_per_line = sizeof (CARD32);
+	    format.scanline_order = GLITZ_PIXEL_SCANLINE_ORDER_BOTTOM_UP;
+
+	    buffer = glitz_buffer_create_for_data (&pixel);
+
+	    if (changes & GCForeground)
+	    {
+		pixel = pGC->fgPixel;
+		glitz_set_pixels (pGCPriv->fg, 0, 0, 1, 1, &format, buffer);
+	    }
+
+	    if (changes & GCBackground)
+	    {
+		pixel = pGC->bgPixel;
+		glitz_set_pixels (pGCPriv->bg, 0, 0, 1, 1, &format, buffer);
+	    }
+
+	    glitz_buffer_destroy (buffer);
 	}
     }
 }

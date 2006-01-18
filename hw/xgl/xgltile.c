@@ -1,6 +1,6 @@
 /*
  * Copyright © 2004 David Reveman
- * 
+ *
  * Permission to use, copy, modify, distribute, and sell this software
  * and its documentation for any purpose is hereby granted without
  * fee, provided that the above copyright notice appear in all copies
@@ -12,11 +12,11 @@
  * software for any purpose. It is provided "as is" without express or
  * implied warranty.
  *
- * DAVID REVEMAN DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE, 
+ * DAVID REVEMAN DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
  * INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN
  * NO EVENT SHALL DAVID REVEMAN BE LIABLE FOR ANY SPECIAL, INDIRECT OR
  * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
- * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, 
+ * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *
@@ -63,7 +63,7 @@ xglTiledBoxGeometry (PixmapPtr pTile,
 
     tileWidth  = pTile->drawable.width;
     tileHeight = pTile->drawable.height;
-    
+
     for (i = 0; i < nBox; i++)
 	size +=
 	    (((pBox[i].x2 - pBox[i].x1) / tileWidth) + 2) *
@@ -75,7 +75,7 @@ xglTiledBoxGeometry (PixmapPtr pTile,
 
     data = glitz_buffer_map (pGeometry->buffer,
 			     GLITZ_BUFFER_ACCESS_WRITE_ONLY);
-	
+
     while (nBox--)
     {
 	x = pBox->x1;
@@ -87,19 +87,19 @@ xglTiledBoxGeometry (PixmapPtr pTile,
 	yTile = MOD (tileY + y, tileHeight);
 
 	yTmp = y;
-	    
+
 	while (height)
 	{
 	    heightTile = MIN (tileHeight - yTile, height);
-	    
+
 	    xTileTmp = xTile;
 	    widthTmp = width;
 	    xTmp     = x;
-	    
+
 	    while (widthTmp)
 	    {
 		widthTile = MIN (tileWidth - xTileTmp, widthTmp);
-		
+
 		p1.x = xTileTmp << 16;
 		p1.y = yTile << 16;
 		p2.x = (xTileTmp + widthTile) << 16;
@@ -107,7 +107,7 @@ xglTiledBoxGeometry (PixmapPtr pTile,
 
 		glitz_surface_translate_point (pPixmapPriv->surface, &p1, &p1);
 		glitz_surface_translate_point (pPixmapPriv->surface, &p2, &p2);
-		
+
 		x1 = FIXED_TO_FLOAT (p1.x);
 		y1 = FIXED_TO_FLOAT (p1.y);
 		x2 = FIXED_TO_FLOAT (p2.x);
@@ -122,29 +122,29 @@ xglTiledBoxGeometry (PixmapPtr pTile,
 		*data++ = (glitz_float_t) yTmp;
 		*data++ = x2;
 		*data++ = y1;
-		
+
 		*data++ = (glitz_float_t) (xTmp + widthTile);
 		*data++ = (glitz_float_t) (yTmp + heightTile);
 		*data++ = x2;
 		*data++ = y2;
-		    
+
 		*data++ = (glitz_float_t) xTmp;
 		*data++ = (glitz_float_t) (yTmp + heightTile);
 		*data++ = x1;
 		*data++ = y2;
 
 		pGeometry->endOffset += sizeof (glitz_float_t) * 16;
-		
+
 		xTileTmp  = 0;
 		xTmp     += widthTile;
 		widthTmp -= widthTile;
 	    }
-	    
+
 	    yTile   = 0;
 	    yTmp   += heightTile;
 	    height -= heightTile;
 	}
-	
+
 	pBox++;
     }
 
@@ -197,7 +197,7 @@ xglTile (DrawablePtr	  pDrawable,
 			      GLITZ_FILTER_NEAREST,
 			      NULL, 0);
     glitz_surface_set_transform (pTilePriv->surface, NULL);
-    
+
     if (pTilePriv->acceleratedTile)
     {
 	if (pGeometry)
@@ -212,9 +212,9 @@ xglTile (DrawablePtr	  pDrawable,
 						     4 * nBox);
 	    GEOMETRY_ADD_BOX (pDrawable->pScreen, pGeometry, pBox, nBox);
 	}
-	
+
 	GEOMETRY_TRANSLATE (pGeometry, xOff, yOff);
-    
+
 	if (!GEOMETRY_ENABLE (pGeometry, surface))
 	    return FALSE;
 
@@ -231,7 +231,7 @@ xglTile (DrawablePtr	  pDrawable,
 			 width, height);
 
 	glitz_surface_set_clip_region (surface, 0, 0, NULL, 0);
-	
+
 	if (!glitz_surface_get_status (surface))
 	    return TRUE;
 
@@ -249,10 +249,10 @@ xglTile (DrawablePtr	  pDrawable,
 	return FALSE;
 
     GEOMETRY_TRANSLATE (pGeometry, xOff, yOff);
-    
+
     if (!GEOMETRY_ENABLE (pGeometry, surface))
 	return FALSE;
-    
+
     glitz_composite (op,
 		     pTilePriv->surface, NULL, surface,
 		     0, 0,
@@ -260,9 +260,9 @@ xglTile (DrawablePtr	  pDrawable,
 		     x + xOff,
 		     y + yOff,
 		     width, height);
-    
+
     if (glitz_surface_get_status (surface))
 	return FALSE;
-    
+
     return TRUE;
 }
