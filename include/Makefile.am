@@ -1,3 +1,4 @@
+if XORG
 sdk_HEADERS =		\
 	XIstubs.h	\
 	bstore.h	\
@@ -46,6 +47,7 @@ sdk_HEADERS =		\
 	window.h	\
 	windowstr.h	\
 	xorg-server.h
+endif
 
 AM_CFLAGS = $(DIX_CFLAGS)
 

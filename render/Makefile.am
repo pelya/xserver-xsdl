@@ -16,4 +16,6 @@ librender_la_SOURCES =	\
 	render.c	\
 	renderedge.c
 
+if XORG
 sdk_HEADERS = picture.h mipict.h glyphstr.h picturestr.h renderedge.h
+endif

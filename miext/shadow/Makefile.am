@@ -4,7 +4,9 @@ AM_CFLAGS = $(DIX_CFLAGS) @SERVER_DEFINES@ @MODULE_DEFINES@ @LOADER_DEFINES@
 
 INCLUDES = -I$(top_srcdir)/hw/xfree86/os-support
 
+if XORG
 sdk_HEADERS = shadow.h
+endif
 
 libshadow_la_SOURCES =		\
 	shadow.c		\

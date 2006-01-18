@@ -1,5 +1,17 @@
 2006-01-18  Dave Airlie  <airlied@linux.ie>
 
+	* Xext/Makefile.am:
+	* dbe/Makefile.am:
+	* fb/Makefile.am:
+	* include/Makefile.am:
+	* mi/Makefile.am:
+	* miext/shadow/Makefile.am:
+	* render/Makefile.am:
+	Wrap sdk_HEADERS in if XORG as otherwise installing non-xorg
+	servers breaks.
+
+2006-01-18  Dave Airlie  <airlied@linux.ie>
+
 	reviewed by: keithp, ajax, anholt (well they all read it...)
 
 	* fb/fbgc.c: (fbPadPixmap):

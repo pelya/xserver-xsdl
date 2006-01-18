@@ -10,7 +10,9 @@ INCLUDES = -I$(top_srcdir)/hw/xfree86/dixmods/extmod -I$(top_srcdir)/hw/xfree86/
 
 AM_CFLAGS = $(DIX_CFLAGS) @SERVER_DEFINES@ @LOADER_DEFINES@
 
+if XORG
 sdk_HEADERS = xvdix.h xvmcext.h
+endif
 
 # Sources always included in libXextbuiltin.la & libXext.la
 BUILTIN_SRCS =			\
