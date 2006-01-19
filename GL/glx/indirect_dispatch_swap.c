@@ -28,7 +28,14 @@
 #include <X11/Xmd.h>
 #include <GL/gl.h>
 #include <GL/glxproto.h>
+#ifdef __linux__
 #include <byteswap.h>
+#else
+#include <sys/endian.h>
+#define bswap_16 bswap16
+#define bswap_32 bswap32
+#define bswap_64 bswap64
+#endif
 #include <inttypes.h>
 #include "indirect_size.h"
 #include "indirect_size_get.h"

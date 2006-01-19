@@ -1,3 +1,12 @@
+2006-01-18  Eric Anholt  <anholt@FreeBSD.org>
+
+	* GL/glx/indirect_dispatch.c:
+	* GL/glx/indirect_dispatch_swap.c:
+	* GL/glx/indirect_util.c:
+	Only try to use byteswap.h on linux.  Assume that everyone else
+	(thinking of BSDs here) has sys/endian.h, and use macros as appropriate
+	for the names.  This should probably be in a gloabl header.
+
 2006-01-18  Adam Jackson  <ajax@freedesktop.org>
 
 	* fb/fbblt.c:
