@@ -541,7 +541,7 @@ symlink_glx() {
 error() {
 	echo
 	echo \ \ \ error:\ \ \ $1
-	exit
+	exit 1
 }
 
 # printing out what's going on
