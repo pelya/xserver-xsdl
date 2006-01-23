@@ -30,6 +30,7 @@
 #define _DAMAGESTR_H_
 
 #include "damage.h"
+#include "gcstruct.h"
 #ifdef RENDER
 # include "picturestr.h"
 #endif
