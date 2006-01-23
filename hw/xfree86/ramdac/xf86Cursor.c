@@ -37,10 +37,8 @@ static void xf86CursorQueryBestSize(int, unsigned short*, unsigned short*,
 
 /* ScrnInfoRec functions */
 
+static void xf86CursorEnableDisableFBAccess(int, Bool);
 static Bool xf86CursorSwitchMode(int, DisplayModePtr,int);
-static Bool xf86CursorEnterVT(int, int);
-static void xf86CursorLeaveVT(int, int);
-static int  xf86CursorSetDGAMode(int, int, DGADevicePtr);
 
 Bool
 xf86InitCursor(
@@ -98,19 +96,15 @@ xf86InitCursor(
     ScreenPriv->spriteFuncs = PointPriv->spriteFuncs;
     PointPriv->spriteFuncs = &xf86CursorSpriteFuncs;
 
+    ScreenPriv->EnableDisableFBAccess = pScrn->EnableDisableFBAccess;
     ScreenPriv->SwitchMode = pScrn->SwitchMode;
-    ScreenPriv->EnterVT = pScrn->EnterVT;
-    ScreenPriv->LeaveVT = pScrn->LeaveVT;
-    ScreenPriv->SetDGAMode = pScrn->SetDGAMode;
     
     ScreenPriv->ForceHWCursorCount = 0;
     ScreenPriv->HWCursorForced = FALSE;
 
+    pScrn->EnableDisableFBAccess = xf86CursorEnableDisableFBAccess;
     if (pScrn->SwitchMode)
 	pScrn->SwitchMode = xf86CursorSwitchMode;
-    pScrn->EnterVT = xf86CursorEnterVT;
-    pScrn->LeaveVT = xf86CursorLeaveVT;
-    pScrn->SetDGAMode = xf86CursorSetDGAMode;
 
     return TRUE;
 }
@@ -138,10 +132,8 @@ xf86CursorCloseScreen(int i, ScreenPtr pScreen)
     PointPriv->spriteFuncs = ScreenPriv->spriteFuncs;
     PointPriv->showTransparent = ScreenPriv->showTransparent;
 
+    pScrn->EnableDisableFBAccess = ScreenPriv->EnableDisableFBAccess;
     pScrn->SwitchMode = ScreenPriv->SwitchMode;
-    pScrn->EnterVT = ScreenPriv->EnterVT;
-    pScrn->LeaveVT = ScreenPriv->LeaveVT;
-    pScrn->SetDGAMode = ScreenPriv->SetDGAMode;
 
     xfree(ScreenPriv->transparentData);
     xfree(ScreenPriv);
@@ -199,6 +191,38 @@ xf86CursorRecolorCursor(
 
 /***** ScrnInfoRec functions *********/
 
+static void
+xf86CursorEnableDisableFBAccess(
+    int index,
+    Bool enable)
+{
+    ScreenPtr pScreen = screenInfo.screens[index];
+    xf86CursorScreenPtr ScreenPriv =
+	pScreen->devPrivates[xf86CursorScreenIndex].ptr;
+    xf86CursorInfoPtr infoPtr = ScreenPriv->CursorInfoPtr;
+
+    if (!enable && ScreenPriv->CurrentCursor != NullCursor) {
+	ScreenPriv->SavedCursor = ScreenPriv->CurrentCursor;
+	xf86CursorSetCursor(pScreen, NullCursor, ScreenPriv->x, ScreenPriv->y);
+	ScreenPriv->isUp = FALSE;
+	ScreenPriv->SWCursor = TRUE;
+    }
+
+    if (ScreenPriv->EnableDisableFBAccess)
+	(*ScreenPriv->EnableDisableFBAccess)(index, enable);
+
+    if (enable && ScreenPriv->SavedCursor)
+    {
+	/*
+	 * Re-set current cursor so drivers can react to FB access having been
+	 * temporarily disabled.
+	 */
+	xf86CursorSetCursor(pScreen, ScreenPriv->SavedCursor,
+			    ScreenPriv->x, ScreenPriv->y);
+	ScreenPriv->SavedCursor = NULL;
+    }
+}
+
 static Bool
 xf86CursorSwitchMode(int index, DisplayModePtr mode, int flags)
 {
@@ -223,62 +247,6 @@ xf86CursorSwitchMode(int index, DisplayModePtr mode, int flags)
      */
     ScreenPriv->CursorToRestore = ScreenPriv->CurrentCursor;
     PointPriv->waitForUpdate = FALSE;	/* Force cursor repaint */
-
-    return ret;
-}
-
-static Bool
-xf86CursorEnterVT(int index, int flags)
-{
-    Bool ret;
-    ScreenPtr pScreen = screenInfo.screens[index];
-    xf86CursorScreenPtr ScreenPriv =
-	pScreen->devPrivates[xf86CursorScreenIndex].ptr;
-
-    ret = (*ScreenPriv->EnterVT)(index, flags);
-
-    if (ScreenPriv->CurrentCursor)
-	xf86CursorSetCursor(pScreen, ScreenPriv->CurrentCursor,
-			ScreenPriv->x, ScreenPriv->y);
-    return ret;
-}
-
-static void
-xf86CursorLeaveVT(int index, int flags)
-{
-    ScreenPtr pScreen = screenInfo.screens[index];
-    xf86CursorScreenPtr ScreenPriv =
-	pScreen->devPrivates[xf86CursorScreenIndex].ptr;
-
-    if (ScreenPriv->isUp) {
-	xf86SetCursor(pScreen, NullCursor, ScreenPriv->x, ScreenPriv->y);
-	ScreenPriv->isUp = FALSE;
-    }
-    ScreenPriv->SWCursor = TRUE;
-
-    (*ScreenPriv->LeaveVT)(index, flags);
-}
-
-static int
-xf86CursorSetDGAMode(int index, int num, DGADevicePtr devRet)
-{
-    ScreenPtr pScreen = screenInfo.screens[index];
-    xf86CursorScreenPtr ScreenPriv =
-	pScreen->devPrivates[xf86CursorScreenIndex].ptr;
-    int ret;
-
-    if (num && ScreenPriv->isUp) {
-	xf86SetCursor(pScreen, NullCursor, ScreenPriv->x, ScreenPriv->y);
-	ScreenPriv->isUp = FALSE;
-	ScreenPriv->SWCursor = TRUE;
-    }
-
-    ret = (*ScreenPriv->SetDGAMode)(index, num, devRet);
-
-    if (ScreenPriv->CurrentCursor && (!num || (ret != Success))) {
-	xf86CursorSetCursor(pScreen, ScreenPriv->CurrentCursor,
-			ScreenPriv->x, ScreenPriv->y);
-    }
 
     return ret;
 }

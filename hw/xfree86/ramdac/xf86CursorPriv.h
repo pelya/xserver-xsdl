@@ -28,9 +28,8 @@ typedef struct {
     Bool			PalettedCursor;
     ColormapPtr			pInstalledMap;
     Bool                	(*SwitchMode)(int, DisplayModePtr,int);
-    Bool                	(*EnterVT)(int, int);
-    void                	(*LeaveVT)(int, int);
-    int				(*SetDGAMode)(int, int, DGADevicePtr);
+    xf86EnableDisableFBAccessProc *EnableDisableFBAccess;
+    CursorPtr                   SavedCursor;
 
     /* Number of requests to force HW cursor */
     int				ForceHWCursorCount;
