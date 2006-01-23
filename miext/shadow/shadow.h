@@ -31,6 +31,8 @@
 #include "picturestr.h"
 #endif
 
+#include "damage.h"
+#include "damagestr.h"
 typedef struct _shadowBuf   *shadowBufPtr;
 
 typedef void (*ShadowUpdateProc) (ScreenPtr pScreen,
@@ -47,14 +49,19 @@ typedef void *(*ShadowWindowProc) (ScreenPtr	pScreen,
 				   CARD32	*size,
 				   void		*closure);
 
+/* BC hack: do not move the damage member.  see shadow.c for explanation. */
 typedef struct _shadowBuf {
-    shadowBufPtr	pNext;
+    DamagePtr           pDamage;
     ShadowUpdateProc	update;
     ShadowWindowProc	window;
     RegionRec		damage;
     PixmapPtr		pPixmap;
     void		*closure;
     int			randr;
+
+    /* screen wrappers */
+    GetImageProcPtr     GetImage;
+    CloseScreenProcPtr  CloseScreen;
 } shadowBufRec;
 
 /* Match defines from randr extension */
@@ -68,25 +75,11 @@ typedef struct _shadowBuf {
 #define SHADOW_REFLECT_Y    32
 #define SHADOW_REFLECT_ALL  (SHADOW_REFLECT_X|SHADOW_REFLECT_Y)
 
-typedef struct _shadowScrPriv {
-    PaintWindowBackgroundProcPtr PaintWindowBackground;
-    PaintWindowBorderProcPtr	PaintWindowBorder;
-    CopyWindowProcPtr		CopyWindow;
-    CloseScreenProcPtr		CloseScreen;
-    CreateGCProcPtr		CreateGC;
-    GetImageProcPtr		GetImage;
-#ifdef RENDER
-    CompositeProcPtr		Composite;
-    GlyphsProcPtr		Glyphs;
-#endif
-    shadowBufPtr		pBuf;
-    BSFuncRec			BackingStoreFuncs;
-} shadowScrPrivRec, *shadowScrPrivPtr;
-
 extern int shadowScrPrivateIndex;
 
-#define shadowGetScrPriv(pScr)  ((shadowScrPrivPtr) (pScr)->devPrivates[shadowScrPrivateIndex].ptr)
-#define shadowScrPriv(pScr)	shadowScrPrivPtr    pScrPriv = shadowGetScrPriv(pScr)
+#define shadowGetBuf(pScr)  ((shadowBufPtr) (pScr)->devPrivates[shadowScrPrivateIndex].ptr)
+#define shadowBuf(pScr)            shadowBufPtr pBuf = shadowGetBuf(pScr)
+#define shadowDamage(pBuf)  DamageRegion(pBuf->pDamage)    
 
 Bool
 shadowSetup (ScreenPtr pScreen);
@@ -169,11 +162,5 @@ shadowUpdateProc shadowUpdatePackedWeak(void);
 shadowUpdateProc shadowUpdatePlanar4Weak(void);
 shadowUpdateProc shadowUpdatePlanar4x8Weak(void);
 shadowUpdateProc shadowUpdateRotatePackedWeak(void);
-
-void
-shadowWrapGC (GCPtr pGC);
-
-void
-shadowUnwrapGC (GCPtr pGC);
 
 #endif /* _SHADOW_H_ */

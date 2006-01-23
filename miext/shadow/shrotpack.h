@@ -96,7 +96,7 @@ void
 FUNC (ScreenPtr	    pScreen,
       shadowBufPtr  pBuf)
 {
-    RegionPtr	damage = &pBuf->damage;
+    RegionPtr	damage = shadowDamage (pBuf);
     PixmapPtr	pShadow = pBuf->pPixmap;
     int		nbox = REGION_NUM_RECTS (damage);
     BoxPtr	pbox = REGION_RECTS (damage);
