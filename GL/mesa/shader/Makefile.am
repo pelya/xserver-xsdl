@@ -19,15 +19,14 @@ INCLUDES = -I@MESA_SOURCE@/include \
            -I.. \
            -I$(top_srcdir)/hw/xfree86/os-support
 
-nodist_libshader_la_SOURCES = arbfragparse.c \
+nodist_libshader_la_SOURCES = \
                       arbprogparse.c \
                       arbprogram.c \
-                      arbvertparse.c \
                       atifragshader.c \
                       nvfragparse.c \
                       nvprogram.c \
                       nvvertexec.c \
-                      nvvertparse.c \
+		      nvvertparse.c \
                       program.c \
                       shaderobjects.c \
 		      shaderobjects_3dlabs.c

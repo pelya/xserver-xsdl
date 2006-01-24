@@ -29,19 +29,17 @@ nodist_libswrast_la_SOURCES = s_aaline.c \
                       s_drawpix.c \
                       s_feedback.c \
                       s_fog.c \
-                      s_fragprog_to_c.c \
                       s_imaging.c \
                       s_lines.c \
                       s_logic.c \
                       s_masking.c \
                       s_nvfragprog.c \
-                      s_pixeltex.c \
                       s_points.c \
                       s_readpix.c \
                       s_span.c \
                       s_stencil.c \
-                      s_tcc.c \
+		      s_texcombine.c \
+		      s_texfilter.c \
                       s_texstore.c \
-                      s_texture.c \
                       s_triangle.c \
                       s_zoom.c

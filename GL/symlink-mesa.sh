@@ -110,6 +110,8 @@ symlink_mesa_main() {
     action debug.h
     action depth.c
     action depth.h
+    action depthstencil.c
+    action depthstencil.h
     action dlist.c
     action dlist.h
     action drawpix.c
@@ -269,7 +271,6 @@ symlink_mesa_swrast() {
     action s_feedback.h
     action s_fog.c
     action s_fog.h
-    action s_fragprog_to_c.c
     action s_imaging.c
     action s_lines.c
     action s_lines.h
@@ -280,8 +281,6 @@ symlink_mesa_swrast() {
     action s_masking.h
     action s_nvfragprog.c
     action s_nvfragprog.h
-    action s_pixeltex.c
-    action s_pixeltex.h
     action s_points.c
     action s_points.h
     action s_pointtemp.h
@@ -291,10 +290,11 @@ symlink_mesa_swrast() {
     action s_spantemp.h
     action s_stencil.c
     action s_stencil.h
-    action s_tcc.c
+    action s_texcombine.c
+    action s_texcombine.h
+    action s_texfilter.c
+    action s_texfilter.h
     action s_texstore.c
-    action s_texture.c
-    action s_texture.h
     action s_triangle.c
     action s_triangle.h
     action s_trispan.h
@@ -368,29 +368,24 @@ symlink_mesa_shader() {
     src_dir src/mesa/shader
     dst_dir mesa/shader
 
-    action arbfragparse.c
-    action arbfragparse.h
     action arbprogparse.c
     action arbprogparse.h
     action arbprogram.c
     action arbprogram.h
     action arbprogram_syn.h
-    action arbvertparse.c
-    action arbvertparse.h
     action atifragshader.c
     action atifragshader.h
     action nvfragparse.c
     action nvfragparse.h
-    action nvfragprog.h
     action nvprogram.c
     action nvprogram.h
     action nvvertexec.c
     action nvvertexec.h
     action nvvertparse.c
     action nvvertparse.h
-    action nvvertprog.h
     action program.c
     action program.h
+    action program_instruction.h
     action shaderobjects.c
     action shaderobjects.h
     action shaderobjects_3dlabs.c
