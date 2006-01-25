@@ -168,7 +168,6 @@ dnl hw/xfree86/os-support/bus/Makefile.am, among others.
 dnl ---------------------------------------------------------------------------
 DEFAULT_INT10="x86emu"
 use_x86_asm="no"
-build_xf8_32wid="yes"
 
 dnl Override defaults as needed for specific platforms:
 
@@ -199,7 +198,6 @@ case $host_cpu in
 	esac
 	;;
   sparc*)
-	build_xf8_32wid="yes"   # used by sunffb driver
 	xorg_loader_sparcmuldiv="yes"
 	SPARC64_VIDEO=yes
 	BSD_ARCH_SOURCES="sparc64_video.c ioperm_noop.c"
@@ -214,8 +212,6 @@ case $host_cpu in
 	esac
 	;;
 esac
-
-AM_CONDITIONAL(BUILD_XF8_32WID, [test x$build_xf8_32wid = xyes])
 
 dnl BSD *_video.c selection
 AM_CONDITIONAL(ALPHA_VIDEO, [test "x$ALPHA_VIDEO" = xyes])
@@ -1524,7 +1520,6 @@ lbx/Makefile
 mfb/Makefile
 cfb/Makefile
 cfb16/Makefile
-cfb24/Makefile
 cfb32/Makefile
 ilbm/Makefile
 iplan2p4/Makefile
@@ -1584,7 +1579,6 @@ hw/xfree86/xf1bpp/Makefile
 hw/xfree86/xf4bpp/Makefile
 hw/xfree86/xf8_16bpp/Makefile
 hw/xfree86/xf8_32bpp/Makefile
-hw/xfree86/xf8_32wid/Makefile
 hw/xfree86/utils/Makefile
 hw/xfree86/utils/cvt/Makefile
 hw/xfree86/utils/gtf/Makefile

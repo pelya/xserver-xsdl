@@ -1,3 +1,20 @@
+2006-01-25  Adam Jackson  <ajax@freedesktop.org>
+
+	* Makefile.am:
+	* cfb24/Makefile.am:
+	* cfb24/cfbrrop24.h:
+	* configure.ac:
+	* hw/xfree86/Makefile.am:
+	* hw/xfree86/dixmods/Makefile.am:
+	* hw/xfree86/xf8_32wid/Makefile.am:
+	* hw/xfree86/xf8_32wid/cfb8_32wid.h:
+	* hw/xfree86/xf8_32wid/cfb8_32widmodule.c:
+	* hw/xfree86/xf8_32wid/cfbscrinit.c:
+	* hw/xfree86/xf8_32wid/cfbwid.c:
+	* hw/xfree86/xf8_32wid/cfbwindow.c:
+	Remove xf8_32wid, it's dead code with no maintainer interest.  Also
+	remove cfb24, since xf8_32wid was the only user.
+
 2006-01-19  Daniel Stone  <daniel@freedesktop.org>
 
 	* GL/symlink-mesa.sh:
