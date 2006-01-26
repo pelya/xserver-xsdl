@@ -20,6 +20,12 @@
 	Remove xf8_32wid, it's dead code with no maintainer interest.  Also
 	remove cfb24, since xf8_32wid was the only user.
 
+	* configure.ac:
+	* Makefile.am:
+	* ilbm/*:
+	* iplan2p4/*:
+	Speed up checkout and autogen by removing disused iplan2p4 and ilbm.
+
 2006-01-19  Daniel Stone  <daniel@freedesktop.org>
 
 	* GL/symlink-mesa.sh:

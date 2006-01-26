@@ -1521,8 +1521,6 @@ mfb/Makefile
 cfb/Makefile
 cfb16/Makefile
 cfb32/Makefile
-ilbm/Makefile
-iplan2p4/Makefile
 mi/Makefile
 miext/Makefile
 miext/damage/Makefile

@@ -91,10 +91,7 @@ DIST_SUBDIRS = \
 	afb \
 	cfb \
 	cfb16 \
-	cfb24 \
 	cfb32 \
-	ilbm \
-	iplan2p4 \
 	record \
 	xfixes \
 	damageext \
