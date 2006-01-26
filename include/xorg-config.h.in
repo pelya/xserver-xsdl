@@ -106,4 +106,7 @@
 /* System has wscons console */
 #undef WSCONS_SUPPORT
 
+/* Has backtrace support */
+#undef HAVE_BACKTRACE
+
 #endif /* _XORG_CONFIG_H_ */

@@ -1,3 +1,8 @@
+2006-01-26  Daniel Stone  <daniel@freedesktop.org>
+
+	* xorg-config.h.in:
+	Add forgotten HAVE_BACKTRACE define.
+
 2006-01-25  Adam Jackson  <ajax@freedesktop.org>
 
 	* Makefile.am:
