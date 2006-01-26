@@ -31,12 +31,6 @@
 	* iplan2p4/*:
 	Speed up checkout and autogen by removing disused iplan2p4 and ilbm.
 
-2006-01-23  Alan Hourihane  <alanh@fairlite.demon.co.uk>
-
-	Add i945GM support to the i810 driver
-	Add Rotation support, including Xvideo, hwcursor & 3D rotation.
-	Remove old shadow rotation code.
-
 2006-01-19  Daniel Stone  <daniel@freedesktop.org>
 
 	* GL/symlink-mesa.sh:
