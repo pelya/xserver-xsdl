@@ -59,10 +59,6 @@ libcfb16_la_LDFLAGS = -avoid-version
 libcfb16_la_LIBADD = $(top_builddir)/cfb16/libcfb16.la
 libcfb16_la_SOURCES = cfb16module.c
 
-libcfb24_la_LDFLAGS = -avoid-version
-libcfb24_la_LIBADD = $(top_builddir)/cfb24/libcfb24.la
-libcfb24_la_SOURCES = cfb24module.c
-
 libcfb32_la_LDFLAGS = -avoid-version
 libcfb32_la_LIBADD = $(top_builddir)/cfb32/libcfb32.la
 libcfb32_la_SOURCES = cfb32module.c

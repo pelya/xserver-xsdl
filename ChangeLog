@@ -1,3 +1,10 @@
+2006-01-27  Eric Anholt  <anholt@FreeBSD.org>
+
+	* hw/xfree86/dixmods/Makefile.am:
+	* hw/xgl/glx/Makefile.am:
+	Remove leftover variables for cfb24 build, and finish commenting out
+	Xglx standalone stuff, which some versions of automake get whiny about.
+
 2006-01-27  Alan Hourihane  <alanh@fairlite.demon.co.uk>
 
 	* hw/xfree86/scanpci/pci.ids:

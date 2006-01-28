@@ -44,5 +44,5 @@ libxglx_la_SOURCES = \
 #	$(XGLXMODULES_LIBS) \
 #	-lXrandr
 #Xglx_programs	  = Xglx
-
-bin_PROGRAMS = $(Xglx_programs)
+#
+#bin_PROGRAMS = $(Xglx_programs)
