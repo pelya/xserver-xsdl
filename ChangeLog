@@ -1,5 +1,13 @@
 2006-01-27  Eric Anholt  <anholt@FreeBSD.org>
 
+	* hw/xfree86/os-support/shared/libc_wrapper.c: (xf86random):
+	* hw/xfree86/os-support/xf86_ansic.h:
+	* hw/xfree86/os-support/xf86_libc.h:
+	Add libc_wrapper support for random(), which will be used in upcoming
+	EXA memory manager work.
+
+2006-01-27  Eric Anholt  <anholt@FreeBSD.org>
+
 	* hw/xfree86/dixmods/Makefile.am:
 	* hw/xgl/glx/Makefile.am:
 	Remove leftover variables for cfb24 build, and finish commenting out

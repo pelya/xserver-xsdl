@@ -218,6 +218,7 @@ extern double xf86pow(double,double);
 extern void xf86qsort(void*, xf86size_t, xf86size_t, 
                       int(*)(const void*, const void*));
 extern void* xf86realloc(void*,xf86size_t);
+extern long xf86random(void);
 extern int xf86remove(const char*);
 extern int xf86rename(const char*,const char*);
 extern void xf86rewind(XF86FILE*);

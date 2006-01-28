@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/hw/xfree86/os-support/xf86_libc.h,v 1.6 2005/04/22 22:04:37 alanc Exp $ */
+/* $XdotOrg: xserver/xorg/hw/xfree86/os-support/xf86_libc.h,v 1.9 2005/08/24 11:18:31 daniels Exp $ */
 /* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/xf86_libc.h,v 3.63 2003/12/08 21:46:55 alanh Exp $ */
 /*
  * Copyright (c) 1997-2003 by The XFree86 Project, Inc.
@@ -358,6 +358,8 @@ typedef int xf86jmp_buf[1024];
 #define perror(ccp)		xf86perror(ccp)
 #undef pow
 #define pow(d1,d2)		xf86pow(d1,d2)
+#undef random
+#define random()		xf86random()
 #undef realloc
 #define realloc(vp,I)		xf86realloc(vp,I)
 #undef remove

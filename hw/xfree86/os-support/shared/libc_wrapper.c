@@ -2148,3 +2148,8 @@ xf86setjmperror(xf86jmp_buf env)
 	       xf86getjmptype());
 }
 
+long
+xf86random()
+{
+    return random();
+}
