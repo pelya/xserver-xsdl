@@ -1,3 +1,9 @@
+2006-01-30  Donnie Berkholz  <spyderous@gentoo.org>
+
+	* GL/mesa/shader/slang/Makefile.am:
+	* GL/symlink-mesa.sh:
+	Update to build against Mesa trunk.
+
 2006-01-27  Eric Anholt  <anholt@FreeBSD.org>
 
 	* hw/xfree86/os-support/shared/libc_wrapper.c: (xf86random):

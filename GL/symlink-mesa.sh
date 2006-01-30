@@ -407,18 +407,26 @@ symlink_mesa_shader_slang() {
     src_dir src/mesa/shader/slang
     dst_dir mesa/shader/slang
 
+    action slang_assemble.c
+    action slang_assemble.h
     action slang_assemble_assignment.c
     action slang_assemble_assignment.h
-    action slang_assemble.c
     action slang_assemble_conditional.c
     action slang_assemble_conditional.h
     action slang_assemble_constructor.c
     action slang_assemble_constructor.h
-    action slang_assemble.h
     action slang_assemble_typeinfo.c
     action slang_assemble_typeinfo.h
     action slang_compile.c
     action slang_compile.h
+    action slang_compile_function.c
+    action slang_compile_function.h
+    action slang_compile_operation.c
+    action slang_compile_operation.h
+    action slang_compile_struct.c
+    action slang_compile_struct.h
+    action slang_compile_variable.c
+    action slang_compile_variable.h
     action slang_execute.c
     action slang_execute.h
     action slang_mesa.h
