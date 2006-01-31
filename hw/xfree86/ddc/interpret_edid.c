@@ -174,6 +174,9 @@ get_dt_md_section(Uchar *c, struct edid_version *ver,
       case ADD_DUMMY:
 	det_mon[i].type = DS_DUMMY;
         break;
+      default:
+        det_mon[i].type = DS_UNKOWN;
+        break;
       }
     } else { 
       det_mon[i].type = DT;

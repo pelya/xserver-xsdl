@@ -1,5 +1,15 @@
 2006-01-31  Luc Verhaegen  <libv@skynet.be>
 
+	* hw/xfree86/ddc/edid.h:
+	* hw/xfree86/ddc/interpret_edid.c: (get_dt_md_section):
+
+	Further bug #5386 fixes: Fix some problems with the EDID code:
+	Some bitoffsets were wrong.
+	Unknown Detailed Sections weren't handled properly and defaulted to
+	Detailed Timing.
+
+2006-01-31  Luc Verhaegen  <libv@skynet.be>
+
 	* hw/xfree86/utils/cvt/.cvsignore:
 	* hw/xfree86/utils/cvt/cvt.c: (xf86CVTMode), (CVTCheckStandard),
 	(PrintModeline), (main):

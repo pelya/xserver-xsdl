@@ -227,9 +227,9 @@
 #define STEREO _STEREO(c)
 #define _STEREO1(x) (x[17] & 0x1)
 #define STEREO1 _STEREO(c)
-#define _SYNC_T(x) ((x[17] & 0x18) >> 4)
+#define _SYNC_T(x) ((x[17] & 0x18) >> 3)
 #define SYNC_T _SYNC_T(c)
-#define _MISC(x) ((x[17] & 0x06) >> 2)
+#define _MISC(x) ((x[17] & 0x06) >> 1)
 #define MISC _MISC(c)
 
 #define _MONITOR_DESC_TYPE(x) x[3]
@@ -411,6 +411,7 @@ struct detailed_timings {
 #define DS_WHITE_P 0xFB
 #define DS_STD_TIMINGS 0xFA
 #define DS_DUMMY 0x10
+#define DS_UNKOWN 0x100 /* type is an int */
 
 struct monitor_ranges {
   int min_v;
