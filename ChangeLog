@@ -1,5 +1,17 @@
 2006-01-31  Luc Verhaegen  <libv@skynet.be>
 
+	* hw/xfree86/utils/cvt/.cvsignore:
+	* hw/xfree86/utils/cvt/cvt.c: (xf86CVTMode), (CVTCheckStandard),
+	(PrintModeline), (main):
+
+	Bring the cvt utility up to date with bug #5386 changes.
+	Fix 2 issues with the generator routine: the allocated modeline wasn't
+	nulled and mode->name's \0 wasn't copied over.
+	PrintModeLine was rewritten and HDisplay gets rounded up to
+	character width instead of refused.
+
+2006-01-31  Luc Verhaegen  <libv@skynet.be>
+
 	* hw/xfree86/common/xf86Mode.c: (xf86CheckModeForMonitor):
 
 	Accept modes with less than 25% horizontal blanking again (you can

@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2005 by Luc Verhaegen.
- * Copyright (c) 1997-2003 by The XFree86 Project, Inc.
+ * Copyright 2005-2006 Luc Verhaegen.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,78 +19,15 @@
  * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  *
- * Except as contained in this notice, the name of the copyright holder(s)
- * and author(s) shall not be used in advertising or otherwise to promote
- * the sale, use or other dealings in this Software without prior written
- * authorization from the copyright holder(s) and author(s).
  */
 
-/*
- * Calculate VESA CVT standard timing modelines.
- *
- * My own copyright is added. This is only there for the standalone version.
- * I don't want to polute the xf86Mode.c license.
- * 
- */
+/* Standalone VESA CVT standard timing modelines generator. */
+
 #include "xf86.h"
 
-
 /*
- * Grabbed from xf86Mode.c from the Xorg tree. Hence the copyright and license.
+ * Generate a CVT standard mode from HDisplay, VDisplay and VRefresh.
  *
- * Altered for stdout printing.
- */
-static void
-add(char **p, char *new)
-{
-    *p = xnfrealloc(*p, strlen(*p) + strlen(new) + 2);
-    strcat(*p, " ");
-    strcat(*p, new);
-}
-
-static void
-PrintModeline(DisplayModePtr mode)
-{
-    char tmp[256];
-    char *flags = xnfcalloc(1, 1);
-
-    if (mode->HSkew) { 
-	snprintf(tmp, 256, "hskew %i", mode->HSkew); 
-	add(&flags, tmp);
-    }
-    if (mode->VScan) { 
-	snprintf(tmp, 256, "vscan %i", mode->VScan); 
-	add(&flags, tmp);
-    }
-    if (mode->Flags & V_INTERLACE) add(&flags, "interlace");
-    if (mode->Flags & V_CSYNC) add(&flags, "composite");
-    if (mode->Flags & V_DBLSCAN) add(&flags, "doublescan");
-    if (mode->Flags & V_BCAST) add(&flags, "bcast");
-    if (mode->Flags & V_PHSYNC) add(&flags, "+hsync");
-    if (mode->Flags & V_NHSYNC) add(&flags, "-hsync");
-    if (mode->Flags & V_PVSYNC) add(&flags, "+vsync");
-    if (mode->Flags & V_NVSYNC) add(&flags, "-vsync");
-    if (mode->Flags & V_PCSYNC) add(&flags, "+csync");
-    if (mode->Flags & V_NCSYNC) add(&flags, "-csync");
-#if 0
-    if (mode->Flags & V_CLKDIV2) add(&flags, "vclk/2");
-#endif
-
-    printf("Modeline \"%s\"  %6.2f  %i %i %i %i  %i %i %i %i%s\n",
-           mode->name, mode->Clock/1000., mode->HDisplay,
-           mode->HSyncStart, mode->HSyncEnd, mode->HTotal,
-           mode->VDisplay, mode->VSyncStart, mode->VSyncEnd,
-           mode->VTotal, flags);
-    xfree(flags);
-}
-
-
-/*
- * New code... Well, somewhat.
- */
-
-
-/*
  * These calculations are stolen from the CVT calculation spreadsheet written
  * by Graham Loveridge. He seems to be claiming no copyright and there seems to
  * be no license attached to this. He apparently just wants to see his name
@@ -110,10 +46,10 @@ PrintModeline(DisplayModePtr mode)
  * blanking instead of the overscan colour, and since the Crtc* values will
  * probably get altered after us, we will disable margins altogether. With
  * these calculations, Margins will plainly expand H/VDisplay, and we don't
- * want that.
+ * want that. -- libv
  *
  */
-static DisplayModeRec *
+static DisplayModePtr
 xf86CVTMode(int HDisplay, int VDisplay, float VRefresh, Bool Reduced,
             Bool Interlaced)
 {
@@ -139,6 +75,8 @@ xf86CVTMode(int HDisplay, int VDisplay, float VRefresh, Bool Reduced,
     int  HDisplayRnd, HMargin;
     int  VDisplayRnd, VMargin, VSync;
     float  Interlace; /* Please rename this */
+
+    memset(Mode, 0, sizeof(DisplayModeRec));
 
     /* CVT default is 60.0Hz */
     if (!VRefresh)
@@ -329,16 +267,14 @@ xf86CVTMode(int HDisplay, int VDisplay, float VRefresh, Bool Reduced,
     if (Interlaced)
         Mode->VTotal *= 2;
 
-    /* Fill in Mode parameters */
     {
         char  Name[256];
         Name[0] = 0;
-        if (Reduced)
-            snprintf(Name, 256, "%dx%dR", HDisplay, VDisplay);
-        else
-            snprintf(Name, 256, "%dx%d_%.2f", HDisplay, VDisplay, VRefresh);
+
+        snprintf(Name, 256, "%dx%d", HDisplay, VDisplay);
+
         Mode->name = xnfalloc(strlen(Name) + 1);
-        memcpy(Mode->name, Name, strlen(Name));
+        memcpy(Mode->name, Name, strlen(Name) + 1);
     }
 
     if (Reduced)
@@ -352,12 +288,11 @@ xf86CVTMode(int HDisplay, int VDisplay, float VRefresh, Bool Reduced,
     return Mode;
 }
 
-
 /*
  * Quickly check wether this is a CVT standard mode.
  */
 static Bool
-xf86CVTCheckStandard(int HDisplay, int VDisplay, float VRefresh, Bool Reduced,
+CVTCheckStandard(int HDisplay, int VDisplay, float VRefresh, Bool Reduced,
                      Bool Verbose)
 {
     Bool  IsCVT = TRUE;
@@ -454,6 +389,40 @@ PrintComment(DisplayModeRec *Mode, Bool CVT, Bool Reduced)
 
 
 /*
+ * Originally grabbed from xf86Mode.c.
+ *
+ * Ignoring the actual Mode->name, as the user will want something solid
+ * to grab hold of.
+ */
+static void
+PrintModeline(DisplayModePtr Mode, int HDisplay, int VDisplay, float VRefresh,
+              Bool Reduced)
+{
+    if (Reduced)
+        printf("Modeline \"%dx%dR\"  ", HDisplay, VDisplay);
+    else
+        printf("Modeline \"%dx%d_%.2f\"  ", HDisplay, VDisplay, VRefresh);
+
+    printf("%6.2f  %i %i %i %i  %i %i %i %i", Mode->Clock/1000., Mode->HDisplay,
+           Mode->HSyncStart, Mode->HSyncEnd, Mode->HTotal, Mode->VDisplay,
+           Mode->VSyncStart, Mode->VSyncEnd, Mode->VTotal);
+
+    if (Mode->Flags & V_INTERLACE)
+        printf(" interlace");
+    if (Mode->Flags & V_PHSYNC)
+        printf(" +hsync");
+    if (Mode->Flags & V_NHSYNC)
+        printf(" -hsync");
+    if (Mode->Flags & V_PVSYNC)
+        printf(" +vsync");
+    if (Mode->Flags & V_NVSYNC)
+        printf(" -vsync");
+
+    printf("\n");
+}
+
+
+/*
  *
  */
 int
@@ -506,12 +475,10 @@ main (int argc, char *argv[])
     if (!VRefresh)
         VRefresh = 60.0;
 
-    /* Enforce hard limitation */
-    if (HDisplay % 8) {
-        fprintf(stderr, "\nERROR: Horizontal Resolution needs to be a "
-                "multiple of 8.\n");
-        PrintUsage(argv[0]);
-        return 0;
+    /* Horizontal timing is always a multiple of 8: round up. */
+    if (HDisplay & 0x07) {
+        HDisplay &= ~0x07;
+        HDisplay += 8;
     }
 
     if (Reduced && (VRefresh != 60.0)) {
@@ -521,12 +488,12 @@ main (int argc, char *argv[])
         return 0;
     }
 
-    IsCVT = xf86CVTCheckStandard(HDisplay, VDisplay, VRefresh, Reduced, Verbose);
+    IsCVT = CVTCheckStandard(HDisplay, VDisplay, VRefresh, Reduced, Verbose);
 
     Mode = xf86CVTMode(HDisplay, VDisplay, VRefresh, Reduced, Interlaced);
 
     PrintComment(Mode, IsCVT, Reduced);
-    PrintModeline(Mode);
+    PrintModeline(Mode, HDisplay, VDisplay, VRefresh, Reduced);
     
     return 0;
 }
