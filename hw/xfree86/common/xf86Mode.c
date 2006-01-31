@@ -1,4 +1,4 @@
-/* $XdotOrg: xserver/xorg/hw/xfree86/common/xf86Mode.c,v 1.7 2005/07/03 08:53:42 daniels Exp $ */
+/* $XdotOrg: xserver/xorg/hw/xfree86/common/xf86Mode.c,v 1.8 2005/12/28 15:22:21 libv Exp $ */
 /* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86Mode.c,v 1.69 2003/10/08 14:58:28 dawes Exp $ */
 /*
  * Copyright (c) 1997-2003 by The XFree86 Project, Inc.
@@ -816,16 +816,20 @@ xf86CheckModeForMonitor(DisplayModePtr mode, MonPtr monitor)
     if (mode->Flags & V_INTERLACE)
 	mode->CrtcVTotal = mode->VTotal |= 1;
 
-    /* Check wether this mode has acceptable blanking */
-    if (((mode->HDisplay * 5 / 4) & ~0x07) > mode->HTotal) {
-
-        /* Is this a CVT Reduced blanking mode? */
-        if ((mode->HTotal - mode->HDisplay) != 160) 
-            return MODE_HBLANK_NARROW;
-        
+    /*
+     * Usually, CVT normal blanking is never more than one character below 25%,
+     * but for low frequencies and weird ratios, you can get below that.
+     * When you go into the low frequencies with the gtf generator, of which
+     * normal CVT is a simplification, you almost always go below 25%.
+     *
+     * So if we see awkward blanking, then it's either directly CVT or GTF
+     * generated, or the user supposedly knows what he's doing. So we only stop
+     * reduced blanking here, as that might accidentally hit us. -- libv
+     */
+    if (((mode->HTotal - mode->HDisplay) == 160) &&
+        (((mode->HDisplay * 5 / 4) & ~0x07) > mode->HTotal))
         if (!monitor->reducedblanking)
             return MODE_NO_REDUCED;
-    }
 
     return MODE_OK;
 }

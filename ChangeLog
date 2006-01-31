@@ -1,3 +1,11 @@
+2006-01-31  Luc Verhaegen  <libv@skynet.be>
+
+	* hw/xfree86/common/xf86Mode.c: (xf86CheckModeForMonitor):
+
+	Accept modes with less than 25% horizontal blanking again (you can
+	push old gtf timing to below 25%), only stop cvt reduced blanking.
+	Users should be free to blow up their monitors if they so choose.
+
 2006-01-30  Donnie Berkholz  <spyderous@gentoo.org>
 
 	* GL/mesa/shader/slang/Makefile.am:
