@@ -1,3 +1,12 @@
+2006-02-01  Alan Hourihane  <alanh@fairlite.demon.co.uk>
+
+	* randr/randr.c: (RRGetRotation):
+	* randr/randrstr.h:
+	Add a new function RRGetRotation() which does exactly the same
+	thing as xf86GetRotation(), but allows for drivers to provide
+	their own RandR implementation. xf86GetRotation could be
+	obsoleted by this change.
+
 2006-01-31  Luc Verhaegen  <libv@skynet.be>
 
 	* hw/xfree86/ddc/edid.h:

@@ -1302,6 +1302,17 @@ Bool RRRegisterRate (ScreenPtr		pScreen,
     return TRUE;
 }
 
+Rotation
+RRGetRotation(ScreenPtr pScreen)
+{
+    rrScrPriv (pScreen);
+
+    if (!pScrPriv)
+	return RR_Rotate_0;
+
+    return pScrPriv->rotation;
+}
+
 void
 RRSetCurrentConfig (ScreenPtr		pScreen,
 		    Rotation		rotation,

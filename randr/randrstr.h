@@ -118,6 +118,9 @@ RRSetCurrentConfig (ScreenPtr		pScreen,
 
 Bool RRScreenInit(ScreenPtr pScreen);
 
+Rotation
+RRGetRotation (ScreenPtr pScreen);
+
 int
 RRSetScreenConfig (ScreenPtr		pScreen,
 		   Rotation		rotation,
