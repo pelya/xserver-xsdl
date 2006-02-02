@@ -33,8 +33,6 @@
 #include "exa.h"
 #include "cw.h"
 
-#define STRACE
-
 static void
 exaFillSpans(DrawablePtr pDrawable, GCPtr pGC, int n,
 	     DDXPointPtr ppt, int *pwidth, int fSorted)
@@ -57,7 +55,6 @@ exaFillSpans(DrawablePtr pDrawable, GCPtr pGC, int n,
         return;
     }
 
-    STRACE;
     if (pGC->fillStyle != FillSolid ||
 	pDrawable->width > pExaScr->info->card.maxX ||
 	pDrawable->height > pExaScr->info->card.maxY ||
@@ -147,7 +144,6 @@ exaCopyNtoN (DrawablePtr    pSrcDrawable,
     PixmapPtr pSrcPixmap, pDstPixmap;
     int	    src_off_x, src_off_y;
     int	    dst_off_x, dst_off_y;
-    STRACE;
 
     /* Respect maxX/maxY in a trivial way: don't set up drawing when we might
      * violate the limits.  The proper solution would be a temporary pixmap
@@ -247,7 +243,6 @@ exaPolyFillRect(DrawablePtr pDrawable,
     int		    xorg, yorg;
     int		    n;
 
-    STRACE;
     if (!pScrn->vtSema ||
         pGC->fillStyle != FillSolid ||
 	pDrawable->width > pExaScr->info->card.maxX ||
@@ -353,7 +348,6 @@ exaSolidBoxClipped (DrawablePtr	pDrawable,
     int		xoff, yoff;
     int		partX1, partX2, partY1, partY2;
 
-    STRACE;
     if (!pScrn->vtSema ||
 	pDrawable->width > pExaScr->info->card.maxX ||
 	pDrawable->height > pExaScr->info->card.maxY ||
@@ -435,7 +429,6 @@ exaImageGlyphBlt (DrawablePtr	pDrawable,
     int		    dstXoff, dstYoff;
     FbBits	    depthMask;
 
-    STRACE;
     depthMask = FbFullMask(pDrawable->depth);
     if ((pGC->planemask & depthMask) != depthMask)
     {
@@ -579,7 +572,6 @@ exaCopyWindow(WindowPtr pWin, DDXPointRec ptOldOrg, RegionPtr prgnSrc)
         return;
     }
 
-    STRACE;
     dx = ptOldOrg.x - pWin->drawable.x;
     dy = ptOldOrg.y - pWin->drawable.y;
     REGION_TRANSLATE(pWin->drawable.pScreen, prgnSrc, -dx, -dy);
@@ -609,7 +601,6 @@ exaFillRegionSolid (DrawablePtr	pDrawable,
     PixmapPtr pPixmap;
     int xoff, yoff;
 
-    STRACE;
     if (pDrawable->width <= pExaScr->info->card.maxX &&
 	pDrawable->height <= pExaScr->info->card.maxY &&
 	(pPixmap = exaGetOffscreenPixmap (pDrawable, &xoff, &yoff)) &&
@@ -652,7 +643,6 @@ exaFillRegionTiled (DrawablePtr	pDrawable,
     int xoff, yoff;
     int tileWidth, tileHeight;
 
-    STRACE;
     tileWidth = pTile->drawable.width;
     tileHeight = pTile->drawable.height;
 
@@ -760,8 +750,6 @@ void
 exaPaintWindow(WindowPtr pWin, RegionPtr pRegion, int what)
 {
     ScrnInfoPtr pScrn = XF86SCRNINFO(pWin->drawable.pScreen);
-
-    STRACE;
 
     if (!REGION_NUM_RECTS(pRegion))
 	return;

@@ -1,5 +1,13 @@
 2006-02-02  Eric Anholt  <anholt@FreeBSD.org>
 
+	* hw/xfree86/exa/exa_accel.c: (exaFillSpans), (exaCopyNtoN),
+	(exaPolyFillRect), (exaSolidBoxClipped), (exaImageGlyphBlt),
+	(exaCopyWindow), (exaFillRegionSolid), (exaFillRegionTiled),
+	(exaPaintWindow):
+	Remove more debugging leftovers.
+
+2006-02-02  Eric Anholt  <anholt@FreeBSD.org>
+
 	reviewed by: zrusin
 
 	* hw/xfree86/exa/Makefile.am:
