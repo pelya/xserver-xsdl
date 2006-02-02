@@ -235,27 +235,13 @@ exaMoveOutPixmap (PixmapPtr pPixmap)
 void
 exaDrawableUseScreen(DrawablePtr pDrawable)
 {
-    PixmapPtr pPixmap;
-
-    if (pDrawable->type == DRAWABLE_WINDOW)
-	pPixmap = (*pDrawable->pScreen->GetWindowPixmap) ((WindowPtr) pDrawable);
-    else
-	pPixmap = (PixmapPtr) pDrawable;
-
-    exaPixmapUseScreen (pPixmap);
+    exaPixmapUseScreen (exaGetDrawablePixmap (pDrawable));
 }
 
 void
 exaDrawableUseMemory(DrawablePtr pDrawable)
 {
-    PixmapPtr pPixmap;
-
-    if (pDrawable->type == DRAWABLE_WINDOW)
-	pPixmap = (*pDrawable->pScreen->GetWindowPixmap) ((WindowPtr) pDrawable);
-    else
-	pPixmap = (PixmapPtr) pDrawable;
-
-    exaPixmapUseMemory (pPixmap);
+    exaPixmapUseMemory (exaGetDrawablePixmap (pDrawable));
 }
 
 void

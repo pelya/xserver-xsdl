@@ -72,18 +72,21 @@ exaGetPixmapSize(PixmapPtr pPix)
     return 0;
 }
 
+PixmapPtr
+exaGetDrawablePixmap(DrawablePtr pDrawable)
+{
+     if (pDrawable->type == DRAWABLE_WINDOW)
+	return pDrawable->pScreen->GetWindowPixmap ((WindowPtr) pDrawable);
+     else
+	return (PixmapPtr) pDrawable;
+}	
+
 void
 exaDrawableDirty (DrawablePtr pDrawable)
 {
-    PixmapPtr pPixmap;
     ExaPixmapPrivPtr pExaPixmap;
 
-    if (pDrawable->type == DRAWABLE_WINDOW)
-	pPixmap = (*pDrawable->pScreen->GetWindowPixmap)((WindowPtr) pDrawable);
-    else
-	pPixmap = (PixmapPtr)pDrawable;
-
-    pExaPixmap = ExaGetPixmapPriv(pPixmap);
+    pExaPixmap = ExaGetPixmapPriv(exaGetDrawablePixmap (pDrawable));
     if (pExaPixmap != NULL)
 	pExaPixmap->dirty = TRUE;
 }
@@ -166,6 +169,12 @@ exaPixmapIsOffscreen(PixmapPtr p)
 	    pExaScr->info->card.memorySize);
 }
 
+Bool
+exaDrawableIsOffscreen (DrawablePtr pDrawable)
+{
+    return exaPixmapIsOffscreen (exaGetDrawablePixmap (pDrawable));
+}
+
 PixmapPtr
 exaGetOffscreenPixmap (DrawablePtr pDrawable, int *xp, int *yp)
 {
@@ -196,18 +205,6 @@ exaGetOffscreenPixmap (DrawablePtr pDrawable, int *xp, int *yp)
 	return NULL;
 }
 
-Bool
-exaDrawableIsOffscreen (DrawablePtr pDrawable)
-{
-    PixmapPtr	pPixmap;
-
-    if (pDrawable->type == DRAWABLE_WINDOW)
-	pPixmap = (*pDrawable->pScreen->GetWindowPixmap) ((WindowPtr) pDrawable);
-    else
-	pPixmap = (PixmapPtr) pDrawable;
-    return exaPixmapIsOffscreen (pPixmap);
-}
-
 void
 exaPrepareAccess(DrawablePtr pDrawable, int index)
 {
@@ -215,10 +212,7 @@ exaPrepareAccess(DrawablePtr pDrawable, int index)
     ExaScreenPriv  (pScreen);
     PixmapPtr	    pPixmap;
 
-    if (pDrawable->type == DRAWABLE_WINDOW)
-	pPixmap = (*pDrawable->pScreen->GetWindowPixmap) ((WindowPtr) pDrawable);
-    else
-	pPixmap = (PixmapPtr) pDrawable;
+    pPixmap = exaGetDrawablePixmap (pDrawable);
 
     if (index == EXA_PREPARE_DEST)
 	exaDrawableDirty (pDrawable);
@@ -248,10 +242,7 @@ exaFinishAccess(DrawablePtr pDrawable, int index)
     if (pExaScr->info->accel.FinishAccess == NULL)
 	return;
 
-    if (pDrawable->type == DRAWABLE_WINDOW)
-	pPixmap = (*pDrawable->pScreen->GetWindowPixmap) ((WindowPtr) pDrawable);
-    else
-	pPixmap = (PixmapPtr) pDrawable;
+    pPixmap = exaGetDrawablePixmap (pDrawable);
     if (!exaPixmapIsOffscreen (pPixmap))
 	return;
 

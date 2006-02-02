@@ -1,5 +1,17 @@
 2006-02-02  Eric Anholt  <anholt@FreeBSD.org>
 
+	* hw/xfree86/exa/exa.c: (exaGetDrawablePixmap), (exaDrawableDirty),
+	(exaDrawableIsOffscreen), (exaPrepareAccess), (exaFinishAccess):
+	* hw/xfree86/exa/exa_migration.c: (exaDrawableUseScreen),
+	(exaDrawableUseMemory):
+	* hw/xfree86/exa/exa_priv.h:
+	* hw/xfree86/exa/exa_render.c: (exaTryDriverSolidFill),
+	(exaTryDriverComposite):
+	Move the frequently-repeated code to get the pixmap that backs a
+	drawable to a new function, exaGetDrawablePixmap().
+
+2006-02-02  Eric Anholt  <anholt@FreeBSD.org>
+
 	* hw/xfree86/exa/exa_accel.c: (exaFillSpans), (exaCopyNtoN),
 	(exaPolyFillRect), (exaSolidBoxClipped), (exaImageGlyphBlt),
 	(exaCopyWindow), (exaFillRegionSolid), (exaFillRegionTiled),

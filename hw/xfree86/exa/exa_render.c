@@ -253,12 +253,7 @@ exaTryDriverSolidFill(PicturePtr	pSrc,
 	return 0;
     }
 
-    if (pSrc->pDrawable->type == DRAWABLE_WINDOW)
-	pSrcPix = (*pSrc->pDrawable->pScreen->GetWindowPixmap)(
-	    (WindowPtr) (pSrc->pDrawable));
-    else
-	pSrcPix = (PixmapPtr) (pSrc->pDrawable);
-
+    pSrcPix = exaGetDrawablePixmap (pSrc->pDrawable);
 
     exaPrepareAccess(&pSrcPix->drawable, EXA_PREPARE_SRC);
     switch (pSrcPix->drawable.bitsPerPixel) {
@@ -385,19 +380,11 @@ exaTryDriverComposite(CARD8		op,
     }
 
     if (!pSrcPix && (!pMask || pMaskPix) && pExaScr->info->accel.UploadToScratch) {
-	if (pSrc->pDrawable->type == DRAWABLE_WINDOW)
-	    pSrcPix = (*pSrc->pDrawable->pScreen->GetWindowPixmap) (
-		(WindowPtr) pSrc->pDrawable);
-	else
-	    pSrcPix = (PixmapPtr) pSrc->pDrawable;
+	pSrcPix = exaGetDrawablePixmap (pSrc->pDrawable);
 	if ((*pExaScr->info->accel.UploadToScratch) (pSrcPix, &scratch))
 	    pSrcPix = &scratch;
     } else if (pSrcPix && pMask && !pMaskPix && pExaScr->info->accel.UploadToScratch) {
-	if (pMask->pDrawable->type == DRAWABLE_WINDOW)
-	    pMaskPix = (*pMask->pDrawable->pScreen->GetWindowPixmap) (
-		(WindowPtr) pMask->pDrawable);
-	else
-	    pMaskPix = (PixmapPtr) pMask->pDrawable;
+	pMaskPix = exaGetDrawablePixmap (pMask->pDrawable);
 	if ((*pExaScr->info->accel.UploadToScratch) (pMaskPix, &scratch))
 	    pMaskPix = &scratch;
     }

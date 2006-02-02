@@ -315,6 +315,9 @@ exaPixmapIsOffscreen(PixmapPtr p);
 PixmapPtr
 exaGetOffscreenPixmap (DrawablePtr pDrawable, int *xp, int *yp);
 
+PixmapPtr
+exaGetDrawablePixmap(DrawablePtr pDrawable);
+
 void
 exaMoveInPixmap (PixmapPtr pPixmap);
 
