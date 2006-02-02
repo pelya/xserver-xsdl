@@ -11,9 +11,12 @@ INCLUDES = \
 AM_CFLAGS = $(XORG_CFLAGS) @SERVER_DEFINES@ @MODULE_DEFINES@ @LOADER_DEFINES@
 
 libexa_la_SOURCES = \
-	exaasync.c \
 	exa.c \
 	exa.h \
-	exaoffscreen.c \
-	exapict.c \
-	exaPriv.h
+	exa_accel.c \
+	exa_migration.c \
+	exa_offscreen.c \
+	exa_render.c \
+	exa_priv.h \
+	exa_unaccel.c
+

@@ -21,7 +21,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-#include "exaPriv.h"
+#include "exa_priv.h"
 
 /*
  * These functions wrap the low-level fb rendering functions and

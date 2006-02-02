@@ -20,7 +20,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-#include "exaPriv.h"
+#include "exa_priv.h"
 
 #if DEBUG_OFFSCREEN
 #define DBG_OFFSCREEN(a) ErrorF a

@@ -67,6 +67,12 @@ do {								\
 #define EXA_FALLBACK(x)
 #endif
 
+#if DEBUG_PIXMAP
+#define DBG_PIXMAP(a) ErrorF a
+#else
+#define DBG_PIXMAP(a)
+#endif
+
 #ifndef EXA_MAX_FB
 #define EXA_MAX_FB   FB_OVERLAY_MAX
 #endif
@@ -108,6 +114,13 @@ extern int exaScreenPrivateIndex;
 extern int exaPixmapPrivateIndex;
 #define ExaGetScreenPriv(s)	((ExaScreenPrivPtr)(s)->devPrivates[exaScreenPrivateIndex].ptr)
 #define ExaScreenPriv(s)	ExaScreenPrivPtr    pExaScr = ExaGetScreenPriv(s)
+
+#define EXA_PIXMAP_SCORE_MOVE_IN    10
+#define EXA_PIXMAP_SCORE_MAX	    20
+#define EXA_PIXMAP_SCORE_MOVE_OUT   -10
+#define EXA_PIXMAP_SCORE_MIN	    -20
+#define EXA_PIXMAP_SCORE_PINNED	    1000
+#define EXA_PIXMAP_SCORE_INIT	    1001
 
 #define ExaGetPixmapPriv(p)	((ExaPixmapPrivPtr)(p)->devPrivates[exaPixmapPrivateIndex].ptr)
 #define ExaSetPixmapPriv(p,a)	((p)->devPrivates[exaPixmapPrivateIndex].ptr = (pointer) (a))
@@ -230,7 +243,14 @@ ExaCheckRestoreAreas (PixmapPtr	pPixmap,
 void
 ExaCheckPaintWindow (WindowPtr pWin, RegionPtr pRegion, int what);
 
-extern const GCOps	exaAsyncPixmapGCOps;
+/* exa_accel.c */
+void
+exaCopyWindow(WindowPtr pWin, DDXPointRec ptOldOrg, RegionPtr prgnSrc);
+
+void
+exaPaintWindow(WindowPtr pWin, RegionPtr pRegion, int what);
+
+extern const GCOps	exaOps, exaAsyncPixmapGCOps;
 
 #ifdef RENDER
 void
@@ -297,6 +317,9 @@ exaGetOffscreenPixmap (DrawablePtr pDrawable, int *xp, int *yp);
 
 void
 exaMoveInPixmap (PixmapPtr pPixmap);
+
+void
+exaMoveOutPixmap (PixmapPtr pPixmap);
 
 RegionPtr
 exaCopyArea(DrawablePtr pSrcDrawable, DrawablePtr pDstDrawable, GCPtr pGC,
