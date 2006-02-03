@@ -1,3 +1,9 @@
+2006-02-03  Jeremy C. Reed <reed@reedmedia.net>
+
+	* hw/xfree86/os-support/xf86_OSlib.h
+	Fix sysmouse handling on DragonFly, mostly garbage arrived.
+	From Joerg Sonnenberger.
+
 2006-02-02  Eric Anholt  <anholt@FreeBSD.org>
 
 	* hw/xfree86/exa/exa.c: (exaGetDrawablePixmap), (exaDrawableDirty),
