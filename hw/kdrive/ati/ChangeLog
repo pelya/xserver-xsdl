@@ -1,3 +1,10 @@
+2006-02-09  Keith Packard  <keithp@keithp.com>
+
+	reviewed by: Eric Anholt  <anholt@FreeBSD.org>
+
+	* ati_video.c: (RadeonDisplayVideo):
+	Replace TRI_FAN with RECT_LIST to eliminate tearing
+
 2005-08-07  Keith Packard  <keithp@keithp.com>
 
 	* ati_video.c: (RadeonDisplayVideo):

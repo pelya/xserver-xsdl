@@ -440,52 +440,54 @@ RadeonDisplayVideo(KdScreenInfo *screen, ATIPortPrivPtr pPortPriv)
 		    pPortPriv->src_h / pPortPriv->dst_h;
 		srcw = pPortPriv->src_w * (dstw / pPortPriv->dst_w);
 		srch = pPortPriv->src_h * (dsth / pPortPriv->dst_h);
-	
-		vtx[0].x.f = dstX;
-		vtx[0].y.f = dstY;
-		vtx[0].s0.f = srcX;
-		vtx[0].t0.f = srcY;
 
-		vtx[1].x.f = dstX;
+		/*
+		 * rectangle:
+		 *
+		 *  +---------2
+		 *  |         |
+		 *  |         |
+		 *  0---------1
+		 */
+		
+		vtx[0].x.f = dstX;
+		vtx[0].y.f = dstY + dsth;
+		vtx[0].s0.f = srcX;
+		vtx[0].t0.f = srcY + srch;
+
+		vtx[1].x.f = dstX + dstw;
 		vtx[1].y.f = dstY + dsth;
-		vtx[1].s0.f = srcX;
+		vtx[1].s0.f = srcX + srcw;
 		vtx[1].t0.f = srcY + srch;
 
 		vtx[2].x.f = dstX + dstw;
-		vtx[2].y.f = dstY + dsth;
+		vtx[2].y.f = dstY;
 		vtx[2].s0.f = srcX + srcw;
-		vtx[2].t0.f = srcY + srch;
-
-		vtx[3].x.f = dstX + dstw;
-		vtx[3].y.f = dstY;
-		vtx[3].s0.f = srcX + srcw;
-		vtx[3].t0.f = srcY;
+		vtx[2].t0.f = srcY;
 
 		if (atic->is_r100) {
-			BEGIN_DMA(4 * VTX_DWORD_COUNT + 3);
+			BEGIN_DMA(3 * VTX_DWORD_COUNT + 3);
 			OUT_RING(DMA_PACKET3(RADEON_CP_PACKET3_3D_DRAW_IMMD,
-			    4 * VTX_DWORD_COUNT + 2));
+			    3 * VTX_DWORD_COUNT + 2));
 			OUT_RING(RADEON_CP_VC_FRMT_XY |
 			    RADEON_CP_VC_FRMT_ST0);
-			OUT_RING(RADEON_CP_VC_CNTL_PRIM_TYPE_TRI_FAN |
+			OUT_RING(RADEON_CP_VC_CNTL_PRIM_TYPE_RECT_LIST |
 			    RADEON_CP_VC_CNTL_PRIM_WALK_RING |
 			    RADEON_CP_VC_CNTL_MAOS_ENABLE |
 			    RADEON_CP_VC_CNTL_VTX_FMT_RADEON_MODE |
-			    (4 << RADEON_CP_VC_CNTL_NUM_SHIFT));
+			    (3 << RADEON_CP_VC_CNTL_NUM_SHIFT));
 		} else {
-			BEGIN_DMA(4 * VTX_DWORD_COUNT + 2);
+			BEGIN_DMA(3 * VTX_DWORD_COUNT + 2);
 			OUT_RING(DMA_PACKET3(R200_CP_PACKET3_3D_DRAW_IMMD_2,
-			    4 * VTX_DWORD_COUNT + 1));
-			OUT_RING(RADEON_CP_VC_CNTL_PRIM_TYPE_TRI_FAN |
+			    3 * VTX_DWORD_COUNT + 1));
+			OUT_RING(RADEON_CP_VC_CNTL_PRIM_TYPE_RECT_LIST |
 			    RADEON_CP_VC_CNTL_PRIM_WALK_RING |
-			    (4 << RADEON_CP_VC_CNTL_NUM_SHIFT));
+			    (3 << RADEON_CP_VC_CNTL_NUM_SHIFT));
 		}
 
 		VTX_OUT(vtx[0]);
 		VTX_OUT(vtx[1]);
 		VTX_OUT(vtx[2]);
-		VTX_OUT(vtx[3]);
-
 		END_DMA();
 
 		pBox++;
