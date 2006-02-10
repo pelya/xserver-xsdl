@@ -221,6 +221,7 @@ AM_CONDITIONAL(PPC_VIDEO, [test "x$PPC_VIDEO" = xyes])
 AM_CONDITIONAL(SPARC64_VIDEO, [test "x$SPARC64_VIDEO" = xyes])
 
 DRI=no
+KDRIVE_HW=no
 dnl it would be nice to autodetect these *CONS_SUPPORTs
 case $host_os in
   *freebsd*)
@@ -243,8 +244,10 @@ case $host_os in
 	;;
   *linux*)
 	DRI=yes
+	KDRIVE_HW=yes
 	;;
 esac
+AM_CONDITIONAL(KDRIVE_HW, test "x$KDRIVE_HW" = xyes)
 
 AC_MSG_CHECKING(for MMX capable platform)
 if test "x$use_x86_asm" = xyes && test "x$GCC" = xyes ; then

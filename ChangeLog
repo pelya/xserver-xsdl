@@ -1,5 +1,14 @@
 2006-02-09  Eric Anholt  <anholt@FreeBSD.org>
 
+	* configure.ac:
+	* hw/kdrive/linux/Makefile.am:
+	* hw/kdrive/linux/agp.c:
+	* hw/kdrive/src/Makefile.am:
+	Make kdrive (i.e. Xephyr only) buildable on FreeBSD and probably other
+	OSes without linux VT switching, fbdev, and vm86 support.
+
+2006-02-09  Eric Anholt  <anholt@FreeBSD.org>
+
 	* GL/glx/indirect_reqsize.c:
 
 2006-02-03  Jeremy C. Reed <reed@reedmedia.net>

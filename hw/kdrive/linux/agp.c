@@ -45,6 +45,7 @@ of the copyright holder.
 #include <kdrive-config.h>
 #endif
 #include <X11/X.h>
+#include "misc.h"
 
 #include <unistd.h>
 #include <sys/types.h>
