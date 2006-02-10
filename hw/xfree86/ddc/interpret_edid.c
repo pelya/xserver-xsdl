@@ -10,10 +10,10 @@
 
 #include "misc.h"
 #include "xf86.h"
-#include "xf86_ansic.h"
 #include "xf86_OSproc.h"
 #define _PARSE_EDID_
 #include "xf86DDC.h"
+#include <string.h>
 
 static void get_vendor_section(Uchar*, struct vendor *);
 static void get_version_section(Uchar*, struct edid_version *);

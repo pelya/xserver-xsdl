@@ -1,5 +1,5 @@
 /* $XFree86: xc/programs/Xserver/hw/xfree86/xaa/xaaWideLine.c,v 1.10 2001/11/16 16:47:56 dawes Exp $ */
-/* $XdotOrg: xc/programs/Xserver/hw/xfree86/xaa/xaaWideLine.c,v 1.4 2005/04/20 12:25:40 daniels Exp $ */
+/* $XdotOrg: xserver/xorg/hw/xfree86/xaa/xaaWideLine.c,v 1.7 2005/07/03 08:53:49 daniels Exp $ */
 /*
 
 XAAPolylinesWideSolid does not maintain a span list and subsequently does
@@ -18,20 +18,10 @@ Original mi code written by Keith Packard.
 #include <xorg-config.h>
 #endif
 
-#ifndef XFree86LOADER
-#if defined(_XOPEN_SOURCE) || defined(__QNXNTO__) \
-        || (defined(sun) && defined(__SVR4))
 #include <math.h>
-#else
-#define _XOPEN_SOURCE	/* to get prototype for hypot on some systems */
-#include <math.h>
-#undef _XOPEN_SOURCE
-#endif
-#endif
 
 #include "misc.h"
 #include "xf86.h"
-#include "xf86_ansic.h"
 #include "xf86_OSproc.h"
 
 #include <X11/X.h>

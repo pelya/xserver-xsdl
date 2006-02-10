@@ -55,7 +55,6 @@
 # include "xf86drm.h"
 # ifdef XFree86LOADER
 #  include "xf86.h"
-#  include "xf86_ansic.h"
 # else
 #  include <stdio.h>
 #  include <stdlib.h>

@@ -40,11 +40,7 @@
 #include "xf86str.h"
 #include "xf86Opt.h"
 #include <X11/Xfuncproto.h>
-#ifndef IN_MODULE
 #include <stdarg.h>
-#else
-#include "xf86_ansic.h"
-#endif
 #ifdef RANDR
 #include <X11/extensions/randr.h>
 #endif

@@ -19,9 +19,11 @@
 #include <xorg-config.h>
 #endif
 
+#include <unistd.h>
+
+#include <X11/Xos.h>
 #include "xf86.h"
 #include "xf86_OSproc.h"
-#include "xf86_ansic.h"
 #include "compiler.h"
 #define _INT10_PRIVATE
 #include "int10Defines.h"
@@ -342,13 +344,14 @@ x_inw(CARD16 port)
     CARD16 val;
 
     if (port == 0x5c) {
+	struct timeval tv;
+
 	/*
 	 * Emulate a PC98's timer.  Typical resolution is 3.26 usec.
 	 * Approximate this by dividing by 3.
 	 */
-	long sec, usec;
-	(void)getsecs(&sec, &usec);
-	val = (CARD16)(usec / 3);
+	X_GETTIMEOFDAY(&tv);
+	val = (CARD16)(tv.tv_usec / 3);
     } else {
 	if (!pciCfg1inw(port, &val))
 	    val = inw(Int10Current->ioBase + port);
@@ -363,15 +366,15 @@ void
 x_outb(CARD16 port, CARD8 val)
 {
     if ((port == 0x43) && (val == 0)) {
+	struct timeval tv;
 	/*
 	 * Emulate a PC's timer 0.  Such timers typically have a resolution of
 	 * some .838 usec per tick, but this can only provide 1 usec per tick.
 	 * (Not that this matters much, given inherent emulation delays.)  Use
 	 * the bottom bit as a byte select.  See inb(0x40) above.
 	 */
-	long sec, usec;
-	(void) getsecs(&sec, &usec);
-	Int10Current->inb40time = (CARD16)(usec | 1);
+	X_GETTIMEOFDAY(&tv);
+	Int10Current->inb40time = (CARD16)(tv.tv_usec | 1);
 #ifdef PRINT_PORT
 	ErrorF(" outb(%#x, %2.2x)\n", port, val);
 #endif

@@ -6,6 +6,8 @@
 #include <dix-config.h>
 #endif
 
+#include <string.h>
+
 #include <X11/X.h>
 #include <X11/Xproto.h>
 #include "misc.h"

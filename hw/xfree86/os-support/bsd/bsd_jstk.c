@@ -38,7 +38,6 @@
 
 #ifdef XFree86LOADER
 #include "misc.h"
-#include "xf86_libc.h"
 #endif
 #include "xf86.h"
 

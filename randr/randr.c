@@ -50,9 +50,6 @@
 #include "picturestr.h"
 #endif
 #include <X11/Xfuncproto.h>
-#ifdef EXTMODULE
-#include "xf86_ansic.h"
-#endif
 
 /* From render.h */
 #ifndef SubPixelUnknown

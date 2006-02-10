@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/Xext/shape.c,v 1.6 2005/06/10 04:01:14 ajax Exp $ */
+/* $XdotOrg: xserver/xorg/Xext/shape.c,v 1.9 2005/07/03 08:53:36 daniels Exp $ */
 /* $XFree86: xc/programs/Xserver/Xext/shape.c,v 3.18 2003/10/28 23:08:43 tsi Exp $ */
 /************************************************************
 
@@ -33,6 +33,8 @@ in this Software without prior written authorization from The Open Group.
 #include <dix-config.h>
 #endif
 
+#include <stdlib.h>
+
 #include <X11/X.h>
 #include <X11/Xproto.h>
 #include "misc.h"
@@ -48,9 +50,6 @@ in this Software without prior written authorization from The Open Group.
 #include <X11/extensions/shapestr.h>
 #include "regionstr.h"
 #include "gcstruct.h"
-#ifdef EXTMODULE
-#include "xf86_ansic.h"
-#endif
 #include "modinit.h"
 
 typedef	RegionPtr (*CreateDftPtr)(

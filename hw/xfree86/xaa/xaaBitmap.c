@@ -9,8 +9,6 @@
 #include "xaalocal.h"
 #include "xaacexp.h"
 #include "xf86.h"
-#include "xf86_ansic.h"
-
 
 
 /********** byte swapping ***************/

@@ -12,13 +12,15 @@
 #include <xorg-config.h>
 #endif
 
-#if 1
+#include <sys/time.h>
+#include <string.h>
+
 #include "misc.h"
 #include "xf86.h"
-#include "xf86_ansic.h"
 #include "xf86_OSproc.h"
 
 #include <X11/X.h>
+#include <X11/Xos.h>
 #include <X11/Xproto.h>
 #include "scrnintstr.h"
 #include "regionstr.h"
@@ -28,14 +30,6 @@
 #include "resource.h"
 #include "gcstruct.h"
 #include "dixstruct.h"
-#else
-typedef int Bool;
-typedef void *Pointer;
-#define NULL ((void *)0)
-#define X_DEFAULT 0
-#define TRUE  1
-#define FALSE 0
-#endif
 
 #include "xf86i2c.h"
 
@@ -76,20 +70,19 @@ I2CUDelay(I2CBusPtr b, int usec)
 static void
 I2CUDelay(I2CBusPtr b, int usec)
 {
-  long b_secs, b_usecs;
-  long a_secs, a_usecs;
+  struct timeval begin, cur;
   long d_secs, d_usecs;
   long diff;
 
   if (usec > 0) {
-    xf86getsecs(&b_secs, &b_usecs);
+    X_GETTIMEOFDAY(&begin);
     do {
       /* It would be nice to use {xf86}usleep, 
        * but usleep (1) takes >10000 usec !
        */
-      xf86getsecs(&a_secs, &a_usecs);
-      d_secs  = (a_secs - b_secs);
-      d_usecs = (a_usecs - b_usecs);
+      X_GETTIMEOFDAY(&cur);
+      d_secs  = (cur.tv_sec - begin.tv_sec);
+      d_usecs = (cur.tv_usec - begin.tv_usec);
       diff = d_secs*1000000 + d_usecs;
     } while (diff>=0 && diff< (usec + 1));
   }

@@ -41,10 +41,6 @@
 #endif /* USL */
 #endif
 
-#ifdef EXTMODULE
-#include "xf86_ansic.h"
-#endif
-
 static int miscErrorBase;
 static int MiscGeneration = 0;
 static int MiscClientPrivateIndex;

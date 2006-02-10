@@ -22,6 +22,10 @@
 
 #include "exa_priv.h"
 
+#include <sys/limits.h>
+#include <assert.h>
+#include <stdlib.h>
+
 #if DEBUG_OFFSCREEN
 #define DBG_OFFSCREEN(a) ErrorF a
 #else
@@ -120,7 +124,7 @@ exaOffscreenAlloc (ScreenPtr pScreen, int size, int align,
 
 	/* prev points at the first object to boot */
 	best = NULL;
-	best_score = MAXINT;
+	best_score = INT_MAX;
 	for (begin = pExaScr->info->card.offScreenAreas; begin != NULL;
 	     begin = begin->next)
 	{

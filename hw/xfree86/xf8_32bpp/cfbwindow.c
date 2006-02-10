@@ -5,6 +5,8 @@
 #include <xorg-config.h>
 #endif
 
+#include <stdlib.h>
+
 #include <X11/X.h>
 #include "scrnintstr.h"
 #include "windowstr.h"

@@ -40,38 +40,32 @@
 #ifdef XFree86Server
 # include "xf86.h"
 # include "xf86_OSproc.h"
-# include "drm.h"
-# include "xf86_ansic.h"
 # define _DRM_MALLOC xalloc
 # define _DRM_FREE   xfree
 # ifndef XFree86LOADER
 #  include <sys/mman.h>
 # endif
 #else
-# include <stdio.h>
-# include <stdlib.h>
-# include <unistd.h>
-# include <string.h>
-# include <ctype.h>
-# include <fcntl.h>
-# include <errno.h>
-# include <signal.h>
-# include <sys/types.h>
-# include <sys/stat.h>
-# define stat_t struct stat
-# include <sys/ioctl.h>
-# include <sys/mman.h>
-# include <sys/time.h>
-# include <stdarg.h>
-# ifdef DRM_USE_MALLOC
-#  define _DRM_MALLOC malloc
-#  define _DRM_FREE   free
-# else
-#  define _DRM_MALLOC malloc
-#  define _DRM_FREE   free
-# endif
-# include "drm.h"
+# define _DRM_MALLOC malloc
+# define _DRM_FREE   free
 #endif
+
+#include "drm.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
+#include <ctype.h>
+#include <fcntl.h>
+#include <errno.h>
+#include <signal.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#define stat_t struct stat
+#include <sys/ioctl.h>
+#include <sys/mman.h>
+#include <sys/time.h>
+#include <stdarg.h>
 
 /* No longer needed with CVS kernel modules on alpha 
 #if defined(__alpha__) && defined(__linux__)

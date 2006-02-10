@@ -75,6 +75,8 @@ SOFTWARE.
 #include <xorg-config.h>
 #endif
 
+#include <string.h>
+
 #include "xf4bpp.h"
 #include "servermd.h"
 #include "OScompiler.h"

@@ -39,10 +39,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <xorg-config.h>
 #endif
 
+#include <string.h>
+
 #include "xf86.h"
-#ifdef XFree86LOADER
-#include "xf86_ansic.h"
-#endif
 
 #define NEED_REPLIES
 #define NEED_EVENTS

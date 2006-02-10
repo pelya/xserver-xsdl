@@ -36,6 +36,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <dix-config.h>
 #endif
 
+#include <stdlib.h>
+
 #include <gcstruct.h>
 #include "pixmapstr.h"
 #include "xf86glx_util.h"

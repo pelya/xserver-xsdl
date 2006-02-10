@@ -62,12 +62,8 @@
 #include "xf86Pci.h"
 #include "xf86_OSproc.h"
 
-#ifndef IN_MODULE
 #include <ctype.h>
 #include <stdlib.h>
-#else
-#include <xf86_ansic.h>
-#endif
 
 #ifndef PCIDATA
 #define VENDOR_INCLUDE_NONVIDEO

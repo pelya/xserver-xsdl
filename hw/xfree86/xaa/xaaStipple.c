@@ -8,7 +8,6 @@
 #include "xaalocal.h"
 #include "xaacexp.h"
 #include "xf86.h"
-#include "xf86_ansic.h"
 
 static CARD32* StipplePowerOfTwo(CARD32*, CARD32*, int, int, int);
 static CARD32* StipplePowerOfTwo_Inverted(CARD32*, CARD32*, int, int, int);

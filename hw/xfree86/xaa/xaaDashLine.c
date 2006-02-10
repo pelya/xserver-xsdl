@@ -4,10 +4,11 @@
 #include <xorg-config.h>
 #endif
 
+#include <stdlib.h>
+
 #include <X11/X.h>
 #include "misc.h"
 #include "xf86.h"
-#include "xf86_ansic.h"
 #include "xf86_OSproc.h"
 
 #include "scrnintstr.h"

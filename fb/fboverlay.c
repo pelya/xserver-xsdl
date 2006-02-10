@@ -23,14 +23,17 @@
  * Author:  Keith Packard, SuSE, Inc.
  */
 
-/* $XdotOrg: xc/programs/Xserver/fb/fboverlay.c,v 1.5 2004/12/04 00:42:50 kuhn Exp $ */
+/* $XdotOrg: xserver/xorg/fb/fboverlay.c,v 1.7 2005/07/03 07:01:23 daniels Exp $ */
 
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>
 #endif
 
+#include <stdlib.h>
+
 #include "fb.h"
 #include "fboverlay.h"
+#include "shmint.h"
 
 int	fbOverlayGeneration;
 int	fbOverlayScreenPrivateIndex = -1;

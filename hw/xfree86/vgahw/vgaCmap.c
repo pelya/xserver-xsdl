@@ -37,7 +37,6 @@
 
 #include "xf86.h"
 #include "vgaHW.h"
-#include "xf86_ansic.h"
 
 #define _XF86DGA_SERVER_
 #include <X11/extensions/xf86dgastr.h>

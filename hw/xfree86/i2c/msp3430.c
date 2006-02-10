@@ -2,6 +2,9 @@
 #include <xorg-config.h>
 #endif
 
+#include <string.h>
+#include <unistd.h>
+
 #include "xf86.h"
 #include "xf86i2c.h"
 #include "msp3430.h"

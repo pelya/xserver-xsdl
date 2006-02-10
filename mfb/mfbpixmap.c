@@ -56,6 +56,8 @@ SOFTWARE.
 #include <dix-config.h>
 #endif
 
+#include <string.h>
+
 #include <X11/Xmd.h>
 #include "scrnintstr.h"
 #include "pixmapstr.h"

@@ -11,7 +11,6 @@
 #include <sys/linker.h>
 
 #include "xf86_OSproc.h"
-#include "xf86_ansic.h"
 
 /*
  * Load a FreeBSD kernel module.

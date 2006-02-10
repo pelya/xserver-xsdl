@@ -79,18 +79,13 @@
 
 #define RANDOM_MAIN 0
 
-#if RANDOM_MAIN
-# include <stdio.h>
-# include <stdlib.h>
-#else
+#include <stdio.h>
+#include <stdlib.h>
+#if !RANDOM_MAIN
 # include "drm.h"
 # include "xf86drm.h"
 # ifdef XFree86LOADER
 #  include "xf86.h"
-#  include "xf86_ansic.h"
-# else
-#  include <stdio.h>
-#  include <stdlib.h>
 # endif
 #endif
 

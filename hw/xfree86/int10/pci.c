@@ -9,9 +9,10 @@
 #include <xorg-config.h>
 #endif
 
+#include <string.h>
+
 #include "xf86Pci.h"
 #include "xf86.h"
-#include "xf86_ansic.h"
 #define _INT10_PRIVATE
 #include "xf86int10.h"
 

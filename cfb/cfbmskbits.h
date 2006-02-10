@@ -36,7 +36,6 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include	"servermd.h"
 #if defined(XFREE86) || ( defined(__OpenBSD__) && defined(__alpha__) ) \
 	|| (defined(__bsdi__))
-#include	"xf86_ansic.h"
 #include	"compiler.h"
 #endif
 

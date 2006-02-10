@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/Xext/xvdisp.c,v 1.3 2005/04/20 12:25:12 daniels Exp $ */
+/* $XdotOrg: xserver/xorg/Xext/xvdisp.c,v 1.6 2005/07/03 08:53:36 daniels Exp $ */
 /***********************************************************
 Copyright 1991 by Digital Equipment Corporation, Maynard, Massachusetts,
 and the Massachusetts Institute of Technology, Cambridge, Massachusetts.
@@ -52,6 +52,8 @@ SOFTWARE.
 #include <dix-config.h>
 #endif
 
+#include <string.h>
+
 #include <X11/X.h>
 #include <X11/Xproto.h>
 #include "misc.h"
@@ -69,10 +71,6 @@ SOFTWARE.
 #ifdef MITSHM
 #define _XSHM_SERVER_
 #include <X11/extensions/shmstr.h>
-#endif
-
-#ifdef EXTMODULE
-#include "xf86_ansic.h"
 #endif
 
 #include "xvdisp.h"

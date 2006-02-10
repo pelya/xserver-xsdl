@@ -38,6 +38,10 @@
 #include <dix-config.h>
 #endif
 
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+
 #include "glxserver.h"
 #include "glxcontext.h"
 #include "glximports.h"

@@ -1,8 +1,13 @@
-/* $XdotOrg: $ */
+/* $XdotOrg: xserver/xorg/hw/xfree86/i2c/fi1236.c,v 1.8 2005/07/30 18:56:32 alanc Exp $ */
 
 #ifdef HAVE_XORG_CONFIG_H
 #include <xorg-config.h>
 #endif
+
+#include <unistd.h>
+#include <stdlib.h>
+#include <string.h>
+#include <math.h>
 
 #include "xf86.h"
 #include "xf86i2c.h"

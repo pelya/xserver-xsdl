@@ -13,10 +13,10 @@
 
 #include "misc.h"
 #include "xf86.h"
-#include "xf86_ansic.h"
 #include "xf86_OSproc.h"
 #include "xf86DDC.h"
 #include "ddcPriv.h"
+#include <string.h>
 
 static int find_start(unsigned int *);
 static unsigned char * find_header(unsigned char *);

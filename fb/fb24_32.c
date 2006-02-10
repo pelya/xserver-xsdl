@@ -27,9 +27,9 @@
 #include <dix-config.h>
 #endif
 
+#include <string.h>
 #ifdef XFree86LOADER
 #include "xf86.h"
-#include "xf86_ansic.h"
 #endif
 
 #include "fb.h"

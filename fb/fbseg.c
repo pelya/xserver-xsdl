@@ -27,6 +27,8 @@
 #include <dix-config.h>
 #endif
 
+#include <stdlib.h>
+
 #include "fb.h"
 #include "miline.h"
 

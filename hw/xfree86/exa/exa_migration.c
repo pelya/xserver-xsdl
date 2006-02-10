@@ -25,6 +25,9 @@
 #ifdef HAVE_CONFIG_H
 #include <xorg-config.h>
 #endif
+
+#include <string.h>
+
 #include "exa_priv.h"
 #include <X11/fonts/fontstruct.h>
 #include "dixfontstr.h"

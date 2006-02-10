@@ -55,7 +55,6 @@
 #include "loaderProcs.h"
 
 #include <sym.h>
-#include <xf86_ansic.h>
 
 void LoaderDefaultFunc(void);
 #endif

@@ -37,6 +37,8 @@ in this Software without prior written authorization from The Open Group.
 #include <dix-config.h>
 #endif
 
+#include <sys/limits.h>
+
 #include <X11/X.h>
 #include <X11/Xprotostr.h>
 #include "regionstr.h"
@@ -308,7 +310,7 @@ RROP_NAME (cfbZeroPolyArcSS8) (pDraw, pGC, narcs, parcs)
  	    box.x2 = x2;
  	    y2 = box.y1 + (int)arc->height + 1;
  	    box.y2 = y2;
- 	    if ( (x2 <= MAXSHORT) && (y2 <= MAXSHORT) &&
+ 	    if ( (x2 <= SHRT_MAX) && (y2 <= SHRT_MAX) &&
  		    (RECT_IN_REGION(pDraw->pScreen, cclip, &box) == rgnIN) )
 		RROP_NAME (cfbZeroArcSS8) (pDraw, pGC, arc);
 	    else

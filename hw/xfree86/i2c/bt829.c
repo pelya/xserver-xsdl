@@ -4,6 +4,10 @@
 #include <xorg-config.h>
 #endif
 
+#include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
+
 #include "xf86.h"
 #include "xf86i2c.h"
 #include "bt829.h"

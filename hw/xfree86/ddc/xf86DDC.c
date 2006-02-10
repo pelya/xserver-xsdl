@@ -10,10 +10,10 @@
 
 #include "misc.h"
 #include "xf86.h"
-#include "xf86_ansic.h"
 #include "xf86_OSproc.h"
 #include "xf86DDC.h"
 #include "ddcPriv.h"
+#include <string.h>
 
 #ifdef XFree86LOADER
 static const OptionInfoRec *DDCAvailableOptions(void *unused);

@@ -9,8 +9,6 @@
 #include "xaalocal.h"
 #include "xaacexp.h"
 #include "xf86.h"
-#include "xf86_ansic.h"
-
 
 /* scanline function for TRIPLE_BITS_24BPP */
 static CARD32 *DrawTextScanline3(CARD32 *base, CARD32 *mem, int width);

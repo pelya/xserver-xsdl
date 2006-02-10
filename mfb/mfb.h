@@ -1147,12 +1147,5 @@ than a switch on the rop per item (span or rectangle.)
 #define MFB_OP_WHITE    /* nothing */
 #define MFB_OP_BLACK    ~
 
-/*
- * if MFB is built as a module, it shouldn't call libc functions.
- */
-#ifdef XFree86LOADER
-#include "xf86_ansic.h"
-#endif
-
 #endif /* MFB_PROTOTYPES_ONLY */
 #endif /* _MFB_H_ */

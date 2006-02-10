@@ -42,7 +42,6 @@ static const char rcs_id[] = "Id: lnx_jstk.c,v 1.1 1995/12/20 14:06:09 lepied Ex
 
 #ifdef XFree86LOADER
 #include "xf86.h"
-#include "xf86_ansic.h"
 #endif
 
 #if !defined(JSIOCGTIMELIMIT)

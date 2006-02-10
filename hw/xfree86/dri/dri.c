@@ -39,12 +39,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #endif
 
 #include "xf86.h"
-#ifdef XFree86LOADER
-#include "xf86_ansic.h"
-#else
 #include <sys/time.h>
 #include <unistd.h>
-#endif
 
 #define NEED_REPLIES
 #define NEED_EVENTS

@@ -1125,8 +1125,3 @@ typedef struct _afbpos{
 #define MFB_EQWHOLEWORD_INVERT	^=~0
 #define MFB_OP_WHITE					/* nothing */
 #define MFB_OP_BLACK					~
-
-#ifdef XFree86LOADER
-#include "xf86_ansic.h"
-#endif
-

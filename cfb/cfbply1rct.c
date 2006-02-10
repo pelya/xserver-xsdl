@@ -31,6 +31,8 @@ in this Software without prior written authorization from The Open Group.
 #include <dix-config.h>
 #endif
 
+#include <stdlib.h>
+
 #include <X11/X.h>
 
 #include "gcstruct.h"

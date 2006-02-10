@@ -51,6 +51,8 @@ SOFTWARE.
 #include <xorg-config.h>
 #endif
 
+#include <stdlib.h>
+
 #include "xf4bpp.h"
 #include "mfbmap.h"
 #define PSZ 8

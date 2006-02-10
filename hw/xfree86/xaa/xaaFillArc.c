@@ -38,9 +38,10 @@
 #include <xorg-config.h>
 #endif
 
+#include <sys/limits.h>
+
 #include "misc.h"
 #include "xf86.h"
-#include "xf86_ansic.h"
 #include "xf86_OSproc.h"
 
 #include <X11/X.h>
@@ -201,7 +202,7 @@ XAAPolyFillArcSolid(pDraw, pGC, narcs, parcs)
  	    box.x2 = x2;
  	    y2 = box.y1 + (int)arc->height + 1;
  	    box.y2 = y2;
- 	    if ( (x2 <= MAXSHORT) && (y2 <= MAXSHORT) &&
+ 	    if ( (x2 <= SHRT_MAX) && (y2 <= SHRT_MAX) &&
  		    (RECT_IN_REGION(pDraw->pScreen, cclip, &box) == rgnIN) )
 	    {
 		if ((arc->angle2 >= FULLCIRCLE) ||

@@ -52,10 +52,6 @@
 
 #ifndef _COMPILER_H
 
-# if !defined(_XF86_ANSIC_H) && defined(XFree86Module)
-#  error missing #include "xf86_ansic.h" before #include "compiler.h"
-# endif
-
 # define _COMPILER_H
 
 #if defined(__SUNPRO_C)

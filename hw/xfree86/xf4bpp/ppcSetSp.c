@@ -75,6 +75,8 @@ SOFTWARE.
 #include <xorg-config.h>
 #endif
 
+#include <stdlib.h>
+
 #include "xf4bpp.h"
 #include "OScompiler.h"
 #include "mfbmap.h"

@@ -23,6 +23,8 @@
  * SOFTWARE.
  */
 
+#include <string.h>
+
 #include <X11/Xmd.h>
 #include <GL/gl.h>
 #include <GL/glxproto.h>

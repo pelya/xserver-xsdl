@@ -50,8 +50,6 @@ SOFTWARE.
 # include "io.h"
 # define O_NDELAY 0L
 #endif
-#else
-#include "xf86_ansic.h"
 #endif
 
 #define NEED_REPLIES

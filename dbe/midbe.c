@@ -58,11 +58,7 @@
 #include "gcstruct.h"
 #include "inputstr.h"
 
-#ifndef IN_MODULE
 #include <stdio.h>
-#else
-#include "xf86_ansic.h"
-#endif
 
 /* DEFINES */
 

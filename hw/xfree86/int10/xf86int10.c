@@ -10,7 +10,6 @@
 #endif
 
 #include "xf86.h"
-#include "xf86_ansic.h"
 #include "compiler.h"
 #define _INT10_PRIVATE
 #include "xf86int10.h"

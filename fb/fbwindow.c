@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/fb/fbwindow.c,v 1.8 2005/07/03 07:01:23 daniels Exp $ */
+/* $XdotOrg: xserver/xorg/fb/fbwindow.c,v 1.9 2005/10/02 08:28:26 anholt Exp $ */
 /*
  * Id: fbwindow.c,v 1.1 1999/11/02 03:54:45 keithp Exp $
  *
@@ -28,10 +28,9 @@
 #include <dix-config.h>
 #endif
 
+#include <stdlib.h>
+
 #include "fb.h"
-#ifdef IN_MODULE
-#include "xf86_ansic.h"
-#endif
 
 Bool
 fbCreateWindow(WindowPtr pWin)

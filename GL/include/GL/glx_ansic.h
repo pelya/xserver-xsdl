@@ -56,9 +56,6 @@
 
 #ifdef XFree86Server
 
-#ifdef XFree86LOADER
-#include "xf86_ansic.h"
-#endif
 #ifndef assert
 #define assert(a)
 #endif

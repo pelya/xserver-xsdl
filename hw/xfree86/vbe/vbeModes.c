@@ -34,8 +34,10 @@
 #include <xorg-config.h>
 #endif
 
+#include <stdio.h>
+#include <string.h>
+
 #include "xf86.h"
-#include "xf86_ansic.h"
 #include "vbe.h"
 #include "vbeModes.h"
 

@@ -14,8 +14,9 @@
 #include <xorg-config.h>
 #endif
 
+#include <string.h>
+
 #include "xf86.h"
-#include "xf86_ansic.h"
 #include "vbe.h"
 #include <X11/Xarch.h>
 #define DPMS_SERVER

@@ -28,7 +28,6 @@
 #endif
 
 #ifdef XFree86LOADER
-#include "xf86_ansic.h"
 
 #include "xf86Module.h"
 #include "xf86Opt.h"

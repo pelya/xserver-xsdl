@@ -38,9 +38,7 @@
 #include <dix-config.h>
 #endif
 
-#ifdef IN_MODULE
-#include <xf86_ansic.h>
-#else
+#ifndef IN_MODULE
 #include <string.h>
 #include <signal.h>
 #endif

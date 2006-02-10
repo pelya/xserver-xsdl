@@ -1316,12 +1316,6 @@ extern int cfbScreenPrivateIndex;
 
 #include "micoord.h"
 
-/*
- * if CFB is built as a module, it shouldn't call libc functions.
- */
-#ifdef XFree86LOADER
-#include "xf86_ansic.h"
-#endif
 #endif /* !CFB_PROTOTYPES_ONLY */
 
 #endif

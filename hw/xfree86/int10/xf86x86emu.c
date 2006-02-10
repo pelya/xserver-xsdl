@@ -10,11 +10,9 @@
 
 #include <x86emu.h>
 #include "xf86.h"
-#include "xf86_ansic.h"
 #include "compiler.h"
 #include "xf86_OSproc.h"
 #include "xf86Pci.h"
-#include "xf86_libc.h"
 #define _INT10_PRIVATE
 #include "xf86int10.h"
 #include "int10Defines.h"

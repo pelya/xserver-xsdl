@@ -9,7 +9,6 @@
 #include "xaalocal.h"
 #include "xaacexp.h"
 #include "xf86.h"
-#include "xf86_ansic.h"
 
 /* Not used anymore because the algorithm isn't correct. It doesn't
    handle overlapping characters properly */

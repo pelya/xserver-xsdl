@@ -25,6 +25,8 @@
 #include <dix-config.h>
 #endif
 
+#include <string.h>
+
 #include "gcstruct.h"
 #include "windowstr.h"
 #include "cw.h"

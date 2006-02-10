@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/dbe/dbe.c,v 1.3 2005/04/20 12:25:19 daniels Exp $ */
+/* $XdotOrg: xserver/xorg/dbe/dbe.c,v 1.5 2005/07/03 07:01:17 daniels Exp $ */
 /* $Xorg: dbe.c,v 1.3 2000/08/17 19:48:16 cpqbld Exp $ */
 /******************************************************************************
  * 
@@ -41,6 +41,8 @@
 #include <dix-config.h>
 #endif
 
+#include <string.h>
+
 #include <X11/X.h>
 #include <X11/Xproto.h>
 #include "scrnintstr.h"
@@ -50,10 +52,6 @@
 #define NEED_DBE_PROTOCOL
 #include "dbestruct.h"
 #include "midbe.h"
-
-#ifdef XFree86LOADER
-#include "xf86_ansic.h"
-#endif
 
 /* GLOBALS */
 

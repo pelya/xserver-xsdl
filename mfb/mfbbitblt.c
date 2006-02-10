@@ -54,6 +54,8 @@ SOFTWARE.
 #include <X11/X.h>
 #include <X11/Xprotostr.h>
 
+#include <stdlib.h>
+
 #include "regionstr.h"
 #include "gcstruct.h"
 #include "windowstr.h"

@@ -36,7 +36,6 @@
 #define ABS(x) (((x)>0)?(x):-(x))
 
 #include "misc.h"
-#include "xf86_ansic.h"
 #include "compiler.h"
 
 #ifdef lint

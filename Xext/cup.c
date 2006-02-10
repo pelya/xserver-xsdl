@@ -45,11 +45,7 @@ in this Software without prior written authorization from The Open Group.
 #include <X11/extensions/Xcupstr.h>
 #include <X11/Xfuncproto.h>
 
-#ifndef EXTMODULE
 #include "../os/osdep.h"
-#else
-#include "xf86_ansic.h"
-#endif
 
 #include "modinit.h"
 
