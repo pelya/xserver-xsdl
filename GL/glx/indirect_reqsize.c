@@ -35,7 +35,6 @@
 #  include <byteswap.h>
 #  define SWAP_32(v)  do { (v) = bswap_32(v); } while(0)
 #else
-#  include <X11/misc.h>
 #  define SWAP_32(v)  do { char tmp; swapl(&v, tmp); } while(0)
 #endif
 

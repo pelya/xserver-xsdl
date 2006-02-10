@@ -1,3 +1,7 @@
+2006-02-09  Eric Anholt  <anholt@FreeBSD.org>
+
+	* GL/glx/indirect_reqsize.c:
+
 2006-02-03  Jeremy C. Reed <reed@reedmedia.net>
 
 	* hw/xfree86/os-support/xf86_OSlib.h
