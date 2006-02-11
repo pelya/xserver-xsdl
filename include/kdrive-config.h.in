@@ -10,6 +10,9 @@
 /* Building kdrive server. */
 #undef KDRIVESERVER
 
+/* Build GLX extension */
+#undef GLXEXT
+
 #if 0
 
 /* Need XFree86 libc-replacement typedefs. */

@@ -9,7 +9,8 @@ AM_CFLAGS = \
 	-I@MESA_SOURCE@/src/mesa/main \
 	@SERVER_DEFINES@ \
 	@MODULE_DEFINES@ \
-	@LOADER_DEFINES@
+	@LOADER_DEFINES@ \
+	-DNO_LIBCWRAPPER
 
 # none yet
 #sdk_HEADERS =

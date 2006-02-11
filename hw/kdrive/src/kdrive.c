@@ -1514,3 +1514,6 @@ DPMSSupported (void)
 #endif
 
 void ddxInitGlobals(void) { /* THANK YOU XPRINT */ }
+void xf86WrapperInit(void);
+void xf86WrapperInit(void) { /* THANK YOU XFREE86 */ }
+
