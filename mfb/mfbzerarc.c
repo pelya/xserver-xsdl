@@ -37,7 +37,7 @@ in this Software without prior written authorization from The Open Group.
 #include <dix-config.h>
 #endif
 
-#include <sys/limits.h>
+#include <limits.h>
 
 #include <X11/X.h>
 #include <X11/Xprotostr.h>

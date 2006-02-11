@@ -22,7 +22,7 @@
 
 #include "exa_priv.h"
 
-#include <sys/limits.h>
+#include <limits.h>
 #include <assert.h>
 #include <stdlib.h>
 

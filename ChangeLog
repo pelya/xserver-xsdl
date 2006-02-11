@@ -1,3 +1,13 @@
+2006-02-11  Alan Coopersmith  <alan.coopersmith@sun.com>
+
+	* cfb/cfbfillarc.c:
+	* cfb/cfbzerarc.c:
+	* hw/xfree86/xaa/xaaFillArc.c:
+	* hw/xfree86/exa/exa_offscreen.c:
+	* mfb/mfbfillarc.c:
+	* mfb/mfbzerarc.c:
+	<sys/limits.h> -> <limits.h> so we can compile on non-BSD OS'es
+
 2006-02-10  Eric Anholt  <anholt@FreeBSD.org>
 
 	* GL/glx/Makefile.am:

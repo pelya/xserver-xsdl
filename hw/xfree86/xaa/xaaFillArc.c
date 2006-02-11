@@ -38,7 +38,7 @@
 #include <xorg-config.h>
 #endif
 
-#include <sys/limits.h>
+#include <limits.h>
 
 #include "misc.h"
 #include "xf86.h"
