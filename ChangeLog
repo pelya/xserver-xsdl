@@ -1,5 +1,14 @@
 2006-02-11  Alan Coopersmith  <alan.coopersmith@sun.com>
 
+	* Xext/xres.c: 
+	* afb/afbline.c:
+	* fb/fbblt.c:
+	* hw/dmx/config/scanner.l:
+	Add <string.h>, <stdlib.h>, and <stdio.h> to clear undefined function
+	warnings after the removal of libcwrapper headers.
+
+2006-02-11  Alan Coopersmith  <alan.coopersmith@sun.com>	
+
 	* cfb/cfbfillarc.c:
 	* cfb/cfbzerarc.c:
 	* hw/xfree86/xaa/xaaFillArc.c:

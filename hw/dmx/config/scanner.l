@@ -40,6 +40,7 @@
 #include "dmxparse.h"
 #include "parser.h"
 #include <string.h>
+#include <stdlib.h>
 #include <ctype.h>
 static int getdimension(int token, const char *text, int leng);
 static int getstring(int token, const char *text, int leng);

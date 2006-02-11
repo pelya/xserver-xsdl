@@ -53,6 +53,7 @@ SOFTWARE.
 #endif
 
 #include <X11/X.h>
+#include <stdlib.h>
 
 #include "gcstruct.h"
 #include "windowstr.h"

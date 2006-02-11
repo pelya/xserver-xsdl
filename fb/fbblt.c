@@ -27,6 +27,7 @@
 #include <dix-config.h>
 #endif
 
+#include <string.h>
 #include "fb.h"
 
 #define InitializeShifts(sx,dx,ls,rs) { \
