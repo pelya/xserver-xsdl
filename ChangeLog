@@ -1,3 +1,10 @@
+2006-02-11  Eric Anholt  <anholt@FreeBSD.org>
+
+	* hw/vfb/InitOutput.c: (xf86WrapperInit):
+	* hw/xnest/Init.c: (xf86WrapperInit):
+	Add stub xf86WrapperInits so that the servers will build even if os/ was
+	built with XFree86LOADER set.
+
 2006-02-11  Alan Coopersmith  <alan.coopersmith@sun.com>
 
 	* Xext/xres.c: 

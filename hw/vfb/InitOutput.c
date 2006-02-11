@@ -1044,3 +1044,5 @@ InitOutput(ScreenInfo *screenInfo, int argc, char **argv)
 int SelectWaitTime = 10000; /* usec */
 #endif
 
+void xf86WrapperInit(void);
+void xf86WrapperInit(void) { /* THANKS XFREE86 */ }
