@@ -1,3 +1,12 @@
+2006-02-12  Eric Anholt  <anholt@FreeBSD.org>
+
+	* hw/kdrive/linux/Makefile.am:
+	* hw/kdrive/src/Makefile.am:
+	* include/kdrive-config.h.in:
+	Add missing HAVE_DIX_CONFIG_H which caused issues with mismatched screen
+	structure interpretations, and remove a bunch of unused junk from
+	kdrive-config.h.  Xephyr almost works on my amd64.
+
 2006-02-11  Eric Anholt  <anholt@FreeBSD.org>
 
 	* hw/vfb/InitOutput.c: (xf86WrapperInit):

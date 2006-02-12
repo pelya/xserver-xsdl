@@ -2,6 +2,7 @@ INCLUDES = 					\
 	@KDRIVE_INCS@				\
 	@KDRIVE_CFLAGS@
 
+AM_CFLAGS = -DHAVE_DIX_CONFIG_H
 
 noinst_LIBRARIES = liblinux.a
 
