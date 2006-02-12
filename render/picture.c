@@ -1657,6 +1657,90 @@ FreePictFormat (pointer	pPictFormat,
     return Success;
 }
 
+/**
+ * ReduceCompositeOp is used to choose simpler ops for cases where alpha
+ * channels are always one and so math on the alpha channel per pixel becomes
+ * unnecessary.  It may also avoid destination reads sometimes if apps aren't
+ * being careful to avoid these cases.
+ */
+static Bool
+ReduceCompositeOp (CARD8 op, PicturePtr pSrc, PicturePtr pMask, PicturePtr pDst)
+{
+    /* Deal with simplifications where the source alpha is always 1. */
+    if (PICT_FORMAT_COLOR(pSrc->format) &&
+	PICT_FORMAT_A(pSrc->format) == 0 && pSrc->alphaMap == NULL &&
+	pMask == NULL)
+    {
+	switch (op) {
+	case PictOpOver:
+	    op = PictOpSrc;
+	    break;
+	case PictOpInReverse:
+	    op = PictOpDst;
+	    break;
+	case PictOpOutReverse:
+	    op = PictOpClear;
+	    break;
+	case PictOpAtop:
+	    op = PictOpIn;
+	    break;
+	case PictOpAtopReverse:
+	    op = PictOpOverReverse;
+	    break;
+	case PictOpXor:
+	    op = PictOpOut;
+	    break;
+	default:
+	    break;
+	}
+    }
+
+    /* Deal with simplifications when the destination alpha is always 1 */
+    if (PICT_FORMAT_COLOR(pDst->format) &&
+	PICT_FORMAT_A(pDst->format) == 0 && pDst->alphaMap == NULL)
+    {
+	switch (op) {
+	case PictOpOverReverse:
+	    op = PictOpDst;
+	    break;
+	case PictOpIn:
+	    op = PictOpSrc;
+	    break;
+	case PictOpOut:
+	    op = PictOpClear;
+	    break;
+	case PictOpAtop:
+	    op = PictOpOver;
+	    break;
+	case PictOpXor:
+	    op = PictOpOutReverse;
+	    break;
+	default:
+	    break;
+	}
+    }
+
+    /* Reduce some con/disjoint ops to the basic names. */
+    switch (op) {
+    case PictOpDisjointClear:
+    case PictOpConjointClear:
+	op = PictOpClear;
+	break;
+    case PictOpDisjointSrc:
+    case PictOpConjointSrc:
+	op = PictOpSrc;
+	break;
+    case PictOpDisjointDst:
+    case PictOpConjointDst:
+	op = PictOpDst;
+	break;
+    default:
+	break;
+    }
+
+    return op;
+}
+
 void
 CompositePicture (CARD8		op,
 		  PicturePtr	pSrc,
@@ -1677,6 +1761,11 @@ CompositePicture (CARD8		op,
     if (pMask)
 	ValidatePicture (pMask);
     ValidatePicture (pDst);
+
+    op = ReduceCompositeOp (op, pSrc, pMask, pDst);
+    if (op == PictOpDst)
+	return;
+
     (*ps->Composite) (op,
 		       pSrc,
 		       pMask,

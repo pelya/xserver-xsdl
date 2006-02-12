@@ -1,5 +1,13 @@
 2006-02-12  Eric Anholt  <anholt@FreeBSD.org>
 
+	reviewed by: keithp (in principle)
+
+	* render/picture.c: (ReduceCompositeOp), (CompositePicture):
+	Simplify ops that would use the alpha channel when an alpha channel is
+	always 1.0, and short circuit PictOpDst for good measure.
+
+2006-02-12  Eric Anholt  <anholt@FreeBSD.org>
+
 	* hw/kdrive/linux/Makefile.am:
 	* hw/kdrive/src/Makefile.am:
 	* include/kdrive-config.h.in:
