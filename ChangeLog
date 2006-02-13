@@ -291,6 +291,8 @@
 2006-02-09  Eric Anholt  <anholt@FreeBSD.org>
 
 	* GL/glx/indirect_reqsize.c:
+	Remove the include of X11/misc.h, which fails to compile and isn't
+	necessary.
 
 2006-02-03  Jeremy C. Reed <reed@reedmedia.net>
 
