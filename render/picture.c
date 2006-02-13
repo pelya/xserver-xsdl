@@ -1678,27 +1678,6 @@ ReduceCompositeOp (CARD8 op, PicturePtr pSrc, PicturePtr pMask, PicturePtr pDst)
 
     /* TODO, maybe: Conjoint and Disjoint op reductions? */
  
-    /*
-     * Deal with simplifications where both source and destination alpha are
-     * always 1.  Note the (intentional) fallthrough to the later stages.
-     */
-    if (no_src_alpha && no_dst_alpha)
-    {
-        switch (op) {
-        case PictOpAtop:
-            op = PictOpSrc;
-            break;
-        case PictOpAtopReverse:
-            op = PictOpDst;
-            break;
-        case PictOpXor:
-            op = PictOpClear;
-            break;
-        default:
-            break;
-        }
-    }
-
     /* Deal with simplifications where the source alpha is always 1. */
     if (no_src_alpha)
     {
