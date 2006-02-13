@@ -303,7 +303,7 @@ XpFinishDocData(
     return Success;
 }
 
-#ifndef HAS_MKSTEMP
+#ifndef HAVE_MKSTEMP
 static
 char *XpDirName(char *fname)
 {
@@ -330,7 +330,7 @@ XpOpenTmpFile(
     char **fname,
     FILE **stream)
 {
-#ifndef HAS_MKSTEMP
+#ifndef HAVE_MKSTEMP
     char *fn = NULL;
 
     /* note that there is a small race condition here... */

@@ -1,5 +1,10 @@
 2006-02-13  Benjamin Herrenschmidt <benh@kernel.crashing.org>
 
+	* Xprint/Util.c: (XpOpenTmpFile):
+	HAS_MKSTEMP vs. HAVE_MKSTEMP (From Fredrik Höglund)
+
+2006-02-13  Benjamin Herrenschmidt <benh@kernel.crashing.org>
+
 	* cfb/Makefile.am:
 	* cfb16/Makefile.am:
 	* cfb32/Makefile.am:
