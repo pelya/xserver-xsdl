@@ -1043,6 +1043,3 @@ InitOutput(ScreenInfo *screenInfo, int argc, char **argv)
 #ifdef AIXV3
 int SelectWaitTime = 10000; /* usec */
 #endif
-
-void xf86WrapperInit(void);
-void xf86WrapperInit(void) { /* THANKS XFREE86 */ }

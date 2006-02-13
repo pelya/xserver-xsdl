@@ -1,5 +1,5 @@
 /* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86Init.c,v 3.212 2004/01/27 01:31:45 dawes Exp $ */
-/* $XdotOrg: $ */
+/* $XdotOrg: xserver/xorg/hw/xfree86/common/xf86Init.c,v 1.29 2005/12/14 20:11:16 ajax Exp $ */
 
 /*
  * Loosely based on code bearing the following copyright:
@@ -1170,7 +1170,8 @@ OsVendorInit()
 {
   static Bool beenHere = FALSE;
 
-  /* xf86WrapperInit() is called directly from OsInit() */
+  xf86WrapperInit();
+
 #ifdef SIGCHLD
   signal(SIGCHLD, SIG_DFL);	/* Need to wait for child processes */
 #endif

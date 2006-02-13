@@ -1,3 +1,13 @@
+2006-02-13  Benjamin Herrenschmidt <benh@kernel.crashing.org>
+
+	* hw/kdrive/src/kdrive.c: (ddxInitGlobals):
+	* hw/vfb/InitOutput.c:
+	* hw/xfree86/common/xf86Init.c: (OsVendorInit):
+	* hw/xnest/Init.c:
+	* os/osinit.c: (OsInit):
+	Move call to xf86WrapperInit() to OsVendorInit() in xf86Init.c and
+	remove stubs in other DDX.
+
 2006-02-12  Eric Anholt  <anholt@FreeBSD.org>
 
 	reviewed by: keithp (in principle)
