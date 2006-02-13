@@ -2,6 +2,7 @@
 
 	* render/picture.c:
 	Further op reduction when both src and dst alpha are absent.
+	(Reverted)
 
 2006-02-13  Benjamin Herrenschmidt <benh@kernel.crashing.org>
 
