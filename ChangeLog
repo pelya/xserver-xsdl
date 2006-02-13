@@ -1,5 +1,16 @@
 2006-02-13  Benjamin Herrenschmidt <benh@kernel.crashing.org>
 
+	* cfb/Makefile.am:
+	* cfb16/Makefile.am:
+	* cfb32/Makefile.am:
+	* hw/xfree86/fbdevhw/fbdevhw.c:
+	* hw/xfree86/os-support/linux/int10/linux.c:
+	* hw/xfree86/os-support/linux/int10/vm86/linux_vm86.c:
+	Fix linux build without libc wrappers (From Fredrik
+	Höglund)
+
+2006-02-13  Benjamin Herrenschmidt <benh@kernel.crashing.org>
+
 	* hw/kdrive/src/kdrive.c: (ddxInitGlobals):
 	* hw/vfb/InitOutput.c:
 	* hw/xfree86/common/xf86Init.c: (OsVendorInit):
