@@ -1666,10 +1666,41 @@ FreePictFormat (pointer	pPictFormat,
 static Bool
 ReduceCompositeOp (CARD8 op, PicturePtr pSrc, PicturePtr pMask, PicturePtr pDst)
 {
+    Bool no_src_alpha, no_dst_alpha;
+
+    no_src_alpha = PICT_FORMAT_COLOR(pSrc->format) &&
+                   PICT_FORMAT_A(pSrc->format) == 0 &&
+                   pSrc->alphaMap == NULL &&
+                   pMask == NULL;
+    no_dst_alpha = PICT_FORMAT_COLOR(pDst->format) &&
+                   PICT_FORMAT_A(pDst->format) == 0 &&
+                   pDst->alphaMap == NULL;
+
+    /* TODO, maybe: Conjoint and Disjoint op reductions? */
+ 
+    /*
+     * Deal with simplifications where both source and destination alpha are
+     * always 1.  Note the (intentional) fallthrough to the later stages.
+     */
+    if (no_src_alpha && no_dst_alpha)
+    {
+        switch (op) {
+        case PictOpAtop:
+            op = PictOpSrc;
+            break;
+        case PictOpAtopReverse:
+            op = PictOpDst;
+            break;
+        case PictOpXor:
+            op = PictOpClear;
+            break;
+        default:
+            break;
+        }
+    }
+
     /* Deal with simplifications where the source alpha is always 1. */
-    if (PICT_FORMAT_COLOR(pSrc->format) &&
-	PICT_FORMAT_A(pSrc->format) == 0 && pSrc->alphaMap == NULL &&
-	pMask == NULL)
+    if (no_src_alpha)
     {
 	switch (op) {
 	case PictOpOver:
@@ -1696,8 +1727,7 @@ ReduceCompositeOp (CARD8 op, PicturePtr pSrc, PicturePtr pMask, PicturePtr pDst)
     }
 
     /* Deal with simplifications when the destination alpha is always 1 */
-    if (PICT_FORMAT_COLOR(pDst->format) &&
-	PICT_FORMAT_A(pDst->format) == 0 && pDst->alphaMap == NULL)
+    if (no_dst_alpha)
     {
 	switch (op) {
 	case PictOpOverReverse:
