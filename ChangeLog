@@ -1,5 +1,13 @@
 2006-02-14  Benjamin Herrenschmidt <benh@kernel.crashing.org>
 
+	* hw/xfree86/dri/dri.c: (DRIGetSecs):
+	DRIGetSecs() would call getsecs() when XFree86LOADER is defined,
+	relying on the wrappers to provide it. Wrapper gone, and getsecs
+	doesn't exist on linux so it now blows up. Fixes it by just calling
+	gettimeofday() in all cases instead.
+
+2006-02-14  Benjamin Herrenschmidt <benh@kernel.crashing.org>
+
 	* fb/fbbits.h:
 	Remove useless line of code that contained a bug and triggered a
 	gcc warning. This variable will be overriden before being used

@@ -1654,16 +1654,12 @@ DRICopyWindow(WindowPtr pWin, DDXPointRec ptOldOrg, RegionPtr prgnSrc)
 static void
 DRIGetSecs(long *secs, long *usecs)
 {
-#ifdef XFree86LOADER
-    getsecs(secs,usecs);
-#else
     struct timeval tv;
 
     gettimeofday(&tv, NULL);
 
     *secs  = tv.tv_sec;
     *usecs = tv.tv_usec;
-#endif
 }
 
 static unsigned long
