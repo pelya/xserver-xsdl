@@ -1,3 +1,8 @@
+2006-02-14  Alan Hourihane  <alanh@fairlite.demon.co.uk>
+
+	* hw/xfree86/dixmods/shmodule.c:
+	Bump shadow module version number to 1.1.0 from 1.0.0
+
 2006-02-13  Adam Jackson  <ajax@freedesktop.org>
 
 	* render/picture.c:
