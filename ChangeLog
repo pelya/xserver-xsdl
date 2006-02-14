@@ -1,3 +1,10 @@
+2006-02-14  Benjamin Herrenschmidt <benh@kernel.crashing.org>
+
+	* fb/fbbits.h:
+	Remove useless line of code that contained a bug and triggered a
+	gcc warning. This variable will be overriden before being used
+	anyway. (Bugzilla #5595)
+
 2006-02-14  Alan Hourihane  <alanh@fairlite.demon.co.uk>
 
 	* hw/xfree86/dixmods/shmodule.c:

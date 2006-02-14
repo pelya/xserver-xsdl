@@ -829,8 +829,6 @@ POLYSEGMENT (DrawablePtr    pDrawable,
     ul = coordToInt(pBox->x1 - xoff,     pBox->y1 - yoff);
     lr = coordToInt(pBox->x2 - xoff - 1, pBox->y2 - yoff - 1);
 
-    bits += bitsStride * yoff + xoff * MUL;
-
     capNotLast = pGC->capStyle == CapNotLast;
     
     while (nseg--)
