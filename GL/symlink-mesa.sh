@@ -336,6 +336,7 @@ symlink_mesa_tnl() {
     action t_vb_arbprogram.c
     action t_vb_arbprogram.h
     action t_vb_arbprogram_sse.c
+    action t_vb_arbshader.c
     action t_vb_cliptmp.h
     action t_vb_cull.c
     action t_vb_fog.c
