@@ -758,6 +758,7 @@ AC_SUBST([VENDOR_MAN_VERSION])
 AC_DEFINE(DDXOSINIT, 1, [Use OsVendorInit])
 AC_DEFINE(SERVER_LOCK, 1, [Use a lock to prevent multiple servers on a display])
 AC_DEFINE(SMART_SCHEDULE, 1, [Include time-based scheduler])
+AC_DEFINE(NO_LIBCWRAPPER, 1, [Define to 1 if modules should avoid the libcwrapper])
 AM_CONDITIONAL(DEBUG, test "x$DEBUGGING" = xyes)
 
 if ! test "x$DEBUGGING" = xyes; then

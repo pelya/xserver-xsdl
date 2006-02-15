@@ -424,4 +424,7 @@
 /* Define to 1 if `struct sockaddr_in' has a `sin_len' member */
 #undef BSD44SOCKETS
 
+/* Define to 1 if modules should avoid the libcwrapper */
+#undef NO_LIBCWRAPPER
+
 #endif /* _DIX_CONFIG_H_ */

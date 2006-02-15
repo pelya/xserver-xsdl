@@ -1,3 +1,22 @@
+2006-02-15  Eric Anholt  <anholt@FreeBSD.org>
+
+	* GL/mesa/X/Makefile.am:
+	* GL/mesa/array_cache/Makefile.am:
+	* GL/mesa/glapi/Makefile.am:
+	* GL/mesa/main/Makefile.am:
+	* GL/mesa/math/Makefile.am:
+	* GL/mesa/shader/Makefile.am:
+	* GL/mesa/shader/grammar/Makefile.am:
+	* GL/mesa/shader/slang/Makefile.am:
+	* GL/mesa/swrast/Makefile.am:
+	* GL/mesa/swrast_setup/Makefile.am:
+	* GL/mesa/tnl/Makefile.am:
+	* configure.ac:
+	* include/dix-config.h.in:
+	Define NO_LIBCWRAPPER in dix-config.h, and rely on Mesa including
+	dix-config.h if DIX_HAVE_CONFIG_H is defined to get it and _XSERVER64,
+	instead of defining things like this per directory.
+
 2006-02-15  Adam Jackson  <ajax@freedesktop.org>
 	* mi/miarc.c:
 	* mi/mibank.c:
