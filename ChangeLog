@@ -91,6 +91,11 @@
 	* xkb/xkbInit.c:
 	Mark everything in dixsym.c as _X_EXPORT.
 
+	* XTrap/xtrapddmi.c:
+	* XTrap/xtrapdiswp.c:
+	Remove a few #ifdef vms; whatever problem that was solving should
+	assuredly be solved some other way.
+
 2006-02-15  Kristian Høgsberg  <krh@redhat.com>
 
 	* GL/symlink-mesa.sh: 
