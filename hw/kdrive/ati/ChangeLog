@@ -1,3 +1,11 @@
+2006-02-14  Eric Anholt  <anholt@FreeBSD.org>
+
+	* ati_draw.c: (ATIDrawDisable):
+	Remove the waitSync from KdDisableScreen and push it off to drivers'
+	disableAccel hook, which is more correct anyway.  This makes kdrive.c
+	not have any knowledge of kaa, opening the way for using exa from
+	kdrive.
+
 2006-02-09  Keith Packard  <keithp@keithp.com>
 
 	reviewed by: Eric Anholt  <anholt@FreeBSD.org>

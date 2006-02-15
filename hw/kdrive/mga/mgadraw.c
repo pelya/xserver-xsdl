@@ -317,6 +317,7 @@ mgaDrawEnable (ScreenPtr pScreen)
 void
 mgaDrawDisable (ScreenPtr pScreen)
 {
+    kaaWaitSync(pScreen);
 }
 
 void

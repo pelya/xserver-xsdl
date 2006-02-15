@@ -38,7 +38,6 @@
 #ifdef XV
 #include "kxv.h"
 #endif
-#include "kaa.h"
 
 #ifdef DPMSExtension
 #include "dpmsproc.h"
@@ -225,7 +224,6 @@ KdDisableScreen (ScreenPtr pScreen)
     
     if (!pScreenPriv->enabled)
 	return;
-    kaaWaitSync (pScreen);
     if (!pScreenPriv->closed)
 	KdSetRootClip (pScreen, FALSE);
     KdDisableColormap (pScreen);

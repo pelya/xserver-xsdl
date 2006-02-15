@@ -1,5 +1,14 @@
 2006-02-14  Eric Anholt  <anholt@FreeBSD.org>
 
+	* hw/kdrive/mga/mgadraw.c: (mgaDrawDisable):
+	* hw/kdrive/src/kdrive.c: (KdDisableScreen):
+	Remove the waitSync from KdDisableScreen and push it off to drivers'
+	disableAccel hook, which is more correct anyway.  This makes kdrive.c
+	not have any knowledge of kaa, opening the way for using exa from
+	kdrive.
+
+2006-02-14  Eric Anholt  <anholt@FreeBSD.org>
+
 	* GL/mesa/shader/slang/Makefile.am:
 	Avoid some more libcwrapper damage that prevented kdrive linking.
 

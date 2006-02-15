@@ -897,7 +897,7 @@ ATIDrawEnable(ScreenPtr pScreen)
 void
 ATIDrawDisable(ScreenPtr pScreen)
 {
-
+	kaaWaitSync(pScreen);
 	ATIDMATeardown(pScreen);
 }
 
