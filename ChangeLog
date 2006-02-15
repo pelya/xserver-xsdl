@@ -42,6 +42,55 @@
 	* dix/atom.c:
 	Mark everything in {ext,font}sym.c as _X_EXPORT.
 
+	* XTrap/xtrapddmi.c:
+	* Xext/xvmain.c:
+	* Xi/exevents.c:
+	* Xi/extinit.c:
+	* dix/atom.c:
+	* dix/colormap.c:
+	* dix/cursor.c:
+	* dix/devices.c:
+	* dix/dispatch.c:
+	* dix/dixfonts.c:
+	* dix/dixutils.c:
+	* dix/events.c:
+	* dix/extension.c:
+	* dix/gc.c:
+	* dix/globals.c:
+	* dix/main.c:
+	* dix/pixmap.c:
+	* dix/privates.c:
+	* dix/property.c:
+	* dix/resource.c:
+	* dix/swaprep.c:
+	* dix/swapreq.c:
+	* dix/tables.c:
+	* dix/window.c:
+	* hw/xfree86/common/xf86DGA.c:
+	* hw/xfree86/common/xf86xvmc.c:
+	* hw/xfree86/dummylib/fatalerror.c:
+	* hw/xfree86/dummylib/logvwrite.c:
+	* hw/xfree86/dummylib/verrorf.c:
+	* hw/xfree86/dummylib/xalloc.c:
+	* hw/xfree86/dummylib/xf86errorf.c:
+	* hw/xfree86/parser/cpconfig.c:
+	* os/WaitFor.c:
+	* os/access.c:
+	* os/connection.c:
+	* os/io.c:
+	* os/log.c:
+	* os/utils.c:
+	* os/xalloc.c:
+	* render/filter.c:
+	* render/miglyph.c:
+	* render/mipict.c:
+	* render/mirect.c:
+	* render/picture.c:
+	* render/renderedge.c:
+	* xkb/xkbAccessX.c:
+	* xkb/xkbInit.c:
+	Mark everything in dixsym.c as _X_EXPORT.
+
 2006-02-15  Kristian Høgsberg  <krh@redhat.com>
 
 	* GL/symlink-mesa.sh: 

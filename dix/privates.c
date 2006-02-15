@@ -1,5 +1,5 @@
 /* $Xorg: privates.c,v 1.4 2001/02/09 02:04:40 xorgcvs Exp $ */
-/* $XdotOrg: xc/programs/Xserver/dix/privates.c,v 1.6 2005/05/22 01:12:49 alanc Exp $ */
+/* $XdotOrg: xserver/xorg/dix/privates.c,v 1.10 2005/09/05 07:40:50 daniels Exp $ */
 /*
 
 Copyright 1993, 1998  The Open Group
@@ -72,13 +72,13 @@ ResetClientPrivates()
 	((sizeof(ClientRec) + sizeof(long) - 1) / sizeof(long)) * sizeof(long);
 }
 
-int
+_X_EXPORT int
 AllocateClientPrivateIndex()
 {
     return clientPrivateCount++;
 }
 
-Bool
+_X_EXPORT Bool
 AllocateClientPrivate(int index2, unsigned amount)
 {
     unsigned oldamount;
@@ -124,7 +124,7 @@ ResetScreenPrivates()
 /* this can be called after some screens have been created,
  * so we have to worry about resizing existing devPrivates
  */
-int
+_X_EXPORT int
 AllocateScreenPrivateIndex()
 {
     int		idx;
@@ -163,13 +163,13 @@ ResetWindowPrivates()
     windowPrivateCount = 0;
 }
 
-int
+_X_EXPORT int
 AllocateWindowPrivateIndex()
 {
     return windowPrivateCount++;
 }
 
-Bool
+_X_EXPORT Bool
 AllocateWindowPrivate(register ScreenPtr pScreen, int index2, unsigned amount)
 {
     unsigned oldamount;
@@ -213,13 +213,13 @@ ResetGCPrivates()
     gcPrivateCount = 0;
 }
 
-int
+_X_EXPORT int
 AllocateGCPrivateIndex()
 {
     return gcPrivateCount++;
 }
 
-Bool
+_X_EXPORT Bool
 AllocateGCPrivate(register ScreenPtr pScreen, int index2, unsigned amount)
 {
     unsigned oldamount;
@@ -263,13 +263,13 @@ ResetPixmapPrivates()
     pixmapPrivateCount = 0;
 }
 
-int
+_X_EXPORT int
 AllocatePixmapPrivateIndex()
 {
     return pixmapPrivateCount++;
 }
 
-Bool
+_X_EXPORT Bool
 AllocatePixmapPrivate(register ScreenPtr pScreen, int index2, unsigned amount)
 {
     unsigned oldamount;
@@ -316,7 +316,7 @@ ResetColormapPrivates()
 }
 
 
-int
+_X_EXPORT int
 AllocateColormapPrivateIndex (InitCmapPrivFunc initPrivFunc)
 {
     int		index;
@@ -370,13 +370,13 @@ AllocateColormapPrivateIndex (InitCmapPrivFunc initPrivFunc)
 
 static int devicePrivateIndex = 0;
 
-int
+_X_EXPORT int
 AllocateDevicePrivateIndex()
 {
     return devicePrivateIndex++;
 }
 
-Bool
+_X_EXPORT Bool
 AllocateDevicePrivate(DeviceIntPtr device, int index)
 {
     if (device->nPrivates < ++index) {

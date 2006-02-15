@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/dix/colormap.c,v 1.7 2005/04/20 12:25:19 daniels Exp $ */
+/* $XdotOrg: xserver/xorg/dix/colormap.c,v 1.11 2005/09/05 07:40:50 daniels Exp $ */
 /* $XFree86: xc/programs/Xserver/dix/colormap.c,v 3.11 2003/11/03 05:10:59 tsi Exp $ */
 /***********************************************************
 
@@ -255,7 +255,7 @@ typedef struct _colorResource
  * \param mid    resource to use for this colormap
  * \param alloc  1 iff all entries are allocated writable
  */
-int 
+_X_EXPORT int 
 CreateColormap (Colormap mid, ScreenPtr pScreen, VisualPtr pVisual, 
                 ColormapPtr *ppcmap, int alloc, int client)
 {
@@ -505,7 +505,7 @@ TellNoMap (WindowPtr pwin, Colormap *pmid)
 }
 
 /* Tell window that pmid got uninstalled */
-int
+_X_EXPORT int
 TellLostMap (WindowPtr pwin, pointer value)
 {
     Colormap 	*pmid = (Colormap *)value;
@@ -530,7 +530,7 @@ TellLostMap (WindowPtr pwin, pointer value)
 }
 
 /* Tell window that pmid got installed */
-int
+_X_EXPORT int
 TellGainedMap (WindowPtr pwin, pointer value)
 {
     Colormap 	*pmid = (Colormap *)value;
@@ -803,7 +803,7 @@ UpdateColors (ColormapPtr pmap)
 /* Get a read-only color from a ColorMap (probably slow for large maps)
  * Returns by changing the value in pred, pgreen, pblue and pPix
  */
-int
+_X_EXPORT int
 AllocColor (ColormapPtr pmap, 
             unsigned short *pred, unsigned short *pgreen, unsigned short *pblue, 
             Pixel *pPix, int client)
@@ -988,7 +988,7 @@ AllocColor (ColormapPtr pmap,
  * is that this routine will never return failure.
  */
 
-void
+_X_EXPORT void
 FakeAllocColor (register ColormapPtr pmap, register xColorItem *item)
 {
     Pixel	pixR, pixG, pixB;
@@ -1054,7 +1054,7 @@ FakeAllocColor (register ColormapPtr pmap, register xColorItem *item)
 }
 
 /* free a pixel value obtained from FakeAllocColor */
-void
+_X_EXPORT void
 FakeFreeColor(register ColormapPtr pmap, Pixel pixel)
 {
     register VisualPtr pVisual;
@@ -1417,7 +1417,7 @@ BlueComp (EntryPtr pent, xrgb *prgb)
 
 /* Read the color value of a cell */
 
-int
+_X_EXPORT int
 QueryColors (ColormapPtr pmap, int count, Pixel *ppixIn, xrgb *prgbList)
 {
     Pixel	*ppix, pixel;
@@ -2256,7 +2256,7 @@ AllocShared (ColormapPtr pmap, Pixel *ppix, int c, int r, int g, int b,
 /** FreeColors
  * Free colors and/or cells (probably slow for large numbers) 
  */
-int
+_X_EXPORT int
 FreeColors (ColormapPtr pmap, int client, int count, Pixel *pixels, Pixel mask)
 {
     int		rval, result, class;
@@ -2500,7 +2500,7 @@ FreeCo (ColormapPtr pmap, int client, int color, int npixIn, Pixel *ppixIn, Pixe
 
 
 /* Redefine color values */
-int
+_X_EXPORT int
 StoreColors (ColormapPtr pmap, int count, xColorItem *defs)
 {
     register Pixel 	pix;

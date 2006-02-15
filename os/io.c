@@ -91,8 +91,8 @@ SOFTWARE.
 #include "lbxserve.h"
 #endif
 
-CallbackListPtr       ReplyCallback;
-CallbackListPtr       FlushCallback;
+_X_EXPORT CallbackListPtr       ReplyCallback;
+_X_EXPORT CallbackListPtr       FlushCallback;
 
 /* check for both EAGAIN and EWOULDBLOCK, because some supposedly POSIX
  * systems are broken and return EWOULDBLOCK when they should return EAGAIN
@@ -602,7 +602,7 @@ InsertFakeRequest(ClientPtr client, char *data, int count)
  *
  **********************/
 
-void
+_X_EXPORT void
 ResetCurrentRequest(ClientPtr client)
 {
     OsCommPtr oc = (OsCommPtr)client->osPrivate;
@@ -745,7 +745,7 @@ PeekNextRequest(
  *
  **********************/
 
-CallbackListPtr SkippedRequestsCallback = NULL;
+_X_EXPORT CallbackListPtr SkippedRequestsCallback = NULL;
 
 void
 SkipRequests(
@@ -897,7 +897,7 @@ FlushIfCriticalOutputPending(void)
 	FlushAllOutput();
 }
 
-void
+_X_EXPORT void
 SetCriticalOutputPending(void)
 {
     CriticalOutputPending = TRUE;
@@ -914,7 +914,7 @@ SetCriticalOutputPending(void)
  *    this routine as int.
  *****************/
 
-int
+_X_EXPORT int
 WriteToClient (ClientPtr who, int count, char *buf)
 {
     OsCommPtr oc = (OsCommPtr)who->osPrivate;

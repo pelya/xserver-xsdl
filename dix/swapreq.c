@@ -64,8 +64,7 @@ SOFTWARE.
 /* Thanks to Jack Palevich for testing and subsequently rewriting all this */
 
 /* Byte swap a list of longs */
-
-void
+_X_EXPORT void
 SwapLongs (register CARD32 *list, register unsigned long count)
 {
 	register char n;
@@ -91,8 +90,7 @@ SwapLongs (register CARD32 *list, register unsigned long count)
 }
 
 /* Byte swap a list of shorts */
-
-void
+_X_EXPORT void
 SwapShorts (register short *list, register unsigned long count)
 {
 	register char n;
@@ -857,7 +855,7 @@ SProcFreeColors(register ClientPtr client)
 
 }
 
-void
+_X_EXPORT void
 SwapColorItem(xColorItem *pItem)
 {
     register char n;

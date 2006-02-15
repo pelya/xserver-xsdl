@@ -102,7 +102,7 @@ miGlyphExtents (int		nlist,
 
 #define NeedsComponent(f) (PICT_FORMAT_A(f) != 0 && PICT_FORMAT_RGB(f) != 0)
 
-void
+_X_EXPORT void
 miGlyphs (CARD8		op,
 	  PicturePtr	pSrc,
 	  PicturePtr	pDst,

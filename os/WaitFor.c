@@ -460,7 +460,7 @@ DoTimer(OsTimerPtr timer, CARD32 now, OsTimerPtr *prev)
 	TimerSet(timer, 0, newTime, timer->callback, timer->arg);
 }
 
-OsTimerPtr
+_X_EXPORT OsTimerPtr
 TimerSet(OsTimerPtr timer, int flags, CARD32 millis, 
     OsTimerCallback func, pointer arg)
 {
@@ -526,7 +526,7 @@ TimerForce(OsTimerPtr timer)
 }
 
 
-void
+_X_EXPORT void
 TimerCancel(OsTimerPtr timer)
 {
     OsTimerPtr *prev;
@@ -543,7 +543,7 @@ TimerCancel(OsTimerPtr timer)
     }
 }
 
-void
+_X_EXPORT void
 TimerFree(OsTimerPtr timer)
 {
     if (!timer)
@@ -685,7 +685,7 @@ FreeDPMSTimers(void)
     }
 }
 
-void
+_X_EXPORT void
 SetDPMSTimers(void)
 {
     if (!DPMSEnabled)

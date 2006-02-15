@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/dix/main.c,v 1.11 2005/05/22 01:12:49 alanc Exp $ */
+/* $XdotOrg: xserver/xorg/dix/main.c,v 1.14 2005/07/03 08:53:38 daniels Exp $ */
 /* $XFree86: xc/programs/Xserver/dix/main.c,v 3.43 2003/10/30 21:21:02 herrb Exp $ */
 /***********************************************************
 
@@ -140,13 +140,13 @@ Bool CreateConnectionBlock(void);
 
 static void FreeScreen(ScreenPtr);
 
-PaddingInfo PixmapWidthPaddingInfo[33];
+_X_EXPORT PaddingInfo PixmapWidthPaddingInfo[33];
 
 int connBlockScreenStart;
 
 static int restart = 0;
 
-void
+_X_EXPORT void
 NotImplemented(xEvent *from, xEvent *to)
 {
     FatalError("Not implemented");

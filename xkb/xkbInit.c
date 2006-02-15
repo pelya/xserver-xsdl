@@ -1,5 +1,5 @@
 /* $Xorg: xkbInit.c,v 1.3 2000/08/17 19:53:47 cpqbld Exp $ */
-/* $XdotOrg: xserver/xorg/xkb/xkbInit.c,v 1.9 2005/10/19 22:45:54 ajax Exp $ */
+/* $XdotOrg: xserver/xorg/xkb/xkbInit.c,v 1.10 2005/12/26 04:23:58 daniels Exp $ */
 /************************************************************
 Copyright (c) 1993 by Silicon Graphics Computer Systems, Inc.
 
@@ -146,7 +146,7 @@ char *			XkbOptionsUsed=	NULL;
 int			_XkbClientMajor=	XkbMajorVersion;
 int			_XkbClientMinor=	XkbMinorVersion;
 
-Bool			noXkbExtension=		XKB_DFLT_DISABLED;
+_X_EXPORT Bool		noXkbExtension=		XKB_DFLT_DISABLED;
 Bool			XkbWantRulesProp=	XKB_DFLT_RULES_PROP;
 
 /***====================================================================***/
@@ -254,7 +254,7 @@ XkbSetRulesUsed(XkbRF_VarDefsPtr defs)
     return;
 }
 
-void
+_X_EXPORT void
 XkbSetRulesDflts(char *rulesFile,char *model,char *layout,
 					char *variant,char *options)
 {
@@ -608,7 +608,7 @@ XkbEventCauseRec	cause;
 #define XkbMaxKeyCount MAP_LENGTH
 #endif
 
-Bool
+_X_EXPORT Bool
 XkbInitKeyboardDeviceStruct(
     DeviceIntPtr		dev,
     XkbComponentNamesPtr	names,

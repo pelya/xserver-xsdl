@@ -274,7 +274,7 @@ ProcChangeProperty(ClientPtr client)
 	return client->noClientException;
 }
 
-int
+_X_EXPORT int
 ChangeWindowProperty(WindowPtr pWin, Atom property, Atom type, int format, 
                      int mode, unsigned long len, pointer value, 
                      Bool sendevent)

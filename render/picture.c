@@ -42,7 +42,7 @@
 #include "servermd.h"
 #include "picturestr.h"
 
-int		PictureScreenPrivateIndex = -1;
+_X_EXPORT int	PictureScreenPrivateIndex = -1;
 int		PictureWindowPrivateIndex;
 int		PictureGeneration;
 RESTYPE		PictureType;
@@ -504,7 +504,7 @@ PictureFinishInit (void)
     return TRUE;
 }
 
-Bool
+_X_EXPORT Bool
 PictureSetSubpixelOrder (ScreenPtr pScreen, int subpixel)
 {
     PictureScreenPtr    ps = GetPictureScreenIfSet(pScreen);
@@ -516,7 +516,7 @@ PictureSetSubpixelOrder (ScreenPtr pScreen, int subpixel)
     
 }
 
-int
+_X_EXPORT int
 PictureGetSubpixelOrder (ScreenPtr pScreen)
 {
     PictureScreenPtr    ps = GetPictureScreenIfSet(pScreen);
@@ -616,7 +616,7 @@ PictureParseCmapPolicy (const char *name)
 	return PictureCmapPolicyInvalid;
 }
 
-Bool
+_X_EXPORT Bool
 PictureInit (ScreenPtr pScreen, PictFormatPtr formats, int nformats)
 {
     PictureScreenPtr	ps;
@@ -1904,7 +1904,7 @@ AddTraps (PicturePtr	pPicture,
 #define MAX_FIXED_48_16	    ((xFixed_48_16) 0x7fffffff)
 #define MIN_FIXED_48_16	    (-((xFixed_48_16) 1 << 31))
 
-Bool
+_X_EXPORT Bool
 PictureTransformPoint3d (PictTransformPtr transform,
                          PictVectorPtr	vector)
 {
@@ -1933,7 +1933,7 @@ PictureTransformPoint3d (PictTransformPtr transform,
 }
 
 
-Bool
+_X_EXPORT Bool
 PictureTransformPoint (PictTransformPtr transform,
 		       PictVectorPtr	vector)
 {

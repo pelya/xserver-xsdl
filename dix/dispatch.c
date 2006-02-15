@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/dix/dispatch.c,v 1.9 2005/06/10 04:01:14 ajax Exp $ */
+/* $XdotOrg: xserver/xorg/dix/dispatch.c,v 1.13 2005/09/13 01:33:19 daniels Exp $ */
 /* $Xorg: dispatch.c,v 1.5 2001/02/09 02:04:40 xorgcvs Exp $ */
 /************************************************************
 
@@ -134,8 +134,8 @@ int ProcInitialConnection();
 extern xConnSetupPrefix connSetupPrefix;
 extern char *ConnectionInfo;
 
-Selection *CurrentSelections;
-int NumCurrentSelections;
+_X_EXPORT Selection *CurrentSelections;
+_X_EXPORT int NumCurrentSelections;
 CallbackListPtr SelectionCallback = NULL;
 
 static ClientPtr grabClient;
@@ -144,7 +144,7 @@ static ClientPtr grabClient;
 #define GrabKickout 2
 static int grabState = GrabNone;
 static long grabWaiters[mskcnt];
-CallbackListPtr ServerGrabCallback = NULL;
+_X_EXPORT CallbackListPtr ServerGrabCallback = NULL;
 HWEventQueuePtr checkForInput[2];
 extern int connBlockScreenStart;
 
@@ -156,15 +156,15 @@ static int nextFreeClientID; /* always MIN free client ID */
 
 static int	nClients;	/* number of authorized clients */
 
-CallbackListPtr ClientStateCallback;
+_X_EXPORT CallbackListPtr ClientStateCallback;
 
 /* dispatchException & isItTimeToYield must be declared volatile since they
  * are modified by signal handlers - otherwise optimizer may assume it doesn't
  * need to actually check value in memory when used and may miss changes from
  * signal handlers.
  */
-volatile char dispatchException = 0;
-volatile char isItTimeToYield;
+_X_EXPORT volatile char dispatchException = 0;
+_X_EXPORT volatile char isItTimeToYield;
 
 /* Various of the DIX function interfaces were not designed to allow
  * the client->errorValue to be set on BadValue and other errors.
@@ -176,14 +176,14 @@ XID clientErrorValue;   /* XXX this is a kludge */
 #define SAME_SCREENS(a, b) (\
     (a.pScreen == b.pScreen))
 
-void
+_X_EXPORT void
 SetInputCheck(HWEventQueuePtr c0, HWEventQueuePtr c1)
 {
     checkForInput[0] = c0;
     checkForInput[1] = c1;
 }
 
-void
+_X_EXPORT void
 UpdateCurrentTime()
 {
     TimeStamp systime;
@@ -202,7 +202,7 @@ UpdateCurrentTime()
 }
 
 /* Like UpdateCurrentTime, but can't call ProcessInputEvents */
-void
+_X_EXPORT void
 UpdateCurrentTimeIf()
 {
     TimeStamp systime;
@@ -492,7 +492,7 @@ Dispatch(void)
 
 #undef MAJOROP
 
-int
+_X_EXPORT int
 ProcBadRequest(ClientPtr client)
 {
     return (BadRequest);
@@ -3968,7 +3968,7 @@ ProcEstablishConnection(register ClientPtr client)
     return(client->noClientException);
 }
 
-void
+_X_EXPORT void
 SendErrorToClient(ClientPtr client, unsigned majorCode, unsigned minorCode, 
                   XID resId, int errorCode)
 {

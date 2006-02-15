@@ -311,7 +311,7 @@ void XfreeTrap(void)
 {
 }
 
-void *
+_X_EXPORT void *
 Xalloc (unsigned long amount)
 {
     register unsigned long *ptr;
@@ -466,7 +466,7 @@ Xalloc (unsigned long amount)
  * "no failure" realloc, alternate interface to Xalloc w/o Must_have_memory
  *****************/
 
-pointer
+_X_EXPORT pointer
 XNFalloc (unsigned long amount)
 {
     register pointer ptr;
@@ -499,7 +499,7 @@ XNFalloc (unsigned long amount)
  * Xcalloc
  *****************/
 
-pointer
+_X_EXPORT pointer
 Xcalloc (unsigned long amount)
 {
     pointer ret;
@@ -517,7 +517,7 @@ Xcalloc (unsigned long amount)
 /*****************
  * XNFcalloc
  *****************/
-void *
+_X_EXPORT void *
 XNFcalloc (unsigned long amount)
 {
     pointer ret;
@@ -536,7 +536,7 @@ XNFcalloc (unsigned long amount)
  * Xrealloc
  *****************/
 
-void *
+_X_EXPORT void *
 Xrealloc (pointer ptr, unsigned long amount)
 {
     register unsigned long *new_ptr;
@@ -613,7 +613,7 @@ Xrealloc (pointer ptr, unsigned long amount)
  * "no failure" realloc, alternate interface to Xrealloc w/o Must_have_memory
  *****************/
 
-void *
+_X_EXPORT void *
 XNFrealloc (pointer ptr, unsigned long amount)
 {
     if (( ptr = (pointer)Xrealloc( ptr, amount ) ) == NULL)
@@ -628,7 +628,7 @@ XNFrealloc (pointer ptr, unsigned long amount)
  *    calls free 
  *****************/    
 
-void
+_X_EXPORT void
 Xfree(pointer ptr)
 {
     unsigned long size;

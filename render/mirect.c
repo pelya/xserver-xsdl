@@ -95,7 +95,7 @@ miColorRects (PicturePtr    pDst,
     FreeScratchGC (pGC);
 }
 
-void
+_X_EXPORT void
 miCompositeRects (CARD8		op,
 		  PicturePtr	pDst,
 		  xRenderColor  *color,

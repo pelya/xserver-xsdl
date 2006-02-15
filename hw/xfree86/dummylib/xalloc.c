@@ -13,7 +13,7 @@
  * Utility functions required by libxf86_os. 
  */
 
-pointer
+_X_EXPORT pointer
 Xalloc(unsigned long n)
 {
     if (!n)
@@ -21,7 +21,7 @@ Xalloc(unsigned long n)
     return malloc(n);
 }
 
-pointer
+_X_EXPORT pointer
 Xrealloc(pointer p, unsigned long n)
 {
     if (!n)
@@ -29,7 +29,7 @@ Xrealloc(pointer p, unsigned long n)
     return realloc(p, n);
 }
 
-pointer
+_X_EXPORT pointer
 Xcalloc(unsigned long n)
 {
     pointer r;
@@ -39,7 +39,7 @@ Xcalloc(unsigned long n)
     return r;
 }
 
-pointer
+_X_EXPORT pointer
 XNFalloc(unsigned long n)
 {
     pointer r;
@@ -51,7 +51,7 @@ XNFalloc(unsigned long n)
    
 }
 
-pointer
+_X_EXPORT pointer
 XNFrealloc(pointer p, unsigned long n)
 {
     pointer r;
@@ -63,7 +63,7 @@ XNFrealloc(pointer p, unsigned long n)
    
 }
 
-pointer
+_X_EXPORT pointer
 XNFcalloc(unsigned long n)
 {
     pointer r;
@@ -75,13 +75,13 @@ XNFcalloc(unsigned long n)
    
 }
 
-void
+_X_EXPORT void
 Xfree(pointer p)
 {
     free(p);
 }
 
-char *
+_X_EXPORT char *
 Xstrdup(const char *s)
 {
     char *sd;

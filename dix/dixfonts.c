@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/dix/dixfonts.c,v 1.5 2005/04/20 13:33:54 daniels Exp $ */
+/* $XdotOrg: xserver/xorg/dix/dixfonts.c,v 1.8 2005/07/03 08:53:38 daniels Exp $ */
 /* $XFree86: xc/programs/Xserver/dix/dixfonts.c,v 3.28 2003/11/08 02:02:03 dawes Exp $ */
 /************************************************************************
 Copyright 1987 by Digital Equipment Corporation, Maynard, Massachusetts.
@@ -92,7 +92,7 @@ extern FontPtr defaultFont;
 
 static FontPathElementPtr *font_path_elements = (FontPathElementPtr *) 0;
 static int  num_fpes = 0;
-FPEFunctions *fpe_functions = (FPEFunctions *) 0;
+_X_EXPORT FPEFunctions *fpe_functions = (FPEFunctions *) 0;
 static int  num_fpe_types = 0;
 
 static unsigned char *font_path_string;
@@ -102,7 +102,7 @@ static int  size_slept_fpes = 0;
 static FontPathElementPtr *slept_fpes = (FontPathElementPtr *) 0;
 static FontPatternCachePtr patternCache;
 
-int
+_X_EXPORT int
 FontToXError(err)
     int         err;
 {
@@ -467,7 +467,7 @@ OpenFont(ClientPtr client, XID fid, Mask flags, unsigned lenfname, char *pfontna
  *
  *  \param value must conform to DeleteType
  */
-int
+_X_EXPORT int
 CloseFont(pointer value, XID fid)
 {
     int         nscr;
@@ -1867,7 +1867,7 @@ GetFontPath(int *count, int *length)
     return font_path_string;
 }
 
-int
+_X_EXPORT int
 LoadGlyphs(ClientPtr client, FontPtr pfont, unsigned nchars, int item_size, unsigned char *data)
 {
     if (fpe_functions[pfont->fpe->type].load_glyphs)

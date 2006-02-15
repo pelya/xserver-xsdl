@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/dix/globals.c,v 1.4 2005/04/20 12:25:19 daniels Exp $ */
+/* $XdotOrg: xserver/xorg/dix/globals.c,v 1.7 2005/07/03 08:53:38 daniels Exp $ */
 /* $XFree86: xc/programs/Xserver/dix/globals.c,v 1.12tsi Exp $ */
 /************************************************************
 
@@ -64,7 +64,7 @@ SOFTWARE.
 #include "dixstruct.h"
 #include "os.h"
 
-ScreenInfo screenInfo;
+_X_EXPORT ScreenInfo screenInfo;
 KeybdCtrl defaultKeyboardControl = {
 	DEFAULT_KEYBOARD_CLICK,
 	DEFAULT_BELL,
@@ -81,20 +81,20 @@ PtrCtrl defaultPointerControl = {
 	DEFAULT_PTR_THRESHOLD,
 	0};
 
-ClientPtr *clients;
-ClientPtr  serverClient;
-int  currentMaxClients;   /* current size of clients array */
-long maxBigRequestSize = MAX_BIG_REQUEST_SIZE;
+_X_EXPORT ClientPtr *clients;
+_X_EXPORT ClientPtr  serverClient;
+_X_EXPORT int  currentMaxClients;   /* current size of clients array */
+_X_EXPORT long maxBigRequestSize = MAX_BIG_REQUEST_SIZE;
 
-WindowPtr *WindowTable;
+_X_EXPORT WindowPtr *WindowTable;
 
-unsigned long globalSerialNumber = 0;
-unsigned long serverGeneration = 0;
+_X_EXPORT unsigned long globalSerialNumber = 0;
+_X_EXPORT unsigned long serverGeneration = 0;
 
 /* these next four are initialized in main.c */
-CARD32 ScreenSaverTime;
+_X_EXPORT CARD32 ScreenSaverTime;
 CARD32 ScreenSaverInterval;
-int  ScreenSaverBlanking;
+_X_EXPORT int ScreenSaverBlanking;
 int  ScreenSaverAllowExposures;
 
 #ifdef DPMSExtension
@@ -113,15 +113,15 @@ int  ScreenSaverAllowExposures;
 CARD32 defaultDPMSStandbyTime = DEFAULT_STANDBY_TIME;
 CARD32 defaultDPMSSuspendTime = DEFAULT_SUSPEND_TIME;
 CARD32 defaultDPMSOffTime = DEFAULT_OFF_TIME;
-CARD16 DPMSPowerLevel = 0;
-Bool defaultDPMSEnabled = DEFAULT_DPMS_ENABLED;
-Bool DPMSEnabledSwitch = FALSE;	  /* these denote the DPMS command line */
-Bool DPMSDisabledSwitch = FALSE;  /*                      switch states */
-Bool DPMSCapableFlag = FALSE;
-CARD32 DPMSStandbyTime;
-CARD32 DPMSSuspendTime;
-CARD32 DPMSOffTime;
-Bool DPMSEnabled;
+_X_EXPORT CARD16 DPMSPowerLevel = 0;
+_X_EXPORT Bool defaultDPMSEnabled = DEFAULT_DPMS_ENABLED;
+_X_EXPORT Bool DPMSEnabledSwitch = FALSE;  /* these denote the DPMS command */
+_X_EXPORT Bool DPMSDisabledSwitch = FALSE; /* lind switch states */
+_X_EXPORT Bool DPMSCapableFlag = FALSE;
+_X_EXPORT CARD32 DPMSStandbyTime;
+_X_EXPORT CARD32 DPMSSuspendTime;
+_X_EXPORT CARD32 DPMSOffTime;
+_X_EXPORT Bool DPMSEnabled;
 #endif
 
 CARD32 defaultScreenSaverTime = DEFAULT_SCREEN_SAVER_TIME;
@@ -144,17 +144,19 @@ CursorPtr rootCursor;
 Bool blackRoot=FALSE;
 ClientPtr requestingClient;	/* XXX this should be obsolete now, remove? */
 
-TimeStamp currentTime;
-TimeStamp lastDeviceEventTime;
+_X_EXPORT TimeStamp currentTime;
+_X_EXPORT TimeStamp lastDeviceEventTime;
 
-Bool permitOldBugs = FALSE; /* turn off some error checking, to permit certain
-			     * old broken clients (like R2/R3 xterms) to work
-			     */
+/*
+ * turn off some error checking, to permit old broken clients (like R2/R3
+ * xterms) to work
+ */
+_X_EXPORT Bool permitOldBugs = FALSE;
 
-int defaultColorVisualClass = -1;
-int monitorResolution = 0;
+_X_EXPORT int defaultColorVisualClass = -1;
+_X_EXPORT int monitorResolution = 0;
 
-char *display;
+_X_EXPORT char *display;
 
 CARD32 TimeOutValue = DEFAULT_TIMEOUT * MILLI_PER_SECOND;
 int	argcGlobal;

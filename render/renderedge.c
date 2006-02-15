@@ -33,7 +33,7 @@
  * grid row
  */
 
-xFixed
+_X_EXPORT xFixed
 RenderSampleCeilY (xFixed y, int n)
 {
     xFixed   f = xFixedFrac(y);
@@ -54,7 +54,7 @@ RenderSampleCeilY (xFixed y, int n)
  * Compute the largest value no greater than y which is on a
  * grid row
  */
-xFixed
+_X_EXPORT xFixed
 RenderSampleFloorY (xFixed y, int n)
 {
     xFixed   f = xFixedFrac(y);
@@ -72,7 +72,7 @@ RenderSampleFloorY (xFixed y, int n)
 /*
  * Step an edge by any amount (including negative values)
  */
-void
+_X_EXPORT void
 RenderEdgeStep (RenderEdge *e, int n)
 {
     xFixed_48_16	ne;
@@ -127,7 +127,7 @@ _RenderEdgeMultiInit (RenderEdge *e, int n, xFixed *stepx_p, xFixed *dx_p)
  * Initialize one edge structure given the line endpoints and a
  * starting y value
  */
-void
+_X_EXPORT void
 RenderEdgeInit (RenderEdge	*e,
 		int		n,
 		xFixed		y_start,
@@ -170,7 +170,7 @@ RenderEdgeInit (RenderEdge	*e,
  * Initialize one edge structure given a line, starting y value
  * and a pixel offset for the line
  */
-void
+_X_EXPORT void
 RenderLineFixedEdgeInit (RenderEdge *e,
 			 int	    n,
 			 xFixed	    y,

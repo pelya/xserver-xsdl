@@ -297,7 +297,7 @@ ProcessOtherEvent (xE, other, count)
         (*other->DeactivateGrab)(other);
     }
 
-int
+_X_EXPORT int
 InitProximityClassDeviceStruct( DeviceIntPtr dev)
 {
     register ProximityClassPtr proxc;
@@ -309,7 +309,7 @@ InitProximityClassDeviceStruct( DeviceIntPtr dev)
     return TRUE;
 }
 
-void
+_X_EXPORT void
 InitValuatorAxisStruct(	DeviceIntPtr dev,
 						int axnum,
 						int minval,

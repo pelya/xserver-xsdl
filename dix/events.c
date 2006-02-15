@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/dix/events.c,v 1.16 2005/07/15 05:48:29 kem Exp $ */
+/* $XdotOrg: xserver/xorg/dix/events.c,v 1.17 2005/08/25 22:11:04 anholt Exp $ */
 /* $XFree86: xc/programs/Xserver/dix/events.c,v 3.51 2004/01/12 17:04:52 tsi Exp $ */
 /************************************************************
 
@@ -202,8 +202,8 @@ xEvent *xeviexE;
 
 #define rClient(obj) (clients[CLIENT_ID((obj)->resource)])
 
-CallbackListPtr EventCallback;
-CallbackListPtr DeviceEventCallback;
+_X_EXPORT CallbackListPtr EventCallback;
+_X_EXPORT CallbackListPtr DeviceEventCallback;
 
 #define DNPMCOUNT 8
 
@@ -213,7 +213,7 @@ static int DontPropagateRefCnts[DNPMCOUNT];
 #ifdef DEBUG
 static debug_events = 0;
 #endif
-InputInfo inputInfo;
+_X_EXPORT InputInfo inputInfo;
 
 static struct {
     QdEventPtr		pending, *pendtail;
@@ -254,8 +254,8 @@ static  struct {
 } sprite;			/* info about the cursor sprite */
 
 #ifdef XEVIE
-WindowPtr xeviewin;
-HotSpot xeviehot;
+_X_EXPORT WindowPtr xeviewin;
+_X_EXPORT HotSpot xeviehot;
 #endif
 
 static void DoEnterLeaveEvents(
@@ -692,7 +692,7 @@ SetMaskForEvent(Mask mask, int event)
     filters[event] = mask;
 }
 
-void
+_X_EXPORT void
 SetCriticalEvent(int event)
 {
     if (event >= 128)
@@ -908,7 +908,7 @@ ConfineCursorToWindow(WindowPtr pWin, Bool generateEvents, Bool confineToScreen)
     }
 }
 
-Bool
+_X_EXPORT Bool
 PointerConfinedToScreen()
 {
     return sprite.confined;
@@ -977,25 +977,25 @@ PostNewCursor(void)
 	}
 }
 
-WindowPtr
+_X_EXPORT WindowPtr
 GetCurrentRootWindow()
 {
     return ROOT;
 }
 
-WindowPtr
+_X_EXPORT WindowPtr
 GetSpriteWindow()
 {
     return sprite.win;
 }
 
-CursorPtr
+_X_EXPORT CursorPtr
 GetSpriteCursor()
 {
     return sprite.current;
 }
 
-void
+_X_EXPORT void
 GetSpritePosition(int *px, int *py)
 {
     *px = sprite.hotPhys.x;
@@ -1003,7 +1003,7 @@ GetSpritePosition(int *px, int *py)
 }
 
 #ifdef PANORAMIX
-int
+_X_EXPORT int
 XineramaGetCursorScreen()
 {
     if(!noPanoramiXExtension) {
@@ -1575,7 +1575,7 @@ ReleaseActiveGrabs(ClientPtr client)
  *            The following procedures deal with delivering events        *
  **************************************************************************/
 
-int
+_X_EXPORT int
 TryClientEvents (ClientPtr client, xEvent *pEvents, int count, Mask mask, 
                  Mask filter, GrabPtr grab)
 {
@@ -1928,7 +1928,7 @@ DeliverDeviceEvents(register WindowPtr pWin, register xEvent *xE, GrabPtr grab,
 }
 
 /* not useful for events that propagate up the tree or extension events */
-int
+_X_EXPORT int
 DeliverEvents(register WindowPtr pWin, register xEvent *xE, int count, 
               register WindowPtr otherParent)
 {
@@ -2126,7 +2126,7 @@ CheckMotion(xEvent *xE)
     return TRUE;
 }
 
-void
+_X_EXPORT void
 WindowsRestructured()
 {
     (void) CheckMotion((xEvent *)NULL);
@@ -2230,7 +2230,7 @@ WindowHasNewCursor(WindowPtr pWin)
     PostNewCursor();
 }
 
-void
+_X_EXPORT void
 NewCurrentScreen(ScreenPtr newScreen, int x, int y)
 {
     sprite.hotPhys.x = x;
@@ -4520,7 +4520,7 @@ DeleteWindowFromAnyEvents(WindowPtr pWin, Bool freeResources)
 /**
  * Call this whenever some window at or below pWin has changed geometry 
  */
-void
+_X_EXPORT void
 CheckCursorConfinement(WindowPtr pWin)
 {
     GrabPtr grab = inputInfo.pointer->grab;
@@ -4595,7 +4595,7 @@ ProcRecolorCursor(ClientPtr client)
     return (Success);
 }
 
-void
+_X_EXPORT void
 WriteEventsToClient(ClientPtr pClient, int count, xEvent *events)
 {
 #ifdef PANORAMIX

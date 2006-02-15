@@ -199,7 +199,7 @@ static fd_set GrabImperviousClients;
 static fd_set SavedAllClients;
 static fd_set SavedAllSockets;
 static fd_set SavedClientsWithInput;
-int GrabInProgress = 0;
+_X_EXPORT int GrabInProgress = 0;
 
 #if !defined(WIN32)
 int *ConnectionTranslation = NULL;
@@ -1181,7 +1181,7 @@ CloseDownConnection(ClientPtr client)
 	AuditF("client %d disconnected\n", client->index);
 }
 
-void
+_X_EXPORT void
 AddEnabledDevice(int fd)
 {
     FD_SET(fd, &EnabledDevices);
@@ -1190,7 +1190,7 @@ AddEnabledDevice(int fd)
 	FD_SET(fd, &SavedAllSockets);
 }
 
-void
+_X_EXPORT void
 RemoveEnabledDevice(int fd)
 {
     FD_CLR(fd, &EnabledDevices);
@@ -1259,7 +1259,7 @@ ListenToAllClients(void)
  *    Must have cooresponding call to AttendClient.
  ****************/
 
-void
+_X_EXPORT void
 IgnoreClient (ClientPtr client)
 {
     OsCommPtr oc = (OsCommPtr)client->osPrivate;
@@ -1303,7 +1303,7 @@ IgnoreClient (ClientPtr client)
  *    Adds one client back into the input masks.
  ****************/
 
-void
+_X_EXPORT void
 AttendClient (ClientPtr client)
 {
     OsCommPtr oc = (OsCommPtr)client->osPrivate;
@@ -1336,7 +1336,7 @@ AttendClient (ClientPtr client)
 
 /* make client impervious to grabs; assume only executing client calls this */
 
-void
+_X_EXPORT void
 MakeClientGrabImpervious(ClientPtr client)
 {
     OsCommPtr oc = (OsCommPtr)client->osPrivate;
@@ -1355,7 +1355,7 @@ MakeClientGrabImpervious(ClientPtr client)
 
 /* make client pervious to grabs; assume only executing client calls this */
 
-void
+_X_EXPORT void
 MakeClientGrabPervious(ClientPtr client)
 {
     OsCommPtr oc = (OsCommPtr)client->osPrivate;

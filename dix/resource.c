@@ -74,7 +74,7 @@ Equipment Corporation.
 ******************************************************************/
 
 /* $Xorg: resource.c,v 1.5 2001/02/09 02:04:40 xorgcvs Exp $ */
-/* $XdotOrg: xc/programs/Xserver/dix/resource.c,v 1.5 2005/04/20 12:25:19 daniels Exp $ */
+/* $XdotOrg: xserver/xorg/dix/resource.c,v 1.8 2005/07/03 08:53:38 daniels Exp $ */
 /* $TOG: resource.c /main/41 1998/02/09 14:20:31 kaleb $ */
 
 /*	Routines to manage various kinds of resources:
@@ -153,24 +153,24 @@ typedef struct _ClientResource {
     XID		expectID;
 } ClientResourceRec;
 
-RESTYPE lastResourceType;
+_X_EXPORT RESTYPE lastResourceType;
 static RESTYPE lastResourceClass;
-RESTYPE TypeMask;
+_X_EXPORT RESTYPE TypeMask;
 
 static DeleteType *DeleteFuncs = (DeleteType *)NULL;
 
 #ifdef XResExtension
 
-Atom * ResourceNames = NULL;
+_X_EXPORT Atom * ResourceNames = NULL;
 
-void RegisterResourceName (RESTYPE type, char *name)
+_X_EXPORT void RegisterResourceName (RESTYPE type, char *name)
 {
     ResourceNames[type & TypeMask] =  MakeAtom(name, strlen(name), TRUE);
 }
 
 #endif
 
-RESTYPE
+_X_EXPORT RESTYPE
 CreateNewResourceType(DeleteType deleteFunc)
 {
     RESTYPE next = lastResourceType + 1;
@@ -200,7 +200,7 @@ CreateNewResourceType(DeleteType deleteFunc)
     return next;
 }
 
-RESTYPE
+_X_EXPORT RESTYPE
 CreateNewResourceClass()
 {
     RESTYPE next = lastResourceClass >> 1;
@@ -323,7 +323,7 @@ AvailableID(
     return 0;
 }
 
-void
+_X_EXPORT void
 GetXIDRange(int client, Bool server, XID *minp, XID *maxp)
 {
     register XID id, maxid;
@@ -374,7 +374,7 @@ GetXIDRange(int client, Bool server, XID *minp, XID *maxp)
  *  invented, but this will be used so rarely that this should suffice.
  */
 
-unsigned int
+_X_EXPORT unsigned int
 GetXIDList(ClientPtr pClient, unsigned count, XID *pids)
 {
     unsigned int found = 0;
@@ -401,7 +401,7 @@ GetXIDList(ClientPtr pClient, unsigned count, XID *pids)
  * over-running another client.
  */
 
-XID
+_X_EXPORT XID
 FakeClientID(register int client)
 {
     XID id, maxid;
@@ -422,7 +422,7 @@ FakeClientID(register int client)
     return id;
 }
 
-Bool
+_X_EXPORT Bool
 AddResource(XID id, RESTYPE type, pointer value)
 {
     int client;
@@ -507,7 +507,7 @@ RebuildTable(int client)
     clientTable[client].resources = resources;
 }
 
-void
+_X_EXPORT void
 FreeResource(XID id, RESTYPE skipDeleteFuncType)
 {
     int		cid;
@@ -554,7 +554,7 @@ FreeResource(XID id, RESTYPE skipDeleteFuncType)
 }
 
 
-void
+_X_EXPORT void
 FreeResourceByType(XID id, RESTYPE type, Bool skipFree)
 {
     int		cid;
@@ -594,7 +594,7 @@ FreeResourceByType(XID id, RESTYPE type, Bool skipFree)
  * data
  */
 
-Bool
+_X_EXPORT Bool
 ChangeResourceValue (XID id, RESTYPE rtype, pointer value)
 {
     int    cid;
@@ -622,7 +622,7 @@ ChangeResourceValue (XID id, RESTYPE rtype, pointer value)
  * add and delete an equal number of resources!
  */
 
-void
+_X_EXPORT void
 FindClientResourcesByType(
     ClientPtr client,
     RESTYPE type,
@@ -654,7 +654,7 @@ FindClientResourcesByType(
     }
 }
 
-void
+_X_EXPORT void
 FindAllClientResources(
     ClientPtr client,
     FindAllRes func,
@@ -801,7 +801,7 @@ FreeAllResources()
     }
 }
 
-Bool
+_X_EXPORT Bool
 LegalNewID(XID id, register ClientPtr client)
 {
 
@@ -831,7 +831,7 @@ LegalNewID(XID id, register ClientPtr client)
  * else NULL is returned.
  */
 
-pointer
+_X_EXPORT pointer
 SecurityLookupIDByType(ClientPtr client, XID id, RESTYPE rtype, Mask mode)
 {
     int    cid;
@@ -860,7 +860,7 @@ SecurityLookupIDByType(ClientPtr client, XID id, RESTYPE rtype, Mask mode)
 }
 
 
-pointer
+_X_EXPORT pointer
 SecurityLookupIDByClass(ClientPtr client, XID id, RESTYPE classes, Mask mode)
 {
     int    cid;
@@ -892,14 +892,14 @@ SecurityLookupIDByClass(ClientPtr client, XID id, RESTYPE classes, Mask mode)
  * macros because of compatibility with loadable servers.
  */
 
-pointer
+_X_EXPORT pointer
 LookupIDByType(XID id, RESTYPE rtype)
 {
     return SecurityLookupIDByType(NullClient, id, rtype,
 				  SecurityUnknownAccess);
 }
 
-pointer
+_X_EXPORT pointer
 LookupIDByClass(XID id, RESTYPE classes)
 {
     return SecurityLookupIDByClass(NullClient, id, classes,

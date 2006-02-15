@@ -76,7 +76,7 @@ static void SwapFont(xQueryFontReply *pr, Bool hasGlyphs);
  *
  *  \param size size in bytes
  */
-void
+_X_EXPORT void
 Swap32Write(ClientPtr pClient, int size, register CARD32 *pbuf)
 {
     register int i;
@@ -96,7 +96,7 @@ Swap32Write(ClientPtr pClient, int size, register CARD32 *pbuf)
  *
  * \param size size in bytes
  */
-void
+_X_EXPORT void
 CopySwap32Write(ClientPtr pClient, int size, CARD32 *pbuf)
 {
     int bufsize = size;
@@ -1169,7 +1169,7 @@ SKeymapNotifyEvent(xEvent *from, xEvent *to)
     *to = *from;
 }
 
-void
+_X_EXPORT void
 SwapConnSetupInfo(
     char 	*pInfo,
     char 	*pInfoT
@@ -1289,7 +1289,7 @@ SwapVisual(xVisualType *pVis, xVisualType *pVisT)
     cpswapl(pVis->blueMask, pVisT->blueMask);
 }
 
-void
+_X_EXPORT void
 SwapConnSetupPrefix(xConnSetupPrefix *pcspFrom, xConnSetupPrefix *pcspTo)
 {
     pcspTo->success = pcspFrom->success;

@@ -863,7 +863,7 @@ IResetProc(unused)
  *
  */
 
-void
+_X_EXPORT void
 AssignTypeAndName (dev, type, name)
     DeviceIntPtr dev;
     Atom type;

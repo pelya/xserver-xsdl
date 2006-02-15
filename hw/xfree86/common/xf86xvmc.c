@@ -48,10 +48,11 @@
 #include "xf86xvpriv.h"
 #include "xf86xvmc.h"
 
+typedef int (*XvMCScreenInitProcPtr)(ScreenPtr, int, XvMCAdaptorPtr);
 #ifdef XFree86LOADER
-int (*XvMCScreenInitProc)(ScreenPtr, int, XvMCAdaptorPtr) = NULL;
+_X_EXPORT XvMCScreenInitProcPtr XvMCScreenInitProc = NULL;
 #else
-int (*XvMCScreenInitProc)(ScreenPtr, int, XvMCAdaptorPtr) = XvMCScreenInit;
+_X_EXPORT XvMCScreenInitProcPtr XvMCScreenInitProc = XvMCScreenInit;
 #endif
 
 

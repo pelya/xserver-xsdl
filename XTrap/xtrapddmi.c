@@ -165,20 +165,15 @@ int XETrapSimulateXEvent(register xXTrapInputReq *request,
 #if defined vms && !defined LINKED_IN
 /* Used by swapping code not visible from VMS (from main.c) */
 #ifndef BLADE
-void
+_X_EXPORT void
 NotImplemented()
 {
     FatalError("Not implemented");
 }
 #endif
 
-int
-#ifdef __STDC__
+_X_EXPORT int
 ProcBadRequest( ClientPtr client)
-#else
-ProcBadRequest(client)
-    ClientPtr client;
-#endif
 {
     return (BadRequest);
 }

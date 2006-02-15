@@ -23,7 +23,7 @@ xf86ErrorF(const char *format, ...)
     va_end(ap);
 }
 
-void
+_X_EXPORT void
 ErrorF(const char *format, ...)
 {
     va_list ap;

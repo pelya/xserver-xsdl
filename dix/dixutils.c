@@ -107,7 +107,7 @@ Author:  Adobe Systems Incorporated
  * argument is less than, equal to or greater than the second argument.
  */
 
-int
+_X_EXPORT int
 CompareTimeStamps(TimeStamp a, TimeStamp b)
 {
     if (a.months < b.months)
@@ -126,7 +126,7 @@ CompareTimeStamps(TimeStamp a, TimeStamp b)
  */
 
 #define HALFMONTH ((unsigned long) 1<<31)
-TimeStamp
+_X_EXPORT TimeStamp
 ClientTimeToServerTime(CARD32 c)
 {
     TimeStamp ts;
@@ -170,7 +170,7 @@ ISOLatin1ToLower (unsigned char source)
 }
 
 
-void
+_X_EXPORT void
 CopyISOLatin1Lowered(unsigned char *dest, unsigned char *source, int length)
 {
     register int i;
@@ -209,7 +209,7 @@ CompareISOLatin1Lowered(unsigned char *s1, int s1len,
  * LookupWindow and LookupDrawable, which do no access checks.
  */
 
-WindowPtr
+_X_EXPORT WindowPtr
 SecurityLookupWindow(XID rid, ClientPtr client, Mask access_mode)
 {
     WindowPtr	pWin;
@@ -236,7 +236,7 @@ SecurityLookupWindow(XID rid, ClientPtr client, Mask access_mode)
 }
 
 
-pointer
+_X_EXPORT pointer
 SecurityLookupDrawable(XID rid, ClientPtr client, Mask access_mode)
 {
     register DrawablePtr pDraw;
@@ -259,13 +259,13 @@ SecurityLookupDrawable(XID rid, ClientPtr client, Mask access_mode)
  * macros because of compatibility with loadable servers.
  */
 
-WindowPtr
+_X_EXPORT WindowPtr
 LookupWindow(XID rid, ClientPtr client)
 {
     return SecurityLookupWindow(rid, client, SecurityUnknownAccess);
 }
 
-pointer
+_X_EXPORT pointer
 LookupDrawable(XID rid, ClientPtr client)
 {
     return SecurityLookupDrawable(rid, client, SecurityUnknownAccess);
@@ -315,7 +315,7 @@ LookupDrawable(XID rid, ClientPtr client)
 
 #endif /* XCSECURITY */
 
-ClientPtr
+_X_EXPORT ClientPtr
 LookupClient(XID rid, ClientPtr client)
 {
     pointer pRes = (pointer)SecurityLookupIDByClass(client, rid, RC_ANY,
@@ -405,7 +405,7 @@ DeleteWindowFromAnySaveSet(WindowPtr pWin)
  * colormaps, if someone calls install colormap, it's easier to have a dummy
  * procedure to call than to check if there's a procedure 
  */
-void
+_X_EXPORT void
 NoopDDA(void)
 {
 }
@@ -495,7 +495,7 @@ WakeupHandler(int result, pointer pReadmask)
  * Reentrant with BlockHandler and WakeupHandler, except wakeup won't
  * get called until next time
  */
-Bool
+_X_EXPORT Bool
 RegisterBlockAndWakeupHandlers (BlockHandlerProcPtr blockHandler, 
                                 WakeupHandlerProcPtr wakeupHandler, 
                                 pointer blockData)
@@ -519,7 +519,7 @@ RegisterBlockAndWakeupHandlers (BlockHandlerProcPtr blockHandler,
     return TRUE;
 }
 
-void
+_X_EXPORT void
 RemoveBlockAndWakeupHandlers (BlockHandlerProcPtr blockHandler, 
                               WakeupHandlerProcPtr wakeupHandler, 
                               pointer blockData)
@@ -614,7 +614,7 @@ ProcessWorkQueueZombies(void)
     workQueueLast = p;
 }
 
-Bool
+_X_EXPORT Bool
 QueueWorkProc (
     Bool (*function)(ClientPtr /* pClient */, pointer /* closure */),
     ClientPtr client, pointer closure)
@@ -650,7 +650,7 @@ typedef struct _SleepQueue {
 
 static SleepQueuePtr	sleepQueue = NULL;
 
-Bool
+_X_EXPORT Bool
 ClientSleep (ClientPtr client, ClientSleepProcPtr function, pointer closure)
 {
     SleepQueuePtr   q;
@@ -681,7 +681,7 @@ ClientSignal (ClientPtr client)
     return FALSE;
 }
 
-void
+_X_EXPORT void
 ClientWakeup (ClientPtr client)
 {
     SleepQueuePtr   q, *prev;
@@ -913,7 +913,7 @@ CreateCallbackList(CallbackListPtr *pcbl, CallbackFuncsPtr cbfuncs)
     return TRUE;
 }
 
-Bool 
+_X_EXPORT Bool 
 AddCallback(CallbackListPtr *pcbl, CallbackProcPtr callback, pointer data)
 {
     if (!pcbl) return FALSE;
@@ -925,7 +925,7 @@ AddCallback(CallbackListPtr *pcbl, CallbackProcPtr callback, pointer data)
     return ((*(*pcbl)->funcs.AddCallback) (pcbl, callback, data));
 }
 
-Bool 
+_X_EXPORT Bool 
 DeleteCallback(CallbackListPtr *pcbl, CallbackProcPtr callback, pointer data)
 {
     if (!pcbl || !*pcbl) return FALSE;

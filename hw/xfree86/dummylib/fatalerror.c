@@ -13,7 +13,7 @@
  * Utility functions required by libxf86_os. 
  */
 
-void
+_X_EXPORT void
 FatalError(const char *f, ...)
 {
     va_list args;

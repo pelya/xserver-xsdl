@@ -1,5 +1,5 @@
 /* $Xorg: access.c,v 1.5 2001/02/09 02:05:23 xorgcvs Exp $ */
-/* $XdotOrg: xserver/xorg/os/access.c,v 1.13 2005/11/08 06:33:30 jkj Exp $ */
+/* $XdotOrg: xserver/xorg/os/access.c,v 1.14 2006/01/07 00:45:17 ajax Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -1376,7 +1376,7 @@ ResetHosts (char *display)
 }
 
 /* Is client on the local host */
-Bool LocalClient(ClientPtr client)
+_X_EXPORT Bool LocalClient(ClientPtr client)
 {
     int    		alen, family, notused;
     Xtransaddr		*from = NULL;

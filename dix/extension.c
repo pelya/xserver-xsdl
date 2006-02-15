@@ -82,7 +82,7 @@ int lastEvent = EXTENSION_EVENT_BASE;
 static int lastError = FirstExtensionError;
 static unsigned int NumExtensions = 0;
 
-ExtensionEntry *
+_X_EXPORT ExtensionEntry *
 AddExtension(char *name, int NumEvents, int NumErrors, 
 	     int (*MainProc)(ClientPtr c1), 
 	     int (*SwappedMainProc)(ClientPtr c2), 
@@ -160,7 +160,7 @@ AddExtension(char *name, int NumEvents, int NumErrors,
     return(ext);
 }
 
-Bool AddExtensionAlias(char *alias, ExtensionEntry *ext)
+_X_EXPORT Bool AddExtensionAlias(char *alias, ExtensionEntry *ext)
 {
     char *name;
     char **aliases;
@@ -208,7 +208,7 @@ FindExtension(char *extname, int len)
  * CheckExtension returns the extensions[] entry for the requested
  * extension name.  Maybe this could just return a Bool instead?
  */
-ExtensionEntry *
+_X_EXPORT ExtensionEntry *
 CheckExtension(const char *extname)
 {
     int n;
@@ -220,7 +220,7 @@ CheckExtension(const char *extname)
 	return NULL;
 }
 
-void
+_X_EXPORT void
 DeclareExtensionSecurity(char *extname, Bool secure)
 {
 #ifdef XCSECURITY
@@ -246,13 +246,13 @@ DeclareExtensionSecurity(char *extname, Bool secure)
 #endif
 }
 
-unsigned short
+_X_EXPORT unsigned short
 StandardMinorOpcode(ClientPtr client)
 {
     return ((xReq *)client->requestBuffer)->data;
 }
 
-unsigned short
+_X_EXPORT unsigned short
 MinorOpcodeOfRequest(ClientPtr client)
 {
     unsigned char major;

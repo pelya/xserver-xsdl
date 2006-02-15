@@ -109,7 +109,7 @@ FreeCursorBits(CursorBitsPtr bits)
  *
  *  \param value must conform to DeleteType
  */
-int
+_X_EXPORT int
 FreeCursor(pointer value, XID cid)
 {
     int		nscr;

@@ -13,7 +13,7 @@
  * Utility functions required by libxf86_os. 
  */
 
-void
+_X_EXPORT void
 LogVWrite(int verb, const char *format, va_list ap)
 {
     if (xf86Verbose >= verb)

@@ -45,8 +45,8 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include <sys/time.h>
 #endif
 
-int	XkbDfltRepeatDelay=	660;
-int	XkbDfltRepeatInterval=	40;
+_X_EXPORT int	XkbDfltRepeatDelay=	660;
+_X_EXPORT int	XkbDfltRepeatInterval=	40;
 pointer	XkbLastRepeatEvent=	NULL;
 
 #define	DFLT_TIMEOUT_CTRLS (XkbAX_KRGMask|XkbStickyKeysMask|XkbMouseKeysMask)

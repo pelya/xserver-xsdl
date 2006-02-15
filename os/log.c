@@ -252,7 +252,7 @@ LogSetParameter(LogParameter param, int value)
 
 /* This function does the actual log message writes. */
 
-void
+_X_EXPORT void
 LogVWrite(int verb, const char *f, va_list args)
 {
     static char tmpBuffer[1024];
@@ -301,7 +301,7 @@ LogVWrite(int verb, const char *f, va_list args)
     }
 }
 
-void
+_X_EXPORT void
 LogWrite(int verb, const char *f, ...)
 {
     va_list args;
@@ -311,7 +311,7 @@ LogWrite(int verb, const char *f, ...)
     va_end(args);
 }
 
-void
+_X_EXPORT void
 LogVMessageVerb(MessageType type, int verb, const char *format, va_list args)
 {
     const char *s  = X_UNKNOWN_STRING;
@@ -376,7 +376,7 @@ LogVMessageVerb(MessageType type, int verb, const char *format, va_list args)
 }
 
 /* Log message with verbosity level specified. */
-void
+_X_EXPORT void
 LogMessageVerb(MessageType type, int verb, const char *format, ...)
 {
     va_list ap;
@@ -387,7 +387,7 @@ LogMessageVerb(MessageType type, int verb, const char *format, ...)
 }
 
 /* Log a message with the standard verbosity level of 1. */
-void
+_X_EXPORT void
 LogMessage(MessageType type, const char *format, ...)
 {
     va_list ap;
@@ -527,7 +527,7 @@ VAuditF(const char *f, va_list args)
 	free(prefix);
 }
 
-void
+_X_EXPORT void
 FatalError(const char *f, ...)
 {
     va_list args;
@@ -557,7 +557,7 @@ FatalError(const char *f, ...)
     /*NOTREACHED*/
 }
 
-void
+_X_EXPORT void
 VErrorF(const char *f, va_list args)
 {
 #ifdef DDXOSVERRORF
@@ -570,7 +570,7 @@ VErrorF(const char *f, va_list args)
 #endif
 }
 
-void
+_X_EXPORT void
 ErrorF(const char * f, ...)
 {
     va_list args;
@@ -597,7 +597,7 @@ extern int sys_nerr;
 	((n) >= 0 && (n) < sys_nerr) ? sys_errlist[(n)] : "unknown error"
 #endif
 
-void
+_X_EXPORT void
 Error(char *str)
 {
     char *err = NULL;

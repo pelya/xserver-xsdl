@@ -77,7 +77,7 @@ int (* InitialVector[3]) (
     ProcEstablishConnection
 };
 
-int (* ProcVector[256]) (
+_X_EXPORT int (* ProcVector[256]) (
 	ClientPtr /* client */
     ) =
 {
@@ -345,7 +345,7 @@ int (* SwappedProcVector[256]) (
     SProcNoOperation
 };
 
-EventSwapPtr EventSwapVector[128] =
+_X_EXPORT EventSwapPtr EventSwapVector[128] =
 {
     (EventSwapPtr)SErrorEvent,
     NotImplemented,
@@ -385,7 +385,7 @@ EventSwapPtr EventSwapVector[128] =
 };
 
 
-ReplySwapPtr ReplySwapVector[256] =
+_X_EXPORT ReplySwapPtr ReplySwapVector[256] =
 {
     ReplyNotSwappd,
     ReplyNotSwappd,

@@ -106,13 +106,13 @@ main (int argc, char *argv[])
 
 /* Functions that the parser requires */
 
-void
+_X_EXPORT void
 VErrorF(const char *f, va_list args)
 {
 	vfprintf(stderr, f, args);
 }
 
-void
+_X_EXPORT void
 ErrorF(const char *f, ...)
 {
 	va_list args;
