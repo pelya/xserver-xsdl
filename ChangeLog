@@ -1,3 +1,41 @@
+2006-02-15  Adam Jackson  <ajax@freedesktop.org>
+	* mi/miarc.c:
+	* mi/mibank.c:
+	* mi/mibitblt.c:
+	* mi/mibstore.c:
+	* mi/micmap.c:
+	* mi/micursor.c:
+	* mi/midash.c:
+	* mi/midispcur.c:
+	* mi/miexpose.c:
+	* mi/mifillarc.c:
+	* mi/mifillrct.c:
+	* mi/migc.c:
+	* mi/miglblt.c:
+	* mi/miinitext.c:
+	* mi/mioverlay.c:
+	* mi/mipointer.c:
+	* mi/mipoly.c:
+	* mi/mipolycon.c:
+	* mi/mipolypnt.c:
+	* mi/mipolyrect.c:
+	* mi/mipolyseg.c:
+	* mi/mipolytext.c:
+	* mi/mipushpxl.c:
+	* mi/miregion.c:
+	* mi/miscrinit.c:
+	* mi/misprite.c:
+	* mi/mivaltree.c:
+	* mi/miwideline.c:
+	* mi/miwindow.c:
+	* mi/mizerarc.c:
+	* mi/mizerclip.c:
+	* mi/mizerline.c:
+	* miext/cw/cw.c:
+	* miext/damage/damage.c:
+	* render/miglyph.c:
+	Mark everything in misym.c as _X_EXPORT.
+
 2006-02-15  Kristian Høgsberg  <krh@redhat.com>
 
 	* GL/symlink-mesa.sh: 

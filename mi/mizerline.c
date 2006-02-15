@@ -99,7 +99,7 @@ SOFTWARE.
     }\
 }
 
-void
+_X_EXPORT void
 miZeroLine(pDraw, pGC, mode, npt, pptInit)
     DrawablePtr pDraw;
     GCPtr	pGC;
@@ -365,7 +365,7 @@ miZeroLine(pDraw, pGC, mode, npt, pptInit)
     DEALLOCATE_LOCAL(pspanInit);
 }
 
-void
+_X_EXPORT void
 miZeroDashLine(dst, pgc, mode, nptInit, pptInit)
 DrawablePtr dst;
 GCPtr pgc;

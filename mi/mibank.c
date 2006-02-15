@@ -2166,7 +2166,7 @@ miBankRestoreAreas(
     SCREEN_RESTORE;
 }
 
-Bool
+_X_EXPORT Bool
 miInitializeBanking(
     ScreenPtr     pScreen,
     unsigned int  xsize,
@@ -2413,7 +2413,7 @@ miBankNewSerialNumber(
 }
 
 /* This entry modifies the banking interface */
-Bool
+_X_EXPORT Bool
 miModifyBanking(
     ScreenPtr     pScreen,
     miBankInfoPtr pBankInfo

@@ -277,7 +277,7 @@ CheckDashStorage(
     return(*ppseg+(nseg-1));
 }
 
-void
+_X_EXPORT void
 miStepDash (dist, pDashIndex, pDash, numInDashList, pDashOffset)
     int dist;			/* distance to step */
     int *pDashIndex;		/* current dash */

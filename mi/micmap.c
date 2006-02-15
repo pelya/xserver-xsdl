@@ -48,15 +48,15 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include "globals.h"
 #include "micmap.h"
 
-ColormapPtr miInstalledMaps[MAXSCREENS];
+_X_EXPORT ColormapPtr miInstalledMaps[MAXSCREENS];
 
 static Bool miDoInitVisuals(VisualPtr *visualp, DepthPtr *depthp, int *nvisualp,
 		int *ndepthp, int *rootDepthp, VisualID *defaultVisp,
 		unsigned long sizes, int bitsPerRGB, int preferredVis);
 
-miInitVisualsProcPtr miInitVisualsProc = miDoInitVisuals;
+_X_EXPORT miInitVisualsProcPtr miInitVisualsProc = miDoInitVisuals;
 
-int
+_X_EXPORT int
 miListInstalledColormaps(ScreenPtr pScreen, Colormap *pmaps)
 {
     if (miInstalledMaps[pScreen->myNum]) {
@@ -66,7 +66,7 @@ miListInstalledColormaps(ScreenPtr pScreen, Colormap *pmaps)
     return 0;
 }
 
-void
+_X_EXPORT void
 miInstallColormap(ColormapPtr pmap)
 {
     int index = pmap->pScreen->myNum;
@@ -85,7 +85,7 @@ miInstallColormap(ColormapPtr pmap)
     }
 }
 
-void
+_X_EXPORT void
 miUninstallColormap(ColormapPtr pmap)
 {
     int index = pmap->pScreen->myNum;
@@ -102,7 +102,7 @@ miUninstallColormap(ColormapPtr pmap)
     }
 }
 
-void
+_X_EXPORT void
 miResolveColor(unsigned short *pred, unsigned short *pgreen,
 		unsigned short *pblue, VisualPtr pVisual)
 {
@@ -124,7 +124,7 @@ miResolveColor(unsigned short *pred, unsigned short *pgreen,
     }
 }
 
-Bool
+_X_EXPORT Bool
 miInitializeColormap(ColormapPtr pmap)
 {
     register unsigned i;
@@ -209,7 +209,7 @@ miInitializeColormap(ColormapPtr pmap)
     outdefs[i].blue = pmap->blue[blue >> pVisual->offsetBlue].co.local.blue; \
 }
 
-int
+_X_EXPORT int
 miExpandDirectColors(ColormapPtr pmap, int ndef, xColorItem *indefs,
 			xColorItem *outdefs)
 {
@@ -269,7 +269,7 @@ miExpandDirectColors(ColormapPtr pmap, int ndef, xColorItem *indefs,
     return nresult;
 }
 
-Bool
+_X_EXPORT Bool
 miCreateDefColormap(ScreenPtr pScreen)
 {
 /* 
@@ -386,7 +386,7 @@ static int  miVisualPriority[] = {
 
 static miVisualsPtr	miVisuals;
 
-void
+_X_EXPORT void
 miClearVisualTypes()
 {
     miVisualsPtr v;
@@ -398,7 +398,7 @@ miClearVisualTypes()
 }
 
 
-Bool
+_X_EXPORT Bool
 miSetVisualTypesAndMasks(int depth, int visuals, int bitsPerRGB, 
 			 int preferredCVC,
 			 Pixel redMask, Pixel greenMask, Pixel blueMask)
@@ -432,14 +432,14 @@ miSetVisualTypesAndMasks(int depth, int visuals, int bitsPerRGB,
     return TRUE;
 }
 
-Bool
+_X_EXPORT Bool
 miSetVisualTypes(int depth, int visuals, int bitsPerRGB, int preferredCVC)
 {
     return miSetVisualTypesAndMasks (depth, visuals, bitsPerRGB,
 				     preferredCVC, 0, 0, 0);
 }
 
-int
+_X_EXPORT int
 miGetDefaultVisualMask(int depth)
 {
     if (depth > MAX_PSEUDO_DEPTH)
@@ -463,7 +463,7 @@ miVisualTypesSet (int depth)
     return FALSE;
 }
 
-Bool
+_X_EXPORT Bool
 miSetPixmapDepths (void)
 {
     int	d, f;
@@ -481,7 +481,7 @@ miSetPixmapDepths (void)
     return TRUE;
 }
 
-Bool
+_X_EXPORT Bool
 miInitVisuals(VisualPtr *visualp, DepthPtr *depthp, int *nvisualp,
 		int *ndepthp, int *rootDepthp, VisualID *defaultVisp,
 		unsigned long sizes, int bitsPerRGB, int preferredVis)

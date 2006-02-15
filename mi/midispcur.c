@@ -112,7 +112,7 @@ static miSpriteCursorFuncRec miDCFuncs = {
     miDCChangeSave,
 };
 
-Bool
+_X_EXPORT Bool
 miDCInitialize (pScreen, screenFuncs)
     ScreenPtr		    pScreen;
     miPointerScreenFuncPtr  screenFuncs;

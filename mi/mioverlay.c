@@ -103,7 +103,7 @@ static void miOverlayChangeBorderWidth(WindowPtr, unsigned int);
                                     HasBorder(w) && \
                                     (w)->backgroundState == ParentRelative)
 
-Bool
+_X_EXPORT Bool
 miInitOverlay(
     ScreenPtr pScreen, 
     miOverlayInOverlayFunc inOverlayFunc,
@@ -1730,7 +1730,7 @@ miOverlayChangeBorderWidth(
 /*  We need this as an addition since the xf86 common code doesn't
     know about the second tree which is static to this file.  */
 
-void
+_X_EXPORT void
 miOverlaySetRootClip(ScreenPtr pScreen, Bool enable)
 {
     WindowPtr pRoot = WindowTable[pScreen->myNum];
@@ -1818,7 +1818,7 @@ miOverlayClearToBackground(
 /****************************************************************/
 
 /* not used */
-Bool
+_X_EXPORT Bool
 miOverlayGetPrivateClips(
     WindowPtr pWin,
     RegionPtr *borderClip,
@@ -1837,7 +1837,7 @@ miOverlayGetPrivateClips(
     return FALSE;
 }
 
-void 
+_X_EXPORT void 
 miOverlaySetTransFunction (
    ScreenPtr pScreen, 
    miOverlayTransFunc transFunc
@@ -1845,13 +1845,13 @@ miOverlaySetTransFunction (
     MIOVERLAY_GET_SCREEN_PRIVATE(pScreen)->MakeTransparent = transFunc;
 }
 
-Bool 
+_X_EXPORT Bool 
 miOverlayCopyUnderlay(ScreenPtr pScreen)
 {
     return MIOVERLAY_GET_SCREEN_PRIVATE(pScreen)->copyUnderlay;
 }
 
-void
+_X_EXPORT void
 miOverlayComputeCompositeClip(GCPtr pGC, WindowPtr pWin)
 {
     ScreenPtr       pScreen = pGC->pScreen;
@@ -1907,7 +1907,7 @@ miOverlayComputeCompositeClip(GCPtr pGC, WindowPtr pWin)
     }
 }
 
-Bool
+_X_EXPORT Bool
 miOverlayCollectUnderlayRegions(
     WindowPtr pWin,
     RegionPtr *region

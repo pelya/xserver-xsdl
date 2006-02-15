@@ -113,7 +113,7 @@ static void miSpriteSetCursor(ScreenPtr pScreen, CursorPtr pCursor,
 			      int x, int y);
 static void miSpriteMoveCursor(ScreenPtr pScreen, int x, int y);
 
-miPointerSpriteFuncRec miSpritePointerFuncs = {
+_X_EXPORT miPointerSpriteFuncRec miSpritePointerFuncs = {
     miSpriteRealizeCursor,
     miSpriteUnrealizeCursor,
     miSpriteSetCursor,

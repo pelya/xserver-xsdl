@@ -59,7 +59,7 @@ SOFTWARE.
 #include "pixmapstr.h"
 #include "mivalidate.h"
 
-void 
+_X_EXPORT void 
 miClearToBackground(pWin, x, y, w, h, generateExposures)
     WindowPtr pWin;
     int x,y;
@@ -447,7 +447,7 @@ miMarkOverlappedWindows(pWin, pFirst, ppLayerWin)
  *    regions, translate the regions, restore any backing store,
  *    and then send any regions still exposed to the client
  *****/
-void
+_X_EXPORT void
 miHandleValidateExposures(pWin)
     WindowPtr pWin;
 {
@@ -981,7 +981,7 @@ miGetLayerWindow(pWin)
  *    and send appropriate exposure events
  */
 
-void
+_X_EXPORT void
 miSetShape(pWin)
     register WindowPtr	pWin;
 {
@@ -1081,7 +1081,7 @@ miSetShape(pWin)
 
 /* Keeps the same inside(!) origin */
 
-void
+_X_EXPORT void
 miChangeBorderWidth(pWin, width)
     register WindowPtr pWin;
     unsigned int width;
@@ -1165,7 +1165,7 @@ miMarkUnrealizedWindow(pChild, pWin, fromConfigure)
     }
 }
 
-void
+_X_EXPORT void
 miSegregateChildren(WindowPtr pWin, RegionPtr pReg, int depth)
 {
     ScreenPtr pScreen;

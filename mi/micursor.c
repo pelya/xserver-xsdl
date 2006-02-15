@@ -57,7 +57,7 @@ SOFTWARE.
 
 extern Bool Must_have_memory;
 
-void
+_X_EXPORT void
 miRecolorCursor( pScr, pCurs, displayed)
     ScreenPtr	pScr;
     CursorPtr	pCurs;

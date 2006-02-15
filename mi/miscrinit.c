@@ -62,7 +62,7 @@ typedef struct
 
 
 /* this plugs into pScreen->ModifyPixmapHeader */
-Bool
+_X_EXPORT Bool
 miModifyPixmapHeader(pPixmap, width, height, depth, bitsPerPixel, devKind,
 		     pPixData)
     PixmapPtr   pPixmap;
@@ -145,7 +145,7 @@ miCloseScreen (iScreen, pScreen)
  * possible private-requesting modules have been inited; we create the
  * screen pixmap here.
  */
-Bool
+_X_EXPORT Bool
 miCreateScreenResources(pScreen)
     ScreenPtr pScreen;
 {
@@ -206,7 +206,7 @@ miScreenDevPrivateInit(pScreen, width, pbits)
     return TRUE;
 }
 
-Bool
+_X_EXPORT Bool
 miScreenInit(pScreen, pbits, xsize, ysize, dpix, dpiy, width,
 	     rootDepth, numDepths, depths, rootVisual, numVisuals, visuals)
     register ScreenPtr pScreen;
@@ -325,7 +325,7 @@ miScreenInit(pScreen, pbits, xsize, ysize, dpix, dpiy, width,
     return miScreenDevPrivateInit(pScreen, width, pbits);
 }
 
-int
+_X_EXPORT int
 miAllocateGCPrivateIndex()
 {
     static int privateIndex = -1;
@@ -339,10 +339,10 @@ miAllocateGCPrivateIndex()
     return privateIndex;
 }
 
-int miZeroLineScreenIndex;
+_X_EXPORT int miZeroLineScreenIndex;
 unsigned int miZeroLineGeneration = 0;
 
-void
+_X_EXPORT void
 miSetZeroLineBias(pScreen, bias)
     ScreenPtr pScreen;
     unsigned int bias;
@@ -356,14 +356,14 @@ miSetZeroLineBias(pScreen, bias)
 	pScreen->devPrivates[miZeroLineScreenIndex].uval = bias;
 }
 
-PixmapPtr
+_X_EXPORT PixmapPtr
 miGetScreenPixmap(pScreen)
     ScreenPtr pScreen;
 {
     return (PixmapPtr)(pScreen->devPrivate);
 }
 
-void
+_X_EXPORT void
 miSetScreenPixmap(pPix)
     PixmapPtr pPix;
 {

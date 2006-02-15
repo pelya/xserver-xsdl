@@ -48,7 +48,7 @@ miUnrealizeGlyph (ScreenPtr pScreen,
 {
 }
 
-void
+_X_EXPORT void
 miGlyphExtents (int		nlist,
 		GlyphListPtr	list,
 		GlyphPtr	*glyphs,

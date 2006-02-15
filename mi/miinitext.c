@@ -1,4 +1,4 @@
-/* $XdotOrg: xserver/xorg/mi/miinitext.c,v 1.29 2006/01/06 23:06:15 ajax Exp $ */
+/* $XdotOrg: xserver/xorg/mi/miinitext.c,v 1.30 2006/01/08 23:43:54 ajax Exp $ */
 /* $XFree86: xc/programs/Xserver/mi/miinitext.c,v 3.67 2003/01/12 02:44:27 dawes Exp $ */
 /***********************************************************
 
@@ -790,8 +790,9 @@ InitVisualWrap()
 	(*__miHookInitVisualsFunction)(&miInitVisualsProc);
 }
 
-void miHookInitVisuals(void (**old)(miInitVisualsProcPtr *),
-		       void (*new)(miInitVisualsProcPtr *))
+_X_EXPORT void
+miHookInitVisuals(void (**old)(miInitVisualsProcPtr *),
+		  void (*new)(miInitVisualsProcPtr *))
 {
     if (old)
 	*old = __miHookInitVisualsFunction;

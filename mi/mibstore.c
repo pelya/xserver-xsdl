@@ -357,7 +357,7 @@ static GCFuncs miBSCheapGCFuncs = {
  * must be previously initialized.
  */
 
-void
+_X_EXPORT void
 miInitializeBackingStore (pScreen)
     ScreenPtr	pScreen;
 {

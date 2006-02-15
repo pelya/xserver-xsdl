@@ -261,7 +261,7 @@ miFillRectPolyHelper (
     }
 }
 
-/* static */ int
+_X_EXPORT /* static */ int
 miPolyBuildEdge (x0, y0, k, dx, dy, xi, yi, left, edge)
     double	x0, y0;
     double	k;  /* x0 * dy - y0 * dx */
@@ -320,7 +320,7 @@ miPolyBuildEdge (x0, y0, k, dx, dy, xi, yi, left, edge)
 
 #define StepAround(v, incr, max) (((v) + (incr) < 0) ? (max - 1) : ((v) + (incr) == max) ? 0 : ((v) + (incr)))
 
-/* static */ int
+_X_EXPORT /* static */ int
 miPolyBuildPoly (vertices, slopes, count, xi, yi, left, right, pnleft, pnright, h)
     register PolyVertexPtr vertices;
     register PolySlopePtr  slopes;
@@ -922,7 +922,7 @@ miRoundJoinFace (face, edge, leftEdge)
     return y;
 }
 
-void
+_X_EXPORT void
 miRoundJoinClip (pLeft, pRight, edge1, edge2, y1, y2, left1, left2)
     register LineFacePtr pLeft, pRight;
     PolyEdgePtr	edge1, edge2;
@@ -947,7 +947,7 @@ miRoundJoinClip (pLeft, pRight, edge1, edge2, y1, y2, left1, left2)
     *y2 = miRoundJoinFace (pRight, edge2, left2);
 }
 
-int
+_X_EXPORT int
 miRoundCapClip (face, isInt, edge, leftEdge)
     register LineFacePtr face;
     Bool	isInt;
@@ -1548,7 +1548,7 @@ miCleanupSpanData (pDrawable, pGC, spanData)
     miFreeSpanGroup (&spanData->fgGroup);
 }
 
-void
+_X_EXPORT void
 miWideLine (pDrawable, pGC, mode, npt, pPts)
     DrawablePtr	pDrawable;
     register GCPtr pGC;
@@ -2046,7 +2046,7 @@ miWideDashSegment (
     *pDashOffset = pDash[dashIndex] - dashRemain;
 }
 
-void
+_X_EXPORT void
 miWideDash (pDrawable, pGC, mode, npt, pPts)
     DrawablePtr	pDrawable;
     register GCPtr pGC;

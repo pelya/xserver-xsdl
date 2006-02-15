@@ -92,7 +92,7 @@ miPolyText(pDraw, pGC, x, y, count, chars, fontEncoding)
 }
 
 
-int
+_X_EXPORT int
 miPolyText8(pDraw, pGC, x, y, count, chars)
     DrawablePtr pDraw;
     GCPtr	pGC;
@@ -115,7 +115,7 @@ miPolyText8(pDraw, pGC, x, y, count, chars)
 }
 
 
-int
+_X_EXPORT int
 miPolyText16(pDraw, pGC, x, y, count, chars)
     DrawablePtr pDraw;
     GCPtr	pGC;
@@ -163,7 +163,7 @@ miImageText(pDraw, pGC, x, y, count, chars, fontEncoding)
 }
 
 
-void
+_X_EXPORT void
 miImageText8(pDraw, pGC, x, y, count, chars)
     DrawablePtr pDraw;
     GCPtr	pGC;
@@ -182,7 +182,7 @@ miImageText8(pDraw, pGC, x, y, count, chars)
 }
 
 
-void
+_X_EXPORT void
 miImageText16(pDraw, pGC, x, y, count, chars)
     DrawablePtr pDraw;
     GCPtr	pGC;

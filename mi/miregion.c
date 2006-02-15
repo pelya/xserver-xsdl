@@ -219,8 +219,8 @@ if (((numRects) < ((reg)->data->size >> 1)) && ((reg)->data->size > 50)) \
 }
 
 
-BoxRec miEmptyBox = {0, 0, 0, 0};
-RegDataRec miEmptyData = {0, 0};
+_X_EXPORT BoxRec miEmptyBox = {0, 0, 0, 0};
+_X_EXPORT RegDataRec miEmptyData = {0, 0};
 
 RegDataRec  miBrokenData = {0, 0};
 RegionRec   miBrokenRegion = { { 0, 0, 0, 0 }, &miBrokenData };
@@ -248,7 +248,7 @@ miPrintRegion(rgn)
 }
 #endif /* DEBUG */
 
-Bool
+_X_EXPORT Bool
 miRegionEqual(reg1, reg2)
     RegionPtr reg1;
     RegionPtr reg2;
@@ -331,7 +331,7 @@ miValidRegion(reg)
  *     REGION of "size" number of rectangles.
  *****************************************************************/
 
-RegionPtr
+_X_EXPORT RegionPtr
 miRegionCreate(rect, size)
     BoxPtr rect;
     int size;
@@ -365,7 +365,7 @@ miRegionCreate(rect, size)
  *     Outer region rect is statically allocated.
  *****************************************************************/
 
-void
+_X_EXPORT void
 miRegionInit(pReg, rect, size)
     RegionPtr pReg;
     BoxPtr rect;
@@ -389,7 +389,7 @@ miRegionInit(pReg, rect, size)
     }
 }
 
-void
+_X_EXPORT void
 miRegionDestroy(pReg)
     RegionPtr pReg;
 {
@@ -399,7 +399,7 @@ miRegionDestroy(pReg)
 	xfree(pReg);
 }
 
-void
+_X_EXPORT void
 miRegionUninit(pReg)
     RegionPtr pReg;
 {
@@ -417,7 +417,7 @@ miRegionBreak (pReg)
     return FALSE;
 }
 
-Bool
+_X_EXPORT Bool
 miRectAlloc(
     register RegionPtr pRgn,
     int n)
@@ -458,7 +458,7 @@ miRectAlloc(
     return TRUE;
 }
 
-Bool
+_X_EXPORT Bool
 miRegionCopy(dst, src)
     register RegionPtr dst;
     register RegionPtr src;
@@ -1025,7 +1025,7 @@ miIntersectO (
 }
 
 
-Bool
+_X_EXPORT Bool
 miIntersect(newReg, reg1, reg2)
     register RegionPtr 	newReg;     /* destination Region */
     register RegionPtr 	reg1;
@@ -1180,7 +1180,7 @@ miUnionO (
     return TRUE;
 }
 
-Bool 
+_X_EXPORT Bool 
 miUnion(newReg, reg1, reg2)
     RegionPtr		newReg;                  /* destination Region */
     register RegionPtr 	reg1;
@@ -1279,7 +1279,7 @@ miUnion(newReg, reg1, reg2)
  *      dstrgn is modified if rgn has rectangles.
  *
  */
-Bool
+_X_EXPORT Bool
 miRegionAppend(dstrgn, rgn)
     register RegionPtr dstrgn;
     register RegionPtr rgn;
@@ -1465,7 +1465,7 @@ QuickSortRects(
  *-----------------------------------------------------------------------
  */
 
-Bool
+_X_EXPORT Bool
 miRegionValidate(badreg, pOverlap)
     RegionPtr badreg;
     Bool *pOverlap;
@@ -1656,7 +1656,7 @@ bail:
     return miRegionBreak (badreg);
 }
 
-RegionPtr
+_X_EXPORT RegionPtr
 miRectsToRegion(nrects, prect, ctype)
     int			nrects;
     register xRectangle	*prect;
@@ -1881,7 +1881,7 @@ miSubtractO (
  *
  *-----------------------------------------------------------------------
  */
-Bool
+_X_EXPORT Bool
 miSubtract(regD, regM, regS)
     register RegionPtr	regD;               
     register RegionPtr 	regM;
@@ -1946,7 +1946,7 @@ miSubtract(regD, regM, regS)
  *
  *-----------------------------------------------------------------------
  */
-Bool
+_X_EXPORT Bool
 miInverse(newReg, reg1, invRect)
     RegionPtr 	  newReg;       /* Destination region */
     RegionPtr 	  reg1;         /* Region to invert */
@@ -2006,7 +2006,7 @@ miInverse(newReg, reg1, invRect)
  *   that doesn't overlap the box at all and partIn is false)
  */
 
-int
+_X_EXPORT int
 miRectIn(region, prect)
     register RegionPtr  region;
     register BoxPtr     prect;
@@ -2102,7 +2102,7 @@ miRectIn(region, prect)
    translates in place
 */
 
-void
+_X_EXPORT void
 miTranslateRegion(pReg, x, y)
     register RegionPtr pReg;
     register int x;
@@ -2216,7 +2216,7 @@ miRegionDataCopy(
     return TRUE;
 }
 
-void
+_X_EXPORT void
 miRegionReset(pReg, pBox)
     RegionPtr pReg;
     BoxPtr pBox;
@@ -2229,7 +2229,7 @@ miRegionReset(pReg, pBox)
     pReg->data = (RegDataPtr)NULL;
 }
 
-Bool
+_X_EXPORT Bool
 miPointInRegion(pReg, x, y, box)
     register RegionPtr pReg;
     register int x, y;
@@ -2263,7 +2263,7 @@ miPointInRegion(pReg, x, y, box)
     return(FALSE);
 }
 
-Bool
+_X_EXPORT Bool
 miRegionNotEmpty(pReg)
     RegionPtr pReg;
 {
@@ -2278,7 +2278,7 @@ miRegionBroken(RegionPtr pReg)
     return (REGION_NAR(pReg));
 }
 
-void
+_X_EXPORT void
 miRegionEmpty(pReg)
     RegionPtr pReg;
 {
@@ -2289,7 +2289,7 @@ miRegionEmpty(pReg)
     pReg->data = &miEmptyData;
 }
 
-BoxPtr
+_X_EXPORT BoxPtr
 miRegionExtents(pReg)
     RegionPtr pReg;
 {
@@ -2415,7 +2415,7 @@ static void QuickSortSpans(
     returns the number of new, clipped scanlines.
 */
 
-int
+_X_EXPORT int
 miClipSpans(
     RegionPtr		    prgnDst,
     register DDXPointPtr    ppt,
@@ -2532,7 +2532,7 @@ miClipSpans(
 }
 
 /* find the band in a region with the most rectangles */
-int
+_X_EXPORT int
 miFindMaxBand(prgn)
     RegionPtr prgn;
 {

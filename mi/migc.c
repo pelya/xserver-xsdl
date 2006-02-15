@@ -40,7 +40,7 @@ from The Open Group.
 #include "migc.h"
 
 /* ARGSUSED */
-void
+_X_EXPORT void
 miChangeGC(pGC, mask)
     GCPtr           pGC;
     unsigned long   mask;
@@ -48,7 +48,7 @@ miChangeGC(pGC, mask)
     return;
 }
 
-void
+_X_EXPORT void
 miDestroyGC(pGC)
     GCPtr           pGC;
 {
@@ -63,7 +63,7 @@ miDestroyGC(pGC)
  * create a private op array for a gc
  */
 
-GCOpsPtr
+_X_EXPORT GCOpsPtr
 miCreateGCOps(prototype)
     GCOpsPtr        prototype;
 {
@@ -79,7 +79,7 @@ miCreateGCOps(prototype)
     return ret;
 }
 
-void
+_X_EXPORT void
 miDestroyGCOps(ops)
     GCOpsPtr        ops;
 {
@@ -88,7 +88,7 @@ miDestroyGCOps(ops)
 }
 
 
-void
+_X_EXPORT void
 miDestroyClip(pGC)
     GCPtr           pGC;
 {
@@ -110,7 +110,7 @@ miDestroyClip(pGC)
     pGC->clientClipType = CT_NONE;
 }
 
-void
+_X_EXPORT void
 miChangeClip(pGC, type, pvalue, nrects)
     GCPtr           pGC;
     int             type;
@@ -141,7 +141,7 @@ miChangeClip(pGC, type, pvalue, nrects)
     pGC->stateChanges |= GCClipMask;
 }
 
-void
+_X_EXPORT void
 miCopyClip(pgcDst, pgcSrc)
     GCPtr           pgcDst, pgcSrc;
 {
@@ -166,7 +166,7 @@ miCopyClip(pgcDst, pgcSrc)
 }
 
 /* ARGSUSED */
-void
+_X_EXPORT void
 miCopyGC(pGCSrc, changes, pGCDst)
     GCPtr           pGCSrc;
     unsigned long   changes;
@@ -175,7 +175,7 @@ miCopyGC(pGCSrc, changes, pGCDst)
     return;
 }
 
-void
+_X_EXPORT void
 miComputeCompositeClip(pGC, pDrawable)
     GCPtr           pGC;
     DrawablePtr     pDrawable;

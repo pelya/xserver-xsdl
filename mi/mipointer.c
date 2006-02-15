@@ -47,7 +47,7 @@ in this Software without prior written authorization from The Open Group.
 # include   "cursorstr.h"
 # include   "dixstruct.h"
 
-int  miPointerScreenIndex;
+_X_EXPORT int miPointerScreenIndex;
 static unsigned long miPointerGeneration = 0;
 
 #define GetScreenPrivate(s) ((miPointerScreenPtr) ((s)->devPrivates[miPointerScreenIndex].ptr))
@@ -71,7 +71,7 @@ static Bool miPointerSetCursorPosition(ScreenPtr pScreen, int x, int y,
 static Bool miPointerCloseScreen(int index, ScreenPtr pScreen);
 static void miPointerMove(ScreenPtr pScreen, int x, int y, unsigned long time);
 
-Bool
+_X_EXPORT Bool
 miPointerInitialize (pScreen, spriteFuncs, screenFuncs, waitForUpdate)
     ScreenPtr		    pScreen;
     miPointerSpriteFuncPtr  spriteFuncs;
@@ -233,7 +233,7 @@ miPointerSetCursorPosition(pScreen, x, y, generateEvent)
 
 /* Once signals are ignored, the WarpCursor function can call this */
 
-void
+_X_EXPORT void
 miPointerWarpCursor (pScreen, x, y)
     ScreenPtr	pScreen;
     int		x, y;
@@ -268,13 +268,13 @@ miPointerWarpCursor (pScreen, x, y)
  * Pointer/CursorDisplay interface routines
  */
 
-int
+_X_EXPORT int
 miPointerGetMotionBufferSize ()
 {
     return MOTION_SIZE;
 }
 
-int
+_X_EXPORT int
 miPointerGetMotionEvents (pPtr, coords, start, stop, pScreen)
     DeviceIntPtr    pPtr;
     xTimecoord	    *coords;
@@ -399,7 +399,7 @@ miPointerSetNewScreen(int screen_no, int x, int y)
    	miPointer.limits.y2 = pScreen->height;
 }
 
-ScreenPtr
+_X_EXPORT ScreenPtr
 miPointerCurrentScreen ()
 {
 	return (miPointer.pScreen);
@@ -409,7 +409,7 @@ miPointerCurrentScreen ()
  * miPointerAbsoluteCursor.  The pointer has moved to x,y
  */
 
-void
+_X_EXPORT void
 miPointerAbsoluteCursor (x, y, time)
     int		    x, y;
     unsigned long   time;
@@ -456,7 +456,7 @@ miPointerAbsoluteCursor (x, y, time)
     miPointerMove (pScreen, x, y, time);
 }
 
-void
+_X_EXPORT void
 miPointerPosition (x, y)
     int	    *x, *y;
 {

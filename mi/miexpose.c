@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/mi/miexpose.c,v 1.3 2005/04/20 12:25:45 daniels Exp $ */
+/* $XdotOrg: xserver/xorg/mi/miexpose.c,v 1.6 2005/07/03 08:53:51 daniels Exp $ */
 /* $XFree86: xc/programs/Xserver/mi/miexpose.c,v 3.9tsi Exp $ */
 /***********************************************************
 
@@ -130,7 +130,7 @@ exposing is done by the backing store's GraphicsExpose function, of course.
 
 */
 
-RegionPtr
+_X_EXPORT RegionPtr
 miHandleExposures(pSrcDrawable, pDstDrawable,
 		  pGC, srcx, srcy, width, height, dstx, dsty, plane)
     register DrawablePtr	pSrcDrawable;
@@ -379,7 +379,7 @@ miHandleExposures(pSrcDrawable, pDstDrawable,
 
 /* send GraphicsExpose events, or a NoExpose event, based on the region */
 
-void
+_X_EXPORT void
 miSendGraphicsExpose (client, pRgn, drawable, major, minor)
     ClientPtr	client;
     RegionPtr	pRgn;
@@ -493,7 +493,7 @@ miSendExposures(pWin, pRgn, dx, dy)
     DEALLOCATE_LOCAL(pEvent);
 }
 
-void 
+_X_EXPORT void 
 miWindowExposures(pWin, prgn, other_exposed)
     WindowPtr pWin;
     register RegionPtr prgn, other_exposed;
@@ -630,7 +630,7 @@ tossGC (
 }
 
 
-void
+_X_EXPORT void
 miPaintWindow(pWin, prgn, what)
 register WindowPtr pWin;
 RegionPtr prgn;
@@ -884,7 +884,7 @@ int what;
 /* MICLEARDRAWABLE -- sets the entire drawable to the background color of
  * the GC.  Useful when we have a scratch drawable and need to initialize 
  * it. */
-void
+_X_EXPORT void
 miClearDrawable(pDraw, pGC)
     DrawablePtr	pDraw;
     GCPtr	pGC;

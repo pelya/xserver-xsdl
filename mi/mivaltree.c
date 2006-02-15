@@ -1,5 +1,5 @@
 /* $Xorg: mivaltree.c,v 1.4 2001/02/09 02:05:22 xorgcvs Exp $ */
-/* $XdotOrg: xc/programs/Xserver/mi/mivaltree.c,v 1.4 2005/04/20 12:25:45 daniels Exp $ */
+/* $XdotOrg: xserver/xorg/mi/mivaltree.c,v 1.6 2005/07/03 07:01:51 daniels Exp $ */
 /*
  * mivaltree.c --
  *	Functions for recalculating window clip lists. Main function
@@ -110,7 +110,7 @@ Equipment Corporation.
 /*
  * Compute the visibility of a shaped window
  */
-int
+_X_EXPORT int
 miShapedWindowIn (pScreen, universe, bounding, rect, x, y)
     ScreenPtr	pScreen;
     RegionPtr	universe, bounding;

@@ -68,7 +68,7 @@ SOFTWARE.
 #include "regionstr.h"
 
 
-void
+_X_EXPORT void
 miFillPolygon(dst, pgc, shape, mode, count, pPts)
     DrawablePtr		dst;
     register GCPtr	pgc;

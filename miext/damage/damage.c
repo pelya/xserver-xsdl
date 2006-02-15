@@ -1960,7 +1960,7 @@ DamageRegion (DamagePtr		    pDamage)
     return &pDamage->damage;
 }
 
-void
+_X_EXPORT void
 DamageDamageRegion (DrawablePtr	pDrawable,
 		    RegionPtr	pRegion)
 {

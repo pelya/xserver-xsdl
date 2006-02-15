@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/mi/miarc.c,v 1.3 2005/04/20 12:25:45 daniels Exp $ */
+/* $XdotOrg: xserver/xorg/mi/miarc.c,v 1.6 2005/07/03 08:53:51 daniels Exp $ */
 /* $XFree86: xc/programs/Xserver/mi/miarc.c,v 3.14 2003/10/29 22:57:48 tsi Exp $ */
 /***********************************************************
 
@@ -1073,7 +1073,7 @@ miFillWideEllipse(
  * fuller explanation of this.)
  */
 
-void
+_X_EXPORT void
 miPolyArc(pDraw, pGC, narcs, parcs)
     DrawablePtr	pDraw;
     GCPtr	pGC;

@@ -97,7 +97,7 @@ static miZeroArcPtRec oob = {65536, 65536, 0};
  *
  */
 
-Bool
+_X_EXPORT Bool
 miZeroArcSetup(arc, info, ok360)
     register xArc *arc;
     register miZeroArcRec *info;
@@ -709,7 +709,7 @@ miZeroArcDashPts(
     dinfo->dashOffset = pGC->dash[dinfo->dashIndex] - dashRemaining;
 }
 
-void
+_X_EXPORT void
 miZeroPolyArc(pDraw, pGC, narcs, parcs)
     DrawablePtr	pDraw;
     GCPtr	pGC;

@@ -57,7 +57,7 @@ SOFTWARE.
 #include "windowstr.h"
 #include "mi.h"
 
-void
+_X_EXPORT void
 miPolyPoint(pDrawable, pGC, mode, npt, pptInit)
     DrawablePtr 	pDrawable;
     GCPtr 		pGC;

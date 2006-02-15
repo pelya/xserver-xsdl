@@ -68,7 +68,7 @@ SOFTWARE.
  *****************************************************************/
 
 
-void
+_X_EXPORT void
 miPolySegment(pDraw, pGC, nseg, pSegs)
     DrawablePtr pDraw;
     GCPtr 	pGC;

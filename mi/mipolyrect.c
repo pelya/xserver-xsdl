@@ -57,7 +57,7 @@ SOFTWARE.
 #include "pixmap.h"
 #include "mi.h"
 
-void
+_X_EXPORT void
 miPolyRectangle(pDraw, pGC, nrects, pRects)
     DrawablePtr	pDraw;
     GCPtr	pGC;

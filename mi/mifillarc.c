@@ -54,7 +54,7 @@ Author:  Bob Scheifler, MIT X Consortium
 #define Dsin(d)	sin((double)d*(M_PI/11520.0))
 #define Dcos(d)	cos((double)d*(M_PI/11520.0))
 
-void
+_X_EXPORT void
 miFillArcSetup(arc, info)
     register xArc *arc;
     register miFillArcRec *info;
@@ -316,7 +316,7 @@ miGetPieEdge(
     miGetArcEdge(arc, edge, k, top, left);
 }
 
-void
+_X_EXPORT void
 miFillArcSliceSetup(arc, slice, pGC)
     register xArc *arc;
     register miArcSliceRec *slice;
@@ -785,7 +785,7 @@ miFillArcSliceD(
  * Since we don't have to worry about overlapping segments, we can just
  * fill each arc as it comes.
  */
-void
+_X_EXPORT void
 miPolyFillArc(pDraw, pGC, narcs, parcs)
     DrawablePtr	pDraw;
     GCPtr	pGC;

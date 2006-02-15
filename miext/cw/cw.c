@@ -666,7 +666,7 @@ miInitializeCompositeWrapper(ScreenPtr pScreen)
 #endif
 }
 
-void
+_X_EXPORT void
 miDisableCompositeWrapper(ScreenPtr pScreen)
 {
     cwDisabled[pScreen->myNum] = TRUE;
