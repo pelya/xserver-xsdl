@@ -79,7 +79,7 @@ static void	    SertafiedWakeupHandler(
     pointer /* LastSelectMask */
 );
 
-int
+_X_EXPORT int
 ClientSleepUntil (client, revive, notifyFunc, closure)
     ClientPtr	client;
     TimeStamp	*revive;

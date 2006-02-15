@@ -36,6 +36,12 @@
 	* render/miglyph.c:
 	Mark everything in misym.c as _X_EXPORT.
 
+	* Xext/panoramiX.c:
+	* Xext/shm.c:
+	* Xext/sleepuntil.c:
+	* dix/atom.c:
+	Mark everything in {ext,font}sym.c as _X_EXPORT.
+
 2006-02-15  Kristian Høgsberg  <krh@redhat.com>
 
 	* GL/symlink-mesa.sh: 

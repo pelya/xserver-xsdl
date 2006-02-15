@@ -157,7 +157,7 @@ ValidAtom(Atom atom)
     return (atom != None) && (atom <= lastAtom);
 }
 
-char *
+_X_EXPORT char *
 NameForAtom(Atom atom)
 {
     NodePtr node;

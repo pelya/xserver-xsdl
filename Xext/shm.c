@@ -112,9 +112,9 @@ static DISPATCH_PROC(SProcShmPutImage);
 static DISPATCH_PROC(SProcShmQueryVersion);
 
 static unsigned char ShmReqCode;
-int ShmCompletionCode;
-int BadShmSegCode;
-RESTYPE ShmSegType;
+_X_EXPORT int ShmCompletionCode;
+_X_EXPORT int BadShmSegCode;
+_X_EXPORT RESTYPE ShmSegType;
 static ShmDescPtr Shmsegs;
 static Bool sharedPixmaps;
 static int pixmapFormat;
