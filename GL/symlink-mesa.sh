@@ -254,6 +254,8 @@ symlink_mesa_swrast() {
     action s_accum.h
     action s_alpha.c
     action s_alpha.h
+    action s_arbshader.c
+    action s_arbshader.h
     action s_atifragshader.c
     action s_atifragshader.h
     action s_bitmap.c

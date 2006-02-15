@@ -20,6 +20,7 @@ nodist_libswrast_la_SOURCES = s_aaline.c \
                       s_aatriangle.c \
                       s_accum.c \
                       s_alpha.c \
+                      s_arbshader.c \
                       s_atifragshader.c \
                       s_bitmap.c \
                       s_blend.c \

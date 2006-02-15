@@ -1,3 +1,9 @@
+2006-02-15  Kristian Høgsberg  <krh@redhat.com>
+
+	* GL/symlink-mesa.sh: 
+	* GL/mesa/swrast/Makefile.am: 
+	Update to build against Mesa trunk.
+
 2006-02-14  Eric Anholt  <anholt@FreeBSD.org>
 
 	* hw/kdrive/mga/mgadraw.c: (mgaDrawDisable):
