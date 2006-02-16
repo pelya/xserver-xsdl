@@ -6,6 +6,40 @@
 
 2006-02-15  Eric Anholt  <anholt@FreeBSD.org>
 
+	* Makefile.am:
+	* configure.ac:
+	* exa/Makefile.am:
+	* exa/exa.c: (exaCreatePixmap), (exaCloseScreen), (exaDriverInit),
+	(exaWaitSync), (exaGetVersion):
+	* exa/exa.h:
+	* exa/exa_accel.c: (exaFillSpans), (exaCopyArea),
+	(exaPolyFillRect), (exaSolidBoxClipped), (exaCopyWindow),
+	(exaPaintWindow):
+	* exa/exa_migration.c:
+	* exa/exa_offscreen.c: (exaEnableDisableFBAccess):
+	* exa/exa_priv.h:
+	* exa/exa_render.c: (exaComposite):
+	* hw/xfree86/exa/Makefile.am:
+	* hw/xfree86/exa/exa.c:
+	* hw/xfree86/exa/exa.h:
+	* hw/xfree86/exa/exa_accel.c:
+	* hw/xfree86/exa/exa_migration.c:
+	* hw/xfree86/exa/exa_offscreen.c:
+	* hw/xfree86/exa/exa_priv.h:
+	* hw/xfree86/exa/exa_render.c:
+	* hw/xfree86/exa/exa_unaccel.c:
+	* hw/xfree86/exa/examodule.c: (exaXorgCloseScreen),
+	(exaXorgEnableDisableFBAccess), (exaDDXDriverInit),
+	(EXAAvailableOptions), (exaSetup):
+	Move EXA implementation up to the top level and remove its XFree86
+	dependencies.  It was nearly abstract enough already to be used by
+	multiple DDXes.  This will be useful for EXA development through
+	providing a fake acceleration implementation within Xephyr, so that
+	testing can be done on new EXA code without worrying about buggy
+	drivers.
+
+2006-02-15  Eric Anholt  <anholt@FreeBSD.org>
+
 	* GL/mesa/X/Makefile.am:
 	* GL/mesa/array_cache/Makefile.am:
 	* GL/mesa/glapi/Makefile.am:
