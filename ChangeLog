@@ -1,3 +1,13 @@
+2006-02-15  Eric Anholt  <anholt@FreeBSD.org>
+
+	* XTrap/Makefile.am:
+	* Xext/Makefile.am:
+	* dbe/Makefile.am:
+	* hw/xfree86/dixmods/Makefile.am:
+	* record/Makefile.am:
+	Bug #5871: Drop special build infrastructure left over from libcwrapper
+	times. (George Fufutos)
+
 2006-02-16  Dave Airlie  <airlied@freedesktop.org>
 
 	* Xext/xres.c: (ProcXResQueryClientPixmapBytes):

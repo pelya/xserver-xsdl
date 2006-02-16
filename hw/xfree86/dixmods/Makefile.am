@@ -64,7 +64,7 @@ libcfb32_la_LIBADD = $(top_builddir)/cfb32/libcfb32.la
 libcfb32_la_SOURCES = cfb32module.c
 
 libdbe_la_LDFLAGS = -avoid-version
-libdbe_la_LIBADD = $(top_builddir)/dbe/libdbemodule.la
+libdbe_la_LIBADD = $(top_builddir)/dbe/libdbe.la
 libdbe_la_SOURCES = dbemodule.c
 
 libfb_la_LDFLAGS = -avoid-version
@@ -80,7 +80,7 @@ libmfb_la_LIBADD = $(top_builddir)/mfb/libmfb.la
 libmfb_la_SOURCES = mfbmodule.c
 
 librecord_la_LDFLAGS = -avoid-version
-librecord_la_LIBADD = $(top_builddir)/record/librecordmodule.la
+librecord_la_LIBADD = $(top_builddir)/record/librecord.la
 librecord_la_SOURCES = recordmod.c
 
 libshadow_la_LDFLAGS = -avoid-version
@@ -99,7 +99,7 @@ XKB_SOURCES = xkbVT.c xkbPrivate.c xkbKillSrv.c
 libxorgxkb_la_SOURCES = $(XKB_SOURCES)
 
 libxtrap_la_LDFLAGS = -avoid-version
-libxtrap_la_LIBADD = $(top_builddir)/XTrap/libxtrapmodule.la
+libxtrap_la_LIBADD = $(top_builddir)/XTrap/libxtrap.la
 libxtrap_la_SOURCES = xf86XTrapModule.c
 
 $(XKB_SOURCES):

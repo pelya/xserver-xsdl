@@ -6,7 +6,7 @@
 #                    that Xorg loads
 noinst_LTLIBRARIES = libXext.la libXextbuiltin.la libXextmodule.la
 
-INCLUDES = -I$(top_srcdir)/hw/xfree86/dixmods/extmod -I$(top_srcdir)/hw/xfree86/os-support
+INCLUDES = -I$(top_srcdir)/hw/xfree86/dixmods/extmod
 
 AM_CFLAGS = $(DIX_CFLAGS) @SERVER_DEFINES@ @LOADER_DEFINES@
 
@@ -130,7 +130,6 @@ libXext_la_SOURCES =		$(BUILTIN_SRCS) $(MODULE_SRCS)
 libXextbuiltin_la_SOURCES =	$(BUILTIN_SRCS)
 
 libXextmodule_la_SOURCES =	$(MODULE_SRCS)
-libXextmodule_la_CFLAGS = 	$(AM_CFLAGS) @MODULE_DEFINES@
 
 EXTRA_DIST = \
 	README.xtest1-ddx \
