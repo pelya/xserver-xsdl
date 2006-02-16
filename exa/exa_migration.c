@@ -22,8 +22,8 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifdef HAVE_CONFIG_H
-#include <xorg-config.h>
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
 #endif
 
 #include <string.h>
@@ -31,8 +31,6 @@
 #include "exa_priv.h"
 #include <X11/fonts/fontstruct.h>
 #include "dixfontstr.h"
-#include "xf86str.h"
-#include "xf86.h"
 #include "exa.h"
 #include "cw.h"
 

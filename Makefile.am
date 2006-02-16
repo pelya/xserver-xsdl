@@ -61,6 +61,7 @@ SUBDIRS = \
 	$(COMPOSITE_DIR) \
 	$(GLX_DIR) \
 	$(LBX_DIR) \
+	exa \
 	hw \
 	$(XPDDX_DIR) \
 	$(XPCONFIG_DIR)

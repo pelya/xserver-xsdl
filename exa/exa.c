@@ -22,14 +22,15 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifdef HAVE_CONFIG_H
-#include <xorg-config.h>
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
 #endif
+
+#include <stdlib.h>
+
 #include "exa_priv.h"
 #include <X11/fonts/fontstruct.h>
 #include "dixfontstr.h"
-#include "xf86str.h"
-#include "xf86.h"
 #include "exa.h"
 #include "cw.h"
 
@@ -119,29 +120,12 @@ exaCreatePixmap(ScreenPtr pScreen, int w, int h, int depth)
     PixmapPtr		pPixmap;
     ExaPixmapPrivPtr	pExaPixmap;
     int			bpp;
-    ScrnInfoPtr pScrn = XF86SCRNINFO(pScreen);
     ExaScreenPriv(pScreen);
 
     if (w > 32767 || h > 32767)
 	return NullPixmap;
 
-    if (!pScrn->vtSema || pExaScr->swappedOut) {
-        pPixmap = pExaScr->SavedCreatePixmap(pScreen, w, h, depth);
-    } else {
-        bpp = BitsPerPixel (depth);
-        if (bpp == 32 && depth == 24)
-        {
-            int format;
-            for (format = 0; format < MAXFORMATS && pScrn->formats[format].depth; ++format)
-                if (pScrn->formats[format].depth == 24)
-                {
-                    bpp = pScrn->formats[format].bitsPerPixel;
-                    break;
-                }
-        }
-
-        pPixmap = fbCreatePixmapBpp (pScreen, w, h, depth, bpp);
-    }
+    pPixmap = fbCreatePixmap (pScreen, w, h, depth);
     if (!pPixmap)
 	return NULL;
     pExaPixmap = ExaGetPixmapPriv(pPixmap);
@@ -288,7 +272,6 @@ exaCloseScreen(int i, ScreenPtr pScreen)
 #ifdef RENDER
     PictureScreenPtr	ps = GetPictureScreenIfSet(pScreen);
 #endif
-    ScrnInfoPtr pScrn = XF86SCRNINFO(pScreen);
 
     pScreen->CreateGC = pExaScr->SavedCreateGC;
     pScreen->CloseScreen = pExaScr->SavedCloseScreen;
@@ -305,8 +288,6 @@ exaCloseScreen(int i, ScreenPtr pScreen)
 	ps->Glyphs = pExaScr->SavedGlyphs;
     }
 #endif
-    if (pExaScr->wrappedEnableDisableFB)
-	pScrn->EnableDisableFBAccess = pExaScr->SavedEnableDisableFBAccess;
 
     xfree (pExaScr);
 
@@ -317,8 +298,6 @@ Bool
 exaDriverInit (ScreenPtr		pScreen,
                ExaDriverPtr	pScreenInfo)
 {
-    /* Do NOT use XF86SCRNINFO macro here!! */
-    ScrnInfoPtr pScrn = xf86Screens[pScreen->myNum];
     ExaScreenPrivPtr pExaScr;
 
 #ifdef RENDER
@@ -334,14 +313,16 @@ exaDriverInit (ScreenPtr		pScreen,
     pExaScr = xcalloc (sizeof (ExaScreenPrivRec), 1);
 
     if (!pExaScr) {
-        xf86DrvMsg(pScreen->myNum, X_WARNING,
-                   "EXA: Failed to allocate screen private\n");
+        LogMessage(X_WARNING, "EXA(%d): Failed to allocate screen private\n",
+		   pScreen->myNum);
 	return FALSE;
     }
 
     pExaScr->info = pScreenInfo;
 
     pScreen->devPrivates[exaScreenPrivateIndex].ptr = (pointer) pExaScr;
+
+    exaDDXDriverInit(pScreen);
 
     /*
      * Replace various fb screen functions
@@ -389,8 +370,9 @@ exaDriverInit (ScreenPtr		pScreen,
     {
 	if (!AllocatePixmapPrivate(pScreen, exaPixmapPrivateIndex,
 				   sizeof (ExaPixmapPrivRec))) {
-            xf86DrvMsg(pScreen->myNum, X_WARNING,
-                       "EXA: Failed to allocate pixmap private\n");
+            LogMessage(X_WARNING,
+		       "EXA(%d): Failed to allocate pixmap private\n",
+		       pScreen->myNum);
 	    return FALSE;
         }
         pExaScr->SavedCreatePixmap = pScreen->CreatePixmap;
@@ -401,7 +383,7 @@ exaDriverInit (ScreenPtr		pScreen,
     }
     else
     {
-        xf86DrvMsg(pScreen->myNum, X_INFO, "EXA: No offscreen pixmaps\n");
+        LogMessage(X_INFO, "EXA(%d): No offscreen pixmaps\n", pScreen->myNum);
 	if (!AllocatePixmapPrivate(pScreen, exaPixmapPrivateIndex, 0))
 	    return FALSE;
     }
@@ -410,14 +392,10 @@ exaDriverInit (ScreenPtr		pScreen,
                 pExaScr->info->card.memorySize));
     if (pExaScr->info->card.offScreenBase < pExaScr->info->card.memorySize) {
 	if (!exaOffscreenInit (pScreen)) {
-            xf86DrvMsg(pScreen->myNum, X_WARNING,
-                       "EXA: Offscreen pixmap setup failed\n");
+            LogMessage(X_WARNING, "EXA(%d): Offscreen pixmap setup failed\n",
+                       pScreen->myNum);
             return FALSE;
         }
-
-	pExaScr->SavedEnableDisableFBAccess = pScrn->EnableDisableFBAccess;
-	pScrn->EnableDisableFBAccess = exaEnableDisableFBAccess;
-	pExaScr->wrappedEnableDisableFB = TRUE;
     }
 
     return TRUE;
@@ -444,9 +422,8 @@ void exaWaitSync(ScreenPtr pScreen)
 {
     ExaScreenPriv(pScreen);
     ExaCardInfoPtr card = &(pExaScr->info->card);
-    ScrnInfoPtr pScrn = XF86SCRNINFO(pScreen);
 
-    if (card->needsSync && pScrn->vtSema) {
+    if (card->needsSync && !pExaScr->swappedOut) {
         (*pExaScr->info->accel.WaitMarker)(pScreen, card->lastMarker);
         card->needsSync = FALSE;
     }
@@ -456,61 +433,3 @@ unsigned int exaGetVersion(void)
 {
     return EXA_VERSION;
 }
-
-#ifdef XFree86LOADER
-static MODULESETUPPROTO(exaSetup);
-
-
-static const OptionInfoRec EXAOptions[] = {
-    { -1,				NULL,
-      OPTV_NONE,	{0}, FALSE }
-};
-
-/*ARGSUSED*/
-static const OptionInfoRec *
-EXAAvailableOptions(void *unused)
-{
-    return (EXAOptions);
-}
-
-static XF86ModuleVersionInfo exaVersRec =
-{
-	"exa",
-	MODULEVENDORSTRING,
-	MODINFOSTRING1,
-	MODINFOSTRING2,
-	XORG_VERSION_CURRENT,
-	1, 2, 0,
-	ABI_CLASS_VIDEODRV,		/* requires the video driver ABI */
-	ABI_VIDEODRV_VERSION,
-	MOD_CLASS_NONE,
-	{0,0,0,0}
-};
-
-XF86ModuleData exaModuleData = { &exaVersRec, exaSetup, NULL };
-
-ModuleInfoRec EXA = {
-    1,
-    "EXA",
-    NULL,
-    0,
-    EXAAvailableOptions,
-};
-
-/*ARGSUSED*/
-static pointer
-exaSetup(pointer Module, pointer Options, int *ErrorMajor, int *ErrorMinor)
-{
-    static Bool Initialised = FALSE;
-
-    if (!Initialised) {
-	Initialised = TRUE;
-#ifndef REMOVE_LOADER_CHECK_MODULE_INFO
-	if (xf86LoaderCheckSymbol("xf86AddModuleInfo"))
-#endif
-	xf86AddModuleInfo(&EXA, Module);
-    }
-
-    return (pointer)TRUE;
-}
-#endif

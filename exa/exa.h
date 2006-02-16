@@ -249,6 +249,9 @@ exaGetPixmapPitch(PixmapPtr pPix);
 unsigned long
 exaGetPixmapSize(PixmapPtr pPix);
 
+void
+exaEnableDisableFBAccess (int index, Bool enable);
+
 #define exaInitCard(exa, sync, memory_base, off_screen_base, memory_size, \
                     offscreen_byte_align, offscreen_pitch, flags, \
                     max_x, max_y) \

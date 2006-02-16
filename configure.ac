@@ -1538,6 +1538,7 @@ xkb/Makefile
 Xext/Makefile
 Xi/Makefile
 xfixes/Makefile
+exa/Makefile
 hw/Makefile
 hw/xfree86/Makefile
 hw/xfree86/common/Makefile

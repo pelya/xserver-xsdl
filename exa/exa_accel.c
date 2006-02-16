@@ -22,14 +22,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifdef HAVE_CONFIG_H
-#include <xorg-config.h>
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
 #endif
 #include "exa_priv.h"
 #include <X11/fonts/fontstruct.h>
 #include "dixfontstr.h"
-#include "xf86str.h"
-#include "xf86.h"
 #include "exa.h"
 #include "cw.h"
 
@@ -49,8 +47,7 @@ exaFillSpans(DrawablePtr pDrawable, GCPtr pGC, int n,
     int		    off_x, off_y;
 
 
-    ScrnInfoPtr pScrn = XF86SCRNINFO(pScreen);
-    if (!pScrn->vtSema) {
+    if (pExaScr->swappedOut) {
         ExaCheckFillSpans(pDrawable, pGC, n, ppt, pwidth, fSorted);
         return;
     }
@@ -213,8 +210,9 @@ RegionPtr
 exaCopyArea(DrawablePtr pSrcDrawable, DrawablePtr pDstDrawable, GCPtr pGC,
 	    int srcx, int srcy, int width, int height, int dstx, int dsty)
 {
-    ScrnInfoPtr pScrn = XF86SCRNINFO(pDstDrawable->pScreen);
-    if (!pScrn->vtSema) {
+    ExaScreenPriv (pDstDrawable->pScreen);
+
+    if (pExaScr->swappedOut) {
         return  ExaCheckCopyArea(pSrcDrawable, pDstDrawable, pGC,
                                  srcx, srcy, width, height, dstx, dsty);
     }
@@ -232,7 +230,6 @@ exaPolyFillRect(DrawablePtr pDrawable,
 {
     ExaScreenPriv (pDrawable->pScreen);
     RegionPtr	    pClip = fbGetCompositeClip(pGC);
-    ScrnInfoPtr     pScrn = XF86SCRNINFO(pDrawable->pScreen);
     PixmapPtr	    pPixmap;
     register BoxPtr pbox;
     BoxPtr	    pextent;
@@ -243,7 +240,7 @@ exaPolyFillRect(DrawablePtr pDrawable,
     int		    xorg, yorg;
     int		    n;
 
-    if (!pScrn->vtSema ||
+    if (pExaScr->swappedOut ||
         pGC->fillStyle != FillSolid ||
 	pDrawable->width > pExaScr->info->card.maxX ||
 	pDrawable->height > pExaScr->info->card.maxY ||
@@ -341,14 +338,13 @@ exaSolidBoxClipped (DrawablePtr	pDrawable,
 		    int		y2)
 {
     ExaScreenPriv (pDrawable->pScreen);
-    ScrnInfoPtr pScrn = XF86SCRNINFO(pDrawable->pScreen);
     PixmapPtr   pPixmap;
     BoxPtr	pbox;
     int		nbox;
     int		xoff, yoff;
     int		partX1, partX2, partY1, partY2;
 
-    if (!pScrn->vtSema ||
+    if (pExaScr->swappedOut ||
 	pDrawable->width > pExaScr->info->card.maxX ||
 	pDrawable->height > pExaScr->info->card.maxY ||
         !(pPixmap = exaGetOffscreenPixmap (pDrawable, &xoff, &yoff)) ||
@@ -560,12 +556,12 @@ const GCOps exaOps = {
 void
 exaCopyWindow(WindowPtr pWin, DDXPointRec ptOldOrg, RegionPtr prgnSrc)
 {
+    ExaScreenPriv (pWin->drawable.pScreen);
     RegionRec	rgnDst;
     int		dx, dy;
     PixmapPtr	pPixmap = (*pWin->drawable.pScreen->GetWindowPixmap) (pWin);
-    ScrnInfoPtr pScrn = XF86SCRNINFO(pWin->drawable.pScreen);
 
-    if (!pScrn->vtSema) {
+    if (pExaScr->swappedOut) {
         ExaScreenPriv(pWin->drawable.pScreen);
         pExaScr->SavedCopyWindow (pWin, ptOldOrg, prgnSrc);
         exaDrawableDirty (&pWin->drawable);
@@ -749,11 +745,10 @@ fallback:
 void
 exaPaintWindow(WindowPtr pWin, RegionPtr pRegion, int what)
 {
-    ScrnInfoPtr pScrn = XF86SCRNINFO(pWin->drawable.pScreen);
-
+    ExaScreenPriv (pWin->drawable.pScreen);
     if (!REGION_NUM_RECTS(pRegion))
 	return;
-    if (pScrn->vtSema) {
+    if (!pExaScr->swappedOut) {
         switch (what) {
         case PW_BACKGROUND:
             switch (pWin->backgroundState) {

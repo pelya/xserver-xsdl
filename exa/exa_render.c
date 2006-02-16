@@ -1,4 +1,4 @@
-/*
+ /*
  * Copyright © 2001 Keith Packard
  *
  * Partly based on code that is Copyright © The XFree86 Project Inc.
@@ -22,17 +22,16 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifdef HAVE_CONFIG_H
-#include <xorg-config.h>
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
 #endif
+
+#include <stdlib.h>
+
 #include "exa_priv.h"
 
 #ifdef RENDER
 #include "mipict.h"
-
-#include "xf86str.h"
-#include "xf86.h"
-
 
 #if DEBUG_TRACE_FALL
 static void exaCompositeFallbackPictDesc(PicturePtr pict, char *string, int n)
@@ -449,11 +448,10 @@ exaComposite(CARD8	op,
 {
     ExaScreenPriv (pDst->pDrawable->pScreen);
     int ret = -1;
-    ScrnInfoPtr pScrn = XF86SCRNINFO(pDst->pDrawable->pScreen);
     Bool saveSrcRepeat = pSrc->repeat;
     Bool saveMaskRepeat = pMask ? pMask->repeat : 0;
 
-    if (!pScrn->vtSema) {
+    if (pExaScr->swappedOut) {
         exaDrawableDirty(pDst->pDrawable);
         pExaScr->SavedComposite(op, pSrc, pMask, pDst, xSrc, ySrc,
                                 xMask, yMask, xDst, yDst, width, height);

@@ -270,12 +270,7 @@ exaEnableDisableFBAccess (int index, Bool enable)
     if (!enable) {
 	ExaOffscreenSwapOut (pScreen);
 	pExaScr->swappedOut = TRUE;
-    }
-
-    if (pExaScr->SavedEnableDisableFBAccess)
-       (*pExaScr->SavedEnableDisableFBAccess)(index, enable);
-
-    if (enable) {
+    } else {
 	ExaOffscreenSwapIn (pScreen);
 	pExaScr->swappedOut = FALSE;
     }

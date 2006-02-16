@@ -26,8 +26,8 @@
 #ifndef EXAPRIV_H
 #define EXAPRIV_H
 
-#ifdef HAVE_XORG_CONFIG_H
-#include <xorg-config.h>
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
 #endif
 
 #include "exa.h"
@@ -93,8 +93,6 @@ typedef struct {
     CompositeProcPtr             SavedComposite;
     GlyphsProcPtr                SavedGlyphs;
 #endif
-    EnableDisableFBAccessProcPtr SavedEnableDisableFBAccess;
-    Bool			 wrappedEnableDisableFB;
     Bool			 swappedOut;
 } ExaScreenPrivRec, *ExaScreenPrivPtr;
 
@@ -143,6 +141,11 @@ typedef struct {
     unsigned int    size;
 } ExaPixmapPrivRec, *ExaPixmapPrivPtr;
 
+/**
+ * exaDDXDriverInit must be implemented by the DDX using EXA, and is the place
+ * to set EXA options or hook in screen functions to handle using EXA as the AA.
+  */
+void exaDDXDriverInit (ScreenPtr pScreen);
 
 /* exaasync.c */
 void
@@ -280,9 +283,6 @@ ExaOffscreenSwapIn (ScreenPtr pScreen);
 
 void
 ExaOffscreenFini (ScreenPtr pScreen);
-
-void
-exaEnableDisableFBAccess (int index, Bool enable);
 
 /* exa.c */
 void
