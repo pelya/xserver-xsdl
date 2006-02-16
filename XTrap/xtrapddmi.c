@@ -42,14 +42,12 @@ SOFTWARE.
 #include <dix-config.h>
 #endif
 
-#ifndef EXTMODULE
 #include <errno.h>
 #include <X11/Xos.h>
 #ifdef PC
 # include "fcntl.h"
 # include "io.h"
 # define O_NDELAY 0L
-#endif
 #endif
 
 #define NEED_REPLIES

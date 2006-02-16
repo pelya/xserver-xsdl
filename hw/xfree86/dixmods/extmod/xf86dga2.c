@@ -762,10 +762,8 @@ ProcXDGADispatch (ClientPtr client)
     }
 }
 
-#ifdef EXTMODULE
 void
 XFree86DGARegister(INITARGS)
 {
   XDGAEventBase = &DGAEventBase; 
 }
-#endif

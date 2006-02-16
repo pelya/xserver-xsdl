@@ -1,5 +1,15 @@
 2006-02-15  Eric Anholt  <anholt@FreeBSD.org>
 
+	* XTrap/xtrapddmi.c:
+	* XTrap/xtrapdi.c:
+	* Xext/Makefile.am:
+	* hw/xfree86/dixmods/extmod/Makefile.am:
+	* hw/xfree86/dixmods/extmod/xf86dga2.c: (XFree86DGARegister):
+	Bug #5869: Remove traces of EXTMODULE define, which doesn't appear to be
+	useful any more. (George Fufutos)
+
+2006-02-15  Eric Anholt  <anholt@FreeBSD.org>
+
 	* hw/xfree86/dixmods/laymodule.c:
 	Bug #5888: Remove orphaned laymodule.c from miext/layer removal.
 	(George Fufutos)

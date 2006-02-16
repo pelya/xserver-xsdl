@@ -130,7 +130,7 @@ libXext_la_SOURCES =		$(BUILTIN_SRCS) $(MODULE_SRCS)
 libXextbuiltin_la_SOURCES =	$(BUILTIN_SRCS)
 
 libXextmodule_la_SOURCES =	$(MODULE_SRCS)
-libXextmodule_la_CFLAGS = 	$(AM_CFLAGS) @MODULE_DEFINES@ -DEXTMODULE
+libXextmodule_la_CFLAGS = 	$(AM_CFLAGS) @MODULE_DEFINES@
 
 EXTRA_DIST = \
 	README.xtest1-ddx \

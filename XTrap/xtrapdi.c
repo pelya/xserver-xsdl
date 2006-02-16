@@ -1,4 +1,4 @@
-/* $XdotOrg: xserver/xorg/XTrap/xtrapdi.c,v 1.5 2005/07/03 08:53:36 daniels Exp $ */
+/* $XdotOrg: xserver/xorg/XTrap/xtrapdi.c,v 1.6 2006/02/10 22:00:19 anholt Exp $ */
 /* $XFree86: xc/programs/Xserver/XTrap/xtrapdi.c,v 1.6tsi Exp $ */
 /*****************************************************************************
 Copyright 1987, 1988, 1989, 1990, 1991 by Digital Equipment Corp., Maynard, MA
@@ -55,11 +55,9 @@ CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include <dix-config.h>
 #endif
 
-#ifndef EXTMODULE
 #include <stdio.h>
 #include <errno.h>
 #include <X11/Xos.h>
-#endif
 #include <X11/X.h>
 #include <X11/Xproto.h>
 #include "input.h"              /* Server DevicePtr definitions */
