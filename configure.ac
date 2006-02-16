@@ -483,10 +483,13 @@ if test "x$XV" = xyes; then
 	AC_DEFINE(XV, 1, [Support Xv extension])
 	AC_DEFINE(XvExtension, 1, [Build Xv extension])
 	REQUIRED_MODULES="$REQUIRED_MODULES videoproto"
-	AM_CONDITIONAL(XVMC, [test "x$XVMC" = xyes])
-	if test "x$XVMC" = xyes; then
-		AC_DEFINE(XvMCExtension, 1, [Build XvMC extension])
-	fi
+else
+	XVMC=no
+fi
+
+AM_CONDITIONAL(XVMC, [test "x$XVMC" = xyes])
+if test "x$XVMC" = xyes; then
+	AC_DEFINE(XvMCExtension, 1, [Build XvMC extension])
 fi
 
 AM_CONDITIONAL(DGA, [test "x$DGA" = xyes])
