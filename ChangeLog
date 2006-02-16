@@ -1,3 +1,9 @@
+2006-02-15  Eric Anholt  <anholt@FreeBSD.org>
+
+	* hw/xfree86/dixmods/laymodule.c:
+	Bug #5888: Remove orphaned laymodule.c from miext/layer removal.
+	(George Fufutos)
+
 2006-02-15  Zephaniah E. Hull  <warp@aehallh.com>
 
 	* hw/xfree86/common/xf86Xinput.h:
