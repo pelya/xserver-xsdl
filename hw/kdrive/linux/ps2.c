@@ -90,7 +90,7 @@ Ps2Read (int ps2Port, void *closure)
 	right_button = KD_BUTTON_1;
     }
 #endif
-    while ((n = Ps2ReadBytes (ps2Port, buf, sizeof (buf), 3)) > 0)
+    while ((n = Ps2ReadBytes (ps2Port, (char *) buf, sizeof (buf), 3)) > 0)
     {
 	b = buf;
 	while (n >= 3)

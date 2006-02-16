@@ -51,6 +51,101 @@ SOFTWARE.
 #include <dix-config.h>
 #endif
 
+#define USE_RGB_BUILTIN 1
+
+#if USE_RGB_BUILTIN
+
+#include <X11/keysym.h>
+#include "os.h"
+
+static unsigned char
+OsToLower (unsigned char a)
+{
+    if ((a >= XK_A) && (a <= XK_Z))
+	return a + (XK_a - XK_A);
+    else if ((a >= XK_Agrave) && (a <= XK_Odiaeresis))
+	return a + (XK_agrave - XK_Agrave);
+    else if ((a >= XK_Ooblique) && (a <= XK_Thorn))
+	return a + (XK_oslash - XK_Ooblique);
+    else
+	return a;
+}
+
+static int
+OsStrCaseCmp (const unsigned char *s1, const unsigned char *s2, int l2)
+{
+    unsigned char   c1, c2;
+
+    for (;;)
+    {
+	c1 = OsToLower (*s1++);
+	if (l2 == 0)
+	    c2 = '\0';
+	else
+	    c2 = OsToLower (*s2++);
+	if (!c1 || !c2)
+	    break;
+	if (c1 != c2)
+	    break;
+	l2--;
+    }
+    return c2 - c1;
+}
+
+typedef struct _builtinColor {
+    unsigned char	red;
+    unsigned char	green;
+    unsigned char	blue;
+    unsigned short	name;
+} BuiltinColor;
+
+#include "oscolor.h"
+
+#define NUM_BUILTIN_COLORS  (sizeof (BuiltinColors) / sizeof (BuiltinColors[0]))
+
+Bool
+OsInitColors()
+{
+    return TRUE;
+}
+
+Bool
+OsLookupColor(int		screen, 
+	      char		*s_name,
+	      unsigned int	len, 
+	      unsigned short	*pred,
+	      unsigned short	*pgreen,
+	      unsigned short	*pblue)
+{
+    const BuiltinColor	*c;
+    unsigned char	*name = (unsigned char *) s_name;
+    int			low, mid, high;
+    int			r;
+
+    low = 0;
+    high = NUM_BUILTIN_COLORS - 1;
+    while (high >= low)
+    {
+	mid = (low + high) / 2;
+	c = &BuiltinColors[mid];
+	r = OsStrCaseCmp (&BuiltinColorNames[c->name], name, len);
+	if (r == 0)
+	{
+	    *pred = c->red * 0x101;
+	    *pgreen = c->green * 0x101;
+	    *pblue = c->blue * 0x101;
+	    return TRUE;
+	}
+	if (r < 0)
+	    high = mid - 1;
+	else
+	    low = mid + 1;
+    }
+    return FALSE;
+}
+
+#else
+
 /*
  * This file builds the server's internal database mapping color names to
  * RGB tuples by reading in an rgb.txt file.  This is still slightly foolish,
@@ -200,3 +295,5 @@ OsLookupColor(int screen, char *name, unsigned int len,
 
   return FALSE;
 }
+
+#endif /* USE_RGB_BUILTIN */

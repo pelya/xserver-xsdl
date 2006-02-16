@@ -192,7 +192,7 @@ kaaMoveInPixmap (PixmapPtr pPixmap)
 
     if (pKaaScr->info->UploadToScreen)
     {
-	if (pKaaScr->info->UploadToScreen(pPixmap, src, src_pitch))
+	if (pKaaScr->info->UploadToScreen(pPixmap, (char *) src, src_pitch))
 	    return;
     }
 

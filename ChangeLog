@@ -1,3 +1,43 @@
+2006-02-15  Keith Packard  <keithp@keithp.com>
+
+	* Makefile.am:
+	* Xext/Makefile.am:
+	* configure.ac:
+	* hw/kdrive/chips/Makefile.am:
+	* hw/kdrive/epson/Makefile.am:
+	* hw/kdrive/fbdev/Makefile.am:
+	* hw/kdrive/fbdev/fbdev.c: (fbdevInitialize):
+	* hw/kdrive/i810/Makefile.am:
+	* hw/kdrive/linux/mouse.c: (ps2Init):
+	* hw/kdrive/linux/ms.c: (MsRead):
+	* hw/kdrive/linux/ps2.c: (Ps2Read):
+	* hw/kdrive/mach64/Makefile.am:
+	* hw/kdrive/mga/Makefile.am:
+	* hw/kdrive/nvidia/Makefile.am:
+	* hw/kdrive/pm2/Makefile.am:
+	* hw/kdrive/r128/Makefile.am:
+	* hw/kdrive/sdl/Makefile.am:
+	* hw/kdrive/smi/Makefile.am:
+	* hw/kdrive/src/kaa.c: (kaaMoveInPixmap):
+	* hw/kdrive/src/kinput.c: (KdKeybdProc):
+	* hw/kdrive/vesa/Makefile.am:
+	* hw/kdrive/via/Makefile.am:
+	* include/kdrive-config.h.in:
+	* miext/damage/damage.c: (DamageSetup):
+	* miext/shadow/Makefile.am:
+	* miext/shadow/shadow.h:
+	* miext/shadow/shrot16pack_270YX.c:
+	* miext/shadow/shrot16pack_90YX.c:
+	* os/oscolor.c: (OsToLower), (OsStrCaseCmp), (OsInitColors),
+	(OsLookupColor):
+	* os/osdep.h:
+	* os/utils.c:
+	Make more extensions optional in build (for kdrive).
+	Fix kdrive build for actual hardware.
+	Fix kdrive pointer signed/unsigned types.
+	Add kdrive-required YX rotation functions.
+	Replace rgb text file loading with static rgb color table.
+
 2006-02-16  Benjamin Herrenschmidt  <benh@kernel.crashing.org>
 
 	* hw/xfree86/ramdac/xf86Cursor.c:

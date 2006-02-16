@@ -532,7 +532,7 @@ ATIScreenFini(KdScreenInfo *screen)
 Bool
 ATIMapReg(KdCardInfo *card, ATICardInfo *atic)
 {
-	atic->reg_base = (CARD8 *)KdMapDevice(ATI_REG_BASE(card),
+	atic->reg_base = (char *)KdMapDevice(ATI_REG_BASE(card),
 	    ATI_REG_SIZE(card));
 
 	if (atic->reg_base == NULL)

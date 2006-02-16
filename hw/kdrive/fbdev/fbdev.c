@@ -58,11 +58,11 @@ fbdevInitialize (KdCardInfo *card, FbdevPriv *priv)
 	return FALSE;
     }
 
-    priv->fb_base = (unsigned char *) mmap ((caddr_t) NULL,
-					    priv->fix.smem_len,
-					    PROT_READ|PROT_WRITE,
-					    MAP_SHARED,
-					    priv->fd, 0);
+    priv->fb_base = (char *) mmap ((caddr_t) NULL,
+				   priv->fix.smem_len,
+				   PROT_READ|PROT_WRITE,
+				   MAP_SHARED,
+				   priv->fd, 0);
     
     if (priv->fb_base == (char *)-1) 
     {

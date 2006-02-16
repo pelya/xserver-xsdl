@@ -390,6 +390,9 @@ AC_ARG_ENABLE(evi,            AS_HELP_STRING([--disable-evi], [Build Extended-Vi
 AC_ARG_ENABLE(multibuffer,    AS_HELP_STRING([--enable-multibuffer], [Build Multibuffer extension (default: disabled)]), [MULTIBUFFER=$enableval], [MULTIBUFFER=no])
 AC_ARG_ENABLE(fontcache,      AS_HELP_STRING([--enable-fontcache], [Build FontCache extension (default: disabled)]), [FONTCACHE=$enableval], [FONTCACHE=no])
 AC_ARG_ENABLE(dbe,            AS_HELP_STRING([--disable-dbe], [Build DBE extension (default: enabled)]), [DBE=$enableval], [DBE=yes])
+AC_ARG_ENABLE(xf86bigfont,    AS_HELP_STRING([--disable-xf86bigfont], [Build XF86 Big Font extension (default: enabled (sigh))]), [XF86BIGFONT=$enableval], [XF86BIGFONT=yes])
+AC_ARG_ENABLE(dpms,    AS_HELP_STRING([--disable-dpms], [Build DPMS extension (default: enabled (sigh))]), [DPMS=$enableval], [DPMSExtension=yes])
+AC_ARG_ENABLE(xinput,  AS_HELP_STRING([--disable-xinput], [Build XInput Extension (default: enabled)]), [XINPUT=$ENABLEVAL], [XINPUT=yes])
 
 dnl DDXes.
 AC_ARG_ENABLE(xorg,    	      AS_HELP_STRING([--enable-xorg], [Build Xorg server (default: auto)]), [XORG=$enableval], [XORG=auto])
@@ -632,6 +635,16 @@ if test "x$DBE" = xyes; then
 	DBE_LIB='$(top_builddir)/dbe/libdbe.la'
 fi
 
+AM_CONDITIONAL(XF86BIGFONT, [test "x$XF86BIGFONT" = xyes])
+if test "x$XF86BIGFONT" = xyes; then
+	AC_DEFINE(XF86BIGFONT, 1, [Support XF86 Big font extension])
+fi
+
+AM_CONDITIONAL(DPMSExtension, [test "x$DPMSExtension" = xyes])
+if test "x$DPMSExtension" = xyes; then
+	AC_DEFINE(DPMSExtension, 1, [Support DPMS extension])
+fi
+
 if test "x$XF86VIDMODE" = xyes; then
 	AC_DEFINE(XF86VIDMODE, 1, [Support XFree86 Video Mode extension])
 fi
@@ -671,9 +684,12 @@ if test "$COMPOSITE" = yes; then
 fi
 MIEXT_DAMAGE_INC='-I$(top_srcdir)/miext/damage'
 
-AC_DEFINE(XINPUT, 1, [Support X Input extension])
-XI_LIB='$(top_builddir)/Xi/libXi.la'
-XI_INC='-I$(top_srcdir)/Xi'
+AM_CONDITIONAL(XINPUT, [test "x$XINPUT" = xyes])
+if test "x$XINPUT" = xyes; then
+   	AC_DEFINE(XINPUT, 1, [Support X Input extension])
+	XI_LIB='$(top_builddir)/Xi/libXi.la'
+	XI_INC='-I$(top_srcdir)/Xi'
+fi
 
 AC_DEFINE(SHAPE, 1, [Support SHAPE extension])
 
@@ -1355,10 +1371,10 @@ AC_SUBST(KDRIVE_PURE_LIBS)
 AC_SUBST(KDRIVE_LIBS)
 AM_CONDITIONAL(TSLIB, false)
 AM_CONDITIONAL(H3600_TS, false)
-#AM_CONDITIONAL(KDRIVEVESA, [test x"$ac_cv_header_sys_vm86_h" = xyes])
-#AM_CONDITIONAL(KDRIVEFBDEV, [test x"$ac_cv_header_linux_fb_h" = xyes])
-AM_CONDITIONAL(KDRIVEVESA, false)
-AM_CONDITIONAL(KDRIVEFBDEV, false)
+AM_CONDITIONAL(KDRIVEVESA, [test x"$ac_cv_header_sys_vm86_h" = xyes])
+AM_CONDITIONAL(KDRIVEFBDEV, [test x"$ac_cv_header_linux_fb_h" = xyes])
+#AM_CONDITIONAL(KDRIVEVESA, false)
+#AM_CONDITIONAL(KDRIVEFBDEV, false)
 
 AM_CONDITIONAL(XEPHYR, [test x"$xephyr" = xyes])
 XEPHYR_LIBS="$XEPHYR_LIBS $XSERVER_LIBS"
@@ -1401,9 +1417,7 @@ AC_SUBST(XKB_COMPILED_DIR)
 
 dnl and the rest of these are generic, so they're in config.h
 AC_DEFINE(XFreeXDGA, 1, [Build XDGA support])
-AC_DEFINE(XF86BIGFONT, 1, [Build XFree86 BigFont extension])
 AC_DEFINE(XResExtension, 1, [Build XRes extension])
-AC_DEFINE(DPMSExtension, 1, [Build DPMS extension])
 
 dnl CYGWIN does not define fd_set if _POSIX_SOURCE is defined
 dnl _*_SOURCE on Solaris restricts to the standards, and removes non-standard

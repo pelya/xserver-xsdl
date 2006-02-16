@@ -35,6 +35,14 @@ if LBX
 LBX_DIR=lbx
 endif
 
+if XINPUT
+XINPUT_DIR=Xi
+endif
+
+if DBE
+DBE_DIR=dbe
+endif
+
 SUBDIRS = \
 	doc \
 	include \
@@ -46,9 +54,9 @@ SUBDIRS = \
 	os \
 	randr \
 	render  \
-	Xi \
+	$(XINPUT_DIR) \
 	xkb \
-	dbe \
+	$(DBE_DIR) \
 	$(MFB_DIR) \
 	$(AFB_DIR) \
 	$(CFB_DIR) \

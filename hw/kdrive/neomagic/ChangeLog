@@ -1,3 +1,8 @@
+2006-02-15  Keith Packard  <keithp@keithp.com>
+
+	* Makefile.am:
+	Add XSERVER_LIBS to build in xorg tree
+
 2005-08-07  Keith Packard  <keithp@keithp.com>
 
 	* neo_draw.c:

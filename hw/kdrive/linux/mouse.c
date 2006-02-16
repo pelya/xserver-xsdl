@@ -491,7 +491,7 @@ ps2Init (KdMouseInfo *mi)
     int		    ninit;
     
     /* Send Intellimouse initialization sequence */
-    MouseWriteBytes (km->iob.fd, intelli_init, strlen (intelli_init), 100);
+    MouseWriteBytes (km->iob.fd, intelli_init, strlen ((char *) intelli_init), 100);
     /*
      * Send ID command
      */
@@ -518,7 +518,7 @@ ps2Init (KdMouseInfo *mi)
 	break;
     }
     if (init)
-	MouseWriteBytes (km->iob.fd, init, strlen (init), 100);
+	MouseWriteBytes (km->iob.fd, init, strlen ((char *) init), 100);
     /*
      * Flush out the available data to eliminate responses to the
      * initialization string.  Make sure any partial event is

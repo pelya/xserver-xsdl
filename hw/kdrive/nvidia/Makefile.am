@@ -30,7 +30,7 @@ NVIDIA_LIBS =					\
 Xnvidia_LDADD = \
 	$(NVIDIA_LIBS)				\
 	@KDRIVE_LIBS@				\
-	@KDRIVE_LIBS@				\
+	@XSERVER_LIBS@					\
 	$(TSLIB_FLAG)
 
 Xnvidia_DEPENDENCIES = $(NVIDIA_LIBS) @KDRIVE_LIBS@

@@ -27,6 +27,7 @@ EPSON_LIBS =					\
 Xepson_LDADD = \
 	$(EPSON_LIBS)				\
 	@KDRIVE_LIBS@                          \
+	@XSERVER_LIBS@				\
 	$(TSLIB_FLAG)
 
 Xepson_DEPENDENCIES = $(EPSON_LIBS) @KDRIVE_LIBS@

@@ -20,7 +20,7 @@ Xfbdev_SOURCES = \
 Xfbdev_LDADD = 						\
 	libfbdev.a					\
 	@KDRIVE_LIBS@					\
-	@KDRIVE_LIBS@					\
+	@XSERVER_LIBS@					\
 	$(TSLIB_FLAG)
 
 Xfbdev_DEPENDENCIES =					\

@@ -41,7 +41,7 @@ NEOMAGIC_LIBS =                 \
 Xneomagic_LDADD = \
 	$(NEOMAGIC_LIBS)            \
 	@KDRIVE_LIBS@               \
-	@KDRIVE_LIBS@              \
+	@XSERVER_LIBS@					\
 	$(TSLIB_FLAG)
 
 Xneomagic_DEPENDENCIES = $(NEOMAGIC_LIBS) @KDRIVE_LIBS@

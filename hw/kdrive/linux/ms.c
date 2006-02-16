@@ -74,7 +74,7 @@ MsRead (int port, void *closure)
     int		    dx, dy;
     unsigned long   flags;
 
-    while ((n = MsReadBytes (port, buf, sizeof (buf), 3)) > 0)
+    while ((n = MsReadBytes (port, (char *) buf, sizeof (buf), 3)) > 0)
     {
 	b = buf;
 	while (n >= 3)

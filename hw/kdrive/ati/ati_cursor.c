@@ -37,7 +37,7 @@ ATIMoveCursor(ScreenPtr pScreen, int x, int y)
 	ATIScreenInfo(pScreenPriv);
 	ATICursor *pCurPriv = &atis->cursor;
 	CARD16 xoff, yoff;
-	CARD8 *mmio = atic->reg_base;
+	char *mmio = atic->reg_base;
 	int stride = atic->is_radeon ? 256 : 16;
 
 	if (!pCurPriv->has_cursor)
@@ -99,7 +99,7 @@ ClassicSetCursorColors(ScreenPtr pScreen)
 	ATICardInfo(pScreenPriv);
 	ATIScreenInfo(pScreenPriv);
 	ATICursor *pCurPriv = &atis->cursor;
-	CARD8 *mmio = atic->reg_base;
+	char *mmio = atic->reg_base;
 
 	MMIO_OUT32(mmio, ATI_REG_CUR_CLR0, pCurPriv->mask);
 	MMIO_OUT32(mmio, ATI_REG_CUR_CLR1, pCurPriv->source);
@@ -154,7 +154,7 @@ ClassicLoadCursor(ScreenPtr pScreen)
 	int i;
 	int lwsrc;
 	CARD32 tmp;
-	CARD8 *mmio = atic->reg_base;
+	char *mmio = atic->reg_base;
 
 	ClassicAllocCursorColors(pScreen);
 
@@ -243,7 +243,7 @@ RadeonLoadCursor(ScreenPtr pScreen)
 	CARD32 *ram, *msk, *mskLine, *src, *srcLine;
 	int lwsrc;
 	CARD32 tmp;
-	CARD8 *mmio = atic->reg_base;
+	char *mmio = atic->reg_base;
 
 	pCurPriv->pCursor = pCursor;
 	pCurPriv->xhot = pCursor->bits->xhot;
@@ -351,7 +351,7 @@ ATIUnloadCursor(ScreenPtr pScreen)
 {
 	KdScreenPriv(pScreen);
 	ATICardInfo(pScreenPriv);
-	CARD8 *mmio = atic->reg_base;
+	char *mmio = atic->reg_base;
 	CARD32 tmp;
 
 	tmp = MMIO_IN32(mmio, ATI_REG_GEN_CNTL);

@@ -129,6 +129,10 @@ shadowUpdateRotate16_90 (ScreenPtr    pScreen,
 			 shadowBufPtr pBuf);
 
 void
+shadowUpdateRotate16_90YX (ScreenPtr    pScreen,
+			   shadowBufPtr pBuf);
+
+void
 shadowUpdateRotate32_90 (ScreenPtr    pScreen,
 			 shadowBufPtr pBuf);
 
@@ -153,8 +157,16 @@ shadowUpdateRotate16_270 (ScreenPtr    pScreen,
 			  shadowBufPtr pBuf);
 
 void
+shadowUpdateRotate16_270YX (ScreenPtr    pScreen,
+			    shadowBufPtr pBuf);
+
+void
 shadowUpdateRotate32_270 (ScreenPtr    pScreen,
 			  shadowBufPtr pBuf);
+
+void
+shadowUpdateRotate16 (ScreenPtr    pScreen,
+		      shadowBufPtr pBuf);
 
 typedef void (* shadowUpdateProc)(ScreenPtr, shadowBufPtr);
 

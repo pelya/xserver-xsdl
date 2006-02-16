@@ -29,6 +29,7 @@ I810_LIBS =						\
 Xi810_LDADD = \
 	$(I810_LIBS)					\
 	@KDRIVE_LIBS@                                  \
+	@XSERVER_LIBS@					\
 	$(TSLIB_FLAG)
 
 Xi810_DEPENDENCIES = $(I810_LIBS) @KDRIVE_LIBS@

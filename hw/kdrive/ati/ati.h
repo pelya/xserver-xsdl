@@ -139,7 +139,7 @@ typedef struct _ATICardInfo {
 	struct backend_funcs backend_funcs;
 
 	struct pci_id_entry *pci_id;
-	CARD8 *reg_base;
+	char *reg_base;
 	Bool is_radeon;
 	Bool is_r100;
 	Bool is_r200;

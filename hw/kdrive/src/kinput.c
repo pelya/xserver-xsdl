@@ -39,7 +39,6 @@
 #include <stdio.h>
 
 #ifdef XKB
-#define XKB_IN_SERVER
 #include <X11/extensions/XKBsrv.h>
 #endif
 
@@ -457,7 +456,7 @@ KdKeybdProc(DeviceIntPtr pDevice, int onoff)
 	    names.keymap = XkbInitialMap;
 
 	XkbSetRulesDflts ("base", "pc101", "us", NULL, NULL);
-	ret = XkbInitKeyboardDeviceStruct (pDev,
+	ret = XkbInitKeyboardDeviceStruct ((DeviceIntPtr) pDev,
 					   &names,
 					   &kdKeySyms,
 					   kdModMap,

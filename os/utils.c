@@ -1,4 +1,4 @@
-/* $XdotOrg: xserver/xorg/os/utils.c,v 1.22 2006/01/08 23:43:54 ajax Exp $ */
+/* $XdotOrg: xserver/xorg/os/utils.c,v 1.23 2006-02-15 20:44:13 ajax Exp $ */
 /* $Xorg: utils.c,v 1.5 2001/02/09 02:05:24 xorgcvs Exp $ */
 /*
 
@@ -136,10 +136,16 @@ _X_EXPORT Bool noTestExtensions;
 _X_EXPORT Bool noBigReqExtension = FALSE;
 #endif
 #ifdef COMPOSITE
-/* COMPOSITE is disabled by default for now until the
- * interface is stable */
-_X_EXPORT Bool noCompositeExtension = TRUE;
+ #ifdef XFree86Server
+  /* COMPOSITE is disabled by default for now until the
+   * interface is stable */
+  #define COMPOSITE_DEFAULT FALSE
+ #else
+  #define COMPOSITE_DEFAULT TRUE
+ #endif
+_X_EXPORT Bool noCompositeExtension = !COMPOSITE_DEFAULT;
 #endif
+
 #ifdef DAMAGE
 _X_EXPORT Bool noDamageExtension = FALSE;
 #endif

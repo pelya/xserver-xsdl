@@ -1,3 +1,12 @@
+2006-02-15  Keith Packard  <keithp@keithp.com>
+
+	* Makefile.am:
+	* ati.c: (ATIMapReg):
+	* ati.h:
+	* ati_cursor.c: (ATIMoveCursor), (ClassicSetCursorColors),
+	(ClassicLoadCursor), (RadeonLoadCursor), (ATIUnloadCursor):
+	Fix kdrive pointer signed/unsigned types.
+
 2006-02-14  Eric Anholt  <anholt@FreeBSD.org>
 
 	* ati_draw.c: (ATIDrawDisable):
