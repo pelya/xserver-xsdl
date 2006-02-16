@@ -1,5 +1,11 @@
 2006-02-16  Eric Anholt  <anholt@FreeBSD.org>
 
+	* Xext/Makefile.am:
+	Fix build of Xorg by putting xf86bigfont back into builtin instead of
+	module sources list.
+
+2006-02-16  Eric Anholt  <anholt@FreeBSD.org>
+
 	* configure.ac:
 	Bug #5453: Don't forget to still do AM_CONDITIONAL for XVMC even if XV
 	is disabled, and also force XVMC disabled if XV is disabled.

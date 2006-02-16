@@ -127,7 +127,7 @@ endif
 # XF86 Big Font extension
 BIGFONT_SRCS = xf86bigfont.c
 if XF86BIGFONT
-MODULE_SRCS += $(BIGFONT_SRCS)
+BUILTIN_SRCS += $(BIGFONT_SRCS)
 endif
 
 # DPMS extension
