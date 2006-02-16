@@ -198,7 +198,6 @@ xf86CursorEnableDisableFBAccess(
     ScreenPtr pScreen = screenInfo.screens[index];
     xf86CursorScreenPtr ScreenPriv =
 	pScreen->devPrivates[xf86CursorScreenIndex].ptr;
-    xf86CursorInfoPtr infoPtr = ScreenPriv->CursorInfoPtr;
 
     if (!enable && ScreenPriv->CurrentCursor != NullCursor) {
 	ScreenPriv->SavedCursor = ScreenPriv->CurrentCursor;
@@ -290,6 +289,9 @@ xf86CursorSetCursor(ScreenPtr pScreen, CursorPtr pCurs, int x, int y)
     ScreenPriv->x = x;
     ScreenPriv->y = y;
     ScreenPriv->CursorToRestore = NULL;
+
+    if (!infoPtr->pScrn->vtSema)
+	 ScreenPriv->SavedCursor = pCurs;
 
     if (pCurs == NullCursor) {	/* means we're supposed to remove the cursor */
 	if (ScreenPriv->SWCursor)

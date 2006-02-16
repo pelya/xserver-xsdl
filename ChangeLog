@@ -1,3 +1,13 @@
+2006-02-16  Benjamin Herrenschmidt  <benh@kernel.crashing.org>
+
+	* hw/xfree86/ramdac/xf86Cursor.c:
+	(xf86CursorEnableDisableFBAccess), (xf86CursorSetCursor):
+	Fix an occasional crash on VT switches: the server would save a
+	pointer to the current cursor when disabling FB access and would try
+	to restore that cursor when re-enabling. However, that cursor might
+	have been destroyed in between. This fixes it by updating the saved
+	cursor pointer when a cursor is set and vtSema is FALSE.
+
 2006-02-15  Eric Anholt  <anholt@FreeBSD.org>
 
 	* XTrap/Makefile.am:
