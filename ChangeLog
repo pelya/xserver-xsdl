@@ -9,7 +9,7 @@
 	* configure.ac:
 	Bug #5453: Don't forget to still do AM_CONDITIONAL for XVMC even if XV
 	is disabled, and also force XVMC disabled if XV is disabled.
-	(Dag-Erling Sm�rgrav)
+	(Dag-Erling Smørgrav)
 
 2006-02-16  Keith Packard  <keithp@keithp.com>
 
