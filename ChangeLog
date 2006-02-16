@@ -1,3 +1,9 @@
+2006-02-15  Zephaniah E. Hull  <warp@aehallh.com>
+
+	* hw/xfree86/common/xf86Xinput.h:
+	* hw/xfree86/loader/xf86sym.c:
+	Export xf86ActivateDevice, used by the evdev driver.
+
 2006-02-15  Eric Anholt  <anholt@FreeBSD.org>
 
 	* GL/mesa/X/Makefile.am:

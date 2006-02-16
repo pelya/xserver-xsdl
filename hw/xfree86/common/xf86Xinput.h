@@ -194,6 +194,7 @@ int xf86GetMotionEvents(DeviceIntPtr dev, xTimecoord *buff,
 			unsigned long start, unsigned long stop,
 			ScreenPtr pScreen);
 void xf86XinputFinalizeInit(DeviceIntPtr dev);
+void xf86ActivateDevice(LocalDevicePtr local);
 Bool xf86CheckButton(int button, int down);
 void xf86SwitchCoreDevice(LocalDevicePtr device, DeviceIntPtr core);
 LocalDevicePtr xf86FirstLocalDevice(void);

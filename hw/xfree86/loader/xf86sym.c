@@ -707,6 +707,7 @@ LOOKUP xfree86LookupTab[] = {
     SYMFUNC(xf86MotionHistoryAllocate)
     SYMFUNC(xf86FirstLocalDevice)
     SYMFUNC(xf86eqEnqueue)
+    SYMFUNC(xf86ActivateDevice)
 /* The following segment merged from Metrolink tree */
     SYMFUNC(xf86XInputSetScreen)
     SYMFUNC(xf86ScaleAxis)
