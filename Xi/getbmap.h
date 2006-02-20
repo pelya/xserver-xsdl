@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/Xi/getbmap.h,v 3.1 1996/04/15 11:18:37 dawes Exp $ */
 /************************************************************
 
 Copyright 1996 by Thomas E. Dickey <dickey@clark.net>
@@ -31,21 +30,15 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #ifndef GETBMAP_H
 #define GETBMAP_H 1
 
-int
-SProcXGetDeviceButtonMapping(
-	ClientPtr              /* client */
-	);
+int SProcXGetDeviceButtonMapping(ClientPtr	/* client */
+    );
 
-int
-ProcXGetDeviceButtonMapping (
-	ClientPtr              /* client */
-	);
+int ProcXGetDeviceButtonMapping(ClientPtr	/* client */
+    );
 
-void
-SRepXGetDeviceButtonMapping (
-	ClientPtr              /* client */,
-	int                    /* size */,
-	xGetDeviceButtonMappingReply * /* rep */
-	);
+void SRepXGetDeviceButtonMapping(ClientPtr /* client */ ,
+				 int /* size */ ,
+				 xGetDeviceButtonMappingReply *	/* rep */
+    );
 
 #endif /* GETBMAP_H */

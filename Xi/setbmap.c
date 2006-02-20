@@ -1,5 +1,3 @@
-/* $Xorg: setbmap.c,v 1.4 2001/02/09 02:04:34 xorgcvs Exp $ */
-
 /************************************************************
 
 Copyright 1989, 1998  The Open Group
@@ -45,7 +43,6 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ********************************************************/
-/* $XFree86: xc/programs/Xserver/Xi/setbmap.c,v 3.2 2001/01/17 22:13:26 dawes Exp $ */
 
 /***********************************************************************
  *
@@ -62,14 +59,14 @@ SOFTWARE.
 #include <dix-config.h>
 #endif
 
-#include <X11/X.h>				/* for inputstr.h    */
-#include <X11/Xproto.h>			/* Request macro     */
-#include "inputstr.h"			/* DeviceIntPtr	     */
+#include <X11/X.h>	/* for inputstr.h    */
+#include <X11/Xproto.h>	/* Request macro     */
+#include "inputstr.h"	/* DeviceIntPtr      */
 #include <X11/extensions/XI.h>
 #include <X11/extensions/XIproto.h>
 #include "exevents.h"
 #include "extnsionst.h"
-#include "extinit.h"			/* LookupDeviceIntRec */
+#include "extinit.h"	/* LookupDeviceIntRec */
 #include "exglobals.h"
 
 #include "setbmap.h"
@@ -87,8 +84,8 @@ SProcXSetDeviceButtonMapping(register ClientPtr client)
 
     REQUEST(xSetDeviceButtonMappingReq);
     swaps(&stuff->length, n);
-    return(ProcXSetDeviceButtonMapping(client));
-    }
+    return (ProcXSetDeviceButtonMapping(client));
+}
 
 /***********************************************************************
  *
@@ -97,22 +94,21 @@ SProcXSetDeviceButtonMapping(register ClientPtr client)
  */
 
 int
-ProcXSetDeviceButtonMapping (register ClientPtr client)
+ProcXSetDeviceButtonMapping(register ClientPtr client)
 {
-    int					ret;
-    xSetDeviceButtonMappingReply	rep;
+    int ret;
+    xSetDeviceButtonMappingReply rep;
     DeviceIntPtr dev;
 
     REQUEST(xSetDeviceButtonMappingReq);
     REQUEST_AT_LEAST_SIZE(xSetDeviceButtonMappingReq);
 
-    if (stuff->length != (sizeof(xSetDeviceButtonMappingReq) + 
-	stuff->map_length + 3)>>2)
-	{
-	SendErrorToClient(client, IReqCode, X_SetDeviceButtonMapping, 0, 
-		BadLength);
+    if (stuff->length != (sizeof(xSetDeviceButtonMappingReq) +
+			  stuff->map_length + 3) >> 2) {
+	SendErrorToClient(client, IReqCode, X_SetDeviceButtonMapping, 0,
+			  BadLength);
 	return Success;
-	}
+    }
 
     rep.repType = X_Reply;
     rep.RepType = X_SetDeviceButtonMapping;
@@ -120,32 +116,27 @@ ProcXSetDeviceButtonMapping (register ClientPtr client)
     rep.sequenceNumber = client->sequence;
     rep.status = MappingSuccess;
 
-    dev = LookupDeviceIntRec (stuff->deviceid);
-    if (dev == NULL)
-	{
-	SendErrorToClient(client, IReqCode, X_SetDeviceButtonMapping, 0, 
-		BadDevice);
+    dev = LookupDeviceIntRec(stuff->deviceid);
+    if (dev == NULL) {
+	SendErrorToClient(client, IReqCode, X_SetDeviceButtonMapping, 0,
+			  BadDevice);
 	return Success;
-	}
+    }
 
-    ret = SetButtonMapping (client, dev, stuff->map_length, (BYTE *)&stuff[1]);
+    ret = SetButtonMapping(client, dev, stuff->map_length, (BYTE *) & stuff[1]);
 
-    if (ret == BadValue || ret == BadMatch)
-	{
-	SendErrorToClient(client, IReqCode, X_SetDeviceButtonMapping, 0, 
-		ret);
+    if (ret == BadValue || ret == BadMatch) {
+	SendErrorToClient(client, IReqCode, X_SetDeviceButtonMapping, 0, ret);
 	return Success;
-	}
-    else
-	{
+    } else {
 	rep.status = ret;
 	WriteReplyToClient(client, sizeof(xSetDeviceButtonMappingReply), &rep);
-	}
+    }
 
     if (ret != MappingBusy)
-        SendDeviceMappingNotify(MappingPointer, 0, 0, dev);
+	SendDeviceMappingNotify(MappingPointer, 0, 0, dev);
     return Success;
-    }
+}
 
 /***********************************************************************
  *
@@ -155,11 +146,12 @@ ProcXSetDeviceButtonMapping (register ClientPtr client)
  */
 
 void
-SRepXSetDeviceButtonMapping (ClientPtr client, int size, xSetDeviceButtonMappingReply *rep)
+SRepXSetDeviceButtonMapping(ClientPtr client, int size,
+			    xSetDeviceButtonMappingReply * rep)
 {
     register char n;
 
     swaps(&rep->sequenceNumber, n);
     swapl(&rep->length, n);
     WriteToClient(client, size, (char *)rep);
-    }
+}

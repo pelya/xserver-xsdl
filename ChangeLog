@@ -40,6 +40,9 @@
 	* Xi/ungrdevk.c:
 	ANSIfy Xi/.  Mostly automated via protoize(1).
 
+	* Xi/*.[ch]:
+	indent fixes (OMG SO UGLY), and nuke old RCS keywords.
+
 2006-02-16  Eric Anholt  <anholt@FreeBSD.org>
 
 	* Xext/Makefile.am:

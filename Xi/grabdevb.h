@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/Xi/grabdevb.h,v 3.1 1996/04/15 11:18:52 dawes Exp $ */
 /************************************************************
 
 Copyright 1996 by Thomas E. Dickey <dickey@clark.net>
@@ -31,14 +30,10 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #ifndef GRABDEVB_H
 #define GRABDEVB_H 1
 
-int
-SProcXGrabDeviceButton(
-	ClientPtr              /* client */
-	);
+int SProcXGrabDeviceButton(ClientPtr	/* client */
+    );
 
-int
-ProcXGrabDeviceButton(
-	ClientPtr              /* client */
-	);
+int ProcXGrabDeviceButton(ClientPtr	/* client */
+    );
 
 #endif /* GRABDEVB_H */

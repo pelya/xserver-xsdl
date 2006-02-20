@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/Xi/ungrdevb.h,v 3.1 1996/04/15 11:19:10 dawes Exp $ */
 /************************************************************
 
 Copyright 1996 by Thomas E. Dickey <dickey@clark.net>
@@ -31,14 +30,10 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #ifndef UNGRDEVB_H
 #define UNGRDEVB_H 1
 
-int
-SProcXUngrabDeviceButton(
-	ClientPtr              /* client */
-	);
+int SProcXUngrabDeviceButton(ClientPtr	/* client */
+    );
 
-int
-ProcXUngrabDeviceButton(
-	ClientPtr              /* client */
-	);
+int ProcXUngrabDeviceButton(ClientPtr	/* client */
+    );
 
 #endif /* UNGRDEVB_H */

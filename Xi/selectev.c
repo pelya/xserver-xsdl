@@ -1,5 +1,3 @@
-/* $Xorg: selectev.c,v 1.4 2001/02/09 02:04:34 xorgcvs Exp $ */
-
 /************************************************************
 
 Copyright 1989, 1998  The Open Group
@@ -45,7 +43,6 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ********************************************************/
-/* $XFree86: xc/programs/Xserver/Xi/selectev.c,v 3.2 2001/01/17 22:13:26 dawes Exp $ */
 
 /***********************************************************************
  *
@@ -60,22 +57,22 @@ SOFTWARE.
 #include <dix-config.h>
 #endif
 
-#include <X11/X.h>				/* for inputstr.h    */
-#include <X11/Xproto.h>			/* Request macro     */
-#include "inputstr.h"			/* DeviceIntPtr	     */
-#include "windowstr.h"			/* window structure  */
+#include <X11/X.h>	/* for inputstr.h    */
+#include <X11/Xproto.h>	/* Request macro     */
+#include "inputstr.h"	/* DeviceIntPtr      */
+#include "windowstr.h"	/* window structure  */
 #include <X11/extensions/XI.h>
 #include <X11/extensions/XIproto.h>
 #include "extnsionst.h"
-#include "extinit.h"			/* LookupDeviceIntRec */
+#include "extinit.h"	/* LookupDeviceIntRec */
 #include "exevents.h"
 #include "exglobals.h"
 
 #include "grabdev.h"
 #include "selectev.h"
 
-extern	Mask		ExtExclusiveMasks[];
-extern	Mask		ExtValidMasks[];
+extern Mask ExtExclusiveMasks[];
+extern Mask ExtValidMasks[];
 
 /***********************************************************************
  *
@@ -84,7 +81,7 @@ extern	Mask		ExtValidMasks[];
  */
 
 int
-SProcXSelectExtensionEvent (register ClientPtr client)
+SProcXSelectExtensionEvent(register ClientPtr client)
 {
     register char n;
     register long *p;
@@ -95,14 +92,13 @@ SProcXSelectExtensionEvent (register ClientPtr client)
     REQUEST_AT_LEAST_SIZE(xSelectExtensionEventReq);
     swapl(&stuff->window, n);
     swaps(&stuff->count, n);
-    p = (long *) &stuff[1];
-    for (i=0; i<stuff->count; i++)
-        {
-        swapl(p, n);
+    p = (long *)&stuff[1];
+    for (i = 0; i < stuff->count; i++) {
+	swapl(p, n);
 	p++;
-        }
-    return(ProcXSelectExtensionEvent(client));
     }
+    return (ProcXSelectExtensionEvent(client));
+}
 
 /***********************************************************************
  *
@@ -111,47 +107,46 @@ SProcXSelectExtensionEvent (register ClientPtr client)
  */
 
 int
-ProcXSelectExtensionEvent (register ClientPtr client)
+ProcXSelectExtensionEvent(register ClientPtr client)
 {
-    int			ret;
-    int			i;
-    WindowPtr 		pWin;
-    struct tmask	tmp[EMASKSIZE];
+    int ret;
+    int i;
+    WindowPtr pWin;
+    struct tmask tmp[EMASKSIZE];
 
     REQUEST(xSelectExtensionEventReq);
     REQUEST_AT_LEAST_SIZE(xSelectExtensionEventReq);
 
-    if (stuff->length !=(sizeof(xSelectExtensionEventReq)>>2) + stuff->count)
-	{
-	SendErrorToClient (client, IReqCode, X_SelectExtensionEvent, 0, 
-		BadLength);
+    if (stuff->length != (sizeof(xSelectExtensionEventReq) >> 2) + stuff->count) {
+	SendErrorToClient(client, IReqCode, X_SelectExtensionEvent, 0,
+			  BadLength);
 	return Success;
+    }
+
+    pWin = (WindowPtr) LookupWindow(stuff->window, client);
+    if (!pWin) {
+	client->errorValue = stuff->window;
+	SendErrorToClient(client, IReqCode, X_SelectExtensionEvent, 0,
+			  BadWindow);
+	return Success;
+    }
+
+    if ((ret = CreateMaskFromList(client, (XEventClass *) & stuff[1],
+				  stuff->count, tmp, NULL,
+				  X_SelectExtensionEvent)) != Success)
+	return Success;
+
+    for (i = 0; i < EMASKSIZE; i++)
+	if (tmp[i].dev != NULL) {
+	    if ((ret =
+		 SelectForWindow((DeviceIntPtr) tmp[i].dev, pWin, client,
+				 tmp[i].mask, ExtExclusiveMasks[i],
+				 ExtValidMasks[i])) != Success) {
+		SendErrorToClient(client, IReqCode, X_SelectExtensionEvent, 0,
+				  ret);
+		return Success;
+	    }
 	}
 
-    pWin = (WindowPtr) LookupWindow (stuff->window, client);
-    if (!pWin)
-        {
-	client->errorValue = stuff->window;
-	SendErrorToClient(client, IReqCode, X_SelectExtensionEvent, 0, 
-		BadWindow);
-	return Success;
-        }
-
-    if ((ret = CreateMaskFromList (client, (XEventClass *)&stuff[1], 
-	stuff->count, tmp, NULL, X_SelectExtensionEvent)) != Success)
-	return Success;
-
-    for (i=0; i<EMASKSIZE; i++)
-	if (tmp[i].dev != NULL)
-	    {
-	    if ((ret = SelectForWindow((DeviceIntPtr)tmp[i].dev, pWin, client, tmp[i].mask, 
-		ExtExclusiveMasks[i], ExtValidMasks[i])) != Success)
-		{
-		SendErrorToClient(client, IReqCode, X_SelectExtensionEvent, 0, 
-			ret);
-		return Success;
-		}
-	    }
-
     return Success;
-    }
+}

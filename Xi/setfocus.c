@@ -1,5 +1,3 @@
-/* $Xorg: setfocus.c,v 1.4 2001/02/09 02:04:34 xorgcvs Exp $ */
-
 /************************************************************
 
 Copyright 1989, 1998  The Open Group
@@ -45,7 +43,6 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ********************************************************/
-/* $XFree86: xc/programs/Xserver/Xi/setfocus.c,v 3.2 2001/01/17 22:13:26 dawes Exp $ */
 
 /***********************************************************************
  *
@@ -59,17 +56,17 @@ SOFTWARE.
 #include <dix-config.h>
 #endif
 
-#include <X11/X.h>				/* for inputstr.h    */
-#include <X11/Xproto.h>			/* Request macro     */
-#include "windowstr.h"			/* focus struct      */
-#include "inputstr.h"			/* DeviceIntPtr	     */
+#include <X11/X.h>	/* for inputstr.h    */
+#include <X11/Xproto.h>	/* Request macro     */
+#include "windowstr.h"	/* focus struct      */
+#include "inputstr.h"	/* DeviceIntPtr      */
 #include <X11/extensions/XI.h>
 #include <X11/extensions/XIproto.h>
 
 #include "dixevents.h"
 
 #include "extnsionst.h"
-#include "extinit.h"			/* LookupDeviceIntRec */
+#include "extinit.h"	/* LookupDeviceIntRec */
 #include "exglobals.h"
 
 #include "setfocus.h"
@@ -90,8 +87,8 @@ SProcXSetDeviceFocus(register ClientPtr client)
     REQUEST_SIZE_MATCH(xSetDeviceFocusReq);
     swapl(&stuff->focus, n);
     swapl(&stuff->time, n);
-    return(ProcXSetDeviceFocus(client));
-    }
+    return (ProcXSetDeviceFocus(client));
+}
 
 /***********************************************************************
  *
@@ -102,23 +99,22 @@ SProcXSetDeviceFocus(register ClientPtr client)
 int
 ProcXSetDeviceFocus(register ClientPtr client)
 {
-    int				ret;
-    register DeviceIntPtr	dev;
+    int ret;
+    register DeviceIntPtr dev;
 
     REQUEST(xSetDeviceFocusReq);
     REQUEST_SIZE_MATCH(xSetDeviceFocusReq);
 
-    dev = LookupDeviceIntRec (stuff->device);
-    if (dev==NULL || !dev->focus)
-	{
+    dev = LookupDeviceIntRec(stuff->device);
+    if (dev == NULL || !dev->focus) {
 	SendErrorToClient(client, IReqCode, X_SetDeviceFocus, 0, BadDevice);
 	return Success;
-	}
+    }
 
-    ret = SetInputFocus (client, dev, stuff->focus, stuff->revertTo, 
-	stuff->time, TRUE);
+    ret = SetInputFocus(client, dev, stuff->focus, stuff->revertTo,
+			stuff->time, TRUE);
     if (ret != Success)
 	SendErrorToClient(client, IReqCode, X_SetDeviceFocus, 0, ret);
 
     return Success;
-    }
+}

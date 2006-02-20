@@ -1,5 +1,3 @@
-/* $Xorg: sendexev.c,v 1.4 2001/02/09 02:04:34 xorgcvs Exp $ */
-
 /************************************************************
 
 Copyright 1989, 1998  The Open Group
@@ -45,7 +43,6 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ********************************************************/
-/* $XFree86: xc/programs/Xserver/Xi/sendexev.c,v 3.2 2001/01/17 22:13:26 dawes Exp $ */
 
 /***********************************************************************
  *
@@ -60,21 +57,21 @@ SOFTWARE.
 #include <dix-config.h>
 #endif
 
-#include <X11/X.h>				/* for inputstr.h    */
-#include <X11/Xproto.h>			/* Request macro     */
-#include "inputstr.h"			/* DeviceIntPtr	     */
-#include "windowstr.h"			/* Window      	     */
+#include <X11/X.h>	/* for inputstr.h    */
+#include <X11/Xproto.h>	/* Request macro     */
+#include "inputstr.h"	/* DeviceIntPtr      */
+#include "windowstr.h"	/* Window            */
 #include <X11/extensions/XI.h>
 #include <X11/extensions/XIproto.h>
 #include "extnsionst.h"
-#include "extinit.h"			/* LookupDeviceIntRec */
+#include "extinit.h"	/* LookupDeviceIntRec */
 #include "exevents.h"
 #include "exglobals.h"
 
 #include "grabdev.h"
 #include "sendexev.h"
 
-extern int 		lastEvent; 		/* Defined in extension.c */
+extern int lastEvent;	/* Defined in extension.c */
 
 /***********************************************************************
  *
@@ -97,24 +94,22 @@ SProcXSendExtensionEvent(register ClientPtr client)
     REQUEST_AT_LEAST_SIZE(xSendExtensionEventReq);
     swapl(&stuff->destination, n);
     swaps(&stuff->count, n);
-    eventP = (xEvent *) &stuff[1];
-    for (i=0; i<stuff->num_events; i++,eventP++)
-        {
+    eventP = (xEvent *) & stuff[1];
+    for (i = 0; i < stuff->num_events; i++, eventP++) {
 	proc = EventSwapVector[eventP->u.u.type & 0177];
- 	if (proc == NotImplemented)   /* no swapping proc; invalid event type? */
+	if (proc == NotImplemented)	/* no swapping proc; invalid event type? */
 	    return (BadValue);
-	(*proc)(eventP, &eventT);
+	(*proc) (eventP, &eventT);
 	*eventP = eventT;
-	}
-
-    p = (long *) (((xEvent *) &stuff[1]) + stuff->num_events);
-    for (i=0; i<stuff->count; i++)
-        {
-        swapl(p, n);
-	p++;
-        }
-    return(ProcXSendExtensionEvent(client));
     }
+
+    p = (long *)(((xEvent *) & stuff[1]) + stuff->num_events);
+    for (i = 0; i < stuff->count; i++) {
+	swapl(p, n);
+	p++;
+    }
+    return (ProcXSendExtensionEvent(client));
+}
 
 /***********************************************************************
  *
@@ -124,56 +119,50 @@ SProcXSendExtensionEvent(register ClientPtr client)
  */
 
 int
-ProcXSendExtensionEvent (register ClientPtr client)
+ProcXSendExtensionEvent(register ClientPtr client)
 {
-    int			ret;
-    DeviceIntPtr	dev;
-    xEvent		*first;
-    XEventClass		*list;
-    struct tmask	tmp[EMASKSIZE];
+    int ret;
+    DeviceIntPtr dev;
+    xEvent *first;
+    XEventClass *list;
+    struct tmask tmp[EMASKSIZE];
 
     REQUEST(xSendExtensionEventReq);
     REQUEST_AT_LEAST_SIZE(xSendExtensionEventReq);
 
-    if (stuff->length !=(sizeof(xSendExtensionEventReq)>>2) + stuff->count +
-	(stuff->num_events * (sizeof (xEvent) >> 2)))
-	{
-	SendErrorToClient (client, IReqCode, X_SendExtensionEvent, 0, 
-		BadLength);
+    if (stuff->length != (sizeof(xSendExtensionEventReq) >> 2) + stuff->count +
+	(stuff->num_events * (sizeof(xEvent) >> 2))) {
+	SendErrorToClient(client, IReqCode, X_SendExtensionEvent, 0, BadLength);
 	return Success;
-	}
+    }
 
-    dev = LookupDeviceIntRec (stuff->deviceid);
-    if (dev == NULL)
-	{
-	SendErrorToClient(client, IReqCode, X_SendExtensionEvent, 0, 
-		BadDevice);
+    dev = LookupDeviceIntRec(stuff->deviceid);
+    if (dev == NULL) {
+	SendErrorToClient(client, IReqCode, X_SendExtensionEvent, 0, BadDevice);
 	return Success;
-	}
+    }
 
     /* The client's event type must be one defined by an extension. */
 
-    first = ((xEvent *) &stuff[1]);
-    if ( ! ((EXTENSION_EVENT_BASE  <= first->u.u.type) &&
-	(first->u.u.type < lastEvent)) )
-	{
+    first = ((xEvent *) & stuff[1]);
+    if (!((EXTENSION_EVENT_BASE <= first->u.u.type) &&
+	  (first->u.u.type < lastEvent))) {
 	client->errorValue = first->u.u.type;
-	SendErrorToClient(client, IReqCode, X_SendExtensionEvent, 0, 
-		BadValue);
+	SendErrorToClient(client, IReqCode, X_SendExtensionEvent, 0, BadValue);
 	return Success;
-	}
+    }
 
     list = (XEventClass *) (first + stuff->num_events);
-    if ((ret = CreateMaskFromList (client, list, stuff->count, tmp, dev, 
-	X_SendExtensionEvent)) != Success)
+    if ((ret = CreateMaskFromList(client, list, stuff->count, tmp, dev,
+				  X_SendExtensionEvent)) != Success)
 	return Success;
 
-    ret =  (SendEvent (client, dev, stuff->destination,
-	stuff->propagate, (xEvent *)&stuff[1], tmp[stuff->deviceid].mask, 
-	stuff->num_events));
+    ret = (SendEvent(client, dev, stuff->destination,
+		     stuff->propagate, (xEvent *) & stuff[1],
+		     tmp[stuff->deviceid].mask, stuff->num_events));
 
     if (ret != Success)
 	SendErrorToClient(client, IReqCode, X_SendExtensionEvent, 0, ret);
 
     return Success;
-    }
+}

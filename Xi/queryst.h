@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/Xi/queryst.h,v 3.1 1996/04/15 11:19:00 dawes Exp $ */
 /************************************************************
 
 Copyright 1996 by Thomas E. Dickey <dickey@clark.net>
@@ -31,21 +30,15 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #ifndef QUERYST_H
 #define QUERYST_H 1
 
-int
-SProcXQueryDeviceState(
-	ClientPtr              /* client */
-	);
+int SProcXQueryDeviceState(ClientPtr	/* client */
+    );
 
-int
-ProcXQueryDeviceState(
-	ClientPtr              /* client */
-	);
+int ProcXQueryDeviceState(ClientPtr	/* client */
+    );
 
-void
-SRepXQueryDeviceState (
-	ClientPtr              /* client */,
-	int                    /* size */,
-	xQueryDeviceStateReply * /* rep */
-	);
+void SRepXQueryDeviceState(ClientPtr /* client */ ,
+			   int /* size */ ,
+			   xQueryDeviceStateReply *	/* rep */
+    );
 
 #endif /* QUERYST_H */

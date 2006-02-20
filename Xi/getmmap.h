@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/Xi/getmmap.h,v 3.1 1996/04/15 11:18:42 dawes Exp $ */
 /************************************************************
 
 Copyright 1996 by Thomas E. Dickey <dickey@clark.net>
@@ -31,21 +30,15 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #ifndef GETMMAP_H
 #define GETMMAP_H 1
 
-int
-SProcXGetDeviceModifierMapping(
-	ClientPtr              /* client */
-	);
+int SProcXGetDeviceModifierMapping(ClientPtr	/* client */
+    );
 
-int
-ProcXGetDeviceModifierMapping(
-	ClientPtr              /* client */
-	);
+int ProcXGetDeviceModifierMapping(ClientPtr	/* client */
+    );
 
-void
-SRepXGetDeviceModifierMapping (
-	ClientPtr              /* client */,
-	int                    /* size */,
-	xGetDeviceModifierMappingReply * /* rep */
-	);
+void SRepXGetDeviceModifierMapping(ClientPtr /* client */ ,
+				   int /* size */ ,
+				   xGetDeviceModifierMappingReply *	/* rep */
+    );
 
 #endif /* GETMMAP_H */

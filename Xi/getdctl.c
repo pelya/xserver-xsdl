@@ -1,5 +1,3 @@
-/* $Xorg: getdctl.c,v 1.4 2001/02/09 02:04:34 xorgcvs Exp $ */
-
 /************************************************************
 
 Copyright 1989, 1998  The Open Group
@@ -45,7 +43,6 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ********************************************************/
-/* $XFree86: xc/programs/Xserver/Xi/getdctl.c,v 3.3 2001/01/17 22:13:24 dawes Exp $ */
 
 /********************************************************************
  *
@@ -53,19 +50,19 @@ SOFTWARE.
  *
  */
 
-#define	 NEED_EVENTS			/* for inputstr.h    */
+#define	 NEED_EVENTS	/* for inputstr.h    */
 #define	 NEED_REPLIES
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>
 #endif
 
-#include <X11/X.h>				/* for inputstr.h    */
-#include <X11/Xproto.h>			/* Request macro     */
-#include "inputstr.h"			/* DeviceIntPtr	     */
+#include <X11/X.h>	/* for inputstr.h    */
+#include <X11/Xproto.h>	/* Request macro     */
+#include "inputstr.h"	/* DeviceIntPtr      */
 #include <X11/extensions/XI.h>
 #include <X11/extensions/XIproto.h>
 #include "extnsionst.h"
-#include "extinit.h"			/* LookupDeviceIntRec */
+#include "extinit.h"	/* LookupDeviceIntRec */
 #include "exglobals.h"
 
 #include "getdctl.h"
@@ -86,8 +83,8 @@ SProcXGetDeviceControl(register ClientPtr client)
     swaps(&stuff->length, n);
     REQUEST_SIZE_MATCH(xGetDeviceControlReq);
     swaps(&stuff->control, n);
-    return(ProcXGetDeviceControl(client));
-    }
+    return (ProcXGetDeviceControl(client));
+}
 
 /***********************************************************************
  *
@@ -98,7 +95,7 @@ SProcXGetDeviceControl(register ClientPtr client)
 int
 ProcXGetDeviceControl(ClientPtr client)
 {
-    int	total_length = 0;
+    int total_length = 0;
     char *buf, *savbuf;
     register DeviceIntPtr dev;
     xGetDeviceControlReply rep;
@@ -106,62 +103,53 @@ ProcXGetDeviceControl(ClientPtr client)
     REQUEST(xGetDeviceControlReq);
     REQUEST_SIZE_MATCH(xGetDeviceControlReq);
 
-    dev = LookupDeviceIntRec (stuff->deviceid);
-    if (dev == NULL)
-	{
-	SendErrorToClient (client, IReqCode, X_GetDeviceControl, 0, 
-		BadDevice);
+    dev = LookupDeviceIntRec(stuff->deviceid);
+    if (dev == NULL) {
+	SendErrorToClient(client, IReqCode, X_GetDeviceControl, 0, BadDevice);
 	return Success;
-	}
+    }
 
     rep.repType = X_Reply;
     rep.RepType = X_GetDeviceControl;
     rep.length = 0;
     rep.sequenceNumber = client->sequence;
 
-    switch (stuff->control)
-	{
-	case DEVICE_RESOLUTION:
-	    if (!dev->valuator)
-		{
-		SendErrorToClient (client, IReqCode, X_GetDeviceControl, 0, 
-		    BadMatch);
-		return Success;
-		}
-	    total_length = sizeof (xDeviceResolutionState) +
-		(3 * sizeof(int) * dev->valuator->numAxes);
-	    break;
-	default:
-	    SendErrorToClient (client, IReqCode, X_GetDeviceControl, 0, 
-		BadValue);
+    switch (stuff->control) {
+    case DEVICE_RESOLUTION:
+	if (!dev->valuator) {
+	    SendErrorToClient(client, IReqCode, X_GetDeviceControl, 0,
+			      BadMatch);
 	    return Success;
 	}
-
-    buf = (char *) xalloc (total_length);
-    if (!buf)
-	{
-	SendErrorToClient(client, IReqCode, X_GetDeviceControl, 0, 
-		BadAlloc);
+	total_length = sizeof(xDeviceResolutionState) +
+	    (3 * sizeof(int) * dev->valuator->numAxes);
+	break;
+    default:
+	SendErrorToClient(client, IReqCode, X_GetDeviceControl, 0, BadValue);
 	return Success;
-	}
-    savbuf=buf;
+    }
 
-    switch (stuff->control)
-	{
-	case DEVICE_RESOLUTION:
-	    CopySwapDeviceResolution(client, dev->valuator, buf,
-		total_length);
-	    break;
-	default:
-	    break;
-	}
+    buf = (char *)xalloc(total_length);
+    if (!buf) {
+	SendErrorToClient(client, IReqCode, X_GetDeviceControl, 0, BadAlloc);
+	return Success;
+    }
+    savbuf = buf;
 
-    rep.length = (total_length+3) >> 2;
+    switch (stuff->control) {
+    case DEVICE_RESOLUTION:
+	CopySwapDeviceResolution(client, dev->valuator, buf, total_length);
+	break;
+    default:
+	break;
+    }
+
+    rep.length = (total_length + 3) >> 2;
     WriteReplyToClient(client, sizeof(xGetDeviceControlReply), &rep);
     WriteToClient(client, total_length, savbuf);
-    xfree (savbuf);
+    xfree(savbuf);
     return Success;
-    }
+}
 
 /***********************************************************************
  *
@@ -170,37 +158,36 @@ ProcXGetDeviceControl(ClientPtr client)
  */
 
 void
-CopySwapDeviceResolution (ClientPtr client, ValuatorClassPtr v, char *buf, int length)
+CopySwapDeviceResolution(ClientPtr client, ValuatorClassPtr v, char *buf,
+			 int length)
 {
-    register char 	n;
-    AxisInfoPtr	a;
+    register char n;
+    AxisInfoPtr a;
     xDeviceResolutionState *r;
     int i, *iptr;
 
     r = (xDeviceResolutionState *) buf;
     r->control = DEVICE_RESOLUTION;
-    r->length =  length;
-    r->num_valuators =  v->numAxes;
-    buf += sizeof (xDeviceResolutionState);
-    iptr = (int *) buf;
-    for (i=0,a=v->axes; i<v->numAxes; i++,a++)
+    r->length = length;
+    r->num_valuators = v->numAxes;
+    buf += sizeof(xDeviceResolutionState);
+    iptr = (int *)buf;
+    for (i = 0, a = v->axes; i < v->numAxes; i++, a++)
 	*iptr++ = a->resolution;
-    for (i=0,a=v->axes; i<v->numAxes; i++,a++)
+    for (i = 0, a = v->axes; i < v->numAxes; i++, a++)
 	*iptr++ = a->min_resolution;
-    for (i=0,a=v->axes; i<v->numAxes; i++,a++)
+    for (i = 0, a = v->axes; i < v->numAxes; i++, a++)
 	*iptr++ = a->max_resolution;
-    if (client->swapped)
-	{
-	swaps (&r->control,n);
-	swaps (&r->length,n);
-	swapl (&r->num_valuators,n);
-	iptr = (int *) buf;
-	for (i=0; i < (3 * v->numAxes); i++,iptr++)
-	    {
-	    swapl (iptr,n);
-	    }
+    if (client->swapped) {
+	swaps(&r->control, n);
+	swaps(&r->length, n);
+	swapl(&r->num_valuators, n);
+	iptr = (int *)buf;
+	for (i = 0; i < (3 * v->numAxes); i++, iptr++) {
+	    swapl(iptr, n);
 	}
     }
+}
 
 /***********************************************************************
  *
@@ -210,12 +197,11 @@ CopySwapDeviceResolution (ClientPtr client, ValuatorClassPtr v, char *buf, int l
  */
 
 void
-SRepXGetDeviceControl (ClientPtr client, int size, xGetDeviceControlReply *rep)
+SRepXGetDeviceControl(ClientPtr client, int size, xGetDeviceControlReply * rep)
 {
     register char n;
 
     swaps(&rep->sequenceNumber, n);
     swapl(&rep->length, n);
     WriteToClient(client, size, (char *)rep);
-    }
-
+}

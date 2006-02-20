@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/Xi/chgptr.h,v 3.1 1996/04/15 11:18:31 dawes Exp $ */
 /************************************************************
 
 Copyright 1996 by Thomas E. Dickey <dickey@clark.net>
@@ -31,43 +30,32 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #ifndef CHGPTR_H
 #define CHGPTR_H 1
 
-int
-SProcXChangePointerDevice(
-	ClientPtr              /* client */
-	);
+int SProcXChangePointerDevice(ClientPtr	/* client */
+    );
 
-int
-ProcXChangePointerDevice (
-	ClientPtr              /* client */
-	);
+int ProcXChangePointerDevice(ClientPtr	/* client */
+    );
 
-void
-DeleteFocusClassDeviceStruct(
-	DeviceIntPtr           /* dev */
-	);
+void DeleteFocusClassDeviceStruct(DeviceIntPtr	/* dev */
+    );
 
-void
-SendEventToAllWindows (
-	DeviceIntPtr           /* dev */,
-	Mask                   /* mask */,
-	xEvent *               /* ev */,
-	int                    /* count */
-	);
+void SendEventToAllWindows(DeviceIntPtr /* dev */ ,
+			   Mask /* mask */ ,
+			   xEvent * /* ev */ ,
+			   int	/* count */
+    );
 
-void
-FindInterestedChildren ( /* FIXME: could be static? */
-	DeviceIntPtr           /* dev */,
-	WindowPtr              /* p1 */,
-	Mask                   /* mask */,
-	xEvent *               /* ev */,
-	int                    /* count */
-	);
+void FindInterestedChildren(	/* FIXME: could be static? */
+			       DeviceIntPtr /* dev */ ,
+			       WindowPtr /* p1 */ ,
+			       Mask /* mask */ ,
+			       xEvent * /* ev */ ,
+			       int	/* count */
+    );
 
-void
-SRepXChangePointerDevice (
-	ClientPtr              /* client */,
-	int                    /* size */,
-	xChangePointerDeviceReply * /* rep */
-	);
+void SRepXChangePointerDevice(ClientPtr /* client */ ,
+			      int /* size */ ,
+			      xChangePointerDeviceReply *	/* rep */
+    );
 
 #endif /* CHGPTR_H */

@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/Xi/getfctl.h,v 3.1 1996/04/15 11:18:39 dawes Exp $ */
 /************************************************************
 
 Copyright 1996 by Thomas E. Dickey <dickey@clark.net>
@@ -31,63 +30,45 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #ifndef GETFCTL_H
 #define GETFCTL_H 1
 
-int
-SProcXGetFeedbackControl(
-	ClientPtr              /* client */
-	);
+int SProcXGetFeedbackControl(ClientPtr	/* client */
+    );
 
-int
-ProcXGetFeedbackControl(
-	ClientPtr              /* client */
-	);
+int ProcXGetFeedbackControl(ClientPtr	/* client */
+    );
 
-void
-CopySwapKbdFeedback (
-	ClientPtr              /* client */,
-	KbdFeedbackPtr         /* k */,
-	char **                /* buf */
-	);
+void CopySwapKbdFeedback(ClientPtr /* client */ ,
+			 KbdFeedbackPtr /* k */ ,
+			 char **	/* buf */
+    );
 
-void
-CopySwapPtrFeedback (
-	ClientPtr              /* client */,
-	PtrFeedbackPtr         /* p */,
-	char **                /* buf */
-	);
+void CopySwapPtrFeedback(ClientPtr /* client */ ,
+			 PtrFeedbackPtr /* p */ ,
+			 char **	/* buf */
+    );
 
-void
-CopySwapIntegerFeedback (
-	ClientPtr              /* client */,
-	IntegerFeedbackPtr     /* i */,
-	char **                /* buf */
-	);
+void CopySwapIntegerFeedback(ClientPtr /* client */ ,
+			     IntegerFeedbackPtr /* i */ ,
+			     char **	/* buf */
+    );
 
-void
-CopySwapStringFeedback (
-	ClientPtr              /* client */,
-	StringFeedbackPtr      /* s */,
-	char **                /* buf */
-	);
+void CopySwapStringFeedback(ClientPtr /* client */ ,
+			    StringFeedbackPtr /* s */ ,
+			    char **	/* buf */
+    );
 
-void
-CopySwapLedFeedback (
-	ClientPtr              /* client */,
-	LedFeedbackPtr         /* l */,
-	char **                /* buf */
-	);
+void CopySwapLedFeedback(ClientPtr /* client */ ,
+			 LedFeedbackPtr /* l */ ,
+			 char **	/* buf */
+    );
 
-void
-CopySwapBellFeedback (
-	ClientPtr              /* client */,
-	BellFeedbackPtr        /* b */,
-	char **                /* buf */
-	);
+void CopySwapBellFeedback(ClientPtr /* client */ ,
+			  BellFeedbackPtr /* b */ ,
+			  char **	/* buf */
+    );
 
-void
-SRepXGetFeedbackControl (
-	ClientPtr              /* client */,
-	int                    /* size */,
-	xGetFeedbackControlReply * /* rep */
-	);
+void SRepXGetFeedbackControl(ClientPtr /* client */ ,
+			     int /* size */ ,
+			     xGetFeedbackControlReply *	/* rep */
+    );
 
 #endif /* GETFCTL_H */

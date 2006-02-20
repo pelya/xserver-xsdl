@@ -1,5 +1,3 @@
-/* $Xorg: ungrdev.c,v 1.4 2001/02/09 02:04:35 xorgcvs Exp $ */
-
 /************************************************************
 
 Copyright 1989, 1998  The Open Group
@@ -45,7 +43,6 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ********************************************************/
-/* $XFree86: xc/programs/Xserver/Xi/ungrdev.c,v 3.2 2001/01/17 22:13:26 dawes Exp $ */
 
 /***********************************************************************
  *
@@ -59,13 +56,13 @@ SOFTWARE.
 #include <dix-config.h>
 #endif
 
-#include <X11/X.h>				/* for inputstr.h    */
-#include <X11/Xproto.h>			/* Request macro     */
-#include "inputstr.h"			/* DeviceIntPtr	     */
-#include "windowstr.h"			/* window structure  */
+#include <X11/X.h>	/* for inputstr.h    */
+#include <X11/Xproto.h>	/* Request macro     */
+#include "inputstr.h"	/* DeviceIntPtr      */
+#include "windowstr.h"	/* window structure  */
 #include <X11/extensions/XIproto.h>
 #include "extnsionst.h"
-#include "extinit.h"			/* LookupDeviceIntRec */
+#include "extinit.h"	/* LookupDeviceIntRec */
 #include "exglobals.h"
 
 #include "ungrdev.h"
@@ -85,8 +82,8 @@ SProcXUngrabDevice(register ClientPtr client)
     swaps(&stuff->length, n);
     REQUEST_SIZE_MATCH(xUngrabDeviceReq);
     swapl(&stuff->time, n);
-    return(ProcXUngrabDevice(client));
-    }
+    return (ProcXUngrabDevice(client));
+}
 
 /***********************************************************************
  *
@@ -97,25 +94,24 @@ SProcXUngrabDevice(register ClientPtr client)
 int
 ProcXUngrabDevice(register ClientPtr client)
 {
-    DeviceIntPtr 	dev;
-    GrabPtr 		grab;
-    TimeStamp 		time;
+    DeviceIntPtr dev;
+    GrabPtr grab;
+    TimeStamp time;
 
     REQUEST(xUngrabDeviceReq);
     REQUEST_SIZE_MATCH(xUngrabDeviceReq);
 
-    dev = LookupDeviceIntRec (stuff->deviceid);
-    if (dev == NULL)
-	{
+    dev = LookupDeviceIntRec(stuff->deviceid);
+    if (dev == NULL) {
 	SendErrorToClient(client, IReqCode, X_UngrabDevice, 0, BadDevice);
 	return Success;
-	}
-    grab =  dev->grab;
+    }
+    grab = dev->grab;
 
     time = ClientTimeToServerTime(stuff->time);
     if ((CompareTimeStamps(time, currentTime) != LATER) &&
 	(CompareTimeStamps(time, dev->grabTime) != EARLIER) &&
 	(grab) && SameClient(grab, client))
-	(*dev->DeactivateGrab)(dev);
+	(*dev->DeactivateGrab) (dev);
     return Success;
-    }
+}

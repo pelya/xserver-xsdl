@@ -1,5 +1,3 @@
-/* $Xorg: setmmap.c,v 1.4 2001/02/09 02:04:35 xorgcvs Exp $ */
-
 /************************************************************
 
 Copyright 1989, 1998  The Open Group
@@ -45,7 +43,6 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ********************************************************/
-/* $XFree86: xc/programs/Xserver/Xi/setmmap.c,v 3.2 2001/01/17 22:13:26 dawes Exp $ */
 
 /********************************************************************
  *
@@ -53,20 +50,20 @@ SOFTWARE.
  *
  */
 
-#define	 NEED_EVENTS			/* for inputstr.h    */
+#define	 NEED_EVENTS	/* for inputstr.h    */
 #define	 NEED_REPLIES
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>
 #endif
 
-#include <X11/X.h>				/* for inputstr.h    */
-#include <X11/Xproto.h>			/* Request macro     */
-#include "inputstr.h"			/* DeviceIntPtr	     */
+#include <X11/X.h>	/* for inputstr.h    */
+#include <X11/Xproto.h>	/* Request macro     */
+#include "inputstr.h"	/* DeviceIntPtr      */
 #include <X11/extensions/XI.h>
 #include <X11/extensions/XIproto.h>
 #include "exevents.h"
 #include "extnsionst.h"
-#include "extinit.h"			/* LookupDeviceIntRec */
+#include "extinit.h"	/* LookupDeviceIntRec */
 #include "exglobals.h"
 
 #include "setmmap.h"
@@ -85,8 +82,8 @@ SProcXSetDeviceModifierMapping(register ClientPtr client)
 
     REQUEST(xSetDeviceModifierMappingReq);
     swaps(&stuff->length, n);
-    return(ProcXSetDeviceModifierMapping(client));
-    }
+    return (ProcXSetDeviceModifierMapping(client));
+}
 
 /***********************************************************************
  *
@@ -97,21 +94,20 @@ SProcXSetDeviceModifierMapping(register ClientPtr client)
 int
 ProcXSetDeviceModifierMapping(ClientPtr client)
 {
-    int					ret;
-    xSetDeviceModifierMappingReply	rep;
-    DeviceIntPtr			dev;
-    KeyClassPtr 			kp;
-    
+    int ret;
+    xSetDeviceModifierMappingReply rep;
+    DeviceIntPtr dev;
+    KeyClassPtr kp;
+
     REQUEST(xSetDeviceModifierMappingReq);
     REQUEST_AT_LEAST_SIZE(xSetDeviceModifierMappingReq);
 
-    dev = LookupDeviceIntRec (stuff->deviceid);
-    if (dev == NULL)
-	{
-	SendErrorToClient (client, IReqCode, X_SetDeviceModifierMapping, 0, 
-		BadDevice);
+    dev = LookupDeviceIntRec(stuff->deviceid);
+    if (dev == NULL) {
+	SendErrorToClient(client, IReqCode, X_SetDeviceModifierMapping, 0,
+			  BadDevice);
 	return Success;
-	}
+    }
 
     rep.repType = X_Reply;
     rep.RepType = X_SetDeviceModifierMapping;
@@ -119,26 +115,24 @@ ProcXSetDeviceModifierMapping(ClientPtr client)
     rep.sequenceNumber = client->sequence;
 
     ret = SetModifierMapping(client, dev, stuff->length,
-	(sizeof (xSetDeviceModifierMappingReq)>>2), stuff->numKeyPerModifier, 
-	(BYTE *)&stuff[1], &kp);
+			     (sizeof(xSetDeviceModifierMappingReq) >> 2),
+			     stuff->numKeyPerModifier, (BYTE *) & stuff[1],
+			     &kp);
 
-    if (ret==MappingSuccess || ret==MappingBusy || ret==MappingFailed)
-        {
+    if (ret == MappingSuccess || ret == MappingBusy || ret == MappingFailed) {
 	rep.success = ret;
 	if (ret == MappingSuccess)
-            SendDeviceMappingNotify(MappingModifier, 0, 0, dev);
-        WriteReplyToClient(client, sizeof(xSetDeviceModifierMappingReply),&rep);
-        }
-    else
-	{
-	if (ret==-1)
-	    ret=BadValue;
-	SendErrorToClient (client, IReqCode, X_SetDeviceModifierMapping, 0,ret);
-	}
-
+	    SendDeviceMappingNotify(MappingModifier, 0, 0, dev);
+	WriteReplyToClient(client, sizeof(xSetDeviceModifierMappingReply),
+			   &rep);
+    } else {
+	if (ret == -1)
+	    ret = BadValue;
+	SendErrorToClient(client, IReqCode, X_SetDeviceModifierMapping, 0, ret);
+    }
 
     return Success;
-    }
+}
 
 /***********************************************************************
  *
@@ -148,12 +142,12 @@ ProcXSetDeviceModifierMapping(ClientPtr client)
  */
 
 void
-SRepXSetDeviceModifierMapping (ClientPtr client, int size, xSetDeviceModifierMappingReply *rep)
+SRepXSetDeviceModifierMapping(ClientPtr client, int size,
+			      xSetDeviceModifierMappingReply * rep)
 {
     register char n;
 
     swaps(&rep->sequenceNumber, n);
     swapl(&rep->length, n);
     WriteToClient(client, size, (char *)rep);
-    }
-
+}

@@ -1,5 +1,3 @@
-/* $Xorg: allowev.c,v 1.4 2001/02/09 02:04:33 xorgcvs Exp $ */
-
 /************************************************************
 
 Copyright 1989, 1998  The Open Group
@@ -45,7 +43,6 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ********************************************************/
-/* $XFree86: xc/programs/Xserver/Xi/allowev.c,v 3.3 2001/01/17 22:13:23 dawes Exp $ */
 
 /***********************************************************************
  *
@@ -59,14 +56,14 @@ SOFTWARE.
 #include <dix-config.h>
 #endif
 
-#include <X11/X.h>				/* for inputstr.h    */
-#include <X11/Xproto.h>			/* Request macro     */
-#include "inputstr.h"			/* DeviceIntPtr	     */
+#include <X11/X.h>	/* for inputstr.h    */
+#include <X11/Xproto.h>	/* Request macro     */
+#include "inputstr.h"	/* DeviceIntPtr      */
 #include <X11/extensions/XI.h>
 #include <X11/extensions/XIproto.h>
 
 #include "extnsionst.h"
-#include "extinit.h"			/* LookupDeviceIntRec */
+#include "extinit.h"	/* LookupDeviceIntRec */
 #include "exglobals.h"
 
 #include "allowev.h"
@@ -87,8 +84,8 @@ SProcXAllowDeviceEvents(register ClientPtr client)
     swaps(&stuff->length, n);
     REQUEST_SIZE_MATCH(xAllowDeviceEventsReq);
     swapl(&stuff->time, n);
-    return(ProcXAllowDeviceEvents(client));
-    }
+    return (ProcXAllowDeviceEvents(client));
+}
 
 /***********************************************************************
  *
@@ -99,45 +96,42 @@ SProcXAllowDeviceEvents(register ClientPtr client)
 int
 ProcXAllowDeviceEvents(register ClientPtr client)
 {
-    TimeStamp		time;
-    DeviceIntPtr	thisdev;
+    TimeStamp time;
+    DeviceIntPtr thisdev;
 
     REQUEST(xAllowDeviceEventsReq);
     REQUEST_SIZE_MATCH(xAllowDeviceEventsReq);
 
-    thisdev = LookupDeviceIntRec (stuff->deviceid);
-    if (thisdev == NULL)
-	{
+    thisdev = LookupDeviceIntRec(stuff->deviceid);
+    if (thisdev == NULL) {
 	SendErrorToClient(client, IReqCode, X_AllowDeviceEvents, 0, BadDevice);
 	return Success;
-	}
+    }
     time = ClientTimeToServerTime(stuff->time);
 
-    switch (stuff->mode)
-        {
-	case ReplayThisDevice:
-	    AllowSome(client, time, thisdev, NOT_GRABBED);
-	    break;
-	case SyncThisDevice: 
-	    AllowSome(client, time, thisdev, FREEZE_NEXT_EVENT);
-	    break;
-	case AsyncThisDevice: 
-	    AllowSome(client, time, thisdev, THAWED);
-	    break;
-	case AsyncOtherDevices: 
-	    AllowSome(client, time, thisdev, THAW_OTHERS);
-	    break;
-	case SyncAll:
-	    AllowSome(client, time, thisdev, FREEZE_BOTH_NEXT_EVENT);
-	    break;
-	case AsyncAll:
-	    AllowSome(client, time, thisdev, THAWED_BOTH);
-	    break;
-	default: 
-	    SendErrorToClient(client, IReqCode, X_AllowDeviceEvents, 0, 
-		BadValue);
-	    client->errorValue = stuff->mode;
-	    return Success;
-        }
-    return Success;
+    switch (stuff->mode) {
+    case ReplayThisDevice:
+	AllowSome(client, time, thisdev, NOT_GRABBED);
+	break;
+    case SyncThisDevice:
+	AllowSome(client, time, thisdev, FREEZE_NEXT_EVENT);
+	break;
+    case AsyncThisDevice:
+	AllowSome(client, time, thisdev, THAWED);
+	break;
+    case AsyncOtherDevices:
+	AllowSome(client, time, thisdev, THAW_OTHERS);
+	break;
+    case SyncAll:
+	AllowSome(client, time, thisdev, FREEZE_BOTH_NEXT_EVENT);
+	break;
+    case AsyncAll:
+	AllowSome(client, time, thisdev, THAWED_BOTH);
+	break;
+    default:
+	SendErrorToClient(client, IReqCode, X_AllowDeviceEvents, 0, BadValue);
+	client->errorValue = stuff->mode;
+	return Success;
     }
+    return Success;
+}

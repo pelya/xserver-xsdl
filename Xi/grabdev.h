@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/Xi/grabdev.h,v 3.1 1996/04/15 11:18:51 dawes Exp $ */
 /************************************************************
 
 Copyright 1996 by Thomas E. Dickey <dickey@clark.net>
@@ -31,31 +30,23 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #ifndef GRABDEV_H
 #define GRABDEV_H 1
 
-int
-SProcXGrabDevice(
-	ClientPtr              /* client */
-	);
+int SProcXGrabDevice(ClientPtr	/* client */
+    );
 
-int
-ProcXGrabDevice(
-	ClientPtr              /* client */
-	);
+int ProcXGrabDevice(ClientPtr	/* client */
+    );
 
-int
-CreateMaskFromList (
-	ClientPtr              /* client */,
-	XEventClass *          /* list */,
-	int                    /* count */,
-	struct tmask           /* mask */[],
-	DeviceIntPtr           /* dev */,
-	int                    /* req */
-	);
+int CreateMaskFromList(ClientPtr /* client */ ,
+		       XEventClass * /* list */ ,
+		       int /* count */ ,
+		       struct tmask /* mask */ [],
+		       DeviceIntPtr /* dev */ ,
+		       int	/* req */
+    );
 
-void
-SRepXGrabDevice (
-	ClientPtr              /* client */,
-	int                    /* size */,
-	xGrabDeviceReply *     /* rep */
-	);
+void SRepXGrabDevice(ClientPtr /* client */ ,
+		     int /* size */ ,
+		     xGrabDeviceReply *	/* rep */
+    );
 
 #endif /* GRABDEV_H */

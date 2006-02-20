@@ -1,5 +1,3 @@
-/* $Xorg: closedev.c,v 1.4 2001/02/09 02:04:33 xorgcvs Exp $ */
-
 /************************************************************
 
 Copyright 1989, 1998  The Open Group
@@ -45,7 +43,6 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ********************************************************/
-/* $XFree86: xc/programs/Xserver/Xi/closedev.c,v 3.3 2001/08/23 14:56:19 alanh Exp $ */
 
 /***********************************************************************
  *
@@ -59,16 +56,16 @@ SOFTWARE.
 #include <dix-config.h>
 #endif
 
-#include <X11/X.h>				/* for inputstr.h    */
-#include <X11/Xproto.h>			/* Request macro     */
-#include "inputstr.h"			/* DeviceIntPtr	     */
-#include "windowstr.h"			/* window structure  */
-#include "scrnintstr.h"			/* screen structure  */
+#include <X11/X.h>	/* for inputstr.h    */
+#include <X11/Xproto.h>	/* Request macro     */
+#include "inputstr.h"	/* DeviceIntPtr      */
+#include "windowstr.h"	/* window structure  */
+#include "scrnintstr.h"	/* screen structure  */
 #include <X11/extensions/XI.h>
 #include <X11/extensions/XIproto.h>
 #include "XIstubs.h"
 #include "extnsionst.h"
-#include "extinit.h"			/* LookupDeviceIntRec */
+#include "extinit.h"	/* LookupDeviceIntRec */
 #include "exglobals.h"
 
 #include "closedev.h"
@@ -87,8 +84,8 @@ SProcXCloseDevice(register ClientPtr client)
     REQUEST(xCloseDeviceReq);
     swaps(&stuff->length, n);
     REQUEST_SIZE_MATCH(xCloseDeviceReq);
-    return(ProcXCloseDevice(client));
-    }
+    return (ProcXCloseDevice(client));
+}
 
 /***********************************************************************
  *
@@ -99,38 +96,36 @@ SProcXCloseDevice(register ClientPtr client)
 int
 ProcXCloseDevice(register ClientPtr client)
 {
-    int			i;
-    WindowPtr 		pWin, p1;
-    DeviceIntPtr 	d;
+    int i;
+    WindowPtr pWin, p1;
+    DeviceIntPtr d;
 
     REQUEST(xCloseDeviceReq);
     REQUEST_SIZE_MATCH(xCloseDeviceReq);
 
-    d = LookupDeviceIntRec (stuff->deviceid);
-    if (d == NULL)
-	{
+    d = LookupDeviceIntRec(stuff->deviceid);
+    if (d == NULL) {
 	SendErrorToClient(client, IReqCode, X_CloseDevice, 0, BadDevice);
-        return Success;
-	}
+	return Success;
+    }
 
     if (d->grab && SameClient(d->grab, client))
-	(*d->DeactivateGrab)(d);		       /* release active grab */
+	(*d->DeactivateGrab) (d);	/* release active grab */
 
     /* Remove event selections from all windows for events from this device 
-       and selected by this client.
-       Delete passive grabs from all windows for this device.	   */
+     * and selected by this client.
+     * Delete passive grabs from all windows for this device.      */
 
-    for (i=0; i<screenInfo.numScreens; i++)
-	{
+    for (i = 0; i < screenInfo.numScreens; i++) {
 	pWin = WindowTable[i];
-        DeleteDeviceEvents (d, pWin, client);
+	DeleteDeviceEvents(d, pWin, client);
 	p1 = pWin->firstChild;
-	DeleteEventsFromChildren (d, p1, client);
-	}
-
-    CloseInputDevice (d, client);
-    return Success;
+	DeleteEventsFromChildren(d, p1, client);
     }
+
+    CloseInputDevice(d, client);
+    return Success;
+}
 
 /***********************************************************************
  *
@@ -144,14 +139,13 @@ DeleteEventsFromChildren(DeviceIntPtr dev, WindowPtr p1, ClientPtr client)
 {
     WindowPtr p2;
 
-    while (p1)
-        {
-        p2 = p1->firstChild;
-	DeleteDeviceEvents (dev, p1, client);
+    while (p1) {
+	p2 = p1->firstChild;
+	DeleteDeviceEvents(dev, p1, client);
 	DeleteEventsFromChildren(dev, p2, client);
 	p1 = p1->nextSib;
-        }
     }
+}
 
 /***********************************************************************
  *
@@ -161,23 +155,21 @@ DeleteEventsFromChildren(DeviceIntPtr dev, WindowPtr p1, ClientPtr client)
  */
 
 void
-DeleteDeviceEvents (DeviceIntPtr dev, WindowPtr pWin, ClientPtr client)
+DeleteDeviceEvents(DeviceIntPtr dev, WindowPtr pWin, ClientPtr client)
 {
-    InputClientsPtr	others;
-    OtherInputMasks	*pOthers;
-    GrabPtr		grab, next;
+    InputClientsPtr others;
+    OtherInputMasks *pOthers;
+    GrabPtr grab, next;
 
     if ((pOthers = wOtherInputMasks(pWin)) != 0)
-	for (others=pOthers->inputClients; others; 
-	    others = others->next)
-	    if (SameClient(others,client))
+	for (others = pOthers->inputClients; others; others = others->next)
+	    if (SameClient(others, client))
 		others->mask[dev->id] = NoEventMask;
 
-    for (grab = wPassiveGrabs(pWin); grab; grab=next)
-	{
+    for (grab = wPassiveGrabs(pWin); grab; grab = next) {
 	next = grab->next;
 	if ((grab->device == dev) &&
 	    (client->clientAsMask == CLIENT_BITS(grab->resource)))
-		FreeResource (grab->resource, RT_NONE);
-	}
+	    FreeResource(grab->resource, RT_NONE);
     }
+}

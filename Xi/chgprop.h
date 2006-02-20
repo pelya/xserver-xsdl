@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/Xi/chgprop.h,v 3.1 1996/04/15 11:18:29 dawes Exp $ */
 /************************************************************
 
 Copyright 1996 by Thomas E. Dickey <dickey@clark.net>
@@ -31,14 +30,10 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #ifndef CHGPROP_H
 #define CHGPROP_H 1
 
-int
-SProcXChangeDeviceDontPropagateList (
-	ClientPtr              /* client */
-	);
+int SProcXChangeDeviceDontPropagateList(ClientPtr	/* client */
+    );
 
-int
-ProcXChangeDeviceDontPropagateList (
-	ClientPtr              /* client */
-	);
+int ProcXChangeDeviceDontPropagateList(ClientPtr	/* client */
+    );
 
 #endif /* CHGPROP_H */

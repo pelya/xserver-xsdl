@@ -1,5 +1,3 @@
-/* $Xorg: ungrdevk.c,v 1.4 2001/02/09 02:04:35 xorgcvs Exp $ */
-
 /************************************************************
 
 Copyright 1989, 1998  The Open Group
@@ -45,7 +43,6 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ********************************************************/
-/* $XFree86: xc/programs/Xserver/Xi/ungrdevk.c,v 3.3 2001/01/17 22:13:26 dawes Exp $ */
 
 /***********************************************************************
  *
@@ -59,14 +56,14 @@ SOFTWARE.
 #include <dix-config.h>
 #endif
 
-#include <X11/X.h>				/* for inputstr.h    */
-#include <X11/Xproto.h>			/* Request macro     */
-#include "inputstr.h"			/* DeviceIntPtr	     */
-#include "windowstr.h"			/* window structure  */
+#include <X11/X.h>	/* for inputstr.h    */
+#include <X11/Xproto.h>	/* Request macro     */
+#include "inputstr.h"	/* DeviceIntPtr      */
+#include "windowstr.h"	/* window structure  */
 #include <X11/extensions/XI.h>
 #include <X11/extensions/XIproto.h>
 #include "extnsionst.h"
-#include "extinit.h"			/* LookupDeviceIntRec */
+#include "extinit.h"	/* LookupDeviceIntRec */
 #include "exglobals.h"
 #include "dixgrabs.h"
 
@@ -92,8 +89,8 @@ SProcXUngrabDeviceKey(register ClientPtr client)
     REQUEST_SIZE_MATCH(xUngrabDeviceKeyReq);
     swapl(&stuff->grabWindow, n);
     swaps(&stuff->modifiers, n);
-    return(ProcXUngrabDeviceKey(client));
-    }
+    return (ProcXUngrabDeviceKey(client));
+}
 
 /***********************************************************************
  *
@@ -104,73 +101,59 @@ SProcXUngrabDeviceKey(register ClientPtr client)
 int
 ProcXUngrabDeviceKey(ClientPtr client)
 {
-    DeviceIntPtr	dev;
-    DeviceIntPtr	mdev;
-    WindowPtr 		pWin;
-    GrabRec 		temporaryGrab;
+    DeviceIntPtr dev;
+    DeviceIntPtr mdev;
+    WindowPtr pWin;
+    GrabRec temporaryGrab;
 
     REQUEST(xUngrabDeviceKeyReq);
     REQUEST_SIZE_MATCH(xUngrabDeviceKeyReq);
 
-    dev = LookupDeviceIntRec (stuff->grabbed_device);
-    if (dev == NULL)
-	{
-	SendErrorToClient(client, IReqCode, X_UngrabDeviceKey, 0, 
-	    BadDevice);
+    dev = LookupDeviceIntRec(stuff->grabbed_device);
+    if (dev == NULL) {
+	SendErrorToClient(client, IReqCode, X_UngrabDeviceKey, 0, BadDevice);
 	return Success;
-	}
-    if (dev->key == NULL)
-	{
+    }
+    if (dev->key == NULL) {
 	SendErrorToClient(client, IReqCode, X_UngrabDeviceKey, 0, BadMatch);
 	return Success;
-	}
+    }
 
-    if (stuff->modifier_device != UseXKeyboard)
-	{
-	mdev = LookupDeviceIntRec (stuff->modifier_device);
-	if (mdev == NULL)
-	    {
-	    SendErrorToClient(client, IReqCode, X_UngrabDeviceKey, 0, 
-	        BadDevice);
+    if (stuff->modifier_device != UseXKeyboard) {
+	mdev = LookupDeviceIntRec(stuff->modifier_device);
+	if (mdev == NULL) {
+	    SendErrorToClient(client, IReqCode, X_UngrabDeviceKey, 0,
+			      BadDevice);
 	    return Success;
-	    }
-	if (mdev->key == NULL)
-	    {
-	    SendErrorToClient(client, IReqCode, X_UngrabDeviceKey, 0, 
-		BadMatch);
-	    return Success;
-	    }
 	}
-    else
+	if (mdev->key == NULL) {
+	    SendErrorToClient(client, IReqCode, X_UngrabDeviceKey, 0, BadMatch);
+	    return Success;
+	}
+    } else
 	mdev = (DeviceIntPtr) LookupKeyboardDevice();
 
     pWin = LookupWindow(stuff->grabWindow, client);
-    if (!pWin)
-	{
-	SendErrorToClient(client, IReqCode, X_UngrabDeviceKey, 0, 
-	    BadWindow);
+    if (!pWin) {
+	SendErrorToClient(client, IReqCode, X_UngrabDeviceKey, 0, BadWindow);
 	return Success;
-	}
+    }
     if (((stuff->key > dev->key->curKeySyms.maxKeyCode) ||
 	 (stuff->key < dev->key->curKeySyms.minKeyCode))
-	&& (stuff->key != AnyKey))
-	{
-	SendErrorToClient(client, IReqCode, X_UngrabDeviceKey, 0, 
-	    BadValue);
+	&& (stuff->key != AnyKey)) {
+	SendErrorToClient(client, IReqCode, X_UngrabDeviceKey, 0, BadValue);
 	return Success;
-	}
+    }
     if ((stuff->modifiers != AnyModifier) &&
-	(stuff->modifiers & ~AllModifiersMask))
-	{
-	SendErrorToClient(client, IReqCode, X_UngrabDeviceKey, 0, 
-	    BadValue);
+	(stuff->modifiers & ~AllModifiersMask)) {
+	SendErrorToClient(client, IReqCode, X_UngrabDeviceKey, 0, BadValue);
 	return Success;
-	}
+    }
 
     temporaryGrab.resource = client->clientAsMask;
     temporaryGrab.device = dev;
     temporaryGrab.window = pWin;
-    temporaryGrab.type  = DeviceKeyPress;
+    temporaryGrab.type = DeviceKeyPress;
     temporaryGrab.modifierDevice = mdev;
     temporaryGrab.modifiersDetail.exact = stuff->modifiers;
     temporaryGrab.modifiersDetail.pMask = NULL;
@@ -179,4 +162,4 @@ ProcXUngrabDeviceKey(ClientPtr client)
 
     DeletePassiveGrabFromList(&temporaryGrab);
     return Success;
-    }
+}

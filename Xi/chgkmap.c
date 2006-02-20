@@ -1,5 +1,3 @@
-/* $Xorg: chgkmap.c,v 1.4 2001/02/09 02:04:33 xorgcvs Exp $ */
-
 /************************************************************
 
 Copyright 1989, 1998  The Open Group
@@ -45,7 +43,6 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ********************************************************/
-/* $XFree86: xc/programs/Xserver/Xi/chgkmap.c,v 3.2 2001/01/17 22:13:24 dawes Exp $ */
 
 /********************************************************************
  *
@@ -53,19 +50,19 @@ SOFTWARE.
  *
  */
 
-#define	 NEED_EVENTS			/* for inputstr.h    */
+#define	 NEED_EVENTS	/* for inputstr.h    */
 #define	 NEED_REPLIES
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>
 #endif
 
-#include <X11/X.h>				/* for inputstr.h    */
-#include <X11/Xproto.h>			/* Request macro     */
-#include "inputstr.h"			/* DeviceIntPtr	     */
+#include <X11/X.h>	/* for inputstr.h    */
+#include <X11/Xproto.h>	/* Request macro     */
+#include "inputstr.h"	/* DeviceIntPtr      */
 #include <X11/extensions/XI.h>
 #include <X11/extensions/XIproto.h>
 #include "extnsionst.h"
-#include "extinit.h"			/* LookupDeviceIntRec */
+#include "extinit.h"	/* LookupDeviceIntRec */
 #include "exevents.h"
 #include "exglobals.h"
 
@@ -88,15 +85,14 @@ SProcXChangeDeviceKeyMapping(register ClientPtr client)
     REQUEST(xChangeDeviceKeyMappingReq);
     swaps(&stuff->length, n);
     REQUEST_AT_LEAST_SIZE(xChangeDeviceKeyMappingReq);
-    p = (long *) &stuff[1];
+    p = (long *)&stuff[1];
     count = stuff->keyCodes * stuff->keySymsPerKeyCode;
-    for (i = 0; i < count; i++)
-        {
-        swapl(p, n);
+    for (i = 0; i < count; i++) {
+	swapl(p, n);
 	p++;
-        }
-    return(ProcXChangeDeviceKeyMapping(client));
     }
+    return (ProcXChangeDeviceKeyMapping(client));
+}
 
 /***********************************************************************
  *
@@ -107,28 +103,26 @@ SProcXChangeDeviceKeyMapping(register ClientPtr client)
 int
 ProcXChangeDeviceKeyMapping(register ClientPtr client)
 {
-    int	ret;
+    int ret;
     unsigned len;
     DeviceIntPtr dev;
 
     REQUEST(xChangeDeviceKeyMappingReq);
     REQUEST_AT_LEAST_SIZE(xChangeDeviceKeyMappingReq);
 
-    dev = LookupDeviceIntRec (stuff->deviceid);
-    if (dev == NULL)
-	{
-	SendErrorToClient (client, IReqCode, X_ChangeDeviceKeyMapping, 0, 
-		BadDevice);
+    dev = LookupDeviceIntRec(stuff->deviceid);
+    if (dev == NULL) {
+	SendErrorToClient(client, IReqCode, X_ChangeDeviceKeyMapping, 0,
+			  BadDevice);
 	return Success;
-	}
-    len = stuff->length - (sizeof(xChangeDeviceKeyMappingReq) >> 2);  
+    }
+    len = stuff->length - (sizeof(xChangeDeviceKeyMappingReq) >> 2);
 
-    ret = ChangeKeyMapping (client, dev, len, DeviceMappingNotify, 
-	stuff->firstKeyCode, stuff->keyCodes, stuff->keySymsPerKeyCode, 
-	(KeySym *)&stuff[1]);
+    ret = ChangeKeyMapping(client, dev, len, DeviceMappingNotify,
+			   stuff->firstKeyCode, stuff->keyCodes,
+			   stuff->keySymsPerKeyCode, (KeySym *) & stuff[1]);
 
     if (ret != Success)
-	SendErrorToClient (client, IReqCode, X_ChangeDeviceKeyMapping, 0, 
-		ret);
+	SendErrorToClient(client, IReqCode, X_ChangeDeviceKeyMapping, 0, ret);
     return Success;
-    }
+}

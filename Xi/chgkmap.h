@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/Xi/chgkmap.h,v 3.1 1996/04/15 11:18:28 dawes Exp $ */
 /************************************************************
 
 Copyright 1996 by Thomas E. Dickey <dickey@clark.net>
@@ -31,14 +30,10 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #ifndef CHGKMAP_H
 #define CHGKMAP_H 1
 
-int
-SProcXChangeDeviceKeyMapping(
-	ClientPtr              /* client */
-	);
+int SProcXChangeDeviceKeyMapping(ClientPtr	/* client */
+    );
 
-int
-ProcXChangeDeviceKeyMapping(
-	ClientPtr              /* client */
-	);
+int ProcXChangeDeviceKeyMapping(ClientPtr	/* client */
+    );
 
 #endif /* CHGKMAP_H */

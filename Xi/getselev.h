@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/Xi/getselev.h,v 3.1 1996/04/15 11:18:49 dawes Exp $ */
 /************************************************************
 
 Copyright 1996 by Thomas E. Dickey <dickey@clark.net>
@@ -31,21 +30,15 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #ifndef GETSELEV_H
 #define GETSELEV_H 1
 
-int
-SProcXGetSelectedExtensionEvents(
-	ClientPtr              /* client */
-	);
+int SProcXGetSelectedExtensionEvents(ClientPtr	/* client */
+    );
 
-int
-ProcXGetSelectedExtensionEvents(
-	ClientPtr              /* client */
-	);
+int ProcXGetSelectedExtensionEvents(ClientPtr	/* client */
+    );
 
-void
-SRepXGetSelectedExtensionEvents (
-	ClientPtr              /* client */,
-	int                    /* size */,
-	xGetSelectedExtensionEventsReply * /* rep */
-	);
+void SRepXGetSelectedExtensionEvents(ClientPtr /* client */ ,
+				     int /* size */ ,
+				     xGetSelectedExtensionEventsReply *	/* rep */
+    );
 
 #endif /* GETSELEV_H */

@@ -1,5 +1,3 @@
-/* $Xorg: stubs.c,v 1.4 2001/02/09 02:04:35 xorgcvs Exp $ */
-
 /************************************************************
 
 Copyright 1989, 1998  The Open Group
@@ -45,7 +43,6 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ********************************************************/
-/* $XFree86: xc/programs/Xserver/Xi/stubs.c,v 3.4 2001/12/14 19:58:59 dawes Exp $ */
 
 /*
  * stubs.c -- stub routines for the X server side of the XINPUT
@@ -94,14 +91,13 @@ SOFTWARE.
  */
 
 int
-ChangeKeyboardDevice (DeviceIntPtr old_dev, DeviceIntPtr new_dev)
+ChangeKeyboardDevice(DeviceIntPtr old_dev, DeviceIntPtr new_dev)
 {
     /***********************************************************************
      DeleteFocusClassDeviceStruct(old_dev);	 * defined in xchgptr.c *
     **********************************************************************/
     return BadMatch;
-    }
-
+}
 
 /***********************************************************************
  *
@@ -134,12 +130,9 @@ ChangeKeyboardDevice (DeviceIntPtr old_dev, DeviceIntPtr new_dev)
  */
 
 int
-ChangePointerDevice (
-    DeviceIntPtr	old_dev,
-    DeviceIntPtr	new_dev,
-    unsigned char	x,
-    unsigned char	y)
-    {
+ChangePointerDevice(DeviceIntPtr old_dev,
+		    DeviceIntPtr new_dev, unsigned char x, unsigned char y)
+{
     /***********************************************************************
     InitFocusClassDeviceStruct(old_dev);	* allow focusing old ptr*
 
@@ -151,7 +144,7 @@ ChangePointerDevice (
 	axes_changed = FALSE;
     *************************************************************************/
     return BadMatch;
-    }
+}
 
 /***********************************************************************
  *
@@ -167,9 +160,9 @@ ChangePointerDevice (
  */
 
 void
-CloseInputDevice (DeviceIntPtr d, ClientPtr client)
+CloseInputDevice(DeviceIntPtr d, ClientPtr client)
 {
-    }
+}
 
 /***********************************************************************
  *
@@ -198,7 +191,7 @@ CloseInputDevice (DeviceIntPtr d, ClientPtr client)
  */
 
 void
-AddOtherInputDevices (void)
+AddOtherInputDevices(void)
 {
     /**********************************************************************
      for each uninitialized device, do something like: 
@@ -213,7 +206,7 @@ AddOtherInputDevices (void)
     dev->inited = ((*dev->deviceProc)(dev, DEVICE_INIT) == Success);
     ************************************************************************/
 
-    }
+}
 
 /***********************************************************************
  *
@@ -238,9 +231,9 @@ AddOtherInputDevices (void)
  */
 
 void
-OpenInputDevice (DeviceIntPtr dev, ClientPtr client, int *status)
+OpenInputDevice(DeviceIntPtr dev, ClientPtr client, int *status)
 {
-    }
+}
 
 /****************************************************************************
  *
@@ -255,10 +248,10 @@ OpenInputDevice (DeviceIntPtr dev, ClientPtr client, int *status)
  */
 
 int
-SetDeviceMode (register ClientPtr client, DeviceIntPtr dev, int mode)
+SetDeviceMode(register ClientPtr client, DeviceIntPtr dev, int mode)
 {
     return BadMatch;
-    }
+}
 
 /****************************************************************************
  *
@@ -273,10 +266,11 @@ SetDeviceMode (register ClientPtr client, DeviceIntPtr dev, int mode)
  */
 
 int
-SetDeviceValuators (register ClientPtr client, DeviceIntPtr dev, int *valuators, int first_valuator, int num_valuators)
+SetDeviceValuators(register ClientPtr client, DeviceIntPtr dev, int *valuators,
+		   int first_valuator, int num_valuators)
 {
     return BadMatch;
-    }
+}
 
 /****************************************************************************
  *
@@ -287,13 +281,13 @@ SetDeviceValuators (register ClientPtr client, DeviceIntPtr dev, int *valuators,
  */
 
 int
-ChangeDeviceControl (register ClientPtr client, DeviceIntPtr dev, xDeviceCtl *control)
+ChangeDeviceControl(register ClientPtr client, DeviceIntPtr dev,
+		    xDeviceCtl * control)
 {
-    switch (control->control)
-	{
-	case DEVICE_RESOLUTION:
-	    return (BadMatch);
-	default:
-	    return (BadMatch);
-	}
+    switch (control->control) {
+    case DEVICE_RESOLUTION:
+	return (BadMatch);
+    default:
+	return (BadMatch);
     }
+}

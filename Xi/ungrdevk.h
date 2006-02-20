@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/Xi/ungrdevk.h,v 3.1 1996/04/15 11:19:12 dawes Exp $ */
 /************************************************************
 
 Copyright 1996 by Thomas E. Dickey <dickey@clark.net>
@@ -31,14 +30,10 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #ifndef UNGRDEVK_H
 #define UNGRDEVK_H 1
 
-int
-SProcXUngrabDeviceKey(
-	ClientPtr              /* client */
-	);
+int SProcXUngrabDeviceKey(ClientPtr	/* client */
+    );
 
-int
-ProcXUngrabDeviceKey(
-	ClientPtr              /* client */
-	);
+int ProcXUngrabDeviceKey(ClientPtr	/* client */
+    );
 
 #endif /* UNGRDEVK_H */

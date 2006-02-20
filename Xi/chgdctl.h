@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/Xi/chgdctl.h,v 3.1 1996/04/15 11:18:25 dawes Exp $ */
 /************************************************************
 
 Copyright 1996 by Thomas E. Dickey <dickey@clark.net>
@@ -31,21 +30,15 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #ifndef CHGDCTL_H
 #define CHGDCTL_H 1
 
-int
-SProcXChangeDeviceControl(
-	ClientPtr              /* client */
-	);
+int SProcXChangeDeviceControl(ClientPtr	/* client */
+    );
 
-int
-ProcXChangeDeviceControl(
-	ClientPtr              /* client */
-	);
+int ProcXChangeDeviceControl(ClientPtr	/* client */
+    );
 
-void
-SRepXChangeDeviceControl (
-	ClientPtr              /* client */,
-	int                    /* size */,
-	xChangeDeviceControlReply * /* rep */
-	);
+void SRepXChangeDeviceControl(ClientPtr /* client */ ,
+			      int /* size */ ,
+			      xChangeDeviceControlReply *	/* rep */
+    );
 
 #endif /* CHGDCTL_H */

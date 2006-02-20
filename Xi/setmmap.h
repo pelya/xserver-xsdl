@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/Xi/setmmap.h,v 3.1 1996/04/15 11:19:06 dawes Exp $ */
 /************************************************************
 
 Copyright 1996 by Thomas E. Dickey <dickey@clark.net>
@@ -31,21 +30,15 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #ifndef SETMMAP_H
 #define SETMMAP_H 1
 
-int
-SProcXSetDeviceModifierMapping(
-	ClientPtr              /* client */
-	);
+int SProcXSetDeviceModifierMapping(ClientPtr	/* client */
+    );
 
-int
-ProcXSetDeviceModifierMapping(
-	ClientPtr              /* client */
-	);
+int ProcXSetDeviceModifierMapping(ClientPtr	/* client */
+    );
 
-void
-SRepXSetDeviceModifierMapping(
-	ClientPtr              /* client */,
-	int                    /* size */,
-	xSetDeviceModifierMappingReply * /* rep */
-	);
+void SRepXSetDeviceModifierMapping(ClientPtr /* client */ ,
+				   int /* size */ ,
+				   xSetDeviceModifierMappingReply *	/* rep */
+    );
 
 #endif /* SETMMAP_H */

@@ -1,5 +1,3 @@
-/* $Xorg: opendev.c,v 1.4 2001/02/09 02:04:34 xorgcvs Exp $ */
-
 /************************************************************
 
 Copyright 1989, 1998  The Open Group
@@ -45,7 +43,6 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ********************************************************/
-/* $XFree86: xc/programs/Xserver/Xi/opendev.c,v 3.2 2001/01/17 22:13:25 dawes Exp $ */
 
 /***********************************************************************
  *
@@ -59,20 +56,20 @@ SOFTWARE.
 #include <dix-config.h>
 #endif
 
-#include <X11/X.h>				/* for inputstr.h    */
-#include <X11/Xproto.h>			/* Request macro     */
-#include "inputstr.h"			/* DeviceIntPtr	     */
+#include <X11/X.h>	/* for inputstr.h    */
+#include <X11/Xproto.h>	/* Request macro     */
+#include "inputstr.h"	/* DeviceIntPtr      */
 #include <X11/extensions/XI.h>
 #include <X11/extensions/XIproto.h>
 #include "XIstubs.h"
-#include "windowstr.h"			/* window structure  */
+#include "windowstr.h"	/* window structure  */
 #include "extnsionst.h"
-#include "extinit.h"			/* LookupDeviceIntRec */
+#include "extinit.h"	/* LookupDeviceIntRec */
 #include "exglobals.h"
 
 #include "opendev.h"
 
-extern	CARD8		event_base [];
+extern CARD8 event_base[];
 
 /***********************************************************************
  *
@@ -88,8 +85,8 @@ SProcXOpenDevice(register ClientPtr client)
 
     REQUEST(xOpenDeviceReq);
     swaps(&stuff->length, n);
-    return(ProcXOpenDevice(client));
-    }
+    return (ProcXOpenDevice(client));
+}
 
 /***********************************************************************
  *
@@ -100,87 +97,77 @@ SProcXOpenDevice(register ClientPtr client)
 int
 ProcXOpenDevice(register ClientPtr client)
 {
-    xInputClassInfo evbase [numInputClasses];
+    xInputClassInfo evbase[numInputClasses];
     Bool enableit = FALSE;
-    int j=0;
+    int j = 0;
     int status = Success;
-    xOpenDeviceReply	rep;
+    xOpenDeviceReply rep;
     DeviceIntPtr dev;
 
     REQUEST(xOpenDeviceReq);
     REQUEST_SIZE_MATCH(xOpenDeviceReq);
 
-    if (stuff->deviceid == inputInfo.pointer->id || 
-	stuff->deviceid == inputInfo.keyboard->id)
-	{
+    if (stuff->deviceid == inputInfo.pointer->id ||
+	stuff->deviceid == inputInfo.keyboard->id) {
 	SendErrorToClient(client, IReqCode, X_OpenDevice, 0, BadDevice);
-        return Success;
-	}
+	return Success;
+    }
 
-    if ((dev = LookupDeviceIntRec(stuff->deviceid)) == NULL) /* not open */
-	{
-        for (dev=inputInfo.off_devices; dev; dev=dev->next)
+    if ((dev = LookupDeviceIntRec(stuff->deviceid)) == NULL) {	/* not open */
+	for (dev = inputInfo.off_devices; dev; dev = dev->next)
 	    if (dev->id == stuff->deviceid)
 		break;
-	if (dev == NULL)
-	    {
+	if (dev == NULL) {
 	    SendErrorToClient(client, IReqCode, X_OpenDevice, 0, BadDevice);
 	    return Success;
-	    }
-	enableit = TRUE;
 	}
+	enableit = TRUE;
+    }
 
-    OpenInputDevice (dev, client, &status);
-    if (status != Success)
-	{
+    OpenInputDevice(dev, client, &status);
+    if (status != Success) {
 	SendErrorToClient(client, IReqCode, X_OpenDevice, 0, status);
 	return Success;
-	}
+    }
     if (enableit && dev->inited && dev->startup)
 	(void)EnableDevice(dev);
 
     rep.repType = X_Reply;
     rep.RepType = X_OpenDevice;
     rep.sequenceNumber = client->sequence;
-    if (dev->key != NULL)
-	{
+    if (dev->key != NULL) {
 	evbase[j].class = KeyClass;
 	evbase[j++].event_type_base = event_base[KeyClass];
-	}
-    if (dev->button != NULL)
-	{
+    }
+    if (dev->button != NULL) {
 	evbase[j].class = ButtonClass;
 	evbase[j++].event_type_base = event_base[ButtonClass];
-	}
-    if (dev->valuator != NULL)
-	{
+    }
+    if (dev->valuator != NULL) {
 	evbase[j].class = ValuatorClass;
 	evbase[j++].event_type_base = event_base[ValuatorClass];
-	}
+    }
     if (dev->kbdfeed != NULL || dev->ptrfeed != NULL || dev->leds != NULL ||
-	dev->intfeed != NULL || dev->bell != NULL || dev->stringfeed != NULL)
-	{
+	dev->intfeed != NULL || dev->bell != NULL || dev->stringfeed != NULL) {
 	evbase[j].class = FeedbackClass;
 	evbase[j++].event_type_base = event_base[FeedbackClass];
-	}
-    if (dev->focus != NULL)
-	{
+    }
+    if (dev->focus != NULL) {
 	evbase[j].class = FocusClass;
 	evbase[j++].event_type_base = event_base[FocusClass];
-	}
-    if (dev->proximity != NULL)
-	{
+    }
+    if (dev->proximity != NULL) {
 	evbase[j].class = ProximityClass;
 	evbase[j++].event_type_base = event_base[ProximityClass];
-	}
+    }
     evbase[j].class = OtherClass;
     evbase[j++].event_type_base = event_base[OtherClass];
-    rep.length = (j * sizeof (xInputClassInfo) + 3) >> 2;
+    rep.length = (j * sizeof(xInputClassInfo) + 3) >> 2;
     rep.num_classes = j;
-    WriteReplyToClient (client, sizeof (xOpenDeviceReply), &rep);
-    WriteToClient(client, j * sizeof (xInputClassInfo), (char *)evbase);
+    WriteReplyToClient(client, sizeof(xOpenDeviceReply), &rep);
+    WriteToClient(client, j * sizeof(xInputClassInfo), (char *)evbase);
     return (Success);
-    }
+}
 
 /***********************************************************************
  *
@@ -190,11 +177,11 @@ ProcXOpenDevice(register ClientPtr client)
  */
 
 void
-SRepXOpenDevice (ClientPtr client, int size, xOpenDeviceReply *rep)
+SRepXOpenDevice(ClientPtr client, int size, xOpenDeviceReply * rep)
 {
     register char n;
 
     swaps(&rep->sequenceNumber, n);
     swapl(&rep->length, n);
     WriteToClient(client, size, (char *)rep);
-    }
+}

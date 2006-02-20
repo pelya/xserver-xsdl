@@ -1,5 +1,3 @@
-/* $Xorg: chgptr.c,v 1.4 2001/02/09 02:04:33 xorgcvs Exp $ */
-
 /************************************************************
 
 Copyright 1989, 1998  The Open Group
@@ -45,7 +43,6 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ********************************************************/
-/* $XFree86: xc/programs/Xserver/Xi/chgptr.c,v 3.6 2001/08/23 14:56:19 alanh Exp $ */
 
 /***********************************************************************
  *
@@ -59,17 +56,17 @@ SOFTWARE.
 #include <dix-config.h>
 #endif
 
-#include <X11/X.h>				/* for inputstr.h    */
-#include <X11/Xproto.h>			/* Request macro     */
-#include "inputstr.h"			/* DeviceIntPtr	     */
+#include <X11/X.h>	/* for inputstr.h    */
+#include <X11/Xproto.h>	/* Request macro     */
+#include "inputstr.h"	/* DeviceIntPtr      */
 #include <X11/extensions/XI.h>
 #include <X11/extensions/XIproto.h>
 #include "XIstubs.h"
-#include "windowstr.h"			/* window structure  */
-#include "scrnintstr.h"			/* screen structure  */
+#include "windowstr.h"	/* window structure  */
+#include "scrnintstr.h"	/* screen structure  */
 
 #include "extnsionst.h"
-#include "extinit.h"			/* LookupDeviceIntRec */
+#include "extinit.h"	/* LookupDeviceIntRec */
 
 #include "dixevents.h"
 #include "exevents.h"
@@ -92,8 +89,8 @@ SProcXChangePointerDevice(register ClientPtr client)
     REQUEST(xChangePointerDeviceReq);
     swaps(&stuff->length, n);
     REQUEST_SIZE_MATCH(xChangePointerDeviceReq);
-    return(ProcXChangePointerDevice(client));
-    }
+    return (ProcXChangePointerDevice(client));
+}
 
 /***********************************************************************
  *
@@ -102,13 +99,13 @@ SProcXChangePointerDevice(register ClientPtr client)
  */
 
 int
-ProcXChangePointerDevice (register ClientPtr client)
+ProcXChangePointerDevice(register ClientPtr client)
 {
-    DeviceIntPtr 	xptr = inputInfo.pointer;
-    DeviceIntPtr 	dev;
-    ValuatorClassPtr 	v;
-    xChangePointerDeviceReply	rep;
-    changeDeviceNotify	ev;
+    DeviceIntPtr xptr = inputInfo.pointer;
+    DeviceIntPtr dev;
+    ValuatorClassPtr v;
+    xChangePointerDeviceReply rep;
+    changeDeviceNotify ev;
 
     REQUEST(xChangePointerDeviceReq);
     REQUEST_SIZE_MATCH(xChangePointerDeviceReq);
@@ -118,66 +115,60 @@ ProcXChangePointerDevice (register ClientPtr client)
     rep.length = 0;
     rep.sequenceNumber = client->sequence;
 
-    dev = LookupDeviceIntRec (stuff->deviceid);
-    if (dev == NULL)
-	{
+    dev = LookupDeviceIntRec(stuff->deviceid);
+    if (dev == NULL) {
 	rep.status = -1;
-	SendErrorToClient(client, IReqCode, X_ChangePointerDevice, 0, 
-	    BadDevice);
+	SendErrorToClient(client, IReqCode, X_ChangePointerDevice, 0,
+			  BadDevice);
 	return Success;
-	}
+    }
 
     v = dev->valuator;
-    if (v == NULL || v->numAxes < 2 || 
-	stuff->xaxis >= v->numAxes ||
-	stuff->yaxis >= v->numAxes)
-	{
+    if (v == NULL || v->numAxes < 2 ||
+	stuff->xaxis >= v->numAxes || stuff->yaxis >= v->numAxes) {
 	rep.status = -1;
 	SendErrorToClient(client, IReqCode, X_ChangePointerDevice, 0, BadMatch);
 	return Success;
-	}
+    }
 
     if (((dev->grab) && !SameClient(dev->grab, client)) ||
-        ((xptr->grab) && !SameClient(xptr->grab, client)))
+	((xptr->grab) && !SameClient(xptr->grab, client)))
 	rep.status = AlreadyGrabbed;
     else if ((dev->sync.frozen &&
-	     dev->sync.other && !SameClient(dev->sync.other, client)) ||
+	      dev->sync.other && !SameClient(dev->sync.other, client)) ||
 	     (xptr->sync.frozen &&
 	      xptr->sync.other && !SameClient(xptr->sync.other, client)))
 	rep.status = GrabFrozen;
-    else
-	{
-	if (ChangePointerDevice (
-	    xptr, dev, stuff->xaxis, stuff->yaxis) != Success)
-	    {
-	    SendErrorToClient(client, IReqCode, X_ChangePointerDevice, 0, 
-		BadDevice);
+    else {
+	if (ChangePointerDevice(xptr, dev, stuff->xaxis, stuff->yaxis) !=
+	    Success) {
+	    SendErrorToClient(client, IReqCode, X_ChangePointerDevice, 0,
+			      BadDevice);
 	    return Success;
-	    }
+	}
 	if (dev->focus)
 	    DeleteFocusClassDeviceStruct(dev);
 	if (!dev->button)
-	    InitButtonClassDeviceStruct (dev, 0, NULL);
+	    InitButtonClassDeviceStruct(dev, 0, NULL);
 	if (!dev->ptrfeed)
-	   InitPtrFeedbackClassDeviceStruct(dev, (PtrCtrlProcPtr)NoopDDA);
-	RegisterOtherDevice (xptr);
-	RegisterPointerDevice (dev);
+	    InitPtrFeedbackClassDeviceStruct(dev, (PtrCtrlProcPtr) NoopDDA);
+	RegisterOtherDevice(xptr);
+	RegisterPointerDevice(dev);
 
 	ev.type = ChangeDeviceNotify;
 	ev.deviceid = stuff->deviceid;
 	ev.time = currentTime.milliseconds;
 	ev.request = NewPointer;
 
-	SendEventToAllWindows (dev, ChangeDeviceNotifyMask, (xEvent *)&ev, 1);
-	SendMappingNotify (MappingPointer, 0, 0, client);
+	SendEventToAllWindows(dev, ChangeDeviceNotifyMask, (xEvent *) & ev, 1);
+	SendMappingNotify(MappingPointer, 0, 0, client);
 
 	rep.status = 0;
-	}
-
-    WriteReplyToClient (client, sizeof (xChangePointerDeviceReply), 
-	&rep);
-    return Success;
     }
+
+    WriteReplyToClient(client, sizeof(xChangePointerDeviceReply), &rep);
+    return Success;
+}
 
 void
 DeleteFocusClassDeviceStruct(DeviceIntPtr dev)
@@ -185,7 +176,7 @@ DeleteFocusClassDeviceStruct(DeviceIntPtr dev)
     xfree(dev->focus->trace);
     xfree(dev->focus);
     dev->focus = NULL;
-    }
+}
 
 /***********************************************************************
  *
@@ -194,19 +185,18 @@ DeleteFocusClassDeviceStruct(DeviceIntPtr dev)
  */
 
 void
-SendEventToAllWindows (DeviceIntPtr dev, Mask mask, xEvent *ev, int count)
+SendEventToAllWindows(DeviceIntPtr dev, Mask mask, xEvent * ev, int count)
 {
     int i;
     WindowPtr pWin, p1;
 
-    for (i=0; i<screenInfo.numScreens; i++)
-	{
+    for (i = 0; i < screenInfo.numScreens; i++) {
 	pWin = WindowTable[i];
 	(void)DeliverEventsToWindow(pWin, ev, count, mask, NullGrab, dev->id);
 	p1 = pWin->firstChild;
-	FindInterestedChildren (dev, p1, mask, ev, count);
-	}
+	FindInterestedChildren(dev, p1, mask, ev, count);
     }
+}
 
 /***********************************************************************
  *
@@ -216,18 +206,18 @@ SendEventToAllWindows (DeviceIntPtr dev, Mask mask, xEvent *ev, int count)
  */
 
 void
-FindInterestedChildren (DeviceIntPtr dev, WindowPtr p1, Mask mask, xEvent *ev, int count)
+FindInterestedChildren(DeviceIntPtr dev, WindowPtr p1, Mask mask, xEvent * ev,
+		       int count)
 {
     WindowPtr p2;
 
-    while (p1)
-        {
-        p2 = p1->firstChild;
+    while (p1) {
+	p2 = p1->firstChild;
 	(void)DeliverEventsToWindow(p1, ev, count, mask, NullGrab, dev->id);
-	FindInterestedChildren (dev, p2, mask, ev, count);
+	FindInterestedChildren(dev, p2, mask, ev, count);
 	p1 = p1->nextSib;
-        }
     }
+}
 
 /***********************************************************************
  *
@@ -237,11 +227,12 @@ FindInterestedChildren (DeviceIntPtr dev, WindowPtr p1, Mask mask, xEvent *ev, i
  */
 
 void
-SRepXChangePointerDevice (ClientPtr client, int size, xChangePointerDeviceReply *rep)
+SRepXChangePointerDevice(ClientPtr client, int size,
+			 xChangePointerDeviceReply * rep)
 {
     register char n;
 
     swaps(&rep->sequenceNumber, n);
     swapl(&rep->length, n);
     WriteToClient(client, size, (char *)rep);
-    }
+}

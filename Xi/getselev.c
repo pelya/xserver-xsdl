@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/Xi/getselev.c,v 3.5 2001/10/28 03:32:53 tsi Exp $ */
 /************************************************************
 
 Copyright 1989, 1998  The Open Group
@@ -45,8 +44,6 @@ SOFTWARE.
 
 ********************************************************/
 
-/* $Xorg: getselev.c,v 1.4 2001/02/09 02:04:34 xorgcvs Exp $ */
-
 /***********************************************************************
  *
  * Extension function to get the current selected events for a given window.
@@ -59,14 +56,14 @@ SOFTWARE.
 #include <dix-config.h>
 #endif
 
-#include <X11/X.h>				/* for inputstr.h    */
-#include <X11/Xproto.h>			/* Request macro     */
+#include <X11/X.h>	/* for inputstr.h    */
+#include <X11/Xproto.h>	/* Request macro     */
 #include <X11/extensions/XI.h>
 #include <X11/extensions/XIproto.h>
-#include "inputstr.h"			/* DeviceIntPtr	     */
-#include "windowstr.h"			/* window struct     */
+#include "inputstr.h"	/* DeviceIntPtr      */
+#include "windowstr.h"	/* window struct     */
 #include "extnsionst.h"
-#include "extinit.h"			/* LookupDeviceIntRec */
+#include "extinit.h"	/* LookupDeviceIntRec */
 #include "exglobals.h"
 #include "swaprep.h"
 
@@ -88,8 +85,8 @@ SProcXGetSelectedExtensionEvents(register ClientPtr client)
     swaps(&stuff->length, n);
     REQUEST_SIZE_MATCH(xGetSelectedExtensionEventsReq);
     swapl(&stuff->window, n);
-    return(ProcXGetSelectedExtensionEvents(client));
-    }
+    return (ProcXGetSelectedExtensionEvents(client));
+}
 
 /***********************************************************************
  *
@@ -101,15 +98,15 @@ SProcXGetSelectedExtensionEvents(register ClientPtr client)
 int
 ProcXGetSelectedExtensionEvents(register ClientPtr client)
 {
-    int					i;
-    int					total_length = 0;
-    xGetSelectedExtensionEventsReply	rep;
-    WindowPtr				pWin;
-    XEventClass				*buf = NULL;
-    XEventClass				*tclient;
-    XEventClass				*aclient;
-    OtherInputMasks			*pOthers;
-    InputClientsPtr			others;
+    int i;
+    int total_length = 0;
+    xGetSelectedExtensionEventsReply rep;
+    WindowPtr pWin;
+    XEventClass *buf = NULL;
+    XEventClass *tclient;
+    XEventClass *aclient;
+    OtherInputMasks *pOthers;
+    InputClientsPtr others;
 
     REQUEST(xGetSelectedExtensionEventsReq);
     REQUEST_SIZE_MATCH(xGetSelectedExtensionEventsReq);
@@ -121,55 +118,53 @@ ProcXGetSelectedExtensionEvents(register ClientPtr client)
     rep.this_client_count = 0;
     rep.all_clients_count = 0;
 
-    if (!(pWin = LookupWindow(stuff->window, client)))
-        {
-	SendErrorToClient(client, IReqCode, X_GetSelectedExtensionEvents, 0, 
-		BadWindow);
+    if (!(pWin = LookupWindow(stuff->window, client))) {
+	SendErrorToClient(client, IReqCode, X_GetSelectedExtensionEvents, 0,
+			  BadWindow);
 	return Success;
-        }
+    }
 
-    if ((pOthers = wOtherInputMasks(pWin)) != 0)
-	{
-	for (others = pOthers->inputClients; others; others=others->next)
-	    for (i=0; i<EMASKSIZE; i++)
-		tclient = ClassFromMask (NULL, others->mask[i], i, 
-		    &rep.all_clients_count, COUNT);
+    if ((pOthers = wOtherInputMasks(pWin)) != 0) {
+	for (others = pOthers->inputClients; others; others = others->next)
+	    for (i = 0; i < EMASKSIZE; i++)
+		tclient = ClassFromMask(NULL, others->mask[i], i,
+					&rep.all_clients_count, COUNT);
 
-	for (others = pOthers->inputClients; others; others=others->next)
-	    if (SameClient(others, client))
-		{
-		for (i=0; i<EMASKSIZE; i++)
-		    tclient = ClassFromMask (NULL, others->mask[i], i, 
-			&rep.this_client_count, COUNT);
+	for (others = pOthers->inputClients; others; others = others->next)
+	    if (SameClient(others, client)) {
+		for (i = 0; i < EMASKSIZE; i++)
+		    tclient = ClassFromMask(NULL, others->mask[i], i,
+					    &rep.this_client_count, COUNT);
 		break;
-		}
+	    }
 
-	total_length = (rep.all_clients_count + rep.this_client_count) * 
-	    sizeof (XEventClass);
+	total_length = (rep.all_clients_count + rep.this_client_count) *
+	    sizeof(XEventClass);
 	rep.length = (total_length + 3) >> 2;
-	buf = (XEventClass *) xalloc (total_length);
+	buf = (XEventClass *) xalloc(total_length);
 
 	tclient = buf;
 	aclient = buf + rep.this_client_count;
 	if (others)
-	    for (i=0; i<EMASKSIZE; i++)
-		tclient = ClassFromMask (tclient, others->mask[i], i, NULL, CREATE);
+	    for (i = 0; i < EMASKSIZE; i++)
+		tclient =
+		    ClassFromMask(tclient, others->mask[i], i, NULL, CREATE);
 
-	for (others = pOthers->inputClients; others; others=others->next)
-	    for (i=0; i<EMASKSIZE; i++)
-		aclient = ClassFromMask (aclient, others->mask[i], i, NULL, CREATE);
-	}
-
-    WriteReplyToClient (client, sizeof(xGetSelectedExtensionEventsReply), &rep);
-
-    if (total_length)
-	{
-	client->pSwapReplyFunc = (ReplySwapPtr) Swap32Write;
-	WriteSwappedDataToClient( client, total_length, buf);
-	xfree (buf);
-	}
-    return Success;
+	for (others = pOthers->inputClients; others; others = others->next)
+	    for (i = 0; i < EMASKSIZE; i++)
+		aclient =
+		    ClassFromMask(aclient, others->mask[i], i, NULL, CREATE);
     }
+
+    WriteReplyToClient(client, sizeof(xGetSelectedExtensionEventsReply), &rep);
+
+    if (total_length) {
+	client->pSwapReplyFunc = (ReplySwapPtr) Swap32Write;
+	WriteSwappedDataToClient(client, total_length, buf);
+	xfree(buf);
+    }
+    return Success;
+}
 
 /***********************************************************************
  *
@@ -179,7 +174,8 @@ ProcXGetSelectedExtensionEvents(register ClientPtr client)
  */
 
 void
-SRepXGetSelectedExtensionEvents (ClientPtr client, int size, xGetSelectedExtensionEventsReply *rep)
+SRepXGetSelectedExtensionEvents(ClientPtr client, int size,
+				xGetSelectedExtensionEventsReply * rep)
 {
     register char n;
 
@@ -188,4 +184,4 @@ SRepXGetSelectedExtensionEvents (ClientPtr client, int size, xGetSelectedExtensi
     swaps(&rep->this_client_count, n);
     swaps(&rep->all_clients_count, n);
     WriteToClient(client, size, (char *)rep);
-    }
+}

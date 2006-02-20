@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/Xi/chgfctl.h,v 3.1 1996/04/15 11:18:26 dawes Exp $ */
 /************************************************************
 
 Copyright 1996 by Thomas E. Dickey <dickey@clark.net>
@@ -31,68 +30,52 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #ifndef CHGFCTL_H
 #define CHGFCTL_H 1
 
-int
-SProcXChangeFeedbackControl(
-	ClientPtr              /* client */
-	);
+int SProcXChangeFeedbackControl(ClientPtr	/* client */
+    );
 
-int
-ProcXChangeFeedbackControl(
-	ClientPtr              /* client */
-	);
+int ProcXChangeFeedbackControl(ClientPtr	/* client */
+    );
 
-int
-ChangeKbdFeedback (
-	ClientPtr              /* client */,
-	DeviceIntPtr           /* dev */,
-	unsigned long          /* mask */,
-	KbdFeedbackPtr         /* k */,
-	xKbdFeedbackCtl *      /* f */
-	);
+int ChangeKbdFeedback(ClientPtr /* client */ ,
+		      DeviceIntPtr /* dev */ ,
+		      unsigned long /* mask */ ,
+		      KbdFeedbackPtr /* k */ ,
+		      xKbdFeedbackCtl *	/* f */
+    );
 
-int
-ChangePtrFeedback (
-	ClientPtr              /* client */,
-	DeviceIntPtr           /* dev */,
-	unsigned long          /* mask */,
-	PtrFeedbackPtr         /* p */,
-	xPtrFeedbackCtl *      /* f */
-	);
+int ChangePtrFeedback(ClientPtr /* client */ ,
+		      DeviceIntPtr /* dev */ ,
+		      unsigned long /* mask */ ,
+		      PtrFeedbackPtr /* p */ ,
+		      xPtrFeedbackCtl *	/* f */
+    );
 
-int
-ChangeIntegerFeedback (
-	ClientPtr              /* client */,
-	DeviceIntPtr           /* dev */,
-	unsigned long          /* mask */,
-	IntegerFeedbackPtr     /* i */,
-	xIntegerFeedbackCtl *  /* f */
-	);
+int ChangeIntegerFeedback(ClientPtr /* client */ ,
+			  DeviceIntPtr /* dev */ ,
+			  unsigned long /* mask */ ,
+			  IntegerFeedbackPtr /* i */ ,
+			  xIntegerFeedbackCtl *	/* f */
+    );
 
-int
-ChangeStringFeedback (
-	ClientPtr              /* client */,
-	DeviceIntPtr           /* dev */,
-	unsigned long          /* mask */,
-	StringFeedbackPtr      /* s */,
-	xStringFeedbackCtl *   /* f */
-	);
+int ChangeStringFeedback(ClientPtr /* client */ ,
+			 DeviceIntPtr /* dev */ ,
+			 unsigned long /* mask */ ,
+			 StringFeedbackPtr /* s */ ,
+			 xStringFeedbackCtl *	/* f */
+    );
 
-int
-ChangeBellFeedback (
-	ClientPtr              /* client */,
-	DeviceIntPtr           /* dev */,
-	unsigned long          /* mask */,
-	BellFeedbackPtr        /* b */,
-	xBellFeedbackCtl *     /* f */
-	);
+int ChangeBellFeedback(ClientPtr /* client */ ,
+		       DeviceIntPtr /* dev */ ,
+		       unsigned long /* mask */ ,
+		       BellFeedbackPtr /* b */ ,
+		       xBellFeedbackCtl *	/* f */
+    );
 
-int
-ChangeLedFeedback (
-	ClientPtr              /* client */,
-	DeviceIntPtr           /* dev */,
-	unsigned long          /* mask */,
-	LedFeedbackPtr         /* l */,
-	xLedFeedbackCtl *      /* f */
-	);
+int ChangeLedFeedback(ClientPtr /* client */ ,
+		      DeviceIntPtr /* dev */ ,
+		      unsigned long /* mask */ ,
+		      LedFeedbackPtr /* l */ ,
+		      xLedFeedbackCtl *	/* f */
+    );
 
 #endif /* CHGFCTL_H */
