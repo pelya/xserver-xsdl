@@ -432,6 +432,8 @@ symlink_mesa_shader_slang() {
     action slang_compile_variable.h
     action slang_execute.c
     action slang_execute.h
+    action slang_library_noise.c
+    action slang_library_noise.h
     action slang_mesa.h
     action slang_preprocess.c
     action slang_preprocess.h
