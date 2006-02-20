@@ -80,9 +80,8 @@ SOFTWARE.
  */
 
 int
-SProcXChangeDeviceControl(client)
-    register ClientPtr client;
-    {
+SProcXChangeDeviceControl(register ClientPtr client)
+{
     register char n;
 
     REQUEST(xChangeDeviceControlReq);
@@ -99,9 +98,8 @@ SProcXChangeDeviceControl(client)
  */
 
 int
-ProcXChangeDeviceControl(client)
-    ClientPtr client;
-    {
+ProcXChangeDeviceControl(ClientPtr client)
+{
     unsigned len;
     int i, status;
     DeviceIntPtr dev;
@@ -205,11 +203,8 @@ ProcXChangeDeviceControl(client)
  */
 
 void
-SRepXChangeDeviceControl (client, size, rep)
-    ClientPtr	client;
-    int		size;
-    xChangeDeviceControlReply	*rep;
-    {
+SRepXChangeDeviceControl (ClientPtr client, int size, xChangeDeviceControlReply *rep)
+{
     register char n;
 
     swaps(&rep->sequenceNumber, n);

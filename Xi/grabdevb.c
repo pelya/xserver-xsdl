@@ -80,9 +80,8 @@ SOFTWARE.
  */
 
 int
-SProcXGrabDeviceButton(client)
-    register ClientPtr client;
-    {
+SProcXGrabDeviceButton(register ClientPtr client)
+{
     register char n;
     register long *p;
     register int i;
@@ -110,9 +109,8 @@ SProcXGrabDeviceButton(client)
  */
 
 int
-ProcXGrabDeviceButton(client)
-    ClientPtr client;
-    {
+ProcXGrabDeviceButton(ClientPtr client)
+{
     int			ret;
     DeviceIntPtr	dev;
     DeviceIntPtr	mdev;

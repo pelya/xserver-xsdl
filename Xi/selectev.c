@@ -84,9 +84,8 @@ extern	Mask		ExtValidMasks[];
  */
 
 int
-SProcXSelectExtensionEvent (client)
-register ClientPtr client;
-    {
+SProcXSelectExtensionEvent (register ClientPtr client)
+{
     register char n;
     register long *p;
     register int i;
@@ -112,9 +111,8 @@ register ClientPtr client;
  */
 
 int
-ProcXSelectExtensionEvent (client)
-    register ClientPtr client;
-    {
+ProcXSelectExtensionEvent (register ClientPtr client)
+{
     int			ret;
     int			i;
     WindowPtr 		pWin;

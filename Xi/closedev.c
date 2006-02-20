@@ -80,9 +80,8 @@ SOFTWARE.
  */
 
 int
-SProcXCloseDevice(client)
-    register ClientPtr client;
-    {
+SProcXCloseDevice(register ClientPtr client)
+{
     register char n;
 
     REQUEST(xCloseDeviceReq);
@@ -98,9 +97,8 @@ SProcXCloseDevice(client)
  */
 
 int
-ProcXCloseDevice(client)
-    register ClientPtr client;
-    {
+ProcXCloseDevice(register ClientPtr client)
+{
     int			i;
     WindowPtr 		pWin, p1;
     DeviceIntPtr 	d;
@@ -142,11 +140,8 @@ ProcXCloseDevice(client)
  */
 
 void
-DeleteEventsFromChildren(dev, p1, client)
-    DeviceIntPtr	dev;
-    WindowPtr 		p1;
-    ClientPtr		client;
-    {
+DeleteEventsFromChildren(DeviceIntPtr dev, WindowPtr p1, ClientPtr client)
+{
     WindowPtr p2;
 
     while (p1)
@@ -166,11 +161,8 @@ DeleteEventsFromChildren(dev, p1, client)
  */
 
 void
-DeleteDeviceEvents (dev, pWin, client)
-    DeviceIntPtr	dev;
-    WindowPtr		pWin;
-    ClientPtr		client;
-    {
+DeleteDeviceEvents (DeviceIntPtr dev, WindowPtr pWin, ClientPtr client)
+{
     InputClientsPtr	others;
     OtherInputMasks	*pOthers;
     GrabPtr		grab, next;

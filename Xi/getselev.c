@@ -80,9 +80,8 @@ SOFTWARE.
  */
 
 int
-SProcXGetSelectedExtensionEvents(client)
-    register ClientPtr client;
-    {
+SProcXGetSelectedExtensionEvents(register ClientPtr client)
+{
     register char n;
 
     REQUEST(xGetSelectedExtensionEventsReq);
@@ -100,9 +99,8 @@ SProcXGetSelectedExtensionEvents(client)
  */
 
 int
-ProcXGetSelectedExtensionEvents(client)
-    register ClientPtr client;
-    {
+ProcXGetSelectedExtensionEvents(register ClientPtr client)
+{
     int					i;
     int					total_length = 0;
     xGetSelectedExtensionEventsReply	rep;
@@ -181,11 +179,8 @@ ProcXGetSelectedExtensionEvents(client)
  */
 
 void
-SRepXGetSelectedExtensionEvents (client, size, rep)
-    ClientPtr	client;
-    int		size;
-    xGetSelectedExtensionEventsReply	*rep;
-    {
+SRepXGetSelectedExtensionEvents (ClientPtr client, int size, xGetSelectedExtensionEventsReply *rep)
+{
     register char n;
 
     swaps(&rep->sequenceNumber, n);

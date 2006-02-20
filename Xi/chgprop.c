@@ -81,9 +81,8 @@ SOFTWARE.
  */
 
 int
-SProcXChangeDeviceDontPropagateList(client)
-    register ClientPtr client;
-    {
+SProcXChangeDeviceDontPropagateList(register ClientPtr client)
+{
     register char n;
     register long *p;
     register int i;
@@ -109,9 +108,8 @@ SProcXChangeDeviceDontPropagateList(client)
  */
 
 int
-ProcXChangeDeviceDontPropagateList (client)
-    register ClientPtr client;
-    {
+ProcXChangeDeviceDontPropagateList (register ClientPtr client)
+{
     int			i;
     WindowPtr		pWin;
     struct 		tmask tmp[EMASKSIZE];

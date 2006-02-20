@@ -219,7 +219,7 @@ static	XExtensionVersion	thisversion =
  */
 
 void
-XInputExtensionInit()
+XInputExtensionInit(void)
 {
     ExtensionEntry *extEntry;
 
@@ -263,8 +263,7 @@ XInputExtensionInit()
  */
 
 int
-ProcIDispatch (client)
-    register ClientPtr client;
+ProcIDispatch (register ClientPtr client)
 {
     REQUEST(xReq);
     if (stuff->data == X_GetExtensionVersion)
@@ -354,8 +353,7 @@ ProcIDispatch (client)
  */
 
 int
-SProcIDispatch(client)
-    register ClientPtr client;
+SProcIDispatch(register ClientPtr client)
 {
     REQUEST(xReq);
     if (stuff->data == X_GetExtensionVersion)
@@ -448,10 +446,10 @@ SProcIDispatch(client)
 	SRepX##code (client, len, (x##code##Reply *) rep)
 
 void
-SReplyIDispatch (client, len, rep)
-    ClientPtr		client;
-    int			len;
-    xGrabDeviceReply	*rep;		/* All we look at is the type field */
+SReplyIDispatch (ClientPtr client, int len, xGrabDeviceReply *rep)
+             		       
+       			    
+                    	     		/* All we look at is the type field */
 {					/* This is common to all replies    */
     if (rep->RepType == X_GetExtensionVersion)
 	SRepXGetExtensionVersion (client, len, (xGetExtensionVersionReply *)rep);
@@ -510,9 +508,7 @@ SReplyIDispatch (client, len, rep)
 #define DO_SWAP(func,type) func ((type *)from, (type *)to)
 
 void
-SEventIDispatch (from, to)
-    xEvent	*from;
-    xEvent	*to;
+SEventIDispatch (xEvent *from, xEvent *to)
 {
     int		type = from->u.u.type & 0177;
 
@@ -580,10 +576,8 @@ SEventIDispatch (from, to)
  */
 
 void
-SEventDeviceValuator (from, to)
-    deviceValuator	*from;
-    deviceValuator	*to;
-    {
+SEventDeviceValuator (deviceValuator *from, deviceValuator *to)
+{
     register char	n;
     register int	i;
     INT32 *ip B32;
@@ -599,9 +593,7 @@ SEventDeviceValuator (from, to)
     }
 
 void
-SEventFocus (from, to)
-    deviceFocus	*from;
-    deviceFocus	*to;
+SEventFocus (deviceFocus *from, deviceFocus *to)
 {
     register char	n;
 
@@ -612,9 +604,7 @@ SEventFocus (from, to)
     }
 
 void
-SDeviceStateNotifyEvent (from, to)
-    deviceStateNotify	*from;
-    deviceStateNotify	*to;
+SDeviceStateNotifyEvent (deviceStateNotify *from, deviceStateNotify *to)
 {
     register int	i;
     register char	n;
@@ -631,9 +621,7 @@ SDeviceStateNotifyEvent (from, to)
     }
 
 void
-SDeviceKeyStateNotifyEvent (from, to)
-    deviceKeyStateNotify	*from;
-    deviceKeyStateNotify	*to;
+SDeviceKeyStateNotifyEvent (deviceKeyStateNotify *from, deviceKeyStateNotify *to)
 {
     register char	n;
 
@@ -642,9 +630,7 @@ SDeviceKeyStateNotifyEvent (from, to)
     }
 
 void
-SDeviceButtonStateNotifyEvent (from, to)
-    deviceButtonStateNotify	*from;
-    deviceButtonStateNotify	*to;
+SDeviceButtonStateNotifyEvent (deviceButtonStateNotify *from, deviceButtonStateNotify *to)
 {
     register char	n;
 
@@ -653,9 +639,7 @@ SDeviceButtonStateNotifyEvent (from, to)
     }
 
 void
-SChangeDeviceNotifyEvent (from, to)
-    changeDeviceNotify	*from;
-    changeDeviceNotify	*to;
+SChangeDeviceNotifyEvent (changeDeviceNotify *from, changeDeviceNotify *to)
 {
     register char	n;
 
@@ -665,9 +649,7 @@ SChangeDeviceNotifyEvent (from, to)
     }
 
 void
-SDeviceMappingNotifyEvent (from, to)
-    deviceMappingNotify	*from;
-    deviceMappingNotify	*to;
+SDeviceMappingNotifyEvent (deviceMappingNotify *from, deviceMappingNotify *to)
 {
     register char	n;
 
@@ -683,8 +665,7 @@ SDeviceMappingNotifyEvent (from, to)
  */
 
 void
-FixExtensionEvents (extEntry)
-    ExtensionEntry 	*extEntry;
+FixExtensionEvents (ExtensionEntry *extEntry)
 {
     Mask		mask;
 
@@ -786,7 +767,7 @@ FixExtensionEvents (extEntry)
  */
 
 void
-RestoreExtensionEvents ()
+RestoreExtensionEvents (void)
 {
     int	i;
 
@@ -834,9 +815,8 @@ RestoreExtensionEvents ()
  */
 
 void
-IResetProc(unused)
-    ExtensionEntry *unused;
-    {
+IResetProc(ExtensionEntry *unused)
+{
 
     ReplySwapVector[IReqCode] = ReplyNotSwappd;
     EventSwapVector[DeviceValuator] = NotImplemented;
@@ -864,10 +844,7 @@ IResetProc(unused)
  */
 
 _X_EXPORT void
-AssignTypeAndName (dev, type, name)
-    DeviceIntPtr dev;
-    Atom type;
-    char *name;
+AssignTypeAndName (DeviceIntPtr dev, Atom type, char *name)
 {
     dev->type = type;
     dev->name = (char *) xalloc(strlen(name)+1);
@@ -881,8 +858,8 @@ AssignTypeAndName (dev, type, name)
  */
 
 void
-MakeDeviceTypeAtoms ()
-    {
+MakeDeviceTypeAtoms (void)
+{
     int i;
 
     for (i=0; i<NUMTYPES; i++)
@@ -924,9 +901,8 @@ LookupDeviceIntRec (
  */
 
 void
-SetExclusiveAccess (mask)
-    Mask mask;
-    {
+SetExclusiveAccess (Mask mask)
+{
     int i;
 
     for (i=0; i<MAX_DEVICES; i++)
@@ -941,9 +917,8 @@ SetExclusiveAccess (mask)
  */
 
 void
-AllowPropagateSuppress (mask)
-    Mask mask;
-    {
+AllowPropagateSuppress (Mask mask)
+{
     int i;
 
     for (i=0; i<MAX_DEVICES; i++)
@@ -957,8 +932,8 @@ AllowPropagateSuppress (mask)
  */
 
 Mask 
-GetNextExtEventMask ()
-    {
+GetNextExtEventMask (void)
+{
     int i;
     Mask mask = lastExtEventMask;
 
@@ -980,10 +955,8 @@ GetNextExtEventMask ()
  */
 
 void
-SetMaskForExtEvent(mask, event)
-    Mask mask;
-    int event;
-    {
+SetMaskForExtEvent(Mask mask, int event)
+{
 
     EventInfo[ExtEventIndex].mask = mask;
     EventInfo[ExtEventIndex++].type = event;
@@ -1007,10 +980,8 @@ SetMaskForExtEvent(mask, event)
  */
 
 void
-SetEventInfo(mask, constant)
-    Mask mask;
-    int constant;
-    {
+SetEventInfo(Mask mask, int constant)
+{
     EventInfo[ExtEventIndex].mask = mask;
     EventInfo[ExtEventIndex++].type = constant;
     }

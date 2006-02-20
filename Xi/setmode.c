@@ -78,9 +78,8 @@ SOFTWARE.
  */
 
 int
-SProcXSetDeviceMode(client)
-    register ClientPtr client;
-    {
+SProcXSetDeviceMode(register ClientPtr client)
+{
     register char n;
 
     REQUEST(xSetDeviceModeReq);
@@ -95,9 +94,8 @@ SProcXSetDeviceMode(client)
  */
 
 int
-ProcXSetDeviceMode(client)
-    register ClientPtr client;
-    {
+ProcXSetDeviceMode(register ClientPtr client)
+{
     DeviceIntPtr dev;
     xSetDeviceModeReply	rep;
 
@@ -145,11 +143,8 @@ ProcXSetDeviceMode(client)
  */
 
 void
-SRepXSetDeviceMode (client, size, rep)
-    ClientPtr	client;
-    int		size;
-    xSetDeviceModeReply	*rep;
-    {
+SRepXSetDeviceMode (ClientPtr client, int size, xSetDeviceModeReply *rep)
+{
     register char n;
 
     swaps(&rep->sequenceNumber, n);

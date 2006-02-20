@@ -77,9 +77,8 @@ SOFTWARE.
  */
 
 int
-SProcXUngrabDevice(client)
-register ClientPtr client;
-    {
+SProcXUngrabDevice(register ClientPtr client)
+{
     register char n;
 
     REQUEST(xUngrabDeviceReq);
@@ -96,9 +95,8 @@ register ClientPtr client;
  */
 
 int
-ProcXUngrabDevice(client)
-register ClientPtr client;
-    {
+ProcXUngrabDevice(register ClientPtr client)
+{
     DeviceIntPtr 	dev;
     GrabPtr 		grab;
     TimeStamp 		time;

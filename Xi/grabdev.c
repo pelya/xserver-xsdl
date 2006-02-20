@@ -83,9 +83,8 @@ extern int		ExtEventIndex;
  */
 
 int
-SProcXGrabDevice(client)
-    register ClientPtr client;
-    {
+SProcXGrabDevice(register ClientPtr client)
+{
     register char n;
     register long *p;
     register int i;
@@ -113,9 +112,8 @@ SProcXGrabDevice(client)
  */
 
 int
-ProcXGrabDevice(client)
-    ClientPtr client;
-    {
+ProcXGrabDevice(ClientPtr client)
+{
     int			error;
     xGrabDeviceReply 	rep;
     DeviceIntPtr 	dev;
@@ -167,14 +165,8 @@ ProcXGrabDevice(client)
  */
 
 int
-CreateMaskFromList (client, list, count, mask, dev, req)
-    ClientPtr		client;
-    XEventClass		*list;
-    int			count;
-    struct tmask	mask[];
-    DeviceIntPtr	dev;
-    int			req;
-    {
+CreateMaskFromList (ClientPtr client, XEventClass *list, int count, struct tmask *mask, DeviceIntPtr dev, int req)
+{
     int			i,j;
     int			device;
     DeviceIntPtr	tdev;
@@ -219,11 +211,8 @@ CreateMaskFromList (client, list, count, mask, dev, req)
  */
 
 void
-SRepXGrabDevice (client, size, rep)
-    ClientPtr	client;
-    int		size;
-    xGrabDeviceReply	*rep;
-    {
+SRepXGrabDevice (ClientPtr client, int size, xGrabDeviceReply *rep)
+{
     register char n;
 
     swaps(&rep->sequenceNumber, n);

@@ -1,3 +1,45 @@
+2006-02-21  Adam Jackson  <ajax@freedesktop.org>
+
+	* Xi/allowev.c:
+	* Xi/chgdctl.c:
+	* Xi/chgfctl.c:
+	* Xi/chgkbd.c:
+	* Xi/chgkmap.c:
+	* Xi/chgprop.c:
+	* Xi/chgptr.c:
+	* Xi/closedev.c:
+	* Xi/devbell.c:
+	* Xi/exevents.c:
+	* Xi/extinit.c:
+	* Xi/getbmap.c:
+	* Xi/getdctl.c:
+	* Xi/getfctl.c:
+	* Xi/getfocus.c:
+	* Xi/getkmap.c:
+	* Xi/getmmap.c:
+	* Xi/getprop.c:
+	* Xi/getselev.c:
+	* Xi/getvers.c:
+	* Xi/grabdev.c:
+	* Xi/grabdevb.c:
+	* Xi/grabdevk.c:
+	* Xi/gtmotion.c:
+	* Xi/listdev.c:
+	* Xi/opendev.c:
+	* Xi/queryst.c:
+	* Xi/selectev.c:
+	* Xi/sendexev.c:
+	* Xi/setbmap.c:
+	* Xi/setdval.c:
+	* Xi/setfocus.c:
+	* Xi/setmmap.c:
+	* Xi/setmode.c:
+	* Xi/stubs.c:
+	* Xi/ungrdev.c:
+	* Xi/ungrdevb.c:
+	* Xi/ungrdevk.c:
+	ANSIfy Xi/.  Mostly automated via protoize(1).
+
 2006-02-16  Eric Anholt  <anholt@FreeBSD.org>
 
 	* Xext/Makefile.am:

@@ -83,9 +83,8 @@ SOFTWARE.
  */
 
 int
-SProcXUngrabDeviceKey(client)
-    register ClientPtr client;
-    {
+SProcXUngrabDeviceKey(register ClientPtr client)
+{
     register char n;
 
     REQUEST(xUngrabDeviceKeyReq);
@@ -103,9 +102,8 @@ SProcXUngrabDeviceKey(client)
  */
 
 int
-ProcXUngrabDeviceKey(client)
-    ClientPtr client;
-    {
+ProcXUngrabDeviceKey(ClientPtr client)
+{
     DeviceIntPtr	dev;
     DeviceIntPtr	mdev;
     WindowPtr 		pWin;
