@@ -1,3 +1,17 @@
+2006-02-20  Ian Romanick  <idr@us.ibm.com>
+
+	* hw/xfree86/common/xf86pciBus.c: (FindPCIVideoInfo),
+	(xf86GetPciRes):
+	* hw/xfree86/common/xf86str.h:
+	* hw/xfree86/os-support/bus/xf86Pci.h:
+	* hw/xfree86/scanpci/xf86PciData.h:
+	* hw/xfree86/scanpci/xf86ScanPci.c:
+	Eliminate all the code for querying the PCI class from the PCI
+	ID database.  Class information is not, and never has been,
+	stored there.  Therefore, this is just a bunch of elaborate
+	code to read 0x00000000. 
+
+
 2006-02-21  Adam Jackson  <ajax@freedesktop.org>
 
 	* Xi/allowev.c:

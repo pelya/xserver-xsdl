@@ -447,7 +447,6 @@ typedef struct {
     pointer		thisCard;
     Bool                validSize;
     Bool                validate;
-    CARD32              listed_class;
 } pciVideoRec, *pciVideoPtr;
 
 typedef struct {

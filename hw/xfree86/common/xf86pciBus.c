@@ -67,8 +67,6 @@ ScanPciSetupProcPtr xf86SetupPciIds = NULL;
 ScanPciCloseProcPtr xf86ClosePciIds = NULL;
 ScanPciFindByDeviceProcPtr xf86FindPciNamesByDevice = NULL;
 ScanPciFindBySubsysProcPtr xf86FindPciNamesBySubsys = NULL;
-ScanPciFindClassBySubsysProcPtr xf86FindPciClassBySubsys = NULL;
-ScanPciFindClassByDeviceProcPtr xf86FindPciClassByDevice = NULL;
 
 static resPtr pciAvoidRes = NULL;
 
@@ -148,7 +146,6 @@ static PciBusPtr xf86PciBus = NULL;
 #define PV_I_RANGE(range,pvp,i,type) \
                   P_I_RANGE(range,TAG(pvp),pvp->ioBase[i],pvp->size[i],type)
 
-static void getPciClassFlags(pciConfigPtr *pcrpp);
 static void pciConvertListToHost(int bus, int dev, int func, resPtr list);
 static PciBusPtr xf86GetPciBridgeInfo(void);
 
@@ -199,25 +196,17 @@ FindPCIVideoInfo(void)
     if (xf86IsolateDevice.bus || xf86IsolateDevice.device || xf86IsolateDevice.func)
         DoIsolateDeviceCheck = 1;
     pcrpp = xf86PciInfo = xf86scanpci(0);
-    getPciClassFlags(pcrpp);
+
     
     if (pcrpp == NULL) {
 	xf86PciVideoInfo = NULL;
 	return;
     }
     xf86PciBus = xf86GetPciBridgeInfo();
-    
-    while ((pcrp = pcrpp[i])) {
-	int baseclass;
-	int subclass;
 
-	if (pcrp->listed_class & 0xffff) {
-	    baseclass = (pcrp->listed_class >> 8) & 0xff;
-	    subclass = pcrp->listed_class & 0xff;
-	} else {
-	    baseclass = pcrp->pci_base_class;
-	    subclass = pcrp->pci_sub_class;
-	}
+    while ((pcrp = pcrpp[i])) {
+	const int baseclass = pcrp->pci_base_class;
+	const int subclass = pcrp->pci_sub_class;
 	
 	if (PCIINFOCLASSES(baseclass, subclass) &&
 	    (DoIsolateDeviceCheck ?
@@ -357,7 +346,6 @@ FindPCIVideoInfo(void)
 		    }
 		}
 	    }
-	    info->listed_class = pcrp->listed_class;
 	}
 	i++;
     }
@@ -958,15 +946,9 @@ xf86GetPciRes(resPtr *activeRes, resPtr *inactiveRes)
 
     for (pcrpp = xf86PciInfo, pcrp = *pcrpp; pcrp; pcrp = *++(pcrpp)) {
 	resPtr *res;
-	CARD8 baseclass, subclass;
+	const CARD8 baseclass = pcrp->pci_base_class;
+	const CARD8 subclass = pcrp->pci_sub_class;
 
-	if (pcrp->listed_class & 0x0ffff) {
-	    baseclass = pcrp->listed_class >> 8;
-	    subclass = pcrp->listed_class;
-	} else {
-	    baseclass = pcrp->pci_base_class;
-	    subclass = pcrp->pci_sub_class;
-	}
 	
 	if (PCIINFOCLASSES(baseclass, subclass))
 	    continue;
@@ -1662,17 +1644,11 @@ xf86PciProbe(void)
 	(ScanPciFindByDeviceProcPtr)LoaderSymbol("ScanPciFindPciNamesByDevice");
     xf86FindPciNamesBySubsys =
 	(ScanPciFindBySubsysProcPtr)LoaderSymbol("ScanPciFindPciNamesBySubsys");
-    xf86FindPciClassBySubsys =
-	(ScanPciFindClassBySubsysProcPtr)LoaderSymbol("ScanPciFindPciClassBySubsys");
-    xf86FindPciClassByDevice =
-	(ScanPciFindClassByDeviceProcPtr)LoaderSymbol("ScanPciFindPciClassByDevice");
 #else
     xf86SetupPciIds = ScanPciSetupPciIds;
     xf86ClosePciIds = ScanPciClosePciIds;
     xf86FindPciNamesByDevice = ScanPciFindPciNamesByDevice;
     xf86FindPciNamesBySubsys = ScanPciFindPciNamesBySubsys;
-    xf86FindPciClassBySubsys = ScanPciFindPciClassBySubsys;
-    xf86FindPciClassByDevice = ScanPciFindPciClassByDevice;
 #endif
 
     if (!xf86SetupPciIds())
@@ -1739,11 +1715,9 @@ xf86GetPciBridgeInfo(void)
     for (pcrpp = xf86PciInfo, pcrp = *pcrpp; pcrp; pcrp = *(++pcrpp)) {
 	if (pcrp->busnum > MaxBus)
 	    MaxBus = pcrp->busnum;
-	if ((pcrp->pci_base_class == PCI_CLASS_BRIDGE) ||
-	    (((pcrp->listed_class >> 8) & 0xff) == PCI_CLASS_BRIDGE)) {
-	    int sub_class;
-	    sub_class = (pcrp->listed_class & 0xffff) ?
-		(pcrp->listed_class & 0xff) : pcrp->pci_sub_class;
+	if ( pcrp->pci_base_class == PCI_CLASS_BRIDGE ) {
+	    const int sub_class = pcrp->pci_sub_class;
+
 	    domain = xf86GetPciDomain(pcrp->tag);
 
 	    switch (sub_class) {
@@ -3246,36 +3220,6 @@ xf86CheckPciSlot(int bus, int device, int func)
     return TRUE;
 }
 
-
-/*
- * This used to load the scanpci module.  The pcidata module is now used
- * (which the server always loads early).  The main difference between the
- * two modules is size, and the scanpci module should only ever be loaded
- * when the X server is run with the -scanpci flag.
- *
- * To make sure that the required information is present in the pcidata
- * module, add a PCI_VENDOR_* macro for the relevant vendor to xf86PciInfo.h,
- * and add the class override data to ../etc/extrapci.ids.
- */
-
-static void
-getPciClassFlags(pciConfigPtr *pcrpp)
-{
-    pciConfigPtr pcrp;
-    int i = 0;
-
-    if (!pcrpp)
-	return;
-    while ((pcrp = pcrpp[i])) {
-	if (!(pcrp->listed_class =
-		xf86FindPciClassBySubsys(pcrp->pci_subsys_vendor,
-					 pcrp->pci_subsys_card))) {
-	    pcrp->listed_class =
-		xf86FindPciClassByDevice(pcrp->pci_vendor, pcrp->pci_device);
-	}
-	i++;
-    }
-}
 
 /*
  * xf86FindPciVendorDevice() xf86FindPciClass(): These functions

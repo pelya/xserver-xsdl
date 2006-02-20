@@ -659,7 +659,6 @@ typedef struct pci_device {
     pciCfgSpc cfgspc;
     int	      basesize[7];	/* number of bits in base addr allocations */
     Bool      minBasesize;
-    CARD32    listed_class;
     pointer   businfo;		/* pointer to secondary's bus info structure */
     Bool      fakeDevice;	/* Device added by system chipset support */
 } pciDevice, *pciConfigPtr;

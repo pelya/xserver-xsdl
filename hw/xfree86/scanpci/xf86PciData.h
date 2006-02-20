@@ -48,10 +48,6 @@ typedef int (*ScanPciFindByDeviceProcPtr)(
 typedef int (*ScanPciFindBySubsysProcPtr)(
 			unsigned short svendor, unsigned short subsys,
 			const char **svname, const char **sname);
-typedef CARD32 (*ScanPciFindClassBySubsysProcPtr)(
-			unsigned short vendor, unsigned short subsystem);
-typedef CARD32 (*ScanPciFindClassByDeviceProcPtr)(
-			unsigned short vendor, unsigned short device);
 
 /*
  * Whoever loads this module needs to define these and initialise them
@@ -61,8 +57,6 @@ extern ScanPciSetupProcPtr xf86SetupPciIds;
 extern ScanPciCloseProcPtr xf86ClosePciIds;
 extern ScanPciFindByDeviceProcPtr xf86FindPciNamesByDevice;
 extern ScanPciFindBySubsysProcPtr xf86FindPciNamesBySubsys;
-extern ScanPciFindClassBySubsysProcPtr xf86FindPciClassBySubsys;
-extern ScanPciFindClassByDeviceProcPtr xf86FindPciClassByDevice;
 
 Bool ScanPciSetupPciIds(void);
 void ScanPciClosePciIds(void);
@@ -72,9 +66,5 @@ int ScanPciFindPciNamesByDevice(unsigned short vendor, unsigned short device,
 				const char **svname, const char **sname);
 int ScanPciFindPciNamesBySubsys(unsigned short svendor, unsigned short subsys,
 				const char **svname, const char **sname);
-CARD32 ScanPciFindPciClassBySubsys(unsigned short vendor,
-				   unsigned short subsystem);
-CARD32 ScanPciFindPciClassByDevice(unsigned short vendor,
-				   unsigned short device);
 
 #endif

@@ -75,16 +75,6 @@
 #include "xf86PciIds.h"
 #include "xf86ScanPci.h"
 
-/*
- * PCI classes that have messages printed always.  The others are only
- * have a message printed when the vendor/dev IDs are recognised.
- */
-#define PCIALWAYSPRINTCLASSES(b,s)					      \
-    (((b) == PCI_CLASS_PREHISTORIC && (s) == PCI_SUBCLASS_PREHISTORIC_VGA) || \
-     ((b) == PCI_CLASS_DISPLAY) ||					      \
-     ((b) == PCI_CLASS_MULTIMEDIA && (s) == PCI_SUBCLASS_MULTIMEDIA_VIDEO))
-
-
 #ifdef XFree86LOADER
 
 #include "xf86Module.h"
@@ -269,58 +259,6 @@ ScanPciFindPciNamesBySubsys(unsigned short svendor, unsigned short subsys,
 	}
     }
     /* No vendor match */
-    return 0;
-}
-
-CARD32
-ScanPciFindPciClassBySubsys(unsigned short vendor, unsigned short subsys)
-{
-    int i, j;
-    const pciSubsystemInfo **pSub;
-
-    if (vendor == NOVENDOR || subsys == NOSUBSYS)
-	return 0;
-
-    for (i = 0; pciVendorSubsysInfoList[i].VendorName; i++) {
-	if (vendor == pciVendorSubsysInfoList[i].VendorID) {
-	    pSub = pciVendorSubsysInfoList[i].Subsystem;
-	    if (!pSub) {
-		return 0;
-	    }
-	    for (j = 0; pSub[j]; j++) {
-		if (subsys == pSub[j]->SubsystemID) {
-		    return pSub[j]->class;
-		}
-	    }
-	    break;
-	}
-    }
-    return 0;
-}
-
-CARD32
-ScanPciFindPciClassByDevice(unsigned short vendor, unsigned short device)
-{
-    int i, j;
-    const pciDeviceInfo **pDev;
-
-    if (vendor == NOVENDOR || device == NODEVICE)
-	return 0;
-
-    for (i = 0; pciVendorInfoList[i].VendorName; i++) {
-	if (vendor == pciVendorInfoList[i].VendorID) {
-	    pDev = pciVendorInfoList[i].Device;
-	    if (!pDev) {
-		return 0;
-	    }
-	    for (j = 0; pDev[j]; j++) {
-		if (device == pDev[j]->DeviceID) {
-		    return pDev[j]->class;
-		}
-	    }
-	    break;
-	}
-    }
     return 0;
 }
 
