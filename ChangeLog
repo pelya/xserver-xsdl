@@ -1,5 +1,21 @@
 2006-02-20  Ian Romanick  <idr@us.ibm.com>
 
+	* hw/xfree86/os-support/bus/Pci.c: (handlePciBIOS), (readPciBios),
+	(HandlePciBios), (xf86ReadPciBIOS):
+	* hw/xfree86/os-support/bus/xf86Pci.h:
+
+	Eliminate unused PCI BIOS reading functionality.  The old code
+	used several function pointers to implement a level of
+	flexability that was never used.  The code also had unused
+	support for extracting a single image type from a larger
+	expansion ROM. 
+
+	Fix the spelling of PCI_BIOS_OPEN_FIRMWARE.
+
+	Fix a couple errors in #ifdef debug code.
+
+2006-02-20  Ian Romanick  <idr@us.ibm.com>
+
 	* hw/xfree86/common/xf86pciBus.c: (FindPCIVideoInfo),
 	(xf86GetPciRes):
 	* hw/xfree86/common/xf86str.h:
