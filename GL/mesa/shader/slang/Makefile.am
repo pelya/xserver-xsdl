@@ -27,7 +27,9 @@ nodist_libslang_la_SOURCES = slang_assemble_assignment.c \
 		      slang_compile_struct.c \
 		      slang_compile_variable.c \
 		      slang_execute.c \
+		      slang_export.c \
 		      slang_library_noise.c \
+		      slang_link.c \
 		      slang_preprocess.c \
 		      slang_storage.c \
 		      slang_utility.c

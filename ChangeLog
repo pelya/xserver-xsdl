@@ -1,3 +1,10 @@
+2006-02-21  Jeremy C. Reed  <reed@reedmedia.net>
+
+	* GL/mesa/shader/slang/Makefile.am:
+	* GL/symlink-mesa.sh:
+
+	Update to build against Mesa HEAD.
+
 2006-02-20  Ian Romanick  <idr@us.ibm.com>
 
 	* hw/xfree86/os-support/bus/Pci.c: (handlePciBIOS), (readPciBios),
