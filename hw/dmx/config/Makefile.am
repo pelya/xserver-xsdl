@@ -20,12 +20,19 @@ MAINTAINERCLEANFILES = $(BUILT_SOURCES)
 
 libdmxconfig_a_SOURCES = $(LIBSRCS)
 
+if GLX
+GLX_DEFS = @GL_CFLAGS@
+GLX_INCS = -I@MESA_SOURCE@/include
+endif	    
+
 AM_YFLAGS = -d
 AM_CFLAGS = \
 	@SERVER_DEFINES@ \
 	-I$(top_srcdir)/hw/dmx \
+	$(GLX_INCS) \
 	-DHAVE_DMX_CONFIG_H \
 	-DDMX_LOG_STANDALONE \
+	$(GLX_DEFS) \
 	@DMXMODULES_CFLAGS@
 
 bin_PROGRAMS = xdmxconfig vdltodmx dmxtodmx

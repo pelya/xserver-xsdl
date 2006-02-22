@@ -11,7 +11,9 @@ if GLX
 SUBDIRS += glxProxy
 GLX_LIBS = glxProxy/libglxproxy.a
 GLX_SRCS = $(PANORAMIX_SRCS) dmx_glxvisuals.c dmx_glxvisuals.h
-GLX_INCS = -I$(top_srcdir)/hw/xfree86/dixmods/extmod
+GLX_INCS = -I$(top_srcdir)/hw/xfree86/dixmods/extmod \
+           -I@MESA_SOURCE@/include
+GLX_DEFS = @GL_CFLAGS@ 
 endif
 
 if BUILDDOCS
@@ -82,6 +84,7 @@ Xdmx_LDADD = $(XORG_CORE_LIBS) \
 Xdmx_CFLAGS = @SERVER_DEFINES@ \
               -DHAVE_DMX_CONFIG_H \
               $(GLX_INCS) \
+              $(GLX_DEFS) \
               @DMXMODULES_CFLAGS@
 
 # Man page

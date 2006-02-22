@@ -55,10 +55,17 @@ libdmxinput_a_SOURCES = ChkNotMaskEv.c \
                         $(DMXSRCS) \
                         $(LIBSRCS)
 
+if GLX
+GLX_DEFS = @GL_CFLAGS@
+GLX_INCS = -I@MESA_SOURCE@/include
+endif	    
+
 AM_CFLAGS = @SERVER_DEFINES@ \
             -I$(top_srcdir)/hw/dmx \
             -I$(top_srcdir)/hw/xfree86/common \
+            $(GLX_INCS) \
             -DHAVE_DMX_CONFIG_H \
+            $(GLX_DEFS) \
             @DMXMODULES_CFLAGS@
 
 EXTRA_DIST = dmxdetach.c

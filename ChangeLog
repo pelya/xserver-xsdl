@@ -1,3 +1,11 @@
+2006-02-22  Alexander Gottwald  <ago@starnet.com>
+
+	* hw/dmx/Makefile.am:
+	* hw/dmx/input/Makefile.am:
+	* hw/dmx/config/Makefile.am:
+
+	Added Mesa include directory
+
 2006-02-21  Jeremy C. Reed  <reed@reedmedia.net>
 
 	* GL/mesa/shader/slang/Makefile.am:
