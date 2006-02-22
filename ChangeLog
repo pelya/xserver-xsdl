@@ -1,5 +1,11 @@
 2006-02-22  Alexander Gottwald  <ago@starnet.com>
 
+	* GL/glx/render2swap.c:
+	Bug #5978: Added missing swap of input variables. Added missing cases
+	for GL_SECONDARY_COLOR_ARRAY and GL_FOG_COORD_ARRAY (Colin McDonald)
+
+2006-02-22  Alexander Gottwald  <ago@starnet.com>
+
 	* hw/dmx/Makefile.am:
 	* hw/dmx/input/Makefile.am:
 	* hw/dmx/config/Makefile.am:

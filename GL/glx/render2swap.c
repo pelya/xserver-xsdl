@@ -311,6 +311,10 @@ void __glXDispSwap_DrawArrays(GLbyte *pc)
 	GLint numVals = compHeader[i].numVals;
 	GLenum component = compHeader[i].component;
 
+	__GLX_SWAP_INT(&datatype);
+	__GLX_SWAP_INT(&numVals);
+	__GLX_SWAP_INT(&component);
+
 	swapArray(numVals, datatype, stride, numVertexes, pc);
 
         switch (component) {
@@ -338,6 +342,14 @@ void __glXDispSwap_DrawArrays(GLbyte *pc)
 	    CALL_EnableClientState( GET_DISPATCH(), (GL_EDGE_FLAG_ARRAY) );
 	    CALL_EdgeFlagPointer( GET_DISPATCH(), (stride, (const GLboolean *)pc) );
             break;
+          case GL_SECONDARY_COLOR_ARRAY:
+	    CALL_EnableClientState( GET_DISPATCH(), (GL_SECONDARY_COLOR_ARRAY) );
+	    CALL_SecondaryColorPointerEXT( GET_DISPATCH(), (numVals, datatype, stride, pc) );
+            break;
+          case GL_FOG_COORD_ARRAY:
+	    CALL_EnableClientState( GET_DISPATCH(), (GL_FOG_COORD_ARRAY) );
+	    CALL_FogCoordPointerEXT( GET_DISPATCH(), (datatype, stride, pc) );
+            break;
           default:
             break;
 	}
@@ -354,6 +366,8 @@ void __glXDispSwap_DrawArrays(GLbyte *pc)
     CALL_DisableClientState( GET_DISPATCH(), (GL_INDEX_ARRAY) );
     CALL_DisableClientState( GET_DISPATCH(), (GL_TEXTURE_COORD_ARRAY) );
     CALL_DisableClientState( GET_DISPATCH(), (GL_EDGE_FLAG_ARRAY) );
+    CALL_DisableClientState( GET_DISPATCH(), (GL_SECONDARY_COLOR_ARRAY) );
+    CALL_DisableClientState( GET_DISPATCH(), (GL_FOG_COORD_ARRAY) );
 }
 
 void __glXDispSwap_DrawArraysEXT(GLbyte *pc)
