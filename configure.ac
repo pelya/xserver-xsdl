@@ -239,7 +239,7 @@ case $host_os in
 	;;
   *openbsd*)
 	AC_DEFINE(CSRG_BASED, 1, [System is BSD-like])
-	AC_DEFINE(PCCONS_SUPPORT, 1, [System has PC console])
+	AC_DEFINE(PCVT_SUPPORT, 1, [System has PC console])
 	AC_DEFINE(WSCONS_SUPPORT, 1, [System has wscons console])
 	;;
   *linux*)
