@@ -182,6 +182,7 @@
 #define PCI_CHIP_R420_JN                0x4A4E
 #define PCI_CHIP_R420_4A4F              0x4A4F
 #define PCI_CHIP_R420_JP                0x4A50
+#define PCI_CHIP_R420_4A54              0x4A54
 #define PCI_CHIP_R481_4B49              0x4B49
 #define PCI_CHIP_R481_4B4A              0x4B4A
 #define PCI_CHIP_R481_4B4B              0x4B4B
@@ -305,6 +306,7 @@
 #define PCI_CHIP_R423_UT                0x5554
 #define PCI_CHIP_RV410_564A             0x564A
 #define PCI_CHIP_RV410_564B             0x564B
+#define PCI_CHIP_RV410_564F             0x564F
 #define PCI_CHIP_RV410_5652             0x5652
 #define PCI_CHIP_RV410_5653             0x5653
 #define PCI_CHIP_MACH64VT		0x5654

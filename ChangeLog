@@ -1,3 +1,9 @@
+2006-02-24  Roland Scheidegger <rscheidegger_lists@hispeed.ch>
+
+	* hw/xfree86/common/xf86PciInfo.h:
+	Add two radeon pci ids (one is used for a radeon mobility X700 XL
+	in a medion notebook, the other is for a AIW X800 VE)
+
 2006-02-24  Matthieu Herrb <matthieu.herrb@laas.fr>
 
 	* configure.ac:
