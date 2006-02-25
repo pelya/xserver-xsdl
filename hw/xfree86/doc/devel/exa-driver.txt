@@ -2,34 +2,33 @@ Adding EXA support to your X.Org video driver
 ---------------------------------------------
 EXA (for EXcellent Architecture or Ex-kaa aXeleration Architecture or
 whatever) aims to extend the life of the venerable XFree86 video drivers by
-introducing hooks that they can implement to more efficiently accelerate the X
-Render extension: solid fills, blits within screen memory and to and from
-system memory, and Porter-Duff compositing and transform operations.
+introducing a new set of acceleration hooks that efficiently accelerate the X
+Render extension, including solid fills, blits within screen memory and to and
+from system memory, and Porter-Duff compositing and transform operations.
 
-Globals
--------
+Configuration
+-------------
+A new config file option, AccelMethod, should be added to your driver, to allow
+the user to select between the EXA and XAA acceleration APIs.
+
+Some drivers implement a per-instance useEXA flag to track whether EXA is
+active or not.  It can be helpful to also conditionalize XAA support with an
+ifdef so that it can easily be turned off/removed in the future.
+
+Setting the flag and checking for AccelMethod can be done in the driver's
+Options parsing routine.
+
+Global symbols
+--------------
 XF86EXA will be defined to a nonzero value if your X server codebase supports
 the EXA API.  Use it to conditionalize your new EXA code if your driver is
 shared with a non-EXA codebases.  If present, necessary functions, structures
 and defines will be located in "exa.h".
 
-AccelMethod
------------
-A new config file option, AccelMethod, should be used in your driver to select
-between the EXA and XAA acceleration APIs.  The default should be XAA for
-6.9/7.0 drivers.
-
-Some drivers implement a per-instance useEXA flag to track whether EXA is
-active or not.  It can be helpful to also conditionalize XAA support so that
-it can easily be turned off/removed in the future.  Setting the flag and
-checking for AccelMethod can be done in the driver's Options routine (a
-friendly printf is be a nice way of letting the user know which method is in
-use).
-
-Core EXA functions
-------------------
-The following functions are provided, for use by your driver, to do
-allocation, initialization, version checking, etc.
+EXA library functions
+---------------------
+Use the following functions to initialize your driver's EXA hooks, check the
+version, allocate memory, etc.
 
   /**
    * exaGetVersion - retrieve EXA version number from server
@@ -42,13 +41,13 @@ allocation, initialization, version checking, etc.
   /**
    * exaDriverInit - tell EXA about a new EXA driver
    * @pScreen - current screen
-   * @pScreenInfo - driver structure
+   * @driverPtr - driver structure
    *
    * Tell EXA about the driver described by @pScreenInfo.
    *
    * Returns TRUE for success, FALSE for failure.
    */
-  Bool exaDriverInit(ScreenPtr pScreen, ExaDriverPtr pScreenInfo)
+  Bool exaDriverInit(ScreenPtr pScreen, ExaDriverPtr driverPtr)
 
   /**
    * exaDriverFini - teardown an EXA driver
@@ -57,7 +56,6 @@ allocation, initialization, version checking, etc.
    * Tell EXA that an EXA driver associated with @pScreen is gone.
    */
   void exaDriverFini(ScreenPtr pScreen)
-
 
   /**
    * exaOffscreenAlloc - allocate offscreen memory
@@ -118,11 +116,6 @@ allocation, initialization, version checking, etc.
    *   %EXA_OFFSCREEN_PIXMAPS - offscreen pixmaps are supported
    *   %EXA_OFFSCREEN_ALIGN_POT - offscreen objects must hve a power of two
    *     alignment of their pitch
-   *
-   * This routine is just a macro, and so it can't fail (unless it causes a
-   * compile failure).
-   *
-   * [This macro appears broken in the current tree, s/Sync/needsSync/.]
    */
   void exaInitCard(EXADriverPtr *exa, Bool sync, CARD8 *memory_base,
 		   unsigned longoff_screen_base, unsigned long memory_size,
@@ -156,9 +149,6 @@ allocation, initialization, version checking, etc.
    */
   Bool exaOffscreenInit(ScreenPtr pScreen)
 
-Some helper functions are also available to make common EXA related functions
-easier.
-
   /**
    * exaGetPixmapPitch - return the pitch for a pixmap
    * @p: pixmap
@@ -176,16 +166,21 @@ easier.
    */
   unsigned int exaGetPixmapOffset(PixmapPtr p)
 
-Driver EXA routines
--------------------
+EXA driver hooks
+----------------
 EXA requires the addition of new routines to your driver's acceleration
 implementation.  The following structure defines the EXA acceleration API,
-some are required to be implemented in your driver, others are optional.
+some hooks are required to be implemented in your driver, others are optional.
+
+Each of these routines has an associated function pointer in the ExaAccelInfo
+structure.  At a minimum, your driver must allocate an ExaDriverRec struture,
+fill out the ExaCardInfoRec member structure, and define the miminum required
+functions (described below) and hook them into the ExaAccelInfo member
+structure.
 
 Note that for routines that take a source and destination pixmap, the pitches
 may be different.
 
-  typedef struct _ExaAccelInfo {
   /**
    * PrepareSolid - setup for solid fill
    * @pPixmap: Pixmap destination
@@ -340,7 +335,7 @@ may be different.
    * can't accelerate the operation (e.g. if the pixmaps are incompatible with
    * acceleration).
    *
-   * Optional.
+   * Optional but recommended.
    */
   Bool (*PrepareComposite)(int op, PicturePtr pSrcPicture,
                            PicturePtr pMaskPicture, PicturePtr pDstPicture,
@@ -362,7 +357,7 @@ may be different.
    *
    * Must not fail.
    *
-   * Optional.
+   * Optional but recommended.
    */
   void (*Composite)(PixmapPtr pDst, int srcX, int srcY, int maskX, int maskY,
                     int dstX, int dstY, int width, int height);
@@ -465,10 +460,6 @@ may be different.
    * Required.
    */
   void (*WaitMarker)(ScreenPtr pScreen, int marker);
-  } ExaAccelInfoRec, *ExaAccelInfoPtr;
-
-This is an extra, optional routine, used as a callback to the offscreen
-allocation function.
 
   /**
    * ScratchSave - save the scratch area, or just throw it away
@@ -490,24 +481,16 @@ allocation function.
    */
   void ScratchSave(ScreenPtr pScreen, ExaOffscreenArea *area);
 
-EXA driver fields
------------------
-Each driver record structure also needs a few additional fields if EXA
-support is to be used, e.g.:
-
-  #if XF86EXA
-  /* Container structure, describes card and accel. hooks */
-  ExaDriverPtr EXADriverPtr;
-  #endif
-
 EXA initialization
 ------------------
-Your driver's AccelInit routine has to initialize the EXADriverPtr if EXA
-support is enabled, with appropriate error handling (i.e.  NoAccel and
+Your driver's AccelInit routine must initialize an ExaDriverRec structure if
+EXA support is enabled, with appropriate error handling (i.e.  NoAccel and
 NoXvideo should be set to true if EXA fails to initialize for whatever
 reason).
 
-A few, card specific fields need to be initialized:
+A few, card specific fields need to be initialized (assuming your driver uses
+a variable named EXADriverPtr pointing to where your ExaDriverRec is
+allocated):
 
   /*
    * EXA uses memoryBase to access the framebuffer, while memorySize and
@@ -519,12 +502,13 @@ A few, card specific fields need to be initialized:
   EXADriverPtr->card.memorySize = ? /* end of offscreen memory */
   /* offset of offscreen memory relative to memoryBase */
   EXADriverPtr->card.offScreenBase = ?
+
   /*
    * If your offscreen memory is just after your framebuffer, which is at the
-   * start of memory, it may be something like:
-   *   pScrn->virtualX * pScrn->virtualY * ((pScrn->bitsPerPixel * + 7) / 8)
-   * should use the X value from the adjusted width based on virtualX, after
-   * accounting for the accelerator's pitch alignment constraints
+   * start of memory, offScreenBase may be something like:
+   *   pScrn->virtualX * pScrn->virtualY * ((pScrn->bitsPerPixel + 7) / 8)
+   * (the + 7 / 8 causes the integer division to round up instead of
+   * round down).
    */
 
   /*
@@ -532,13 +516,12 @@ A few, card specific fields need to be initialized:
    * them.  Not applied to all pixmaps--the visible screen is an exception,
    * and thus Prepare* acceleration hooks should test for these and fail
    * appropriately.  pixmapOffsetAlign is the value that the pixmap's offset
-   * from the beginning of the framebuffer must be aligned to.  pixmapPitchAlign
-   * is the value that the pitch of a pixmap must be aligned to (along with
-   * ALIGN_POT).
+   * from the beginning of the framebuffer must be aligned to.
+   * pixmapPitchAlign is the value that the pitch of a pixmap must be aligned
+   * to (along with ALIGN_POT).
    */
   EXADriverPtr->card.pixmapOffsetAlign = ?
-  /* also called stride */
-  EXADriverPtr->card.pixmapPitchAlign = ?
+  EXADriverPtr->card.pixmapPitchAlign = ? /* also called stride */
 
   /* Max screen size supported by the card? */
   EXADriverPtr->card.maxX = ?
@@ -575,12 +558,11 @@ out (don't forget to check for errors as that routine can fail).
 If your driver doesn't support UploadToScreen, you should allocate some
 scratch space for use by commonly used pixmaps (e.g. glyphs).  Note that it's
 much better to implement UploadToScreen than to allocate scratch space, but if
-necessary allocate about as much as you'd need for a line of text.
+necessary allocate about as much as you'd need for a line of text.  E.g.
 
   pDrv->exa_scratch = exaOffscreenAlloc(pScreen, 128 * 1024, 16, TRUE,
 					ScratchSave, pDrv);
 
-  /* Why is this required?  Shouldn't exaOffscreenAlloc take care of it? */
   if(pDrv->exa_scratch) {
     pDrv->exa_scratch_next = pDrv->exa_scratch->offset;
     pDrv->EXADriverPtr->accel.UploadToScratch = UploadToScratch;
@@ -601,7 +583,7 @@ call at setup time.
 
 EXA teardown
 ------------
-At screen close time, EXA drivers should, call exaDriverFini with their screen
+At screen close time, EXA drivers should call exaDriverFini with their screen
 pointer, free their EXADriver structure, and do any other necessary teardown.
 
 EXA misc.
