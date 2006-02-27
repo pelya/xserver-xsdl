@@ -432,6 +432,7 @@ symlink_mesa_shader_slang() {
     action slang_compile_variable.h
     action slang_execute.c
     action slang_execute.h
+    action slang_execute_x86.c
     action slang_export.c
     action slang_export.h
     action slang_library_noise.c

@@ -9,6 +9,7 @@ INCLUDES = -I@MESA_SOURCE@/include \
            -I../main \
            -I../math \
            -I../shader \
+           -I../shader/slang \
            -I../swrast \
            -I../swrast_setup \
            -I../tnl \
