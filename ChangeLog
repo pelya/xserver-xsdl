@@ -1,3 +1,9 @@
+2006-02-27  Alan Coopersmith  <alan.coopersmith@sun.com>
+
+	* hw/darwin/quartz/XDarwinStartup.man:
+	* hw/darwin/utils/dumpkeymap.man:
+	Typo fixes (Nicholas Joly, XFree86 bugzilla #1658)
+
 2006-02-24  Roland Scheidegger <rscheidegger_lists@hispeed.ch>
 
 	* hw/xfree86/common/xf86PciInfo.h:

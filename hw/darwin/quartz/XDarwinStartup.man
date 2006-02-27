@@ -36,7 +36,7 @@ will call Launch Services to locate XDarwin.app.
 .PP
 To start the IOKit X server,
 .I XDarwinStartup
-will run the XDarwin execuatable, which should be present in the
+will run the XDarwin executable, which should be present in the
 user's path.
 .SH OPTIONS
 .I XDarwinStartup
