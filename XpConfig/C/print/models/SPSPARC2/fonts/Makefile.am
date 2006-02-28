@@ -1,6 +1,6 @@
 xpcdir = @xpconfigdir@/C/print/models/SPSPARC2/fonts
 
-parentdir = $(DESTDIR)/@xpconfigdir@/C/print/models/PSdefault/fonts
+parentdir = @xpconfigdir@/C/print/models/PSdefault/fonts
 
 XPFONTS = \
         Courier-Bold.pmf \

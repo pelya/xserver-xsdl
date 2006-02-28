@@ -1,6 +1,6 @@
 xpcdir = @xpconfigdir@/C/print/models/CANONC3200-PS/fonts
 
-parentdir = $(DESTDIR)/@xpconfigdir@/C/print/models/PSdefault/fonts
+parentdir = @xpconfigdir@/C/print/models/PSdefault/fonts
 
 XPFONTS = \
         AvantGarde-Book.pmf \

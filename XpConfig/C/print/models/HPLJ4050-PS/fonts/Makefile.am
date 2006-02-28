@@ -1,6 +1,6 @@
 xpcdir = @xpconfigdir@/C/print/models/HPLJ4050-PS/fonts
 
-parentdir = $(DESTDIR)/@xpconfigdir@/C/print/models/PSdefault/fonts
+parentdir = @xpconfigdir@/C/print/models/PSdefault/fonts
 
 XPFONTS = \
         AvantGarde-Book.pmf \

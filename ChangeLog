@@ -1,3 +1,10 @@
+2006-02-28  Adam Jackson  <ajax@freedesktop.org>
+
+	* XpConfig/C/print/models/CANONC3200-PS/fonts/Makefile.am:
+	* XpConfig/C/print/models/HPLJ4050-PS/fonts/Makefile.am:
+	* XpConfig/C/print/models/SPSPARC2/fonts/Makefile.am:
+	Bug #5627: Fix Xprint font symlinking. (TIlman Sauerbeck)
+
 2006-02-27  Alan Coopersmith  <alan.coopersmith@sun.com>
 
 	* hw/darwin/quartz/XDarwinStartup.man:
