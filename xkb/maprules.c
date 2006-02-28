@@ -378,13 +378,6 @@ Bool		found;
 	remap->num_remap= 0;
 	return;
    }
-   if (((present&PART_MASK)&(1<<OPTION))&&
-				((present&PART_MASK)!=(1<<OPTION))) {
-	PR_DEBUG("Options cannot appear with other parts\n");
-	PR_DEBUG("Illegal mapping ignored\n");
-	remap->num_remap= 0;
-	return;
-   }
    if (((present&COMPONENT_MASK)&(1<<KEYMAP))&&
 				((present&COMPONENT_MASK)!=(1<<KEYMAP))) {
 	PR_DEBUG("Keymap cannot appear with other components\n");
