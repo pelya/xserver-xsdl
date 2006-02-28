@@ -433,3 +433,19 @@ unsigned int exaGetVersion(void)
 {
     return EXA_VERSION;
 }
+
+void exaInitCard(ExaDriverPtr exa, int needsSync, CARD8 *memory_base,
+		 unsigned long off_screen_base, unsigned long memory_size,
+		 int offscreen_byte_align, int offscreen_pitch, int flags,
+		 int max_x, int max_y)
+{
+    exa->card.needsSync          = needsSync;
+    exa->card.memoryBase         = memory_base;
+    exa->card.offScreenBase      = off_screen_base;
+    exa->card.memorySize         = memory_size;
+    exa->card.pixmapOffsetAlign  = offscreen_byte_align;
+    exa->card.pixmapPitchAlign   = offscreen_pitch;
+    exa->card.flags              = flags;
+    exa->card.maxX               = max_x;
+    exa->card.maxY               = max_y;
+}

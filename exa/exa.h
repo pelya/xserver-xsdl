@@ -252,17 +252,10 @@ exaGetPixmapSize(PixmapPtr pPix);
 void
 exaEnableDisableFBAccess (int index, Bool enable);
 
-#define exaInitCard(exa, sync, memory_base, off_screen_base, memory_size, \
-                    offscreen_byte_align, offscreen_pitch, flags, \
-                    max_x, max_y) \
-    (exa)->card.Sync               = sync; \
-    (exa)->card.memoryBase         = memory_base; \
-    (exa)->card.offScreenBase      = off_screen_base; \
-    (exa)->card.memorySize         = memory_size; \
-    (exa)->card.offscreenByteAlign = offscreen_byte_align; \
-    (exa)->card.offscreenPitch     = offscreen_pitch; \
-    (exa)->card.flags              = flags; \
-    (exa)->card.maxX               = max_x; \
-    (exa)->card.maxY               = max_y
+void
+exaInitCard(ExaDriverPtr exa, int needsSync, CARD8 *memory_base,
+	    unsigned long off_screen_base, unsigned long memory_size,
+	    int offscreen_byte_align, int offscreen_pitch, int flags,
+	    int max_x, int max_y);
 
 #endif /* EXA_H */
