@@ -90,8 +90,11 @@ xf86AddDriver(DriverPtr driver, pointer module, int flags)
     if (flags & HaveDriverFuncs)
 	*xf86DriverList[xf86NumDrivers - 1] = *driver;
     else {
-	memcpy(xf86DriverList[xf86NumDrivers - 1], driver, sizeof(DriverRec1));
-	xf86DriverList[xf86NumDrivers - 1]->driverFunc = NULL;
+	(void) memset( xf86DriverList[xf86NumDrivers - 1], 0,
+		       sizeof( DriverRec ) );
+	(void) memcpy( xf86DriverList[xf86NumDrivers - 1], driver, 
+		       sizeof(DriverRec1));
+
     }
     xf86DriverList[xf86NumDrivers - 1]->module = module;
     xf86DriverList[xf86NumDrivers - 1]->refCount = 0;
@@ -1605,14 +1608,7 @@ xf86MatchPciInstances(const char *driverName, int vendorID,
     int i,j;
     MessageType from;
     pciVideoPtr pPci, *ppPci;
-    struct Inst {
-	pciVideoPtr	pci;
-	GDevPtr		dev;
-	Bool		foundHW;  /* PCIid in list of supported chipsets */
-	Bool		claimed;  /* BusID matches with a device section */
-        int             chip;
-        int		screen;
-    } *instances = NULL;
+    struct Inst *instances = NULL;
     int numClaimedInstances = 0;
     int allocatedInstances = 0;
     int numFound = 0;

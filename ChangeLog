@@ -1,3 +1,10 @@
+2006-02-28  Ian Romanick  <idr@us.ibm.com>
+
+	* hw/xfree86/common/xf86Helper.c: (xf86AddDriver),
+	(xf86MatchPciInstances):
+	Remove redundant definition of struct Inst.
+	Safeguard xf86AddDriver against future additions to DriverRec.
+
 2006-02-28  Daniel Stone  <daniel@freedesktop.org>
 
 	* xkb/maprules.c:
