@@ -114,8 +114,10 @@ version, allocate memory, etc.
    * The flags argument specifies what features the card supports, two flags
    * are currently defined:
    *   %EXA_OFFSCREEN_PIXMAPS - offscreen pixmaps are supported
-   *   %EXA_OFFSCREEN_ALIGN_POT - offscreen objects must hve a power of two
+   *   %EXA_OFFSCREEN_ALIGN_POT - offscreen objects must have a power of two
    *     alignment of their pitch
+   *   %EXA_TWO_BITBLT_DIRECTIONS - device only supports blts in two
+   *     directions, +xdir,+ydir or -xdir,-ydir (identical to the XAA flag).
    */
   void exaInitCard(EXADriverPtr *exa, Bool sync, CARD8 *memory_base,
 		   unsigned longoff_screen_base, unsigned long memory_size,
