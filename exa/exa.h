@@ -206,7 +206,7 @@ typedef struct _ExaDriver {
 
 #define EXA_OFFSCREEN_PIXMAPS           (1 << 0)
 #define EXA_OFFSCREEN_ALIGN_POT         (1 << 1)
-
+#define EXA_TWO_BITBLT_DIRECTIONS       (1 << 2)
 
 #define EXA_MAKE_VERSION(a, b, c) (((a) << 16) | ((b) << 8) | (c))
 #define EXA_VERSION \

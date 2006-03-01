@@ -124,6 +124,123 @@ exaFillSpans(DrawablePtr pDrawable, GCPtr pGC, int n,
     exaMarkSync(pScreen);
 }
 
+static Bool inline
+exaCopyNtoNTwoDir (DrawablePtr pSrcDrawable, DrawablePtr pDstDrawable,
+		   GCPtr pGC, BoxPtr pbox, int nbox, int dx, int dy)
+{
+    ExaScreenPriv (pDstDrawable->pScreen);
+    PixmapPtr pSrcPixmap, pDstPixmap;
+    int src_off_x, src_off_y, dst_off_x, dst_off_y;
+    int dirsetup;
+
+    /* Need to get both pixmaps to call the driver routines */
+    pSrcPixmap = exaGetOffscreenPixmap (pSrcDrawable, &src_off_x, &src_off_y);
+    pDstPixmap = exaGetOffscreenPixmap (pDstDrawable, &dst_off_x, &dst_off_y);
+    if (!pSrcPixmap || !pDstPixmap)
+	return FALSE;
+
+    /*
+     * Now the case of a chip that only supports xdir = ydir = 1 or
+     * xdir = ydir = -1, but we have xdir != ydir.
+     */
+    dirsetup = 0;	/* No direction set up yet. */
+    for (; nbox; pbox++, nbox--) {
+	if (dx >= 0 && (src_off_y + pbox->y1 + dy) != pbox->y1) {
+	    /* Do a xdir = ydir = -1 blit instead. */
+	    if (dirsetup != -1) {
+		dirsetup = -1;
+		if (!(*pExaScr->info->accel.PrepareCopy)(pSrcPixmap,
+							 pDstPixmap,
+							 -1, -1,
+							 pGC ? pGC->alu :
+							 GXcopy,
+							 pGC ? pGC->planemask :
+							 FB_ALLONES))
+		    return FALSE;
+	    }
+	    (*pExaScr->info->accel.Copy)(pDstPixmap,
+					 src_off_x + pbox->x1 + dx,
+					 src_off_y + pbox->y1 + dy,
+					 dst_off_x + pbox->x1,
+					 dst_off_y + pbox->y1,
+					 pbox->x2 - pbox->x1,
+					 pbox->y2 - pbox->y1);
+	} else if (dx < 0 && (src_off_y + pbox->y1 + dy) != pbox->y1) {
+	    /* Do a xdir = ydir = 1 blit instead. */
+	    if (dirsetup != 1) {
+		dirsetup = 1;
+		if (!(*pExaScr->info->accel.PrepareCopy)(pSrcPixmap,
+							 pDstPixmap,
+							 1, 1,
+							 pGC ? pGC->alu :
+							 GXcopy,
+							 pGC ? pGC->planemask :
+							 FB_ALLONES))
+		    return FALSE;
+	    }
+	    (*pExaScr->info->accel.Copy)(pDstPixmap,
+					 src_off_x + pbox->x1 + dx,
+					 src_off_y + pbox->y1 + dy,
+					 dst_off_x + pbox->x1,
+					 dst_off_y + pbox->y1,
+					 pbox->x2 - pbox->x1,
+					 pbox->y2 - pbox->y1);
+	} else if (dx >= 0) {
+	    /*
+	     * xdir = 1, ydir = -1.
+	     * Perform line-by-line xdir = ydir = 1 blits, going up.
+	     */
+	    int i;
+	    if (dirsetup != 1) {
+		dirsetup = 1;
+		if (!(*pExaScr->info->accel.PrepareCopy)(pSrcPixmap,
+							 pDstPixmap,
+							 1, 1,
+							 pGC ? pGC->alu :
+							 GXcopy,
+							 pGC ? pGC->planemask :
+							 FB_ALLONES))
+		    return FALSE;
+	    }
+	    for (i = pbox->y2 - pbox->y1 - 1; i >= 0; i--)
+		(*pExaScr->info->accel.Copy)(pDstPixmap,
+					     src_off_x + pbox->x1 + dx,
+					     src_off_y + pbox->y1 + dy + i,
+					     dst_off_x + pbox->x1,
+					     dst_off_y + pbox->y1 + i,
+					     pbox->x2 - pbox->x1, 1);
+	} else {
+	    /*
+	     * xdir = -1, ydir = 1.
+	     * Perform line-by-line xdir = ydir = -1 blits, going down.
+	     */
+	    int i;
+	    if (dirsetup != -1) {
+		dirsetup = -1;
+		if (!(*pExaScr->info->accel.PrepareCopy)(pSrcPixmap,
+							 pDstPixmap,
+							 -1, -1,
+							 pGC ? pGC->alu :
+							 GXcopy,
+							 pGC ? pGC->planemask :
+							 FB_ALLONES))
+		    return FALSE;
+	    }
+	    for (i = 0; i < pbox->y2 - pbox->y1; i++)
+		(*pExaScr->info->accel.Copy)(pDstPixmap,
+					     src_off_x + pbox->x1 + dx,
+					     src_off_y + pbox->y1 + dy + i,
+					     dst_off_x + pbox->x1,
+					     dst_off_y + pbox->y1 + i,
+					     pbox->x2 - pbox->x1, 1);
+	}
+    }
+    (*pExaScr->info->accel.DoneCopy)(pDstPixmap);
+    exaMarkSync(pDstDrawable->pScreen);
+    exaDrawableDirty(pDstDrawable);
+    return TRUE;
+}
+
 void
 exaCopyNtoN (DrawablePtr    pSrcDrawable,
 	     DrawablePtr    pDstDrawable,
@@ -167,6 +284,14 @@ exaCopyNtoN (DrawablePtr    pSrcDrawable,
     } else {
 	exaDrawableUseMemory (pSrcDrawable);
 	exaDrawableUseMemory (pDstDrawable);
+    }
+
+    /* Mixed directions must be handled specially if the card is lame */
+    if (pExaScr->info->card.flags & EXA_TWO_BITBLT_DIRECTIONS && (dx*dy) < 0) {
+	if (!exaCopyNtoNTwoDir(pSrcDrawable, pDstDrawable, pGC, pbox, nbox,
+			       dx, dy))
+	    goto fallback;
+	return;
     }
 
     if ((pSrcPixmap = exaGetOffscreenPixmap (pSrcDrawable, &src_off_x, &src_off_y)) &&
