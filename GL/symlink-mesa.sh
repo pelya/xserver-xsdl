@@ -261,6 +261,7 @@ symlink_mesa_swrast() {
     action s_bitmap.c
     action s_blend.c
     action s_blend.h
+    action s_blit.c
     action s_buffers.c
     action s_context.c
     action s_context.h
