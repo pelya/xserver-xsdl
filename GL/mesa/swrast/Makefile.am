@@ -24,6 +24,7 @@ nodist_libswrast_la_SOURCES = s_aaline.c \
                       s_atifragshader.c \
                       s_bitmap.c \
                       s_blend.c \
+                      s_blit.c \
                       s_buffers.c \
                       s_context.c \
                       s_copypix.c \
