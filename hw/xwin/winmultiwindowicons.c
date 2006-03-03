@@ -282,7 +282,7 @@ winXIconToHICON (WindowPtr pWin, int iconSize)
   winMultiWindowGetWMHints (pWin, &hints);
   if (!hints.icon_pixmap) return NULL;
 
-  iconPtr = LookupIDByType (hints.icon_pixmap, RT_PIXMAP);
+  iconPtr = (PixmapPtr) LookupIDByType (hints.icon_pixmap, RT_PIXMAP);
   
   if (!iconPtr) return NULL;
   
@@ -311,7 +311,7 @@ winXIconToHICON (WindowPtr pWin, int iconSize)
   memset (mask, 0, maskStride * iconSize);
   
   winScaleXBitmapToWindows (iconSize, effBPP, iconPtr, image);
-  maskPtr = LookupIDByType (hints.icon_mask, RT_PIXMAP);
+  maskPtr = (PixmapPtr) LookupIDByType (hints.icon_mask, RT_PIXMAP);
 
   if (maskPtr) 
     {
@@ -369,7 +369,8 @@ winUpdateIcon (Window id)
   WindowPtr		pWin;
   HICON			hIcon, hiconOld;
 
-  pWin = LookupIDByType (id, RT_WINDOW);
+  pWin = (WindowPtr) LookupIDByType (id, RT_WINDOW);
+  if (!pWin) return;
   hIcon = (HICON)winOverrideIcon ((unsigned long)pWin);
 
   if (!hIcon)

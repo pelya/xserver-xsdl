@@ -1,3 +1,10 @@
+2006-03-03  Alan Hourihane  <alanh@fairlite.demon.co.uk>
+
+	* winmultiwindowicons.c: (winXIconToHICON), (winUpdateIcon):
+	* winwin32rootlesswindow.c: (winMWExtWMUpdateIcon):
+	https://bugs.freedesktop.org/show_bug.cgi?id=5138
+	Check for NULL pointer
+
 2005-07-05  Alexander Gottwald  <ago at freedesktop dot org>
 
 	* winmultiwindowwm.c:
