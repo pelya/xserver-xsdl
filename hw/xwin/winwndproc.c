@@ -53,6 +53,7 @@ extern void winFixShiftKeys (int iScanCode);
  */
 
 Bool				g_fCursor = TRUE;
+Bool				g_fButton[3] = { FALSE, FALSE, FALSE };
 
 
 /*
@@ -917,6 +918,8 @@ winWindowProc (HWND hwnd, UINT message,
 	case WIN_POLLING_MOUSE_TIMER_ID:
 	  {
 	    POINT		point;
+	    WPARAM		wL, wM, wR, wShift, wCtrl;
+	    LPARAM		lPos;
 	    
 	    /* Get the current position of the mouse cursor */
 	    GetCursorPos (&point);
@@ -928,6 +931,21 @@ winWindowProc (HWND hwnd, UINT message,
 	    /* Deliver absolute cursor position to X Server */
 	    miPointerAbsoluteCursor (point.x, point.y,
 				     g_c32LastInputEventTime = GetTickCount());
+
+	    /* Check if a button was released but we didn't see it */
+	    GetCursorPos (&point);
+	    wL = (GetKeyState (VK_LBUTTON) & 0x8000)?MK_LBUTTON:0;
+	    wM = (GetKeyState (VK_MBUTTON) & 0x8000)?MK_MBUTTON:0;
+	    wR = (GetKeyState (VK_RBUTTON) & 0x8000)?MK_RBUTTON:0;
+	    wShift = (GetKeyState (VK_SHIFT) & 0x8000)?MK_SHIFT:0;
+	    wCtrl = (GetKeyState (VK_CONTROL) & 0x8000)?MK_CONTROL:0;
+	    lPos = MAKELPARAM(point.x, point.y);
+	    if (g_fButton[0] & !wL)
+	    PostMessage (hwnd, WM_LBUTTONUP, wCtrl|wM|wR|wShift, lPos);
+	    if (g_fButton[1] & !wM)
+	      PostMessage (hwnd, WM_MBUTTONUP, wCtrl|wL|wR|wShift, lPos);
+	    if (g_fButton[2] & !wR)
+	      PostMessage (hwnd, WM_RBUTTONUP, wCtrl|wL|wM|wShift, lPos);
 	  }
 	}
       return 0;

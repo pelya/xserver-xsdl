@@ -47,6 +47,7 @@
 extern Bool			g_fCursor;
 extern Bool			g_fKeyboardHookLL;
 extern Bool			g_fSoftwareCursor;
+extern Bool			g_fButton[3];
 
 
 /*
@@ -592,33 +593,39 @@ winTopLevelWindowProc (HWND hwnd, UINT message,
     case WM_LBUTTONDOWN:
       if (s_pScreenPriv == NULL || s_pScreenInfo->fIgnoreInput)
 	break;
+      g_fButton[0] = TRUE;
       return winMouseButtonsHandle (s_pScreen, ButtonPress, Button1, wParam);
       
     case WM_LBUTTONUP:
       if (s_pScreenPriv == NULL || s_pScreenInfo->fIgnoreInput)
 	break;
+      g_fButton[0] = FALSE;
       return winMouseButtonsHandle (s_pScreen, ButtonRelease, Button1, wParam);
 
     case WM_MBUTTONDBLCLK:
     case WM_MBUTTONDOWN:
       if (s_pScreenPriv == NULL || s_pScreenInfo->fIgnoreInput)
 	break;
+      g_fButton[1] = TRUE;
       return winMouseButtonsHandle (s_pScreen, ButtonPress, Button2, wParam);
       
     case WM_MBUTTONUP:
       if (s_pScreenPriv == NULL || s_pScreenInfo->fIgnoreInput)
 	break;
+      g_fButton[1] = FALSE;
       return winMouseButtonsHandle (s_pScreen, ButtonRelease, Button2, wParam);
       
     case WM_RBUTTONDBLCLK:
     case WM_RBUTTONDOWN:
       if (s_pScreenPriv == NULL || s_pScreenInfo->fIgnoreInput)
 	break;
+      g_fButton[2] = TRUE;
       return winMouseButtonsHandle (s_pScreen, ButtonPress, Button3, wParam);
       
     case WM_RBUTTONUP:
       if (s_pScreenPriv == NULL || s_pScreenInfo->fIgnoreInput)
 	break;
+      g_fButton[2] = FALSE;
       return winMouseButtonsHandle (s_pScreen, ButtonRelease, Button3, wParam);
 
     case WM_XBUTTONDBLCLK:

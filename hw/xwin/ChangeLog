@@ -1,5 +1,12 @@
 2006-03-03  Alan Hourihane  <alanh@fairlite.demon.co.uk>
 
+	* winmultiwindowwndproc.c: (winTopLevelWindowProc):
+	* winwndproc.c: (winWindowProc):
+	https://bugs.freedesktop.org/show_bug.cgi?id=4538
+	Fix mouse button release on multiwindows scrolling.
+
+2006-03-03  Alan Hourihane  <alanh@fairlite.demon.co.uk>
+
 	* winmultiwindowicons.c: (winXIconToHICON), (winUpdateIcon):
 	* winwin32rootlesswindow.c: (winMWExtWMUpdateIcon):
 	https://bugs.freedesktop.org/show_bug.cgi?id=5138
