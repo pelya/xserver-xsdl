@@ -1,5 +1,11 @@
 2006-03-03  Alan Hourihane  <alanh@fairlite.demon.co.uk>
 
+	* winprefs.c: (HandleCustomWM_COMMAND):
+	https://bugs.freedesktop.org/show_bug.cgi?id=4341
+	Make Xming error messages more meaningful.
+
+2006-03-03  Alan Hourihane  <alanh@fairlite.demon.co.uk>
+
 	* winmultiwindowwndproc.c: (winTopLevelWindowProc):
 	* winwndproc.c: (winWindowProc):
 	https://bugs.freedesktop.org/show_bug.cgi?id=4538
