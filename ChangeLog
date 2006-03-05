@@ -1,4 +1,7 @@
 2006-03-04  Matthieu Herrb <matthieu.herrb@laas.fr>
+	* hw/xfree86/dixmods/extmod/xf86misc.c
+	Only output SetClientVersion message if verbosity > 1, like other
+	extensions do
 	* configure.ac:
 	define SYS_LIBS to hold system dependant libraries that may needed.
 	* GL/glx/indirect_dispatch_swap.c:
