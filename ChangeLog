@@ -1,3 +1,7 @@
+2006-03-04  Matthieu Herrb <matthieu.herrb@laas.fr>
+	* cfb/Makefile.am.inc:
+	Fix build with non GNU make.
+
 2006-02-28  Ian Romanick  <idr@us.ibm.com>
 
 	* hw/xfree86/common/xf86Helper.c: (xf86AddDriver),
