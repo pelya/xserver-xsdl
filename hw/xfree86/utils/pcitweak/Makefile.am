@@ -36,7 +36,8 @@ INCLUDES = $(XORG_INCS) -I$(DUMMYLIB_SRCDIR)
 pcitweak_CFLAGS = $(XORG_CFLAGS)
 pcitweak_LDADD = \
 	../../os-support/libxorgos.la \
-	../../dummylib/libdummy-nonserver.a
+	../../dummylib/libdummy-nonserver.a \
+	${SYS_LIBS}
 
 pcitweak_SOURCES =	\
 	pcitweak.c

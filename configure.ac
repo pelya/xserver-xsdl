@@ -188,7 +188,9 @@ case $host_cpu in
 		*linux*)	DEFAULT_INT10=vm86 ;;
 		*freebsd*)	AC_DEFINE(USE_DEV_IO) ;;
 		*netbsd*)	AC_DEFINE(USE_I386_IOPL) ;;
-		*openbsd*)	AC_DEFINE(USE_I386_IOPL) ;;
+		*openbsd*)	AC_DEFINE(USE_I386_IOPL) 
+				SYS_LIBS=-li386
+				;;
 	esac
         ;;
   powerpc*)
@@ -208,7 +210,9 @@ case $host_cpu in
 	case $host_os in
 		*freebsd*)	AC_DEFINE(USE_DEV_IO, 1, [BSD /dev/io]) ;;
 		*netbsd*)	AC_DEFINE(USE_I386_IOPL, 1, [BSD i386 iopl]) ;;
-		*openbsd*)	AC_DEFINE(USE_AMD64_IOPL, 1, [BSD AMD64 iopl]) ;;
+		*openbsd*)	AC_DEFINE(USE_AMD64_IOPL, 1, [BSD AMD64 iopl])
+				SYS_LIBS=-lamd64
+				;;
 	esac
 	;;
 esac
@@ -810,9 +814,9 @@ PKG_CHECK_MODULES([XSERVERCFLAGS], [$REQUIRED_MODULES $REQUIRED_LIBS])
 PKG_CHECK_MODULES([XSERVERLIBS], [$REQUIRED_LIBS])
 
 XSERVER_CFLAGS="${XSERVERCFLAGS_CFLAGS}"
-XSERVER_LIBS="${XSERVERLIBS_LIBS} -lm -lz"
+XSERVER_LIBS="${XSERVERLIBS_LIBS} ${SYS_LIBS} -lm -lz"
 AC_SUBST([XSERVER_LIBS])
-
+AC_SUBST([SYS_LIBS])
 
 dnl Imake defines SVR4 on SVR4 systems, and many files check for it, so
 dnl we need to replicate that here until those can all be fixed

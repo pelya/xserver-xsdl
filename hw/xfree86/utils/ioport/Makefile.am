@@ -36,7 +36,9 @@ INCLUDES = $(XORG_INCS) -I$(DUMMYLIB_SRCDIR)
 ioport_CFLAGS = $(XORG_CFLAGS)
 ioport_LDADD = \
 	../../os-support/libxorgos.la \
-	../../dummylib/libdummy-nonserver.a
+	../../dummylib/libdummy-nonserver.a \
+	${SYS_LIBS}
+
 
 ioport_SOURCES =	\
 	ioport.c

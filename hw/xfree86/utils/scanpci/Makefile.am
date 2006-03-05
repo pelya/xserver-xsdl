@@ -38,7 +38,8 @@ scanpci_CFLAGS = $(XORG_CFLAGS)
 scanpci_LDADD = \
 	../../scanpci/libscanpci.la \
 	../../os-support/libxorgos.la \
-	../../dummylib/libdummy-nonserver.a
+	../../dummylib/libdummy-nonserver.a \
+	${SYS_LIBS}
 
 scanpci_SOURCES =	\
 	scanpci.c

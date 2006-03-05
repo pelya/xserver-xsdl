@@ -37,7 +37,8 @@ xorgcfg_CFLAGS = @SERVER_DEFINES@ $(XORG_CFLAGS) $(CURSESDEFINES) \
 	$(XORGCFG_DEP_CFLAGS) -DXKB_RULES_DIR=\"$(XKB_BASE_DIRECTORY)/rules\" \
 	-DPROJECT_ROOT=\"$(PROJECTROOT)\" -DOPTIONSPATH=\"$(OPTIONSPATH)\"
 xorgcfg_LDADD = $(XORGCFG_DEP_LIBS) ../../parser/libxf86config.a $(LOADERLIB) \
-	../../os-support/libxorgos.la ../../dummylib/libdummy-nonserver.a
+	../../os-support/libxorgos.la ../../dummylib/libdummy-nonserver.a \
+	${SYS_LIBS}
 
 #if DoLoadableServer
 LDSRCS  = \
