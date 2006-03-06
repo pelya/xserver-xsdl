@@ -1,3 +1,11 @@
+2006-03-06  Lars Knoll <lars@trolltech.com>
+
+	* render/picture.c
+	Correctly initialize devPrivates variable in source 
+	only pictures to 0
+	* miext/cw/cw.h
+	Don't try to access devPrivates of source only pictures
+
 2006-03-04  Matthieu Herrb <matthieu.herrb@laas.fr>
 	* hw/xfree86/dixmods/extmod/xf86misc.c
 	Only output SetClientVersion message if verbosity > 1, like other

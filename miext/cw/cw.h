@@ -60,7 +60,8 @@ typedef struct {
     unsigned long   stateChanges;
 } cwPictureRec, *cwPicturePtr;
 
-#define getCwPicture(pPicture)	((cwPicturePtr)(pPicture)->devPrivates[cwPictureIndex].ptr)
+#define getCwPicture(pPicture)	\
+    (pPicture->pDrawable ? (cwPicturePtr)(pPicture)->devPrivates[cwPictureIndex].ptr : 0)
 #define setCwPicture(pPicture,p) ((pPicture)->devPrivates[cwPictureIndex].ptr = (pointer) (p))
 
 extern int  cwPictureIndex;

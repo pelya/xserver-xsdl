@@ -979,6 +979,7 @@ static PicturePtr createSourcePicture(void)
     pPicture->pDrawable = 0;
     pPicture->pFormat = 0;
     pPicture->pNext = 0;
+    pPicture->devPrivates = 0;
 
     SetPictureToDefaults(pPicture);
     return pPicture;
