@@ -1,4 +1,4 @@
-/* $XdotOrg: xserver/xorg/hw/xfree86/common/xf86Mode.c,v 1.8 2005/12/28 15:22:21 libv Exp $ */
+/* $XdotOrg: xserver/xorg/hw/xfree86/common/xf86Mode.c,v 1.9 2006/01/31 13:04:02 libv Exp $ */
 /* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86Mode.c,v 1.69 2003/10/08 14:58:28 dawes Exp $ */
 /*
  * Copyright (c) 1997-2003 by The XFree86 Project, Inc.
@@ -817,19 +817,24 @@ xf86CheckModeForMonitor(DisplayModePtr mode, MonPtr monitor)
 	mode->CrtcVTotal = mode->VTotal |= 1;
 
     /*
-     * Usually, CVT normal blanking is never more than one character below 25%,
-     * but for low frequencies and weird ratios, you can get below that.
-     * When you go into the low frequencies with the gtf generator, of which
-     * normal CVT is a simplification, you almost always go below 25%.
-     *
-     * So if we see awkward blanking, then it's either directly CVT or GTF
-     * generated, or the user supposedly knows what he's doing. So we only stop
-     * reduced blanking here, as that might accidentally hit us. -- libv
+     * This code stops cvt -r modes, and only cvt -r modes, from hitting 15y+
+     * old CRTs which might, when there is a lot of solar flare activity and
+     * when the celestial bodies are unfavourably aligned, implode trying to
+     * sync to it. It's called "Protecting the user from doing anything stupid".
+     * -- libv
      */
-    if (((mode->HTotal - mode->HDisplay) == 160) &&
-        (((mode->HDisplay * 5 / 4) & ~0x07) > mode->HTotal))
-        if (!monitor->reducedblanking)
-            return MODE_NO_REDUCED;
+
+    /* Is the horizontal blanking a bit lowish? */
+    if (((mode->HDisplay * 5 / 4) & ~0x07) > mode->HTotal) {
+        /* is this a cvt -r mode, and only a cvt -r mode? */
+        if (((mode->HTotal - mode->HDisplay) == 160) &&
+            ((mode->HSyncEnd - mode->HDisplay) == 80) &&
+            ((mode->HSyncEnd - mode->HSyncStart) == 32) &&
+            ((mode->VSyncStart - mode->VDisplay) == 3)) {
+            if (!monitor->reducedblanking)
+                return MODE_NO_REDUCED;
+        }
+    }
 
     return MODE_OK;
 }
