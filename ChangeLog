@@ -1,3 +1,40 @@
+2006-03-07  Ian Romanick  <idr@us.ibm.com>
+
+	* hw/xfree86/common/xf86DoProbe.c: (DoProbe):
+	* hw/xfree86/common/xf86Priv.h:
+	* hw/xfree86/common/xf86Init.c: (ddxProcessArgument):
+	Remove DoProbeArgs.  It was an empty function that was never called.
+
+	Some refactoring in DoProbe to make the code more readable (and make
+	the future transition to xf86CallDriverProbe easier).
+
+	* hw/xfree86/common/xf86Helper.c: (xf86MatchPciInstances):
+	Major refactoring of xf86MatchPciInstances.  Primarilly, all device
+	matching is performed by a single, smart loop.  Matching of
+	PCI_VENDOR_GENERIC devices is done by device class, and this
+	eliminates the need to call xf86CheckPciGAType (good riddance!).
+
+	Various other changes eliminate the need to use xnfrealloc on the
+	instances array.  When in probe-only mode or the first pass of
+	configure mode, the instances array isn't needed, so it is not
+	allocated.
+
+	These changes will make the change to a PCI device matching scheme
+	more like is implemented in libpci.a (and has been discussed on the
+	xorg mailing list) much, much simpler.
+
+	* hw/xfree86/common/xf86.h:
+	* hw/xfree86/loader/xf86sym.c:
+	* hw/xfree86/common/xf86pciBus.c: (FindPCIVideoInfo):
+	Eliminate unnecessary use of ?: operator within an if-statement.
+
+	Remove xf86CheckPciGAType.  It is no longer called by
+	xf86MatchPciInstances, which was previously the only place that
+	called it.
+
+	* hw/xfree86/common/xf86str.h:
+	Add numerous comments to the fields of PciChipsets.
+
 2006-03-07  Eric Anholt  <anholt@FreeBSD.org>
 
 	* hw/kdrive/ephyr/ephyr_draw.c:

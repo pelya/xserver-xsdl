@@ -208,11 +208,11 @@ FindPCIVideoInfo(void)
 	const int baseclass = pcrp->pci_base_class;
 	const int subclass = pcrp->pci_sub_class;
 	
-	if (PCIINFOCLASSES(baseclass, subclass) &&
-	    (DoIsolateDeviceCheck ?
-	    (xf86IsolateDevice.bus == pcrp->busnum &&
-	     xf86IsolateDevice.device == pcrp->devnum &&
-	     xf86IsolateDevice.func == pcrp->funcnum) : 1)) {
+	if ( PCIINFOCLASSES(baseclass, subclass) &&
+	     (!DoIsolateDeviceCheck ||
+	      (xf86IsolateDevice.bus == pcrp->busnum &&
+	       xf86IsolateDevice.device == pcrp->devnum &&
+	       xf86IsolateDevice.func == pcrp->funcnum)) ) {
 	    num++;
 	    xf86PciVideoInfo = xnfrealloc(xf86PciVideoInfo,
 					  sizeof(pciVideoPtr) * (num + 1));
@@ -3111,35 +3111,6 @@ xf86IsPrimaryPci(pciVideoPtr pPci)
     return (pPci->bus == primaryBus.id.pci.bus &&
 	    pPci->device == primaryBus.id.pci.device &&
 	    pPci->func == primaryBus.id.pci.func);
-}
-
-/*
- * xf86CheckPciGAType() -- return type of PCI graphics adapter.
- */
-int
-xf86CheckPciGAType(pciVideoPtr pPci)
-{
-    int i = 0;
-    pciConfigPtr pcp;
-    
-    while ((pcp = xf86PciInfo[i]) != NULL) { 
-	if (pPci->bus == pcp->busnum && pPci->device == pcp->devnum
-	    && pPci->func == pcp->funcnum) {
-	    if (pcp->pci_base_class == PCI_CLASS_PREHISTORIC &&
-		pcp->pci_sub_class == PCI_SUBCLASS_PREHISTORIC_VGA)
-		return PCI_CHIP_VGA ;
-	    if (pcp->pci_base_class == PCI_CLASS_DISPLAY &&
-		pcp->pci_sub_class == PCI_SUBCLASS_DISPLAY_VGA) {
-		if (pcp->pci_prog_if == 0)
-		    return PCI_CHIP_VGA ; 
-		if (pcp->pci_prog_if == 1)
-		    return PCI_CHIP_8514;
-	    }
-	    return -1;
-	}
-    i++;
-    }
-    return -1;
 }
 
 /*

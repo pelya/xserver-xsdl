@@ -116,7 +116,6 @@ void xf86EnableAccess(ScrnInfoPtr pScrn);
 void xf86SetCurrentAccess(Bool Enable, ScrnInfoPtr pScrn);
 Bool xf86IsPrimaryPci(pciVideoPtr pPci);
 Bool xf86IsPrimaryIsa(void);
-int xf86CheckPciGAType(pciVideoPtr pPci);
 /* new RAC */
 resPtr xf86AddResToList(resPtr rlist, resRange *Range, int entityIndex);
 resPtr xf86JoinResLists(resPtr rlist1, resPtr rlist2);

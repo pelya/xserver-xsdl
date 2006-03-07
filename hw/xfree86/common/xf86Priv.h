@@ -171,7 +171,6 @@ extern DisplayModeRec xf86DefaultModes [];
 void DoScanPci(int argc, char **argv, int i);
 
 /* xf86DoProbe.c */
-void DoProbeArgs(int argc, char **argv, int i);
 void DoProbe(void);
 void DoConfigure(void);
 

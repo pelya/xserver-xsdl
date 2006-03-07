@@ -323,7 +323,6 @@ LOOKUP xfree86LookupTab[] = {
     SYMFUNC(xf86SetCurrentAccess)
     SYMFUNC(xf86IsPrimaryPci)
     SYMFUNC(xf86IsPrimaryIsa)
-    SYMFUNC(xf86CheckPciGAType)
     SYMFUNC(xf86PrintResList)
     SYMFUNC(xf86AddResToList)
     SYMFUNC(xf86JoinResLists)

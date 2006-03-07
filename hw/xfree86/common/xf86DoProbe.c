@@ -49,11 +49,6 @@
 #include "xf86Priv.h"
 
 void
-DoProbeArgs(int argc, char **argv, int i)
-{
-}
-
-void
 DoProbe()
 {
     int i;
@@ -82,13 +77,12 @@ DoProbe()
 
     /* Call all of the probe functions, reporting the results. */
     for (i = 0; i < xf86NumDrivers; i++) {
+	DriverRec * const drv = xf86DriverList[i];
 
 	if (!xorgHWAccess) {
 	    xorgHWFlags flags;
-	    if (!xf86DriverList[i]->driverFunc
-		|| !xf86DriverList[i]->driverFunc(NULL,
-						  GET_REQUIRED_HW_INTERFACES,
-						  &flags)
+	    if (!drv->driverFunc
+		|| !drv->driverFunc( NULL, GET_REQUIRED_HW_INTERFACES, &flags )
 		|| NEED_IO_ENABLED(flags)) {
 		if (ioEnableFailed)
 		    continue;
@@ -100,23 +94,23 @@ DoProbe()
 	    }
 	}
 	    
-	if (xf86DriverList[i]->Probe == NULL) continue;
 
-	xf86MsgVerb(X_INFO, 3, "Probing in driver %s\n",
-	    xf86DriverList[i]->driverName);
-	probeResult =
-	    (*xf86DriverList[i]->Probe)(xf86DriverList[i], PROBE_DETECT);
+	xf86MsgVerb(X_INFO, 3, "Probing in driver %s\n",  drv->driverName);
+
+	if (drv->Probe == NULL) continue;
+
+	probeResult = (*drv->Probe)( drv, PROBE_DETECT );
 	if (!probeResult) {
 	    xf86ErrorF("Probe in driver `%s' returns FALSE\n",
-		xf86DriverList[i]->driverName);
+		drv->driverName);
 	} else {
 	    xf86ErrorF("Probe in driver `%s' returns TRUE\n",
-		xf86DriverList[i]->driverName);
+		drv->driverName);
 
 	    /* If we have a result, then call driver's Identify function */
-	    if (xf86DriverList[i]->Identify != NULL) {
-		int verbose = xf86SetVerbosity(1);
-		(*xf86DriverList[i]->Identify)(0);
+	    if (drv->Identify != NULL) {
+		const int verbose = xf86SetVerbosity(1);
+		(*drv->Identify)(0);
 		xf86SetVerbosity(verbose);
 	    }
 	}

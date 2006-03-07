@@ -1,5 +1,5 @@
 /* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86Init.c,v 3.212 2004/01/27 01:31:45 dawes Exp $ */
-/* $XdotOrg: xserver/xorg/hw/xfree86/common/xf86Init.c,v 1.29 2005/12/14 20:11:16 ajax Exp $ */
+/* $XdotOrg: xserver/xorg/hw/xfree86/common/xf86Init.c,v 1.30 2006/02/13 04:43:40 benh Exp $ */
 
 /*
  * Loosely based on code bearing the following copyright:
@@ -1673,9 +1673,6 @@ ddxProcessArgument(int argc, char **argv, int i)
   if (!strcmp(argv[i], "-probe"))
   {
     xf86DoProbe = TRUE;
-#if 0
-    DoProbe(argc, argv, i);
-#endif
     return 1;
   }
   if (!strcmp(argv[i], "-configure"))

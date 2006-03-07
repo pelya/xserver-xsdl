@@ -1599,6 +1599,39 @@ struct Inst {
     int 		screen;
 };
 
+
+/**
+ * Find set of unclaimed devices matching a given vendor ID.
+ * 
+ * Used by drivers to find as yet unclaimed devices matching the specified
+ * vendor ID.
+ *
+ * \param driverName     Name of the driver.  This is used to find Device
+ *                       sections in the config file.
+ * \param vendorID       PCI vendor ID of associated devices.  If zero, then
+ *                       the true vendor ID must be encoded in the \c PCIid
+ *                       fields of the \c PCIchipsets entries.
+ * \param chipsets       Symbol table used to associate chipset names with
+ *                       PCI IDs.
+ * \param devList        List of Device sections parsed from the config file.
+ * \param numDevs        Number of entries in \c devList.
+ * \param drvp           Pointer the driver's control structure.
+ * \param foundEntities  Returned list of entity indicies associated with the
+ *                       driver.
+ * 
+ * \returns
+ * The number of elements in returned in \c foundEntities on success or zero
+ * on failure.
+ *
+ * \todo
+ * This function does a bit more than short description says.  Fill in some
+ * more of the details of its operation.
+ *
+ * \todo
+ * The \c driverName parameter is redundant.  It is the same as
+ * \c DriverRec::driverName.  In a future version of this function, remove
+ * that parameter.
+ */
 int
 xf86MatchPciInstances(const char *driverName, int vendorID, 
 		      SymTabPtr chipsets, PciChipsets *PCIchipsets,
@@ -1606,7 +1639,6 @@ xf86MatchPciInstances(const char *driverName, int vendorID,
 		      int **foundEntities)
 {
     int i,j;
-    MessageType from;
     pciVideoPtr pPci, *ppPci;
     struct Inst *instances = NULL;
     int numClaimedInstances = 0;
@@ -1614,80 +1646,114 @@ xf86MatchPciInstances(const char *driverName, int vendorID,
     int numFound = 0;
     SymTabRec *c;
     PciChipsets *id;
-    GDevPtr devBus = NULL;
-    GDevPtr dev = NULL;
     int *retEntities = NULL;
 
     *foundEntities = NULL;
 
-    if (vendorID == 0) {
-	for (ppPci = xf86PciVideoInfo; *ppPci != NULL; ppPci++) {
-	    Bool foundVendor = FALSE;
-	    for (id = PCIchipsets; id->PCIid != -1; id++) {
-	        if ( (((id->PCIid & 0xFFFF0000) >> 16) == (*ppPci)->vendor)) {
-		    if (!foundVendor) {
-	                ++allocatedInstances;
-			instances = xnfrealloc(instances,
-				     allocatedInstances * sizeof(struct Inst));
-			instances[allocatedInstances - 1].pci = *ppPci;
-			instances[allocatedInstances - 1].dev = NULL;
-			instances[allocatedInstances - 1].claimed = FALSE;
-			instances[allocatedInstances - 1].foundHW = FALSE;
-			instances[allocatedInstances - 1].screen = 0;
-			foundVendor = TRUE;
-		    } 
-		    if ((id->PCIid & 0x0000FFFF) == (*ppPci)->chipType) {
-	               instances[allocatedInstances - 1].foundHW = TRUE;
-		       instances[allocatedInstances - 1].chip = id->numChipset;
-		       numFound++;
-		    }
-		}
-	    }
+
+    /* Each PCI device will contribute at least one entry.  Each device
+     * section can contribute at most one entry.  The sum of the two is
+     * guaranteed to be larger than the maximum possible number of entries.
+     * Do this calculation and memory allocation once now to eliminate the
+     * need for realloc calls inside the loop.
+     */
+    if ( !xf86DoProbe && !(xf86DoConfigure && xf86DoConfigurePass1) ) {
+	unsigned max_entries = numDevs;
+	for (ppPci = xf86PciVideoInfo ; *ppPci != NULL ; ppPci++) {
+	    max_entries++;
 	}
-    } else if (vendorID == PCI_VENDOR_GENERIC) {
-	for (ppPci = xf86PciVideoInfo; *ppPci != NULL; ppPci++) {
-	    for (id = PCIchipsets; id->PCIid != -1; id++) {
-		if (id->PCIid == xf86CheckPciGAType(*ppPci)) {
+
+	instances = xnfalloc( max_entries * sizeof(struct Inst) );
+    }
+
+    for (ppPci = xf86PciVideoInfo; *ppPci != NULL; ppPci++) {
+	unsigned device_class = ((*ppPci)->class << 16)
+	    | ((*ppPci)->subclass << 8) | ((*ppPci)->interface);
+	Bool foundVendor = FALSE;
+
+
+	pPci = *ppPci;
+
+	/* Convert the pre-PCI 2.0 device class for a VGA adapter to the
+	 * 2.0 version of the same class.
+	 */
+	if ( device_class == 0x00000101 ) {
+	    device_class = 0x00030000;
+	}
+
+
+	/* Find PCI devices that match the given vendor ID.  The vendor ID is
+	 * either specified explicitly as a parameter to the function or
+	 * implicitly encoded in the high bits of id->PCIid.
+	 *
+	 * The first device with a matching vendor is recorded, even if the
+	 * device ID doesn't match.  This is done because the Device section
+	 * in the xorg.conf file can over-ride the device ID.  A matching PCI
+	 * ID might not be found now, but after the device ID over-ride is
+	 * applied there /might/ be a match.
+	 */
+	for (id = PCIchipsets; id->PCIid != -1; id++) {
+	    const unsigned vendor_id = ((id->PCIid & 0xFFFF0000) >> 16)
+		| vendorID;
+	    const unsigned device_id = (id->PCIid & 0x0000FFFF);
+	    const unsigned match_class = 0x00030000 | id->PCIid;
+
+	    if ( (vendor_id == pPci->vendor)
+		 || ((vendorID == PCI_VENDOR_GENERIC) && (match_class == device_class)) ) {
+		if ( !foundVendor && (instances != NULL) ) {
 		    ++allocatedInstances;
-		    instances = xnfrealloc(instances,
-				  allocatedInstances * sizeof(struct Inst));
 		    instances[allocatedInstances - 1].pci = *ppPci;
 		    instances[allocatedInstances - 1].dev = NULL;
 		    instances[allocatedInstances - 1].claimed = FALSE;
-		    instances[allocatedInstances - 1].foundHW = TRUE;
-		    instances[allocatedInstances - 1].chip = id->numChipset;
+		    instances[allocatedInstances - 1].foundHW = FALSE;
 		    instances[allocatedInstances - 1].screen = 0;
-		    numFound++;
+		    foundVendor = TRUE;
 		}
-	    }
-	}
-    } else {
-	/* Find PCI devices that match the given vendor ID */
-	for (ppPci = xf86PciVideoInfo; (ppPci != NULL)
-	       && (*ppPci != NULL); ppPci++) {
-	    if ((*ppPci)->vendor == vendorID) {
-		++allocatedInstances;
-		instances = xnfrealloc(instances,
-			      allocatedInstances * sizeof(struct Inst));
-		instances[allocatedInstances - 1].pci = *ppPci;
-		instances[allocatedInstances - 1].dev = NULL;
-		instances[allocatedInstances - 1].claimed = FALSE;
-		instances[allocatedInstances - 1].foundHW = FALSE;
-	        instances[allocatedInstances - 1].screen = 0;
-
-		/* Check if the chip type is listed in the chipsets table */
-		for (id = PCIchipsets; id->PCIid != -1; id++) {
-		    if (id->PCIid == (*ppPci)->chipType) {
-			instances[allocatedInstances - 1].chip
-			    = id->numChipset;
+		if ( (device_id == pPci->chipType)
+		     || ((vendorID == PCI_VENDOR_GENERIC) 
+			 && (match_class == device_class)) ) {
+		    if ( instances != NULL ) {
 			instances[allocatedInstances - 1].foundHW = TRUE;
-			numFound++;
-			break;
+			instances[allocatedInstances - 1].chip = id->numChipset;
 		    }
+
+
+		    if ( xf86DoConfigure && xf86DoConfigurePass1 ) {
+			if ( xf86CheckPciSlot(pPci->bus, pPci->device,
+					      pPci->func) ) {
+			    GDevPtr pGDev = 
+			      xf86AddDeviceToConfigure( drvp->driverName,
+							pPci, -1 );
+			    if (pGDev) {
+				/* After configure pass 1, chipID and chipRev
+				 * are treated as over-rides, so clobber them
+				 * here.
+				 */
+				pGDev->chipID = -1;
+				pGDev->chipRev = -1;
+			    }
+
+			    numFound++;
+			}
+		    }
+		    else {
+			numFound++;
+		    }
+
+		    break;
 		}
 	    }
 	}
     }
+
+
+    /* In "probe only" or "configure" mode (signaled by instances being NULL),
+     * our work is done.  Return the number of detected devices.
+     */
+    if ( instances == NULL ) {
+	return numFound;
+    }
+
 
     /*
      * This may be debatable, but if no PCI devices with a matching vendor
@@ -1699,34 +1765,6 @@ xf86MatchPciInstances(const char *driverName, int vendorID,
 	return 0;
     }
 
-    if (xf86DoProbe) {
-	xfree(instances);
-	return numFound;
-    }
-
-    if (xf86DoConfigure && xf86DoConfigurePass1) {
-	GDevPtr pGDev;
-	int actualcards = 0;
-	for (i = 0; i < allocatedInstances; i++) {
-	    pPci = instances[i].pci;
-	    if (instances[i].foundHW) {
-		if (!xf86CheckPciSlot(pPci->bus, pPci->device, pPci->func))
-		    continue;
-		actualcards++;
-	    	pGDev = xf86AddDeviceToConfigure(drvp->driverName,
-						 instances[i].pci, -1);
-		if (pGDev) {
-		   /*
-		    * XF86Match???Instances() treat chipID and chipRev as
-		    * overrides, so clobber them here.
-		    */
-		   pGDev->chipID = pGDev->chipRev = -1;
-		}
-	    }
-	}
-	xfree(instances);
-	return actualcards;
-    }
 
 #ifdef DEBUG
     ErrorF("%s instances found: %d\n", driverName, allocatedInstances);
@@ -1749,9 +1787,6 @@ xf86MatchPciInstances(const char *driverName, int vendorID,
 					    pPci->device,
 					    pPci->func)) {
 		    allocatedInstances++;
-		    instances = xnfrealloc(instances,
-					   allocatedInstances * 
-					   sizeof(struct Inst));
 		    instances[allocatedInstances - 1] = instances[i];
 		    instances[allocatedInstances - 1].screen =
 		      				devList[j]->screen;
@@ -1763,9 +1798,10 @@ xf86MatchPciInstances(const char *driverName, int vendorID,
     }
 
     for (i = 0; i < allocatedInstances; i++) {
+	GDevPtr dev = NULL;
+	GDevPtr devBus = NULL;
+
 	pPci = instances[i].pci;
-	devBus = NULL;
-	dev = NULL;
 	for (j = 0; j < numDevs; j++) {
 	    if (devList[j]->busID && *devList[j]->busID) {
 		if (xf86ComparePciBusString(devList[j]->busID, pPci->bus,
@@ -1821,10 +1857,11 @@ xf86MatchPciInstances(const char *driverName, int vendorID,
      * If chipset is not valid ignore BusSlot completely.
      */
     for (i = 0; i < allocatedInstances && numClaimedInstances > 0; i++) {
+	MessageType from = X_PROBED;
+
 	if (!instances[i].claimed) {
 	    continue;
 	}
-	from = X_PROBED;
 	if (instances[i].dev->chipset) {
 	    for (c = chipsets; c->token >= 0; c++) {
 		if (xf86NameCmp(c->name, instances[i].dev->chipset) == 0)
