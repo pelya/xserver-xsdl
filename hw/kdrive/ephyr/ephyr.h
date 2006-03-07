@@ -33,6 +33,7 @@
 #include "kdrive.h"
 #include "kkeymap.h"
 #include "hostx.h"
+#include "exa.h"
 
 #ifdef RANDR
 #include "randrstr.h"
@@ -44,12 +45,26 @@ typedef struct _ephyrPriv {
     CARD8	*base;
     int		bytes_per_line;
 } EphyrPriv;
-    
+
+typedef struct _ephyrFakexaPriv {
+    ExaDriverRec exa;
+    Bool is_synced;
+
+    /* The following are arguments and other information from Prepare* calls
+     * which are stored for use in the inner calls.
+     */
+    int op;
+    PicturePtr pSrcPicture, pMaskPicture, pDstPicture;
+    PixmapPtr pSrc, pDst;
+    GCPtr pGC;
+} EphyrFakexaPriv;
+
 typedef struct _ephyrScrPriv {
     Rotation	randr;
     Bool	shadow;
     PixmapPtr	pShadow;
     DamagePtr   pDamage;
+    EphyrFakexaPriv *fakexa;
 } EphyrScrPriv;
 
 extern KdCardFuncs  ephyrFuncs;
@@ -161,5 +176,18 @@ extern Bool ephyrCursorInit(ScreenPtr pScreen);
 
 extern void ephyrCursorEnable(ScreenPtr pScreen);
 
+/* ephyr_draw.c */
+
+Bool
+ephyrDrawInit(ScreenPtr pScreen);
+
+void
+ephyrDrawEnable(ScreenPtr pScreen);
+
+void
+ephyrDrawDisable(ScreenPtr pScreen);
+
+void
+ephyrDrawFini(ScreenPtr pScreen);
 
 #endif

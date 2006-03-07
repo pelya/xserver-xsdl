@@ -1,5 +1,22 @@
 2006-03-07  Eric Anholt  <anholt@FreeBSD.org>
 
+	* hw/kdrive/ephyr/Makefile.am:
+	* hw/kdrive/ephyr/ephyr.h:
+	* hw/kdrive/ephyr/ephyr_draw.c: (ephyrPrepareSolid), (ephyrSolid),
+	(ephyrDoneSolid), (ephyrPrepareCopy), (ephyrCopy), (ephyrDoneCopy),
+	(ephyrCheckComposite), (ephyrPrepareComposite), (ephyrComposite),
+	(ephyrDoneComposite), (ephyrMarkSync), (ephyrWaitMarker),
+	(ephyrDrawInit), (ephyrDrawEnable), (ephyrDrawDisable),
+	(ephyrDrawFini), (exaDDXDriverInit):
+	Add a new flag to ephyr, "-fakexa", which turns on an EXA acceleration
+	implementation that calls fb to get its work done.  The purpose is to
+	have a trusted EXA driver for use with testing changes to the core of
+	EXA.  However, fakexa has not received much testing yet, lacks offscreen
+	pixmaps support, and doesn't reliably provide garbage when EXA doesn't
+	get its syncing right.  All of these should be fixed soon.
+
+2006-03-07  Eric Anholt  <anholt@FreeBSD.org>
+
 	* hw/xfree86/exa/exa.c:
 	* hw/xfree86/exa/exa.h:
 	* hw/xfree86/exa/exa_accel.c:

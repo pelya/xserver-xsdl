@@ -62,6 +62,7 @@ ddxUseMsg (void)
   ErrorF("-parent XID   Use existing window as Xephyr root win\n");
   ErrorF("-host-cursor  Re-use exisiting X host server cursor\n");
   ErrorF("-fullscreen   Attempt to run Xephyr fullscreen\n");
+  ErrorF("-fakexa	Simulate acceleration using software rendering\n");
   ErrorF("\n");
 
   exit(1);
@@ -91,6 +92,14 @@ ddxProcessArgument (int argc, char **argv, int i)
   else if (!strcmp (argv[i], "-fullscreen"))
     {
       hostx_use_fullscreen();
+      return 1;
+    }
+  else if (!strcmp (argv[i], "-fakexa"))
+    {
+      ephyrFuncs.initAccel = ephyrDrawInit;
+      ephyrFuncs.enableAccel = ephyrDrawEnable;
+      ephyrFuncs.disableAccel = ephyrDrawDisable;
+      ephyrFuncs.finiAccel = ephyrDrawFini;
       return 1;
     }
   else if (argv[i][0] == ':')
