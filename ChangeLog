@@ -1,3 +1,16 @@
+2006-03-07  Eric Anholt  <anholt@FreeBSD.org>
+
+	* hw/xfree86/exa/exa.c:
+	* hw/xfree86/exa/exa.h:
+	* hw/xfree86/exa/exa_accel.c:
+	* hw/xfree86/exa/exa_migration.c:
+	* hw/xfree86/exa/exa_offscreen.c:
+	* hw/xfree86/exa/exa_priv.h:
+	* hw/xfree86/exa/exa_render.c:
+	* hw/xfree86/exa/exa_unaccel.c:
+	Remove stale EXA files, which failed to get removed during the move to
+	top-level, somehow.
+
 2006-03-07  Luc Verhaegen  <libv@skynet.be>
 
 	* hw/xfree86/common/xf86Mode.c: (xf86CheckModeForMonitor):
