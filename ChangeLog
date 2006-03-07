@@ -1,5 +1,10 @@
 2006-03-07  Eric Anholt  <anholt@FreeBSD.org>
 
+	* hw/kdrive/ephyr/ephyr_draw.c:
+	Add appropriate MIT license.  Oops.
+
+2006-03-07  Eric Anholt  <anholt@FreeBSD.org>
+
 	* hw/kdrive/ephyr/Makefile.am:
 	* hw/kdrive/ephyr/ephyr.h:
 	* hw/kdrive/ephyr/ephyr_draw.c: (ephyrPrepareSolid), (ephyrSolid),
