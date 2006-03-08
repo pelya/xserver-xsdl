@@ -1,3 +1,13 @@
+2006-03-08  Lars Knoll <lars@trolltech.com>
+
+	* render/picture.c
+	Initialize the format of a source picture to PICT_a8r8g8b8.
+	Fixes a failure in the gradients test of rendercheck.
+	In the long term we could do better by setting the format
+	to something without alpha whenever the gradient doesn't
+	contain colors with alpha. This triggers a reduction of
+	the over operation to a pure source operation.
+
 2006-03-07  Eric Anholt  <anholt@FreeBSD.org>
 
 	* hw/xfree86/common/xf86fbman.c: (xf86InitFBManager):

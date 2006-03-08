@@ -977,6 +977,7 @@ static PicturePtr createSourcePicture(void)
     PicturePtr pPicture;
     pPicture = (PicturePtr) xalloc(sizeof(PictureRec));
     pPicture->pDrawable = 0;
+    pPicture->format = PICT_a8r8g8b8;
     pPicture->pFormat = 0;
     pPicture->pNext = 0;
     pPicture->devPrivates = 0;
