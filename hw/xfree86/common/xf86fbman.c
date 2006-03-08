@@ -1209,7 +1209,7 @@ xf86InitFBManager(
    }
 
    if (FullBox->y2 < FullBox->y1) return FALSE;
-   if (FullBox->x2 < FullBox->x2) return FALSE;
+   if (FullBox->x2 < FullBox->x1) return FALSE;
 
    REGION_INIT(pScreen, &ScreenRegion, &ScreenBox, 1); 
    REGION_INIT(pScreen, &FullRegion, FullBox, 1); 

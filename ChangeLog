@@ -1,3 +1,9 @@
+2006-03-07  Eric Anholt  <anholt@FreeBSD.org>
+
+	* hw/xfree86/common/xf86fbman.c: (xf86InitFBManager):
+	Bug #6150: Do the obvious fix of an insane sanity check in
+	xf86InitFBManager. (Julio M. Merino Vidal)
+
 2006-03-07  Ian Romanick  <idr@us.ibm.com>
 
 	* hw/xfree86/common/xf86DoProbe.c: (DoProbe):
