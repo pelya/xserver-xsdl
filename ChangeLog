@@ -1,3 +1,7 @@
+2006-03-09  Matthias Hopf  <mhopf@suse.de>
+
+	* configure.ac: Do Xorg configure checks for Xgl only as well
+
 2006-03-08  Eric Anholt  <anholt@FreeBSD.org>
 
 	* exa/exa.c: (exaGetPixmapOffset), (exaPixmapIsOffscreen),

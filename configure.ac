@@ -994,7 +994,7 @@ xorg_bus_ppcpci=no
 xorg_bus_sparcpci=no
 xorg_bus_sparc=no
 
-if test "x$XORG" = xyes; then
+if test "x$XORG" = xyes -o "x$XGL" = xyes; then
 	XORG_DDXINCS='-I$(top_srcdir)/hw/xfree86 -I$(top_srcdir)/hw/xfree86/include -I$(top_srcdir)/hw/xfree86/common'
 	XORG_OSINCS='-I$(top_srcdir)/hw/xfree86/os-support -I$(top_srcdir)/hw/xfree86/os-support/bus -I$(top_srcdir)/os'
 	XORG_INCS="$XORG_DDXINCS $XORG_OSINCS"
