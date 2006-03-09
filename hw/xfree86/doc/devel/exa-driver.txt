@@ -18,470 +18,49 @@ ifdef so that it can easily be turned off/removed in the future.
 Setting the flag and checking for AccelMethod can be done in the driver's
 Options parsing routine.
 
-Global symbols
---------------
-XF86EXA will be defined to a nonzero value if your X server codebase supports
-the EXA API.  Use it to conditionalize your new EXA code if your driver is
-shared with a non-EXA codebases.  If present, necessary functions, structures
-and defines will be located in "exa.h".
+Loading EXA
+------------
+EXA drivers in the XFree86 DDX should use the loadable module loader to load
+the EXA core.  Careful versioning allows the EXA API to be extended without
+breaking the ABI for older versions of drivers.  Example code for loading EXA:
 
-EXA library functions
----------------------
-Use the following functions to initialize your driver's EXA hooks, check the
-version, allocate memory, etc.
+static const char *exaSymbols[] = {
+    "exaDriverAlloc",
+    "exaDriverInit",
+    "exaDriverFini",
+    "exaOffscreenAlloc",
+    "exaOffscreenFree",
+    "exaGetPixmapOffset",
+    "exaGetPixmapPitch",
+    "exaGetPixmapSize",
+    "exaMarkSync",
+    "exaWaitSync",
+    NULL
+};
 
-  /**
-   * exaGetVersion - retrieve EXA version number from server
-   *
-   * Simply returns the EXA version number, useful for checking for EXA
-   * features at runtime.
-   */
-  unsigned int exaGetVersion(void)
+	if (info->useEXA) {
+	    info->exaReq.majorversion = 2;
+	    info->exaReq.minorversion = 0;
 
-  /**
-   * exaDriverInit - tell EXA about a new EXA driver
-   * @pScreen - current screen
-   * @driverPtr - driver structure
-   *
-   * Tell EXA about the driver described by @pScreenInfo.
-   *
-   * Returns TRUE for success, FALSE for failure.
-   */
-  Bool exaDriverInit(ScreenPtr pScreen, ExaDriverPtr driverPtr)
+	    if (!LoadSubModule(pScrn->module, "exa", NULL, NULL, NULL,
+			       &info->exaReq, &errmaj, &errmin)) {
+		LoaderErrorMsg(NULL, "exa", errmaj, errmin);
+		return FALSE;
+	    }
+	    xf86LoaderReqSymLists(exaSymbols, NULL);
+	}
 
-  /**
-   * exaDriverFini - teardown an EXA driver
-   * @pScreen: current screen
-   *
-   * Tell EXA that an EXA driver associated with @pScreen is gone.
-   */
-  void exaDriverFini(ScreenPtr pScreen)
+EXA is then initialized using exaDriverAlloc and exaDriverInit.  See doxygen
+documentation for getting started there.
 
-  /**
-   * exaOffscreenAlloc - allocate offscreen memory
-   * @pScreen: current screen
-   * @size: size in bytes
-   * @align: alignment constraints, must be a power of two
-   * @locked: allocate the memory as locked?
-   * @save: offscreen save routine
-   * @privdata: private driver data for @save routine
-   *
-   * Allocate some offscreen memory from the device associated with @pScreen.
-   * @size and @align determine where and how large the section is, and
-   * @locked will determine whether the new memory should be freed later on or
-   * if it should be kept in card memory until freed explicitly.  @save and
-   * @privData are used to make room for the new allocation in scratch space,
-   * if necessary, and only need to be passed in if your driver doesn't
-   * support UploadToScreen and uses scratch space instead.
-   *
-   * Note that @align must be a power of two, currently.
-   *
-   * Returns NULL on failure, or a pointer to the new offscreen memory on
-   * success.
-   */
-  ExaOffscreenArea *exaOffscreenAlloc(ScreenPtr pScreen, int size, int align,
-				      Bool locked, ExaOffscreenSaveProc save,
-				      pointer privData);
-
-  /**
-   * exaOffscreenFree - free offscreen memory
-   * @pScreen: current screen
-   * @area: area to free
-   *
-   * Free some offscreen memory previously allocated with exaOffscreenAlloc,
-   * described by @area.
-   *
-   * Returns a pointer to to the freed area.
-   */
-  ExaOffscreenArea *exaOffscreenFree(ScreenPtr pScreen, ExaOffscreenArea *area)
-
-  /**
-   * exaInitCard - initialize EXA card structure
-   * @exa: card structure to initialize
-   * @sync: card needs sync?
-   * @memory_base: pointer to beginning of framebuffer memory
-   * @off_screen_base: offset to the first free byte of offscreen memory
-   * @memory_size: size of framebuffer memory
-   * @offscreen_byte_align: card alignment restriction, in bytes
-   * @offscreen_pitch: card pitch alignment restriction, in bytes
-   * @flags: flags
-   * @max_x: maximum width of screen
-   * @max_y: maximum height of screen
-   *
-   * This is just a wrapper around the initialization of the EXA driver's card
-   * structure.
-   *
-   * The flags argument specifies what features the card supports, two flags
-   * are currently defined:
-   *   %EXA_OFFSCREEN_PIXMAPS - offscreen pixmaps are supported
-   *   %EXA_OFFSCREEN_ALIGN_POT - offscreen objects must have a power of two
-   *     alignment of their pitch
-   *   %EXA_TWO_BITBLT_DIRECTIONS - device only supports blts in two
-   *     directions, +xdir,+ydir or -xdir,-ydir (identical to the XAA flag).
-   */
-  void exaInitCard(EXADriverPtr *exa, Bool sync, CARD8 *memory_base,
-		   unsigned longoff_screen_base, unsigned long memory_size,
-		   int offscreen_byte_align, int offscreen_pitch, int flags,
-		   int max_x, int max_y)
-
-  /**
-   * exaMarkSync - mark a sync point
-   * @pScreen: current screen
-   *
-   * Record a marker for later synchronization.  May be useful to drivers that
-   * need to tell EXA that they've used the accelerator.
-   */
-  void exaMarkSync(ScreenPtr pScreen)
-
-  /**
-   * exaWaitSync - wait for the last marker to complete
-   * @pScreen: current screen
-   *
-   * Wait until the device associated with @pScreen is done with the operation
-   * associated with the last exaMarkSync() call.
-   */
-  void exaWaitSync(ScreenPtr pScreen)
-
-  /**
-   * exaOffscreenInit - initialize offscreen memory
-   * @pScreen: current screen
-   *
-   * Private, core server use only (unless someone comes up with a good
-   * reason for it to be otherwise).
-   */
-  Bool exaOffscreenInit(ScreenPtr pScreen)
-
-  /**
-   * exaGetPixmapPitch - return the pitch for a pixmap
-   * @p: pixmap
-   *
-   * exaGetPixmapPitch() will calculate and return the pitch for the pixmap @p.
-   */
-  int exaGetPixmapPitch(PixmapPtr p)
-
-  /**
-   * exaGetPixmapOffset - return the offset of a pixmap
-   * @p: pixmap
-   *
-   * exaGetPixmapOffset() will calculate and return the offset in video memory
-   * of the pixmap @p.
-   */
-  unsigned int exaGetPixmapOffset(PixmapPtr p)
-
-EXA driver hooks
-----------------
-EXA requires the addition of new routines to your driver's acceleration
-implementation.  The following structure defines the EXA acceleration API,
-some hooks are required to be implemented in your driver, others are optional.
-
-Each of these routines has an associated function pointer in the ExaAccelInfo
-structure.  At a minimum, your driver must allocate an ExaDriverRec struture,
-fill out the ExaCardInfoRec member structure, and define the miminum required
-functions (described below) and hook them into the ExaAccelInfo member
-structure.
-
-Note that for routines that take a source and destination pixmap, the pitches
-may be different.
-
-  /**
-   * PrepareSolid - setup for solid fill
-   * @pPixmap: Pixmap destination
-   * @alu: raster operation
-   * @planemask: mask for fill
-   * @fg: foreground color
-   *
-   * Setup the card's engine for a solid fill operation into @pPixmap.
-   * @alu specifies the raster op for the fill, @planemask specifies an
-   * optional mask, and @fg specifies the foreground color for the fill.
-   *
-   * You can add additional fields to your driver record structure to store
-   * state needed by this routine, if necessary.
-   *
-   * Return TRUE for if your driver can accelerate the operation with the
-   * parameters given, or FALSE if EXA should fallback to manual rendering.
-   *
-   * Required.
-   */
-  Bool (*PrepareSolid)(PixmapPtr pPixmap, int alu, Pixel planemask,
-                       Pixel fg);
-
-  /**
-   * Solid - solid fill operation
-   * @pPixmap: Pixmap destination
-   * @x1: left coordinate
-   * @y1: top coordinate
-   * @x2: right coordinate
-   * @y2: bottom coordinate
-   *
-   * Perform the fill as specified by PrepareSolid, from x1,y1 to x2,y2 within
-   * @pPixmap.  Many devices just need the offset, pitch, start x,y, height
-   * and width to do the fill; others may require you to calculate the
-   * destination address including the offset plus the adjustment for the
-   * pitch, x and y.  Check out a few driver implementations for ideas about
-   * what might work best for your particular device.
-   *
-   * Must not fail.
-   *
-   * Required.
-   */
-  void (*Solid)(PixmapPtr pPixmap, int x1, int y1, int x2, int y2);
-
-  /**
-   * DoneSolid - finish a solid fill
-   * @pPixmap: Pixmap to finish
-   *
-   * Finish the solid fills done in the preceding Solid calls.
-   *
-   * Must not fail.
-   *
-   * Required.
-   */
-  void (*DoneSolid)(PixmapPtr pPixmap);
-
-  /**
-   * PrepareCopy - setup a copy operation
-   * @pSrcPixmap: source Pixmap
-   * @pDstPixmap: destination Pixmap
-   * @xdir: x direction for the copy
-   * @ydir: y direction for the copy
-   * @alu: raster operation
-   * @planemask: optional planemask for the copy
-   *
-   * Copy @pSrcPixmap to @pDstPixmap in the x and y direction specified,
-   * with the raster operation @alu.  @planemask specifies an optional
-   * color plane mask for the copy.  Note that pSrcPixmap isn't available in
-   * the subsequent Copy routine, so you may have to store some of its values
-   * elsewhere for later use.
-   *
-   * You can add additional fields to your driver record structure to store
-   * state needed by this routine, if necessary, for instance calculating the
-   * framebuffer offset in PrepareCopy and then using it in the subsequent
-   * Copy call.
-   *
-   * Return TRUE if your driver can accelerate the copy operation with the
-   * parameters given, or FALSE if EXA should fallback to manual rendering.
-   *
-   * Required.
-   */
-  Bool (*PrepareCopy)(PixmapPtr pSrcPixmap, PixmapPtr pDstPixmap, int xdir,
-                      int ydir, int alu, Pixel planemask);
-
-  /**
-   * Copy - perform a copy between two pixmaps
-   * @pDstPixmap: destination Pixmap
-   * @srcX: source X coordinate
-   * @srcY: source Y coordinate
-   * @dstX: destination X coordinate
-   * @dstY: destination Y coordinate
-   * @width: copy width
-   * @height: copy height
-   *
-   * Perform the copy setup by the previous PrepareCopy call, from
-   * (@srcX,@srcY) in the source pixmap to (@dstX,@dstY) in pDstPixmap using
-   * @width and @height to determine the quantity of the copy.
-   *
-   * Must not fail.
-   *
-   * Required.
-   */
-  void (*Copy)(PixmapPtr pDstPixmap, int srcX, int srcY, int dstX, int dstY,
-	       int width, int height);
-
-  /**
-   * DoneCopy - finish a copy operation
-   * @pDstPixmap: Pixmap to complete
-   *
-   * Tear down the copy operation for @pDstPixmap, if necessary.
-   *
-   * Must not fail.
-   *
-   * Required.
-   */
-  void (*DoneCopy)(PixmapPtr pDstPixmap);
-
-  /**
-   * CheckComposite - check to see if a composite operation is doable
-   * @op: composite operation
-   * @pSrcPicture: source Picture
-   * @pMaskPicture: mask Picture
-   * @pDstPicture: destination Picture
-   *
-   * Check to see if @pSrcPicture can be composited onto @pDstPicture with
-   * @pMaskPicture as a mask.
-   *
-   * Return TRUE if it should be possible to accelerate the given operation
-   * once the pixmap is migrated (so don't fail just because it looks like the
-   * pixmap is in the wrong place), or FALSE if it can't be accelerated.
-   *
-   * [Insert implementation hints here.]
-   *
-   * Optional but recommended.
-   */
-  Bool (*CheckComposite)(int op, PicturePtr pSrcPicture,
-                         PicturePtr pMaskPicture, PicturePtr pDstPicture);
-
-  /**
-   * PrepareComposite - setup a composite operation
-   * @op: composite operation
-   * @pSrcPicture: source Picture
-   * @pMaskPicture: mask Picture
-   * @pDstPicture: destination Picture
-   * @pSrc: Pixmap source
-   * @pMask: Pixmap mask
-   * @pDst: Pixmap destination
-   *
-   * Setup the Porter-Duff compositing operation, @op, with the passed in
-   * parameters.
-   *
-   * Return TRUE if the operation can be accelerated, or FALSE if the driver
-   * can't accelerate the operation (e.g. if the pixmaps are incompatible with
-   * acceleration).
-   *
-   * Optional but recommended.
-   */
-  Bool (*PrepareComposite)(int op, PicturePtr pSrcPicture,
-                           PicturePtr pMaskPicture, PicturePtr pDstPicture,
-                           PixmapPtr pSrc, PixmapPtr pMask, PixmapPtr pDst);
-
-  /**
-   * Composite - perform a composite operation
-   * @pDst: destination Pixmap
-   * @srcX: source X coordinate
-   * @srcY: source Y coordinate
-   * @maskX: X coordinate of mask
-   * @maskY: Y coordinate of mask
-   * @dstX: destination X coordinate
-   * @dstY: destination Y coordinate
-   * @width: operation width
-   * @height: operation height
-   *
-   * Perform a composite operation setup by the last PrepareComposite call.
-   *
-   * Must not fail.
-   *
-   * Optional but recommended.
-   */
-  void (*Composite)(PixmapPtr pDst, int srcX, int srcY, int maskX, int maskY,
-                    int dstX, int dstY, int width, int height);
-
-  /**
-   * DoneComposite - composite operation teardown
-   * @pDst: Pixmap in question
-   *
-   * Finish and teardown the composite operation performed by the last
-   * Composite call.
-   *
-   * Must not fail.
-   *
-   * Optional.
-   */
-  void (*DoneComposite)(PixmapPtr pDst);
-
-  /**
-   * UploadToScreen - load memory into video RAM
-   * @pDst: destination Pixmap
-   * @src: source in system memory
-   * @src_pitch: width of source
-   *
-   * Copy system memory from @src to the PixmapPtr @pDst @src_pitch
-   * bytes at a time.  UploadToScreen is used to move Pixmaps from system
-   * memory to the framebuffer, where alignment restrictions may increase the
-   * pitch.
-   *
-   * Return TRUE if the operation can be accelerated (e.g. the driver can DMA
-   * @src into the framebuffer) or FALSE if EXA should just memcpy it.
-   *
-   * Optional but recommended.
-   */
-  Bool (*UploadToScreen)(PixmapPtr pDst, char *src, int src_pitch);
-
-  /**
-   * UploadToScratch - load memory into video RAM
-   * @pSrc: source Pixmap
-   * @pDst: destination Pixmap
-   *
-   * Recommended in the absence of UploadToScreen, otherwise don't bother.
-   * Must setup space (likely reserved at driver startup time) in framebuffer
-   * memory, copy @pSrc from system memory into @pDst in framebuffer memory,
-   * and adjust pDst->devKind to the pitch of the destination and
-   * pDst->devPrivate.ptr to the pointer to the area.  The driver is
-   * responsible for syncing UploadToScratch.  Only data from the last
-   * UploadToScratch is required to be valid at any given time.
-   *
-   * Return TRUE for success, FALSE for failure.
-   *
-   * Optional, recommended only if UploadToScreen isn't available.
-   */
-  Bool (*UploadToScratch)(PixmapPtr pSrc, PixmapPtr pDst);
-
-  /**
-   * DownloadFromScreen - copy from video RAM to system memory
-   * @pSrc: source Pixmap
-   * @x: starting X coordinate in Pixmap
-   * @y: starting Y coordinate in Pixmap
-   * @w: copy width
-   * @h: copy height
-   * @dst: destination in system memory
-   * @dst_pitch: target width
-   *
-   * Just copy (x,y)->(x+w,y+h) from @pSrc to @dst using @dst_pitch
-   * width?
-   *
-   * Return TRUE for success, FALSE for failure.
-   *
-   * Optional but recommended.
-   */
-  Bool (*DownloadFromScreen)(PixmapPtr pSrc, int x, int y, int w, int h,
-                             char *dst, int dst_pitch);
-
-  /**
-   * MarkSync - return a marker for later use by WaitMarker
-   * @pScreen: current screen
-   *
-   * Return a command marker for use by WaitMarker.  This is an optional
-   * optimization that can keep WaitMarker from having to idle the whole
-   * engine.
-   *
-   * Returns an integer command id marker.
-   *
-   * Optional.
-   */
-  int (*MarkSync)(ScreenPtr screen);
-
-  /**
-   * WaitMarker - finish the last command
-   * @pScreen: current screen
-   * @marker: command marker
-   *
-   * Return after the command specified by @marker is done, or just idle
-   * the whole engine (the latter is your only option unless you implement
-   * MarkSync()).
-   *
-   * Must not fail.
-   *
-   * Required.
-   */
-  void (*WaitMarker)(ScreenPtr pScreen, int marker);
-
-  /**
-   * ScratchSave - save the scratch area, or just throw it away
-   * @pScreen: ScreenPtr for this screen
-   * @area: offscreen area pointer to save
-   *
-   * This routine is responsible for saving the scratch area for later
-   * use, but can optionally just throw it away by setting the driver's
-   * exa_scratch field to NULL.  This is the routine that should be passed to
-   * exaOffscreenAlloc so it can save the scratch area if necessary.  It might
-   * be implemented as a copy from video RAM to AGP space, for example, or
-   * just free the scratch space, track that in the driver, and then
-   * reallocate it later.
-   *
-   * Must not fail.
-   *
-   * Optional and not recommended since you should be implementing
-   * UploadToScreen instead of using scratch space!
-   */
-  void ScratchSave(ScreenPtr pScreen, ExaOffscreenArea *area);
+Further documentation
+------------
+The EXA driver interface and public API is documented using doxygen in
+xserver/xorg/exa/.  To build the documentation, run:
+  doxygen -g
+  doxygen Doxyfile
+The resulting documentation will appear an html/index.html under the current
+directory.
 
 EXA initialization
 ------------------
@@ -490,98 +69,16 @@ EXA support is enabled, with appropriate error handling (i.e.  NoAccel and
 NoXvideo should be set to true if EXA fails to initialize for whatever
 reason).
 
-A few, card specific fields need to be initialized (assuming your driver uses
-a variable named EXADriverPtr pointing to where your ExaDriverRec is
-allocated):
-
-  /*
-   * EXA uses memoryBase to access the framebuffer, while memorySize and
-   * offscreenBase are used in accessing offscreen memory.  EXA will allocate
-   * memory from memoryBase + offscreenBase to memoryBase + memorySize, so be
-   * sure to set them accordingly as each device's memory map is different.
-   */
-  EXADriverPtr->card.memoryBase = ? /* base of the framebuffer */
-  EXADriverPtr->card.memorySize = ? /* end of offscreen memory */
-  /* offset of offscreen memory relative to memoryBase */
-  EXADriverPtr->card.offScreenBase = ?
-
-  /*
-   * If your offscreen memory is just after your framebuffer, which is at the
-   * start of memory, offScreenBase may be something like:
-   *   pScrn->virtualX * pScrn->virtualY * ((pScrn->bitsPerPixel + 7) / 8)
-   * (the + 7 / 8 causes the integer division to round up instead of
-   * round down).
-   */
-
-  /*
-   * Alignment settings for pixmaps, to allow for hardware acceleration on
-   * them.  Not applied to all pixmaps--the visible screen is an exception,
-   * and thus Prepare* acceleration hooks should test for these and fail
-   * appropriately.  pixmapOffsetAlign is the value that the pixmap's offset
-   * from the beginning of the framebuffer must be aligned to.
-   * pixmapPitchAlign is the value that the pitch of a pixmap must be aligned
-   * to (along with ALIGN_POT).
-   */
-  EXADriverPtr->card.pixmapOffsetAlign = ?
-  EXADriverPtr->card.pixmapPitchAlign = ? /* also called stride */
-
-  /* Max screen size supported by the card? */
-  EXADriverPtr->card.maxX = ?
-  EXADriverPtr->card.maxY = ?
-
 The AccelInit routine also needs to make sure that there's enough offscreen
 memory for certain operations to function, like Xvideo, which should advertise
 a maximum size no larger than can be dealt with given the amount of offscreen
 memory available.
-
-And of course all the callbacks you implemented as described above (with
-whatever names you've chosen):
-
-  EXADriverPtr->accel.WaitMarker = WaitMarker;
-
-  /* Solid fill & copy, the bare minimum */
-  EXADriverPtr->accel.PrepareSolid = PrepareSolid;
-  EXADriverPtr->accel.Solid = Solid;
-  EXADriverPtr->accel.DoneSolid = DoneSolid;
-  EXADriverPtr->accel.PrepareCopy = PrepareCopy;
-  EXADriverPtr->accel.Copy = Copy;
-  EXADriverPtr->accel.DoneCopy = DoneCopy;
-
-  /* Composite pointers if implemented... */
-
-  /* Upload, download to/from Screen, optional */
-  EXADriverPtr->accel.UploadToScreen = UploadToScreen;
-  EXADriverPtr->accel.DownloadFromScreen = DownloadFromScreen;
-
-After setting up the above, AccelInit should call exaDriverInit and pass in
-the current Screen and the new EXADriverPtr that was just allocated and filled
-out (don't forget to check for errors as that routine can fail).
-
-If your driver doesn't support UploadToScreen, you should allocate some
-scratch space for use by commonly used pixmaps (e.g. glyphs).  Note that it's
-much better to implement UploadToScreen than to allocate scratch space, but if
-necessary allocate about as much as you'd need for a line of text.  E.g.
-
-  pDrv->exa_scratch = exaOffscreenAlloc(pScreen, 128 * 1024, 16, TRUE,
-					ScratchSave, pDrv);
-
-  if(pDrv->exa_scratch) {
-    pDrv->exa_scratch_next = pDrv->exa_scratch->offset;
-    pDrv->EXADriverPtr->accel.UploadToScratch = UploadToScratch;
-  }
 
 EXA and Xv
 ----------
 Video support becomes easier with EXA since AllocateFBMemory can use
 exaOffscreenAlloc directly, freeing a previous area if necessary and
 allocating a new one.  Likewise, FreeFBMemory can call exaOffscreenFree.
-
-EXA symbols
------------
-Drivers implementing EXA will also need some additional symbols from the
-X core: exaGetVersion, exaDriverInit, exaDriverFini, exaOffscreenAlloc,
-and exaOffscreenFree.  These must be added to your LoaderRefSymLists
-call at setup time.
 
 EXA teardown
 ------------
