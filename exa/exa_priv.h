@@ -281,6 +281,9 @@ ExaOffscreenSwapOut (ScreenPtr pScreen);
 void
 ExaOffscreenSwapIn (ScreenPtr pScreen);
 
+Bool
+exaOffscreenInit(ScreenPtr pScreen);
+
 void
 ExaOffscreenFini (ScreenPtr pScreen);
 

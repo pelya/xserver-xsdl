@@ -1,3 +1,16 @@
+2006-03-09  Eric Anholt  <anholt@FreeBSD.org>
+
+	* exa/exa.c:
+	* exa/exa.h:
+	* exa/exa_offscreen.c:
+	* exa/exa_priv.h:
+	* hw/xfree86/doc/devel/exa-driver.txt:
+	Do a first pass of doxygen documentation of EXA.  This removes the
+	corresponding pieces of exa-driver.txt, which were becoming stale.
+	Hopefully the documentation will stay much more up-to-date this way.
+	Many thanks to jbarnes for writing exa-driver.txt which was used a lot
+	in writing this documentation.
+
 2006-03-09  Matthias Hopf  <mhopf@suse.de>
 
 	* configure.ac: Do Xorg configure checks for Xgl only as well

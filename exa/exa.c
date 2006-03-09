@@ -22,6 +22,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
+/** @file
+ * This file covers the initialization and teardown of EXA, and has various
+ * functions not responsible for performing rendering, pixmap migration, or
+ * memory management.
+ */
+
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>
 #endif
@@ -38,9 +44,15 @@ static int exaGeneration;
 int exaScreenPrivateIndex;
 int exaPixmapPrivateIndex;
 
-/* Returns the offset (in bytes) within the framebuffer of the beginning of the
- * given pixmap.  May need to be extended in the future if we grow support for
- * having multiple card-accessible areas at different offsets.
+/**
+ * exaGetPixmapOffset() returns the offset (in bytes) within the framebuffer of
+ * the beginning of the given pixmap.
+ *
+ * Note that drivers are free to, and often do, munge this offset as necessary
+ * for handing to the hardware -- for example, translating it into a different
+ * aperture.  This function may need to be extended in the future if we grow
+ * support for having multiple card-accessible offscreen, such as an AGP memory
+ * pool alongside the framebuffer pool.
  */
 unsigned long
 exaGetPixmapOffset(PixmapPtr pPix)
@@ -51,16 +63,21 @@ exaGetPixmapOffset(PixmapPtr pPix)
 	(unsigned long)pExaScr->info->memoryBase);
 }
 
-/* Returns the pitch in bytes of the given pixmap. */
+/**
+ * exaGetPixmapPitch() returns the pitch (in bytes) of the given pixmap.
+ *
+ * This is a helper to make driver code more obvious, due to the rather obscure
+ * naming of the pitch field in the pixmap.
+ */
 unsigned long
 exaGetPixmapPitch(PixmapPtr pPix)
 {
     return pPix->devKind;
 }
 
-/* Returns the size in bytes of the given pixmap in
- * video memory. Only valid when the vram storage has been
- * allocated
+/**
+ * exaGetPixmapSize() returns the size in bytes of the given pixmap in video
+ * memory. Only valid when the pixmap is currently in framebuffer.
  */
 unsigned long
 exaGetPixmapSize(PixmapPtr pPix)
@@ -73,6 +90,17 @@ exaGetPixmapSize(PixmapPtr pPix)
     return 0;
 }
 
+/**
+ * exaGetDrawablePixmap() returns a backing pixmap for a given drawable.
+ *
+ * @param pDrawable the drawable being requested.
+ *
+ * This function returns the backing pixmap for a drawable, whether it is a
+ * redirected window, unredirected window, or already a pixmap.  Note that
+ * coordinate translation is needed when drawing to the backing pixmap of a
+ * redirected window, and the translation coordinates are provided by calling
+ * exaGetOffscreenPixmap() on the drawable.
+ */
 PixmapPtr
 exaGetDrawablePixmap(DrawablePtr pDrawable)
 {
@@ -82,6 +110,10 @@ exaGetDrawablePixmap(DrawablePtr pDrawable)
 	return (PixmapPtr) pDrawable;
 }	
 
+/**
+ * exaDrawableDirty() marks a pixmap backing a drawable as dirty, allowing for
+ * optimizations in pixmap migration when no changes have occurred.
+ */
 void
 exaDrawableDirty (DrawablePtr pDrawable)
 {
@@ -301,6 +333,8 @@ exaCloseScreen(int i, ScreenPtr pScreen)
  * responsibility is to check beforehand that the EXA module has a matching
  * major number and sufficient minor.  Drivers are responsible for freeing the
  * driver structure using xfree().
+ *
+ * @return a newly allocated, zero-filled driver structure
  */
 ExaDriverPtr
 exaDriverAlloc(void)
@@ -309,9 +343,14 @@ exaDriverAlloc(void)
 }
 
 /**
+ * @param pScreen screen being initialized
+ * @param pScreenInfo EXA driver record
+ *
  * exaDriverInit sets up EXA given a driver record filled in by the driver.
- * See the comments in ExaDriverRec for what must be filled in and what is
- * optional.
+ * pScreenInfo should have been allocated by exaDriverAlloc().  See the
+ * comments in _ExaDriver for what must be filled in and what is optional.
+ *
+ * @return TRUE if EXA was successfully initialized.
  */
 Bool
 exaDriverInit (ScreenPtr		pScreen,
@@ -431,12 +470,28 @@ exaDriverInit (ScreenPtr		pScreen,
     return TRUE;
 }
 
+/**
+ * exaDriverFini tears down EXA on a given screen.
+ *
+ * @param pScreen screen being torn down.
+ */
 void
 exaDriverFini (ScreenPtr pScreen)
 {
     /*right now does nothing*/
 }
 
+/**
+ * exaMarkSync() should be called after any asynchronous drawing by the hardware.
+ *
+ * @param pScreen screen which drawing occurred on
+ *
+ * exaMarkSync() sets a flag to indicate that some asynchronous drawing has
+ * happened and a WaitSync() will be necessary before relying on the contents of
+ * offscreen memory from the CPU's perspective.  It also calls an optional
+ * driver MarkSync() callback, the return value of which may be used to do partial
+ * synchronization with the hardware in the future.
+ */
 void exaMarkSync(ScreenPtr pScreen)
 {
     ExaScreenPriv(pScreen);
@@ -447,6 +502,15 @@ void exaMarkSync(ScreenPtr pScreen)
     }
 }
 
+/**
+ * exaWaitSync() ensures that all drawing has been completed.
+ *
+ * @param pScreen screen being synchronized.
+ *
+ * Calls down into the driver to ensure that all previous drawing has completed.
+ * It should always be called before relying on the framebuffer contents
+ * reflecting previous drawing, from a CPU perspective.
+ */
 void exaWaitSync(ScreenPtr pScreen)
 {
     ExaScreenPriv(pScreen);

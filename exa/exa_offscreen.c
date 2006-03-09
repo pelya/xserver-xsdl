@@ -20,6 +20,14 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
+/** @file
+ * This allocator allocates blocks of memory by maintaining a list of areas
+ * and a score for each area.  As an area is marked used, its score is
+ * incremented, and periodically all of the areas have their scores decayed by
+ * a fraction.  When allocating, the contiguous block of areas with the minimum
+ * score is found and evicted in order to make room for the new allocation.
+ */
+
 #include "exa_priv.h"
 
 #include <limits.h>
@@ -63,6 +71,26 @@ ExaOffscreenKickOut (ScreenPtr pScreen, ExaOffscreenArea *area)
     return exaOffscreenFree (pScreen, area);
 }
 
+/**
+ * exaOffscreenAlloc allocates offscreen memory
+ *
+ * @param pScreen current screen
+ * @param size size in bytes of the allocation
+ * @param align byte alignment requirement for the offset of the allocated area
+ * @param locked whether the allocated area is locked and can't be kicked out
+ * @param save callback for when the area is evicted from memory
+ * @param privdata private data for the save callback.
+ *
+ * Allocates offscreen memory from the device associated with pScreen.  size and
+ * align deteremine where and how large the allocated area is, and locked will
+ * mark whether it should be held in card memory.  privdata may be any pointer
+ * for the save callback when the area is removed.
+ *
+ * Note that locked areas do get evicted on VT switch, because during that time
+ * all offscreen memory becomes inaccessible.  This may change in the future,
+ * but drivers should be aware of this and provide a callback to mark that their
+ * locked allocation was evicted, and then restore it if necessary on EnterVT.
+ */
 ExaOffscreenArea *
 exaOffscreenAlloc (ScreenPtr pScreen, int size, int align,
                    Bool locked,
@@ -289,6 +317,19 @@ ExaOffscreenMerge (ExaOffscreenArea *area)
     xfree (next);
 }
 
+/**
+ * exaOffscreenFree frees an allocation.
+ *
+ * @param pScreen current screen
+ * @param area offscreen area to free
+ *
+ * exaOffscreenFree frees an allocation created by exaOffscreenAlloc.  Note that
+ * the save callback of the area is not called, and it is up to the driver to
+ * do any cleanup necessary as a result.
+ *
+ * @return pointer to the newly freed area. This behavior should not be relied
+ * on.
+ */
 ExaOffscreenArea *
 exaOffscreenFree (ScreenPtr pScreen, ExaOffscreenArea *area)
 {
@@ -352,6 +393,14 @@ ExaOffscreenMarkUsed (PixmapPtr pPixmap)
     }
 }
 
+/**
+ * exaOffscreenInit initializes the offscreen memory manager.
+ *
+ * @param pScreen current screen
+ *
+ * exaOffscreenInit is called by exaDriverInit to set up the memory manager for
+ * the screen, if any offscreen memory is available.
+ */
 Bool
 exaOffscreenInit (ScreenPtr pScreen)
 {
