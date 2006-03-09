@@ -1,5 +1,12 @@
 2006-03-09  Eric Anholt  <anholt@FreeBSD.org>
 
+	* exa/exa_render.c: (exaComposite):
+	Coverity #349: Fall back to software early if pSrc->pDrawable is NULL,
+	or pMask is non-NULL but pMask->pDrawable is NULL.  This prevents NULL
+	dereferences on gradients and other Pictures which have no pDrawable.
+
+2006-03-09  Eric Anholt  <anholt@FreeBSD.org>
+
 	* exa/exa.c:
 	* exa/exa.h:
 	* exa/exa_offscreen.c:

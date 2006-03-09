@@ -449,10 +449,14 @@ exaComposite(CARD8	op,
     Bool saveSrcRepeat = pSrc->repeat;
     Bool saveMaskRepeat = pMask ? pMask->repeat : 0;
 
-    if (pExaScr->swappedOut) {
-        exaDrawableDirty(pDst->pDrawable);
-        pExaScr->SavedComposite(op, pSrc, pMask, pDst, xSrc, ySrc,
-                                xMask, yMask, xDst, yDst, width, height);
+    /* We currently don't support acceleration of gradients, or other pictures
+     * with a NULL pDrawable.
+     */
+    if (pExaScr->swappedOut ||
+	pSrc->pDrawable == NULL || (pMask != NULL && pMask->pDrawable == NULL))
+    {
+	ExaCheckComposite (op, pSrc, pMask, pDst, xSrc, ySrc,
+			   xMask, yMask, xDst, yDst, width, height);
         return;
     }
 
@@ -462,7 +466,7 @@ exaComposite(CARD8	op,
 	(ySrc + height) <= pSrc->pDrawable->height)
 	    pSrc->repeat = 0;
 
-    if (!pMask && pSrc->pDrawable)
+    if (!pMask)
     {
 	if (op == PictOpSrc)
 	{
@@ -507,8 +511,7 @@ exaComposite(CARD8	op,
 	    pMask->repeat = 0;
 
 
-    if (pSrc->pDrawable && (!pMask || pMask->pDrawable) &&
-        pExaScr->info->PrepareComposite &&
+    if (pExaScr->info->PrepareComposite &&
 	!pSrc->alphaMap && (!pMask || !pMask->alphaMap) && !pDst->alphaMap)
     {
 	ret = exaTryDriverComposite(op, pSrc, pMask, pDst, xSrc, ySrc, xMask,
