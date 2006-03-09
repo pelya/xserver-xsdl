@@ -64,14 +64,13 @@ exaPixmapSave (ScreenPtr pScreen, ExaOffscreenArea *area)
     dst = pExaPixmap->devPrivate.ptr;
 
     if (pExaPixmap->dirty) {
-        if (pExaScr->info->accel.DownloadFromScreen &&
-	    (*pExaScr->info->accel.DownloadFromScreen) (pPixmap,
-							pPixmap->drawable.x,
-							pPixmap->drawable.y,
-							pPixmap->drawable.width,
-							pPixmap->drawable.height,
-							dst,
-							dst_pitch)) {
+        if (pExaScr->info->DownloadFromScreen &&
+	    (*pExaScr->info->DownloadFromScreen) (pPixmap,
+						  pPixmap->drawable.x,
+						  pPixmap->drawable.y,
+						  pPixmap->drawable.width,
+						  pPixmap->drawable.height,
+						  dst, dst_pitch)) {
 
         } else {
 	    exaWaitSync (pPixmap->drawable.pScreen);
@@ -120,16 +119,16 @@ exaPixmapAllocArea (PixmapPtr pPixmap)
     CARD16	w = pPixmap->drawable.width;
     int		pitch;
 
-    if (pExaScr->info->card.flags & EXA_OFFSCREEN_ALIGN_POT && w != 1)
+    if (pExaScr->info->flags & EXA_OFFSCREEN_ALIGN_POT && w != 1)
 	w = 1 << (exaLog2(w - 1) + 1);
-    pitch = (w * bpp / 8) + (pExaScr->info->card.pixmapPitchAlign - 1);
-    pitch -= pitch % pExaScr->info->card.pixmapPitchAlign;
+    pitch = (w * bpp / 8) + (pExaScr->info->pixmapPitchAlign - 1);
+    pitch -= pitch % pExaScr->info->pixmapPitchAlign;
 
     pExaPixmap->size = pitch * h;
     pExaPixmap->devKind = pPixmap->devKind;
     pExaPixmap->devPrivate = pPixmap->devPrivate;
     pExaPixmap->area = exaOffscreenAlloc (pScreen, pitch * h,
-                                          pExaScr->info->card.pixmapOffsetAlign,
+                                          pExaScr->info->pixmapOffsetAlign,
                                           FALSE,
                                           exaPixmapSave, (pointer) pPixmap);
     if (!pExaPixmap->area)
@@ -142,7 +141,8 @@ exaPixmapAllocArea (PixmapPtr pPixmap)
 		pPixmap->drawable.height));
     pPixmap->devKind = pitch;
 
-    pPixmap->devPrivate.ptr = (pointer) ((CARD8 *) pExaScr->info->card.memoryBase + pExaPixmap->area->offset);
+    pPixmap->devPrivate.ptr = (pointer) ((CARD8 *) pExaScr->info->memoryBase +
+					 pExaPixmap->area->offset);
     pPixmap->drawable.serialNumber = NEXT_SERIAL_NUMBER;
     return TRUE;
 }
@@ -186,12 +186,12 @@ exaMoveInPixmap (PixmapPtr pPixmap)
 
     pExaPixmap->dirty = FALSE;
 
-    if (pExaScr->info->accel.UploadToScreen)
+    if (pExaScr->info->UploadToScreen)
     {
-	if (pExaScr->info->accel.UploadToScreen(pPixmap, 0, 0,
-						pPixmap->drawable.width,
-						pPixmap->drawable.height,
-						src, src_pitch))
+	if (pExaScr->info->UploadToScreen(pPixmap, 0, 0,
+					  pPixmap->drawable.width,
+					  pPixmap->drawable.height,
+					  src, src_pitch))
 	    return;
     }
 
@@ -205,7 +205,7 @@ exaMoveInPixmap (PixmapPtr pPixmap)
     i = pPixmap->drawable.height;
     DBG_PIXMAP(("dst = %p, src = %p,(%d, %d) height = %d, mem_base = %p, offset = %d\n",
                 dst, src, dst_pitch, src_pitch,
-                i, pExaScr->info->card.memoryBase, ExaGetPixmapPriv(pPixmap)->area->offset));
+                i, pExaScr->info->memoryBase, pExaPixmap->area->offset));
 
     while (i--) {
 	memcpy (dst, src, bytes);

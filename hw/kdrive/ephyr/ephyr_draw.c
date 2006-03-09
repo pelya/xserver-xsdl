@@ -281,6 +281,11 @@ ephyrDrawInit(ScreenPtr pScreen)
     if (fakexa == NULL)
 	return FALSE;
 
+    fakexa->exa = exaDriverAlloc();
+    if (fakexa->exa == NULL) {
+	xfree(fakexa);
+	return FALSE;
+    }
 #if 0
     /* Currently, EXA isn't ready for what we want to do here.  We want one
      * pointer to the framebuffer (which is set in exaMapFramebuffer) to be
@@ -289,53 +294,60 @@ ephyrDrawInit(ScreenPtr pScreen)
      * to extend the XImage data area set up in hostx.c from exaMapFramebuffer,
      * but that may be complicated.
      */
-    fakexa->exa.card.memoryBase = xalloc(EPHYR_OFFSCREEN_SIZE);
-    if (fakexa->exa.card.memoryBase == NULL) {
+    fakexa->exa->memoryBase = xalloc(EPHYR_OFFSCREEN_SIZE);
+    if (fakexa->exa->memoryBase == NULL) {
+	xfree(fakexa->exa);
 	xfree(fakexa);
 	return FALSE;
     }
-    fakexa->exa.card.memorySize = EPHYR_OFFSCREEN_SIZE;
-    fakexa->exa.card.offScreenBase = EPHYR_OFFSCREEN_BASE;
+    fakexa->exa->memorySize = EPHYR_OFFSCREEN_SIZE;
+    fakexa->exa->offScreenBase = EPHYR_OFFSCREEN_BASE;
 #else
     /* Tell EXA that there's a single framebuffer area, which happens to cover
      * exactly what the front buffer is.
      */
-    fakexa->exa.card.memoryBase = screen->memory_base;
-    fakexa->exa.card.memorySize = screen->off_screen_base;
-    fakexa->exa.card.offScreenBase = screen->off_screen_base;
+    fakexa->exa->memoryBase = screen->memory_base;
+    fakexa->exa->memorySize = screen->off_screen_base;
+    fakexa->exa->offScreenBase = screen->off_screen_base;
 #endif
 
-    fakexa->exa.accel.PrepareSolid = ephyrPrepareSolid;
-    fakexa->exa.accel.Solid = ephyrSolid;
-    fakexa->exa.accel.DoneSolid = ephyrDoneSolid;
+    /* Since we statically link against EXA, we shouldn't have to be smart about
+     * versioning.
+     */
+    fakexa->exa->exa_major = 2;
+    fakexa->exa->exa_minor = 0;
 
-    fakexa->exa.accel.PrepareCopy = ephyrPrepareCopy;
-    fakexa->exa.accel.Copy = ephyrCopy;
-    fakexa->exa.accel.DoneCopy = ephyrDoneCopy;
+    fakexa->exa->PrepareSolid = ephyrPrepareSolid;
+    fakexa->exa->Solid = ephyrSolid;
+    fakexa->exa->DoneSolid = ephyrDoneSolid;
 
-    fakexa->exa.accel.CheckComposite = ephyrCheckComposite;
-    fakexa->exa.accel.PrepareComposite = ephyrPrepareComposite;
-    fakexa->exa.accel.Composite = ephyrComposite;
-    fakexa->exa.accel.DoneComposite = ephyrDoneComposite;
+    fakexa->exa->PrepareCopy = ephyrPrepareCopy;
+    fakexa->exa->Copy = ephyrCopy;
+    fakexa->exa->DoneCopy = ephyrDoneCopy;
 
-    fakexa->exa.accel.MarkSync = ephyrMarkSync;
-    fakexa->exa.accel.WaitMarker = ephyrWaitMarker;
+    fakexa->exa->CheckComposite = ephyrCheckComposite;
+    fakexa->exa->PrepareComposite = ephyrPrepareComposite;
+    fakexa->exa->Composite = ephyrComposite;
+    fakexa->exa->DoneComposite = ephyrDoneComposite;
 
-    fakexa->exa.card.pixmapOffsetAlign = EPHYR_OFFSET_ALIGN;
-    fakexa->exa.card.pixmapPitchAlign = EPHYR_PITCH_ALIGN;
+    fakexa->exa->MarkSync = ephyrMarkSync;
+    fakexa->exa->WaitMarker = ephyrWaitMarker;
 
-    fakexa->exa.card.maxX = 1023;
-    fakexa->exa.card.maxY = 1023;
+    fakexa->exa->pixmapOffsetAlign = EPHYR_OFFSET_ALIGN;
+    fakexa->exa->pixmapPitchAlign = EPHYR_PITCH_ALIGN;
 
-    fakexa->exa.card.flags = EXA_OFFSCREEN_PIXMAPS;
+    fakexa->exa->maxX = 1023;
+    fakexa->exa->maxY = 1023;
 
-    success = exaDriverInit(pScreen, &fakexa->exa);
+    fakexa->exa->flags = EXA_OFFSCREEN_PIXMAPS;
+
+    success = exaDriverInit(pScreen, fakexa->exa);
     if (success) {
 	ErrorF("Initialized fake EXA acceleration\n");
 	scrpriv->fakexa = fakexa;
     } else {
 	ErrorF("Failed to initialize EXA\n");
-	xfree(fakexa->exa.card.memoryBase);
+	xfree(fakexa->exa);
 	xfree(fakexa);
     }
 

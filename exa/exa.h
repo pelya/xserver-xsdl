@@ -32,8 +32,8 @@
 #include "gcstruct.h"
 #include "picturestr.h"
 
-#define EXA_VERSION_MAJOR   0
-#define EXA_VERSION_MINOR   2
+#define EXA_VERSION_MAJOR   2
+#define EXA_VERSION_MINOR   0
 #define EXA_VERSION_RELEASE 0
 
 typedef struct _ExaOffscreenArea ExaOffscreenArea;
@@ -60,7 +60,19 @@ struct _ExaOffscreenArea {
     ExaOffscreenArea    *next;
 };
 
-typedef struct _ExaCardInfo {
+/**
+ * The ExaDriver structure is allocated through exaDriverAlloc(), and then
+ * fllled in by drivers.
+ */
+typedef struct _ExaDriver {
+    /**
+     * exa_major and exa_minor should be set by the driver to the version of
+     * EXA which the driver was compiled for (or configures itself at runtime to
+     * support).  This allows EXA to extend the structure for new features
+     * without breaking ABI for drivers compiled against older versions.
+     */
+    int exa_major, exa_minor;
+
     /* These are here because I don't want to be adding more to
      * ScrnInfoRec */
     CARD8         *memoryBase;
@@ -87,9 +99,7 @@ typedef struct _ExaCardInfo {
     ExaOffscreenArea *offScreenAreas;
     Bool              needsSync;
     int               lastMarker;
-} ExaCardInfoRec, *ExaCardInfoPtr;
 
-typedef struct _ExaAccelInfo {
     /* PrepareSolid may fail if the pixmaps can't be accelerated to/from.
      * This is an important feature for handling strange corner cases
      * in hardware that are poorly expressed through flags.
@@ -196,25 +206,14 @@ typedef struct _ExaAccelInfo {
 	#define EXA_PREPARE_DEST	0
 	#define EXA_PREPARE_SRC		1
 	#define EXA_PREPARE_MASK	2
-
-} ExaAccelInfoRec, *ExaAccelInfoPtr;
-
-typedef struct _ExaDriver {
-    ExaCardInfoRec  card;
-    ExaAccelInfoRec accel;
 } ExaDriverRec, *ExaDriverPtr;
 
 #define EXA_OFFSCREEN_PIXMAPS           (1 << 0)
 #define EXA_OFFSCREEN_ALIGN_POT         (1 << 1)
 #define EXA_TWO_BITBLT_DIRECTIONS       (1 << 2)
 
-#define EXA_MAKE_VERSION(a, b, c) (((a) << 16) | ((b) << 8) | (c))
-#define EXA_VERSION \
-    EXA_MAKE_VERSION(EXA_VERSION_MAJOR, EXA_VERSION_MINOR, EXA_VERSION_RELEASE)
-#define EXA_IS_VERSION(a,b,c) (EXA_VERSION >= EXA_MAKE_VERSION(a,b,c))
-
-unsigned int
-exaGetVersion(void);
+ExaDriverPtr
+exaDriverAlloc(void);
 
 Bool
 exaDriverInit(ScreenPtr                pScreen,
@@ -251,11 +250,5 @@ exaGetPixmapSize(PixmapPtr pPix);
 
 void
 exaEnableDisableFBAccess (int index, Bool enable);
-
-void
-exaInitCard(ExaDriverPtr exa, int needsSync, CARD8 *memory_base,
-	    unsigned long off_screen_base, unsigned long memory_size,
-	    int offscreen_byte_align, int offscreen_pitch, int flags,
-	    int max_x, int max_y);
 
 #endif /* EXA_H */

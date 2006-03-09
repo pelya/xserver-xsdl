@@ -47,7 +47,7 @@ typedef struct _ephyrPriv {
 } EphyrPriv;
 
 typedef struct _ephyrFakexaPriv {
-    ExaDriverRec exa;
+    ExaDriverPtr exa;
     Bool is_synced;
 
     /* The following are arguments and other information from Prepare* calls

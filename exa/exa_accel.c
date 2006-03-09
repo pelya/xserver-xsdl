@@ -53,13 +53,13 @@ exaFillSpans(DrawablePtr pDrawable, GCPtr pGC, int n,
     }
 
     if (pGC->fillStyle != FillSolid ||
-	pDrawable->width > pExaScr->info->card.maxX ||
-	pDrawable->height > pExaScr->info->card.maxY ||
+	pDrawable->width > pExaScr->info->maxX ||
+	pDrawable->height > pExaScr->info->maxY ||
 	!(pPixmap = exaGetOffscreenPixmap (pDrawable, &off_x, &off_y)) ||
-	!(*pExaScr->info->accel.PrepareSolid) (pPixmap,
-                                               pGC->alu,
-                                               pGC->planemask,
-                                               pGC->fgPixel))
+	!(*pExaScr->info->PrepareSolid) (pPixmap,
+					 pGC->alu,
+					 pGC->planemask,
+					 pGC->fgPixel))
     {
 	ExaCheckFillSpans (pDrawable, pGC, n, ppt, pwidth, fSorted);
 	return;
@@ -93,9 +93,9 @@ exaFillSpans(DrawablePtr pDrawable, GCPtr pGC, int n,
 	nbox = REGION_NUM_RECTS (pClip);
 	if (nbox == 1)
 	{
-	    (*pExaScr->info->accel.Solid) (pPixmap,
-                                           fullX1 + off_x, fullY1 + off_y,
-                                           fullX2 + off_x, fullY1 + 1 + off_y);
+	    (*pExaScr->info->Solid) (pPixmap,
+				     fullX1 + off_x, fullY1 + off_y,
+				     fullX2 + off_x, fullY1 + 1 + off_y);
 	}
 	else
 	{
@@ -111,15 +111,15 @@ exaFillSpans(DrawablePtr pDrawable, GCPtr pGC, int n,
 		    if (partX2 > fullX2)
 			partX2 = fullX2;
 		    if (partX2 > partX1)
-			(*pExaScr->info->accel.Solid) (pPixmap,
-                                                       partX1 + off_x, fullY1 + off_y,
-                                                       partX2 + off_x, fullY1 + 1 + off_y);
+			(*pExaScr->info->Solid) (pPixmap,
+						 partX1 + off_x, fullY1 + off_y,
+						 partX2 + off_x, fullY1 + 1 + off_y);
 		}
 		pbox++;
 	    }
 	}
     }
-    (*pExaScr->info->accel.DoneSolid) (pPixmap);
+    (*pExaScr->info->DoneSolid) (pPixmap);
     exaDrawableDirty (pDrawable);
     exaMarkSync(pScreen);
 }
@@ -149,42 +149,40 @@ exaCopyNtoNTwoDir (DrawablePtr pSrcDrawable, DrawablePtr pDstDrawable,
 	    /* Do a xdir = ydir = -1 blit instead. */
 	    if (dirsetup != -1) {
 		dirsetup = -1;
-		if (!(*pExaScr->info->accel.PrepareCopy)(pSrcPixmap,
-							 pDstPixmap,
-							 -1, -1,
-							 pGC ? pGC->alu :
-							 GXcopy,
-							 pGC ? pGC->planemask :
+		if (!(*pExaScr->info->PrepareCopy)(pSrcPixmap,
+						   pDstPixmap,
+						   -1, -1,
+						   pGC ? pGC->alu : GXcopy,
+						   pGC ? pGC->planemask :
 							 FB_ALLONES))
 		    return FALSE;
 	    }
-	    (*pExaScr->info->accel.Copy)(pDstPixmap,
-					 src_off_x + pbox->x1 + dx,
-					 src_off_y + pbox->y1 + dy,
-					 dst_off_x + pbox->x1,
-					 dst_off_y + pbox->y1,
-					 pbox->x2 - pbox->x1,
-					 pbox->y2 - pbox->y1);
+	    (*pExaScr->info->Copy)(pDstPixmap,
+				   src_off_x + pbox->x1 + dx,
+				   src_off_y + pbox->y1 + dy,
+				   dst_off_x + pbox->x1,
+				   dst_off_y + pbox->y1,
+				   pbox->x2 - pbox->x1,
+				   pbox->y2 - pbox->y1);
 	} else if (dx < 0 && (src_off_y + pbox->y1 + dy) != pbox->y1) {
 	    /* Do a xdir = ydir = 1 blit instead. */
 	    if (dirsetup != 1) {
 		dirsetup = 1;
-		if (!(*pExaScr->info->accel.PrepareCopy)(pSrcPixmap,
-							 pDstPixmap,
-							 1, 1,
-							 pGC ? pGC->alu :
-							 GXcopy,
-							 pGC ? pGC->planemask :
+		if (!(*pExaScr->info->PrepareCopy)(pSrcPixmap,
+						   pDstPixmap,
+						   1, 1,
+						   pGC ? pGC->alu : GXcopy,
+						   pGC ? pGC->planemask :
 							 FB_ALLONES))
 		    return FALSE;
 	    }
-	    (*pExaScr->info->accel.Copy)(pDstPixmap,
-					 src_off_x + pbox->x1 + dx,
-					 src_off_y + pbox->y1 + dy,
-					 dst_off_x + pbox->x1,
-					 dst_off_y + pbox->y1,
-					 pbox->x2 - pbox->x1,
-					 pbox->y2 - pbox->y1);
+	    (*pExaScr->info->Copy)(pDstPixmap,
+				   src_off_x + pbox->x1 + dx,
+				   src_off_y + pbox->y1 + dy,
+				   dst_off_x + pbox->x1,
+				   dst_off_y + pbox->y1,
+				   pbox->x2 - pbox->x1,
+				   pbox->y2 - pbox->y1);
 	} else if (dx >= 0) {
 	    /*
 	     * xdir = 1, ydir = -1.
@@ -193,22 +191,21 @@ exaCopyNtoNTwoDir (DrawablePtr pSrcDrawable, DrawablePtr pDstDrawable,
 	    int i;
 	    if (dirsetup != 1) {
 		dirsetup = 1;
-		if (!(*pExaScr->info->accel.PrepareCopy)(pSrcPixmap,
-							 pDstPixmap,
-							 1, 1,
-							 pGC ? pGC->alu :
-							 GXcopy,
-							 pGC ? pGC->planemask :
+		if (!(*pExaScr->info->PrepareCopy)(pSrcPixmap,
+						   pDstPixmap,
+						   1, 1,
+						   pGC ? pGC->alu : GXcopy,
+						   pGC ? pGC->planemask :
 							 FB_ALLONES))
 		    return FALSE;
 	    }
 	    for (i = pbox->y2 - pbox->y1 - 1; i >= 0; i--)
-		(*pExaScr->info->accel.Copy)(pDstPixmap,
-					     src_off_x + pbox->x1 + dx,
-					     src_off_y + pbox->y1 + dy + i,
-					     dst_off_x + pbox->x1,
-					     dst_off_y + pbox->y1 + i,
-					     pbox->x2 - pbox->x1, 1);
+		(*pExaScr->info->Copy)(pDstPixmap,
+				       src_off_x + pbox->x1 + dx,
+				       src_off_y + pbox->y1 + dy + i,
+				       dst_off_x + pbox->x1,
+				       dst_off_y + pbox->y1 + i,
+				       pbox->x2 - pbox->x1, 1);
 	} else {
 	    /*
 	     * xdir = -1, ydir = 1.
@@ -217,25 +214,24 @@ exaCopyNtoNTwoDir (DrawablePtr pSrcDrawable, DrawablePtr pDstDrawable,
 	    int i;
 	    if (dirsetup != -1) {
 		dirsetup = -1;
-		if (!(*pExaScr->info->accel.PrepareCopy)(pSrcPixmap,
-							 pDstPixmap,
-							 -1, -1,
-							 pGC ? pGC->alu :
-							 GXcopy,
-							 pGC ? pGC->planemask :
+		if (!(*pExaScr->info->PrepareCopy)(pSrcPixmap,
+						   pDstPixmap,
+						   -1, -1,
+						   pGC ? pGC->alu : GXcopy,
+						   pGC ? pGC->planemask :
 							 FB_ALLONES))
 		    return FALSE;
 	    }
 	    for (i = 0; i < pbox->y2 - pbox->y1; i++)
-		(*pExaScr->info->accel.Copy)(pDstPixmap,
-					     src_off_x + pbox->x1 + dx,
-					     src_off_y + pbox->y1 + dy + i,
-					     dst_off_x + pbox->x1,
-					     dst_off_y + pbox->y1 + i,
-					     pbox->x2 - pbox->x1, 1);
+		(*pExaScr->info->Copy)(pDstPixmap,
+				       src_off_x + pbox->x1 + dx,
+				       src_off_y + pbox->y1 + dy + i,
+				       dst_off_x + pbox->x1,
+				       dst_off_y + pbox->y1 + i,
+				       pbox->x2 - pbox->x1, 1);
 	}
     }
-    (*pExaScr->info->accel.DoneCopy)(pDstPixmap);
+    (*pExaScr->info->DoneCopy)(pDstPixmap);
     exaMarkSync(pDstDrawable->pScreen);
     exaDrawableDirty(pDstDrawable);
     return TRUE;
@@ -263,10 +259,10 @@ exaCopyNtoN (DrawablePtr    pSrcDrawable,
      * violate the limits.  The proper solution would be a temporary pixmap
      * adjusted so that the drawing happened within limits.
      */
-    if (pSrcDrawable->width > pExaScr->info->card.maxX ||
-	pSrcDrawable->height > pExaScr->info->card.maxY ||
-	pDstDrawable->width > pExaScr->info->card.maxX ||
-	pDstDrawable->height > pExaScr->info->card.maxY)
+    if (pSrcDrawable->width > pExaScr->info->maxX ||
+	pSrcDrawable->height > pExaScr->info->maxY ||
+	pDstDrawable->width > pExaScr->info->maxX ||
+	pDstDrawable->height > pExaScr->info->maxY)
     {
 	exaDrawableUseMemory (pSrcDrawable);
 	exaDrawableUseMemory (pDstDrawable);
@@ -287,7 +283,7 @@ exaCopyNtoN (DrawablePtr    pSrcDrawable,
     }
 
     /* Mixed directions must be handled specially if the card is lame */
-    if (pExaScr->info->card.flags & EXA_TWO_BITBLT_DIRECTIONS && (dx*dy) < 0) {
+    if (pExaScr->info->flags & EXA_TWO_BITBLT_DIRECTIONS && (dx*dy) < 0) {
 	if (!exaCopyNtoNTwoDir(pSrcDrawable, pDstDrawable, pGC, pbox, nbox,
 			       dx, dy))
 	    goto fallback;
@@ -296,24 +292,22 @@ exaCopyNtoN (DrawablePtr    pSrcDrawable,
 
     if ((pSrcPixmap = exaGetOffscreenPixmap (pSrcDrawable, &src_off_x, &src_off_y)) &&
 	(pDstPixmap = exaGetOffscreenPixmap (pDstDrawable, &dst_off_x, &dst_off_y)) &&
-	(*pExaScr->info->accel.PrepareCopy) (pSrcPixmap,
-                                             pDstPixmap,
-                                             dx,
-                                             dy,
-                                             pGC ? pGC->alu : GXcopy,
-                                             pGC ? pGC->planemask : FB_ALLONES))
+	(*pExaScr->info->PrepareCopy) (pSrcPixmap, pDstPixmap,
+				       dx, dy,
+				       pGC ? pGC->alu : GXcopy,
+				       pGC ? pGC->planemask : FB_ALLONES))
     {
 	while (nbox--)
 	{
-	    (*pExaScr->info->accel.Copy) (pDstPixmap,
-                                          pbox->x1 + dx + src_off_x,
-                                          pbox->y1 + dy + src_off_y,
-                                          pbox->x1 + dst_off_x, pbox->y1 + dst_off_y,
-                                          pbox->x2 - pbox->x1,
-                                          pbox->y2 - pbox->y1);
+	    (*pExaScr->info->Copy) (pDstPixmap,
+				    pbox->x1 + dx + src_off_x,
+				    pbox->y1 + dy + src_off_y,
+				    pbox->x1 + dst_off_x, pbox->y1 + dst_off_y,
+				    pbox->x2 - pbox->x1,
+				    pbox->y2 - pbox->y1);
 	    pbox++;
 	}
-	(*pExaScr->info->accel.DoneCopy) (pDstPixmap);
+	(*pExaScr->info->DoneCopy) (pDstPixmap);
 	exaMarkSync(pDstDrawable->pScreen);
 	exaDrawableDirty (pDstDrawable);
 	return;
@@ -367,13 +361,13 @@ exaPolyFillRect(DrawablePtr pDrawable,
 
     if (pExaScr->swappedOut ||
         pGC->fillStyle != FillSolid ||
-	pDrawable->width > pExaScr->info->card.maxX ||
-	pDrawable->height > pExaScr->info->card.maxY ||
+	pDrawable->width > pExaScr->info->maxX ||
+	pDrawable->height > pExaScr->info->maxY ||
 	!(pPixmap = exaGetOffscreenPixmap (pDrawable, &xoff, &yoff)) ||
-	!(*pExaScr->info->accel.PrepareSolid) (pPixmap,
-                                               pGC->alu,
-                                               pGC->planemask,
-                                               pGC->fgPixel))
+	!(*pExaScr->info->PrepareSolid) (pPixmap,
+					 pGC->alu,
+					 pGC->planemask,
+					 pGC->fgPixel))
     {
 	ExaCheckPolyFillRect (pDrawable, pGC, nrect, prect);
 	return;
@@ -412,9 +406,9 @@ exaPolyFillRect(DrawablePtr pDrawable,
 	n = REGION_NUM_RECTS (pClip);
 	if (n == 1)
 	{
-	    (*pExaScr->info->accel.Solid) (pPixmap,
-                                           fullX1 + xoff, fullY1 + yoff,
-                                           fullX2 + xoff, fullY2 + yoff);
+	    (*pExaScr->info->Solid) (pPixmap,
+				     fullX1 + xoff, fullY1 + yoff,
+				     fullX2 + xoff, fullY2 + yoff);
 	}
 	else
 	{
@@ -441,13 +435,13 @@ exaPolyFillRect(DrawablePtr pDrawable,
 		pbox++;
 
 		if (partX1 < partX2 && partY1 < partY2)
-		    (*pExaScr->info->accel.Solid) (pPixmap,
-                                                   partX1 + xoff, partY1 + yoff,
-                                                   partX2 + xoff, partY2 + yoff);
+		    (*pExaScr->info->Solid) (pPixmap,
+					     partX1 + xoff, partY1 + yoff,
+					     partX2 + xoff, partY2 + yoff);
 	    }
 	}
     }
-    (*pExaScr->info->accel.DoneSolid) (pPixmap);
+    (*pExaScr->info->DoneSolid) (pPixmap);
     exaDrawableDirty (pDrawable);
     exaMarkSync(pDrawable->pScreen);
 }
@@ -470,10 +464,10 @@ exaSolidBoxClipped (DrawablePtr	pDrawable,
     int		partX1, partX2, partY1, partY2;
 
     if (pExaScr->swappedOut ||
-	pDrawable->width > pExaScr->info->card.maxX ||
-	pDrawable->height > pExaScr->info->card.maxY ||
+	pDrawable->width > pExaScr->info->maxX ||
+	pDrawable->height > pExaScr->info->maxY ||
         !(pPixmap = exaGetOffscreenPixmap (pDrawable, &xoff, &yoff)) ||
-	!(*pExaScr->info->accel.PrepareSolid) (pPixmap, GXcopy, pm, fg))
+	!(*pExaScr->info->PrepareSolid) (pPixmap, GXcopy, pm, fg))
     {
 	EXA_FALLBACK(("to 0x%lx\n", (long)pDrawable));
 	exaPrepareAccess (pDrawable, EXA_PREPARE_DEST);
@@ -510,11 +504,11 @@ exaSolidBoxClipped (DrawablePtr	pDrawable,
 	if (partY2 <= partY1)
 	    continue;
 
-	(*pExaScr->info->accel.Solid) (pPixmap,
-                                       partX1 + xoff, partY1 + yoff,
-                                       partX2 + xoff, partY2 + yoff);
+	(*pExaScr->info->Solid) (pPixmap,
+				 partX1 + xoff, partY1 + yoff,
+				 partX2 + xoff, partY2 + yoff);
     }
-    (*pExaScr->info->accel.DoneSolid) (pPixmap);
+    (*pExaScr->info->DoneSolid) (pPixmap);
     exaDrawableDirty (pDrawable);
     exaMarkSync(pDrawable->pScreen);
 }
@@ -722,22 +716,22 @@ exaFillRegionSolid (DrawablePtr	pDrawable,
     PixmapPtr pPixmap;
     int xoff, yoff;
 
-    if (pDrawable->width <= pExaScr->info->card.maxX &&
-	pDrawable->height <= pExaScr->info->card.maxY &&
+    if (pDrawable->width <= pExaScr->info->maxX &&
+	pDrawable->height <= pExaScr->info->maxY &&
 	(pPixmap = exaGetOffscreenPixmap (pDrawable, &xoff, &yoff)) &&
-	(*pExaScr->info->accel.PrepareSolid) (pPixmap, GXcopy, FB_ALLONES, pixel))
+	(*pExaScr->info->PrepareSolid) (pPixmap, GXcopy, FB_ALLONES, pixel))
     {
 	int	nbox = REGION_NUM_RECTS (pRegion);
 	BoxPtr	pBox = REGION_RECTS (pRegion);
 
 	while (nbox--)
 	{
-	    (*pExaScr->info->accel.Solid) (pPixmap,
-                                           pBox->x1 + xoff, pBox->y1 + yoff,
-                                           pBox->x2 + xoff, pBox->y2 + yoff);
+	    (*pExaScr->info->Solid) (pPixmap,
+				     pBox->x1 + xoff, pBox->y1 + yoff,
+				     pBox->x2 + xoff, pBox->y2 + yoff);
 	    pBox++;
 	}
-	(*pExaScr->info->accel.DoneSolid) (pPixmap);
+	(*pExaScr->info->DoneSolid) (pPixmap);
 	exaMarkSync(pDrawable->pScreen);
 	exaDrawableDirty (pDrawable);
     }
@@ -767,10 +761,10 @@ exaFillRegionTiled (DrawablePtr	pDrawable,
     tileWidth = pTile->drawable.width;
     tileHeight = pTile->drawable.height;
 
-    if (pDrawable->width > pExaScr->info->card.maxX ||
-	pDrawable->height > pExaScr->info->card.maxY ||
-	tileWidth > pExaScr->info->card.maxX ||
-	tileHeight > pExaScr->info->card.maxY)
+    if (pDrawable->width > pExaScr->info->maxX ||
+	pDrawable->height > pExaScr->info->maxY ||
+	tileWidth > pExaScr->info->maxX ||
+	tileHeight > pExaScr->info->maxY)
     {
 	goto fallback;
     }
@@ -810,8 +804,8 @@ exaFillRegionTiled (DrawablePtr	pDrawable,
     if (!exaPixmapIsOffscreen(pTile))
 	goto fallback;
 
-    if ((*pExaScr->info->accel.PrepareCopy) (pTile, pPixmap, 0, 0, GXcopy,
-					     FB_ALLONES))
+    if ((*pExaScr->info->PrepareCopy) (pTile, pPixmap, 0, 0, GXcopy,
+				       FB_ALLONES))
     {
 	int nbox = REGION_NUM_RECTS (pRegion);
 	BoxPtr pBox = REGION_RECTS (pRegion);
@@ -840,10 +834,10 @@ exaFillRegionTiled (DrawablePtr	pDrawable,
 			w = width;
 		    width -= w;
 
-		    (*pExaScr->info->accel.Copy) (pPixmap,
-						  tileX, tileY,
-						  dstX + xoff, dstY + yoff,
-						  w, h);
+		    (*pExaScr->info->Copy) (pPixmap,
+					    tileX, tileY,
+					    dstX + xoff, dstY + yoff,
+					    w, h);
 		    dstX += w;
 		    tileX = 0;
 		}
@@ -852,7 +846,7 @@ exaFillRegionTiled (DrawablePtr	pDrawable,
 	    }
 	    pBox++;
 	}
-	(*pExaScr->info->accel.DoneCopy) (pPixmap);
+	(*pExaScr->info->DoneCopy) (pPixmap);
 	exaMarkSync(pDrawable->pScreen);
 	exaDrawableDirty (pDrawable);
 	return;

@@ -39,9 +39,9 @@ ExaOffscreenValidate (ScreenPtr pScreen)
     ExaScreenPriv (pScreen);
     ExaOffscreenArea *prev = 0, *area;
 
-    assert (pExaScr->info->card.offScreenAreas->base_offset == 
-	    pExaScr->info->card.offScreenBase);
-    for (area = pExaScr->info->card.offScreenAreas; area; area = area->next)
+    assert (pExaScr->info->offScreenAreas->base_offset == 
+	    pExaScr->info->offScreenBase);
+    for (area = pExaScr->info->offScreenAreas; area; area = area->next)
     {
 	assert (area->offset >= area->base_offset &&
 		area->offset < (area->base_offset -> area->size));
@@ -49,7 +49,7 @@ ExaOffscreenValidate (ScreenPtr pScreen)
 	    assert (prev->base_offset + prev->area.size == area->base_offset);
 	prev = area;
     }
-    assert (prev->base_offset + prev->size == pExaScr->info->card.memorySize);
+    assert (prev->base_offset + prev->size == pExaScr->info->memorySize);
 }
 #else
 #define ExaOffscreenValidate(s)
@@ -88,16 +88,16 @@ exaOffscreenAlloc (ScreenPtr pScreen, int size, int align,
     }
 
     /* throw out requests that cannot fit */
-    if (size > (pExaScr->info->card.memorySize - pExaScr->info->card.offScreenBase))
+    if (size > (pExaScr->info->memorySize - pExaScr->info->offScreenBase))
     {
 	DBG_OFFSCREEN (("Alloc 0x%x vs (0x%lx) -> TOBIG\n", size,
-			pExaScr->info->card.memorySize -
-			pExaScr->info->card.offScreenBase));
+			pExaScr->info->memorySize -
+			pExaScr->info->offScreenBase));
 	return NULL;
     }
 
     /* Try to find a free space that'll fit. */
-    for (area = pExaScr->info->card.offScreenAreas; area; area = area->next)
+    for (area = pExaScr->info->offScreenAreas; area; area = area->next)
     {
 	/* skip allocated areas */
 	if (area->state != ExaOffscreenAvail)
@@ -125,7 +125,7 @@ exaOffscreenAlloc (ScreenPtr pScreen, int size, int align,
 	/* prev points at the first object to boot */
 	best = NULL;
 	best_score = INT_MAX;
-	for (begin = pExaScr->info->card.offScreenAreas; begin != NULL;
+	for (begin = pExaScr->info->offScreenAreas; begin != NULL;
 	     begin = begin->next)
 	{
 	    int avail, score;
@@ -237,7 +237,7 @@ ExaOffscreenSwapOut (ScreenPtr pScreen)
     /* loop until a single free area spans the space */
     for (;;)
     {
-	ExaOffscreenArea *area = pExaScr->info->card.offScreenAreas;
+	ExaOffscreenArea *area = pExaScr->info->offScreenAreas;
 
 	if (!area)
 	    break;
@@ -306,10 +306,10 @@ exaOffscreenFree (ScreenPtr pScreen, ExaOffscreenArea *area)
     /*
      * Find previous area
      */
-    if (area == pExaScr->info->card.offScreenAreas)
+    if (area == pExaScr->info->offScreenAreas)
 	prev = NULL;
     else
-	for (prev = pExaScr->info->card.offScreenAreas; prev; prev = prev->next)
+	for (prev = pExaScr->info->offScreenAreas; prev; prev = prev->next)
 	    if (prev->next == area)
 		break;
 
@@ -343,7 +343,7 @@ ExaOffscreenMarkUsed (PixmapPtr pPixmap)
     pExaPixmap->area->score += 100;
     if (++iter == 10) {
 	ExaOffscreenArea *area;
-	for (area = pExaScr->info->card.offScreenAreas; area != NULL;
+	for (area = pExaScr->info->offScreenAreas; area != NULL;
 	     area = area->next)
 	{
 	    if (area->state == ExaOffscreenRemovable)
@@ -366,9 +366,9 @@ exaOffscreenInit (ScreenPtr pScreen)
 
 
     area->state = ExaOffscreenAvail;
-    area->base_offset = pExaScr->info->card.offScreenBase;
+    area->base_offset = pExaScr->info->offScreenBase;
     area->offset = area->base_offset;
-    area->size = pExaScr->info->card.memorySize - area->base_offset;
+    area->size = pExaScr->info->memorySize - area->base_offset;
     area->save = NULL;
     area->next = NULL;
     area->score = 0;
@@ -378,7 +378,7 @@ exaOffscreenInit (ScreenPtr pScreen)
 #endif
 
     /* Add it to the free areas */
-    pExaScr->info->card.offScreenAreas = area;
+    pExaScr->info->offScreenAreas = area;
 
     ExaOffscreenValidate (pScreen);
 
@@ -392,9 +392,9 @@ ExaOffscreenFini (ScreenPtr pScreen)
     ExaOffscreenArea *area;
 
     /* just free all of the area records */
-    while ((area = pExaScr->info->card.offScreenAreas))
+    while ((area = pExaScr->info->offScreenAreas))
     {
-	pExaScr->info->card.offScreenAreas = area->next;
+	pExaScr->info->offScreenAreas = area->next;
 	xfree (area);
     }
 }

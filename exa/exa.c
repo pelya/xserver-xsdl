@@ -48,7 +48,7 @@ exaGetPixmapOffset(PixmapPtr pPix)
     ExaScreenPriv (pPix->drawable.pScreen);
 
     return ((unsigned long)pPix->devPrivate.ptr -
-	(unsigned long)pExaScr->info->card.memoryBase);
+	(unsigned long)pExaScr->info->memoryBase);
 }
 
 /* Returns the pitch in bytes of the given pixmap. */
@@ -149,8 +149,8 @@ exaPixmapIsOffscreen(PixmapPtr p)
     ExaScreenPriv(pScreen);
 
     return ((unsigned long) ((CARD8 *) p->devPrivate.ptr -
-			     (CARD8 *) pExaScr->info->card.memoryBase) <
-	    pExaScr->info->card.memorySize);
+			     (CARD8 *) pExaScr->info->memoryBase) <
+	    pExaScr->info->memorySize);
 }
 
 Bool
@@ -205,10 +205,10 @@ exaPrepareAccess(DrawablePtr pDrawable, int index)
     else
 	return;
 
-    if (pExaScr->info->accel.PrepareAccess == NULL)
+    if (pExaScr->info->PrepareAccess == NULL)
 	return;
 
-    if (!(*pExaScr->info->accel.PrepareAccess) (pPixmap, index)) {
+    if (!(*pExaScr->info->PrepareAccess) (pPixmap, index)) {
 	ExaPixmapPriv (pPixmap);
 	if (pExaPixmap->score != EXA_PIXMAP_SCORE_PINNED)
 	    FatalError("Driver failed PrepareAccess on a pinned pixmap\n");
@@ -223,14 +223,14 @@ exaFinishAccess(DrawablePtr pDrawable, int index)
     ExaScreenPriv  (pScreen);
     PixmapPtr	    pPixmap;
 
-    if (pExaScr->info->accel.FinishAccess == NULL)
+    if (pExaScr->info->FinishAccess == NULL)
 	return;
 
     pPixmap = exaGetDrawablePixmap (pDrawable);
     if (!exaPixmapIsOffscreen (pPixmap))
 	return;
 
-    (*pExaScr->info->accel.FinishAccess) (pPixmap, index);
+    (*pExaScr->info->FinishAccess) (pPixmap, index);
 }
 
 static void
@@ -294,11 +294,41 @@ exaCloseScreen(int i, ScreenPtr pScreen)
     return (*pScreen->CloseScreen) (i, pScreen);
 }
 
+/**
+ * This function allocates a driver structure for EXA drivers to fill in.  By
+ * having EXA allocate the structure, the driver structure can be extended
+ * without breaking ABI between EXA and the drivers.  The driver's
+ * responsibility is to check beforehand that the EXA module has a matching
+ * major number and sufficient minor.  Drivers are responsible for freeing the
+ * driver structure using xfree().
+ */
+ExaDriverPtr
+exaDriverAlloc(void)
+{
+    return xcalloc(1, sizeof(ExaDriverRec));
+}
+
+/**
+ * exaDriverInit sets up EXA given a driver record filled in by the driver.
+ * See the comments in ExaDriverRec for what must be filled in and what is
+ * optional.
+ */
 Bool
 exaDriverInit (ScreenPtr		pScreen,
                ExaDriverPtr	pScreenInfo)
 {
     ExaScreenPrivPtr pExaScr;
+
+    if (pScreenInfo->exa_major != EXA_VERSION_MAJOR ||
+	pScreenInfo->exa_minor > EXA_VERSION_MINOR)
+    {
+	LogMessage(X_ERROR, "EXA(%d): driver's EXA version requirements "
+		   "(%d.%d) are incompatible with EXA version (%d.%d)\n",
+		   pScreen->myNum,
+		   pScreenInfo->exa_major, pScreenInfo->exa_minor,
+		   EXA_VERSION_MAJOR, EXA_VERSION_MINOR);
+	return FALSE;
+    }
 
 #ifdef RENDER
     PictureScreenPtr	ps = GetPictureScreenIfSet(pScreen);
@@ -365,8 +395,8 @@ exaDriverInit (ScreenPtr		pScreen,
     /*
      * Hookup offscreen pixmaps
      */
-    if ((pExaScr->info->card.flags & EXA_OFFSCREEN_PIXMAPS) &&
-	pExaScr->info->card.offScreenBase < pExaScr->info->card.memorySize)
+    if ((pExaScr->info->flags & EXA_OFFSCREEN_PIXMAPS) &&
+	pExaScr->info->offScreenBase < pExaScr->info->memorySize)
     {
 	if (!AllocatePixmapPrivate(pScreen, exaPixmapPrivateIndex,
 				   sizeof (ExaPixmapPrivRec))) {
@@ -388,9 +418,9 @@ exaDriverInit (ScreenPtr		pScreen,
 	    return FALSE;
     }
 
-    DBG_PIXMAP(("============== %ld < %ld\n", pExaScr->info->card.offScreenBase,
-                pExaScr->info->card.memorySize));
-    if (pExaScr->info->card.offScreenBase < pExaScr->info->card.memorySize) {
+    DBG_PIXMAP(("============== %ld < %ld\n", pExaScr->info->offScreenBase,
+                pExaScr->info->memorySize));
+    if (pExaScr->info->offScreenBase < pExaScr->info->memorySize) {
 	if (!exaOffscreenInit (pScreen)) {
             LogMessage(X_WARNING, "EXA(%d): Offscreen pixmap setup failed\n",
                        pScreen->myNum);
@@ -410,42 +440,19 @@ exaDriverFini (ScreenPtr pScreen)
 void exaMarkSync(ScreenPtr pScreen)
 {
     ExaScreenPriv(pScreen);
-    ExaCardInfoPtr card = &(pExaScr->info->card);
 
-    card->needsSync = TRUE;
-    if (pExaScr->info->accel.MarkSync != NULL) {
-        card->lastMarker = (*pExaScr->info->accel.MarkSync)(pScreen);
+    pExaScr->info->needsSync = TRUE;
+    if (pExaScr->info->MarkSync != NULL) {
+        pExaScr->info->lastMarker = (*pExaScr->info->MarkSync)(pScreen);
     }
 }
 
 void exaWaitSync(ScreenPtr pScreen)
 {
     ExaScreenPriv(pScreen);
-    ExaCardInfoPtr card = &(pExaScr->info->card);
 
-    if (card->needsSync && !pExaScr->swappedOut) {
-        (*pExaScr->info->accel.WaitMarker)(pScreen, card->lastMarker);
-        card->needsSync = FALSE;
+    if (pExaScr->info->needsSync && !pExaScr->swappedOut) {
+        (*pExaScr->info->WaitMarker)(pScreen, pExaScr->info->lastMarker);
+        pExaScr->info->needsSync = FALSE;
     }
-}
-
-unsigned int exaGetVersion(void)
-{
-    return EXA_VERSION;
-}
-
-void exaInitCard(ExaDriverPtr exa, int needsSync, CARD8 *memory_base,
-		 unsigned long off_screen_base, unsigned long memory_size,
-		 int offscreen_byte_align, int offscreen_pitch, int flags,
-		 int max_x, int max_y)
-{
-    exa->card.needsSync          = needsSync;
-    exa->card.memoryBase         = memory_base;
-    exa->card.offScreenBase      = off_screen_base;
-    exa->card.memorySize         = memory_size;
-    exa->card.pixmapOffsetAlign  = offscreen_byte_align;
-    exa->card.pixmapPitchAlign   = offscreen_pitch;
-    exa->card.flags              = flags;
-    exa->card.maxX               = max_x;
-    exa->card.maxY               = max_y;
 }

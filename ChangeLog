@@ -1,3 +1,33 @@
+2006-03-08  Eric Anholt  <anholt@FreeBSD.org>
+
+	* exa/exa.c: (exaGetPixmapOffset), (exaPixmapIsOffscreen),
+	(exaPrepareAccess), (exaFinishAccess), (exaDriverAlloc),
+	(exaDriverInit), (exaMarkSync), (exaWaitSync):
+	* exa/exa.h:
+	* exa/exa_accel.c: (exaFillSpans), (exaCopyNtoNTwoDir),
+	(exaCopyNtoN), (exaPolyFillRect), (exaSolidBoxClipped),
+	(exaFillRegionSolid), (exaFillRegionTiled):
+	* exa/exa_migration.c: (exaPixmapSave), (exaPixmapAllocArea),
+	(exaMoveInPixmap):
+	* exa/exa_offscreen.c: (ExaOffscreenValidate), (exaOffscreenAlloc),
+	(ExaOffscreenSwapOut), (exaOffscreenFree), (ExaOffscreenMarkUsed),
+	(exaOffscreenInit), (ExaOffscreenFini):
+	* exa/exa_render.c: (exaTryDriverSolidFill),
+	(exaTryDriverComposite), (exaComposite), (exaGlyphs):
+	* hw/kdrive/ephyr/ephyr.h:
+	* hw/kdrive/ephyr/ephyr_draw.c: (ephyrDrawInit):
+	* hw/xfree86/exa/examodule.c:
+	Rearrange EXA driver structures so that there's a hope of maintaining
+	ABI when extending the driver interface.  The card and accel structures
+	are merged into the ExaDriverRec, which is to be allocated using
+	exaDriverAlloc().  The driver structure also grows exa_major and
+	exa_minor, which drivers fill in and have checked by EXA
+	(double-checking that the driver really did check that the EXA version
+	was correct).  Removes exaInitCard(), which is replaced by the driver
+	filling in the rec by hand, and the exaGetVersion() and related
+	EXA_*VERSION which are replaced by always using the XFree86 loadable
+	module versioning.
+
 2006-03-08  Lars Knoll <lars@trolltech.com>
 
 	* render/picture.c
