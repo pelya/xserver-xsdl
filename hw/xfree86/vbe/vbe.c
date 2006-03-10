@@ -181,7 +181,7 @@ vbeProbeDDC(vbeInfoPtr pVbe)
     char *ddc_level;
     int screen = pVbe->pInt10->scrnIndex;
     
-    if (!pVbe || (pVbe->ddc == DDC_NONE))
+    if (pVbe->ddc == DDC_NONE)
 	return FALSE;
     if (pVbe->ddc != DDC_UNCHECKED)
 	return TRUE;
