@@ -1,5 +1,11 @@
 2006-03-09  Jeremy C. Reed  <reed@reedmedia.net>
 
+	* hw/xfree86/common/xf86Configure.c:
+	Just like FreeBSD, let DragonFly's default mouse Device be
+	/dev/sysmouse (since /dev/mouse don't even exist by default).
+
+2006-03-09  Jeremy C. Reed  <reed@reedmedia.net>
+
 	* hw/xfree86/os-support/bsd/bsd_mouse.c: (SupportedInterfaces),
 	(DefaultProtocol), (SetSysMouseRes), (xf86OSMouseInit):
 	Add DragonFly support. (It is like FreeBSD.) This patch is
