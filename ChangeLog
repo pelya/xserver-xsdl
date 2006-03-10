@@ -1,3 +1,12 @@
+2006-03-09  Jeremy C. Reed  <reed@reedmedia.net>
+
+	* hw/xfree86/os-support/bsd/bsd_mouse.c: (SupportedInterfaces),
+	(DefaultProtocol), (SetSysMouseRes), (xf86OSMouseInit):
+	Add DragonFly support. (It is like FreeBSD.) This patch is
+	from DragonFly developer Joerg Sonnenberger and the pkgsrc
+	collection.  (I tested using /dev/sysmouse with moused using
+	serial /dev/cuaa0.)
+
 2006-03-09  Eric Anholt  <anholt@FreeBSD.org>
 
 	* exa/exa_render.c: (exaComposite):
