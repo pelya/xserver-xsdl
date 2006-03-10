@@ -199,6 +199,7 @@ ephyrMapFramebuffer (KdScreenInfo *screen)
   EphyrScrPriv  *scrpriv = screen->driver;
   EphyrPriv	  *priv    = screen->card->driver;
   KdMouseMatrix m;
+  int buffer_height;
   
   EPHYR_DBG(" screen->width: %d, screen->height: %d",
 	    screen->width, screen->height);
@@ -210,11 +211,19 @@ ephyrMapFramebuffer (KdScreenInfo *screen)
   priv->bytes_per_line = ((screen->width * screen->fb[0].bitsPerPixel + 31) >> 5) << 2;
   
   /* point the framebuffer to the data in an XImage */
-  priv->base = hostx_screen_init (screen->width, screen->height);
+  /* If fakexa is enabled, allocate a larger buffer so that fakexa has space to
+   * put offscreen pixmaps.
+   */
+  if (ephyrFuncs.initAccel == NULL)
+    buffer_height = screen->height;
+  else
+    buffer_height = 3 * screen->height;
   
+  priv->base = hostx_screen_init (screen->width, screen->height, buffer_height);
+
   screen->memory_base  = (CARD8 *) (priv->base);
-  screen->memory_size  = 0;
-  screen->off_screen_base = 0;
+  screen->memory_size  = priv->bytes_per_line * buffer_height;
+  screen->off_screen_base = priv->bytes_per_line * screen->height;
   
   if ((scrpriv->randr & RR_Rotate_0) && !(scrpriv->randr & RR_Reflect_All))
     {
@@ -223,7 +232,6 @@ ephyrMapFramebuffer (KdScreenInfo *screen)
       screen->fb[0].byteStride = priv->bytes_per_line;
       screen->fb[0].pixelStride = screen->width;
       screen->fb[0].frameBuffer = (CARD8 *) (priv->base);
-      screen->off_screen_base = priv->bytes_per_line * screen->height;
     }
   else
     {

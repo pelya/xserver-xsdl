@@ -42,8 +42,8 @@
 #endif
 
 /* Use some oddball alignments, to expose issues in alignment handling in EXA. */
-#define EPHYR_OFFSET_ALIGN	11
-#define EPHYR_PITCH_ALIGN	9
+#define EPHYR_OFFSET_ALIGN	24
+#define EPHYR_PITCH_ALIGN	24
 
 #define EPHYR_OFFSCREEN_SIZE	(16 * 1024 * 1024)
 #define EPHYR_OFFSCREEN_BASE	(1 * 1024 * 1024)
@@ -194,7 +194,7 @@ ephyrPrepareComposite(int op, PicturePtr pSrcPicture, PicturePtr pMaskPicture,
     EphyrScrPriv *scrpriv = screen->driver;
     EphyrFakexaPriv *fakexa = scrpriv->fakexa;
 
-    op = op;
+    fakexa->op = op;
     fakexa->pSrcPicture = pSrcPicture;
     fakexa->pMaskPicture = pMaskPicture;
     fakexa->pDstPicture = pDstPicture;
@@ -286,30 +286,10 @@ ephyrDrawInit(ScreenPtr pScreen)
 	xfree(fakexa);
 	return FALSE;
     }
-#if 0
-    /* Currently, EXA isn't ready for what we want to do here.  We want one
-     * pointer to the framebuffer (which is set in exaMapFramebuffer) to be
-     * considered "in framebuffer", and a separate pointer to offscreen memory,
-     * which is also considered to be in framebuffer.  The alternative would be
-     * to extend the XImage data area set up in hostx.c from exaMapFramebuffer,
-     * but that may be complicated.
-     */
-    fakexa->exa->memoryBase = xalloc(EPHYR_OFFSCREEN_SIZE);
-    if (fakexa->exa->memoryBase == NULL) {
-	xfree(fakexa->exa);
-	xfree(fakexa);
-	return FALSE;
-    }
-    fakexa->exa->memorySize = EPHYR_OFFSCREEN_SIZE;
-    fakexa->exa->offScreenBase = EPHYR_OFFSCREEN_BASE;
-#else
-    /* Tell EXA that there's a single framebuffer area, which happens to cover
-     * exactly what the front buffer is.
-     */
+
     fakexa->exa->memoryBase = screen->memory_base;
-    fakexa->exa->memorySize = screen->off_screen_base;
+    fakexa->exa->memorySize = screen->memory_size;
     fakexa->exa->offScreenBase = screen->off_screen_base;
-#endif
 
     /* Since we statically link against EXA, we shouldn't have to be smart about
      * versioning.

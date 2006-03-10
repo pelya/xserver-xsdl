@@ -136,7 +136,7 @@ hostx_set_cmap_entry(unsigned char idx,
 		     unsigned char b);
 
 void*
-hostx_screen_init (int width, int height);
+hostx_screen_init (int width, int height, int buffer_height);
 
 void
 hostx_paint_rect(int sx,    int sy,

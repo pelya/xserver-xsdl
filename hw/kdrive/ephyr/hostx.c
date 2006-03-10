@@ -438,8 +438,20 @@ hostx_set_cmap_entry(unsigned char idx,
   HostX.cmap[idx] = (r << 16) | (g << 8) | (b);
 }
 
+/**
+ * hostx_screen_init creates the XImage that will contain the front buffer of
+ * the ephyr screen, and possibly offscreen memory.
+ *
+ * @param width width of the screen
+ * @param height height of the screen
+ * @param buffer_height  height of the rectangle to be allocated.
+ *
+ * hostx_screen_init() creates an XImage, using MIT-SHM if it's available.
+ * buffer_height can be used to create a larger offscreen buffer, which is used
+ * by fakexa for storing offscreen pixmap data.
+ */
 void*
-hostx_screen_init (int width, int height)
+hostx_screen_init (int width, int height, int buffer_height)
 {
   int         bitmap_pad;
   Bool        shm_success = False;
@@ -476,10 +488,10 @@ hostx_screen_init (int width, int height)
     {
       HostX.ximg = XShmCreateImage(HostX.dpy, HostX.visual, HostX.depth, 
 				   ZPixmap, NULL, &HostX.shminfo,
-				   width, height );
+				   width, buffer_height );
 	  
       HostX.shminfo.shmid = shmget(IPC_PRIVATE,
-				   HostX.ximg->bytes_per_line * height,
+				   HostX.ximg->bytes_per_line * buffer_height,
 				   IPC_CREAT|0777);
       HostX.shminfo.shmaddr = HostX.ximg->data = shmat(HostX.shminfo.shmid,
 						       0, 0);
@@ -509,11 +521,11 @@ hostx_screen_init (int width, int height)
 				 HostX.depth, 
 				 ZPixmap, 0, 0,
 				 width, 
-				 height, 
+				 buffer_height, 
 				 bitmap_pad, 
 				 0);
 
-      HostX.ximg->data = malloc( HostX.ximg->bytes_per_line * height );
+      HostX.ximg->data = malloc( HostX.ximg->bytes_per_line * buffer_height );
     }
 
 
@@ -548,7 +560,7 @@ hostx_screen_init (int width, int height)
   else
     {
       EPHYR_DBG("server bpp %i", HostX.server_depth>>3);
-      HostX.fb_data = malloc(width*height*(HostX.server_depth>>3));
+      HostX.fb_data = malloc(width*buffer_height*(HostX.server_depth>>3));
       return HostX.fb_data;
     }
 }

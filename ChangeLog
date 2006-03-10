@@ -1,5 +1,20 @@
 2006-03-10  Eric Anholt  <anholt@FreeBSD.org>
 
+	* hw/kdrive/ephyr/ephyr.c: (ephyrMapFramebuffer):
+	* hw/kdrive/ephyr/ephyr_draw.c: (ephyrPrepareComposite),
+	(ephyrDrawInit):
+	* hw/kdrive/ephyr/hostx.c: (hostx_screen_init):
+	* hw/kdrive/ephyr/hostx.h:
+	If fakexa is enabled, create a larger buffer in the Ximage, but keep
+	the same width/height for front-buffer drawing.  The fakexa code then
+	uses this extra space for offscreen pixmaps.  Note that this tones down
+	the absurdity of fakexa's offscreen pixmap alignment requirements (odd
+	alignment is too weird, so stick with "24", which is still strange but
+	exists out there).  It also fixes a couple of bugs in the fakexa
+	implementation revealed by using offscreen pixmaps.
+
+2006-03-10  Eric Anholt  <anholt@FreeBSD.org>
+
 	* exa/exa.c: (exaPrepareAccess), (exaFinishAccess):
 	Move the exaDrawableDirty in exaPrepareAccess to exaFinishAccess, which
 	is after the drawing is done.  Previously, a failed PrepareAccess could
