@@ -230,8 +230,6 @@ exaPrepareAccess(DrawablePtr pDrawable, int index)
 
     pPixmap = exaGetDrawablePixmap (pDrawable);
 
-    if (index == EXA_PREPARE_DEST)
-	exaDrawableDirty (pDrawable);
     if (exaPixmapIsOffscreen (pPixmap))
 	exaWaitSync (pDrawable->pScreen);
     else
@@ -254,6 +252,9 @@ exaFinishAccess(DrawablePtr pDrawable, int index)
     ScreenPtr	    pScreen = pDrawable->pScreen;
     ExaScreenPriv  (pScreen);
     PixmapPtr	    pPixmap;
+
+    if (index == EXA_PREPARE_DEST)
+	exaDrawableDirty (pDrawable);
 
     if (pExaScr->info->FinishAccess == NULL)
 	return;

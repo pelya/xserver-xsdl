@@ -1,5 +1,13 @@
 2006-03-10  Eric Anholt  <anholt@FreeBSD.org>
 
+	* exa/exa.c: (exaPrepareAccess), (exaFinishAccess):
+	Move the exaDrawableDirty in exaPrepareAccess to exaFinishAccess, which
+	is after the drawing is done.  Previously, a failed PrepareAccess could
+	have migrated and cleared the dirty flag before the damage was ever
+	done.
+
+2006-03-10  Eric Anholt  <anholt@FreeBSD.org>
+
 	* hw/xfree86/vbe/vbe.c: (vbeProbeDDC):
 	Coverity #1011: Remove a useless NULL check on a pVbe that had
 	been dereferenced many times before.
