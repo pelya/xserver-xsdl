@@ -119,8 +119,10 @@ xf86parseLayoutSection (void)
 
 				iptr = xf86confcalloc (1, sizeof (XF86ConfInactiveRec));
 				iptr->list.next = NULL;
-				if (xf86getSubToken (&(ptr->lay_comment)) != STRING)
+				if (xf86getSubToken (&(ptr->lay_comment)) != STRING) {
+					xf86conffree (iptr);
 					Error (INACTIVE_MSG, NULL);
+				}
 				iptr->inactive_device_str = val.str;
 				ptr->lay_inactive_lst = (XF86ConfInactivePtr)
 					xf86addListItem ((glp) ptr->lay_inactive_lst, (glp) iptr);
@@ -143,8 +145,10 @@ xf86parseLayoutSection (void)
 				else
 					xf86unGetToken (token);
 				token = xf86getSubToken(&(ptr->lay_comment));
-				if (token != STRING)
+				if (token != STRING) {
+					xf86conffree(aptr);
 					Error (SCREEN_MSG, NULL);
+				}
 				aptr->adj_screen_str = val.str;
 
 				token = xf86getSubTokenWithTab(&(ptr->lay_comment), AdjTab);
@@ -170,6 +174,7 @@ xf86parseLayoutSection (void)
 					absKeyword = 1;
 					break;
 				case EOF_TOKEN:
+					xf86conffree(aptr);
 					Error (UNEXPECTED_EOF_MSG, NULL);
 					break;
 				default:
@@ -189,13 +194,16 @@ xf86parseLayoutSection (void)
 					{
 						aptr->adj_x = val.num;
 						token = xf86getSubToken(&(ptr->lay_comment));
-						if (token != NUMBER)
+						if (token != NUMBER) {
+							xf86conffree(aptr);
 							Error(INVALID_SCR_MSG, NULL);
+						}
 						aptr->adj_y = val.num;
 					} else {
-						if (absKeyword)
+						if (absKeyword) {
+							xf86conffree(aptr);
 							Error(INVALID_SCR_MSG, NULL);
-						else
+						} else
 							xf86unGetToken (token);
 					}
 					break;
@@ -205,18 +213,24 @@ xf86parseLayoutSection (void)
 				case CONF_ADJ_BELOW:
 				case CONF_ADJ_RELATIVE:
 					token = xf86getSubToken(&(ptr->lay_comment));
-					if (token != STRING)
+					if (token != STRING) {
+						xf86conffree(aptr);
 						Error(INVALID_SCR_MSG, NULL);
+					}
 					aptr->adj_refscreen = val.str;
 					if (aptr->adj_where == CONF_ADJ_RELATIVE)
 					{
 						token = xf86getSubToken(&(ptr->lay_comment));
-						if (token != NUMBER)
+						if (token != NUMBER) {
+							xf86conffree(aptr);
 							Error(INVALID_SCR_MSG, NULL);
+						}
 						aptr->adj_x = val.num;
 						token = xf86getSubToken(&(ptr->lay_comment));
-						if (token != NUMBER)
+						if (token != NUMBER) {
+							xf86conffree(aptr);
 							Error(INVALID_SCR_MSG, NULL);
+						}
 						aptr->adj_y = val.num;
 					}
 					break;
@@ -225,18 +239,24 @@ xf86parseLayoutSection (void)
 					aptr->adj_top_str = val.str;
 
 					/* bottom */
-					if (xf86getSubToken (&(ptr->lay_comment)) != STRING)
+					if (xf86getSubToken (&(ptr->lay_comment)) != STRING) {
+						xf86conffree(aptr);
 						Error (SCREEN_MSG, NULL);
+					}
 					aptr->adj_bottom_str = val.str;
 
 					/* left */
-					if (xf86getSubToken (&(ptr->lay_comment)) != STRING)
+					if (xf86getSubToken (&(ptr->lay_comment)) != STRING) {
+						xf86conffree(aptr);
 						Error (SCREEN_MSG, NULL);
+					}
 					aptr->adj_left_str = val.str;
 
 					/* right */
-					if (xf86getSubToken (&(ptr->lay_comment)) != STRING)
+					if (xf86getSubToken (&(ptr->lay_comment)) != STRING) {
+						xf86conffree(aptr);
 						Error (SCREEN_MSG, NULL);
+					}
 					aptr->adj_right_str = val.str;
 
 				}
@@ -251,8 +271,10 @@ xf86parseLayoutSection (void)
 				iptr = xf86confcalloc (1, sizeof (XF86ConfInputrefRec));
 				iptr->list.next = NULL;
 				iptr->iref_option_lst = NULL;
-				if (xf86getSubToken (&(ptr->lay_comment)) != STRING)
+				if (xf86getSubToken (&(ptr->lay_comment)) != STRING) {
+					xf86conffree(iptr);
 					Error (INPUTDEV_MSG, NULL);
+				}
 				iptr->iref_inputdev_str = val.str;
 				while ((token = xf86getSubToken (&(ptr->lay_comment))) == STRING)
 				{

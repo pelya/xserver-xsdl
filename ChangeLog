@@ -1,5 +1,13 @@
 2006-03-09  Eric Anholt  <anholt@FreeBSD.org>
 
+	* hw/xfree86/parser/Keyboard.c: (xf86parseKeyboardSection):
+	* hw/xfree86/parser/Layout.c: (xf86parseLayoutSection):
+	* hw/xfree86/parser/Pointer.c: (xf86parsePointerSection):
+	Coverity #813, #814, #815, #816: Fix resource leaks in error paths of
+	config parsing code.
+
+2006-03-09  Eric Anholt  <anholt@FreeBSD.org>
+
 	* exa/exa.h:
 	Document the restriction on PrepareAccess() failure, from discussion
 	with benh.
