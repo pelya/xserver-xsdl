@@ -1,5 +1,10 @@
 2006-03-09  Eric Anholt  <anholt@FreeBSD.org>
 
+	* hw/xfree86/int10/generic.c: (xf86ExtendedInitInt10):
+	Coverity #857: Fix resource leak in error path by freeing earlier.
+
+2006-03-09  Eric Anholt  <anholt@FreeBSD.org>
+
 	* hw/xfree86/parser/Keyboard.c: (xf86parseKeyboardSection):
 	* hw/xfree86/parser/Layout.c: (xf86parseLayoutSection):
 	* hw/xfree86/parser/Pointer.c: (xf86parsePointerSection):

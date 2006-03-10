@@ -232,6 +232,8 @@ xf86ExtendedInitInt10(int entityIndex, int Flags)
 	} else
 	    location_type = pEnt->location.type;
 	
+	xfree(pEnt);
+
 	switch (location_type) {
 	case BUS_PCI:
 	    vbiosMem = (unsigned char *)base + bios_location;
@@ -263,7 +265,6 @@ xf86ExtendedInitInt10(int entityIndex, int Flags)
 	default:
 	    goto error1;
 	}
-	xfree(pEnt);
 	pInt->BIOSseg = V_BIOS >> 4;
 	pInt->num = 0xe6;
 	LockLegacyVGA(pInt, &vga);
