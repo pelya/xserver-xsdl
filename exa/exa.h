@@ -598,12 +598,15 @@ typedef struct _ExaDriver {
      * within the same pixmap (so it gets PrepareAccess as EXA_PREPARE_DEST and
      * then as EXA_PREPARE_SRC).
      *
+     * PrepareAccess() may fail.  An example might be the case of hardware that
+     * can set up 1 or 2 surfaces for CPU access, but not 3.  If PrepareAccess
+     * fails, EXA will migrate the pixmap to system memory.  For this migration,
+     * DownloadFromScreen() must be implemented, and must not fail.
+     * PrepareAccess() must not fail when pPix is the visible screen, because
+     * the visible screen can not be migrated.
+     *
      * @return TRUE if PrepareAccess() successfully prepared the pixmap for CPU
-     * drawing.  Failure means that EXA should migrate the pixmap out of
-     * offscreen memory, but this code path is currently broken.  Note that
-     * DownloadFromScreen() will be called in case of a PrepareAccess() failure.
-     * Also, PrepareAccess() may not fail on a pixmap representing the front
-     * buffer, because the front buffer may not be migrated.
+     * drawing.
      */
     Bool	(*PrepareAccess)(PixmapPtr pPix, int index);
 

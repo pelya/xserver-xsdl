@@ -1,3 +1,9 @@
+2006-03-09  Eric Anholt  <anholt@FreeBSD.org>
+
+	* exa/exa.h:
+	Document the restriction on PrepareAccess() failure, from discussion
+	with benh.
+
 2006-03-09  Jeremy C. Reed  <reed@reedmedia.net>
 
 	* hw/xfree86/common/xf86Configure.c:
