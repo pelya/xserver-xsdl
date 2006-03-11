@@ -1,5 +1,15 @@
 2006-03-10  Alan Coopersmith  <alan.coopersmith@sun.com>
 
+	* configure.ac: 
+	* include/dix-config.h.in: 
+	Add HAS_MMAP for Xvfb
+
+	* hw/vfb/InitOutput.c (ddxProcessArgument): 
+	Fix Xvfb option parsing to exit on bad arguments, not just issue
+	error messages and continue on.  (Coverity #492)
+	
+2006-03-10  Alan Coopersmith  <alan.coopersmith@sun.com>       
+
 	* hw/xfree86/utils/xorgcfg/options.c: 
 	Pass sizeof the correct buffer to XmuSnprintf. (Coverity #489)
 

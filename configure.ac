@@ -98,6 +98,9 @@ AM_CONDITIONAL(NEED_STRLCAT, [test x$HAVE_STRLCAT = xno])
 
 AM_CONDITIONAL(NEED_VSNPRINTF, [test x$HAVE_VSNPRINTF = xno])
 
+dnl Check for mmap support for Xvfb
+AC_CHECK_FUNC([mmap], AC_DEFINE(HAS_MMAP, 1, [Have the `mmap' function.]))
+
 dnl Find the math libary
 AC_CHECK_LIB(m, sqrt)
 

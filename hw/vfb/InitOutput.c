@@ -299,15 +299,24 @@ ddxProcessArgument(int argc, char *argv[], int i)
         firstTime = FALSE;
     }
 
+#define CHECK_FOR_REQUIRED_ARGUMENTS(num) \
+    if (((i + num) >= argc) || (!argv[i + num])) {                      \
+      ErrorF("Required argument to %s not specified\n", argv[i]);       \
+      UseMsg();                                                         \
+      FatalError("Required argument to %s not specified\n", argv[i]);   \
+    }
+    
     if (strcmp (argv[i], "-screen") == 0)	/* -screen n WxHxD */
     {
 	int screenNum;
-	if (i + 2 >= argc) UseMsg();
+	CHECK_FOR_REQUIRED_ARGUMENTS(2);
 	screenNum = atoi(argv[i+1]);
 	if (screenNum < 0 || screenNum >= MAXSCREENS)
 	{
 	    ErrorF("Invalid screen number %d\n", screenNum);
 	    UseMsg();
+	    FatalError("Invalid screen number %d passed to -screen\n",
+		       screenNum);
 	}
 	if (3 != sscanf(argv[i+2], "%dx%dx%d",
 			&vfbScreens[screenNum].width,
@@ -316,6 +325,8 @@ ddxProcessArgument(int argc, char *argv[], int i)
 	{
 	    ErrorF("Invalid screen configuration %s\n", argv[i+2]);
 	    UseMsg();
+	    FatalError("Invalid screen configuration %s for -screen %d\n",
+		   argv[i+2], screenNum);
 	}
 
 	if (screenNum >= vfbNumScreens)
@@ -328,13 +339,15 @@ ddxProcessArgument(int argc, char *argv[], int i)
     {
 	int depth, ret = 1;
 
-	if (++i >= argc) UseMsg();
-	while ((i < argc) && (depth = atoi(argv[i++])) != 0)
+	CHECK_FOR_REQUIRED_ARGUMENTS(1);
+	while ((++i < argc) && (depth = atoi(argv[i])) != 0)
 	{
 	    if (depth < 0 || depth > 32)
 	    {
 		ErrorF("Invalid pixmap depth %d\n", depth);
 		UseMsg();
+		FatalError("Invalid pixmap depth %d passed to -pixdepths\n",
+			   depth);
 	    }
 	    vfbPixmapDepths[depth] = TRUE;
 	    ret++;
@@ -357,8 +370,8 @@ ddxProcessArgument(int argc, char *argv[], int i)
     if (strcmp (argv[i], "-blackpixel") == 0)	/* -blackpixel n */
     {
 	Pixel pix;
-	if (++i >= argc) UseMsg();
-	pix = atoi(argv[i]);
+	CHECK_FOR_REQUIRED_ARGUMENTS(1);
+	pix = atoi(argv[++i]);
 	if (-1 == lastScreen)
 	{
 	    int i;
@@ -377,8 +390,8 @@ ddxProcessArgument(int argc, char *argv[], int i)
     if (strcmp (argv[i], "-whitepixel") == 0)	/* -whitepixel n */
     {
 	Pixel pix;
-	if (++i >= argc) UseMsg();
-	pix = atoi(argv[i]);
+	CHECK_FOR_REQUIRED_ARGUMENTS(1);
+	pix = atoi(argv[++i]);
 	if (-1 == lastScreen)
 	{
 	    int i;
@@ -397,8 +410,8 @@ ddxProcessArgument(int argc, char *argv[], int i)
     if (strcmp (argv[i], "-linebias") == 0)	/* -linebias n */
     {
 	unsigned int linebias;
-	if (++i >= argc) UseMsg();
-	linebias = atoi(argv[i]);
+	CHECK_FOR_REQUIRED_ARGUMENTS(1);
+	linebias = atoi(argv[++i]);
 	if (-1 == lastScreen)
 	{
 	    int i;
@@ -417,8 +430,8 @@ ddxProcessArgument(int argc, char *argv[], int i)
 #ifdef HAS_MMAP
     if (strcmp (argv[i], "-fbdir") == 0)	/* -fbdir directory */
     {
-	if (++i >= argc) UseMsg();
-	pfbdir = argv[i];
+	CHECK_FOR_REQUIRED_ARGUMENTS(1);
+	pfbdir = argv[++i];
 	fbmemtype = MMAPPED_FILE_FB;
 	return 2;
     }
