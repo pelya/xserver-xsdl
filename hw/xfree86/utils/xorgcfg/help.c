@@ -820,7 +820,7 @@ Html_ParseTag(Html_Parser *parser)
 	    (void)Html_Get(parser);			/* eat `/' */
 	    sz = 0;
 	    while (isalnum(Html_Peek(parser)) &&
-		   sz <= sizeof(buf) + 1)
+		   ((sz + 1) < sizeof(buf)))
 		buf[sz++] = tolower(Html_Get(parser));
 	    buf[sz] = '\0';
 	    if ((info = Html_GetInfo(buf)) != NULL) {
@@ -854,7 +854,7 @@ Html_ParseTag(Html_Parser *parser)
 	default:
 	    sz = 0;
 	    while (isalnum(Html_Peek(parser)) &&
-		   sz <= sizeof(buf) + 1)
+		   ((sz + 1) < sizeof(buf)))
 		buf[sz++] = tolower(Html_Get(parser));
 	    buf[sz] = '\0';
 	    if ((info = Html_GetInfo(buf)) != NULL) {
@@ -1020,7 +1020,7 @@ Html_Parse1(Html_Parser *parser)
 	    while ((ch = Html_Peek(parser)) != ';'
 		   && ch != EOF && !isspace(ch)) {
 		ch = Html_Get(parser);
-		if (sz + 1 <= sizeof(buf))
+		if (sz + 1 < sizeof(buf))
 		    buf[sz++] = ch;
 	    }
 	    buf[sz] = '\0';
@@ -1273,7 +1273,7 @@ Html_FormatTag(Html_Parser *parser)
 	case '/':
 	    (void)Html_Get(parser);			/* eat `/' */
 	    while (isalnum(Html_Peek(parser)) &&
-		   sz <= sizeof(buf) + 1)
+		   ((sz + 1) < sizeof(buf)))
 		buf[sz++] = ch = tolower(Html_Get(parser));
 	    buf[sz] = '\0';
 	    if ((info = Html_GetInfo(buf)) != NULL && info->adnl) {
@@ -1315,7 +1315,7 @@ Html_FormatTag(Html_Parser *parser)
 	    break;
 	default:
 	    while (isalnum(Html_Peek(parser)) &&
-		   sz <= sizeof(buf) + 1)
+		   ((sz + 1) < sizeof(buf)))
 		buf[sz++] = tolower(Html_Get(parser));
 	    buf[sz] = '\0';
 	    if ((info = Html_GetInfo(buf)) != NULL && info->adnl) {
@@ -1625,7 +1625,7 @@ Html_FontArgs(Html_Parser *parser, Html_Item *item)
 	sz = 0;
 	name[sz++] = tolower(Html_Get(parser));
 	while ((ch = Html_Peek(parser)) != '>' && ch != EOF)
-	    if (isalnum(ch) && sz + 1 <= sizeof(name))
+	    if (isalnum(ch) && (sz + 1 < sizeof(name)))
 		name[sz++] = tolower(Html_Get(parser));
 	    else
 		break;
@@ -1639,7 +1639,7 @@ Html_FontArgs(Html_Parser *parser, Html_Item *item)
 
 	sz = 0;
 	while ((ch = Html_Peek(parser)) != '>' && ch != EOF) {
-	    if (!isspace(ch) && sz + 1 <= sizeof(value))
+	    if (!isspace(ch) && (sz + 1 < sizeof(value)))
 		value[sz++] = Html_Get(parser);
 	    else
 		break;

@@ -1,5 +1,11 @@
 2006-03-10  Alan Coopersmith  <alan.coopersmith@sun.com>
 
+	* hw/xfree86/utils/xorgcfg/help.c: 
+	Fix buffer size checks to prevent 2-byte buffer overflows.
+	(Coverity #480, #481, #482, #483)
+
+2006-03-10  Alan Coopersmith  <alan.coopersmith@sun.com>
+	
 	* configure.ac: 
 	* include/dix-config.h.in: 
 	Add HAS_MMAP for Xvfb
