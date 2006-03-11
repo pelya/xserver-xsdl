@@ -1,3 +1,8 @@
+2006-03-10  Alan Coopersmith  <alan.coopersmith@sun.com>
+
+	* hw/xfree86/utils/xorgcfg/options.c: 
+	Pass sizeof the correct buffer to XmuSnprintf. (Coverity #489)
+
 2006-03-10  Eric Anholt  <anholt@FreeBSD.org>
 
 	* hw/kdrive/ephyr/ephyr.c: (ephyrMapFramebuffer):

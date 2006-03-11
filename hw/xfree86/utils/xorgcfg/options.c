@@ -334,7 +334,7 @@ OptionsPopup(XF86OptionPtr *opts)
     if (!nomodules) {
 	if (menu)
 	    XtDestroyWidget(menu);
-	XmuSnprintf(menuName, sizeof(buf), "optionM%d", menuN);
+	XmuSnprintf(menuName, sizeof(menuName), "optionM%d", menuN);
 	menuN = !menuN;
 	menu = XtCreatePopupShell(menuName, simpleMenuWidgetClass, button,
 				  NULL, 0);
