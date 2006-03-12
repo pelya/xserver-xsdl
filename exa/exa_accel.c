@@ -148,6 +148,8 @@ exaCopyNtoNTwoDir (DrawablePtr pSrcDrawable, DrawablePtr pDstDrawable,
 	if (dx >= 0 && (src_off_y + pbox->y1 + dy) != pbox->y1) {
 	    /* Do a xdir = ydir = -1 blit instead. */
 	    if (dirsetup != -1) {
+		if (dirsetup != 0)
+		    pExaScr->info->DoneCopy(pDstPixmap);
 		dirsetup = -1;
 		if (!(*pExaScr->info->PrepareCopy)(pSrcPixmap,
 						   pDstPixmap,
@@ -167,6 +169,8 @@ exaCopyNtoNTwoDir (DrawablePtr pSrcDrawable, DrawablePtr pDstDrawable,
 	} else if (dx < 0 && (src_off_y + pbox->y1 + dy) != pbox->y1) {
 	    /* Do a xdir = ydir = 1 blit instead. */
 	    if (dirsetup != 1) {
+		if (dirsetup != 0)
+		    pExaScr->info->DoneCopy(pDstPixmap);
 		dirsetup = 1;
 		if (!(*pExaScr->info->PrepareCopy)(pSrcPixmap,
 						   pDstPixmap,
@@ -190,6 +194,8 @@ exaCopyNtoNTwoDir (DrawablePtr pSrcDrawable, DrawablePtr pDstDrawable,
 	     */
 	    int i;
 	    if (dirsetup != 1) {
+		if (dirsetup != 0)
+		    pExaScr->info->DoneCopy(pDstPixmap);
 		dirsetup = 1;
 		if (!(*pExaScr->info->PrepareCopy)(pSrcPixmap,
 						   pDstPixmap,
@@ -213,6 +219,8 @@ exaCopyNtoNTwoDir (DrawablePtr pSrcDrawable, DrawablePtr pDstDrawable,
 	     */
 	    int i;
 	    if (dirsetup != -1) {
+		if (dirsetup != 0)
+		    pExaScr->info->DoneCopy(pDstPixmap);
 		dirsetup = -1;
 		if (!(*pExaScr->info->PrepareCopy)(pSrcPixmap,
 						   pDstPixmap,
@@ -231,7 +239,8 @@ exaCopyNtoNTwoDir (DrawablePtr pSrcDrawable, DrawablePtr pDstDrawable,
 				       pbox->x2 - pbox->x1, 1);
 	}
     }
-    (*pExaScr->info->DoneCopy)(pDstPixmap);
+    if (dirsetup != 0)
+	pExaScr->info->DoneCopy(pDstPixmap);
     exaMarkSync(pDstDrawable->pScreen);
     exaDrawableDirty(pDstDrawable);
     return TRUE;
