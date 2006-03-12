@@ -1,3 +1,8 @@
+2006-03-12  Matthieu Herrb <matthieu.herrb@laas.fr>
+
+	* hw/xfree86/dixmods/Makefile.am
+	Fix build when AIGLX is false. 
+
 2006-03-11  Eric Anholt  <anholt@FreeBSD.org>
 
 	* exa/exa.h:

@@ -73,9 +73,12 @@ libfb_la_LIBADD = $(top_builddir)/fb/libfb.la
 libfb_la_SOURCES = $(top_builddir)/fb/fbcmap.c fbmodule.c
 
 libglx_la_LDFLAGS = -avoid-version
+if AIGLX
+GLXDRI_LIBRARY = $(top_builddir)/GL/glx/libglxdri.la
+endif
 libglx_la_LIBADD = \
 	$(top_builddir)/GL/glx/libglx.la \
-	$(top_builddir)/GL/glx/libglxdri.la
+	$(GLXDRI_LIBRARY)
 libglx_la_SOURCES = glxmodule.c
 
 libmfb_la_LDFLAGS = -avoid-version
