@@ -163,20 +163,19 @@ typedef struct _ExaDriver {
      * @{
      */
     /**
-     * PrepareSolid sets up the driver for doing a solid fill.
+     * PrepareSolid() sets up the driver for doing a solid fill.
      * @param pPixmap Destination pixmap
      * @param alu raster operation
      * @param planemask write mask for the fill
      * @param fg "foreground" color for the fill
      *
      * This call should set up the driver for doing a series of solid fills
-     * through the Solid call.  The alu raster op is one of the GX*
+     * through the Solid() call.  The alu raster op is one of the GX*
      * graphics functions listed in X.h, and typically maps to a similar
      * single-byte "ROP" setting in all hardware.  The planemask controls
-     * which bits of
-     * the destination should be affected, and will only represent the bits up
-     * to the depth of pPixmap.  The fg is the pixel value of the foreground
-     * color referred to in ROP descriptions.
+     * which bits of the destination should be affected, and will only represent
+     * the bits up to the depth of pPixmap.  The fg is the pixel value of the
+     * foreground color referred to in ROP descriptions.
      *
      * Note that many drivers will need to store some of the data in the driver
      * private record, for sending to the hardware with each drawing command.
@@ -190,7 +189,7 @@ typedef struct _ExaDriver {
                                  Pixel          fg);
 
     /**
-     * Solid performs a solid fill set up in the last PrepareSolid call.
+     * Solid() performs a solid fill set up in the last PrepareSolid() call.
      *
      * @param pPixmap destination pixmap
      * @param x1 left coordinate
@@ -211,13 +210,14 @@ typedef struct _ExaDriver {
     void        (*Solid) (PixmapPtr      pPixmap, int x1, int y1, int x2, int y2);
 
     /**
-     * DoneSolid finishes a set of solid fills.
+     * DoneSolid() finishes a set of solid fills.
      *
      * @param pPixmap destination pixmap.
      *
-     * The DoneSolid call is called at the end of a set of a series of Solid()
-     * calls following a PrepareSolid() that was called.  This allows drivers to
-     * finish up emitting drawing commands that were buffered.
+     * The DoneSolid() call is called at the end of a series of consecutive
+     * Solid() calls following a successful PrepareSolid().  This allows drivers
+     * to finish up emitting drawing commands that were buffered, or clean up
+     * state from PrepareSolid().
      *
      * This call is required if PrepareSolid() ever succeeds.
      */
@@ -228,7 +228,9 @@ typedef struct _ExaDriver {
      * @{
      */
     /**
-     * PrepareCopy sets up the driver for doing a copy within offscreen memory.
+     * PrepareCopy() sets up the driver for doing a copy within offscreen
+     * memory.
+     *
      * @param pSrcPixmap source pixmap
      * @param pDstPixmap destination pixmap
      * @param dx X copy direction
@@ -243,7 +245,7 @@ typedef struct _ExaDriver {
      * is to deal with self-overlapping copies when pSrcPixmap == pDstPixmap.
      * If your hardware can only support blits that are (left to right, top to
      * bottom) or (right to left, bottom to top), then you should set
-     * EXA_TWO_BITBLT_DIRECTIONS, and EXA will break down Copy operations to
+     * #EXA_TWO_BITBLT_DIRECTIONS, and EXA will break down Copy operations to
      * ones that meet those requirements.  The alu raster op is one of the GX*
      * graphics functions listed in X.h, and typically maps to a similar
      * single-byte "ROP" setting in all hardware.  The planemask controls which
@@ -264,7 +266,7 @@ typedef struct _ExaDriver {
                                 Pixel           planemask);
 
     /**
-     * Copy performs a copy set up in the last PrepareCopy call.
+     * Copy() performs a copy set up in the last PrepareCopy call.
      *
      * @param pDstPixmap destination pixmap
      * @param srcX source X coordinate
@@ -296,15 +298,16 @@ typedef struct _ExaDriver {
                          int    height);
 
     /**
-     * DoneCopy finishes a set of copies.
+     * DoneCopy() finishes a set of copies.
      *
      * @param pPixmap destination pixmap.
      *
-     * The DoneCopy call is called at the end of a set of a series of Copy()
-     * calls following a PrepareCopy() that was called.  This allows drivers to
-     * finish up emitting drawing commands that were buffered.
+     * The DoneCopy() call is called at the end of a series of consecutive
+     * Copy() calls following a successful PrepareCopy().  This allows drivers
+     * to finish up emitting drawing commands that were buffered, or clean up
+     * state from PrepareCopy().
      *
-     * This call is required if PrepareCopy ever succeeds.
+     * This call is required if PrepareCopy() ever succeeds.
      */
     void        (*DoneCopy) (PixmapPtr       pDstPixmap);
     /** @} */
@@ -313,27 +316,28 @@ typedef struct _ExaDriver {
      * @{
      */
     /**
-     * CheckComposite checks to see if a composite operation could be accelerated.
+     * CheckComposite() checks to see if a composite operation could be
+     * accelerated.
      *
      * @param op Render operation
      * @param pSrcPicture source Picture
      * @param pMaskPicture mask picture
      * @param pDstPicture destination Picture
      *
-     * The CheckComposite call checks if the driver could handle acceleration of
-     * op with the given source, mask, and destination pictures.  This allows
+     * The CheckComposite() call checks if the driver could handle acceleration
+     * of op with the given source, mask, and destination pictures.  This allows
      * drivers to check source and destination formats, supported operations,
      * transformations, and component alpha state, and send operations it can't
      * support to software rendering early on.  This avoids costly pixmap
      * migration to the wrong places when the driver can't accelerate
      * operations.  Note that because migration hasn't happened, the driver
-     * can't know during CheckComposite what the pitches and offsets of the
+     * can't know during CheckComposite() what the offsets and pitches of the
      * pixmaps are going to be.
      *
      * See PrepareComposite() for more details on likely issues that drivers
      * will have in accelerating Composite operations.
      *
-     * The CheckComposite call is recommended if PrepareComposite() is
+     * The CheckComposite() call is recommended if PrepareComposite() is
      * implemented, but is not required.
      */
     Bool        (*CheckComposite) (int          op,
@@ -342,7 +346,7 @@ typedef struct _ExaDriver {
                                    PicturePtr   pDstPicture);
 
     /**
-     * PrepareComposite sets up the driver for doing a Composite operations
+     * PrepareComposite() sets up the driver for doing a Composite operation
      * described in the Render extension protocol spec.
      *
      * @param op Render operation
@@ -385,14 +389,15 @@ typedef struct _ExaDriver {
      *   pixmaps that have a width or height that is not a power of two.
      *
      * If your hardware can't support source pictures (textures) with
-     * non-power-of-two pitches, you should set EXA_OFFSCREEN_ALIGN_POT.
+     * non-power-of-two pitches, you should set #EXA_OFFSCREEN_ALIGN_POT.
      *
      * Note that many drivers will need to store some of the data in the driver
      * private record, for sending to the hardware with each drawing command.
      *
-     * The PrepareCopy call is not required.  However, it is highly recommended
-     * for performance of antialiased font rendering and performance of cairo
-     * applications.  Failure results in a fallback to software rendering.
+     * The PrepareComposite() call is not required.  However, it is highly
+     * recommended for performance of antialiased font rendering and performance
+     * of cairo applications.  Failure results in a fallback to software
+     * rendering.
      */
     Bool        (*PrepareComposite) (int                op,
                                      PicturePtr         pSrcPicture,
@@ -403,8 +408,8 @@ typedef struct _ExaDriver {
                                      PixmapPtr          pDst);
 
     /**
-     * Composite performs a Composite operation set up in the last
-     * PrepareComposite call.
+     * Composite() performs a Composite operation set up in the last
+     * PrepareComposite() call.
      *
      * @param pDstPixmap destination pixmap
      * @param srcX source X coordinate
@@ -416,7 +421,7 @@ typedef struct _ExaDriver {
      * @param width destination rectangle width
      * @param height destination rectangle height
      *
-     * Performs the Composite operation set up by the last PrepareComposite
+     * Performs the Composite operation set up by the last PrepareComposite()
      * call, to the rectangle from (dstX, dstY) to (dstX + width, dstY + height)
      * in the destination Pixmap.  Note that if a transformation was set on
      * the source or mask Pictures, the source rectangles may not be the same
@@ -424,7 +429,7 @@ typedef struct _ExaDriver {
      * transformation right at the subpixel level can be tricky, and rendercheck
      * can test this for you.
      *
-     * This call is required if PrepareComposite ever succeeds.
+     * This call is required if PrepareComposite() ever succeeds.
      */
     void        (*Composite) (PixmapPtr         pDst,
                               int       srcX,
@@ -437,15 +442,16 @@ typedef struct _ExaDriver {
                               int        height);
 
     /**
-     * DoneComposite finishes a set of Composite operations.
+     * DoneComposite() finishes a set of Composite operations.
      *
      * @param pPixmap destination pixmap.
      *
-     * The DoneComposite call is called at the end of a set of a series of
-     * Composite() calls following a PrepareCopy() that was called.  This allows
-     * drivers to finish up emitting drawing commands that were buffered.
+     * The DoneComposite() call is called at the end of a series of consecutive
+     * Composite() calls following a successful PrepareComposite().  This allows
+     * drivers to finish up emitting drawing commands that were buffered, or
+     * clean up state from PrepareComposite().
      *
-     * This call is required if PrepareComposite ever succeeds.
+     * This call is required if PrepareComposite() ever succeeds.
      */
     void        (*DoneComposite) (PixmapPtr         pDst);
     /** @} */
@@ -467,12 +473,12 @@ typedef struct _ExaDriver {
      * where the CPU sets up a blit command on the hardware with instructions
      * that the blit data will be fed through some sort of aperture on the card.
      *
-     * If UploadToScreen is performed asynchronously, it is up to the driver to
-     * call exaMarkSync().  This is in contrast to most other acceleration calls
-     * in EXA.
+     * If UploadToScreen() is performed asynchronously, it is up to the driver
+     * to call exaMarkSync().  This is in contrast to most other acceleration
+     * calls in EXA.
      *
-     * UploadToScreen can aid in pixmap migration, but is most important for
-     * the performance of exaGlyphs (antialiased font drawing) by allowing
+     * UploadToScreen() can aid in pixmap migration, but is most important for
+     * the performance of exaGlyphs() (antialiased font drawing) by allowing
      * pipelining of data uploads, avoiding a sync of the card after each glyph.
      * 
      * @return TRUE if the driver successfully uploaded the data.  FALSE
@@ -498,26 +504,25 @@ typedef struct _ExaDriver {
      *
      * The UploadToScratch() call was added to support Xati before Xati had
      * support for hostdata uploads and before exaGlyphs() was written.  It
-     * behaves incorrectly (uses an invalid pixmap as pDst), and UploadToScreen()
-     * should be implemented instead.
+     * behaves incorrectly (uses an invalid pixmap as pDst),
+     * and UploadToScreen() should be implemented instead.
      *
      * Drivers implementing UploadToScratch() had to set up space (likely in a
      * statically allocated area) in offscreen memory, copy pSrc to that
      * scratch area, and adust pDst->devKind for the pitch and
      * pDst->devPrivate.ptr for the pointer to that scratch area.  The driver
      * was responsible for syncing (as it was implemented using memcpy() in
-     * Xati), and only the data from the last UploadToScratch() was guaranteed to
-     * be valid at any given time.
+     * Xati), and only the data from the last UploadToScratch() was guaranteed
+     * to be valid at any given time.
      *
-     * UploadToScratch() should not be implemented by drivers, and will likely be
-     * removed in a future version of EXA.
+     * UploadToScratch() should not be implemented by drivers, and will likely
+     * be removed in a future version of EXA.
      */
     Bool        (*UploadToScratch) (PixmapPtr           pSrc,
                                     PixmapPtr           pDst);
 
     /**
-     * DownloadFromScreen loads a rectangle of data from @param pSrc into
-     * @param dst
+     * DownloadFromScreen() loads a rectangle of data from pSrc into dst
      *
      * @param pSrc source pixmap
      * @param x source X coordinate.
@@ -527,41 +532,37 @@ typedef struct _ExaDriver {
      * @param dst pointer to the beginning of the destination data
      * @param dst_pitch pitch (in bytes) of the lines of destination data.
      *
-     * DownloadFromScreen copies data from offscreen memory in pSrc from
+     * DownloadFromScreen() copies data from offscreen memory in pSrc from
      * (x, y) to (x + width, y + height), to system memory starting at
      * dst (with pitch dst_pitch).  This would usually be done
      * using scatter-gather DMA, supported by a DRM call, or by blitting to AGP
      * and then synchronously reading from AGP.  Because the implementation
      * might be synchronous, EXA leaves it up to the driver to call
-     * exaMarkSync() if DownloadFromScreen was asynchronous.  This is in
+     * exaMarkSync() if DownloadFromScreen() was asynchronous.  This is in
      * contrast to most other acceleration calls in EXA.
      *
-     * DownloadFromScreen can aid in the largest bottleneck in pixmap migration,
-     * which is the read from framebuffer when evicting pixmaps from framebuffer
-     * memory.  Thus, it is highly recommended, even though implementations are
-     * typically complicated.
+     * DownloadFromScreen() can aid in the largest bottleneck in pixmap
+     * migration, which is the read from framebuffer when evicting pixmaps from
+     * framebuffer memory.  Thus, it is highly recommended, even though
+     * implementations are typically complicated.
      * 
      * @return TRUE if the driver successfully downloaded the data.  FALSE
      * indicates that EXA should fall back to doing the download in software.
      *
-     * UploadToScreen is not required, but is highly recommended.
+     * DownloadFromScreen() is not required, but is highly recommended.
      */
     Bool (*DownloadFromScreen)(PixmapPtr pSrc,
                                int x,  int y,
                                int w,  int h,
                                char *dst,  int dst_pitch);
 
-    /* Should return a hrdware-dependent marker number which can
-     * be waited for with WaitMarker(). It can be not implemented in which
-     * case WaitMarker() must wait for idle on any given marker
-     * number.
-     */
     /**
-     * MarkSync() requests that the driver mark a synchronization point, returning
-     * an driver-devined integer marker which could be requested for
-     * synchronization to later in WaitMarker().  This might be used in the future
-     * to avoid waiting for full hardware stalls before accessing pixmap data
-     * with the CPU, but is not important in the current incarnation of EXA.
+     * MarkSync() requests that the driver mark a synchronization point,
+     * returning an driver-defined integer marker which could be requested for
+     * synchronization to later in WaitMarker().  This might be used in the
+     * future to avoid waiting for full hardware stalls before accessing pixmap
+     * data with the CPU, but is not important in the current incarnation of
+     * EXA.
      *
      * MarkSync() is optional.
      */
@@ -589,24 +590,27 @@ typedef struct _ExaDriver {
      * untiling, or to adjust the pixmap's devPrivate.ptr for the purpose of
      * making CPU access use a different aperture.
      *
-     * The index is one of EXA_PREPARE_DEST, EXA_PREPARE_SRC, or EXA_PREPARE_MASK,
-     * indicating which pixmap is in question.  Since only up to three
-     * pixmaps will have PrepareAccess() called on them per operation, drivers
-     * can have a small, statically-allocated space to maintain state
-     * for PrepareAccess() and FinishAccess() in.  Note that the same pixmap may have
-     * PrepareAccess() called on it more than once, for example when doing a copy
-     * within the same pixmap (so it gets PrepareAccess as EXA_PREPARE_DEST and
-     * then as EXA_PREPARE_SRC).
+     * The index is one of #EXA_PREPARE_DEST, #EXA_PREPARE_SRC, or
+     * #EXA_PREPARE_MASK, indicating which pixmap is in question.  Since only up
+     * to three pixmaps will have PrepareAccess() called on them per operation,
+     * drivers can have a small, statically-allocated space to maintain state
+     * for PrepareAccess() and FinishAccess() in.  Note that the same pixmap may
+     * have PrepareAccess() called on it more than once, for example when doing
+     * a copy within the same pixmap (so it gets PrepareAccess as()
+     * #EXA_PREPARE_DEST and then as #EXA_PREPARE_SRC).
      *
      * PrepareAccess() may fail.  An example might be the case of hardware that
-     * can set up 1 or 2 surfaces for CPU access, but not 3.  If PrepareAccess
-     * fails, EXA will migrate the pixmap to system memory.  For this migration,
-     * DownloadFromScreen() must be implemented, and must not fail.
-     * PrepareAccess() must not fail when pPix is the visible screen, because
-     * the visible screen can not be migrated.
+     * can set up 1 or 2 surfaces for CPU access, but not 3.  If PrepareAccess()
+     * fails, EXA will migrate the pixmap to system memory.
+     * DownloadFromScreen() must be implemented and must not fail if a driver
+     * wishes to fail in PrepareAccess().  PrepareAccess() must not fail when
+     * pPix is the visible screen, because the visible screen can not be
+     * migrated.
      *
      * @return TRUE if PrepareAccess() successfully prepared the pixmap for CPU
      * drawing.
+     * @return FALSE if PrepareAccess() is unsuccessful and EXA should use
+     * DownloadFromScreen() to migate the pixmap out.
      */
     Bool	(*PrepareAccess)(PixmapPtr pPix, int index);
 

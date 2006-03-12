@@ -1,5 +1,11 @@
 2006-03-11  Eric Anholt  <anholt@FreeBSD.org>
 
+	* exa/exa.h:
+	Improve doxygen formatting, and attempt to clarify the 1:1 ratio of
+	successful PrepareCopy()s to DoneCopy()s.
+	
+2006-03-11  Eric Anholt  <anholt@FreeBSD.org>
+
 	reviewed by: jbarnes
 
 	* exa/exa_accel.c: (exaCopyNtoNTwoDir):
