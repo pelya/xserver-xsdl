@@ -30,7 +30,7 @@
 #ifndef _COFFLOADER_H
 #define _COFFLOADER_H
 /* coffloader.c */
-extern void *COFFLoadModule(loaderPtr, int, LOOKUP **);
+extern void *COFFLoadModule(loaderPtr, int, LOOKUP **, int flags);
 extern void COFFResolveSymbols(void *);
 extern int COFFCheckForUnresolved(void *);
 extern char *COFFAddressToSection(void *, unsigned long);

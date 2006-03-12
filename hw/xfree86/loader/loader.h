@@ -80,6 +80,11 @@
 #define LD_PROCESSED_ARCHIVE -1
 /* #define UNINIT_SECTION */
 #define HANDLE_IN_HASH_ENTRY
+
+/* LoadModule proc flags; LD_FLAG_GLOBAL adds symbols to global
+ * namespace, default is to keep symbols local to module. */
+#define LD_FLAG_GLOBAL 1
+
 /*
  * COFF Section nmumbers
  */
@@ -193,7 +198,7 @@ typedef struct _loader *loaderPtr;
  * _loader_funcs hold the entry points for a module format.
  */
 
-typedef void *(*LoadModuleProcPtr) (loaderPtr modrec, int fd, LOOKUP **);
+typedef void *(*LoadModuleProcPtr) (loaderPtr modrec, int fd, LOOKUP **, int flags);
 typedef void (*ResolveSymbolsProcPtr) (void *);
 typedef int (*CheckForUnresolvedProcPtr) (void *);
 typedef char *(*AddressToSectionProcPtr) (void *, unsigned long);
@@ -256,7 +261,7 @@ void LoaderDumpSymbols(void);
 char *_LoaderModuleToName(int);
 int _LoaderAddressToSection(const unsigned long, const char **,
 			    const char **);
-int LoaderOpen(const char *, const char *, int, int *, int *, int *);
+int LoaderOpen(const char *, const char *, int, int *, int *, int *, int);
 int LoaderHandleOpen(int);
 
 /*
@@ -285,7 +290,7 @@ char *_LoaderHandleToCanonicalName(int handle);
 #include "elfloader.h"
 #include "dlloader.h"
 /* LD_ARCHIVE */
-void *ARCHIVELoadModule(loaderPtr, int, LOOKUP **);
+void *ARCHIVELoadModule(loaderPtr, int, LOOKUP **, int flags);
 
 extern void _loader_debug_state(void);
 

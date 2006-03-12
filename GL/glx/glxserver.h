@@ -53,7 +53,6 @@
 #include <scrnintstr.h>
 #include "GL/glx_ansic.h"
 
-
 /*
 ** The X header misc.h defines these math functions.
 */
@@ -66,7 +65,8 @@
 #include <GL/glxint.h>
 
 /* For glxscreens.h */
-typedef struct __GLXdrawablePrivateRec __GLXdrawablePrivate;
+typedef struct __GLXdrawable __GLXdrawable;
+typedef struct __GLXcontext __GLXcontext;
 
 #include "glxscreens.h"
 #include "glxdrawable.h"
@@ -91,14 +91,18 @@ typedef XID GLXContextID;
 typedef XID GLXPixmap;
 typedef XID GLXDrawable;
 
-typedef struct __GLXcontextRec *GLXContext;
 typedef struct __GLXclientStateRec __GLXclientState;
 
-extern __GLXscreenInfo *__glXActiveScreens;
+extern __GLXscreen **__glXActiveScreens;
 extern GLint __glXNumActiveScreens;
-extern __GLXscreenInfo *__glXgetActiveScreen(int num);
+extern __GLXscreen *__glXgetActiveScreen(int num);
 
 /************************************************************************/
+
+void GlxSetVisualConfigs(int nconfigs, 
+                         __GLXvisualConfig *configs, void **privates);
+
+void __glXScreenInitVisuals(__GLXscreen *screen);
 
 /*
 ** The last context used (from the server's persective) is cached.
@@ -115,6 +119,20 @@ extern __GLXcontext *__glXForceCurrent(__GLXclientState*, GLXContextTag, int*);
 #define __GLX_HAS_UNFLUSHED_CMDS(glxc) (glxc->hasUnflushedCommands)
 
 /************************************************************************/
+
+typedef struct __GLXprovider __GLXprovider;
+struct __GLXprovider {
+    __GLXscreen *(*screenProbe)(ScreenPtr pScreen);
+    const char    *name;
+    __GLXprovider *next;
+};
+
+void GlxPushProvider(__GLXprovider *provider);
+
+void __glXsetEnterLeaveServerFuncs(void (*enter)(void),
+				   void (*leave)(void));
+void __glXenterServer(void);
+void __glXleaveServer(void);
 
 /*
 ** State kept per client.
@@ -214,6 +232,8 @@ extern void __glXSwapQueryVersionReply(ClientPtr client,
 extern void __glXSwapQueryContextInfoEXTReply(ClientPtr client,
 					      xGLXQueryContextInfoEXTReply *reply,
 					      int *buf);
+extern void __glXSwapGetDrawableAttributesReply(ClientPtr client,
+						xGLXGetDrawableAttributesReply *reply, CARD32 *buf);
 extern void glxSwapQueryExtensionsStringReply(ClientPtr client,
 				xGLXQueryExtensionsStringReply *reply, char *buf);
 extern void glxSwapQueryServerStringReply(ClientPtr client,

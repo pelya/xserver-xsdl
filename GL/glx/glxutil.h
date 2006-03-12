@@ -58,20 +58,23 @@ extern void __glXGetDrawableSize(__GLdrawablePrivate *glPriv,
 				 GLint *x, GLint *y, 
 				 GLuint *width, GLuint *height);
 extern GLboolean __glXResizeDrawable(__GLdrawablePrivate *glPriv);
-extern GLboolean __glXResizeDrawableBuffers(__GLXdrawablePrivate *glxPriv);
+extern GLboolean __glXResizeDrawableBuffers(__GLXdrawable *glxPriv);
 
 /* drawable management */
-extern void __glXRefDrawablePrivate(__GLXdrawablePrivate *glxPriv);
-extern void __glXUnrefDrawablePrivate(__GLXdrawablePrivate *glxPriv);
-extern __GLXdrawablePrivate *__glXCreateDrawablePrivate(DrawablePtr pDraw, 
-							XID glxpixmapId, 
-							__GLcontextModes *modes);
-extern GLboolean __glXDestroyDrawablePrivate(__GLXdrawablePrivate *glxPriv);
-extern __GLXdrawablePrivate *__glXFindDrawablePrivate(XID glxpixmapId);
-extern __GLXdrawablePrivate *__glXGetDrawablePrivate(DrawablePtr pDraw, 
-						     XID glxpixmapId, 
-						     __GLcontextModes *modes);
-extern void __glXCacheDrawableSize(__GLXdrawablePrivate *glxPriv);
+extern void __glXRefDrawable(__GLXdrawable *glxPriv);
+extern void __glXUnrefDrawable(__GLXdrawable *glxPriv);
+
+extern __GLXdrawable *__glXCreateDrawable(__GLXcontext *ctx,
+					  DrawablePtr pDraw, 
+					  XID glxpixmapId);
+extern GLboolean __glXDrawableInit(__GLXdrawable *drawable, __GLXcontext *ctx,
+				   DrawablePtr pDraw, XID drawID);
+extern GLboolean __glXDestroyDrawable(__GLXdrawable *glxPriv);
+extern __GLXdrawable *__glXFindDrawable(XID glxpixmapId);
+extern __GLXdrawable *__glXGetDrawable(__GLXcontext *ctx,
+				       DrawablePtr pDraw, 
+				       XID glxpixmapId);
+extern void __glXCacheDrawableSize(__GLXdrawable *glxPriv);
 
 /* context helper routines */
 extern __GLXcontext *__glXLookupContextByTag(__GLXclientState*, GLXContextTag);

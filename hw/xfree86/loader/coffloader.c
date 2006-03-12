@@ -1149,7 +1149,7 @@ COFFCollectSections(COFFModulePtr cofffile)
  * Public API for the COFF implementation of the loader.
  */
 void *
-COFFLoadModule(loaderPtr modrec, int cofffd, LOOKUP **ppLookup)
+COFFLoadModule(loaderPtr modrec, int cofffd, LOOKUP **ppLookup, int flags)
 {
     COFFModulePtr cofffile;
     FILHDR *header;

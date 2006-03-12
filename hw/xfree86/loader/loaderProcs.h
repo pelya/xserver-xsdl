@@ -92,6 +92,10 @@ ModuleDescPtr LoadModule(const char *, const char *, const char **,
 ModuleDescPtr LoadSubModule(ModuleDescPtr, const char *,
 			    const char **, const char **, pointer,
 			    const XF86ModReqInfo *, int *, int *);
+ModuleDescPtr LoadSubModuleLocal(ModuleDescPtr, const char *,
+				 const char **, const char **,
+				 pointer, const XF86ModReqInfo *,
+				 int *, int *);
 ModuleDescPtr DuplicateModule(ModuleDescPtr mod, ModuleDescPtr parent);
 void LoadFont(FontModule *);
 void UnloadModule(ModuleDescPtr);

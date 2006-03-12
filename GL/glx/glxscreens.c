@@ -38,12 +38,9 @@
 #include <dix-config.h>
 #endif
 
-#ifndef IN_MODULE
 #include <string.h>
-#include <signal.h>
-#endif
-
 #include <windowstr.h>
+#include <os.h>
 
 #include "glxserver.h"
 #include "glxutil.h"
@@ -130,6 +127,7 @@ static char GLXServerExtensions[] =
 			"GLX_EXT_visual_info "
 			"GLX_EXT_visual_rating "
 			"GLX_EXT_import_context "
+                        "GLX_EXT_texture_from_pixmap "
 			"GLX_OML_swap_method "
 			"GLX_SGI_make_current_read "
 #ifndef __DARWIN__
@@ -140,75 +138,17 @@ static char GLXServerExtensions[] =
 			"GLX_SGIX_fbconfig "
 			;
 
-/*
- * __glDDXScreenInfo comes from GLcore, so we can't resolve this symbol at
- * module open time.  Leave a placeholder, and fill this in when we first
- * need it (in __glXScreenInit).  XXX Why make this an array?
- */
-static __GLXscreenInfo *__glXScreens[] = {
-    NULL /* &__glDDXScreenInfo */ ,
-};
-
-static GLint __glXNumStaticScreens =
-	(sizeof __glXScreens / sizeof __glXScreens[0]);
-
-__GLXscreenInfo *__glXActiveScreens;
-GLint __glXNumActiveScreens;
+__GLXscreen **__glXActiveScreens;
 
 __GLXSwapBarrierExtensionFuncs *__glXSwapBarrierFuncs = NULL;
 static int __glXNumSwapBarrierFuncs = 0;
 __GLXHyperpipeExtensionFuncs *__glXHyperpipeFuncs = NULL;
 static int __glXNumHyperpipeFuncs = 0;
 
-
-RESTYPE __glXDrawableRes;
-
-__GLXscreenInfo *__glXgetActiveScreen(int num) {
-	return &__glXActiveScreens[num];
+__GLXscreen *__glXgetActiveScreen(int num) {
+	return __glXActiveScreens[num];
 }
 
-/*
-** Destroy routine that gets called when a drawable is freed.  A drawable
-** contains the ancillary buffers needed for rendering.
-*/
-static Bool DrawableGone(__GLXdrawablePrivate *glxPriv, XID xid)
-{
-    __GLXcontext *cx, *cx1;
-
-    /*
-    ** Use glxPriv->type to figure out what kind of drawable this is. Don't
-    ** use glxPriv->pDraw->type because by the time this routine is called,
-    ** the pDraw might already have been freed.
-    */
-    if (glxPriv->type == DRAWABLE_WINDOW) {
-	/*
-	** When a window is destroyed, notify all context bound to 
-	** it, that there are no longer bound to anything.
-	*/
-	for (cx = glxPriv->drawGlxc; cx; cx = cx1) {
-	    cx1 = cx->nextDrawPriv;
-	    cx->pendingState |= __GLX_PENDING_DESTROY;
-	}
-
-	for (cx = glxPriv->readGlxc; cx; cx = cx1) {
-	    cx1 = cx->nextReadPriv;
-	    cx->pendingState |= __GLX_PENDING_DESTROY;
-	}
-    }
-
-    /*
-    ** set the size to 0, so that context that may still be using this 
-    ** drawable not do anything harmful
-    */
-    glxPriv->xorigin = 0;
-    glxPriv->yorigin = 0;
-    glxPriv->width = 0;
-    glxPriv->height = 0;
-
-    __glXUnrefDrawablePrivate(glxPriv);
-
-    return True;
-}
 
 /*
 ** This hook gets called when a window moves or changes size.
@@ -217,7 +157,7 @@ static Bool PositionWindow(WindowPtr pWin, int x, int y)
 {
     ScreenPtr pScreen;
     __GLXcontext *glxc;
-    __GLXdrawablePrivate *glxPriv;
+    __GLXdrawable *glxPriv;
     Bool ret;
 
     /*
@@ -225,7 +165,7 @@ static Bool PositionWindow(WindowPtr pWin, int x, int y)
     */
     pScreen = pWin->drawable.pScreen;
     pScreen->PositionWindow =
-	__glXActiveScreens[pScreen->myNum].WrappedPositionWindow;
+	__glXActiveScreens[pScreen->myNum]->WrappedPositionWindow;
     ret = (*pScreen->PositionWindow)(pWin, x, y);
     pScreen->PositionWindow = PositionWindow;
 
@@ -233,8 +173,8 @@ static Bool PositionWindow(WindowPtr pWin, int x, int y)
     ** Tell all contexts rendering into this window that the window size
     ** has changed.
     */
-    glxPriv = (__GLXdrawablePrivate *) LookupIDByType(pWin->drawable.id,
-						      __glXDrawableRes);
+    glxPriv = (__GLXdrawable *) LookupIDByType(pWin->drawable.id,
+					       __glXDrawableRes);
     if (glxPriv == NULL) {
 	/*
 	** This window is not being used by the OpenGL.
@@ -246,7 +186,7 @@ static Bool PositionWindow(WindowPtr pWin, int x, int y)
     ** resize the drawable
     */
     /* first change the drawable size */
-    if (__glXResizeDrawableBuffers(glxPriv) == GL_FALSE) {
+    if (glxPriv->resize(glxPriv) == GL_FALSE) {
 	/* resize failed! */
 	/* XXX: what can we possibly do here? */
 	ret = False;
@@ -263,18 +203,6 @@ static Bool PositionWindow(WindowPtr pWin, int x, int y)
     }
 
     return ret;
-}
-
-/*
-** Wrap our own PositionWindow routine around the server's, so we can
-** be notified when a window changes size
-*/
-static void wrapPositionWindow(int screen)
-{
-    ScreenPtr pScreen = screenInfo.screens[screen];
-
-    __glXActiveScreens[screen].WrappedPositionWindow = pScreen->PositionWindow;
-    pScreen->PositionWindow = PositionWindow;
 }
 
 /*
@@ -320,57 +248,80 @@ void __glXSwapBarrierInit(int screen, __GLXSwapBarrierExtensionFuncs *funcs)
         funcs->queryMaxSwapBarriersFunc;
 }
 
-void __glXScreenInit(GLint numscreens)
-{
-    GLint i,j;
+static __GLXprovider *__glXProviderStack;
 
-    __glXScreens[0] = __glXglDDXScreenInfo(); /* from GLcore */
+void GlxPushProvider(__GLXprovider *provider)
+{
+    provider->next = __glXProviderStack;
+    __glXProviderStack = provider;
+}
+
+void __glXScreenInit(__GLXscreen *screen, ScreenPtr pScreen)
+{
+    screen->pScreen       = pScreen;
+    screen->GLextensions  = __glXStrdup(GLServerExtensions);
+    screen->GLXvendor     = __glXStrdup(GLXServerVendorName);
+    screen->GLXversion    = __glXStrdup(GLXServerVersion);
+    screen->GLXextensions = __glXStrdup(GLXServerExtensions);
+
+    screen->WrappedPositionWindow = pScreen->PositionWindow;
+    pScreen->PositionWindow = PositionWindow;
+
+    __glXScreenInitVisuals(screen);
+}
+
+void
+__glXScreenDestroy(__GLXscreen *screen)
+{
+    __glXFree(screen->GLXvendor);
+    __glXFree(screen->GLXversion);
+    __glXFree(screen->GLXextensions);
+    __glXFree(screen->GLextensions);
+}
+
+void __glXInitScreens(void)
+{
+    GLint i;
+    ScreenPtr pScreen;
+    __GLXprovider *p;
+    size_t size;
 
     /*
     ** This alloc has to work or else the server might as well core dump.
     */
-    __glXActiveScreens =
-      (__GLXscreenInfo *) __glXMalloc(sizeof(__GLXscreenInfo) * numscreens);
+    size = screenInfo.numScreens * sizeof(__GLXscreen *);
+    __glXActiveScreens =__glXMalloc(size);
+    __glXMemset(__glXActiveScreens, 0, size);
     
-    for (i=0; i < numscreens; i++) {
-	/*
-	** Probe each static screen to see which exists.
-	*/
-	for (j=0; j < __glXNumStaticScreens; j++) {
-	    if ((*__glXScreens[j]->screenProbe)(i)) {
-		__glXActiveScreens[i] = *__glXScreens[j];
+    for (i = 0; i < screenInfo.numScreens; i++) {
+	pScreen = screenInfo.screens[i];
 
-		__glXActiveScreens[i].numUsableVisuals = __glXActiveScreens[i].numVisuals;
-		__glXActiveScreens[i].GLextensions = __glXStrdup(GLServerExtensions);
-		__glXActiveScreens[i].GLXvendor = __glXStrdup(GLXServerVendorName);
-		__glXActiveScreens[i].GLXversion = __glXStrdup(GLXServerVersion);
-		__glXActiveScreens[i].GLXextensions = __glXStrdup(GLXServerExtensions);
-
-		__glXDrawableRes = CreateNewResourceType((DeleteType)DrawableGone);
-		wrapPositionWindow(i);
+	for (p = __glXProviderStack; p != NULL; p = p->next) {
+	    __glXActiveScreens[i] = p->screenProbe(pScreen);
+	    if (__glXActiveScreens[i] != NULL) {
+		LogMessage(X_INFO,
+			   "GLX: Initialized %s GL provider for screen %d\n",
+			   p->name, i);
+	        break;
 	    }
 	}
     }
-    __glXNumActiveScreens = numscreens;
 }
 
-void __glXScreenReset(void)
+void __glXResetScreens(void)
 {
   int i;
 
-  for (i = 0; i < __glXNumActiveScreens; i++) {
-      __glXFree(__glXActiveScreens[i].GLXvendor);
-      __glXFree(__glXActiveScreens[i].GLXversion);
-      __glXFree(__glXActiveScreens[i].GLXextensions);
-      __glXFree(__glXActiveScreens[i].GLextensions);
-  }
-  xfree(__glXActiveScreens);
-  xfree(__glXHyperpipeFuncs);
-  xfree(__glXSwapBarrierFuncs);
-  __glXNumHyperpipeFuncs = 0;
-  __glXNumSwapBarrierFuncs = 0;
-  __glXHyperpipeFuncs = NULL;
-  __glXSwapBarrierFuncs = NULL;
-  __glXActiveScreens = NULL;
-  __glXNumActiveScreens = 0;
+  for (i = 0; i < screenInfo.numScreens; i++)
+      if (__glXActiveScreens[i])
+	  __glXActiveScreens[i]->destroy(__glXActiveScreens[i]);
+
+    __glXFree(__glXActiveScreens);
+    __glXFree(__glXHyperpipeFuncs);
+    __glXFree(__glXSwapBarrierFuncs);
+    __glXNumHyperpipeFuncs = 0;
+    __glXNumSwapBarrierFuncs = 0;
+    __glXHyperpipeFuncs = NULL;
+    __glXSwapBarrierFuncs = NULL;
+    __glXActiveScreens = NULL;
 }

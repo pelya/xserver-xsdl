@@ -63,8 +63,6 @@
 #endif
 #endif
 
-#define DLOPEN_FLAGS ( DLOPEN_LAZY | DLOPEN_GLOBAL )
-
 #if defined(CSRG_BASED) && !defined(__ELF__)
 #define NEED_UNDERSCORE_FOR_DLLSYM
 #endif
@@ -76,6 +74,7 @@
 typedef struct {
     int handle;
     void *dlhandle;
+    int flags;
 } DLModuleRec, *DLModulePtr;
 
 /* 
@@ -88,6 +87,28 @@ typedef struct DLModuleList {
 
 DLModuleList *dlModuleList = NULL;
 
+void *
+DLFindSymbolLocal(pointer module, const char *name)
+{
+    DLModulePtr dlfile = module;
+    void *p;
+    char *n;
+
+#ifdef NEED_UNDERSCORE_FOR_DLLSYM
+    static const char symPrefix[] = "_";
+#else
+    static const char symPrefix[] = "";
+#endif
+
+    n = xf86loadermalloc(strlen(symPrefix) + strlen(name) + 1);
+    sprintf(n, "%s%s", symPrefix, name);
+    p = dlsym(dlfile->dlhandle, n);
+    xf86loaderfree(n);
+
+    return p;
+}
+
+
 /*
  * Search a symbol in the module list
  */
@@ -97,30 +118,11 @@ DLFindSymbol(const char *name)
     DLModuleList *l;
     void *p;
 
-#ifdef NEED_UNDERSCORE_FOR_DLLSYM
-    char *n;
-
-    n = xf86loadermalloc(strlen(name) + 2);
-    sprintf(n, "_%s", name);
-#endif
-
-    (void)dlerror();		/* Clear out any previous error */
     for (l = dlModuleList; l != NULL; l = l->next) {
-#ifdef NEED_UNDERSCORE_FOR_DLLSYM
-	p = dlsym(l->module->dlhandle, n);
-#else
-	p = dlsym(l->module->dlhandle, name);
-#endif
-	if (dlerror() == NULL) {
-#ifdef NEED_UNDERSCORE_FOR_DLLSYM
-	    xf86loaderfree(n);
-#endif
+        p = DLFindSymbolLocal(l->module, name);
+	if (p)
 	    return p;
-	}
     }
-#ifdef NEED_UNDERSCORE_FOR_DLLSYM
-    xf86loaderfree(n);
-#endif
 
     return NULL;
 }
@@ -129,23 +131,28 @@ DLFindSymbol(const char *name)
  * public interface
  */
 void *
-DLLoadModule(loaderPtr modrec, int fd, LOOKUP ** ppLookup)
+DLLoadModule(loaderPtr modrec, int fd, LOOKUP ** ppLookup, int flags)
 {
     DLModulePtr dlfile;
     DLModuleList *l;
+    int dlopen_flags;
 
     if ((dlfile = xf86loadercalloc(1, sizeof(DLModuleRec))) == NULL) {
 	ErrorF("Unable  to allocate DLModuleRec\n");
 	return NULL;
     }
     dlfile->handle = modrec->handle;
-    dlfile->dlhandle = dlopen(modrec->name, DLOPEN_FLAGS);
+    if (flags & LD_FLAG_GLOBAL)
+      dlopen_flags = DLOPEN_LAZY | DLOPEN_GLOBAL;
+    else
+      dlopen_flags = DLOPEN_LAZY;
+    dlfile->dlhandle = dlopen(modrec->name, dlopen_flags);
     if (dlfile->dlhandle == NULL) {
 	ErrorF("dlopen: %s\n", dlerror());
 	xf86loaderfree(dlfile);
 	return NULL;
     }
-    /* Add it to the module list */
+
     l = xf86loadermalloc(sizeof(DLModuleList));
     l->module = dlfile;
     l->next = dlModuleList;

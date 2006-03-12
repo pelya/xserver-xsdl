@@ -973,7 +973,7 @@ _LoaderHandleUnresolved(char *symbol, char *module)
  * Handle an archive.
  */
 void *
-ARCHIVELoadModule(loaderPtr modrec, int arfd, LOOKUP ** ppLookup)
+ARCHIVELoadModule(loaderPtr modrec, int arfd, LOOKUP ** ppLookup, int flags)
 {
     loaderPtr tmp = NULL;
     void *ret = NULL;
@@ -1171,7 +1171,7 @@ ARCHIVELoadModule(loaderPtr modrec, int arfd, LOOKUP ** ppLookup)
 	}
 	offsetbias = offset;
 
-	if ((tmp->private = funcs[modtype].LoadModule(tmp, arfd, &lookup_ret))
+	if ((tmp->private = funcs[modtype].LoadModule(tmp, arfd, &lookup_ret, LD_FLAG_GLOBAL))
 	    == NULL) {
 	    ErrorF("Failed to load %s\n", hdr.ar_name);
 	    offsetbias = 0;
@@ -1233,13 +1233,14 @@ _LoaderGetRelocations(void *mod)
     return &(formatrec->pRelocs);
 }
 
+
 /*
  * Public Interface to the loader.
  */
 
 int
 LoaderOpen(const char *module, const char *cname, int handle,
-	   int *errmaj, int *errmin, int *wasLoaded)
+	   int *errmaj, int *errmin, int *wasLoaded, int flags)
 {
     loaderPtr tmp;
     int new_handle, modtype;
@@ -1329,7 +1330,7 @@ LoaderOpen(const char *module, const char *cname, int handle,
     tmp->module = moduleseq++;
     tmp->funcs = &funcs[modtype];
 
-    if ((tmp->private = funcs[modtype].LoadModule(tmp, fd, &pLookup)) == NULL) {
+    if ((tmp->private = funcs[modtype].LoadModule(tmp, fd, &pLookup, flags)) == NULL) {
 	xf86Msg(X_ERROR, "Failed to load %s\n", module);
 	_LoaderListPop(new_handle);
 	freeHandles[new_handle] = HANDLE_FREE;

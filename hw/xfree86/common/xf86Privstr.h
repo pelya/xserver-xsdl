@@ -165,6 +165,8 @@ typedef struct {
     Bool		kbdCustomKeycodes;
     Bool		disableRandR;
     MessageType		randRFrom;
+    Bool		aiglx;
+    MessageType		aiglxFrom;
     struct {
 	Bool		disabled;		/* enable/disable deactivating
 						 * grabs or closing the

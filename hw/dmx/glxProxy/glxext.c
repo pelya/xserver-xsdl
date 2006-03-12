@@ -37,6 +37,13 @@
 #include "glxswap.h"
 
 /*
+** Stubs to satisfy miinitext.c references.
+*/
+typedef int __GLXprovider;
+__GLXprovider __glXMesaProvider;
+void GlxPushProvider(__GLXprovider *provider) { }
+
+/*
 ** Forward declarations.
 */
 static int __glXSwapDispatch(ClientPtr);

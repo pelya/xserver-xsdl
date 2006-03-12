@@ -53,6 +53,12 @@
 /* Build GLX extension */
 #undef GLXEXT
 
+/* Build GLX DRI loader */
+#undef GLX_DRI
+
+/* Path to DRI drivers */
+#undef DRI_DRIVER_PATH
+
 /* Include handhelds.org h3600 touchscreen driver */
 #undef H3600_TS
 

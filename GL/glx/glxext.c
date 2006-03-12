@@ -23,6 +23,7 @@
 #include <dix-config.h>
 #endif
 
+#include <string.h>
 #include "glxserver.h"
 #include <windowstr.h>
 #include <propertyst.h>
@@ -31,19 +32,12 @@
 #include "unpack.h"
 #include "glxutil.h"
 #include "glxext.h"
-#include "micmap.h"
 
-
-void GlxWrapInitVisuals(miInitVisualsProcPtr *);
-void GlxSetVisualConfigs(int nconfigs, 
-                         __GLXvisualConfig *configs, void **privates);
-
-static __GLXextensionInfo *__glXExt /* = &__glDDXExtensionInfo */;
+static Bool inDispatch;
 
 /*
 ** Forward declarations.
 */
-static int __glXSwapDispatch(ClientPtr);
 static int __glXDispatch(ClientPtr);
 
 /*
@@ -52,8 +46,7 @@ static int __glXDispatch(ClientPtr);
 static void ResetExtension(ExtensionEntry* extEntry)
 {
     __glXFlushContextCache();
-    (*__glXExt->resetExtension)();
-    __glXScreenReset();
+    __glXResetScreens();
 }
 
 /*
@@ -159,23 +152,63 @@ static int PixmapGone(__GLXpixmap *pGlxPixmap, XID id)
 }
 
 /*
+** Destroy routine that gets called when a drawable is freed.  A drawable
+** contains the ancillary buffers needed for rendering.
+*/
+static Bool DrawableGone(__GLXdrawable *glxPriv, XID xid)
+{
+    __GLXcontext *cx, *cx1;
+
+    /*
+    ** Use glxPriv->type to figure out what kind of drawable this is. Don't
+    ** use glxPriv->pDraw->type because by the time this routine is called,
+    ** the pDraw might already have been freed.
+    */
+    if (glxPriv->type == DRAWABLE_WINDOW) {
+	/*
+	** When a window is destroyed, notify all context bound to 
+	** it, that there are no longer bound to anything.
+	*/
+	for (cx = glxPriv->drawGlxc; cx; cx = cx1) {
+	    cx1 = cx->nextDrawPriv;
+	    cx->pendingState |= __GLX_PENDING_DESTROY;
+	}
+
+	for (cx = glxPriv->readGlxc; cx; cx = cx1) {
+	    cx1 = cx->nextReadPriv;
+	    cx->pendingState |= __GLX_PENDING_DESTROY;
+	}
+    }
+
+    __glXUnrefDrawable(glxPriv);
+
+    return True;
+}
+
+/*
 ** Free a context.
 */
 GLboolean __glXFreeContext(__GLXcontext *cx)
 {
     if (cx->idExists || cx->isCurrent) return GL_FALSE;
     
-    if (!cx->isDirect) {
-	if ((*cx->gc->exports.destroyContext)((__GLcontext *)cx->gc) == GL_FALSE) {
-	    return GL_FALSE;
-	}
-    }
     if (cx->feedbackBuf) __glXFree(cx->feedbackBuf);
     if (cx->selectBuf) __glXFree(cx->selectBuf);
-    __glXFree(cx);
     if (cx == __glXLastContext) {
 	__glXFlushContextCache();
     }
+
+    /* We can get here through both regular dispatching from
+     * __glXDispatch() or as a callback from the resource manager.  In
+     * the latter case we need to lift the DRI lock manually. */
+
+    if (!inDispatch)
+      __glXleaveServer();
+
+    cx->destroy(cx);
+
+    if (!inDispatch)
+      __glXenterServer();
 
     return GL_TRUE;
 }
@@ -240,13 +273,14 @@ void GlxExtensionInit(void)
     __glXContextRes = CreateNewResourceType((DeleteType)ContextGone);
     __glXClientRes = CreateNewResourceType((DeleteType)ClientGone);
     __glXPixmapRes = CreateNewResourceType((DeleteType)PixmapGone);
+    __glXDrawableRes = CreateNewResourceType((DeleteType)DrawableGone);
 
     /*
     ** Add extension to server extensions.
     */
     extEntry = AddExtension(GLX_EXTENSION_NAME, __GLX_NUMBER_EVENTS,
 			    __GLX_NUMBER_ERRORS, __glXDispatch,
-			    __glXSwapDispatch, ResetExtension,
+			    __glXDispatch, ResetExtension,
 			    StandardMinorOpcode);
     if (!extEntry) {
 	FatalError("__glXExtensionInit: AddExtensions failed\n");
@@ -280,53 +314,7 @@ void GlxExtensionInit(void)
     /*
     ** Initialize screen specific data.
     */
-    __glXScreenInit(screenInfo.numScreens);
-}
-
-/************************************************************************/
-
-Bool __glXCoreType(void)
-{
-    return __glXExt->type;
-}
-
-/************************************************************************/
-
-void GlxSetVisualConfigs(int nconfigs, 
-                         __GLXvisualConfig *configs, void **privates)
-{
-    (*__glXExt->setVisualConfigs)(nconfigs, configs, privates);
-}
-
-static miInitVisualsProcPtr saveInitVisualsProc;
-
-Bool GlxInitVisuals(VisualPtr *visualp, DepthPtr *depthp,
-		    int *nvisualp, int *ndepthp,
-		    int *rootDepthp, VisualID *defaultVisp,
-		    unsigned long sizes, int bitsPerRGB,
-		    int preferredVis)
-{
-    Bool ret;
-
-    if (saveInitVisualsProc) {
-        ret = saveInitVisualsProc(visualp, depthp, nvisualp, ndepthp,
-                                  rootDepthp, defaultVisp, sizes, bitsPerRGB,
-                                  preferredVis);
-        if (!ret)
-            return False;
-    }
-    (*__glXExt->initVisuals)(visualp, depthp, nvisualp, ndepthp, rootDepthp,
-                             defaultVisp, sizes, bitsPerRGB);
-    return True;
-}
-
-void
-GlxWrapInitVisuals(miInitVisualsProcPtr *initVisProc)
-{
-    saveInitVisualsProc = *initVisProc;
-    *initVisProc = GlxInitVisuals;
-    /* HACK: this shouldn't be done here but it's the earliest time */
-    __glXExt = __glXglDDXExtensionInfo();       /* from GLcore */
+    __glXInitScreens();
 }
 
 /************************************************************************/
@@ -377,7 +365,7 @@ __GLXcontext *__glXForceCurrent(__GLXclientState *cl, GLXContextTag tag,
 
     /* Make this context the current one for the GL. */
     if (!cx->isDirect) {
-	if (!(*cx->gc->exports.forceCurrent)((__GLcontext *)cx->gc)) {
+	if (!(*cx->forceCurrent)(cx)) {
 	    /* Bind failed, and set the error code.  Bummer */
 	    cl->client->errorValue = cx->id;
 	    *error = __glXBadContextState;
@@ -393,12 +381,51 @@ __GLXcontext *__glXForceCurrent(__GLXclientState *cl, GLXContextTag tag,
 /*
 ** Top level dispatcher; all commands are executed from here down.
 */
+
+/* I cried when I wrote this.  Damn you XAA! */
+
+static void
+__glXnopEnterServer(void)
+{
+}
+    
+static void
+__glXnopLeaveServer(void)
+{
+}
+
+static void (*__glXenterServerFunc)(void) = __glXnopEnterServer;
+static void (*__glXleaveServerFunc)(void)  = __glXnopLeaveServer;
+
+void __glXsetEnterLeaveServerFuncs(void (*enter)(void),
+				   void (*leave)(void))
+{
+  __glXenterServerFunc = enter;
+  __glXleaveServerFunc = leave;
+}
+
+
+void __glXenterServer(void)
+{
+  (*__glXenterServerFunc)();
+}
+
+void __glXleaveServer(void)
+{
+  (*__glXleaveServerFunc)();
+}
+
+
+/*
+** Top level dispatcher; all commands are executed from here down.
+*/
 static int __glXDispatch(ClientPtr client)
 {
     REQUEST(xGLXSingleReq);
     CARD8 opcode;
     int (*proc)(__GLXclientState *cl, GLbyte *pc);
     __GLXclientState *cl;
+    int retval;
 
     opcode = stuff->glxCode;
     cl = __glXClients[client->index];
@@ -443,54 +470,22 @@ static int __glXDispatch(ClientPtr client)
     /*
     ** Use the opcode to index into the procedure table.
     */
-    proc = __glXSingleTable[opcode];
-    return (*proc)(cl, (GLbyte *) stuff);
-}
+    if (client->swapped)
+	proc = __glXSwapSingleTable[opcode];
+    else
+	proc = __glXSingleTable[opcode];
 
-static int __glXSwapDispatch(ClientPtr client)
-{
-    REQUEST(xGLXSingleReq);
-    CARD8 opcode;
-    int (*proc)(__GLXclientState *cl, GLbyte *pc);
-    __GLXclientState *cl;
+    __glXleaveServer();
 
-    opcode = stuff->glxCode;
-    cl = __glXClients[client->index];
-    if (!cl) {
-	cl = (__GLXclientState *) __glXMalloc(sizeof(__GLXclientState));
-	 __glXClients[client->index] = cl;
-	if (!cl) {
-	    return BadAlloc;
-	}
-	__glXMemset(cl, 0, sizeof(__GLXclientState));
-    }
-    
-    if (!cl->inUse) {
-	/*
-	** This is first request from this client.  Associate a resource
-	** with the client so we will be notified when the client dies.
-	*/
-	XID xid = FakeClientID(client->index);
-	if (!AddResource( xid, __glXClientRes, (pointer)(long)client->index)) {
-	    return BadAlloc;
-	}
-	ResetClientState(client->index);
-	cl->inUse = GL_TRUE;
-	cl->client = client;
-    }
+    inDispatch = True;
 
-    /*
-    ** Check for valid opcode.
-    */
-    if (opcode >= __GLX_SINGLE_TABLE_SIZE) {
-	return BadRequest;
-    }
+    retval = proc(cl, (GLbyte *) stuff);
 
-    /*
-    ** Use the opcode to index into the procedure table.
-    */
-    proc = __glXSwapSingleTable[opcode];
-    return (*proc)(cl, (GLbyte *) stuff);
+    inDispatch = False;
+
+    __glXenterServer();
+
+    return retval;
 }
 
 int __glXNoSuchSingleOpcode(__GLXclientState *cl, GLbyte *pc)

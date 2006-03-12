@@ -27,7 +27,7 @@
 
 #ifndef _AOUTLOADER_H
 #define _AOUTLOADER_H
-extern void *AOUTLoadModule(loaderPtr, int, LOOKUP **);
+extern void *AOUTLoadModule(loaderPtr, int, LOOKUP **, int flags);
 extern void AOUTResolveSymbols(void *);
 extern int AOUTCheckForUnresolved(void *);
 extern char *AOUTAddressToSection(void *, unsigned long);

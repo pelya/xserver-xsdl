@@ -30,7 +30,7 @@
 #ifndef _ELFLOADER_H
 #define _ELFLOADER_H
 /* elfloader.c */
-extern void *ELFLoadModule(loaderPtr, int, LOOKUP **);
+extern void *ELFLoadModule(loaderPtr, int, LOOKUP **, int flags);
 extern void ELFResolveSymbols(void *);
 extern int ELFCheckForUnresolved(void *);
 extern char *ELFAddressToSection(void *, unsigned long);

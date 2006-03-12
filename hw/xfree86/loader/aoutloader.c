@@ -630,7 +630,7 @@ AOUT_GetSymbols(AOUTModulePtr aoutfile)
  * Public API for the a.out implementation of the loader
  */
 void *
-AOUTLoadModule(loaderPtr modrec, int aoutfd, LOOKUP ** ppLookup)
+AOUTLoadModule(loaderPtr modrec, int aoutfd, LOOKUP ** ppLookup, int flags)
 {
     AOUTModulePtr aoutfile = NULL;
     AOUTHDR *header;

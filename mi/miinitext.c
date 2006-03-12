@@ -1,4 +1,4 @@
-/* $XdotOrg: xserver/xorg/mi/miinitext.c,v 1.30 2006/01/08 23:43:54 ajax Exp $ */
+/* $XdotOrg: xserver/xorg/mi/miinitext.c,v 1.31 2006/02/15 19:05:54 ajax Exp $ */
 /* $XFree86: xc/programs/Xserver/mi/miinitext.c,v 3.67 2003/01/12 02:44:27 dawes Exp $ */
 /***********************************************************
 
@@ -350,6 +350,9 @@ extern void XFree86MiscExtensionInit(INITARGS);
 extern void XFree86DGAExtensionInit(INITARGS);
 #endif
 #ifdef GLXEXT
+typedef struct __GLXprovider __GLXprovider;
+extern __GLXprovider __glXMesaProvider;
+extern void GlxPushProvider(__GLXprovider *impl);
 #ifndef __DARWIN__
 extern void GlxExtensionInit(INITARGS);
 extern void GlxWrapInitVisuals(miInitVisualsProcPtr *);
@@ -643,6 +646,8 @@ InitExtensions(argc, argv)
 #endif
 #endif
 #ifdef GLXEXT
+
+    GlxPushProvider(&__glXMesaProvider);
 #ifndef __DARWIN__
     if (!noGlxExtension) GlxExtensionInit();
 #else

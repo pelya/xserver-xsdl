@@ -1,3 +1,121 @@
+2006-03-10  Kristian Høgsberg  <krh@redhat.com>
+
+	* Merge accel_indirect branch to HEAD.
+
+2006-03-05  Kristian Høgsberg  <krh@redhat.com>
+
+	* GL/glx/glxcmds.c (DoGetDrawableAttributes): Add
+	GLX_Y_INVERTED_EXT to the drawable attributes we report.
+	
+2006-03-05  Kristian Høgsberg  <krh@redhat.com>
+
+	* GL/glx/glxcmds.c (__glXCreateARGBConfig): Create the fbconfig
+	for the composite 32 visual after the fact here.
+
+	* GL/glx/glxdri.c (__glXDRIbindTexImage): Use 4bpp for 32 bit
+	visuals too, but only fill the alpha channel for 24 depth
+	drawables.
+
+2006-03-03  Kristian Høgsberg  <krh@redhat.com>
+
+	* GL/glx/glxdri.c (getDrawableInfo): Work around i915 driver that
+	tries to render to drawable even if it no longer exists.
+	Returning 0 cliprects (as dri_util.c does) doesn't seem to do it,
+	so we set the width and height to 0.
+	
+	* GL/glx/g_disptab.h: 
+	* GL/glx/glxcmdsswap.c: Fix a couple of warnings.
+
+2006-03-03  Kristian Høgsberg  <krh@redhat.com>
+
+	* GL/glx/glxdri.c (__glXDRIscreenProbe): Log full DRI driver path
+	when dlopen() fails.
+
+	* GL/glx/glxscreens.c (__glXInitScreens): Log the provider name
+	when we initialize a GLX screen.
+
+	* GL/symlink-mesa.sh: 
+	* GL/mesa/swrast/Makefile.am: Update to work with mesa head.
+
+2006-03-01  Kevin E. Martin  <kem-at-freedesktop-dot-org>
+
+	* GL/glx/glxdri.c: (__glXDRIscreenProbe):
+	Pass err_msg when dev_priv allocation fails.
+
+2006-03-01  Kristian Høgsberg  <krh@redhat.com>
+
+	* GL/glx/glxdri.c (__glXDRIscreenProbe): Handle failing allocation
+	of dev_priv.
+	
+	* GL/glx/glxdri.c (__glXDRIscreenProbe): The DRI driver
+	_mesa_free()'s the dev_priv passed in so we need to give it a
+	copy.
+
+2006-03-01  Kevin E. Martin  <kem-at-freedesktop-dot-org>
+
+	* GL/glx/glxserver.h:
+	Fix Xvfb, Xnest and Xprt build.
+
+2006-02-28  Kristian Høgsberg  <krh@redhat.com>
+
+	* GL/glx/glxdri.c (__glXDRIscreenProbe): Fix enter/leave confusion.
+
+	* configure.ac: 
+	* hw/xfree86/common/xf86Config.c (configServerFlags): Enable AIGLX
+	by default at configure time and at runtime.
+
+2006-02-27  Kristian Høgsberg  <krh@redhat.com>
+
+	* GL/glx/glxserver.h: 
+	* GL/glx/glxext.c: 
+	* GL/mesa/X/xf86glx.c: Complete the prepare/finish dispatch to
+	enter/leave server rename.
+
+	* GL/glx/glxcmdsswap.c (__glXSwapGetDrawableAttributesSGIX): Add
+	byte swapping function.
+
+	* GL/mesa/swrast/Makefile.am (INCLUDES): Add -I../shader/slang.
+
+	* GL/glx/glxcmds.c: Make GLX_EXT_texture_from_pixmap entrypoints
+	non-static so we can get at them from glxcmdsswap.c.
+
+2006-02-25  Kristian Høgsberg  <krh@redhat.com>
+
+	* GL/glx/glxcmds.c: Add more GLX_EXT_texture_from_pixmap tokens
+	here as a temporary fix.
+
+2006-02-24  Kristian Høgsberg  <krh@redhat.com>
+
+	* GL/glx/glxcmds.c:
+	* GL/glx/glxcmdsswap.c:
+	* GL/glx/glxcontext.h:
+	* GL/glx/glxdri.c:
+	* GL/glx/glxscreens.c:
+	* GL/glx/glxserver.h: Add hooks for GLX_EXT_texture_from_pixmap
+	and port over naive glTexImage2D implementation.  Add support for
+	glXQueryDrawable.
+
+2006-02-24  Kevin E. Martin  <kem-at-freedesktop-dot-org>
+
+	* GL/glx/Makefile.am:
+	Include from Mesa sources before any installed versions.
+
+	* GL/glx/glxdri.c: (__glXDRIleaveServer), (__glXDRIenterServer),
+	(createContext), (destroyContext), (createDrawable),
+	(destroyDrawable), (getDrawableInfo), (__glXDRIscreenProbe):
+	Wrap the __DRIinterfaceMethods methods with enter/leaveServer to
+	make sure server locks are held when calling into the card driver.
+
+2006-02-24  Kristian Høgsberg  <krh@redhat.com>
+
+	* GL/glx/glxdri.c: 
+	* GL/glx/glxvisuals.c: Add these files.
+
+2006-02-24  Kristian Høgsberg  <krh@redhat.com>
+
+	* GL/glx/*: Land rewritten accelerated indirect rendering on
+	accel_indirect_branch.
+
 2006-03-10  Alan Coopersmith  <alan.coopersmith@sun.com>
 
 	* hw/xfree86/utils/xorgcfg/help.c: 

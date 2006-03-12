@@ -1,4 +1,4 @@
-/* $XdotOrg: xserver/xorg/hw/xfree86/common/xf86Config.c,v 1.21 2005/12/20 21:34:21 ajax Exp $ */
+/* $XdotOrg: xserver/xorg/hw/xfree86/common/xf86Config.c,v 1.22.8.2 2006/02/28 23:55:03 krh Exp $ */
 /* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86Config.c,v 3.276 2003/10/08 14:58:26 dawes Exp $ */
 
 
@@ -756,7 +756,8 @@ typedef enum {
     FLAG_LOG,
     FLAG_RENDER_COLORMAP_MODE,
     FLAG_HANDLE_SPECIAL_KEYS,
-    FLAG_RANDR
+    FLAG_RANDR,
+    FLAG_AIGLX
 } FlagValues;
    
 static OptionInfoRec FlagOptions[] = {
@@ -825,6 +826,8 @@ static OptionInfoRec FlagOptions[] = {
   { FLAG_HANDLE_SPECIAL_KEYS,	"HandleSpecialKeys",		OPTV_STRING,
         {0}, FALSE },
   { FLAG_RANDR,			"RandR",			OPTV_BOOLEAN,
+	{0}, FALSE },
+  { FLAG_AIGLX,			"AIGLX",			OPTV_BOOLEAN,
 	{0}, FALSE },
   { -1,				NULL,				OPTV_NONE,
 	{0}, FALSE },
@@ -1009,6 +1012,13 @@ configServerFlags(XF86ConfFlagsPtr flagsconf, XF86OptionPtr layoutopts)
 	xf86Info.estimateSizesAggressively = i;
     else
 	xf86Info.estimateSizesAggressively = 0;
+
+    xf86Info.aiglx = TRUE;
+    xf86Info.aiglxFrom = X_DEFAULT;
+    if (xf86GetOptValBool(FlagOptions, FLAG_AIGLX, &value)) {
+	xf86Info.aiglx = value;
+	xf86Info.aiglxFrom = X_CONFIG;
+    }
 
 /* Make sure that timers don't overflow CARD32's after multiplying */
 #define MAX_TIME_IN_MIN (0x7fffffff / MILLI_PER_MIN)

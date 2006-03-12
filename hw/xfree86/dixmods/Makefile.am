@@ -36,7 +36,8 @@ INCLUDES = @XORG_INCS@ \
            -I$(top_srcdir)/mfb \
            -I$(top_srcdir)/dbe \
            -I$(top_srcdir)/hw/xfree86/loader \
-           -I$(top_srcdir)/miext/shadow
+           -I$(top_srcdir)/miext/shadow \
+           -I$(top_srcdir)/GL/glx
 
 libGLcore_la_LDFLAGS = -avoid-version
 libGLcore_la_LIBADD = $(top_builddir)/GL/mesa/libGLcore.la
@@ -72,7 +73,9 @@ libfb_la_LIBADD = $(top_builddir)/fb/libfb.la
 libfb_la_SOURCES = $(top_builddir)/fb/fbcmap.c fbmodule.c
 
 libglx_la_LDFLAGS = -avoid-version
-libglx_la_LIBADD = $(top_builddir)/GL/glx/libglx.la
+libglx_la_LIBADD = \
+	$(top_builddir)/GL/glx/libglx.la \
+	$(top_builddir)/GL/glx/libglxdri.la
 libglx_la_SOURCES = glxmodule.c
 
 libmfb_la_LDFLAGS = -avoid-version
