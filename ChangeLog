@@ -1,3 +1,16 @@
+2006-3-13   Deron Johnson  <deron.johnson@sun.com>
+
+	* composite/compalloc.c
+	* composite/compext.c
+	* composite/compinit.c
+	* composite/compint.h
+	* composite/compwindow.c
+	* xfixes/cursor.c
+	* xfixes/xfixes.c
+	* xfixes/xfixesint.h
+	Composite Version 0.3: CompositeGetOverlayWindow, CompositeReleaseOverlayWindow
+	Xfixes Version 4.0: XFixesHideCursor, XFixesShowCursor
+
 2006-03-12  Kristian Høgsberg  <krh@redhat.com>
 
 	First batch of AIGLX fixes from David Reveman.
