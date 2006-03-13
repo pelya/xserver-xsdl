@@ -1,6 +1,26 @@
 /*
  * $Id$
  *
+ * Copyright © 2006 Sun Microsystems
+ *
+ * Permission to use, copy, modify, distribute, and sell this software and its
+ * documentation for any purpose is hereby granted without fee, provided that
+ * the above copyright notice appear in all copies and that both that
+ * copyright notice and this permission notice appear in supporting
+ * documentation, and that the name of Sun Microsystems not be used in
+ * advertising or publicity pertaining to distribution of the software without
+ * specific, written prior permission.  Sun Microsystems makes no
+ * representations about the suitability of this software for any purpose.  It
+ * is provided "as is" without express or implied warranty.
+ *
+ * SUN MICROSYSTEMS DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
+ * INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO
+ * EVENT SHALL SUN MICROSYSTEMS BE LIABLE FOR ANY SPECIAL, INDIRECT OR
+ * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE,
+ * DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
+ * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+ * PERFORMANCE OF THIS SOFTWARE.
+ *
  * Copyright © 2003 Keith Packard
  *
  * Permission to use, copy, modify, distribute, and sell this software and its
@@ -95,6 +115,15 @@ typedef struct _CompSubwindows {
 #define NUM_COMP_ALTERNATE_VISUALS  1
 #endif
 
+typedef struct _CompOverlayClientRec *CompOverlayClientPtr;
+
+typedef struct _CompOverlayClientRec {
+    CompOverlayClientPtr pNext;  
+    ClientPtr            pClient;
+    ScreenPtr            pScreen;
+    XID			 resource;
+} CompOverlayClientRec;
+
 typedef struct _CompScreen {
     PositionWindowProcPtr	PositionWindow;
     CopyWindowProcPtr		CopyWindow;
@@ -126,6 +155,10 @@ typedef struct _CompScreen {
     CloseScreenProcPtr		CloseScreen;
     Bool			damaged;
     XID				alternateVisuals[NUM_COMP_ALTERNATE_VISUALS];
+
+    WindowPtr                   pOverlayWin;
+    CompOverlayClientPtr        pOverlayClients;
+    
 } CompScreenRec, *CompScreenPtr;
 
 extern int  CompScreenPrivateIndex;
@@ -256,5 +289,26 @@ compCopyWindow (WindowPtr pWin, DDXPointRec ptOldOrg, RegionPtr prgnSrc);
 
 void
 compWindowUpdate (WindowPtr pWin);
+
+void
+deleteCompOverlayClientsForScreen (ScreenPtr pScreen);
+
+int
+ProcCompositeGetOverlayWindow (ClientPtr client);
+
+int
+ProcCompositeReleaseOverlayWindow (ClientPtr client);
+
+int
+SProcCompositeGetOverlayWindow (ClientPtr client);
+
+int
+SProcCompositeReleaseOverlayWindow (ClientPtr client);
+
+WindowPtr
+CompositeRealChildHead (WindowPtr pWin);
+
+int
+DeleteWindowNoInputDevices(pointer value, XID wid);
 
 #endif /* _COMPINT_H_ */

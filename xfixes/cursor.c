@@ -1,6 +1,26 @@
 /*
  * $Id$
  *
+ * Copyright © 2006 Sun Microsystems
+ *
+ * Permission to use, copy, modify, distribute, and sell this software and its
+ * documentation for any purpose is hereby granted without fee, provided that
+ * the above copyright notice appear in all copies and that both that
+ * copyright notice and this permission notice appear in supporting
+ * documentation, and that the name of Sun Microsystems not be used in
+ * advertising or publicity pertaining to distribution of the software without
+ * specific, written prior permission.  Sun Microsystems makes no
+ * representations about the suitability of this software for any purpose.  It
+ * is provided "as is" without express or implied warranty.
+ *
+ * SUN MICROSYSTEMS DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
+ * INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO
+ * EVENT SHALL SUN MICROSYSTEMS BE LIABLE FOR ANY SPECIAL, INDIRECT OR
+ * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE,
+ * DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
+ * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+ * PERFORMANCE OF THIS SOFTWARE.
+ *
  * Copyright © 2002 Keith Packard
  *
  * Permission to use, copy, modify, distribute, and sell this software and its
@@ -35,10 +55,14 @@
 #include "windowstr.h"
 
 static RESTYPE		CursorClientType;
+static RESTYPE		CursorHideCountType;
 static RESTYPE		CursorWindowType;
 static int		CursorScreenPrivateIndex = -1;
 static int		CursorGeneration;
 static CursorPtr	CursorCurrent;
+static CursorPtr        pInvisibleCursor = NULL;
+
+static void deleteCursorHideCountsForScreen (ScreenPtr pScreen);
 
 #define VERIFY_CURSOR(pCursor, cursor, client, access) { \
     pCursor = (CursorPtr)SecurityLookupIDByType((client), (cursor), \
@@ -66,12 +90,29 @@ typedef struct _CursorEvent {
 static CursorEventPtr	    cursorEvents;
 
 /*
+ * Each screen has a list of clients which have requested
+ * that the cursor be hid, and the number of times each
+ * client has requested.
+*/
+
+typedef struct _CursorHideCountRec *CursorHideCountPtr;
+
+typedef struct _CursorHideCountRec {
+    CursorHideCountPtr   pNext;  
+    ClientPtr            pClient;
+    ScreenPtr            pScreen;
+    int                  hideCount;
+    XID			 resource;
+} CursorHideCountRec;
+
+/*
  * Wrap DisplayCursor to catch cursor change events
  */
 
 typedef struct _CursorScreen {
     DisplayCursorProcPtr	DisplayCursor;
     CloseScreenProcPtr		CloseScreen;
+    CursorHideCountPtr          pCursorHideCounts;
 } CursorScreenRec, *CursorScreenPtr;
 
 #define GetCursorScreen(s)	((CursorScreenPtr) ((s)->devPrivates[CursorScreenPrivateIndex].ptr))
@@ -88,7 +129,13 @@ CursorDisplayCursor (ScreenPtr pScreen,
     Bool		ret;
 
     Unwrap (cs, pScreen, DisplayCursor);
-    ret = (*pScreen->DisplayCursor) (pScreen, pCursor);
+
+    if (cs->pCursorHideCounts != NULL) {
+	ret = (*pScreen->DisplayCursor) (pScreen, pInvisibleCursor);
+    } else {
+	ret = (*pScreen->DisplayCursor) (pScreen, pCursor);
+    }
+
     if (pCursor != CursorCurrent)
     {
 	CursorEventPtr	e;
@@ -122,6 +169,7 @@ CursorCloseScreen (int index, ScreenPtr pScreen)
 
     Unwrap (cs, pScreen, CloseScreen);
     Unwrap (cs, pScreen, DisplayCursor);
+    deleteCursorHideCountsForScreen(pScreen);
     ret = (*pScreen->CloseScreen) (index, pScreen);
     xfree (cs);
     if (index == 0)
@@ -430,7 +478,7 @@ int
 SProcXFixesGetCursorName (ClientPtr client)
 {
     int n;
-    REQUEST(xXFixesSetCursorNameReq);
+    REQUEST(xXFixesGetCursorNameReq);
 
     swaps (&stuff->length, n);
     REQUEST_SIZE_MATCH(xXFixesGetCursorNameReq);
@@ -687,6 +735,199 @@ SProcXFixesChangeCursorByName (ClientPtr client)
     return (*ProcXFixesVector[stuff->xfixesReqType]) (client);
 }
 
+/*
+ * Routines for manipulating the per-screen hide counts list.
+ * This list indicates which clients have requested cursor hiding 
+ * for that screen.
+ */
+
+/* Return the screen's hide-counts list element for the given client */
+static CursorHideCountPtr
+findCursorHideCount (ClientPtr pClient, ScreenPtr pScreen) 
+{
+    CursorScreenPtr    cs = GetCursorScreen(pScreen);
+    CursorHideCountPtr pChc;
+
+    for (pChc = cs->pCursorHideCounts; pChc != NULL; pChc = pChc->pNext) {
+	if (pChc->pClient == pClient) {
+	    return pChc;
+	}
+    }
+
+    return NULL;           
+}
+
+static int
+createCursorHideCount (ClientPtr pClient, ScreenPtr pScreen)
+{
+    CursorScreenPtr    cs = GetCursorScreen(pScreen);
+    CursorHideCountPtr pChc;
+
+    pChc = (CursorHideCountPtr) xalloc(sizeof(CursorHideCountRec));
+    if (pChc == NULL) {
+	return BadAlloc;
+    }
+    pChc->pClient = pClient;
+    pChc->pScreen = pScreen;
+    pChc->hideCount = 1;
+    pChc->resource = FakeClientID(pClient->index);
+    pChc->pNext = cs->pCursorHideCounts;
+    cs->pCursorHideCounts = pChc;
+    
+    /* 
+     * Create a resource for this element so it can be deleted
+     * when the client goes away.
+     */
+    if (!AddResource (pChc->resource, CursorHideCountType, 
+		      (pointer) pChc)) {
+	xfree(pChc);
+	return BadAlloc;
+    }
+
+    return Success;
+}
+
+/* 
+ * Delete the given hide-counts list element from its screen list.
+ */
+static void
+deleteCursorHideCount (CursorHideCountPtr pChcToDel, ScreenPtr pScreen)
+{
+    CursorScreenPtr    cs = GetCursorScreen(pScreen);
+    CursorHideCountPtr pChc, pNext;
+    CursorHideCountPtr pChcLast = NULL;
+
+    pChc = cs->pCursorHideCounts;
+    while (pChc != NULL) {
+	pNext = pChc->pNext;
+	if (pChc == pChcToDel) {
+	    xfree(pChc);
+	    if (pChcLast == NULL) {
+		cs->pCursorHideCounts = pNext;
+	    } else {
+		pChcLast->pNext = pNext;
+	    }
+	    return;
+	}
+	pChcLast = pChc;
+	pChc = pNext;
+    }
+}
+
+/* 
+ * Delete all the hide-counts list elements for this screen.
+ */
+static void
+deleteCursorHideCountsForScreen (ScreenPtr pScreen)
+{
+    CursorScreenPtr    cs = GetCursorScreen(pScreen);
+    CursorHideCountPtr pChc, pTmp;
+
+    pChc = cs->pCursorHideCounts;
+    while (pChc != NULL) {
+	pTmp = pChc->pNext;
+	FreeResource(pChc->resource, 0);
+	pChc = pTmp;
+    }
+    cs->pCursorHideCounts = NULL;   
+}
+
+int 
+ProcXFixesHideCursor (ClientPtr client) 
+{
+    WindowPtr pWin;
+    CursorHideCountPtr pChc;
+    REQUEST(xXFixesHideCursorReq);
+    int ret;
+
+    REQUEST_SIZE_MATCH (xXFixesHideCursorReq);
+
+    pWin = (WindowPtr) LookupIDByType (stuff->window, RT_WINDOW);
+    if (!pWin) {
+	client->errorValue = stuff->window;
+	return BadWindow;
+    }
+
+    /* 
+     * Has client hidden the cursor before on this screen? 
+     * If so, just increment the count. 
+     */
+
+    pChc = findCursorHideCount(client, pWin->drawable.pScreen);
+    if (pChc != NULL) {
+	pChc->hideCount++;
+	return client->noClientException;
+    }
+
+    /* 
+     * This is the first time this client has hid the cursor 
+     * for this screen.
+     */
+    ret = createCursorHideCount(client, pWin->drawable.pScreen);
+
+    if (ret == Success) {
+        (void) CursorDisplayCursor(pWin->drawable.pScreen, CursorCurrent);
+    }
+
+    return ret;
+}
+
+int 
+SProcXFixesHideCursor (ClientPtr client) 
+{
+    int n;
+    REQUEST(xXFixesHideCursorReq);
+
+    swaps (&stuff->length, n);
+    REQUEST_SIZE_MATCH (xXFixesHideCursorReq);
+    swapl (&stuff->window, n);
+    return (*ProcXFixesVector[stuff->xfixesReqType]) (client);
+}
+
+int 
+ProcXFixesShowCursor (ClientPtr client) 
+{
+    WindowPtr pWin;
+    CursorHideCountPtr pChc;
+    REQUEST(xXFixesShowCursorReq);
+
+    REQUEST_SIZE_MATCH (xXFixesShowCursorReq);
+
+    pWin = (WindowPtr) LookupIDByType (stuff->window, RT_WINDOW);
+    if (!pWin) {
+	client->errorValue = stuff->window;
+	return BadWindow;
+    }
+
+    /* 
+     * Has client hidden the cursor on this screen?
+     * If not, generate an error.
+     */
+    pChc = findCursorHideCount(client, pWin->drawable.pScreen);
+    if (pChc == NULL) {
+	return BadMatch;
+    }
+
+    pChc->hideCount--;
+    if (pChc->hideCount <= 0) {
+	FreeResource(pChc->resource, 0);
+    }
+
+    return (client->noClientException);
+}
+
+int 
+SProcXFixesShowCursor (ClientPtr client) 
+{
+    int n;
+    REQUEST(xXFixesShowCursorReq);
+
+    swaps (&stuff->length, n);
+    REQUEST_SIZE_MATCH (xXFixesShowCursorReq);
+    swapl (&stuff->window, n);
+    return (*ProcXFixesVector[stuff->xfixesReqType]) (client);
+}
+
 static int
 CursorFreeClient (pointer data, XID id)
 {
@@ -706,6 +947,18 @@ CursorFreeClient (pointer data, XID id)
 }
 
 static int
+CursorFreeHideCount (pointer data, XID id)
+{
+    CursorHideCountPtr pChc = (CursorHideCountPtr) data;
+    ScreenPtr pScreen = pChc->pScreen;
+
+    deleteCursorHideCount(pChc, pChc->pScreen);
+    (void) CursorDisplayCursor(pScreen, CursorCurrent);
+
+    return 1;
+}
+
+static int
 CursorFreeWindow (pointer data, XID id)
 {
     WindowPtr		pWindow = (WindowPtr) data;
@@ -720,6 +973,36 @@ CursorFreeWindow (pointer data, XID id)
 	}
     }
     return 1;
+}
+
+static CursorPtr
+createInvisibleCursor (void)
+{
+    CursorPtr pCursor;
+    static unsigned int *psrcbits, *pmaskbits;
+    CursorMetricRec cm;
+
+    psrcbits = (unsigned int *) xalloc(4);
+    pmaskbits = (unsigned int *) xalloc(4);
+    if (psrcbits == NULL || pmaskbits == NULL) {
+	return NULL;
+    }
+    *psrcbits = 0;
+    *pmaskbits = 0;
+
+    cm.width = 1;
+    cm.height = 1;
+    cm.xhot = 0;
+    cm.yhot = 0;
+
+    pCursor = AllocCursor(
+	        (unsigned char *)psrcbits,
+		(unsigned char *)pmaskbits,
+		&cm,
+		0, 0, 0,
+		0, 0, 0);
+
+    return pCursor;
 }
 
 Bool
@@ -744,10 +1027,20 @@ XFixesCursorInit (void)
 	    return FALSE;
 	Wrap (cs, pScreen, CloseScreen, CursorCloseScreen);
 	Wrap (cs, pScreen, DisplayCursor, CursorDisplayCursor);
+	cs->pCursorHideCounts = NULL;
 	SetCursorScreen (pScreen, cs);
     }
     CursorClientType = CreateNewResourceType(CursorFreeClient);
+    CursorHideCountType = CreateNewResourceType(CursorFreeHideCount);
     CursorWindowType = CreateNewResourceType(CursorFreeWindow);
+
+    if (pInvisibleCursor == NULL) {
+	pInvisibleCursor = createInvisibleCursor();
+	if (pInvisibleCursor == NULL) {
+	    return BadAlloc;
+	}
+    }
+
     return CursorClientType && CursorWindowType;
 }
 

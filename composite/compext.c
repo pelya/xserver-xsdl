@@ -1,6 +1,27 @@
 /*
  * $Id$
  *
+ *
+ * Copyright © 2006 Sun Microsystems
+ *
+ * Permission to use, copy, modify, distribute, and sell this software and its
+ * documentation for any purpose is hereby granted without fee, provided that
+ * the above copyright notice appear in all copies and that both that
+ * copyright notice and this permission notice appear in supporting
+ * documentation, and that the name of Sun Microsystems not be used in
+ * advertising or publicity pertaining to distribution of the software without
+ * specific, written prior permission.  Sun Microsystems makes no
+ * representations about the suitability of this software for any purpose.  It
+ * is provided "as is" without express or implied warranty.
+ *
+ * SUN MICROSYSTEMS DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
+ * INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO
+ * EVENT SHALL SUN MICROSYSTEMS BE LIABLE FOR ANY SPECIAL, INDIRECT OR
+ * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE,
+ * DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
+ * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+ * PERFORMANCE OF THIS SOFTWARE.
+ *
  * Copyright © 2003 Keith Packard
  *
  * Permission to use, copy, modify, distribute, and sell this software and its
@@ -32,6 +53,10 @@ static CARD8	CompositeReqCode;
 int		CompositeClientPrivateIndex;
 RESTYPE		CompositeClientWindowType;
 RESTYPE		CompositeClientSubwindowsType;
+RESTYPE		CompositeClientOverlayType;
+
+static void deleteCompOverlayClient (CompOverlayClientPtr pOcToDel, 
+				     ScreenPtr pScreen);
 
 typedef struct _CompositeClient {
     int	    major_version;
@@ -73,6 +98,26 @@ FreeCompositeClientSubwindows (pointer value, XID ccwid)
     WindowPtr	pWin = value;
 
     compFreeClientSubwindows (pWin, ccwid);
+    return Success;
+}
+
+static int
+FreeCompositeClientOverlay (pointer value, XID ccwid)
+{
+    CompOverlayClientPtr pOc = (CompOverlayClientPtr) value;
+    ScreenPtr pScreen = pOc->pScreen;
+    CompScreenPtr cs;
+
+    deleteCompOverlayClient(pOc, pScreen);
+
+    /* Unmap overlay window when there are no more clients using it */
+    cs = GetCompScreen(pScreen);
+    if (cs->pOverlayClients == NULL) {
+	if (cs->pOverlayWin != NULL) {
+	    UnmapWindow(cs->pOverlayWin, FALSE);
+	}
+    }
+
     return Success;
 }
 
@@ -243,6 +288,229 @@ ProcCompositeNameWindowPixmap (ClientPtr client)
     return(client->noClientException);
 }
 
+
+/*
+ * Routines for manipulating the per-screen overlay clients list.
+ * This list indicates which clients have called GetOverlayWindow
+ * for this screen.
+ */
+
+/* Return the screen's overlay client list element for the given client */
+static CompOverlayClientPtr
+findCompOverlayClient (ClientPtr pClient, ScreenPtr pScreen) 
+{
+    CompScreenPtr    cs = GetCompScreen(pScreen);
+    CompOverlayClientPtr pOc;
+
+    for (pOc = cs->pOverlayClients; pOc != NULL; pOc = pOc->pNext) {
+	if (pOc->pClient == pClient) {
+	    return pOc;
+	}
+    }
+
+    return NULL;           
+}
+
+static int
+createCompOverlayClient (ClientPtr pClient, ScreenPtr pScreen)
+{
+    CompScreenPtr    cs = GetCompScreen(pScreen);
+    CompOverlayClientPtr pOc;
+
+    pOc = (CompOverlayClientPtr) xalloc(sizeof(CompOverlayClientRec));
+    if (pOc == NULL) {
+	return BadAlloc;
+    }
+    pOc->pClient = pClient;
+    pOc->pScreen = pScreen;
+    pOc->resource = FakeClientID(pClient->index);
+    pOc->pNext = cs->pOverlayClients;
+    cs->pOverlayClients = pOc;
+
+    /* 
+     * Create a resource for this element so it can be deleted
+     * when the client goes away.
+     */
+    if (!AddResource (pOc->resource, CompositeClientOverlayType, 
+		      (pointer) pOc)) {
+	xfree(pOc);
+	return BadAlloc;
+    }
+
+    return Success;
+}
+
+/* 
+ * Delete the given overlay client list element from its screen list.
+ */
+static void
+deleteCompOverlayClient (CompOverlayClientPtr pOcToDel, ScreenPtr pScreen)
+{
+    CompScreenPtr    cs = GetCompScreen(pScreen);
+    CompOverlayClientPtr pOc, pNext;
+    CompOverlayClientPtr pOcLast = NULL;
+
+    pOc = cs->pOverlayClients;
+    while (pOc != NULL) {
+	pNext = pOc->pNext;
+	if (pOc == pOcToDel) {
+	    xfree(pOc);
+	    if (pOcLast == NULL) {
+		cs->pOverlayClients = pNext;
+	    } else {
+		pOcLast->pNext = pNext;
+	    }
+	    break;
+	}
+	pOcLast = pOc;
+	pOc = pNext;
+    }
+}
+
+/* 
+ * Delete all the hide-counts list elements for this screen.
+ */
+void
+deleteCompOverlayClientsForScreen (ScreenPtr pScreen)
+{
+    CompScreenPtr    cs = GetCompScreen(pScreen);
+    CompOverlayClientPtr pOc, pTmp;
+
+    pOc = cs->pOverlayClients;
+    while (pOc != NULL) {
+	pTmp = pOc->pNext;
+	FreeResource(pOc->resource, 0);
+	pOc = pTmp;
+    }
+    cs->pOverlayClients = NULL;
+}
+
+/* 
+** If necessary, create the overlay window. And map it 
+** Note: I found it excessively difficult to destroy this window
+** during compCloseScreen; DeleteWindow can't be called because
+** the input devices are already shut down. So we are going to 
+** just allocate an overlay window once per screen per X server
+** invocation.
+*/
+
+static WindowPtr
+createOverlayWindow (ScreenPtr pScreen)
+{
+    int wid = FakeClientID(0);
+    WindowPtr pWin;
+    XID overrideRedirect = TRUE;
+    int result;
+
+    pWin = CreateWindow (
+	        wid, WindowTable[pScreen->myNum],
+    	        0, 0, pScreen->width, pScreen->height, 0, 
+	        InputOutput, CWOverrideRedirect, &overrideRedirect,
+	        WindowTable[pScreen->myNum]->drawable.depth, 
+	        serverClient, pScreen->rootVisual, &result);
+    if (pWin == NULL) {
+	return NULL;
+    }
+
+    if (!AddResource(wid, RT_WINDOW, (pointer)pWin)) {
+	DeleteWindow(pWin, None);
+	return NULL;
+    }
+
+    return pWin;
+}
+
+int
+ProcCompositeGetOverlayWindow (ClientPtr client)
+{
+    REQUEST(xCompositeGetOverlayWindowReq); 
+    xCompositeGetOverlayWindowReply rep;
+    WindowPtr pWin;
+    ScreenPtr pScreen;
+    CompScreenPtr cs;
+    CompOverlayClientPtr pOc;
+
+    REQUEST_SIZE_MATCH(xCompositeGetOverlayWindowReq);
+    pWin = (WindowPtr) LookupIDByType (stuff->window, RT_WINDOW);
+    if (!pWin)
+    {
+	client->errorValue = stuff->window;
+	return BadWindow;
+    }
+    pScreen = pWin->drawable.pScreen;
+
+    cs = GetCompScreen(pScreen);
+    if (cs->pOverlayWin == NULL) {
+	cs->pOverlayWin = createOverlayWindow(pScreen);
+	if (cs->pOverlayWin == NULL) {
+	    return BadAlloc;
+	}
+    }
+    MapWindow(cs->pOverlayWin, serverClient);
+
+    /* Record that client is using this overlay window */
+    pOc = findCompOverlayClient(client, pScreen);
+    if (pOc == NULL) {
+	int ret = createCompOverlayClient(client, pScreen);
+	if (ret != Success) {
+	    return ret;
+	}
+    }
+
+    rep.type = X_Reply;
+    rep.sequenceNumber = client->sequence;
+    rep.length = 0;
+    rep.overlayWin = cs->pOverlayWin->drawable.id;
+
+    if (client->swapped)
+    {
+	int n;
+	swaps(&rep.sequenceNumber, n);
+    	swapl(&rep.length, n);
+	swapl(&rep.overlayWin, n);
+    }
+    (void) WriteToClient(client, sz_xCompositeGetOverlayWindowReply, (char *)&rep);
+
+    return client->noClientException;
+}
+
+int
+ProcCompositeReleaseOverlayWindow (ClientPtr client)
+{
+    REQUEST(xCompositeReleaseOverlayWindowReq); 
+    WindowPtr pWin;
+    ScreenPtr pScreen;
+    CompOverlayClientPtr pOc;
+    CompScreenPtr cs;
+
+    REQUEST_SIZE_MATCH(xCompositeReleaseOverlayWindowReq);
+    pWin = (WindowPtr) LookupIDByType (stuff->window, RT_WINDOW);
+    if (!pWin)
+    {
+	client->errorValue = stuff->window;
+	return BadWindow;
+    }
+    pScreen = pWin->drawable.pScreen;
+
+    /* 
+     * Has client queried a reference to the overlay window
+     * on this screen? If not, generate an error.
+     */
+    pOc = findCompOverlayClient(client, pWin->drawable.pScreen);
+    if (pOc == NULL) {
+	return BadMatch;
+    }
+
+    deleteCompOverlayClient(pOc, pOc->pScreen);
+
+    cs = GetCompScreen(pScreen);
+    if (cs->pOverlayClients == NULL) {
+	UnmapWindow(cs->pOverlayWin, FALSE);
+    }
+
+    return client->noClientException;
+}
+
 int (*ProcCompositeVector[CompositeNumberRequests])(ClientPtr) = {
     ProcCompositeQueryVersion,
     ProcCompositeRedirectWindow,
@@ -251,6 +519,8 @@ int (*ProcCompositeVector[CompositeNumberRequests])(ClientPtr) = {
     ProcCompositeUnredirectSubwindows,
     ProcCompositeCreateRegionFromBorderClip,
     ProcCompositeNameWindowPixmap,
+    ProcCompositeGetOverlayWindow,
+    ProcCompositeReleaseOverlayWindow,
 };
 
 static int
@@ -351,6 +621,30 @@ SProcCompositeNameWindowPixmap (ClientPtr client)
     return (*ProcCompositeVector[stuff->compositeReqType]) (client);
 }
 
+int
+SProcCompositeGetOverlayWindow (ClientPtr client)
+{
+    int n;
+    REQUEST(xCompositeGetOverlayWindowReq);
+
+    swaps (&stuff->length, n);
+    REQUEST_SIZE_MATCH(xCompositeGetOverlayWindowReq);
+    swapl(&stuff->window, n);
+    return (*ProcCompositeVector[stuff->compositeReqType]) (client);
+}
+
+int
+SProcCompositeReleaseOverlayWindow (ClientPtr client)
+{
+    int n;
+    REQUEST(xCompositeReleaseOverlayWindowReq);
+
+    swaps (&stuff->length, n);
+    REQUEST_SIZE_MATCH(xCompositeReleaseOverlayWindowReq);
+    swapl(&stuff->window, n);
+    return (*ProcCompositeVector[stuff->compositeReqType]) (client);
+}
+
 int (*SProcCompositeVector[CompositeNumberRequests])(ClientPtr) = {
     SProcCompositeQueryVersion,
     SProcCompositeRedirectWindow,
@@ -359,6 +653,8 @@ int (*SProcCompositeVector[CompositeNumberRequests])(ClientPtr) = {
     SProcCompositeUnredirectSubwindows,
     SProcCompositeCreateRegionFromBorderClip,
     SProcCompositeNameWindowPixmap,
+    SProcCompositeGetOverlayWindow,
+    SProcCompositeReleaseOverlayWindow,
 };
 
 static int
@@ -386,6 +682,10 @@ CompositeExtensionInit (void)
     if (!CompositeClientSubwindowsType)
 	return;
 
+    CompositeClientOverlayType = CreateNewResourceType (FreeCompositeClientOverlay);
+    if (!CompositeClientOverlayType)
+	return;
+
     CompositeClientPrivateIndex = AllocateClientPrivateIndex ();
     if (!AllocateClientPrivate (CompositeClientPrivateIndex, 
 				sizeof (CompositeClientRec)))
@@ -400,7 +700,6 @@ CompositeExtensionInit (void)
 	return;
     CompositeReqCode = (CARD8) extEntry->base;
 
-    
     for (s = 0; s < screenInfo.numScreens; s++)
 	if (!compScreenInit (screenInfo.screens[s]))
 	    return;
