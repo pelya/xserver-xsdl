@@ -225,11 +225,6 @@ __glXDrawableInit(__GLXdrawable *drawable,
     drawable->pGlxPixmap = (__GLXpixmap *) 
 	LookupIDByType(drawId, __glXPixmapRes);
 
-    /* since we are creating the drawablePrivate, drawId should be new */
-    if (!AddResource(drawId, __glXDrawableRes, drawable)) {
-	return GL_FALSE;
-    }
-
     return GL_TRUE;
 }
 
@@ -251,7 +246,16 @@ __glXGetDrawable(__GLXcontext *ctx, DrawablePtr pDraw, XID drawId)
     glxPriv = __glXFindDrawable(drawId);
 
     if (glxPriv == NULL)
+    {
 	glxPriv = ctx->createDrawable(ctx, pDraw, drawId);
+
+	/* since we are creating the drawablePrivate, drawId should be new */
+	if (!AddResource(drawId, __glXDrawableRes, glxPriv))
+	{
+	    glxPriv->destroy (glxPriv);
+	    return NULL;
+	}
+    }
 
     return glxPriv;
 }

@@ -531,7 +531,7 @@ void __glXSwapGetDrawableAttributesReply(ClientPtr client,
     __GLX_SWAP_SHORT(&reply->sequenceNumber);
     __GLX_SWAP_INT(&reply->length);
     __GLX_SWAP_INT(&reply->numAttribs);
-    WriteToClient(client, sz_xGLXQueryContextInfoEXTReply, (char *)reply);
+    WriteToClient(client, sz_xGLXGetDrawableAttributesReply, (char *)reply);
     __GLX_SWAP_INT_ARRAY((int *)buf, length);
     WriteToClient(client, length << 2, (char *)buf);
 }

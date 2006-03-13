@@ -1,3 +1,21 @@
+2006-03-12  Kristian Høgsberg  <krh@redhat.com>
+
+	First batch of AIGLX fixes from David Reveman.
+
+	* GL/mesa/X/xf86glx.c (GlxGetMesaProvider): Add getter for Mesa
+	provider.
+
+	* GL/glx/glxvisuals.c (GlxInitVisuals): Export this for Xgl.
+
+	* GL/glx/glxutil.c (__glXDrawableInit, __glXGetDrawable): Move
+	resource tracking out of drawable constructor to allow wrapping.
+
+	* GL/glx/glxcmdsswap.c (__glXSwapGetDrawableAttributesReply): Use
+	corrent reply size #define.
+
+	* GL/glx/glxcmds.c (GlxSetRenderTables): Add this function.
+	(DoGetDrawableAttributes): Fix array length.
+
 2006-03-12  Matthieu Herrb <matthieu.herrb@laas.fr>
 
 	* hw/xfree86/dixmods/Makefile.am

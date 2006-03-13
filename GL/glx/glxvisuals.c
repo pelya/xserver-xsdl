@@ -432,11 +432,11 @@ void GlxSetVisualConfigs(int nconfigs,
 
 static miInitVisualsProcPtr saveInitVisualsProc;
 
-static Bool __glXInitVisuals(VisualPtr *visualp, DepthPtr *depthp,
-			     int *nvisualp, int *ndepthp,
-			     int *rootDepthp, VisualID *defaultVisp,
-			     unsigned long sizes, int bitsPerRGB,
-			     int preferredVis)
+Bool GlxInitVisuals(VisualPtr *visualp, DepthPtr *depthp,
+		    int *nvisualp, int *ndepthp,
+		    int *rootDepthp, VisualID *defaultVisp,
+		    unsigned long sizes, int bitsPerRGB,
+		    int preferredVis)
 {
     Bool ret;
 
@@ -466,7 +466,7 @@ void
 GlxWrapInitVisuals(miInitVisualsProcPtr *initVisProc)
 {
     saveInitVisualsProc = *initVisProc;
-    *initVisProc = __glXInitVisuals;
+    *initVisProc = GlxInitVisuals;
 }
 
 static void fixup_visuals(int screen)

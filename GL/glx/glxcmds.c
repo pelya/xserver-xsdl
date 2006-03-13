@@ -58,7 +58,21 @@
 #include "glthread.h"
 #include "dispatch.h"
 
+#ifndef GLX_TEXTURE_TARGET_EXT
+#define GLX_TEXTURE_TARGET_EXT              0x6001
+#define GLX_TEXTURE_2D_EXT                  0x6002
+#define GLX_TEXTURE_RECTANGLE_EXT           0x6003
+#define GLX_NO_TEXTURE_EXT                  0x6004
+#define GLX_Y_INVERTED_EXT                  0x6006
+#endif
+
 /************************************************************************/
+
+void
+GlxSetRenderTables (struct _glapi_table *table)
+{
+    _glapi_set_dispatch (table);
+}
 
 static int __glXGetFBConfigsSGIX(__GLXclientState *cl, GLbyte *pc);
 static int __glXCreateContextWithConfigSGIX(__GLXclientState *cl, GLbyte *pc);
@@ -1517,14 +1531,6 @@ int __glXReleaseTexImageEXT(__GLXclientState *cl, GLbyte *pc)
 						       pGlxPixmap);
 }
 
-#ifndef GLX_TEXTURE_TARGET_EXT
-#define GLX_TEXTURE_TARGET_EXT              0x6001
-#define GLX_TEXTURE_2D_EXT                  0x6002
-#define GLX_TEXTURE_RECTANGLE_EXT           0x6003
-#define GLX_NO_TEXTURE_EXT                  0x6004
-#define GLX_Y_INVERTED_EXT                  0x6006
-#endif
-
 /*
 ** Get drawable attributes
 */
@@ -1534,7 +1540,7 @@ DoGetDrawableAttributes(__GLXclientState *cl, XID drawId)
     ClientPtr client = cl->client;
     __GLXpixmap *glxPixmap;
     xGLXGetDrawableAttributesReply reply;
-    CARD32 attributes[2];
+    CARD32 attributes[4];
     int numAttribs;
 
     glxPixmap = (__GLXpixmap *)LookupIDByType(drawId, __glXPixmapRes);

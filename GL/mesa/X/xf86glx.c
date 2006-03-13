@@ -431,3 +431,9 @@ __GLXprovider __glXMesaProvider = {
     "MESA",
     NULL
 };
+
+__GLXprovider *
+GlxGetMesaProvider (void)
+{
+    return &__glXMesaProvider;
+}
