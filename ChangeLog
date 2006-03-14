@@ -1,3 +1,8 @@
+2006-03-14  Kristian Høgsberg  <krh@redhat.com>
+
+	* GL/glx/glxdri.c (__glXDRIscreenProbe): Bail out early if screen
+	doesn't support DRI.
+
 2006-3-13   Deron Johnson  <deron.johnson@sun.com>
 
 	* composite/compalloc.c

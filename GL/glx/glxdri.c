@@ -723,6 +723,13 @@ __glXDRIscreenProbe(ScreenPtr pScreen)
     __GLXDRIscreen *screen;
     void *dev_priv = NULL;
     char filename[128];
+    Bool isCapable;
+
+    if (!DRIQueryDirectRenderingCapable(pScreen, &isCapable) || !isCapable) {
+	LogMessage(X_ERROR,
+		   "AIGLX: Screen %d is not DRI capable\n", pScreen->myNum);
+	return NULL;
+    }
 
     screen = __glXMalloc(sizeof *screen);
     if (screen == NULL)
@@ -914,7 +921,7 @@ __glXDRIscreenProbe(ScreenPtr pScreen)
     else
 	LogMessage(X_ERROR, "AIGLX error: %s failed\n", err_msg);
 
-    ErrorF("GLX-DRI: reverting to software rendering\n");
+    LogMessage(X_ERROR, "GLX-DRI: reverting to software rendering\n");
 
     return NULL;
 }
