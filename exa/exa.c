@@ -404,10 +404,10 @@ exaDriverInit (ScreenPtr		pScreen,
     pScreen->CreateGC = exaCreateGC;
 
     pExaScr->SavedGetImage = pScreen->GetImage;
-    pScreen->GetImage = ExaCheckGetImage;
+    pScreen->GetImage = exaGetImage;
 
     pExaScr->SavedGetSpans = pScreen->GetSpans;
-    pScreen->GetSpans = ExaCheckGetSpans;
+    pScreen->GetSpans = exaGetSpans;
 
     pExaScr->SavedCopyWindow = pScreen->CopyWindow;
     pScreen->CopyWindow = exaCopyWindow;

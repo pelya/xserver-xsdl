@@ -1,5 +1,24 @@
 2006-03-14  Eric Anholt  <anholt@FreeBSD.org>
 
+	* exa/exa.c: (exaDriverInit):
+	* exa/exa_accel.c: (exaFillSpans), (exaCopyNtoN),
+	(exaPolyFillRect), (exaSolidBoxClipped), (exaFillRegionSolid),
+	(exaFillRegionTiled), (exaGetImage), (exaGetSpans):
+	* exa/exa_migration.c: (exaPixmapIsPinned), (exaMigrateTowardFb),
+	(exaMigrateTowardSys), (exaDoMigration):
+	* exa/exa_priv.h:
+	* exa/exa_render.c: (exaOpReadsDestination),
+	(exaTryDriverSolidFill), (exaTryDriverComposite), (exaComposite),
+	(exaGlyphs):
+	* exa/exa_unaccel.c: (exaGetPixmapFirstPixel):
+	Move migration logic to a new function, exaDoMigration().  This is
+	largely a manual conversion to allow for different migration schemes
+	to be implemented reasonably, but does include some minor improvements
+	such as accounting for pinned pixmaps not being acceleratable, and for
+	our current GetImage and GetSpans not being accelerated.
+
+2006-03-14  Eric Anholt  <anholt@FreeBSD.org>
+
 	* exa/exa_accel.c: (exaFillRegionTiled):
 	* exa/exa_priv.h:
 	* exa/exa_render.c: (exaTryDriverSolidFill):

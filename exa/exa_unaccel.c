@@ -279,6 +279,11 @@ ExaCheckRestoreAreas (PixmapPtr	pPixmap,
     exaFinishAccess ((DrawablePtr)pPixmap, EXA_PREPARE_DEST);
 }
 
+/* XXX: Note the lack of a prepare on the tile, if the window has a tiled
+ * background.  This function happens to only be called if pExaScr->swappedOut,
+ * so we actually end up not having to do it since the tile won't be in fb.
+ * That doesn't make this not dirty, though.
+ */
 void
 ExaCheckPaintWindow (WindowPtr pWin, RegionPtr pRegion, int what)
 {
@@ -334,8 +339,12 @@ CARD32
 exaGetPixmapFirstPixel (PixmapPtr pPixmap)
 {
     CARD32 pixel;
+    ExaMigrationRec pixmaps[1];
 
-    exaDrawableUseMemory(&pPixmap->drawable);
+    pixmaps[0].as_dst = FALSE;
+    pixmaps[0].as_src = TRUE;
+    pixmaps[0].pPix = pPixmap;
+    exaDoMigration (pixmaps, 1, TRUE);
 
     exaPrepareAccess(&pPixmap->drawable, EXA_PREPARE_SRC);
     switch (pPixmap->drawable.bitsPerPixel) {

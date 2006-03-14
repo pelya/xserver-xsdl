@@ -109,7 +109,25 @@ exaPrintCompositeFallback(CARD8 op,
 	   "                    dst  %s, \n",
 	   sop, srcdesc, maskdesc, dstdesc);
 }
-#endif
+#endif /* DEBUG_TRACE_FALL */
+
+static Bool
+exaOpReadsDestination (CARD8 op)
+{
+    /* FALSE (does not read destination) is the list of ops in the protocol
+     * document with "0" in the "Fb" column and no "Ab" in the "Fa" column.
+     * That's just Clear and Src.  ReduceCompositeOp() will already have
+     * converted con/disjoint clear/src to Clear or Src.
+     */
+    switch (op) {
+    case PictOpClear:
+    case PictOpSrc:
+	return FALSE;
+    default:
+	return TRUE;
+    }
+}
+
 
 static Bool
 exaGetPixelFromRGBA(CARD32	*pixel,
@@ -151,7 +169,6 @@ exaGetPixelFromRGBA(CARD32	*pixel,
 
     return TRUE;
 }
-
 
 static Bool
 exaGetRGBAFromPixel(CARD32	pixel,
@@ -232,6 +249,7 @@ exaTryDriverSolidFill(PicturePtr	pSrc,
     PixmapPtr pSrcPix, pDstPix;
     CARD32 pixel;
     CARD16 red, green, blue, alpha;
+    ExaMigrationRec pixmaps[1];
 
     xDst += pDst->pDrawable->x;
     yDst += pDst->pDrawable->y;
@@ -246,7 +264,10 @@ exaTryDriverSolidFill(PicturePtr	pSrc,
     pSrcPix = exaGetDrawablePixmap (pSrc->pDrawable);
     pixel = exaGetPixmapFirstPixel (pSrcPix);
 
-    exaDrawableUseScreen(pDst->pDrawable);
+    pixmaps[0].as_dst = TRUE;
+    pixmaps[0].as_src = FALSE;
+    pixmaps[0].pPix = exaGetDrawablePixmap (pDst->pDrawable);
+    exaDoMigration(pixmaps, 1, TRUE);
 
     pDstPix = exaGetOffscreenPixmap (pDst->pDrawable, &dst_off_x, &dst_off_y);
     if (!pDstPix) {
@@ -309,6 +330,7 @@ exaTryDriverComposite(CARD8		op,
     int src_off_x, src_off_y, mask_off_x, mask_off_y, dst_off_x, dst_off_y;
     PixmapPtr pSrcPix, pMaskPix = NULL, pDstPix;
     struct _Pixmap scratch;
+    ExaMigrationRec pixmaps[3];
 
     /* Bail if we might exceed coord limits by rendering from/to these.  We
      * should really be making some scratch pixmaps with offsets and coords
@@ -347,10 +369,20 @@ exaTryDriverComposite(CARD8		op,
 	return -1;
     }
 
-    exaDrawableUseScreen(pSrc->pDrawable);
-    if (pMask != NULL)
-     exaDrawableUseScreen(pMask->pDrawable);
-    exaDrawableUseScreen(pDst->pDrawable);
+    pixmaps[0].as_dst = TRUE;
+    pixmaps[0].as_src = exaOpReadsDestination(op);
+    pixmaps[0].pPix = exaGetDrawablePixmap (pDst->pDrawable);
+    pixmaps[1].as_dst = FALSE;
+    pixmaps[1].as_src = TRUE;
+    pixmaps[1].pPix = exaGetDrawablePixmap (pSrc->pDrawable);
+    if (pMask) {
+	pixmaps[2].as_dst = FALSE;
+	pixmaps[2].as_src = TRUE;
+	pixmaps[2].pPix = exaGetDrawablePixmap (pMask->pDrawable);
+	exaDoMigration(pixmaps, 3, TRUE);
+    } else {
+	exaDoMigration(pixmaps, 2, TRUE);
+    }
 
     pSrcPix = exaGetOffscreenPixmap (pSrc->pDrawable, &src_off_x, &src_off_y);
     if (pMask)
@@ -508,13 +540,24 @@ exaComposite(CARD8	op,
     }
 
     if (ret != 0) {
+	ExaMigrationRec pixmaps[3];
 	/* failure to accelerate was not due to pixmaps being in the wrong
 	 * locations.
 	 */
-      exaDrawableUseMemory(pSrc->pDrawable);
-      if (pMask != NULL)
-	exaDrawableUseMemory(pMask->pDrawable);
-      exaDrawableUseMemory(pDst->pDrawable);
+	pixmaps[0].as_dst = TRUE;
+	pixmaps[0].as_src = exaOpReadsDestination(op);
+	pixmaps[0].pPix = exaGetDrawablePixmap (pDst->pDrawable);
+	pixmaps[1].as_dst = FALSE;
+	pixmaps[1].as_src = TRUE;
+	pixmaps[1].pPix = exaGetDrawablePixmap (pSrc->pDrawable);
+	if (pMask) {
+	    pixmaps[2].as_dst = FALSE;
+	    pixmaps[2].as_src = TRUE;
+	    pixmaps[2].pPix = exaGetDrawablePixmap (pMask->pDrawable);
+	    exaDoMigration(pixmaps, 3, FALSE);
+	} else {
+	    exaDoMigration(pixmaps, 2, FALSE);
+	}
     }
 
 #if DEBUG_TRACE_FALL
@@ -621,6 +664,7 @@ exaGlyphs (CARD8	op,
     {
 	GCPtr pGC;
 	int maxwidth = 0, maxheight = 0, i;
+	ExaMigrationRec pixmaps[1];
 
 	x += list->xOff;
 	y += list->yOff;
@@ -681,7 +725,10 @@ exaGlyphs (CARD8	op,
 	/* Give the temporary pixmap an initial kick towards the screen, so
 	 * it'll stick there.
 	 */
-	exaPixmapUseScreen (pPixmap);
+	pixmaps[0].as_dst = TRUE;
+	pixmaps[0].as_src = TRUE;
+	pixmaps[0].pPix = pPixmap;
+	exaDoMigration (pixmaps, 1, TRUE);
 
 	while (n--)
 	{

@@ -45,17 +45,25 @@ exaFillSpans(DrawablePtr pDrawable, GCPtr pGC, int n,
     int		    fullX1, fullX2, fullY1;
     int		    partX1, partX2;
     int		    off_x, off_y;
+    ExaMigrationRec pixmaps[1];
 
+    pixmaps[0].as_dst = TRUE;
+    pixmaps[0].as_src = FALSE;
+    pixmaps[0].pPix = exaGetDrawablePixmap (pDrawable);
 
-    if (pExaScr->swappedOut) {
-        ExaCheckFillSpans(pDrawable, pGC, n, ppt, pwidth, fSorted);
-        return;
+    if (pExaScr->swappedOut ||
+	pGC->fillStyle != FillSolid ||
+	pDrawable->width > pExaScr->info->maxX ||
+	pDrawable->height > pExaScr->info->maxY)
+    {
+	exaDoMigration (pixmaps, 1, FALSE);
+	ExaCheckFillSpans (pDrawable, pGC, n, ppt, pwidth, fSorted);
+	return;
+    } else {
+	exaDoMigration (pixmaps, 1, TRUE);
     }
 
-    if (pGC->fillStyle != FillSolid ||
-	pDrawable->width > pExaScr->info->maxX ||
-	pDrawable->height > pExaScr->info->maxY ||
-	!(pPixmap = exaGetOffscreenPixmap (pDrawable, &off_x, &off_y)) ||
+    if (!(pPixmap = exaGetOffscreenPixmap (pDrawable, &off_x, &off_y)) ||
 	!(*pExaScr->info->PrepareSolid) (pPixmap,
 					 pGC->alu,
 					 pGC->planemask,
@@ -263,6 +271,14 @@ exaCopyNtoN (DrawablePtr    pSrcDrawable,
     PixmapPtr pSrcPixmap, pDstPixmap;
     int	    src_off_x, src_off_y;
     int	    dst_off_x, dst_off_y;
+    ExaMigrationRec pixmaps[2];
+
+    pixmaps[0].as_dst = TRUE;
+    pixmaps[0].as_src = FALSE;
+    pixmaps[0].pPix = exaGetDrawablePixmap (pDstDrawable);
+    pixmaps[1].as_dst = FALSE;
+    pixmaps[1].as_src = TRUE;
+    pixmaps[1].pPix = exaGetDrawablePixmap (pSrcDrawable);
 
     /* Respect maxX/maxY in a trivial way: don't set up drawing when we might
      * violate the limits.  The proper solution would be a temporary pixmap
@@ -273,22 +289,10 @@ exaCopyNtoN (DrawablePtr    pSrcDrawable,
 	pDstDrawable->width > pExaScr->info->maxX ||
 	pDstDrawable->height > pExaScr->info->maxY)
     {
-	exaDrawableUseMemory (pSrcDrawable);
-	exaDrawableUseMemory (pDstDrawable);
+	exaDoMigration (pixmaps, 2, FALSE);
 	goto fallback;
-    }
-
-    /* If either drawable is already in framebuffer, try to get both of them
-     * there.  Otherwise, be happy with where they are.
-     */
-    if (exaDrawableIsOffscreen(pDstDrawable) ||
-	exaDrawableIsOffscreen(pSrcDrawable))
-    {
-	exaDrawableUseScreen (pSrcDrawable);
-	exaDrawableUseScreen (pDstDrawable);
     } else {
-	exaDrawableUseMemory (pSrcDrawable);
-	exaDrawableUseMemory (pDstDrawable);
+	exaDoMigration (pixmaps, 2, TRUE);
     }
 
     /* Mixed directions must be handled specially if the card is lame */
@@ -367,12 +371,25 @@ exaPolyFillRect(DrawablePtr pDrawable,
     int		    xoff, yoff;
     int		    xorg, yorg;
     int		    n;
+    ExaMigrationRec pixmaps[1];
 
+    pixmaps[0].as_dst = TRUE;
+    pixmaps[0].as_src = FALSE;
+    pixmaps[0].pPix = exaGetDrawablePixmap (pDrawable);
+ 
     if (pExaScr->swappedOut ||
-        pGC->fillStyle != FillSolid ||
+	pGC->fillStyle != FillSolid ||
 	pDrawable->width > pExaScr->info->maxX ||
-	pDrawable->height > pExaScr->info->maxY ||
-	!(pPixmap = exaGetOffscreenPixmap (pDrawable, &xoff, &yoff)) ||
+	pDrawable->height > pExaScr->info->maxY)
+    {
+	exaDoMigration (pixmaps, 1, FALSE);
+	ExaCheckPolyFillRect (pDrawable, pGC, nrect, prect);
+	return;
+    } else {
+	exaDoMigration (pixmaps, 1, TRUE);
+    }
+
+    if (!(pPixmap = exaGetOffscreenPixmap (pDrawable, &xoff, &yoff)) ||
 	!(*pExaScr->info->PrepareSolid) (pPixmap,
 					 pGC->alu,
 					 pGC->planemask,
@@ -471,13 +488,27 @@ exaSolidBoxClipped (DrawablePtr	pDrawable,
     int		nbox;
     int		xoff, yoff;
     int		partX1, partX2, partY1, partY2;
+    ExaMigrationRec pixmaps[1];
 
+    pixmaps[0].as_dst = TRUE;
+    pixmaps[0].as_src = FALSE;
+    pixmaps[0].pPix = exaGetDrawablePixmap (pDrawable);
+ 
     if (pExaScr->swappedOut ||
 	pDrawable->width > pExaScr->info->maxX ||
-	pDrawable->height > pExaScr->info->maxY ||
-        !(pPixmap = exaGetOffscreenPixmap (pDrawable, &xoff, &yoff)) ||
+	pDrawable->height > pExaScr->info->maxY)
+    {
+	EXA_FALLBACK(("to 0x%lx\n", (long)pDrawable));
+	exaDoMigration (pixmaps, 1, FALSE);
+	goto fallback;
+    } else {
+	exaDoMigration (pixmaps, 1, TRUE);
+    }
+
+    if (!(pPixmap = exaGetOffscreenPixmap (pDrawable, &xoff, &yoff)) ||
 	!(*pExaScr->info->PrepareSolid) (pPixmap, GXcopy, pm, fg))
     {
+fallback:
 	EXA_FALLBACK(("to 0x%lx\n", (long)pDrawable));
 	exaPrepareAccess (pDrawable, EXA_PREPARE_DEST);
 	fg = fbReplicatePixel (fg, pDrawable->bitsPerPixel);
@@ -724,10 +755,22 @@ exaFillRegionSolid (DrawablePtr	pDrawable,
     ExaScreenPriv(pDrawable->pScreen);
     PixmapPtr pPixmap;
     int xoff, yoff;
+    ExaMigrationRec pixmaps[1];
 
-    if (pDrawable->width <= pExaScr->info->maxX &&
-	pDrawable->height <= pExaScr->info->maxY &&
-	(pPixmap = exaGetOffscreenPixmap (pDrawable, &xoff, &yoff)) &&
+    pixmaps[0].as_dst = TRUE;
+    pixmaps[0].as_src = FALSE;
+    pixmaps[0].pPix = exaGetDrawablePixmap (pDrawable);
+ 
+    if (pDrawable->width > pExaScr->info->maxX ||
+	pDrawable->height > pExaScr->info->maxY)
+    {
+	exaDoMigration (pixmaps, 1, FALSE);
+	goto fallback;
+    } else {
+	exaDoMigration (pixmaps, 1, TRUE);
+    }
+
+    if ((pPixmap = exaGetOffscreenPixmap (pDrawable, &xoff, &yoff)) &&
 	(*pExaScr->info->PrepareSolid) (pPixmap, GXcopy, FB_ALLONES, pixel))
     {
 	int	nbox = REGION_NUM_RECTS (pRegion);
@@ -746,6 +789,7 @@ exaFillRegionSolid (DrawablePtr	pDrawable,
     }
     else
     {
+fallback:
 	EXA_FALLBACK(("to 0x%lx\n", (long)pDrawable));
 	exaPrepareAccess (pDrawable, EXA_PREPARE_DEST);
 	fbFillRegionSolid (pDrawable, pRegion, 0,
@@ -766,17 +810,10 @@ exaFillRegionTiled (DrawablePtr	pDrawable,
     PixmapPtr pPixmap;
     int xoff, yoff;
     int tileWidth, tileHeight;
+    ExaMigrationRec pixmaps[2];
 
     tileWidth = pTile->drawable.width;
     tileHeight = pTile->drawable.height;
-
-    if (pDrawable->width > pExaScr->info->maxX ||
-	pDrawable->height > pExaScr->info->maxY ||
-	tileWidth > pExaScr->info->maxX ||
-	tileHeight > pExaScr->info->maxY)
-    {
-	goto fallback;
-    }
 
     /* If we're filling with a solid color, grab it out and go to
      * FillRegionSolid, saving numerous copies.
@@ -786,11 +823,28 @@ exaFillRegionTiled (DrawablePtr	pDrawable,
 	return;
     }
 
+    pixmaps[0].as_dst = TRUE;
+    pixmaps[0].as_src = FALSE;
+    pixmaps[0].pPix = exaGetDrawablePixmap (pDrawable);
+    pixmaps[1].as_dst = FALSE;
+    pixmaps[1].as_src = TRUE;
+    pixmaps[1].pPix = pTile;
+
+    if (pDrawable->width > pExaScr->info->maxX ||
+	pDrawable->height > pExaScr->info->maxY ||
+	tileWidth > pExaScr->info->maxX ||
+	tileHeight > pExaScr->info->maxY)
+    {
+	exaDoMigration (pixmaps, 2, FALSE);
+	goto fallback;
+    } else {
+	exaDoMigration (pixmaps, 2, TRUE);
+    }
+
     pPixmap = exaGetOffscreenPixmap (pDrawable, &xoff, &yoff);
     if (!pPixmap)
 	goto fallback;
 
-    exaPixmapUseScreen(pTile);
     if (!exaPixmapIsOffscreen(pTile))
 	goto fallback;
 
@@ -890,4 +944,40 @@ exaPaintWindow(WindowPtr pWin, RegionPtr pRegion, int what)
         }
     }
     ExaCheckPaintWindow (pWin, pRegion, what);
+}
+
+/**
+ * GetImage isn't accelerated yet, but performs migration so that we'll
+ * hopefully avoid the read-from-framebuffer cost.
+ */
+void
+exaGetImage (DrawablePtr pDrawable, int x, int y, int w, int h,
+	     unsigned int format, unsigned long planeMask, char *d)
+{
+    ExaMigrationRec pixmaps[1];
+
+    pixmaps[0].as_dst = FALSE;
+    pixmaps[0].as_src = TRUE;
+    pixmaps[0].pPix = exaGetDrawablePixmap (pDrawable);
+    exaDoMigration (pixmaps, 1, FALSE);
+
+    ExaCheckGetImage (pDrawable, x, y, w, h, format, planeMask, d);
+}
+
+/**
+ * GetSpans isn't accelerated yet, but performs migration so that we'll
+ * hopefully avoid the read-from-framebuffer cost.
+ */
+void
+exaGetSpans (DrawablePtr pDrawable, int wMax, DDXPointPtr ppt, int *pwidth,
+	     int nspans, char *pdstStart)
+{
+    ExaMigrationRec pixmaps[1];
+
+    pixmaps[0].as_dst = FALSE;
+    pixmaps[0].as_src = TRUE;
+    pixmaps[0].pPix = exaGetDrawablePixmap (pDrawable);
+    exaDoMigration (pixmaps, 1, FALSE);
+
+    ExaCheckGetSpans (pDrawable, wMax, ppt, pwidth, nspans, pdstStart);
 }

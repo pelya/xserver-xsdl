@@ -140,6 +140,12 @@ typedef struct {
     Bool	    dirty;
     unsigned int    size;
 } ExaPixmapPrivRec, *ExaPixmapPrivPtr;
+ 
+typedef struct _ExaMigrationRec {
+    Bool as_dst;
+    Bool as_src;
+    PixmapPtr pPix;
+} ExaMigrationRec, *ExaMigrationPtr;
 
 /**
  * exaDDXDriverInit must be implemented by the DDX using EXA, and is the place
@@ -256,6 +262,14 @@ exaCopyWindow(WindowPtr pWin, DDXPointRec ptOldOrg, RegionPtr prgnSrc);
 void
 exaPaintWindow(WindowPtr pWin, RegionPtr pRegion, int what);
 
+void
+exaGetImage (DrawablePtr pDrawable, int x, int y, int w, int h,
+	     unsigned int format, unsigned long planeMask, char *d);
+
+void
+exaGetSpans (DrawablePtr pDrawable, int wMax, DDXPointPtr ppt, int *pwidth,
+	     int nspans, char *pdstStart);
+
 extern const GCOps	exaOps, exaAsyncPixmapGCOps;
 
 #ifdef RENDER
@@ -292,18 +306,6 @@ ExaOffscreenFini (ScreenPtr pScreen);
 
 /* exa.c */
 void
-exaDrawableUseScreen(DrawablePtr pDrawable);
-
-void
-exaDrawableUseMemory(DrawablePtr pDrawable);
-
-void
-exaPixmapUseScreen (PixmapPtr pPixmap);
-
-void
-exaPixmapUseMemory (PixmapPtr pPixmap);
-
-void
 exaPrepareAccess(DrawablePtr pDrawable, int index);
 
 void
@@ -323,12 +325,6 @@ exaGetOffscreenPixmap (DrawablePtr pDrawable, int *xp, int *yp);
 
 PixmapPtr
 exaGetDrawablePixmap(DrawablePtr pDrawable);
-
-void
-exaMoveInPixmap (PixmapPtr pPixmap);
-
-void
-exaMoveOutPixmap (PixmapPtr pPixmap);
 
 RegionPtr
 exaCopyArea(DrawablePtr pSrcDrawable, DrawablePtr pDstDrawable, GCPtr pGC,
@@ -371,5 +367,15 @@ exaGlyphs (CARD8	op,
 	  int		nlist,
 	  GlyphListPtr	list,
 	  GlyphPtr	*glyphs);
+
+/* exa_migration.c */
+void
+exaDoMigration (ExaMigrationPtr pixmaps, int npixmaps, Bool can_accel);
+
+void
+exaMoveInPixmap (PixmapPtr pPixmap);
+
+void
+exaMoveOutPixmap (PixmapPtr pPixmap);
 
 #endif /* EXAPRIV_H */

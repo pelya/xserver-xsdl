@@ -40,6 +40,20 @@
 #define DBG_MIGRATE(a)
 #endif
 
+/**
+ * Returns TRUE if the pixmap is not movable.  This is the case where it's a
+ * fake pixmap for the frontbuffer (no pixmap private) or it's a scratch
+ * pixmap created by some other X Server internals (the score says it's
+ * pinned).
+ */
+static Bool
+exaPixmapIsPinned (PixmapPtr pPix)
+{
+    ExaPixmapPriv (pPix);
+
+    return pExaPixmap == NULL || pExaPixmap->score == EXA_PIXMAP_SCORE_PINNED;
+}
+
 static void
 exaPixmapSave (ScreenPtr pScreen, ExaOffscreenArea *area)
 {
@@ -233,20 +247,8 @@ exaMoveOutPixmap (PixmapPtr pPixmap)
     }
 }
 
-void
-exaDrawableUseScreen(DrawablePtr pDrawable)
-{
-    exaPixmapUseScreen (exaGetDrawablePixmap (pDrawable));
-}
-
-void
-exaDrawableUseMemory(DrawablePtr pDrawable)
-{
-    exaPixmapUseMemory (exaGetDrawablePixmap (pDrawable));
-}
-
-void
-exaPixmapUseScreen (PixmapPtr pPixmap)
+static void
+exaMigrateTowardFb (PixmapPtr pPixmap)
 {
     ExaPixmapPriv (pPixmap);
 
@@ -283,8 +285,8 @@ exaPixmapUseScreen (PixmapPtr pPixmap)
     ExaOffscreenMarkUsed (pPixmap);
 }
 
-void
-exaPixmapUseMemory (PixmapPtr pPixmap)
+static void
+exaMigrateTowardSys (PixmapPtr pPixmap)
 {
     ExaPixmapPriv (pPixmap);
 
@@ -308,4 +310,61 @@ exaPixmapUseMemory (PixmapPtr pPixmap)
 
     if (pExaPixmap->score <= EXA_PIXMAP_SCORE_MOVE_OUT && pExaPixmap->area)
 	exaMoveOutPixmap (pPixmap);
+}
+
+/**
+ * Performs migration of the pixmaps according to the operation information
+ * provided in pixmaps and can_accel.  In the future, other migration schemes
+ * may be added, which is facilitated by having this logic all in one place.
+ */
+void
+exaDoMigration (ExaMigrationPtr pixmaps, int npixmaps, Bool can_accel)
+{
+    ScreenPtr pScreen = pixmaps[0].pPix->drawable.pScreen;
+    int i, j;
+
+    /* If anything is pinned in system memory, we won't be able to
+     * accelerate.
+     */
+    for (i = 0; i < npixmaps; i++) {
+	if (exaPixmapIsPinned (pixmaps[i].pPix) &&
+	    !exaPixmapIsOffscreen (pixmaps[i].pPix))
+	{
+	    EXA_FALLBACK(("Pixmap %p (%dx%d) pinned in sys\n", pixmaps[i].pPix,
+		      pixmaps[i].pPix->drawable.width,
+		      pixmaps[i].pPix->drawable.height));
+	    can_accel = FALSE;
+	    break;
+	}
+    }
+
+    /* If we can't accelerate, either because the driver can't or because one of
+     * the pixmaps is pinned in system memory, then we migrate everybody toward
+     * system memory.
+     *
+     * We also migrate toward system if all pixmaps involved are currently in
+     * system memory -- this can mitigate thrashing when there are significantly
+     * more pixmaps active than would fit in memory.
+     *
+     * If not, then we migrate toward FB so that hopefully acceleration can
+     * happen.
+     */
+    if (!can_accel) {
+	for (i = 0; i < npixmaps; i++)
+	    exaMigrateTowardSys (pixmaps[i].pPix);
+	return;
+    }
+
+    for (i = 0; i < npixmaps; i++) {
+	if (exaPixmapIsOffscreen(pixmaps[i].pPix)) {
+	    /* Found one in FB, so move all to FB. */
+	    for (j = 0; j < npixmaps; j++)
+		exaMigrateTowardFb(pixmaps[j].pPix);
+	    return;
+	}
+    }
+
+    /* Nobody's in FB, so move all away from FB. */
+    for (i = 0; i < npixmaps; i++)
+	exaMigrateTowardSys(pixmaps[i].pPix);
 }
