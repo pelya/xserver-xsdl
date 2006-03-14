@@ -243,7 +243,9 @@ exaTryDriverSolidFill(PicturePtr	pSrc,
 				   width, height))
 	return 1;
 
-    exaDrawableUseMemory(pSrc->pDrawable);
+    pSrcPix = exaGetDrawablePixmap (pSrc->pDrawable);
+    pixel = exaGetPixmapFirstPixel (pSrcPix);
+
     exaDrawableUseScreen(pDst->pDrawable);
 
     pDstPix = exaGetOffscreenPixmap (pDst->pDrawable, &dst_off_x, &dst_off_y);
@@ -252,27 +254,12 @@ exaTryDriverSolidFill(PicturePtr	pSrc,
 	return 0;
     }
 
-    pSrcPix = exaGetDrawablePixmap (pSrc->pDrawable);
-
-    exaPrepareAccess(&pSrcPix->drawable, EXA_PREPARE_SRC);
-    switch (pSrcPix->drawable.bitsPerPixel) {
-    case 32:
-	pixel = *(CARD32 *)(pSrcPix->devPrivate.ptr);
-	break;
-    case 16:
-        pixel = *(CARD16 *)(pSrcPix->devPrivate.ptr);
-	break;
-    default:
-        pixel = *(CARD8 *)(pSrcPix->devPrivate.ptr);
-	break;
-    }
     if (!exaGetRGBAFromPixel(pixel, &red, &green, &blue, &alpha,
 			 pSrc->format))
     {
 	REGION_UNINIT(pDst->pDrawable->pScreen, &region);
 	return -1;
     }
-    exaFinishAccess(&pSrcPix->drawable, EXA_PREPARE_SRC);
 
     exaGetPixelFromRGBA(&pixel, red, green, blue, alpha,
 			pDst->format);

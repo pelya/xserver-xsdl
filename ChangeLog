@@ -1,3 +1,12 @@
+2006-03-14  Eric Anholt  <anholt@FreeBSD.org>
+
+	* exa/exa_accel.c: (exaFillRegionTiled):
+	* exa/exa_priv.h:
+	* exa/exa_render.c: (exaTryDriverSolidFill):
+	* exa/exa_unaccel.c: (exaGetPixmapFirstPixel):
+	Pull code for getting the (0,0) pixel from a pixmap out to a separate
+	function, since it gets repeated (with bad error handling, in one case).
+
 2006-03-14  Kristian Høgsberg  <krh@redhat.com>
 
 	* GL/glx/glxdri.c (__glXDRIscreenProbe): Bail out early if screen

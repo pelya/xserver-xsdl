@@ -326,6 +326,34 @@ ExaCheckComposite (CARD8      op,
     exaFinishAccess (pDst->pDrawable, EXA_PREPARE_DEST);
 }
 
+/**
+ * Gets the 0,0 pixel of a pixmap.  Used for doing solid fills of tiled pixmaps
+ * that happen to be 1x1.  Pixmap must be at least 8bpp.
+ */
+CARD32
+exaGetPixmapFirstPixel (PixmapPtr pPixmap)
+{
+    CARD32 pixel;
+
+    exaDrawableUseMemory(&pPixmap->drawable);
+
+    exaPrepareAccess(&pPixmap->drawable, EXA_PREPARE_SRC);
+    switch (pPixmap->drawable.bitsPerPixel) {
+    case 32:
+	pixel = *(CARD32 *)(pPixmap->devPrivate.ptr);
+	break;
+    case 16:
+	pixel = *(CARD16 *)(pPixmap->devPrivate.ptr);
+	break;
+    default:
+	pixel = *(CARD8 *)(pPixmap->devPrivate.ptr);
+	break;
+    }
+    exaFinishAccess(&pPixmap->drawable, EXA_PREPARE_SRC);
+
+    return pixel;
+}
+
 /*
  * Only need to stall for CopyArea/CopyPlane, but we want to have the chance to
  * do migration for CopyArea.

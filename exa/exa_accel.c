@@ -782,26 +782,7 @@ exaFillRegionTiled (DrawablePtr	pDrawable,
      * FillRegionSolid, saving numerous copies.
      */
     if (tileWidth == 1 && tileHeight == 1) {
-	CARD32 pixel;
-
-	exaDrawableUseMemory(&pTile->drawable);
-	exaPrepareAccess(&pTile->drawable, EXA_PREPARE_SRC);
-	switch (pTile->drawable.bitsPerPixel) {
-	case 8:
-	    pixel = *(CARD8 *)(pTile->devPrivate.ptr);
-	    break;
-	case 16:
-	    pixel = *(CARD16 *)(pTile->devPrivate.ptr);
-	    break;
-	case 32:
-	    pixel = *(CARD32 *)(pTile->devPrivate.ptr);
-	    break;
-	default:
-	    exaFinishAccess(&pTile->drawable, EXA_PREPARE_SRC);
-	    goto fallback;
-	}
-	exaFinishAccess(&pTile->drawable, EXA_PREPARE_SRC);
-	exaFillRegionSolid(pDrawable, pRegion, pixel);
+	exaFillRegionSolid(pDrawable, pRegion, exaGetPixmapFirstPixel (pTile));
 	return;
     }
 

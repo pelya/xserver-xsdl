@@ -147,7 +147,7 @@ typedef struct {
   */
 void exaDDXDriverInit (ScreenPtr pScreen);
 
-/* exaasync.c */
+/* exa_unaccel.c */
 void
 ExaCheckFillSpans  (DrawablePtr pDrawable, GCPtr pGC, int nspans,
 		   DDXPointPtr ppt, int *pwidth, int fSorted);
@@ -245,6 +245,9 @@ ExaCheckRestoreAreas (PixmapPtr	pPixmap,
 
 void
 ExaCheckPaintWindow (WindowPtr pWin, RegionPtr pRegion, int what);
+
+CARD32
+exaGetPixmapFirstPixel (PixmapPtr pPixmap); 
 
 /* exa_accel.c */
 void
