@@ -15,6 +15,9 @@
 	* damageext/damageext.c:
 	Coverity #491: Check version number correctly.
 
+	* xfixes/xfixes.c:
+	Coverity #487: Check version number correctly.
+
 2006-03-15  Benjamin Herrenschmidt  <benh@kernel.crashing.org>
 
 	* hw/xfree86/dri/dri.c: (DRIExtensionInit):
