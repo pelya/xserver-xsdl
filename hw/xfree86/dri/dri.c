@@ -582,7 +582,7 @@ DRIExtensionInit(void)
     int		    	i;
     ScreenPtr		pScreen;
 
-    if (DRIScreenPrivIndex < 0) {
+    if (DRIScreenPrivIndex < 0 || DRIGeneration != serverGeneration) {
 	return FALSE;
     }
 

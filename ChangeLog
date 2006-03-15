@@ -1,5 +1,16 @@
 2006-03-15  Benjamin Herrenschmidt  <benh@kernel.crashing.org>
 
+	* hw/xfree86/dri/dri.c: (DRIExtensionInit):
+	Fix DRIExtensionInit() to not register callbacks when it hasn't been
+	initialized for the current server generation. Fixes a problem where
+	it would use stale private index and blow up in colorful ways if no
+	driver called DRIScreenInit() on the second generation (which happens
+	due to a bug in radeon that i'll fix separately). Note: clearing the
+	index in DRIReset() wouldn't work as DRIReset() is called before the
+	CloseScreen() chain
+
+2006-03-15  Benjamin Herrenschmidt  <benh@kernel.crashing.org>
+
 	* hw/xfree86/common/xf86fbman.c: (localAllocateOffscreenLinear):
 	Make xf86 linear allocator smarter when dealing with alignment
 	constraints when falling back to X/Y allocations. Fixes various
