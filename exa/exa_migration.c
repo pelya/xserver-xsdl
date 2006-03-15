@@ -247,6 +247,10 @@ exaMoveOutPixmap (PixmapPtr pPixmap)
     }
 }
 
+/**
+ * For the "greedy" migration scheme, pushes the pixmap toward being located in
+ * framebuffer memory.
+ */
 static void
 exaMigrateTowardFb (PixmapPtr pPixmap)
 {
@@ -285,6 +289,10 @@ exaMigrateTowardFb (PixmapPtr pPixmap)
     ExaOffscreenMarkUsed (pPixmap);
 }
 
+/**
+ * For the "greedy" migration scheme, pushes the pixmap toward being located in
+ * system memory.
+ */
 static void
 exaMigrateTowardSys (PixmapPtr pPixmap)
 {
@@ -314,13 +322,14 @@ exaMigrateTowardSys (PixmapPtr pPixmap)
 
 /**
  * Performs migration of the pixmaps according to the operation information
- * provided in pixmaps and can_accel.  In the future, other migration schemes
- * may be added, which is facilitated by having this logic all in one place.
+ * provided in pixmaps and can_accel and the migration scheme chosen in the
+ * config file.
  */
 void
 exaDoMigration (ExaMigrationPtr pixmaps, int npixmaps, Bool can_accel)
 {
     ScreenPtr pScreen = pixmaps[0].pPix->drawable.pScreen;
+    ExaScreenPriv(pScreen);
     int i, j;
 
     /* If anything is pinned in system memory, we won't be able to
@@ -338,33 +347,63 @@ exaDoMigration (ExaMigrationPtr pixmaps, int npixmaps, Bool can_accel)
 	}
     }
 
-    /* If we can't accelerate, either because the driver can't or because one of
-     * the pixmaps is pinned in system memory, then we migrate everybody toward
-     * system memory.
-     *
-     * We also migrate toward system if all pixmaps involved are currently in
-     * system memory -- this can mitigate thrashing when there are significantly
-     * more pixmaps active than would fit in memory.
-     *
-     * If not, then we migrate toward FB so that hopefully acceleration can
-     * happen.
-     */
-    if (!can_accel) {
-	for (i = 0; i < npixmaps; i++)
-	    exaMigrateTowardSys (pixmaps[i].pPix);
-	return;
-    }
-
-    for (i = 0; i < npixmaps; i++) {
-	if (exaPixmapIsOffscreen(pixmaps[i].pPix)) {
-	    /* Found one in FB, so move all to FB. */
-	    for (j = 0; j < npixmaps; j++)
-		exaMigrateTowardFb(pixmaps[j].pPix);
+    if (pExaScr->migration == ExaMigrationGreedy) {
+	/* If we can't accelerate, either because the driver can't or because one of
+	 * the pixmaps is pinned in system memory, then we migrate everybody toward
+	 * system memory.
+	 *
+	 * We also migrate toward system if all pixmaps involved are currently in
+	 * system memory -- this can mitigate thrashing when there are significantly
+	 * more pixmaps active than would fit in memory.
+	 *
+	 * If not, then we migrate toward FB so that hopefully acceleration can
+	 * happen.
+	 */
+	if (!can_accel) {
+	    for (i = 0; i < npixmaps; i++)
+		exaMigrateTowardSys (pixmaps[i].pPix);
 	    return;
 	}
-    }
 
-    /* Nobody's in FB, so move all away from FB. */
-    for (i = 0; i < npixmaps; i++)
-	exaMigrateTowardSys(pixmaps[i].pPix);
+	for (i = 0; i < npixmaps; i++) {
+	    if (exaPixmapIsOffscreen(pixmaps[i].pPix)) {
+		/* Found one in FB, so move all to FB. */
+		for (j = 0; j < npixmaps; j++)
+		    exaMigrateTowardFb(pixmaps[j].pPix);
+		return;
+	    }
+	}
+
+	/* Nobody's in FB, so move all away from FB. */
+	for (i = 0; i < npixmaps; i++)
+	    exaMigrateTowardSys(pixmaps[i].pPix);
+    } else if (pExaScr->migration == ExaMigrationAlways) {
+	/* Always move the pixmaps out if we can't accelerate.  If we can
+	 * accelerate, try to move them all in.  If that fails, then move them
+	 * back out.
+	 */
+	if (!can_accel) {
+	    for (i = 0; i < npixmaps; i++)
+		exaMoveOutPixmap(pixmaps[i].pPix);
+	    return;
+	}
+
+	/* Now, try to move them all into FB */
+	for (i = 0; i < npixmaps; i++) {
+	    exaMoveInPixmap(pixmaps[i].pPix);
+	    ExaOffscreenMarkUsed (pixmaps[i].pPix);
+	}
+
+	/* If we couldn't fit everything in, then kick back out */
+	for (i = 0; i < npixmaps; i++) {
+	    if (!exaPixmapIsOffscreen(pixmaps[i].pPix)) {
+		EXA_FALLBACK(("Pixmap %p (%dx%d) not in fb\n", pixmaps[i].pPix,
+			      pixmaps[i].pPix->drawable.width,
+			      pixmaps[i].pPix->drawable.height));
+		for (j = 0; j < npixmaps; j++)
+		    exaMoveOutPixmap(pixmaps[j].pPix);
+		break;
+	    }
+	}
+    }
 }

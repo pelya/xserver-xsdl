@@ -29,6 +29,8 @@
 #include <xorg-config.h>
 #endif
 
+#include <string.h>
+
 #include "exa_priv.h"
 
 #include "xf86str.h"
@@ -37,10 +39,20 @@
 typedef struct _ExaXorgScreenPrivRec {
     CloseScreenProcPtr 		 SavedCloseScreen;
     EnableDisableFBAccessProcPtr SavedEnableDisableFBAccess;
+    OptionInfoPtr		 options;
 } ExaXorgScreenPrivRec, *ExaXorgScreenPrivPtr;
 
 static int exaXorgServerGeneration;
 static int exaXorgScreenPrivateIndex;
+
+typedef enum {
+    EXAOPT_MIGRATION_HEURISTIC,
+} EXAOpts;
+
+static const OptionInfoRec EXAOptions[] = {
+    { EXAOPT_MIGRATION_HEURISTIC, "MigrationHeuristic", OPTV_ANYSTR, {0}, FALSE },
+    { -1,			  NULL,		OPTV_NONE,	{0}, FALSE }
+};
 
 static Bool
 exaXorgCloseScreen (int i, ScreenPtr pScreen)
@@ -53,6 +65,7 @@ exaXorgCloseScreen (int i, ScreenPtr pScreen)
 
     pScrn->EnableDisableFBAccess = pScreenPriv->SavedEnableDisableFBAccess;
 
+    xfree (pScreenPriv->options);
     xfree (pScreenPriv);
 
     return pScreen->CloseScreen (i, pScreen);
@@ -82,6 +95,7 @@ exaXorgEnableDisableFBAccess (int index, Bool enable)
 void
 exaDDXDriverInit(ScreenPtr pScreen)
 {
+    ExaScreenPriv(pScreen);
     /* Do NOT use XF86SCRNINFO macro here!! */
     ScrnInfoPtr pScrn = xf86Screens[pScreen->myNum];
     ExaXorgScreenPrivPtr pScreenPriv;
@@ -95,6 +109,30 @@ exaDDXDriverInit(ScreenPtr pScreen)
     if (pScreenPriv == NULL)
 	return;
 
+    pScreenPriv->options = xnfalloc (sizeof(EXAOptions));
+    memcpy(pScreenPriv->options, EXAOptions, sizeof(EXAOptions));
+    xf86ProcessOptions (pScrn->scrnIndex, pScrn->options, pScreenPriv->options);
+
+    if ((pExaScr->info->flags & EXA_OFFSCREEN_PIXMAPS) &&
+  	pExaScr->info->offScreenBase < pExaScr->info->memorySize)
+    {
+	char *heuristicName;
+
+	heuristicName = xf86GetOptValString (pScreenPriv->options,
+					     EXAOPT_MIGRATION_HEURISTIC);
+	if (heuristicName != NULL) {
+	    if (strcmp(heuristicName, "greedy") == 0)
+		pExaScr->migration = ExaMigrationGreedy;
+	    else if (strcmp(heuristicName, "always") == 0)
+		pExaScr->migration = ExaMigrationAlways;
+	    else {
+		xf86DrvMsg (pScreen->myNum, X_WARNING, 
+			    "EXA: unknown migration heuristic %s\n",
+			    heuristicName);
+	    }
+	}
+    }
+
     pScreen->devPrivates[exaXorgScreenPrivateIndex].ptr = pScreenPriv;
 
     pScreenPriv->SavedEnableDisableFBAccess = pScrn->EnableDisableFBAccess;
@@ -106,11 +144,6 @@ exaDDXDriverInit(ScreenPtr pScreen)
 }
 
 static MODULESETUPPROTO(exaSetup);
-
-static const OptionInfoRec EXAOptions[] = {
-    { -1,				NULL,
-      OPTV_NONE,	{0}, FALSE }
-};
 
 /*ARGSUSED*/
 static const OptionInfoRec *

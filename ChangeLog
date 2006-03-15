@@ -1,5 +1,20 @@
 2006-03-14  Eric Anholt  <anholt@FreeBSD.org>
 
+	* exa/exa.c: (exaDriverInit):
+	* exa/exa_migration.c: (exaDoMigration):
+	* exa/exa_priv.h:
+	* hw/xfree86/exa/examodule.c: (exaXorgCloseScreen),
+	(exaDDXDriverInit):
+	Add a new migration scheme, "always", which will move pixmaps to their
+	desired location always (unless they don't fit in FB, in which case they
+	all get moved out for software rendering).  The default remains as
+	before, but can be controlled by the MigrationHeuristic xorg.conf option
+	(which is intentionally not documented, as it may be short-lived).  This
+	is part of the exa-damagetrack work, which appears stable in testing
+	with fakexa, unlike the work as a whole.
+
+2006-03-14  Eric Anholt  <anholt@FreeBSD.org>
+
 	* exa/exa.c:
 	* exa/exa.h:
 	Add more doxygen documentation, including notes on WaitMarker() and

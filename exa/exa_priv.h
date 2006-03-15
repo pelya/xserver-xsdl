@@ -77,6 +77,15 @@ do {								\
 #define EXA_MAX_FB   FB_OVERLAY_MAX
 #endif
 
+/**
+ * This is the list of migration heuristics supported by EXA.  See
+ * exaDoMigration() for what their implementations do.
+ */
+enum ExaMigrationHeuristic {
+    ExaMigrationGreedy,
+    ExaMigrationAlways
+};
+
 typedef void (*EnableDisableFBAccessProcPtr)(int, Bool);
 typedef struct {
     ExaDriverPtr info;
@@ -94,6 +103,7 @@ typedef struct {
     GlyphsProcPtr                SavedGlyphs;
 #endif
     Bool			 swappedOut;
+    enum ExaMigrationHeuristic	 migration;
 } ExaScreenPrivRec, *ExaScreenPrivPtr;
 
 /*
