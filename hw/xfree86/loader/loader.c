@@ -1446,7 +1446,7 @@ LoaderUnload(int handle)
     loaderRec fakeHead;
     loaderPtr tmp = &fakeHead;
 
-    if (handle < 0 || handle > MAX_HANDLE)
+    if (handle < 0 || handle >= MAX_HANDLE)
 	return -1;
 
     /*
