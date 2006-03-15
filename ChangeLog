@@ -12,6 +12,9 @@
 	* hw/xfree86/loader/loader.c:
 	Coverity #484: Fix an off-by-one in module refcounting.
 
+	* damageext/damageext.c:
+	Coverity #491: Check version number correctly.
+
 2006-03-15  Benjamin Herrenschmidt  <benh@kernel.crashing.org>
 
 	* hw/xfree86/dri/dri.c: (DRIExtensionInit):
