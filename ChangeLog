@@ -2,6 +2,8 @@
 
 	* hw/xfree86/loader/loadmod.c:
 	Coverity #1053: Nuke a dead variable.
+	Coverity #269: Compare the requested ABI class against the ABI class
+	    of the module, not the module class.
 
 	* miext/cw/cw.c:
 	Coverity #337: Remove useless NULL check.

@@ -716,7 +716,7 @@ CheckVersion(const char *module, XF86ModuleVersionInfo * data,
 		return FALSE;
 	    }
 	} else if (req->abiclass != ABI_CLASS_NONE) {
-	    if (!data->abiclass || strcmp(req->abiclass, data->moduleclass)) {
+	    if (!data->abiclass || strcmp(req->abiclass, data->abiclass)) {
 		xf86MsgVerb(X_WARNING, 2, "ABI class (%s) doesn't match the "
 			    "required ABI class (%s)\n",
 			    data->abiclass ? data->abiclass : "<NONE>",
