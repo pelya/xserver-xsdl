@@ -1,3 +1,10 @@
+2006-03-15  Benjamin Herrenschmidt  <benh@kernel.crashing.org>
+
+	* hw/xfree86/common/xf86fbman.c: (localAllocateOffscreenLinear):
+	Make xf86 linear allocator smarter when dealing with alignment
+	constraints when falling back to X/Y allocations. Fixes various
+	problems of Xv allocation failures, notably with "nv" driver.
+
 2006-03-14  Eric Anholt  <anholt@FreeBSD.org>
 
 	* exa/exa.c: (exaDriverInit):

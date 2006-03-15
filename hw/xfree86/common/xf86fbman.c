@@ -923,7 +923,7 @@ localAllocateOffscreenLinear(
    ErrorF("ALLOCATING LINEAR\n");
 #endif
    if ((linear = AllocateLinear(offman, length, gran, privData)))
-   	return linear;
+  	return linear;
 
 #ifdef DEBUG
    ErrorF("NOPE, ALLOCATING AREA\n");
@@ -936,10 +936,16 @@ localAllocateOffscreenLinear(
    extents = REGION_EXTENTS(pScreen, offman->InitialBoxes);
    pitch = extents->x2 - extents->x1;
 
-   if(gran && ((gran > pitch) || (pitch % gran))) {
+   if (gran && gran > pitch) {
 	/* we can't match the specified alignment with XY allocations */
 	xfree(link);
 	return NULL;
+   }
+   if (gran && (pitch % gran)) {
+       /* pitch and granularity aren't a perfect match, let's allocate
+	* a bit more so we can align later on
+	*/
+       length += gran - 1;
    }
 
    if(length < pitch) { /* special case */
@@ -963,6 +969,8 @@ localAllocateOffscreenLinear(
 	linear->pScreen = pScreen;
 	linear->size = h * w;
 	linear->offset = (pitch * area->box.y1) + area->box.x1;
+	if (gran && linear->offset % gran)
+		linear->offset += gran - (linear->offset % gran);
 	linear->granularity = gran;
 	linear->MoveLinearCallback = moveCB;
 	linear->RemoveLinearCallback = removeCB;
