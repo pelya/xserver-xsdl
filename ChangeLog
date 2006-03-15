@@ -1,3 +1,12 @@
+2006-03-15  Eric Anholt  <anholt@FreeBSD.org>
+
+	* exa/exa_migration.c: (exaMoveInPixmap):
+	Don't let pinned pixmaps get migrated in when using the "Always"
+	migration scheme.  This notably keeps the visible screen from getting
+	migrated in to a new location in framebuffer.
+
+	Reported by:	Michel Dänzer.
+
 2006-03-15  Adam Jackson  <ajax@freedesktop.org>
 
 	* hw/xfree86/loader/loadmod.c:

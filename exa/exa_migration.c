@@ -171,6 +171,9 @@ exaMoveInPixmap (PixmapPtr pPixmap)
     char *dst, *src;
     int i;
 
+    if (exaPixmapIsPinned(pPixmap))
+	return;
+
     DBG_MIGRATE (("-> 0x%lx (0x%x) (%dx%d)\n", pPixmap->drawable.id,
 		  (ExaGetPixmapPriv(pPixmap)->area ?
                    ExaGetPixmapPriv(pPixmap)->area->offset : 0),
