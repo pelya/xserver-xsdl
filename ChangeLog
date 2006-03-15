@@ -24,6 +24,9 @@
 	* xfixes/region.c:
 	Coverity #807: Fix a memory leak in XFixesExpandRegion.
 
+	* hw/xfree86/xf4bpp/ppcPixFS.c:
+	Coverity #1042, 1043: Nuke some dead variables.
+
 2006-03-15  Benjamin Herrenschmidt  <benh@kernel.crashing.org>
 
 	* hw/xfree86/dri/dri.c: (DRIExtensionInit):

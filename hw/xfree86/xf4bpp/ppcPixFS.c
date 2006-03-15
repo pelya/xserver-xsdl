@@ -232,7 +232,6 @@ int *pwidthInit ;		/* pointer to list of n widths */
 int fSorted ;
 {
     register unsigned char *pdst ; /* pointer to current word in bitmap */
-    register int *psrc ;		/* pointer to current word in tile */
     register unsigned long int pm, npm ;
     register unsigned long int fg ;
     register int alu ;
@@ -291,7 +290,7 @@ int fSorted ;
 	x = ppt->x ;
 
         xoff = modulo( x - xSrc, tileWidth) ;
-        for ( width = *pwidth ; width ; psrc++, width -= count, xoff+=count ) {
+        for ( width = *pwidth ; width ; width -= count, xoff+=count ) {
  
             if ( xoff >= tileWidth ) xoff -= tileWidth;
  
@@ -341,7 +340,6 @@ int fSorted ;
     int n ;			/* number of spans to fill */
     register DDXPointPtr ppt ;	/* pointer to list of start points */
     register int *pwidth ;	/* pointer to list of n widths */
-    register int *psrc ;	/* pointer to current word in tile */
     PixmapPtr pTile ;		/* pointer to tile we want to fill with */
     int	width ;
     int xSrc, ySrc ;
@@ -389,7 +387,7 @@ int fSorted ;
  
         xoff = modulo( ppt->x - xSrc, tileWidth) ;
  
-        for ( width = *pwidth ; width ; psrc++, width -= count, xoff+=count ) {
+        for ( width = *pwidth ; width ; width -= count, xoff+=count ) {
  
             if ( xoff >= tileWidth ) xoff -= tileWidth;
  
