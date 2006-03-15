@@ -699,10 +699,9 @@ static void x86emuOp2_pop_GS(u8 X86EMU_UNUSED(op2))
     END_OF_INSTR();
 }
 
-#if 0
 /****************************************************************************
 REMARKS:
-Handles opcode 0x0f,0xaa
+Handles opcode 0x0f,0xab
 ****************************************************************************/
 static void x86emuOp2_bts_R(u8 X86EMU_UNUSED(op2))
 {
@@ -838,7 +837,6 @@ static void x86emuOp2_bts_R(u8 X86EMU_UNUSED(op2))
     DECODE_CLEAR_SEGOVR();
     END_OF_INSTR();
 }
-#endif
 
 /****************************************************************************
 REMARKS:
@@ -2711,7 +2709,7 @@ void (*x86emu_optab2[256])(u8) =
 /*  0xa8 */ x86emuOp2_push_GS,
 /*  0xa9 */ x86emuOp2_pop_GS,
 /*  0xaa */ x86emuOp2_illegal_op,
-/*  0xab */ x86emuOp2_bt_R,
+/*  0xab */ x86emuOp2_bts_R,
 /*  0xac */ x86emuOp2_shrd_IMM,
 /*  0xad */ x86emuOp2_shrd_CL,
 /*  0xae */ x86emuOp2_illegal_op,

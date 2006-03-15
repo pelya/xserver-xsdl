@@ -1,3 +1,12 @@
+2006-03-15  Felix Kuehling  <fkuehlin@ati.com>
+
+	* hw/xfree86/x86emu/ops2.c: (x86emuOp2_bts_R):
+	Enable correct handling of the BTS instruction (opcode 0f ab)
+	The code was there but #ifdefed out. Insead of BTS, BT was executed.
+	This patch enables the BTS function and hooks it up the the correct
+	opcode.
+	(ATI Technologies Inc.)
+
 2006-03-15  Felix Kuehling  <fxkuehl@gmx.de>
 
 	* GL/mesa/shader/slang/Makefile.am:
