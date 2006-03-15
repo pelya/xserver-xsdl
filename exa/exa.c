@@ -146,6 +146,14 @@ exaDestroyPixmap (PixmapPtr pPixmap)
     return fbDestroyPixmap (pPixmap);
 }
 
+/**
+ * exaCreatePixmap() creates a new pixmap.
+ *
+ * If width and height are 0, this won't be a full-fledged pixmap and it will
+ * get ModifyPixmapHeader() called on it later.  So, we mark it as pinned, because
+ * ModifyPixmapHeader() would break migration.  These types of pixmaps are used
+ * for scratch pixmaps, or to represent the visible screen.
+ */
 static PixmapPtr
 exaCreatePixmap(ScreenPtr pScreen, int w, int h, int depth)
 {
@@ -174,6 +182,18 @@ exaCreatePixmap(ScreenPtr pScreen, int w, int h, int depth)
     return pPixmap;
 }
 
+/**
+ * exaPixmapIsOffscreen() is used to determine if a pixmap is in offscreen
+ * memory, meaning that acceleration could probably be done to it, and that it
+ * will need to be wrapped by PrepareAccess()/FinishAccess() when accessing it
+ * with the CPU.
+ *
+ * Note that except for UploadToScreen()/DownloadFromScreen() (which explicitly
+ * deal with moving pixmaps in and out of system memory), EXA will give drivers
+ * pixmaps as arguments for which exaPixmapIsOffscreen() is TRUE.
+ *
+ * @return TRUE if the given drawable is in framebuffer memory.
+ */
 Bool
 exaPixmapIsOffscreen(PixmapPtr p)
 {
@@ -185,12 +205,20 @@ exaPixmapIsOffscreen(PixmapPtr p)
 	    pExaScr->info->memorySize);
 }
 
+/**
+ * exaDrawableIsOffscreen() is a convenience wrapper for exaPixmapIsOffscreen().
+ */
 Bool
 exaDrawableIsOffscreen (DrawablePtr pDrawable)
 {
     return exaPixmapIsOffscreen (exaGetDrawablePixmap (pDrawable));
 }
 
+/**
+ * Returns the pixmap which backs a drawable, and the offsets to add to
+ * coordinates to make them address the same bits in the backing drawable.
+ * These coordinates are nonzero only for redirected windows.
+ */
 PixmapPtr
 exaGetOffscreenPixmap (DrawablePtr pDrawable, int *xp, int *yp)
 {
@@ -221,6 +249,12 @@ exaGetOffscreenPixmap (DrawablePtr pDrawable, int *xp, int *yp)
 	return NULL;
 }
 
+/**
+ * exaPrepareAccess() is EXA's wrapper for the driver's PrepareAccess() handler.
+ *
+ * It deals with waiting for synchronization with the card, determining if
+ * PrepareAccess() is necessary, and working around PrepareAccess() failure.
+ */
 void
 exaPrepareAccess(DrawablePtr pDrawable, int index)
 {
@@ -246,6 +280,12 @@ exaPrepareAccess(DrawablePtr pDrawable, int index)
     }
 }
 
+/**
+ * exaFinishAccess() is EXA's wrapper for the driver's FinishAccess() handler.
+ *
+ * It deals with marking drawables as dirty, and calling the driver's
+ * FinishAccess() only if necessary.
+ */
 void
 exaFinishAccess(DrawablePtr pDrawable, int index)
 {
@@ -266,6 +306,22 @@ exaFinishAccess(DrawablePtr pDrawable, int index)
     (*pExaScr->info->FinishAccess) (pPixmap, index);
 }
 
+/**
+ * exaValidateGC() chooses between the accelerated and unaccelerated GC Ops
+ * vectors.
+ *
+ * The unaccelerated (exaAsyncPixmapGCOps) vector is chosen if the drawable is
+ * offscreen.  This means that operations that affect only that drawable will
+ * not result in migration of the pixmap.  However, exaAsyncPixmapGCOps does use
+ * the accelerated operations for the Copy* functions, because the other
+ * drawable involved might be in framebuffer and require synchronization before
+ * accessing it.  This means that for the Copy* functions, even using
+ * exaAsyncPixmapGCOps may result in migration, and therefore acceleration.
+ *
+ * Because of how nonintuitive exaAsyncPixmapGCOps is, and the fact that its
+ * only use is for dubious performance reasons (and probably just historical
+ * reasons), it is likely to go away in the future.
+ */
 static void
 exaValidateGC (GCPtr pGC, Mask changes, DrawablePtr pDrawable)
 {
@@ -287,6 +343,10 @@ static GCFuncs	exaGCFuncs = {
     miCopyClip
 };
 
+/**
+ * exaCreateGC makes a new GC and hooks up its funcs handler, so that
+ * exaValidateGC() will get called.
+ */
 static int
 exaCreateGC (GCPtr pGC)
 {
@@ -298,6 +358,10 @@ exaCreateGC (GCPtr pGC)
     return TRUE;
 }
 
+/**
+ * exaCloseScreen() unwraps its wrapped screen functions and tears down EXA's
+ * screen private, before calling down to the next CloseSccreen.
+ */
 static Bool
 exaCloseScreen(int i, ScreenPtr pScreen)
 {

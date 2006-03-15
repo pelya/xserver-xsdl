@@ -1,5 +1,12 @@
 2006-03-14  Eric Anholt  <anholt@FreeBSD.org>
 
+	* exa/exa.c:
+	* exa/exa.h:
+	Add more doxygen documentation, including notes on WaitMarker() and
+	MarkSync() that I noticed were needed while reading the VIA driver.
+
+2006-03-14  Eric Anholt  <anholt@FreeBSD.org>
+
 	* exa/exa.c: (exaDriverInit):
 	* exa/exa_accel.c: (exaFillSpans), (exaCopyNtoN),
 	(exaPolyFillRect), (exaSolidBoxClipped), (exaFillRegionSolid),

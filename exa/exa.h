@@ -564,6 +564,11 @@ typedef struct _ExaDriver {
      * data with the CPU, but is not important in the current incarnation of
      * EXA.
      *
+     * Note that drivers should call exaMarkSync() when they have done some
+     * acceleration, rather than their own MarkSync() handler, as otherwise EXA
+     * will be unaware of the driver's acceleration and not sync to it during
+     * fallbacks.
+     *
      * MarkSync() is optional.
      */
     int		(*MarkSync)   (ScreenPtr pScreen);
@@ -573,6 +578,10 @@ typedef struct _ExaDriver {
      * completed.  If the driver does not implement MarkSync(), marker is
      * meaningless, and all rendering by the hardware should be completed before
      * WaitMarker() returns.
+     *
+     * Note that drivers should call exaWaitSync() to wait for all acceleration
+     * to finish, as otherwise EXA will be unaware of the driver having
+     * synchronized, resulting in excessive WaitMarker() calls.
      *
      * WaitMarker() is required of all drivers.
      */
