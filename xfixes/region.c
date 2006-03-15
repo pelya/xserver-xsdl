@@ -839,6 +839,7 @@ ProcXFixesExpandRegion (ClientPtr client)
 	    REGION_INIT (pScreen, &r, &pTmp[i], 0);
 	    REGION_UNION (pScreen, pDestination, pDestination, &r);
 	}
+	xfree(pTmp);
     }
     if (ret == Success) 
 	ret = client->noClientException;
