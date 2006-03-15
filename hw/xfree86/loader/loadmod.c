@@ -418,10 +418,6 @@ FindModule(const char *module, const char *dir, const char **subdirlist,
 #else
     const char suffix[3][3] = { "a", "o", "so" };
 #endif
-    
-    subdirs = InitSubdirs(subdirlist);
-    if (!subdirs)
-	return NULL;
 
 #ifndef __EMX__
     dirpath = (char *)dir;
@@ -431,7 +427,10 @@ FindModule(const char *module, const char *dir, const char **subdirlist,
 #endif
     if (strlen(dirpath) > PATH_MAX)
 	return NULL;
-    /*xf86Msg(X_INFO,"OS2DIAG: FindModule: dirpath=%s\n",dirpath); */
+    
+    subdirs = InitSubdirs(subdirlist);
+    if (!subdirs)
+	return NULL;
 
     for (s = subdirs; *s; s++) {
 	if ((dirlen = strlen(dirpath) + strlen(*s)) > PATH_MAX)
