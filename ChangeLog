@@ -1,3 +1,8 @@
+2006-03-15  Adam Jackson  <ajax@freedesktop.org>
+
+	* configure.ac:
+	Bump to requiring fixesproto >= 4.0 and compositeproto >= 0.3.
+
 2006-03-15  Matthieu Herrb <matthieu.herrb@laas.fr>
 
 	* configure.ac
