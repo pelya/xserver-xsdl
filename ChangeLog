@@ -1,3 +1,9 @@
+2006-03-15  Felix Kuehling  <fxkuehl@gmx.de>
+
+	* GL/mesa/shader/slang/Makefile.am:
+	* GL/symlink-mesa.sh:
+	Update to build against Mesa CVS HEAD.
+
 2006-03-15  Eric Anholt  <anholt@FreeBSD.org>
 
 	* exa/exa_migration.c: (exaMoveInPixmap):

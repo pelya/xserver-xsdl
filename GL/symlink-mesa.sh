@@ -412,6 +412,8 @@ symlink_mesa_shader_slang() {
     src_dir src/mesa/shader/slang
     dst_dir mesa/shader/slang
 
+    action slang_analyse.c
+    action slang_analyse.h
     action slang_assemble.c
     action slang_assemble.h
     action slang_assemble_assignment.c
@@ -439,6 +441,8 @@ symlink_mesa_shader_slang() {
     action slang_export.h
     action slang_library_noise.c
     action slang_library_noise.h
+    action slang_library_texsample.c
+    action slang_library_texsample.h
     action slang_link.c
     action slang_link.h
     action slang_mesa.h
