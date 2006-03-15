@@ -3,6 +3,9 @@
 	* hw/xfree86/loader/loadmod.c:
 	Coverity #1053: Nuke a dead variable.
 
+	* miext/cw/cw.c:
+	Coverity #337: Remove useless NULL check.
+
 2006-03-15  Benjamin Herrenschmidt  <benh@kernel.crashing.org>
 
 	* hw/xfree86/dri/dri.c: (DRIExtensionInit):

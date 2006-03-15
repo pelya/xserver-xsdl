@@ -463,7 +463,7 @@ cwPaintWindowBackground(WindowPtr pWin, RegionPtr pRegion, int what)
 	DrawablePtr pBackingDrawable;
 	int x_off, y_off, x_screen, y_screen;
 
-	while (pWin && pWin->backgroundState == ParentRelative)
+	while (pWin->backgroundState == ParentRelative)
 	    pWin = pWin->parent;
 
 	pBackingDrawable = cwGetBackingDrawable((DrawablePtr)pWin, &x_off,
