@@ -18,6 +18,9 @@
 	* xfixes/xfixes.c:
 	Coverity #487: Check version number correctly.
 
+	* hw/xfree86/common/xf86VidMode.c:
+	Coverity #490: Fix a range check in xf86vidmode extension.
+
 2006-03-15  Benjamin Herrenschmidt  <benh@kernel.crashing.org>
 
 	* hw/xfree86/dri/dri.c: (DRIExtensionInit):

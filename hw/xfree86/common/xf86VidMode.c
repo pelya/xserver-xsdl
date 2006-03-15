@@ -183,7 +183,7 @@ VidModeGetDotClock(int scrnIndex, int Clock)
 	return 0;
 
     pScrn = xf86Screens[scrnIndex];
-    if ((pScrn->progClock) || (Clock > MAXCLOCKS))
+    if ((pScrn->progClock) || (Clock >= MAXCLOCKS))
 	return Clock;
     else  
 	return pScrn->clock[Clock];
