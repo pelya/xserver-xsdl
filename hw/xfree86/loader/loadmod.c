@@ -411,7 +411,6 @@ FindModule(const char *module, const char *dir, const char **subdirlist,
     char *name = NULL;
     struct stat stat_buf;
     int dirlen;
-    char *fp;
     const char **subdirs = NULL;
     const char **s;
 #ifdef DLOPEN_HACK
@@ -445,7 +444,6 @@ FindModule(const char *module, const char *dir, const char **subdirlist,
 	
             if (buf[dirlen - 1] != '/') {
                 buf[dirlen++] = '/';
-                fp++;
             }
 	    
 	    for (i = 0; i < 3 && !name; i++) {
