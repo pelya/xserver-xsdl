@@ -1,3 +1,12 @@
+2006-03-15  Matthieu Herrb <matthieu.herrb@laas.fr>
+
+	* configure.ac
+	* include/xorg-config.h.in
+	- OpenBSD needs -Wl,-export-dynamic to export symbols from main
+	executable to modules.
+	- Probe for OpenBSD aperture driver and define HAS_APERTURE_DRV
+	accordingly.
+
 2006-03-15  Felix Kuehling  <fkuehlin@ati.com>
 
 	* hw/xfree86/x86emu/ops2.c: (x86emuOp2_bts_R):

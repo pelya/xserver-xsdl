@@ -158,6 +158,11 @@ if test "x$ac_cv_sysv_ipc" = xyes; then
 	AC_DEFINE(HAVE_SYSV_IPC, 1, [Define to 1 if SYSV IPC is available])
 fi
 
+dnl OpenBSD /dev/xf86 aperture driver 
+if test -c /dev/xf86 ; then
+	AC_DEFINE(HAS_APERTURE_DRV, 1, [System has /dev/xf86 aperture driver])
+fi
+
 dnl glibc backtrace support check (hw/xfree86/common/xf86Events.c)
 AC_CHECK_HEADER([execinfo.h],[
     AC_CHECK_LIB(c, backtrace, [
@@ -1190,6 +1195,11 @@ if test "x$XORG" = xyes -o "x$XGL" = xyes; then
 		XSERVER_CFLAGS="$GCC_WARNINGS $XSERVER_CFLAGS"
 		LD_EXPORT_SYMBOLS_FLAG="-rdynamic"
 	fi
+	case $host_os in
+		openbsd*)
+		LD_EXPORT_SYMBOLS_FLAG="-Wl,--export-dynamic"
+		;;
+	esac
 	AC_SUBST([XORG_CFLAGS])
 	AC_SUBST([LD_EXPORT_SYMBOLS_FLAG])
 
