@@ -1,3 +1,13 @@
+2006-03-16  Daniel Stone  <daniel@freedesktop.org>
+
+	* hw/xfree86/common/xf86PciInfo.h:
+	* hw/xfree86/os-support/bus/zx1PCI.c:
+	Add support for ZX2 PCI-E local bus adaptors.  (Alex Williamson, HP)
+
+	* hw/xfree86/os-support/bus/zx1PCI.c:
+	Use soft timeout register to avoid MCAs when probing for non-existent
+	local bus adaptors on ZX2.  (Alex Williamson, HP)
+
 2006-03-15  Adam Jackson  <ajax@freedesktop.org>
 
 	* configure.ac:

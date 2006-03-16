@@ -105,6 +105,7 @@
 #define LBA_CLEAR_ERROR		  0x0000000010UL
 #define LBA_HARD_FAIL		  0x0000000040UL
 #define LBA_RESET_COMPLETE	  0x0100000000UL
+#define LBA_RESET_TIMEOUT	  0x0200000000UL
 
 #define ROPE_PAGE_CONTROL	0x1418U
 
@@ -563,6 +564,15 @@ xf86PreScanZX1(void)
 	    /* Prevent hard-fails */
 	    zx1_lbacntl[i] = MIO_QUAD((i << 3) + LBA_PORT0_CNTRL) &
 		~(LBA_RESET_FUNCTION | LBA_CLEAR_ERROR);
+
+	    if (zx1_lbacntl[i] & LBA_RESET_TIMEOUT) {
+		/* Ignore this rope and its couplings */
+		do {
+		    zx1_ropemap[i++] = -1;
+		} while ((i < 8) && (zx1_ropemap[i] < i));
+		continue;	/* Avoid over-incrementing 'i' */
+	    }
+
 	    if (zx1_lbacntl[i] & LBA_HARD_FAIL)
 		MIO_QUAD((i << 3) + LBA_PORT0_CNTRL) =
 		    zx1_lbacntl[i] & ~LBA_HARD_FAIL;
@@ -574,6 +584,7 @@ xf86PreScanZX1(void)
 	    case DEVID(VENDOR_HP, CHIP_ZX1_LBA):	/* Mercury */
 	    case DEVID(VENDOR_HP, CHIP_ZX1_AGP8):	/* QuickSilver */
 	    case DEVID(VENDOR_HP, CHIP_ZX2_LBA):
+	    case DEVID(VENDOR_HP, CHIP_ZX2_PCIE):
 		/* Expected vendor/device IDs */
 		zx1_busno[i] =
 		    (unsigned int)IOA_BYTE(i, IOA_SECONDARY_BUS);
@@ -971,6 +982,7 @@ xf86PostScanZX1(void)
 	case DEVID(VENDOR_HP, CHIP_ZX2_SBA):
 	case DEVID(VENDOR_HP, CHIP_ZX2_IOC):
 	case DEVID(VENDOR_HP, CHIP_ZX2_LBA):
+	case DEVID(VENDOR_HP, CHIP_ZX2_PCIE):
 	    xfree(pPCI);		/* Remove it */
 	    continue;
 
