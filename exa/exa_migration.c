@@ -1,25 +1,28 @@
 /*
- * Copyright © 2001 Keith Packard
+ * Copyright © 2006 Intel Corporation
  *
- * Partly based on code that is Copyright © The XFree86 Project Inc.
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
  *
- * Permission to use, copy, modify, distribute, and sell this software and its
- * documentation for any purpose is hereby granted without fee, provided that
- * the above copyright notice appear in all copies and that both that
- * copyright notice and this permission notice appear in supporting
- * documentation, and that the name of Keith Packard not be used in
- * advertising or publicity pertaining to distribution of the software without
- * specific, written prior permission.  Keith Packard makes no
- * representations about the suitability of this software for any purpose.  It
- * is provided "as is" without express or implied warranty.
+ * The above copyright notice and this permission notice (including the next
+ * paragraph) shall be included in all copies or substantial portions of the
+ * Software.
  *
- * KEITH PACKARD DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
- * INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO
- * EVENT SHALL KEITH PACKARD BE LIABLE FOR ANY SPECIAL, INDIRECT OR
- * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE,
- * DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
- * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
- * PERFORMANCE OF THIS SOFTWARE.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+ * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ *
+ * Authors:
+ *    Eric Anholt <eric@anholt.net>
+ *
  */
 
 #ifdef HAVE_DIX_CONFIG_H
@@ -54,15 +57,131 @@ exaPixmapIsPinned (PixmapPtr pPix)
     return pExaPixmap == NULL || pExaPixmap->score == EXA_PIXMAP_SCORE_PINNED;
 }
 
+/**
+ * If the pixmap is currently dirty, this copies at least the dirty area from
+ * the framebuffer  memory copy to the system memory copy.  Both areas must be
+ * allocated.
+ */
+static void
+exaCopyDirtyToSys (PixmapPtr pPixmap)
+{
+    ExaScreenPriv (pPixmap->drawable.pScreen);
+    ExaPixmapPriv (pPixmap);
+    CARD8 *save_ptr;
+    int save_pitch;
+
+    if (!pExaPixmap->dirty)
+	return;
+
+    save_ptr = pPixmap->devPrivate.ptr;
+    save_pitch = pPixmap->devKind;
+    pPixmap->devPrivate.ptr = pExaPixmap->fb_ptr;
+    pPixmap->devKind = pExaPixmap->fb_pitch;
+
+    if (pExaScr->info->DownloadFromScreen == NULL ||
+	!pExaScr->info->DownloadFromScreen (pPixmap,
+					    0,
+					    0,
+					    pPixmap->drawable.width,
+					    pPixmap->drawable.height,
+					    pExaPixmap->sys_ptr,
+					    pExaPixmap->sys_pitch))
+    {
+	char *src, *dst;
+	int src_pitch, dst_pitch, i, bytes;
+
+	exaPrepareAccess(&pPixmap->drawable, EXA_PREPARE_SRC);
+
+	dst = pExaPixmap->sys_ptr;
+	dst_pitch = pExaPixmap->sys_pitch;
+	src = pExaPixmap->fb_ptr;
+	src_pitch = pExaPixmap->fb_pitch;
+	bytes = src_pitch < dst_pitch ? src_pitch : dst_pitch;
+
+	for (i = 0; i < pPixmap->drawable.height; i++) {
+	    memcpy (dst, src, bytes);
+	    dst += dst_pitch;
+	    src += src_pitch;
+	}
+	exaFinishAccess(&pPixmap->drawable, EXA_PREPARE_SRC);
+    }
+
+    /* Make sure the bits have actually landed, since we don't necessarily sync
+     * when accessing pixmaps in system memory.
+     */
+    exaWaitSync (pPixmap->drawable.pScreen);
+
+    pPixmap->devPrivate.ptr = save_ptr;
+    pPixmap->devKind = save_pitch;
+
+    pExaPixmap->dirty = FALSE;
+}
+
+/**
+ * If the pixmap is currently dirty, this copies at least the dirty area from
+ * the system memory copy to the framebuffer memory copy.  Both areas must be
+ * allocated.
+ */
+static void
+exaCopyDirtyToFb (PixmapPtr pPixmap)
+{
+    ExaScreenPriv (pPixmap->drawable.pScreen);
+    ExaPixmapPriv (pPixmap);
+    CARD8 *save_ptr;
+    int save_pitch;
+
+    if (!pExaPixmap->dirty)
+	return;
+
+    save_ptr = pPixmap->devPrivate.ptr;
+    save_pitch = pPixmap->devKind;
+    pPixmap->devPrivate.ptr = pExaPixmap->fb_ptr;
+    pPixmap->devKind = pExaPixmap->fb_pitch;
+
+    if (pExaScr->info->UploadToScreen == NULL ||
+	!pExaScr->info->UploadToScreen (pPixmap,
+					0,
+					0,
+					pPixmap->drawable.width,
+					pPixmap->drawable.height,
+					pExaPixmap->sys_ptr,
+					pExaPixmap->sys_pitch))
+    {
+	char *src, *dst;
+	int src_pitch, dst_pitch, i, bytes;
+
+	exaPrepareAccess(&pPixmap->drawable, EXA_PREPARE_DEST);
+
+	dst = pExaPixmap->fb_ptr;
+	dst_pitch = pExaPixmap->fb_pitch;
+	src = pExaPixmap->sys_ptr;
+	src_pitch = pExaPixmap->sys_pitch;
+	bytes = src_pitch < dst_pitch ? src_pitch : dst_pitch;
+
+	for (i = 0; i < pPixmap->drawable.height; i++) {
+	    memcpy (dst, src, bytes);
+	    dst += dst_pitch;
+	    src += src_pitch;
+	}
+	exaFinishAccess(&pPixmap->drawable, EXA_PREPARE_DEST);
+    }
+
+    pPixmap->devPrivate.ptr = save_ptr;
+    pPixmap->devKind = save_pitch;
+
+    pExaPixmap->dirty = FALSE;
+}
+
+/**
+ * Copies out important pixmap data and removes references to framebuffer area.
+ * Called when the memory manager decides it's time to kick the pixmap out of
+ * framebuffer entirely.
+ */
 static void
 exaPixmapSave (ScreenPtr pScreen, ExaOffscreenArea *area)
 {
     PixmapPtr pPixmap = area->privData;
-    ExaScreenPriv (pScreen);
     ExaPixmapPriv(pPixmap);
-    int dst_pitch, src_pitch, bytes;
-    char *dst, *src;
-    int i;
 
     DBG_MIGRATE (("Save %p (%p) (%dx%d)\n",
 		  (void*)pPixmap->drawable.id,
@@ -71,108 +190,74 @@ exaPixmapSave (ScreenPtr pScreen, ExaOffscreenArea *area)
 		  pPixmap->drawable.width,
 		  pPixmap->drawable.height));
 
-    src_pitch = pPixmap->devKind;
-    dst_pitch = pExaPixmap->devKind;
-
-    src = pPixmap->devPrivate.ptr;
-    dst = pExaPixmap->devPrivate.ptr;
-
-    if (pExaPixmap->dirty) {
-        if (pExaScr->info->DownloadFromScreen &&
-	    (*pExaScr->info->DownloadFromScreen) (pPixmap,
-						  pPixmap->drawable.x,
-						  pPixmap->drawable.y,
-						  pPixmap->drawable.width,
-						  pPixmap->drawable.height,
-						  dst, dst_pitch)) {
-
-        } else {
-	    exaWaitSync (pPixmap->drawable.pScreen);
-
-	    bytes = src_pitch < dst_pitch ? src_pitch : dst_pitch;
-
-	    i = pPixmap->drawable.height;
-	    while (i--) {
-		memcpy (dst, src, bytes);
-		dst += dst_pitch;
-		src += src_pitch;
-	    }
-	}
+    if (pPixmap->devPrivate.ptr == pExaPixmap->fb_ptr) {
+	exaCopyDirtyToSys (pPixmap);
+	pPixmap->devPrivate.ptr = pExaPixmap->sys_ptr;
+	pPixmap->devKind = pExaPixmap->sys_pitch;
+	pPixmap->drawable.serialNumber = NEXT_SERIAL_NUMBER;
     }
 
-    pPixmap->devKind = dst_pitch;
-    pPixmap->devPrivate.ptr = pExaPixmap->devPrivate.ptr;
-    pPixmap->drawable.serialNumber = NEXT_SERIAL_NUMBER;
+    pExaPixmap->fb_ptr = NULL;
     pExaPixmap->area = NULL;
+
     /* Mark it dirty now, to say that there is important data in the
      * system-memory copy.
      */
     pExaPixmap->dirty = TRUE;
 }
 
-static int
-exaLog2(int val)
-{
-    int bits;
-
-    if (!val)
-	return 0;
-    for (bits = 0; val != 0; bits++)
-	val >>= 1;
-    return bits - 1;
-}
-
-static Bool
-exaPixmapAllocArea (PixmapPtr pPixmap)
-{
-    ScreenPtr	pScreen = pPixmap->drawable.pScreen;
-    ExaScreenPriv (pScreen);
-    ExaPixmapPriv (pPixmap);
-    int		bpp = pPixmap->drawable.bitsPerPixel;
-    CARD16	h = pPixmap->drawable.height;
-    CARD16	w = pPixmap->drawable.width;
-    int		pitch;
-
-    if (pExaScr->info->flags & EXA_OFFSCREEN_ALIGN_POT && w != 1)
-	w = 1 << (exaLog2(w - 1) + 1);
-    pitch = (w * bpp / 8) + (pExaScr->info->pixmapPitchAlign - 1);
-    pitch -= pitch % pExaScr->info->pixmapPitchAlign;
-
-    pExaPixmap->size = pitch * h;
-    pExaPixmap->devKind = pPixmap->devKind;
-    pExaPixmap->devPrivate = pPixmap->devPrivate;
-    pExaPixmap->area = exaOffscreenAlloc (pScreen, pitch * h,
-                                          pExaScr->info->pixmapOffsetAlign,
-                                          FALSE,
-                                          exaPixmapSave, (pointer) pPixmap);
-    if (!pExaPixmap->area)
-	return FALSE;
-
-    DBG_PIXMAP(("++ 0x%lx (0x%x) (%dx%d)\n", pPixmap->drawable.id,
-                (ExaGetPixmapPriv(pPixmap)->area ?
-		 ExaGetPixmapPriv(pPixmap)->area->offset : 0),
-		pPixmap->drawable.width,
-		pPixmap->drawable.height));
-    pPixmap->devKind = pitch;
-
-    pPixmap->devPrivate.ptr = (pointer) ((CARD8 *) pExaScr->info->memoryBase +
-					 pExaPixmap->area->offset);
-    pPixmap->drawable.serialNumber = NEXT_SERIAL_NUMBER;
-    return TRUE;
-}
-
+/**
+ * Allocates a framebuffer copy of the pixmap if necessary, and then copies
+ * any necessary pixmap data into the framebuffer copy and points the pixmap at
+ * it.
+ *
+ * Note that when first allocated, a pixmap will have FALSE dirty flag.
+ * This is intentional because pixmap data starts out undefined.  So if we move
+ * it in due to the first operation against it being accelerated, it will have
+ * undefined framebuffer contents that we didn't have to upload.  If we do
+ * moveouts (and moveins) after the first movein, then we will only have to copy
+ * back and forth if the pixmap was written to after the last synchronization of
+ * the two copies.  Then, at exaPixmapSave (when the framebuffer copy goes away)
+ * we mark the pixmap dirty, so that the next exaMoveInPixmap will actually move
+ * all the data, since it's almost surely all valid now.
+ */
 void
 exaMoveInPixmap (PixmapPtr pPixmap)
 {
     ScreenPtr	pScreen = pPixmap->drawable.pScreen;
     ExaScreenPriv (pScreen);
     ExaPixmapPriv (pPixmap);
-    int dst_pitch, src_pitch, bytes;
-    char *dst, *src;
-    int i;
 
+    /* If we're VT-switched away, no touching card memory allowed. */
+    if (pExaScr->swappedOut)
+	return;
+
+    /* If we're already in FB, our work is done. */
+    if (pPixmap->devPrivate.ptr == pExaPixmap->fb_ptr)
+	return;
+
+    /* If we're not allowed to move, then fail. */
     if (exaPixmapIsPinned(pPixmap))
 	return;
+
+    /* Don't migrate in pixmaps which are less than 8bpp.  This avoids a lot of
+     * fragility in EXA, and <8bpp is probably not used enough any more to care
+     * (at least, not in acceleratd paths).
+     */
+    if (pPixmap->drawable.bitsPerPixel < 8)
+	return;
+
+    if (pExaPixmap->area == NULL) {
+	pExaPixmap->area =
+	    exaOffscreenAlloc (pScreen, pExaPixmap->fb_size,
+			       pExaScr->info->pixmapOffsetAlign, FALSE,
+                               exaPixmapSave, (pointer) pPixmap);
+	if (pExaPixmap->area == NULL)
+	    return;
+
+	pExaPixmap->fb_ptr = (CARD8 *) pExaScr->info->memoryBase +
+				       pExaPixmap->area->offset;
+    }
 
     DBG_MIGRATE (("-> 0x%lx (0x%x) (%dx%d)\n", pPixmap->drawable.id,
 		  (ExaGetPixmapPriv(pPixmap)->area ?
@@ -180,62 +265,24 @@ exaMoveInPixmap (PixmapPtr pPixmap)
 		  pPixmap->drawable.width,
 		  pPixmap->drawable.height));
 
-    src = pPixmap->devPrivate.ptr;
-    src_pitch = pPixmap->devKind;
+    exaCopyDirtyToFb (pPixmap);
 
-    if (!exaPixmapAllocArea (pPixmap)) {
-	DBG_MIGRATE (("failed to allocate fb for pixmap %p (%dx%dx%d)\n",
-		      (pointer)pPixmap,
-		      pPixmap->drawable.width, pPixmap->drawable.height,
-		      pPixmap->drawable.bitsPerPixel));
-	return;
-    }
-
-    /* If the "dirty" flag has never been set on the in-memory pixmap, then
-     * nothing has been written to it, so the contents are undefined and we can
-     * avoid the upload.
-     */
-    if (!pExaPixmap->dirty) {
-	DBG_MIGRATE(("saved upload of %dx%d\n", pPixmap->drawable.width,
-		     pPixmap->drawable.height));
-	return;
-    }
-
-    pExaPixmap->dirty = FALSE;
-
-    if (pExaScr->info->UploadToScreen)
-    {
-	if (pExaScr->info->UploadToScreen(pPixmap, 0, 0,
-					  pPixmap->drawable.width,
-					  pPixmap->drawable.height,
-					  src, src_pitch))
-	    return;
-    }
-
-    dst = pPixmap->devPrivate.ptr;
-    dst_pitch = pPixmap->devKind;
-
-    bytes = src_pitch < dst_pitch ? src_pitch : dst_pitch;
-
-    exaWaitSync (pPixmap->drawable.pScreen);
-
-    i = pPixmap->drawable.height;
-    DBG_PIXMAP(("dst = %p, src = %p,(%d, %d) height = %d, mem_base = %p, offset = %d\n",
-                dst, src, dst_pitch, src_pitch,
-                i, pExaScr->info->memoryBase, pExaPixmap->area->offset));
-
-    while (i--) {
-	memcpy (dst, src, bytes);
-	dst += dst_pitch;
-	src += src_pitch;
-    }
+    pPixmap->devPrivate.ptr = (pointer) pExaPixmap->fb_ptr;
+    pPixmap->devKind = pExaPixmap->fb_pitch;
+    pPixmap->drawable.serialNumber = NEXT_SERIAL_NUMBER;
 }
 
+/**
+ * Switches the current active location of the pixmap to system memory, copying
+ * updated data out if necessary.
+ */
 void
 exaMoveOutPixmap (PixmapPtr pPixmap)
 {
     ExaPixmapPriv (pPixmap);
-    ExaOffscreenArea *area = pExaPixmap->area;
+
+    if (exaPixmapIsPinned(pPixmap))
+	return;
 
     DBG_MIGRATE (("<- 0x%p (0x%p) (%dx%d)\n",
 		  (void*)pPixmap->drawable.id,
@@ -243,10 +290,13 @@ exaMoveOutPixmap (PixmapPtr pPixmap)
                           ExaGetPixmapPriv(pPixmap)->area->offset : 0),
 		  pPixmap->drawable.width,
 		  pPixmap->drawable.height));
-    if (area)
-    {
-	exaPixmapSave (pPixmap->drawable.pScreen, area);
-	exaOffscreenFree (pPixmap->drawable.pScreen, area);
+
+    if (pPixmap->devPrivate.ptr == pExaPixmap->fb_ptr) {
+	exaCopyDirtyToSys (pPixmap);
+
+	pPixmap->devPrivate.ptr = pExaPixmap->sys_ptr;
+	pPixmap->devKind = pExaPixmap->sys_pitch;
+	pPixmap->drawable.serialNumber = NEXT_SERIAL_NUMBER;
     }
 }
 

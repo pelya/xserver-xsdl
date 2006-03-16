@@ -123,6 +123,12 @@ extern int exaPixmapPrivateIndex;
 #define ExaGetScreenPriv(s)	((ExaScreenPrivPtr)(s)->devPrivates[exaScreenPrivateIndex].ptr)
 #define ExaScreenPriv(s)	ExaScreenPrivPtr    pExaScr = ExaGetScreenPriv(s)
 
+/** Align an offset to an arbitrary alignment */
+#define EXA_ALIGN(offset, align) (((offset) + (align) - 1) - \
+	(((offset) + (align) - 1) % (align)))
+/** Align an offset to a power-of-two alignment */
+#define EXA_ALIGN2(offset, align) (((offset) + (align) - 1) & ~((align) - 1))
+
 #define EXA_PIXMAP_SCORE_MOVE_IN    10
 #define EXA_PIXMAP_SCORE_MAX	    20
 #define EXA_PIXMAP_SCORE_MOVE_OUT   -10
@@ -136,19 +142,26 @@ extern int exaPixmapPrivateIndex;
 
 typedef struct {
     ExaOffscreenArea *area;
-    int		    score;
-    int		    devKind;
-    DevUnion	    devPrivate;
+    int		    score;	/**< score for the move-in vs move-out heuristic */
 
-    /* If area is NULL, then dirty == TRUE means that the pixmap has been
+    CARD8	    *sys_ptr;	/**< pointer to pixmap data in system memory */
+    int		    sys_pitch;	/**< pitch of pixmap in system memory */
+
+    CARD8	    *fb_ptr;	/**< pointer to pixmap data in framebuffer memory */
+    int		    fb_pitch;	/**< pitch of pixmap in framebuffer memory */
+    unsigned int    fb_size;	/**< size of pixmap in framebuffer memory */
+
+    /**
+     * If area is NULL, then dirty == TRUE means that the pixmap has been
      * modified, so the contents are defined.  Used to avoid uploads of
      * undefined data.
-     * If area is non-NULL, then dirty == TRUE means that the in-framebuffer
-     * copy has been changed from the system-memory copy.  Used to avoid
-     * downloads of unmodified data.
+     *
+     * If area is non-NULL, then dirty == TRUE means that the pixmap data at
+     * pPixmap->devPrivate.ptr (either fb_ptr or sys_ptr) has been changed
+     * compared to the copy in the other location.  This is used to avoid
+     * uploads/downloads of unmodified data.
      */
     Bool	    dirty;
-    unsigned int    size;
 } ExaPixmapPrivRec, *ExaPixmapPrivPtr;
  
 typedef struct _ExaMigrationRec {

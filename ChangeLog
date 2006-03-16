@@ -1,3 +1,17 @@
+2006-03-16  Eric Anholt  <anholt@FreeBSD.org>
+
+	* exa/exa.c: (exaGetPixmapSize), (exaDestroyPixmap), (exaLog2),
+	(exaCreatePixmap):
+	* exa/exa_migration.c: (exaCopyDirtyToSys), (exaCopyDirtyToFb),
+	(exaPixmapSave), (exaMoveInPixmap), (exaMoveOutPixmap):
+	* exa/exa_priv.h:
+	Change EXA so that exaMoveOutPixmap() retains the framebuffer copy of
+	the pixmap, and damage is tracked so that a later exaMoveInPixmap won't
+	result in an upload if no upload is necessary.  This will likely improve
+	the performance of the "Always" migration scheme significantly, and is
+	a step in the path to more exact damage tracking between framebuffer and
+	system memory.
+
 2006-03-16  Daniel Stone  <daniel@freedesktop.org>
 
 	* hw/xfree86/common/xf86PciInfo.h:

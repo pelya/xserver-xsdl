@@ -86,7 +86,7 @@ exaGetPixmapSize(PixmapPtr pPix)
 
     pExaPixmap = ExaGetPixmapPriv(pPix);
     if (pExaPixmap != NULL)
-	return pExaPixmap->size;
+	return pExaPixmap->fb_size;
     return 0;
 }
 
@@ -139,11 +139,23 @@ exaDestroyPixmap (PixmapPtr pPixmap)
 			 pPixmap->drawable.height));
 	    /* Free the offscreen area */
 	    exaOffscreenFree (pPixmap->drawable.pScreen, pExaPixmap->area);
-	    pPixmap->devPrivate = pExaPixmap->devPrivate;
-	    pPixmap->devKind = pExaPixmap->devKind;
+	    pPixmap->devPrivate.ptr = pExaPixmap->sys_ptr;
+	    pPixmap->devKind = pExaPixmap->sys_pitch;
 	}
     }
     return fbDestroyPixmap (pPixmap);
+}
+
+static int
+exaLog2(int val)
+{
+    int bits;
+
+    if (!val)
+	return 0;
+    for (bits = 0; val != 0; bits++)
+	val >>= 1;
+    return bits - 1;
 }
 
 /**
@@ -170,6 +182,8 @@ exaCreatePixmap(ScreenPtr pScreen, int w, int h, int depth)
 	return NULL;
     pExaPixmap = ExaGetPixmapPriv(pPixmap);
 
+    bpp = pPixmap->drawable.bitsPerPixel;
+
     /* Glyphs have w/h equal to zero, and may not be migrated. See exaGlyphs. */
     if (!w || !h)
 	pExaPixmap->score = EXA_PIXMAP_SCORE_PINNED;
@@ -177,6 +191,24 @@ exaCreatePixmap(ScreenPtr pScreen, int w, int h, int depth)
 	pExaPixmap->score = EXA_PIXMAP_SCORE_INIT;
 
     pExaPixmap->area = NULL;
+
+    pExaPixmap->sys_ptr = pPixmap->devPrivate.ptr;
+    pExaPixmap->sys_pitch = pPixmap->devKind;
+
+    pExaPixmap->fb_ptr = NULL;
+    if (pExaScr->info->flags & EXA_OFFSCREEN_ALIGN_POT && w != 1)
+	pExaPixmap->fb_pitch = (1 << (exaLog2(w - 1) + 1)) * bpp / 8;
+    else
+	pExaPixmap->fb_pitch = w * bpp / 8;
+    pExaPixmap->fb_pitch = EXA_ALIGN(pExaPixmap->fb_pitch,
+				     pExaScr->info->pixmapPitchAlign);
+    pExaPixmap->fb_size = pExaPixmap->fb_pitch * h;
+
+    if (pExaPixmap->fb_pitch > 32767) {
+	fbDestroyPixmap(pPixmap);
+	return NULL;
+    }
+
     pExaPixmap->dirty = FALSE;
 
     return pPixmap;
