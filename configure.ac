@@ -407,8 +407,8 @@ AC_ARG_ENABLE(multibuffer,    AS_HELP_STRING([--enable-multibuffer], [Build Mult
 AC_ARG_ENABLE(fontcache,      AS_HELP_STRING([--enable-fontcache], [Build FontCache extension (default: disabled)]), [FONTCACHE=$enableval], [FONTCACHE=no])
 AC_ARG_ENABLE(dbe,            AS_HELP_STRING([--disable-dbe], [Build DBE extension (default: enabled)]), [DBE=$enableval], [DBE=yes])
 AC_ARG_ENABLE(xf86bigfont,    AS_HELP_STRING([--disable-xf86bigfont], [Build XF86 Big Font extension (default: enabled (sigh))]), [XF86BIGFONT=$enableval], [XF86BIGFONT=yes])
-AC_ARG_ENABLE(dpms,    AS_HELP_STRING([--disable-dpms], [Build DPMS extension (default: enabled (sigh))]), [DPMS=$enableval], [DPMSExtension=yes])
-AC_ARG_ENABLE(xinput,  AS_HELP_STRING([--disable-xinput], [Build XInput Extension (default: enabled)]), [XINPUT=$ENABLEVAL], [XINPUT=yes])
+AC_ARG_ENABLE(dpms,           AS_HELP_STRING([--disable-dpms], [Build DPMS extension (default: enabled (sigh))]), [DPMS=$enableval], [DPMSExtension=yes])
+AC_ARG_ENABLE(xinput,         AS_HELP_STRING([--disable-xinput], [Build XInput Extension (default: enabled)]), [XINPUT=$enableval], [XINPUT=yes])
 
 dnl DDXes.
 AC_ARG_ENABLE(xorg,    	      AS_HELP_STRING([--enable-xorg], [Build Xorg server (default: auto)]), [XORG=$enableval], [XORG=auto])
