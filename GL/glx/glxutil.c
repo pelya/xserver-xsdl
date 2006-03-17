@@ -48,83 +48,9 @@
 #include <pixmapstr.h>
 #include <windowstr.h>
 #include "glxutil.h"
-#include "GL/glx_ansic.h"
 #include "GL/internal/glcore.h"
 #include "GL/glxint.h"
 #include "glcontextmodes.h"
-
-/************************************************************************/
-
-/* Memory Allocation for GLX */
-
-void *
-__glXMalloc(size_t size)
-{
-    void *addr;
-
-    if (size == 0) {
-	return NULL;
-    }
-    addr = (void *) xalloc(size);
-    if (addr == NULL) {
-	/* XXX: handle out of memory error */
-	return NULL;
-    }
-    return addr;
-}
-
-void *
-__glXCalloc(size_t numElements, size_t elementSize)
-{
-    void *addr;
-    size_t size;
-
-    if ((numElements == 0) || (elementSize == 0)) {
-	return NULL;
-    }
-    size = numElements * elementSize;
-    addr = (void *) xalloc(size);
-    if (addr == NULL) {
-	/* XXX: handle out of memory error */
-	return NULL;
-    }
-    memset(addr, 0, size);
-    return addr;
-}
-
-void *
-__glXRealloc(void *addr, size_t newSize)
-{
-    void *newAddr;
-
-    if (addr) {
-	if (newSize == 0) {
-	    xfree(addr);
-	    return NULL;
-	} else {
-	    newAddr = xrealloc(addr, newSize);
-	}
-    } else {
-	if (newSize == 0) {
-	    return NULL;
-	} else {
-	    newAddr = xalloc(newSize);
-	}
-    }
-    if (newAddr == NULL) {
-	return NULL;	/* XXX: out of memory */
-    }
-
-    return newAddr;
-}
-
-void
-__glXFree(void *addr)
-{
-    if (addr) {
-	xfree(addr);
-    }
-}
 
 /************************************************************************/
 /* Context stuff */

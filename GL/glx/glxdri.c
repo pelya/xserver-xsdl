@@ -144,7 +144,7 @@ __glXDRIdrawableDestroy(__GLXdrawable *private)
 					    glxPriv->driDrawable.private);
 #endif
 
-    __glXFree(private);
+    xfree(private);
 }
 
 static GLboolean
@@ -184,14 +184,14 @@ __glXDRIcontextCreateDrawable(__GLXcontext *context,
 {
     __GLXDRIdrawable *private;
 
-    private = __glXMalloc(sizeof *private);
+    private = xalloc(sizeof *private);
     if (private == NULL)
 	return NULL;
 
     memset(private, 0, sizeof *private);
 
     if (!__glXDrawableInit(&private->base, context, pDraw, drawId)) {
-        __glXFree(private);
+        xfree(private);
 	return NULL;
     }
 
@@ -228,7 +228,7 @@ __glXDRIcontextDestroy(__GLXcontext *baseContext)
 				       context->base.pScreen->myNum,
 				       context->driContext.private);
     __glXContextDestroy(context);
-    __glXFree(context);
+    xfree(context);
 }
 
 static int
@@ -397,7 +397,7 @@ __glXDRIscreenDestroy(__GLXscreen *baseScreen)
 
     __glXScreenDestroy(baseScreen);
 
-    __glXFree(screen);
+    xfree(screen);
 }
 
 static __GLXcontext *
@@ -415,7 +415,7 @@ __glXDRIscreenCreateContext(__GLXscreen *baseScreen,
     else
 	sharePrivate = NULL;
 
-    context = __glXMalloc(sizeof *context);
+    context = xalloc(sizeof *context);
     if (context == NULL)
 	return NULL;
 
@@ -639,7 +639,7 @@ getDrawableInfo(__DRInativeDisplay *dpy, int screen,
 
     if (*numClipRects > 0) {
 	size = sizeof (drm_clip_rect_t) * *numClipRects;
-	*ppClipRects = __glXMalloc (size);
+	*ppClipRects = xalloc (size);
 	if (*ppClipRects != NULL)
 	    memcpy (*ppClipRects, pClipRects, size);
     }
@@ -649,7 +649,7 @@ getDrawableInfo(__DRInativeDisplay *dpy, int screen,
       
     if (*numBackClipRects > 0) {
 	size = sizeof (drm_clip_rect_t) * *numBackClipRects;
-	*ppBackClipRects = __glXMalloc (size);
+	*ppBackClipRects = xalloc (size);
 	if (*ppBackClipRects != NULL)
 	    memcpy (*ppBackClipRects, pBackClipRects, size);
     }
@@ -732,7 +732,7 @@ __glXDRIscreenProbe(ScreenPtr pScreen)
 	return NULL;
     }
 
-    screen = __glXMalloc(sizeof *screen);
+    screen = xalloc(sizeof *screen);
     if (screen == NULL)
       return NULL;
     memset(screen, 0, sizeof *screen);
@@ -833,7 +833,7 @@ __glXDRIscreenProbe(ScreenPtr pScreen)
      * but we can't use _mesa_malloc() here.  In fact, the DRI driver
      * shouldn't free data it didn't allocate itself, but what can you
      * do... */
-    dev_priv = __glXMalloc(framebuffer.dev_priv_size);
+    dev_priv = xalloc(framebuffer.dev_priv_size);
     if (dev_priv == NULL) {
 	err_msg = "dev_priv allocation";
 	goto handle_error;
@@ -904,7 +904,7 @@ __glXDRIscreenProbe(ScreenPtr pScreen)
 	drmUnmap((drmAddress)framebuffer.base, framebuffer.size);
 
     if (dev_priv != NULL)
-	__glXFree(dev_priv);
+	xfree(dev_priv);
 
     if (fd >= 0)
 	drmClose(fd);

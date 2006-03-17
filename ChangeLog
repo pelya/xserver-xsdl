@@ -1,5 +1,15 @@
 2006-03-16  Kristian Høgsberg  <krh@redhat.com>
 
+	* configure.ac: Check for glproto when building GLX and make sure
+	we have at least 1.4.6.
+
+	* GL/glx/*.c: Drop glx_ansic.h wrapper and call xalloc, xrealloc,
+	xfree and str-funcs directly.
+	
+	* GL/glx/glxcmds.c (GlxSetRenderTables): Really add this.
+
+2006-03-16  Kristian Høgsberg  <krh@redhat.com>
+
 	More patches from David Reveman:
 
 	* GL/glx/glxscreens.c: Add GL_ARB_texture_non_power_of_two,

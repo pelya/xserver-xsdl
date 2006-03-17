@@ -22,7 +22,6 @@ AM_CFLAGS = \
 #sdk_HEADERS =
 
 INCLUDES = \
-	-I$(top_srcdir)/GL/include \
 	-I$(top_srcdir)/hw/xfree86/os-support \
 	-I$(top_srcdir)/hw/xfree86/os-support/bus \
 	-I$(top_srcdir)/hw/xfree86/common \

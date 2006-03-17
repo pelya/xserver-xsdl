@@ -400,7 +400,7 @@ static void init_screen_visuals(__GLXMESAscreen *screen)
 	i++;
     }
 
-    __glXFree(used);
+    xfree(used);
 
     screen->xm_vis = pXMesaVisual;
 }
@@ -434,12 +434,6 @@ __GLXprovider __glXMesaProvider = {
     "MESA",
     NULL
 };
-
-__GLXprovider *
-GlxGetMesaProvider (void)
-{
-    return &__glXMesaProvider;
-}
 
 __GLXprovider *
 GlxGetMesaProvider (void)

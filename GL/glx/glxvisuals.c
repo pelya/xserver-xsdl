@@ -35,6 +35,7 @@
 #include <dix-config.h>
 #endif
 
+#include <assert.h>
 #include <string.h>
 #include <regionstr.h>
 #include <resource.h>
@@ -218,15 +219,15 @@ static Bool init_visuals(int *nvisualp, VisualPtr *visualp,
 
     /* Alloc space for the list of new GLX visuals */
     pNewVisualConfigs = (__GLXvisualConfig *)
-	__glXMalloc(numNewConfigs * sizeof(__GLXvisualConfig));
+	xalloc(numNewConfigs * sizeof(__GLXvisualConfig));
     if (!pNewVisualConfigs) {
 	return FALSE;
     }
 
     /* Alloc space for the list of new GLX visual privates */
-    pNewVisualPriv = (void **) __glXMalloc(numNewConfigs * sizeof(void *));
+    pNewVisualPriv = (void **) xalloc(numNewConfigs * sizeof(void *));
     if (!pNewVisualPriv) {
-	__glXFree(pNewVisualConfigs);
+	xfree(pNewVisualConfigs);
 	return FALSE;
     }
 
@@ -270,40 +271,40 @@ static Bool init_visuals(int *nvisualp, VisualPtr *visualp,
     numConfigs = 0;
 
     /* Alloc temp space for the list of orig VisualIDs for each new visual */
-    orig_vid = (VisualID *) __glXMalloc(numNewVisuals * sizeof(VisualID));
+    orig_vid = (VisualID *) xalloc(numNewVisuals * sizeof(VisualID));
     if (!orig_vid) {
-	__glXFree(pNewVisualPriv);
-	__glXFree(pNewVisualConfigs);
+	xfree(pNewVisualPriv);
+	xfree(pNewVisualConfigs);
 	return FALSE;
     }
 
     /* Alloc space for the list of glXVisuals */
     modes = _gl_context_modes_create(numNewVisuals, sizeof(__GLcontextModes));
     if (modes == NULL) {
-	__glXFree(orig_vid);
-	__glXFree(pNewVisualPriv);
-	__glXFree(pNewVisualConfigs);
+	xfree(orig_vid);
+	xfree(pNewVisualPriv);
+	xfree(pNewVisualConfigs);
 	return FALSE;
     }
 
     /* Alloc space for the list of glXVisualPrivates */
-    glXVisualPriv = (void **)__glXMalloc(numNewVisuals * sizeof(void *));
+    glXVisualPriv = (void **)xalloc(numNewVisuals * sizeof(void *));
     if (!glXVisualPriv) {
 	_gl_context_modes_destroy( modes );
-	__glXFree(orig_vid);
-	__glXFree(pNewVisualPriv);
-	__glXFree(pNewVisualConfigs);
+	xfree(orig_vid);
+	xfree(pNewVisualPriv);
+	xfree(pNewVisualConfigs);
 	return FALSE;
     }
 
     /* Alloc space for the new list of the X server's visuals */
-    pVisualNew = (VisualPtr)__glXMalloc(numNewVisuals * sizeof(VisualRec));
+    pVisualNew = (VisualPtr)xalloc(numNewVisuals * sizeof(VisualRec));
     if (!pVisualNew) {
-	__glXFree(glXVisualPriv);
+	xfree(glXVisualPriv);
 	_gl_context_modes_destroy( modes );
-	__glXFree(orig_vid);
-	__glXFree(pNewVisualPriv);
-	__glXFree(pNewVisualConfigs);
+	xfree(orig_vid);
+	xfree(pNewVisualPriv);
+	xfree(pNewVisualConfigs);
 	return FALSE;
     }
 
@@ -388,7 +389,7 @@ static Bool init_visuals(int *nvisualp, VisualPtr *visualp,
 		    numVids++;
 
 	/* Allocate a new list of VisualIDs for this depth */
-	pVids = (VisualID *)__glXMalloc(numVids * sizeof(VisualID));
+	pVids = (VisualID *)xalloc(numVids * sizeof(VisualID));
 
 	/* Initialize the new list of VisualIDs for this depth */
 	for (j = 0; j < pdepth[i].numVids; j++)
@@ -397,7 +398,7 @@ static Bool init_visuals(int *nvisualp, VisualPtr *visualp,
 		    pVids[n++] = pVisualNew[k].vid;
 
 	/* Update this depth's list of VisualIDs */
-	__glXFree(pdepth[i].vids);
+	xfree(pdepth[i].vids);
 	pdepth[i].vids = pVids;
 	pdepth[i].numVids = numVids;
     }
@@ -407,16 +408,16 @@ static Bool init_visuals(int *nvisualp, VisualPtr *visualp,
     *visualp = pVisualNew;
 
     /* Free the old list of the X server's visuals */
-    __glXFree(pVisual);
+    xfree(pVisual);
 
     /* Clean up temporary allocations */
-    __glXFree(orig_vid);
-    __glXFree(pNewVisualPriv);
-    __glXFree(pNewVisualConfigs);
+    xfree(orig_vid);
+    xfree(pNewVisualPriv);
+    xfree(pNewVisualConfigs);
 
     /* Free the private list created by DDX HW driver */
     if (visualPrivates)
-        __glXFree(visualPrivates);
+        xfree(visualPrivates);
     visualPrivates = NULL;
 
     return TRUE;

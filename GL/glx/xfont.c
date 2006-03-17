@@ -82,7 +82,7 @@ static int __glXMakeBitmapFromGlyph(FontPtr font, CharInfoPtr pci)
 	p = buf;
 	allocbuf = 0;
     } else {
-	p = (unsigned char *) __glXMalloc(allocBytes);
+	p = (unsigned char *) xalloc(allocBytes);
 	if (!p)
 	    return BadAlloc;
 	allocbuf = p;
@@ -106,7 +106,7 @@ static int __glXMakeBitmapFromGlyph(FontPtr font, CharInfoPtr pci)
 				  allocbuf ? allocbuf : buf) );
 
     if (allocbuf) {
-	__glXFree(allocbuf);
+	xfree(allocbuf);
     }
     return Success;
 #undef __GL_CHAR_BUF_SIZE

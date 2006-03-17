@@ -262,10 +262,10 @@ void GlxPushProvider(__GLXprovider *provider)
 void __glXScreenInit(__GLXscreen *screen, ScreenPtr pScreen)
 {
     screen->pScreen       = pScreen;
-    screen->GLextensions  = __glXStrdup(GLServerExtensions);
-    screen->GLXvendor     = __glXStrdup(GLXServerVendorName);
-    screen->GLXversion    = __glXStrdup(GLXServerVersion);
-    screen->GLXextensions = __glXStrdup(GLXServerExtensions);
+    screen->GLextensions  = xstrdup(GLServerExtensions);
+    screen->GLXvendor     = xstrdup(GLXServerVendorName);
+    screen->GLXversion    = xstrdup(GLXServerVersion);
+    screen->GLXextensions = xstrdup(GLXServerExtensions);
 
     screen->WrappedPositionWindow = pScreen->PositionWindow;
     pScreen->PositionWindow = PositionWindow;
@@ -276,10 +276,10 @@ void __glXScreenInit(__GLXscreen *screen, ScreenPtr pScreen)
 void
 __glXScreenDestroy(__GLXscreen *screen)
 {
-    __glXFree(screen->GLXvendor);
-    __glXFree(screen->GLXversion);
-    __glXFree(screen->GLXextensions);
-    __glXFree(screen->GLextensions);
+    xfree(screen->GLXvendor);
+    xfree(screen->GLXversion);
+    xfree(screen->GLXextensions);
+    xfree(screen->GLextensions);
 }
 
 void __glXInitScreens(void)
@@ -293,8 +293,8 @@ void __glXInitScreens(void)
     ** This alloc has to work or else the server might as well core dump.
     */
     size = screenInfo.numScreens * sizeof(__GLXscreen *);
-    __glXActiveScreens =__glXMalloc(size);
-    __glXMemset(__glXActiveScreens, 0, size);
+    __glXActiveScreens = xalloc(size);
+    memset(__glXActiveScreens, 0, size);
     
     for (i = 0; i < screenInfo.numScreens; i++) {
 	pScreen = screenInfo.screens[i];
@@ -319,9 +319,9 @@ void __glXResetScreens(void)
       if (__glXActiveScreens[i])
 	  __glXActiveScreens[i]->destroy(__glXActiveScreens[i]);
 
-    __glXFree(__glXActiveScreens);
-    __glXFree(__glXHyperpipeFuncs);
-    __glXFree(__glXSwapBarrierFuncs);
+    xfree(__glXActiveScreens);
+    xfree(__glXHyperpipeFuncs);
+    xfree(__glXSwapBarrierFuncs);
     __glXNumHyperpipeFuncs = 0;
     __glXNumSwapBarrierFuncs = 0;
     __glXHyperpipeFuncs = NULL;

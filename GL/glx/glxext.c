@@ -56,17 +56,18 @@ static void ResetClientState(int clientIndex)
 {
     __GLXclientState *cl = __glXClients[clientIndex];
 
-    if (cl->returnBuf) __glXFree(cl->returnBuf);
-    if (cl->largeCmdBuf) __glXFree(cl->largeCmdBuf);
-    if (cl->currentContexts) __glXFree(cl->currentContexts);
-    __glXMemset(cl, 0, sizeof(__GLXclientState));
+    if (cl->returnBuf) xfree(cl->returnBuf);
+    if (cl->largeCmdBuf) xfree(cl->largeCmdBuf);
+    if (cl->currentContexts) xfree(cl->currentContexts);
+    memset(cl, 0, sizeof(__GLXclientState));
     /*
     ** By default, assume that the client supports
     ** GLX major version 1 minor version 0 protocol.
     */
     cl->GLClientmajorVersion = 1;
     cl->GLClientminorVersion = 0;
-    if (cl->GLClientextensions) __glXFree(cl->GLClientextensions);
+    if (cl->GLClientextensions)
+	xfree(cl->GLClientextensions);
 
 }
 
@@ -145,7 +146,7 @@ static int PixmapGone(__GLXpixmap *pGlxPixmap, XID id)
 	** only if it's zero.
 	*/
 	(*pGlxPixmap->pScreen->DestroyPixmap)(pPixmap);
-	__glXFree(pGlxPixmap);
+	xfree(pGlxPixmap);
     }
 
     return True;
@@ -192,8 +193,8 @@ GLboolean __glXFreeContext(__GLXcontext *cx)
 {
     if (cx->idExists || cx->isCurrent) return GL_FALSE;
     
-    if (cx->feedbackBuf) __glXFree(cx->feedbackBuf);
-    if (cx->selectBuf) __glXFree(cx->selectBuf);
+    if (cx->feedbackBuf) xfree(cx->feedbackBuf);
+    if (cx->selectBuf) xfree(cx->selectBuf);
     if (cx == __glXLastContext) {
 	__glXFlushContextCache();
     }
@@ -430,12 +431,12 @@ static int __glXDispatch(ClientPtr client)
     opcode = stuff->glxCode;
     cl = __glXClients[client->index];
     if (!cl) {
-	cl = (__GLXclientState *) __glXMalloc(sizeof(__GLXclientState));
+	cl = (__GLXclientState *) xalloc(sizeof(__GLXclientState));
 	 __glXClients[client->index] = cl;
 	if (!cl) {
 	    return BadAlloc;
 	}
-	__glXMemset(cl, 0, sizeof(__GLXclientState));
+	memset(cl, 0, sizeof(__GLXclientState));
     }
     
     if (!cl->inUse) {

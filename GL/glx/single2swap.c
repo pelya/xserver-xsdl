@@ -44,7 +44,6 @@
 #include "glxext.h"
 #include "indirect_dispatch.h"
 #include "unpack.h"
-#include "GL/glx_ansic.h"
 #include "glapitable.h"
 #include "glapi.h"
 #include "glthread.h"
