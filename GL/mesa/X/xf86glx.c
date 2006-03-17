@@ -196,6 +196,7 @@ __glXMesaContextDestroy(__GLXcontext *baseContext)
     __GLXMESAcontext *context = (__GLXMESAcontext *) baseContext;
 
     XMesaDestroyContext(context->xmesa);
+    __glXContextDestroy(context);
     xfree(context);
 }
 
@@ -236,6 +237,8 @@ static int
 __glXMesaContextForceCurrent(__GLXcontext *baseContext)
 {
     __GLXMESAcontext *context = (__GLXMESAcontext *) baseContext;
+
+    GlxSetRenderTables (context->xmesa->mesa.CurrentDispatch);
 
     return XMesaForceCurrent(context->xmesa);
 }
@@ -359,7 +362,7 @@ static void init_screen_visuals(__GLXMESAscreen *screen)
 		/* Create the XMesa visual */
 		pXMesaVisual[i] =
 		    XMesaCreateVisual(pScreen,
-				      pVis,
+				      &pVis[j],
 				      modes->rgbMode,
 				      (modes->alphaBits > 0),
 				      modes->doubleBufferMode,
@@ -431,6 +434,12 @@ __GLXprovider __glXMesaProvider = {
     "MESA",
     NULL
 };
+
+__GLXprovider *
+GlxGetMesaProvider (void)
+{
+    return &__glXMesaProvider;
+}
 
 __GLXprovider *
 GlxGetMesaProvider (void)

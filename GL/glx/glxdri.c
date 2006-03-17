@@ -227,6 +227,7 @@ __glXDRIcontextDestroy(__GLXcontext *baseContext)
     context->driContext.destroyContext(NULL,
 				       context->base.pScreen->myNum,
 				       context->driContext.private);
+    __glXContextDestroy(context);
     __glXFree(context);
 }
 
