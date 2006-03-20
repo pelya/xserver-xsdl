@@ -5,6 +5,9 @@
 	unprivileged users can set the modulepath and run arbitrary code.
 	Patch from Matthieu Herrb.  (CVE-2006-0745, Coverity #4)
 
+	* cfb/cfbrrop.h:
+	Bug #5549: Fix build for sparc64.  (Matthieu Herrb)
+
 2006-03-16  Kristian Høgsberg  <krh@redhat.com>
 
 	* configure.ac: Check for glproto when building GLX and make sure
