@@ -1,3 +1,16 @@
+2006-03-20  Donnie Berkholz  <spyderous@gentoo.org>
+
+	reviewed by: Kristian Høgsberg
+
+	* GL/glx/glxscreens.c: (__glXHyperpipeInit),
+	(__glXSwapBarrierInit):
+	* GL/glx/glxutil.h:
+	* GL/glx/single2.c: (__glXDisp_FeedbackBuffer),
+	(__glXDisp_SelectBuffer):
+	* GL/glx/single2swap.c: (__glXDispSwap_FeedbackBuffer),
+	(__glXDispSwap_SelectBuffer):
+	Finish glx_ansic.h wrapper changes to make Xvfb and Xnest link again.
+
 2006-03-20  Adam Jackson  <ajax@freedesktop.org>
 
 	* hw/xfree86/common/xf86Init.c:

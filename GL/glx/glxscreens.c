@@ -222,7 +222,7 @@ static Bool PositionWindow(WindowPtr pWin, int x, int y)
 void __glXHyperpipeInit(int screen, __GLXHyperpipeExtensionFuncs *funcs)
 {
     if (__glXNumHyperpipeFuncs < screen + 1) {
-        __glXHyperpipeFuncs = __glXRealloc(__glXHyperpipeFuncs,
+        __glXHyperpipeFuncs = xrealloc(__glXHyperpipeFuncs,
                                            (screen+1) * sizeof(__GLXHyperpipeExtensionFuncs));
         __glXNumHyperpipeFuncs = screen + 1;
     }
@@ -240,7 +240,7 @@ void __glXHyperpipeInit(int screen, __GLXHyperpipeExtensionFuncs *funcs)
 void __glXSwapBarrierInit(int screen, __GLXSwapBarrierExtensionFuncs *funcs)
 {
     if (__glXNumSwapBarrierFuncs < screen + 1) {
-        __glXSwapBarrierFuncs = __glXRealloc(__glXSwapBarrierFuncs,
+        __glXSwapBarrierFuncs = xrealloc(__glXSwapBarrierFuncs,
                                            (screen+1) * sizeof(__GLXSwapBarrierExtensionFuncs));
         __glXNumSwapBarrierFuncs = screen + 1;
     }
