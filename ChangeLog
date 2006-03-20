@@ -1,3 +1,10 @@
+2006-03-20  Adam Jackson  <ajax@freedesktop.org>
+
+	* hw/xfree86/common/xf86Init.c:
+	Bug #6213: Check geteuid's return value, not its address, otherwise
+	unprivileged users can set the modulepath and run arbitrary code.
+	Patch from Matthieu Herrb.  (CVE-2006-0745, Coverity #4)
+
 2006-03-16  Kristian Høgsberg  <krh@redhat.com>
 
 	* configure.ac: Check for glproto when building GLX and make sure
