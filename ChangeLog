@@ -1,3 +1,13 @@
+2006-03-21  Kristian Høgsberg  <krh@redhat.com>
+
+	* GL/glx/glxcmds.c: 
+	* GL/glx/glxcmdsswap.c: #include indirect_dispatch to get
+	prototypes for FBO functions.
+
+	* GL/glx/glxcontext.h: 
+	* GL/glx/glxserver.h: 
+	* GL/glx/glxdri.c: Fix a couple of warnings.
+
 2006-03-20  Donnie Berkholz  <spyderous@gentoo.org>
 
 	reviewed by: Kristian Høgsberg

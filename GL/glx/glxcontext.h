@@ -177,4 +177,6 @@ struct __GLXcontext {
 #define	__GLX_PENDING_DESTROY	0x2
 #define __GLX_PENDING_SWAP	0x4
 
+void __glXContextDestroy(__GLXcontext *context);
+
 #endif /* !__GLX_context_h__ */

@@ -57,6 +57,7 @@
 #include "glapi.h"
 #include "glthread.h"
 #include "dispatch.h"
+#include "indirect_dispatch.h"
 
 #ifndef GLX_TEXTURE_TARGET_EXT
 #define GLX_TEXTURE_TARGET_EXT              0x6001

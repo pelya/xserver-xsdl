@@ -101,6 +101,9 @@ extern __GLXscreen *__glXgetActiveScreen(int num);
 void GlxSetVisualConfigs(int nconfigs, 
                          __GLXvisualConfig *configs, void **privates);
 
+struct _glapi_table;
+void GlxSetRenderTables (struct _glapi_table *table);
+
 void __glXScreenInitVisuals(__GLXscreen *screen);
 
 /*

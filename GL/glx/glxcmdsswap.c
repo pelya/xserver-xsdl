@@ -54,6 +54,7 @@
 #include "glapi.h"
 #include "glthread.h"
 #include "dispatch.h"
+#include "indirect_dispatch.h"
 
 static int __glXSwapGetFBConfigsSGIX(__GLXclientState *cl, GLbyte *pc);
 static int __glXSwapCreateContextWithConfigSGIX(__GLXclientState *cl, GLbyte *pc);
