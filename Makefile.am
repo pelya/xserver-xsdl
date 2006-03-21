@@ -1,4 +1,5 @@
 AUTOMAKE_OPTIONS=dist-bzip2 foreign nostdinc
+DISTCHECK_CONFIGURE_FLAGS=--disable-xorgcfg
 
 if COMPOSITE
 COMPOSITE_DIR=composite
@@ -107,6 +108,7 @@ DIST_SUBDIRS = \
 	XTrap \
 	composite \
 	GL \
+	exa \
 	hw \
 	Xprint \
 	XpConfig \

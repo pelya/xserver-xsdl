@@ -1,5 +1,16 @@
 2006-03-21  Kristian Høgsberg  <krh@redhat.com>
 
+	Make the server distcheck and tag 1.0.99.1 snapshot.
+	
+	* configure.ac: Bump CVS version to 1.0.99.1.
+
+	* Makefile.am:
+	* os/Makefile.am: 
+	* Xext/Makefile.am: 
+	* GL/mesa/glapi/Makefile.am:  Distcheck fixes.
+
+2006-03-21  Kristian Høgsberg  <krh@redhat.com>
+
 	* GL/glx/glxcmds.c: 
 	* GL/glx/glxcmdsswap.c: #include indirect_dispatch to get
 	prototypes for FBO functions.

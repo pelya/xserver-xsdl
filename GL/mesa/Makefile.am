@@ -1,4 +1,4 @@
-SUBDIRS = main math array_cache swrast swrast_setup tnl shader X
+SUBDIRS = main math array_cache swrast swrast_setup tnl shader X glapi
 
 noinst_LTLIBRARIES = libGLcore.la
 

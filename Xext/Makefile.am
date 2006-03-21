@@ -39,7 +39,7 @@ MODULE_SRCS =			\
 # Optional sources included if extension enabled by configure.ac rules
 
 # MIT Shared Memory extension
-MITSHM_SRCS = shm.c
+MITSHM_SRCS = shm.c shmint.h
 if MITSHM
 BUILTIN_SRCS += $(MITSHM_SRCS)
 endif
