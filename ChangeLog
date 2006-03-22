@@ -1,3 +1,8 @@
+Wed Mar 22 16:05:09 2006  Søren Sandmann  <sandmann@redhat.com>
+
+	* fb/fbmmx.c (fbSolidFillmmx): Use inline assembly for solid
+	fills, since gcc doesn't use the movq instructions.
+
 Wed Mar 22 13:42:44 2006  Søren Sandmann  <sandmann@redhat.com>
 
 	* mi/mivaltree.c (miComputeClips): Patch by Keith Packard to make

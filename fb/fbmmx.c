@@ -2050,6 +2050,7 @@ fbSolidFillmmx (DrawablePtr	pDraw,
     CARD8	*byte_line;
     FbBits      *bits;
     int		xoff, yoff;
+    __m64	v1, v2, v3, v4, v5, v6, v7;
     
     CHECKPOINT();
     
@@ -2079,6 +2080,18 @@ fbSolidFillmmx (DrawablePtr	pDraw,
     fill = ((ullong)xor << 32) | xor;
     vfill = (__m64)fill;
     
+    __asm__ (
+	"movq		%7,	%0\n"
+	"movq		%7,	%1\n"
+	"movq		%7,	%2\n"
+	"movq		%7,	%3\n"
+	"movq		%7,	%4\n"
+	"movq		%7,	%5\n"
+	"movq		%7,	%6\n"
+	: "=y" (v1), "=y" (v2), "=y" (v3),
+	  "=y" (v4), "=y" (v5), "=y" (v6), "=y" (v7)
+	: "y" (vfill));
+    
     while (height--)
     {
 	int w;
@@ -2100,21 +2113,28 @@ fbSolidFillmmx (DrawablePtr	pDraw,
 	    w -= 4;
 	    d += 4;
 	}
-	
+
 	while (w >= 64)
 	{
-	    *(__m64*) (d +  0) = vfill;
-	    *(__m64*) (d +  8) = vfill;
-	    *(__m64*) (d + 16) = vfill;
-	    *(__m64*) (d + 24) = vfill;
-	    *(__m64*) (d + 32) = vfill;
-	    *(__m64*) (d + 40) = vfill;
-	    *(__m64*) (d + 48) = vfill;
-	    *(__m64*) (d + 56) = vfill;
+	    __asm__ (
+		"movq	%1,	  (%0)\n"
+		"movq	%2,	 8(%0)\n"
+		"movq	%3,	16(%0)\n"
+		"movq	%4,	24(%0)\n"
+		"movq	%5,	32(%0)\n"
+		"movq	%6,	40(%0)\n"
+		"movq	%7,	48(%0)\n"
+		"movq	%8,	56(%0)\n"
+		:
+		: "r" (d),
+		  "y" (vfill), "y" (v1), "y" (v2), "y" (v3),
+		  "y" (v4), "y" (v5), "y" (v6), "y" (v7)
+		: "memory");
 	    
 	    w -= 64;
 	    d += 64;
 	}
+	
 	while (w >= 4)
 	{
 	    *(CARD32 *)d = xor;
