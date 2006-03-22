@@ -1,3 +1,8 @@
+Wed Mar 22 16:28:46 2006  Søren Sandmann  <sandmann@redhat.com>
+
+	* fb/fbmmx.c (fbCopyAreammx): Use inline assembly for copy area,
+	since gcc doesn't generate movq instructions.
+
 Wed Mar 22 16:05:09 2006  Søren Sandmann  <sandmann@redhat.com>
 
 	* fb/fbmmx.c (fbSolidFillmmx): Use inline assembly for solid
