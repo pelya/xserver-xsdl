@@ -1,3 +1,8 @@
+Wed Mar 22 13:42:44 2006  Søren Sandmann  <sandmann@redhat.com>
+
+	* mi/mivaltree.c (miComputeClips): Patch by Keith Packard to make
+	sure redirected windows don't get considered "FullyObscured".
+
 2006-03-21  Kristian Høgsberg  <krh@redhat.com>
 
 	Make the server distcheck and tag 1.0.99.1 snapshot.

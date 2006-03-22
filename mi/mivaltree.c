@@ -1,5 +1,5 @@
 /* $Xorg: mivaltree.c,v 1.4 2001/02/09 02:05:22 xorgcvs Exp $ */
-/* $XdotOrg: xserver/xorg/mi/mivaltree.c,v 1.6 2005/07/03 07:01:51 daniels Exp $ */
+/* $XdotOrg: xserver/xorg/mi/mivaltree.c,v 1.7 2006/02/15 19:05:54 ajax Exp $ */
 /*
  * mivaltree.c --
  *	Functions for recalculating window clip lists. Main function
@@ -240,6 +240,18 @@ miComputeClips (
 	dy = 32767;
     borderSize.y2 = dy;
 
+#ifdef COMPOSITE
+    /*
+     * In redirected drawing case, reset universe to borderSize
+     */
+    if (pParent->redirectDraw)
+    {
+	if (miSetRedirectBorderClipProc)
+	    (*miSetRedirectBorderClipProc) (pParent, universe);
+	REGION_COPY(pScreen, universe, &pParent->borderSize);
+    }
+#endif
+
     oldVis = pParent->visibility;
     switch (RECT_IN_REGION( pScreen, universe, &borderSize)) 
     {
@@ -278,18 +290,6 @@ miComputeClips (
     if (oldVis != newVis &&
 	((pParent->eventMask | wOtherEventMasks(pParent)) & VisibilityChangeMask))
 	SendVisibilityNotify(pParent);
-
-#ifdef COMPOSITE
-    /*
-     * In redirected drawing case, reset universe to borderSize
-     */
-    if (pParent->redirectDraw)
-    {
-	if (miSetRedirectBorderClipProc)
-	    (*miSetRedirectBorderClipProc) (pParent, universe);
-	REGION_COPY(pScreen, universe, &pParent->borderSize);
-    }
-#endif
 
     dx = pParent->drawable.x - pParent->valdata->before.oldAbsCorner.x;
     dy = pParent->drawable.y - pParent->valdata->before.oldAbsCorner.y;
