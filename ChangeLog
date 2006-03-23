@@ -1,3 +1,8 @@
+2006-03-23  Alan Coopersmith  <alan.coopersmith@sun.com>
+
+	* hw/xfree86/getconfig/getconfig.pl: 
+	Add ast driver/pci id (Carl Switzky, Sun Microsystems)
+
 2006-03-22  Kristian Høgsberg  <krh@redhat.com>
 
 	* GL/glx/glxdri.c (__glXDRIscreenProbe): Improve error logging.
