@@ -1,3 +1,8 @@
+2006-03-24  Kristian Høgsberg  <krh@redhat.com>
+
+	* GL/glx/glxdri.c (__glXDRIscreenProbe): Make sure DRI module is
+	loaded before calling DRI functions.
+
 2006-03-23  Alan Coopersmith  <alan.coopersmith@sun.com>
 
 	* hw/xfree86/getconfig/getconfig.pl: 
