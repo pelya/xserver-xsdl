@@ -573,26 +573,89 @@ TimerInit(void)
     }
 }
 
+#ifdef DPMSExtension
+
+#define DPMS_CHECK_MODE(mode,time)\
+    if (time > 0 && DPMSPowerLevel < mode && timeout >= time)\
+	DPMSSet(mode);
+
+#define DPMS_CHECK_TIMEOUT(time)\
+    if (time > 0 && (time - timeout) > 0)\
+	return time - timeout;
+
+static CARD32
+NextDPMSTimeout(INT32 timeout)
+{
+    /*
+     * Return the amount of time remaining until we should set
+     * the next power level. Fallthroughs are intentional.
+     */
+    switch (DPMSPowerLevel)
+    {
+	case DPMSModeOn:
+	    DPMS_CHECK_TIMEOUT(DPMSStandbyTime)
+
+	case DPMSModeStandby:
+	    DPMS_CHECK_TIMEOUT(DPMSSuspendTime)
+
+	case DPMSModeSuspend:
+	    DPMS_CHECK_TIMEOUT(DPMSOffTime)
+
+	default: /* DPMSModeOff */
+	    return 0;
+    }
+}
+#endif /* DPMSExtension */
+
 static CARD32
 ScreenSaverTimeoutExpire(OsTimerPtr timer,CARD32 now,pointer arg)
 {
-    INT32 timeout = now - lastDeviceEventTime.milliseconds;
+    INT32 timeout      = now - lastDeviceEventTime.milliseconds;
+    CARD32 nextTimeout = 0;
 
-    if (timeout < ScreenSaverTime) {
-        return ScreenSaverTime - timeout;
+#ifdef DPMSExtension
+    /*
+     * Check each mode lowest to highest, since a lower mode can
+     * have the same timeout as a higher one.
+     */
+    if (DPMSEnabled)
+    {
+	DPMS_CHECK_MODE(DPMSModeOff,     DPMSOffTime)
+	DPMS_CHECK_MODE(DPMSModeSuspend, DPMSSuspendTime)
+	DPMS_CHECK_MODE(DPMSModeStandby, DPMSStandbyTime)
+
+	nextTimeout = NextDPMSTimeout(timeout);
+    }
+
+    /*
+     * Only do the screensaver checks if we're not in a DPMS
+     * power saving mode
+     */
+    if (DPMSPowerLevel != DPMSModeOn)
+	return nextTimeout;
+#endif /* DPMSExtension */
+
+    if (!ScreenSaverTime)
+	return nextTimeout;
+
+    if (timeout < ScreenSaverTime)
+    {
+	return nextTimeout > 0 ? 
+		MIN(ScreenSaverTime - timeout, nextTimeout) :
+		ScreenSaverTime - timeout;
     }
 
     ResetOsBuffers(); /* not ideal, but better than nothing */
     SaveScreens(SCREEN_SAVER_ON, ScreenSaverActive);
 
-#ifdef DPMSExtension
-    if (ScreenSaverInterval > 0 && DPMSPowerLevel == DPMSModeOn)
-#else
     if (ScreenSaverInterval > 0)
-#endif /* DPMSExtension */
-        return ScreenSaverInterval;
+    {
+	nextTimeout = nextTimeout > 0 ? 
+		MIN(ScreenSaverInterval, nextTimeout) :
+		ScreenSaverInterval;
+    }
 
-    return 0;
+    return nextTimeout;
 }
 
 static OsTimerPtr ScreenSaverTimer = NULL;
@@ -609,93 +672,39 @@ FreeScreenSaverTimer(void)
 void
 SetScreenSaverTimer(void)
 {
-    if (ScreenSaverTime > 0) {
-       ScreenSaverTimer = TimerSet(ScreenSaverTimer, 0, ScreenSaverTime,
-                                   ScreenSaverTimeoutExpire, NULL);
-    } else if (ScreenSaverTimer) {
-       FreeScreenSaverTimer();
-    }
-}
+    CARD32 timeout = 0;
 
 #ifdef DPMSExtension
+    if (DPMSEnabled)
+    {
+	/*
+	 * A higher DPMS level has a timeout that's either less
+	 * than or equal to that of a lower DPMS level.
+	 */
+	if (DPMSStandbyTime > 0)
+	    timeout = DPMSStandbyTime;
 
-static OsTimerPtr DPMSStandbyTimer = NULL;
-static OsTimerPtr DPMSSuspendTimer = NULL;
-static OsTimerPtr DPMSOffTimer = NULL;
+	else if (DPMSSuspendTime > 0)
+	    timeout = DPMSSuspendTime;
 
-static CARD32
-DPMSStandbyTimerExpire(OsTimerPtr timer,CARD32 now,pointer arg)
-{
-    INT32 timeout = now - lastDeviceEventTime.milliseconds;
-
-    if (timeout < DPMSStandbyTime) {
-        return DPMSStandbyTime - timeout;
+	else if (DPMSOffTime > 0)
+	    timeout = DPMSOffTime;
     }
-    if (DPMSPowerLevel < DPMSModeStandby) {
-	if (DPMSEnabled)
-	    DPMSSet(DPMSModeStandby);
-    }
-    return DPMSStandbyTime;
-}
-
-static CARD32
-DPMSSuspendTimerExpire(OsTimerPtr timer,CARD32 now,pointer arg)
-{
-    INT32 timeout = now - lastDeviceEventTime.milliseconds;
-
-    if (timeout < DPMSSuspendTime) {
-        return DPMSSuspendTime - timeout;
-    }
-    if (DPMSPowerLevel < DPMSModeSuspend) {
-	if (DPMSEnabled)
-	    DPMSSet(DPMSModeSuspend);
-    }
-    return DPMSSuspendTime;
-}
-
-static CARD32
-DPMSOffTimerExpire(OsTimerPtr timer,CARD32 now,pointer arg)
-{
-    INT32 timeout = now - lastDeviceEventTime.milliseconds;
-
-    if (timeout < DPMSOffTime) {
-        return DPMSOffTime - timeout;
-    }
-    if (DPMSPowerLevel < DPMSModeOff) {
-	if (DPMSEnabled)
-	    DPMSSet(DPMSModeOff);
-    }
-    return DPMSOffTime;
-}
-
-void
-FreeDPMSTimers(void)
-{
-    if (DPMSStandbyTimer) {
-	TimerFree(DPMSStandbyTimer);
-	DPMSStandbyTimer = NULL;
-    }
-    if (DPMSSuspendTimer) {
-	TimerFree(DPMSSuspendTimer);
-	DPMSSuspendTimer = NULL;
-    }
-    if (DPMSOffTimer) {
-	TimerFree(DPMSOffTimer);
-	DPMSOffTimer = NULL;
-    }
-}
-
-_X_EXPORT void
-SetDPMSTimers(void)
-{
-    if (!DPMSEnabled)
-        return;
-
-    DPMSStandbyTimer = TimerSet(DPMSStandbyTimer, 0, DPMSStandbyTime,
-				DPMSStandbyTimerExpire, NULL);
-    DPMSSuspendTimer = TimerSet(DPMSSuspendTimer, 0, DPMSSuspendTime,
-				DPMSSuspendTimerExpire, NULL);
-    DPMSOffTimer = TimerSet(DPMSOffTimer, 0, DPMSOffTime,
-			    DPMSOffTimerExpire, NULL);
-}
 #endif
+
+    if (ScreenSaverTime > 0)
+    {
+	timeout = timeout > 0 ?
+		MIN(ScreenSaverTime, timeout) :
+		ScreenSaverTime;
+    }
+
+    if (timeout) {
+	ScreenSaverTimer = TimerSet(ScreenSaverTimer, 0, timeout,
+	                            ScreenSaverTimeoutExpire, NULL);
+    }
+    else if (ScreenSaverTimer) {
+	FreeScreenSaverTimer();
+    }
+}
+

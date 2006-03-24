@@ -48,7 +48,7 @@
  * authorization from the copyright holder(s) and author(s).
  */
 /* $XConsortium: xf86Xinput.c /main/14 1996/10/27 11:05:25 kaleb $ */
-/* $XdotOrg: xc/programs/Xserver/hw/xfree86/common/xf86Xinput.c,v 1.4 2005/04/20 12:25:21 daniels Exp $ */
+/* $XdotOrg: xserver/xorg/hw/xfree86/common/xf86Xinput.c,v 1.7 2005/10/21 19:06:13 ajax Exp $ */
 
 #ifdef HAVE_XORG_CONFIG_H
 #include <xorg-config.h>
@@ -773,6 +773,9 @@ xf86eqProcessInputEvents ()
 	if (screenIsSaved == SCREEN_SAVER_ON)
 	    SaveScreens (SCREEN_SAVER_OFF, ScreenSaverReset);
 #ifdef DPMSExtension
+	else if (DPMSPowerLevel != DPMSModeOn)
+	    SetScreenSaverTimer();
+
         if (DPMSPowerLevel != DPMSModeOn)
             DPMSSet(DPMSModeOn);
 #endif

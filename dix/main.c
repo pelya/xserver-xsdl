@@ -1,4 +1,4 @@
-/* $XdotOrg: xserver/xorg/dix/main.c,v 1.14 2005/07/03 08:53:38 daniels Exp $ */
+/* $XdotOrg: xserver/xorg/dix/main.c,v 1.15 2006/02/15 20:44:12 ajax Exp $ */
 /* $XFree86: xc/programs/Xserver/dix/main.c,v 3.43 2003/10/30 21:21:02 herrb Exp $ */
 /***********************************************************
 
@@ -432,9 +432,6 @@ main(int argc, char *argv[], char *envp[])
 	    InitRootWindow(WindowTable[i]);
 	DefineInitialRootWindow(WindowTable[0]);
 	SaveScreens(SCREEN_SAVER_FORCER, ScreenSaverReset);
-#ifdef DPMSExtension
-	SetDPMSTimers();
-#endif
 
 #ifdef PANORAMIX
 	if (!noPanoramiXExtension) {
@@ -481,9 +478,6 @@ main(int argc, char *argv[], char *envp[])
 	WindowTable = NULL;
 	FreeFonts();
 
-#ifdef DPMSExtension
-	FreeDPMSTimers();
-#endif
 	FreeAuditTimer();
 
 	xfree(serverClient->devPrivates);

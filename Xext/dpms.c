@@ -189,12 +189,12 @@ ProcDPMSSetTimeouts(client)
 	client->errorValue = stuff->suspend;
 	return BadValue;
     }  
-	
+
     DPMSStandbyTime = stuff->standby * MILLI_PER_SECOND;
     DPMSSuspendTime = stuff->suspend * MILLI_PER_SECOND;
     DPMSOffTime = stuff->off * MILLI_PER_SECOND;
-    SetDPMSTimers();
-    
+    SetScreenSaverTimer();
+
     return(client->noClientException);
 }
 

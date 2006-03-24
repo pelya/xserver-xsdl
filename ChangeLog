@@ -1,3 +1,17 @@
+2006-03-24  Fredrik Höglund  <fredrik@kde.org>
+
+	* Xext/dpms.c (ProcDPMSSetTimeouts):
+	* dix/main.c (main):
+	* hw/xfree86/common/xf86Xinput.c (xf86eqProcessInputEvents):
+	* hw/xfree86/loader/dixsym.c:
+	* os/WaitFor.c (NextDPMSTimeout), (ScreenSaverTimeoutExpire)
+	(SetScreenSaverTimer), (DPMSStandbyTimerExpire),
+	(DPMSSuspendTimerExpire), (DPMSOffTimerExpire), (FreeDPMSTimers),
+	(SetDPMSTimers):
+	Refactored the screensaver and DPMS timer code to use the screensaver
+	timer for both screensaver and DPMS. Removed the SetDPMSTimers()
+	and FreeDPMSTimers() functions.
+
 2006-03-24  Kristian Høgsberg  <krh@redhat.com>
 
 	* GL/glx/glxdri.c (__glXDRIscreenProbe): Make sure DRI module is
