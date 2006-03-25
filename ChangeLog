@@ -4,6 +4,12 @@
 	Fix two of the more glaring unconditional-NULL-dereference screwups.
 	There are many more left.
 
+	* xkb/Makefile.am:
+	* xkb/xkbconfig.c:
+	* xkb/ddxConfig.c:
+	* xkb/xkbInit.c:
+	Remove weirdo XkbCF pre-configuration code.
+
 2006-03-25  Adam Jackson  <ajax@freedesktop.org>
 
 	* hw/xfree86/common/xf86Bus.c:

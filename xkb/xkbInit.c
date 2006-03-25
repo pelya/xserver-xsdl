@@ -1,5 +1,5 @@
 /* $Xorg: xkbInit.c,v 1.3 2000/08/17 19:53:47 cpqbld Exp $ */
-/* $XdotOrg: xserver/xorg/xkb/xkbInit.c,v 1.10 2005/12/26 04:23:58 daniels Exp $ */
+/* $XdotOrg: xserver/xorg/xkb/xkbInit.c,v 1.11 2006/02/15 20:44:13 ajax Exp $ */
 /************************************************************
 Copyright (c) 1993 by Silicon Graphics Computer Systems, Inc.
 
@@ -628,8 +628,6 @@ KeySymsRec		tmpSyms,*pSyms;
 CARD8			tmpMods[XkbMaxLegalKeyCode+1],*pMods;
 char			name[PATH_MAX],*rules;
 Bool			ok=False;
-XPointer		config;
-XkbComponentNamesRec	cfgNames;
 XkbRF_VarDefsRec	defs;
 
     if ((dev->key!=NULL)||(dev->kbdfeed!=NULL))
@@ -637,9 +635,7 @@ XkbRF_VarDefsRec	defs;
     pSyms= pSymsIn;
     pMods= pModsIn;
     bzero(&defs,sizeof(XkbRF_VarDefsRec));
-    bzero(&cfgNames,sizeof(XkbComponentNamesRec));
     rules= XkbGetRulesDflts(&defs);
-    config= XkbDDXPreloadConfig(&rules,&defs,&cfgNames,dev);
 
     /*
      * The strings are duplicated because it is not guaranteed that
@@ -768,8 +764,6 @@ XkbRF_VarDefsRec	defs;
 	LogMessage(X_WARNING, "Couldn't load XKB keymap, falling back to pre-XKB keymap\n");
     }
     ok= InitKeyboardDeviceStruct((DevicePtr)dev,pSyms,pMods,bellProc,ctrlProc);
-    if ((config!=NULL)&&(dev && dev->key && dev->key->xkbInfo))
-	XkbDDXApplyConfig(config,dev->key->xkbInfo);
     _XkbInitFileInfo= NULL;
     if ((pSyms==&tmpSyms)&&(pSyms->map!=NULL)) {
 	_XkbFree(pSyms->map);
