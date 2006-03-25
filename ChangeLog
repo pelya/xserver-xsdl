@@ -1,3 +1,9 @@
+2006-03-25  Daniel Stone  <daniel@freedesktop.org>
+
+	* xkb/xkbUtils.c:
+	Fix two of the more glaring unconditional-NULL-dereference screwups.
+	There are many more left.
+
 2006-03-25  Adam Jackson  <ajax@freedesktop.org>
 
 	* hw/xfree86/common/xf86Bus.c:

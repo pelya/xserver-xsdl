@@ -682,6 +682,9 @@ CARD16 		grp_mask;
 XkbStatePtr	state= &xkbi->state;
 XkbCompatMapPtr	map;
 
+    if (!state || !xkbi->desc || !xkbi->desc->ctrls || !xkbi->desc->compat)
+        return;
+
     map= xkbi->desc->compat;
     grp_mask= map->groups[state->group].mask;
     state->compat_state = state->mods|grp_mask;
@@ -740,6 +743,9 @@ XkbComputeDerivedState(XkbSrvInfoPtr xkbi)
 XkbStatePtr	state= &xkbi->state;
 XkbControlsPtr	ctrls= xkbi->desc->ctrls;
 unsigned char	grp;
+
+    if (!state || !ctrls)
+        return;
 
     state->mods= (state->base_mods|state->latched_mods);
     state->mods|= state->locked_mods;
