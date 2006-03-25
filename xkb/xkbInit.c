@@ -1,5 +1,5 @@
 /* $Xorg: xkbInit.c,v 1.3 2000/08/17 19:53:47 cpqbld Exp $ */
-/* $XdotOrg: xserver/xorg/xkb/xkbInit.c,v 1.11 2006/02/15 20:44:13 ajax Exp $ */
+/* $XdotOrg: xserver/xorg/xkb/xkbInit.c,v 1.12 2006/03/25 21:52:49 daniels Exp $ */
 /************************************************************
 Copyright (c) 1993 by Silicon Graphics Computer Systems, Inc.
 
@@ -687,30 +687,6 @@ XkbRF_VarDefsRec	defs;
 	    }
 	    XkbSetRulesUsed(&defs);
 	}
-    }
-    if (cfgNames.keymap){
-	if (names->keymap) _XkbFree(names->keymap);
-	names->keymap= cfgNames.keymap;
-    }
-    if (cfgNames.keycodes){
-	if (names->keycodes) _XkbFree(names->keycodes);	
-	names->keycodes= cfgNames.keycodes;
-    }
-    if (cfgNames.types) {
-	if (names->types) _XkbFree(names->types);	
-	names->types= cfgNames.types;
-    }
-    if (cfgNames.compat) {
-	if (names->compat) _XkbFree(names->compat);	
-	names->compat= cfgNames.compat;
-    }
-    if (cfgNames.symbols){
-	if (names->symbols) _XkbFree(names->symbols);	
-	names->symbols= cfgNames.symbols;
-    }
-    if (cfgNames.geometry) {
-	if (names->geometry) _XkbFree(names->geometry);
-	names->geometry= cfgNames.geometry;
     }
 
     if (names->keymap) {
