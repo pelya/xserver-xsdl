@@ -1106,13 +1106,13 @@ int			len,headingtype,extra_ndx = 0;
     for ( ; GetInputLine(file,&line,False); line.num_line= 0) {
 	if (line.line[0]=='!') {
 	    tok = strtok(&(line.line[1]), " \t");
-	    if (!_XkbStrCaseCmp(tok,"model"))
+	    if (strcmp(tolower(tok),"model") == 0)
 		headingtype = HEAD_MODEL;
-	    else if (!_XkbStrCaseCmp(tok,"layout"))
+	    else if (strcmp(tolower(tok),"layout") == 0)
 		headingtype = HEAD_LAYOUT;
-	    else if (!_XkbStrCaseCmp(tok,"variant"))
+	    else if (strcmp(tolower(tok),"variant") == 0)
 		headingtype = HEAD_VARIANT;
-	    else if (!_XkbStrCaseCmp(tok,"option"))
+	    else if (strcmp(tolower(tok),"option") == 0)
 		headingtype = HEAD_OPTION;
 	    else {
 		int i;

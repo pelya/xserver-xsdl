@@ -150,34 +150,6 @@ unsigned	set,rtrn;
 
 /***===================================================================***/
 
-int
-_XkbStrCaseCmp(char *str1,char *str2)
-{
-    char buf1[512],buf2[512];
-    char c, *s;
-    register int n;
-
-    for (n=0, s = buf1; (c = *str1++); n++) {
-        if (isupper(c))
-            c = tolower(c);
-        if (n>510)
-            break;
-        *s++ = c;
-    }
-    *s = '\0';
-    for (n=0, s = buf2; (c = *str2++); n++) {
-        if (isupper(c))
-            c = tolower(c);
-        if (n>510)
-            break;
-        *s++ = c;
-    }
-    *s = '\0';
-    return (strcmp(buf1, buf2));
-}
-
-/***===================================================================***/
-
 Bool
 XkbLookupGroupAndLevel(	XkbDescPtr 	xkb,
 			int 		key,
