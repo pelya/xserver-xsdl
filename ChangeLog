@@ -10,6 +10,12 @@
 	* xkb/xkbInit.c:
 	Remove weirdo XkbCF pre-configuration code.
 
+	* xkb/xkb.h:
+	* xkb/xkb.c:
+	Remove INITARGS braindamage, change to void; add XkbExtensionInit
+	prototype to xkb.h.
+	Explicitly initialise nTypes in xkb.c.
+
 2006-03-25  Adam Jackson  <ajax@freedesktop.org>
 
 	* hw/xfree86/common/xf86Bus.c:

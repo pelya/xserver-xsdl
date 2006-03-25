@@ -32,6 +32,8 @@ extern int ProcXkbSetDebuggingFlags(ClientPtr client);
 extern int XkbSetRepeatRate(DeviceIntPtr dev, int timeout, int interval, int major, int minor);
 extern int XkbGetRepeatRate(DeviceIntPtr dev, int *timeout, int *interval);
 
+extern void XkbExtensionInit(void);
+
 extern Status XkbComputeGetIndicatorMapReplySize(
     XkbIndicatorPtr             indicators,
     xkbGetIndicatorMapReply     *rep);
