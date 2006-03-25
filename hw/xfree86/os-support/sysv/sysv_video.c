@@ -285,7 +285,7 @@ xf86OSInitVidMem(VidMemInfoPtr pVidMem)
 static Bool ExtendedEnabled = FALSE;
 static Bool InitDone = FALSE;
 
-Bool
+_X_EXPORT Bool
 xf86EnableIO()
 {
 	int i;
@@ -304,7 +304,7 @@ xf86EnableIO()
 	return TRUE;
 }
 	
-void
+_X_EXPORT void
 xf86DisableIO()
 {
 	if (!ExtendedEnabled)
@@ -320,7 +320,7 @@ xf86DisableIO()
 /* Interrupt Handling section                                              */
 /***************************************************************************/
 
-Bool
+_X_EXPORT Bool
 xf86DisableInterrupts()
 {
 	if (!ExtendedEnabled)
@@ -344,7 +344,7 @@ xf86DisableInterrupts()
 	return(TRUE);
 }
 
-void
+_X_EXPORT void
 xf86EnableInterrupts()
 {
 	if (!ExtendedEnabled)

@@ -13,7 +13,7 @@
  * Utility functions required by libxf86_os. 
  */
 
-void
+_X_EXPORT void
 xf86MsgVerb(MessageType type, int verb, const char *format, ...)
 {
     va_list ap;

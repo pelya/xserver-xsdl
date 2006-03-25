@@ -37,7 +37,7 @@
 
 #if defined(KDMKTONE) || defined(KIOCSOUND)
 /* Lynx 2.2.1 has sophisticated atc stuff.... */
-void
+_X_EXPORT void
 xf86SoundKbdBell(int loudness, int pitch, int duration)
 {
 	if (loudness && pitch)
@@ -159,7 +159,7 @@ xf86KbdOff()
 
 #include "xf86OSKbd.h"
 
-Bool
+_X_EXPORT Bool
 xf86OSKbdPreInit(InputInfoPtr pInfo)
 {
     return FALSE;

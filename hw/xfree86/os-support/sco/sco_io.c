@@ -42,7 +42,7 @@
 #include <sys/emap.h>
 #include <sys/nmap.h>
 
-void
+_X_EXPORT void
 xf86SoundKbdBell(int loudness, int pitch, int duration)
 {
   if (loudness && pitch) {

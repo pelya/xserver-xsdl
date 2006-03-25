@@ -1,4 +1,4 @@
-/* $XdotOrg: $ */
+/* $XdotOrg: xserver/xorg/hw/xfree86/os-support/linux/lnx_video.c,v 1.10 2005/09/19 18:38:26 alanc Exp $ */
 /* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/linux/lnx_video.c,v 3.67 2003/06/25 18:27:07 eich Exp $ */
 /*
  * Copyright 1992 by Orest Zborowski <obz@Kodak.com>
@@ -531,7 +531,7 @@ unmapVidMem(int ScreenNum, pointer Base, unsigned long Size)
 /***************************************************************************/
 
 #if defined(__powerpc__)
-volatile unsigned char *ioBase = NULL;
+_X_EXPORT volatile unsigned char *ioBase = NULL;
 
 #ifndef __NR_pciconfig_iobase
 #define __NR_pciconfig_iobase	200
@@ -539,7 +539,7 @@ volatile unsigned char *ioBase = NULL;
 
 #endif
 
-Bool
+_X_EXPORT Bool
 xf86EnableIO(void)
 {
 #if defined(__powerpc__)
@@ -588,7 +588,7 @@ xf86EnableIO(void)
 	return TRUE;
 }
 
-void
+_X_EXPORT void
 xf86DisableIO(void)
 {
 	if (!ExtendedEnabled)
@@ -612,7 +612,7 @@ xf86DisableIO(void)
 
 /* XXX The #ifdefs should be made simpler. */
 
-Bool
+_X_EXPORT Bool
 xf86DisableInterrupts()
 {
 #if !defined(__mc68000__) && !defined(__powerpc__) && !defined(__sparc__) && !defined(__mips__) && !defined(__ia64__) && !defined(__sh__) && !defined(__hppa__)
@@ -644,7 +644,7 @@ xf86DisableInterrupts()
 	return (TRUE);
 }
 
-void
+_X_EXPORT void
 xf86EnableInterrupts()
 {
 #if !defined(__mc68000__) && !defined(__powerpc__) && !defined(__sparc__) && !defined(__mips__) && !defined(__ia64__) && !defined(__sh__) && !defined(__hppa__)
@@ -976,23 +976,23 @@ writeSparseNB32(int Value, pointer Base, register unsigned long Offset)
     return;
 }
 
-void (*xf86WriteMmio8)(int Value, pointer Base, unsigned long Offset) 
+_X_EXPORT void (*xf86WriteMmio8)(int Value, pointer Base, unsigned long Offset) 
      = writeDense8;
-void (*xf86WriteMmio16)(int Value, pointer Base, unsigned long Offset)
+_X_EXPORT void (*xf86WriteMmio16)(int Value, pointer Base, unsigned long Offset)
      = writeDense16;
-void (*xf86WriteMmio32)(int Value, pointer Base, unsigned long Offset)
+_X_EXPORT void (*xf86WriteMmio32)(int Value, pointer Base, unsigned long Offset)
      = writeDense32;
-void (*xf86WriteMmioNB8)(int Value, pointer Base, unsigned long Offset) 
+_X_EXPORT void (*xf86WriteMmioNB8)(int Value, pointer Base, unsigned long Offset) 
      = writeDenseNB8;
-void (*xf86WriteMmioNB16)(int Value, pointer Base, unsigned long Offset)
+_X_EXPORT void (*xf86WriteMmioNB16)(int Value, pointer Base, unsigned long Offset)
      = writeDenseNB16;
-void (*xf86WriteMmioNB32)(int Value, pointer Base, unsigned long Offset)
+_X_EXPORT void (*xf86WriteMmioNB32)(int Value, pointer Base, unsigned long Offset)
      = writeDenseNB32;
-int  (*xf86ReadMmio8)(pointer Base, unsigned long Offset) 
+_X_EXPORT int  (*xf86ReadMmio8)(pointer Base, unsigned long Offset) 
      = readDense8;
-int  (*xf86ReadMmio16)(pointer Base, unsigned long Offset)
+_X_EXPORT int  (*xf86ReadMmio16)(pointer Base, unsigned long Offset)
      = readDense16;
-int  (*xf86ReadMmio32)(pointer Base, unsigned long Offset)
+_X_EXPORT int  (*xf86ReadMmio32)(pointer Base, unsigned long Offset)
      = readDense32;
 
 #ifdef JENSEN_SUPPORT

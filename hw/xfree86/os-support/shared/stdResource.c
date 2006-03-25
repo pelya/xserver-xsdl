@@ -56,7 +56,7 @@
 #define xf86StdPciBusAccWindowsFromOS xf86PciBusAccWindowsFromOS
 #define xf86StdIsaBusAccWindowsFromOS xf86IsaBusAccWindowsFromOS
 
-resRange PciAvoid[] = {_PCI_AVOID_PC_STYLE, _END};
+_X_EXPORT resRange PciAvoid[] = {_PCI_AVOID_PC_STYLE, _END};
 #endif
 
 #ifdef INCLUDE_XF86_NO_DOMAIN

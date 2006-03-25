@@ -13,12 +13,12 @@
  * Utility functions required by libxf86_os. 
  */
 
-void
+_X_EXPORT void
 xf86ProcessOptions(int i, pointer p, OptionInfoPtr o)
 {
 }
 
-Bool
+_X_EXPORT Bool
 xf86GetOptValBool(const OptionInfoRec *o, int i, Bool *b)
 {
     return FALSE;

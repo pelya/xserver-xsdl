@@ -43,7 +43,7 @@
 #define KBD_FD(i) ((i).kbdFd != -1 ? (i).kbdFd : (i).consoleFd)
 #endif
 
-void
+_X_EXPORT void
 xf86SoundKbdBell(int loudness, int pitch, int duration)
 {
 #ifdef WSCONS_SUPPORT

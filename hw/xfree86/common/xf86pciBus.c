@@ -149,7 +149,7 @@ static PciBusPtr xf86PciBus = NULL;
 static void pciConvertListToHost(int bus, int dev, int func, resPtr list);
 static PciBusPtr xf86GetPciBridgeInfo(void);
 
-void
+_X_EXPORT void
 xf86FormatPciBusNumber(int busnum, char *buffer)
 {
     /* 'buffer' should be at least 8 characters long */
@@ -1437,7 +1437,7 @@ fixPciResource(int prt, memType alignment, pciVideoPtr pvp, unsigned long type)
     
 }
 
-Bool
+_X_EXPORT Bool
 xf86FixPciResource(int entityIndex, int prt, memType alignment,
 		   unsigned long type)
 {
@@ -1445,7 +1445,7 @@ xf86FixPciResource(int entityIndex, int prt, memType alignment,
     return fixPciResource(prt, alignment, pvp, type);
 }
 
-resPtr
+_X_EXPORT resPtr
 xf86ReallocatePciResources(int entityIndex, resPtr pRes)
 {
     pciVideoPtr pvp = xf86GetPciInfoForEntity(entityIndex);
@@ -2791,7 +2791,7 @@ DisablePciBusAccess(void)
  * Public functions
  */
 
-Bool
+_X_EXPORT Bool
 xf86IsPciDevPresent(int bus, int dev, int func)
 {
     int i = 0;
@@ -2812,7 +2812,7 @@ xf86IsPciDevPresent(int bus, int dev, int func)
  * Otherwise, claim the slot for the screen requesting it.
  */
 
-int
+_X_EXPORT int
 xf86ClaimPciSlot(int bus, int device, int func, DriverPtr drvp,
 		 int chipset, GDevPtr dev, Bool active)
 {
@@ -2879,7 +2879,7 @@ xf86ClaimPciSlot(int bus, int device, int func, DriverPtr drvp,
 /*
  * Get xf86PciVideoInfo for a driver.
  */
-pciVideoPtr *
+_X_EXPORT pciVideoPtr *
 xf86GetPciVideoInfo(void)
 {
     return xf86PciVideoInfo;
@@ -2890,7 +2890,7 @@ xf86GetPciVideoInfo(void)
 /*
  * Get the full xf86scanpci data.
  */
-pciConfigPtr *
+_X_EXPORT pciConfigPtr *
 xf86GetPciConfigInfo(void)
 {
     return xf86PciInfo;
@@ -2913,7 +2913,7 @@ xf86GetPciConfigInfo(void)
  *
  * The device represented by pvp may not have been previously claimed.
  */
-void
+_X_EXPORT void
 xf86SetPciVideo(pciVideoPtr pvp, resType rt)
 {
     static BusAccPtr pbap = NULL;
@@ -3013,7 +3013,7 @@ xf86SetPciVideo(pciVideoPtr pvp, resType rt)
  * in the correct format for a PCI bus id.
  */
 
-Bool
+_X_EXPORT Bool
 xf86ParsePciBusString(const char *busID, int *bus, int *device, int *func)
 {
     /*
@@ -3087,7 +3087,7 @@ xf86ParsePciBusString(const char *busID, int *bus, int *device, int *func)
  * Compare a BUS ID string with a PCI bus id.  Return TRUE if they match.
  */
 
-Bool
+_X_EXPORT Bool
 xf86ComparePciBusString(const char *busID, int bus, int device, int func)
 {
     int ibus, idevice, ifunc;
@@ -3104,7 +3104,7 @@ xf86ComparePciBusString(const char *busID, int bus, int device, int func)
  * is PCI and bus, dev and func numbers match.
  */
  
-Bool
+_X_EXPORT Bool
 xf86IsPrimaryPci(pciVideoPtr pPci)
 {
     if (primaryBus.type != BUS_PCI) return FALSE;
@@ -3116,7 +3116,7 @@ xf86IsPrimaryPci(pciVideoPtr pPci)
 /*
  * xf86GetPciInfoForEntity() -- Get the pciVideoRec of entity.
  */
-pciVideoPtr
+_X_EXPORT pciVideoPtr
 xf86GetPciInfoForEntity(int entityIndex)
 {
     pciVideoPtr *ppPci;
@@ -3138,7 +3138,7 @@ xf86GetPciInfoForEntity(int entityIndex)
     return NULL;
 }
 
-int
+_X_EXPORT int
 xf86GetPciEntity(int bus, int dev, int func)
 {
     int i;
@@ -3159,7 +3159,7 @@ xf86GetPciEntity(int bus, int dev, int func)
  * xf86CheckPciMemBase() checks that the memory base value matches one of the
  * PCI base address register values for the given PCI device.
  */
-Bool
+_X_EXPORT Bool
 xf86CheckPciMemBase(pciVideoPtr pPci, memType base)
 {
     int i;
@@ -3174,7 +3174,7 @@ xf86CheckPciMemBase(pciVideoPtr pPci, memType base)
  * Check if the slot requested is free.  If it is already in use, return FALSE.
  */
 
-Bool
+_X_EXPORT Bool
 xf86CheckPciSlot(int bus, int device, int func)
 {
     int i;
@@ -3199,7 +3199,7 @@ xf86CheckPciSlot(int bus, int device, int func)
  * so by setting pvp_exclude one pci device can be explicitely
  * _excluded if required.
  */
-pciVideoPtr
+_X_EXPORT pciVideoPtr
 xf86FindPciDeviceVendor(CARD16 vendorID, CARD16 deviceID,
 			char n, pciVideoPtr pvp_exclude)
 {
@@ -3215,7 +3215,7 @@ xf86FindPciDeviceVendor(CARD16 vendorID, CARD16 deviceID,
     return pvp;
 }
 
-pciVideoPtr
+_X_EXPORT pciVideoPtr
 xf86FindPciClass(CARD8 intf, CARD8 subClass, CARD16 class,
 		 char n, pciVideoPtr pvp_exclude)
 {
@@ -3400,7 +3400,7 @@ pciConvertRange2Host(int entityIndex, resRange *pRange)
 
 
 #ifdef INCLUDE_DEPRECATED
-void
+_X_EXPORT void
 xf86EnablePciBusMaster(pciVideoPtr pPci, Bool enable)
 {
     CARD32 temp;

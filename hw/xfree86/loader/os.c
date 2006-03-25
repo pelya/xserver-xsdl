@@ -70,7 +70,7 @@
 
 /* Return the OS name, and run-time OS version */
 
-void
+_X_EXPORT void
 LoaderGetOS(const char **name, int *major, int *minor, int *teeny)
 {
     if (name)

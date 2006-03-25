@@ -151,7 +151,7 @@ MapMseMiscToProto(int proto)
 	return PROT_UNKNOWN;
 }
 
-Bool
+_X_EXPORT Bool
 MiscExtGetMouseSettings(pointer *mouse, char **devname)
 {
     mseParamsPtr mseptr;
@@ -183,7 +183,7 @@ MiscExtGetMouseSettings(pointer *mouse, char **devname)
     return TRUE;
 }
 
-int
+_X_EXPORT int
 MiscExtGetMouseValue(pointer mouse, MiscExtMseValType valtype)
 {
     mseParamsPtr mse = mouse;
@@ -204,7 +204,7 @@ MiscExtGetMouseValue(pointer mouse, MiscExtMseValType valtype)
     return 0;
 }
 
-Bool
+_X_EXPORT Bool
 MiscExtSetMouseValue(pointer mouse, MiscExtMseValType valtype, int value)
 {
     mseParamsPtr mse = mouse;
@@ -243,7 +243,7 @@ MiscExtSetMouseValue(pointer mouse, MiscExtMseValType valtype, int value)
     return FALSE;
 }
 
-Bool
+_X_EXPORT Bool
 MiscExtSetMouseDevice(pointer mouse, char* device)
 {
     mseParamsPtr mse = mouse;
@@ -253,7 +253,7 @@ MiscExtSetMouseDevice(pointer mouse, char* device)
     return TRUE;
 }
 
-Bool
+_X_EXPORT Bool
 MiscExtGetKbdSettings(pointer *kbd)
 {
     kbdParamsPtr kbdptr;
@@ -270,7 +270,7 @@ MiscExtGetKbdSettings(pointer *kbd)
     return TRUE;
 }
 
-int
+_X_EXPORT int
 MiscExtGetKbdValue(pointer keyboard, MiscExtKbdValType valtype)
 {
     kbdParamsPtr kbd = keyboard;
@@ -285,7 +285,7 @@ MiscExtGetKbdValue(pointer keyboard, MiscExtKbdValType valtype)
     return 0;
 }
 
-Bool
+_X_EXPORT Bool
 MiscExtSetKbdValue(pointer keyboard, MiscExtKbdValType valtype, int value)
 {
     kbdParamsPtr kbd = keyboard;
@@ -326,7 +326,7 @@ MiscExtClientStateCallback(CallbackListPtr *callbacks,
 					 * grabs cannot be removed/killed */
 #define MiscExtGrabStateAlready	2	/* Request for enabling/disabling
 					 * grab removeal/kill already done */
-int
+_X_EXPORT int
 MiscExtSetGrabKeysState(ClientPtr client, int state)
 {
     DEBUG_P("MiscExtSetGrabKeysState");
@@ -354,7 +354,7 @@ MiscExtSetGrabKeysState(ClientPtr client, int state)
     return MiscExtGrabStateLocked;
 }
 
-pointer
+_X_EXPORT pointer
 MiscExtCreateStruct(MiscExtStructType mse_or_kbd)
 {
     DEBUG_P("MiscExtCreateStruct");
@@ -384,7 +384,7 @@ MiscExtCreateStruct(MiscExtStructType mse_or_kbd)
     return 0;
 }
 
-void
+_X_EXPORT void
 MiscExtDestroyStruct(pointer structure, MiscExtStructType mse_or_kbd)
 {
     DEBUG_P("MiscExtDestroyStruct");
@@ -446,7 +446,7 @@ MiscExtAuthorizeDevice(InputInfoPtr pInfo, char *device)
     return (authorized);
 }
 
-MiscExtReturn
+_X_EXPORT MiscExtReturn
 MiscExtApply(pointer structure, MiscExtStructType mse_or_kbd)
 {
     DEBUG_P("MiscExtApply");
@@ -626,7 +626,7 @@ MiscExtApply(pointer structure, MiscExtStructType mse_or_kbd)
     return MISC_RET_SUCCESS;
 }
 
-Bool
+_X_EXPORT Bool
 MiscExtGetFilePaths(const char **configfile, const char **modulepath,
 		    const char **logfile)
 {
@@ -639,7 +639,7 @@ MiscExtGetFilePaths(const char **configfile, const char **modulepath,
     return TRUE;
 }
 
-int
+_X_EXPORT int
 MiscExtPassMessage(int scrnIndex, const char *msgtype, const char *msgval,
 		   char **retstr)
 {

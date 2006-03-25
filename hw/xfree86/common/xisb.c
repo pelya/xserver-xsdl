@@ -68,7 +68,7 @@
  *	Function Definitions
  ****************************************************************************/
 
-XISBuffer *
+_X_EXPORT XISBuffer *
 XisbNew (int fd, xf86ssize_t size)
 {
 	XISBuffer *b;
@@ -92,14 +92,14 @@ XisbNew (int fd, xf86ssize_t size)
 	return (b);
 }
 
-void
+_X_EXPORT void
 XisbFree (XISBuffer *b)
 {
 	xfree (b->buf);
 	xfree (b);
 }
 
-int
+_X_EXPORT int
 XisbRead (XISBuffer *b)
 {
 	int ret;
@@ -142,7 +142,7 @@ XisbRead (XISBuffer *b)
 }
 
 /* the only purpose of this function is to provide output tracing */
-xf86ssize_t
+_X_EXPORT xf86ssize_t
 XisbWrite (XISBuffer *b, unsigned char *msg, xf86ssize_t len)
 {
     if (b->trace)
@@ -155,7 +155,7 @@ XisbWrite (XISBuffer *b, unsigned char *msg, xf86ssize_t len)
 }
 
 /* turn tracing of this buffer on (1) or off (0) */
-void
+_X_EXPORT void
 XisbTrace (XISBuffer *b, int trace)
 {
 	b->trace = trace;
@@ -173,7 +173,7 @@ XisbTrace (XISBuffer *b, int trace)
  * give duration in usecs.
  */
 
-void
+_X_EXPORT void
 XisbBlockDuration (XISBuffer *b, int block_duration)
 {
 	b->block_duration = block_duration;

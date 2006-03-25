@@ -517,7 +517,7 @@ OpenKeyboard(InputInfoPtr pInfo)
     return TRUE;
 }
 
-Bool
+_X_EXPORT Bool
 xf86OSKbdPreInit(InputInfoPtr pInfo)
 {
     KbdDevPtr pKbd = pInfo->private;

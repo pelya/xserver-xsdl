@@ -73,7 +73,7 @@ static int xf86ScrnInfoPrivateCount = 0;
 #ifdef XFree86LOADER
 /* Add a pointer to a new DriverRec to xf86DriverList */
 
-void
+_X_EXPORT void
 xf86AddDriver(DriverPtr driver, pointer module, int flags)
 {
     /* Don't add null entries */
@@ -100,7 +100,7 @@ xf86AddDriver(DriverPtr driver, pointer module, int flags)
     xf86DriverList[xf86NumDrivers - 1]->refCount = 0;
 }
 
-void
+_X_EXPORT void
 xf86DeleteDriver(int drvIndex)
 {
     if (xf86DriverList[drvIndex]
@@ -114,7 +114,7 @@ xf86DeleteDriver(int drvIndex)
 
 /* Add a pointer to a new InputDriverRec to xf86InputDriverList */
 
-void
+_X_EXPORT void
 xf86AddInputDriver(InputDriverPtr driver, pointer module, int flags)
 {
     /* Don't add null entries */
@@ -143,7 +143,7 @@ xf86DeleteInputDriver(int drvIndex)
     xf86InputDriverList[drvIndex] = NULL;
 }
 
-void
+_X_EXPORT void
 xf86AddModuleInfo(ModuleInfoPtr info, pointer module)
 {
     /* Don't add null entries */
@@ -162,7 +162,7 @@ xf86AddModuleInfo(ModuleInfoPtr info, pointer module)
     xf86ModuleInfoList[xf86NumModuleInfos - 1]->refCount = 0;
 }
 
-void
+_X_EXPORT void
 xf86DeleteModuleInfo(int idx)
 {
     if (xf86ModuleInfoList[idx]) {
@@ -177,7 +177,7 @@ xf86DeleteModuleInfo(int idx)
 
 /* Allocate a new ScrnInfoRec in xf86Screens */
 
-ScrnInfoPtr
+_X_EXPORT ScrnInfoPtr
 xf86AllocateScreen(DriverPtr drv, int flags)
 {
     int i;
@@ -232,7 +232,7 @@ xf86AllocateScreen(DriverPtr drv, int flags)
  * data.  To do this properly may require a driver hook.
  */
 
-void
+_X_EXPORT void
 xf86DeleteScreen(int scrnIndex, int flags)
 {
     ScrnInfoPtr pScrn;
@@ -290,7 +290,7 @@ xf86DeleteScreen(int scrnIndex, int flags)
  * Allocate a private in ScrnInfoRec.
  */
 
-int
+_X_EXPORT int
 xf86AllocateScrnInfoPrivateIndex(void)
 {
     int idx, i;
@@ -311,7 +311,7 @@ xf86AllocateScrnInfoPrivateIndex(void)
 
 /* Allocate a new InputInfoRec and add it to the head xf86InputDevs. */
 
-InputInfoPtr
+_X_EXPORT InputInfoPtr
 xf86AllocateInput(InputDriverPtr drv, int flags)
 {
     InputInfoPtr new;
@@ -337,7 +337,7 @@ xf86AllocateInput(InputDriverPtr drv, int flags)
  * data.  To do this properly may require a driver hook.
  */
 
-void
+_X_EXPORT void
 xf86DeleteInput(InputInfoPtr pInp, int flags)
 {
     InputInfoPtr p;
@@ -377,7 +377,7 @@ xf86DeleteInput(InputInfoPtr pInp, int flags)
     xfree(pInp);
 }
 
-Bool
+_X_EXPORT Bool
 xf86AddPixFormat(ScrnInfoPtr pScrn, int depth, int bpp, int pad)
 {
     int i;
@@ -452,7 +452,7 @@ xf86AddPixFormat(ScrnInfoPtr pScrn, int depth, int bpp, int pad)
 #define GLOBAL_DEFAULT_FBBPP 16
 #endif
 
-Bool
+_X_EXPORT Bool
 xf86SetDepthBpp(ScrnInfoPtr scrp, int depth, int dummy, int fbbpp,
 		int depth24flags)
 {
@@ -780,7 +780,7 @@ xf86SetDepthBpp(ScrnInfoPtr scrp, int depth, int dummy, int fbbpp,
 /*
  * Print out the selected depth and bpp.
  */
-void
+_X_EXPORT void
 xf86PrintDepthBpp(ScrnInfoPtr scrp)
 {
     xf86DrvMsg(scrp->scrnIndex, scrp->depthFrom, "Depth %d, ", scrp->depth);
@@ -791,7 +791,7 @@ xf86PrintDepthBpp(ScrnInfoPtr scrp)
  * xf86SetWeight sets scrp->weight, scrp->mask, scrp->offset, and for depths
  * greater than MAX_PSEUDO_DEPTH also scrp->rgbBits.
  */
-Bool
+_X_EXPORT Bool
 xf86SetWeight(ScrnInfoPtr scrp, rgb weight, rgb mask)
 {
     MessageType weightFrom = X_DEFAULT;
@@ -883,7 +883,7 @@ xf86SetWeight(ScrnInfoPtr scrp, rgb weight, rgb mask)
     return TRUE;
 }
 
-Bool
+_X_EXPORT Bool
 xf86SetDefaultVisual(ScrnInfoPtr scrp, int visual)
 {
     MessageType visualFrom = X_DEFAULT;
@@ -930,7 +930,7 @@ xf86SetDefaultVisual(ScrnInfoPtr scrp, int visual)
 #define SET_GAMMA(g) \
 	(g) > GAMMA_ZERO ? (g) : 1.0
 
-Bool
+_X_EXPORT Bool
 xf86SetGamma(ScrnInfoPtr scrp, Gamma gamma)
 {
     MessageType from = X_DEFAULT;
@@ -984,7 +984,7 @@ xf86SetGamma(ScrnInfoPtr scrp, Gamma gamma)
 #undef MMPERINCH
 #define MMPERINCH 25.4
 
-void
+_X_EXPORT void
 xf86SetDpi(ScrnInfoPtr pScrn, int x, int y)
 {
     MessageType from = X_DEFAULT;
@@ -1081,7 +1081,7 @@ xf86SetDpi(ScrnInfoPtr pScrn, int x, int y)
 #undef MMPERINCH
 
 
-void
+_X_EXPORT void
 xf86SetBlackWhitePixels(ScreenPtr pScreen)
 {
     if (xf86FlipPixels) {
@@ -1254,7 +1254,7 @@ xf86SetRootClip (ScreenPtr pScreen, Bool enable)
  * whether they are switched in or out by keeping track of the root pixmap's
  * private data, and therefore don't need to access pScrnInfo->vtSema.
  */
-void
+_X_EXPORT void
 xf86EnableDisableFBAccess(int scrnIndex, Bool enable)
 {
     ScrnInfoPtr pScrnInfo = xf86Screens[scrnIndex];
@@ -1296,7 +1296,7 @@ xf86EnableDisableFBAccess(int scrnIndex, Bool enable)
 #undef PREFIX_SIZE
 #define PREFIX_SIZE 14
 
-void
+_X_EXPORT void
 xf86VDrvMsgVerb(int scrnIndex, MessageType type, int verb, const char *format,
 		va_list args)
 {
@@ -1323,7 +1323,7 @@ xf86VDrvMsgVerb(int scrnIndex, MessageType type, int verb, const char *format,
 #undef PREFIX_SIZE
 
 /* Print driver messages, with verbose level specified directly */
-void
+_X_EXPORT void
 xf86DrvMsgVerb(int scrnIndex, MessageType type, int verb, const char *format,
 	       ...)
 {
@@ -1335,7 +1335,7 @@ xf86DrvMsgVerb(int scrnIndex, MessageType type, int verb, const char *format,
 }
 
 /* Print driver messages, with verbose level of 1 (default) */
-void
+_X_EXPORT void
 xf86DrvMsg(int scrnIndex, MessageType type, const char *format, ...)
 {
     va_list ap;
@@ -1346,7 +1346,7 @@ xf86DrvMsg(int scrnIndex, MessageType type, const char *format, ...)
 }
 
 /* Print non-driver messages with verbose level specified directly */
-void
+_X_EXPORT void
 xf86MsgVerb(MessageType type, int verb, const char *format, ...)
 {
     va_list ap;
@@ -1357,7 +1357,7 @@ xf86MsgVerb(MessageType type, int verb, const char *format, ...)
 }
 
 /* Print non-driver messages with verbose level of 1 (default) */
-void
+_X_EXPORT void
 xf86Msg(MessageType type, const char *format, ...)
 {
     va_list ap;
@@ -1368,7 +1368,7 @@ xf86Msg(MessageType type, const char *format, ...)
 }
 
 /* Just like ErrorF, but with the verbose level checked */
-void
+_X_EXPORT void
 xf86ErrorFVerb(int verb, const char *format, ...)
 {
     va_list ap;
@@ -1380,7 +1380,7 @@ xf86ErrorFVerb(int verb, const char *format, ...)
 }
 
 /* Like xf86ErrorFVerb, but with an implied verbose level of 1 */
-void
+_X_EXPORT void
 xf86ErrorF(const char *format, ...)
 {
     va_list ap;
@@ -1432,7 +1432,7 @@ xf86CloseLog()
  * Drivers can use these for using their own SymTabRecs.
  */
 
-const char *
+_X_EXPORT const char *
 xf86TokenToString(SymTabPtr table, int token)
 {
     int i;
@@ -1446,7 +1446,7 @@ xf86TokenToString(SymTabPtr table, int token)
 	return(table[i].name);
 }
 
-int
+_X_EXPORT int
 xf86StringToToken(SymTabPtr table, const char *string)
 {
     int i;
@@ -1463,7 +1463,7 @@ xf86StringToToken(SymTabPtr table, const char *string)
 /*
  * helper to display the clocks found on a card
  */
-void
+_X_EXPORT void
 xf86ShowClocks(ScrnInfoPtr scrp, MessageType from)
 {
     int j;
@@ -1487,7 +1487,7 @@ xf86ShowClocks(ScrnInfoPtr scrp, MessageType from)
  * XXX This makes assumptions about the line width, etc.  Maybe we could
  * use a more general "pretty print" function for messages.
  */
-void
+_X_EXPORT void
 xf86PrintChipsets(const char *drvname, const char *drvmsg, SymTabPtr chips)
 {
     int len, i;
@@ -1516,7 +1516,7 @@ xf86PrintChipsets(const char *drvname, const char *drvmsg, SymTabPtr chips)
 #define MAXDRIVERS 64	/* A >hack<, to be sure ... */
 
 
-int
+_X_EXPORT int
 xf86MatchDevice(const char *drivername, GDevPtr **sectlist)
 {
     GDevPtr       gdp, *pgdp = NULL;
@@ -1632,7 +1632,7 @@ struct Inst {
  * \c DriverRec::driverName.  In a future version of this function, remove
  * that parameter.
  */
-int
+_X_EXPORT int
 xf86MatchPciInstances(const char *driverName, int vendorID, 
 		      SymTabPtr chipsets, PciChipsets *PCIchipsets,
 		      GDevPtr *devList, int numDevs, DriverPtr drvp,
@@ -1991,7 +1991,7 @@ xf86MatchPciInstances(const char *driverName, int vendorID,
     return numFound;
 }
 
-int
+_X_EXPORT int
 xf86MatchIsaInstances(const char *driverName, SymTabPtr chipsets,
 		      IsaChipsets *ISAchipsets, DriverPtr drvp,
 		      FindIsaDevProc FindIsaDevice, GDevPtr *devList,
@@ -2096,7 +2096,7 @@ xf86MatchIsaInstances(const char *driverName, SymTabPtr chipsets,
 /*
  * xf86GetClocks -- get the dot-clocks via a BIG BAD hack ...
  */
-void
+_X_EXPORT void
 xf86GetClocks(ScrnInfoPtr pScrn, int num, Bool (*ClockFunc)(ScrnInfoPtr, int),
 	      void (*ProtectRegs)(ScrnInfoPtr, Bool),
 	      void (*BlankScreen)(ScrnInfoPtr, Bool), IOADDRESS vertsyncreg,
@@ -2197,7 +2197,7 @@ finish:
     (*ClockFunc)(pScrn, CLK_REG_RESTORE);
 }
 
-void
+_X_EXPORT void
 xf86SetPriority(Bool up)
 {
     static int saved_nice;
@@ -2221,7 +2221,7 @@ xf86SetPriority(Bool up)
     }
 }
 
-const char *
+_X_EXPORT const char *
 xf86GetVisualName(int visual)
 {
     if (visual < 0 || visual > DirectColor)
@@ -2231,62 +2231,62 @@ xf86GetVisualName(int visual)
 }
 
 
-int
+_X_EXPORT int
 xf86GetVerbosity()
 {
     return max(xf86Verbose, xf86LogVerbose);
 }
 
-Pix24Flags
+_X_EXPORT Pix24Flags
 xf86GetPix24()
 {
     return xf86Info.pixmap24;
 }
 
 
-int
+_X_EXPORT int
 xf86GetDepth()
 {
     return xf86Depth;
 }
 
 
-rgb
+_X_EXPORT rgb
 xf86GetWeight()
 {
     return xf86Weight;
 }
 
 
-Gamma
+_X_EXPORT Gamma
 xf86GetGamma()
 {
     return xf86Gamma;
 }
 
 
-Bool
+_X_EXPORT Bool
 xf86GetFlipPixels()
 {
     return xf86FlipPixels;
 }
 
 
-const char *
+_X_EXPORT const char *
 xf86GetServerName()
 {
     return xf86ServerName;
 }
 
 
-Bool
+_X_EXPORT Bool
 xf86ServerIsExiting()
 {
     return (dispatchException & DE_TERMINATE) == DE_TERMINATE;
 }
 
 
-Bool
+_X_EXPORT Bool
 xf86ServerIsResetting()
 {
     return xf86Resetting;
@@ -2300,62 +2300,62 @@ xf86ServerIsInitialising()
 }
 
 
-Bool
+_X_EXPORT Bool
 xf86ServerIsOnlyDetecting(void)
 {
     return xf86DoProbe || xf86DoConfigure;
 }
 
 
-Bool
+_X_EXPORT Bool
 xf86ServerIsOnlyProbing(void)
 {
     return xf86ProbeOnly;
 }
 
 
-Bool
+_X_EXPORT Bool
 xf86CaughtSignal()
 {
     return xf86Info.caughtSignal;
 }
 
 
-Bool
+_X_EXPORT Bool
 xf86GetVidModeAllowNonLocal()
 {
     return xf86Info.vidModeAllowNonLocal;
 }
 
 
-Bool
+_X_EXPORT Bool
 xf86GetVidModeEnabled()
 {
     return xf86Info.vidModeEnabled;
 }
 
-Bool
+_X_EXPORT Bool
 xf86GetModInDevAllowNonLocal()
 {
     return xf86Info.miscModInDevAllowNonLocal;
 }
 
 
-Bool
+_X_EXPORT Bool
 xf86GetModInDevEnabled()
 {
     return xf86Info.miscModInDevEnabled;
 }
 
 
-Bool
+_X_EXPORT Bool
 xf86GetAllowMouseOpenFail()
 {
     return xf86Info.allowMouseOpenFail;
 }
 
 
-Bool
+_X_EXPORT Bool
 xf86IsPc98()
 {
 #if defined(i386) || defined(__i386__)
@@ -2365,20 +2365,20 @@ xf86IsPc98()
 #endif
 }
 
-void
+_X_EXPORT void
 xf86DisableRandR()
 {
     xf86Info.disableRandR = TRUE;
     xf86Info.randRFrom = X_PROBED;
 }
 
-CARD32
+_X_EXPORT CARD32
 xf86GetVersion()
 {
     return XF86_VERSION_CURRENT;
 }
 
-CARD32
+_X_EXPORT CARD32
 xf86GetModuleVersion(pointer module)
 {
 #ifdef XFree86LOADER
@@ -2388,7 +2388,7 @@ xf86GetModuleVersion(pointer module)
 #endif
 }
 
-pointer
+_X_EXPORT pointer
 xf86LoadDrvSubModule(DriverPtr drv, const char *name)
 {
 #ifdef XFree86LOADER
@@ -2405,7 +2405,7 @@ xf86LoadDrvSubModule(DriverPtr drv, const char *name)
 #endif
 }
 
-pointer
+_X_EXPORT pointer
 xf86LoadSubModule(ScrnInfoPtr pScrn, const char *name)
 {
 #ifdef XFree86LOADER
@@ -2425,7 +2425,7 @@ xf86LoadSubModule(ScrnInfoPtr pScrn, const char *name)
 /*
  * xf86LoadOneModule loads a single module.
  */             
-pointer
+_X_EXPORT pointer
 xf86LoadOneModule(char *name, pointer opt)
 {
 #ifdef XFree86LOADER
@@ -2463,7 +2463,7 @@ xf86LoadOneModule(char *name, pointer opt)
     return mod;
 }
 
-void
+_X_EXPORT void
 xf86UnloadSubModule(pointer mod)
 {
     /*
@@ -2475,7 +2475,7 @@ xf86UnloadSubModule(pointer mod)
 #endif
 }
 
-Bool
+_X_EXPORT Bool
 xf86LoaderCheckSymbol(const char *name)
 {
 #ifdef XFree86LOADER
@@ -2485,7 +2485,7 @@ xf86LoaderCheckSymbol(const char *name)
 #endif
 }
 
-void
+_X_EXPORT void
 xf86LoaderReqSymLists(const char **list0, ...)
 {
 #ifdef XFree86LOADER
@@ -2497,7 +2497,7 @@ xf86LoaderReqSymLists(const char **list0, ...)
 #endif
 }
 
-void
+_X_EXPORT void
 xf86LoaderReqSymbols(const char *sym0, ...)
 {
 #ifdef XFree86LOADER
@@ -2509,7 +2509,7 @@ xf86LoaderReqSymbols(const char *sym0, ...)
 #endif
 }
 
-void
+_X_EXPORT void
 xf86LoaderRefSymLists(const char **list0, ...)
 {
 #ifdef XFree86LOADER
@@ -2521,7 +2521,7 @@ xf86LoaderRefSymLists(const char **list0, ...)
 #endif
 }
 
-void
+_X_EXPORT void
 xf86LoaderRefSymbols(const char *sym0, ...)
 {
 #ifdef XFree86LOADER
@@ -2543,7 +2543,7 @@ static const OptionInfoRec BSOptions[] = {
    { -1,                   NULL,           OPTV_NONE,    {0}, FALSE }
 };
 
-void 
+_X_EXPORT void 
 xf86SetBackingStore(ScreenPtr pScreen)
 {
     Bool useBS = FALSE;
@@ -2583,7 +2583,7 @@ static const OptionInfoRec SMOptions[] = {
    { -1,                   NULL,           OPTV_NONE,    {0}, FALSE }
 };
 
-void 
+_X_EXPORT void 
 xf86SetSilkenMouse (ScreenPtr pScreen)
 {
     Bool useSM = TRUE;
@@ -2624,7 +2624,7 @@ xf86SetSilkenMouse (ScreenPtr pScreen)
 
 /* Wrote this function for the PM2 Xv driver, preliminary. */
 
-pointer
+_X_EXPORT pointer
 xf86FindXvOptions(int scrnIndex, int adaptor_index, char *port_name,
 		  char **adaptor_name, pointer *adaptor_options)
 {
@@ -2660,7 +2660,7 @@ xf86FindXvOptions(int scrnIndex, int adaptor_index, char *port_name,
  * special enter/leave functions and their private scratch area to
  * this entity, take the dog for a walk...
  */
-ScrnInfoPtr
+_X_EXPORT ScrnInfoPtr
 xf86ConfigIsaEntity(ScrnInfoPtr pScrn, int scrnFlag, int entityIndex,
 			  IsaChipsets *i_chip, resList res, EntityProc init,
 			  EntityProc enter, EntityProc leave, pointer private)
@@ -2697,7 +2697,7 @@ xf86ConfigIsaEntity(ScrnInfoPtr pScrn, int scrnFlag, int entityIndex,
     return pScrn;
 }
 
-ScrnInfoPtr
+_X_EXPORT ScrnInfoPtr
 xf86ConfigPciEntity(ScrnInfoPtr pScrn, int scrnFlag, int entityIndex,
 			  PciChipsets *p_chip, resList res, EntityProc init,
 			  EntityProc enter, EntityProc leave, pointer private)
@@ -2740,7 +2740,7 @@ xf86ConfigPciEntity(ScrnInfoPtr pScrn, int scrnFlag, int entityIndex,
     return pScrn;
 }
 
-ScrnInfoPtr
+_X_EXPORT ScrnInfoPtr
 xf86ConfigFbEntity(ScrnInfoPtr pScrn, int scrnFlag, int entityIndex,
 		   EntityProc init, EntityProc enter, EntityProc leave, 
 		   pointer private)
@@ -2773,7 +2773,7 @@ xf86ConfigFbEntity(ScrnInfoPtr pScrn, int scrnFlag, int entityIndex,
  *             are obsolete functions. They the are likely to be removed
  *             Don't use!
  */
-Bool
+_X_EXPORT Bool
 xf86ConfigActiveIsaEntity(ScrnInfoPtr pScrn, int entityIndex,
                           IsaChipsets *i_chip, resList res, EntityProc init,
                           EntityProc enter, EntityProc leave, pointer private)
@@ -2803,7 +2803,7 @@ xf86ConfigActiveIsaEntity(ScrnInfoPtr pScrn, int entityIndex,
     return TRUE;
 }
  
-Bool
+_X_EXPORT Bool
 xf86ConfigActivePciEntity(ScrnInfoPtr pScrn, int entityIndex,
                           PciChipsets *p_chip, resList res, EntityProc init,
                           EntityProc enter, EntityProc leave, pointer private)
@@ -2840,7 +2840,7 @@ xf86ConfigActivePciEntity(ScrnInfoPtr pScrn, int entityIndex,
  * assigned to a screen before it will be removed. If p_pci(p_isa) is
  * non-NULL all static resources listed there will be registered.
  */
-void
+_X_EXPORT void
 xf86ConfigPciEntityInactive(EntityInfoPtr pEnt, PciChipsets *p_chip,
 			    resList res, EntityProc init, EntityProc enter,
 			    EntityProc leave, pointer private)
@@ -2862,7 +2862,7 @@ xf86ConfigPciEntityInactive(EntityInfoPtr pEnt, PciChipsets *p_chip,
     xf86SetEntityFuncs(pEnt->index,init,enter,leave,private);
 }
 
-void
+_X_EXPORT void
 xf86ConfigIsaEntityInactive(EntityInfoPtr pEnt, IsaChipsets *i_chip,
 			    resList res, EntityProc init, EntityProc enter,
 			    EntityProc leave, pointer private)
@@ -2895,7 +2895,7 @@ xf86ConfigFbEntityInactive(EntityInfoPtr pEnt, EntityProc init,
     xf86SetEntityFuncs(pEnt->index,init,enter,leave,private);
 }
 
-Bool
+_X_EXPORT Bool
 xf86IsScreenPrimary(int scrnIndex)
 {
     ScrnInfoPtr pScrn = xf86Screens[scrnIndex];
@@ -2908,7 +2908,7 @@ xf86IsScreenPrimary(int scrnIndex)
     return FALSE;
 }
 
-int
+_X_EXPORT int
 xf86RegisterRootWindowProperty(int ScrnIndex, Atom property, Atom type,
 			       int format, unsigned long len, pointer value )
 {
@@ -2999,7 +2999,7 @@ xf86RegisterRootWindowProperty(int ScrnIndex, Atom property, Atom type,
     return(Success);    
 }
 
-Bool
+_X_EXPORT Bool
 xf86IsUnblank(int mode)
 {
     switch(mode) {

@@ -20,7 +20,7 @@
  *   about any occasion, but we'll be more conservative here:  On a
  *   100-MHz CPU, produce at least a delay of 1,000ns.
  */ 
-void
+_X_EXPORT void
 xf86IODelay()
 {
 	xf86UDelay(1);

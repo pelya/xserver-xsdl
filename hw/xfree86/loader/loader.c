@@ -858,7 +858,7 @@ LoaderVRefSymbols(const char *sym0, va_list args)
     } while (s != NULL);
 }
 
-void
+_X_EXPORT void
 LoaderRefSymbols(const char *sym0, ...)
 {
     va_list ap;
@@ -883,7 +883,7 @@ LoaderVRefSymLists(const char **list0, va_list args)
     } while (l != NULL);
 }
 
-void
+_X_EXPORT void
 LoaderRefSymLists(const char **list0, ...)
 {
     va_list ap;
@@ -908,7 +908,7 @@ LoaderVReqSymLists(const char **list0, va_list args)
     } while (l != NULL);
 }
 
-void
+_X_EXPORT void
 LoaderReqSymLists(const char **list0, ...)
 {
     va_list ap;
@@ -933,7 +933,7 @@ LoaderVReqSymbols(const char *sym0, va_list args)
     } while (s != NULL);
 }
 
-void
+_X_EXPORT void
 LoaderReqSymbols(const char *sym0, ...)
 {
     va_list ap;
@@ -1364,7 +1364,7 @@ LoaderHandleOpen(int handle)
     return handle;
 }
 
-void *
+_X_EXPORT void *
 LoaderSymbol(const char *sym)
 {
     int i;
@@ -1395,7 +1395,7 @@ LoaderResolveSymbols(void)
     return 0;
 }
 
-int
+_X_EXPORT int
 LoaderCheckUnresolved(int delay_flag)
 {
     int i, ret = 0;
@@ -1429,7 +1429,7 @@ xf86LoaderTrap(void)
 {
 }
 
-void
+_X_EXPORT void
 LoaderDefaultFunc(void)
 {
     ErrorF("\n\n\tThis should not happen!\n"

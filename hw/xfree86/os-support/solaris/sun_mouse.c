@@ -1,5 +1,5 @@
 /* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/sunos/sun_mouse.c,v 1.4 2002/01/25 21:56:21 tsi Exp $ */
-/* $XdotOrg: xc/programs/Xserver/hw/xfree86/os-support/sunos/sun_mouse.c,v 1.5 2005/06/03 21:49:11 alanc Exp $ */
+/* $XdotOrg: xserver/xorg/hw/xfree86/os-support/solaris/sun_mouse.c,v 1.8 2005/07/28 02:38:23 alanc Exp $ */
 /*
  * Copyright 1999-2001 The XFree86 Project, Inc.  All Rights Reserved.
  *
@@ -697,7 +697,7 @@ SupportedInterfaces(void)
     return MSE_SERIAL | MSE_BUS | MSE_PS2 | MSE_AUTO | MSE_XPS2 | MSE_MISC;
 }
 
-OSMouseInfoPtr
+_X_EXPORT OSMouseInfoPtr
 xf86OSMouseInit(int flags)
 {
     OSMouseInfoPtr p;

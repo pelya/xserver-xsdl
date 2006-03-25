@@ -20,7 +20,7 @@ SupportedInterfaces(void)
     return MSE_SERIAL | MSE_BUS | MSE_PS2 | MSE_AUTO;
 }
 
-OSMouseInfoPtr
+_X_EXPORT OSMouseInfoPtr
 xf86OSMouseInit(int flags)
 {
     OSMouseInfoPtr p;

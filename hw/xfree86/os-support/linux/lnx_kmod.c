@@ -37,7 +37,7 @@
  * Return:
  *    0 for failure, 1 for success
  */
-int
+_X_EXPORT int
 xf86LoadKernelModule(const char *modName)
 {
    char mpPath[MAX_PATH] = "";

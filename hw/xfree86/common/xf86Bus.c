@@ -81,16 +81,16 @@ resPtr osRes = NULL;
 resPtr ResRange = NULL;
 
 /* predefined special resources */
-resRange resVgaExclusive[] = {_VGA_EXCLUSIVE, _END};
-resRange resVgaShared[] = {_VGA_SHARED, _END};
-resRange resVgaMemShared[] = {_VGA_SHARED_MEM,_END};
-resRange resVgaIoShared[] = {_VGA_SHARED_IO,_END};
-resRange resVgaUnusedExclusive[] = {_VGA_EXCLUSIVE_UNUSED, _END};
-resRange resVgaUnusedShared[] = {_VGA_SHARED_UNUSED, _END};
-resRange resVgaSparseExclusive[] = {_VGA_EXCLUSIVE_SPARSE, _END};
-resRange resVgaSparseShared[] = {_VGA_SHARED_SPARSE, _END};
-resRange res8514Exclusive[] = {_8514_EXCLUSIVE, _END};
-resRange res8514Shared[] = {_8514_SHARED, _END};
+_X_EXPORT resRange resVgaExclusive[] = {_VGA_EXCLUSIVE, _END};
+_X_EXPORT resRange resVgaShared[] = {_VGA_SHARED, _END};
+_X_EXPORT resRange resVgaMemShared[] = {_VGA_SHARED_MEM,_END};
+_X_EXPORT resRange resVgaIoShared[] = {_VGA_SHARED_IO,_END};
+_X_EXPORT resRange resVgaUnusedExclusive[] = {_VGA_EXCLUSIVE_UNUSED, _END};
+_X_EXPORT resRange resVgaUnusedShared[] = {_VGA_SHARED_UNUSED, _END};
+_X_EXPORT resRange resVgaSparseExclusive[] = {_VGA_EXCLUSIVE_SPARSE, _END};
+_X_EXPORT resRange resVgaSparseShared[] = {_VGA_SHARED_SPARSE, _END};
+_X_EXPORT resRange res8514Exclusive[] = {_8514_EXCLUSIVE, _END};
+_X_EXPORT resRange res8514Shared[] = {_8514_SHARED, _END};
 
 /* Flag: do we need RAC ? */
 static Bool needRAC = FALSE;
@@ -245,7 +245,7 @@ EntityLeave(void)
 	}
 }
 
-Bool
+_X_EXPORT Bool
 xf86IsEntityPrimary(int entityIndex)
 {
     EntityPtr pEnt = xf86Entities[entityIndex];
@@ -266,7 +266,7 @@ xf86IsEntityPrimary(int entityIndex)
     }
 }
 	
-Bool
+_X_EXPORT Bool
 xf86SetEntityFuncs(int entityIndex, EntityProc init, EntityProc enter,
 		   EntityProc leave, pointer private)
 {
@@ -290,7 +290,7 @@ xf86DriverHasEntities(DriverPtr drvp)
     return FALSE;
 }
 
-void
+_X_EXPORT void
 xf86AddEntityToScreen(ScrnInfoPtr pScrn, int entityIndex)
 {
     if (entityIndex == -1)
@@ -312,7 +312,7 @@ xf86AddEntityToScreen(ScrnInfoPtr pScrn, int entityIndex)
     pScrn->domainIOBase = xf86Entities[entityIndex]->domainIO;
 }
 
-void
+_X_EXPORT void
 xf86SetEntityInstanceForScreen(ScrnInfoPtr pScrn, int entityIndex, int instance)
 {
     int i;
@@ -332,7 +332,7 @@ xf86SetEntityInstanceForScreen(ScrnInfoPtr pScrn, int entityIndex, int instance)
  * XXX  This needs to be updated for the case where a single entity may have
  * instances associated with more than one screen.
  */
-ScrnInfoPtr
+_X_EXPORT ScrnInfoPtr
 xf86FindScreenForEntity(int entityIndex)
 {
     int i,j;
@@ -350,7 +350,7 @@ xf86FindScreenForEntity(int entityIndex)
     return NULL;
 }
 
-void
+_X_EXPORT void
 xf86RemoveEntityFromScreen(ScrnInfoPtr pScrn, int entityIndex)
 {
     int i;
@@ -413,7 +413,7 @@ xf86ClearEntityListForScreen(int scrnIndex)
     pScrn->entityInstanceList = NULL;
 }
 
-void
+_X_EXPORT void
 xf86DeallocateResourcesForEntity(int entityIndex, unsigned long type)
 {
     resPtr *pprev_next = &Acc;
@@ -456,7 +456,7 @@ xf86AddDevToEntity(int entityIndex, GDevPtr dev)
  * EntityRec struct to the drivers. The EntityRec structure itself
  * remains invisible to the driver.
  */
-EntityInfoPtr
+_X_EXPORT EntityInfoPtr
 xf86GetEntityInfo(int entityIndex)
 {
     EntityInfoPtr pEnt;
@@ -484,7 +484,7 @@ xf86GetEntityInfo(int entityIndex)
     return pEnt;
 }
 
-int
+_X_EXPORT int
 xf86GetNumEntityInstances(int entityIndex)
 {
     if (entityIndex >= xf86NumEntities)
@@ -493,7 +493,7 @@ xf86GetNumEntityInstances(int entityIndex)
     return xf86Entities[entityIndex]->numInstances;
 }
 
-GDevPtr
+_X_EXPORT GDevPtr
 xf86GetDevFromEntity(int entityIndex, int instance)
 {
     int i;
@@ -668,7 +668,7 @@ xf86AccessRestoreState(void)
 #ifdef async
 
 static AsyncQPtr *AsyncQ = NULL;
-ScrnInfoPtr xf86CurrentScreen = NULL;
+_X_EXPORT ScrnInfoPtr xf86CurrentScreen = NULL;
 
 #define SETUP_Q  org = AsyncQ; \
 	         AsyncQ = &new;
@@ -692,7 +692,7 @@ ScrnInfoPtr xf86CurrentScreen = NULL;
 #define PROCESS_Q
 #endif
 
-void
+_X_EXPORT void
 xf86EnableAccess(ScrnInfoPtr pScrn)
 {
     register EntityAccessPtr peAcc = (EntityAccessPtr) pScrn->access;
@@ -827,7 +827,7 @@ xf86EnableAccess(ScrnInfoPtr pScrn)
     }
 }
 
-void
+_X_EXPORT void
 xf86SetCurrentAccess(Bool Enable, ScrnInfoPtr pScrn)
 {
     EntityAccessPtr pceAcc2 = NULL;
@@ -869,7 +869,7 @@ xf86SetCurrentAccess(Bool Enable, ScrnInfoPtr pScrn)
     }
 }
 
-void
+_X_EXPORT void
 xf86SetAccessFuncs(EntityInfoPtr pEnt, xf86SetAccessFuncPtr funcs,
 		   xf86SetAccessFuncPtr oldFuncs)
 {
@@ -1192,7 +1192,7 @@ ChkConflict(resRange *rgp, resPtr res, xf86State state)
  * the resource broker that gets exported. Tests all resources ie.
  * performs test with SETUP flag.
  */
-memType
+_X_EXPORT memType
 xf86ChkConflict(resRange *rgp, int entityIndex)
 {
     return checkConflict(rgp, Acc, entityIndex, SETUP,FALSE);
@@ -1202,7 +1202,7 @@ xf86ChkConflict(resRange *rgp, int entityIndex)
  * Resources List handling
  */
 
-resPtr
+_X_EXPORT resPtr
 xf86JoinResLists(resPtr rlist1, resPtr rlist2)
 {
     resPtr pRes;
@@ -1219,7 +1219,7 @@ xf86JoinResLists(resPtr rlist1, resPtr rlist2)
     return rlist1;
 }
 
-resPtr
+_X_EXPORT resPtr
 xf86AddResToList(resPtr rlist, resRange *range, int entityIndex)
 {
     resPtr new;
@@ -1256,7 +1256,7 @@ xf86AddResToList(resPtr rlist, resRange *range, int entityIndex)
     return new;
 }
 
-void
+_X_EXPORT void
 xf86FreeResList(resPtr rlist)
 {
     resPtr pRes;
@@ -1269,7 +1269,7 @@ xf86FreeResList(resPtr rlist)
     xfree(rlist);
 }
 
-resPtr
+_X_EXPORT resPtr
 xf86DupResList(const resPtr rlist)
 {
     resPtr pRes, ret, prev, new;
@@ -1289,7 +1289,7 @@ xf86DupResList(const resPtr rlist)
     return ret;
 }
 
-void
+_X_EXPORT void
 xf86PrintResList(int verb, resPtr list)
 {
     int i = 0;
@@ -1590,7 +1590,7 @@ RemoveOverlaps(resPtr target, resPtr list, Bool pow2Alignment, Bool useEstimated
 
 #define ALIGN(x,a) ((x) + a) &~(a)
 
-resRange 
+_X_EXPORT resRange 
 xf86GetBlock(unsigned long type, memType size,
 	 memType window_start, memType window_end,
 	 memType align_mask, resPtr avoid)
@@ -1687,7 +1687,7 @@ fix_counter(memType val, memType old_mask, memType mask)
     return unmake_base(val,mask);
 }
 
-resRange
+_X_EXPORT resRange
 xf86GetSparse(unsigned long type,  memType fixed_bits,
 	  memType decode_mask, memType address_mask, resPtr avoid)
 {
@@ -1838,7 +1838,7 @@ convertRange2Host(int entityIndex, resRange *pRange)
  * returns a resPtr listing all resources not successfully registered.
  */
 
-resPtr
+_X_EXPORT resPtr
 xf86RegisterResources(int entityIndex, resList list, unsigned long access)
 {
     resPtr res = NULL;
@@ -2074,7 +2074,7 @@ SetSIGIOForState(xf86State state)
     }
 }
 
-void
+_X_EXPORT void
 xf86EnterServerState(xf86State state)
 {
     EntityPtr pEnt;
@@ -2180,7 +2180,7 @@ xf86EnterServerState(xf86State state)
 /*
  * xf86SetOperatingState() -- Set ResOperMask for resources listed.
  */
-resPtr
+_X_EXPORT resPtr
 xf86SetOperatingState(resList list, int entityIndex, int mask)
 {
     resPtr acc;
@@ -2259,7 +2259,7 @@ resError(resList list)
  * xf86ClaimFixedResources() is used to allocate non-relocatable resources.
  * This should only be done by a driver's Probe() function.
  */
-void
+_X_EXPORT void
 xf86ClaimFixedResources(resList list, int entityIndex)
 {
     resPtr ptr = NULL;
@@ -3099,7 +3099,7 @@ CheckGenericGA()
 #endif
 }
 
-Bool
+_X_EXPORT Bool
 xf86NoSharedResources(int screenIndex,resType res)
 {
     int j;
@@ -3140,7 +3140,7 @@ xf86ConvertListToHost(int entityIndex, resPtr list)
     }
 }
 
-void
+_X_EXPORT void
 xf86RegisterStateChangeNotificationCallback(xf86StateChangeNotificationCallbackFunc func, pointer arg)
 {
     StateChangeNotificationPtr ptr =
@@ -3152,7 +3152,7 @@ xf86RegisterStateChangeNotificationCallback(xf86StateChangeNotificationCallbackF
     StateChangeNotificationList = ptr;
 }
 
-Bool
+_X_EXPORT Bool
 xf86DeregisterStateChangeNotificationCallback(xf86StateChangeNotificationCallbackFunc func)
 {
     StateChangeNotificationPtr *ptr = &StateChangeNotificationList;
@@ -3181,7 +3181,7 @@ notifyStateChange(xf86NotifyState state)
 }
 
 #ifdef async
-Bool
+_X_EXPORT Bool
 xf86QueueAsyncEvent(void (*func)(pointer),pointer arg)
 {
     AsyncQPtr new;
@@ -3199,7 +3199,7 @@ xf86QueueAsyncEvent(void (*func)(pointer),pointer arg)
 
 /* Multihead accel sharing accessor functions and entity Private handling */
 
-int
+_X_EXPORT int
 xf86GetLastScrnFlag(int entityIndex)
 {
     if(entityIndex < xf86NumEntities) {
@@ -3209,7 +3209,7 @@ xf86GetLastScrnFlag(int entityIndex)
     }
 }
 
-void
+_X_EXPORT void
 xf86SetLastScrnFlag(int entityIndex, int scrnIndex)
 {
     if(entityIndex < xf86NumEntities) {
@@ -3217,7 +3217,7 @@ xf86SetLastScrnFlag(int entityIndex, int scrnIndex)
     }
 }
 
-Bool
+_X_EXPORT Bool
 xf86IsEntityShared(int entityIndex)
 {
     if(entityIndex < xf86NumEntities) {
@@ -3228,7 +3228,7 @@ xf86IsEntityShared(int entityIndex)
     return FALSE;
 }
 
-void
+_X_EXPORT void
 xf86SetEntityShared(int entityIndex)
 {
     if(entityIndex < xf86NumEntities) {
@@ -3236,7 +3236,7 @@ xf86SetEntityShared(int entityIndex)
     }
 }
 
-Bool
+_X_EXPORT Bool
 xf86IsEntitySharable(int entityIndex)
 {
     if(entityIndex < xf86NumEntities) {
@@ -3247,7 +3247,7 @@ xf86IsEntitySharable(int entityIndex)
     return FALSE;
 }
 
-void
+_X_EXPORT void
 xf86SetEntitySharable(int entityIndex)
 {
     if(entityIndex < xf86NumEntities) {
@@ -3255,7 +3255,7 @@ xf86SetEntitySharable(int entityIndex)
     }
 }
 
-Bool
+_X_EXPORT Bool
 xf86IsPrimInitDone(int entityIndex)
 {
     if(entityIndex < xf86NumEntities) {
@@ -3266,7 +3266,7 @@ xf86IsPrimInitDone(int entityIndex)
     return FALSE;
 }
 
-void
+_X_EXPORT void
 xf86SetPrimInitDone(int entityIndex)
 {
     if(entityIndex < xf86NumEntities) {
@@ -3274,7 +3274,7 @@ xf86SetPrimInitDone(int entityIndex)
     }
 }
 
-void
+_X_EXPORT void
 xf86ClearPrimInitDone(int entityIndex)
 {
     if(entityIndex < xf86NumEntities) {
@@ -3287,7 +3287,7 @@ xf86ClearPrimInitDone(int entityIndex)
  * Allocate a private in the entities.
  */
 
-int
+_X_EXPORT int
 xf86AllocateEntityPrivateIndex(void)
 {
     int idx, i;
@@ -3306,7 +3306,7 @@ xf86AllocateEntityPrivateIndex(void)
     return idx;
 }
 
-DevUnion *
+_X_EXPORT DevUnion *
 xf86GetEntityPrivate(int entityIndex, int privIndex)
 {
     if (entityIndex >= xf86NumEntities || privIndex >= xf86EntityPrivateCount)

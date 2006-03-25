@@ -189,7 +189,7 @@ GuessProtocol(InputInfoPtr pInfo, int flags)
     return NULL;
 }
 
-OSMouseInfoPtr
+_X_EXPORT OSMouseInfoPtr
 xf86OSMouseInit(int flags)
 {
     OSMouseInfoPtr p;

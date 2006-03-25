@@ -37,7 +37,7 @@
 #include "xf86Priv.h"
 #include "xf86_OSlib.h"
 
-void
+_X_EXPORT void
 xf86SoundKbdBell(int loudness, int pitch, int duration)
 {
 	if (loudness && pitch)
@@ -71,7 +71,7 @@ xf86SetKbdLeds(int leds)
 
 #include "xf86OSKbd.h"
 
-Bool
+_X_EXPORT Bool
 xf86OSKbdPreInit(InputInfoPtr pInfo)
 {
     return FALSE;

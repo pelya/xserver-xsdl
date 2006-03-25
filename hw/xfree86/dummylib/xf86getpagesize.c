@@ -15,7 +15,7 @@
 
 int xf86getpagesize(void);
 
-int
+_X_EXPORT int
 xf86getpagesize(void)
 {
     return 4096;	/* not used */

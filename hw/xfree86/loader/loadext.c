@@ -63,7 +63,7 @@ NewExtensionModule(void)
     }
 }
 
-void
+_X_EXPORT void
 LoadExtension(ExtensionModule * e, Bool builtin)
 {
     ExtensionModule *newext;

@@ -13,7 +13,7 @@
  * Utility functions required by libxf86_os. 
  */
 
-int
+_X_EXPORT int
 xf86GetVerbosity()
 {
     return xf86Verbose;

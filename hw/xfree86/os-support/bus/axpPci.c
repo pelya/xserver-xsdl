@@ -303,13 +303,13 @@ axpPciCfgSetBits(PCITAG tag, int off, CARD32 mask, CARD32 bits)
  * Alpha/Linux addressing domain support
  */
 
-int
+_X_EXPORT int
 xf86GetPciDomain(PCITAG Tag)
 {
     return PCI_DOM_FROM_TAG(Tag);
 }
 
-pointer
+_X_EXPORT pointer
 xf86MapDomainMemory(int ScreenNum, int Flags, PCITAG Tag,
 		    ADDRESS Base, unsigned long Size)
 {
@@ -330,7 +330,7 @@ xf86MapDomainMemory(int ScreenNum, int Flags, PCITAG Tag,
 			 pDomain->dense_mem + Base - _bus_base(), Size);
 }
 
-IOADDRESS
+_X_EXPORT IOADDRESS
 xf86MapDomainIO(int ScreenNum, int Flags, PCITAG Tag,
 		IOADDRESS Base, unsigned long Size)
 {
@@ -366,7 +366,7 @@ xf86MapDomainIO(int ScreenNum, int Flags, PCITAG Tag,
     return pDomain->mapped_io + Base;
 }
 
-int
+_X_EXPORT int
 xf86ReadDomainMemory(PCITAG Tag, ADDRESS Base, int Len, unsigned char *Buf)
 {
     static unsigned long pagemask = 0;

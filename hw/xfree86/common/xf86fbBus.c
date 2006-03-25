@@ -54,7 +54,7 @@
 
 Bool fbSlotClaimed = FALSE;
 
-int
+_X_EXPORT int
 xf86ClaimFbSlot(DriverPtr drvp, int chipset, GDevPtr dev, Bool active)
 {
     EntityPtr p;

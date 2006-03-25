@@ -47,11 +47,11 @@
 
 /* Globals that video drivers may access */
 
-int xf86ScreenIndex = -1;	/* Index of ScrnInfo in pScreen.devPrivates */
+_X_EXPORT int xf86ScreenIndex = -1;	/* Index of ScrnInfo in pScreen.devPrivates */
 int xf86CreateRootWindowIndex = -1;	/* Index into pScreen.devPrivates */
-ScrnInfoPtr *xf86Screens = NULL;	/* List of ScrnInfos */
-int xf86PixmapIndex = 0;
-const unsigned char byte_reversed[256] =
+_X_EXPORT ScrnInfoPtr *xf86Screens = NULL;	/* List of ScrnInfos */
+_X_EXPORT int xf86PixmapIndex = 0;
+_X_EXPORT const unsigned char byte_reversed[256] =
 {
     0x00, 0x80, 0x40, 0xc0, 0x20, 0xa0, 0x60, 0xe0,
     0x10, 0x90, 0x50, 0xd0, 0x30, 0xb0, 0x70, 0xf0,
@@ -182,7 +182,7 @@ const char *xf86LogFile = DEFAULT_LOGPREFIX;
 MessageType xf86LogFileFrom = X_DEFAULT;
 Bool xf86LogFileWasOpened = FALSE;
 serverLayoutRec xf86ConfigLayout = {NULL, };
-confDRIRec xf86ConfigDRI = {0, };
+_X_EXPORT confDRIRec xf86ConfigDRI = {0, };
 XF86ConfigPtr xf86configptr = NULL;
 Bool xf86Resetting = FALSE;
 Bool xf86Initialising = FALSE;
@@ -242,7 +242,7 @@ Bool xf86MiscModInDevDisabled = FALSE;
 Bool xf86MiscModInDevAllowNonLocal = FALSE;
 #endif
 RootWinPropPtr *xf86RegisteredPropertiesTable = NULL;
-Bool xf86inSuspend = FALSE;
+_X_EXPORT Bool xf86inSuspend = FALSE;
 Bool xorgHWAccess = FALSE;
 PciBusId xf86IsolateDevice;
 

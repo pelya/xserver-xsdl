@@ -21,7 +21,7 @@
  * Return:
  *    0 for failure, 1 for success
  */
-int xf86LoadKernelModule(const char *modName)
+_X_EXPORT int xf86LoadKernelModule(const char *modName)
 {
     if (kldload(modName) != -1)
 	return 1;

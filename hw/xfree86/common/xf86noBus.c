@@ -52,7 +52,7 @@
 
 #include "xf86RAC.h"
 
-int
+_X_EXPORT int
 xf86ClaimNoSlot(DriverPtr drvp, int chipset, GDevPtr dev, Bool active)
 {
     EntityPtr p;

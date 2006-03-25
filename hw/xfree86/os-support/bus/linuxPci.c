@@ -478,7 +478,7 @@ linuxGetSizes(PCITAG Tag, unsigned long *io_size, unsigned long *mem_size)
     }
 }
 
-int
+_X_EXPORT int
 xf86GetPciDomain(PCITAG Tag)
 {
     pciConfigPtr pPCI;
@@ -624,7 +624,7 @@ linuxOpenLegacy(PCITAG Tag, char *name)
  * returns a pointer to it.  The pointer is saved for future use if it's in
  * the legacy ISA memory space (memory in a domain between 0 and 1MB).
  */
-pointer
+_X_EXPORT pointer
 xf86MapDomainMemory(int ScreenNum, int Flags, PCITAG Tag,
 		    ADDRESS Base, unsigned long Size)
 {
@@ -674,7 +674,7 @@ xf86MapDomainMemory(int ScreenNum, int Flags, PCITAG Tag,
  *
  * This has no means of returning failure, so all errors are fatal
  */
-IOADDRESS
+_X_EXPORT IOADDRESS
 xf86MapDomainIO(int ScreenNum, int Flags, PCITAG Tag,
 		IOADDRESS Base, unsigned long Size)
 {
@@ -706,7 +706,7 @@ xf86MapDomainIO(int ScreenNum, int Flags, PCITAG Tag,
 /*
  * xf86ReadDomainMemory - copy from domain memory into a caller supplied buffer
  */
-int
+_X_EXPORT int
 xf86ReadDomainMemory(PCITAG Tag, ADDRESS Base, int Len, unsigned char *Buf)
 {
     unsigned char *ptr, *src;

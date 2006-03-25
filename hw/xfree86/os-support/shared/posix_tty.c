@@ -114,7 +114,7 @@ GetBaud (int baudrate)
 	return (0);
 }
 
-int
+_X_EXPORT int
 xf86OpenSerial (pointer options)
 {
 #ifdef Lynx
@@ -206,7 +206,7 @@ xf86OpenSerial (pointer options)
 	return (fd);
 }
 
-int
+_X_EXPORT int
 xf86SetSerial (int fd, pointer options)
 {
 	struct termios t;
@@ -377,7 +377,7 @@ xf86SetSerial (int fd, pointer options)
 	return (r);
 }
 
-int
+_X_EXPORT int
 xf86SetSerialSpeed (int fd, int speed)
 {
 	struct termios t;
@@ -408,7 +408,7 @@ xf86SetSerialSpeed (int fd, int speed)
 	return (r);
 }
 
-int
+_X_EXPORT int
 xf86ReadSerial (int fd, void *buf, int count)
 {
 	int r;
@@ -426,7 +426,7 @@ xf86ReadSerial (int fd, void *buf, int count)
 	return (r);
 }
 
-int
+_X_EXPORT int
 xf86WriteSerial (int fd, const void *buf, int count)
 {
 	int r;
@@ -442,7 +442,7 @@ xf86WriteSerial (int fd, const void *buf, int count)
 	return (r);
 }
 
-int
+_X_EXPORT int
 xf86CloseSerial (int fd)
 {
 	int r;
@@ -451,7 +451,7 @@ xf86CloseSerial (int fd)
 	return (r);
 }
 
-int
+_X_EXPORT int
 xf86WaitForInput (int fd, int timeout)
 {
 	fd_set readfds;
@@ -477,7 +477,7 @@ xf86WaitForInput (int fd, int timeout)
 	return (r);
 }
 
-int
+_X_EXPORT int
 xf86SerialSendBreak (int fd, int duration)
 {
 	int r;
@@ -487,7 +487,7 @@ xf86SerialSendBreak (int fd, int duration)
 	
 }
 
-int
+_X_EXPORT int
 xf86FlushInput(int fd)
 {
 	fd_set fds;
@@ -588,7 +588,7 @@ getOsStateMask(void)
 
 static int osStateMask = 0;
 
-int
+_X_EXPORT int
 xf86SetSerialModemState(int fd, int state)
 {
 	int ret;
@@ -621,7 +621,7 @@ xf86SetSerialModemState(int fd, int state)
 #endif
 }
 
-int
+_X_EXPORT int
 xf86GetSerialModemState(int fd)
 {
 	int ret;
@@ -644,7 +644,7 @@ xf86GetSerialModemState(int fd)
 #endif
 }
 
-int
+_X_EXPORT int
 xf86SerialModemSetBits(int fd, int bits)
 {
 	int ret;
@@ -666,7 +666,7 @@ xf86SerialModemSetBits(int fd, int bits)
 #endif
 }
 
-int
+_X_EXPORT int
 xf86SerialModemClearBits(int fd, int bits)
 {
 	int ret;

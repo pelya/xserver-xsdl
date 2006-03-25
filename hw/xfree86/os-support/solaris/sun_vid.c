@@ -46,7 +46,7 @@
 
 char *apertureDevName = NULL;
 
-Bool
+_X_EXPORT Bool
 xf86LinearVidMem(void)
 {
 	int	mmapFd;
@@ -76,7 +76,7 @@ xf86LinearVidMem(void)
 	return TRUE;
 }
 
-pointer
+_X_EXPORT pointer
 xf86MapVidMem(int ScreenNum, int Flags, unsigned long Base, unsigned long Size)
 {
 	pointer base;
@@ -139,7 +139,7 @@ xf86MapVidMem(int ScreenNum, int Flags, unsigned long Base, unsigned long Size)
 }
 
 /* ARGSUSED */
-void
+_X_EXPORT void
 xf86UnMapVidMem(int ScreenNum, pointer Base, unsigned long Size)
 {
 	munmap(Base, Size);
@@ -153,7 +153,7 @@ xf86UnMapVidMem(int ScreenNum, pointer Base, unsigned long Size)
 static Bool ExtendedEnabled = FALSE;
 #endif
 
-Bool
+_X_EXPORT Bool
 xf86EnableIO(void)
 {
 #if defined(i386) || defined(__x86)
@@ -169,7 +169,7 @@ xf86EnableIO(void)
 	return TRUE;
 }
 
-void
+_X_EXPORT void
 xf86DisableIO(void)
 {
 #if defined(i386) || defined(__x86)
@@ -187,7 +187,7 @@ xf86DisableIO(void)
 /* Interrupt Handling section						   */
 /***************************************************************************/
 
-Bool xf86DisableInterrupts(void)
+_X_EXPORT Bool xf86DisableInterrupts(void)
 {
 #if defined(i386) || defined(__x86)
 	if (!ExtendedEnabled && (sysi86(SI86V86, V86SC_IOPL, PS_IOPL) < 0))
@@ -206,7 +206,7 @@ Bool xf86DisableInterrupts(void)
 	return TRUE;
 }
 
-void xf86EnableInterrupts(void)
+_X_EXPORT void xf86EnableInterrupts(void)
 {
 #if defined(i386) || defined(__x86)
 	if (!ExtendedEnabled && (sysi86(SI86V86, V86SC_IOPL, PS_IOPL) < 0))
@@ -223,13 +223,13 @@ void xf86EnableInterrupts(void)
 #endif /* i386 */
 }
 
-void
+_X_EXPORT void
 xf86MapReadSideEffects(int ScreenNum, int Flags, pointer Base,
 	unsigned long Size)
 {
 }
 
-Bool
+_X_EXPORT Bool
 xf86CheckMTRR(int ScreenNum)
 {
 	return FALSE;

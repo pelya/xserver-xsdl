@@ -1,4 +1,4 @@
-/* $XdotOrg$ */
+/* $XdotOrg: xserver/xorg/hw/xfree86/os-support/usl/usl_io.c,v 1.2 2005/11/08 06:33:30 jkj Exp $ */
 /*
  * Copyright 2001-2005 by Kean Johnston <jkj@sco.com>
  * Copyright 1990,91 by Thomas Roell, Dinkelscherben, Germany
@@ -35,7 +35,7 @@
 #include "xf86Priv.h"
 #include "xf86_OSlib.h"
 
-void
+_X_EXPORT void
 xf86SoundKbdBell(int loudness, int pitch, int duration)
 {
   if (loudness && pitch) {

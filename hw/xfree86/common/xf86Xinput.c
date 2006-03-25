@@ -48,7 +48,7 @@
  * authorization from the copyright holder(s) and author(s).
  */
 /* $XConsortium: xf86Xinput.c /main/14 1996/10/27 11:05:25 kaleb $ */
-/* $XdotOrg: xserver/xorg/hw/xfree86/common/xf86Xinput.c,v 1.7 2005/10/21 19:06:13 ajax Exp $ */
+/* $XdotOrg: xserver/xorg/hw/xfree86/common/xf86Xinput.c,v 1.8 2006/03/24 20:50:13 fredrik Exp $ */
 
 #ifdef HAVE_XORG_CONFIG_H
 #include <xorg-config.h>
@@ -143,7 +143,7 @@ xf86AlwaysCoreControl(DeviceIntPtr	device,
  *
  ***********************************************************************
  */
-int
+_X_EXPORT int
 xf86IsCorePointer(DeviceIntPtr	device)
 {
     return(device == inputInfo.pointer);
@@ -178,7 +178,7 @@ xf86IsCoreKeyboard(DeviceIntPtr	device)
 	   (device == inputInfo.keyboard));
 }
 
-void
+_X_EXPORT void
 xf86XInputSetSendCoreEvents(LocalDevicePtr local, Bool always)
 {
     if (always) {
@@ -229,7 +229,7 @@ xf86CheckButton(int	button,
  *
  ***********************************************************************
  */
-void
+_X_EXPORT void
 xf86ProcessCommonOptions(LocalDevicePtr local,
 			 pointer	list)
 {
@@ -296,7 +296,7 @@ xf86XinputFinalizeInit(DeviceIntPtr	dev)
  *
  ***********************************************************************
  */
-void
+_X_EXPORT void
 xf86ActivateDevice(LocalDevicePtr local)
 {
     DeviceIntPtr	dev;
@@ -669,7 +669,7 @@ xf86eqInit (DevicePtr pKbd, DevicePtr pPtr)
  * called from regular code.
  */
 
-void
+_X_EXPORT void
 xf86eqEnqueue (xEvent *e)
 {
     int		oldtail, newtail;
@@ -865,7 +865,7 @@ xf86eqSwitchScreen(ScreenPtr	pScreen,
  * convenient functions to post events
  */
 
-void
+_X_EXPORT void
 xf86PostMotionEvent(DeviceIntPtr	device,
 		    int			is_absolute,
 		    int			first_valuator,
@@ -1082,7 +1082,7 @@ xf86PostMotionEvent(DeviceIntPtr	device,
 		  is_shared ? "True" : "False"));
 }
 
-void
+_X_EXPORT void
 xf86PostProximityEvent(DeviceIntPtr	device,
 		       int		is_in,
 		       int		first_valuator,
@@ -1175,7 +1175,7 @@ xf86PostProximityEvent(DeviceIntPtr	device,
     
 }
 
-void
+_X_EXPORT void
 xf86PostButtonEvent(DeviceIntPtr	device,
 		    int			is_absolute,
 		    int			button,
@@ -1282,7 +1282,7 @@ xf86PostButtonEvent(DeviceIntPtr	device,
     DBG(5, ErrorF("xf86PostButtonEvent END\n"));
 }
 
-void
+_X_EXPORT void
 xf86PostKeyEvent(DeviceIntPtr	device,
 		 unsigned int	key_code,
 		 int		is_down,
@@ -1342,7 +1342,7 @@ xf86PostKeyEvent(DeviceIntPtr	device,
     va_end(var);
 }
 
-void
+_X_EXPORT void
 xf86PostKeyboardEvent(DeviceIntPtr      device,
                       unsigned int      key_code,
                       int               is_down)
@@ -1368,7 +1368,7 @@ xf86PostKeyboardEvent(DeviceIntPtr      device,
  * Motion history management.
  */
 
-void
+_X_EXPORT void
 xf86MotionHistoryAllocate(LocalDevicePtr	local)
 {
     ValuatorClassPtr	valuator = local->dev->valuator;
@@ -1382,7 +1382,7 @@ xf86MotionHistoryAllocate(LocalDevicePtr	local)
     local->last	 = 0;
 }
 
-int
+_X_EXPORT int
 xf86GetMotionEvents(DeviceIntPtr	dev,
 		    xTimecoord		*buff,
 		    unsigned long	start,
@@ -1415,7 +1415,7 @@ xf86GetMotionEvents(DeviceIntPtr	dev,
     return num;
 }
 
-LocalDevicePtr
+_X_EXPORT LocalDevicePtr
 xf86FirstLocalDevice()
 {
     return xf86InputDevs;
@@ -1434,7 +1434,7 @@ xf86FirstLocalDevice()
  * different orgins on the touch screen vs X.
  */
 
-int
+_X_EXPORT int
 xf86ScaleAxis(int	Cx,
 	      int	Sxhigh,
 	      int	Sxlow,
@@ -1468,7 +1468,7 @@ xf86ScaleAxis(int	Cx,
  * ReadInput function before any events are posted, if the device is screen
  * specific like a touch screen.
  */
-void
+_X_EXPORT void
 xf86XInputSetScreen(LocalDevicePtr	local,
 		    int			screen_number,
 		    int			x,
@@ -1481,7 +1481,7 @@ xf86XInputSetScreen(LocalDevicePtr	local,
 }
 
 
-void
+_X_EXPORT void
 xf86InitValuatorAxisStruct(DeviceIntPtr dev, int axnum, int minval, int maxval,
 			   int resolution, int min_res, int max_res)
 {
@@ -1502,7 +1502,7 @@ xf86InitValuatorAxisStruct(DeviceIntPtr dev, int axnum, int minval, int maxval,
  * Set the valuator values to be in synch with dix/event.c
  * DefineInitialRootWindow().
  */
-void
+_X_EXPORT void
 xf86InitValuatorDefaults(DeviceIntPtr dev, int axnum)
 {
 #ifdef XINPUT

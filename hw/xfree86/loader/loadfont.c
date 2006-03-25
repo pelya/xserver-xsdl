@@ -62,7 +62,7 @@ NewFontModule(void)
     }
 }
 
-void
+_X_EXPORT void
 LoadFont(FontModule * f)
 {
     FontModule *newfont;

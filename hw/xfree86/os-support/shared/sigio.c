@@ -143,7 +143,7 @@ xf86IsPipe (int fd)
     return S_ISFIFO(buf.st_mode);
 }
 
-int
+_X_EXPORT int
 xf86InstallSIGIOHandler(int fd, void (*f)(int, void *), void *closure)
 {
     struct sigaction sa;
@@ -207,7 +207,7 @@ xf86InstallSIGIOHandler(int fd, void (*f)(int, void *), void *closure)
     return 0;
 }
 
-int
+_X_EXPORT int
 xf86RemoveSIGIOHandler(int fd)
 {
     struct sigaction sa;
@@ -257,7 +257,7 @@ xf86RemoveSIGIOHandler(int fd)
     return ret;
 }
 
-int
+_X_EXPORT int
 xf86BlockSIGIO (void)
 {
     sigset_t	set, old;
@@ -273,7 +273,7 @@ xf86BlockSIGIO (void)
     return ret; 
 }
 
-void
+_X_EXPORT void
 xf86UnblockSIGIO (int wasset)
 {
     sigset_t	set;

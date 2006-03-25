@@ -1,4 +1,4 @@
-/* $XdotOrg: xserver/xorg/hw/xfree86/common/xf86DGA.c,v 1.7 2005/11/08 03:12:43 alanc Exp $ */
+/* $XdotOrg: xserver/xorg/hw/xfree86/common/xf86DGA.c,v 1.8 2006/02/15 20:44:13 ajax Exp $ */
 /* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86DGA.c,v 1.46 2002/12/03 18:17:40 tsi Exp $ */
 /*
  * Copyright (c) 1998-2002 by The XFree86 Project, Inc.
@@ -101,7 +101,7 @@ typedef struct {
 } DGAScreenRec, *DGAScreenPtr;
 
 
-Bool
+_X_EXPORT Bool
 DGAInit(
    ScreenPtr pScreen,
    DGAFunctionPtr funcs, 
@@ -174,7 +174,7 @@ DGAInit(
  * the DGA mode list.
  */
 
-Bool
+_X_EXPORT Bool
 DGAReInitModes(
    ScreenPtr pScreen,
    DGAModePtr modes,
@@ -456,7 +456,7 @@ xf86SetDGAMode(
 
 /*********** exported ones ***************/
 
-void
+_X_EXPORT void
 DGASetInputMode(int index, Bool keyboard, Bool mouse)
 {
    ScreenPtr pScreen = screenInfo.screens[index];
@@ -469,7 +469,7 @@ DGASetInputMode(int index, Bool keyboard, Bool mouse)
    }
 }
 
-Bool
+_X_EXPORT Bool
 DGAChangePixmapMode(int index, int *x, int *y, int mode)
 {
    DGAScreenPtr pScreenPriv;
@@ -524,7 +524,7 @@ DGAChangePixmapMode(int index, int *x, int *y, int mode)
    return TRUE;
 }
 
-Bool
+_X_EXPORT Bool
 DGAAvailable(int index) 
 {
    if(DGAScreenIndex < 0)
@@ -540,7 +540,7 @@ DGAAvailable(int index)
    return FALSE;
 }
 
-Bool
+_X_EXPORT Bool
 DGAActive(int index) 
 {
    DGAScreenPtr pScreenPriv;
@@ -578,7 +578,7 @@ DGAShutdown()
 
 /* Called by the extension to initialize a mode */
 
-int
+_X_EXPORT int
 DGASetMode(
    int index,
    int num,
@@ -602,7 +602,7 @@ DGASetMode(
 
 /* Called from the extension to let the DDX know which events are requested */
 
-void
+_X_EXPORT void
 DGASelectInput(
    int index,
    ClientPtr client,
@@ -615,7 +615,7 @@ DGASelectInput(
    pScreenPriv->input = mask;
 }
 
-int 
+_X_EXPORT int 
 DGAGetViewportStatus(int index) 
 {
    DGAScreenPtr pScreenPriv = DGA_GET_SCREEN_PRIV(screenInfo.screens[index]);
@@ -628,7 +628,7 @@ DGAGetViewportStatus(int index)
    return (*pScreenPriv->funcs->GetViewport)(pScreenPriv->pScrn);
 }
 
-int
+_X_EXPORT int
 DGASetViewport(
    int index,
    int x, int y,
@@ -656,7 +656,7 @@ BitsClear(CARD32 data)
    return bits;
 }
 
-int
+_X_EXPORT int
 DGACreateColormap(int index, ClientPtr client, int id, int mode, int alloc)
 {
    ScreenPtr pScreen = screenInfo.screens[index];
@@ -725,7 +725,7 @@ DGACreateColormap(int index, ClientPtr client, int id, int mode, int alloc)
 
 /*  Called by the extension to install a colormap on DGA active screens */
 
-void
+_X_EXPORT void
 DGAInstallCmap(ColormapPtr cmap)
 {
     ScreenPtr pScreen = cmap->pScreen;
@@ -741,7 +741,7 @@ DGAInstallCmap(ColormapPtr cmap)
     (*pScreen->InstallColormap)(cmap);
 }
 
-int
+_X_EXPORT int
 DGASync(int index)
 {
    DGAScreenPtr pScreenPriv = DGA_GET_SCREEN_PRIV(screenInfo.screens[index]);
@@ -754,7 +754,7 @@ DGASync(int index)
    return Success;
 }
 
-int
+_X_EXPORT int
 DGAFillRect(
    int index,
    int x, int y, int w, int h,
@@ -773,7 +773,7 @@ DGAFillRect(
    return BadMatch;
 }
 
-int
+_X_EXPORT int
 DGABlitRect(
    int index,
    int srcx, int srcy, 
@@ -794,7 +794,7 @@ DGABlitRect(
    return BadMatch;
 }
 
-int
+_X_EXPORT int
 DGABlitTransRect(
    int index,
    int srcx, int srcy, 
@@ -817,7 +817,7 @@ DGABlitTransRect(
 }
 
 
-int
+_X_EXPORT int
 DGAGetModes(int index)
 {
    DGAScreenPtr pScreenPriv = DGA_GET_SCREEN_PRIV(screenInfo.screens[index]);
@@ -827,7 +827,7 @@ DGAGetModes(int index)
 }
 
 
-int
+_X_EXPORT int
 DGAGetModeInfo(
   int index,
   XDGAModePtr mode,
@@ -1207,7 +1207,7 @@ DGADeliverEvent (ScreenPtr pScreen, xEvent *e)
     return TRUE;
 }
 
-Bool 
+_X_EXPORT Bool 
 DGAOpenFramebuffer(
    int index,
    char **name,
@@ -1224,7 +1224,7 @@ DGAOpenFramebuffer(
 				name, mem, size, offset, flags);
 }
 
-void
+_X_EXPORT void
 DGACloseFramebuffer(int index)
 {
    DGAScreenPtr pScreenPriv = DGA_GET_SCREEN_PRIV(screenInfo.screens[index]);
@@ -1236,7 +1236,7 @@ DGACloseFramebuffer(int index)
 
 /*  For DGA 1.0 backwards compatibility only */
 
-int 
+_X_EXPORT int 
 DGAGetOldDGAMode(int index)
 {
    DGAScreenPtr pScreenPriv = DGA_GET_SCREEN_PRIV(screenInfo.screens[index]);

@@ -33,13 +33,13 @@
 
 extern volatile unsigned char *ioBase;
 
-void
+_X_EXPORT void
 eieio()
 {
 	__asm__ __volatile__ ("eieio");
 }
 
-unsigned long
+_X_EXPORT unsigned long
 ldl_brx(volatile unsigned char *base, int ndx)
 {
 	register unsigned long tmp = *(volatile unsigned long *)(base+ndx);
@@ -49,14 +49,14 @@ ldl_brx(volatile unsigned char *base, int ndx)
 		((tmp & 0xff000000) >> 24) );
 }
 
-unsigned short
+_X_EXPORT unsigned short
 ldw_brx(volatile unsigned char *base, int ndx)
 {
 	register unsigned short tmp = *(volatile unsigned short *)(base+ndx);
 	return((tmp << 8) | (tmp >> 8));
 }
 
-void
+_X_EXPORT void
 stl_brx(unsigned long val, volatile unsigned char *base, int ndx)
 {
    unsigned char *p = (unsigned char *)&val;
@@ -64,7 +64,7 @@ stl_brx(unsigned long val, volatile unsigned char *base, int ndx)
    *(volatile unsigned long *)(base+ndx) = tmp;
 }
 
-void
+_X_EXPORT void
 stw_brx(unsigned short val, volatile unsigned char *base, int ndx)
 {
   unsigned char *p = (unsigned char *)&val;
@@ -72,25 +72,25 @@ stw_brx(unsigned short val, volatile unsigned char *base, int ndx)
   *(volatile unsigned short *)(base+ndx) = tmp;
 }
 
-void
+_X_EXPORT void
 outb(IOADDRESS port, unsigned char value)
 {
 	*((volatile unsigned char *)(ioBase + port)) = value; eieio();
 }
 
-void
+_X_EXPORT void
 outw(IOADDRESS port, unsigned short value)
 {
 	stw_brx(value, ioBase, port); eieio();
 }
 
-void
+_X_EXPORT void
 outl(IOADDRESS port, unsigned int value)
 {
 	stl_brx(value, ioBase, port); eieio();
 }
 
-unsigned char
+_X_EXPORT unsigned char
 inb(IOADDRESS port)
 {
 	unsigned char val;
@@ -99,7 +99,7 @@ inb(IOADDRESS port)
 	return(val);
 }
 
-unsigned short
+_X_EXPORT unsigned short
 inw(IOADDRESS port)
 {
 	unsigned short val;
@@ -108,7 +108,7 @@ inw(IOADDRESS port)
 	return(val);
 }
 
-unsigned int
+_X_EXPORT unsigned int
 inl(IOADDRESS port)
 {
 	unsigned int val;
@@ -117,7 +117,7 @@ inl(IOADDRESS port)
 	return(val);
 }
 
-unsigned long 
+_X_EXPORT unsigned long 
 ldl_u(void *p)
 {
 	return (((*(unsigned char *)(p)) |
@@ -126,20 +126,20 @@ ldl_u(void *p)
 		 (*((unsigned char *)(p)+3)<<24)));
 }
 
-unsigned long 
+_X_EXPORT unsigned long 
 ldq_u(void *p)
 {
 	return ldl_u(p);
 }
 
-unsigned short
+_X_EXPORT unsigned short
 ldw_u(void *p)
 {
 	return(((*(unsigned char *)(p)) |
 	       (*((unsigned char *)(p)+1)<<8)));
 }
 
-void
+_X_EXPORT void
 stl_u(unsigned long v, void *p)
 {
 
@@ -149,13 +149,13 @@ stl_u(unsigned long v, void *p)
 	(*((unsigned char *)(p)+3)) = ((v) >> 24);
 }
 
-void
+_X_EXPORT void
 stq_u(unsigned long v, void *p)
 {
 	stl_u(v,p);
 }
 
-void
+_X_EXPORT void
 stw_u(unsigned short v, void *p)
 {
 	(*(unsigned char *)(p)) = (v);
@@ -163,13 +163,13 @@ stw_u(unsigned short v, void *p)
 }
 
 
-void
+_X_EXPORT void
 mem_barrier(void)
 {
    __asm__ __volatile__("eieio");
 }
 
-void
+_X_EXPORT void
 write_mem_barrier(void)
 {
    __asm__ __volatile__("eieio");

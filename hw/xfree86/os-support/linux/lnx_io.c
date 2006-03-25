@@ -40,7 +40,7 @@
 
 #define KBC_TIMEOUT 250        /* Timeout in ms for sending to keyboard controller */
 
-void
+_X_EXPORT void
 xf86SoundKbdBell(int loudness, int pitch, int duration)
 {
 	if (loudness && pitch)

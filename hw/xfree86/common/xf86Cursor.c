@@ -447,7 +447,7 @@ xf86WarpCursor (ScreenPtr pScreen, int x, int y)
 }
 
 
-void *
+_X_EXPORT void *
 xf86GetPointerScreenFuncs(void)
 {
     return (void *)&xf86PointerScreenFuncs;

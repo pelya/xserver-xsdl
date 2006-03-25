@@ -1,5 +1,5 @@
 /* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86DPMS.c,v 1.11 2003/11/11 21:02:28 dawes Exp $ */
-/* $XdotOrg: xc/programs/Xserver/hw/xfree86/common/xf86DPMS.c,v 1.5 2005/04/20 12:25:21 daniels Exp $ */
+/* $XdotOrg: xserver/xorg/hw/xfree86/common/xf86DPMS.c,v 1.8 2005/07/03 08:53:42 daniels Exp $ */
 
 /*
  * Copyright (c) 1997-2003 by The XFree86 Project, Inc.
@@ -56,7 +56,7 @@ static int DPMSCount = 0;
 #endif
 
 
-Bool
+_X_EXPORT Bool
 xf86DPMSInit(ScreenPtr pScreen, DPMSSetProcPtr set, int flags)
 {
 #ifdef DPMSExtension
@@ -146,7 +146,7 @@ DPMSClose(int i, ScreenPtr pScreen)
  *	Device dependent DPMS mode setting hook.  This is called whenever
  *	the DPMS mode is to be changed.
  */
-void
+_X_EXPORT void
 DPMSSet(int level)
 {
     int i;
@@ -177,7 +177,7 @@ DPMSSet(int level)
  * DPMSSupported --
  *	Return TRUE if any screen supports DPMS.
  */
-Bool
+_X_EXPORT Bool
 DPMSSupported(void)
 {
     int i;
@@ -213,7 +213,7 @@ DPMSSupported(void)
  *	 2. It isn't clear that this function is ever used or what it should
  *	    return.
  */
-int
+_X_EXPORT int
 DPMSGet(int *level)
 {
     return DPMSPowerLevel;

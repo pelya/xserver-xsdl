@@ -188,7 +188,7 @@ xf86InitVidMem(void)
 	}
 }
 
-pointer
+_X_EXPORT pointer
 xf86MapVidMem(int ScreenNum, int Flags, unsigned long Base, unsigned long Size)
 {
 	pointer vbase = NULL;
@@ -234,7 +234,7 @@ xf86MapVidMem(int ScreenNum, int Flags, unsigned long Base, unsigned long Size)
 	return vbase;
 }
 
-void
+_X_EXPORT void
 xf86UnMapVidMem(int ScreenNum, pointer Base, unsigned long Size)
 {
 	VidMapPtr vp;
@@ -261,7 +261,7 @@ xf86UnMapVidMem(int ScreenNum, pointer Base, unsigned long Size)
 	removeMapping(vp, mp);
 }
 
-Bool
+_X_EXPORT Bool
 xf86CheckMTRR(int ScreenNum)
 {
 	VidMapPtr vp = getVidMapRec(ScreenNum);
@@ -278,14 +278,14 @@ xf86CheckMTRR(int ScreenNum)
 	return FALSE;
 }
 
-Bool
+_X_EXPORT Bool
 xf86LinearVidMem()
 {
 	xf86InitVidMem();
 	return vidMemInfo.linearSupported;
 }
 
-void
+_X_EXPORT void
 xf86MapReadSideEffects(int ScreenNum, int Flags, pointer base,
 			unsigned long Size)
 {

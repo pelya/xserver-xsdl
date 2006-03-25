@@ -65,7 +65,7 @@ static Bool ParseOptionValue(int scrnIndex, pointer options, OptionInfoPtr p,
  *   extraOpts, display, confScreen, monitor, device
  */
 
-void
+_X_EXPORT void
 xf86CollectOptions(ScrnInfoPtr pScrn, pointer extraOpts)
 {
     XF86OptionPtr tmp;
@@ -132,7 +132,7 @@ xf86CollectOptions(ScrnInfoPtr pScrn, pointer extraOpts)
  *   pInfo->conf_idev->commonOptions, defaultOpts
  */
 
-void
+_X_EXPORT void
 xf86CollectInputOptions(InputInfoPtr pInfo, const char **defaultOpts,
 			pointer extraOpts)
 {
@@ -225,28 +225,28 @@ LookupBoolOption(pointer optlist, const char *name, int deflt, Bool markUsed)
 
 /* These xf86Set* functions are intended for use by non-screen specific code */
 
-int
+_X_EXPORT int
 xf86SetIntOption(pointer optlist, const char *name, int deflt)
 {
     return LookupIntOption(optlist, name, deflt, TRUE);
 }
 
 
-double
+_X_EXPORT double
 xf86SetRealOption(pointer optlist, const char *name, double deflt)
 {
     return LookupRealOption(optlist, name, deflt, TRUE);
 }
 
 
-char *
+_X_EXPORT char *
 xf86SetStrOption(pointer optlist, const char *name, char *deflt)
 {
     return LookupStrOption(optlist, name, deflt, TRUE);
 }
 
 
-int
+_X_EXPORT int
 xf86SetBoolOption(pointer optlist, const char *name, int deflt)
 {
     return LookupBoolOption(optlist, name, deflt, TRUE);
@@ -256,28 +256,28 @@ xf86SetBoolOption(pointer optlist, const char *name, int deflt)
  * These are like the Set*Option functions, but they don't mark the options
  * as used.
  */
-int
+_X_EXPORT int
 xf86CheckIntOption(pointer optlist, const char *name, int deflt)
 {
     return LookupIntOption(optlist, name, deflt, FALSE);
 }
 
 
-double
+_X_EXPORT double
 xf86CheckRealOption(pointer optlist, const char *name, double deflt)
 {
     return LookupRealOption(optlist, name, deflt, FALSE);
 }
 
 
-char *
+_X_EXPORT char *
 xf86CheckStrOption(pointer optlist, const char *name, char *deflt)
 {
     return LookupStrOption(optlist, name, deflt, FALSE);
 }
 
 
-int
+_X_EXPORT int
 xf86CheckBoolOption(pointer optlist, const char *name, int deflt)
 {
     return LookupBoolOption(optlist, name, deflt, FALSE);
@@ -287,7 +287,7 @@ xf86CheckBoolOption(pointer optlist, const char *name, int deflt)
  * addNewOption() has the required property of replacing the option value
  * if the option is already present.
  */
-pointer
+_X_EXPORT pointer
 xf86ReplaceIntOption(pointer optlist, const char *name, const int val)
 {
     char *tmp = xnfalloc(16);
@@ -295,7 +295,7 @@ xf86ReplaceIntOption(pointer optlist, const char *name, const int val)
     return xf86AddNewOption(optlist,name,tmp);
 }
 
-pointer
+_X_EXPORT pointer
 xf86ReplaceRealOption(pointer optlist, const char *name, const double val)
 {
     char *tmp = xnfalloc(32);
@@ -303,19 +303,19 @@ xf86ReplaceRealOption(pointer optlist, const char *name, const double val)
     return xf86AddNewOption(optlist,name,tmp);
 }
 
-pointer
+_X_EXPORT pointer
 xf86ReplaceBoolOption(pointer optlist, const char *name, const Bool val)
 {
     return xf86AddNewOption(optlist,name,val?"True":"False");
 }
 
-pointer
+_X_EXPORT pointer
 xf86ReplaceStrOption(pointer optlist, const char *name, const char* val)
 {
       return xf86AddNewOption(optlist,name,val);
 }
 
-pointer
+_X_EXPORT pointer
 xf86AddNewOption(pointer head, const char *name, const char *val)
 {
     /* XXX These should actually be allocated in the parser library. */
@@ -326,50 +326,50 @@ xf86AddNewOption(pointer head, const char *name, const char *val)
 }
 
 
-pointer
+_X_EXPORT pointer
 xf86NewOption(char *name, char *value)
 {
     return xf86newOption(name, value);
 }
 
 
-pointer
+_X_EXPORT pointer
 xf86NextOption(pointer list)
 {
     return xf86nextOption(list);
 }
 
-pointer
+_X_EXPORT pointer
 xf86OptionListCreate(const char **options, int count, int used)
 {
 	return xf86optionListCreate(options, count, used);
 }
 
-pointer
+_X_EXPORT pointer
 xf86OptionListMerge(pointer head, pointer tail)
 {
 	return xf86optionListMerge(head, tail);
 }
 
-void
+_X_EXPORT void
 xf86OptionListFree(pointer opt)
 {
 	xf86optionListFree(opt);
 }
 
-char *
+_X_EXPORT char *
 xf86OptionName(pointer opt)
 {
 	return xf86optionName(opt);
 }
 
-char *
+_X_EXPORT char *
 xf86OptionValue(pointer opt)
 {
 	return xf86optionValue(opt);
 }
 
-void
+_X_EXPORT void
 xf86OptionListReport(pointer parm)
 {
     XF86OptionPtr opts = parm;
@@ -386,21 +386,21 @@ xf86OptionListReport(pointer parm)
 
 /* End of XInput-caused section	*/
 
-pointer
+_X_EXPORT pointer
 xf86FindOption(pointer options, const char *name)
 {
     return xf86findOption(options, name);
 }
 
 
-char *
+_X_EXPORT char *
 xf86FindOptionValue(pointer options, const char *name)
 {
     return xf86findOptionValue(options, name);
 }
 
 
-void
+_X_EXPORT void
 xf86MarkOptionUsed(pointer option)
 {
     if (option != NULL)
@@ -408,7 +408,7 @@ xf86MarkOptionUsed(pointer option)
 }
 
 
-void
+_X_EXPORT void
 xf86MarkOptionUsedByName(pointer options, const char *name)
 {
     XF86OptionPtr opt;
@@ -418,7 +418,7 @@ xf86MarkOptionUsedByName(pointer options, const char *name)
 	opt->opt_used = TRUE;
 }
 
-Bool
+_X_EXPORT Bool
 xf86CheckIfOptionUsed(pointer option)
 {
     if (option != NULL)
@@ -427,7 +427,7 @@ xf86CheckIfOptionUsed(pointer option)
 	return FALSE;
 }
 
-Bool
+_X_EXPORT Bool
 xf86CheckIfOptionUsedByName(pointer options, const char *name)
 {
     XF86OptionPtr opt;
@@ -439,7 +439,7 @@ xf86CheckIfOptionUsedByName(pointer options, const char *name)
 	return FALSE;
 }
 
-void
+_X_EXPORT void
 xf86ShowUnusedOptions(int scrnIndex, pointer options)
 {
     XF86OptionPtr opt = options;
@@ -662,7 +662,7 @@ ParseOptionValue(int scrnIndex, pointer options, OptionInfoPtr p,
 }
 
 
-void
+_X_EXPORT void
 xf86ProcessOptions(int scrnIndex, pointer options, OptionInfoPtr optinfo)
 {
     OptionInfoPtr p;
@@ -673,7 +673,7 @@ xf86ProcessOptions(int scrnIndex, pointer options, OptionInfoPtr optinfo)
 }
 
 
-OptionInfoPtr
+_X_EXPORT OptionInfoPtr
 xf86TokenToOptinfo(const OptionInfoRec *table, int token)
 {
     const OptionInfoRec *p, *match = NULL, *set = NULL;
@@ -700,7 +700,7 @@ xf86TokenToOptinfo(const OptionInfoRec *table, int token)
 }
 
 
-const char *
+_X_EXPORT const char *
 xf86TokenToOptName(const OptionInfoRec *table, int token)
 {
     const OptionInfoRec *p;
@@ -710,7 +710,7 @@ xf86TokenToOptName(const OptionInfoRec *table, int token)
 }
 
 
-Bool
+_X_EXPORT Bool
 xf86IsOptionSet(const OptionInfoRec *table, int token)
 {
     OptionInfoPtr p;
@@ -720,7 +720,7 @@ xf86IsOptionSet(const OptionInfoRec *table, int token)
 }
 
 
-char *
+_X_EXPORT char *
 xf86GetOptValString(const OptionInfoRec *table, int token)
 {
     OptionInfoPtr p;
@@ -733,7 +733,7 @@ xf86GetOptValString(const OptionInfoRec *table, int token)
 }
 
 
-Bool
+_X_EXPORT Bool
 xf86GetOptValInteger(const OptionInfoRec *table, int token, int *value)
 {
     OptionInfoPtr p;
@@ -747,7 +747,7 @@ xf86GetOptValInteger(const OptionInfoRec *table, int token, int *value)
 }
 
 
-Bool
+_X_EXPORT Bool
 xf86GetOptValULong(const OptionInfoRec *table, int token, unsigned long *value)
 {
     OptionInfoPtr p;
@@ -761,7 +761,7 @@ xf86GetOptValULong(const OptionInfoRec *table, int token, unsigned long *value)
 }
 
 
-Bool
+_X_EXPORT Bool
 xf86GetOptValReal(const OptionInfoRec *table, int token, double *value)
 {
     OptionInfoPtr p;
@@ -775,7 +775,7 @@ xf86GetOptValReal(const OptionInfoRec *table, int token, double *value)
 }
 
 
-Bool
+_X_EXPORT Bool
 xf86GetOptValFreq(const OptionInfoRec *table, int token,
 		  OptFreqUnits expectedUnits, double *value)
 {
@@ -823,7 +823,7 @@ xf86GetOptValFreq(const OptionInfoRec *table, int token,
 }
 
 
-Bool
+_X_EXPORT Bool
 xf86GetOptValBool(const OptionInfoRec *table, int token, Bool *value)
 {
     OptionInfoPtr p;
@@ -837,7 +837,7 @@ xf86GetOptValBool(const OptionInfoRec *table, int token, Bool *value)
 }
 
 
-Bool
+_X_EXPORT Bool
 xf86ReturnOptValBool(const OptionInfoRec *table, int token, Bool def)
 {
     OptionInfoPtr p;
@@ -850,7 +850,7 @@ xf86ReturnOptValBool(const OptionInfoRec *table, int token, Bool def)
 }
 
 
-int
+_X_EXPORT int
 xf86NameCmp(const char *s1, const char *s2)
 {
     return xf86nameCompare(s1, s2);

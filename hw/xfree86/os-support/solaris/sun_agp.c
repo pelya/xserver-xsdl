@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/hw/xfree86/os-support/sunos/sun_agp.c,v 1.1 2005/06/09 03:11:58 alanc Exp $ */
+/* $XdotOrg: xserver/xorg/hw/xfree86/os-support/solaris/sun_agp.c,v 1.5 2005/08/24 22:37:15 alanc Exp $ */
 /*
  * Abstraction of the AGP GART interface.
  *
@@ -67,7 +67,7 @@ static Bool initDone = FALSE;
  * Close /dev/agpgart.  This frees all associated memory allocated during
  * this server generation.
  */
-Bool
+_X_EXPORT Bool
 xf86GARTCloseScreen(int screenNum)
 {
 	if (gartFd != -1) {
@@ -111,14 +111,14 @@ GARTInit(int screenNum)
 	return TRUE;
 }
 
-Bool
+_X_EXPORT Bool
 xf86AgpGARTSupported(void)
 {
 	return (GARTInit(-1));
 
 }
 
-AgpInfoPtr
+_X_EXPORT AgpInfoPtr
 xf86GetAGPInfo(int screenNum)
 {
 	agp_info_t agpinf;
@@ -151,7 +151,7 @@ xf86GetAGPInfo(int screenNum)
 	return info;
 }
 
-Bool
+_X_EXPORT Bool
 xf86AcquireGART(int screenNum)
 {
 
@@ -172,7 +172,7 @@ xf86AcquireGART(int screenNum)
 	return TRUE;
 }
 
-Bool
+_X_EXPORT Bool
 xf86ReleaseGART(int screenNum)
 {
 
@@ -201,7 +201,7 @@ xf86ReleaseGART(int screenNum)
 	return FALSE;
 }
 
-int
+_X_EXPORT int
 xf86AllocateGARTMemory(int screenNum, unsigned long size, int type,
 			unsigned long *physical)
 {
@@ -239,7 +239,7 @@ xf86AllocateGARTMemory(int screenNum, unsigned long size, int type,
 	return alloc.agpa_key;
 }
 
-Bool
+_X_EXPORT Bool
 xf86DeallocateGARTMemory(int screenNum, int key)
 {
 	if (!GARTInit(screenNum) || (acquiredScreen != screenNum))
@@ -256,7 +256,7 @@ xf86DeallocateGARTMemory(int screenNum, int key)
 }
 
 /* Bind GART memory with "key" at "offset" */
-Bool
+_X_EXPORT Bool
 xf86BindGARTMemory(int screenNum, int key, unsigned long offset)
 {
 	agp_bind_t bind;
@@ -292,7 +292,7 @@ xf86BindGARTMemory(int screenNum, int key, unsigned long offset)
 }
 
 /* Unbind GART memory with "key" */
-Bool
+_X_EXPORT Bool
 xf86UnbindGARTMemory(int screenNum, int key)
 {
 	agp_unbind_t unbind;
@@ -318,7 +318,7 @@ xf86UnbindGARTMemory(int screenNum, int key)
 
 
 /* XXX Interface may change. */
-Bool
+_X_EXPORT Bool
 xf86EnableAGP(int screenNum, CARD32 mode)
 {
 	agp_setup_t setup;

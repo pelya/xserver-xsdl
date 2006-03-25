@@ -141,7 +141,7 @@ int (*XvScreenInitProc)(ScreenPtr) = XvScreenInit;
 static xf86XVInitGenericAdaptorPtr *GenDrivers = NULL;
 static int NumGenDrivers = 0;
 
-int
+_X_EXPORT int
 xf86XVRegisterGenericAdaptorDriver(
     xf86XVInitGenericAdaptorPtr InitFunc
 ){
@@ -158,7 +158,7 @@ xf86XVRegisterGenericAdaptorDriver(
   return 1;
 }
 
-int
+_X_EXPORT int
 xf86XVListGenericAdaptors(
     ScrnInfoPtr pScrn,
     XF86VideoAdaptorPtr **adaptors
@@ -197,7 +197,7 @@ typedef struct {
 
 static OffscreenImageRec OffscreenImages[MAXSCREENS];
 
-Bool
+_X_EXPORT Bool
 xf86XVRegisterOffscreenImages(
     ScreenPtr pScreen,
     XF86OffscreenImagePtr images,
@@ -209,7 +209,7 @@ xf86XVRegisterOffscreenImages(
     return TRUE;
 }
 
-XF86OffscreenImagePtr
+_X_EXPORT XF86OffscreenImagePtr
 xf86XVQueryOffscreenImages(
    ScreenPtr pScreen,
    int *num
@@ -219,20 +219,20 @@ xf86XVQueryOffscreenImages(
 }
 
 
-XF86VideoAdaptorPtr
+_X_EXPORT XF86VideoAdaptorPtr
 xf86XVAllocateVideoAdaptorRec(ScrnInfoPtr pScrn)
 {
     return xcalloc(1, sizeof(XF86VideoAdaptorRec));
 }
 
-void
+_X_EXPORT void
 xf86XVFreeVideoAdaptorRec(XF86VideoAdaptorPtr ptr)
 {
     xfree(ptr);
 }
 
 
-Bool
+_X_EXPORT Bool
 xf86XVScreenInit(
    ScreenPtr pScreen,
    XF86VideoAdaptorPtr *adaptors,
@@ -1819,7 +1819,7 @@ xf86XVQueryImageAttributes(
 			format->id, width, height, pitches, offsets);
 }
 
-void
+_X_EXPORT void
 xf86XVFillKeyHelper (ScreenPtr pScreen, CARD32 key, RegionPtr clipboxes)
 {
    XF86XVScreenPtr ScreenPriv = GET_XF86XV_SCREEN(pScreen);
@@ -1871,7 +1871,7 @@ xf86XVFillKeyHelper (ScreenPtr pScreen, CARD32 key, RegionPtr clipboxes)
 
 #define DummyScreen screenInfo.screens[0]
 
-Bool
+_X_EXPORT Bool
 xf86XVClipVideoHelper(
     BoxPtr dst,
     INT32 *xa,
@@ -1953,7 +1953,7 @@ xf86XVClipVideoHelper(
     return TRUE;
 }
 
-void
+_X_EXPORT void
 xf86XVCopyYUV12ToPacked(
     const void *srcy,
     const void *srcv,
@@ -2011,7 +2011,7 @@ xf86XVCopyYUV12ToPacked(
     }
 }
 
-void
+_X_EXPORT void
 xf86XVCopyPacked(
     const void *src,
     void *dst,

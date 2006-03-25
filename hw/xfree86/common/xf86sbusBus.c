@@ -361,7 +361,7 @@ xf86ClaimSbusSlot(sbusDevicePtr psdp, DriverPtr drvp,
 	return -1;
 }
 
-int
+_X_EXPORT int
 xf86MatchSbusInstances(const char *driverName, int sbusDevId, 
 		       GDevPtr *devList, int numDevs, DriverPtr drvp,
 		       int **foundEntities)
@@ -537,7 +537,7 @@ xf86MatchSbusInstances(const char *driverName, int sbusDevId,
 /*
  * xf86GetSbusInfoForEntity() -- Get the sbusDevicePtr of entity.
  */
-sbusDevicePtr
+_X_EXPORT sbusDevicePtr
 xf86GetSbusInfoForEntity(int entityIndex)
 {
     sbusDevicePtr *psdpp;
@@ -553,7 +553,7 @@ xf86GetSbusInfoForEntity(int entityIndex)
     return NULL;
 }
 
-int
+_X_EXPORT int
 xf86GetEntityForSbusInfo(sbusDevicePtr psdp)
 {
     int i;
@@ -568,7 +568,7 @@ xf86GetEntityForSbusInfo(sbusDevicePtr psdp)
     return -1;
 }
 
-void
+_X_EXPORT void
 xf86SbusUseBuiltinMode(ScrnInfoPtr pScrn, sbusDevicePtr psdp)
 {
     DisplayModePtr mode;
@@ -667,7 +667,7 @@ xf86SbusCmapCloseScreen(int i, ScreenPtr pScreen)
     return (*pScreen->CloseScreen) (i, pScreen);
 }    
 
-Bool
+_X_EXPORT Bool
 xf86SbusHandleColormaps(ScreenPtr pScreen, sbusDevicePtr psdp)
 {
     sbusCmapPtr cmap;

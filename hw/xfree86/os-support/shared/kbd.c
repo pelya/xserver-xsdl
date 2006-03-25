@@ -32,7 +32,7 @@
 
 #include "xf86OSKbd.h"
 
-Bool
+_X_EXPORT Bool
 xf86OSKbdPreInit(InputInfoPtr pInfo)
 {
     return FALSE;

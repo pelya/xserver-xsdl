@@ -37,13 +37,13 @@
 #include "xf86Priv.h"
 #include "xf86_OSlib.h"
 
-Bool
+_X_EXPORT Bool
 xf86EnableIO()
 {
 	return TRUE;
 }
 
-void
+_X_EXPORT void
 xf86DisableIO()
 {
 	return;

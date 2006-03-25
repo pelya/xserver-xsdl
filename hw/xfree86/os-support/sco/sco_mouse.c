@@ -242,7 +242,7 @@ OsMousePreInit(InputInfoPtr pInfo, const char *protocol, int flags)
   return TRUE;
 }
 
-OSMouseInfoPtr
+_X_EXPORT OSMouseInfoPtr
 xf86OSMouseInit (int flags)
 {
   OSMouseInfoPtr p;

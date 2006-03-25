@@ -36,7 +36,7 @@
 
 static CARD32 registeredVersions[NUM_BUILTIN_IFS];
 
-CARD32
+_X_EXPORT CARD32
 xf86GetBuiltinInterfaceVersion(BuiltinInterface iface, int flags)
 {
     if (iface < 0 || iface >= NUM_BUILTIN_IFS) {
@@ -61,7 +61,7 @@ xf86GetBuiltinInterfaceVersion(BuiltinInterface iface, int flags)
     }
 }
 
-Bool
+_X_EXPORT Bool
 xf86RegisterBuiltinInterfaceVersion(BuiltinInterface iface, CARD32 version,
 				    int flags)
 {

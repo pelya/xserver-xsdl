@@ -14,7 +14,7 @@
 
 #include <time.h>
 
-void
+_X_EXPORT void
 xf86UDelay(long usec)
 {
 #if 0

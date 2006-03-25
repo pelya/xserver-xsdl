@@ -269,13 +269,13 @@ xf86OSInitVidMem(VidMemInfoPtr pVidMem)
 /* Interrupt Handling section                                              */
 /***************************************************************************/
 
-Bool
+_X_EXPORT Bool
 xf86DisableInterrupts()
 {
 	return(TRUE);
 }
 
-void
+_X_EXPORT void
 xf86EnableInterrupts()
 {
 	return;
@@ -287,7 +287,7 @@ xf86EnableInterrupts()
 
 #if defined(__powerpc__)
 
-volatile unsigned char *ioBase = MAP_FAILED;
+_X_EXPORT volatile unsigned char *ioBase = MAP_FAILED;
 volatile unsigned char *pciConfBase = MAP_FAILED;
 
 static int IOEnabled;
@@ -301,7 +301,7 @@ removeIOSmem(void)
 	ioBase = MAP_FAILED;	
 }
 
-Bool
+_X_EXPORT Bool
 xf86EnableIO()
 {
 	if (IOEnabled++ == 0) {
@@ -322,7 +322,7 @@ xf86EnableIO()
 	return TRUE;
 }
 
-void
+_X_EXPORT void
 xf86DisableIO()
 {
 	if (!IOEnabled)

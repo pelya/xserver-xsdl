@@ -46,7 +46,7 @@
 static int xf86FBMangerIndex = -1;
 static unsigned long xf86ManagerGeneration = 0;
 
-Bool xf86RegisterOffscreenManager(
+_X_EXPORT Bool xf86RegisterOffscreenManager(
     ScreenPtr pScreen, 
     FBManagerFuncsPtr funcs
 ){
@@ -63,7 +63,7 @@ Bool xf86RegisterOffscreenManager(
 }
 
 
-Bool
+_X_EXPORT Bool
 xf86FBManagerRunning(ScreenPtr pScreen)
 {
     if(xf86FBMangerIndex < 0) 
@@ -74,7 +74,7 @@ xf86FBManagerRunning(ScreenPtr pScreen)
     return TRUE;
 }
 
-Bool
+_X_EXPORT Bool
 xf86RegisterFreeBoxCallback(
     ScreenPtr pScreen,  
     FreeBoxCallbackProcPtr FreeBoxCallback,
@@ -91,7 +91,7 @@ xf86RegisterFreeBoxCallback(
 }
 
 
-FBAreaPtr
+_X_EXPORT FBAreaPtr
 xf86AllocateOffscreenArea(
    ScreenPtr pScreen, 
    int w, int h,
@@ -112,7 +112,7 @@ xf86AllocateOffscreenArea(
 }
 
 
-FBLinearPtr
+_X_EXPORT FBLinearPtr
 xf86AllocateOffscreenLinear(
     ScreenPtr pScreen, 
     int length,
@@ -133,7 +133,7 @@ xf86AllocateOffscreenLinear(
 }
 
 
-void
+_X_EXPORT void
 xf86FreeOffscreenArea(FBAreaPtr area)
 {
    FBManagerFuncsPtr funcs;
@@ -152,7 +152,7 @@ xf86FreeOffscreenArea(FBAreaPtr area)
 }
 
 
-void
+_X_EXPORT void
 xf86FreeOffscreenLinear(FBLinearPtr linear)
 {
    FBManagerFuncsPtr funcs;
@@ -171,7 +171,7 @@ xf86FreeOffscreenLinear(FBLinearPtr linear)
 }
 
 
-Bool
+_X_EXPORT Bool
 xf86ResizeOffscreenArea(
    FBAreaPtr resize,
    int w, int h
@@ -189,7 +189,7 @@ xf86ResizeOffscreenArea(
    return (*funcs->ResizeOffscreenArea)(resize, w, h);
 }
 
-Bool
+_X_EXPORT Bool
 xf86ResizeOffscreenLinear(
    FBLinearPtr resize,
    int size
@@ -208,7 +208,7 @@ xf86ResizeOffscreenLinear(
 }
 
 
-Bool
+_X_EXPORT Bool
 xf86QueryLargestOffscreenArea(
     ScreenPtr pScreen,
     int *w, int *h,
@@ -230,7 +230,7 @@ xf86QueryLargestOffscreenArea(
 		pScreen, w, h, gran, preferences, severity);
 }
 
-Bool
+_X_EXPORT Bool
 xf86QueryLargestOffscreenLinear(
     ScreenPtr pScreen,
     int *size,
@@ -251,7 +251,7 @@ xf86QueryLargestOffscreenLinear(
 }
 
 
-Bool
+_X_EXPORT Bool
 xf86PurgeUnlockedOffscreenAreas(ScreenPtr pScreen)
 {
    FBManagerFuncsPtr funcs;
@@ -1195,7 +1195,7 @@ xf86FBCloseScreen (int i, ScreenPtr pScreen)
    return (*pScreen->CloseScreen) (i, pScreen);
 }
 
-Bool
+_X_EXPORT Bool
 xf86InitFBManager(
     ScreenPtr pScreen,  
     BoxPtr FullBox
@@ -1232,7 +1232,7 @@ xf86InitFBManager(
    return ret;
 }
 
-Bool
+_X_EXPORT Bool
 xf86InitFBManagerArea(
     ScreenPtr pScreen,
     int PixelArea,
@@ -1324,7 +1324,7 @@ xf86InitFBManagerArea(
     return ret;
 }
 
-Bool
+_X_EXPORT Bool
 xf86InitFBManagerRegion(
     ScreenPtr pScreen,  
     RegionPtr FullRegion
@@ -1368,7 +1368,7 @@ xf86InitFBManagerRegion(
    return TRUE;
 } 
 
-Bool
+_X_EXPORT Bool
 xf86InitFBManagerLinear(
     ScreenPtr pScreen,  
     int offset,
@@ -1412,7 +1412,7 @@ xf86InitFBManagerLinear(
    disappear after the next release.  People should use the
    real linear functions instead */
 
-FBAreaPtr 
+_X_EXPORT FBAreaPtr 
 xf86AllocateLinearOffscreenArea (
    ScreenPtr pScreen, 
    int length,

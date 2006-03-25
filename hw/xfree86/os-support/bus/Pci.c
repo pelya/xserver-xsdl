@@ -227,7 +227,7 @@ int    pciFuncNum;          /* Function number of current device */
 PCITAG pciDeviceTag;        /* Tag for current device */
 
 pciBusInfo_t  *pciBusInfo[MAX_PCI_BUSES] = { NULL, };
-int            pciNumBuses = 0;     /* Actual number of PCI buses */
+_X_EXPORT int            pciNumBuses = 0;     /* Actual number of PCI buses */
 int            pciMaxBusNum = MAX_PCI_BUSES;
 static Bool    inProbe = FALSE;
 
@@ -269,7 +269,7 @@ pciInit()
 #endif
 }
 
-PCITAG
+_X_EXPORT PCITAG
 pciFindFirst(CARD32 id, CARD32 mask)
 {
 #ifdef DEBUGPCI
@@ -283,7 +283,7 @@ pciFindFirst(CARD32 id, CARD32 mask)
   return((*pciFindFirstFP)());
 }
 
-PCITAG
+_X_EXPORT PCITAG
 pciFindNext(void)
 {
 #ifdef DEBUGPCI
@@ -294,7 +294,7 @@ pciFindNext(void)
   return((*pciFindNextFP)());
 }
 
-CARD32
+_X_EXPORT CARD32
 pciReadLong(PCITAG tag, int offset)
 {
   int bus = PCI_BUS_FROM_TAG(tag);
@@ -316,7 +316,7 @@ pciReadLong(PCITAG tag, int offset)
   return(PCI_NOT_FOUND);
 }
 
-CARD16
+_X_EXPORT CARD16
 pciReadWord(PCITAG tag, int offset)
 {
   CARD32 tmp;
@@ -342,7 +342,7 @@ pciReadWord(PCITAG tag, int offset)
   }
 }
 
-CARD8
+_X_EXPORT CARD8
 pciReadByte(PCITAG tag, int offset)
 {
   CARD32 tmp;
@@ -364,7 +364,7 @@ pciReadByte(PCITAG tag, int offset)
   }
 }
 
-void
+_X_EXPORT void
 pciWriteLong(PCITAG tag, int offset, CARD32 val)
 {
   int bus = PCI_BUS_FROM_TAG(tag);
@@ -376,7 +376,7 @@ pciWriteLong(PCITAG tag, int offset, CARD32 val)
 	  (*pciBusInfo[bus]->funcs->pciWriteLong)(tag, offset, val);
 }
 
-void
+_X_EXPORT void
 pciWriteWord(PCITAG tag, int offset, CARD16 val)
 {
   CARD32 tmp;
@@ -403,7 +403,7 @@ pciWriteWord(PCITAG tag, int offset, CARD16 val)
   }
 }
 
-void
+_X_EXPORT void
 pciWriteByte(PCITAG tag, int offset, CARD8 val)
 {
   CARD32 tmp;
@@ -427,7 +427,7 @@ pciWriteByte(PCITAG tag, int offset, CARD8 val)
   }
 }
 
-void
+_X_EXPORT void
 pciSetBitsLong(PCITAG tag, int offset, CARD32 mask, CARD32 val)
 {
     int bus = PCI_BUS_FROM_TAG(tag);
@@ -455,7 +455,7 @@ pciSetBitsByte(PCITAG tag, int offset, CARD8 mask, CARD8 val)
   pciSetBitsLong(tag, aligned_offset, tmp_mask, tmp_val);
 }
 
-ADDRESS
+_X_EXPORT ADDRESS
 pciBusAddrToHostAddr(PCITAG tag, PciAddrType type, ADDRESS addr)
 {
   int bus = PCI_BUS_FROM_TAG(tag);
@@ -469,7 +469,7 @@ pciBusAddrToHostAddr(PCITAG tag, PciAddrType type, ADDRESS addr)
 	  return(addr);
 }
 
-ADDRESS
+_X_EXPORT ADDRESS
 pciHostAddrToBusAddr(PCITAG tag, PciAddrType type, ADDRESS addr)
 {
   int bus = PCI_BUS_FROM_TAG(tag);
@@ -600,7 +600,7 @@ pciGetBaseSize(PCITAG tag, int index, Bool destructive, Bool *min)
   return bits;
 }
 
-PCITAG
+_X_EXPORT PCITAG
 pciTag(int busnum, int devnum, int funcnum)
 {
 	return(PCI_MAKE_TAG(busnum,devnum,funcnum));
@@ -890,7 +890,7 @@ pciAddrNOOP(PCITAG tag, PciAddrType type, ADDRESS addr)
 	return(addr);
 }
 
-pciConfigPtr *
+_X_EXPORT pciConfigPtr *
 xf86scanpci(int flags)
 {
     pciConfigPtr devp;
@@ -1070,7 +1070,7 @@ pciCheckForBrokenBase(PCITAG Tag,int basereg)
 
 #if defined(INCLUDE_XF86_MAP_PCI_MEM)
 
-pointer
+_X_EXPORT pointer
 xf86MapPciMem(int ScreenNum, int Flags, PCITAG Tag, ADDRESS Base,
 		unsigned long Size)
 {
@@ -1307,7 +1307,7 @@ HandlePciBios(PCITAG Tag, int basereg, unsigned char * buf, int len)
   return n;
 }
 
-int
+_X_EXPORT int
 xf86ReadPciBIOS(unsigned long Offset, PCITAG Tag, int basereg,
 		unsigned char *Buf, int Len)
 {
@@ -1318,27 +1318,27 @@ xf86ReadPciBIOS(unsigned long Offset, PCITAG Tag, int basereg,
 
 #ifdef INCLUDE_XF86_NO_DOMAIN
 
-int
+_X_EXPORT int
 xf86GetPciDomain(PCITAG Tag)
 {
     return 0;
 }
 
-pointer
+_X_EXPORT pointer
 xf86MapDomainMemory(int ScreenNum, int Flags, PCITAG Tag,
 		    ADDRESS Base, unsigned long Size)
 {
     return xf86MapVidMem(ScreenNum, Flags, Base, Size);
 }
 
-IOADDRESS
+_X_EXPORT IOADDRESS
 xf86MapDomainIO(int ScreenNum, int Flags, PCITAG Tag,
 		IOADDRESS Base, unsigned long Size)
 {
     return Base;
 }
 
-int
+_X_EXPORT int
 xf86ReadDomainMemory(PCITAG Tag, ADDRESS Base, int Len, unsigned char *Buf)
 {
     int ret, length, rlength;

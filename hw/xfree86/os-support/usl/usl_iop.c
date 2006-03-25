@@ -1,4 +1,4 @@
-/* $XdotOrg$ */
+/* $XdotOrg: xserver/xorg/hw/xfree86/os-support/usl/usl_iop.c,v 1.2 2005/11/08 06:33:30 jkj Exp $ */
 /*
  * Copyright 2001,2005 by Kean Johnston <jkj@sco.com>
  *
@@ -40,7 +40,7 @@
 
 static Bool IOEnabled = FALSE;
 
-Bool
+_X_EXPORT Bool
 xf86EnableIO(void)
 {
   if (IOEnabled)
@@ -52,7 +52,7 @@ xf86EnableIO(void)
   return TRUE;
 }
 
-void
+_X_EXPORT void
 xf86DisableIO(void)
 {
   if (!IOEnabled)
@@ -66,7 +66,7 @@ xf86DisableIO(void)
 /* Interrupt Handling section                                              */
 /***************************************************************************/
 
-Bool
+_X_EXPORT Bool
 xf86DisableInterrupts(void)
 {
   if (!IOEnabled) {
@@ -87,7 +87,7 @@ xf86DisableInterrupts(void)
   return(TRUE);
 }
 
-void
+_X_EXPORT void
 xf86EnableInterrupts(void)
 {
   if (!IOEnabled) {

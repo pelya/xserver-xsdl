@@ -236,7 +236,7 @@ unmapVidMem(int ScreenNum, pointer Base, unsigned long Size)
  * Read BIOS via mmap()ing DEV_MEM
  */
 
-int
+_X_EXPORT int
 xf86ReadBIOS(unsigned long Base, unsigned long Offset, unsigned char *Buf,
 	     int Len)
 {
@@ -453,7 +453,7 @@ armUnmapVidMem(int ScreenNum, pointer Base, unsigned long Size)
 #ifdef USE_DEV_IO
 static int IoFd = -1;
 
-Bool
+_X_EXPORT Bool
 xf86EnableIO()
 {
 	if (IoFd >= 0)
@@ -468,7 +468,7 @@ xf86EnableIO()
 	return TRUE;
 }
 
-void
+_X_EXPORT void
 xf86DisableIO()
 {
 	if (IoFd < 0)
@@ -530,14 +530,14 @@ xf86DisableIO()
 /* Interrupt Handling section                                              */
 /***************************************************************************/
 
-Bool
+_X_EXPORT Bool
 xf86DisableInterrupts()
 {
 
 	return(TRUE);
 }
 
-void
+_X_EXPORT void
 xf86EnableInterrupts()
 {
 

@@ -182,7 +182,7 @@ typedef struct dirent DIRENTRY;
 #define SETBUF_RETURNS_INT
 #endif
 
-double xf86HUGE_VAL;
+_X_EXPORT double xf86HUGE_VAL;
 
 #ifndef SELF_CONTAINED_WRAPPERS
 extern void xf86DisableIO(void);
@@ -193,13 +193,13 @@ extern void xf86DisableIO(void);
  * called by loadable modules
  */
 
-double
+_X_EXPORT double
 xf86hypot(double x, double y)
 {
 	return(hypot(x,y));
 }
 
-void
+_X_EXPORT void
 xf86qsort(void *base, xf86size_t nmemb, xf86size_t size,
 	  int (*comp)(const void *, const void *))
 {
@@ -208,26 +208,26 @@ xf86qsort(void *base, xf86size_t nmemb, xf86size_t size,
 
 /* string functions */
 
-char*
+_X_EXPORT char*
 xf86strcat(char* dest, const char* src)
 {
 	return(strcat(dest,src));
 }
 
-char*
+_X_EXPORT char*
 xf86strchr(const char* s, int c)
 {
 	return strchr(s,c);
 }
 
-int
+_X_EXPORT int
 xf86strcmp(const char* s1, const char* s2)
 {
 	return strcmp(s1,s2);
 }
 
 /* Just like the BSD version.  It assumes that tolower() is ANSI-compliant */
-int
+_X_EXPORT int
 xf86strcasecmp(const char* s1, const char* s2)
 {
 	const unsigned char *us1 = (const unsigned char *)s1;
@@ -240,50 +240,50 @@ xf86strcasecmp(const char* s1, const char* s2)
 	return tolower(*us1) - tolower(*--us2);
 }
 
-char*
+_X_EXPORT char*
 xf86strcpy(char* dest, const char* src)
 {
 	return strcpy(dest,src);
 }
 
-xf86size_t
+_X_EXPORT xf86size_t
 xf86strcspn(const char* s1, const char* s2)
 {
 	return (xf86size_t)strcspn(s1,s2);
 }
 
-xf86size_t
+_X_EXPORT xf86size_t
 xf86strlen(const char* s)
 {
 	return (xf86size_t)strlen(s);
 }
 
-xf86size_t
+_X_EXPORT xf86size_t
 xf86strlcat(char *dest, const char *src, xf86size_t size)
 {
 	return(strlcat(dest, src, size));
 }
 
-xf86size_t
+_X_EXPORT xf86size_t
 xf86strlcpy(char *dest, const char *src, xf86size_t size)
 {
 	return strlcpy(dest, src, size);
 }
 
-char*
+_X_EXPORT char*
 xf86strncat(char* dest, const char* src, xf86size_t n)
 {
 	return strncat(dest,src,(size_t)n);
 }
 
-int
+_X_EXPORT int
 xf86strncmp(const char* s1, const char* s2, xf86size_t n)
 {
 	return strncmp(s1,s2,(size_t)n);
 }
 
 /* Just like the BSD version.  It assumes that tolower() is ANSI-compliant */
-int
+_X_EXPORT int
 xf86strncasecmp(const char* s1, const char* s2, xf86size_t n)
 {
 	if (n != 0) {
@@ -300,49 +300,49 @@ xf86strncasecmp(const char* s1, const char* s2, xf86size_t n)
 	return 0;
 }
 
-char*
+_X_EXPORT char*
 xf86strncpy(char* dest, const char* src, xf86size_t n)
 {
 	return strncpy(dest,src,(size_t)n);
 }
 
-char*
+_X_EXPORT char*
 xf86strpbrk(const char* s1, const char* s2)
 {
 	return strpbrk(s1,s2);
 }
 
-char*
+_X_EXPORT char*
 xf86strrchr(const char* s, int c)
 {
 	return strrchr(s,c);
 }
 
-xf86size_t
+_X_EXPORT xf86size_t
 xf86strspn(const char* s1, const char* s2)
 {
 	return strspn(s1,s2);
 }
 
-char*
+_X_EXPORT char*
 xf86strstr(const char* s1, const char* s2)
 {
 	return strstr(s1,s2);
 }
 
-char*
+_X_EXPORT char*
 xf86strtok(char* s1, const char* s2)
 {
 	return strtok(s1,s2);
 }
 
-char*
+_X_EXPORT char*
 xf86strdup(const char* s)
 {
 	return xstrdup(s);
 }
 
-int
+_X_EXPORT int
 xf86sprintf(char *s, const char *format, ...)
 {
     int ret;
@@ -353,7 +353,7 @@ xf86sprintf(char *s, const char *format, ...)
     return ret;
 }
 
-int
+_X_EXPORT int
 xf86snprintf(char *s, xf86size_t len, const char *format, ...)
 {
     int ret;
@@ -364,17 +364,17 @@ xf86snprintf(char *s, xf86size_t len, const char *format, ...)
     return ret;
 }
 
-void
+_X_EXPORT void
 xf86bzero(void* s, unsigned int n)
 {
     memset(s, 0, n);
 }
   
 #ifdef HAVE_VSSCANF
-int
+_X_EXPORT int
 xf86sscanf(char *s, const char *format, ...)
 #else
-int
+_X_EXPORT int
 xf86sscanf(char *s, const char *format, char *a0, char *a1, char *a2,
 	   char *a3, char *a4, char *a5, char *a6, char *a7, char *a8,
 	   char *a9) /* limit of ten args */
@@ -395,7 +395,7 @@ xf86sscanf(char *s, const char *format, char *a0, char *a1, char *a2,
   
 /* Basic I/O */
 
-int xf86errno;
+_X_EXPORT int xf86errno;
 
 /* XXX This is not complete */
 
@@ -415,7 +415,7 @@ xfToOsOpenFlags(int xfflags)
     return flags;
 }
 
-int 
+_X_EXPORT int 
 xf86open(const char *path, int flags, ...)
 {
     int fd;
@@ -437,7 +437,7 @@ xf86open(const char *path, int flags, ...)
     return fd;
 }
 
-int
+_X_EXPORT int
 xf86close(int fd)
 {
     int status = close(fd);
@@ -446,7 +446,7 @@ xf86close(int fd)
     return status;
 }
 
-long
+_X_EXPORT long
 xf86lseek(int fd, long offset, int whence)
 {
 	switch (whence) {
@@ -463,7 +463,7 @@ xf86lseek(int fd, long offset, int whence)
 	return (long)lseek(fd, (off_t)offset, whence);
 }
 
-int
+_X_EXPORT int
 xf86ioctl(int fd, unsigned long request, pointer argp)
 {
     int status = ioctl(fd, request, argp);
@@ -472,7 +472,7 @@ xf86ioctl(int fd, unsigned long request, pointer argp)
     return status;
 }
 
-xf86ssize_t
+_X_EXPORT xf86ssize_t
 xf86read(int fd, void *buf, xf86size_t nbytes)
 {
     xf86ssize_t n = read(fd, buf, (size_t)nbytes);
@@ -481,7 +481,7 @@ xf86read(int fd, void *buf, xf86size_t nbytes)
     return n;
 }
 
-xf86ssize_t
+_X_EXPORT xf86ssize_t
 xf86write(int fd, const void *buf, xf86size_t nbytes)
 {
     xf86ssize_t n = write(fd, buf, (size_t)nbytes);
@@ -490,7 +490,7 @@ xf86write(int fd, const void *buf, xf86size_t nbytes)
     return n;
 }
 
-void*
+_X_EXPORT void*
 xf86mmap(void *start, xf86size_t length, int prot,
 	 int flags, int fd, xf86size_t /* off_t */ offset)
 {
@@ -547,7 +547,7 @@ xf86mmap(void *start, xf86size_t length, int prot,
 #endif
 }
 
-int
+_X_EXPORT int
 xf86munmap(void *start, xf86size_t length)
 {
 #ifndef NO_MMAP
@@ -569,7 +569,7 @@ xf86munmap(void *start, xf86size_t length)
 #endif
 }
 
-int
+_X_EXPORT int
 xf86stat(const char *file_name, struct xf86stat *xfst)
 {
     int         rc;
@@ -581,7 +581,7 @@ xf86stat(const char *file_name, struct xf86stat *xfst)
     return rc;
 }
 
-int
+_X_EXPORT int
 xf86fstat(int fd, struct xf86stat *xfst)
 {
     int         rc;
@@ -605,7 +605,7 @@ xfToOsAccessMode(int xfmode)
     return 0;
 }
 
-int
+_X_EXPORT int
 xf86access(const char *pathname, int mode)
 {
     int rc;
@@ -635,9 +635,9 @@ XF86FILE_priv stdhnd[3] = {
 	{ 0, XF86FILE_magic, NULL, "$stderr$" }
 };
 
-XF86FILE* xf86stdin = (XF86FILE*)&stdhnd[0];
-XF86FILE* xf86stdout = (XF86FILE*)&stdhnd[1];
-XF86FILE* xf86stderr = (XF86FILE*)&stdhnd[2];
+_X_EXPORT XF86FILE* xf86stdin = (XF86FILE*)&stdhnd[0];
+_X_EXPORT XF86FILE* xf86stdout = (XF86FILE*)&stdhnd[1];
+_X_EXPORT XF86FILE* xf86stderr = (XF86FILE*)&stdhnd[2];
 
 void
 xf86WrapperInit()
@@ -651,7 +651,7 @@ xf86WrapperInit()
     xf86HUGE_VAL = HUGE_VAL;
 }
 
-XF86FILE*
+_X_EXPORT XF86FILE*
 xf86fopen(const char* fn, const char* mode)
 {
 	XF86FILE_priv* fp;
@@ -681,7 +681,7 @@ static void _xf86checkhndl(XF86FILE_priv* f,const char *func)
 	}
 }
 
-int
+_X_EXPORT int
 xf86fclose(XF86FILE* f) 
 {
 	XF86FILE_priv* fp = (XF86FILE_priv*)f;
@@ -702,7 +702,7 @@ xf86fclose(XF86FILE* f)
 	return ret ? -1 : 0;
 }
 
-int
+_X_EXPORT int
 xf86printf(const char *format, ...)
 {
 	int ret;
@@ -714,7 +714,7 @@ xf86printf(const char *format, ...)
 	return ret;
 }
 
-int
+_X_EXPORT int
 xf86fprintf(XF86FILE* f, const char *format, ...)
 {
 	XF86FILE_priv* fp = (XF86FILE_priv*)f;
@@ -733,7 +733,7 @@ xf86fprintf(XF86FILE* f, const char *format, ...)
 	return ret;
 }
 
-int
+_X_EXPORT int
 xf86vfprintf(XF86FILE* f, const char *format, va_list ap)
 {
 	XF86FILE_priv* fp = (XF86FILE_priv*)f;
@@ -746,23 +746,23 @@ xf86vfprintf(XF86FILE* f, const char *format, va_list ap)
 	return vfprintf(fp->filehnd,format,ap);
 }
 
-int
+_X_EXPORT int
 xf86vsprintf(char *s, const char *format, va_list ap)
 {
 	return vsprintf(s, format, ap);
 }
 
-int
+_X_EXPORT int
 xf86vsnprintf(char *s, xf86size_t len, const char *format, va_list ap)
 {
 	return vsnprintf(s, (size_t)len, format, ap);
 }
 
 #ifdef HAVE_VFSCANF
-int
+_X_EXPORT int
 xf86fscanf(XF86FILE* f, const char *format, ...)
 #else
-int
+_X_EXPORT int
 xf86fscanf(XF86FILE* f, const char *format, char *a0, char *a1, char *a2,
 	   char *a3, char *a4, char *a5, char *a6, char *a7, char *a8,
 	   char *a9) /* limit of ten args */
@@ -786,7 +786,7 @@ xf86fscanf(XF86FILE* f, const char *format, char *a0, char *a1, char *a2,
 #endif
 }
 
-char *
+_X_EXPORT char *
 xf86fgets(char *buf, INT32 n, XF86FILE* f)
 {
 	XF86FILE_priv* fp = (XF86FILE_priv*)f;
@@ -795,7 +795,7 @@ xf86fgets(char *buf, INT32 n, XF86FILE* f)
 	return fgets(buf,(int)n,fp->filehnd);
 }
 
-int
+_X_EXPORT int
 xf86fputs(const char *buf, XF86FILE* f)
 {
 	XF86FILE_priv* fp = (XF86FILE_priv*)f;
@@ -804,7 +804,7 @@ xf86fputs(const char *buf, XF86FILE* f)
 	return fputs(buf,fp->filehnd);
 }
 
-int
+_X_EXPORT int
 xf86getc(XF86FILE* f)
 {
 	XF86FILE_priv* fp = (XF86FILE_priv*)f;
@@ -813,7 +813,7 @@ xf86getc(XF86FILE* f)
 	return getc(fp->filehnd);
 }
 
-int
+_X_EXPORT int
 xf86fgetc(XF86FILE* f)
 {
 	XF86FILE_priv* fp = (XF86FILE_priv*)f;
@@ -822,7 +822,7 @@ xf86fgetc(XF86FILE* f)
 	return fgetc(fp->filehnd);
 }
 
-int
+_X_EXPORT int
 xf86fputc(int c,XF86FILE* f)
 {
 	XF86FILE_priv* fp = (XF86FILE_priv*)f;
@@ -831,7 +831,7 @@ xf86fputc(int c,XF86FILE* f)
 	return fputc(c,fp->filehnd);
 }
 
-int
+_X_EXPORT int
 xf86fflush(XF86FILE* f)
 {
 	XF86FILE_priv* fp = (XF86FILE_priv*)f;
@@ -840,7 +840,7 @@ xf86fflush(XF86FILE* f)
 	return fflush(fp->filehnd);
 }
 
-xf86size_t
+_X_EXPORT xf86size_t
 xf86fread(void* buf, xf86size_t sz, xf86size_t cnt, XF86FILE* f)
 {
 	XF86FILE_priv* fp = (XF86FILE_priv*)f;
@@ -852,7 +852,7 @@ xf86fread(void* buf, xf86size_t sz, xf86size_t cnt, XF86FILE* f)
 	return fread(buf,(size_t)sz,(size_t)cnt,fp->filehnd);
 }
 
-xf86size_t
+_X_EXPORT xf86size_t
 xf86fwrite(const void* buf, xf86size_t sz, xf86size_t cnt, XF86FILE* f)
 {
 	XF86FILE_priv* fp = (XF86FILE_priv*)f;
@@ -861,7 +861,7 @@ xf86fwrite(const void* buf, xf86size_t sz, xf86size_t cnt, XF86FILE* f)
 	return fwrite(buf,(size_t)sz,(size_t)cnt,fp->filehnd);
 }
 
-int
+_X_EXPORT int
 xf86fseek(XF86FILE* f, long offset, int whence)
 {
 	XF86FILE_priv* fp = (XF86FILE_priv*)f;
@@ -881,7 +881,7 @@ xf86fseek(XF86FILE* f, long offset, int whence)
 	return fseek(fp->filehnd,offset,whence);
 }
 
-long
+_X_EXPORT long
 xf86ftell(XF86FILE* f)
 {
 	XF86FILE_priv* fp = (XF86FILE_priv*)f;
@@ -892,7 +892,7 @@ xf86ftell(XF86FILE* f)
 
 #define mapnum(e) case (xf86_##e): err = e; break;
 
-char*
+_X_EXPORT char*
 xf86strerror(int n)
 {
 	int err;
@@ -978,13 +978,13 @@ xf86strerror(int n)
  * use as
  *	XF86fpos_t* pos = xalloc(xf86fpossize());
  */
-long
+_X_EXPORT long
 xf86fpossize()
 {
 	return sizeof(fpos_t);
 }
 
-int
+_X_EXPORT int
 xf86fgetpos(XF86FILE* f,XF86fpos_t* pos)
 {
 	XF86FILE_priv* fp = (XF86FILE_priv*)f;
@@ -1001,7 +1001,7 @@ xf86fgetpos(XF86FILE* f,XF86fpos_t* pos)
 #endif
 }
 
-int
+_X_EXPORT int
 xf86fsetpos(XF86FILE* f,const XF86fpos_t* pos)
 {
 	XF86FILE_priv* fp = (XF86FILE_priv*)f;
@@ -1021,13 +1021,13 @@ xf86fsetpos(XF86FILE* f,const XF86fpos_t* pos)
 #endif
 }
 
-void
+_X_EXPORT void
 xf86perror(const char *s)
 {
 	perror(s);
 }
 
-int
+_X_EXPORT int
 xf86remove(const char *s)
 {
 #ifdef _POSIX_SOURCE
@@ -1037,7 +1037,7 @@ xf86remove(const char *s)
 #endif
 }
 
-int
+_X_EXPORT int
 xf86rename(const char *old, const char *new)
 {
 #ifdef _POSIX_SOURCE
@@ -1053,7 +1053,7 @@ xf86rename(const char *old, const char *new)
 #endif
 }
 
-void
+_X_EXPORT void
 xf86rewind(XF86FILE* f)
 {
 	XF86FILE_priv* fp = (XF86FILE_priv*)f;
@@ -1062,7 +1062,7 @@ xf86rewind(XF86FILE* f)
 	rewind(fp->filehnd);
 }
 
-void
+_X_EXPORT void
 xf86clearerr(XF86FILE* f)
 {
 	XF86FILE_priv* fp = (XF86FILE_priv*)f;
@@ -1071,7 +1071,7 @@ xf86clearerr(XF86FILE* f)
 	clearerr(fp->filehnd);
 }
 
-int
+_X_EXPORT int
 xf86feof(XF86FILE* f)
 {
 	XF86FILE_priv* fp = (XF86FILE_priv*)f;
@@ -1080,7 +1080,7 @@ xf86feof(XF86FILE* f)
 	return feof(fp->filehnd);
 }
 
-int
+_X_EXPORT int
 xf86ferror(XF86FILE* f)
 {
 	XF86FILE_priv* fp = (XF86FILE_priv*)f;
@@ -1089,7 +1089,7 @@ xf86ferror(XF86FILE* f)
 	return ferror(fp->filehnd);
 }
 
-XF86FILE*
+_X_EXPORT XF86FILE*
 xf86freopen(const char* fname,const char* mode,XF86FILE* fold)
 {
 	XF86FILE_priv* fp = (XF86FILE_priv*)fold;
@@ -1114,7 +1114,7 @@ xf86freopen(const char* fname,const char* mode,XF86FILE* fold)
 	return (XF86FILE*)fp;
 }
 
-int
+_X_EXPORT int
 xf86setbuf(XF86FILE* f, char *buf)
 {
 	XF86FILE_priv* fp = (XF86FILE_priv*)f;
@@ -1128,7 +1128,7 @@ xf86setbuf(XF86FILE* f, char *buf)
 #endif
 }
 
-int
+_X_EXPORT int
 xf86setvbuf(XF86FILE* f, char *buf, int mode, xf86size_t size)
 {
 	XF86FILE_priv* fp = (XF86FILE_priv*)f;
@@ -1154,7 +1154,7 @@ xf86setvbuf(XF86FILE* f, char *buf, int mode, xf86size_t size)
 	return setvbuf(fp->filehnd,buf,vbufmode,(size_t)size);
 }
 
-XF86FILE*
+_X_EXPORT XF86FILE*
 xf86tmpfile(void)
 {
 #ifdef NEED_TMPFILE
@@ -1178,7 +1178,7 @@ xf86tmpfile(void)
 #endif /* HAS_TMPFILE */
 
 
-int
+_X_EXPORT int
 xf86ungetc(int c,XF86FILE* f)
 {
 	XF86FILE_priv* fp = (XF86FILE_priv*)f;
@@ -1189,7 +1189,7 @@ xf86ungetc(int c,XF86FILE* f)
 
 /* Misc functions. Some are ANSI C, some are not. */
 
-void
+_X_EXPORT void
 xf86usleep(usec)
     unsigned long usec;
 {
@@ -1200,7 +1200,7 @@ xf86usleep(usec)
 #endif
 }
 
-void
+_X_EXPORT void
 xf86getsecs(long * secs, long * usecs)
 {
 	struct timeval tv;
@@ -1214,7 +1214,7 @@ xf86getsecs(long * secs, long * usecs)
 	return;
 }
 
-int
+_X_EXPORT int
 xf86ffs(int mask)
 {
 	int n;
@@ -1224,7 +1224,7 @@ xf86ffs(int mask)
 	return n;
 }
 
-char *
+_X_EXPORT char *
 xf86getenv(const char * a)
 {
 	/* Only allow this when the real and effective uids are the same */
@@ -1234,14 +1234,14 @@ xf86getenv(const char * a)
 		return(getenv(a));
 }
 
-void *
+_X_EXPORT void *
 xf86bsearch(const void *key, const void *base, xf86size_t nmemb,
 	    xf86size_t size, int (*compar)(const void *, const void *))
 {
 	return bsearch(key, base, (size_t)nmemb, (size_t)size, compar);
 }
 
-int
+_X_EXPORT int
 xf86execl(const char *pathname, const char *arg, ...)
 {
 #ifndef __UNIXOS2__
@@ -1330,14 +1330,14 @@ xf86execl(const char *pathname, const char *arg, ...)
 #endif /* __UNIXOS2__ Disable this crazy business for now */
 }
 
-void
+_X_EXPORT void
 xf86abort(void)
 {
 	ErrorF("Module called abort() function\n");
 	abort();
 }
 
-void
+_X_EXPORT void
 xf86exit(int ex)
 {
 	ErrorF("Module called exit() function with value=%d\n",ex);
@@ -1363,7 +1363,7 @@ _xf86checkdirhndl(XF86DIR_priv* f,const char *func)
 	}
 }
 
-XF86DIR *
+_X_EXPORT XF86DIR *
 xf86opendir(const char *name)
 {
 	XF86DIR_priv *dp;
@@ -1381,7 +1381,7 @@ xf86opendir(const char *name)
 	return (XF86DIR*)dp;
 }
 
-XF86DIRENT*
+_X_EXPORT XF86DIRENT*
 xf86readdir(XF86DIR* dirp)
 {
 	XF86DIR_priv* dp = (XF86DIR_priv*)dirp;
@@ -1401,7 +1401,7 @@ xf86readdir(XF86DIR* dirp)
 	return xde;
 }
 
-void
+_X_EXPORT void
 xf86rewinddir(XF86DIR* dirp)
 {
 	XF86DIR_priv* dp = (XF86DIR_priv*)dirp;
@@ -1410,7 +1410,7 @@ xf86rewinddir(XF86DIR* dirp)
 	rewinddir(dp->dir);
 }
 
-int
+_X_EXPORT int
 xf86closedir(XF86DIR* dir)
 {
 	XF86DIR_priv* dp = (XF86DIR_priv*)dir;
@@ -1449,7 +1449,7 @@ xfToOsChmodMode(xf86mode_t xfmode)
     return mode;
 }
 
-int
+_X_EXPORT int
 xf86chmod(const char *path, xf86mode_t xfmode)
 {
     mode_t mode = xfToOsChmodMode(xfmode);
@@ -1459,7 +1459,7 @@ xf86chmod(const char *path, xf86mode_t xfmode)
     return rc;
 }
 
-int
+_X_EXPORT int
 xf86chown(const char *path, xf86uid_t owner, xf86gid_t group)
 {
 #ifndef __UNIXOS2__
@@ -1471,19 +1471,19 @@ xf86chown(const char *path, xf86uid_t owner, xf86gid_t group)
     return rc;
 }
 
-xf86uid_t
+_X_EXPORT xf86uid_t
 xf86geteuid(void)
 {
     return geteuid();
 }
 
-xf86gid_t
+_X_EXPORT xf86gid_t
 xf86getegid(void)
 {
     return getegid();
 }
 
-int
+_X_EXPORT int
 xf86getpid(void)
 {
     return getpid();
@@ -1504,7 +1504,7 @@ xfToOsMknodMode(xf86mode_t xfmode)
     return mode;
 }
 
-int xf86mknod(const char *pathname, xf86mode_t xfmode, xf86dev_t dev)
+_X_EXPORT int xf86mknod(const char *pathname, xf86mode_t xfmode, xf86dev_t dev)
 {
     mode_t mode = xfToOsMknodMode(xfmode);
 #ifndef __UNIXOS2__
@@ -1516,12 +1516,12 @@ int xf86mknod(const char *pathname, xf86mode_t xfmode, xf86dev_t dev)
     return rc;
 }
 
-unsigned int xf86sleep(unsigned int seconds)
+_X_EXPORT unsigned int xf86sleep(unsigned int seconds)
 {
     return sleep(seconds);
 }
 
-int xf86mkdir(const char *pathname, xf86mode_t xfmode)
+_X_EXPORT int xf86mkdir(const char *pathname, xf86mode_t xfmode)
 {
     mode_t mode = xfToOsChmodMode(xfmode);
     int    rc   = mkdir(pathname, mode);
@@ -1533,79 +1533,79 @@ int xf86mkdir(const char *pathname, xf86mode_t xfmode)
 
 /* Several math functions */
 
-int
+_X_EXPORT int
 xf86abs(int x)
 {
 	return abs(x);
 }
 
-double
+_X_EXPORT double
 xf86acos(double x)
 {
 	return acos(x);
 }
 
-double
+_X_EXPORT double
 xf86asin(double x)
 {
 	return asin(x);
 }
 
-double
+_X_EXPORT double
 xf86atan(double x)
 {
 	return atan(x);
 }
 
-double
+_X_EXPORT double
 xf86atan2(double x,double y)
 {
 	return atan2(x,y);
 }
 
-double
+_X_EXPORT double
 xf86atof(const char* s)
 {
 	return atof(s);
 }
 
-int
+_X_EXPORT int
 xf86atoi(const char* s)
 {
 	return atoi(s);
 }
 
-long
+_X_EXPORT long
 xf86atol(const char* s)
 {
 	return atol(s);
 }
 
-double
+_X_EXPORT double
 xf86ceil(double x)
 {
 	return ceil(x);
 }
 
-double
+_X_EXPORT double
 xf86cos(double x)
 {
 	return(cos(x));
 }
 
-double
+_X_EXPORT double
 xf86exp(double x)
 {
 	return(exp(x));
 }
 
-double
+_X_EXPORT double
 xf86fabs(double x)
 {
         return(fabs(x));
 }
 
-int 
+_X_EXPORT int 
 xf86finite(double x)
 {
 #ifndef QNX4
@@ -1620,116 +1620,116 @@ xf86finite(double x)
 #endif
 }
 
-double
+_X_EXPORT double
 xf86floor(double x)
 {
 	return floor(x);
 }
 
-double
+_X_EXPORT double
 xf86fmod(double x,double y)
 {
 	return fmod(x,y);
 }
 
-long
+_X_EXPORT long
 xf86labs(long x)
 {
 	return labs(x);
 }
 
-double
+_X_EXPORT double
 xf86ldexp(double x, int exp)
 {
 	return ldexp(x, exp);
 }
 
-double
+_X_EXPORT double
 xf86log(double x)
 {
 	return(log(x));
 }
 
-double
+_X_EXPORT double
 xf86log10(double x)
 {
 	return(log10(x));
 }
 
-double
+_X_EXPORT double
 xf86modf(double x,double* y)
 {
 	return modf(x,y);
 }
 
-double
+_X_EXPORT double
 xf86pow(double x, double y)
 {
 	return(pow(x,y));
 }
 
-double
+_X_EXPORT double
 xf86sin(double x)
 {
 	return sin(x);
 }
 
-double
+_X_EXPORT double
 xf86sqrt(double x)
 {
 	return(sqrt(x));
 }
 
-double
+_X_EXPORT double
 xf86strtod(const char *s, char **end)
 {
 	return strtod(s,end);
 }
 
-long
+_X_EXPORT long
 xf86strtol(const char *s, char **end, int radix)
 {
 	return strtol(s,end,radix);
 }
 
-unsigned long
+_X_EXPORT unsigned long
 xf86strtoul(const char *s, char **end,int radix)
 {
 	return strtoul(s,end,radix);
 }
 
-double
+_X_EXPORT double
 xf86tan(double x)
 {
 	return tan(x);
 }
 
 /* memory functions */
-void*
+_X_EXPORT void*
 xf86memchr(const void* s, int c, xf86size_t n)
 {
 	return memchr(s,c,(size_t)n);
 }
 
-int
+_X_EXPORT int
 xf86memcmp(const void* s1, const void* s2, xf86size_t n)
 {
 	return(memcmp(s1,s2,(size_t)n));
 }
 
-void*
+_X_EXPORT void*
 xf86memcpy(void* dest, const void* src, xf86size_t n)
 {
 	return(memcpy(dest,src,(size_t)n));
 }
 
-void*
+_X_EXPORT void*
 xf86memmove(void* dest, const void* src, xf86size_t n)
 {
 	return(memmove(dest,src,(size_t)n));
 }
 
-void*
+_X_EXPORT void*
 xf86memset(void* s, int c, xf86size_t n)
 {
 	return(memset(s,c,(size_t)n));
@@ -1737,110 +1737,110 @@ xf86memset(void* s, int c, xf86size_t n)
 
 /* ctype functions */
 
-int
+_X_EXPORT int
 xf86isalnum(int c)
 {
 	return isalnum(c) ? 1 : 0;
 }
 
-int
+_X_EXPORT int
 xf86isalpha(int c)
 {
 	return isalpha(c) ? 1 : 0;
 }
 
-int
+_X_EXPORT int
 xf86iscntrl(int c)
 {
 	return iscntrl(c) ? 1 : 0;
 }
 
-int
+_X_EXPORT int
 xf86isdigit(int c)
 {
 	return isdigit(c) ? 1 : 0;
 }
 
-int
+_X_EXPORT int
 xf86isgraph(int c)
 {
 	return isgraph(c) ? 1 : 0;
 }
 
-int
+_X_EXPORT int
 xf86islower(int c)
 {
 	return islower(c) ? 1 : 0;
 }
 
-int
+_X_EXPORT int
 xf86isprint(int c)
 {
 	return isprint(c) ? 1 : 0;
 }
 
-int
+_X_EXPORT int
 xf86ispunct(int c)
 {
 	return ispunct(c) ? 1 : 0;
 }
 
-int
+_X_EXPORT int
 xf86isspace(int c)
 {
 	return isspace(c) ? 1 : 0;
 }
 
-int
+_X_EXPORT int
 xf86isupper(int c)
 {
 	return isupper(c) ? 1 : 0;
 }
 
-int
+_X_EXPORT int
 xf86isxdigit(int c)
 {
 	return isxdigit(c) ? 1 : 0;
 }
 
-int
+_X_EXPORT int
 xf86tolower(int c)
 {
 	return tolower(c);
 }
 
-int
+_X_EXPORT int
 xf86toupper(int c)
 {
 	return toupper(c);
 }
 
 /* memory allocation functions */
-void*
+_X_EXPORT void*
 xf86calloc(xf86size_t sz,xf86size_t n)
 {
 	return xcalloc(sz, n);
 }
 
-void
+_X_EXPORT void
 xf86free(void* p)
 {
 	xfree(p);
 }
 
-double
+_X_EXPORT double
 xf86frexp(double x, int *exp)
 {
         return frexp(x, exp);
 }
 
-void*
+_X_EXPORT void*
 xf86malloc(xf86size_t n)
 {
 	return xalloc(n);
 }
 
-void*
+_X_EXPORT void*
 xf86realloc(void* p, xf86size_t n)
 {
 	return xrealloc(p,n);
@@ -1849,7 +1849,7 @@ xf86realloc(void* p, xf86size_t n)
 /*
  * XXX This probably doesn't belong here.
  */
-int
+_X_EXPORT int
 xf86getpagesize()
 {
 	static int pagesize = -1;
@@ -1881,7 +1881,7 @@ xf86getpagesize()
 
 #define mapnum(e) case (e): return (xf86_##e)
 
-int
+_X_EXPORT int
 xf86GetErrno ()
 {
 	switch (errno)
@@ -1962,7 +1962,7 @@ xf86GetErrno ()
 
 #ifdef HAVE_SYSV_IPC
 
-int
+_X_EXPORT int
 xf86shmget(xf86key_t key, int size, int xf86shmflg)
 {
     int shmflg;
@@ -1984,7 +1984,7 @@ xf86shmget(xf86key_t key, int size, int xf86shmflg)
     return ret;
 }
 
-char *
+_X_EXPORT char *
 xf86shmat(int id, char *addr, int xf86shmflg)
 {
     int shmflg = 0;
@@ -2008,7 +2008,7 @@ xf86shmat(int id, char *addr, int xf86shmflg)
     return ret;
 }
 
-int
+_X_EXPORT int
 xf86shmdt(char *addr)
 {
     int ret;
@@ -2024,7 +2024,7 @@ xf86shmdt(char *addr)
 /*
  * for now only implement the rmid command.
  */
-int
+_X_EXPORT int
 xf86shmctl(int id, int xf86cmd, pointer buf)
 {
     int cmd;
@@ -2080,7 +2080,7 @@ xf86shmdt(char *addr)
 }
 #endif /* HAVE_SYSV_IPC */
 
-int
+_X_EXPORT int
 xf86getjmptype()
 {
 #ifdef HAS_GLIBC_SIGSETJMP
@@ -2092,7 +2092,7 @@ xf86getjmptype()
 
 #ifdef HAS_GLIBC_SIGSETJMP
 
-int
+_X_EXPORT int
 xf86setjmp(xf86jmp_buf env)
 {
 #if defined(__GLIBC__) && (__GLIBC__ >= 2)
@@ -2102,7 +2102,7 @@ xf86setjmp(xf86jmp_buf env)
 #endif
 }
 
-int
+_X_EXPORT int
 xf86setjmp0(xf86jmp_buf env)
 {
     FatalError("setjmp: type 0 called instead of type %d", xf86getjmptype());
@@ -2110,7 +2110,7 @@ xf86setjmp0(xf86jmp_buf env)
 
 #if !defined(__GLIBC__) || (__GLIBC__ < 2)	/* libc5 */
 
-int
+_X_EXPORT int
 xf86setjmp1(xf86jmp_buf env, int arg2)
 {
     __sigjmp_save((void *)env, arg2);
@@ -2135,13 +2135,13 @@ xf86setjmp0(xf86jmp_buf env)
 
 #endif  /* HAS_GLIBC_SIGSETJMP */
 
-int
+_X_EXPORT int
 xf86setjmp1_arg2()
 {
     return 1;
 }
 
-int
+_X_EXPORT int
 xf86setjmperror(xf86jmp_buf env)
 {
     FatalError("setjmp: don't know how to handle setjmp() type %d",

@@ -18,7 +18,7 @@
 /* Avoid Imakefile changes */
 #include "bus/Pci.h"
 
-resRange PciAvoid[] = {_PCI_AVOID_PC_STYLE, _END};
+_X_EXPORT resRange PciAvoid[] = {_PCI_AVOID_PC_STYLE, _END};
 
 #ifdef INCLUDE_XF86_NO_DOMAIN
 

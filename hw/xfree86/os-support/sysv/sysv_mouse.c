@@ -45,7 +45,7 @@ CheckProtocol(const char *protocol)
 }
 #endif
 
-OSMouseInfoPtr
+_X_EXPORT OSMouseInfoPtr
 xf86OSMouseInit(int flags)
 {
     OSMouseInfoPtr p;

@@ -1,4 +1,4 @@
-/* $XdotOrg: xserver/xorg/os/utils.c,v 1.23 2006-02-15 20:44:13 ajax Exp $ */
+/* $XdotOrg: xserver/xorg/os/utils.c,v 1.24 2006/02/16 07:17:31 keithp Exp $ */
 /* $Xorg: utils.c,v 1.5 2001/02/09 02:05:24 xorgcvs Exp $ */
 /*
 
@@ -556,7 +556,7 @@ GiveUp(int sig)
 }
 
 #ifndef DDXTIME
-CARD32
+_X_EXPORT CARD32
 GetTimeInMillis(void)
 {
     struct timeval  tp;

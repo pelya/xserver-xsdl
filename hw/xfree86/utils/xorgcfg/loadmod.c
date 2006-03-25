@@ -551,7 +551,7 @@ xf86cfgCheckModule(void)
     return (1);
 }
 
-void
+_X_EXPORT void
 xf86AddDriver(DriverPtr drv, void *module, int flags)
 {
     driver = drv;
@@ -560,36 +560,36 @@ xf86AddDriver(DriverPtr drv, void *module, int flags)
     module_type = VideoModule;
 }
 
-Bool
+_X_EXPORT Bool
 xf86ServerIsOnlyDetecting(void)
 {
     return (True);
 }
 
-void
+_X_EXPORT void
 xf86AddInputDriver(InputDriverPtr inp, void *module, int flags)
 {
     module_type = InputModule;
 }
 
-void
+_X_EXPORT void
 xf86AddModuleInfo(ModuleInfoPtr inf, void *module)
 {
     info = inf;
 }
 
-Bool
+_X_EXPORT Bool
 xf86LoaderCheckSymbol(const char *symbol)
 {
     return LoaderSymbol(symbol) != NULL;
 }
 
-void
+_X_EXPORT void
 xf86LoaderRefSymLists(const char **list0, ...)
 {
 }
 
-void
+_X_EXPORT void
 xf86LoaderReqSymLists(const char **list0, ...)
 {
 }
@@ -601,14 +601,14 @@ void xf86Msg(int type, const char *format, ...)
 #endif
 
 /*ARGSUSED*/
-void
+_X_EXPORT void
 xf86PrintChipsets(const char *name, const char *msg, SymTabPtr chipsets)
 {
     vendor = 0;
     chips = chipsets;
 }
 
-pciVideoPtr *
+_X_EXPORT pciVideoPtr *
 xf86GetPciVideoInfo(void)
 {
     static pciVideoRec pci_video;
@@ -619,7 +619,7 @@ xf86GetPciVideoInfo(void)
     return (pci_video_ptr);
 }
 
-int
+_X_EXPORT int
 xf86MatchDevice(const char *name, GDevPtr **gdev)
 {
     *gdev = NULL;
@@ -627,7 +627,7 @@ xf86MatchDevice(const char *name, GDevPtr **gdev)
     return (1);
 }
 
-int
+_X_EXPORT int
 xf86MatchPciInstances(const char *name, int VendorID, SymTabPtr chipsets, PciChipsets *PCIchipsets,
 		      GDevPtr *devList, int numDevs, DriverPtr drvp, int **foundEntities)
 {
@@ -639,7 +639,7 @@ xf86MatchPciInstances(const char *name, int VendorID, SymTabPtr chipsets, PciChi
     return (0);
 }
 
-int
+_X_EXPORT int
 xf86MatchIsaInstances(const char *name, SymTabPtr chipsets, IsaChipsets *ISAchipsets, DriverPtr drvp,
 		      FindIsaDevProc FindIsaDevice, GDevPtr *devList, int numDevs, int **foundEntities)
 {
@@ -649,7 +649,7 @@ xf86MatchIsaInstances(const char *name, SymTabPtr chipsets, IsaChipsets *ISAchip
 }
 
 /*ARGSUSED*/
-void *
+_X_EXPORT void *
 xf86LoadDrvSubModule(DriverPtr drv, const char *name)
 {
     pointer ret;
@@ -662,19 +662,19 @@ xf86LoadDrvSubModule(DriverPtr drv, const char *name)
     return (ret);
 }
 
-pciConfigPtr *
+_X_EXPORT pciConfigPtr *
 xf86GetPciConfigInfo(void)
 {
     return (NULL);
 }
 
-Bool
+_X_EXPORT Bool
 xf86IsPrimaryPci(pciVideoPtr pPci)
 {
     return (True);
 }
 
-Bool 
+_X_EXPORT Bool 
 xf86CheckPciSlot(int bus, int device, int func)
 {
     return (False);

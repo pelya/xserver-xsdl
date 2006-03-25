@@ -44,19 +44,19 @@
 #include "xf86_OSlib.h"
 #include "compiler.h"
 
-void xf86Break1(void)
+_X_EXPORT void xf86Break1(void)
 {
 }
 
-void xf86Break2(void)
+_X_EXPORT void xf86Break2(void)
 {
 }
 
-void xf86Break3(void)
+_X_EXPORT void xf86Break3(void)
 {
 }
 
-char *xf86p8bit[] = { "00000000", "00000001", "00000010", "00000011", 
+_X_EXPORT char *xf86p8bit[] = { "00000000", "00000001", "00000010", "00000011", 
 		      "00000100", "00000101", "00000110", "00000111", 
 		      "00001000", "00001001", "00001010", "00001011", 
 		      "00001100", "00001101", "00001110", "00001111", 
@@ -122,9 +122,9 @@ char *xf86p8bit[] = { "00000000", "00000001", "00000010", "00000011",
 		      "11111100", "11111101", "11111110", "11111111"
 };
 
-CARD32 xf86DummyVar1;
-CARD32 xf86DummyVar2;
-CARD32 xf86DummyVar3;
+_X_EXPORT CARD32 xf86DummyVar1;
+_X_EXPORT CARD32 xf86DummyVar2;
+_X_EXPORT CARD32 xf86DummyVar3;
 
 CARD8  xf86PeekFb8(CARD8  *p) { return *p; }
 CARD16 xf86PeekFb16(CARD16 *p) { return *p; }
@@ -164,7 +164,7 @@ void xf86PokeMmio32(pointer Base, unsigned long Offset, CARD32 v)
 }
 
 
-void
+_X_EXPORT void
 xf86STimestamp(xf86TsPtr* timestamp)
 {
     if (*timestamp) {
@@ -175,7 +175,7 @@ xf86STimestamp(xf86TsPtr* timestamp)
     }
 }
 
-void
+_X_EXPORT void
 xf86SPTimestamp(xf86TsPtr* timestamp, char *str)
 {
     if (*timestamp) {

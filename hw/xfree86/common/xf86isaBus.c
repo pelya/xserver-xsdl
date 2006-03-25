@@ -59,7 +59,7 @@ Bool isaSlotClaimed = FALSE;
  * Otherwise, claim the slot for the screen requesting it.
  */
 
-int
+_X_EXPORT int
 xf86ClaimIsaSlot(DriverPtr drvp, int chipset, GDevPtr dev, Bool active)
 {
     EntityPtr p;
@@ -114,7 +114,7 @@ xf86GetIsaInfoForScreen(int scrnIndex)
  * Parse a BUS ID string, and return True if it is a ISA bus id.
  */
 
-Bool
+_X_EXPORT Bool
 xf86ParseIsaBusString(const char *busID)
 {
     /*
@@ -129,7 +129,7 @@ xf86ParseIsaBusString(const char *busID)
  * is ISA.
  */
  
-Bool
+_X_EXPORT Bool
 xf86IsPrimaryIsa(void)
 {
     return ( primaryBus.type == BUS_ISA );

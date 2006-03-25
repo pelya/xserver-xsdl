@@ -1,5 +1,5 @@
 /* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86Init.c,v 3.212 2004/01/27 01:31:45 dawes Exp $ */
-/* $XdotOrg: xserver/xorg/hw/xfree86/common/xf86Init.c,v 1.31 2006/03/07 23:58:22 idr Exp $ */
+/* $XdotOrg: xserver/xorg/hw/xfree86/common/xf86Init.c,v 1.32 2006/03/20 14:01:05 ajax Exp $ */
 
 /*
  * Loosely based on code bearing the following copyright:
@@ -1969,7 +1969,7 @@ xf86LoadModules(char **list, pointer *optlist)
 
 /* Pixmap format stuff */
 
-PixmapFormatPtr
+_X_EXPORT PixmapFormatPtr
 xf86GetPixFormat(ScrnInfoPtr pScrn, int depth)
 {
     int i;
@@ -2014,7 +2014,7 @@ xf86GetPixFormat(ScrnInfoPtr pScrn, int depth)
     return NULL;
 }
 
-int
+_X_EXPORT int
 xf86GetBppFromDepth(ScrnInfoPtr pScrn, int depth)
 {
     PixmapFormatPtr format;

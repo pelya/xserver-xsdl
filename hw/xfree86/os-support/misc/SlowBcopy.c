@@ -27,7 +27,7 @@
 #include "compiler.h"
 
 /* The outb() isn't needed on my machine, but who knows ... -- ost */
-void
+_X_EXPORT void
 xf86SlowBcopy(unsigned char *src, unsigned char *dst, int len)
 {
     while(len--)
@@ -70,7 +70,7 @@ unsigned long _bus_base(void);
 
 #endif
 
-void
+_X_EXPORT void
 xf86SlowBCopyFromBus(unsigned char *src, unsigned char *dst, int count)
 {
     if (isJensen())
@@ -92,7 +92,7 @@ xf86SlowBCopyFromBus(unsigned char *src, unsigned char *dst, int count)
 	xf86SlowBcopy(src,dst,count);
 }
   
-void
+_X_EXPORT void
 xf86SlowBCopyToBus(unsigned char *src, unsigned char *dst, int count)
 {
     if (isJensen())

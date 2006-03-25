@@ -19,7 +19,7 @@
 /* Avoid Imakefile changes */
 #include "bus/Pci.h"
 
-resRange PciAvoid[] =
+_X_EXPORT resRange PciAvoid[] =
 {
 #if !defined(__sparc__) || !defined(INCLUDE_XF86_NO_DOMAIN)
     _PCI_AVOID_PC_STYLE,
