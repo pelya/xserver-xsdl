@@ -28,22 +28,10 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>
-#elif defined(HAVE_CONFIG_H)
-#include <config.h>
 #endif
 
 #define	NEED_EVENTS
 #define	NEED_REPLIES
-
-#ifndef XKB_IN_SERVER
-
-#include <stdio.h>
-#include "Xlibint.h"
-#include "XKBlibint.h"
-#include <X11/extensions/XKBgeom.h>
-#include <X11/extensions/XKBproto.h>
-
-#else 
 
 #include <stdio.h>
 #include <X11/X.h>
@@ -52,8 +40,6 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include "inputstr.h"
 #include <X11/extensions/XKBsrv.h>
 #include <X11/extensions/XKBgeom.h>
-
-#endif /* XKB_IN_SERVER */
 
 #ifdef X_NOT_POSIX
 #define Size_t unsigned int

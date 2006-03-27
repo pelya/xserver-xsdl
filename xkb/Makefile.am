@@ -30,10 +30,8 @@ DIX_SRCS = \
 XKBFILE_SRCS = \
         maprules.c \
         xkmread.c \
-        xkbtext.c \
         xkbfmisc.c \
-        xkberrs.c \
-        xkbout.c
+        xkberrs.c
 
 X11_SRCS = \
         XKBMisc.c \

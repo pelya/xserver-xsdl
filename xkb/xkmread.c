@@ -28,28 +28,12 @@
 
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>
-#elif defined(HAVE_CONFIG_H)
-#include <config.h>
 #endif
 
 #include <stdio.h>
 
 #include <X11/Xos.h>
 #include <X11/Xfuncs.h>
-
-#ifndef XKB_IN_SERVER
-
-#include <stdlib.h>
-#include <X11/Xlib.h>
-#include <X11/keysym.h>
-
-#include <X11/XKBlib.h>
-
-#include <X11/extensions/XKBgeom.h>
-#include "XKMformat.h"
-#include "XKBfileInt.h"
-
-#else
 
 #include <X11/X.h>
 #define	NEED_EVENTS
@@ -69,8 +53,6 @@ XkbInternAtom(Display *dpy,char *str,Bool only_if_exists)
 	return None;
     return MakeAtom(str,strlen(str),!only_if_exists);
 }
-
-#endif
 
 #ifndef SEEK_SET
 #define	SEEK_SET 0
@@ -185,6 +167,89 @@ int	count,nRead=0;
     if (count>0)
 	nRead+= XkmSkipPadding(file,count);
     return nRead;
+}
+
+unsigned
+_XkbKSCheckCase(KeySym ks)
+{
+unsigned	set,rtrn;
+
+    set= (ks & (~0xff)) >> 8;
+    rtrn= 0;
+    switch (set) {
+	case 0:		/* latin 1 */
+	    if (((ks>=XK_A)&&(ks<=XK_Z))||
+		((ks>=XK_Agrave)&&(ks<=XK_THORN)&&(ks!=XK_multiply))) {
+		rtrn|= _XkbKSUpper;
+	    }
+	    if (((ks>=XK_a)&&(ks<=XK_z))||
+		((ks>=XK_agrave)&&(ks<=XK_ydiaeresis))) {
+		rtrn|= _XkbKSLower;
+	    }
+	    break;
+	case 1:		/* latin 2 */
+	    if (((ks>=XK_Aogonek)&&(ks<=XK_Zabovedot)&&(ks!=XK_breve))||
+		((ks>=XK_Racute)&&(ks<=XK_Tcedilla))) {
+		rtrn|= _XkbKSUpper;
+	    }
+	    if (((ks>=XK_aogonek)&&(ks<=XK_zabovedot)&&(ks!=XK_caron))||
+		((ks>=XK_racute)&&(ks<=XK_tcedilla))) {
+		rtrn|= _XkbKSLower;
+	    }
+	    break;
+	case 2:		/* latin 3 */
+	    if (((ks>=XK_Hstroke)&&(ks<=XK_Jcircumflex))||
+		((ks>=XK_Cabovedot)&&(ks<=XK_Scircumflex))) {
+		rtrn|= _XkbKSUpper;
+	    }
+	    if (((ks>=XK_hstroke)&&(ks<=XK_jcircumflex))||
+		((ks>=XK_cabovedot)&&(ks<=XK_scircumflex))) {
+		rtrn|= _XkbKSLower;
+	    }
+	    break;
+	case 3:		/* latin 4 */
+	    if (((ks>=XK_Rcedilla)&&(ks<=XK_Tslash))||
+	        (ks==XK_ENG)||
+		((ks>=XK_Amacron)&&(ks<=XK_Umacron))) {
+		rtrn|= _XkbKSUpper;
+	    }
+	    if (((ks>=XK_rcedilla)&&(ks<=XK_tslash))||
+	        (ks==XK_eng)||
+		((ks>=XK_amacron)&&(ks<=XK_umacron))) {
+		rtrn|= _XkbKSLower;
+	    }
+	    break;
+	case 18:		/* latin 8 */
+	    if ((ks==XK_Babovedot)||
+                ((ks>=XK_Dabovedot)&&(ks<=XK_Wacute))||
+		((ks>=XK_Ygrave)&&(ks<=XK_Fabovedot))||
+	        (ks==XK_Mabovedot)||
+	        (ks==XK_Pabovedot)||
+	        (ks==XK_Sabovedot)||
+	        (ks==XK_Wdiaeresis)||
+		((ks>=XK_Wcircumflex)&&(ks<=XK_Ycircumflex))) {
+		rtrn|= _XkbKSUpper;
+	    }
+	    if ((ks==XK_babovedot)||
+	        (ks==XK_dabovedot)||
+	        (ks==XK_fabovedot)||
+	        (ks==XK_mabovedot)||
+                ((ks>=XK_wgrave)&&(ks<=XK_wacute))||
+	        (ks==XK_ygrave)||
+		((ks>=XK_wdiaeresis)&&(ks<=XK_ycircumflex))) {
+		rtrn|= _XkbKSLower;
+	    }
+	    break;
+	case 19:		/* latin 9 */
+	    if ((ks==XK_OE)||(ks==XK_Ydiaeresis)) {
+		rtrn|= _XkbKSUpper;
+	    }
+	    if (ks==XK_oe) {
+		rtrn|= _XkbKSLower;
+	    }
+	    break;
+    }
+    return rtrn;
 }
 
 /***====================================================================***/
@@ -1188,14 +1253,10 @@ int			nRead;
 		*loaded_rtrn|= XkmGeometryMask;
 	    break;
 	default:
-	    _XkbLibError(_XkbErrBadImplementation,
-	    			XkbConfigText(tmpTOC.type,XkbMessage),0);
 	    nRead= 0;
 	    break;
     }
     if (nRead!=tmpTOC.size) {
-	_XkbLibError(_XkbErrBadLength,XkbConfigText(tmpTOC.type,XkbMessage),
-						nRead-tmpTOC.size);
 	return 0;
     }
     return (nRead>=0);
@@ -1229,8 +1290,6 @@ char 		name[100];
 		return _XkbDupString(name);
 	    break;
 	default:
-	    _XkbLibError(_XkbErrBadImplementation,
-				XkbConfigText(tmpTOC.type,XkbMessage),0);
 	    break;
     }
     return NULL;
@@ -1296,8 +1355,6 @@ unsigned		which= need|want;
 		tmp= ReadXkmGeometry(file,result);
 		break;
 	    default:
-		_XkbLibError(_XkbErrBadImplementation,
-				XkbConfigText(tmpTOC.type,XkbMessage),0);
 		tmp= 0;
 		break;
 	}
@@ -1307,8 +1364,7 @@ unsigned		which= need|want;
 	    result->defined|= (1<<toc[i].type);
 	}
 	if (nRead!=tmpTOC.size) {
-	    _XkbLibError(_XkbErrBadLength,XkbConfigText(tmpTOC.type,XkbMessage),
-	    						nRead-tmpTOC.size);
+            return 0;
 	}
     }
     return which;

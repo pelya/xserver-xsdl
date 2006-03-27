@@ -32,18 +32,6 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include <config.h>
 #endif
 
-#ifndef XKB_IN_SERVER
-
-#include <stdio.h>
-#define NEED_REPLIES
-#define NEED_EVENTS
-#include "Xlibint.h"
-#include <X11/extensions/XKBproto.h>
-#include <X11/keysym.h>
-#include "XKBlibint.h"
-
-#else 
-
 #include <stdio.h>
 #include <X11/X.h>
 #define	NEED_EVENTS
@@ -54,8 +42,6 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include <X11/keysym.h>
 #define	XKBSRV_NEED_FILE_FUNCS
 #include <X11/extensions/XKBsrv.h>
-
-#endif /* XKB_IN_SERVER */
 
 /***====================================================================***/
 

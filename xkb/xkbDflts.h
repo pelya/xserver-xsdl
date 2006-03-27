@@ -9,13 +9,8 @@
 #ifndef DEFAULT_H
 #define DEFAULT_H 1
 
-#ifndef XKB_IN_SERVER
-#define GET_ATOM(d,s)	XInternAtom(d,s,0)
-#define DPYTYPE	Display *
-#else
 #define GET_ATOM(d,s)	MakeAtom(s,strlen(s),1)
 #define DPYTYPE	char *
-#endif
 #define NUM_KEYS	1
 
 #define	vmod_NumLock	0

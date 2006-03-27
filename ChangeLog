@@ -35,6 +35,18 @@
 	Move XFree86 DDX actions out of xkb/ and into proper files in their
 	own right in dixmods.
 
+	* xkb/Makefile.am:
+	* xkb/XKBAlloc.c:
+	* xkb/XKBGAlloc.c:
+	* xkb/XKBMAlloc.c:
+	* xkb/XKBMisc.c:
+	* xkb/xkbfmisc.c:
+	* xkb/xkmread.c:
+	* xkb/xkbtext.c:
+	* xkb/xkbout.c:
+	Prune XKB code to only what we need to run the server.  Remove dead
+	!XKB_IN_SERVER codepaths.  Remove HAVE_CONFIG_H codepaths.
+
 2006-03-25  Adam Jackson  <ajax@freedesktop.org>
 
 	* hw/xfree86/common/xf86Bus.c:

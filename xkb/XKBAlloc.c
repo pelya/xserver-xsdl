@@ -28,22 +28,7 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>
-#elif defined(HAVE_CONFIG_H)
-#include <config.h>
 #endif
-
-#ifndef XKB_IN_SERVER
-
-#include <stdio.h>
-#define NEED_REPLIES
-#define NEED_EVENTS
-#include "Xlibint.h"
-#include "XKBlibint.h"
-#include <X11/extensions/XKBgeom.h>
-#include <X11/extensions/XKBproto.h>
-#include "XKBlibint.h"
-
-#else 
 
 #include <stdio.h>
 #include <X11/X.h>
@@ -54,8 +39,6 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include "inputstr.h"
 #include <X11/extensions/XKBsrv.h>
 #include <X11/extensions/XKBgeom.h>
-
-#endif /* XKB_IN_SERVER */
 
 /***===================================================================***/
 
