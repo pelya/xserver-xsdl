@@ -1,5 +1,5 @@
 /* $Xorg: Keyboard.c,v 1.3 2000/08/17 19:53:28 cpqbld Exp $ */
-/* $XdotOrg: xc/programs/Xserver/hw/xnest/Keyboard.c,v 1.4 2005/06/25 21:28:48 ajax Exp $ */
+/* $XdotOrg: xserver/xorg/hw/xnest/Keyboard.c,v 1.8 2005/07/14 03:36:44 kem Exp $ */
 /*
 
 Copyright 1993 by Davor Matic
@@ -233,26 +233,6 @@ XkbError:
 	    ++names.keymap;
 	  else
 	    names.keymap = XkbInitialMap;
-	}
-
-	if ((file = fopen(XKB_BASE_DIRECTORY XKB_CONFIG_FILE, "r")) != NULL) {
-	  if (XkbCFParse(file, XkbCFDflts, xkb, &config) == 0) {
-	    ErrorF("Error parsing config file.\n");
-	    fclose(file);
-	    goto XkbError;
-	  }
-	  if (config.rules_file)
-	    rules = config.rules_file;
-	  if (config.model)
-	    model = config.model;
-	  if (config.layout)
-	    layout = config.layout;
-	  if (config.variant)
-	    variants = config.variant;
-	  if (config.options)
-	    options = config.options;
-
-	  fclose(file);
 	}
 
 	XkbSetRulesDflts(rules, model, layout, variants, options);

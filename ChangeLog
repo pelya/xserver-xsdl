@@ -8,6 +8,8 @@
 	* xkb/xkbconfig.c:
 	* xkb/ddxConfig.c:
 	* xkb/xkbInit.c:
+	* hw/xgl/glx/xglx.c:
+	* hw/xnest/Keyboard.c:
 	Remove weirdo XkbCF pre-configuration code.
 
 	* xkb/xkb.h:

@@ -1195,27 +1195,6 @@ xglxKeybdProc (DeviceIntPtr pDevice,
 		      names.keymap = XkbInitialMap;
 	      }
 
-	      file = fopen (XKB_BASE_DIRECTORY XKB_CONFIG_FILE, "r");
-	      if (file)
-	      {
-		  XkbConfigRtrnRec config;
-
-		  if (XkbCFParse (file, XkbCFDflts, desc, &config))
-		  {
-		      if (config.rules_file)
-			  rules = config.rules_file;
-		      if (config.model)
-			  model = config.model;
-		      if (config.layout)
-			  layout = config.layout;
-		      if (config.variant)
-			  variants = config.variant;
-		      if (config.options)
-			  options = config.options;
-		  }
-		  fclose (file);
-	      }
-
 	      XkbSetRulesDflts (rules, model, layout, variants, options);
 
 	      ret = XkbInitKeyboardDeviceStruct ((pointer) pDev,
