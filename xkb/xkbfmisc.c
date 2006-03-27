@@ -659,3 +659,19 @@ XkbNameMatchesPattern(char *name,char *ptrn)
     /* if we get here, the pattern is exhausted (-:just like me:-) */
     return (name[0]=='\0');
 }
+
+#ifdef NEED_STRCASECMP
+_X_HIDDEN int
+_XkbStrCaseCmp(char *str1,char *str2)
+{
+    const u_char *us1 = (const u_char *)str1, *us2 = (const u_char *)str2;
+
+    while (tolower(*us1) == tolower(*us2)) {
+        if (*us1++ == '\0')
+            return (0);
+        us2++;
+    }
+
+    return (tolower(*us1) - tolower(*us2));
+}
+#endif

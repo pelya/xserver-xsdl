@@ -18,8 +18,11 @@
 	prototype to xkb.h.
 	Explicitly initialise nTypes in xkb.c.
 
+	* configure.ac:
+	* include/xkb-config.h.in:
 	* xkb/xkbfmisc.c:
 	* xkb/maprules.c:
+	* hw/xfree86/dixmods/xkbPrivate.c:
 	Bug #3819: Remove open-coding of strcasecmp.
 
 	* xkb/ddxVT.c:

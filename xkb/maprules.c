@@ -82,6 +82,12 @@
 #define PR_DEBUG2(s,a,b)
 #endif
 
+#ifdef NEED_STRCASECMP
+extern int _XkbStrCaseCmp(char *s1, char *s2);
+#else
+#define _XkbStrCaseCmp strcasecmp
+#endif
+
 /***====================================================================***/
 
 #define DFLT_LINE_SIZE	128
@@ -1106,13 +1112,13 @@ int			len,headingtype,extra_ndx = 0;
     for ( ; GetInputLine(file,&line,False); line.num_line= 0) {
 	if (line.line[0]=='!') {
 	    tok = strtok(&(line.line[1]), " \t");
-	    if (strcmp(tolower(tok),"model") == 0)
+	    if (_XkbStrCaseCmp(tolower(tok),"model") == 0)
 		headingtype = HEAD_MODEL;
-	    else if (strcmp(tolower(tok),"layout") == 0)
+	    else if (_XkbStrCaseCmp(tok,"layout") == 0)
 		headingtype = HEAD_LAYOUT;
-	    else if (strcmp(tolower(tok),"variant") == 0)
+	    else if (_XkbStrCaseCmp(tok,"variant") == 0)
 		headingtype = HEAD_VARIANT;
-	    else if (strcmp(tolower(tok),"option") == 0)
+	    else if (_XkbStrCaseCmp(tok,"option") == 0)
 		headingtype = HEAD_OPTION;
 	    else {
 		int i;
