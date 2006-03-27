@@ -20,6 +20,16 @@
 	* xkb/maprules.c:
 	Bug #3819: Remove open-coding of strcasecmp.
 
+	* xkb/ddxVT.c:
+	* xkb/ddxPrivate.c:
+	* xkb/ddxKillSrv.c:
+	* hw/xfree86/dixmods/Makefile.am:
+	* hw/xfree86/dixmods/xkbVT.c:
+	* hw/xfree86/dixmods/xkbPrivate.c:
+	* hw/xfree86/dixmods/xkbKillSrv.c:
+	Move XFree86 DDX actions out of xkb/ and into proper files in their
+	own right in dixmods.
+
 2006-03-25  Adam Jackson  <ajax@freedesktop.org>
 
 	* hw/xfree86/common/xf86Bus.c:

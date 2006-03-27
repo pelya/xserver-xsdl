@@ -1,4 +1,4 @@
-/* $Xorg: ddxKillSrv.c,v 1.3 2000/08/17 19:53:46 cpqbld Exp $ */
+/* $Xorg: ddxVT.c,v 1.3 2000/08/17 19:53:46 cpqbld Exp $ */
 /************************************************************
 Copyright (c) 1993 by Silicon Graphics Computer Systems, Inc.
 
@@ -24,7 +24,7 @@ OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION  WITH
 THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 ********************************************************/
-/* $XFree86: xc/programs/Xserver/xkb/ddxKillSrv.c,v 1.3 2002/11/23 19:27:50 tsi Exp $ */
+/* $XFree86: xc/programs/Xserver/xkb/ddxVT.c,v 1.3 2002/11/23 19:27:50 tsi Exp $ */
 
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>
@@ -35,7 +35,7 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #endif
 
 #include <stdio.h>
-#define	NEED_EVENTS 1
+#define NEED_EVENTS 1
 #include <X11/X.h>
 #include <X11/Xproto.h>
 #include <X11/keysym.h>
@@ -45,9 +45,23 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include <X11/extensions/XKBsrv.h>
 #include <X11/extensions/XI.h>
 
+#include "xf86.h"
+
 int
-XkbDDXTerminateServer(DeviceIntPtr dev,KeyCode key,XkbAction *act)
+XkbDDXSwitchScreen(DeviceIntPtr dev,KeyCode key,XkbAction *act)
 {
-    GiveUp(1);
-    return 0;
+    int scrnnum = XkbSAScreen(&act->screen);
+
+    if (act->screen.flags & XkbSA_SwitchApplication) {
+        if (act->screen.flags & XkbSA_SwitchAbsolute)
+            xf86ProcessActionEvent(ACTION_SWITCHSCREEN,(void *) &scrnnum);
+        else {
+            if (scrnnum < 0)
+                xf86ProcessActionEvent(ACTION_SWITCHSCREEN_PREV,NULL);
+            else
+                xf86ProcessActionEvent(ACTION_SWITCHSCREEN_NEXT,NULL);
+        }
+    }
+
+    return 1;
 }

@@ -45,28 +45,8 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include <X11/extensions/XKBsrv.h>
 #include <X11/extensions/XI.h>
 
-#ifdef XF86DDXACTIONS
-#include "xf86.h"
-#endif
-
 int
 XkbDDXSwitchScreen(DeviceIntPtr dev,KeyCode key,XkbAction *act)
 {
-#ifdef XF86DDXACTIONS
-    {
-	int scrnnum = XkbSAScreen(&act->screen);
-
-	if (act->screen.flags & XkbSA_SwitchApplication) {
-	    if (act->screen.flags & XkbSA_SwitchAbsolute)
-		xf86ProcessActionEvent(ACTION_SWITCHSCREEN,(void *) &scrnnum);
-	    else {
-		if (scrnnum < 0)
-		    xf86ProcessActionEvent(ACTION_SWITCHSCREEN_PREV,NULL);
-		else
-		    xf86ProcessActionEvent(ACTION_SWITCHSCREEN_NEXT,NULL);
-	    }
-	}
-    }
-#endif
     return 1;
 }
