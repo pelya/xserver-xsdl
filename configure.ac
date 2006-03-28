@@ -579,7 +579,7 @@ AM_CONDITIONAL(AIGLX, test "x$AIGLX" = xyes)
 
 if test "x$GLX_USE_TLS" = xyes -a "x$AIGLX" = xyes; then
 	GLX_DEFINES="-DGLX_USE_TLS -DPTHREADS"
-	GLX_LIBS="GLX_LIBS -lpthread"
+	GLX_LIBS="$GLX_LIBS -lpthread"
 fi
 AC_SUBST([GLX_DEFINES])
 

@@ -1,5 +1,7 @@
 2006-03-28  Kristian Høgsberg  <krh@redhat.com>
 
+	* configure.ac: Fix another typo.
+	
 	* configure.ac: 
 	* GL/glx/Makefile.am: Fix a couple of typos.
 
