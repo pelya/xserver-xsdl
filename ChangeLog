@@ -1,3 +1,12 @@
+2006-03-27  Aaron Plattner  <aplattner@nvidia.com>
+
+	* hw/xfree86/common/xf86Module.h:
+	* hw/xfree86/loader/loader.c: (LoaderGetABIVersion):
+	* hw/xfree86/loader/xf86sym.c:
+	Add a new export, LoaderGetABIVersion.  This function allows
+	modules to query the versions directly instead of having to guess.
+	Bug #6416: Add LoaderGetABIVersion.
+
 2006-03-27  Kristian Høgsberg  <krh@redhat.com>
 
 	* configure.ac:

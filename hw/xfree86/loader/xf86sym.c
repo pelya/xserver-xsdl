@@ -760,6 +760,7 @@ LOOKUP xfree86LookupTab[] = {
     SYMFUNC(LoaderListDirs)
     SYMFUNC(LoaderFreeDirList)
     SYMFUNC(LoaderGetOS)
+    SYMFUNC(LoaderGetABIVersion)
 
     /*
      * These are our own interfaces to libc functions.

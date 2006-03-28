@@ -1508,3 +1508,28 @@ LoaderClearOptions(unsigned long opts)
 {
     LoaderOptions &= ~opts;
 }
+
+_X_EXPORT int
+LoaderGetABIVersion(const char *abiclass)
+{
+    struct {
+        const char *name;
+        int version;
+    } classes[] = {
+        { ABI_CLASS_ANSIC,     LoaderVersionInfo.ansicVersion },
+        { ABI_CLASS_VIDEODRV,  LoaderVersionInfo.videodrvVersion },
+        { ABI_CLASS_XINPUT,    LoaderVersionInfo.xinputVersion },
+        { ABI_CLASS_EXTENSION, LoaderVersionInfo.extensionVersion },
+        { ABI_CLASS_FONT,      LoaderVersionInfo.fontVersion },
+        { NULL,                0 }
+    };
+    int i;
+
+    for(i = 0; classes[i].name; i++) {
+        if(!strcmp(classes[i].name, abiclass)) {
+            return classes[i].version;
+        }
+    }
+
+    return 0;
+}

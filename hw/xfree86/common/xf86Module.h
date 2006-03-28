@@ -215,6 +215,7 @@ void LoaderReqSymLists(const char **, ...);
 void LoaderReqSymbols(const char *, ...);
 int LoaderCheckUnresolved(int);
 void LoaderGetOS(const char **name, int *major, int *minor, int *teeny);
+int LoaderGetABIVersion(const char *abiclass);
 
 typedef pointer (*ModuleSetupProc)(pointer, pointer, int *, int *);
 typedef void (*ModuleTearDownProc)(pointer);
