@@ -1,4 +1,4 @@
-/* $XdotOrg: xserver/xorg/record/record.c,v 1.5 2005/07/03 07:02:08 daniels Exp $ */
+/* $XdotOrg: xserver/xorg/record/record.c,v 1.6 2006/02/10 22:00:30 anholt Exp $ */
 /* $Xorg: record.c,v 1.4 2001/02/09 02:05:27 xorgcvs Exp $ */
 
 /*
@@ -45,6 +45,7 @@ and Jim Haggerty of Metheus.
 #define _XRECORD_SERVER_
 #include <X11/extensions/recordstr.h>
 #include "set.h"
+#include "swaprep.h"
 
 #include <stdio.h>
 #include <assert.h>
@@ -202,8 +203,7 @@ static int numEnabledContexts;
  * Side Effects: none.
  */
 static int
-RecordFindContextOnAllContexts(pContext)
-    RecordContextPtr pContext;
+RecordFindContextOnAllContexts(RecordContextPtr pContext)
 {
     int i;
 
@@ -465,10 +465,7 @@ RecordFindClientOnContext(
  * Note: this function exists mainly to make RecordARequest smaller.
  */
 static void
-RecordABigRequest(pContext, client, stuff)
-    RecordContextPtr pContext;
-    ClientPtr client;
-    xReq *stuff;
+RecordABigRequest(RecordContextPtr pContext, ClientPtr client, xReq *stuff)
 {
     CARD32 bigLength;
     char n;
@@ -517,8 +514,7 @@ RecordABigRequest(pContext, client, stuff)
  *	request for this client.  The real Proc function is called.
  */
 static int
-RecordARequest(client)
-    ClientPtr client;
+RecordARequest(ClientPtr client)
 {
     RecordContextPtr pContext;
     RecordClientsAndProtocolPtr pRCAP;
@@ -601,10 +597,7 @@ RecordARequest(client)
  *	 the word skip in ddx.tbl.ms (the porting layer document).
  */
 static void
-RecordASkippedRequest(pcbl , nulldata, calldata)
-    CallbackListPtr *pcbl;
-    pointer nulldata;
-    pointer calldata;
+RecordASkippedRequest(CallbackListPtr *pcbl, pointer nulldata, pointer calldata)
 {
     SkippedRequestInfoRec *psi = (SkippedRequestInfoRec *)calldata;
     RecordContextPtr pContext;
@@ -691,10 +684,7 @@ RecordASkippedRequest(pcbl , nulldata, calldata)
  *	chunk of data belonging to this reply, it is set to 0.
  */
 static void
-RecordAReply(pcbl, nulldata, calldata)
-    CallbackListPtr *pcbl;
-    pointer nulldata;
-    pointer calldata;
+RecordAReply(CallbackListPtr *pcbl, pointer nulldata, pointer calldata)
 {
     RecordContextPtr pContext;
     RecordClientsAndProtocolPtr pRCAP;
@@ -776,10 +766,7 @@ RecordAReply(pcbl, nulldata, calldata)
  *	it for this client.
  */
 static void
-RecordADeliveredEventOrError(pcbl, nulldata, calldata)
-    CallbackListPtr *pcbl;
-    pointer nulldata;
-    pointer calldata;
+RecordADeliveredEventOrError(CallbackListPtr *pcbl, pointer nulldata, pointer calldata)
 {
     EventInfoRec *pei = (EventInfoRec *)calldata;
     RecordContextPtr pContext;
@@ -845,10 +832,7 @@ RecordADeliveredEventOrError(pcbl, nulldata, calldata)
  *	it for this client.
  */
 static void
-RecordADeviceEvent(pcbl, nulldata, calldata)
-    CallbackListPtr *pcbl;
-    pointer nulldata;
-    pointer calldata;
+RecordADeviceEvent(CallbackListPtr *pcbl, pointer nulldata, pointer calldata)
 {
     DeviceEventInfoRec *pei = (DeviceEventInfoRec *)calldata;
     RecordContextPtr pContext;
@@ -969,9 +953,7 @@ RecordFlushAllContexts(
  *	various callback lists.
  */
 static int
-RecordInstallHooks(pRCAP, oneclient)
-    RecordClientsAndProtocolPtr pRCAP;
-    XID oneclient;
+RecordInstallHooks(RecordClientsAndProtocolPtr pRCAP, XID oneclient)
 {
     int i = 0;
     XID client;
@@ -1064,9 +1046,7 @@ RecordInstallHooks(pRCAP, oneclient)
  *	various callback lists.
  */
 static void
-RecordUninstallHooks(pRCAP, oneclient)
-    RecordClientsAndProtocolPtr pRCAP;
-    XID oneclient;
+RecordUninstallHooks(RecordClientsAndProtocolPtr pRCAP, XID oneclient)
 {
     int i = 0;
     XID client;
@@ -1165,9 +1145,7 @@ RecordUninstallHooks(pRCAP, oneclient)
  *	have at least one client.)
  */
 static void
-RecordDeleteClientFromRCAP(pRCAP, position)
-    RecordClientsAndProtocolPtr pRCAP;
-    int position;
+RecordDeleteClientFromRCAP(RecordClientsAndProtocolPtr pRCAP, int position)
 {
     if (pRCAP->pContext->pRecordingClient)
 	RecordUninstallHooks(pRCAP, pRCAP->pClientIDs[position]);
@@ -1214,9 +1192,7 @@ RecordDeleteClientFromRCAP(pRCAP, position)
  *	is no more room to hold clients internal to the RCAP.
  */
 static void
-RecordAddClientToRCAP(pRCAP, clientspec)
-    RecordClientsAndProtocolPtr pRCAP;
-    XID clientspec;
+RecordAddClientToRCAP(RecordClientsAndProtocolPtr pRCAP, XID clientspec)
 {
     if (pRCAP->numClients == pRCAP->sizeClients)
     {
@@ -1262,9 +1238,7 @@ RecordAddClientToRCAP(pRCAP, clientspec)
  *	RCAP.  (A given clientspec can only be on one RCAP of a context.)
  */
 static void
-RecordDeleteClientFromContext(pContext, clientspec)
-    RecordContextPtr pContext;
-    XID clientspec;
+RecordDeleteClientFromContext(RecordContextPtr pContext, XID clientspec)
 {
     RecordClientsAndProtocolPtr pRCAP;
     int position;
@@ -1287,10 +1261,7 @@ RecordDeleteClientFromContext(pContext, clientspec)
  * Side Effects: none.
  */
 static int
-RecordSanityCheckClientSpecifiers(clientspecs, nspecs, errorspec)
-    XID *clientspecs;
-    int nspecs;
-    XID errorspec;
+RecordSanityCheckClientSpecifiers(XID *clientspecs, int nspecs, XID errorspec)
 {
     int i;
     int clientIndex;
@@ -1349,10 +1320,7 @@ RecordSanityCheckClientSpecifiers(clientspecs, nspecs, errorspec)
  *	pClientspecs may be modified in place.
  */
 static XID *
-RecordCanonicalizeClientSpecifiers(pClientspecs, pNumClientspecs, excludespec)
-    XID *pClientspecs;
-    int *pNumClientspecs;
-    XID excludespec;
+RecordCanonicalizeClientSpecifiers(XID *pClientspecs, int *pNumClientspecs, XID excludespec)
 {
     int i;
     int numClients = *pNumClientspecs;
@@ -1449,10 +1417,7 @@ RecordPadAlign(int size, int align)
  * Side Effects: none.
  */
 static int
-RecordSanityCheckRegisterClients(pContext, client, stuff)
-    RecordContextPtr pContext;
-    ClientPtr client;
-    xRecordRegisterClientsReq *stuff;
+RecordSanityCheckRegisterClients(RecordContextPtr pContext, ClientPtr client, xRecordRegisterClientsReq *stuff)
 {
     int err;
     xRecordRange *pRange;
@@ -1587,9 +1552,7 @@ enum {REQ,	/* set info for requests */
  *	RecordSetIntervals, all zeroed, and psi->size is set to size.
  */
 static int
-RecordAllocIntervals(psi, nIntervals)
-    SetInfoPtr psi;
-    int nIntervals;
+RecordAllocIntervals(SetInfoPtr psi, int nIntervals)
 {
     assert(!psi->intervals);
     psi->intervals = (RecordSetInterval *)
@@ -1711,10 +1674,7 @@ RecordConvertRangesToIntervals(
  *	to record the new clients and protocol.
  */
 static int
-RecordRegisterClients(pContext, client, stuff)
-    RecordContextPtr pContext;
-    ClientPtr client;
-    xRecordRegisterClientsReq *stuff;
+RecordRegisterClients(RecordContextPtr pContext, ClientPtr client, xRecordRegisterClientsReq *stuff)
 {
     int err;
     int i;
@@ -1987,8 +1947,7 @@ bailout:
  */
 
 static int
-ProcRecordQueryVersion(client)
-    ClientPtr client;
+ProcRecordQueryVersion(ClientPtr client)
 {
     /* REQUEST(xRecordQueryVersionReq); */
     xRecordQueryVersionReply 	rep;
@@ -2013,8 +1972,7 @@ ProcRecordQueryVersion(client)
 
 
 static int
-ProcRecordCreateContext(client)
-    ClientPtr client;
+ProcRecordCreateContext(ClientPtr client)
 {
     REQUEST(xRecordCreateContextReq);
     RecordContextPtr pContext;
@@ -2068,8 +2026,7 @@ bailout:
 
 
 static int
-ProcRecordRegisterClients(client)
-    ClientPtr client;
+ProcRecordRegisterClients(ClientPtr client)
 {
     RecordContextPtr pContext;
     REQUEST(xRecordRegisterClientsReq);
@@ -2082,8 +2039,7 @@ ProcRecordRegisterClients(client)
 
 
 static int
-ProcRecordUnregisterClients(client)
-    ClientPtr client;
+ProcRecordUnregisterClients(ClientPtr client)
 {
     RecordContextPtr pContext;
     int err;
@@ -2147,9 +2103,7 @@ typedef struct {
  *	number of ranges.  Newly allocated ranges are zeroed.
  */
 static int
-RecordAllocRanges(pri, nRanges)
-    GetContextRangeInfoPtr pri;
-    int nRanges;
+RecordAllocRanges(GetContextRangeInfoPtr pri, int nRanges)
 {
     int newsize;
     xRecordRange *pNewRange;
@@ -2309,9 +2263,7 @@ RecordConvertMinorOpInfoToRanges(
  *	The 16 bit fields of each xRecordRange are byte swapped.
  */
 static void
-RecordSwapRanges(pRanges, nRanges)
-    xRecordRange *pRanges;
-    int nRanges;
+RecordSwapRanges(xRecordRange *pRanges, int nRanges)
 {
     int i;
     register char n;
@@ -2326,8 +2278,7 @@ RecordSwapRanges(pRanges, nRanges)
 
 
 static int
-ProcRecordGetContext(client)
-    ClientPtr client;
+ProcRecordGetContext(ClientPtr client)
 {
     RecordContextPtr pContext;
     REQUEST(xRecordGetContextReq);
@@ -2473,8 +2424,7 @@ bailout:
 
 
 static int
-ProcRecordEnableContext(client)
-    ClientPtr client;
+ProcRecordEnableContext(ClientPtr client)
 {
     RecordContextPtr pContext;
     REQUEST(xRecordEnableContextReq);
@@ -2552,8 +2502,7 @@ ProcRecordEnableContext(client)
  *	is resumed.
  */
 static void
-RecordDisableContext(pContext)
-    RecordContextPtr pContext;
+RecordDisableContext(RecordContextPtr pContext)
 {
     RecordClientsAndProtocolPtr pRCAP;
     int i;
@@ -2590,8 +2539,7 @@ RecordDisableContext(pContext)
 
 
 static int
-ProcRecordDisableContext(client)
-    ClientPtr client;
+ProcRecordDisableContext(ClientPtr client)
 {
     RecordContextPtr pContext;
     REQUEST(xRecordDisableContextReq);
@@ -2616,9 +2564,7 @@ ProcRecordDisableContext(client)
  *	it from the ppAllContexts array.
  */
 static int
-RecordDeleteContext(value, id)
-    pointer value;
-    XID id;
+RecordDeleteContext(pointer value, XID id)
 {
     int i;
     RecordContextPtr pContext = (RecordContextPtr)value;
@@ -2658,8 +2604,7 @@ RecordDeleteContext(value, id)
 
 
 static int
-ProcRecordFreeContext(client)
-    ClientPtr       client;
+ProcRecordFreeContext(ClientPtr client)
 {
     RecordContextPtr pContext;
     REQUEST(xRecordFreeContextReq);
@@ -2672,8 +2617,7 @@ ProcRecordFreeContext(client)
 
 
 static int
-ProcRecordDispatch(client)
-    ClientPtr client;
+ProcRecordDispatch(ClientPtr client)
 {
     REQUEST(xReq);
 
@@ -2702,8 +2646,7 @@ ProcRecordDispatch(client)
 
 
 static int
-SProcRecordQueryVersion(client)
-    ClientPtr client;
+SProcRecordQueryVersion(ClientPtr client)
 {
     REQUEST(xRecordQueryVersionReq);
     register char 	n;
@@ -2736,8 +2679,7 @@ SwapCreateRegister(xRecordRegisterClientsReq *stuff)
 
 
 static int
-SProcRecordCreateContext(client)
-    ClientPtr client;
+SProcRecordCreateContext(ClientPtr client)
 {
     REQUEST(xRecordCreateContextReq);
     register char 	n;
@@ -2750,8 +2692,7 @@ SProcRecordCreateContext(client)
 
 
 static int
-SProcRecordRegisterClients(client)
-    ClientPtr client;
+SProcRecordRegisterClients(ClientPtr client)
 {
     REQUEST(xRecordRegisterClientsReq);
     register char 	n;
@@ -2764,8 +2705,7 @@ SProcRecordRegisterClients(client)
 
 
 static int
-SProcRecordUnregisterClients(client)
-    ClientPtr client;
+SProcRecordUnregisterClients(ClientPtr client)
 {
     REQUEST(xRecordUnregisterClientsReq);
     register char 	n;
@@ -2780,8 +2720,7 @@ SProcRecordUnregisterClients(client)
 
 
 static int
-SProcRecordGetContext(client)
-    ClientPtr client;
+SProcRecordGetContext(ClientPtr client)
 {
     REQUEST(xRecordGetContextReq);
     register char 	n;
@@ -2793,8 +2732,7 @@ SProcRecordGetContext(client)
 } /* SProcRecordGetContext */
 
 static int
-SProcRecordEnableContext(client)
-    ClientPtr client;
+SProcRecordEnableContext(ClientPtr client)
 {
     REQUEST(xRecordEnableContextReq);
     register char 	n;
@@ -2807,8 +2745,7 @@ SProcRecordEnableContext(client)
 
 
 static int
-SProcRecordDisableContext(client)
-    ClientPtr client;
+SProcRecordDisableContext(ClientPtr client)
 {
     REQUEST(xRecordDisableContextReq);
     register char 	n;
@@ -2821,8 +2758,7 @@ SProcRecordDisableContext(client)
 
 
 static int
-SProcRecordFreeContext(client)
-    ClientPtr client;
+SProcRecordFreeContext(ClientPtr client)
 {
     REQUEST(xRecordFreeContextReq);
     register char 	n;
@@ -2835,8 +2771,7 @@ SProcRecordFreeContext(client)
 
 
 static int
-SProcRecordDispatch(client)
-    ClientPtr client;
+SProcRecordDispatch(ClientPtr client)
 {
     REQUEST(xReq);
 
@@ -2863,9 +2798,6 @@ SProcRecordDispatch(client)
     }
 } /* SProcRecordDispatch */
 
-/* XXX goes in header file */
-extern void SwapConnSetupInfo(), SwapConnSetupPrefix();
-
 /* RecordConnectionSetupInfo
  *
  * Arguments:
@@ -2879,16 +2811,14 @@ extern void SwapConnSetupInfo(), SwapConnSetupPrefix();
  *	The connection setup info is sent to the recording client.
  */
 static void
-RecordConnectionSetupInfo(pContext, pci)
-    RecordContextPtr pContext;
-    NewClientInfoRec *pci;
+RecordConnectionSetupInfo(RecordContextPtr pContext, NewClientInfoRec *pci)
 {
     int prefixsize = SIZEOF(xConnSetupPrefix);
     int restsize = pci->prefix->length * 4;
 
     if (pci->client->swapped)
     {
-	char * pConnSetup = (char *)ALLOCATE_LOCAL(prefixsize + restsize);
+	char *pConnSetup = (char *)ALLOCATE_LOCAL(prefixsize + restsize);
 	if (!pConnSetup)
 	    return;
 	SwapConnSetupPrefix(pci->prefix, pConnSetup);
@@ -2934,10 +2864,7 @@ RecordConnectionSetupInfo(pContext, pci)
  */
 
 static void
-RecordAClientStateChange(pcbl, nulldata, calldata)
-    CallbackListPtr *pcbl;
-    pointer nulldata;
-    pointer calldata;
+RecordAClientStateChange(CallbackListPtr *pcbl, pointer nulldata, pointer calldata)
 {
     NewClientInfoRec *pci = (NewClientInfoRec *)calldata;
     int i;
@@ -3000,8 +2927,7 @@ RecordAClientStateChange(pcbl, nulldata, calldata)
  *	
  */
 static void
-RecordCloseDown(extEntry)
-    ExtensionEntry *extEntry;
+RecordCloseDown(ExtensionEntry *extEntry)
 {
     DeleteCallback(&ClientStateCallback, RecordAClientStateChange, NULL);
 } /* RecordCloseDown */
@@ -3017,7 +2943,7 @@ RecordCloseDown(extEntry)
  *	Enables the RECORD extension if possible.
  */
 void 
-RecordExtensionInit()
+RecordExtensionInit(void)
 {
     ExtensionEntry *extentry;
 

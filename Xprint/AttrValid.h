@@ -182,7 +182,7 @@ void XpPutMediumSSAttr(XpContextPtr pContext,
 		       XPAttributes pool,
 		       XpOid oid,
 		       const XpOidMediumSS* msss);
-const XpOidMediumSS* XpGetDefaultMediumSS();
+const XpOidMediumSS* XpGetDefaultMediumSS(void);
 
 /*
  * XpOidTrayMediumList-valued attribute access

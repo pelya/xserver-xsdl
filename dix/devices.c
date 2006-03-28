@@ -48,7 +48,7 @@ SOFTWARE.
 
 
 /* $Xorg: devices.c,v 1.4 2001/02/09 02:04:39 xorgcvs Exp $ */
-/* $XdotOrg: xserver/xorg/dix/devices.c,v 1.8 2005/07/03 08:53:38 daniels Exp $ */
+/* $XdotOrg: xserver/xorg/dix/devices.c,v 1.9 2006/02/15 20:44:12 ajax Exp $ */
 
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>
@@ -126,7 +126,8 @@ _AddInputDevice(DeviceProc deviceProc, Bool autoStart)
     dev->xkb_interest= NULL;
 #endif
     dev->nPrivates = 0;
-    dev->devPrivates = dev->unwrapProc = NULL;
+    dev->devPrivates = NULL;
+    dev->unwrapProc = NULL;
     inputInfo.off_devices = dev;
     return dev;
 }

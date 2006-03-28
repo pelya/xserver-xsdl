@@ -30,7 +30,7 @@ or other dealings in this Software without prior written authorization
 of the copyright holder.
 
 ************************************************************/
-/* $XdotOrg: xc/programs/Xserver/Xext/xevie.c,v 1.6 2005/05/22 01:12:49 alanc Exp $ */
+/* $XdotOrg: xserver/xorg/Xext/xevie.c,v 1.11 2005/10/06 17:55:54 alanc Exp $ */
 
 #define NEED_REPLIES
 #define NEED_EVENTS
@@ -62,8 +62,8 @@ of the copyright holder.
 extern Bool noXkbExtension;
 extern int    xeviegrabState;
 
-static int		ProcDispatch (), SProcDispatch ();
-static void		ResetProc ();
+static int		ProcDispatch (register ClientPtr client), SProcDispatch (register ClientPtr client);
+static void		ResetProc (ExtensionEntry *extEntry);
 
 static unsigned char	ReqCode = 0;
 static int		ErrorBase;
@@ -129,7 +129,7 @@ static void XeviePointerProcessInputProc(xEvent *xE, DeviceIntPtr dev,
 static void XevieKbdProcessInputProc(xEvent *xE, DeviceIntPtr dev, int count);
 
 void
-XevieExtensionInit ()
+XevieExtensionInit (void)
 {
     ExtensionEntry* extEntry;
 
@@ -158,18 +158,15 @@ XevieExtensionInit ()
 
 /*ARGSUSED*/
 static 
-void ResetProc (extEntry)
-    ExtensionEntry* extEntry;
+void ResetProc (ExtensionEntry *extEntry)
 {
 }
 
 static 
-int ProcQueryVersion (client)
-    register ClientPtr client;
+int ProcQueryVersion (register ClientPtr client)
 {
     REQUEST (xXevieQueryVersionReq);
     xXevieQueryVersionReply rep;
-    register int n;
 
     REQUEST_SIZE_MATCH (xXevieQueryVersionReq);
     rep.type = X_Reply;
@@ -182,12 +179,10 @@ int ProcQueryVersion (client)
 }
 
 static
-int ProcStart (client)
-    register ClientPtr client;
+int ProcStart (register ClientPtr client)
 {
     REQUEST (xXevieStartReq);
     xXevieStartReply rep;
-    register int n;
 
     REQUEST_SIZE_MATCH (xXevieStartReq);
     rep.pad1 = 0;
@@ -224,8 +219,7 @@ int ProcStart (client)
 }
 
 static
-int ProcEnd (client)
-    register ClientPtr client;
+int ProcEnd (register ClientPtr client)
 {
     xXevieEndReply rep;
 
@@ -244,13 +238,11 @@ int ProcEnd (client)
 }
 
 static
-int ProcSend (client)
-    register ClientPtr client;
+int ProcSend (register ClientPtr client)
 {
     REQUEST (xXevieSendReq);
     xXevieSendReply rep;
     xEvent *xE;
-    OsCommPtr oc;
     static unsigned char lastDetail = 0, lastType = 0;
 
     if (client->index != xevieClientIndex)
@@ -288,8 +280,7 @@ int ProcSend (client)
 }
 
 static
-int ProcSelectInput (client)
-    register ClientPtr client;
+int ProcSelectInput (register ClientPtr client)
 {
     REQUEST (xXevieSelectInputReq);
     xXevieSelectInputReply rep;
@@ -305,8 +296,7 @@ int ProcSelectInput (client)
 }
 
 static 
-int ProcDispatch (client)
-    register ClientPtr	client;
+int ProcDispatch (register ClientPtr client)
 {
     REQUEST (xReq);
     switch (stuff->data)
@@ -327,8 +317,7 @@ int ProcDispatch (client)
 }
 
 static 
-int SProcQueryVersion (client)
-    register ClientPtr	client;
+int SProcQueryVersion (register ClientPtr client)
 {
     register int n;
 
@@ -338,8 +327,7 @@ int SProcQueryVersion (client)
 }
 
 static 
-int SProcStart (client)
-    ClientPtr client;
+int SProcStart (ClientPtr client)
 {
     register int n;
 
@@ -351,12 +339,9 @@ int SProcStart (client)
 }
 
 static 
-int SProcEnd (client)
-    ClientPtr client;
+int SProcEnd (ClientPtr client)
 {
     register int n;
-    int count;
-    xColorItem* pItem;
 
     REQUEST (xXevieEndReq);
     swaps (&stuff->length, n);
@@ -366,11 +351,9 @@ int SProcEnd (client)
 }
 
 static
-int SProcSend (client)
-    ClientPtr client;
+int SProcSend (ClientPtr client)
 {
     register int n;
-    int count;
 
     REQUEST (xXevieSendReq);
     swaps (&stuff->length, n);
@@ -380,11 +363,9 @@ int SProcSend (client)
 }
 
 static
-int SProcSelectInput (client)
-    ClientPtr client;
+int SProcSelectInput (ClientPtr client)
 {
     register int n;
-    int count;
 
     REQUEST (xXevieSelectInputReq);
     swaps (&stuff->length, n);
@@ -395,8 +376,7 @@ int SProcSelectInput (client)
 
 
 static 
-int SProcDispatch (client)
-    register ClientPtr	client;
+int SProcDispatch (register ClientPtr client)
 {
     REQUEST(xReq);
     switch (stuff->data)

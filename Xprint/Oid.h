@@ -210,7 +210,7 @@ char* XpOidListString(const XpOidList*);
 /*
  * XpOidLinkedList public methods
  */
-XpOidLinkedList* XpOidLinkedListNew();
+XpOidLinkedList* XpOidLinkedListNew(void);
 void XpOidLinkedListDelete(XpOidLinkedList*);
 #define XpOidLinkedListCount(l) ((l) ? (l)->count : 0)
 XpOid XpOidLinkedListGetOid(XpOidLinkedList* list, int i);

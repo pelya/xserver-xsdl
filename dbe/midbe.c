@@ -57,6 +57,7 @@
 #include "regionstr.h"
 #include "gcstruct.h"
 #include "inputstr.h"
+#include "midbe.h"
 
 #include <stdio.h>
 
@@ -94,9 +95,7 @@ int		dbeWindowPrivIndex = -1;
  *****************************************************************************/
 
 static Bool
-miDbeGetVisualInfo(pScreen, pScrVisInfo)
-    ScreenPtr			pScreen;
-    XdbeScreenVisualInfo	*pScrVisInfo;
+miDbeGetVisualInfo(ScreenPtr pScreen, XdbeScreenVisualInfo *pScrVisInfo)
 {
     register int	i, j, k;
     register int	count;
@@ -158,10 +157,7 @@ miDbeGetVisualInfo(pScreen, pScrVisInfo)
  *****************************************************************************/
 
 static int
-miDbeAllocBackBufferName(pWin, bufId, swapAction)
-    WindowPtr		pWin;
-    XID			bufId;
-    int			swapAction;
+miDbeAllocBackBufferName(WindowPtr pWin, XID bufId, int swapAction)
 {
     ScreenPtr			pScreen;
     DbeWindowPrivPtr		pDbeWindowPriv;
@@ -272,8 +268,7 @@ miDbeAllocBackBufferName(pWin, bufId, swapAction)
  *****************************************************************************/
 
 static void
-miDbeAliasBuffers(pDbeWindowPriv)
-    DbeWindowPrivPtr	pDbeWindowPriv;
+miDbeAliasBuffers(DbeWindowPrivPtr pDbeWindowPriv)
 {
     int				i;
     MiDbeWindowPrivPrivPtr	pDbeWindowPrivPriv =
@@ -299,10 +294,7 @@ miDbeAliasBuffers(pDbeWindowPriv)
  *****************************************************************************/
 
 static int
-miDbeSwapBuffers(client, pNumWindows, swapInfo)
-    ClientPtr		client;
-    int			*pNumWindows;
-    DbeSwapInfoPtr	swapInfo;
+miDbeSwapBuffers(ClientPtr client, int *pNumWindows, DbeSwapInfoPtr swapInfo)
 {
     DbeScreenPrivPtr		pDbeScreenPriv;
     GCPtr		    	pGC;
@@ -481,9 +473,7 @@ miDbeSwapBuffers(client, pNumWindows, swapInfo)
  *****************************************************************************/
 
 static void
-miDbeWinPrivDelete(pDbeWindowPriv, bufId)
-    DbeWindowPrivPtr	pDbeWindowPriv;
-    XID			bufId;
+miDbeWinPrivDelete(DbeWindowPrivPtr pDbeWindowPriv, XID bufId)
 {
     MiDbeWindowPrivPrivPtr	pDbeWindowPrivPriv;
 
@@ -530,10 +520,7 @@ miDbeWinPrivDelete(pDbeWindowPriv, bufId)
  *****************************************************************************/
 
 static Bool
-miDbePositionWindow(pWin, x, y)
-    WindowPtr	pWin;
-    int		x;
-    int		y;
+miDbePositionWindow(WindowPtr pWin, int x, int y)
 {
     ScreenPtr			pScreen;
     DbeScreenPrivPtr		pDbeScreenPriv;
@@ -771,8 +758,7 @@ miDbePositionWindow(pWin, x, y)
  *****************************************************************************/
 
 static void
-miDbeResetProc(pScreen)
-    ScreenPtr	pScreen;
+miDbeResetProc(ScreenPtr pScreen)
 {
     DbeScreenPrivPtr    pDbeScreenPriv;
 
@@ -783,6 +769,11 @@ miDbeResetProc(pScreen)
     pScreen->PositionWindow = pDbeScreenPriv->PositionWindow;
 
 } /* miDbeResetProc() */
+
+static void
+miDbeNopValidateBuffer(WindowPtr pWin, XID bufId, Bool dstbuffer)
+{
+}
 
 
 /******************************************************************************
@@ -796,9 +787,7 @@ miDbeResetProc(pScreen)
  *****************************************************************************/
 
 Bool
-miDbeInit(pScreen, pDbeScreenPriv)
-    ScreenPtr		pScreen;
-    DbeScreenPrivPtr	pDbeScreenPriv;
+miDbeInit(ScreenPtr pScreen, DbeScreenPrivPtr pDbeScreenPriv)
 {
     /* Copy resource types created by DIX */
     dbeDrawableResType   = pDbeScreenPriv->dbeDrawableResType;
@@ -844,7 +833,7 @@ miDbeInit(pScreen, pDbeScreenPriv)
     pDbeScreenPriv->WinPrivDelete         = miDbeWinPrivDelete;
 
     /* The mi implementation doesn't need buffer validation. */
-    pDbeScreenPriv->ValidateBuffer	  = (void (*)())NoopDDA;
+    pDbeScreenPriv->ValidateBuffer	  = miDbeNopValidateBuffer;
 
     return(TRUE);
 

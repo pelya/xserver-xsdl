@@ -1,4 +1,4 @@
-/* $XdotOrg: xserver/xorg/mi/miarc.c,v 1.6 2005/07/03 08:53:51 daniels Exp $ */
+/* $XdotOrg: xserver/xorg/mi/miarc.c,v 1.7 2006/02/15 19:05:54 ajax Exp $ */
 /* $XFree86: xc/programs/Xserver/mi/miarc.c,v 3.14 2003/10/29 22:57:48 tsi Exp $ */
 /***********************************************************
 
@@ -112,12 +112,12 @@ ICEILTEMPDECL
 #endif
 
 #ifdef USE_INLINE
-inline static const int max (const int x, const int y)
+inline static int max (const int x, const int y)
 {
 	return x>y? x:y;
 }
 
-inline static const int min (const int x, const int y)
+inline static int min (const int x, const int y)
 {
 	return x<y? x:y;
 }

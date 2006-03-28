@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/Xext/security.c,v 1.3 2005/04/20 12:25:12 daniels Exp $ */
+/* $XdotOrg: xserver/xorg/Xext/security.c,v 1.5 2005/07/03 07:01:04 daniels Exp $ */
 /* $Xorg: security.c,v 1.4 2001/02/09 02:04:32 xorgcvs Exp $ */
 /*
 
@@ -1225,7 +1225,6 @@ SecurityCensorImage(client, pVisibleRegion, widthBytesLine, pDraw, x, y, w, h,
     unsigned int format;
     char * pBuf;
 {
-    ScreenPtr pScreen = pDraw->pScreen;
     RegionRec imageRegion;  /* region representing x,y,w,h */
     RegionRec censorRegion; /* region to obliterate */
     BoxRec imageBox;

@@ -5,6 +5,25 @@
 	* mi/miscrinit.c:
 	Remove long-dead screen region code.
 
+	* Xext/panoramiX.c:
+	* Xext/security.c:
+	* Xext/xevie.c:
+	* Xprint/AttrValid.h:
+	* Xprint/Oid.h:
+	* dbe/dbe.c:
+	* dbe/midbe.c:
+	* dix/devices.c:
+	* dix/events.c:
+	* dix/window.c:
+	* mi/miarc.c:
+	* mi/mioverlay.c:
+	* miext/shadow/shadow.h:
+	* os/connection.c:
+	* os/xdmauth.c:
+	* record/record.c:
+	* render/mipict.c:
+	Big old pile of warning fixes.
+
 2006-03-25  Daniel Stone  <daniel@freedesktop.org>
 
 	* xkb/xkbUtils.c:

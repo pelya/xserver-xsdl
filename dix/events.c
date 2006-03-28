@@ -1,4 +1,4 @@
-/* $XdotOrg: xserver/xorg/dix/events.c,v 1.17 2005/08/25 22:11:04 anholt Exp $ */
+/* $XdotOrg: xserver/xorg/dix/events.c,v 1.18 2006/02/15 20:44:12 ajax Exp $ */
 /* $XFree86: xc/programs/Xserver/dix/events.c,v 3.51 2004/01/12 17:04:52 tsi Exp $ */
 /************************************************************
 
@@ -2140,7 +2140,6 @@ WindowsRestructured()
  * compute correctly. */
 void ReinitializeRootWindow(WindowPtr win, int xoff, int yoff)
 {
-    ScreenPtr pScreen = win->drawable.pScreen;
     GrabPtr   grab;
 
     if (noPanoramiXExtension) return;

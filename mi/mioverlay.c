@@ -2029,7 +2029,6 @@ HasUnderlayChildren(WindowPtr pWin)
 static Bool
 CollectUnderlayChildrenRegions(WindowPtr pWin, RegionPtr pReg)
 {
-    ScreenPtr pScreen = pWin->drawable.pScreen;
     WindowPtr pChild;
     miOverlayTreePtr pTree;
     Bool hasUnderlay;

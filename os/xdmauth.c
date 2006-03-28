@@ -70,9 +70,7 @@ XdmAuthenticationValidator (ARRAY8Ptr privateData, ARRAY8Ptr incomingData,
 
     XdmcpUnwrap (incomingData->data, &privateKey,
 			      incomingData->data,incomingData->length);
-    switch (packet_type)
-    {
-    case ACCEPT:
+    if (packet_type == ACCEPT) {
     	if (incomingData->length != 8)
 	    return FALSE;
     	incoming = (XdmAuthKeyPtr) incomingData->data;
@@ -88,9 +86,7 @@ XdmAuthenticationGenerator (ARRAY8Ptr privateData, ARRAY8Ptr outgoingData,
 {
     outgoingData->length = 0;
     outgoingData->data = 0;
-    switch (packet_type)
-    {
-    case REQUEST:
+    if (packet_type == REQUEST) {
 	if (XdmcpAllocARRAY8 (outgoingData, 8))
 	    XdmcpWrap (&rho, &privateKey, outgoingData->data, 8);
     }
