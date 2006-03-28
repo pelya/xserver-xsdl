@@ -24,6 +24,9 @@
 	* render/mipict.c:
 	Big old pile of warning fixes.
 
+	* configure.ac:
+	Silence some editorializing in the configure help text.
+
 2006-03-25  Daniel Stone  <daniel@freedesktop.org>
 
 	* xkb/xkbUtils.c:
