@@ -1,3 +1,10 @@
+2006-03-27  Kristian Høgsberg  <krh@redhat.com>
+
+	* configure.ac:
+	* GL/glx/Makefile.am: Add --enable-glx-tls ./configure option to
+	enable use of TLS for storing current GL context.  Use this option
+	to let AIGLX load DRI drivers compiled for TLS.
+
 2006-03-27  Adam Jackson  <ajax@freedesktop.org>
 
 	* include/regionstr.h:
