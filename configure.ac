@@ -394,7 +394,6 @@ AC_ARG_ENABLE(xdm-auth-1,     AS_HELP_STRING([--disable-xdm-auth-1], [Build XDM-
 AC_ARG_ENABLE(glx,            AS_HELP_STRING([--disable-glx], [Build GLX extension (default: enabled)]), [GLX=$enableval], [GLX=yes])
 AC_ARG_ENABLE(aiglx,          AS_HELP_STRING([--enable-aiglx], [Build accelerated indirect GLX (default: enabled)]), [AIGLX=$enableval], [AIGLX=yes])
 AC_ARG_ENABLE(glx-tls,        AS_HELP_STRING([--enable-glx-tls], [Build GLX with TLS support (default: disabled)]), [GLX_USE_TLS=$enableval], [GLX_USE_TLS=no])
-GLX_USE_TLS
 AC_ARG_ENABLE(dri,            AS_HELP_STRING([--enable-dri], [Build DRI extension (default: auto)]), [DRI=$enableval])
 AC_ARG_ENABLE(xinerama,	      AS_HELP_STRING([--disable-xinerama], [Build Xinerama extension (default: enabled)]), [XINERAMA=$enableval], [XINERAMA=yes])
 AC_ARG_ENABLE(xf86vidmode,    AS_HELP_STRING([--disable-xf86vidmode], [Build XF86VidMode extension (default: enabled)]), [XF86VIDMODE=$enableval], [XF86VIDMODE=yes])
