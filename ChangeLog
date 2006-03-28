@@ -1,3 +1,10 @@
+2006-03-27  Adam Jackson  <ajax@freedesktop.org>
+
+	* include/regionstr.h:
+	* include/scrnintstr.h:
+	* mi/miscrinit.c:
+	Remove long-dead screen region code.
+
 2006-03-25  Daniel Stone  <daniel@freedesktop.org>
 
 	* xkb/xkbUtils.c:

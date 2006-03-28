@@ -266,33 +266,7 @@ miScreenInit(pScreen, pbits, xsize, ysize, dpix, dpiy, width,
     /* CreateGC */
     /* CreateColormap, DestroyColormap, InstallColormap, UninstallColormap */
     /* ListInstalledColormaps, StoreColors, ResolveColor */
-#ifdef NEED_SCREEN_REGIONS
-    pScreen->RegionCreate = miRegionCreate;
-    pScreen->RegionInit = miRegionInit;
-    pScreen->RegionCopy = miRegionCopy;
-    pScreen->RegionDestroy = miRegionDestroy;
-    pScreen->RegionUninit = miRegionUninit;
-    pScreen->Intersect = miIntersect;
-    pScreen->Union = miUnion;
-    pScreen->Subtract = miSubtract;
-    pScreen->Inverse = miInverse;
-    pScreen->RegionReset = miRegionReset;
-    pScreen->TranslateRegion = miTranslateRegion;
-    pScreen->RectIn = miRectIn;
-    pScreen->PointInRegion = miPointInRegion;
-    pScreen->RegionNotEmpty = miRegionNotEmpty;
-    pScreen->RegionEqual = miRegionEqual;
-    pScreen->RegionBroken = miRegionBroken;
-    pScreen->RegionBreak = miRegionBreak;
-    pScreen->RegionEmpty = miRegionEmpty;
-    pScreen->RegionExtents = miRegionExtents;
-    pScreen->RegionAppend = miRegionAppend;
-    pScreen->RegionValidate = miRegionValidate;
-#endif /* NEED_SCREEN_REGIONS */
     /* BitmapToRegion */
-#ifdef NEED_SCREEN_REGIONS
-    pScreen->RectsToRegion = miRectsToRegion;
-#endif /* NEED_SCREEN_REGIONS */
     pScreen->SendGraphicsExpose = miSendGraphicsExpose;
     pScreen->BlockHandler = (ScreenBlockHandlerProcPtr)NoopDDA;
     pScreen->WakeupHandler = (ScreenWakeupHandlerProcPtr)NoopDDA;
