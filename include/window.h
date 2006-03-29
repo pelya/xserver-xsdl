@@ -102,6 +102,10 @@ extern void ClippedRegionFromBox(
     int /*w*/,
     int /*h*/);
 
+typedef WindowPtr (* RealChildHeadProc) (WindowPtr pWin);
+
+void RegisterRealChildHeadProc (RealChildHeadProc proc);
+
 extern WindowPtr RealChildHead(
     WindowPtr /*pWin*/);
 

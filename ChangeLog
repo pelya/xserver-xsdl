@@ -1,3 +1,11 @@
+2006-3-29   Deron Johnson  <deron.johnson@sun.com>
+
+        * xorg/composite/compinit.c
+        * xorg/composite/compwindow.c
+        * xorg/dix/window.c
+        * xorg/include/window.h
+	Fix composite overlay window bug 6411.
+	
 2006-03-28  Adam Jackson  <ajax@freedesktop.org>
 
 	* afb/afbbitblt.c:

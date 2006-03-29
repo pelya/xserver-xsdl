@@ -88,6 +88,7 @@ compCloseScreen (int index, ScreenPtr pScreen)
     xfree (cs);
     pScreen->devPrivates[CompScreenPrivateIndex].ptr = 0;
     ret = (*pScreen->CloseScreen) (index, pScreen);
+
     return ret;
 }
 
@@ -418,6 +419,8 @@ compScreenInit (ScreenPtr pScreen)
     pScreen->CloseScreen = compCloseScreen;
 
     pScreen->devPrivates[CompScreenPrivateIndex].ptr = (pointer) cs;
+
+    RegisterRealChildHeadProc(CompositeRealChildHead);
 
     return TRUE;
 }

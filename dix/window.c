@@ -2,6 +2,28 @@
 /* $Xorg: window.c,v 1.4 2001/02/09 02:04:41 xorgcvs Exp $ */
 /*
 
+Copyright (c) 2004, Sun Microsystems, Inc. 
+
+Permission to use, copy, modify, distribute, and sell this software and its
+documentation for any purpose is hereby granted without fee, provided that
+the above copyright notice appear in all copies and that both that
+copyright notice and this permission notice appear in supporting
+documentation.
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL 
+SUN MICROSYSTEMS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER 
+IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+Except as contained in this notice, the name of Sun Microsystems shall not be
+used in advertising or otherwise to promote the sale, use or other dealings
+in this Software without prior written authorization from Sun Microsystems.
+
 Copyright 1987, 1998  The Open Group
 
 Permission to use, copy, modify, distribute, and sell this software and its
@@ -512,6 +534,7 @@ ClippedRegionFromBox(register WindowPtr pWin, RegionPtr Rgn,
                      register int x, register int y,
                      register int w, register int h)
 {
+    ScreenPtr pScreen = pWin->drawable.pScreen;
     BoxRec box;
 
     box = *(REGION_EXTENTS(pScreen, &pWin->winSize));
@@ -534,9 +557,22 @@ ClippedRegionFromBox(register WindowPtr pWin, RegionPtr Rgn,
     REGION_INTERSECT(pScreen, Rgn, Rgn, &pWin->winSize);
 }
 
+static RealChildHeadProc realChildHeadProc = NULL;
+
+void
+RegisterRealChildHeadProc (RealChildHeadProc proc)
+{
+    realChildHeadProc = proc;
+}
+
+
 WindowPtr
 RealChildHead(register WindowPtr pWin)
 {
+    if (realChildHeadProc) {
+	return realChildHeadProc (pWin);
+    }
+
     if (!pWin->parent &&
 	(screenIsSaved == SCREEN_SAVER_ON) &&
 	(HasSaverWindow (pWin->drawable.pScreen->myNum)))
@@ -1610,6 +1646,8 @@ CreateUnclippedWinSize (register WindowPtr pWin)
     pRgn = REGION_CREATE(pWin->drawable.pScreen, &box, 1);
 #ifdef SHAPE
     if (wBoundingShape (pWin) || wClipShape (pWin)) {
+	ScreenPtr pScreen = pWin->drawable.pScreen;
+
 	REGION_TRANSLATE(pScreen, pRgn, - pWin->drawable.x,
 			 - pWin->drawable.y);
 	if (wBoundingShape (pWin))
@@ -1644,6 +1682,8 @@ SetWinSize (register WindowPtr pWin)
 			 (int)pWin->drawable.height);
 #ifdef SHAPE
     if (wBoundingShape (pWin) || wClipShape (pWin)) {
+	ScreenPtr pScreen = pWin->drawable.pScreen;
+
 	REGION_TRANSLATE(pScreen, &pWin->winSize, - pWin->drawable.x,
 			 - pWin->drawable.y);
 	if (wBoundingShape (pWin))
@@ -1684,6 +1724,8 @@ SetBorderSize (register WindowPtr pWin)
 		(int)(pWin->drawable.height + (bw<<1)));
 #ifdef SHAPE
 	if (wBoundingShape (pWin)) {
+	    ScreenPtr pScreen = pWin->drawable.pScreen;
+
 	    REGION_TRANSLATE(pScreen, &pWin->borderSize, - pWin->drawable.x,
 			     - pWin->drawable.y);
 	    REGION_INTERSECT(pScreen, &pWin->borderSize, &pWin->borderSize,
@@ -1893,6 +1935,7 @@ MakeBoundingRegion (
     BoxPtr	pBox)
 {
     RegionPtr	pRgn;
+    ScreenPtr   pScreen = pWin->drawable.pScreen;
 
     pRgn = REGION_CREATE(pScreen, pBox, 1);
     if (wBoundingShape (pWin)) {

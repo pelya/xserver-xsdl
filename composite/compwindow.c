@@ -144,10 +144,18 @@ Bool
 compCheckRedirect (WindowPtr pWin)
 {
     CompWindowPtr   cw = GetCompWindow (pWin);
+    CompScreenPtr   cs = GetCompScreen(pWin->drawable.pScreen);
     Bool	    should;
 
     should = pWin->realized && (pWin->drawable.class != InputOnly) &&
 	     (cw != NULL);
+    
+    /* Never redirect the overlay window */
+    if (cs->pOverlayWin != NULL) {
+	if (pWin == cs->pOverlayWin) {
+	    should = FALSE;
+	}
+    }	
     
     if (should != pWin->redirectDraw)
     {
