@@ -947,15 +947,58 @@ exaPaintWindow(WindowPtr pWin, RegionPtr pRegion, int what)
 }
 
 /**
- * GetImage isn't accelerated yet, but performs migration so that we'll
- * hopefully avoid the read-from-framebuffer cost.
+ * Accelerates GetImage for solid ZPixmap downloads from framebuffer memory.
+ *
+ * This is probably the only case we actually care about.  The rest fall through
+ * to migration and ExaCheckGetImage, which hopefully will result in migration
+ * pushing the pixmap out of framebuffer.
  */
 void
 exaGetImage (DrawablePtr pDrawable, int x, int y, int w, int h,
 	     unsigned int format, unsigned long planeMask, char *d)
 {
+    ExaScreenPriv (pDrawable->pScreen);
     ExaMigrationRec pixmaps[1];
+    PixmapPtr pPix;
+    int xoff, yoff;
+    Bool ok;
 
+    if (pExaScr->swappedOut || pExaScr->info->DownloadFromScreen == NULL)
+	goto fallback;
+
+    /* Only cover the ZPixmap, solid copy case. */
+    if (format != ZPixmap || !EXA_PM_IS_SOLID(pDrawable, planeMask))
+	goto fallback;
+
+    /* Only try to handle the 8bpp and up cases, since we don't want to think
+     * about <8bpp.
+     */
+    if (pDrawable->bitsPerPixel < 8)
+	goto fallback;
+
+    /* Migrate, but assume that we could accelerate the download. It is up to
+     * the migration scheme to ensure that this case doesn't result in bad
+     * moving of pixmaps.
+     */
+    pixmaps[0].as_dst = FALSE;
+    pixmaps[0].as_src = TRUE;
+    pixmaps[0].pPix = exaGetDrawablePixmap (pDrawable);
+    exaDoMigration (pixmaps, 1, TRUE);
+    pPix = exaGetOffscreenPixmap (pDrawable, &xoff, &yoff);
+    if (pPix == NULL)
+	goto fallback;
+
+    xoff += pDrawable->x;
+    yoff += pDrawable->y;
+
+    ok = pExaScr->info->DownloadFromScreen(pPix, x + xoff, y + yoff, w, h, d,
+					   PixmapBytePad(pDrawable, w));
+    if (ok) {
+	exaWaitSync(pDrawable->pScreen);
+	return;
+    }
+
+fallback:
     pixmaps[0].as_dst = FALSE;
     pixmaps[0].as_src = TRUE;
     pixmaps[0].pPix = exaGetDrawablePixmap (pDrawable);

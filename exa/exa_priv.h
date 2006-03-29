@@ -129,6 +129,14 @@ extern int exaPixmapPrivateIndex;
 /** Align an offset to a power-of-two alignment */
 #define EXA_ALIGN2(offset, align) (((offset) + (align) - 1) & ~((align) - 1))
 
+/**
+ * Returns TRUE if the given planemask covers all the significant bits in the
+ * pixel values for pDrawable.
+ */
+#define EXA_PM_IS_SOLID(_pDrawable, _pm) \
+	(((_pm) & ((1 << (_pDrawable)->bitsPerPixel) - 1)) == \
+	 ((1 << (_pDrawable)->bitsPerPixel) - 1))
+
 #define EXA_PIXMAP_SCORE_MOVE_IN    10
 #define EXA_PIXMAP_SCORE_MAX	    20
 #define EXA_PIXMAP_SCORE_MOVE_OUT   -10

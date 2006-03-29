@@ -1,5 +1,15 @@
 2006-03-29  Eric Anholt  <anholt@FreeBSD.org>
 
+	* exa/exa_accel.c: (exaGetImage):
+	* exa/exa_priv.h:
+	Bug #2986: Add acceleration of GetImage using DownloadFromScreen for the
+	ZPixmap, planeMask ~= FB_ALLONES, bitsPerPixel >= 8 case.  I'm pretty
+	convinced that this is the only case that we care about at all.  Tested
+	with xwd -root and xwd on a gnome-terminal, in a composited environment
+	or not.
+
+2006-03-29  Eric Anholt  <anholt@FreeBSD.org>
+
 	* hw/kdrive/ephyr/ephyr_draw.c: (ephyrDownloadFromScreen),
 	(ephyrDrawInit), (exaDDXDriverInit):
 	Add a DownloadFromScreen implementation, used for testing GetImage
