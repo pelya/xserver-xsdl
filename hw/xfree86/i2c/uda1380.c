@@ -22,22 +22,6 @@
  * otherwise to promote the sale, use or other dealings in this Software without prior written 
  * authorization from the author.
  *
- * $Log$
- * Revision 1.5  2005/09/24 21:56:00  bogdand
- * Changed the license to a X/MIT one
- *
- * Revision 1.4  2005/07/13 20:19:37  sandmann
- * xc/programs/Xserver/hw/xfree86/drivers/i2c/*.c: include xorg-config.h
- * instead of config.h
- * xserver/xorg/hw/xfree86/i2c/Makefile.am: Add i2c drivers
- *
- * Revision 1.3  2005/07/11 02:29:50  ajax
- * Prep for modular builds by adding guarded #include "config.h" everywhere.
- *
- * Revision 1.2  2005/07/01 22:43:11  daniels
- * Change all misc.h and os.h references to <X11/foo.h>.
- *
- *
  ************************************************************************************/
 
 #ifdef HAVE_XORG_CONFIG_H

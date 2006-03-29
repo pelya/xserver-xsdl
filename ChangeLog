@@ -1,3 +1,24 @@
+2006-03-28  Adam Jackson  <ajax@freedesktop.org>
+
+	* afb/afbbitblt.c:
+	* afb/afbcmap.c:
+	* afb/afbfillarc.c:
+	* afb/afbfillrct.c:
+	* afb/afbpushpxl.c:
+	* afb/afbscrinit.c:
+	* afb/afbzerarc.c:
+	* hw/dmx/input/usb-other.c:
+	* hw/xfree86/common/xf86xv.c:
+	* hw/xfree86/dri/dri.c:
+	* hw/xfree86/fbdevhw/fbdevhw.c:
+	* hw/xfree86/i2c/fi1236.c:
+	* hw/xfree86/i2c/msp3430.c:
+	* hw/xfree86/i2c/uda1380.c:
+	* hw/xfree86/xf4bpp/ppcGetSp.c:
+	* hw/xfree86/xf8_16bpp/cfbscrinit.c:
+	* hw/xfree86/xf8_32bpp/cfbimage.c:
+	More warning cleanup.
+
 2006-03-28  Kristian Høgsberg  <krh@redhat.com>
 
 	* configure.ac: Fix another typo.

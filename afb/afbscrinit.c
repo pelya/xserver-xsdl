@@ -88,9 +88,7 @@ BSFuncRec afbBSFuncRec = {
 };
 
 Bool
-afbCloseScreen(index, pScreen)
-	int index;
-	ScreenPtr pScreen;
+afbCloseScreen(int index, ScreenPtr pScreen)
 {
 	int d;
 	DepthPtr depths = pScreen->allowedDepths;
@@ -103,9 +101,8 @@ afbCloseScreen(index, pScreen)
 	return(TRUE);
 }
 
-Bool
-afbCreateScreenResources(pScreen)
-	ScreenPtr pScreen;
+static Bool
+afbCreateScreenResources(ScreenPtr pScreen)
 {
 	Bool retval;
 
@@ -125,9 +122,7 @@ afbCreateScreenResources(pScreen)
 }
 
 Bool
-afbAllocatePrivates(pScreen, pWinIndex, pGCIndex)
-	ScreenPtr pScreen;
-	int *pWinIndex, *pGCIndex;
+afbAllocatePrivates(ScreenPtr pScreen, int *pWinIndex, int *pGCIndex)
 {
 	if (afbGeneration != serverGeneration) {
 #ifdef PIXMAP_PER_WINDOW
@@ -151,12 +146,12 @@ afbAllocatePrivates(pScreen, pWinIndex, pGCIndex)
 
 /* dts * (inch/dot) * (25.4 mm / inch) = mm */
 Bool
-afbScreenInit(pScreen, pbits, xsize, ysize, dpix, dpiy, width)
-	register ScreenPtr pScreen;
-	pointer pbits;			/* pointer to screen bitmap */
-	int xsize, ysize;		/* in pixels */
-	int dpix, dpiy;			/* dots per inch */
-	int width;			/* pixel width of frame buffer */
+afbScreenInit(register ScreenPtr pScreen, pointer pbits, int xsize, int ysize, int dpix, int dpiy, int width)
+	                           
+	              			/* pointer to screen bitmap */
+	                 		/* in pixels */
+	               			/* dots per inch */
+	          			/* pixel width of frame buffer */
 {
 	VisualPtr visuals;
 	DepthPtr depths;
@@ -200,11 +195,11 @@ afbScreenInit(pScreen, pbits, xsize, ysize, dpix, dpiy, width)
 	pScreen->UnrealizeFont = afbUnrealizeFont;
 	pScreen->CreateGC = afbCreateGC;
 	pScreen->CreateColormap = afbInitializeColormap;
-	pScreen->DestroyColormap = (void (*)())NoopDDA;
+	pScreen->DestroyColormap = (DestroyColormapProcPtr)NoopDDA;
 	pScreen->InstallColormap = afbInstallColormap;
 	pScreen->UninstallColormap = afbUninstallColormap;
 	pScreen->ListInstalledColormaps = afbListInstalledColormaps;
-	pScreen->StoreColors = (void (*)())NoopDDA;
+	pScreen->StoreColors = (StoreColorsProcPtr)NoopDDA;
 	pScreen->ResolveColor = afbResolveColor;
 	pScreen->BitmapToRegion = afbPixmapToRegion;
 	oldDevPrivate = pScreen->devPrivate;
@@ -225,8 +220,7 @@ afbScreenInit(pScreen, pbits, xsize, ysize, dpix, dpiy, width)
 }
 
 PixmapPtr
-afbGetWindowPixmap(pWin)
-    WindowPtr pWin;
+afbGetWindowPixmap(WindowPtr pWin)
 {
 #ifdef PIXMAP_PER_WINDOW
     return (PixmapPtr)(pWin->devPrivates[frameWindowPrivateIndex].ptr);
@@ -238,9 +232,7 @@ afbGetWindowPixmap(pWin)
 }
 
 void
-afbSetWindowPixmap(pWin, pPix)
-    WindowPtr pWin;
-    PixmapPtr pPix;
+afbSetWindowPixmap(WindowPtr pWin, PixmapPtr pPix)
 {
 #ifdef PIXMAP_PER_WINDOW
     pWin->devPrivates[frameWindowPrivateIndex].ptr = (pointer)pPix;

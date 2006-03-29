@@ -142,7 +142,7 @@ void othUSBGetInfo(DevicePtr pDev, DMXLocalInitInfoPtr info)
                 } else
                     info->numAbsAxes     = priv->numAbs;
                 for (j = 0; j < info->numAbsAxes; j++) {
-                    ioctl(priv->fd, EVIOCGABS(j), abs);
+                    ioctl(priv->fd, EVIOCGABS(j), absolute);
                     info->minval[1+j]    = absolute[1];
                     info->maxval[1+j]    = absolute[2];
                     info->res[1+j]       = absolute[3];

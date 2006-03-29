@@ -1,4 +1,4 @@
-/* $XdotOrg: xserver/xorg/hw/xfree86/i2c/fi1236.c,v 1.8 2005/07/30 18:56:32 alanc Exp $ */
+/* $XdotOrg: xserver/xorg/hw/xfree86/i2c/fi1236.c,v 1.9 2006/02/10 22:00:25 anholt Exp $ */
 
 #ifdef HAVE_XORG_CONFIG_H
 #include <xorg-config.h>
@@ -102,7 +102,6 @@ xf86DrvMsg(f->d.pI2CBus->scrnIndex, X_INFO, "MT2032: Company code 0x%02x%02x, pa
 static void MT2032_shutdown(FI1236Ptr f)
 {
 CARD8 data[10];
-CARD8 value;
 
 data[0]=0x00; /* start with register 0x00 */
 data[1]=0x1A; 
@@ -534,8 +533,6 @@ void FI1236_tune(FI1236Ptr f, CARD32 frequency)
 
 void TUNER_set_frequency(FI1236Ptr f, CARD32 frequency)
 {
-    CARD16 divider;
-
     if(frequency < f->parm.min_freq) frequency = f->parm.min_freq;
     if(frequency > f->parm.max_freq) frequency = f->parm.max_freq;
 

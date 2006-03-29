@@ -44,10 +44,7 @@ in this Software without prior written authorization from the X Consortium.
 #include "mi.h"
 
 static void
-afbFillEllipseSolid(pDraw, arc, rrops)
-	DrawablePtr pDraw;
-	xArc *arc;
-	register unsigned char *rrops;
+afbFillEllipseSolid(DrawablePtr pDraw, xArc *arc, register unsigned char *rrops)
 {
 	int x, y, e;
 	int yk, xk, ym, xm, dx, dy, xorg, yorg;
@@ -268,11 +265,7 @@ afbFillEllipseSolid(pDraw, arc, rrops)
 	}
 
 static void
-afbFillArcSliceSolidCopy(pDraw, pGC, arc, rrops)
-	DrawablePtr pDraw;
-	GCPtr pGC;
-	xArc *arc;
-	register unsigned char *rrops;
+afbFillArcSliceSolidCopy(DrawablePtr pDraw, GCPtr pGC, xArc *arc, register unsigned char *rrops)
 {
 	PixelType *addrl;
 	register PixelType *pdst;
@@ -321,11 +314,7 @@ afbFillArcSliceSolidCopy(pDraw, pGC, arc, rrops)
 }
 
 void
-afbPolyFillArcSolid(pDraw, pGC, narcs, parcs)
-	register DrawablePtr pDraw;
-	GCPtr		pGC;
-	int				narcs;
-	xArc		*parcs;
+afbPolyFillArcSolid(register DrawablePtr pDraw, GCPtr pGC, int narcs, xArc *parcs)
 {
 	afbPrivGC *priv;
 	register xArc *arc;

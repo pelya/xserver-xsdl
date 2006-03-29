@@ -153,11 +153,11 @@ cfb8_16SetupScreen(
     pScreen->UnrealizeFont = mfbUnrealizeFont;
     pScreen->CreateGC = cfb8_16CreateGC;
     pScreen->CreateColormap = miInitializeColormap;
-    pScreen->DestroyColormap = (void (*)())NoopDDA;
+    pScreen->DestroyColormap = (DestroyColormapProcPtr)NoopDDA;
     pScreen->InstallColormap = miInstallColormap;
     pScreen->UninstallColormap = miUninstallColormap;
     pScreen->ListInstalledColormaps = miListInstalledColormaps;
-    pScreen->StoreColors = (void (*)())NoopDDA;
+    pScreen->StoreColors = (StoreColorsProcPtr)NoopDDA;
     pScreen->ResolveColor = miResolveColor;
     pScreen->BitmapToRegion = mfbPixmapToRegion;
 

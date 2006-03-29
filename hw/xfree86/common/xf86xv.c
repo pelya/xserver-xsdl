@@ -687,8 +687,6 @@ xf86XVCopyClip(
    XvPortRecPrivatePtr portPriv,
    GCPtr pGC
 ){
-    ScreenPtr pScreen = pGC->pScreen;
-
     /* copy the new clip if it exists */
     if((pGC->clientClipType == CT_REGION) && pGC->clientClip) {
 	if(!portPriv->clientClip)

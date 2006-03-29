@@ -83,10 +83,7 @@ in this Software without prior written authorization from the X Consortium.
 #define DoPix(bit,base,yoff,xoff) if (mask & bit) Pixelate(base,yoff,xoff);
 
 static void
-afbZeroArcSS(pDraw, pGC, arc)
-	DrawablePtr pDraw;
-	GCPtr pGC;
-	xArc *arc;
+afbZeroArcSS(DrawablePtr pDraw, GCPtr pGC, xArc *arc)
 {
 	miZeroArcRec info;
 	Bool do360;
@@ -182,11 +179,7 @@ afbZeroArcSS(pDraw, pGC, arc)
 }
 
 void
-afbZeroPolyArcSS(pDraw, pGC, narcs, parcs)
-	DrawablePtr		pDraw;
-	GCPtr		pGC;
-	int				narcs;
-	xArc		*parcs;
+afbZeroPolyArcSS(DrawablePtr pDraw, GCPtr pGC, int narcs, xArc *parcs)
 {
 	register xArc *arc;
 	register int i;

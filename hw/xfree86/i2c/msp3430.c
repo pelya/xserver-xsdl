@@ -82,6 +82,7 @@ static void GetMSP3430Data(MSP3430Ptr m, CARD8 RegAddress, CARD8 RegSubAddressHi
    *RegValueLow = receive[1];
 }
 
+#if __MSPDEBUG__ > 2
 static void MSP3430DumpStatus(MSP3430Ptr m)
 {
 CARD8 status_hi, status_lo;
@@ -102,6 +103,7 @@ I2C_WriteRead(&(m->d), &subaddr, 1, data, 2);
 xf86DrvMsg(m->d.pI2CBus->scrnIndex, X_INFO, "MSP34xx: control=0x%02x%02x\n",
 		data[1], data[0]);
 }
+#endif
 
 /* wrapper */
 void InitMSP3430(MSP3430Ptr m)
@@ -263,9 +265,8 @@ void ResetMSP3430(MSP3430Ptr m)
 void MSP3430SetVolume (MSP3430Ptr m, CARD8 value)
 {
     CARD8 result;
-    CARD8 old_volume;
-
 #if 0
+    CARD8 old_volume;
     GetMSP3430Data(m, RD_DSP, 0x00, 0x00, &old_volume, &result);   
     xf86DrvMsg(m->d.pI2CBus->scrnIndex, X_INFO, "MSP3430 result 0x%02x\n", result);
 #endif
@@ -608,7 +609,6 @@ void CheckModeMSP34x5D(MSP3430Ptr m) {
     const char dual_off=-stereo_off;
     char detect;
     CARD8 matrix, fmmatrix, source, high, low;
-    char *msg;
 
     fmmatrix=0;		/*no matrix*/
     source=0;		/*FM*/
@@ -702,6 +702,7 @@ void CheckModeMSP34x5D(MSP3430Ptr m) {
 			SetMSP3430Data (m, WR_DEM, 0x00, 0x21, 0, 1);
 
 #if __MSPDEBUG__ > 0
+		    char *msg;
 		    switch (matrix) {
 			case 0x30: /*MONO*/
 			    msg="MONO";

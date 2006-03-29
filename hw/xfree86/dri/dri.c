@@ -41,6 +41,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "xf86.h"
 #include <sys/time.h>
 #include <unistd.h>
+#include <string.h>
+#include <stdio.h>
 
 #define NEED_REPLIES
 #define NEED_EVENTS
@@ -1135,7 +1137,9 @@ DRIGetDrawableInfo(ScreenPtr pScreen,
     WindowPtr		pWin, pOldWin;
     int			i;
 
+#if 0
     printf("maxDrawableTableEntry = %d\n", pDRIPriv->pDriverInfo->maxDrawableTableEntry);
+#endif
 
     if (pDrawable->type == DRAWABLE_WINDOW) {
 	pWin = (WindowPtr)pDrawable;

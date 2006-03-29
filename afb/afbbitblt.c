@@ -104,12 +104,7 @@ destination.  this is a simple translation.
  */
 
 void
-afbDoBitblt(pSrc, pDst, alu, prgnDst, pptSrc, planemask)
-	DrawablePtr pSrc, pDst;
-	int alu;
-	RegionPtr prgnDst;
-	DDXPointPtr pptSrc;
-	unsigned long planemask;
+afbDoBitblt(DrawablePtr pSrc, DrawablePtr pDst, int alu, RegionPtr prgnDst, DDXPointPtr pptSrc, long unsigned int planemask)
 {
 	switch (alu) {
 		case GXcopy:
@@ -130,17 +125,13 @@ afbDoBitblt(pSrc, pDst, alu, prgnDst, pptSrc, planemask)
 	}
 }
 
+typedef void (*afb_blit_func)
+    (DrawablePtr, DrawablePtr, int, RegionPtr, DDXPointPtr, unsigned long);
+
 RegionPtr
-afbCopyArea(pSrcDrawable, pDstDrawable, pGC, srcx, srcy, width, height,
-				 dstx, dsty)
-	DrawablePtr pSrcDrawable;
-	DrawablePtr pDstDrawable;
-	GC *pGC;
-	int srcx, srcy;
-	int width, height;
-	int dstx, dsty;
+afbCopyArea(DrawablePtr pSrcDrawable, DrawablePtr pDstDrawable, GC *pGC, int srcx, int srcy, int width, int height, int dstx, int dsty)
 {
-	void (*doBitBlt)();
+	afb_blit_func doBitBlt;
 
 	switch (pGC->alu) {
 		case GXcopy:
@@ -165,16 +156,7 @@ afbCopyArea(pSrcDrawable, pDstDrawable, pGC, srcx, srcy, width, height,
 }
 
 RegionPtr
-afbBitBlt(pSrcDrawable, pDstDrawable, pGC, srcx, srcy, width, height,
-			  dstx, dsty, doBitBlt, planemask)
-	register DrawablePtr pSrcDrawable;
-	register DrawablePtr pDstDrawable;
-	register GC *pGC;
-	int srcx, srcy;
-	int width, height;
-	int dstx, dsty;
-	void (*doBitBlt)();
-	unsigned long planemask;
+afbBitBlt(register DrawablePtr pSrcDrawable, register DrawablePtr pDstDrawable, register GC *pGC, int srcx, int srcy, int width, int height, int dstx, int dsty, afb_blit_func doBitBlt, long unsigned int planemask)
 {
 	RegionPtr prgnSrcClip = NULL;		/* may be a new region, or just a copy */
 	Bool freeSrcClip = FALSE;
@@ -366,14 +348,7 @@ afbBitBlt(pSrcDrawable, pDstDrawable, pGC, srcx, srcy, width, height,
 }
 
 RegionPtr
-afbCopyPlane(pSrcDrawable, pDstDrawable, pGC, srcx, srcy, width, height,
-			 dstx, dsty, plane)
-DrawablePtr pSrcDrawable, pDstDrawable;
-register GC *pGC;
-int srcx, srcy;
-int width, height;
-int dstx, dsty;
-unsigned long plane;
+afbCopyPlane(DrawablePtr pSrcDrawable, DrawablePtr pDstDrawable, register GC *pGC, int srcx, int srcy, int width, int height, int dstx, int dsty, long unsigned int plane)
 {
 	int alu;
 	RegionPtr		prgnExposed = NULL;
@@ -454,12 +429,7 @@ unsigned long plane;
 }
 
 void
-afbCopy1ToN(pSrc, pDst, alu, prgnDst, pptSrc, planemask)
-	DrawablePtr pSrc, pDst;
-	int alu;
-	RegionPtr prgnDst;
-	DDXPointPtr pptSrc;
-	unsigned long planemask;
+afbCopy1ToN(DrawablePtr pSrc, DrawablePtr pDst, int alu, RegionPtr prgnDst, DDXPointPtr pptSrc, long unsigned int planemask)
 {
 	int numRects = REGION_NUM_RECTS(prgnDst);
 	BoxPtr pbox = REGION_RECTS(prgnDst);

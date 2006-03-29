@@ -65,7 +65,6 @@ SOFTWARE.
 #include "maskbits.h"
 
 #define MODEQ(a, b) ((a) %= (b))
-void afbPaintOddSize();
 
 /*
 	filled rectangles.
@@ -76,11 +75,11 @@ helper function in the GC.
 #define NUM_STACK_RECTS		1024
 
 void
-afbPolyFillRect(pDrawable, pGC, nrectFill, prectInit)
-	DrawablePtr pDrawable;
-	GCPtr pGC;
-	int nrectFill;				/* number of rectangles to fill */
-	xRectangle *prectInit;			/* Pointer to first rectangle to fill */
+afbPolyFillRect(DrawablePtr pDrawable, GCPtr pGC, int nrectFill, xRectangle *prectInit)
+	                      
+	          
+	              				/* number of rectangles to fill */
+	                      			/* Pointer to first rectangle to fill */
 {
 	xRectangle *prect;
 	RegionPtr prgnClip;
