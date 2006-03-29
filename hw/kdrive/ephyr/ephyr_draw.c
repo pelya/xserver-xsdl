@@ -227,6 +227,26 @@ ephyrDoneComposite(PixmapPtr pDst)
 }
 
 /**
+ * Does an fbGetImage to pull image data from a pixmap.
+ */
+static Bool
+ephyrDownloadFromScreen(PixmapPtr pSrc, int x, int y, int w, int h, char *dst,
+			int dst_pitch)
+{
+    /* Only "accelerate" it if we can hand it off to fbGetImage, which expects
+     * the dst pitch to match the width of the image.
+     */
+    if (dst_pitch != PixmapBytePad(&pSrc->drawable, w))
+	return FALSE;
+
+    fbGetImage(&pSrc->drawable, x, y, w, h, ZPixmap, FB_ALLONES, dst);
+
+    exaMarkSync(pSrc->drawable.pScreen);
+
+    return TRUE;
+}
+
+/**
  * In fakexa, we currently only track whether we have synced to the latest
  * "accelerated" drawing that has happened or not.  This will be used by an
  * ephyrPrepareAccess for the purpose of reliably providing garbage when
@@ -310,6 +330,8 @@ ephyrDrawInit(ScreenPtr pScreen)
     fakexa->exa->Composite = ephyrComposite;
     fakexa->exa->DoneComposite = ephyrDoneComposite;
 
+    fakexa->exa->DownloadFromScreen = ephyrDownloadFromScreen;
+
     fakexa->exa->MarkSync = ephyrMarkSync;
     fakexa->exa->WaitMarker = ephyrWaitMarker;
 
@@ -357,4 +379,7 @@ ephyrDrawFini(ScreenPtr pScreen)
 void
 exaDDXDriverInit(ScreenPtr pScreen)
 {
+    ExaScreenPriv(pScreen);
+
+    pExaScr->migration = ExaMigrationAlways;
 }

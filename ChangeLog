@@ -1,3 +1,12 @@
+2006-03-29  Eric Anholt  <anholt@FreeBSD.org>
+
+	* hw/kdrive/ephyr/ephyr_draw.c: (ephyrDownloadFromScreen),
+	(ephyrDrawInit), (exaDDXDriverInit):
+	Add a DownloadFromScreen implementation, used for testing GetImage
+	acceleration, and set the migration scheme to Always on init (since
+	this is all for testing, and Always should make migration happen more
+	frequently than Greedy).
+
 2006-3-29   Deron Johnson  <deron.johnson@sun.com>
 
         * xorg/composite/compinit.c
