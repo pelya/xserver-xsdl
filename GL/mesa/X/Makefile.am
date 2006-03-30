@@ -18,8 +18,13 @@ INCLUDES = -I@MESA_SOURCE@/include \
 
 # -DXFree86Server is required because the X11 driver in Mesa thinks that
 # symbol means "being built in the server"
-AM_CFLAGS = $(DIX_CFLAGS) @SERVER_DEFINES@ @MODULE_DEFINES@ @LOADER_DEFINES@ \
-            -DXFree86Server
+AM_CFLAGS = \
+	$(DIX_CFLAGS) \
+	@SERVER_DEFINES@ \
+	@MODULE_DEFINES@ \
+	@LOADER_DEFINES@ \
+	@GLX_DEFINES@ \
+	-DXFree86Server
 
 libX_la_SOURCES = xf86glx.c \
                   xf86glx_util.c \

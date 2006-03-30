@@ -1034,10 +1034,10 @@ __glXCreateARGBConfig(__GLXscreen *screen)
     if (visual == NULL || visual->class != TrueColor)
 	return;
 
+    /* Stop now if we already added the mode. */
     if (_gl_context_modes_find_visual (screen->modes, visual->vid))
 	return;
 
-    /* Stop now if we already added the mode. */
     modes = _gl_context_modes_create(1, sizeof(__GLcontextModes));
     if (modes == NULL)
 	return;
@@ -1073,6 +1073,8 @@ __glXCreateARGBConfig(__GLXscreen *screen)
     modes->depthBits = 0;
     modes->haveStencilBuffer = FALSE;
     modes->stencilBits = 0;
+
+    modes->visualRating = GLX_NON_CONFORMANT_CONFIG;
 }
 
 

@@ -101,7 +101,8 @@ __glXMesaDrawableDestroy(__GLXdrawable *base)
 {
     __GLXMESAdrawable *glxPriv = (__GLXMESAdrawable *) base;
 
-    XMesaDestroyBuffer(glxPriv->xm_buf);
+    if (glxPriv->xm_buf != NULL)
+      XMesaDestroyBuffer(glxPriv->xm_buf);
     xfree(glxPriv);
 }
 

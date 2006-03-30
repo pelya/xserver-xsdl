@@ -1,3 +1,14 @@
+2006-03-30  Kristian Høgsberg  <krh@redhat.com>
+
+	* GL/glx/glxcmds.c (__glXCreateARGBConfig): Mark the ARGB FBConfig
+	as nonconforming to prevent drivers and apps from falling over.
+
+	* GL/mesa/*/Makefile.am (AM_CFLAGS): Add @GLX_DEFINES@ so GLcore
+	gets compiled with TLS support if configured.
+
+	* GL/mesa/X/xf86glx.c (__glXMesaDrawableDestroy): Only destroy the
+	mesa buffer if it got initialized.
+
 2006-03-30  Egbert Eich  <eich_at_freedesktop_dot_org>
 
 	* include/colormapst.h:
