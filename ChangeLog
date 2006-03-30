@@ -1,3 +1,9 @@
+2006-03-30  Eric Anholt  <anholt@FreeBSD.org>
+
+	* hw/kdrive/ephyr/Makefile.am:
+	Add a dependency on EXA, so it rebuilds when the library does.  The
+	manual indicated I shouldn't do this, but experience indicates I should.
+
 2006-03-30  Kristian Høgsberg  <krh@redhat.com>
 
 	* GL/glx/glxcmds.c (__glXCreateARGBConfig): Mark the ARGB FBConfig
