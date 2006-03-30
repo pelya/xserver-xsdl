@@ -7,7 +7,9 @@
 	PPC64 and s390x. Provided by Hong Bo Peng of IBM (slightly
 	modified). Patches try to resolve some of the careless
 	mixtures of ulong and uint (which are different size on
-	64bit). Bugzilla #6438.
+	64bit). 
+	> This patch will break the driver ABI! <
+	Bugzilla #6438.
 	
 2006-03-29  Kristian Høgsberg  <krh@redhat.com>
 
