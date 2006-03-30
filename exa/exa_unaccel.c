@@ -362,33 +362,3 @@ exaGetPixmapFirstPixel (PixmapPtr pPixmap)
 
     return pixel;
 }
-
-/*
- * Only need to stall for CopyArea/CopyPlane, but we want to have the chance to
- * do migration for CopyArea.
- */
-const GCOps exaAsyncPixmapGCOps = {
-    ExaCheckFillSpans,
-    ExaCheckSetSpans,
-    ExaCheckPutImage,
-    exaCopyArea,
-    ExaCheckCopyPlane,
-    ExaCheckPolyPoint,
-    ExaCheckPolylines,
-    ExaCheckPolySegment,
-    ExaCheckPolyRectangle,
-    ExaCheckPolyArc,
-    ExaCheckFillPolygon,
-    ExaCheckPolyFillRect,
-    ExaCheckPolyFillArc,
-    miPolyText8,
-    miPolyText16,
-    miImageText8,
-    miImageText16,
-    ExaCheckImageGlyphBlt,
-    ExaCheckPolyGlyphBlt,
-    ExaCheckPushPixels
-#ifdef NEED_LINEHELPER
-    ,NULL
-#endif
-};

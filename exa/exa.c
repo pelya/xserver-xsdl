@@ -339,30 +339,15 @@ exaFinishAccess(DrawablePtr pDrawable, int index)
 }
 
 /**
- * exaValidateGC() chooses between the accelerated and unaccelerated GC Ops
- * vectors.
- *
- * The unaccelerated (exaAsyncPixmapGCOps) vector is chosen if the drawable is
- * offscreen.  This means that operations that affect only that drawable will
- * not result in migration of the pixmap.  However, exaAsyncPixmapGCOps does use
- * the accelerated operations for the Copy* functions, because the other
- * drawable involved might be in framebuffer and require synchronization before
- * accessing it.  This means that for the Copy* functions, even using
- * exaAsyncPixmapGCOps may result in migration, and therefore acceleration.
- *
- * Because of how nonintuitive exaAsyncPixmapGCOps is, and the fact that its
- * only use is for dubious performance reasons (and probably just historical
- * reasons), it is likely to go away in the future.
+ * exaValidateGC() sets the ops to EXA's implementations, which may be
+ * accelerated or may sync the card and 
  */
 static void
 exaValidateGC (GCPtr pGC, Mask changes, DrawablePtr pDrawable)
 {
     fbValidateGC (pGC, changes, pDrawable);
 
-    if (exaDrawableIsOffscreen (pDrawable))
-	pGC->ops = (GCOps *) &exaOps;
-    else
-	pGC->ops = (GCOps *) &exaAsyncPixmapGCOps;
+    pGC->ops = (GCOps *) &exaOps;
 }
 
 static GCFuncs	exaGCFuncs = {

@@ -1,5 +1,19 @@
 2006-03-30  Eric Anholt  <anholt@FreeBSD.org>
 
+	* exa/exa.c: (exaValidateGC):
+	* exa/exa_priv.h:
+	* exa/exa_unaccel.c: (exaGetPixmapFirstPixel):
+	Remove the exaAsyncPixmapGCOps mostly-unaccelerated ops vector, and
+	always plug in the accelerated one, even if the destination pixmap is
+	currently offscreen. This was a leftover from when kaa originally got
+	accelerated offscreen pixmap support, and its only concievable use
+	was to avoid a little overhead on ops to in-system pixmaps that weren't
+	going to get migrated.  At this point, we probably care more about just
+	getting everything accelerated that we easily can, which should happen
+	with the new migration support.
+
+2006-03-30  Eric Anholt  <anholt@FreeBSD.org>
+
 	* exa/exa_accel.c: (exaCopyWindow):
 	Don't do an extra fallback path for CopyWindow while swappedOut, since
 	exaCopyNtoN takes care of the fallback anyway, and we don't care about

@@ -301,7 +301,7 @@ void
 exaGetSpans (DrawablePtr pDrawable, int wMax, DDXPointPtr ppt, int *pwidth,
 	     int nspans, char *pdstStart);
 
-extern const GCOps	exaOps, exaAsyncPixmapGCOps;
+extern const GCOps exaOps;
 
 #ifdef RENDER
 void
