@@ -817,13 +817,6 @@ exaCopyWindow(WindowPtr pWin, DDXPointRec ptOldOrg, RegionPtr prgnSrc)
     int		dx, dy;
     PixmapPtr	pPixmap = (*pWin->drawable.pScreen->GetWindowPixmap) (pWin);
 
-    if (pExaScr->swappedOut) {
-        ExaScreenPriv(pWin->drawable.pScreen);
-        pExaScr->SavedCopyWindow (pWin, ptOldOrg, prgnSrc);
-        exaDrawableDirty (&pWin->drawable);
-        return;
-    }
-
     dx = ptOldOrg.x - pWin->drawable.x;
     dy = ptOldOrg.y - pWin->drawable.y;
     REGION_TRANSLATE(pWin->drawable.pScreen, prgnSrc, -dx, -dy);

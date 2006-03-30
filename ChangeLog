@@ -1,5 +1,12 @@
 2006-03-30  Eric Anholt  <anholt@FreeBSD.org>
 
+	* exa/exa_accel.c: (exaCopyWindow):
+	Don't do an extra fallback path for CopyWindow while swappedOut, since
+	exaCopyNtoN takes care of the fallback anyway, and we don't care about
+	the performance of this path.
+
+2006-03-30  Eric Anholt  <anholt@FreeBSD.org>
+
 	* hw/kdrive/ephyr/Makefile.am:
 	Add a dependency on EXA, so it rebuilds when the library does.  The
 	manual indicated I shouldn't do this, but experience indicates I should.
