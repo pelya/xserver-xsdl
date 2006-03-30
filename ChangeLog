@@ -1,5 +1,15 @@
 2006-03-29  Eric Anholt  <anholt@FreeBSD.org>
 
+	* exa/exa_accel.c: (exaPutImage), (exaGetImage):
+	Bug #2986: Add PutImage acceleration for the ZPixmap,
+	planeMask ~= FB_ALLONES, bitsPerPixel >= 8, GXcopy cases.  With the
+	radeon driver on my machine, this gives about 10% speedup in PutImage
+	10x10 and 500x500, and 40% speedup for 10x10 ShmPutImage, up to 65%
+	improvement in 500x500 ShmPutImage.  Also fixes a crasher in GetImage
+	that slipped in at the last minute.
+
+2006-03-29  Eric Anholt  <anholt@FreeBSD.org>
+
 	* hw/kdrive/ephyr/ephyr_draw.c: (ephyrDownloadFromScreen),
 	(ephyrUploadToScreen), (ephyrDrawInit):
 	Add an UploadToScreen implementation, for testing PutImage support, and

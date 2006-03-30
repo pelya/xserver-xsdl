@@ -132,6 +132,103 @@ exaFillSpans(DrawablePtr pDrawable, GCPtr pGC, int n,
     exaMarkSync(pScreen);
 }
 
+static void
+exaPutImage (DrawablePtr pDrawable, GCPtr pGC, int depth, int x, int y,
+	     int w, int h, int leftPad, int format, char *bits)
+{
+    ExaScreenPriv (pDrawable->pScreen);
+    PixmapPtr pPix;
+    ExaMigrationRec pixmaps[1];
+    RegionPtr pClip;
+    BoxPtr pbox;
+    int nbox;
+    int xoff, yoff;
+    int src_stride, bpp = pDrawable->bitsPerPixel;
+
+    if (pExaScr->swappedOut || pExaScr->info->UploadToScreen == NULL)
+	goto migrate_and_fallback;
+
+    /* Don't bother with under 8bpp, XYPixmaps. */
+    if (format != ZPixmap || bpp < 8)
+	goto migrate_and_fallback;
+
+    /* Only accelerate copies: no rop or planemask. */
+    if (!EXA_PM_IS_SOLID(pDrawable, pGC->planemask) || pGC->alu != GXcopy)
+	goto migrate_and_fallback;
+
+    pixmaps[0].as_dst = TRUE;
+    pixmaps[0].as_src = FALSE;
+    pixmaps[0].pPix = exaGetDrawablePixmap (pDrawable);
+    exaDoMigration (pixmaps, 1, TRUE);
+    pPix = exaGetOffscreenPixmap (pDrawable, &xoff, &yoff);
+
+    if (pPix == NULL)
+	goto fallback;
+
+    pClip = fbGetCompositeClip(pGC);
+    src_stride = PixmapBytePad(w, pDrawable->depth);
+    for (nbox = REGION_NUM_RECTS(pClip),
+	 pbox = REGION_RECTS(pClip);
+	 nbox--;
+	 pbox++)
+    {
+	int x1 = x;
+	int y1 = y;
+	int x2 = x + w;
+	int y2 = y + h;
+	char *src;
+	Bool ok;
+
+	if (x1 < pbox->x1)
+	    x1 = pbox->x1;
+	if (y1 < pbox->y1)
+	    y1 = pbox->y1;
+	if (x2 > pbox->x2)
+	    x2 = pbox->x2;
+	if (y2 > pbox->y2)
+	    y2 = pbox->y2;
+	if (x1 >= x2 || y1 >= y2)
+	    continue;
+
+	src = bits + (y1 - y + yoff) * src_stride + (x1 - x + xoff) * (bpp / 8);
+	ok = pExaScr->info->UploadToScreen(pPix, x1 + xoff, y1 + yoff,
+					   x2 - x1, y2 - y1, src, src_stride);
+	/* If we fail to accelerate the upload, fall back to using unaccelerated
+	 * fb calls.
+	 */
+	if (!ok) {
+	    FbStip *dst;
+	    FbStride dst_stride;
+	    int	dstBpp;
+	    int	dstXoff, dstYoff;
+
+	    fbGetStipDrawable(pDrawable, dst, dst_stride, dstBpp,
+			      dstXoff, dstYoff);
+
+	    fbBltStip((FbStip *)bits + (y1 - y) * (src_stride / sizeof(FbStip)),
+		      src_stride / sizeof(FbStip),
+		      (x1 - x) * bpp,
+		      dst + (y1 + yoff) * dst_stride,
+		      dst_stride,
+		      (x1 + xoff) * bpp,
+		      (x2 - x1) * bpp,
+		      y2 - y1,
+		      GXcopy, FB_ALLONES, bpp);
+	}
+    }
+
+    return;
+
+migrate_and_fallback:
+    pixmaps[0].as_dst = TRUE;
+    pixmaps[0].as_src = FALSE;
+    pixmaps[0].pPix = exaGetDrawablePixmap (pDrawable);
+    exaDoMigration (pixmaps, 1, FALSE);
+
+fallback:
+    ExaCheckPutImage(pDrawable, pGC, depth, x, y, w, h, leftPad, format, bits);
+}
+
 static Bool inline
 exaCopyNtoNTwoDir (DrawablePtr pSrcDrawable, DrawablePtr pDstDrawable,
 		   GCPtr pGC, BoxPtr pbox, int nbox, int dx, int dy)
@@ -689,7 +786,7 @@ exaImageGlyphBlt (DrawablePtr	pDrawable,
 const GCOps exaOps = {
     exaFillSpans,
     ExaCheckSetSpans,
-    ExaCheckPutImage,
+    exaPutImage,
     exaCopyArea,
     ExaCheckCopyPlane,
     ExaCheckPolyPoint,
@@ -992,7 +1089,7 @@ exaGetImage (DrawablePtr pDrawable, int x, int y, int w, int h,
     yoff += pDrawable->y;
 
     ok = pExaScr->info->DownloadFromScreen(pPix, x + xoff, y + yoff, w, h, d,
-					   PixmapBytePad(pDrawable, w));
+					   PixmapBytePad(w, pDrawable->depth));
     if (ok) {
 	exaWaitSync(pDrawable->pScreen);
 	return;
