@@ -28,6 +28,8 @@
 
 #include <GL/gl.h>
 #include "indirect_size_get.h"
+#include "glxserver.h"
+#include "indirect_util.h"
 #include "indirect_size.h"
 
 #  if __GNUC__ > 2 || (__GNUC__ == 2 && __GNUC_MINOR__ >= 96)

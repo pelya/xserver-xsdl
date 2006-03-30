@@ -101,7 +101,7 @@ void __glXDisp_CallLists(GLbyte * pc)
 
     CALL_CallLists( GET_DISPATCH(), (
         n,
-        *(GLenum   *)(pc +  4),
+        type,
         lists
     ) );
 }
@@ -829,7 +829,7 @@ void __glXDisp_Fogfv(GLbyte * pc)
     params = (const GLfloat *) (pc + 4);
 
     CALL_Fogfv( GET_DISPATCH(), (
-        *(GLenum   *)(pc +  0),
+        pname,
         params
     ) );
 }
@@ -850,7 +850,7 @@ void __glXDisp_Fogiv(GLbyte * pc)
     params = (const GLint *) (pc + 4);
 
     CALL_Fogiv( GET_DISPATCH(), (
-        *(GLenum   *)(pc +  0),
+        pname,
         params
     ) );
 }
@@ -888,7 +888,7 @@ void __glXDisp_Lightfv(GLbyte * pc)
 
     CALL_Lightfv( GET_DISPATCH(), (
         *(GLenum   *)(pc +  0),
-        *(GLenum   *)(pc +  4),
+        pname,
         params
     ) );
 }
@@ -911,7 +911,7 @@ void __glXDisp_Lightiv(GLbyte * pc)
 
     CALL_Lightiv( GET_DISPATCH(), (
         *(GLenum   *)(pc +  0),
-        *(GLenum   *)(pc +  4),
+        pname,
         params
     ) );
 }
@@ -932,7 +932,7 @@ void __glXDisp_LightModelfv(GLbyte * pc)
     params = (const GLfloat *) (pc + 4);
 
     CALL_LightModelfv( GET_DISPATCH(), (
-        *(GLenum   *)(pc +  0),
+        pname,
         params
     ) );
 }
@@ -953,7 +953,7 @@ void __glXDisp_LightModeliv(GLbyte * pc)
     params = (const GLint *) (pc + 4);
 
     CALL_LightModeliv( GET_DISPATCH(), (
-        *(GLenum   *)(pc +  0),
+        pname,
         params
     ) );
 }
@@ -991,7 +991,7 @@ void __glXDisp_Materialfv(GLbyte * pc)
 
     CALL_Materialfv( GET_DISPATCH(), (
         *(GLenum   *)(pc +  0),
-        *(GLenum   *)(pc +  4),
+        pname,
         params
     ) );
 }
@@ -1014,7 +1014,7 @@ void __glXDisp_Materialiv(GLbyte * pc)
 
     CALL_Materialiv( GET_DISPATCH(), (
         *(GLenum   *)(pc +  0),
-        *(GLenum   *)(pc +  4),
+        pname,
         params
     ) );
 }
@@ -1085,7 +1085,7 @@ void __glXDisp_TexParameterfv(GLbyte * pc)
 
     CALL_TexParameterfv( GET_DISPATCH(), (
         *(GLenum   *)(pc +  0),
-        *(GLenum   *)(pc +  4),
+        pname,
         params
     ) );
 }
@@ -1108,7 +1108,7 @@ void __glXDisp_TexParameteriv(GLbyte * pc)
 
     CALL_TexParameteriv( GET_DISPATCH(), (
         *(GLenum   *)(pc +  0),
-        *(GLenum   *)(pc +  4),
+        pname,
         params
     ) );
 }
@@ -1180,7 +1180,7 @@ void __glXDisp_TexEnvfv(GLbyte * pc)
 
     CALL_TexEnvfv( GET_DISPATCH(), (
         *(GLenum   *)(pc +  0),
-        *(GLenum   *)(pc +  4),
+        pname,
         params
     ) );
 }
@@ -1203,7 +1203,7 @@ void __glXDisp_TexEnviv(GLbyte * pc)
 
     CALL_TexEnviv( GET_DISPATCH(), (
         *(GLenum   *)(pc +  0),
-        *(GLenum   *)(pc +  4),
+        pname,
         params
     ) );
 }
@@ -1242,7 +1242,7 @@ void __glXDisp_TexGendv(GLbyte * pc)
 
     CALL_TexGendv( GET_DISPATCH(), (
         *(GLenum   *)(pc +  0),
-        *(GLenum   *)(pc +  4),
+        pname,
         params
     ) );
 }
@@ -1265,7 +1265,7 @@ void __glXDisp_TexGenfv(GLbyte * pc)
 
     CALL_TexGenfv( GET_DISPATCH(), (
         *(GLenum   *)(pc +  0),
-        *(GLenum   *)(pc +  4),
+        pname,
         params
     ) );
 }
@@ -1288,7 +1288,7 @@ void __glXDisp_TexGeniv(GLbyte * pc)
 
     CALL_TexGeniv( GET_DISPATCH(), (
         *(GLenum   *)(pc +  0),
-        *(GLenum   *)(pc +  4),
+        pname,
         params
     ) );
 }
@@ -1782,7 +1782,7 @@ int __glXDisp_GetBooleanv(__GLXclientState *cl, GLbyte *pc)
         __glXClearErrorOccured();
 
         CALL_GetBooleanv( GET_DISPATCH(), (
-            *(GLenum   *)(pc +  0),
+            pname,
             params
         ) );
         __glXSendReply(cl->client, params, compsize, 1, GL_FALSE, 0);
@@ -1830,7 +1830,7 @@ int __glXDisp_GetDoublev(__GLXclientState *cl, GLbyte *pc)
         __glXClearErrorOccured();
 
         CALL_GetDoublev( GET_DISPATCH(), (
-            *(GLenum   *)(pc +  0),
+            pname,
             params
         ) );
         __glXSendReply(cl->client, params, compsize, 8, GL_FALSE, 0);
@@ -1875,7 +1875,7 @@ int __glXDisp_GetFloatv(__GLXclientState *cl, GLbyte *pc)
         __glXClearErrorOccured();
 
         CALL_GetFloatv( GET_DISPATCH(), (
-            *(GLenum   *)(pc +  0),
+            pname,
             params
         ) );
         __glXSendReply(cl->client, params, compsize, 4, GL_FALSE, 0);
@@ -1903,7 +1903,7 @@ int __glXDisp_GetIntegerv(__GLXclientState *cl, GLbyte *pc)
         __glXClearErrorOccured();
 
         CALL_GetIntegerv( GET_DISPATCH(), (
-            *(GLenum   *)(pc +  0),
+            pname,
             params
         ) );
         __glXSendReply(cl->client, params, compsize, 4, GL_FALSE, 0);
@@ -1932,7 +1932,7 @@ int __glXDisp_GetLightfv(__GLXclientState *cl, GLbyte *pc)
 
         CALL_GetLightfv( GET_DISPATCH(), (
             *(GLenum   *)(pc +  0),
-            *(GLenum   *)(pc +  4),
+            pname,
             params
         ) );
         __glXSendReply(cl->client, params, compsize, 4, GL_FALSE, 0);
@@ -1961,7 +1961,7 @@ int __glXDisp_GetLightiv(__GLXclientState *cl, GLbyte *pc)
 
         CALL_GetLightiv( GET_DISPATCH(), (
             *(GLenum   *)(pc +  0),
-            *(GLenum   *)(pc +  4),
+            pname,
             params
         ) );
         __glXSendReply(cl->client, params, compsize, 4, GL_FALSE, 0);
@@ -1990,8 +1990,8 @@ int __glXDisp_GetMapdv(__GLXclientState *cl, GLbyte *pc)
         __glXClearErrorOccured();
 
         CALL_GetMapdv( GET_DISPATCH(), (
-            *(GLenum   *)(pc +  0),
-            *(GLenum   *)(pc +  4),
+            target,
+            query,
             v
         ) );
         __glXSendReply(cl->client, v, compsize, 8, GL_FALSE, 0);
@@ -2020,8 +2020,8 @@ int __glXDisp_GetMapfv(__GLXclientState *cl, GLbyte *pc)
         __glXClearErrorOccured();
 
         CALL_GetMapfv( GET_DISPATCH(), (
-            *(GLenum   *)(pc +  0),
-            *(GLenum   *)(pc +  4),
+            target,
+            query,
             v
         ) );
         __glXSendReply(cl->client, v, compsize, 4, GL_FALSE, 0);
@@ -2050,8 +2050,8 @@ int __glXDisp_GetMapiv(__GLXclientState *cl, GLbyte *pc)
         __glXClearErrorOccured();
 
         CALL_GetMapiv( GET_DISPATCH(), (
-            *(GLenum   *)(pc +  0),
-            *(GLenum   *)(pc +  4),
+            target,
+            query,
             v
         ) );
         __glXSendReply(cl->client, v, compsize, 4, GL_FALSE, 0);
@@ -2080,7 +2080,7 @@ int __glXDisp_GetMaterialfv(__GLXclientState *cl, GLbyte *pc)
 
         CALL_GetMaterialfv( GET_DISPATCH(), (
             *(GLenum   *)(pc +  0),
-            *(GLenum   *)(pc +  4),
+            pname,
             params
         ) );
         __glXSendReply(cl->client, params, compsize, 4, GL_FALSE, 0);
@@ -2109,7 +2109,7 @@ int __glXDisp_GetMaterialiv(__GLXclientState *cl, GLbyte *pc)
 
         CALL_GetMaterialiv( GET_DISPATCH(), (
             *(GLenum   *)(pc +  0),
-            *(GLenum   *)(pc +  4),
+            pname,
             params
         ) );
         __glXSendReply(cl->client, params, compsize, 4, GL_FALSE, 0);
@@ -2137,7 +2137,7 @@ int __glXDisp_GetPixelMapfv(__GLXclientState *cl, GLbyte *pc)
         __glXClearErrorOccured();
 
         CALL_GetPixelMapfv( GET_DISPATCH(), (
-            *(GLenum   *)(pc +  0),
+            map,
             values
         ) );
         __glXSendReply(cl->client, values, compsize, 4, GL_FALSE, 0);
@@ -2165,7 +2165,7 @@ int __glXDisp_GetPixelMapuiv(__GLXclientState *cl, GLbyte *pc)
         __glXClearErrorOccured();
 
         CALL_GetPixelMapuiv( GET_DISPATCH(), (
-            *(GLenum   *)(pc +  0),
+            map,
             values
         ) );
         __glXSendReply(cl->client, values, compsize, 4, GL_FALSE, 0);
@@ -2193,7 +2193,7 @@ int __glXDisp_GetPixelMapusv(__GLXclientState *cl, GLbyte *pc)
         __glXClearErrorOccured();
 
         CALL_GetPixelMapusv( GET_DISPATCH(), (
-            *(GLenum   *)(pc +  0),
+            map,
             values
         ) );
         __glXSendReply(cl->client, values, compsize, 2, GL_FALSE, 0);
@@ -2222,7 +2222,7 @@ int __glXDisp_GetTexEnvfv(__GLXclientState *cl, GLbyte *pc)
 
         CALL_GetTexEnvfv( GET_DISPATCH(), (
             *(GLenum   *)(pc +  0),
-            *(GLenum   *)(pc +  4),
+            pname,
             params
         ) );
         __glXSendReply(cl->client, params, compsize, 4, GL_FALSE, 0);
@@ -2251,7 +2251,7 @@ int __glXDisp_GetTexEnviv(__GLXclientState *cl, GLbyte *pc)
 
         CALL_GetTexEnviv( GET_DISPATCH(), (
             *(GLenum   *)(pc +  0),
-            *(GLenum   *)(pc +  4),
+            pname,
             params
         ) );
         __glXSendReply(cl->client, params, compsize, 4, GL_FALSE, 0);
@@ -2280,7 +2280,7 @@ int __glXDisp_GetTexGendv(__GLXclientState *cl, GLbyte *pc)
 
         CALL_GetTexGendv( GET_DISPATCH(), (
             *(GLenum   *)(pc +  0),
-            *(GLenum   *)(pc +  4),
+            pname,
             params
         ) );
         __glXSendReply(cl->client, params, compsize, 8, GL_FALSE, 0);
@@ -2309,7 +2309,7 @@ int __glXDisp_GetTexGenfv(__GLXclientState *cl, GLbyte *pc)
 
         CALL_GetTexGenfv( GET_DISPATCH(), (
             *(GLenum   *)(pc +  0),
-            *(GLenum   *)(pc +  4),
+            pname,
             params
         ) );
         __glXSendReply(cl->client, params, compsize, 4, GL_FALSE, 0);
@@ -2338,7 +2338,7 @@ int __glXDisp_GetTexGeniv(__GLXclientState *cl, GLbyte *pc)
 
         CALL_GetTexGeniv( GET_DISPATCH(), (
             *(GLenum   *)(pc +  0),
-            *(GLenum   *)(pc +  4),
+            pname,
             params
         ) );
         __glXSendReply(cl->client, params, compsize, 4, GL_FALSE, 0);
@@ -2367,7 +2367,7 @@ int __glXDisp_GetTexParameterfv(__GLXclientState *cl, GLbyte *pc)
 
         CALL_GetTexParameterfv( GET_DISPATCH(), (
             *(GLenum   *)(pc +  0),
-            *(GLenum   *)(pc +  4),
+            pname,
             params
         ) );
         __glXSendReply(cl->client, params, compsize, 4, GL_FALSE, 0);
@@ -2396,7 +2396,7 @@ int __glXDisp_GetTexParameteriv(__GLXclientState *cl, GLbyte *pc)
 
         CALL_GetTexParameteriv( GET_DISPATCH(), (
             *(GLenum   *)(pc +  0),
-            *(GLenum   *)(pc +  4),
+            pname,
             params
         ) );
         __glXSendReply(cl->client, params, compsize, 4, GL_FALSE, 0);
@@ -2426,7 +2426,7 @@ int __glXDisp_GetTexLevelParameterfv(__GLXclientState *cl, GLbyte *pc)
         CALL_GetTexLevelParameterfv( GET_DISPATCH(), (
             *(GLenum   *)(pc +  0),
             *(GLint    *)(pc +  4),
-            *(GLenum   *)(pc +  8),
+            pname,
             params
         ) );
         __glXSendReply(cl->client, params, compsize, 4, GL_FALSE, 0);
@@ -2456,7 +2456,7 @@ int __glXDisp_GetTexLevelParameteriv(__GLXclientState *cl, GLbyte *pc)
         CALL_GetTexLevelParameteriv( GET_DISPATCH(), (
             *(GLenum   *)(pc +  0),
             *(GLint    *)(pc +  4),
-            *(GLenum   *)(pc +  8),
+            pname,
             params
         ) );
         __glXSendReply(cl->client, params, compsize, 4, GL_FALSE, 0);
@@ -2980,7 +2980,7 @@ void __glXDisp_ColorTableParameterfv(GLbyte * pc)
 
     CALL_ColorTableParameterfv( GET_DISPATCH(), (
         *(GLenum   *)(pc +  0),
-        *(GLenum   *)(pc +  4),
+        pname,
         params
     ) );
 }
@@ -2994,7 +2994,7 @@ void __glXDisp_ColorTableParameteriv(GLbyte * pc)
 
     CALL_ColorTableParameteriv( GET_DISPATCH(), (
         *(GLenum   *)(pc +  0),
-        *(GLenum   *)(pc +  4),
+        pname,
         params
     ) );
 }
@@ -3029,7 +3029,7 @@ int __glXDisp_GetColorTableParameterfv(__GLXclientState *cl, GLbyte *pc)
 
         CALL_GetColorTableParameterfv( GET_DISPATCH(), (
             *(GLenum   *)(pc +  0),
-            *(GLenum   *)(pc +  4),
+            pname,
             params
         ) );
         __glXSendReply(cl->client, params, compsize, 4, GL_FALSE, 0);
@@ -3058,7 +3058,7 @@ int __glXDisp_GetColorTableParameteriv(__GLXclientState *cl, GLbyte *pc)
 
         CALL_GetColorTableParameteriv( GET_DISPATCH(), (
             *(GLenum   *)(pc +  0),
-            *(GLenum   *)(pc +  4),
+            pname,
             params
         ) );
         __glXSendReply(cl->client, params, compsize, 4, GL_FALSE, 0);
@@ -3164,7 +3164,7 @@ void __glXDisp_ConvolutionParameterfv(GLbyte * pc)
 
     CALL_ConvolutionParameterfv( GET_DISPATCH(), (
         *(GLenum   *)(pc +  0),
-        *(GLenum   *)(pc +  4),
+        pname,
         params
     ) );
 }
@@ -3187,7 +3187,7 @@ void __glXDisp_ConvolutionParameteriv(GLbyte * pc)
 
     CALL_ConvolutionParameteriv( GET_DISPATCH(), (
         *(GLenum   *)(pc +  0),
-        *(GLenum   *)(pc +  4),
+        pname,
         params
     ) );
 }
@@ -3234,7 +3234,7 @@ int __glXDisp_GetConvolutionParameterfv(__GLXclientState *cl, GLbyte *pc)
 
         CALL_GetConvolutionParameterfv( GET_DISPATCH(), (
             *(GLenum   *)(pc +  0),
-            *(GLenum   *)(pc +  4),
+            pname,
             params
         ) );
         __glXSendReply(cl->client, params, compsize, 4, GL_FALSE, 0);
@@ -3263,7 +3263,7 @@ int __glXDisp_GetConvolutionParameteriv(__GLXclientState *cl, GLbyte *pc)
 
         CALL_GetConvolutionParameteriv( GET_DISPATCH(), (
             *(GLenum   *)(pc +  0),
-            *(GLenum   *)(pc +  4),
+            pname,
             params
         ) );
         __glXSendReply(cl->client, params, compsize, 4, GL_FALSE, 0);
@@ -3292,7 +3292,7 @@ int __glXDisp_GetHistogramParameterfv(__GLXclientState *cl, GLbyte *pc)
 
         CALL_GetHistogramParameterfv( GET_DISPATCH(), (
             *(GLenum   *)(pc +  0),
-            *(GLenum   *)(pc +  4),
+            pname,
             params
         ) );
         __glXSendReply(cl->client, params, compsize, 4, GL_FALSE, 0);
@@ -3321,7 +3321,7 @@ int __glXDisp_GetHistogramParameteriv(__GLXclientState *cl, GLbyte *pc)
 
         CALL_GetHistogramParameteriv( GET_DISPATCH(), (
             *(GLenum   *)(pc +  0),
-            *(GLenum   *)(pc +  4),
+            pname,
             params
         ) );
         __glXSendReply(cl->client, params, compsize, 4, GL_FALSE, 0);
@@ -3350,7 +3350,7 @@ int __glXDisp_GetMinmaxParameterfv(__GLXclientState *cl, GLbyte *pc)
 
         CALL_GetMinmaxParameterfv( GET_DISPATCH(), (
             *(GLenum   *)(pc +  0),
-            *(GLenum   *)(pc +  4),
+            pname,
             params
         ) );
         __glXSendReply(cl->client, params, compsize, 4, GL_FALSE, 0);
@@ -3379,7 +3379,7 @@ int __glXDisp_GetMinmaxParameteriv(__GLXclientState *cl, GLbyte *pc)
 
         CALL_GetMinmaxParameteriv( GET_DISPATCH(), (
             *(GLenum   *)(pc +  0),
-            *(GLenum   *)(pc +  4),
+            pname,
             params
         ) );
         __glXSendReply(cl->client, params, compsize, 4, GL_FALSE, 0);
@@ -3775,7 +3775,7 @@ void __glXDisp_PointParameterfvEXT(GLbyte * pc)
     params = (const GLfloat *) (pc + 4);
 
     CALL_PointParameterfvEXT( GET_DISPATCH(), (
-        *(GLenum   *)(pc +  0),
+        pname,
         params
     ) );
 }
@@ -4058,7 +4058,7 @@ int __glXDisp_GenProgramsNV(__GLXclientState *cl, GLbyte *pc)
             n,
             programs
         ) );
-        __glXSendReply(cl->client, programs, n, 4, GL_FALSE, 0);
+        __glXSendReply(cl->client, programs, n, 4, GL_TRUE, 0);
         error = Success;
     }
 
@@ -4128,7 +4128,7 @@ int __glXDisp_GetProgramivNV(__GLXclientState *cl, GLbyte *pc)
 
         CALL_GetProgramivNV( GET_DISPATCH(), (
             *(GLuint   *)(pc +  0),
-            *(GLenum   *)(pc +  4),
+            pname,
             params
         ) );
         __glXSendReply(cl->client, params, compsize, 4, GL_FALSE, 0);
@@ -4179,7 +4179,7 @@ int __glXDisp_GetVertexAttribdvARB(__GLXclientState *cl, GLbyte *pc)
 
         CALL_GetVertexAttribdvARB( GET_DISPATCH(), (
             *(GLuint   *)(pc +  0),
-            *(GLenum   *)(pc +  4),
+            pname,
             params
         ) );
         __glXSendReply(cl->client, params, compsize, 8, GL_FALSE, 0);
@@ -4208,7 +4208,7 @@ int __glXDisp_GetVertexAttribfvARB(__GLXclientState *cl, GLbyte *pc)
 
         CALL_GetVertexAttribfvARB( GET_DISPATCH(), (
             *(GLuint   *)(pc +  0),
-            *(GLenum   *)(pc +  4),
+            pname,
             params
         ) );
         __glXSendReply(cl->client, params, compsize, 4, GL_FALSE, 0);
@@ -4237,7 +4237,7 @@ int __glXDisp_GetVertexAttribivARB(__GLXclientState *cl, GLbyte *pc)
 
         CALL_GetVertexAttribivARB( GET_DISPATCH(), (
             *(GLuint   *)(pc +  0),
-            *(GLenum   *)(pc +  4),
+            pname,
             params
         ) );
         __glXSendReply(cl->client, params, compsize, 4, GL_FALSE, 0);
@@ -4678,7 +4678,7 @@ void __glXDisp_PointParameterivNV(GLbyte * pc)
     params = (const GLint *) (pc + 4);
 
     CALL_PointParameterivNV( GET_DISPATCH(), (
-        *(GLenum   *)(pc +  0),
+        pname,
         params
     ) );
 }
@@ -4935,7 +4935,7 @@ int __glXDisp_GetProgramivARB(__GLXclientState *cl, GLbyte *pc)
 
         CALL_GetProgramivARB( GET_DISPATCH(), (
             *(GLenum   *)(pc +  0),
-            *(GLenum   *)(pc +  4),
+            pname,
             params
         ) );
         __glXSendReply(cl->client, params, compsize, 4, GL_FALSE, 0);
@@ -5121,7 +5121,7 @@ int __glXDisp_GetQueryivARB(__GLXclientState *cl, GLbyte *pc)
 
         CALL_GetQueryivARB( GET_DISPATCH(), (
             *(GLenum   *)(pc +  0),
-            *(GLenum   *)(pc +  4),
+            pname,
             params
         ) );
         __glXSendReply(cl->client, params, compsize, 4, GL_FALSE, 0);
@@ -5150,7 +5150,7 @@ int __glXDisp_GetQueryObjectivARB(__GLXclientState *cl, GLbyte *pc)
 
         CALL_GetQueryObjectivARB( GET_DISPATCH(), (
             *(GLuint   *)(pc +  0),
-            *(GLenum   *)(pc +  4),
+            pname,
             params
         ) );
         __glXSendReply(cl->client, params, compsize, 4, GL_FALSE, 0);
@@ -5179,7 +5179,7 @@ int __glXDisp_GetQueryObjectuivARB(__GLXclientState *cl, GLbyte *pc)
 
         CALL_GetQueryObjectuivARB( GET_DISPATCH(), (
             *(GLuint   *)(pc +  0),
-            *(GLenum   *)(pc +  4),
+            pname,
             params
         ) );
         __glXSendReply(cl->client, params, compsize, 4, GL_FALSE, 0);
@@ -5208,7 +5208,7 @@ int __glXDisp_GetVertexAttribdvNV(__GLXclientState *cl, GLbyte *pc)
 
         CALL_GetVertexAttribdvNV( GET_DISPATCH(), (
             *(GLuint   *)(pc +  0),
-            *(GLenum   *)(pc +  4),
+            pname,
             params
         ) );
         __glXSendReply(cl->client, params, compsize, 8, GL_FALSE, 0);
@@ -5237,7 +5237,7 @@ int __glXDisp_GetVertexAttribfvNV(__GLXclientState *cl, GLbyte *pc)
 
         CALL_GetVertexAttribfvNV( GET_DISPATCH(), (
             *(GLuint   *)(pc +  0),
-            *(GLenum   *)(pc +  4),
+            pname,
             params
         ) );
         __glXSendReply(cl->client, params, compsize, 4, GL_FALSE, 0);
@@ -5266,7 +5266,7 @@ int __glXDisp_GetVertexAttribivNV(__GLXclientState *cl, GLbyte *pc)
 
         CALL_GetVertexAttribivNV( GET_DISPATCH(), (
             *(GLuint   *)(pc +  0),
-            *(GLenum   *)(pc +  4),
+            pname,
             params
         ) );
         __glXSendReply(cl->client, params, compsize, 4, GL_FALSE, 0);

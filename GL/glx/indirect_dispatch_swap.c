@@ -64,18 +64,10 @@ extern void __glXClearErrorOccured( void );
 
 static const unsigned dummy_answer[2] = {0, 0};
 
-static GLenum
-bswap_ENUM( const void * src )
-{
-    union { uint32_t dst; GLenum ret; } x;
-    x.dst = bswap_32( *(uint32_t *) src );
-    return x.ret;
-}
-
-static GLintptr
+static GLsizei
 bswap_CARD32( const void * src )
 {
-    union { uint32_t dst; GLintptr ret; } x;
+    union { uint32_t dst; GLsizei ret; } x;
     x.dst = bswap_32( *(uint32_t *) src );
     return x.ret;
 }
@@ -88,19 +80,27 @@ bswap_CARD16( const void * src )
     return x.ret;
 }
 
+static GLenum
+bswap_ENUM( const void * src )
+{
+    union { uint32_t dst; GLenum ret; } x;
+    x.dst = bswap_32( *(uint32_t *) src );
+    return x.ret;
+}
+
+static GLdouble
+bswap_FLOAT64( const void * src )
+{
+    union { uint64_t dst; GLdouble ret; } x;
+    x.dst = bswap_64( *(uint64_t *) src );
+    return x.ret;
+}
+
 static GLfloat
 bswap_FLOAT32( const void * src )
 {
     union { uint32_t dst; GLfloat ret; } x;
     x.dst = bswap_32( *(uint32_t *) src );
-    return x.ret;
-}
-
-static GLclampd
-bswap_FLOAT64( const void * src )
-{
-    union { uint64_t dst; GLclampd ret; } x;
-    x.dst = bswap_64( *(uint64_t *) src );
     return x.ret;
 }
 
@@ -203,11 +203,13 @@ void __glXDispSwap_CallLists(GLbyte * pc)
     case GL_UNSIGNED_INT:
     case GL_FLOAT:
         lists = (const GLvoid *) bswap_32_array( (uint32_t *) (pc + 8), n ); break;
+    default:
+        return;
     }
 
     CALL_CallLists( GET_DISPATCH(), (
         n,
-         (GLenum  )bswap_ENUM   ( pc +  4 ),
+        type,
         lists
     ) );
 }
@@ -935,7 +937,7 @@ void __glXDispSwap_Fogfv(GLbyte * pc)
     params = (const GLfloat *) bswap_32_array( (uint32_t *) (pc + 4), __glFogfv_size(pname) );
 
     CALL_Fogfv( GET_DISPATCH(), (
-         (GLenum  )bswap_ENUM   ( pc +  0 ),
+        pname,
         params
     ) );
 }
@@ -956,7 +958,7 @@ void __glXDispSwap_Fogiv(GLbyte * pc)
     params = (const GLint *) bswap_32_array( (uint32_t *) (pc + 4), __glFogiv_size(pname) );
 
     CALL_Fogiv( GET_DISPATCH(), (
-         (GLenum  )bswap_ENUM   ( pc +  0 ),
+        pname,
         params
     ) );
 }
@@ -994,7 +996,7 @@ void __glXDispSwap_Lightfv(GLbyte * pc)
 
     CALL_Lightfv( GET_DISPATCH(), (
          (GLenum  )bswap_ENUM   ( pc +  0 ),
-         (GLenum  )bswap_ENUM   ( pc +  4 ),
+        pname,
         params
     ) );
 }
@@ -1017,7 +1019,7 @@ void __glXDispSwap_Lightiv(GLbyte * pc)
 
     CALL_Lightiv( GET_DISPATCH(), (
          (GLenum  )bswap_ENUM   ( pc +  0 ),
-         (GLenum  )bswap_ENUM   ( pc +  4 ),
+        pname,
         params
     ) );
 }
@@ -1038,7 +1040,7 @@ void __glXDispSwap_LightModelfv(GLbyte * pc)
     params = (const GLfloat *) bswap_32_array( (uint32_t *) (pc + 4), __glLightModelfv_size(pname) );
 
     CALL_LightModelfv( GET_DISPATCH(), (
-         (GLenum  )bswap_ENUM   ( pc +  0 ),
+        pname,
         params
     ) );
 }
@@ -1059,7 +1061,7 @@ void __glXDispSwap_LightModeliv(GLbyte * pc)
     params = (const GLint *) bswap_32_array( (uint32_t *) (pc + 4), __glLightModeliv_size(pname) );
 
     CALL_LightModeliv( GET_DISPATCH(), (
-         (GLenum  )bswap_ENUM   ( pc +  0 ),
+        pname,
         params
     ) );
 }
@@ -1097,7 +1099,7 @@ void __glXDispSwap_Materialfv(GLbyte * pc)
 
     CALL_Materialfv( GET_DISPATCH(), (
          (GLenum  )bswap_ENUM   ( pc +  0 ),
-         (GLenum  )bswap_ENUM   ( pc +  4 ),
+        pname,
         params
     ) );
 }
@@ -1120,7 +1122,7 @@ void __glXDispSwap_Materialiv(GLbyte * pc)
 
     CALL_Materialiv( GET_DISPATCH(), (
          (GLenum  )bswap_ENUM   ( pc +  0 ),
-         (GLenum  )bswap_ENUM   ( pc +  4 ),
+        pname,
         params
     ) );
 }
@@ -1191,7 +1193,7 @@ void __glXDispSwap_TexParameterfv(GLbyte * pc)
 
     CALL_TexParameterfv( GET_DISPATCH(), (
          (GLenum  )bswap_ENUM   ( pc +  0 ),
-         (GLenum  )bswap_ENUM   ( pc +  4 ),
+        pname,
         params
     ) );
 }
@@ -1214,7 +1216,7 @@ void __glXDispSwap_TexParameteriv(GLbyte * pc)
 
     CALL_TexParameteriv( GET_DISPATCH(), (
          (GLenum  )bswap_ENUM   ( pc +  0 ),
-         (GLenum  )bswap_ENUM   ( pc +  4 ),
+        pname,
         params
     ) );
 }
@@ -1286,7 +1288,7 @@ void __glXDispSwap_TexEnvfv(GLbyte * pc)
 
     CALL_TexEnvfv( GET_DISPATCH(), (
          (GLenum  )bswap_ENUM   ( pc +  0 ),
-         (GLenum  )bswap_ENUM   ( pc +  4 ),
+        pname,
         params
     ) );
 }
@@ -1309,7 +1311,7 @@ void __glXDispSwap_TexEnviv(GLbyte * pc)
 
     CALL_TexEnviv( GET_DISPATCH(), (
          (GLenum  )bswap_ENUM   ( pc +  0 ),
-         (GLenum  )bswap_ENUM   ( pc +  4 ),
+        pname,
         params
     ) );
 }
@@ -1348,7 +1350,7 @@ void __glXDispSwap_TexGendv(GLbyte * pc)
 
     CALL_TexGendv( GET_DISPATCH(), (
          (GLenum  )bswap_ENUM   ( pc +  0 ),
-         (GLenum  )bswap_ENUM   ( pc +  4 ),
+        pname,
         params
     ) );
 }
@@ -1371,7 +1373,7 @@ void __glXDispSwap_TexGenfv(GLbyte * pc)
 
     CALL_TexGenfv( GET_DISPATCH(), (
          (GLenum  )bswap_ENUM   ( pc +  0 ),
-         (GLenum  )bswap_ENUM   ( pc +  4 ),
+        pname,
         params
     ) );
 }
@@ -1394,7 +1396,7 @@ void __glXDispSwap_TexGeniv(GLbyte * pc)
 
     CALL_TexGeniv( GET_DISPATCH(), (
          (GLenum  )bswap_ENUM   ( pc +  0 ),
-         (GLenum  )bswap_ENUM   ( pc +  4 ),
+        pname,
         params
     ) );
 }
@@ -1888,7 +1890,7 @@ int __glXDispSwap_GetBooleanv(__GLXclientState *cl, GLbyte *pc)
         __glXClearErrorOccured();
 
         CALL_GetBooleanv( GET_DISPATCH(), (
-             (GLenum  )bswap_ENUM   ( pc +  0 ),
+            pname,
             params
         ) );
         __glXSendReplySwap(cl->client, params, compsize, 1, GL_FALSE, 0);
@@ -1937,7 +1939,7 @@ int __glXDispSwap_GetDoublev(__GLXclientState *cl, GLbyte *pc)
         __glXClearErrorOccured();
 
         CALL_GetDoublev( GET_DISPATCH(), (
-             (GLenum  )bswap_ENUM   ( pc +  0 ),
+            pname,
             params
         ) );
         (void) bswap_64_array( (uint64_t *) params, compsize );
@@ -1983,7 +1985,7 @@ int __glXDispSwap_GetFloatv(__GLXclientState *cl, GLbyte *pc)
         __glXClearErrorOccured();
 
         CALL_GetFloatv( GET_DISPATCH(), (
-             (GLenum  )bswap_ENUM   ( pc +  0 ),
+            pname,
             params
         ) );
         (void) bswap_32_array( (uint32_t *) params, compsize );
@@ -2012,7 +2014,7 @@ int __glXDispSwap_GetIntegerv(__GLXclientState *cl, GLbyte *pc)
         __glXClearErrorOccured();
 
         CALL_GetIntegerv( GET_DISPATCH(), (
-             (GLenum  )bswap_ENUM   ( pc +  0 ),
+            pname,
             params
         ) );
         (void) bswap_32_array( (uint32_t *) params, compsize );
@@ -2042,7 +2044,7 @@ int __glXDispSwap_GetLightfv(__GLXclientState *cl, GLbyte *pc)
 
         CALL_GetLightfv( GET_DISPATCH(), (
              (GLenum  )bswap_ENUM   ( pc +  0 ),
-             (GLenum  )bswap_ENUM   ( pc +  4 ),
+            pname,
             params
         ) );
         (void) bswap_32_array( (uint32_t *) params, compsize );
@@ -2072,7 +2074,7 @@ int __glXDispSwap_GetLightiv(__GLXclientState *cl, GLbyte *pc)
 
         CALL_GetLightiv( GET_DISPATCH(), (
              (GLenum  )bswap_ENUM   ( pc +  0 ),
-             (GLenum  )bswap_ENUM   ( pc +  4 ),
+            pname,
             params
         ) );
         (void) bswap_32_array( (uint32_t *) params, compsize );
@@ -2102,8 +2104,8 @@ int __glXDispSwap_GetMapdv(__GLXclientState *cl, GLbyte *pc)
         __glXClearErrorOccured();
 
         CALL_GetMapdv( GET_DISPATCH(), (
-             (GLenum  )bswap_ENUM   ( pc +  0 ),
-             (GLenum  )bswap_ENUM   ( pc +  4 ),
+            target,
+            query,
             v
         ) );
         (void) bswap_64_array( (uint64_t *) v, compsize );
@@ -2133,8 +2135,8 @@ int __glXDispSwap_GetMapfv(__GLXclientState *cl, GLbyte *pc)
         __glXClearErrorOccured();
 
         CALL_GetMapfv( GET_DISPATCH(), (
-             (GLenum  )bswap_ENUM   ( pc +  0 ),
-             (GLenum  )bswap_ENUM   ( pc +  4 ),
+            target,
+            query,
             v
         ) );
         (void) bswap_32_array( (uint32_t *) v, compsize );
@@ -2164,8 +2166,8 @@ int __glXDispSwap_GetMapiv(__GLXclientState *cl, GLbyte *pc)
         __glXClearErrorOccured();
 
         CALL_GetMapiv( GET_DISPATCH(), (
-             (GLenum  )bswap_ENUM   ( pc +  0 ),
-             (GLenum  )bswap_ENUM   ( pc +  4 ),
+            target,
+            query,
             v
         ) );
         (void) bswap_32_array( (uint32_t *) v, compsize );
@@ -2195,7 +2197,7 @@ int __glXDispSwap_GetMaterialfv(__GLXclientState *cl, GLbyte *pc)
 
         CALL_GetMaterialfv( GET_DISPATCH(), (
              (GLenum  )bswap_ENUM   ( pc +  0 ),
-             (GLenum  )bswap_ENUM   ( pc +  4 ),
+            pname,
             params
         ) );
         (void) bswap_32_array( (uint32_t *) params, compsize );
@@ -2225,7 +2227,7 @@ int __glXDispSwap_GetMaterialiv(__GLXclientState *cl, GLbyte *pc)
 
         CALL_GetMaterialiv( GET_DISPATCH(), (
              (GLenum  )bswap_ENUM   ( pc +  0 ),
-             (GLenum  )bswap_ENUM   ( pc +  4 ),
+            pname,
             params
         ) );
         (void) bswap_32_array( (uint32_t *) params, compsize );
@@ -2254,7 +2256,7 @@ int __glXDispSwap_GetPixelMapfv(__GLXclientState *cl, GLbyte *pc)
         __glXClearErrorOccured();
 
         CALL_GetPixelMapfv( GET_DISPATCH(), (
-             (GLenum  )bswap_ENUM   ( pc +  0 ),
+            map,
             values
         ) );
         (void) bswap_32_array( (uint32_t *) values, compsize );
@@ -2283,7 +2285,7 @@ int __glXDispSwap_GetPixelMapuiv(__GLXclientState *cl, GLbyte *pc)
         __glXClearErrorOccured();
 
         CALL_GetPixelMapuiv( GET_DISPATCH(), (
-             (GLenum  )bswap_ENUM   ( pc +  0 ),
+            map,
             values
         ) );
         (void) bswap_32_array( (uint32_t *) values, compsize );
@@ -2312,7 +2314,7 @@ int __glXDispSwap_GetPixelMapusv(__GLXclientState *cl, GLbyte *pc)
         __glXClearErrorOccured();
 
         CALL_GetPixelMapusv( GET_DISPATCH(), (
-             (GLenum  )bswap_ENUM   ( pc +  0 ),
+            map,
             values
         ) );
         (void) bswap_16_array( (uint16_t *) values, compsize );
@@ -2342,7 +2344,7 @@ int __glXDispSwap_GetTexEnvfv(__GLXclientState *cl, GLbyte *pc)
 
         CALL_GetTexEnvfv( GET_DISPATCH(), (
              (GLenum  )bswap_ENUM   ( pc +  0 ),
-             (GLenum  )bswap_ENUM   ( pc +  4 ),
+            pname,
             params
         ) );
         (void) bswap_32_array( (uint32_t *) params, compsize );
@@ -2372,7 +2374,7 @@ int __glXDispSwap_GetTexEnviv(__GLXclientState *cl, GLbyte *pc)
 
         CALL_GetTexEnviv( GET_DISPATCH(), (
              (GLenum  )bswap_ENUM   ( pc +  0 ),
-             (GLenum  )bswap_ENUM   ( pc +  4 ),
+            pname,
             params
         ) );
         (void) bswap_32_array( (uint32_t *) params, compsize );
@@ -2402,7 +2404,7 @@ int __glXDispSwap_GetTexGendv(__GLXclientState *cl, GLbyte *pc)
 
         CALL_GetTexGendv( GET_DISPATCH(), (
              (GLenum  )bswap_ENUM   ( pc +  0 ),
-             (GLenum  )bswap_ENUM   ( pc +  4 ),
+            pname,
             params
         ) );
         (void) bswap_64_array( (uint64_t *) params, compsize );
@@ -2432,7 +2434,7 @@ int __glXDispSwap_GetTexGenfv(__GLXclientState *cl, GLbyte *pc)
 
         CALL_GetTexGenfv( GET_DISPATCH(), (
              (GLenum  )bswap_ENUM   ( pc +  0 ),
-             (GLenum  )bswap_ENUM   ( pc +  4 ),
+            pname,
             params
         ) );
         (void) bswap_32_array( (uint32_t *) params, compsize );
@@ -2462,7 +2464,7 @@ int __glXDispSwap_GetTexGeniv(__GLXclientState *cl, GLbyte *pc)
 
         CALL_GetTexGeniv( GET_DISPATCH(), (
              (GLenum  )bswap_ENUM   ( pc +  0 ),
-             (GLenum  )bswap_ENUM   ( pc +  4 ),
+            pname,
             params
         ) );
         (void) bswap_32_array( (uint32_t *) params, compsize );
@@ -2492,7 +2494,7 @@ int __glXDispSwap_GetTexParameterfv(__GLXclientState *cl, GLbyte *pc)
 
         CALL_GetTexParameterfv( GET_DISPATCH(), (
              (GLenum  )bswap_ENUM   ( pc +  0 ),
-             (GLenum  )bswap_ENUM   ( pc +  4 ),
+            pname,
             params
         ) );
         (void) bswap_32_array( (uint32_t *) params, compsize );
@@ -2522,7 +2524,7 @@ int __glXDispSwap_GetTexParameteriv(__GLXclientState *cl, GLbyte *pc)
 
         CALL_GetTexParameteriv( GET_DISPATCH(), (
              (GLenum  )bswap_ENUM   ( pc +  0 ),
-             (GLenum  )bswap_ENUM   ( pc +  4 ),
+            pname,
             params
         ) );
         (void) bswap_32_array( (uint32_t *) params, compsize );
@@ -2553,7 +2555,7 @@ int __glXDispSwap_GetTexLevelParameterfv(__GLXclientState *cl, GLbyte *pc)
         CALL_GetTexLevelParameterfv( GET_DISPATCH(), (
              (GLenum  )bswap_ENUM   ( pc +  0 ),
              (GLint   )bswap_CARD32 ( pc +  4 ),
-             (GLenum  )bswap_ENUM   ( pc +  8 ),
+            pname,
             params
         ) );
         (void) bswap_32_array( (uint32_t *) params, compsize );
@@ -2584,7 +2586,7 @@ int __glXDispSwap_GetTexLevelParameteriv(__GLXclientState *cl, GLbyte *pc)
         CALL_GetTexLevelParameteriv( GET_DISPATCH(), (
              (GLenum  )bswap_ENUM   ( pc +  0 ),
              (GLint   )bswap_CARD32 ( pc +  4 ),
-             (GLenum  )bswap_ENUM   ( pc +  8 ),
+            pname,
             params
         ) );
         (void) bswap_32_array( (uint32_t *) params, compsize );
@@ -3110,7 +3112,7 @@ void __glXDispSwap_ColorTableParameterfv(GLbyte * pc)
 
     CALL_ColorTableParameterfv( GET_DISPATCH(), (
          (GLenum  )bswap_ENUM   ( pc +  0 ),
-         (GLenum  )bswap_ENUM   ( pc +  4 ),
+        pname,
         params
     ) );
 }
@@ -3124,7 +3126,7 @@ void __glXDispSwap_ColorTableParameteriv(GLbyte * pc)
 
     CALL_ColorTableParameteriv( GET_DISPATCH(), (
          (GLenum  )bswap_ENUM   ( pc +  0 ),
-         (GLenum  )bswap_ENUM   ( pc +  4 ),
+        pname,
         params
     ) );
 }
@@ -3159,7 +3161,7 @@ int __glXDispSwap_GetColorTableParameterfv(__GLXclientState *cl, GLbyte *pc)
 
         CALL_GetColorTableParameterfv( GET_DISPATCH(), (
              (GLenum  )bswap_ENUM   ( pc +  0 ),
-             (GLenum  )bswap_ENUM   ( pc +  4 ),
+            pname,
             params
         ) );
         (void) bswap_32_array( (uint32_t *) params, compsize );
@@ -3189,7 +3191,7 @@ int __glXDispSwap_GetColorTableParameteriv(__GLXclientState *cl, GLbyte *pc)
 
         CALL_GetColorTableParameteriv( GET_DISPATCH(), (
              (GLenum  )bswap_ENUM   ( pc +  0 ),
-             (GLenum  )bswap_ENUM   ( pc +  4 ),
+            pname,
             params
         ) );
         (void) bswap_32_array( (uint32_t *) params, compsize );
@@ -3296,7 +3298,7 @@ void __glXDispSwap_ConvolutionParameterfv(GLbyte * pc)
 
     CALL_ConvolutionParameterfv( GET_DISPATCH(), (
          (GLenum  )bswap_ENUM   ( pc +  0 ),
-         (GLenum  )bswap_ENUM   ( pc +  4 ),
+        pname,
         params
     ) );
 }
@@ -3319,7 +3321,7 @@ void __glXDispSwap_ConvolutionParameteriv(GLbyte * pc)
 
     CALL_ConvolutionParameteriv( GET_DISPATCH(), (
          (GLenum  )bswap_ENUM   ( pc +  0 ),
-         (GLenum  )bswap_ENUM   ( pc +  4 ),
+        pname,
         params
     ) );
 }
@@ -3366,7 +3368,7 @@ int __glXDispSwap_GetConvolutionParameterfv(__GLXclientState *cl, GLbyte *pc)
 
         CALL_GetConvolutionParameterfv( GET_DISPATCH(), (
              (GLenum  )bswap_ENUM   ( pc +  0 ),
-             (GLenum  )bswap_ENUM   ( pc +  4 ),
+            pname,
             params
         ) );
         (void) bswap_32_array( (uint32_t *) params, compsize );
@@ -3396,7 +3398,7 @@ int __glXDispSwap_GetConvolutionParameteriv(__GLXclientState *cl, GLbyte *pc)
 
         CALL_GetConvolutionParameteriv( GET_DISPATCH(), (
              (GLenum  )bswap_ENUM   ( pc +  0 ),
-             (GLenum  )bswap_ENUM   ( pc +  4 ),
+            pname,
             params
         ) );
         (void) bswap_32_array( (uint32_t *) params, compsize );
@@ -3426,7 +3428,7 @@ int __glXDispSwap_GetHistogramParameterfv(__GLXclientState *cl, GLbyte *pc)
 
         CALL_GetHistogramParameterfv( GET_DISPATCH(), (
              (GLenum  )bswap_ENUM   ( pc +  0 ),
-             (GLenum  )bswap_ENUM   ( pc +  4 ),
+            pname,
             params
         ) );
         (void) bswap_32_array( (uint32_t *) params, compsize );
@@ -3456,7 +3458,7 @@ int __glXDispSwap_GetHistogramParameteriv(__GLXclientState *cl, GLbyte *pc)
 
         CALL_GetHistogramParameteriv( GET_DISPATCH(), (
              (GLenum  )bswap_ENUM   ( pc +  0 ),
-             (GLenum  )bswap_ENUM   ( pc +  4 ),
+            pname,
             params
         ) );
         (void) bswap_32_array( (uint32_t *) params, compsize );
@@ -3486,7 +3488,7 @@ int __glXDispSwap_GetMinmaxParameterfv(__GLXclientState *cl, GLbyte *pc)
 
         CALL_GetMinmaxParameterfv( GET_DISPATCH(), (
              (GLenum  )bswap_ENUM   ( pc +  0 ),
-             (GLenum  )bswap_ENUM   ( pc +  4 ),
+            pname,
             params
         ) );
         (void) bswap_32_array( (uint32_t *) params, compsize );
@@ -3516,7 +3518,7 @@ int __glXDispSwap_GetMinmaxParameteriv(__GLXclientState *cl, GLbyte *pc)
 
         CALL_GetMinmaxParameteriv( GET_DISPATCH(), (
              (GLenum  )bswap_ENUM   ( pc +  0 ),
-             (GLenum  )bswap_ENUM   ( pc +  4 ),
+            pname,
             params
         ) );
         (void) bswap_32_array( (uint32_t *) params, compsize );
@@ -3914,7 +3916,7 @@ void __glXDispSwap_PointParameterfvEXT(GLbyte * pc)
     params = (const GLfloat *) bswap_32_array( (uint32_t *) (pc + 4), __glPointParameterfvEXT_size(pname) );
 
     CALL_PointParameterfvEXT( GET_DISPATCH(), (
-         (GLenum  )bswap_ENUM   ( pc +  0 ),
+        pname,
         params
     ) );
 }
@@ -4198,7 +4200,7 @@ int __glXDispSwap_GenProgramsNV(__GLXclientState *cl, GLbyte *pc)
             programs
         ) );
         (void) bswap_32_array( (uint32_t *) programs, n );
-        __glXSendReplySwap(cl->client, programs, n, 4, GL_FALSE, 0);
+        __glXSendReplySwap(cl->client, programs, n, 4, GL_TRUE, 0);
         error = Success;
     }
 
@@ -4270,7 +4272,7 @@ int __glXDispSwap_GetProgramivNV(__GLXclientState *cl, GLbyte *pc)
 
         CALL_GetProgramivNV( GET_DISPATCH(), (
              (GLuint  )bswap_CARD32 ( pc +  0 ),
-             (GLenum  )bswap_ENUM   ( pc +  4 ),
+            pname,
             params
         ) );
         (void) bswap_32_array( (uint32_t *) params, compsize );
@@ -4323,7 +4325,7 @@ int __glXDispSwap_GetVertexAttribdvARB(__GLXclientState *cl, GLbyte *pc)
 
         CALL_GetVertexAttribdvARB( GET_DISPATCH(), (
              (GLuint  )bswap_CARD32 ( pc +  0 ),
-             (GLenum  )bswap_ENUM   ( pc +  4 ),
+            pname,
             params
         ) );
         (void) bswap_64_array( (uint64_t *) params, compsize );
@@ -4353,7 +4355,7 @@ int __glXDispSwap_GetVertexAttribfvARB(__GLXclientState *cl, GLbyte *pc)
 
         CALL_GetVertexAttribfvARB( GET_DISPATCH(), (
              (GLuint  )bswap_CARD32 ( pc +  0 ),
-             (GLenum  )bswap_ENUM   ( pc +  4 ),
+            pname,
             params
         ) );
         (void) bswap_32_array( (uint32_t *) params, compsize );
@@ -4383,7 +4385,7 @@ int __glXDispSwap_GetVertexAttribivARB(__GLXclientState *cl, GLbyte *pc)
 
         CALL_GetVertexAttribivARB( GET_DISPATCH(), (
              (GLuint  )bswap_CARD32 ( pc +  0 ),
-             (GLenum  )bswap_ENUM   ( pc +  4 ),
+            pname,
             params
         ) );
         (void) bswap_32_array( (uint32_t *) params, compsize );
@@ -4825,7 +4827,7 @@ void __glXDispSwap_PointParameterivNV(GLbyte * pc)
     params = (const GLint *) bswap_32_array( (uint32_t *) (pc + 4), __glPointParameterivNV_size(pname) );
 
     CALL_PointParameterivNV( GET_DISPATCH(), (
-         (GLenum  )bswap_ENUM   ( pc +  0 ),
+        pname,
         params
     ) );
 }
@@ -5086,7 +5088,7 @@ int __glXDispSwap_GetProgramivARB(__GLXclientState *cl, GLbyte *pc)
 
         CALL_GetProgramivARB( GET_DISPATCH(), (
              (GLenum  )bswap_ENUM   ( pc +  0 ),
-             (GLenum  )bswap_ENUM   ( pc +  4 ),
+            pname,
             params
         ) );
         (void) bswap_32_array( (uint32_t *) params, compsize );
@@ -5276,7 +5278,7 @@ int __glXDispSwap_GetQueryivARB(__GLXclientState *cl, GLbyte *pc)
 
         CALL_GetQueryivARB( GET_DISPATCH(), (
              (GLenum  )bswap_ENUM   ( pc +  0 ),
-             (GLenum  )bswap_ENUM   ( pc +  4 ),
+            pname,
             params
         ) );
         (void) bswap_32_array( (uint32_t *) params, compsize );
@@ -5306,7 +5308,7 @@ int __glXDispSwap_GetQueryObjectivARB(__GLXclientState *cl, GLbyte *pc)
 
         CALL_GetQueryObjectivARB( GET_DISPATCH(), (
              (GLuint  )bswap_CARD32 ( pc +  0 ),
-             (GLenum  )bswap_ENUM   ( pc +  4 ),
+            pname,
             params
         ) );
         (void) bswap_32_array( (uint32_t *) params, compsize );
@@ -5336,7 +5338,7 @@ int __glXDispSwap_GetQueryObjectuivARB(__GLXclientState *cl, GLbyte *pc)
 
         CALL_GetQueryObjectuivARB( GET_DISPATCH(), (
              (GLuint  )bswap_CARD32 ( pc +  0 ),
-             (GLenum  )bswap_ENUM   ( pc +  4 ),
+            pname,
             params
         ) );
         (void) bswap_32_array( (uint32_t *) params, compsize );
@@ -5366,7 +5368,7 @@ int __glXDispSwap_GetVertexAttribdvNV(__GLXclientState *cl, GLbyte *pc)
 
         CALL_GetVertexAttribdvNV( GET_DISPATCH(), (
              (GLuint  )bswap_CARD32 ( pc +  0 ),
-             (GLenum  )bswap_ENUM   ( pc +  4 ),
+            pname,
             params
         ) );
         (void) bswap_64_array( (uint64_t *) params, compsize );
@@ -5396,7 +5398,7 @@ int __glXDispSwap_GetVertexAttribfvNV(__GLXclientState *cl, GLbyte *pc)
 
         CALL_GetVertexAttribfvNV( GET_DISPATCH(), (
              (GLuint  )bswap_CARD32 ( pc +  0 ),
-             (GLenum  )bswap_ENUM   ( pc +  4 ),
+            pname,
             params
         ) );
         (void) bswap_32_array( (uint32_t *) params, compsize );
@@ -5426,7 +5428,7 @@ int __glXDispSwap_GetVertexAttribivNV(__GLXclientState *cl, GLbyte *pc)
 
         CALL_GetVertexAttribivNV( GET_DISPATCH(), (
              (GLuint  )bswap_CARD32 ( pc +  0 ),
-             (GLenum  )bswap_ENUM   ( pc +  4 ),
+            pname,
             params
         ) );
         (void) bswap_32_array( (uint32_t *) params, compsize );

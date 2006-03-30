@@ -1,3 +1,10 @@
+2006-03-29  Kristian Høgsberg  <krh@redhat.com>
+
+	* GL/glx/indirect_dispatch.c:
+	* GL/glx/indirect_dispatch_swap.c:
+	* GL/glx/indirect_size_get.c: Regenerate these files using updated
+	scripts to avoid unused variable warnings.
+
 2006-03-29  Eric Anholt  <anholt@FreeBSD.org>
 
 	* exa/exa_accel.c: (exaPutImage), (exaGetImage):
