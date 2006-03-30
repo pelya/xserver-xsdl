@@ -97,7 +97,7 @@ typedef struct _ColormapRec
 {
     VisualPtr	pVisual;
     short	class;		/* PseudoColor or DirectColor */
-    long	mid;		/* client's name for colormap */
+    XID		mid;		/* client's name for colormap */
     ScreenPtr	pScreen;	/* screen map is associated with */
     short	flags;		/* 1 = IsDefault
 				 * 2 = AllAllocated */

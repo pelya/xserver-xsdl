@@ -58,7 +58,7 @@ typedef struct _Drawable {
     unsigned char	class;	/* specific to type */
     unsigned char	depth;
     unsigned char	bitsPerPixel;
-    unsigned long	id;	/* resource id */
+    XID			id;	/* resource id */
     short		x;	/* window: screen absolute, pixmap: 0 */
     short		y;	/* window: screen absolute, pixmap: 0 */
     unsigned short	width;
