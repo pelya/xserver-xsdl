@@ -227,21 +227,67 @@ ephyrDoneComposite(PixmapPtr pDst)
 }
 
 /**
- * Does an fbGetImage to pull image data from a pixmap.
+ * Does fake acceleration of DownloadFromScren using memcpy.
  */
 static Bool
 ephyrDownloadFromScreen(PixmapPtr pSrc, int x, int y, int w, int h, char *dst,
 			int dst_pitch)
 {
-    /* Only "accelerate" it if we can hand it off to fbGetImage, which expects
-     * the dst pitch to match the width of the image.
-     */
-    if (dst_pitch != PixmapBytePad(&pSrc->drawable, w))
+    KdScreenPriv(pSrc->drawable.pScreen);
+    KdScreenInfo *screen = pScreenPriv->screen;
+    EphyrScrPriv *scrpriv = screen->driver;
+    EphyrFakexaPriv *fakexa = scrpriv->fakexa;
+    char *src;
+    int src_pitch, cpp;
+
+    if (pSrc->drawable.bitsPerPixel < 8)
 	return FALSE;
 
-    fbGetImage(&pSrc->drawable, x, y, w, h, ZPixmap, FB_ALLONES, dst);
+    cpp = pSrc->drawable.bitsPerPixel / 8;
+    src_pitch = exaGetPixmapPitch(pSrc);
+    src = fakexa->exa->memoryBase + exaGetPixmapOffset(pSrc);
+    src += y * src_pitch + x * cpp;
+
+    for (; h > 0; h--) {
+	memcpy(dst, src, w * cpp);
+	dst += dst_pitch;
+	src += src_pitch;
+    }
 
     exaMarkSync(pSrc->drawable.pScreen);
+
+    return TRUE;
+}
+
+/**
+ * Does fake acceleration of DownloadFromScren using memcpy.
+ */
+static Bool
+ephyrUploadToScreen(PixmapPtr pDst, int x, int y, int w, int h, char *src,
+		    int src_pitch)
+{
+    KdScreenPriv(pDst->drawable.pScreen);
+    KdScreenInfo *screen = pScreenPriv->screen;
+    EphyrScrPriv *scrpriv = screen->driver;
+    EphyrFakexaPriv *fakexa = scrpriv->fakexa;
+    char *dst;
+    int dst_pitch, cpp;
+
+    if (pDst->drawable.bitsPerPixel < 8)
+	return FALSE;
+
+    cpp = pDst->drawable.bitsPerPixel / 8;
+    dst_pitch = exaGetPixmapPitch(pDst);
+    dst = fakexa->exa->memoryBase + exaGetPixmapOffset(pDst);
+    dst += y * dst_pitch + x * cpp;
+
+    for (; h > 0; h--) {
+	memcpy(dst, src, w * cpp);
+	dst += dst_pitch;
+	src += src_pitch;
+    }
+
+    exaMarkSync(pDst->drawable.pScreen);
 
     return TRUE;
 }
@@ -331,6 +377,7 @@ ephyrDrawInit(ScreenPtr pScreen)
     fakexa->exa->DoneComposite = ephyrDoneComposite;
 
     fakexa->exa->DownloadFromScreen = ephyrDownloadFromScreen;
+    fakexa->exa->UploadToScreen = ephyrUploadToScreen;
 
     fakexa->exa->MarkSync = ephyrMarkSync;
     fakexa->exa->WaitMarker = ephyrWaitMarker;
