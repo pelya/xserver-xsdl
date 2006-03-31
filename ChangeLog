@@ -6,6 +6,9 @@
 	* Xprint/ps/psout_ftpstype3.c:
 	Add full FreeType support for Xprint.  (Drew Parsons)
 
+	* xkb/xkbfmisc.c:
+	Simplify XkbWriteXKBKeymapForNames a bit, and remove debug spew.
+
 2006-03-30  Eric Anholt  <anholt@FreeBSD.org>
 
 	* exa/exa.c: (exaValidateGC):

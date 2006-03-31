@@ -68,42 +68,26 @@ XkbWriteXKBKeymapForNames(	FILE *			file,
 				unsigned		want,
 				unsigned		need)
 {
-    unsigned complete = 0;
-
-    if (names->keycodes)    complete |= XkmKeyNamesMask;
-    if (names->types)       complete |= XkmTypesMask;
-    if (names->compat)      complete |= XkmCompatMapMask;
-    if (names->symbols)     complete |= XkmSymbolsMask;
-    if (names->geometry)    complete |= XkmGeometryMask;
-
-    if (complete == 0)
+    if (!names || (!names->keycodes && !names->types && !names->compat &&
+                   !names->symbols && !names->geometry))
         return False;
 
-    if (complete & XkmSymbolsMask)
-	complete |= XkmKeyNamesMask | XkmTypesMask;
+    fprintf(file, "xkb_keymap \"%s\" {\n", names->keymap ? names->keymap :
+                                                           "default");
 
-    fprintf(file, "xkb_keymap \"%s\" {\n",names->keymap ? names->keymap :
-                                                          "default");
-    ErrorF("xkb_keymap \"%s\" {\n",names->keymap ? names->keymap :
-                                                   "default");
-
-    if (complete & XkmKeyNamesMask)
+    if (names->keycodes)
 	XkbWriteSectionFromName(file, "keycodes", names->keycodes);
-
-    if (complete & XkmTypesMask)
+    if (names->types)
 	XkbWriteSectionFromName(file, "types", names->types);
-
-    if (complete & XkmCompatMapMask)
+    if (names->compat)
 	XkbWriteSectionFromName(file, "compatibility", names->compat);
-
-    if (complete & XkmSymbolsMask)
+    if (names->symbols)
 	XkbWriteSectionFromName(file, "symbols", names->symbols);
-
-    if (complete & XkmGeometryMask)
+    if (names->geometry)
 	XkbWriteSectionFromName(file, "geometry", names->geometry);
 
     fprintf(file,"};\n");
-    ErrorF("};\n");
+
     return True;
 }
 
