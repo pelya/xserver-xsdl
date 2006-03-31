@@ -1285,6 +1285,42 @@ if test "x$XPRINT" = xyes; then
 
 	AC_PATH_PROG(MKFONTSCALE, mkfontscale)
 	AC_PATH_PROG(MKFONTDIR, mkfontdir)
+	
+        # freetype support code borrowed from lib/XFont
+        AC_ARG_ENABLE(freetype, [ --disable-freetype],[XP_USE_FREETYPE=$enableval],[XP_USE_FREETYPE=yes])
+        AM_CONDITIONAL(XP_USE_FREETYPE, [test x$XP_USE_FREETYPE = xyes])
+        if test x$XP_USE_FREETYPE = xyes; then
+            AC_DEFINE(XP_USE_FREETYPE,1,[Support FreeType rasterizer in Xprint for nearly all font file formats])
+            AC_ARG_WITH(freetype-config, [  --with-freetype-config=PROG   Use FreeType configuration program PROG], freetype_config=$withval, freetype_config=auto)
+
+            if test "$freetype_config" = "auto" ; then
+                PKG_CHECK_MODULES(FREETYPE, freetype2,
+                        freetype_config=no, freetype_config=yes)
+            fi
+
+            if test "$freetype_config" = "yes"; then
+                AC_PATH_PROG(ft_config,freetype-config,no)
+                if test "$ft_config" = "no"; then
+                        AC_MSG_ERROR([You must have freetype installed; see http://www.freetype.org/])
+                fi
+            else
+                ft_config="$freetype_config"
+            fi
+
+            if test "$freetype_config" != "no"; then
+                FREETYPE_CFLAGS="`$ft_config --cflags`"
+                FREETYPE_LIBS="`$ft_config --libs`"
+            fi
+            FREETYPE_REQUIRES="freetype2"
+        else
+            FREETYPE_CFLAGS=""
+            FREETYPE_LIBS=""
+            FREETYPE_REQUIRES=""
+        fi
+        AC_SUBST(FREETYPE_LIBS)
+        AC_SUBST(FREETYPE_CFLAGS)
+        AC_SUBST(FREETYPE_REQUIRES)
+	# end freetype support
 fi
 
 

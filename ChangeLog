@@ -1,3 +1,11 @@
+2006-03-31  Daniel Stone  <daniel@freedesktop.org>
+
+	* configure.ac:
+	* Xprint/Makefile.am:
+	* Xprint/ps/Makefile.am:
+	* Xprint/ps/psout_ftpstype3.c:
+	Add full FreeType support for Xprint.  (Drew Parsons)
+
 2006-03-30  Eric Anholt  <anholt@FreeBSD.org>
 
 	* exa/exa.c: (exaValidateGC):

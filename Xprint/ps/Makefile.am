@@ -2,7 +2,7 @@ noinst_LTLIBRARIES = libps.la
 
 INCLUDES = -I$(top_srcdir)/Xprint -I$(top_srcdir)/cfb -I$(top_srcdir)/mfb
 
-AM_CFLAGS = @SERVER_DEFINES@ @DIX_CFLAGS@ @XPRINT_CFLAGS@ \
+AM_CFLAGS = @SERVER_DEFINES@ @DIX_CFLAGS@ @XPRINT_CFLAGS@ @FREETYPE_CFLAGS@ \
 	-D_XP_PRINT_SERVER_ -DPSZ=8 -DXP_PSTEXT
 
 libps_la_SOURCES =		\
@@ -35,3 +35,8 @@ EXTRA_DIST = 	PsFTFonts.c	\
 	psout_ftpstype1.c	\
 	psout_ftpstype3.c	\
 	ttf2pt1wrap.c
+
+if XP_USE_FREETYPE
+    AM_CFLAGS += -DXP_USE_FREETYPE
+    libps_la_SOURCES += $(EXTRA_DIST)
+endif

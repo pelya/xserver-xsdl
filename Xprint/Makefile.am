@@ -11,7 +11,8 @@ Xprt_LDFLAGS = -L$(top_srcdir)
 Xprt_LDADD = @XPRINT_LIBS@ ps/libps.la raster/libraster.la  \
 	pcl/libpcl.la pcl-mono/libpcl.la  \
 	../mfb/libmfb.la ../mi/libmi.la  \
-	../cfb32/libcfb32.la ../cfb/libcfb.la ../Xext/libXext.la
+	../cfb32/libcfb32.la ../cfb/libcfb.la ../Xext/libXext.la \
+	@FREETYPE_LIBS@
 
 miinitext-wrapper.c:
 	echo "#include \"$(top_srcdir)/mi/miinitext.c\"" >> $@

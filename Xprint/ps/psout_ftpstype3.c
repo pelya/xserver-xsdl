@@ -55,13 +55,6 @@ THE SOFTWARE.
 #include FT_MULTIPLE_MASTERS_H
 #include FT_SFNT_NAMES_H
 
-#define USE_FT_INTERNALS 1
-#ifdef USE_FT_INTERNALS
-#include FT_INTERNAL_TYPE1_TYPES_H
-#include "t42types.h"
-#include FT_INTERNAL_OBJECTS_H
-#endif /* USE_FT_INTERNALS */
-
 #include <X11/Xproto.h>
 #include <X11/fonts/font.h>
 #include <X11/fonts/fontstruct.h>
@@ -287,28 +280,6 @@ FT_Error PSType3_createOutlineGlyphs( FILE *out, struct ft2info *ti, unsigned lo
   return 0;
 }
 
-#ifdef USE_FT_INTERNALS
-static FT_BBox *
-FT_Get_PS_Font_BBox( FT_Face face )
-{
-  const char *driver_name;
-  FT_BBox    *font_bbox = NULL;
-
-  if ( face && face->driver && face->driver->root.clazz )
-  {
-    driver_name = face->driver->root.clazz->module_name;
-    if ( ft_strcmp( driver_name, "type1" ) == 0 )
-      font_bbox = &(((T1_Face)face)->type1.font_bbox);
-    else if ( ft_strcmp( driver_name, "t1cid" ) == 0 )
-      font_bbox = &(((CID_Face)face)->cid.font_bbox);
-    else if ( ft_strcmp( driver_name, "type42" ) == 0 )
-      font_bbox = &(((T42_Face)face)->type1.font_bbox);
-  }
-  
-  return font_bbox;
-}
-#endif /* USE_FT_INTERNALS */
-
 static
 int PSType3_generateOutlineFont(FILE *out, const char *psfontname, struct ft2info *ti, long block_offset)
 {
@@ -362,12 +333,12 @@ int PSType3_generateOutlineFont(FILE *out, const char *psfontname, struct ft2inf
   }
   else
   {
-    FT_BBox *font_bbox = FT_Get_PS_Font_BBox(ti->ttface);
-    fprintf(out, "/FontBBox [%d %d %d %d] def\n",
-                 (int)font_bbox->xMin,
-                 (int)font_bbox->yMin,
-                 (int)font_bbox->xMax,
-                 (int)font_bbox->yMax);
+    fprintf(out, "/FontBBox [%ld %ld %ld %ld] def\n",
+                 ti->ttface->bbox.xMin,
+                 ti->ttface->bbox.yMin,
+                 ti->ttface->bbox.xMax,
+                 ti->ttface->bbox.yMax);
+		 
   }
 
   fprintf(out, "/Encoding [\n");
