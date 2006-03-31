@@ -52,7 +52,7 @@ ExaOffscreenValidate (ScreenPtr pScreen)
     for (area = pExaScr->info->offScreenAreas; area; area = area->next)
     {
 	assert (area->offset >= area->base_offset &&
-		area->offset < (area->base_offset -> area->size));
+		area->offset < (area->base_offset + area->size));
 	if (prev)
 	    assert (prev->base_offset + prev->area.size == area->base_offset);
 	prev = area;
