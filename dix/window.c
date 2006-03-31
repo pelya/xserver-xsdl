@@ -1,8 +1,8 @@
-/* $XdotOrg: xserver/xorg/dix/window.c,v 1.14 2006/02/15 20:44:12 ajax Exp $ */
+/* $XdotOrg: xserver/xorg/dix/window.c,v 1.16 2006/03/29 17:51:54 deronj Exp $ */
 /* $Xorg: window.c,v 1.4 2001/02/09 02:04:41 xorgcvs Exp $ */
 /*
 
-Copyright (c) 2004, Sun Microsystems, Inc. 
+Copyright (c) 2006, Red Hat, Inc.
 
 Permission to use, copy, modify, distribute, and sell this software and its
 documentation for any purpose is hereby granted without fee, provided that
@@ -16,13 +16,13 @@ all copies or substantial portions of the Software.
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL 
-SUN MICROSYSTEMS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER 
+RED HAT BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER 
 IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-Except as contained in this notice, the name of Sun Microsystems shall not be
+Except as contained in this notice, the name of Red Hat shall not be
 used in advertising or otherwise to promote the sale, use or other dealings
-in this Software without prior written authorization from Sun Microsystems.
+in this Software without prior written authorization from Red Hat.
 
 Copyright 1987, 1998  The Open Group
 
