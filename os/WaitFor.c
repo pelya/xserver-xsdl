@@ -669,6 +669,16 @@ FreeScreenSaverTimer(void)
     }
 }
 
+#ifdef SCREENSAVER
+/*
+ * When this variable is set a client has temporarily suspended the
+ * screensaver and DPMS, so SetScreenSaverTimer should be a noop.
+ * The screensaver extension is responsible for stopping and
+ * restarting the timer when suspension is enabled/disabled.
+ */
+extern Bool screenSaverSuspended; /* declared in Xext/saver.c */
+#endif  /* SCREENSAVER */
+
 void
 SetScreenSaverTimer(void)
 {
@@ -699,7 +709,11 @@ SetScreenSaverTimer(void)
 		ScreenSaverTime;
     }
 
+#ifdef SCREENSAVER
+    if (timeout && !screenSaverSuspended) {
+#else
     if (timeout) {
+#endif
 	ScreenSaverTimer = TimerSet(ScreenSaverTimer, 0, timeout,
 	                            ScreenSaverTimeoutExpire, NULL);
     }
