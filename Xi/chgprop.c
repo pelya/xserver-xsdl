@@ -155,8 +155,8 @@ ProcXChangeDeviceDontPropagateList(register ClientPtr client)
 
 	if (DeviceEventSuppressForWindow(pWin, client, tmp[i].mask, i) !=
 	    Success) {
-	    SendErrorToClient(client, IReqCode, X_ChangeDeviceDontPropagateList,
-			      0, BadClass);
+	    SendErrorToClient(client, IReqCode,
+			      X_ChangeDeviceDontPropagateList, 0, BadClass);
 	    return Success;
 	}
     }

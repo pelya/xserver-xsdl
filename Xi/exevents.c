@@ -539,8 +539,9 @@ GrabButton(ClientPtr client, DeviceIntPtr dev, BYTE this_device_mode,
 
 int
 GrabKey(ClientPtr client, DeviceIntPtr dev, BYTE this_device_mode,
-	BYTE other_devices_mode, CARD16 modifiers, DeviceIntPtr modifier_device,
-	CARD8 key, Window grabWindow, BOOL ownerEvents, Mask mask)
+	BYTE other_devices_mode, CARD16 modifiers,
+	DeviceIntPtr modifier_device, CARD8 key, Window grabWindow,
+	BOOL ownerEvents, Mask mask)
 {
     WindowPtr pWin;
     GrabPtr grab;
@@ -585,8 +586,8 @@ GrabKey(ClientPtr client, DeviceIntPtr dev, BYTE this_device_mode,
 }
 
 int
-SelectForWindow(DeviceIntPtr dev, WindowPtr pWin, ClientPtr client, Mask mask,
-		Mask exclusivemasks, Mask validmasks)
+SelectForWindow(DeviceIntPtr dev, WindowPtr pWin, ClientPtr client,
+		Mask mask, Mask exclusivemasks, Mask validmasks)
 {
     int mskidx = dev->id;
     int i, ret;
@@ -1035,7 +1036,8 @@ DeleteDeviceFromAnyExtEvents(WindowPtr pWin, DeviceIntPtr dev)
 	    do {
 		parent = parent->parent;
 		dev->focus->traceGood--;
-	    } while (!parent->realized);
+	    }
+	    while (!parent->realized);
 	    DoFocusEvents(dev, pWin, parent, focusEventMode);
 	    dev->focus->win = parent;
 	    dev->focus->revert = RevertToNone;

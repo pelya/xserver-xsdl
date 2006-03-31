@@ -9,6 +9,9 @@
 	* xkb/xkbfmisc.c:
 	Simplify XkbWriteXKBKeymapForNames a bit, and remove debug spew.
 
+	* Xi/*.[ch]:
+	Reindent with -cbi0.
+
 2006-03-30  Eric Anholt  <anholt@FreeBSD.org>
 
 	* exa/exa.c: (exaValidateGC):

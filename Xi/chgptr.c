@@ -206,8 +206,8 @@ SendEventToAllWindows(DeviceIntPtr dev, Mask mask, xEvent * ev, int count)
  */
 
 void
-FindInterestedChildren(DeviceIntPtr dev, WindowPtr p1, Mask mask, xEvent * ev,
-		       int count)
+FindInterestedChildren(DeviceIntPtr dev, WindowPtr p1, Mask mask,
+		       xEvent * ev, int count)
 {
     WindowPtr p2;
 

@@ -266,8 +266,8 @@ SetDeviceMode(register ClientPtr client, DeviceIntPtr dev, int mode)
  */
 
 int
-SetDeviceValuators(register ClientPtr client, DeviceIntPtr dev, int *valuators,
-		   int first_valuator, int num_valuators)
+SetDeviceValuators(register ClientPtr client, DeviceIntPtr dev,
+		   int *valuators, int first_valuator, int num_valuators)
 {
     return BadMatch;
 }

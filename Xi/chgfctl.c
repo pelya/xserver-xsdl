@@ -146,26 +146,26 @@ ProcXChangeFeedbackControl(ClientPtr client)
 	    }
 	break;
     case StringFeedbackClass:
-	{
-	    register char n;
-	    xStringFeedbackCtl *f = ((xStringFeedbackCtl *) & stuff[1]);
+    {
+	register char n;
+	xStringFeedbackCtl *f = ((xStringFeedbackCtl *) & stuff[1]);
 
-	    if (client->swapped) {
-		swaps(&f->num_keysyms, n);
-	    }
-	    if (len != ((sizeof(xStringFeedbackCtl) >> 2) + f->num_keysyms)) {
-		SendErrorToClient(client, IReqCode, X_ChangeFeedbackControl,
-				  0, BadLength);
+	if (client->swapped) {
+	    swaps(&f->num_keysyms, n);
+	}
+	if (len != ((sizeof(xStringFeedbackCtl) >> 2) + f->num_keysyms)) {
+	    SendErrorToClient(client, IReqCode, X_ChangeFeedbackControl,
+			      0, BadLength);
+	    return Success;
+	}
+	for (s = dev->stringfeed; s; s = s->next)
+	    if (s->ctrl.id == ((xStringFeedbackCtl *) & stuff[1])->id) {
+		ChangeStringFeedback(client, dev, stuff->mask, s,
+				     (xStringFeedbackCtl *) & stuff[1]);
 		return Success;
 	    }
-	    for (s = dev->stringfeed; s; s = s->next)
-		if (s->ctrl.id == ((xStringFeedbackCtl *) & stuff[1])->id) {
-		    ChangeStringFeedback(client, dev, stuff->mask, s,
-					 (xStringFeedbackCtl *) & stuff[1]);
-		    return Success;
-		}
-	    break;
-	}
+	break;
+    }
     case IntegerFeedbackClass:
 	if (len != (sizeof(xIntegerFeedbackCtl) >> 2)) {
 	    SendErrorToClient(client, IReqCode, X_ChangeFeedbackControl,
@@ -446,8 +446,9 @@ ChangeIntegerFeedback(ClientPtr client, DeviceIntPtr dev,
  */
 
 int
-ChangeStringFeedback(ClientPtr client, DeviceIntPtr dev, long unsigned int mask,
-		     StringFeedbackPtr s, xStringFeedbackCtl * f)
+ChangeStringFeedback(ClientPtr client, DeviceIntPtr dev,
+		     long unsigned int mask, StringFeedbackPtr s,
+		     xStringFeedbackCtl * f)
 {
     register char n;
     register long *p;
@@ -495,8 +496,9 @@ ChangeStringFeedback(ClientPtr client, DeviceIntPtr dev, long unsigned int mask,
  */
 
 int
-ChangeBellFeedback(ClientPtr client, DeviceIntPtr dev, long unsigned int mask,
-		   BellFeedbackPtr b, xBellFeedbackCtl * f)
+ChangeBellFeedback(ClientPtr client, DeviceIntPtr dev,
+		   long unsigned int mask, BellFeedbackPtr b,
+		   xBellFeedbackCtl * f)
 {
     register char n;
     int t;

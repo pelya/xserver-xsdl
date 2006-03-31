@@ -147,8 +147,8 @@ ProcXGrabDeviceKey(ClientPtr client)
 	return Success;
 
     ret = GrabKey(client, dev, stuff->this_device_mode,
-		  stuff->other_devices_mode, stuff->modifiers, mdev, stuff->key,
-		  stuff->grabWindow, stuff->ownerEvents,
+		  stuff->other_devices_mode, stuff->modifiers, mdev,
+		  stuff->key, stuff->grabWindow, stuff->ownerEvents,
 		  tmp[stuff->grabbed_device].mask);
 
     if (ret != Success) {
