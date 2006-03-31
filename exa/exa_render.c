@@ -576,6 +576,49 @@ exaComposite(CARD8	op,
 
 #define NeedsComponent(f) (PICT_FORMAT_A(f) != 0 && PICT_FORMAT_RGB(f) != 0)
 
+/**
+ * exaRasterizeTrapezoid is just a wrapper around the software implementation.
+ *
+ * The trapezoid specification is basically too hard to be done in hardware (at
+ * the very least, without programmability), so we just do the appropriate
+ * Prepare/FinishAccess for it before using fbtrap.c.
+ */
+void
+exaRasterizeTrapezoid (PicturePtr pPicture, xTrapezoid  *trap,
+		       int x_off, int y_off)
+{
+    ExaMigrationRec pixmaps[1];
+
+    pixmaps[0].as_dst = TRUE;
+    pixmaps[0].as_src = TRUE;
+    pixmaps[0].pPix = exaGetDrawablePixmap (pPicture->pDrawable);
+    exaDoMigration(pixmaps, 1, FALSE);
+
+    exaPrepareAccess(pPicture->pDrawable, EXA_PREPARE_DEST);
+    fbRasterizeTrapezoid(pPicture, trap, x_off, y_off);
+    exaFinishAccess(pPicture->pDrawable, EXA_PREPARE_DEST);
+}
+
+/**
+ * exaAddTriangles does migration and syncing before dumping down to the
+ * software implementation.
+ */
+void
+exaAddTriangles (PicturePtr pPicture, INT16 x_off, INT16 y_off, int ntri,
+		 xTriangle *tris)
+{
+    ExaMigrationRec pixmaps[1];
+
+    pixmaps[0].as_dst = TRUE;
+    pixmaps[0].as_src = TRUE;
+    pixmaps[0].pPix = exaGetDrawablePixmap (pPicture->pDrawable);
+    exaDoMigration(pixmaps, 1, FALSE);
+
+    exaPrepareAccess(pPicture->pDrawable, EXA_PREPARE_DEST);
+    fbAddTriangles(pPicture, x_off, y_off, ntri, tris);
+    exaFinishAccess(pPicture->pDrawable, EXA_PREPARE_DEST);
+}
+
 /* exaGlyphs is a slight variation on miGlyphs, to support acceleration.  The
  * issue is that miGlyphs' use of ModifyPixmapHeader makes it impossible to
  * migrate these pixmaps.  So, instead we create a pixmap at the beginning of

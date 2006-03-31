@@ -55,7 +55,8 @@ typedef struct _ephyrFakexaPriv {
      */
     int op;
     PicturePtr pSrcPicture, pMaskPicture, pDstPicture;
-    PixmapPtr pSrc, pDst;
+    void *saved_ptrs[3];
+    PixmapPtr pDst, pSrc, pMask;
     GCPtr pGC;
 } EphyrFakexaPriv;
 

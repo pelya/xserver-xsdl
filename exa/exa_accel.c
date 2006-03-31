@@ -165,6 +165,9 @@ exaPutImage (DrawablePtr pDrawable, GCPtr pGC, int depth, int x, int y,
     if (pPix == NULL)
 	goto fallback;
 
+    x += pDrawable->x;
+    y += pDrawable->y;
+
     pClip = fbGetCompositeClip(pGC);
     src_stride = PixmapBytePad(w, pDrawable->depth);
     for (nbox = REGION_NUM_RECTS(pClip),
@@ -190,7 +193,7 @@ exaPutImage (DrawablePtr pDrawable, GCPtr pGC, int depth, int x, int y,
 	if (x1 >= x2 || y1 >= y2)
 	    continue;
 
-	src = bits + (y1 - y + yoff) * src_stride + (x1 - x + xoff) * (bpp / 8);
+	src = bits + (y1 - y) * src_stride + (x1 - x) * (bpp / 8);
 	ok = pExaScr->info->UploadToScreen(pPix, x1 + xoff, y1 + yoff,
 					   x2 - x1, y2 - y1, src, src_stride);
 	/* If we fail to accelerate the upload, fall back to using unaccelerated
@@ -201,6 +204,8 @@ exaPutImage (DrawablePtr pDrawable, GCPtr pGC, int depth, int x, int y,
 	    FbStride dst_stride;
 	    int	dstBpp;
 	    int	dstXoff, dstYoff;
+
+	    exaPrepareAccess(pDrawable, EXA_PREPARE_DEST);
 
 	    fbGetStipDrawable(pDrawable, dst, dst_stride, dstBpp,
 			      dstXoff, dstYoff);
@@ -214,6 +219,8 @@ exaPutImage (DrawablePtr pDrawable, GCPtr pGC, int depth, int x, int y,
 		      (x2 - x1) * bpp,
 		      y2 - y1,
 		      GXcopy, FB_ALLONES, bpp);
+
+	    exaFinishAccess(pDrawable, EXA_PREPARE_DEST);
 	}
     }
 

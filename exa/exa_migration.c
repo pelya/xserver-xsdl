@@ -190,7 +190,7 @@ exaPixmapSave (ScreenPtr pScreen, ExaOffscreenArea *area)
 		  pPixmap->drawable.width,
 		  pPixmap->drawable.height));
 
-    if (pPixmap->devPrivate.ptr == pExaPixmap->fb_ptr) {
+    if (exaPixmapIsOffscreen(pPixmap)) {
 	exaCopyDirtyToSys (pPixmap);
 	pPixmap->devPrivate.ptr = pExaPixmap->sys_ptr;
 	pPixmap->devKind = pExaPixmap->sys_pitch;
@@ -233,7 +233,7 @@ exaMoveInPixmap (PixmapPtr pPixmap)
 	return;
 
     /* If we're already in FB, our work is done. */
-    if (pPixmap->devPrivate.ptr == pExaPixmap->fb_ptr)
+    if (exaPixmapIsOffscreen(pPixmap))
 	return;
 
     /* If we're not allowed to move, then fail. */
@@ -267,7 +267,10 @@ exaMoveInPixmap (PixmapPtr pPixmap)
 
     exaCopyDirtyToFb (pPixmap);
 
-    pPixmap->devPrivate.ptr = (pointer) pExaPixmap->fb_ptr;
+    if (pExaScr->hideOffscreenPixmapData)
+	pPixmap->devPrivate.ptr = NULL;
+    else
+	pPixmap->devPrivate.ptr = pExaPixmap->fb_ptr;
     pPixmap->devKind = pExaPixmap->fb_pitch;
     pPixmap->drawable.serialNumber = NEXT_SERIAL_NUMBER;
 }
@@ -291,7 +294,7 @@ exaMoveOutPixmap (PixmapPtr pPixmap)
 		  pPixmap->drawable.width,
 		  pPixmap->drawable.height));
 
-    if (pPixmap->devPrivate.ptr == pExaPixmap->fb_ptr) {
+    if (exaPixmapIsOffscreen(pPixmap)) {
 	exaCopyDirtyToSys (pPixmap);
 
 	pPixmap->devPrivate.ptr = pExaPixmap->sys_ptr;

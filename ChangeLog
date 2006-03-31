@@ -1,5 +1,36 @@
 2006-03-31  Eric Anholt  <anholt@FreeBSD.org>
 
+	* exa/exa.c: (exaGetPixmapOffset), (exaPixmapIsOffscreen),
+	(exaPrepareAccess), (exaFinishAccess), (exaDriverInit):
+	* exa/exa_accel.c: (exaPutImage):
+	* exa/exa_migration.c: (exaPixmapSave), (exaMoveInPixmap),
+	(exaMoveOutPixmap):
+	* exa/exa_priv.h:
+	* exa/exa_render.c: (exaRasterizeTrapezoid), (exaAddTriangles):
+	* exa/exa_unaccel.c: (exaPrepareAccessGC), (exaFinishAccessGC),
+	(ExaCheckFillSpans), (ExaCheckPolylines), (ExaCheckPolySegment),
+	(ExaCheckPolyArc), (ExaCheckPolyFillRect), (ExaCheckImageGlyphBlt),
+	(ExaCheckPolyGlyphBlt), (ExaCheckPushPixels):
+	* hw/kdrive/ephyr/ephyr.h:
+	* hw/kdrive/ephyr/ephyr_draw.c: (ephyrPreparePipelinedAccess),
+	(ephyrFinishPipelinedAccess), (ephyrPrepareSolid),
+	(ephyrDoneSolid), (ephyrPrepareCopy), (ephyrDoneCopy),
+	(ephyrPrepareComposite), (ephyrDoneComposite),
+	(ephyrDownloadFromScreen), (ephyrUploadToScreen),
+	(ephyrPrepareAccess), (ephyrDrawInit), (exaDDXDriverInit):
+	Add an option to EXA for the DDX to request that EXA hide the pixmap's
+	devPrivate.ptr when pointing at offscreen memory, outside of
+	exaPrepare/FinishAccess().  This was used with fakexa to find (by NULL
+	dereference) many instances of un-Prepared CPU access to the
+	framebuffer:
+	- GC tiles used in several ops when fillStyle == FillTiled were never
+	  Prepared.
+	- Migration could lead to un-Prepared access to mask data in render's
+	  Trapezoids and Triangles
+	- PutImage's UploadToScreen failure fallback failed to Prepare.
+
+2006-03-31  Eric Anholt  <anholt@FreeBSD.org>
+
 	* exa/exa_offscreen.c: (ExaOffscreenValidate):
 	Correct a typo in debug-only offscreen validation code. (Wang Zhenyu)
 

@@ -100,10 +100,13 @@ typedef struct {
     CopyWindowProcPtr 		 SavedCopyWindow;
 #ifdef RENDER
     CompositeProcPtr             SavedComposite;
+    RasterizeTrapezoidProcPtr	 SavedRasterizeTrapezoid;
+    AddTrianglesProcPtr		 SavedAddTriangles;
     GlyphsProcPtr                SavedGlyphs;
 #endif
     Bool			 swappedOut;
     enum ExaMigrationHeuristic	 migration;
+    Bool			 hideOffscreenPixmapData;
 } ExaScreenPrivRec, *ExaScreenPrivPtr;
 
 /*
@@ -220,22 +223,12 @@ ExaCheckPolySegment (DrawablePtr pDrawable, GCPtr pGC,
 		    int nsegInit, xSegment *pSegInit);
 
 void
-ExaCheckPolyRectangle (DrawablePtr pDrawable, GCPtr pGC,
-		      int nrects, xRectangle *prect);
-
-void
 ExaCheckPolyArc (DrawablePtr pDrawable, GCPtr pGC,
 		int narcs, xArc *pArcs);
-
-#define ExaCheckFillPolygon	miFillPolygon
 
 void
 ExaCheckPolyFillRect (DrawablePtr pDrawable, GCPtr pGC,
 		     int nrect, xRectangle *prect);
-
-void
-ExaCheckPolyFillArc (DrawablePtr pDrawable, GCPtr pGC,
-		    int narcs, xArc *pArcs);
 
 void
 ExaCheckImageGlyphBlt (DrawablePtr pDrawable, GCPtr pGC,
@@ -374,6 +367,7 @@ exaCopyNtoN (DrawablePtr    pSrcDrawable,
 	     Pixel	    bitplane,
 	     void	    *closure);
 
+/* exa_render.c */
 void
 exaComposite(CARD8	op,
 	     PicturePtr pSrc,
@@ -387,6 +381,14 @@ exaComposite(CARD8	op,
 	     INT16	yDst,
 	     CARD16	width,
 	     CARD16	height);
+
+void
+exaRasterizeTrapezoid (PicturePtr pPicture, xTrapezoid  *trap,
+		       int x_off, int y_off);
+
+void
+exaAddTriangles (PicturePtr pPicture, INT16 x_off, INT16 y_off, int ntri,
+		 xTriangle *tris);
 
 void
 exaGlyphs (CARD8	op,
