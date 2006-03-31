@@ -1,5 +1,11 @@
 2006-03-31  Eric Anholt  <anholt@FreeBSD.org>
 
+	* exa/exa_unaccel.c: (ExaCheckComposite):
+	Don't attempt to Prepare/FinishAccess NULL pDrawables.  Exposed by new
+	gradient testing in rendercheck.
+
+2006-03-31  Eric Anholt  <anholt@FreeBSD.org>
+
 	* exa/exa.c: (exaGetPixmapOffset), (exaPixmapIsOffscreen),
 	(exaPrepareAccess), (exaFinishAccess), (exaDriverInit):
 	* exa/exa_accel.c: (exaPutImage):

@@ -316,8 +316,9 @@ ExaCheckComposite (CARD8      op,
     EXA_FALLBACK(("from picts 0x%lx/0x%lx to pict 0x%lx\n",
 		 (long)pSrc, (long)pMask, (long)pDst));
     exaPrepareAccess (pDst->pDrawable, EXA_PREPARE_DEST);
-    exaPrepareAccess (pSrc->pDrawable, EXA_PREPARE_SRC);
-    if (pMask)
+    if (pSrc->pDrawable != NULL)
+	exaPrepareAccess (pSrc->pDrawable, EXA_PREPARE_SRC);
+    if (pMask && pMask->pDrawable != NULL)
 	exaPrepareAccess (pMask->pDrawable, EXA_PREPARE_MASK);
     fbComposite (op,
                  pSrc,
@@ -331,9 +332,10 @@ ExaCheckComposite (CARD8      op,
                  yDst,
                  width,
                  height);
-    if (pMask)
+    if (pMask && pMask->pDrawable != NULL)
 	exaFinishAccess (pMask->pDrawable, EXA_PREPARE_MASK);
-    exaFinishAccess (pSrc->pDrawable, EXA_PREPARE_SRC);
+    if (pSrc->pDrawable != NULL)
+	exaFinishAccess (pSrc->pDrawable, EXA_PREPARE_SRC);
     exaFinishAccess (pDst->pDrawable, EXA_PREPARE_DEST);
 }
 
