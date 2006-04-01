@@ -1,3 +1,9 @@
+2006-04-01  Adam Jackson  <ajax@freedesktop.org>
+
+	* configure.ac:
+	Disable Xprint freetype support momentarily.  Needs ttf2pt1.c, which
+	exists in the monolith but has an advertising clause in the license.
+
 2006-04-01  Eric Anholt  <anholt@FreeBSD.org>
 
 	* exa/exa_accel.c: (exaCopyWindow):
