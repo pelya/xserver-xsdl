@@ -1,5 +1,15 @@
 2006-04-01  Eric Anholt  <anholt@FreeBSD.org>
 
+	* exa/exa_accel.c: (exaImageGlyphBlt):
+	* exa/exa_priv.h:
+	* exa/exa_unaccel.c:
+	Export exaPrepare/FinishGC to the rest of EXA, and use it in the
+	ImageGlyph implementation to avoid unprepared access to the tile.  Also,
+	relocate the fbGetDrawable to avoid using a stale dest pointer after
+	exaSolidBoxClipped() may have migrated it.  Revealed by xtest.
+
+2006-04-01  Eric Anholt  <anholt@FreeBSD.org>
+
 	* exa/exa_priv.h:
 	Use fb's depth-to-planemask computation, which doesn't suffer from
 	getting a 1 planemask at depth 32.  Fixes Get/PutImage xtest tests.

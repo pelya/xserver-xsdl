@@ -695,8 +695,7 @@ exaImageGlyphBlt (DrawablePtr	pDrawable,
 	return;
     }
     glyph = NULL;
-    fbGetDrawable (pDrawable, dst, dstStride, dstBpp, dstXoff, dstYoff);
-    switch (dstBpp) {
+    switch (pDrawable->bitsPerPixel) {
     case 8:	glyph = fbGlyph8; break;
     case 16:    glyph = fbGlyph16; break;
     case 24:    glyph = fbGlyph24; break;
@@ -742,6 +741,9 @@ exaImageGlyphBlt (DrawablePtr	pDrawable,
 
     EXA_FALLBACK(("to 0x%lx\n", (long)pDrawable));
     exaPrepareAccess (pDrawable, EXA_PREPARE_DEST);
+    exaPrepareAccessGC (pGC);
+
+    fbGetDrawable (pDrawable, dst, dstStride, dstBpp, dstXoff, dstYoff);
 
     ppci = ppciInit;
     while (nglyph--)
@@ -787,6 +789,7 @@ exaImageGlyphBlt (DrawablePtr	pDrawable,
 	}
 	x += pci->metrics.characterWidth;
     }
+    exaFinishAccessGC (pGC);
     exaFinishAccess (pDrawable, EXA_PREPARE_DEST);
 }
 

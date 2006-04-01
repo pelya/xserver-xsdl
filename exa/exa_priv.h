@@ -189,6 +189,12 @@ void exaDDXDriverInit (ScreenPtr pScreen);
 
 /* exa_unaccel.c */
 void
+exaPrepareAccessGC(GCPtr pGC);
+
+void
+exaFinishAccessGC(GCPtr pGC);
+
+void
 ExaCheckFillSpans  (DrawablePtr pDrawable, GCPtr pGC, int nspans,
 		   DDXPointPtr ppt, int *pwidth, int fSorted);
 

@@ -36,7 +36,7 @@
  * Solid doesn't use an extra pixmap source, and Stippled/OpaqueStippled are
  * 1bpp and never in fb, so we don't worry about them.
  */
-static void
+void
 exaPrepareAccessGC(GCPtr pGC)
 {
     if (pGC->fillStyle == FillTiled)
@@ -46,7 +46,7 @@ exaPrepareAccessGC(GCPtr pGC)
 /**
  * Finishes access to the tile in the GC, if used.
  */
-static void
+void
 exaFinishAccessGC(GCPtr pGC)
 {
     if (pGC->fillStyle == FillTiled)
