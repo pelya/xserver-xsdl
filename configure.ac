@@ -421,10 +421,14 @@ AC_ARG_ENABLE(xprint,         AS_HELP_STRING([--enable-xprint], [Build Xprint ex
 AC_ARG_ENABLE(xgl,            AS_HELP_STRING([--enable-xgl], [Build Xgl server (default: no)]), [XGL=$enableval], [XGL=no])
 AC_ARG_ENABLE(xglx,           AS_HELP_STRING([--enable-xglx], [Build Xglx xgl module (default: no)]), [XGLX=$enableval], [XGLX=no])
 AC_ARG_ENABLE(xegl,           AS_HELP_STRING([--enable-xegl], [Build Xegl xgl module (default: no)]), [XEGL=$enableval], [XEGL=no])
-# kdrive and its subsystems
+dnl kdrive and its subsystems
 AC_ARG_ENABLE(kdrive,         AS_HELP_STRING([--enable-kdrive], [Build kdrive servers (default: no)]), [KDRIVE=$enableval], [KDRIVE=no])
 AC_ARG_ENABLE(xephyr,         AS_HELP_STRING([--enable-xephyr], [Build the kdrive Xephyr server (default: auto)]), [XEPHYR=$enableval], [XEPHYR=auto])
 AC_ARG_ENABLE(xsdl,           AS_HELP_STRING([--enable-xsdl], [Build the kdrive Xsdl server (default: auto)]), [XSDL=$enableval], [XSDL=auto])
+dnl xprint
+AC_ARG_ENABLE(freetype,       AS_HELP_STRING([ --disable-freetype], [Build Xprint FreeType backend (default: yes)]), [XP_USE_FREETYPE=$enableval],[XP_USE_FREETYPE=yes])
+AC_ARG_WITH(freetype-config,  AS_HELP_STRING([ --with-freetype-config=PROG], [Use FreeType configuration program PROG (default: auto)]), freetype_config=$withval, freetype_config=auto)
+
 
 dnl chown/chmod to be setuid root as part of build
 dnl Replaces InstallXserverSetUID in imake
@@ -1287,10 +1291,8 @@ if test "x$XPRINT" = xyes; then
 	AC_PATH_PROG(MKFONTDIR, mkfontdir)
 	
         # freetype support code borrowed from lib/XFont
-        AC_ARG_ENABLE(freetype, [ --disable-freetype],[XP_USE_FREETYPE=$enableval],[XP_USE_FREETYPE=yes])
         if test x$XP_USE_FREETYPE = xyes; then
             AC_DEFINE(XP_USE_FREETYPE,1,[Support FreeType rasterizer in Xprint for nearly all font file formats])
-            AC_ARG_WITH(freetype-config, [  --with-freetype-config=PROG   Use FreeType configuration program PROG], freetype_config=$withval, freetype_config=auto)
 
             if test "$freetype_config" = "auto" ; then
                 PKG_CHECK_MODULES(FREETYPE, freetype2,

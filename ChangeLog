@@ -2,7 +2,8 @@
 
 	* configure.ac:
 	Unconditionally run the XP_USE_FREETYPE AM_CONDITIONAL, not just in
-	the Xprint-only path.
+	the Xprint-only path.  Make AC_ARG_ENABLE for freetype and AC_ARG_WITH
+	for freetype-config conditional also.
 	(To those wondering about the date: Yes, this is me doing an Xprint
 	commit, but it fixes the --disable-xprint path, so.)
 
