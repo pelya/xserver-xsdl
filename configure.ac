@@ -118,18 +118,24 @@ AC_CHECK_HEADERS([linux/fb.h], FBDEV=yes)
 AM_CONDITIONAL(FBDEVHW, [test "x$FBDEV" = xyes])
 
 dnl MTRR header
-AC_CHECK_HEADERS([asm/mtrr.h])
+AC_CHECK_HEADERS([asm/mtrr.h], ac_cv_asm_mtrr_h=yes)
+if test "x$ac_cv_asm_mtrr_h" = xyes; then
+	HAVE_MTRR=yes
+fi
 
 dnl BSD MTRR header
 AC_CHECK_HEADERS([sys/memrange.h], ac_cv_memrange_h=yes)
 if test "x$ac_cv_memrange_h" = xyes; then
-	AC_DEFINE(HAS_MTRR_SUPPORT, 1, [Define to 1 if BSD MTRR support is
-		 available])
+	HAVE_MTRR=yes
+fi
+
+if test "x$HAVE_MTRR" = xyes; then
+	AC_DEFINE(HAS_MTRR_SUPPORT, 1, [MTRR support available])
 fi
 
 dnl A NetBSD MTRR header
-AC_CHECK_HEADERS([machine/mtrr.h], ac_cv_mtrr_h=yes)
-if test "x$ac_cv_mtrr_h" = xyes; then
+AC_CHECK_HEADERS([machine/mtrr.h], ac_cv_machine_mtrr_h=yes)
+if test "x$ac_cv_machine_mtrr_h" = xyes; then
 	AC_DEFINE(HAS_MTRR_BUILTIN, 1, [Define to 1 if NetBSD built-in MTRR
 		support is available])
 fi
