@@ -137,8 +137,8 @@ extern int exaPixmapPrivateIndex;
  * pixel values for pDrawable.
  */
 #define EXA_PM_IS_SOLID(_pDrawable, _pm) \
-	(((_pm) & ((1 << (_pDrawable)->bitsPerPixel) - 1)) == \
-	 ((1 << (_pDrawable)->bitsPerPixel) - 1))
+	(((_pm) & FbFullMask((_pDrawable)->depth)) == \
+	 FbFullMask((_pDrawable)->depth))
 
 #define EXA_PIXMAP_SCORE_MOVE_IN    10
 #define EXA_PIXMAP_SCORE_MAX	    20
