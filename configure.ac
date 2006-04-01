@@ -1288,7 +1288,6 @@ if test "x$XPRINT" = xyes; then
 	
         # freetype support code borrowed from lib/XFont
         AC_ARG_ENABLE(freetype, [ --disable-freetype],[XP_USE_FREETYPE=$enableval],[XP_USE_FREETYPE=yes])
-        AM_CONDITIONAL(XP_USE_FREETYPE, [test x$XP_USE_FREETYPE = xyes])
         if test x$XP_USE_FREETYPE = xyes; then
             AC_DEFINE(XP_USE_FREETYPE,1,[Support FreeType rasterizer in Xprint for nearly all font file formats])
             AC_ARG_WITH(freetype-config, [  --with-freetype-config=PROG   Use FreeType configuration program PROG], freetype_config=$withval, freetype_config=auto)
@@ -1322,6 +1321,7 @@ if test "x$XPRINT" = xyes; then
         AC_SUBST(FREETYPE_REQUIRES)
 	# end freetype support
 fi
+AM_CONDITIONAL(XP_USE_FREETYPE, [test "x$XPRINT" = xyes && test "x$XP_USE_FREETYPE" = xyes])
 
 
 dnl XWin DDX

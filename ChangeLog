@@ -1,3 +1,11 @@
+2006-04-01  Daniel Stone  <daniel@freedesktop.org>
+
+	* configure.ac:
+	Unconditionally run the XP_USE_FREETYPE AM_CONDITIONAL, not just in
+	the Xprint-only path.
+	(To those wondering about the date: Yes, this is me doing an Xprint
+	commit, but it fixes the --disable-xprint path, so.)
+
 2006-03-31  Eric Anholt  <anholt@FreeBSD.org>
 
 	* exa/exa_unaccel.c: (ExaCheckComposite):
