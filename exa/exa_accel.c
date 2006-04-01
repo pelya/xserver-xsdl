@@ -822,7 +822,6 @@ const GCOps exaOps = {
 void
 exaCopyWindow(WindowPtr pWin, DDXPointRec ptOldOrg, RegionPtr prgnSrc)
 {
-    ExaScreenPriv (pWin->drawable.pScreen);
     RegionRec	rgnDst;
     int		dx, dy;
     PixmapPtr	pPixmap = (*pWin->drawable.pScreen->GetWindowPixmap) (pWin);

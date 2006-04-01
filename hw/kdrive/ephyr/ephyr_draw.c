@@ -81,7 +81,6 @@ ephyrFinishPipelinedAccess(PixmapPtr pPix, int index)
     KdScreenInfo *screen = pScreenPriv->screen;
     EphyrScrPriv *scrpriv = screen->driver;
     EphyrFakexaPriv *fakexa = scrpriv->fakexa;
-    void *offscreen_begin, *offscreen_end;
 
     pPix->devPrivate.ptr = fakexa->saved_ptrs[index];
     fakexa->saved_ptrs[index] = NULL;
@@ -330,7 +329,7 @@ ephyrDownloadFromScreen(PixmapPtr pSrc, int x, int y, int w, int h, char *dst,
 }
 
 /**
- * Does fake acceleration of DownloadFromScren using memcpy.
+ * Does fake acceleration of UploadToScreen using memcpy.
  */
 static Bool
 ephyrUploadToScreen(PixmapPtr pDst, int x, int y, int w, int h, char *src,
@@ -352,7 +351,7 @@ ephyrUploadToScreen(PixmapPtr pDst, int x, int y, int w, int h, char *src,
     dst_pitch = exaGetPixmapPitch(pDst);
     dst = fakexa->exa->memoryBase + exaGetPixmapOffset(pDst);
     dst += y * dst_pitch + x * cpp;
-    ErrorF("uts %d,%d, %dx%d, %dbpp %p/%x\n", x, y, w, h, pDst->drawable.bitsPerPixel, dst, dst_pitch);
+
     for (; h > 0; h--) {
 	memcpy(dst, src, w * cpp);
 	dst += dst_pitch;

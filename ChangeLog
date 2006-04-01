@@ -1,5 +1,12 @@
 2006-04-01  Eric Anholt  <anholt@FreeBSD.org>
 
+	* exa/exa_accel.c: (exaCopyWindow):
+	* hw/kdrive/ephyr/ephyr_draw.c: (ephyrFinishPipelinedAccess),
+	(ephyrUploadToScreen):
+	Clean up warnings and a debug printf.
+
+2006-04-01  Eric Anholt  <anholt@FreeBSD.org>
+
 	* exa/exa.c: (exaValidateGC):
 	Pull out fb's tile handling during fbValidateGC so we can do the
 	necessary exaPrepare/FinishAccess()es.  Revealed by xtest with fakexa.
