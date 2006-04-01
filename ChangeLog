@@ -9,6 +9,10 @@
 	(To those wondering about the date: Yes, this is me doing an Xprint
 	commit, but it fixes the --disable-xprint path, so.)
 
+	* xkb/xkb.c: (XkbSizeVirtualModMap):
+	Bug #6428: Fix off-by-one error when walking off the end of the
+	vmodmap list.
+
 2006-03-31  Eric Anholt  <anholt@FreeBSD.org>
 
 	* exa/exa_unaccel.c: (ExaCheckComposite):
