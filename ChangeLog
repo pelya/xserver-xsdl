@@ -1,3 +1,9 @@
+2006-04-01  Eric Anholt  <anholt@FreeBSD.org>
+
+	* exa/exa.c: (exaValidateGC):
+	Pull out fb's tile handling during fbValidateGC so we can do the
+	necessary exaPrepare/FinishAccess()es.  Revealed by xtest with fakexa.
+
 2006-04-01  Adam Jackson  <ajax@freedesktop.org>
 
 	* hw/dmx/dmxextension.c:

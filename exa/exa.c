@@ -370,11 +370,65 @@ exaFinishAccess(DrawablePtr pDrawable, int index)
 
 /**
  * exaValidateGC() sets the ops to EXA's implementations, which may be
- * accelerated or may sync the card and 
+ * accelerated or may sync the card and fall back to fb.
  */
 static void
 exaValidateGC (GCPtr pGC, Mask changes, DrawablePtr pDrawable)
 {
+    /* fbValidateGC will do direct access to pixmaps if the tiling has changed.
+     * Preempt fbValidateGC by doing its work and masking the change out, so
+     * that we can do the Prepare/FinishAccess.
+     */
+#ifdef FB_24_32BIT
+    if ((changes & GCTile) && fbGetRotatedPixmap(pGC)) {
+	(*pGC->pScreen->DestroyPixmap) (fbGetRotatedPixmap(pGC));
+	fbGetRotatedPixmap(pGC) = 0;
+    }
+	
+    if (pGC->fillStyle == FillTiled) {
+	PixmapPtr	pOldTile, pNewTile;
+
+	pOldTile = pGC->tile.pixmap;
+	if (pOldTile->drawable.bitsPerPixel != pDrawable->bitsPerPixel)
+	{
+	    pNewTile = fbGetRotatedPixmap(pGC);
+	    if (!pNewTile ||
+		pNewTile ->drawable.bitsPerPixel != pDrawable->bitsPerPixel)
+	    {
+		if (pNewTile)
+		    (*pGC->pScreen->DestroyPixmap) (pNewTile);
+		/* fb24_32ReformatTile will do direct access of a newly-
+		 * allocated pixmap.  This isn't a problem yet, since we don't
+		 * put pixmaps in FB until at least one accelerated EXA op.
+		 */
+		exaPrepareAccess(&pOldTile->drawable, EXA_PREPARE_SRC);
+		pNewTile = fb24_32ReformatTile (pOldTile,
+						pDrawable->bitsPerPixel);
+		exaFinishAccess(&pOldTile->drawable, EXA_PREPARE_SRC);
+	    }
+	    if (pNewTile)
+	    {
+		fbGetRotatedPixmap(pGC) = pOldTile;
+		pGC->tile.pixmap = pNewTile;
+		changes |= GCTile;
+	    }
+	}
+    }
+#endif
+    if (changes & GCTile) {
+	if (!pGC->tileIsPixel && FbEvenTile (pGC->tile.pixmap->drawable.width *
+					     pDrawable->bitsPerPixel))
+	{
+	    exaPrepareAccess(&pGC->tile.pixmap->drawable, EXA_PREPARE_SRC);
+	    fbPadPixmap (pGC->tile.pixmap);
+	    exaFinishAccess(&pGC->tile.pixmap->drawable, EXA_PREPARE_SRC);
+	}
+	/* Mask out the GCTile change notification, now that we've done FB's
+	 * job for it.
+	 */
+	changes &= ~GCTile;
+    }
+
     fbValidateGC (pGC, changes, pDrawable);
 
     pGC->ops = (GCOps *) &exaOps;
