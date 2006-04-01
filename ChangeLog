@@ -1,3 +1,9 @@
+2006-04-01  Adam Jackson  <ajax@freedesktop.org>
+
+	* hw/dmx/dmxextension.c:
+	Hack around the new screensaver variable for DMX, which is otherwise
+	blissfully ignorant of it.
+
 2006-04-01  Eric Anholt  <anholt@FreeBSD.org>
 
 	* exa/exa_accel.c: (exaImageGlyphBlt):
