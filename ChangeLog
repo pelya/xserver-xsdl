@@ -1,3 +1,9 @@
+2006-04-02  Adam Jackson  <ajax@freedesktop.org>
+
+	* hw/kdrive/ati/Makefile.am:
+	* hw/kdrive/ati/ati.h:
+	Disable building DRI support in Xati for now.
+
 2006-04-01  Eric Anholt  <anholt@FreeBSD.org>
 
 	reviewed by: keithp

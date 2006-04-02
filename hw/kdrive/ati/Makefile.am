@@ -1,16 +1,16 @@
-if DRI
-DRI_INCLUDES = 	-I$(top_srcdir)/dri	\
-		-I$(top_srcdir)/drm
-DRI_LIBS = 	$(top_builddir)/dri/libdri.a	\
-		$(top_builddir)/drm/libdrm.a
-DRI_SOURCES =	ati_dri.c	\
-		ati_dri.h	\
-		ati_dripriv.h	\
-		r128_common.h	\
-		r128_sarea.h	\
-		radeon_common.h	\
-		radeon_sarea.h
-endif
+#if DRI
+#DRI_INCLUDES = 	-I$(top_srcdir)/dri	\
+#		-I$(top_srcdir)/drm
+#DRI_LIBS = 	$(top_builddir)/dri/libdri.a	\
+#		$(top_builddir)/drm/libdrm.a
+#DRI_SOURCES =	ati_dri.c	\
+#		ati_dri.h	\
+#		ati_dripriv.h	\
+#		r128_common.h	\
+#		r128_sarea.h	\
+#		radeon_common.h	\
+#		radeon_sarea.h
+#endif
 
 if KDRIVEFBDEV
 FBDEV_INCLUDES =-I$(top_srcdir)/hw/kdrive/fbdev

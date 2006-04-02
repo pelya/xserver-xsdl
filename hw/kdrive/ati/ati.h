@@ -39,9 +39,10 @@
 
 #include "kxv.h"
 
+#undef XF86DRI
 #ifdef XF86DRI
 #define USE_DRI
-#include "libdrm.h"
+#include "xf86drm.h"
 #include "dri.h"
 #ifdef GLXEXT
 #include "GL/glxint.h"
