@@ -724,7 +724,7 @@ __glXDRIscreenProbe(ScreenPtr pScreen)
     char filename[128];
     Bool isCapable;
 
-    if (dlsym (RTLD_DEFAULT, "DRIQueryDirectRenderingCapable") == NULL) {
+    if (!xf86LoaderCheckSymbol("DRIQueryDirectRenderingCapable")) {
 	LogMessage(X_ERROR, "AIGLX: DRI module not loaded\n");
 	return NULL;
     }
@@ -917,7 +917,7 @@ __glXDRIscreenProbe(ScreenPtr pScreen)
 
     xfree(screen);
 
-    LogMessage(X_ERROR, "GLX-DRI: reverting to software rendering\n");
+    LogMessage(X_ERROR, "AIGLX: reverting to software rendering\n");
 
     return NULL;
 }
