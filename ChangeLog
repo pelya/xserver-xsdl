@@ -1,3 +1,8 @@
+2006-04-02  Adam Jackson  <ajax@freedesktop.org>
+
+	* configure.ac:
+	Bump to 1.1.99.1.
+
 2006-04-02  Kristian Høgsberg  <krh@redhat.com>
 
 	* GL/glx/glxdri.c (__glXDRIscreenProbe): Use xf86LoaderCheckSymbol
