@@ -44,9 +44,9 @@ THE SOFTWARE.
 #include <X11/fonts/fntfilst.h>
 #include <X11/fonts/fontutil.h>
 #include <X11/fonts/fontenc.h>
-#include "ft.h"
+#include <X11/fonts/ft.h>
 #define NOT_IN_FTFUNCS
-#include "ftfuncs.h"
+#include <X11/fonts/ftfuncs.h>
 
 int do_debug_ft2pt1             = FALSE;
 int do_enable_ft2pt1_optimizer  = FALSE;

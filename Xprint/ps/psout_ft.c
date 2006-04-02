@@ -41,9 +41,9 @@ THE SOFTWARE.
 #include <X11/fonts/fntfilst.h>
 #include <X11/fonts/fontutil.h>
 #include <X11/fonts/fontenc.h>
-#include "ft.h"
+#include <X11/fonts/ft.h>
 #define NOT_IN_FTFUNCS
-#include "ftfuncs.h"
+#include <X11/fonts/ftfuncs.h>
 #include "servermd.h" /* needed for endian test (IMAGE_BYTE_ORDER) */
 
 #define USE_FT_PS_NAMES 1

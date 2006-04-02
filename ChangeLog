@@ -4,6 +4,12 @@
 	Disable Xprint freetype support momentarily.  Needs ttf2pt1.c, which
 	exists in the monolith but has an advertising clause in the license.
 
+	* Xprint/ps/PsFTFonts.c:
+	* Xprint/ps/psout_ft.c:
+	* Xprint/ps/psout_ftpstype1.c:
+	* Xprint/ps/psout_ftpstype3.c:
+	Fix some includes to point into X11/fonts/ properly.
+
 2006-04-01  Eric Anholt  <anholt@FreeBSD.org>
 
 	* exa/exa_accel.c: (exaCopyWindow):

@@ -42,9 +42,9 @@ THE SOFTWARE.
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
-#include "ft.h"
+#include <X11/fonts/ft.h>
 #define NOT_IN_FTFUNCS
-#include "ftfuncs.h"
+#include <X11/fonts/ftfuncs.h>
 
 char *
 PsGetFTFontFileName(FontPtr pFont)
