@@ -724,7 +724,7 @@ __glXDRIscreenProbe(ScreenPtr pScreen)
     char filename[128];
     Bool isCapable;
 
-    if (dlsym (NULL, "DRIQueryDirectRenderingCapable") == NULL) {
+    if (dlsym (RTLD_DEFAULT, "DRIQueryDirectRenderingCapable") == NULL) {
 	LogMessage(X_ERROR, "AIGLX: DRI module not loaded\n");
 	return NULL;
     }

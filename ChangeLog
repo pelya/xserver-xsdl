@@ -1,3 +1,11 @@
+2006-04-01  Eric Anholt  <anholt@FreeBSD.org>
+
+	reviewed by: keithp
+
+	* GL/glx/glxdri.c: (__glXDRIscreenProbe):
+	Use RTLD_DEFAULT, rather than relying on NULL happening to map to it as
+	it does on Linux.
+
 2006-04-01  Adam Jackson  <ajax@freedesktop.org>
 
 	* configure.ac:
