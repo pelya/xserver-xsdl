@@ -10,6 +10,11 @@
 	* Xprint/ps/psout_ftpstype3.c:
 	Fix some includes to point into X11/fonts/ properly.
 
+	* configure.ac:
+	* hw/dmx/dmxextension.c:
+	Reorder link order for Xdmx to fix new screensaver variable reference
+	properly; remove previous awful hack.
+
 2006-04-01  Eric Anholt  <anholt@FreeBSD.org>
 
 	* exa/exa_accel.c: (exaCopyWindow):
