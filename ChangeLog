@@ -1,5 +1,10 @@
 2006-04-02  Adam Jackson  <ajax@freedesktop.org>
 
+	* hw/dmx/glxProxy/glxcmds.c:
+	Coverity #38: Dead branch elimination.
+
+2006-04-02  Adam Jackson  <ajax@freedesktop.org>
+
 	* Xext/sync.c:
 	Coverity #75: Dead variable elimination.
 

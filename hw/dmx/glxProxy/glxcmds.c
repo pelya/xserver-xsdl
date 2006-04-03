@@ -3619,7 +3619,7 @@ int __glXSendLargeCommand(__GLXclientState *cl, GLXContextTag contextTag)
 	   GetReq(GLXRenderLarge,req); 
 	   req->reqType = dmxScreen->glxMajorOpcode;
 	   req->glxCode = X_GLXRenderLarge; 
-	   req->contextTag = (glxc ? GetCurrentBackEndTag(cl,contextTag,s) : 0);
+	   req->contextTag = GetCurrentBackEndTag(cl,contextTag,s);
 	   req->length += (amount + 3) >> 2;
 	   req->requestNumber = requestNumber++;
 	   req->requestTotal = totalRequests;
