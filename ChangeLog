@@ -1,5 +1,10 @@
 2006-04-02  Adam Jackson  <ajax@freedesktop.org>
 
+	* hw/xnest/Pixmap.c:
+	Coverity #616: Fix a rare memory leak.
+
+2006-04-02  Adam Jackson  <ajax@freedesktop.org>
+
 	* os/xdmauth.c:
 	Coverity #833: Fix a rather nasty memory leak.
 
