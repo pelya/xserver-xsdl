@@ -1,5 +1,11 @@
 2006-04-03  Adam Jackson  <ajax@freedesktop.org>
 
+	* fb/fbfill.c:
+	* fb/fbwindow.c:
+	Bug #5478: More use of fbSOlidFillmmx.  (Jim Huang)
+
+2006-04-03  Adam Jackson  <ajax@freedesktop.org>
+
 	* fb/fbmmx.c:
 	Bug #6346: Build fix when using gcc -mno-sse. (Jonathan 
 	Adamczewski)
