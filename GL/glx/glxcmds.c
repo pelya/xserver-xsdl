@@ -1926,10 +1926,10 @@ static int __glXBindSwapBarrierSGIX(__GLXclientState *cl, GLbyte *pc)
     XID drawable = req->drawable;
     int barrier = req->barrier;
     DrawablePtr pDraw = (DrawablePtr) LookupDrawable(drawable, client);
-    int screen = pDraw->pScreen->myNum;
-
+    int screen;
 
     if (pDraw && (pDraw->type == DRAWABLE_WINDOW)) {
+	screen = pDraw->pScreen->myNum;
         if (__glXSwapBarrierFuncs &&
             __glXSwapBarrierFuncs[screen].bindSwapBarrierFunc) {
             int ret = __glXSwapBarrierFuncs[screen].bindSwapBarrierFunc(screen, drawable, barrier);

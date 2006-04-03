@@ -1,5 +1,10 @@
 2006-04-02  Adam Jackson  <ajax@freedesktop.org>
 
+	* GL/glx/glxcmds.c:
+	Coverity #986: Prevent a NULL chase.
+
+2006-04-02  Adam Jackson  <ajax@freedesktop.org>
+
 	* Xext/sync.c:
 	Coverity #992: Prevent a NULL chase.
 
