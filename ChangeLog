@@ -1,5 +1,10 @@
 2006-04-03  Adam Jackson  <ajax@freedesktop.org>
 
+	* hw/xfree86/common/xf86Config.c:
+	Bug #2142: Make font path logging more readable. (Eduard Fuchs)
+
+2006-04-03  Adam Jackson  <ajax@freedesktop.org>
+
 	* Xprint/Makefile.am:
 	* Xprint/pcl/PclArea.c:
 	* Xprint/pcl/PclColor.c:

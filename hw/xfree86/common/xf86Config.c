@@ -1,4 +1,4 @@
-/* $XdotOrg: xserver/xorg/hw/xfree86/common/xf86Config.c,v 1.22.8.2 2006/02/28 23:55:03 krh Exp $ */
+/* $XdotOrg: xserver/xorg/hw/xfree86/common/xf86Config.c,v 1.23 2006/03/12 00:11:33 krh Exp $ */
 /* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86Config.c,v 3.276 2003/10/08 14:58:26 dawes Exp $ */
 
 
@@ -666,7 +666,36 @@ configFiles(XF86ConfFilesPtr fileconf)
   if (! *defaultFontPath)
     FatalError("No valid FontPath could be found.");
 
-  xf86Msg(pathFrom, "FontPath set to \"%s\"\n", defaultFontPath);
+  /* make fontpath more readable in the logfiles */
+  int countDirs = 1;
+  char *temp_path = defaultFontPath;
+  while((temp_path = index(temp_path, ',')) != NULL) {
+    countDirs++;
+    temp_path++;
+  }
+  char *log_buf = xnfalloc(strlen(defaultFontPath) + (2 * countDirs) + 1);
+  if(!log_buf) /* fallback to old method */
+    xf86Msg(pathFrom, "FontPath set to \"%s\"\n", defaultFontPath);
+  else {
+    char *start, *end;
+    int size;
+    temp_path = log_buf;
+    start = defaultFontPath;
+    while((end = index(start, ',')) != NULL) {
+      size = (end - start) + 1;
+      *(temp_path++) = '\t';
+      strncpy(temp_path, start, size);
+      temp_path += size;
+      *(temp_path++) = '\n';
+      start += size;
+    }
+    /* copy last entry */
+    *(temp_path++) = '\t';
+    strcpy(temp_path, start);
+    xf86Msg(pathFrom, "FontPath set to:\n%s\n", log_buf);
+    xfree(log_buf);
+  }
+
 
   /* RgbPath */
 
