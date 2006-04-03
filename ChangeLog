@@ -1,5 +1,11 @@
 2006-04-02  Adam Jackson  <ajax@freedesktop.org>
 
+	* hw/xfree86/dri/dri.c:
+	Coverity #983: Move some risky debugging code inside #ifdef 
+	DEBUG.
+
+2006-04-02  Adam Jackson  <ajax@freedesktop.org>
+
 	* GL/glx/glxcmds.c:
 	Coverity #986: Prevent a NULL chase.
 

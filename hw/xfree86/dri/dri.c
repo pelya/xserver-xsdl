@@ -1427,7 +1427,6 @@ DRISwapContext(int drmFD, void *oldctx, void *newctx)
     DRISyncType       syncType;
 #ifdef DEBUG
     static int        count = 0;
-#endif
 
     if (!newContext) {
 	DRIDrvMsg(pScreen->myNum, X_ERROR,
@@ -1436,7 +1435,6 @@ DRISwapContext(int drmFD, void *oldctx, void *newctx)
 	return;
     }
 
-#ifdef DEBUG
     /* usefull for debugging, just print out after n context switches */
     if (!count || !(count % 1)) {
 	DRIDrvMsg(pScreen->myNum, X_INFO,
