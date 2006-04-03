@@ -1,3 +1,9 @@
+2006-04-03  Adam Jackson  <ajax@freedesktop.org>
+
+	* fb/fbmmx.c:
+	Bug #6346: Build fix when using gcc -mno-sse. (Jonathan 
+	Adamczewski)
+
 2006-04-03  Daniel Stone  <daniel@freedesktop.org>
 
 	* xkb/xkbUtils.c:

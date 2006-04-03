@@ -41,7 +41,9 @@
 #endif
 
 #include <mmintrin.h>
+#ifdef USE_SSE
 #include <xmmintrin.h> /* for _mm_shuffle_pi16 and _MM_SHUFFLE */
+#endif
 
 #ifdef RENDER
 
