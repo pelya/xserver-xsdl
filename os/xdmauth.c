@@ -463,10 +463,9 @@ XdmFromID (XID id, unsigned short *data_lenp, char **datap)
 int
 XdmRemoveCookie (unsigned short data_length, char *data)
 {
-    XdmAuthorizationPtr	auth, prev;
+    XdmAuthorizationPtr	auth;
     XdmAuthKeyPtr	key_bits, rho_bits;
 
-    prev = 0;
     switch (data_length)
     {
     case 16:
@@ -486,10 +485,7 @@ XdmRemoveCookie (unsigned short data_length, char *data)
 	if (XdmcpCompareKeys (rho_bits, &auth->rho) &&
 	    XdmcpCompareKeys (key_bits, &auth->key))
  	{
-	    if (prev)
-		prev->next = auth->next;
-	    else
-		xdmAuth = auth->next;
+	    xdmAuth = auth->next;
 	    xfree (auth);
 	    return 1;
 	}
