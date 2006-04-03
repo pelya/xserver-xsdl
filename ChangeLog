@@ -1,5 +1,10 @@
 2006-04-02  Adam Jackson  <ajax@freedesktop.org>
 
+	* GL/glx/glxcmdsswap.c:
+	Coverity #271: Fix an unbelievably boneheaded NULL chase.
+
+2006-04-02  Adam Jackson  <ajax@freedesktop.org>
+
 	* hw/xnest/Pixmap.c:
 	Coverity #616: Fix a rare memory leak.
 
