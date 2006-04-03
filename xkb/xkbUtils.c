@@ -756,11 +756,11 @@ unsigned char	grp;
 
 
     grp= state->locked_group;
-    if (grp>=ctrls->num_groups)
+    if (grp>=ctrls->num_groups || grp < 0)
 	state->locked_group= XkbAdjustGroup(grp,ctrls);
 
     grp= state->locked_group+state->base_group+state->latched_group;
-    if (grp>=ctrls->num_groups)
+    if (grp>=ctrls->num_groups || grp < 0)
 	 state->group= XkbAdjustGroup(grp,ctrls);
     else state->group= grp;
     XkbComputeCompatState(xkbi);
