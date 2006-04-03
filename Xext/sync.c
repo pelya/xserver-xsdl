@@ -301,7 +301,7 @@ static void
 SyncDeleteTriggerFromCounter(pTrigger)
     SyncTrigger *pTrigger;
 {
-    SyncTriggerList *pCur, *pPrev = NULL;
+    SyncTriggerList *pCur;
 
     /* pCounter needs to be stored in pTrigger before calling here. */
 
@@ -312,10 +312,7 @@ SyncDeleteTriggerFromCounter(pTrigger)
     {
 	if (pCur->pTrigger == pTrigger)
 	{
-	    if (pPrev)
-		pPrev->next = pCur->next;
-	    else
-		pTrigger->pCounter->pTriglist = pCur->next;
+	    pTrigger->pCounter->pTriglist = pCur->next;
 	    xfree(pCur);
 	    break;
 	}
