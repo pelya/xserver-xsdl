@@ -64,7 +64,7 @@ copyright holders.
 #include "resource.h"
 
 #include "Pcl.h"
-#include "cfb.h"
+#include "fb.h"
 
 static void lookup(unsigned char *src,
 		unsigned char *dst,
@@ -80,10 +80,10 @@ static void trilinear(unsigned char *p,
 
 /*
  * This seems to be (and is) a duplication of effort; one would think
- * that cfbCreateDefColormap would be sufficient.  It almost is.  The
+ * that fbCreateDefColormap would be sufficient.  It almost is.  The
  * only change made in this function is that the black and white pixels
  * are allocated with three separate variables for red, green and blue
- * values, instead of the single variable in cfbCreateDefColormap.  The
+ * values, instead of the single variable in fbCreateDefColormap.  The
  * single variable leads to the one value being corrected by
  * ResolveColor three times, which leads to incorrect colors.
  */
@@ -137,7 +137,7 @@ PclCreateColormap(ColormapPtr pColor)
 	/*
 	 * Use existing code to initialize the values in the colormap
 	 */
-	cfbInitializeColormap( pColor );
+	fbInitializeColormap( pColor );
 
 	/*
 	 * Set up the mapping between the color map and the context

@@ -89,7 +89,7 @@ copyright holders.
 
 #include "Pcl.h"
 
-#include "cfb.h"
+#include "fb.h"
 #include <X11/Xos.h>	/* for unlink() */
 
 #include "attributes.h"
@@ -200,18 +200,16 @@ InitializePclDriver(
     maxRes = MAX( xRes, yRes );
 
 #ifdef XP_PCL_COLOR
-    cfbScreenInit( pScreen, NULL, maxDim, maxDim, maxRes, maxRes,
-		  maxRes );
-    /*
-     * Clean up the fields that we stomp (code taken from cfbCloseScreen)
-     */
+    fbScreenInit( pScreen, NULL, maxDim, maxDim, maxRes, maxRes,
+		  maxRes, 8 ); /* XXX what's the depth here? */
+    /* Clean up the fields that we stomp (code taken from fbCloseScreen) */
     for( i = 0; (int) i < pScreen->numDepths; i++ )
       xfree( pScreen->allowedDepths[i].vids );
     xfree( pScreen->allowedDepths );
     xfree( pScreen->visuals );
 #else
-    mfbScreenInit( pScreen, NULL, maxDim, maxDim, maxRes, maxRes,
-		  maxRes );
+    fbScreenInit( pScreen, NULL, maxDim, maxDim, maxRes, maxRes,
+		  maxRes, 1 );
 #endif /* XP_PCL_COLOR */
 
     miInitializeBackingStore ( pScreen );
@@ -241,8 +239,8 @@ InitializePclDriver(
     pScreen->PaintWindowBorder = PclPaintWindow;
     pScreen->CopyWindow = PclCopyWindow; /* XXX Hard routine to write! */
 
-    pScreen->CreatePixmap = PclCreatePixmap;
-    pScreen->DestroyPixmap = PclDestroyPixmap;
+    pScreen->CreatePixmap = fbCreatePixmap;
+    pScreen->DestroyPixmap = fbDestroyPixmap;
     pScreen->RealizeFont = PclRealizeFont;
     pScreen->UnrealizeFont = PclUnrealizeFont;
     pScreen->CreateGC = PclCreateGC;
@@ -257,7 +255,7 @@ InitializePclDriver(
     pScreen->ResolveColor = PclResolveColor;
 */
 
-    pScreen->BitmapToRegion = mfbPixmapToRegion;
+    pScreen->BitmapToRegion = fbPixmapToRegion;
 
     pScreen->ConstrainCursor = PclConstrainCursor;
     pScreen->CursorLimits = PclCursorLimits;

@@ -89,7 +89,7 @@ in this Software without prior written authorization from The Open Group.
 #include "mi.h"
 #include "micmap.h"
 #include "AttrValid.h"
-#include "mfb.h"
+#include "fb.h"
 
 #include "windowstr.h"
 #include "DiPrint.h"
@@ -194,7 +194,7 @@ InitializePsDriver(ndx, pScreen, argc, argv)
   pScreen->StoreColors            = PsStoreColors;
   pScreen->ResolveColor           = PsResolveColor;
     /* Will BitmapToRegion make any difference at all? */
-  pScreen->BitmapToRegion         = mfbPixmapToRegion;
+  pScreen->BitmapToRegion         = fbPixmapToRegion;
 
   visuals    = (VisualPtr) xalloc(16*sizeof(VisualRec));
   depths     = (DepthPtr)  xalloc(16*sizeof(DepthRec));

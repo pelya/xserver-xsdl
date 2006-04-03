@@ -57,10 +57,7 @@ copyright holders.
 #include "pixmapstr.h"
 #include "region.h"
 
-#include "cfb.h"
-#if 1
-#include "cfb32.h"
-#endif
+#include "fb.h"
 
 void
 PclPutImage(DrawablePtr pDrawable,
@@ -129,11 +126,7 @@ PclPutImage(DrawablePtr pDrawable,
 		      gcv[0] = i;
 		      DoChangeGC( pGC, GCPlaneMask, gcv, 0 );
 		      ValidateGC( pDrawable, pGC );
-		      if (pPixmap->drawable.depth <= 8 )
-			cfbPutImage( (DrawablePtr)pPixmap, pGC, 1, x, y, w, h,
-				  leftPad, XYBitmap, pImage );
-		      else if (pPixmap->drawable.depth <= 32 )
-			cfb32PutImage( (DrawablePtr)pPixmap, pGC, 1, x, y, w, h,
+		      fbPutImage( (DrawablePtr)pPixmap, pGC, 1, x, y, w, h,
 				  leftPad, XYBitmap, pImage );
 		  }
 	    }
@@ -170,13 +163,13 @@ PclMonoPixmapFragment(FILE *outFile,
 
     /*
      * Create a storage area large enough to hold the entire pixmap,
-     * then use mfbGetImage to get the appropriate bits.
+     * then use fbGetImage to get the appropriate bits.
      */
     h = y2 - y1;
     w = BitmapBytePad( x2 - x1 );
 
     bits = (char *)xalloc( h * w );
-    mfbGetImage( (DrawablePtr)pix, x1, y1, x2 - x1, h,
+    fbGetImage( (DrawablePtr)pix, x1, y1, x2 - x1, h,
 		XYPixmap, ~0, bits );
 
     /*
@@ -226,18 +219,13 @@ PclColorPixmapFragment(FILE *outFile,
 
     /*
      * Create a storage area large enough to hold the entire pixmap,
-     * then use cfbGetImage to get the appropriate bits.
+     * then use fbGetImage to get the appropriate bits.
      */
     h = y2 - y1;
     w = PixmapBytePad( x2 - x1, pix->drawable.depth );
 
     bits = (char *)xalloc( h * w );
-    if (pix->drawable.depth <= 8)
-	cfbGetImage( (DrawablePtr)pix, x1, y1, x2 - x1, h,
-		ZPixmap, ~0, bits );
-    else if (pix->drawable.depth <= 32)
-	cfb32GetImage( (DrawablePtr)pix, x1, y1, x2 - x1, h,
-		ZPixmap, ~0, bits );
+    fbGetImage( (DrawablePtr)pix, x1, y1, x2 - x1, h, ZPixmap, ~0, bits );
 
     /*
      * Move the cursor to the appropriate place on the page.  We have
@@ -306,20 +294,10 @@ PclCopyArea(DrawablePtr pSrc,
 
     /*
      * If we're copying from a pixmap to a pixmap, we just use the
-     * mfb/cfb code to do the work.
+     * fb code to do the work.
      */
     if( pDst->type == DRAWABLE_PIXMAP )
-      {
-	  if( pSrc->depth == 1 )
-	    return mfbCopyArea( pSrc, pDst, pGC, srcx, srcy, width,
-			height, dstx, dsty );
-	  else if( pSrc->depth <= 8 )
-	    return cfbCopyArea( pSrc, pDst, pGC, srcx, srcy, width,
-			height, dstx, dsty );
-	  else if( pSrc->depth <= 32 )
-	    return cfb32CopyArea( pSrc, pDst, pGC, srcx, srcy, width,
-			height, dstx, dsty );
-      }
+      fbCopyArea( pSrc, pDst, pGC, srcx, srcy, width, height, dstx, dsty );
 
 /*
     PclGetDrawablePrivateStuff( pSrc, &srcGC, &valid, &srcFile );
@@ -328,7 +306,7 @@ PclCopyArea(DrawablePtr pSrc,
 
     /*
      * If we're copying to a window, we have to do some actual
-     * drawing, instead of just handing it off to mfb or cfb.  Start
+     * drawing, instead of just handing it off to fb.  Start
      * by determining the region that will be drawn.
      */
     box.x1 = srcx;
@@ -427,28 +405,16 @@ PclCopyPlane(DrawablePtr pSrc,
     if( pSrc->type == DRAWABLE_WINDOW )
       return NULL;
 
-    /*
-     * Copying from a pixmap to a pixmap is already implemented by
-     * mfb/cfb.
-     */
+    /* Copying from a pixmap to a pixmap is already implemented by fb. */
     if( pSrc->type == DRAWABLE_PIXMAP &&
        pDst->type == DRAWABLE_PIXMAP )
-      {
-	  if( pDst->depth == 1 )
-	    return mfbCopyPlane( pSrc, pDst, pGC, srcx, srcy, width,
-				height, dstx, dsty, plane );
-	  else if( pDst->depth <= 8 )
-	    return cfbCopyPlane( pSrc, pDst, pGC, srcx, srcy, width,
-				height, dstx, dsty, plane );
-	  else if( pDst->depth <= 32 )
-	    return cfb32CopyPlane( pSrc, pDst, pGC, srcx, srcy, width,
-				height, dstx, dsty, plane );
-      }
+      fbCopyPlane( pSrc, pDst, pGC, srcx, srcy, width, height,
+                   dstx, dsty, plane );
 
     /*
-     * We can use the mfb/cfbCopyPlane function to do the work of grabbing
-     * the plane and converting it to the desired visual.  Once that's
-     * done, we already know how to do a CopyArea.
+     * We can use fbCopyPlane to do the work of grabbing the plane and
+     * converting it to the desired visual.  Once that's done, we already
+     * know how to do a CopyArea.
      */
     scratchPix = (*pDst->pScreen->CreatePixmap)( pDst->pScreen, width,
 						height, pDst->depth );
@@ -456,24 +422,9 @@ PclCopyPlane(DrawablePtr pSrc,
     scratchGC = GetScratchGC( pDst->depth, pDst->pScreen );
     CopyGC( pGC, scratchGC, ~0L );
 
-    if( pDst->depth == 1 )
-      {
-	  mfbValidateGC( scratchGC, ~0L, (DrawablePtr)scratchPix );
-	  mfbCopyPlane( pSrc, (DrawablePtr)scratchPix, scratchGC,
-		       srcx, srcy, width, height, 0, 0, plane );
-      }
-    else if( pDst->depth <= 8 )
-      {
-	  cfbValidateGC( scratchGC, ~0L, (DrawablePtr)scratchPix );
-	  cfbCopyPlane( pSrc, (DrawablePtr)scratchPix, scratchGC,
-		       srcx, srcy, width, height, 0, 0, plane );
-      }
-    else if( pDst->depth <= 32 )
-      {
-	  cfb32ValidateGC( scratchGC, ~0L, (DrawablePtr)scratchPix );
-	  cfb32CopyPlane( pSrc, (DrawablePtr)scratchPix, scratchGC,
-		       srcx, srcy, width, height, 0, 0, plane );
-      }
+    fbValidateGC( scratchGC, ~0L, (DrawablePtr)scratchPix );
+    fbCopyPlane( pSrc, (DrawablePtr)scratchPix, scratchGC,
+		 srcx, srcy, width, height, 0, 0, plane );
 
     reg = PclCopyArea( (DrawablePtr)scratchPix, pDst, pGC, 0, 0, width,
 		      height, dstx, dsty );

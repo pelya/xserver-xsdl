@@ -74,7 +74,7 @@ copyright holders.
 #include "windowstr.h"
 #include "propertyst.h"
 #include "servermd.h"	/* needed for IMAGE_BUFSIZE */
-#include "mfb.h"
+#include "fb.h"
 #include "mi.h"
 
 #include <X11/extensions/Print.h>
@@ -222,20 +222,13 @@ InitializeRasterDriver(
     /*
      * Have to allocate maxDim X maxDim to allow for landscape mode.
      */
-    mfbScreenInit(pScreen, pPriv->pBits, maxDim, maxDim, maxRes,
-		  maxRes, maxDim);
+    fbScreenInit(pScreen, pPriv->pBits, maxDim, maxDim, maxRes,
+		 maxRes, maxDim, 1);
     miInitializeBackingStore(pScreen);
     pScreen->blackPixel = 1;
     pScreen->whitePixel = 0;
-    if(mfbCreateDefColormap(pScreen) == FALSE)
+    if(fbCreateDefColormap(pScreen) == FALSE)
 	; /* XXX what do I do if it fails? */
-    
-    /*
-    cfbScreenInit(pScreen, pPriv->pBits, maxWidth, maxHeight, maxXres,
-		  maxYres, maxWidth);
-    miInitializeBackingStore(pScreen);
-    scalingScreenInit(pScreen);
-    */
 
     pScreen->SaveScreen = (SaveScreenProcPtr)_XpBoolNoop;
     pPriv->ChangeWindowAttributes = pScreen->ChangeWindowAttributes;

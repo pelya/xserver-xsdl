@@ -56,9 +56,7 @@ copyright holders.
 #include "pixmapstr.h"
 #include "colormapst.h"
 #include "windowstr.h"
-#include "cfb.h"
-#include "cfb32.h"
-#include "migc.h"
+#include "fb.h"
 #include "scrnintstr.h"
 #include "resource.h"
 
@@ -106,22 +104,8 @@ static GCFuncs PclGCFuncs =
 Bool
 PclCreateGC(GCPtr pGC)
 {
-    if( pGC->depth == 1 )
-      {
-	  if( mfbCreateGC( pGC ) == FALSE )
-	    return FALSE;
-      }
-    else if( pGC->depth <= 32 )
-      {
-#if PSZ == 8 
-	  if( cfbCreateGC( pGC ) == FALSE )
-#else
-	  if( cfb32CreateGC( pGC ) == FALSE )
-#endif
-	    return FALSE;
-      }
-    else
-	  return FALSE;
+    if (fbCreateGC(pGC) == FALSE)
+        return FALSE;
 
     pGC->clientClip = NULL;
     pGC->clientClipType = CT_NONE;
@@ -135,7 +119,7 @@ PclCreateGC(GCPtr pGC)
 void
 PclDestroyGC(GCPtr pGC)
 {
-    /* Handle the mfb and cfb, which share a GC private struct */
+    /* fb doesn't specialize DestroyGC */
     miDestroyGC( pGC );
 }
 
@@ -655,34 +639,12 @@ PclUpdateDrawableGC(
 	  h = pGC->tile.pixmap->drawable.height;
 	  w = pGC->tile.pixmap->drawable.width;
 
-	  if( pGC->tile.pixmap->drawable.depth == 1 )
-	    {
-		sz = h * BitmapBytePad( w );
-
-		bits = (char *)xalloc( sz );
-		mfbGetImage(&(pGC->tile.pixmap->drawable), 0, 0, w, h, XYPixmap, ~0, bits);
-		PclSendPattern( bits, sz, 1, h, w, 100, *outFile );
-		xfree( bits );
-	    }
-	  else if( pGC->tile.pixmap->drawable.depth == 8 )
-	    {
-		sz = h * PixmapBytePad( w, 8 );
-		bits = (char *)xalloc( sz );
-		cfbGetImage(&(pGC->tile.pixmap->drawable), 0, 0, w, h, ZPixmap, ~0, bits);
-		PclSendPattern( bits, sz, 8, h, w, 100, *outFile );
-		xfree( bits );
-	    }
-#if PSZ == 32
-	  else
-	    {
-		sz = h * PixmapBytePad( w, 24 );
-		
-		bits = (char *)xalloc( sz );
-		cfb32GetImage(&(pGC->tile.pixmap->drawable), 0, 0, w, h, ZPixmap, ~0, bits);
-		PclSendPattern( bits, sz, 24, h, w, 100, *outFile );
-		xfree( bits );
-	    }
-#endif
+          sz = h * PixmapBytePad(w, pGC->tile.pixmap->drawable.depth);
+          bits = (char *)xalloc(sz);
+          fbGetImage(&(pGC->tile.pixmap->drawable), 0, 0, w, h, XYPixmap, ~0,
+                     bits);
+          PclSendPattern( bits, sz, 1, h, w, 100, *outFile );
+	  xfree( bits );
       }
 
     if( changeMask & ( GCTileStipXOrigin | GCTileStipYOrigin ) )
@@ -717,7 +679,7 @@ PclUpdateDrawableGC(
 		sz = h * BitmapBytePad( w );
 
 		bits = (char *)xalloc( sz );
-		mfbGetImage( &(pGC->stipple->drawable), 0, 0, w, h, XYPixmap, ~0, bits );
+		fbGetImage( &(pGC->stipple->drawable), 0, 0, w, h, XYPixmap, ~0, bits );
 
 		w2 = ( w / 8 ) + ( ( w%8 ) ? 1 : 0 );
 		/*
@@ -755,37 +717,12 @@ PclUpdateDrawableGC(
 						w, h, pGC->depth );
 		scratchGC = GetScratchGC( pGC->depth, pGC->pScreen );
 		CopyGC( pGC, scratchGC, ~0L );
-		
-		if( pGC->depth == 1 )
-		  {
-		      mfbValidateGC( scratchGC, ~0L,
-				    (DrawablePtr)scratchPix );
-		      mfbCopyPlane( &(pGC->stipple->drawable),
-				   (DrawablePtr)scratchPix, scratchGC, 0,
-				   0, w, h, 0, 0, 1 );
-		      mfbGetImage( &(scratchPix->drawable), 0, 0, w, h, XYPixmap, ~0,
-				  bits );
-		  }
-		else if( pGC->depth <= 32 )
-		  {
-#if PSZ == 8
-		      cfbValidateGC( scratchGC, ~0L,
-				    (DrawablePtr)scratchPix );
-		      cfbCopyPlane( &(pGC->stipple->drawable),
-				   (DrawablePtr)scratchPix, scratchGC, 0,
-				   0, w, h, 0, 0, 1 );
-		      cfbGetImage( &(scratchPix->drawable), 0, 0, w, h, ZPixmap, ~0, 
-				  bits );
-#else
-		      cfb32ValidateGC( scratchGC, ~0L,
-				      (DrawablePtr)scratchPix );
-		      cfb32CopyPlane( pGC->stipple,
-				     (DrawablePtr)scratchPix, scratchGC, 0,
-				     0, w, h, 0, 0, 1 );
-		      cfb32GetImage( scratchPix, 0, 0, w, h, ZPixmap, ~0,
-				    bits );
-#endif
-		  }
+
+                fbValidateGC(scratchGC, ~0L, (DrawablePtr)scratchPix);
+		fbCopyPlane(&(pGC->stipple->drawable), (DrawablePtr)scratchPix,
+                            scratchGC, 0, 0, w, h, 0, 0, 1);
+		fbGetImage(&(scratchPix->drawable), 0, 0, w, h, XYPixmap, ~0,
+			   bits);
 		PclSendPattern( bits, sz, pGC->depth, h, w, 101, *outFile );
 		FreeScratchGC( scratchGC );
 		(*pGC->pScreen->DestroyPixmap)( scratchPix );
@@ -994,18 +931,7 @@ PclValidateGC(
      */
     if( pDrawable->type == DRAWABLE_PIXMAP )
       {
-	  if( pDrawable->depth == 1 )
-	    {
-		mfbValidateGC( pGC, ~0, pDrawable );
-	    }
-	  else if( pDrawable->depth <= 32 )
-	    {
-#if PSZ == 8
-		cfbValidateGC( pGC, ~0, pDrawable );
-#else
-		cfb32ValidateGC( pGC, ~0, pDrawable );
-#endif
-	    }
+          fbValidateGC(pGC, ~0, pDrawable);
 	  return;
       }
 
