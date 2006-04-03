@@ -436,10 +436,12 @@ XdmToID (unsigned short cookie_length, char *cookie)
 	{
 	    xfree (client);
 	    xfree (cookie);
+	    xfree (plain);
 	    return auth->id;
 	}
     }
     xfree (cookie);
+    xfree (plain);
     return (XID) -1;
 }
 
