@@ -611,7 +611,7 @@ static int AddCurrentContext(__GLXclientState *cl, __GLXcontext *glxc, DrawableP
     cl->numCurrentContexts++;
 
     __glXMemset(cl->be_currentCTag + num*screenInfo.numScreens, 0, 
-	         screenInfo.numScreens * sizeof(Display *));
+	         screenInfo.numScreens * sizeof(GLXContextTag));
 
     return num+1;
 }
