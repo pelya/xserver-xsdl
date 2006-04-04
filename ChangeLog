@@ -1,3 +1,9 @@
+3006-04-04  Adam Jackson  <ajax@freedesktop.org>
+
+	* hw/xfree86/ddc/print_edid.c:
+	Bug #4806: Dump the raw EDID contents in hex to the log file for
+	better debugging.  (Philip Prindeville)
+
 2006-04-03  Adam Jackson  <ajax@freedesktop.org>
 
 	* hw/xfree86/common/xf86Config.c:

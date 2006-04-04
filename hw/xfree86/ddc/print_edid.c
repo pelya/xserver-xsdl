@@ -30,10 +30,16 @@ static void print_dpms_features(int scrnIndex, struct disp_features *,
 static void print_whitepoint(int scrnIndex, struct disp_features *);
 static void print_number_sections(int scrnIndex, int);
 
+#define EDID_WIDTH	16
+
 xf86MonPtr
 xf86PrintEDID(xf86MonPtr m)
 {
+    CARD16 i, j;
+    char buf[EDID_WIDTH * 2 + 1];
+
     if (!(m)) return NULL;
+
     print_vendor(m->scrnIndex,&m->vendor);
     print_version(m->scrnIndex,&m->ver);
     print_display(m->scrnIndex,&m->features, &m->ver);
@@ -41,6 +47,15 @@ xf86PrintEDID(xf86MonPtr m)
     print_std_timings(m->scrnIndex,m->timings2);
     print_detailed_monitor_section(m->scrnIndex,m->det_mon);
     print_number_sections(m->scrnIndex,m->no_sections);
+
+    xf86DrvMsg(m->scrnIndex, X_INFO, "EDID (in hex):\n");
+ 
+    for (i = 0; i < 128; i += j) {
+	for (j = 0; j < EDID_WIDTH; ++j) {
+	    sprintf(&buf[j * 2], "%02x", m->rawData[i + j]);
+	}
+	xf86DrvMsg(m->scrnIndex, X_INFO, "\t%s\n", buf);
+    }
     
     return m;
 }
