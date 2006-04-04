@@ -1,5 +1,5 @@
 /* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86Init.c,v 3.212 2004/01/27 01:31:45 dawes Exp $ */
-/* $XdotOrg: xserver/xorg/hw/xfree86/common/xf86Init.c,v 1.32 2006/03/20 14:01:05 ajax Exp $ */
+/* $XdotOrg: xserver/xorg/hw/xfree86/common/xf86Init.c,v 1.33 2006/03/25 19:52:03 ajax Exp $ */
 
 /*
  * Loosely based on code bearing the following copyright:
@@ -1829,7 +1829,7 @@ xf86PrintBanner()
   ErrorF("\nRelease Date: %s\n", XORG_DATE);
   ErrorF("X Protocol Version %d, Revision %d, %s\n",
          X_PROTOCOL, X_PROTOCOL_REVISION, XORG_RELEASE );
-  ErrorF("Build Operating System:%s%s\n", OSNAME, OSVENDOR);
+  ErrorF("Build Operating System: %s %s\n", OSNAME, OSVENDOR);
 #ifdef HAS_UTSNAME
   {
     struct utsname name;

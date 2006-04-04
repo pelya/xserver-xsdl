@@ -1,3 +1,10 @@
+2006-04-04  Adam Jackson  <ajax@freedesktop.org>
+
+	* hw/darwin/darwin.c:
+	* hw/xfree86/common/xf86Init.c:
+	Bug #5300: Fix missing spaces in the Build OS line in the log. 
+	(Egmont Koblinger)
+
 3006-04-04  Adam Jackson  <ajax@freedesktop.org>
 
 	* hw/xfree86/ddc/print_edid.c:

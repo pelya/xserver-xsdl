@@ -29,7 +29,7 @@
  * holders shall not be used in advertising or otherwise to promote the sale,
  * use or other dealings in this Software without prior written authorization.
  */
-/* $XdotOrg: xc/programs/Xserver/hw/darwin/darwin.c,v 1.6 2005/04/20 12:25:19 daniels Exp $ */
+/* $XdotOrg: xserver/xorg/hw/darwin/darwin.c,v 1.8 2005/07/03 08:53:38 daniels Exp $ */
 /* $XFree86: xc/programs/Xserver/hw/darwin/darwin.c,v 1.55 2003/11/15 00:07:09 torrey Exp $ */
 
 #include <X11/X.h>
@@ -155,7 +155,7 @@ DarwinPrintBanner()
   ErrorF("\nRelease Date: %s\n", XF86_DATE);
   ErrorF("X Protocol Version %d, Revision %d, %s\n",
          X_PROTOCOL, X_PROTOCOL_REVISION, XORG_RELEASE );
-  ErrorF("Build Operating System:%s%s\n", OSNAME, OSVENDOR);
+  ErrorF("Build Operating System: %s %s\n", OSNAME, OSVENDOR);
 #ifdef HAS_UTSNAME
   {
     struct utsname name;
