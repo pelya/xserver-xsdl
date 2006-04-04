@@ -1,5 +1,14 @@
 2006-04-04  Adam Jackson  <ajax@freedesktop.org>
 
+	* hw/xfree86/xf8_16bpp/Makefile.am:
+	* hw/xfree86/xf8_16bpp/cfb8_16.h:
+	* hw/xfree86/xf8_16bpp/cfb8_16module.c:
+	* hw/xfree86/xf8_16bpp/cfbscrinit.c:
+	* hw/xfree86/xf8_16bpp/cfbwindow.c:
+	Bug #5729: Convert xf8_16bpp to fb.  chips(4) users please test.
+
+2006-04-04  Adam Jackson  <ajax@freedesktop.org>
+
 	* hw/darwin/darwin.c:
 	* hw/xfree86/common/xf86Init.c:
 	Bug #5300: Fix missing spaces in the Build OS line in the log. 

@@ -1,4 +1,24 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/xf8_16bpp/cfb8_16.h,v 1.1 1999/01/31 12:22:16 dawes Exp $ */
+/*
+ * Copyright 2006 Adam Jackson.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * on the rights to use, copy, modify, merge, publish, distribute, sub
+ * license, and/or sell copies of the Software, and to permit persons to whom
+ * the Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice (including the next
+ * paragraph) shall be included in all copies or substantial portions of the
+ * Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT.  IN NO EVENT SHALL
+ * THE AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 
 #ifndef _CFB8_16_H
 #define _CFB8_16_H
@@ -6,65 +26,11 @@
 #include "regionstr.h"
 #include "windowstr.h"
 
-typedef struct {
-   pointer 		pix8;
-   int			width8;
-   pointer 		pix16;
-   int			width16;
-   unsigned char	key;
-} cfb8_16ScreenRec, *cfb8_16ScreenPtr;
+/* this has to stay misnamed for ABI reasons */
 
-extern int cfb8_16ScreenPrivateIndex; /* XXX */
-extern int cfb8_16GetScreenPrivateIndex(void);
-
-Bool
-cfb8_16ScreenInit (
-    ScreenPtr pScreen,
-    pointer pbits16,
-    pointer pbits8,
-    int xsize, int ysize,
-    int dpix, int dpiy,	
-    int width16,
-    int width8
-);
-
-void
-cfb8_16PaintWindow (
-    WindowPtr   pWin,
-    RegionPtr   pRegion,
-    int         what
-);
-
-Bool cfb8_16CreateWindow(WindowPtr pWin);
-Bool cfb8_16DestroyWindow(WindowPtr pWin);
-
-Bool
-cfb8_16PositionWindow(
-    WindowPtr pWin,
-    int x, int y
-);
-
-void
-cfb8_16CopyWindow(
-    WindowPtr pWin,
-    DDXPointRec ptOldOrg,
-    RegionPtr prgnSrc
-);
-
-Bool
-cfb8_16ChangeWindowAttributes(
-    WindowPtr pWin,
-    unsigned long mask
-);
-
-void
-cfb8_16WindowExposures(
-   WindowPtr pWin,
-   RegionPtr pReg,
-   RegionPtr pOtherReg
-);
-
-#define CFB8_16_GET_SCREEN_PRIVATE(pScreen)\
-   (cfb8_16ScreenPtr)((pScreen)->devPrivates[cfb8_16GetScreenPrivateIndex()].ptr)
+_X_EXPORT Bool
+cfb8_16ScreenInit(ScreenPtr pScreen, pointer pbits16, pointer pbits8,
+                  int xsize, int ysize, int dpix, int dpiy,
+                  int width16, int width8);
 
 #endif /* _CFB8_16_H */
