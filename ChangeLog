@@ -1,3 +1,10 @@
+2006-04-05  Ian Romanick <idr@us.ibm.com>
+
+	* fb/fbwindow.c:
+	Include fbmmx.h when USE_MMX is defined.  Fixes build problem on
+	x86-64 resulting from fbHaveMMX being a macro instead of a function
+	on that platform.
+
 2006-04-04  Adam Jackson  <ajax@freedesktop.org>
 
 	* hw/xfree86/xf8_16bpp/Makefile.am:

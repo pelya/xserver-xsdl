@@ -1,4 +1,4 @@
-/* $XdotOrg: xserver/xorg/fb/fbwindow.c,v 1.10 2006/02/10 22:00:21 anholt Exp $ */
+/* $XdotOrg: xserver/xorg/fb/fbwindow.c,v 1.11 2006/04/03 21:16:30 ajax Exp $ */
 /*
  * Id: fbwindow.c,v 1.1 1999/11/02 03:54:45 keithp Exp $
  *
@@ -31,6 +31,10 @@
 #include <stdlib.h>
 
 #include "fb.h"
+
+#ifdef USE_MMX
+#include "fbmmx.h"
+#endif
 
 Bool
 fbCreateWindow(WindowPtr pWin)
