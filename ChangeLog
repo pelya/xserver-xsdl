@@ -1,3 +1,17 @@
+2006-04-05  Fredrik Höglund  <fredrik@kde.org>
+
+	* Xext/Makefile.am:
+	Put the screensaver extension back in the Xext module.
+
+	* Xext/saver.c:
+	* dix/globals.c:
+	* include/globals.h:
+	* os/WaitFor.c:
+	Move the screenSaverSuspended variable to DIX globals.
+
+	* configure.ac:
+	Restore the old link order for the Xorg and Xdmx binaries.
+
 2006-04-05  Ian Romanick <idr@us.ibm.com>
 
 	* fb/fbwindow.c:

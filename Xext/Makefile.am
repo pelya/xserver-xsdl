@@ -59,7 +59,7 @@ endif
 # MIT ScreenSaver extension
 SCREENSAVER_SRCS = saver.c
 if SCREENSAVER
-BUILTIN_SRCS  += $(SCREENSAVER_SRCS)
+MODULE_SRCS  += $(SCREENSAVER_SRCS)
 endif
 
 # Xinerama extension: making multiple video devices act as one virtual screen
