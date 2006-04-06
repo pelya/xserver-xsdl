@@ -99,7 +99,6 @@ DIST_SUBDIRS = \
 	mfb \
 	afb \
 	cfb \
-	cfb16 \
 	cfb32 \
 	record \
 	xfixes \
