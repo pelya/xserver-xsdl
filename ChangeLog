@@ -1,3 +1,13 @@
+2006-04-06  Adam Jackson  <ajax@freedesktop.org>
+
+	* Makefile.am:
+	* configure.ac:
+	* cfb16/.cvsignore:
+	* cfb16/Makefile.am:
+	* hw/xfree86/dixmods/Makefile.am:
+	* hw/xfree86/dixmods/cfb16module.c:
+	Remove cfb16, no longer used.
+
 2006-04-05  Fredrik Höglund  <fredrik@kde.org>
 
 	* Xext/Makefile.am:

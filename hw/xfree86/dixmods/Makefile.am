@@ -12,7 +12,6 @@ endif
 
 module_LTLIBRARIES = libafb.la \
                      libcfb.la \
-                     libcfb16.la \
                      libcfb32.la \
                      libfb.la \
                      libmfb.la \
@@ -55,10 +54,6 @@ libbitmap_la_LDFLAGS = -avoid-version # `pkg-config --libs xfont`
 libcfb_la_LDFLAGS = -avoid-version
 libcfb_la_LIBADD = $(top_builddir)/cfb/libcfb.la
 libcfb_la_SOURCES = cfbmodule.c
-
-libcfb16_la_LDFLAGS = -avoid-version
-libcfb16_la_LIBADD = $(top_builddir)/cfb16/libcfb16.la
-libcfb16_la_SOURCES = cfb16module.c
 
 libcfb32_la_LDFLAGS = -avoid-version
 libcfb32_la_LIBADD = $(top_builddir)/cfb32/libcfb32.la

@@ -11,7 +11,6 @@ endif
 
 if CFB
 CFB_DIR=cfb
-CFB16_DIR=cfb16
 CFB32_DIR=cfb32
 endif
 

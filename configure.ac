@@ -1623,7 +1623,6 @@ XTrap/Makefile
 lbx/Makefile
 mfb/Makefile
 cfb/Makefile
-cfb16/Makefile
 cfb32/Makefile
 mi/Makefile
 miext/Makefile
