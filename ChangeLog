@@ -1,3 +1,18 @@
+2006-04-07  Aaron Plattner  <aplattner@nvidia.com>
+
+	* hw/xfree86/common/xf86Module.h:
+	Bump the ABI versions.  Due to Glyph privates and the XV update below,
+	the video driver ABI needs to be bumped to 1.0.  The rest of the ABI
+	minor versions were bumped to include the LoaderGetABIVersion
+	function.
+	* hw/xfree86/common/xf86xv.c: (xf86XVRegetVideo),
+	(xf86XVReputVideo), (xf86XVReputImage), (xf86XVPutStill),
+	(xf86XVGetStill), (xf86XVPutImage):
+	* hw/xfree86/common/xf86xv.h:
+	Add a DrawblePtr argument to the XV hooks.  This allows drivers to
+	determine that the target window is redirected and draw to the
+	appropriate place.
+
 Fri Apr  7 13:46:45 2006  Søren Sandmann  <sandmann@redhat.com>
 
 	* composite/compext.c (ProcCompositeReleaseOverlayWindow): Use

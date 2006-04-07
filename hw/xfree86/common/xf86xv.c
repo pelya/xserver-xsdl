@@ -748,7 +748,8 @@ xf86XVRegetVideo(XvPortRecPrivatePtr portPriv)
 			WinBox.x1, WinBox.y1,
 			portPriv->vid_w, portPriv->vid_h,
 			portPriv->drw_w, portPriv->drw_h,
-			&ClipRegion, portPriv->DevPriv.ptr);
+			&ClipRegion, portPriv->DevPriv.ptr,
+			portPriv->pDraw);
 
   if(ret == Success)
 	portPriv->isOn = XV_ON;
@@ -839,7 +840,8 @@ xf86XVReputVideo(XvPortRecPrivatePtr portPriv)
 			WinBox.x1, WinBox.y1,
 			portPriv->vid_w, portPriv->vid_h,
 			portPriv->drw_w, portPriv->drw_h,
-			&ClipRegion, portPriv->DevPriv.ptr);
+			&ClipRegion, portPriv->DevPriv.ptr,
+			portPriv->pDraw);
 
   if(ret == Success) portPriv->isOn = XV_ON;
 
@@ -925,7 +927,8 @@ xf86XVReputImage(XvPortRecPrivatePtr portPriv)
 
   ret = (*portPriv->AdaptorRec->ReputImage)(portPriv->pScrn,
 			WinBox.x1, WinBox.y1,
-			&ClipRegion, portPriv->DevPriv.ptr);
+			&ClipRegion, portPriv->DevPriv.ptr,
+			portPriv->pDraw);
 
   portPriv->isOn = (ret == Success) ? XV_ON : XV_OFF;
 
@@ -1471,7 +1474,8 @@ xf86XVPutStill(
   ret = (*portPriv->AdaptorRec->PutStill)(portPriv->pScrn,
 		vid_x, vid_y, WinBox.x1, WinBox.y1,
 		vid_w, vid_h, drw_w, drw_h,
-		&ClipRegion, portPriv->DevPriv.ptr);
+		&ClipRegion, portPriv->DevPriv.ptr,
+		pDraw);
 
   if((ret == Success) &&
 	(portPriv->AdaptorRec->flags & VIDEO_OVERLAID_STILLS)) {
@@ -1599,7 +1603,8 @@ xf86XVGetStill(
   ret = (*portPriv->AdaptorRec->GetStill)(portPriv->pScrn,
 		vid_x, vid_y, WinBox.x1, WinBox.y1,
 		vid_w, vid_h, drw_w, drw_h,
-		&ClipRegion, portPriv->DevPriv.ptr);
+		&ClipRegion, portPriv->DevPriv.ptr,
+		pDraw);
 
 GET_STILL_BAILOUT:
 
@@ -1771,7 +1776,8 @@ xf86XVPutImage(
   ret = (*portPriv->AdaptorRec->PutImage)(portPriv->pScrn,
 		src_x, src_y, WinBox.x1, WinBox.y1,
 		src_w, src_h, drw_w, drw_h, format->id, data, width, height,
-		sync, &ClipRegion, portPriv->DevPriv.ptr);
+		sync, &ClipRegion, portPriv->DevPriv.ptr,
+		pDraw);
 
   if((ret == Success) &&
 	(portPriv->AdaptorRec->flags & VIDEO_OVERLAID_IMAGES)) {
