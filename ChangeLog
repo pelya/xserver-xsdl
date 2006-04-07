@@ -1,5 +1,10 @@
 2006-04-06  Adam Jackson  <ajax@freedesktop.org>
 
+	* hw/xfree86/common/xf86Config.c:
+	Coverity #835: Plug memory leak in extension section parsing.
+
+2006-04-06  Adam Jackson  <ajax@freedesktop.org>
+
 	* hw/xfree86/parser/Keyboard.c:
 	Coverity #812: Fix parser memory leak.
 

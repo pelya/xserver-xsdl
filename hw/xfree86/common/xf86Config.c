@@ -1,4 +1,4 @@
-/* $XdotOrg: xserver/xorg/hw/xfree86/common/xf86Config.c,v 1.23 2006/03/12 00:11:33 krh Exp $ */
+/* $XdotOrg: xserver/xorg/hw/xfree86/common/xf86Config.c,v 1.24 2006/04/03 22:00:06 ajax Exp $ */
 /* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86Config.c,v 3.276 2003/10/08 14:58:26 dawes Exp $ */
 
 
@@ -2549,6 +2549,7 @@ configExtensions(XF86ConfExtensionsPtr conf_ext)
 		xf86Msg(X_ERROR,
 			"%s is not a valid value for the Extension option\n",
 			val);
+		xfree(n);
 		return FALSE;
 	    }
 
@@ -2559,6 +2560,7 @@ configExtensions(XF86ConfExtensionsPtr conf_ext)
 		xf86Msg(X_WARNING, "Ignoring unrecognized extension \"%s\"\n",
                         name);
 	    }
+	    xfree(n);
 	}
     }
 
