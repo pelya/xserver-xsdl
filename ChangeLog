@@ -6,6 +6,9 @@
 	* xkb/xkbEvents.c:
 	Coverity #987: Avoid potential NULL dereference.
 
+	* xkb/xkb.c:
+	Coverity #844, #845, #846: Fix memory leaks.
+
 2006-04-06  Keith Packard  <keithp@keithp.com>
 
 	* fb/fbstipple.c: (fbEvenStipple):

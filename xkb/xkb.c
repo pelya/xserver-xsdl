@@ -4794,9 +4794,20 @@ char *		wire;
     for (i=0;i<req->nProperties;i++) {
 	char *name,*val;
 	name= _GetCountedString(&wire,client->swapped);
+        if (!name)
+            return BadAlloc;
 	val= _GetCountedString(&wire,client->swapped);
-	if ((!name)||(!val)||(XkbAddGeomProperty(geom,name,val)==NULL))
+        if (!val) {
+            xfree(name);
+            return BadAlloc;
+        }
+	if (XkbAddGeomProperty(geom,name,val)==NULL) {
+            xfree(name);
+            xfree(val);
 	    return BadAlloc;
+        }
+        xfree(name);
+        xfree(val);
     }
 
     if (req->nColors<2) {
@@ -4813,15 +4824,20 @@ char *		wire;
     }
     if (req->labelColorNdx==req->baseColorNdx) {
 	client->errorValue= _XkbErrCode3(0x04,req->baseColorNdx,
-							req->labelColorNdx);
+                                         req->labelColorNdx);
 	return BadMatch;
     }
 
     for (i=0;i<req->nColors;i++) {
 	char *name;
 	name= _GetCountedString(&wire,client->swapped);
-	if ((!name)||(!XkbAddGeomColor(geom,name,geom->num_colors)))
+	if (!name)
+            return BadAlloc;
+        if (!XkbAddGeomColor(geom,name,geom->num_colors)) {
+            xfree(name);
 	    return BadAlloc;
+        }
+        xfree(name);
     }
     if (req->nColors!=geom->num_colors) {
 	client->errorValue= _XkbErrCode3(0x05,req->nColors,geom->num_colors);
