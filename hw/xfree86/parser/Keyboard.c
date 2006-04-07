@@ -167,6 +167,7 @@ xf86parseKeyboardSection (void)
 				xf86conffree(s1);
 			}
 			xf86unGetToken (token);
+			xf86conffree(s);
 			break;
 		case SERVERNUM:
 			xf86parseWarning(OBSOLETE_MSG, xf86tokenString());
