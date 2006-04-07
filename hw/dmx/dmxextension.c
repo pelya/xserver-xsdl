@@ -1062,8 +1062,8 @@ static Bool dmxCompareScreens(DMXScreenInfo *new, DMXScreenInfo *old)
 /** Reattach previously detached back-end screen. */
 int dmxAttachScreen(int idx, DMXScreenAttributesPtr attr)
 {
-    ScreenPtr      pScreen   = screenInfo.screens[idx];
-    DMXScreenInfo *dmxScreen = &dmxScreens[idx];
+    ScreenPtr      pScreen;
+    DMXScreenInfo *dmxScreen;
     CARD32         scrnNum   = idx;
     DMXScreenInfo  oldDMXScreen;
     int            i;
@@ -1083,6 +1083,8 @@ int dmxAttachScreen(int idx, DMXScreenAttributesPtr attr)
 
     /* Cannot add a screen that does not exist */
     if (idx < 0 || idx >= dmxNumScreens) return 1;
+    pScreen = screenInfo.screens[idx];
+    dmxScreen = &dmxScreens[idx];
 
     /* Cannot attach to a screen that is already opened */
     if (dmxScreen->beDisplay) {

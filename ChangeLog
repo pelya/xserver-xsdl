@@ -1,5 +1,10 @@
 2006-04-06  Adam Jackson  <ajax@freedesktop.org>
 
+	* hw/dmx/dmxextension.c:
+	Coverity #1037: Sanity check idx before use.
+
+2006-04-06  Adam Jackson  <ajax@freedesktop.org>
+
 	* Makefile.am:
 	* configure.ac:
 	* cfb16/.cvsignore:
