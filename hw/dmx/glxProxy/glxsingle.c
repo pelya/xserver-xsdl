@@ -801,7 +801,7 @@ int __glXDisp_ReadPixels(__GLXclientState *cl, GLbyte *pc)
     }
 
     buf_size = __glReadPixels_size(format,type,width,height, &ebits, &rowsize);
-    if (buf_size >= 0) {
+    if (buf_size > 0) {
        buf = (char *) Xalloc( buf_size );
        if ( !buf ) {
 	  return( BadAlloc );
