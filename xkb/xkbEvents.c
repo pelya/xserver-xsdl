@@ -214,6 +214,10 @@ int		i;
 CARD32 		changedControls;
 
     changedControls= 0;
+
+    if (!kbd || !kbd->kbdfeed)
+        return 0;
+    
     if (old->enabled_ctrls!=new->enabled_ctrls)
 	changedControls|= XkbControlsEnabledMask;
     if ((old->repeat_delay!=new->repeat_delay)||

@@ -3,6 +3,9 @@
 	* hw/xfree86/utils/xorgcfg/keyboard-cfg.c:
 	Coverity #1216: Fix double-close of file on error.
 
+	* xkb/xkbEvents.c:
+	Coverity #987: Avoid potential NULL dereference.
+
 2006-04-06  Keith Packard  <keithp@keithp.com>
 
 	* fb/fbstipple.c: (fbEvenStipple):
