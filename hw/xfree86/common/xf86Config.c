@@ -1,4 +1,4 @@
-/* $XdotOrg: xserver/xorg/hw/xfree86/common/xf86Config.c,v 1.25 2006/04/07 01:34:29 ajax Exp $ */
+/* $XdotOrg: xserver/xorg/hw/xfree86/common/xf86Config.c,v 1.26 2006/04/07 01:35:43 ajax Exp $ */
 /* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86Config.c,v 3.276 2003/10/08 14:58:26 dawes Exp $ */
 
 
@@ -1820,8 +1820,10 @@ configLayout(serverLayoutPtr servlayoutp, XF86ConfLayoutPtr conf_layout,
 	else
 	    scrnum = adjp->adj_scrnum;
 	if (!configScreen(slp[count].screen, adjp->adj_screen, scrnum,
-			  X_CONFIG))
+			  X_CONFIG)) {
+	    xfree(slp);
 	    return FALSE;
+	}
 	slp[count].x = adjp->adj_x;
 	slp[count].y = adjp->adj_y;
 	slp[count].refname = adjp->adj_refscreen;

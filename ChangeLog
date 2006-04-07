@@ -1,6 +1,11 @@
 2006-04-06  Adam Jackson  <ajax@freedesktop.org>
 
 	* hw/xfree86/common/xf86Config.c:
+	Coverity #837: Fix another another memory leak.
+
+2006-04-06  Adam Jackson  <ajax@freedesktop.org>
+
+	* hw/xfree86/common/xf86Config.c:
 	Coverity #836: Fix another memory leak.
 
 2006-04-06  Adam Jackson  <ajax@freedesktop.org>
