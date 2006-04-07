@@ -29,7 +29,7 @@ or other dealings in this Software without prior written authorization
 from Kaleb S. KEITHLEY
 
 */
-/* $XdotOrg: xserver/xorg/hw/xfree86/dixmods/extmod/xf86vmode.c,v 1.8 2005/07/16 03:49:58 kem Exp $ */
+/* $XdotOrg: xserver/xorg/hw/xfree86/dixmods/extmod/xf86vmode.c,v 1.9 2006/02/10 22:00:24 anholt Exp $ */
 /* $Xorg: xf86vmode.c,v 1.3 2000/08/17 19:47:59 cpqbld Exp $ */
 /* THIS IS NOT AN X CONSORTIUM STANDARD OR AN X PROJECT TEAM SPECIFICATION */
 
@@ -1589,8 +1589,10 @@ ProcXF86VidModeGetGammaRamp(ClientPtr client)
 	    return BadAlloc;
    
         if (!VidModeGetGammaRamp(stuff->screen, stuff->size, 
-		ramp, ramp + length, ramp + (length * 2)))
+		ramp, ramp + length, ramp + (length * 2))) {
+	    xfree(ramp);
             return BadValue;
+	}
     }
 
     rep.type = X_Reply;

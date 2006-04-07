@@ -1,5 +1,10 @@
 2006-04-06  Adam Jackson  <ajax@freedesktop.org>
 
+	* hw/xfree86/dixmods/extmod/xf86vmode.c:
+	Coverity #818: Avoid memory leak on error path.
+
+2006-04-06  Adam Jackson  <ajax@freedesktop.org>
+
 	* GL/glx/single2.c:
 	Coverity #985: Avoid segfault on malloc failure.
 
