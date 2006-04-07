@@ -1,3 +1,9 @@
+2006-04-06  Keith Packard  <keithp@keithp.com>
+
+	* fb/fbstipple.c: (fbEvenStipple):
+	Coverity #333, #334 - eliminate unncessary test
+	for always true condition in fbEvenStipple.
+
 2006-04-06  Adam Jackson  <ajax@freedesktop.org>
 
 	* hw/xfree86/parser/Monitor.c:
