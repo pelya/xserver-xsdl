@@ -1,3 +1,8 @@
+Fri Apr  7 13:46:45 2006  Søren Sandmann  <sandmann@redhat.com>
+
+	* composite/compext.c (ProcCompositeReleaseOverlayWindow): Use
+	FreeResource instead of deleteCompOverlayClient()
+
 2006-04-07  Adam Jackson  <ajax@freedesktop.org>
 
 	* hw/xfree86/common/xisb.c:
