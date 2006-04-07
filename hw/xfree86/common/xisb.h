@@ -29,6 +29,8 @@
 #ifndef	_xisb_H_
 #define _xisb_H_
 
+#include <unistd.h>
+
 /******************************************************************************
  *		Definitions
  *									structs, typedefs, #defines, enums
@@ -39,9 +41,9 @@ typedef struct _XISBuffer
 	int fd;
 	int trace;
 	int block_duration;
-	xf86ssize_t current;	/* bytes read */
-	xf86ssize_t end;
-	xf86ssize_t buffer_size;
+	ssize_t current;	/* bytes read */
+	ssize_t end;
+	ssize_t buffer_size;
 	unsigned char *buf;
 } XISBuffer;
 
@@ -51,10 +53,10 @@ typedef struct _XISBuffer
  *											of globals.
  *											put locals in the .c file.
  *****************************************************************************/
-XISBuffer * XisbNew (int fd, xf86ssize_t size);
+XISBuffer * XisbNew (int fd, ssize_t size);
 void XisbFree (XISBuffer *b);
 int XisbRead (XISBuffer *b);
-xf86ssize_t XisbWrite (XISBuffer *b, unsigned char *msg, xf86ssize_t len);
+ssize_t XisbWrite (XISBuffer *b, unsigned char *msg, ssize_t len);
 void XisbTrace (XISBuffer *b, int trace);
 void XisbBlockDuration (XISBuffer *b, int block_duration);
 
