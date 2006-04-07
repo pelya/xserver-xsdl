@@ -1,5 +1,11 @@
 2006-04-06  Adam Jackson  <ajax@freedesktop.org>
 
+	* hw/xfree86/parser/Monitor.c:
+	Coverity #488: Avoid smashing an array on malformed config 
+	files.
+
+2006-04-06  Adam Jackson  <ajax@freedesktop.org>
+
 	* hw/dmx/glxProxy/glxsingle.c:
 	Coverity #769: Fix a potential memory leak for systems that 
 	allocate on malloc(0)
