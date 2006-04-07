@@ -1013,7 +1013,6 @@ KeyboardRulesCallback(Widget w, XtPointer user_data, XtPointer call_data)
 	}
 
 	if (!XkbRF_LoadRules(fp, xkb_rules->list)) {
-	    fclose(fp);
 	    fprintf(stderr, "Can't load rules\n");
 	}
 	fclose(fp);

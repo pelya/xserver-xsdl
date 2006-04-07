@@ -1,3 +1,8 @@
+2006-04-07  Daniel Stone  <daniel@freedesktop.org>
+
+	* hw/xfree86/utils/xorgcfg/keyboard-cfg.c:
+	Coverity #1216: Fix double-close of file on error.
+
 2006-04-06  Keith Packard  <keithp@keithp.com>
 
 	* fb/fbstipple.c: (fbEvenStipple):
