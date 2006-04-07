@@ -270,12 +270,12 @@ char *__glXcombine_strings(const char *cext_string, const char *sext_string)
    if (clen > slen) {
 	combo_string = (char *) xalloc(slen + 2);
 	s1 = (char *) xalloc(slen + 2);
-	strcpy(s1, sext_string);
+	if (s1) strcpy(s1, sext_string);
 	s2 = cext_string;
    } else {
 	combo_string = (char *) xalloc(clen + 2);
 	s1 = (char *) xalloc(clen + 2);
-	strcpy(s1, cext_string);
+	if (s1) strcpy(s1, cext_string);
 	s2 = sext_string;
    }
    if (!combo_string || !s1) {

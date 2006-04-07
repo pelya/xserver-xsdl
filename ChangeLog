@@ -1,5 +1,10 @@
 2006-04-06  Adam Jackson  <ajax@freedesktop.org>
 
+	* GL/glx/single2.c:
+	Coverity #985: Avoid segfault on malloc failure.
+
+2006-04-06  Adam Jackson  <ajax@freedesktop.org>
+
 	* hw/dmx/dmxextension.c:
 	Coverity #1037: Sanity check idx before use.
 
