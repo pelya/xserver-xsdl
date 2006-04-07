@@ -1,4 +1,4 @@
-/* $XdotOrg: xserver/xorg/hw/xfree86/common/xf86Config.c,v 1.26 2006/04/07 01:35:43 ajax Exp $ */
+/* $XdotOrg: xserver/xorg/hw/xfree86/common/xf86Config.c,v 1.27 2006/04/07 01:37:11 ajax Exp $ */
 /* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86Config.c,v 3.276 2003/10/08 14:58:26 dawes Exp $ */
 
 
@@ -1952,8 +1952,10 @@ configLayout(serverLayoutPtr servlayoutp, XF86ConfLayoutPtr conf_layout,
     idp = conf_layout->lay_inactive_lst;
     count = 0;
     while (idp) {
-	if (!configDevice(&gdp[count], idp->inactive_device, FALSE))
+	if (!configDevice(&gdp[count], idp->inactive_device, FALSE)) {
+	    xfree(gdp);
 	    return FALSE;
+	}
         count++;
         idp = (XF86ConfInactivePtr)idp->list.next;
     }
@@ -1975,8 +1977,10 @@ configLayout(serverLayoutPtr servlayoutp, XF86ConfLayoutPtr conf_layout,
     irp = conf_layout->lay_input_lst;
     count = 0;
     while (irp) {
-	if (!configInput(&indp[count], irp->iref_inputdev, X_CONFIG))
+	if (!configInput(&indp[count], irp->iref_inputdev, X_CONFIG)) {
+	    xfree(indp);
 	    return FALSE;
+	}
 	indp[count].extraOptions = irp->iref_option_lst;
         count++;
         irp = (XF86ConfInputrefPtr)irp->list.next;
