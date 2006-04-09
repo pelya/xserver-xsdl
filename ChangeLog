@@ -1,3 +1,8 @@
+2006-04-09  Daniel Stone  <daniel@freedesktop.org>
+
+	* Xi/exevents.c:
+	Coverity #323, #445, #446, #447: Fix potential NULL dereferences.
+
 2006-04-07  Aaron Plattner  <aplattner@nvidia.com>
 
 	* hw/xfree86/common/xf86Module.h:

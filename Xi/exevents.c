@@ -175,6 +175,9 @@ ProcessOtherEvent(xEventPtr xE, register DeviceIntPtr other, int count)
 	}
 
     if (xE->u.u.type == DeviceKeyPress) {
+        if (!k)
+            return;
+
 	modifiers = k->modifierMap[key];
 	kptr = &k->down[key >> 3];
 	if (*kptr & bit) {	/* allow ddx to generate multiple downs */
@@ -204,6 +207,9 @@ ProcessOtherEvent(xEventPtr xE, register DeviceIntPtr other, int count)
 	    return;
 	}
     } else if (xE->u.u.type == DeviceKeyRelease) {
+        if (!k)
+            return;
+
 	kptr = &k->down[key >> 3];
 	if (!(*kptr & bit))	/* guard against duplicates */
 	    return;
@@ -226,6 +232,9 @@ ProcessOtherEvent(xEventPtr xE, register DeviceIntPtr other, int count)
 	if (other->fromPassiveGrab && (key == other->activatingKey))
 	    deactivateDeviceGrab = TRUE;
     } else if (xE->u.u.type == DeviceButtonPress) {
+        if (!b)
+            return;
+
 	kptr = &b->down[key >> 3];
 	*kptr |= bit;
 	if (other->valuator)
@@ -243,6 +252,9 @@ ProcessOtherEvent(xEventPtr xE, register DeviceIntPtr other, int count)
 		return;
 
     } else if (xE->u.u.type == DeviceButtonRelease) {
+        if (!b)
+            return;
+
 	kptr = &b->down[key >> 3];
 	*kptr &= ~bit;
 	if (other->valuator)
@@ -1073,6 +1085,9 @@ MaybeSendDeviceMotionNotifyHint(deviceKeyButtonPointer * pEvents, Mask mask)
     DeviceIntPtr dev;
 
     dev = LookupDeviceIntRec(pEvents->deviceid & DEVICE_BITS);
+    if (!dev)
+        return 0;
+
     if (pEvents->type == DeviceMotionNotify) {
 	if (mask & DevicePointerMotionHintMask) {
 	    if (WID(dev->valuator->motionHintWindow) == pEvents->event) {
@@ -1094,6 +1109,9 @@ CheckDeviceGrabAndHintWindow(WindowPtr pWin, int type,
     DeviceIntPtr dev;
 
     dev = LookupDeviceIntRec(xE->deviceid & DEVICE_BITS);
+    if (!dev)
+        return;
+
     if (type == DeviceMotionNotify)
 	dev->valuator->motionHintWindow = pWin;
     else if ((type == DeviceButtonPress) && (!grab) &&
