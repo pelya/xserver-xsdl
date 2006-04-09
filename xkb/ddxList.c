@@ -169,8 +169,6 @@ char	tmpname[PATH_MAX];
 	if ((list->pattern[what][0]=='*')&&(list->pattern[what][1]=='\0')) {
 	    buf = Xprintf("%s/%s.dir",XkbBaseDirectory,componentDirs[what]);
 	    in= fopen(buf,"r");
-	    xfree (buf);
-	    buf = NULL;
 	}
 	if (!in) {
 	    haveDir= False;
@@ -186,8 +184,6 @@ char	tmpname[PATH_MAX];
 	if ((list->pattern[what][0]=='*')&&(list->pattern[what][1]=='\0')) {
 	    buf = Xprintf("%s.dir",componentDirs[what]);
 	    in= fopen(buf,"r");
-	    xfree (buf);
-	    buf = NULL;
 	}
 	if (!in) {
 	    haveDir= False;
@@ -224,6 +220,13 @@ char	tmpname[PATH_MAX];
 	return BadImplementation;
     }
     list->nFound[what]= 0;
+    if (buf) {
+        xfree(buf);
+        buf = NULL;
+    }
+    buf = xalloc(PATH_MAX * sizeof(char));
+    if (!buf)
+        return BadAlloc;
     while ((status==Success)&&((tmp=fgets(buf,PATH_MAX,in))!=NULL)) {
 	unsigned flags;
 	register unsigned int i;
