@@ -6,6 +6,9 @@
 	* xkb/ddxList.c:
 	Coverity #169: Fix potential fgets() into NULL (?!?).
 
+	* xkb/XKBMAlloc.c:
+	Coverity #324: Fix potential NULL dereference.  (Alan Coopersmith)
+
 2006-04-07  Aaron Plattner  <aplattner@nvidia.com>
 
 	* hw/xfree86/common/xf86Module.h:

@@ -305,6 +305,7 @@ XkbClientMapPtr	map;
 	tmp= XkbNumRequiredTypes+1;
 	if (XkbAllocClientMap(xkb,XkbKeyTypesMask,tmp)!=Success)
 	    return NULL;
+        map = xkb->map;
 	tmp= 0;
 	if (map->num_types<=XkbKeypadIndex)
 	    tmp|= XkbKeypadMask;
