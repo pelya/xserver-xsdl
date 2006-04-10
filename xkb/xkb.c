@@ -3121,7 +3121,7 @@ ProcXkbSetNamedIndicator(ClientPtr client)
 	if (!stuff->createMap)
 	    return client->noClientException;
 	for (led=0,map=NULL;(led<XkbNumIndicators)&&(map==NULL);led++) {
-	    if ((sli->names)&&(sli->leds)&&(sli->names[led]==None)&&
+	    if ((sli->names)&&(sli->maps)&&(sli->names[led]==None)&&
                 (!XkbIM_InUse(&sli->maps[led]))) {
 		map= &sli->maps[led];
 		sli->names[led]= stuff->indicator;
