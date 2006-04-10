@@ -466,8 +466,11 @@ unsigned		changed,tmp;
 	unsigned int	new_vmodmask;
 	changed|= XkbKeyActionsMask;
 	pActs= XkbResizeKeyActions(xkb,key,nSyms);
-	if (!pActs)
+	if (!pActs) {
+            if (nSyms > IBUF_SIZE)
+                xfree(interps);
 	    return False;
+        }
 	new_vmodmask= 0;
 	for (n=0;n<nSyms;n++) {
 	    if (interps[n]) {

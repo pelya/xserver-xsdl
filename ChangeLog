@@ -50,6 +50,9 @@ Fri Apr  7 13:46:45 2006  Søren Sandmann  <sandmann@redhat.com>
 	* xkb/xkb.c:
 	Coverity #844, #845, #846: Fix memory leaks.
 
+	* xkb/XKBMisc.c:
+	Coverity #826: Fix potential memory leak.
+
 2006-04-06  Keith Packard  <keithp@keithp.com>
 
 	* fb/fbstipple.c: (fbEvenStipple):
