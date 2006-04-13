@@ -90,6 +90,7 @@ symlink_mesa_main() {
     action api_validate.h
     action attrib.c
     action attrib.h
+    action bitset.h
     action blend.c
     action blend.h
     action bufferobj.c
