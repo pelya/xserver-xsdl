@@ -429,7 +429,6 @@ static int dmxDeviceOnOff(DeviceIntPtr pDevice, int what)
     int              i;
 #endif
     
-    if (!dmxLocal) return BadImplementation;
     if (dmxInput->detached) return Success;
 
     memset(&info, 0, sizeof(info));
