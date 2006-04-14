@@ -1,3 +1,8 @@
+2006-04-14  Adam Jackson  <ajax@freedesktop.org>
+
+	* hw/xfree86/os-support/Makefile.am:
+	Bug #6580: Don't install xf86drm.h, that's libdrm's job.
+
 2006-04-09  Daniel Stone  <daniel@freedesktop.org>
 
 	* Xi/exevents.c:
