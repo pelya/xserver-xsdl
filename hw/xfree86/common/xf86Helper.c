@@ -2677,6 +2677,7 @@ xf86ConfigIsaEntity(ScrnInfoPtr pScrn, int scrnFlag, int entityIndex,
     if (!pEnt->active) {
 	xf86ConfigIsaEntityInactive(pEnt, i_chip, res, init,  enter,
 				    leave,  private);
+	xfree(pEnt);
 	return pScrn;
     }
 
@@ -2714,6 +2715,7 @@ xf86ConfigPciEntity(ScrnInfoPtr pScrn, int scrnFlag, int entityIndex,
     if (!pEnt->active) {
 	xf86ConfigPciEntityInactive(pEnt, p_chip, res, init,  enter,
 				    leave,  private);
+	xfree(pEnt);
 	return pScrn;
     }
 
@@ -2755,6 +2757,7 @@ xf86ConfigFbEntity(ScrnInfoPtr pScrn, int scrnFlag, int entityIndex,
 
     if (!pEnt->active) {
 	xf86ConfigFbEntityInactive(pEnt, init,  enter, leave,  private);
+	xfree(pEnt);
 	return pScrn;
     }
 
