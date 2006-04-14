@@ -696,10 +696,11 @@ static void dmxConsoleComputeWidthHeight(myPrivate *priv,
 void dmxConsoleReInit(DevicePtr pDev)
 {
     GETPRIVFROMPDEV;
-    Display *dpy = priv->display;
+    Display *dpy;
 
     if (!priv || !priv->initialized) return;
-    
+    dpy = priv->display;
+
     dmxConsoleComputeWidthHeight(priv,
                                  &priv->width, &priv->height,
                                  &priv->xScale, &priv->yScale,
