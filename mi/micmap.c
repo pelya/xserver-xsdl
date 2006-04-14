@@ -587,8 +587,10 @@ miDoInitVisuals(VisualPtr *visualp, DepthPtr *depthp, int *nvisualp,
 	if (nvtype)
 	{
 	    vid = (VisualID *) xalloc (nvtype * sizeof (VisualID));
-	    if (!vid)
+	    if (!vid) {
+		xfree(preferredCVCs);
 		return FALSE;
+	    }
 	}
 	depth->depth = d;
 	depth->numVids = nvtype;

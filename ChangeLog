@@ -1,5 +1,10 @@
 2006-04-14  Adam Jackson  <ajax@freedesktop.org>
 
+	* mi/micmap.c:
+	Coverity #806: Another memory leak on OOM path.
+
+2006-04-14  Adam Jackson  <ajax@freedesktop.org>
+
 	* hw/xfree86/common/xf86Helper.c:
 	Coverity #847, #848, #849: Three more memory leaks.
 
