@@ -11,7 +11,7 @@ cvt - calculate VESA CVT mode lines
 .RB [ refresh ]
 .SH DESCRIPTION
 .I Cvt
-is a utility for calculating VESA Common Video Timing modes.  Given the
+is a utility for calculating VESA Coordinated Video Timing modes.  Given the
 desired horizontal and vertical resolutions, a modeline adhering to the CVT
 standard is printed. This modeline can be included in __xservername__ 
 .B __xconfigfile__(__filemansuffix__)
@@ -36,6 +36,7 @@ __xconfigfile__(__filemansuffix__)
 .SH AUTHOR
 Luc Verhaegen.
 .PP
-This program is based on the Common Video Timing sample implementation
-written by Graham Loveridge. This file is publically available at
-<http://www.vesa.org/Public/CVT/CVTd6r1.xls>. CVT is a VESA trademark.
+This program is based on the Coordinated Video Timing sample
+implementation written by Graham Loveridge. This file is publically
+available at <http://www.vesa.org/Public/CVT/CVTd6r1.xls>. CVT is a
+VESA trademark.

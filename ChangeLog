@@ -1,3 +1,9 @@
+2006-04-15  Luc Verhaegen  <libv@skynet.be>
+
+	* hw/xfree86/utils/cvt/cvt.c: (PrintUsage):
+	* hw/xfree86/utils/cvt/cvt.man.pre:
+	CVT means Coordinated Video Timing instead of Common.
+
 2006-04-14  Adam Jackson  <ajax@freedesktop.org>
 
 	* hw/xfree86/os-support/Makefile.am:

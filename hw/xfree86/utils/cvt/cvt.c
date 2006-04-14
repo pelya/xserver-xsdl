@@ -341,8 +341,8 @@ PrintUsage(char *Name)
     fprintf(stderr, "      refresh : Desired refresh rate (default: 60.0Hz).\n");
     fprintf(stderr, "\n");
 
-    fprintf(stderr, "Calculates VESA CVT (Common Video Timing) modelines for"
-            " use with X.\n");
+    fprintf(stderr, "Calculates VESA CVT (Coordinated Video Timing) modelines"
+	    " for use with X.\n");
 }
 
 
