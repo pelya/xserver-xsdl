@@ -1,5 +1,10 @@
 2006-04-14  Adam Jackson  <ajax@freedesktop.org>
 
+	* hw/dmx/dmxpixmap.c:
+	Coverity #804: Another leak on OOM path.
+
+2006-04-14  Adam Jackson  <ajax@freedesktop.org>
+
 	* mi/micmap.c:
 	Coverity #806: Another memory leak on OOM path.
 

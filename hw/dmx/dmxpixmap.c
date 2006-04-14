@@ -213,7 +213,10 @@ RegionPtr dmxBitmapToRegion(PixmapPtr pPixmap)
 
     pReg = REGION_CREATE(pScreen, NullBox, 1);
     pTmpReg = REGION_CREATE(pScreen, NullBox, 1);
-    if(!pReg || !pTmpReg) return NullRegion;
+    if(!pReg || !pTmpReg) {
+	XDestroyImage(ximage);
+	return NullRegion;
+    }
 
     for (y = 0; y < pPixmap->drawable.height; y++) {
 	Box.y1 = y;
