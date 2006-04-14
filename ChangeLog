@@ -1,5 +1,10 @@
 2006-04-14  Adam Jackson  <ajax@freedesktop.org>
 
+	* hw/dmx/input/dmxcommon.c:
+	Coverity #1003, #1004: Two more useless null checks.
+
+2006-04-14  Adam Jackson  <ajax@freedesktop.org>
+
 	* hw/dmx/input/dmxconsole.c:
 	Coverity #1005: Avoid a null deref.
 

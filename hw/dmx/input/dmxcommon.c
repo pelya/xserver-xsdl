@@ -483,7 +483,6 @@ int dmxCommonMouOn(DevicePtr pDev)
     GETPRIVFROMPDEV;
     GETDMXINPUTFROMPRIV;
 
-    if (!priv) return -1;
     priv->eventMask |= DMX_POINTER_EVENT_MASK;
     if (dmxShadowFB) {
         XWarpPointer(priv->display, priv->window, priv->window,
@@ -509,7 +508,6 @@ void dmxCommonMouOff(DevicePtr pDev)
     GETPRIVFROMPDEV;
     GETDMXINPUTFROMPRIV;
     
-    if (!priv) return;
     priv->eventMask &= ~DMX_POINTER_EVENT_MASK;
     if (!priv->be) {
         RemoveEnabledDevice(XConnectionNumber(priv->display));
