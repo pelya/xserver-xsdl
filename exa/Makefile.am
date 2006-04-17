@@ -1,6 +1,8 @@
 noinst_LTLIBRARIES = libexa.la
 
+if XORG
 sdk_HEADERS = exa.h
+endif
 
 INCLUDES = \
 	$(XORG_INCS) \

@@ -1,5 +1,12 @@
 2006-04-17  Donnie Berkholz  <spyderous@gentoo.org>
 
+	* exa/Makefile.am:
+	* randr/Makefile.am:
+	Wrap a couple more SDK headers in if XORG, as per Dave Airlie's commit on
+	2006-01-18.
+
+2006-04-17  Donnie Berkholz  <spyderous@gentoo.org>
+
 	* hw/kdrive/ephyr/Makefile.am:
 	Fix kdrive build by linking in libexa before KDRIVE_LIBS.
 
