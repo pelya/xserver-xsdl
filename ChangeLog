@@ -1,3 +1,8 @@
+2006-04-17  Donnie Berkholz  <spyderous@gentoo.org>
+
+	* hw/kdrive/ephyr/Makefile.am:
+	Fix kdrive build by linking in libexa before KDRIVE_LIBS.
+
 2006-04-14  Adam Jackson  <ajax@freedesktop.org>
 
 	* hw/dmx/dmxpixmap.c:
