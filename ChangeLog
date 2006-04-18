@@ -1,5 +1,22 @@
 2006-04-18  Eric Anholt  <anholt@FreeBSD.org>
 
+	* exa/exa.c: (exaDriverInit):
+	* exa/exa_migration.c: (exaPixmapIsDirty), (exaPixmapShouldBeInFB),
+	(exaDoMigration):
+	* exa/exa_priv.h:
+	* hw/kdrive/ephyr/ephyr_draw.c: (exaDDXDriverInit):
+	* hw/xfree86/exa/examodule.c: (exaDDXDriverInit):
+	Add a new migration scheme, called "Smart" for lack of a better name.
+	This one behaves somewhat between Greedy and Always.  It moves in if we
+	can accelerate, unless the destination is clean and shouldn't be kept in
+	framebuffer according to the score, in which case we migrate out (and
+	force-migrate anything where migration is free).  This should help fix
+	lack of acceleration for drivers without UTS since removing
+	exaAsyncPixmapGCOps, and has removed one performance trap with Radeon
+	I'd noticed.  It is the new default.
+
+2006-04-18  Eric Anholt  <anholt@FreeBSD.org>
+
 	* exa/exa_unaccel.c: (ExaCheckPolyGlyphBlt),
 	(exaGetPixmapFirstPixel):
 	Fix exaGetPixmapFirstPixel to migrate as unaccelerated.  Also adds a bit

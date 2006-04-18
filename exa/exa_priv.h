@@ -83,7 +83,8 @@ do {								\
  */
 enum ExaMigrationHeuristic {
     ExaMigrationGreedy,
-    ExaMigrationAlways
+    ExaMigrationAlways,
+    ExaMigrationSmart
 };
 
 typedef void (*EnableDisableFBAccessProcPtr)(int, Bool);

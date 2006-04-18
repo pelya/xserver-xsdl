@@ -58,6 +58,36 @@ exaPixmapIsPinned (PixmapPtr pPix)
 }
 
 /**
+ * Returns TRUE if the pixmap is dirty (has been modified in its current
+ * location compared to the other), or lacks a private for tracking
+ * dirtiness.
+ */
+static Bool
+exaPixmapIsDirty (PixmapPtr pPix)
+{
+    ExaPixmapPriv (pPix);
+
+    return pExaPixmap == NULL || pExaPixmap->dirty == TRUE;
+}
+
+/**
+ * Returns TRUE if the pixmap is either pinned in FB, or has a sufficient score
+ * to be considered "should be in framebuffer".
+ *
+ * Only valid if using a migration scheme that tracks score.
+ */
+static Bool
+exaPixmapShouldBeInFB (PixmapPtr pPix)
+{
+    ExaPixmapPriv (pPix);
+
+    if (exaPixmapIsPinned (pPix))
+	return TRUE;
+
+    return pExaPixmap->score >= EXA_PIXMAP_SCORE_INIT;
+}
+
+/**
  * If the pixmap is currently dirty, this copies at least the dirty area from
  * the framebuffer  memory copy to the system memory copy.  Both areas must be
  * allocated.
@@ -403,7 +433,36 @@ exaDoMigration (ExaMigrationPtr pixmaps, int npixmaps, Bool can_accel)
 	}
     }
 
-    if (pExaScr->migration == ExaMigrationGreedy) {
+    if (pExaScr->migration == ExaMigrationSmart) {
+	/* If we've got something as a destination that we shouldn't cause to
+	 * become newly dirtied, take the unaccelerated route.
+	 */
+	for (i = 0; i < npixmaps; i++) {
+	    if (pixmaps[i].as_dst && !exaPixmapShouldBeInFB (pixmaps[i].pPix) &&
+		!exaPixmapIsDirty (pixmaps[i].pPix))
+	    {
+		can_accel = FALSE;
+	    }
+	}
+
+	/* If we aren't going to accelerate, then we migrate everybody toward
+	 * system memory, and kick out if it's free.
+	 */
+	if (!can_accel) {
+	    for (i = 0; i < npixmaps; i++) {
+		exaMigrateTowardSys (pixmaps[i].pPix);
+		if (!exaPixmapIsDirty (pixmaps[i].pPix))
+		    exaMoveOutPixmap (pixmaps[i].pPix);
+	    }
+	    return;
+	}
+
+	/* Finally, the acceleration path.  Move them all in. */
+	for (i = 0; i < npixmaps; i++) {
+	    exaMigrateTowardFb(pixmaps[i].pPix);
+	    exaMoveInPixmap(pixmaps[i].pPix);
+	}
+    } else if (pExaScr->migration == ExaMigrationGreedy) {
 	/* If we can't accelerate, either because the driver can't or because one of
 	 * the pixmaps is pinned in system memory, then we migrate everybody toward
 	 * system memory.
