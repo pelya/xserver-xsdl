@@ -72,7 +72,7 @@ static void UpdateRulesPopups(void);
  */
 static XF86XkbRulesDescInfo **xkb_desc, *xkb_rules;
 static int num_xkb_desc;
-static char *XkbRulesDir = "lib/X11/xkb/rules/";
+static char *XkbRulesDir = "share/X11/xkb/rules/";
 #ifdef XFREE98_XKB
 static char *XkbRulesFile = "xfree98";
 #else

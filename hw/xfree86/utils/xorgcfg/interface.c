@@ -1,4 +1,4 @@
-/* $XdotOrg: $ */
+/* $XdotOrg: xserver/xorg/hw/xfree86/utils/xorgcfg/interface.c,v 1.8 2005/11/08 06:33:30 jkj Exp $ */
 /*
  * Copyright (c) 2000 by Conectiva S.A. (http://www.conectiva.com)
  * 
@@ -65,7 +65,7 @@
 #ifdef PROJECT_ROOT
 #define DefaultXFree86Dir	PROJECT_ROOT
 #else
-#define DefaultXFree86Dir	"/usr/X11R6"
+#define DefaultXFree86Dir	"/usr"
 #endif
 
 #define IS_KBDDRIV(S) ((strcasecmp((S),"kbd") == 0) || \

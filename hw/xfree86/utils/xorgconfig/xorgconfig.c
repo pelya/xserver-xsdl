@@ -94,7 +94,7 @@
  *  Chisato Yamauchi(cyamauch@phyas.aichi-edu.ac.jp)
  */
 /* $XConsortium: xf86config.c /main/21 1996/10/28 05:43:57 kaleb $ */
-/* $XdotOrg: xc/programs/Xserver/hw/xfree86/xf86config/xorgconfig.c,v 1.14 2005/05/28 00:08:03 alanc Exp $ */
+/* $XdotOrg: xserver/xorg/hw/xfree86/utils/xorgconfig/xorgconfig.c,v 1.19 2005/11/08 06:33:30 jkj Exp $ */
 
 #ifdef HAVE_CONFIG_H
 # include "xorg-server.h"
@@ -157,11 +157,12 @@ static int getuid() { return 0; }
  * may be more irritated than Unix users
  */
 #ifndef PROJECTROOT
-#define PROJECTROOT		"/usr/X11R6"
+#define PROJECTROOT		"/usr"
 #endif
 #define TREEROOT		PROJECTROOT
 #define TREEROOTLX		TREEROOT "/lib/X11"
 #define TREEROOTCFG		TREEROOT "/etc/X11"
+#define TREEROOTSHARE		TREEROOT "/share/X11"
 #ifdef XDOCDIR
 # define TREEROOTDOC		XDOCDIR
 #else
@@ -494,6 +495,8 @@ struct {
 # define DEF_MOUSEDEV "/dev/wsmouse";
 #elif defined(__FreeBSD__)
 # define DEF_MOUSEDEV "/dev/sysmouse";
+#elif defined(__linux__)
+# define DEF_MOUSEDEV "/dev/input/mice";
 #else
 # define DEF_MOUSEDEV "/dev/mouse";
 #endif
@@ -1970,7 +1973,7 @@ static char *XF86Config_firstchunk_text =
 "# file minus the extension (like \".txt\" or \".db\").  There is normally\n"
 "# no need to change the default.\n"
 "\n"
-"    RgbPath	\"" TREEROOTLX "/rgb\"\n"
+"#    RgbPath	\"" TREEROOTSHARE "/rgb\"\n"
 "\n"
 "# Multiple FontPath entries are allowed (which are concatenated together),\n"
 "# as well as specifying multiple comma-separated entries in one FontPath\n"

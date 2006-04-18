@@ -1,4 +1,4 @@
-/* $XdotOrg: xc/programs/Xserver/hw/xfree86/xf86config/cards.c,v 1.3 2004/08/13 23:57:38 alanc Exp $ */
+/* $XdotOrg: xserver/xorg/hw/xfree86/utils/xorgconfig/cards.c,v 1.4 2005/07/01 22:43:35 daniels Exp $ */
 /* $XConsortium: cards.c /main/9 1996/10/19 18:15:32 kaleb $ */
 
 
@@ -19,7 +19,7 @@
 
 /* Some vars to make path names in texts more flexible. */
 #ifndef PROJECTROOT
-# define PROJECTROOT		"/usr/X11R6"
+# define PROJECTROOT		"/usr"
 #endif
 #define TREEROOT		PROJECTROOT
 #define TREEROOTLX		TREEROOT "/lib/X11"

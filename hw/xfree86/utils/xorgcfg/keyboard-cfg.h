@@ -38,7 +38,7 @@
 /*
  * All file names are from XProjectRoot or XWINHOME environment variable.
  */
-#define	XkbConfigDir		"lib/X11/xkb/"
+#define	XkbConfigDir		"share/X11/xkb/"
 #define	XkbConfigFile		"X0-config.keyboard"
 
 /*

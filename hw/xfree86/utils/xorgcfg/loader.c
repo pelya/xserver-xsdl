@@ -26,7 +26,7 @@
  *
  * Author: Paulo César Pereira de Andrade <pcpa@conectiva.com.br>
  *
- * $XdotOrg: xc/programs/Xserver/hw/xfree86/xf86cfg/loader.c,v 1.3 2004/12/04 00:43:11 kuhn Exp $
+ * $XdotOrg: xserver/xorg/hw/xfree86/utils/xorgcfg/loader.c,v 1.5 2005/12/08 17:54:40 kem Exp $
  * $XFree86: xc/programs/Xserver/hw/xfree86/xf86cfg/loader.c,v 1.19 2002/06/06 21:03:32 paulo Exp $
  */
 
@@ -55,7 +55,7 @@
 #include <stdarg.h>
 
 #ifndef OPTIONSPATH
-#define OPTIONSPATH "/usr/X11R6/lib/X11"
+#define OPTIONSPATH "/usr/lib/X11"
 #endif
 
 #ifndef SIGNALRETURNSINT

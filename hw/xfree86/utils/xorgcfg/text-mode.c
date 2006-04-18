@@ -1,4 +1,4 @@
-/* $XdotOrg: $ */
+/* $XdotOrg: xserver/xorg/hw/xfree86/utils/xorgcfg/text-mode.c,v 1.6 2005/12/08 17:54:40 kem Exp $ */
 /*
  * Copyright (c) 2000 by Conectiva S.A. (http://www.conectiva.com)
  * 
@@ -52,12 +52,12 @@
 	(strcmp((X), "keyboard") == 0))
 
 #ifndef PROJECT_ROOT
-#define PROJECT_ROOT "/usr/X11R6"
+#define PROJECT_ROOT "/usr"
 #endif
 
 #ifndef XKB_RULES_DIR
 #ifndef __UNIXOS2__
-#define XKB_RULES_DIR PROJECT_ROOT "/lib/X11/xkb/rules"
+#define XKB_RULES_DIR PROJECT_ROOT "/share/X11/xkb/rules"
 #else
 #define XKB_RULES_DIR XF86CONFIGDIR "/xkb/rules"
 #endif
@@ -557,6 +557,8 @@ MouseConfig(void)
 	str = "/dev/sysmouse";
 #elif defined(__UNIXOS2__)
 	str = "mouse$";
+#elif defined(__linux__)
+	str = "/dev/input/mice";
 #else
 	str = "/dev/mouse";
 #endif

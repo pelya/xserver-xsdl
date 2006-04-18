@@ -1,3 +1,18 @@
+2006-04-18  Donnie Berkholz  <spyderous@gentoo.org>
+
+	reviewed by: Alan Coopersmith
+
+	* hw/xfree86/utils/xorgcfg/interface.c:
+	* hw/xfree86/utils/xorgcfg/keyboard-cfg.c:
+	* hw/xfree86/utils/xorgcfg/keyboard-cfg.h:
+	* hw/xfree86/utils/xorgcfg/loader.c:
+	* hw/xfree86/utils/xorgcfg/text-mode.c:
+	* hw/xfree86/utils/xorgconfig/cards.c:
+	* hw/xfree86/utils/xorgconfig/xorgconfig.c:
+	Update all prefixes in config tools, so they mostly work again. Also, make
+	RgbPath commented out when using xorgconfig. Start using /dev/input/mice as
+	the default mouse location on Linux.
+
 2006-04-17  Donnie Berkholz  <spyderous@gentoo.org>
 
 	* exa/Makefile.am:
