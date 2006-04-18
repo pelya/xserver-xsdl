@@ -125,6 +125,8 @@ exaDDXDriverInit(ScreenPtr pScreen)
 		pExaScr->migration = ExaMigrationGreedy;
 	    else if (strcmp(heuristicName, "always") == 0)
 		pExaScr->migration = ExaMigrationAlways;
+	    else if (strcmp(heuristicName, "smart") == 0)
+		pExaScr->migration = ExaMigrationSmart;
 	    else {
 		xf86DrvMsg (pScreen->myNum, X_WARNING, 
 			    "EXA: unknown migration heuristic %s\n",
