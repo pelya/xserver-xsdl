@@ -212,7 +212,8 @@ ExaCheckPolyGlyphBlt (DrawablePtr pDrawable, GCPtr pGC,
 		     int x, int y, unsigned int nglyph,
 		     CharInfoPtr *ppci, pointer pglyphBase)
 {
-    EXA_FALLBACK(("to 0x%lx\n", (long)pDrawable));
+    EXA_FALLBACK(("to 0x%lx, style %d alu %d\n", (long)pDrawable,
+		  pGC->fillStyle, pGC->alu));
     exaPrepareAccess (pDrawable, EXA_PREPARE_DEST);
     exaPrepareAccessGC (pGC);
     fbPolyGlyphBlt (pDrawable, pGC, x, y, nglyph, ppci, pglyphBase);
@@ -352,7 +353,7 @@ exaGetPixmapFirstPixel (PixmapPtr pPixmap)
     pixmaps[0].as_dst = FALSE;
     pixmaps[0].as_src = TRUE;
     pixmaps[0].pPix = pPixmap;
-    exaDoMigration (pixmaps, 1, TRUE);
+    exaDoMigration (pixmaps, 1, FALSE);
 
     exaPrepareAccess(&pPixmap->drawable, EXA_PREPARE_SRC);
     switch (pPixmap->drawable.bitsPerPixel) {

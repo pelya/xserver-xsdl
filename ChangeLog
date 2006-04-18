@@ -1,3 +1,10 @@
+2006-04-18  Eric Anholt  <anholt@FreeBSD.org>
+
+	* exa/exa_unaccel.c: (ExaCheckPolyGlyphBlt),
+	(exaGetPixmapFirstPixel):
+	Fix exaGetPixmapFirstPixel to migrate as unaccelerated.  Also adds a bit
+	of fallback debugging info to PolyGlyphBlt.
+
 2006-04-18  Donnie Berkholz  <spyderous@gentoo.org>
 
 	reviewed by: Alan Coopersmith
