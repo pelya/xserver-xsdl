@@ -1,5 +1,5 @@
 /*
- * $XdotOrg: xserver/xorg/fb/fbcompose.c,v 1.26 2005/12/09 18:35:20 ajax Exp $
+ * $XdotOrg: xserver/xorg/fb/fbcompose.c,v 1.27 2006-02-10 22:00:21 anholt Exp $
  * $XFree86: xc/programs/Xserver/fb/fbcompose.c,v 1.17tsi Exp $
  *
  * Copyright © 2000 Keith Packard, member of The XFree86 Project, Inc.
@@ -385,6 +385,17 @@ fbFetch_c8 (const FbBits *bits, int x, int width, CARD32 *buffer, miIndexedPtr i
     }
 }
 
+static FASTCALL void
+fbFetch_x4a4 (const FbBits *bits, int x, int width, CARD32 *buffer, miIndexedPtr indexed)
+{
+    const CARD8 *pixel = (const CARD8 *)bits + x;
+    const CARD8 *end = pixel + width;
+    while (pixel < end) {
+	CARD8 p = (*pixel++) & 0xf;
+        *buffer++ = (p | (p << 4)) << 24;
+    }
+}
+
 #define Fetch8(l,o)    (((CARD8 *) (l))[(o) >> 2])
 #if IMAGE_BYTE_ORDER == MSBFirst
 #define Fetch4(l,o)    ((o) & 2 ? Fetch8(l,o) & 0xf : Fetch8(l,o) >> 4)
@@ -548,7 +559,8 @@ static fetchProc fetchProcForPicture (PicturePtr pict)
     case PICT_a2b2g2r2: return fbFetch_a2b2g2r2;
     case PICT_c8: return  fbFetch_c8;
     case PICT_g8: return  fbFetch_c8;
-
+    case PICT_x4a4: return fbFetch_x4a4;
+    
         /* 4bpp formats */
     case PICT_a4: return  fbFetch_a4;
     case PICT_r1g2b1: return fbFetch_r1g2b1;
@@ -1261,6 +1273,16 @@ fbStore_c8 (FbBits *bits, const CARD32 *values, int x, int width, miIndexedPtr i
     }
 }
 
+static FASTCALL void
+fbStore_x4a4 (FbBits *bits, const CARD32 *values, int x, int width, miIndexedPtr indexed)
+{
+    int i;
+    CARD8   *pixel = ((CARD8 *) bits) + x;
+    for (i = 0; i < width; ++i) {
+        *pixel++ = values[i] >> 28;
+    }
+}
+
 #define Store8(l,o,v)  (((CARD8 *) l)[(o) >> 3] = (v))
 #if IMAGE_BYTE_ORDER == MSBFirst
 #define Store4(l,o,v)  Store8(l,o,((o) & 4 ? \
@@ -1412,6 +1434,7 @@ static storeProc storeProcForPicture (PicturePtr pict)
     case PICT_a2r2g2b2: return fbStore_a2r2g2b2;
     case PICT_c8: return  fbStore_c8;
     case PICT_g8: return  fbStore_c8;
+    case PICT_x4a4: return fbStore_x4a4;
 
         /* 4bpp formats */
     case PICT_a4: return  fbStore_a4;

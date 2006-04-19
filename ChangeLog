@@ -1,3 +1,11 @@
+2006-04-19  Keith Packard  <keithp@keithp.com>
+
+	* fb/fbcompose.c: (fbFetch_x4a4), (fetchProcForPicture),
+	(fbStore_x4a4), (storeProcForPicture):
+	* render/picture.c: (PictureCreateDefaultFormats):
+	* render/picture.h:
+	Add support for x4a4 format (depth 4 at 8bpp). Bug #6325.
+
 2006-04-18  Eric Anholt  <anholt@FreeBSD.org>
 
 	* exa/exa.c: (exaDriverInit):
