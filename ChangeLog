@@ -1,3 +1,11 @@
+2006-04-22  Benjamin Herrenschmidt  <benh@kernel.crashing.org> 
+
+	* hw/xfree86/os-support/linux/lnx_KbdMap.c:
+	When reading the kernel keyboard mapping (readKernelMapping in
+	os-support/linux/lnx_KbdMap.c) we overrun the usefully-named global array
+	'map', scribbling on other random static variables elsewhere. This
+	is fixed by changing the size of at2lnx. (David Woodhouse). Bug #5169
+
 2006-04-19  Keith Packard  <keithp@keithp.com>
 
 	* fb/fbcompose.c: (fbFetch_x4a4), (fetchProcForPicture),

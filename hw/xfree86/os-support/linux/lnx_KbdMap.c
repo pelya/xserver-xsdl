@@ -180,7 +180,7 @@ static KeySym linux_to_x[256] = {
 /*
  * Maps the AT keycodes to Linux keycodes
  */
-static unsigned char at2lnx[NUM_KEYCODES] =
+static unsigned char at2lnx[] =
 {
 	0x01,	/* KEY_Escape */	0x02,	/* KEY_1 */
 	0x03,	/* KEY_2 */		0x04,	/* KEY_3 */
