@@ -818,7 +818,9 @@ static void
 AppendSymbol(symlist * list, const char *sym)
 {
     list->list = xnfrealloc(list->list, (list->num + 1) * sizeof(char **));
-    list->list[list->num] = sym;
+    /* copy the symbol, since it comes from a module 
+       that can be unloaded later */
+    list->list[list->num] = xnfstrdup(sym);
     list->num++;
 }
 

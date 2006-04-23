@@ -1,3 +1,9 @@
+2006-04-23  Matthieu Herrb <matthieu.herrb@laas.fr>
+	* hw/xfree86/dummylib/xalloc.c
+	* hw/xfree86/loader/loader.c\
+	Don't access free memory after unloading a module.
+	Bugzilla #4168.
+	
 2006-04-22  Benjamin Herrenschmidt  <benh@kernel.crashing.org> 
 
 	* hw/xfree86/os-support/linux/lnx_KbdMap.c:
