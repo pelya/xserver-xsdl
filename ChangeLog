@@ -1,5 +1,10 @@
 2006-04-23  Donnie Berkholz  <spyderous@gentoo.org>
 
+	* Makefile.am:
+	Remove another reference to cfb16.
+
+2006-04-23  Donnie Berkholz  <spyderous@gentoo.org>
+
 	* hw/xfree86/dummylib/Makefile.am:
 	strlcpy() doesn't exist on Linux, so use the implementation in os/.
 

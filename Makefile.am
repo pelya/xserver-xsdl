@@ -60,7 +60,6 @@ SUBDIRS = \
 	$(MFB_DIR) \
 	$(AFB_DIR) \
 	$(CFB_DIR) \
-	$(CFB16_DIR) \
 	$(CFB32_DIR) \
 	record \
 	xfixes \
