@@ -8,6 +8,10 @@ INCLUDES = $(XORG_INCS)
 
 AM_CFLAGS = $(XORG_CFLAGS) @SERVER_DEFINES@ @LOADER_DEFINES@
 
+if NEED_STRLCAT
+STRL_SRCS = $(top_srcdir)/os/strlcat.c $(top_srcdir)/os/strlcpy.c
+endif
+
 libdummy_a_SOURCES = getvalidbios.c \
                      pcitestmulti.c xf86allocscripi.c \
                      xf86addrestolist.c xf86drvmsg.c xf86drvmsgverb.c \
@@ -22,6 +26,7 @@ libdummy_nonserver_a_SOURCES = \
 	getvalidbios.c \
 	logvwrite.c \
 	pcitestmulti.c \
+	$(STRL_SRCS) \
 	verrorf.c \
 	xalloc.c \
 	xf86allocscripi.c \

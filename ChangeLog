@@ -1,3 +1,8 @@
+2006-04-23  Donnie Berkholz  <spyderous@gentoo.org>
+
+	* hw/xfree86/dummylib/Makefile.am:
+	strlcpy() doesn't exist on Linux, so use the implementation in os/.
+
 2006-04-23  Matthieu Herrb <matthieu.herrb@laas.fr>
 	* hw/xfree86/dummylib/xalloc.c
 	* hw/xfree86/loader/loader.c\
