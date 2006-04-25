@@ -1,3 +1,9 @@
+2006-04-25  Eric Anholt  <anholt@FreeBSD.org>
+
+	* exa/exa_accel.c: (exaPutImage):
+	Don't forget to mark the drawable as dirty in exaPutImage().  Fixes
+	corruption with drivers that have UTS.  (Michel Dänzer)
+
 2006-04-23  Donnie Berkholz  <spyderous@gentoo.org>
 
 	* Makefile.am:

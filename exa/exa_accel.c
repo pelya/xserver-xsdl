@@ -223,6 +223,7 @@ exaPutImage (DrawablePtr pDrawable, GCPtr pGC, int depth, int x, int y,
 	    exaFinishAccess(pDrawable, EXA_PREPARE_DEST);
 	}
     }
+    exaDrawableDirty(pDrawable);
 
     return;
 
