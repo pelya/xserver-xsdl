@@ -515,4 +515,5 @@ exaDDXDriverInit(ScreenPtr pScreen)
 
     pExaScr->migration = ExaMigrationSmart;
     pExaScr->hideOffscreenPixmapData = TRUE;
+    pExaScr->checkDirtyCorrectness = TRUE;
 }

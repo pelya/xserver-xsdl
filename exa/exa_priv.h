@@ -108,6 +108,7 @@ typedef struct {
     Bool			 swappedOut;
     enum ExaMigrationHeuristic	 migration;
     Bool			 hideOffscreenPixmapData;
+    Bool			 checkDirtyCorrectness;
 } ExaScreenPrivRec, *ExaScreenPrivPtr;
 
 /*

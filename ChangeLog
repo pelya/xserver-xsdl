@@ -1,5 +1,14 @@
 2006-04-25  Eric Anholt  <anholt@FreeBSD.org>
 
+	* exa/exa_migration.c: (exaAssertNotDirty), (exaDoMigration):
+	* exa/exa_priv.h:
+	* hw/kdrive/ephyr/ephyr_draw.c: (exaDDXDriverInit):
+	Add an option to verify at the point of migration that pixmaps which
+	aren't marked dirty are in fact not dirty.  This will hopefully help
+	catch issues like the previous commit.  Leave it on in fakexa.
+
+2006-04-25  Eric Anholt  <anholt@FreeBSD.org>
+
 	* exa/exa_accel.c: (exaPutImage):
 	Don't forget to mark the drawable as dirty in exaPutImage().  Fixes
 	corruption with drivers that have UTS.  (Michel Dänzer)

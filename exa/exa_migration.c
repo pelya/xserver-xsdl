@@ -407,6 +407,36 @@ exaMigrateTowardSys (PixmapPtr pPixmap)
 }
 
 /**
+ * If the pixmap has both a framebuffer and system memory copy, this function
+ * asserts that both of them are the same.
+ */
+static void
+exaAssertNotDirty (PixmapPtr pPixmap)
+{
+    ExaPixmapPriv (pPixmap);
+    CARD8 *dst, *src;
+    int dst_pitch, src_pitch, data_row_bytes, y;
+
+    if (pExaPixmap == NULL || pExaPixmap->fb_ptr == NULL)
+	return;
+
+    dst = pExaPixmap->sys_ptr;
+    dst_pitch = pExaPixmap->sys_pitch;
+    src = pExaPixmap->fb_ptr;
+    src_pitch = pExaPixmap->fb_pitch;
+    data_row_bytes = pPixmap->drawable.width *
+		     pPixmap->drawable.bitsPerPixel / 8;
+
+    exaPrepareAccess(&pPixmap->drawable, EXA_PREPARE_SRC);
+    for (y = 0; y < pPixmap->drawable.height; y++) {
+	if (memcmp(dst, src, data_row_bytes) != 0) {
+	     abort();
+	}
+    }
+    exaFinishAccess(&pPixmap->drawable, EXA_PREPARE_SRC);
+}
+
+/**
  * Performs migration of the pixmaps according to the operation information
  * provided in pixmaps and can_accel and the migration scheme chosen in the
  * config file.
@@ -418,6 +448,19 @@ exaDoMigration (ExaMigrationPtr pixmaps, int npixmaps, Bool can_accel)
     ExaScreenPriv(pScreen);
     int i, j;
 
+    /* If this debugging flag is set, check each pixmap for whether it is marked
+     * as clean, and if so, actually check if that's the case.  This should help
+     * catch issues with failing to mark a drawable as dirty.  While it will
+     * catch them late (after the operation happened), it at least explains what
+     * went wrong, and instrumenting the code to find what operation happened
+     * to the pixmap last shouldn't be hard.
+     */
+    if (pExaScr->checkDirtyCorrectness) {
+	for (i = 0; i < npixmaps; i++) {
+	    if (!exaPixmapIsDirty (pixmaps[i].pPix))
+		exaAssertNotDirty (pixmaps[i].pPix);
+	}
+    }
     /* If anything is pinned in system memory, we won't be able to
      * accelerate.
      */
