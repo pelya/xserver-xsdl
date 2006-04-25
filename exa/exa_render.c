@@ -619,6 +619,76 @@ exaAddTriangles (PicturePtr pPicture, INT16 x_off, INT16 y_off, int ntri,
     exaFinishAccess(pPicture->pDrawable, EXA_PREPARE_DEST);
 }
 
+/**
+ * Returns TRUE if the glyphs in the lists intersect.  Only checks based on
+ * bounding box, which appears to be good enough to catch most cases at least.
+ */
+static Bool
+exaGlyphsIntersect(int nlist, GlyphListPtr list, GlyphPtr *glyphs)
+{
+    int x1, x2, y1, y2;
+    int n;
+    GlyphPtr glyph;
+    int x, y;
+    BoxRec extents;
+    Bool first = TRUE;
+    
+    x = 0;
+    y = 0;
+    while (nlist--) {
+	x += list->xOff;
+	y += list->yOff;
+	n = list->len;
+	list++;
+	while (n--) {
+	    glyph = *glyphs++;
+
+	    if (glyph->info.width == 0 || glyph->info.height == 0)
+		continue;
+
+	    x1 = x - glyph->info.x;
+	    if (x1 < MINSHORT)
+		x1 = MINSHORT;
+	    y1 = y - glyph->info.y;
+	    if (y1 < MINSHORT)
+		y1 = MINSHORT;
+	    x2 = x1 + glyph->info.width;
+	    if (x2 > MAXSHORT)
+		x2 = MAXSHORT;
+	    y2 = y1 + glyph->info.height;
+	    if (y2 > MAXSHORT)
+		y2 = MAXSHORT;
+
+	    if (first) {
+		extents.x1 = x1;
+		extents.y1 = y1;
+		extents.x2 = x2;
+		extents.y2 = y2;
+		first = FALSE;
+	    } else {
+		if (x1 < extents.x2 && x2 > extents.x1 &&
+		    y1 < extents.y2 && y2 > extents.y1)
+		{
+		    return TRUE;
+		}
+
+		if (x1 < extents.x1)
+		    extents.x1 = x1;
+		if (x2 > extents.x2)
+		    extents.x2 = x2;
+		if (y1 < extents.y1)
+		    extents.y1 = y1;
+		if (y2 > extents.y2)
+		    extents.y2 = y2;
+	    }
+	    x += glyph->info.xOff;
+	    y += glyph->info.yOff;
+	}
+    }
+
+    return FALSE;
+}
+
 /* exaGlyphs is a slight variation on miGlyphs, to support acceleration.  The
  * issue is that miGlyphs' use of ModifyPixmapHeader makes it impossible to
  * migrate these pixmaps.  So, instead we create a pixmap at the beginning of
@@ -650,13 +720,36 @@ exaGlyphs (CARD8	op,
     BoxRec	extents;
     CARD32	component_alpha;
 
+    /* If we have a mask format but it's the same as all the glyphs and
+     * the glyphs don't intersect, we can avoid accumulating the glyphs in the
+     * temporary picture.
+     */
+    if (maskFormat != NULL) {
+	Bool sameFormat = TRUE;
+	int i;
+
+	for (i = 0; i < nlist; i++) {
+	    if (maskFormat->format != list[i].format->format) {
+		sameFormat = FALSE;
+		break;
+	    }
+	}
+	if (sameFormat) {
+	    if (!exaGlyphsIntersect(nlist, list, glyphs)) {
+		maskFormat = NULL;
+	    }
+	}
+    }
+
     /* If the driver doesn't support accelerated composite, there's no point in
      * going to this extra work.  Assume that no driver will be able to do
      * component-alpha, which is likely accurate (at least until we make a CA
      * helper).
      */
     if (!pExaScr->info->PrepareComposite ||
-	(maskFormat && NeedsComponent(maskFormat->format))) {
+	(maskFormat && NeedsComponent(maskFormat->format)) ||
+	(!maskFormat && nlist > 0 && NeedsComponent(list[0].format->format)))
+    {
 	miGlyphs(op, pSrc, pDst, maskFormat, xSrc, ySrc, nlist, list, glyphs);
 	return;
     }

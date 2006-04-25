@@ -1,5 +1,17 @@
 2006-04-25  Eric Anholt  <anholt@FreeBSD.org>
 
+	* exa/exa_render.c: (exaGlyphsIntersect), (exaGlyphs):
+	Bug #4668: Check if the lists of glyphs don't have any intersecting
+	glyphs, and if they all have a maskFormat matching the format of the
+	actual glyphs  If so, we can avoid the temporary pixmap for accumulating
+	glyphs, which reduces the number of operations done, and makes it easier
+	on the migration system.  This fixes some significant performance
+	issues, particularly with subpixel antialiasing.  Note that it does
+	increase the amount of damage computation which is done, so is not
+	always a win with a compositing manager running.
+
+2006-04-25  Eric Anholt  <anholt@FreeBSD.org>
+
 	* exa/exa_migration.c: (exaAssertNotDirty), (exaDoMigration):
 	* exa/exa_priv.h:
 	* hw/kdrive/ephyr/ephyr_draw.c: (exaDDXDriverInit):
