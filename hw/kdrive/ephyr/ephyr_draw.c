@@ -226,6 +226,12 @@ static Bool
 ephyrCheckComposite(int op, PicturePtr pSrcPicture, PicturePtr pMaskPicture,
 		    PicturePtr pDstPicture)
 {
+    /* Exercise the component alpha helper, so fail on this case like a normal
+     * driver
+     */
+    if (pMaskPicture && pMaskPicture->componentAlpha && op == PictOpOver)
+	return FALSE;
+
     return TRUE;
 }
 

@@ -1,4 +1,4 @@
- /*
+/*
  * Copyright © 2001 Keith Packard
  *
  * Partly based on code that is Copyright © The XFree86 Project Inc.
@@ -448,6 +448,47 @@ exaTryDriverComposite(CARD8		op,
     return 1;
 }
 
+static int
+exaTryComponentAlphaHelper(CARD8 op,
+			   PicturePtr pSrc,
+			   PicturePtr pMask,
+			   PicturePtr pDst,
+			   INT16 xSrc,
+			   INT16 ySrc,
+			   INT16 xMask,
+			   INT16 yMask,
+			   INT16 xDst,
+			   INT16 yDst,
+			   CARD16 width,
+			   CARD16 height)
+{
+    ExaScreenPriv (pDst->pDrawable->pScreen);
+
+    assert(op == PictOpOver);
+    assert(pMask->componentAlpha == TRUE);
+
+    if (pExaScr->info->CheckComposite &&
+	(!(*pExaScr->info->CheckComposite)(PictOpOutReverse, pSrc, pMask,
+					   pDst) ||
+	 !(*pExaScr->info->CheckComposite)(PictOpAdd, pSrc, pMask, pDst)))
+    {
+	return -1;
+    }
+
+    /* Now, we think we should be able to accelerate this operation. First,
+     * composite the destination to be the destination times the source alpha
+     * factors.
+     */
+    exaComposite(PictOpOutReverse, pSrc, pMask, pDst, xSrc, ySrc, xMask, yMask,
+		 xDst, yDst, width, height);
+
+    /* Then, add in the source value times the destination alpha factors (1.0).
+     */
+    exaComposite(PictOpAdd, pSrc, pMask, pDst, xSrc, ySrc, xMask, yMask,
+		 xDst, yDst, width, height);
+
+    return 1;
+}
 
 void
 exaComposite(CARD8	op,
@@ -495,7 +536,7 @@ exaComposite(CARD8	op,
 		ret = exaTryDriverSolidFill(pSrc, pDst, xSrc, ySrc, xDst, yDst,
 					    width, height);
 		if (ret == 1)
-		    goto bail;
+		    goto done;
 	    }
 	    else if (!pSrc->repeat && !pSrc->transform &&
 		     pSrc->format == pDst->format)
@@ -510,7 +551,7 @@ exaComposite(CARD8	op,
 		if (!miComputeCompositeRegion (&region, pSrc, pMask, pDst,
 					       xSrc, ySrc, xMask, yMask, xDst,
 					       yDst, width, height))
-		    goto bail;
+		    goto done;
 
 
 		exaCopyNtoN (pSrc->pDrawable, pDst->pDrawable, NULL,
@@ -518,7 +559,7 @@ exaComposite(CARD8	op,
 			     xSrc - xDst, ySrc - yDst,
 			     FALSE, FALSE, 0, NULL);
 		REGION_UNINIT(pDst->pDrawable->pScreen, &region);
-		goto bail;
+		goto done;
 	    }
 	}
     }
@@ -529,14 +570,25 @@ exaComposite(CARD8	op,
 	(yMask + height) <= pMask->pDrawable->height)
 	    pMask->repeat = 0;
 
-
     if (pExaScr->info->PrepareComposite &&
 	!pSrc->alphaMap && (!pMask || !pMask->alphaMap) && !pDst->alphaMap)
     {
 	ret = exaTryDriverComposite(op, pSrc, pMask, pDst, xSrc, ySrc, xMask,
 				    yMask, xDst, yDst, width, height);
 	if (ret == 1)
-	    goto bail;
+	    goto done;
+
+	/* If we couldn't do the Composite in a single pass, and it was a
+	 * component-alpha Over, see if we can do it in two passes with
+	 * an OutReverse and then an Add.
+	 */
+	if (ret == -1 && pMask && pMask->componentAlpha && op == PictOpOver) {
+	    ret = exaTryComponentAlphaHelper(op, pSrc, pMask, pDst, xSrc, ySrc,
+					     xMask, yMask, xDst, yDst,
+					     width, height);
+	    if (ret == 1)
+		goto done;
+	}
     }
 
     if (ret != 0) {
@@ -567,7 +619,7 @@ exaComposite(CARD8	op,
     ExaCheckComposite (op, pSrc, pMask, pDst, xSrc, ySrc,
 		      xMask, yMask, xDst, yDst, width, height);
 
- bail:
+done:
     pSrc->repeat = saveSrcRepeat;
     if (pMask)
 	pMask->repeat = saveMaskRepeat;
@@ -745,13 +797,10 @@ exaGlyphs (CARD8	op,
     }
 
     /* If the driver doesn't support accelerated composite, there's no point in
-     * going to this extra work.  Assume that no driver will be able to do
-     * component-alpha, which is likely accurate (at least until we make a CA
-     * helper).
+     * going to this extra work.  Assume that any driver that supports Composite
+     * will be able to support component alpha using the two-pass helper.
      */
-    if (!pExaScr->info->PrepareComposite ||
-	(maskFormat && NeedsComponent(maskFormat->format)) ||
-	(!maskFormat && nlist > 0 && NeedsComponent(list[0].format->format)))
+    if (!pExaScr->info->PrepareComposite)
     {
 	miGlyphs(op, pSrc, pDst, maskFormat, xSrc, ySrc, nlist, list, glyphs);
 	return;

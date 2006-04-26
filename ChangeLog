@@ -1,3 +1,15 @@
+2006-04-26  Eric Anholt  <anholt@FreeBSD.org>
+
+	* exa/exa_render.c: (exaTryComponentAlphaHelper), (exaComposite),
+	(exaGlyphs):
+	* hw/kdrive/ephyr/ephyr_draw.c: (ephyrCheckComposite):
+	Add a helper for the Component Alpha Over case, which breaks the
+	operation down into an OutReverse and an Add.  Turn off the fallback to
+	software glyphs when component alpha, now that we expect all (new)
+	drivers to be able to support it.  Also, make Xephyr fall back in the CA
+	Over case to exercise this code.  This speeds up my rgb24text and
+	ls -lR in gnome-terminal by a factor of 5.
+
 2006-04-26  Dave Airlie <airlied@linux.ie>
 
 	* hw/xfree86/os-support/bus/Pci.c: (pciSetOSBIOSPtr),
