@@ -1774,7 +1774,16 @@ xf86GetPciBridgeInfo(void)
 		PciBus->brfunc = pcrp->funcnum;
 
 		PciBus->subclass = sub_class;
-		PciBus->interface = pcrp->pci_prog_if;
+
+		/* The Intel bridges don't report as transparent
+		   but guess what they are - from Linux kernel - airlied */
+		if ((pcrp->pci_vendor == PCI_VENDOR_INTEL) && 
+		   ((pcrp->pci_device & 0xff00) == 0x2400)) {
+			xf86MsgVerb(X_INFO, 3, "Intel Bridge workaround enabled\n");
+			PciBus->interface = PCI_IF_BRIDGE_PCI_SUBTRACTIVE;
+		} else {
+			PciBus->interface = pcrp->pci_prog_if;
+		}
 
 		if (pBusInfo && pBusInfo->funcs->pciControlBridge)
 		    PciBus->brcontrol =

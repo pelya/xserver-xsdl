@@ -150,10 +150,11 @@ xf86StdAccResFromOS(resPtr ret)
     ret = xf86AddResToList(ret, &range, -1);
     RANGE(range, 0xfee00000, 0xfeefffff, ResExcMemBlock | ResBios);
     ret = xf86AddResToList(ret, &range, -1);
-#endif
+    /* airlied - remove BIOS range it shouldn't be here 
+       this should use E820 - or THE OS */
     RANGE(range, 0xffe00000, 0xffffffff, ResExcMemBlock | ResBios);
     ret = xf86AddResToList(ret, &range, -1);
-
+#endif
     /*
      * Fallback would be to claim well known ports in the 0x0 - 0x3ff range
      * along with their sparse I/O aliases, but that's too imprecise.  Instead

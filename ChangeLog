@@ -1,3 +1,13 @@
+2006-04-26  Dave Airlie <airlied@linux.ie>
+
+	* hw/xfree86/common/xf86pciBus.c:
+	* hw/xfree86/os-support/shared/stdResource.c:
+	(xf86StdAccResFromOS):
+	Bug #6750: This patch detects Intel bridges that are transparent
+	but aren't reported as such. From the Linux kernel fixups.
+	This patch also removes the reserved BIOS area from the
+	area to allocate resources in.
+
 2006-04-25  Eric Anholt  <anholt@FreeBSD.org>
 
 	* exa/exa_migration.c: (exaPixmapSave), (exaMoveInPixmap),
