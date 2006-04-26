@@ -1,5 +1,11 @@
 2006-04-25  Eric Anholt  <anholt@FreeBSD.org>
 
+	* exa/exa_migration.c: (exaPixmapSave), (exaMoveInPixmap),
+	(exaMoveOutPixmap):
+	Improve the migration debugging output.
+
+2006-04-25  Eric Anholt  <anholt@FreeBSD.org>
+
 	* exa/exa_render.c: (exaGlyphsIntersect):
 	Fix a bug in the intersection computation that could concievably cause
 	incorrect results to be returned (but would probably usually be

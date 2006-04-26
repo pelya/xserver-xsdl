@@ -213,12 +213,12 @@ exaPixmapSave (ScreenPtr pScreen, ExaOffscreenArea *area)
     PixmapPtr pPixmap = area->privData;
     ExaPixmapPriv(pPixmap);
 
-    DBG_MIGRATE (("Save %p (%p) (%dx%d)\n",
-		  (void*)pPixmap->drawable.id,
+    DBG_MIGRATE (("Save %p (%p) (%dx%d) (%c)\n", pPixmap,
 		  (void*)(ExaGetPixmapPriv(pPixmap)->area ?
                           ExaGetPixmapPriv(pPixmap)->area->offset : 0),
 		  pPixmap->drawable.width,
-		  pPixmap->drawable.height));
+		  pPixmap->drawable.height,
+		  exaPixmapIsDirty(pPixmap) ? 'd' : 'c'));
 
     if (exaPixmapIsOffscreen(pPixmap)) {
 	exaCopyDirtyToSys (pPixmap);
@@ -289,11 +289,12 @@ exaMoveInPixmap (PixmapPtr pPixmap)
 				       pExaPixmap->area->offset;
     }
 
-    DBG_MIGRATE (("-> 0x%lx (0x%x) (%dx%d)\n", pPixmap->drawable.id,
+    DBG_MIGRATE (("-> %p (0x%x) (%dx%d) (%c)\n", pPixmap,
 		  (ExaGetPixmapPriv(pPixmap)->area ?
                    ExaGetPixmapPriv(pPixmap)->area->offset : 0),
 		  pPixmap->drawable.width,
-		  pPixmap->drawable.height));
+		  pPixmap->drawable.height,
+		  exaPixmapIsDirty(pPixmap) ? 'd' : 'c'));
 
     exaCopyDirtyToFb (pPixmap);
 
@@ -317,14 +318,15 @@ exaMoveOutPixmap (PixmapPtr pPixmap)
     if (exaPixmapIsPinned(pPixmap))
 	return;
 
-    DBG_MIGRATE (("<- 0x%p (0x%p) (%dx%d)\n",
-		  (void*)pPixmap->drawable.id,
-		  (void*)(ExaGetPixmapPriv(pPixmap)->area ?
-                          ExaGetPixmapPriv(pPixmap)->area->offset : 0),
-		  pPixmap->drawable.width,
-		  pPixmap->drawable.height));
-
     if (exaPixmapIsOffscreen(pPixmap)) {
+
+	DBG_MIGRATE (("<- %p (%p) (%dx%d) (%c)\n", pPixmap,
+		      (void*)(ExaGetPixmapPriv(pPixmap)->area ?
+			      ExaGetPixmapPriv(pPixmap)->area->offset : 0),
+		      pPixmap->drawable.width,
+		      pPixmap->drawable.height,
+		      exaPixmapIsDirty(pPixmap) ? 'd' : 'c'));
+
 	exaCopyDirtyToSys (pPixmap);
 
 	pPixmap->devPrivate.ptr = pExaPixmap->sys_ptr;
