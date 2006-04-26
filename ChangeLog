@@ -1,5 +1,12 @@
 2006-04-25  Eric Anholt  <anholt@FreeBSD.org>
 
+	* exa/exa_render.c: (exaGlyphsIntersect):
+	Fix a bug in the intersection computation that could concievably cause
+	incorrect results to be returned (but would probably usually be
+	over-conservative).
+
+2006-04-25  Eric Anholt  <anholt@FreeBSD.org>
+
 	* exa/exa_render.c: (exaGlyphsIntersect), (exaGlyphs):
 	Bug #4668: Check if the lists of glyphs don't have any intersecting
 	glyphs, and if they all have a maskFormat matching the format of the

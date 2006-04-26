@@ -643,8 +643,11 @@ exaGlyphsIntersect(int nlist, GlyphListPtr list, GlyphPtr *glyphs)
 	while (n--) {
 	    glyph = *glyphs++;
 
-	    if (glyph->info.width == 0 || glyph->info.height == 0)
+	    if (glyph->info.width == 0 || glyph->info.height == 0) {
+		x += glyph->info.xOff;
+		y += glyph->info.yOff;
 		continue;
+	    }
 
 	    x1 = x - glyph->info.x;
 	    if (x1 < MINSHORT)
