@@ -1,5 +1,16 @@
 2006-04-26  Dave Airlie <airlied@linux.ie>
 
+	* hw/xfree86/os-support/bus/Pci.c: (pciSetOSBIOSPtr),
+	(HandlePciBios):
+	* hw/xfree86/os-support/bus/Pci.h:
+	* hw/xfree86/os-support/bus/linuxPci.c: (linuxPciInit),
+	(linuxPciHandleBIOS):
+	Bug #6751: Use the Linux PCI ROM interface on Linux properly
+	The old domain code, still modified BARs not a good idea,
+	Just talk to sysfs, if 0 read, fallback to old methods.
+
+2006-04-26  Dave Airlie <airlied@linux.ie>
+
 	* hw/xfree86/common/xf86pciBus.c:
 	* hw/xfree86/os-support/shared/stdResource.c:
 	(xf86StdAccResFromOS):

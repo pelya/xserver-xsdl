@@ -236,6 +236,8 @@ static pciConfigPtr pci_devp[MAX_PCI_DEVICES + 1] = {NULL, };
 static int readPciBios( PCITAG Tag, CARD8* tmp, ADDRESS hostbase,
 			unsigned char * buf, int len, PciBiosType BiosType );
 
+static int (*pciOSHandleBIOS)(PCITAG Tag, int basereg, unsigned char *buf, int len);
+
 /*
  * Platform specific PCI function pointers.
  *
@@ -267,6 +269,11 @@ pciInit()
 	if (pciNumBuses <= 0)
 	    ARCH_PCI_OS_INIT();
 #endif
+}
+
+void pciSetOSBIOSPtr(int (*bios_fn)(PCITAG Tag, int basereg, unsigned char * buf, int len))
+{
+	pciOSHandleBIOS = bios_fn;
 }
 
 _X_EXPORT PCITAG
@@ -1278,6 +1285,13 @@ HandlePciBios(PCITAG Tag, int basereg, unsigned char * buf, int len)
   CARD32 Acc1, Acc2;
   PCITAG *pTag;
   int i;
+
+  /* fall back to the old code if the OS code fails */
+  if (pciOSHandleBIOS) {
+  	n = pciOSHandleBIOS(Tag, basereg, buf, len);
+  	if (n)
+      		return n;
+  }
 
   n = handlePciBIOS( Tag, basereg, buf, len );
   if (n)

@@ -73,6 +73,7 @@ static CARD8 linuxPciCfgReadByte(PCITAG tag, int off);
 static void linuxPciCfgWriteByte(PCITAG tag, int off, CARD8 val);
 static CARD16 linuxPciCfgReadWord(PCITAG tag, int off);
 static void linuxPciCfgWriteWord(PCITAG tag, int off, CARD16 val);
+static int linuxPciHandleBIOS(PCITAG Tag, int basereg, unsigned char *buf, int len);
 
 static pciBusFuncs_t linuxFuncs0 = {
 /* pciReadLong      */	linuxPciCfgRead,
@@ -121,6 +122,7 @@ linuxPciInit()
 	pciBusInfo[0]  = &linuxPci0;
 	pciFindFirstFP = pciGenFindFirst;
 	pciFindNextFP  = pciGenFindNext;
+	pciSetOSBIOSPtr(linuxPciHandleBIOS);
 }
 
 static int
@@ -888,3 +890,44 @@ xf86AccResFromOS(resPtr pRes)
 }
 
 #endif /* !INCLUDE_XF86_NO_DOMAIN */
+
+int linuxPciHandleBIOS(PCITAG Tag, int basereg, unsigned char *buf, int len)
+{
+  unsigned int dom, bus, dev, func;
+  unsigned int fd;
+  char file[256];
+  struct stat st;
+  int ret;
+  int sofar = 0;
+
+  dom  = PCI_DOM_FROM_TAG(Tag);
+  bus  = PCI_BUS_FROM_TAG(Tag);
+  dev  = PCI_DEV_FROM_TAG(Tag);
+  func = PCI_FUNC_FROM_TAG(Tag);
+  sprintf(file, "/sys/bus/pci/devices/%04x:%02x:%02x.%1x/rom",
+	  dom, bus, dev, func);
+
+  if (stat(file, &st) == 0)
+  {
+    if ((fd = open(file, O_RDWR)))
+      basereg = 0x0;
+    
+    /* enable the ROM first */
+    write(fd, "1", 2);
+    lseek(fd, 0, SEEK_SET);
+    do {
+        /* copy the ROM until we hit Len, EOF or read error */
+    	ret = read(fd, buf+sofar, len-sofar);
+    	if (ret <= 0)
+		break;
+	sofar += ret;
+    } while (sofar < len);
+    
+    write(fd, "0", 2);
+    close(fd);
+    if (sofar < len)
+    	xf86MsgVerb(X_INFO, 3, "Attempted to read BIOS %dKB from %s: got %dKB\n", len/1024, file, sofar/1024);
+    return sofar;
+  }
+  return 0;
+}

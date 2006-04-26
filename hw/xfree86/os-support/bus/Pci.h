@@ -425,6 +425,7 @@ CARD32        pciByteSwap(CARD32);
 Bool          pciMfDev(int, int);
 ADDRESS       pciAddrNOOP(PCITAG tag, PciAddrType type, ADDRESS);
 
+extern void pciSetOSBIOSPtr(int (*bios_fn)(PCITAG Tag, int basereg, unsigned char * buf, int len));
 extern PCITAG (*pciFindFirstFP)(void);
 extern PCITAG (*pciFindNextFP)(void);
 
