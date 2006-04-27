@@ -1,3 +1,12 @@
+2006-04-27  Eric Anholt  <anholt@FreeBSD.org>
+
+	* exa/exa_accel.c: (exaPolySegment):
+	* exa/exa_unaccel.c: (ExaCheckPolylines), (ExaCheckPolySegment):
+	Add trivial PolySegment acceleration for 0-width horizontal/vertical
+	lines, which still happen somewhat frequently and were cluttering up my
+	fallback debugging output.  x11perf says it's a major performance win
+	in those cases (though probably irrelevant), and it passes Xlib9.
+
 2006-04-26  Eric Anholt  <anholt@FreeBSD.org>
 
 	* exa/exa_render.c: (exaGlyphs):

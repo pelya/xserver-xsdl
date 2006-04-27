@@ -459,6 +459,54 @@ exaCopyArea(DrawablePtr pSrcDrawable, DrawablePtr pDstDrawable, GCPtr pGC,
                       dstx, dsty, exaCopyNtoN, 0, NULL);
 }
 
+/**
+ * exaPolySegment() checks if it can accelerate the lines as a group of
+ * horizontal or vertical lines (rectangles), and uses existing rectangle fill
+ * acceleration if so.
+ */
+static void
+exaPolySegment (DrawablePtr pDrawable, GCPtr pGC, int nseg,
+		xSegment *pSeg)
+{
+    xRectangle *prect;
+    int i;
+
+    /* Don't try to do wide lines or non-solid fill style. */
+    if (pGC->lineWidth != 0 || pGC->lineStyle != LineSolid)
+    {
+	ExaCheckPolySegment(pDrawable, pGC, nseg, pSeg);
+	return;
+    }
+
+    /* If we have any non-horizontal/vertical, fall back. */
+    for (i = 0; i < nseg; i++) {
+	if (pSeg[i].x1 != pSeg[i].x2 && pSeg[i].y1 != pSeg[i].y2) {
+	    ExaCheckPolySegment(pDrawable, pGC, nseg, pSeg);
+	    return;
+	}
+    }
+
+    prect = ALLOCATE_LOCAL(sizeof(xRectangle) * nseg);
+    for (i = 0; i < nseg; i++) {
+	if (pSeg[i].x1 < pSeg[i].x2) {
+	    prect[i].x = pSeg[i].x1;
+	    prect[i].width = pSeg[i].x2 - pSeg[i].x1 + 1;
+	} else {
+	    prect[i].x = pSeg[i].x2;
+	    prect[i].width = pSeg[i].x1 - pSeg[i].x2 + 1;
+	}
+	if (pSeg[i].y1 < pSeg[i].y2) {
+	    prect[i].y = pSeg[i].y1;
+	    prect[i].height = pSeg[i].y2 - pSeg[i].y1 + 1;
+	} else {
+	    prect[i].y = pSeg[i].y2;
+	    prect[i].height = pSeg[i].y1 - pSeg[i].y2 + 1;
+	}
+    }
+    pGC->ops->PolyFillRect(pDrawable, pGC, nseg, prect);
+    DEALLOCATE_LOCAL(prect);
+}
+
 static void
 exaPolyFillRect(DrawablePtr pDrawable,
 		GCPtr	    pGC,
@@ -802,7 +850,7 @@ const GCOps exaOps = {
     ExaCheckCopyPlane,
     ExaCheckPolyPoint,
     ExaCheckPolylines,
-    ExaCheckPolySegment,
+    exaPolySegment,
     miPolyRectangle,
     ExaCheckPolyArc,
     miFillPolygon,

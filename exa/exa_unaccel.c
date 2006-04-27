@@ -134,7 +134,8 @@ void
 ExaCheckPolylines (DrawablePtr pDrawable, GCPtr pGC,
 		  int mode, int npt, DDXPointPtr ppt)
 {
-    EXA_FALLBACK(("to 0x%lx\n", (long)pDrawable));
+    EXA_FALLBACK(("to 0x%lx, width %d, mode %d, count %d\n", (long)pDrawable,
+		  pGC->lineWidth, mode, npt));
 
     if (pGC->lineWidth == 0) {
 	exaPrepareAccess (pDrawable, EXA_PREPARE_DEST);
@@ -152,7 +153,8 @@ void
 ExaCheckPolySegment (DrawablePtr pDrawable, GCPtr pGC,
 		    int nsegInit, xSegment *pSegInit)
 {
-    EXA_FALLBACK(("to 0x%lx\n", (long)pDrawable));
+    EXA_FALLBACK(("to 0x%lx width %d, count %d\n", (long)pDrawable,
+		  pGC->lineWidth, nsegInit));
     if (pGC->lineWidth == 0) {
 	exaPrepareAccess (pDrawable, EXA_PREPARE_DEST);
 	exaPrepareAccessGC (pGC);
