@@ -1,5 +1,15 @@
 2006-04-26  Eric Anholt  <anholt@FreeBSD.org>
 
+	* exa/exa_render.c: (exaGlyphs):
+	In drawing glyphs, shortcut our way to exaComposite instead of going
+	through the whole CompositePicture stack and doing things like computing
+	damage over again.  This is a sizeable win for text drawing with a
+	compmgr.  Also avoid calling down into the server for dealing with the
+	scratch pixmap when we are able to do UploadToScreen successfully and
+	never need it.
+
+2006-04-26  Eric Anholt  <anholt@FreeBSD.org>
+
 	* exa/exa_render.c: (exaTryComponentAlphaHelper), (exaComposite),
 	(exaGlyphs):
 	* hw/kdrive/ephyr/ephyr_draw.c: (ephyrCheckComposite):

@@ -761,7 +761,7 @@ exaGlyphs (CARD8	op,
 	  GlyphPtr	*glyphs)
 {
     ExaScreenPriv (pDst->pDrawable->pScreen);
-    PixmapPtr	pPixmap = NULL, pScratchPixmap = NULL;
+    PixmapPtr	pPixmap = NULL;
     PicturePtr	pPicture;
     PixmapPtr   pMaskPixmap = NULL;
     PicturePtr  pMask;
@@ -770,7 +770,6 @@ exaGlyphs (CARD8	op,
     int		x, y;
     int		xDst = list->xOff, yDst = list->yOff;
     int		n;
-    GlyphPtr	glyph;
     int		error;
     BoxRec	extents;
     CARD32	component_alpha;
@@ -830,6 +829,7 @@ exaGlyphs (CARD8	op,
 	    (*pScreen->DestroyPixmap) (pMaskPixmap);
 	    return;
 	}
+	ValidatePicture(pMask);
 	pGC = GetScratchGC (pMaskPixmap->drawable.depth, pScreen);
 	ValidateGC (&pMaskPixmap->drawable, pGC);
 	rect.x = 0;
@@ -850,9 +850,10 @@ exaGlyphs (CARD8	op,
 
     while (nlist--)
     {
-	GCPtr pGC;
+	GCPtr pGC = NULL;
 	int maxwidth = 0, maxheight = 0, i;
 	ExaMigrationRec pixmaps[1];
+	PixmapPtr pScratchPixmap = NULL;
 
 	x += list->xOff;
 	y += list->yOff;
@@ -866,6 +867,8 @@ exaGlyphs (CARD8	op,
 	if (maxwidth == 0 || maxheight == 0) {
 	    while (n--)
 	    {
+		GlyphPtr glyph;
+
 		glyph = *glyphs++;
 		x += glyph->info.xOff;
 		y += glyph->info.yOff;
@@ -874,22 +877,11 @@ exaGlyphs (CARD8	op,
 	    continue;
 	}
 
-	/* Get a scratch pixmap to wrap the original glyph data */
-	pScratchPixmap = GetScratchPixmapHeader (pScreen, glyphs[0]->info.width,
-						 glyphs[0]->info.height, 
-						 list->format->depth,
-						 list->format->depth, 
-						 0, (pointer) (glyphs[0] + 1));
-	if (!pScratchPixmap)
-	    return;
-
 	/* Create the (real) temporary pixmap to store the current glyph in */
 	pPixmap = (*pScreen->CreatePixmap) (pScreen, maxwidth, maxheight,
 					    list->format->depth);
-	if (!pPixmap) {
-	    FreeScratchPixmapHeader (pScratchPixmap);
+	if (!pPixmap)
 	    return;
-	}
 
 	/* Create a temporary picture to wrap the temporary pixmap, so it can be
 	 * used as a source for Composite.
@@ -900,15 +892,9 @@ exaGlyphs (CARD8	op,
 				  serverClient, &error);
 	if (!pPicture) {
 	    (*pScreen->DestroyPixmap) (pPixmap);
-	    FreeScratchPixmapHeader (pScratchPixmap);
 	    return;
 	}
-
-	/* Get a scratch GC with which to copy the glyph data from scratch to
-	 * temporary
-	 */
-	pGC = GetScratchGC (list->format->depth, pScreen);
-	ValidateGC (&pPixmap->drawable, pGC);
+	ValidatePicture(pPicture);
 
 	/* Give the temporary pixmap an initial kick towards the screen, so
 	 * it'll stick there.
@@ -920,13 +906,13 @@ exaGlyphs (CARD8	op,
 
 	while (n--)
 	{
-	    glyph = *glyphs++;
+	    GlyphPtr glyph = *glyphs++;
+	    pointer glyphdata = (pointer) (glyph + 1);
 	    
 	    (*pScreen->ModifyPixmapHeader) (pScratchPixmap, 
 					    glyph->info.width,
 					    glyph->info.height,
-					    0, 0, -1, (pointer) (glyph + 1));
-	    pScratchPixmap->drawable.serialNumber = NEXT_SERIAL_NUMBER;
+					    0, 0, -1, glyphdata);
 
 	    /* Copy the glyph data into the proper pixmap instead of a fake.
 	     * First we try to use UploadToScreen, if we can, then we fall back
@@ -937,9 +923,38 @@ exaGlyphs (CARD8	op,
 		!(*pExaScr->info->UploadToScreen) (pPixmap, 0, 0,
 					glyph->info.width,
 					glyph->info.height,
-					pScratchPixmap->devPrivate.ptr,
-					pScratchPixmap->devKind))
+					glyphdata,
+					PixmapBytePad(glyph->info.width,
+						      list->format->depth)))
 	    {
+		/* Set up the scratch pixmap/GC for doing a CopyArea. */
+		if (pScratchPixmap == NULL) {
+		    /* Get a scratch pixmap to wrap the original glyph data */
+		    pScratchPixmap = GetScratchPixmapHeader (pScreen,
+							glyph->info.width,
+							glyph->info.height, 
+							list->format->depth,
+							list->format->depth, 
+							-1, glyphdata);
+		    if (!pScratchPixmap) {
+			FreePicture(pPicture, 0);
+			(*pScreen->DestroyPixmap) (pPixmap);
+			return;
+		    }
+	
+		    /* Get a scratch GC with which to copy the glyph data from
+		     * scratch to temporary
+		     */
+		    pGC = GetScratchGC (list->format->depth, pScreen);
+		    ValidateGC (&pPixmap->drawable, pGC);
+		} else {
+		    (*pScreen->ModifyPixmapHeader) (pScratchPixmap, 
+						    glyph->info.width,
+						    glyph->info.height,
+						    0, 0, -1, glyphdata);
+		    pScratchPixmap->drawable.serialNumber = NEXT_SERIAL_NUMBER;
+		}
+
 		exaCopyArea (&pScratchPixmap->drawable, &pPixmap->drawable, pGC,
 			     0, 0, glyph->info.width, glyph->info.height, 0, 0);
 	    } else {
@@ -948,53 +963,35 @@ exaGlyphs (CARD8	op,
 
 	    if (maskFormat)
 	    {
-		CompositePicture (PictOpAdd,
-				  pPicture,
-				  NULL,
-				  pMask,
-				  0, 0,
-				  0, 0,
-				  x - glyph->info.x,
-				  y - glyph->info.y,
-				  glyph->info.width,
-				  glyph->info.height);
+		exaComposite (PictOpAdd, pPicture, NULL, pMask, 0, 0, 0, 0,
+			      x - glyph->info.x, y - glyph->info.y,
+			      glyph->info.width, glyph->info.height);
 	    }
 	    else
 	    {
-		CompositePicture (op,
-				  pSrc,
-				  pPicture,
-				  pDst,
-				  xSrc + (x - glyph->info.x) - xDst,
-				  ySrc + (y - glyph->info.y) - yDst,
-				  0, 0,
-				  x - glyph->info.x,
-				  y - glyph->info.y,
-				  glyph->info.width,
-				  glyph->info.height);
+		exaComposite (op, pSrc, pPicture, pDst,
+			      xSrc + (x - glyph->info.x) - xDst,
+			      ySrc + (y - glyph->info.y) - yDst,
+			      0, 0, x - glyph->info.x, y - glyph->info.y,
+			      glyph->info.width, glyph->info.height);
 	    }
 	    x += glyph->info.xOff;
 	    y += glyph->info.yOff;
 	}
 	list++;
-	FreeScratchGC (pGC);
+	if (pGC != NULL)
+	    FreeScratchGC (pGC);
 	FreePicture ((pointer) pPicture, 0);
 	(*pScreen->DestroyPixmap) (pPixmap);
-	FreeScratchPixmapHeader (pScratchPixmap);
+	if (pScratchPixmap != NULL)
+	    FreeScratchPixmapHeader (pScratchPixmap);
     }
     if (maskFormat)
     {
 	x = extents.x1;
 	y = extents.y1;
-	CompositePicture (op,
-			  pSrc,
-			  pMask,
-			  pDst,
-			  xSrc + x - xDst,
-			  ySrc + y - yDst,
-			  0, 0,
-			  x, y,
-			  width, height);
+	exaComposite (op, pSrc, pMask, pDst, xSrc + x - xDst, ySrc + y - yDst,
+		      0, 0, x, y, width, height);
 	FreePicture ((pointer) pMask, (XID) 0);
 	(*pScreen->DestroyPixmap) (pMaskPixmap);
     }
