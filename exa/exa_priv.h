@@ -63,6 +63,9 @@ do {								\
 	ErrorF("EXA fallback at %s: ", __FUNCTION__);		\
 	ErrorF x;						\
 } while (0)
+
+char
+exaDrawableLocation(DrawablePtr pDrawable);
 #else
 #define EXA_FALLBACK(x)
 #endif

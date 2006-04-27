@@ -432,8 +432,9 @@ exaCopyNtoN (DrawablePtr    pSrcDrawable,
     }
 
 fallback:
-    EXA_FALLBACK(("from 0x%lx to 0x%lx\n", (long)pSrcDrawable,
-		  (long)pDstDrawable));
+    EXA_FALLBACK(("from %p to %p (%c,%c)\n", pSrcDrawable, pDstDrawable,
+		  exaDrawableLocation(pSrcDrawable),
+		  exaDrawableLocation(pDstDrawable)));
     exaPrepareAccess (pDstDrawable, EXA_PREPARE_DEST);
     exaPrepareAccess (pSrcDrawable, EXA_PREPARE_SRC);
     fbCopyNtoN (pSrcDrawable, pDstDrawable, pGC,
@@ -651,7 +652,6 @@ exaSolidBoxClipped (DrawablePtr	pDrawable,
 	pDrawable->width > pExaScr->info->maxX ||
 	pDrawable->height > pExaScr->info->maxY)
     {
-	EXA_FALLBACK(("to 0x%lx\n", (long)pDrawable));
 	exaDoMigration (pixmaps, 1, FALSE);
 	goto fallback;
     } else {
@@ -662,7 +662,8 @@ exaSolidBoxClipped (DrawablePtr	pDrawable,
 	!(*pExaScr->info->PrepareSolid) (pPixmap, GXcopy, pm, fg))
     {
 fallback:
-	EXA_FALLBACK(("to 0x%lx\n", (long)pDrawable));
+	EXA_FALLBACK(("to %p (%c)\n", pDrawable,
+		      exaDrawableLocation(pDrawable)));
 	exaPrepareAccess (pDrawable, EXA_PREPARE_DEST);
 	fg = fbReplicatePixel (fg, pDrawable->bitsPerPixel);
 	fbSolidBoxClipped (pDrawable, pClip, x1, y1, x2, y2,
@@ -788,7 +789,7 @@ exaImageGlyphBlt (DrawablePtr	pDrawable,
 	opaque = FALSE;
     }
 
-    EXA_FALLBACK(("to 0x%lx\n", (long)pDrawable));
+    EXA_FALLBACK(("to %p (%c)\n", pDrawable, exaDrawableLocation(pDrawable)));
     exaPrepareAccess (pDrawable, EXA_PREPARE_DEST);
     exaPrepareAccessGC (pGC);
 
@@ -938,7 +939,8 @@ exaFillRegionSolid (DrawablePtr	pDrawable,
     else
     {
 fallback:
-	EXA_FALLBACK(("to 0x%lx\n", (long)pDrawable));
+	EXA_FALLBACK(("to %p (%c)\n", pDrawable,
+		      exaDrawableLocation(pDrawable)));
 	exaPrepareAccess (pDrawable, EXA_PREPARE_DEST);
 	fbFillRegionSolid (pDrawable, pRegion, 0,
 			   fbReplicatePixel (pixel, pDrawable->bitsPerPixel));
@@ -1045,7 +1047,9 @@ exaFillRegionTiled (DrawablePtr	pDrawable,
     }
 
 fallback:
-    EXA_FALLBACK(("from 0x%lx to 0x%lx\n", (long)pTile, (long)pDrawable));
+    EXA_FALLBACK(("from %p to %p (%c,%c)\n", pTile, pDrawable,
+		  exaDrawableLocation(&pTile->drawable),
+		  exaDrawableLocation(pDrawable)));
     exaPrepareAccess (pDrawable, EXA_PREPARE_DEST);
     exaPrepareAccess ((DrawablePtr)pTile, EXA_PREPARE_SRC);
     fbFillRegionTiled (pDrawable, pRegion, pTile);

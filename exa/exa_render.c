@@ -74,7 +74,7 @@ static void exaCompositeFallbackPictDesc(PicturePtr pict, char *string, int n)
 	     pict->pDrawable->height, pict->repeat ?
 	     " R" : "");
 
-    snprintf(string, n, "0x%lx:%c fmt %s (%s)", (long)pict->pDrawable, loc, format, size);
+    snprintf(string, n, "%p:%c fmt %s (%s)", pict->pDrawable, loc, format, size);
 }
 
 static void

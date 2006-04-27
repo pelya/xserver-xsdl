@@ -1,5 +1,23 @@
 2006-04-27  Eric Anholt  <anholt@FreeBSD.org>
 
+	* exa/exa_accel.c: (exaCopyNtoN), (exaSolidBoxClipped),
+	(exaImageGlyphBlt), (exaFillRegionSolid), (exaFillRegionTiled):
+	* exa/exa_priv.h:
+	* exa/exa_render.c: (exaCompositeFallbackPictDesc):
+	* exa/exa_unaccel.c: (exaDrawableLocation), (ExaCheckFillSpans),
+	(ExaCheckSetSpans), (ExaCheckPutImage), (ExaCheckCopyArea),
+	(ExaCheckCopyPlane), (ExaCheckPolyPoint), (ExaCheckPolylines),
+	(ExaCheckPolySegment), (ExaCheckPolyArc), (ExaCheckPolyFillRect),
+	(ExaCheckImageGlyphBlt), (ExaCheckPolyGlyphBlt),
+	(ExaCheckPushPixels), (ExaCheckGetImage), (ExaCheckGetSpans),
+	(ExaCheckSaveAreas), (ExaCheckRestoreAreas), (ExaCheckPaintWindow),
+	(ExaCheckComposite):
+	Improve EXA fallback debugging output to include the locations of
+	pixmaps.  This is being used in tracking down recent compositing
+	performance regressions.
+
+2006-04-27  Eric Anholt  <anholt@FreeBSD.org>
+
 	* exa/exa_accel.c: (exaPolySegment):
 	* exa/exa_unaccel.c: (ExaCheckPolylines), (ExaCheckPolySegment):
 	Add trivial PolySegment acceleration for 0-width horizontal/vertical
