@@ -1,5 +1,10 @@
 2006-04-27  Eric Anholt  <anholt@FreeBSD.org>
 
+	* exa/exa_migration.c: (exaPixmapShouldBeInFB), (exaDoMigration):
+	Correct some bugs causing performance issues in the "Smart" scheme.
+
+2006-04-27  Eric Anholt  <anholt@FreeBSD.org>
+
 	* exa/exa_accel.c: (exaCopyNtoN), (exaSolidBoxClipped),
 	(exaImageGlyphBlt), (exaFillRegionSolid), (exaFillRegionTiled):
 	* exa/exa_priv.h:

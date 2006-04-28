@@ -72,7 +72,8 @@ exaPixmapIsDirty (PixmapPtr pPix)
 
 /**
  * Returns TRUE if the pixmap is either pinned in FB, or has a sufficient score
- * to be considered "should be in framebuffer".
+ * to be considered "should be in framebuffer".  That's just anything that has
+ * had more acceleration than fallbacks, or has no score yet.
  *
  * Only valid if using a migration scheme that tracks score.
  */
@@ -84,7 +85,7 @@ exaPixmapShouldBeInFB (PixmapPtr pPix)
     if (exaPixmapIsPinned (pPix))
 	return TRUE;
 
-    return pExaPixmap->score >= EXA_PIXMAP_SCORE_INIT;
+    return pExaPixmap->score >= 0;
 }
 
 /**
@@ -486,7 +487,11 @@ exaDoMigration (ExaMigrationPtr pixmaps, int npixmaps, Bool can_accel)
 	    if (pixmaps[i].as_dst && !exaPixmapShouldBeInFB (pixmaps[i].pPix) &&
 		!exaPixmapIsDirty (pixmaps[i].pPix))
 	    {
-		can_accel = FALSE;
+		for (i = 0; i < npixmaps; i++) {
+		    if (!exaPixmapIsDirty (pixmaps[i].pPix))
+			exaMoveOutPixmap (pixmaps[i].pPix);
+		}
+		return;
 	    }
 	}
 
