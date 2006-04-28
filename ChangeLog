@@ -1,5 +1,14 @@
 2006-04-27  Eric Anholt  <anholt@FreeBSD.org>
 
+	* exa/exa_accel.c: (exaPolyPoint), (exaPolylines),
+	(exaPolySegment):
+	Add Polylines and PolyPoint acceleration as well.  This is primarily to
+	clean up fallback debugging output, so I can focus on more imporant
+	cases.  Performance is comparable but without hardware stalls, and
+	passes Xlib9.
+
+2006-04-27  Eric Anholt  <anholt@FreeBSD.org>
+
 	* exa/exa_migration.c: (exaPixmapShouldBeInFB), (exaDoMigration):
 	Correct some bugs causing performance issues in the "Smart" scheme.
 
