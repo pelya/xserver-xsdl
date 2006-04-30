@@ -36,6 +36,10 @@
 	* miext/rootless/accel/rlAccel.c:
 	Remove NEED_LINEHELPER BC cruft for pre-R6 DDXes.
 
+	* Xprint/ps/Makefile.am:
+	* Xprint/raster/Makefile.am:
+	Remove stray mfb/cfb references.
+
 2006-04-27  Eric Anholt  <anholt@FreeBSD.org>
 
 	* exa/exa_accel.c: (exaPolyPoint), (exaPolylines),
