@@ -114,9 +114,6 @@ static GCOps rootlessGCOps = {
     RootlessImageGlyphBlt,
     RootlessPolyGlyphBlt,
     RootlessPushPixels
-#ifdef NEED_LINEHELPER
-    , NULL
-#endif
 };
 
 /*

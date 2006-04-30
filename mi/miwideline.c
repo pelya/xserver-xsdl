@@ -2231,15 +2231,3 @@ miWideDash (pDrawable, pGC, mode, npt, pPts)
     if (spanData)
 	miCleanupSpanData (pDrawable, pGC, spanData);
 }
-
-/* these are stubs to allow old ddx ValidateGCs to work without change */
-
-void
-miMiter()
-{
-}
-
-void
-miNotMiter()
-{
-}

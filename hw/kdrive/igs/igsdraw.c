@@ -1306,9 +1306,6 @@ static const GCOps	igsOps = {
     igsImageGlyphBlt,
     igsPolyGlyphBlt,
     igsPushPixels,
-#ifdef NEED_LINEHELPER
-    ,NULL
-#endif
 };
 
 void

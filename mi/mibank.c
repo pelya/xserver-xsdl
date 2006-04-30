@@ -1364,9 +1364,6 @@ static GCOps miBankGCOps =
     miBankImageGlyphBlt,
     miBankPolyGlyphBlt,
     miBankPushPixels,
-#ifdef NEED_LINEHELPER
-    NULL,               /* LineHelper */
-#endif
     {NULL}              /* devPrivate */
 };
 

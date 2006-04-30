@@ -1475,9 +1475,6 @@ static const GCOps sisOps = {
     sisImageGlyphBlt,
     sisPolyGlyphBlt,
     KdCheckPushPixels,
-#ifdef NEED_LINEHELPER
-    ,NULL
-#endif
 };
 
 void

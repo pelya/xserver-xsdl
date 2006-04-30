@@ -251,7 +251,4 @@ GCOps	kdNoopOps = {
     (typePolyGlyphBlt)  NoopDDA,	/* glyph blt */
     (typeImageGlyphBlt) NoopDDA,	/* iglyph blt */
     (typePushPixels)    NoopDDA,	/* push pixels */
-#ifdef NEED_LINEHELPER
-    (typeLineHelper) NULL,
-#endif
 };

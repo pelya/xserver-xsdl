@@ -102,9 +102,6 @@ static GCOps afbGCOps = {
 		afbTEGlyphBlt,
 		afbPolyGlyphBlt,
 		afbPushPixels
-#ifdef NEED_LINEHELPER
-		,NULL
-#endif
 };
 
 

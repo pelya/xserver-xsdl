@@ -141,9 +141,6 @@ GCOps	cfbTEOps1Rect = {
     useTEGlyphBlt,
     usePolyGlyphBlt,
     usePushPixels
-#ifdef NEED_LINEHELPER
-    ,NULL
-#endif
 };
 
 GCOps	cfbNonTEOps1Rect = {
@@ -172,9 +169,6 @@ GCOps	cfbNonTEOps1Rect = {
     useImageGlyphBlt,
     usePolyGlyphBlt,
     usePushPixels
-#ifdef NEED_LINEHELPER
-    ,NULL
-#endif
 };
 
 GCOps	cfbTEOps = {
@@ -198,9 +192,6 @@ GCOps	cfbTEOps = {
     useTEGlyphBlt,
     usePolyGlyphBlt,
     usePushPixels
-#ifdef NEED_LINEHELPER
-    ,NULL
-#endif
 };
 
 GCOps	cfbNonTEOps = {
@@ -228,9 +219,6 @@ GCOps	cfbNonTEOps = {
     useImageGlyphBlt,
     usePolyGlyphBlt,
     usePushPixels
-#ifdef NEED_LINEHELPER
-    ,NULL
-#endif
 };
 
 GCOps *

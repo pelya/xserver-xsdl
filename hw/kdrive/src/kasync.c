@@ -373,9 +373,6 @@ const GCOps kdAsyncPixmapGCOps = {
     fbImageGlyphBlt,
     fbPolyGlyphBlt,
     fbPushPixels
-#ifdef NEED_LINEHELPER
-    ,NULL
-#endif
 };
 
 void

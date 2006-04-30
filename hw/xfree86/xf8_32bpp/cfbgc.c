@@ -144,9 +144,6 @@ static GCOps cfb8_32TEOps1Rect = {
     useTEGlyphBlt,
     usePolyGlyphBlt,
     usePushPixels
-#ifdef NEED_LINEHELPER
-    ,NULL
-#endif
 };
 
 static GCOps cfb8_32NonTEOps1Rect = {
@@ -175,9 +172,6 @@ static GCOps cfb8_32NonTEOps1Rect = {
     useImageGlyphBlt,
     usePolyGlyphBlt,
     usePushPixels
-#ifdef NEED_LINEHELPER
-    ,NULL
-#endif
 };
 
 static GCOps cfb8_32TEOps = {
@@ -201,9 +195,6 @@ static GCOps cfb8_32TEOps = {
     useTEGlyphBlt,
     usePolyGlyphBlt,
     usePushPixels
-#ifdef NEED_LINEHELPER
-    ,NULL
-#endif
 };
 
 static GCOps cfb8_32NonTEOps = {
@@ -231,9 +222,6 @@ static GCOps cfb8_32NonTEOps = {
     useImageGlyphBlt,
     usePolyGlyphBlt,
     usePushPixels
-#ifdef NEED_LINEHELPER
-    ,NULL
-#endif
 };
 
 static GCOps *

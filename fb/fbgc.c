@@ -21,7 +21,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XdotOrg: xserver/xorg/fb/fbgc.c,v 1.6 2006/01/18 06:49:17 airlied Exp $ */
+/* $XdotOrg: xserver/xorg/fb/fbgc.c,v 1.7 2006/02/10 22:00:21 anholt Exp $ */
 /* $XFree86: xc/programs/Xserver/fb/fbgc.c,v 1.14 2003/12/18 15:22:32 alanh Exp $ */
 
 #ifdef HAVE_DIX_CONFIG_H
@@ -63,9 +63,6 @@ const GCOps	fbGCOps = {
     fbImageGlyphBlt,
     fbPolyGlyphBlt,
     fbPushPixels
-#ifdef NEED_LINEHELPER
-    ,NULL
-#endif
 };
 
 Bool

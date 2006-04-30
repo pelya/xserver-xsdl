@@ -1,3 +1,41 @@
+2006-04-30  Adam Jackson  <ajax@freedesktop.org>
+
+	* Xprint/pcl/PclGC.c:
+	* Xprint/ps/PsGC.c:
+	* afb/afbgc.c:
+	* cfb/cfbgc.c:
+	* exa/exa_accel.c:
+	* fb/fbgc.c:
+	* fb/fbpseudocolor.c:
+	* hw/kdrive/igs/igsdraw.c:
+	* hw/kdrive/savage/s3draw.c:
+	* hw/kdrive/savage/s3gc.c:
+	* hw/kdrive/sis530/sisdraw.c:
+	* hw/kdrive/src/kaa.c:
+	* hw/kdrive/src/kasync.c:
+	* hw/kdrive/src/knoop.c:
+	* hw/xfree86/rac/xf86RAC.c:
+	* hw/xfree86/shadowfb/shadow.c:
+	* hw/xfree86/xaa/xaaFallback.c:
+	* hw/xfree86/xaa/xaaGC.c:
+	* hw/xfree86/xf4bpp/ppcGC.c:
+	* hw/xfree86/xf4bpp/vgaGC.c:
+	* hw/xfree86/xf8_32bpp/cfbgc.c:
+	* hw/xfree86/xf8_32bpp/cfbgcunder.c:
+	* hw/xfree86/xf8_32bpp/xf86overlay.c:
+	* hw/xgl/xglgc.c:
+	* hw/xwin/wingc.c:
+	* include/gcstruct.h:
+	* mfb/mfbgc.c:
+	* mi/mi.h:
+	* mi/mibank.c:
+	* mi/mibstore.c:
+	* mi/miwideline.c:
+	* miext/damage/damage.c:
+	* miext/rootless/rootlessGC.c:
+	* miext/rootless/accel/rlAccel.c:
+	Remove NEED_LINEHELPER BC cruft for pre-R6 DDXes.
+
 2006-04-27  Eric Anholt  <anholt@FreeBSD.org>
 
 	* exa/exa_accel.c: (exaPolyPoint), (exaPolylines),

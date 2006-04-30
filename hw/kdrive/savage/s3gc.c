@@ -72,9 +72,6 @@ static const GCOps	s3TEOps = {
     s3ImageTEGlyphBlt,
     s3PolyTEGlyphBlt,
     s3PushPixels
-#ifdef NEED_LINEHELPER
-    ,NULL
-#endif
 };
 
 /* Non TE font */
@@ -99,9 +96,6 @@ static const GCOps	s3NonTEOps = {
     s3ImageGlyphBlt,
     s3PolyGlyphBlt,
     s3PushPixels
-#ifdef NEED_LINEHELPER
-    ,NULL
-#endif
 };
 
 static GCOps *

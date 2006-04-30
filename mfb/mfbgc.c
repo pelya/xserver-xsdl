@@ -101,9 +101,6 @@ static GCOps	whiteTECopyOps = {
 	mfbTEGlyphBltWhite,
 	mfbPolyGlyphBltWhite,
 	mfbSolidPP
-#ifdef NEED_LINEHELPER
-	,NULL
-#endif
 };
 
 static GCOps	blackTECopyOps = {
@@ -127,9 +124,6 @@ static GCOps	blackTECopyOps = {
 	mfbTEGlyphBltBlack,
 	mfbPolyGlyphBltBlack,
 	mfbSolidPP
-#ifdef NEED_LINEHELPER
-	,NULL
-#endif
 };
 
 static GCOps	whiteTEInvertOps = {
@@ -153,9 +147,6 @@ static GCOps	whiteTEInvertOps = {
 	mfbTEGlyphBltWhite,
 	mfbPolyGlyphBltInvert,
 	mfbSolidPP
-#ifdef NEED_LINEHELPER
-	,NULL
-#endif
 };
 
 static GCOps	blackTEInvertOps = {
@@ -179,9 +170,6 @@ static GCOps	blackTEInvertOps = {
 	mfbTEGlyphBltBlack,
 	mfbPolyGlyphBltInvert,
 	mfbSolidPP
-#ifdef NEED_LINEHELPER
-	,NULL
-#endif
 };
 
 static GCOps	whiteCopyOps = {
@@ -205,9 +193,6 @@ static GCOps	whiteCopyOps = {
 	mfbImageGlyphBltWhite,
 	mfbPolyGlyphBltWhite,
 	mfbSolidPP
-#ifdef NEED_LINEHELPER
-	,NULL
-#endif
 };
 
 static GCOps	blackCopyOps = {
@@ -231,9 +216,6 @@ static GCOps	blackCopyOps = {
 	mfbImageGlyphBltBlack,
 	mfbPolyGlyphBltBlack,
 	mfbSolidPP
-#ifdef NEED_LINEHELPER
-	,NULL
-#endif
 };
 
 static GCOps	whiteInvertOps = {
@@ -257,9 +239,6 @@ static GCOps	whiteInvertOps = {
 	mfbImageGlyphBltWhite,
 	mfbPolyGlyphBltInvert,
 	mfbSolidPP
-#ifdef NEED_LINEHELPER
-	,NULL
-#endif
 };
 
 static GCOps	blackInvertOps = {
@@ -283,9 +262,6 @@ static GCOps	blackInvertOps = {
 	mfbImageGlyphBltBlack,
 	mfbPolyGlyphBltInvert,
 	mfbSolidPP
-#ifdef NEED_LINEHELPER
-	,NULL
-#endif
 };
 
 static GCOps	whiteWhiteCopyOps = {
@@ -309,9 +285,6 @@ static GCOps	whiteWhiteCopyOps = {
 	miImageGlyphBlt,
 	mfbPolyGlyphBltWhite,
 	mfbSolidPP
-#ifdef NEED_LINEHELPER
-	,NULL
-#endif
 };
 
 static GCOps	blackBlackCopyOps = {
@@ -335,9 +308,6 @@ static GCOps	blackBlackCopyOps = {
 	miImageGlyphBlt,
 	mfbPolyGlyphBltBlack,
 	mfbSolidPP
-#ifdef NEED_LINEHELPER
-	,NULL
-#endif
 };
 
 static GCOps	fgEqBgInvertOps = {
@@ -361,9 +331,6 @@ static GCOps	fgEqBgInvertOps = {
 	miImageGlyphBlt,
 	mfbPolyGlyphBltInvert,
 	mfbSolidPP
-#ifdef NEED_LINEHELPER
-	,NULL
-#endif
 };
 
 

@@ -264,10 +264,6 @@ typedef struct _GCOps {
 		int /*x*/,
 		int /*y*/);
 
-#ifdef NEED_LINEHELPER
-    void	(* LineHelper)();
-#endif
-
     DevUnion	devPrivate;
 } GCOps;
 

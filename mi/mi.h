@@ -517,14 +517,6 @@ extern void miWideDash(
     DDXPointPtr /*pPts*/
 );
 
-extern void miMiter(
-    void
-);
-
-extern void miNotMiter(
-    void
-);
-
 /* miwindow.c */
 
 extern void miClearToBackground(

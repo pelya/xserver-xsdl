@@ -2969,9 +2969,6 @@ static const GCOps	s3_24GCOps = {
     s3_24ImageGlyphBlt,
     KdCheckPolyGlyphBlt,
     KdCheckPushPixels,
-#ifdef NEED_LINEHELPER
-    ,NULL
-#endif
 };
 
 void

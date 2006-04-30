@@ -82,9 +82,6 @@ static GCOps PclGCOps =
     PclImageGlyphBlt,
     PclPolyGlyphBlt,
     PclPushPixels
-#ifdef NEED_LINEHELPER
-      ,NULL
-#endif
 }
 ;
 

@@ -902,9 +902,6 @@ static const GCOps	kaaOps = {
     kaaImageGlyphBlt,
     KdCheckPolyGlyphBlt,
     KdCheckPushPixels,
-#ifdef NEED_LINEHELPER
-    ,NULL
-#endif
 };
 
 static void

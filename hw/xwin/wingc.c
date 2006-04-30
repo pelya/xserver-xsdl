@@ -120,9 +120,6 @@ const GCOps winGCOps = {
   miPolyGlyphBlt,
 #endif
   winPushPixels
-#ifdef NEED_LINEHELPER
-  ,NULL
-#endif
 };
 
 

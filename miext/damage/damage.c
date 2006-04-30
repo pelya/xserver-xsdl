@@ -1637,9 +1637,6 @@ GCOps damageGCOps = {
     damagePolyText16, damageImageText8,
     damageImageText16, damageImageGlyphBlt,
     damagePolyGlyphBlt, damagePushPixels,
-#ifdef NEED_LINEHELPER
-    NULL,
-#endif
     {NULL}		/* devPrivate */
 };
 

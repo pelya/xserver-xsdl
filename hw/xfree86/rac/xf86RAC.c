@@ -254,9 +254,6 @@ GCOps RACGCOps = {
     RACPolyRectangle, RACPolyArc, RACFillPolygon, RACPolyFillRect, 
     RACPolyFillArc, RACPolyText8, RACPolyText16, RACImageText8, 
     RACImageText16, RACImageGlyphBlt, RACPolyGlyphBlt, RACPushPixels,
-#ifdef NEED_LINEHELPER
-    NULL,
-#endif
     {NULL}		/* devPrivate */
 };
 

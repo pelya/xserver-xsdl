@@ -956,9 +956,6 @@ const GCOps exaOps = {
     exaImageGlyphBlt,
     ExaCheckPolyGlyphBlt,
     ExaCheckPushPixels,
-#ifdef NEED_LINEHELPER
-    ,NULL
-#endif
 };
 
 void

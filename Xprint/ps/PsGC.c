@@ -107,9 +107,6 @@ static GCOps PsGCOps =
   PsImageGlyphBlt,
   PsPolyGlyphBlt,
   PsPushPixels
-#ifdef NEED_LINEHELPER
-    ,NULL
-#endif
 };
 
 

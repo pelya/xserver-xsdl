@@ -1211,9 +1211,6 @@ GCOps xxGCOps = {
     xxPolyText16, xxImageText8, 
     xxImageText16, xxImageGlyphBlt, 
     xxPolyGlyphBlt, xxPushPixels,
-#ifdef NEED_LINEHELPER
-    NULL,
-#endif
     {NULL}		/* devPrivate */
 };
 
