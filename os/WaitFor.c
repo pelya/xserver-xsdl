@@ -641,7 +641,7 @@ ScreenSaverTimeoutExpire(OsTimerPtr timer,CARD32 now,pointer arg)
     if (timeout < ScreenSaverTime)
     {
 	return nextTimeout > 0 ? 
-		MIN(ScreenSaverTime - timeout, nextTimeout) :
+		min(ScreenSaverTime - timeout, nextTimeout) :
 		ScreenSaverTime - timeout;
     }
 
@@ -651,7 +651,7 @@ ScreenSaverTimeoutExpire(OsTimerPtr timer,CARD32 now,pointer arg)
     if (ScreenSaverInterval > 0)
     {
 	nextTimeout = nextTimeout > 0 ? 
-		MIN(ScreenSaverInterval, nextTimeout) :
+		min(ScreenSaverInterval, nextTimeout) :
 		ScreenSaverInterval;
     }
 
@@ -695,7 +695,7 @@ SetScreenSaverTimer(void)
     if (ScreenSaverTime > 0)
     {
 	timeout = timeout > 0 ?
-		MIN(ScreenSaverTime, timeout) :
+		min(ScreenSaverTime, timeout) :
 		ScreenSaverTime;
     }
 
