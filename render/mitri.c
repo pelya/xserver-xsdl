@@ -145,7 +145,7 @@ miTriStrip (CARD8	    op,
     if (npoint < 3)
 	return;
     ntri = npoint - 2;
-    tris = ALLOCATE_LOCAL (ntri & sizeof (xTriangle));
+    tris = ALLOCATE_LOCAL (ntri * sizeof (xTriangle));
     if (!tris)
 	return;
     for (tri = tris; npoint >= 3; npoint--, points++, tri++)
@@ -177,7 +177,7 @@ miTriFan (CARD8		op,
     if (npoint < 3)
 	return;
     ntri = npoint - 2;
-    tris = ALLOCATE_LOCAL (ntri & sizeof (xTriangle));
+    tris = ALLOCATE_LOCAL (ntri * sizeof (xTriangle));
     if (!tris)
 	return;
     first = points++;
