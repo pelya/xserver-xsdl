@@ -1142,7 +1142,8 @@ if test "x$XORG" = xyes -o "x$XGL" = xyes; then
 		esac
 		AC_SUBST([SOLARIS_INOUT_ARCH])
 		if test x$solaris_asm_inline = xyes ; then
-			XORG_CFLAGS="${XORG_CFLAGS} "'$(top_srcdir)/hw/xfree86/os-support/solaris/solaris-${SOLARIS_INOUT_ARCH}.il'
+			SOLARIS_ASM_CFLAGS='$(top_srcdir)/hw/xfree86/os-support/solaris/solaris-$(SOLARIS_INOUT_ARCH).il'
+			XORG_CFLAGS="${XORG_CFLAGS} "'$(SOLARIS_ASM_CFLAGS)'
 		fi
 		;;
 	  *)

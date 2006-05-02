@@ -1,5 +1,12 @@
 2006-05-01  Alan Coopersmith  <alan.coopersmith@sun.com>
 
+	* configure.ac:
+	* exa/Makefile.am: 
+	Fix Solaris build with Sun compilers to work when exa is built before
+	hw/xfree86/os-support/solaris (as it is by default now).
+
+2006-05-01  Alan Coopersmith  <alan.coopersmith@sun.com>
+
 	* os/WaitFor.c:
 	Use min() [defined in include/misc.h] instead of MIN() [not defined in
 	any Xorg header].
