@@ -649,9 +649,7 @@ configureModuleSection (void)
 		(strcmp(*el, "freetype")  == 0 &&
 		 strstr(defaultFontPath, "/TTF")) ||
     	        (strcmp(*el, "type1")  == 0 &&
-		 strstr(defaultFontPath, "/Type1")) ||
-    	        (strcmp(*el, "speedo") == 0 &&
-		 strstr(defaultFontPath, "/Speedo"))))
+		 strstr(defaultFontPath, "/Type1")))) 
 	    	ptr->mod_load_lst = (XF86LoadPtr)xf86addListItem(
 					(glp)ptr->mod_load_lst, (glp)module);
     	}

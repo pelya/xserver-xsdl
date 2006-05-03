@@ -1,3 +1,10 @@
+2006-05-03  Adam Jackson  <ajax@freedesktop.org>
+
+	* hw/xfree86/common/xf86Configure.c:
+	* hw/xfree86/utils/xorgcfg/text-mode.c:
+	* hw/xfree86/utils/xorgconfig/xorgconfig.c:
+	Redact a few mentions of speedo font support.
+
 2006-05-02  Matthieu Herrb  <matthieu.herrb@laas.fr>
 
 	* render/mitri.c:

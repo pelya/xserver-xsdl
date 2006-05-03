@@ -1,4 +1,4 @@
-/* $XdotOrg: xserver/xorg/hw/xfree86/utils/xorgcfg/text-mode.c,v 1.6 2005/12/08 17:54:40 kem Exp $ */
+/* $XdotOrg: xserver/xorg/hw/xfree86/utils/xorgcfg/text-mode.c,v 1.7 2006/04/18 17:28:44 spyderous Exp $ */
 /*
  * Copyright (c) 2000 by Conectiva S.A. (http://www.conectiva.com)
  * 
@@ -321,7 +321,7 @@ WriteXF86Config(void)
     if (newconfig) {
 	if (XF86Config->conf_modules == NULL) {
 	    static char *modules[] = {"extmod", "glx", "dri", "dbe",
-				      "record", "xtrap", "type1", "speedo"};
+				      "record", "xtrap", "type1"};
 	    XF86LoadPtr load;
 	    int i;
 
