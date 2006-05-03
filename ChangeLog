@@ -1,3 +1,17 @@
+2006-05-03  Alan Coopersmith  <alan.coopersmith@sun.com>
+
+	Make Xephyr build on Solaris:
+	
+	* hw/kdrive/src/kinput.c: 
+	Add #include <sys/file.h> on Solaris for FNONBLOCK/FASYNC definitions
+
+	* hw/kdriver/linux/Makefile.am
+	Move agp.c & agp.h to KDRIVE_HW_SOURCES since they're not needed
+	for Xephyr-only builds
+
+	* configure.ac:
+	Add -lrt to XEPHYR_LIBS if needed to get nanosleep().
+
 2006-05-03  Adam Jackson  <ajax@freedesktop.org>
 
 	* hw/xfree86/common/xf86Configure.c:

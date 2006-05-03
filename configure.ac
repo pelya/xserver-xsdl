@@ -1463,6 +1463,10 @@ AM_CONDITIONAL(KDRIVEFBDEV, [test x"$ac_cv_header_linux_fb_h" = xyes])
 #AM_CONDITIONAL(KDRIVEVESA, false)
 #AM_CONDITIONAL(KDRIVEFBDEV, false)
 
+# Xephyr needs nanosleep() which is in librt on Solaris
+AC_CHECK_FUNC([nanosleep], [],
+	AC_CHECK_LIB([rt], [nanosleep], XEPHYR_LIBS="$XEPHYR_LIBS -lrt"))
+
 AM_CONDITIONAL(XEPHYR, [test x"$xephyr" = xyes])
 XEPHYR_LIBS="$XEPHYR_LIBS $XSERVER_LIBS"
 AC_SUBST([XEPHYR_LIBS])

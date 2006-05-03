@@ -16,14 +16,14 @@ endif
 
 if KDRIVE_HW
 KDRIVE_HW_SOURCES =	\
+	agp.c		\
+	agp.h		\
 	evdev.c		\
 	keyboard.c	\
 	linux.c
 endif
 
 liblinux_a_SOURCES = 	\
-	agp.c		\
-	agp.h		\
 	bus.c		\
 	klinux.h	\
 	mouse.c		\

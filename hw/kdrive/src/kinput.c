@@ -37,6 +37,9 @@
 #include "kkeymap.h"
 #include <signal.h>
 #include <stdio.h>
+#ifdef sun
+#include <sys/file.h> /* needed for FNONBLOCK & FASYNC */
+#endif
 
 #ifdef XKB
 #include <X11/extensions/XKBsrv.h>
