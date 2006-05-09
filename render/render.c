@@ -1,4 +1,4 @@
-/* $XdotOrg: xserver/xorg/render/render.c,v 1.12 2005/08/28 19:47:39 ajax Exp $ */
+/* $XdotOrg: xserver/xorg/render/render.c,v 1.13 2006/02/10 22:00:30 anholt Exp $ */
 /*
  * $XFree86: xc/programs/Xserver/render/render.c,v 1.27tsi Exp $
  *
@@ -747,7 +747,7 @@ ProcRenderComposite (ClientPtr client)
     VERIFY_ALPHA (pMask, stuff->mask, client, SecurityReadAccess, 
 		  RenderErrBase + BadPicture);
     if ((pSrc->pDrawable && pSrc->pDrawable->pScreen != pDst->pDrawable->pScreen) ||
-	(pMask && pMask->pDrawable && pSrc->pDrawable->pScreen != pMask->pDrawable->pScreen))
+	(pMask && pMask->pDrawable && pDst->pDrawable->pScreen != pMask->pDrawable->pScreen))
 	return BadMatch;
     CompositePicture (stuff->op,
 		      pSrc,

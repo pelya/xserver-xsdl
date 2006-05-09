@@ -1,5 +1,10 @@
 2006-05-09  Adam Jackson  <ajax@freedesktop.org>
 
+	* render/render.c:
+	Bug #6867: Yet another Render crash fix. (Michel Dänzer)
+
+2006-05-09  Adam Jackson  <ajax@freedesktop.org>
+
 	* configure.ac:
 	* hw/xfree86/Makefile.am:
 	* hw/xfree86/common/Makefile.am:
