@@ -55,9 +55,7 @@ SOFTWARE.
 #include "scrnintstr.h"
 #include "pixmapstr.h"
 #include "regionstr.h"
-#if 0
 #include "../mfb/maskbits.h"
-#endif
 #include "mi.h"
 
 #define NPT 128

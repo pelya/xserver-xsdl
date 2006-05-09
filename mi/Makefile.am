@@ -72,4 +72,4 @@ libminimi_la_SOURCES = 	\
 
 libmi_la_SOURCES = $(libminimi_la_SOURCES)
 
-INCLUDES = # -I$(top_srcdir)/mfb
+INCLUDES = -I$(top_srcdir)/mfb
