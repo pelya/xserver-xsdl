@@ -21,20 +21,24 @@ INCLUDES = @XORG_INCS@
 
 Xorg_SOURCES = xorg.c
 
-DISTCLEANFILES = xorg.c
+# libxorgos and libcommon need symbols from each other
+noinst_LTLIBRARIES = libosandcommon.la
+libosandcommon_la_SOURCES = osandcommon.c
+libosandcommon_la_LIBADD = \
+            os-support/libxorgos.la \
+            common/libcommon.la
 
-xorg.c:
+osandcommon.c xorg.c:
 	touch $@
 
-OS_LIBS = os-support/libxorgos.la
+DISTCLEANFILES = osandcommon.c xorg.c
 
 XORG_LIBS = \
             @XORG_CORE_LIBS@ \
             common/libinit.a \
             loader/libloader.a \
-            common/libcommon.a \
+            libosandcommon.la \
             parser/libxf86config.a \
-            $(OS_LIBS) \
             dummylib/libdummy.a \
 	    dixmods/libdixmods.la \
             @XORG_LIBS@

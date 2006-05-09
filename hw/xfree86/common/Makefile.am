@@ -1,4 +1,5 @@
-noinst_LIBRARIES = libcommon.a libinit.a
+noinst_LIBRARIES = libinit.a
+noinst_LTLIBRARIES = libcommon.la
 
 if XORG_BUS_SPARC
 SBUS_SOURCES = xf86sbusBus.c
@@ -30,7 +31,7 @@ xf86DefModeSet.c: $(srcdir)/modeline2c.pl $(MODEDEFSOURCES)
 BUILT_SOURCES = xf86DefModeSet.c
 
 AM_LDFLAGS = -r
-libcommon_a_SOURCES = xf86Configure.c xf86Bus.c xf86Config.c \
+libcommon_la_SOURCES = xf86Configure.c xf86Bus.c xf86Config.c \
                       xf86Cursor.c xf86DGA.c xf86DPMS.c \
                       xf86DoProbe.c xf86DoScanPci.c xf86Events.c \
                       xf86Globals.c xf86Io.c xf86AutoConfig.c \
@@ -41,7 +42,7 @@ libcommon_a_SOURCES = xf86Configure.c xf86Bus.c xf86Config.c \
                       $(XVSOURCES) $(BUSSOURCES) $(XKBSOURCES) \
                       $(DEBUGSOURCES) $(XISOURCES) $(RANDRSOURCES) \
                       $(KBDSOURCES)
-nodist_libcommon_a_SOURCES = xf86DefModeSet.c
+nodist_libcommon_la_SOURCES = xf86DefModeSet.c
 libinit_a_SOURCES = xf86Build.h xf86Init.c
 
 INCLUDES = $(XORG_INCS) -I$(srcdir)/../ddc -I$(srcdir)/../i2c \
@@ -97,5 +98,9 @@ EXTRA_DIST = \
 	$(MODEDEFSOURCES) \
 	modeline2c.pl \
         $(DISTKBDSOURCES)
+
+if LNXACPI
+XORG_CFLAGS += -DHAVE_ACPI
+endif
 
 AM_CFLAGS = $(XORG_CFLAGS) @SERVER_DEFINES@ @LOADER_DEFINES@

@@ -216,7 +216,9 @@ Bool xf86sFlag = FALSE;
 Bool xf86bsEnableFlag = FALSE;
 Bool xf86bsDisableFlag = FALSE;
 Bool xf86silkenMouseDisableFlag = FALSE;
+#ifdef HAVE_ACPI
 Bool xf86acpiDisableFlag = FALSE;
+#endif
 char *xf86LayoutName = NULL;
 char *xf86ScreenName = NULL;
 char *xf86PointerName = NULL;

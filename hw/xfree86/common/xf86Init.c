@@ -1,5 +1,5 @@
 /* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86Init.c,v 3.212 2004/01/27 01:31:45 dawes Exp $ */
-/* $XdotOrg: xserver/xorg/hw/xfree86/common/xf86Init.c,v 1.33 2006/03/25 19:52:03 ajax Exp $ */
+/* $XdotOrg: xserver/xorg/hw/xfree86/common/xf86Init.c,v 1.34 2006/04/04 14:17:04 ajax Exp $ */
 
 /*
  * Loosely based on code bearing the following copyright:
@@ -1661,11 +1661,13 @@ ddxProcessArgument(int argc, char **argv, int i)
     xf86silkenMouseDisableFlag = TRUE;
     return 1;
   }
+#ifdef HAVE_ACPI
   if (!strcmp(argv[i], "-noacpi"))
   {
     xf86acpiDisableFlag = TRUE;
     return 1;
   }
+#endif
   if (!strcmp(argv[i], "-scanpci"))
   {
     DoScanPci(argc, argv, i);

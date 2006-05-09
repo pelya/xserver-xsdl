@@ -10,6 +10,13 @@
 #include "xf86Priv.h"
 #define XF86_OS_PRIVS
 #include "xf86_OSproc.h"
+
+#ifdef HAVE_ACPI
+extern PMClose lnxACPIOpen(void);
+#endif
+
+#ifdef HAVE_APM
+
 #include "lnx.h"
 #include <linux/apm_bios.h>
 #include <unistd.h>
@@ -30,7 +37,6 @@
 #endif
 
 static PMClose lnxAPMOpen(void);
-extern PMClose lnxACPIOpen(void);
 static void lnxCloseAPM(void);
 static pointer APMihPtr = NULL;
 
@@ -126,21 +132,29 @@ lnxPMConfirmEventToOs(int fd, pmEvent event)
     }
 }
 
+#endif // HAVE_APM
+
 PMClose
 xf86OSPMOpen(void)
 {
 	PMClose ret = NULL;
 
+#ifdef HAVE_ACPI
 	/* Favour ACPI over APM, but only when enabled */
 
 	if (!xf86acpiDisableFlag)
 		ret = lnxACPIOpen();
 
 	if (!ret)
+#endif
+#ifdef HAVE_APM
 		ret = lnxAPMOpen();
+#endif
 
 	return ret;
 }
+
+#ifdef HAVE_APM
 
 static PMClose
 lnxAPMOpen(void)
@@ -190,3 +204,4 @@ lnxCloseAPM(void)
     }
 }
 
+#endif // HAVE_APM

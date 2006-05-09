@@ -111,7 +111,8 @@ AC_CHECK_HEADERS([linux/agpgart.h sys/agpio.h], AGP=yes)
 AM_CONDITIONAL(AGP, [test "x$AGP" = xyes])
 
 dnl APM header
-AC_CHECK_HEADERS([linux/apm_bios.h])
+AC_CHECK_HEADERS([linux/apm_bios.h], LNXAPM=yes)
+AM_CONDITIONAL(LNXAPM, [test "x$LNXAPM" = xyes])
 
 dnl fbdev header
 AC_CHECK_HEADERS([linux/fb.h], FBDEV=yes)
@@ -1045,18 +1046,26 @@ if test "x$XORG" = xyes -o "x$XGL" = xyes; then
 
 	case $host_os in
 	  linux*)
+		if test "x$LNXAPM" = xyes; then
+			XORG_CFLAGS="$XORG_CFLAGS -DXF86PM"
+		fi
 	  	XORG_OS="linux"
 		XORG_OS_SUBDIR="linux"
 		XORG_OS_KBD="Lnx"
 		xorg_bus_linuxpci="yes"
+		AM_CONDITIONAL(LNXACPI,false)
 		case $host_cpu in
 		  ia64*)
 			linux_ia64=yes
+			AM_CONDITIONAL(LNXACPI,true)
 			;;
 		  alpha*)
 		  	linux_alpha=yes
 			XORG_OS_PCI="axp"
 			xorg_bus_linuxpci="no"
+			;;
+		  x86*)
+			AM_CONDITIONAL(LNXACPI,true)
 			;;
 		  *)
 			;;

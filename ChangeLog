@@ -1,3 +1,16 @@
+2006-05-09  Adam Jackson  <ajax@freedesktop.org>
+
+	* configure.ac:
+	* hw/xfree86/Makefile.am:
+	* hw/xfree86/common/Makefile.am:
+	* hw/xfree86/common/xf86Globals.c:
+	* hw/xfree86/common/xf86Init.c:
+	* hw/xfree86/os-support/linux/Makefile.am:
+	* hw/xfree86/os-support/linux/lnx_acpi.c:
+	* hw/xfree86/os-support/linux/lnx_apm.c:
+	Bug #5209: Re-enable building APM and ACPI support. (Michel 
+	Dänzer)
+
 2006-05-03  Alan Coopersmith  <alan.coopersmith@sun.com>
 
 	Make Xephyr build on Solaris:
