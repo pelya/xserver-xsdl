@@ -1,4 +1,4 @@
-/* $XdotOrg: xserver/xorg/record/record.c,v 1.6 2006/02/10 22:00:30 anholt Exp $ */
+/* $XdotOrg: xserver/xorg/record/record.c,v 1.7 2006/03/28 01:21:00 ajax Exp $ */
 /* $Xorg: record.c,v 1.4 2001/02/09 02:05:27 xorgcvs Exp $ */
 
 /*
@@ -785,13 +785,13 @@ RecordADeliveredEventOrError(CallbackListPtr *pcbl, pointer nulldata, pointer ca
 	    xEvent *pev = pei->events;
 	    for (ev = 0; ev < pei->count; ev++, pev++)
 	    {
-		int recordit;
-		if (pev->u.u.type == X_Error)
+		int recordit = 0;
+		if (pRCAP->pErrorSet)
 		{
 		    recordit = RecordIsMemberOfSet(pRCAP->pErrorSet,
 						((xError *)(pev))->errorCode);
 		}
-		else
+		else if (pRCAP->pDeliveredEventSet)
 		{
 		    recordit = RecordIsMemberOfSet(pRCAP->pDeliveredEventSet,
 						   pev->u.u.type & 0177);

@@ -1,3 +1,8 @@
+2006-05-10  Adam Jackson  <ajax@freedesktop.org>
+
+	* record/record.c:
+	Bug #3561: Crash fix in the Record extension. (Paul Anderson)
+
 2006-05-09  Adam Jackson  <ajax@freedesktop.org>
 
 	* render/render.c:
