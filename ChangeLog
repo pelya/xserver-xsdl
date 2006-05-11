@@ -1,5 +1,10 @@
 2006-05-11  Matthias Hopf  <mhopf@suse.de>
 
+	* fb/fbpict.c: (fbComposite):
+	Bug #5796: Wrong fastpath selection for repeating sources.
+
+2006-05-11  Matthias Hopf  <mhopf@suse.de>
+
 	* hw/xfree86/xaa/xaaPict.c: (XAAComposite):
 	Bug #4320: Improved XAA Composite fastpath.
 

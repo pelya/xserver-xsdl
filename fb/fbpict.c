@@ -844,7 +844,7 @@ fbComposite (CARD8      op,
     int		    n;
     BoxPtr	    pbox;
     CompositeFunc   func = NULL;
-    Bool	    srcRepeat = pSrc->pDrawable && pSrc->repeat == RepeatNormal;
+    Bool	    srcRepeat = pSrc->pDrawable && pSrc->repeat;
     Bool	    maskRepeat = FALSE;
     Bool	    srcAlphaMap = pSrc->alphaMap != 0;
     Bool	    maskAlphaMap = FALSE;
@@ -990,7 +990,7 @@ fbComposite (CARD8      op,
 		    }
 		}
 	    }
-	    else /* has mask and non-repeating source */
+	    else if (! srcRepeat) /* has mask and non-repeating source */
 	    {
 		if (pSrc->pDrawable == pMask->pDrawable &&
 		    xSrc == xMask && ySrc == yMask &&
@@ -1098,7 +1098,7 @@ fbComposite (CARD8      op,
 		    break;
 		}
 	    }
-	    else
+	    else if (! srcRepeat)
 	    {
 		switch (pSrc->format) {
 		case PICT_a8r8g8b8:
