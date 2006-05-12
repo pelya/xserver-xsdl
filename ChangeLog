@@ -1,3 +1,9 @@
+Fri May 12 17:51:26 2006  Søren Sandmann  <sandmann@redhat.com>
+
+	* Xext/sync.c (SyncDeleteTriggerFromCounter): Keep track of the
+	previous item and update its next pointer when deleting from the
+	linked list.
+
 2006-05-11  Matthias Hopf  <mhopf@suse.de>
 
 	* fb/fbpict.c: (fbComposite):

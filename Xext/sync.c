@@ -302,22 +302,33 @@ SyncDeleteTriggerFromCounter(pTrigger)
     SyncTrigger *pTrigger;
 {
     SyncTriggerList *pCur;
+    SyncTriggerList *pPrev;
 
     /* pCounter needs to be stored in pTrigger before calling here. */
 
     if (!pTrigger->pCounter)
 	return;
 
-    for (pCur = pTrigger->pCounter->pTriglist; pCur; pCur = pCur->next)
+    pPrev = NULL;
+    pCur = pTrigger->pCounter->pTriglist;
+
+    while (pCur)
     {
 	if (pCur->pTrigger == pTrigger)
 	{
-	    pTrigger->pCounter->pTriglist = pCur->next;
+	    if (pPrev)
+		pPrev->next = pCur->next;
+	    else
+		pTrigger->pCounter->pTriglist = pCur->next;
+	    
 	    xfree(pCur);
 	    break;
 	}
+	
+	pPrev = pCur;
+	pCur = pCur->next;
     }
-
+    
     if (IsSystemCounter(pTrigger->pCounter))
 	SyncComputeBracketValues(pTrigger->pCounter, /*startOver*/ TRUE);
 }
