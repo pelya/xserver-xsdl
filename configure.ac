@@ -1064,7 +1064,7 @@ if test "x$XORG" = xyes -o "x$XGL" = xyes; then
 			XORG_OS_PCI="axp"
 			xorg_bus_linuxpci="no"
 			;;
-		  x86*)
+		  i*86|amd64*|x86_64*)
 			linux_acpi="yes"
 			;;
 		  *)

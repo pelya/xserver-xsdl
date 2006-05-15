@@ -1,3 +1,10 @@
+2006-05-15  Adam Jackson  <ajax@freedesktop.org>
+
+	* configure.ac:
+	* hw/xfree86/os-support/linux/lnx_acpi.c:
+	Bug #5209: Fix APM/ACPI support, again. (Michel Dänzer, Valery 
+	Inozemtsev)
+
 2006-05-14  Matthieu Herrb <matthieu.herrb@laas.fr>
 
 	* configure.ac:
