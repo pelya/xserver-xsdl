@@ -10,6 +10,10 @@ if XTRAP
 XTRAPMOD = libxtrap.la
 endif
 
+if DBE
+DBEMOD = libdbe.la
+endif
+
 module_LTLIBRARIES = libafb.la \
                      libcfb.la \
                      libcfb32.la \
@@ -18,8 +22,8 @@ module_LTLIBRARIES = libafb.la \
                      libshadow.la
 
 extsmoduledir = $(moduledir)/extensions
-extsmodule_LTLIBRARIES = libdbe.la \
-                         librecord.la \
+extsmodule_LTLIBRARIES = librecord.la \
+			 $(DBEMOD) \
                          $(GLXMODS) \
                          $(XTRAPMOD)
 
