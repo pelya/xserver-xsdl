@@ -3,6 +3,9 @@
 	* hw/xfree86/dixmods/Makefile.am:
 	Make DBE support conditional.  (Enrico Wiegelt)
 
+	* hw/xfree86/loader/xf86sym.c:
+	Make Xv symbols conditional.  (Enrico Wiegelt)
+
 2006-05-15  Adam Jackson  <ajax@freedesktop.org>
 
 	* configure.ac:
