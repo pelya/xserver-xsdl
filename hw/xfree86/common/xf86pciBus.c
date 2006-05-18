@@ -1498,29 +1498,117 @@ xf86ReallocatePciResources(int entityIndex, resPtr pRes)
 /*
  * BIOS releated
  */
-memType
-getValidBIOSBase(PCITAG tag, int num)
+static resPtr
+getOwnResources(pciVideoPtr pvp, resPtr mem)
 {
-    pciVideoPtr pvp = NULL;
-    PciBusPtr pbp;
-    resPtr m = NULL;
-    resPtr tmp, avoid, mem = NULL;
     resRange range;
-    memType ret;
-    int n = 0;
     int i;
-    CARD32 biosSize, alignment;
+    /* Make sure we don't conflict with our own mem resources */
+    for (i = 0; i < 6; i++) {
+	if (!pvp->memBase[i])
+	    continue;
+	P_M_RANGE(range,TAG(pvp),pvp->memBase[i],pvp->size[i],
+		  ResExcMemBlock);
+	mem = xf86AddResToList(mem,&range,-1);
+    }
+    return mem;
+}
 
+static void
+getPciRangesForMapping(pciVideoPtr pvp,  resPtr *map, resPtr *avoid)
+{
+    PciBusPtr pbp;
+    resPtr tmp;
+    
+    *avoid = xf86DupResList(pciAvoidRes);
+
+    pbp = xf86PciBus;
+    while (pbp) {
+	if (pbp->secondary == pvp->bus) {
+	    if (pbp->preferred_pmem)
+		tmp = xf86DupResList(pbp->preferred_pmem);
+	    else
+		tmp = xf86DupResList(pbp->pmem);
+	    *map = xf86JoinResLists(*map,tmp);
+	    if (pbp->preferred_mem)
+		tmp = xf86DupResList(pbp->preferred_mem);
+	    else
+		tmp = xf86DupResList(pbp->mem);
+	    *map = xf86JoinResLists(*map,tmp);
+	    tmp = *map;
+	    while (tmp) {
+		tmp->block_end = min(tmp->block_end,PCI_MEM32_LENGTH_MAX);
+		tmp = tmp->next;
+	    }
+	} else if ((pbp->primary == pvp->bus) &&
+		   (pbp->secondary >= 0) &&
+		   (pbp->primary != pbp->secondary)) {
+	    tmp = xf86DupResList(pbp->preferred_pmem);
+	    *avoid = xf86JoinResLists(*avoid, tmp);
+	    tmp = xf86DupResList(pbp->pmem);
+	    *avoid = xf86JoinResLists(*avoid, tmp);
+	    tmp = xf86DupResList(pbp->preferred_mem);
+	    *avoid = xf86JoinResLists(*avoid, tmp);
+	    tmp = xf86DupResList(pbp->mem);
+	    *avoid = xf86JoinResLists(*avoid, tmp);
+	}
+	pbp = pbp->next;
+    }	
+    pciConvertListToHost(pvp->bus,pvp->device,pvp->func, *avoid);
+    pciConvertListToHost(pvp->bus,pvp->device,pvp->func, *map);
+}
+
+static memType
+findPciRange(PCITAG tag, resPtr m, resPtr avoid, CARD32 size)
+{
+    resRange range;
+    CARD32 alignment = (1 << size) - 1;
+    
+    while (m) {
+	range = xf86GetBlock(RANGE_TYPE(ResExcMemBlock, xf86GetPciDomain(tag)),
+			     PCI_SIZE(ResMem, tag, 1 << size),
+			     m->block_begin, m->block_end,
+			     PCI_SIZE(ResMem, tag, alignment), 
+			     avoid);
+	if (range.type != ResEnd) {
+	    return  M2B(tag, range.rBase);
+	}
+	m = m->next;
+    }
+    return 0;
+}
+
+pciVideoPtr
+getPciVideoPtr(tag)
+{
+    int n = 0;
+
+    pciVideoPtr pvp = NULL;
     if (!xf86PciVideoInfo) return 0;
     
     while ((pvp = xf86PciVideoInfo[n++])) {
 	if (pciTag(pvp->bus,pvp->device,pvp->func) == tag)
-	    break;
+	    return pvp;
     }
+    return NULL;
+}
+
+memType
+getValidBIOSBase(PCITAG tag, int num)
+{
+    pciVideoPtr pvp = NULL;
+    memType ret;
+    CARD32 biosSize;
+    resPtr mem = NULL;
+    resPtr avoid = NULL, m = NULL;
+    resRange range;
+    
+    pvp = getPciVideoPtr(tag);
+    
     if (!pvp) return 0;
 
     biosSize = pvp->biosSize;
-    alignment = (1 << biosSize) - 1;
+
     if (biosSize > 24)
 	biosSize = 24;
 
@@ -1531,15 +1619,8 @@ getValidBIOSBase(PCITAG tag, int num)
 	/* In some cases the BIOS base register contains the size mask */
 	if ((memType)(-1 << biosSize) == PCIGETROM(pvp->biosBase))
 	    return 0;
-	/* Make sure we don't conflict with our own mem resources */
-	for (i = 0; i < 6; i++) {
-	    if (!pvp->memBase[i])
-		continue;
-	    P_M_RANGE(range,TAG(pvp),pvp->memBase[i],pvp->size[i],
-		      ResExcMemBlock);
-	    mem = xf86AddResToList(mem,&range,-1);
-	}
-	P_M_RANGE(range, TAG(pvp),pvp->biosBase,biosSize,ResExcMemBlock);
+	mem = getOwnResources(pvp,mem);
+	P_M_RANGE(range, tag, pvp->biosBase,biosSize,ResExcMemBlock);
 	ret = pvp->biosBase;
 	break;
     case ROM_BASE_MEM0:
@@ -1550,7 +1631,7 @@ getValidBIOSBase(PCITAG tag, int num)
     case ROM_BASE_MEM5:
 	if (!pvp->memBase[num] || (pvp->size[num] < biosSize))
 	    return 0;
-	P_M_RANGE(range, TAG(pvp),pvp->memBase[num],biosSize,
+	P_M_RANGE(range, tag ,pvp->memBase[num],biosSize,
 		  ResExcMemBlock);
 	ret = pvp->memBase[num];
 	break;
@@ -1562,59 +1643,15 @@ getValidBIOSBase(PCITAG tag, int num)
     }
 
     /* Now find the ranges for validation */
-    avoid = xf86DupResList(pciAvoidRes);
-    pbp = xf86PciBus;
-    while (pbp) {
-	if (pbp->secondary == pvp->bus) {
-	    if (pbp->preferred_pmem)
-		tmp = xf86DupResList(pbp->preferred_pmem);
-	    else
-		tmp = xf86DupResList(pbp->pmem);
-	    m = xf86JoinResLists(m,tmp);
-	    if (pbp->preferred_mem)
-		tmp = xf86DupResList(pbp->preferred_mem);
-	    else
-		tmp = xf86DupResList(pbp->mem);
-	    m = xf86JoinResLists(m,tmp);
-	    tmp = m;
-	    while (tmp) {
-		tmp->block_end = min(tmp->block_end,PCI_MEM32_LENGTH_MAX);
-		tmp = tmp->next;
-	    }
-	} else if ((pbp->primary == pvp->bus) &&
-		   (pbp->secondary >= 0) &&
-		   (pbp->primary != pbp->secondary)) {
-	    tmp = xf86DupResList(pbp->preferred_pmem);
-	    avoid = xf86JoinResLists(avoid, tmp);
-	    tmp = xf86DupResList(pbp->pmem);
-	    avoid = xf86JoinResLists(avoid, tmp);
-	    tmp = xf86DupResList(pbp->preferred_mem);
-	    avoid = xf86JoinResLists(avoid, tmp);
-	    tmp = xf86DupResList(pbp->mem);
-	    avoid = xf86JoinResLists(avoid, tmp);
-	}
-	pbp = pbp->next;
-    }	
-    pciConvertListToHost(pvp->bus,pvp->device,pvp->func, avoid);
-    if (mem)
-	pciConvertListToHost(pvp->bus,pvp->device,pvp->func, mem);
-
+    getPciRangesForMapping(pvp,&m,&avoid);
+    
     if (!ret) {
 	/* Return a possible window */
-	while (m) {
-	    range = xf86GetBlock(RANGE_TYPE(ResExcMemBlock, xf86GetPciDomain(tag)),
-				 PCI_SIZE(ResMem, TAG(pvp), 1 << biosSize),
-				 m->block_begin, m->block_end,
-				 PCI_SIZE(ResMem, TAG(pvp), alignment), 
-				 avoid);
-	    if (range.type != ResEnd) {
-		ret =  M2B(TAG(pvp), range.rBase);
-		break;
-	    }
-	    m = m->next;
-	}
+	ret = findPciRange(tag,m,avoid,biosSize);
     } else {
 #if !defined(__ia64__) /* on ia64, trust the kernel, don't look for overlaps */
+	if (mem)
+	    pciConvertListToHost(pvp->bus,pvp->device,pvp->func, mem);
 	if (!xf86IsSubsetOf(range, m) || 
 	    ChkConflict(&range, avoid, SETUP) 
 	    || (mem && ChkConflict(&range, mem, SETUP))) 
@@ -1624,6 +1661,22 @@ getValidBIOSBase(PCITAG tag, int num)
 
     xf86FreeResList(avoid);
     xf86FreeResList(m);
+    return ret;
+}
+
+memType
+getEmptyPciRange(PCITAG tag, int base_reg)
+{
+    resPtr avoid = NULL, m = NULL;
+    memType ret;
+
+    pciVideoPtr pvp = getPciVideoPtr(tag);
+    if (!pvp) return 0;
+    getPciRangesForMapping(pvp,&m,&avoid);
+    ret = findPciRange(tag,m,avoid,pvp->size[base_reg]);
+    xf86FreeResList(avoid);
+    xf86FreeResList(m);
+
     return ret;
 }
 

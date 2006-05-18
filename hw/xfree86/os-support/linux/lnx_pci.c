@@ -201,12 +201,14 @@ xf86GetOSOffsetFromPCI(PCITAG tag, int space, unsigned long base)
             fn = devfn & 0x7;
             if (tag == pciTag(bus,dev,fn)) {
                 /* ok now look through all the BAR values of this device */
+		pciConfigPtr pDev = xf86GetPciConfigFromTag(tag);
+
                 for (ndx=0; ndx<7; ndx++) {
                     unsigned long savePtr, flagMask;
 		    if (ndx == 6) 
-			savePtr = pciReadLong(tag, PCI_CMD_BIOS_REG);
+			savePtr = pDev->pci_baserom;
 		    else /* this the ROM bar */
-			savePtr = pciReadLong(tag, PCI_CMD_BASE_REG + (0x4 * ndx));
+			savePtr = (&pDev->pci_base0)[ndx];
                     /* Ignore unset base addresses. The kernel may
                      * have reported non-zero size and address even
                      * if they are disabled (e.g. disabled ROM BAR).

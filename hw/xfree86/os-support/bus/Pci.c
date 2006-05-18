@@ -1068,6 +1068,20 @@ xf86scanpci(int flags)
     return pci_devp;
 }
 
+pciConfigPtr
+xf86GetPciConfigFromTag(PCITAG Tag)
+{
+    pciConfigPtr pDev;
+    int i = 0;
+
+    for (i = 0 ; (pDev = pci_devp[i]) && i <= MAX_PCI_DEVICES; i++) {
+	if (Tag == pDev->tag)
+	    return pDev;
+    }
+
+    return NULL;	/* Bad data */
+}
+
 CARD32
 pciCheckForBrokenBase(PCITAG Tag,int basereg)
 {
@@ -1158,13 +1172,18 @@ handlePciBIOS( PCITAG Tag, int basereg, unsigned char * buf, int len )
 
 	/* if we use a mem base save it and move it out of the way */
 	if (b_reg >= 0 && b_reg <= 5) {
+	    memType emptybase;
 	    savebase = pciReadLong(Tag, PCI_MAP_REG_START+(b_reg<<2));
 	    xf86MsgVerb(X_INFO,5,"xf86ReadPciBios: modifying membase[%i]"
 			" for device %i:%i:%i\n", basereg,
 			(int)PCI_BUS_FROM_TAG(Tag), (int)PCI_DEV_FROM_TAG(Tag),
 			(int)PCI_FUNC_FROM_TAG(Tag));
+	    if (!(emptybase = getEmptyPciRange(Tag,b_reg))) {
+		xf86Msg(X_ERROR,"Cannot find empty range to map base to\n");
+		return 0;
+	    }
 	    pciWriteLong(Tag, PCI_MAP_REG_START + (b_reg << 2),
-			 (CARD32)~0);
+			 emptybase);
 	}
 	/* Set ROM base address and enable ROM address decoding */
 	pciWriteLong(Tag, PCI_MAP_ROM_REG, romaddr

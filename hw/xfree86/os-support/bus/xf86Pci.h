@@ -774,6 +774,7 @@ pointer	      xf86MapPciMem(int ScreenNum, int Flags, PCITAG Tag,
 int	      xf86ReadPciBIOS(unsigned long Offset, PCITAG Tag, int basereg,
 				unsigned char *Buf, int Len);
 pciConfigPtr *xf86scanpci(int flags);
+pciConfigPtr xf86GetPciConfigFromTag(PCITAG Tag);
 
 extern int pciNumBuses;
 

@@ -12,7 +12,7 @@ if NEED_STRLCAT
 STRL_SRCS = $(top_srcdir)/os/strlcat.c $(top_srcdir)/os/strlcpy.c
 endif
 
-libdummy_a_SOURCES = getvalidbios.c \
+libdummy_a_SOURCES = getvalidbios.c getemptypci.c \
                      pcitestmulti.c xf86allocscripi.c \
                      xf86addrestolist.c xf86drvmsg.c xf86drvmsgverb.c \
                      xf86getverb.c \
@@ -24,6 +24,7 @@ libdummy_a_SOURCES = getvalidbios.c \
 libdummy_nonserver_a_SOURCES = \
 	fatalerror.c \
 	getvalidbios.c \
+	getemptypci.c \
 	logvwrite.c \
 	pcitestmulti.c \
 	$(STRL_SRCS) \

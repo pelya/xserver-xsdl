@@ -1,5 +1,17 @@
 2006-05-18  Adam Jackson  <ajax@freedesktop.org>
 
+	* hw/xfree86/common/xf86Priv.h:
+	* hw/xfree86/common/xf86pciBus.c:
+	* hw/xfree86/dummylib/Makefile.am:
+	* hw/xfree86/dummylib/getemptypci.c:
+	* hw/xfree86/os-support/bus/Pci.c:
+	* hw/xfree86/os-support/bus/xf86Pci.h:
+	* hw/xfree86/os-support/linux/lnx_pci.c:
+	Bug #4139: Fix a BAR remapping bug that could lead to IERR and 
+	system hang. (Egbert Eich)
+
+2006-05-18  Adam Jackson  <ajax@freedesktop.org>
+
 	* hw/xfree86/os-support/linux/lnx_pci.c:
 	Bug #6377: Ignore disabled BARs, and allow matching BARs 
 	aligned to less than 16 bytes. (Felix Kühling, ATI)
