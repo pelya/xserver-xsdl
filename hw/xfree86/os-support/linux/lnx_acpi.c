@@ -16,7 +16,6 @@
 #include <errno.h>
  
 #define ACPI_SOCKET  "/var/run/acpid.socket"
-#define ACPI_EVENTS  "/proc/acpi/event"
 
 #define ACPI_VIDEO_NOTIFY_SWITCH	0x80
 #define ACPI_VIDEO_NOTIFY_PROBE		0x81
@@ -47,8 +46,17 @@ lnxACPIGetEventFromOs(int fd, pmEvent *events, int num)
 
     memset(ev, 0, LINE_LENGTH);
 
-    n = read( fd, ev, LINE_LENGTH );
+    do {
+	n = read( fd, ev, LINE_LENGTH );
+    } while ((n == -1) && (errno == EAGAIN || errno == EINTR));
 
+    if (n <= 0) {
+	lnxCloseACPI();
+	sleep(1);
+	lnxACPIOpen();
+	return 0;
+    }
+    
     /* Check that we have a video event */
     if (strstr(ev, "video") == ev) {
 	char *video = NULL;
@@ -132,17 +140,10 @@ lnxACPIOpen(void)
 	addr.sun_family = AF_UNIX;
 	strcpy(addr.sun_path, ACPI_SOCKET);
 	if ((r = connect(fd, (struct sockaddr*)&addr, sizeof(addr))) == -1) {
+	    xf86MsgVerb(X_WARNING,3,"Open ACPI failed (%s) (%s)\n", ACPI_SOCKET,
+	    	strerror(errno));
 	    shutdown(fd, 2);
 	    close(fd);
-	    fd = -1;
-	}
-    }
-
-    /* acpid's socket isn't available, so try going direct */
-    if (fd == -1) {
-        if ((fd = open(ACPI_EVENTS, O_RDONLY)) < 0) {
-	    xf86MsgVerb(X_WARNING,3,"Open ACPI failed (%s) (%s)\n", ACPI_EVENTS,
-	    	strerror(errno));
 	    return NULL;
     	}
     }
@@ -150,7 +151,7 @@ lnxACPIOpen(void)
     xf86PMGetEventFromOs = lnxACPIGetEventFromOs;
     xf86PMConfirmEventToOs = lnxACPIConfirmEventToOs;
     ACPIihPtr = xf86AddInputHandler(fd,xf86HandlePMEvents,NULL);
-    xf86MsgVerb(X_INFO,3,"Open ACPI successful (%s)\n", (r != -1) ? ACPI_SOCKET : ACPI_EVENTS);
+    xf86MsgVerb(X_INFO,3,"Open ACPI successful (%s)\n", ACPI_SOCKET);
 
     return lnxCloseACPI;
 }

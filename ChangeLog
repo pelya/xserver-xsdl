@@ -1,5 +1,12 @@
 2006-05-18  Adam Jackson  <ajax@freedesktop.org>
 
+	* hw/xfree86/os-support/linux/lnx_acpi.c:
+	Bug #5877: Avoid burning CPU when acpid dies. Require acpid to 
+	be running for ACPI support on Linux. Minor errno handling 
+	fixes. (Valery Inozemtsev, Adam Jackson)
+
+2006-05-18  Adam Jackson  <ajax@freedesktop.org>
+
 	* fb/fbcompose.c:
 	Bug #6827: Fix texel fetch in fbFetchTransformed to avoid 
 	crashes. Still not 100% correct, but better than 7.0. (Radek 
