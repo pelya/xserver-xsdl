@@ -1,3 +1,10 @@
+2006-05-18  Adam Jackson  <ajax@freedesktop.org>
+
+	* fb/fbcompose.c:
+	Bug #6827: Fix texel fetch in fbFetchTransformed to avoid 
+	crashes. Still not 100% correct, but better than 7.0. (Radek 
+	Doulik, Matthias Hopf)
+
 2006-05-17  Daniel Stone  <daniel@freedesktop.org>
 
 	* hw/xfree86/dixmods/Makefile.am:
