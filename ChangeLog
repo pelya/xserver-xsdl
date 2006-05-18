@@ -1,5 +1,11 @@
 2006-05-18  Adam Jackson  <ajax@freedesktop.org>
 
+	* hw/xfree86/os-support/linux/lnx_pci.c:
+	Bug #6377: Ignore disabled BARs, and allow matching BARs 
+	aligned to less than 16 bytes. (Felix Kühling, ATI)
+
+2006-05-18  Adam Jackson  <ajax@freedesktop.org>
+
 	* hw/xfree86/os-support/linux/lnx_acpi.c:
 	Bug #5877: Avoid burning CPU when acpid dies. Require acpid to 
 	be running for ACPI support on Linux. Minor errno handling 
