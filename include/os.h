@@ -216,11 +216,6 @@ extern void TimerFree(OsTimerPtr /* pTimer */);
 extern void SetScreenSaverTimer(void);
 extern void FreeScreenSaverTimer(void);
 
-#ifdef DPMSExtension
-extern void SetDPMSTimers(void);
-extern void FreeDPMSTimers(void);
-#endif
-
 extern SIGVAL AutoResetServer(int /*sig*/);
 
 extern SIGVAL GiveUp(int /*sig*/);

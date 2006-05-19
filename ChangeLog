@@ -1,3 +1,9 @@
+2006-05-19  Adam Jackson  <ajax@freedesktop.org>
+
+	* include/os.h:
+	Remove dead DPMS timer functions from the installed headers. 
+	(Fredrik Höglund)
+
 2006-05-18  Adam Jackson  <ajax@freedesktop.org>
 
 	* hw/xfree86/common/xf86Priv.h:
