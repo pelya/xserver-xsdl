@@ -1,3 +1,14 @@
+2006-05-19  Alan Coopersmith  <alan.coopersmith@sun.com>
+
+	* hw/xfree86/scanpci/pci.ids:
+	Update to 2006-05-19 snapshot
+	
+	* hw/xfree86/scanpci/extrapci.ids:
+	Remove entries now present in pci.ids
+
+	* hw/xfree86/scanpci/xf86PciStdIds.h:
+	Regenerate from updated pci.ids & extrapci.ids
+	
 2006-05-19  Adam Jackson  <ajax@freedesktop.org>
 
 	* include/os.h:
