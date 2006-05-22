@@ -141,5 +141,13 @@ AllocatePixmap(ScreenPtr pScreen, int pixDataSize)
 #else
     pPixmap = (PixmapPtr)xalloc(sizeof(PixmapRec) + pixDataSize);
 #endif
+
+#ifdef _XSERVER64
+    if (pPixmap) {
+	pPixmap->drawable.pad0 = 0;
+	pPixmap->drawable.pad1 = 0;
+    }
+#endif
+
     return pPixmap;
 }

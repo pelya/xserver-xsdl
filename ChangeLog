@@ -1,3 +1,14 @@
+2006-05-22  Adam Jackson  <ajax@freedesktop.org>
+
+	* dix/colormap.c:
+	* dix/pixmap.c:
+	* dix/window.c:
+	* include/colormapst.h:
+	* include/pixmapstr.h:
+	Bug #6924: Restore the ABI for DrawableRec and ColormapRec to 
+	the state they were in prior to the fix for #6438. Based on a 
+	patch from Andy Ritger.
+
 2006-05-19  Alan Coopersmith  <alan.coopersmith@sun.com>
 
 	* hw/xfree86/scanpci/pci.ids:

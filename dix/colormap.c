@@ -1,4 +1,4 @@
-/* $XdotOrg: xserver/xorg/dix/colormap.c,v 1.11 2005/09/05 07:40:50 daniels Exp $ */
+/* $XdotOrg: xserver/xorg/dix/colormap.c,v 1.12 2006/02/15 20:44:12 ajax Exp $ */
 /* $XFree86: xc/programs/Xserver/dix/colormap.c,v 3.11 2003/11/03 05:10:59 tsi Exp $ */
 /***********************************************************
 
@@ -280,6 +280,13 @@ CreateColormap (Colormap mid, ScreenPtr pScreen, VisualPtr pVisual,
     pmap = (ColormapPtr) xalloc(sizebytes);
     if (!pmap)
 	return (BadAlloc);
+#if defined(_XSERVER64)
+    pmap->pad0 = 0;
+    pmap->pad1 = 0;
+#if (X_BYTE_ORDER == X_LITTLE_ENDIAN)
+    pmap->pad2 = 0;
+#endif
+#endif
     pmap->red = (EntryPtr)((char *)pmap + sizeof(ColormapRec));    
     sizebytes = size * sizeof(Entry);
     pmap->clientPixelsRed = (Pixel **)((char *)pmap->red + sizebytes);

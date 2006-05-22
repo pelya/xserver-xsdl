@@ -1,4 +1,4 @@
-/* $XdotOrg: xserver/xorg/dix/window.c,v 1.16 2006/03/29 17:51:54 deronj Exp $ */
+/* $XdotOrg: xserver/xorg/dix/window.c,v 1.17 2006/03/31 17:39:35 sandmann Exp $ */
 /* $Xorg: window.c,v 1.4 2001/02/09 02:04:41 xorgcvs Exp $ */
 /*
 
@@ -384,6 +384,10 @@ AllocateWindow(ScreenPtr pScreen)
 	    else
 		ppriv->ptr = (pointer)NULL;
 	}
+#if _XSERVER64
+	pWin->drawable.pad0 = 0;
+        pWin->drawable.pad1 = 0;
+#endif
     }
     return pWin;
 }
