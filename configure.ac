@@ -1154,6 +1154,7 @@ if test "x$XORG" = xyes -o "x$XGL" = xyes; then
 			SOLARIS_ASM_CFLAGS='$(top_srcdir)/hw/xfree86/os-support/solaris/solaris-$(SOLARIS_INOUT_ARCH).il'
 			XORG_CFLAGS="${XORG_CFLAGS} "'$(SOLARIS_ASM_CFLAGS)'
 		fi
+		AC_SUBST([SOLARIS_ASM_CFLAGS])
 		;;
 	  *)
 	  	XORG_OS="unknown"

@@ -1,3 +1,9 @@
+2006-05-23  Alan Coopersmith  <alan.coopersmith@sun.com>
+
+	* configure.ac:
+	Add AC_SUBST([SOLARIS_ASM_CFLAGS]) that I forgot when splitting
+	them out of the XORG_CFLAGS.
+
 2006-05-22  Adam Jackson  <ajax@freedesktop.org>
 
 	* dix/colormap.c:
