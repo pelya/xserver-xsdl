@@ -1,3 +1,11 @@
+2006-05-24  Jeremy C. Reed  <reed@reedmedia.net>
+
+	reviewed by: Daniel Stone
+
+	* xkb/maprules.c: (XkbRF_LoadDescriptions):
+	Remove tolower() which was missed in the _XkbStrCaseCmp/strcmp
+	changes.
+
 2006-05-23  Alan Coopersmith  <alan.coopersmith@sun.com>
 
 	* configure.ac:

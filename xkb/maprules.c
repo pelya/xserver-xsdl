@@ -1092,7 +1092,7 @@ int			len,headingtype,extra_ndx = 0;
     for ( ; GetInputLine(file,&line,False); line.num_line= 0) {
 	if (line.line[0]=='!') {
 	    tok = strtok(&(line.line[1]), " \t");
-	    if (_XkbStrCaseCmp(tolower(tok),"model") == 0)
+	    if (_XkbStrCaseCmp(tok,"model") == 0)
 		headingtype = HEAD_MODEL;
 	    else if (_XkbStrCaseCmp(tok,"layout") == 0)
 		headingtype = HEAD_LAYOUT;
