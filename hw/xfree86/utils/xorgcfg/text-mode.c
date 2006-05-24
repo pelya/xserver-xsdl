@@ -1,4 +1,4 @@
-/* $XdotOrg: xserver/xorg/hw/xfree86/utils/xorgcfg/text-mode.c,v 1.7 2006/04/18 17:28:44 spyderous Exp $ */
+/* $XdotOrg: xserver/xorg/hw/xfree86/utils/xorgcfg/text-mode.c,v 1.8 2006/05/03 17:50:10 ajax Exp $ */
 /*
  * Copyright (c) 2000 by Conectiva S.A. (http://www.conectiva.com)
  * 
@@ -34,7 +34,7 @@
 #include <stdlib.h>
 #include <string.h>
 #if defined(__SCO__) || defined(__UNIXWARE__) || \
-	(defined(sun) && defined(__SVR4))
+	(defined(sun) && defined(__SVR4)) || defined(__NetBSD__)
 #include <curses.h>
 #else
 #include <ncurses.h>

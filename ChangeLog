@@ -1,5 +1,13 @@
 2006-05-24  Jeremy C. Reed  <reed@reedmedia.net>
 
+	* hw/xfree86/utils/xorgcfg/text-mode.c:
+	NetBSD also has curses.h instead of ncurses.h. (TODO:
+	Maybe instead of checking for SCO, UnixWare, Sun SVR4 and
+	NetBSD, the curses.h versus ncurses.h should be tested in
+	configure.)
+
+2006-05-24  Jeremy C. Reed  <reed@reedmedia.net>
+
 	* configure.ac:
 	On NetBSD, add -li386 for i386 and -lx86_64 for x86_64 to
 	SYS_LIBS. (x86_64 on NetBSD not tested.)
