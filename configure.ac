@@ -202,7 +202,9 @@ case $host_cpu in
 	case $host_os in
 		*linux*)	DEFAULT_INT10=vm86 ;;
 		*freebsd*)	AC_DEFINE(USE_DEV_IO) ;;
-		*netbsd*)	AC_DEFINE(USE_I386_IOPL) ;;
+		*netbsd*)	AC_DEFINE(USE_I386_IOPL)
+				SYS_LIBS=-li386
+				;;
 		*openbsd*)	AC_DEFINE(USE_I386_IOPL) 
 				SYS_LIBS=-li386
 				;;
@@ -224,7 +226,9 @@ case $host_cpu in
 	I386_VIDEO=yes
 	case $host_os in
 		*freebsd*)	AC_DEFINE(USE_DEV_IO, 1, [BSD /dev/io]) ;;
-		*netbsd*)	AC_DEFINE(USE_I386_IOPL, 1, [BSD i386 iopl]) ;;
+		*netbsd*)	AC_DEFINE(USE_I386_IOPL, 1, [BSD i386 iopl])
+				SYS_LIBS=-lx86_64
+				;;
 		*openbsd*)	AC_DEFINE(USE_AMD64_IOPL, 1, [BSD AMD64 iopl])
 				SYS_LIBS=-lamd64
 				;;

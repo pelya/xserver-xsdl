@@ -1,5 +1,11 @@
 2006-05-24  Jeremy C. Reed  <reed@reedmedia.net>
 
+	* configure.ac:
+	On NetBSD, add -li386 for i386 and -lx86_64 for x86_64 to
+	SYS_LIBS. (x86_64 on NetBSD not tested.)
+
+2006-05-24  Jeremy C. Reed  <reed@reedmedia.net>
+
 	reviewed by: Daniel Stone
 
 	* xkb/maprules.c: (XkbRF_LoadDescriptions):
