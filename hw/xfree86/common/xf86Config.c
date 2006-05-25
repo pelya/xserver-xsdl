@@ -1,4 +1,4 @@
-/* $XdotOrg: xserver/xorg/hw/xfree86/common/xf86Config.c,v 1.27 2006/04/07 01:37:11 ajax Exp $ */
+/* $XdotOrg: xserver/xorg/hw/xfree86/common/xf86Config.c,v 1.28 2006/04/07 01:41:00 ajax Exp $ */
 /* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86Config.c,v 3.276 2003/10/08 14:58:26 dawes Exp $ */
 
 
@@ -510,7 +510,7 @@ GenerateDriverlist(char * dirname, char * drivernames)
     ret = LoaderListDirs(subdirs, patlist);
     
     /* fix up the probe order for video drivers */
-    if (strstr(dirname, "drivers"))
+    if (strstr(dirname, "drivers") && ret != NULL)
         fixup_video_driver_list(ret);
 
     return ret;

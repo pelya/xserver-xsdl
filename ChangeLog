@@ -1,3 +1,12 @@
+2006-05-25  Jeremy C. Reed  <reed@reedmedia.net>
+
+	reviewed by: Adam Jackson
+
+	* hw/xfree86/common/xf86Config.c: (GenerateDriverlist):
+	Don't do fixup_video_driver_list if no drivers.  (I had
+	signal 11 and core dump when drivers not installed yet.)
+	(TODO: fix fixup_video_driver_list to handle NULL argument.)
+
 2006-05-25  Matthieu Herrb <matthieu.herrb@laas.fr>
 
 	* mi/midispcur.c: (miDCCloseScreen)
