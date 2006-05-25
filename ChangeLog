@@ -2,6 +2,10 @@
 
 	* mi/midispcur.c: (miDCCloseScreen)
 	Don't destroy a pixmap twice on server exit (bugzilla #4247).
+	* GL/symlink-mesa.sh:
+	* GL/mesa/main/Makefile.am:
+	update to build against Mesa CVS HEAD 
+	(Carlos Eduardo Rodrigues Diógenes)
 
 2006-05-24  Jeremy C. Reed  <reed@reedmedia.net>
 

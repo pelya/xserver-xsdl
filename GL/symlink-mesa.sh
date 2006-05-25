@@ -169,6 +169,8 @@ symlink_mesa_main() {
     action polygon.h
     action rastpos.c
     action rastpos.h
+    action rbadaptors.c
+    action rbadaptors.h
     action renderbuffer.c
     action renderbuffer.h
     action simple_list.h
