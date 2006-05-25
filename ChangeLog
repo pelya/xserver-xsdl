@@ -1,3 +1,8 @@
+2006-05-25  Matthieu Herrb <matthieu.herrb@laas.fr>
+
+	* mi/midispcur.c: (miDCCloseScreen)
+	Don't destroy a pixmap twice on server exit (bugzilla #4247).
+
 2006-05-24  Jeremy C. Reed  <reed@reedmedia.net>
 
 	* hw/xfree86/utils/xorgcfg/text-mode.c:

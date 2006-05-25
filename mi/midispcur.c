@@ -184,7 +184,9 @@ miDCCloseScreen (index, pScreen)
     tossPix (pScreenPriv->pSave);
     tossPix (pScreenPriv->pTemp);
 #ifdef ARGB_CURSOR
+#if 0				/* This has been free()d before */
     tossPict (pScreenPriv->pRootPicture);
+#endif 
     tossPict (pScreenPriv->pTempPicture);
 #endif
     xfree ((pointer) pScreenPriv);
