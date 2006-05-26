@@ -1,5 +1,5 @@
 .\" $Xorg: Xserver.man,v 1.4 2001/02/09 02:04:07 xorgcvs Exp $
-.\" $XdotOrg: $
+.\" $XdotOrg: xserver/xorg/doc/Xserver.man.pre,v 1.4 2005/12/23 20:11:12 alanc Exp $
 .\" Copyright 1984 - 1991, 1993, 1994, 1998  The Open Group
 .\"
 .\" Permission to use, copy, modify, distribute, and sell this software and its
@@ -125,7 +125,7 @@ Not obeyed by all servers.
 .TP 8
 .B \-co \fIfilename\fP
 sets name of RGB color database.  The default is
-.IR __projectroot__/lib/X11/rgb .
+.IR __projectroot__/share/X11/rgb .
 .ig
 .TP 8
 .B \-config \fIfilename\fP
@@ -742,7 +742,7 @@ Bitmap font directories
 .IR __projectroot__/lib/X11/fonts/TTF , __projectroot__/lib/X11/fonts/Type1
 Outline font directories
 .TP 30
-.I __projectroot__/lib/X11/rgb.txt
+.I __projectroot__/share/X11/rgb.txt
 Color database
 .TP 30
 .I /tmp/.X11-unix/X\fBn\fP

@@ -1,5 +1,14 @@
 2006-05-25  Jeremy C. Reed  <reed@reedmedia.net>
 
+	* doc/Xserver.man.pre:
+	* hw/xfree86/doc/man/Xorg.man.pre:
+	* hw/xfree86/doc/man/xorg.conf.man.pre:
+	RGB color database and XErrorDB install to "share" not
+	"lib" by default (by app/rgb and libX11). (TODO: They are
+	customizable, so maybe cpprules.in should be extended.)
+
+2006-05-25  Jeremy C. Reed  <reed@reedmedia.net>
+
 	reviewed by: Adam Jackson
 
 	* hw/xfree86/common/xf86Config.c: (GenerateDriverlist):

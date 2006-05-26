@@ -1,4 +1,4 @@
-.\" $XdotOrg: xc/programs/Xserver/hw/xfree86/Xorg.man,v 1.2 2004/04/23 19:20:02 eich Exp $
+.\" $XdotOrg: xserver/xorg/hw/xfree86/doc/man/Xorg.man.pre,v 1.3 2005/07/04 18:41:01 ajax Exp $
 .TH __xservername__ __appmansuffix__ __vendorversion__
 .SH NAME
 __xservername__ - X11R6 X server
@@ -571,10 +571,10 @@ Libraries.
 .B __projectroot__/lib/X11/fonts/\(**
 Fonts.
 .TP 30
-.B __projectroot__/lib/X11/rgb.txt
+.B __projectroot__/share/X11/rgb.txt
 Color names to RGB mapping.
 .TP 30
-.B __projectroot__/lib/X11/XErrorDB
+.B __projectroot__/share/X11/XErrorDB
 Client error message database.
 .TP 30
 .B __projectroot__/lib/X11/app-defaults/\(**

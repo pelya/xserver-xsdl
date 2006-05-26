@@ -1,4 +1,4 @@
-.\" $XdotOrg: xc/programs/Xserver/hw/xfree86/xorg.conf.man,v 1.3 2005/03/22 21:30:43 ajax Exp $
+.\" $XdotOrg: xserver/xorg/hw/xfree86/doc/man/xorg.conf.man.pre,v 1.6 2005/12/19 16:44:21 ajax Exp $
 .\" shorthand for double quote that works everywhere.
 .ds q \N'34'
 .TH __xconfigfile__ __filemansuffix__ __vendorversion__
@@ -343,7 +343,7 @@ When this entry is not specified in the config file, the server falls back
 to the compiled-in default RGB path, which is:
 .PP
 .RS 11
-.I __projectroot__/lib/X11/rgb
+.I __projectroot__/share/X11/rgb
 .RE
 .PP
 Note that an implicit
