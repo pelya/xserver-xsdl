@@ -1,3 +1,10 @@
+2006-05-26  Matthieu Herrb <matthieu.herrb@laas.fr>
+
+	* hw/xfree86/os-support/bsd/bsd_mouse.c:
+	check buffersize before reading next char, fixes the 
+	"mouse stuck at left" bug (bugzilla #3113) for BSD systems using 
+	wscons. (Dale Rahn).
+
 2006-05-25  Jeremy C. Reed  <reed@reedmedia.net>
 
 	* doc/Xserver.man.pre:

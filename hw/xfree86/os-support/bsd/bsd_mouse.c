@@ -401,7 +401,7 @@ wsconsReadInput(InputInfoPtr pInfo)
     XisbBlockDuration(pMse->buffer, -1);
     pBuf = (unsigned char *)eventList;
     n = 0;
-    while ((c = XisbRead(pMse->buffer)) >= 0 && n < sizeof(eventList)) {
+    while (n < sizeof(eventList) && (c = XisbRead(pMse->buffer)) >= 0) {
 	pBuf[n++] = (unsigned char)c;
     }
 
