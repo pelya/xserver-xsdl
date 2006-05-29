@@ -5,6 +5,20 @@
 	* xkb/ddxVT.c:
 	Minor #include cleanups.
 
+	* xkb/xkb.c:
+	* xkb/xkbUtils.c:
+	* hw/xfree86/common/xf86Config.c:
+	* hw/xfree86/common/xf86Io.c:
+	* hw/xfree86/os-support/sysv/xqueue.c:
+	* hw/xnest/Keyboard.c:
+	* hw/kdrive/src/kinput.c:
+	* hw/xgl/egl/kinput.c:
+	* hw/dmx/input/dmxinputinit.c:
+	* hw/xgl/glx/xglx.c:
+	* hw/xwin/winconfig.c:
+	* hw/xwin/winkeybd.c:
+	Remove -xkbmap argument.
+
 2006-05-26  Matthieu Herrb <matthieu.herrb@laas.fr>
 
 	* hw/xfree86/os-support/bsd/bsd_mouse.c:

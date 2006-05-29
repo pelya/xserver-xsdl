@@ -867,26 +867,6 @@ XkbDescPtr	xkb=	xkbi->desc;
     }
     if ((xkb->geom!=NULL)&&(xkb->geom->name==name))
 	return xkb->geom;
-    else if ((name==xkb->names->geometry)&&(xkb->geom==NULL)) {
-	FILE *file= XkbDDXOpenConfigFile(XkbInitialMap,NULL,0);
-	if (file!=NULL) {
-	    XkbFileInfo		xkbFInfo;
-	    xkmFileInfo		finfo;
-	    xkmSectionInfo	toc[MAX_TOC],*entry;
-	    bzero(&xkbFInfo,sizeof(xkbFInfo));
-	    xkbFInfo.xkb= xkb;
-	    if (XkmReadTOC(file,&finfo,MAX_TOC,toc)) {
-		entry= XkmFindTOCEntry(&finfo,toc,XkmGeometryIndex);
-		if (entry!=NULL)
-		    XkmReadFileSection(file,entry,&xkbFInfo,NULL);
-	    }
-	    fclose(file);
-	    if (xkb->geom) {
-		*shouldFree= 0;
-		return xkb->geom;
-	    }
-	}
-    }
     *shouldFree= 1;
     return NULL;
 }

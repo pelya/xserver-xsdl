@@ -1187,14 +1187,6 @@ xglxKeybdProc (DeviceIntPtr pDevice,
 
 	      memset (&names, 0, sizeof (XkbComponentNamesRec));
 
-	      if (XkbInitialMap)
-	      {
-		  if ((names.keymap = strchr (XkbInitialMap, '/')) != NULL)
-		      names.keymap++;
-		  else
-		      names.keymap = XkbInitialMap;
-	      }
-
 	      XkbSetRulesDflts (rules, model, layout, variants, options);
 
 	      ret = XkbInitKeyboardDeviceStruct ((pointer) pDev,

@@ -356,55 +356,41 @@ static int dmxKeyboardOn(DeviceIntPtr pDevice, DMXLocalInitInfo *info)
                          dmxConfigGetXkbLayout(),
                          dmxConfigGetXkbVariant(),
                          dmxConfigGetXkbOptions());
-        if (XkbInitialMap) {    /* Set with -xkbmap */
-            dmxLogInput(dmxInput,
-                        "XKEYBOARD: From command line: %s\n", XkbInitialMap);
-            if ((info->names.keymap = strchr(XkbInitialMap, '/')))
-                ++info->names.keymap;
-            else
-                info->names.keymap = XkbInitialMap;
-            info->names.keycodes   = NULL;
-            info->names.types      = NULL;
-            info->names.compat     = NULL;
-            info->names.symbols    = NULL;
-            info->names.geometry   = NULL;
+        if (!info->force && (dmxInput->keycodes
+                             || dmxInput->symbols
+                             || dmxInput->geometry)) {
+            if (info->freenames) dmxKeyboardFreeNames(&info->names);
+            info->freenames      = 0;
+            info->names.keycodes = dmxInput->keycodes;
+            info->names.types    = NULL;
+            info->names.compat   = NULL;
+            info->names.symbols  = dmxInput->symbols;
+            info->names.geometry = dmxInput->geometry;
+            
+            dmxLogInput(dmxInput, "XKEYBOARD: From command line: %s",
+                        info->names.keycodes);
+            if (info->names.symbols && *info->names.symbols)
+                dmxLogInputCont(dmxInput, " %s", info->names.symbols);
+            if (info->names.geometry && *info->names.geometry)
+                dmxLogInputCont(dmxInput, " %s", info->names.geometry);
+            dmxLogInputCont(dmxInput, "\n");
+        } else if (info->names.keycodes) {
+            dmxLogInput(dmxInput, "XKEYBOARD: From device: %s",
+                        info->names.keycodes);
+            if (info->names.symbols && *info->names.symbols)
+                dmxLogInputCont(dmxInput, " %s", info->names.symbols);
+            if (info->names.geometry && *info->names.geometry)
+                dmxLogInputCont(dmxInput, " %s", info->names.geometry);
+            dmxLogInputCont(dmxInput, "\n");
         } else {
-            if (!info->force && (dmxInput->keycodes
-                                 || dmxInput->symbols
-                                 || dmxInput->geometry)) {
-                if (info->freenames) dmxKeyboardFreeNames(&info->names);
-                info->freenames      = 0;
-                info->names.keycodes = dmxInput->keycodes;
-                info->names.types    = NULL;
-                info->names.compat   = NULL;
-                info->names.symbols  = dmxInput->symbols;
-                info->names.geometry = dmxInput->geometry;
-                
-                dmxLogInput(dmxInput, "XKEYBOARD: From command line: %s",
-                            info->names.keycodes);
-                if (info->names.symbols && *info->names.symbols)
-                    dmxLogInputCont(dmxInput, " %s", info->names.symbols);
-                if (info->names.geometry && *info->names.geometry)
-                    dmxLogInputCont(dmxInput, " %s", info->names.geometry);
-                dmxLogInputCont(dmxInput, "\n");
-            } else if (info->names.keycodes) {
-                dmxLogInput(dmxInput, "XKEYBOARD: From device: %s",
-                            info->names.keycodes);
-                if (info->names.symbols && *info->names.symbols)
-                    dmxLogInputCont(dmxInput, " %s", info->names.symbols);
-                if (info->names.geometry && *info->names.geometry)
-                    dmxLogInputCont(dmxInput, " %s", info->names.geometry);
-                dmxLogInputCont(dmxInput, "\n");
-            } else {
-                dmxLogInput(dmxInput, "XKEYBOARD: Defaults: %s %s %s %s %s\n",
-                            dmxConfigGetXkbRules(),
-                            dmxConfigGetXkbLayout(),
-                            dmxConfigGetXkbModel(),
-                            dmxConfigGetXkbVariant()
-                            ? dmxConfigGetXkbVariant() : "",
-                            dmxConfigGetXkbOptions()
-                            ? dmxConfigGetXkbOptions() : "");
-            }
+            dmxLogInput(dmxInput, "XKEYBOARD: Defaults: %s %s %s %s %s\n",
+                        dmxConfigGetXkbRules(),
+                        dmxConfigGetXkbLayout(),
+                        dmxConfigGetXkbModel(),
+                        dmxConfigGetXkbVariant()
+                        ? dmxConfigGetXkbVariant() : "",
+                        dmxConfigGetXkbOptions()
+                        ? dmxConfigGetXkbOptions() : "");
         }
         XkbInitKeyboardDeviceStruct(pDevice,
                                     &info->names,

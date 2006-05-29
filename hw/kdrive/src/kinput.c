@@ -455,9 +455,6 @@ KdKeybdProc(DeviceIntPtr pDevice, int onoff)
 #else
 	memset(&names, 0, sizeof(XkbComponentNamesRec));
 
-	if (XkbInitialMap) 
-	    names.keymap = XkbInitialMap;
-
 	XkbSetRulesDflts ("base", "pc101", "us", NULL, NULL);
 	ret = XkbInitKeyboardDeviceStruct ((DeviceIntPtr) pDev,
 					   &names,

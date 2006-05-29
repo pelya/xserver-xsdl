@@ -259,24 +259,12 @@ winKeybdProc (DeviceIntPtr pDeviceInt, int iState)
       else 
 	{
 
-	  if (XkbInitialMap) 
-	    {
-	      names.keymap = XkbInitialMap;
-	      names.keycodes = NULL;
-	      names.types = NULL;
-	      names.compat = NULL;
-	      names.symbols = NULL;
-	      names.geometry = NULL;
-	    } 
-	  else 
-	    {
-	      names.keymap = g_winInfo.xkb.keymap;
-	      names.keycodes = g_winInfo.xkb.keycodes;
-	      names.types = g_winInfo.xkb.types;
-	      names.compat = g_winInfo.xkb.compat;
-	      names.symbols = g_winInfo.xkb.symbols;
-	      names.geometry = g_winInfo.xkb.geometry;
-	    }
+          names.keymap = g_winInfo.xkb.keymap;
+          names.keycodes = g_winInfo.xkb.keycodes;
+          names.types = g_winInfo.xkb.types;
+          names.compat = g_winInfo.xkb.compat;
+          names.symbols = g_winInfo.xkb.symbols;
+          names.geometry = g_winInfo.xkb.geometry;
 
 	  winErrorFVerb(2, "Rules = \"%s\" Model = \"%s\" Layout = \"%s\""
 		 " Variant = \"%s\" Options = \"%s\"\n",

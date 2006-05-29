@@ -542,16 +542,6 @@ winConfigKeyboard (DeviceIntPtr pDevice)
 
 #ifdef XWIN_XF86CONFIG
 	  from = X_CMDLINE;
-	  if (!XkbInitialMap)
-	    {
-	      s =
-		winSetStrOption (kbd->inp_option_lst, "XkbInitialMap", NULL);
-	      if (s)
-		{
-		  XkbInitialMap = NULL_IF_EMPTY (s);
-		  from = X_CONFIG;
-		}
-	    }
 
 	  if ((s = winSetStrOption (kbd->inp_option_lst, "XkbKeymap", NULL)))
 	    {

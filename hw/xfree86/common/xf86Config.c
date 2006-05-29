@@ -1,4 +1,4 @@
-/* $XdotOrg: xserver/xorg/hw/xfree86/common/xf86Config.c,v 1.28 2006/04/07 01:41:00 ajax Exp $ */
+/* $XdotOrg: xserver/xorg/hw/xfree86/common/xf86Config.c,v 1.29 2006/05/25 23:32:33 reed Exp $ */
 /* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86Config.c,v 3.276 2003/10/08 14:58:26 dawes Exp $ */
 
 
@@ -1323,7 +1323,7 @@ configInputKbd(IDevPtr inputp)
 
 #define NULL_IF_EMPTY(s) (s[0] ? s : (xfree(s), (char *)NULL))
 
-  if (!noXkbExtension && !XkbInitialMap) {
+  if (!noXkbExtension) {
     if ((s = xf86SetStrOption(inputp->commonOptions, "XkbKeymap", NULL))) {
       xf86Info.xkbkeymap = NULL_IF_EMPTY(s);
       xf86Msg(X_CONFIG, "XKB: keymap: \"%s\" "

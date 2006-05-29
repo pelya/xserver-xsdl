@@ -135,12 +135,6 @@ xf86XqueKbdProc(DeviceIntPtr pKeyboard, int what)
 #ifdef XKB
     } else {
 	XkbComponentNamesRec names;
-	if (XkbInitialMap) {
-	    if ((xf86Info.xkbkeymap = strchr(XkbInitialMap, '/')) != NULL)
-		xf86Info.xkbkeymap++;
-	    else
-		xf86Info.xkbkeymap = XkbInitialMap;
-	}
 	if (xf86Info.xkbkeymap) {
 	    names.keymap = xf86Info.xkbkeymap;
 	    names.keycodes = NULL;

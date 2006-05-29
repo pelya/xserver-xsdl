@@ -1,5 +1,5 @@
 /* $Xorg: Keyboard.c,v 1.3 2000/08/17 19:53:28 cpqbld Exp $ */
-/* $XdotOrg: xserver/xorg/hw/xnest/Keyboard.c,v 1.8 2005/07/14 03:36:44 kem Exp $ */
+/* $XdotOrg: xserver/xorg/hw/xnest/Keyboard.c,v 1.9 2006/03/27 22:25:56 daniels Exp $ */
 /*
 
 Copyright 1993 by Davor Matic
@@ -228,12 +228,6 @@ XkbError:
 	layout = XKB_DFLT_KB_LAYOUT;
 	variants = XKB_DFLT_KB_VARIANT;
 	options = XKB_DFLT_KB_OPTIONS;
-	if (XkbInitialMap) {
-	  if ((names.keymap = strchr(XkbInitialMap, '/')) != NULL)
-	    ++names.keymap;
-	  else
-	    names.keymap = XkbInitialMap;
-	}
 
 	XkbSetRulesDflts(rules, model, layout, variants, options);
 	XkbInitKeyboardDeviceStruct(pDev, &names, &keySyms, modmap,
