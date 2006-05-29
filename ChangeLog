@@ -1,3 +1,10 @@
+2005-05-24  Daniel Stone  <daniel@freedesktop.org>
+
+	* xkb/ddxKillSrv.c:
+	* xkb/ddxPrivate.c:
+	* xkb/ddxVT.c:
+	Minor #include cleanups.
+
 2006-05-26  Matthieu Herrb <matthieu.herrb@laas.fr>
 
 	* hw/xfree86/os-support/bsd/bsd_mouse.c:

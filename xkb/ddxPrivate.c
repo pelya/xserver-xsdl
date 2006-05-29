@@ -4,15 +4,9 @@
 #include <dix-config.h>
 #endif
 
-#ifdef HAVE_XORG_CONFIG_H
-#include <xorg-config.h>
-#endif
-
-#include <stdio.h>
-#define NEED_EVENTS 1
+#define NEED_EVENTS
 #include <X11/X.h>
 #include "windowstr.h"
-#define XKBSRV_NEED_FILE_FUNCS
 #include <X11/extensions/XKBsrv.h>
 
 int

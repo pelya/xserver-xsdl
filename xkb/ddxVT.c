@@ -30,12 +30,8 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include <dix-config.h>
 #endif
 
-#ifdef HAVE_XORG_CONFIG_H
-#include <xorg-config.h>
-#endif
-
 #include <stdio.h>
-#define	NEED_EVENTS 1
+#define NEED_EVENTS
 #include <X11/X.h>
 #include <X11/Xproto.h>
 #include <X11/keysym.h>
@@ -43,7 +39,6 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include "scrnintstr.h"
 #include "windowstr.h"
 #include <X11/extensions/XKBsrv.h>
-#include <X11/extensions/XI.h>
 
 int
 XkbDDXSwitchScreen(DeviceIntPtr dev,KeyCode key,XkbAction *act)
