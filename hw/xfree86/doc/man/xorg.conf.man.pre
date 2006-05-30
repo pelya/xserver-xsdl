@@ -1,4 +1,4 @@
-.\" $XdotOrg: xserver/xorg/hw/xfree86/doc/man/xorg.conf.man.pre,v 1.6 2005/12/19 16:44:21 ajax Exp $
+.\" $XdotOrg: xserver/xorg/hw/xfree86/doc/man/xorg.conf.man.pre,v 1.7 2006/05/26 00:12:18 reed Exp $
 .\" shorthand for double quote that works everywhere.
 .ds q \N'34'
 .TH __xconfigfile__ __filemansuffix__ __vendorversion__
@@ -1195,15 +1195,20 @@ options mentioned above in the
 entry description can also be used here.
 .RE
 .TP 7
-.B Options
-Some
-.B Option
-flags that may be useful to include in
-.B Monitor
-sections (when needed) include
-.BR \*qDPMS\*q ,
-and
-.BR \*qSyncOnGreen\*q .
+.BI "Option " "\*qDPMS\*q  " \*qbool\*q
+This option controls whether the server should enable the DPMS extension
+for power management for this screen.  The default is to enable the
+extension.
+.TP 7
+.BI "Option " "\*qSyncOnGreen\*q  " \*qbool\*q
+This option controls whether the video card should drive the sync signal
+on the green color pin.  Not all cards support this option, and most
+monitors do not require it.  The default is off.
+.TP 7
+.BI "Option " "\*qTargetRefresh\*q  " \*qrate\*q
+This optional entry specifies the vertical refresh rate that the server
+should aim for when selecting video modes.  Without this option, the
+default is to prefer modes with higher refresh rates.
 
 .SH MODES SECTION
 The config file may have multiple
