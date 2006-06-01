@@ -413,7 +413,6 @@ FindModule(const char *module, const char *dir, const char **subdirlist,
     int dirlen;
     const char **subdirs = NULL;
     const char **s;
-    const char suffix[3][3] = { "so", "a", "o" };
 
 #ifndef __EMX__
     dirpath = (char *)dir;
@@ -441,28 +440,23 @@ FindModule(const char *module, const char *dir, const char **subdirlist,
                 buf[dirlen++] = '/';
             }
 	    
-	    for (i = 0; i < 3 && !name; i++) {
-                snprintf(tmpBuf, PATH_MAX, "%slib%s.%s", buf, module,
-                         suffix[i]);
-                if (stat(tmpBuf, &stat_buf) == 0) {
-                    name = tmpBuf;
-                    break;
-                }
-                snprintf(tmpBuf, PATH_MAX, "%s%s_drv.%s", buf, module,
-                         suffix[i]);
-                if (stat(tmpBuf, &stat_buf) == 0) {
-                    name = tmpBuf;
-                    break;
-                }
-                snprintf(tmpBuf, PATH_MAX, "%s%s.%s", buf, module,
-                         suffix[i]);
-                if (stat(tmpBuf, &stat_buf) == 0) {
-                    name = tmpBuf;
-                    break;
-                }
-	    }
-	    if (name)
-		break;
+            snprintf(tmpBuf, PATH_MAX, "%slib%s.so", buf, module);
+            if (stat(tmpBuf, &stat_buf) == 0) {
+                name = tmpBuf;
+                break;
+            }
+
+            snprintf(tmpBuf, PATH_MAX, "%s%s_drv.so", buf, module);
+            if (stat(tmpBuf, &stat_buf) == 0) {
+                name = tmpBuf;
+                break;
+            }
+
+            snprintf(tmpBuf, PATH_MAX, "%s%s.so", buf, module);
+            if (stat(tmpBuf, &stat_buf) == 0) {
+                name = tmpBuf;
+                break;
+            }
         }
     }
     FreeSubdirs(subdirs);

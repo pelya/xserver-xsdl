@@ -272,7 +272,7 @@ static loader_funcs funcs[] = {
      DLResolveSymbols,
      DLCheckForUnresolved,
      ARCHIVEAddressToSection,
-     DLUnloadModule, {0, 0, 0, 0, 0}},
+     DLUnloadModule, {0, 0}},
 };
 
 int numloaders = sizeof(funcs) / sizeof(loader_funcs);
