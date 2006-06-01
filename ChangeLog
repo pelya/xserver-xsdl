@@ -5,6 +5,9 @@
 	* hw/xfree86/dixmods/bitmapmod.c:
 	Bug #5089: Die, libbitmap, die!
 
+	* hw/xfree86/common/xf86Config.c:
+	Add bitmap to the ignored module list.
+
 2006-06-01  Daniel Stone  <daniel@freedesktop.org>
 
 	* Xext/Makefile.am:
