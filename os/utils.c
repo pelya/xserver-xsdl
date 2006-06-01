@@ -1,4 +1,4 @@
-/* $XdotOrg: xserver/xorg/os/utils.c,v 1.24 2006/02/16 07:17:31 keithp Exp $ */
+/* $XdotOrg: xserver/xorg/os/utils.c,v 1.25 2006/03/25 19:52:05 ajax Exp $ */
 /* $Xorg: utils.c,v 1.5 2001/02/09 02:05:24 xorgcvs Exp $ */
 /*
 
@@ -163,9 +163,6 @@ _X_EXPORT Bool noFontCacheExtension = FALSE;
 #endif
 #ifdef GLXEXT
 _X_EXPORT Bool noGlxExtension = FALSE;
-#endif
-#ifdef LBX
-_X_EXPORT Bool noLbxExtension = FALSE;
 #endif
 #ifdef SCREENSAVER
 _X_EXPORT Bool noScreenSaverExtension = FALSE;

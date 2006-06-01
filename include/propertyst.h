@@ -62,14 +62,6 @@ typedef struct _Property {
 	short		format;     /* format of data for swapping - 8,16,32 */
 	long		size;       /* size of data in (format/8) bytes */
 	pointer         data;       /* private to client */
-#if defined(LBX) || defined(LBX_COMPAT)
-	/*  If space is at a premium and binary compatibility is not
-	 *  an issue, you may want to put the owner_pid next to format
-	 *  so that the two shorts pack together without padding.
-	 */
-  	short		owner_pid;	/* proxy that has the data */
-  	XID		tag_id;
-#endif
 } PropertyRec;
 
 #endif /* PROPERTYSTRUCT_H */

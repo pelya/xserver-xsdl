@@ -48,7 +48,7 @@ SOFTWARE.
 
 
 /* $Xorg: devices.c,v 1.4 2001/02/09 02:04:39 xorgcvs Exp $ */
-/* $XdotOrg: xserver/xorg/dix/devices.c,v 1.10 2006/03/28 01:20:59 ajax Exp $ */
+/* $XdotOrg: xserver/xorg/dix/devices.c,v 1.11 2006/06/01 19:22:37 daniels Exp $ */
 
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>
@@ -73,9 +73,6 @@ SOFTWARE.
 #ifdef XCSECURITY
 #define _SECURITY_SERVER
 #include <X11/extensions/security.h>
-#endif
-#ifdef LBX
-#include "lbxserve.h"
 #endif
 
 #include "dispatch.h"
@@ -962,9 +959,6 @@ ProcSetModifierMapping(ClientPtr client)
 	return BadAccess;
 #endif 
 
-#ifdef LBX
-    LbxFlushModifierMapTag();
-#endif
     rep.type = X_Reply;
     rep.length = 0;
     rep.sequenceNumber = client->sequence;
@@ -1088,9 +1082,6 @@ ProcChangeKeyboardMapping(ClientPtr client)
     keysyms.map = (KeySym *)&stuff[1];
     if (!SetKeySymsMap(curKeySyms, &keysyms))
 	return BadAlloc;
-#ifdef LBX
-    LbxFlushKeyboardMapTag();
-#endif
     SendMappingNotify(MappingKeyboard, stuff->firstKeyCode, stuff->keyCodes,
 									client);
     return client->noClientException;

@@ -66,6 +66,34 @@
 	* xkb/xkbLEDs.c:
 	Simplify the 'unsupported' list.
 
+	* configure.ac:
+	* Makefile.am:
+	* Xext/security.c:
+	* dix/colormap.c:
+	* dix/devices.c:
+	* dix/dixfonts.c:
+	* dix/dispatch.c:
+	* dix/extension.c:
+	* dix/property.c:
+	* dix/swaprep.c:
+	* include/dix.h:
+	* include/dix-config.h:
+	* include/dixstruct.h:
+	* include/globals.h:
+	* include/os.h:
+	* include/propertyst.h:
+	* include/swaprep.h:
+	* lbx/*:
+	* mi/miinitext.c:
+	* os/Makefile.am:
+	* os/access.c:
+	* os/connection.c:
+	* os/io.c:
+	* os/lbxio.c:
+	* os/osdep.h:
+	* os/utils.c:
+	Remove LBX.  Goodbye.
+
 2006-05-30  Matthieu Herrb <matthieu.herrb@laas.fr>
 
 	* hw/xfree86/os-support/bsd/Makefile.am:

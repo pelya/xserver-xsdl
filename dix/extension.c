@@ -65,9 +65,6 @@ SOFTWARE.
 #define _SECURITY_SERVER
 #include <X11/extensions/security.h>
 #endif
-#ifdef LBX
-#include "lbxserve.h"
-#endif
 
 #define EXTENSION_BASE  128
 #define EXTENSION_EVENT_BASE  64
@@ -154,9 +151,6 @@ AddExtension(char *name, int NumEvents, int NumErrors,
     ext->secure = FALSE;
 #endif
 
-#ifdef LBX
-    (void) LbxAddExtension(name, ext->base, ext->eventBase, ext->errorBase);
-#endif
     return(ext);
 }
 
@@ -176,11 +170,7 @@ _X_EXPORT Bool AddExtensionAlias(char *alias, ExtensionEntry *ext)
     strcpy(name,  alias);
     ext->aliases[ext->num_aliases] = name;
     ext->num_aliases++;
-#ifdef LBX
-    return LbxAddExtensionAlias(ext->index, alias);
-#else
     return TRUE;
-#endif
 }
 
 static int
@@ -241,9 +231,6 @@ DeclareExtensionSecurity(char *extname, Bool secure)
 	}
     }
 #endif
-#ifdef LBX
-    LbxDeclareExtensionSecurity(extname, secure);
-#endif
 }
 
 _X_EXPORT unsigned short
@@ -270,10 +257,6 @@ void
 CloseDownExtensions()
 {
     register int i,j;
-
-#ifdef LBX
-    LbxCloseDownExtensions();
-#endif
 
     for (i = NumExtensions - 1; i >= 0; i--)
     {

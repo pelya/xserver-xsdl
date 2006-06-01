@@ -1,4 +1,4 @@
-/* $XdotOrg: xserver/xorg/dix/colormap.c,v 1.12 2006/02/15 20:44:12 ajax Exp $ */
+/* $XdotOrg: xserver/xorg/dix/colormap.c,v 1.13 2006/05/22 15:47:56 ajax Exp $ */
 /* $XFree86: xc/programs/Xserver/dix/colormap.c,v 3.11 2003/11/03 05:10:59 tsi Exp $ */
 /***********************************************************
 
@@ -63,9 +63,6 @@ SOFTWARE.
 #include "scrnintstr.h"
 #include "resource.h"
 #include "windowstr.h"
-#ifdef LBX
-#include "lbxserve.h"
-#endif
 
 extern XID clientErrorValue;
 extern int colormapPrivateCount;
@@ -1515,65 +1512,17 @@ FreePixels(register ColormapPtr pmap, register int client)
     register Pixel		*ppix, *ppixStart;
     register int 		n;
     int				class;
-#ifdef LBX
-    Bool			grabbed;
-    Bool			zeroRefCount;
-    Bool			anyRefCountReachedZero = 0;
-#endif
 
     class = pmap->class;
     ppixStart = pmap->clientPixelsRed[client];
     if (class & DynamicClass)
     {
 	n = pmap->numPixelsRed[client];
-#ifdef LBX
-	grabbed = LbxCheckCmapGrabbed (pmap);
-	if (grabbed)
-	{
-	    /*
-	     * If the colormap is grabbed by a proxy, the server must
-	     * notify the proxy of all cells that are freed (the refcount
-	     * has reached zero on these cells).
-	     */
-
-	    LbxBeginFreeCellsEvent (pmap);
-	    LbxSortPixelList (ppixStart, n);
-	}
-#endif
 	for (ppix = ppixStart; --n >= 0; )
 	{
 	    FreeCell(pmap, *ppix, REDMAP);
-#ifdef LBX
-	    /*
-	     * Only PSEUDO colormaps are grabbed by LBX proxies.
-	     * Check if the ref count reached zero on this pixel.
-	     */
-
-	    zeroRefCount = pmap->red[*ppix].refcnt == 0;
-	    if (zeroRefCount)
-		anyRefCountReachedZero = 1;
-	    
-	    if (grabbed && zeroRefCount)
-		LbxAddFreeCellToEvent (pmap, *ppix);
-#endif
 	    ppix++;
 	}
-#ifdef LBX
-	if (grabbed)
-	    LbxEndFreeCellsEvent (pmap);
-	else if (anyRefCountReachedZero)
-	{
-	    /*
-	     * We only send LbxFreeCell events to a proxy that has the colormap
-	     * grabbed.  If the colormap is not grabbed, the proxy that last
-	     * had the colormap grabbed will not be able to do a smart grab
-	     * in the future.  A smart grab can only occur if the proxy is kept
-	     * up to date on every alloc/free change in the colormap.
-	     */
-
-	    LbxDisableSmartGrab (pmap);
-	}
-#endif
     }
 
     xfree(ppixStart);
@@ -2323,11 +2272,6 @@ FreeCo (ColormapPtr pmap, int client, int color, int npixIn, Pixel *ppixIn, Pixe
     int 	n, zapped;
     int		errVal = Success;
     int		offset, numents;
-#ifdef LBX
-    Bool	grabbed;
-    Bool	zeroRefCount;
-    Bool	anyRefCountReachedZero = 0;
-#endif
 
     if (npixIn == 0)
         return (errVal);
@@ -2372,21 +2316,6 @@ FreeCo (ColormapPtr pmap, int client, int color, int npixIn, Pixel *ppixIn, Pixe
 	break;
     }
 
-#ifdef LBX
-    grabbed = LbxCheckCmapGrabbed (pmap);
-
-    if (grabbed)
-    {
-	/*
-	 * If the colormap is grabbed by a proxy, the server must
-	 * notify the proxy of all cells that are freed (the refcount
-	 * has reached zero on these cells).
-	 */
-
-	LbxBeginFreeCellsEvent (pmap);
-	LbxSortPixelList (ppixIn, npixIn);
-    }
-#endif
 
     /* zap all pixels which match */
     while (1)
@@ -2412,19 +2341,6 @@ FreeCo (ColormapPtr pmap, int client, int color, int npixIn, Pixel *ppixIn, Pixe
 		if (pmap->class & DynamicClass)
 		{
 		    FreeCell(pmap, pixTest, color);
-#ifdef LBX
-		    /*
-		     * Only PSEUDO colormaps are grabbed by LBX proxies.
-		     * Check if the ref count reached zero on this pixel.
-		     */
-
-		    zeroRefCount = pmap->red[pixTest].refcnt == 0;
-		    if (zeroRefCount)
-			anyRefCountReachedZero = 1;
-
-		    if (grabbed && zeroRefCount)
-			LbxAddFreeCellToEvent (pmap, pixTest);
-#endif
 		}
 		*cptr = ~((Pixel)0);
 		zapped++;
@@ -2435,23 +2351,6 @@ FreeCo (ColormapPtr pmap, int client, int color, int npixIn, Pixel *ppixIn, Pixe
         /* generate next bits value */
 	GetNextBitsOrBreak(bits, mask, base);
     }
-
-#ifdef LBX
-    if (grabbed)
-	LbxEndFreeCellsEvent (pmap);
-    else if (anyRefCountReachedZero)
-    {
-	/*
-	 * We only send LbxFreeCell events to a proxy that has the colormap
-	 * grabbed.  If the colormap is not grabbed, the proxy that last
-	 * had the colormap grabbed will not be able to do a smart grab
-	 * in the future.  A smart grab can only occur if the proxy is kept
-	 * up to date on every alloc/free change in the colormap.
-	 */
-	
-	LbxDisableSmartGrab (pmap);
-    }
-#endif
 
     /* delete freed pixels from client pixel list */
     if (zapped)

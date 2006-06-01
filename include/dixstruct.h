@@ -129,9 +129,6 @@ typedef struct _Client {
     unsigned char requestLog[MAX_REQUEST_LOG];
     int         requestLogIndex;
 #endif
-#ifdef LBX
-    int		(*readRequest)(ClientPtr /*client*/);
-#endif
     unsigned long replyBytesRemaining;
 #ifdef XCSECURITY
     XID		authId;

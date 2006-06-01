@@ -31,10 +31,6 @@ XPDDX_DIR=Xprint
 XPCONFIG_DIR=XpConfig
 endif
 
-if LBX
-LBX_DIR=lbx
-endif
-
 if XINPUT
 XINPUT_DIR=Xi
 endif
@@ -67,7 +63,6 @@ SUBDIRS = \
 	$(XTRAP_DIR) \
 	$(COMPOSITE_DIR) \
 	$(GLX_DIR) \
-	$(LBX_DIR) \
 	exa \
 	hw \
 	$(XPDDX_DIR) \
@@ -108,8 +103,7 @@ DIST_SUBDIRS = \
 	exa \
 	hw \
 	Xprint \
-	XpConfig \
-	lbx
+	XpConfig
 
 # gross hack
 relink: all

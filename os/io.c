@@ -85,11 +85,6 @@ SOFTWARE.
 #include "opaque.h"
 #include "dixstruct.h"
 #include "misc.h"
-#ifdef LBX
-#include "colormapst.h"
-#include "propertyst.h"
-#include "lbxserve.h"
-#endif
 
 _X_EXPORT CallbackListPtr       ReplyCallback;
 _X_EXPORT CallbackListPtr       FlushCallback;
@@ -200,25 +195,8 @@ OsCommPtr AvailableInput = (OsCommPtr)NULL;
 #define YieldControlDeath()			\
         { timesThisConnection = 0; }
 
-#ifdef hpux_not_tog
-#define LBX_NEED_OLD_SYMBOL_FOR_LOADABLES
-#endif
-
-#ifdef LBX
-#ifdef LBX_NEED_OLD_SYMBOL_FOR_LOADABLES
-#undef ReadRequestFromClient
 int
 ReadRequestFromClient(ClientPtr client)
-{
-    return (*client->readRequest)(client);
-}
-#endif
-int
-StandardReadRequestFromClient(ClientPtr client)
-#else
-int
-ReadRequestFromClient(ClientPtr client)
-#endif
 {
     OsCommPtr oc = (OsCommPtr)client->osPrivate;
     ConnectionInputPtr oci = oc->input;
@@ -368,13 +346,6 @@ ReadRequestFromClient(ClientPtr client)
 	    YieldControlDeath();
 	    return -1;
 	}
-#ifdef LBX
-	if (oc->proxy && oc->proxy->compHandle)
-	    result = (*oc->proxy->streamOpts.streamCompRead)(fd,
-			     (unsigned char *)oci->buffer + oci->bufcnt,
-			     oci->size - oci->bufcnt);
-	else
-#endif
 	    result = _XSERVTransRead(oc->trans_conn, oci->buffer + oci->bufcnt,
 				     oci->size - oci->bufcnt); 
 	if (result <= 0)
@@ -382,17 +353,7 @@ ReadRequestFromClient(ClientPtr client)
 	    if ((result < 0) && ETEST(errno))
 	    {
 #if defined(SVR4) && defined(i386) && !defined(sun)
-#if defined(LBX) && 0
-		/*
-		 * For LBX connections, we can get a valid EWOULDBLOCK
-		 * There is probably a better way of distinguishing LBX
-		 * connections, but this works. (DHD)
-		 */
-		extern int LbxRead();
-		if (oc->Read == LbxRead)
-#else
 		if (0)
-#endif
 #endif
 		{
 		    YieldControlNoInput();
@@ -610,18 +571,6 @@ ResetCurrentRequest(ClientPtr client)
     int fd = oc->fd;
     register xReq *request;
     int gotnow, needed;
-#ifdef LBX
-    LbxClientPtr lbxClient = LbxClient(client);
-
-    if (lbxClient) {
-	LbxSetForBlock(lbxClient);
-	if (!oci) {
-	    AppendFakeRequest(client,
-			      client->requestBuffer, client->req_len << 2);
-	    return;
-	}
-    }
-#endif
     if (AvailableInput == oc)
 	AvailableInput = (OsCommPtr)NULL;
     oci->lenLastReq = 0;
@@ -850,11 +799,7 @@ FlushAllOutput(void)
 	    if (client->clientGone)
 		continue;
 	    oc = (OsCommPtr)client->osPrivate;
-	    if (
-#ifdef LBX
-		!oc->proxy &&
-#endif
-		FD_ISSET(oc->fd, &ClientsWithInput))
+	    if (FD_ISSET(oc->fd, &ClientsWithInput))
 	    {
 		FD_SET(oc->fd, &OutputPending); /* set the bit again */
 		NewOutputPending = TRUE;
@@ -874,11 +819,7 @@ FlushAllOutput(void)
 	    if (client->clientGone)
 		continue;
 	    oc = (OsCommPtr)client->osPrivate;
-	    if (
-#ifdef LBX
-		!oc->proxy &&
-#endif
-		FD_ISSET(oc->fd, &ClientsWithInput))
+	    if (FD_ISSET(oc->fd, &ClientsWithInput))
 	    {
 		FD_SET(oc->fd, &newOutputPending); /* set the bit again */
 		NewOutputPending = TRUE;
@@ -1055,22 +996,8 @@ WriteToClient (ClientPtr who, int count, char *buf)
  *
  **********************/
 
-#ifdef LBX
-#ifdef LBX_NEED_OLD_SYMBOL_FOR_LOADABLES
-#undef FlushClient
 int
 FlushClient(ClientPtr who, OsCommPtr oc, char *extraBuf, int extraCount)
-{
-    return (*oc->Flush)(who, oc, extraBuf, extraCount);
-}
-#endif
-int
-StandardFlushClient(ClientPtr who, OsCommPtr oc, 
-    char *extraBuf, int extraCount)
-#else
-int
-FlushClient(ClientPtr who, OsCommPtr oc, char *extraBuf, int extraCount)
-#endif
 {
     ConnectionOutputPtr oco = oc->output;
     int connection = oc->fd;
@@ -1274,9 +1201,6 @@ AllocateOutputBuffer(void)
     }
     oco->size = BUFSIZE;
     oco->count = 0;
-#ifdef LBX
-    oco->nocompress = FALSE;
-#endif
     return oco;
 }
 
@@ -1318,12 +1242,6 @@ FreeOsBuffers(OsCommPtr oc)
 	    oco->count = 0;
 	}
     }
-#ifdef LBX
-    if ((oci = oc->largereq)) {
-	xfree(oci->buffer);
-	xfree(oci);
-    }
-#endif
 }
 
 void

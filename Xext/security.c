@@ -1,4 +1,4 @@
-/* $XdotOrg: xserver/xorg/Xext/security.c,v 1.5 2005/07/03 07:01:04 daniels Exp $ */
+/* $XdotOrg: xserver/xorg/Xext/security.c,v 1.6 2006/03/28 01:20:59 ajax Exp $ */
 /* $Xorg: security.c,v 1.4 2001/02/09 02:04:32 xorgcvs Exp $ */
 /*
 
@@ -43,11 +43,6 @@ in this Software without prior written authorization from The Open Group.
 #include <X11/extensions/securstr.h>
 #include <assert.h>
 #include <stdarg.h>
-#ifdef LBX
-#define _XLBX_SERVER_
-#include <X11/extensions/XLbx.h>
-extern unsigned char LbxReqCode;
-#endif
 #ifdef XAPPGROUP
 #include <X11/extensions/Xagsrv.h>
 #endif
@@ -1066,18 +1061,6 @@ SecurityCheckResourceIDAccess(
 
 		default:
 		{
-#ifdef LBX
-		    /* XXX really need per extension dispatching */
-		    if (reqtype == LbxReqCode) {
-			switch (((xReq *)client->requestBuffer)->data) {
-			case X_LbxGetProperty:
-			case X_LbxChangeProperty:
-			    return rval;
-			default:
-			    break;
-			}
-		    }
-#endif
 		    /* others not allowed */
 		    return SecurityAuditResourceIDAccess(client, id);
 		}
@@ -1177,22 +1160,6 @@ SecurityClientStateCallback(
 	default: break; 
     }
 } /* SecurityClientStateCallback */
-
-#ifdef LBX
-Bool
-SecuritySameLevel(client, authId)
-    ClientPtr client;
-    XID authId;
-{
-    SecurityAuthorizationPtr pAuth;
-
-    pAuth = (SecurityAuthorizationPtr)LookupIDByType(authId,
-						SecurityAuthorizationResType);
-    if (pAuth)
-	return client->trustLevel == pAuth->trustLevel;
-    return client->trustLevel == XSecurityClientTrusted;
-}
-#endif
 
 /* SecurityCensorImage
  *

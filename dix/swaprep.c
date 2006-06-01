@@ -65,11 +65,9 @@ SOFTWARE.
 
 static void SwapFontInfo(xQueryFontReply *pr);
 
-#ifndef LBX
 static void SwapCharInfo(xCharInfo *pInfo);
 
 static void SwapFont(xQueryFontReply *pr, Bool hasGlyphs);
-#endif
 
 /**
  * Thanks to Jack Palevich for testing and subsequently rewriting all this
@@ -391,10 +389,7 @@ SQueryKeymapReply(ClientPtr pClient, int size, xQueryKeymapReply *pRep)
     (void)WriteToClient(pClient, size, (char *) pRep);
 }
 
-#ifndef LBX
-static
-#endif
-void
+static void
 SwapCharInfo(xCharInfo *pInfo)
 {
     register char n;
@@ -423,10 +418,7 @@ SwapFontInfo(xQueryFontReply *pr)
     swapl(&pr->nCharInfos, n);
 }
 
-#ifndef LBX
-static
-#endif
-void
+static void
 SwapFont(xQueryFontReply *pr, Bool hasGlyphs)
 {
     unsigned	i;

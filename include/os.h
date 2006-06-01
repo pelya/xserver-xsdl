@@ -109,14 +109,7 @@ extern int WaitForSomething(
     int* /*pClientsReady*/
 );
 
-#ifdef LBX
-#define ReadRequestFromClient(client)   ((client)->readRequest(client))
-extern int StandardReadRequestFromClient(ClientPtr /*client*/);
-
-extern int ClientConnectionNumber(ClientPtr /*client*/);
-#else
 extern int ReadRequestFromClient(ClientPtr /*client*/);
-#endif /* LBX */
 
 extern Bool InsertFakeRequest(
     ClientPtr /*client*/, 
@@ -175,10 +168,6 @@ extern void AttendClient(ClientPtr /*client*/);
 extern void MakeClientGrabImpervious(ClientPtr /*client*/);
 
 extern void MakeClientGrabPervious(ClientPtr /*client*/);
-
-#ifdef LBX
-extern void CloseDownFileDescriptor(ClientPtr /* client */);
-#endif
 
 extern void AvailableClientInput(ClientPtr /* client */);
 

@@ -368,10 +368,6 @@ extern int DoGetImage(
     Mask /*planemask*/,
     xGetImageReply ** /*im_return*/);
 
-#ifdef LBX
-extern void IncrementClientCount(void);
-#endif /* LBX */
-
 #if defined(DDXBEFORERESET)
 extern void ddxBeforeReset (void);
 #endif

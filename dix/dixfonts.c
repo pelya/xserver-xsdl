@@ -1,4 +1,4 @@
-/* $XdotOrg: xserver/xorg/dix/dixfonts.c,v 1.8 2005/07/03 08:53:38 daniels Exp $ */
+/* $XdotOrg: xserver/xorg/dix/dixfonts.c,v 1.9 2006/02/15 20:44:12 ajax Exp $ */
 /* $XFree86: xc/programs/Xserver/dix/dixfonts.c,v 3.28 2003/11/08 02:02:03 dawes Exp $ */
 /************************************************************************
 Copyright 1987 by Digital Equipment Corporation, Maynard, Massachusetts.
@@ -74,10 +74,6 @@ Equipment Corporation.
 
 #ifdef PANORAMIX
 #include "panoramiX.h"
-#endif
-
-#ifdef LBX
-#include "lbxserve.h"
 #endif
 
 #ifdef XF86BIGFONT
@@ -491,9 +487,6 @@ CloseFont(pointer value, XID fid)
 	}
 	if (pfont == defaultFont)
 	    defaultFont = NULL;
-#ifdef LBX
-	LbxFreeFontTag(pfont);
-#endif
 #ifdef XF86BIGFONT
 	XF86BigfontFreeFontShm(pfont);
 #endif

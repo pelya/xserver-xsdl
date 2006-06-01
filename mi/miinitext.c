@@ -1,4 +1,4 @@
-/* $XdotOrg: xserver/xorg/mi/miinitext.c,v 1.32 2006/03/12 00:11:34 krh Exp $ */
+/* $XdotOrg: xserver/xorg/mi/miinitext.c,v 1.33 2006/06/01 18:47:01 daniels Exp $ */
 /* $XFree86: xc/programs/Xserver/mi/miinitext.c,v 3.67 2003/01/12 02:44:27 dawes Exp $ */
 /***********************************************************
 
@@ -143,9 +143,6 @@ extern Bool noFontCacheExtension;
 #ifdef GLXEXT
 extern Bool noGlxExtension;
 #endif
-#ifdef LBX
-extern Bool noLbxExtension;
-#endif
 #ifdef SCREENSAVER
 extern Bool noScreenSaverExtension;
 #endif
@@ -241,10 +238,6 @@ typedef void (*InitExtension)(INITARGS);
 #ifdef XKB
 #include <X11/extensions/XKB.h>
 #endif
-#ifdef LBX
-#define _XLBX_SERVER_
-#include <X11/extensions/lbxstr.h>
-#endif
 #ifdef XPRINT
 #include <X11/extensions/Print.h>
 #endif
@@ -318,9 +311,6 @@ extern void XCMiscExtensionInit(INITARGS);
 #endif
 #ifdef XRECORD
 extern void RecordExtensionInit(INITARGS);
-#endif
-#ifdef LBX
-extern void LbxExtensionInit(INITARGS);
 #endif
 #ifdef DBE
 extern void DbeExtensionInit(INITARGS);
@@ -429,9 +419,6 @@ static ExtensionToggle ExtensionToggleList[] =
 #endif
 #ifdef GLXEXT
     { "GLX", &noGlxExtension },
-#endif
-#ifdef LBX
-    { "LBX", &noLbxExtension },
 #endif
 #ifdef SCREENSAVER
     { "MIT-SCREEN-SAVER", &noScreenSaverExtension },
@@ -598,9 +585,6 @@ InitExtensions(argc, argv)
 #ifdef XRECORD
     if (!noTestExtensions) RecordExtensionInit(); 
 #endif
-#ifdef LBX
-    if (!noLbxExtension) LbxExtensionInit();
-#endif
 #ifdef DBE
     if (!noDbeExtension) DbeExtensionInit();
 #endif
@@ -705,9 +689,6 @@ static ExtensionModule staticExtensions[] = {
 #endif
 #ifdef XKB
     { XkbExtensionInit, XkbName, &noXkbExtension, NULL, NULL },
-#endif
-#ifdef LBX
-    { LbxExtensionInit, LBXNAME, &noLbxExtension, NULL, NULL },
 #endif
 #ifdef XAPPGROUP
     { XagExtensionInit, XAGNAME, &noXagExtension, NULL, NULL },

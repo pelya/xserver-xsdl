@@ -120,17 +120,6 @@ extern void SQueryKeymapReply(
     int /* size */,
     xQueryKeymapReply * /* pRep */);
 
-#ifdef LBX
-extern void SwapCharInfo(
-    xCharInfo * /* pInfo */);
-#endif
-
-#ifdef LBX
-extern void SwapFont(
-    xQueryFontReply * /* pr */,
-    Bool /* hasGlyphs */);
-#endif
-
 extern void SQueryFontReply(
     ClientPtr /* pClient */,
     int /* size */,

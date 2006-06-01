@@ -1,5 +1,5 @@
 /* $Xorg: access.c,v 1.5 2001/02/09 02:05:23 xorgcvs Exp $ */
-/* $XdotOrg: xserver/xorg/os/access.c,v 1.14 2006/01/07 00:45:17 ajax Exp $ */
+/* $XdotOrg: xserver/xorg/os/access.c,v 1.15 2006/02/15 20:44:13 ajax Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -1391,10 +1391,6 @@ _X_EXPORT Bool LocalClient(ClientPtr client)
 		      client->index);
 	return FALSE;
     }
-#endif
-#ifdef LBX
-    if (!((OsCommPtr)client->osPrivate)->trans_conn)
-	return FALSE;
 #endif
     if (!_XSERVTransGetPeerAddr (((OsCommPtr)client->osPrivate)->trans_conn,
 	&notused, &alen, &from))

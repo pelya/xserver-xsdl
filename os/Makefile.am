@@ -9,7 +9,6 @@ INTERNALMALLOC_SOURCES = xalloc.c
 
 XCSECURITY_SOURCES = secauth.c
 XDMCP_SOURCES = xdmcp.c
-LBX_SOURCES = lbxio.c
 STRLCAT_SOURCES = strlcat.c strlcpy.c
 XORG_SOURCES = log.c
 
@@ -36,10 +35,6 @@ endif
 
 if XDMCP
 libos_la_SOURCES += $(XDMCP_SOURCES)
-endif
-
-if LBX
-libos_la_SOURCES += $(LBX_SOURCES)
 endif
 
 if NEED_STRLCAT

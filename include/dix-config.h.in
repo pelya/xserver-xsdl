@@ -374,9 +374,6 @@
 /* Support Xv extension */
 #undef XV
 
-/* Build LBX extension */
-#undef LBX
-
 /* Build APPGROUP extension */
 #undef XAPPGROUP
 
