@@ -91,6 +91,7 @@ typedef struct
 	char *load_name;
 	XF86OptionPtr load_opt;
 	char *load_comment;
+        int ignore;
 }
 XF86LoadRec, *XF86LoadPtr;
 

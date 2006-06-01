@@ -92,6 +92,7 @@ xf86parseModuleSubSection (XF86LoadPtr head, char *name)
 
 	ptr->load_name = name;
 	ptr->load_type = XF86_LOAD_MODULE;
+        ptr->ignore    = 0;
 	ptr->load_opt  = NULL;
 	ptr->list.next = NULL;
 
@@ -229,6 +230,7 @@ xf86addNewLoadDirective (XF86LoadPtr head, char *name, int type, XF86OptionPtr o
 	new->load_name = name;
 	new->load_type = type;
 	new->load_opt  = opts;
+        new->ignore    = 0;
 	new->list.next = NULL;
 
 	if ((token = xf86getToken(NULL)) == COMMENT)

@@ -1,4 +1,4 @@
-/* $XdotOrg: xserver/xorg/hw/xfree86/common/xf86Config.c,v 1.29 2006/05/25 23:32:33 reed Exp $ */
+/* $XdotOrg: xserver/xorg/hw/xfree86/common/xf86Config.c,v 1.30 2006/05/29 11:14:02 daniels Exp $ */
 /* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86Config.c,v 3.276 2003/10/08 14:58:26 dawes Exp $ */
 
 
@@ -249,8 +249,9 @@ xf86ValidateFontPath(char *path)
 char **
 xf86ModulelistFromConfig(pointer **optlist)
 {
-    int count = 0;
+    int count = 0, i = 0;
     char **modulearray;
+    char **ignore = { "GLcore", "speedo", NULL };
     pointer *optarray;
     XF86LoadPtr modp;
     
@@ -271,7 +272,12 @@ xf86ModulelistFromConfig(pointer **optlist)
 	 */
 	modp = xf86configptr->conf_modules->mod_load_lst;
 	while (modp) {
-	    count++;
+            for (i = 0; ignore[i]; i++) {
+                if (strcmp(modp->load_name, ignore[i]) == 0)
+                    modp->ignore = 1;
+            }
+            if (!modp->ignore)
+	        count++;
 	    modp = (XF86LoadPtr) modp->list.next;
 	}
     }
@@ -287,9 +293,11 @@ xf86ModulelistFromConfig(pointer **optlist)
     if (xf86configptr->conf_modules) {
 	modp = xf86configptr->conf_modules->mod_load_lst;
 	while (modp) {
-	    modulearray[count] = modp->load_name;
-	    optarray[count] = modp->load_opt;
-	    count++;
+            if (!modp->ignore) {
+	        modulearray[count] = modp->load_name;
+	        optarray[count] = modp->load_opt;
+	        count++;
+            }
 	    modp = (XF86LoadPtr) modp->list.next;
 	}
     }

@@ -31,6 +31,13 @@
 	Get rid of horrendous, somewhat misguided, DDX binary-compatibility
 	glue.
 
+	* hw/xfree86/common/xf86Config.c:
+	* hw/xfree86/common/xf86Configure.c:
+	* parser/Module.c:
+	* parser/xf86Parser.c:
+	Ignore requests to load deprecated GLcore and speedo modules
+	(properly, this time).
+
 2006-05-30  Matthieu Herrb <matthieu.herrb@laas.fr>
 
 	* hw/xfree86/os-support/bsd/Makefile.am:

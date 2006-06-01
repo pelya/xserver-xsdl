@@ -625,10 +625,8 @@ configureModuleSection (void)
     	    module = xf86confmalloc(sizeof(XF86LoadRec));
     	    memset((XF86LoadPtr)module,0,sizeof(XF86LoadRec));
     	    module->load_name = *el;
-	    /* HACK, remove GLcore, glx, loads it as a submodule */
-	    if (strcmp(*el, "GLcore"))
-	    	ptr->mod_load_lst = (XF86LoadPtr)xf86addListItem(
-					(glp)ptr->mod_load_lst, (glp)module);
+            ptr->mod_load_lst = (XF86LoadPtr)xf86addListItem(
+                                (glp)ptr->mod_load_lst, (glp)module);
     	}
 	xfree(elist);
     }
