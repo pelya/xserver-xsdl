@@ -54,12 +54,6 @@ Atom	xkbKEYPAD;
 CARD32	xkbDebugFlags = 0;
 CARD32	xkbDebugCtrls = 0;
 
-#ifndef XKB_SRV_UNSUPPORTED_XI_FEATURES
-#define	XKB_SRV_UNSUPPORTED_XI_FEATURES	XkbXI_KeyboardsMask
-#endif
-
-unsigned XkbXIUnsupported= XKB_SRV_UNSUPPORTED_XI_FEATURES;
-
 RESTYPE	RT_XKBCLIENT;
 
 /***====================================================================***/
@@ -174,11 +168,6 @@ ProcXkbUseExtension(ClientPtr client)
 		    (stuff->wantedMajor==0)&&(stuff->wantedMinor==65));
     }
     else supported = 1;
-
-#ifdef XKB_SWAPPING_BUSTED
-    if (client->swapped)
-	supported= 0;
-#endif
 
     if ((supported) && (!(client->xkbClientFlags&_XkbClientInitialized))) {
 	client->xkbClientFlags= _XkbClientInitialized;
@@ -2959,7 +2948,6 @@ ProcXkbGetNamedIndicator(ClientPtr client)
     register int		i = 0;
     XkbSrvLedInfoPtr		sli;
     XkbIndicatorMapPtr		map = NULL;
-    Bool			supported;
 
     REQUEST(xkbGetNamedIndicatorReq);
     REQUEST_SIZE_MATCH(xkbGetNamedIndicatorReq);
@@ -2974,25 +2962,15 @@ ProcXkbGetNamedIndicator(ClientPtr client)
     if (!sli)
 	return BadAlloc;
 
-    supported= True;
-    if (XkbXIUnsupported&XkbXI_IndicatorsMask) {
-	if ((dev!=(DeviceIntPtr)LookupKeyboardDevice())||
-					((sli->flags&XkbSLI_IsDefault)==0)) {
-	    supported= False;
-	}
-    }
-
-    if (supported) {
-	i= 0;
-	map= NULL;
-	if ((sli->names)&&(sli->maps)) {
-	    for (i=0;i<XkbNumIndicators;i++) {
-		if (stuff->indicator==sli->names[i]) {
-		    map= &sli->maps[i];
-		    break;
-		}
-	    }
-	}
+    i= 0;
+    map= NULL;
+    if ((sli->names)&&(sli->maps)) {
+        for (i=0;i<XkbNumIndicators;i++) {
+            if (stuff->indicator==sli->names[i]) {
+                map= &sli->maps[i];
+                break;
+            }
+        }
     }
 
     rep.type= X_Reply;
@@ -3000,7 +2978,7 @@ ProcXkbGetNamedIndicator(ClientPtr client)
     rep.sequenceNumber = client->sequence;
     rep.deviceID = dev->id;
     rep.indicator= stuff->indicator;
-    if ((map!=NULL)&&(supported)) {
+    if (map!=NULL) {
 	rep.found= 		True;
 	rep.on=			((sli->effectiveState&(1<<i))!=0);
 	rep.realIndicator=	((sli->physIndicators&(1<<i))!=0);
@@ -3028,7 +3006,7 @@ ProcXkbGetNamedIndicator(ClientPtr client)
 	rep.realMods= 		0;
 	rep.virtualMods= 	0;
 	rep.ctrls= 		0;
-	rep.supported= 		supported;
+	rep.supported= 		True;
     }
     if ( client->swapped ) {
 	register int n;
@@ -3040,21 +3018,6 @@ ProcXkbGetNamedIndicator(ClientPtr client)
     }
 
     WriteToClient(client,SIZEOF(xkbGetNamedIndicatorReply), (char *)&rep);
-    if (!supported) {
-	xkbExtensionDeviceNotify        edev;
-
-	bzero(&edev,sizeof(xkbExtensionDeviceNotify));
-	edev.reason=            XkbXI_UnsupportedFeatureMask;
-	edev.ledClass=          stuff->ledClass;
-	edev.ledID=             stuff->ledID;
-	edev.ledsDefined=       sli->namesPresent|sli->mapsPresent;
-	edev.ledState=          sli->effectiveState;
-	edev.firstBtn=          0;
-	edev.nBtns=             0;
-	edev.unsupported=       XkbXIUnsupported&XkbXI_IndicatorsMask;
-	edev.supported=         XkbXI_AllFeaturesMask&(~XkbXIUnsupported);
-	XkbSendExtensionDeviceNotify(dev,client,&edev);
-    }
     return client->noClientException;
 }
 
@@ -3088,24 +3051,6 @@ ProcXkbSetNamedIndicator(ClientPtr client)
 							XkbXI_IndicatorsMask);
     if (!sli)
 	return BadAlloc;
-
-    if (XkbXIUnsupported&XkbXI_IndicatorsMask) {
-	if ((dev!=(DeviceIntPtr)LookupKeyboardDevice())||
-					((sli->flags&XkbSLI_IsDefault)==0)) {
-	    bzero(&ed,sizeof(xkbExtensionDeviceNotify));
-	    ed.reason=            XkbXI_UnsupportedFeatureMask;
-	    ed.ledClass=          stuff->ledClass;
-	    ed.ledID=             stuff->ledID;
-	    ed.ledsDefined=       sli->namesPresent|sli->mapsPresent;
-	    ed.ledState=          sli->effectiveState;
-	    ed.firstBtn=          0;
-	    ed.nBtns=             0;
-	    ed.unsupported=       XkbXIUnsupported&XkbXI_IndicatorsMask;
-	    ed.supported=         XkbXI_AllFeaturesMask&(~XkbXIUnsupported);
-	    XkbSendExtensionDeviceNotify(dev,client,&ed);
-	    return client->noClientException;
-	}
-    }
 
     statec= mapc= namec= 0;
     map= NULL;
@@ -5691,7 +5636,7 @@ char *			str;
 	wanted&= ~XkbXI_ButtonActionsMask;
     if ((!dev->kbdfeed)&&(!dev->leds))
 	wanted&= ~XkbXI_IndicatorsMask;
-    wanted&= ~XkbXIUnsupported;
+    wanted&= ~XkbXI_KeyboardsMask;
 
     nameLen= XkbSizeCountedString(dev->name);
     bzero((char *)&rep,SIZEOF(xkbGetDeviceInfoReply));
@@ -5700,8 +5645,8 @@ char *			str;
     rep.sequenceNumber = client->sequence;
     rep.length = nameLen/4;
     rep.present = wanted;
-    rep.supported = XkbXI_AllDeviceFeaturesMask&(~XkbXIUnsupported);
-    rep.unsupported = XkbXIUnsupported;
+    rep.supported = XkbXI_AllDeviceFeaturesMask&(~XkbXI_KeyboardsMask);
+    rep.unsupported = XkbXI_KeyboardsMask;
     rep.firstBtnWanted = rep.nBtnsWanted = 0;
     rep.firstBtnRtrn = rep.nBtnsRtrn = 0;
     if (dev->button)

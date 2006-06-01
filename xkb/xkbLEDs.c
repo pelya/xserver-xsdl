@@ -677,13 +677,13 @@ xkbExtensionDeviceNotify	my_ed;
 	changes->names.changed_indicators|= changed_names;
     }
 
-    ed->reason|=	(XkbXI_IndicatorNamesMask&(~XkbXIUnsupported));
+    ed->reason|=	(XkbXI_IndicatorNamesMask&(~XkbXI_KeyboardsMask));
     ed->ledClass= 	sli->class;
     ed->ledID=		sli->id;
     ed->ledsDefined=	sli->namesPresent|sli->mapsPresent;
     ed->ledState=	sli->effectiveState;
-    ed->unsupported|=	XkbXIUnsupported&XkbXI_IndicatorNamesMask;
-    ed->supported=	XkbXI_AllFeaturesMask&(~XkbXIUnsupported);
+    ed->unsupported=	XkbXI_KeyboardsMask;
+    ed->supported=	XkbXI_AllFeaturesMask&(~XkbXI_KeyboardsMask);
 
     if (changes!=&my_changes)	changes= NULL;
     if (ed!=&my_ed)		ed= NULL;
@@ -755,13 +755,13 @@ xkbExtensionDeviceNotify	my_ed;
 
     XkbCheckIndicatorMaps(dev,sli,changed_maps);
 
-    ed->reason|=	(XkbXI_IndicatorMapsMask&(~XkbXIUnsupported));
+    ed->reason|=	(XkbXI_IndicatorMapsMask&(~XkbXI_KeyboardsMask));
     ed->ledClass= 	sli->class;
     ed->ledID=		sli->id;
     ed->ledsDefined=	sli->namesPresent|sli->mapsPresent;
     ed->ledState=	sli->effectiveState;
-    ed->unsupported|=	XkbXIUnsupported&XkbXI_IndicatorMapsMask;
-    ed->supported=	XkbXI_AllFeaturesMask&(~XkbXIUnsupported);
+    ed->unsupported|=	XkbXI_KeyboardsMask&XkbXI_IndicatorMapsMask;
+    ed->supported=	XkbXI_AllFeaturesMask&(~XkbXI_KeyboardsMask);
 
     XkbUpdateLedAutoState(dev,sli,changed_maps,ed,changes,cause);
 
@@ -836,13 +836,13 @@ Bool				kb_changed;
     if ((kbd==dev)&&(sli->flags&XkbSLI_IsDefault))
 	changes->indicators.state_changes|= affected;
     if (affected) {
-	ed->reason|=		(XkbXI_IndicatorStateMask&(~XkbXIUnsupported));
+	ed->reason|=		(XkbXI_IndicatorStateMask&(~XkbXI_KeyboardsMask));
 	ed->ledClass= 		sli->class;
 	ed->ledID=		sli->id;
 	ed->ledsDefined=	sli->namesPresent|sli->mapsPresent;
 	ed->ledState=		sli->effectiveState;
-	ed->unsupported|=	XkbXIUnsupported&XkbXI_IndicatorStateMask;
-	ed->supported=		XkbXI_AllFeaturesMask&(~XkbXIUnsupported);
+	ed->unsupported|=	XkbXI_KeyboardsMask&XkbXI_IndicatorStateMask;
+	ed->supported=		XkbXI_AllFeaturesMask&(~XkbXI_KeyboardsMask);
     }
 
     if (kb_changed) {
@@ -920,13 +920,13 @@ unsigned			oldState;
 	changes->indicators.state_changes|= affected;
     }
 
-    ed->reason|=	(XkbXI_IndicatorStateMask&(~XkbXIUnsupported));
+    ed->reason|=	(XkbXI_IndicatorStateMask&(~XkbXI_KeyboardsMask));
     ed->ledClass= 	sli->class;
     ed->ledID=		sli->id;
     ed->ledsDefined=	sli->namesPresent|sli->mapsPresent;
     ed->ledState=	sli->effectiveState;
-    ed->unsupported|=	XkbXIUnsupported&XkbXI_IndicatorStateMask;
-    ed->supported=	XkbXI_AllFeaturesMask&(~XkbXIUnsupported);
+    ed->unsupported|=	XkbXI_KeyboardsMask&XkbXI_IndicatorStateMask;
+    ed->supported=	XkbXI_AllFeaturesMask&(~XkbXI_KeyboardsMask);
 
     if (changes!=&my_changes)	changes= NULL;
     if (ed!=&my_ed)		ed= NULL;

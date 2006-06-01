@@ -62,6 +62,10 @@
 	Kill the a.out, ELF and COFF loaders with extreme prejudice.  Good
 	riddance.  There's more where this came from, too.
 
+	* xkb/xkb.c:
+	* xkb/xkbLEDs.c:
+	Simplify the 'unsupported' list.
+
 2006-05-30  Matthieu Herrb <matthieu.herrb@laas.fr>
 
 	* hw/xfree86/os-support/bsd/Makefile.am:
