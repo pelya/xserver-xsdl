@@ -94,6 +94,10 @@
 	* os/utils.c:
 	Remove LBX.  Goodbye.
 
+	* hw/xfree86/os-support/bus/linuxPci.c:
+	* hw/xfree86/os-support/linux/lnx_pci.c:
+	Bug #6583: Only parse /proc/bus/pci/devices once.  (Bill Nottingham)
+
 2006-05-30  Matthieu Herrb <matthieu.herrb@laas.fr>
 
 	* hw/xfree86/os-support/bsd/Makefile.am:

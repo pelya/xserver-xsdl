@@ -130,32 +130,45 @@ linuxPciOpenFile(PCITAG tag, Bool write)
 {
 	static int	lbus,ldev,lfunc,fd = -1,is_write = 0;
 	int		bus, dev, func;
-	char		file[32];
+	char		file[64];
 	struct stat	ignored;
+	static int is26 = -1;
 
 	bus  = PCI_BUS_FROM_TAG(tag);
 	dev  = PCI_DEV_FROM_TAG(tag);
 	func = PCI_FUNC_FROM_TAG(tag);
+	if (is26 == -1) {
+		if (stat("/sys/bus/pci",&ignored) < 0)
+			is26 = 0;
+		else
+			is26 = 1;
+	}
+	
 	if (fd == -1 || (write && (!is_write))
 	    || bus != lbus || dev != ldev || func != lfunc) {
 		if (fd != -1)
 			close(fd);
-		if (bus < 256) {
-		        sprintf(file,"/proc/bus/pci/%02x",bus);
-			if (stat(file, &ignored) < 0)
-				sprintf(file, "/proc/bus/pci/0000:%02x/%02x.%1x",
-					bus, dev, func);
-			else
-				sprintf(file, "/proc/bus/pci/%02x/%02x.%1x",
-					bus, dev, func);
-		} else {
-		        sprintf(file,"/proc/bus/pci/%04x",bus);
-			if (stat(file, &ignored) < 0)
-				sprintf(file, "/proc/bus/pci/0000:%04x/%02x.%1x",
-					bus, dev, func);
-			else
-				sprintf(file, "/proc/bus/pci/%04x/%02x.%1x",
-					bus, dev, func);
+		if (is26)
+			sprintf(file,"/sys/bus/pci/devices/0000:%02x:%02x.%01x/config",
+				bus, dev, func);
+		else {
+			if (bus < 256) {
+				sprintf(file,"/proc/bus/pci/%02x",bus);
+				if (stat(file, &ignored) < 0)
+					sprintf(file, "/proc/bus/pci/0000:%02x/%02x.%1x",
+						bus, dev, func);
+				else
+					sprintf(file, "/proc/bus/pci/%02x/%02x.%1x",
+						bus, dev, func);
+			} else {
+				sprintf(file,"/proc/bus/pci/%04x",bus);
+				if (stat(file, &ignored) < 0)
+					sprintf(file, "/proc/bus/pci/0000:%04x/%02x.%1x",
+						bus, dev, func);
+				else
+					sprintf(file, "/proc/bus/pci/%04x/%02x.%1x",
+						bus, dev, func);
+			}
 		}
 		if (write) {
 		    fd = open(file,O_RDWR);

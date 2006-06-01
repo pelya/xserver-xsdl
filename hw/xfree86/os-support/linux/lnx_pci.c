@@ -23,70 +23,99 @@
 #define PCIADDR_FMT		"%lx"
 #endif
 
-FILE *xf86OSLinuxPCIFile = NULL;
+struct pci_dev {
+    unsigned int bus;
+    unsigned int devfn;
+    PCIADDR_TYPE offset[7];
+    PCIADDR_TYPE size[7];
+    struct pci_dev *next;
+};
+
+struct pci_dev *xf86OSLinuxPCIDevs = NULL;
+
+static struct pci_dev *xf86OSLinuxGetPciDevs(void) {
+    char c[0x200];
+    FILE *file = NULL;
+    struct pci_dev *tmp, *ret = NULL;
+    unsigned int num;
+    char *res;
+    
+    file = fopen("/proc/bus/pci/devices", "r");
+    if (!file) return NULL;
+    
+    do {
+        res = fgets(c, 0x1ff, file);
+        if (res) {
+            tmp = xcalloc(sizeof(struct pci_dev),1);
+            num = sscanf(res,
+                /*bus+dev vendorid deviceid irq */
+                "%02x%02x\t%*04x%*04x\t%*x"
+                /* 7 PCI resource base addresses */
+                "\t" PCIADDR_FMT
+                "\t" PCIADDR_FMT
+                "\t" PCIADDR_FMT
+                "\t" PCIADDR_FMT
+                "\t" PCIADDR_FMT
+                "\t" PCIADDR_FMT
+                "\t" PCIADDR_FMT
+                /* 7 PCI resource sizes, and then optionally a driver name */
+                "\t" PCIADDR_FMT
+                "\t" PCIADDR_FMT
+                "\t" PCIADDR_FMT
+                "\t" PCIADDR_FMT
+                "\t" PCIADDR_FMT
+                "\t" PCIADDR_FMT
+                "\t" PCIADDR_FMT,
+                &tmp->bus,&tmp->devfn,&tmp->offset[0],&tmp->offset[1],&tmp->offset[2],&tmp->offset[3],
+                &tmp->offset[4],&tmp->offset[5],&tmp->offset[6], &tmp->size[0], &tmp->size[1], &tmp->size[2],
+                &tmp->size[3], &tmp->size[4], &tmp->size[5], &tmp->size[6]);
+            if (num != 16) {  /* apparantly not 2.3 style */
+                xfree(tmp);
+                fclose(file);
+                return NULL;
+            }
+            if (ret) {
+                tmp->next = ret;
+            }
+            ret = tmp;
+        }
+    } while (res);
+    fclose(file);
+    return ret;
+}
 
 Bool
 xf86GetPciSizeFromOS(PCITAG tag, int index, int* bits)
 {
-    char c[0x200];
-    char *res;
-    unsigned int bus, devfn, dev, fn;
-    unsigned PCIADDR_TYPE size[7];
-    unsigned int num;
+    unsigned int dev, fn;
     signed PCIADDR_TYPE Size;
+    struct pci_dev *device;
 
     if (index > 7)
-	return FALSE;
+        return FALSE;
     
-    if (!xf86OSLinuxPCIFile && \
-        !(xf86OSLinuxPCIFile = fopen("/proc/bus/pci/devices","r")))
-	return FALSE;
-    do {
-	res = fgets(c,0x1ff,xf86OSLinuxPCIFile);
-	if (res) {
-	    num = sscanf(res,
-			 /*bus+dev vendorid deviceid irq */
-			 "%02x%02x\t%*04x%*04x\t%*x"
-			 /* 7 PCI resource base addresses */
-			 "\t" PCIADDR_IGNORE_FMT
-			 "\t" PCIADDR_IGNORE_FMT
-			 "\t" PCIADDR_IGNORE_FMT
-			 "\t" PCIADDR_IGNORE_FMT
-			 "\t" PCIADDR_IGNORE_FMT
-			 "\t" PCIADDR_IGNORE_FMT
-			 "\t" PCIADDR_IGNORE_FMT
-			 /* 7 PCI resource sizes, and then optionally a driver name */
-			 "\t" PCIADDR_FMT
-			 "\t" PCIADDR_FMT
-			 "\t" PCIADDR_FMT
-			 "\t" PCIADDR_FMT
-			 "\t" PCIADDR_FMT
-			 "\t" PCIADDR_FMT
-			 "\t" PCIADDR_FMT,
-			 &bus,&devfn,&size[0],&size[1],&size[2],&size[3],
-			 &size[4],&size[5],&size[6]);
-	    if (num != 9) {  /* apparantly not 2.3 style */ 
-		fseek(xf86OSLinuxPCIFile, 0L, SEEK_SET);
-		return FALSE;
-	    }
-	    dev = devfn >> 3;
-	    fn = devfn & 0x7;
-	    if (tag == pciTag(bus,dev,fn)) {
-		*bits = 0;
-		if (size[index] != 0) {
-		    Size = size[index] - ((PCIADDR_TYPE) 1);
-		    while (Size & ((PCIADDR_TYPE) 0x01)) {
-			Size = Size >> ((PCIADDR_TYPE) 1);
-			(*bits)++;
-		    }
-		}
-		fseek(xf86OSLinuxPCIFile, 0L, SEEK_SET);
-		return TRUE;
-	    }
-	}
-    } while (res);
+    if (!xf86OSLinuxPCIDevs) {
+        xf86OSLinuxPCIDevs = xf86OSLinuxGetPciDevs();
+    }
+    if (!xf86OSLinuxPCIDevs)
+        return FALSE;
+    
+    for (device = xf86OSLinuxPCIDevs; device; device = device->next) {
+        dev = device->devfn >> 3;
+	fn = device->devfn & 0x7;
+        if (tag == pciTag(device->bus,dev,fn)) {
+            *bits = 0;
+            if (device->size[index] != 0) {
+                Size = device->size[index] - ((PCIADDR_TYPE) 1);
+                while (Size & ((PCIADDR_TYPE) 0x01)) {
+                    Size = Size >> ((PCIADDR_TYPE) 1);
+                    (*bits)++;
+                }
+            }
+            return TRUE;
+        }
+    }
 
-    fseek(xf86OSLinuxPCIFile, 0L, SEEK_SET);
     return FALSE;
 }
 
@@ -96,59 +125,28 @@ xf86GetPciSizeFromOS(PCITAG tag, int index, int* bits)
 Bool
 xf86GetPciOffsetFromOS(PCITAG tag, int index, unsigned long* bases)
 {
-    FILE *file;
-    char c[0x200];
-    char *res;
-    unsigned int bus, devfn, dev, fn;
-    unsigned PCIADDR_TYPE offset[7];
-    unsigned int num;
+    unsigned int dev, fn;
+    struct pci_dev *device;
 
     if (index > 7)
         return FALSE;
 
-    if (!(file = fopen("/proc/bus/pci/devices","r")))
+    if (!xf86OSLinuxPCIDevs) {
+        xf86OSLinuxPCIDevs = xf86OSLinuxGetPciDevs();
+    }
+    if (!xf86OSLinuxPCIDevs)
         return FALSE;
-    do {
-        res = fgets(c,0x1ff,file);
-        if (res) {
-            num = sscanf(res,
-                         /*bus+dev vendorid deviceid irq */
-                         "%02x%02x\t%*04x%*04x\t%*x"
-                         /* 7 PCI resource base addresses */
-                         "\t" PCIADDR_FMT
-                         "\t" PCIADDR_FMT
-                         "\t" PCIADDR_FMT
-                         "\t" PCIADDR_FMT
-                         "\t" PCIADDR_FMT
-                         "\t" PCIADDR_FMT
-                         "\t" PCIADDR_FMT
-                         /* 7 PCI resource sizes, and then optionally a driver name */
-                         "\t" PCIADDR_IGNORE_FMT
-                         "\t" PCIADDR_IGNORE_FMT
-                         "\t" PCIADDR_IGNORE_FMT
-                         "\t" PCIADDR_IGNORE_FMT
-                         "\t" PCIADDR_IGNORE_FMT
-                         "\t" PCIADDR_IGNORE_FMT
-                         "\t" PCIADDR_IGNORE_FMT,
-                         &bus,&devfn,&offset[0],&offset[1],&offset[2],&offset[3],
-                         &offset[4],&offset[5],&offset[6]);
-            if (num != 9) {  /* apparantly not 2.3 style */
-                fclose(file);
-                return FALSE;
-            }
 
-            dev = devfn >> 3;
-            fn = devfn & 0x7;
-            if (tag == pciTag(bus,dev,fn)) {
-                /* return the offset for the index requested */
-                *bases = offset[index];
-                fclose(file);
-                return TRUE;
-            }
+    for (device = xf86OSLinuxPCIDevs; device; device = device->next) {
+        dev = device->devfn >> 3;
+        fn = device->devfn & 0x7;
+        if (tag == pciTag(device->bus,dev,fn)) {
+            /* return the offset for the index requested */
+            *bases = device->offset[index];
+            return TRUE;
         }
-    } while (res);
+    }
 
-    fclose(file);
     return FALSE;
 }
 
@@ -156,81 +154,49 @@ xf86GetPciOffsetFromOS(PCITAG tag, int index, unsigned long* bases)
 unsigned long
 xf86GetOSOffsetFromPCI(PCITAG tag, int space, unsigned long base)
 {
-    FILE *file;
-    char c[0x200];
-    char *res;
-    unsigned int bus, devfn, dev, fn;
-    unsigned PCIADDR_TYPE offset[7];
-    unsigned PCIADDR_TYPE size[7];
-    unsigned int num;
+    unsigned int dev, fn;
     unsigned int ndx;
+    struct pci_dev *device;
 
-    if (!(file = fopen("/proc/bus/pci/devices","r")))
-        return 0;
-    do {
-        res = fgets(c,0x1ff,file);
-        if (res) {
-            num = sscanf(res,
-                         /*bus+dev vendorid deviceid irq */
-                         "%02x%02x\t%*04x%*04x\t%*x"
-                         /* 7 PCI resource base addresses */
-                         "\t" PCIADDR_FMT
-                         "\t" PCIADDR_FMT
-                         "\t" PCIADDR_FMT
-                         "\t" PCIADDR_FMT
-                         "\t" PCIADDR_FMT
-                         "\t" PCIADDR_FMT
-                         "\t" PCIADDR_FMT
-                         /* 7 PCI resource sizes, and then optionally a driver name */
-                         "\t" PCIADDR_FMT
-                         "\t" PCIADDR_FMT
-                         "\t" PCIADDR_FMT
-                         "\t" PCIADDR_FMT
-                         "\t" PCIADDR_FMT
-                         "\t" PCIADDR_FMT
-                         "\t" PCIADDR_FMT,
-                         &bus,&devfn,&offset[0],&offset[1],&offset[2],&offset[3],
-                         &offset[4],&offset[5],&offset[6], &size[0], &size[1], &size[2],
-		         &size[3], &size[4], &size[5], &size[6]);
-            if (num != 16) {  /* apparantly not 2.3 style */
-                fclose(file);
-                return 0;
-            }
+    if (!xf86OSLinuxPCIDevs) {
+        xf86OSLinuxPCIDevs = xf86OSLinuxGetPciDevs();
+    }
+    if (!xf86OSLinuxPCIDevs) {
+        return FALSE;
+    }
 
-            dev = devfn >> 3;
-            fn = devfn & 0x7;
-            if (tag == pciTag(bus,dev,fn)) {
-                /* ok now look through all the BAR values of this device */
-		pciConfigPtr pDev = xf86GetPciConfigFromTag(tag);
+    for (device = xf86OSLinuxPCIDevs; device; device = device->next) {
+        dev = device->devfn >> 3;
+        fn = device->devfn & 0x7;
+        if (tag == pciTag(device->bus, dev, fn)) {
+            /* ok now look through all the BAR values of this device */
+            pciConfigPtr pDev = xf86GetPciConfigFromTag(tag);
 
-                for (ndx=0; ndx<7; ndx++) {
-                    unsigned long savePtr, flagMask;
-		    if (ndx == 6) 
-			savePtr = pDev->pci_baserom;
-		    else /* this the ROM bar */
-			savePtr = (&pDev->pci_base0)[ndx];
-                    /* Ignore unset base addresses. The kernel may
-                     * have reported non-zero size and address even
-                     * if they are disabled (e.g. disabled ROM BAR).
-                     */
-                    if (savePtr == 0)
-                        continue;
-                    /* Remove memory attribute bits, different for IO
-                     * and memory ranges. */
-                    flagMask = (savePtr & 0x1) ? ~0x3UL : ~0xFUL;
-                    savePtr &= flagMask;
+            for (ndx=0; ndx<7; ndx++) {
+                unsigned long savePtr, flagMask;
+                if (ndx == 6) 
+                    savePtr = pDev->pci_baserom;
+                else /* this the ROM bar */
+                    savePtr = (&pDev->pci_base0)[ndx];
+                /* Ignore unset base addresses. The kernel may
+                 * have reported non-zero size and address even
+                 * if they are disabled (e.g. disabled ROM BAR).
+                 */
+                if (savePtr == 0)
+                    continue;
+                /* Remove memory attribute bits, different for IO
+                 * and memory ranges. */
+                flagMask = (savePtr & 0x1) ? ~0x3UL : ~0xFUL;
+                savePtr &= flagMask;
 
-                    /* find the index of the incoming base */
-                    if (base >= savePtr && base < (savePtr + size[ndx])) {
-                        fclose(file);
-                        return (offset[ndx] & flagMask) + (base - savePtr);
-                    }
+                /* find the index of the incoming base */
+                if (base >= savePtr && base < (savePtr + device->size[ndx])) {
+                    return (device->offset[ndx] & flagMask) + (base - savePtr);
                 }
             }
         }
-    } while (res);
+    };
 
-    fclose(file);
     return 0;
 
 }
