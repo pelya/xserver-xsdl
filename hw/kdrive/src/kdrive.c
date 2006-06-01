@@ -1466,32 +1466,6 @@ KdInitOutput (ScreenInfo    *pScreenInfo,
 	    KdAddScreen (pScreenInfo, screen, argc, argv);
 }
 
-#ifdef XTESTEXT1
-void
-XTestGenerateEvent(dev_type, keycode, keystate, mousex, mousey)
-	int	dev_type;
-	int	keycode;
-	int	keystate;
-	int	mousex;
-	int	mousey;
-{
-}
-
-void
-XTestGetPointerPos(fmousex, fmousey)
-	short *fmousex, *fmousey;
-{
-}
-
-void
-XTestJumpPointer(jx, jy, dev_type)
-	int	jx;
-	int	jy;
-	int	dev_type;
-{
-}
-#endif
-
 #ifdef DPMSExtension
 void
 DPMSSet(int level)

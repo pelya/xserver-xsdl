@@ -23,10 +23,7 @@ BUILTIN_SRCS =			\
 	shape.c			\
 	sleepuntil.c		\
 	sleepuntil.h		\
-	xtest.c			\
-	xtest1di.c		\
-	xtest1dd.c		\
-	xtest1dd.h
+	xtest.c
 
 # Sources always included in libXextmodule.la & libXext.la
 MODULE_SRCS =			\
@@ -147,7 +144,6 @@ libXextmodule_la_SOURCES =	$(MODULE_SRCS)
 endif
 
 EXTRA_DIST = \
-	README.xtest1-ddx \
 	SecurityPolicy \
 	$(MITSHM_SRCS) \
 	$(XV_SRCS) \

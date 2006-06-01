@@ -323,22 +323,3 @@ InitInput(int argc, char *argv[])
     miRegisterPointerDevice(screenInfo.screens[0], p);
     (void)mieqInit ((DevicePtr) k, (DevicePtr) p);
 }
-
-#ifdef XTESTEXT1
-void
-XTestGenerateEvent(int dev_type, int keycode, int keystate, int mousex,
-		   int mousey)
-{
-}
-
-void
-XTestGetPointerPos(short *fmousex, short *fmousey)
-{
-}
-
-void
-XTestJumpPointer(int jx, int jy, int dev_type)
-{
-}
-#endif
-

@@ -23,7 +23,7 @@
  */
 
 /* [JCH-96/01/21] Extended std reverse map to four buttons. */
-/* $XdotOrg: xc/programs/Xserver/hw/xfree86/os-support/sunos/sun_kbdEv.c,v 1.5 2005/05/21 07:46:37 alanc Exp $ */
+/* $XdotOrg: xserver/xorg/hw/xfree86/os-support/solaris/sun_kbdEv.c,v 1.10 2005/12/12 23:33:55 alanc Exp $ */
 
 #ifdef HAVE_XORG_CONFIG_H
 #include <xorg-config.h>
@@ -52,36 +52,6 @@ extern Bool noXkbExtension;
 #define XE_POINTER  1
 #define XE_KEYBOARD 2
 
-#ifdef XTESTEXT1
-
-#define	XTestSERVER_SIDE
-#include <X11/extensions/xtestext1.h>
-extern short xtest_mousex;
-extern short xtest_mousey;
-extern int   on_steal_input;
-extern Bool  XTestStealKeyData();
-extern void  XTestStealMotionData();
-
-#ifdef XINPUT
-#define ENQUEUE(ev, code, direction, dev_type) \
-  (ev)->u.u.detail = (code); \
-  (ev)->u.u.type   = (direction); \
-  if (!on_steal_input ||  \
-      XTestStealKeyData((ev)->u.u.detail, (ev)->u.u.type, dev_type, \
-			xtest_mousex, xtest_mousey)) \
-  xf86eqEnqueue((ev))
-#else
-#define ENQUEUE(ev, code, direction, dev_type) \
-  (ev)->u.u.detail = (code); \
-  (ev)->u.u.type   = (direction); \
-  if (!on_steal_input ||  \
-      XTestStealKeyData((ev)->u.u.detail, (ev)->u.u.type, dev_type, \
-			xtest_mousex, xtest_mousey)) \
-  mieqEnqueue((ev))
-#endif
-
-#else /* ! XTESTEXT1 */
-
 #ifdef XINPUT
 #define ENQUEUE(ev, code, direction, dev_type) \
   (ev)->u.u.detail = (code); \
@@ -92,8 +62,6 @@ extern void  XTestStealMotionData();
   (ev)->u.u.detail = (code); \
   (ev)->u.u.type   = (direction); \
   mieqEnqueue((ev))
-#endif
-
 #endif
 
 static void startautorepeat(long keycode);

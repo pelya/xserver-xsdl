@@ -177,28 +177,3 @@ InitInput (int argc, char *argv[])
   winDebug ("InitInput - returning\n");
 #endif
 }
-
-
-#ifdef XTESTEXT1
-void
-XTestGenerateEvent (int dev_type, int keycode, int keystate,
-		    int mousex, int mousey)
-{
-  ErrorF ("XTestGenerateEvent\n");
-}
-
-
-void
-XTestGetPointerPos (short *fmousex, short *fmousey)
-{
-  ErrorF ("XTestGetPointerPos\n");
-}
-
-
-void
-XTestJumpPointer (int jx, int jy, int dev_type)
-{
-  ErrorF ("XTestJumpPointer\n");
-}
-#endif
-

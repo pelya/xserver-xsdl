@@ -371,28 +371,6 @@ SetDeviceValuators (
 
 #endif /* XINPUT */
 
-#ifdef XTESTEXT1
-
-void
-XTestJumpPointer(int x, int y, int dev)
-{
-    return;
-}
-
-void
-XTestGetPointerPos(int x, int y)
-{
-    return;
-}
-
-void
-XTestGenerateEvent(int dev, int keycode, int keystate, int x, int y)
-{
-    return;
-}
-
-#endif /* XTESTEXT1 */
-
 #ifdef AIXV3
 /*
  * This is just to get the server to link on AIX, where some bits

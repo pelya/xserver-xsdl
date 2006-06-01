@@ -1,5 +1,5 @@
 /* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86Init.c,v 3.212 2004/01/27 01:31:45 dawes Exp $ */
-/* $XdotOrg: xserver/xorg/hw/xfree86/common/xf86Init.c,v 1.34 2006/04/04 14:17:04 ajax Exp $ */
+/* $XdotOrg: xserver/xorg/hw/xfree86/common/xf86Init.c,v 1.35 2006/05/09 18:04:29 ajax Exp $ */
 
 /*
  * Loosely based on code bearing the following copyright:
@@ -92,11 +92,6 @@
 #endif
 
 #include "globals.h"
-
-#ifdef XTESTEXT1
-#include "atKeynames.h"
-extern int xtest_command_key;
-#endif /* XTESTEXT1 */
 
 #ifdef DPMSExtension
 #define DPMS_SERVER
@@ -1038,9 +1033,6 @@ InitInput(argc, argv)
 
     xf86Info.vtRequestsPending = FALSE;
     xf86Info.inputPending = FALSE;
-#ifdef XTESTEXT1
-    xtest_command_key = KEY_Begin + MIN_KEYCODE;
-#endif /* XTESTEXT1 */
 
     if (serverGeneration == 1) {
 	/* Call the PreInit function for each input device instance. */

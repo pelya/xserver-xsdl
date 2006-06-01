@@ -1,4 +1,4 @@
-/* $XdotOrg: xserver/xorg/mi/miinitext.c,v 1.31 2006/02/15 19:05:54 ajax Exp $ */
+/* $XdotOrg: xserver/xorg/mi/miinitext.c,v 1.32 2006/03/12 00:11:34 krh Exp $ */
 /* $XFree86: xc/programs/Xserver/mi/miinitext.c,v 3.67 2003/01/12 02:44:27 dawes Exp $ */
 /***********************************************************
 
@@ -267,9 +267,6 @@ typedef void (*InitExtension)(INITARGS);
 #endif
 
 /* FIXME: this whole block of externs should be from the appropriate headers */
-#ifdef XTESTEXT1
-extern void XTestExtension1Init(INITARGS);
-#endif
 #ifdef SHAPE
 extern void ShapeExtensionInit(INITARGS);
 #endif
@@ -550,9 +547,6 @@ InitExtensions(argc, argv)
   if (!noPanoramiXExtension) PanoramiXExtensionInit();
 # endif
 #endif
-#ifdef XTESTEXT1
-    if (!noTestExtensions) XTestExtension1Init();
-#endif
 #ifdef SHAPE
     if (!noShapeExtension) ShapeExtensionInit();
 #endif
@@ -697,9 +691,6 @@ InitVisualWrap()
 #else /* XFree86LOADER */
 /* List of built-in (statically linked) extensions */
 static ExtensionModule staticExtensions[] = {
-#ifdef XTESTEXT1
-    { XTestExtension1Init, "XTEST1", &noTestExtensions, NULL, NULL },
-#endif
 #ifdef MITSHM
     { ShmExtensionInit, SHMNAME, &noMITShmExtension, NULL, NULL },
 #endif

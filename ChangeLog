@@ -1,3 +1,22 @@
+2006-06-01  Daniel Stone  <daniel@freedesktop.org>
+
+	* Xext/Makefile.am:
+	* Xext/README.xtest1-ddx:
+	* Xext/xtest1di.c:
+	* Xext/xtest1dd.h:
+	* Xext/xtest1dd.c:
+	* Xprint/ddxInit.c:
+	* hw/kdrive/src/kdrive.c:
+	* hw/xfree86/common/xf86Events.c:
+	* hw/xfree86/common/xf86Init.c:
+	* hw/xfree86/os-support/solaris/sun_kbdEv.c:
+	* hw/xnest/TestExt.c:
+	* hw/xwin/InitInput.c:
+	* hw/vfb/InitInput.c:
+	* mi/miinitext.c:
+	* os/WaitFor.c:
+	Die, XTESTEXT1, die!
+
 2006-05-30  Matthieu Herrb <matthieu.herrb@laas.fr>
 
 	* hw/xfree86/os-support/bsd/Makefile.am:

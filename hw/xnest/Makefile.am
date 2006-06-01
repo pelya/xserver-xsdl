@@ -26,7 +26,6 @@ SRCS =	Args.c \
 	Pointer.h \
 	Screen.c \
 	Screen.h \
-	TestExt.c \
 	Visual.c \
 	Visual.h \
 	Window.c \
