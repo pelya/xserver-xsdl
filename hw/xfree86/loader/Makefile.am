@@ -13,18 +13,8 @@ if XORG_LOADER_SPARC
 SPARC_SOURCES = SparcMulDiv.S
 endif
 
-sdk_HEADERS = \
-	elf.h
-
 EXTRA_DIST = \
-	aout.h \
-	aoutloader.h \
-	ar.h \
-	coff.h \
-	coffloader.h \
 	dlloader.h \
-	elf.h \
-	elfloader.h \
 	hash.h \
 	loader.h \
 	loaderProcs.h \
@@ -37,10 +27,7 @@ libloader_a_SOURCES = \
 	loadext.c \
         loadmod.c \
 	loadfont.c \
-        aoutloader.c \
         dlloader.c \
-        elfloader.c \
-        coffloader.c \
 	os.c \
 	dixsym.c \
 	extsym.c \

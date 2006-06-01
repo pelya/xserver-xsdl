@@ -70,13 +70,7 @@
 /* For LOOKUP definition */
 #include "sym.h"
 #define LD_UNKNOWN	-1
-#define LD_ARCHIVE	0
-#define LD_ELFOBJECT	1
-#define LD_COFFOBJECT	2
-#define LD_XCOFFOBJECT	3
-#define LD_AOUTOBJECT   4
-#define LD_AOUTDLOBJECT	5
-#define LD_ELFDLOBJECT	6
+#define LD_ELFDLOBJECT	0
 #define LD_PROCESSED_ARCHIVE -1
 /* #define UNINIT_SECTION */
 #define HANDLE_IN_HASH_ENTRY
@@ -85,29 +79,13 @@
  * namespace, default is to keep symbols local to module. */
 #define LD_FLAG_GLOBAL 1
 
-/*
- * COFF Section nmumbers
- */
-#define N_TEXT       1
-#define N_DATA       2
-#define N_BSS        3
-#define N_COMMENT    4
 #define TestFree(a) if (a) { xfree (a); a = NULL; }
 #define HASHDIV 10
 #define HASHSIZE (1<<HASHDIV)
-typedef struct _elf_reloc *ELFRelocPtr;
-typedef struct _elf_COMMON *ELFCommonPtr;
-typedef struct _coff_reloc *COFFRelocPtr;
-typedef struct _coff_COMMON *COFFCommonPtr;
-typedef struct AOUT_RELOC *AOUTRelocPtr;
-typedef struct AOUT_COMMON *AOUTCommonPtr;
 
 typedef struct _LoaderReloc {
     int modtype;
     struct _LoaderReloc *next;
-    COFFRelocPtr coff_reloc;
-    ELFRelocPtr elf_reloc;
-    AOUTRelocPtr aout_reloc;
 } LoaderRelocRec, *LoaderRelocPtr;
 
 typedef struct _loader_item *itemPtr;
@@ -126,7 +104,6 @@ typedef struct _loader_item {
      */
     union {
 	unsigned short plt[8];	/* ELF */
-	unsigned short glink[14];	/* XCOFF */
     } code;
 #endif
 } itemRec;
@@ -285,12 +262,7 @@ char *_LoaderHandleToCanonicalName(int handle);
 /*
  * Entry points for the different loader types
  */
-#include "aoutloader.h"
-#include "coffloader.h"
-#include "elfloader.h"
 #include "dlloader.h"
-/* LD_ARCHIVE */
-void *ARCHIVELoadModule(loaderPtr, int, LOOKUP **, int flags);
 
 extern void _loader_debug_state(void);
 

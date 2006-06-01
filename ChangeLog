@@ -41,6 +41,22 @@
 	Ignore requests to load deprecated GLcore and speedo modules
 	(properly, this time).
 
+	* hw/xfree86/loader/Makefile.am:
+	* hw/xfree86/loader/loader.c:
+	* hw/xfree86/loader/loader.h:
+	* hw/xfree86/loader/ar.h:
+	* hw/xfree86/loader/aout.h:
+	* hw/xfree86/loader/aoutloader.h:
+	* hw/xfree86/loader/aoutloader.c:
+	* hw/xfree86/loader/coff.h:
+	* hw/xfree86/loader/coffloader.h:
+	* hw/xfree86/loader/coffloader.c:
+	* hw/xfree86/loader/elf.h:
+	* hw/xfree86/loader/elfloader.h:
+	* hw/xfree86/loader/elfloader.c:
+	Kill the a.out, ELF and COFF loaders with extreme prejudice.  Good
+	riddance.  There's more where this came from, too.
+
 2006-05-30  Matthieu Herrb <matthieu.herrb@laas.fr>
 
 	* hw/xfree86/os-support/bsd/Makefile.am:

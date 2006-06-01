@@ -69,9 +69,6 @@
 #include <malloc.h>
 #endif
 #include <stdarg.h>
-#include "ar.h"
-#include "elf.h"
-#include "coff.h"
 
 #include "os.h"
 #include "sym.h"
@@ -259,23 +256,10 @@ static int fatalReqSym = 0;
 static int _GetModuleType(int, long);
 static loaderPtr _LoaderListPush(void);
 static loaderPtr _LoaderListPop(int);
- /*ARGSUSED*/ static void
-ARCHIVEResolveSymbols(void *unused)
-{
-}
- /*ARGSUSED*/ static int
-ARCHIVECheckForUnresolved(void *v)
-{
-    return 0;
-}
  /*ARGSUSED*/ static char *
 ARCHIVEAddressToSection(void *modptr, unsigned long address)
 {
     return NULL;
-}
- /*ARGSUSED*/ static void
-ARCHIVEUnload(void *unused2)
-{
 }
 
 /*
@@ -283,64 +267,12 @@ ARCHIVEUnload(void *unused2)
  */
 
 static loader_funcs funcs[] = {
-    /* LD_ARCHIVE */
-    {ARCHIVELoadModule,
-     ARCHIVEResolveSymbols,
-     ARCHIVECheckForUnresolved,
-     ARCHIVEAddressToSection,
-     ARCHIVEUnload, {0, 0, 0, 0, 0}},
-    /* LD_ELFOBJECT */
-    {ELFLoadModule,
-     ELFResolveSymbols,
-     ELFCheckForUnresolved,
-     ELFAddressToSection,
-     ELFUnloadModule, {0, 0, 0, 0, 0}},
-    /* LD_COFFOBJECT */
-    {COFFLoadModule,
-     COFFResolveSymbols,
-     COFFCheckForUnresolved,
-     COFFAddressToSection,
-     COFFUnloadModule, {0, 0, 0, 0, 0}},
-    /* LD_XCOFFOBJECT */
-    {COFFLoadModule,
-     COFFResolveSymbols,
-     COFFCheckForUnresolved,
-     COFFAddressToSection,
-     COFFUnloadModule, {0, 0, 0, 0, 0}},
-    /* LD_AOUTOBJECT */
-    {AOUTLoadModule,
-     AOUTResolveSymbols,
-     AOUTCheckForUnresolved,
-     AOUTAddressToSection,
-     AOUTUnloadModule, {0, 0, 0, 0, 0}},
-    /* LD_AOUTDLOBJECT */
-#ifdef DLOPEN_SUPPORT
-    {DLLoadModule,
-     DLResolveSymbols,
-     DLCheckForUnresolved,
-     ARCHIVEAddressToSection,
-     DLUnloadModule, {0, 0, 0, 0, 0}},
-#else
-    {AOUTLoadModule,
-     AOUTResolveSymbols,
-     AOUTCheckForUnresolved,
-     AOUTAddressToSection,
-     AOUTUnloadModule, {0, 0, 0, 0, 0}},
-#endif
     /* LD_ELFDLOBJECT */
-#ifdef DLOPEN_SUPPORT
     {DLLoadModule,
      DLResolveSymbols,
      DLCheckForUnresolved,
      ARCHIVEAddressToSection,
      DLUnloadModule, {0, 0, 0, 0, 0}},
-#else
-    {ELFLoadModule,
-     ELFResolveSymbols,
-     ELFCheckForUnresolved,
-     ELFAddressToSection,
-     ELFUnloadModule, {0, 0, 0, 0, 0}},
-#endif
 };
 
 int numloaders = sizeof(funcs) / sizeof(loader_funcs);
@@ -434,69 +366,7 @@ LoaderInit(void)
 static int
 _GetModuleType(int fd, long offset)
 {
-    unsigned char buf[256];	/* long enough for the largest magic type */
-
-    if (read(fd, buf, sizeof(buf)) < 0) {
-	return -1;
-    }
-#ifdef DEBUG
-    ErrorF("Checking module type %10s\n", buf);
-    ErrorF("Checking module type %x %x %x %x\n", buf[0], buf[1], buf[2],
-	   buf[3]);
-#endif
-
-    lseek(fd, offset, SEEK_SET);
-
-    if (strncmp((char *)buf, ARMAG, SARMAG) == 0) {
-	return LD_ARCHIVE;
-    }
-#if defined(AIAMAG)
-    /* LynxOS PPC style archives */
-    if (strncmp((char *)buf, AIAMAG, SAIAMAG) == 0) {
-	return LD_ARCHIVE;
-    }
-#endif
-
-    if (strncmp((char *)buf, ELFMAG, SELFMAG) == 0) {
-	if (*((Elf32_Half *) (buf + ELFDLOFF)) == ELFDLMAG) {
-	    return LD_ELFDLOBJECT;
-	} else {
-	    return LD_ELFOBJECT;
-	}
-    }
-
-    if (buf[0] == 0x4c && buf[1] == 0x01) {
-	/* I386MAGIC */
-	return LD_COFFOBJECT;
-    }
-    if (buf[0] == 0x01 && buf[1] == 0xdf) {
-	/* XCOFFMAGIC */
-	return LD_COFFOBJECT;
-    }
-    if (buf[0] == 0x0d && buf[1] == 0x01) {
-	/* ZCOFFMAGIC (LynxOS) */
-	return LD_COFFOBJECT;
-    }
-    if (buf[0] == 0x00 && buf[1] == 0x86 && buf[2] == 0x01 && buf[3] == 0x07) {
-	/* AOUTMAGIC */
-	return LD_AOUTOBJECT;
-    }
-    if (buf[0] == 0x07 && buf[1] == 0x01
-	&& (buf[2] == 0x64 || buf[2] == 0x86)) {
-	/* AOUTMAGIC, (Linux OMAGIC, old impure format, also used by OS/2 */
-	return LD_AOUTOBJECT;
-    }
-    if (buf[0] == 0x07 && buf[1] == 0x01 && buf[2] == 0x00 && buf[3] == 0x00) {
-	/* AOUTMAGIC, BSDI */
-	return LD_AOUTOBJECT;
-    }
-    if ((buf[0] == 0xc0 && buf[1] == 0x86) ||	/* big endian form */
-	(buf[3] == 0xc0 && buf[2] == 0x86)) {	/* little endian form */
-	/* i386 shared object */
-	return LD_AOUTDLOBJECT;
-    }
-
-    return LD_UNKNOWN;
+    return LD_ELFDLOBJECT;
 }
 
 static int offsetbias = 0;	/* offset into archive */
@@ -969,255 +839,6 @@ _LoaderHandleUnresolved(char *symbol, char *module)
 	}
     }
     return (fatalsym);
-}
-
-/*
- * Handle an archive.
- */
-void *
-ARCHIVELoadModule(loaderPtr modrec, int arfd, LOOKUP ** ppLookup, int flags)
-{
-    loaderPtr tmp = NULL;
-    void *ret = NULL;
-    unsigned char magic[SARMAG];
-    struct ar_hdr hdr;
-
-#if defined(__powerpc__) && defined(Lynx)
-    struct fl_hdr fhdr;
-    char name[255];
-    int namlen;
-#endif
-    unsigned int size;
-    unsigned int offset;
-    int arnamesize, modnamesize;
-    char *slash, *longname;
-    char *nametable = NULL;
-    int nametablelen = 0;
-    LOOKUP *lookup_ret, *p;
-    LOOKUP *myLookup = NULL;	/* Does realloc behave if ptr == 0? */
-    int modtype;
-    int i;
-    int numsyms = 0;
-
-    /* lookup_ret = xf86loadermalloc(sizeof (LOOKUP *)); */
-
-    arnamesize = strlen(modrec->name);
-
-#if !(defined(__powerpc__) && defined(Lynx))
-    read(arfd, magic, SARMAG);
-
-    if (strncmp((const char *)magic, ARMAG, SARMAG) != 0) {
-	ErrorF("ARCHIVELoadModule: wrong magic!!\n");
-	return NULL;
-    }
-#else
-    read(arfd, &fhdr, FL_HSZ);
-
-    if (strncmp(fhdr.fl_magic, AIAMAG, SAIAMAG) != 0) {
-	ErrorF("ARCHIVELoadModule: wrong magic!!\n");
-	return NULL;
-    }
-#endif /* __powerpc__ && Lynx */
-
-#ifdef DEBUGAR
-    ErrorF("Looking for archive members starting at offset %o\n", offset);
-#endif
-
-    while (read(arfd, &hdr, sizeof(struct ar_hdr))) {
-
-	longname = NULL;
-	sscanf(hdr.ar_size, "%u", &size);
-#if defined(__powerpc__) && defined(Lynx)
-	sscanf(hdr.ar_namlen, "%d", &namlen);
-	name[0] = hdr.ar_name[0];
-	name[1] = hdr.ar_name[1];
-	read(arfd, &name[2], namlen);
-	name[namlen] = '\0';
-	offset = lseek(arfd, 0, SEEK_CUR);
-	if (offset & 0x1)	/* odd value */
-	    offset = lseek(arfd, 1, SEEK_CUR);	/* make it an even boundary */
-#endif
-	offset = lseek(arfd, 0, SEEK_CUR);
-
-	/* Check for a Symbol Table */
-	if ((hdr.ar_name[0] == '/' && hdr.ar_name[1] == ' ') ||
-#if defined(__powerpc__) && defined(Lynx)
-	    namlen == 0 ||
-#endif
-	    strncmp(hdr.ar_name, "__.SYMDEF", 9) == 0) {
-	    /* If the file name is NULL, then it is a symbol table */
-#ifdef DEBUGAR
-	    ErrorF("Symbol Table Member '%16.16s', size %d, offset %d\n",
-		   hdr.ar_name, size, offset);
-	    ErrorF("Symbol table size %d\n", size);
-#endif
-	    offset = lseek(arfd, offset + size, SEEK_SET);
-	    if (offset & 0x1)	/* odd value */
-		offset = lseek(arfd, 1, SEEK_CUR);	/* make it an even boundary */
-	    continue;
-	}
-
-	/* Check for a String Table */
-	if (hdr.ar_name[0] == '/' && hdr.ar_name[1] == '/') {
-	    /* If the file name is '/', then it is a string table */
-#ifdef DEBUGAR
-	    ErrorF("String Table Member '%16.16s', size %d, offset %d\n",
-		   hdr.ar_name, size, offset);
-	    ErrorF("String table size %d\n", size);
-#endif
-	    nametablelen = size;
-	    nametable = (char *)xf86loadermalloc(nametablelen);
-	    read(arfd, nametable, size);
-	    offset = lseek(arfd, 0, SEEK_CUR);
-	    /* offset=lseek(arfd,offset+size,SEEK_SET); */
-	    if (offset & 0x1)	/* odd value */
-		offset = lseek(arfd, 1, SEEK_CUR);	/* make it an even boundary */
-	    continue;
-	}
-
-	if (hdr.ar_name[0] == '/') {
-	    /*  SYS V r4 style long member name */
-	    int nameoffset = atol(&hdr.ar_name[1]);
-	    char *membername;
-
-	    if (!nametable) {
-		ErrorF("Missing string table whilst processing %s\n",
-		       modrec->name);
-		offsetbias = 0;
-		return NULL;
-	    }
-	    if (nameoffset > nametablelen) {
-		ErrorF("Invalid string table offset (%s) whilst processing %s\n", hdr.ar_name, modrec->name);
-		offsetbias = 0;
-		xf86loaderfree(nametable);
-		return NULL;
-	    }
-	    membername = nametable + nameoffset;
-	    slash = strchr(membername, '/');
-	    if (slash)
-		*slash = '\0';
-	    longname = xf86loadermalloc(arnamesize + strlen(membername) + 2);
-	    strcpy(longname, modrec->name);
-	    strcat(longname, ":");
-	    strcat(longname, membername);
-	} else if (hdr.ar_name[0] == '#' && hdr.ar_name[1] == '1' &&
-		   hdr.ar_name[2] == '/') {
-	    /* BSD 4.4 style long member name */
-	    if (sscanf(hdr.ar_name + 3, "%d", &modnamesize) != 1) {
-		ErrorF("Bad archive member %s\n", hdr.ar_name);
-		offsetbias = 0;
-		return NULL;
-	    }
-	    /* allocate space for fully qualified name */
-	    longname = xf86loadermalloc(arnamesize + modnamesize + 2);
-	    strcpy(longname, modrec->name);
-	    strcat(longname, ":");
-	    i = read(arfd, longname + modnamesize + 1, modnamesize);
-	    if (i != modnamesize) {
-		ErrorF("Bad archive member %s\n", hdr.ar_name);
-		xf86loaderfree(longname);
-		offsetbias = 0;
-		return NULL;
-	    }
-	    longname[i] = '\0';
-	    offset += i;
-	    size -= i;
-	} else {
-	    /* Regular archive member */
-#ifdef DEBUGAR
-	    ErrorF("Member '%16.16s', size %d, offset %x\n",
-#if !(defined(__powerpc__) && defined(Lynx))
-		   hdr.ar_name,
-#else
-		   name,
-#endif
-		   size, offset);
-#endif
-
-	    slash = strchr(hdr.ar_name, '/');
-	    if (slash == NULL) {
-		/* BSD format without trailing slash */
-		slash = strchr(hdr.ar_name, ' ');
-	    }
-	    /* SM: Make sure we do not overwrite other parts of struct */
-
-	    if ((slash - hdr.ar_name) > sizeof(hdr.ar_name))
-		slash = hdr.ar_name + sizeof(hdr.ar_name) - 1;
-	    *slash = '\000';
-	}
-	if ((modtype = _GetModuleType(arfd, offset)) < 0) {
-	    ErrorF("%s is an unrecognized module type\n", hdr.ar_name);
-	    offsetbias = 0;
-	    if (nametable)
-		xf86loaderfree(nametable);
-	    return NULL;
-	}
-
-	tmp = _LoaderListPush();
-
-	tmp->handle = modrec->handle;
-	tmp->module = moduleseq++;
-	tmp->cname = xf86loadermalloc(strlen(modrec->cname) + 1);
-	strcpy(tmp->cname, modrec->cname);
-	tmp->funcs = &funcs[modtype];
-	if (longname == NULL) {
-	    modnamesize = strlen(hdr.ar_name);
-	    tmp->name =
-		    (char *)xf86loadermalloc(arnamesize + modnamesize + 2);
-	    strcpy(tmp->name, modrec->name);
-	    strcat(tmp->name, ":");
-	    strcat(tmp->name, hdr.ar_name);
-
-	} else {
-	    tmp->name = longname;
-	}
-	offsetbias = offset;
-
-	if ((tmp->private = funcs[modtype].LoadModule(tmp, arfd, &lookup_ret, LD_FLAG_GLOBAL))
-	    == NULL) {
-	    ErrorF("Failed to load %s\n", hdr.ar_name);
-	    offsetbias = 0;
-	    if (nametable)
-		xf86loaderfree(nametable);
-	    return NULL;
-	}
-
-	offset = lseek(arfd, offset + size, SEEK_SET);
-	if (offset & 0x1)	/* odd value */
-	    lseek(arfd, 1, SEEK_CUR);	/* make it an even boundary */
-
-	if (tmp->private == (void *)-1L) {
-	    xf86Msg(X_INFO, "Skipping \"%s\":  "
-		    "object file contains no symbols\n",
-		    tmp->name);
-	    continue;
-	} else
-	    ret = tmp->private;
-
-	/* Add the lookup table returned from funcs.LoadModule to the
-	 * one we're going to return.
-	 */
-	for (i = 0, p = lookup_ret; p && p->symName; i++, p++) ;
-	if (i) {
-	    myLookup = xf86loaderrealloc(myLookup, (numsyms + i + 1)
-					 * sizeof(LOOKUP));
-	    if (!myLookup)
-		continue;	/* Oh well! */
-
-	    memcpy(&(myLookup[numsyms]), lookup_ret, i * sizeof(LOOKUP));
-	    numsyms += i;
-	    myLookup[numsyms].symName = 0;
-	}
-	xf86loaderfree(lookup_ret);
-    }
-    /* xf86loaderfree(lookup_ret); */
-    offsetbias = 0;
-
-    *ppLookup = myLookup;
-    if (nametable)
-	xf86loaderfree(nametable);
-
-    return ret;
 }
 
 /*
