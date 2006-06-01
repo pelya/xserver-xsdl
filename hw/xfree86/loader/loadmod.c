@@ -413,11 +413,7 @@ FindModule(const char *module, const char *dir, const char **subdirlist,
     int dirlen;
     const char **subdirs = NULL;
     const char **s;
-#ifdef DLOPEN_HACK
     const char suffix[3][3] = { "so", "a", "o" };
-#else
-    const char suffix[3][3] = { "a", "o", "so" };
-#endif
 
 #ifndef __EMX__
     dirpath = (char *)dir;

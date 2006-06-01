@@ -247,10 +247,3 @@ RootWinPropPtr *xf86RegisteredPropertiesTable = NULL;
 _X_EXPORT Bool xf86inSuspend = FALSE;
 Bool xorgHWAccess = FALSE;
 PciBusId xf86IsolateDevice;
-
-#ifdef DLOPEN_HACK
-/*
- * This stuff is a hack to allow dlopen() modules to work.  It is intended
- * only to be used when using dlopen() modules for debugging purposes.
- */
-#endif

@@ -282,12 +282,10 @@ LoaderInit(void)
 {
     const char *osname = NULL;
 
-#ifdef DLOPEN_SUPPORT
     char *ld_bind_now = getenv("LD_BIND_NOW");
     if (ld_bind_now && *ld_bind_now) {
         xf86Msg(X_ERROR, "LD_BIND_NOW is set, dlloader will NOT work!\n");
     }
-#endif
 
     LoaderAddSymbols(-1, -1, miLookupTab);
     LoaderAddSymbols(-1, -1, xfree86LookupTab);
@@ -1001,11 +999,7 @@ LoaderSymbol(const char *sym)
     if (item)
 	return item->address;
     else
-#ifdef DLOPEN_SUPPORT
 	return (DLFindSymbol(sym));
-#else
-	return NULL;
-#endif
 }
 
 int

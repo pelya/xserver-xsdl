@@ -28,12 +28,6 @@
 /* Use OsVendorInit */
 #undef DDXOSINIT
 
-/* Prefer dlloader modules to elfloader */
-#undef DLOPEN_HACK
-
-/* Building with libdl */
-#undef DLOPEN_SUPPORT
-
 /* Build DPMS extension */
 #undef DPMSExtension
 

@@ -41,9 +41,12 @@
 	Ignore requests to load deprecated GLcore and speedo modules
 	(properly, this time).
 
+	* configure.ac:
+	* hw/xfree86/common/xf86Globals.c:
 	* hw/xfree86/loader/Makefile.am:
 	* hw/xfree86/loader/loader.c:
 	* hw/xfree86/loader/loader.h:
+	* hw/xfree86/loader/loadmod.c:
 	* hw/xfree86/loader/ar.h:
 	* hw/xfree86/loader/aout.h:
 	* hw/xfree86/loader/aoutloader.h:
@@ -54,6 +57,8 @@
 	* hw/xfree86/loader/elf.h:
 	* hw/xfree86/loader/elfloader.h:
 	* hw/xfree86/loader/elfloader.c:
+	* include/xorg-config.h.in:
+	* include/xorg-server.h.in:
 	Kill the a.out, ELF and COFF loaders with extreme prejudice.  Good
 	riddance.  There's more where this came from, too.
 
