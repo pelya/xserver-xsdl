@@ -17,6 +17,13 @@
 	* os/WaitFor.c:
 	Die, XTESTEXT1, die!
 
+	* dix/devices.c:
+	* include/input.h:
+	* mi/mipointer.h:
+	* mi/mipointer.c:
+	Get rid of horrendous, somewhat misguided, DDX binary-compatibility
+	glue.
+
 2006-05-30  Matthieu Herrb <matthieu.herrb@laas.fr>
 
 	* hw/xfree86/os-support/bsd/Makefile.am:

@@ -134,12 +134,6 @@ extern void miPointerPosition(
     int * /*y*/
 );
 
-#undef miRegisterPointerDevice
-extern void miRegisterPointerDevice(
-    ScreenPtr /*pScreen*/,
-    DevicePtr /*pDevice*/
-);
-
 extern void miPointerSetNewScreen(
     int, /*screen_no*/
 	int, /*x*/
@@ -149,10 +143,7 @@ extern ScreenPtr miPointerCurrentScreen(
     void
 );
 
-#define miRegisterPointerDevice(pScreen,pDevice) \
-       _miRegisterPointerDevice(pScreen,pDevice)
-
-extern void _miRegisterPointerDevice(
+extern void miRegisterPointerDevice(
     ScreenPtr /*pScreen*/,
     DeviceIntPtr /*pDevice*/
 );

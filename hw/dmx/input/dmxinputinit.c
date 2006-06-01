@@ -669,13 +669,13 @@ static DeviceIntPtr dmxAddDevice(DMXLocalInputInfoPtr dmxLocal)
             dmxLocal->isCore     = 1;
             dmxLocalCoreKeyboard = dmxLocal;
             name                 = "keyboard";
-            registerProcPtr      = _RegisterKeyboardDevice;
+            registerProcPtr      = RegisterKeyboardDevice;
         }
         if (dmxLocal->type == DMX_LOCAL_MOUSE && !dmxLocalCorePointer) {
             dmxLocal->isCore     = 1;
             dmxLocalCorePointer  = dmxLocal;
             name                 = "pointer";
-            registerProcPtr      = _RegisterPointerDevice;
+            registerProcPtr      = RegisterPointerDevice;
         }
     }
 

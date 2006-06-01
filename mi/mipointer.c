@@ -523,22 +523,9 @@ miPointerMove (pScreen, x, y, time)
 }
 
 void
-_miRegisterPointerDevice (pScreen, pDevice)
+miRegisterPointerDevice (pScreen, pDevice)
     ScreenPtr	pScreen;
     DeviceIntPtr pDevice;
 {
     miPointer.pPointer = (DevicePtr)pDevice;
 }
-
-/* obsolete: for binary compatibility */
-
-#ifdef miRegisterPointerDevice
-#undef miRegisterPointerDevice
-void
-miRegisterPointerDevice (pScreen, pDevice)
-    ScreenPtr	pScreen;
-    DevicePtr pDevice;
-{
-    miPointer.pPointer = pDevice;
-}
-#endif /* miRegisterPointerDevice */

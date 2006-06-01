@@ -70,7 +70,7 @@ int ChangeKeyboardDevice(DeviceIntPtr old_dev, DeviceIntPtr new_dev)
     dmxLocalNew->sendsCore      = 1;
     dmxLocalCorePointer         = dmxLocalNew;
 
-    _RegisterKeyboardDevice(new_dev);
+    RegisterKeyboardDevice(new_dev);
     RegisterOtherDevice(old_dev);
     
     return Success;
