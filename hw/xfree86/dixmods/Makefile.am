@@ -28,8 +28,7 @@ extsmodule_LTLIBRARIES = librecord.la \
                          $(XTRAPMOD)
 
 fontsmoduledir = $(moduledir)/fonts
-fontsmodule_LTLIBRARIES = libbitmap.la \
-                          libfreetype.la \
+fontsmodule_LTLIBRARIES = libfreetype.la \
                           libtype1.la
 
 AM_CFLAGS = @XORG_CFLAGS@ @DIX_CFLAGS@ @SERVER_DEFINES@ @LOADER_DEFINES@
@@ -49,11 +48,6 @@ libGLcore_la_SOURCES = GLcoremodule.c
 libafb_la_LDFLAGS = -avoid-version
 libafb_la_LIBADD = $(top_builddir)/afb/libafb.la
 libafb_la_SOURCES = afbmodule.c
-
-# libbitmap is just a wrapper around the bitmap font code in Xfont.
-# it doesn't even make sense to have it loadable, but, welcome to X.
-libbitmap_la_SOURCES = bitmapmod.c
-libbitmap_la_LDFLAGS = -avoid-version # `pkg-config --libs xfont`
 
 libcfb_la_LDFLAGS = -avoid-version
 libcfb_la_LIBADD = $(top_builddir)/cfb/libcfb.la

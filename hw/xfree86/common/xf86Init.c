@@ -1,5 +1,5 @@
 /* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86Init.c,v 3.212 2004/01/27 01:31:45 dawes Exp $ */
-/* $XdotOrg: xserver/xorg/hw/xfree86/common/xf86Init.c,v 1.35 2006/05/09 18:04:29 ajax Exp $ */
+/* $XdotOrg: xserver/xorg/hw/xfree86/common/xf86Init.c,v 1.36 2006/06/01 18:47:01 daniels Exp $ */
 
 /*
  * Loosely based on code bearing the following copyright:
@@ -116,7 +116,6 @@ void (*xf86OSPMClose)(void) = NULL;
 
 #ifdef XFree86LOADER
 static char *baseModules[] = {
-	"bitmap",
 	"pcidata",
 	NULL
 };

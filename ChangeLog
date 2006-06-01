@@ -1,3 +1,10 @@
+2006-06-01  Adam Jackson  <ajax@freedesktop.org>
+
+	* hw/xfree86/common/xf86Init.c:
+	* hw/xfree86/dixmods/Makefile.am:
+	* hw/xfree86/dixmods/bitmapmod.c:
+	Bug #5089: Die, libbitmap, die!
+
 2006-06-01  Daniel Stone  <daniel@freedesktop.org>
 
 	* Xext/Makefile.am:
