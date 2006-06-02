@@ -1,4 +1,4 @@
-/* $XdotOrg: xserver/xorg/hw/xfree86/common/xf86Config.c,v 1.31 2006/06/01 19:49:55 daniels Exp $ */
+/* $XdotOrg: xserver/xorg/hw/xfree86/common/xf86Config.c,v 1.32 2006/06/01 19:53:06 ajax Exp $ */
 /* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86Config.c,v 3.276 2003/10/08 14:58:26 dawes Exp $ */
 
 
@@ -251,7 +251,7 @@ xf86ModulelistFromConfig(pointer **optlist)
 {
     int count = 0, i = 0;
     char **modulearray;
-    char **ignore = { "GLcore", "speedo", "bitmap", NULL };
+    char *ignore[] = { "GLcore", "speedo", "bitmap", NULL };
     pointer *optarray;
     XF86LoadPtr modp;
     
